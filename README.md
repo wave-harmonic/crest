@@ -1,4 +1,4 @@
 # crest
-MIT licensed ocean rendering research (Unity3D 5.x)
+Unity3D ocean rendering research
 
 Publication coming shortly.

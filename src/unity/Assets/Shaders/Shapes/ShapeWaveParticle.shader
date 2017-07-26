@@ -75,11 +75,12 @@ Shader "Ocean/Shape/Wave Particle"
 					disp.w = 1.;
 
 					// power 4 smoothstep - no normalize needed
-					float r = dot( i.worldOffsetNorm.xz, i.worldOffsetNorm.xz );
-					if( r < 1. )
+					float r2 = dot( i.worldOffsetNorm.xz, i.worldOffsetNorm.xz );
+					if( r2 < 1. )
 					{
-						r = 1. - r;
-						disp.y = r * r *_Amplitude;
+						r2 = 1. - r2;
+						disp.y = r2 * r2 * _Amplitude;
+						disp.xz = -.35 * r2 * i.worldOffsetNorm.xz * _Radius;
 					}
 
 					return disp;

@@ -1,0 +1,82 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_Name: Ocean
+  m_Shader: {fileID: 4800000, guid: 668aecf91371c8b4997e42c0c7b19527, type: 3}
+  m_ShaderKeywords: 
+  m_LightmapFlags: 5
+  m_EnableInstancingVariants: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _FoamTexture:
+        m_Texture: {fileID: 2800000, guid: e330b3b94b6bdfb42ab2a9e1ca3a5efc, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MainTex:
+        m_Texture: {fileID: 8400000, guid: 33331381cbc5c564583cd5e47314cf78, type: 2}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Normals:
+        m_Texture: {fileID: 2800000, guid: b62ab96e7ff97b5459c633bd0fa01486, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Skybox:
+        m_Texture: {fileID: 8900000, guid: 5ee6a2bdc681ba44f927bb8e302699c9, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _WD_Sampler_0:
+        m_Texture: {fileID: 8400000, guid: 33331381cbc5c564583cd5e47314cf78, type: 2}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _WD_Sampler_1:
+        m_Texture: {fileID: 8400000, guid: ba628b5ad7a570e4b95c3ee64a5c605d, type: 2}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _WD_Sampler_2:
+        m_Texture: {fileID: 8400000, guid: 6b165028befdf0745b04ebdfbf672681, type: 2}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _WD_Sampler_3:
+        m_Texture: {fileID: 8400000, guid: e94a5d7132329854281515fe36afb70e, type: 2}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _WD_Sampler_Hi:
+        m_Texture: {fileID: 8400000, guid: 33331381cbc5c564583cd5e47314cf78, type: 2}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _WD_Sampler_Lo:
+        m_Texture: {fileID: 8400000, guid: ba628b5ad7a570e4b95c3ee64a5c605d, type: 2}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _WD_Tex_Hi:
+        m_Texture: {fileID: 8400000, guid: 33331381cbc5c564583cd5e47314cf78, type: 2}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _WaveDataTex:
+        m_Texture: {fileID: 8400000, guid: 33331381cbc5c564583cd5e47314cf78, type: 2}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Floats:
+    - _BumpAmt: 0.514
+    - _MipBias: 0
+    - _Moving: 0.17
+    - _Offset: 0.00008
+    - _RefractAmt: 0
+    - _S: 1
+    - _StartLevel: 0.157
+    - _TexelSize: 0.125
+    - _TextureRes: 1024
+    - _Update: 0.083
+    m_Colors:
+    - _Diffuse: {r: 0.04044801, g: 0.15239102, b: 0.316, a: 1}
+    - _FoamBubbleColor: {r: 0.037152, g: 0.21600002, b: 0.19883053, a: 0.8980392}
+    - _FoamWhiteColor: {r: 1, g: 1, b: 1, a: 1}

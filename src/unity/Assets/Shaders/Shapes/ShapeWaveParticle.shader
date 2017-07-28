@@ -70,9 +70,7 @@ Shader "Ocean/Shape/Wave Particle"
 
 				float4 frag (v2f i) : SV_Target
 				{
-					float4 disp;
-					disp.xyz = (float3)0.;
-					disp.w = 1.;
+					float3 disp;
 
 					// power 4 smoothstep - no normalize needed
 					float r2 = dot( i.worldOffsetNorm.xz, i.worldOffsetNorm.xz );
@@ -80,10 +78,12 @@ Shader "Ocean/Shape/Wave Particle"
 					{
 						r2 = 1. - r2;
 						disp.y = r2 * r2 * _Amplitude;
+
+						// add some horizontal displacement to approximate circular motion of points on surface of water
 						disp.xz = -.35 * r2 * i.worldOffsetNorm.xz * _Radius;
 					}
 
-					return disp;
+					return float4(disp, 1.0);
 				}
 
 				ENDCG

@@ -9,7 +9,7 @@ Shader "Ocean/Shape/Gerstner Octave"
 		_Wavelength("Wavelength", float) = 100
 		_Angle ("Angle", range(-180, 180)) = 0
 		_Speed ("Speed", float) = 10
-		_Steepness ("Steepness", range(0, 1)) = 0.1
+		_Steepness ("Steepness", range(0, 5)) = 0.1
 	}
 
 	Category

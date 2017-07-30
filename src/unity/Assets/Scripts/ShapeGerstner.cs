@@ -38,8 +38,14 @@ namespace OceanResearch
         // Shader to be used to render out a single Gerstner octave.
         public Shader GerstnerOctaveShader;
 
+        public int RandomSeed = 0;
+
         void Start()
         {
+            // Set random seed to get repeatable results
+            Random.State randomStateBkp = Random.state;
+            Random.InitState( RandomSeed );
+
             // Generate the given number of octaves, each generating a GameObject rendering a quad.
             for (int i = 0; i < NumOctaves; i++)
             {
@@ -85,6 +91,8 @@ namespace OceanResearch
                 // Choppiness
                 renderer.material.SetFloat("_Steepness", Choppiness);
             }
+
+            Random.state = randomStateBkp;
         }
     }
 }

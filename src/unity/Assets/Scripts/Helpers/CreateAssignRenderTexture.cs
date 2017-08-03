@@ -20,13 +20,30 @@ public class CreateAssignRenderTexture : MonoBehaviour
     public int _anisoLevel = 0;
     public bool _useMipMap = false;
 
+    public bool _createPingPongTargets = false;
+
 	void Start()
+    {
+
+        if( !_createPingPongTargets )
+        {
+            RenderTexture rt = CreateRT( _targetName );
+            GetComponent<Camera>().targetTexture = rt;
+        }
+        else
+        {
+            CreatePingPongRts();
+        }
+
+	}
+
+    RenderTexture CreateRT( string name )
     {
         RenderTexture tex = new RenderTexture( _width, _height, _depthBits, _format );
 
-        if( !string.IsNullOrEmpty( _targetName ) )
+        if( !string.IsNullOrEmpty( name ) )
         {
-            tex.name = _targetName;
+            tex.name = name;
         }
 
         tex.wrapMode = _wrapMode;
@@ -35,6 +52,19 @@ public class CreateAssignRenderTexture : MonoBehaviour
         tex.anisoLevel = _anisoLevel;
         tex.useMipMap = _useMipMap;
 
-        GetComponent<Camera>().targetTexture = tex;
-	}
+        return tex;
+    }
+
+    void CreatePingPongRts()
+    {
+        PingPongRts ppr = GetComponent<PingPongRts>();
+        if( ppr == null )
+        {
+            Debug.LogError( "To create ping pong render targets, a PingPongRts components needs to be added to this GO.", this );
+            return;
+        }
+
+        ppr._rtA = CreateRT( _targetName + "_A" );
+        ppr._rtB = CreateRT( _targetName + "_B" );
+    }
 }

@@ -15,7 +15,7 @@ namespace OceanResearch
         [HideInInspector]
         public int _lodCount = 5;
 
-        int _shapeRes = 512;
+        int _shapeRes = -1;
 
         struct RenderData
         {
@@ -28,14 +28,6 @@ namespace OceanResearch
 
         void Start()
         {
-            if( camera.targetTexture )
-            {
-                // hb using the mip chain does NOT work out well when moving the shape texture around, because mip hierarchy will pop when the position
-                // snaps. this is knocked out by the CreateAssignRenderTexture script.
-                //camera.targetTexture.useMipMap = false;
-                _shapeRes = camera.targetTexture.width;
-            }
-
             camera.depthTextureMode = DepthTextureMode.None;
         }
 
@@ -50,7 +42,11 @@ namespace OceanResearch
             // find snap period
             int width = camera.targetTexture.width;
             // debug functionality to resize RT if different size was specified.
-            if( width != _shapeRes )
+            if( _shapeRes == -1 )
+            {
+                _shapeRes = width;
+            }
+            else if( width != _shapeRes )
             {
                 camera.targetTexture.Release();
                 camera.targetTexture.width = camera.targetTexture.height = _shapeRes;

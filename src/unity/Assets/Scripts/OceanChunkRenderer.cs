@@ -2,7 +2,7 @@
 
 using UnityEngine;
 
-namespace OceanResearch
+namespace Crest
 {
     /// <summary>
     /// Sets shader parameters for each geometry tile/chunk.

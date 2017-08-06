@@ -2,7 +2,7 @@
 
 using UnityEngine;
 
-namespace OceanResearch
+namespace Crest
 {
     /// <summary>
     /// Positions wave data render camera. Snaps to shape texels to avoid aliasing.

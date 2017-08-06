@@ -2,7 +2,7 @@
 
 using UnityEngine;
 
-namespace OceanResearch
+namespace Crest
 {
     /// <summary>
     /// Support script for gerstner wave ocean shapes.

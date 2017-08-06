@@ -3,7 +3,7 @@
 using UnityEditor;
 using UnityEngine;
 
-namespace OceanResearch
+namespace Crest
 {
     [CustomEditor( typeof( OceanRenderer ) )]
     public class OceanRendererEditor : Editor

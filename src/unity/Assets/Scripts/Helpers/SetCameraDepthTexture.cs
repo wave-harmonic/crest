@@ -2,16 +2,19 @@
 
 using UnityEngine;
 
-/// <summary>
-/// This is to ensure depth is available in case we use it in the ocean surface shader
-/// </summary>
-[ExecuteInEditMode]
-public class SetCameraDepthTexture : MonoBehaviour {
+namespace Crest
+{
+    /// <summary>
+    /// This is to ensure depth is available in case we use it in the ocean surface shader
+    /// </summary>
+    [ExecuteInEditMode]
+    public class SetCameraDepthTexture : MonoBehaviour
+    {
+        public DepthTextureMode _mode = DepthTextureMode.Depth;
 
-	public DepthTextureMode _mode = DepthTextureMode.Depth;
-
-	void Start()
-	{
-        GetComponent<Camera>().depthTextureMode |= DepthTextureMode.Depth;
-	}
+        void Start()
+        {
+            GetComponent<Camera>().depthTextureMode |= DepthTextureMode.Depth;
+        }
+    }
 }

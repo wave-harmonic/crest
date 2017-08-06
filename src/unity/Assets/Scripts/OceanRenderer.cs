@@ -2,7 +2,7 @@
 
 using UnityEngine;
 
-namespace OceanResearch
+namespace Crest
 {
     /// <summary>
     /// Scales the ocean horizontally based on the camera height, to keep geometry detail uniform-ish in screen space.

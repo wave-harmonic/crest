@@ -2,7 +2,7 @@
 
 using UnityEngine;
 
-namespace OceanResearch
+namespace Crest
 {
     /// <summary>
     /// Offsets this gameobject from a provided viewer.

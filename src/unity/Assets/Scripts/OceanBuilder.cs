@@ -5,7 +5,7 @@
 using UnityEngine;
 using System.Collections;
 
-namespace OceanResearch
+namespace Crest
 {
     /// <summary>
     /// Instantiates all the ocean geometry, as a set of tiles.

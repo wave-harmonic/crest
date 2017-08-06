@@ -66,5 +66,6 @@ public class CreateAssignRenderTexture : MonoBehaviour
 
         ppr._rtA = CreateRT( _targetName + "_A" );
         ppr._rtB = CreateRT( _targetName + "_B" );
+        ppr._source_1 = CreateRT( _targetName + "_1" );
     }
 }

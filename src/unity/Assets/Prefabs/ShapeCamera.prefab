@@ -112,3 +112,4 @@ MonoBehaviour:
   _filterMode: 1
   _anisoLevel: 0
   _useMipMap: 0
+  _createPingPongTargets: 0

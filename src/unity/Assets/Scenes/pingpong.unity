@@ -108,33 +108,6 @@ NavMeshSettings:
     tileSize: 256
     accuratePlacement: 0
   m_NavMeshData: {fileID: 0}
---- !u!1 &1903511 stripped
-GameObject:
-  m_PrefabParentObject: {fileID: 1996984610904776, guid: 34c4f20ff09a39e4299f7341277be9c1,
-    type: 2}
-  m_PrefabInternal: {fileID: 908201427}
---- !u!4 &1903515 stripped
-Transform:
-  m_PrefabParentObject: {fileID: 4685541729782842, guid: 34c4f20ff09a39e4299f7341277be9c1,
-    type: 2}
-  m_PrefabInternal: {fileID: 908201427}
---- !u!114 &1903516
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 1903511}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6cf13963660000c47aaee27048771bc3, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _rtA: {fileID: 0}
-  _rtB: {fileID: 0}
-  _sourceShaderSamplerNames:
-  - _WavePPTSource
-  _hackSetTexture: {fileID: 2100000, guid: 3b9b0b49eb5ce8c47a33c78d942701aa, type: 2}
-  _source_1: {fileID: 0}
 --- !u!1 &453502823
 GameObject:
   m_ObjectHideFlags: 0
@@ -145,6 +118,7 @@ GameObject:
   - component: {fileID: 453502824}
   - component: {fileID: 453502826}
   - component: {fileID: 453502825}
+  - component: {fileID: 453502827}
   m_Layer: 8
   m_Name: Quad
   m_TagString: Untagged
@@ -158,12 +132,12 @@ Transform:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 453502823}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0.15625}
-  m_LocalScale: {x: 4, y: 4, z: 4}
+  m_LocalRotation: {x: 0.7071068, y: -0, z: -0, w: 0.7071068}
+  m_LocalPosition: {x: 0, y: -0, z: -0}
+  m_LocalScale: {x: 428.25467, y: 428.255, z: 428.255}
   m_Children: []
-  m_Father: {fileID: 1903515}
-  m_RootOrder: 0
+  m_Father: {fileID: 0}
+  m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!23 &453502825
 MeshRenderer:
@@ -204,6 +178,17 @@ MeshFilter:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 453502823}
   m_Mesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &453502827
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 453502823}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b9c9e613285876e4094fe9e207f5df13, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &893110382
 GameObject:
   m_ObjectHideFlags: 0
@@ -332,61 +317,10 @@ Prefab:
       propertyPath: m_RootOrder
       value: 2
       objectReference: {fileID: 0}
-    - target: {fileID: 4685541729782842, guid: 34c4f20ff09a39e4299f7341277be9c1, type: 2}
-      propertyPath: m_LocalScale.x
-      value: 32
-      objectReference: {fileID: 0}
-    - target: {fileID: 4685541729782842, guid: 34c4f20ff09a39e4299f7341277be9c1, type: 2}
-      propertyPath: m_LocalScale.y
-      value: 32
-      objectReference: {fileID: 0}
-    - target: {fileID: 4685541729782842, guid: 34c4f20ff09a39e4299f7341277be9c1, type: 2}
-      propertyPath: m_LocalScale.z
-      value: 32
-      objectReference: {fileID: 0}
-    - target: {fileID: 114684228389619092, guid: 34c4f20ff09a39e4299f7341277be9c1,
-        type: 2}
-      propertyPath: _createPingPongTargets
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 4685541729782842, guid: 34c4f20ff09a39e4299f7341277be9c1, type: 2}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 90
-      objectReference: {fileID: 0}
-    - target: {fileID: 114684228389619092, guid: 34c4f20ff09a39e4299f7341277be9c1,
-        type: 2}
-      propertyPath: _width
-      value: 128
-      objectReference: {fileID: 0}
-    - target: {fileID: 114684228389619092, guid: 34c4f20ff09a39e4299f7341277be9c1,
-        type: 2}
-      propertyPath: _height
-      value: 128
-      objectReference: {fileID: 0}
-    - target: {fileID: 114684228389619092, guid: 34c4f20ff09a39e4299f7341277be9c1,
-        type: 2}
-      propertyPath: _antiAliasing
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 114684228389619092, guid: 34c4f20ff09a39e4299f7341277be9c1,
-        type: 2}
-      propertyPath: _format
-      value: 11
-      objectReference: {fileID: 0}
-    - target: {fileID: 114684228389619092, guid: 34c4f20ff09a39e4299f7341277be9c1,
-        type: 2}
-      propertyPath: _useMipMap
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 20182215202972010, guid: 34c4f20ff09a39e4299f7341277be9c1,
-        type: 2}
-      propertyPath: orthographic size
-      value: 64
-      objectReference: {fileID: 0}
     - target: {fileID: 114684228389619092, guid: 34c4f20ff09a39e4299f7341277be9c1,
         type: 2}
       propertyPath: _wrapMode
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 34c4f20ff09a39e4299f7341277be9c1, type: 2}

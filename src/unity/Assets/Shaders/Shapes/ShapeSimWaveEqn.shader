@@ -6,16 +6,11 @@
 // Creative Commons Attribution-ShareAlike (CC BY-SA)
 // https://creativecommons.org/licenses/by-sa/4.0/
 
-// A single Gerstner Octave
+// solve 2D wave equation
 Shader "Ocean/Shape/Sim/2D Wave Equation"
 {
 	Properties
 	{
-		_Amplitude ("Amplitude", float) = 1
-		_Wavelength("Wavelength", float) = 100
-		_Angle ("Angle", range(-180, 180)) = 0
-		_Speed ("Speed", float) = 10
-		_Steepness ("Steepness", range(0, 5)) = 0.1
 	}
 
 	Category
@@ -28,7 +23,7 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 			{
 				Name "BASE"
 				Tags { "LightMode" = "Always" }
-			
+
 				CGPROGRAM
 				#pragma vertex vert
 				#pragma fragment frag
@@ -38,13 +33,12 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 
 				struct appdata_t {
 					float4 vertex : POSITION;
-					float2 texcoord : TEXCOORD0;
 				};
 
 				struct v2f {
 					float4 vertex : SV_POSITION;
 					float3 worldPos : TEXCOORD0;
-					float2 texcoord : TEXCOORD1;
+					float2 clipPos : TEXCOORD1;
 				};
 
 				bool SamplingIsAdequate( float minWavelengthInShape )
@@ -56,8 +50,11 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 				{
 					v2f o;
 					o.vertex = UnityObjectToClipPos( v.vertex );
-					o.texcoord = v.texcoord;
 					o.worldPos = mul( unity_ObjectToWorld, v.vertex ).xyz;
+
+					o.clipPos = o.vertex.xy;
+					o.clipPos.y = -o.clipPos.y;
+					o.clipPos = 0.5*o.clipPos + 0.5;
 
 					// if wavelength is too small, kill this quad so that it doesnt render any shape
 					if( !SamplingIsAdequate( 0.0 ) )
@@ -69,10 +66,6 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 				// respects the gui option to freeze time
 				uniform float _MyTime;
 
-				uniform float _Amplitude;
-				uniform float _Angle;
-				uniform float _Speed;
-				uniform float _Steepness;
 				uniform sampler2D _WavePPTSource;
 				uniform sampler2D _WavePPTSource_Prev;
 
@@ -80,34 +73,28 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 				{
 					i.worldPos.y = 0.;
 
-					float2 q = i.texcoord;
-
+					float2 q = i.clipPos;
 					float3 e = float3(float2(1., 1.) / _ScreenParams.xy, 0.);
 
-					float4 c = tex2D(_WavePPTSource_Prev, q);
-
-					float p11 = c.x;
-
-					float p10 = tex2D(_WavePPTSource, q - e.zy).x;
-					float p01 = tex2D(_WavePPTSource, q - e.xz).x;
-					float p21 = tex2D(_WavePPTSource, q + e.xz).x;
-					float p12 = tex2D(_WavePPTSource, q + e.zy).x;
-
-					float d = 0.;
+					float p11 = tex2D( _WavePPTSource_Prev, q ).y;
+					float p10 = tex2D(_WavePPTSource, q - e.zy).y;
+					float p01 = tex2D(_WavePPTSource, q - e.xz).y;
+					float p21 = tex2D(_WavePPTSource, q + e.xz).y;
+					float p12 = tex2D(_WavePPTSource, q + e.zy).y;
 
 					// The actual propagation:
-					d += -(p11 - .5)*2. + (p10 + p01 + p21 + p12 - 2.);
-					d *= .99; // damping
-					d = d*.5 + .5;
+					float d = ((p10 + p01 + p21 + p12) / 2. - p11);
+					// Damping
+					d *= .99;
 
 					if( frac( _Time.w / 12. ) < 0.05 )
 					{
-						d = smoothstep( 33., 30., length( i.worldPos-float3(15.,0.,10.) ) );
+						d = 40.*smoothstep( 33., 30., length( i.worldPos-float3(15.,0.,10.) ) );
 					}
 
 					//d *= smoothstep( 10.9, 11., length( i.worldPos + float3(22., 0., 18.) ) );
 
-					return float4( d, 0, 0, 0 );
+					return float4( 0., d, 0., 1. );
 				}
 
 				ENDCG

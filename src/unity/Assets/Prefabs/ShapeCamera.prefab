@@ -22,6 +22,7 @@ GameObject:
   - component: {fileID: 20182215202972010}
   - component: {fileID: 114145803501224996}
   - component: {fileID: 114684228389619092}
+  - component: {fileID: 114912430004410698}
   m_Layer: 0
   m_Name: ShapeCamera
   m_TagString: Untagged
@@ -35,13 +36,13 @@ Transform:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1996984610904776}
-  m_LocalRotation: {x: -0.7071068, y: 0, z: 0, w: 0.7071068}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalRotation: {x: 0.7071068, y: 0, z: 0, w: 0.7071068}
+  m_LocalPosition: {x: 0, y: 5, z: -0}
+  m_LocalScale: {x: 32, y: 32, z: 32}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
-  m_LocalEulerAnglesHint: {x: -90, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
 --- !u!20 &20182215202972010
 Camera:
   m_ObjectHideFlags: 1
@@ -62,7 +63,7 @@ Camera:
   far clip plane: 500
   field of view: 60
   orthographic: 1
-  orthographic size: 240
+  orthographic size: 64
   m_Depth: -5
   m_CullingMask:
     serializedVersion: 2
@@ -103,13 +104,29 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _targetName: anon_ocean_rt
-  _width: 256
-  _height: 256
+  _width: 128
+  _height: 128
   _depthBits: 0
-  _format: 2
-  _wrapMode: 1
+  _format: 11
+  _wrapMode: 0
   _antiAliasing: 1
   _filterMode: 1
   _anisoLevel: 0
   _useMipMap: 0
-  _createPingPongTargets: 0
+  _createPingPongTargets: 1
+--- !u!114 &114912430004410698
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1996984610904776}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6cf13963660000c47aaee27048771bc3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _rtA: {fileID: 0}
+  _rtB: {fileID: 0}
+  _rtPrev: {fileID: 0}
+  _targetThisFrame: {fileID: 0}
+  sourceThisFrame: {fileID: 0}

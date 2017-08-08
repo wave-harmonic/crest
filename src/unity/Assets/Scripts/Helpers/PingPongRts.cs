@@ -2,8 +2,9 @@
 
 public class PingPongRts : MonoBehaviour
 {
-    RenderTexture _rtA, _rtB, _rtPrev;
-    RenderTexture _targetThisFrame;
+    public RenderTexture _rtA, _rtB, _rtPrev;
+    public RenderTexture _targetThisFrame;
+    public RenderTexture sourceThisFrame;
 
     public void InitRTs( RenderTexture rtA, RenderTexture rtB, RenderTexture rtPrev )
     {
@@ -14,14 +15,9 @@ public class PingPongRts : MonoBehaviour
 
     void Update()
     {
-        RenderTexture sourceThisFrame;
         UpdatePingPong( out sourceThisFrame );
 
         Cam.targetTexture = _targetThisFrame;
-
-        // set render targets
-        Shader.SetGlobalTexture( "_WavePPTSource", sourceThisFrame );
-        Shader.SetGlobalTexture( "_WavePPTSource_Prev", _rtPrev );
     }
 
     void UpdatePingPong( out RenderTexture sourceThisFrame )

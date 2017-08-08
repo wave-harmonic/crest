@@ -2,30 +2,26 @@
 
 public class PingPongRts : MonoBehaviour
 {
-    public RenderTexture _rtA;
-    public RenderTexture _rtB;
+    RenderTexture _rtA, _rtB, _rtPrev;
     RenderTexture _targetThisFrame;
-    public string[] _sourceShaderSamplerNames;
-    public Material _hackSetTexture;
-    public RenderTexture _source_1;
 
-	void Update()
+    public void InitRTs( RenderTexture rtA, RenderTexture rtB, RenderTexture rtPrev )
+    {
+        _rtA = rtA;
+        _rtB = rtB;
+        _rtPrev = rtPrev;
+    }
+
+    void Update()
     {
         RenderTexture sourceThisFrame;
         UpdatePingPong( out sourceThisFrame );
 
         Cam.targetTexture = _targetThisFrame;
 
-        foreach( string rtName in _sourceShaderSamplerNames )
-        {
-            Shader.SetGlobalTexture( rtName, sourceThisFrame );
-            // the gobal texture doesnt seem to work, so setting it manually as a hack.. for now..
-            if( _hackSetTexture != null )
-            {
-                _hackSetTexture.SetTexture( rtName, sourceThisFrame );
-                _hackSetTexture.SetTexture( "_WavePPTSource_1", _source_1 );
-            }
-        }
+        // set render targets
+        Shader.SetGlobalTexture( "_WavePPTSource", sourceThisFrame );
+        Shader.SetGlobalTexture( "_WavePPTSource_Prev", _rtPrev );
     }
 
     void UpdatePingPong( out RenderTexture sourceThisFrame )
@@ -35,7 +31,7 @@ public class PingPongRts : MonoBehaviour
         _targetThisFrame = _targetThisFrame == _rtA ? _rtB : _rtA;
 
         // make a copy of the target
-        Graphics.Blit( _targetThisFrame, _source_1 );
+        Graphics.Blit( _targetThisFrame, _rtPrev );
 
         if( _targetThisFrame == null )
         {

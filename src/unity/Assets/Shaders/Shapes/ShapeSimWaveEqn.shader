@@ -74,7 +74,7 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 				uniform float _Speed;
 				uniform float _Steepness;
 				uniform sampler2D _WavePPTSource;
-				uniform sampler2D _WavePPTSource_1;
+				uniform sampler2D _WavePPTSource_Prev;
 
 				float4 frag (v2f i) : SV_Target
 				{
@@ -84,7 +84,7 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 
 					float3 e = float3(float2(1., 1.) / _ScreenParams.xy, 0.);
 
-					float4 c = tex2D(_WavePPTSource_1, q);
+					float4 c = tex2D(_WavePPTSource_Prev, q);
 
 					float p11 = c.x;
 
@@ -104,6 +104,8 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 					{
 						d = smoothstep( 33., 30., length( i.worldPos-float3(15.,0.,10.) ) );
 					}
+
+					//d *= smoothstep( 10.9, 11., length( i.worldPos + float3(22., 0., 18.) ) );
 
 					return float4( d, 0, 0, 0 );
 				}

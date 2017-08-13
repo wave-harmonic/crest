@@ -33,6 +33,19 @@ The ocean geometry itself as the Ocean shader attached. The vertex shader snaps 
 
 The ocean pixel shader samples normal maps at 2 different scales, both proportional to the current and next LOD scales, and then interpolates the result using *lodAlpha* for a smooth transition. Two layers of foam are added based on different thresholds of the foam value, with black point fading used to blend them.
 
+
+## Update Order
+
+* *MonoBehaviour.Update()*
+** CamController - moves viewer
+* *Unity Animation Update*
+* *MonoBehaviour.LateUpdate()*
+** SphereOffset - place ocean in front of viewer
+** OceanRenderer - set top transform for ocean - signed scale computed based on location
+** OceanChunkRenderer - the ocean tiles which read their transforms (inherits top ocean transform)
+** WaveDataCam - also updates based on the ocean transform
+
+
 ## Bugs and Improvement Directions
 
 * Each Gerstner wave is computed and blended into the displacement texture individually. This makes them very easy to work and convenient, but baking them down to a single pass would be an interesting optimisation direction.

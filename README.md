@@ -36,10 +36,10 @@ The ocean pixel shader samples normal maps at 2 different scales, both proportio
 
 ## Update Order
 
-* *MonoBehaviour.Update()*
+* __MonoBehaviour.Update()__
 ** CamController - moves viewer
-* *Unity Animation Update*
-* *MonoBehaviour.LateUpdate()*
+* __Unity Animation Update__
+* __MonoBehaviour.LateUpdate()__
 ** SphereOffset - place ocean in front of viewer
 ** OceanRenderer - set top transform for ocean - signed scale computed based on location
 ** OceanChunkRenderer - the ocean tiles which read their transforms (inherits top ocean transform)

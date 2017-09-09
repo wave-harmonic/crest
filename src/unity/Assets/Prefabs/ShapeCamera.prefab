@@ -108,7 +108,7 @@ MonoBehaviour:
   _height: 128
   _depthBits: 0
   _format: 11
-  _wrapMode: 0
+  _wrapMode: 1
   _antiAliasing: 1
   _filterMode: 1
   _anisoLevel: 0

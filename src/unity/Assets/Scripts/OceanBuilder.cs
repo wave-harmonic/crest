@@ -182,7 +182,8 @@ namespace OceanResearch
                 wdc._lodCount = parms._lodCount;
                 var cart = _shapeCameras[i].GetComponent<CreateAssignRenderTexture>();
                 cart._targetName = "shapeRT" + i.ToString();
-                cart._width = cart._height = (int)(4f * parms._baseVertDensity);
+                // hb todo - the multiply by power of 2s is a hack to work around the wave speed being tied to the texture resolution
+                cart._width = cart._height = (int)(4f * parms._baseVertDensity * Mathf.Pow( 2f, i ));
             }
 
             int startLevel = 0;

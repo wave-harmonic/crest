@@ -148,8 +148,8 @@ Shader "Ocean/Ocean"
 					// using .15 as black and .85 as white should work for base mesh density as low as 16. TODO - make this automatic?
 					const float BLACK_POINT = 0.15, WHITE_POINT = 0.85;
 					lodAlpha = max( (lodAlpha - BLACK_POINT) / (WHITE_POINT-BLACK_POINT), 0. );
-					const float meshScaleLerp = _InstanceData.x;
-					lodAlpha = min( lodAlpha + meshScaleLerp, 1. );
+					//const float meshScaleLerp = _InstanceData.x; // hb todo - undo this to remove hacks
+					lodAlpha = min( lodAlpha /*+ meshScaleLerp*/, 1. ); // hb todo - undo this to remove hacks
 					lodAlpha *= _EnableSmoothLODs;
 					
 					// now smoothly transition vert layouts between lod levels
@@ -166,8 +166,8 @@ Shader "Ocean/Ocean"
 					o.foamAmount_lodAlpha_worldXZUndisplaced.x = 0.;
 					o.foamAmount_lodAlpha_worldXZUndisplaced.zw = o.worldPos.xz;
 					// sample weights. params.z allows shape to be faded out (used on last lod to support pop-less scale transitions)
-					float wt_0 = (1. - lodAlpha) * _WD_Params_0.z;
-					float wt_1 = (1.0 - wt_0) * _WD_Params_1.z;
+					float wt_0 = (1. - lodAlpha); // *_WD_Params_0.z; // hb todo - unhack this fade to enable smooth scale transitions
+					float wt_1 = (1.0 - wt_0); // *_WD_Params_1.z; // hb todo - unhack this fade to enable smooth scale transitions
 					// sample displacement textures, add results to current world pos / normal / foam
 					const float2 wxz = o.worldPos.xz;
 					SampleDisplacements( _WD_Sampler_0, _WD_Pos_0, _WD_Pos_Cont_0, _WD_Params_0.y, _WD_Params_0.x, idealSquareSize, wxz, wt_0, o.worldPos, o.n, o.foamAmount_lodAlpha_worldXZUndisplaced.x );

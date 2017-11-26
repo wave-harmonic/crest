@@ -83,11 +83,14 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 					float fxp = tex2D(_WavePPTSource, q + e.xz).x; // x plus
 					float fyp = tex2D(_WavePPTSource, q + e.zy).x; // y plus
 
-					// The actual propagation:
+					// hacked wave speed for now. we should use gravity here
 					float c = .35;
+
+					// wave propagation
 					float ftp = c*c*(fxm + fxp + fym + fyp - 4.*ft) - ftm + 2.*ft;
 
-					// open boundary condition, from: http://hplgit.github.io/wavebc/doc/pub/._wavebc_cyborg002.html
+					// open boundary condition, from: http://hplgit.github.io/wavebc/doc/pub/._wavebc_cyborg002.html .
+					// this actually doesn't work perfectly well - there is some minor reflections of high frequencies.
 					// dudt + c*dudx = 0
 					// (ftp - ft)   +   c*(ft-fxm) = 0.
 					if (q.x + e.x >= 1.) ftp = -c*(ft - fxm) + ft;
@@ -98,13 +101,14 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 					// Damping
 					ftp *= .99;
 
-					if( frac( _Time.w / 24. ) < 0.05 )
+					if( frac(_MyTime / 6. ) < 0.15 )
 					{
-						float s = .4 * sqrt(abs(ddx(i.worldPos.x)));
-						ftp = 40.*smoothstep( s*90., s*5., length( i.worldPos-0.*float3(15.,0.,10.) ) );
+						float scl = (abs(ddx(i.worldPos.x)));
+						ftp = 20.*smoothstep( 4.*scl, scl, length( i.worldPos ) );
 					}
 
-					return float4( ftp, ft, ftm, 1. );
+					// w channel will be used to accumulate simulation results down the lod chain
+					return float4( ftp, ft, ftm, 0. );
 				}
 
 				ENDCG

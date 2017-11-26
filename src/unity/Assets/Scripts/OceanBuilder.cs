@@ -183,7 +183,9 @@ namespace OceanResearch
             for( int i = 0; i < parms._lodCount; i++ )
             {
                 scs[i] = Instantiate( _shapeCameraPrefab ) as Transform;
+                scs[i].gameObject.name = string.Format( "ShapeCam{0}", i );
                 _shapeCameras[i] = scs[i].GetComponent<Camera>();
+                _shapeCameras[i].depth -= i;
                 var wdc = _shapeCameras[i].GetComponent<WaveDataCam>();
                 wdc._lodIndex = i;
                 wdc._lodCount = parms._lodCount;

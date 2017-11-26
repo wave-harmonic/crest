@@ -47,7 +47,7 @@ public class PingPongRts : MonoBehaviour
             GUI.color = Color.black * 0.7f;
             GUI.DrawTexture( new Rect( x, y, w, h ), Texture2D.whiteTexture );
             GUI.color = Color.white;
-            GUI.DrawTexture( new Rect( x + b, y + b / 2f, h - b, h - b ), _sourceThisFrame );
+            GUI.DrawTexture( new Rect( x + b, y + b / 2f, h - b, h - b ), _sourceThisFrame, ScaleMode.ScaleAndCrop, false );
         }
     }
 

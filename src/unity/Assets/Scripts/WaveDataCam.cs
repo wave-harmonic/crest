@@ -26,9 +26,12 @@ namespace OceanResearch
         }
         RenderData _renderData = new RenderData();
 
+        Material _matCombineSims;
+
         void Start()
         {
             camera.depthTextureMode = DepthTextureMode.None;
+            _matCombineSims = new Material( Shader.Find( "Ocean/Shape/Sim/Combine" ) );
         }
 
         // script execution order ensures this runs after CircleOffset
@@ -77,19 +80,22 @@ namespace OceanResearch
             mat.SetInt( "_WD_LodIdx_" + shapeSlot.ToString(), _lodIndex );
         }
 
-        //// HB - don't do resolution sliders anymore because they arent needed, and because the gerstner shape shader
-        //// assumes shape textures are all the same res.
-        //void OnGUI()
-        //{
-        //    float w = 125f;
+        private void OnPostRender()
+        {
+            // accumulate sim lod data when simulations stop rendering.
 
-        //    float yoff = 50f * (float)_lodIndex;
-
-        //    GUI.Label( new Rect( 15, 100 + yoff, w, 25 ), _lodIndex.ToString() + " shape res: " + _shapeRes );
-        //    float res = GUI.HorizontalSlider( new Rect( 0, 125 + yoff, w, 25 ), (int)(Mathf.Log( (float)_shapeRes ) / Mathf.Log( 2f )), 5, 11 );
-        //    res = Mathf.Pow( 2f, Mathf.Floor( res ) );
-        //    _shapeRes = (int)res;
-        //}
+            // in ocean builder, we set camera depths to ensure the LOD0 camera renders last. so if this is the camera for LOD0, we know its safe now
+            // to start combining sim results.
+            if( OceanRenderer.Instance.Builder.GetShapeCamIndex( camera ) == 0 )
+            {
+                var cams = OceanRenderer.Instance.Builder._shapeCameras;
+                for( int L = cams.Length-2; L >= 0; L-- )
+                {
+                    // accumulate simulation results down the lod chain - combine L+1 into L
+                    Graphics.Blit( cams[L + 1].GetComponent<PingPongRts>()._targetThisFrame, cams[L].GetComponent<PingPongRts>()._targetThisFrame, _matCombineSims );
+                }
+            }
+        }
 
         Camera _camera; new Camera camera { get { return _camera != null ? _camera : (_camera = GetComponent<Camera>()); } }
     }

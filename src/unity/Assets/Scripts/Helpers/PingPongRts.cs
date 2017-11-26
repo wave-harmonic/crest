@@ -2,20 +2,20 @@
 
 public class PingPongRts : MonoBehaviour
 {
-    public RenderTexture _rtA, _rtB, _rtPrev;
     public RenderTexture _targetThisFrame;
-    public RenderTexture sourceThisFrame;
+    public RenderTexture _sourceThisFrame;
 
-    public void InitRTs( RenderTexture rtA, RenderTexture rtB, RenderTexture rtPrev )
+    RenderTexture _rtA, _rtB;
+
+    public void InitRTs( RenderTexture rtA, RenderTexture rtB )
     {
         _rtA = rtA;
         _rtB = rtB;
-        _rtPrev = rtPrev;
     }
 
     void Update()
     {
-        UpdatePingPong( out sourceThisFrame );
+        UpdatePingPong( out _sourceThisFrame );
 
         Cam.targetTexture = _targetThisFrame;
     }
@@ -26,9 +26,6 @@ public class PingPongRts : MonoBehaviour
         sourceThisFrame = _targetThisFrame;
         _targetThisFrame = _targetThisFrame == _rtA ? _rtB : _rtA;
 
-        // make a copy of the target
-        Graphics.Blit( _targetThisFrame, _rtPrev );
-
         if( _targetThisFrame == null )
         {
             Debug.LogWarning( "One or both of the RTs are not specified.", this );
@@ -38,9 +35,9 @@ public class PingPongRts : MonoBehaviour
     void OnGUI()
     {
         // draw source textures to screen
-        if( sourceThisFrame )
+        if( _sourceThisFrame )
         {
-            int ind = ShapeWaveSim.GetShapeCamIndex( Cam );
+            int ind = OceanResearch.OceanRenderer.Instance.Builder.GetShapeCamIndex( Cam );
             if( ind < 0 ) return;
 
             float b = 7f;
@@ -50,7 +47,7 @@ public class PingPongRts : MonoBehaviour
             GUI.color = Color.black * 0.7f;
             GUI.DrawTexture( new Rect( x, y, w, h ), Texture2D.whiteTexture );
             GUI.color = Color.white;
-            GUI.DrawTexture( new Rect( x + b, y + b / 2f, h - b, h - b ), sourceThisFrame );
+            GUI.DrawTexture( new Rect( x + b, y + b / 2f, h - b, h - b ), _sourceThisFrame );
         }
     }
 

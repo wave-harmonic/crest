@@ -67,46 +67,6 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 				uniform float _MyTime;
 
 				uniform sampler2D _WavePPTSource;
-				uniform sampler2D _WavePPTSourceNextScale;
-				uniform sampler2D _WavePPTSourcePrevScale;
-				
-				uniform sampler2D _WavePPTSource_Prev;
-
-				uniform float _IsSmallestScale = 0.0;
-				bool IsSmallestScale() { return _IsSmallestScale == 1.0; }
-
-				float SampleCurrentWaveHeight( float2 uv )
-				{
-					uv -= 0.5;
-
-					float2 sgn = sign( uv );
-
-					uv *= sgn;
-
-					bool outside = uv.x > 0.5 || uv.y > 0.5;
-					bool inside = !IsSmallestScale() && uv.x < 0.25 && uv.y < 0.25;
-
-					if( outside )
-					{
-						uv *= 0.5 * sgn;
-						uv += 0.5;
-
-						return tex2D( _WavePPTSourceNextScale, uv ).y;
-					}
-
-					if( inside )
-					{
-						uv *= 2.0 * sgn;
-						uv += 0.5;
-
-						return tex2D( _WavePPTSourcePrevScale, uv ).y;
-					}
-
-					uv *= sgn;
-					uv += 0.5;
-
-					return tex2D( _WavePPTSource, uv ).y;
-				}
 
 				float4 frag (v2f i) : SV_Target
 				{
@@ -115,33 +75,37 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 					float2 q = i.uv;
 					float3 e = float3(float2(1., 1.) / _ScreenParams.xy, 0.);
 
-					if( !IsSmallestScale() )
-					{
-						float2 uv = abs( i.uv - 0.5 );
-						if( uv.x < 0.125 && uv.y < 0.125 )
-							return (float4)0.;
-					}
-
-					float p11 = tex2D( _WavePPTSource_Prev, q ).y;
-					float p10 = SampleCurrentWaveHeight( q - e.zy );
-					float p01 = SampleCurrentWaveHeight( q - e.xz );
-					float p21 = SampleCurrentWaveHeight( q + e.xz );
-					float p12 = SampleCurrentWaveHeight( q + e.zy );
+					float2 ft_ftm = tex2D(_WavePPTSource, q).xy;
+					float ft = ft_ftm.x; // t - current value before update
+					float ftm = ft_ftm.y; // t minus - previous value
+					float fxm = tex2D(_WavePPTSource, q - e.xz).x; // x minus
+					float fym = tex2D(_WavePPTSource, q - e.zy).x; // y minus
+					float fxp = tex2D(_WavePPTSource, q + e.xz).x; // x plus
+					float fyp = tex2D(_WavePPTSource, q + e.zy).x; // y plus
 
 					// The actual propagation:
-					float d = ((p10 + p01 + p21 + p12) / 2. - p11);
-					// Damping
-					d *= .99;
+					float c = .25;
+					float ftp = c*c*(fxm + fxp + fym + fyp - 4.*ft) - ftm + 2.*ft;
 
-					if( frac( _Time.w / 12. ) < 0.05 )
+
+					// open boundary condition, from: http://hplgit.github.io/wavebc/doc/pub/._wavebc_cyborg002.html
+					// dudt + c*dudx = 0
+					// (ftp - ft)   +   c*(ft-fxm) = 0.
+					if( q.x + e.x >= 1. ) ftp = -c*(ft - fxm) + ft;
+					if (q.y + e.y >= 1.) ftp = -c*(ft - fym) + ft;
+					if (q.x - e.x <= 0.) ftp = c*(fxp - ft) + ft;
+					if (q.y - e.y <= 0.) ftp = c*(fyp - ft) + ft;
+
+					// Damping
+					ftp *= .99;
+
+					if( frac( _Time.w / 24. ) < 0.05 )
 					{
 						float s = .4;
-						d = 80.*smoothstep( s*33., s*30., length( i.worldPos-0.*float3(15.,0.,10.) ) );
+						ftp = 80.*smoothstep( s*33., s*20., length( i.worldPos-0.*float3(15.,0.,10.) ) );
 					}
 
-					//d *= smoothstep( 10.9, 11., length( i.worldPos + float3(22., 0., 18.) ) );
-
-					return float4( 0., d, 0., 1. );
+					return float4( ftp, ft, ftm, 1. );
 				}
 
 				ENDCG

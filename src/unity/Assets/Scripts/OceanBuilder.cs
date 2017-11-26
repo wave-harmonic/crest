@@ -19,6 +19,13 @@ namespace OceanResearch
 
         [HideInInspector]
         public Camera[] _shapeCameras;
+        public int GetShapeCamIndex( Camera cam )
+        {
+            for( int i = 0; i < _shapeCameras.Length; i++ )
+                if( _shapeCameras[i] == cam )
+                    return i;
+            return -1;
+        }
 
         /// <summary>
         /// Parameters to use for ocean geometry construction
@@ -182,8 +189,7 @@ namespace OceanResearch
                 wdc._lodCount = parms._lodCount;
                 var cart = _shapeCameras[i].GetComponent<CreateAssignRenderTexture>();
                 cart._targetName = "shapeRT" + i.ToString();
-                // hb todo - the multiply by power of 2s is a hack to work around the wave speed being tied to the texture resolution
-                cart._width = cart._height = (int)(4f * parms._baseVertDensity * Mathf.Pow( 2f, i ));
+                cart._width = cart._height = (int)(4f * parms._baseVertDensity);
             }
 
             int startLevel = 0;

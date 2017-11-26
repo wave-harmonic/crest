@@ -24,7 +24,6 @@ public class CreateAssignRenderTexture : MonoBehaviour
 
 	void Start()
     {
-
         if( !_createPingPongTargets )
         {
             RenderTexture rt = CreateRT( _targetName );
@@ -34,7 +33,6 @@ public class CreateAssignRenderTexture : MonoBehaviour
         {
             CreatePingPongRts();
         }
-
 	}
 
     RenderTexture CreateRT( string name )
@@ -64,6 +62,6 @@ public class CreateAssignRenderTexture : MonoBehaviour
             return;
         }
 
-        ppr.InitRTs( CreateRT( _targetName + "_A" ), CreateRT( _targetName + "_B" ), CreateRT( _targetName + "_Prev" ) );
+        ppr.InitRTs( CreateRT( _targetName + "_A" ), CreateRT( _targetName + "_B" ) );
     }
 }

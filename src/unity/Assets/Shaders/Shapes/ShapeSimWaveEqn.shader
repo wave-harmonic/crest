@@ -84,14 +84,13 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 					float fyp = tex2D(_WavePPTSource, q + e.zy).x; // y plus
 
 					// The actual propagation:
-					float c = .25;
+					float c = .35;
 					float ftp = c*c*(fxm + fxp + fym + fyp - 4.*ft) - ftm + 2.*ft;
-
 
 					// open boundary condition, from: http://hplgit.github.io/wavebc/doc/pub/._wavebc_cyborg002.html
 					// dudt + c*dudx = 0
 					// (ftp - ft)   +   c*(ft-fxm) = 0.
-					if( q.x + e.x >= 1. ) ftp = -c*(ft - fxm) + ft;
+					if (q.x + e.x >= 1.) ftp = -c*(ft - fxm) + ft;
 					if (q.y + e.y >= 1.) ftp = -c*(ft - fym) + ft;
 					if (q.x - e.x <= 0.) ftp = c*(fxp - ft) + ft;
 					if (q.y - e.y <= 0.) ftp = c*(fyp - ft) + ft;
@@ -101,8 +100,8 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 
 					if( frac( _Time.w / 24. ) < 0.05 )
 					{
-						float s = .4;
-						ftp = 80.*smoothstep( s*33., s*20., length( i.worldPos-0.*float3(15.,0.,10.) ) );
+						float s = .4 * sqrt(abs(ddx(i.worldPos.x)));
+						ftp = 40.*smoothstep( s*90., s*5., length( i.worldPos-0.*float3(15.,0.,10.) ) );
 					}
 
 					return float4( ftp, ft, ftm, 1. );

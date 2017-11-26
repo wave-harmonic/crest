@@ -65,6 +65,9 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 
 				// respects the gui option to freeze time
 				uniform float _MyTime;
+				uniform float _MyDeltaTime;
+
+				uniform float3 _CameraPositionDelta;
 
 				uniform sampler2D _WavePPTSource;
 
@@ -73,7 +76,13 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 					i.worldPos.y = 0.;
 
 					float2 q = i.uv;
+
 					float3 e = float3(float2(1., 1.) / _ScreenParams.xy, 0.);
+
+					const float cameraWidth = 2. * unity_OrthoParams.x;
+					const float renderTargetRes = _ScreenParams.x;
+					const float texSize = cameraWidth / renderTargetRes;
+					q += e.xy * _CameraPositionDelta.xz / texSize;
 
 					float2 ft_ftm = tex2D(_WavePPTSource, q).xy;
 					float ft = ft_ftm.x; // t - current value before update
@@ -83,28 +92,30 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 					float fxp = tex2D(_WavePPTSource, q + e.xz).x; // x plus
 					float fyp = tex2D(_WavePPTSource, q + e.zy).x; // y plus
 
-					// hacked wave speed for now. we should use gravity here
-					float c = .35;
+					// hacked wave speed for now. we should compute this from gravity
+					float c = 20.;
+					// expected: dt = 0.00833
+					float dt = _MyDeltaTime;
 
 					// wave propagation
-					float ftp = c*c*(fxm + fxp + fym + fyp - 4.*ft) - ftm + 2.*ft;
+					float ftp = dt*dt*c*c*(fxm + fxp + fym + fyp - 4.*ft) - ftm + 2.*ft;
 
 					// open boundary condition, from: http://hplgit.github.io/wavebc/doc/pub/._wavebc_cyborg002.html .
 					// this actually doesn't work perfectly well - there is some minor reflections of high frequencies.
 					// dudt + c*dudx = 0
 					// (ftp - ft)   +   c*(ft-fxm) = 0.
-					if (q.x + e.x >= 1.) ftp = -c*(ft - fxm) + ft;
-					if (q.y + e.y >= 1.) ftp = -c*(ft - fym) + ft;
-					if (q.x - e.x <= 0.) ftp = c*(fxp - ft) + ft;
-					if (q.y - e.y <= 0.) ftp = c*(fyp - ft) + ft;
+					if (q.x + e.x >= 1.) ftp = -dt*c*(ft - fxm) + ft;
+					if (q.y + e.y >= 1.) ftp = -dt*c*(ft - fym) + ft;
+					if (q.x - e.x <= 0.) ftp = dt*c*(fxp - ft) + ft;
+					if (q.y - e.y <= 0.) ftp = dt*c*(fyp - ft) + ft;
 
 					// Damping
-					ftp *= .99;
+					ftp *= max( 0.0, 1.0 - 0.001 * dt * 60.0 );
 
-					if( frac(_MyTime / 6. ) < 0.15 )
+					if (frac(_MyTime / 6.) < 0.15)
 					{
 						float scl = (abs(ddx(i.worldPos.x)));
-						ftp = 20.*smoothstep( 4.*scl, scl, length( i.worldPos ) );
+						ftp = 20.*smoothstep(4.*scl, scl, length(i.worldPos));
 					}
 
 					// w channel will be used to accumulate simulation results down the lod chain

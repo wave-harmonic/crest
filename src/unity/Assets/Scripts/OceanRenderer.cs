@@ -67,14 +67,17 @@ namespace OceanResearch
 
         void LateUpdate()
         {
+            float deltaTime = 0f;
             if( !_freezeTime )
             {
-                _elapsedTime += Time.deltaTime;
+                deltaTime = Time.deltaTime;
+                _elapsedTime += deltaTime;
             }
 
             // set global shader params
             Shader.SetGlobalVector( "_OceanCenterPosWorld", transform.position );
             Shader.SetGlobalFloat( "_MyTime", _elapsedTime );
+            Shader.SetGlobalFloat( "_MyDeltaTime", deltaTime );
             Shader.SetGlobalFloat( "_TexelsPerWave", _minTexelsPerWave );
 
             // scale ocean mesh based on camera height to keep uniform detail

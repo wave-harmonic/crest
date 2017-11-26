@@ -37,15 +37,43 @@ Shader "Ocean/Shape/Sim/Combine"
 			{
 				v2f o;
 				o.vertex = UnityObjectToClipPos(v.vertex);
-				o.uv = 0.25 + 0.5*v.uv;
+				o.uv = v.uv;
 				return o;
 			}
 			
 			sampler2D _MainTex;
 
+			// shape data
+			// Params: float3(texel size, texture resolution, shape weight multiplier)
+			#define SHAPE_LOD_PARAMS(LODNUM) \
+					uniform sampler2D _WD_Sampler_##LODNUM; \
+					uniform float3 _WD_Params_##LODNUM; \
+					uniform float2 _WD_Pos_##LODNUM; \
+					uniform float2 _WD_Pos_Cont_##LODNUM; \
+					uniform int _WD_LodIdx_##LODNUM;
+
+			SHAPE_LOD_PARAMS(0)
+			SHAPE_LOD_PARAMS(1)
+			;
+
+			float2 worldToUV(in float2 i_samplePos, in float2 i_centerPos, in float i_res, in float i_texelSize)
+			{
+				return (i_samplePos - i_centerPos) / (i_texelSize*i_res) + 0.5;
+			}
+
+			float2 uvToWorld(in float2 i_uv, in float2 i_centerPos, in float i_res, in float i_texelSize)
+			{
+				return i_texelSize * i_res * (i_uv - 0.5) + i_centerPos;
+			}
+
 			half4 frag (v2f i) : SV_Target
 			{
-				half4 simData = tex2D(_MainTex, i.uv);
+				// go from uv out to world for the current shape texture
+				float2 worldPos = uvToWorld(i.uv, _WD_Pos_0, _WD_Params_0.y, _WD_Params_0.x);
+
+				// sample the shape 1 texture at this world pos
+				float2 uv_1 = worldToUV(worldPos, _WD_Pos_1, _WD_Params_1.y, _WD_Params_1.x);
+				half4 simData = tex2D(_MainTex, uv_1);
 
 				// combine simulation results into w channel. dont mess with xyz - this would mess with the simulation
 				return half4( 0., 0., 0., simData.x + simData.w );

@@ -82,8 +82,6 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 
 					// hacked wave speed for now. we should compute this from gravity
 					float c = 7.;
-					// hack set dt to 1/60 as there are big instabilities when interacting with the editor etc. alternative
-					// could be to clamp max dt.
 					const float dt = _MyDeltaTime;
 
 					// wave propagation

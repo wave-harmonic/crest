@@ -29,7 +29,7 @@ namespace OceanResearch
 
         void Start()
         {
-            camera.depthTextureMode = DepthTextureMode.None;
+            cam.depthTextureMode = DepthTextureMode.None;
         }
 
         private void Update()
@@ -41,12 +41,12 @@ namespace OceanResearch
         void LateUpdate()
         {
             // ensure camera size matches geometry size
-            camera.orthographicSize = 2f * Mathf.Abs( transform.lossyScale.x );
+            cam.orthographicSize = 2f * Mathf.Abs( transform.lossyScale.x );
             bool flip = transform.lossyScale.z < 0f;
             transform.localEulerAngles = new Vector3( flip ? -90f : 90f, 0f, 0f );
 
             // find snap period
-            int width = camera.targetTexture.width;
+            int width = cam.targetTexture.width;
             // debug functionality to resize RT if different size was specified.
             if( _shapeRes == -1 )
             {
@@ -54,28 +54,28 @@ namespace OceanResearch
             }
             else if( width != _shapeRes )
             {
-                camera.targetTexture.Release();
-                camera.targetTexture.width = camera.targetTexture.height = _shapeRes;
-                camera.targetTexture.Create();
+                cam.targetTexture.Release();
+                cam.targetTexture.width = cam.targetTexture.height = _shapeRes;
+                cam.targetTexture.Create();
             }
-            _renderData._textureRes = (float)camera.targetTexture.width;
-            _renderData._texelWidth = 2f * camera.orthographicSize / _renderData._textureRes;
+            _renderData._textureRes = (float)cam.targetTexture.width;
+            _renderData._texelWidth = 2f * cam.orthographicSize / _renderData._textureRes;
             // snap so that shape texels are stationary
             _renderData._posContinuous = transform.position;
             _renderData._posSnapped = _renderData._posContinuous
                 - new Vector3( Mathf.Repeat( _renderData._posContinuous.x, _renderData._texelWidth ), 0f, Mathf.Repeat( _renderData._posContinuous.z, _renderData._texelWidth ) );
 
             // set projection matrix to snap to texels
-            camera.ResetProjectionMatrix();
-            Matrix4x4 P = camera.projectionMatrix, T = new Matrix4x4();
+            cam.ResetProjectionMatrix();
+            Matrix4x4 P = cam.projectionMatrix, T = new Matrix4x4();
             T.SetTRS( new Vector3( _renderData._posContinuous.x - _renderData._posSnapped.x, _renderData._posContinuous.z - _renderData._posSnapped.z ), Quaternion.identity, Vector3.one );
             P = P * T;
-            camera.projectionMatrix = P;
+            cam.projectionMatrix = P;
         }
 
         public void ApplyMaterialParams( int shapeSlot, Material mat )
         {
-            mat.SetTexture( "_WD_Sampler_" + shapeSlot.ToString(), camera.targetTexture );
+            mat.SetTexture( "_WD_Sampler_" + shapeSlot.ToString(), cam.targetTexture );
             float shapeWeight = (_lodIndex == _lodCount - 1) ? OceanRenderer.Instance.ViewerAltitudeLevelAlpha : 1f;
             mat.SetVector( "_WD_Params_" + shapeSlot.ToString(), new Vector3( _renderData._texelWidth, _renderData._textureRes, shapeWeight ) );
             mat.SetVector( "_WD_Pos_" + shapeSlot.ToString(), new Vector2( _renderData._posSnapped.x, _renderData._posSnapped.z ) );
@@ -89,12 +89,12 @@ namespace OceanResearch
 
             // in ocean builder, we set camera depths to ensure the LOD0 camera renders last. so if this is the camera for LOD0, we know its safe now
             // to start combining sim results.
-            if( OceanRenderer.Instance.Builder.GetShapeCamIndex( camera ) == 0 )
+            if( OceanRenderer.Instance.Builder.GetShapeCamIndex( cam ) == 0 )
             {
                 ShapeWaveSim.OnShapeCamerasFinishedRendering();
             }
         }
 
-        Camera _camera; new Camera camera { get { return _camera != null ? _camera : (_camera = GetComponent<Camera>()); } }
+        Camera _camera; Camera cam { get { return _camera != null ? _camera : (_camera = GetComponent<Camera>()); } }
     }
 }

@@ -95,9 +95,10 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 					float fyp = tex2D(_WavePPTSource, q + e.zy).x; // y plus
 
 					// hacked wave speed for now. we should compute this from gravity
-					float c = 20.;
-					// expected: dt = 0.00833
-					float dt = _MyDeltaTime;
+					float c = 7.;
+					// hack set dt to 1/60 as there are big instabilities when interacting with the editor etc. alternative
+					// could be to clamp max dt.
+					float dt = 1. / 60.;// _MyDeltaTime;
 
 					// wave propagation
 					float ftp = dt*dt*c*c*(fxm + fxp + fym + fyp - 4.*ft) - ftm + 2.*ft;
@@ -112,7 +113,7 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 					if (q.y - e.y <= 0.) ftp = dt*c*(fyp - ft) + ft;
 
 					// Damping
-					ftp *= max( 0.0, 1.0 - 0.001 * dt * 60.0 );
+					ftp *= max(0.0, 1.0 - 0.15 * dt);
 
 					if (frac(_MyTime / 6.) < 0.15)
 					{

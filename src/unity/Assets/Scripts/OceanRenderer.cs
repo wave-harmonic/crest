@@ -27,7 +27,6 @@ namespace OceanResearch
         public bool _enableSmoothLOD = true;
         [Tooltip( "Freeze wave shape in place but continues to move geom with camera, useful for hunting down pops" )]
         public bool _freezeTime = false;
-        float _elapsedTime = 0f;
 
         [Header( "Geometry Params" )]
         [SerializeField]
@@ -45,6 +44,10 @@ namespace OceanResearch
         [SerializeField]
         [Tooltip( "Generate a wide strip of triangles at the outer edge to extend ocean to edge of view frustum" )]
         bool _generateSkirt = true;
+
+        // these have been useful for debug purposes (to freeze the water surface only)
+        public float _elapsedTime = 0f;
+        public float _deltaTime = 0f;
 
         float _viewerAltitudeLevelAlpha = 0f;
         public float ViewerAltitudeLevelAlpha { get { return _viewerAltitudeLevelAlpha; } }
@@ -67,20 +70,19 @@ namespace OceanResearch
 
         void LateUpdate()
         {
-            float deltaTime = 0f;
+            _deltaTime = 0f;
             if( !_freezeTime )
             {
-                deltaTime = Time.deltaTime;
                 // hack - force simulation to occur at 60fps. this is because the sim stores last and previous values - velocity
                 // is implicit and time step is assumed to be constant
-                deltaTime = 1f / 60f;
-                _elapsedTime += deltaTime;
+                _deltaTime = 1f / 60f; // Time.deltaTime
+                _elapsedTime += _deltaTime;
             }
 
             // set global shader params
             Shader.SetGlobalVector( "_OceanCenterPosWorld", transform.position );
             Shader.SetGlobalFloat( "_MyTime", _elapsedTime );
-            Shader.SetGlobalFloat( "_MyDeltaTime", deltaTime );
+            Shader.SetGlobalFloat( "_MyDeltaTime", _deltaTime );
             Shader.SetGlobalFloat( "_TexelsPerWave", _minTexelsPerWave );
 
             // scale ocean mesh based on camera height to keep uniform detail

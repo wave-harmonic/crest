@@ -33,6 +33,9 @@ namespace OceanResearch
         // combine/accumulate sim results together
         public void OnShapeCamerasFinishedRendering()
         {
+            if( Shader.GetGlobalFloat( "_MyDeltaTime" ) <= Mathf.Epsilon )
+                return;
+
             var cams = OceanRenderer.Instance.Builder._shapeCameras;
             for( int L = cams.Length - 2; L >= 0; L-- )
             {

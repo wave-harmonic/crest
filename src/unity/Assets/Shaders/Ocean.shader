@@ -113,6 +113,7 @@ Shader "Ocean/Ocean"
 					float3 n = normalize( cross( disp_z - disp, disp_x - disp ) );
 					io_n.xz += wt * n.xz;
 
+					/*
 					// The determinant of the displacement Jacobian is a good measure for turbulence:
 					// > 1: Stretch
 					// < 1: Squash
@@ -121,6 +122,9 @@ Shader "Ocean/Ocean"
 					float det = (du.x * du.w - du.y * du.z) / (dd.z * dd.z);
 					float foamAmount = 1. - smoothstep(0.0, 2.0, det);
 					io_foamAmount += wt * foamAmount;
+					*/
+
+					io_foamAmount += wt * s.z;
 				}
 
 				v2f vert( appdata_t v )

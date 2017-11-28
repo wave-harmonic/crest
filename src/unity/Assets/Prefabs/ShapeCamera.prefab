@@ -51,7 +51,7 @@ Camera:
   m_GameObject: {fileID: 1996984610904776}
   m_Enabled: 1
   serializedVersion: 2
-  m_ClearFlags: 2
+  m_ClearFlags: 4
   m_BackGroundColor: {r: 0, g: 0, b: 0, a: 0.019607844}
   m_NormalizedViewPortRect:
     serializedVersion: 2
@@ -125,8 +125,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6cf13963660000c47aaee27048771bc3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _rtA: {fileID: 0}
-  _rtB: {fileID: 0}
-  _rtPrev: {fileID: 0}
   _targetThisFrame: {fileID: 0}
-  sourceThisFrame: {fileID: 0}
+  _sourceThisFrame: {fileID: 0}

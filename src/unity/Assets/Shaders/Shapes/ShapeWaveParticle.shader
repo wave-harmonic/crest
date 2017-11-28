@@ -1,6 +1,5 @@
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
-// A single Gerstner Octave
 Shader "Ocean/Shape/Wave Particle"
 {
 	Properties

@@ -115,12 +115,6 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 					// Damping
 					ftp *= max(0.0, 1.0 - 0.15 * dt);
 
-					if (frac(_MyTime / 6.) < 0.15)
-					{
-						float scl = (abs(ddx(i.worldPos.x)));
-						ftp = 20.*smoothstep(4.*scl, scl, length(i.worldPos));
-					}
-
 					// w channel will be used to accumulate simulation results down the lod chain
 					return float4( ftp, ft, ftm, 0. );
 				}

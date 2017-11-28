@@ -98,9 +98,19 @@ namespace OceanResearch
 
             _viewerAltitudeLevelAlpha = _scaleHorizSmoothTransition ? l2 - l2f : 0f;
 
-            float scale = Mathf.Pow( 2f, l2f );
+            float newScale = Mathf.Pow( 2f, l2f );
 
-            transform.localScale = new Vector3( Mathf.Sign( transform.position.x ) * scale, 1f, Mathf.Sign( transform.position.z ) * scale );
+            float currentScale = Mathf.Abs( transform.localScale.x );
+
+            if( !Mathf.Approximately( newScale, currentScale ) )
+            {
+                ShapeWaveSim.Instance.OnOceanScaleChange( newScale < currentScale );
+            }
+
+            // sign is used to mirror ocean geometry. without this, gaps can appear between ocean tiles.
+            // this is due to the difference in direction of floor/modulus in the ocean vert shader, and the
+            // way the ocean geometry tiles have tri strips removed/added.
+            transform.localScale = new Vector3( Mathf.Sign( transform.position.x ) * newScale, 1f, Mathf.Sign( transform.position.z ) * newScale );
         }
 
         void OnGUI()

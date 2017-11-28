@@ -52,6 +52,34 @@ namespace OceanResearch
             Shader.SetGlobalFloat( "_MyDeltaTime", 0f );
         }
 
+        public void OnOceanScaleChange( bool newScaleSmaller )
+        {
+            // copy wave sources up or down chain
+            var cams = OceanRenderer.Instance.Builder._shapeCameras;
+            if( newScaleSmaller )
+            {
+                for( int L = cams.Length - 2; L >= 0; L-- )
+                {
+                    // accumulate simulation results down the lod chain - combine L+1 into L
+                    Graphics.Blit( cams[L].GetComponent<PingPongRts>()._sourceThisFrame, cams[L + 1].GetComponent<PingPongRts>()._sourceThisFrame );
+                    cams[L + 1].GetComponent<WaveDataCam>()._renderData._posSnappedLast = cams[L].GetComponent<WaveDataCam>()._renderData._posSnappedLast;
+                }
+                Graphics.Blit( Texture2D.blackTexture, cams[0].GetComponent<PingPongRts>()._sourceThisFrame );
+                cams[0].GetComponent<WaveDataCam>()._renderData._posSnappedLast = Vector3.zero;
+            }
+            else
+            {
+                for( int L = 1; L < cams.Length; L++ )
+                {
+                    // accumulate simulation results down the lod chain - combine L+1 into L
+                    Graphics.Blit( cams[L].GetComponent<PingPongRts>()._sourceThisFrame, cams[L - 1].GetComponent<PingPongRts>()._sourceThisFrame );
+                    cams[L - 1].GetComponent<WaveDataCam>()._renderData._posSnappedLast = cams[L].GetComponent<WaveDataCam>()._renderData._posSnappedLast;
+                }
+                Graphics.Blit( Texture2D.blackTexture, cams[cams.Length - 1].GetComponent<PingPongRts>()._sourceThisFrame );
+                cams[cams.Length - 1].GetComponent<WaveDataCam>()._renderData._posSnappedLast = Vector3.zero;
+            }
+        }
+
         static ShapeWaveSim _instance;
         public static ShapeWaveSim Instance { get { return _instance != null ? _instance : (_instance = FindObjectOfType<ShapeWaveSim>()); } }
     }

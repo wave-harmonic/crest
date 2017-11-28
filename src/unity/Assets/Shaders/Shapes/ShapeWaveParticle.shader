@@ -68,6 +68,7 @@ Shader "Ocean/Shape/Wave Particle"
 				}
 
 				uniform float _Amplitude;
+				uniform float _MyDeltaTime;
 
 				float4 frag (v2f i) : SV_Target
 				{
@@ -77,10 +78,11 @@ Shader "Ocean/Shape/Wave Particle"
 						return (float4)0.;
 
 					r2 = 1. - r2;
+
 					float y = r2 * r2 * _Amplitude;
 
-					float dt = 1. / 60.;
-					return float4( dt*y, 0., 0., 0.);
+					// treat as an acceleration - dt^2
+					return float4(_MyDeltaTime * _MyDeltaTime * y, 0., 0., 0.);
 				}
 
 				ENDCG

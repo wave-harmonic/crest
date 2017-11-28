@@ -98,10 +98,15 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 					float c = 7.;
 					// hack set dt to 1/60 as there are big instabilities when interacting with the editor etc. alternative
 					// could be to clamp max dt.
-					float dt = 1. / 60.;// _MyDeltaTime;
+					const float dt = _MyDeltaTime;
 
 					// wave propagation
-					float ftp = dt*dt*c*c*(fxm + fxp + fym + fyp - 4.*ft) - ftm + 2.*ft;
+					// acceleration
+					const float at = c*c*(fxm + fxp + fym + fyp - 4.*ft);
+					// velocity is implicit - current and previous values stored, time step assumed to be constant.
+					// this only works at a fixed framerate 60hz!
+					const float df = ft - ftm;
+					float ftp = ft + dt*dt*at + (60.*dt)*df;
 
 					// open boundary condition, from: http://hplgit.github.io/wavebc/doc/pub/._wavebc_cyborg002.html .
 					// this actually doesn't work perfectly well - there is some minor reflections of high frequencies.

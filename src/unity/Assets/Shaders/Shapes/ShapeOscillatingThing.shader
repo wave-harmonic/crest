@@ -41,6 +41,7 @@ Shader "Ocean/Shape/Oscillating Thing"
 
 				// respects the gui option to freeze time
 				uniform float _MyTime;
+				uniform float _MyDeltaTime;
 
 				uniform float _TexelsPerWave;
 				uniform float _Radius;
@@ -89,11 +90,10 @@ Shader "Ocean/Shape/Oscillating Thing"
 					y *= sin(10.*_MyTime / sqrt(i.texSize) + i.texSize);
 
 					// amplitude, also has scale dependency
-					y *= _Amplitude * sqrt(i.texSize);
+					y *= _Amplitude * sqrt(i.texSize) * 60.;
 
-					float dt = 1. / 60.;
-
-					return float4( dt * y, 0., 0., 0.);
+					// treat as an acceleration - dt^2
+					return float4( _MyDeltaTime * _MyDeltaTime * y, 0., 0., 0. );
 				}
 
 				ENDCG

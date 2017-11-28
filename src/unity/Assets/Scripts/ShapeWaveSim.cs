@@ -45,6 +45,10 @@ namespace OceanResearch
                 // accumulate simulation results down the lod chain - combine L+1 into L
                 Graphics.Blit( cams[L + 1].GetComponent<PingPongRts>()._targetThisFrame, cams[L].GetComponent<PingPongRts>()._targetThisFrame, _matCombineSims );
             }
+
+            // this makes sure the dt goes to 0 so that if the editor is paused, the simulation will stop progressing. this could
+            // be made editor only, but that could lead to some very confusing bugs/behaviour, so leaving it like this for now.
+            Shader.SetGlobalFloat( "_MyDeltaTime", 0f );
         }
     }
 }

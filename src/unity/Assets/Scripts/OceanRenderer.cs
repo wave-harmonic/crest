@@ -71,6 +71,9 @@ namespace OceanResearch
             if( !_freezeTime )
             {
                 deltaTime = Time.deltaTime;
+                // hack - force simulation to occur at 60fps. this is because the sim stores last and previous values - velocity
+                // is implicit and time step is assumed to be constant
+                deltaTime = 1f / 60f;
                 _elapsedTime += deltaTime;
             }
 

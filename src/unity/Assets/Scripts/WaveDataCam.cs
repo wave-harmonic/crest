@@ -91,7 +91,7 @@ namespace OceanResearch
             // to start combining sim results.
             if( OceanRenderer.Instance.Builder.GetShapeCamIndex( cam ) == 0 )
             {
-                ShapeWaveSim.OnShapeCamerasFinishedRendering();
+                ShapeWaveSim.Instance.OnShapeCamerasFinishedRendering();
             }
         }
 

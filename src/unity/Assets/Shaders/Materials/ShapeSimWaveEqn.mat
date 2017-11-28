@@ -6,11 +6,12 @@ Material:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
-  m_Name: Shape_SimWaveEqn
+  m_Name: ShapeSimWaveEqn
   m_Shader: {fileID: 4800000, guid: 8a5f3d134bcb0ca4a9931eefea919a3b, type: 3}
   m_ShaderKeywords: 
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
   m_CustomRenderQueue: -1
   stringTagMap: {}
   disabledShaderPasses: []

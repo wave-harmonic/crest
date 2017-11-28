@@ -367,7 +367,6 @@ GameObject:
   m_Component:
   - component: {fileID: 750019623}
   - component: {fileID: 750019622}
-  - component: {fileID: 750019621}
   - component: {fileID: 750019620}
   - component: {fileID: 750019624}
   m_Layer: 8
@@ -409,20 +408,6 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
---- !u!64 &750019621
-MeshCollider:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 750019619}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Convex: 0
-  m_InflateMesh: 0
-  m_SkinWidth: 0.01
-  m_Mesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!33 &750019622
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -454,6 +439,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b9c9e613285876e4094fe9e207f5df13, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _matCombineSims: {fileID: 2100000, guid: 1cd2262c7588b1349bd59739632817e2, type: 2}
 --- !u!1 &995304122
 GameObject:
   m_ObjectHideFlags: 0

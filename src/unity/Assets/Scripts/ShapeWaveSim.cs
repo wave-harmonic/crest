@@ -4,15 +4,13 @@ namespace OceanResearch
 {
     public class ShapeWaveSim : MonoBehaviour
     {
+        public Material _matCombineSims;
+
         Renderer _rend;
-        static Material _matCombineSims;
 
         void Start()
         {
             _rend = GetComponent<Renderer>();
-
-            if( _matCombineSims == null )
-                _matCombineSims = new Material( Shader.Find( "Ocean/Shape/Sim/Combine" ) );
         }
 
         void OnWillRenderObject()
@@ -33,7 +31,7 @@ namespace OceanResearch
         }
 
         // combine/accumulate sim results together
-        public static void OnShapeCamerasFinishedRendering()
+        public void OnShapeCamerasFinishedRendering()
         {
             var cams = OceanRenderer.Instance.Builder._shapeCameras;
             for( int L = cams.Length - 2; L >= 0; L-- )
@@ -50,5 +48,8 @@ namespace OceanResearch
             // be made editor only, but that could lead to some very confusing bugs/behaviour, so leaving it like this for now.
             Shader.SetGlobalFloat( "_MyDeltaTime", 0f );
         }
+
+        static ShapeWaveSim _instance;
+        public static ShapeWaveSim Instance { get { return _instance != null ? _instance : (_instance = FindObjectOfType<ShapeWaveSim>()); } }
     }
 }

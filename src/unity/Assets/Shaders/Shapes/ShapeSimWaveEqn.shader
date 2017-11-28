@@ -39,28 +39,25 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 
 				struct v2f {
 					float4 vertex : SV_POSITION;
-					float3 worldPos : TEXCOORD0;
-					float2 uv : TEXCOORD1;
+					float4 uv : TEXCOORD0;
 				};
 
-				bool SamplingIsAdequate( float minWavelengthInShape )
-				{
-					return true;
-				}
+				uniform float3 _CameraPositionDelta;
 
 				v2f vert( appdata_t v )
 				{
 					v2f o;
 					o.vertex = UnityObjectToClipPos( v.vertex );
-					o.worldPos = mul( unity_ObjectToWorld, v.vertex ).xyz;
 
-					o.uv = o.vertex.xy;
+					// compute uncompensated uv
+					o.uv.xy = o.vertex.xy;
 					o.uv.y = -o.uv.y;
-					o.uv = 0.5*o.uv + 0.5;
+					o.uv.xy = 0.5*o.uv.xy + 0.5;
 
-					// if wavelength is too small, kill this quad so that it doesnt render any shape
-					if( !SamplingIsAdequate( 0.0 ) )
-						o.vertex.xy *= 0.;
+					// compensate for camera motion - adjust lookup uv to get texel from last frame sim
+					o.uv.zw = float2(1., 1.) / _ScreenParams.xy;
+					const float texelSize = 2. * unity_OrthoParams.x * o.uv.z; // assumes square RT
+					o.uv.xy += o.uv.zw * _CameraPositionDelta.xz / texelSize;
 
 					return o;
 				}
@@ -69,30 +66,19 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 				uniform float _MyTime;
 				uniform float _MyDeltaTime;
 
-				uniform float3 _CameraPositionDelta;
-
 				uniform sampler2D _WavePPTSource;
 
 				float4 frag (v2f i) : SV_Target
 				{
-					i.worldPos.y = 0.;
+					float3 e = float3(i.uv.zw, 0.);
 
-					float2 q = i.uv;
-
-					float3 e = float3(float2(1., 1.) / _ScreenParams.xy, 0.);
-
-					const float cameraWidth = 2. * unity_OrthoParams.x;
-					const float renderTargetRes = _ScreenParams.x;
-					const float texSize = cameraWidth / renderTargetRes;
-					q += e.xy * _CameraPositionDelta.xz / texSize;
-
-					float2 ft_ftm = tex2D(_WavePPTSource, q).xy;
+					float2 ft_ftm = tex2D(_WavePPTSource, i.uv).xy;
 					float ft = ft_ftm.x; // t - current value before update
 					float ftm = ft_ftm.y; // t minus - previous value
-					float fxm = tex2D(_WavePPTSource, q - e.xz).x; // x minus
-					float fym = tex2D(_WavePPTSource, q - e.zy).x; // y minus
-					float fxp = tex2D(_WavePPTSource, q + e.xz).x; // x plus
-					float fyp = tex2D(_WavePPTSource, q + e.zy).x; // y plus
+					float fxm = tex2D(_WavePPTSource, i.uv - e.xz).x; // x minus
+					float fym = tex2D(_WavePPTSource, i.uv - e.zy).x; // y minus
+					float fxp = tex2D(_WavePPTSource, i.uv + e.xz).x; // x plus
+					float fyp = tex2D(_WavePPTSource, i.uv + e.zy).x; // y plus
 
 					// hacked wave speed for now. we should compute this from gravity
 					float c = 7.;
@@ -112,10 +98,10 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 					// this actually doesn't work perfectly well - there is some minor reflections of high frequencies.
 					// dudt + c*dudx = 0
 					// (ftp - ft)   +   c*(ft-fxm) = 0.
-					if (q.x + e.x >= 1.) ftp = -dt*c*(ft - fxm) + ft;
-					if (q.y + e.y >= 1.) ftp = -dt*c*(ft - fym) + ft;
-					if (q.x - e.x <= 0.) ftp = dt*c*(fxp - ft) + ft;
-					if (q.y - e.y <= 0.) ftp = dt*c*(fyp - ft) + ft;
+					if (i.uv.x + e.x >= 1.) ftp = -dt*c*(ft - fxm) + ft;
+					if (i.uv.y + e.y >= 1.) ftp = -dt*c*(ft - fym) + ft;
+					if (i.uv.x - e.x <= 0.) ftp = dt*c*(fxp - ft) + ft;
+					if (i.uv.y - e.y <= 0.) ftp = dt*c*(fyp - ft) + ft;
 
 					// Damping
 					ftp *= max(0.0, 1.0 - 0.15 * dt);

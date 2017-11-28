@@ -15,6 +15,8 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 
 	Category
 	{
+		// Base simulation runs first on geometry queue, no blending.
+		// Any interactions will additively render later in the transparent queue.
 		Tags { "Queue"="Geometry" }
 
 		SubShader

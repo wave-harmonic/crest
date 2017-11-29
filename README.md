@@ -24,8 +24,8 @@ The above gives a complete ocean rendering system. There are just a few core par
 ## Overview of how these things run:
 
 1. For each shape texture, from largest to smallest (camera Depth ensures this), any geometry marked as WaveData layer renders into the shape cameras (ShapeCam0, 1, ..):
-  1. Wave simulation shader runs first (via ShapeSimWaveEqn.shader on WaveSim quad). The render queue (2000) ensures it renders before subsequent shape stuff in the next step. After running the wave PDE this writes out: (x,y,z,w) = (current water height for this LOD, previous water height for this LOD, LOD foam value computed based on downwards acceleration of water surface, 0.).
-  2. Any interaction forces/shapes render afterwards (such as ShapeObstacle.shader on Obstacle1 quad). This can either add values to the surface, add foam, or both.
+  * Wave simulation shader runs first (via ShapeSimWaveEqn.shader on WaveSim quad). The render queue (2000) ensures it renders before subsequent shape stuff in the next step. After running the wave PDE this writes out: (x,y,z,w) = (current water height for this LOD, previous water height for this LOD, LOD foam value computed based on downwards acceleration of water surface, 0.).
+  * Any interaction forces/shapes render afterwards (such as ShapeObstacle.shader on Obstacle1 quad). This can either add values to the surface, add foam, or both.
 2. After the lod 0 shape camera ShapeCam0 has rendered, OnShapeCamerasFinishedRendering() is called. This does a combine pass where the results of the different simulations are accumulated down the LOD chain. E.g. lod 4 is copied into lod 3. The water height is added and written into the unused W channel. The foam value is simply added in place. The x,y channels are not touched, as these will be read in the simulate shader in the next frame (step 1).
 3. When each ocean chunk will be rendered, OceanChunkRenderer::OnWillRenderObject() is called. This grabs the target texture off the appropriate shape camera and assigns it to the shader for sampling in the ocean vertex shader.
 

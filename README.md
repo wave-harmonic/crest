@@ -74,3 +74,8 @@ The above gives a complete ocean rendering system. There are just a few core par
 
 * 1D wave equation in shadertoy: https://www.shadertoy.com/view/MtlfzM
 * Propagate gerstner waves with wave equation - click to simulate wind: https://www.shadertoy.com/view/XtlBDr
+
+### Particle sim
+
+* Mixes SPH and WE, uses SPH to get low frequency 3D flow: http://citeseerx.ist.psu.edu/viewdoc/download;jsessionid=8A10D0187910134E8C8330AF1C57B146?doi=10.1.1.127.1749&rep=rep1&type=pdf
+* Mueller - deposits splash particles on surface, looks good, video: https://www.youtube.com/watch?v=bojdpqi2l_o

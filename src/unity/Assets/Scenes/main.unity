@@ -516,24 +516,8 @@ Prefab:
       value: 
       objectReference: {fileID: 227134470}
     - target: {fileID: 11417796, guid: 8454e29c2a033974fb559f5f8eff1918, type: 2}
-      propertyPath: _minScale
-      value: 32
-      objectReference: {fileID: 0}
-    - target: {fileID: 11417796, guid: 8454e29c2a033974fb559f5f8eff1918, type: 2}
-      propertyPath: _minTexelsPerWave
-      value: 4.25
-      objectReference: {fileID: 0}
-    - target: {fileID: 11417796, guid: 8454e29c2a033974fb559f5f8eff1918, type: 2}
-      propertyPath: _lodCount
-      value: 3
-      objectReference: {fileID: 0}
-    - target: {fileID: 11417796, guid: 8454e29c2a033974fb559f5f8eff1918, type: 2}
-      propertyPath: _baseVertDensity
-      value: 24
-      objectReference: {fileID: 0}
-    - target: {fileID: 11414350, guid: 8454e29c2a033974fb559f5f8eff1918, type: 2}
-      propertyPath: _radiusMultiplier
-      value: 2
+      propertyPath: _maxScale
+      value: 128
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 8454e29c2a033974fb559f5f8eff1918, type: 2}

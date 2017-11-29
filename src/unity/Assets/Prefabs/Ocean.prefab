@@ -58,15 +58,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _scaleHoriz: 1
   _scaleHorizSmoothTransition: 1
+  _minTexelsPerWave: 4.25
   _minScale: 32
   _maxScale: -1
   _enableSmoothLOD: 1
   _freezeTime: 0
-  _baseVertDensity: 32
+  _baseVertDensity: 24
   _maxWaveHeight: 30
-  _lodCount: 5
+  _lodCount: 4
   _uniformTiles: 0
   _generateSkirt: 1
+  _elapsedTime: 0
+  _deltaTime: 0
 --- !u!114 &11447936
 MonoBehaviour:
   m_ObjectHideFlags: 1

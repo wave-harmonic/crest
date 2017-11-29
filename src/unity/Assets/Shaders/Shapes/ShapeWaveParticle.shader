@@ -41,13 +41,13 @@ Shader "Ocean/Shape/Wave Particle"
 				uniform float _TexelsPerWave;
 				uniform float _Radius;
 
-				bool SamplingIsAdequate( float minWavelengthInShape )
+				bool SamplingIsAppropriate( float wavelengthInShape )
 				{
 					const float cameraWidth = 2. * unity_OrthoParams.x;
 					const float renderTargetRes = _ScreenParams.x;
 					const float texSize = cameraWidth / renderTargetRes;
 					const float minWavelength = texSize * _TexelsPerWave;
-					return minWavelengthInShape > minWavelength;
+					return wavelengthInShape > minWavelength && wavelengthInShape <= 2.*minWavelength;
 				}
 
 				v2f vert( appdata_t v )
@@ -61,7 +61,7 @@ Shader "Ocean/Shape/Wave Particle"
 
 					// if wavelength is too small, kill this quad so that it doesnt render any shape
 					float wavelength = 2. * _Radius;
-					if( !SamplingIsAdequate(wavelength) )
+					if( !SamplingIsAppropriate(wavelength) )
 						o.vertex.xy *= 0.;
 
 					return o;

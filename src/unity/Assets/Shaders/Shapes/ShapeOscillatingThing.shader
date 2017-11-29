@@ -6,6 +6,7 @@ Shader "Ocean/Shape/Oscillating Thing"
 	{
 		_Amplitude( "Amplitude", float ) = 1
 		_Radius( "Radius", float) = 3
+		_Omega( "Omega", float) = 3
 	}
 
 	Category
@@ -45,6 +46,7 @@ Shader "Ocean/Shape/Oscillating Thing"
 
 				uniform float _TexelsPerWave;
 				uniform float _Radius;
+				uniform float _Omega;
 
 				float ComputeTexelSize()
 				{
@@ -53,10 +55,10 @@ Shader "Ocean/Shape/Oscillating Thing"
 					return cameraWidth / renderTargetRes;
 				}
 
-				bool SamplingIsAdequate( float minWavelengthInShape, float texSize )
+				bool SamplingIsAppropriate( float wavelengthInShape, float texSize )
 				{
 					const float minWavelength = texSize * _TexelsPerWave;
-					return minWavelengthInShape > minWavelength;
+					return wavelengthInShape > minWavelength && wavelengthInShape <= 2.*minWavelength;
 				}
 
 				v2f vert( appdata_t v )
@@ -71,8 +73,8 @@ Shader "Ocean/Shape/Oscillating Thing"
 					o.texSize = ComputeTexelSize();
 					// this shape function below is weird - it has multiple components at different scales. each component
 					// is based on a smoothstep, with radius equal to _Radius*i.texSize.
-					float wavelength = 2. * _Radius * o.texSize;
-					if( !SamplingIsAdequate( wavelength, o.texSize ) )
+					float wavelength = 2. * _Radius;
+					if( !SamplingIsAppropriate( wavelength, o.texSize ) )
 						o.vertex.xy *= 0.;
 
 					return o;
@@ -82,15 +84,14 @@ Shader "Ocean/Shape/Oscillating Thing"
 
 				float4 frag( v2f i ) : SV_Target
 				{
-					// core shape. note this has a dependency on sampling res (texSize), so will produce different shape components depending on
-					// shape texture res.
-					float y = smoothstep( _Radius*i.texSize, 0.25*_Radius*i.texSize, length(i.worldOffset - i.texSize));
+					// core shape
+					float y = smoothstep( _Radius, 0.25*_Radius, length(i.worldOffset));
 
 					// oscillation
-					y *= sin(10.*_MyTime / sqrt(i.texSize) + i.texSize);
+					y *= sin(_MyTime * _Omega);
 
-					// amplitude, also has scale dependency
-					y *= _Amplitude * sqrt(i.texSize) * 60.;
+					// amplitude
+					y *= _Amplitude;
 
 					// treat as an acceleration - dt^2
 					return float4( _MyDeltaTime * _MyDeltaTime * y, 0., 0., 0. );

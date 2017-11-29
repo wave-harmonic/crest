@@ -66,6 +66,9 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 				uniform float _MyTime;
 				uniform float _MyDeltaTime;
 
+				// simulate wavelengths between _TexelsPerWave texels and 2*_TexelsPerWave texels
+				uniform float _TexelsPerWave;
+
 				uniform sampler2D _WavePPTSource;
 
 				float4 frag (v2f i) : SV_Target
@@ -83,8 +86,16 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 					float fxp = tex2D(_WavePPTSource, i.uv + e.xz).x; // x plus
 					float fyp = tex2D(_WavePPTSource, i.uv + e.zy).x; // y plus
 
-					// hacked wave speed for now. we should compute this from gravity
-					float c = 7.;
+					const float texelSize = 2. * unity_OrthoParams.x * i.uv.z; // assumes square RT
+
+					// wave speed of deep sea ocean waves: https://en.wikipedia.org/wiki/Wind_wave
+					// C = sqrt( gL/2pi )
+					float g = 9.81;
+					float Lmin = _TexelsPerWave * texelSize;
+					// to compute wave speed, take "middle" wavelength of this band (Lmin,2.*Lmin)
+					float L = Lmin * 1.5;
+					float c = sqrt(g*L / 6.28318);
+
 					const float dt = _MyDeltaTime;
 					// dont support variable framerates, so just abort if dt == 0
 					if (dt < 0.01) return ft_ftm_foam_a;
@@ -92,7 +103,7 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 					// wave propagation
 					// velocity is implicit - current and previous values stored, time step assumed to be constant.
 					// this only works at a fixed framerate 60hz!
-					float ftp = ft + (ft - ftm) + dt*dt*c*c*(fxm + fxp + fym + fyp - 4.*ft);
+					float ftp = ft + (ft - ftm) + dt*dt*c*c*(fxm + fxp + fym + fyp - 4.*ft) / (texelSize*texelSize);
 
 					// open boundary condition, from: http://hplgit.github.io/wavebc/doc/pub/._wavebc_cyborg002.html .
 					// this actually doesn't work perfectly well - there is some minor reflections of high frequencies.
@@ -104,16 +115,12 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 					if (i.uv.y - e.y <= 0.) ftp = dt*c*(fyp - ft) + ft;
 
 					// Damping
-					ftp *= max(0.0, 1.0 - 0.15 * dt);
+					ftp *= max(0.0, 1.0 - 0.04 * dt);
 
 					// Foam
 					float accel = ((ftp - ft) - (ft - ftm));
-					float foam = -accel * 80.;
+					float foam = -accel * 160.;
 					foam = max(foam, 0.);
-
-					const float texelSize = 2. * unity_OrthoParams.x * i.uv.z; // assumes square RT
-					if (texelSize < 0.)
-						foam = 0.;
 
 					// w channel will be used to accumulate simulation results down the lod chain
 					return float4( ftp, ft, foam, 0. );

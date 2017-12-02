@@ -370,7 +370,7 @@ namespace OceanResearch
             // add a shape camera below it
             _shapeCameras[lodIndex].transform.parent = parent.transform;
             _shapeCameras[lodIndex].transform.localScale = Vector3.one;
-            _shapeCameras[lodIndex].transform.localPosition = Vector3.zero;
+            _shapeCameras[lodIndex].transform.localPosition = Vector3.up * OceanRenderer.MAX_WAVE_HEIGHT;
 
             bool generateSkirt = parms._generateSkirt && biggestLOD;
 

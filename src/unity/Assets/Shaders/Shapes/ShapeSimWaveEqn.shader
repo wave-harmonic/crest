@@ -119,7 +119,7 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 
 					// Foam
 					float accel = ((ftp - ft) - (ft - ftm));
-					float foam = -accel * 160.;
+					float foam = -accel * 600.;
 					foam = max(foam, 0.);
 					// foam could be faded slowly across frames, but right now the combine pass uses the foam channel for
 					// accumulation, so the last frames foam value cannot be used. could solve this by packing two values

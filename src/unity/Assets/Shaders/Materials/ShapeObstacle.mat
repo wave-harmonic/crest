@@ -7,7 +7,7 @@ Material:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_Name: ShapeObstacle
-  m_Shader: {fileID: 4800000, guid: 754252fa696297b45919e11fba36cec6, type: 3}
+  m_Shader: {fileID: 4800000, guid: b9c56fd9ce7d7e04ea07d0be8b9ad6c8, type: 3}
   m_ShaderKeywords: 
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0

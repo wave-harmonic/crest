@@ -52,6 +52,8 @@ namespace OceanResearch
         float _viewerAltitudeLevelAlpha = 0f;
         public float ViewerAltitudeLevelAlpha { get { return _viewerAltitudeLevelAlpha; } }
 
+        public const float MAX_WAVE_HEIGHT = 10f;
+
         static OceanRenderer _instance;
         public static OceanRenderer Instance { get { return _instance != null ? _instance : (_instance = FindObjectOfType<OceanRenderer>()); } }
 

@@ -242,7 +242,7 @@ Shader "Ocean/Ocean"
 				void ApplyFoam( half foamAmount, float2 worldXZUndisplaced, half3 n, inout half3 io_col )
 				{
 					// Give the foam some texture
-					float2 foamUV = worldXZUndisplaced / 80.;
+					float2 foamUV = worldXZUndisplaced / 20.;
 					foamUV += 0.02 * n.xz;
 					half foamTexValue = tex2D( _FoamTexture, foamUV ).r;
 

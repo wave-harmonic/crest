@@ -76,7 +76,10 @@ Shader "Ocean/Shape/Sim/Combine"
 				half4 simData = tex2D(_MainTex, uv_1);
 
 				// combine simulation results into w channel. dont mess with xyz - this would mess with the simulation
-				return half4( 0., 0., simData.z, simData.x + simData.w );
+				half4 result = half4(0., 0., simData.z, simData.x + simData.w); // ( h, hprev, cumulative foam, cumulative h )
+				
+				// this fades out the big lod, so that it is not noticeable when it pops in/out when height changes
+				return _WD_Params_1.z * result;
 			}
 			ENDCG
 		}

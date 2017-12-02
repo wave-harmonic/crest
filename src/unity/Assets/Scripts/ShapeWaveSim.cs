@@ -58,9 +58,10 @@ namespace OceanResearch
             var cams = OceanRenderer.Instance.Builder._shapeCameras;
             if( newScaleSmaller )
             {
+                // accumulate simulation results UP the lod chain - combine L into L+1
+
                 for( int L = cams.Length - 2; L >= 0; L-- )
                 {
-                    // accumulate simulation results down the lod chain - combine L+1 into L
                     Graphics.Blit( cams[L].GetComponent<PingPongRts>()._sourceThisFrame, cams[L + 1].GetComponent<PingPongRts>()._sourceThisFrame );
                     cams[L + 1].GetComponent<WaveDataCam>()._renderData._posSnappedLast = cams[L].GetComponent<WaveDataCam>()._renderData._posSnappedLast;
                 }
@@ -69,9 +70,10 @@ namespace OceanResearch
             }
             else
             {
+                // accumulate simulation results DOWN the lod chain - combine L into L-1
+
                 for( int L = 1; L < cams.Length; L++ )
                 {
-                    // accumulate simulation results down the lod chain - combine L+1 into L
                     Graphics.Blit( cams[L].GetComponent<PingPongRts>()._sourceThisFrame, cams[L - 1].GetComponent<PingPongRts>()._sourceThisFrame );
                     cams[L - 1].GetComponent<WaveDataCam>()._renderData._posSnappedLast = cams[L].GetComponent<WaveDataCam>()._renderData._posSnappedLast;
                 }

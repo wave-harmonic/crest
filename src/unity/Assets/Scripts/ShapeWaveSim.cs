@@ -80,6 +80,37 @@ namespace OceanResearch
             }
         }
 
+        public static bool _showTargets = true;
+
+        void OnGUI()
+        {
+            _showTargets = GUI.Toggle( new Rect( 0, 120, 100, 25 ), _showTargets, "Show sim data" );
+
+            // draw source textures to screen
+            if( _showTargets )
+            {
+                int ind = 0;
+                foreach( var cam in OceanRenderer.Instance.Builder._shapeCameras )
+                {
+                    if( !cam ) continue;
+
+                    var pp = cam.GetComponent<PingPongRts>();
+                    if( !pp ) continue;
+
+                    float b = 7f;
+                    float h = Screen.height / (float)OceanRenderer.Instance.Builder._shapeCameras.Length, w = h + b;
+                    float x = Screen.width - w, y = ind * h;
+
+                    GUI.color = Color.black * 0.7f;
+                    GUI.DrawTexture( new Rect( x, y, w, h ), Texture2D.whiteTexture );
+                    GUI.color = Color.white;
+                    GUI.DrawTexture( new Rect( x + b, y + b / 2f, h - b, h - b ), pp._sourceThisFrame, ScaleMode.ScaleAndCrop, false );
+
+                    ind++;
+                }
+            }
+        }
+
         static ShapeWaveSim _instance;
         public static ShapeWaveSim Instance { get { return _instance != null ? _instance : (_instance = FindObjectOfType<ShapeWaveSim>()); } }
     }

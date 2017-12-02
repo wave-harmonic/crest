@@ -1,65 +1,34 @@
 ﻿using UnityEngine;
 
-public class PingPongRts : MonoBehaviour
+namespace OceanResearch
 {
-    public RenderTexture _targetThisFrame;
-    public RenderTexture _sourceThisFrame;
-
-    RenderTexture _rtA, _rtB;
-
-    static bool _showTargets = true;
-
-    public void InitRTs( RenderTexture rtA, RenderTexture rtB )
+    public class PingPongRts : MonoBehaviour
     {
-        _rtA = rtA;
-        _rtB = rtB;
-    }
+        public RenderTexture _targetThisFrame;
+        public RenderTexture _sourceThisFrame;
 
-    void Update()
-    {
-        UpdatePingPong( out _sourceThisFrame );
+        RenderTexture _rtA, _rtB;
 
-        Cam.targetTexture = _targetThisFrame;
-    }
-
-    void UpdatePingPong( out RenderTexture sourceThisFrame )
-    {
-        // switch RTs
-        sourceThisFrame = _targetThisFrame;
-        _targetThisFrame = _targetThisFrame == _rtA ? _rtB : _rtA;
-
-        if( _targetThisFrame == null )
+        public void InitRTs( RenderTexture rtA, RenderTexture rtB )
         {
-            Debug.LogWarning( "One or both of the RTs are not specified.", this );
+            _rtA = rtA;
+            _rtB = rtB;
         }
-    }
 
-    void OnGUI()
-    {
-        // draw source textures to screen
-        if( _sourceThisFrame )
+        void Update()
         {
-            int ind = OceanResearch.OceanRenderer.Instance.Builder.GetShapeCamIndex( Cam );
-            if( ind < 0 ) return;
+            UpdatePingPong( out _sourceThisFrame );
 
-            if( ind == 0 )
-            {
-                _showTargets = GUI.Toggle( new Rect( 0, 120, 100, 25 ), _showTargets, "Show sim data" );
-            }
-
-            if( _showTargets )
-            {
-                float b = 7f;
-                float h = Screen.height / (float)OceanResearch.OceanRenderer.Instance.Builder._shapeCameras.Length, w = h + b;
-                float x = Screen.width - w, y = ind * h;
-
-                GUI.color = Color.black * 0.7f;
-                GUI.DrawTexture( new Rect( x, y, w, h ), Texture2D.whiteTexture );
-                GUI.color = Color.white;
-                GUI.DrawTexture( new Rect( x + b, y + b / 2f, h - b, h - b ), _sourceThisFrame, ScaleMode.ScaleAndCrop, false );
-            }
+            Cam.targetTexture = _targetThisFrame;
         }
-    }
 
-    Camera _cam; Camera Cam { get { return _cam != null ? _cam : (_cam = GetComponent<Camera>()); } }
+        void UpdatePingPong( out RenderTexture sourceThisFrame )
+        {
+            // switch RTs
+            sourceThisFrame = _targetThisFrame;
+            _targetThisFrame = _targetThisFrame == _rtA ? _rtB : _rtA;
+        }
+
+        Camera _cam; Camera Cam { get { return _cam != null ? _cam : (_cam = GetComponent<Camera>()); } }
+    }
 }

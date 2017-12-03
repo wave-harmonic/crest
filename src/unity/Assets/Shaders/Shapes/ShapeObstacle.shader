@@ -21,7 +21,7 @@ Shader "Ocean/Shape/Obstacle"
 				Name "BASE"
 				Tags { "LightMode" = "Always" }
 				// multiply blend - can mask out particular channels
-				//Blend DstColor Zero
+				Blend DstColor Zero, One One
 
 				CGPROGRAM
 				#pragma vertex vert
@@ -54,10 +54,12 @@ Shader "Ocean/Shape/Obstacle"
 
 				float4 frag (v2f i) : SV_Target
 				{
-					clip(i.altitude - -.5);
+					float depthMul = clamp(-i.altitude/1.5, 0., 1.);
 
-					// stamp down 0 wave height, and some foam
-					return float4(0., 0., _Foam, 0.);
+					float hmul = max(depthMul, 0.99);
+
+					// stamp down 0 wave height, and add some foam
+					return float4(hmul, hmul, hmul, _Foam * (1. - depthMul));
 				}
 
 				ENDCG

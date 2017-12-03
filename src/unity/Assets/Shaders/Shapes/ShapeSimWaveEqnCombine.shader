@@ -1,5 +1,5 @@
-﻿// This shader takes a simulation result, zooms in on it (2X scale), and then adds it to the target. Accumulation is done into the W channel
-// of the target, so that it won't interfere with the simulation itself (which uses channels x,y,z).
+﻿// This shader takes a simulation result, zooms in on it (2X scale), and then adds it to the target. Accumulation is done into the Z channel
+// of the target, so that it won't interfere with the simulation itself (which uses channels x,y,w).
 // This is run on each sim lod from largest to smallest, to accumulate the results downwards.
 Shader "Ocean/Shape/Sim/Combine"
 {
@@ -73,10 +73,11 @@ Shader "Ocean/Shape/Sim/Combine"
 
 				// sample the shape 1 texture at this world pos
 				float2 uv_1 = worldToUV(worldPos, _WD_Pos_1, _WD_Params_1.y, _WD_Params_1.x);
+
 				half4 simData = tex2D(_MainTex, uv_1);
 
 				// combine simulation results into w channel. dont mess with xyz - this would mess with the simulation
-				half4 result = half4(0., 0., simData.z, simData.x + simData.w); // ( h, hprev, cumulative foam, cumulative h )
+				half4 result = half4(0., 0., simData.x + simData.z, simData.w); // ( h, hprev, cumulative h, cumulative foam )
 				
 				// this fades out the big lod, so that it is not noticeable when it pops in/out when height changes
 				return _WD_Params_1.z * result;

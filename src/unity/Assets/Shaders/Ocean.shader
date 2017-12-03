@@ -105,9 +105,9 @@ Shader "Ocean/Ocean"
 					float4 s = tex2Dlod(i_dispSampler, uv);
 					float4 sx = tex2Dlod(i_dispSampler, uv + dd.xyyy);
 					float4 sz = tex2Dlod(i_dispSampler, uv + dd.yxyy);
-					float3 disp = float3(0., s.x + s.w, 0.);
-					float3 disp_x = dd.zyy + float3(0., sx.x + sx.w, 0.);
-					float3 disp_z = dd.yyz + float3(0., sz.x + sz.w, 0.);
+					float3 disp = float3(0., s.x + s.z, 0.);
+					float3 disp_x = dd.zyy + float3(0., sx.x + sx.z, 0.);
+					float3 disp_z = dd.yyz + float3(0., sz.x + sz.z, 0.);
 					io_worldPos += wt * disp;
 
 					float3 n = normalize( cross( disp_z - disp, disp_x - disp ) );
@@ -124,7 +124,7 @@ Shader "Ocean/Ocean"
 					io_foamAmount += wt * foamAmount;
 					*/
 
-					io_foamAmount += wt * s.z;
+					io_foamAmount += wt * s.w;
 				}
 
 				v2f vert( appdata_t v )

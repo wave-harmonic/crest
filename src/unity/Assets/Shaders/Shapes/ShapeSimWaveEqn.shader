@@ -78,9 +78,9 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 
 					float3 e = float3(i.uv.zw, 0.);
 
-					float4 ft_ftm_foam_a = tex2D(_WavePPTSource, i.uv);
-					float ft = ft_ftm_foam_a.x; // t - current value before update
-					float ftm = ft_ftm_foam_a.y; // t minus - previous value
+					float4 ft_ftm_faccum_foam = tex2D(_WavePPTSource, i.uv);
+					float ft = ft_ftm_faccum_foam.x; // t - current value before update
+					float ftm = ft_ftm_faccum_foam.y; // t minus - previous value
 					float fxm = tex2D(_WavePPTSource, i.uv - e.xz).x; // x minus
 					float fym = tex2D(_WavePPTSource, i.uv - e.zy).x; // y minus
 					float fxp = tex2D(_WavePPTSource, i.uv + e.xz).x; // x plus
@@ -98,7 +98,7 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 
 					const float dt = _MyDeltaTime;
 					// dont support variable framerates, so just abort if dt == 0
-					if (dt < 0.01) return ft_ftm_foam_a;
+					if (dt < 0.01) return ft_ftm_faccum_foam;
 
 					// wave propagation
 					// velocity is implicit - current and previous values stored, time step assumed to be constant.
@@ -122,11 +122,10 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 					float foam = -accel * 600.;
 					foam = max(foam, 0.);
 					// foam could be faded slowly across frames, but right now the combine pass uses the foam channel for
-					// accumulation, so the last frames foam value cannot be used. could solve this by packing two values
-					// into the foam channel - (current foam value, accumulated foam value for rendering)
+					// accumulation, so the last frames foam value cannot be used.
 
-					// w channel will be used to accumulate simulation results down the lod chain
-					return float4( ftp, ft, foam, 0. );
+					// z channel will be used to accumulate simulation results down the lod chain
+					return float4( ftp, ft, 0., foam );
 				}
 
 				ENDCG

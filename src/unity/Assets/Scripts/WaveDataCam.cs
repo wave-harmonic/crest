@@ -1,6 +1,7 @@
 ﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace OceanResearch
 {
@@ -13,6 +14,10 @@ namespace OceanResearch
         public int _lodIndex = 0;
         [HideInInspector]
         public int _lodCount = 5;
+
+        public RenderTexture _rtOceanDepth;
+        CommandBuffer _bufOceanDepth = null;
+        Material _matOceanDepth;
 
         int _shapeRes = -1;
 
@@ -29,6 +34,8 @@ namespace OceanResearch
         void Start()
         {
             cam.depthTextureMode = DepthTextureMode.None;
+
+            _matOceanDepth = new Material( Shader.Find( "Ocean/Ocean Depth" ) );
         }
 
         private void Update()
@@ -70,6 +77,56 @@ namespace OceanResearch
             T.SetTRS( new Vector3( _renderData._posContinuous.x - _renderData._posSnapped.x, _renderData._posContinuous.z - _renderData._posSnapped.z ), Quaternion.identity, Vector3.one );
             P = P * T;
             cam.projectionMatrix = P;
+
+            UpdateCommandBuffer();
+        }
+
+        void UpdateCommandBuffer()
+        {
+            if( !_rtOceanDepth )
+            {
+                _rtOceanDepth = new RenderTexture( cam.targetTexture.width, cam.targetTexture.height, 0 );
+                _rtOceanDepth.name = gameObject.name + "_oceanDepth";
+                _rtOceanDepth.format = RenderTextureFormat.RFloat;
+                _rtOceanDepth.useMipMap = false;
+                _rtOceanDepth.anisoLevel = 0;
+            }
+
+            if( _bufOceanDepth == null )
+            {
+                _bufOceanDepth = new CommandBuffer();
+                cam.AddCommandBuffer( CameraEvent.BeforeForwardOpaque, _bufOceanDepth );
+                _bufOceanDepth.name = "Ocean Depth";
+            }
+
+            _bufOceanDepth.Clear();
+
+            _bufOceanDepth.SetRenderTarget( _rtOceanDepth );
+            var gos = GameObject.FindGameObjectsWithTag( "OceanDepth" );
+            foreach( var go in gos )
+            {
+                var r = go.GetComponent<Renderer>();
+                if( !r ) continue;
+
+                _bufOceanDepth.ClearRenderTarget( false, true, Color.red * 100.0f );
+                _bufOceanDepth.DrawRenderer( r, _matOceanDepth );
+            }
+        }
+
+        void RemoveCommandBuffer()
+        {
+            if( _bufOceanDepth == null ) return;
+            cam.RemoveCommandBuffer( CameraEvent.BeforeForwardOpaque, _bufOceanDepth );
+            _bufOceanDepth = null;
+        }
+
+        void OnEnable()
+        {
+            RemoveCommandBuffer();
+        }
+        void OnDisable()
+        {
+            RemoveCommandBuffer();
         }
 
         public void ApplyMaterialParams( int shapeSlot, Material mat )

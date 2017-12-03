@@ -298,7 +298,7 @@ Camera:
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
-    m_Bits: 4294967039
+    m_Bits: 4294966527
   m_RenderingPath: -1
   m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
@@ -1888,7 +1888,7 @@ Prefab:
       objectReference: {fileID: 0}
     - target: {fileID: 100002, guid: a1af256fbecad4a4fa3f385d4cde20c7, type: 3}
       propertyPath: m_Layer
-      value: 8
+      value: 9
       objectReference: {fileID: 0}
     - target: {fileID: 100004, guid: a1af256fbecad4a4fa3f385d4cde20c7, type: 3}
       propertyPath: m_Layer
@@ -1900,7 +1900,7 @@ Prefab:
       objectReference: {fileID: 0}
     - target: {fileID: 100000, guid: a1af256fbecad4a4fa3f385d4cde20c7, type: 3}
       propertyPath: m_Layer
-      value: 8
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 100000, guid: a1af256fbecad4a4fa3f385d4cde20c7, type: 3}
       propertyPath: m_Name
@@ -1909,7 +1909,15 @@ Prefab:
     - target: {fileID: 2300000, guid: a1af256fbecad4a4fa3f385d4cde20c7, type: 3}
       propertyPath: m_Materials.Array.data[0]
       value: 
-      objectReference: {fileID: 2100000, guid: 7be0637bcdb579b47b2f0371f3be975d, type: 2}
+      objectReference: {fileID: 2100000, guid: 7e86f8d3c1ef9b0428ade9b7f375cd5b, type: 2}
+    - target: {fileID: 100002, guid: a1af256fbecad4a4fa3f385d4cde20c7, type: 3}
+      propertyPath: m_Name
+      value: Mounts
+      objectReference: {fileID: 0}
+    - target: {fileID: 100002, guid: a1af256fbecad4a4fa3f385d4cde20c7, type: 3}
+      propertyPath: m_TagString
+      value: OceanDepth
+      objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 9500000, guid: a1af256fbecad4a4fa3f385d4cde20c7, type: 3}
   m_ParentPrefab: {fileID: 100100000, guid: a1af256fbecad4a4fa3f385d4cde20c7, type: 3}
@@ -2108,18 +2116,6 @@ Prefab:
       propertyPath: _viewpoint
       value: 
       objectReference: {fileID: 227134470}
-    - target: {fileID: 11417796, guid: 8454e29c2a033974fb559f5f8eff1918, type: 2}
-      propertyPath: _maxScale
-      value: 128
-      objectReference: {fileID: 0}
-    - target: {fileID: 11417796, guid: 8454e29c2a033974fb559f5f8eff1918, type: 2}
-      propertyPath: _minTexelsPerWave
-      value: 6
-      objectReference: {fileID: 0}
-    - target: {fileID: 11417796, guid: 8454e29c2a033974fb559f5f8eff1918, type: 2}
-      propertyPath: _minScale
-      value: 16
-      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 8454e29c2a033974fb559f5f8eff1918, type: 2}
   m_IsPrefabParent: 0

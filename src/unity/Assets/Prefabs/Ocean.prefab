@@ -58,9 +58,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _scaleHoriz: 1
   _scaleHorizSmoothTransition: 1
-  _minTexelsPerWave: 4.25
-  _minScale: 32
-  _maxScale: -1
+  _minTexelsPerWave: 6
+  _minScale: 16
+  _maxScale: 128
   _enableSmoothLOD: 1
   _freezeTime: 0
   _baseVertDensity: 24
@@ -82,8 +82,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _chunkPrefab: {fileID: 420464, guid: cf3b4e9ae29b3ef49b5c62b0ce691760, type: 2}
-  _shapeCameraPrefab: {fileID: 4685541729782842, guid: 34c4f20ff09a39e4299f7341277be9c1,
-    type: 2}
   _shapeCameras: []
 --- !u!1001 &100100000
 Prefab:

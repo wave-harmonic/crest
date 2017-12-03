@@ -64,11 +64,18 @@ Shader "Ocean/Shape/Oscillating Thing"
 				v2f vert( appdata_t v )
 				{
 					v2f o;
-					o.vertex = UnityObjectToClipPos( v.vertex );
 
 					float3 worldPos = mul( unity_ObjectToWorld, v.vertex ).xyz;
-					o.worldOffset = worldPos - mul(unity_ObjectToWorld, float4(0., 0., 0., 1.)).xyz;
+					float3 centerPos = unity_ObjectToWorld._m03_m13_m23;
+					o.worldOffset = worldPos - centerPos;
 
+					// shape is symmetric around center with known radius - fix the vert positions to perfectly wrap the shape.
+					o.worldOffset.x = _Radius * sign(o.worldOffset.x);
+					o.worldOffset.y = 0.;
+					o.worldOffset.z = _Radius * sign(o.worldOffset.z);
+					o.vertex = mul(UNITY_MATRIX_VP, float4(centerPos + o.worldOffset, 1.));
+
+					// clamp worldPos to be
 					// if wavelength is too small, kill this quad so that it doesnt render any shape
 					o.texSize = ComputeTexelSize();
 					// this shape function below is weird - it has multiple components at different scales. each component
@@ -85,7 +92,7 @@ Shader "Ocean/Shape/Oscillating Thing"
 				float4 frag( v2f i ) : SV_Target
 				{
 					// core shape
-					float y = smoothstep( _Radius, 0.25*_Radius, length(i.worldOffset));
+					float y = smoothstep(_Radius, 0.25*_Radius, length(i.worldOffset.xz));
 
 					// oscillation
 					y *= sin(_MyTime * _Omega);

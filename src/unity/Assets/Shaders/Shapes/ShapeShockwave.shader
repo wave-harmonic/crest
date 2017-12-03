@@ -59,7 +59,7 @@ Shader "Ocean/Shape/Shockwave"
 
 					float3 worldPos = mul( unity_ObjectToWorld, v.vertex ).xyz;
 
-					o.worldOffsetScaled.xy = worldPos.xz - mul( unity_ObjectToWorld, float4(0., 0., 0., 1.) ).xz;
+					o.worldOffsetScaled.xy = worldPos.xz - unity_ObjectToWorld._m03_m23;
 					o.worldOffsetScaled.zw = o.worldOffsetScaled.xy + _Velocity.xy;
 
 					o.worldOffsetScaled /= _Radius;

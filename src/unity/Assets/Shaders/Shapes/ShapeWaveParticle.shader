@@ -35,7 +35,7 @@ Shader "Ocean/Shape/Wave Particle"
 
 				struct v2f {
 					float4 vertex : SV_POSITION;
-					float3 worldOffsetNorm : TEXCOORD0;
+					float2 worldOffsetScaled : TEXCOORD0;
 				};
 
 				uniform float _TexelsPerWave;
@@ -56,8 +56,14 @@ Shader "Ocean/Shape/Wave Particle"
 					o.vertex = UnityObjectToClipPos( v.vertex );
 
 					float3 worldPos = mul( unity_ObjectToWorld, v.vertex ).xyz;
-					o.worldOffsetNorm = worldPos - mul( unity_ObjectToWorld, float4(0., 0., 0., 1.) ).xyz;
-					o.worldOffsetNorm /= _Radius;
+					float3 centerPos = unity_ObjectToWorld._m03_m13_m23;
+					o.worldOffsetScaled = worldPos.xz - centerPos.xz;
+
+					// shape is symmetric around center with known radius - fix the vert positions to perfectly wrap the shape.
+					o.worldOffsetScaled = sign(o.worldOffsetScaled);
+					float4 newWorldPos = float4(centerPos, 1.);
+					newWorldPos.xz += o.worldOffsetScaled * _Radius;
+					o.vertex = mul(UNITY_MATRIX_VP, newWorldPos);
 
 					// if wavelength is too small, kill this quad so that it doesnt render any shape
 					float wavelength = 2. * _Radius;
@@ -73,7 +79,7 @@ Shader "Ocean/Shape/Wave Particle"
 				float4 frag (v2f i) : SV_Target
 				{
 					// power 4 smoothstep - no normalize needed
-					float r2 = dot( i.worldOffsetNorm.xz, i.worldOffsetNorm.xz );
+					float r2 = dot( i.worldOffsetScaled, i.worldOffsetScaled );
 					if( r2 > 1. )
 						return (float4)0.;
 

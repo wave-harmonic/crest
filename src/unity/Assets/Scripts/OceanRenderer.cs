@@ -149,6 +149,22 @@ namespace OceanResearch
             Shader.SetGlobalFloat( "_EnableSmoothLODs", _enableSmoothLOD ? 1f : 0f ); // debug
         }
 
+        public bool ScaleCouldDouble
+        {
+            get
+            {
+                return _maxScale == -1f || Mathf.Abs( transform.localScale.x ) < _maxScale * 0.99f;
+            }
+        }
+
+        public bool ScaleCouldHalve
+        {
+            get
+            {
+                return _minScale == -1f || Mathf.Abs( transform.localScale.x ) > _minScale * 1.01f;
+            }
+        }
+
 #if UNITY_EDITOR
         void OnDrawGizmos()
         {

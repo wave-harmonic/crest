@@ -133,8 +133,12 @@ namespace OceanResearch
         {
             mat.SetTexture( "_WD_Sampler_" + shapeSlot.ToString(), cam.targetTexture );
             mat.SetTexture( "_WD_OceanDepth_Sampler_" + shapeSlot.ToString(), _rtOceanDepth );
-            float shapeWeight = (_lodIndex == _lodCount - 1) ? OceanRenderer.Instance.ViewerAltitudeLevelAlpha : 1f;
+
+            // need to blend out shape if this is the largest lod, and the ocean might get scaled down later (so the largest lod will disappear)
+            bool needToBlendOutShape = _lodIndex == _lodCount - 1 && OceanRenderer.Instance.ScaleCouldHalve;
+            float shapeWeight = needToBlendOutShape ? OceanRenderer.Instance.ViewerAltitudeLevelAlpha : 1f;
             mat.SetVector( "_WD_Params_" + shapeSlot.ToString(), new Vector3( _renderData._texelWidth, _renderData._textureRes, shapeWeight ) );
+
             mat.SetVector( "_WD_Pos_" + shapeSlot.ToString(), new Vector2( _renderData._posSnapped.x, _renderData._posSnapped.z ) );
             mat.SetVector( "_WD_Pos_Cont_" + shapeSlot.ToString(), new Vector2( _renderData._posContinuous.x, _renderData._posContinuous.z ) );
             mat.SetInt( "_WD_LodIdx_" + shapeSlot.ToString(), _lodIndex );

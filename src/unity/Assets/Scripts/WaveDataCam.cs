@@ -131,6 +131,11 @@ namespace OceanResearch
 
         public void ApplyMaterialParams( int shapeSlot, Material mat )
         {
+            ApplyMaterialParams( shapeSlot, mat, true, true );
+        }
+
+        public void ApplyMaterialParams( int shapeSlot, Material mat, bool applyWaveHeights, bool applyOceanDepths )
+        {
             mat.SetTexture( "_WD_Sampler_" + shapeSlot.ToString(), cam.targetTexture );
             mat.SetTexture( "_WD_OceanDepth_Sampler_" + shapeSlot.ToString(), _rtOceanDepth );
 

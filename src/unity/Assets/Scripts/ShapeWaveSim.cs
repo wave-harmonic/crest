@@ -27,6 +27,10 @@ namespace OceanResearch
                 Vector3 posDelta = wdc._renderData._posSnapped - wdc._renderData._posSnappedLast;
 
                 _rend.material.SetVector( "_CameraPositionDelta", posDelta );
+
+                // set ocean lod data so that the sim shader can read the ocean depth. however don't assign the wave heights - it would
+                // try to assign the wave heights we are about to render to which is not cool
+                wdc.ApplyMaterialParams( 0, _rend.material, false, true );
             }
         }
 

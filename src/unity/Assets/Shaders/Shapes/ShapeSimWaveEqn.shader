@@ -34,6 +34,7 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 				struct v2f {
 					float4 vertex : SV_POSITION;
 					float4 uv : TEXCOORD0;
+					float2 uv_uncompensated : TEXCOORD1;
 				};
 
 				uniform float3 _CameraPositionDelta;
@@ -44,11 +45,12 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 					o.vertex = UnityObjectToClipPos( v.vertex );
 
 					// compute uncompensated uv
-					o.uv.xy = o.vertex.xy;
-					o.uv.y = -o.uv.y;
-					o.uv.xy = 0.5*o.uv.xy + 0.5;
+					o.uv_uncompensated.xy = o.vertex.xy;
+					o.uv_uncompensated.y = -o.uv_uncompensated.y;
+					o.uv_uncompensated.xy = 0.5*o.uv_uncompensated.xy + 0.5;
 
 					// compensate for camera motion - adjust lookup uv to get texel from last frame sim
+					o.uv.xy = o.uv_uncompensated;
 					o.uv.zw = float2(1., 1.) / _ScreenParams.xy;
 					const float texelSize = 2. * unity_OrthoParams.x * o.uv.z; // assumes square RT
 					o.uv.xy += o.uv.zw * _CameraPositionDelta.xz / texelSize;
@@ -112,6 +114,7 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 
 					// Damping
 					ftp *= max(0.0, 1.0 - 0.04 * dt);
+					ftp *= clamp(tex2D(_WD_OceanDepth_Sampler_0, i.uv_uncompensated), 0.998, 1.);
 
 					// Foam
 					float accel = ((ftp - ft) - (ft - ftm));

@@ -9,18 +9,15 @@ namespace OceanResearch
     /// </summary>
     public class OceanRenderer : MonoBehaviour
     {
-        public bool _scaleHoriz = true;
-        public bool _scaleHorizSmoothTransition = true;
-
         [Range( 0, 15 )]
         [Tooltip( "Min number of verts / shape texels per wave" )]
         public float _minTexelsPerWave = 5f;
 
-        [Delayed]
-        [Tooltip( "The scale of the ocean is clamped at this value to prevent the ocean being scaled too small when approached by the camera." )]
-        public float _minScale = 128f;
+        [Delayed, Tooltip( "The smallest scale the ocean can be" )]
+        public float _minScale = 16f;
 
-        public float _maxScale = -1f;
+        [Delayed, Tooltip( "The largest scale the ocean can be (-1 for unlimited)" )]
+        public float _maxScale = 128f;
 
         [Header( "Debug Params" )]
         [Tooltip("Smoothly transition geometry LODs")]
@@ -46,8 +43,8 @@ namespace OceanResearch
         bool _generateSkirt = true;
 
         // these have been useful for debug purposes (to freeze the water surface only)
-        public float _elapsedTime = 0f;
-        public float _deltaTime = 0f;
+        float _elapsedTime = 0f;
+        float _deltaTime = 0f;
 
         float _viewerAltitudeLevelAlpha = 0f;
         public float ViewerAltitudeLevelAlpha { get { return _viewerAltitudeLevelAlpha; } }
@@ -62,7 +59,7 @@ namespace OceanResearch
         {
             _instance = this;
 
-            _oceanBuilder = GetComponent<OceanBuilder>();
+            _oceanBuilder = FindObjectOfType<OceanBuilder>();
             _oceanBuilder.GenerateMesh( MakeBuildParams() );
 
             SetSmoothLODsShaderParam();
@@ -91,12 +88,11 @@ namespace OceanResearch
             float level = camY * HEIGHT_LOD_MUL;
             level = Mathf.Max( level, _minScale );
             if( _maxScale != -1f ) level = Mathf.Min( level, 1.99f * _maxScale );
-            if( !_scaleHoriz ) level = _minScale;
 
             float l2 = Mathf.Log( level ) / Mathf.Log( 2f );
             float l2f = Mathf.Floor( l2 );
 
-            _viewerAltitudeLevelAlpha = _scaleHorizSmoothTransition ? l2 - l2f : 0f;
+            _viewerAltitudeLevelAlpha = l2 - l2f;
 
             float newScale = Mathf.Pow( 2f, l2f );
 
@@ -134,21 +130,8 @@ namespace OceanResearch
             Shader.SetGlobalFloat( "_EnableSmoothLODs", _enableSmoothLOD ? 1f : 0f ); // debug
         }
 
-        public bool ScaleCouldDouble
-        {
-            get
-            {
-                return _maxScale == -1f || Mathf.Abs( transform.localScale.x ) < _maxScale * 0.99f;
-            }
-        }
-
-        public bool ScaleCouldHalve
-        {
-            get
-            {
-                return _minScale == -1f || Mathf.Abs( transform.localScale.x ) > _minScale * 1.01f;
-            }
-        }
+        public bool ScaleCouldIncrease { get { return _maxScale == -1f || Mathf.Abs( transform.localScale.x ) < _maxScale * 0.99f; } }
+        public bool ScaleCouldDecrease { get { return _minScale == -1f || Mathf.Abs( transform.localScale.x ) > _minScale * 1.01f; } }
 
 #if UNITY_EDITOR
         void OnDrawGizmos()

@@ -57,8 +57,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dde37eff0f7685f41902f400d1de0c6c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _scaleHoriz: 1
-  _scaleHorizSmoothTransition: 1
   _minTexelsPerWave: 6
   _minScale: 16
   _maxScale: 128
@@ -69,8 +67,6 @@ MonoBehaviour:
   _lodCount: 4
   _uniformTiles: 0
   _generateSkirt: 1
-  _elapsedTime: 0
-  _deltaTime: 0
 --- !u!114 &11447936
 MonoBehaviour:
   m_ObjectHideFlags: 1

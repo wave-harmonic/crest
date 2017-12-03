@@ -8,7 +8,6 @@ namespace OceanResearch
     /// This script creates a render texture and assigns it to the camera. We found the connection to the render textures kept breaking
     /// when we saved the scene, so we create and assign it at runtime as a workaround.
     /// </summary>
-    [RequireComponent( typeof( Camera ) )]
     public class CreateAssignRenderTexture : MonoBehaviour
     {
         public string _targetName = string.Empty;

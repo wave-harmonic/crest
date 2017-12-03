@@ -14,8 +14,6 @@ namespace OceanResearch
     {
         [Tooltip("Prefab for an ocean patch.")]
 	    public Transform _chunkPrefab;
-        [Tooltip("Prefab for a camera that renders ocean shape.")]
-        public Transform _shapeCameraPrefab;
 
         [HideInInspector]
         public Camera[] _shapeCameras;
@@ -182,16 +180,8 @@ namespace OceanResearch
             _shapeCameras = new Camera[parms._lodCount];
             for( int i = 0; i < parms._lodCount; i++ )
             {
-                scs[i] = Instantiate( _shapeCameraPrefab ) as Transform;
-                scs[i].gameObject.name = string.Format( "ShapeCam{0}", i );
-                _shapeCameras[i] = scs[i].GetComponent<Camera>();
-                _shapeCameras[i].depth -= i;
-                var wdc = _shapeCameras[i].GetComponent<WaveDataCam>();
-                wdc._lodIndex = i;
-                wdc._lodCount = parms._lodCount;
-                var cart = _shapeCameras[i].GetComponent<CreateAssignRenderTexture>();
-                cart._targetName = "shapeRT" + i.ToString();
-                cart._width = cart._height = (int)(4f * parms._baseVertDensity);
+                _shapeCameras[i] = CreateWaveDataCam( i, parms );
+                scs[i] = _shapeCameras[i].transform;
             }
 
             int startLevel = 0;
@@ -210,6 +200,42 @@ namespace OceanResearch
             sw.Stop();
             Debug.Log( "Finished generating " + parms._lodCount.ToString() + " LODs, time: " + (1000.0*sw.Elapsed.TotalSeconds).ToString(".000") + "ms" );
 #endif
+        }
+
+        Camera CreateWaveDataCam( int lodIdx, Params parms )
+        {
+            var go = new GameObject( string.Format( "ShapeCam{0}", lodIdx ) );
+
+            var cam = go.AddComponent<Camera>();
+            cam.clearFlags = CameraClearFlags.Nothing;
+            cam.cullingMask = 1 << LayerMask.NameToLayer( "WaveData" );
+            cam.orthographic = true;
+            cam.nearClipPlane = 1f;
+            cam.farClipPlane = 500f;
+            cam.useOcclusionCulling = false;
+            cam.allowHDR = false;
+            cam.allowMSAA = false;
+            cam.depth -= lodIdx;
+
+            var wdc = go.AddComponent<WaveDataCam>();
+            wdc._lodIndex = lodIdx;
+            wdc._lodCount = parms._lodCount;
+
+            go.AddComponent<PingPongRts>();
+
+            var cart = go.AddComponent<CreateAssignRenderTexture>();
+            cart._targetName = string.Format( "shapeRT{0}", lodIdx );
+            cart._width = cart._height = (int)(4f * parms._baseVertDensity);
+            cart._depthBits = 0;
+            cart._format = RenderTextureFormat.ARGBFloat;
+            cart._wrapMode = TextureWrapMode.Clamp;
+            cart._antiAliasing = 1;
+            cart._filterMode = FilterMode.Bilinear;
+            cart._anisoLevel = 0;
+            cart._useMipMap = false;
+            cart._createPingPongTargets = true;
+
+            return cam;
         }
 
         Mesh BuildOceanPatch( PatchType pt, Params parms )
@@ -370,7 +396,7 @@ namespace OceanResearch
             // add a shape camera below it
             _shapeCameras[lodIndex].transform.parent = parent.transform;
             _shapeCameras[lodIndex].transform.localScale = Vector3.one;
-            _shapeCameras[lodIndex].transform.localPosition = Vector3.up * OceanRenderer.MAX_WAVE_HEIGHT;
+            _shapeCameras[lodIndex].transform.localPosition = Vector3.up * parms._maxWaveHeight;
 
             bool generateSkirt = parms._generateSkirt && biggestLOD;
 

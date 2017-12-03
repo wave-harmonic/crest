@@ -7,7 +7,6 @@ namespace OceanResearch
     /// <summary>
     /// Positions wave data render camera. Snaps to shape texels to avoid aliasing.
     /// </summary>
-    [RequireComponent( typeof( Camera ) )]
     public class WaveDataCam : MonoBehaviour
     {
         [HideInInspector]

@@ -113,21 +113,6 @@ namespace OceanResearch
             transform.localScale = new Vector3( Mathf.Sign( transform.position.x ) * newScale, 1f, Mathf.Sign( transform.position.z ) * newScale );
         }
 
-        void OnGUI()
-        {
-            GUI.skin.toggle.normal.textColor = Color.black;
-            GUI.skin.label.normal.textColor = Color.black;
-
-            _freezeTime = GUI.Toggle( new Rect( 0, 25, 100, 25 ), _freezeTime, "Freeze waves" );
-
-            GUI.changed = false;
-            _enableSmoothLOD = GUI.Toggle( new Rect( 0, 50, 150, 25 ), _enableSmoothLOD, "Enable smooth LOD" );
-            if( GUI.changed ) SetSmoothLODsShaderParam();
-
-            _minTexelsPerWave = GUI.HorizontalSlider( new Rect( 0, 100, 150, 25 ), _minTexelsPerWave, 0, 15 );
-            GUI.Label( new Rect( 0, 75, 150, 25 ), string.Format("Min verts per wave: {0}", _minTexelsPerWave.ToString("0.00") ) );
-        }
-
         OceanBuilder.Params MakeBuildParams()
         {
             OceanBuilder.Params parms = new OceanBuilder.Params();
@@ -144,7 +129,7 @@ namespace OceanResearch
             _oceanBuilder.GenerateMesh( MakeBuildParams() );
         }
 
-        void SetSmoothLODsShaderParam()
+        public void SetSmoothLODsShaderParam()
         {
             Shader.SetGlobalFloat( "_EnableSmoothLODs", _enableSmoothLOD ? 1f : 0f ); // debug
         }

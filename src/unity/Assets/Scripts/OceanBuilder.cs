@@ -12,8 +12,8 @@ namespace OceanResearch
     /// </summary>
     public class OceanBuilder : MonoBehaviour
     {
-        [Tooltip("Prefab for an ocean patch.")]
-	    public Transform _chunkPrefab;
+        [Tooltip("Material to use for the ocean surface")]
+        public Material _oceanMaterial;
 
         [HideInInspector]
         public Camera[] _shapeCameras;
@@ -472,25 +472,31 @@ namespace OceanResearch
             for( int i = 0; i < offsets.Length; i++ )
             {
                 // instantiate and place patch
-                Transform inst = Instantiate( _chunkPrefab ) as Transform;
-                inst.parent = parent.transform;
+                var patch = new GameObject( string.Format( "Tile_L{0}", lodIndex ) );
+                patch.transform.parent = parent.transform;
                 Vector2 pos = offsets[i];
-                inst.localPosition = new Vector3( pos.x, 0f, pos.y );
-                inst.localScale = Vector3.one;
+                patch.transform.localPosition = new Vector3( pos.x, 0f, pos.y );
+                patch.transform.localScale = Vector3.one;
 
-                OceanChunkRenderer ocr = inst.GetComponent<OceanChunkRenderer>();
-                ocr.SetInstanceData( lodIndex, parms._lodCount, parms._baseVertDensity );
+                patch.AddComponent<OceanChunkRenderer>().SetInstanceData( lodIndex, parms._lodCount, parms._baseVertDensity ); ;
+                patch.AddComponent<MeshFilter>().mesh = meshData[(int)patchTypes[i]];
 
-                inst.GetComponent<MeshFilter>().mesh = meshData[(int)patchTypes[i]];
+                var mr = patch.AddComponent<MeshRenderer>();
+                // i dont think one would use lightprobes for a purely specular water surface? (although diffuse foam shading would benefit)
+                mr.lightProbeUsage = UnityEngine.Rendering.LightProbeUsage.Off;
+                mr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off; // arbitrary - could be turned on if desired
+                mr.receiveShadows = false; // arbitrary - could be turned on if desired
+                mr.motionVectorGenerationMode = MotionVectorGenerationMode.ForceNoMotion; // TODO
+                mr.material = _oceanMaterial;
 
                 // rotate side patches to point the +x side outwards
                 bool rotateXOutwards = patchTypes[i] == PatchType.FatX || patchTypes[i] == PatchType.FatXOuter || patchTypes[i] == PatchType.SlimX || patchTypes[i] == PatchType.SlimXFatZ;
                 if( rotateXOutwards )
                 {
                     if( Mathf.Abs( pos.y ) >= Mathf.Abs( pos.x ) )
-                        inst.localEulerAngles = -Vector3.up * 90f * Mathf.Sign( pos.y );
+                        patch.transform.localEulerAngles = -Vector3.up * 90f * Mathf.Sign( pos.y );
                     else
-                        inst.localEulerAngles = pos.x < 0f ? Vector3.up * 180f : Vector3.zero;
+                        patch.transform.localEulerAngles = pos.x < 0f ? Vector3.up * 180f : Vector3.zero;
                 }
 
                 // rotate the corner patches so the +x and +z sides point outwards
@@ -500,18 +506,18 @@ namespace OceanResearch
                     // xz direction before rotation
                     Vector3 from = new Vector3( 1f, 0f, 1f ).normalized;
                     // target xz direction is outwards vector given by local patch position - assumes this patch is a corner (checked below)
-                    Vector3 to = inst.localPosition.normalized;
-                    if( Mathf.Abs( inst.localPosition.x ) < 0.0001f || Mathf.Abs( Mathf.Abs( inst.localPosition.x ) - Mathf.Abs( inst.localPosition.z ) ) > 0.001f )
+                    Vector3 to = patch.transform.localPosition.normalized;
+                    if( Mathf.Abs( patch.transform.localPosition.x ) < 0.0001f || Mathf.Abs( Mathf.Abs( patch.transform.localPosition.x ) - Mathf.Abs( patch.transform.localPosition.z ) ) > 0.001f )
                     {
-                        Debug.LogWarning( "Skipped rotating a patch because it isn't a corner, click here to highlight.", inst );
+                        Debug.LogWarning( "Skipped rotating a patch because it isn't a corner, click here to highlight.", patch );
                         continue;
                     }
 
                     // detect 180 degree rotations as it doesnt always rotate around Y
                     if( Vector3.Dot( from, to ) < -0.99f )
-                        inst.localEulerAngles = Vector3.up * 180f;
+                        patch.transform.localEulerAngles = Vector3.up * 180f;
                     else
-                        inst.localRotation = Quaternion.FromToRotation( from, to );
+                        patch.transform.localRotation = Quaternion.FromToRotation( from, to );
                 }
             }
 

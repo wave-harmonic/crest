@@ -81,7 +81,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ecf2b25b7104b034086ca7f8a62a7bea, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _chunkPrefab: {fileID: 420464, guid: cf3b4e9ae29b3ef49b5c62b0ce691760, type: 2}
+  _oceanMaterial: {fileID: 2100000, guid: 9def92ac79181fe41b238e91663f0fad, type: 2}
   _shapeCameras: []
 --- !u!1001 &100100000
 Prefab:

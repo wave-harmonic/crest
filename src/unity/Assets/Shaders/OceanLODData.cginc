@@ -1,6 +1,7 @@
-// ocean data
+// ocean LOD data
 
-// Params: float3(texel size, texture resolution, shape weight multiplier)
+// samplers and data associated with a LOD.
+// _WD_Params: float3(texel size, texture resolution, shape weight multiplier)
 #define SHAPE_LOD_PARAMS(LODNUM) \
 	uniform sampler2D _WD_Sampler_##LODNUM; \
 	uniform sampler2D _WD_OceanDepth_Sampler_##LODNUM; \
@@ -9,6 +10,7 @@
 	uniform float2 _WD_Pos_Cont_##LODNUM; \
 	uniform int _WD_LodIdx_##LODNUM;
 
+// create two sets of LOD data. we always need only 2 textures - we're always lerping between two LOD levels
 SHAPE_LOD_PARAMS( 0 )
 SHAPE_LOD_PARAMS( 1 )
 

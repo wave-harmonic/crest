@@ -1,10 +1,4 @@
-
-// This code originated from Tomasz Dobrowolski's work
-// https://www.shadertoy.com/view/Xsd3DB
-// http://polycu.be/edit/?h=W2L7zN
-
-// Creative Commons Attribution-ShareAlike (CC BY-SA)
-// https://creativecommons.org/licenses/by-sa/4.0/
+// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 // solve 2D wave equation
 Shader "Ocean/Shape/Sim/2D Wave Equation"
@@ -70,6 +64,8 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 				uniform float _TexelsPerWave;
 
 				uniform sampler2D _WavePPTSource;
+
+				#include "../OceanLODData.cginc"
 
 				float4 frag (v2f i) : SV_Target
 				{

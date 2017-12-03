@@ -54,7 +54,7 @@ Shader "Ocean/Ocean"
 
 				// GLOBAL PARAMS
 
-				#include "OceanData.cginc"
+				#include "OceanLODData.cginc"
 
 				uniform float3 _OceanCenterPosWorld;
 				uniform float _EnableSmoothLODs = 1.0;
@@ -114,9 +114,11 @@ Shader "Ocean/Ocean"
 					*/
 
 					float foam = 0.;
-					foam += s.w; // foam from sim
-					float signedDepth = tex2Dlod(i_oceanDepthSampler, uv).x;
-					foam += max(1. - signedDepth / 1.5, 0.); // foam from shallow water
+					// foam from sim
+					foam += s.w;
+					// // foam from shallow water - signed depth is depth compared to sea level, plus wave height
+					float signedDepth = tex2Dlod(i_oceanDepthSampler, uv).x + disp.y;
+					foam += clamp( 1. - signedDepth / 1.5, 0., 1.);
 					io_foamAmount += wt * foam;
 				}
 

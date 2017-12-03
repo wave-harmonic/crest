@@ -3,6 +3,7 @@
 // Params: float3(texel size, texture resolution, shape weight multiplier)
 #define SHAPE_LOD_PARAMS(LODNUM) \
 	uniform sampler2D _WD_Sampler_##LODNUM; \
+	uniform sampler2D _WD_OceanDepth_Sampler_##LODNUM; \
 	uniform float3 _WD_Params_##LODNUM; \
 	uniform float2 _WD_Pos_##LODNUM; \
 	uniform float2 _WD_Pos_Cont_##LODNUM; \

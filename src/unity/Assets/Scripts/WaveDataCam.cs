@@ -132,6 +132,7 @@ namespace OceanResearch
         public void ApplyMaterialParams( int shapeSlot, Material mat )
         {
             mat.SetTexture( "_WD_Sampler_" + shapeSlot.ToString(), cam.targetTexture );
+            mat.SetTexture( "_WD_OceanDepth_Sampler_" + shapeSlot.ToString(), _rtOceanDepth );
             float shapeWeight = (_lodIndex == _lodCount - 1) ? OceanRenderer.Instance.ViewerAltitudeLevelAlpha : 1f;
             mat.SetVector( "_WD_Params_" + shapeSlot.ToString(), new Vector3( _renderData._texelWidth, _renderData._textureRes, shapeWeight ) );
             mat.SetVector( "_WD_Pos_" + shapeSlot.ToString(), new Vector2( _renderData._posSnapped.x, _renderData._posSnapped.z ) );

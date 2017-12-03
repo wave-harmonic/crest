@@ -76,7 +76,7 @@ Shader "Ocean/Ocean"
 				// sample wave or terrain height, with smooth blend towards edges.
 				// would equally apply to heights instead of displacements.
 				// this could be optimized further.
-				void SampleDisplacements( in sampler2D i_dispSampler, in float2 i_centerPos, in float2 i_centerPosCont, in float i_res, in float i_texelSize, in float i_geomSquareSize, in float2 i_samplePos, in float wt, inout float3 io_worldPos, inout float3 io_n, inout float io_foamAmount )
+				void SampleDisplacements( in sampler2D i_dispSampler, in sampler2D i_oceanDepthSampler, in float2 i_centerPos, in float2 i_centerPosCont, in float i_res, in float i_texelSize, in float i_geomSquareSize, in float2 i_samplePos, in float wt, inout float3 io_worldPos, inout float3 io_n, inout float io_foamAmount )
 				{
 					if( wt < 0.001 )
 						return;
@@ -84,8 +84,7 @@ Shader "Ocean/Ocean"
 					// set the MIP based on the current square size, with the transition to the higher mip
 					// hb using hte mip chain does NOT work out well when moving the shape texture around, because mip hierarchy will pop. this is knocked out below
 					// and in WaveDataCam::Start()
-					float4 uv = float4( (i_samplePos - i_centerPos) / (i_texelSize*i_res), 0.0, 0.0 ); //log2(SQUARE_SIZE/_WD_TexelSize_0) + lodAlpha );
-					uv.xy += 0.5;
+					float4 uv = float4(WD_worldToUV(i_samplePos, i_centerPos, i_res, i_texelSize), 0., 0.);
 
 					// do computations for hi-res
 					// hb - hack - these are not displacements for the heightfield wave sims. this needs to be reconciled at some point. if there
@@ -114,7 +113,11 @@ Shader "Ocean/Ocean"
 					io_foamAmount += wt * foamAmount;
 					*/
 
-					io_foamAmount += wt * s.w;
+					float foam = 0.;
+					foam += s.w; // foam from sim
+					float signedDepth = tex2Dlod(i_oceanDepthSampler, uv).x;
+					foam += max(1. - signedDepth / 1.5, 0.); // foam from shallow water
+					io_foamAmount += wt * foam;
 				}
 
 				v2f vert( appdata_t v )
@@ -170,8 +173,8 @@ Shader "Ocean/Ocean"
 					float wt_1 = (1.0 - wt_0) * _WD_Params_1.z;
 					// sample displacement textures, add results to current world pos / normal / foam
 					const float2 wxz = o.worldPos.xz;
-					SampleDisplacements( _WD_Sampler_0, _WD_Pos_0, _WD_Pos_Cont_0, _WD_Params_0.y, _WD_Params_0.x, idealSquareSize, wxz, wt_0, o.worldPos, o.n, o.foamAmount_lodAlpha_worldXZUndisplaced.x );
-					SampleDisplacements( _WD_Sampler_1, _WD_Pos_1, _WD_Pos_Cont_1, _WD_Params_1.y, _WD_Params_1.x, idealSquareSize, wxz, wt_1, o.worldPos, o.n, o.foamAmount_lodAlpha_worldXZUndisplaced.x );
+					SampleDisplacements( _WD_Sampler_0, _WD_OceanDepth_Sampler_0, _WD_Pos_0, _WD_Pos_Cont_0, _WD_Params_0.y, _WD_Params_0.x, idealSquareSize, wxz, wt_0, o.worldPos, o.n, o.foamAmount_lodAlpha_worldXZUndisplaced.x );
+					SampleDisplacements( _WD_Sampler_1, _WD_OceanDepth_Sampler_1, _WD_Pos_1, _WD_Pos_Cont_1, _WD_Params_1.y, _WD_Params_1.x, idealSquareSize, wxz, wt_1, o.worldPos, o.n, o.foamAmount_lodAlpha_worldXZUndisplaced.x );
 					// debug tinting to see which shape textures are used
 					#if defined( DEBUG_SHAPE_SAMPLE )
 					#define TINT_COUNT 7

@@ -9,8 +9,7 @@ Shader "Ocean/Ocean Depth"
 
 	Category
 	{
-		// base simulation runs on the Geometry queue, before this shader.
-		Tags { "Queue"="Transparent" }
+		Tags { "Queue"="Geometry" }
 
 		SubShader
 		{
@@ -18,9 +17,7 @@ Shader "Ocean/Ocean Depth"
 			{
 				Name "BASE"
 				Tags { "LightMode" = "Always" }
-				// multiply blend - can mask out particular channels
 				Blend Off
-				//DstColor Zero, One One
 
 				CGPROGRAM
 				#pragma vertex vert
@@ -49,13 +46,11 @@ Shader "Ocean/Ocean Depth"
 					return o;
 				}
 
-				float frag (v2f i) : SV_Target
+				float4 frag (v2f i) : SV_Target
 				{
 					const float seaLevel = 0.;
-
 					float depth = seaLevel - i.altitude;
-
-					return depth;
+					return (float4)depth;
 				}
 
 				ENDCG

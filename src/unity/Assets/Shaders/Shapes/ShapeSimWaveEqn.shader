@@ -74,15 +74,16 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 					// this is required because border color is not supported for unity render textures :(
 					if (i.uv.x >= 1. || i.uv.y >= 1. || i.uv.x <= 0. || i.uv.y <= 0.) return (float4)0.;
 
+					float4 uv = float4(i.uv.xy, 0., 0.);
 					float3 e = float3(i.uv.zw, 0.);
 
-					float4 ft_ftm_faccum_foam = tex2D(_WavePPTSource, i.uv);
+					float4 ft_ftm_faccum_foam = tex2Dlod(_WavePPTSource, uv);
 					float ft = ft_ftm_faccum_foam.x; // t - current value before update
 					float ftm = ft_ftm_faccum_foam.y; // t minus - previous value
-					float fxm = tex2D(_WavePPTSource, i.uv - e.xz).x; // x minus
-					float fym = tex2D(_WavePPTSource, i.uv - e.zy).x; // y minus
-					float fxp = tex2D(_WavePPTSource, i.uv + e.xz).x; // x plus
-					float fyp = tex2D(_WavePPTSource, i.uv + e.zy).x; // y plus
+					float fxm = tex2Dlod(_WavePPTSource, uv - e.xzzz).x; // x minus
+					float fym = tex2Dlod(_WavePPTSource, uv - e.zyzz).x; // y minus
+					float fxp = tex2Dlod(_WavePPTSource, uv + e.xzzz).x; // x plus
+					float fyp = tex2Dlod(_WavePPTSource, uv + e.zyzz).x; // y plus
 
 					const float texelSize = 2. * unity_OrthoParams.x * i.uv.z; // assumes square RT
 
@@ -114,7 +115,7 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 
 					// Damping
 					ftp *= max(0.0, 1.0 - 0.04 * dt);
-					ftp *= clamp(tex2D(_WD_OceanDepth_Sampler_0, i.uv_uncompensated), 0.998, 1.);
+					ftp *= lerp( 0.996, 1., clamp(tex2D(_WD_OceanDepth_Sampler_0, float4(i.uv_uncompensated,0.,0.)), 0., 1.) );
 
 					// Foam
 					float accel = ((ftp - ft) - (ft - ftm));

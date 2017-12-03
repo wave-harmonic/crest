@@ -81,7 +81,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 11cbda51d268d9444b120317745316c8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _boundsPadding: 24
   _drawRenderBounds: 0
 --- !u!1001 &100100000
 Prefab:

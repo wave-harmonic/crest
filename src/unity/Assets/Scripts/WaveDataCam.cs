@@ -102,14 +102,13 @@ namespace OceanResearch
             _bufOceanDepth.Clear();
 
             _bufOceanDepth.SetRenderTarget( _rtOceanDepth );
+            _bufOceanDepth.ClearRenderTarget( false, true, Color.red * 100.0f );
+
             var gos = GameObject.FindGameObjectsWithTag( "OceanDepth" );
             foreach( var go in gos )
             {
-                var r = go.GetComponent<Renderer>();
-                if( !r ) continue;
-
-                _bufOceanDepth.ClearRenderTarget( false, true, Color.red * 100.0f );
-                _bufOceanDepth.DrawRenderer( r, _matOceanDepth );
+                var mf = go.GetComponent<MeshFilter>();
+                _bufOceanDepth.DrawMesh( mf.mesh, go.transform.localToWorldMatrix, _matOceanDepth );
             }
         }
 

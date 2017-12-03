@@ -9,8 +9,13 @@ namespace OceanResearch
     /// </summary>
     public class OceanChunkRenderer : MonoBehaviour
     {
-        [Tooltip("Expand out renderer bounds if dynamic displacement moves verts outside the mesh BB.")]
-        public float _boundsPadding = 24f;
+#if USING_DISPLACEMENT_TEXTURES
+        [Tooltip("Expand out renderer bounds if dynamic displacement moves verts outside the mesh BB (m). Should be 0 for heightmaps!")]
+        public float _boundsPadding = 0f;
+
+        Bounds _boundsLocal;
+        Mesh _mesh;
+#endif
 
         public bool _drawRenderBounds = false;
 
@@ -19,16 +24,15 @@ namespace OceanResearch
         float _baseVertDensity = 32f;
 
         Renderer _rend;
-        Mesh _mesh;
-
-        Bounds _boundsLocal;
 
         void Start()
         {
             _rend = GetComponent<Renderer>();
-            _mesh = GetComponent<MeshFilter>().mesh;
 
+#if USING_DISPLACEMENT_TEXTURES
+            _mesh = GetComponent<MeshFilter>().mesh;
             _boundsLocal = _mesh.bounds;
+#endif
         }
 
         // Called when visible to a camera
@@ -66,11 +70,15 @@ namespace OceanResearch
                 _rend.material.SetTexture( "_WD_Sampler_1", null );
             }
 
+            // killing this as we use heightmaps now, not displacement textures, and im not sure if/when this will change
+#if USING_DISPLACEMENT_TEXTURES
             // expand mesh bounds - bounds need to completely encapsulate verts after any dynamic displacement
             Bounds bounds = _boundsLocal;
             float expand = _boundsPadding / Mathf.Abs( transform.lossyScale.x );
             bounds.extents += new Vector3( expand, 0f, expand );
             _mesh.bounds = bounds;
+#endif
+
             if( _drawRenderBounds )
                 DebugDrawRendererBounds();
         }

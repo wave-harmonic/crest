@@ -8,20 +8,26 @@ namespace OceanResearch
 
         void OnGUI()
         {
-            GUI.skin.toggle.normal.textColor = Color.black;
-            GUI.skin.label.normal.textColor = Color.black;
+            Color bkp = GUI.color;
 
-            if( OceanRenderer.Instance )
-            {
-                OceanRenderer.Instance._freezeTime = GUI.Toggle( new Rect( 0, 25, 100, 25 ), OceanRenderer.Instance._freezeTime, "Freeze waves" );
+            GUI.skin.toggle.normal.textColor = Color.white;
+            GUI.skin.label.normal.textColor = Color.white;
 
-                GUI.changed = false;
-                OceanRenderer.Instance._enableSmoothLOD = GUI.Toggle( new Rect( 0, 50, 150, 25 ), OceanRenderer.Instance._enableSmoothLOD, "Enable smooth LOD" );
-                if( GUI.changed ) OceanRenderer.Instance.SetSmoothLODsShaderParam();
+            GUI.color = Color.black * 0.7f;
+            GUI.DrawTexture( new Rect( 0, 0, 150, Screen.height ), Texture2D.whiteTexture );
+            GUI.color = Color.white;
 
-                OceanRenderer.Instance._minTexelsPerWave = GUI.HorizontalSlider( new Rect( 0, 100, 150, 25 ), OceanRenderer.Instance._minTexelsPerWave, 0, 15 );
-                GUI.Label( new Rect( 0, 75, 150, 25 ), string.Format( "Min verts per wave: {0}", OceanRenderer.Instance._minTexelsPerWave.ToString( "0.00" ) ) );
-            }
+            RenderWireFrame._wireFrame = GUI.Toggle( new Rect( 0, 0, 75, 25 ), RenderWireFrame._wireFrame, "Wireframe" );
+
+            OceanRenderer.Instance._freezeTime = GUI.Toggle( new Rect( 0, 25, 100, 25 ), OceanRenderer.Instance._freezeTime, "Freeze waves" );
+
+            GUI.changed = false;
+            OceanRenderer.Instance._enableSmoothLOD = GUI.Toggle( new Rect( 0, 50, 150, 25 ), OceanRenderer.Instance._enableSmoothLOD, "Enable smooth LOD" );
+            if( GUI.changed ) OceanRenderer.Instance.SetSmoothLODsShaderParam();
+
+            OceanRenderer.Instance._minTexelsPerWave = GUI.HorizontalSlider( new Rect( 0, 100, 150, 25 ), OceanRenderer.Instance._minTexelsPerWave, 0, 15 );
+            GUI.Label( new Rect( 0, 75, 150, 25 ), string.Format( "Min verts per wave: {0}", OceanRenderer.Instance._minTexelsPerWave.ToString( "0.00" ) ) );
+
 
             _showSimTargets = GUI.Toggle( new Rect( 0, 120, 100, 25 ), _showSimTargets, "Show sim data" );
 
@@ -48,6 +54,8 @@ namespace OceanResearch
                     ind++;
                 }
             }
+
+            GUI.color = bkp;
         }
     }
 }

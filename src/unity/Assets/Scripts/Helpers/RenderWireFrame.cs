@@ -8,8 +8,7 @@ using UnityEngine;
 [RequireComponent(typeof(Camera))]
 public class RenderWireFrame : MonoBehaviour
 {
-	public bool _wireFrame = true;
-	public bool _gui = true;
+	public static bool _wireFrame = false;
 
     Camera _cam;
     CameraClearFlags _defaultClearFlags;
@@ -30,10 +29,4 @@ public class RenderWireFrame : MonoBehaviour
 		if( enabled )
 			GL.wireframe = _wireFrame;
 	}
-
-	void OnGUI()
-	{
-        if( _gui )
-            _wireFrame = GUI.Toggle( new Rect( 0, 0, 75, 25 ), _wireFrame, "Wireframe" );
-    }
 }

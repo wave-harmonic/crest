@@ -78,6 +78,8 @@ namespace OceanResearch
             P = P * T;
             cam.projectionMatrix = P;
 
+            // The command buffer populates the LODs with ocean depth data. It submits any objects with the OceanDepth tag.
+            // It's stateless - the textures don't have to be managed across frames/scale changes
             UpdateCommandBuffer();
         }
 

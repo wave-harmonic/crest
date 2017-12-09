@@ -28,6 +28,7 @@ Shader "Ocean/Shape/Oscillating Thing"
 				#pragma fragment frag
 				#pragma multi_compile_fog
 				#include "UnityCG.cginc"
+				#include "MultiscaleShape.cginc"
 
 				struct appdata_t {
 					float4 vertex : POSITION;
@@ -44,7 +45,6 @@ Shader "Ocean/Shape/Oscillating Thing"
 				uniform float _MyTime;
 				uniform float _MyDeltaTime;
 
-				uniform float _TexelsPerWave;
 				uniform float _Radius;
 				uniform float _Omega;
 
@@ -53,12 +53,6 @@ Shader "Ocean/Shape/Oscillating Thing"
 					const float cameraWidth = 2. * unity_OrthoParams.x;
 					const float renderTargetRes = _ScreenParams.x;
 					return cameraWidth / renderTargetRes;
-				}
-
-				bool SamplingIsAppropriate( float wavelengthInShape, float texSize )
-				{
-					const float minWavelength = texSize * _TexelsPerWave;
-					return wavelengthInShape > minWavelength && wavelengthInShape <= 2.*minWavelength;
 				}
 
 				v2f vert( appdata_t v )
@@ -81,7 +75,7 @@ Shader "Ocean/Shape/Oscillating Thing"
 					// this shape function below is weird - it has multiple components at different scales. each component
 					// is based on a smoothstep, with radius equal to _Radius*i.texSize.
 					float wavelength = 2. * _Radius;
-					if( !SamplingIsAppropriate( wavelength, o.texSize ) )
+					if( !SamplingIsAppropriate( wavelength ) )
 						o.vertex.xy *= 0.;
 
 					return o;

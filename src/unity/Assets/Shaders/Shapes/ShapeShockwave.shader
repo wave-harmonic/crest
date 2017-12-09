@@ -28,6 +28,7 @@ Shader "Ocean/Shape/Shockwave"
 				#pragma fragment frag
 				#pragma multi_compile_fog
 				#include "UnityCG.cginc"
+				#include "MultiscaleShape.cginc"
 
 				struct appdata_t {
 					float4 vertex : POSITION;
@@ -39,18 +40,8 @@ Shader "Ocean/Shape/Shockwave"
 					float4 worldOffsetScaled : TEXCOORD0;
 				};
 
-				uniform float _TexelsPerWave;
 				uniform float _Radius;
 				uniform float2 _Velocity;
-
-				bool SamplingIsAppropriate( float wavelengthInShape )
-				{
-					const float cameraWidth = 2. * unity_OrthoParams.x;
-					const float renderTargetRes = _ScreenParams.x;
-					const float texSize = cameraWidth / renderTargetRes;
-					const float minWavelength = texSize * _TexelsPerWave;
-					return wavelengthInShape > minWavelength && wavelengthInShape <= 2.*minWavelength;
-				}
 
 				v2f vert( appdata_t v )
 				{

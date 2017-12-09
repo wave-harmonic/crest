@@ -27,6 +27,7 @@ Shader "Ocean/Shape/Wave Particle"
 				#pragma fragment frag
 				#pragma multi_compile_fog
 				#include "UnityCG.cginc"
+				#include "MultiscaleShape.cginc"
 
 				struct appdata_t {
 					float4 vertex : POSITION;
@@ -38,17 +39,7 @@ Shader "Ocean/Shape/Wave Particle"
 					float2 worldOffsetScaled : TEXCOORD0;
 				};
 
-				uniform float _TexelsPerWave;
 				uniform float _Radius;
-
-				bool SamplingIsAppropriate( float wavelengthInShape )
-				{
-					const float cameraWidth = 2. * unity_OrthoParams.x;
-					const float renderTargetRes = _ScreenParams.x;
-					const float texSize = cameraWidth / renderTargetRes;
-					const float minWavelength = texSize * _TexelsPerWave;
-					return wavelengthInShape > minWavelength && wavelengthInShape <= 2.*minWavelength;
-				}
 
 				v2f vert( appdata_t v )
 				{
@@ -79,6 +70,7 @@ Shader "Ocean/Shape/Wave Particle"
 				float4 frag (v2f i) : SV_Target
 				{
 					// power 4 smoothstep - no normalize needed
+					// credit goes to stubbe's shadertoy: https://www.shadertoy.com/view/4ldSD2
 					float r2 = dot( i.worldOffsetScaled, i.worldOffsetScaled );
 					if( r2 > 1. )
 						return (float4)0.;

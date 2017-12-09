@@ -55,6 +55,14 @@ namespace OceanResearch
                 }
             }
 
+            if( GUI.Button( new Rect( 0, 145, 100, 25 ), "Clear sim data" ) )
+            {
+                foreach( var cam in OceanRenderer.Instance.Builder._shapeCameras )
+                {
+                    Graphics.Blit( Texture2D.blackTexture, cam.GetComponent<PingPongRts>()._targetThisFrame );
+                }
+            }
+
             GUI.color = bkp;
         }
     }

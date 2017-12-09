@@ -25,7 +25,7 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 				#pragma fragment frag
 				#pragma multi_compile_fog
 				#include "UnityCG.cginc"
-				#define PI 3.141592653
+				#include "MultiscaleShape.cginc"
 
 				struct appdata_t {
 					float4 vertex : POSITION;
@@ -62,9 +62,6 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 				uniform float _MyTime;
 				uniform float _MyDeltaTime;
 
-				// simulate wavelengths between _TexelsPerWave texels and 2*_TexelsPerWave texels
-				uniform float _TexelsPerWave;
-
 				uniform sampler2D _WavePPTSource;
 
 				#include "../OceanLODData.cginc"
@@ -87,13 +84,8 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 
 					const float texelSize = 2. * unity_OrthoParams.x * i.uv.z; // assumes square RT
 
-					// wave speed of deep sea ocean waves: https://en.wikipedia.org/wiki/Wind_wave
-					// C = sqrt( gL/2pi )
-					float g = 9.81;
-					float Lmin = _TexelsPerWave * texelSize;
-					// to compute wave speed, take "middle" wavelength of this band (Lmin,2.*Lmin)
-					float L = Lmin * 1.5;
-					float c = sqrt(g*L / 6.28318);
+					// compute wave speed based on the size of a wavelength in this sim
+					float c = ComputeWaveSpeed( _TexelsPerWave * texelSize );
 
 					const float dt = _MyDeltaTime;
 					// dont support variable framerates, so just abort if dt == 0

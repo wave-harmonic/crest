@@ -41,6 +41,7 @@ namespace OceanResearch
 
                     var pp = cam.GetComponent<PingPongRts>();
                     if( !pp ) continue;
+                    if( pp._sourceThisFrame == null ) continue;
 
                     float b = 7f;
                     float h = Screen.height / (float)OceanRenderer.Instance.Builder._shapeCameras.Length, w = h + b;

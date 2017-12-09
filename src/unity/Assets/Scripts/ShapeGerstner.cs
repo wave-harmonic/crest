@@ -16,6 +16,7 @@ namespace OceanResearch
         public Vector2 AmplitudeRange = new Vector2(10f, 25f);
         // Range of wavelengths
         public Vector2 WavelengthRange = new Vector2(20f, 50f);
+        public float WavelengthDistribution = 1f;
         // Range of speeds (dependent on wavelength)
         public Vector2 WaveSpeedRange = new Vector2(5f, 5f);
         // General direction of flow, an angle in degrees
@@ -80,7 +81,8 @@ namespace OceanResearch
                 renderer.material.SetFloat("_Angle", angle);
 
                 // Wavelength
-                float wavelength = Random.Range(WavelengthRange.x, WavelengthRange.y);
+                float wavelengthSel = Mathf.Pow( Random.value, WavelengthDistribution );
+                float wavelength = Mathf.Lerp(WavelengthRange.x, WavelengthRange.y, wavelengthSel );
                 renderer.material.SetFloat("_Wavelength", wavelength);
 
                 // Speed

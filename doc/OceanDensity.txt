@@ -1,0 +1,33 @@
+Some calculations for the following parameters:
+- Ocean LOD scale: 16
+- Ocean base density: 24
+- Verts per wave: 6
+
+
+Ocean tiles + densities for some LOD L, L > 0:
+
+.----. .----. .----. .----.
+| 24 | | 24 | | 24 | | 24 |
+'----' '----' '----' '----'
+.----.               .----.
+| 24 |               | 24 |
+'----'               '----'
+.----.               .----.
+| 24 |               | 24 |
+'----'               '----'
+.----. .----. .----. .----.
+| 24 | | 24 | | 24 | | 24 |
+'----' '----' '----' '----'
+
+4x24 = 96 samples per dimension
+Shape RT: 96x96
+
+Width: 4*scale = 64m
+
+Density: 96/64 = 1.5 samples/m
+
+
+Q: What is min wavelength for this lod?
+- 6 verts per wave is min (quality parameter above). 6 verts is 6/1.5=4m, so min wavelength is 4m
+
+

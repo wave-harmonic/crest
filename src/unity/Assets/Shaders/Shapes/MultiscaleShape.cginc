@@ -24,3 +24,27 @@ float ComputeWaveSpeed( float wavelength )
 
 	return C;
 }
+
+// when driving waves into the sim, it seems the driving wave needs to be significantly faster than the
+// wave speed specified in the simulation. see WaveDriverVel.xlsx.
+float ComputeDriverWaveSpeed(float wavelength)
+{
+	float lod = floor(log2(wavelength));
+	float lodbase = exp2(lod);
+	float inlod = (wavelength - lodbase) / lodbase;
+
+	float reg_start_start = 0.96;
+	float reg_start_div = 80.0;
+	float reg_start_exponent = 1.9;
+
+	float reg_end_start = 1.03;
+	float reg_end_div = 25.0;
+	float reg_end_exponent = 1.92;
+
+	float reg_start = reg_start_start + pow(reg_start_exponent, lod) / reg_start_div;
+	float reg_end = reg_end_start + pow(reg_end_exponent, lod) / reg_end_div;
+
+	float speed_mul = lerp(reg_start, reg_end, inlod);
+
+	return speed_mul * ComputeWaveSpeed(wavelength);
+}

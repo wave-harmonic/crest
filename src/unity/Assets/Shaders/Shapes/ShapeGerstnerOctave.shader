@@ -6,15 +6,15 @@ Shader "Ocean/Shape/Gerstner Octave"
 	Properties
 	{
 		_Amplitude ("Amplitude", float) = 1
-		_Wavelength("Wavelength", float) = 100
+		_Wavelength("Wavelength", range(0,120)) = 100
 		_Angle ("Angle", range(-180, 180)) = 0
-		_Speed ("Speed", float) = 10
-		_Steepness ("Steepness", range(0, 5)) = 0.1
+		_Steepness("Steepness", range(0, 5)) = 0.1
+		_SpeedMul("Speed Mul", range(0, 1)) = 1.0
 	}
 
 	Category
 	{
-		Tags { "Queue"="Geometry" }
+		Tags{ "Queue" = "Transparent" }
 
 		SubShader
 		{
@@ -29,6 +29,8 @@ Shader "Ocean/Shape/Gerstner Octave"
 				#pragma fragment frag
 				#pragma multi_compile_fog
 				#include "UnityCG.cginc"
+				#include "MultiscaleShape.cginc"
+
 				#define PI 3.141592653
 
 				struct appdata_t {
@@ -41,17 +43,7 @@ Shader "Ocean/Shape/Gerstner Octave"
 					float3 worldPos : TEXCOORD0;
 				};
 
-				uniform float _TexelsPerWave;
 				uniform float _Wavelength;
-
-				bool SamplingIsAdequate( float minWavelengthInShape )
-				{
-					const float cameraWidth = 2. * unity_OrthoParams.x;
-					const float renderTargetRes = _ScreenParams.x;
-					const float texSize = cameraWidth / renderTargetRes;
-					const float minWavelength = texSize * _TexelsPerWave;
-					return minWavelengthInShape > minWavelength;
-				}
 
 				v2f vert( appdata_t v )
 				{
@@ -60,7 +52,7 @@ Shader "Ocean/Shape/Gerstner Octave"
 					o.worldPos = mul( unity_ObjectToWorld, v.vertex ).xyz;
 
 					// if wavelength is too small, kill this quad so that it doesnt render any shape
-					if( !SamplingIsAdequate( _Wavelength ) )
+					if( !SamplingIsAppropriate( _Wavelength ) )
 						o.vertex.xy *= 0.;
 
 					return o;
@@ -68,25 +60,44 @@ Shader "Ocean/Shape/Gerstner Octave"
 
 				// respects the gui option to freeze time
 				uniform float _MyTime;
+				uniform float _MyDeltaTime;
 
 				uniform float _Amplitude;
 				uniform float _Angle;
-				uniform float _Speed;
 				uniform float _Steepness;
+				uniform float _SpeedMul;
 
 				float4 frag (v2f i) : SV_Target
 				{
-					i.worldPos.y = 0.;
+					float C = _SpeedMul * ComputeDriverWaveSpeed(_Wavelength);
+					// direction
+					float2 D = float2(cos(PI * _Angle / 180.0), sin(PI * _Angle / 180.0));
+					// wave number
+					float k = 2. * PI / _Wavelength;
 
-					float2 dir = float2(cos(PI * _Angle / 180.0), sin(PI * _Angle / 180.0));
-					float s = dot(dir, i.worldPos.xz) + _Speed * _MyTime * 0.05;
-					float phi = s / _Wavelength;
+					float2 displacedPos = i.worldPos.xz;
 
-					float3 disp;
-					disp.xz = _Steepness * cos(phi * PI * 2.) * dir;
-					disp.y = sin(phi * PI * 2.);
+					// use fixed point iteration to solve for sample position, to compute displacement.
+					// this could be written out to a texture and used to displace foam..
 
-					return float4(_Amplitude * disp, 1.0 );
+					// samplePos + disp(samplePos) = displacedPos
+					// error = displacedPos - disp(samplePos)
+					// iteration: samplePos += displacedPos - disp(samplePos)
+
+					// start search at displaced position
+					float2 samplePos = displacedPos;
+					for (int i = 0; i < 8; i++)
+					{
+						float x_ = dot(D, samplePos);
+						float2 error = displacedPos - (samplePos + _Steepness * -sin(k*(x_ + C*_MyTime)) * D);
+						// move to eliminate error
+						samplePos += 0.7 * error;
+					}
+
+					float x = dot(D, samplePos);
+					float y = _Amplitude * cos(k*(x + C*_MyTime));
+
+					return float4(_MyDeltaTime*_MyDeltaTime*y, 0., 0., 0.);
 				}
 
 				ENDCG

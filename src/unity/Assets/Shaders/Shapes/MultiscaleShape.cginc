@@ -8,7 +8,7 @@ bool SamplingIsAppropriate(float wavelengthInShape)
 	const float renderTargetRes = _ScreenParams.x;
 	const float texSize = cameraWidth / renderTargetRes;
 	const float minWavelength = texSize * _TexelsPerWave;
-	return wavelengthInShape > minWavelength && wavelengthInShape <= 2.*minWavelength;
+	return wavelengthInShape >= minWavelength && wavelengthInShape < 2.*minWavelength;
 }
 
 float ComputeWaveSpeed( float wavelength )

@@ -116,7 +116,8 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 					// foam could be faded slowly across frames, but right now the combine pass uses the foam channel for
 					// accumulation, so the last frames foam value cannot be used.
 
-					// z channel will be used to accumulate simulation results down the lod chain
+					// z channel will be used to accumulate simulation results down the lod chain. the obstacle shader
+					// uses two different blend modes - it multiplies xyz and adds some foam for shallow water.
 					return float4( ftp, ft, 0., foam );
 				}
 

@@ -28,6 +28,7 @@ Shader "Ocean/Ocean"
 				#pragma fragment frag
 				#pragma multi_compile_fog
 				#include "UnityCG.cginc"
+				#include "TextureBombing.cginc"
 
 				// tints the output color based on which shape texture(s) were sampled, blended according to weight
 				//#define DEBUG_SHAPE_SAMPLE
@@ -237,9 +238,10 @@ Shader "Ocean/Ocean"
 				void ApplyFoam( half foamAmount, float2 worldXZUndisplaced, half3 n, inout half3 io_col )
 				{
 					// Give the foam some texture
-					float2 foamUV = worldXZUndisplaced / 20.;
+					float2 foamUV = worldXZUndisplaced / 10.;
 					foamUV += 0.02 * n.xz;
-					half foamTexValue = tex2D( _FoamTexture, foamUV ).r;
+					// texture bombing to avoid repetition artifacts
+					half foamTexValue = textureNoTile_3weights(_FoamTexture, foamUV).r;
 
 					// Additive underwater foam
 					half bubbleFoam = smoothstep( 0.0, 0.5, foamAmount * foamTexValue );

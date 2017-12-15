@@ -17,16 +17,11 @@ namespace OceanResearch
         // Range of wavelengths
         public Vector2 WavelengthRange = new Vector2(20f, 50f);
         public float WavelengthDistribution = 1f;
-        // Range of speeds (dependent on wavelength)
-        public Vector2 WaveSpeedRange = new Vector2(5f, 5f);
         // General direction of flow, an angle in degrees
         [Range(-180, 180)]
         public float WaveDirectionAngle = 0f;
         // Variance of flow direction, in degrees
         public float WaveDirectionVariance = 29f;
-        // Wind direction, an angle in degrees.
-        [Range(-180, 180)]
-        public float WindDirectionAngle = 0f;
         // Influence factor of wind. Octaves in wind direction are faster than octaves that go against it.
         [Range(0, 1)]
         public float WindInfluence = 0.5f;
@@ -84,11 +79,6 @@ namespace OceanResearch
                 float wavelengthSel = Mathf.Pow( Random.value, WavelengthDistribution );
                 float wavelength = Mathf.Lerp(WavelengthRange.x, WavelengthRange.y, wavelengthSel );
                 renderer.material.SetFloat("_Wavelength", wavelength);
-
-                // Speed
-                float windFactor = Mathf.Lerp(1f, Mathf.Clamp01(Mathf.Cos(Mathf.Deg2Rad * Mathf.DeltaAngle(angle, WindDirectionAngle))), WindInfluence);
-                float speed = Random.Range(WaveSpeedRange.x, WaveSpeedRange.y) * windFactor * wavelength;
-                renderer.material.SetFloat("_Speed", speed);
 
                 // Choppiness
                 renderer.material.SetFloat("_Steepness", Choppiness);

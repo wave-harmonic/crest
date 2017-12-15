@@ -1915,10 +1915,10 @@ MonoBehaviour:
   WavelengthRange: {x: 2, y: 128}
   WavelengthDistribution: 2
   WaveDirectionAngle: 0
-  WaveDirectionVariance: 45
+  WaveDirectionVariance: 30
   WindInfluence: 0
   Choppiness: 1
   QuadMesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
   GerstnerOctaveShader: {fileID: 4800000, guid: 680b41329a8923e40a8f9d6ca86f60a8,
     type: 3}
-  RandomSeed: 2
+  RandomSeed: 7

@@ -108,8 +108,12 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 					if (i.uv.y - e.y <= 0.) ftp = dt*c*(fyp - ft) + ft;
 
 					// Damping
-					ftp *= max(0.0, 1.0 - 0.04 * dt);
-					ftp *= lerp( 0.996, 1., clamp(tex2D(_WD_OceanDepth_Sampler_0, float4(i.uv_uncompensated,0.,0.)), 0., 1.) );
+					ftp *= max(0.0, 1.0 - 0.02 * dt);
+					//if (-ft < waterSignedDepth)
+					//{
+					//	ftp = lerp( ft, ftp, min(waterSignedDepth + ft, 1.));
+					//}
+					//ftp *= lerp( 0.996, 1., clamp(waterSignedDepth, 0., 1.) );
 
 					// Foam
 					float accel = ((ftp - ft) - (ft - ftm));

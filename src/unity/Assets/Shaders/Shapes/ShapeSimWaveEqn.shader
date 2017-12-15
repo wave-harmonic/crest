@@ -84,8 +84,10 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 
 					const float texelSize = 2. * unity_OrthoParams.x * i.uv.z; // assumes square RT
 
-					// compute wave speed based on the size of a wavelength in this sim
-					float c = ComputeWaveSpeed( _TexelsPerWave * texelSize );
+					float waterSignedDepth = tex2D(_WD_OceanDepth_Sampler_0, float4(i.uv_uncompensated, 0., 0.)).x;
+					float h = max(waterSignedDepth + ft, 0.);
+					float wavelength = 1.5 * _TexelsPerWave * texelSize;;
+					float c = ComputeWaveSpeed(wavelength, h);
 
 					const float dt = _MyDeltaTime;
 					// dont support variable framerates, so just abort if dt == 0

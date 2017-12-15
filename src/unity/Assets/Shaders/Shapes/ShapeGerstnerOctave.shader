@@ -6,7 +6,7 @@ Shader "Ocean/Shape/Gerstner Octave"
 	Properties
 	{
 		_Amplitude ("Amplitude", float) = 1
-		_Wavelength("Wavelength", range(0,120)) = 100
+		_Wavelength("Wavelength", range(0,180)) = 100
 		_Angle ("Angle", range(-180, 180)) = 0
 		_Steepness("Steepness", range(0, 5)) = 0.1
 		_SpeedMul("Speed Mul", range(0, 1)) = 1.0
@@ -69,14 +69,19 @@ Shader "Ocean/Shape/Gerstner Octave"
 
 				float4 frag (v2f i) : SV_Target
 				{
-					float C = _SpeedMul * ComputeDriverWaveSpeed(_Wavelength);
+					// assume deep water for now, but this could read from the water depth texture in the future
+					const float WATER_DEPTH = 10000.;
+					float C = _SpeedMul * ComputeDriverWaveSpeed(_Wavelength, WATER_DEPTH);
+
 					// direction
 					float2 D = float2(cos(PI * _Angle / 180.0), sin(PI * _Angle / 180.0));
 					// wave number
 					float k = 2. * PI / _Wavelength;
 
 					float2 displacedPos = i.worldPos.xz;
+					float2 samplePos = displacedPos;
 
+#ifdef USE_FPI
 					// use fixed point iteration to solve for sample position, to compute displacement.
 					// this could be written out to a texture and used to displace foam..
 
@@ -85,14 +90,14 @@ Shader "Ocean/Shape/Gerstner Octave"
 					// iteration: samplePos += displacedPos - disp(samplePos)
 
 					// start search at displaced position
-					float2 samplePos = displacedPos;
-					for (int i = 0; i < 8; i++)
+					for (int i = 0; i < 0; i++)
 					{
 						float x_ = dot(D, samplePos);
 						float2 error = displacedPos - (samplePos + _Steepness * -sin(k*(x_ + C*_MyTime)) * D);
 						// move to eliminate error
 						samplePos += 0.7 * error;
 					}
+#endif
 
 					float x = dot(D, samplePos);
 					float y = _Amplitude * cos(k*(x + C*_MyTime));

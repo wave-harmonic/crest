@@ -104,7 +104,7 @@ namespace OceanResearch
             _bufOceanDepth.Clear();
 
             _bufOceanDepth.SetRenderTarget( _rtOceanDepth );
-            _bufOceanDepth.ClearRenderTarget( false, true, Color.red * 100.0f );
+            _bufOceanDepth.ClearRenderTarget( false, true, Color.red * 10000.0f );
 
             var gos = GameObject.FindGameObjectsWithTag( "OceanDepth" );
             foreach( var go in gos )

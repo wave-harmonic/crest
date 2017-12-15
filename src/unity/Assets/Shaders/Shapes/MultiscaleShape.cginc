@@ -11,23 +11,33 @@ bool SamplingIsAppropriate(float wavelengthInShape)
 	return wavelengthInShape >= minWavelength && wavelengthInShape < 2.*minWavelength;
 }
 
-float ComputeWaveSpeed( float wavelength )
+// assumes x >= 0
+float tanh_clamped(float x)
 {
-	// snap to nearest power of two
-	float wavelength2 = exp2(floor(log2(wavelength)));
+	// tanh(10.) = 0.999999995878 which is 1 for floats.
+	// leaving this unbounded gives me crazy instabilities in the sim which took a long time to track down.
+	if (x > 10.) return 1.;
+	return tanh(x);
+}
+
+float ComputeWaveSpeed( float wavelength, float depth )
+{
+	//// snap to nearest power of two
+	float wavelength2 = wavelength;// exp2(floor(log2(wavelength)));
+	float L = 1.5 * wavelength2; // take middle wavelength of band [ wavelength2, 2 * wavelength2 )
 
 	// wave speed of deep sea ocean waves: https://en.wikipedia.org/wiki/Wind_wave
-	// C = sqrt( gL/2pi ), where L is wavelength
+	// https://en.wikipedia.org/wiki/Dispersion_(water_waves)#Wave_propagation_and_dispersion
 	float g = 9.81;
-	float L = 1.5 * wavelength2; // take middle wavelength of band [ wavelength2, 2 * wavelength2 )
-	float C = sqrt(g * L / 6.28318);
-
-	return C;
+	float k = 2. * 3.141593 / wavelength;
+	float h = max(depth,0.01);
+	float cp = sqrt(abs(tanh_clamped(h*k)) * g / k);
+	return cp;
 }
 
 // when driving waves into the sim, it seems the driving wave needs to be significantly faster than the
 // wave speed specified in the simulation. see WaveDriverVel.xlsx.
-float ComputeDriverWaveSpeed(float wavelength)
+float ComputeDriverWaveSpeed(float wavelength, float depth)
 {
 	float lod = floor(log2(wavelength));
 	float lodbase = exp2(lod);
@@ -46,5 +56,5 @@ float ComputeDriverWaveSpeed(float wavelength)
 
 	float speed_mul = lerp(reg_start, reg_end, inlod);
 
-	return speed_mul * ComputeWaveSpeed(wavelength);
+	return speed_mul * ComputeWaveSpeed(wavelength, depth);
 }

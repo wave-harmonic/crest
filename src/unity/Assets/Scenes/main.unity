@@ -432,6 +432,14 @@ Prefab:
       propertyPath: m_Layer
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 400006, guid: a1af256fbecad4a4fa3f385d4cde20c7, type: 3}
+      propertyPath: m_RootOrder
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 100008, guid: a1af256fbecad4a4fa3f385d4cde20c7, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 9500000, guid: a1af256fbecad4a4fa3f385d4cde20c7, type: 3}
   m_ParentPrefab: {fileID: 100100000, guid: a1af256fbecad4a4fa3f385d4cde20c7, type: 3}
@@ -1140,6 +1148,10 @@ Prefab:
     - target: {fileID: 2300000, guid: a1af256fbecad4a4fa3f385d4cde20c7, type: 3}
       propertyPath: m_Enabled
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 100008, guid: a1af256fbecad4a4fa3f385d4cde20c7, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 9500000, guid: a1af256fbecad4a4fa3f385d4cde20c7, type: 3}
@@ -1891,14 +1903,14 @@ Transform:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 2107384642}
-  m_LocalRotation: {x: 0.6875357, y: -0.16473952, z: 0.16468203, w: 0.68777573}
-  m_LocalPosition: {x: 1067, y: -20, z: 536}
-  m_LocalScale: {x: 2087.8352, y: 5239.4907, z: 1}
+  m_LocalRotation: {x: -0.7071068, y: -0.000000005268356, z: 0.000000005268356, w: 0.7071068}
+  m_LocalPosition: {x: 0, y: 10, z: -0.000011444092}
+  m_LocalScale: {x: 14.021688, y: 14.021726, z: 14.021727}
   m_Children:
   - {fileID: 367581524}
   m_Father: {fileID: 1163676061}
   m_RootOrder: 3
-  m_LocalEulerAnglesHint: {x: 89.98, y: -26.94, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &2107384646
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1918,7 +1930,7 @@ MonoBehaviour:
   WaveDirectionVariance: 30
   WindInfluence: 0
   Choppiness: 1
-  QuadMesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
+  QuadMesh: {fileID: 4300006, guid: a1af256fbecad4a4fa3f385d4cde20c7, type: 3}
   GerstnerOctaveShader: {fileID: 4800000, guid: 680b41329a8923e40a8f9d6ca86f60a8,
     type: 3}
   RandomSeed: 7

@@ -36,11 +36,13 @@ Shader "Ocean/Shape/Gerstner Octave"
 				struct appdata_t {
 					float4 vertex : POSITION;
 					float2 texcoord : TEXCOORD0;
+					float3 color : COLOR0;
 				};
 
 				struct v2f {
 					float4 vertex : SV_POSITION;
 					float3 worldPos : TEXCOORD0;
+					float3 weight : COLOR0;
 				};
 
 				uniform float _Wavelength;
@@ -50,6 +52,7 @@ Shader "Ocean/Shape/Gerstner Octave"
 					v2f o;
 					o.vertex = UnityObjectToClipPos( v.vertex );
 					o.worldPos = mul( unity_ObjectToWorld, v.vertex ).xyz;
+					o.weight = v.color;
 
 					// if wavelength is too small, kill this quad so that it doesnt render any shape
 					if( !SamplingIsAppropriate( _Wavelength ) )
@@ -100,7 +103,7 @@ Shader "Ocean/Shape/Gerstner Octave"
 #endif
 
 					float x = dot(D, samplePos);
-					float y = _Amplitude * cos(k*(x + C*_MyTime));
+					float y = i.weight.x * _Amplitude * cos(k*(x + C*_MyTime));
 
 					return float4(_MyDeltaTime*_MyDeltaTime*y, 0., 0., 0.);
 				}

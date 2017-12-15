@@ -68,8 +68,8 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 
 				float4 frag (v2f i) : SV_Target
 				{
-					// this is required because border color is not supported for unity render textures :(
-					if (i.uv.x >= 1. || i.uv.y >= 1. || i.uv.x <= 0. || i.uv.y <= 0.) return (float4)0.;
+					// if i.uv is out of bounds, it will be clamped. this seems to work ok-ish, it doesnt generate shock
+					// waves, but it does produce some stretchy artifacts at edges.
 
 					float4 uv = float4(i.uv.xy, 0., 0.);
 					float3 e = float3(i.uv.zw, 0.);

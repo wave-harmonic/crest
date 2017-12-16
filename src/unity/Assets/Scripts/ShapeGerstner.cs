@@ -42,6 +42,14 @@ namespace OceanResearch
             Random.State randomStateBkp = Random.state;
             Random.InitState( RandomSeed );
 
+            float[] wavelengths = new float[NumOctaves];
+            for( int i = 0; i < NumOctaves; i++ )
+            {
+                float wavelengthSel = Mathf.Pow( Random.value, WavelengthDistribution );
+                wavelengths[i] = Mathf.Lerp( WavelengthRange.x, WavelengthRange.y, wavelengthSel );
+            }
+            System.Array.Sort( wavelengths );
+
             // Generate the given number of octaves, each generating a GameObject rendering a quad.
             for (int i = 0; i < NumOctaves; i++)
             {
@@ -60,7 +68,7 @@ namespace OceanResearch
                 renderer.material = new Material(GerstnerOctaveShader);
 
                 // Amplitude
-                float amp = Mathf.Lerp(AmplitudeRange.y, AmplitudeRange.x, i / (float)Mathf.Max(NumOctaves - 1, 1)) / (float)NumOctaves;
+                float amp = Mathf.Lerp(AmplitudeRange.x, AmplitudeRange.y, i / (float)Mathf.Max(NumOctaves - 1, 1)) / (float)NumOctaves;
                 renderer.material.SetFloat("_Amplitude", amp);
 
                 // Direction
@@ -76,10 +84,7 @@ namespace OceanResearch
                 renderer.material.SetFloat("_Angle", angle);
 
                 // Wavelength
-                float wavelengthSel = Mathf.Pow( Random.value, WavelengthDistribution );
-                float wavelength = Mathf.Lerp(WavelengthRange.x, WavelengthRange.y, wavelengthSel );
-                renderer.material.SetFloat("_Wavelength", wavelength);
-
+                renderer.material.SetFloat( "_Wavelength", wavelengths[i] );
             }
 
             Random.state = randomStateBkp;

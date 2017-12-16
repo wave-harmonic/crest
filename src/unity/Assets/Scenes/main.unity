@@ -720,12 +720,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   NumOctaves: 1
-  AmplitudeRange: {x: 2, y: 2}
   WavelengthRange: {x: 33, y: 33}
   WavelengthDistribution: 1
-  WaveDirectionAngle: 0
+  _windDirectionAngle: 0
   WaveDirectionVariance: 0
-  _windStrength: 0
+  _windSpeed: 100
   _choppiness: 1.8
   QuadMesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
   GerstnerOctaveShader: {fileID: 4800000, guid: 680b41329a8923e40a8f9d6ca86f60a8,
@@ -1560,12 +1559,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   NumOctaves: 1
-  AmplitudeRange: {x: 1.5, y: 1.5}
   WavelengthRange: {x: 61, y: 61}
   WavelengthDistribution: 1
-  WaveDirectionAngle: 180
+  _windDirectionAngle: 0
   WaveDirectionVariance: 0
-  _windStrength: 0
+  _windSpeed: 100
   _choppiness: 1.8
   QuadMesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
   GerstnerOctaveShader: {fileID: 4800000, guid: 680b41329a8923e40a8f9d6ca86f60a8,
@@ -1612,12 +1610,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   NumOctaves: 1
-  AmplitudeRange: {x: 1, y: 1}
   WavelengthRange: {x: 44, y: 44}
   WavelengthDistribution: 1
-  WaveDirectionAngle: -13
+  _windDirectionAngle: 0
   WaveDirectionVariance: 0
-  _windStrength: 0
+  _windSpeed: 100
   _choppiness: 1.8
   QuadMesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
   GerstnerOctaveShader: {fileID: 4800000, guid: 680b41329a8923e40a8f9d6ca86f60a8,
@@ -1927,12 +1924,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   NumOctaves: 64
-  AmplitudeRange: {x: 0.5, y: 10}
-  WavelengthRange: {x: 2.5, y: 512}
+  WavelengthRange: {x: 2.5, y: 256}
   WavelengthDistribution: 4
-  WaveDirectionAngle: 0
+  _windDirectionAngle: 0
   WaveDirectionVariance: 45
-  _windStrength: 1
+  _windSpeed: 1
   _choppiness: 0
   QuadMesh: {fileID: 4300006, guid: a1af256fbecad4a4fa3f385d4cde20c7, type: 3}
   GerstnerOctaveShader: {fileID: 4800000, guid: 680b41329a8923e40a8f9d6ca86f60a8,

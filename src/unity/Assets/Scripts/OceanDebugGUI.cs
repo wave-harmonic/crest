@@ -13,15 +13,18 @@ namespace OceanResearch
             GUI.skin.toggle.normal.textColor = Color.white;
             GUI.skin.label.normal.textColor = Color.white;
 
-            GUI.color = Color.black * 0.7f;
-            GUI.DrawTexture( new Rect( 0, 0, 150, Screen.height ), Texture2D.whiteTexture );
-            GUI.color = Color.white;
-
-            float x = 0f, y = 0f;
+            float x = 5f, y = 0f;
             float w = 150, h = 25f;
+
+            GUI.color = Color.black * 0.7f;
+            GUI.DrawTexture( new Rect( 0, 0, w + 2f * x, Screen.height ), Texture2D.whiteTexture );
+            GUI.color = Color.white;
 
             GUI.Label( new Rect( x, y, w, h ), string.Format( "Wind strength: {0}", ShapeGerstner.Instance._windStrength.ToString( "0.00" ) ) ); y += h;
             ShapeGerstner.Instance._windStrength = GUI.HorizontalSlider( new Rect( x, y, w, h ), ShapeGerstner.Instance._windStrength, 0f, 2f ); y += h;
+
+            GUI.Label( new Rect( x, y, w, h ), string.Format( "Choppiness: {0}", ShapeGerstner.Instance._choppiness.ToString( "0.00" ) ) ); y += h;
+            ShapeGerstner.Instance._choppiness = GUI.HorizontalSlider( new Rect( x, y, w, h ), ShapeGerstner.Instance._choppiness, 0f, 1f ); y += h;
 
             RenderWireFrame._wireFrame = GUI.Toggle( new Rect( x, y, w, h ), RenderWireFrame._wireFrame, "Wireframe" ); y += h;
 
@@ -31,8 +34,8 @@ namespace OceanResearch
             OceanRenderer.Instance._enableSmoothLOD = GUI.Toggle( new Rect( x, y, w, h ), OceanRenderer.Instance._enableSmoothLOD, "Enable smooth LOD" ); y += h;
             if( GUI.changed ) OceanRenderer.Instance.SetSmoothLODsShaderParam();
 
-            OceanRenderer.Instance._minTexelsPerWave = GUI.HorizontalSlider( new Rect( x, y, w, h ), OceanRenderer.Instance._minTexelsPerWave, 0, 15 ); y += h;
             GUI.Label( new Rect( x, y, w, h ), string.Format( "Min verts per wave: {0}", OceanRenderer.Instance._minTexelsPerWave.ToString( "0.00" ) ) ); y += h;
+            OceanRenderer.Instance._minTexelsPerWave = GUI.HorizontalSlider( new Rect( x, y, w, h ), OceanRenderer.Instance._minTexelsPerWave, 0, 15 ); y += h;
 
 
             _showSimTargets = GUI.Toggle( new Rect( x, y, w, h ), _showSimTargets, "Show sim data" ); y += h;

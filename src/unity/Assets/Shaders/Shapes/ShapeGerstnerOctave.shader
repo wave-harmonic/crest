@@ -8,7 +8,6 @@ Shader "Ocean/Shape/Gerstner Octave"
 		_Amplitude ("Amplitude", float) = 1
 		_Wavelength("Wavelength", range(0,180)) = 100
 		_Angle ("Angle", range(-180, 180)) = 0
-		_Steepness("Steepness", range(0, 5)) = 0.1
 		_SpeedMul("Speed Mul", range(0, 1)) = 1.0
 	}
 
@@ -66,9 +65,10 @@ Shader "Ocean/Shape/Gerstner Octave"
 				uniform float _MyTime;
 				uniform float _MyDeltaTime;
 
+				uniform float _Choppiness;
+
 				uniform float _Amplitude;
 				uniform float _Angle;
-				uniform float _Steepness;
 				uniform float _SpeedMul;
 
 				float4 frag (v2f i) : SV_Target
@@ -85,6 +85,7 @@ Shader "Ocean/Shape/Gerstner Octave"
 					float2 displacedPos = i.worldPos.xz;
 					float2 samplePos = displacedPos;
 
+#define USE_FPI
 #ifdef USE_FPI
 					// use fixed point iteration to solve for sample position, to compute displacement.
 					// this could be written out to a texture and used to displace foam..
@@ -92,14 +93,16 @@ Shader "Ocean/Shape/Gerstner Octave"
 					// samplePos + disp(samplePos) = displacedPos
 					// error = displacedPos - disp(samplePos)
 					// iteration: samplePos += displacedPos - disp(samplePos)
-
-					// start search at displaced position
-					for (int i = 0; i < 0; i++)
+					if (_Choppiness > 0.0001)
 					{
-						float x_ = dot(D, samplePos);
-						float2 error = displacedPos - (samplePos + _Steepness * -sin(k*(x_ + C*_MyTime)) * D);
-						// move to eliminate error
-						samplePos += 0.7 * error;
+						// start search at displaced position
+						for (int oct = 0; oct < 5; oct++)
+						{
+							float x_ = dot(D, samplePos);
+							float2 error = displacedPos - (samplePos + _Choppiness * -sin(k*(x_ + C*_MyTime)) * D);
+							// move to eliminate error
+							samplePos += 0.7 * error;
+						}
 					}
 #endif
 
@@ -109,7 +112,9 @@ Shader "Ocean/Shape/Gerstner Octave"
 					y *= i.weight.x;
 					y *= _WindStrength;
 
-					return float4(_MyDeltaTime*_MyDeltaTime*y, 0., 0., 0.);
+					y *= _MyDeltaTime*_MyDeltaTime;
+
+					return float4(y, 0., 0., 0.);
 				}
 
 				ENDCG

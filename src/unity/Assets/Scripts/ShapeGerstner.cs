@@ -27,7 +27,7 @@ namespace OceanResearch
         public float _windStrength = 0.5f;
         // Choppiness of waves. Treat carefully: If set too high, can cause the geometry to overlap itself.
         [Range(0, 5)]
-        public float Choppiness = 1.8f;
+        public float _choppiness = 1.8f;
 
         // Standard quad mesh, referenced here for convenience.
         public Mesh QuadMesh;
@@ -80,8 +80,6 @@ namespace OceanResearch
                 float wavelength = Mathf.Lerp(WavelengthRange.x, WavelengthRange.y, wavelengthSel );
                 renderer.material.SetFloat("_Wavelength", wavelength);
 
-                // Choppiness
-                renderer.material.SetFloat("_Steepness", Choppiness);
             }
 
             Random.state = randomStateBkp;
@@ -90,6 +88,7 @@ namespace OceanResearch
         private void Update()
         {
             Shader.SetGlobalFloat( "_WindStrength", _windStrength );
+            Shader.SetGlobalFloat( "_Choppiness", _choppiness );
         }
 
         static ShapeGerstner _instance;

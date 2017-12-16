@@ -50,7 +50,7 @@ namespace OceanResearch
         public float ViewerAltitudeLevelAlpha { get { return _viewerAltitudeLevelAlpha; } }
 
         static OceanRenderer _instance;
-        public static OceanRenderer Instance { get { return _instance != null ? _instance : (_instance = FindObjectOfType<OceanRenderer>()); } }
+        public static OceanRenderer Instance { get { return _instance ?? (_instance = FindObjectOfType<OceanRenderer>()); } }
 
         OceanBuilder _oceanBuilder;
         public OceanBuilder Builder { get { return _oceanBuilder; } }

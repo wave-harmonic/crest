@@ -22,9 +22,9 @@ namespace OceanResearch
         public float WaveDirectionAngle = 0f;
         // Variance of flow direction, in degrees
         public float WaveDirectionVariance = 29f;
-        // Influence factor of wind. Octaves in wind direction are faster than octaves that go against it.
+        // Influence factor of wind.
         [Range(0, 1)]
-        public float WindInfluence = 0.5f;
+        public float _windStrength = 0.5f;
         // Choppiness of waves. Treat carefully: If set too high, can cause the geometry to overlap itself.
         [Range(0, 5)]
         public float Choppiness = 1.8f;
@@ -86,5 +86,13 @@ namespace OceanResearch
 
             Random.state = randomStateBkp;
         }
+
+        private void Update()
+        {
+            Shader.SetGlobalFloat( "_WindStrength", _windStrength );
+        }
+
+        static ShapeGerstner _instance;
+        public static ShapeGerstner Instance { get { return _instance ?? (_instance = FindObjectOfType<ShapeGerstner>()); } }
     }
 }

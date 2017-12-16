@@ -46,6 +46,7 @@ Shader "Ocean/Shape/Gerstner Octave"
 				};
 
 				uniform float _Wavelength;
+				uniform float _WindStrength;
 
 				v2f vert( appdata_t v )
 				{
@@ -55,7 +56,7 @@ Shader "Ocean/Shape/Gerstner Octave"
 					o.weight = v.color;
 
 					// if wavelength is too small, kill this quad so that it doesnt render any shape
-					if( !SamplingIsAppropriate( _Wavelength ) )
+					if( !SamplingIsAppropriate( _Wavelength ) || _WindStrength < 0.0001 )
 						o.vertex.xy *= 0.;
 
 					return o;
@@ -103,7 +104,10 @@ Shader "Ocean/Shape/Gerstner Octave"
 #endif
 
 					float x = dot(D, samplePos);
-					float y = i.weight.x * _Amplitude * cos(k*(x + C*_MyTime));
+					float y = _Amplitude * cos(k*(x + C*_MyTime));
+
+					y *= i.weight.x;
+					y *= _WindStrength;
 
 					return float4(_MyDeltaTime*_MyDeltaTime*y, 0., 0., 0.);
 				}

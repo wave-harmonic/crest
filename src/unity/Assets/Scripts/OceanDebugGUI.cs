@@ -17,19 +17,35 @@ namespace OceanResearch
             GUI.DrawTexture( new Rect( 0, 0, 150, Screen.height ), Texture2D.whiteTexture );
             GUI.color = Color.white;
 
-            RenderWireFrame._wireFrame = GUI.Toggle( new Rect( 0, 0, 75, 25 ), RenderWireFrame._wireFrame, "Wireframe" );
+            float x = 0f, y = 0f;
+            float w = 150, h = 25f;
 
-            OceanRenderer.Instance._freezeTime = GUI.Toggle( new Rect( 0, 25, 100, 25 ), OceanRenderer.Instance._freezeTime, "Freeze waves" );
+            GUI.Label( new Rect( x, y, w, h ), string.Format( "Wind strength: {0}", ShapeGerstner.Instance._windStrength.ToString( "0.00" ) ) ); y += h;
+            ShapeGerstner.Instance._windStrength = GUI.HorizontalSlider( new Rect( x, y, w, h ), ShapeGerstner.Instance._windStrength, 0f, 1f ); y += h;
+
+            RenderWireFrame._wireFrame = GUI.Toggle( new Rect( x, y, w, h ), RenderWireFrame._wireFrame, "Wireframe" ); y += h;
+
+            OceanRenderer.Instance._freezeTime = GUI.Toggle( new Rect( x, y, w, h ), OceanRenderer.Instance._freezeTime, "Freeze waves" ); y += h;
 
             GUI.changed = false;
-            OceanRenderer.Instance._enableSmoothLOD = GUI.Toggle( new Rect( 0, 50, 150, 25 ), OceanRenderer.Instance._enableSmoothLOD, "Enable smooth LOD" );
+            OceanRenderer.Instance._enableSmoothLOD = GUI.Toggle( new Rect( x, y, w, h ), OceanRenderer.Instance._enableSmoothLOD, "Enable smooth LOD" ); y += h;
             if( GUI.changed ) OceanRenderer.Instance.SetSmoothLODsShaderParam();
 
-            OceanRenderer.Instance._minTexelsPerWave = GUI.HorizontalSlider( new Rect( 0, 100, 150, 25 ), OceanRenderer.Instance._minTexelsPerWave, 0, 15 );
-            GUI.Label( new Rect( 0, 75, 150, 25 ), string.Format( "Min verts per wave: {0}", OceanRenderer.Instance._minTexelsPerWave.ToString( "0.00" ) ) );
+            OceanRenderer.Instance._minTexelsPerWave = GUI.HorizontalSlider( new Rect( x, y, w, h ), OceanRenderer.Instance._minTexelsPerWave, 0, 15 ); y += h;
+            GUI.Label( new Rect( x, y, w, h ), string.Format( "Min verts per wave: {0}", OceanRenderer.Instance._minTexelsPerWave.ToString( "0.00" ) ) ); y += h;
 
 
-            _showSimTargets = GUI.Toggle( new Rect( 0, 120, 100, 25 ), _showSimTargets, "Show sim data" );
+            _showSimTargets = GUI.Toggle( new Rect( x, y, w, h ), _showSimTargets, "Show sim data" ); y += h;
+
+            if( GUI.Button( new Rect( x, y, w, h ), "Clear sim data" ) )
+            {
+                foreach( var cam in OceanRenderer.Instance.Builder._shapeCameras )
+                {
+                    Graphics.Blit( Texture2D.blackTexture, cam.GetComponent<PingPongRts>()._targetThisFrame );
+                }
+            }
+            y += h;
+
 
             // draw source textures to screen
             if( _showSimTargets )
@@ -44,8 +60,10 @@ namespace OceanResearch
                     if( pp._sourceThisFrame == null ) continue;
 
                     float b = 7f;
-                    float h = Screen.height / (float)OceanRenderer.Instance.Builder._shapeCameras.Length, w = h + b;
-                    float x = Screen.width - w, y = ind * h;
+                    h = Screen.height / (float)OceanRenderer.Instance.Builder._shapeCameras.Length;
+                    w = h + b;
+                    x = Screen.width - w;
+                    y = ind * h;
 
                     GUI.color = Color.black * 0.7f;
                     GUI.DrawTexture( new Rect( x, y, w, h ), Texture2D.whiteTexture );
@@ -53,14 +71,6 @@ namespace OceanResearch
                     GUI.DrawTexture( new Rect( x + b, y + b / 2f, h - b, h - b ), pp._sourceThisFrame, ScaleMode.ScaleAndCrop, false );
 
                     ind++;
-                }
-            }
-
-            if( GUI.Button( new Rect( 0, 145, 100, 25 ), "Clear sim data" ) )
-            {
-                foreach( var cam in OceanRenderer.Instance.Builder._shapeCameras )
-                {
-                    Graphics.Blit( Texture2D.blackTexture, cam.GetComponent<PingPongRts>()._targetThisFrame );
                 }
             }
 

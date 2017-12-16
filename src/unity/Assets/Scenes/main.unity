@@ -1926,12 +1926,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6cda2c98bc71b024a85d48850b2a46ae, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  NumOctaves: 32
+  NumOctaves: 64
   AmplitudeRange: {x: 0.5, y: 10}
   WavelengthRange: {x: 2.5, y: 512}
   WavelengthDistribution: 4
   WaveDirectionAngle: 0
-  WaveDirectionVariance: 30
+  WaveDirectionVariance: 45
   _windStrength: 1
   _choppiness: 0
   QuadMesh: {fileID: 4300006, guid: a1af256fbecad4a4fa3f385d4cde20c7, type: 3}

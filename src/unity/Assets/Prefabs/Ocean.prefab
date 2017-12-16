@@ -48,9 +48,9 @@ MonoBehaviour:
   _maxScale: 128
   _enableSmoothLOD: 1
   _freezeTime: 0
-  _baseVertDensity: 24
-  _maxWaveHeight: 30
-  _lodCount: 4
+  _baseVertDensity: 32
+  _maxWaveHeight: 10
+  _lodCount: 5
   _uniformTiles: 0
   _generateSkirt: 1
 --- !u!114 &11447936

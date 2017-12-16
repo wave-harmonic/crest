@@ -444,75 +444,6 @@ Prefab:
     - {fileID: 9500000, guid: a1af256fbecad4a4fa3f385d4cde20c7, type: 3}
   m_ParentPrefab: {fileID: 100100000, guid: a1af256fbecad4a4fa3f385d4cde20c7, type: 3}
   m_IsPrefabParent: 0
---- !u!1 &367581523
-GameObject:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  serializedVersion: 5
-  m_Component:
-  - component: {fileID: 367581524}
-  - component: {fileID: 367581526}
-  - component: {fileID: 367581525}
-  m_Layer: 10
-  m_Name: GuideVisualisation
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &367581524
-Transform:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 367581523}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_Children: []
-  m_Father: {fileID: 2107384643}
-  m_RootOrder: 0
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!23 &367581525
-MeshRenderer:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 367581523}
-  m_Enabled: 1
-  m_CastShadows: 1
-  m_ReceiveShadows: 1
-  m_MotionVectors: 1
-  m_LightProbeUsage: 1
-  m_ReflectionProbeUsage: 1
-  m_Materials:
-  - {fileID: 10303, guid: 0000000000000000f000000000000000, type: 0}
-  m_StaticBatchInfo:
-    firstSubMesh: 0
-    subMeshCount: 0
-  m_StaticBatchRoot: {fileID: 0}
-  m_ProbeAnchor: {fileID: 0}
-  m_LightProbeVolumeOverride: {fileID: 0}
-  m_ScaleInLightmap: 1
-  m_PreserveUVs: 1
-  m_IgnoreNormalsForChartDetection: 0
-  m_ImportantGI: 0
-  m_SelectedEditorRenderState: 3
-  m_MinimumChartSize: 4
-  m_AutoUVMaxDistance: 0.5
-  m_AutoUVMaxAngle: 89
-  m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
-  m_SortingOrder: 0
---- !u!33 &367581526
-MeshFilter:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 367581523}
-  m_Mesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!1 &425566348
 GameObject:
   m_ObjectHideFlags: 0
@@ -794,7 +725,7 @@ MonoBehaviour:
   WavelengthDistribution: 1
   WaveDirectionAngle: 0
   WaveDirectionVariance: 0
-  WindInfluence: 0
+  _windStrength: 0
   Choppiness: 2.3
   QuadMesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
   GerstnerOctaveShader: {fileID: 4800000, guid: 680b41329a8923e40a8f9d6ca86f60a8,
@@ -1629,7 +1560,7 @@ MonoBehaviour:
   WavelengthDistribution: 1
   WaveDirectionAngle: 180
   WaveDirectionVariance: 0
-  WindInfluence: 0
+  _windStrength: 0
   Choppiness: 0
   QuadMesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
   GerstnerOctaveShader: {fileID: 4800000, guid: 680b41329a8923e40a8f9d6ca86f60a8,
@@ -1681,7 +1612,7 @@ MonoBehaviour:
   WavelengthDistribution: 1
   WaveDirectionAngle: -13
   WaveDirectionVariance: 0
-  WindInfluence: 0
+  _windStrength: 0
   Choppiness: 1.8
   QuadMesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
   GerstnerOctaveShader: {fileID: 4800000, guid: 680b41329a8923e40a8f9d6ca86f60a8,
@@ -1906,8 +1837,7 @@ Transform:
   m_LocalRotation: {x: -0.7071068, y: -0.000000005268356, z: 0.000000005268356, w: 0.7071068}
   m_LocalPosition: {x: 0, y: 10, z: -0.000011444092}
   m_LocalScale: {x: 14.021688, y: 14.021726, z: 14.021727}
-  m_Children:
-  - {fileID: 367581524}
+  m_Children: []
   m_Father: {fileID: 1163676061}
   m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -1922,15 +1852,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6cda2c98bc71b024a85d48850b2a46ae, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  NumOctaves: 20
-  AmplitudeRange: {x: 2, y: 1}
-  WavelengthRange: {x: 2, y: 128}
-  WavelengthDistribution: 2
+  NumOctaves: 32
+  AmplitudeRange: {x: 4, y: 4}
+  WavelengthRange: {x: 0.5, y: 512}
+  WavelengthDistribution: 4
   WaveDirectionAngle: 0
   WaveDirectionVariance: 30
-  WindInfluence: 0
+  _windStrength: 1
   Choppiness: 1
   QuadMesh: {fileID: 4300006, guid: a1af256fbecad4a4fa3f385d4cde20c7, type: 3}
   GerstnerOctaveShader: {fileID: 4800000, guid: 680b41329a8923e40a8f9d6ca86f60a8,
     type: 3}
-  RandomSeed: 7
+  RandomSeed: 1

@@ -21,7 +21,7 @@ namespace OceanResearch
             float w = 150, h = 25f;
 
             GUI.Label( new Rect( x, y, w, h ), string.Format( "Wind strength: {0}", ShapeGerstner.Instance._windStrength.ToString( "0.00" ) ) ); y += h;
-            ShapeGerstner.Instance._windStrength = GUI.HorizontalSlider( new Rect( x, y, w, h ), ShapeGerstner.Instance._windStrength, 0f, 1f ); y += h;
+            ShapeGerstner.Instance._windStrength = GUI.HorizontalSlider( new Rect( x, y, w, h ), ShapeGerstner.Instance._windStrength, 0f, 2f ); y += h;
 
             RenderWireFrame._wireFrame = GUI.Toggle( new Rect( x, y, w, h ), RenderWireFrame._wireFrame, "Wireframe" ); y += h;
 

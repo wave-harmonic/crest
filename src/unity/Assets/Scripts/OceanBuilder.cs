@@ -12,13 +12,18 @@ namespace Crest
     /// </summary>
     public class OceanBuilder : MonoBehaviour
     {
-        [Tooltip("Prefab for an ocean patch.")]
-	    public Transform _chunkPrefab;
-        [Tooltip("Prefab for a camera that renders ocean shape.")]
-        public Transform _shapeCameraPrefab;
+        [Tooltip("Material to use for the ocean surface")]
+        public Material _oceanMaterial;
 
         [HideInInspector]
         public Camera[] _shapeCameras;
+        public int GetShapeCamIndex( Camera cam )
+        {
+            for( int i = 0; i < _shapeCameras.Length; i++ )
+                if( _shapeCameras[i] == cam )
+                    return i;
+            return -1;
+        }
 
         /// <summary>
         /// Parameters to use for ocean geometry construction
@@ -175,14 +180,8 @@ namespace Crest
             _shapeCameras = new Camera[parms._lodCount];
             for( int i = 0; i < parms._lodCount; i++ )
             {
-                scs[i] = Instantiate( _shapeCameraPrefab ) as Transform;
-                _shapeCameras[i] = scs[i].GetComponent<Camera>();
-                var wdc = _shapeCameras[i].GetComponent<WaveDataCam>();
-                wdc._lodIndex = i;
-                wdc._lodCount = parms._lodCount;
-                var cart = _shapeCameras[i].GetComponent<CreateAssignRenderTexture>();
-                cart._targetName = "shapeRT" + i.ToString();
-                cart._width = cart._height = (int)(4f * parms._baseVertDensity);
+                _shapeCameras[i] = CreateWaveDataCam( i, parms );
+                scs[i] = _shapeCameras[i].transform;
             }
 
             int startLevel = 0;
@@ -201,6 +200,42 @@ namespace Crest
             sw.Stop();
             Debug.Log( "Finished generating " + parms._lodCount.ToString() + " LODs, time: " + (1000.0*sw.Elapsed.TotalSeconds).ToString(".000") + "ms" );
 #endif
+        }
+
+        Camera CreateWaveDataCam( int lodIdx, Params parms )
+        {
+            var go = new GameObject( string.Format( "ShapeCam{0}", lodIdx ) );
+
+            var cam = go.AddComponent<Camera>();
+            cam.clearFlags = CameraClearFlags.Nothing;
+            cam.cullingMask = 1 << LayerMask.NameToLayer( "WaveData" );
+            cam.orthographic = true;
+            cam.nearClipPlane = 1f;
+            cam.farClipPlane = 500f;
+            cam.useOcclusionCulling = false;
+            cam.allowHDR = false;
+            cam.allowMSAA = false;
+            cam.depth -= lodIdx;
+
+            var wdc = go.AddComponent<WaveDataCam>();
+            wdc._lodIndex = lodIdx;
+            wdc._lodCount = parms._lodCount;
+
+            go.AddComponent<PingPongRts>();
+
+            var cart = go.AddComponent<CreateAssignRenderTexture>();
+            cart._targetName = string.Format( "shapeRT{0}", lodIdx );
+            cart._width = cart._height = (int)(4f * parms._baseVertDensity);
+            cart._depthBits = 0;
+            cart._format = RenderTextureFormat.ARGBFloat;
+            cart._wrapMode = TextureWrapMode.Clamp;
+            cart._antiAliasing = 1;
+            cart._filterMode = FilterMode.Bilinear;
+            cart._anisoLevel = 0;
+            cart._useMipMap = false;
+            cart._createPingPongTargets = true;
+
+            return cam;
         }
 
         Mesh BuildOceanPatch( PatchType pt, Params parms )
@@ -361,7 +396,7 @@ namespace Crest
             // add a shape camera below it
             _shapeCameras[lodIndex].transform.parent = parent.transform;
             _shapeCameras[lodIndex].transform.localScale = Vector3.one;
-            _shapeCameras[lodIndex].transform.localPosition = Vector3.zero;
+            _shapeCameras[lodIndex].transform.localPosition = Vector3.up * parms._maxWaveHeight;
 
             bool generateSkirt = parms._generateSkirt && biggestLOD;
 
@@ -437,25 +472,31 @@ namespace Crest
             for( int i = 0; i < offsets.Length; i++ )
             {
                 // instantiate and place patch
-                Transform inst = Instantiate( _chunkPrefab ) as Transform;
-                inst.parent = parent.transform;
+                var patch = new GameObject( string.Format( "Tile_L{0}", lodIndex ) );
+                patch.transform.parent = parent.transform;
                 Vector2 pos = offsets[i];
-                inst.localPosition = new Vector3( pos.x, 0f, pos.y );
-                inst.localScale = Vector3.one;
+                patch.transform.localPosition = new Vector3( pos.x, 0f, pos.y );
+                patch.transform.localScale = Vector3.one;
 
-                OceanChunkRenderer ocr = inst.GetComponent<OceanChunkRenderer>();
-                ocr.SetInstanceData( lodIndex, parms._lodCount, parms._baseVertDensity );
+                patch.AddComponent<OceanChunkRenderer>().SetInstanceData( lodIndex, parms._lodCount, parms._baseVertDensity ); ;
+                patch.AddComponent<MeshFilter>().mesh = meshData[(int)patchTypes[i]];
 
-                inst.GetComponent<MeshFilter>().mesh = meshData[(int)patchTypes[i]];
+                var mr = patch.AddComponent<MeshRenderer>();
+                // i dont think one would use lightprobes for a purely specular water surface? (although diffuse foam shading would benefit)
+                mr.lightProbeUsage = UnityEngine.Rendering.LightProbeUsage.Off;
+                mr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off; // arbitrary - could be turned on if desired
+                mr.receiveShadows = false; // arbitrary - could be turned on if desired
+                mr.motionVectorGenerationMode = MotionVectorGenerationMode.ForceNoMotion; // TODO
+                mr.material = _oceanMaterial;
 
                 // rotate side patches to point the +x side outwards
                 bool rotateXOutwards = patchTypes[i] == PatchType.FatX || patchTypes[i] == PatchType.FatXOuter || patchTypes[i] == PatchType.SlimX || patchTypes[i] == PatchType.SlimXFatZ;
                 if( rotateXOutwards )
                 {
                     if( Mathf.Abs( pos.y ) >= Mathf.Abs( pos.x ) )
-                        inst.localEulerAngles = -Vector3.up * 90f * Mathf.Sign( pos.y );
+                        patch.transform.localEulerAngles = -Vector3.up * 90f * Mathf.Sign( pos.y );
                     else
-                        inst.localEulerAngles = pos.x < 0f ? Vector3.up * 180f : Vector3.zero;
+                        patch.transform.localEulerAngles = pos.x < 0f ? Vector3.up * 180f : Vector3.zero;
                 }
 
                 // rotate the corner patches so the +x and +z sides point outwards
@@ -465,18 +506,18 @@ namespace Crest
                     // xz direction before rotation
                     Vector3 from = new Vector3( 1f, 0f, 1f ).normalized;
                     // target xz direction is outwards vector given by local patch position - assumes this patch is a corner (checked below)
-                    Vector3 to = inst.localPosition.normalized;
-                    if( Mathf.Abs( inst.localPosition.x ) < 0.0001f || Mathf.Abs( Mathf.Abs( inst.localPosition.x ) - Mathf.Abs( inst.localPosition.z ) ) > 0.001f )
+                    Vector3 to = patch.transform.localPosition.normalized;
+                    if( Mathf.Abs( patch.transform.localPosition.x ) < 0.0001f || Mathf.Abs( Mathf.Abs( patch.transform.localPosition.x ) - Mathf.Abs( patch.transform.localPosition.z ) ) > 0.001f )
                     {
-                        Debug.LogWarning( "Skipped rotating a patch because it isn't a corner, click here to highlight.", inst );
+                        Debug.LogWarning( "Skipped rotating a patch because it isn't a corner, click here to highlight.", patch );
                         continue;
                     }
 
                     // detect 180 degree rotations as it doesnt always rotate around Y
                     if( Vector3.Dot( from, to ) < -0.99f )
-                        inst.localEulerAngles = Vector3.up * 180f;
+                        patch.transform.localEulerAngles = Vector3.up * 180f;
                     else
-                        inst.localRotation = Quaternion.FromToRotation( from, to );
+                        patch.transform.localRotation = Quaternion.FromToRotation( from, to );
                 }
             }
 

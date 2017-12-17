@@ -10,89 +10,148 @@ namespace Crest
     /// </summary>
     public class ShapeGerstner : MonoBehaviour
     {
-        // The number of Gerstner octaves
-        public int NumOctaves = 10;
-        // Range of amplitudes
-        public Vector2 AmplitudeRange = new Vector2(10f, 25f);
-        // Range of wavelengths
-        public Vector2 WavelengthRange = new Vector2(20f, 50f);
-        // Range of speeds (dependent on wavelength)
-        public Vector2 WaveSpeedRange = new Vector2(5f, 5f);
-        // General direction of flow, an angle in degrees
-        [Range(-180, 180)]
-        public float WaveDirectionAngle = 0f;
-        // Variance of flow direction, in degrees
-        public float WaveDirectionVariance = 29f;
-        // Wind direction, an angle in degrees.
-        [Range(-180, 180)]
-        public float WindDirectionAngle = 0f;
-        // Influence factor of wind. Octaves in wind direction are faster than octaves that go against it.
-        [Range(0, 1)]
-        public float WindInfluence = 0.5f;
-        // Choppiness of waves. Treat carefully: If set too high, can cause the geometry to overlap itself.
-        [Range(0, 5)]
-        public float Choppiness = 1.8f;
+        [Tooltip("The number of wave octaves")]
+        public int _numOctaves = 32;
+        [Tooltip("Distribution of wavelengths, > 1 means concentrated at low wavelengths")]
+        public float _wavelengthDistribution = 4f;
+        [Tooltip( "Wind direction (angle from x axis in degrees)" ), Range( -180, 180 )]
+        public float _windDirectionAngle = 0f;
+        [Tooltip( "Variance of flow direction, in degrees" )]
+        public float _waveDirectionVariance = 45f;
+        [Tooltip( "Wind speed in m/s" ), Range( 0, 20 )]
+        public float _windSpeed = 5f;
+        [Tooltip( "Choppiness of waves. Treat carefully: If set too high, can cause the geometry to overlap itself." ), Range( 0, 5 )]
+        public float _choppiness = 0f;
 
-        // Standard quad mesh, referenced here for convenience.
-        public Mesh QuadMesh;
-        // Shader to be used to render out a single Gerstner octave.
-        public Shader GerstnerOctaveShader;
+        [Tooltip( "Geometry to rasterise into wave buffers to generate waves." )]
+        public Mesh _rasterMesh;
+        [Tooltip( "Shader to be used to render out a single Gerstner octave." )]
+        public Shader _waveShader;
 
-        public int RandomSeed = 0;
+        public int _randomSeed = 0;
+
+        float _minWavelength;
+        float[] _wavelengths;
+
+        Material[] _materials;
+        float[] _angleDegs;
 
         void Start()
         {
             // Set random seed to get repeatable results
             Random.State randomStateBkp = Random.state;
-            Random.InitState( RandomSeed );
+            Random.InitState( _randomSeed );
+
+            Vector2 windDir = WindDir;
+
+            _angleDegs = new float[_numOctaves];
+            _materials = new Material[_numOctaves];
+            _wavelengths = new float[_numOctaves];
+
+            // derive the range of wavelengths from the LOD settings, the base ocean density, the min and max scales. the wavelength
+            // range always fills the dynamic range of the multiscale sim.
+            float minDiameter = 4f * OceanRenderer.Instance._minScale;
+            float minTexelSize = minDiameter / (4f * OceanRenderer.Instance._baseVertDensity);
+            _minWavelength = minTexelSize * OceanRenderer.Instance._minTexelsPerWave;
+            float maxDiameter = 4f * OceanRenderer.Instance._maxScale * Mathf.Pow( 2f, OceanRenderer.Instance._lodCount - 1 );
+            float maxTexelSize = maxDiameter / (4f * OceanRenderer.Instance._baseVertDensity);
+            float maxWavelength = 2f * maxTexelSize * OceanRenderer.Instance._minTexelsPerWave;
+
+            for( int i = 0; i < _numOctaves; i++ )
+            {
+                float wavelengthSel = Mathf.Pow( Random.value, _wavelengthDistribution );
+                _wavelengths[i] = Mathf.Lerp( _minWavelength, maxWavelength, wavelengthSel );
+            }
+            System.Array.Sort( _wavelengths );
 
             // Generate the given number of octaves, each generating a GameObject rendering a quad.
-            for (int i = 0; i < NumOctaves; i++)
+            for (int i = 0; i < _numOctaves; i++)
             {
-                GameObject GO = new GameObject("Octave" + i);
+                // Direction
+                _angleDegs[i] = _windDirectionAngle + Random.Range( -_waveDirectionVariance, _waveDirectionVariance );
+                if( _angleDegs[i] > 180f )
+                {
+                    _angleDegs[i] -= 360f;
+                }
+                if( _angleDegs[i] < -180f )
+                {
+                    _angleDegs[i] += 360f;
+                }
+
+                GameObject GO = new GameObject( string.Format( "Wavelength {0}", _wavelengths[i].ToString("0.000") ) );
                 GO.layer = gameObject.layer;
 
                 MeshFilter meshFilter = GO.AddComponent<MeshFilter>();
-                meshFilter.mesh = QuadMesh;
+                meshFilter.mesh = _rasterMesh;
 
                 GO.transform.parent = transform;
                 GO.transform.localPosition = Vector3.zero;
                 GO.transform.localRotation = Quaternion.identity;
                 GO.transform.localScale = Vector3.one;
 
+                _materials[i] = new Material( _waveShader );
+
                 MeshRenderer renderer = GO.AddComponent<MeshRenderer>();
-                renderer.material = new Material(GerstnerOctaveShader);
+                renderer.material = _materials[i];
 
-                // Amplitude
-                float amp = Mathf.Lerp(AmplitudeRange.y, AmplitudeRange.x, i / (float)Mathf.Max(NumOctaves - 1, 1)) / (float)NumOctaves;
-                renderer.material.SetFloat("_Amplitude", amp);
-
-                // Direction
-                float angle = WaveDirectionAngle + Random.Range(-WaveDirectionVariance, WaveDirectionVariance);
-                if (angle > 180f)
-                {
-                    angle -= 360f;
-                }
-                if (angle < -180f)
-                {
-                    angle += 360f;
-                }
-                renderer.material.SetFloat("_Angle", angle);
+                _materials[i].SetFloat("_Angle", _angleDegs[i] );
 
                 // Wavelength
-                float wavelength = Random.Range(WavelengthRange.x, WavelengthRange.y);
-                renderer.material.SetFloat("_Wavelength", wavelength);
-
-                // Speed
-                float windFactor = Mathf.Lerp(1f, Mathf.Clamp01(Mathf.Cos(Mathf.Deg2Rad * Mathf.DeltaAngle(angle, WindDirectionAngle))), WindInfluence);
-                float speed = Random.Range(WaveSpeedRange.x, WaveSpeedRange.y) * windFactor * wavelength;
-                renderer.material.SetFloat("_Speed", speed);
-
-                // Choppiness
-                renderer.material.SetFloat("_Steepness", Choppiness);
+                _materials[i].SetFloat( "_Wavelength", _wavelengths[i] );
             }
 
             Random.state = randomStateBkp;
+        }
+
+        private void Update()
+        {
+            Shader.SetGlobalFloat( "_Choppiness", _choppiness );
+
+            UpdateAmplitudes();
+        }
+
+        void UpdateAmplitudes()
+        {
+            Vector2 windDir = WindDir;
+
+            for( int i = 0; i < _numOctaves; i++ )
+            {
+                float energy = PhillipsSpectrum( _windSpeed, windDir, Mathf.Abs( Physics.gravity.y ), _minWavelength, _wavelengths[i], _angleDegs[i] );
+
+                // energy to amplitude ( http://www.physicsclassroom.com/class/waves/Lesson-2/Energy-Transport-and-the-Amplitude-of-a-Wave )
+                float amp = Mathf.Sqrt( energy );
+
+                _materials[i].SetFloat( "_Amplitude", amp );
+            }
+        }
+
+        static ShapeGerstner _instance;
+        public static ShapeGerstner Instance { get { return _instance ?? (_instance = FindObjectOfType<ShapeGerstner>()); } }
+
+        Vector2 WindDir { get { return new Vector2( Mathf.Cos(Mathf.PI* _windDirectionAngle / 180f ), Mathf.Sin(Mathf.PI* _windDirectionAngle / 180f ) ); } }
+
+        static float PhillipsSpectrum( float windSpeed, Vector2 windDir, float gravity, float smallestWavelength, float wavelength, float angle )
+        {
+            float wavenumber = 2f * Mathf.PI / wavelength;
+            float angle_radians = Mathf.PI * angle / 180f;
+            float kx = Mathf.Cos( angle_radians ) * wavenumber;
+            float kz = Mathf.Sin( angle_radians ) * wavenumber;
+
+            float k2 = kx * kx + kz * kz;
+
+            if( k2 < 0.0001f ) return 0f;
+
+            float windSpeed2 = windSpeed * windSpeed;
+            float wx = windDir.x;
+            float wz = windDir.y;
+
+            float kdotw = (wx * kx + wz * kz);
+
+            float a = 0.0081f; // phillips constant ( https://hal.archives-ouvertes.fr/file/index/docid/307938/filename/frechot_realistic_simulation_of_ocean_surface_using_wave_spectra.pdf )
+            float L = windSpeed2 / gravity;
+
+            // http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.161.9102&rep=rep1&type=pdf
+            return a * kdotw * kdotw * Mathf.Exp( -1f / (k2 * L * L) ) / (k2 * k2);
         }
     }
 }

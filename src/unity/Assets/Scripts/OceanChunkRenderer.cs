@@ -9,8 +9,13 @@ namespace Crest
     /// </summary>
     public class OceanChunkRenderer : MonoBehaviour
     {
-        [Tooltip("Expand out renderer bounds if dynamic displacement moves verts outside the mesh BB.")]
-        public float _boundsPadding = 24f;
+#if USING_DISPLACEMENT_TEXTURES
+        [Tooltip("Expand out renderer bounds if dynamic displacement moves verts outside the mesh BB (m). Should be 0 for heightmaps!")]
+        public float _boundsPadding = 0f;
+
+        Bounds _boundsLocal;
+        Mesh _mesh;
+#endif
 
         public bool _drawRenderBounds = false;
 
@@ -19,16 +24,15 @@ namespace Crest
         float _baseVertDensity = 32f;
 
         Renderer _rend;
-        Mesh _mesh;
-
-        Bounds _boundsLocal;
 
         void Start()
         {
             _rend = GetComponent<Renderer>();
-            _mesh = GetComponent<MeshFilter>().mesh;
 
+#if USING_DISPLACEMENT_TEXTURES
+            _mesh = GetComponent<MeshFilter>().mesh;
             _boundsLocal = _mesh.bounds;
+#endif
         }
 
         // Called when visible to a camera
@@ -36,16 +40,21 @@ namespace Crest
         {
             // per instance data
 
-            // blend closest geometry in/out to avoid pop
-            float meshScaleLerp = _lodIndex == 0 ? OceanRenderer.Instance.ViewerAltitudeLevelAlpha : 0f;
-            // blend furthest normals scale in/out to avoid pop
-            float farNormalsWeight = _lodIndex == _totalLodCount - 1 ? OceanRenderer.Instance.ViewerAltitudeLevelAlpha : 1f;
+            // blend LOD 0 shape in/out to avoid pop, if the ocean might scale up later (it is smaller than its maximum scale)
+            bool needToBlendOutShape = _lodIndex == 0 && OceanRenderer.Instance.ScaleCouldIncrease;
+            float meshScaleLerp = needToBlendOutShape ? OceanRenderer.Instance.ViewerAltitudeLevelAlpha : 0f;
+
+            // blend furthest normals scale in/out to avoid pop, if scale could reduce
+            bool needToBlendOutNormals = _lodIndex == _totalLodCount - 1 && OceanRenderer.Instance.ScaleCouldDecrease;
+            float farNormalsWeight = needToBlendOutNormals ? OceanRenderer.Instance.ViewerAltitudeLevelAlpha : 1f;
             _rend.material.SetVector( "_InstanceData", new Vector4( meshScaleLerp, farNormalsWeight, _lodIndex ) );
 
             // geometry data
             float squareSize = Mathf.Abs( transform.lossyScale.x ) / _baseVertDensity;
-            float normalScrollSpeed0 = Mathf.Log( 1f + 2f * squareSize ) * 1.875f;
-            float normalScrollSpeed1 = Mathf.Log( 1f + 4f * squareSize ) * 1.875f;
+            float mul = 1.875f; // fudge 1
+            float pow = 1.4f; // fudge 2
+            float normalScrollSpeed0 = Mathf.Pow( Mathf.Log( 1f + 2f * squareSize ) * mul, pow );
+            float normalScrollSpeed1 = Mathf.Pow( Mathf.Log( 1f + 4f * squareSize ) * mul, pow );
             _rend.material.SetVector( "_GeomData", new Vector4( squareSize, normalScrollSpeed0, normalScrollSpeed1, _baseVertDensity ) );
 
             // assign shape textures to shader
@@ -63,11 +72,15 @@ namespace Crest
                 _rend.material.SetTexture( "_WD_Sampler_1", null );
             }
 
+            // killing this as we use heightmaps now, not displacement textures, and im not sure if/when this will change
+#if USING_DISPLACEMENT_TEXTURES
             // expand mesh bounds - bounds need to completely encapsulate verts after any dynamic displacement
             Bounds bounds = _boundsLocal;
             float expand = _boundsPadding / Mathf.Abs( transform.lossyScale.x );
             bounds.extents += new Vector3( expand, 0f, expand );
             _mesh.bounds = bounds;
+#endif
+
             if( _drawRenderBounds )
                 DebugDrawRendererBounds();
         }

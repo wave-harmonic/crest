@@ -32,3 +32,15 @@ src/unity/sysinfo.txt
 # Builds
 src/unity/*.apk
 src/unity/*.unitypackage
+
+src/exr_processor/.vs
+src/exr_processor/Debug/*.exe
+src/exr_processor/Debug/*.ilk
+src/exr_processor/Debug/*.pdb
+src/exr_processor/Release/*.exe
+src/exr_processor/Release/*.pdb
+src/exr_processor/exr_processor.VC.*
+src/exr_processor/exr_processor/Debug
+src/exr_processor/exr_processor/Release
+src/exr_processor/Release/exr_processor.iobj
+src/exr_processor/Release/exr_processor.ipdb

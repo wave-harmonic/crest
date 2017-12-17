@@ -2,19 +2,19 @@
 
 using UnityEngine;
 
-namespace Crest
+namespace Crest.Placement
 {
     /// <summary>
     /// Offsets this gameobject from a provided viewer.
     /// </summary>
-    public class SphereOffset : MonoBehaviour
+    public class PlaceSphereOffset : MonoBehaviour
     {
         public float _radiusMultiplier = 2f;
         public Transform _viewpoint;
 
         float _radius;
 
-        // the script execution order ensures this executes before WaveDataCam::LateUpdate and 
+        // the script execution order ensures this executes early in the ocean late update
         void LateUpdate()
         {
             // radius is altitude difference

@@ -1,6 +1,5 @@
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
-// A single Gerstner Octave
 Shader "Ocean/Shape/Wave Particle"
 {
 	Properties
@@ -11,7 +10,9 @@ Shader "Ocean/Shape/Wave Particle"
 
 	Category
 	{
-		Tags { "Queue"="Geometry" }
+		// base simulation runs on the Geometry queue, before this shader.
+		// this shader adds interaction forces on top of the simulation result.
+		Tags { "Queue"="Transparent" }
 
 		SubShader
 		{
@@ -26,6 +27,7 @@ Shader "Ocean/Shape/Wave Particle"
 				#pragma fragment frag
 				#pragma multi_compile_fog
 				#include "UnityCG.cginc"
+				#include "MultiscaleShape.cginc"
 
 				struct appdata_t {
 					float4 vertex : POSITION;
@@ -34,20 +36,10 @@ Shader "Ocean/Shape/Wave Particle"
 
 				struct v2f {
 					float4 vertex : SV_POSITION;
-					float3 worldOffsetNorm : TEXCOORD0;
+					float2 worldOffsetScaled : TEXCOORD0;
 				};
 
-				uniform float _TexelsPerWave;
 				uniform float _Radius;
-
-				bool SamplingIsAdequate( float minWavelengthInShape )
-				{
-					const float cameraWidth = 2. * unity_OrthoParams.x;
-					const float renderTargetRes = _ScreenParams.x;
-					const float texSize = cameraWidth / renderTargetRes;
-					const float minWavelength = texSize * _TexelsPerWave;
-					return minWavelengthInShape > minWavelength;
-				}
 
 				v2f vert( appdata_t v )
 				{
@@ -55,35 +47,40 @@ Shader "Ocean/Shape/Wave Particle"
 					o.vertex = UnityObjectToClipPos( v.vertex );
 
 					float3 worldPos = mul( unity_ObjectToWorld, v.vertex ).xyz;
-					o.worldOffsetNorm = worldPos - mul( unity_ObjectToWorld, float4(0., 0., 0., 1.) ).xyz;
-					o.worldOffsetNorm /= _Radius;
+					float3 centerPos = unity_ObjectToWorld._m03_m13_m23;
+					o.worldOffsetScaled = worldPos.xz - centerPos.xz;
+
+					// shape is symmetric around center with known radius - fix the vert positions to perfectly wrap the shape.
+					o.worldOffsetScaled = sign(o.worldOffsetScaled);
+					float4 newWorldPos = float4(centerPos, 1.);
+					newWorldPos.xz += o.worldOffsetScaled * _Radius;
+					o.vertex = mul(UNITY_MATRIX_VP, newWorldPos);
 
 					// if wavelength is too small, kill this quad so that it doesnt render any shape
 					float wavelength = 2. * _Radius;
-					if( !SamplingIsAdequate(wavelength) )
+					if( !SamplingIsAppropriate(wavelength) )
 						o.vertex.xy *= 0.;
 
 					return o;
 				}
 
 				uniform float _Amplitude;
+				uniform float _MyDeltaTime;
 
 				float4 frag (v2f i) : SV_Target
 				{
-					float3 disp;
-
 					// power 4 smoothstep - no normalize needed
-					float r2 = dot( i.worldOffsetNorm.xz, i.worldOffsetNorm.xz );
-					if( r2 < 1. )
-					{
-						r2 = 1. - r2;
-						disp.y = r2 * r2 * _Amplitude;
+					// credit goes to stubbe's shadertoy: https://www.shadertoy.com/view/4ldSD2
+					float r2 = dot( i.worldOffsetScaled, i.worldOffsetScaled );
+					if( r2 > 1. )
+						return (float4)0.;
 
-						// add some horizontal displacement to approximate circular motion of points on surface of water
-						disp.xz = -.35 * r2 * i.worldOffsetNorm.xz * _Radius;
-					}
+					r2 = 1. - r2;
 
-					return float4(disp, 1.0);
+					float y = r2 * r2 * _Amplitude;
+
+					// treat as an acceleration - dt^2
+					return float4(_MyDeltaTime * _MyDeltaTime * y, 0., 0., 0.);
 				}
 
 				ENDCG

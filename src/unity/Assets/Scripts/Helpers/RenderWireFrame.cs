@@ -10,8 +10,8 @@ namespace Crest
     [RequireComponent( typeof( Camera ) )]
     public class RenderWireFrame : MonoBehaviour
     {
-        public bool _wireFrame = true;
         public bool _gui = true;
+    	public static bool _wireFrame = false;
 
         Camera _cam;
         CameraClearFlags _defaultClearFlags;
@@ -27,16 +27,10 @@ namespace Crest
             _cam.clearFlags = _wireFrame ? CameraClearFlags.SolidColor : _defaultClearFlags;
         }
 
-        void OnPreRender()
-        {
-            if( enabled )
-                GL.wireframe = _wireFrame;
-        }
-
-        void OnGUI()
-        {
-            if( _gui )
-                _wireFrame = GUI.Toggle( new Rect( 0, 0, 75, 25 ), _wireFrame, "Wireframe" );
-        }
+    	void OnPreRender()
+    	{
+    		if( enabled )
+    			GL.wireframe = _wireFrame;
+    	}
     }
 }

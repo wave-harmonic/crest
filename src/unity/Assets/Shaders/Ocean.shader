@@ -28,6 +28,7 @@ Shader "Ocean/Ocean"
 				#pragma fragment frag
 				#pragma multi_compile_fog
 				#include "UnityCG.cginc"
+				#include "TextureBombing.cginc"
 
 				// tints the output color based on which shape texture(s) were sampled, blended according to weight
 				//#define DEBUG_SHAPE_SAMPLE
@@ -54,17 +55,7 @@ Shader "Ocean/Ocean"
 
 				// GLOBAL PARAMS
 
-				// shape data
-				// Params: float3(texel size, texture resolution, shape weight multiplier)
-				#define SHAPE_LOD_PARAMS(LODNUM) \
-					uniform sampler2D _WD_Sampler_##LODNUM; \
-					uniform float3 _WD_Params_##LODNUM; \
-					uniform float2 _WD_Pos_##LODNUM; \
-					uniform float2 _WD_Pos_Cont_##LODNUM; \
-					uniform int _WD_LodIdx_##LODNUM;
-
-				SHAPE_LOD_PARAMS( 0 )
-				SHAPE_LOD_PARAMS( 1 )
+				#include "OceanLODData.cginc"
 
 				uniform float3 _OceanCenterPosWorld;
 				uniform float _EnableSmoothLODs = 1.0;
@@ -86,7 +77,7 @@ Shader "Ocean/Ocean"
 				// sample wave or terrain height, with smooth blend towards edges.
 				// would equally apply to heights instead of displacements.
 				// this could be optimized further.
-				void SampleDisplacements( in sampler2D i_dispSampler, in float2 i_centerPos, in float2 i_centerPosCont, in float i_res, in float i_texelSize, in float i_geomSquareSize, in float2 i_samplePos, in float wt, inout float3 io_worldPos, inout float3 io_n, inout float io_foamAmount )
+				void SampleDisplacements( in sampler2D i_dispSampler, in sampler2D i_oceanDepthSampler, in float2 i_centerPos, in float2 i_centerPosCont, in float i_res, in float i_texelSize, in float i_geomSquareSize, in float2 i_samplePos, in float wt, inout float3 io_worldPos, inout float3 io_n, inout float io_foamAmount )
 				{
 					if( wt < 0.001 )
 						return;
@@ -94,19 +85,25 @@ Shader "Ocean/Ocean"
 					// set the MIP based on the current square size, with the transition to the higher mip
 					// hb using hte mip chain does NOT work out well when moving the shape texture around, because mip hierarchy will pop. this is knocked out below
 					// and in WaveDataCam::Start()
-					float4 uv = float4( (i_samplePos - i_centerPos) / (i_texelSize*i_res), 0.0, 0.0 ); //log2(SQUARE_SIZE/_WD_TexelSize_0) + lodAlpha );
-					uv.xy += 0.5;
+					float4 uv = float4(WD_worldToUV(i_samplePos, i_centerPos, i_res, i_texelSize), 0., 0.);
 
 					// do computations for hi-res
-					float3 disp = tex2Dlod( i_dispSampler, uv ).xyz;
-					float3 dd = float3( i_geomSquareSize / (i_texelSize*i_res), 0.0, i_geomSquareSize );
-					float3 disp_x = dd.zyy + tex2Dlod( i_dispSampler, uv + dd.xyyy ).xyz;
-					float3 disp_z = dd.yyz + tex2Dlod( i_dispSampler, uv + dd.yxyy ).xyz;
+					// hb - hack - these are not displacements for the heightfield wave sims. this needs to be reconciled at some point. if there
+					// is a custom baking pass to combine wave lods together, that might be a good time to convert the heightfields into displacement
+					// format and combine with any other shape.
+					float3 dd = float3(i_geomSquareSize / (i_texelSize*i_res), 0.0, i_geomSquareSize);
+					float4 s = tex2Dlod(i_dispSampler, uv);
+					float4 sx = tex2Dlod(i_dispSampler, uv + dd.xyyy);
+					float4 sz = tex2Dlod(i_dispSampler, uv + dd.yxyy);
+					float3 disp = float3(0., s.x + s.z, 0.);
+					float3 disp_x = dd.zyy + float3(0., sx.x + sx.z, 0.);
+					float3 disp_z = dd.yyz + float3(0., sz.x + sz.z, 0.);
 					io_worldPos += wt * disp;
 
 					float3 n = normalize( cross( disp_z - disp, disp_x - disp ) );
 					io_n.xz += wt * n.xz;
 
+					/*
 					// The determinant of the displacement Jacobian is a good measure for turbulence:
 					// > 1: Stretch
 					// < 1: Squash
@@ -115,6 +112,15 @@ Shader "Ocean/Ocean"
 					float det = (du.x * du.w - du.y * du.z) / (dd.z * dd.z);
 					float foamAmount = 1. - smoothstep(0.0, 2.0, det);
 					io_foamAmount += wt * foamAmount;
+					*/
+
+					float foam = 0.;
+					// foam from sim
+					foam += s.w;
+					// // foam from shallow water - signed depth is depth compared to sea level, plus wave height
+					float signedDepth = tex2Dlod(i_oceanDepthSampler, uv).x + disp.y;
+					foam += clamp( 1. - signedDepth / 1.5, 0., 1.);
+					io_foamAmount += wt * foam;
 				}
 
 				v2f vert( appdata_t v )
@@ -149,7 +155,7 @@ Shader "Ocean/Ocean"
 					const float BLACK_POINT = 0.15, WHITE_POINT = 0.85;
 					lodAlpha = max( (lodAlpha - BLACK_POINT) / (WHITE_POINT-BLACK_POINT), 0. );
 					const float meshScaleLerp = _InstanceData.x;
-					lodAlpha = min( lodAlpha + meshScaleLerp, 1. );
+					lodAlpha = min(lodAlpha + meshScaleLerp, 1.);
 					lodAlpha *= _EnableSmoothLODs;
 					
 					// now smoothly transition vert layouts between lod levels
@@ -170,8 +176,8 @@ Shader "Ocean/Ocean"
 					float wt_1 = (1.0 - wt_0) * _WD_Params_1.z;
 					// sample displacement textures, add results to current world pos / normal / foam
 					const float2 wxz = o.worldPos.xz;
-					SampleDisplacements( _WD_Sampler_0, _WD_Pos_0, _WD_Pos_Cont_0, _WD_Params_0.y, _WD_Params_0.x, idealSquareSize, wxz, wt_0, o.worldPos, o.n, o.foamAmount_lodAlpha_worldXZUndisplaced.x );
-					SampleDisplacements( _WD_Sampler_1, _WD_Pos_1, _WD_Pos_Cont_1, _WD_Params_1.y, _WD_Params_1.x, idealSquareSize, wxz, wt_1, o.worldPos, o.n, o.foamAmount_lodAlpha_worldXZUndisplaced.x );
+					SampleDisplacements( _WD_Sampler_0, _WD_OceanDepth_Sampler_0, _WD_Pos_0, _WD_Pos_Cont_0, _WD_Params_0.y, _WD_Params_0.x, idealSquareSize, wxz, wt_0, o.worldPos, o.n, o.foamAmount_lodAlpha_worldXZUndisplaced.x );
+					SampleDisplacements( _WD_Sampler_1, _WD_OceanDepth_Sampler_1, _WD_Pos_1, _WD_Pos_Cont_1, _WD_Params_1.y, _WD_Params_1.x, idealSquareSize, wxz, wt_1, o.worldPos, o.n, o.foamAmount_lodAlpha_worldXZUndisplaced.x );
 					// debug tinting to see which shape textures are used
 					#if defined( DEBUG_SHAPE_SAMPLE )
 					#define TINT_COUNT 7
@@ -232,9 +238,10 @@ Shader "Ocean/Ocean"
 				void ApplyFoam( half foamAmount, float2 worldXZUndisplaced, half3 n, inout half3 io_col )
 				{
 					// Give the foam some texture
-					float2 foamUV = worldXZUndisplaced / 80.;
+					float2 foamUV = worldXZUndisplaced / 10.;
 					foamUV += 0.02 * n.xz;
-					half foamTexValue = tex2D( _FoamTexture, foamUV ).r;
+					// texture bombing to avoid repetition artifacts
+					half foamTexValue = textureNoTile_3weights(_FoamTexture, foamUV).r;
 
 					// Additive underwater foam
 					half bubbleFoam = smoothstep( 0.0, 0.5, foamAmount * foamTexValue );

@@ -8,9 +8,10 @@ GameObject:
   serializedVersion: 5
   m_Component:
   - component: {fileID: 478202}
-  - component: {fileID: 11414350}
   - component: {fileID: 11447936}
   - component: {fileID: 11417796}
+  - component: {fileID: 114500934267837144}
+  - component: {fileID: 114853967838761374}
   m_Layer: 0
   m_Name: Ocean
   m_TagString: Untagged
@@ -31,20 +32,6 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &11414350
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 147084}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d0ef467618a9bf34abaa87182e69c6f8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _radiusMultiplier: 2
-  _viewpoint: {fileID: 0}
-  _debugDraw: 0
 --- !u!114 &11417796
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -56,14 +43,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dde37eff0f7685f41902f400d1de0c6c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _scaleHoriz: 1
-  _scaleHorizSmoothTransition: 1
-  _minScale: 32
-  _maxScale: -1
+  _minTexelsPerWave: 5
+  _minScale: 16
+  _maxScale: 128
   _enableSmoothLOD: 1
   _freezeTime: 0
   _baseVertDensity: 32
-  _maxWaveHeight: 30
+  _maxWaveHeight: 10
   _lodCount: 5
   _uniformTiles: 0
   _generateSkirt: 1
@@ -78,9 +64,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ecf2b25b7104b034086ca7f8a62a7bea, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _chunkPrefab: {fileID: 420464, guid: cf3b4e9ae29b3ef49b5c62b0ce691760, type: 2}
-  _shapeCameraPrefab: {fileID: 4685541729782842, guid: 34c4f20ff09a39e4299f7341277be9c1,
-    type: 2}
+  _oceanMaterial: {fileID: 2100000, guid: 9def92ac79181fe41b238e91663f0fad, type: 2}
   _shapeCameras: []
 --- !u!1001 &100100000
 Prefab:
@@ -93,3 +77,27 @@ Prefab:
   m_ParentPrefab: {fileID: 0}
   m_RootGameObject: {fileID: 147084}
   m_IsPrefabParent: 1
+--- !u!114 &114500934267837144
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 147084}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0f63235a3a133804593f4348e83f77ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _showSimTargets: 1
+--- !u!114 &114853967838761374
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 147084}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5d2c4f1da29b6204a8d1fe6eae12a2fb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _viewpoint: {fileID: 0}

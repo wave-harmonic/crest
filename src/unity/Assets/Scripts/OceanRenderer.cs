@@ -28,13 +28,13 @@ namespace OceanResearch
         [Header( "Geometry Params" )]
         [SerializeField]
         [Tooltip( "Side dimension in quads of an ocean tile." )]
-        float _baseVertDensity = 32f;
+        public float _baseVertDensity = 32f;
         [SerializeField]
         [Tooltip( "Maximum wave amplitude, used to compute bounding box for ocean tiles." )]
         float _maxWaveHeight = 30f;
         [SerializeField]
         [Tooltip( "Number of ocean tile scales/LODs to generate." )]
-        int _lodCount = 5;
+        public int _lodCount = 5;
         [SerializeField]
         [Tooltip( "Whether to generate ocean geometry tiles uniformly (with overlaps)" )]
         bool _uniformTiles = false;

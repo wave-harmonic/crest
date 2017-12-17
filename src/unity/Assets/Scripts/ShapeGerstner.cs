@@ -12,8 +12,6 @@ namespace OceanResearch
     {
         [Tooltip("The number of wave octaves")]
         public int _numOctaves = 32;
-        [Tooltip( "Range of wavelengths" )]
-        public Vector2 _wavelengthRange = new Vector2(2.5f, 256f);
         [Tooltip("Distribution of wavelengths, > 1 means concentrated at low wavelengths")]
         public float _wavelengthDistribution = 4f;
         [Tooltip( "Wind direction (angle from x axis in degrees)" ), Range( -180, 180 )]
@@ -23,7 +21,7 @@ namespace OceanResearch
         [Tooltip( "Wind speed in m/s" ), Range( 0, 20 )]
         public float _windSpeed = 5f;
         [Tooltip( "Choppiness of waves. Treat carefully: If set too high, can cause the geometry to overlap itself." ), Range( 0, 5 )]
-        public float _choppiness = 1.8f;
+        public float _choppiness = 0f;
 
         [Tooltip( "Geometry to rasterise into wave buffers to generate waves." )]
         public Mesh _rasterMesh;
@@ -32,7 +30,9 @@ namespace OceanResearch
 
         public int _randomSeed = 0;
 
+        float _minWavelength;
         float[] _wavelengths;
+
         Material[] _materials;
         float[] _angleDegs;
 
@@ -48,10 +48,19 @@ namespace OceanResearch
             _materials = new Material[_numOctaves];
             _wavelengths = new float[_numOctaves];
 
+            // derive the range of wavelengths from the LOD settings, the base ocean density, the min and max scales. the wavelength
+            // range always fills the dynamic range of the multiscale sim.
+            float minDiameter = 4f * OceanRenderer.Instance._minScale;
+            float minTexelSize = minDiameter / (4f * OceanRenderer.Instance._baseVertDensity);
+            _minWavelength = minTexelSize * OceanRenderer.Instance._minTexelsPerWave;
+            float maxDiameter = 4f * OceanRenderer.Instance._maxScale * Mathf.Pow( 2f, OceanRenderer.Instance._lodCount - 1 );
+            float maxTexelSize = maxDiameter / (4f * OceanRenderer.Instance._baseVertDensity);
+            float maxWavelength = 2f * maxTexelSize * OceanRenderer.Instance._minTexelsPerWave;
+
             for( int i = 0; i < _numOctaves; i++ )
             {
                 float wavelengthSel = Mathf.Pow( Random.value, _wavelengthDistribution );
-                _wavelengths[i] = Mathf.Lerp( _wavelengthRange.x, _wavelengthRange.y, wavelengthSel );
+                _wavelengths[i] = Mathf.Lerp( _minWavelength, maxWavelength, wavelengthSel );
             }
             System.Array.Sort( _wavelengths );
 
@@ -107,7 +116,7 @@ namespace OceanResearch
 
             for( int i = 0; i < _numOctaves; i++ )
             {
-                float energy = PhillipsSpectrum( _windSpeed, windDir, Mathf.Abs( Physics.gravity.y ), _wavelengthRange.x, _wavelengths[i], _angleDegs[i] );
+                float energy = PhillipsSpectrum( _windSpeed, windDir, Mathf.Abs( Physics.gravity.y ), _minWavelength, _wavelengths[i], _angleDegs[i] );
 
                 // energy to amplitude ( http://www.physicsclassroom.com/class/waves/Lesson-2/Energy-Transport-and-the-Amplitude-of-a-Wave )
                 float amp = Mathf.Sqrt( energy );

@@ -25,6 +25,8 @@ namespace Crest
             transform.rotation = transform.rotation * Quaternion.AngleAxis( rotSpeed * (Input.GetKey( KeyCode.RightArrow ) ? 1 : 0) * Time.deltaTime, Vector3.up );
 
             UpdateDragging();
+
+            UpdateKillRoll();
         }
 
         void UpdateDragging()
@@ -51,11 +53,17 @@ namespace Crest
                 Vector3 ea = transform.eulerAngles;
                 ea.x += -0.1f * rotSpeed * delta.y * Time.deltaTime;
                 ea.y += 0.1f * rotSpeed * delta.x * Time.deltaTime;
-                ea.z = 0f;
                 transform.eulerAngles = ea;
 
                 _lastMousePos = mousePos;
             }
+        }
+
+        void UpdateKillRoll()
+        {
+            Vector3 ea = transform.eulerAngles;
+            ea.z = 0f;
+            transform.eulerAngles = ea;
         }
     }
 }

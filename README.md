@@ -95,7 +95,7 @@ The ocean pixel shader samples normal maps at 2 different scales, both proportio
 * Using SWE for ocean on large scales: http://kestrel.nmt.edu/~raymond/classes/ph332/notes/shallowgov/shallowgov.pdf
 * Three stages of how wind generates waves, with refs: https://www.wikiwaves.org/Ocean-Wave_Spectra
 * Miles - how energy is transferred from wind to wave: https://www.cambridge.org/core/journals/journal-of-fluid-mechanics/article/on-the-generation-of-surface-waves-by-shear-flows/40B503619B6D4571BEF3D31CB8925084
-
+* Realistic simulation of waves using wave spectra: https://hal.archives-ouvertes.fr/file/index/docid/307938/filename/frechot_realistic_simulation_of_ocean_surface_using_wave_spectra.pdf
 
 ### Boundary conditions
 

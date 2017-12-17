@@ -10,28 +10,27 @@ namespace OceanResearch
     /// </summary>
     public class ShapeGerstner : MonoBehaviour
     {
-        // The number of Gerstner octaves
-        public int NumOctaves = 10;
-        // Range of wavelengths
-        public Vector2 WavelengthRange = new Vector2(20f, 50f);
-        public float WavelengthDistribution = 1f;
-        // General direction of flow, an angle in degrees
-        [Range(-180, 180)]
+        [Tooltip("The number of wave octaves")]
+        public int _numOctaves = 32;
+        [Tooltip( "Range of wavelengths" )]
+        public Vector2 _wavelengthRange = new Vector2(2.5f, 256f);
+        [Tooltip("Distribution of wavelengths, > 1 means concentrated at low wavelengths")]
+        public float _wavelengthDistribution = 4f;
+        [Tooltip( "Wind direction (angle from x axis in degrees)" ), Range( -180, 180 )]
         public float _windDirectionAngle = 0f;
-        // Variance of flow direction, in degrees
-        public float WaveDirectionVariance = 29f;
-        [Range( 0, 100 )]
-        public float _windSpeed = 2.77777778f;
-        // Choppiness of waves. Treat carefully: If set too high, can cause the geometry to overlap itself.
-        [Range(0, 5)]
+        [Tooltip( "Variance of flow direction, in degrees" )]
+        public float _waveDirectionVariance = 45f;
+        [Tooltip( "Wind speed in m/s" ), Range( 0, 20 )]
+        public float _windSpeed = 5f;
+        [Tooltip( "Choppiness of waves. Treat carefully: If set too high, can cause the geometry to overlap itself." ), Range( 0, 5 )]
         public float _choppiness = 1.8f;
 
-        // Standard quad mesh, referenced here for convenience.
-        public Mesh QuadMesh;
-        // Shader to be used to render out a single Gerstner octave.
-        public Shader GerstnerOctaveShader;
+        [Tooltip( "Geometry to rasterise into wave buffers to generate waves." )]
+        public Mesh _rasterMesh;
+        [Tooltip( "Shader to be used to render out a single Gerstner octave." )]
+        public Shader _waveShader;
 
-        public int RandomSeed = 0;
+        public int _randomSeed = 0;
 
         float[] _wavelengths;
         Material[] _materials;
@@ -41,26 +40,26 @@ namespace OceanResearch
         {
             // Set random seed to get repeatable results
             Random.State randomStateBkp = Random.state;
-            Random.InitState( RandomSeed );
+            Random.InitState( _randomSeed );
 
             Vector2 windDir = WindDir;
 
-            _angleDegs = new float[NumOctaves];
-            _materials = new Material[NumOctaves];
-            _wavelengths = new float[NumOctaves];
+            _angleDegs = new float[_numOctaves];
+            _materials = new Material[_numOctaves];
+            _wavelengths = new float[_numOctaves];
 
-            for( int i = 0; i < NumOctaves; i++ )
+            for( int i = 0; i < _numOctaves; i++ )
             {
-                float wavelengthSel = Mathf.Pow( Random.value, WavelengthDistribution );
-                _wavelengths[i] = Mathf.Lerp( WavelengthRange.x, WavelengthRange.y, wavelengthSel );
+                float wavelengthSel = Mathf.Pow( Random.value, _wavelengthDistribution );
+                _wavelengths[i] = Mathf.Lerp( _wavelengthRange.x, _wavelengthRange.y, wavelengthSel );
             }
             System.Array.Sort( _wavelengths );
 
             // Generate the given number of octaves, each generating a GameObject rendering a quad.
-            for (int i = 0; i < NumOctaves; i++)
+            for (int i = 0; i < _numOctaves; i++)
             {
                 // Direction
-                _angleDegs[i] = _windDirectionAngle + Random.Range( -WaveDirectionVariance, WaveDirectionVariance );
+                _angleDegs[i] = _windDirectionAngle + Random.Range( -_waveDirectionVariance, _waveDirectionVariance );
                 if( _angleDegs[i] > 180f )
                 {
                     _angleDegs[i] -= 360f;
@@ -74,14 +73,14 @@ namespace OceanResearch
                 GO.layer = gameObject.layer;
 
                 MeshFilter meshFilter = GO.AddComponent<MeshFilter>();
-                meshFilter.mesh = QuadMesh;
+                meshFilter.mesh = _rasterMesh;
 
                 GO.transform.parent = transform;
                 GO.transform.localPosition = Vector3.zero;
                 GO.transform.localRotation = Quaternion.identity;
                 GO.transform.localScale = Vector3.one;
 
-                _materials[i] = new Material( GerstnerOctaveShader );
+                _materials[i] = new Material( _waveShader );
 
                 MeshRenderer renderer = GO.AddComponent<MeshRenderer>();
                 renderer.material = _materials[i];
@@ -97,7 +96,6 @@ namespace OceanResearch
 
         private void Update()
         {
-            //Shader.SetGlobalFloat( "_WindStrength", 1f /*_windStrength*/ );
             Shader.SetGlobalFloat( "_Choppiness", _choppiness );
 
             UpdateAmplitudes();
@@ -107,9 +105,9 @@ namespace OceanResearch
         {
             Vector2 windDir = WindDir;
 
-            for( int i = 0; i < NumOctaves; i++ )
+            for( int i = 0; i < _numOctaves; i++ )
             {
-                float energy = PhillipsSpectrum( _windSpeed, windDir, Mathf.Abs( Physics.gravity.y ), WavelengthRange.x, _wavelengths[i], _angleDegs[i] );
+                float energy = PhillipsSpectrum( _windSpeed, windDir, Mathf.Abs( Physics.gravity.y ), _wavelengthRange.x, _wavelengths[i], _angleDegs[i] );
 
                 // energy to amplitude ( http://www.physicsclassroom.com/class/waves/Lesson-2/Energy-Transport-and-the-Amplitude-of-a-Wave )
                 float amp = Mathf.Sqrt( energy );

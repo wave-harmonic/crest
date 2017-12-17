@@ -8,6 +8,8 @@ namespace Crest
 
         static float _leftPanelWidth = 160f;
 
+        public GameObject _waveGenGO;
+
         public static bool OverGUI( Vector2 screenPosition )
         {
             return screenPosition.x < _leftPanelWidth;
@@ -32,6 +34,12 @@ namespace Crest
 
             GUI.Label( new Rect( x, y, w, h ), string.Format( "Choppiness: {0}", ShapeGerstner.Instance._choppiness.ToString( "0.00" ) ) ); y += h;
             ShapeGerstner.Instance._choppiness = GUI.HorizontalSlider( new Rect( x, y, w, h ), ShapeGerstner.Instance._choppiness, 0f, 1f ); y += h;
+
+            if( _waveGenGO != null )
+            {
+                _waveGenGO.SetActive( GUI.Toggle( new Rect( x, y, w, h ), _waveGenGO.activeInHierarchy, "Wave generator" ) );
+                y += h;
+            }
 
             RenderWireFrame._wireFrame = GUI.Toggle( new Rect( x, y, w, h ), RenderWireFrame._wireFrame, "Wireframe" ); y += h;
 

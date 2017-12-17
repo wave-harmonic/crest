@@ -6,9 +6,9 @@ namespace OceanResearch
     {
         public bool _showSimTargets = true;
 
-        float _leftPanelWidth = 160f;
+        static float _leftPanelWidth = 160f;
 
-        public bool OverGUI( Vector2 screenPosition )
+        public static bool OverGUI( Vector2 screenPosition )
         {
             return screenPosition.x < _leftPanelWidth;
         }
@@ -86,8 +86,5 @@ namespace OceanResearch
 
             GUI.color = bkp;
         }
-
-        static OceanDebugGUI _instance;
-        public static OceanDebugGUI Instance { get { return _instance ?? (_instance = FindObjectOfType<OceanDebugGUI>()); } }
     }
 }

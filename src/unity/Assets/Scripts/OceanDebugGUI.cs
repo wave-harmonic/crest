@@ -6,6 +6,13 @@ namespace OceanResearch
     {
         public bool _showSimTargets = true;
 
+        float _leftPanelWidth = 150f;
+
+        public bool OverGUI( Vector2 screenPosition )
+        {
+            return screenPosition.x < _leftPanelWidth;
+        }
+
         void OnGUI()
         {
             Color bkp = GUI.color;
@@ -14,7 +21,7 @@ namespace OceanResearch
             GUI.skin.label.normal.textColor = Color.white;
 
             float x = 5f, y = 0f;
-            float w = 150, h = 25f;
+            float w = _leftPanelWidth, h = 25f;
 
             GUI.color = Color.black * 0.7f;
             GUI.DrawTexture( new Rect( 0, 0, w + 2f * x, Screen.height ), Texture2D.whiteTexture );
@@ -79,5 +86,8 @@ namespace OceanResearch
 
             GUI.color = bkp;
         }
+
+        static OceanDebugGUI _instance;
+        public static OceanDebugGUI Instance { get { return _instance ?? (_instance = FindObjectOfType<OceanDebugGUI>()); } }
     }
 }

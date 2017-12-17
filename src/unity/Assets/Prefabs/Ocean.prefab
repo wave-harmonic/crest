@@ -89,6 +89,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _showSimTargets: 1
+  _waveGenGO: {fileID: 0}
 --- !u!114 &114853967838761374
 MonoBehaviour:
   m_ObjectHideFlags: 1

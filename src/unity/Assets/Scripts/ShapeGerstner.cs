@@ -20,7 +20,7 @@ namespace Crest
         public float _waveDirectionVariance = 45f;
         [Tooltip( "Wind speed in m/s" ), Range( 0, 20 )]
         public float _windSpeed = 5f;
-        [Tooltip( "Choppiness of waves. Treat carefully: If set too high, can cause the geometry to overlap itself." ), Range( 0, 5 )]
+        [Tooltip( "Choppiness of waves. Treat carefully: If set too high, can cause the geometry to overlap itself." ), Range( 0f, 1f )]
         public float _choppiness = 0f;
 
         [Tooltip( "Geometry to rasterise into wave buffers to generate waves." )]

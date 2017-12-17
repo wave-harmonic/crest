@@ -21,7 +21,7 @@ namespace OceanResearch
         // Variance of flow direction, in degrees
         public float WaveDirectionVariance = 29f;
         [Range( 0, 100 )]
-        public float _windSpeed = 100f;
+        public float _windSpeed = 2.77777778f;
         // Choppiness of waves. Treat carefully: If set too high, can cause the geometry to overlap itself.
         [Range(0, 5)]
         public float _choppiness = 1.8f;

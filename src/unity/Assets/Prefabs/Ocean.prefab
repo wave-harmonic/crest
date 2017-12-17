@@ -43,7 +43,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dde37eff0f7685f41902f400d1de0c6c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _minTexelsPerWave: 6
+  _minTexelsPerWave: 5
   _minScale: 16
   _maxScale: 128
   _enableSmoothLOD: 1

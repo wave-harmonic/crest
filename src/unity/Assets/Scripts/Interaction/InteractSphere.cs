@@ -8,42 +8,40 @@ namespace Crest
     // not take current water height into account yet
     public class InteractSphere : MonoBehaviour
     {
+        public float _dragLinSubmerged = 0.6f;
+        public float _dragRotSubmerged = 1.8f;
+        public float _dragLinEmerged = 0.2f;
+        public float _dragRotEmerged = 0.2f;
+
+        [Range( 0.01f, 1f )]
+        public float _densityComparedToWater = 1f;
+
+        [Tooltip( "The max number of wavelengths crossing the extent of the shape which will be used for physics." ), Range( 1f, 10f )]
+        public float _maxWaves = 3f;
+
         Texture2D _copiedWaveData;
 
         float _texReadTime = 0f;
         float _waveDataSampleTime = 0f;
 
-        //public Shader _shader;
+        public Shader _displaceShader;
+        float _displacedVLast = -1f;
 
-        //float _lastY = 0f;
+        public Renderer _dispProxy;
 
-        //Material _mat;
+        Material _mat;
+        Rigidbody _rigidbody;
 
         void Start()
         {
-            //_lastY = transform.position.y;
+            _mat = new Material( _displaceShader );
+            _dispProxy.material = _mat;
 
-            //_mat = new Material( _shader );
-
-            //GetComponent<Renderer>().material = _mat;
+            _rigidbody = GetComponent<Rigidbody>();
         }
 
         void LateUpdate()
         {
-            //float dy = _lastY - transform.position.y;
-
-            //float a = transform.lossyScale.x / 2f;
-            //float b = transform.lossyScale.z / 2f;
-            //float A = Mathf.PI * a * b;
-
-            //float V = dy * A;
-
-            //float VperLod = V / (float)OceanRenderer.Instance._lodCount;
-
-            //_mat.SetFloat( "_displacedVPerLod", VperLod );
-
-            //_lastY = transform.position.y;
-
             ComputeIntersectionVolume();
         }
 
@@ -60,6 +58,11 @@ namespace Crest
 
         float ComputeIntersectionVolume()
         {
+            // uniform scale for now
+            float sphereRad = transform.lossyScale.x;
+            float sphereVol = (4 / 3f) * Mathf.PI * sphereRad * sphereRad * sphereRad;
+            _rigidbody.mass = _densityComparedToWater * sphereVol * OceanRenderer.WATER_DENSITY;
+
             Vector2 thisPos;
             thisPos.x = transform.position.x;
             thisPos.y = transform.position.z;
@@ -67,12 +70,15 @@ namespace Crest
             WaveDataCam wdc = null;
             bool done = false;
 
+            // no interested if there are less than x wavelengths crossing this object - filter them out.
+            float minL = 2f * sphereRad / _maxWaves;
+
             Camera[] cams = OceanRenderer.Instance.Builder._shapeCameras;
             foreach( var cam in cams )
             {
                 var thisWDC = cam.GetComponent<WaveDataCam>();
 
-                if( thisWDC.ShapeBounds.Contains(thisPos) )
+                if( thisWDC.ShapeBounds.Contains(thisPos) && thisWDC.MaxWavelength > minL )
                 {
                     wdc = thisWDC;
 
@@ -96,7 +102,6 @@ namespace Crest
                     // i consistently see this readTime is on the order of the frame time, so it is stalling the GPU, even
                     // when reading a rendertexture that has not been touched for many frames!
                     _texReadTime = Time.realtimeSinceStartup - startTime;
-                    //Debug.Log( "Elapsed time: " + ((endTime - startTime) * 1000f) + "ms" );
 
                     done = true;
                     break;
@@ -108,30 +113,62 @@ namespace Crest
                 float startTime = Time.realtimeSinceStartup;
 
                 const int SAMPLE_COUNT = 10;
-                float aveY = 0f;
+
+                float A = Mathf.PI * sphereRad * sphereRad;
+
+                float displacedV = 0f;
+
                 for( int i = 0; i < SAMPLE_COUNT; i++ )
                 {
-                    Vector2 pos2 = Random.insideUnitCircle;
-                    pos2.x *= transform.lossyScale.x;
-                    pos2.y *= transform.lossyScale.z;
+                    float r = Mathf.Sqrt( Random.value );
+                    // r^2 + y^2 = 1^2
+                    float y = Mathf.Sqrt( 1f - r * r );
+                    r *= sphereRad;
+                    y *= sphereRad;
 
-                    Vector3 pos3 = transform.position + pos2.x * transform.right + pos2.y * transform.forward;
+                    float theta = 2f * Mathf.PI * Random.value;
+
+                    Vector3 bottomOffset = new Vector3( r * Mathf.Cos( theta ), -y, r * Mathf.Sin( theta ) );
+
+                    Vector3 sampleBottomPos = transform.position + bottomOffset;
+
                     Vector2 uv;
-                    wdc.WorldPosToUV( pos3, out uv );
+                    wdc.WorldPosToUV( sampleBottomPos, out uv );
 
                     Color sample = _copiedWaveData.GetPixelBilinear( uv.x, uv.y );
 
-                    float h = sample.r + sample.b;
+                    float oceany = sample.r + sample.b;
 
-                    aveY += h;
+                    // bottom of water column that intersects sphere
+                    float y0 = sampleBottomPos.y;
+                    // top of water column that intersects sphere
+                    float y1 = Mathf.Min( oceany, y0 + 2f * Mathf.Abs( bottomOffset.y ) );
+
+                    if( y1 <= y0 )
+                        continue; // fully emerged
+
+                    // apply buoyancy - weight of displaced fluid
+                    float a = A / (float)SAMPLE_COUNT;
+                    float v = a * (y1 - y0);
+
+                    displacedV += v;
+
+                    Vector3 centroid = sampleBottomPos + Vector3.up * (y1 - y0) / 2f;
+                    _rigidbody.AddForceAtPosition( -Physics.gravity * OceanRenderer.WATER_DENSITY * v, centroid );
                 }
-                aveY /= (float)SAMPLE_COUNT;
+
+                _rigidbody.drag = Mathf.Lerp( _dragLinEmerged, _dragLinSubmerged, displacedV / sphereVol );
+                _rigidbody.angularDrag = Mathf.Lerp( _dragRotEmerged, _dragRotSubmerged, displacedV / sphereVol );
+
+                if( _displacedVLast != -1f )
+                {
+                    float vDiff = displacedV - _displacedVLast;
+                    _mat.SetFloat( "_displacedVPerLod", 0.05f * vDiff / OceanRenderer.Instance._lodCount );
+                }
+
+                _displacedVLast = displacedV;
 
                 _waveDataSampleTime = Time.realtimeSinceStartup - startTime;
-
-                Vector3 pos = transform.position;
-                pos.y = aveY;
-                transform.position = pos;
             }
 
             return 0f;

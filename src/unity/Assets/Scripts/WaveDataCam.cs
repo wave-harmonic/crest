@@ -177,5 +177,15 @@ namespace Crest
 
             uv = new Vector2( uv3.x, uv3.z ) + Vector2.one * 0.5f;
         }
+
+        public float MaxWavelength
+        {
+            get
+            {
+                float minWavelength = _renderData._texelWidth * OceanRenderer.Instance._minTexelsPerWave;
+                float maxWavelength = 2f * minWavelength;
+                return maxWavelength;
+            }
+        }
     }
 }

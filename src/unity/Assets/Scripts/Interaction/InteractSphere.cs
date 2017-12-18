@@ -8,9 +8,10 @@ namespace Crest
     // not take current water height into account yet
     public class InteractSphere : MonoBehaviour
     {
-        // copiedTex is public here instead of being created on the fly so that it can be hooked up to a texture asset
-        // which has cpu access flags set. this didnt make a difference.
-        public Texture2D _copiedTex;
+        Texture2D _copiedWaveData;
+
+        float _texReadTime = 0f;
+        float _waveDataSampleTime = 0f;
 
         //public Shader _shader;
 
@@ -46,57 +47,93 @@ namespace Crest
             ComputeIntersectionVolume();
         }
 
-        //Texture2D _copiedTex = null;
-        float _readTime = 0f;
         private void OnGUI()
         {
-            if( _copiedTex != null )
+            if( _copiedWaveData != null )
             {
                 GUI.color = Color.white;
-                GUI.DrawTexture( new Rect( 165f, 5f, _copiedTex.width, _copiedTex.height ), _copiedTex, ScaleMode.ScaleAndCrop, false );
-                GUI.Label( new Rect( 170f, 10f, _copiedTex.width, 25f ), (_readTime * 1000f).ToString( "0.00" ) + "ms" );
+                GUI.DrawTexture( new Rect( 165f, 5f, _copiedWaveData.width, _copiedWaveData.height ), _copiedWaveData, ScaleMode.ScaleAndCrop, false );
+                GUI.Label( new Rect( 170f, 10f, _copiedWaveData.width, 25f ), "Download: " + (_texReadTime * 1000f).ToString( "0.00" ) + "ms" );
+                GUI.Label( new Rect( 170f, 35f, _copiedWaveData.width, 25f ), "Sample: " + (_waveDataSampleTime * 1000f).ToString( "0.00" ) + "ms" );
             }
         }
 
         float ComputeIntersectionVolume()
         {
+            Vector2 thisPos;
+            thisPos.x = transform.position.x;
+            thisPos.y = transform.position.z;
+
+            WaveDataCam wdc = null;
+            bool done = false;
+
             Camera[] cams = OceanRenderer.Instance.Builder._shapeCameras;
             foreach( var cam in cams )
             {
-                var wdc = cam.GetComponent<WaveDataCam>();
-                Rect bounds = wdc.ShapeBounds;
+                var thisWDC = cam.GetComponent<WaveDataCam>();
 
-                Vector2 thisPos;
-                thisPos.x = transform.position.x;
-                thisPos.y = transform.position.z;
-                if( bounds.Contains(thisPos) )
+                if( thisWDC.ShapeBounds.Contains(thisPos) )
                 {
-                    var src = wdc.GetComponent<PingPongRts>()._lastFrameSource;
-                    if( !src )
-                        continue;
+                    wdc = thisWDC;
 
-                    //if( _copiedTex == null || _copiedTex.width != src.width )
-                    //{
-                    //    _copiedTex = new Texture2D( src.width, src.height, TextureFormat.RGBAFloat, false );
-                    //}
+                    var src = wdc.GetComponent<PingPongRts>()._sourceThisFrame;
+                    if( !src ) continue;
+
+                    if( _copiedWaveData == null || _copiedWaveData.width != src.width )
+                    {
+                        _copiedWaveData = new Texture2D( src.width, src.height, TextureFormat.RGBAFloat, false );
+                    }
 
                     RenderTexture bkp = RenderTexture.active;
                     RenderTexture.active = src;
 
                     float startTime = Time.realtimeSinceStartup;
-                    _copiedTex.ReadPixels( new Rect( 0, 0, src.width, src.height ), 0, 0 );
-                    _copiedTex.Apply();
+                    _copiedWaveData.ReadPixels( new Rect( 0, 0, src.width, src.height ), 0, 0 );
+                    _copiedWaveData.Apply();
 
                     RenderTexture.active = bkp;
 
                     // i consistently see this readTime is on the order of the frame time, so it is stalling the GPU, even
                     // when reading a rendertexture that has not been touched for many frames!
-                    _readTime = Time.realtimeSinceStartup - startTime;
+                    _texReadTime = Time.realtimeSinceStartup - startTime;
                     //Debug.Log( "Elapsed time: " + ((endTime - startTime) * 1000f) + "ms" );
 
+                    done = true;
                     break;
                 }
             }
+
+            if( done )
+            {
+                float startTime = Time.realtimeSinceStartup;
+
+                const int SAMPLE_COUNT = 10;
+                float aveY = 0f;
+                for( int i = 0; i < SAMPLE_COUNT; i++ )
+                {
+                    Vector2 pos2 = Random.insideUnitCircle;
+                    pos2.x *= transform.lossyScale.x;
+                    pos2.y *= transform.lossyScale.z;
+
+                    Vector3 pos3 = transform.position + pos2.x * transform.right + pos2.y * transform.forward;
+                    Vector2 uv;
+                    wdc.WorldPosToUV( pos3, out uv );
+
+                    Color sample = _copiedWaveData.GetPixelBilinear( uv.x, uv.y );
+
+                    float h = sample.r + sample.b;
+
+                    aveY += h;
+                }
+                aveY /= (float)SAMPLE_COUNT;
+
+                _waveDataSampleTime = Time.realtimeSinceStartup - startTime;
+
+                Vector3 pos = transform.position;
+                pos.y = aveY;
+                transform.position = pos;
+            }
+
             return 0f;
         }
     }

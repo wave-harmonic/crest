@@ -170,5 +170,12 @@ namespace Crest
                 return new Rect( center.x - size / 2f, center.z - size / 2f, size, size );
             }
         }
+
+        public void WorldPosToUV( Vector3 world3, out Vector2 uv )
+        {
+            Vector3 uv3 = (world3 - _renderData._posSnapped) / (_renderData._texelWidth * _renderData._textureRes);
+
+            uv = new Vector2( uv3.x, uv3.z ) + Vector2.one * 0.5f;
+        }
     }
 }

@@ -160,5 +160,15 @@ namespace Crest
         }
 
         Camera _camera; Camera cam { get { return _camera != null ? _camera : (_camera = GetComponent<Camera>()); } }
+
+        public Rect ShapeBounds
+        {
+            get
+            {
+                Vector3 center = _renderData._posSnapped;
+                float size = _renderData._texelWidth * _renderData._textureRes;
+                return new Rect( center.x - size / 2f, center.z - size / 2f, size, size );
+            }
+        }
     }
 }

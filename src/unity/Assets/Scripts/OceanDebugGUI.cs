@@ -64,6 +64,8 @@ namespace Crest
             }
             y += h;
 
+            PingPongRts._captureShape = GUI.Toggle( new Rect( x, y, w, h ), PingPongRts._captureShape, "Capture shape" ); y += h;
+
 
             // draw source textures to screen
             if( _showSimTargets )

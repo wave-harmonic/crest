@@ -12,6 +12,8 @@ namespace Crest
     /// </summary>
     public class OceanBuilder : MonoBehaviour
     {
+        public RenderTexture _shapeCopyRT;
+
         [Tooltip("Material to use for the ocean surface")]
         public Material _oceanMaterial;
 
@@ -221,7 +223,11 @@ namespace Crest
             wdc._lodIndex = lodIdx;
             wdc._lodCount = parms._lodCount;
 
-            go.AddComponent<PingPongRts>();
+            var pprt = go.AddComponent<PingPongRts>();
+            if( lodIdx == 0 )
+            {
+                pprt._lastFrameSource = _shapeCopyRT;
+            }
 
             var cart = go.AddComponent<CreateAssignRenderTexture>();
             cart._targetName = string.Format( "shapeRT{0}", lodIdx );

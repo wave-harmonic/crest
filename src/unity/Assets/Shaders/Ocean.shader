@@ -77,7 +77,7 @@ Shader "Ocean/Ocean"
 				// sample wave or terrain height, with smooth blend towards edges.
 				// would equally apply to heights instead of displacements.
 				// this could be optimized further.
-				void SampleDisplacements( in sampler2D i_dispSampler, in sampler2D i_oceanDepthSampler, in float2 i_centerPos, in float2 i_centerPosCont, in float i_res, in float i_texelSize, in float i_geomSquareSize, in float2 i_samplePos, in float wt, inout float3 io_worldPos, inout float3 io_n, inout float io_foamAmount )
+				void SampleDisplacements( in sampler2D i_dispSampler, in sampler2D i_oceanDepthSampler, in float2 i_centerPos, in float i_res, in float i_texelSize, in float i_geomSquareSize, in float2 i_samplePos, in float wt, inout float3 io_worldPos, inout float3 io_n, inout float io_foamAmount )
 				{
 					if( wt < 0.001 )
 						return;
@@ -176,8 +176,8 @@ Shader "Ocean/Ocean"
 					float wt_1 = (1.0 - wt_0) * _WD_Params_1.z;
 					// sample displacement textures, add results to current world pos / normal / foam
 					const float2 wxz = o.worldPos.xz;
-					SampleDisplacements( _WD_Sampler_0, _WD_OceanDepth_Sampler_0, _WD_Pos_0, _WD_Pos_Cont_0, _WD_Params_0.y, _WD_Params_0.x, idealSquareSize, wxz, wt_0, o.worldPos, o.n, o.foamAmount_lodAlpha_worldXZUndisplaced.x );
-					SampleDisplacements( _WD_Sampler_1, _WD_OceanDepth_Sampler_1, _WD_Pos_1, _WD_Pos_Cont_1, _WD_Params_1.y, _WD_Params_1.x, idealSquareSize, wxz, wt_1, o.worldPos, o.n, o.foamAmount_lodAlpha_worldXZUndisplaced.x );
+					SampleDisplacements( _WD_Sampler_0, _WD_OceanDepth_Sampler_0, _WD_Pos_0, _WD_Params_0.y, _WD_Params_0.x, idealSquareSize, wxz, wt_0, o.worldPos, o.n, o.foamAmount_lodAlpha_worldXZUndisplaced.x );
+					SampleDisplacements( _WD_Sampler_1, _WD_OceanDepth_Sampler_1, _WD_Pos_1, _WD_Params_1.y, _WD_Params_1.x, idealSquareSize, wxz, wt_1, o.worldPos, o.n, o.foamAmount_lodAlpha_worldXZUndisplaced.x );
 					// debug tinting to see which shape textures are used
 					#if defined( DEBUG_SHAPE_SAMPLE )
 					#define TINT_COUNT 7

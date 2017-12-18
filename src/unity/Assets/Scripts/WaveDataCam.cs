@@ -25,7 +25,6 @@ namespace Crest
         {
             public float _texelWidth;
             public float _textureRes;
-            public Vector3 _posContinuous;
             public Vector3 _posSnapped;
             public Vector3 _posSnappedLast;
         }
@@ -67,14 +66,13 @@ namespace Crest
             _renderData._textureRes = (float)cam.targetTexture.width;
             _renderData._texelWidth = 2f * cam.orthographicSize / _renderData._textureRes;
             // snap so that shape texels are stationary
-            _renderData._posContinuous = transform.position;
-            _renderData._posSnapped = _renderData._posContinuous
-                - new Vector3( Mathf.Repeat( _renderData._posContinuous.x, _renderData._texelWidth ), 0f, Mathf.Repeat( _renderData._posContinuous.z, _renderData._texelWidth ) );
+            _renderData._posSnapped = transform.position
+                - new Vector3( Mathf.Repeat( transform.position.x, _renderData._texelWidth ), 0f, Mathf.Repeat( transform.position.z, _renderData._texelWidth ) );
 
             // set projection matrix to snap to texels
             cam.ResetProjectionMatrix();
             Matrix4x4 P = cam.projectionMatrix, T = new Matrix4x4();
-            T.SetTRS( new Vector3( _renderData._posContinuous.x - _renderData._posSnapped.x, _renderData._posContinuous.z - _renderData._posSnapped.z ), Quaternion.identity, Vector3.one );
+            T.SetTRS( new Vector3( transform.position.x - _renderData._posSnapped.x, transform.position.z - _renderData._posSnapped.z ), Quaternion.identity, Vector3.one );
             P = P * T;
             cam.projectionMatrix = P;
 
@@ -146,7 +144,6 @@ namespace Crest
             mat.SetVector( "_WD_Params_" + shapeSlot.ToString(), new Vector3( _renderData._texelWidth, _renderData._textureRes, shapeWeight ) );
 
             mat.SetVector( "_WD_Pos_" + shapeSlot.ToString(), new Vector2( _renderData._posSnapped.x, _renderData._posSnapped.z ) );
-            mat.SetVector( "_WD_Pos_Cont_" + shapeSlot.ToString(), new Vector2( _renderData._posContinuous.x, _renderData._posContinuous.z ) );
             mat.SetInt( "_WD_LodIdx_" + shapeSlot.ToString(), _lodIndex );
         }
 

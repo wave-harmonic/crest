@@ -7,7 +7,6 @@
 	uniform sampler2D _WD_OceanDepth_Sampler_##LODNUM; \
 	uniform float3 _WD_Params_##LODNUM; \
 	uniform float2 _WD_Pos_##LODNUM; \
-	uniform float2 _WD_Pos_Cont_##LODNUM; \
 	uniform int _WD_LodIdx_##LODNUM;
 
 // create two sets of LOD data. we always need only 2 textures - we're always lerping between two LOD levels

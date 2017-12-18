@@ -2,7 +2,7 @@
 
 using UnityEngine;
 
-namespace OceanResearch.Placement
+namespace Crest.Placement
 {
     /// <summary>
     /// Positions this GameObject at a flatland position which shares XZ coordinates with a target transform.

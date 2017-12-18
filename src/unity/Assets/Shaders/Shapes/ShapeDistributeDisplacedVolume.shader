@@ -1,6 +1,6 @@
 ﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
-// Expands geoemtry along normals and distributes a given volume of water among the rasterized pixels.
+// Expands geoemetry along normals and distributes a given volume of water among the rasterized pixels.
 // This is early/experimental and not tidied up or optimized!
 
 Shader "Ocean/Shape/Distribute Displaced Volume"
@@ -11,7 +11,7 @@ Shader "Ocean/Shape/Distribute Displaced Volume"
 
 	SubShader
 	{
-		Tags { "RenderType"="Transparent" }
+		Tags { "Queue"="Transparent" }
 		LOD 100
 
 		Pass

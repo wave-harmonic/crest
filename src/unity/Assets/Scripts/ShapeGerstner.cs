@@ -139,8 +139,6 @@ namespace Crest
 
             float k2 = kx * kx + kz * kz;
 
-            if( k2 < 0.0001f ) return 0f;
-
             float windSpeed2 = windSpeed * windSpeed;
             float wx = windDir.x;
             float wz = windDir.y;

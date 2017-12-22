@@ -45,12 +45,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _minTexelsPerWave: 5
   _minScale: 16
-  _maxScale: 128
+  _maxScale: 256
   _enableSmoothLOD: 1
   _freezeTime: 0
+  _visualiseLODs: 0
   _baseVertDensity: 32
   _maxWaveHeight: 10
-  _lodCount: 5
+  _lodCount: 6
   _uniformTiles: 0
   _generateSkirt: 1
 --- !u!114 &11447936

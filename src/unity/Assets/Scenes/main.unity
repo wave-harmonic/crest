@@ -2115,7 +2115,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _numOctaves: 64
-  _wavelengthDistribution: 3
+  _wavelengthDistribution: 2
   _windDirectionAngle: 0
   _waveDirectionVariance: 45
   _windSpeed: 8

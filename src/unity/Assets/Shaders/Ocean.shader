@@ -240,7 +240,8 @@ Shader "Ocean/Ocean"
 					float2 foamUV = worldXZUndisplaced / 10.;
 					foamUV += 0.02 * n.xz;
 					// texture bombing to avoid repetition artifacts
-					half foamTexValue = textureNoTile_3weights(_FoamTexture, foamUV).r;
+					//half foamTexValue = textureNoTile_3weights(_FoamTexture, foamUV).r;
+					half foamTexValue = texture(_FoamTexture, foamUV).r;
 
 					// Additive underwater foam
 					half bubbleFoam = smoothstep( 0.0, 0.5, foamAmount * foamTexValue );

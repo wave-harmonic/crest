@@ -24,6 +24,8 @@ namespace Crest
         public bool _enableSmoothLOD = true;
         [Tooltip( "Freeze wave shape in place but continues to move geom with camera, useful for hunting down pops" )]
         public bool _freezeTime = false;
+        [Tooltip( "Use debug colours to show where shape is sampled from" )]
+        public bool _visualiseLODs = false;
 
         [Header( "Geometry Params" )]
         [SerializeField]
@@ -81,6 +83,7 @@ namespace Crest
             Shader.SetGlobalFloat( "_MyTime", _elapsedTime );
             Shader.SetGlobalFloat( "_MyDeltaTime", _deltaTime );
             Shader.SetGlobalFloat( "_TexelsPerWave", _minTexelsPerWave );
+            Shader.SetGlobalFloat( "_VisualiseLODs", _visualiseLODs ? 1f : 0f );
 
             // scale ocean mesh based on camera height to keep uniform detail
             const float HEIGHT_LOD_MUL = 1f; //0.0625f;

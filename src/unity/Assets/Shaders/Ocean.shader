@@ -31,7 +31,7 @@ Shader "Ocean/Ocean"
 				#include "TextureBombing.cginc"
 
 				// tints the output color based on which shape texture(s) were sampled, blended according to weight
-				//#define DEBUG_SHAPE_SAMPLE
+				#define DEBUG_SHAPE_SAMPLE
 
 				struct appdata_t
 				{
@@ -60,6 +60,7 @@ Shader "Ocean/Ocean"
 				uniform float3 _OceanCenterPosWorld;
 				uniform float _EnableSmoothLODs = 1.0;
 				uniform float _MyTime;
+				uniform float _VisualiseLODs;
 
 				// INSTANCE PARAMS
 
@@ -71,8 +72,6 @@ Shader "Ocean/Ocean"
 
 				// MeshScaleLerp, FarNormalsWeight, LODIndex (debug), unused
 				uniform float4 _InstanceData = float4(1.0, 1.0, 0.0, 0.0 );
-
-				#define COLOR_COUNT 5.
 
 				// sample wave or terrain height, with smooth blend towards edges.
 				// would equally apply to heights instead of displacements.
@@ -181,7 +180,7 @@ Shader "Ocean/Ocean"
 					// debug tinting to see which shape textures are used
 					#if defined( DEBUG_SHAPE_SAMPLE )
 					#define TINT_COUNT 7
-					half3 tintCols[TINT_COUNT]; tintCols[0] = half3(1., 0., 0.); tintCols[1] = half3(1., 1., 0.); tintCols[2] = half3(0., 1., 0.); tintCols[3] = half3(0., 1., 1.); tintCols[4] = half3(0., 0., 1.); tintCols[5] = half3(1., 0., 1.); tintCols[6] = half3(.5, .5, 1.);
+					half3 tintCols[TINT_COUNT]; tintCols[0] = half3(1., 0., 0.); tintCols[1] = half3(1., 1., 0.); tintCols[2] = half3(1., 0., 1.); tintCols[3] = half3(0., 1., 1.); tintCols[4] = half3(0., 0., 1.); tintCols[5] = half3(1., 0., 1.); tintCols[6] = half3(.5, .5, 1.);
 					o.debugtint = wt_0 * tintCols[_WD_LodIdx_0 % TINT_COUNT] + wt_1 * tintCols[_WD_LodIdx_1 % TINT_COUNT];
 					#endif
 
@@ -276,7 +275,10 @@ Shader "Ocean/Ocean"
 					UNITY_APPLY_FOG(i.fogCoord, col);
 	
 					#if defined( DEBUG_SHAPE_SAMPLE )
-					col.rgb *= 2.*i.debugtint;
+					if( _VisualiseLODs > 0. )
+					{
+						col.rgb = mix(col.rgb, i.debugtint, 0.5);
+					}					
 					#endif
 
 					return col;

@@ -55,6 +55,8 @@ namespace Crest
 
             _showSimTargets = GUI.Toggle( new Rect( x, y, w, h ), _showSimTargets, "Show sim data" ); y += h;
 
+            OceanRenderer.Instance._visualiseLODs = GUI.Toggle( new Rect( x, y, w, h ), OceanRenderer.Instance._visualiseLODs, "Show LODs" ); y += h;
+
             if( GUI.Button( new Rect( x, y, w, h ), "Clear sim data" ) )
             {
                 foreach( var cam in OceanRenderer.Instance.Builder._shapeCameras )

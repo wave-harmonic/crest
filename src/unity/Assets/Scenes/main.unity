@@ -1225,16 +1225,16 @@ Prefab:
       propertyPath: m_RootOrder
       value: 1
       objectReference: {fileID: 0}
-    - target: {fileID: 114853967838761374, guid: 8454e29c2a033974fb559f5f8eff1918,
-        type: 2}
-      propertyPath: _viewpoint
-      value: 
-      objectReference: {fileID: 227134470}
     - target: {fileID: 114500934267837144, guid: 8454e29c2a033974fb559f5f8eff1918,
         type: 2}
       propertyPath: _waveGenGO
       value: 
       objectReference: {fileID: 1184746912}
+    - target: {fileID: 114853967838761374, guid: 8454e29c2a033974fb559f5f8eff1918,
+        type: 2}
+      propertyPath: _viewpoint
+      value: 
+      objectReference: {fileID: 227134470}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 8454e29c2a033974fb559f5f8eff1918, type: 2}
   m_IsPrefabParent: 0
@@ -1918,7 +1918,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _numOctaves: 64
-  _wavelengthDistribution: 3
+  _wavelengthDistribution: 2
   _windDirectionAngle: 0
   _waveDirectionVariance: 45
   _windSpeed: 8

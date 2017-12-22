@@ -48,6 +48,7 @@ MonoBehaviour:
   _maxScale: 256
   _enableSmoothLOD: 1
   _freezeTime: 0
+  _visualiseLODs: 0
   _baseVertDensity: 32
   _maxWaveHeight: 10
   _lodCount: 6

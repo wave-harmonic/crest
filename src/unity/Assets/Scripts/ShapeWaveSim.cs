@@ -6,6 +6,8 @@ namespace Crest
     {
         public Material _matCombineSims;
 
+        public static bool _captureShape = true;
+
         Renderer _rend;
 
         void Start()

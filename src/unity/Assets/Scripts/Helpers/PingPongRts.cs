@@ -29,23 +29,21 @@ namespace Crest
             Cam.targetTexture = _targetThisFrame;
         }
 
-        public static bool _captureShape = true;
-
         void UpdatePingPong( out RenderTexture sourceThisFrame )
         {
             // capture shape allows the render texture to stop rendering, so that the data being read is not
             // changing. this doesnt make a difference, suprisingly..
 
-            // only for lod 0 just a hack for experimenting, and for when the RT is taken from a texture
-            if( _captureShape && GetComponent<WaveDataCam>()._lodIndex == 0 && _sourceThisFrame != null )
-            {
-                // doesnt make a difference
-                //_lastFrameSource = RenderTexture.GetTemporary( _sourceThisFrame.width, _sourceThisFrame.height, 0, _sourceThisFrame.format, RenderTextureReadWrite.Linear, 1 );
+            //// only for lod 0 just a hack for experimenting, and for when the RT is taken from a texture
+            //if( ShapeWaveSim._captureShape && GetComponent<WaveDataCam>()._lodIndex == 0 && _sourceThisFrame != null )
+            //{
+            //    // doesnt make a difference
+            //    //_lastFrameSource = RenderTexture.GetTemporary( _sourceThisFrame.width, _sourceThisFrame.height, 0, _sourceThisFrame.format, RenderTextureReadWrite.Linear, 1 );
 
-                // this approach copies the source out into a new RT to further remove the readpixels target from the rendering. this doesn't make
-                // a difference - directly accessing _sourceThisFrame or _targetThisFrame has same stall.
-                Graphics.Blit( _sourceThisFrame, _lastFrameSource );
-            }
+            //    // this approach copies the source out into a new RT to further remove the readpixels target from the rendering. this doesn't make
+            //    // a difference - directly accessing _sourceThisFrame or _targetThisFrame has same stall.
+            //    Graphics.Blit( _sourceThisFrame, _lastFrameSource );
+            //}
 
             // switch RTs
             sourceThisFrame = _targetThisFrame;

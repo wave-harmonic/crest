@@ -94,8 +94,12 @@ namespace Crest
                     RenderTexture.active = src;
 
                     float startTime = Time.realtimeSinceStartup;
-                    _copiedWaveData.ReadPixels( new Rect( 0, 0, src.width, src.height ), 0, 0 );
-                    _copiedWaveData.Apply();
+
+                    if( ShapeWaveSim._captureShape )
+                    {
+                        _copiedWaveData.ReadPixels( new Rect( 0, 0, src.width, src.height ), 0, 0 );
+                        _copiedWaveData.Apply();
+                    }
 
                     RenderTexture.active = bkp;
 

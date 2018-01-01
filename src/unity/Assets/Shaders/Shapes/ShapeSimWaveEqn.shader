@@ -62,6 +62,8 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 				uniform float _MyTime;
 				uniform float _MyDeltaTime;
 
+				uniform float _KinematicWaves;
+
 				uniform sampler2D _WavePPTSource;
 
 				#include "../OceanLODData.cginc"
@@ -124,7 +126,12 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 
 					// z channel will be used to accumulate simulation results down the lod chain. the obstacle shader
 					// uses two different blend modes - it multiplies xyz and adds some foam for shallow water.
-					return float4( ftp, ft, 0., foam );
+					float4 result = float4( ftp, ft, 0., foam );
+
+					if (_KinematicWaves == 1.)
+						result *= 0.;
+
+					return result;
 				}
 
 				ENDCG

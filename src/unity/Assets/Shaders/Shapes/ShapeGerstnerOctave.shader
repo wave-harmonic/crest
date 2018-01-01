@@ -64,6 +64,7 @@ Shader "Ocean/Shape/Gerstner Octave"
 				// respects the gui option to freeze time
 				uniform float _MyTime;
 				uniform float _MyDeltaTime;
+				uniform float _KinematicWaves;
 
 				uniform float _Choppiness;
 
@@ -110,8 +111,11 @@ Shader "Ocean/Shape/Gerstner Octave"
 
 					y *= i.weight.x;
 
-					y *= _MyDeltaTime*_MyDeltaTime;
-					y *= 0.3;
+					if( _KinematicWaves == 0. )
+					{
+						y *= _MyDeltaTime*_MyDeltaTime;
+						y *= 0.3;
+					}
 
 					return float4(y, 0., 0., 0.);
 				}

@@ -144,7 +144,8 @@ Shader "Ocean/Ocean"
 					// this is to address numerical issues with the normal (errors are very visible at close ups of specular highlights).
 					// i original had this max( .., SQUARE_SIZE ) but there were still numerical issues and a pop when changing camera height.
 					// .5 was the lowest i could go before i started to see error. this needs more investigation.
-					idealSquareSize = max( idealSquareSize, .5 );
+					// this places a lower bound on resolution. 0.5 is too high. disabling for now.
+					idealSquareSize = max( idealSquareSize, 0.03125 );
 
 					// interpolation factor to next lod (lower density / higher sampling period)
 					float lodAlpha = idealSquareSize/SQUARE_SIZE - 1.0;

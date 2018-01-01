@@ -29,11 +29,14 @@ namespace Crest
             GUI.DrawTexture( new Rect( 0, 0, w + 2f * x, Screen.height ), Texture2D.whiteTexture );
             GUI.color = Color.white;
 
-            GUI.Label( new Rect( x, y, w, h ), string.Format( "Wind speed: {0} km/h", (ShapeGerstner.Instance._windSpeed * 3.6f).ToString( "0.0" ) ) ); y += h;
-            ShapeGerstner.Instance._windSpeed = GUI.HorizontalSlider( new Rect( x, y, w, h ), ShapeGerstner.Instance._windSpeed * 3.6f, 0f, 150f ) / 3.6f; y += h;
+            if( ShapeGerstner.Instance )
+            {
+                GUI.Label( new Rect( x, y, w, h ), string.Format( "Wind speed: {0} km/h", (ShapeGerstner.Instance._windSpeed * 3.6f).ToString( "0.0" ) ) ); y += h;
+                ShapeGerstner.Instance._windSpeed = GUI.HorizontalSlider( new Rect( x, y, w, h ), ShapeGerstner.Instance._windSpeed * 3.6f, 0f, 150f ) / 3.6f; y += h;
 
-            GUI.Label( new Rect( x, y, w, h ), string.Format( "Choppiness: {0}", ShapeGerstner.Instance._choppiness.ToString( "0.00" ) ) ); y += h;
-            ShapeGerstner.Instance._choppiness = GUI.HorizontalSlider( new Rect( x, y, w, h ), ShapeGerstner.Instance._choppiness, 0f, 1f ); y += h;
+                GUI.Label( new Rect( x, y, w, h ), string.Format( "Choppiness: {0}", ShapeGerstner.Instance._choppiness.ToString( "0.00" ) ) ); y += h;
+                ShapeGerstner.Instance._choppiness = GUI.HorizontalSlider( new Rect( x, y, w, h ), ShapeGerstner.Instance._choppiness, 0f, 1f ); y += h;
+            }
 
             if( _waveGenGO != null )
             {

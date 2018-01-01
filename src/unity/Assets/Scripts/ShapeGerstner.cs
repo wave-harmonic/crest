@@ -117,9 +117,12 @@ namespace Crest
             for( int i = 0; i < _numOctaves; i++ )
             {
                 float energy = PhillipsSpectrum( _windSpeed, windDir, Mathf.Abs( Physics.gravity.y ), _minWavelength, _wavelengths[i], _angleDegs[i] );
+                //float energy = PhilSpectrum( Mathf.Abs( Physics.gravity.y ), _wavelengths[i] );
+                //float energy = PiersonMoskowitzSpectrum( Mathf.Abs( Physics.gravity.y ), _windSpeed, _wavelengths[i] );
+                //float energy = JONSWAPSpectrum( Mathf.Abs( Physics.gravity.y ), _windSpeed, _wavelengths[i] );
 
-                // energy to amplitude ( http://www.physicsclassroom.com/class/waves/Lesson-2/Energy-Transport-and-the-Amplitude-of-a-Wave )
-                float amp = Mathf.Sqrt( energy );
+                // energy to amplitude - eqn 19 - https://hal.archives-ouvertes.fr/file/index/docid/307938/filename/frechot_realistic_simulation_of_ocean_surface_using_wave_spectra.pdf
+                float amp = Mathf.Sqrt( 2f * energy );
 
                 _materials[i].SetFloat( "_Amplitude", amp );
             }
@@ -150,6 +153,53 @@ namespace Crest
 
             // http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.161.9102&rep=rep1&type=pdf
             return a * kdotw * kdotw * Mathf.Exp( -1f / (k2 * L * L) ) / (k2 * k2);
+        }
+
+
+        // base of modern parametric wave spectrum
+        static float PhilSpectrum( float gravity, float wavelength )
+        {
+            float alpha = 0.0081f; // phillips constant ( https://hal.archives-ouvertes.fr/file/index/docid/307938/filename/frechot_realistic_simulation_of_ocean_surface_using_wave_spectra.pdf )
+            return PhilSpectrum( gravity, alpha, wavelength );
+        }
+        // base of modern parametric wave spectrum
+        static float PhilSpectrum( float gravity, float alpha, float wavelength )
+        {
+            //float alpha = 0.0081f; // phillips constant ( https://hal.archives-ouvertes.fr/file/index/docid/307938/filename/frechot_realistic_simulation_of_ocean_surface_using_wave_spectra.pdf )
+            float wavenumber = 2f * Mathf.PI / wavelength;
+            float frequency = Mathf.Sqrt( gravity * wavenumber ); // deep water - depth > wavelength/2
+            return alpha * gravity * gravity / Mathf.Pow( frequency, 5f );
+        }
+
+        static float PiersonMoskowitzSpectrum( float gravity, float windspeed, float wavelength )
+        {
+            float wavenumber = 2f * Mathf.PI / wavelength;
+            float frequency = Mathf.Sqrt( gravity * wavenumber ); // deep water - depth > wavelength/2
+            float frequency_peak = 0.855f * gravity / windspeed;
+            return PhilSpectrum( gravity, wavelength ) * Mathf.Exp( -Mathf.Pow( frequency_peak / frequency, 4f ) * 5f / 4f );
+        }
+        static float PiersonMoskowitzSpectrum( float gravity, float windspeed, float frequency_peak, float alpha, float wavelength )
+        {
+            float wavenumber = 2f * Mathf.PI / wavelength;
+            float frequency = Mathf.Sqrt( gravity * wavenumber ); // deep water - depth > wavelength/2
+            return PhilSpectrum( gravity, alpha, wavelength ) * Mathf.Exp( -Mathf.Pow( frequency_peak / frequency, 4f ) * 5f / 4f );
+        }
+
+        static float JONSWAPSpectrum( float gravity, float windspeed, float wavelength )
+        {
+            // fetch distance
+            float F = 1000f;
+            float alpha = 0.076f * Mathf.Pow( windspeed * windspeed / (F * gravity), 0.22f );
+
+            float wavenumber = 2f * Mathf.PI / wavelength;
+            float frequency = Mathf.Sqrt( gravity * wavenumber ); // deep water - depth > wavelength/2
+            float frequency_peak = 22f * Mathf.Pow( gravity * gravity / (windspeed * F), 1f / 3f );
+            float sigma = frequency <= frequency_peak ? 0.07f : 0.09f;
+            float r = Mathf.Exp( -Mathf.Pow( frequency - frequency_peak, 2f ) / (2f * sigma * sigma * frequency_peak * frequency_peak) );
+            float gamma = 3.3f;
+
+            return PiersonMoskowitzSpectrum( gravity, windspeed, frequency_peak, alpha, wavelength ) * Mathf.Pow( gamma, r );
+
         }
     }
 }

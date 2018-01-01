@@ -215,7 +215,8 @@ namespace Crest
             cam.useOcclusionCulling = false;
             cam.allowHDR = false;
             cam.allowMSAA = false;
-            cam.depth -= lodIdx;
+            // make shape cameras render before main camera, and make LOD0 camera render last
+            cam.depth = -10 - lodIdx;
 
             var wdc = go.AddComponent<WaveDataCam>();
             wdc._lodIndex = lodIdx;

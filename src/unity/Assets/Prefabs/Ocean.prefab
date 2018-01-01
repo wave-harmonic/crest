@@ -44,12 +44,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _minTexelsPerWave: 5
-  _minScale: 16
+  _minScale: 4
   _maxScale: 256
   _enableSmoothLOD: 1
   _freezeTime: 0
   _visualiseLODs: 0
-  _baseVertDensity: 32
+  _baseVertDensity: 48
   _maxWaveHeight: 10
   _lodCount: 6
   _uniformTiles: 0

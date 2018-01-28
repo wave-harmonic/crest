@@ -30,7 +30,7 @@ namespace Crest
 
         public int _randomSeed = 0;
 
-        float _minWavelength;
+        float _minWavelength, _maxWavelength;
         float[] _wavelengths;
 
         Material[] _materials;
@@ -274,6 +274,27 @@ namespace Crest
 
         public AuthoredWaveSpectrum _waveSpec;
 
+        void UpdateWaveData()
+        {
+            Random.State randomStateBkp = Random.state;
+            Random.InitState( _randomSeed );
+
+            _spectrum.Init( _minWavelength, _maxWavelength );
+
+            for( int i = 0; i < _numOctaves; i++ )
+            {
+                _wavelengths[i] = _spectrum.Cdf( Random.value );
+            }
+            System.Array.Sort( _wavelengths );
+
+            for( int i = 0; i < _numOctaves; i++ )
+            {
+                _materials[i].SetFloat( "_Wavelength", _wavelengths[i] );
+            }
+
+            Random.state = randomStateBkp;
+        }
+
         void Start()
         {
             // Set random seed to get repeatable results
@@ -291,19 +312,16 @@ namespace Crest
             float minDiameter = 4f * OceanRenderer.Instance._minScale;
             float minTexelSize = minDiameter / (4f * OceanRenderer.Instance._baseVertDensity);
             _minWavelength = minTexelSize * OceanRenderer.Instance._minTexelsPerWave;
-            float maxDiameter = 4f * OceanRenderer.Instance._maxScale * Mathf.Pow( 2f, OceanRenderer.Instance._lodCount - 1 );
-            float maxTexelSize = maxDiameter / (4f * OceanRenderer.Instance._baseVertDensity);
-            float maxWavelength = 2f * maxTexelSize * OceanRenderer.Instance._minTexelsPerWave;
+            _maxWavelength = OceanRenderer.Instance.MaxWavelength( OceanRenderer.Instance._maxScale, OceanRenderer.Instance._lodCount - 1 );
 
             _spectrum = _waveSpec;
             //_spectrum = new StatisticalModelSpectrum( _minWavelength, maxWavelength );
-            _spectrum.Init( _minWavelength, maxWavelength );
 
-            for( int i = 0; i < _numOctaves; i++ )
-            {
-                _wavelengths[i] = _spectrum.Cdf( Random.value );
-            }
-            System.Array.Sort( _wavelengths );
+            //for( int i = 0; i < _numOctaves; i++ )
+            //{
+            //    _wavelengths[i] = _spectrum.Cdf( Random.value );
+            //}
+            //System.Array.Sort( _wavelengths );
 
             // Generate the given number of octaves, each generating a GameObject rendering a quad.
             for (int i = 0; i < _numOctaves; i++)
@@ -338,8 +356,10 @@ namespace Crest
                 _materials[i].SetFloat("_Angle", _angleDegs[i] );
 
                 // Wavelength
-                _materials[i].SetFloat( "_Wavelength", _wavelengths[i] );
+                //_materials[i].SetFloat( "_Wavelength", _wavelengths[i] );
             }
+
+            UpdateWaveData();
 
             Random.state = randomStateBkp;
         }
@@ -348,6 +368,7 @@ namespace Crest
         {
             Shader.SetGlobalFloat( "_Choppiness", _choppiness );
 
+            UpdateWaveData();
             UpdateAmplitudes();
         }
 

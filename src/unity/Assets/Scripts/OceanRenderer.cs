@@ -51,7 +51,7 @@ namespace Crest
         float _viewerAltitudeLevelAlpha = 0f;
         public float ViewerAltitudeLevelAlpha { get { return _viewerAltitudeLevelAlpha; } }
 
-        public static bool _kinematicWaves = false;
+        public static bool _kinematicWaves = true;
 
         static OceanRenderer _instance;
         public static OceanRenderer Instance { get { return _instance ?? (_instance = FindObjectOfType<OceanRenderer>()); } }
@@ -134,6 +134,13 @@ namespace Crest
         public void SetSmoothLODsShaderParam()
         {
             Shader.SetGlobalFloat( "_EnableSmoothLODs", _enableSmoothLOD ? 1f : 0f ); // debug
+        }
+
+        public float MaxWavelength( float oceanBaseScale, int lodIndex )
+        {
+            float maxDiameter = 4f * oceanBaseScale * Mathf.Pow( 2f, lodIndex );
+            float maxTexelSize = maxDiameter / (4f * _baseVertDensity);
+            return 2f * maxTexelSize * _minTexelsPerWave;
         }
 
         public bool ScaleCouldIncrease { get { return _maxScale == -1f || Mathf.Abs( transform.localScale.x ) < _maxScale * 0.99f; } }

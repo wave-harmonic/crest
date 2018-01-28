@@ -10,9 +10,9 @@ namespace Crest
     /// </summary>
     public class ShapeGerstner : MonoBehaviour
     {
-        [Tooltip("The number of wave octaves")]
+        [Tooltip( "The number of wave octaves" )]
         public int _numOctaves = 32;
-        [Tooltip("Distribution of wavelengths, > 1 means concentrated at low wavelengths")]
+        [Tooltip( "Distribution of wavelengths, > 1 means concentrated at low wavelengths" )]
         public float _wavelengthDistribution = 4f;
         [Tooltip( "Wind direction (angle from x axis in degrees)" ), Range( -180, 180 )]
         public float _windDirectionAngle = 0f;

@@ -81,6 +81,8 @@ The ocean pixel shader samples normal maps at 2 different scales, both proportio
 * GDC course notes from matthias mueller fischer: http://matthias-mueller-fischer.ch/talks/GDC2008.pdf
 * Slightly old list of CG water references: http://vterrain.org/Water/
 * Mueller - swe + splashes, ripples - nice results: https://pdfs.semanticscholar.org/e97f/38cb774c96aaf1c359d8331695efa3b2c26c.pdf , video: https://www.youtube.com/watch?v=bojdpqi2l_o
+* Gomez 2000 - Interactive Simulation of Water Surfaces - Game Programming Gems
+* Real-Time Open Water Environments with Interacting Objects - Cords and Staadt. Discusses/justifies multiple sims. Divides collision shapes into particles. - http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.162.2833&rep=rep1&type=pdf
 
 ### Wave Theory
 
@@ -96,6 +98,7 @@ The ocean pixel shader samples normal maps at 2 different scales, both proportio
 * Three stages of how wind generates waves, with refs: https://www.wikiwaves.org/Ocean-Wave_Spectra
 * Miles - how energy is transferred from wind to wave: https://www.cambridge.org/core/journals/journal-of-fluid-mechanics/article/on-the-generation-of-surface-waves-by-shear-flows/40B503619B6D4571BEF3D31CB8925084
 * Realistic simulation of waves using wave spectra: https://hal.archives-ouvertes.fr/file/index/docid/307938/filename/frechot_realistic_simulation_of_ocean_surface_using_wave_spectra.pdf
+* Nice practical demo about testing different wave breakers: https://youtu.be/3yNoy4H2Z-o
 
 ### Boundary conditions
 

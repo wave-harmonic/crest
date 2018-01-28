@@ -1,6 +1,7 @@
 
 // how many samples we want in one wave. trade quality for perf.
 uniform float _TexelsPerWave;
+uniform float _MaxWavelength;
 
 bool SamplingIsAppropriate(float wavelengthInShape)
 {
@@ -8,7 +9,13 @@ bool SamplingIsAppropriate(float wavelengthInShape)
 	const float renderTargetRes = _ScreenParams.x;
 	const float texSize = cameraWidth / renderTargetRes;
 	const float minWavelength = texSize * _TexelsPerWave;
-	return wavelengthInShape >= minWavelength && wavelengthInShape < 2.*minWavelength;
+
+	const bool largeEnough = wavelengthInShape >= minWavelength;
+	bool smallEnough = wavelengthInShape < 2.*minWavelength;
+	if( minWavelength*2.01 > _MaxWavelength )
+		smallEnough = true;
+
+	return largeEnough && smallEnough;
 }
 
 // assumes x >= 0

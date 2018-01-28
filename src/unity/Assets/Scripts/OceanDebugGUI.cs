@@ -58,6 +58,7 @@ namespace Crest
 
             _showSimTargets = GUI.Toggle( new Rect( x, y, w, h ), _showSimTargets, "Show sim data" ); y += h;
             OceanRenderer._kinematicWaves = GUI.Toggle( new Rect( x, y, w, h ), OceanRenderer._kinematicWaves, "Kinematic waves" ); y += h;
+            OceanRenderer._acceptLargeWavelengthsInLastLOD = GUI.Toggle( new Rect( x, y, w, h ), OceanRenderer._acceptLargeWavelengthsInLastLOD, "Large waves in last LOD" ); y += h;
 
             OceanRenderer.Instance._visualiseLODs = GUI.Toggle( new Rect( x, y, w, h ), OceanRenderer.Instance._visualiseLODs, "Show LODs" ); y += h;
 

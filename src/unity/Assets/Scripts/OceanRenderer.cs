@@ -52,6 +52,7 @@ namespace Crest
         public float ViewerAltitudeLevelAlpha { get { return _viewerAltitudeLevelAlpha; } }
 
         public static bool _kinematicWaves = true;
+        public static bool _acceptLargeWavelengthsInLastLOD = true;
 
         static OceanRenderer _instance;
         public static OceanRenderer Instance { get { return _instance ?? (_instance = FindObjectOfType<OceanRenderer>()); } }
@@ -87,6 +88,9 @@ namespace Crest
             Shader.SetGlobalFloat( "_TexelsPerWave", _minTexelsPerWave );
             Shader.SetGlobalFloat( "_VisualiseLODs", _visualiseLODs ? 1f : 0f );
             Shader.SetGlobalFloat( "_KinematicWaves", _kinematicWaves ? 1f : 0f );
+
+            float maxWavelength = MaxWavelength( Mathf.Abs( transform.lossyScale.x ), _lodCount - 1 );
+            Shader.SetGlobalFloat( "_MaxWavelength", _acceptLargeWavelengthsInLastLOD ? maxWavelength : 1e10f );
 
             // scale ocean mesh based on camera height to keep uniform detail
             const float HEIGHT_LOD_MUL = 1f; //0.0625f;

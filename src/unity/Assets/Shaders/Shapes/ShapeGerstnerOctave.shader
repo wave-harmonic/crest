@@ -114,7 +114,7 @@ Shader "Ocean/Shape/Gerstner Octave"
 					if( _KinematicWaves == 0. )
 					{
 						y *= _MyDeltaTime*_MyDeltaTime;
-						y *= 0.3;
+						y *= 0.6;
 					}
 
 					return float4(y, 0., 0., 0.);

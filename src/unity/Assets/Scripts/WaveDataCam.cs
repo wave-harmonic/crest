@@ -17,6 +17,7 @@ namespace Crest
 
         public RenderTexture _rtOceanDepth;
         CommandBuffer _bufOceanDepth = null;
+        static CommandBuffer _bufCombineShapes = null;
         Material _matOceanDepth, _matCombineShapeLODs, _matCombineShapeLODs_Sim;
 
         int _shapeRes = -1;
@@ -45,7 +46,48 @@ namespace Crest
         }
 
         // script execution order ensures this runs after CircleOffset
-        void LateUpdate()
+        public void LateUpdate()
+        {
+            if (_lodIndex != 0)
+            {
+                return;
+            }
+
+            foreach(var cam in OceanRenderer.Instance.Builder._shapeCameras)
+            {
+                cam.GetComponent<WaveDataCam>().DoLateUpdate();
+            }
+            
+            if (_bufCombineShapes == null)
+            {
+                _bufCombineShapes = new CommandBuffer();
+                cam.AddCommandBuffer(CameraEvent.AfterEverything, _bufCombineShapes);
+                _bufCombineShapes.name = "Combine Shapes";
+            }
+
+            _bufCombineShapes.Clear();
+
+
+            bool shapeIsDynamic = OceanRenderer.Instance._dynamicSimulation;
+
+            System.Func<Camera, RenderTexture> getTarget =
+                cam => shapeIsDynamic ? cam.GetComponent<PingPongRts>()._targetThisFrame : cam.targetTexture;
+
+            var cams = OceanRenderer.Instance.Builder._shapeCameras;
+            for (int L = cams.Length - 2; L >= 0; L--)
+            {
+                Material mat = new Material(shapeIsDynamic ? _matCombineShapeLODs_Sim : _matCombineShapeLODs);
+
+                // save the projection params to enable combining results across multiple shape textures
+                cams[L].GetComponent<WaveDataCam>().ApplyMaterialParams(0, mat);
+                cams[L + 1].GetComponent<WaveDataCam>().ApplyMaterialParams(1, mat);
+
+                // accumulate shape data down the LOD chain - combine L+1 into L
+                _bufCombineShapes.Blit(getTarget(cams[L + 1]), getTarget(cams[L]), mat);
+            }
+        }
+
+        void DoLateUpdate()
         {
             // ensure camera size matches geometry size
             cam.orthographicSize = 2f * Mathf.Abs( transform.lossyScale.x );
@@ -151,46 +193,6 @@ namespace Crest
 
             mat.SetVector( "_WD_Pos_" + shapeSlot.ToString(), new Vector2( _renderData._posSnapped.x, _renderData._posSnapped.z ) );
             mat.SetInt( "_WD_LodIdx_" + shapeSlot.ToString(), _lodIndex );
-        }
-
-        private void OnPostRender()
-        {
-            // accumulate sim lod data when simulations stop rendering.
-
-            // in ocean builder, we set camera depths to ensure the LOD0 camera renders last. so if this is the camera for LOD0, we know its safe now
-            // to start combining sim results.
-            if( OceanRenderer.Instance.Builder.GetShapeCamIndex( cam ) == 0 )
-            {
-                OnShapeCamerasFinishedRendering();
-            }
-        }
-
-        // combine/accumulate sim results together
-        public void OnShapeCamerasFinishedRendering()
-        {
-            if (Shader.GetGlobalFloat("_MyDeltaTime") <= Mathf.Epsilon)
-                return;
-
-            bool shapeIsDynamic = OceanRenderer.Instance._dynamicSimulation;
-            Material mat = shapeIsDynamic ? _matCombineShapeLODs_Sim : _matCombineShapeLODs;
-
-            System.Func<Camera, RenderTexture> getTarget =
-                cam => shapeIsDynamic ? cam.GetComponent<PingPongRts>()._targetThisFrame : cam.targetTexture;
-
-            var cams = OceanRenderer.Instance.Builder._shapeCameras;
-            for (int L = cams.Length - 2; L >= 0; L--)
-            {
-                // save the projection params to enable combining results across multiple shape textures
-                cams[L].GetComponent<WaveDataCam>().ApplyMaterialParams(0, mat);
-                cams[L + 1].GetComponent<WaveDataCam>().ApplyMaterialParams(1, mat);
-
-                // accumulate shape data down the LOD chain - combine L+1 into L
-                Graphics.Blit(getTarget(cams[L + 1]), getTarget(cams[L]), mat);
-            }
-
-            // this makes sure the dt goes to 0 so that if the editor is paused, the simulation will stop progressing. this could
-            // be made editor only, but that could lead to some very confusing bugs/behaviour, so leaving it like this for now.
-            Shader.SetGlobalFloat("_MyDeltaTime", 0f);
         }
 
         Camera _camera; Camera cam { get { return _camera != null ? _camera : (_camera = GetComponent<Camera>()); } }

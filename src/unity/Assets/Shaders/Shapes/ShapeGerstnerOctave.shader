@@ -85,7 +85,7 @@ Shader "Ocean/Shape/Gerstner Octave"
 					float2 displacedPos = i.worldPos.xz;
 					float2 samplePos = displacedPos;
 
-#define USE_FPI
+//#define USE_FPI
 #ifdef USE_FPI
 					// use fixed point iteration to solve for sample position, to compute displacement.
 					// this could be written out to a texture and used to displace foam..
@@ -106,18 +106,21 @@ Shader "Ocean/Shape/Gerstner Octave"
 					}
 #endif
 
+					float4 result = (float4)0.;
+
 					float x = dot(D, samplePos);
-					float y = _Amplitude * cos(k*(x + C*_MyTime));
+					result.y = _Amplitude * cos(k*(x + C*_MyTime));
+					result.xz -= D * _Amplitude * sin(k*(x + C * _MyTime));
+					result *= i.weight.x;
 
-					y *= i.weight.x;
+					//if( _KinematicWaves == 0. )
+					//{
+					//	y *= _MyDeltaTime*_MyDeltaTime;
+					//	y *= 0.3;
+					//}
 
-					if( _KinematicWaves == 0. )
-					{
-						y *= _MyDeltaTime*_MyDeltaTime;
-						y *= 0.3;
-					}
-
-					return float4(y, 0., 0., 0.);
+					return result;
+					//return float4(y, 0., 0., 0.);
 				}
 
 				ENDCG

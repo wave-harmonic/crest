@@ -216,7 +216,8 @@ namespace Crest
             var go = new GameObject( string.Format( "ShapeCam{0}", lodIdx ) );
 
             var cam = go.AddComponent<Camera>();
-            cam.clearFlags = CameraClearFlags.Nothing;
+            cam.clearFlags = parms._dynamicSimulation ? CameraClearFlags.Nothing : CameraClearFlags.Color;
+            cam.backgroundColor = new Color(0f, 0f, 0f, 0f);
             cam.cullingMask = 1 << LayerMask.NameToLayer(SHAPE_RENDER_LAYER_NAME);
             cam.orthographic = true;
             cam.nearClipPlane = 1f;

@@ -94,9 +94,9 @@ Shader "Ocean/Ocean"
 					float4 s = tex2Dlod(i_dispSampler, uv);
 					float4 sx = tex2Dlod(i_dispSampler, uv + dd.xyyy);
 					float4 sz = tex2Dlod(i_dispSampler, uv + dd.yxyy);
-					float3 disp = float3(0., s.x + s.z, 0.);
-					float3 disp_x = dd.zyy + float3(0., sx.x + sx.z, 0.);
-					float3 disp_z = dd.yyz + float3(0., sz.x + sz.z, 0.);
+					float3 disp = s.xyz; //  float3(0., s.x + s.z, 0.);
+					float3 disp_x = sx.xyz; //  dd.zyy + float3(0., sx.x + sx.z, 0.);
+					float3 disp_z = sz.xyz; // dd.yyz + float3(0., sz.x + sz.z, 0.);
 					io_worldPos += wt * disp;
 
 					float3 n = normalize( cross( disp_z - disp, disp_x - disp ) );
@@ -115,7 +115,7 @@ Shader "Ocean/Ocean"
 
 					float foam = 0.;
 					// foam from sim
-					foam += s.w;
+					//foam += s.w;
 					// // foam from shallow water - signed depth is depth compared to sea level, plus wave height
 					float signedDepth = tex2Dlod(i_oceanDepthSampler, uv).x + disp.y;
 					foam += clamp( 1. - signedDepth / 1.5, 0., 1.);

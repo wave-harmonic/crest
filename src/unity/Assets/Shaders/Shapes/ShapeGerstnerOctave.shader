@@ -75,7 +75,8 @@ Shader "Ocean/Shape/Gerstner Octave"
 				{
 					// assume deep water for now, but this could read from the water depth texture in the future
 					const float WATER_DEPTH = 10000.;
-					float C = _SpeedMul * ComputeDriverWaveSpeed(_Wavelength, WATER_DEPTH);
+					// I've moved this away from the corrected sim wave speed, because it looked much too fast :(
+					float C = _SpeedMul * ComputeWaveSpeed( _Wavelength, WATER_DEPTH );
 
 					// direction
 					float2 D = float2(cos(PI * _Angle / 180.0), sin(PI * _Angle / 180.0));

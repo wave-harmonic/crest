@@ -29,7 +29,7 @@ namespace Crest
 
                 // set ocean lod data so that the sim shader can read the ocean depth. however don't assign the wave heights - it would
                 // try to assign the wave heights we are about to render to which is not cool
-                wdc.ApplyMaterialParams( 0, _rend.material, false, true );
+                wdc.ApplyMaterialParams( 0, _rend.material, false );
             }
         }
 

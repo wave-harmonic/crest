@@ -53,10 +53,8 @@ Shader "Ocean/Shape/Combine"
 				// sample the shape 1 texture at this world pos
 				float2 uv_1 = WD_worldToUV(worldPos, _WD_Pos_1, _WD_Params_1.y, _WD_Params_1.x);
 
-				half4 data = tex2D(_MainTex, uv_1);
-				
-				// this fades out the big lod, so that it is not noticeable when it pops in/out when height changes
-				return _WD_Params_1.z * data;
+				// return the shape data to be additiviely blended down the lod chain
+				return tex2D(_MainTex, uv_1);
 			}
 			ENDCG
 		}

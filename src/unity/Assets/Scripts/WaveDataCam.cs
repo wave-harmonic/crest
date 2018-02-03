@@ -132,12 +132,16 @@ namespace Crest
 
         public void ApplyMaterialParams( int shapeSlot, Material mat )
         {
-            ApplyMaterialParams( shapeSlot, mat, true, true );
+            ApplyMaterialParams(shapeSlot, mat, true);
         }
 
-        public void ApplyMaterialParams( int shapeSlot, Material mat, bool applyWaveHeights, bool applyOceanDepths )
+        public void ApplyMaterialParams(int shapeSlot, Material mat, bool applyWaveHeights)
         {
-            mat.SetTexture( "_WD_Sampler_" + shapeSlot.ToString(), cam.targetTexture );
+            if( applyWaveHeights )
+            {
+                mat.SetTexture("_WD_Sampler_" + shapeSlot.ToString(), cam.targetTexture);
+            }
+
             mat.SetTexture( "_WD_OceanDepth_Sampler_" + shapeSlot.ToString(), _rtOceanDepth );
 
             // need to blend out shape if this is the largest lod, and the ocean might get scaled down later (so the largest lod will disappear)

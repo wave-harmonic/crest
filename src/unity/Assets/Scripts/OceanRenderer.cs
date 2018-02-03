@@ -19,6 +19,9 @@ namespace Crest
         [Delayed, Tooltip( "The largest scale the ocean can be (-1 for unlimited)" )]
         public float _maxScale = 128f;
 
+        [Tooltip("Should the ocean by dynamically simulated (requires restart to change)")]
+        public bool _dynamicSimulation = true;
+
         [Header( "Debug Params" )]
         [Tooltip("Smoothly transition geometry LODs")]
         public bool _enableSmoothLOD = true;
@@ -117,13 +120,15 @@ namespace Crest
 
         OceanBuilder.Params MakeBuildParams()
         {
-            OceanBuilder.Params parms = new OceanBuilder.Params();
-            parms._baseVertDensity = _baseVertDensity;
-            parms._lodCount = _lodCount;
-            parms._maxWaveHeight = _maxWaveHeight;
-            parms._forceUniformPatches = _uniformTiles;
-            parms._generateSkirt = _generateSkirt;
-            return parms;
+            return new OceanBuilder.Params
+            {
+                _baseVertDensity = _baseVertDensity,
+                _lodCount = _lodCount,
+                _maxWaveHeight = _maxWaveHeight,
+                _forceUniformPatches = _uniformTiles,
+                _generateSkirt = _generateSkirt,
+                _dynamicSimulation = _dynamicSimulation,
+            };
         }
 
         public void RegenMesh()

@@ -35,6 +35,7 @@ namespace Crest
             public int _lodCount = 5;
             public bool _forceUniformPatches = false;
             public bool _generateSkirt = true;
+            public bool _dynamicSimulation = false;
         }
 
         // The following apply to BASE_VERT_DENSITY = 2. The ocean mesh is built up from these patches. Rotational symmetry is
@@ -222,8 +223,6 @@ namespace Crest
             wdc._lodIndex = lodIdx;
             wdc._lodCount = parms._lodCount;
 
-            go.AddComponent<PingPongRts>();
-
             var cart = go.AddComponent<CreateAssignRenderTexture>();
             cart._targetName = string.Format( "shapeRT{0}", lodIdx );
             cart._width = cart._height = (int)(4f * parms._baseVertDensity);
@@ -234,7 +233,12 @@ namespace Crest
             cart._filterMode = FilterMode.Bilinear;
             cart._anisoLevel = 0;
             cart._useMipMap = false;
-            cart._createPingPongTargets = true;
+            cart._createPingPongTargets = parms._dynamicSimulation;
+
+            if(parms._dynamicSimulation)
+            {
+                go.AddComponent<PingPongRts>();
+            }
 
             return cam;
         }

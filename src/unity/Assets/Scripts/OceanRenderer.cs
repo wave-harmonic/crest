@@ -95,24 +95,28 @@ namespace Crest
             Shader.SetGlobalFloat( "_KinematicWaves", _kinematicWaves ? 1f : 0f );
             Shader.SetGlobalFloat("_Chop", _chop);
 
-            float maxWavelength = MaxWavelength(Mathf.Abs(transform.lossyScale.x), _lodCount - 1);            Shader.SetGlobalFloat("_MaxWavelength", _acceptLargeWavelengthsInLastLOD ? maxWavelength : 1e10f);
+            LateUpdateScale();
+        }
+
+        void LateUpdateScale()
+        {
             // scale ocean mesh based on camera height to keep uniform detail
             const float HEIGHT_LOD_MUL = 1f; //0.0625f;
-            float camY = Mathf.Abs( Camera.main.transform.position.y - transform.position.y );
+            float camY = Mathf.Abs(Camera.main.transform.position.y - transform.position.y);
             float level = camY * HEIGHT_LOD_MUL;
-            level = Mathf.Max( level, _minScale );
-            if( _maxScale != -1f ) level = Mathf.Min( level, 1.99f * _maxScale );
+            level = Mathf.Max(level, _minScale);
+            if (_maxScale != -1f) level = Mathf.Min(level, 1.99f * _maxScale);
 
-            float l2 = Mathf.Log( level ) / Mathf.Log( 2f );
-            float l2f = Mathf.Floor( l2 );
+            float l2 = Mathf.Log(level) / Mathf.Log(2f);
+            float l2f = Mathf.Floor(l2);
 
             _viewerAltitudeLevelAlpha = l2 - l2f;
 
-            float newScale = Mathf.Pow( 2f, l2f );
+            float newScale = Mathf.Pow(2f, l2f);
 
-            float currentScale = Mathf.Abs( transform.localScale.x );
+            float currentScale = Mathf.Abs(transform.localScale.x);
 
-            if( !Mathf.Approximately( newScale, currentScale ) )
+            if (!Mathf.Approximately(newScale, currentScale))
             {
                 if (ShapeWaveSim.Instance)
                 {
@@ -123,8 +127,9 @@ namespace Crest
             // sign is used to mirror ocean geometry. without this, gaps can appear between ocean tiles.
             // this is due to the difference in direction of floor/modulus in the ocean vert shader, and the
             // way the ocean geometry tiles have tri strips removed/added.
-            transform.localScale = new Vector3( Mathf.Sign( transform.position.x ) * newScale, 1f, Mathf.Sign( transform.position.z ) * newScale );
-        }
+            transform.localScale = new Vector3(Mathf.Sign(transform.position.x) * newScale, 1f, Mathf.Sign(transform.position.z) * newScale);
+
+            float maxWavelength = MaxWavelength(Mathf.Abs(transform.lossyScale.x), _lodCount - 1);            Shader.SetGlobalFloat("_MaxWavelength", _acceptLargeWavelengthsInLastLOD ? maxWavelength : 1e10f);        }
 
         OceanBuilder.Params MakeBuildParams()
         {

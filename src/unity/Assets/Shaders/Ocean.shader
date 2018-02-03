@@ -10,6 +10,7 @@ Shader "Ocean/Ocean"
 		_FoamTexture ( "Foam Texture", 2D ) = "white" {}
 		_FoamWhiteColor("White Foam Color", Color) = (1.0, 1.0, 1.0, 1.0)
 		_FoamBubbleColor ( "Bubble Foam Color", Color ) = (0.0, 0.0904, 0.105, 1.0)
+		_NormalsScale ("Normal Scale", Range(0.0,3.0)) = 1.0
 	}
 
 	Category
@@ -203,16 +204,17 @@ Shader "Ocean/Ocean"
 				sampler2D _FoamTexture;
 				half4 _FoamWhiteColor;
 				half4 _FoamBubbleColor;
+				uniform half _NormalsScale;
 
-				void ApplyNormalMaps( float2 worldPosXZ, float lodAlpha, inout half3 io_n )
+				void ApplyNormalMaps(float2 worldXZUndisplaced, float lodAlpha, inout half3 io_n )
 				{
 					const float2 v0 = float2(0.94, 0.34), v1 = float2(-0.85, -0.53);
 					const float geomSquareSize = _GeomData.x;
 					float nstretch = 80.*geomSquareSize; // normals scaled with geometry
 					const float spdmulL = _GeomData.y;
 					half2 norm =
-						tex2D( _Normals, (v0*_MyTime*spdmulL + worldPosXZ) / nstretch ).wz +
-						tex2D( _Normals, (v1*_MyTime*spdmulL + worldPosXZ) / nstretch ).wz;
+						tex2D( _Normals, (v0*_MyTime*spdmulL + worldXZUndisplaced) / nstretch ).wz +
+						tex2D( _Normals, (v1*_MyTime*spdmulL + worldXZUndisplaced) / nstretch ).wz;
 
 					// blend in next higher scale of normals to obtain continuity
 					const float farNormalsWeight = _InstanceData.y;
@@ -223,14 +225,14 @@ Shader "Ocean/Ocean"
 						nstretch *= 2.;
 						const float spdmulH = _GeomData.z;
 						norm = lerp( norm,
-							tex2D( _Normals, (v0*_MyTime*spdmulH + worldPosXZ) / nstretch ).wz +
-							tex2D( _Normals, (v1*_MyTime*spdmulH + worldPosXZ) / nstretch ).wz,
+							tex2D( _Normals, (v0*_MyTime*spdmulH + worldXZUndisplaced) / nstretch ).wz +
+							tex2D( _Normals, (v1*_MyTime*spdmulH + worldXZUndisplaced) / nstretch ).wz,
 							nblend );
 					}
 
 					// modify geom normal with result from normal maps. -1 because we did not subtract 0.5 when sampling
 					// normal maps above
-					io_n.xz -= 0.25 * (norm - 1.0);
+					io_n.xz -= 0.25 * (norm - 1.0) * _NormalsScale;
 					io_n.y = 1.;
 					io_n = normalize( io_n );
 				}
@@ -263,7 +265,7 @@ Shader "Ocean/Ocean"
 
 					// normal - geom + normal mapping
 					half3 n = i.n;
-					ApplyNormalMaps( i.worldPos.xz, i.foamAmount_lodAlpha_worldXZUndisplaced.y, n );
+					ApplyNormalMaps(i.foamAmount_lodAlpha_worldXZUndisplaced.zw, i.foamAmount_lodAlpha_worldXZUndisplaced.y, n );
 
 					// fresnel / reflection
 					half3 view = normalize( _WorldSpaceCameraPos - i.worldPos );

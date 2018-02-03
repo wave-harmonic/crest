@@ -70,6 +70,7 @@ Material:
     - _BumpAmt: 0.514
     - _MipBias: 0
     - _Moving: 0.17
+    - _NormalsScale: 1.5
     - _Offset: 0.00008
     - _RefractAmt: 0
     - _S: 1

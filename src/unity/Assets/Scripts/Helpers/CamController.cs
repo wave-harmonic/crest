@@ -9,12 +9,18 @@ namespace Crest
     	public float linSpeed = 10f;
         public float rotSpeed = 70f;
 
+        public bool simForwardInput = false;
+
         Vector2 _lastMousePos = -Vector2.one;
         bool _dragging = false;
 
         void Update()
         {
-            transform.position += linSpeed * transform.forward * Input.GetAxis( "Vertical" ) * Time.deltaTime;
+            float forward = Input.GetAxis("Vertical");
+            if (simForwardInput)
+                forward = 1f;
+
+            transform.position += linSpeed * transform.forward * forward * Time.deltaTime;
             //transform.position += linSpeed * transform.right * Input.GetAxis( "Horizontal" ) * Time.deltaTime;
             transform.position += linSpeed * transform.up * (Input.GetKey( KeyCode.E ) ? 1 : 0) * Time.deltaTime;
             transform.position -= linSpeed * transform.up * (Input.GetKey( KeyCode.Q ) ? 1 : 0) * Time.deltaTime;

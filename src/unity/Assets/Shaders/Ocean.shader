@@ -103,16 +103,14 @@ Shader "Ocean/Ocean"
 					float3 n = normalize( cross( disp_z - disp, disp_x - disp ) );
 					io_n.xz += wt * n.xz;
 
-					/*
 					// The determinant of the displacement Jacobian is a good measure for turbulence:
 					// > 1: Stretch
 					// < 1: Squash
 					// < 0: Overlap
 					float4 du = float4(disp_x.xz, disp_z.xz) - disp.xzxz;
 					float det = (du.x * du.w - du.y * du.z) / (dd.z * dd.z);
-					float foamAmount = 1. - smoothstep(0.0, 2.0, det);
+					float foamAmount = smoothstep(1.25, 0., det);
 					io_foamAmount += wt * foamAmount;
-					*/
 
 					float foam = 0.;
 					// foam from sim
@@ -181,7 +179,7 @@ Shader "Ocean/Ocean"
 					SampleDisplacements( _WD_Sampler_1, _WD_OceanDepth_Sampler_1, _WD_Pos_1, _WD_Params_1.y, _WD_Params_1.x, idealSquareSize, wxz, wt_1, o.worldPos, o.n, o.foamAmount_lodAlpha_worldXZUndisplaced.x );
 					// debug tinting to see which shape textures are used
 					#if defined( DEBUG_SHAPE_SAMPLE )
-					#define TINT_COUNT 7
+					#define TINT_COUNT (uint)7
 					half3 tintCols[TINT_COUNT]; tintCols[0] = half3(1., 0., 0.); tintCols[1] = half3(1., 1., 0.); tintCols[2] = half3(1., 0., 1.); tintCols[3] = half3(0., 1., 1.); tintCols[4] = half3(0., 0., 1.); tintCols[5] = half3(1., 0., 1.); tintCols[6] = half3(.5, .5, 1.);
 					o.debugtint = wt_0 * tintCols[_WD_LodIdx_0 % TINT_COUNT] + wt_1 * tintCols[_WD_LodIdx_1 % TINT_COUNT];
 					#endif

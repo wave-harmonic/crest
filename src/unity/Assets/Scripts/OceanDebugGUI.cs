@@ -74,31 +74,47 @@ namespace Crest
             // draw source textures to screen
             if( _showSimTargets )
             {
-                int ind = 0;
-                foreach( var cam in OceanRenderer.Instance.Builder._shapeCameras )
-                {
-                    if( !cam ) continue;
-
-                    var pp = cam.GetComponent<PingPongRts>();
-                    if( !pp ) continue;
-                    if( pp._sourceThisFrame == null ) continue;
-
-                    float b = 7f;
-                    h = Screen.height / (float)OceanRenderer.Instance.Builder._shapeCameras.Length;
-                    w = h + b;
-                    x = Screen.width - w;
-                    y = ind * h;
-
-                    GUI.color = Color.black * 0.7f;
-                    GUI.DrawTexture( new Rect( x, y, w, h ), Texture2D.whiteTexture );
-                    GUI.color = Color.white;
-                    GUI.DrawTexture( new Rect( x + b, y + b / 2f, h - b, h - b ), pp._sourceThisFrame, ScaleMode.ScaleAndCrop, false );
-
-                    ind++;
-                }
+                DrawShapeTargets();
             }
 
             GUI.color = bkp;
+        }
+
+        void DrawShapeTargets()
+        {
+            int ind = 0;
+            foreach (var cam in OceanRenderer.Instance.Builder._shapeCameras)
+            {
+                if (!cam) continue;
+
+                RenderTexture shape;
+
+                if(OceanRenderer.Instance._dynamicSimulation)
+                {
+                    var pp = cam.GetComponent<PingPongRts>();
+                    if (!pp) continue;
+                    shape = pp._sourceThisFrame;
+                }
+                else
+                {
+                    shape = cam.targetTexture;
+                }
+
+                if (shape == null) continue;
+
+                float b = 7f;
+                float h = Screen.height / (float)OceanRenderer.Instance.Builder._shapeCameras.Length;
+                float w = h + b;
+                float x = Screen.width - w;
+                float y = ind * h;
+
+                GUI.color = Color.black * 0.7f;
+                GUI.DrawTexture(new Rect(x, y, w, h), Texture2D.whiteTexture);
+                GUI.color = Color.white;
+                GUI.DrawTexture(new Rect(x + b, y + b / 2f, h - b, h - b), shape, ScaleMode.ScaleAndCrop, false);
+
+                ind++;
+            }
         }
     }
 }

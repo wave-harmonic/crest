@@ -1,10 +1,12 @@
 fileFormatVersion: 2
 guid: b9c9e613285876e4094fe9e207f5df13
-timeCreated: 1502226169
+timeCreated: 1517667111
 licenseType: Free
 MonoImporter:
+  externalObjects: {}
   serializedVersion: 2
-  defaultReferences: []
+  defaultReferences:
+  - _matCombineSims: {fileID: 2100000, guid: 1cd2262c7588b1349bd59739632817e2, type: 2}
   executionOrder: 0
   icon: {instanceID: 0}
   userData: 

@@ -15,6 +15,8 @@ namespace Crest
         [Tooltip("Material to use for the ocean surface")]
         public Material _oceanMaterial;
 
+        const string SHAPE_RENDER_LAYER_NAME = "WaveData";
+
         [HideInInspector]
         public Camera[] _shapeCameras;
         public int GetShapeCamIndex( Camera cam )
@@ -197,6 +199,12 @@ namespace Crest
                 nextLod.transform.localScale = new Vector3( horizScale, 1f, horizScale );
             }
 
+            // dynamic ocean needs a simulation object
+            if (parms._dynamicSimulation)
+            {
+                CreateSim();
+            }
+
 #if PROFILE_CONSTRUCTION
             sw.Stop();
             Debug.Log( "Finished generating " + parms._lodCount.ToString() + " LODs, time: " + (1000.0*sw.Elapsed.TotalSeconds).ToString(".000") + "ms" );
@@ -209,7 +217,7 @@ namespace Crest
 
             var cam = go.AddComponent<Camera>();
             cam.clearFlags = CameraClearFlags.Nothing;
-            cam.cullingMask = 1 << LayerMask.NameToLayer( "WaveData" );
+            cam.cullingMask = 1 << LayerMask.NameToLayer(SHAPE_RENDER_LAYER_NAME);
             cam.orthographic = true;
             cam.nearClipPlane = 1f;
             cam.farClipPlane = 500f;
@@ -527,6 +535,22 @@ namespace Crest
             }
 
             return parent;
+        }
+
+        void CreateSim()
+        {
+            var simObject = GameObject.CreatePrimitive(PrimitiveType.Quad);
+            simObject.name = "WaveSim";
+            simObject.layer = LayerMask.NameToLayer(SHAPE_RENDER_LAYER_NAME);
+            simObject.AddComponent<ShapeWaveSim>();
+            Destroy(simObject.GetComponent<Collider>());
+
+            // transform - scale
+            simObject.transform.localScale = Vector3.one * 100000f;
+            // transform - rotation
+            Vector3 ea = simObject.transform.eulerAngles;
+            ea.x = 90f;
+            simObject.transform.eulerAngles = ea;
         }
     }
 }

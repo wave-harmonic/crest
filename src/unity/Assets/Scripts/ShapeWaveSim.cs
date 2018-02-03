@@ -4,13 +4,15 @@ namespace Crest
 {
     public class ShapeWaveSim : MonoBehaviour
     {
-        public Material _matCombineSims;
-
+        Material _matCombineSims;
         Renderer _rend;
 
         void Start()
         {
             _rend = GetComponent<Renderer>();
+            _rend.material = new Material(Shader.Find("Ocean/Shape/Sim/2D Wave Equation"));
+
+            _matCombineSims = new Material(Shader.Find("Ocean/Shape/Sim/Combine"));
         }
 
         void OnWillRenderObject()

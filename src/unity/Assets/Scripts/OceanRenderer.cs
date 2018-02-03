@@ -109,7 +109,10 @@ namespace Crest
 
             if( !Mathf.Approximately( newScale, currentScale ) )
             {
-                ShapeWaveSim.Instance.OnOceanScaleChange( newScale < currentScale );
+                if (ShapeWaveSim.Instance)
+                {
+                    ShapeWaveSim.Instance.OnOceanScaleChange(newScale < currentScale);
+                }
             }
 
             // sign is used to mirror ocean geometry. without this, gaps can appear between ocean tiles.

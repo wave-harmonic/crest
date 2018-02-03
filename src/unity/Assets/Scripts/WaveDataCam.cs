@@ -17,7 +17,7 @@ namespace Crest
 
         public RenderTexture _rtOceanDepth;
         CommandBuffer _bufOceanDepth = null;
-        Material _matOceanDepth;
+        Material _matOceanDepth, _matCombineShapeLODs, _matCombineShapeLODs_Sim;
 
         int _shapeRes = -1;
 
@@ -35,6 +35,8 @@ namespace Crest
             cam.depthTextureMode = DepthTextureMode.None;
 
             _matOceanDepth = new Material( Shader.Find( "Ocean/Ocean Depth" ) );
+            _matCombineShapeLODs = new Material(Shader.Find("Ocean/Shape/Combine"));
+            _matCombineShapeLODs_Sim = new Material(Shader.Find("Ocean/Shape/Sim/Combine"));
         }
 
         private void Update()
@@ -155,8 +157,36 @@ namespace Crest
             // to start combining sim results.
             if( OceanRenderer.Instance.Builder.GetShapeCamIndex( cam ) == 0 )
             {
-                ShapeWaveSim.Instance.OnShapeCamerasFinishedRendering();
+                OnShapeCamerasFinishedRendering();
             }
+        }
+
+        // combine/accumulate sim results together
+        public void OnShapeCamerasFinishedRendering()
+        {
+            if (Shader.GetGlobalFloat("_MyDeltaTime") <= Mathf.Epsilon)
+                return;
+
+            bool shapeIsDynamic = OceanRenderer.Instance._dynamicSimulation;
+            Material mat = shapeIsDynamic ? _matCombineShapeLODs_Sim : _matCombineShapeLODs;
+
+            System.Func<Camera, RenderTexture> getTarget =
+                cam => shapeIsDynamic ? cam.GetComponent<PingPongRts>()._targetThisFrame : cam.targetTexture;
+
+            var cams = OceanRenderer.Instance.Builder._shapeCameras;
+            for (int L = cams.Length - 2; L >= 0; L--)
+            {
+                // save the projection params to enable combining results across multiple shape textures
+                cams[L].GetComponent<WaveDataCam>().ApplyMaterialParams(0, mat);
+                cams[L + 1].GetComponent<WaveDataCam>().ApplyMaterialParams(1, mat);
+
+                // accumulate shape data down the LOD chain - combine L+1 into L
+                Graphics.Blit(getTarget(cams[L + 1]), getTarget(cams[L]), mat);
+            }
+
+            // this makes sure the dt goes to 0 so that if the editor is paused, the simulation will stop progressing. this could
+            // be made editor only, but that could lead to some very confusing bugs/behaviour, so leaving it like this for now.
+            Shader.SetGlobalFloat("_MyDeltaTime", 0f);
         }
 
         Camera _camera; Camera cam { get { return _camera != null ? _camera : (_camera = GetComponent<Camera>()); } }

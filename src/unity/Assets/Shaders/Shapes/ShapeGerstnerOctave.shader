@@ -66,7 +66,7 @@ Shader "Ocean/Shape/Gerstner Octave"
 				uniform float _MyDeltaTime;
 				uniform float _KinematicWaves;
 
-				uniform float _Choppiness;
+				uniform float _Chop;
 
 				uniform float _Angle;
 				uniform float _SpeedMul;
@@ -93,13 +93,13 @@ Shader "Ocean/Shape/Gerstner Octave"
 					// samplePos + disp(samplePos) = displacedPos
 					// error = displacedPos - disp(samplePos)
 					// iteration: samplePos += displacedPos - disp(samplePos)
-					if (_Choppiness > 0.0001)
+					if (_Chop > 0.0001)
 					{
 						// start search at displaced position
 						for (int oct = 0; oct < 5; oct++)
 						{
 							float x_ = dot(D, samplePos);
-							float2 error = displacedPos - (samplePos + _Choppiness * -sin(k*(x_ + C*_MyTime)) * D);
+							float2 error = displacedPos - (samplePos + _Chop * -sin(k*(x_ + C*_MyTime)) * D);
 							// move to eliminate error
 							samplePos += 0.7 * error;
 						}
@@ -110,7 +110,7 @@ Shader "Ocean/Shape/Gerstner Octave"
 
 					float x = dot(D, samplePos);
 					result.y = _Amplitude * cos(k*(x + C*_MyTime));
-					result.xz -= D * _Amplitude * sin(k*(x + C * _MyTime));
+					result.xz -= _Chop * D * _Amplitude * sin(k*(x + C * _MyTime));
 					result *= i.weight.x;
 
 					//if( _KinematicWaves == 0. )

@@ -1,5 +1,7 @@
 ﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+#define USING_DISPLACEMENT_TEXTURES
+
 using UnityEngine;
 
 namespace Crest
@@ -10,9 +12,6 @@ namespace Crest
     public class OceanChunkRenderer : MonoBehaviour
     {
 #if USING_DISPLACEMENT_TEXTURES
-        [Tooltip("Expand out renderer bounds if dynamic displacement moves verts outside the mesh BB (m). Should be 0 for heightmaps!")]
-        public float _boundsPadding = 0f;
-
         Bounds _boundsLocal;
         Mesh _mesh;
 #endif
@@ -76,7 +75,8 @@ namespace Crest
 #if USING_DISPLACEMENT_TEXTURES
             // expand mesh bounds - bounds need to completely encapsulate verts after any dynamic displacement
             Bounds bounds = _boundsLocal;
-            float expand = _boundsPadding / Mathf.Abs( transform.lossyScale.x );
+            float boundsPadding = OceanRenderer.Instance._chop * OceanRenderer.Instance._maxWaveHeight;
+            float expand = boundsPadding / Mathf.Abs( transform.lossyScale.x );
             bounds.extents += new Vector3( expand, 0f, expand );
             _mesh.bounds = bounds;
 #endif

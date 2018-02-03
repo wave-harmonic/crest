@@ -22,6 +22,9 @@ namespace Crest
         [Tooltip("Should the ocean by dynamically simulated (requires restart to change)")]
         public bool _dynamicSimulation = true;
 
+        [Range(0f, 1f)]
+        public float _chop = 1f;
+
         [Header( "Debug Params" )]
         [Tooltip("Smoothly transition geometry LODs")]
         public bool _enableSmoothLOD = true;
@@ -36,7 +39,7 @@ namespace Crest
         public float _baseVertDensity = 32f;
         [SerializeField]
         [Tooltip( "Maximum wave amplitude, used to compute bounding box for ocean tiles." )]
-        float _maxWaveHeight = 30f;
+        public float _maxWaveHeight = 30f;
         [SerializeField]
         [Tooltip( "Number of ocean tile scales/LODs to generate." )]
         public int _lodCount = 5;
@@ -90,6 +93,7 @@ namespace Crest
             Shader.SetGlobalFloat( "_TexelsPerWave", _minTexelsPerWave );
             Shader.SetGlobalFloat( "_VisualiseLODs", _visualiseLODs ? 1f : 0f );
             Shader.SetGlobalFloat( "_KinematicWaves", _kinematicWaves ? 1f : 0f );
+            Shader.SetGlobalFloat("_Chop", _chop);
 
             // scale ocean mesh based on camera height to keep uniform detail
             const float HEIGHT_LOD_MUL = 1f; //0.0625f;

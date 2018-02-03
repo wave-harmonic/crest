@@ -96,8 +96,8 @@ Shader "Ocean/Ocean"
 					float4 sx = tex2Dlod(i_dispSampler, uv + dd.xyyy);
 					float4 sz = tex2Dlod(i_dispSampler, uv + dd.yxyy);
 					float3 disp = s.xyz; //  float3(0., s.x + s.z, 0.);
-					float3 disp_x = sx.xyz; //  dd.zyy + float3(0., sx.x + sx.z, 0.);
-					float3 disp_z = sz.xyz; // dd.yyz + float3(0., sz.x + sz.z, 0.);
+					float3 disp_x = dd.zyy + sx.xyz; // float3(0., sx.x + sx.z, 0.);
+					float3 disp_z = dd.yyz + sz.xyz; //  float3(0., sz.x + sz.z, 0.);
 					io_worldPos += wt * disp;
 
 					float3 n = normalize( cross( disp_z - disp, disp_x - disp ) );

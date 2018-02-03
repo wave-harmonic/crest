@@ -105,8 +105,6 @@ namespace Crest
 
         private void Update()
         {
-            Shader.SetGlobalFloat( "_Choppiness", _choppiness );
-
             UpdateAmplitudes();
         }
 

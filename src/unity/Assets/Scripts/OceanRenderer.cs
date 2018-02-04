@@ -57,7 +57,6 @@ namespace Crest
         float _viewerAltitudeLevelAlpha = 0f;
         public float ViewerAltitudeLevelAlpha { get { return _viewerAltitudeLevelAlpha; } }
 
-        public static bool _kinematicWaves = false;
         public static bool _acceptLargeWavelengthsInLastLOD = true;
 
         static OceanRenderer _instance;
@@ -72,8 +71,6 @@ namespace Crest
 
             _oceanBuilder = FindObjectOfType<OceanBuilder>();
             _oceanBuilder.GenerateMesh( MakeBuildParams() );
-
-            SetSmoothLODsShaderParam();
         }
 
         void LateUpdate()
@@ -93,8 +90,8 @@ namespace Crest
             Shader.SetGlobalFloat( "_MyDeltaTime", _deltaTime );
             Shader.SetGlobalFloat( "_TexelsPerWave", _minTexelsPerWave );
             Shader.SetGlobalFloat( "_VisualiseLODs", _visualiseLODs ? 1f : 0f );
-            Shader.SetGlobalFloat( "_KinematicWaves", _kinematicWaves ? 1f : 0f );
             Shader.SetGlobalFloat("_Chop", _chop);
+            Shader.SetGlobalFloat("_EnableSmoothLODs", _enableSmoothLOD ? 1f : 0f); // debug
 
             LateUpdateScale();
         }
@@ -115,16 +112,6 @@ namespace Crest
 
             float newScale = Mathf.Pow(2f, l2f);
 
-            float currentScale = Mathf.Abs(transform.localScale.x);
-
-            if (!Mathf.Approximately(newScale, currentScale))
-            {
-                if (ShapeWaveSim.Instance)
-                {
-                    ShapeWaveSim.Instance.OnOceanScaleChange(newScale < currentScale);
-                }
-            }
-
             // sign is used to mirror ocean geometry. without this, gaps can appear between ocean tiles.
             // this is due to the difference in direction of floor/modulus in the ocean vert shader, and the
             // way the ocean geometry tiles have tri strips removed/added.
@@ -143,18 +130,12 @@ namespace Crest
                 _maxWaveHeight = _maxWaveHeight,
                 _forceUniformPatches = _uniformTiles,
                 _generateSkirt = _generateSkirt,
-                _dynamicSimulation = _dynamicSimulation,
             };
         }
 
         public void RegenMesh()
         {
             _oceanBuilder.GenerateMesh( MakeBuildParams() );
-        }
-
-        public void SetSmoothLODsShaderParam()
-        {
-            Shader.SetGlobalFloat( "_EnableSmoothLODs", _enableSmoothLOD ? 1f : 0f ); // debug
         }
 
         public float MaxWavelength(float oceanBaseScale, int lodIndex)

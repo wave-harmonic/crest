@@ -8,7 +8,6 @@ Shader "Ocean/Shape/Gerstner Octave"
 		_Amplitude ("Amplitude", float) = 1
 		_Wavelength("Wavelength", range(0,180)) = 100
 		_Angle ("Angle", range(-180, 180)) = 0
-		_SpeedMul("Speed Mul", range(0, 1)) = 1.0
 	}
 
 	Category
@@ -63,65 +62,27 @@ Shader "Ocean/Shape/Gerstner Octave"
 
 				// respects the gui option to freeze time
 				uniform float _MyTime;
-				uniform float _MyDeltaTime;
-				uniform float _KinematicWaves;
-
 				uniform float _Chop;
-
 				uniform float _Angle;
-				uniform float _SpeedMul;
 
-				float4 frag (v2f i) : SV_Target
+				float3 frag (v2f i) : SV_Target
 				{
-					// assume deep water for now, but this could read from the water depth texture in the future
-					const float WATER_DEPTH = 10000.;
-					// I've moved this away from the corrected sim wave speed, because it looked much too fast :(
-					float C = _SpeedMul * ComputeWaveSpeed( _Wavelength, WATER_DEPTH );
+					float C = ComputeWaveSpeed( _Wavelength );
 
 					// direction
 					float2 D = float2(cos(PI * _Angle / 180.0), sin(PI * _Angle / 180.0));
 					// wave number
 					float k = 2. * PI / _Wavelength;
 
-					float2 displacedPos = i.worldPos.xz;
-					float2 samplePos = displacedPos;
+					float3 result;
 
-//#define USE_FPI
-#ifdef USE_FPI
-					// use fixed point iteration to solve for sample position, to compute displacement.
-					// this could be written out to a texture and used to displace foam..
-
-					// samplePos + disp(samplePos) = displacedPos
-					// error = displacedPos - disp(samplePos)
-					// iteration: samplePos += displacedPos - disp(samplePos)
-					if (_Chop > 0.0001)
-					{
-						// start search at displaced position
-						for (int oct = 0; oct < 5; oct++)
-						{
-							float x_ = dot(D, samplePos);
-							float2 error = displacedPos - (samplePos + _Chop * -sin(k*(x_ + C*_MyTime)) * D);
-							// move to eliminate error
-							samplePos += 0.7 * error;
-						}
-					}
-#endif
-
-					float4 result = (float4)0.;
-
-					float x = dot(D, samplePos);
+					float x = dot(D, i.worldPos.xz);
 					result.y = _Amplitude * cos(k*(x + C*_MyTime));
-					result.xz -= _Chop * D * _Amplitude * sin(k*(x + C * _MyTime));
+					result.xz = -_Chop * D * _Amplitude * sin(k*(x + C * _MyTime));
+
 					result *= i.weight.x;
 
-					//if( _KinematicWaves == 0. )
-					//{
-					//	y *= _MyDeltaTime*_MyDeltaTime;
-					//	y *= 0.3;
-					//}
-
 					return result;
-					//return float4(y, 0., 0., 0.);
 				}
 
 				ENDCG

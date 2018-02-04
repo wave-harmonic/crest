@@ -21,19 +21,10 @@ namespace Crest
         public int _anisoLevel = 0;
         public bool _useMipMap = false;
 
-        public bool _createPingPongTargets = false;
-
         void Start()
         {
-            if( !_createPingPongTargets )
-            {
-                RenderTexture rt = CreateRT( _targetName );
-                GetComponent<Camera>().targetTexture = rt;
-            }
-            else
-            {
-                CreatePingPongRts();
-            }
+            RenderTexture rt = CreateRT( _targetName );
+            GetComponent<Camera>().targetTexture = rt;
         }
 
         RenderTexture CreateRT( string name )
@@ -52,18 +43,6 @@ namespace Crest
             tex.useMipMap = _useMipMap;
 
             return tex;
-        }
-
-        void CreatePingPongRts()
-        {
-            PingPongRts ppr = GetComponent<PingPongRts>();
-            if( ppr == null )
-            {
-                Debug.LogError( "To create ping pong render targets, a PingPongRts components needs to be added to this GO.", this );
-                return;
-            }
-
-            ppr.InitRTs( CreateRT( _targetName + "_A" ), CreateRT( _targetName + "_B" ) );
         }
     }
 }

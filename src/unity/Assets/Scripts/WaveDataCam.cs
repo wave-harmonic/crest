@@ -156,9 +156,6 @@ namespace Crest
 
             bool shapeIsDynamic = OceanRenderer.Instance._dynamicSimulation;
 
-            System.Func<Camera, RenderTexture> getTarget =
-                cam => shapeIsDynamic ? cam.GetComponent<PingPongRts>()._targetThisFrame : cam.targetTexture;
-
             var cams = OceanRenderer.Instance.Builder._shapeCameras;
 
             if (_combineMaterials == null || _combineMaterials.Length != cams.Length - 1)
@@ -179,7 +176,7 @@ namespace Crest
                 cams[L + 1].GetComponent<WaveDataCam>().ApplyMaterialParams(1, _combineMaterials[L]);
 
                 // accumulate shape data down the LOD chain - combine L+1 into L
-                _bufCombineShapes.Blit(getTarget(cams[L + 1]), getTarget(cams[L]), _combineMaterials[L]);
+                _bufCombineShapes.Blit(cams[L + 1].targetTexture, cams[L].targetTexture, _combineMaterials[L]);
             }
         }
 

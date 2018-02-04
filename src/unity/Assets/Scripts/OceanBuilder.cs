@@ -37,7 +37,6 @@ namespace Crest
             public int _lodCount = 5;
             public bool _forceUniformPatches = false;
             public bool _generateSkirt = true;
-            public bool _dynamicSimulation = false;
         }
 
         // The following apply to BASE_VERT_DENSITY = 2. The ocean mesh is built up from these patches. Rotational symmetry is
@@ -199,12 +198,6 @@ namespace Crest
                 nextLod.transform.localScale = new Vector3( horizScale, 1f, horizScale );
             }
 
-            // dynamic ocean needs a simulation object
-            if (parms._dynamicSimulation)
-            {
-                CreateSim();
-            }
-
 #if PROFILE_CONSTRUCTION
             sw.Stop();
             Debug.Log( "Finished generating " + parms._lodCount.ToString() + " LODs, time: " + (1000.0*sw.Elapsed.TotalSeconds).ToString(".000") + "ms" );
@@ -216,7 +209,7 @@ namespace Crest
             var go = new GameObject( string.Format( "ShapeCam{0}", lodIdx ) );
 
             var cam = go.AddComponent<Camera>();
-            cam.clearFlags = parms._dynamicSimulation ? CameraClearFlags.Nothing : CameraClearFlags.Color;
+            cam.clearFlags = CameraClearFlags.Color;
             cam.backgroundColor = new Color(0f, 0f, 0f, 0f);
             cam.cullingMask = 1 << LayerMask.NameToLayer(SHAPE_RENDER_LAYER_NAME);
             cam.orthographic = true;
@@ -242,12 +235,6 @@ namespace Crest
             cart._filterMode = FilterMode.Bilinear;
             cart._anisoLevel = 0;
             cart._useMipMap = false;
-            cart._createPingPongTargets = parms._dynamicSimulation;
-
-            if(parms._dynamicSimulation)
-            {
-                go.AddComponent<PingPongRts>();
-            }
 
             return cam;
         }
@@ -536,22 +523,6 @@ namespace Crest
             }
 
             return parent;
-        }
-
-        void CreateSim()
-        {
-            var simObject = GameObject.CreatePrimitive(PrimitiveType.Quad);
-            simObject.name = "WaveSim";
-            simObject.layer = LayerMask.NameToLayer(SHAPE_RENDER_LAYER_NAME);
-            simObject.AddComponent<ShapeWaveSim>();
-            Destroy(simObject.GetComponent<Collider>());
-
-            // transform - scale
-            simObject.transform.localScale = Vector3.one * 100000f;
-            // transform - rotation
-            Vector3 ea = simObject.transform.eulerAngles;
-            ea.x = 90f;
-            simObject.transform.eulerAngles = ea;
         }
     }
 }

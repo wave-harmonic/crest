@@ -34,8 +34,8 @@ namespace Crest
                 GUI.Label( new Rect( x, y, w, h ), string.Format( "Wind speed: {0} km/h", (ShapeGerstner.Instance._windSpeed * 3.6f).ToString( "0.0" ) ) ); y += h;
                 ShapeGerstner.Instance._windSpeed = GUI.HorizontalSlider( new Rect( x, y, w, h ), ShapeGerstner.Instance._windSpeed * 3.6f, 0f, 150f ) / 3.6f; y += h;
 
-                GUI.Label( new Rect( x, y, w, h ), string.Format( "Choppiness: {0}", ShapeGerstner.Instance._choppiness.ToString( "0.00" ) ) ); y += h;
-                ShapeGerstner.Instance._choppiness = GUI.HorizontalSlider( new Rect( x, y, w, h ), ShapeGerstner.Instance._choppiness, 0f, 1f ); y += h;
+                GUI.Label( new Rect( x, y, w, h ), string.Format( "Choppiness: {0}", OceanRenderer.Instance._chop.ToString( "0.00" ) ) ); y += h;
+                OceanRenderer.Instance._chop = GUI.HorizontalSlider( new Rect( x, y, w, h ), OceanRenderer.Instance._chop, 0f, 1f ); y += h;
             }
 
             if( _waveGenGO != null )
@@ -59,7 +59,8 @@ namespace Crest
             _showSimTargets = GUI.Toggle( new Rect( x, y, w, h ), _showSimTargets, "Show sim data" ); y += h;
             OceanRenderer._kinematicWaves = GUI.Toggle( new Rect( x, y, w, h ), OceanRenderer._kinematicWaves, "Kinematic waves" ); y += h;
 
-            OceanRenderer._acceptLargeWavelengthsInLastLOD = GUI.Toggle(new Rect(x, y, w, h), OceanRenderer._acceptLargeWavelengthsInLastLOD, "Large waves in last LOD"); y += h;
+            OceanRenderer._acceptLargeWavelengthsInLastLOD = GUI.Toggle(new Rect(x, y, w, h), OceanRenderer._acceptLargeWavelengthsInLastLOD, "Large waves in last LOD"); y += h;
+
             OceanRenderer.Instance._visualiseLODs = GUI.Toggle( new Rect( x, y, w, h ), OceanRenderer.Instance._visualiseLODs, "Show LODs" ); y += h;
 
             if( GUI.Button( new Rect( x, y, w, h ), "Clear sim data" ) )

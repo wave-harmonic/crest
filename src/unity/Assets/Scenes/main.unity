@@ -251,13 +251,13 @@ Transform:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 227134465}
-  m_LocalRotation: {x: -0, y: -0.7445911, z: -0, w: 0.6675209}
-  m_LocalPosition: {x: 135.6, y: 5.5, z: 52.7}
+  m_LocalRotation: {x: 0, y: 0.7071068, z: 0, w: 0.7071068}
+  m_LocalPosition: {x: 160, y: 5.5, z: 50}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
-  m_LocalEulerAnglesHint: {x: 0, y: -96.248, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 90, z: 0}
 --- !u!114 &227134471
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -447,6 +447,10 @@ Prefab:
       value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 100008, guid: a1af256fbecad4a4fa3f385d4cde20c7, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 100000, guid: a1af256fbecad4a4fa3f385d4cde20c7, type: 3}
       propertyPath: m_IsActive
       value: 0
       objectReference: {fileID: 0}
@@ -1558,7 +1562,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!23 &1614785320
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -1808,6 +1812,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2107384643}
   - component: {fileID: 2107384646}
+  - component: {fileID: 2107384644}
   m_Layer: 8
   m_Name: OceanWaves
   m_TagString: Untagged
@@ -1828,6 +1833,32 @@ Transform:
   m_Father: {fileID: 995304123}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2107384644
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 2107384642}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 60efd8af8fbfdee4bb291bb685fad3a2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _amp:
+  - 0.073
+  - 0.197
+  - 0.212
+  - 0.364
+  - 0.389
+  - 0.497
+  - 0.581
+  - 0.626
+  - 0.67
+  - 0.571
+  - 0.723
+  - 0
+  _ampEn: 010101010101010101010101
+  _amplitudeScale: 1
 --- !u!114 &2107384646
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1840,10 +1871,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _numOctaves: 128
-  _wavelengthDistribution: 5
+  _wavelengthDistribution: 3
   _windDirectionAngle: 0
-  _waveDirectionVariance: 45
-  _windSpeed: 8
+  _waveDirectionVariance: 120
+  _windSpeed: 12
   _choppiness: 1
   _rasterMesh: {fileID: 4300006, guid: a1af256fbecad4a4fa3f385d4cde20c7, type: 3}
   _waveShader: {fileID: 4800000, guid: 680b41329a8923e40a8f9d6ca86f60a8, type: 3}

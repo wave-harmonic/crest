@@ -105,7 +105,23 @@ namespace Crest
 
         private void Update()
         {
-            UpdateAmplitudes();
+            var spec = GetComponent<WaveSpectrum>();
+            if( spec )
+            {
+                UpdateAmplitudes(spec);
+            }
+            else
+            {
+                UpdateAmplitudes();
+            }
+        }
+
+        void UpdateAmplitudes(WaveSpectrum spec)
+        {
+            for (int i = 0; i < _numOctaves; i++)
+            {
+                _materials[i].SetFloat("_Amplitude", spec.GetAmplitude(_wavelengths[i]));
+            }
         }
 
         void UpdateAmplitudes()

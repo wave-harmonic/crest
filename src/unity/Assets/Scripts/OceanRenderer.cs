@@ -58,7 +58,8 @@ namespace Crest
         public float ViewerAltitudeLevelAlpha { get { return _viewerAltitudeLevelAlpha; } }
 
         public static bool _kinematicWaves = false;
-        public static bool _acceptLargeWavelengthsInLastLOD = true;
+        public static bool _acceptLargeWavelengthsInLastLOD = true;
+
         static OceanRenderer _instance;
         public static OceanRenderer Instance { get { return _instance ?? (_instance = FindObjectOfType<OceanRenderer>()); } }
 
@@ -129,7 +130,9 @@ namespace Crest
             // way the ocean geometry tiles have tri strips removed/added.
             transform.localScale = new Vector3(Mathf.Sign(transform.position.x) * newScale, 1f, Mathf.Sign(transform.position.z) * newScale);
 
-            float maxWavelength = MaxWavelength(Mathf.Abs(transform.lossyScale.x), _lodCount - 1);            Shader.SetGlobalFloat("_MaxWavelength", _acceptLargeWavelengthsInLastLOD ? maxWavelength : 1e10f);        }
+            float maxWavelength = MaxWavelength(Mathf.Abs(transform.lossyScale.x), _lodCount - 1);
+            Shader.SetGlobalFloat("_MaxWavelength", _acceptLargeWavelengthsInLastLOD ? maxWavelength : 1e10f);
+        }
 
         OceanBuilder.Params MakeBuildParams()
         {
@@ -154,7 +157,13 @@ namespace Crest
             Shader.SetGlobalFloat( "_EnableSmoothLODs", _enableSmoothLOD ? 1f : 0f ); // debug
         }
 
-        public float MaxWavelength(float oceanBaseScale, int lodIndex)        {            float maxDiameter = 4f * oceanBaseScale * Mathf.Pow(2f, lodIndex);            float maxTexelSize = maxDiameter / (4f * _baseVertDensity);            return 2f * maxTexelSize * _minTexelsPerWave;        }
+        public float MaxWavelength(float oceanBaseScale, int lodIndex)
+        {
+            float maxDiameter = 4f * oceanBaseScale * Mathf.Pow(2f, lodIndex);
+            float maxTexelSize = maxDiameter / (4f * _baseVertDensity);
+            return 2f * maxTexelSize * _minTexelsPerWave;
+        }
+
         public bool ScaleCouldIncrease { get { return _maxScale == -1f || Mathf.Abs( transform.localScale.x ) < _maxScale * 0.99f; } }
         public bool ScaleCouldDecrease { get { return _minScale == -1f || Mathf.Abs( transform.localScale.x ) > _minScale * 1.01f; } }
 

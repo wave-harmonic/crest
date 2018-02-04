@@ -30,7 +30,7 @@ namespace Crest
 
         public int _randomSeed = 0;
 
-        float _minWavelength;
+        public float _minWavelength;
         float[] _wavelengths;
 
         Material[] _materials;
@@ -156,9 +156,9 @@ namespace Crest
         static ShapeGerstner _instance;
         public static ShapeGerstner Instance { get { return _instance ?? (_instance = FindObjectOfType<ShapeGerstner>()); } }
 
-        Vector2 WindDir { get { return new Vector2( Mathf.Cos(Mathf.PI* _windDirectionAngle / 180f ), Mathf.Sin(Mathf.PI* _windDirectionAngle / 180f ) ); } }
+        public Vector2 WindDir { get { return new Vector2( Mathf.Cos(Mathf.PI* _windDirectionAngle / 180f ), Mathf.Sin(Mathf.PI* _windDirectionAngle / 180f ) ); } }
 
-        static float PhillipsSpectrum( float windSpeed, Vector2 windDir, float gravity, float smallestWavelength, float wavelength, float angle )
+        public static float PhillipsSpectrum( float windSpeed, Vector2 windDir, float gravity, float smallestWavelength, float wavelength, float angle )
         {
             float wavenumber = 2f * Mathf.PI / wavelength;
             float angle_radians = Mathf.PI * angle / 180f;

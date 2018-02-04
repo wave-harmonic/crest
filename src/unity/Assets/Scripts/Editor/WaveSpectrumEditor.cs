@@ -29,7 +29,10 @@ namespace Crest
                 float smallWL = spec.SmallWavelength(i);
                 EditorGUILayout.LabelField(string.Format("{0}", smallWL), GUILayout.Width(30f));
                 var spAmp_i = spAmp.GetArrayElementAtIndex(i);
-                spAmp_i.floatValue = EditorGUILayout.Slider(spAmp_i.floatValue, 0f, 1.25f);
+                float pow = 4f;
+                spAmp_i.floatValue = Mathf.Pow(GUILayout.HorizontalSlider(Mathf.Pow(spAmp_i.floatValue, 1f / pow), 0f, 1.25f), pow);
+
+                EditorGUILayout.DelayedFloatField(spAmp_i.floatValue, GUILayout.Width(60f));
 
                 EditorGUILayout.EndHorizontal();
             }

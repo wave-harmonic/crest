@@ -1327,6 +1327,7 @@ MonoBehaviour:
   _powerEnabled: 010101010101010101010101
   _amplitudeScale: 1
   _windSpeed: 5
+  _fetch: 500000
 --- !u!114 &2107384646
 MonoBehaviour:
   m_ObjectHideFlags: 0

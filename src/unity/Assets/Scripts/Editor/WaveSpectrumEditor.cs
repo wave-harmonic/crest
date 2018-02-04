@@ -12,6 +12,7 @@ namespace Crest
         {
             base.OnInspectorGUI();
 
+            EditorGUILayout.Space();
             EditorGUILayout.LabelField("Spectrum", EditorStyles.boldLabel);
 
             var spec = target as WaveSpectrum;
@@ -30,7 +31,7 @@ namespace Crest
                 EditorGUILayout.LabelField(string.Format("{0}", smallWL), GUILayout.Width(30f));
                 var spPower_i = spPower.GetArrayElementAtIndex(i);
                 float pow = 4f;
-                spPower_i.floatValue = Mathf.Pow(GUILayout.HorizontalSlider(Mathf.Pow(spPower_i.floatValue, 1f / pow), 0f, 4f), pow);
+                spPower_i.floatValue = Mathf.Pow(GUILayout.HorizontalSlider(Mathf.Pow(spPower_i.floatValue, 1f / pow), 0f, 6f), pow);
 
                 spPower_i.floatValue = EditorGUILayout.DelayedFloatField(spPower_i.floatValue, GUILayout.Width(60f));
 
@@ -38,23 +39,39 @@ namespace Crest
             }
 
 
+            EditorGUILayout.Space();
             EditorGUILayout.LabelField("Empirical Spectrums", EditorStyles.boldLabel);
 
             EditorGUILayout.BeginHorizontal();
-
-            EditorGUILayout.LabelField("Wind speed", GUILayout.Width(70f));
-
             var spWindSpeed = serializedObject.FindProperty("_windSpeed");
             float spd_kmh = spWindSpeed.floatValue * 3.6f;
+            EditorGUILayout.LabelField("Wind speed", GUILayout.Width(70f));
             spd_kmh = EditorGUILayout.Slider(spd_kmh, 0f, 60f);
             spWindSpeed.floatValue = spd_kmh / 3.6f;
+            EditorGUILayout.EndHorizontal();
 
-            if (GUILayout.Button("Phillips"))
+
+            // descriptions from this very useful paper: https://hal.archives-ouvertes.fr/file/index/docid/307938/filename/frechot_realistic_simulation_of_ocean_surface_using_wave_spectra.pdf
+
+            if (GUILayout.Button(new GUIContent("Phillips", "Base of modern parametric wave spectra")))
             {
                 spec.ApplyPhillipsSpectrum(spWindSpeed.floatValue);
             }
 
+            if (GUILayout.Button(new GUIContent("Pierson-Moskowitz", "Fully developed sea with infinite fetch")))
+            {
+                spec.ApplyPiersonMoskowitzSpectrum(spWindSpeed.floatValue);
+            }
+
+            EditorGUILayout.BeginHorizontal();
+            var spFetch = serializedObject.FindProperty("_fetch");
+            spFetch.floatValue = EditorGUILayout.Slider("Fetch", spFetch.floatValue, 0f, 1000000f);
             EditorGUILayout.EndHorizontal();
+            if (GUILayout.Button(new GUIContent("JONSWAP", "Fetch limited sea where waves continue to grow")))
+            {
+                spec.ApplyJONSWAPSpectrum(spWindSpeed.floatValue);
+            }
+
 
             serializedObject.ApplyModifiedProperties();
         }

@@ -19,13 +19,6 @@ namespace Crest
 
         [HideInInspector]
         public Camera[] _shapeCameras;
-        public int GetShapeCamIndex( Camera cam )
-        {
-            for( int i = 0; i < _shapeCameras.Length; i++ )
-                if( _shapeCameras[i] == cam )
-                    return i;
-            return -1;
-        }
 
         /// <summary>
         /// Parameters to use for ocean geometry construction

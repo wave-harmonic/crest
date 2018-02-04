@@ -109,7 +109,7 @@ Shader "Ocean/Ocean"
 					// < 0: Overlap
 					float4 du = float4(disp_x.xz, disp_z.xz) - disp.xzxz;
 					float det = (du.x * du.w - du.y * du.z) / (dd.z * dd.z);
-					float foamAmount = smoothstep(1.25, 0., det);
+					float foamAmount = smoothstep(1.4, 0., det);
 					io_foamAmount += wt * foamAmount;
 
 					float foam = 0.;

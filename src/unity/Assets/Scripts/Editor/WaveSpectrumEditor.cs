@@ -35,14 +35,6 @@ namespace Crest
             }
 
             serializedObject.ApplyModifiedProperties();
-
-            //bool oldEn = GUI.enabled;
-            //GUI.enabled = EditorApplication.isPlaying;
-            //if( GUILayout.Button( new GUIContent( "Regenerate Mesh", "Regenerate the ocean mesh (only supported at runtime/in play mode)." ) ) )
-            //{
-            //    (target as OceanRenderer).RegenMesh();
-            //}
-            //GUI.enabled = oldEn;
         }
     }
 }

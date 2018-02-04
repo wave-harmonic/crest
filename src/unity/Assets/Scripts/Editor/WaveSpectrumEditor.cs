@@ -12,30 +12,49 @@ namespace Crest
         {
             base.OnInspectorGUI();
 
-            EditorGUILayout.LabelField("Amplitudes", EditorStyles.boldLabel);
+            EditorGUILayout.LabelField("Spectrum", EditorStyles.boldLabel);
 
             var spec = target as WaveSpectrum;
 
-            var spAmp = serializedObject.FindProperty("_amp");
-            var spAmpEn = serializedObject.FindProperty("_ampEn");
+            var spPower = serializedObject.FindProperty("_power");
+            var spEnabled = serializedObject.FindProperty("_powerEnabled");
             
-            for( int i = 0; i < spAmp.arraySize; i++)
+            for( int i = 0; i < spPower.arraySize; i++)
             {
                 EditorGUILayout.BeginHorizontal();
 
-                var spAmpEn_i = spAmpEn.GetArrayElementAtIndex(i);
-                spAmpEn_i.boolValue = EditorGUILayout.Toggle(spAmpEn_i.boolValue, GUILayout.Width(15f));
+                var spEnabled_i = spEnabled.GetArrayElementAtIndex(i);
+                spEnabled_i.boolValue = EditorGUILayout.Toggle(spEnabled_i.boolValue, GUILayout.Width(15f));
 
                 float smallWL = spec.SmallWavelength(i);
                 EditorGUILayout.LabelField(string.Format("{0}", smallWL), GUILayout.Width(30f));
-                var spAmp_i = spAmp.GetArrayElementAtIndex(i);
+                var spPower_i = spPower.GetArrayElementAtIndex(i);
                 float pow = 4f;
-                spAmp_i.floatValue = Mathf.Pow(GUILayout.HorizontalSlider(Mathf.Pow(spAmp_i.floatValue, 1f / pow), 0f, 1.25f), pow);
+                spPower_i.floatValue = Mathf.Pow(GUILayout.HorizontalSlider(Mathf.Pow(spPower_i.floatValue, 1f / pow), 0f, 4f), pow);
 
-                EditorGUILayout.DelayedFloatField(spAmp_i.floatValue, GUILayout.Width(60f));
+                spPower_i.floatValue = EditorGUILayout.DelayedFloatField(spPower_i.floatValue, GUILayout.Width(60f));
 
                 EditorGUILayout.EndHorizontal();
             }
+
+
+            EditorGUILayout.LabelField("Empirical Spectrums", EditorStyles.boldLabel);
+
+            EditorGUILayout.BeginHorizontal();
+
+            EditorGUILayout.LabelField("Wind speed", GUILayout.Width(70f));
+
+            var spWindSpeed = serializedObject.FindProperty("_windSpeed");
+            float spd_kmh = spWindSpeed.floatValue * 3.6f;
+            spd_kmh = EditorGUILayout.Slider(spd_kmh, 0f, 60f);
+            spWindSpeed.floatValue = spd_kmh / 3.6f;
+
+            if (GUILayout.Button("Phillips"))
+            {
+                spec.ApplyPhillipsSpectrum(spWindSpeed.floatValue);
+            }
+
+            EditorGUILayout.EndHorizontal();
 
             serializedObject.ApplyModifiedProperties();
         }

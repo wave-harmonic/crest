@@ -4,33 +4,35 @@ namespace Crest
 {
     public class WaveSpectrum : MonoBehaviour
     {
-
         const int NUM_OCTAVES = 12;
         const float SMALLEST_WL_POW_2 = -2f;
 
         [HideInInspector]
-        public float[] _amp = new float[NUM_OCTAVES];
+        public float[] _power = new float[NUM_OCTAVES];
         [HideInInspector]
-        public bool[] _ampEn = new bool[NUM_OCTAVES];
+        public bool[] _powerEnabled = new bool[NUM_OCTAVES];
 
         [Range(0f, 2f)]
         public float _amplitudeScale = 1f;
 
+        [HideInInspector]
+        public float _windSpeed = 5f;
+
         void Start()
         {
-            for (int i = 0; i < _ampEn.Length; i++)
+            for (int i = 0; i < _powerEnabled.Length; i++)
             {
-                _ampEn[i] = true;
+                _powerEnabled[i] = true;
             }
         }
 
         private void Reset()
         {
-            _amp = new float[NUM_OCTAVES];
+            _power = new float[NUM_OCTAVES];
 
-            for (int i = 0; i < _ampEn.Length; i++)
+            for (int i = 0; i < _powerEnabled.Length; i++)
             {
-                _ampEn[i] = true;
+                _powerEnabled[i] = true;
             }
         }
 
@@ -38,7 +40,7 @@ namespace Crest
         public float SmallWavelength(float octaveIndex) { return Mathf.Pow(2f, SMALLEST_WL_POW_2 + octaveIndex); }
         public float LargeWavelength(float octaveIndex) { return Mathf.Pow(2f, SMALLEST_WL_POW_2 + octaveIndex + 1f); }
 
-        public float GetAmplitude(float wavelength)
+        public float GetPower(float wavelength)
         {
             if (wavelength <= 0.001f)
             {
@@ -51,22 +53,21 @@ namespace Crest
 
             int index = (int)(wl_pow2 - SMALLEST_WL_POW_2);
 
-            if (index >= _amp.Length)
+            if (index >= _power.Length)
             {
                 Debug.LogError("Out of bounds index");
                 return 0f;
             }
 
-            if (!_ampEn[index])
+            if (!_powerEnabled[index])
             {
                 return 0f;
             }
 
-            return _amplitudeScale * _amp[index];
+            return _amplitudeScale * _power[index];
         }
 
-        [ContextMenu("Phillips")]
-        void ApplyPhillipsSpectrum()
+        public void ApplyPhillipsSpectrum(float windSpeed)
         {
             UnityEditor.Undo.RecordObject(this, "Apply Phillips Spectrum");
 
@@ -75,9 +76,7 @@ namespace Crest
             for (int octave = 0; octave < NUM_OCTAVES; octave++)
             {
                 float wl = SmallWavelength(octave) * 1.5f;
-                float energy = ShapeGerstner.PhillipsSpectrum(waves._windSpeed, waves.WindDir, Mathf.Abs(Physics.gravity.y), waves._minWavelength, wl, 0f);
-                float amp = Mathf.Sqrt(2f * energy);
-                _amp[octave] = amp;
+                _power[octave] = ShapeGerstner.PhillipsSpectrum(windSpeed, waves.WindDir, Mathf.Abs(Physics.gravity.y), waves._minWavelength, wl, 0f);
             }
         }
     }

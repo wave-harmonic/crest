@@ -123,6 +123,12 @@ namespace Crest
                 float amp = Mathf.Sqrt( 2f * energy );
 
                 _materials[i].SetFloat( "_Amplitude", amp );
+
+                // kill any very low energy wavelengths for now
+                if (amp < 0.025)
+                {
+                    transform.GetChild(i).gameObject.SetActive(false);
+                }
             }
         }
 

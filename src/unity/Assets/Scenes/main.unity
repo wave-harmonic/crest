@@ -271,6 +271,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   linSpeed: 50
   rotSpeed: 70
+  simForwardInput: 0
 --- !u!114 &227134472
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1838,8 +1839,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6cda2c98bc71b024a85d48850b2a46ae, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _numOctaves: 64
-  _wavelengthDistribution: 2
+  _numOctaves: 128
+  _wavelengthDistribution: 5
   _windDirectionAngle: 0
   _waveDirectionVariance: 45
   _windSpeed: 8

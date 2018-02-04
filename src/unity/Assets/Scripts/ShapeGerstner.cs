@@ -16,8 +16,8 @@ namespace Crest
         public float _wavelengthDistribution = 4f;
         [Tooltip( "Wind direction (angle from x axis in degrees)" ), Range( -180, 180 )]
         public float _windDirectionAngle = 0f;
-        [Tooltip( "Variance of flow direction, in degrees" )]
-        public float _waveDirectionVariance = 45f;
+        [Tooltip("Variance of flow direction, in degrees"), Range(0f, 180f)]
+        public float _waveDirectionVariance = 45f; 
         [Tooltip( "Wind speed in m/s" ), Range( 0, 20 )]
         public float _windSpeed = 5f;
         [Tooltip( "Choppiness of waves. Treat carefully: If set too high, can cause the geometry to overlap itself." ), Range( 0f, 1f )]
@@ -67,17 +67,6 @@ namespace Crest
             // Generate the given number of octaves, each generating a GameObject rendering a quad.
             for (int i = 0; i < _numOctaves; i++)
             {
-                // Direction
-                _angleDegs[i] = _windDirectionAngle + Random.Range( -_waveDirectionVariance, _waveDirectionVariance );
-                if( _angleDegs[i] > 180f )
-                {
-                    _angleDegs[i] -= 360f;
-                }
-                if( _angleDegs[i] < -180f )
-                {
-                    _angleDegs[i] += 360f;
-                }
-
                 GameObject GO = new GameObject( string.Format( "Wavelength {0}", _wavelengths[i].ToString("0.000") ) );
                 GO.layer = gameObject.layer;
 
@@ -93,8 +82,6 @@ namespace Crest
 
                 MeshRenderer renderer = GO.AddComponent<MeshRenderer>();
                 renderer.material = _materials[i];
-
-                _materials[i].SetFloat("_Angle", _angleDegs[i] );
 
                 // Wavelength
                 _materials[i].SetFloat( "_Wavelength", _wavelengths[i] );
@@ -118,10 +105,28 @@ namespace Crest
 
         void UpdateAmplitudes(WaveSpectrum spec)
         {
+            // Set random seed to get repeatable results
+            Random.State randomStateBkp = Random.state;
+            Random.InitState(_randomSeed);
+
             for (int i = 0; i < _numOctaves; i++)
             {
                 _materials[i].SetFloat("_Amplitude", spec.GetAmplitude(_wavelengths[i]));
+
+                // Direction
+                _angleDegs[i] = _windDirectionAngle + Random.Range(-_waveDirectionVariance, _waveDirectionVariance);
+                if (_angleDegs[i] > 180f)
+                {
+                    _angleDegs[i] -= 360f;
+                }
+                if (_angleDegs[i] < -180f)
+                {
+                    _angleDegs[i] += 360f;
+                }
+                _materials[i].SetFloat("_Angle", _angleDegs[i]);
             }
+
+            Random.state = randomStateBkp;
         }
 
         void UpdateAmplitudes()

@@ -56,7 +56,9 @@ namespace Crest
             OceanRenderer.Instance._minTexelsPerWave = GUI.HorizontalSlider( new Rect( x, y, w, h ), OceanRenderer.Instance._minTexelsPerWave, 0, 15 ); y += h;
 
 
-            _showSimTargets = GUI.Toggle( new Rect( x, y, w, h ), _showSimTargets, "Show sim data" ); y += h;
+            _showSimTargets = GUI.Toggle( new Rect( x, y, w, h ), _showSimTargets, "Show shape data" ); y += h;
+            WaveDataCam._shapeCombinePass = GUI.Toggle(new Rect(x, y, w, h), WaveDataCam._shapeCombinePass, "Shape combine pass"); y += h;
+
             OceanRenderer._kinematicWaves = GUI.Toggle( new Rect( x, y, w, h ), OceanRenderer._kinematicWaves, "Kinematic waves" ); y += h;
 
             OceanRenderer._acceptLargeWavelengthsInLastLOD = GUI.Toggle(new Rect(x, y, w, h), OceanRenderer._acceptLargeWavelengthsInLastLOD, "Large waves in last LOD"); y += h;

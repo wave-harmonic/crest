@@ -24,6 +24,8 @@ namespace Crest
 
         int _shapeRes = -1;
 
+        public static bool _shapeCombinePass = true;
+
         public struct RenderData
         {
             public float _texelWidth;
@@ -146,6 +148,11 @@ namespace Crest
             }
 
             _bufCombineShapes.Clear();
+
+            if(!_shapeCombinePass)
+            {
+                return;
+            }
 
             bool shapeIsDynamic = OceanRenderer.Instance._dynamicSimulation;
 

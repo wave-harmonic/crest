@@ -25,7 +25,7 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 				#pragma fragment frag
 				#pragma multi_compile_fog
 				#include "UnityCG.cginc"
-				#include "MultiscaleShape.cginc"
+				#include "../../Shaders/Shapes/MultiscaleShape.cginc"
 
 				struct appdata_t {
 					float4 vertex : POSITION;
@@ -66,7 +66,7 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 
 				uniform sampler2D _WavePPTSource;
 
-				#include "../OceanLODData.cginc"
+				#include "../../Shaders/OceanLODData.cginc"
 
 				float4 frag (v2f i) : SV_Target
 				{

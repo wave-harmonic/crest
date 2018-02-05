@@ -17,7 +17,7 @@ It demonstrates a number of techniques described in this course:
 * Normal map scaling - a technique to improve the range of view distances for which a set of normal maps will work.
 * Foam - two foam layers that are computed on the fly from the displacement textures.
 
-Additionally, since the course, we have converted the kinematic shape system to a fully dynamic multi-scale simulation. The waves are generated from wind as in real life, using a wave spectrum modelled of real wave measurements. The waves interact with terrain in a realistic way. The sims fit naturally into our shape structure and LOD framework and are pop-free in all situations.
+This branch *dynamic_simulation* is a fully dynamic multi-scale water simulation. The waves are generated from wind as in real life, using a wave spectrum modelled of real wave measurements. The waves interact with terrain in a realistic way. The sims fit naturally into our shape structure and LOD framework and are pop-free in all situations.
 
 
 ## Summary of contributions

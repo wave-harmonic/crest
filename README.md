@@ -17,16 +17,16 @@ It demonstrates a number of techniques described in this course:
 * Normal map scaling - a technique to improve the range of view distances for which a set of normal maps will work.
 * Foam - two foam layers that are computed on the fly from the displacement textures.
 
-Additionally, since the course, we have converted the kinematic shape system to a fully dynamic multi-scale simulation. The waves are generated from wind as in real life, using a wave spectrum modelled of real wave measurements. The waves interact with terrain in a realistic way. The sims fit naturally into our shape structure and LOD framework and are pop-free in all situations.
+The branch *dynamic_simulation* contains a fully dynamic multi-scale water simulation (isntead of a kinematic animation). This gives interesting effects such as depth-dependent wave speeds, refraction, shadowing, reflections, etc. However it currently does not support displacement shapes and does not give the same quality animation as the kinematic version in the master branch.
 
 
 ## Summary of contributions
 
 We introduce an elegant, unified data structure for an anti-aliased, level of detail water simulation and rendering system.
 
-Level of detail is a central consideration in our system. We use the infinity norm with square isolines to drive the detail - this fits well to the square textures we use to simulate the water shape. We do not require spatial data structures such as quad trees to select detail which simplifies our implementation enormously.
+Level of detail is a central consideration in our system. We use the infinity norm with square isolines to drive the detail - this fits well to the square textures we use to render/simulate the water shape. We do not require spatial data structures such as quad trees to select detail which simplifies our implementation enormously.
 
-The water shape is stored in multiple overlapping nested textures that are centered around the viewer. Each texture represents a different scale. The smallest scale gives high detail close to the viewer. Water simulation is done in the textures for each scale individually. The wave propagation speed is dependent on scale to support dispersion. No coupling between the simulations are required. Before rendering the results from the sims accumulated from largest sim to smallest, to add the large scale waves to the more detailed lods.
+The water shape is stored in multiple overlapping nested textures that are centered around the viewer. Each texture represents a different scale. The smallest scale gives high detail close to the viewer. TODO update these notes with latest implementation.
 
 The ocean surface is rendered by submitting geometry tiles which are placed around the viewer on startup. The tiles are generated on the CPU on startup. The shape textures are sampled in the vertex shader to compute the final shape. The layout and resolution of the tiles match 1:1 with the shape texture resolution, so that data resolution and sampling rate are well matched. Building the mesh out of tiles afford standard frustum culling.
 
@@ -49,13 +49,7 @@ On startup, the *OceanBuilder* script creates the ocean geometry as a LODs, each
 
 At run-time, the viewpoint is moved first, and then the *Ocean* object is placed at sea level under the viewer. A horizontal scale is compute for the ocean based on the viewer height, as well as a *_viewerAltitudeLevelAlpha* that captures where the camera is between the current scale and the next scale (x2), and allows a smooth transition between scales to be achieved using the two mechanisms described in the course.
 
-Once the ocean has been placed, the ocean surface shape is simulated, as follows:
-
-1. For each shape texture, from largest to smallest (camera Depth ensures this), any geometry marked as WaveData layer renders into the shape cameras (ShapeCam0, 1, ..):
-    1. Wave simulation shader runs first (via ShapeSimWaveEqn.shader on WaveSim quad). The render queue (2000) ensures it renders before subsequent shape stuff in the next step. After running the wave PDE this writes out: (x,y,z,w) = (current water height for this LOD, previous water height for this LOD, LOD foam value computed based on downwards acceleration of water surface, 0.).
-    2. Any interaction forces/shapes render afterwards (such as ShapeObstacle.shader on Obstacle1 quad). This can either add values to the surface, add foam, or both.
-2. After the lod 0 shape camera ShapeCam0 has rendered, OnShapeCamerasFinishedRendering() is called. This does a combine pass where the results of the different simulations are accumulated down the LOD chain. E.g. lod 4 is copied into lod 3. The water height is added and written into the unused W channel. The foam value is simply added in place. The x,y channels are not touched, as these will be read in the simulate shader in the next frame (step 1).
-3. When each ocean chunk will be rendered, OceanChunkRenderer::OnWillRenderObject() is called. This grabs the target texture off the appropriate shape camera and assigns it to the shader for sampling in the ocean vertex shader.
+Once the ocean has been placed, the ocean surface shape is generated by rendering Gerstner wave components into the shape LODs.
 
 The ocean geometry itself as the Ocean shader attached. The vertex shader snaps the verts to grid positions to make them stable. It then computes a *lodAlpha* which starts at 0 for the inside of the LOD and becomes 1 at the outer edge. It is computed from taxicab distance as noted in the course. This value is used to drive the vertex layout transition, to enable a seemless match between the two. The vertex shader then samples the current LOD shape texture and the next shape texture and uses *lodAlpha* to interpolate them for a smooth transition across displacement textures. A foam value is also computed using the determinant of the Jacobian of the displacement texture. Finally, it passes the LOD geometry scale and *lodAlpha* to the pixel shader.
 

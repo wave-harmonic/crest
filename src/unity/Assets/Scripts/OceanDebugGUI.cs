@@ -27,12 +27,12 @@ namespace Crest
             GUI.DrawTexture( new Rect( 0, 0, w + 2f * x, Screen.height ), Texture2D.whiteTexture );
             GUI.color = Color.white;
 
+            RenderWireFrame._wireFrame = GUI.Toggle(new Rect(x, y, w, h), RenderWireFrame._wireFrame, "Wireframe"); y += h;
+
+            OceanRenderer.Instance._freezeTime = GUI.Toggle(new Rect(x, y, w, h), OceanRenderer.Instance._freezeTime, "Freeze waves"); y += h;
+
             GUI.Label(new Rect(x, y, w, h), string.Format("Chop: {0}", OceanRenderer.Instance._chop.ToString("0.00"))); y += h;
             OceanRenderer.Instance._chop = GUI.HorizontalSlider(new Rect(x, y, w, h), OceanRenderer.Instance._chop, 0f, 1f); y += h;
-
-            RenderWireFrame._wireFrame = GUI.Toggle( new Rect( x, y, w, h ), RenderWireFrame._wireFrame, "Wireframe" ); y += h;
-
-            OceanRenderer.Instance._freezeTime = GUI.Toggle( new Rect( x, y, w, h ), OceanRenderer.Instance._freezeTime, "Freeze waves" ); y += h;
 
             OceanRenderer.Instance._enableSmoothLOD = GUI.Toggle( new Rect( x, y, w, h ), OceanRenderer.Instance._enableSmoothLOD, "Enable smooth LOD" ); y += h;
 

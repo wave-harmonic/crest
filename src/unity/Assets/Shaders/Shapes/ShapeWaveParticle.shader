@@ -36,7 +36,7 @@ Shader "Ocean/Shape/Wave Particle"
 
 				struct v2f {
 					float4 vertex : SV_POSITION;
-					float2 worldOffsetScaled : TEXCOORD0;
+					float3 worldOffsetScaled_wt : TEXCOORD0;
 				};
 
 				uniform float _Radius;
@@ -48,17 +48,17 @@ Shader "Ocean/Shape/Wave Particle"
 
 					float3 worldPos = mul( unity_ObjectToWorld, v.vertex ).xyz;
 					float3 centerPos = unity_ObjectToWorld._m03_m13_m23;
-					o.worldOffsetScaled = worldPos.xz - centerPos.xz;
+					o.worldOffsetScaled_wt.xy = worldPos.xz - centerPos.xz;
 
 					// shape is symmetric around center with known radius - fix the vert positions to perfectly wrap the shape.
-					o.worldOffsetScaled = sign(o.worldOffsetScaled);
+					o.worldOffsetScaled_wt.xy = sign(o.worldOffsetScaled_wt.xy);
 					float4 newWorldPos = float4(centerPos, 1.);
-					newWorldPos.xz += o.worldOffsetScaled * _Radius;
+					newWorldPos.xz += o.worldOffsetScaled_wt.xy * _Radius;
 					o.vertex = mul(UNITY_MATRIX_VP, newWorldPos);
 
 					// if wavelength is too small, kill this quad so that it doesnt render any shape
 					float wavelength = 2. * _Radius;
-					if( !SamplingIsAppropriate(wavelength) )
+					if( !SamplingIsAppropriate(wavelength, o.worldOffsetScaled_wt.z) )
 						o.vertex.xy *= 0.;
 
 					return o;
@@ -71,13 +71,13 @@ Shader "Ocean/Shape/Wave Particle"
 				{
 					// power 4 smoothstep - no normalize needed
 					// credit goes to stubbe's shadertoy: https://www.shadertoy.com/view/4ldSD2
-					float r2 = dot( i.worldOffsetScaled, i.worldOffsetScaled );
+					float r2 = dot( i.worldOffsetScaled_wt.xy, i.worldOffsetScaled_wt.xy);
 					if( r2 > 1. )
 						return (float4)0.;
 
 					r2 = 1. - r2;
 
-					float y = r2 * r2 * _Amplitude;
+					float y = r2 * r2 * _Amplitude * i.worldOffsetScaled_wt.z;
 
 					// treat as an acceleration - dt^2
 					return float4(_MyDeltaTime * _MyDeltaTime * y, 0., 0., 0.);

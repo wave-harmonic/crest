@@ -54,8 +54,11 @@ Shader "Ocean/Shape/Gerstner Octave"
 					o.weight = v.color;
 
 					// if wavelength is too small, kill this quad so that it doesnt render any shape
-					if( !SamplingIsAppropriate( _Wavelength ) || _Amplitude < 0.0001 )
+					float shapeWt;
+					if (!SamplingIsAppropriate(_Wavelength, shapeWt) || _Amplitude < 0.0001)
 						o.vertex.xy *= 0.;
+
+					o.weight *= shapeWt;
 
 					return o;
 				}

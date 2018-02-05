@@ -119,6 +119,7 @@ namespace Crest
 
             float maxWavelength = MaxWavelength(Mathf.Abs(transform.lossyScale.x), _lodCount - 1);
             Shader.SetGlobalFloat("_MaxWavelength", _acceptLargeWavelengthsInLastLOD ? maxWavelength : 1e10f);
+            Shader.SetGlobalFloat("_ViewerAltitudeLevelAlpha", _viewerAltitudeLevelAlpha);
         }
 
         OceanBuilder.Params MakeBuildParams()

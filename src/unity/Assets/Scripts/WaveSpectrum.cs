@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
+
+using UnityEngine;
 
 namespace Crest
 {
@@ -7,6 +9,9 @@ namespace Crest
         const int NUM_OCTAVES = 12;
         const float SMALLEST_WL_POW_2 = -2f;
 
+        public static readonly float MIN_POWER_LOG = -6f;
+        public static readonly float MAX_POWER_LOG = 2f;
+            
         [Delayed]
         public int _componentsPerOctave = 10;
 
@@ -14,7 +19,7 @@ namespace Crest
         public float _waveDirectionVariance = 45f;
 
         [HideInInspector]
-        public float[] _power = new float[NUM_OCTAVES];
+        public float[] _powerLog = new float[NUM_OCTAVES];
         [HideInInspector]
         public bool[] _powerEnabled = new bool[NUM_OCTAVES];
 
@@ -29,7 +34,12 @@ namespace Crest
 
         private void Reset()
         {
-            _power = new float[NUM_OCTAVES];
+            _powerLog = new float[NUM_OCTAVES];
+
+            for (int i = 0; i < _powerLog.Length; i++)
+            {
+                _powerLog[i] = MIN_POWER_LOG;
+            }
         }
 
         public float SmallestWavelength { get { return Mathf.Pow(2f, SMALLEST_WL_POW_2); } }
@@ -49,7 +59,7 @@ namespace Crest
 
             int index = (int)(wl_pow2 - SMALLEST_WL_POW_2);
 
-            if (index >= _power.Length)
+            if (index >= _powerLog.Length)
             {
                 Debug.LogError("Out of bounds index");
                 return 0f;
@@ -60,7 +70,7 @@ namespace Crest
                 return 0f;
             }
 
-            return _amplitudeScale * _power[index];
+            return _amplitudeScale * Mathf.Pow(10f, _powerLog[index]);
         }
 
         public void GenerateWavelengths(ref float[] wavelengths, ref float[] anglesDeg, ref float[] phases)
@@ -98,7 +108,10 @@ namespace Crest
             for (int octave = 0; octave < NUM_OCTAVES; octave++)
             {
                 float wl = SmallWavelength(octave) * 1.5f;
-                _power[octave] = PhillipsSpectrum(windSpeed, waves.WindDir, Mathf.Abs(Physics.gravity.y), Mathf.Pow(2f, SMALLEST_WL_POW_2), wl, 0f);
+                var pow = PhillipsSpectrum(windSpeed, waves.WindDir, Mathf.Abs(Physics.gravity.y), Mathf.Pow(2f, SMALLEST_WL_POW_2), wl, 0f);
+                // we store power on logarithmic scale. this does not include 0, we represent 0 as min value
+                pow = Mathf.Max(pow, Mathf.Pow(10f, MIN_POWER_LOG));
+                _powerLog[octave] = Mathf.Log10(pow);
             }
         }
 
@@ -109,7 +122,10 @@ namespace Crest
             for (int octave = 0; octave < NUM_OCTAVES; octave++)
             {
                 float wl = SmallWavelength(octave) * 1.5f;
-                _power[octave] = PiersonMoskowitzSpectrum(Mathf.Abs(Physics.gravity.y), windSpeed, wl);
+                var pow = PiersonMoskowitzSpectrum(Mathf.Abs(Physics.gravity.y), windSpeed, wl);
+                // we store power on logarithmic scale. this does not include 0, we represent 0 as min value
+                pow = Mathf.Max(pow, Mathf.Pow(10f, MIN_POWER_LOG));
+                _powerLog[octave] = Mathf.Log10(pow);
             }
         }
 
@@ -120,7 +136,10 @@ namespace Crest
             for (int octave = 0; octave < NUM_OCTAVES; octave++)
             {
                 float wl = SmallWavelength(octave) * 1.5f;
-                _power[octave] = JONSWAPSpectrum(Mathf.Abs(Physics.gravity.y), windSpeed, wl, _fetch);
+                var pow = JONSWAPSpectrum(Mathf.Abs(Physics.gravity.y), windSpeed, wl, _fetch);
+                // we store power on logarithmic scale. this does not include 0, we represent 0 as min value
+                pow = Mathf.Max(pow, Mathf.Pow(10f, MIN_POWER_LOG));
+                _powerLog[octave] = Mathf.Log10(pow);
             }
         }
 

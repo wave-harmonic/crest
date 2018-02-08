@@ -35,7 +35,7 @@ namespace Crest
 
             var spec = target as WaveSpectrum;
 
-            var spPower = serializedObject.FindProperty("_power");
+            var spPower = serializedObject.FindProperty("_powerLog");
             
             for( int i = 0; i < spPower.arraySize; i++)
             {
@@ -47,17 +47,14 @@ namespace Crest
                 float smallWL = spec.SmallWavelength(i);
                 EditorGUILayout.LabelField(string.Format("{0}", smallWL), GUILayout.Width(30f));
                 var spPower_i = spPower.GetArrayElementAtIndex(i);
-                float pow = 4f;
-                spPower_i.floatValue = Mathf.Pow(GUILayout.HorizontalSlider(Mathf.Pow(spPower_i.floatValue, 1f / pow), 0f, 6f), pow);
-
-                spPower_i.floatValue = EditorGUILayout.DelayedFloatField(spPower_i.floatValue, GUILayout.Width(60f));
+                spPower_i.floatValue = GUILayout.HorizontalSlider(spPower_i.floatValue, WaveSpectrum.MIN_POWER_LOG, WaveSpectrum.MAX_POWER_LOG);
 
                 EditorGUILayout.EndHorizontal();
             }
 
 
             EditorGUILayout.Space();
-            EditorGUILayout.LabelField("Empirical Spectrums", EditorStyles.boldLabel);
+            EditorGUILayout.LabelField("Empirical Spectra", EditorStyles.boldLabel);
 
             EditorGUILayout.BeginHorizontal();
             var spWindSpeed = serializedObject.FindProperty("_windSpeed");

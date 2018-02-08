@@ -154,13 +154,11 @@ namespace Crest
                 return;
             }
 
-            bool shapeIsDynamic = OceanRenderer.Instance._dynamicSimulation;
-
             var cams = OceanRenderer.Instance.Builder._shapeCameras;
 
             if (_combineMaterials == null || _combineMaterials.Length != cams.Length - 1)
             {
-                var shader = shapeIsDynamic ? Shader.Find("Ocean/Shape/Sim/Combine") : Shader.Find("Ocean/Shape/Combine");
+                var shader = Shader.Find("Ocean/Shape/Combine");
 
                 _combineMaterials = new Material[cams.Length - 1];
                 for (int i = 0; i < _combineMaterials.Length; i++)

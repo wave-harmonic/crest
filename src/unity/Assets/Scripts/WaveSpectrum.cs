@@ -24,22 +24,9 @@ namespace Crest
         [HideInInspector]
         public float _fetch = 1000f;
 
-        void Start()
-        {
-            for (int i = 0; i < _powerEnabled.Length; i++)
-            {
-                _powerEnabled[i] = true;
-            }
-        }
-
         private void Reset()
         {
             _power = new float[NUM_OCTAVES];
-
-            for (int i = 0; i < _powerEnabled.Length; i++)
-            {
-                _powerEnabled[i] = true;
-            }
         }
 
         public float SmallestWavelength { get { return Mathf.Pow(2f, SMALLEST_WL_POW_2); } }

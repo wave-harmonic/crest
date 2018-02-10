@@ -13,12 +13,29 @@ namespace Crest
             base.OnInspectorGUI();
 
             EditorGUILayout.Space();
+
+            var spEnabled = serializedObject.FindProperty("_powerEnabled");
+            EditorGUILayout.BeginHorizontal();
+            bool allOn = true;
+            for( int i = 0; i < spEnabled.arraySize; i++)
+            {
+                if (!spEnabled.GetArrayElementAtIndex(i).boolValue) allOn = false;
+            }
+            bool toggle = allOn;
+            if (toggle != EditorGUILayout.Toggle(toggle, GUILayout.Width(13f)))
+            {
+                bool turnOn = !toggle;
+                for (int i = 0; i < spEnabled.arraySize; i++)
+                {
+                    spEnabled.GetArrayElementAtIndex(i).boolValue = turnOn;
+                }
+            }
             EditorGUILayout.LabelField("Spectrum", EditorStyles.boldLabel);
+            EditorGUILayout.EndHorizontal();
 
             var spec = target as WaveSpectrum;
 
             var spPower = serializedObject.FindProperty("_power");
-            var spEnabled = serializedObject.FindProperty("_powerEnabled");
             
             for( int i = 0; i < spPower.arraySize; i++)
             {

@@ -44,7 +44,7 @@ Shader "Ocean/Ocean"
 				{
 					float4 vertex : SV_POSITION;
 					half3 n : TEXCOORD1;
-					half4 foamAmount_lodAlpha_worldXZUndisplaced : TEXCOORD5;
+					half4 determinant_lodAlpha_worldXZUndisplaced : TEXCOORD5;
 					float3 worldPos : TEXCOORD7;
 					
 					#if defined( DEBUG_SHAPE_SAMPLE )
@@ -77,7 +77,7 @@ Shader "Ocean/Ocean"
 				// sample wave or terrain height, with smooth blend towards edges.
 				// would equally apply to heights instead of displacements.
 				// this could be optimized further.
-				void SampleDisplacements( in sampler2D i_dispSampler, in sampler2D i_oceanDepthSampler, in float2 i_centerPos, in float i_res, in float i_texelSize, in float i_geomSquareSize, in float2 i_samplePos, in float wt, inout float3 io_worldPos, inout float3 io_n, inout float io_foamAmount )
+				void SampleDisplacements( in sampler2D i_dispSampler, in sampler2D i_oceanDepthSampler, in float2 i_centerPos, in float i_res, in float i_texelSize, in float i_geomSquareSize, in float2 i_samplePos, in float wt, inout float3 io_worldPos, inout float3 io_n, inout float io_determinant )
 				{
 					if( wt < 0.001 )
 						return;
@@ -109,16 +109,15 @@ Shader "Ocean/Ocean"
 					// < 0: Overlap
 					float4 du = float4(disp_x.xz, disp_z.xz) - disp.xzxz;
 					float det = (du.x * du.w - du.y * du.z) / (dd.z * dd.z);
-					float foamAmount = smoothstep(1.4, 0., det);
-					io_foamAmount += wt * foamAmount;
+					io_determinant += wt * det;
 
-					float foam = 0.;
-					// foam from sim
-					//foam += s.w;
-					// // foam from shallow water - signed depth is depth compared to sea level, plus wave height
-					float signedDepth = tex2Dlod(i_oceanDepthSampler, uv).x + disp.y;
-					foam += clamp( 1. - signedDepth / 1.5, 0., 1.);
-					io_foamAmount += wt * foam;
+					//float foam = 0.;
+					//// foam from sim
+					////foam += s.w;
+					//// // foam from shallow water - signed depth is depth compared to sea level, plus wave height
+					//float signedDepth = tex2Dlod(i_oceanDepthSampler, uv).x + disp.y;
+					//foam += clamp( 1. - signedDepth / 1.5, 0., 1.);
+					//io_foamAmount += wt * foam;
 				}
 
 				v2f vert( appdata_t v )
@@ -168,15 +167,15 @@ Shader "Ocean/Ocean"
 
 					// sample shape textures - always lerp between 2 scales, so sample up to two textures
 					o.n = half3(0., 1., 0.);
-					o.foamAmount_lodAlpha_worldXZUndisplaced.x = 0.;
-					o.foamAmount_lodAlpha_worldXZUndisplaced.zw = o.worldPos.xz;
+					o.determinant_lodAlpha_worldXZUndisplaced.x = 0.;
+					o.determinant_lodAlpha_worldXZUndisplaced.zw = o.worldPos.xz;
 					// sample weights. params.z allows shape to be faded out (used on last lod to support pop-less scale transitions)
 					float wt_0 = (1. - lodAlpha) * _WD_Params_0.z;
 					float wt_1 = (1.0 - wt_0) * _WD_Params_1.z;
 					// sample displacement textures, add results to current world pos / normal / foam
 					const float2 wxz = o.worldPos.xz;
-					SampleDisplacements( _WD_Sampler_0, _WD_OceanDepth_Sampler_0, _WD_Pos_0, _WD_Params_0.y, _WD_Params_0.x, idealSquareSize, wxz, wt_0, o.worldPos, o.n, o.foamAmount_lodAlpha_worldXZUndisplaced.x );
-					SampleDisplacements( _WD_Sampler_1, _WD_OceanDepth_Sampler_1, _WD_Pos_1, _WD_Params_1.y, _WD_Params_1.x, idealSquareSize, wxz, wt_1, o.worldPos, o.n, o.foamAmount_lodAlpha_worldXZUndisplaced.x );
+					SampleDisplacements( _WD_Sampler_0, _WD_OceanDepth_Sampler_0, _WD_Pos_0, _WD_Params_0.y, _WD_Params_0.x, idealSquareSize, wxz, wt_0, o.worldPos, o.n, o.determinant_lodAlpha_worldXZUndisplaced.x );
+					SampleDisplacements( _WD_Sampler_1, _WD_OceanDepth_Sampler_1, _WD_Pos_1, _WD_Params_1.y, _WD_Params_1.x, idealSquareSize, wxz, wt_1, o.worldPos, o.n, o.determinant_lodAlpha_worldXZUndisplaced.x );
 					// debug tinting to see which shape textures are used
 					#if defined( DEBUG_SHAPE_SAMPLE )
 					#define TINT_COUNT (uint)7
@@ -189,7 +188,7 @@ Shader "Ocean/Ocean"
 					o.vertex = mul( UNITY_MATRIX_VP, float4(o.worldPos,1.) );
 
 					// used to blend normals in the fragment shader
-					o.foamAmount_lodAlpha_worldXZUndisplaced.y = lodAlpha;
+					o.determinant_lodAlpha_worldXZUndisplaced.y = lodAlpha;
 
 					UNITY_TRANSFER_FOG(o,o.vertex);
 
@@ -235,7 +234,7 @@ Shader "Ocean/Ocean"
 					io_n = normalize( io_n );
 				}
 
-				void ApplyFoam( half foamAmount, float2 worldXZUndisplaced, half3 n, inout half3 io_col )
+				void ApplyFoam( half determinant, float2 worldXZUndisplaced, half3 n, inout half3 io_col )
 				{
 					// Give the foam some texture
 					float2 foamUV = worldXZUndisplaced / 10.;
@@ -243,6 +242,12 @@ Shader "Ocean/Ocean"
 					// texture bombing to avoid repetition artifacts
 					//half foamTexValue = textureNoTile_3weights(_FoamTexture, foamUV).r;
 					half foamTexValue = texture(_FoamTexture, foamUV).r;
+
+					// compute foam amount from determinant
+					// > 1: Stretch
+					// < 1: Squash
+					// < 0: Overlap
+					float foamAmount = smoothstep(1.6, 0., determinant);
 
 					// Additive underwater foam
 					half bubbleFoam = smoothstep( 0.0, 0.5, foamAmount * foamTexValue );
@@ -263,7 +268,10 @@ Shader "Ocean/Ocean"
 
 					// normal - geom + normal mapping
 					half3 n = i.n;
-					ApplyNormalMaps(i.foamAmount_lodAlpha_worldXZUndisplaced.zw, i.foamAmount_lodAlpha_worldXZUndisplaced.y, n );
+					ApplyNormalMaps(i.determinant_lodAlpha_worldXZUndisplaced.zw, i.determinant_lodAlpha_worldXZUndisplaced.y, n );
+
+					float scatteredLight = smoothstep(1.5, 0.25, i.determinant_lodAlpha_worldXZUndisplaced.x);
+					col.xyz += .15*half3(0.0, 1.4, 0.4) * scatteredLight;
 
 					// fresnel / reflection
 					half3 view = normalize( _WorldSpaceCameraPos - i.worldPos );
@@ -271,7 +279,7 @@ Shader "Ocean/Ocean"
 					col.xyz = lerp( col.xyz, skyColor, pow( 1. - max( 0., dot( view, n ) ), 8. ) );
 
 					// Foam
-					ApplyFoam( i.foamAmount_lodAlpha_worldXZUndisplaced.x, i.foamAmount_lodAlpha_worldXZUndisplaced.zw, n, col.xyz );
+					ApplyFoam( i.determinant_lodAlpha_worldXZUndisplaced.x, i.determinant_lodAlpha_worldXZUndisplaced.zw, n, col.xyz );
 
 					// Fog
 					UNITY_APPLY_FOG(i.fogCoord, col);

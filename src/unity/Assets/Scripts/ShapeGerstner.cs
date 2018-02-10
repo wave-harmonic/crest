@@ -10,16 +10,12 @@ namespace Crest
     /// </summary>
     public class ShapeGerstner : MonoBehaviour
     {
-        [Tooltip( "Distribution of wavelengths, > 1 means concentrated at low wavelengths" )]
-        public float _wavelengthDistribution = 4f;
         [Tooltip( "Wind direction (angle from x axis in degrees)" ), Range( -180, 180 )]
         public float _windDirectionAngle = 0f;
-        [Tooltip("Variance of flow direction, in degrees"), Range(0f, 180f)]
-        public float _waveDirectionVariance = 45f; 
         [Tooltip( "Wind speed in m/s" ), Range( 0, 20 ), HideInInspector]
         public float _windSpeed = 5f;
-        [Tooltip( "Choppiness of waves. Treat carefully: If set too high, can cause the geometry to overlap itself." ), Range( 0f, 1f )]
-        public float _choppiness = 0f;
+        [Tooltip( "Choppiness of waves. Treat carefully: If set too high, can cause the geometry to overlap itself." ), Range( 0f, 2f )]
+        public float _choppiness = 1f;
 
         [Tooltip( "Geometry to rasterise into wave buffers to generate waves." )]
         public Mesh _rasterMesh;
@@ -27,8 +23,6 @@ namespace Crest
         public Shader _waveShader;
 
         public int _randomSeed = 0;
-
-        public float _minWavelength;
 
         Material[] _materials;
 
@@ -121,16 +115,7 @@ namespace Crest
                 _materials[i].SetFloat("_Amplitude", amp);
 
                 // Direction
-                _angleDegs[i] = _windDirectionAngle + Random.Range(-_waveDirectionVariance, _waveDirectionVariance);
-                if (_angleDegs[i] > 180f)
-                {
-                    _angleDegs[i] -= 360f;
-                }
-                if (_angleDegs[i] < -180f)
-                {
-                    _angleDegs[i] += 360f;
-                }
-                _materials[i].SetFloat("_Angle", _angleDegs[i]);
+                _materials[i].SetFloat("_Angle", _windDirectionAngle + _angleDegs[i]);
 
                 _materials[i].SetFloat("_Phase", _phases[i]);
             }

@@ -1299,11 +1299,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _componentsPerOctave: 5
+  _waveDirectionVariance: 120
   _power:
   - 0.00013296424
   - 0.000042070726
   - 0.0003246197
-  - 0.034038845
+  - 0.0064313756
   - 0.017251626
   - 1.201582
   - 2.4283252
@@ -1329,7 +1330,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _wavelengthDistribution: 3
   _windDirectionAngle: 0
-  _waveDirectionVariance: 120
   _windSpeed: 12
   _choppiness: 1
   _rasterMesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}

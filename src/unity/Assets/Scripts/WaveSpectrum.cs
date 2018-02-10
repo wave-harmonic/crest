@@ -10,6 +10,9 @@ namespace Crest
         [Delayed]
         public int _componentsPerOctave = 10;
 
+        [Tooltip("Variance of flow direction, in degrees"), Range(0f, 180f)]
+        public float _waveDirectionVariance = 45f;
+
         [HideInInspector]
         public float[] _power = new float[NUM_OCTAVES];
         [HideInInspector]
@@ -76,6 +79,7 @@ namespace Crest
                 {
                     int index = octave * _componentsPerOctave + i;
                     wavelengths[index] = minWavelength * (1f + Random.value);
+                    anglesDeg[index] = Random.Range(-_waveDirectionVariance, _waveDirectionVariance);
                     phases[index] = 2f * Mathf.PI * Random.value;
                 }
 
@@ -94,7 +98,7 @@ namespace Crest
             for (int octave = 0; octave < NUM_OCTAVES; octave++)
             {
                 float wl = SmallWavelength(octave) * 1.5f;
-                _power[octave] = PhillipsSpectrum(windSpeed, waves.WindDir, Mathf.Abs(Physics.gravity.y), waves._minWavelength, wl, 0f);
+                _power[octave] = PhillipsSpectrum(windSpeed, waves.WindDir, Mathf.Abs(Physics.gravity.y), Mathf.Pow(2f, SMALLEST_WL_POW_2), wl, 0f);
             }
         }
 

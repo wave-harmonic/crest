@@ -1302,19 +1302,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _componentsPerOctave: 5
   _waveDirectionVariance: 120
-  _power:
-  - 0.00013296424
-  - 0.000042070726
-  - 0.0003246197
-  - 0.0064313756
-  - 0.017251626
-  - 1.201582
-  - 2.4283252
-  - 9.271462
-  - 2.3255525
-  - 6.731315
-  - 49.89255
-  - 0
+  _powerLog:
+  - -3.6546762
+  - -3.6834533
+  - -3.2086332
+  - -2.0287766
+  - -1.3669065
+  - -0.5755396
+  - -0.17266187
+  - 0.23021582
+  - 0.6043166
+  - -6
+  - -6
+  - -6
   _powerEnabled: 010101010101010101010101
   _amplitudeScale: 1
   _windSpeed: 5
@@ -1330,11 +1330,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6cda2c98bc71b024a85d48850b2a46ae, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _wavelengthDistribution: 3
   _windDirectionAngle: 0
   _windSpeed: 12
   _choppiness: 1
   _rasterMesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
   _waveShader: {fileID: 4800000, guid: 680b41329a8923e40a8f9d6ca86f60a8, type: 3}
   _randomSeed: 1
-  _minWavelength: 0

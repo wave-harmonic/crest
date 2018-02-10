@@ -19,9 +19,6 @@ namespace Crest
         [Delayed, Tooltip( "The largest scale the ocean can be (-1 for unlimited)" )]
         public float _maxScale = 128f;
 
-        [Tooltip("Should the ocean by dynamically simulated (requires restart to change)")]
-        public bool _dynamicSimulation = true;
-
         [Range(0f, 1f)]
         public float _chop = 1f;
 

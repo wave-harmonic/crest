@@ -7,6 +7,9 @@ namespace Crest
         const int NUM_OCTAVES = 12;
         const float SMALLEST_WL_POW_2 = -2f;
 
+        [Delayed]
+        public int _componentsPerOctave = 10;
+
         [HideInInspector]
         public float[] _power = new float[NUM_OCTAVES];
         [HideInInspector]
@@ -68,6 +71,31 @@ namespace Crest
             }
 
             return _amplitudeScale * _power[index];
+        }
+
+        public void GenerateWavelengths(ref float[] wavelengths, ref float[] anglesDeg, ref float[] phases)
+        {
+            int totalComponents = NUM_OCTAVES * _componentsPerOctave;
+
+            if (wavelengths == null || wavelengths.Length != totalComponents) wavelengths = new float[totalComponents];
+            if (anglesDeg == null || anglesDeg.Length != totalComponents) anglesDeg = new float[totalComponents];
+            if (phases == null || phases.Length != totalComponents) phases = new float[totalComponents];
+
+            float minWavelength = Mathf.Pow(2f, SMALLEST_WL_POW_2);
+
+            for (int octave = 0; octave < NUM_OCTAVES; octave++)
+            {
+                for (int i = 0; i < _componentsPerOctave; i++)
+                {
+                    int index = octave * _componentsPerOctave + i;
+                    wavelengths[index] = minWavelength * (1f + Random.value);
+                    phases[index] = 2f * Mathf.PI * Random.value;
+                }
+
+                System.Array.Sort(wavelengths, octave * _componentsPerOctave, _componentsPerOctave);
+
+                minWavelength *= 2f;
+            }
         }
 
         public void ApplyPhillipsSpectrum(float windSpeed)

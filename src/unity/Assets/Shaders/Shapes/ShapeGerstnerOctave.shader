@@ -67,6 +67,7 @@ Shader "Ocean/Shape/Gerstner Octave"
 				uniform float _MyTime;
 				uniform float _Chop;
 				uniform float _Angle;
+				uniform float _Phase;
 
 				float3 frag (v2f i) : SV_Target
 				{
@@ -80,8 +81,8 @@ Shader "Ocean/Shape/Gerstner Octave"
 					float3 result;
 
 					float x = dot(D, i.worldPos.xz);
-					result.y = _Amplitude * cos(k*(x + C*_MyTime));
-					result.xz = -_Chop * D * _Amplitude * sin(k*(x + C * _MyTime));
+					result.y = _Amplitude * cos(k*(x + C*_MyTime) + _Phase);
+					result.xz = -_Chop * D * _Amplitude * sin(k*(x + C * _MyTime) + _Phase);
 
 					result *= i.weight.x;
 

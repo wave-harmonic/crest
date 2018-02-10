@@ -32,7 +32,7 @@ namespace Crest
             OceanRenderer.Instance._freezeTime = GUI.Toggle(new Rect(x, y, w, h), OceanRenderer.Instance._freezeTime, "Freeze waves"); y += h;
 
             GUI.Label(new Rect(x, y, w, h), string.Format("Chop: {0}", OceanRenderer.Instance._chop.ToString("0.00"))); y += h;
-            OceanRenderer.Instance._chop = GUI.HorizontalSlider(new Rect(x, y, w, h), OceanRenderer.Instance._chop, 0f, 1f); y += h;
+            OceanRenderer.Instance._chop = GUI.HorizontalSlider(new Rect(x, y, w, h), OceanRenderer.Instance._chop, 0f, 2f); y += h;
 
             OceanRenderer.Instance._enableSmoothLOD = GUI.Toggle( new Rect( x, y, w, h ), OceanRenderer.Instance._enableSmoothLOD, "Enable smooth LOD" ); y += h;
 

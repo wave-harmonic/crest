@@ -1298,6 +1298,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 60efd8af8fbfdee4bb291bb685fad3a2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _componentsPerOctave: 5
   _power:
   - 0.00013296424
   - 0.000042070726
@@ -1326,7 +1327,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6cda2c98bc71b024a85d48850b2a46ae, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _numOctaves: 128
   _wavelengthDistribution: 3
   _windDirectionAngle: 0
   _waveDirectionVariance: 120

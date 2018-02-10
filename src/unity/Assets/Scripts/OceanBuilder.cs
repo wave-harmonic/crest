@@ -204,7 +204,13 @@ namespace Crest
             var cam = go.AddComponent<Camera>();
             cam.clearFlags = CameraClearFlags.Color;
             cam.backgroundColor = new Color(0f, 0f, 0f, 0f);
-            cam.cullingMask = 1 << LayerMask.NameToLayer(SHAPE_RENDER_LAYER_NAME);
+
+            cam.cullingMask = 1 << LayerMask.NameToLayer(SHAPE_RENDER_LAYER_NAME + lodIdx.ToString());
+            if (lodIdx >= parms._lodCount - 2)
+            {
+                cam.cullingMask |= 1 << LayerMask.NameToLayer(SHAPE_RENDER_LAYER_NAME + "BigWavelengths");
+            }
+
             cam.orthographic = true;
             cam.nearClipPlane = 1f;
             cam.farClipPlane = 500f;

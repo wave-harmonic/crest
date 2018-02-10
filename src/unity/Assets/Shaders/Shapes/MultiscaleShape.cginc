@@ -14,14 +14,14 @@ bool SamplingIsAppropriate(float wavelengthInShape, out float wt)
 	const float texSize = cameraWidth / renderTargetRes;
 	const float minWavelength = texSize * _TexelsPerWave;
 
-	const bool largeEnough = wavelengthInShape >= minWavelength;
-	if (!largeEnough) return false;
+	//const bool largeEnough = wavelengthInShape >= minWavelength;
+	//if (!largeEnough) return false;
 
 	const bool smallEnough = wavelengthInShape < 2.*minWavelength;
 	if (smallEnough) return true;
 
-	const bool shapeTooBigForAllLods = wavelengthInShape > _MaxWavelength;
-	if (!shapeTooBigForAllLods) return false;
+	//const bool shapeTooBigForAllLods = wavelengthInShape > _MaxWavelength;
+	//if (!shapeTooBigForAllLods) return false;
 
 	// wavelengths that are too big for the LOD hierarchy we still accumulated into the last LODs, because losing them
 	// changes the shape dramatically (unlike wavelengths that are too small for LOD0, as these do not make a big difference to overall shape).
@@ -31,8 +31,8 @@ bool SamplingIsAppropriate(float wavelengthInShape, out float wt)
 
 	// to solve this, we blend large wavelengths across the last two LODs. this means they have to be evaluated twice, but the result is smooth.
 
-	const bool notRenderingIntoLast2Lods = minWavelength * 4.01 < _MaxWavelength;
-	if (notRenderingIntoLast2Lods) return false;
+	//const bool notRenderingIntoLast2Lods = minWavelength * 4.01 < _MaxWavelength;
+	//if (notRenderingIntoLast2Lods) return false;
 
 	const bool renderingIntoLastLod = minWavelength * 2.01 > _MaxWavelength;
 	wt = renderingIntoLastLod ? _ViewerAltitudeLevelAlpha : 1. - _ViewerAltitudeLevelAlpha;

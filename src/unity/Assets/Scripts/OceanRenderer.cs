@@ -91,6 +91,8 @@ namespace Crest
             Shader.SetGlobalFloat("_EnableSmoothLODs", _enableSmoothLOD ? 1f : 0f); // debug
 
             LateUpdateScale();
+
+            ShapeGerstner.Instance.UpdatePostScaleChange();
         }
 
         void LateUpdateScale()
@@ -114,7 +116,7 @@ namespace Crest
             // way the ocean geometry tiles have tri strips removed/added.
             transform.localScale = new Vector3(Mathf.Sign(transform.position.x) * newScale, 1f, Mathf.Sign(transform.position.z) * newScale);
 
-            float maxWavelength = MaxWavelength(Mathf.Abs(transform.lossyScale.x), _lodCount - 1);
+            float maxWavelength = MaxWavelength(_lodCount - 1);
             Shader.SetGlobalFloat("_MaxWavelength", _acceptLargeWavelengthsInLastLOD ? maxWavelength : 1e10f);
             Shader.SetGlobalFloat("_ViewerAltitudeLevelAlpha", _viewerAltitudeLevelAlpha);
         }
@@ -136,8 +138,9 @@ namespace Crest
             _oceanBuilder.GenerateMesh( MakeBuildParams() );
         }
 
-        public float MaxWavelength(float oceanBaseScale, int lodIndex)
+        public float MaxWavelength(int lodIndex)
         {
+            float oceanBaseScale = Mathf.Abs(transform.lossyScale.x);
             float maxDiameter = 4f * oceanBaseScale * Mathf.Pow(2f, lodIndex);
             float maxTexelSize = maxDiameter / (4f * _baseVertDensity);
             return 2f * maxTexelSize * _minTexelsPerWave;

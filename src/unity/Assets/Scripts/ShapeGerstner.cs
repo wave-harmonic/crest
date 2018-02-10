@@ -29,6 +29,7 @@ namespace Crest
         float[] _wavelengths;
         float[] _angleDegs;
         float[] _phases;
+        float[] _amplitudes;
 
         WaveSpectrum _spectrum;
 
@@ -45,6 +46,7 @@ namespace Crest
             }
 
             _materials = new Material[_wavelengths.Length];
+            _amplitudes = new float[_wavelengths.Length];
 
             for (int i = 0; i < _wavelengths.Length; i++)
             {
@@ -84,6 +86,32 @@ namespace Crest
             Random.state = randomStateBkp;
         }
 
+        public void UpdatePostScaleChange()
+        {
+            int editorOnlyLayerMask = LayerMask.NameToLayer("EditorOnly");
+
+            int lodIdx = 0;
+            int lodCount = OceanRenderer.Instance._lodCount;
+            float minWl = OceanRenderer.Instance.MaxWavelength(0) / 2f;
+            for (int i = 0; i < transform.childCount; i++)
+            {
+                if (_wavelengths[i] < minWl || _amplitudes[i]/_wavelengths[i] < 0.001f)
+                {
+                    transform.GetChild(i).gameObject.layer = editorOnlyLayerMask;
+                    continue;
+                }
+
+                while (_wavelengths[i] >= 2f * minWl && lodIdx < lodCount)
+                {
+                    lodIdx++;
+                    minWl *= 2f;
+                }
+
+                int layer = lodIdx < lodCount ? LayerMask.NameToLayer("WaveData" + lodIdx.ToString()) : LayerMask.NameToLayer("WaveDataBigWavelengths");
+                transform.GetChild(i).gameObject.layer = layer;
+            }
+        }
+
         void UpdateMaterials()
         {
             for (int i = 0; i < _wavelengths.Length; i++)
@@ -111,8 +139,8 @@ namespace Crest
 
                 float pow = _spectrum.GetPower(_wavelengths[i]) / wlCount;
                 float period = _wavelengths[i] / ComputeWaveSpeed(_wavelengths[i]);
-                float amp = Mathf.Sqrt(pow / period);
-                _materials[i].SetFloat("_Amplitude", amp);
+                _amplitudes[i] = Mathf.Sqrt(pow / period);
+                _materials[i].SetFloat("_Amplitude", _amplitudes[i]);
 
                 // Direction
                 _materials[i].SetFloat("_Angle", _windDirectionAngle + _angleDegs[i]);

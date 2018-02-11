@@ -1,7 +1,7 @@
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 // A single Gerstner Octave
-Shader "Ocean/Shape/Gerstner Octave"
+Shader "Ocean/Shape/Gerstner Component"
 {
 	Properties
 	{
@@ -43,10 +43,8 @@ Shader "Ocean/Shape/Gerstner Octave"
 					float3 weight : COLOR0;
 				};
 
-				#define MAX_COMPONENTS_PER_OCTAVE 32
-
-				uniform float _Wavelengths[MAX_COMPONENTS_PER_OCTAVE];
-				uniform float _Amplitudes[MAX_COMPONENTS_PER_OCTAVE];
+				uniform float _Wavelength;
+				uniform float _Amplitude;
 
 				v2f vert( appdata_t v )
 				{
@@ -55,7 +53,7 @@ Shader "Ocean/Shape/Gerstner Octave"
 					o.worldPos = mul( unity_ObjectToWorld, v.vertex ).xyz;
 					o.weight = v.color;
 
-					//o.weight *= ComputeSortedShapeWeight(_Wavelengths[i]);
+					o.weight *= ComputeSortedShapeWeight(_Wavelength);
 
 					return o;
 				}
@@ -63,35 +61,25 @@ Shader "Ocean/Shape/Gerstner Octave"
 				// respects the gui option to freeze time
 				uniform float _MyTime;
 				uniform float _Chop;
-				uniform float _Angles[MAX_COMPONENTS_PER_OCTAVE];
-				uniform float _Phases[MAX_COMPONENTS_PER_OCTAVE];
+				uniform float _Angle;
+				uniform float _Phase;
 
 				float3 frag (v2f i) : SV_Target
 				{
-					float3 result = (float3)0.;
+					float C = ComputeWaveSpeed( _Wavelength );
 
-					for (int j = 0; j < MAX_COMPONENTS_PER_OCTAVE; j++)
-					{
-						if (_Wavelengths[j] == 0.)
-							break;
+					// direction
+					float2 D = float2(cos(PI * _Angle / 180.0), sin(PI * _Angle / 180.0));
+					// wave number
+					float k = 2. * PI / _Wavelength;
 
-						float C = ComputeWaveSpeed(_Wavelengths[j]);
+					float3 result;
 
-						// direction
-						float2 D = float2(cos(PI * _Angles[j] / 180.0), sin(PI * _Angles[j] / 180.0));
-						// wave number
-						float k = 2. * PI / _Wavelengths[j];
+					float x = dot(D, i.worldPos.xz);
+					result.y = _Amplitude * cos(k*(x + C*_MyTime) + _Phase);
+					result.xz = -_Chop * D * _Amplitude * sin(k*(x + C * _MyTime) + _Phase);
 
-						float3 result_i;
-
-						float x = dot(D, i.worldPos.xz);
-						result_i.y = _Amplitudes[j] * cos(k*(x + C*_MyTime) + _Phases[j]);
-						result_i.xz = -_Chop * D * _Amplitudes[j] * sin(k*(x + C * _MyTime) + _Phases[j]);
-
-						result_i *= i.weight.x;
-
-						result += result_i;
-					}
+					result *= i.weight.x;
 
 					return result;
 				}

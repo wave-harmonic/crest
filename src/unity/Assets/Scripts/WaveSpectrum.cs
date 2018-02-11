@@ -6,8 +6,8 @@ namespace Crest
 {
     public class WaveSpectrum : MonoBehaviour
     {
-        const int NUM_OCTAVES = 12;
-        const float SMALLEST_WL_POW_2 = -2f;
+        private const int NUM_OCTAVES = 12;
+        public static readonly float SMALLEST_WL_POW_2 = -2f;
 
         public static readonly float MIN_POWER_LOG = -6f;
         public static readonly float MAX_POWER_LOG = 2f;

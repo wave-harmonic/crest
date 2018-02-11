@@ -55,7 +55,6 @@ Shader "Ocean/Shape/Gerstner Octave"
 					o.worldPos = mul( unity_ObjectToWorld, v.vertex ).xyz;
 					o.weight = v.color;
 
-					//o.weight *= ComputeSortedShapeWeight(_Wavelengths[i]);
 
 					return o;
 				}
@@ -75,6 +74,8 @@ Shader "Ocean/Shape/Gerstner Octave"
 						if (_Wavelengths[j] == 0.)
 							break;
 
+						float wt = ComputeSortedShapeWeight(_Wavelengths[j]);
+
 						float C = ComputeWaveSpeed(_Wavelengths[j]);
 
 						// direction
@@ -88,12 +89,11 @@ Shader "Ocean/Shape/Gerstner Octave"
 						result_i.y = _Amplitudes[j] * cos(k*(x + C*_MyTime) + _Phases[j]);
 						result_i.xz = -_Chop * D * _Amplitudes[j] * sin(k*(x + C * _MyTime) + _Phases[j]);
 
-						result_i *= i.weight.x;
 
-						result += result_i;
+						result += wt * result_i;
 					}
 
-					return result;
+					return i.weight.x * result;
 				}
 
 				ENDCG

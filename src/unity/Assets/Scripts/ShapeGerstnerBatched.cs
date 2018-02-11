@@ -94,19 +94,18 @@ namespace Crest
         }
 
         // for rest of wavelengths, group them into LODs
-        const int MAX_COMPONENTS_PER_OCTAVE = 32;
-        float[] wavelengthsForOctave = new float[MAX_COMPONENTS_PER_OCTAVE];
-        float[] ampsForOctave = new float[MAX_COMPONENTS_PER_OCTAVE];
-        float[] anglesForOctave = new float[MAX_COMPONENTS_PER_OCTAVE];
-        float[] phasesForOctave = new float[MAX_COMPONENTS_PER_OCTAVE];
+        const int BATCH_SIZE = 32;
+        float[] wavelengthsBatch = new float[BATCH_SIZE];
+        float[] ampsBatch = new float[BATCH_SIZE];
+        float[] anglesBatch = new float[BATCH_SIZE];
+        float[] phasesBatch = new float[BATCH_SIZE];
 
-        void UpdateBatch(int octave, int firstComponent, int numInOctave)
+        void UpdateBatch(int lodIdx, int firstComponent, int numComponents)
         {
-            int componentIdx = firstComponent;
             int numInBatch = 0;
 
             // register any nonzero components
-            for( int i = 0; i < numInOctave; i++)
+            for( int i = 0; i < numComponents; i++)
             {
                 float wl = _wavelengths[firstComponent + i];
                 float pow = _spectrum.GetPower(wl);
@@ -115,32 +114,32 @@ namespace Crest
 
                 if( amp >= 0.001f )
                 {
-                    wavelengthsForOctave[numInBatch] = wl;
-                    ampsForOctave[numInBatch] = amp;
-                    anglesForOctave[numInBatch] = _windDirectionAngle + _angleDegs[firstComponent + i];
-                    phasesForOctave[numInBatch] = _phases[firstComponent + i];
+                    wavelengthsBatch[numInBatch] = wl;
+                    ampsBatch[numInBatch] = amp;
+                    anglesBatch[numInBatch] = _windDirectionAngle + _angleDegs[firstComponent + i];
+                    phasesBatch[numInBatch] = _phases[firstComponent + i];
                     numInBatch++;
                 }
             }
 
             if(numInBatch == 0)
             {
-                _renderers[octave].enabled = false;
+                _renderers[lodIdx].enabled = false;
                 return;
             }
 
             // if we didnt fill the batch, put a terminator signal after the last position
-            if( numInBatch < MAX_COMPONENTS_PER_OCTAVE)
+            if( numInBatch < BATCH_SIZE)
             {
-                wavelengthsForOctave[numInBatch] = 0f;
+                wavelengthsBatch[numInBatch] = 0f;
             }
 
-            _renderers[octave].enabled = true;
-            _materials[octave].SetFloatArray("_Wavelengths", wavelengthsForOctave);
-            _materials[octave].SetFloatArray("_Amplitudes", ampsForOctave);
-            _materials[octave].SetFloatArray("_Angles", anglesForOctave);
-            _materials[octave].SetFloatArray("_Phases", phasesForOctave);
-            _materials[octave].SetFloat("_NumInBatch", numInBatch);
+            _renderers[lodIdx].enabled = true;
+            _materials[lodIdx].SetFloatArray("_Wavelengths", wavelengthsBatch);
+            _materials[lodIdx].SetFloatArray("_Amplitudes", ampsBatch);
+            _materials[lodIdx].SetFloatArray("_Angles", anglesBatch);
+            _materials[lodIdx].SetFloatArray("_Phases", phasesBatch);
+            _materials[lodIdx].SetFloat("_NumInBatch", numInBatch);
         }
 
         void LateUpdateMaterials()
@@ -154,8 +153,8 @@ namespace Crest
                 componentIdx++;
             }
 
-            int octave;
-            for (octave = 0; octave < OceanRenderer.Instance._lodCount; octave++, minWl *= 2f)
+            int lod;
+            for (lod = 0; lod < OceanRenderer.Instance._lodCount; lod++, minWl *= 2f)
             {
                 int startCompIdx = componentIdx;
                 while(componentIdx < _wavelengths.Length && _wavelengths[componentIdx] < 2f * minWl)
@@ -163,11 +162,11 @@ namespace Crest
                     componentIdx++;
                 }
 
-                UpdateBatch(octave, startCompIdx, componentIdx - startCompIdx);
+                UpdateBatch(lod, startCompIdx, componentIdx - startCompIdx);
             }
 
             // last batch for waves that did not fit neatly into the lods
-            UpdateBatch(octave, componentIdx, _wavelengths.Length - componentIdx);
+            UpdateBatch(lod, componentIdx, _wavelengths.Length - componentIdx);
         }
 
         float ComputeWaveSpeed(float wavelength/*, float depth*/)

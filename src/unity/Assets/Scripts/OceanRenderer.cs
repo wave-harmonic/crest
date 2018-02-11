@@ -91,8 +91,6 @@ namespace Crest
             Shader.SetGlobalFloat("_EnableSmoothLODs", _enableSmoothLOD ? 1f : 0f); // debug
 
             LateUpdateScale();
-
-            ShapeGerstner.Instance.UpdatePostScaleChange();
         }
 
         void LateUpdateScale()

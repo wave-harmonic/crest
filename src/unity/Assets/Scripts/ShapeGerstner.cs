@@ -86,8 +86,16 @@ namespace Crest
             Random.state = randomStateBkp;
         }
 
-        public void UpdatePostScaleChange()
+        private void LateUpdate()
         {
+            LateUpdateSetLODAssignments();
+        }
+
+        public void LateUpdateSetLODAssignments()
+        {
+            // this could be run only when ocean scale changes. i'm leaving it on every frame in this research code because
+            // that way its completely dynamic and will respond to LOD count changes, etc.
+
             int editorOnlyLayerMask = LayerMask.NameToLayer("EditorOnly");
 
             int lodIdx = 0;

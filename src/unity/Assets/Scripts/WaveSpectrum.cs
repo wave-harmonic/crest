@@ -101,7 +101,9 @@ namespace Crest
 
         public void ApplyPhillipsSpectrum(float windSpeed)
         {
+#if UNITY_EDITOR
             UnityEditor.Undo.RecordObject(this, "Apply Phillips Spectrum");
+#endif
 
             var waves = GetComponent<ShapeGerstner>();
 
@@ -117,7 +119,9 @@ namespace Crest
 
         public void ApplyPiersonMoskowitzSpectrum(float windSpeed)
         {
+#if UNITY_EDITOR
             UnityEditor.Undo.RecordObject(this, "Apply Pierson-Moskowitz Spectrum");
+#endif
 
             for (int octave = 0; octave < NUM_OCTAVES; octave++)
             {
@@ -131,7 +135,9 @@ namespace Crest
 
         public void ApplyJONSWAPSpectrum(float windSpeed)
         {
+#if UNITY_EDITOR
             UnityEditor.Undo.RecordObject(this, "Apply JONSWAP Spectrum");
+#endif
 
             for (int octave = 0; octave < NUM_OCTAVES; octave++)
             {

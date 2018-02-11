@@ -103,7 +103,7 @@ namespace Crest
             float minWl = OceanRenderer.Instance.MaxWavelength(0) / 2f;
             for (int i = 0; i < transform.childCount; i++)
             {
-                if (_wavelengths[i] < minWl || _amplitudes[i]/_wavelengths[i] < 0.001f)
+                if (_wavelengths[i] < minWl || _amplitudes[i] < 0.001f)
                 {
                     transform.GetChild(i).gameObject.layer = editorOnlyLayerMask;
                     continue;
@@ -127,25 +127,8 @@ namespace Crest
                 // Wavelength
                 _materials[i].SetFloat("_Wavelength", _wavelengths[i]);
 
-                float wlCount = 1f;
-                float lowerWavelength = Mathf.Pow(2f, Mathf.Floor(Mathf.Log(_wavelengths[i]) / Mathf.Log(2f)));
-                for (int j = i - 1; j >= 0; j--)
-                {
-                    if (_wavelengths[j] < lowerWavelength)
-                        break;
-
-                    wlCount += 1f;
-                }
-                float upperWavelength = 2f * lowerWavelength;
-                for (int j = i + 1; j < _wavelengths.Length; j++)
-                {
-                    if (_wavelengths[j] >= upperWavelength)
-                        break;
-
-                    wlCount += 1f;
-                }
-
-                float pow = _spectrum.GetPower(_wavelengths[i]) / wlCount;
+                // Amplitude
+                float pow = _spectrum.GetPower(_wavelengths[i]);
                 float period = _wavelengths[i] / ComputeWaveSpeed(_wavelengths[i]);
                 _amplitudes[i] = Mathf.Sqrt(pow / period);
                 _materials[i].SetFloat("_Amplitude", _amplitudes[i]);
@@ -153,6 +136,7 @@ namespace Crest
                 // Direction
                 _materials[i].SetFloat("_Angle", _windDirectionAngle + _angleDegs[i]);
 
+                // Phase
                 _materials[i].SetFloat("_Phase", _phases[i]);
             }
         }

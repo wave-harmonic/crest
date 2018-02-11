@@ -5,9 +5,6 @@ Shader "Ocean/Shape/Gerstner Octave"
 {
 	Properties
 	{
-		_Amplitude ("Amplitude", float) = 1
-		_Wavelength("Wavelength", range(0,180)) = 100
-		_Angle ("Angle", range(-180, 180)) = 0
 	}
 
 	Category

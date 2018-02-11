@@ -70,7 +70,7 @@ namespace Crest
                 return 0f;
             }
 
-            return _amplitudeScale * Mathf.Pow(10f, _powerLog[index]);
+            return _amplitudeScale * Mathf.Pow(10f, _powerLog[index]) / _componentsPerOctave;
         }
 
         public void GenerateWavelengths(ref float[] wavelengths, ref float[] anglesDeg, ref float[] phases)

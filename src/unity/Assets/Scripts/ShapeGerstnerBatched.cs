@@ -29,7 +29,6 @@ namespace Crest
         float[] _wavelengths;
         float[] _angleDegs;
         float[] _phases;
-        float[] _amplitudes;
 
         WaveSpectrum _spectrum;
 
@@ -46,7 +45,7 @@ namespace Crest
 
             _spectrum.GenerateWavelengths(ref _wavelengths, ref _angleDegs, ref _phases);
 
-            if (_materials == null || _materials.Length != _wavelengths.Length)
+            if (_materials == null || _materials.Length != OceanRenderer.Instance._lodCount + 1)
             {
                 InitMaterials();
             }
@@ -68,7 +67,6 @@ namespace Crest
 
             // num octaves plus one, because there is an additional last bucket for large wavelengths
             _materials = new Material[OceanRenderer.Instance._lodCount + 1];
-            _amplitudes = new float[_wavelengths.Length];
 
             for (int i = 0; i < _materials.Length; i++)
             {
@@ -89,6 +87,7 @@ namespace Crest
 
                 MeshRenderer renderer = GO.AddComponent<MeshRenderer>();
                 renderer.material = _materials[i];
+                renderer.allowOcclusionWhenDynamic = false;
             }
         }
 
@@ -116,7 +115,7 @@ namespace Crest
 
             for (int i = 0; i < numInOctave; i++)
             {
-                float pow = _spectrum.GetPower(wavelengthsForOctave[i]) / (float)numInOctave;
+                float pow = _spectrum.GetPower(wavelengthsForOctave[i]);
                 float period = wavelengthsForOctave[i] / ComputeWaveSpeed(wavelengthsForOctave[i]);
                 ampsForOctave[i] = Mathf.Sqrt(pow / period);
 

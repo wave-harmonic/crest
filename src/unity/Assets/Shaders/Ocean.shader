@@ -88,9 +88,6 @@ Shader "Ocean/Ocean"
 					float4 uv = float4(WD_worldToUV(i_samplePos, i_centerPos, i_res, i_texelSize), 0., 0.);
 
 					// do computations for hi-res
-					// hb - hack - these are not displacements for the heightfield wave sims. this needs to be reconciled at some point. if there
-					// is a custom baking pass to combine wave lods together, that might be a good time to convert the heightfields into displacement
-					// format and combine with any other shape.
 					float3 dd = float3(i_geomSquareSize / (i_texelSize*i_res), 0.0, i_geomSquareSize);
 					float4 s = tex2Dlod(i_dispSampler, uv);
 					float4 sx = tex2Dlod(i_dispSampler, uv + dd.xyyy);

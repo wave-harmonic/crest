@@ -185,9 +185,6 @@ namespace Crest
             return cp;
         }
 
-        static ShapeGerstner _instance;
-        public static ShapeGerstner Instance { get { return _instance ?? (_instance = FindObjectOfType<ShapeGerstner>()); } }
-
         public Vector2 WindDir { get { return new Vector2(Mathf.Cos(Mathf.PI * _windDirectionAngle / 180f), Mathf.Sin(Mathf.PI * _windDirectionAngle / 180f)); } }
     }
 }

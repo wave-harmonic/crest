@@ -53,12 +53,7 @@ Shader "Ocean/Shape/Gerstner Octave"
 					o.worldPos = mul( unity_ObjectToWorld, v.vertex ).xyz;
 					o.weight = v.color;
 
-					// if wavelength is too small, kill this quad so that it doesnt render any shape
-					float shapeWt;
-					if (!SamplingIsAppropriate_Gerstner(_Wavelength, shapeWt))
-						o.vertex.xy *= 0.;
-
-					o.weight *= shapeWt;
+					o.weight *= ComputeSortedShapeWeight(_Wavelength);
 
 					return o;
 				}

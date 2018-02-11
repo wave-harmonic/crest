@@ -48,26 +48,22 @@ bool SamplingIsAppropriate(float wavelengthInShape, out float wt)
 	return true;
 }
 
-// this is broken out for gerstner waves, as these manually sorted into the correct LOD resolutions and do not need the full set of checks.
-bool SamplingIsAppropriate_Gerstner(float wavelengthInShape, out float wt)
+// this is similar to the above code but broken out shapes that are known to be assigned to the correct LODS before render, as these do not
+// need the full set of checks. a current example is gerstner waves which are assigned a layer based on their wavelength in ShapeGerstner.cs.
+float ComputeSortedShapeWeight(float wavelengthInShape)
 {
 	const float minWavelength = MinWavelengthForCurrentOrthoCamera();
 
-	const bool smallEnough = wavelengthInShape < 2.*minWavelength;
-	if (smallEnough)
+	if (wavelengthInShape < 2.*minWavelength)
 	{
 		// shape wavelength fits into ideal range, give weight == 1
-		wt = 1.;
-	}
-	else
-	{
-		// wavelength too big for lod. if this is one of the last 2 lods, then we render into both of them and blend
-		// across them. full comments above ^
-		const bool renderingIntoLastLod = minWavelength * 2.01 > _MaxWavelength;
-		wt = renderingIntoLastLod ? _ViewerAltitudeLevelAlpha : 1. - _ViewerAltitudeLevelAlpha;
+		return 1.;
 	}
 
-	return true;
+	// wavelength too big for lod. if this is one of the last 2 lods, then we render into both of them and blend
+	// across them. full comments above ^
+	const bool renderingIntoLastLod = minWavelength * 2.01 > _MaxWavelength;
+	return renderingIntoLastLod ? _ViewerAltitudeLevelAlpha : 1. - _ViewerAltitudeLevelAlpha;
 }
 
 float ComputeWaveSpeed( float wavelength )

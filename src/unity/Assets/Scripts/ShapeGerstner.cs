@@ -134,7 +134,7 @@ namespace Crest
                 _materials[i].SetFloat("_Amplitude", _amplitudes[i]);
 
                 // Direction
-                _materials[i].SetFloat("_Angle", _windDirectionAngle + _angleDegs[i]);
+                _materials[i].SetFloat("_Angle", Mathf.Deg2Rad * (_windDirectionAngle + _angleDegs[i]));
 
                 // Phase
                 _materials[i].SetFloat("_Phase", _phases[i]);

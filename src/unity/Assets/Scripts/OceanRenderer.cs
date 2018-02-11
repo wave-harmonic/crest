@@ -19,7 +19,7 @@ namespace Crest
         [Delayed, Tooltip( "The largest scale the ocean can be (-1 for unlimited)" )]
         public float _maxScale = 128f;
 
-        [Range(0f, 1f)]
+        [Tooltip("Scales horizontal displacement up and down."), Range(0f, 1f)]
         public float _chop = 1f;
 
         [Header( "Debug Params" )]

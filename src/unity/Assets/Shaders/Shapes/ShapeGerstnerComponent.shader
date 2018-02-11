@@ -69,7 +69,7 @@ Shader "Ocean/Shape/Gerstner Component"
 					float C = ComputeWaveSpeed( _Wavelength );
 
 					// direction
-					float2 D = float2(cos(PI * _Angle / 180.0), sin(PI * _Angle / 180.0));
+					float2 D = float2(cos(_Angle), sin(_Angle));
 					// wave number
 					float k = 2. * PI / _Wavelength;
 

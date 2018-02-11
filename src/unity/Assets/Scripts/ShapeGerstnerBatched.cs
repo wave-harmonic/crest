@@ -14,24 +14,32 @@ namespace Crest
         public float _windDirectionAngle = 0f;
         [Tooltip("Wind speed in m/s"), Range(0, 20), HideInInspector]
         public float _windSpeed = 5f;
-        [Tooltip("Choppiness of waves. Treat carefully: If set too high, can cause the geometry to overlap itself."), Range(0f, 2f)]
-        public float _choppiness = 1f;
 
-        [Tooltip("Geometry to rasterise into wave buffers to generate waves.")]
+        [Tooltip("Geometry to rasterize into wave buffers to generate waves.")]
         public Mesh _rasterMesh;
         [Tooltip("Shader to be used to render out a single Gerstner octave.")]
         public Shader _waveShader;
 
         public int _randomSeed = 0;
 
+        // useful references
         Material[] _materials;
         Renderer[] _renderers;
+        WaveSpectrum _spectrum;
 
+        // data for all components
         float[] _wavelengths;
         float[] _angleDegs;
         float[] _phases;
 
-        WaveSpectrum _spectrum;
+        // IMPORTANT - this mirrors the constant with the same name in ShapeGerstnerBatch.shader, both must be updated together!
+        const int BATCH_SIZE = 32;
+
+        // scratch data used by batching code
+        static float[] _wavelengthsBatch = new float[BATCH_SIZE];
+        static float[] _ampsBatch = new float[BATCH_SIZE];
+        static float[] _anglesBatch = new float[BATCH_SIZE];
+        static float[] _phasesBatch = new float[BATCH_SIZE];
 
         void Start()
         {
@@ -46,7 +54,8 @@ namespace Crest
 
             _spectrum.GenerateWavelengths(ref _wavelengths, ref _angleDegs, ref _phases);
 
-            if (_materials == null || _materials.Length != OceanRenderer.Instance._lodCount + 1)
+            if (_materials == null || _materials.Length != OceanRenderer.Instance._lodCount + 1
+                || _renderers == null || _renderers.Length != OceanRenderer.Instance._lodCount + 1)
             {
                 InitMaterials();
             }
@@ -93,13 +102,6 @@ namespace Crest
             }
         }
 
-        // for rest of wavelengths, group them into LODs
-        const int BATCH_SIZE = 32;
-        float[] wavelengthsBatch = new float[BATCH_SIZE];
-        float[] ampsBatch = new float[BATCH_SIZE];
-        float[] anglesBatch = new float[BATCH_SIZE];
-        float[] phasesBatch = new float[BATCH_SIZE];
-
         void UpdateBatch(int lodIdx, int firstComponent, int numComponents)
         {
             int numInBatch = 0;
@@ -114,16 +116,17 @@ namespace Crest
 
                 if( amp >= 0.001f )
                 {
-                    wavelengthsBatch[numInBatch] = wl;
-                    ampsBatch[numInBatch] = amp;
-                    anglesBatch[numInBatch] = _windDirectionAngle + _angleDegs[firstComponent + i];
-                    phasesBatch[numInBatch] = _phases[firstComponent + i];
+                    _wavelengthsBatch[numInBatch] = wl;
+                    _ampsBatch[numInBatch] = amp;
+                    _anglesBatch[numInBatch] = Mathf.Deg2Rad * (_windDirectionAngle + _angleDegs[firstComponent + i]);
+                    _phasesBatch[numInBatch] = _phases[firstComponent + i];
                     numInBatch++;
                 }
             }
 
             if(numInBatch == 0)
             {
+                // no waves to draw - abort
                 _renderers[lodIdx].enabled = false;
                 return;
             }
@@ -131,14 +134,15 @@ namespace Crest
             // if we didnt fill the batch, put a terminator signal after the last position
             if( numInBatch < BATCH_SIZE)
             {
-                wavelengthsBatch[numInBatch] = 0f;
+                _wavelengthsBatch[numInBatch] = 0f;
             }
 
+            // apply the data to the shape material
             _renderers[lodIdx].enabled = true;
-            _materials[lodIdx].SetFloatArray("_Wavelengths", wavelengthsBatch);
-            _materials[lodIdx].SetFloatArray("_Amplitudes", ampsBatch);
-            _materials[lodIdx].SetFloatArray("_Angles", anglesBatch);
-            _materials[lodIdx].SetFloatArray("_Phases", phasesBatch);
+            _materials[lodIdx].SetFloatArray("_Wavelengths", _wavelengthsBatch);
+            _materials[lodIdx].SetFloatArray("_Amplitudes", _ampsBatch);
+            _materials[lodIdx].SetFloatArray("_Angles", _anglesBatch);
+            _materials[lodIdx].SetFloatArray("_Phases", _phasesBatch);
             _materials[lodIdx].SetFloat("_NumInBatch", numInBatch);
         }
 

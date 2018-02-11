@@ -42,10 +42,11 @@ Shader "Ocean/Shape/Gerstner Batch"
 					float3 weight : COLOR0;
 				};
 
-				#define MAX_COMPONENTS_PER_OCTAVE 32
+				// IMPORTANT - this mirrors the constant with the same name in ShapeGerstnerBatched.cs, both must be updated together!
+				#define BATCH_SIZE 32
 
-				uniform float _Wavelengths[MAX_COMPONENTS_PER_OCTAVE];
-				uniform float _Amplitudes[MAX_COMPONENTS_PER_OCTAVE];
+				uniform float _Wavelengths[BATCH_SIZE];
+				uniform float _Amplitudes[BATCH_SIZE];
 
 				v2f vert( appdata_t v )
 				{
@@ -61,14 +62,14 @@ Shader "Ocean/Shape/Gerstner Batch"
 				// respects the gui option to freeze time
 				uniform float _MyTime;
 				uniform float _Chop;
-				uniform float _Angles[MAX_COMPONENTS_PER_OCTAVE];
-				uniform float _Phases[MAX_COMPONENTS_PER_OCTAVE];
+				uniform float _Angles[BATCH_SIZE];
+				uniform float _Phases[BATCH_SIZE];
 
 				float3 frag (v2f i) : SV_Target
 				{
 					float3 result = (float3)0.;
 
-					for (int j = 0; j < MAX_COMPONENTS_PER_OCTAVE; j++)
+					for (int j = 0; j < BATCH_SIZE; j++)
 					{
 						if (_Wavelengths[j] == 0.)
 							break;
@@ -78,7 +79,7 @@ Shader "Ocean/Shape/Gerstner Batch"
 						float C = ComputeWaveSpeed(_Wavelengths[j]);
 
 						// direction
-						float2 D = float2(cos(PI * _Angles[j] / 180.0), sin(PI * _Angles[j] / 180.0));
+						float2 D = float2(cos(_Angles[j]), sin(_Angles[j]));
 						// wave number
 						float k = 2. * PI / _Wavelengths[j];
 

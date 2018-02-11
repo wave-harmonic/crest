@@ -1,10 +1,12 @@
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
-// A single Gerstner Octave
-Shader "Ocean/Shape/Gerstner Octave"
+// A batch of Gerstner components
+Shader "Ocean/Shape/Gerstner Batch"
 {
 	Properties
 	{
+		// This is purely for convenience - it makes the value appear in material section of the inspector and is useful for debugging.
+		_NumInBatch("_NumInBatch", float) = 0
 	}
 
 	Category

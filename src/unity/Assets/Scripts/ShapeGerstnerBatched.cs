@@ -25,6 +25,7 @@ namespace Crest
         public int _randomSeed = 0;
 
         Material[] _materials;
+        Renderer[] _renderers;
 
         float[] _wavelengths;
         float[] _angleDegs;
@@ -67,6 +68,7 @@ namespace Crest
 
             // num octaves plus one, because there is an additional last bucket for large wavelengths
             _materials = new Material[OceanRenderer.Instance._lodCount + 1];
+            _renderers = new Renderer[OceanRenderer.Instance._lodCount + 1];
 
             for (int i = 0; i < _materials.Length; i++)
             {
@@ -85,9 +87,9 @@ namespace Crest
 
                 _materials[i] = new Material(_waveShader);
 
-                MeshRenderer renderer = GO.AddComponent<MeshRenderer>();
-                renderer.material = _materials[i];
-                renderer.allowOcclusionWhenDynamic = false;
+                _renderers[i] = GO.AddComponent<MeshRenderer>();
+                _renderers[i].material = _materials[i];
+                _renderers[i].allowOcclusionWhenDynamic = false;
             }
         }
 
@@ -100,32 +102,45 @@ namespace Crest
 
         void UpdateBatch(int octave, int firstComponent, int numInOctave)
         {
-            for (int i = 0; i < numInOctave; i++)
+            int componentIdx = firstComponent;
+            int numInBatch = 0;
+
+            // register any nonzero components
+            for( int i = 0; i < numInOctave; i++)
             {
-                wavelengthsForOctave[i] = _wavelengths[firstComponent + i];
+                float wl = _wavelengths[firstComponent + i];
+                float pow = _spectrum.GetPower(wl);
+                float period = wl / ComputeWaveSpeed(wl);
+                float amp = Mathf.Sqrt(pow / period);
+
+                if( amp >= 0.001f )
+                {
+                    wavelengthsForOctave[numInBatch] = wl;
+                    ampsForOctave[numInBatch] = amp;
+                    anglesForOctave[numInBatch] = _windDirectionAngle + _angleDegs[firstComponent + i];
+                    phasesForOctave[numInBatch] = _phases[firstComponent + i];
+                    numInBatch++;
+                }
             }
 
-            // zero out any unused elements
-            for (int i = numInOctave; i < wavelengthsForOctave.Length; i++)
+            if(numInBatch == 0)
             {
-                wavelengthsForOctave[i] = 0f;
+                _renderers[octave].enabled = false;
+                return;
             }
 
+            // if we didnt fill the batch, put a terminator signal after the last position
+            if( numInBatch < MAX_COMPONENTS_PER_OCTAVE)
+            {
+                wavelengthsForOctave[numInBatch] = 0f;
+            }
+
+            _renderers[octave].enabled = true;
             _materials[octave].SetFloatArray("_Wavelengths", wavelengthsForOctave);
-
-            for (int i = 0; i < numInOctave; i++)
-            {
-                float pow = _spectrum.GetPower(wavelengthsForOctave[i]);
-                float period = wavelengthsForOctave[i] / ComputeWaveSpeed(wavelengthsForOctave[i]);
-                ampsForOctave[i] = Mathf.Sqrt(pow / period);
-
-                anglesForOctave[i] = _windDirectionAngle + _angleDegs[firstComponent + i];
-                phasesForOctave[i] = _phases[firstComponent + i];
-            }
-
             _materials[octave].SetFloatArray("_Amplitudes", ampsForOctave);
             _materials[octave].SetFloatArray("_Angles", anglesForOctave);
             _materials[octave].SetFloatArray("_Phases", phasesForOctave);
+            _materials[octave].SetFloat("_NumInBatch", numInBatch);
         }
 
         void LateUpdateMaterials()

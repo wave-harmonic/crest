@@ -29,6 +29,7 @@ namespace Crest
 
         // data for all components
         float[] _wavelengths;
+        float[] _amplitudes;
         float[] _angleDegs;
         float[] _phases;
 
@@ -53,6 +54,10 @@ namespace Crest
             Random.InitState(_randomSeed);
 
             _spectrum.GenerateWavelengths(ref _wavelengths, ref _angleDegs, ref _phases);
+            if (_amplitudes == null || _amplitudes.Length != _wavelengths.Length)
+            {
+                _amplitudes = new float[_wavelengths.Length];
+            }
 
             if (_materials == null || _materials.Length != OceanRenderer.Instance._lodCount + 1
                 || _renderers == null || _renderers.Length != OceanRenderer.Instance._lodCount + 1)
@@ -109,17 +114,18 @@ namespace Crest
             // register any nonzero components
             for( int i = 0; i < numComponents; i++)
             {
-                float wl = _wavelengths[firstComponent + i];
+                int globalCompIdx = firstComponent + i;
+                float wl = _wavelengths[globalCompIdx];
                 float pow = _spectrum.GetPower(wl);
                 float period = wl / ComputeWaveSpeed(wl);
-                float amp = Mathf.Sqrt(pow / period);
+                _amplitudes[globalCompIdx] = Mathf.Sqrt(pow / period);
 
-                if( amp >= 0.001f )
+                if(_amplitudes[globalCompIdx] >= 0.001f )
                 {
                     _wavelengthsBatch[numInBatch] = wl;
-                    _ampsBatch[numInBatch] = amp;
-                    _anglesBatch[numInBatch] = Mathf.Deg2Rad * (_windDirectionAngle + _angleDegs[firstComponent + i]);
-                    _phasesBatch[numInBatch] = _phases[firstComponent + i];
+                    _ampsBatch[numInBatch] = _amplitudes[globalCompIdx];
+                    _anglesBatch[numInBatch] = Mathf.Deg2Rad * (_windDirectionAngle + _angleDegs[globalCompIdx]);
+                    _phasesBatch[numInBatch] = _phases[globalCompIdx];
                     numInBatch++;
                 }
             }
@@ -186,5 +192,39 @@ namespace Crest
         }
 
         public Vector2 WindDir { get { return new Vector2(Mathf.Cos(Mathf.PI * _windDirectionAngle / 180f), Mathf.Sin(Mathf.PI * _windDirectionAngle / 180f)); } }
+
+        public Vector3 GetDisplacement(Vector3 worldPos, float toff)
+        {
+            if (_amplitudes == null) return Vector3.zero;
+
+            Vector2 pos = new Vector2(worldPos.x, worldPos.z);
+            float chop = OceanRenderer.Instance._chop;
+            float mytime = OceanRenderer.Instance.ElapsedTime + toff;
+
+            Vector3 result = Vector3.zero;
+
+            for (int j = 0; j < _spectrum.NumComponents; j++)
+            {
+                if (_amplitudes[j] <= 0.001f) continue;
+
+                float C = ComputeWaveSpeed(_wavelengths[j]);
+
+                // direction
+                Vector2 D = new Vector2(Mathf.Cos(_angleDegs[j] * Mathf.Deg2Rad), Mathf.Sin(_angleDegs[j] * Mathf.Deg2Rad));
+                // wave number
+                float k = 2f * Mathf.PI / _wavelengths[j];
+
+                float x = Vector2.Dot(D, pos);
+                float t = k * (x + C * mytime) + _phases[j];
+                float disp = -chop * Mathf.Sin(t);
+                result += _amplitudes[j] * new Vector3(
+                    D.x * disp,
+                    Mathf.Cos(t),
+                    D.y * disp
+                    );
+            }
+
+            return result;
+        }
     }
 }

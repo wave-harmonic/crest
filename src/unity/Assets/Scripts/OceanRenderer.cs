@@ -49,6 +49,8 @@ namespace Crest
 
         // these have been useful for debug purposes (to freeze the water surface only)
         float _elapsedTime = 0f;
+        public float ElapsedTime { get { return _elapsedTime; } }
+
         float _deltaTime = 0f;
 
         float _viewerAltitudeLevelAlpha = 0f;
@@ -75,10 +77,7 @@ namespace Crest
             _deltaTime = 0f;
             if( !_freezeTime )
             {
-                // hack - force simulation to occur at 60fps. this is because the sim stores last and previous values - velocity
-                // is implicit and time step is assumed to be constant
-                _deltaTime = 1f / 60f; // Time.deltaTime
-                _elapsedTime += _deltaTime;
+                _elapsedTime += Time.deltaTime;
             }
 
             // set global shader params

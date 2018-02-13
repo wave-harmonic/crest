@@ -44,7 +44,7 @@ Shader "Ocean/Ocean"
 				{
 					float4 vertex : SV_POSITION;
 					half3 n : TEXCOORD1;
-					half4 determinant_lodAlpha_worldXZUndisplaced : TEXCOORD5;
+					half4 invDeterminant_lodAlpha_worldXZUndisplaced : TEXCOORD5;
 					float3 worldPos : TEXCOORD7;
 					
 					#if defined( DEBUG_SHAPE_SAMPLE )
@@ -106,6 +106,8 @@ Shader "Ocean/Ocean"
 					// < 0: Overlap
 					float4 du = float4(disp_x.xz, disp_z.xz) - disp.xzxz;
 					float det = (du.x * du.w - du.y * du.z) / (dd.z * dd.z);
+					// actually store 1-determinant. This means that when far lod is faded out to 0, this tends to make foam and scatter color etc fade out, instead of getting stronger.
+					det = 1. - det;
 					io_determinant += wt * det;
 
 					//float foam = 0.;
@@ -164,15 +166,15 @@ Shader "Ocean/Ocean"
 
 					// sample shape textures - always lerp between 2 scales, so sample up to two textures
 					o.n = half3(0., 1., 0.);
-					o.determinant_lodAlpha_worldXZUndisplaced.x = 0.;
-					o.determinant_lodAlpha_worldXZUndisplaced.zw = o.worldPos.xz;
+					o.invDeterminant_lodAlpha_worldXZUndisplaced.x = 0.;
+					o.invDeterminant_lodAlpha_worldXZUndisplaced.zw = o.worldPos.xz;
 					// sample weights. params.z allows shape to be faded out (used on last lod to support pop-less scale transitions)
 					float wt_0 = (1. - lodAlpha) * _WD_Params_0.z;
 					float wt_1 = (1.0 - wt_0) * _WD_Params_1.z;
 					// sample displacement textures, add results to current world pos / normal / foam
 					const float2 wxz = o.worldPos.xz;
-					SampleDisplacements( _WD_Sampler_0, _WD_OceanDepth_Sampler_0, _WD_Pos_0, _WD_Params_0.y, _WD_Params_0.x, idealSquareSize, wxz, wt_0, o.worldPos, o.n, o.determinant_lodAlpha_worldXZUndisplaced.x );
-					SampleDisplacements( _WD_Sampler_1, _WD_OceanDepth_Sampler_1, _WD_Pos_1, _WD_Params_1.y, _WD_Params_1.x, idealSquareSize, wxz, wt_1, o.worldPos, o.n, o.determinant_lodAlpha_worldXZUndisplaced.x );
+					SampleDisplacements( _WD_Sampler_0, _WD_OceanDepth_Sampler_0, _WD_Pos_0, _WD_Params_0.y, _WD_Params_0.x, idealSquareSize, wxz, wt_0, o.worldPos, o.n, o.invDeterminant_lodAlpha_worldXZUndisplaced.x );
+					SampleDisplacements( _WD_Sampler_1, _WD_OceanDepth_Sampler_1, _WD_Pos_1, _WD_Params_1.y, _WD_Params_1.x, idealSquareSize, wxz, wt_1, o.worldPos, o.n, o.invDeterminant_lodAlpha_worldXZUndisplaced.x );
 					// debug tinting to see which shape textures are used
 					#if defined( DEBUG_SHAPE_SAMPLE )
 					#define TINT_COUNT (uint)7
@@ -185,7 +187,7 @@ Shader "Ocean/Ocean"
 					o.vertex = mul( UNITY_MATRIX_VP, float4(o.worldPos,1.) );
 
 					// used to blend normals in the fragment shader
-					o.determinant_lodAlpha_worldXZUndisplaced.y = lodAlpha;
+					o.invDeterminant_lodAlpha_worldXZUndisplaced.y = lodAlpha;
 
 					UNITY_TRANSFER_FOG(o,o.vertex);
 
@@ -265,10 +267,11 @@ Shader "Ocean/Ocean"
 
 					// normal - geom + normal mapping
 					half3 n = i.n;
-					ApplyNormalMaps(i.determinant_lodAlpha_worldXZUndisplaced.zw, i.determinant_lodAlpha_worldXZUndisplaced.y, n );
+					ApplyNormalMaps(i.invDeterminant_lodAlpha_worldXZUndisplaced.zw, i.invDeterminant_lodAlpha_worldXZUndisplaced.y, n );
 
-					float scatteredLight = smoothstep(1.5, 0.25, i.determinant_lodAlpha_worldXZUndisplaced.x);
-					col.xyz += .15*half3(0.0, 1.4, 0.4) * scatteredLight;
+					float scatteredLight = .8*smoothstep(2.0, 0.25, 1. - i.invDeterminant_lodAlpha_worldXZUndisplaced.x);
+					scatteredLight *= scatteredLight;
+					col.xyz += .1*half3(0.0, 1.1, 0.4) * scatteredLight;
 
 					// fresnel / reflection
 					half3 view = normalize( _WorldSpaceCameraPos - i.worldPos );
@@ -276,7 +279,7 @@ Shader "Ocean/Ocean"
 					col.xyz = lerp( col.xyz, skyColor, pow( 1. - max( 0., dot( view, n ) ), 8. ) );
 
 					// Foam
-					ApplyFoam( i.determinant_lodAlpha_worldXZUndisplaced.x, i.determinant_lodAlpha_worldXZUndisplaced.zw, n, col.xyz );
+					ApplyFoam( 1. - i.invDeterminant_lodAlpha_worldXZUndisplaced.x, i.invDeterminant_lodAlpha_worldXZUndisplaced.zw, n, col.xyz );
 
 					// Fog
 					UNITY_APPLY_FOG(i.fogCoord, col);

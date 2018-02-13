@@ -1304,7 +1304,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _windDirectionAngle: 0
   _windSpeed: 5
-  _choppiness: 1
   _rasterMesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
   _waveShader: {fileID: 4800000, guid: 680b41329a8923e40a8f9d6ca86f60a8, type: 3}
   _randomSeed: 1

@@ -9,6 +9,12 @@ namespace Crest
     /// </summary>
     public class OceanRenderer : MonoBehaviour
     {
+        [Tooltip("Wind direction (angle from x axis in degrees)"), Range(-180, 180)]
+        public float _windDirectionAngle = 0f;
+        [Tooltip("Wind speed in m/s"), Range(0, 20), HideInInspector]
+        public float _windSpeed = 5f;
+        public Vector2 WindDir { get { return new Vector2(Mathf.Cos(Mathf.PI * _windDirectionAngle / 180f), Mathf.Sin(Mathf.PI * _windDirectionAngle / 180f)); } }
+
         [Range( 0, 15 )]
         [Tooltip( "Min number of verts / shape texels per wave" )]
         public float _minTexelsPerWave = 5f;

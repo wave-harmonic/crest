@@ -10,13 +10,6 @@ namespace Crest
     /// </summary>
     public class ShapeGerstner : MonoBehaviour
     {
-        [Tooltip( "Wind direction (angle from x axis in degrees)" ), Range( -180, 180 )]
-        public float _windDirectionAngle = 0f;
-        [Tooltip( "Wind speed in m/s" ), Range( 0, 20 ), HideInInspector]
-        public float _windSpeed = 5f;
-        [Tooltip( "Choppiness of waves. Treat carefully: If set too high, can cause the geometry to overlap itself." ), Range( 0f, 2f )]
-        public float _choppiness = 1f;
-
         [Tooltip( "Geometry to rasterise into wave buffers to generate waves." )]
         public Mesh _rasterMesh;
         [Tooltip( "Shader to be used to render out a single Gerstner octave." )]
@@ -128,13 +121,12 @@ namespace Crest
                 _materials[i].SetFloat("_Wavelength", _wavelengths[i]);
 
                 // Amplitude
-                float pow = _spectrum.GetPower(_wavelengths[i]);
-                float period = _wavelengths[i] / ComputeWaveSpeed(_wavelengths[i]);
-                _amplitudes[i] = Mathf.Sqrt(pow / period);
+                float amp = _spectrum.GetAmplitude(_wavelengths[i]);
+                _amplitudes[i] = amp;
                 _materials[i].SetFloat("_Amplitude", _amplitudes[i]);
 
                 // Direction
-                _materials[i].SetFloat("_Angle", Mathf.Deg2Rad * (_windDirectionAngle + _angleDegs[i]));
+                _materials[i].SetFloat("_Angle", Mathf.Deg2Rad * (OceanRenderer.Instance._windDirectionAngle + _angleDegs[i]));
 
                 // Phase
                 _materials[i].SetFloat("_Phase", _phases[i]);
@@ -152,7 +144,5 @@ namespace Crest
             float cp = Mathf.Sqrt(g / k);
             return cp;
         }
-
-        public Vector2 WindDir { get { return new Vector2( Mathf.Cos(Mathf.PI* _windDirectionAngle / 180f ), Mathf.Sin(Mathf.PI* _windDirectionAngle / 180f ) ); } }
     }
 }

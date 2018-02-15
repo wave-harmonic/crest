@@ -10,11 +10,6 @@ namespace Crest
     /// </summary>
     public class ShapeGerstnerBatched : MonoBehaviour
     {
-        [Tooltip("Wind direction (angle from x axis in degrees)"), Range(-180, 180)]
-        public float _windDirectionAngle = 0f;
-        [Tooltip("Wind speed in m/s"), Range(0, 20), HideInInspector]
-        public float _windSpeed = 5f;
-
         [Tooltip("Geometry to rasterize into wave buffers to generate waves.")]
         public Mesh _rasterMesh;
         [Tooltip("Shader to be used to render out a single Gerstner octave.")]
@@ -111,15 +106,13 @@ namespace Crest
             for( int i = 0; i < numComponents; i++)
             {
                 float wl = _wavelengths[firstComponent + i];
-                float pow = _spectrum.GetPower(wl);
-                float period = wl / ComputeWaveSpeed(wl);
-                float amp = Mathf.Sqrt(pow / period);
+                float amp = _spectrum.GetAmplitude(wl);
 
                 if( amp >= 0.001f )
                 {
                     _wavelengthsBatch[numInBatch] = wl;
                     _ampsBatch[numInBatch] = amp;
-                    _anglesBatch[numInBatch] = Mathf.Deg2Rad * (_windDirectionAngle + _angleDegs[firstComponent + i]);
+                    _anglesBatch[numInBatch] = Mathf.Deg2Rad * (OceanRenderer.Instance._windDirectionAngle + _angleDegs[firstComponent + i]);
                     _phasesBatch[numInBatch] = _phases[firstComponent + i];
                     numInBatch++;
                 }
@@ -185,7 +178,5 @@ namespace Crest
             float cp = Mathf.Sqrt(g / k);
             return cp;
         }
-
-        public Vector2 WindDir { get { return new Vector2(Mathf.Cos(Mathf.PI * _windDirectionAngle / 180f), Mathf.Sin(Mathf.PI * _windDirectionAngle / 180f)); } }
     }
 }

@@ -8,9 +8,21 @@ namespace Crest
     [CustomEditor( typeof(WaveSpectrum) )]
     public class WaveSpectrumEditor : Editor
     {
+        private static GUIStyle ToggleButtonStyleNormal = null;
+        private static GUIStyle ToggleButtonStyleToggled = null;
+
         public override void OnInspectorGUI()
         {
             base.OnInspectorGUI();
+
+            // preamble - styles for toggle buttons. this code and the below was based off the useful info provided by user Lasse here:
+            // https://gamedev.stackexchange.com/questions/98920/how-do-i-create-a-toggle-button-in-unity-inspector
+            if (ToggleButtonStyleNormal == null)
+            {
+                ToggleButtonStyleNormal = "Button";
+                ToggleButtonStyleToggled = new GUIStyle(ToggleButtonStyleNormal);
+                ToggleButtonStyleToggled.normal.background = ToggleButtonStyleToggled.active.background;
+            }
 
             EditorGUILayout.Space();
 
@@ -59,7 +71,7 @@ namespace Crest
             EditorGUILayout.BeginHorizontal();
             var spWindSpeed = serializedObject.FindProperty("_windSpeed");
             float spd_kmh = spWindSpeed.floatValue * 3.6f;
-            EditorGUILayout.LabelField("Wind speed", GUILayout.Width(70f));
+            EditorGUILayout.LabelField("Wind speed (km/h)", GUILayout.Width(120f));
             spd_kmh = EditorGUILayout.Slider(spd_kmh, 0f, 60f);
             spWindSpeed.floatValue = spd_kmh / 3.6f;
             EditorGUILayout.EndHorizontal();
@@ -67,21 +79,38 @@ namespace Crest
 
             // descriptions from this very useful paper: https://hal.archives-ouvertes.fr/file/index/docid/307938/filename/frechot_realistic_simulation_of_ocean_surface_using_wave_spectra.pdf
 
-            if (GUILayout.Button(new GUIContent("Phillips", "Base of modern parametric wave spectra")))
+            if (GUILayout.Button(new GUIContent("Phillips", "Base of modern parametric wave spectra"), WaveSpectrum._applyPhillipsSpectrum ? ToggleButtonStyleToggled : ToggleButtonStyleNormal))
+            {
+                WaveSpectrum._applyPhillipsSpectrum = !WaveSpectrum._applyPhillipsSpectrum;
+            }
+            if (WaveSpectrum._applyPhillipsSpectrum)
             {
                 spec.ApplyPhillipsSpectrum(spWindSpeed.floatValue);
             }
 
-            if (GUILayout.Button(new GUIContent("Pierson-Moskowitz", "Fully developed sea with infinite fetch")))
+            if (GUILayout.Button(new GUIContent("Pierson-Moskowitz", "Fully developed sea with infinite fetch"), WaveSpectrum._applyPiersonMoskowitzSpectrum ? ToggleButtonStyleToggled : ToggleButtonStyleNormal))
+            {
+                WaveSpectrum._applyPiersonMoskowitzSpectrum = !WaveSpectrum._applyPiersonMoskowitzSpectrum;
+            }
+            if (WaveSpectrum._applyPiersonMoskowitzSpectrum)
             {
                 spec.ApplyPiersonMoskowitzSpectrum(spWindSpeed.floatValue);
             }
+
+
+
 
             EditorGUILayout.BeginHorizontal();
             var spFetch = serializedObject.FindProperty("_fetch");
             spFetch.floatValue = EditorGUILayout.Slider("Fetch", spFetch.floatValue, 0f, 1000000f);
             EditorGUILayout.EndHorizontal();
-            if (GUILayout.Button(new GUIContent("JONSWAP", "Fetch limited sea where waves continue to grow")))
+
+
+            if (GUILayout.Button(new GUIContent("JONSWAP", "Fetch limited sea where waves continue to grow"), WaveSpectrum._applyJONSWAPSpectrum ? ToggleButtonStyleToggled : ToggleButtonStyleNormal))
+            {
+                WaveSpectrum._applyJONSWAPSpectrum = !WaveSpectrum._applyJONSWAPSpectrum;
+            }
+            if (WaveSpectrum._applyJONSWAPSpectrum)
             {
                 spec.ApplyJONSWAPSpectrum(spWindSpeed.floatValue);
             }

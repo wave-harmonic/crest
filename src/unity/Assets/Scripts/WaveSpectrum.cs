@@ -23,9 +23,6 @@ namespace Crest
         [HideInInspector]
         public bool[] _powerEnabled = new bool[NUM_OCTAVES];
 
-        [Range(0f, 2f)]
-        public float _amplitudeScale = 1f;
-
         [HideInInspector]
         public float _windSpeed = 5f;
 
@@ -46,7 +43,7 @@ namespace Crest
         public float SmallWavelength(float octaveIndex) { return Mathf.Pow(2f, SMALLEST_WL_POW_2 + octaveIndex); }
         public float LargeWavelength(float octaveIndex) { return Mathf.Pow(2f, SMALLEST_WL_POW_2 + octaveIndex + 1f); }
 
-        public float GetPower(float wavelength)
+        public float GetAmplitude(float wavelength)
         {
             if (wavelength <= 0.001f)
             {
@@ -70,7 +67,31 @@ namespace Crest
                 return 0f;
             }
 
-            return _amplitudeScale * Mathf.Pow(10f, _powerLog[index]) / _componentsPerOctave;
+            // The amplitude calculation follows this nice paper from Frechot:
+            // https://hal.archives-ouvertes.fr/file/index/docid/307938/filename/frechot_realistic_simulation_of_ocean_surface_using_wave_spectra.pdf
+            float wl_lo = Mathf.Pow(2f, Mathf.Floor(wl_pow2));
+            float k_lo = 2f * Mathf.PI / wl_lo;
+            float omega_lo = k_lo * ComputeWaveSpeed(wl_lo);
+            float wl_hi = 2f * wl_lo;
+            float k_hi = 2f * Mathf.PI / wl_hi;
+            float omega_hi = k_hi * ComputeWaveSpeed(wl_hi);
+
+            float domega = (omega_lo - omega_hi) / _componentsPerOctave;
+
+            float a_2 = 2f * Mathf.Pow(10f, _powerLog[index]) * domega;
+            return Mathf.Sqrt(a_2);
+        }
+
+        float ComputeWaveSpeed(float wavelength/*, float depth*/)
+        {
+            // wave speed of deep sea ocean waves: https://en.wikipedia.org/wiki/Wind_wave
+            // https://en.wikipedia.org/wiki/Dispersion_(water_waves)#Wave_propagation_and_dispersion
+            float g = 9.81f;
+            float k = 2f * Mathf.PI / wavelength;
+            //float h = max(depth, 0.01);
+            //float cp = sqrt(abs(tanh_clamped(h * k)) * g / k);
+            float cp = Mathf.Sqrt(g / k);
+            return cp;
         }
 
         public void GenerateWavelengths(ref float[] wavelengths, ref float[] anglesDeg, ref float[] phases)
@@ -99,23 +120,25 @@ namespace Crest
             }
         }
 
+        public static bool _applyPhillipsSpectrum = false;
+
         public void ApplyPhillipsSpectrum(float windSpeed)
         {
 #if UNITY_EDITOR
             UnityEditor.Undo.RecordObject(this, "Apply Phillips Spectrum");
 #endif
 
-            var waves = GetComponent<ShapeGerstner>();
-
             for (int octave = 0; octave < NUM_OCTAVES; octave++)
             {
                 float wl = SmallWavelength(octave) * 1.5f;
-                var pow = PhillipsSpectrum(windSpeed, waves.WindDir, Mathf.Abs(Physics.gravity.y), Mathf.Pow(2f, SMALLEST_WL_POW_2), wl, 0f);
+                var pow = PhillipsSpectrum(windSpeed, OceanRenderer.Instance.WindDir, Mathf.Abs(Physics.gravity.y), Mathf.Pow(2f, SMALLEST_WL_POW_2), wl, 0f);
                 // we store power on logarithmic scale. this does not include 0, we represent 0 as min value
                 pow = Mathf.Max(pow, Mathf.Pow(10f, MIN_POWER_LOG));
                 _powerLog[octave] = Mathf.Log10(pow);
             }
         }
+
+        public static bool _applyPiersonMoskowitzSpectrum = false;
 
         public void ApplyPiersonMoskowitzSpectrum(float windSpeed)
         {
@@ -132,6 +155,8 @@ namespace Crest
                 _powerLog[octave] = Mathf.Log10(pow);
             }
         }
+
+        public static bool _applyJONSWAPSpectrum = false;
 
         public void ApplyJONSWAPSpectrum(float windSpeed)
         {

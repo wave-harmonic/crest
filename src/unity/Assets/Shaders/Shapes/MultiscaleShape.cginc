@@ -50,20 +50,30 @@ bool SamplingIsAppropriate(float wavelengthInShape, out float wt)
 
 // this is similar to the above code but broken out shapes that are known to be assigned to the correct LODS before render, as these do not
 // need the full set of checks. a current example is gerstner waves which are assigned a layer based on their wavelength in ShapeGerstner.cs.
+// large wavelengths that do not fit in the lod chain naturally are rendered into the largest lods - this is inefficient but ensures their
+// (important) contribution to the shape is always present. to 100% avoid pops, they are shifted smoothly between the last two lods so there
+// is not pop when the lod chain scale changes due to sampling changes when a set of waves suddenly moves from one sampling resolution to another.
 float ComputeSortedShapeWeight(float wavelengthInShape)
 {
 	const float minWavelength = MinWavelengthForCurrentOrthoCamera();
 
-	if (wavelengthInShape < 2.*minWavelength)
+	const bool renderingIntoLastTwoLods = minWavelength * 4.01 > _MaxWavelength;
+	if (!renderingIntoLastTwoLods)
 	{
-		// shape wavelength fits into ideal range, give weight == 1
+		// no special weighting needed for any lods except the last 2
 		return 1.;
 	}
 
-	// wavelength too big for lod. if this is one of the last 2 lods, then we render into both of them and blend
-	// across them. full comments above ^
 	const bool renderingIntoLastLod = minWavelength * 2.01 > _MaxWavelength;
-	return renderingIntoLastLod ? _ViewerAltitudeLevelAlpha : 1. - _ViewerAltitudeLevelAlpha;
+	if (renderingIntoLastLod)
+	{
+		// example: fade out the last lod as viewer drops in altitude, so there is no pop when the lod chain shifts in scale
+		return _ViewerAltitudeLevelAlpha;
+	}
+
+	// rendering to second-to-last lod. nothing required unless we are dealing with large wavelengths, which we want to transition into
+	// this second-to-last lod when the viewer drops in altitude, ready for a seemless transition when the lod chain shifts in scale
+	return wavelengthInShape < 2.*minWavelength ? 1. : 1. - _ViewerAltitudeLevelAlpha;
 }
 
 float ComputeWaveSpeed( float wavelength )

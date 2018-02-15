@@ -54,8 +54,8 @@ namespace Crest
 
             _spectrum.GenerateWavelengths(ref _wavelengths, ref _angleDegs, ref _phases);
 
-            if (_materials == null || _materials.Length != OceanRenderer.Instance._lodCount + 1
-                || _renderers == null || _renderers.Length != OceanRenderer.Instance._lodCount + 1)
+            if (_materials == null || _materials.Length != OceanRenderer.Instance._lodCount
+                || _renderers == null || _renderers.Length != OceanRenderer.Instance._lodCount)
             {
                 InitMaterials();
             }
@@ -76,14 +76,14 @@ namespace Crest
             }
 
             // num octaves plus one, because there is an additional last bucket for large wavelengths
-            _materials = new Material[OceanRenderer.Instance._lodCount + 1];
-            _renderers = new Renderer[OceanRenderer.Instance._lodCount + 1];
+            _materials = new Material[OceanRenderer.Instance._lodCount];
+            _renderers = new Renderer[OceanRenderer.Instance._lodCount];
 
             for (int i = 0; i < _materials.Length; i++)
             {
                 string postfix = i < _materials.Length - 1 ? i.ToString() : "BigWavelengths";
 
-                GameObject GO = new GameObject(string.Format("Octave {0}", postfix));
+                GameObject GO = new GameObject(string.Format("Batch {0}", postfix));
                 GO.layer = i < _materials.Length - 1 ? LayerMask.NameToLayer("WaveData" + i.ToString()) : LayerMask.NameToLayer("WaveDataBigWavelengths");
 
                 MeshFilter meshFilter = GO.AddComponent<MeshFilter>();
@@ -102,8 +102,9 @@ namespace Crest
             }
         }
 
-        void UpdateBatch(int lodIdx, int firstComponent, int numComponents)
+        void UpdateBatch(int lodIdx, int firstComponent, int lastComponentNonInc)
         {
+            int numComponents = lastComponentNonInc - firstComponent;
             int numInBatch = 0;
 
             // register any nonzero components
@@ -157,8 +158,8 @@ namespace Crest
                 componentIdx++;
             }
 
-            int lod;
-            for (lod = 0; lod < OceanRenderer.Instance._lodCount; lod++, minWl *= 2f)
+            // batch together appropriate wavelengths for each lod, except the last lod, which are handled separately below
+            for (int lod = 0; lod < OceanRenderer.Instance._lodCount - 1; lod++, minWl *= 2f)
             {
                 int startCompIdx = componentIdx;
                 while(componentIdx < _wavelengths.Length && _wavelengths[componentIdx] < 2f * minWl)
@@ -166,11 +167,11 @@ namespace Crest
                     componentIdx++;
                 }
 
-                UpdateBatch(lod, startCompIdx, componentIdx - startCompIdx);
+                UpdateBatch(lod, startCompIdx, componentIdx);
             }
 
-            // last batch for waves that did not fit neatly into the lods
-            UpdateBatch(lod, componentIdx, _wavelengths.Length - componentIdx);
+            // the last batch handles waves for the last lod, and waves that did not fit in the last lod
+            UpdateBatch(OceanRenderer.Instance._lodCount - 1, componentIdx, _wavelengths.Length);
         }
 
         float ComputeWaveSpeed(float wavelength/*, float depth*/)

@@ -271,7 +271,7 @@ Shader "Ocean/Ocean"
 
 					float scatteredLight = .8*smoothstep(2.0, 0.25, 1. - i.invDeterminant_lodAlpha_worldXZUndisplaced.x);
 					scatteredLight *= scatteredLight;
-					col.xyz += .1*half3(0.0, 1.1, 0.4) * scatteredLight;
+					col.xyz += .2*half3(0.0, 1.1, 0.4) * scatteredLight;
 
 					// fresnel / reflection
 					half3 view = normalize( _WorldSpaceCameraPos - i.worldPos );

@@ -94,9 +94,11 @@ namespace Crest
             return cp;
         }
 
+        public int NumComponents { get { return NUM_OCTAVES * _componentsPerOctave; } }
+
         public void GenerateWavelengths(ref float[] wavelengths, ref float[] anglesDeg, ref float[] phases)
         {
-            int totalComponents = NUM_OCTAVES * _componentsPerOctave;
+            int totalComponents = NumComponents;
 
             if (wavelengths == null || wavelengths.Length != totalComponents) wavelengths = new float[totalComponents];
             if (anglesDeg == null || anglesDeg.Length != totalComponents) anglesDeg = new float[totalComponents];

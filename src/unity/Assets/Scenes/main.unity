@@ -385,7 +385,7 @@ Transform:
   - {fileID: 1006421161}
   - {fileID: 1080370025}
   m_Father: {fileID: 0}
-  m_RootOrder: 5
+  m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &163298331
 GameObject:
@@ -3361,6 +3361,7 @@ GameObject:
   - component: {fileID: 1866213578}
   - component: {fileID: 1866213581}
   - component: {fileID: 1866213579}
+  - component: {fileID: 1866213580}
   m_Layer: 8
   m_Name: OceanWavesBatched
   m_TagString: Untagged
@@ -3410,6 +3411,57 @@ MonoBehaviour:
   _powerEnabled: 010101010101010101010101
   _windSpeed: 5
   _fetch: 1000000
+--- !u!114 &1866213580
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1866213577}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c05329bb2141cfe4e875f5050dc226d4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _markers:
+  - {fileID: 437775863}
+  - {fileID: 1790286261}
+  - {fileID: 286766529}
+  - {fileID: 720162747}
+  - {fileID: 709575472}
+  - {fileID: 2023784226}
+  - {fileID: 2016964361}
+  - {fileID: 30420707}
+  - {fileID: 1047370369}
+  - {fileID: 174149418}
+  - {fileID: 1461043345}
+  - {fileID: 1829388575}
+  - {fileID: 1360835738}
+  - {fileID: 776260429}
+  - {fileID: 181154306}
+  - {fileID: 853952180}
+  - {fileID: 1857483011}
+  - {fileID: 1443779649}
+  - {fileID: 144052367}
+  - {fileID: 234503890}
+  - {fileID: 215503470}
+  - {fileID: 135505581}
+  - {fileID: 1952115060}
+  - {fileID: 541180016}
+  - {fileID: 1129902842}
+  - {fileID: 1603564577}
+  - {fileID: 316195559}
+  - {fileID: 448739502}
+  - {fileID: 1195081063}
+  - {fileID: 774665641}
+  - {fileID: 1985992219}
+  - {fileID: 1006421161}
+  - {fileID: 1080370025}
+  _particles: {fileID: 198469713140804422, guid: ba3f1c2c283de1f4cac56461315564ea,
+    type: 2}
+  _emitThresh: 0.7
+  _maxTimeStationary: 0.1
+  _minYVel: 2
+  _showPoints: 0
 --- !u!114 &1866213581
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3810,83 +3862,3 @@ MonoBehaviour:
   _rasterMesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
   _waveShader: {fileID: 4800000, guid: d2fb348f3f7dd994ba79a1c143a26fb6, type: 3}
   _randomSeed: 1
---- !u!1 &2139476774
-GameObject:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  serializedVersion: 5
-  m_Component:
-  - component: {fileID: 2139476776}
-  - component: {fileID: 2139476775}
-  m_Layer: 0
-  m_Name: OceanFX
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &2139476775
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 2139476774}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c05329bb2141cfe4e875f5050dc226d4, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _markers:
-  - {fileID: 437775863}
-  - {fileID: 1790286261}
-  - {fileID: 286766529}
-  - {fileID: 720162747}
-  - {fileID: 709575472}
-  - {fileID: 2023784226}
-  - {fileID: 2016964361}
-  - {fileID: 30420707}
-  - {fileID: 1047370369}
-  - {fileID: 174149418}
-  - {fileID: 1461043345}
-  - {fileID: 1829388575}
-  - {fileID: 1360835738}
-  - {fileID: 776260429}
-  - {fileID: 181154306}
-  - {fileID: 853952180}
-  - {fileID: 1857483011}
-  - {fileID: 1443779649}
-  - {fileID: 144052367}
-  - {fileID: 234503890}
-  - {fileID: 215503470}
-  - {fileID: 135505581}
-  - {fileID: 1952115060}
-  - {fileID: 541180016}
-  - {fileID: 1129902842}
-  - {fileID: 1603564577}
-  - {fileID: 316195559}
-  - {fileID: 448739502}
-  - {fileID: 1195081063}
-  - {fileID: 774665641}
-  - {fileID: 1985992219}
-  - {fileID: 1006421161}
-  - {fileID: 1080370025}
-  _particles: {fileID: 198469713140804422, guid: ba3f1c2c283de1f4cac56461315564ea,
-    type: 2}
-  _emitThresh: 0.7
-  _maxTimeStationary: 0.1
-  _minYVel: 2
-  _showPoints: 0
---- !u!4 &2139476776
-Transform:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 2139476774}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_RootOrder: 4
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}

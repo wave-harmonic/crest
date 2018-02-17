@@ -81,9 +81,7 @@ namespace Crest
             _deltaTime = 0f;
             if( !_freezeTime )
             {
-                // hack - force simulation to occur at 60fps. this is because the sim stores last and previous values - velocity
-                // is implicit and time step is assumed to be constant
-                _deltaTime = 1f / 60f; // Time.deltaTime
+                _deltaTime = Time.deltaTime;
                 _elapsedTime += _deltaTime;
             }
 

@@ -63,7 +63,6 @@ namespace Crest
                 //float4 du = float4(disp_x.xz, disp_z.xz) - disp.xzxz;
                 //Vector4 du = new Vector4()
                 float det = (dux * duw - duy * duz) / (ss * ss);
-                //_marker.GetComponent<Renderer>().material.color = Color.white * (1f - det);
                 det = Mathf.InverseLerp(1.6f, 0f, det);
 
                 float dt = 1f / 60f;
@@ -71,45 +70,23 @@ namespace Crest
                 Vector3 disp_tp = _gerstner.GetDisplacement(pt, dt);
                 Vector3 vel = (disp_tp - disp) / dt;
                 //float yacc = (disp_tm.y + disp_tp.y - 2f * disp.y) / (dt * dt);
-                //float accScale = 0.2f;
-                //yacc *= accScale;
 
-                float col = det; // * -yacc;
-
-                if (col < _emitThresh || vel.y < _minYVel)
+                if (det >= _emitThresh && vel.y >= _minYVel)
                 {
-                    col = 0f;
-                }
-                else
-                {
-                    col = 1f;
-
-                    //ParticleSystem.EmitParams emitParams = new ParticleSystem.EmitParams();
-
-                    //emitParams.position = marker.transform.position + Random.onUnitSphere * 0.5f;
-
-                    //Vector3 v = _yVelMul * vel;
-                    //v += addVel;
-                    //v.y = Mathf.Abs(v.y);
-                    //v += 0.4f * Random.onUnitSphere;
-                    //emitParams.velocity = _yVelMul * vel;
-                    //_particles.Emit(emitParams, 1);
-
-                    //new Vector3(rad * 2f * (Random.value - 0.5f), 0f, rad * 2f * (Random.value - 0.5f));
-                    //_particles.Emit(marker.transform.position, Vector3.up * 10f, 1f, 1f, Color.white);
-                    MoveRand(i);
-
                     var ps = Instantiate(_particles.transform);
                     ps.position = marker.transform.position;
                     ps.LookAt(ps.position + Vector3.Lerp(Vector3.up, vel, Random.value));
+                    ps.GetComponent<TrackOceanSurface>()._basePosition = basePositions[i];
+
+                    MoveRand(i);
+                }
+                else if (TimeSinceMove(i) > _maxTimeStationary)
+                {
+                    MoveRand(i);
                 }
 
                 Renderer rend = marker.GetComponent<Renderer>();
                 rend.enabled = _showPoints;
-                rend.material.color = Color.white * col;
-
-                if (TimeSinceMove(i) > _maxTimeStationary)
-                    MoveRand(i);
             }
         }
 

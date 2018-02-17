@@ -3458,9 +3458,9 @@ MonoBehaviour:
   - {fileID: 1080370025}
   _particles: {fileID: 198469713140804422, guid: ba3f1c2c283de1f4cac56461315564ea,
     type: 2}
-  _emitThresh: 0.7
-  _maxTimeStationary: 0.1
-  _minYVel: 2
+  _emitThresh: 0.5
+  _maxTimeStationary: 0.06
+  _minYVel: 3
   _showPoints: 0
 --- !u!114 &1866213581
 MonoBehaviour:

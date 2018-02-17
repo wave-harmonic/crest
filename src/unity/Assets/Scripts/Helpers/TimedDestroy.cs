@@ -16,6 +16,8 @@ namespace Crest
 
         public float m_scaleToZeroDuration = 0.0f;
 
+        public ParticleSystem _waitForParticles;
+
         Vector3 m_scale;
         float m_birthTime;
 
@@ -32,6 +34,10 @@ namespace Crest
             if( age >= m_lifeTime )
             {
                 Destroy( gameObject );
+            }
+            else if(_waitForParticles != null && age > _waitForParticles.main.startLifetime.constant + _waitForParticles.main.duration)
+            {
+                Destroy(gameObject);
             }
             else if( age > m_lifeTime - m_scaleToZeroDuration )
             {

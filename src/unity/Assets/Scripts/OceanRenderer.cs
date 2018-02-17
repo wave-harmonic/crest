@@ -55,6 +55,7 @@ namespace Crest
 
         // these have been useful for debug purposes (to freeze the water surface only)
         float _elapsedTime = 0f;
+        public float ElapsedTime { get { return _elapsedTime; } }
         float _deltaTime = 0f;
 
         float _viewerAltitudeLevelAlpha = 0f;

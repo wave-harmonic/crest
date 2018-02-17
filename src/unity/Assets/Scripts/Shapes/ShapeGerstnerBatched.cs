@@ -204,7 +204,7 @@ namespace Crest
 
             Vector3 result = Vector3.zero;
 
-            for (int j = 0; j < _spectrum.NumComponents; j++)
+            for (int j = 0; j < _amplitudes.Length; j++)
             {
                 if (_amplitudes[j] <= 0.001f) continue;
 

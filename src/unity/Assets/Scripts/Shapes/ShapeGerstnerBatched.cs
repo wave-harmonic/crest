@@ -24,6 +24,7 @@ namespace Crest
 
         // data for all components
         float[] _wavelengths;
+        float[] _amplitudes;
         float[] _angleDegs;
         float[] _phases;
 
@@ -48,6 +49,10 @@ namespace Crest
             Random.InitState(_randomSeed);
 
             _spectrum.GenerateWavelengths(ref _wavelengths, ref _angleDegs, ref _phases);
+            if (_amplitudes == null || _amplitudes.Length != _wavelengths.Length)
+            {
+                _amplitudes = new float[_wavelengths.Length];
+            }
 
             if (_materials == null || _materials.Length != OceanRenderer.Instance._lodCount
                 || _renderers == null || _renderers.Length != OceanRenderer.Instance._lodCount)
@@ -56,11 +61,6 @@ namespace Crest
             }
 
             Random.state = randomStateBkp;
-        }
-
-        private void LateUpdate()
-        {
-            LateUpdateMaterials();
         }
 
         void InitMaterials()
@@ -97,6 +97,21 @@ namespace Crest
             }
         }
 
+        private void LateUpdate()
+        {
+            LateUpdateAmplitudes();
+
+            LateUpdateMaterials();
+        }
+
+        void LateUpdateAmplitudes()
+        {
+            for( int i = 0; i < _wavelengths.Length; i++ )
+            {
+                _amplitudes[i] = _spectrum.GetAmplitude(_wavelengths[i]);
+            }
+        }
+
         void UpdateBatch(int lodIdx, int firstComponent, int lastComponentNonInc)
         {
             int numComponents = lastComponentNonInc - firstComponent;
@@ -106,7 +121,7 @@ namespace Crest
             for( int i = 0; i < numComponents; i++)
             {
                 float wl = _wavelengths[firstComponent + i];
-                float amp = _spectrum.GetAmplitude(wl);
+                float amp = _amplitudes[firstComponent + i];
 
                 if( amp >= 0.001f )
                 {
@@ -177,6 +192,40 @@ namespace Crest
             //float cp = sqrt(abs(tanh_clamped(h * k)) * g / k);
             float cp = Mathf.Sqrt(g / k);
             return cp;
+        }
+
+        public Vector3 GetDisplacement(Vector3 worldPos, float toff)
+        {
+            if (_amplitudes == null) return Vector3.zero;
+
+            Vector2 pos = new Vector2(worldPos.x, worldPos.z);
+            float chop = OceanRenderer.Instance._chop;
+            float mytime = OceanRenderer.Instance.ElapsedTime + toff;
+
+            Vector3 result = Vector3.zero;
+
+            for (int j = 0; j < _spectrum.NumComponents; j++)
+            {
+                if (_amplitudes[j] <= 0.001f) continue;
+
+                float C = ComputeWaveSpeed(_wavelengths[j]);
+
+                // direction
+                Vector2 D = new Vector2(Mathf.Cos(_angleDegs[j] * Mathf.Deg2Rad), Mathf.Sin(_angleDegs[j] * Mathf.Deg2Rad));
+                // wave number
+                float k = 2f * Mathf.PI / _wavelengths[j];
+
+                float x = Vector2.Dot(D, pos);
+                float t = k * (x + C * mytime) + _phases[j];
+                float disp = -chop * Mathf.Sin(t);
+                result += _amplitudes[j] * new Vector3(
+                    D.x * disp,
+                    Mathf.Cos(t),
+                    D.y * disp
+                    );
+            }
+
+            return result;
         }
     }
 }

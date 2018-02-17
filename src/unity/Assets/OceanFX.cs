@@ -42,6 +42,11 @@ namespace Crest
                 Vector3 disp = _gerstner.GetDisplacement(pt, 0f);
                 marker.position = pt + disp;
 
+                if (_showPoints)
+                {
+                    Debug.DrawLine(pt, pt + disp);
+                }
+
                 Vector3 disp_x = Vector3.right * ss;
                 Vector3 disp_z = Vector3.forward * ss;
                 disp_x += _gerstner.GetDisplacement(disp_x + pt, 0f);

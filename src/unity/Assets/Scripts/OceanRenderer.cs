@@ -145,6 +145,19 @@ namespace Crest
             return 2f * maxTexelSize * _minTexelsPerWave;
         }
 
+        public int GetLodIndex(float gridSize)
+        {
+            //gridSize = 4f * transform.lossyScale.x * Mathf.Pow(2f, result) / (4f * _baseVertDensity);
+            int result = Mathf.RoundToInt(Mathf.Log((4f * _baseVertDensity) * gridSize / (4f * transform.lossyScale.x)) / Mathf.Log(2f));
+
+            if (result < 0 || result >= _lodCount)
+            {
+                result = -1;
+            }
+
+            return result;
+        }
+
         public bool ScaleCouldIncrease { get { return _maxScale == -1f || transform.localScale.x < _maxScale * 0.99f; } }
         public bool ScaleCouldDecrease { get { return _minScale == -1f || transform.localScale.x > _minScale * 1.01f; } }
 

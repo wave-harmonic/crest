@@ -85,6 +85,8 @@ namespace Crest
             }
             if (WaveSpectrum._applyPhillipsSpectrum)
             {
+                WaveSpectrum._applyJONSWAPSpectrum = WaveSpectrum._applyPiersonMoskowitzSpectrum = false;
+
                 spec.ApplyPhillipsSpectrum(spWindSpeed.floatValue);
             }
 
@@ -94,11 +96,10 @@ namespace Crest
             }
             if (WaveSpectrum._applyPiersonMoskowitzSpectrum)
             {
+                WaveSpectrum._applyJONSWAPSpectrum = WaveSpectrum._applyPhillipsSpectrum = false;
+
                 spec.ApplyPiersonMoskowitzSpectrum(spWindSpeed.floatValue);
             }
-
-
-
 
             EditorGUILayout.BeginHorizontal();
             var spFetch = serializedObject.FindProperty("_fetch");
@@ -112,6 +113,8 @@ namespace Crest
             }
             if (WaveSpectrum._applyJONSWAPSpectrum)
             {
+                WaveSpectrum._applyPiersonMoskowitzSpectrum = WaveSpectrum._applyPhillipsSpectrum = false;
+
                 spec.ApplyJONSWAPSpectrum(spWindSpeed.floatValue);
             }
 

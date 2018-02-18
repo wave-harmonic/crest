@@ -171,12 +171,10 @@ namespace Crest
                 meshInsts[i] = BuildOceanPatch( (PatchType)i, parms );
 
             // create the shape cameras
-            var scs = new Transform[parms._lodCount];
             _shapeCameras = new Camera[parms._lodCount];
             for( int i = 0; i < parms._lodCount; i++ )
             {
                 _shapeCameras[i] = CreateWaveDataCam( i, parms );
-                scs[i] = _shapeCameras[i].transform;
             }
 
             int startLevel = 0;
@@ -404,6 +402,7 @@ namespace Crest
             _shapeCameras[lodIndex].transform.parent = parent.transform;
             _shapeCameras[lodIndex].transform.localScale = Vector3.one;
             _shapeCameras[lodIndex].transform.localPosition = Vector3.up * parms._maxWaveHeight;
+            _shapeCameras[lodIndex].transform.localEulerAngles = Vector3.right * 90f;
 
             bool generateSkirt = parms._generateSkirt && biggestLOD;
 

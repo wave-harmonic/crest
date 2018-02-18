@@ -73,9 +73,7 @@ namespace Crest
         void DoLateUpdate()
         {
             // ensure camera size matches geometry size
-            cam.orthographicSize = 2f * Mathf.Abs( transform.lossyScale.x );
-            bool flip = transform.lossyScale.z < 0f;
-            transform.localEulerAngles = new Vector3( flip ? -90f : 90f, 0f, 0f );
+            cam.orthographicSize = 2f * transform.lossyScale.x;
 
             // find snap period
             int width = cam.targetTexture.width;

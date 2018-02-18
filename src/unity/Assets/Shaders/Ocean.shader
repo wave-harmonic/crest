@@ -124,7 +124,7 @@ Shader "Ocean/Ocean"
 					v2f o;
 
 					// see comments above on _GeomData
-					const float SQUARE_SIZE = _GeomData.x, SQUARE_SIZE_4 = 4.0*_GeomData.x;
+					const float SQUARE_SIZE = _GeomData.x, SQUARE_SIZE_2 = 2.0*_GeomData.x, SQUARE_SIZE_4 = 4.0*_GeomData.x;
 					const float BASE_DENSITY = _GeomData.w;
 
 					// move to world
@@ -132,7 +132,7 @@ Shader "Ocean/Ocean"
 	
 					// snap the verts to the grid
 					// The snap size should be twice the original size to keep the shape of the eight triangles (otherwise the edge layout changes).
-					o.worldPos.xz -= fmod( _OceanCenterPosWorld.xz, 2.0*SQUARE_SIZE ); // this uses hlsl fmod, not glsl mod (sign is different).
+					o.worldPos.xz -= frac(_OceanCenterPosWorld.xz / SQUARE_SIZE_2) * SQUARE_SIZE_2; // caution - sign of frac might change in non-hlsl shaders
 	
 					// how far are we into the current LOD? compute by comparing the desired square size with the actual square size
 					float2 offsetFromCenter = float2( abs( o.worldPos.x - _OceanCenterPosWorld.x ), abs( o.worldPos.z - _OceanCenterPosWorld.z ) );

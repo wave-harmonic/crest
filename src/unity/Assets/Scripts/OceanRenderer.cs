@@ -113,11 +113,7 @@ namespace Crest
             _viewerAltitudeLevelAlpha = l2 - l2f;
 
             float newScale = Mathf.Pow(2f, l2f);
-
-            // sign is used to mirror ocean geometry. without this, gaps can appear between ocean tiles.
-            // this is due to the difference in direction of floor/modulus in the ocean vert shader, and the
-            // way the ocean geometry tiles have tri strips removed/added.
-            transform.localScale = new Vector3(Mathf.Sign(transform.position.x) * newScale, 1f, Mathf.Sign(transform.position.z) * newScale);
+            transform.localScale = new Vector3(newScale, 1f, newScale);
 
             float maxWavelength = MaxWavelength(_lodCount - 1);
             Shader.SetGlobalFloat("_MaxWavelength", _acceptLargeWavelengthsInLastLOD ? maxWavelength : 1e10f);
@@ -143,14 +139,14 @@ namespace Crest
 
         public float MaxWavelength(int lodIndex)
         {
-            float oceanBaseScale = Mathf.Abs(transform.lossyScale.x);
+            float oceanBaseScale = transform.lossyScale.x;
             float maxDiameter = 4f * oceanBaseScale * Mathf.Pow(2f, lodIndex);
             float maxTexelSize = maxDiameter / (4f * _baseVertDensity);
             return 2f * maxTexelSize * _minTexelsPerWave;
         }
 
-        public bool ScaleCouldIncrease { get { return _maxScale == -1f || Mathf.Abs( transform.localScale.x ) < _maxScale * 0.99f; } }
-        public bool ScaleCouldDecrease { get { return _minScale == -1f || Mathf.Abs( transform.localScale.x ) > _minScale * 1.01f; } }
+        public bool ScaleCouldIncrease { get { return _maxScale == -1f || transform.localScale.x < _maxScale * 0.99f; } }
+        public bool ScaleCouldDecrease { get { return _minScale == -1f || transform.localScale.x > _minScale * 1.01f; } }
 
 #if UNITY_EDITOR
         void OnDrawGizmos()

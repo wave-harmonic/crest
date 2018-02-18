@@ -49,7 +49,7 @@ namespace Crest
             _rend.material.SetVector( "_InstanceData", new Vector4( meshScaleLerp, farNormalsWeight, _lodIndex ) );
 
             // geometry data
-            float squareSize = Mathf.Abs( transform.lossyScale.x ) / _baseVertDensity;
+            float squareSize = transform.lossyScale.x / _baseVertDensity;
             float mul = 1.875f; // fudge 1
             float pow = 1.4f; // fudge 2
             float normalScrollSpeed0 = Mathf.Pow( Mathf.Log( 1f + 2f * squareSize ) * mul, pow );
@@ -76,7 +76,7 @@ namespace Crest
             // expand mesh bounds - bounds need to completely encapsulate verts after any dynamic displacement
             Bounds bounds = _boundsLocal;
             float boundsPadding = OceanRenderer.Instance._chop * OceanRenderer.Instance._maxWaveHeight;
-            float expand = boundsPadding / Mathf.Abs( transform.lossyScale.x );
+            float expand = boundsPadding / transform.lossyScale.x;
             bounds.extents += new Vector3( expand, 0f, expand );
             _mesh.bounds = bounds;
 #endif

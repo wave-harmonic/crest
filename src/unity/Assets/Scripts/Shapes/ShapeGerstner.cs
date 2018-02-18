@@ -8,28 +8,9 @@ namespace Crest
     /// Support script for gerstner wave ocean shapes.
     /// Generates a number of gerstner octaves in child gameobjects.
     /// </summary>
-    public class ShapeGerstner : MonoBehaviour
+    public class ShapeGerstner : ShapeGerstnerBase
     {
-        [Tooltip( "Geometry to rasterise into wave buffers to generate waves." )]
-        public Mesh _rasterMesh;
-        [Tooltip( "Shader to be used to render out a single Gerstner octave." )]
-        public Shader _waveShader;
-
-        public int _randomSeed = 0;
-
         Material[] _materials;
-
-        float[] _wavelengths;
-        float[] _angleDegs;
-        float[] _phases;
-        float[] _amplitudes;
-
-        WaveSpectrum _spectrum;
-
-        void Start()
-        {
-            _spectrum = GetComponent<WaveSpectrum>();
-        }
 
         void InitMaterials()
         {
@@ -61,13 +42,9 @@ namespace Crest
             }
         }
 
-        private void Update()
+        protected override void Update()
         {
-            // Set random seed to get repeatable results
-            Random.State randomStateBkp = Random.state;
-            Random.InitState(_randomSeed);
-
-            _spectrum.GenerateWavelengths(ref _wavelengths, ref _angleDegs, ref _phases);
+            base.Update();
 
             if (_materials == null || _materials.Length != _wavelengths.Length)
             {
@@ -75,8 +52,6 @@ namespace Crest
             }
 
             UpdateMaterials();
-
-            Random.state = randomStateBkp;
         }
 
         private void LateUpdate()
@@ -121,8 +96,6 @@ namespace Crest
                 _materials[i].SetFloat("_Wavelength", _wavelengths[i]);
 
                 // Amplitude
-                float amp = _spectrum.GetAmplitude(_wavelengths[i]);
-                _amplitudes[i] = amp;
                 _materials[i].SetFloat("_Amplitude", _amplitudes[i]);
 
                 // Direction
@@ -131,18 +104,6 @@ namespace Crest
                 // Phase
                 _materials[i].SetFloat("_Phase", _phases[i]);
             }
-        }
-
-        float ComputeWaveSpeed(float wavelength/*, float depth*/)
-        {
-            // wave speed of deep sea ocean waves: https://en.wikipedia.org/wiki/Wind_wave
-            // https://en.wikipedia.org/wiki/Dispersion_(water_waves)#Wave_propagation_and_dispersion
-            float g = 9.81f;
-            float k = 2f * Mathf.PI / wavelength;
-            //float h = max(depth, 0.01);
-            //float cp = sqrt(abs(tanh_clamped(h * k)) * g / k);
-            float cp = Mathf.Sqrt(g / k);
-            return cp;
         }
     }
 }

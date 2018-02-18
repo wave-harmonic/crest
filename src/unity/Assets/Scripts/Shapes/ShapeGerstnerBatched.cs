@@ -77,6 +77,7 @@ namespace Crest
         {
             int numComponents = lastComponentNonInc - firstComponent;
             int numInBatch = 0;
+            int dropped = 0;
 
             // register any nonzero components
             for( int i = 0; i < numComponents; i++)
@@ -86,15 +87,28 @@ namespace Crest
 
                 if( amp >= 0.001f )
                 {
-                    _wavelengthsBatch[numInBatch] = wl;
-                    _ampsBatch[numInBatch] = amp;
-                    _anglesBatch[numInBatch] = Mathf.Deg2Rad * (OceanRenderer.Instance._windDirectionAngle + _angleDegs[firstComponent + i]);
-                    _phasesBatch[numInBatch] = _phases[firstComponent + i];
-                    numInBatch++;
+                    if( numInBatch < BATCH_SIZE)
+                    {
+                        _wavelengthsBatch[numInBatch] = wl;
+                        _ampsBatch[numInBatch] = amp;
+                        _anglesBatch[numInBatch] = Mathf.Deg2Rad * (OceanRenderer.Instance._windDirectionAngle + _angleDegs[firstComponent + i]);
+                        _phasesBatch[numInBatch] = _phases[firstComponent + i];
+                        numInBatch++;
+                    }
+                    else
+                    {
+                        dropped++;
+                    }
                 }
             }
 
-            if(numInBatch == 0)
+            if (dropped > 0)
+            {
+                Debug.LogWarning(string.Format("Gerstner LOD{0}: Batch limit reached, dropped {1} wavelengths.", lodIdx, dropped), this);
+                numComponents = BATCH_SIZE;
+            }
+
+            if (numInBatch == 0)
             {
                 // no waves to draw - abort
                 _renderers[lodIdx].enabled = false;

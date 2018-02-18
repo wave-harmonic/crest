@@ -13,10 +13,10 @@ namespace Crest
         public static readonly float MAX_POWER_LOG = 2f;
             
         [Delayed]
-        public int _componentsPerOctave = 10;
+        public int _componentsPerOctave = 5;
 
         [Tooltip("Variance of flow direction, in degrees"), Range(0f, 180f)]
-        public float _waveDirectionVariance = 45f;
+        public float _waveDirectionVariance = 90f;
 
         [HideInInspector]
         public float[] _powerLog = new float[NUM_OCTAVES];

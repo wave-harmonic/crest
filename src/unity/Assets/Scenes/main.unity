@@ -1272,23 +1272,23 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _componentsPerOctave: 5
-  _waveDirectionVariance: 120
+  _waveDirectionVariance: 90
   _powerLog:
-  - -5.2949643
-  - -4.8345323
-  - -4.3021584
-  - -3.2374096
-  - -2.4028778
-  - -1.6402878
-  - -1.2086331
-  - 0.77697843
-  - 0.17266193
-  - 1.0885329
-  - -6
+  - -5.831668
+  - -5.0791135
+  - -4.3266206
+  - -3.5743747
+  - -2.8231153
+  - -2.0758033
+  - -1.3442794
+  - -0.6759094
+  - 0.18814632
+  - -0.85429925
+  - -5.4914236
   - -6
   _powerEnabled: 010101010101010101010101
   _windSpeed: 5
-  _fetch: 1000000
+  _fetch: 459237
 --- !u!114 &1866213581
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1302,7 +1302,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _rasterMesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
   _waveShader: {fileID: 4800000, guid: 680b41329a8923e40a8f9d6ca86f60a8, type: 3}
-  _randomSeed: 1
+  _randomSeed: 0
 --- !u!1 &1989479266
 GameObject:
   m_ObjectHideFlags: 0

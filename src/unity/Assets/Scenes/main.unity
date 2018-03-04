@@ -253,13 +253,13 @@ Transform:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 227134465}
-  m_LocalRotation: {x: 0, y: 0.7071068, z: 0, w: 0.7071068}
+  m_LocalRotation: {x: 0, y: 0.7132504, z: 0, w: 0.7009094}
   m_LocalPosition: {x: 160, y: 5.5, z: 50}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
-  m_LocalEulerAnglesHint: {x: 0, y: 90, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 91, z: 0}
 --- !u!114 &227134471
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -531,6 +531,34 @@ MeshFilter:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 425566348}
   m_Mesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &614458450
+GameObject:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 1028979117}
+  serializedVersion: 5
+  m_Component:
+  - component: {fileID: 614458451}
+  m_Layer: 0
+  m_Name: Missing Prefab
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &614458451
+Transform:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 1028979117}
+  m_GameObject: {fileID: 614458450}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 1242000540}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &723498130
 GameObject:
   m_ObjectHideFlags: 0
@@ -939,10 +967,20 @@ Prefab:
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 8454e29c2a033974fb559f5f8eff1918, type: 2}
   m_IsPrefabParent: 0
---- !u!4 &1242000540 stripped
+--- !u!4 &1242000540
 Transform:
+  m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 400000, guid: a1af256fbecad4a4fa3f385d4cde20c7, type: 3}
   m_PrefabInternal: {fileID: 317185115}
+  m_GameObject: {fileID: 1684606390}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children:
+  - {fileID: 614458451}
+  m_Father: {fileID: 1677491481}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1436177740
 GameObject:
   m_ObjectHideFlags: 0
@@ -1002,7 +1040,7 @@ Transform:
   m_Children:
   - {fileID: 1589415981}
   - {fileID: 1436177741}
-  - {fileID: 1242000540}
+  - {fileID: 1677491481}
   - {fileID: 1614785323}
   m_Father: {fileID: 0}
   m_RootOrder: 3
@@ -1159,6 +1197,50 @@ MonoBehaviour:
   _axis: {x: 0, y: 1, z: 0}
   _amplitude: 2.5
   _freq: 1.91
+--- !u!1 &1677491480
+GameObject:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 317185115}
+  serializedVersion: 5
+  m_Component:
+  - component: {fileID: 1677491481}
+  m_Layer: 0
+  m_Name: Missing Prefab
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1677491481
+Transform:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 317185115}
+  m_GameObject: {fileID: 1677491480}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children:
+  - {fileID: 1242000540}
+  m_Father: {fileID: 1566317005}
+  m_RootOrder: 2
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1684606390
+GameObject:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 317185115}
+  serializedVersion: 5
+  m_Component:
+  - component: {fileID: 1242000540}
+  m_Layer: 0
+  m_Name: Missing Prefab (Dummy)
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
 --- !u!1 &1838558565
 GameObject:
   m_ObjectHideFlags: 0
@@ -1274,20 +1356,20 @@ MonoBehaviour:
   _componentsPerOctave: 5
   _waveDirectionVariance: 90
   _powerLog:
-  - -5.831668
-  - -5.0791135
-  - -4.3266206
-  - -3.5743747
-  - -2.8231153
-  - -2.0758033
-  - -1.3442794
-  - -0.6759094
-  - 0.18814632
-  - -0.85429925
-  - -5.4914236
+  - -5.0007253
+  - -4.398688
+  - -3.7637973
+  - -2.8987272
+  - -1.8042979
+  - -1.2080691
+  - -0.3001158
+  - 0.27448857
+  - 0.53627354
+  - 1.0282621
+  - 1.4403292
   - -6
   _powerEnabled: 010101010101010101010101
-  _windSpeed: 5
+  _windSpeed: 11.833333
   _fetch: 459237
 --- !u!114 &1866213581
 MonoBehaviour:

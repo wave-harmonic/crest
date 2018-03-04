@@ -37,10 +37,17 @@ namespace Crest
             }
 
             var lodCam = OceanRenderer.Instance.Builder._shapeCameras[_lodIndex];
-            transform.position = lodCam.transform.position;
+            var wdc = lodCam.GetComponent<WaveDataCam>();
+
+            transform.position = wdc._renderData._posSnapped;
 
             _cam.orthographicSize = lodCam.orthographicSize;
             transform.localScale = (Vector3.right + Vector3.up) * _cam.orthographicSize * 2f + Vector3.forward;
+
+            _cam.projectionMatrix = lodCam.projectionMatrix;
+
+            Vector3 posDelta = wdc._renderData._posSnapped - wdc._renderData._posSnappedLast;
+            _renderSimMaterial.SetVector("_CameraPositionDelta", posDelta);
 
             _renderSimMaterial.SetTexture("_WavePPTSource", _pprts._sourceThisFrame);
 

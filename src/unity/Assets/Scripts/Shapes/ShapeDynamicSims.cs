@@ -1,14 +1,20 @@
-﻿using UnityEngine;
+﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
+
+using UnityEngine;
 
 namespace Crest
 {
+    /// <summary>
+    /// Create one or more dynamics sims which will move around with the displacement LODs. Right now,
+    /// since we rely on Unity layers which are in limited supply, only one simulation is supported.
+    /// </summary>
     public class ShapeDynamicSims : MonoBehaviour
     {
         public const string DYNAMIC_SIM_LAYER_NAME = "DynamicSimData";
 
         public enum SimResolution
         {
-            Res125mm = 0,
+            Res125mm,
             Res25cm,
             Res50cm,
             Res1m,

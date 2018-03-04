@@ -1,4 +1,6 @@
-﻿Shader "Ocean/Shape/Sim/Add To Disps"
+﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
+
+Shader "Ocean/Shape/Sim/Add To Disps"
 {
 	Properties
 	{
@@ -22,13 +24,12 @@
 			struct appdata
 			{
 				float4 vertex : POSITION;
-				float2 uv : TEXCOORD0;
 			};
 
 			struct v2f
 			{
-				float2 uv : TEXCOORD0;
 				float4 vertex : SV_POSITION;
+				float2 screenPos : TEXCOORD0;
 			};
 
 			sampler2D _MainTex;
@@ -38,13 +39,14 @@
 			{
 				v2f o;
 				o.vertex = UnityObjectToClipPos(v.vertex);
-				o.uv = TRANSFORM_TEX(v.uv, _MainTex);
+				// sim texture and displacement texture are assumed to be exactly aligned, so just copy texture to texture.
+				o.screenPos = ComputeScreenPos(o.vertex);
 				return o;
 			}
 			
 			half4 frag (v2f i) : SV_Target
 			{
-				half4 simData = tex2D(_MainTex, i.uv);
+				half4 simData = tex2D(_MainTex, i.screenPos);
 				return half4(0., simData.x, 0., 0.);
 			}
 			ENDCG

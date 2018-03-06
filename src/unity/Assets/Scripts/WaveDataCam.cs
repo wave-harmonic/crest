@@ -45,7 +45,7 @@ namespace Crest
         // pass persistent state up/down the LOD chain
         public void OnScaleChange(WaveDataCam replacingWDC)
         {
-            // replacingWDC is the camera that this camera is about to replace
+            // replacingWDC is the camera that this camera is about to replace. take its state.
             if (replacingWDC != null)
             {
                 _renderData._posSnappedLast = replacingWDC._renderData._posSnappedLast;

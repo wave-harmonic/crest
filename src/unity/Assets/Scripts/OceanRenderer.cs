@@ -107,41 +107,41 @@ namespace Crest
             level = Mathf.Max(level, _minScale);
             if (_maxScale != -1f) level = Mathf.Min(level, 1.99f * _maxScale);
 
-            float l2 = Mathf.Log(level) / Mathf.Log(2f);
-            float l2f = Mathf.Floor(l2);
+            float newScalel2 = Mathf.Log(level) / Mathf.Log(2f);
+            float newScalel2f = Mathf.Floor(newScalel2);
 
-            _viewerAltitudeLevelAlpha = l2 - l2f;
+            _viewerAltitudeLevelAlpha = newScalel2 - newScalel2f;
+            Shader.SetGlobalFloat("_ViewerAltitudeLevelAlpha", _viewerAltitudeLevelAlpha);
 
-            float currentScale = Mathf.Pow(2f, Mathf.Round(Mathf.Log(transform.localScale.x) / Mathf.Log(2f)));
-            float newScale = Mathf.Pow(2f, l2f);
+            float currentScalel2f = Mathf.Round(Mathf.Log(transform.localScale.x) / Mathf.Log(2f));
+            int scaleDiffl2f = Mathf.RoundToInt(newScalel2f - currentScalel2f);
 
-            if (newScale == currentScale)
+            if (scaleDiffl2f == 0)
             {
-                // nothing to do
+                // nothing to do - scale has not changed
                 return;
             }
 
-            bool scaleDecreased = newScale < currentScale;
+            // change scale
+            float newScale = Mathf.Pow(2f, newScalel2f);
             transform.localScale = new Vector3(newScale, 1f, newScale);
 
+            // set max wavelength for multi-scale rendering code
             float maxWavelength = MaxWavelength(_lodCount - 1);
             Shader.SetGlobalFloat("_MaxWavelength", _acceptLargeWavelengthsInLastLOD ? maxWavelength : 1e10f);
-            Shader.SetGlobalFloat("_ViewerAltitudeLevelAlpha", _viewerAltitudeLevelAlpha);
 
-            // will be passing state up/down chain. figure out which way to iterate
-            int dir = scaleDecreased ? -1 : 1;
-            int firstI = scaleDecreased ? Builder._shapeCameras.Length - 1 : 0;
-            int terminateI = scaleDecreased ? -1 : Builder._shapeCameras.Length;
-
-            for (int i = firstI; i != terminateI; i += dir)
+            // pass any persistent state up/down LOD chain
+            int dir = scaleDiffl2f < 0 ? -1 : 1;
+            int firstI = scaleDiffl2f < 0 ? Builder._shapeCameras.Length - 1 : 0;
+            for (int i = firstI; i > -1 && i < Builder._shapeCameras.Length; i += dir)
             {
                 var cam_i = Builder._shapeCameras[i];
 
                 // the index of the camera that this camera will replace
-                var replaceI = scaleDecreased ? i - 1 : i + 1;
-                var replaceCam = replaceI >= 0 && replaceI < Builder._shapeCameras.Length ? Builder._shapeCameras[replaceI] : null;
+                var replaceI = i + scaleDiffl2f;
+                var replaceCam = replaceI >= 0 && replaceI < Builder._shapeCameras.Length ? Builder._shapeCameras[replaceI].GetComponent<WaveDataCam>() : null;
 
-                cam_i.GetComponent<WaveDataCam>().OnScaleChange(replaceCam ? replaceCam.GetComponent<WaveDataCam>() : null);
+                cam_i.GetComponent<WaveDataCam>().OnScaleChange(replaceCam);
             }
         }
 

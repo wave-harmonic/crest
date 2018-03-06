@@ -42,6 +42,16 @@ namespace Crest
             _matOceanDepth = new Material( Shader.Find( "Ocean/Ocean Depth" ) );
         }
 
+        // pass persistent state up/down the LOD chain
+        public void OnScaleChange(WaveDataCam replacingWDC)
+        {
+            // replacingWDC is the camera that this camera is about to replace
+            if (replacingWDC != null)
+            {
+                _renderData._posSnappedLast = replacingWDC._renderData._posSnappedLast;
+            }
+        }
+
         private void Update()
         {
             _renderData._posSnappedLast = _renderData._posSnapped;

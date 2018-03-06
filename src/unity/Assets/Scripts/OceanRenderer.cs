@@ -112,12 +112,37 @@ namespace Crest
 
             _viewerAltitudeLevelAlpha = l2 - l2f;
 
+            float currentScale = Mathf.Pow(2f, Mathf.Round(Mathf.Log(transform.localScale.x) / Mathf.Log(2f)));
             float newScale = Mathf.Pow(2f, l2f);
+
+            if (newScale == currentScale)
+            {
+                // nothing to do
+                return;
+            }
+
+            bool scaleDecreased = newScale < currentScale;
             transform.localScale = new Vector3(newScale, 1f, newScale);
 
             float maxWavelength = MaxWavelength(_lodCount - 1);
             Shader.SetGlobalFloat("_MaxWavelength", _acceptLargeWavelengthsInLastLOD ? maxWavelength : 1e10f);
             Shader.SetGlobalFloat("_ViewerAltitudeLevelAlpha", _viewerAltitudeLevelAlpha);
+
+            // will be passing state up/down chain. figure out which way to iterate
+            int dir = scaleDecreased ? -1 : 1;
+            int firstI = scaleDecreased ? Builder._shapeCameras.Length - 1 : 0;
+            int terminateI = scaleDecreased ? -1 : Builder._shapeCameras.Length;
+
+            for (int i = firstI; i != terminateI; i += dir)
+            {
+                var cam_i = Builder._shapeCameras[i];
+
+                // the index of the camera that this camera will replace
+                var replaceI = scaleDecreased ? i - 1 : i + 1;
+                var replaceCam = replaceI >= 0 && replaceI < Builder._shapeCameras.Length ? Builder._shapeCameras[replaceI] : null;
+
+                cam_i.GetComponent<WaveDataCam>().OnScaleChange(replaceCam ? replaceCam.GetComponent<WaveDataCam>() : null);
+            }
         }
 
         OceanBuilder.Params MakeBuildParams()

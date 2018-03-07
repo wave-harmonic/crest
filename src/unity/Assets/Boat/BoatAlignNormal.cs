@@ -10,6 +10,7 @@ namespace Crest
         public float _buoyancyCoeff = 40000f;
         public float _boyancyTorque = 2f;
 
+        public float _forceHeightOffset = -1f;
         public float _enginePower = 10000f;
         public float _turnPower = 100f;
 
@@ -51,12 +52,13 @@ namespace Crest
 
 
             // apply drag relative to water
-            _rb.AddForce(Vector3.up * Vector3.Dot(Vector3.up, (velWater - _rb.velocity)) * _dragInWaterUp, ForceMode.Acceleration);
-            _rb.AddForce(Vector3.right * Vector3.Dot(Vector3.right, (velWater - _rb.velocity)) * _dragInWaterRight, ForceMode.Acceleration);
-            _rb.AddForce(Vector3.forward * Vector3.Dot(Vector3.forward, (velWater - _rb.velocity)) * _dragInWaterForward, ForceMode.Acceleration);
+            var forcePosition = _rb.position + _forceHeightOffset * Vector3.up;
+            _rb.AddForceAtPosition(Vector3.up * Vector3.Dot(Vector3.up, (velWater - _rb.velocity)) * _dragInWaterUp, forcePosition, ForceMode.Acceleration);
+            _rb.AddForceAtPosition(Vector3.right * Vector3.Dot(Vector3.right, (velWater - _rb.velocity)) * _dragInWaterRight, forcePosition, ForceMode.Acceleration);
+            _rb.AddForceAtPosition(Vector3.forward * Vector3.Dot(Vector3.forward, (velWater - _rb.velocity)) * _dragInWaterForward, forcePosition, ForceMode.Acceleration);
 
             float forward = Input.GetAxis("Vertical");
-            _rb.AddForce(transform.forward * _enginePower * forward, ForceMode.Acceleration);
+            _rb.AddForceAtPosition(transform.forward * _enginePower * forward, forcePosition, ForceMode.Acceleration);
 
             float sideways = (Input.GetKey(KeyCode.A) ? -1f : 0f) + (Input.GetKey(KeyCode.D) ? 1f : 0f);
             _rb.AddTorque(transform.up * _turnPower * sideways, ForceMode.Acceleration);
@@ -66,7 +68,8 @@ namespace Crest
             var target = normal;
             var torque = Vector3.Cross(current, target);
             _rb.AddTorque(torque * _boyancyTorque, ForceMode.Acceleration);
-            Debug.DrawLine(dispPos, dispPos + normal, Color.white);
+
+            //Debug.DrawLine(dispPos, dispPos + normal, Color.white);
             //Debug.DrawLine(dispPos, undispPos, Color.white * 0.7f);
         }
     }

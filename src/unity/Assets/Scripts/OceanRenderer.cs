@@ -61,6 +61,8 @@ namespace Crest
         float _viewerAltitudeLevelAlpha = 0f;
         public float ViewerAltitudeLevelAlpha { get { return _viewerAltitudeLevelAlpha; } }
 
+        public float SeaLevel { get { return transform.position.y; } }
+
         public static bool _acceptLargeWavelengthsInLastLOD = true;
 
         static OceanRenderer _instance;

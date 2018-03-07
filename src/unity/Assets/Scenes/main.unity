@@ -964,6 +964,10 @@ Prefab:
       propertyPath: _viewpoint
       value: 
       objectReference: {fileID: 227134470}
+    - target: {fileID: 11417796, guid: 8454e29c2a033974fb559f5f8eff1918, type: 2}
+      propertyPath: _minScale
+      value: 8
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 8454e29c2a033974fb559f5f8eff1918, type: 2}
   m_IsPrefabParent: 0
@@ -1356,7 +1360,7 @@ MonoBehaviour:
   _componentsPerOctave: 5
   _waveDirectionVariance: 90
   _powerLog:
-  - -5.0007253
+  - -6
   - -4.398688
   - -3.7637973
   - -2.8987272

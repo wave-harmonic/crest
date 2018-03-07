@@ -67,13 +67,34 @@ namespace Crest
             return cp;
         }
 
-        public Vector3 GetDisplacement(Vector3 worldPos, float toff)
+        public Vector3 GetPositionDisplacedToPositionExpensive(ref Vector3 displacedWorldPos, float toff)
+        {
+            // fpi - guess should converge to location that displaces to the target position
+            Vector3 guess = displacedWorldPos;
+            // 2 iterations was enough to get very close when chop = 1, added 2 more which should be
+            // sufficient for most applications. for high chop values or really stormy conditions there may
+            // be some error here. one could also terminate iteration based on the size of the error, this is
+            // worth trying but is left as future work for now.
+            for( int i = 0; i < 4; i++)
+            {
+                Vector3 error = guess + GetDisplacement(ref guess, toff) - displacedWorldPos;
+                guess.x -= error.x;
+                guess.z -= error.z;
+            }
+
+            guess.y = OceanRenderer.Instance.SeaLevel;
+
+            return guess;
+        }
+
+        public Vector3 GetDisplacement(ref Vector3 worldPos, float toff)
         {
             if (_amplitudes == null) return Vector3.zero;
 
             Vector2 pos = new Vector2(worldPos.x, worldPos.z);
             float chop = OceanRenderer.Instance._chop;
             float mytime = OceanRenderer.Instance.ElapsedTime + toff;
+            float windAngle = OceanRenderer.Instance._windDirectionAngle;
 
             Vector3 result = Vector3.zero;
 
@@ -84,7 +105,7 @@ namespace Crest
                 float C = ComputeWaveSpeed(_wavelengths[j]);
 
                 // direction
-                Vector2 D = new Vector2(Mathf.Cos(_angleDegs[j] * Mathf.Deg2Rad), Mathf.Sin(_angleDegs[j] * Mathf.Deg2Rad));
+                Vector2 D = new Vector2(Mathf.Cos((windAngle + _angleDegs[j]) * Mathf.Deg2Rad), Mathf.Sin((windAngle + _angleDegs[j]) * Mathf.Deg2Rad));
                 // wave number
                 float k = 2f * Mathf.PI / _wavelengths[j];
 
@@ -94,6 +115,90 @@ namespace Crest
                 result += _amplitudes[j] * new Vector3(
                     D.x * disp,
                     Mathf.Cos(t),
+                    D.y * disp
+                    );
+            }
+
+            return result;
+        }
+
+        // compute normal to a surface with a parameterization - equation 14 here: http://mathworld.wolfram.com/NormalVector.html
+        public Vector3 GetNormal(ref Vector3 worldPos, float toff)
+        {
+            if (_amplitudes == null) return Vector3.zero;
+
+            var pos = new Vector2(worldPos.x, worldPos.z);
+            float chop = OceanRenderer.Instance._chop;
+            float mytime = OceanRenderer.Instance.ElapsedTime + toff;
+            float windAngle = OceanRenderer.Instance._windDirectionAngle;
+
+            // base rate of change of our displacement function in x and z is unit
+            var delfdelx = Vector3.right;
+            var delfdelz = Vector3.forward;
+
+            for (int j = 0; j < _amplitudes.Length; j++)
+            {
+                if (_amplitudes[j] <= 0.001f) continue;
+
+                float C = ComputeWaveSpeed(_wavelengths[j]);
+
+                // direction
+                var D = new Vector2(Mathf.Cos((windAngle + _angleDegs[j]) * Mathf.Deg2Rad), Mathf.Sin((windAngle + _angleDegs[j]) * Mathf.Deg2Rad));
+                // wave number
+                float k = 2f * Mathf.PI / _wavelengths[j];
+
+                float x = Vector2.Dot(D, pos);
+                float t = k * (x + C * mytime) + _phases[j];
+                float disp = k * -chop * Mathf.Cos(t);
+                float dispx = D.x * disp;
+                float dispz = D.y * disp;
+                float dispy = -k * Mathf.Sin(t);
+
+                delfdelx += _amplitudes[j] * new Vector3(D.x * dispx, D.x * dispy, D.y * dispx);
+                delfdelz += _amplitudes[j] * new Vector3(D.x * dispz, D.y * dispy, D.y * dispz);
+            }
+
+            return Vector3.Cross(delfdelz, delfdelx).normalized;
+        }
+
+        public float GetHeightExpensive(ref Vector3 worldPos, float toff)
+        {
+            Vector3 posFlatland = worldPos;
+            posFlatland.y = OceanRenderer.Instance.transform.position.y;
+
+            Vector3 undisplacedPos = GetPositionDisplacedToPositionExpensive(ref posFlatland, toff);
+
+            return posFlatland.y + GetDisplacement(ref undisplacedPos, toff).y;
+        }
+
+        public Vector3 GetSurfaceVelocity(ref Vector3 worldPos, float toff)
+        {
+            if (_amplitudes == null) return Vector3.zero;
+
+            Vector2 pos = new Vector2(worldPos.x, worldPos.z);
+            float chop = OceanRenderer.Instance._chop;
+            float mytime = OceanRenderer.Instance.ElapsedTime + toff;
+            float windAngle = OceanRenderer.Instance._windDirectionAngle;
+
+            Vector3 result = Vector3.zero;
+
+            for (int j = 0; j < _amplitudes.Length; j++)
+            {
+                if (_amplitudes[j] <= 0.001f) continue;
+
+                float C = ComputeWaveSpeed(_wavelengths[j]);
+
+                // direction
+                Vector2 D = new Vector2(Mathf.Cos((windAngle + _angleDegs[j]) * Mathf.Deg2Rad), Mathf.Sin((windAngle + _angleDegs[j]) * Mathf.Deg2Rad));
+                // wave number
+                float k = 2f * Mathf.PI / _wavelengths[j];
+
+                float x = Vector2.Dot(D, pos);
+                float t = k * (x + C * mytime) + _phases[j];
+                float disp = -chop * k * C * Mathf.Cos(t);
+                result += _amplitudes[j] * new Vector3(
+                    D.x * disp,
+                    -k * C * Mathf.Sin(t),
                     D.y * disp
                     );
             }

@@ -1,73 +1,82 @@
 ﻿using UnityEngine;
+using Crest;
 
-namespace Crest
+public class BoatAlignNormal : MonoBehaviour
 {
-    public class BoatAlignNormal : MonoBehaviour
+    public float _bottomH = -1f;
+    public bool _debugDraw = false;
+    public float _overrideProbeRadius = -1f;
+    public float _buoyancyCoeff = 40000f;
+    public float _boyancyTorque = 2f;
+
+    public float _forceHeightOffset = -1f;
+    public float _enginePower = 10000f;
+    public float _turnPower = 100f;
+
+    public float _boatWidth = 2f;
+
+    Rigidbody _rb;
+    ShapeGerstnerBase _waves;
+
+    public float _dragInWaterUp = 20000f;
+    public float _dragInWaterRight = 20000f;
+    public float _dragInWaterForward = 20000f;
+
+    bool _inWater;
+    public bool InWater { get { return _inWater; } }
+
+    Vector3 _velocityRelativeToWater;
+    public Vector3 VelocityRelativeToWater { get { return _velocityRelativeToWater; } }
+
+    void Start()
     {
-        public float _bottomH = -1f;
-        public bool _debugDraw = false;
-        public float _overrideProbeRadius = -1f;
-        public float _buoyancyCoeff = 40000f;
-        public float _boyancyTorque = 2f;
+        _rb = GetComponent<Rigidbody>();
+        _waves = FindObjectOfType<ShapeGerstnerBase>();
+    }
 
-        public float _forceHeightOffset = -1f;
-        public float _enginePower = 10000f;
-        public float _turnPower = 100f;
+    void FixedUpdate()
+    {
+        var position = transform.position;
 
-        public float _boatWidth = 2f;
+        int minIdx = _waves.GetFirstComponentIndex(_boatWidth);
+        var undispPos = _waves.GetPositionDisplacedToPositionExpensive(ref position, 0f, minIdx);
+        var displacement = _waves.GetDisplacement(ref undispPos, 0f, minIdx);
+        var normal = _waves.GetNormal(ref undispPos, 0f, minIdx);
 
-        Rigidbody _rb;
-        ShapeGerstnerBase _waves;
+        var velWater = _waves.GetSurfaceVelocity(ref undispPos, 0f, minIdx);
+        _velocityRelativeToWater = _rb.velocity - velWater;
 
-        public float _dragInWaterUp = 20000f;
-        public float _dragInWaterRight = 20000f;
-        public float _dragInWaterForward = 20000f;
+        var dispPos = undispPos + displacement;
+        float height = dispPos.y;
 
-        void Start()
+        float bottomDepth = height - transform.position.y - _bottomH;
+
+        _inWater = bottomDepth > 0f;
+        if (!_inWater)
         {
-            _rb = GetComponent<Rigidbody>();
-            _waves = FindObjectOfType<ShapeGerstnerBase>();
+            return;
         }
 
-        void FixedUpdate()
-        {
-            var position = transform.position;
-
-            int minIdx = _waves.GetFirstComponentIndex(_boatWidth);
-            var undispPos = _waves.GetPositionDisplacedToPositionExpensive(ref position, 0f, minIdx);
-            var displacement = _waves.GetDisplacement(ref undispPos, 0f, minIdx);
-            var normal = _waves.GetNormal(ref undispPos, 0f, minIdx);
-            var velWater = _waves.GetSurfaceVelocity(ref undispPos, 0f, minIdx);
-
-            var dispPos = undispPos + displacement;
-            float height = dispPos.y;
-
-            float bottomDepth = height - transform.position.y - _bottomH;
-
-            if (bottomDepth <= 0f)
-                return;
-
-            var buoyancy = -Physics.gravity.normalized * _buoyancyCoeff * bottomDepth * bottomDepth * bottomDepth;
-            _rb.AddForce(buoyancy, ForceMode.Acceleration);
+        var buoyancy = -Physics.gravity.normalized * _buoyancyCoeff * bottomDepth * bottomDepth * bottomDepth;
+        _rb.AddForce(buoyancy, ForceMode.Acceleration);
 
 
-            // apply drag relative to water
-            var forcePosition = _rb.position + _forceHeightOffset * Vector3.up;
-            _rb.AddForceAtPosition(Vector3.up * Vector3.Dot(Vector3.up, (velWater - _rb.velocity)) * _dragInWaterUp, forcePosition, ForceMode.Acceleration);
-            _rb.AddForceAtPosition(Vector3.right * Vector3.Dot(Vector3.right, (velWater - _rb.velocity)) * _dragInWaterRight, forcePosition, ForceMode.Acceleration);
-            _rb.AddForceAtPosition(Vector3.forward * Vector3.Dot(Vector3.forward, (velWater - _rb.velocity)) * _dragInWaterForward, forcePosition, ForceMode.Acceleration);
+        // apply drag relative to water
+        var forcePosition = _rb.position + _forceHeightOffset * Vector3.up;
+        _rb.AddForceAtPosition(Vector3.up * Vector3.Dot(Vector3.up, -_velocityRelativeToWater) * _dragInWaterUp, forcePosition, ForceMode.Acceleration);
+        _rb.AddForceAtPosition(Vector3.right * Vector3.Dot(Vector3.right, -_velocityRelativeToWater) * _dragInWaterRight, forcePosition, ForceMode.Acceleration);
+        _rb.AddForceAtPosition(Vector3.forward * Vector3.Dot(Vector3.forward, -_velocityRelativeToWater) * _dragInWaterForward, forcePosition, ForceMode.Acceleration);
 
-            float forward = Input.GetAxis("Vertical");
-            _rb.AddForceAtPosition(transform.forward * _enginePower * forward, forcePosition, ForceMode.Acceleration);
+        float forward = Input.GetAxis("Vertical");
+        _rb.AddForceAtPosition(transform.forward * _enginePower * forward, forcePosition, ForceMode.Acceleration);
 
-            float sideways = (Input.GetKey(KeyCode.A) ? -1f : 0f) + (Input.GetKey(KeyCode.D) ? 1f : 0f);
-            _rb.AddTorque(transform.up * _turnPower * sideways, ForceMode.Acceleration);
+        float sideways = (Input.GetKey(KeyCode.A) ? -1f : 0f) + (Input.GetKey(KeyCode.D) ? 1f : 0f);
+        _rb.AddTorque(transform.up * _turnPower * sideways, ForceMode.Acceleration);
 
-            // align to normal
-            var current = transform.up;
-            var target = normal;
-            var torque = Vector3.Cross(current, target);
-            _rb.AddTorque(torque * _boyancyTorque, ForceMode.Acceleration);
-        }
+        // align to normal
+        var current = transform.up;
+        var target = normal;
+        var torque = Vector3.Cross(current, target);
+        _rb.AddTorque(torque * _boyancyTorque, ForceMode.Acceleration);
     }
 }

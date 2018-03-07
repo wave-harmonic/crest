@@ -73,6 +73,9 @@ namespace Crest
         /// </summary>
         public int GetFirstComponentIndex(float minSpatialScale)
         {
+            if (_wavelengths == null || _wavelengths.Length == 0)
+                return 0;
+
             float minWavelength = minSpatialScale / 2f;
             int i = 0;
             while (_wavelengths[i] <= minWavelength)

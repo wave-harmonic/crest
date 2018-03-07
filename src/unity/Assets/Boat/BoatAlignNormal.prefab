@@ -228,8 +228,10 @@ MonoBehaviour:
   _debugDraw: 0
   _overrideProbeRadius: -1
   _buoyancyCoeff: 1.5
+  _boyancyTorque: 6
   _enginePower: 5
   _turnPower: 1
+  _boatWidth: 4
   _dragInWaterUp: 2
   _dragInWaterRight: 2
   _dragInWaterForward: 1

@@ -67,7 +67,20 @@ namespace Crest
             return cp;
         }
 
-        public Vector3 GetPositionDisplacedToPositionExpensive(ref Vector3 displacedWorldPos, float toff)
+        /// <summary>
+        /// Give this spatial scale you care about. If you are doing buoyancy calculations on a 2m x 4m boat, pass it 2m, and it will return
+        /// the index of the smallest wavelength > 1m, because smaller waves than this will be irrelevant.
+        /// </summary>
+        public int GetFirstComponentIndex(float minSpatialScale)
+        {
+            float minWavelength = minSpatialScale / 2f;
+            int i = 0;
+            while (_wavelengths[i] <= minWavelength)
+                i++;
+            return i;
+        }
+
+        public Vector3 GetPositionDisplacedToPositionExpensive(ref Vector3 displacedWorldPos, float toff, int firstComponentIndex)
         {
             // fpi - guess should converge to location that displaces to the target position
             Vector3 guess = displacedWorldPos;
@@ -77,7 +90,7 @@ namespace Crest
             // worth trying but is left as future work for now.
             for( int i = 0; i < 4; i++)
             {
-                Vector3 error = guess + GetDisplacement(ref guess, toff) - displacedWorldPos;
+                Vector3 error = guess + GetDisplacement(ref guess, toff, firstComponentIndex) - displacedWorldPos;
                 guess.x -= error.x;
                 guess.z -= error.z;
             }
@@ -89,6 +102,10 @@ namespace Crest
 
         public Vector3 GetDisplacement(ref Vector3 worldPos, float toff)
         {
+            return GetDisplacement(ref worldPos, toff, 0);
+        }
+        public Vector3 GetDisplacement(ref Vector3 worldPos, float toff, int firstComponentIndex)
+        {
             if (_amplitudes == null) return Vector3.zero;
 
             Vector2 pos = new Vector2(worldPos.x, worldPos.z);
@@ -98,7 +115,7 @@ namespace Crest
 
             Vector3 result = Vector3.zero;
 
-            for (int j = 0; j < _amplitudes.Length; j++)
+            for (int j = firstComponentIndex; j < _amplitudes.Length; j++)
             {
                 if (_amplitudes[j] <= 0.001f) continue;
 
@@ -125,6 +142,10 @@ namespace Crest
         // compute normal to a surface with a parameterization - equation 14 here: http://mathworld.wolfram.com/NormalVector.html
         public Vector3 GetNormal(ref Vector3 worldPos, float toff)
         {
+            return GetNormal(ref worldPos, toff, 0);
+        }
+        public Vector3 GetNormal(ref Vector3 worldPos, float toff, int firstComponentIndex)
+        {
             if (_amplitudes == null) return Vector3.zero;
 
             var pos = new Vector2(worldPos.x, worldPos.z);
@@ -136,7 +157,7 @@ namespace Crest
             var delfdelx = Vector3.right;
             var delfdelz = Vector3.forward;
 
-            for (int j = 0; j < _amplitudes.Length; j++)
+            for (int j = firstComponentIndex; j < _amplitudes.Length; j++)
             {
                 if (_amplitudes[j] <= 0.001f) continue;
 
@@ -163,15 +184,23 @@ namespace Crest
 
         public float GetHeightExpensive(ref Vector3 worldPos, float toff)
         {
+            return GetHeightExpensive(ref worldPos, toff, 0);
+        }
+        public float GetHeightExpensive(ref Vector3 worldPos, float toff, int firstComponentIndex)
+        {
             Vector3 posFlatland = worldPos;
             posFlatland.y = OceanRenderer.Instance.transform.position.y;
 
-            Vector3 undisplacedPos = GetPositionDisplacedToPositionExpensive(ref posFlatland, toff);
+            Vector3 undisplacedPos = GetPositionDisplacedToPositionExpensive(ref posFlatland, toff, firstComponentIndex);
 
-            return posFlatland.y + GetDisplacement(ref undisplacedPos, toff).y;
+            return posFlatland.y + GetDisplacement(ref undisplacedPos, toff, firstComponentIndex).y;
         }
 
         public Vector3 GetSurfaceVelocity(ref Vector3 worldPos, float toff)
+        {
+            return GetSurfaceVelocity(ref worldPos, toff, 0);
+        }
+        public Vector3 GetSurfaceVelocity(ref Vector3 worldPos, float toff, int firstComponentIndex)
         {
             if (_amplitudes == null) return Vector3.zero;
 
@@ -182,7 +211,7 @@ namespace Crest
 
             Vector3 result = Vector3.zero;
 
-            for (int j = 0; j < _amplitudes.Length; j++)
+            for (int j = firstComponentIndex; j < _amplitudes.Length; j++)
             {
                 if (_amplitudes[j] <= 0.001f) continue;
 

@@ -194,9 +194,9 @@ GameObject:
   - component: {fileID: 227134470}
   - component: {fileID: 227134469}
   - component: {fileID: 227134466}
-  - component: {fileID: 227134471}
   - component: {fileID: 227134472}
   - component: {fileID: 227134473}
+  - component: {fileID: 227134467}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -211,6 +211,21 @@ AudioListener:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 227134465}
   m_Enabled: 1
+--- !u!114 &227134467
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 227134465}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 93632dc736a214a419a990743badcde2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _lerpAlpha: 0.05
+  _targetPos: {fileID: 799048501}
+  _targetLookatPos: {fileID: 1488989739}
+  _lookatOffset: 5
 --- !u!20 &227134469
 Camera:
   m_ObjectHideFlags: 0
@@ -260,20 +275,6 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0.001, z: 0}
---- !u!114 &227134471
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 227134465}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 59a818eaf96544c4994335870fdfe141, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  linSpeed: 50
-  rotSpeed: 70
-  simForwardInput: 0
 --- !u!114 &227134472
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -728,6 +729,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _shader: {fileID: 4800000, guid: 3772d74a62556bc4eb2c2186fb3eaa17, type: 3}
+--- !u!4 &799048501 stripped
+Transform:
+  m_PrefabParentObject: {fileID: 4274299234749796, guid: 71ede3c2ab0b7cb43b7dad6ae3b6190b,
+    type: 2}
+  m_PrefabInternal: {fileID: 754951035}
 --- !u!1 &879980831
 GameObject:
   m_ObjectHideFlags: 0
@@ -1172,6 +1178,11 @@ Transform:
   m_Father: {fileID: 1566317005}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!4 &1488989739 stripped
+Transform:
+  m_PrefabParentObject: {fileID: 4341219009766782, guid: 71ede3c2ab0b7cb43b7dad6ae3b6190b,
+    type: 2}
+  m_PrefabInternal: {fileID: 754951035}
 --- !u!1 &1524193170
 GameObject:
   m_ObjectHideFlags: 0

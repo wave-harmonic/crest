@@ -68,9 +68,6 @@ namespace Crest
             var target = normal;
             var torque = Vector3.Cross(current, target);
             _rb.AddTorque(torque * _boyancyTorque, ForceMode.Acceleration);
-
-            //Debug.DrawLine(dispPos, dispPos + normal, Color.white);
-            //Debug.DrawLine(dispPos, undispPos, Color.white * 0.7f);
         }
     }
 }

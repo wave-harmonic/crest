@@ -43,10 +43,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dde37eff0f7685f41902f400d1de0c6c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _windDirectionAngle: 0
+  _windSpeed: 5
   _minTexelsPerWave: 5
-  _minScale: 4
+  _minScale: 8
   _maxScale: 256
-  _dynamicSimulation: 0
   _chop: 1
   _enableSmoothLOD: 1
   _freezeTime: 0

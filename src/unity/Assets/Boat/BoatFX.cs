@@ -1,14 +1,43 @@
 ﻿using UnityEngine;
 
+[System.Serializable]
+public class DynamicBump
+{
+    public MeshRenderer _meshRend;
+
+    [HideInInspector]
+    public Vector3 _localOffset;
+
+    [HideInInspector]
+    public float _baseAmp;
+
+    public void Init(Transform parent)
+    {
+        _baseAmp = _meshRend.material.GetFloat("_Amplitude");
+        _localOffset = parent.InverseTransformPoint(_meshRend.transform.position);
+    }
+
+    public void Update(Transform parent, BoatAlignNormal boat, float amp)
+    {
+        _meshRend.material.SetFloat("_Amplitude", amp);
+
+        // this line is key to making sure dynamic water fx are aligned with actual position of boat. the
+        // fx will be copied into the displacement texture buffer, which is displaced afterwards, so this
+        // line inverts that displacement to compensate. alternatively the vertex shader of the FX geom could
+        // use iteration to find the appropriate place to render into the displacement texture, but this is easier
+        // and seems to work well enough so far - although it would get worse with chop > 1.
+        _meshRend.transform.position = parent.TransformPoint(_localOffset) - boat.DisplacementToBoat;
+    }
+}
+
 public class BoatFX : MonoBehaviour {
 
     public float _fastSpeed = 11f;
 
-    public MeshRenderer[] _translationBumps;
-    float[] _translationBumpAmps;
+    public DynamicBump[] _translationBumps;
 
     public float _displaceMul = 0.1f;
-    public MeshRenderer[] _volumeDisplace;
+    public DynamicBump[] _volumeDisplace;
 
     BoatAlignNormal _boat;
     Rigidbody _rb;
@@ -17,32 +46,29 @@ public class BoatFX : MonoBehaviour {
         _rb = GetComponent<Rigidbody>();
         _boat = GetComponent<BoatAlignNormal>();
 
-        _translationBumpAmps = new float[_translationBumps.Length];
-        for (int i = 0; i < _translationBumps.Length; i++)
+        foreach (var bump in _translationBumps)
         {
-            _translationBumpAmps[i] = _translationBumps[i].material.GetFloat("_Amplitude");
+            bump.Init(transform);
         }
-
     }
 	
 	void Update () {
-        float speedParam = _rb.velocity.magnitude / _fastSpeed;
+        var rbVel = _rb.velocity;
+        rbVel.y = 0f;
+        float speedParam = rbVel.magnitude / _fastSpeed;
         if (!_boat.InWater)
         {
             speedParam = 0f;
         }
 
-        for (int i = 0; i < _translationBumps.Length; i++)
+        foreach (var bump in _translationBumps)
         {
-            _translationBumps[i].material.SetFloat("_Amplitude", speedParam * _translationBumpAmps[i]);
+            bump.Update(transform, _boat, speedParam * bump._baseAmp);
         }
 
-        if (_boat.InWater)
+        foreach (var bump in _volumeDisplace)
         {
-            foreach (var mr in _volumeDisplace)
-            {
-                mr.material.SetFloat("_Amplitude", _boat.VelocityRelativeToWater.y * _displaceMul);
-            }
+            bump.Update(transform, _boat, _boat.InWater ? _boat.VelocityRelativeToWater.y * _displaceMul : 0f);
         }
     }
 }

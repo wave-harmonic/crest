@@ -28,6 +28,9 @@ public class BoatAlignNormal : MonoBehaviour
     Vector3 _velocityRelativeToWater;
     public Vector3 VelocityRelativeToWater { get { return _velocityRelativeToWater; } }
 
+    Vector3 _displacementToBoat;
+    public Vector3 DisplacementToBoat { get { return _displacementToBoat; } }
+
     void Start()
     {
         _rb = GetComponent<Rigidbody>();
@@ -40,13 +43,13 @@ public class BoatAlignNormal : MonoBehaviour
 
         int minIdx = _waves.GetFirstComponentIndex(_boatWidth);
         var undispPos = _waves.GetPositionDisplacedToPositionExpensive(ref position, 0f, minIdx);
-        var displacement = _waves.GetDisplacement(ref undispPos, 0f, minIdx);
+        _displacementToBoat = _waves.GetDisplacement(ref undispPos, 0f, minIdx);
         var normal = _waves.GetNormal(ref undispPos, 0f, minIdx);
 
         var velWater = _waves.GetSurfaceVelocity(ref undispPos, 0f, minIdx);
         _velocityRelativeToWater = _rb.velocity - velWater;
 
-        var dispPos = undispPos + displacement;
+        var dispPos = undispPos + _displacementToBoat;
         float height = dispPos.y;
 
         float bottomDepth = height - transform.position.y - _bottomH;
@@ -64,12 +67,12 @@ public class BoatAlignNormal : MonoBehaviour
         // apply drag relative to water
         var forcePosition = _rb.position + _forceHeightOffset * Vector3.up;
         _rb.AddForceAtPosition(Vector3.up * Vector3.Dot(Vector3.up, -_velocityRelativeToWater) * _dragInWaterUp, forcePosition, ForceMode.Acceleration);
-        _rb.AddForceAtPosition(Vector3.right * Vector3.Dot(Vector3.right, -_velocityRelativeToWater) * _dragInWaterRight, forcePosition, ForceMode.Acceleration);
-        _rb.AddForceAtPosition(Vector3.forward * Vector3.Dot(Vector3.forward, -_velocityRelativeToWater) * _dragInWaterForward, forcePosition, ForceMode.Acceleration);
+        _rb.AddForceAtPosition(transform.right * Vector3.Dot(transform.right, -_velocityRelativeToWater) * _dragInWaterRight, forcePosition, ForceMode.Acceleration);
+        _rb.AddForceAtPosition(transform.forward * Vector3.Dot(transform.forward, -_velocityRelativeToWater) * _dragInWaterForward, forcePosition, ForceMode.Acceleration);
 
         float forward = Input.GetAxis("Vertical");
         _rb.AddForceAtPosition(transform.forward * _enginePower * forward, forcePosition, ForceMode.Acceleration);
-
+        //Debug.DrawLine(transform.position + Vector3.up * 5f, transform.position + 5f * (Vector3.up + transform.forward));
         float sideways = (Input.GetKey(KeyCode.A) ? -1f : 0f) + (Input.GetKey(KeyCode.D) ? 1f : 0f);
         _rb.AddTorque(transform.up * _turnPower * sideways, ForceMode.Acceleration);
 

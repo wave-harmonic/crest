@@ -1,6 +1,6 @@
 ﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
-Shader "Custom/Geometry/Extrude Vertex"
+Shader "Ocean/Shape/Object Water Interaction"
 {
 	Properties
 	{
@@ -83,6 +83,8 @@ Shader "Custom/Geometry/Extrude Vertex"
 					col.x *= -1.;
 				}
 
+				// write to both channels of sim. this has the affect of kinematically moving the water, instead of applying
+				// a force to accelerate it.
 				return fixed4(col.x/3600., col.x / 3600., 0., 0.);
 			}
 			ENDCG

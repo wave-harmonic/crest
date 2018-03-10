@@ -1,6 +1,11 @@
 ﻿// Upgrade NOTE: replaced '_Object2World' with 'unity_ObjectToWorld'
 
-Shader "Custom/Geometry/Extrude"
+// Experimenting with using a geometry shader to extrude triangles and use this to write displacements into sim. It turns out that a simple vert shader
+// seems to do a pretty good job, but leaving this experiment here for now.
+
+// The starting point for this shader came from Shaders Laboratory: http://www.shaderslab.com/shaders.html
+
+Shader "Ocean/Shape/Extrude Test"
 {
 	Properties
 	{

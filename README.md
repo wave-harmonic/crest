@@ -124,3 +124,7 @@ The ocean pixel shader samples normal maps at 2 different scales, both proportio
 * Write dynamic state into sim - write dynamic state of an FFT or the sum of gerstner waves into the sim. This could be stamped onto the sim periodically, if the surface repeats with a given period. This is possible - each sim has a particular wave speed. If a strict scheme of only writing a particular wave length into each sim was employed, this would mean the waves would repeat with a particular period. However it's non-obvious how this could be strictly enforced in a practical game-like situation.
 * The generation of waves by wind is well understood: https://www.wikiwaves.org/Ocean-Wave_Spectra . This could be modelled. There is a transfer of energy across wavelengths that allows waves that travel faster than wind to be generated, perhaps this can be modelled by transferring energy across sims. This feels like the approach that fits most accurately into the sim paradigm. It would require wind to be defined everywhere. Another problem is that this process occurs over large fetch areas (thousands of wavelengths in size), whereas the sim domains are very bounded, so the process would need to be accelerated (?).
 
+### Consistent stalls when accessing textures on the CPU in Unity
+
+* Unity 5 - https://forum.unity.com/threads/readpixels-stalls-the-pipeline-in-unity-5.339324/
+* Grab directly from the graphics API (opengl) - https://answers.unity.com/questions/465409/reading-from-a-rendertexture-is-slow-how-to-improv.html

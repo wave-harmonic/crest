@@ -7,7 +7,7 @@ namespace Crest
     public class RandomMotion : MonoBehaviour
     {
         public Vector3 _axis = Vector3.up;
-        [Range( 0, 5 )]
+        [Range( 0, 20 )]
         public float _amplitude = 1f;
         [Range( 0, 5 )]
         public float _freq = 1f;

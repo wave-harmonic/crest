@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
+
+using UnityEngine;
 
 [System.Serializable]
 public class DynamicBump
@@ -36,7 +38,8 @@ public class BoatFX : MonoBehaviour {
 
     public DynamicBump[] _translationBumps;
 
-    public float _displaceMul = 0.1f;
+    public float _displaceMulUp = 0.1f;
+    public float _displaceMulDown = -0.5f;
     public DynamicBump[] _volumeDisplace;
 
     BoatAlignNormal _boat;
@@ -66,9 +69,10 @@ public class BoatFX : MonoBehaviour {
             bump.Update(transform, _boat, speedParam * bump._baseAmp);
         }
 
+        float displaceMul = _boat.VelocityRelativeToWater.y > 0f ? _displaceMulUp : _displaceMulDown;
         foreach (var bump in _volumeDisplace)
         {
-            bump.Update(transform, _boat, _boat.InWater ? _boat.VelocityRelativeToWater.y * _displaceMul : 0f);
+            bump.Update(transform, _boat, _boat.InWater ? _boat.VelocityRelativeToWater.y * displaceMul : 0f);
         }
     }
 }

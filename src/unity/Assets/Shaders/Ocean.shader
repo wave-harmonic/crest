@@ -5,12 +5,13 @@ Shader "Ocean/Ocean"
 	Properties
 	{
 		_Normals ( "Normals", 2D ) = "bump" {}
+		_NormalsStrength("Normals Strength", Range(0.0, 3.0)) = 0.75
+		_NormalsScale("Normals Scale", Range(0.0, 1000.0)) = 250.0
 		_Skybox ("Skybox", CUBE) = "" {}
 		_Diffuse ("Diffuse", Color) = (0.2, 0.05, 0.05, 1.0)
 		_FoamTexture ( "Foam Texture", 2D ) = "white" {}
 		_FoamWhiteColor("White Foam Color", Color) = (1.0, 1.0, 1.0, 1.0)
 		_FoamBubbleColor ( "Bubble Foam Color", Color ) = (0.0, 0.0904, 0.105, 1.0)
-		_NormalsScale ("Normal Scale", Range(0.0,3.0)) = 1.0
 	}
 
 	Category
@@ -195,18 +196,20 @@ Shader "Ocean/Ocean"
 				}
 
 				uniform half4 _Diffuse;
-				uniform sampler2D _Normals;
 				samplerCUBE _Skybox;
 				sampler2D _FoamTexture;
 				half4 _FoamWhiteColor;
 				half4 _FoamBubbleColor;
+
+				uniform sampler2D _Normals;
+				uniform half _NormalsStrength;
 				uniform half _NormalsScale;
 
 				void ApplyNormalMaps(float2 worldXZUndisplaced, float lodAlpha, inout half3 io_n )
 				{
 					const float2 v0 = float2(0.94, 0.34), v1 = float2(-0.85, -0.53);
 					const float geomSquareSize = _GeomData.x;
-					float nstretch = 80.*geomSquareSize; // normals scaled with geometry
+					float nstretch = _NormalsScale * geomSquareSize; // normals scaled with geometry
 					const float spdmulL = _GeomData.y;
 					half2 norm =
 						tex2D( _Normals, (v0*_MyTime*spdmulL + worldXZUndisplaced) / nstretch ).wz +
@@ -228,12 +231,12 @@ Shader "Ocean/Ocean"
 
 					// modify geom normal with result from normal maps. -1 because we did not subtract 0.5 when sampling
 					// normal maps above
-					io_n.xz -= 0.25 * (norm - 1.0) * _NormalsScale;
+					io_n.xz -= 0.25 * (norm - 1.0) * _NormalsStrength;
 					io_n.y = 1.;
 					io_n = normalize( io_n );
 				}
 
-				void ApplyFoam( half determinant, float2 worldXZUndisplaced, half3 n, inout half3 io_col )
+				void ApplyFoam( half determinant, float2 worldXZUndisplaced, half3 n, inout half3 io_col, inout float io_whiteFoam )
 				{
 					// Give the foam some texture
 					float2 foamUV = worldXZUndisplaced / 10.;
@@ -253,33 +256,33 @@ Shader "Ocean/Ocean"
 					io_col.xyz += bubbleFoam * _FoamBubbleColor.rgb * _FoamBubbleColor.a;
 
 					// White foam on top, with black-point fading
-					half whiteFoam = foamTexValue * smoothstep( 1.0 - foamAmount, 1.3 - foamAmount, foamTexValue );
-					io_col.xyz = lerp( io_col.xyz, _FoamWhiteColor, whiteFoam * _FoamWhiteColor.a );
+					io_whiteFoam = foamTexValue * smoothstep( 1.0 - foamAmount, 1.3 - foamAmount, foamTexValue ) * _FoamWhiteColor.a;
 				}
 
 				half4 frag(v2f i) : SV_Target
 				{
-					// shading
-					half4 col = (half4)0.;
-	
-					// Diffuse color
-					col = _Diffuse;
+					// Emitted light - ocean colour
+					half4 col = _Diffuse;
+					float scatteredLight = .8*smoothstep(2.0, 0.25, 1. - i.invDeterminant_lodAlpha_worldXZUndisplaced.x);
+					scatteredLight *= scatteredLight;
+					col.xyz += .3*half3(0.0, 1.1, 0.4) * scatteredLight;
 
-					// normal - geom + normal mapping
+					// Normal - geom + normal mapping
 					half3 n = i.n;
 					ApplyNormalMaps(i.invDeterminant_lodAlpha_worldXZUndisplaced.zw, i.invDeterminant_lodAlpha_worldXZUndisplaced.y, n );
 
-					float scatteredLight = .8*smoothstep(2.0, 0.25, 1. - i.invDeterminant_lodAlpha_worldXZUndisplaced.x);
-					scatteredLight *= scatteredLight;
-					col.xyz += .2*half3(0.0, 1.1, 0.4) * scatteredLight;
+					// Foam - underwater bubbles and whitefoam
+					float whiteFoam;
+					ApplyFoam( 1. - i.invDeterminant_lodAlpha_worldXZUndisplaced.x, i.invDeterminant_lodAlpha_worldXZUndisplaced.zw, n, col.xyz, whiteFoam );
 
-					// fresnel / reflection
-					half3 view = normalize( _WorldSpaceCameraPos - i.worldPos );
-					half3 skyColor = texCUBE(_Skybox, reflect(-view, n) );
-					col.xyz = lerp( col.xyz, skyColor, pow( 1. - max( 0., dot( view, n ) ), 8. ) );
+					// Fresnel / reflection
+					half3 view = normalize(_WorldSpaceCameraPos - i.worldPos);
+					float fresnel = lerp(0., 1.0, pow(1.0 - dot(n, view), 3.0));
+					half3 skyColor = texCUBE(_Skybox, reflect(-view, n));
+					col.xyz = lerp(col.xyz, skyColor, fresnel);
 
-					// Foam
-					ApplyFoam( 1. - i.invDeterminant_lodAlpha_worldXZUndisplaced.x, i.invDeterminant_lodAlpha_worldXZUndisplaced.zw, n, col.xyz );
+					// Override final result with white foam - bubbles on surface
+					col.xyz = lerp(col.xyz, _FoamWhiteColor, whiteFoam);
 
 					// Fog
 					UNITY_APPLY_FOG(i.fogCoord, col);

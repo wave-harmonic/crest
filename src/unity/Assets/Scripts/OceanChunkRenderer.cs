@@ -52,8 +52,8 @@ namespace Crest
             float squareSize = transform.lossyScale.x / _baseVertDensity;
             float mul = 1.875f; // fudge 1
             float pow = 1.4f; // fudge 2
-            float normalScrollSpeed0 = Mathf.Pow( Mathf.Log( 1f + 2f * squareSize ) * mul, pow );
-            float normalScrollSpeed1 = Mathf.Pow( Mathf.Log( 1f + 4f * squareSize ) * mul, pow );
+            float normalScrollSpeed0 = 2f * Mathf.Pow( Mathf.Log( 1f + 2f * squareSize ) * mul, pow );
+            float normalScrollSpeed1 = 2f * Mathf.Pow( Mathf.Log( 1f + 4f * squareSize ) * mul, pow );
             _rend.material.SetVector( "_GeomData", new Vector4( squareSize, normalScrollSpeed0, normalScrollSpeed1, _baseVertDensity ) );
 
             // assign shape textures to shader

@@ -61,7 +61,7 @@ Material:
     - _DstBlend: 0
     - _Factor: 0
     - _FactorOrthogonal: 4
-    - _FactorParallel: 8
+    - _FactorParallel: 6
     - _GlossMapScale: 1
     - _Glossiness: 0.5
     - _GlossyReflections: 1
@@ -73,7 +73,7 @@ Material:
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 1
-    - _Strength: 48
+    - _Strength: 200
     - _UVSec: 0
     - _ZWrite: 1
     m_Colors:

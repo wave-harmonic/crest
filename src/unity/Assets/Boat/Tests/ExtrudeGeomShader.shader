@@ -9,7 +9,6 @@ Shader "Ocean/Shape/Extrude Test"
 {
 	Properties
 	{
-		_MainTex("Texture", 2D) = "white" {}
 		_Factor("Factor", Range(0., 2.)) = 0.2
 		_Velocity("Velocity", Vector) = (0,0,0,0)
 	}
@@ -18,158 +17,177 @@ Shader "Ocean/Shape/Extrude Test"
 	{
 		//Tags{ "Queue" = "Transparent" }
 		//Blend SrcAlpha One
+		//Cull Off
 
 		Pass
 		{
-		CGPROGRAM
-		#pragma vertex vert
-		#pragma fragment frag
-		#pragma geometry geom
+			CGPROGRAM
+			#pragma vertex vert
+			#pragma fragment frag
+			#pragma geometry geom
 
-		#include "UnityCG.cginc"
+			#include "UnityCG.cginc"
 
-		struct v2g
-		{
-			float4 vertex : POSITION;
-			float3 normal : NORMAL;
-			float2 uv : TEXCOORD0;
-		};
+			struct v2g
+			{
+				float4 vertex : POSITION;
+				float3 normal : NORMAL;
+			};
 
-		struct g2f
-		{
-			float4 pos : SV_POSITION;
-			float2 uv : TEXCOORD0;
-			fixed4 col : COLOR;
-		};
+			struct g2f
+			{
+				float4 pos : SV_POSITION;
+				fixed4 col : COLOR;
+				float height : TEXCOORD0;
+			};
 
-		sampler2D _MainTex;
-		float4 _MainTex_ST;
+			v2g vert(appdata_base v)
+			{
+				v2g o;
+				o.vertex = v.vertex;
+				o.normal = v.normal;
+				return o;
+			}
 
-		v2g vert(appdata_base v)
-		{
-			v2g o;
-			o.vertex = v.vertex;
-			o.uv = TRANSFORM_TEX(v.texcoord, _MainTex);
-			o.normal = v.normal;
-			return o;
-		}
+			float _Factor;
+			float4 _Velocity;
 
-		float _Factor;
-		float4 _Velocity;
+			[maxvertexcount(24)]
+			void geom(triangle v2g IN[3], inout TriangleStream<g2f> tristream)
+			{
+				g2f o;
 
-		[maxvertexcount(24)]
-		void geom(triangle v2g IN[3], inout TriangleStream<g2f> tristream)
-		{
-			g2f o;
-
-			float3 edgeA = mul(unity_ObjectToWorld, IN[1].vertex - IN[0].vertex).xyz;
-			float3 edgeB = mul(unity_ObjectToWorld, IN[2].vertex - IN[0].vertex).xyz;
+				float3 edgeA = mul(unity_ObjectToWorld, IN[1].vertex - IN[0].vertex).xyz;
+				float3 edgeB = mul(unity_ObjectToWorld, IN[2].vertex - IN[0].vertex).xyz;
 			
-			float3 normalFace = normalize(cross(edgeA, edgeB));
+				float3 normalFace = normalize(cross(edgeA, edgeB));
 
-			_Velocity /= 30.;
-			float velMag = max(length(_Velocity), 0.001);
-			float3 velN = _Velocity / velMag;
-			float angleFactor = dot(velN, normalFace);
+				float3 vel = _Velocity;
+				vel /= 30.;
+				float velMag = max(length(vel), 0.001);
+				float3 velN = vel / velMag;
+				float angleFactor = dot(velN, normalFace);
 
-			float4 colBefore = (fixed4)0.5;
-			float4 colAfter = (fixed4)1.;
-			colBefore.a = colAfter.a = 0.5;
+				//if (angleFactor <= -0.001)
+				//	return;
+				//angleFactor = max(0., angleFactor);
 
-			if (angleFactor < -0.0001)
-			{
-				_Velocity = -_Velocity;
-				colAfter.xyz *= -1.;
-				angleFactor *= -1.;
-			}
+				float4 colBefore = (fixed4)0.5 * abs(angleFactor);
+				float4 colAfter = (fixed4)1. * abs(angleFactor);
+				colBefore.a = colAfter.a = 0.5;
 
-			float4 offset = float4(normalFace, 0) * _Factor * velMag * (1. - angleFactor) + _Velocity;
+				//if (angleFactor < -0.0001)
+				//{
+				//	vel = -vel;
+				//	colAfter.xyz *= -1.;
+				//	angleFactor *= -1.;
+				//}
 
-			// create strip to bridge original edge positions to extruded edges of face
-			for (int i = 0; i < 3; i++)
-			{
-				int inext = (i + 1) % 3;
+				float4 posBefore[3];
+				float heightBefore[3];
+				for (int i = 0; i < 3; i++)
+				{
+					posBefore[i] = mul(UNITY_MATRIX_VP, mul(unity_ObjectToWorld, IN[i].vertex));
+					heightBefore[i] = mul(unity_ObjectToWorld, IN[i].vertex).y;
+				}
+				
+				if (min(min(heightBefore[0], heightBefore[1]), heightBefore[2]) > 0.)
+				{
+					return;
+				}
 
-				o.pos = mul(UNITY_MATRIX_VP, mul(unity_ObjectToWorld, IN[i].vertex) + offset);
-				o.uv = IN[i].uv;
-				o.col = colAfter;
-				tristream.Append(o);
+				float3 offset = _Velocity + _Factor * normalFace;
+				float4 posAfter[3];
+				float heightAfter[3];
+				for (int i = 0; i < 3; i++)
+				{
+					posAfter[i] = mul(UNITY_MATRIX_VP, float4(mul(unity_ObjectToWorld, IN[i].vertex).xyz + offset, 1.));
+					heightAfter[i] = mul(unity_ObjectToWorld, IN[i].vertex).y + offset.y;
+				}
 
-				o.pos = mul(UNITY_MATRIX_VP, mul(unity_ObjectToWorld, IN[i].vertex) + offset);
-				o.uv = IN[i].uv;
-				o.col = colBefore;
-				tristream.Append(o);
+				// create strip to bridge original edge positions to extruded edges of face
+				for (int i = 0; i < 3; i++)
+				{
+					int inext = (i + 1) % 3;
 
-				o.pos = mul(UNITY_MATRIX_VP, mul(unity_ObjectToWorld, IN[inext].vertex) + offset);
-				o.uv = IN[inext].uv;
-				o.col = colBefore;
-				tristream.Append(o);
+					o.pos = posBefore[i];
+					o.height = heightBefore[i];
+					o.col = colBefore;
+					tristream.Append(o);
+
+					o.pos = posBefore[inext];
+					o.height = heightBefore[inext];
+					o.col = colBefore;
+					tristream.Append(o);
+
+					o.pos = posAfter[i];
+					o.height = heightAfter[i];
+					o.col = colAfter;
+					tristream.Append(o);
+
+					tristream.RestartStrip();
+
+					o.pos = posAfter[i];
+					o.height = heightAfter[i];
+					o.col = colAfter;
+					tristream.Append(o);
+
+					o.pos = posBefore[inext];
+					o.height = heightBefore[inext];
+					o.col = colBefore;
+					tristream.Append(o);
+
+					o.pos = posAfter[inext];
+					o.height = heightAfter[inext];
+					o.col = colAfter;
+					tristream.Append(o);
+
+					tristream.RestartStrip();
+				}
+
+				// the extruded faces at their new positions
+				for (int i = 0; i < 3; i++)
+				{
+					o.pos = posAfter[i];
+					o.height = heightAfter[i];
+					o.col = colAfter;
+					tristream.Append(o);
+				}
 
 				tristream.RestartStrip();
 
-				o.pos = mul(UNITY_MATRIX_VP, mul(unity_ObjectToWorld, IN[i].vertex) + offset);
-				o.uv = IN[i].uv;
-				o.col = colAfter;
-				tristream.Append(o);
+				//// original faces
+				//for (int i = 0; i < 3; i++)
+				//{
+				//	o.pos = UnityObjectToClipPos(IN[i].vertex);
+				//	o.col = colBefore;
+				//	tristream.Append(o);
+				//}
 
-				o.pos = mul(UNITY_MATRIX_VP, mul(unity_ObjectToWorld, IN[inext].vertex) + offset);
-				o.uv = IN[inext].uv;
-				o.col = colBefore;
-				tristream.Append(o);
+				//tristream.RestartStrip();
 
-				o.pos = mul(UNITY_MATRIX_VP, mul(unity_ObjectToWorld, IN[inext].vertex) + offset);
-				o.uv = IN[inext].uv;
-				o.col = colAfter;
-				tristream.Append(o);
+				//// original faces flipped to cap end - each extruded tri becomes a closed surface
+				//{
+				//	o.col = colBefore;
 
-				tristream.RestartStrip();
+				//	o.pos = UnityObjectToClipPos(IN[0].vertex);
+				//	tristream.Append(o);
+				//	o.pos = UnityObjectToClipPos(IN[2].vertex);
+				//	tristream.Append(o);
+				//	o.pos = UnityObjectToClipPos(IN[1].vertex);
+				//	tristream.Append(o);
+				//}
+
+				//tristream.RestartStrip();
 			}
 
-			// the extruded faces at their new positions
-			for (int i = 0; i < 3; i++)
+			fixed4 frag(g2f i) : SV_Target
 			{
-				o.pos = mul(UNITY_MATRIX_VP, mul(unity_ObjectToWorld, IN[i].vertex) + offset);
-				o.uv = IN[i].uv;
-				o.col = colAfter;
-				tristream.Append(o);
+				fixed4 col = i.col + .5;
+				col *= i.height;
+				col = (fixed4)exp(-2.*-i.height);
+				return col;
 			}
-
-			tristream.RestartStrip();
-
-			//// original faces
-			//for (int i = 0; i < 3; i++)
-			//{
-			//	o.pos = UnityObjectToClipPos(IN[i].vertex);
-			//	o.uv = IN[i].uv;
-			//	o.col = colBefore;
-			//	tristream.Append(o);
-			//}
-
-			//tristream.RestartStrip();
-
-			//// original faces flipped to cap end - each extruded tri becomes a closed surface
-			//{
-			//	o.col = colBefore;
-
-			//	o.pos = UnityObjectToClipPos(IN[0].vertex);
-			//	o.uv = IN[0].uv;
-			//	tristream.Append(o);
-			//	o.pos = UnityObjectToClipPos(IN[2].vertex);
-			//	o.uv = IN[2].uv;
-			//	tristream.Append(o);
-			//	o.pos = UnityObjectToClipPos(IN[1].vertex);
-			//	o.uv = IN[1].uv;
-			//	tristream.Append(o);
-			//}
-
-			//tristream.RestartStrip();
-		}
-
-		fixed4 frag(g2f i) : SV_Target
-		{
-			fixed4 col = tex2D(_MainTex, i.uv) * i.col;
-			return col;
-		}
 			ENDCG
 		}
 	}

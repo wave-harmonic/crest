@@ -103,7 +103,7 @@ namespace Crest
         void LateUpdateScale()
         {
             // scale ocean mesh based on camera height to keep uniform detail
-            const float HEIGHT_LOD_MUL = 1f; //0.0625f;
+            const float HEIGHT_LOD_MUL = 2f;
             float camY = Mathf.Abs(Camera.main.transform.position.y - transform.position.y);
             float level = camY * HEIGHT_LOD_MUL;
             level = Mathf.Max(level, _minScale);

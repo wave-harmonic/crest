@@ -233,7 +233,7 @@ namespace Crest
             cart._targetName = string.Format( "shapeRT{0}", lodIdx );
             cart._width = cart._height = (int)(4f * parms._baseVertDensity);
             cart._depthBits = 0;
-            cart._format = RenderTextureFormat.ARGBFloat;
+            cart._format = RenderTextureFormat.ARGBHalf;
             cart._wrapMode = TextureWrapMode.Clamp;
             cart._antiAliasing = 1;
             cart._filterMode = FilterMode.Bilinear;

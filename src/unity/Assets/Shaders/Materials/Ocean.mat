@@ -71,7 +71,7 @@ Material:
     - _MipBias: 0
     - _Moving: 0.17
     - _NormalsScale: 250
-    - _NormalsStrength: 0.75
+    - _NormalsStrength: 1
     - _Offset: 0.00008
     - _RefractAmt: 0
     - _S: 1

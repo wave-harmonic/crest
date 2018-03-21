@@ -33,7 +33,7 @@ Shader "Ocean/Ocean"
 				#include "TextureBombing.cginc"
 
 				// tints the output color based on which shape texture(s) were sampled, blended according to weight
-				#define DEBUG_SHAPE_SAMPLE
+				//#define DEBUG_SHAPE_SAMPLE
 
 				struct appdata_t
 				{
@@ -62,7 +62,6 @@ Shader "Ocean/Ocean"
 				uniform float3 _OceanCenterPosWorld;
 				uniform float _EnableSmoothLODs = 1.0;
 				uniform float _MyTime;
-				uniform float _VisualiseLODs;
 
 				// INSTANCE PARAMS
 
@@ -280,10 +279,7 @@ Shader "Ocean/Ocean"
 					UNITY_APPLY_FOG(i.fogCoord, col);
 	
 					#if defined( DEBUG_SHAPE_SAMPLE )
-					if( _VisualiseLODs > 0. )
-					{
-						col.rgb = mix(col.rgb, i.debugtint, 0.5);
-					}					
+					col.rgb = mix(col.rgb, i.debugtint, 0.5);
 					#endif
 
 					return col;

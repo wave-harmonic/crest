@@ -104,7 +104,7 @@ namespace Crest
 
             if (dropped > 0)
             {
-                Debug.LogWarning(string.Format("Gerstner LOD{0}: Batch limit reached, dropped {1} wavelengths.", lodIdx, dropped), this);
+                Debug.LogWarning(string.Format("Gerstner LOD{0}: Batch limit reached, dropped {1} wavelengths. To support bigger batch sizes, see the comment around the BATCH_SIZE declaration.", lodIdx, dropped), this);
                 numComponents = BATCH_SIZE;
             }
 
@@ -115,7 +115,7 @@ namespace Crest
                 return;
             }
 
-            // if we didnt fill the batch, put a terminator signal after the last position
+            // if we did not fill the batch, put a terminator signal after the last position
             if( numInBatch < BATCH_SIZE)
             {
                 _wavelengthsBatch[numInBatch] = 0f;
@@ -134,7 +134,7 @@ namespace Crest
         {
             int componentIdx = 0;
 
-            // seek forward to first wavelength that is big enough to render into current lods
+            // seek forward to first wavelength that is big enough to render into current LODs
             float minWl = OceanRenderer.Instance.MaxWavelength(0) / 2f;
             while (_wavelengths[componentIdx] < minWl && componentIdx < _wavelengths.Length)
             {

@@ -53,10 +53,8 @@ bool SamplingIsAppropriate(float wavelengthInShape, out float wt)
 // large wavelengths that do not fit in the lod chain naturally are rendered into the largest lods - this is inefficient but ensures their
 // (important) contribution to the shape is always present. to 100% avoid pops, they are shifted smoothly between the last two lods so there
 // is not pop when the lod chain scale changes due to sampling changes when a set of waves suddenly moves from one sampling resolution to another.
-float ComputeSortedShapeWeight(float wavelengthInShape)
+float ComputeSortedShapeWeight(float wavelengthInShape, float minWavelength)
 {
-	const float minWavelength = MinWavelengthForCurrentOrthoCamera();
-
 	const bool renderingIntoLastTwoLods = minWavelength * 4.01 > _MaxWavelength;
 	if (!renderingIntoLastTwoLods)
 	{
@@ -80,8 +78,7 @@ float ComputeWaveSpeed( float wavelength )
 {
 	// wave speed of deep sea ocean waves: https://en.wikipedia.org/wiki/Wind_wave
 	// https://en.wikipedia.org/wiki/Dispersion_(water_waves)#Wave_propagation_and_dispersion
-	float g = 9.81;
-	float k = 2. * 3.141593 / wavelength;
-	float cp = sqrt( g / k );
-	return cp;
+	//float g = 9.81; float k = 2. * 3.141593 / wavelength; float cp = sqrt(g / k); return cp;
+	float sqrt_g_over_2pi = 1.2495239;
+	return sqrt_g_over_2pi * sqrt(wavelength);
 }

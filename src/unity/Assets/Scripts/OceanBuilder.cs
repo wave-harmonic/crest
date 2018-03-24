@@ -246,6 +246,7 @@ namespace Crest
             cart._targetName = string.Format( "shapeRT{0}", lodIdx );
             cart._width = cart._height = (int)(4f * parms._baseVertDensity);
             cart._depthBits = 0;
+            // shape format. i tried RGB111110Float but error becomes visible. one option would be to use a UNORM setup.
             cart._format = RenderTextureFormat.ARGBHalf;
             cart._wrapMode = TextureWrapMode.Clamp;
             cart._antiAliasing = 1;

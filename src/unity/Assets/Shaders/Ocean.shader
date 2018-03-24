@@ -60,8 +60,7 @@ Shader "Ocean/Ocean"
 				#include "OceanLODData.cginc"
 
 				uniform float3 _OceanCenterPosWorld;
-				uniform float _EnableSmoothLODs = 1.0;
-				uniform float _MyTime;
+				uniform float _EnableSmoothLODs = 1.0; // debug
 
 				// INSTANCE PARAMS
 
@@ -142,6 +141,7 @@ Shader "Ocean/Ocean"
 					// using .15 as black and .85 as white should work for base mesh density as low as 16. TODO - make this automatic?
 					const float BLACK_POINT = 0.15, WHITE_POINT = 0.85;
 					lodAlpha = max( (lodAlpha - BLACK_POINT) / (WHITE_POINT-BLACK_POINT), 0. );
+					// blend out lod0 when viewpoint gains altitude
 					const float meshScaleLerp = _InstanceData.x;
 					lodAlpha = min(lodAlpha + meshScaleLerp, 1.);
 					lodAlpha *= _EnableSmoothLODs;
@@ -186,15 +186,16 @@ Shader "Ocean/Ocean"
 					return o;
 				}
 
+				// frag shader uniforms
 				uniform half4 _Diffuse;
-				samplerCUBE _Skybox;
-				sampler2D _FoamTexture;
-				half4 _FoamWhiteColor;
-				half4 _FoamBubbleColor;
-
+				uniform samplerCUBE _Skybox;
+				uniform sampler2D _FoamTexture;
+				uniform half4 _FoamWhiteColor;
+				uniform half4 _FoamBubbleColor;
 				uniform sampler2D _Normals;
 				uniform half _NormalsStrength;
 				uniform half _NormalsScale;
+				uniform float _MyTime;
 
 				void ApplyNormalMaps(float2 worldXZUndisplaced, float lodAlpha, inout half3 io_n )
 				{

@@ -27,8 +27,8 @@ namespace Crest
         {
             base.Update();
 
-            if (_materials == null || _materials.Length != OceanRenderer.Instance._lodCount
-                || _renderers == null || _renderers.Length != OceanRenderer.Instance._lodCount)
+            if (_materials == null || _materials.Length != OceanRenderer.Instance.Builder.CurrentLodCount
+                || _renderers == null || _renderers.Length != OceanRenderer.Instance.Builder.CurrentLodCount)
             {
                 InitMaterials();
             }
@@ -42,8 +42,8 @@ namespace Crest
             }
 
             // num octaves plus one, because there is an additional last bucket for large wavelengths
-            _materials = new Material[OceanRenderer.Instance._lodCount];
-            _renderers = new Renderer[OceanRenderer.Instance._lodCount];
+            _materials = new Material[OceanRenderer.Instance.Builder.CurrentLodCount];
+            _renderers = new Renderer[OceanRenderer.Instance.Builder.CurrentLodCount];
 
             for (int i = 0; i < _materials.Length; i++)
             {
@@ -142,7 +142,7 @@ namespace Crest
             }
 
             // batch together appropriate wavelengths for each lod, except the last lod, which are handled separately below
-            for (int lod = 0; lod < OceanRenderer.Instance._lodCount - 1; lod++, minWl *= 2f)
+            for (int lod = 0; lod < OceanRenderer.Instance.Builder.CurrentLodCount - 1; lod++, minWl *= 2f)
             {
                 int startCompIdx = componentIdx;
                 while(componentIdx < _wavelengths.Length && _wavelengths[componentIdx] < 2f * minWl)
@@ -154,7 +154,7 @@ namespace Crest
             }
 
             // the last batch handles waves for the last lod, and waves that did not fit in the last lod
-            UpdateBatch(OceanRenderer.Instance._lodCount - 1, componentIdx, _wavelengths.Length);
+            UpdateBatch(OceanRenderer.Instance.Builder.CurrentLodCount - 1, componentIdx, _wavelengths.Length);
         }
     }
 }

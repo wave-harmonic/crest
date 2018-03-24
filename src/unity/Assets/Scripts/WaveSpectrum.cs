@@ -10,7 +10,7 @@ namespace Crest
         public static readonly float SMALLEST_WL_POW_2 = -2f;
 
         public static readonly float MIN_POWER_LOG = -6f;
-        public static readonly float MAX_POWER_LOG = 2f;
+        public static readonly float MAX_POWER_LOG = 3f;
             
         [Delayed]
         public int _componentsPerOctave = 5;

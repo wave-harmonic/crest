@@ -19,6 +19,7 @@ namespace Crest
 
         [HideInInspector]
         public Camera[] _shapeCameras;
+        public int CurrentLodCount { get { return _shapeCameras.Length; } }
 
         /// <summary>
         /// Parameters to use for ocean geometry construction
@@ -175,6 +176,18 @@ namespace Crest
             for( int i = 0; i < parms._lodCount; i++ )
             {
                 _shapeCameras[i] = CreateWaveDataCam( i, parms );
+            }
+
+            // remove existing LODs
+            for (int i = 0; i < transform.childCount; i++)
+            {
+                var child = transform.GetChild(i);
+                if (child.name.StartsWith("LOD"))
+                {
+                    child.parent = null;
+                    Destroy(child.gameObject);
+                    i--;
+                }
             }
 
             int startLevel = 0;
@@ -381,17 +394,6 @@ namespace Crest
         GameObject CreateLOD( int lodIndex, bool biggestLOD, Mesh[] meshData, Params parms )
         {
             // first create parent gameobject for the lod level. the scale of this transform sets the size of the lod.
-
-            string lodParentName = "LOD" + lodIndex;
-
-            // if it exists already, destroy it so it can be created fresh
-            Transform parentTransform = transform.Find( lodParentName );
-            if( parentTransform != null )
-            {
-                DestroyImmediate( parentTransform.gameObject );
-                parentTransform = null;
-            }
-
             GameObject parent = new GameObject();
             parent.name = "LOD" + lodIndex;
             parent.transform.parent = transform;

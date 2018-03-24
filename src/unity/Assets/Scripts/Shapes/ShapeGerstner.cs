@@ -67,7 +67,7 @@ namespace Crest
             int editorOnlyLayerMask = LayerMask.NameToLayer("EditorOnly");
 
             int lodIdx = 0;
-            int lodCount = OceanRenderer.Instance._lodCount;
+            int lodCount = OceanRenderer.Instance.Builder.CurrentLodCount;
             float minWl = OceanRenderer.Instance.MaxWavelength(0) / 2f;
             for (int i = 0; i < transform.childCount; i++)
             {

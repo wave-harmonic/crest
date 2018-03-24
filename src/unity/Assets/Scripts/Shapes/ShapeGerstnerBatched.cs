@@ -115,10 +115,15 @@ namespace Crest
                 return;
             }
 
-            // if we did not fill the batch, put a terminator signal after the last position
-            if( numInBatch < BATCH_SIZE)
+
+            // if we did not fill the batch, clear the rest of the data
+            for (int i = numInBatch; i < BATCH_SIZE; i++)
             {
-                _wavelengthsBatch[numInBatch] = 0f;
+                // termination signal
+                _ampsBatch[i] = 0f;
+
+                // fill wavelengths with dummy values (to avoid div by 0s in the shader)
+                _wavelengthsBatch[i] = 1f;
             }
 
             // apply the data to the shape material

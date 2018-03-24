@@ -73,7 +73,7 @@ Shader "Ocean/Shape/Gerstner Batch"
 					// unrolling this loop once helped SM Issue Utilization and some other stats, but the GPU time is already very low so leaving this for now
 					for (int j = 0; j < BATCH_SIZE; j++)
 					{
-						if (_Wavelengths[j] == 0.)
+						if (_Amplitudes[j] == 0.)
 							break;
 
 						// weight
@@ -91,6 +91,60 @@ Shader "Ocean/Shape/Gerstner Batch"
 						result_i.y *= cos(k*(x + C*_MyTime) + _Phases[j]);
 						result_i.xz *= -_Chop * D * sin(k*(x + C * _MyTime) + _Phases[j]);
 						result += result_i;
+
+						//j++;
+
+						//// weight
+						//wt = ComputeSortedShapeWeight(_Wavelengths[j], minWavelength);
+						//// wave speed
+						//C = ComputeWaveSpeed(_Wavelengths[j]);
+						//// direction
+						//D = float2(cos(_Angles[j]), sin(_Angles[j]));
+						//// wave number
+						//k = 2. * PI / _Wavelengths[j];
+						//// spatial location
+						//x = dot(D, i.worldPos.xz);
+
+						//result_i = wt * _Amplitudes[j];
+						//result_i.y *= cos(k*(x + C * _MyTime) + _Phases[j]);
+						//result_i.xz *= -_Chop * D * sin(k*(x + C * _MyTime) + _Phases[j]);
+						//result += result_i;
+
+						//j++;
+
+						//// weight
+						//wt = ComputeSortedShapeWeight(_Wavelengths[j], minWavelength);
+						//// wave speed
+						//C = ComputeWaveSpeed(_Wavelengths[j]);
+						//// direction
+						//D = float2(cos(_Angles[j]), sin(_Angles[j]));
+						//// wave number
+						//k = 2. * PI / _Wavelengths[j];
+						//// spatial location
+						//x = dot(D, i.worldPos.xz);
+
+						//result_i = wt * _Amplitudes[j];
+						//result_i.y *= cos(k*(x + C * _MyTime) + _Phases[j]);
+						//result_i.xz *= -_Chop * D * sin(k*(x + C * _MyTime) + _Phases[j]);
+						//result += result_i;
+
+						//j++;
+
+						//// weight
+						//wt = ComputeSortedShapeWeight(_Wavelengths[j], minWavelength);
+						//// wave speed
+						//C = ComputeWaveSpeed(_Wavelengths[j]);
+						//// direction
+						//D = float2(cos(_Angles[j]), sin(_Angles[j]));
+						//// wave number
+						//k = 2. * PI / _Wavelengths[j];
+						//// spatial location
+						//x = dot(D, i.worldPos.xz);
+
+						//result_i = wt * _Amplitudes[j];
+						//result_i.y *= cos(k*(x + C * _MyTime) + _Phases[j]);
+						//result_i.xz *= -_Chop * D * sin(k*(x + C * _MyTime) + _Phases[j]);
+						//result += result_i;
 					}
 
 					return i.weight.x * result;

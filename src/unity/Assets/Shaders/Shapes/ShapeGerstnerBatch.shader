@@ -57,18 +57,18 @@ Shader "Ocean/Shape/Gerstner Batch"
 				}
 
 				// respects the gui option to freeze time
-				uniform float _MyTime;
-				uniform float _Chop;
-				uniform float _Wavelengths[BATCH_SIZE];
-				uniform float _Amplitudes[BATCH_SIZE];
-				uniform float _Angles[BATCH_SIZE];
-				uniform float _Phases[BATCH_SIZE];
+				uniform half _MyTime;
+				uniform half _Chop;
+				uniform half _Wavelengths[BATCH_SIZE];
+				uniform half _Amplitudes[BATCH_SIZE];
+				uniform half _Angles[BATCH_SIZE];
+				uniform half _Phases[BATCH_SIZE];
 
-				float3 frag (v2f i) : SV_Target
+				half3 frag (v2f i) : SV_Target
 				{
-					const float minWavelength = MinWavelengthForCurrentOrthoCamera();
+					const half minWavelength = MinWavelengthForCurrentOrthoCamera();
 			
-					float3 result = (float3)0.;
+					half3 result = (half3)0.;
 
 					// unrolling this loop once helped SM Issue Utilization and some other stats, but the GPU time is already very low so leaving this for now
 					for (int j = 0; j < BATCH_SIZE; j++)
@@ -77,17 +77,17 @@ Shader "Ocean/Shape/Gerstner Batch"
 							break;
 
 						// weight
-						float wt = ComputeSortedShapeWeight(_Wavelengths[j], minWavelength);
+						half wt = ComputeSortedShapeWeight(_Wavelengths[j], minWavelength);
 						// wave speed
-						float C = ComputeWaveSpeed(_Wavelengths[j]);
+						half C = ComputeWaveSpeed(_Wavelengths[j]);
 						// direction
-						float2 D = float2(cos(_Angles[j]), sin(_Angles[j]));
+						half2 D = half2(cos(_Angles[j]), sin(_Angles[j]));
 						// wave number
-						float k = 2. * PI / _Wavelengths[j];
+						half k = 2. * PI / _Wavelengths[j];
 						// spatial location
-						float x = dot(D, i.worldPos.xz);
+						half x = dot(D, i.worldPos.xz);
 
-						float3 result_i = wt * _Amplitudes[j];
+						half3 result_i = wt * _Amplitudes[j];
 						result_i.y *= cos(k*(x + C*_MyTime) + _Phases[j]);
 						result_i.xz *= -_Chop * D * sin(k*(x + C * _MyTime) + _Phases[j]);
 						result += result_i;
@@ -99,7 +99,7 @@ Shader "Ocean/Shape/Gerstner Batch"
 						//// wave speed
 						//C = ComputeWaveSpeed(_Wavelengths[j]);
 						//// direction
-						//D = float2(cos(_Angles[j]), sin(_Angles[j]));
+						//D = half2(cos(_Angles[j]), sin(_Angles[j]));
 						//// wave number
 						//k = 2. * PI / _Wavelengths[j];
 						//// spatial location
@@ -117,7 +117,7 @@ Shader "Ocean/Shape/Gerstner Batch"
 						//// wave speed
 						//C = ComputeWaveSpeed(_Wavelengths[j]);
 						//// direction
-						//D = float2(cos(_Angles[j]), sin(_Angles[j]));
+						//D = half2(cos(_Angles[j]), sin(_Angles[j]));
 						//// wave number
 						//k = 2. * PI / _Wavelengths[j];
 						//// spatial location
@@ -135,7 +135,7 @@ Shader "Ocean/Shape/Gerstner Batch"
 						//// wave speed
 						//C = ComputeWaveSpeed(_Wavelengths[j]);
 						//// direction
-						//D = float2(cos(_Angles[j]), sin(_Angles[j]));
+						//D = half2(cos(_Angles[j]), sin(_Angles[j]));
 						//// wave number
 						//k = 2. * PI / _Wavelengths[j];
 						//// spatial location

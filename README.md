@@ -8,58 +8,80 @@ Contacts: Huw Bowles (@hdb1 , huw dot bowles at gmail dot com), Daniel Zimmerman
 
 ## Introduction
 
-*Crest* is a Unity3D implementation of a number of novel ocean rendering techniques published at SIGGRAPH 2017 in the *Advances in Real-Time Rendering* course (course page [link](http://advances.realtimerendering.com/s2017/index.html)).
-
-It demonstrates a number of techniques described in this course:
-
-* CDClipmaps - a new meshing approach that combines the simplicity of Clipmaps with the Continuous Detail of CDLOD.
-* GPU-based shape system - each LOD has an associated displacement texture which is rendered by the *WaveDataCam* game object.
-* Normal map scaling - a technique to improve the range of view distances for which a set of normal maps will work.
-* Foam - two foam layers that are computed on the fly from the displacement textures.
-
-The branch *dynamic_simulation* contains a fully dynamic multi-scale water simulation (isntead of a kinematic animation). This gives interesting effects such as depth-dependent wave speeds, refraction, shadowing, reflections, etc. However it currently does not support displacement shapes and does not give the same quality animation as the kinematic version in the master branch.
+*Crest* is a technically advanced ocean renderer implemented in Unity3D. Some of the core ideas were described at SIGGRAPH 2017 in the *Advances in Real-Time Rendering* course (course page [link](http://advances.realtimerendering.com/s2017/index.html)). Since this initial publication we have been actively working to extend the feature set, which includes innovations in the following areas.
 
 
-## Summary of contributions
+### Shape
 
-We introduce an elegant, unified data structure for an anti-aliased, level of detail water simulation and rendering system.
+It is well known that ocean shape can be well approximated by summing Gerstner waves. Dozens of these are required to obtain an interesting shape. In previous implementations this has been prohibitively expensive and shape is either generated using an online FFT, or precomputed and baked into textures.
 
-Level of detail is a central consideration in our system. We use the infinity norm with square isolines to drive the detail - this fits well to the square textures we use to render/simulate the water shape. We do not require spatial data structures such as quad trees to select detail which simplifies our implementation enormously.
+We generate shape from Gerstner waves efficiently at runtime by rendering at multiple scales, and ensure that waves are never over-sampled (inefficient) or under-sampled (bad quality, aliasing). This is highly performant and gives detail close to the viewer, and shape to the horizon. This gives considerable flexibility in shape and opens possibilities such as attenuating waves based on ocean depth around shorelines.
 
-The water shape is stored in multiple overlapping nested textures that are centered around the viewer. Each texture represents a different scale. The smallest scale gives high detail close to the viewer. TODO update these notes with latest implementation.
+We also introduce an intuitive and fun shape authoring interface - an *equalizer* style editor which makes it fast and easy to achieve surface shape. An art direction such as *small choppy waves with longer waves rolling in from a storm at the horizon* are simple to achieve in this framework. We also support empirical ocean spectra from the literature (Phillips, JONSWAP, etc) which can be used as a baseline.
 
-The ocean surface is rendered by submitting geometry tiles which are placed around the viewer on startup. The tiles are generated on the CPU on startup. The shape textures are sampled in the vertex shader to compute the final shape. The layout and resolution of the tiles match 1:1 with the shape texture resolution, so that data resolution and sampling rate are well matched. Building the mesh out of tiles afford standard frustum culling.
+We also explore simulating shape dynamically by solving the wave equation PDE efficiently in the same multi-scale framework. The branch *dynamic_simulation* generates the entire ocean shape using a dynamic sim that exhibits interesting effects such as refraction and reflections. This works well but is done on a heightfield and loses some of the characteristic horizontal motion on the surface. The branch *local_sim* has a more practical scenario where the wave equation is simulated and added on top of existing Gerstner waves, to add local interactivity while maintaining the overall motion. The displacement of water from the boat's motion is approximated by a simple one-pass shader, and research is ongoing to make this more flexible and expressive.
 
-When the viewer moves, shape rendering snaps to texel positions and geometry is smoothly transitioned out towards the boundaries. The LODs also slide up and down scales when the viewer changes altitude. A height interpolation parameter deals with fading shape in/out at the lowest/highest levels of detail. This eliminates visible pops/discontinuities.
 
-Although normal maps are not stored in shape textures or simulated, they are treated as first class shape, and are scaled with the LODs so that they always give the appearance of waves that are higher detailed than the most detailed shape LOD. The required scaling and blending calculations hang off the ocean geometry scales and use the same interpolation parameters.
+### Mesh
 
-The above gives a complete ocean rendering system. There are just a few core parameters which are intuitive to tweak, such as a single overall resolution slider and the number of LOD levels to generate.
+We implement a 100% pop-free meshing solution, which follows the same unified multi-scale structure/layout as the shape data. The vertex densities and locations match the shape texels 1:1. This ensures that the shape is never over-sampled or under-sampled, giving the same guarantees as described above.
+
+Our meshing approach requires only simple shader instructions in a vertex shader, and does not rely on tessellation or compute shaders or any other advanced shader model features. The geometry is composed of tiles which have strictly no overlap, and support frustum culling. These tiles are generated quickly on startup.
+
+The multi-resolution representation (shape textures and geometry) is scaled horizontally when the camera changes altitude to ensure appropriate level of detail and good visual range for all viewpoints. To further extend the surface to the horizon we also add a strip of triangles at the mesh boundary.
+
+
+### Shading / VFX
+
+Normal maps are elegantly incorporated into our multi-scale framework. Normal map textures are treated as a slightly different form of shape that is too detailed to be efficiently sampled by geometry, and are sampled at a scale just below the shape textures. This combats typical normal map sampling issues such as lack of detail in the foreground, or a glassy flat appearance in the background.
+
+Current shading effects include two foam layers are computed on the fly from the Jacobian of the displacement textures, and a subsurface scattering approximation is generated from the same Jacobian.
+
+The branch *fx_test* explores dynamically generating spray particle effects by randomly sampling points on the surface to detect wave peaks.
+
+
+## Configuration
+
+The components described above are driven by a small number of key parameters which are trivial to understand and tweak. The primary parameters configure the multi-scale representation. Unless otherwise specified thes parameters reside on the *OceanRenderer* component.
+
+### Ocean Construction Parameters
+
+* **Base Vert density** - the base vert/shape texel density of an ocean patch. If you set the scale of a LOD to 1, this density would be the world space verts/m. More means more verts/shape, at the cost of more processing.
+* **Lod Count** - the number of levels of detail / scales of ocean geometry to generate. More means more dynamic range of usable shape/mesh at the cost of more processing.
+* **Max Wave Height** - this is just so that the ocean tiles bounding box height can be set, to ensure culling eliminates tiles correctly.
+
+### Runtime Global Parameters
+
+* **Wind direction angle** - this global wind direction affects the ocean shape
+* **Chop** - controls how much horizontal displacement is present in the ocean shape
+* **Max Scale** - the ocean is scaled horizontally with viewer height, to keep the meshing suitable for elevated viewpoints. This sets the maximum the ocean will be scaled if set to a positive value.
+* **Min Scale** - this clamps the scale from below, to prevent the ocean scaling down to 0 when the camera approaches the sea level. This should be set to a low value gives lots of detail, but will limmit the horizontal extents of the ocean as the detail scales have a limited dynamic range (set by the previous Lod Count parameter).
+
+### Ocean Shape
+
+Ocean shape is currently authored on the *OceanWavesBatched* game object. The *WaveSpectrum* component provides an equalizer interface to tweak gain values for different frequency levels. We recommend combining use of the *Freeze waves* feature on the debug overlay, the toggle boxes in the equalizer, and undo/redo, to do fine tweaking of the ocean surface shape.
+
+For reference a number of empirical spectra are also implemented and can be applied to the spectrum by clicking the appropriate toggle button. We find it interesting to observe how the surface shape evolves when a spectrum is enabled and the wind speed is tweaked.
 
 
 ## How it Works
 
-On startup, the *OceanBuilder* script creates the ocean geometry as a LODs, each composed of geometry tiles and a shape camera to render the displacement texture for that LOD. It has the following parameters that are passed to it on startup from the OceanRenderer script:
+On startup, the *OceanBuilder* script creates the ocean geometry as a LODs, each composed of geometry tiles and a shape camera to render the displacement texture for that LOD.
 
-* Base Vert density - the base vert/shape texel density of an ocean patch. If you set the scale of a LOD to 1, this density would be the world space verts/m. More means more verts/shape, at the cost of more processing.
-* Lod Count - the number of levels of detail / scales of ocean geometry to generate. More means more dynamic range of usable shape/mesh at the cost of more processing.
-* Max Wave Height - this is just so that the ocean tiles bounding box height can be set, to ensure culling eliminates tiles correctly.
-* Max Scale - the ocean is scaled horizontally with viewer height, to keep the meshing suitable for elevated viewpoints. This sets the maximum the ocean will be scaled if set to a positive value.
-* Min Scale - this clamps the scale from below, to prevent the ocean scaling down to 0 when the camera approaches the sea level. This should be set to a low value gives lots of detail, but will limmit the horizontal extents of the ocean as the detail scales have a limited dynamic range (set by the previous Lod Count parameter).
+At run-time, the viewpoint is moved first, and then the *Ocean* object is placed at sea level under the viewer. A horizontal scale is computed for the ocean based on the viewer height, as well as a *_viewerAltitudeLevelAlpha* that captures where the camera is between the current scale and the next scale (x2), and allows a smooth transition between scales to be achieved using the two mechanisms described in the SIGGRAPH course.
 
-At run-time, the viewpoint is moved first, and then the *Ocean* object is placed at sea level under the viewer. A horizontal scale is compute for the ocean based on the viewer height, as well as a *_viewerAltitudeLevelAlpha* that captures where the camera is between the current scale and the next scale (x2), and allows a smooth transition between scales to be achieved using the two mechanisms described in the course.
+Once the ocean has been placed, the ocean surface shape is generated by rendering Gerstner wave components into the shape LODs. These are visualised on screen if the *Show shape data* debug option is enabled. Each wave components is rendered into the shape LOD that is appropriate for the wavelength, to prevent over- or under- sampling and maximize efficiency. A final pass combines the results down the shape LODs (from largest to most-detailed), disable the *Shape combine pass* debug option to see the shape contents before this pass.
 
-Once the ocean has been placed, the ocean surface shape is generated by rendering Gerstner wave components into the shape LODs.
-
-The ocean geometry itself as the Ocean shader attached. The vertex shader snaps the verts to grid positions to make them stable. It then computes a *lodAlpha* which starts at 0 for the inside of the LOD and becomes 1 at the outer edge. It is computed from taxicab distance as noted in the course. This value is used to drive the vertex layout transition, to enable a seemless match between the two. The vertex shader then samples the current LOD shape texture and the next shape texture and uses *lodAlpha* to interpolate them for a smooth transition across displacement textures. A foam value is also computed using the determinant of the Jacobian of the displacement texture. Finally, it passes the LOD geometry scale and *lodAlpha* to the pixel shader.
+The ocean geometry is rendered with the Ocean shader. The vertex shader snaps the verts to grid positions to make them stable. It then computes a *lodAlpha* which starts at 0 for the inside of the LOD and becomes 1 at the outer edge. It is computed from taxicab distance as noted in the course. This value is used to drive the vertex layout transition, to enable a seemless match between the two. The vertex shader then samples the current LOD shape texture and the next shape texture and uses *lodAlpha* to interpolate them for a smooth transition across displacement textures. A foam value is also computed using the determinant of the Jacobian of the displacement texture. Finally, it passes the LOD geometry scale and *lodAlpha* to the pixel shader.
 
 The ocean pixel shader samples normal maps at 2 different scales, both proportional to the current and next LOD scales, and then interpolates the result using *lodAlpha* for a smooth transition. Two layers of foam are added based on different thresholds of the foam value, with black point fading used to blend them.
 
 
 ## Bugs and Improvement Directions
 
-* Each Gerstner wave is computed and blended into the displacement texture individually. This makes them very easy to work and convenient, but baking them down to a single pass would be an interesting optimisation direction. Using prebaked textures (i.e. from an offline ocean simulation) would also be an option.
-* Ocean tiles are updated and drawn as separate draw calls. This is convenient for research and supports frustum culling easily, but it might make sense to instance these in a production scenario.
+* Using prebaked textures (i.e. from an offline ocean simulation) would be easy to implement in our framework by rendering the prebaked results into the shape textures, and would be the most efficient option.
+* Ocean surface tiles are updated and drawn as separate draw calls. This is convenient for research and supports frustum culling easily, but it might make sense to instance these in a production scenario.
+* Ocean surface shading is fairly simple and could be improved. A better subsurface scattering approximation would help a lot, perhaps based on angle between view and surface normal.
 
 
 ## Links
@@ -116,9 +138,9 @@ The ocean pixel shader samples normal maps at 2 different scales, both proportio
 ### Particle sim
 
 * Mixes SPH and WE, uses SPH to get low frequency 3D flow: http://citeseerx.ist.psu.edu/viewdoc/download;jsessionid=8A10D0187910134E8C8330AF1C57B146?doi=10.1.1.127.1749&rep=rep1&type=pdf
-* Mueller - deposits splash particles on surface, looks good, video: https://www.youtube.com/watch?v=bojdpqi2l_o
+* Mueller - deposits splash particles on surface, video: https://www.youtube.com/watch?v=bojdpqi2l_o
 
-### Generating ocean waves into simulation
+### Notes on generating ocean waves into simulation
 
 * Sum of gerstner waves - each frame compute gerstner waves that are appropriate for each sim, apply a force to the ocean surface to pull towards gerstner wave
 * Write dynamic state into sim - write dynamic state of an FFT or the sum of gerstner waves into the sim. This could be stamped onto the sim periodically, if the surface repeats with a given period. This is possible - each sim has a particular wave speed. If a strict scheme of only writing a particular wave length into each sim was employed, this would mean the waves would repeat with a particular period. However it's non-obvious how this could be strictly enforced in a practical game-like situation.

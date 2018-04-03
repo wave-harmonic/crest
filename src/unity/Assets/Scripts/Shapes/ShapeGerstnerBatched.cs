@@ -6,14 +6,13 @@ using UnityEngine.Rendering;
 namespace Crest
 {
     /// <summary>
-    /// Support script for gerstner wave ocean shapes.
-    /// Generates a number of batches of gerstner waves.
+    /// Support script for Gerstner wave ocean shapes.
+    /// Generates a number of batches of Gerstner waves.
     /// </summary>
     public class ShapeGerstnerBatched : ShapeGerstnerBase
     {
         // useful references
         Material[] _materials;
-        Renderer[] _renderers;
         CommandBuffer[] _renderWaveShapeCmdBufs;
         CommandBuffer _renderBigWavelengthsShapeCmdBuf;
 
@@ -33,8 +32,7 @@ namespace Crest
             base.Update();
 
             // this is done every frame for flexibility/convenience, in case the lod count changes
-            if (_materials == null || _materials.Length != OceanRenderer.Instance.Builder.CurrentLodCount
-                || _renderers == null || _renderers.Length != OceanRenderer.Instance.Builder.CurrentLodCount)
+            if (_materials == null || _materials.Length != OceanRenderer.Instance.Builder.CurrentLodCount)
             {
                 InitMaterials();
             }
@@ -55,29 +53,10 @@ namespace Crest
 
             // num octaves plus one, because there is an additional last bucket for large wavelengths
             _materials = new Material[OceanRenderer.Instance.Builder.CurrentLodCount];
-            _renderers = new Renderer[OceanRenderer.Instance.Builder.CurrentLodCount];
 
             for (int i = 0; i < _materials.Length; i++)
             {
-                string postfix = i < _materials.Length - 1 ? i.ToString() : "BigWavelengths";
-
-                GameObject GO = new GameObject(string.Format("Batch {0}", postfix));
-                GO.SetActive(false);
-                GO.layer = i < _materials.Length - 1 ? LayerMask.NameToLayer("WaveData" + i.ToString()) : LayerMask.NameToLayer("WaveDataBigWavelengths");
-
-                MeshFilter meshFilter = GO.AddComponent<MeshFilter>();
-                meshFilter.mesh = _rasterMesh;
-
-                GO.transform.parent = transform;
-                GO.transform.localPosition = Vector3.zero;
-                GO.transform.localRotation = Quaternion.identity;
-                GO.transform.localScale = Vector3.one;
-
                 _materials[i] = new Material(_waveShader);
-
-                _renderers[i] = GO.AddComponent<MeshRenderer>();
-                _renderers[i].material = _materials[i];
-                _renderers[i].allowOcclusionWhenDynamic = false;
             }
         }
 
@@ -216,18 +195,20 @@ namespace Crest
 
         void InitCommandBuffers()
         {
+            Matrix4x4 drawMatrix = Matrix4x4.TRS(Vector3.zero, Quaternion.AngleAxis(90f, Vector3.right), Vector3.one * 100000f);
+
             // see the command buffer helpers below for comments about how the command buffers are arranged
             _renderWaveShapeCmdBufs = new CommandBuffer[OceanRenderer.Instance.Builder.CurrentLodCount - 1];
             for (int i = 0; i < _renderWaveShapeCmdBufs.Length; i++)
             {
                 _renderWaveShapeCmdBufs[i] = new CommandBuffer();
                 _renderWaveShapeCmdBufs[i].name = "ShapeGerstnerBatched" + i;
-                _renderWaveShapeCmdBufs[i].DrawRenderer(_renderers[i], _materials[i]);
+                _renderWaveShapeCmdBufs[i].DrawMesh(_rasterMesh, drawMatrix, _materials[i]);
             }
 
             _renderBigWavelengthsShapeCmdBuf = new CommandBuffer();
             _renderBigWavelengthsShapeCmdBuf.name = "ShapeGerstnerBatchedBigWavelengths";
-            _renderBigWavelengthsShapeCmdBuf.DrawRenderer(_renderers[OceanRenderer.Instance.Builder.CurrentLodCount - 1], _materials[OceanRenderer.Instance.Builder.CurrentLodCount - 1]);
+            _renderBigWavelengthsShapeCmdBuf.DrawMesh(_rasterMesh, drawMatrix, _materials[OceanRenderer.Instance.Builder.CurrentLodCount - 1]);
         }
 
         // copied from unity's command buffer examples because it sounds important

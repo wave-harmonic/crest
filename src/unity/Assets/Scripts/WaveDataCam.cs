@@ -25,6 +25,7 @@ namespace Crest
         int _shapeRes = -1;
 
         public static bool _shapeCombinePass = true;
+        public static bool _renderOceanDepths = false;
 
         public struct RenderData
         {
@@ -133,6 +134,11 @@ namespace Crest
             }
 
             _bufOceanDepth.Clear();
+
+            if (!_renderOceanDepths)
+            {
+                return;
+            }
 
             _bufOceanDepth.SetRenderTarget( _rtOceanDepth );
             _bufOceanDepth.ClearRenderTarget( false, true, Color.red * 10000.0f );

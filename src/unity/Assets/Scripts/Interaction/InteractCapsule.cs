@@ -33,7 +33,7 @@ namespace Crest
 
             float V = dy * A;
 
-            float VperLod = V / (float)OceanRenderer.Instance._lodCount;
+            float VperLod = V / OceanRenderer.Instance.Builder.CurrentLodCount;
 
             _mat.SetFloat( "_displacedVPerLod", VperLod );
 

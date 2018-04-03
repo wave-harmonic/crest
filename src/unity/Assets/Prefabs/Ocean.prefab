@@ -51,10 +51,9 @@ MonoBehaviour:
   _chop: 1
   _enableSmoothLOD: 1
   _freezeTime: 0
-  _visualiseLODs: 0
   _baseVertDensity: 48
   _maxWaveHeight: 15
-  _lodCount: 6
+  _lodCount: 7
   _uniformTiles: 0
   _generateSkirt: 1
 --- !u!114 &11447936

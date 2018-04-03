@@ -33,8 +33,6 @@ namespace Crest
         public bool _enableSmoothLOD = true;
         [Tooltip( "Freeze wave shape in place but continues to move geom with camera, useful for hunting down pops" )]
         public bool _freezeTime = false;
-        [Tooltip( "Use debug colours to show where shape is sampled from" )]
-        public bool _visualiseLODs = false;
 
         [Header( "Geometry Params" )]
         [SerializeField]
@@ -43,9 +41,8 @@ namespace Crest
         [SerializeField]
         [Delayed, Tooltip( "Maximum wave amplitude, used to compute bounding box for ocean tiles." )]
         public float _maxWaveHeight = 30f;
-        [SerializeField]
-        [Delayed, Tooltip( "Number of ocean tile scales/LODs to generate." )]
-        public int _lodCount = 5;
+        [SerializeField, Delayed, Tooltip( "Number of ocean tile scales/LODs to generate." ), ]
+        int _lodCount = 6;
         [SerializeField]
         [Tooltip( "Whether to generate ocean geometry tiles uniformly (with overlaps)" )]
         bool _uniformTiles = false;
@@ -93,7 +90,6 @@ namespace Crest
             Shader.SetGlobalFloat( "_MyTime", _elapsedTime );
             Shader.SetGlobalFloat( "_MyDeltaTime", _deltaTime );
             Shader.SetGlobalFloat( "_TexelsPerWave", _minTexelsPerWave );
-            Shader.SetGlobalFloat( "_VisualiseLODs", _visualiseLODs ? 1f : 0f );
             Shader.SetGlobalFloat("_Chop", _chop);
             Shader.SetGlobalFloat("_EnableSmoothLODs", _enableSmoothLOD ? 1f : 0f); // debug
 
@@ -129,7 +125,7 @@ namespace Crest
             transform.localScale = new Vector3(newScale, 1f, newScale);
 
             // set max wavelength for multi-scale rendering code
-            float maxWavelength = MaxWavelength(_lodCount - 1);
+            float maxWavelength = MaxWavelength(Builder.CurrentLodCount - 1);
             Shader.SetGlobalFloat("_MaxWavelength", _acceptLargeWavelengthsInLastLOD ? maxWavelength : 1e10f);
 
             // pass any persistent state up/down LOD chain

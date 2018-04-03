@@ -5,7 +5,9 @@ licenseType: Free
 MonoImporter:
   externalObjects: {}
   serializedVersion: 2
-  defaultReferences: []
+  defaultReferences:
+  - _rasterMesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
+  - _waveShader: {instanceID: 0}
   executionOrder: 500
   icon: {instanceID: 0}
   userData: 

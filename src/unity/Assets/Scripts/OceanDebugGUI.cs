@@ -44,8 +44,6 @@ namespace Crest
 
             OceanRenderer._acceptLargeWavelengthsInLastLOD = GUI.Toggle(new Rect(x, y, w, h), OceanRenderer._acceptLargeWavelengthsInLastLOD, "Large waves in last LOD"); y += h;
 
-            OceanRenderer.Instance._visualiseLODs = GUI.Toggle( new Rect( x, y, w, h ), OceanRenderer.Instance._visualiseLODs, "Show LODs" ); y += h;
-
             // draw source textures to screen
             if( _showSimTargets )
             {

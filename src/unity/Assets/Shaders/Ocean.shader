@@ -33,7 +33,7 @@ Shader "Ocean/Ocean"
 				#include "TextureBombing.cginc"
 
 				// tints the output color based on which shape texture(s) were sampled, blended according to weight
-				#define DEBUG_SHAPE_SAMPLE
+				//#define DEBUG_SHAPE_SAMPLE
 
 				struct appdata_t
 				{
@@ -60,9 +60,7 @@ Shader "Ocean/Ocean"
 				#include "OceanLODData.cginc"
 
 				uniform float3 _OceanCenterPosWorld;
-				uniform float _EnableSmoothLODs = 1.0;
-				uniform float _MyTime;
-				uniform float _VisualiseLODs;
+				uniform float _EnableSmoothLODs = 1.0; // debug
 
 				// INSTANCE PARAMS
 
@@ -70,10 +68,10 @@ Shader "Ocean/Ocean"
 				// x: A square is formed by 2 triangles in the mesh. Here x is square size
 				// yz: normalScrollSpeed0, normalScrollSpeed1
 				// w: Geometry density - side length of patch measured in squares
-				uniform float4 _GeomData = float4(1.0, 1.0, 1.0, 32.0);
+				uniform float4 _GeomData;
 
 				// MeshScaleLerp, FarNormalsWeight, LODIndex (debug), unused
-				uniform float4 _InstanceData = float4(1.0, 1.0, 0.0, 0.0 );
+				uniform float4 _InstanceData;
 
 				// sample wave or terrain height, with smooth blend towards edges.
 				// would equally apply to heights instead of displacements.
@@ -83,9 +81,6 @@ Shader "Ocean/Ocean"
 					if( wt < 0.001 )
 						return;
 
-					// set the MIP based on the current square size, with the transition to the higher mip
-					// hb using hte mip chain does NOT work out well when moving the shape texture around, because mip hierarchy will pop. this is knocked out below
-					// and in WaveDataCam::Start()
 					float4 uv = float4(WD_worldToUV(i_samplePos, i_centerPos, i_res, i_texelSize), 0., 0.);
 
 					// do computations for hi-res
@@ -93,9 +88,9 @@ Shader "Ocean/Ocean"
 					float4 s = tex2Dlod(i_dispSampler, uv);
 					float4 sx = tex2Dlod(i_dispSampler, uv + dd.xyyy);
 					float4 sz = tex2Dlod(i_dispSampler, uv + dd.yxyy);
-					float3 disp = s.xyz; //  float3(0., s.x + s.z, 0.);
-					float3 disp_x = dd.zyy + sx.xyz; // float3(0., sx.x + sx.z, 0.);
-					float3 disp_z = dd.yyz + sz.xyz; //  float3(0., sz.x + sz.z, 0.);
+					float3 disp = s.xyz;
+					float3 disp_x = dd.zyy + sx.xyz;
+					float3 disp_z = dd.yyz + sz.xyz;
 					io_worldPos += wt * disp;
 
 					float3 n = normalize( cross( disp_z - disp, disp_x - disp ) );
@@ -111,13 +106,9 @@ Shader "Ocean/Ocean"
 					det = 1. - det;
 					io_determinant += wt * det;
 
-					//float foam = 0.;
-					//// foam from sim
-					////foam += s.w;
 					//// // foam from shallow water - signed depth is depth compared to sea level, plus wave height
 					//float signedDepth = tex2Dlod(i_oceanDepthSampler, uv).x + disp.y;
-					//foam += clamp( 1. - signedDepth / 1.5, 0., 1.);
-					//io_foamAmount += wt * foam;
+					//io_foamAmount += wt * clamp( 1. - signedDepth / 1.5, 0., 1.);
 				}
 
 				v2f vert( appdata_t v )
@@ -141,8 +132,6 @@ Shader "Ocean/Ocean"
 					float idealSquareSize = taxicab_norm / BASE_DENSITY;
 					// this is to address numerical issues with the normal (errors are very visible at close ups of specular highlights).
 					// i original had this max( .., SQUARE_SIZE ) but there were still numerical issues and a pop when changing camera height.
-					// .5 was the lowest i could go before i started to see error. this needs more investigation.
-					// this places a lower bound on resolution. 0.5 is too high. disabling for now.
 					idealSquareSize = max( idealSquareSize, 0.03125 );
 
 					// interpolation factor to next lod (lower density / higher sampling period)
@@ -152,30 +141,35 @@ Shader "Ocean/Ocean"
 					// using .15 as black and .85 as white should work for base mesh density as low as 16. TODO - make this automatic?
 					const float BLACK_POINT = 0.15, WHITE_POINT = 0.85;
 					lodAlpha = max( (lodAlpha - BLACK_POINT) / (WHITE_POINT-BLACK_POINT), 0. );
+					// blend out lod0 when viewpoint gains altitude
 					const float meshScaleLerp = _InstanceData.x;
 					lodAlpha = min(lodAlpha + meshScaleLerp, 1.);
 					lodAlpha *= _EnableSmoothLODs;
-					
-					// now smoothly transition vert layouts between lod levels
+					// pass it to fragment shader - used to blend normals scales
+					o.invDeterminant_lodAlpha_worldXZUndisplaced.y = lodAlpha;
+
+
+					// now smoothly transition vert layouts between lod levels - move interior verts inwards towards center
 					float2 m = frac( o.worldPos.xz / SQUARE_SIZE_4 ); // this always returns positive
 					float2 offset = m - 0.5;
 					// check if vert is within one square from the center point which the verts move towards
 					const float minRadius = 0.26; //0.26 is 0.25 plus a small "epsilon" - should solve numerical issues
 					if( abs( offset.x ) < minRadius ) o.worldPos.x += offset.x * lodAlpha * SQUARE_SIZE_4;
 					if( abs( offset.y ) < minRadius ) o.worldPos.z += offset.y * lodAlpha * SQUARE_SIZE_4;
-	
+					o.invDeterminant_lodAlpha_worldXZUndisplaced.zw = o.worldPos.xz;
 
-					// sample shape textures - always lerp between 2 scales, so sample up to two textures
+
+					// sample shape textures - always lerp between 2 scales, so sample two textures
 					o.n = half3(0., 1., 0.);
 					o.invDeterminant_lodAlpha_worldXZUndisplaced.x = 0.;
-					o.invDeterminant_lodAlpha_worldXZUndisplaced.zw = o.worldPos.xz;
 					// sample weights. params.z allows shape to be faded out (used on last lod to support pop-less scale transitions)
 					float wt_0 = (1. - lodAlpha) * _WD_Params_0.z;
-					float wt_1 = (1.0 - wt_0) * _WD_Params_1.z;
+					float wt_1 = (1. - wt_0) * _WD_Params_1.z;
 					// sample displacement textures, add results to current world pos / normal / foam
 					const float2 wxz = o.worldPos.xz;
 					SampleDisplacements( _WD_Sampler_0, _WD_OceanDepth_Sampler_0, _WD_Pos_0, _WD_Params_0.y, _WD_Params_0.x, idealSquareSize, wxz, wt_0, o.worldPos, o.n, o.invDeterminant_lodAlpha_worldXZUndisplaced.x );
 					SampleDisplacements( _WD_Sampler_1, _WD_OceanDepth_Sampler_1, _WD_Pos_1, _WD_Params_1.y, _WD_Params_1.x, idealSquareSize, wxz, wt_1, o.worldPos, o.n, o.invDeterminant_lodAlpha_worldXZUndisplaced.x );
+
 					// debug tinting to see which shape textures are used
 					#if defined( DEBUG_SHAPE_SAMPLE )
 					#define TINT_COUNT (uint)7
@@ -185,25 +179,23 @@ Shader "Ocean/Ocean"
 
 
 					// view-projection	
-					o.vertex = mul( UNITY_MATRIX_VP, float4(o.worldPos,1.) );
+					o.vertex = mul(UNITY_MATRIX_VP, float4(o.worldPos, 1.));
 
-					// used to blend normals in the fragment shader
-					o.invDeterminant_lodAlpha_worldXZUndisplaced.y = lodAlpha;
-
-					UNITY_TRANSFER_FOG(o,o.vertex);
+					UNITY_TRANSFER_FOG(o, o.vertex);
 
 					return o;
 				}
 
+				// frag shader uniforms
 				uniform half4 _Diffuse;
-				samplerCUBE _Skybox;
-				sampler2D _FoamTexture;
-				half4 _FoamWhiteColor;
-				half4 _FoamBubbleColor;
-
+				uniform samplerCUBE _Skybox;
+				uniform sampler2D _FoamTexture;
+				uniform half4 _FoamWhiteColor;
+				uniform half4 _FoamBubbleColor;
 				uniform sampler2D _Normals;
 				uniform half _NormalsStrength;
 				uniform half _NormalsScale;
+				uniform float _MyTime;
 
 				void ApplyNormalMaps(float2 worldXZUndisplaced, float lodAlpha, inout half3 io_n )
 				{
@@ -288,10 +280,7 @@ Shader "Ocean/Ocean"
 					UNITY_APPLY_FOG(i.fogCoord, col);
 	
 					#if defined( DEBUG_SHAPE_SAMPLE )
-					if( _VisualiseLODs > 0. )
-					{
-						col.rgb = mix(col.rgb, i.debugtint, 0.5);
-					}					
+					col.rgb = mix(col.rgb, i.debugtint, 0.5);
 					#endif
 
 					return col;

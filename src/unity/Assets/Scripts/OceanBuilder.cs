@@ -19,6 +19,7 @@ namespace Crest
 
         [HideInInspector]
         public Camera[] _shapeCameras;
+        public int CurrentLodCount { get { return _shapeCameras.Length; } }
 
         /// <summary>
         /// Parameters to use for ocean geometry construction
@@ -177,6 +178,18 @@ namespace Crest
                 _shapeCameras[i] = CreateWaveDataCam( i, parms );
             }
 
+            // remove existing LODs
+            for (int i = 0; i < transform.childCount; i++)
+            {
+                var child = transform.GetChild(i);
+                if (child.name.StartsWith("LOD"))
+                {
+                    child.parent = null;
+                    Destroy(child.gameObject);
+                    i--;
+                }
+            }
+
             int startLevel = 0;
             for( int i = 0; i < parms._lodCount; i++ )
             {
@@ -202,20 +215,8 @@ namespace Crest
             var cam = go.AddComponent<Camera>();
             cam.clearFlags = CameraClearFlags.Color;
             cam.backgroundColor = new Color(0f, 0f, 0f, 0f);
-
-            // each LOD has its own layer mask. some of the shapes will just render into a generic wave data layer "WaveData"
-            // others may be explicitly assigned a layer by the CPU, to place it in the correct LOD, like "WaveData2".
-            // finally, wavelengths that are too big for any lod will be assigned to a special layer called "WaveDataBigWavelengths".
-            // the biggest and second-biggest LODs will both render the big wavelengths (required to transition ocean scale without pops).
-            int cullingMask = 0;
-            cullingMask |= 1 << LayerMask.NameToLayer(SHAPE_RENDER_LAYER_NAME);
-            cullingMask |= 1 << LayerMask.NameToLayer(SHAPE_RENDER_LAYER_NAME + lodIdx.ToString());
-            if (lodIdx >= parms._lodCount - 2)
-            {
-                cullingMask |= 1 << LayerMask.NameToLayer(SHAPE_RENDER_LAYER_NAME + "BigWavelengths");
-            }
-            cam.cullingMask = cullingMask;
-
+            // shape cameras will render any shape that is in the WaveData layer into the shape textures
+            cam.cullingMask = 1 << LayerMask.NameToLayer(SHAPE_RENDER_LAYER_NAME);
             cam.orthographic = true;
             cam.nearClipPlane = 1f;
             cam.farClipPlane = 500f;
@@ -233,7 +234,8 @@ namespace Crest
             cart._targetName = string.Format( "shapeRT{0}", lodIdx );
             cart._width = cart._height = (int)(4f * parms._baseVertDensity);
             cart._depthBits = 0;
-            cart._format = RenderTextureFormat.ARGBFloat;
+            // shape format. i tried RGB111110Float but error becomes visible. one option would be to use a UNORM setup.
+            cart._format = RenderTextureFormat.ARGBHalf;
             cart._wrapMode = TextureWrapMode.Clamp;
             cart._antiAliasing = 1;
             cart._filterMode = FilterMode.Bilinear;
@@ -381,17 +383,6 @@ namespace Crest
         GameObject CreateLOD( int lodIndex, bool biggestLOD, Mesh[] meshData, Params parms )
         {
             // first create parent gameobject for the lod level. the scale of this transform sets the size of the lod.
-
-            string lodParentName = "LOD" + lodIndex;
-
-            // if it exists already, destroy it so it can be created fresh
-            Transform parentTransform = transform.Find( lodParentName );
-            if( parentTransform != null )
-            {
-                DestroyImmediate( parentTransform.gameObject );
-                parentTransform = null;
-            }
-
             GameObject parent = new GameObject();
             parent.name = "LOD" + lodIndex;
             parent.transform.parent = transform;

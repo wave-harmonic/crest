@@ -53,7 +53,7 @@ Shader "Ocean/Shape/Gerstner Component"
 					o.worldPos = mul( unity_ObjectToWorld, v.vertex ).xyz;
 					o.weight = v.color;
 
-					o.weight *= ComputeSortedShapeWeight(_Wavelength);
+					o.weight *= ComputeSortedShapeWeight(_Wavelength, MinWavelengthForCurrentOrthoCamera());
 
 					return o;
 				}

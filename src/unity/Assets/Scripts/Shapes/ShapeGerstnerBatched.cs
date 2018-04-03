@@ -1,6 +1,7 @@
 ﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace Crest
 {
@@ -13,6 +14,8 @@ namespace Crest
         // useful references
         Material[] _materials;
         Renderer[] _renderers;
+        CommandBuffer[] _renderWaveShapeCmdBufs;
+        CommandBuffer _renderBigWavelengthsShapeCmdBuf;
 
         // IMPORTANT - this mirrors the constant with the same name in ShapeGerstnerBatch.shader, both must be updated together!
         const int BATCH_SIZE = 32;
@@ -23,14 +26,23 @@ namespace Crest
         static float[] _anglesBatch = new float[BATCH_SIZE];
         static float[] _phasesBatch = new float[BATCH_SIZE];
 
+        public bool useCmdBufs = false;
+
         protected override void Update()
         {
             base.Update();
 
+            // this is done every frame for flexibility/convenience, in case the lod count changes
             if (_materials == null || _materials.Length != OceanRenderer.Instance.Builder.CurrentLodCount
                 || _renderers == null || _renderers.Length != OceanRenderer.Instance.Builder.CurrentLodCount)
             {
                 InitMaterials();
+            }
+
+            // this is done every frame for flexibility/convenience, in case the lod count changes
+            if (_renderWaveShapeCmdBufs == null || _renderWaveShapeCmdBufs.Length != OceanRenderer.Instance.Builder.CurrentLodCount - 1)
+            {
+                InitCommandBuffers();
             }
         }
 
@@ -50,6 +62,7 @@ namespace Crest
                 string postfix = i < _materials.Length - 1 ? i.ToString() : "BigWavelengths";
 
                 GameObject GO = new GameObject(string.Format("Batch {0}", postfix));
+                GO.SetActive(false);
                 GO.layer = i < _materials.Length - 1 ? LayerMask.NameToLayer("WaveData" + i.ToString()) : LayerMask.NameToLayer("WaveDataBigWavelengths");
 
                 MeshFilter meshFilter = GO.AddComponent<MeshFilter>();
@@ -73,7 +86,10 @@ namespace Crest
             LateUpdateMaterials();
         }
 
-        void UpdateBatch(int lodIdx, int firstComponent, int lastComponentNonInc)
+        /// <summary>
+        /// Returns number of wave components rendered in this batch.
+        /// </summary>
+        int UpdateBatch(int lodIdx, int firstComponent, int lastComponentNonInc)
         {
             int numComponents = lastComponentNonInc - firstComponent;
             int numInBatch = 0;
@@ -111,8 +127,7 @@ namespace Crest
             if (numInBatch == 0)
             {
                 // no waves to draw - abort
-                _renderers[lodIdx].enabled = false;
-                return;
+                return numInBatch;
             }
 
             // if we did not fill the batch, put a terminator signal after the last position
@@ -122,12 +137,13 @@ namespace Crest
             }
 
             // apply the data to the shape material
-            _renderers[lodIdx].enabled = true;
             _materials[lodIdx].SetFloatArray("_Wavelengths", _wavelengthsBatch);
             _materials[lodIdx].SetFloatArray("_Amplitudes", _ampsBatch);
             _materials[lodIdx].SetFloatArray("_Angles", _anglesBatch);
             _materials[lodIdx].SetFloatArray("_Phases", _phasesBatch);
             _materials[lodIdx].SetFloat("_NumInBatch", numInBatch);
+
+            return numInBatch;
         }
 
         void LateUpdateMaterials()
@@ -141,6 +157,9 @@ namespace Crest
                 componentIdx++;
             }
 
+            // slightly clunky but remove any draw-shape command buffers - these will be re-added below
+            RemoveDrawShapeCommandBuffers();
+
             // batch together appropriate wavelengths for each lod, except the last lod, which are handled separately below
             for (int lod = 0; lod < OceanRenderer.Instance.Builder.CurrentLodCount - 1; lod++, minWl *= 2f)
             {
@@ -150,11 +169,76 @@ namespace Crest
                     componentIdx++;
                 }
 
-                UpdateBatch(lod, startCompIdx, componentIdx);
+                if (UpdateBatch(lod, startCompIdx, componentIdx) > 0)
+                {
+                    // draw shape into this lod
+                    AddDrawShapeCommandBuffer(lod);
+                }
             }
 
             // the last batch handles waves for the last lod, and waves that did not fit in the last lod
-            UpdateBatch(OceanRenderer.Instance.Builder.CurrentLodCount - 1, componentIdx, _wavelengths.Length);
+            if (UpdateBatch(OceanRenderer.Instance.Builder.CurrentLodCount - 1, componentIdx, _wavelengths.Length) > 0)
+            {
+                // special command buffer that gets added to last 2 lods, to handle smooth transitions for camera height changes
+                AddDrawShapeBigWavelengthsCommandBuffer();
+            }
+        }
+
+        // helper code below to manage command buffers. lods from 0 to N-2 render the gerstner waves from their lod. additionally, any waves
+        // in the biggest lod, or too big for the biggest lod, are rendered into both of the last two lods N-1 and N-2, as this allows us to
+        // move these waves between lods without pops when the camera changes heights and the lods need to change scale.
+        void AddDrawShapeCommandBuffer(int lodIndex)
+        {
+            OceanRenderer.Instance.Builder._shapeCameras[lodIndex].AddCommandBuffer(CameraEvent.BeforeForwardAlpha, _renderWaveShapeCmdBufs[lodIndex]);
+        }
+
+        void AddDrawShapeBigWavelengthsCommandBuffer()
+        {
+            int lastLod = OceanRenderer.Instance.Builder.CurrentLodCount - 1;
+            OceanRenderer.Instance.Builder._shapeCameras[lastLod].AddCommandBuffer(CameraEvent.BeforeForwardAlpha, _renderBigWavelengthsShapeCmdBuf);
+            OceanRenderer.Instance.Builder._shapeCameras[lastLod - 1].AddCommandBuffer(CameraEvent.BeforeForwardAlpha, _renderBigWavelengthsShapeCmdBuf);
+        }
+
+        void RemoveDrawShapeCommandBuffers()
+        {
+            if (OceanRenderer.Instance == null || OceanRenderer.Instance.Builder == null)
+                return;
+
+            for (int lod = 0; lod < OceanRenderer.Instance.Builder.CurrentLodCount; lod++)
+            {
+                if (lod < OceanRenderer.Instance.Builder.CurrentLodCount - 1)
+                {
+                    OceanRenderer.Instance.Builder._shapeCameras[lod].RemoveCommandBuffer(CameraEvent.BeforeForwardAlpha, _renderWaveShapeCmdBufs[lod]);
+                }
+                OceanRenderer.Instance.Builder._shapeCameras[lod].RemoveCommandBuffer(CameraEvent.BeforeForwardAlpha, _renderBigWavelengthsShapeCmdBuf);
+            }
+        }
+
+        void InitCommandBuffers()
+        {
+            // see the command buffer helpers below for comments about how the command buffers are arranged
+            _renderWaveShapeCmdBufs = new CommandBuffer[OceanRenderer.Instance.Builder.CurrentLodCount - 1];
+            for (int i = 0; i < _renderWaveShapeCmdBufs.Length; i++)
+            {
+                _renderWaveShapeCmdBufs[i] = new CommandBuffer();
+                _renderWaveShapeCmdBufs[i].name = "ShapeGerstnerBatched" + i;
+                _renderWaveShapeCmdBufs[i].DrawRenderer(_renderers[i], _materials[i]);
+            }
+
+            _renderBigWavelengthsShapeCmdBuf = new CommandBuffer();
+            _renderBigWavelengthsShapeCmdBuf.name = "ShapeGerstnerBatchedBigWavelengths";
+            _renderBigWavelengthsShapeCmdBuf.DrawRenderer(_renderers[OceanRenderer.Instance.Builder.CurrentLodCount - 1], _materials[OceanRenderer.Instance.Builder.CurrentLodCount - 1]);
+        }
+
+        // copied from unity's command buffer examples because it sounds important
+        void OnEnable()
+        {
+            RemoveDrawShapeCommandBuffers();
+        }
+
+        void OnDisable()
+        {
+            RemoveDrawShapeCommandBuffers();
         }
     }
 }

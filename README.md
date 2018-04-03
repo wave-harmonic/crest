@@ -82,7 +82,6 @@ The ocean pixel shader samples normal maps at 2 different scales, both proportio
 * Using prebaked textures (i.e. from an offline ocean simulation) would be easy to implement in our framework by rendering the prebaked results into the shape textures, and would be the most efficient option.
 * Ocean surface tiles are updated and drawn as separate draw calls. This is convenient for research and supports frustum culling easily, but it might make sense to instance these in a production scenario.
 * Ocean surface shading is fairly simple and could be improved. A better subsurface scattering approximation would help a lot, perhaps based on angle between view and surface normal.
-* This project makes heavy use of layers to direct the rendering of geometry to the right render targets. This is a somewhat clumsy approach and uses a majority of the available layers. One way to fix this would be to use the SRP stuff, but this would mean moving off the standardized rendering paths. Another option might be to set up commandbuffers on each camera to make sure the right things are rendered to the right targets (and making render order explict) rather than relying on layers and shader queue tags which are hard to understand and track.
 
 
 ## Links

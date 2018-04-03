@@ -6,6 +6,7 @@ Shader "Ocean/Shape/Sim/Add To Disps"
 	{
 		_MainTex ("Texture", 2D) = "white" {}
 	}
+
 	SubShader
 	{
 		Tags { "RenderType" = "Transparent" "Queue" = "Transparent" }

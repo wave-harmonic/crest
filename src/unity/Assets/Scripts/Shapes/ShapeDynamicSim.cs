@@ -1,6 +1,7 @@
 ﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace Crest
 {
@@ -15,7 +16,7 @@ namespace Crest
         Camera _cam;
         PingPongRts _pprts;
 
-        GameObject _copySimResultsToDisplacements;
+        //GameObject _copySimResultsToDisplacements;
         Material _copySimMaterial;
 
         GameObject _renderSim;
@@ -27,7 +28,8 @@ namespace Crest
             _pprts = GetComponent<PingPongRts>();
 
             CreateRenderSimQuad();
-            CreateCopySimQuad();
+            //CreateCopySimQuad();
+            _copySimMaterial = new Material(Shader.Find("Ocean/Shape/Sim/Add To Disps"));
         }
 
         private void CreateRenderSimQuad()
@@ -42,16 +44,16 @@ namespace Crest
             _renderSim.GetComponent<Renderer>().material = _renderSimMaterial = new Material(Shader.Find("Ocean/Shape/Sim/2D Wave Equation"));
         }
 
-        private void CreateCopySimQuad()
-        {
-            // utility quad which will be rasterized by the shape camera
-            _copySimResultsToDisplacements = CreateRasterQuad("CopySimResultsToDisplacements");
-            _copySimResultsToDisplacements.transform.parent = transform;
-            _copySimResultsToDisplacements.transform.localScale = Vector3.one;
-            _copySimResultsToDisplacements.transform.localPosition = Vector3.forward * 25f;
-            _copySimResultsToDisplacements.transform.localRotation = Quaternion.identity;
-            _copySimResultsToDisplacements.GetComponent<Renderer>().material = _copySimMaterial = new Material(Shader.Find("Ocean/Shape/Sim/Add To Disps"));
-        }
+        //private void CreateCopySimQuad()
+        //{
+        //    // utility quad which will be rasterized by the shape camera
+        //    _copySimResultsToDisplacements = CreateRasterQuad("CopySimResultsToDisplacements");
+        //    _copySimResultsToDisplacements.transform.parent = transform;
+        //    _copySimResultsToDisplacements.transform.localScale = Vector3.one;
+        //    _copySimResultsToDisplacements.transform.localPosition = Vector3.forward * 25f;
+        //    _copySimResultsToDisplacements.transform.localRotation = Quaternion.identity;
+        //    _copySimResultsToDisplacements.GetComponent<Renderer>().material = _copySimMaterial = new Material(Shader.Find("Ocean/Shape/Sim/Add To Disps"));
+        //}
 
         GameObject CreateRasterQuad(string name)
         {
@@ -60,9 +62,9 @@ namespace Crest
             Destroy(result.GetComponent<Collider>());
 
             var rend = result.GetComponent<Renderer>();
-            rend.lightProbeUsage = UnityEngine.Rendering.LightProbeUsage.Off;
-            rend.reflectionProbeUsage = UnityEngine.Rendering.ReflectionProbeUsage.Off;
-            rend.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            rend.lightProbeUsage = LightProbeUsage.Off;
+            rend.reflectionProbeUsage = ReflectionProbeUsage.Off;
+            rend.shadowCastingMode = ShadowCastingMode.Off;
             rend.receiveShadows = false;
             rend.motionVectorGenerationMode = MotionVectorGenerationMode.ForceNoMotion;
             rend.allowOcclusionWhenDynamic = false;
@@ -70,13 +72,25 @@ namespace Crest
             return result;
         }
 
+        CommandBuffer _copySimResultsCmdBuf;
+        
         void LateUpdate()
         {
             int lodIndex = OceanRenderer.Instance.GetLodIndex(_resolution);
             if (lodIndex == -1)
             {
-                _copySimResultsToDisplacements.SetActive(false);
+                if (_copySimResultsCmdBuf != null)
+                {
+                    _copySimResultsCmdBuf.Clear();
+                }
                 return;
+            }
+
+            if (_copySimResultsCmdBuf == null)
+            {
+                _copySimResultsCmdBuf = new CommandBuffer();
+                _copySimResultsCmdBuf.name = "CopySimResults";
+                OceanRenderer.Instance.Builder._shapeCameras[lodIndex].AddCommandBuffer(CameraEvent.AfterForwardAlpha, _copySimResultsCmdBuf);
             }
 
             var lodCam = OceanRenderer.Instance.Builder._shapeCameras[lodIndex];
@@ -95,8 +109,9 @@ namespace Crest
             _renderSimMaterial.SetTexture("_WavePPTSource", _pprts._sourceThisFrame);
 
             _copySimMaterial.mainTexture = _pprts._targetThisFrame;
-            _copySimResultsToDisplacements.SetActive(true);
-            _copySimResultsToDisplacements.layer = LayerMask.NameToLayer("WaveData" + lodIndex);
+
+            _copySimResultsCmdBuf.Clear();
+            _copySimResultsCmdBuf.Blit(_pprts._targetThisFrame, RenderTexture.active, _copySimMaterial);
         }
     }
 }

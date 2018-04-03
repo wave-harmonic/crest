@@ -772,3 +772,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _boat: {fileID: 114101010989703450}
   _localOffset: {x: 0, y: 0, z: 0}
+  _noiseFreq: 6
+  _noiseAmp: 0.5

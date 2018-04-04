@@ -16,7 +16,6 @@ namespace Crest
         Camera _cam;
         PingPongRts _pprts;
 
-        //GameObject _copySimResultsToDisplacements;
         Material _copySimMaterial;
 
         GameObject _renderSim;
@@ -28,7 +27,7 @@ namespace Crest
             _pprts = GetComponent<PingPongRts>();
 
             CreateRenderSimQuad();
-            //CreateCopySimQuad();
+
             _copySimMaterial = new Material(Shader.Find("Ocean/Shape/Sim/Add To Disps"));
         }
 
@@ -43,17 +42,6 @@ namespace Crest
             _renderSim.transform.localRotation = Quaternion.identity;
             _renderSim.GetComponent<Renderer>().material = _renderSimMaterial = new Material(Shader.Find("Ocean/Shape/Sim/2D Wave Equation"));
         }
-
-        //private void CreateCopySimQuad()
-        //{
-        //    // utility quad which will be rasterized by the shape camera
-        //    _copySimResultsToDisplacements = CreateRasterQuad("CopySimResultsToDisplacements");
-        //    _copySimResultsToDisplacements.transform.parent = transform;
-        //    _copySimResultsToDisplacements.transform.localScale = Vector3.one;
-        //    _copySimResultsToDisplacements.transform.localPosition = Vector3.forward * 25f;
-        //    _copySimResultsToDisplacements.transform.localRotation = Quaternion.identity;
-        //    _copySimResultsToDisplacements.GetComponent<Renderer>().material = _copySimMaterial = new Material(Shader.Find("Ocean/Shape/Sim/Add To Disps"));
-        //}
 
         GameObject CreateRasterQuad(string name)
         {
@@ -73,24 +61,47 @@ namespace Crest
         }
 
         CommandBuffer _copySimResultsCmdBuf;
-        
+        int _bufAssignedCamIdx = -1;
+
         void LateUpdate()
         {
-            int lodIndex = OceanRenderer.Instance.GetLodIndex(_resolution);
-            if (lodIndex == -1)
-            {
-                if (_copySimResultsCmdBuf != null)
-                {
-                    _copySimResultsCmdBuf.Clear();
-                }
-                return;
-            }
-
             if (_copySimResultsCmdBuf == null)
             {
                 _copySimResultsCmdBuf = new CommandBuffer();
                 _copySimResultsCmdBuf.name = "CopySimResults";
+            }
+
+            int lodIndex = OceanRenderer.Instance.GetLodIndex(_resolution);
+
+            // is the lod for the sim target resolution currently rendering?
+            if (lodIndex == -1)
+            {
+                // no - clear the copy sim results command buffer
+                if (_copySimResultsCmdBuf != null)
+                {
+                    _copySimResultsCmdBuf.Clear();
+                }
+
+                // unassign from any camera if it is assigned
+                if (_bufAssignedCamIdx != -1)
+                {
+                    OceanRenderer.Instance.Builder._shapeCameras[_bufAssignedCamIdx].RemoveCommandBuffer(CameraEvent.AfterForwardAlpha, _copySimResultsCmdBuf);
+                    _bufAssignedCamIdx = -1;
+                }
+
+                return;
+            }
+
+            // now make sure the command buffer is assigned to the correct camera
+            if(_bufAssignedCamIdx != lodIndex)
+            {
+                if (_bufAssignedCamIdx != -1)
+                {
+                    OceanRenderer.Instance.Builder._shapeCameras[_bufAssignedCamIdx].RemoveCommandBuffer(CameraEvent.AfterForwardAlpha, _copySimResultsCmdBuf);
+                }
+
                 OceanRenderer.Instance.Builder._shapeCameras[lodIndex].AddCommandBuffer(CameraEvent.AfterForwardAlpha, _copySimResultsCmdBuf);
+                _bufAssignedCamIdx = lodIndex;
             }
 
             var lodCam = OceanRenderer.Instance.Builder._shapeCameras[lodIndex];
@@ -111,7 +122,7 @@ namespace Crest
             _copySimMaterial.mainTexture = _pprts._targetThisFrame;
 
             _copySimResultsCmdBuf.Clear();
-            _copySimResultsCmdBuf.Blit(_pprts._targetThisFrame, RenderTexture.active, _copySimMaterial);
+            _copySimResultsCmdBuf.Blit(_pprts._targetThisFrame, lodCam.targetTexture, _copySimMaterial);
         }
     }
 }

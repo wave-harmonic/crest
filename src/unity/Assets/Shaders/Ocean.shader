@@ -20,11 +20,19 @@ Shader "Ocean/Ocean"
 
 		SubShader
 		{
+			Tags { "LightMode"="Always" "Queue"="Transparent" "IgnoreProjector"="True" "RenderType"="Transparent" }
+
+			//Pass
+			//{
+			//	ZWrite On
+			//	ColorMask 0
+			//}
+
 			Pass
 			{
 				Name "BASE"
-				Tags { "LightMode" = "Always" }
-			
+				Blend SrcAlpha OneMinusSrcAlpha
+
 				CGPROGRAM
 				#pragma vertex vert
 				#pragma fragment frag
@@ -283,6 +291,7 @@ Shader "Ocean/Ocean"
 					col.rgb = mix(col.rgb, i.debugtint, 0.5);
 					#endif
 
+					col.a = .5;
 					return col;
 				}
 

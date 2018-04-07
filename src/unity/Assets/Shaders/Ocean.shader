@@ -281,22 +281,22 @@ Shader "Ocean/Ocean"
 
 				half3 frag(v2f i) : SV_Target
 				{
-					// Emitted light - ocean colour
-					half3 col = _Diffuse;
-					float scatteredLight = .8*smoothstep(2.0, 0.25, 1. - i.invDeterminant_lodAlpha_worldXZUndisplaced.x);
-					scatteredLight *= scatteredLight;
-					col += .3*half3(0.0, 1.1, 0.4) * scatteredLight;
+					half3 view = normalize(_WorldSpaceCameraPos - i.worldPos);
 
 					// Normal - geom + normal mapping
 					half3 n = i.n;
-					ApplyNormalMaps(i.invDeterminant_lodAlpha_worldXZUndisplaced.zw, i.invDeterminant_lodAlpha_worldXZUndisplaced.y, n );
+					ApplyNormalMaps(i.invDeterminant_lodAlpha_worldXZUndisplaced.zw, i.invDeterminant_lodAlpha_worldXZUndisplaced.y, n);
+
+					// Emitted light - ocean colour
+					half3 col = _Diffuse;
+					// Approximate subsurface scattering - add light when surface faces viewer
+					col += dot(n, view) * .4*half3(0.0, 1.2, 0.9);
 
 					// Foam - underwater bubbles and whitefoam
 					float whiteFoam;
 					ApplyFoam( 1. - i.invDeterminant_lodAlpha_worldXZUndisplaced.x, i.invDeterminant_lodAlpha_worldXZUndisplaced.zw, n, col.xyz, whiteFoam );
 
 					// Compute color of ocean - in-scattered light + refracted scene
-					half3 view = normalize(_WorldSpaceCameraPos - i.worldPos);
 					half2 uvScreen = i.vertex.xy / _ScreenParams.xy;
 					OceanColour(view, n, uvScreen, i.vertex.z, col);
 

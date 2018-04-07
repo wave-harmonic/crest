@@ -236,7 +236,7 @@ Camera:
   m_CullingMask:
     serializedVersion: 2
     m_Bits: 4278190335
-  m_RenderingPath: -1
+  m_RenderingPath: 1
   m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
   m_TargetEye: 3
@@ -864,7 +864,7 @@ Transform:
   m_GameObject: {fileID: 913463917}
   m_LocalRotation: {x: -0, y: 0.85268146, z: -0, w: 0.52243114}
   m_LocalPosition: {x: 169.72, y: -2, z: 47.33}
-  m_LocalScale: {x: 2.0798883, y: 2.079888, z: 2.079888}
+  m_LocalScale: {x: 5.327661, y: 13.58958, z: 5.32766}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 5
@@ -1048,6 +1048,14 @@ Prefab:
       propertyPath: _viewpoint
       value: 
       objectReference: {fileID: 227134470}
+    - target: {fileID: 11417796, guid: 8454e29c2a033974fb559f5f8eff1918, type: 2}
+      propertyPath: _surfaceDepthShader
+      value: 
+      objectReference: {fileID: 4800000, guid: 4c094b490808c8f4abc35d630efaf990, type: 3}
+    - target: {fileID: 11417796, guid: 8454e29c2a033974fb559f5f8eff1918, type: 2}
+      propertyPath: _surfaceDepthTarget
+      value: 
+      objectReference: {fileID: 8400000, guid: b339dcf3d2e2d3242a8502eef196436b, type: 2}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 8454e29c2a033974fb559f5f8eff1918, type: 2}
   m_IsPrefabParent: 0

@@ -20,11 +20,15 @@ Shader "Ocean/Ocean"
 
 		SubShader
 		{
+			Tags { "LightMode"="Always" "Queue"="Transparent" "IgnoreProjector"="True" "RenderType"="Opaque" }
+
+			GrabPass
+			{
+				"_BackgroundTexture"
+			}
+
 			Pass
 			{
-				Name "BASE"
-				Tags { "LightMode" = "Always" }
-			
 				CGPROGRAM
 				#pragma vertex vert
 				#pragma fragment frag
@@ -196,6 +200,8 @@ Shader "Ocean/Ocean"
 				uniform half _NormalsStrength;
 				uniform half _NormalsScale;
 				uniform float _MyTime;
+				sampler2D _BackgroundTexture;
+				sampler2D _CameraDepthTexture;
 
 				void ApplyNormalMaps(float2 worldXZUndisplaced, float lodAlpha, inout half3 io_n )
 				{
@@ -251,36 +257,62 @@ Shader "Ocean/Ocean"
 					io_whiteFoam = foamTexValue * smoothstep( 1.0 - foamAmount, 1.3 - foamAmount, foamTexValue ) * _FoamWhiteColor.a;
 				}
 
-				half4 frag(v2f i) : SV_Target
+				void OceanColour(half3 view, half3 n, half2 uvScreen, float z01, inout half3 oceanCol)
 				{
-					// Emitted light - ocean colour
-					half4 col = _Diffuse;
-					float scatteredLight = .8*smoothstep(2.0, 0.25, 1. - i.invDeterminant_lodAlpha_worldXZUndisplaced.x);
-					scatteredLight *= scatteredLight;
-					col.xyz += .3*half3(0.0, 1.1, 0.4) * scatteredLight;
+					// Refraction - perturb screen uv, 
+					half2 uvRefract = uvScreen + .02 * n.xz;
+					half3 alpha = (half3)1.;
+
+					float pixelZ = LinearEyeDepth(z01);
+					float sceneZ = LinearEyeDepth(texture(_CameraDepthTexture, half2(uvScreen.x, 1. - uvScreen.y)).x);
+
+					// if we haven't refracted onto a surface in front of the water surface, compute an alpha based on Z delta
+					if (sceneZ > pixelZ)
+					{
+						float sceneZRefract = LinearEyeDepth(texture(_CameraDepthTexture, half2(uvRefract.x, 1. - uvRefract.y)).x);
+						float maxZ = max(sceneZ, sceneZRefract);
+						float deltaZ = (maxZ - pixelZ);
+						alpha = 1. - exp(.5*half3(-.56, -.32, -.48) * deltaZ);
+					}
+
+					half3 sceneColour = texture(_BackgroundTexture, uvRefract).rgb;
+					oceanCol = lerp(sceneColour, oceanCol, alpha);
+				}
+
+				half3 frag(v2f i) : SV_Target
+				{
+					half3 view = normalize(_WorldSpaceCameraPos - i.worldPos);
 
 					// Normal - geom + normal mapping
 					half3 n = i.n;
-					ApplyNormalMaps(i.invDeterminant_lodAlpha_worldXZUndisplaced.zw, i.invDeterminant_lodAlpha_worldXZUndisplaced.y, n );
+					ApplyNormalMaps(i.invDeterminant_lodAlpha_worldXZUndisplaced.zw, i.invDeterminant_lodAlpha_worldXZUndisplaced.y, n);
+
+					// Emitted light - ocean colour
+					half3 col = _Diffuse;
+					// Approximate subsurface scattering - add light when surface faces viewer
+					col += dot(n, view) * .4*half3(0.0, 1.2, 0.9);
 
 					// Foam - underwater bubbles and whitefoam
 					float whiteFoam;
 					ApplyFoam( 1. - i.invDeterminant_lodAlpha_worldXZUndisplaced.x, i.invDeterminant_lodAlpha_worldXZUndisplaced.zw, n, col.xyz, whiteFoam );
 
+					// Compute color of ocean - in-scattered light + refracted scene
+					half2 uvScreen = i.vertex.xy / _ScreenParams.xy;
+					OceanColour(view, n, uvScreen, i.vertex.z, col);
+
 					// Fresnel / reflection
-					half3 view = normalize(_WorldSpaceCameraPos - i.worldPos);
-					float fresnel = lerp(0., 1.0, pow(1.0 - dot(n, view), 3.0));
 					half3 skyColor = texCUBE(_Skybox, reflect(-view, n));
-					col.xyz = lerp(col.xyz, skyColor, fresnel);
+					float fresnel = lerp(0., 1.0, pow(1.0 - dot(n, view), 3.0));
+					col = lerp(col, skyColor, fresnel);
 
 					// Override final result with white foam - bubbles on surface
-					col.xyz = lerp(col.xyz, _FoamWhiteColor, whiteFoam);
+					col = lerp(col.xyz, _FoamWhiteColor, whiteFoam);
 
 					// Fog
 					UNITY_APPLY_FOG(i.fogCoord, col);
 	
 					#if defined( DEBUG_SHAPE_SAMPLE )
-					col.rgb = mix(col.rgb, i.debugtint, 0.5);
+					col = mix(col.rgb, i.debugtint, 0.5);
 					#endif
 
 					return col;

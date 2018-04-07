@@ -19,7 +19,7 @@ We generate shape from Gerstner waves efficiently at runtime by rendering at mul
 
 We also introduce an intuitive and fun shape authoring interface - an *equalizer* style editor which makes it fast and easy to achieve surface shape. Art direction such as *small choppy waves with longer waves rolling in from a storm at the horizon* is simple to achieve in this framework. We also support empirical ocean spectra from the literature (Phillips, JONSWAP, etc) which can be used as a baseline.
 
-We also explore simulating shape dynamically by solving the wave equation PDE efficiently in the same multi-scale framework. The branch *dynamic_simulation* generates the entire ocean shape using a dynamic sim that exhibits interesting effects such as dispersion, refraction and reflection. This works well but is computed on a heightfield and loses some of the characteristic horizontal motion on the surface. The branch *local_sim* has a more practical scenario where a dynamic simulation handles local displacements and is added on top of existing Gerstner waves, to add local interactivity while maintaining the overall look and feel. The displacement of water from the boat's motion is approximated by a simple one-pass shader, and research is ongoing to make this more flexible and expressive.
+We also explore simulating shape dynamically by solving the wave equation PDE efficiently in the same multi-scale framework. The branch *dynamic_simulation* generates the entire ocean shape using a dynamic sim that exhibits interesting effects such as dispersion, diffraction and reflection (this refers to physical wave behaviour, not light waves). This works well but is computed on a heightfield and loses some of the characteristic horizontal motion on the surface. The branch *local_sim* has a more practical scenario where a dynamic simulation handles local displacements and is added on top of existing Gerstner waves, to add local interactivity while maintaining the overall look and feel. The displacement of water from the boat's motion is approximated by a simple one-pass shader, and research is ongoing to make this more flexible and expressive.
 
 
 ### Mesh
@@ -79,10 +79,11 @@ The ocean pixel shader samples normal maps at 2 different scales, both proportio
 
 ## Bugs and Improvement Directions
 
-* Using prebaked textures (i.e. from an offline ocean simulation) would be easy to implement in our framework by rendering the prebaked results into the shape textures, and would be the most efficient option.
+* Add a mock island geometry. Potentially damp waves on a per-wavelength basis, i.e. shallow water dampens large wavelengths but lets smaller wavelengths pass.
+* Support a world aligned ocean colour map to give nice colour variation in shallow water
+* The shape rendering currently happens for the entire shape lod texture, which covers areas outside of the view. One could render the shape only for the visible surface by generating geometry for the frustum, dilating and rendering this into the shape textures. There is a branch that begins to explore this: *render_frustum_into_shape*.
+* Using prebaked textures (i.e. from an offline ocean simulation) would be easy to implement in our framework by rendering the prebaked results into the shape textures, and would be the most efficient option (although completely dynamic shape now renders very efficiently).
 * Ocean surface tiles are updated and drawn as separate draw calls. This is convenient for research and supports frustum culling easily, but it might make sense to instance these in a production scenario.
-* Ocean surface shading is fairly simple and could be improved. A better subsurface scattering approximation would help a lot, perhaps based on angle between view and surface normal.
-* This project makes heavy use of layers to direct the rendering of geometry to the right render targets. This is a somewhat clumsy approach and uses a majority of the available layers. One way to fix this would be to use the SRP stuff, but this would mean moving off the standardized rendering paths. Another option might be to set up commandbuffers on each camera to make sure the right things are rendered to the right targets (and making render order explict) rather than relying on layers and shader queue tags which are hard to understand and track.
 
 
 ## Links

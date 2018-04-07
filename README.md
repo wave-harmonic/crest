@@ -79,6 +79,8 @@ The ocean pixel shader samples normal maps at 2 different scales, both proportio
 
 ## Bugs and Improvement Directions
 
+* Add a mock island geometry. Potentially damp waves on a per-wavelength basis, i.e. shallow water dampens large wavelengths but lets smaller wavelengths pass.
+* Support a world aligned ocean colour map to give nice colour variation in shallow water
 * The shape rendering currently happens for the entire shape lod texture, which covers areas outside of the view. One could render the shape only for the visible surface by generating geometry for the frustum, dilating and rendering this into the shape textures. There is a branch that begins to explore this: *render_frustum_into_shape*.
 * Using prebaked textures (i.e. from an offline ocean simulation) would be easy to implement in our framework by rendering the prebaked results into the shape textures, and would be the most efficient option (although completely dynamic shape now renders very efficiently).
 * Ocean surface tiles are updated and drawn as separate draw calls. This is convenient for research and supports frustum culling easily, but it might make sense to instance these in a production scenario.

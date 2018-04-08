@@ -35,7 +35,7 @@ The multi-resolution representation (shape textures and geometry) is scaled hori
 
 Normal maps are elegantly incorporated into our multi-scale framework. Normal map textures are treated as a slightly different form of shape that is too detailed to be efficiently sampled by geometry, and are sampled at a scale just below the shape textures. This combats typical normal map sampling issues such as lack of detail in the foreground, or a glassy flat appearance in the background.
 
-Current shading effects include two foam layers are computed on the fly from the Jacobian of the displacement textures, and a subsurface scattering approximation is generated from the same Jacobian.
+Current shading effects include two foam layers are computed on the fly from the Jacobian of the displacement textures, and a subsurface scattering approximation based on view and normal vectors.
 
 The branch *fx_test* explores dynamically generating spray particle effects by randomly sampling points on the surface to detect wave peaks.
 
@@ -79,8 +79,7 @@ The ocean pixel shader samples normal maps at 2 different scales, both proportio
 
 ## Bugs and Improvement Directions
 
-* Add a mock island geometry. Potentially damp waves on a per-wavelength basis, i.e. shallow water dampens large wavelengths but lets smaller wavelengths pass.
-* Support a world aligned ocean colour map to give nice colour variation in shallow water
+* Add colour variation in shallow water
 * The shape rendering currently happens for the entire shape lod texture, which covers areas outside of the view. One could render the shape only for the visible surface by generating geometry for the frustum, dilating and rendering this into the shape textures. There is a branch that begins to explore this: *render_frustum_into_shape*.
 * Using prebaked textures (i.e. from an offline ocean simulation) would be easy to implement in our framework by rendering the prebaked results into the shape textures, and would be the most efficient option (although completely dynamic shape now renders very efficiently).
 * Ocean surface tiles are updated and drawn as separate draw calls. This is convenient for research and supports frustum culling easily, but it might make sense to instance these in a production scenario.
@@ -117,6 +116,7 @@ The ocean pixel shader samples normal maps at 2 different scales, both proportio
 * Miles - how energy is transferred from wind to wave: https://www.cambridge.org/core/journals/journal-of-fluid-mechanics/article/on-the-generation-of-surface-waves-by-shear-flows/40B503619B6D4571BEF3D31CB8925084
 * Realistic simulation of waves using wave spectra: https://hal.archives-ouvertes.fr/file/index/docid/307938/filename/frechot_realistic_simulation_of_ocean_surface_using_wave_spectra.pdf
 * Nice practical demo about testing different wave breakers: https://youtu.be/3yNoy4H2Z-o
+* Useful notes/diagrams on waves: http://hyperphysics.phy-astr.gsu.edu/hbase/Waves/watwav2.html, http://hyperphysics.phy-astr.gsu.edu/hbase/watwav.html#c1
 
 ### Boundary conditions
 

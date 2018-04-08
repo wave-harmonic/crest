@@ -1,7 +1,7 @@
 
 # crest
 
-![Teaser](https://raw.githubusercontent.com/huwb/crest-oceanrender/master/img/teaser2.png)  
+![Teaser](https://raw.githubusercontent.com/huwb/crest-oceanrender/master/img/teaser3.png)  
 
 Contacts: Huw Bowles (@hdb1 , huw dot bowles at gmail dot com), Daniel Zimmermann (@DanyGZimmermann, infkdude at gmail dot com), Chino Noris (@chino_noris , chino dot noris at epost dot ch), Beibei Wang (bebei dot wang at gmail dot com)
 

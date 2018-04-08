@@ -11,6 +11,7 @@ namespace Crest
     {
         Bounds _boundsLocal;
         Mesh _mesh;
+        Renderer _rend;
 
         public bool _drawRenderBounds = false;
 
@@ -18,13 +19,20 @@ namespace Crest
         int _totalLodCount = -1;
         float _baseVertDensity = 32f;
 
-        Renderer _rend;
-
         void Start()
         {
             _rend = GetComponent<Renderer>();
             _mesh = GetComponent<MeshFilter>().mesh;
             _boundsLocal = _mesh.bounds;
+
+            UpdateMeshBounds();
+        }
+
+        private void Update()
+        {
+            // this needs to be called on Update because the bounds depend on transform scale which can change. also OnWillRenderObject depends on
+            // the bounds being correct
+            UpdateMeshBounds();
         }
 
         // Called when visible to a camera
@@ -64,17 +72,22 @@ namespace Crest
                 _rend.material.SetTexture( "_WD_Sampler_1", null );
             }
 
-            // expand mesh bounds - bounds need to completely encapsulate verts after any dynamic displacement
-            Bounds bounds = _boundsLocal;
-            float boundsPadding = OceanRenderer.Instance._chop * OceanRenderer.Instance._maxWaveHeight;
-            float expand = boundsPadding / transform.lossyScale.x;
-            bounds.extents += new Vector3( expand, 0f, expand );
-            _mesh.bounds = bounds;
-
             if( _drawRenderBounds )
             {
                 DebugDrawRendererBounds();
             }
+        }
+
+        // this is called every frame because the bounds are given in world space and depend on the transform scale, which
+        // can change depending on view altitude
+        void UpdateMeshBounds()
+        {
+            Bounds bounds = _boundsLocal;
+            float boundsPadding = OceanRenderer.Instance._chop * OceanRenderer.Instance._maxWaveHeight;
+            float expandXZ = boundsPadding / transform.lossyScale.x;
+            float boundsY = OceanRenderer.Instance._maxWaveHeight / transform.lossyScale.y;
+            bounds.extents = new Vector3(bounds.extents.x + expandXZ, boundsY, bounds.extents.z + expandXZ);
+            _mesh.bounds = bounds;
         }
 
         public void SetInstanceData( int lodIndex, int totalLodCount, float baseVertDensity )

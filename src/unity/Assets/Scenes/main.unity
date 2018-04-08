@@ -253,13 +253,13 @@ Transform:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 227134465}
-  m_LocalRotation: {x: 0, y: 0.7132504, z: 0, w: 0.7009094}
-  m_LocalPosition: {x: 160, y: 2, z: 50}
+  m_LocalRotation: {x: -0, y: 0.44037268, z: -0, w: 0.8978151}
+  m_LocalPosition: {x: 153.93, y: 2, z: 35.6}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
-  m_LocalEulerAnglesHint: {x: 0, y: 91, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 52.255, z: 0}
 --- !u!114 &227134471
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1048,14 +1048,6 @@ Prefab:
       propertyPath: _viewpoint
       value: 
       objectReference: {fileID: 227134470}
-    - target: {fileID: 11417796, guid: 8454e29c2a033974fb559f5f8eff1918, type: 2}
-      propertyPath: _surfaceDepthShader
-      value: 
-      objectReference: {fileID: 4800000, guid: 4c094b490808c8f4abc35d630efaf990, type: 3}
-    - target: {fileID: 11417796, guid: 8454e29c2a033974fb559f5f8eff1918, type: 2}
-      propertyPath: _surfaceDepthTarget
-      value: 
-      objectReference: {fileID: 8400000, guid: b339dcf3d2e2d3242a8502eef196436b, type: 2}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 8454e29c2a033974fb559f5f8eff1918, type: 2}
   m_IsPrefabParent: 0

@@ -368,11 +368,10 @@ namespace Crest
                 mesh.normals = null;
                 mesh.SetIndices( arrI, MeshTopology.Triangles, 0 );
 
-                // make sure bounds allows for verts to be pulled around by snapping, and also contains max possible y displacement
+                // recalculate bounds. add a little allowance for snapping. in the chunk renderer script, the bounds will be expanded further
+                // to allow for horizontal displacement
                 mesh.RecalculateBounds();
-                Bounds bounds = mesh.bounds;
-                bounds.extents = new Vector3( bounds.extents.x + dx, parms._maxWaveHeight, bounds.extents.z + dx );
-                mesh.bounds = bounds;
+                Bounds bounds = mesh.bounds;                bounds.extents = new Vector3(bounds.extents.x + dx, parms._maxWaveHeight, bounds.extents.z + dx);                mesh.bounds = bounds;
 
                 mesh.name = pt.ToString();
             }

@@ -1,7 +1,5 @@
 ﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
-#define USING_DISPLACEMENT_TEXTURES
-
 using UnityEngine;
 
 namespace Crest
@@ -11,10 +9,8 @@ namespace Crest
     /// </summary>
     public class OceanChunkRenderer : MonoBehaviour
     {
-#if USING_DISPLACEMENT_TEXTURES
         Bounds _boundsLocal;
         Mesh _mesh;
-#endif
 
         public bool _drawRenderBounds = false;
 
@@ -27,11 +23,8 @@ namespace Crest
         void Start()
         {
             _rend = GetComponent<Renderer>();
-
-#if USING_DISPLACEMENT_TEXTURES
             _mesh = GetComponent<MeshFilter>().mesh;
             _boundsLocal = _mesh.bounds;
-#endif
         }
 
         // Called when visible to a camera
@@ -71,18 +64,17 @@ namespace Crest
                 _rend.material.SetTexture( "_WD_Sampler_1", null );
             }
 
-            // killing this as we use heightmaps now, not displacement textures, and im not sure if/when this will change
-#if USING_DISPLACEMENT_TEXTURES
             // expand mesh bounds - bounds need to completely encapsulate verts after any dynamic displacement
             Bounds bounds = _boundsLocal;
             float boundsPadding = OceanRenderer.Instance._chop * OceanRenderer.Instance._maxWaveHeight;
             float expand = boundsPadding / transform.lossyScale.x;
             bounds.extents += new Vector3( expand, 0f, expand );
             _mesh.bounds = bounds;
-#endif
 
             if( _drawRenderBounds )
+            {
                 DebugDrawRendererBounds();
+            }
         }
 
         public void SetInstanceData( int lodIndex, int totalLodCount, float baseVertDensity )

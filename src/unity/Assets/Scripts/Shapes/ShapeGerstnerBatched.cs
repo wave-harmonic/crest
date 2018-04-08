@@ -180,13 +180,16 @@ namespace Crest
 
         void RemoveDrawShapeCommandBuffers()
         {
-            if (OceanRenderer.Instance == null || OceanRenderer.Instance.Builder == null)
+            if (OceanRenderer.Instance == null || OceanRenderer.Instance.Builder == null || _renderBigWavelengthsShapeCmdBuf == null)
                 return;
 
             for (int lod = 0; lod < OceanRenderer.Instance.Builder.CurrentLodCount; lod++)
             {
                 if (lod < OceanRenderer.Instance.Builder.CurrentLodCount - 1)
                 {
+                    if (_renderWaveShapeCmdBufs == null || _renderWaveShapeCmdBufs[lod] == null)
+                        continue;
+
                     OceanRenderer.Instance.Builder._shapeCameras[lod].RemoveCommandBuffer(CameraEvent.BeforeForwardAlpha, _renderWaveShapeCmdBufs[lod]);
                 }
                 OceanRenderer.Instance.Builder._shapeCameras[lod].RemoveCommandBuffer(CameraEvent.BeforeForwardAlpha, _renderBigWavelengthsShapeCmdBuf);

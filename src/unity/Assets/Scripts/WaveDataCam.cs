@@ -19,9 +19,10 @@ namespace Crest
         RenderTexture _rtOceanDepth;
         CommandBuffer _bufOceanDepth = null;
 
+        Material _combineMaterial;
         CommandBuffer _bufCombineShapes = null;
-        Material[] _combineMaterials = null;
 
+        // shape texture resolution
         int _shapeRes = -1;
 
         public static bool _shapeCombinePass = true;
@@ -40,38 +41,32 @@ namespace Crest
         {
             cam.depthTextureMode = DepthTextureMode.None;
 
-            _matOceanDepth = new Material( Shader.Find( "Ocean/Ocean Depth" ) );
+            _matOceanDepth = new Material(Shader.Find("Ocean/Ocean Depth"));
+            _combineMaterial = new Material(Shader.Find("Ocean/Shape/Combine"));
         }
 
         private void Update()
         {
             _renderData._posSnappedLast = _renderData._posSnapped;
+
+            UpdateCmdBufOceanFloorDepth();
+
+            // shape combine pass done by last shape camera - lod 0
+            if (_lodIndex == 0)
+            {
+                UpdateCmdBufShapeCombine();
+            }
         }
 
-        // script execution order ensures this runs after CircleOffset
+        // script execution order ensures this runs after ocean has been placed
         public void LateUpdate()
         {
-            // slightly unfortunate complexity here. this script needs to update in the LateUpdate, and all shape cameras need to late-update
-            // before the command buffer to combine the shapes is created. to support this, LOD0 runs the update of all camera scripts.
-            if (_lodIndex != 0)
-            {
-                return;
-            }
+            LateUpdateTransformData();
 
-            // run the update of all lods
-            foreach(var cam in OceanRenderer.Instance.Builder._shapeCameras)
-            {
-                var wdc = cam.GetComponent<WaveDataCam>();
-
-                wdc.DoLateUpdate();
-
-                wdc.CmdBufOceanDepth();
-            }
-
-            CmdBufShapeCombine();
+            LateUpdateShapeCombinePassSettings();
         }
 
-        void DoLateUpdate()
+        void LateUpdateTransformData()
         {
             // ensure camera size matches geometry size
             cam.orthographicSize = 2f * transform.lossyScale.x;
@@ -103,9 +98,20 @@ namespace Crest
             cam.projectionMatrix = P;
         }
 
+        // apply this camera's properties to the shape combine materials
+        void LateUpdateShapeCombinePassSettings()
+        {
+            var cams = OceanRenderer.Instance.Builder._shapeCameras;
+            ApplyMaterialParams(0, _combineMaterial);
+            if (_lodIndex > 0)
+            {
+                ApplyMaterialParams(1, cams[_lodIndex - 1].GetComponent<WaveDataCam>()._combineMaterial);
+            }
+        }
+
         // The command buffer populates the LODs with ocean depth data. It submits any objects with the OceanDepth tag.
         // It's stateless - the textures don't have to be managed across frames/scale changes
-        void CmdBufOceanDepth()
+        void UpdateCmdBufOceanFloorDepth()
         {
             if( !_rtOceanDepth )
             {
@@ -142,43 +148,32 @@ namespace Crest
         }
 
         // executed once per frame - attached to the LOD0 camera
-        void CmdBufShapeCombine()
+        void UpdateCmdBufShapeCombine()
         {
+            if(!_shapeCombinePass)
+            {
+                if (_bufCombineShapes != null)
+                {
+                    cam.RemoveCommandBuffer(CameraEvent.AfterEverything, _bufCombineShapes);
+                }
+
+                return;
+            }
+
+            // create shape combine command buffer if it hasn't been created already
             if (_bufCombineShapes == null)
             {
                 _bufCombineShapes = new CommandBuffer();
                 cam.AddCommandBuffer(CameraEvent.AfterEverything, _bufCombineShapes);
                 _bufCombineShapes.name = "Combine Shapes";
-            }
 
-            _bufCombineShapes.Clear();
-
-            if(!_shapeCombinePass)
-            {
-                return;
-            }
-
-            var cams = OceanRenderer.Instance.Builder._shapeCameras;
-
-            if (_combineMaterials == null || _combineMaterials.Length != cams.Length - 1)
-            {
-                var shader = Shader.Find("Ocean/Shape/Combine");
-
-                _combineMaterials = new Material[cams.Length - 1];
-                for (int i = 0; i < _combineMaterials.Length; i++)
+                var cams = OceanRenderer.Instance.Builder._shapeCameras;
+                for (int L = cams.Length - 2; L >= 0; L--)
                 {
-                    _combineMaterials[i] = new Material(shader);
+                    // accumulate shape data down the LOD chain - combine L+1 into L
+                    var mat = cams[L].GetComponent<WaveDataCam>()._combineMaterial;
+                    _bufCombineShapes.Blit(cams[L + 1].targetTexture, cams[L].targetTexture, mat);
                 }
-            }
-
-            for (int L = cams.Length - 2; L >= 0; L--)
-            {
-                // save the projection params to enable combining results across multiple shape textures
-                cams[L].GetComponent<WaveDataCam>().ApplyMaterialParams(0, _combineMaterials[L]);
-                cams[L + 1].GetComponent<WaveDataCam>().ApplyMaterialParams(1, _combineMaterials[L]);
-
-                // accumulate shape data down the LOD chain - combine L+1 into L
-                _bufCombineShapes.Blit(cams[L + 1].targetTexture, cams[L].targetTexture, _combineMaterials[L]);
             }
         }
 

@@ -20,6 +20,7 @@ Shader "Ocean/Ocean"
 
 		SubShader
 		{
+			// this sorts back to front due to transparent i guess, perhaps set queue to Geometry+1?
 			Tags { "LightMode"="Always" "Queue"="Transparent" "IgnoreProjector"="True" "RenderType"="Opaque" }
 
 			GrabPass
@@ -38,6 +39,7 @@ Shader "Ocean/Ocean"
 
 				// tints the output color based on which shape texture(s) were sampled, blended according to weight
 				//#define DEBUG_SHAPE_SAMPLE
+				#define DEPTH_BIAS 100.
 
 				struct appdata_t
 				{
@@ -49,9 +51,9 @@ Shader "Ocean/Ocean"
 				{
 					float4 vertex : SV_POSITION;
 					half3 n : TEXCOORD1;
+					half shorelineFoam : TEXCOORD4;
 					half4 invDeterminant_lodAlpha_worldXZUndisplaced : TEXCOORD5;
 					float3 worldPos : TEXCOORD7;
-					
 					#if defined( DEBUG_SHAPE_SAMPLE )
 					half3 debugtint : TEXCOORD8;
 					#endif
@@ -80,7 +82,7 @@ Shader "Ocean/Ocean"
 				// sample wave or terrain height, with smooth blend towards edges.
 				// would equally apply to heights instead of displacements.
 				// this could be optimized further.
-				void SampleDisplacements( in sampler2D i_dispSampler, in sampler2D i_oceanDepthSampler, in float2 i_centerPos, in float i_res, in float i_texelSize, in float i_geomSquareSize, in float2 i_samplePos, in float wt, inout float3 io_worldPos, inout float3 io_n, inout float io_determinant )
+				void SampleDisplacements( in sampler2D i_dispSampler, in sampler2D i_oceanDepthSampler, in float2 i_centerPos, in float i_res, in float i_texelSize, in float i_geomSquareSize, in float2 i_samplePos, in float wt, inout float3 io_worldPos, inout float3 io_n, inout float io_determinant, inout half io_shorelineFoam )
 				{
 					if( wt < 0.001 )
 						return;
@@ -110,9 +112,10 @@ Shader "Ocean/Ocean"
 					det = 1. - det;
 					io_determinant += wt * det;
 
-					//// // foam from shallow water - signed depth is depth compared to sea level, plus wave height
-					//float signedDepth = tex2Dlod(i_oceanDepthSampler, uv).x + disp.y;
-					//io_foamAmount += wt * clamp( 1. - signedDepth / 1.5, 0., 1.);
+					// foam from shallow water - signed depth is depth compared to sea level, plus wave height. depth bias is an optimisation
+					// which allows the depth data to be initialised once to 0 without generating foam everywhere.
+					half signedDepth = tex2Dlod(i_oceanDepthSampler, uv).x + disp.y + DEPTH_BIAS;
+					io_shorelineFoam += wt * clamp( 1. - signedDepth / 1.5, 0., 1.);
 				}
 
 				v2f vert( appdata_t v )
@@ -166,13 +169,14 @@ Shader "Ocean/Ocean"
 					// sample shape textures - always lerp between 2 scales, so sample two textures
 					o.n = half3(0., 1., 0.);
 					o.invDeterminant_lodAlpha_worldXZUndisplaced.x = 0.;
+					o.shorelineFoam = 0.;
 					// sample weights. params.z allows shape to be faded out (used on last lod to support pop-less scale transitions)
 					float wt_0 = (1. - lodAlpha) * _WD_Params_0.z;
 					float wt_1 = (1. - wt_0) * _WD_Params_1.z;
 					// sample displacement textures, add results to current world pos / normal / foam
 					const float2 wxz = o.worldPos.xz;
-					SampleDisplacements( _WD_Sampler_0, _WD_OceanDepth_Sampler_0, _WD_Pos_0, _WD_Params_0.y, _WD_Params_0.x, idealSquareSize, wxz, wt_0, o.worldPos, o.n, o.invDeterminant_lodAlpha_worldXZUndisplaced.x );
-					SampleDisplacements( _WD_Sampler_1, _WD_OceanDepth_Sampler_1, _WD_Pos_1, _WD_Params_1.y, _WD_Params_1.x, idealSquareSize, wxz, wt_1, o.worldPos, o.n, o.invDeterminant_lodAlpha_worldXZUndisplaced.x );
+					SampleDisplacements( _WD_Sampler_0, _WD_OceanDepth_Sampler_0, _WD_Pos_0, _WD_Params_0.y, _WD_Params_0.x, idealSquareSize, wxz, wt_0, o.worldPos, o.n, o.invDeterminant_lodAlpha_worldXZUndisplaced.x, o.shorelineFoam);
+					SampleDisplacements( _WD_Sampler_1, _WD_OceanDepth_Sampler_1, _WD_Pos_1, _WD_Params_1.y, _WD_Params_1.x, idealSquareSize, wxz, wt_1, o.worldPos, o.n, o.invDeterminant_lodAlpha_worldXZUndisplaced.x, o.shorelineFoam);
 
 					// debug tinting to see which shape textures are used
 					#if defined( DEBUG_SHAPE_SAMPLE )
@@ -234,11 +238,11 @@ Shader "Ocean/Ocean"
 					io_n = normalize( io_n );
 				}
 
-				void ApplyFoam( half determinant, float2 worldXZUndisplaced, half3 n, inout half3 io_col, inout float io_whiteFoam )
+				void ApplyFoam( half i_determinant, float2 i_worldXZUndisplaced, half3 i_n, half i_shorelineFoam, inout half3 io_col, inout float io_whiteFoam )
 				{
 					// Give the foam some texture
-					float2 foamUV = worldXZUndisplaced / 10.;
-					foamUV += 0.02 * n.xz;
+					float2 foamUV = i_worldXZUndisplaced / 10.;
+					foamUV += 0.02 * i_n.xz;
 					// texture bombing to avoid repetition artifacts
 					//half foamTexValue = textureNoTile_3weights(_FoamTexture, foamUV).r;
 					half foamTexValue = texture(_FoamTexture, foamUV).r;
@@ -247,14 +251,15 @@ Shader "Ocean/Ocean"
 					// > 1: Stretch
 					// < 1: Squash
 					// < 0: Overlap
-					float foamAmount = smoothstep(1.6, 0., determinant);
+					float foamAmount = smoothstep(1.6, 0., i_determinant);
+					foamAmount = foamAmount + i_shorelineFoam;
 
 					// Additive underwater foam
 					half bubbleFoam = smoothstep( 0.0, 0.5, foamAmount * foamTexValue );
 					io_col.xyz += bubbleFoam * _FoamBubbleColor.rgb * _FoamBubbleColor.a;
 
 					// White foam on top, with black-point fading
-					io_whiteFoam = foamTexValue * smoothstep( 1.0 - foamAmount, 1.3 - foamAmount, foamTexValue ) * _FoamWhiteColor.a;
+					io_whiteFoam = foamTexValue * (smoothstep(1.0 - foamAmount, 1.3 - foamAmount, foamTexValue)) * _FoamWhiteColor.a;
 				}
 
 				void OceanColour(half3 view, half3 n, half2 uvScreen, float z01, inout half3 oceanCol)
@@ -294,7 +299,7 @@ Shader "Ocean/Ocean"
 
 					// Foam - underwater bubbles and whitefoam
 					float whiteFoam;
-					ApplyFoam( 1. - i.invDeterminant_lodAlpha_worldXZUndisplaced.x, i.invDeterminant_lodAlpha_worldXZUndisplaced.zw, n, col.xyz, whiteFoam );
+					ApplyFoam( 1. - i.invDeterminant_lodAlpha_worldXZUndisplaced.x, i.invDeterminant_lodAlpha_worldXZUndisplaced.zw, n, i.shorelineFoam, col.xyz, whiteFoam );
 
 					// Compute color of ocean - in-scattered light + refracted scene
 					half2 uvScreen = i.vertex.xy / _ScreenParams.xy;
@@ -316,6 +321,7 @@ Shader "Ocean/Ocean"
 					#endif
 
 					return col;
+					return (half4)i.shorelineFoam;
 				}
 
 				ENDCG

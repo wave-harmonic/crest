@@ -26,7 +26,6 @@ namespace Crest
         int _shapeRes = -1;
 
         public static bool _shapeCombinePass = true;
-        public static bool _renderOceanDepths = false;
 
         public struct RenderData
         {
@@ -43,13 +42,13 @@ namespace Crest
 
             _matOceanDepth = new Material(Shader.Find("Ocean/Ocean Depth"));
             _combineMaterial = new Material(Shader.Find("Ocean/Shape/Combine"));
+
+            UpdateCmdBufOceanFloorDepth();
         }
 
         private void Update()
         {
             _renderData._posSnappedLast = _renderData._posSnapped;
-
-            UpdateCmdBufOceanFloorDepth();
 
             // shape combine pass done by last shape camera - lod 0
             if (_lodIndex == 0)
@@ -113,34 +112,35 @@ namespace Crest
         // It's stateless - the textures don't have to be managed across frames/scale changes
         void UpdateCmdBufOceanFloorDepth()
         {
-            if( !_rtOceanDepth )
+            var gos = GameObject.FindGameObjectsWithTag("OceanDepth");
+            if (gos.Length < 1)
             {
-                _rtOceanDepth = new RenderTexture( cam.targetTexture.width, cam.targetTexture.height, 0 );
+                // if there is nothing in the scene tagged up for rendering then there is nothing to do here
+                return;
+            }
+
+            if (!_rtOceanDepth)
+            {
+                _rtOceanDepth = new RenderTexture(cam.targetTexture.width, cam.targetTexture.height, 0);
                 _rtOceanDepth.name = gameObject.name + "_oceanDepth";
-                _rtOceanDepth.format = RenderTextureFormat.RFloat;
+                _rtOceanDepth.format = RenderTextureFormat.RHalf;
                 _rtOceanDepth.useMipMap = false;
                 _rtOceanDepth.anisoLevel = 0;
             }
 
-            if( _bufOceanDepth == null )
+            if (_bufOceanDepth == null)
             {
                 _bufOceanDepth = new CommandBuffer();
-                cam.AddCommandBuffer( CameraEvent.BeforeForwardOpaque, _bufOceanDepth );
+                cam.AddCommandBuffer(CameraEvent.BeforeForwardOpaque, _bufOceanDepth);
                 _bufOceanDepth.name = "Ocean Depth";
             }
 
             _bufOceanDepth.Clear();
 
-            if (!_renderOceanDepths)
-            {
-                return;
-            }
-
             _bufOceanDepth.SetRenderTarget( _rtOceanDepth );
             _bufOceanDepth.ClearRenderTarget( false, true, Color.red * 10000.0f );
 
-            var gos = GameObject.FindGameObjectsWithTag( "OceanDepth" );
-            foreach( var go in gos )
+            foreach ( var go in gos )
             {
                 var mf = go.GetComponent<MeshFilter>();
                 _bufOceanDepth.DrawMesh( mf.mesh, go.transform.localToWorldMatrix, _matOceanDepth );

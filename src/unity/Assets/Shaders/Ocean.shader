@@ -114,7 +114,7 @@ Shader "Ocean/Ocean"
 
 					// foam from shallow water - signed depth is depth compared to sea level, plus wave height. depth bias is an optimisation
 					// which allows the depth data to be initialised once to 0 without generating foam everywhere.
-					half signedDepth = tex2Dlod(i_oceanDepthSampler, uv).x + disp.y + DEPTH_BIAS;
+					half signedDepth = (tex2Dlod(i_oceanDepthSampler, uv).x + DEPTH_BIAS) + disp.y ;
 					io_shorelineFoam += wt * clamp( 1. - signedDepth / 1.5, 0., 1.);
 				}
 

@@ -142,8 +142,7 @@ namespace Crest
 
             foreach ( var go in gos )
             {
-                var mf = go.GetComponent<MeshFilter>();
-                _bufOceanDepth.DrawMesh( mf.mesh, go.transform.localToWorldMatrix, _matOceanDepth );
+                _bufOceanDepth.DrawRenderer(go.GetComponent<Renderer>(), _matOceanDepth);
             }
         }
 
@@ -155,6 +154,7 @@ namespace Crest
                 if (_bufCombineShapes != null)
                 {
                     cam.RemoveCommandBuffer(CameraEvent.AfterEverything, _bufCombineShapes);
+                    _bufCombineShapes = null;
                 }
 
                 return;
@@ -204,10 +204,10 @@ namespace Crest
 
         public void ApplyMaterialParams( int shapeSlot, Material mat )
         {
-            ApplyMaterialParams(shapeSlot, mat, true);
+            ApplyMaterialParams(shapeSlot, mat, true, true);
         }
 
-        public void ApplyMaterialParams(int shapeSlot, Material mat, bool applyWaveHeights)
+        public void ApplyMaterialParams(int shapeSlot, Material mat, bool applyWaveHeights, bool blendOut)
         {
             if( applyWaveHeights )
             {
@@ -217,7 +217,7 @@ namespace Crest
             mat.SetTexture( "_WD_OceanDepth_Sampler_" + shapeSlot.ToString(), _rtOceanDepth );
 
             // need to blend out shape if this is the largest lod, and the ocean might get scaled down later (so the largest lod will disappear)
-            bool needToBlendOutShape = _lodIndex == _lodCount - 1 && OceanRenderer.Instance.ScaleCouldDecrease;
+            bool needToBlendOutShape = _lodIndex == _lodCount - 1 && OceanRenderer.Instance.ScaleCouldDecrease && blendOut;
             float shapeWeight = needToBlendOutShape ? OceanRenderer.Instance.ViewerAltitudeLevelAlpha : 1f;
             mat.SetVector( "_WD_Params_" + shapeSlot.ToString(), new Vector3( _renderData._texelWidth, _renderData._textureRes, shapeWeight ) );
 

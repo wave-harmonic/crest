@@ -13,8 +13,10 @@ namespace Crest
     {
         // useful references
         Material[] _materials;
+        Material _materialBigWaveTransition;
         CommandBuffer[] _renderWaveShapeCmdBufs;
-        CommandBuffer _renderBigWavelengthsShapeCmdBuf;
+        // the command buffers to transition big waves between the last 2 lods
+        CommandBuffer _renderBigWavelengthsShapeCmdBuf, _renderBigWavelengthsShapeCmdBufTransition;
 
         // IMPORTANT - this mirrors the constant with the same name in ShapeGerstnerBatch.shader, both must be updated together!
         const int BATCH_SIZE = 32;
@@ -58,6 +60,8 @@ namespace Crest
             {
                 _materials[i] = new Material(_waveShader);
             }
+
+            _materialBigWaveTransition = new Material(_waveShader);
         }
 
         private void LateUpdate()
@@ -66,9 +70,10 @@ namespace Crest
         }
 
         /// <summary>
+        /// Computes Gerstner params for a set of waves, for the given lod idx. Writes shader data to the given material.
         /// Returns number of wave components rendered in this batch.
         /// </summary>
-        int UpdateBatch(int lodIdx, int firstComponent, int lastComponentNonInc)
+        int UpdateBatch(int lodIdx, int firstComponent, int lastComponentNonInc, Material material)
         {
             int numComponents = lastComponentNonInc - firstComponent;
             int numInBatch = 0;
@@ -116,11 +121,13 @@ namespace Crest
             }
 
             // apply the data to the shape material
-            _materials[lodIdx].SetFloatArray("_Wavelengths", _wavelengthsBatch);
-            _materials[lodIdx].SetFloatArray("_Amplitudes", _ampsBatch);
-            _materials[lodIdx].SetFloatArray("_Angles", _anglesBatch);
-            _materials[lodIdx].SetFloatArray("_Phases", _phasesBatch);
-            _materials[lodIdx].SetFloat("_NumInBatch", numInBatch);
+            material.SetFloatArray("_Wavelengths", _wavelengthsBatch);
+            material.SetFloatArray("_Amplitudes", _ampsBatch);
+            material.SetFloatArray("_Angles", _anglesBatch);
+            material.SetFloatArray("_Phases", _phasesBatch);
+            material.SetFloat("_NumInBatch", numInBatch);
+
+            OceanRenderer.Instance.Builder._shapeCameras[lodIdx].GetComponent<WaveDataCam>().ApplyMaterialParams(0, material, false, false);
 
             return numInBatch;
         }
@@ -148,7 +155,7 @@ namespace Crest
                     componentIdx++;
                 }
 
-                if (UpdateBatch(lod, startCompIdx, componentIdx) > 0)
+                if (UpdateBatch(lod, startCompIdx, componentIdx, _materials[lod]) > 0)
                 {
                     // draw shape into this lod
                     AddDrawShapeCommandBuffer(lod);
@@ -156,9 +163,12 @@ namespace Crest
             }
 
             // the last batch handles waves for the last lod, and waves that did not fit in the last lod
-            if (UpdateBatch(OceanRenderer.Instance.Builder.CurrentLodCount - 1, componentIdx, _wavelengths.Length) > 0)
+            int lastBatchCount = UpdateBatch(OceanRenderer.Instance.Builder.CurrentLodCount - 1, componentIdx, _wavelengths.Length, _materials[OceanRenderer.Instance.Builder.CurrentLodCount - 1]);
+            UpdateBatch(OceanRenderer.Instance.Builder.CurrentLodCount - 2, componentIdx, _wavelengths.Length, _materialBigWaveTransition);
+
+            if (lastBatchCount > 0)
             {
-                // special command buffer that gets added to last 2 lods, to handle smooth transitions for camera height changes
+                // special command buffers that get added to last 2 lods, to handle smooth transitions for camera height changes
                 AddDrawShapeBigWavelengthsCommandBuffer();
             }
         }
@@ -175,12 +185,13 @@ namespace Crest
         {
             int lastLod = OceanRenderer.Instance.Builder.CurrentLodCount - 1;
             OceanRenderer.Instance.Builder._shapeCameras[lastLod].AddCommandBuffer(CameraEvent.BeforeForwardAlpha, _renderBigWavelengthsShapeCmdBuf);
-            OceanRenderer.Instance.Builder._shapeCameras[lastLod - 1].AddCommandBuffer(CameraEvent.BeforeForwardAlpha, _renderBigWavelengthsShapeCmdBuf);
+            // the second-to-last lod will transition content into it from the last lod
+            OceanRenderer.Instance.Builder._shapeCameras[lastLod - 1].AddCommandBuffer(CameraEvent.BeforeForwardAlpha, _renderBigWavelengthsShapeCmdBufTransition);
         }
 
         void RemoveDrawShapeCommandBuffers()
         {
-            if (OceanRenderer.Instance == null || OceanRenderer.Instance.Builder == null || _renderBigWavelengthsShapeCmdBuf == null)
+            if (OceanRenderer.Instance == null || OceanRenderer.Instance.Builder == null || _renderBigWavelengthsShapeCmdBuf == null || _renderBigWavelengthsShapeCmdBufTransition == null)
                 return;
 
             for (int lod = 0; lod < OceanRenderer.Instance.Builder.CurrentLodCount; lod++)
@@ -192,7 +203,9 @@ namespace Crest
 
                     OceanRenderer.Instance.Builder._shapeCameras[lod].RemoveCommandBuffer(CameraEvent.BeforeForwardAlpha, _renderWaveShapeCmdBufs[lod]);
                 }
+
                 OceanRenderer.Instance.Builder._shapeCameras[lod].RemoveCommandBuffer(CameraEvent.BeforeForwardAlpha, _renderBigWavelengthsShapeCmdBuf);
+                OceanRenderer.Instance.Builder._shapeCameras[lod].RemoveCommandBuffer(CameraEvent.BeforeForwardAlpha, _renderBigWavelengthsShapeCmdBufTransition);
             }
         }
 
@@ -212,6 +225,10 @@ namespace Crest
             _renderBigWavelengthsShapeCmdBuf = new CommandBuffer();
             _renderBigWavelengthsShapeCmdBuf.name = "ShapeGerstnerBatchedBigWavelengths";
             _renderBigWavelengthsShapeCmdBuf.DrawMesh(_rasterMesh, drawMatrix, _materials[OceanRenderer.Instance.Builder.CurrentLodCount - 1]);
+
+            _renderBigWavelengthsShapeCmdBufTransition = new CommandBuffer();
+            _renderBigWavelengthsShapeCmdBufTransition.name = "ShapeGerstnerBatchedBigWavelengthsTrans";
+            _renderBigWavelengthsShapeCmdBufTransition.DrawMesh(_rasterMesh, drawMatrix, _materialBigWaveTransition);
         }
 
         // copied from unity's command buffer examples because it sounds important

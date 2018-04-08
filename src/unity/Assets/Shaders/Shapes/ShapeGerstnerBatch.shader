@@ -27,8 +27,10 @@ Shader "Ocean/Shape/Gerstner Batch"
 				#pragma multi_compile_fog
 				#include "UnityCG.cginc"
 				#include "MultiscaleShape.cginc"
+				#include "../OceanLODData.cginc"
 
 				#define TWOPI 6.283185
+				#define DEPTH_BIAS 100.
 
 				struct appdata_t {
 					float4 vertex : POSITION;
@@ -64,6 +66,8 @@ Shader "Ocean/Shape/Gerstner Batch"
 				{
 					const half minWavelength = MinWavelengthForCurrentOrthoCamera();
 			
+					// sample ocean depth (this render target should 1:1 match depth texture, so UVs are trivial)
+					half depth = tex2D(_WD_OceanDepth_Sampler_0, i.vertex.xy / _ScreenParams.xy).x + DEPTH_BIAS;
 					half3 result = (half3)0.;
 
 					// unrolling this loop once helped SM Issue Utilization and some other stats, but the GPU time is already very low so leaving this for now
@@ -74,6 +78,17 @@ Shader "Ocean/Shape/Gerstner Batch"
 
 						// weight
 						half wt = ComputeSortedShapeWeight(_Wavelengths[j], minWavelength);
+
+						// attenuate waves based on ocean depth. if depth is greater than 0.5*wavelength, water is considered Deep and wave is
+						// unaffected. if depth is less than this, wave velocity decreases. waves will then bunch up and grow in amplitude and
+						// eventually break. i model "Deep" water, but then simply ramp down waves in non-deep water with a linear multiplier.
+						// http://hyperphysics.phy-astr.gsu.edu/hbase/Waves/watwav2.html
+						// http://hyperphysics.phy-astr.gsu.edu/hbase/watwav.html#c1
+						//half depth_wt = saturate(depth / (0.5 * minWavelength)); // slightly different result - do per wavelength for now
+						half depth_wt = saturate(depth / (0.5 * _Wavelengths[j]));
+						// leave a little bit - always keep 10% of amplitude
+						wt *= .1 + .9 * depth_wt;
+
 						// wave speed
 						half C = ComputeWaveSpeed(_Wavelengths[j]);
 						// direction

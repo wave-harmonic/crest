@@ -241,6 +241,8 @@ namespace Crest
             cart._filterMode = FilterMode.Bilinear;
             cart._anisoLevel = 0;
             cart._useMipMap = false;
+            // do this now, because WaveDataCam needs this
+            cart.CreateRT();
 
             return cam;
         }

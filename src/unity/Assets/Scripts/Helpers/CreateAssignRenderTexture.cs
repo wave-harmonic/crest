@@ -21,19 +21,23 @@ namespace Crest
         public int _anisoLevel = 0;
         public bool _useMipMap = false;
 
+        bool _created = false;
+
         void Start()
         {
-            RenderTexture rt = CreateRT( _targetName );
-            GetComponent<Camera>().targetTexture = rt;
+            if (!_created)
+            {
+                CreateRT();
+            }
         }
 
-        RenderTexture CreateRT( string name )
+        public void CreateRT()
         {
-            RenderTexture tex = new RenderTexture( _width, _height, _depthBits, _format );
+            var tex = new RenderTexture( _width, _height, _depthBits, _format );
 
-            if( !string.IsNullOrEmpty( name ) )
+            if( !string.IsNullOrEmpty(_targetName) )
             {
-                tex.name = name;
+                tex.name = _targetName;
             }
 
             tex.wrapMode = _wrapMode;
@@ -42,7 +46,9 @@ namespace Crest
             tex.anisoLevel = _anisoLevel;
             tex.useMipMap = _useMipMap;
 
-            return tex;
+            GetComponent<Camera>().targetTexture = tex;
+
+            _created = true;
         }
     }
 }

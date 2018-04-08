@@ -8,13 +8,28 @@ namespace Crest
 
         static float _leftPanelWidth = 180f;
 
+        public bool _guiVisible = true;
+
         public static bool OverGUI( Vector2 screenPosition )
         {
             return screenPosition.x < _leftPanelWidth;
         }
 
+        private void Update()
+        {
+            if (Input.GetKeyDown(KeyCode.G))
+            {
+                ToggleGUI();
+            }
+        }
+
         void OnGUI()
         {
+            if(!_guiVisible)
+            {
+                return;
+            }
+
             Color bkp = GUI.color;
 
             GUI.skin.toggle.normal.textColor = Color.white;
@@ -44,8 +59,14 @@ namespace Crest
 
             OceanRenderer._acceptLargeWavelengthsInLastLOD = GUI.Toggle(new Rect(x, y, w, h), OceanRenderer._acceptLargeWavelengthsInLastLOD, "Large waves in last LOD"); y += h;
 
+            if (GUI.Button(new Rect(x, y, w, h), "Hide GUI (G)"))
+            {
+                ToggleGUI();
+            }
+            y += h;
+
             // draw source textures to screen
-            if( _showSimTargets )
+            if ( _showSimTargets )
             {
                 DrawShapeTargets();
             }
@@ -77,6 +98,11 @@ namespace Crest
 
                 ind++;
             }
+        }
+
+        void ToggleGUI()
+        {
+            _guiVisible = !_guiVisible;
         }
     }
 }

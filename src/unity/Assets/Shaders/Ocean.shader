@@ -34,6 +34,8 @@ Shader "Ocean/Ocean"
 				#pragma vertex vert
 				#pragma fragment frag
 				#pragma multi_compile_fog
+				//#pragma enable_d3d11_debug_symbols // uncomment to allow debugging in renderdoc etc
+
 				#include "UnityCG.cginc"
 				#include "TextureBombing.cginc"
 

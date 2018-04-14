@@ -4,14 +4,18 @@ Shader "Ocean/Ocean"
 {
 	Properties
 	{
-		_Normals ( "Normals", 2D ) = "bump" {}
+		[NoScaleOffset] _Normals ( "Normals", 2D ) = "bump" {}
 		_NormalsStrength("Normals Strength", Range(0.0, 3.0)) = 0.75
 		_NormalsScale("Normals Scale", Range(0.0, 1000.0)) = 250.0
-		_Skybox ("Skybox", CUBE) = "" {}
-		_Diffuse ("Diffuse", Color) = (0.2, 0.05, 0.05, 1.0)
-		_FoamTexture ( "Foam Texture", 2D ) = "white" {}
+		[NoScaleOffset] _Skybox ("Skybox", CUBE) = "" {}
+		_Diffuse("Diffuse", Color) = (0.2, 0.05, 0.05, 1.0)
+		_SubSurface("Sub-Surface Scattering", Color) = (0.0, 0.48, 0.36, 1.)
+		[NoScaleOffset] _FoamTexture ( "Foam Texture", 2D ) = "white" {}
+		_FoamScale("Foam Scale", Range(0.0, 50.0)) = 10.0
 		_FoamWhiteColor("White Foam Color", Color) = (1.0, 1.0, 1.0, 1.0)
 		_FoamBubbleColor ( "Bubble Foam Color", Color ) = (0.0, 0.0904, 0.105, 1.0)
+		_DepthFogDensity("Depth Fog Density", Color) = (0.28, 0.16, 0.24, 1.0)
+		_FresnelPower("Fresnel Power", Range(0.0,20.0)) = 3.0
 	}
 
 	Category
@@ -196,6 +200,8 @@ Shader "Ocean/Ocean"
 
 				// frag shader uniforms
 				uniform half4 _Diffuse;
+				uniform half4 _SubSurface;
+				uniform half4 _DepthFogDensity;
 				uniform samplerCUBE _Skybox;
 				uniform sampler2D _FoamTexture;
 				uniform half4 _FoamWhiteColor;
@@ -203,7 +209,11 @@ Shader "Ocean/Ocean"
 				uniform sampler2D _Normals;
 				uniform half _NormalsStrength;
 				uniform half _NormalsScale;
+				uniform half _FoamScale;
+				uniform half _FresnelPower;
 				uniform float _MyTime;
+
+				// these are copied from the render target by unity
 				sampler2D _BackgroundTexture;
 				sampler2D _CameraDepthTexture;
 
@@ -241,10 +251,10 @@ Shader "Ocean/Ocean"
 				void ApplyFoam( half i_determinant, float2 i_worldXZUndisplaced, half3 i_n, half i_shorelineFoam, inout half3 io_col, inout float io_whiteFoam )
 				{
 					// Give the foam some texture
-					float2 foamUV = i_worldXZUndisplaced / 10.;
+					float2 foamUV = i_worldXZUndisplaced / _FoamScale;
 					foamUV += 0.02 * i_n.xz;
-					// texture bombing to avoid repetition artifacts
-					//half foamTexValue = textureNoTile_3weights(_FoamTexture, foamUV).r;
+
+					//half foamTexValue = textureNoTile_3weights(_FoamTexture, foamUV).r; // texture bombing to avoid repetition artifacts
 					half foamTexValue = texture(_FoamTexture, foamUV).r;
 					half bubbleFoamTexValue = texture(_FoamTexture, .37 * foamUV).r;
 
@@ -278,7 +288,7 @@ Shader "Ocean/Ocean"
 						float sceneZRefract = LinearEyeDepth(texture(_CameraDepthTexture, half2(uvRefract.x, 1. - uvRefract.y)).x);
 						float maxZ = max(sceneZ, sceneZRefract);
 						float deltaZ = (maxZ - pixelZ);
-						alpha = 1. - exp(.5*half3(-.56, -.32, -.48) * deltaZ);
+						alpha = 1. - exp(-_DepthFogDensity.xyz * deltaZ);
 					}
 
 					half3 sceneColour = texture(_BackgroundTexture, uvRefract).rgb;
@@ -296,7 +306,7 @@ Shader "Ocean/Ocean"
 					// Emitted light - ocean colour
 					half3 col = _Diffuse;
 					// Approximate subsurface scattering - add light when surface faces viewer
-					col += dot(n, view) * .4*half3(0.0, 1.2, 0.9);
+					col += dot(n, view) * _SubSurface;
 
 					// Foam - underwater bubbles and whitefoam
 					float whiteFoam;
@@ -308,7 +318,7 @@ Shader "Ocean/Ocean"
 
 					// Fresnel / reflection
 					half3 skyColor = texCUBE(_Skybox, reflect(-view, n));
-					float fresnel = lerp(0., 1.0, pow(1.0 - dot(n, view), 3.0));
+					float fresnel = lerp(0., 1.0, pow(1.0 - dot(n, view), _FresnelPower));
 					col = lerp(col, skyColor, fresnel);
 
 					// Override final result with white foam - bubbles on surface

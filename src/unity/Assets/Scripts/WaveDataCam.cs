@@ -67,6 +67,7 @@ namespace Crest
 
         void LateUpdateTransformData()
         {
+            transform.localPosition = Vector3.up * OceanRenderer.Instance._maxWaveHeight / transform.lossyScale.x;
             // ensure camera size matches geometry size
             cam.orthographicSize = 2f * transform.lossyScale.x;
 
@@ -223,6 +224,27 @@ namespace Crest
 
             mat.SetVector( "_WD_Pos_" + shapeSlot.ToString(), new Vector2( _renderData._posSnapped.x, _renderData._posSnapped.z ) );
             mat.SetInt( "_WD_LodIdx_" + shapeSlot.ToString(), _lodIndex );
+        }
+
+        public void ApplyMaterialParams2(int shapeSlot, MaterialPropertyBlock mpb, bool applyWaveHeights, bool blendOut)
+        {
+            if (applyWaveHeights)
+            {
+                mpb.SetTexture("_WD_Sampler_" + shapeSlot.ToString(), cam.targetTexture);
+            }
+
+            if (_rtOceanDepth != null)
+            {
+                mpb.SetTexture("_WD_OceanDepth_Sampler_" + shapeSlot.ToString(), _rtOceanDepth);
+            }
+
+            // need to blend out shape if this is the largest lod, and the ocean might get scaled down later (so the largest lod will disappear)
+            bool needToBlendOutShape = _lodIndex == _lodCount - 1 && OceanRenderer.Instance.ScaleCouldDecrease && blendOut;
+            float shapeWeight = needToBlendOutShape ? OceanRenderer.Instance.ViewerAltitudeLevelAlpha : 1f;
+            mpb.SetVector("_WD_Params_" + shapeSlot.ToString(), new Vector3(_renderData._texelWidth, _renderData._textureRes, shapeWeight));
+
+            mpb.SetVector("_WD_Pos_" + shapeSlot.ToString(), new Vector2(_renderData._posSnapped.x, _renderData._posSnapped.z));
+            mpb.SetFloat("_WD_LodIdx_" + shapeSlot.ToString(), _lodIndex);
         }
 
         Camera _camera; Camera cam { get { return _camera != null ? _camera : (_camera = GetComponent<Camera>()); } }

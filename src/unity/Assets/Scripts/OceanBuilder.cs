@@ -199,7 +199,7 @@ namespace Crest
 
                 // scale only horizontally, otherwise culling bounding box will be scaled up in y
                 float horizScale = Mathf.Pow( 2f, (float)(i + startLevel) );
-                nextLod.transform.localScale = new Vector3( horizScale, 1f, horizScale );
+                nextLod.transform.localScale = new Vector3( horizScale, horizScale, horizScale );
             }
 
 #if PROFILE_CONSTRUCTION
@@ -373,7 +373,9 @@ namespace Crest
                 // recalculate bounds. add a little allowance for snapping. in the chunk renderer script, the bounds will be expanded further
                 // to allow for horizontal displacement
                 mesh.RecalculateBounds();
-                Bounds bounds = mesh.bounds;                bounds.extents = new Vector3(bounds.extents.x + dx, parms._maxWaveHeight, bounds.extents.z + dx);                mesh.bounds = bounds;
+                Bounds bounds = mesh.bounds;
+                bounds.extents = new Vector3(bounds.extents.x + dx, parms._maxWaveHeight, bounds.extents.z + dx);
+                mesh.bounds = bounds;
 
                 mesh.name = pt.ToString();
             }
@@ -393,7 +395,7 @@ namespace Crest
             // add a shape camera below it
             _shapeCameras[lodIndex].transform.parent = parent.transform;
             _shapeCameras[lodIndex].transform.localScale = Vector3.one;
-            _shapeCameras[lodIndex].transform.localPosition = Vector3.up * parms._maxWaveHeight;
+            _shapeCameras[lodIndex].transform.localPosition = Vector3.up * parms._maxWaveHeight / Mathf.Pow(2f, lodIndex);
             _shapeCameras[lodIndex].transform.localEulerAngles = Vector3.right * 90f;
 
             bool generateSkirt = parms._generateSkirt && biggestLOD;

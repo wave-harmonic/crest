@@ -110,7 +110,7 @@ namespace Crest
             _viewerAltitudeLevelAlpha = l2 - l2f;
 
             float newScale = Mathf.Pow(2f, l2f);
-            transform.localScale = new Vector3(newScale, 1f, newScale);
+            transform.localScale = new Vector3(newScale, newScale, newScale);
 
             float maxWavelength = MaxWavelength(Builder.CurrentLodCount - 1);
             Shader.SetGlobalFloat("_MaxWavelength", _acceptLargeWavelengthsInLastLOD ? maxWavelength : 1e10f);

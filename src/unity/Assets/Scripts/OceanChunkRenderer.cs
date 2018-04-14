@@ -66,11 +66,11 @@ namespace Crest
             // this relies on the render textures being init'd in CreateAssignRenderTexture::Awake().
             Camera[] shapeCams = OceanRenderer.Instance.Builder._shapeCameras;
             WaveDataCam wdc0 = shapeCams[_lodIndex].GetComponent<WaveDataCam>();
-            wdc0.ApplyMaterialParams2(0, _mpb, true, true);
+            wdc0.ApplyMaterialParams(0, new PropertyWrapperMPB(_mpb));
             WaveDataCam wdc1 = (_lodIndex + 1) < shapeCams.Length ? shapeCams[_lodIndex + 1].GetComponent<WaveDataCam>() : null;
             if( wdc1 )
             {
-                wdc1.ApplyMaterialParams2(1, _mpb, true, true);
+                wdc1.ApplyMaterialParams(1, new PropertyWrapperMPB(_mpb));
             }
 
             _rend.SetPropertyBlock(_mpb);

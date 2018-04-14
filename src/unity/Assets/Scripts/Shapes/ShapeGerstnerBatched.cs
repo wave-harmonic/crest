@@ -127,7 +127,7 @@ namespace Crest
             material.SetFloatArray("_Phases", _phasesBatch);
             material.SetFloat("_NumInBatch", numInBatch);
 
-            OceanRenderer.Instance.Builder._shapeCameras[lodIdx].GetComponent<WaveDataCam>().ApplyMaterialParams(0, material, false, false);
+            OceanRenderer.Instance.Builder._shapeCameras[lodIdx].GetComponent<WaveDataCam>().ApplyMaterialParams(0, new PropertyWrapperMaterial(material), false, false);
 
             return numInBatch;
         }

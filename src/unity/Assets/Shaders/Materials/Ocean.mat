@@ -81,5 +81,5 @@ Material:
     - _Update: 0.083
     m_Colors:
     - _Diffuse: {r: 0.04044801, g: 0.15239102, b: 0.316, a: 1}
-    - _FoamBubbleColor: {r: 0.037152, g: 0.21600002, b: 0.19883053, a: 0.8980392}
+    - _FoamBubbleColor: {r: 0.018747993, g: 0.109, b: 0.10033577, a: 1}
     - _FoamWhiteColor: {r: 1, g: 1, b: 1, a: 1}

@@ -246,6 +246,7 @@ Shader "Ocean/Ocean"
 					// texture bombing to avoid repetition artifacts
 					//half foamTexValue = textureNoTile_3weights(_FoamTexture, foamUV).r;
 					half foamTexValue = texture(_FoamTexture, foamUV).r;
+					half bubbleFoamTexValue = texture(_FoamTexture, .37 * foamUV).r;
 
 					// compute foam amount from determinant
 					// > 1: Stretch
@@ -255,7 +256,7 @@ Shader "Ocean/Ocean"
 					foamAmount = foamAmount + i_shorelineFoam;
 
 					// Additive underwater foam
-					half bubbleFoam = smoothstep( 0.0, 0.5, foamAmount * foamTexValue );
+					half bubbleFoam = smoothstep( 0.0, 0.5, foamAmount * bubbleFoamTexValue);
 					io_col.xyz += bubbleFoam * _FoamBubbleColor.rgb * _FoamBubbleColor.a;
 
 					// White foam on top, with black-point fading

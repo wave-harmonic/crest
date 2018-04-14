@@ -12,6 +12,7 @@ namespace Crest
         Bounds _boundsLocal;
         Mesh _mesh;
         Renderer _rend;
+        MaterialPropertyBlock _mpb;
 
         public bool _drawRenderBounds = false;
 
@@ -23,6 +24,8 @@ namespace Crest
         {
             _rend = GetComponent<Renderer>();
             _mesh = GetComponent<MeshFilter>().mesh;
+            _mpb = new MaterialPropertyBlock();
+
             _boundsLocal = _mesh.bounds;
 
             UpdateMeshBounds();
@@ -40,6 +43,8 @@ namespace Crest
         {
             // per instance data
 
+            _rend.GetPropertyBlock(_mpb);
+
             // blend LOD 0 shape in/out to avoid pop, if the ocean might scale up later (it is smaller than its maximum scale)
             bool needToBlendOutShape = _lodIndex == 0 && OceanRenderer.Instance.ScaleCouldIncrease;
             float meshScaleLerp = needToBlendOutShape ? OceanRenderer.Instance.ViewerAltitudeLevelAlpha : 0f;
@@ -47,7 +52,7 @@ namespace Crest
             // blend furthest normals scale in/out to avoid pop, if scale could reduce
             bool needToBlendOutNormals = _lodIndex == _totalLodCount - 1 && OceanRenderer.Instance.ScaleCouldDecrease;
             float farNormalsWeight = needToBlendOutNormals ? OceanRenderer.Instance.ViewerAltitudeLevelAlpha : 1f;
-            _rend.material.SetVector( "_InstanceData", new Vector4( meshScaleLerp, farNormalsWeight, _lodIndex ) );
+            _mpb.SetVector( "_InstanceData", new Vector4( meshScaleLerp, farNormalsWeight, _lodIndex ) );
 
             // geometry data
             float squareSize = transform.lossyScale.x / _baseVertDensity;
@@ -55,24 +60,22 @@ namespace Crest
             float pow = 1.4f; // fudge 2
             float normalScrollSpeed0 = Mathf.Pow( Mathf.Log( 1f + 2f * squareSize ) * mul, pow );
             float normalScrollSpeed1 = Mathf.Pow( Mathf.Log( 1f + 4f * squareSize ) * mul, pow );
-            _rend.material.SetVector( "_GeomData", new Vector4( squareSize, normalScrollSpeed0, normalScrollSpeed1, _baseVertDensity ) );
+            _mpb.SetVector( "_GeomData", new Vector4( squareSize, normalScrollSpeed0, normalScrollSpeed1, _baseVertDensity ) );
 
             // assign shape textures to shader
             // this relies on the render textures being init'd in CreateAssignRenderTexture::Awake().
             Camera[] shapeCams = OceanRenderer.Instance.Builder._shapeCameras;
             WaveDataCam wdc0 = shapeCams[_lodIndex].GetComponent<WaveDataCam>();
-            wdc0.ApplyMaterialParams( 0, _rend.material );
+            wdc0.ApplyMaterialParams2(0, _mpb, true, true);
             WaveDataCam wdc1 = (_lodIndex + 1) < shapeCams.Length ? shapeCams[_lodIndex + 1].GetComponent<WaveDataCam>() : null;
             if( wdc1 )
             {
-                wdc1.ApplyMaterialParams( 1, _rend.material );
-            }
-            else
-            {
-                _rend.material.SetTexture( "_WD_Sampler_1", null );
+                wdc1.ApplyMaterialParams2(1, _mpb, true, true);
             }
 
-            if( _drawRenderBounds )
+            _rend.SetPropertyBlock(_mpb);
+
+            if (_drawRenderBounds)
             {
                 DebugDrawRendererBounds();
             }

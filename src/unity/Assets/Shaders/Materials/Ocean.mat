@@ -72,8 +72,8 @@ Material:
     - _FresnelPower: 3
     - _MipBias: 0
     - _Moving: 0.17
-    - _NormalsScale: 250
-    - _NormalsStrength: 1
+    - _NormalsScale: 36
+    - _NormalsStrength: 0.3
     - _Offset: 0.00008
     - _RefractAmt: 0
     - _S: 1

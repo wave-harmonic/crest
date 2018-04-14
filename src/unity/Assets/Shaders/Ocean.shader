@@ -5,8 +5,8 @@ Shader "Ocean/Ocean"
 	Properties
 	{
 		[NoScaleOffset] _Normals ( "Normals", 2D ) = "bump" {}
-		_NormalsStrength("Normals Strength", Range(0.0, 3.0)) = 0.75
-		_NormalsScale("Normals Scale", Range(0.0, 1000.0)) = 250.0
+		_NormalsStrength("Normals Strength", Range(0.0, 2.0)) = 0.3
+		_NormalsScale("Normals Scale", Range(0.0, 50.0)) = 1.0
 		[NoScaleOffset] _Skybox ("Skybox", CUBE) = "" {}
 		_Diffuse("Diffuse", Color) = (0.2, 0.05, 0.05, 1.0)
 		_SubSurface("Sub-Surface Scattering", Color) = (0.0, 0.48, 0.36, 1.)
@@ -224,8 +224,8 @@ Shader "Ocean/Ocean"
 					float nstretch = _NormalsScale * geomSquareSize; // normals scaled with geometry
 					const float spdmulL = _GeomData.y;
 					half2 norm =
-						tex2D( _Normals, (v0*_MyTime*spdmulL + worldXZUndisplaced) / nstretch ).wz +
-						tex2D( _Normals, (v1*_MyTime*spdmulL + worldXZUndisplaced) / nstretch ).wz;
+						UnpackNormal(tex2D( _Normals, (v0*_MyTime*spdmulL + worldXZUndisplaced) / nstretch )).xy +
+						UnpackNormal(tex2D( _Normals, (v1*_MyTime*spdmulL + worldXZUndisplaced) / nstretch )).xy;
 
 					// blend in next higher scale of normals to obtain continuity
 					const float farNormalsWeight = _InstanceData.y;
@@ -236,16 +236,14 @@ Shader "Ocean/Ocean"
 						nstretch *= 2.;
 						const float spdmulH = _GeomData.z;
 						norm = lerp( norm,
-							tex2D( _Normals, (v0*_MyTime*spdmulH + worldXZUndisplaced) / nstretch ).wz +
-							tex2D( _Normals, (v1*_MyTime*spdmulH + worldXZUndisplaced) / nstretch ).wz,
+							UnpackNormal(tex2D( _Normals, (v0*_MyTime*spdmulH + worldXZUndisplaced) / nstretch )).xy +
+							UnpackNormal(tex2D( _Normals, (v1*_MyTime*spdmulH + worldXZUndisplaced) / nstretch )).xy,
 							nblend );
 					}
 
-					// modify geom normal with result from normal maps. -1 because we did not subtract 0.5 when sampling
-					// normal maps above
-					io_n.xz -= 0.25 * (norm - 1.0) * _NormalsStrength;
-					io_n.y = 1.;
-					io_n = normalize( io_n );
+					// approximate combine of normals. would be better if normals applied in local frame.
+					io_n.xz += _NormalsStrength * norm;
+					io_n = normalize(io_n);
 				}
 
 				void ApplyFoam( half i_determinant, float2 i_worldXZUndisplaced, half3 i_n, half i_shorelineFoam, inout half3 io_col, inout float io_whiteFoam )

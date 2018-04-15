@@ -12,6 +12,8 @@ namespace Crest
     {
         [HideInInspector]
         public float _resolution = 0.5f;
+        [HideInInspector]
+        public int _shapeRenderLayer;
 
         Camera _cam;
         PingPongRts _pprts;
@@ -35,7 +37,7 @@ namespace Crest
         {
             // utility quad which will be rasterized by the shape camera
             _renderSim = CreateRasterQuad("RenderSim");
-            _renderSim.layer = LayerMask.NameToLayer(ShapeDynamicSims.DYNAMIC_SIM_LAYER_NAME);
+            _renderSim.layer = _shapeRenderLayer;
             _renderSim.transform.parent = transform;
             _renderSim.transform.localScale = Vector3.one;
             _renderSim.transform.localPosition = Vector3.forward * 25f;

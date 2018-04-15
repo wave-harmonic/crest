@@ -6,7 +6,7 @@ Material:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
-  m_Name: ShapeObjectWaterInteraction
+  m_Name: ShapeObjectWaterInteraction0
   m_Shader: {fileID: 4800000, guid: 3553638dda3dbfc4faa6374b95d3690b, type: 3}
   m_ShaderKeywords: 
   m_LightmapFlags: 4
@@ -60,8 +60,8 @@ Material:
     - _DetailNormalMapScale: 1
     - _DstBlend: 0
     - _Factor: 0
-    - _FactorOrthogonal: 4
-    - _FactorParallel: 6
+    - _FactorOrthogonal: 3.8
+    - _FactorParallel: 5
     - _GlossMapScale: 1
     - _Glossiness: 0.5
     - _GlossyReflections: 1
@@ -73,7 +73,7 @@ Material:
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 1
-    - _Strength: 200
+    - _Strength: 140
     - _UVSec: 0
     - _ZWrite: 1
     m_Colors:

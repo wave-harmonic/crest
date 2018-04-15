@@ -10,7 +10,15 @@ namespace Crest
     /// </summary>
     public class ShapeDynamicSims : MonoBehaviour
     {
-        public const string DYNAMIC_SIM_LAYER_NAME = "DynamicSimData";
+        [System.Serializable]
+        public class SimLayer
+        {
+            public SimResolution _resolution;
+
+            [Tooltip("Create a layer for dynamics to render into and put the name here.")]
+            public string _shapeRenderLayer = "<layer name here>";
+            // could populate a dropdown list for this: https://answers.unity.com/questions/609385/type-for-layer-selection.html, https://answers.unity.com/questions/458987/dropdownlist-with-string-array-in-editor-inspector.html
+        }
 
         public enum SimResolution
         {
@@ -25,15 +33,13 @@ namespace Crest
             Res32m,
         }
 
-        public SimResolution _resolution;
+        public SimLayer[] _simulationLayers;
 
         void Start()
         {
-            //foreach (var res in _resolution)
+            foreach (var layer in _simulationLayers)
             {
-                var res = _resolution;
-
-                var simGO = new GameObject("DynamicSim_" + res.ToString());
+                var simGO = new GameObject("DynamicSim_" + layer._resolution.ToString());
                 simGO.transform.parent = transform;
                 simGO.transform.localPosition = Vector3.zero;
                 simGO.transform.localEulerAngles = 90f * Vector3.right;
@@ -51,12 +57,15 @@ namespace Crest
                 cart._useMipMap = false;
                 cart._createPingPongTargets = true;
 
+                int layerIndex = LayerMask.NameToLayer(layer._shapeRenderLayer);
+
                 var sim = simGO.AddComponent<ShapeDynamicSim>();
-                sim._resolution = GetRes(res);
+                sim._resolution = GetRes(layer._resolution);
+                sim._shapeRenderLayer = layerIndex;
 
                 var cam = simGO.AddComponent<Camera>();
                 cam.clearFlags = CameraClearFlags.Nothing;
-                cam.cullingMask = 1 << LayerMask.NameToLayer(DYNAMIC_SIM_LAYER_NAME);
+                cam.cullingMask = 1 << layerIndex;
                 cam.orthographic = true;
                 cam.nearClipPlane = 0.3f;
                 cam.farClipPlane = 1000f;

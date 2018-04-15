@@ -51,4 +51,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f51a63f9465727540af808805e5ba20f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _resolution: 2
+  _simulationLayers:
+  - _resolution: 1
+    _shapeRenderLayer: DynamicSimData0
+  - _resolution: 2
+    _shapeRenderLayer: DynamicSimData1

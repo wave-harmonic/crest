@@ -30,8 +30,7 @@ namespace Crest
             {
 	            if (!_createPingPongTargets)
 	            {
-	                RenderTexture rt = CreateRT();
-	                GetComponent<Camera>().targetTexture = rt;
+	                GetComponent<Camera>().targetTexture = CreateRT();
 	            }
 	            else
 	            {
@@ -40,13 +39,18 @@ namespace Crest
 	        }
         }
 
-        public void CreateRT()
+        public RenderTexture CreateRT()
+        {
+            return CreateRT(_targetName);
+        }
+
+        public RenderTexture CreateRT(string targetName)
         {
             var tex = new RenderTexture( _width, _height, _depthBits, _format );
 
-            if( !string.IsNullOrEmpty(_targetName) )
+            if( !string.IsNullOrEmpty(targetName) )
             {
-                tex.name = _targetName;
+                tex.name = targetName;
             }
 
             tex.wrapMode = _wrapMode;
@@ -55,9 +59,9 @@ namespace Crest
             tex.anisoLevel = _anisoLevel;
             tex.useMipMap = _useMipMap;
 
-            GetComponent<Camera>().targetTexture = tex;
-
             _created = true;
+
+            return tex;
         }
 
         void CreatePingPongRts()

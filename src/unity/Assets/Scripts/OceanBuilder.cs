@@ -242,7 +242,7 @@ namespace Crest
             cart._anisoLevel = 0;
             cart._useMipMap = false;
             // do this now, because WaveDataCam needs this
-            cart.CreateRT();
+            cam.targetTexture = cart.CreateRT();
 
             return cam;
         }
@@ -373,7 +373,9 @@ namespace Crest
                 // recalculate bounds. add a little allowance for snapping. in the chunk renderer script, the bounds will be expanded further
                 // to allow for horizontal displacement
                 mesh.RecalculateBounds();
-                Bounds bounds = mesh.bounds;                bounds.extents = new Vector3(bounds.extents.x + dx, parms._maxWaveHeight, bounds.extents.z + dx);                mesh.bounds = bounds;
+                Bounds bounds = mesh.bounds;
+                bounds.extents = new Vector3(bounds.extents.x + dx, parms._maxWaveHeight, bounds.extents.z + dx);
+                mesh.bounds = bounds;
 
                 mesh.name = pt.ToString();
             }

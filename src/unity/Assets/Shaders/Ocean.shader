@@ -4,14 +4,18 @@ Shader "Ocean/Ocean"
 {
 	Properties
 	{
-		_Normals ( "Normals", 2D ) = "bump" {}
-		_NormalsStrength("Normals Strength", Range(0.0, 3.0)) = 0.75
-		_NormalsScale("Normals Scale", Range(0.0, 1000.0)) = 250.0
-		_Skybox ("Skybox", CUBE) = "" {}
-		_Diffuse ("Diffuse", Color) = (0.2, 0.05, 0.05, 1.0)
-		_FoamTexture ( "Foam Texture", 2D ) = "white" {}
+		[NoScaleOffset] _Normals ( "Normals", 2D ) = "bump" {}
+		_NormalsStrength("Normals Strength", Range(0.0, 2.0)) = 0.3
+		_NormalsScale("Normals Scale", Range(0.0, 50.0)) = 1.0
+		[NoScaleOffset] _Skybox ("Skybox", CUBE) = "" {}
+		_Diffuse("Diffuse", Color) = (0.2, 0.05, 0.05, 1.0)
+		_SubSurface("Sub-Surface Scattering", Color) = (0.0, 0.48, 0.36, 1.)
+		[NoScaleOffset] _FoamTexture ( "Foam Texture", 2D ) = "white" {}
+		_FoamScale("Foam Scale", Range(0.0, 50.0)) = 10.0
 		_FoamWhiteColor("White Foam Color", Color) = (1.0, 1.0, 1.0, 1.0)
 		_FoamBubbleColor ( "Bubble Foam Color", Color ) = (0.0, 0.0904, 0.105, 1.0)
+		_DepthFogDensity("Depth Fog Density", Color) = (0.28, 0.16, 0.24, 1.0)
+		_FresnelPower("Fresnel Power", Range(0.0,20.0)) = 3.0
 	}
 
 	Category
@@ -20,6 +24,7 @@ Shader "Ocean/Ocean"
 
 		SubShader
 		{
+			// this sorts back to front due to transparent i guess, perhaps set queue to Geometry+1?
 			Tags { "LightMode"="Always" "Queue"="Transparent" "IgnoreProjector"="True" "RenderType"="Opaque" }
 
 			GrabPass
@@ -38,6 +43,7 @@ Shader "Ocean/Ocean"
 
 				// tints the output color based on which shape texture(s) were sampled, blended according to weight
 				//#define DEBUG_SHAPE_SAMPLE
+				#define DEPTH_BIAS 100.
 
 				struct appdata_t
 				{
@@ -49,9 +55,9 @@ Shader "Ocean/Ocean"
 				{
 					float4 vertex : SV_POSITION;
 					half3 n : TEXCOORD1;
+					half shorelineFoam : TEXCOORD4;
 					half4 invDeterminant_lodAlpha_worldXZUndisplaced : TEXCOORD5;
 					float3 worldPos : TEXCOORD7;
-					
 					#if defined( DEBUG_SHAPE_SAMPLE )
 					half3 debugtint : TEXCOORD8;
 					#endif
@@ -80,7 +86,7 @@ Shader "Ocean/Ocean"
 				// sample wave or terrain height, with smooth blend towards edges.
 				// would equally apply to heights instead of displacements.
 				// this could be optimized further.
-				void SampleDisplacements( in sampler2D i_dispSampler, in sampler2D i_oceanDepthSampler, in float2 i_centerPos, in float i_res, in float i_texelSize, in float i_geomSquareSize, in float2 i_samplePos, in float wt, inout float3 io_worldPos, inout float3 io_n, inout float io_determinant )
+				void SampleDisplacements( in sampler2D i_dispSampler, in sampler2D i_oceanDepthSampler, in float2 i_centerPos, in float i_res, in float i_texelSize, in float i_geomSquareSize, in float2 i_samplePos, in float wt, inout float3 io_worldPos, inout float3 io_n, inout float io_determinant, inout half io_shorelineFoam )
 				{
 					if( wt < 0.001 )
 						return;
@@ -110,9 +116,10 @@ Shader "Ocean/Ocean"
 					det = 1. - det;
 					io_determinant += wt * det;
 
-					//// // foam from shallow water - signed depth is depth compared to sea level, plus wave height
-					//float signedDepth = tex2Dlod(i_oceanDepthSampler, uv).x + disp.y;
-					//io_foamAmount += wt * clamp( 1. - signedDepth / 1.5, 0., 1.);
+					// foam from shallow water - signed depth is depth compared to sea level, plus wave height. depth bias is an optimisation
+					// which allows the depth data to be initialised once to 0 without generating foam everywhere.
+					half signedDepth = (tex2Dlod(i_oceanDepthSampler, uv).x + DEPTH_BIAS) + disp.y ;
+					io_shorelineFoam += wt * clamp( 1. - signedDepth / 1.5, 0., 1.);
 				}
 
 				v2f vert( appdata_t v )
@@ -166,13 +173,14 @@ Shader "Ocean/Ocean"
 					// sample shape textures - always lerp between 2 scales, so sample two textures
 					o.n = half3(0., 1., 0.);
 					o.invDeterminant_lodAlpha_worldXZUndisplaced.x = 0.;
+					o.shorelineFoam = 0.;
 					// sample weights. params.z allows shape to be faded out (used on last lod to support pop-less scale transitions)
 					float wt_0 = (1. - lodAlpha) * _WD_Params_0.z;
 					float wt_1 = (1. - wt_0) * _WD_Params_1.z;
 					// sample displacement textures, add results to current world pos / normal / foam
 					const float2 wxz = o.worldPos.xz;
-					SampleDisplacements( _WD_Sampler_0, _WD_OceanDepth_Sampler_0, _WD_Pos_0, _WD_Params_0.y, _WD_Params_0.x, idealSquareSize, wxz, wt_0, o.worldPos, o.n, o.invDeterminant_lodAlpha_worldXZUndisplaced.x );
-					SampleDisplacements( _WD_Sampler_1, _WD_OceanDepth_Sampler_1, _WD_Pos_1, _WD_Params_1.y, _WD_Params_1.x, idealSquareSize, wxz, wt_1, o.worldPos, o.n, o.invDeterminant_lodAlpha_worldXZUndisplaced.x );
+					SampleDisplacements( _WD_Sampler_0, _WD_OceanDepth_Sampler_0, _WD_Pos_0, _WD_Params_0.y, _WD_Params_0.x, idealSquareSize, wxz, wt_0, o.worldPos, o.n, o.invDeterminant_lodAlpha_worldXZUndisplaced.x, o.shorelineFoam);
+					SampleDisplacements( _WD_Sampler_1, _WD_OceanDepth_Sampler_1, _WD_Pos_1, _WD_Params_1.y, _WD_Params_1.x, idealSquareSize, wxz, wt_1, o.worldPos, o.n, o.invDeterminant_lodAlpha_worldXZUndisplaced.x, o.shorelineFoam);
 
 					// debug tinting to see which shape textures are used
 					#if defined( DEBUG_SHAPE_SAMPLE )
@@ -192,6 +200,8 @@ Shader "Ocean/Ocean"
 
 				// frag shader uniforms
 				uniform half4 _Diffuse;
+				uniform half4 _SubSurface;
+				uniform half4 _DepthFogDensity;
 				uniform samplerCUBE _Skybox;
 				uniform sampler2D _FoamTexture;
 				uniform half4 _FoamWhiteColor;
@@ -199,7 +209,11 @@ Shader "Ocean/Ocean"
 				uniform sampler2D _Normals;
 				uniform half _NormalsStrength;
 				uniform half _NormalsScale;
+				uniform half _FoamScale;
+				uniform half _FresnelPower;
 				uniform float _MyTime;
+
+				// these are copied from the render target by unity
 				sampler2D _BackgroundTexture;
 				sampler2D _CameraDepthTexture;
 
@@ -210,8 +224,8 @@ Shader "Ocean/Ocean"
 					float nstretch = _NormalsScale * geomSquareSize; // normals scaled with geometry
 					const float spdmulL = _GeomData.y;
 					half2 norm =
-						tex2D( _Normals, (v0*_MyTime*spdmulL + worldXZUndisplaced) / nstretch ).wz +
-						tex2D( _Normals, (v1*_MyTime*spdmulL + worldXZUndisplaced) / nstretch ).wz;
+						UnpackNormal(tex2D( _Normals, (v0*_MyTime*spdmulL + worldXZUndisplaced) / nstretch )).xy +
+						UnpackNormal(tex2D( _Normals, (v1*_MyTime*spdmulL + worldXZUndisplaced) / nstretch )).xy;
 
 					// blend in next higher scale of normals to obtain continuity
 					const float farNormalsWeight = _InstanceData.y;
@@ -222,39 +236,39 @@ Shader "Ocean/Ocean"
 						nstretch *= 2.;
 						const float spdmulH = _GeomData.z;
 						norm = lerp( norm,
-							tex2D( _Normals, (v0*_MyTime*spdmulH + worldXZUndisplaced) / nstretch ).wz +
-							tex2D( _Normals, (v1*_MyTime*spdmulH + worldXZUndisplaced) / nstretch ).wz,
+							UnpackNormal(tex2D( _Normals, (v0*_MyTime*spdmulH + worldXZUndisplaced) / nstretch )).xy +
+							UnpackNormal(tex2D( _Normals, (v1*_MyTime*spdmulH + worldXZUndisplaced) / nstretch )).xy,
 							nblend );
 					}
 
-					// modify geom normal with result from normal maps. -1 because we did not subtract 0.5 when sampling
-					// normal maps above
-					io_n.xz -= 0.25 * (norm - 1.0) * _NormalsStrength;
-					io_n.y = 1.;
-					io_n = normalize( io_n );
+					// approximate combine of normals. would be better if normals applied in local frame.
+					io_n.xz += _NormalsStrength * norm;
+					io_n = normalize(io_n);
 				}
 
-				void ApplyFoam( half determinant, float2 worldXZUndisplaced, half3 n, inout half3 io_col, inout float io_whiteFoam )
+				void ApplyFoam( half i_determinant, float2 i_worldXZUndisplaced, half3 i_n, half i_shorelineFoam, inout half3 io_col, inout float io_whiteFoam )
 				{
 					// Give the foam some texture
-					float2 foamUV = worldXZUndisplaced / 10.;
-					foamUV += 0.02 * n.xz;
-					// texture bombing to avoid repetition artifacts
-					//half foamTexValue = textureNoTile_3weights(_FoamTexture, foamUV).r;
+					float2 foamUV = i_worldXZUndisplaced / _FoamScale;
+					foamUV += 0.02 * i_n.xz;
+
+					//half foamTexValue = textureNoTile_3weights(_FoamTexture, foamUV).r; // texture bombing to avoid repetition artifacts
 					half foamTexValue = texture(_FoamTexture, foamUV).r;
+					half bubbleFoamTexValue = texture(_FoamTexture, .37 * foamUV).r;
 
 					// compute foam amount from determinant
 					// > 1: Stretch
 					// < 1: Squash
 					// < 0: Overlap
-					float foamAmount = smoothstep(1.6, 0., determinant);
+					float foamAmount = smoothstep(1.6, 0., i_determinant);
+					foamAmount = foamAmount + i_shorelineFoam;
 
 					// Additive underwater foam
-					half bubbleFoam = smoothstep( 0.0, 0.5, foamAmount * foamTexValue );
+					half bubbleFoam = smoothstep( 0.0, 0.5, foamAmount * bubbleFoamTexValue);
 					io_col.xyz += bubbleFoam * _FoamBubbleColor.rgb * _FoamBubbleColor.a;
 
 					// White foam on top, with black-point fading
-					io_whiteFoam = foamTexValue * smoothstep( 1.0 - foamAmount, 1.3 - foamAmount, foamTexValue ) * _FoamWhiteColor.a;
+					io_whiteFoam = foamTexValue * (smoothstep(1.0 - foamAmount, 1.3 - foamAmount, foamTexValue)) * _FoamWhiteColor.a;
 				}
 
 				void OceanColour(half3 view, half3 n, half2 uvScreen, float z01, inout half3 oceanCol)
@@ -272,7 +286,7 @@ Shader "Ocean/Ocean"
 						float sceneZRefract = LinearEyeDepth(texture(_CameraDepthTexture, half2(uvRefract.x, 1. - uvRefract.y)).x);
 						float maxZ = max(sceneZ, sceneZRefract);
 						float deltaZ = (maxZ - pixelZ);
-						alpha = 1. - exp(.5*half3(-.56, -.32, -.48) * deltaZ);
+						alpha = 1. - exp(-_DepthFogDensity.xyz * deltaZ);
 					}
 
 					half3 sceneColour = texture(_BackgroundTexture, uvRefract).rgb;
@@ -290,11 +304,11 @@ Shader "Ocean/Ocean"
 					// Emitted light - ocean colour
 					half3 col = _Diffuse;
 					// Approximate subsurface scattering - add light when surface faces viewer
-					col += dot(n, view) * .4*half3(0.0, 1.2, 0.9);
+					col += dot(n, view) * _SubSurface;
 
 					// Foam - underwater bubbles and whitefoam
 					float whiteFoam;
-					ApplyFoam( 1. - i.invDeterminant_lodAlpha_worldXZUndisplaced.x, i.invDeterminant_lodAlpha_worldXZUndisplaced.zw, n, col.xyz, whiteFoam );
+					ApplyFoam( 1. - i.invDeterminant_lodAlpha_worldXZUndisplaced.x, i.invDeterminant_lodAlpha_worldXZUndisplaced.zw, n, i.shorelineFoam, col.xyz, whiteFoam );
 
 					// Compute color of ocean - in-scattered light + refracted scene
 					half2 uvScreen = i.vertex.xy / _ScreenParams.xy;
@@ -302,7 +316,7 @@ Shader "Ocean/Ocean"
 
 					// Fresnel / reflection
 					half3 skyColor = texCUBE(_Skybox, reflect(-view, n));
-					float fresnel = lerp(0., 1.0, pow(1.0 - dot(n, view), 3.0));
+					float fresnel = lerp(0., 1.0, pow(1.0 - dot(n, view), _FresnelPower));
 					col = lerp(col, skyColor, fresnel);
 
 					// Override final result with white foam - bubbles on surface
@@ -316,6 +330,7 @@ Shader "Ocean/Ocean"
 					#endif
 
 					return col;
+					return (half4)i.shorelineFoam;
 				}
 
 				ENDCG

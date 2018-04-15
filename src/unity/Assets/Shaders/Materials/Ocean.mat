@@ -20,7 +20,7 @@ Material:
     m_TexEnvs:
     - _FoamTexture:
         m_Texture: {fileID: 2800000, guid: e330b3b94b6bdfb42ab2a9e1ca3a5efc, type: 3}
-        m_Scale: {x: 1, y: 1}
+        m_Scale: {x: 0.1, y: 0.1}
         m_Offset: {x: 0, y: 0}
     - _MainTex:
         m_Texture: {fileID: 8400000, guid: 33331381cbc5c564583cd5e47314cf78, type: 2}
@@ -68,10 +68,12 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Floats:
     - _BumpAmt: 0.514
+    - _FoamScale: 10
+    - _FresnelPower: 3
     - _MipBias: 0
     - _Moving: 0.17
-    - _NormalsScale: 250
-    - _NormalsStrength: 1
+    - _NormalsScale: 36
+    - _NormalsStrength: 0.3
     - _Offset: 0.00008
     - _RefractAmt: 0
     - _S: 1
@@ -80,6 +82,8 @@ Material:
     - _TextureRes: 1024
     - _Update: 0.083
     m_Colors:
+    - _DepthFogDensity: {r: 0.28, g: 0.16, b: 0.24, a: 1}
     - _Diffuse: {r: 0.04044801, g: 0.15239102, b: 0.316, a: 1}
-    - _FoamBubbleColor: {r: 0.037152, g: 0.21600002, b: 0.19883053, a: 0.8980392}
+    - _FoamBubbleColor: {r: 0.018747993, g: 0.109, b: 0.10033577, a: 1}
     - _FoamWhiteColor: {r: 1, g: 1, b: 1, a: 1}
+    - _SubSurface: {r: 0, g: 0.48, b: 0.36, a: 1}

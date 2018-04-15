@@ -38,8 +38,7 @@ namespace Crest
         [SerializeField]
         [Delayed, Tooltip( "Side dimension in quads of an ocean tile." )]
         public float _baseVertDensity = 32f;
-        [SerializeField]
-        [Delayed, Tooltip( "Maximum wave amplitude, used to compute bounding box for ocean tiles." )]
+        [SerializeField, Tooltip( "Maximum wave amplitude, used to compute bounding box for ocean tiles." )]
         public float _maxWaveHeight = 30f;
         [SerializeField, Delayed, Tooltip( "Number of ocean tile scales/LODs to generate." ), ]
         int _lodCount = 6;

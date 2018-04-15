@@ -1,7 +1,5 @@
 ﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
-#define USING_DISPLACEMENT_TEXTURES
-
 using UnityEngine;
 
 namespace Crest
@@ -11,10 +9,10 @@ namespace Crest
     /// </summary>
     public class OceanChunkRenderer : MonoBehaviour
     {
-#if USING_DISPLACEMENT_TEXTURES
         Bounds _boundsLocal;
         Mesh _mesh;
-#endif
+        Renderer _rend;
+        MaterialPropertyBlock _mpb;
 
         public bool _drawRenderBounds = false;
 
@@ -22,22 +20,30 @@ namespace Crest
         int _totalLodCount = -1;
         float _baseVertDensity = 32f;
 
-        Renderer _rend;
-
         void Start()
         {
             _rend = GetComponent<Renderer>();
-
-#if USING_DISPLACEMENT_TEXTURES
             _mesh = GetComponent<MeshFilter>().mesh;
+            _mpb = new MaterialPropertyBlock();
+
             _boundsLocal = _mesh.bounds;
-#endif
+
+            UpdateMeshBounds();
+        }
+
+        private void Update()
+        {
+            // this needs to be called on Update because the bounds depend on transform scale which can change. also OnWillRenderObject depends on
+            // the bounds being correct
+            UpdateMeshBounds();
         }
 
         // Called when visible to a camera
         void OnWillRenderObject()
         {
             // per instance data
+
+            _rend.GetPropertyBlock(_mpb);
 
             // blend LOD 0 shape in/out to avoid pop, if the ocean might scale up later (it is smaller than its maximum scale)
             bool needToBlendOutShape = _lodIndex == 0 && OceanRenderer.Instance.ScaleCouldIncrease;
@@ -46,7 +52,7 @@ namespace Crest
             // blend furthest normals scale in/out to avoid pop, if scale could reduce
             bool needToBlendOutNormals = _lodIndex == _totalLodCount - 1 && OceanRenderer.Instance.ScaleCouldDecrease;
             float farNormalsWeight = needToBlendOutNormals ? OceanRenderer.Instance.ViewerAltitudeLevelAlpha : 1f;
-            _rend.material.SetVector( "_InstanceData", new Vector4( meshScaleLerp, farNormalsWeight, _lodIndex ) );
+            _mpb.SetVector( "_InstanceData", new Vector4( meshScaleLerp, farNormalsWeight, _lodIndex ) );
 
             // geometry data
             float squareSize = transform.lossyScale.x / _baseVertDensity;
@@ -54,35 +60,37 @@ namespace Crest
             float pow = 1.4f; // fudge 2
             float normalScrollSpeed0 = 2f * Mathf.Pow( Mathf.Log( 1f + 2f * squareSize ) * mul, pow );
             float normalScrollSpeed1 = 2f * Mathf.Pow( Mathf.Log( 1f + 4f * squareSize ) * mul, pow );
-            _rend.material.SetVector( "_GeomData", new Vector4( squareSize, normalScrollSpeed0, normalScrollSpeed1, _baseVertDensity ) );
+            _mpb.SetVector( "_GeomData", new Vector4( squareSize, normalScrollSpeed0, normalScrollSpeed1, _baseVertDensity ) );
 
             // assign shape textures to shader
             // this relies on the render textures being init'd in CreateAssignRenderTexture::Awake().
             Camera[] shapeCams = OceanRenderer.Instance.Builder._shapeCameras;
             WaveDataCam wdc0 = shapeCams[_lodIndex].GetComponent<WaveDataCam>();
-            wdc0.ApplyMaterialParams( 0, _rend.material );
+            wdc0.ApplyMaterialParams(0, new PropertyWrapperMPB(_mpb));
             WaveDataCam wdc1 = (_lodIndex + 1) < shapeCams.Length ? shapeCams[_lodIndex + 1].GetComponent<WaveDataCam>() : null;
             if( wdc1 )
             {
-                wdc1.ApplyMaterialParams( 1, _rend.material );
-            }
-            else
-            {
-                _rend.material.SetTexture( "_WD_Sampler_1", null );
+                wdc1.ApplyMaterialParams(1, new PropertyWrapperMPB(_mpb));
             }
 
-            // killing this as we use heightmaps now, not displacement textures, and im not sure if/when this will change
-#if USING_DISPLACEMENT_TEXTURES
-            // expand mesh bounds - bounds need to completely encapsulate verts after any dynamic displacement
+            _rend.SetPropertyBlock(_mpb);
+
+            if (_drawRenderBounds)
+            {
+                DebugDrawRendererBounds();
+            }
+        }
+
+        // this is called every frame because the bounds are given in world space and depend on the transform scale, which
+        // can change depending on view altitude
+        void UpdateMeshBounds()
+        {
             Bounds bounds = _boundsLocal;
             float boundsPadding = OceanRenderer.Instance._chop * OceanRenderer.Instance._maxWaveHeight;
-            float expand = boundsPadding / transform.lossyScale.x;
-            bounds.extents += new Vector3( expand, 0f, expand );
+            float expandXZ = boundsPadding / transform.lossyScale.x;
+            float boundsY = OceanRenderer.Instance._maxWaveHeight / transform.lossyScale.y;
+            bounds.extents = new Vector3(bounds.extents.x + expandXZ, boundsY, bounds.extents.z + expandXZ);
             _mesh.bounds = bounds;
-#endif
-
-            if( _drawRenderBounds )
-                DebugDrawRendererBounds();
         }
 
         public void SetInstanceData( int lodIndex, int totalLodCount, float baseVertDensity )

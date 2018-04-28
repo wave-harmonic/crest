@@ -85,6 +85,7 @@ The ocean pixel shader samples normal maps at 2 different scales, both proportio
 * Ocean surface tiles are updated and drawn as separate draw calls. This is convenient for research and supports frustum culling easily, but it might make sense to instance these in a production scenario.
 * The refraction component of the ocean material looks odd in the Scene View. This is ugly but not high on the list of priorities currently.
 * Persistent foam - generate from waves/dynamic sim, fade gradually over time
+* Change scatter glow based on light direction (directional scattering of light through water)
 
 
 ## Links

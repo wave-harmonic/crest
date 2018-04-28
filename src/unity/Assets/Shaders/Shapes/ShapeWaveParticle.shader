@@ -79,8 +79,7 @@ Shader "Ocean/Shape/Wave Particle"
 
 					float y = r2 * r2 * _Amplitude * i.worldOffsetScaled_wt.z;
 
-					// treat as an acceleration - dt^2
-					return float4(_MyDeltaTime * _MyDeltaTime * y, 0., 0., 0.);
+					return float4(0., y, 0., 0.);
 				}
 
 				ENDCG

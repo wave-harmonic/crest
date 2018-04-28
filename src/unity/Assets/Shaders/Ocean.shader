@@ -212,6 +212,7 @@ Shader "Ocean/Ocean"
 				uniform half _FoamScale;
 				uniform half _FresnelPower;
 				uniform float _MyTime;
+				uniform fixed4 _LightColor0;
 
 				// these are copied from the render target by unity
 				sampler2D _BackgroundTexture;
@@ -305,6 +306,8 @@ Shader "Ocean/Ocean"
 					half3 col = _Diffuse;
 					// Approximate subsurface scattering - add light when surface faces viewer
 					col += dot(n, view) * _SubSurface;
+					// Multiply by main light colour - not sure how well this will work yet
+					col *= _LightColor0;
 
 					// Foam - underwater bubbles and whitefoam
 					float whiteFoam;

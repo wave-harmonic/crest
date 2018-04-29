@@ -301,11 +301,12 @@ Shader "Ocean/Ocean"
 					// Normal - geom + normal mapping
 					half3 n = i.n;
 					ApplyNormalMaps(i.invDeterminant_lodAlpha_worldXZUndisplaced.zw, i.invDeterminant_lodAlpha_worldXZUndisplaced.y, n);
+					half ndv = dot(n, view);
 
 					// Emitted light - ocean colour
 					half3 col = _Diffuse;
 					// Approximate subsurface scattering - add light when surface faces viewer
-					col += dot(n, view) * _SubSurface;
+					col += ndv * _SubSurface;
 					// Multiply by main light colour - not sure how well this will work yet
 					col *= _LightColor0;
 
@@ -319,8 +320,14 @@ Shader "Ocean/Ocean"
 
 					// Fresnel / reflection
 					half3 skyColor = texCUBE(_Skybox, reflect(-view, n));
-					float fresnel = lerp(0., 1.0, pow(1.0 - dot(n, view), _FresnelPower));
-					col = lerp(col, skyColor, fresnel);
+					const float IOR_AIR = 1.0;
+					const float IOR_WATER = 1.33;
+					// reflectance at facing angle
+					float R_0 = (IOR_AIR - IOR_WATER) / (IOR_AIR + IOR_WATER);
+					R_0 *= R_0;
+					// schlick's approximation
+					float R_theta = R_0 + (1.0 - R_0) * pow(1.0 - ndv, _FresnelPower);
+					col = lerp(col, 1.*skyColor, R_theta);
 
 					// Override final result with white foam - bubbles on surface
 					col = lerp(col.xyz, _FoamWhiteColor, whiteFoam);

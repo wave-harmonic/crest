@@ -69,7 +69,7 @@ Material:
     m_Floats:
     - _BumpAmt: 0.514
     - _FoamScale: 10
-    - _FresnelPower: 3
+    - _FresnelPower: 5
     - _MipBias: 0
     - _Moving: 0.17
     - _NormalsScale: 36

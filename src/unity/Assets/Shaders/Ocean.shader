@@ -55,12 +55,13 @@ Shader "Ocean/Ocean"
 				{
 					float4 vertex : SV_POSITION;
 					half3 n : TEXCOORD1;
-					half shorelineFoam : TEXCOORD4;
+					half4 shorelineFoam_screenPos : TEXCOORD4;
 					half4 invDeterminant_lodAlpha_worldXZUndisplaced : TEXCOORD5;
 					float3 worldPos : TEXCOORD7;
 					#if defined( DEBUG_SHAPE_SAMPLE )
 					half3 debugtint : TEXCOORD8;
 					#endif
+					half4 grabPos : TEXCOORD9;
 
 					UNITY_FOG_COORDS( 3 )
 				};
@@ -173,14 +174,14 @@ Shader "Ocean/Ocean"
 					// sample shape textures - always lerp between 2 scales, so sample two textures
 					o.n = half3(0., 1., 0.);
 					o.invDeterminant_lodAlpha_worldXZUndisplaced.x = 0.;
-					o.shorelineFoam = 0.;
+					o.shorelineFoam_screenPos.x = 0.;
 					// sample weights. params.z allows shape to be faded out (used on last lod to support pop-less scale transitions)
 					float wt_0 = (1. - lodAlpha) * _WD_Params_0.z;
 					float wt_1 = (1. - wt_0) * _WD_Params_1.z;
 					// sample displacement textures, add results to current world pos / normal / foam
 					const float2 wxz = o.worldPos.xz;
-					SampleDisplacements( _WD_Sampler_0, _WD_OceanDepth_Sampler_0, _WD_Pos_0, _WD_Params_0.y, _WD_Params_0.x, idealSquareSize, wxz, wt_0, o.worldPos, o.n, o.invDeterminant_lodAlpha_worldXZUndisplaced.x, o.shorelineFoam);
-					SampleDisplacements( _WD_Sampler_1, _WD_OceanDepth_Sampler_1, _WD_Pos_1, _WD_Params_1.y, _WD_Params_1.x, idealSquareSize, wxz, wt_1, o.worldPos, o.n, o.invDeterminant_lodAlpha_worldXZUndisplaced.x, o.shorelineFoam);
+					SampleDisplacements( _WD_Sampler_0, _WD_OceanDepth_Sampler_0, _WD_Pos_0, _WD_Params_0.y, _WD_Params_0.x, idealSquareSize, wxz, wt_0, o.worldPos, o.n, o.invDeterminant_lodAlpha_worldXZUndisplaced.x, o.shorelineFoam_screenPos.x);
+					SampleDisplacements( _WD_Sampler_1, _WD_OceanDepth_Sampler_1, _WD_Pos_1, _WD_Params_1.y, _WD_Params_1.x, idealSquareSize, wxz, wt_1, o.worldPos, o.n, o.invDeterminant_lodAlpha_worldXZUndisplaced.x, o.shorelineFoam_screenPos.x);
 
 					// debug tinting to see which shape textures are used
 					#if defined( DEBUG_SHAPE_SAMPLE )
@@ -194,6 +195,12 @@ Shader "Ocean/Ocean"
 					o.vertex = mul(UNITY_MATRIX_VP, float4(o.worldPos, 1.));
 
 					UNITY_TRANSFER_FOG(o, o.vertex);
+
+					// unfortunate hoop jumping - this is inputs for refraction. depending on whether HDR is on or off, the grabbed scene
+					// colours may or may not come from the backbuffer, which means they may or may not be flipped in y. use these macros
+					// to get the right results, every time.
+					o.grabPos = ComputeGrabScreenPos(o.vertex);
+					o.shorelineFoam_screenPos.yzw = ComputeScreenPos(o.vertex).xyw;
 
 					return o;
 				}
@@ -272,25 +279,26 @@ Shader "Ocean/Ocean"
 					io_whiteFoam = foamTexValue * (smoothstep(1.0 - foamAmount, 1.3 - foamAmount, foamTexValue)) * _FoamWhiteColor.a;
 				}
 
-				void OceanColour(half3 view, half3 n, half2 uvScreen, float z01, inout half3 oceanCol)
+				void OceanColour(half3 view, half3 n, half4 grabPos, half3 screenPos, float z01, inout half3 oceanCol)
 				{
-					// Refraction - perturb screen uv, 
-					half2 uvRefract = uvScreen + .02 * n.xz;
+					half2 uvBackgroundRefract = grabPos.xy / grabPos.w + .02 * n.xz;
+					half2 uvDepth = screenPos.xy / screenPos.z;
+					half2 uvDepthRefract = uvDepth +.02 * n.xz;
 					half3 alpha = (half3)1.;
 
 					float pixelZ = LinearEyeDepth(z01);
-					float sceneZ = LinearEyeDepth(texture(_CameraDepthTexture, half2(uvScreen.x, 1. - uvScreen.y)).x);
+					float sceneZ = LinearEyeDepth(texture(_CameraDepthTexture, uvDepth).x);
 
 					// if we haven't refracted onto a surface in front of the water surface, compute an alpha based on Z delta
 					if (sceneZ > pixelZ)
 					{
-						float sceneZRefract = LinearEyeDepth(texture(_CameraDepthTexture, half2(uvRefract.x, 1. - uvRefract.y)).x);
+						float sceneZRefract = LinearEyeDepth(texture(_CameraDepthTexture, uvDepthRefract).x);
 						float maxZ = max(sceneZ, sceneZRefract);
-						float deltaZ = (maxZ - pixelZ);
+						float deltaZ = maxZ - pixelZ;
 						alpha = 1. - exp(-_DepthFogDensity.xyz * deltaZ);
 					}
 
-					half3 sceneColour = texture(_BackgroundTexture, uvRefract).rgb;
+					half3 sceneColour = texture(_BackgroundTexture, uvBackgroundRefract).rgb;
 					oceanCol = lerp(sceneColour, oceanCol, alpha);
 				}
 
@@ -311,11 +319,10 @@ Shader "Ocean/Ocean"
 
 					// Foam - underwater bubbles and whitefoam
 					float whiteFoam;
-					ApplyFoam( 1. - i.invDeterminant_lodAlpha_worldXZUndisplaced.x, i.invDeterminant_lodAlpha_worldXZUndisplaced.zw, n, i.shorelineFoam, col.xyz, whiteFoam );
+					ApplyFoam( 1. - i.invDeterminant_lodAlpha_worldXZUndisplaced.x, i.invDeterminant_lodAlpha_worldXZUndisplaced.zw, n, i.shorelineFoam_screenPos.x, col.xyz, whiteFoam );
 
 					// Compute color of ocean - in-scattered light + refracted scene
-					half2 uvScreen = i.vertex.xy / _ScreenParams.xy;
-					OceanColour(view, n, uvScreen, i.vertex.z, col);
+					OceanColour(view, n, i.grabPos, i.shorelineFoam_screenPos.yzw, i.vertex.z, col);
 
 					// Fresnel / reflection
 					half3 skyColor = texCUBE(_Skybox, reflect(-view, n));
@@ -339,7 +346,6 @@ Shader "Ocean/Ocean"
 					#endif
 
 					return col;
-					return (half4)i.shorelineFoam;
 				}
 
 				ENDCG

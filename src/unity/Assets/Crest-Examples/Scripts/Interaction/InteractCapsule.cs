@@ -1,43 +1,41 @@
 ﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 using UnityEngine;
+using Crest;
 
-namespace Crest
+// First experiment with object interacting with water. Assumes capsule is always touching water, does
+// not take current water height into account yet
+public class InteractCapsule : MonoBehaviour
 {
-    // First experiment with object interacting with water. Assumes capsule is always touching water, does
-    // not take current water height into account yet
-    public class InteractCapsule : MonoBehaviour
+    public Shader _shader;
+
+    float _lastY = 0f;
+
+    Material _mat;
+
+    void Start()
     {
-        public Shader _shader;
+        _lastY = transform.position.y;
 
-        float _lastY = 0f;
+        _mat = new Material( _shader );
 
-        Material _mat;
+        GetComponent<Renderer>().material = _mat;
+    }
 
-        void Start()
-        {
-            _lastY = transform.position.y;
+    void Update()
+    {
+        float dy = _lastY - transform.position.y;
 
-            _mat = new Material( _shader );
+        float a = transform.lossyScale.x / 2f;
+        float b = transform.lossyScale.z / 2f;
+        float A = Mathf.PI * a * b;
 
-            GetComponent<Renderer>().material = _mat;
-        }
+        float V = dy * A;
 
-        void Update()
-        {
-            float dy = _lastY - transform.position.y;
+        float VperLod = V / OceanRenderer.Instance.Builder.CurrentLodCount;
 
-            float a = transform.lossyScale.x / 2f;
-            float b = transform.lossyScale.z / 2f;
-            float A = Mathf.PI * a * b;
+        _mat.SetFloat( "_displacedVPerLod", VperLod );
 
-            float V = dy * A;
-
-            float VperLod = V / OceanRenderer.Instance.Builder.CurrentLodCount;
-
-            _mat.SetFloat( "_displacedVPerLod", VperLod );
-
-            _lastY = transform.position.y;
-        }
+        _lastY = transform.position.y;
     }
 }

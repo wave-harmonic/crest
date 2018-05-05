@@ -2,35 +2,32 @@
 
 using UnityEngine;
 
-namespace Crest
+/// <summary>
+/// Triggers the scene render to happen in wireframe. Unfortunately this currently affects the GUI elements as well.
+/// </summary>
+[RequireComponent( typeof( Camera ) )]
+public class RenderWireFrame : MonoBehaviour
 {
-    /// <summary>
-    /// Triggers the scene render to happen in wireframe. Unfortunately this currently affects the GUI elements as well.
-    /// </summary>
-    [RequireComponent( typeof( Camera ) )]
-    public class RenderWireFrame : MonoBehaviour
+    public bool _gui = true;
+    public static bool _wireFrame = false;
+
+    Camera _cam;
+    CameraClearFlags _defaultClearFlags;
+
+    void Start()
     {
-        public bool _gui = true;
-    	public static bool _wireFrame = false;
+        _cam = GetComponent<Camera>();
+        _defaultClearFlags = _cam.clearFlags;
+    }
 
-        Camera _cam;
-        CameraClearFlags _defaultClearFlags;
+    void Update()
+    {
+        _cam.clearFlags = _wireFrame ? CameraClearFlags.SolidColor : _defaultClearFlags;
+    }
 
-        void Start()
-        {
-            _cam = GetComponent<Camera>();
-            _defaultClearFlags = _cam.clearFlags;
-        }
-
-        void Update()
-        {
-            _cam.clearFlags = _wireFrame ? CameraClearFlags.SolidColor : _defaultClearFlags;
-        }
-
-    	void OnPreRender()
-    	{
-    		if( enabled )
-    			GL.wireframe = _wireFrame;
-    	}
+    void OnPreRender()
+    {
+    	if( enabled )
+    		GL.wireframe = _wireFrame;
     }
 }

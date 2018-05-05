@@ -17,7 +17,7 @@ Shader "Ocean/Ocean Depth"
 			{
 				Name "BASE"
 				Tags { "LightMode" = "Always" }
-				Blend Off
+				BlendOp Min
 
 				CGPROGRAM
 				#pragma vertex vert

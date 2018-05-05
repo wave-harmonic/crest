@@ -16,6 +16,9 @@ namespace Crest
 
         void RefreshOceanDepthRenderers()
         {
+            if (OceanRenderer.Instance == null || OceanRenderer.Instance.Builder == null)
+                return;
+
             // notify WDCs that there is a new contributor to ocean depth
             foreach (var cam in OceanRenderer.Instance.Builder._shapeCameras)
             {

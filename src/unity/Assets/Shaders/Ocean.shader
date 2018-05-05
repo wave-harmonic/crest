@@ -301,12 +301,11 @@ Shader "Ocean/Ocean"
 					// Normal - geom + normal mapping
 					half3 n = i.n;
 					ApplyNormalMaps(i.invDeterminant_lodAlpha_worldXZUndisplaced.zw, i.invDeterminant_lodAlpha_worldXZUndisplaced.y, n);
-					half ndv = dot(n, view);
 
 					// Emitted light - ocean colour
 					half3 col = _Diffuse;
-					// Approximate subsurface scattering - add light when surface faces viewer
-					col += ndv * _SubSurface;
+					// Approximate subsurface scattering - add light when surface faces viewer. Use geometry normal - don't need high freqs.
+					col += dot(i.n, view) * _SubSurface;
 					// Multiply by main light colour - not sure how well this will work yet
 					col *= _LightColor0;
 
@@ -326,7 +325,7 @@ Shader "Ocean/Ocean"
 					float R_0 = (IOR_AIR - IOR_WATER) / (IOR_AIR + IOR_WATER);
 					R_0 *= R_0;
 					// schlick's approximation
-					float R_theta = R_0 + (1.0 - R_0) * pow(1.0 - ndv, _FresnelPower);
+					float R_theta = R_0 + (1.0 - R_0) * pow(1.0 - dot(n, view), _FresnelPower);
 					col = lerp(col, 1.*skyColor, R_theta);
 
 					// Override final result with white foam - bubbles on surface

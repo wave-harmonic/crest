@@ -18,6 +18,9 @@ namespace Crest
         Material _matOceanDepth;
         RenderTexture _rtOceanDepth;
         CommandBuffer _bufOceanDepth = null;
+        bool _oceanDepthRenderersDirty = true;
+        /// <summary>Called when one or more objects that will render into depth are created, so that all objects are registered.</summary>
+        public void OnOceanDepthRenderersChanged() { _oceanDepthRenderersDirty = true; }
 
         Material _combineMaterial;
         CommandBuffer _bufCombineShapes = null;
@@ -42,8 +45,6 @@ namespace Crest
 
             _matOceanDepth = new Material(Shader.Find("Ocean/Ocean Depth"));
             _combineMaterial = new Material(Shader.Find("Ocean/Shape/Combine"));
-
-            UpdateCmdBufOceanFloorDepth();
         }
 
         private void Update()
@@ -54,6 +55,12 @@ namespace Crest
             if (_lodIndex == 0)
             {
                 UpdateCmdBufShapeCombine();
+            }
+
+            if (_oceanDepthRenderersDirty)
+            {
+                UpdateCmdBufOceanFloorDepth();
+                _oceanDepthRenderersDirty = false;
             }
         }
 
@@ -108,14 +115,20 @@ namespace Crest
             }
         }
 
-        // The command buffer populates the LODs with ocean depth data. It submits any objects with the OceanDepth tag.
+        // The command buffer populates the LODs with ocean depth data. It submits any objects with a RenderOceanDepth component attached.
         // It's stateless - the textures don't have to be managed across frames/scale changes
         void UpdateCmdBufOceanFloorDepth()
         {
-            var gos = GameObject.FindGameObjectsWithTag("OceanDepth");
-            if (gos.Length < 1)
+            var objs = FindObjectsOfType<RenderOceanDepth>();
+
+            // if there is nothing in the scene tagged up for depth rendering then there is no depth rendering required
+            if (objs.Length < 1)
             {
-                // if there is nothing in the scene tagged up for rendering then there is nothing to do here
+                if (_bufOceanDepth != null)
+                {
+                    _bufOceanDepth.Clear();
+                }
+
                 return;
             }
 
@@ -140,9 +153,9 @@ namespace Crest
             _bufOceanDepth.SetRenderTarget( _rtOceanDepth );
             _bufOceanDepth.ClearRenderTarget( false, true, Color.red * 10000.0f );
 
-            foreach ( var go in gos )
+            foreach (var obj in objs)
             {
-                _bufOceanDepth.DrawRenderer(go.GetComponent<Renderer>(), _matOceanDepth);
+                _bufOceanDepth.DrawRenderer(obj.GetComponent<Renderer>(), _matOceanDepth);
             }
         }
 

@@ -9,6 +9,9 @@ Shader "Ocean/Ocean"
 		_NormalsScale("Normals Scale", Range(0.0, 50.0)) = 1.0
 		[NoScaleOffset] _Skybox ("Skybox", CUBE) = "" {}
 		_Diffuse("Diffuse", Color) = (0.2, 0.05, 0.05, 1.0)
+		[Toggle] _ComputeDirectionalLight("Add Directional Light", Float) = 1
+		_DirectionalLightFallOff("Directional Light Fall-Off", Range(1.0, 512.0)) = 128.0
+		_DirectionalLightBoost("Directional Light Boost", Range(0.0, 16.0)) = 5.0
 		[Toggle] _SubSurfaceScattering("Sub-Surface Scattering", Float) = 1
 		_SubSurfaceColour("Sub-Surface Scattering Colour", Color) = (0.0, 0.48, 0.36, 1.)
 		_SubSurfaceBase("Sub-Surface Scattering Base Mul", Range(0.0, 2.0)) = 0.6
@@ -21,7 +24,7 @@ Shader "Ocean/Ocean"
 		_FoamBubbleColor ( "Bubble Foam Color", Color ) = (0.0, 0.0904, 0.105, 1.0)
 		_DepthFogDensity("Depth Fog Density", Color) = (0.28, 0.16, 0.24, 1.0)
 		_FresnelPower("Fresnel Power", Range(0.0,20.0)) = 3.0
-		[Toggle] _DebugShapeSample("Debug Shape Sample", Float) = 0 
+		[Toggle] _DebugShapeSample("Debug Shape Sample", Float) = 0
 	}
 
 	Category
@@ -44,6 +47,7 @@ Shader "Ocean/Ocean"
 				#pragma vertex vert
 				#pragma fragment frag
 				#pragma multi_compile_fog
+				#pragma shader_feature _COMPUTEDIRECTIONALLIGHT_ON
 				#pragma shader_feature _SUBSURFACESCATTERING_ON
 				#pragma shader_feature _DEBUGSHAPESAMPLE_ON
 				#pragma shader_feature _FOAM_ON
@@ -215,6 +219,8 @@ Shader "Ocean/Ocean"
 
 				// frag shader uniforms
 				uniform half4 _Diffuse;
+				uniform half _DirectionalLightFallOff;
+				uniform half _DirectionalLightBoost;
 				uniform half4 _SubSurfaceColour;
 				uniform half _SubSurfaceBase;
 				uniform half _SubSurfaceSun;
@@ -346,8 +352,14 @@ Shader "Ocean/Ocean"
 					// Compute color of ocean - in-scattered light + refracted scene
 					col = OceanEmission(view, n, i.n, i.grabPos, i.shorelineFoam_screenPos.yzw, i.vertex.z, bubbleCol);
 
-					// Fresnel / reflection
-					half3 skyColor = texCUBE(_Skybox, reflect(-view, n));
+					// Reflection
+					half3 refl = reflect(-view, n);
+					half3 skyColor = texCUBE(_Skybox, refl);
+					#if _COMPUTEDIRECTIONALLIGHT_ON
+					skyColor += pow(max(0., dot(refl, _WorldSpaceLightPos0.xyz)), _DirectionalLightFallOff) * _DirectionalLightBoost * _LightColor0;
+					#endif
+
+					// Fresnel
 					const float IOR_AIR = 1.0;
 					const float IOR_WATER = 1.33;
 					// reflectance at facing angle

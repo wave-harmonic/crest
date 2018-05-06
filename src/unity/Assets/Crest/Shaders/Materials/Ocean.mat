@@ -78,6 +78,9 @@ Material:
     - _RefractAmt: 0
     - _S: 1
     - _StartLevel: 0.157
+    - _SubSurfaceBase: 0.6
+    - _SubSurfaceSun: 0.8
+    - _SubSurfaceSunFallOff: 4
     - _TexelSize: 0.125
     - _TextureRes: 1024
     - _Update: 0.083
@@ -87,3 +90,4 @@ Material:
     - _FoamBubbleColor: {r: 0.018747993, g: 0.109, b: 0.10033577, a: 1}
     - _FoamWhiteColor: {r: 1, g: 1, b: 1, a: 1}
     - _SubSurface: {r: 0, g: 0.48, b: 0.36, a: 1}
+    - _SubSurfaceColour: {r: 0, g: 0.48, b: 0.36, a: 1}

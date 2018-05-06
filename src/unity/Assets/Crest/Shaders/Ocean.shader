@@ -9,7 +9,10 @@ Shader "Ocean/Ocean"
 		_NormalsScale("Normals Scale", Range(0.0, 50.0)) = 1.0
 		[NoScaleOffset] _Skybox ("Skybox", CUBE) = "" {}
 		_Diffuse("Diffuse", Color) = (0.2, 0.05, 0.05, 1.0)
-		_SubSurface("Sub-Surface Scattering", Color) = (0.0, 0.48, 0.36, 1.)
+		_SubSurfaceColour("Sub-Surface Scattering", Color) = (0.0, 0.48, 0.36, 1.)
+		_SubSurfaceBase("Sub-Surface Scattering Base Mul", Range(0.0, 2.0)) = 0.6
+		_SubSurfaceSun("Sub-Surface Scattering Sun Mul", Range(0.0, 2.0)) = 0.8
+		_SubSurfaceSunFallOff("Sub-Surface Scattering Sun Fall-Off", Range(1.0, 16.0)) = 4.0
 		[NoScaleOffset] _FoamTexture ( "Foam Texture", 2D ) = "white" {}
 		_FoamScale("Foam Scale", Range(0.0, 50.0)) = 10.0
 		_FoamWhiteColor("White Foam Color", Color) = (1.0, 1.0, 1.0, 1.0)
@@ -207,7 +210,11 @@ Shader "Ocean/Ocean"
 
 				// frag shader uniforms
 				uniform half4 _Diffuse;
-				uniform half4 _SubSurface;
+				uniform half4 _SubSurfaceColour;
+				uniform half _SubSurfaceBase;
+				uniform half _SubSurfaceSun;
+				uniform half _SubSurfaceSunFallOff;
+
 				uniform half4 _DepthFogDensity;
 				uniform samplerCUBE _Skybox;
 				uniform sampler2D _FoamTexture;
@@ -314,7 +321,8 @@ Shader "Ocean/Ocean"
 					// Emitted light - ocean colour
 					half3 col = _Diffuse;
 					// Approximate subsurface scattering - add light when surface faces viewer. Use geometry normal - don't need high freqs.
-					col += dot(i.n, view) * _SubSurface;
+					half towardsSun = pow(max(0., dot(_WorldSpaceLightPos0.xyz, -view)), _SubSurfaceSunFallOff);
+					col += (_SubSurfaceBase + _SubSurfaceSun * towardsSun) * dot(i.n, view) * _SubSurfaceColour;
 					// Multiply by main light colour - not sure how well this will work yet
 					col *= _LightColor0;
 
@@ -330,8 +338,7 @@ Shader "Ocean/Ocean"
 					const float IOR_AIR = 1.0;
 					const float IOR_WATER = 1.33;
 					// reflectance at facing angle
-					float R_0 = (IOR_AIR - IOR_WATER) / (IOR_AIR + IOR_WATER);
-					R_0 *= R_0;
+					float R_0 = (IOR_AIR - IOR_WATER) / (IOR_AIR + IOR_WATER); R_0 *= R_0;
 					// schlick's approximation
 					float R_theta = R_0 + (1.0 - R_0) * pow(1.0 - dot(n, view), _FresnelPower);
 					col = lerp(col, 1.*skyColor, R_theta);

@@ -35,7 +35,9 @@ The multi-resolution representation (shape textures and geometry) is scaled hori
 
 Normal maps are elegantly incorporated into our multi-scale framework. Normal map textures are treated as a slightly different form of shape that is too detailed to be efficiently sampled by geometry, and are sampled at a scale just below the shape textures. This combats typical normal map sampling issues such as lack of detail in the foreground, or a glassy flat appearance in the background.
 
-Current shading effects include two foam layers are computed on the fly from the Jacobian of the displacement textures, and a subsurface scattering approximation based on view and normal vectors.
+Current shading effects include two foam layers are computed on the fly from the Jacobian of the displacement textures, and a subsurface scattering approximation based on view and normal vectors, and primary light direction.
+
+Refraction is also supported, and Schlick's fresnel approximation selects between the refracted colour and a reflected colour. There is an option on the material to boost specular highlights by adding directional lighting if needed.
 
 The branch *fx_test* explores dynamically generating spray particle effects by randomly sampling points on the surface to detect wave peaks.
 
@@ -79,13 +81,10 @@ The ocean pixel shader samples normal maps at 2 different scales, both proportio
 
 ## Bugs and Improvement Directions
 
-* Add colour variation in shallow water
 * The shape rendering currently happens for the entire shape lod texture, which covers areas outside of the view. One could render the shape only for the visible surface by generating geometry for the frustum, dilating and rendering this into the shape textures. There is a branch that begins to explore this: *render_frustum_into_shape*.
 * Using prebaked textures (i.e. from an offline ocean simulation) would be easy to implement in our framework by rendering the prebaked results into the shape textures, and would be the most efficient option (although completely dynamic shape now renders very efficiently).
 * Ocean surface tiles are updated and drawn as separate draw calls. This is convenient for research and supports frustum culling easily, but it might make sense to instance these in a production scenario.
-* The refraction component of the ocean material looks odd in the Scene View. This is ugly but not high on the list of priorities currently.
 * Persistent foam - generate from waves/dynamic sim, fade gradually over time
-* Change scatter glow based on light direction (directional scattering of light through water)
 
 
 ## Links

@@ -69,6 +69,7 @@ Material:
     m_Floats:
     - _BumpAmt: 0.514
     - _ComputeDirectionalLight: 1
+    - _DebugDisableSmoothLOD: 0
     - _DebugShapeSample: 0
     - _DirectionalLightBoost: 5
     - _DirectionalLightFallOff: 128

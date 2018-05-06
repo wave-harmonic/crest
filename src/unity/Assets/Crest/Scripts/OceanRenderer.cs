@@ -29,8 +29,6 @@ namespace Crest
         public float _chop = 1f;
 
         [Header( "Debug Params" )]
-        [Tooltip("Smoothly transition geometry LODs")]
-        public bool _enableSmoothLOD = true;
         [Tooltip( "Freeze wave shape in place but continues to move geom with camera, useful for hunting down pops" )]
         public bool _freezeTime = false;
 
@@ -90,7 +88,6 @@ namespace Crest
             Shader.SetGlobalFloat( "_MyDeltaTime", _deltaTime );
             Shader.SetGlobalFloat( "_TexelsPerWave", _minTexelsPerWave );
             Shader.SetGlobalFloat("_Chop", _chop);
-            Shader.SetGlobalFloat("_EnableSmoothLODs", _enableSmoothLOD ? 1f : 0f); // debug
             Shader.SetGlobalVector("_WindDirXZ", WindDir);
 
             LateUpdateScale();

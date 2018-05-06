@@ -25,6 +25,7 @@ Shader "Ocean/Ocean"
 		_DepthFogDensity("Depth Fog Density", Color) = (0.28, 0.16, 0.24, 1.0)
 		_FresnelPower("Fresnel Power", Range(0.0,20.0)) = 3.0
 		[Toggle] _DebugShapeSample("Debug Shape Sample", Float) = 0
+		[Toggle] _DebugDisableSmoothLOD("Debug Disable Smooth LOD", Float) = 0
 	}
 
 	Category
@@ -49,9 +50,9 @@ Shader "Ocean/Ocean"
 				#pragma multi_compile_fog
 				#pragma shader_feature _COMPUTEDIRECTIONALLIGHT_ON
 				#pragma shader_feature _SUBSURFACESCATTERING_ON
-				#pragma shader_feature _DEBUGSHAPESAMPLE_ON
 				#pragma shader_feature _FOAM_ON
-
+				#pragma shader_feature _DEBUGSHAPESAMPLE_ON
+				#pragma shader_feature _DEBUGDISABLESMOOTHLOD_ON
 				#include "UnityCG.cginc"
 				#include "TextureBombing.cginc"
 
@@ -83,7 +84,6 @@ Shader "Ocean/Ocean"
 				#include "OceanLODData.cginc"
 
 				uniform float3 _OceanCenterPosWorld;
-				uniform float _EnableSmoothLODs = 1.0; // debug
 
 				// INSTANCE PARAMS
 
@@ -168,7 +168,9 @@ Shader "Ocean/Ocean"
 					// blend out lod0 when viewpoint gains altitude
 					const float meshScaleLerp = _InstanceData.x;
 					lodAlpha = min(lodAlpha + meshScaleLerp, 1.);
-					lodAlpha *= _EnableSmoothLODs;
+					#if _DEBUGDISABLESMOOTHLOD_ON
+					lodAlpha = 0.;
+					#endif
 					// pass it to fragment shader - used to blend normals scales
 					o.invDeterminant_lodAlpha_worldXZUndisplaced.y = lodAlpha;
 

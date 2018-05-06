@@ -91,6 +91,7 @@ namespace Crest
             Shader.SetGlobalFloat( "_TexelsPerWave", _minTexelsPerWave );
             Shader.SetGlobalFloat("_Chop", _chop);
             Shader.SetGlobalFloat("_EnableSmoothLODs", _enableSmoothLOD ? 1f : 0f); // debug
+            Shader.SetGlobalVector("_WindDirXZ", WindDir);
 
             LateUpdateScale();
         }

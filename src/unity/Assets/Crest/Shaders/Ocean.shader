@@ -220,6 +220,7 @@ Shader "Ocean/Ocean"
 				uniform half _FresnelPower;
 				uniform float _MyTime;
 				uniform fixed4 _LightColor0;
+				uniform half2 _WindDirXZ;
 
 				// these are copied from the render target by unity
 				sampler2D _BackgroundTexture;
@@ -257,7 +258,7 @@ Shader "Ocean/Ocean"
 				void ApplyFoam( half i_determinant, float2 i_worldXZUndisplaced, half3 i_n, half i_shorelineFoam, inout half3 io_col, inout float io_whiteFoam )
 				{
 					// Give the foam some texture
-					float2 foamUV = i_worldXZUndisplaced / _FoamScale;
+					float2 foamUV = (i_worldXZUndisplaced + 0.5 * _MyTime * _WindDirXZ) / _FoamScale;
 					foamUV += 0.02 * i_n.xz;
 
 					//half foamTexValue = textureNoTile_3weights(_FoamTexture, foamUV).r; // texture bombing to avoid repetition artifacts

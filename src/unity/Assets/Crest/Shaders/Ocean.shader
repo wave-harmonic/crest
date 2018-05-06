@@ -9,11 +9,12 @@ Shader "Ocean/Ocean"
 		_NormalsScale("Normals Scale", Range(0.0, 50.0)) = 1.0
 		[NoScaleOffset] _Skybox ("Skybox", CUBE) = "" {}
 		_Diffuse("Diffuse", Color) = (0.2, 0.05, 0.05, 1.0)
-		[Toggle] _SubSurfaceScattering("Sub-Surface Scattering", Float) = 0 
+		[Toggle] _SubSurfaceScattering("Sub-Surface Scattering", Float) = 1
 		_SubSurfaceColour("Sub-Surface Scattering Colour", Color) = (0.0, 0.48, 0.36, 1.)
 		_SubSurfaceBase("Sub-Surface Scattering Base Mul", Range(0.0, 2.0)) = 0.6
 		_SubSurfaceSun("Sub-Surface Scattering Sun Mul", Range(0.0, 2.0)) = 0.8
 		_SubSurfaceSunFallOff("Sub-Surface Scattering Sun Fall-Off", Range(1.0, 16.0)) = 4.0
+		[Toggle] _Foam("Foam", Float) = 1
 		[NoScaleOffset] _FoamTexture ( "Foam Texture", 2D ) = "white" {}
 		_FoamScale("Foam Scale", Range(0.0, 50.0)) = 10.0
 		_FoamWhiteColor("White Foam Color", Color) = (1.0, 1.0, 1.0, 1.0)
@@ -45,6 +46,7 @@ Shader "Ocean/Ocean"
 				#pragma multi_compile_fog
 				#pragma shader_feature _SUBSURFACESCATTERING_ON
 				#pragma shader_feature _DEBUGSHAPESAMPLE_ON
+				#pragma shader_feature _FOAM_ON
 
 				#include "UnityCG.cginc"
 				#include "TextureBombing.cginc"
@@ -265,7 +267,7 @@ Shader "Ocean/Ocean"
 					io_n = normalize(io_n);
 				}
 
-				void ApplyFoam( half i_determinant, float2 i_worldXZUndisplaced, half3 i_n, half i_shorelineFoam, inout half3 io_col, inout float io_whiteFoam )
+				void ComputeFoam( half i_determinant, float2 i_worldXZUndisplaced, half3 i_n, half i_shorelineFoam, out half3 o_bubbleCol, out half o_whiteFoam )
 				{
 					// Give the foam some texture
 					float2 foamUV = (i_worldXZUndisplaced + 0.5 * _MyTime * _WindDirXZ) / _FoamScale;
@@ -279,19 +281,31 @@ Shader "Ocean/Ocean"
 					// > 1: Stretch
 					// < 1: Squash
 					// < 0: Overlap
-					float foamAmount = smoothstep(1.6, 0., i_determinant);
+					half foamAmount = smoothstep(1.6, 0., i_determinant);
 					foamAmount = foamAmount + i_shorelineFoam;
 
 					// Additive underwater foam
 					half bubbleFoam = smoothstep( 0.0, 0.5, foamAmount * bubbleFoamTexValue);
-					io_col.xyz += bubbleFoam * _FoamBubbleColor.rgb * _FoamBubbleColor.a;
+					o_bubbleCol = bubbleFoam * _FoamBubbleColor.rgb * _FoamBubbleColor.a;
 
 					// White foam on top, with black-point fading
-					io_whiteFoam = foamTexValue * (smoothstep(1.0 - foamAmount, 1.3 - foamAmount, foamTexValue)) * _FoamWhiteColor.a;
+					o_whiteFoam = foamTexValue * (smoothstep(1.0 - foamAmount, 1.3 - foamAmount, foamTexValue)) * _FoamWhiteColor.a;
 				}
 
-				void OceanColour(half3 view, half3 n, half4 grabPos, half3 screenPos, float z01, inout half3 oceanCol)
+				half3 OceanEmission(half3 view, half3 n, half3 n_geom, half4 grabPos, half3 screenPos, float z01, half3 bubbleCol)
 				{
+					half3 col = _Diffuse;
+
+					#if _SUBSURFACESCATTERING_ON
+					// Approximate subsurface scattering - add light when surface faces viewer. Use geometry normal - don't need high freqs.
+					half towardsSun = pow(max(0., dot(_WorldSpaceLightPos0.xyz, -view)), _SubSurfaceSunFallOff);
+					col += (_SubSurfaceBase + _SubSurfaceSun * towardsSun) * dot(n_geom, view) * _SubSurfaceColour;
+					// Multiply by main light colour - not sure how well this will work yet
+					col *= _LightColor0;
+					#endif
+
+					col += bubbleCol;
+
 					half2 uvBackgroundRefract = grabPos.xy / grabPos.w + .02 * n.xz;
 					half2 uvDepth = screenPos.xy / screenPos.z;
 					half2 uvDepthRefract = uvDepth +.02 * n.xz;
@@ -310,7 +324,7 @@ Shader "Ocean/Ocean"
 					}
 
 					half3 sceneColour = texture(_BackgroundTexture, uvBackgroundRefract).rgb;
-					oceanCol = lerp(sceneColour, oceanCol, alpha);
+					return lerp(sceneColour, col, alpha);
 				}
 
 				half3 frag(v2f i) : SV_Target
@@ -321,23 +335,16 @@ Shader "Ocean/Ocean"
 					half3 n = i.n;
 					ApplyNormalMaps(i.invDeterminant_lodAlpha_worldXZUndisplaced.zw, i.invDeterminant_lodAlpha_worldXZUndisplaced.y, n);
 
-					// Emitted light - ocean colour
-					half3 col = _Diffuse;
-
-					#if _SUBSURFACESCATTERING_ON
-					// Approximate subsurface scattering - add light when surface faces viewer. Use geometry normal - don't need high freqs.
-					half towardsSun = pow(max(0., dot(_WorldSpaceLightPos0.xyz, -view)), _SubSurfaceSunFallOff);
-					col += (_SubSurfaceBase + _SubSurfaceSun * towardsSun) * dot(i.n, view) * _SubSurfaceColour;
-					// Multiply by main light colour - not sure how well this will work yet
-					col *= _LightColor0;
-					#endif
-
 					// Foam - underwater bubbles and whitefoam
-					float whiteFoam;
-					ApplyFoam( 1. - i.invDeterminant_lodAlpha_worldXZUndisplaced.x, i.invDeterminant_lodAlpha_worldXZUndisplaced.zw, n, i.shorelineFoam_screenPos.x, col.xyz, whiteFoam );
+					half whiteFoam = 0.;
+					half3 bubbleCol = (half3)0.;
+					#if _FOAM_ON
+					ComputeFoam(1. - i.invDeterminant_lodAlpha_worldXZUndisplaced.x, i.invDeterminant_lodAlpha_worldXZUndisplaced.zw, n, i.shorelineFoam_screenPos.x, bubbleCol, whiteFoam);
+					#endif
+					half3 col;
 
 					// Compute color of ocean - in-scattered light + refracted scene
-					OceanColour(view, n, i.grabPos, i.shorelineFoam_screenPos.yzw, i.vertex.z, col);
+					col = OceanEmission(view, n, i.n, i.grabPos, i.shorelineFoam_screenPos.yzw, i.vertex.z, bubbleCol);
 
 					// Fresnel / reflection
 					half3 skyColor = texCUBE(_Skybox, reflect(-view, n));

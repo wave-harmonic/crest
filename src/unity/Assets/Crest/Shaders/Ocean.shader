@@ -9,7 +9,8 @@ Shader "Ocean/Ocean"
 		_NormalsScale("Normals Scale", Range(0.0, 50.0)) = 1.0
 		[NoScaleOffset] _Skybox ("Skybox", CUBE) = "" {}
 		_Diffuse("Diffuse", Color) = (0.2, 0.05, 0.05, 1.0)
-		_SubSurfaceColour("Sub-Surface Scattering", Color) = (0.0, 0.48, 0.36, 1.)
+		[Toggle] _SubSurfaceScattering("Sub-Surface Scattering", Float) = 0 
+		_SubSurfaceColour("Sub-Surface Scattering Colour", Color) = (0.0, 0.48, 0.36, 1.)
 		_SubSurfaceBase("Sub-Surface Scattering Base Mul", Range(0.0, 2.0)) = 0.6
 		_SubSurfaceSun("Sub-Surface Scattering Sun Mul", Range(0.0, 2.0)) = 0.8
 		_SubSurfaceSunFallOff("Sub-Surface Scattering Sun Fall-Off", Range(1.0, 16.0)) = 4.0
@@ -19,6 +20,7 @@ Shader "Ocean/Ocean"
 		_FoamBubbleColor ( "Bubble Foam Color", Color ) = (0.0, 0.0904, 0.105, 1.0)
 		_DepthFogDensity("Depth Fog Density", Color) = (0.28, 0.16, 0.24, 1.0)
 		_FresnelPower("Fresnel Power", Range(0.0,20.0)) = 3.0
+		[Toggle] _DebugShapeSample("Debug Shape Sample", Float) = 0 
 	}
 
 	Category
@@ -41,11 +43,12 @@ Shader "Ocean/Ocean"
 				#pragma vertex vert
 				#pragma fragment frag
 				#pragma multi_compile_fog
+				#pragma shader_feature _SUBSURFACESCATTERING_ON
+				#pragma shader_feature _DEBUGSHAPESAMPLE_ON
+
 				#include "UnityCG.cginc"
 				#include "TextureBombing.cginc"
 
-				// tints the output color based on which shape texture(s) were sampled, blended according to weight
-				//#define DEBUG_SHAPE_SAMPLE
 				#define DEPTH_BIAS 100.
 
 				struct appdata_t
@@ -61,7 +64,7 @@ Shader "Ocean/Ocean"
 					half4 shorelineFoam_screenPos : TEXCOORD4;
 					half4 invDeterminant_lodAlpha_worldXZUndisplaced : TEXCOORD5;
 					float3 worldPos : TEXCOORD7;
-					#if defined( DEBUG_SHAPE_SAMPLE )
+					#if defined( _DEBUGSHAPESAMPLE_ON )
 					half3 debugtint : TEXCOORD8;
 					#endif
 					half4 grabPos : TEXCOORD9;
@@ -187,7 +190,7 @@ Shader "Ocean/Ocean"
 					SampleDisplacements( _WD_Sampler_1, _WD_OceanDepth_Sampler_1, _WD_Pos_1, _WD_Params_1.y, _WD_Params_1.x, idealSquareSize, wxz, wt_1, o.worldPos, o.n, o.invDeterminant_lodAlpha_worldXZUndisplaced.x, o.shorelineFoam_screenPos.x);
 
 					// debug tinting to see which shape textures are used
-					#if defined( DEBUG_SHAPE_SAMPLE )
+					#if defined( _DEBUGSHAPESAMPLE_ON )
 					#define TINT_COUNT (uint)7
 					half3 tintCols[TINT_COUNT]; tintCols[0] = half3(1., 0., 0.); tintCols[1] = half3(1., 1., 0.); tintCols[2] = half3(1., 0., 1.); tintCols[3] = half3(0., 1., 1.); tintCols[4] = half3(0., 0., 1.); tintCols[5] = half3(1., 0., 1.); tintCols[6] = half3(.5, .5, 1.);
 					o.debugtint = wt_0 * tintCols[_WD_LodIdx_0 % TINT_COUNT] + wt_1 * tintCols[_WD_LodIdx_1 % TINT_COUNT];
@@ -320,11 +323,14 @@ Shader "Ocean/Ocean"
 
 					// Emitted light - ocean colour
 					half3 col = _Diffuse;
+
+					#if _SUBSURFACESCATTERING_ON
 					// Approximate subsurface scattering - add light when surface faces viewer. Use geometry normal - don't need high freqs.
 					half towardsSun = pow(max(0., dot(_WorldSpaceLightPos0.xyz, -view)), _SubSurfaceSunFallOff);
 					col += (_SubSurfaceBase + _SubSurfaceSun * towardsSun) * dot(i.n, view) * _SubSurfaceColour;
 					// Multiply by main light colour - not sure how well this will work yet
 					col *= _LightColor0;
+					#endif
 
 					// Foam - underwater bubbles and whitefoam
 					float whiteFoam;
@@ -349,7 +355,7 @@ Shader "Ocean/Ocean"
 					// Fog
 					UNITY_APPLY_FOG(i.fogCoord, col);
 	
-					#if defined( DEBUG_SHAPE_SAMPLE )
+					#if defined( _DEBUGSHAPESAMPLE_ON )
 					col = mix(col.rgb, i.debugtint, 0.5);
 					#endif
 

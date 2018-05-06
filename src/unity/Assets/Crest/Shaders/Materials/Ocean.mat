@@ -8,7 +8,7 @@ Material:
   m_PrefabInternal: {fileID: 0}
   m_Name: Ocean
   m_Shader: {fileID: 4800000, guid: 668aecf91371c8b4997e42c0c7b19527, type: 3}
-  m_ShaderKeywords: 
+  m_ShaderKeywords: _SUBSURFACESCATTERING_ON
   m_LightmapFlags: 5
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -70,6 +70,7 @@ Material:
     - _BumpAmt: 0.514
     - _FoamScale: 10
     - _FresnelPower: 5
+    - _Invert: 1
     - _MipBias: 0
     - _Moving: 0.17
     - _NormalsScale: 36
@@ -79,6 +80,7 @@ Material:
     - _S: 1
     - _StartLevel: 0.157
     - _SubSurfaceBase: 0.6
+    - _SubSurfaceScattering: 1
     - _SubSurfaceSun: 0.8
     - _SubSurfaceSunFallOff: 4
     - _TexelSize: 0.125

@@ -24,7 +24,6 @@ namespace Crest
         {
             _rend = GetComponent<Renderer>();
             _mesh = GetComponent<MeshFilter>().mesh;
-            _mpb = new MaterialPropertyBlock();
 
             _boundsLocal = _mesh.bounds;
 
@@ -43,6 +42,10 @@ namespace Crest
         {
             // per instance data
 
+            if (_mpb == null)
+            {
+                _mpb = new MaterialPropertyBlock();
+            }
             _rend.GetPropertyBlock(_mpb);
 
             // blend LOD 0 shape in/out to avoid pop, if the ocean might scale up later (it is smaller than its maximum scale)

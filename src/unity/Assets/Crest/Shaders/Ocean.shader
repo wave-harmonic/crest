@@ -349,10 +349,9 @@ Shader "Ocean/Ocean"
 					#if _FOAM_ON
 					ComputeFoam(1. - i.invDeterminant_lodAlpha_worldXZUndisplaced.x, i.invDeterminant_lodAlpha_worldXZUndisplaced.zw, n, i.shorelineFoam_screenPos.x, bubbleCol, whiteFoam);
 					#endif
-					half3 col;
 
 					// Compute color of ocean - in-scattered light + refracted scene
-					col = OceanEmission(view, n, i.n, i.grabPos, i.shorelineFoam_screenPos.yzw, i.vertex.z, bubbleCol);
+					half3 col = OceanEmission(view, n, i.n, i.grabPos, i.shorelineFoam_screenPos.yzw, i.vertex.z, bubbleCol);
 
 					// Reflection
 					half3 refl = reflect(-view, n);

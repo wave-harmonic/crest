@@ -43,7 +43,7 @@ namespace Crest
                 _drawCacheQuad.transform.localEulerAngles = 90f * Vector3.right;
                 _drawCacheQuad.AddComponent<RenderOceanDepth>();
                 var qr = _drawCacheQuad.GetComponent<Renderer>();
-                qr.material = new Material(Shader.Find("Unlit/Texture"));
+                qr.material = new Material(Shader.Find("Ocean/Ocean Depth Cache"));
                 qr.material.mainTexture = _cache;
                 qr.enabled = false;
             }

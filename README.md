@@ -42,6 +42,17 @@ Refraction is also supported, and Schlick's fresnel approximation selects betwee
 The branch *fx_test* explores dynamically generating spray particle effects by randomly sampling points on the surface to detect wave peaks.
 
 
+## Setup
+
+The steps to set up Crest in a new or existing project currently look as follows:
+
+* Copy across the contents of the Crest folder - this has all the components and assets necessary.
+* Drag Crest/Prefabs/Ocean.prefab into your scene(s).
+* Assign the Viewpoint property of the Place Sphere Offset component to your viewer GO - typically Main Camera
+* This should be enough to get something rendering but it won't look very interesting! To add waves, create a new GO and add the Shape Gerster Batched component.
+* A Wave Spectrum component should have automatically been added to this same GO. Tweak the sliders to achieve the desired shape, or use the GUI buttons to use empirical wave spectrum.
+
+
 ## Configuration
 
 The components described above are driven by a small number of key parameters which are trivial to understand and tweak. The primary parameters configure the multi-scale representation. Unless otherwise specified thes parameters reside on the *OceanRenderer* component.

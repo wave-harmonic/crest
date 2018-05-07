@@ -26,20 +26,19 @@ namespace Crest
 
             EditorGUILayout.Space();
 
-            var spEnabled = serializedObject.FindProperty("_powerEnabled");
+            var spDisabled = serializedObject.FindProperty("_powerDisabled");
             EditorGUILayout.BeginHorizontal();
-            bool allOn = true;
-            for( int i = 0; i < spEnabled.arraySize; i++)
+            bool allEnabled = true;
+            for( int i = 0; i < spDisabled.arraySize; i++)
             {
-                if (!spEnabled.GetArrayElementAtIndex(i).boolValue) allOn = false;
+                if (spDisabled.GetArrayElementAtIndex(i).boolValue) allEnabled = false;
             }
-            bool toggle = allOn;
+            bool toggle = allEnabled;
             if (toggle != EditorGUILayout.Toggle(toggle, GUILayout.Width(13f)))
             {
-                bool turnOn = !toggle;
-                for (int i = 0; i < spEnabled.arraySize; i++)
+                for (int i = 0; i < spDisabled.arraySize; i++)
                 {
-                    spEnabled.GetArrayElementAtIndex(i).boolValue = turnOn;
+                    spDisabled.GetArrayElementAtIndex(i).boolValue = toggle;
                 }
             }
             EditorGUILayout.LabelField("Spectrum", EditorStyles.boldLabel);
@@ -53,8 +52,8 @@ namespace Crest
             {
                 EditorGUILayout.BeginHorizontal();
 
-                var spEnabled_i = spEnabled.GetArrayElementAtIndex(i);
-                spEnabled_i.boolValue = EditorGUILayout.Toggle(spEnabled_i.boolValue, GUILayout.Width(15f));
+                var spDisabled_i = spDisabled.GetArrayElementAtIndex(i);
+                spDisabled_i.boolValue = !EditorGUILayout.Toggle(!spDisabled_i.boolValue, GUILayout.Width(15f));
 
                 float smallWL = spec.SmallWavelength(i);
                 EditorGUILayout.LabelField(string.Format("{0}", smallWL), GUILayout.Width(30f));

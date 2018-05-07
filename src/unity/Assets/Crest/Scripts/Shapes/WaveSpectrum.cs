@@ -21,7 +21,7 @@ namespace Crest
         [HideInInspector]
         public float[] _powerLog = new float[NUM_OCTAVES];
         [HideInInspector]
-        public bool[] _powerEnabled = new bool[NUM_OCTAVES];
+        public bool[] _powerDisabled = new bool[NUM_OCTAVES];
 
         [HideInInspector]
         public float _windSpeed = 5f;
@@ -62,7 +62,7 @@ namespace Crest
                 return 0f;
             }
 
-            if (!_powerEnabled[index])
+            if (_powerDisabled[index])
             {
                 return 0f;
             }

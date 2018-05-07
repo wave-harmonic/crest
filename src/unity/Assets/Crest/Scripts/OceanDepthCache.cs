@@ -2,6 +2,9 @@
 
 namespace Crest
 {
+    /// <summary>
+    /// Renders terrain height / ocean depth once into a render target to cache this off and avoid rendering it every frame.
+    /// </summary>
     public class OceanDepthCache : MonoBehaviour
     {
         public bool _populateOnStartup = true;
@@ -10,6 +13,7 @@ namespace Crest
 
         RenderTexture _cache;
         GameObject _drawCacheQuad;
+        Camera _camDepthCache;
 
         void Start()
         {
@@ -44,21 +48,25 @@ namespace Crest
                 qr.enabled = false;
             }
 
-            var cam = new GameObject("DepthCacheCam").AddComponent<Camera>();
-            cam.transform.position = transform.position + Vector3.up * 10f;
-            cam.transform.parent = transform;
-            cam.transform.localEulerAngles = 90f * Vector3.right;
-            cam.orthographic = true;
-            cam.orthographicSize = Mathf.Max(transform.lossyScale.x / 2f, transform.lossyScale.z / 2f);
-            cam.targetTexture = _cache;
-            cam.cullingMask = _mask;
-            cam.clearFlags = CameraClearFlags.SolidColor;
-            cam.backgroundColor = Color.red * 10000f;
-            cam.enabled = false;
-            cam.allowMSAA = false;
-            cam.RenderWithShader(Shader.Find("Ocean/Ocean Depth"), null);
-            // I'd prefer to destroy the cam object, but sometimes (on first start of editor) it will fail to render.
-            cam.gameObject.SetActive(false);
+            if (_camDepthCache == null)
+            {
+                _camDepthCache = new GameObject("DepthCacheCam").AddComponent<Camera>();
+                _camDepthCache.transform.position = transform.position + Vector3.up * 10f;
+                _camDepthCache.transform.parent = transform;
+                _camDepthCache.transform.localEulerAngles = 90f * Vector3.right;
+                _camDepthCache.orthographic = true;
+                _camDepthCache.orthographicSize = Mathf.Max(transform.lossyScale.x / 2f, transform.lossyScale.z / 2f);
+                _camDepthCache.targetTexture = _cache;
+                _camDepthCache.cullingMask = _mask;
+                _camDepthCache.clearFlags = CameraClearFlags.SolidColor;
+                _camDepthCache.backgroundColor = Color.red * 10000f;
+                _camDepthCache.enabled = false;
+                _camDepthCache.allowMSAA = false;
+                // I'd prefer to destroy the cam object, but I found sometimes (on first start of editor) it will fail to render.
+                _camDepthCache.gameObject.SetActive(false);
+            }
+
+            _camDepthCache.RenderWithShader(Shader.Find("Ocean/Ocean Depth"), null);
         }
 
         void OnDrawGizmosSelected()

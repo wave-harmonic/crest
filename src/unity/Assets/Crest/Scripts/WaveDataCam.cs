@@ -151,11 +151,22 @@ namespace Crest
             _bufOceanDepth.Clear();
 
             _bufOceanDepth.SetRenderTarget( _rtOceanDepth );
-            _bufOceanDepth.ClearRenderTarget( false, true, Color.red * 10000.0f );
+            _bufOceanDepth.ClearRenderTarget( false, true, Color.red * 10000f );
 
             foreach (var obj in objs)
             {
-                _bufOceanDepth.DrawRenderer(obj.GetComponent<Renderer>(), _matOceanDepth);
+                if (!obj.enabled)
+                    continue;
+
+                var r = obj.GetComponent<Renderer>();
+                if (obj.transform.parent != null && obj.transform.parent.GetComponent<OceanDepthCache>() != null)
+                {
+                    _bufOceanDepth.DrawRenderer(r, r.material);
+                }
+                else
+                {
+                    _bufOceanDepth.DrawRenderer(r, _matOceanDepth);
+                }
             }
         }
 

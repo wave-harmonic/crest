@@ -47,13 +47,13 @@ The branch *fx_test* explores dynamically generating spray particle effects by r
 The steps to set up Crest in a new or existing project currently look as follows:
 
 * Copy across the contents of the *Crest* folder - this has all the necessary components and assets. Be sure to include the .meta files.
-* Drag *Crest/Prefabs/Ocean.prefab* into your scene(s). This will generate the ocean geometry and initialise the ocean systems.
+* Drag *Crest/Prefabs/Ocean.prefab* into your scene(s). On startup, this will generate the ocean geometry and initialise the ocean systems.
 * Assign the *Viewpoint* property of the *Place Sphere Offset* component to your main camera object.
 * To add waves, create a new GameObject and add the *Shape Gerster Batched* component.
 * A *Wave Spectrum* component should have automatically been added to this same GO. Tweak the sliders to achieve the desired shape, or use the GUI buttons to use empirical wave spectrum.
 * For geometry that should interact with the ocean (attenuate waves, generate foam):
- * Static geometry should render ocean depth just once on startup into an *Ocean Depth Cache*.
- * Dynamic objects that need to render depth every frame should have a *Render Ocean Depth* component attached.
+  * Static geometry should render ocean depth just once on startup into an *Ocean Depth Cache*.
+  * Dynamic objects that need to render depth every frame should have a *Render Ocean Depth* component attached.
 
 Enjoy!
 

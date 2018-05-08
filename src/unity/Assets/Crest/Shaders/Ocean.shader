@@ -308,9 +308,10 @@ Shader "Ocean/Ocean"
 					// Approximate subsurface scattering - add light when surface faces viewer. Use geometry normal - don't need high freqs.
 					half towardsSun = pow(max(0., dot(_WorldSpaceLightPos0.xyz, -view)), _SubSurfaceSunFallOff);
 					col += (_SubSurfaceBase + _SubSurfaceSun * towardsSun) * dot(n_geom, view) * _SubSurfaceColour;
+					#endif
+
 					// Multiply by main light colour - not sure how well this will work yet
 					col *= _LightColor0;
-					#endif
 
 					col += bubbleCol;
 
@@ -370,7 +371,7 @@ Shader "Ocean/Ocean"
 					col = lerp(col, 1.*skyColor, R_theta);
 
 					// Override final result with white foam - bubbles on surface
-					col = lerp(col.xyz, _FoamWhiteColor, whiteFoam);
+					col = lerp(col.xyz, _FoamWhiteColor.rgb, whiteFoam);
 
 					// Fog
 					UNITY_APPLY_FOG(i.fogCoord, col);

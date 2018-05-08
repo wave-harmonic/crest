@@ -84,6 +84,7 @@ Material:
     - _Offset: 0.00008
     - _RefractAmt: 0
     - _S: 1
+    - _ShorelineFoamMaxDepth: 1.5
     - _StartLevel: 0.157
     - _SubSurfaceBase: 0.6
     - _SubSurfaceScattering: 1

@@ -21,7 +21,8 @@ Shader "Ocean/Ocean"
 		[NoScaleOffset] _FoamTexture ( "Foam Texture", 2D ) = "white" {}
 		_FoamScale("Foam Scale", Range(0.0, 50.0)) = 10.0
 		_FoamWhiteColor("White Foam Color", Color) = (1.0, 1.0, 1.0, 1.0)
-		_FoamBubbleColor ( "Bubble Foam Color", Color ) = (0.0, 0.0904, 0.105, 1.0)
+		_FoamBubbleColor("Bubble Foam Color", Color) = (0.0, 0.0904, 0.105, 1.0)
+		_ShorelineFoamMaxDepth("Shoreline Foam Max Depth", Range(0.0,10.0)) = 1.5
 		_DepthFogDensity("Depth Fog Density", Color) = (0.28, 0.16, 0.24, 1.0)
 		_FresnelPower("Fresnel Power", Range(0.0,20.0)) = 3.0
 		[Toggle] _DebugShapeSample("Debug Shape Sample", Float) = 0
@@ -84,6 +85,7 @@ Shader "Ocean/Ocean"
 				#include "OceanLODData.cginc"
 
 				uniform float3 _OceanCenterPosWorld;
+				uniform half _ShorelineFoamMaxDepth;
 
 				// INSTANCE PARAMS
 
@@ -132,7 +134,7 @@ Shader "Ocean/Ocean"
 					// foam from shallow water - signed depth is depth compared to sea level, plus wave height. depth bias is an optimisation
 					// which allows the depth data to be initialised once to 0 without generating foam everywhere.
 					half signedDepth = (tex2Dlod(i_oceanDepthSampler, uv).x + DEPTH_BIAS) + disp.y ;
-					io_shorelineFoam += wt * clamp( 1. - signedDepth / 1.5, 0., 1.);
+					io_shorelineFoam += wt * clamp( 1. - signedDepth / _ShorelineFoamMaxDepth, 0., 1.);
 				}
 
 				v2f vert( appdata_t v )
@@ -223,6 +225,7 @@ Shader "Ocean/Ocean"
 				uniform half4 _Diffuse;
 				uniform half _DirectionalLightFallOff;
 				uniform half _DirectionalLightBoost;
+
 				uniform half4 _SubSurfaceColour;
 				uniform half _SubSurfaceBase;
 				uniform half _SubSurfaceSun;
@@ -230,9 +233,11 @@ Shader "Ocean/Ocean"
 
 				uniform half4 _DepthFogDensity;
 				uniform samplerCUBE _Skybox;
+
 				uniform sampler2D _FoamTexture;
 				uniform half4 _FoamWhiteColor;
 				uniform half4 _FoamBubbleColor;
+
 				uniform sampler2D _Normals;
 				uniform half _NormalsStrength;
 				uniform half _NormalsScale;

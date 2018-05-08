@@ -51,7 +51,9 @@ The steps to set up Crest in a new or existing project currently look as follows
 * Assign the *Viewpoint* property of the *Place Sphere Offset* component to your main camera object.
 * To add waves, create a new GameObject and add the *Shape Gerster Batched* component.
 * A *Wave Spectrum* component should have automatically been added to this same GO. Tweak the sliders to achieve the desired shape, or use the GUI buttons to use empirical wave spectrum.
-* Any terrain that should interact with the ocean (attenuate waves, generate foam) should have a *Render Ocean Depth* script attached.
+* For geometry that should interact with the ocean (attenuate waves, generate foam):
+ * Static geometry should render ocean depth just once on startup into an *Ocean Depth Cache*.
+ * Dynamic objects that need to render depth every frame should have a *Render Ocean Depth* component attached.
 
 Enjoy!
 

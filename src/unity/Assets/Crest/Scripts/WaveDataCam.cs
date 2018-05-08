@@ -159,7 +159,11 @@ namespace Crest
                     continue;
 
                 var r = obj.GetComponent<Renderer>();
-                if (obj.transform.parent != null && obj.transform.parent.GetComponent<OceanDepthCache>() != null)
+                if (r == null)
+                {
+                    Debug.LogError("GameObject '" + obj.gameObject.name + "' must have a renderer component attached. Unity Terrain objects are not supported - these must be captured by an Ocean Depth Cache.", obj);
+                }
+                else if (obj.transform.parent != null && obj.transform.parent.GetComponent<OceanDepthCache>() != null)
                 {
                     _bufOceanDepth.DrawRenderer(r, r.material);
                 }

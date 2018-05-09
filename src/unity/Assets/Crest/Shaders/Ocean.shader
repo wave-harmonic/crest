@@ -297,15 +297,15 @@ Shader "Ocean/Ocean"
 					// > 1: Stretch
 					// < 1: Squash
 					// < 0: Overlap
-					half foamAmount = smoothstep(1.6, 0., i_determinant);
-					foamAmount = foamAmount + i_shorelineFoam;
+					half foamAmount = 1.7*smoothstep(1.6, 0., i_determinant);
+					foamAmount = foamAmount * foamAmount + i_shorelineFoam;
 
 					// Additive underwater foam
 					half bubbleFoam = smoothstep( 0.0, 0.5, foamAmount * bubbleFoamTexValue);
 					o_bubbleCol = bubbleFoam * _FoamBubbleColor.rgb * _FoamBubbleColor.a;
 
 					// White foam on top, with black-point fading
-					o_whiteFoam = foamTexValue * (smoothstep(1.0 - foamAmount, 1.3 - foamAmount, foamTexValue)) * _FoamWhiteColor.a;
+					o_whiteFoam = foamTexValue * (smoothstep(0.9 - foamAmount, 1.4 - foamAmount, foamTexValue)) * _FoamWhiteColor.a;
 				}
 
 				half3 OceanEmission(half3 view, half3 n, half3 n_geom, half4 grabPos, half3 screenPos, float z01, half3 bubbleCol)

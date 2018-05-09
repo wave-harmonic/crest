@@ -15,7 +15,7 @@ Shader "Ocean/Ocean"
 		[Toggle] _SubSurfaceScattering("Sub-Surface Scattering", Float) = 1
 		_SubSurfaceColour("Sub-Surface Scattering Colour", Color) = (0.0, 0.48, 0.36, 1.)
 		_SubSurfaceBase("Sub-Surface Scattering Base Mul", Range(0.0, 2.0)) = 0.6
-		_SubSurfaceSun("Sub-Surface Scattering Sun Mul", Range(0.0, 2.0)) = 0.8
+		_SubSurfaceSun("Sub-Surface Scattering Sun Mul", Range(0.0, 10.0)) = 0.8
 		_SubSurfaceSunFallOff("Sub-Surface Scattering Sun Fall-Off", Range(1.0, 16.0)) = 4.0
 		[Toggle] _Foam("Foam", Float) = 1
 		[NoScaleOffset] _FoamTexture ( "Foam Texture", 2D ) = "white" {}
@@ -380,7 +380,7 @@ Shader "Ocean/Ocean"
 					float R_0 = (IOR_AIR - IOR_WATER) / (IOR_AIR + IOR_WATER); R_0 *= R_0;
 					// schlick's approximation
 					float R_theta = R_0 + (1.0 - R_0) * pow(1.0 - dot(n, view), _FresnelPower);
-					col = lerp(col, 1.*skyColor, R_theta);
+					col = lerp(col, skyColor, R_theta);
 
 					// Override final result with white foam - bubbles on surface
 					col = lerp(col.xyz, _FoamWhiteColor.rgb, whiteFoam);

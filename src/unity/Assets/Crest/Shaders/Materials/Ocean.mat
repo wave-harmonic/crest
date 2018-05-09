@@ -80,7 +80,7 @@ Material:
     - _MipBias: 0
     - _Moving: 0.17
     - _NormalsScale: 36
-    - _NormalsStrength: 0.3
+    - _NormalsStrength: 0.25
     - _Offset: 0.00008
     - _RefractAmt: 0
     - _S: 1
@@ -88,15 +88,15 @@ Material:
     - _StartLevel: 0.157
     - _SubSurfaceBase: 0.6
     - _SubSurfaceScattering: 1
-    - _SubSurfaceSun: 0.8
-    - _SubSurfaceSunFallOff: 4
+    - _SubSurfaceSun: 10
+    - _SubSurfaceSunFallOff: 12
     - _TexelSize: 0.125
     - _TextureRes: 1024
     - _Update: 0.083
     m_Colors:
     - _DepthFogDensity: {r: 0.28, g: 0.16, b: 0.24, a: 1}
-    - _Diffuse: {r: 0.04044801, g: 0.15239102, b: 0.316, a: 1}
+    - _Diffuse: {r: 0, g: 0.1486875, b: 0.366, a: 1}
     - _FoamBubbleColor: {r: 0.018747993, g: 0.109, b: 0.10033577, a: 1}
     - _FoamWhiteColor: {r: 1, g: 1, b: 1, a: 1}
     - _SubSurface: {r: 0, g: 0.48, b: 0.36, a: 1}
-    - _SubSurfaceColour: {r: 0, g: 0.48, b: 0.36, a: 1}
+    - _SubSurfaceColour: {r: 0, g: 0.404, b: 0.303, a: 1}

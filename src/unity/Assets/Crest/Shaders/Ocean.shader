@@ -23,6 +23,7 @@ Shader "Ocean/Ocean"
 		_FoamWhiteColor("White Foam Color", Color) = (1.0, 1.0, 1.0, 1.0)
 		_FoamBubbleColor("Bubble Foam Color", Color) = (0.0, 0.0904, 0.105, 1.0)
 		_ShorelineFoamMaxDepth("Shoreline Foam Max Depth", Range(0.0,10.0)) = 1.5
+		[Toggle] _Transparency("Transparency", Float) = 1
 		_DepthFogDensity("Depth Fog Density", Color) = (0.28, 0.16, 0.24, 1.0)
 		_FresnelPower("Fresnel Power", Range(0.0,20.0)) = 3.0
 		[Toggle] _DebugShapeSample("Debug Shape Sample", Float) = 0
@@ -51,9 +52,11 @@ Shader "Ocean/Ocean"
 				#pragma multi_compile_fog
 				#pragma shader_feature _COMPUTEDIRECTIONALLIGHT_ON
 				#pragma shader_feature _SUBSURFACESCATTERING_ON
+				#pragma shader_feature _TRANSPARENCY_ON
 				#pragma shader_feature _FOAM_ON
 				#pragma shader_feature _DEBUGSHAPESAMPLE_ON
 				#pragma shader_feature _DEBUGDISABLESMOOTHLOD_ON
+
 				#include "UnityCG.cginc"
 				#include "TextureBombing.cginc"
 
@@ -320,6 +323,7 @@ Shader "Ocean/Ocean"
 
 					col += bubbleCol;
 
+					#if _TRANSPARENCY_ON
 					half2 uvBackgroundRefract = grabPos.xy / grabPos.w + .02 * n.xz;
 					half2 uvDepth = screenPos.xy / screenPos.z;
 					half2 uvDepthRefract = uvDepth +.02 * n.xz;
@@ -338,7 +342,10 @@ Shader "Ocean/Ocean"
 					}
 
 					half3 sceneColour = texture(_BackgroundTexture, uvBackgroundRefract).rgb;
-					return lerp(sceneColour, col, alpha);
+					col = lerp(sceneColour, col, alpha);
+					#endif
+
+					return col;
 				}
 
 				half3 frag(v2f i) : SV_Target

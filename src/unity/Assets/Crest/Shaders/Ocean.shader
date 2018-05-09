@@ -24,7 +24,7 @@ Shader "Ocean/Ocean"
 		_FoamBubbleColor("Bubble Foam Color", Color) = (0.0, 0.0904, 0.105, 1.0)
 		_ShorelineFoamMaxDepth("Shoreline Foam Max Depth", Range(0.0,10.0)) = 1.5
 		[Toggle] _Transparency("Transparency", Float) = 1
-		_DepthFogDensity("Depth Fog Density", Color) = (0.28, 0.16, 0.24, 1.0)
+		_DepthFogDensity("Depth Fog Density", Vector) = (0.28, 0.16, 0.24, 1.0)
 		_FresnelPower("Fresnel Power", Range(0.0,20.0)) = 3.0
 		[Toggle] _DebugShapeSample("Debug Shape Sample", Float) = 0
 		[Toggle] _DebugDisableSmoothLOD("Debug Disable Smooth LOD", Float) = 0

@@ -46,6 +46,7 @@ The branch *fx_test* explores dynamically generating spray particle effects by r
 
 The steps to set up Crest in a new or existing project currently look as follows:
 
+* Switch your project to Linear space under *Edit > Project Settings > Player > Other Settings*. If your platform(s) require Gamma space, the surface colours will need to be tweaked accordingly.
 * Copy across the contents of the *Crest* folder - this has all the necessary components and assets. Be sure to include the .meta files.
 * Drag *Crest/Prefabs/Ocean.prefab* into your scene(s). On startup, this will generate the ocean geometry and initialise the ocean systems.
 * Assign the *Viewpoint* property of the *Place Sphere Offset* component to your main camera object.

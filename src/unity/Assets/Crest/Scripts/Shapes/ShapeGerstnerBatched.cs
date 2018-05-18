@@ -1,6 +1,8 @@
 ﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Profiling;
 using UnityEngine.Rendering;
 
 namespace Crest
@@ -21,9 +23,13 @@ namespace Crest
 
         // data for all components
         float[] _wavelengths;
+        float[] _waveSpeed;
         float[] _amplitudes;
         float[] _angleDegs;
         float[] _phases;
+        List<int> _mostSignificant=new List<int>();
+
+        public float m_SignificantThresholdForCPU = 0.01f; //amplitude needed to use it for CPU water height calc
 
         // useful references
         WaveSpectrum _spectrum;
@@ -49,6 +55,7 @@ namespace Crest
 
         void Update()
         {
+            m_Recent.Clear();
             // Set random seed to get repeatable results
             Random.State randomStateBkp = Random.state;
             Random.InitState(_randomSeed);
@@ -74,14 +81,23 @@ namespace Crest
 
         void UpdateAmplitudes()
         {
+            _mostSignificant.Clear();
             if (_amplitudes == null || _amplitudes.Length != _wavelengths.Length)
             {
                 _amplitudes = new float[_wavelengths.Length];
             }
-
+            if (_waveSpeed == null || _waveSpeed.Length != _wavelengths.Length)
+            {
+                _waveSpeed = new float[_wavelengths.Length];
+            }
             for (int i = 0; i < _wavelengths.Length; i++)
             {
+                _waveSpeed[i] = ComputeWaveSpeed(_wavelengths[i]);
                 _amplitudes[i] = _spectrum.GetAmplitude(_wavelengths[i]);
+                if (_amplitudes[i] > m_SignificantThresholdForCPU)
+                {
+                    _mostSignificant.Add(i);
+                }
             }
         }
 
@@ -348,6 +364,92 @@ namespace Crest
             return result;
         }
 
+        public bool m_Approx = true;
+
+        public float SinCos(float x,out float cos)
+        {
+//            if (!m_Approx)
+            {
+                cos = Mathf.Cos(x);
+                return Mathf.Sin(x);
+            }
+//            cos = Mathf.Cos(x);
+//            return Mathf.Sqrt(1 - cos * cos);
+
+
+            /*
+                        float xf = Mathf.Floor(x / (Mathf.PI * 2));
+                        x -= xf * Mathf.PI * 2;
+                        const float B = 4 / Mathf.PI;
+                        const float C = -4 / (Mathf.PI * Mathf.PI);
+
+                        float Sin= -(B * x + C * x * ((x < 0) ? -x : x));
+
+                        cos = Mathf.Sqrt(1 - Sin * Sin);
+
+                        return Sin;
+            */
+        }
+
+        Dictionary<uint,Vector3> m_Recent=new Dictionary<uint, Vector3>();
+
+        uint CalcHash(Vector3 _wp)
+        {
+            _wp *= 10;
+            return (uint)((_wp.x+32000)+(_wp.z+32000)*65000);
+        }
+        public Vector3 GetDisplacementFast(ref Vector3 worldPos, float toff)
+        {
+            uint hash = CalcHash(worldPos);
+            Vector3 h;
+            if (m_Recent.TryGetValue(hash, out h))
+            {
+                return h;
+            }
+
+
+
+
+
+            if (_amplitudes == null) return Vector3.zero;
+
+            Vector2 pos = new Vector2(worldPos.x, worldPos.z);
+            float chop = OceanRenderer.Instance._chop;
+            float mytime = OceanRenderer.Instance.ElapsedTime + toff;
+            float windAngle = OceanRenderer.Instance._windDirectionAngle;
+
+            Vector3 result = Vector3.zero;
+            
+
+            for (int i = 0; i < _mostSignificant.Count; i++)
+            {
+                int j = _mostSignificant[i];
+                float C = _waveSpeed[j];//ComputeWaveSpeed(_wavelengths[j]);
+
+                // direction
+
+                float cosA;
+                float sinA = SinCos((windAngle + _angleDegs[j]) * Mathf.Deg2Rad, out cosA);
+
+
+                //Vector2 D = new Vector2(cosA, sinA);
+                // wave number
+                float k = 2f * Mathf.PI / _wavelengths[j];
+
+                float x = cosA * pos.x + sinA * pos.y;//Vector2.Dot(D, pos);
+                float t = k * (x + C * mytime) + _phases[j];
+                float cosT=Mathf.Cos(t);
+//                float sinT = SinCos(t, out cosT);
+
+                
+//                float disp = -chop * sinT;
+
+                //result += _amplitudes[j] * new Vector3(D.x * disp,cosT,D.y * disp);
+                result.y += _amplitudes[j] * cosT;
+            }
+            m_Recent.Add(hash,result);
+            return result;
+        }
         // compute normal to a surface with a parameterization - equation 14 here: http://mathworld.wolfram.com/NormalVector.html
         public Vector3 GetNormal(ref Vector3 worldPos, float toff)
         {
@@ -389,14 +491,25 @@ namespace Crest
 
         public float GetHeightExpensive(ref Vector3 worldPos, float toff)
         {
+            Profiler.BeginSample("GetHeightExpensive");
             Vector3 posFlatland = worldPos;
             posFlatland.y = OceanRenderer.Instance.transform.position.y;
 
             Vector3 undisplacedPos = GetPositionDisplacedToPositionExpensive(ref posFlatland, toff);
 
-            return posFlatland.y + GetDisplacement(ref undisplacedPos, toff).y;
+            var ret= posFlatland.y + GetDisplacement(ref undisplacedPos, toff).y;
+            Profiler.EndSample();
+            return ret;
         }
-
+        public float GetHeightFast(ref Vector3 worldPos, float toff)
+        {
+            Profiler.BeginSample("GetHeightFast");
+            Vector3 posFlatland = worldPos;
+            posFlatland.y = OceanRenderer.Instance.transform.position.y;
+            var ret= posFlatland.y + GetDisplacementFast(ref worldPos, toff).y;
+            Profiler.EndSample();
+            return ret;
+        }
         public Vector3 GetSurfaceVelocity(ref Vector3 worldPos, float toff)
         {
             if (_amplitudes == null) return Vector3.zero;

@@ -283,7 +283,7 @@ Shader "Ocean/Ocean"
 					io_n = normalize(io_n);
 				}
 
-				void ComputeFoam( half i_determinant, float2 i_worldXZUndisplaced, half3 i_n, half i_shorelineFoam, out half3 o_bubbleCol, out half o_whiteFoam )
+				void ComputeFoam( half i_determinant, float2 i_worldXZUndisplaced, half3 i_n, half i_shorelineFoam, float i_pixelZ, float i_sceneZ, out half3 o_bubbleCol, out half o_whiteFoam )
 				{
 					// Give the foam some texture
 					float2 foamUV = (i_worldXZUndisplaced + 0.5 * _MyTime * _WindDirXZ) / _FoamScale;
@@ -299,6 +299,8 @@ Shader "Ocean/Ocean"
 					// < 0: Overlap
 					half foamAmount = 1.7*smoothstep(1.6, 0., i_determinant);
 					foamAmount = foamAmount * foamAmount + i_shorelineFoam;
+					// feather foam very close to shore
+					foamAmount *= saturate((i_sceneZ - i_pixelZ) / 0.15);
 
 					// Additive underwater foam
 					half bubbleFoam = smoothstep( 0.0, 0.5, foamAmount * bubbleFoamTexValue);
@@ -308,7 +310,7 @@ Shader "Ocean/Ocean"
 					o_whiteFoam = foamTexValue * (smoothstep(0.9 - foamAmount, 1.4 - foamAmount, foamTexValue)) * _FoamWhiteColor.a;
 				}
 
-				half3 OceanEmission(half3 view, half3 n, half3 n_geom, half4 grabPos, half3 screenPos, float z01, half3 bubbleCol)
+				half3 OceanEmission(half3 view, half3 n, half3 n_geom, half4 grabPos, half3 screenPos, float pixelZ, half2 uvDepth, float sceneZ, half3 bubbleCol)
 				{
 					half3 col = _Diffuse;
 
@@ -325,12 +327,8 @@ Shader "Ocean/Ocean"
 
 					#if _TRANSPARENCY_ON
 					half2 uvBackgroundRefract = grabPos.xy / grabPos.w + .02 * n.xz;
-					half2 uvDepth = screenPos.xy / screenPos.z;
 					half2 uvDepthRefract = uvDepth +.02 * n.xz;
 					half3 alpha = (half3)1.;
-
-					float pixelZ = LinearEyeDepth(z01);
-					float sceneZ = LinearEyeDepth(texture(_CameraDepthTexture, uvDepth).x);
 
 					// if we haven't refracted onto a surface in front of the water surface, compute an alpha based on Z delta
 					if (sceneZ > pixelZ)
@@ -352,6 +350,12 @@ Shader "Ocean/Ocean"
 				{
 					half3 view = normalize(_WorldSpaceCameraPos - i.worldPos);
 
+					// water surface depth, and underlying scene opaque surface depth
+					float pixelZ = LinearEyeDepth(i.vertex.z);
+					half3 screenPos = i.shorelineFoam_screenPos.yzw;
+					half2 uvDepth = screenPos.xy / screenPos.z;
+					float sceneZ = LinearEyeDepth(texture(_CameraDepthTexture, uvDepth).x);
+
 					// Normal - geom + normal mapping
 					half3 n = i.n;
 					ApplyNormalMaps(i.invDeterminant_lodAlpha_worldXZUndisplaced.zw, i.invDeterminant_lodAlpha_worldXZUndisplaced.y, n);
@@ -360,11 +364,11 @@ Shader "Ocean/Ocean"
 					half whiteFoam = 0.;
 					half3 bubbleCol = (half3)0.;
 					#if _FOAM_ON
-					ComputeFoam(1. - i.invDeterminant_lodAlpha_worldXZUndisplaced.x, i.invDeterminant_lodAlpha_worldXZUndisplaced.zw, n, i.shorelineFoam_screenPos.x, bubbleCol, whiteFoam);
+					ComputeFoam(1. - i.invDeterminant_lodAlpha_worldXZUndisplaced.x, i.invDeterminant_lodAlpha_worldXZUndisplaced.zw, n, i.shorelineFoam_screenPos.x, pixelZ, sceneZ, bubbleCol, whiteFoam);
 					#endif
 
 					// Compute color of ocean - in-scattered light + refracted scene
-					half3 col = OceanEmission(view, n, i.n, i.grabPos, i.shorelineFoam_screenPos.yzw, i.vertex.z, bubbleCol);
+					half3 col = OceanEmission(view, n, i.n, i.grabPos, screenPos, pixelZ, uvDepth, sceneZ, bubbleCol);
 
 					// Reflection
 					half3 refl = reflect(-view, n);

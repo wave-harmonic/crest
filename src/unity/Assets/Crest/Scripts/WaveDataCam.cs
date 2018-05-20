@@ -137,7 +137,6 @@ namespace Crest
 
             _copyCollDataTime = sw.ElapsedMilliseconds;
         }
-        }
 
         private void OnDestroy()
         {

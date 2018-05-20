@@ -110,7 +110,7 @@ namespace Crest
             float newScale = Mathf.Pow(2f, l2f);
             transform.localScale = new Vector3(newScale, 1f, newScale);
 
-            float maxWavelength = MaxWavelength(Builder.CurrentLodCount - 1);
+            float maxWavelength = Builder._shapeWDCs[Builder._shapeWDCs.Length - 1].MaxWavelength();
             Shader.SetGlobalFloat("_MaxWavelength", _acceptLargeWavelengthsInLastLOD ? maxWavelength : 1e10f);
             Shader.SetGlobalFloat("_ViewerAltitudeLevelAlpha", _viewerAltitudeLevelAlpha);
         }
@@ -135,14 +135,6 @@ namespace Crest
         public void RegenMesh()
         {
             _oceanBuilder.GenerateMesh( MakeBuildParams() );
-        }
-
-        public float MaxWavelength(int lodIndex)
-        {
-            float oceanBaseScale = transform.lossyScale.x;
-            float maxDiameter = 4f * oceanBaseScale * Mathf.Pow(2f, lodIndex);
-            float maxTexelSize = maxDiameter / (4f * _baseVertDensity);
-            return 2f * maxTexelSize * _minTexelsPerWave;
         }
 
         public bool ScaleCouldIncrease { get { return _maxScale == -1f || transform.localScale.x < _maxScale * 0.99f; } }

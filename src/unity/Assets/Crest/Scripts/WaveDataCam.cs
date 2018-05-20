@@ -64,6 +64,14 @@ namespace Crest
             }
         }
 
+        public float MaxWavelength()
+        {
+            float oceanBaseScale = OceanRenderer.Instance.transform.lossyScale.x;
+            float maxDiameter = 4f * oceanBaseScale * Mathf.Pow(2f, _lodIndex);
+            float maxTexelSize = maxDiameter / (4f * OceanRenderer.Instance._baseVertDensity);
+            return 2f * maxTexelSize * OceanRenderer.Instance._minTexelsPerWave;
+        }
+
         // script execution order ensures this runs after ocean has been placed
         public void LateUpdate()
         {
@@ -107,11 +115,11 @@ namespace Crest
         // apply this camera's properties to the shape combine materials
         void LateUpdateShapeCombinePassSettings()
         {
-            var cams = OceanRenderer.Instance.Builder._shapeCameras;
             ApplyMaterialParams(0, new PropertyWrapperMaterial(_combineMaterial));
             if (_lodIndex > 0)
             {
-                ApplyMaterialParams(1, new PropertyWrapperMaterial(cams[_lodIndex - 1].GetComponent<WaveDataCam>()._combineMaterial));
+                var wdcs = OceanRenderer.Instance.Builder._shapeWDCs;
+                ApplyMaterialParams(1, new PropertyWrapperMaterial(wdcs[_lodIndex - 1]._combineMaterial));
             }
         }
 
@@ -199,7 +207,7 @@ namespace Crest
                 for (int L = cams.Length - 2; L >= 0; L--)
                 {
                     // accumulate shape data down the LOD chain - combine L+1 into L
-                    var mat = cams[L].GetComponent<WaveDataCam>()._combineMaterial;
+                    var mat = OceanRenderer.Instance.Builder._shapeWDCs[L]._combineMaterial;
                     _bufCombineShapes.Blit(cams[L + 1].targetTexture, cams[L].targetTexture, mat);
                 }
             }

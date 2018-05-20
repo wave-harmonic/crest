@@ -115,6 +115,11 @@ namespace Crest
             Shader.SetGlobalFloat("_ViewerAltitudeLevelAlpha", _viewerAltitudeLevelAlpha);
         }
 
+        private void OnDestroy()
+        {
+            _instance = null;
+        }
+
         OceanBuilder.Params MakeBuildParams()
         {
             return new OceanBuilder.Params

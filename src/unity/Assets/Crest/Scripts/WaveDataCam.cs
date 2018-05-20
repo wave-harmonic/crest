@@ -70,6 +70,11 @@ namespace Crest
 
         private void Update()
         {
+            // beginning of update turns out to be a good time to sample the displacement textures. i had
+            // issues doing this in post render because there is a follow up pass for the lod0 camera which
+            // combines shape textures, and this pass was not included.
+            EnqueueReadbackRequest(cam.targetTexture);
+
             _renderData._posSnappedLast = _renderData._posSnapped;
 
             // shape combine pass done by last shape camera - lod 0
@@ -129,35 +134,27 @@ namespace Crest
                         _requests.Dequeue();
                     }
                 }
-
-                //Profiler.BeginSample("Sample data");
-                //if(_lodIndex ==3)
-                //{
-                //    //var x = 250f; var z = 250f;
-                //    //var pix = _tex[readIndex].GetPixelBilinear(x / 500f, z / 500f);
-                //    var rt = cam.targetTexture;
-                //    int centerIdx = rt.width * rt.height / 2 + rt.width / 2;
-                //    Vector3 sample;
-                //    sample.x = Mathf.HalfToFloat(_collDataNative[centerIdx * 4 + 0]);
-                //    sample.y = Mathf.HalfToFloat(_collDataNative[centerIdx * 4 + 1]);
-                //    sample.z = Mathf.HalfToFloat(_collDataNative[centerIdx * 4 + 2]);
-                //    Debug.DrawLine(Vector3.zero, sample);
-                //    Debug.Log(sample);
-                //    //_marker.transform.position = new Vector3(x + _lastSample.r, _lastSample.g, z + _lastSample.b);
-                //}
-                //Profiler.EndSample();
             }
 
-            if (_lodIndex == 3)
+            if (_lodIndex == 0)
             {
+                if (_marker == null)
+                {
+                    _marker = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                    Destroy(_marker.GetComponent<Collider>());
+                }
+
                 var query = Camera.main.transform.position + Camera.main.transform.forward * 10f;
                 query.y = 0f;
                 var disp = SampleDisplacement(query);
                 Debug.DrawLine(query, query + disp);
+                _marker.transform.position = query + disp;
             }
 
             _copyCollDataTime = sw.ElapsedMilliseconds;
         }
+
+        GameObject _marker;
 
         private void OnDestroy()
         {
@@ -315,7 +312,7 @@ namespace Crest
             }
         }
 
-        private void OnPostRender()
+        public void EnqueueReadbackRequest(RenderTexture target)
         {
             if (_useAsync)
             {
@@ -331,6 +328,17 @@ namespace Crest
                 }
             }
         }
+
+        //private void OnPostRender()
+        //{
+        //    if (_lodIndex == 0)
+        //    {
+        //        foreach(var wdc in OceanRenderer.Instance.Builder._shapeWDCs)
+        //        {
+        //            wdc.EnqueueReadbackRequest(wdc.GetComponent<Camera>().targetTexture);
+        //        }
+        //    }
+        //}
 
         // executed once per frame - attached to the LOD0 camera
         void UpdateCmdBufShapeCombine()

@@ -377,14 +377,13 @@ namespace Crest
                 // recalculate bounds. add a little allowance for snapping. in the chunk renderer script, the bounds will be expanded further
                 // to allow for horizontal displacement
                 mesh.RecalculateBounds();
-                Bounds bounds = mesh.bounds;                bounds.extents = new Vector3(bounds.extents.x + dx, parms._maxWaveHeight, bounds.extents.z + dx);                mesh.bounds = bounds;
-
+                Bounds bounds = mesh.bounds;
+                bounds.extents = new Vector3(bounds.extents.x + dx, parms._maxWaveHeight, bounds.extents.z + dx);
+                mesh.bounds = bounds;
                 mesh.name = pt.ToString();
             }
-
             return mesh;
         }
-
         GameObject CreateLOD( int lodIndex, bool biggestLOD, Mesh[] meshData, Params parms )
         {
             // first create parent gameobject for the lod level. the scale of this transform sets the size of the lod.

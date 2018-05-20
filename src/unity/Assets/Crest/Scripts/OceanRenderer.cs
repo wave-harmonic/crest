@@ -140,6 +140,36 @@ namespace Crest
         public bool ScaleCouldIncrease { get { return _maxScale == -1f || transform.localScale.x < _maxScale * 0.99f; } }
         public bool ScaleCouldDecrease { get { return _minScale == -1f || transform.localScale.x > _minScale * 1.01f; } }
 
+        /// <summary>
+        /// Returns index of lod that completely covers the sample area, and contains wavelengths that repeat no more than twice across the smaller
+        /// spatial length. If no such lod available, returns -1.
+        /// </summary>
+        public static int SuggestCollisionLOD(Rect sampleAreaXZ)
+        {
+            return SuggestCollisionLOD(sampleAreaXZ, Mathf.Min(sampleAreaXZ.width, sampleAreaXZ.height));
+        }
+        public static int SuggestCollisionLOD(Rect sampleAreaXZ, float minSpatialLength)
+        {
+            var wdcs = Instance.Builder._shapeWDCs;
+            for (int lod = 0; lod < wdcs.Length; lod++)
+            {
+                // shape texture needs to completely contain sample area
+                var wdc = wdcs[lod];
+                var wdcRect = wdc.CollisionDataRectXZ;
+                if (!wdcRect.Contains(sampleAreaXZ.min) || !wdcRect.Contains(sampleAreaXZ.max))
+                    continue;
+
+                // the smallest wavelengths should repeat no more than twice across the smaller spatial length
+                var minWL = wdc.MaxWavelength() / 2f;
+                if (minWL < minSpatialLength / 2f)
+                    continue;
+
+                return lod;
+            }
+
+            return -1;
+        }
+
 #if UNITY_EDITOR
         void OnDrawGizmos()
         {

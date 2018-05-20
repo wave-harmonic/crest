@@ -1,11 +1,11 @@
 ﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+using UnityEngine;
+using UnityEngine.Rendering;
 using System.Collections.Generic;
 using Unity.Collections;
-using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Profiling;
-using UnityEngine.Rendering;
 
 namespace Crest
 {
@@ -22,7 +22,9 @@ namespace Crest
         // debug use
         public static bool _shapeCombinePass = true;
         public static bool _readbackCollData = true;
-        public static float _copyCollDataTime = 0f;
+
+        // read shape textures back to the CPU for collision purposes
+        public bool _readbackShapeForCollision = true;
 
         struct CollisionRequest
         {
@@ -30,11 +32,9 @@ namespace Crest
             public RenderData _renderData;
         }
         Queue<CollisionRequest> _requests = new Queue<CollisionRequest>();
-
-        public bool _useAsync = true;
         const int MAX_REQUESTS = 8;
-        public int _successCount = 0;
-        public int _errorCount = 0;
+
+        // collision data
         NativeArray<ushort> _collDataNative;
         RenderData _collRenderData;
 
@@ -70,10 +70,11 @@ namespace Crest
 
         private void Update()
         {
-            // beginning of update turns out to be a good time to sample the displacement textures. i had
-            // issues doing this in post render because there is a follow up pass for the lod0 camera which
-            // combines shape textures, and this pass was not included.
-            EnqueueReadbackRequest(cam.targetTexture);
+            // request current contents of this shape texture
+            if (_readbackShapeForCollision)
+            {
+                UpdateShapeReadback();
+            }
 
             _renderData._posSnappedLast = _renderData._posSnapped;
 
@@ -88,111 +89,80 @@ namespace Crest
                 UpdateCmdBufOceanFloorDepth();
                 _oceanDepthRenderersDirty = false;
             }
-
-            var sw = new System.Diagnostics.Stopwatch();
-            sw.Start();
-            if (_readbackCollData)
-            {
-                Profiler.BeginSample("Clean requests");
-                for (int i = 0; i < MAX_REQUESTS && _requests.Count > 0; i++)
-                {
-                    var request = _requests.Peek();
-                    if (request._request.hasError)
-                    {
-                        ++_errorCount;
-                        _requests.Dequeue();
-                    }
-                    else
-                    {
-                        break;
-                    }
-                }
-                Profiler.EndSample();
-
-                Profiler.BeginSample("Create coll data");
-                var num = 4 * cam.targetTexture.width * cam.targetTexture.height;
-                if (!_collDataNative.IsCreated || _collDataNative.Length != num)
-                {
-                    _collDataNative = new NativeArray<ushort>(num, Allocator.Persistent);
-                }
-                Profiler.EndSample();
-
-                if (_requests.Count > 0)
-                {
-                    var request = _requests.Peek();
-                    if (request._request.done)
-                    {
-                        Profiler.BeginSample("Copy out data");
-                        ++_successCount;
-                        Profiler.BeginSample("Get data");
-                        var data = request._request.GetData<ushort>();
-                        Profiler.EndSample();
-                        data.CopyTo(_collDataNative);
-                        _collRenderData = request._renderData;
-                        Profiler.EndSample();
-
-                        _requests.Dequeue();
-                    }
-                }
-            }
-
-            if (_lodIndex == 0)
-            {
-                {
-                    if (_marker1 == null)
-                    {
-                        _marker1 = GameObject.CreatePrimitive(PrimitiveType.Cube);
-                        Destroy(_marker1.GetComponent<Collider>());
-                    }
-
-                    var query = Camera.main.transform.position + Camera.main.transform.forward * 10f;
-                    query.y = 0f;
-                    var disp = SampleDisplacement(query);
-                    Debug.DrawLine(query, query + disp);
-                    _marker1.transform.position = query + disp;
-                }
-                {
-                    if (_marker2 == null)
-                    {
-                        _marker2 = GameObject.CreatePrimitive(PrimitiveType.Cube);
-                        Destroy(_marker2.GetComponent<Collider>());
-                    }
-
-                    var query = 5f * Vector3.forward + Camera.main.transform.position + Camera.main.transform.forward * 10f;
-                    query.y = 0f;
-                    var disp = SampleDisplacement(query);
-                    Debug.DrawLine(query, query + disp);
-                    _marker2.transform.position = query + disp;
-                }
-                {
-                    if (_marker3 == null)
-                    {
-                        _marker3 = GameObject.CreatePrimitive(PrimitiveType.Cube);
-                        Destroy(_marker3.GetComponent<Collider>());
-                    }
-
-                    var query = 5f * Vector3.right + Camera.main.transform.position + Camera.main.transform.forward * 10f;
-                    query.y = 0f;
-                    var disp = SampleDisplacement(query);
-                    Debug.DrawLine(query, query + disp);
-                    _marker3.transform.position = query + disp;
-                }
-            }
-
-            _copyCollDataTime = sw.ElapsedMilliseconds;
         }
 
-        GameObject _marker1, _marker2, _marker3;
-
-        private void OnDestroy()
+        void UpdateShapeReadback()
         {
-            if (_collDataNative.IsCreated)
+            // shape textures are read back to the CPU for collision purposes. this uses an experimental API which
+            // will hopefully be settled in future unity versions.
+            // queue pattern inspired by: https://github.com/keijiro/AsyncCaptureTest
+
+            // beginning of update turns out to be a good time to sample the displacement textures. i had
+            // issues doing this in post render because there is a follow up pass for the lod0 camera which
+            // combines shape textures, and this pass was not included.
+            EnqueueReadbackRequest(cam.targetTexture);
+
+            if (!_readbackCollData)
+                return;
+
+            // remove any failed readback requests
+            for (int i = 0; i < MAX_REQUESTS && _requests.Count > 0; i++)
             {
-                _collDataNative.Dispose();
+                var request = _requests.Peek();
+                if (request._request.hasError)
+                {
+                    _requests.Dequeue();
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            // create array to hold collision data if we don't have one already
+            var num = 4 * cam.targetTexture.width * cam.targetTexture.height;
+            if (!_collDataNative.IsCreated || _collDataNative.Length != num)
+            {
+                _collDataNative = new NativeArray<ushort>(num, Allocator.Persistent);
+            }
+
+            // process current request queue
+            if (_requests.Count > 0)
+            {
+                var request = _requests.Peek();
+                if (request._request.done)
+                {
+                    _requests.Dequeue();
+
+                    // eat up any more completed requests to squeeze out latency wherever possible
+                    CollisionRequest nextRequest;
+                    while(_requests.Count > 0 && (nextRequest = _requests.Peek())._request.done)
+                    {
+                        request = nextRequest;
+                        _requests.Dequeue();
+                    }
+
+                    Profiler.BeginSample("Copy out collision data");
+
+                    var data = request._request.GetData<ushort>();
+                    data.CopyTo(_collDataNative);
+                    _collRenderData = request._renderData;
+
+                    Profiler.EndSample();
+                }
             }
         }
 
-        Vector3 SampleDisplacement(Vector3 worldPos)
+        public Rect CollisionDataRectXZ
+        {
+            get
+            {
+                float w = _collRenderData._texelWidth * _collRenderData._textureRes;
+                return new Rect(_collRenderData._posSnapped.x - w / 2f, _collRenderData._posSnapped.z - w / 2f, w, w);
+            }
+        }
+
+        public bool SampleDisplacement(ref Vector3 worldPos, ref Vector3 displacement)
         {
             Profiler.BeginSample("SampleDisplacement");
 
@@ -201,7 +171,8 @@ namespace Crest
             float r = _collRenderData._texelWidth * _collRenderData._textureRes / 2f;
             if (Mathf.Abs(xOffset) >= r || Mathf.Abs(zOffset) >= r)
             {
-                return Vector3.zero;
+                // outside of this collision data
+                return false;
             }
 
             var u = 0.5f + 0.5f * xOffset / r;
@@ -211,14 +182,65 @@ namespace Crest
             var y = Mathf.FloorToInt(v * rt.height);
             var idx = 4 * (y * rt.width + x);
 
-            Vector3 sample;
-            sample.x = Mathf.HalfToFloat(_collDataNative[idx + 0]);
-            sample.y = Mathf.HalfToFloat(_collDataNative[idx + 1]);
-            sample.z = Mathf.HalfToFloat(_collDataNative[idx + 2]);
+            displacement.x = Mathf.HalfToFloat(_collDataNative[idx + 0]);
+            displacement.y = Mathf.HalfToFloat(_collDataNative[idx + 1]);
+            displacement.z = Mathf.HalfToFloat(_collDataNative[idx + 2]);
 
             Profiler.EndSample();
 
-            return sample;
+            return true;
+        }
+
+        /// <summary>
+        /// Get position on ocean plane that displaces horizontally to the given position.
+        /// </summary>
+        public Vector3 GetPositionDisplacedToPositionExpensive(ref Vector3 displacedWorldPos)
+        {
+            // fixed point iteration - guess should converge to location that displaces to the target position
+
+            var guess = displacedWorldPos;
+
+            // 2 iterations was enough to get very close when chop = 1, added 2 more which should be
+            // sufficient for most applications. for high chop values or really stormy conditions there may
+            // be some error here. one could also terminate iteration based on the size of the error, this is
+            // worth trying but is left as future work for now.
+            for (int i = 0; i < 4; i++)
+            {
+                var disp = Vector3.zero;
+                SampleDisplacement(ref guess, ref disp);
+                var error = guess + disp - displacedWorldPos;
+                guess.x -= error.x;
+                guess.z -= error.z;
+            }
+            guess.y = OceanRenderer.Instance.SeaLevel;
+            return guess;
+        }
+
+        public float GetHeightExpensive(ref Vector3 worldPos)
+        {
+            var posFlatland = worldPos;
+            posFlatland.y = OceanRenderer.Instance.transform.position.y;
+
+            var undisplacedPos = GetPositionDisplacedToPositionExpensive(ref posFlatland);
+
+            var disp = Vector3.zero;
+            SampleDisplacement(ref undisplacedPos, ref disp);
+
+            return posFlatland.y + disp.y;
+        }
+
+        public void EnqueueReadbackRequest(RenderTexture target)
+        {
+            if (_requests.Count < MAX_REQUESTS)
+            {
+                _requests.Enqueue(
+                    new CollisionRequest
+                    {
+                        _request = AsyncGPUReadback.Request(cam.targetTexture),
+                        _renderData = _renderData
+                    }
+                );
+            }
         }
 
         public float MaxWavelength()
@@ -339,34 +361,6 @@ namespace Crest
             }
         }
 
-        public void EnqueueReadbackRequest(RenderTexture target)
-        {
-            if (_useAsync)
-            {
-                if (_requests.Count < MAX_REQUESTS)
-                {
-                    _requests.Enqueue(
-                        new CollisionRequest
-                        {
-                            _request = AsyncGPUReadback.Request(cam.targetTexture),
-                            _renderData = _renderData
-                        }
-                    );
-                }
-            }
-        }
-
-        //private void OnPostRender()
-        //{
-        //    if (_lodIndex == 0)
-        //    {
-        //        foreach(var wdc in OceanRenderer.Instance.Builder._shapeWDCs)
-        //        {
-        //            wdc.EnqueueReadbackRequest(wdc.GetComponent<Camera>().targetTexture);
-        //        }
-        //    }
-        //}
-
         // executed once per frame - attached to the LOD0 camera
         void UpdateCmdBufShapeCombine()
         {
@@ -421,6 +415,14 @@ namespace Crest
         void OnDisable()
         {
             RemoveCommandBuffers();
+        }
+
+        private void OnDestroy()
+        {
+            if (_collDataNative.IsCreated)
+            {
+                _collDataNative.Dispose();
+            }
         }
 
         public void ApplyMaterialParams( int shapeSlot, IPropertyWrapper properties)

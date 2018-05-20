@@ -24,6 +24,20 @@ namespace Crest
         public static bool _readbackCollData = true;
         public static float _copyCollDataTime = 0f;
 
+        struct CollisionRequest
+        {
+            public AsyncGPUReadbackRequest _request;
+            public RenderData _renderData;
+        }
+        Queue<CollisionRequest> _requests = new Queue<CollisionRequest>();
+
+        public bool _useAsync = true;
+        const int MAX_REQUESTS = 8;
+        public int _successCount = 0;
+        public int _errorCount = 0;
+        NativeArray<ushort> _collDataNative;
+        RenderData _collRenderData;
+
         Material _matOceanDepth;
         RenderTexture _rtOceanDepth;
         CommandBuffer _bufOceanDepth = null;
@@ -78,7 +92,7 @@ namespace Crest
                 for (int i = 0; i < MAX_REQUESTS && _requests.Count > 0; i++)
                 {
                     var request = _requests.Peek();
-                    if (request.hasError)
+                    if (request._request.hasError)
                     {
                         ++_errorCount;
                         _requests.Dequeue();
@@ -91,48 +105,55 @@ namespace Crest
                 Profiler.EndSample();
 
                 Profiler.BeginSample("Create coll data");
-                var num = cam.targetTexture.width * cam.targetTexture.height;
-                if (_collData == null || _collData.Length != num)
+                var num = 4 * cam.targetTexture.width * cam.targetTexture.height;
+                if (!_collDataNative.IsCreated || _collDataNative.Length != num)
                 {
-                    _collData = new Vector3[num];
-                }
-                if (!_collDataNative.IsCreated || _collDataNative.Length != num * 4)
-                {
-                    _collDataNative = new NativeArray<ushort>(num * 4, Allocator.Persistent);
+                    _collDataNative = new NativeArray<ushort>(num, Allocator.Persistent);
                 }
                 Profiler.EndSample();
 
                 if (_requests.Count > 0)
                 {
                     var request = _requests.Peek();
-                    if (request.done)
+                    if (request._request.done)
                     {
                         Profiler.BeginSample("Copy out data");
                         ++_successCount;
                         Profiler.BeginSample("Get data");
-                        var data = request.GetData<ushort>();
+                        var data = request._request.GetData<ushort>();
                         Profiler.EndSample();
                         data.CopyTo(_collDataNative);
+                        _collRenderData = request._renderData;
                         Profiler.EndSample();
 
                         _requests.Dequeue();
                     }
                 }
 
-                Profiler.BeginSample("Sample data");
-                {
-                    //var x = 250f; var z = 250f;
-                    //var pix = _tex[readIndex].GetPixelBilinear(x / 500f, z / 500f);
-                    var rt = cam.targetTexture;
-                    int centerIdx = rt.width * rt.height / 2 + rt.width / 2;
-                    Vector3 sample;
-                    sample.x = Mathf.HalfToFloat(_collDataNative[centerIdx * 4 + 0]);
-                    sample.y = Mathf.HalfToFloat(_collDataNative[centerIdx * 4 + 1]);
-                    sample.z = Mathf.HalfToFloat(_collDataNative[centerIdx * 4 + 2]);
-                    Debug.DrawLine(Vector3.zero, sample);
-                    //_marker.transform.position = new Vector3(x + _lastSample.r, _lastSample.g, z + _lastSample.b);
-                }
-                Profiler.EndSample();
+                //Profiler.BeginSample("Sample data");
+                //if(_lodIndex ==3)
+                //{
+                //    //var x = 250f; var z = 250f;
+                //    //var pix = _tex[readIndex].GetPixelBilinear(x / 500f, z / 500f);
+                //    var rt = cam.targetTexture;
+                //    int centerIdx = rt.width * rt.height / 2 + rt.width / 2;
+                //    Vector3 sample;
+                //    sample.x = Mathf.HalfToFloat(_collDataNative[centerIdx * 4 + 0]);
+                //    sample.y = Mathf.HalfToFloat(_collDataNative[centerIdx * 4 + 1]);
+                //    sample.z = Mathf.HalfToFloat(_collDataNative[centerIdx * 4 + 2]);
+                //    Debug.DrawLine(Vector3.zero, sample);
+                //    Debug.Log(sample);
+                //    //_marker.transform.position = new Vector3(x + _lastSample.r, _lastSample.g, z + _lastSample.b);
+                //}
+                //Profiler.EndSample();
+            }
+
+            if (_lodIndex == 3)
+            {
+                var query = Camera.main.transform.position + Camera.main.transform.forward * 10f;
+                query.y = 0f;
+                var disp = SampleDisplacement(query);
+                Debug.DrawLine(query, query + disp);
             }
 
             _copyCollDataTime = sw.ElapsedMilliseconds;
@@ -144,6 +165,36 @@ namespace Crest
             {
                 _collDataNative.Dispose();
             }
+        }
+
+        Vector3 SampleDisplacement(Vector3 worldPos)
+        {
+            Profiler.BeginSample("SampleDisplacement");
+
+            float xOffset = worldPos.x - _collRenderData._posSnapped.x;
+            float zOffset = worldPos.z - _collRenderData._posSnapped.z;
+            float r = _collRenderData._texelWidth * _collRenderData._textureRes / 2f;
+            if (Mathf.Abs(xOffset) > r || Mathf.Abs(zOffset) > r)
+            {
+                return Vector3.zero;
+            }
+
+            float u = 0.5f + 0.5f * xOffset / r;
+            float v = 0.5f + 0.5f * zOffset / r;
+            var rt = cam.targetTexture;
+            int idx = Mathf.FloorToInt(v * rt.height) * rt.width + (int)u * rt.height;
+            //idx = rt.width * rt.height / 2 + rt.width / 2;
+
+            Vector3 sample;
+            sample.x = Mathf.HalfToFloat(_collDataNative[idx * 4 + 0]);
+            sample.y = Mathf.HalfToFloat(_collDataNative[idx * 4 + 1]);
+            sample.z = Mathf.HalfToFloat(_collDataNative[idx * 4 + 2]);
+
+            Profiler.EndSample();
+
+            Debug.Log(sample);
+
+            return sample;
         }
 
         public float MaxWavelength()
@@ -264,21 +315,19 @@ namespace Crest
             }
         }
 
-        public bool _useAsync = true;
-        public Queue<AsyncGPUReadbackRequest> _requests = new Queue<AsyncGPUReadbackRequest>();
-        const int MAX_REQUESTS = 8;
-        public int _successCount = 0;
-        public int _errorCount = 0;
-        public Vector3[] _collData;
-        public NativeArray<ushort> _collDataNative;
-
         private void OnPostRender()
         {
             if (_useAsync)
             {
                 if (_requests.Count < MAX_REQUESTS)
                 {
-                    _requests.Enqueue(AsyncGPUReadback.Request(cam.targetTexture));
+                    _requests.Enqueue(
+                        new CollisionRequest
+                        {
+                            _request = AsyncGPUReadback.Request(cam.targetTexture),
+                            _renderData = _renderData
+                        }
+                    );
                 }
             }
         }

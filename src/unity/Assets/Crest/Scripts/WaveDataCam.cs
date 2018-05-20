@@ -19,6 +19,11 @@ namespace Crest
         [HideInInspector]
         public int _lodCount = 5;
 
+        // debug use
+        public static bool _shapeCombinePass = true;
+        public static bool _readbackCollData = true;
+        public static float _copyCollDataTime = 0f;
+
         Material _matOceanDepth;
         RenderTexture _rtOceanDepth;
         CommandBuffer _bufOceanDepth = null;
@@ -31,8 +36,6 @@ namespace Crest
 
         // shape texture resolution
         int _shapeRes = -1;
-
-        public static bool _shapeCombinePass = true;
 
         public struct RenderData
         {
@@ -109,19 +112,7 @@ namespace Crest
                         Profiler.BeginSample("Get data");
                         var data = request.GetData<ushort>();
                         Profiler.EndSample();
-                        if(!_copyNativeArray)
-                        {
-                            for (var i = 0; i < num; i++)
-                            {
-                                _collData[i].x = Mathf.HalfToFloat(data[i * 4 + 0]);
-                                _collData[i].y = Mathf.HalfToFloat(data[i * 4 + 1]);
-                                _collData[i].z = Mathf.HalfToFloat(data[i * 4 + 2]);
-                            }
-                        }
-                        else
-                        {
-                            data.CopyTo(_collDataNative);
-                        }
+                        data.CopyTo(_collDataNative);
                         Profiler.EndSample();
 
                         _requests.Dequeue();
@@ -135,27 +126,18 @@ namespace Crest
                     var rt = cam.targetTexture;
                     int centerIdx = rt.width * rt.height / 2 + rt.width / 2;
                     Vector3 sample;
-                    if (!_copyNativeArray)
-                    {
-                        sample = _collData[centerIdx];
-                    }
-                    else
-                    {
-                        sample.x = Mathf.HalfToFloat(_collDataNative[centerIdx * 4 + 0]);
-                        sample.y = Mathf.HalfToFloat(_collDataNative[centerIdx * 4 + 1]);
-                        sample.z = Mathf.HalfToFloat(_collDataNative[centerIdx * 4 + 2]);
-                    }
+                    sample.x = Mathf.HalfToFloat(_collDataNative[centerIdx * 4 + 0]);
+                    sample.y = Mathf.HalfToFloat(_collDataNative[centerIdx * 4 + 1]);
+                    sample.z = Mathf.HalfToFloat(_collDataNative[centerIdx * 4 + 2]);
                     Debug.DrawLine(Vector3.zero, sample);
                     //_marker.transform.position = new Vector3(x + _lastSample.r, _lastSample.g, z + _lastSample.b);
                 }
                 Profiler.EndSample();
             }
 
-            _copyCollDataTime = Mathf.Lerp(_copyCollDataTime, sw.ElapsedMilliseconds, 0.1f);
+            _copyCollDataTime = sw.ElapsedMilliseconds;
         }
-        public static bool _readbackCollData = true;
-        public static bool _copyNativeArray = false;
-        public static float _copyCollDataTime = 0f;
+        }
 
         private void OnDestroy()
         {

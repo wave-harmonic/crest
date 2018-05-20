@@ -138,23 +138,51 @@ namespace Crest
 
             if (_lodIndex == 0)
             {
-                if (_marker == null)
                 {
-                    _marker = GameObject.CreatePrimitive(PrimitiveType.Cube);
-                    Destroy(_marker.GetComponent<Collider>());
-                }
+                    if (_marker1 == null)
+                    {
+                        _marker1 = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                        Destroy(_marker1.GetComponent<Collider>());
+                    }
 
-                var query = Camera.main.transform.position + Camera.main.transform.forward * 10f;
-                query.y = 0f;
-                var disp = SampleDisplacement(query);
-                Debug.DrawLine(query, query + disp);
-                _marker.transform.position = query + disp;
+                    var query = Camera.main.transform.position + Camera.main.transform.forward * 10f;
+                    query.y = 0f;
+                    var disp = SampleDisplacement(query);
+                    Debug.DrawLine(query, query + disp);
+                    _marker1.transform.position = query + disp;
+                }
+                {
+                    if (_marker2 == null)
+                    {
+                        _marker2 = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                        Destroy(_marker2.GetComponent<Collider>());
+                    }
+
+                    var query = 5f * Vector3.forward + Camera.main.transform.position + Camera.main.transform.forward * 10f;
+                    query.y = 0f;
+                    var disp = SampleDisplacement(query);
+                    Debug.DrawLine(query, query + disp);
+                    _marker2.transform.position = query + disp;
+                }
+                {
+                    if (_marker3 == null)
+                    {
+                        _marker3 = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                        Destroy(_marker3.GetComponent<Collider>());
+                    }
+
+                    var query = 5f * Vector3.right + Camera.main.transform.position + Camera.main.transform.forward * 10f;
+                    query.y = 0f;
+                    var disp = SampleDisplacement(query);
+                    Debug.DrawLine(query, query + disp);
+                    _marker3.transform.position = query + disp;
+                }
             }
 
             _copyCollDataTime = sw.ElapsedMilliseconds;
         }
 
-        GameObject _marker;
+        GameObject _marker1, _marker2, _marker3;
 
         private void OnDestroy()
         {
@@ -171,25 +199,24 @@ namespace Crest
             float xOffset = worldPos.x - _collRenderData._posSnapped.x;
             float zOffset = worldPos.z - _collRenderData._posSnapped.z;
             float r = _collRenderData._texelWidth * _collRenderData._textureRes / 2f;
-            if (Mathf.Abs(xOffset) > r || Mathf.Abs(zOffset) > r)
+            if (Mathf.Abs(xOffset) >= r || Mathf.Abs(zOffset) >= r)
             {
                 return Vector3.zero;
             }
 
-            float u = 0.5f + 0.5f * xOffset / r;
-            float v = 0.5f + 0.5f * zOffset / r;
+            var u = 0.5f + 0.5f * xOffset / r;
+            var v = 0.5f + 0.5f * zOffset / r;
             var rt = cam.targetTexture;
-            int idx = Mathf.FloorToInt(v * rt.height) * rt.width + (int)u * rt.height;
-            //idx = rt.width * rt.height / 2 + rt.width / 2;
+            var x = Mathf.FloorToInt(u * rt.width);
+            var y = Mathf.FloorToInt(v * rt.height);
+            var idx = 4 * (y * rt.width + x);
 
             Vector3 sample;
-            sample.x = Mathf.HalfToFloat(_collDataNative[idx * 4 + 0]);
-            sample.y = Mathf.HalfToFloat(_collDataNative[idx * 4 + 1]);
-            sample.z = Mathf.HalfToFloat(_collDataNative[idx * 4 + 2]);
+            sample.x = Mathf.HalfToFloat(_collDataNative[idx + 0]);
+            sample.y = Mathf.HalfToFloat(_collDataNative[idx + 1]);
+            sample.z = Mathf.HalfToFloat(_collDataNative[idx + 2]);
 
             Profiler.EndSample();
-
-            Debug.Log(sample);
 
             return sample;
         }

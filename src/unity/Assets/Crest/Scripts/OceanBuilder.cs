@@ -19,6 +19,9 @@ namespace Crest
 
         [HideInInspector]
         public Camera[] _shapeCameras;
+        [HideInInspector]
+        public WaveDataCam[] _shapeWDCs;
+
         public int CurrentLodCount { get { return _shapeCameras.Length; } }
 
         /// <summary>
@@ -173,9 +176,10 @@ namespace Crest
 
             // create the shape cameras
             _shapeCameras = new Camera[parms._lodCount];
+            _shapeWDCs = new WaveDataCam[parms._lodCount];
             for( int i = 0; i < parms._lodCount; i++ )
             {
-                _shapeCameras[i] = CreateWaveDataCam( i, parms );
+                CreateWaveDataCam( i, parms );
             }
 
             // remove existing LODs
@@ -208,7 +212,7 @@ namespace Crest
 #endif
         }
 
-        Camera CreateWaveDataCam( int lodIdx, Params parms )
+        void CreateWaveDataCam( int lodIdx, Params parms )
         {
             var go = new GameObject( string.Format( "ShapeCam{0}", lodIdx ) );
 
@@ -225,10 +229,12 @@ namespace Crest
             cam.allowMSAA = false;
             // make shape cameras render before main camera, and make LOD0 camera render last
             cam.depth = -10 - lodIdx;
+            _shapeCameras[lodIdx] = cam;
 
             var wdc = go.AddComponent<WaveDataCam>();
             wdc._lodIndex = lodIdx;
             wdc._lodCount = parms._lodCount;
+            _shapeWDCs[lodIdx] = wdc;
 
             var cart = go.AddComponent<CreateAssignRenderTexture>();
             cart._targetName = string.Format( "shapeRT{0}", lodIdx );
@@ -243,8 +249,6 @@ namespace Crest
             cart._useMipMap = false;
             // do this now, because WaveDataCam needs this
             cart.CreateRT();
-
-            return cam;
         }
 
         Mesh BuildOceanPatch( PatchType pt, Params parms )

@@ -414,15 +414,13 @@ namespace Crest
 
         void OnDisable()
         {
-            RemoveCommandBuffers();
-        }
-
-        private void OnDestroy()
-        {
+            // free native array when component removed or destroyed
             if (_collDataNative.IsCreated)
             {
                 _collDataNative.Dispose();
             }
+
+            RemoveCommandBuffers();
         }
 
         public void ApplyMaterialParams( int shapeSlot, IPropertyWrapper properties)

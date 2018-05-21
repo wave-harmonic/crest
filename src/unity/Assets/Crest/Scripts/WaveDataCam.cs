@@ -30,6 +30,7 @@ namespace Crest
         {
             public AsyncGPUReadbackRequest _request;
             public RenderData _renderData;
+            public float _time;
         }
         Queue<CollisionRequest> _requests = new Queue<CollisionRequest>();
         const int MAX_REQUESTS = 8;
@@ -37,6 +38,7 @@ namespace Crest
         // collision data
         NativeArray<ushort> _collDataNative;
         RenderData _collRenderData;
+        float _collTime;
 
         Material _matOceanDepth;
         RenderTexture _rtOceanDepth;
@@ -147,6 +149,7 @@ namespace Crest
                     var data = request._request.GetData<ushort>();
                     data.CopyTo(_collDataNative);
                     _collRenderData = request._renderData;
+                    _collTime = request._time;
 
                     Profiler.EndSample();
                 }
@@ -229,6 +232,11 @@ namespace Crest
             return posFlatland.y + disp.y;
         }
 
+        public float GetCollisionTime()
+        {
+            return _collTime;
+        }
+
         public void EnqueueReadbackRequest(RenderTexture target)
         {
             if (_requests.Count < MAX_REQUESTS)
@@ -237,7 +245,8 @@ namespace Crest
                     new CollisionRequest
                     {
                         _request = AsyncGPUReadback.Request(cam.targetTexture),
-                        _renderData = _renderData
+                        _renderData = _renderData,
+                        _time = OceanRenderer.Instance.ElapsedTime,
                     }
                 );
             }

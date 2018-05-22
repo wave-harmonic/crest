@@ -142,12 +142,14 @@ namespace Crest
 
         /// <summary>
         /// Returns index of lod that completely covers the sample area, and contains wavelengths that repeat no more than twice across the smaller
-        /// spatial length. If no such lod available, returns -1.
+        /// spatial length. If no such lod available, returns -1. This means high frequency wavelengths are filtered out, and the lod index can
+        /// be used for each sample in the sample area.
         /// </summary>
         public static int SuggestCollisionLOD(Rect sampleAreaXZ)
         {
             return SuggestCollisionLOD(sampleAreaXZ, Mathf.Min(sampleAreaXZ.width, sampleAreaXZ.height));
         }
+
         public static int SuggestCollisionLOD(Rect sampleAreaXZ, float minSpatialLength)
         {
             var wdcs = Instance.Builder._shapeWDCs;
@@ -168,6 +170,26 @@ namespace Crest
             }
 
             return -1;
+        }
+
+        /// <summary>
+        /// Samples ocean surface displacement at a point. Searches for most detailed LOD available at the query position.
+        /// </summary>
+        public static bool SampleDisplacement(ref Vector3 worldPos, ref Vector3 displacement)
+        {
+            int lod = SuggestCollisionLOD(new Rect(worldPos.x, worldPos.z, 0f, 0f), 0f);
+            return Instance.Builder._shapeWDCs[lod].SampleDisplacement(ref worldPos, ref displacement);
+        }
+
+        /// <summary>
+        /// Samples ocean surface height at a point. Searches for most detailed LOD available at the query position.
+        /// </summary>
+        public static bool SampleHeight(ref Vector3 worldPos, ref float height)
+        {
+            int lod = SuggestCollisionLOD(new Rect(worldPos.x, worldPos.z, 0f, 0f), 0f);
+            if (lod == -1) return false;
+            height = Instance.Builder._shapeWDCs[lod].GetHeight(ref worldPos);
+            return true;
         }
 
 #if UNITY_EDITOR

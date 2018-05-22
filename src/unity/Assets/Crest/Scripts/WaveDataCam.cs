@@ -194,7 +194,7 @@ namespace Crest
         /// <summary>
         /// Get position on ocean plane that displaces horizontally to the given position.
         /// </summary>
-        public Vector3 GetPositionDisplacedToPositionExpensive(ref Vector3 displacedWorldPos)
+        public Vector3 GetPositionDisplacedToPosition(ref Vector3 displacedWorldPos)
         {
             // fixed point iteration - guess should converge to location that displaces to the target position
 
@@ -216,12 +216,12 @@ namespace Crest
             return guess;
         }
 
-        public float GetHeightExpensive(ref Vector3 worldPos)
-        {
+        public float GetHeight(ref Vector3 worldPos)
+            {
             var posFlatland = worldPos;
             posFlatland.y = OceanRenderer.Instance.transform.position.y;
 
-            var undisplacedPos = GetPositionDisplacedToPositionExpensive(ref posFlatland);
+            var undisplacedPos = GetPositionDisplacedToPosition(ref posFlatland);
 
             var disp = Vector3.zero;
             SampleDisplacement(ref undisplacedPos, ref disp);

@@ -18,7 +18,7 @@ public class OceanHeightDemo : MonoBehaviour
         if (lod > -1)
         {
             var pos = transform.position;
-            var height = OceanRenderer.Instance.Builder._shapeWDCs[lod].GetHeightExpensive(ref pos);
+            var height = OceanRenderer.Instance.Builder._shapeWDCs[lod].GetHeight(ref pos);
             transform.position += Vector3.up * (height - pos.y);
         }
     }

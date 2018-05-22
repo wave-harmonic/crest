@@ -32,7 +32,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _Skybox:
-        m_Texture: {fileID: 8900000, guid: 5ee6a2bdc681ba44f927bb8e302699c9, type: 3}
+        m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _WD_Sampler_0:
@@ -72,25 +72,25 @@ Material:
     - _ComputeDirectionalLight: 1
     - _DebugDisableSmoothLOD: 0
     - _DebugShapeSample: 0
-    - _DirectionalLightBoost: 5
-    - _DirectionalLightFallOff: 128
+    - _DirectionalLightBoost: 12.58
+    - _DirectionalLightFallOff: 503
     - _Foam: 1
-    - _FoamScale: 10
+    - _FoamScale: 9.7
     - _FresnelPower: 5
     - _Invert: 1
     - _MipBias: 0
     - _Moving: 0.17
-    - _NormalsScale: 36
-    - _NormalsStrength: 0.25
+    - _NormalsScale: 40.2
+    - _NormalsStrength: 0.116
     - _Offset: 0.00008
     - _RefractAmt: 0
     - _S: 1
-    - _ShorelineFoamMaxDepth: 1.5
+    - _ShorelineFoamMaxDepth: 2.48
     - _StartLevel: 0.157
     - _SubSurfaceBase: 0.6
     - _SubSurfaceScattering: 1
     - _SubSurfaceSun: 10
-    - _SubSurfaceSunFallOff: 12
+    - _SubSurfaceSunFallOff: 3.25
     - _TexelSize: 0.125
     - _TextureRes: 1024
     - _Transparency: 1
@@ -101,4 +101,4 @@ Material:
     - _FoamBubbleColor: {r: 0.055383995, g: 0.322, b: 0.29640475, a: 1}
     - _FoamWhiteColor: {r: 1, g: 1, b: 1, a: 1}
     - _SubSurface: {r: 0, g: 0.48, b: 0.36, a: 1}
-    - _SubSurfaceColour: {r: 0, g: 0.404, b: 0.303, a: 1}
+    - _SubSurfaceColour: {r: 0, g: 0.4956504, b: 0.5566038, a: 1}

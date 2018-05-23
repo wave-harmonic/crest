@@ -51,6 +51,7 @@ Shader "Ocean/Ocean"
 				#pragma vertex vert
 				#pragma fragment frag
 				#pragma multi_compile_fog
+				// #pragma enable_d3d11_debug_symbols // uncomment to allow debugging in renderdoc etc
 				#pragma shader_feature _COMPUTEDIRECTIONALLIGHT_ON
 				#pragma shader_feature _SUBSURFACESCATTERING_ON
 				#pragma shader_feature _TRANSPARENCY_ON

@@ -397,7 +397,8 @@ namespace Crest
             if (_amplitudes == null) return Vector3.zero;
 
             Vector2 pos = new Vector2(worldPos.x, worldPos.z);
-            float chop = OceanRenderer.Instance._chop;
+            // HB - chop is not being used. commenting out to fix a warning
+            //float chop = OceanRenderer.Instance._chop;
             float mytime = OceanRenderer.Instance.ElapsedTime + toff;
             float windAngle = OceanRenderer.Instance._windDirectionAngle;
 
@@ -505,7 +506,7 @@ namespace Crest
             if (lod > -1)
             {
                 Vector3 pos = worldPos; //make a copy so it doesnt come back changed
-                ret = OceanRenderer.Instance.Builder._shapeWDCs[lod].GetHeightExpensive(ref pos);
+                ret = OceanRenderer.Instance.Builder._shapeWDCs[lod].GetHeight(ref pos);
             }
             else
             {

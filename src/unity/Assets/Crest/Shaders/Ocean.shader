@@ -60,7 +60,7 @@ Shader "Ocean/Ocean"
 				#include "UnityCG.cginc"
 				#include "TextureBombing.cginc"
 
-				#define DEPTH_BIAS 100.
+				#define DEPTH_BIAS 0.
 
 				struct appdata_t
 				{

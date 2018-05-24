@@ -1,6 +1,8 @@
 ﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Profiling;
 using UnityEngine.Rendering;
 
 namespace Crest
@@ -21,9 +23,18 @@ namespace Crest
 
         // data for all components
         float[] _wavelengths;
+        float[] _waveSpeed;
         float[] _amplitudes;
         float[] _angleDegs;
         float[] _phases;
+        List<int> _mostSignificant=new List<int>();
+
+        public float _significantThresholdForCPU = 0.01f; //amplitude needed to use it for CPU water height calc
+        public float _cacheBucketSize = 0.1f;
+
+        private int _cacheHit;
+        private int _cacheCheck;
+        private float _cacheBucketSizeRecip = 0.0f;
 
         // useful references
         WaveSpectrum _spectrum;
@@ -49,6 +60,17 @@ namespace Crest
 
         void Update()
         {
+            if (_cacheBucketSize != 0)
+            {
+                _cacheBucketSizeRecip = 1/_cacheBucketSize;
+            }
+            else
+            {
+                _cacheBucketSizeRecip = 10000;
+            }
+            _cacheCheck = 0;
+            _cacheHit = 0;
+            _waterHeightCache.Clear();
             // Set random seed to get repeatable results
             Random.State randomStateBkp = Random.state;
             Random.InitState(_randomSeed);
@@ -74,14 +96,23 @@ namespace Crest
 
         void UpdateAmplitudes()
         {
+            _mostSignificant.Clear();
             if (_amplitudes == null || _amplitudes.Length != _wavelengths.Length)
             {
                 _amplitudes = new float[_wavelengths.Length];
             }
-
+            if (_waveSpeed == null || _waveSpeed.Length != _wavelengths.Length)
+            {
+                _waveSpeed = new float[_wavelengths.Length];
+            }
             for (int i = 0; i < _wavelengths.Length; i++)
             {
+                _waveSpeed[i] = ComputeWaveSpeed(_wavelengths[i]);
                 _amplitudes[i] = _spectrum.GetAmplitude(_wavelengths[i]);
+                if (_amplitudes[i] > _significantThresholdForCPU)
+                {
+                    _mostSignificant.Add(i);
+                }
             }
         }
 
@@ -348,6 +379,53 @@ namespace Crest
             return result;
         }
 
+
+        private readonly Dictionary<uint,float> _waterHeightCache=new Dictionary<uint, float>();
+
+        uint CalcHash(Vector3 _wp)
+        {
+            int x = (int)(_wp.x * _cacheBucketSizeRecip);
+            int z = (int)(_wp.z * _cacheBucketSizeRecip);
+            return (uint)(x + 32768 + ((z + 32768) <<16 ));
+        }
+
+        
+        public Vector3 GetDisplacementFast(ref Vector3 worldPos, float toff)
+        {
+
+
+            if (_amplitudes == null) return Vector3.zero;
+
+            Vector2 pos = new Vector2(worldPos.x, worldPos.z);
+            float chop = OceanRenderer.Instance._chop;
+            float mytime = OceanRenderer.Instance.ElapsedTime + toff;
+            float windAngle = OceanRenderer.Instance._windDirectionAngle;
+
+            Vector3 result = Vector3.zero;
+            
+
+            for (int i = 0; i < _mostSignificant.Count; i++)
+            {
+                int j = _mostSignificant[i];
+                float C = _waveSpeed[j];//ComputeWaveSpeed(_wavelengths[j]);
+
+                // direction
+                float angle = (windAngle + _angleDegs[j]) * Mathf.Deg2Rad;
+                float cosA = Mathf.Cos(angle);
+                float sinA = Mathf.Sin(angle);
+
+
+                // wave number
+                float k = 2f * Mathf.PI / _wavelengths[j];
+
+                float x = cosA * pos.x + sinA * pos.y;
+                float t = k * (x + C * mytime) + _phases[j];
+                float cosT=Mathf.Cos(t);
+                result.y += _amplitudes[j] * cosT;
+            }
+            
+            return result;
+        }
         // compute normal to a surface with a parameterization - equation 14 here: http://mathworld.wolfram.com/NormalVector.html
         public Vector3 GetNormal(ref Vector3 worldPos, float toff)
         {
@@ -389,14 +467,56 @@ namespace Crest
 
         public float GetHeightExpensive(ref Vector3 worldPos, float toff)
         {
+
             Vector3 posFlatland = worldPos;
             posFlatland.y = OceanRenderer.Instance.transform.position.y;
 
             Vector3 undisplacedPos = GetPositionDisplacedToPositionExpensive(ref posFlatland, toff);
 
-            return posFlatland.y + GetDisplacement(ref undisplacedPos, toff).y;
+            var ret= posFlatland.y + GetDisplacement(ref undisplacedPos, toff).y;
+
+            return ret;
         }
 
+        public bool _LookupWaterHeightInTexture = true;
+        public float GetHeightFast(ref Vector3 worldPos, float size)
+        {
+
+            uint hash = CalcHash(worldPos);
+            float ret;
+            _cacheCheck++;
+            if (_waterHeightCache.TryGetValue(hash, out ret))
+            {
+                _cacheHit++;
+                return ret;
+            }
+
+            int lod = -1;
+            
+            Vector3 posFlatland = worldPos;
+            posFlatland.y = OceanRenderer.Instance.transform.position.y;
+            if (_LookupWaterHeightInTexture)
+            {
+
+                var rect = new Rect(worldPos.x - size / 2f, worldPos.z - size / 2f, size, size);
+                lod = OceanRenderer.SuggestCollisionLOD(rect);
+            }
+
+            if (lod > -1)
+            {
+                Vector3 pos = worldPos; //make a copy so it doesnt come back changed
+                ret = OceanRenderer.Instance.Builder._shapeWDCs[lod].GetHeightExpensive(ref pos);
+            }
+            else
+            {
+                //fallback to fast(ish) cpu method..
+
+                ret = posFlatland.y + GetDisplacementFast(ref worldPos, 0).y;
+            }
+            _waterHeightCache.Add(hash, ret);
+
+            return ret;
+        }
         public Vector3 GetSurfaceVelocity(ref Vector3 worldPos, float toff)
         {
             if (_amplitudes == null) return Vector3.zero;

@@ -11,10 +11,11 @@ namespace Crest
         public bool _populateOnStartup = true;
         public LayerMask _mask;
         public int _resolution = 512;
-
+        public bool _forceAlwaysUpdateDebug = true;
         RenderTexture _cache;
         GameObject _drawCacheQuad;
         Camera _camDepthCache;
+        public float _cameraMaxTerrainHeight = 100; //a big hill will still want to write its height into the depth texture
 
         void Start()
         {
@@ -23,6 +24,14 @@ namespace Crest
                 PopulateCache();
             }
         }
+
+#if UNITY_EDITOR
+        void Update()
+        {
+            if (_forceAlwaysUpdateDebug)
+                PopulateCache();
+        }
+#endif
 
         public void PopulateCache()
         {
@@ -40,6 +49,9 @@ namespace Crest
                 _drawCacheQuad = GameObject.CreatePrimitive(PrimitiveType.Quad);
                 Destroy(_drawCacheQuad.GetComponent<Collider>());
                 _drawCacheQuad.name = "Draw_" + _cache.name;
+                Vector3 pos = _drawCacheQuad.transform.position;
+                pos.y = 0; //force it to be at 0 height so the quad can be seen by the water cameras
+                _drawCacheQuad.transform.position = pos;
                 _drawCacheQuad.transform.SetParent(transform, false);
                 _drawCacheQuad.transform.localEulerAngles = 90f * Vector3.right;
                 _drawCacheQuad.AddComponent<RenderOceanDepth>();
@@ -52,6 +64,7 @@ namespace Crest
             if (_camDepthCache == null)
             {
                 _camDepthCache = new GameObject("DepthCacheCam").AddComponent<Camera>();
+                _camDepthCache.transform.position = transform.position + Vector3.up * _cameraMaxTerrainHeight;
                 _camDepthCache.transform.position = transform.position + Vector3.up * 10f;
                 _camDepthCache.transform.parent = transform;
                 _camDepthCache.transform.localEulerAngles = 90f * Vector3.right;

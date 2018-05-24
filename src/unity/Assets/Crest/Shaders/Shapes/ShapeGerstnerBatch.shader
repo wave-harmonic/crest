@@ -30,7 +30,7 @@ Shader "Ocean/Shape/Gerstner Batch"
 				#include "../OceanLODData.cginc"
 
 				#define TWOPI 6.283185
-				#define DEPTH_BIAS 100.
+				#define DEPTH_BIAS 0.
 
 				struct appdata_t {
 					float4 vertex : POSITION;

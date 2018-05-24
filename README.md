@@ -103,6 +103,7 @@ The ocean pixel shader samples normal maps at 2 different scales, both proportio
 * Ocean surface tiles are updated and drawn as separate draw calls. This is convenient for research and supports frustum culling easily, but it might make sense to instance these in a production scenario.
 * Persistent foam - generate from waves/dynamic sim, fade gradually over time
 * Wetness simulation for shore
+* Flow - texture to paint wind direction
 
 ## Links
 
@@ -136,6 +137,11 @@ The ocean pixel shader samples normal maps at 2 different scales, both proportio
 * Realistic simulation of waves using wave spectra: https://hal.archives-ouvertes.fr/file/index/docid/307938/filename/frechot_realistic_simulation_of_ocean_surface_using_wave_spectra.pdf
 * Nice practical demo about testing different wave breakers: https://youtu.be/3yNoy4H2Z-o
 * Useful notes/diagrams on waves: http://hyperphysics.phy-astr.gsu.edu/hbase/Waves/watwav2.html, http://hyperphysics.phy-astr.gsu.edu/hbase/watwav.html#c1
+
+### Wave particles
+
+* Original wave particles work: http://www.cemyuksel.com/research/waveparticles/
+* Water Surface Wavelets: http://visualcomputing.ist.ac.at/publications/2018/WSW/
 
 ### Boundary conditions
 

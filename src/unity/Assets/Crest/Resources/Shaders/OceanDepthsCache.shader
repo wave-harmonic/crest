@@ -1,5 +1,6 @@
 ﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+// Draw cached depths into current frame ocean depth data
 Shader "Ocean/Ocean Depth Cache"
 {
 	Properties
@@ -13,6 +14,7 @@ Shader "Ocean/Ocean Depth Cache"
 
 		Pass
 		{
+			// Min blending to take the min of all depths. Similar in spirit to zbuffer'd visibility when viewing from top down.
 			BlendOp Min
 
 			CGPROGRAM

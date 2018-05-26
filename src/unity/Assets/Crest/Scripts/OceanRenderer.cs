@@ -89,6 +89,7 @@ namespace Crest
             Shader.SetGlobalFloat( "_TexelsPerWave", _minTexelsPerWave );
             Shader.SetGlobalFloat("_Chop", _chop);
             Shader.SetGlobalVector("_WindDirXZ", WindDir);
+            Shader.SetGlobalFloat("_SeaLevel", SeaLevel);
 
             LateUpdateScale();
         }

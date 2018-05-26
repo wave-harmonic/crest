@@ -9,7 +9,7 @@ Shader "Ocean/Ocean Depth"
 
 	Category
 	{
-		Tags { "Queue"="Geometry" }
+		Tags { "Queue" = "Geometry" }
 
 		SubShader
 		{
@@ -25,7 +25,8 @@ Shader "Ocean/Ocean Depth"
 				#pragma multi_compile_fog
 				#include "UnityCG.cginc"
 
-				#define SEA_LEVEL 0.
+				uniform float _SeaLevel;
+
 				#define DEPTH_BIAS 100.
 
 				struct appdata_t {
@@ -45,7 +46,7 @@ Shader "Ocean/Ocean Depth"
 					half altitude = mul(unity_ObjectToWorld, v.vertex).y;
 
 					//depth bias is an optimisation which allows the depth data to be initialised once to 0 without generating foam everywhere.
-					o.depth = SEA_LEVEL - altitude - DEPTH_BIAS;
+					o.depth = _SeaLevel - altitude - DEPTH_BIAS;
 
 					return o;
 				}

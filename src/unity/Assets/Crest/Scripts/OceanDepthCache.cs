@@ -11,11 +11,15 @@ namespace Crest
         public bool _populateOnStartup = true;
         public LayerMask _mask;
         public int _resolution = 512;
-        public bool _forceAlwaysUpdateDebug = true;
+
+        // a big hill will still want to write its height into the depth texture
+        public float _cameraMaxTerrainHeight = 100f;
+
+        public bool _forceAlwaysUpdateDebug = false;
+
         RenderTexture _cache;
         GameObject _drawCacheQuad;
         Camera _camDepthCache;
-        public float _cameraMaxTerrainHeight = 100; //a big hill will still want to write its height into the depth texture
 
         void Start()
         {
@@ -29,7 +33,9 @@ namespace Crest
         void Update()
         {
             if (_forceAlwaysUpdateDebug)
+            {
                 PopulateCache();
+            }
         }
 #endif
 
@@ -65,7 +71,6 @@ namespace Crest
             {
                 _camDepthCache = new GameObject("DepthCacheCam").AddComponent<Camera>();
                 _camDepthCache.transform.position = transform.position + Vector3.up * _cameraMaxTerrainHeight;
-                _camDepthCache.transform.position = transform.position + Vector3.up * 10f;
                 _camDepthCache.transform.parent = transform;
                 _camDepthCache.transform.localEulerAngles = 90f * Vector3.right;
                 _camDepthCache.orthographic = true;
@@ -80,6 +85,8 @@ namespace Crest
                 _camDepthCache.gameObject.SetActive(false);
             }
 
+            // Hackety-hack: this seems to be the only way to pass parameters to the shader when using RenderWithShader!
+            Shader.SetGlobalFloat("_SeaLevel", OceanRenderer.Instance.SeaLevel);
             _camDepthCache.RenderWithShader(Shader.Find("Ocean/Ocean Depth"), null);
         }
 

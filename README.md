@@ -49,10 +49,10 @@ The steps to set up Crest in a new or existing project currently look as follows
 * Switch your project to Linear space under *Edit > Project Settings > Player > Other Settings*. If your platform(s) require Gamma space, the surface colours will need to be tweaked accordingly.
 * Copy across the contents of the *Crest* folder - this has all the necessary components and assets. Be sure to include the .meta files.
 * Drag *Crest/Prefabs/Ocean.prefab* into your scene(s). On startup, this will generate the ocean geometry and initialise the ocean systems.
-* Assign the *Viewpoint* property of the *Place Sphere Offset* component to your main camera object.
+  * Assign the *Viewpoint* property of the *Place Sphere Offset* component to your main camera object.
 * To add waves, create a new GameObject and add the *Shape Gerster Batched* component.
 * A *Wave Spectrum* component should have automatically been added to this same GO. Tweak the sliders to achieve the desired shape, or use the GUI buttons to use empirical wave spectrum.
-* For geometry that should interact with the ocean (attenuate waves, generate foam):
+* For geometry that should influence the ocean (attenuate waves, generate foam):
   * Static geometry should render ocean depth just once on startup into an *Ocean Depth Cache*.
   * Dynamic objects that need to render depth every frame should have a *Render Ocean Depth* component attached.
 
@@ -102,7 +102,8 @@ The ocean pixel shader samples normal maps at 2 different scales, both proportio
 * Using prebaked textures (i.e. from an offline ocean simulation) would be easy to implement in our framework by rendering the prebaked results into the shape textures, and would be the most efficient option (although completely dynamic shape now renders very efficiently).
 * Ocean surface tiles are updated and drawn as separate draw calls. This is convenient for research and supports frustum culling easily, but it might make sense to instance these in a production scenario.
 * Persistent foam - generate from waves/dynamic sim, fade gradually over time
-
+* Wetness simulation for shore
+* Flow - texture to paint wind direction
 
 ## Links
 
@@ -136,6 +137,11 @@ The ocean pixel shader samples normal maps at 2 different scales, both proportio
 * Realistic simulation of waves using wave spectra: https://hal.archives-ouvertes.fr/file/index/docid/307938/filename/frechot_realistic_simulation_of_ocean_surface_using_wave_spectra.pdf
 * Nice practical demo about testing different wave breakers: https://youtu.be/3yNoy4H2Z-o
 * Useful notes/diagrams on waves: http://hyperphysics.phy-astr.gsu.edu/hbase/Waves/watwav2.html, http://hyperphysics.phy-astr.gsu.edu/hbase/watwav.html#c1
+
+### Wave particles
+
+* Original wave particles work: http://www.cemyuksel.com/research/waveparticles/
+* Water Surface Wavelets: http://visualcomputing.ist.ac.at/publications/2018/WSW/
 
 ### Boundary conditions
 

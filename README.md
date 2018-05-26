@@ -74,7 +74,7 @@ There are just two parameters that control the construction of the ocean shape a
 
 * **Wind direction angle** - this global wind direction affects the ocean shape
 * **Max Scale** - the ocean is scaled horizontally with viewer height, to keep the meshing suitable for elevated viewpoints. This sets the maximum the ocean will be scaled if set to a positive value.
-* **Min Scale** - this clamps the scale from below, to prevent the ocean scaling down to 0 when the camera approaches the sea level. This should be set to a low value gives lots of detail, but will limmit the horizontal extents of the ocean as the detail scales have a limited dynamic range (set by the previous Lod Count parameter).
+* **Min Scale** - this clamps the scale from below, to prevent the ocean scaling down to 0 when the camera approaches the sea level. Low values give lots of detail, but will limit the horizontal extents of the ocean detail.
 
 ### Ocean Shape
 

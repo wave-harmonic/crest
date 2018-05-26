@@ -11,7 +11,10 @@ namespace Crest
 
         public static readonly float MIN_POWER_LOG = -6f;
         public static readonly float MAX_POWER_LOG = 3f;
-            
+
+        [Range(0f, 1f)]
+        public float _weight = 1f;
+
         [Delayed]
         public int _componentsPerOctave = 5;
 
@@ -82,7 +85,8 @@ namespace Crest
             float domega = (omega_lo - omega_hi) / _componentsPerOctave;
 
             float a_2 = 2f * Mathf.Pow(10f, _powerLog[index]) * domega;
-            return Mathf.Sqrt(a_2);
+            var a = Mathf.Sqrt(a_2);
+            return a * _weight;
         }
 
         float ComputeWaveSpeed(float wavelength/*, float depth*/)
@@ -126,7 +130,9 @@ namespace Crest
             }
         }
 
-        public static bool _applyPhillipsSpectrum = false;
+        [System.NonSerialized] public bool _applyPhillipsSpectrum = false;
+        [System.NonSerialized] public bool _applyPiersonMoskowitzSpectrum = false;
+        [System.NonSerialized] public bool _applyJONSWAPSpectrum = false;
 
         public void ApplyPhillipsSpectrum(float windSpeed)
         {
@@ -144,8 +150,6 @@ namespace Crest
             }
         }
 
-        public static bool _applyPiersonMoskowitzSpectrum = false;
-
         public void ApplyPiersonMoskowitzSpectrum(float windSpeed)
         {
 #if UNITY_EDITOR
@@ -161,8 +165,6 @@ namespace Crest
                 _powerLog[octave] = Mathf.Log10(pow);
             }
         }
-
-        public static bool _applyJONSWAPSpectrum = false;
 
         public void ApplyJONSWAPSpectrum(float windSpeed)
         {

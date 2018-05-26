@@ -707,6 +707,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 60efd8af8fbfdee4bb291bb685fad3a2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _weight: 1
   _componentsPerOctave: 5
   _waveDirectionVariance: 90
   _powerLog:

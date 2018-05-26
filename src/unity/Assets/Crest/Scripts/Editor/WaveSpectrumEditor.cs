@@ -78,25 +78,23 @@ namespace Crest
 
             // descriptions from this very useful paper: https://hal.archives-ouvertes.fr/file/index/docid/307938/filename/frechot_realistic_simulation_of_ocean_surface_using_wave_spectra.pdf
 
-            if (GUILayout.Button(new GUIContent("Phillips", "Base of modern parametric wave spectra"), WaveSpectrum._applyPhillipsSpectrum ? ToggleButtonStyleToggled : ToggleButtonStyleNormal))
+            if (GUILayout.Button(new GUIContent("Phillips", "Base of modern parametric wave spectra"), spec._applyPhillipsSpectrum ? ToggleButtonStyleToggled : ToggleButtonStyleNormal))
             {
-                WaveSpectrum._applyPhillipsSpectrum = !WaveSpectrum._applyPhillipsSpectrum;
+                spec._applyPhillipsSpectrum = !spec._applyPhillipsSpectrum;
             }
-            if (WaveSpectrum._applyPhillipsSpectrum)
+            if (spec._applyPhillipsSpectrum)
             {
-                WaveSpectrum._applyJONSWAPSpectrum = WaveSpectrum._applyPiersonMoskowitzSpectrum = false;
-
+                spec._applyJONSWAPSpectrum = spec._applyPiersonMoskowitzSpectrum = false;
                 spec.ApplyPhillipsSpectrum(spWindSpeed.floatValue);
             }
 
-            if (GUILayout.Button(new GUIContent("Pierson-Moskowitz", "Fully developed sea with infinite fetch"), WaveSpectrum._applyPiersonMoskowitzSpectrum ? ToggleButtonStyleToggled : ToggleButtonStyleNormal))
+            if (GUILayout.Button(new GUIContent("Pierson-Moskowitz", "Fully developed sea with infinite fetch"), spec._applyPiersonMoskowitzSpectrum ? ToggleButtonStyleToggled : ToggleButtonStyleNormal))
             {
-                WaveSpectrum._applyPiersonMoskowitzSpectrum = !WaveSpectrum._applyPiersonMoskowitzSpectrum;
+                spec._applyPiersonMoskowitzSpectrum = !spec._applyPiersonMoskowitzSpectrum;
             }
-            if (WaveSpectrum._applyPiersonMoskowitzSpectrum)
+            if (spec._applyPiersonMoskowitzSpectrum)
             {
-                WaveSpectrum._applyJONSWAPSpectrum = WaveSpectrum._applyPhillipsSpectrum = false;
-
+                spec._applyPhillipsSpectrum = spec._applyJONSWAPSpectrum = false;
                 spec.ApplyPiersonMoskowitzSpectrum(spWindSpeed.floatValue);
             }
 
@@ -106,14 +104,13 @@ namespace Crest
             EditorGUILayout.EndHorizontal();
 
 
-            if (GUILayout.Button(new GUIContent("JONSWAP", "Fetch limited sea where waves continue to grow"), WaveSpectrum._applyJONSWAPSpectrum ? ToggleButtonStyleToggled : ToggleButtonStyleNormal))
+            if (GUILayout.Button(new GUIContent("JONSWAP", "Fetch limited sea where waves continue to grow"), spec._applyJONSWAPSpectrum ? ToggleButtonStyleToggled : ToggleButtonStyleNormal))
             {
-                WaveSpectrum._applyJONSWAPSpectrum = !WaveSpectrum._applyJONSWAPSpectrum;
+                spec._applyJONSWAPSpectrum = !spec._applyJONSWAPSpectrum;
             }
-            if (WaveSpectrum._applyJONSWAPSpectrum)
+            if (spec._applyJONSWAPSpectrum)
             {
-                WaveSpectrum._applyPiersonMoskowitzSpectrum = WaveSpectrum._applyPhillipsSpectrum = false;
-
+                spec._applyPhillipsSpectrum = spec._applyPiersonMoskowitzSpectrum = false;
                 spec.ApplyJONSWAPSpectrum(spWindSpeed.floatValue);
             }
 

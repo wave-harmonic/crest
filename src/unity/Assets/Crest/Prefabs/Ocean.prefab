@@ -48,9 +48,9 @@ MonoBehaviour:
   _minScale: 8
   _maxScale: 256
   _freezeTime: 0
+  _uniformTiles: 0
   _baseVertDensity: 48
   _lodCount: 7
-  _uniformTiles: 0
   _generateSkirt: 1
 --- !u!114 &11447936
 MonoBehaviour:

@@ -28,6 +28,8 @@ namespace Crest
         [Header( "Debug Params" )]
         [Tooltip( "Freeze wave shape in place but continues to move geom with camera, useful for hunting down pops" )]
         public bool _freezeTime = false;
+        [Tooltip("Whether to generate ocean geometry tiles uniformly (with overlaps)")]
+        public bool _uniformTiles = false;
 
         [Header( "Geometry Params" )]
         [SerializeField]
@@ -35,9 +37,6 @@ namespace Crest
         public float _baseVertDensity = 32f;
         [SerializeField, Delayed, Tooltip( "Number of ocean tile scales/LODs to generate." ), ]
         int _lodCount = 6;
-        [SerializeField]
-        [Tooltip( "Whether to generate ocean geometry tiles uniformly (with overlaps)" )]
-        bool _uniformTiles = false;
         [SerializeField]
         [Tooltip( "Generate a wide strip of triangles at the outer edge to extend ocean to edge of view frustum" )]
         bool _generateSkirt = true;
@@ -121,7 +120,6 @@ namespace Crest
             {
                 _baseVertDensity = _baseVertDensity,
                 _lodCount = _lodCount,
-                _forceUniformPatches = _uniformTiles,
                 _generateSkirt = _generateSkirt,
             };
         }

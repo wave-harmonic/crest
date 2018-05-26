@@ -31,7 +31,6 @@ namespace Crest
         {
             public float _baseVertDensity = 32f;
             public int _lodCount = 5;
-            public bool _forceUniformPatches = false;
             public bool _generateSkirt = true;
         }
 
@@ -460,7 +459,7 @@ namespace Crest
 
             // debug toggle to force all patches to be the same. they'll be made with a surrounding skirt to make sure patches
             // overlap
-            if( parms._forceUniformPatches )
+            if (OceanRenderer.Instance._uniformTiles)
             {
                 for( int i = 0; i < patchTypes.Length; i++ )
                 {

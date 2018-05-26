@@ -24,16 +24,6 @@ namespace Crest
 
         public int CurrentLodCount { get { return _shapeCameras.Length; } }
 
-        /// <summary>
-        /// Parameters to use for ocean geometry construction
-        /// </summary>
-        public class Params
-        {
-            public float _baseVertDensity = 32f;
-            public int _lodCount = 5;
-            public bool _generateSkirt = true;
-        }
-
         // The following apply to BASE_VERT_DENSITY = 2. The ocean mesh is built up from these patches. Rotational symmetry is
         // used where possible to eliminate combinations. The slim variants are used to eliminate overlap between patches.
         enum PatchType
@@ -146,11 +136,11 @@ namespace Crest
             Count,
         }
 
-        public void GenerateMesh( Params parms )
+        public void GenerateMesh(float baseVertDensity, int lodCount)
         {
-            if( parms._lodCount < 1 )
+            if (lodCount < 1)
             {
-                Debug.LogError( "Invalid LOD count: " + parms._lodCount.ToString(), this );
+                Debug.LogError( "Invalid LOD count: " + lodCount.ToString(), this );
                 return;
             }
 
@@ -169,15 +159,17 @@ namespace Crest
 
             // create mesh data
             Mesh[] meshInsts = new Mesh[(int)PatchType.Count];
-            for( int i = 0; i < (int)PatchType.Count; i++ )
-                meshInsts[i] = BuildOceanPatch( (PatchType)i, parms );
+            for (int i = 0; i < (int)PatchType.Count; i++)
+            {
+                meshInsts[i] = BuildOceanPatch((PatchType)i, baseVertDensity);
+            }
 
             // create the shape cameras
-            _shapeCameras = new Camera[parms._lodCount];
-            _shapeWDCs = new WaveDataCam[parms._lodCount];
-            for( int i = 0; i < parms._lodCount; i++ )
+            _shapeCameras = new Camera[lodCount];
+            _shapeWDCs = new WaveDataCam[lodCount];
+            for( int i = 0; i < lodCount; i++ )
             {
-                CreateWaveDataCam( i, parms );
+                CreateWaveDataCam(i, lodCount, baseVertDensity);
             }
 
             // remove existing LODs
@@ -193,10 +185,10 @@ namespace Crest
             }
 
             int startLevel = 0;
-            for( int i = 0; i < parms._lodCount; i++ )
+            for( int i = 0; i < lodCount; i++ )
             {
-                bool biggestLOD = i == parms._lodCount - 1;
-                GameObject nextLod = CreateLOD( i, biggestLOD, meshInsts, parms );
+                bool biggestLOD = i == lodCount - 1;
+                GameObject nextLod = CreateLOD(i, lodCount, biggestLOD, meshInsts, baseVertDensity);
                 nextLod.transform.parent = transform;
 
                 // scale only horizontally, otherwise culling bounding box will be scaled up in y
@@ -210,7 +202,7 @@ namespace Crest
 #endif
         }
 
-        void CreateWaveDataCam( int lodIdx, Params parms )
+        void CreateWaveDataCam(int lodIdx, int lodCount, float baseVertDensity)
         {
             var go = new GameObject( string.Format( "ShapeCam{0}", lodIdx ) );
 
@@ -231,12 +223,12 @@ namespace Crest
 
             var wdc = go.AddComponent<WaveDataCam>();
             wdc._lodIndex = lodIdx;
-            wdc._lodCount = parms._lodCount;
+            wdc._lodCount = lodCount;
             _shapeWDCs[lodIdx] = wdc;
 
             var cart = go.AddComponent<CreateAssignRenderTexture>();
             cart._targetName = string.Format( "shapeRT{0}", lodIdx );
-            cart._width = cart._height = (int)(4f * parms._baseVertDensity);
+            cart._width = cart._height = (int)(4f * baseVertDensity);
             cart._depthBits = 0;
             // shape format. i tried RGB111110Float but error becomes visible. one option would be to use a UNORM setup.
             cart._format = RenderTextureFormat.ARGBHalf;
@@ -249,13 +241,13 @@ namespace Crest
             cart.CreateRT();
         }
 
-        Mesh BuildOceanPatch( PatchType pt, Params parms )
+        Mesh BuildOceanPatch(PatchType pt, float baseVertDensity)
         {
             ArrayList verts = new ArrayList();
             ArrayList indices = new ArrayList();
 
             // stick a bunch of verts into a 1m x 1m patch (scaling happens later)
-            float dx = 1f / parms._baseVertDensity;
+            float dx = 1f / baseVertDensity;
 
 
             //////////////////////////////////////////////////////////////////////////////////
@@ -275,8 +267,8 @@ namespace Crest
             else if( pt == PatchType.SlimXZ ) { skirtXplus = skirtZplus = -1f; }
             else if( pt == PatchType.SlimXFatZ ) { skirtXplus = -1f; skirtZplus = 1f; }
 
-            float sideLength_verts_x = 1f + parms._baseVertDensity + skirtXminus + skirtXplus;
-            float sideLength_verts_z = 1f + parms._baseVertDensity + skirtZminus + skirtZplus;
+            float sideLength_verts_x = 1f + baseVertDensity + skirtXminus + skirtXplus;
+            float sideLength_verts_z = 1f + baseVertDensity + skirtZminus + skirtZplus;
 
             float start_x = -0.5f - skirtXminus * dx;
             float start_z = -0.5f - skirtZminus * dx;
@@ -382,7 +374,8 @@ namespace Crest
             }
             return mesh;
         }
-        GameObject CreateLOD( int lodIndex, bool biggestLOD, Mesh[] meshData, Params parms )
+
+        GameObject CreateLOD( int lodIndex, int lodCount, bool biggestLOD, Mesh[] meshData, float baseVertDensity )
         {
             // first create parent gameobject for the lod level. the scale of this transform sets the size of the lod.
             GameObject parent = new GameObject();
@@ -397,7 +390,7 @@ namespace Crest
             _shapeCameras[lodIndex].transform.localPosition = Vector3.up * 100f;
             _shapeCameras[lodIndex].transform.localEulerAngles = Vector3.right * 90f;
 
-            bool generateSkirt = parms._generateSkirt && biggestLOD;
+            bool generateSkirt = biggestLOD && !OceanRenderer.Instance._disableSkirt;
 
             Vector2[] offsets;
             PatchType[] patchTypes;
@@ -477,7 +470,7 @@ namespace Crest
                 patch.transform.localPosition = new Vector3( pos.x, 0f, pos.y );
                 patch.transform.localScale = Vector3.one;
 
-                patch.AddComponent<OceanChunkRenderer>().SetInstanceData( lodIndex, parms._lodCount, parms._baseVertDensity ); ;
+                patch.AddComponent<OceanChunkRenderer>().SetInstanceData( lodIndex, lodCount, baseVertDensity ); ;
                 patch.AddComponent<MeshFilter>().mesh = meshData[(int)patchTypes[i]];
 
                 var mr = patch.AddComponent<MeshRenderer>();

@@ -48,7 +48,7 @@ The steps to set up Crest in a new or existing project currently look as follows
 
 * Switch your project to Linear space under *Edit > Project Settings > Player > Other Settings*. If your platform(s) require Gamma space, the surface colours will need to be tweaked accordingly.
 * Copy across the contents of the *Crest* folder - this has all the necessary components and assets. Be sure to include the .meta files.
-* Drag *Crest/Prefabs/Ocean.prefab* into your scene(s). On startup, this will generate the ocean geometry and initialise the ocean systems.
+* Drag *Crest/Prefabs/Ocean.prefab* into your scene(s), set height to desired sea level. On startup, this will generate the ocean geometry and initialise the ocean systems.
   * Assign the *Viewpoint* property of the *Place Sphere Offset* component to your main camera object.
 * To add waves, create a new GameObject and add the *Shape Gerster Batched* component.
 * A *Wave Spectrum* component should have automatically been added to this same GO. Tweak the sliders to achieve the desired shape, or use the GUI buttons to use empirical wave spectrum.
@@ -65,14 +65,14 @@ The components described above are driven by a small number of key parameters wh
 
 ### Ocean Construction Parameters
 
+There are just two parameters that control the construction of the ocean shape and geometry:
+
 * **Base Vert density** - the base vert/shape texel density of an ocean patch. If you set the scale of a LOD to 1, this density would be the world space verts/m. More means more verts/shape, at the cost of more processing.
 * **Lod Count** - the number of levels of detail / scales of ocean geometry to generate. More means more dynamic range of usable shape/mesh at the cost of more processing.
-* **Max Wave Height** - this is just so that the ocean tiles bounding box height can be set, to ensure culling eliminates tiles correctly.
 
 ### Runtime Global Parameters
 
 * **Wind direction angle** - this global wind direction affects the ocean shape
-* **Chop** - controls how much horizontal displacement is present in the ocean shape
 * **Max Scale** - the ocean is scaled horizontally with viewer height, to keep the meshing suitable for elevated viewpoints. This sets the maximum the ocean will be scaled if set to a positive value.
 * **Min Scale** - this clamps the scale from below, to prevent the ocean scaling down to 0 when the camera approaches the sea level. This should be set to a low value gives lots of detail, but will limmit the horizontal extents of the ocean as the detail scales have a limited dynamic range (set by the previous Lod Count parameter).
 

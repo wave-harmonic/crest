@@ -25,21 +25,19 @@ namespace Crest
         [Delayed, Tooltip( "The largest scale the ocean can be (-1 for unlimited)" )]
         public float _maxScale = 128f;
 
-        [Header( "Debug Params" )]
-        [Tooltip( "Freeze wave shape in place but continues to move geom with camera, useful for hunting down pops" )]
-        public bool _freezeTime = false;
-        [Tooltip("Whether to generate ocean geometry tiles uniformly (with overlaps)")]
-        public bool _uniformTiles = false;
-
         [Header( "Geometry Params" )]
-        [SerializeField]
-        [Delayed, Tooltip( "Side dimension in quads of an ocean tile." )]
+        [SerializeField, Delayed, Tooltip( "Side dimension in quads of an ocean tile." )]
         public float _baseVertDensity = 32f;
         [SerializeField, Delayed, Tooltip( "Number of ocean tile scales/LODs to generate." ), ]
         int _lodCount = 6;
-        [SerializeField]
-        [Tooltip( "Generate a wide strip of triangles at the outer edge to extend ocean to edge of view frustum" )]
-        bool _generateSkirt = true;
+
+        [Header("Debug Params")]
+        [Tooltip("Freeze wave shape in place but continues to move geom with camera, useful for hunting down pops")]
+        public bool _freezeTime = false;
+        [Tooltip("Whether to generate ocean geometry tiles uniformly (with overlaps)")]
+        public bool _uniformTiles = false;
+        [Tooltip("Disable generating a wide strip of triangles at the outer edge to extend ocean to edge of view frustum")]
+        public bool _disableSkirt = false;
 
         // these have been useful for debug purposes (to freeze the water surface only)
         float _elapsedTime = 0f;
@@ -64,7 +62,7 @@ namespace Crest
             _instance = this;
 
             _oceanBuilder = FindObjectOfType<OceanBuilder>();
-            _oceanBuilder.GenerateMesh( MakeBuildParams() );
+            _oceanBuilder.GenerateMesh(_baseVertDensity, _lodCount);
         }
 
         void LateUpdate()
@@ -114,19 +112,9 @@ namespace Crest
             _instance = null;
         }
 
-        OceanBuilder.Params MakeBuildParams()
-        {
-            return new OceanBuilder.Params
-            {
-                _baseVertDensity = _baseVertDensity,
-                _lodCount = _lodCount,
-                _generateSkirt = _generateSkirt,
-            };
-        }
-
         public void RegenMesh()
         {
-            _oceanBuilder.GenerateMesh( MakeBuildParams() );
+            _oceanBuilder.GenerateMesh(_baseVertDensity, _lodCount);
         }
 
         public bool ScaleCouldIncrease { get { return _maxScale == -1f || transform.localScale.x < _maxScale * 0.99f; } }

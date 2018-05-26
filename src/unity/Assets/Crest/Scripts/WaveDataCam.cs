@@ -164,8 +164,6 @@ namespace Crest
 
         public bool SampleDisplacement(ref Vector3 worldPos, ref Vector3 displacement)
         {
-            Profiler.BeginSample("SampleDisplacement");
-
             float xOffset = worldPos.x - _collRenderData._posSnapped.x;
             float zOffset = worldPos.z - _collRenderData._posSnapped.z;
             float r = _collRenderData._texelWidth * _collRenderData._textureRes / 2f;
@@ -185,8 +183,6 @@ namespace Crest
             displacement.x = Mathf.HalfToFloat(_collDataNative[idx + 0]);
             displacement.y = Mathf.HalfToFloat(_collDataNative[idx + 1]);
             displacement.z = Mathf.HalfToFloat(_collDataNative[idx + 2]);
-
-            Profiler.EndSample();
 
             return true;
         }

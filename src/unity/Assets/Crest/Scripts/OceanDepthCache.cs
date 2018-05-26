@@ -12,6 +12,11 @@ namespace Crest
         public LayerMask _mask;
         public int _resolution = 512;
 
+        // a big hill will still want to write its height into the depth texture
+        public float _cameraMaxTerrainHeight = 100f;
+
+        public bool _forceAlwaysUpdateDebug = false;
+
         RenderTexture _cache;
         GameObject _drawCacheQuad;
         Camera _camDepthCache;
@@ -23,6 +28,16 @@ namespace Crest
                 PopulateCache();
             }
         }
+
+#if UNITY_EDITOR
+        void Update()
+        {
+            if (_forceAlwaysUpdateDebug)
+            {
+                PopulateCache();
+            }
+        }
+#endif
 
         public void PopulateCache()
         {
@@ -52,7 +67,7 @@ namespace Crest
             if (_camDepthCache == null)
             {
                 _camDepthCache = new GameObject("DepthCacheCam").AddComponent<Camera>();
-                _camDepthCache.transform.position = transform.position + Vector3.up * 10f;
+                _camDepthCache.transform.position = transform.position + Vector3.up * _cameraMaxTerrainHeight;
                 _camDepthCache.transform.parent = transform;
                 _camDepthCache.transform.localEulerAngles = 90f * Vector3.right;
                 _camDepthCache.orthographic = true;

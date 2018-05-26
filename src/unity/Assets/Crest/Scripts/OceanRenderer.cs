@@ -25,9 +25,6 @@ namespace Crest
         [Delayed, Tooltip( "The largest scale the ocean can be (-1 for unlimited)" )]
         public float _maxScale = 128f;
 
-        [Tooltip("Scales horizontal displacement up and down."), Range(0f, 1f)]
-        public float _chop = 1f;
-
         [Header( "Debug Params" )]
         [Tooltip( "Freeze wave shape in place but continues to move geom with camera, useful for hunting down pops" )]
         public bool _freezeTime = false;
@@ -36,8 +33,6 @@ namespace Crest
         [SerializeField]
         [Delayed, Tooltip( "Side dimension in quads of an ocean tile." )]
         public float _baseVertDensity = 32f;
-        [SerializeField, Tooltip( "Maximum wave amplitude, used to compute bounding box for ocean tiles." )]
-        public float _maxWaveHeight = 30f;
         [SerializeField, Delayed, Tooltip( "Number of ocean tile scales/LODs to generate." ), ]
         int _lodCount = 6;
         [SerializeField]
@@ -87,7 +82,6 @@ namespace Crest
             Shader.SetGlobalFloat( "_MyTime", _elapsedTime );
             Shader.SetGlobalFloat( "_MyDeltaTime", _deltaTime );
             Shader.SetGlobalFloat( "_TexelsPerWave", _minTexelsPerWave );
-            Shader.SetGlobalFloat("_Chop", _chop);
             Shader.SetGlobalVector("_WindDirXZ", WindDir);
             Shader.SetGlobalFloat("_SeaLevel", SeaLevel);
 
@@ -127,7 +121,6 @@ namespace Crest
             {
                 _baseVertDensity = _baseVertDensity,
                 _lodCount = _lodCount,
-                _maxWaveHeight = _maxWaveHeight,
                 _forceUniformPatches = _uniformTiles,
                 _generateSkirt = _generateSkirt,
             };
@@ -192,6 +185,34 @@ namespace Crest
             height = Instance.Builder._shapeWDCs[lod].GetHeight(ref worldPos);
             return true;
         }
+
+
+        /// <summary>
+        /// Shape scripts can report in how far they might displace the shape horizontally. The max value is saved here.
+        /// Later the bounding boxes for the ocean tiles will be expanded to account for this potential displacement.
+        /// </summary>
+        public void ReportMaxDisplacementFromShape(float maxHorizDisp, float maxVertDisp)
+        {
+            if (Time.frameCount != _maxDisplacementCachedTime)
+            {
+                _maxHorizDispFromShape = _maxVertDispFromShape = 0f;
+            }
+
+            _maxHorizDispFromShape += maxHorizDisp;
+            _maxVertDispFromShape += maxVertDisp;
+
+            _maxDisplacementCachedTime = Time.frameCount;
+        }
+        float _maxHorizDispFromShape = 0f, _maxVertDispFromShape = 0f;
+        int _maxDisplacementCachedTime = 0;
+        /// <summary>
+        /// The maximum horizontal distance that the shape scripts are displacing the shape.
+        /// </summary>
+        public float MaxHorizDisplacement { get { return _maxHorizDispFromShape; } }
+        /// <summary>
+        /// The maximum height that the shape scripts are displacing the shape.
+        /// </summary>
+        public float MaxVertDisplacement { get { return _maxVertDispFromShape; } }
 
 #if UNITY_EDITOR
         void OnDrawGizmos()

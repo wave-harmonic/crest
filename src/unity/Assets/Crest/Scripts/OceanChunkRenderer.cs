@@ -87,9 +87,9 @@ namespace Crest
         void UpdateMeshBounds()
         {
             Bounds bounds = _boundsLocal;
-            float boundsPadding = OceanRenderer.Instance._chop * OceanRenderer.Instance._maxWaveHeight;
+            float boundsPadding = OceanRenderer.Instance.MaxHorizDisplacement;
             float expandXZ = boundsPadding / transform.lossyScale.x;
-            float boundsY = OceanRenderer.Instance._maxWaveHeight / transform.lossyScale.y;
+            float boundsY = OceanRenderer.Instance.MaxVertDisplacement / transform.lossyScale.y;
             bounds.extents = new Vector3(bounds.extents.x + expandXZ, boundsY, bounds.extents.z + expandXZ);
             _mesh.bounds = bounds;
         }

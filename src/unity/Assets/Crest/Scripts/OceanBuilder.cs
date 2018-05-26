@@ -30,7 +30,6 @@ namespace Crest
         public class Params
         {
             public float _baseVertDensity = 32f;
-            public float _maxWaveHeight = 30f;
             public int _lodCount = 5;
             public bool _forceUniformPatches = false;
             public bool _generateSkirt = true;
@@ -378,7 +377,7 @@ namespace Crest
                 // to allow for horizontal displacement
                 mesh.RecalculateBounds();
                 Bounds bounds = mesh.bounds;
-                bounds.extents = new Vector3(bounds.extents.x + dx, parms._maxWaveHeight, bounds.extents.z + dx);
+                bounds.extents = new Vector3(bounds.extents.x + dx, 100f, bounds.extents.z + dx);
                 mesh.bounds = bounds;
                 mesh.name = pt.ToString();
             }
@@ -396,7 +395,7 @@ namespace Crest
             // add a shape camera below it
             _shapeCameras[lodIndex].transform.parent = parent.transform;
             _shapeCameras[lodIndex].transform.localScale = Vector3.one;
-            _shapeCameras[lodIndex].transform.localPosition = Vector3.up * parms._maxWaveHeight;
+            _shapeCameras[lodIndex].transform.localPosition = Vector3.up * 100f;
             _shapeCameras[lodIndex].transform.localEulerAngles = Vector3.right * 90f;
 
             bool generateSkirt = parms._generateSkirt && biggestLOD;

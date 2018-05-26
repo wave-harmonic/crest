@@ -53,11 +53,13 @@ namespace Crest
             Random.State randomStateBkp = Random.state;
             Random.InitState(_randomSeed);
 
-            _spectrum.GenerateWavelengths(ref _wavelengths, ref _angleDegs, ref _phases);
+            _spectrum.GenerateWaveData(ref _wavelengths, ref _angleDegs, ref _phases);
 
             Random.state = randomStateBkp;
 
             UpdateAmplitudes();
+
+            ReportMaxDisplacement();
 
             // this is done every frame for flexibility/convenience, in case the lod count changes
             if (_materials == null || _materials.Length != OceanRenderer.Instance.Builder.CurrentLodCount)
@@ -83,6 +85,16 @@ namespace Crest
             {
                 _amplitudes[i] = _spectrum.GetAmplitude(_wavelengths[i]);
             }
+        }
+
+        private void ReportMaxDisplacement()
+        {
+            float ampSum = 0f;
+            for (int i = 0; i < _wavelengths.Length; i++)
+            {
+                ampSum += _amplitudes[i];
+            }
+            OceanRenderer.Instance.ReportMaxDisplacementFromShape(ampSum * _spectrum._chop, ampSum);
         }
 
         void InitMaterials()
@@ -165,6 +177,7 @@ namespace Crest
             material.SetFloatArray("_Angles", _anglesBatch);
             material.SetFloatArray("_Phases", _phasesBatch);
             material.SetFloat("_NumInBatch", numInBatch);
+            material.SetFloat("_Chop", _spectrum._chop);
 
             OceanRenderer.Instance.Builder._shapeWDCs[lodIdx].ApplyMaterialParams(0, new PropertyWrapperMaterial(material), false, false);
 
@@ -318,7 +331,6 @@ namespace Crest
             if (_amplitudes == null) return Vector3.zero;
 
             Vector2 pos = new Vector2(worldPos.x, worldPos.z);
-            float chop = OceanRenderer.Instance._chop;
             float mytime = OceanRenderer.Instance.ElapsedTime + toff;
             float windAngle = OceanRenderer.Instance._windDirectionAngle;
 
@@ -337,7 +349,7 @@ namespace Crest
 
                 float x = Vector2.Dot(D, pos);
                 float t = k * (x + C * mytime) + _phases[j];
-                float disp = -chop * Mathf.Sin(t);
+                float disp = -_spectrum._chop * Mathf.Sin(t);
                 result += _amplitudes[j] * new Vector3(
                     D.x * disp,
                     Mathf.Cos(t),
@@ -354,7 +366,6 @@ namespace Crest
             if (_amplitudes == null) return Vector3.zero;
 
             var pos = new Vector2(worldPos.x, worldPos.z);
-            float chop = OceanRenderer.Instance._chop;
             float mytime = OceanRenderer.Instance.ElapsedTime + toff;
             float windAngle = OceanRenderer.Instance._windDirectionAngle;
 
@@ -375,7 +386,7 @@ namespace Crest
 
                 float x = Vector2.Dot(D, pos);
                 float t = k * (x + C * mytime) + _phases[j];
-                float disp = k * -chop * Mathf.Cos(t);
+                float disp = k * -_spectrum._chop * Mathf.Cos(t);
                 float dispx = D.x * disp;
                 float dispz = D.y * disp;
                 float dispy = -k * Mathf.Sin(t);
@@ -402,7 +413,6 @@ namespace Crest
             if (_amplitudes == null) return Vector3.zero;
 
             Vector2 pos = new Vector2(worldPos.x, worldPos.z);
-            float chop = OceanRenderer.Instance._chop;
             float mytime = OceanRenderer.Instance.ElapsedTime + toff;
             float windAngle = OceanRenderer.Instance._windDirectionAngle;
 
@@ -421,7 +431,7 @@ namespace Crest
 
                 float x = Vector2.Dot(D, pos);
                 float t = k * (x + C * mytime) + _phases[j];
-                float disp = -chop * k * C * Mathf.Cos(t);
+                float disp = -_spectrum._chop * k * C * Mathf.Cos(t);
                 result += _amplitudes[j] * new Vector3(
                     D.x * disp,
                     -k * C * Mathf.Sin(t),

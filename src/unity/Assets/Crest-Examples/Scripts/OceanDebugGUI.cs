@@ -42,9 +42,6 @@ public class OceanDebugGUI : MonoBehaviour
 
             OceanRenderer.Instance._freezeTime = GUI.Toggle(new Rect(x, y, w, h), OceanRenderer.Instance._freezeTime, "Freeze waves"); y += h;
 
-            GUI.Label(new Rect(x, y, w, h), string.Format("Chop: {0}", OceanRenderer.Instance._chop.ToString("0.00"))); y += h;
-            OceanRenderer.Instance._chop = GUI.HorizontalSlider(new Rect(x, y, w, h), OceanRenderer.Instance._chop, 0f, 2f); y += h;
-
             GUI.Label(new Rect(x, y, w, h), string.Format("Min verts per wave: {0}", OceanRenderer.Instance._minTexelsPerWave.ToString("0.00"))); y += h;
             OceanRenderer.Instance._minTexelsPerWave = GUI.HorizontalSlider(new Rect(x, y, w, h), OceanRenderer.Instance._minTexelsPerWave, 0, 15); y += h;
 

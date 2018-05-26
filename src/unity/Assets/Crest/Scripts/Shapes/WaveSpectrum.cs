@@ -29,6 +29,9 @@ namespace Crest
         [HideInInspector]
         public float _fetch = 1000f;
 
+        [Tooltip("Scales horizontal displacement"), Range(0f, 2f)]
+        public float _chop = 1f;
+
         private void Reset()
         {
             _powerLog = new float[NUM_OCTAVES];
@@ -94,7 +97,10 @@ namespace Crest
             return cp;
         }
 
-        public void GenerateWavelengths(ref float[] wavelengths, ref float[] anglesDeg, ref float[] phases)
+        /// <summary>
+        /// Samples spectrum to generate wave data. Wavelengths will be in ascending order.
+        /// </summary>
+        public void GenerateWaveData(ref float[] wavelengths, ref float[] anglesDeg, ref float[] phases)
         {
             int totalComponents = NUM_OCTAVES * _componentsPerOctave;
 

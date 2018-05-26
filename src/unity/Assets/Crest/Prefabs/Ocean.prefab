@@ -47,10 +47,8 @@ MonoBehaviour:
   _minTexelsPerWave: 5
   _minScale: 8
   _maxScale: 256
-  _chop: 1
   _freezeTime: 0
   _baseVertDensity: 48
-  _maxWaveHeight: 12
   _lodCount: 7
   _uniformTiles: 0
   _generateSkirt: 1
@@ -67,6 +65,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _oceanMaterial: {fileID: 2100000, guid: 9def92ac79181fe41b238e91663f0fad, type: 2}
   _shapeCameras: []
+  _shapeWDCs: []
 --- !u!1001 &100100000
 Prefab:
   m_ObjectHideFlags: 1

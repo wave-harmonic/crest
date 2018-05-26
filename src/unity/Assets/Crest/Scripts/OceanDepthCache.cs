@@ -67,6 +67,8 @@ namespace Crest
                 _camDepthCache.gameObject.SetActive(false);
             }
 
+            // Hackety-hack: this seems to be the only way to pass parameters to the shader when using RenderWithShader!
+            Shader.SetGlobalFloat("_SeaLevel", OceanRenderer.Instance.SeaLevel);
             _camDepthCache.RenderWithShader(Shader.Find("Ocean/Ocean Depth"), null);
         }
 

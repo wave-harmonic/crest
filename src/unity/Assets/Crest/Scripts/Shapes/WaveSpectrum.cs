@@ -25,6 +25,8 @@ namespace Crest
         public float[] _powerLog = new float[NUM_OCTAVES];
         [HideInInspector]
         public bool[] _powerDisabled = new bool[NUM_OCTAVES];
+        [HideInInspector]
+        public float[] _chopPerOctave = new float[NUM_OCTAVES];
 
         [HideInInspector]
         public float _windSpeed = 5f;
@@ -32,16 +34,15 @@ namespace Crest
         [HideInInspector]
         public float _fetch = 1000f;
 
-        [Tooltip("Scales horizontal displacement"), Range(0f, 2f)]
-        public float _chop = 1f;
-
         private void Reset()
         {
             _powerLog = new float[NUM_OCTAVES];
+            _chopPerOctave = new float[NUM_OCTAVES];
 
             for (int i = 0; i < _powerLog.Length; i++)
             {
                 _powerLog[i] = MIN_POWER_LOG;
+                _chopPerOctave[i] = 1f;
             }
         }
 
@@ -104,13 +105,14 @@ namespace Crest
         /// <summary>
         /// Samples spectrum to generate wave data. Wavelengths will be in ascending order.
         /// </summary>
-        public void GenerateWaveData(ref float[] wavelengths, ref float[] anglesDeg, ref float[] phases)
+        public void GenerateWaveData(ref float[] wavelengths, ref float[] anglesDeg, ref float[] phases, ref float[] chops)
         {
             int totalComponents = NUM_OCTAVES * _componentsPerOctave;
 
             if (wavelengths == null || wavelengths.Length != totalComponents) wavelengths = new float[totalComponents];
             if (anglesDeg == null || anglesDeg.Length != totalComponents) anglesDeg = new float[totalComponents];
             if (phases == null || phases.Length != totalComponents) phases = new float[totalComponents];
+            if (chops == null || chops.Length != totalComponents) chops = new float[totalComponents];
 
             float minWavelength = Mathf.Pow(2f, SMALLEST_WL_POW_2);
 
@@ -122,6 +124,7 @@ namespace Crest
                     wavelengths[index] = minWavelength * (1f + Random.value);
                     anglesDeg[index] = Random.Range(-_waveDirectionVariance, _waveDirectionVariance);
                     phases[index] = 2f * Mathf.PI * Random.value;
+                    chops[index] = _chopPerOctave[octave];
                 }
 
                 System.Array.Sort(wavelengths, octave * _componentsPerOctave, _componentsPerOctave);

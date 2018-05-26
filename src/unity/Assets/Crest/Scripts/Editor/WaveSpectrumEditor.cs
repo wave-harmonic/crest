@@ -47,8 +47,9 @@ namespace Crest
             var spec = target as WaveSpectrum;
 
             var spPower = serializedObject.FindProperty("_powerLog");
-            
-            for( int i = 0; i < spPower.arraySize; i++)
+            var spChops = serializedObject.FindProperty("_chopPerOctave");
+
+            for ( int i = 0; i < spPower.arraySize; i++)
             {
                 EditorGUILayout.BeginHorizontal();
 
@@ -56,9 +57,13 @@ namespace Crest
                 spDisabled_i.boolValue = !EditorGUILayout.Toggle(!spDisabled_i.boolValue, GUILayout.Width(15f));
 
                 float smallWL = spec.SmallWavelength(i);
-                EditorGUILayout.LabelField(string.Format("{0}", smallWL), GUILayout.Width(30f));
+                EditorGUILayout.LabelField(new GUIContent(string.Format("{0}", smallWL), "Octave start wavelength (m)"), GUILayout.Width(30f));
                 var spPower_i = spPower.GetArrayElementAtIndex(i);
                 spPower_i.floatValue = GUILayout.HorizontalSlider(spPower_i.floatValue, WaveSpectrum.MIN_POWER_LOG, WaveSpectrum.MAX_POWER_LOG);
+
+                var spChop_i = spChops.GetArrayElementAtIndex(i);
+                EditorGUILayout.LabelField("Chop", GUILayout.Width(35f));
+                spChop_i.floatValue = EditorGUILayout.Slider(spChop_i.floatValue, 0f, 2f, GUILayout.Width(120f));
 
                 EditorGUILayout.EndHorizontal();
             }

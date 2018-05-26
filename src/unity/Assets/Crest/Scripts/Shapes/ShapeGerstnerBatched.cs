@@ -24,6 +24,7 @@ namespace Crest
         float[] _amplitudes;
         float[] _angleDegs;
         float[] _phases;
+        float[] _chops;
 
         // useful references
         WaveSpectrum _spectrum;
@@ -53,7 +54,7 @@ namespace Crest
             Random.State randomStateBkp = Random.state;
             Random.InitState(_randomSeed);
 
-            _spectrum.GenerateWaveData(ref _wavelengths, ref _angleDegs, ref _phases);
+            _spectrum.GenerateWaveData(ref _wavelengths, ref _angleDegs, ref _phases, ref _chops);
 
             Random.state = randomStateBkp;
 
@@ -89,12 +90,14 @@ namespace Crest
 
         private void ReportMaxDisplacement()
         {
-            float ampSum = 0f;
+            float horizDisp = 0f;
+            float vertDisp = 0f;
             for (int i = 0; i < _wavelengths.Length; i++)
             {
-                ampSum += _amplitudes[i];
+                horizDisp += _amplitudes[i] * _chops[i];
+                vertDisp += _amplitudes[i];
             }
-            OceanRenderer.Instance.ReportMaxDisplacementFromShape(ampSum * _spectrum._chop, ampSum);
+            OceanRenderer.Instance.ReportMaxDisplacementFromShape(horizDisp, vertDisp);
         }
 
         void InitMaterials()
@@ -177,7 +180,8 @@ namespace Crest
             material.SetFloatArray("_Angles", _anglesBatch);
             material.SetFloatArray("_Phases", _phasesBatch);
             material.SetFloat("_NumInBatch", numInBatch);
-            material.SetFloat("_Chop", _spectrum._chop);
+            // chop is a special case - it is set per octave, not component.
+            material.SetFloat("_Chop", _chops[firstComponent]);
 
             OceanRenderer.Instance.Builder._shapeWDCs[lodIdx].ApplyMaterialParams(0, new PropertyWrapperMaterial(material), false, false);
 
@@ -349,7 +353,7 @@ namespace Crest
 
                 float x = Vector2.Dot(D, pos);
                 float t = k * (x + C * mytime) + _phases[j];
-                float disp = -_spectrum._chop * Mathf.Sin(t);
+                float disp = -_chops[j] * Mathf.Sin(t);
                 result += _amplitudes[j] * new Vector3(
                     D.x * disp,
                     Mathf.Cos(t),
@@ -386,7 +390,7 @@ namespace Crest
 
                 float x = Vector2.Dot(D, pos);
                 float t = k * (x + C * mytime) + _phases[j];
-                float disp = k * -_spectrum._chop * Mathf.Cos(t);
+                float disp = k * -_chops[j] * Mathf.Cos(t);
                 float dispx = D.x * disp;
                 float dispz = D.y * disp;
                 float dispy = -k * Mathf.Sin(t);
@@ -431,7 +435,7 @@ namespace Crest
 
                 float x = Vector2.Dot(D, pos);
                 float t = k * (x + C * mytime) + _phases[j];
-                float disp = -_spectrum._chop * k * C * Mathf.Cos(t);
+                float disp = -_chops[j] * k * C * Mathf.Cos(t);
                 result += _amplitudes[j] * new Vector3(
                     D.x * disp,
                     -k * C * Mathf.Sin(t),

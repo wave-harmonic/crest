@@ -360,21 +360,22 @@ Shader "Ocean/Ocean"
 					float sceneZ = LinearEyeDepth(texture(_CameraDepthTexture, uvDepth).x);
 
 					// Normal - geom + normal mapping
-					half3 n = i.n;
-					ApplyNormalMaps(i.invDeterminant_lodAlpha_worldXZUndisplaced.zw, i.invDeterminant_lodAlpha_worldXZUndisplaced.y, n);
+					half3 n_geom = normalize(i.n);
+					half3 n_pixel = n_geom;
+					ApplyNormalMaps(i.invDeterminant_lodAlpha_worldXZUndisplaced.zw, i.invDeterminant_lodAlpha_worldXZUndisplaced.y, n_pixel);
 
 					// Foam - underwater bubbles and whitefoam
 					half whiteFoam = 0.;
 					half3 bubbleCol = (half3)0.;
 					#if _FOAM_ON
-					ComputeFoam(1. - i.invDeterminant_lodAlpha_worldXZUndisplaced.x, i.invDeterminant_lodAlpha_worldXZUndisplaced.zw, n, i.shorelineFoam_screenPos.x, pixelZ, sceneZ, bubbleCol, whiteFoam);
+					ComputeFoam(1. - i.invDeterminant_lodAlpha_worldXZUndisplaced.x, i.invDeterminant_lodAlpha_worldXZUndisplaced.zw, n_pixel, i.shorelineFoam_screenPos.x, pixelZ, sceneZ, bubbleCol, whiteFoam);
 					#endif
 
 					// Compute color of ocean - in-scattered light + refracted scene
-					half3 col = OceanEmission(view, n, i.n, i.grabPos, screenPos, pixelZ, uvDepth, sceneZ, bubbleCol);
+					half3 col = OceanEmission(view, n_pixel, n_geom, i.grabPos, screenPos, pixelZ, uvDepth, sceneZ, bubbleCol);
 
 					// Reflection
-					half3 refl = reflect(-view, n);
+					half3 refl = reflect(-view, n_pixel);
 					half3 skyColor = texCUBE(_Skybox, refl);
 					#if _COMPUTEDIRECTIONALLIGHT_ON
 					skyColor += pow(max(0., dot(refl, _WorldSpaceLightPos0.xyz)), _DirectionalLightFallOff) * _DirectionalLightBoost * _LightColor0;
@@ -386,7 +387,7 @@ Shader "Ocean/Ocean"
 					// reflectance at facing angle
 					float R_0 = (IOR_AIR - IOR_WATER) / (IOR_AIR + IOR_WATER); R_0 *= R_0;
 					// schlick's approximation
-					float R_theta = R_0 + (1.0 - R_0) * pow(1.0 - max(dot(n, view), 0.), _FresnelPower);
+					float R_theta = R_0 + (1.0 - R_0) * pow(1.0 - max(dot(n_pixel, view), 0.), _FresnelPower);
 					col = lerp(col, skyColor, R_theta);
 
 					// Override final result with white foam - bubbles on surface

@@ -8,7 +8,7 @@ Contacts: Huw Bowles (@hdb1 , huw dot bowles at gmail dot com), Daniel Zimmerman
 
 ## Introduction
 
-*Crest* is a technically advanced ocean renderer implemented in Unity3D (2017.1+). Some of the core ideas were described at SIGGRAPH 2017 in the *Advances in Real-Time Rendering* course (course page [link](http://advances.realtimerendering.com/s2017/index.html)). Since this initial publication we have been actively working to extend the feature set, which includes innovations in the following areas.
+*Crest* is a technically advanced ocean renderer implemented in Unity3D (2018.1+). Some of the core ideas were described at SIGGRAPH 2017 in the *Advances in Real-Time Rendering* course (course page [link](http://advances.realtimerendering.com/s2017/index.html)). Since this initial publication we have been actively working to extend the feature set, which includes innovations in the following areas.
 
 
 ### Shape

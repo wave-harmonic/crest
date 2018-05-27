@@ -320,7 +320,7 @@ Shader "Ocean/Ocean"
 					#if _SUBSURFACESCATTERING_ON
 					// Approximate subsurface scattering - add light when surface faces viewer. Use geometry normal - don't need high freqs.
 					half towardsSun = pow(max(0., dot(_WorldSpaceLightPos0.xyz, -view)), _SubSurfaceSunFallOff);
-					col += (_SubSurfaceBase + _SubSurfaceSun * towardsSun) * dot(n_geom, view) * _SubSurfaceColour;
+					col += (_SubSurfaceBase + _SubSurfaceSun * towardsSun) * max(dot(n_geom, view), 0.) * _SubSurfaceColour;
 					#endif
 
 					// Multiply by main light colour - not sure how well this will work yet
@@ -386,7 +386,7 @@ Shader "Ocean/Ocean"
 					// reflectance at facing angle
 					float R_0 = (IOR_AIR - IOR_WATER) / (IOR_AIR + IOR_WATER); R_0 *= R_0;
 					// schlick's approximation
-					float R_theta = R_0 + (1.0 - R_0) * pow(1.0 - dot(n, view), _FresnelPower);
+					float R_theta = R_0 + (1.0 - R_0) * pow(1.0 - max(dot(n, view), 0.), _FresnelPower);
 					col = lerp(col, skyColor, R_theta);
 
 					// Override final result with white foam - bubbles on surface

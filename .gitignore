@@ -44,3 +44,4 @@ src/exr_processor/exr_processor/Debug
 src/exr_processor/exr_processor/Release
 src/exr_processor/Release/exr_processor.iobj
 src/exr_processor/Release/exr_processor.ipdb
+/src/TextureReadbackTest/Library

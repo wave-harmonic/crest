@@ -326,13 +326,24 @@ Shader "Ocean/Ocean"
 					o_whiteFoam = foamTexValue * (smoothstep(0.9 - foamAmount, 1.4 - foamAmount, foamTexValue)) * _FoamWhiteColor.a;
 				}
 
-				half3 OceanEmission(half3 view, half3 n, half3 n_geom, half4 grabPos, half3 screenPos, float pixelZ, half2 uvDepth, float sceneZ, half3 bubbleCol)
+				float3 WorldSpaceLightDir(float3 worldPos)
+				{
+					float3 lightDir = _WorldSpaceLightPos0.xyz;
+					if (_WorldSpaceLightPos0.w > 0.)
+					{
+						// non-directional light - this is a position, not a direction
+						lightDir = normalize(lightDir - worldPos.xyz);
+					}
+					return lightDir;
+				}
+
+				half3 OceanEmission(half3 view, half3 n, half3 n_geom, float3 lightDir, half4 grabPos, half3 screenPos, float pixelZ, half2 uvDepth, float sceneZ, half3 bubbleCol)
 				{
 					half3 col = _Diffuse;
 
 					#if _SUBSURFACESCATTERING_ON
 					// Approximate subsurface scattering - add light when surface faces viewer. Use geometry normal - don't need high freqs.
-					half towardsSun = pow(max(0., dot(_WorldSpaceLightPos0.xyz, -view)), _SubSurfaceSunFallOff);
+					half towardsSun = pow(max(0., dot(lightDir, -view)), _SubSurfaceSunFallOff);
 					col += (_SubSurfaceBase + _SubSurfaceSun * towardsSun) * max(dot(n_geom, view), 0.) * _SubSurfaceColour;
 					#endif
 
@@ -374,6 +385,9 @@ Shader "Ocean/Ocean"
 					half2 uvDepth = screenPos.xy / screenPos.z;
 					float sceneZ = LinearEyeDepth(texture(_CameraDepthTexture, uvDepth).x);
 
+					// could be per-vertex i reckon
+					float3 lightDir = WorldSpaceLightDir(i.worldPos);
+
 					// Normal - geom + normal mapping
 					half3 n_geom = normalize(i.n);
 					half3 n_pixel = n_geom;
@@ -389,13 +403,13 @@ Shader "Ocean/Ocean"
 					#endif
 
 					// Compute color of ocean - in-scattered light + refracted scene
-					half3 col = OceanEmission(view, n_pixel, n_geom, i.grabPos, screenPos, pixelZ, uvDepth, sceneZ, bubbleCol);
+					half3 col = OceanEmission(view, n_pixel, n_geom, lightDir, i.grabPos, screenPos, pixelZ, uvDepth, sceneZ, bubbleCol);
 
 					// Reflection
 					half3 refl = reflect(-view, n_pixel);
 					half3 skyColor = texCUBE(_Skybox, refl);
 					#if _COMPUTEDIRECTIONALLIGHT_ON
-					skyColor += pow(max(0., dot(refl, _WorldSpaceLightPos0.xyz)), _DirectionalLightFallOff) * _DirectionalLightBoost * _LightColor0;
+					skyColor += pow(max(0., dot(refl, lightDir)), _DirectionalLightFallOff) * _DirectionalLightBoost * _LightColor0;
 					#endif
 
 					// Fresnel

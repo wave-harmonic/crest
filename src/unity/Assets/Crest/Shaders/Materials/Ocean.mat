@@ -70,6 +70,7 @@ Material:
     m_Floats:
     - _ApplyNormalMapping: 1
     - _BumpAmt: 0.514
+    - _CompileShaderWithDebugInfo: 0
     - _ComputeDirectionalLight: 1
     - _DebugDisableMultiplyByLight0Color: 0
     - _DebugDisableShapeTextures: 0

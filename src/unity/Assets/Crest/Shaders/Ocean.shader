@@ -32,6 +32,7 @@ Shader "Ocean/Ocean"
 		[Toggle] _DebugVisualiseShapeSample("Debug Visualise Shape Sample", Float) = 0
 		[Toggle] _DebugDisableSmoothLOD("Debug Disable Smooth LOD", Float) = 0
 		[Toggle] _DebugDisableMultiplyByLight0Color("Debug Disable Multiply By _Light0Color", Float) = 0
+		[Toggle] _CompileShaderWithDebugInfo("Compile Shader With Debug Info (D3D11)", Float) = 0
 	}
 
 	Category
@@ -54,7 +55,6 @@ Shader "Ocean/Ocean"
 				#pragma vertex vert
 				#pragma fragment frag
 				#pragma multi_compile_fog
-				// #pragma enable_d3d11_debug_symbols // uncomment to allow debugging in renderdoc etc
 				#pragma shader_feature _APPLYNORMALMAPPING_ON
 				#pragma shader_feature _COMPUTEDIRECTIONALLIGHT_ON
 				#pragma shader_feature _SUBSURFACESCATTERING_ON
@@ -64,6 +64,11 @@ Shader "Ocean/Ocean"
 				#pragma shader_feature _DEBUGVISUALISESHAPESAMPLE_ON
 				#pragma shader_feature _DEBUGDISABLESMOOTHLOD_ON
 				#pragma shader_feature _DEBUGDISABLEMULTIPLYBYLIGHT0COLOR_ON
+				#pragma shader_feature _COMPILESHADERWITHDEBUGINFO_ON
+
+				#if _COMPILESHADERWITHDEBUGINFO_ON
+				#pragma enable_d3d11_debug_symbols
+				#endif
 
 				#include "UnityCG.cginc"
 				#include "TextureBombing.cginc"

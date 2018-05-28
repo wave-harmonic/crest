@@ -4,6 +4,7 @@ Shader "Ocean/Ocean"
 {
 	Properties
 	{
+		[Toggle] _ApplyNormalMapping("Apply Normal Mapping", Float) = 1
 		[NoScaleOffset] _Normals ( "Normals", 2D ) = "bump" {}
 		_NormalsStrength("Normals Strength", Range(0.0, 2.0)) = 0.3
 		_NormalsScale("Normals Scale", Range(0.0, 50.0)) = 1.0
@@ -27,8 +28,10 @@ Shader "Ocean/Ocean"
 		[Toggle] _Transparency("Transparency", Float) = 1
 		_DepthFogDensity("Depth Fog Density", Vector) = (0.28, 0.16, 0.24, 1.0)
 		_FresnelPower("Fresnel Power", Range(0.0,20.0)) = 3.0
-		[Toggle] _DebugShapeSample("Debug Shape Sample", Float) = 0
+		[Toggle] _DebugDisableShapeTextures("Debug Disable Shape Textures", Float) = 0
+		[Toggle] _DebugVisualiseShapeSample("Debug Visualise Shape Sample", Float) = 0
 		[Toggle] _DebugDisableSmoothLOD("Debug Disable Smooth LOD", Float) = 0
+		[Toggle] _DebugDisableMultiplyByLight0Color("Debug Disable Multiply By _Light0Color", Float) = 0
 	}
 
 	Category
@@ -52,12 +55,15 @@ Shader "Ocean/Ocean"
 				#pragma fragment frag
 				#pragma multi_compile_fog
 				// #pragma enable_d3d11_debug_symbols // uncomment to allow debugging in renderdoc etc
+				#pragma shader_feature _APPLYNORMALMAPPING_ON
 				#pragma shader_feature _COMPUTEDIRECTIONALLIGHT_ON
 				#pragma shader_feature _SUBSURFACESCATTERING_ON
 				#pragma shader_feature _TRANSPARENCY_ON
 				#pragma shader_feature _FOAM_ON
-				#pragma shader_feature _DEBUGSHAPESAMPLE_ON
+				#pragma shader_feature _DEBUGDISABLESHAPETEXTURES_ON
+				#pragma shader_feature _DEBUGVISUALISESHAPESAMPLE_ON
 				#pragma shader_feature _DEBUGDISABLESMOOTHLOD_ON
+				#pragma shader_feature _DEBUGDISABLEMULTIPLYBYLIGHT0COLOR_ON
 
 				#include "UnityCG.cginc"
 				#include "TextureBombing.cginc"
@@ -77,7 +83,7 @@ Shader "Ocean/Ocean"
 					half4 shorelineFoam_screenPos : TEXCOORD4;
 					half4 invDeterminant_lodAlpha_worldXZUndisplaced : TEXCOORD5;
 					float3 worldPos : TEXCOORD7;
-					#if defined( _DEBUGSHAPESAMPLE_ON )
+					#if _DEBUGVISUALISESHAPESAMPLE_ON
 					half3 debugtint : TEXCOORD8;
 					#endif
 					half4 grabPos : TEXCOORD9;
@@ -200,12 +206,14 @@ Shader "Ocean/Ocean"
 					float wt_0 = (1. - lodAlpha) * _WD_Params_0.z;
 					float wt_1 = (1. - wt_0) * _WD_Params_1.z;
 					// sample displacement textures, add results to current world pos / normal / foam
+					#if !_DEBUGDISABLESHAPETEXTURES_ON
 					const float2 wxz = o.worldPos.xz;
 					SampleDisplacements( _WD_Sampler_0, _WD_OceanDepth_Sampler_0, _WD_Pos_0, _WD_Params_0.y, _WD_Params_0.x, idealSquareSize, wxz, wt_0, o.worldPos, o.n, o.invDeterminant_lodAlpha_worldXZUndisplaced.x, o.shorelineFoam_screenPos.x);
 					SampleDisplacements( _WD_Sampler_1, _WD_OceanDepth_Sampler_1, _WD_Pos_1, _WD_Params_1.y, _WD_Params_1.x, idealSquareSize, wxz, wt_1, o.worldPos, o.n, o.invDeterminant_lodAlpha_worldXZUndisplaced.x, o.shorelineFoam_screenPos.x);
+					#endif
 
 					// debug tinting to see which shape textures are used
-					#if defined( _DEBUGSHAPESAMPLE_ON )
+					#if _DEBUGVISUALISESHAPESAMPLE_ON
 					#define TINT_COUNT (uint)7
 					half3 tintCols[TINT_COUNT]; tintCols[0] = half3(1., 0., 0.); tintCols[1] = half3(1., 1., 0.); tintCols[2] = half3(1., 0., 1.); tintCols[3] = half3(0., 1., 1.); tintCols[4] = half3(0., 0., 1.); tintCols[5] = half3(1., 0., 1.); tintCols[6] = half3(.5, .5, 1.);
 					o.debugtint = wt_0 * tintCols[_WD_LodIdx_0 % TINT_COUNT] + wt_1 * tintCols[_WD_LodIdx_1 % TINT_COUNT];
@@ -323,8 +331,10 @@ Shader "Ocean/Ocean"
 					col += (_SubSurfaceBase + _SubSurfaceSun * towardsSun) * max(dot(n_geom, view), 0.) * _SubSurfaceColour;
 					#endif
 
-					// Multiply by main light colour - not sure how well this will work yet
+					// Multiply by main light colour
+					#if !_DEBUGDISABLEMULTIPLYBYLIGHT0COLOR_ON
 					col *= _LightColor0;
+					#endif
 
 					col += bubbleCol;
 
@@ -362,7 +372,9 @@ Shader "Ocean/Ocean"
 					// Normal - geom + normal mapping
 					half3 n_geom = normalize(i.n);
 					half3 n_pixel = n_geom;
+					#if _APPLYNORMALMAPPING_ON
 					ApplyNormalMaps(i.invDeterminant_lodAlpha_worldXZUndisplaced.zw, i.invDeterminant_lodAlpha_worldXZUndisplaced.y, n_pixel);
+					#endif
 
 					// Foam - underwater bubbles and whitefoam
 					half whiteFoam = 0.;
@@ -396,7 +408,7 @@ Shader "Ocean/Ocean"
 					// Fog
 					UNITY_APPLY_FOG(i.fogCoord, col);
 	
-					#if defined( _DEBUGSHAPESAMPLE_ON )
+					#if _DEBUGVISUALISESHAPESAMPLE_ON
 					col = mix(col.rgb, i.debugtint, 0.5);
 					#endif
 

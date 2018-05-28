@@ -8,8 +8,8 @@ Material:
   m_PrefabInternal: {fileID: 0}
   m_Name: Ocean
   m_Shader: {fileID: 4800000, guid: 668aecf91371c8b4997e42c0c7b19527, type: 3}
-  m_ShaderKeywords: _COMPUTEDIRECTIONALLIGHT_ON _FOAM_ON _SUBSURFACESCATTERING_ON
-    _TRANSPARENCY_ON
+  m_ShaderKeywords: _APPLYNORMALMAPPING_ON _COMPUTEDIRECTIONALLIGHT_ON _DEBUGMULTIPLYBYLIGHT0COLOR_ON
+    _FOAM_ON _SUBSURFACESCATTERING_ON _TRANSPARENCY_ON
   m_LightmapFlags: 5
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -68,13 +68,19 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Floats:
+    - _ApplyNormalMapping: 1
     - _BumpAmt: 0.514
     - _ComputeDirectionalLight: 1
+    - _DebugDisableMultiplyByLight0Color: 0
+    - _DebugDisableShapeTextures: 0
     - _DebugDisableSmoothLOD: 0
+    - _DebugMultiplyByLight0Color: 1
     - _DebugShapeSample: 0
+    - _DebugVisualiseShapeSample: 0
     - _DirectionalLightBoost: 5
     - _DirectionalLightFallOff: 128
     - _Foam: 1
+    - _FoamFeatherDepth: 0.15
     - _FoamScale: 10
     - _FresnelPower: 5
     - _Invert: 1

@@ -318,7 +318,7 @@ Shader "Ocean/Ocean"
 
 					// Additive underwater foam
 					half bubbleFoam = smoothstep( 0.0, 0.5, foamAmount * bubbleFoamTexValue);
-					o_bubbleCol = bubbleFoam * _FoamBubbleColor.rgb * _FoamBubbleColor.a;
+					o_bubbleCol = bubbleFoam * _FoamBubbleColor.rgb * _FoamBubbleColor.a * half3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w);;
 
 					// White foam on top, with black-point fading
 					o_whiteFoam = foamTexValue * (smoothstep(0.9 - foamAmount, 1.4 - foamAmount, foamTexValue)) * _FoamWhiteColor.a;
@@ -416,7 +416,7 @@ Shader "Ocean/Ocean"
 					col = lerp(col, skyColor, R_theta);
 
 					// Override final result with white foam - bubbles on surface
-					col = lerp(col.xyz, _FoamWhiteColor.rgb, whiteFoam);
+					col = lerp(col.xyz, _FoamWhiteColor.rgb * half3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w), whiteFoam);
 
 					// Fog
 					UNITY_APPLY_FOG(i.fogCoord, col);

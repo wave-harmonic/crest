@@ -99,7 +99,6 @@ The ocean pixel shader samples normal maps at 2 different scales, both proportio
 ## Bugs and Improvement Directions
 
 * Using prebaked textures (i.e. from an offline ocean simulation) would be easy to implement in our framework by rendering the prebaked results into the shape textures, and would be the most efficient option (although completely dynamic shape now renders very efficiently).
-* Ocean surface tiles are updated and drawn as separate draw calls. This is convenient for research and supports frustum culling easily, but it might make sense to instance these in a production scenario.
 * Persistent foam - generate from waves/dynamic sim, fade gradually over time
 * Wetness simulation for shore
 * Flow - texture to paint wind direction

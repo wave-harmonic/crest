@@ -94,7 +94,7 @@ Material:
     - _S: 1
     - _ShorelineFoamMaxDepth: 1.5
     - _StartLevel: 0.157
-    - _SubSurfaceBase: 0.6
+    - _SubSurfaceBase: 0.18
     - _SubSurfaceScattering: 1
     - _SubSurfaceSun: 10
     - _SubSurfaceSunFallOff: 12
@@ -104,8 +104,8 @@ Material:
     - _Update: 0.083
     m_Colors:
     - _DepthFogDensity: {r: 0.5568628, g: 0.4352941, b: 0.52156866, a: 1}
-    - _Diffuse: {r: 0, g: 0.1486875, b: 0.366, a: 1}
+    - _Diffuse: {r: 0, g: 0.0067332755, b: 0.35686275, a: 1}
     - _FoamBubbleColor: {r: 0.055383995, g: 0.322, b: 0.29640475, a: 1}
     - _FoamWhiteColor: {r: 1, g: 1, b: 1, a: 1}
     - _SubSurface: {r: 0, g: 0.48, b: 0.36, a: 1}
-    - _SubSurfaceColour: {r: 0, g: 0.404, b: 0.303, a: 1}
+    - _SubSurfaceColour: {r: 0.10196078, g: 0.57254905, b: 0.5256646, a: 1}

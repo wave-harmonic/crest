@@ -31,7 +31,6 @@ Shader "Ocean/Ocean"
 		[Toggle] _DebugDisableShapeTextures("Debug Disable Shape Textures", Float) = 0
 		[Toggle] _DebugVisualiseShapeSample("Debug Visualise Shape Sample", Float) = 0
 		[Toggle] _DebugDisableSmoothLOD("Debug Disable Smooth LOD", Float) = 0
-		[Toggle] _DebugDisableMultiplyByLight0Color("Debug Disable Multiply By _Light0Color", Float) = 0
 		[Toggle] _CompileShaderWithDebugInfo("Compile Shader With Debug Info (D3D11)", Float) = 0
 	}
 
@@ -63,7 +62,6 @@ Shader "Ocean/Ocean"
 				#pragma shader_feature _DEBUGDISABLESHAPETEXTURES_ON
 				#pragma shader_feature _DEBUGVISUALISESHAPESAMPLE_ON
 				#pragma shader_feature _DEBUGDISABLESMOOTHLOD_ON
-				#pragma shader_feature _DEBUGDISABLEMULTIPLYBYLIGHT0COLOR_ON
 				#pragma shader_feature _COMPILESHADERWITHDEBUGINFO_ON
 
 				#if _COMPILESHADERWITHDEBUGINFO_ON
@@ -339,17 +337,13 @@ Shader "Ocean/Ocean"
 
 				half3 OceanEmission(half3 view, half3 n, half3 n_geom, float3 lightDir, half4 grabPos, half3 screenPos, float pixelZ, half2 uvDepth, float sceneZ, half3 bubbleCol)
 				{
-					half3 col = _Diffuse;
+					// use the constant layer of SH stuff - this is the average. it seems to give the right kind of colour
+					half3 col = _Diffuse * half3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w);
 
 					#if _SUBSURFACESCATTERING_ON
 					// Approximate subsurface scattering - add light when surface faces viewer. Use geometry normal - don't need high freqs.
 					half towardsSun = pow(max(0., dot(lightDir, -view)), _SubSurfaceSunFallOff);
-					col += (_SubSurfaceBase + _SubSurfaceSun * towardsSun) * max(dot(n_geom, view), 0.) * _SubSurfaceColour;
-					#endif
-
-					// Multiply by main light colour
-					#if !_DEBUGDISABLEMULTIPLYBYLIGHT0COLOR_ON
-					col *= _LightColor0;
+					col += (_SubSurfaceBase + _SubSurfaceSun * towardsSun) * max(dot(n_geom, view), 0.) * _SubSurfaceColour * _LightColor0;
 					#endif
 
 					col += bubbleCol;

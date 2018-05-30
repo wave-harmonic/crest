@@ -297,7 +297,7 @@ Shader "Ocean/Ocean"
 					io_n = normalize(io_n);
 				}
 
-				void ComputeFoam( half i_determinant, float2 i_worldXZUndisplaced, half3 i_n, half i_shorelineFoam, float i_pixelZ, float i_sceneZ, out half3 o_bubbleCol, out half o_whiteFoam )
+				void ComputeFoam( half i_determinant, float2 i_worldXZUndisplaced, half3 i_n, half i_shorelineFoam, float i_pixelZ, float i_sceneZ, half3 foamL, out half3 o_bubbleCol, out half o_whiteFoam )
 				{
 					// Give the foam some texture
 					float2 foamUV = (i_worldXZUndisplaced + 0.5 * _MyTime * _WindDirXZ) / _FoamScale;
@@ -318,7 +318,7 @@ Shader "Ocean/Ocean"
 
 					// Additive underwater foam
 					half bubbleFoam = smoothstep( 0.0, 0.5, foamAmount * bubbleFoamTexValue);
-					o_bubbleCol = bubbleFoam * _FoamBubbleColor.rgb * _FoamBubbleColor.a * half3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w);;
+					o_bubbleCol = bubbleFoam * _FoamBubbleColor.rgb * _FoamBubbleColor.a * foamL;
 
 					// White foam on top, with black-point fading
 					o_whiteFoam = foamTexValue * (smoothstep(0.9 - foamAmount, 1.4 - foamAmount, foamTexValue)) * _FoamWhiteColor.a;
@@ -390,10 +390,11 @@ Shader "Ocean/Ocean"
 					#endif
 
 					// Foam - underwater bubbles and whitefoam
-					half whiteFoam = 0.;
 					half3 bubbleCol = (half3)0.;
 					#if _FOAM_ON
-					ComputeFoam(1. - i.invDeterminant_lodAlpha_worldXZUndisplaced.x, i.invDeterminant_lodAlpha_worldXZUndisplaced.zw, n_pixel, i.shorelineFoam_screenPos.x, pixelZ, sceneZ, bubbleCol, whiteFoam);
+					half whiteFoam = 0.;
+					half3 foamL = half3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w) + _LightColor0;
+					ComputeFoam(1. - i.invDeterminant_lodAlpha_worldXZUndisplaced.x, i.invDeterminant_lodAlpha_worldXZUndisplaced.zw, n_pixel, i.shorelineFoam_screenPos.x, pixelZ, sceneZ, foamL, bubbleCol, whiteFoam);
 					#endif
 
 					// Compute color of ocean - in-scattered light + refracted scene
@@ -416,8 +417,9 @@ Shader "Ocean/Ocean"
 					col = lerp(col, skyColor, R_theta);
 
 					// Override final result with white foam - bubbles on surface
-					half3 foamL = half3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w) + _LightColor0;
+					#if _FOAM_ON
 					col = lerp(col.xyz, _FoamWhiteColor.rgb * foamL, whiteFoam);
+					#endif
 
 					// Fog
 					UNITY_APPLY_FOG(i.fogCoord, col);

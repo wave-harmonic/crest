@@ -48,6 +48,7 @@ public class OceanDebugGUI : MonoBehaviour
             _showSimTargets = GUI.Toggle(new Rect(x, y, w, h), _showSimTargets, "Show shape data"); y += h;
             WaveDataCam._shapeCombinePass = GUI.Toggle(new Rect(x, y, w, h), WaveDataCam._shapeCombinePass, "Shape combine pass"); y += h;
             WaveDataCam._readbackCollData = GUI.Toggle(new Rect(x, y, w, h), WaveDataCam._readbackCollData, "Readback coll data"); y += h;
+            WaveDataCam._useAsyncReadback = GUI.Toggle(new Rect(x, y, w, h), WaveDataCam._useAsyncReadback, "Use Async Readback"); y += h;
 
             OceanRenderer._acceptLargeWavelengthsInLastLOD = GUI.Toggle(new Rect(x, y, w, h), OceanRenderer._acceptLargeWavelengthsInLastLOD, "Large waves in last LOD"); y += h;
 

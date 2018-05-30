@@ -22,6 +22,7 @@ namespace Crest
         // debug use
         public static bool _shapeCombinePass = true;
         public static bool _readbackCollData = true;
+        public static bool _useAsyncReadback = true;
 
         // read shape textures back to the CPU for collision purposes
         public bool _readbackShapeForCollision = true;
@@ -37,6 +38,8 @@ namespace Crest
         // collision data
         NativeArray<ushort> _collDataNative;
         RenderData _collRenderData;
+        RenderTexture _dispTexCopy;
+        Texture2D _syncReadbackTex;
 
         Material _matOceanDepth;
         RenderTexture _rtOceanDepth;
@@ -93,6 +96,24 @@ namespace Crest
 
         void UpdateShapeReadback()
         {
+            if(!_useAsyncReadback)
+            {
+                if (!_readbackCollData)
+                    return;
+
+                if (_syncReadbackTex == null)
+                {
+                    _syncReadbackTex = new Texture2D(_dispTexCopy.width, _dispTexCopy.height, TextureFormat.RGBAHalf, false);
+                }
+
+                var oldRT = RenderTexture.active;
+                RenderTexture.active = _dispTexCopy;
+                _syncReadbackTex.ReadPixels(new Rect(0, 0, _dispTexCopy.width, _dispTexCopy.height), 0, 0, false);
+                RenderTexture.active = oldRT;
+
+                return;
+            }
+
             // shape textures are read back to the CPU for collision purposes. this uses an experimental API which
             // will hopefully be settled in future unity versions.
             // queue pattern inspired by: https://github.com/keijiro/AsyncCaptureTest
@@ -178,6 +199,19 @@ namespace Crest
             var rt = cam.targetTexture;
             var x = Mathf.FloorToInt(u * rt.width);
             var y = Mathf.FloorToInt(v * rt.height);
+
+            if (!_useAsyncReadback)
+            {
+                if (_syncReadbackTex == null)
+                    return false;
+
+                Color sample = _syncReadbackTex.GetPixel(x, y);
+                displacement.x = sample.r;
+                displacement.y = sample.g;
+                displacement.z = sample.b;
+                return true;
+            }
+
             var idx = 4 * (y * rt.width + x);
 
             displacement.x = Mathf.HalfToFloat(_collDataNative[idx + 0]);
@@ -384,6 +418,23 @@ namespace Crest
                     // accumulate shape data down the LOD chain - combine L+1 into L
                     var mat = OceanRenderer.Instance.Builder._shapeWDCs[L]._combineMaterial;
                     _bufCombineShapes.Blit(cams[L + 1].targetTexture, cams[L].targetTexture, mat);
+                }
+
+                // this code currently only runs once (on init), so need to copy out shape regardless of whether we'll need it later.
+                //if (!_useAsyncReadback)
+                {
+                    // now that all the shape is accumulated up, take a copy for readback later
+                    var wdcs = OceanRenderer.Instance.Builder._shapeWDCs;
+                    for (int i = 0; i < cams.Length; i++)
+                    {
+                        if (wdcs[i]._dispTexCopy == null)
+                        {
+                            wdcs[i]._dispTexCopy = new RenderTexture(cams[i].targetTexture);
+                            wdcs[i]._dispTexCopy.name = cams[i].targetTexture.name + "_COPY";
+                        }
+
+                        _bufCombineShapes.Blit(cams[i].targetTexture, wdcs[i]._dispTexCopy);
+                    }
                 }
             }
         }

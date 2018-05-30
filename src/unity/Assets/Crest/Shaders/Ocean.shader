@@ -416,7 +416,8 @@ Shader "Ocean/Ocean"
 					col = lerp(col, skyColor, R_theta);
 
 					// Override final result with white foam - bubbles on surface
-					col = lerp(col.xyz, _FoamWhiteColor.rgb * half3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w), whiteFoam);
+					half3 foamL = half3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w) + _LightColor0;
+					col = lerp(col.xyz, _FoamWhiteColor.rgb * foamL, whiteFoam);
 
 					// Fog
 					UNITY_APPLY_FOG(i.fogCoord, col);

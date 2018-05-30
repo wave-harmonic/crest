@@ -21,17 +21,32 @@ namespace Crest
         public int _anisoLevel = 0;
         public bool _useMipMap = false;
 
-        bool _created = false;
+        bool _createdAndAssigned = false;
 
         void Start()
         {
-            if (!_created)
+            if (!_createdAndAssigned)
             {
-                CreateRT();
+                CreateRTAndAssign();
             }
         }
 
-        public void CreateRT()
+        /// <summary>
+        /// Creates RT with given settings and assigns to camera on this gameobject.
+        /// </summary>
+        public void CreateRTAndAssign()
+        {
+            var rt = CreateRT();
+
+            GetComponent<Camera>().targetTexture = rt;
+
+            _createdAndAssigned = true;
+        }
+
+        /// <summary>
+        /// Creates RT with given settings and returns it.
+        /// </summary>
+        public RenderTexture CreateRT()
         {
             var tex = new RenderTexture( _width, _height, _depthBits, _format );
 
@@ -46,9 +61,7 @@ namespace Crest
             tex.anisoLevel = _anisoLevel;
             tex.useMipMap = _useMipMap;
 
-            GetComponent<Camera>().targetTexture = tex;
-
-            _created = true;
+            return tex;
         }
     }
 }

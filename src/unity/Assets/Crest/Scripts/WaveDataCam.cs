@@ -213,7 +213,7 @@ namespace Crest
         }
 
         public float GetHeight(ref Vector3 worldPos)
-            {
+        {
             var posFlatland = worldPos;
             posFlatland.y = OceanRenderer.Instance.transform.position.y;
 

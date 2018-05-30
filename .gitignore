@@ -45,3 +45,8 @@ src/exr_processor/exr_processor/Release
 src/exr_processor/Release/exr_processor.iobj
 src/exr_processor/Release/exr_processor.ipdb
 /src/TextureReadbackTest/Library
+/src/TextureReadbackTest/.vs
+/src/TextureReadbackTest/TextureReadbackTest.csproj
+/src/TextureReadbackTest/TextureReadbackTest.sln
+/src/TextureReadbackTest/Unity.PackageManagerUI.Editor.csproj
+/src/TextureReadbackTest/UnityEditor.StandardEvents.csproj

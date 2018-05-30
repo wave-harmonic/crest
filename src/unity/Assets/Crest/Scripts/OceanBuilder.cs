@@ -238,7 +238,7 @@ namespace Crest
             cart._anisoLevel = 0;
             cart._useMipMap = false;
             // do this now, because WaveDataCam needs this
-            cart.CreateRT();
+            cart.CreateRTAndAssign();
         }
 
         Mesh BuildOceanPatch(PatchType pt, float baseVertDensity)

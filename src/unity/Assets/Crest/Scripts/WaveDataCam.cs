@@ -69,6 +69,8 @@ namespace Crest
 
             _matOceanDepth = new Material(Shader.Find("Ocean/Ocean Depth"));
             _combineMaterial = new Material(Shader.Find("Ocean/Shape/Combine"));
+
+            Application.targetFrameRate = 30;
         }
 
         private void Update()

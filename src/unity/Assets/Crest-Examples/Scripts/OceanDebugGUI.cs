@@ -20,6 +20,8 @@ public class OceanDebugGUI : MonoBehaviour
         {
             ToggleGUI();
         }
+
+        System.Threading.Thread.Sleep(20);
     }
 
     void OnGUI()

@@ -107,9 +107,14 @@ namespace Crest
 
         void LateUpdateScale()
         {
-            // scale ocean mesh based on camera height to keep uniform detail
+            // reach maximum detail at slightly below sea level. this should combat cases where visual range can be lost
+            // when water height is low and camera is suspended in air. i tried a scheme where it was based on difference
+            // to water height but this does help with the problem of horizontal range getting limited at bad times.
+            float maxDetailY = SeaLevel - _maxVertDispFromShape / 5f;
+            // scale ocean mesh based on camera height to keep uniform detail. this could be abs() if camera can go below water.
+            float camY = Mathf.Max(_viewpoint.position.y - maxDetailY, 0f);
+
             const float HEIGHT_LOD_MUL = 2f;
-            float camY = Mathf.Abs(_viewpoint.position.y - transform.position.y);
             float level = camY * HEIGHT_LOD_MUL;
             level = Mathf.Max(level, _minScale);
             if (_maxScale != -1f) level = Mathf.Min(level, 1.99f * _maxScale);

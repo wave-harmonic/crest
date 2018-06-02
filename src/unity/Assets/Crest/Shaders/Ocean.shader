@@ -311,7 +311,7 @@ Shader "Ocean/Ocean"
 					// Additive underwater foam
 					float2 foamUVBubbles = (lerp(i_worldXZUndisplaced, i_worldXZ, 0.5) + 0.5 * _MyTime * _WindDirXZ) / _FoamScale;
 					foamUVBubbles += 0.25 * i_n.xz;
-					half bubbleFoamTexValue = texture(_FoamTexture, .37 * foamUVBubbles - .2*view.xz / view.y).r;
+					half bubbleFoamTexValue = texture(_FoamTexture, .37 * foamUVBubbles - .1*view.xz / view.y).r;
 					half bubbleFoam = smoothstep(0.0, 0.5, foamAmount * bubbleFoamTexValue);
 					o_bubbleCol = bubbleFoam * _FoamBubbleColor.rgb * _FoamBubbleColor.a * foamL;
 

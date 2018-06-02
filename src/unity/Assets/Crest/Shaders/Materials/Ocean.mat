@@ -94,10 +94,10 @@ Material:
     - _S: 1
     - _ShorelineFoamMaxDepth: 1.5
     - _StartLevel: 0.157
-    - _SubSurfaceBase: 0.18
+    - _SubSurfaceBase: 0.24
     - _SubSurfaceScattering: 1
-    - _SubSurfaceSun: 10
-    - _SubSurfaceSunFallOff: 12
+    - _SubSurfaceSun: 4.85
+    - _SubSurfaceSunFallOff: 7.11
     - _TexelSize: 0.125
     - _TextureRes: 1024
     - _Transparency: 1

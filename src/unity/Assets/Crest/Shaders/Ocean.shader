@@ -25,6 +25,10 @@ Shader "Ocean/Ocean"
 		_FoamBubbleColor("Bubble Foam Color", Color) = (0.0, 0.0904, 0.105, 1.0)
 		_ShorelineFoamMinDepth("Shoreline Foam Min Depth", Range(0.0, 5.0)) = 0.27
 		_ShorelineFoamMaxDepth("Shoreline Foam Max Depth", Range(0.0,10.0)) = 1.5
+		_WaveFoamCoverage("Wave Foam Coverage", Range(0.0,5.0)) = 0.95
+		_WaveFoamStrength("Wave Foam Strength", Range(0.0,10.0)) = 2.8
+		_WaveFoamFeather("Wave Foam Feather", Range(0.001,1.0)) = 0.32
+		_WaveFoamBubblesCoverage("Wave Foam Bubbles Coverage", Range(0.0,5.0)) = 0.95
 		[Toggle] _Transparency("Transparency", Float) = 1
 		_DepthFogDensity("Depth Fog Density", Vector) = (0.28, 0.16, 0.24, 1.0)
 		_FresnelPower("Fresnel Power", Range(0.0,20.0)) = 3.0
@@ -254,6 +258,8 @@ Shader "Ocean/Ocean"
 				uniform half4 _FoamWhiteColor;
 				uniform half4 _FoamBubbleColor;
 				uniform half _ShorelineFoamMinDepth;
+				uniform float _WaveFoamStrength, _WaveFoamCoverage, _WaveFoamFeather;
+				uniform float _WaveFoamBubblesCoverage;
 
 				uniform sampler2D _Normals;
 				uniform half _NormalsStrength;
@@ -299,12 +305,14 @@ Shader "Ocean/Ocean"
 
 				void ComputeFoam(half i_determinant, float2 i_worldXZUndisplaced, float2 i_worldXZ, half3 i_n, half i_shorelineFoam, float i_pixelZ, float i_sceneZ, half3 foamL, half3 view, out half3 o_bubbleCol, out half o_whiteFoam, out half o_whiteFoam_x, out half o_whiteFoam_z)
 				{
-					// compute foam amount from determinant
+					half foamAmount = 0.;
+					// Wave foam - compute foam amount from determinant
 					// > 1: Stretch
 					// < 1: Squash
 					// < 0: Overlap
-					half foamAmount = 1.7*smoothstep(1.6, 0., i_determinant);
-					foamAmount = foamAmount * foamAmount + i_shorelineFoam;
+					foamAmount += _WaveFoamStrength * saturate(_WaveFoamCoverage - i_determinant);
+					// Shoreline foam
+					foamAmount += i_shorelineFoam;
 					// feather foam very close to shore
 					foamAmount *= saturate((i_sceneZ - i_pixelZ) / _ShorelineFoamMinDepth);
 
@@ -312,19 +320,19 @@ Shader "Ocean/Ocean"
 					float2 foamUVBubbles = (lerp(i_worldXZUndisplaced, i_worldXZ, 0.5) + 0.5 * _MyTime * _WindDirXZ) / _FoamScale;
 					foamUVBubbles += 0.25 * i_n.xz;
 					half bubbleFoamTexValue = texture(_FoamTexture, .37 * foamUVBubbles - .1*view.xz / view.y).r;
-					half bubbleFoam = smoothstep(0.0, 0.5, foamAmount * bubbleFoamTexValue);
-					o_bubbleCol = bubbleFoam * _FoamBubbleColor.rgb * _FoamBubbleColor.a * foamL;
+					half bubbleFoam = bubbleFoamTexValue * saturate(_WaveFoamBubblesCoverage - i_determinant);
+					o_bubbleCol = bubbleFoam * _FoamBubbleColor.rgb * foamL;
 
 					// White foam on top, with black-point fading
 					float2 foamUV = (i_worldXZUndisplaced + 0.5 * _MyTime * _WindDirXZ) / _FoamScale;
 					foamUV += 0.02 * i_n.xz;
-					half foamTexValue = texture(_FoamTexture, foamUV).r;
-					o_whiteFoam = foamTexValue * (smoothstep(0.9 - foamAmount, 1.4 - foamAmount, foamTexValue)) * _FoamWhiteColor.a;
 					float2 dd = float2(1. / 512., 0.);
+					half foamTexValue   = texture(_FoamTexture, foamUV        ).r;
 					half foamTexValue_x = texture(_FoamTexture, foamUV + dd.xy).r;
-					o_whiteFoam_x = foamTexValue_x * (smoothstep(0.9 - foamAmount, 1.4 - foamAmount, foamTexValue_x)) * _FoamWhiteColor.a;
 					half foamTexValue_z = texture(_FoamTexture, foamUV + dd.yx).r;
-					o_whiteFoam_z = foamTexValue_z * (smoothstep(0.9 - foamAmount, 1.4 - foamAmount, foamTexValue_z)) * _FoamWhiteColor.a;
+					o_whiteFoam   = foamTexValue   * (smoothstep(foamAmount + _WaveFoamFeather, foamAmount, 1. - foamTexValue  )) * _FoamWhiteColor.a;
+					o_whiteFoam_x = foamTexValue_x * (smoothstep(foamAmount + _WaveFoamFeather, foamAmount, 1. - foamTexValue_x)) * _FoamWhiteColor.a;
+					o_whiteFoam_z = foamTexValue_z * (smoothstep(foamAmount + _WaveFoamFeather, foamAmount, 1. - foamTexValue_z)) * _FoamWhiteColor.a;
 				}
 
 				float3 WorldSpaceLightDir(float3 worldPos)

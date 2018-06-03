@@ -81,7 +81,6 @@ Material:
     - _DirectionalLightBoost: 5
     - _DirectionalLightFallOff: 128
     - _Foam: 1
-    - _FoamFeatherDepth: 0.15
     - _FoamScale: 10
     - _FresnelPower: 5
     - _Invert: 1
@@ -92,7 +91,8 @@ Material:
     - _Offset: 0.00008
     - _RefractAmt: 0
     - _S: 1
-    - _ShorelineFoamMaxDepth: 1.5
+    - _ShorelineFoamMaxDepth: 0.73
+    - _ShorelineFoamMinDepth: 0.27
     - _StartLevel: 0.157
     - _SubSurfaceBase: 0.24
     - _SubSurfaceScattering: 1
@@ -102,10 +102,16 @@ Material:
     - _TextureRes: 1024
     - _Transparency: 1
     - _Update: 0.083
+    - _WaveFoamBubblesCoverage: 1
+    - _WaveFoamBubblesFeather: 0.32
+    - _WaveFoamBubblesStrength: 5.15
+    - _WaveFoamCoverage: 0.95
+    - _WaveFoamFeather: 0.32
+    - _WaveFoamStrength: 2.8
     m_Colors:
     - _DepthFogDensity: {r: 0.5568628, g: 0.4352941, b: 0.52156866, a: 1}
     - _Diffuse: {r: 0, g: 0.0067332755, b: 0.35686275, a: 1}
-    - _FoamBubbleColor: {r: 0.16929, g: 0.285, b: 0.27598363, a: 1}
-    - _FoamWhiteColor: {r: 0.818, g: 0.8107611, b: 0.7673274, a: 1}
+    - _FoamBubbleColor: {r: 0.36541346, g: 0.62299997, b: 0.5571058, a: 1}
+    - _FoamWhiteColor: {r: 0.944, g: 0.9356089, b: 0.88526225, a: 1}
     - _SubSurface: {r: 0, g: 0.48, b: 0.36, a: 1}
     - _SubSurfaceColour: {r: 0.10196078, g: 0.57254905, b: 0.5256646, a: 1}

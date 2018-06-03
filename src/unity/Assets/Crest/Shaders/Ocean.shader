@@ -29,6 +29,7 @@ Shader "Ocean/Ocean"
 		_WaveFoamStrength("Wave Foam Strength", Range(0.0,10.0)) = 2.8
 		_WaveFoamFeather("Wave Foam Feather", Range(0.001,1.0)) = 0.32
 		_WaveFoamBubblesCoverage("Wave Foam Bubbles Coverage", Range(0.0,5.0)) = 0.95
+		[Toggle] _Foam3DLighting("Foam 3D Lighting", Float) = 1
 		[Toggle] _Transparency("Transparency", Float) = 1
 		_DepthFogDensity("Depth Fog Density", Vector) = (0.28, 0.16, 0.24, 1.0)
 		_FresnelPower("Fresnel Power", Range(0.0,20.0)) = 3.0
@@ -63,6 +64,7 @@ Shader "Ocean/Ocean"
 				#pragma shader_feature _SUBSURFACESCATTERING_ON
 				#pragma shader_feature _TRANSPARENCY_ON
 				#pragma shader_feature _FOAM_ON
+				#pragma shader_feature _FOAM3DLIGHTING_ON
 				#pragma shader_feature _DEBUGDISABLESHAPETEXTURES_ON
 				#pragma shader_feature _DEBUGVISUALISESHAPESAMPLE_ON
 				#pragma shader_feature _DEBUGDISABLESMOOTHLOD_ON
@@ -303,7 +305,12 @@ Shader "Ocean/Ocean"
 					io_n = normalize(io_n);
 				}
 
-				void ComputeFoam(half i_determinant, float2 i_worldXZUndisplaced, float2 i_worldXZ, half3 i_n, half i_shorelineFoam, float i_pixelZ, float i_sceneZ, half3 foamL, half3 view, out half3 o_bubbleCol, out half o_whiteFoam, out half o_whiteFoam_x, out half o_whiteFoam_z)
+				half3 AmbientLight()
+				{
+					return half3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w);
+				}
+
+				void ComputeFoam(half i_determinant, float2 i_worldXZUndisplaced, float2 i_worldXZ, half3 i_n, half i_shorelineFoam, float i_pixelZ, float i_sceneZ, half3 i_view, float3 i_lightDir, out half3 o_bubbleCol, out half4 o_whiteFoamCol)
 				{
 					half foamAmount = 0.;
 					// Wave foam - compute foam amount from determinant
@@ -319,20 +326,32 @@ Shader "Ocean/Ocean"
 					// Additive underwater foam
 					float2 foamUVBubbles = (lerp(i_worldXZUndisplaced, i_worldXZ, 0.5) + 0.5 * _MyTime * _WindDirXZ) / _FoamScale;
 					foamUVBubbles += 0.25 * i_n.xz;
-					half bubbleFoamTexValue = texture(_FoamTexture, .37 * foamUVBubbles - .1*view.xz / view.y).r;
+					half bubbleFoamTexValue = texture(_FoamTexture, .37 * foamUVBubbles - .1*i_view.xz / i_view.y).r;
 					half bubbleFoam = bubbleFoamTexValue * saturate(_WaveFoamBubblesCoverage - i_determinant);
-					o_bubbleCol = bubbleFoam * _FoamBubbleColor.rgb * foamL;
+					o_bubbleCol = bubbleFoam * _FoamBubbleColor.rgb * (AmbientLight() + _LightColor0);
 
 					// White foam on top, with black-point fading
-					float2 foamUV = (i_worldXZUndisplaced + 0.5 * _MyTime * _WindDirXZ) / _FoamScale;
-					foamUV += 0.02 * i_n.xz;
+					float2 foamUV = (i_worldXZUndisplaced + 0.5 * _MyTime * _WindDirXZ) / _FoamScale + 0.02 * i_n.xz;
 					float2 dd = float2(1. / 512., 0.);
-					half foamTexValue   = texture(_FoamTexture, foamUV        ).r;
+					half foamTexValue = texture(_FoamTexture, foamUV).r;
+					half whiteFoam = foamTexValue * (smoothstep(foamAmount + _WaveFoamFeather, foamAmount, 1. - foamTexValue)) * _FoamWhiteColor.a;
+					#if _FOAM3DLIGHTING_ON
 					half foamTexValue_x = texture(_FoamTexture, foamUV + dd.xy).r;
 					half foamTexValue_z = texture(_FoamTexture, foamUV + dd.yx).r;
-					o_whiteFoam   = foamTexValue   * (smoothstep(foamAmount + _WaveFoamFeather, foamAmount, 1. - foamTexValue  )) * _FoamWhiteColor.a;
-					o_whiteFoam_x = foamTexValue_x * (smoothstep(foamAmount + _WaveFoamFeather, foamAmount, 1. - foamTexValue_x)) * _FoamWhiteColor.a;
-					o_whiteFoam_z = foamTexValue_z * (smoothstep(foamAmount + _WaveFoamFeather, foamAmount, 1. - foamTexValue_z)) * _FoamWhiteColor.a;
+					half whiteFoam_x = foamTexValue_x * (smoothstep(foamAmount + _WaveFoamFeather, foamAmount, 1. - foamTexValue_x)) * _FoamWhiteColor.a;
+					half whiteFoam_z = foamTexValue_z * (smoothstep(foamAmount + _WaveFoamFeather, foamAmount, 1. - foamTexValue_z)) * _FoamWhiteColor.a;
+
+					// compute a foam normal that is rounded at the edge
+					float r = .05;
+					half sqrt_foam = sqrt(whiteFoam / r);
+					half dfdx = sqrt(whiteFoam_x / r) - sqrt_foam, dfdz = sqrt(whiteFoam_z / r) - sqrt_foam;
+					half3 fN = normalize(half3(-dfdx, 0.5, -dfdz));
+					half foamNdL = max(0., dot(fN, i_lightDir));
+					o_whiteFoamCol.rgb = _FoamWhiteColor.rgb * (AmbientLight() + .7*_LightColor0*foamNdL);
+					#else
+					o_whiteFoamCol.rgb = _FoamWhiteColor.rgb * (AmbientLight() + 0.25*_LightColor0);
+					#endif
+					o_whiteFoamCol.a = min(whiteFoam / .4, 1.);
 				}
 
 				float3 WorldSpaceLightDir(float3 worldPos)
@@ -390,7 +409,6 @@ Shader "Ocean/Ocean"
 					half2 uvDepth = screenPos.xy / screenPos.z;
 					float sceneZ = LinearEyeDepth(texture(_CameraDepthTexture, uvDepth).x);
 
-					half3 ambientL = half3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w);
 					// could be per-vertex i reckon
 					float3 lightDir = WorldSpaceLightDir(i.worldPos);
 
@@ -404,9 +422,8 @@ Shader "Ocean/Ocean"
 					// Foam - underwater bubbles and whitefoam
 					half3 bubbleCol = (half3)0.;
 					#if _FOAM_ON
-					half whiteFoam = 0., whiteFoam_x = 0., whiteFoam_z = 0.;
-					half3 foamL = ambientL + _LightColor0;
-					ComputeFoam(1. - i.invDeterminant_lodAlpha_worldXZUndisplaced.x, i.invDeterminant_lodAlpha_worldXZUndisplaced.zw, i.worldPos.xz, n_pixel, i.shorelineFoam_screenPos.x, pixelZ, sceneZ, foamL, view, bubbleCol, whiteFoam, whiteFoam_x, whiteFoam_z);
+					half4 whiteFoamCol;
+					ComputeFoam(1. - i.invDeterminant_lodAlpha_worldXZUndisplaced.x, i.invDeterminant_lodAlpha_worldXZUndisplaced.zw, i.worldPos.xz, n_pixel, i.shorelineFoam_screenPos.x, pixelZ, sceneZ, view, lightDir, bubbleCol, whiteFoamCol);
 					#endif
 
 					// Compute color of ocean - in-scattered light + refracted scene
@@ -430,14 +447,7 @@ Shader "Ocean/Ocean"
 
 					// Override final result with white foam - bubbles on surface
 					#if _FOAM_ON
-					// compute a foam normal that is rounded at the edge
-					float r = .05;
-					half sqrt_foam = sqrt(whiteFoam / r);
-					half dfdx = sqrt(whiteFoam_x / r) - sqrt_foam, dfdz = sqrt(whiteFoam_z / r) - sqrt_foam;
-					half3 fN = normalize(half3(-dfdx, 0.5, -dfdz));
-					half foamNdL = max(0., dot(fN, lightDir));
-					half3 fCol = _FoamWhiteColor.rgb * (ambientL + .7*_LightColor0*foamNdL);
-					col = lerp(col, fCol, min(whiteFoam/.4, 1.));
+					col = lerp(col, whiteFoamCol.rgb, whiteFoamCol.a);
 					#endif
 
 					// Fog

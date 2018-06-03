@@ -10,7 +10,6 @@ GameObject:
   - component: {fileID: 478202}
   - component: {fileID: 11447936}
   - component: {fileID: 11417796}
-  - component: {fileID: 114743537232810698}
   m_Layer: 0
   m_Name: Ocean
   m_TagString: Untagged
@@ -42,16 +41,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dde37eff0f7685f41902f400d1de0c6c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _viewpoint: {fileID: 0}
   _windDirectionAngle: 0
   _windSpeed: 5
   _minTexelsPerWave: 5
   _minScale: 8
   _maxScale: 256
-  _freezeTime: 0
-  _uniformTiles: 0
   _baseVertDensity: 48
   _lodCount: 7
-  _generateSkirt: 1
+  _freezeTime: 0
+  _uniformTiles: 0
+  _disableSkirt: 0
 --- !u!114 &11447936
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -77,17 +77,3 @@ Prefab:
   m_ParentPrefab: {fileID: 0}
   m_RootGameObject: {fileID: 147084}
   m_IsPrefabParent: 1
---- !u!114 &114743537232810698
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 147084}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d0ef467618a9bf34abaa87182e69c6f8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _radiusMultiplier: 2
-  _viewpoint: {fileID: 0}
-  _debugDraw: 0

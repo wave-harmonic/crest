@@ -9,6 +9,9 @@ namespace Crest
     /// </summary>
     public class OceanRenderer : MonoBehaviour
     {
+        [Tooltip("The viewpoint which drives the ocean detail. Defaults to main camera.")]
+        public Transform _viewpoint;
+
         [Tooltip("Wind direction (angle from x axis in degrees)"), Range(-180, 180)]
         public float _windDirectionAngle = 0f;
         [Tooltip("Wind speed in m/s"), Range(0, 20), HideInInspector]
@@ -63,6 +66,11 @@ namespace Crest
 
             _oceanBuilder = FindObjectOfType<OceanBuilder>();
             _oceanBuilder.GenerateMesh(_baseVertDensity, _lodCount);
+
+            if (_viewpoint == null)
+            {
+                _viewpoint = Camera.main.transform;
+            }
         }
 
         void LateUpdate()
@@ -75,21 +83,38 @@ namespace Crest
             }
 
             // set global shader params
-            Shader.SetGlobalVector( "_OceanCenterPosWorld", transform.position );
             Shader.SetGlobalFloat( "_MyTime", _elapsedTime );
             Shader.SetGlobalFloat( "_MyDeltaTime", _deltaTime );
             Shader.SetGlobalFloat( "_TexelsPerWave", _minTexelsPerWave );
             Shader.SetGlobalVector("_WindDirXZ", WindDir);
             Shader.SetGlobalFloat("_SeaLevel", SeaLevel);
 
+            LateUpdatePosition();
             LateUpdateScale();
+        }
+
+        void LateUpdatePosition()
+        {
+            Vector3 pos = _viewpoint.position;
+
+            // maintain y coordinate - sea level
+            pos.y = transform.position.y;
+
+            transform.position = pos;
+
+            Shader.SetGlobalVector("_OceanCenterPosWorld", transform.position);
         }
 
         void LateUpdateScale()
         {
-            // scale ocean mesh based on camera height to keep uniform detail
+            // reach maximum detail at slightly below sea level. this should combat cases where visual range can be lost
+            // when water height is low and camera is suspended in air. i tried a scheme where it was based on difference
+            // to water height but this does help with the problem of horizontal range getting limited at bad times.
+            float maxDetailY = SeaLevel - _maxVertDispFromShape / 5f;
+            // scale ocean mesh based on camera height to keep uniform detail. this could be abs() if camera can go below water.
+            float camY = Mathf.Max(_viewpoint.position.y - maxDetailY, 0f);
+
             const float HEIGHT_LOD_MUL = 2f;
-            float camY = Mathf.Abs(Camera.main.transform.position.y - transform.position.y);
             float level = camY * HEIGHT_LOD_MUL;
             level = Mathf.Max(level, _minScale);
             if (_maxScale != -1f) level = Mathf.Min(level, 1.99f * _maxScale);

@@ -259,6 +259,7 @@ Shader "Ocean/Ocean"
 				uniform samplerCUBE _Skybox;
 
 				uniform sampler2D _FoamTexture;
+				uniform float4 _FoamTexture_TexelSize;
 				uniform half4 _FoamWhiteColor;
 				uniform half4 _FoamBubbleColor;
 				uniform half _ShorelineFoamMinDepth;
@@ -338,9 +339,10 @@ Shader "Ocean/Ocean"
 					float2 foamUV = (i_worldXZUndisplaced + 0.5 * _MyTime * _WindDirXZ) / _FoamScale + 0.02 * i_n.xz;
 					half foamTexValue = texture(_FoamTexture, foamUV).r;
 					half whiteFoam = foamTexValue * (smoothstep(foamAmount + _WaveFoamFeather, foamAmount, 1. - foamTexValue)) * _FoamWhiteColor.a;
+
 					#if _FOAM3DLIGHTING_ON
 					// Scale up delta by Z - keeps 3d look better at distance. better way to do this?
-					float2 dd = float2(0.25 * i_pixelZ / 512., 0.);
+					float2 dd = float2(0.25 * i_pixelZ * _FoamTexture_TexelSize.x, 0.);
 					half foamTexValue_x = texture(_FoamTexture, foamUV + dd.xy).r;
 					half foamTexValue_z = texture(_FoamTexture, foamUV + dd.yx).r;
 					half whiteFoam_x = foamTexValue_x * (smoothstep(foamAmount + _WaveFoamFeather, foamAmount, 1. - foamTexValue_x)) * _FoamWhiteColor.a;
@@ -352,9 +354,10 @@ Shader "Ocean/Ocean"
 					half3 fN = normalize(half3(-dfdx, _WaveFoamNormalsY, -dfdz));
 					half foamNdL = max(0., dot(fN, i_lightDir));
 					o_whiteFoamCol.rgb = _FoamWhiteColor.rgb * (AmbientLight() + _WaveFoamLightScale * _LightColor0 * foamNdL);
-					#else
+					#else // _FOAM3DLIGHTING_ON
 					o_whiteFoamCol.rgb = _FoamWhiteColor.rgb * (AmbientLight() + _WaveFoamLightScale * _LightColor0);
-					#endif
+					#endif // _FOAM3DLIGHTING_ON
+
 					o_whiteFoamCol.a = min(2. * whiteFoam, 1.);
 				}
 

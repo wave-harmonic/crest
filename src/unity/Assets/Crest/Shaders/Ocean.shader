@@ -23,7 +23,7 @@ Shader "Ocean/Ocean"
 		_FoamScale("Foam Scale", Range(0.0, 50.0)) = 10.0
 		_FoamWhiteColor("White Foam Color", Color) = (1.0, 1.0, 1.0, 1.0)
 		_FoamBubbleColor("Bubble Foam Color", Color) = (0.0, 0.0904, 0.105, 1.0)
-		_FoamFeatherDepth("Foam Feather Depth", Range(0.0, 5.0)) = 0.15
+		_ShorelineFoamMinDepth("Shoreline Foam Min Depth", Range(0.0, 5.0)) = 0.27
 		_ShorelineFoamMaxDepth("Shoreline Foam Max Depth", Range(0.0,10.0)) = 1.5
 		[Toggle] _Transparency("Transparency", Float) = 1
 		_DepthFogDensity("Depth Fog Density", Vector) = (0.28, 0.16, 0.24, 1.0)
@@ -253,7 +253,7 @@ Shader "Ocean/Ocean"
 				uniform sampler2D _FoamTexture;
 				uniform half4 _FoamWhiteColor;
 				uniform half4 _FoamBubbleColor;
-				uniform half _FoamFeatherDepth;
+				uniform half _ShorelineFoamMinDepth;
 
 				uniform sampler2D _Normals;
 				uniform half _NormalsStrength;
@@ -306,7 +306,7 @@ Shader "Ocean/Ocean"
 					half foamAmount = 1.7*smoothstep(1.6, 0., i_determinant);
 					foamAmount = foamAmount * foamAmount + i_shorelineFoam;
 					// feather foam very close to shore
-					foamAmount *= saturate((i_sceneZ - i_pixelZ) / _FoamFeatherDepth);
+					foamAmount *= saturate((i_sceneZ - i_pixelZ) / _ShorelineFoamMinDepth);
 
 					// Additive underwater foam
 					float2 foamUVBubbles = (lerp(i_worldXZUndisplaced, i_worldXZ, 0.5) + 0.5 * _MyTime * _WindDirXZ) / _FoamScale;

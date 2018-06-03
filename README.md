@@ -35,11 +35,15 @@ The multi-resolution representation (shape textures and geometry) is scaled hori
 
 Normal maps are elegantly incorporated into our multi-scale framework. Normal map textures are treated as a slightly different form of shape that is too detailed to be efficiently sampled by geometry, and are sampled at a scale just below the shape textures. This combats typical normal map sampling issues such as lack of detail in the foreground, or a glassy flat appearance in the background.
 
-Current shading effects include two foam layers are computed on the fly from the Jacobian of the displacement textures, and a subsurface scattering approximation based on view and normal vectors, and primary light direction.
+The ocean colour comes from a subsurface scattering approximation based on view and normal vectors, and primary light direction.
 
-Refraction is also supported, and Schlick's fresnel approximation selects between the refracted colour and a reflected colour. There is an option on the material to boost specular highlights by adding directional lighting if needed.
+Foam is shaded in two layers. Underwater bubbles have parallax and refraction offsets to give an impression of depth. White foam on top of the water is shaded with a simple 3D lighting model using procedurally generated normals.
 
-The branch *fx_test* explores dynamically generating spray particle effects by randomly sampling points on the surface to detect wave peaks.
+Transparency and refraction are also supported, and Schlick's fresnel approximation selects between the refracted colour and a reflected colour. There is an option on the material to boost specular highlights by adding directional lighting if needed.
+
+All shading features are on static switches and can be disabled if not required.
+
+As an area of future work, the branch *fx_test* explores dynamically generating spray particle effects by randomly sampling points on the surface to detect wave peaks.
 
 
 ## Setup

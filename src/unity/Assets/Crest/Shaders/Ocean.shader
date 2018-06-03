@@ -262,10 +262,10 @@ Shader "Ocean/Ocean"
 				uniform half4 _FoamWhiteColor;
 				uniform half4 _FoamBubbleColor;
 				uniform half _ShorelineFoamMinDepth;
-				uniform float _WaveFoamStrength, _WaveFoamCoverage, _WaveFoamFeather;
-				uniform float _WaveFoamBubblesCoverage;
-				uniform float _WaveFoamNormalsY;
-				uniform float _WaveFoamLightScale;
+				uniform half _WaveFoamStrength, _WaveFoamCoverage, _WaveFoamFeather;
+				uniform half _WaveFoamBubblesCoverage;
+				uniform half _WaveFoamNormalsY;
+				uniform half _WaveFoamLightScale;
 
 				uniform sampler2D _Normals;
 				uniform half _NormalsStrength;
@@ -336,10 +336,11 @@ Shader "Ocean/Ocean"
 
 					// White foam on top, with black-point fading
 					float2 foamUV = (i_worldXZUndisplaced + 0.5 * _MyTime * _WindDirXZ) / _FoamScale + 0.02 * i_n.xz;
-					float2 dd = float2(1. / 512., 0.);
 					half foamTexValue = texture(_FoamTexture, foamUV).r;
 					half whiteFoam = foamTexValue * (smoothstep(foamAmount + _WaveFoamFeather, foamAmount, 1. - foamTexValue)) * _FoamWhiteColor.a;
 					#if _FOAM3DLIGHTING_ON
+					// Scale up delta by Z - keeps 3d look better at distance. better way to do this?
+					float2 dd = float2(0.25 * i_pixelZ / 512., 0.);
 					half foamTexValue_x = texture(_FoamTexture, foamUV + dd.xy).r;
 					half foamTexValue_z = texture(_FoamTexture, foamUV + dd.yx).r;
 					half whiteFoam_x = foamTexValue_x * (smoothstep(foamAmount + _WaveFoamFeather, foamAmount, 1. - foamTexValue_x)) * _FoamWhiteColor.a;

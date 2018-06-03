@@ -29,6 +29,8 @@ Shader "Ocean/Ocean"
 		_WaveFoamStrength("Wave Foam Strength", Range(0.0,10.0)) = 2.8
 		_WaveFoamFeather("Wave Foam Feather", Range(0.001,1.0)) = 0.32
 		_WaveFoamBubblesCoverage("Wave Foam Bubbles Coverage", Range(0.0,5.0)) = 0.95
+		_WaveFoamLightScale("Wave Foam Light Scale", Range(0.0, 2.0)) = 0.7
+		_WaveFoamNormalsY("Wave Foam Normal Y Component", Range(0.0, 0.5)) = 0.5
 		[Toggle] _Foam3DLighting("Foam 3D Lighting", Float) = 1
 		[Toggle] _Transparency("Transparency", Float) = 1
 		_DepthFogDensity("Depth Fog Density", Vector) = (0.28, 0.16, 0.24, 1.0)
@@ -262,6 +264,8 @@ Shader "Ocean/Ocean"
 				uniform half _ShorelineFoamMinDepth;
 				uniform float _WaveFoamStrength, _WaveFoamCoverage, _WaveFoamFeather;
 				uniform float _WaveFoamBubblesCoverage;
+				uniform float _WaveFoamNormalsY;
+				uniform float _WaveFoamLightScale;
 
 				uniform sampler2D _Normals;
 				uniform half _NormalsStrength;
@@ -342,16 +346,15 @@ Shader "Ocean/Ocean"
 					half whiteFoam_z = foamTexValue_z * (smoothstep(foamAmount + _WaveFoamFeather, foamAmount, 1. - foamTexValue_z)) * _FoamWhiteColor.a;
 
 					// compute a foam normal that is rounded at the edge
-					float r = .05;
-					half sqrt_foam = sqrt(whiteFoam / r);
-					half dfdx = sqrt(whiteFoam_x / r) - sqrt_foam, dfdz = sqrt(whiteFoam_z / r) - sqrt_foam;
-					half3 fN = normalize(half3(-dfdx, 0.5, -dfdz));
+					half sqrt_foam = sqrt(whiteFoam);
+					half dfdx = sqrt(whiteFoam_x) - sqrt_foam, dfdz = sqrt(whiteFoam_z) - sqrt_foam;
+					half3 fN = normalize(half3(-dfdx, _WaveFoamNormalsY, -dfdz));
 					half foamNdL = max(0., dot(fN, i_lightDir));
-					o_whiteFoamCol.rgb = _FoamWhiteColor.rgb * (AmbientLight() + .7*_LightColor0*foamNdL);
+					o_whiteFoamCol.rgb = _FoamWhiteColor.rgb * (AmbientLight() + _WaveFoamLightScale * _LightColor0 * foamNdL);
 					#else
-					o_whiteFoamCol.rgb = _FoamWhiteColor.rgb * (AmbientLight() + 0.25*_LightColor0);
+					o_whiteFoamCol.rgb = _FoamWhiteColor.rgb * (AmbientLight() + _WaveFoamLightScale * _LightColor0);
 					#endif
-					o_whiteFoamCol.a = min(whiteFoam / .4, 1.);
+					o_whiteFoamCol.a = min(2. * whiteFoam, 1.);
 				}
 
 				float3 WorldSpaceLightDir(float3 worldPos)

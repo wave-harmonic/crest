@@ -108,11 +108,13 @@ Material:
     - _WaveFoamBubblesStrength: 5.15
     - _WaveFoamCoverage: 0.95
     - _WaveFoamFeather: 0.32
+    - _WaveFoamLightScale: 0.75
+    - _WaveFoamNormalsY: 0.017
     - _WaveFoamStrength: 2.8
     m_Colors:
     - _DepthFogDensity: {r: 0.5568628, g: 0.4352941, b: 0.52156866, a: 1}
     - _Diffuse: {r: 0, g: 0.0067332755, b: 0.35686275, a: 1}
     - _FoamBubbleColor: {r: 0.36541346, g: 0.62299997, b: 0.5571058, a: 1}
-    - _FoamWhiteColor: {r: 0.944, g: 0.9356089, b: 0.88526225, a: 0.7490196}
+    - _FoamWhiteColor: {r: 0.944, g: 0.9356089, b: 0.88526225, a: 0.78431374}
     - _SubSurface: {r: 0, g: 0.48, b: 0.36, a: 1}
     - _SubSurfaceColour: {r: 0.10196078, g: 0.57254905, b: 0.5256646, a: 1}

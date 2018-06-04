@@ -47,7 +47,15 @@ public class OceanDebugGUI : MonoBehaviour
 
             _showSimTargets = GUI.Toggle(new Rect(x, y, w, h), _showSimTargets, "Show shape data"); y += h;
             WaveDataCam._shapeCombinePass = GUI.Toggle(new Rect(x, y, w, h), WaveDataCam._shapeCombinePass, "Shape combine pass"); y += h;
+
             WaveDataCam._readbackCollData = GUI.Toggle(new Rect(x, y, w, h), WaveDataCam._readbackCollData, "Readback coll data"); y += h;
+            int min = int.MaxValue, max = -1;
+            foreach( var wdc in OceanRenderer.Instance.Builder._shapeWDCs)
+            {
+                min = Mathf.Min(min, wdc.CollReadbackRequestsQueued);
+                max = Mathf.Max(max, wdc.CollReadbackRequestsQueued);
+            }
+            GUI.Label(new Rect(x, y, w, h), string.Format("Coll Queue Lengths: [{0}, {1}]", min, max)); y += h;
 
             OceanRenderer._acceptLargeWavelengthsInLastLOD = GUI.Toggle(new Rect(x, y, w, h), OceanRenderer._acceptLargeWavelengthsInLastLOD, "Large waves in last LOD"); y += h;
 

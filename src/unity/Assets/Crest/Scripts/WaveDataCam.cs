@@ -239,6 +239,8 @@ namespace Crest
             }
         }
 
+        public int CollReadbackRequestsQueued { get { return _requests.Count; } }
+
         public float MaxWavelength()
         {
             float oceanBaseScale = OceanRenderer.Instance.transform.lossyScale.x;

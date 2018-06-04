@@ -21,14 +21,23 @@ namespace Crest
         public int _anisoLevel = 0;
         public bool _useMipMap = false;
 
+        public bool _createPingPongTargets = false;
+
         bool _createdAndAssigned = false;
 
         void Start()
         {
             if (!_createdAndAssigned)
             {
-                CreateRTAndAssign();
-            }
+	            if (!_createPingPongTargets)
+	            {
+                    CreateRTAndAssign();
+	            }
+	            else
+	            {
+	                CreatePingPongRts();
+	            }
+	        }
         }
 
         /// <summary>
@@ -36,7 +45,7 @@ namespace Crest
         /// </summary>
         public void CreateRTAndAssign()
         {
-            var rt = CreateRT();
+            var rt = CreateRT(_targetName);
 
             GetComponent<Camera>().targetTexture = rt;
 
@@ -46,13 +55,13 @@ namespace Crest
         /// <summary>
         /// Creates RT with given settings and returns it.
         /// </summary>
-        public RenderTexture CreateRT()
+        public RenderTexture CreateRT(string targetName)
         {
             var tex = new RenderTexture( _width, _height, _depthBits, _format );
 
-            if( !string.IsNullOrEmpty(_targetName) )
+            if( !string.IsNullOrEmpty(targetName) )
             {
-                tex.name = _targetName;
+                tex.name = targetName;
             }
 
             tex.wrapMode = _wrapMode;
@@ -62,6 +71,19 @@ namespace Crest
             tex.useMipMap = _useMipMap;
 
             return tex;
+        }
+
+        void CreatePingPongRts()
+        {
+            PingPongRts ppr = GetComponent<PingPongRts>();
+            if (ppr == null)
+            {
+                ppr = gameObject.AddComponent<PingPongRts>();
+            }
+
+            ppr.InitRTs(CreateRT(_targetName + "_A"), CreateRT(_targetName + "_B"));
+
+            _createdAndAssigned = true;
         }
     }
 }

@@ -6,7 +6,7 @@ using Crest;
 /// <summary>
 /// Attach this script to any GameObject and it will create three collision probes in front of the camera
 /// </summary>
-public class OceanCollisionDemo : MonoBehaviour
+public class OceanSampleCollisionDemo : MonoBehaviour
 {
     public bool _trackCamera = true;
 
@@ -23,22 +23,19 @@ public class OceanCollisionDemo : MonoBehaviour
 
         query.y = 0f;
 
-        var rect = new Rect(query.x - 0.5f, query.z - 0.5f, 1f, 1f);
-        int lod = OceanRenderer.SuggestCollisionLOD(rect);
-
-        if (lod > -1)
+        var disp = Vector3.zero;
+        if (OceanRenderer.Instance.CollisionProvider.SampleDisplacement(ref query, ref disp))
         {
-            var disp = Vector3.zero;
-            if( OceanRenderer.Instance.Builder._shapeWDCs[lod].SampleDisplacement(ref query, ref disp))
-            {
-                Debug.DrawLine(query, query + disp);
-                marker.transform.position = query + disp;
-            }
+            Debug.DrawLine(query, query + disp);
+            marker.transform.position = query + disp;
         }
         else
         {
             marker.transform.position = query;
         }
+
+        // if you are taking multiple samples over an area, setup up the collision sampling state first by calling
+        // PrewarmForSamplingArea()
     }
 
     void Update()

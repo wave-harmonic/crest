@@ -10,7 +10,7 @@ namespace Crest
     /// Generates a number of batches of Gerstner waves.
     /// </summary>
     [RequireComponent(typeof(WaveSpectrum))]
-    public class ShapeGerstnerBatched : MonoBehaviour
+    public class ShapeGerstnerBatched : MonoBehaviour, ICollProvider
     {
         [Tooltip("Geometry to rasterize into wave buffers to generate waves.")]
         public Mesh _rasterMesh;
@@ -306,7 +306,7 @@ namespace Crest
             return cp;
         }
 
-        public Vector3 GetPositionDisplacedToPositionExpensive(ref Vector3 displacedWorldPos, float toff)
+        public Vector3 GetPositionDisplacedToPosition(ref Vector3 displacedWorldPos, float toff)
         {
             // fpi - guess should converge to location that displaces to the target position
             Vector3 guess = displacedWorldPos;
@@ -316,7 +316,7 @@ namespace Crest
             // worth trying but is left as future work for now.
             for (int i = 0; i < 4; i++)
             {
-                Vector3 error = guess + GetDisplacement(ref guess, toff) - displacedWorldPos;
+                Vector3 error = guess + SampleDisplacement(ref guess, toff) - displacedWorldPos;
                 guess.x -= error.x;
                 guess.z -= error.z;
             }
@@ -326,7 +326,7 @@ namespace Crest
             return guess;
         }
 
-        public Vector3 GetDisplacement(ref Vector3 worldPos, float toff)
+        public Vector3 SampleDisplacement(ref Vector3 worldPos, float toff)
         {
             if (_amplitudes == null) return Vector3.zero;
 
@@ -398,14 +398,14 @@ namespace Crest
             return Vector3.Cross(delfdelz, delfdelx).normalized;
         }
 
-        public float GetHeightExpensive(ref Vector3 worldPos, float toff)
+        public float SampleHeight(ref Vector3 worldPos, float toff)
         {
             Vector3 posFlatland = worldPos;
             posFlatland.y = OceanRenderer.Instance.transform.position.y;
 
-            Vector3 undisplacedPos = GetPositionDisplacedToPositionExpensive(ref posFlatland, toff);
+            Vector3 undisplacedPos = GetPositionDisplacedToPosition(ref posFlatland, toff);
 
-            return posFlatland.y + GetDisplacement(ref undisplacedPos, toff).y;
+            return posFlatland.y + SampleDisplacement(ref undisplacedPos, toff).y;
         }
 
         public Vector3 GetSurfaceVelocity(ref Vector3 worldPos, float toff)
@@ -440,6 +440,39 @@ namespace Crest
             }
 
             return result;
+        }
+
+        public bool SampleDisplacement(ref Vector3 worldPos, ref Vector3 displacement)
+        {
+            displacement = SampleDisplacement(ref worldPos, 0f);
+            return true;
+        }
+
+        public bool SampleHeight(ref Vector3 worldPos, ref float height)
+        {
+            height = SampleHeight(ref worldPos, 0f);
+            return true;
+        }
+
+        public void PrewarmForSamplingArea(Rect areaXZ)
+        {
+            // nothing to do here
+        }
+        public void PrewarmForSamplingArea(Rect areaXZ, float minSpatialLength)
+        {
+            // nothing to do here
+            OnDisable();
+
+        }
+        public bool SampleDisplacementInArea(ref Vector3 worldPos, ref Vector3 displacement)
+        {
+            // revert to usual function
+            return SampleDisplacement(ref worldPos, ref displacement);
+        }
+        public bool SampleHeightInArea(ref Vector3 worldPos, ref float height)
+        {
+            // revert to usual function
+            return SampleHeight(ref worldPos, ref height);
         }
     }
 }

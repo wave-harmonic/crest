@@ -11,6 +11,8 @@ namespace Crest
     /// </summary>
     public class CollProviderDispTexs : ICollProvider
     {
+        int _areaLod = -1;
+
         public bool SampleDisplacement(ref Vector3 worldPos, ref Vector3 displacement)
         {
             int lod = SuggestCollisionLOD(new Rect(worldPos.x, worldPos.z, 0f, 0f), 0f);
@@ -56,8 +58,6 @@ namespace Crest
 
             return -1;
         }
-
-        int _areaLod = -1;
 
         public void PrewarmForSamplingArea(Rect areaXZ)
         {

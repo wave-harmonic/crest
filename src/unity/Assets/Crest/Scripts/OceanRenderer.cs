@@ -18,6 +18,9 @@ namespace Crest
         public float _windSpeed = 5f;
         public Vector2 WindDir { get { return new Vector2(Mathf.Cos(Mathf.PI * _windDirectionAngle / 180f), Mathf.Sin(Mathf.PI * _windDirectionAngle / 180f)); } }
 
+        [Tooltip("Cache CPU requests for ocean height. Requires restart.")]
+        public bool _cachedCpuOceanQueries = false;
+
         [Range( 0, 15 )]
         [Tooltip( "Min number of verts / shape texels per wave" )]
         public float _minTexelsPerWave = 5f;
@@ -60,7 +63,7 @@ namespace Crest
         OceanBuilder _oceanBuilder;
         public OceanBuilder Builder { get { return _oceanBuilder; } }
 
-        ICollProvider _collProvider = new CollProviderDispTexs();
+        ICollProvider _collProvider;
         public ICollProvider CollisionProvider { get { return _collProvider; } }
 
         void Start()
@@ -70,9 +73,23 @@ namespace Crest
             _oceanBuilder = FindObjectOfType<OceanBuilder>();
             _oceanBuilder.GenerateMesh(_baseVertDensity, _lodCount);
 
+            _collProvider = new CollProviderDispTexs();
+            if (_cachedCpuOceanQueries)
+            {
+                _collProvider = new CollProviderCache(_collProvider);
+            }
+
             if (_viewpoint == null)
             {
                 _viewpoint = Camera.main.transform;
+            }
+        }
+
+        void Update()
+        {
+            if(_cachedCpuOceanQueries)
+            {
+                (_collProvider as CollProviderCache).ClearCache();
             }
         }
 

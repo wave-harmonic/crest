@@ -26,7 +26,7 @@ namespace Crest
             _collProvider = collProvider;
         }
 
-        public void Update()
+        public void ClearCache()
         {
             _cacheBucketSizeRecip = 1f / Mathf.Max(_cacheBucketSize, 0.00001f);
 

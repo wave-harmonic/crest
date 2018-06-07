@@ -1,17 +1,19 @@
 
-# crest
-
-![Teaser](https://raw.githubusercontent.com/huwb/crest-oceanrender/master/img/teaser3.png)  
+![Logo](https://raw.githubusercontent.com/huwb/crest-oceanrender/master/logo/crest-oceanrender-logotype2.png =250x)
 
 Contacts: Huw Bowles (@hdb1 , huw dot bowles at gmail dot com), Daniel Zimmermann (@DanyGZimmermann, infkdude at gmail dot com), Chino Noris (@chino_noris , chino dot noris at epost dot ch), Beibei Wang (bebei dot wang at gmail dot com)
 
 
-## Introduction
+# Introduction
 
 *Crest* is a technically advanced ocean renderer implemented in Unity3D (2018.1+). Some of the core ideas were described at SIGGRAPH 2017 in the *Advances in Real-Time Rendering* course (course page [link](http://advances.realtimerendering.com/s2017/index.html)). Since this initial publication we have been actively working to extend the feature set, which includes innovations in the following areas.
 
+![Teaser](https://raw.githubusercontent.com/huwb/crest-oceanrender/master/img/teaser4.png)
 
-### Shape
+Contacts: Huw Bowles (@hdb1 , huw dot bowles at gmail dot com), Daniel Zimmermann (@DanyGZimmermann, infkdude at gmail dot com), Chino Noris (@chino_noris , chino dot noris at epost dot ch), Beibei Wang (bebei dot wang at gmail dot com)
+
+
+## Shape
 
 It is well known that ocean shape can be well approximated by summing Gerstner waves. Dozens of these are required to obtain an interesting shape. In previous implementations this has been prohibitively expensive and shape is either generated using an online FFT, or precomputed and baked into textures.
 
@@ -22,7 +24,7 @@ We also introduce an intuitive and fun shape authoring interface - an *equalizer
 We also explore simulating shape dynamically by solving the wave equation PDE efficiently in the same multi-scale framework. The branch *dynamic_simulation* generates the entire ocean shape using a dynamic sim that exhibits interesting effects such as dispersion, diffraction and reflection (this refers to physical wave behaviour, not light waves). This works well but is computed on a heightfield and loses some of the characteristic horizontal motion on the surface. The branch *local_sim* has a more practical scenario where a dynamic simulation handles local displacements and is added on top of existing Gerstner waves, to add local interactivity while maintaining the overall look and feel. The displacement of water from the boat's motion is approximated by a simple one-pass shader, and research is ongoing to make this more flexible and expressive.
 
 
-### Mesh
+## Mesh
 
 We implement a 100% pop-free meshing solution, which follows the same unified multi-scale structure/layout as the shape data. The vertex densities and locations match the shape texels 1:1. This ensures that the shape is never over-sampled or under-sampled, giving the same guarantees as described above.
 
@@ -31,7 +33,7 @@ Our meshing approach requires only simple shader instructions in a vertex shader
 The multi-resolution representation (shape textures and geometry) is scaled horizontally when the camera changes altitude to ensure appropriate level of detail and good visual range for all viewpoints. To further extend the surface to the horizon we also add a strip of triangles at the mesh boundary.
 
 
-### Shading / VFX
+## Shading / VFX
 
 Normal maps are elegantly incorporated into our multi-scale framework. Normal map textures are treated as a slightly different form of shape that is too detailed to be efficiently sampled by geometry, and are sampled at a scale just below the shape textures. This combats typical normal map sampling issues such as lack of detail in the foreground, or a glassy flat appearance in the background.
 
@@ -46,7 +48,7 @@ All shading features are on static switches and can be disabled if not required.
 As an area of future work, the branch *fx_test* explores dynamically generating spray particle effects by randomly sampling points on the surface to detect wave peaks.
 
 
-## Setup
+# Setup
 
 The steps to set up Crest in a new or existing project currently look as follows:
 
@@ -63,31 +65,31 @@ The steps to set up Crest in a new or existing project currently look as follows
 Enjoy!
 
 
-## Configuration
+# Configuration
 
 The components described above are driven by a small number of key parameters which are trivial to understand and tweak. The primary parameters configure the multi-scale representation. Unless otherwise specified thes parameters reside on the *OceanRenderer* component.
 
-### Ocean Construction Parameters
+## Ocean Construction Parameters
 
 There are just two parameters that control the construction of the ocean shape and geometry:
 
 * **Base Vert density** - the base vert/shape texel density of an ocean patch. If you set the scale of a LOD to 1, this density would be the world space verts/m. More means more verts/shape, at the cost of more processing.
 * **Lod Count** - the number of levels of detail / scales of ocean geometry to generate. More means more dynamic range of usable shape/mesh at the cost of more processing.
 
-### Runtime Global Parameters
+## Runtime Global Parameters
 
 * **Wind direction angle** - this global wind direction affects the ocean shape
 * **Max Scale** - the ocean is scaled horizontally with viewer height, to keep the meshing suitable for elevated viewpoints. This sets the maximum the ocean will be scaled if set to a positive value.
 * **Min Scale** - this clamps the scale from below, to prevent the ocean scaling down to 0 when the camera approaches the sea level. Low values give lots of detail, but will limit the horizontal extents of the ocean detail.
 
-### Ocean Shape
+## Ocean Shape
 
 Ocean shape is currently authored on the *OceanWavesBatched* game object. The *WaveSpectrum* component provides an equalizer interface to tweak gain values for different frequency levels. We recommend combining use of the *Freeze waves* feature on the debug overlay, the toggle boxes in the equalizer, and undo/redo, to do fine tweaking of the ocean surface shape.
 
 For reference a number of empirical spectra are also implemented and can be applied to the spectrum by clicking the appropriate toggle button. We find it interesting to observe how the surface shape evolves when a spectrum is enabled and the wind speed is tweaked.
 
 
-## How it Works
+# How it Works
 
 On startup, the *OceanBuilder* script creates the ocean geometry as a LODs, each composed of geometry tiles and a shape camera to render the displacement texture for that LOD.
 
@@ -100,14 +102,14 @@ The ocean geometry is rendered with the Ocean shader. The vertex shader snaps th
 The ocean pixel shader samples normal maps at 2 different scales, both proportional to the current and next LOD scales, and then interpolates the result using *lodAlpha* for a smooth transition. Two layers of foam are added based on different thresholds of the foam value, with black point fading used to blend them.
 
 
-## Bugs and Improvement Directions
+# Bugs and Improvement Directions
 
 * Using prebaked textures (i.e. from an offline ocean simulation) would be easy to implement in our framework by rendering the prebaked results into the shape textures, and would be the most efficient option (although completely dynamic shape now renders very efficiently).
 * Persistent foam - generate from waves/dynamic sim, fade gradually over time
 * Wetness simulation for shore
 * Flow - texture to paint wind direction
 
-## Links
+# Links
 
 ### Core work
 

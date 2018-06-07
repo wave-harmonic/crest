@@ -1,5 +1,5 @@
 
-![Logo](https://raw.githubusercontent.com/huwb/crest-oceanrender/master/logo/crest-oceanrender-logotype2.png =250x)
+<img src="https://raw.githubusercontent.com/huwb/crest-oceanrender/master/logo/crest-oceanrender-logotype2.png" width="428">
 
 Contacts: Huw Bowles (@hdb1 , huw dot bowles at gmail dot com), Daniel Zimmermann (@DanyGZimmermann, infkdude at gmail dot com), Chino Noris (@chino_noris , chino dot noris at epost dot ch), Beibei Wang (bebei dot wang at gmail dot com)
 

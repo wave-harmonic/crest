@@ -18,6 +18,9 @@ namespace Crest
         public float _windSpeed = 5f;
         public Vector2 WindDir { get { return new Vector2(Mathf.Cos(Mathf.PI * _windDirectionAngle / 180f), Mathf.Sin(Mathf.PI * _windDirectionAngle / 180f)); } }
 
+        [Tooltip("Cache CPU requests for ocean height. Requires restart.")]
+        public bool _cachedCpuOceanQueries = false;
+
         [Range( 0, 15 )]
         [Tooltip( "Min number of verts / shape texels per wave" )]
         public float _minTexelsPerWave = 5f;
@@ -60,6 +63,9 @@ namespace Crest
         OceanBuilder _oceanBuilder;
         public OceanBuilder Builder { get { return _oceanBuilder; } }
 
+        ICollProvider _collProvider;
+        public ICollProvider CollisionProvider { get { return _collProvider; } }
+
         void Start()
         {
             _instance = this;
@@ -67,9 +73,23 @@ namespace Crest
             _oceanBuilder = FindObjectOfType<OceanBuilder>();
             _oceanBuilder.GenerateMesh(_baseVertDensity, _lodCount);
 
+            _collProvider = new CollProviderDispTexs();
+            if (_cachedCpuOceanQueries)
+            {
+                _collProvider = new CollProviderCache(_collProvider);
+            }
+
             if (_viewpoint == null)
             {
                 _viewpoint = Camera.main.transform;
+            }
+        }
+
+        void Update()
+        {
+            if(_cachedCpuOceanQueries)
+            {
+                (_collProvider as CollProviderCache).ClearCache();
             }
         }
 
@@ -144,59 +164,6 @@ namespace Crest
 
         public bool ScaleCouldIncrease { get { return _maxScale == -1f || transform.localScale.x < _maxScale * 0.99f; } }
         public bool ScaleCouldDecrease { get { return _minScale == -1f || transform.localScale.x > _minScale * 1.01f; } }
-
-        /// <summary>
-        /// Returns index of lod that completely covers the sample area, and contains wavelengths that repeat no more than twice across the smaller
-        /// spatial length. If no such lod available, returns -1. This means high frequency wavelengths are filtered out, and the lod index can
-        /// be used for each sample in the sample area.
-        /// </summary>
-        public static int SuggestCollisionLOD(Rect sampleAreaXZ)
-        {
-            return SuggestCollisionLOD(sampleAreaXZ, Mathf.Min(sampleAreaXZ.width, sampleAreaXZ.height));
-        }
-
-        public static int SuggestCollisionLOD(Rect sampleAreaXZ, float minSpatialLength)
-        {
-            var wdcs = Instance.Builder._shapeWDCs;
-            for (int lod = 0; lod < wdcs.Length; lod++)
-            {
-                // shape texture needs to completely contain sample area
-                var wdc = wdcs[lod];
-                var wdcRect = wdc.CollisionDataRectXZ;
-                if (!wdcRect.Contains(sampleAreaXZ.min) || !wdcRect.Contains(sampleAreaXZ.max))
-                    continue;
-
-                // the smallest wavelengths should repeat no more than twice across the smaller spatial length
-                var minWL = wdc.MaxWavelength() / 2f;
-                if (minWL < minSpatialLength / 2f)
-                    continue;
-
-                return lod;
-            }
-
-            return -1;
-        }
-
-        /// <summary>
-        /// Samples ocean surface displacement at a point. Searches for most detailed LOD available at the query position.
-        /// </summary>
-        public static bool SampleDisplacement(ref Vector3 worldPos, ref Vector3 displacement)
-        {
-            int lod = SuggestCollisionLOD(new Rect(worldPos.x, worldPos.z, 0f, 0f), 0f);
-            return Instance.Builder._shapeWDCs[lod].SampleDisplacement(ref worldPos, ref displacement);
-        }
-
-        /// <summary>
-        /// Samples ocean surface height at a point. Searches for most detailed LOD available at the query position.
-        /// </summary>
-        public static bool SampleHeight(ref Vector3 worldPos, ref float height)
-        {
-            int lod = SuggestCollisionLOD(new Rect(worldPos.x, worldPos.z, 0f, 0f), 0f);
-            if (lod == -1) return false;
-            height = Instance.Builder._shapeWDCs[lod].GetHeight(ref worldPos);
-            return true;
-        }
-
 
         /// <summary>
         /// Shape scripts can report in how far they might displace the shape horizontally. The max value is saved here.

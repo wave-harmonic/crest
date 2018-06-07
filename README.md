@@ -1,16 +1,11 @@
 
-<img src="https://raw.githubusercontent.com/huwb/crest-oceanrender/master/logo/crest-oceanrender-logotype2.png" width="428">
-
-Contacts: Huw Bowles (@hdb1 , huw dot bowles at gmail dot com), Daniel Zimmermann (@DanyGZimmermann, infkdude at gmail dot com), Chino Noris (@chino_noris , chino dot noris at epost dot ch), Beibei Wang (bebei dot wang at gmail dot com)
-
+<img src="https://raw.githubusercontent.com/huwb/crest-oceanrender/master/logo/crest-oceanrender-logotype2.png" width="214">
 
 # Introduction
 
-*Crest* is a technically advanced ocean renderer implemented in Unity3D (2018.1+). Some of the core ideas were described at SIGGRAPH 2017 in the *Advances in Real-Time Rendering* course (course page [link](http://advances.realtimerendering.com/s2017/index.html)). Since this initial publication we have been actively working to extend the feature set, which includes innovations in the following areas.
-
 ![Teaser](https://raw.githubusercontent.com/huwb/crest-oceanrender/master/img/teaser4.png)
 
-Contacts: Huw Bowles (@hdb1 , huw dot bowles at gmail dot com), Daniel Zimmermann (@DanyGZimmermann, infkdude at gmail dot com), Chino Noris (@chino_noris , chino dot noris at epost dot ch), Beibei Wang (bebei dot wang at gmail dot com)
+*Crest* is a technically advanced ocean renderer implemented in Unity3D (2018.1+). Some of the core ideas were described at SIGGRAPH 2017 in the *Advances in Real-Time Rendering* course (course page [link](http://advances.realtimerendering.com/s2017/index.html)). Since this initial publication we have been actively working to extend the feature set, which includes innovations in the following areas.
 
 
 ## Shape
@@ -108,6 +103,11 @@ The ocean pixel shader samples normal maps at 2 different scales, both proportio
 * Persistent foam - generate from waves/dynamic sim, fade gradually over time
 * Wetness simulation for shore
 * Flow - texture to paint wind direction
+
+# Contacts
+
+Huw Bowles (@hdb1 , huw dot bowles at gmail dot com), Daniel Zimmermann (@DanyGZimmermann, infkdude at gmail dot com), Chino Noris (@chino_noris , chino dot noris at epost dot ch), Beibei Wang (bebei dot wang at gmail dot com)
+
 
 # Links
 

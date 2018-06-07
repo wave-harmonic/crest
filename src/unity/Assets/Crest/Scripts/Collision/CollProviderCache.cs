@@ -15,8 +15,8 @@ namespace Crest
         public float _cacheBucketSize = 0.1f;
 
         ICollProvider _collProvider;
-        int _cacheHit;
-        int _cacheCheck;
+        int _cacheHits, _cacheHitsLastFrame;
+        int _cacheChecks, _cacheChecksLastFrame;
         float _cacheBucketSizeRecip = 0f;
 
         readonly Dictionary<uint, float> _waterHeightCache = new Dictionary<uint, float>();
@@ -30,7 +30,10 @@ namespace Crest
         {
             _cacheBucketSizeRecip = 1f / Mathf.Max(_cacheBucketSize, 0.00001f);
 
-            _cacheCheck = _cacheHit = 0;
+            _cacheChecksLastFrame = _cacheChecks;
+            _cacheChecks = 0;
+            _cacheHitsLastFrame = _cacheHits;
+            _cacheHits = 0;
 
             _waterHeightCache.Clear();
         }
@@ -51,11 +54,11 @@ namespace Crest
         {
             var hash = CalcHash(ref worldPos);
 
-            _cacheCheck++;
+            _cacheChecks++;
             if (_waterHeightCache.TryGetValue(hash, out height))
             {
                 // got it from the cache!
-                _cacheHit++;
+                _cacheHits++;
                 return true;
             }
 
@@ -84,5 +87,8 @@ namespace Crest
         {
             return SampleHeight(ref worldPos, ref height);
         }
+
+        public int CacheChecks { get { return _cacheChecksLastFrame; } }
+        public int CacheHits { get { return _cacheHitsLastFrame; } }
     }
 }

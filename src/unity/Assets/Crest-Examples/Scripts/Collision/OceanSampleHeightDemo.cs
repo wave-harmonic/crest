@@ -14,7 +14,8 @@ public class OceanSampleHeightDemo : MonoBehaviour
         float height = 0f;
         if (OceanRenderer.Instance.CollisionProvider.SampleHeight(ref pos, ref height))
         {
-            transform.position += Vector3.up * (height - pos.y);
+            pos.y = height;
+            transform.position = pos;
         }
 
         // if you are taking multiple samples over an area, setup up the collision sampling state first by calling

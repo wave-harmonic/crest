@@ -1,7 +1,10 @@
 
 <img src="https://raw.githubusercontent.com/huwb/crest-oceanrender/master/logo/crest-oceanrender-logotype1.png" width="214">
 
-#
+&nbsp;
+
+
+# Intro
 
 *Crest* is a technically advanced ocean renderer implemented in Unity3D (2018.1+).
 

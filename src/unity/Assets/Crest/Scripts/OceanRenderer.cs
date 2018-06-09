@@ -139,17 +139,40 @@ namespace Crest
             level = Mathf.Max(level, _minScale);
             if (_maxScale != -1f) level = Mathf.Min(level, 1.99f * _maxScale);
 
-            float l2 = Mathf.Log(level) / Mathf.Log(2f);
-            float l2f = Mathf.Floor(l2);
+            float newScalel2 = Mathf.Log(level) / Mathf.Log(2f);
+            float newScalel2f = Mathf.Floor(newScalel2);
 
-            _viewerAltitudeLevelAlpha = l2 - l2f;
+            _viewerAltitudeLevelAlpha = newScalel2 - newScalel2f;
+            Shader.SetGlobalFloat("_ViewerAltitudeLevelAlpha", _viewerAltitudeLevelAlpha);
 
-            float newScale = Mathf.Pow(2f, l2f);
+            float currentScalel2f = Mathf.Round(Mathf.Log(transform.localScale.x) / Mathf.Log(2f));
+            int scaleDiffl2f = Mathf.RoundToInt(newScalel2f - currentScalel2f);
+
+            if (scaleDiffl2f == 0)
+            {
+                // nothing to do - scale has not changed
+                return;
+            }
+
+            // change scale
+            float newScale = Mathf.Pow(2f, newScalel2f);
             transform.localScale = new Vector3(newScale, 1f, newScale);
 
+            // set max wavelength for multi-scale rendering code
             float maxWavelength = Builder._shapeWDCs[Builder._shapeWDCs.Length - 1].MaxWavelength();
             Shader.SetGlobalFloat("_MaxWavelength", _acceptLargeWavelengthsInLastLOD ? maxWavelength : 1e10f);
-            Shader.SetGlobalFloat("_ViewerAltitudeLevelAlpha", _viewerAltitudeLevelAlpha);
+
+            // pass any persistent state up/down LOD chain
+            int dir = scaleDiffl2f < 0 ? -1 : 1;
+            int firstI = scaleDiffl2f < 0 ? Builder._shapeCameras.Length - 1 : 0;
+            for (int i = firstI; i > -1 && i < Builder._shapeCameras.Length; i += dir)
+            {
+                // the index of the camera that this camera will replace
+                var replaceI = i + scaleDiffl2f;
+                var replaceCam = replaceI >= 0 && replaceI < Builder._shapeCameras.Length ? Builder._shapeWDCs[replaceI] : null;
+
+                Builder._shapeWDCs[i].OnScaleChange(replaceCam);
+            }
         }
 
         private void OnDestroy()
@@ -164,6 +187,19 @@ namespace Crest
 
         public bool ScaleCouldIncrease { get { return _maxScale == -1f || transform.localScale.x < _maxScale * 0.99f; } }
         public bool ScaleCouldDecrease { get { return _minScale == -1f || transform.localScale.x > _minScale * 1.01f; } }
+
+        public int GetLodIndex(float gridSize)
+        {
+            //gridSize = 4f * transform.lossyScale.x * Mathf.Pow(2f, result) / (4f * _baseVertDensity);
+            int result = Mathf.RoundToInt(Mathf.Log((4f * _baseVertDensity) * gridSize / (4f * transform.lossyScale.x)) / Mathf.Log(2f));
+
+            if (result < 0 || result >= _lodCount)
+            {
+                result = -1;
+            }
+
+            return result;
+        }
 
         /// <summary>
         /// Shape scripts can report in how far they might displace the shape horizontally. The max value is saved here.

@@ -68,6 +68,16 @@ namespace Crest
             _combineMaterial = new Material(Shader.Find("Ocean/Shape/Combine"));
         }
 
+        // pass persistent state up/down the LOD chain
+        public void OnScaleChange(WaveDataCam replacingWDC)
+        {
+            // replacingWDC is the camera that this camera is about to replace. take its state.
+            if (replacingWDC != null)
+            {
+                _renderData._posSnappedLast = replacingWDC._renderData._posSnappedLast;
+            }
+        }
+
         private void Update()
         {
             // request current contents of this shape texture

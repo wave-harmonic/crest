@@ -132,12 +132,12 @@ Shader "Ocean/Ocean"
 
 					// do computations for hi-res
 					float3 dd = float3(i_invRes, 0.0, i_texelSize);
-					float4 s = tex2Dlod(i_dispSampler, uv);
-					float4 sx = tex2Dlod(i_dispSampler, uv + dd.xyyy);
-					float4 sz = tex2Dlod(i_dispSampler, uv + dd.yxyy);
-					float3 disp = s.xyz;
-					float3 disp_x = dd.zyy + sx.xyz;
-					float3 disp_z = dd.yyz + sz.xyz;
+					half4 s = tex2Dlod(i_dispSampler, uv);
+					half3 sx = tex2Dlod(i_dispSampler, uv + dd.xyyy).xyz;
+					half3 sz = tex2Dlod(i_dispSampler, uv + dd.yxyy).xyz;
+					half3 disp = s.xyz;
+					half3 disp_x = dd.zyy + sx;
+					half3 disp_z = dd.yyz + sz;
 					io_worldPos += wt * disp;
 
 					float3 n = normalize( cross( disp_z - disp, disp_x - disp ) );

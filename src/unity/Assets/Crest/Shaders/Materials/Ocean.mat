@@ -79,7 +79,7 @@ Material:
     - _DebugShapeSample: 0
     - _DebugVisualiseShapeSample: 0
     - _DirectionalLightBoost: 7
-    - _DirectionalLightFallOff: 128
+    - _DirectionalLightFallOff: 275
     - _Foam: 1
     - _Foam3DLighting: 1
     - _FoamScale: 10
@@ -87,8 +87,8 @@ Material:
     - _Invert: 1
     - _MipBias: 0
     - _Moving: 0.17
-    - _NormalsScale: 36
-    - _NormalsStrength: 0.25
+    - _NormalsScale: 30
+    - _NormalsStrength: 0.22
     - _Offset: 0.00008
     - _RefractAmt: 0
     - _S: 1

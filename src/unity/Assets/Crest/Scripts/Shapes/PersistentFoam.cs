@@ -6,12 +6,12 @@ using UnityEngine.Rendering;
 namespace Crest
 {
     /// <summary>
-    /// A dynamic shape simulation that moves around with a displacement LOD.
+    /// A persistent foam simulation that moves around with a displacement LOD.
     /// </summary>
-    public class ShapeDynamicSim : MonoBehaviour
+    public class PersistentFoam : MonoBehaviour
     {
         [HideInInspector]
-        public float _resolution = 0.5f;
+        public float _resolution = 1f;
         [HideInInspector]
         public int _shapeRenderLayer;
 
@@ -42,7 +42,7 @@ namespace Crest
             _renderSim.transform.localScale = Vector3.one;
             _renderSim.transform.localPosition = Vector3.forward * 25f;
             _renderSim.transform.localRotation = Quaternion.identity;
-            _renderSim.GetComponent<Renderer>().material = _renderSimMaterial = new Material(Shader.Find("Ocean/Shape/Sim/Foam"));
+            _renderSim.GetComponent<Renderer>().material = _renderSimMaterial = new Material(Shader.Find("Ocean/Shape/Sim/2D Wave Equation"));
         }
 
         GameObject CreateRasterQuad(string name)

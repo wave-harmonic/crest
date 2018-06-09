@@ -43,8 +43,8 @@ public class BoatAlignNormal : MonoBehaviour
     {
         var position = transform.position;
 
-        var undispPos = _waves.GetPositionDisplacedToPositionExpensive(ref position, 0f);
-        _displacementToBoat = _waves.GetDisplacement(ref undispPos, 0f);
+        var undispPos = _waves.GetPositionDisplacedToPosition(ref position, 0f);
+        _displacementToBoat = _waves.SampleDisplacement(ref undispPos, 0f);
         var normal = _waves.GetNormal(ref undispPos, 0f);
 
         var velWater = _waves.GetSurfaceVelocity(ref undispPos, 0f);

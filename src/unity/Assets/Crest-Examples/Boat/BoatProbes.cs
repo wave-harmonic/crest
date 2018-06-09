@@ -19,8 +19,8 @@ namespace Crest
 
         public void ApplyForceToRB(ShapeGerstnerBatched _waves, Rigidbody _rb)
         {
-            Vector3 undispPos = _waves.GetPositionDisplacedToPositionExpensive(ref _position, 0f);
-            Vector3 displacement = _waves.GetDisplacement(ref undispPos, 0f);
+            Vector3 undispPos = _waves.GetPositionDisplacedToPosition(ref _position, 0f);
+            Vector3 displacement = _waves.SampleDisplacement(ref undispPos, 0f);
             float height = OceanRenderer.Instance.SeaLevel + displacement.y;
 
             Vector3 onSeaLevel = _position;

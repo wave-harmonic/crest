@@ -23,7 +23,7 @@ Shader "Ocean/Shape/Sim/Foam"
 				#pragma fragment frag
 				#pragma multi_compile_fog
 				#include "UnityCG.cginc"
-				#include "../../Shaders/Shapes/MultiscaleShape.cginc"
+				#include "../../Shaders/OceanLODData.cginc"
 
 				struct appdata_t {
 					float4 vertex : POSITION;
@@ -69,12 +69,33 @@ Shader "Ocean/Shape/Sim/Foam"
 
 					// sampler will clamp the uv currently
 					half last = tex2Dlod(_FoamLastFrame, uv).x;
+					half2 r = abs(uv.xy - 0.5);
+					if (max(r.x, r.y) > 0.5)
+					{
+						// no border wrap mode for RTs in unity it seems, so make any off-texture reads 0 manually
+						last = 0.;
+					}
+
+					last += _MyDeltaTime * max(tex2Dlod(_WD_Sampler_0, uv).y - 3., 0.);
 
 					//const float texelSize = 2. * unity_OrthoParams.x * i.uv.z; // assumes square RT
-					const float foamFadeRate = 0.02;
+					const float foamFadeRate = 0.4;
 					last *= max(0.0, 1.0 - foamFadeRate * _MyDeltaTime);
 
 					return last;
+
+
+					//// The determinant of the displacement Jacobian is a good measure for turbulence:
+					//// > 1: Stretch
+					//// < 1: Squash
+					//// < 0: Overlap
+					//float4 du = float4(disp_x.xz, disp_z.xz) - disp.xzxz;
+					//float det = (du.x * du.w - du.y * du.z) / (dd.z * dd.z);
+					//// actually store 1-determinant. This means that when far lod is faded out to 0, this tends to make foam and scatter color etc fade out, instead of getting stronger.
+					//det = 1. - det;
+					//io_determinant += wt * det;
+
+
 				}
 
 				ENDCG

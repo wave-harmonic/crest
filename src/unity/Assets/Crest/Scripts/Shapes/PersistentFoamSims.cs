@@ -45,7 +45,7 @@ namespace Crest
                 cart._targetName = simGO.name;
                 cart._width = cart._height = 192;
                 cart._depthBits = 0;
-                cart._format = RenderTextureFormat.ARGBFloat;
+                cart._format = RenderTextureFormat.RHalf;
                 cart._wrapMode = TextureWrapMode.Clamp;
                 cart._antiAliasing = 1;
                 cart._filterMode = FilterMode.Bilinear;

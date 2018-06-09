@@ -30,7 +30,7 @@ namespace Crest
 
             CreateRenderSimQuad();
 
-            //_copySimMaterial = new Material(Shader.Find("Ocean/Shape/Sim/Add To Disps"));
+            _copySimMaterial = new Material(Shader.Find("Ocean/Shape/Sim/Foam Add To Disps"));
         }
 
         private void CreateRenderSimQuad()
@@ -107,7 +107,7 @@ namespace Crest
             }
 
             var lodCam = OceanRenderer.Instance.Builder._shapeCameras[lodIndex];
-            var wdc = lodCam.GetComponent<WaveDataCam>();
+            var wdc = OceanRenderer.Instance.Builder._shapeWDCs[lodIndex];
 
             transform.position = lodCam.transform.position;
 
@@ -120,6 +120,7 @@ namespace Crest
             _renderSimMaterial.SetVector("_CameraPositionDelta", posDelta);
 
             _renderSimMaterial.SetTexture("_FoamLastFrame", _pprts._sourceThisFrame);
+            wdc.ApplyMaterialParams(0, new PropertyWrapperMaterial(_renderSimMaterial));
 
             if (_copySimMaterial)
             {

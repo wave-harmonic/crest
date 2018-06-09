@@ -460,6 +460,10 @@ Prefab:
       propertyPath: m_RootOrder
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 11417796, guid: 8454e29c2a033974fb559f5f8eff1918, type: 2}
+      propertyPath: _baseVertDensity
+      value: 64
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 8454e29c2a033974fb559f5f8eff1918, type: 2}
   m_IsPrefabParent: 0
@@ -708,12 +712,12 @@ MonoBehaviour:
   _waveDirectionVariance: 90
   _powerLog:
   - -6
-  - -4.398688
-  - -3.7637973
-  - -2.8987272
-  - -1.8042979
+  - -4.0088496
+  - -3.4452133
+  - -2.6996124
+  - -2.615044
   - -1.2080691
-  - -0.3001158
+  - -0.53905386
   - 0.27448857
   - 0.53627354
   - 1.0282621

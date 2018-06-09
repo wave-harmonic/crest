@@ -36,7 +36,7 @@ namespace Crest
         private void CreateRenderSimQuad()
         {
             // utility quad which will be rasterized by the shape camera
-            _renderSim = CreateRasterQuad("RenderSim");
+            _renderSim = CreateRasterQuad("RenderDynamicSim");
             _renderSim.layer = _shapeRenderLayer;
             _renderSim.transform.parent = transform;
             _renderSim.transform.localScale = Vector3.one;

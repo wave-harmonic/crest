@@ -8,7 +8,7 @@ namespace Crest
     /// <summary>
     /// A persistent foam simulation that moves around with a displacement LOD.
     /// </summary>
-    public class PersistentFoam : MonoBehaviour
+    public class PersistentFoamSim : MonoBehaviour
     {
         [HideInInspector]
         public float _resolution = 1f;
@@ -18,7 +18,7 @@ namespace Crest
         Camera _cam;
         PingPongRts _pprts;
 
-        Material _copySimMaterial;
+        Material _copySimMaterial = null;
 
         GameObject _renderSim;
         Material _renderSimMaterial;
@@ -30,19 +30,19 @@ namespace Crest
 
             CreateRenderSimQuad();
 
-            _copySimMaterial = new Material(Shader.Find("Ocean/Shape/Sim/Add To Disps"));
+            //_copySimMaterial = new Material(Shader.Find("Ocean/Shape/Sim/Add To Disps"));
         }
 
         private void CreateRenderSimQuad()
         {
             // utility quad which will be rasterized by the shape camera
-            _renderSim = CreateRasterQuad("RenderSim");
+            _renderSim = CreateRasterQuad("RenderFoamSim");
             _renderSim.layer = _shapeRenderLayer;
             _renderSim.transform.parent = transform;
             _renderSim.transform.localScale = Vector3.one;
             _renderSim.transform.localPosition = Vector3.forward * 25f;
             _renderSim.transform.localRotation = Quaternion.identity;
-            _renderSim.GetComponent<Renderer>().material = _renderSimMaterial = new Material(Shader.Find("Ocean/Shape/Sim/2D Wave Equation"));
+            _renderSim.GetComponent<Renderer>().material = _renderSimMaterial = new Material(Shader.Find("Ocean/Shape/Sim/Foam"));
         }
 
         GameObject CreateRasterQuad(string name)
@@ -70,7 +70,7 @@ namespace Crest
             if (_copySimResultsCmdBuf == null)
             {
                 _copySimResultsCmdBuf = new CommandBuffer();
-                _copySimResultsCmdBuf.name = "CopySimResults";
+                _copySimResultsCmdBuf.name = "CopyFoamSimResults";
             }
 
             int lodIndex = OceanRenderer.Instance.GetLodIndex(_resolution);
@@ -119,12 +119,15 @@ namespace Crest
             Vector3 posDelta = wdc._renderData._posSnapped - wdc._renderData._posSnappedLast;
             _renderSimMaterial.SetVector("_CameraPositionDelta", posDelta);
 
-            _renderSimMaterial.SetTexture("_WavePPTSource", _pprts._sourceThisFrame);
+            _renderSimMaterial.SetTexture("_FoamLastFrame", _pprts._sourceThisFrame);
 
-            _copySimMaterial.mainTexture = _pprts._targetThisFrame;
+            if (_copySimMaterial)
+            {
+                _copySimMaterial.mainTexture = _pprts._targetThisFrame;
 
-            _copySimResultsCmdBuf.Clear();
-            _copySimResultsCmdBuf.Blit(_pprts._targetThisFrame, lodCam.targetTexture, _copySimMaterial);
+                _copySimResultsCmdBuf.Clear();
+                _copySimResultsCmdBuf.Blit(_pprts._targetThisFrame, lodCam.targetTexture, _copySimMaterial);
+            }
         }
     }
 }

@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Crest
 {
-    public class PersistentFoams : MonoBehaviour
+    public class PersistentFoamSims : MonoBehaviour
     {
         [System.Serializable]
         public class SimLayer
@@ -35,7 +35,7 @@ namespace Crest
         {
             foreach (var layer in _simulationLayers)
             {
-                var simGO = new GameObject("DynamicSim_" + layer._resolution.ToString());
+                var simGO = new GameObject("FoamSim_" + layer._resolution.ToString());
                 simGO.transform.parent = transform;
                 simGO.transform.localPosition = Vector3.zero;
                 simGO.transform.localEulerAngles = 90f * Vector3.right;
@@ -55,7 +55,7 @@ namespace Crest
 
                 int layerIndex = LayerMask.NameToLayer(layer._shapeRenderLayer);
 
-                var sim = simGO.AddComponent<ShapeDynamicSim>();
+                var sim = simGO.AddComponent<PersistentFoamSim>();
                 sim._resolution = GetRes(layer._resolution);
                 sim._shapeRenderLayer = layerIndex;
 
@@ -89,7 +89,7 @@ namespace Crest
                 case SimResolution.Res32m: return 32f;
             }
 
-            Debug.LogError("Resolution " + res.ToString() + " needs to be added to ShapeDynamicSims.cs.", this);
+            Debug.LogError("Resolution " + res.ToString() + " needs to be added to PersistentFoamSims.cs.", this);
             return -1f;
         }
     }

@@ -78,7 +78,7 @@ Material:
     - _DebugMultiplyByLight0Color: 1
     - _DebugShapeSample: 0
     - _DebugVisualiseShapeSample: 0
-    - _DirectionalLightBoost: 5
+    - _DirectionalLightBoost: 7
     - _DirectionalLightFallOff: 128
     - _Foam: 1
     - _Foam3DLighting: 1

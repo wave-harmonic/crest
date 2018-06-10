@@ -65,7 +65,7 @@ namespace Crest
                 cam.orthographic = true;
                 cam.nearClipPlane = 0.3f;
                 cam.farClipPlane = 1000f;
-                cam.depth = -2;
+                cam.depth = -20;
                 cam.renderingPath = RenderingPath.Forward;
                 cam.useOcclusionCulling = false;
                 cam.allowHDR = true;

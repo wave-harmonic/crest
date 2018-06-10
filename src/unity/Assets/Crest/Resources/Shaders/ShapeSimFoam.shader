@@ -31,8 +31,7 @@ Shader "Ocean/Shape/Sim/Foam"
 
 				struct v2f {
 					float4 vertex : SV_POSITION;
-					float2 uv : TEXCOORD0;
-					float2 uv_lastframe : TEXCOORD1;
+					float2 uv_lastframe : TEXCOORD0;
 				};
 
 				uniform float3 _CameraPositionDelta;
@@ -43,12 +42,12 @@ Shader "Ocean/Shape/Sim/Foam"
 					o.vertex = UnityObjectToClipPos(v.vertex);
 
 					// compute uncompensated uv
-					o.uv.xy = o.vertex.xy;
-					o.uv.y = -o.uv.y;
-					o.uv.xy = 0.5*o.uv.xy + 0.5;
+					float2 uv = o.vertex.xy;
+					uv.y = -uv.y;
+					uv.xy = 0.5*uv.xy + 0.5;
 
 					// compensate for camera motion - adjust lookup uv to get texel from last frame sim
-					o.uv_lastframe.xy = o.uv;
+					o.uv_lastframe.xy = uv;
 					float invRes = 1. / _ScreenParams.x;
 					const float texelSize = 2.0 * unity_OrthoParams.x * invRes;
 					o.uv_lastframe.xy += invRes * _CameraPositionDelta.xz / texelSize;
@@ -64,11 +63,11 @@ Shader "Ocean/Shape/Sim/Foam"
 
 				half frag(v2f i) : SV_Target
 				{
-					float4 uv = float4(i.uv.xy, 0., 0.);
+					float4 uv = float4(i.uv_lastframe.xy, 0., 0.);
 
 					// sampler will clamp the uv currently
-					half last = tex2Dlod(_FoamLastFrame, float4(i.uv_lastframe, 0., 0.)).x;
-					half2 r = abs(i.uv_lastframe.xy - 0.5);
+					half last = tex2Dlod(_FoamLastFrame, uv).x;
+					half2 r = abs(uv.xy - 0.5);
 					if (max(r.x, r.y) > 0.5)
 					{
 						// no border wrap mode for RTs in unity it seems, so make any off-texture reads 0 manually

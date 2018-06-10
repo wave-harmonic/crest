@@ -89,8 +89,7 @@ namespace Crest
                 // unassign from any camera if it is assigned
                 if (_bufAssignedCamIdx != -1)
                 {
-                    _cam.RemoveCommandBuffer(CameraEvent.AfterEverything, _copySimResultsCmdBuf);
-                    //OceanRenderer.Instance.Builder._shapeCameras[_bufAssignedCamIdx].RemoveCommandBuffer(CameraEvent.AfterForwardAlpha, _copySimResultsCmdBuf);
+                    OceanRenderer.Instance.Builder._shapeCameras[_bufAssignedCamIdx].RemoveCommandBuffer(CameraEvent.AfterForwardAlpha, _copySimResultsCmdBuf);
                     _bufAssignedCamIdx = -1;
                 }
 
@@ -102,12 +101,10 @@ namespace Crest
             {
                 if (_bufAssignedCamIdx != -1)
                 {
-                    _cam.RemoveCommandBuffer(CameraEvent.AfterEverything, _copySimResultsCmdBuf);
-                    //OceanRenderer.Instance.Builder._shapeCameras[_bufAssignedCamIdx].RemoveCommandBuffer(CameraEvent.AfterForwardAlpha, _copySimResultsCmdBuf);
+                    OceanRenderer.Instance.Builder._shapeCameras[_bufAssignedCamIdx].RemoveCommandBuffer(CameraEvent.AfterForwardAlpha, _copySimResultsCmdBuf);
                 }
 
-                _cam.AddCommandBuffer(CameraEvent.AfterEverything, _copySimResultsCmdBuf);
-                //OceanRenderer.Instance.Builder._shapeCameras[lodIndex].AddCommandBuffer(CameraEvent.AfterForwardAlpha, _copySimResultsCmdBuf);
+                OceanRenderer.Instance.Builder._shapeCameras[lodIndex].AddCommandBuffer(CameraEvent.AfterForwardAlpha, _copySimResultsCmdBuf);
                 _bufAssignedCamIdx = lodIndex;
             }
 
@@ -136,9 +133,6 @@ namespace Crest
                 // this does NOT work - 
                 _copySimResultsCmdBuf.Blit(_pprts._targetThisFrame, lodCam.targetTexture, _copySimMaterial);
             }
-
-
-            //Debug.Log(Time.frameCount + ": PersistentFoamSim::LateUpdate", this);
         }
     }
 }

@@ -154,7 +154,7 @@ MonoBehaviour:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 227134465}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 93632dc736a214a419a990743badcde2, type: 3}
   m_Name: 
@@ -232,7 +232,7 @@ MonoBehaviour:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 227134465}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 59a818eaf96544c4994335870fdfe141, type: 3}
   m_Name: 
@@ -289,7 +289,7 @@ Prefab:
       objectReference: {fileID: 0}
     - target: {fileID: 4341219009766782, guid: 71ede3c2ab0b7cb43b7dad6ae3b6190b, type: 2}
       propertyPath: m_LocalRotation.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4341219009766782, guid: 71ede3c2ab0b7cb43b7dad6ae3b6190b, type: 2}
       propertyPath: m_LocalRotation.z
@@ -297,15 +297,11 @@ Prefab:
       objectReference: {fileID: 0}
     - target: {fileID: 4341219009766782, guid: 71ede3c2ab0b7cb43b7dad6ae3b6190b, type: 2}
       propertyPath: m_LocalRotation.w
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4341219009766782, guid: 71ede3c2ab0b7cb43b7dad6ae3b6190b, type: 2}
       propertyPath: m_RootOrder
       value: 4
-      objectReference: {fileID: 0}
-    - target: {fileID: 1935509346245718, guid: 71ede3c2ab0b7cb43b7dad6ae3b6190b, type: 2}
-      propertyPath: m_IsActive
-      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 71ede3c2ab0b7cb43b7dad6ae3b6190b, type: 2}
@@ -348,18 +344,21 @@ MonoBehaviour:
     type: 2}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 416506602}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d93ca17b27da15241b74f3d25f7dbd56, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   _simulationLayers:
-  - _simType: 0
-    _resolution: 4
-    _shapeRenderLayer: DynamicSimData1
   - _simType: 1
     _resolution: 3
     _shapeRenderLayer: FoamSim2
+  - _simType: 0
+    _resolution: 3
+    _shapeRenderLayer: DynamicSimData0
+  - _simType: 0
+    _resolution: 4
+    _shapeRenderLayer: DynamicSimData1
 --- !u!1 &425566348
 GameObject:
   m_ObjectHideFlags: 0
@@ -724,13 +723,13 @@ MonoBehaviour:
   - -6
   - -4.879115
   - -4.180167
-  - -6
-  - -6
-  - -6
+  - -3.35
+  - -3.25
+  - -2.1499999
   - -0.78054285
   - -0.26999542
   - 0.08787495
-  - 0.6439205
+  - 1.8939204
   - 1.1841015
   - -6
   _powerDisabled: 000000000000000000000000

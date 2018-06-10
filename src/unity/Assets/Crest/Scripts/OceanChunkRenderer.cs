@@ -60,7 +60,7 @@ namespace Crest
             // geometry data
             // compute grid size of geometry. take the long way to get there - make sure we land exactly on a power of two
             // and not inherit any of the lossy-ness from lossyScale.
-            float squareSize = Mathf.Pow(2f, Mathf.Round(Mathf.Log(transform.lossyScale.x / _baseVertDensity) / Mathf.Log(2f)));
+            float squareSize = Mathf.Pow(2f, Mathf.Round(Mathf.Log(transform.lossyScale.x) / Mathf.Log(2f))) / _baseVertDensity;
             float mul = 1.875f; // fudge 1
             float pow = 1.4f; // fudge 2
             float normalScrollSpeed0 = Mathf.Pow( Mathf.Log( 1f + 2f * squareSize ) * mul, pow );

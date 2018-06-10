@@ -1,6 +1,6 @@
 ﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
-Shader "Ocean/Shape/Sim/Add To Disps"
+Shader "Ocean/Shape/Sim/Wave Add To Disps"
 {
 	Properties
 	{

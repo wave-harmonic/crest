@@ -4,20 +4,23 @@ using UnityEngine;
 
 namespace Crest
 {
-    /// <summary>
-    /// Create one or more dynamics sims which will move around with the displacement LODs. Right now,
-    /// since we rely on Unity layers which are in limited supply, only one simulation is supported.
-    /// </summary>
-    public class ShapeDynamicSims : MonoBehaviour
+    public class CreateSims : MonoBehaviour
     {
         [System.Serializable]
         public class SimLayer
         {
+            public SimType _simType;
             public SimResolution _resolution;
 
-            [Tooltip("Create a layer for dynamics to render into and put the name here.")]
-            public string _shapeRenderLayer = "<layer name here>";
+            [Tooltip("Create a layer for sim inputs to render into and put the name here.")]
+            public string _shapeRenderLayer;
             // could populate a dropdown list for this: https://answers.unity.com/questions/609385/type-for-layer-selection.html, https://answers.unity.com/questions/458987/dropdownlist-with-string-array-in-editor-inspector.html
+        }
+
+        public enum SimType
+        {
+            Wave,
+            Foam,
         }
 
         public enum SimResolution
@@ -39,17 +42,16 @@ namespace Crest
         {
             foreach (var layer in _simulationLayers)
             {
-                var simGO = new GameObject("DynamicSim_" + layer._resolution.ToString());
+                var simGO = new GameObject();
                 simGO.transform.parent = transform;
                 simGO.transform.localPosition = Vector3.zero;
                 simGO.transform.localEulerAngles = 90f * Vector3.right;
                 simGO.transform.localScale = Vector3.one;
 
                 var cart = simGO.AddComponent<CreateAssignRenderTexture>();
-                cart._targetName = simGO.name;
                 cart._width = cart._height = (int)(4f * OceanRenderer.Instance._baseVertDensity);
                 cart._depthBits = 0;
-                cart._format = RenderTextureFormat.ARGBFloat;
+                cart._format = RenderTextureFormat.RHalf;
                 cart._wrapMode = TextureWrapMode.Clamp;
                 cart._antiAliasing = 1;
                 cart._filterMode = FilterMode.Bilinear;
@@ -59,9 +61,13 @@ namespace Crest
 
                 int layerIndex = LayerMask.NameToLayer(layer._shapeRenderLayer);
 
-                var sim = simGO.AddComponent<ShapeDynamicSim>();
+                var sim = layer._simType == SimType.Wave ? simGO.AddComponent<SimWave>() : simGO.AddComponent<SimFoam>()
+                    as SimBase;
                 sim._resolution = GetRes(layer._resolution);
                 sim._shapeRenderLayer = layerIndex;
+
+                simGO.name = "Sim_" + sim.SimName + "_" + layer._resolution.ToString();
+                cart._targetName = simGO.name;
 
                 var cam = simGO.AddComponent<Camera>();
                 cam.clearFlags = CameraClearFlags.Nothing;
@@ -93,7 +99,7 @@ namespace Crest
                 case SimResolution.Res32m: return 32f;
             }
 
-            Debug.LogError("Resolution " + res.ToString() + " needs to be added to ShapeDynamicSims.cs.", this);
+            Debug.LogError("Resolution " + res.ToString() + " needs to be added to PersistentFoamSims.cs.", this);
             return -1f;
         }
     }

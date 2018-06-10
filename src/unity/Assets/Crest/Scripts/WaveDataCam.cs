@@ -56,7 +56,6 @@ namespace Crest
             public float _texelWidth;
             public float _textureRes;
             public Vector3 _posSnapped;
-            public Vector3 _posSnappedLast;
         }
         public RenderData _renderData = new RenderData();
 
@@ -68,16 +67,6 @@ namespace Crest
             _combineMaterial = new Material(Shader.Find("Ocean/Shape/Combine"));
         }
 
-        // pass persistent state up/down the LOD chain
-        public void OnScaleChange(WaveDataCam replacingWDC)
-        {
-            // replacingWDC is the camera that this camera is about to replace. take its state.
-            if (replacingWDC != null)
-            {
-                _renderData._posSnappedLast = replacingWDC._renderData._posSnappedLast;
-            }
-        }
-
         private void Update()
         {
             // request current contents of this shape texture
@@ -85,8 +74,6 @@ namespace Crest
             {
                 UpdateShapeReadback();
             }
-
-            _renderData._posSnappedLast = _renderData._posSnapped;
 
             // shape combine pass done by last shape camera - lod 0
             if (_lodIndex == 0)

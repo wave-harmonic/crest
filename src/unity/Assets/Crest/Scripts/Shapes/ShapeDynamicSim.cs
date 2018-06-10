@@ -23,6 +23,8 @@ namespace Crest
         GameObject _renderSim;
         Material _renderSimMaterial;
 
+        Vector3 _camPosSnappedLast;
+
         private void Start()
         {
             _cam = GetComponent<Camera>();
@@ -36,7 +38,7 @@ namespace Crest
         private void CreateRenderSimQuad()
         {
             // utility quad which will be rasterized by the shape camera
-            _renderSim = CreateRasterQuad("RenderSim");
+            _renderSim = CreateRasterQuad("RenderDynamicSim");
             _renderSim.layer = _shapeRenderLayer;
             _renderSim.transform.parent = transform;
             _renderSim.transform.localScale = Vector3.one;
@@ -116,8 +118,9 @@ namespace Crest
 
             _cam.projectionMatrix = lodCam.projectionMatrix;
 
-            Vector3 posDelta = wdc._renderData._posSnapped - wdc._renderData._posSnappedLast;
+            Vector3 posDelta = wdc._renderData._posSnapped - _camPosSnappedLast;
             _renderSimMaterial.SetVector("_CameraPositionDelta", posDelta);
+            _camPosSnappedLast = wdc._renderData._posSnapped;
 
             _renderSimMaterial.SetTexture("_WavePPTSource", _pprts._sourceThisFrame);
 

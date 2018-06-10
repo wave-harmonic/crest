@@ -197,13 +197,13 @@ Transform:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 227134465}
-  m_LocalRotation: {x: 0.008222009, y: 0.6862176, z: -0.007757488, w: 0.7273085}
-  m_LocalPosition: {x: 42.2725, y: 7.655053, z: 39.314877}
+  m_LocalRotation: {x: -0.14135848, y: 0.09573378, z: -0.013735756, w: -0.9852229}
+  m_LocalPosition: {x: 1264, y: 72.5, z: -17.9}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
-  m_LocalEulerAnglesHint: {x: 6.8, y: -104.52601, z: 0}
+  m_LocalEulerAnglesHint: {x: 16.33, y: -11.1, z: 0}
 --- !u!114 &227134471
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -431,7 +431,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _simulationLayers:
-  - _resolution: 3
+  - _resolution: 4
     _shapeRenderLayer: FoamSim
 --- !u!1 &995304122
 GameObject:

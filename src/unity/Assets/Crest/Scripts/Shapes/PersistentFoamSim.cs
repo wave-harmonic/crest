@@ -23,6 +23,8 @@ namespace Crest
         GameObject _renderSim;
         Material _renderSimMaterial;
 
+        Vector3 _camPosSnappedLast;
+
         private void Start()
         {
             _cam = GetComponent<Camera>();
@@ -87,7 +89,8 @@ namespace Crest
                 // unassign from any camera if it is assigned
                 if (_bufAssignedCamIdx != -1)
                 {
-                    OceanRenderer.Instance.Builder._shapeCameras[_bufAssignedCamIdx].RemoveCommandBuffer(CameraEvent.AfterForwardAlpha, _copySimResultsCmdBuf);
+                    _cam.RemoveCommandBuffer(CameraEvent.AfterEverything, _copySimResultsCmdBuf);
+                    //OceanRenderer.Instance.Builder._shapeCameras[_bufAssignedCamIdx].RemoveCommandBuffer(CameraEvent.AfterForwardAlpha, _copySimResultsCmdBuf);
                     _bufAssignedCamIdx = -1;
                 }
 
@@ -99,10 +102,12 @@ namespace Crest
             {
                 if (_bufAssignedCamIdx != -1)
                 {
-                    OceanRenderer.Instance.Builder._shapeCameras[_bufAssignedCamIdx].RemoveCommandBuffer(CameraEvent.AfterForwardAlpha, _copySimResultsCmdBuf);
+                    _cam.RemoveCommandBuffer(CameraEvent.AfterEverything, _copySimResultsCmdBuf);
+                    //OceanRenderer.Instance.Builder._shapeCameras[_bufAssignedCamIdx].RemoveCommandBuffer(CameraEvent.AfterForwardAlpha, _copySimResultsCmdBuf);
                 }
 
-                OceanRenderer.Instance.Builder._shapeCameras[lodIndex].AddCommandBuffer(CameraEvent.AfterForwardAlpha, _copySimResultsCmdBuf);
+                _cam.AddCommandBuffer(CameraEvent.AfterEverything, _copySimResultsCmdBuf);
+                //OceanRenderer.Instance.Builder._shapeCameras[lodIndex].AddCommandBuffer(CameraEvent.AfterForwardAlpha, _copySimResultsCmdBuf);
                 _bufAssignedCamIdx = lodIndex;
             }
 
@@ -116,8 +121,9 @@ namespace Crest
 
             _cam.projectionMatrix = lodCam.projectionMatrix;
 
-            Vector3 posDelta = wdc._renderData._posSnapped - wdc._renderData._posSnappedLast;
+            Vector3 posDelta = wdc._renderData._posSnapped - _camPosSnappedLast;
             _renderSimMaterial.SetVector("_CameraPositionDelta", posDelta);
+            _camPosSnappedLast = wdc._renderData._posSnapped;
 
             _renderSimMaterial.SetTexture("_FoamLastFrame", _pprts._sourceThisFrame);
             wdc.ApplyMaterialParams(0, new PropertyWrapperMaterial(_renderSimMaterial));
@@ -127,8 +133,12 @@ namespace Crest
                 _copySimMaterial.mainTexture = _pprts._targetThisFrame;
 
                 _copySimResultsCmdBuf.Clear();
+                // this does NOT work - 
                 _copySimResultsCmdBuf.Blit(_pprts._targetThisFrame, lodCam.targetTexture, _copySimMaterial);
             }
+
+
+            //Debug.Log(Time.frameCount + ": PersistentFoamSim::LateUpdate", this);
         }
     }
 }

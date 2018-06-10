@@ -447,6 +447,8 @@ Shader "Ocean/Ocean"
 					col = mix(col.rgb, i.debugtint, 0.5);
 					#endif
 
+					//col = (half3)i.foam_lodAlpha_worldXZUndisplaced.x;
+
 					return col;
 				}
 

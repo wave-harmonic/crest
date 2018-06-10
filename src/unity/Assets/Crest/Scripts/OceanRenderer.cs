@@ -161,18 +161,6 @@ namespace Crest
             // set max wavelength for multi-scale rendering code
             float maxWavelength = Builder._shapeWDCs[Builder._shapeWDCs.Length - 1].MaxWavelength();
             Shader.SetGlobalFloat("_MaxWavelength", _acceptLargeWavelengthsInLastLOD ? maxWavelength : 1e10f);
-
-            // pass any persistent state up/down LOD chain
-            int dir = scaleDiffl2f < 0 ? -1 : 1;
-            int firstI = scaleDiffl2f < 0 ? Builder._shapeCameras.Length - 1 : 0;
-            for (int i = firstI; i > -1 && i < Builder._shapeCameras.Length; i += dir)
-            {
-                // the index of the camera that this camera will replace
-                var replaceI = i + scaleDiffl2f;
-                var replaceCam = replaceI >= 0 && replaceI < Builder._shapeCameras.Length ? Builder._shapeWDCs[replaceI] : null;
-
-                Builder._shapeWDCs[i].OnScaleChange(replaceCam);
-            }
         }
 
         private void OnDestroy()

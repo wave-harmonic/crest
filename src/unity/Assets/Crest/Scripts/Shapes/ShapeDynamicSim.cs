@@ -23,6 +23,8 @@ namespace Crest
         GameObject _renderSim;
         Material _renderSimMaterial;
 
+        Vector3 _posSnappedLast;
+
         private void Start()
         {
             _cam = GetComponent<Camera>();
@@ -116,8 +118,9 @@ namespace Crest
 
             _cam.projectionMatrix = lodCam.projectionMatrix;
 
-            Vector3 posDelta = wdc._renderData._posSnapped - wdc._renderData._posSnappedLast;
+            Vector3 posDelta = wdc._renderData._posSnapped - _posSnappedLast;
             _renderSimMaterial.SetVector("_CameraPositionDelta", posDelta);
+            _posSnappedLast = wdc._renderData._posSnapped;
 
             _renderSimMaterial.SetTexture("_WavePPTSource", _pprts._sourceThisFrame);
 

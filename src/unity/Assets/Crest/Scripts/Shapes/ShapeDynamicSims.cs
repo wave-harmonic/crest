@@ -47,7 +47,7 @@ namespace Crest
 
                 var cart = simGO.AddComponent<CreateAssignRenderTexture>();
                 cart._targetName = simGO.name;
-                cart._width = cart._height = 192;
+                cart._width = cart._height = (int)(4f * OceanRenderer.Instance._baseVertDensity);
                 cart._depthBits = 0;
                 cart._format = RenderTextureFormat.ARGBFloat;
                 cart._wrapMode = TextureWrapMode.Clamp;

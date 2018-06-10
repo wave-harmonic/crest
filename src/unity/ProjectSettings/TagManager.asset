@@ -19,6 +19,8 @@ TagManager:
   - EditorOnly
   - DynamicSimData0
   - DynamicSimData1
+  - FoamSim2
+  - FoamSim4
   - 
   - 
   - 

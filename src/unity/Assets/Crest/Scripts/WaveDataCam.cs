@@ -284,6 +284,8 @@ namespace Crest
             T.SetTRS( new Vector3( transform.position.x - _renderData._posSnapped.x, transform.position.z - _renderData._posSnapped.z ), Quaternion.identity, Vector3.one );
             P = P * T;
             cam.projectionMatrix = P;
+
+            //Debug.Log(Time.frameCount + ": WaveDataCam::LateUpdate", this);
         }
 
         // apply this camera's properties to the shape combine materials
@@ -438,7 +440,8 @@ namespace Crest
             // need to blend out shape if this is the largest lod, and the ocean might get scaled down later (so the largest lod will disappear)
             bool needToBlendOutShape = _lodIndex == _lodCount - 1 && OceanRenderer.Instance.ScaleCouldDecrease && blendOut;
             float shapeWeight = needToBlendOutShape ? OceanRenderer.Instance.ViewerAltitudeLevelAlpha : 1f;
-            properties.SetVector("_WD_Params_" + shapeSlot.ToString(), new Vector3(_renderData._texelWidth, _renderData._textureRes, shapeWeight));
+            properties.SetVector("_WD_Params_" + shapeSlot.ToString(), 
+                new Vector4(_renderData._texelWidth, _renderData._textureRes, shapeWeight, 1f / _renderData._textureRes));
 
             properties.SetVector("_WD_Pos_" + shapeSlot.ToString(), new Vector2(_renderData._posSnapped.x, _renderData._posSnapped.z));
             properties.SetFloat("_WD_LodIdx_" + shapeSlot.ToString(), _lodIndex);

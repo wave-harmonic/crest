@@ -1,5 +1,7 @@
 ﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+using UnityEngine;
+
 namespace Crest
 {
     /// <summary>
@@ -11,5 +13,6 @@ namespace Crest
         protected override string ShaderSim { get { return "Ocean/Shape/Sim/2D Wave Equation"; } }
         protected override string ShaderTextureLastSimResult { get { return "_WavePPTSource"; } }
         protected override string ShaderRenderResultsIntoDispTexture { get { return "Ocean/Shape/Sim/Wave Add To Disps"; } }
+        public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.ARGBHalf; } }
     }
 }

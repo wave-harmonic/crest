@@ -15,9 +15,6 @@ namespace Crest
         [HideInInspector]
         public int _shapeRenderLayer;
 
-        Camera _cam;
-        PingPongRts _pprts;
-
         Material _copySimMaterial = null;
 
         GameObject _renderSim;
@@ -29,12 +26,10 @@ namespace Crest
         protected abstract string ShaderSim { get; }
         protected abstract string ShaderTextureLastSimResult { get; }
         protected abstract string ShaderRenderResultsIntoDispTexture { get; }
+        public abstract RenderTextureFormat TextureFormat { get; }
 
         private void Start()
         {
-            _cam = GetComponent<Camera>();
-            _pprts = GetComponent<PingPongRts>();
-
             CreateRenderSimQuad();
 
             _copySimMaterial = new Material(Shader.Find(ShaderRenderResultsIntoDispTexture));
@@ -118,25 +113,28 @@ namespace Crest
 
             transform.position = lodCam.transform.position;
 
-            _cam.orthographicSize = lodCam.orthographicSize;
-            transform.localScale = (Vector3.right + Vector3.up) * _cam.orthographicSize * 2f + Vector3.forward;
+            Cam.orthographicSize = lodCam.orthographicSize;
+            transform.localScale = (Vector3.right + Vector3.up) * Cam.orthographicSize * 2f + Vector3.forward;
 
-            _cam.projectionMatrix = lodCam.projectionMatrix;
+            Cam.projectionMatrix = lodCam.projectionMatrix;
 
             Vector3 posDelta = wdc._renderData._posSnapped - _camPosSnappedLast;
             _renderSimMaterial.SetVector("_CameraPositionDelta", posDelta);
             _camPosSnappedLast = wdc._renderData._posSnapped;
 
-            _renderSimMaterial.SetTexture(ShaderTextureLastSimResult, _pprts._sourceThisFrame);
+            _renderSimMaterial.SetTexture(ShaderTextureLastSimResult, PPRTs._sourceThisFrame);
             wdc.ApplyMaterialParams(0, new PropertyWrapperMaterial(_renderSimMaterial));
 
             if (_copySimMaterial)
             {
-                _copySimMaterial.mainTexture = _pprts._targetThisFrame;
+                _copySimMaterial.mainTexture = PPRTs._targetThisFrame;
 
                 _copySimResultsCmdBuf.Clear();
-                _copySimResultsCmdBuf.Blit(_pprts._targetThisFrame, lodCam.targetTexture, _copySimMaterial);
+                _copySimResultsCmdBuf.Blit(PPRTs._targetThisFrame, lodCam.targetTexture, _copySimMaterial);
             }
         }
+
+        PingPongRts _pprts2; PingPongRts PPRTs { get { return _pprts2 ?? (_pprts2 = GetComponent<PingPongRts>()); } }
+        Camera _cam2; Camera Cam { get { return _cam2 ?? (_cam2 = GetComponent<Camera>()); } }
     }
 }

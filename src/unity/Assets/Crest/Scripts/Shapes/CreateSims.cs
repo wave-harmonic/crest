@@ -48,25 +48,24 @@ namespace Crest
                 simGO.transform.localEulerAngles = 90f * Vector3.right;
                 simGO.transform.localScale = Vector3.one;
 
-                var cart = simGO.AddComponent<CreateAssignRenderTexture>();
-                cart._width = cart._height = (int)(4f * OceanRenderer.Instance._baseVertDensity);
-                cart._depthBits = 0;
-                cart._format = RenderTextureFormat.RHalf;
-                cart._wrapMode = TextureWrapMode.Clamp;
-                cart._antiAliasing = 1;
-                cart._filterMode = FilterMode.Bilinear;
-                cart._anisoLevel = 0;
-                cart._useMipMap = false;
-                cart._createPingPongTargets = true;
-
                 int layerIndex = LayerMask.NameToLayer(layer._shapeRenderLayer);
 
                 var sim = layer._simType == SimType.Wave ? simGO.AddComponent<SimWave>() : simGO.AddComponent<SimFoam>()
                     as SimBase;
                 sim._resolution = GetRes(layer._resolution);
                 sim._shapeRenderLayer = layerIndex;
-
                 simGO.name = "Sim_" + sim.SimName + "_" + layer._resolution.ToString();
+
+                var cart = simGO.AddComponent<CreateAssignRenderTexture>();
+                cart._width = cart._height = (int)(4f * OceanRenderer.Instance._baseVertDensity);
+                cart._depthBits = 0;
+                cart._format = sim.TextureFormat;
+                cart._wrapMode = TextureWrapMode.Clamp;
+                cart._antiAliasing = 1;
+                cart._filterMode = FilterMode.Bilinear;
+                cart._anisoLevel = 0;
+                cart._useMipMap = false;
+                cart._createPingPongTargets = true;
                 cart._targetName = simGO.name;
 
                 var cam = simGO.AddComponent<Camera>();

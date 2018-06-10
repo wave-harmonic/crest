@@ -44,7 +44,7 @@ namespace Crest
             _renderSim.transform.localScale = Vector3.one;
             _renderSim.transform.localPosition = Vector3.forward * 25f;
             _renderSim.transform.localRotation = Quaternion.identity;
-            _renderSim.GetComponent<Renderer>().material = _renderSimMaterial = new Material(Shader.Find("Ocean/Shape/Sim/Foam"));
+            _renderSim.GetComponent<Renderer>().material = _renderSimMaterial = new Material(Shader.Find("Ocean/Shape/Sim/2D Wave Equation"));
         }
 
         GameObject CreateRasterQuad(string name)

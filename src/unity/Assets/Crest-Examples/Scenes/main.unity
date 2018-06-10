@@ -253,7 +253,7 @@ GameObject:
   - component: {fileID: 620253896}
   - component: {fileID: 620253899}
   - component: {fileID: 620253898}
-  m_Layer: 12
+  m_Layer: 14
   m_Name: FoamPatch
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -508,10 +508,6 @@ Prefab:
     - target: {fileID: 478202, guid: 8454e29c2a033974fb559f5f8eff1918, type: 2}
       propertyPath: m_RootOrder
       value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 11417796, guid: 8454e29c2a033974fb559f5f8eff1918, type: 2}
-      propertyPath: _baseVertDensity
-      value: 64
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 8454e29c2a033974fb559f5f8eff1918, type: 2}

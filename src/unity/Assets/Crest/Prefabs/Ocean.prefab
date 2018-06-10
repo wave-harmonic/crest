@@ -44,10 +44,11 @@ MonoBehaviour:
   _viewpoint: {fileID: 0}
   _windDirectionAngle: 0
   _windSpeed: 5
+  _cachedCpuOceanQueries: 0
   _minTexelsPerWave: 5
   _minScale: 8
   _maxScale: 256
-  _baseVertDensity: 48
+  _baseVertDensity: 64
   _lodCount: 7
   _freezeTime: 0
   _uniformTiles: 0

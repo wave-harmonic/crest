@@ -25,10 +25,11 @@ Shader "Ocean/Ocean"
 		_FoamBubbleColor("Bubble Foam Color", Color) = (0.0, 0.0904, 0.105, 1.0)
 		_ShorelineFoamMinDepth("Shoreline Foam Min Depth", Range(0.0, 5.0)) = 0.27
 		_ShorelineFoamMaxDepth("Shoreline Foam Max Depth", Range(0.0,10.0)) = 1.5
-		_WaveFoamCoverage("Wave Foam Coverage", Range(0.0,5.0)) = 0.95
-		_WaveFoamStrength("Wave Foam Strength", Range(0.0,10.0)) = 2.8
-		_WaveFoamFeather("Wave Foam Feather", Range(0.001,1.0)) = 0.32
-		_WaveFoamBubblesCoverage("Wave Foam Bubbles Coverage", Range(0.0,5.0)) = 0.95
+		_WaveFoamStart("Wave Foam Start", Range(0.0, 2.0)) = 0.0
+		_WaveFoamStrength("Wave Foam Strength", Range(0.0, 2.0)) = 1.0
+		_WaveFoamFeather("Wave Foam Feather", Range(0.001, 1.0)) = 0.32
+		_WaveFoamBubblesStrength("Wave Foam Bubbles Strength", Range(0.0, 1.0)) = 0.637
+		_WaveFoamBubblesStart("Wave Foam Bubbles Start", Range(0.0, 2.0)) = 0.115
 		_WaveFoamLightScale("Wave Foam Light Scale", Range(0.0, 2.0)) = 0.7
 		_WaveFoamNormalsY("Wave Foam Normal Y Component", Range(0.0, 0.5)) = 0.5
 		[Toggle] _Foam3DLighting("Foam 3D Lighting", Float) = 1
@@ -250,8 +251,8 @@ Shader "Ocean/Ocean"
 				uniform half4 _FoamWhiteColor;
 				uniform half4 _FoamBubbleColor;
 				uniform half _ShorelineFoamMinDepth;
-				uniform half _WaveFoamStrength, _WaveFoamCoverage, _WaveFoamFeather;
-				uniform half _WaveFoamBubblesCoverage;
+				uniform half _WaveFoamStrength, _WaveFoamStart, _WaveFoamFeather;
+				uniform half _WaveFoamBubblesStrength, _WaveFoamBubblesStart;
 				uniform half _WaveFoamNormalsY;
 				uniform half _WaveFoamLightScale;
 
@@ -304,32 +305,30 @@ Shader "Ocean/Ocean"
 
 				void ComputeFoam(half i_foam, float2 i_worldXZUndisplaced, float2 i_worldXZ, half3 i_n, half i_shorelineFoam, float i_pixelZ, float i_sceneZ, half3 i_view, float3 i_lightDir, out half3 o_bubbleCol, out half4 o_whiteFoamCol)
 				{
-					//foamAmount += _WaveFoamStrength * saturate(_WaveFoamCoverage - i_determinant);
-					half foamAmount = i_foam;
-					// Shoreline foam
-					foamAmount += i_shorelineFoam;
-					// feather foam very close to shore
-					foamAmount *= saturate((i_sceneZ - i_pixelZ) / _ShorelineFoamMinDepth);
-
 					// Additive underwater foam
 					float2 foamUVBubbles = (lerp(i_worldXZUndisplaced, i_worldXZ, 0.5) + 0.5 * _MyTime * _WindDirXZ) / _FoamScale;
 					foamUVBubbles += 0.25 * i_n.xz;
 					half bubbleFoamTexValue = texture(_FoamTexture, .37 * foamUVBubbles - .1*i_view.xz / i_view.y).r;
-					half bubbleFoam = bubbleFoamTexValue * i_foam; // bubbleFoamTexValue * saturate(_WaveFoamBubblesCoverage - i_determinant);
+					half bubbleFoam = bubbleFoamTexValue * _WaveFoamBubblesStrength * saturate(i_foam - _WaveFoamBubblesStart);
 					o_bubbleCol = bubbleFoam * _FoamBubbleColor.rgb * (AmbientLight() + _LightColor0);
 
 					// White foam on top, with black-point fading
+					half whiteFoam = _WaveFoamStrength * saturate(i_foam - _WaveFoamStart);
+					// Shoreline foam
+					whiteFoam += i_shorelineFoam;
+					// feather foam very close to shore
+					whiteFoam *= saturate((i_sceneZ - i_pixelZ) / _ShorelineFoamMinDepth);
 					float2 foamUV = (i_worldXZUndisplaced + 0.5 * _MyTime * _WindDirXZ) / _FoamScale + 0.02 * i_n.xz;
 					half foamTexValue = texture(_FoamTexture, foamUV).r;
-					half whiteFoam = foamTexValue * (smoothstep(foamAmount + _WaveFoamFeather, foamAmount, 1. - foamTexValue)) * _FoamWhiteColor.a;
+					whiteFoam = foamTexValue * (smoothstep(whiteFoam + _WaveFoamFeather, whiteFoam, 1. - foamTexValue)) * _FoamWhiteColor.a;
 
 					#if _FOAM3DLIGHTING_ON
 					// Scale up delta by Z - keeps 3d look better at distance. better way to do this?
 					float2 dd = float2(0.25 * i_pixelZ * _FoamTexture_TexelSize.x, 0.);
 					half foamTexValue_x = texture(_FoamTexture, foamUV + dd.xy).r;
 					half foamTexValue_z = texture(_FoamTexture, foamUV + dd.yx).r;
-					half whiteFoam_x = foamTexValue_x * (smoothstep(foamAmount + _WaveFoamFeather, foamAmount, 1. - foamTexValue_x)) * _FoamWhiteColor.a;
-					half whiteFoam_z = foamTexValue_z * (smoothstep(foamAmount + _WaveFoamFeather, foamAmount, 1. - foamTexValue_z)) * _FoamWhiteColor.a;
+					half whiteFoam_x = foamTexValue_x * (smoothstep(whiteFoam + _WaveFoamFeather, whiteFoam, 1. - foamTexValue_x)) * _FoamWhiteColor.a;
+					half whiteFoam_z = foamTexValue_z * (smoothstep(whiteFoam + _WaveFoamFeather, whiteFoam, 1. - foamTexValue_z)) * _FoamWhiteColor.a;
 
 					// compute a foam normal that is rounded at the edge
 					half sqrt_foam = sqrt(whiteFoam);

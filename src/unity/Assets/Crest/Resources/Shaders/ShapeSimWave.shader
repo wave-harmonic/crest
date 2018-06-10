@@ -60,11 +60,7 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 				uniform float _MyTime;
 				uniform float _MyDeltaTime;
 
-				uniform float _KinematicWaves;
-
 				uniform sampler2D _WavePPTSource;
-
-				//#include "../OceanLODData.cginc"
 
 				float4 frag(v2f i) : SV_Target
 				{

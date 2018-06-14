@@ -47,8 +47,7 @@ Shader "Ocean/Ocean"
 
 		SubShader
 		{
-			// this sorts back to front due to transparent i guess, perhaps set queue to Geometry+1?
-			Tags { "LightMode"="ForwardBase" "Queue"="Transparent" "IgnoreProjector"="True" "RenderType"="Opaque" }
+			Tags { "LightMode"="ForwardBase" "Queue"="Geometry+100" "IgnoreProjector"="True" "RenderType"="Opaque" }
 
 			GrabPass
 			{

@@ -18,18 +18,17 @@ public class RenderAlphaOnSurface : MonoBehaviour
     {
         var pwm = new PropertyWrapperMaterial(_mat);
 
-        var b = GetComponent<Renderer>().bounds;
-        var rect = new Rect(b.min.x, b.min.z, 2f, 2f);// b.extents.x, b.extents.z);
+        var rect = new Rect(transform.position.x, transform.position.z, 0f, 0f);
         var idx = WaveDataCam.SuggestCollisionLOD(rect);
-        idx = 0;
+        
         if (idx > -1)
         {
             var wdcs = OceanRenderer.Instance.Builder._shapeWDCs;
             wdcs[idx + 0].ApplyMaterialParams(0, pwm);
             wdcs[idx + 1].ApplyMaterialParams(1, pwm);
 
-            //float scale = Mathf.Pow(2f, Mathf.Round(Mathf.Log(wdcs[idx + 0].transform.lossyScale.x) / Mathf.Log(2f)));
-            //transform.localScale = new Vector3(scale, 1f, scale);
+            float scale = Mathf.Pow(2f, Mathf.Round(Mathf.Log(wdcs[idx + 0].transform.lossyScale.x) / Mathf.Log(2f)));
+            transform.localScale = new Vector3(scale, 1f, scale);
 
             pwm.SetVector("_GeomData", new Vector4(transform.localScale.x / OceanRenderer.Instance._baseVertDensity, 0f, 0f, OceanRenderer.Instance._baseVertDensity));
 

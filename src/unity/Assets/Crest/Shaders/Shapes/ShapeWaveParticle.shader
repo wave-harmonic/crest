@@ -10,8 +10,6 @@ Shader "Ocean/Shape/Wave Particle"
 
 	Category
 	{
-		// base simulation runs on the Geometry queue, before this shader.
-		// this shader adds interaction forces on top of the simulation result.
 		Tags { "Queue"="Transparent" }
 
 		SubShader

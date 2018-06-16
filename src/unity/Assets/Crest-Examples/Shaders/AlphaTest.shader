@@ -84,7 +84,7 @@
 				// apply fog
 				UNITY_APPLY_FOG(i.fogCoord, col);
 
-				col.a = 0.5;
+				col.a = 0.25;
 
 				return col;
 			}

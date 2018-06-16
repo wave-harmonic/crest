@@ -80,7 +80,7 @@ void SnapAndTransitionVertLayout(float meshScaleAlpha, inout float3 io_worldPos,
 
 	// snap the verts to the grid
 	// The snap size should be twice the original size to keep the shape of the eight triangles (otherwise the edge layout changes).
-	io_worldPos.xz -= frac(_OceanCenterPosWorld.xz / SQUARE_SIZE_2) * SQUARE_SIZE_2; // caution - sign of frac might change in non-hlsl shaders
+	io_worldPos.xz -= frac(unity_ObjectToWorld._m03_m23 / SQUARE_SIZE_2) * SQUARE_SIZE_2; // caution - sign of frac might change in non-hlsl shaders
 
 	// how far are we into the current LOD? compute by comparing the desired square size with the actual square size
 	float2 offsetFromCenter = float2(abs(io_worldPos.x - _OceanCenterPosWorld.x), abs(io_worldPos.z - _OceanCenterPosWorld.z));

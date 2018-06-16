@@ -241,14 +241,14 @@ Shader "Ocean/Ocean"
 					foamAmount *= saturate((i_sceneZ - i_pixelZ) / _ShorelineFoamMinDepth);
 
 					// Additive underwater foam
-					float2 foamUVBubbles = (lerp(i_worldXZUndisplaced, i_worldXZ, 0.5) + 0.5 * _MyTime * _WindDirXZ) / _FoamScale;
+					float2 foamUVBubbles = (lerp(i_worldXZUndisplaced, i_worldXZ, 0.05) + 0.5 * _MyTime * _WindDirXZ) / _FoamScale;
 					foamUVBubbles += 0.25 * i_n.xz;
 					half bubbleFoamTexValue = texture(_FoamTexture, .37 * foamUVBubbles - .1*i_view.xz / i_view.y).r;
 					half bubbleFoam = bubbleFoamTexValue * saturate(_WaveFoamBubblesCoverage - i_determinant);
 					o_bubbleCol = bubbleFoam * _FoamBubbleColor.rgb * (AmbientLight() + _LightColor0);
 
 					// White foam on top, with black-point fading
-					float2 foamUV = (i_worldXZUndisplaced + 0.5 * _MyTime * _WindDirXZ) / _FoamScale + 0.02 * i_n.xz;
+					float2 foamUV = (i_worldXZUndisplaced + 0.05 * _MyTime * _WindDirXZ) / _FoamScale + 0.02 * i_n.xz;
 					half foamTexValue = texture(_FoamTexture, foamUV).r;
 					half whiteFoam = foamTexValue * (smoothstep(foamAmount + _WaveFoamFeather, foamAmount, 1. - foamTexValue)) * _FoamWhiteColor.a;
 

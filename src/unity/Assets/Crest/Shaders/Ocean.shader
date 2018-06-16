@@ -103,15 +103,7 @@ Shader "Ocean/Ocean"
 
 				#include "OceanLODData.cginc"
 
-				uniform float3 _OceanCenterPosWorld;
-
 				// INSTANCE PARAMS
-
-				// Geometry data
-				// x: A square is formed by 2 triangles in the mesh. Here x is square size
-				// yz: normalScrollSpeed0, normalScrollSpeed1
-				// w: Geometry density - side length of patch measured in squares
-				uniform float4 _GeomData;
 
 				// MeshScaleLerp, FarNormalsWeight, LODIndex (debug), unused
 				uniform float4 _InstanceData;
@@ -120,46 +112,14 @@ Shader "Ocean/Ocean"
 				{
 					v2f o;
 
-					// see comments above on _GeomData
-					const float SQUARE_SIZE = _GeomData.x, SQUARE_SIZE_2 = 2.0*_GeomData.x, SQUARE_SIZE_4 = 4.0*_GeomData.x;
-					const float BASE_DENSITY = _GeomData.w;
-
 					// move to world
-					o.worldPos = mul( unity_ObjectToWorld, v.vertex );
-	
-					// snap the verts to the grid
-					// The snap size should be twice the original size to keep the shape of the eight triangles (otherwise the edge layout changes).
-					o.worldPos.xz -= frac(_OceanCenterPosWorld.xz / SQUARE_SIZE_2) * SQUARE_SIZE_2; // caution - sign of frac might change in non-hlsl shaders
-	
-					// how far are we into the current LOD? compute by comparing the desired square size with the actual square size
-					float2 offsetFromCenter = float2( abs( o.worldPos.x - _OceanCenterPosWorld.x ), abs( o.worldPos.z - _OceanCenterPosWorld.z ) );
-					float taxicab_norm = max( offsetFromCenter.x, offsetFromCenter.y );
-					float idealSquareSize = taxicab_norm / BASE_DENSITY;
-					// interpolation factor to next lod (lower density / higher sampling period)
-					float lodAlpha = idealSquareSize/SQUARE_SIZE - 1.0;
-					// lod alpha is remapped to ensure patches weld together properly. patches can vary significantly in shape (with
-					// strips added and removed), and this variance depends on the base density of the mesh, as this defines the strip width.
-					// using .15 as black and .85 as white should work for base mesh density as low as 16. TODO - make this automatic?
-					const float BLACK_POINT = 0.15, WHITE_POINT = 0.85;
-					lodAlpha = max( (lodAlpha - BLACK_POINT) / (WHITE_POINT-BLACK_POINT), 0. );
-					// blend out lod0 when viewpoint gains altitude
-					lodAlpha = min(lodAlpha + _InstanceData.x, 1.);
-					#if _DEBUGDISABLESMOOTHLOD_ON
-					lodAlpha = 0.;
-					#endif
-					// pass it to fragment shader - used to blend normals scales
+					o.worldPos = mul(unity_ObjectToWorld, v.vertex);
+
+					// vertex snapping and lod transition
+					float lodAlpha;
+					SnapAndTransitionVertLayout(_InstanceData.x, o.worldPos, lodAlpha);
 					o.invDeterminant_lodAlpha_worldXZUndisplaced.y = lodAlpha;
-
-
-					// now smoothly transition vert layouts between lod levels - move interior verts inwards towards center
-					float2 m = frac( o.worldPos.xz / SQUARE_SIZE_4 ); // this always returns positive
-					float2 offset = m - 0.5;
-					// check if vert is within one square from the center point which the verts move towards
-					const float minRadius = 0.26; //0.26 is 0.25 plus a small "epsilon" - should solve numerical issues
-					if( abs( offset.x ) < minRadius ) o.worldPos.x += offset.x * lodAlpha * SQUARE_SIZE_4;
-					if( abs( offset.y ) < minRadius ) o.worldPos.z += offset.y * lodAlpha * SQUARE_SIZE_4;
 					o.invDeterminant_lodAlpha_worldXZUndisplaced.zw = o.worldPos.xz;
-
 
 					// sample shape textures - always lerp between 2 scales, so sample two textures
 					o.n = half3(0., 1., 0.);

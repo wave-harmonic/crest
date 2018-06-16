@@ -39,6 +39,9 @@
 			sampler2D _MainTex;
 			float4 _MainTex_ST;
 			
+			// MeshScaleLerp, FarNormalsWeight, LODIndex (debug), unused
+			uniform float4 _InstanceData;
+
 			v2f vert (appdata v)
 			{
 				v2f o;
@@ -46,7 +49,9 @@
 				// move to world
 				float3 worldPos = mul(unity_ObjectToWorld, v.vertex);
 
-				float lodAlpha = 0.;
+				// vertex snapping and lod transition
+				float lodAlpha;
+				SnapAndTransitionVertLayout(_InstanceData.x, worldPos, lodAlpha);
 
 				// sample shape textures - always lerp between 2 scales, so sample two textures
 				half3 n = half3(0., 1., 0.);

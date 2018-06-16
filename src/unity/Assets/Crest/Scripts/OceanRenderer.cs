@@ -78,11 +78,6 @@ namespace Crest
             {
                 _collProvider = new CollProviderCache(_collProvider);
             }
-
-            if (_viewpoint == null)
-            {
-                _viewpoint = Camera.main.transform;
-            }
         }
 
         void Update()
@@ -111,22 +106,31 @@ namespace Crest
 
             LateUpdatePosition();
             LateUpdateScale();
+
+            float maxWavelength = Builder._shapeWDCs[Builder._shapeWDCs.Length - 1].MaxWavelength();
+            Shader.SetGlobalFloat("_MaxWavelength", _acceptLargeWavelengthsInLastLOD ? maxWavelength : 1e10f);
         }
 
         void LateUpdatePosition()
         {
-            Vector3 pos = _viewpoint.position;
+            if (_viewpoint != null)
+            {
+                var pos = _viewpoint.position;
 
-            // maintain y coordinate - sea level
-            pos.y = transform.position.y;
+                // maintain y coordinate - sea level
+                pos.y = transform.position.y;
 
-            transform.position = pos;
+                transform.position = pos;
+            }
 
             Shader.SetGlobalVector("_OceanCenterPosWorld", transform.position);
         }
 
         void LateUpdateScale()
         {
+            if (_viewpoint == null)
+                return;
+
             // reach maximum detail at slightly below sea level. this should combat cases where visual range can be lost
             // when water height is low and camera is suspended in air. i tried a scheme where it was based on difference
             // to water height but this does help with the problem of horizontal range getting limited at bad times.
@@ -147,8 +151,6 @@ namespace Crest
             float newScale = Mathf.Pow(2f, l2f);
             transform.localScale = new Vector3(newScale, 1f, newScale);
 
-            float maxWavelength = Builder._shapeWDCs[Builder._shapeWDCs.Length - 1].MaxWavelength();
-            Shader.SetGlobalFloat("_MaxWavelength", _acceptLargeWavelengthsInLastLOD ? maxWavelength : 1e10f);
             Shader.SetGlobalFloat("_ViewerAltitudeLevelAlpha", _viewerAltitudeLevelAlpha);
         }
 

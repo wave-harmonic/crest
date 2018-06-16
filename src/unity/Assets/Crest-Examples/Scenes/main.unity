@@ -197,8 +197,8 @@ Transform:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 227134465}
-  m_LocalRotation: {x: 0.12805112, y: 0.7136129, z: -0.13531311, w: 0.67531466}
-  m_LocalPosition: {x: 120.80334, y: 6.715161, z: 36.675724}
+  m_LocalRotation: {x: -0.3774637, y: 0.26772285, z: -0.11496757, w: -0.8789927}
+  m_LocalPosition: {x: 0.05868733, y: 1.1276742, z: -1.5588475}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -215,7 +215,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 59a818eaf96544c4994335870fdfe141, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  linSpeed: 50
+  linSpeed: 10
   rotSpeed: 70
   simForwardInput: 0
 --- !u!114 &227134472
@@ -620,8 +620,8 @@ Transform:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1406741396}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 138.6, y: 0, z: 35.8}
-  m_LocalScale: {x: 4, y: 1, z: 4}
+  m_LocalPosition: {x: -0.5, y: 0, z: -0.5}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 4
@@ -767,7 +767,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1866213578
 Transform:
   m_ObjectHideFlags: 0
@@ -808,7 +808,7 @@ MonoBehaviour:
   - 1.0282621
   - 1.4403292
   - -6
-  _powerDisabled: 000000000000000000000000
+  _powerDisabled: 010000000101010101010101
   _windSpeed: 11.833333
   _fetch: 459237
   _chop: 1

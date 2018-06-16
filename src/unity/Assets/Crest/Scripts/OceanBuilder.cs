@@ -26,7 +26,7 @@ namespace Crest
 
         // The following apply to BASE_VERT_DENSITY = 2. The ocean mesh is built up from these patches. Rotational symmetry is
         // used where possible to eliminate combinations. The slim variants are used to eliminate overlap between patches.
-        enum PatchType
+        public enum PatchType
         {
             /// <summary>
             /// Adds no skirt. Used in interior of highest detail lod (0)
@@ -241,7 +241,7 @@ namespace Crest
             cart.CreateRTAndAssign();
         }
 
-        static Mesh BuildOceanPatch(PatchType pt, float baseVertDensity)
+        public static Mesh BuildOceanPatch(PatchType pt, float baseVertDensity)
         {
             ArrayList verts = new ArrayList();
             ArrayList indices = new ArrayList();

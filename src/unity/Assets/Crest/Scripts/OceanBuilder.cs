@@ -241,7 +241,7 @@ namespace Crest
             cart.CreateRTAndAssign();
         }
 
-        Mesh BuildOceanPatch(PatchType pt, float baseVertDensity)
+        static Mesh BuildOceanPatch(PatchType pt, float baseVertDensity)
         {
             ArrayList verts = new ArrayList();
             ArrayList indices = new ArrayList();

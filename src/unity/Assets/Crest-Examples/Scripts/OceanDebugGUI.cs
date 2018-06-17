@@ -4,10 +4,10 @@ using UnityEngine;
 public class OceanDebugGUI : MonoBehaviour
 {
     public bool _showSimTargets = true;
+    public bool _guiVisible = true;
+    public string _oceanMaterialAsset = "Assets/Crest/Shaders/Materials/Ocean.mat";
 
     static float _leftPanelWidth = 180f;
-
-    public bool _guiVisible = true;
 
     public static bool OverGUI( Vector2 screenPosition )
     {
@@ -70,6 +70,14 @@ public class OceanDebugGUI : MonoBehaviour
                 ToggleGUI();
             }
             y += h;
+
+#if UNITY_EDITOR
+            if (GUI.Button(new Rect(x, y, w, h), "Select Ocean Mat"))
+            {
+                UnityEditor.Selection.activeObject = UnityEditor.AssetDatabase.LoadMainAssetAtPath(_oceanMaterialAsset);
+            }
+            y += h;
+#endif
         }
 
         // draw source textures to screen

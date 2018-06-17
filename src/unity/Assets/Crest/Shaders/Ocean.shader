@@ -107,6 +107,7 @@ Shader "Ocean/Ocean"
 
 				// MeshScaleLerp, FarNormalsWeight, LODIndex (debug), unused
 				uniform float4 _InstanceData;
+				uniform half _ShorelineFoamMaxDepth;
 
 				v2f vert( appdata_t v )
 				{
@@ -123,17 +124,24 @@ Shader "Ocean/Ocean"
 
 					// sample shape textures - always lerp between 2 scales, so sample two textures
 					o.n = half3(0., 1., 0.);
-					o.invDeterminant_lodAlpha_worldXZUndisplaced.x = 0.;
-					o.shorelineFoam_screenPos.x = 0.;
+					float determinant = 0.;
+					half signedOceanDepth = 0.;
 					// sample weights. params.z allows shape to be faded out (used on last lod to support pop-less scale transitions)
 					float wt_0 = (1. - lodAlpha) * _WD_Params_0.z;
 					float wt_1 = (1. - wt_0) * _WD_Params_1.z;
 					// sample displacement textures, add results to current world pos / normal / foam
 					#if !_DEBUGDISABLESHAPETEXTURES_ON
 					const float2 wxz = o.worldPos.xz;
-					SampleDisplacements( _WD_Sampler_0, _WD_OceanDepth_Sampler_0, _WD_Pos_0, _WD_Params_0.y, _WD_Params_0.w, _WD_Params_0.x, wxz, wt_0, o.worldPos, o.n, o.invDeterminant_lodAlpha_worldXZUndisplaced.x, o.shorelineFoam_screenPos.x);
-					SampleDisplacements( _WD_Sampler_1, _WD_OceanDepth_Sampler_1, _WD_Pos_1, _WD_Params_1.y, _WD_Params_1.w, _WD_Params_1.x, wxz, wt_1, o.worldPos, o.n, o.invDeterminant_lodAlpha_worldXZUndisplaced.x, o.shorelineFoam_screenPos.x);
+					SampleDisplacements( _WD_Sampler_0, _WD_OceanDepth_Sampler_0, _WD_Pos_0, _WD_Params_0.y, _WD_Params_0.w, _WD_Params_0.x, wxz, wt_0, o.worldPos, o.n, determinant, signedOceanDepth);
+					SampleDisplacements( _WD_Sampler_1, _WD_OceanDepth_Sampler_1, _WD_Pos_1, _WD_Params_1.y, _WD_Params_1.w, _WD_Params_1.x, wxz, wt_1, o.worldPos, o.n, determinant, signedOceanDepth);
 					#endif
+
+					// actually store 1-determinant. This means that when far lod is faded out to 0, this tends to make foam and scatter color etc fade out, instead of getting stronger.
+					o.invDeterminant_lodAlpha_worldXZUndisplaced.x = 1. - determinant;
+
+					// foam from shallow water - signed depth is depth compared to sea level, plus wave height. depth bias is an optimisation
+					// which allows the depth data to be initialised once to 0 without generating foam everywhere.
+					o.shorelineFoam_screenPos.x = saturate(1. - signedOceanDepth / _ShorelineFoamMaxDepth);
 
 					// debug tinting to see which shape textures are used
 					#if _DEBUGVISUALISESHAPESAMPLE_ON
@@ -141,7 +149,6 @@ Shader "Ocean/Ocean"
 					half3 tintCols[TINT_COUNT]; tintCols[0] = half3(1., 0., 0.); tintCols[1] = half3(1., 1., 0.); tintCols[2] = half3(1., 0., 1.); tintCols[3] = half3(0., 1., 1.); tintCols[4] = half3(0., 0., 1.); tintCols[5] = half3(1., 0., 1.); tintCols[6] = half3(.5, .5, 1.);
 					o.debugtint = wt_0 * tintCols[_WD_LodIdx_0 % TINT_COUNT] + wt_1 * tintCols[_WD_LodIdx_1 % TINT_COUNT];
 					#endif
-
 
 					// view-projection	
 					o.vertex = mul(UNITY_MATRIX_VP, float4(o.worldPos, 1.));

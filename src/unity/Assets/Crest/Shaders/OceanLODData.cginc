@@ -24,12 +24,10 @@ float2 WD_uvToWorld(in float2 i_uv, in float2 i_centerPos, in float i_res, in fl
 }
 
 #define DEPTH_BIAS 100.
-uniform half _ShorelineFoamMaxDepth;
 
-// sample wave or terrain height, with smooth blend towards edges.
+// sample wave or terrain height, with smooth blend towards edges. computes normals and determinant and samples ocean depth.
 // would equally apply to heights instead of displacements.
-// this could be optimized further.
-void SampleDisplacements(in sampler2D i_dispSampler, in sampler2D i_oceanDepthSampler, in float2 i_centerPos, in float i_res, in float i_invRes, in float i_texelSize, in float2 i_samplePos, in float wt, inout float3 io_worldPos, inout float3 io_n, inout float io_determinant, inout half io_shorelineFoam)
+void SampleDisplacements(in sampler2D i_dispSampler, in sampler2D i_oceanDepthSampler, in float2 i_centerPos, in float i_res, in float i_invRes, in float i_texelSize, in float2 i_samplePos, in float wt, inout float3 io_worldPos, inout float3 io_n, inout float io_determinant, inout half io_signedOceanDepth)
 {
 	if (wt < 0.001)
 		return;
@@ -55,14 +53,9 @@ void SampleDisplacements(in sampler2D i_dispSampler, in sampler2D i_oceanDepthSa
 	// < 0: Overlap
 	float4 du = float4(disp_x.xz, disp_z.xz) - disp.xzxz;
 	float det = (du.x * du.w - du.y * du.z) / (dd.z * dd.z);
-	// actually store 1-determinant. This means that when far lod is faded out to 0, this tends to make foam and scatter color etc fade out, instead of getting stronger.
-	det = 1. - det;
 	io_determinant += wt * det;
 
-	// foam from shallow water - signed depth is depth compared to sea level, plus wave height. depth bias is an optimisation
-	// which allows the depth data to be initialised once to 0 without generating foam everywhere.
-	half signedDepth = (tex2Dlod(i_oceanDepthSampler, uv).x + DEPTH_BIAS) + disp.y;
-	io_shorelineFoam += wt * clamp(1. - signedDepth / _ShorelineFoamMaxDepth, 0., 1.);
+	io_signedOceanDepth += wt * (tex2Dlod(i_oceanDepthSampler, uv).x + DEPTH_BIAS + disp.y);
 }
 
 // Geometry data
@@ -72,7 +65,7 @@ void SampleDisplacements(in sampler2D i_dispSampler, in sampler2D i_oceanDepthSa
 uniform float4 _GeomData;
 uniform float3 _OceanCenterPosWorld;
 
-void SnapAndTransitionVertLayout(float meshScaleAlpha, inout float3 io_worldPos, out float o_lodAlpha)
+void SnapAndTransitionVertLayout(float i_meshScaleAlpha, inout float3 io_worldPos, out float o_lodAlpha)
 {
 	// see comments above on _GeomData
 	const float SQUARE_SIZE = _GeomData.x, SQUARE_SIZE_2 = 2.0*_GeomData.x, SQUARE_SIZE_4 = 4.0*_GeomData.x;
@@ -94,7 +87,7 @@ void SnapAndTransitionVertLayout(float meshScaleAlpha, inout float3 io_worldPos,
 	const float BLACK_POINT = 0.15, WHITE_POINT = 0.85;
 	o_lodAlpha = max((o_lodAlpha - BLACK_POINT) / (WHITE_POINT - BLACK_POINT), 0.);
 	// blend out lod0 when viewpoint gains altitude
-	o_lodAlpha = min(o_lodAlpha + meshScaleAlpha, 1.);
+	o_lodAlpha = min(o_lodAlpha + i_meshScaleAlpha, 1.);
 	#if _DEBUGDISABLESMOOTHLOD_ON
 	o_lodAlpha = 0.;
 	#endif

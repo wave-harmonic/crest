@@ -6,7 +6,7 @@
 	uniform sampler2D _WD_Sampler_##LODNUM; \
 	uniform sampler2D _WD_OceanDepth_Sampler_##LODNUM; \
 	uniform float4 _WD_Params_##LODNUM; \
-	uniform float2 _WD_Pos_##LODNUM; \
+	uniform float3 _WD_Pos_Scale_##LODNUM; \
 	uniform int _WD_LodIdx_##LODNUM;
 
 // create two sets of LOD data. we always need only 2 textures - we're always lerping between two LOD levels
@@ -65,32 +65,63 @@ void SampleDisplacements(in sampler2D i_dispSampler, in sampler2D i_oceanDepthSa
 uniform float4 _GeomData;
 uniform float3 _OceanCenterPosWorld;
 
+float ComputeLodAlpha(float3 i_worldPos, float i_meshScaleAlpha)
+{
+	const float SQUARE_SIZE = _GeomData.x;
+	const float BASE_DENSITY = _GeomData.w;
+
+	// how far are we into the current LOD? compute by comparing the desired square size with the actual square size
+	float2 offsetFromCenter = float2(abs(i_worldPos.x - _OceanCenterPosWorld.x), abs(i_worldPos.z - _OceanCenterPosWorld.z));
+	float taxicab_norm = max(offsetFromCenter.x, offsetFromCenter.y);
+	float idealSquareSize = taxicab_norm / BASE_DENSITY;
+	// interpolation factor to next lod (lower density / higher sampling period)
+	float lodAlpha = idealSquareSize / SQUARE_SIZE - 1.0;
+
+	// lod alpha is remapped to ensure patches weld together properly. patches can vary significantly in shape (with
+	// strips added and removed), and this variance depends on the base density of the mesh, as this defines the strip width.
+	// using .15 as black and .85 as white should work for base mesh density as low as 16. TODO - make this automatic?
+	const float BLACK_POINT = 0.15, WHITE_POINT = 0.85;
+	lodAlpha = max((lodAlpha - BLACK_POINT) / (WHITE_POINT - BLACK_POINT), 0.);
+	// blend out lod0 when viewpoint gains altitude
+	lodAlpha = min(lodAlpha + i_meshScaleAlpha, 1.);
+#if _DEBUGDISABLESMOOTHLOD_ON
+	lodAlpha = 0.;
+#endif
+	return lodAlpha;
+}
+
+float ComputeLodAlpha_FromLODs(float3 i_worldPos, float i_meshScaleAlpha)
+{
+	float2 offsetFromCenter = float2(abs(i_worldPos.x - _OceanCenterPosWorld.x), abs(i_worldPos.z - _OceanCenterPosWorld.z));
+	float taxicab_norm = max(offsetFromCenter.x, offsetFromCenter.y);
+	// interpolation factor to next lod (lower density / higher sampling period)
+	float lodAlpha = taxicab_norm / _WD_Pos_Scale_0.z - 1.0;
+
+	// lod alpha is remapped to ensure patches weld together properly. patches can vary significantly in shape (with
+	// strips added and removed), and this variance depends on the base density of the mesh, as this defines the strip width.
+	// using .15 as black and .85 as white should work for base mesh density as low as 16. TODO - make this automatic?
+	const float BLACK_POINT = 0.15, WHITE_POINT = 0.85;
+	lodAlpha = max((lodAlpha - BLACK_POINT) / (WHITE_POINT - BLACK_POINT), 0.);
+	// blend out lod0 when viewpoint gains altitude
+	lodAlpha = min(lodAlpha + i_meshScaleAlpha, 1.);
+#if _DEBUGDISABLESMOOTHLOD_ON
+	lodAlpha = 0.;
+#endif
+
+	return lodAlpha;
+}
+
 void SnapAndTransitionVertLayout(float i_meshScaleAlpha, inout float3 io_worldPos, out float o_lodAlpha)
 {
 	// see comments above on _GeomData
-	const float SQUARE_SIZE = _GeomData.x, SQUARE_SIZE_2 = 2.0*_GeomData.x, SQUARE_SIZE_4 = 4.0*_GeomData.x;
-	const float BASE_DENSITY = _GeomData.w;
+	const float SQUARE_SIZE_2 = 2.0*_GeomData.x, SQUARE_SIZE_4 = 4.0*_GeomData.x;
 
 	// snap the verts to the grid
 	// The snap size should be twice the original size to keep the shape of the eight triangles (otherwise the edge layout changes).
 	io_worldPos.xz -= frac(unity_ObjectToWorld._m03_m23 / SQUARE_SIZE_2) * SQUARE_SIZE_2; // caution - sign of frac might change in non-hlsl shaders
 
-	// how far are we into the current LOD? compute by comparing the desired square size with the actual square size
-	float2 offsetFromCenter = float2(abs(io_worldPos.x - _OceanCenterPosWorld.x), abs(io_worldPos.z - _OceanCenterPosWorld.z));
-	float taxicab_norm = max(offsetFromCenter.x, offsetFromCenter.y);
-	float idealSquareSize = taxicab_norm / BASE_DENSITY;
-	// interpolation factor to next lod (lower density / higher sampling period)
-	o_lodAlpha = idealSquareSize / SQUARE_SIZE - 1.0;
-	// lod alpha is remapped to ensure patches weld together properly. patches can vary significantly in shape (with
-	// strips added and removed), and this variance depends on the base density of the mesh, as this defines the strip width.
-	// using .15 as black and .85 as white should work for base mesh density as low as 16. TODO - make this automatic?
-	const float BLACK_POINT = 0.15, WHITE_POINT = 0.85;
-	o_lodAlpha = max((o_lodAlpha - BLACK_POINT) / (WHITE_POINT - BLACK_POINT), 0.);
-	// blend out lod0 when viewpoint gains altitude
-	o_lodAlpha = min(o_lodAlpha + i_meshScaleAlpha, 1.);
-	#if _DEBUGDISABLESMOOTHLOD_ON
-	o_lodAlpha = 0.;
-	#endif
+	// compute lod transition alpha
+	o_lodAlpha = ComputeLodAlpha(io_worldPos, i_meshScaleAlpha);
 
 	// now smoothly transition vert layouts between lod levels - move interior verts inwards towards center
 	float2 m = frac(io_worldPos.xz / SQUARE_SIZE_4); // this always returns positive

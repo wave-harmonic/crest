@@ -132,8 +132,8 @@ Shader "Ocean/Ocean"
 					// sample displacement textures, add results to current world pos / normal / foam
 					#if !_DEBUGDISABLESHAPETEXTURES_ON
 					const float2 wxz = o.worldPos.xz;
-					SampleDisplacements( _WD_Sampler_0, _WD_OceanDepth_Sampler_0, _WD_Pos_0, _WD_Params_0.y, _WD_Params_0.w, _WD_Params_0.x, wxz, wt_0, o.worldPos, o.n, determinant, signedOceanDepth);
-					SampleDisplacements( _WD_Sampler_1, _WD_OceanDepth_Sampler_1, _WD_Pos_1, _WD_Params_1.y, _WD_Params_1.w, _WD_Params_1.x, wxz, wt_1, o.worldPos, o.n, determinant, signedOceanDepth);
+					SampleDisplacements( _WD_Sampler_0, _WD_OceanDepth_Sampler_0, _WD_Pos_Scale_0.xy, _WD_Params_0.y, _WD_Params_0.w, _WD_Params_0.x, wxz, wt_0, o.worldPos, o.n, determinant, signedOceanDepth);
+					SampleDisplacements( _WD_Sampler_1, _WD_OceanDepth_Sampler_1, _WD_Pos_Scale_1.xy, _WD_Params_1.y, _WD_Params_1.w, _WD_Params_1.x, wxz, wt_1, o.worldPos, o.n, determinant, signedOceanDepth);
 					#endif
 
 					// actually store 1-determinant. This means that when far lod is faded out to 0, this tends to make foam and scatter color etc fade out, instead of getting stronger.

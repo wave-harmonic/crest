@@ -3,7 +3,7 @@ using Crest;
 
 public class RenderAlphaOnSurface : MonoBehaviour
 {
-    public int _lodIdx = 1;
+    public bool _vertMatching = true;
 
     Material _mat;
 
@@ -11,8 +11,11 @@ public class RenderAlphaOnSurface : MonoBehaviour
     {
         _mat = GetComponent<Renderer>().material;
 
-        GetComponent<MeshFilter>().mesh = OceanBuilder.BuildOceanPatch(OceanBuilder.PatchType.Interior, OceanRenderer.Instance._baseVertDensity);
-	}
+        if (_vertMatching)
+        {
+            GetComponent<MeshFilter>().mesh = OceanBuilder.BuildOceanPatch(OceanBuilder.PatchType.Interior, OceanRenderer.Instance._baseVertDensity);
+        }
+    }
 
     private void LateUpdate()
     {
@@ -27,10 +30,13 @@ public class RenderAlphaOnSurface : MonoBehaviour
             wdcs[idx + 0].ApplyMaterialParams(0, pwm);
             wdcs[idx + 1].ApplyMaterialParams(1, pwm);
 
-            float scale = Mathf.Pow(2f, Mathf.Round(Mathf.Log(wdcs[idx + 0].transform.lossyScale.x) / Mathf.Log(2f)));
-            transform.localScale = new Vector3(scale, 1f, scale);
+            if(_vertMatching)
+            {
+                float scale = Mathf.Pow(2f, Mathf.Round(Mathf.Log(wdcs[idx + 0].transform.lossyScale.x) / Mathf.Log(2f)));
+                transform.localScale = new Vector3(scale, 1f, scale);
 
-            pwm.SetVector("_GeomData", new Vector4(transform.localScale.x / OceanRenderer.Instance._baseVertDensity, 0f, 0f, OceanRenderer.Instance._baseVertDensity));
+                pwm.SetVector("_GeomData", new Vector4(transform.localScale.x / OceanRenderer.Instance._baseVertDensity, 0f, 0f, OceanRenderer.Instance._baseVertDensity));
+            }
 
             // blend LOD 0 shape in/out to avoid pop, if the ocean might scale up later (it is smaller than its maximum scale)
             bool needToBlendOutShape = idx == 0 && OceanRenderer.Instance.ScaleCouldIncrease;

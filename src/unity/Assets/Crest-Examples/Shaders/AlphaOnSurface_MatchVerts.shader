@@ -1,4 +1,4 @@
-﻿Shader "Ocean/AlphaTest"
+﻿Shader "Ocean/Alpha On Surface (Match Verts)"
 {
 	Properties
 	{
@@ -62,8 +62,8 @@
 				float wt_1 = (1. - wt_0) * _WD_Params_1.z;
 				// sample displacement textures, add results to current world pos / normal / foam
 				const float2 wxz = worldPos.xz;
-				SampleDisplacements(_WD_Sampler_0, _WD_OceanDepth_Sampler_0, _WD_Pos_0, _WD_Params_0.y, _WD_Params_0.w, _WD_Params_0.x, wxz, wt_0, worldPos, n, invDeterminant_lodAlpha_worldXZUndisplaced_x, shorelineFoam_screenPos_x);
-				SampleDisplacements(_WD_Sampler_1, _WD_OceanDepth_Sampler_1, _WD_Pos_1, _WD_Params_1.y, _WD_Params_1.w, _WD_Params_1.x, wxz, wt_1, worldPos, n, invDeterminant_lodAlpha_worldXZUndisplaced_x, shorelineFoam_screenPos_x);
+				SampleDisplacements(_WD_Sampler_0, _WD_OceanDepth_Sampler_0, _WD_Pos_Scale_0.xy, _WD_Params_0.y, _WD_Params_0.w, _WD_Params_0.x, wxz, wt_0, worldPos, n, invDeterminant_lodAlpha_worldXZUndisplaced_x, shorelineFoam_screenPos_x);
+				SampleDisplacements(_WD_Sampler_1, _WD_OceanDepth_Sampler_1, _WD_Pos_Scale_1.xy, _WD_Params_1.y, _WD_Params_1.w, _WD_Params_1.x, wxz, wt_1, worldPos, n, invDeterminant_lodAlpha_worldXZUndisplaced_x, shorelineFoam_screenPos_x);
 
 				// lift alpha above water surface slightly
 				worldPos.y += 0.02;

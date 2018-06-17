@@ -1,4 +1,4 @@
-﻿Shader "Ocean/Alpha On Surface (Render Above)"
+﻿Shader "Ocean/Ocean Surface Alpha"
 {
 	Properties
 	{
@@ -22,7 +22,6 @@
 			CGPROGRAM
 			#pragma vertex vert
 			#pragma fragment frag
-			// make fog work
 			#pragma multi_compile_fog
 			
 			#include "UnityCG.cginc"
@@ -60,15 +59,14 @@
 
 				// sample shape textures - always lerp between 2 scales, so sample two textures
 				half3 n = half3(0., 1., 0.);
-				half invDeterminant_lodAlpha_worldXZUndisplaced_x = 0.;
-				half shorelineFoam_screenPos_x = 0.;
+				half det = 0., signedOceanDepth = 0.;
 				// sample weights. params.z allows shape to be faded out (used on last lod to support pop-less scale transitions)
 				float wt_0 = (1. - lodAlpha) * _WD_Params_0.z;
 				float wt_1 = (1. - wt_0) * _WD_Params_1.z;
 				// sample displacement textures, add results to current world pos / normal / foam
 				const float2 wxz = worldPos.xz;
-				SampleDisplacements(_WD_Sampler_0, _WD_OceanDepth_Sampler_0, _WD_Pos_Scale_0.xy, _WD_Params_0.y, _WD_Params_0.w, _WD_Params_0.x, wxz, wt_0, worldPos, n, invDeterminant_lodAlpha_worldXZUndisplaced_x, shorelineFoam_screenPos_x);
-				SampleDisplacements(_WD_Sampler_1, _WD_OceanDepth_Sampler_1, _WD_Pos_Scale_1.xy, _WD_Params_1.y, _WD_Params_1.w, _WD_Params_1.x, wxz, wt_1, worldPos, n, invDeterminant_lodAlpha_worldXZUndisplaced_x, shorelineFoam_screenPos_x);
+				SampleDisplacements(_WD_Sampler_0, _WD_OceanDepth_Sampler_0, _WD_Pos_Scale_0.xy, _WD_Params_0.y, _WD_Params_0.w, _WD_Params_0.x, wxz, wt_0, worldPos, n, det, signedOceanDepth);
+				SampleDisplacements(_WD_Sampler_1, _WD_OceanDepth_Sampler_1, _WD_Pos_Scale_1.xy, _WD_Params_1.y, _WD_Params_1.w, _WD_Params_1.x, wxz, wt_1, worldPos, n, det, signedOceanDepth);
 
 				// view-projection	
 				o.vertex = mul(UNITY_MATRIX_VP, float4(worldPos, 1.));

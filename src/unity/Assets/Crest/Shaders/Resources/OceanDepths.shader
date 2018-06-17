@@ -24,10 +24,9 @@ Shader "Ocean/Ocean Depth"
 				#pragma fragment frag
 				#pragma multi_compile_fog
 				#include "UnityCG.cginc"
-
+				#include "../OceanLODData.cginc"
+		
 				uniform float _SeaLevel;
-
-				#define DEPTH_BIAS 100.
 
 				struct appdata_t {
 					float4 vertex : POSITION;

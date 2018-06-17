@@ -48,10 +48,10 @@ Shader "Ocean/Shape/Combine"
 			half4 frag (v2f i) : SV_Target
 			{
 				// go from uv out to world for the current shape texture
-				float2 worldPos = WD_uvToWorld(i.uv, _WD_Pos_0, _WD_Params_0.y, _WD_Params_0.x);
+				float2 worldPos = WD_uvToWorld(i.uv, _WD_Pos_Scale_0.xy, _WD_Params_0.y, _WD_Params_0.x);
 
 				// sample the shape 1 texture at this world pos
-				float2 uv_1 = WD_worldToUV(worldPos, _WD_Pos_1, _WD_Params_1.y, _WD_Params_1.x);
+				float2 uv_1 = WD_worldToUV(worldPos, _WD_Pos_Scale_1.xy, _WD_Params_1.y, _WD_Params_1.x);
 
 				// return the shape data to be additiviely blended down the lod chain
 				return tex2D(_MainTex, uv_1);

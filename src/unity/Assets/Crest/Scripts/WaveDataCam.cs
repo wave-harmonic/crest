@@ -444,7 +444,7 @@ namespace Crest
             properties.SetVector("_WD_Params_" + shapeSlot.ToString(), 
                 new Vector4(_renderData._texelWidth, _renderData._textureRes, shapeWeight, 1f / _renderData._textureRes));
 
-            properties.SetVector("_WD_Pos_" + shapeSlot.ToString(), new Vector2(_renderData._posSnapped.x, _renderData._posSnapped.z));
+            properties.SetVector("_WD_Pos_Scale_" + shapeSlot.ToString(), new Vector3(_renderData._posSnapped.x, _renderData._posSnapped.z, transform.lossyScale.x));
             properties.SetFloat("_WD_LodIdx_" + shapeSlot.ToString(), _lodIndex);
         }
 

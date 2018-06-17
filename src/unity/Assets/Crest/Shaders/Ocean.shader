@@ -202,7 +202,6 @@ Shader "Ocean/Ocean"
 					if( abs( offset.y ) < minRadius ) o.worldPos.z += offset.y * lodAlpha * SQUARE_SIZE_4;
 					o.invDeterminant_lodAlpha_worldXZUndisplaced.zw = o.worldPos.xz;
 
-
 					// sample shape textures - always lerp between 2 scales, so sample two textures
 					o.n = half3(0., 1., 0.);
 					o.invDeterminant_lodAlpha_worldXZUndisplaced.x = 0.;
@@ -223,7 +222,6 @@ Shader "Ocean/Ocean"
 					half3 tintCols[TINT_COUNT]; tintCols[0] = half3(1., 0., 0.); tintCols[1] = half3(1., 1., 0.); tintCols[2] = half3(1., 0., 1.); tintCols[3] = half3(0., 1., 1.); tintCols[4] = half3(0., 0., 1.); tintCols[5] = half3(1., 0., 1.); tintCols[6] = half3(.5, .5, 1.);
 					o.debugtint = wt_0 * tintCols[_WD_LodIdx_0 % TINT_COUNT] + wt_1 * tintCols[_WD_LodIdx_1 % TINT_COUNT];
 					#endif
-
 
 					// view-projection	
 					o.vertex = mul(UNITY_MATRIX_VP, float4(o.worldPos, 1.));
@@ -323,14 +321,14 @@ Shader "Ocean/Ocean"
 					foamAmount *= saturate((i_sceneZ - i_pixelZ) / _ShorelineFoamMinDepth);
 
 					// Additive underwater foam
-					float2 foamUVBubbles = (lerp(i_worldXZUndisplaced, i_worldXZ, 0.5) + 0.5 * _MyTime * _WindDirXZ) / _FoamScale;
+					float2 foamUVBubbles = (lerp(i_worldXZUndisplaced, i_worldXZ, 0.05) + 0.5 * _MyTime * _WindDirXZ) / _FoamScale;
 					foamUVBubbles += 0.25 * i_n.xz;
 					half bubbleFoamTexValue = texture(_FoamTexture, .37 * foamUVBubbles - .1*i_view.xz / i_view.y).r;
 					half bubbleFoam = bubbleFoamTexValue * saturate(_WaveFoamBubblesCoverage - i_determinant);
 					o_bubbleCol = bubbleFoam * _FoamBubbleColor.rgb * (AmbientLight() + _LightColor0);
 
 					// White foam on top, with black-point fading
-					float2 foamUV = (i_worldXZUndisplaced + 0.5 * _MyTime * _WindDirXZ) / _FoamScale + 0.02 * i_n.xz;
+					float2 foamUV = (i_worldXZUndisplaced + 0.05 * _MyTime * _WindDirXZ) / _FoamScale + 0.02 * i_n.xz;
 					half foamTexValue = texture(_FoamTexture, foamUV).r;
 					half whiteFoam = foamTexValue * (smoothstep(foamAmount + _WaveFoamFeather, foamAmount, 1. - foamTexValue)) * _FoamWhiteColor.a;
 

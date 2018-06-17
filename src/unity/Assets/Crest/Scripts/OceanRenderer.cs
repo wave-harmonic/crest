@@ -111,6 +111,9 @@ namespace Crest
 
             LateUpdatePosition();
             LateUpdateScale();
+
+            float maxWavelength = Builder._shapeWDCs[Builder._shapeWDCs.Length - 1].MaxWavelength();
+            Shader.SetGlobalFloat("_MaxWavelength", _acceptLargeWavelengthsInLastLOD ? maxWavelength : 1e10f);
         }
 
         void LateUpdatePosition()
@@ -147,8 +150,6 @@ namespace Crest
             float newScale = Mathf.Pow(2f, l2f);
             transform.localScale = new Vector3(newScale, 1f, newScale);
 
-            float maxWavelength = Builder._shapeWDCs[Builder._shapeWDCs.Length - 1].MaxWavelength();
-            Shader.SetGlobalFloat("_MaxWavelength", _acceptLargeWavelengthsInLastLOD ? maxWavelength : 1e10f);
             Shader.SetGlobalFloat("_ViewerAltitudeLevelAlpha", _viewerAltitudeLevelAlpha);
         }
 

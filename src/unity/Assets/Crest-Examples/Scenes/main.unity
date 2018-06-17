@@ -215,7 +215,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 59a818eaf96544c4994335870fdfe141, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  linSpeed: 50
+  linSpeed: 10
   rotSpeed: 70
   simForwardInput: 0
 --- !u!114 &227134472

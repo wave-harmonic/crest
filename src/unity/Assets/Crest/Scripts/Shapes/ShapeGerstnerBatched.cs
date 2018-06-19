@@ -9,13 +9,17 @@ namespace Crest
     /// Support script for Gerstner wave ocean shapes.
     /// Generates a number of batches of Gerstner waves.
     /// </summary>
-    [RequireComponent(typeof(WaveSpectrum))]
     public class ShapeGerstnerBatched : MonoBehaviour, ICollProvider
     {
         [Tooltip("Geometry to rasterize into wave buffers to generate waves.")]
         public Mesh _rasterMesh;
         [Tooltip("Shader to be used to render out a single Gerstner octave.")]
         public Shader _waveShader;
+        [Tooltip("The spectrum that defines the ocean surface shape.")]
+        public OceanWaveSpectrum _spectrum;
+
+        [Delayed]
+        public int _componentsPerOctave = 5;
 
         public int _randomSeed = 0;
 
@@ -26,7 +30,6 @@ namespace Crest
         float[] _phases;
 
         // useful references
-        WaveSpectrum _spectrum;
         Material[] _materials;
         Material _materialBigWaveTransition;
         CommandBuffer[] _renderWaveShapeCmdBufs;
@@ -44,7 +47,7 @@ namespace Crest
 
         void Start()
         {
-            _spectrum = GetComponent<WaveSpectrum>();
+            _spectrum = _spectrum ?? ScriptableObject.CreateInstance<OceanWaveSpectrum>();
         }
 
         void Update()
@@ -53,7 +56,7 @@ namespace Crest
             Random.State randomStateBkp = Random.state;
             Random.InitState(_randomSeed);
 
-            _spectrum.GenerateWaveData(ref _wavelengths, ref _angleDegs, ref _phases);
+            _spectrum.GenerateWaveData(_componentsPerOctave, ref _wavelengths, ref _angleDegs, ref _phases);
 
             Random.state = randomStateBkp;
 
@@ -83,7 +86,7 @@ namespace Crest
 
             for (int i = 0; i < _wavelengths.Length; i++)
             {
-                _amplitudes[i] = _spectrum.GetAmplitude(_wavelengths[i]);
+                _amplitudes[i] = _spectrum.GetAmplitude(_wavelengths[i], _componentsPerOctave);
             }
         }
 

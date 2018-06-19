@@ -1,10 +1,12 @@
-// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
-
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace Crest
 {
-    public class WaveSpectrum : MonoBehaviour
+    /// <summary>
+    /// Ocean shape representation - power values for each octave of wave components.
+    /// </summary>
+    [CreateAssetMenu(fileName = "OceanWaves", menuName = "Crest/Ocean Wave Spectrum", order = 10000)]
+    public class OceanWaveSpectrum : ScriptableObject
     {
         private const int NUM_OCTAVES = 12;
         public static readonly float SMALLEST_WL_POW_2 = -2f;
@@ -15,45 +17,30 @@ namespace Crest
         [Range(0f, 1f)]
         public float _weight = 1f;
 
-        [Delayed]
-        public int _componentsPerOctave = 5;
-
         [Tooltip("Variance of flow direction, in degrees"), Range(0f, 180f)]
         public float _waveDirectionVariance = 90f;
 
-        [HideInInspector]
-        public float[] _powerLog = new float[NUM_OCTAVES];
-        [HideInInspector]
+        [SerializeField, HideInInspector]
+        float[] _powerLog = new float[NUM_OCTAVES]
+            { -6f, -4.0088496f, -3.4452133f, -2.6996124f, -2.615044f, -1.2080691f, -0.53905386f, 0.27448857f, 0.53627354f, 1.0282621f, 1.4403292f, -6f };
+
+        [SerializeField, HideInInspector]
         public bool[] _powerDisabled = new bool[NUM_OCTAVES];
 
+        // should this just be an argument to the spectrum calculation, and a temporary UI var?
         [HideInInspector]
         public float _windSpeed = 10f;
 
+        // should this just be an argument to the spectrum calculation, and a temporary UI var?
         [HideInInspector]
         public float _fetch = 1000000f;
 
         [Tooltip("Scales horizontal displacement"), Range(0f, 2f)]
         public float _chop = 1f;
 
-        private void Start()
-        {
-            Debug.LogWarning("WaveSpectrum is deprecated and is not used anymore, removing this component.", gameObject);
-            Destroy(this);
-        }
-
-        private void Reset()
-        {
-            _powerLog = new float[NUM_OCTAVES];
-
-            for (int i = 0; i < _powerLog.Length; i++)
-            {
-                _powerLog[i] = MIN_POWER_LOG;
-            }
-        }
-
         public static float SmallWavelength(float octaveIndex) { return Mathf.Pow(2f, SMALLEST_WL_POW_2 + octaveIndex); }
 
-        public float GetAmplitude(float wavelength)
+        public float GetAmplitude(float wavelength, float componentsPerOctave)
         {
             if (wavelength <= 0.001f)
             {
@@ -86,7 +73,7 @@ namespace Crest
             float k_hi = 2f * Mathf.PI / wl_hi;
             float omega_hi = k_hi * ComputeWaveSpeed(wl_hi);
 
-            float domega = (omega_lo - omega_hi) / _componentsPerOctave;
+            float domega = (omega_lo - omega_hi) / componentsPerOctave;
 
             float a_2 = 2f * Mathf.Pow(10f, _powerLog[index]) * domega;
             var a = Mathf.Sqrt(a_2);
@@ -108,9 +95,9 @@ namespace Crest
         /// <summary>
         /// Samples spectrum to generate wave data. Wavelengths will be in ascending order.
         /// </summary>
-        public void GenerateWaveData(ref float[] wavelengths, ref float[] anglesDeg, ref float[] phases)
+        public void GenerateWaveData(int componentsPerOctave, ref float[] wavelengths, ref float[] anglesDeg, ref float[] phases)
         {
-            int totalComponents = NUM_OCTAVES * _componentsPerOctave;
+            int totalComponents = NUM_OCTAVES * componentsPerOctave;
 
             if (wavelengths == null || wavelengths.Length != totalComponents) wavelengths = new float[totalComponents];
             if (anglesDeg == null || anglesDeg.Length != totalComponents) anglesDeg = new float[totalComponents];
@@ -120,15 +107,15 @@ namespace Crest
 
             for (int octave = 0; octave < NUM_OCTAVES; octave++)
             {
-                for (int i = 0; i < _componentsPerOctave; i++)
+                for (int i = 0; i < componentsPerOctave; i++)
                 {
-                    int index = octave * _componentsPerOctave + i;
+                    int index = octave * componentsPerOctave + i;
                     wavelengths[index] = minWavelength * (1f + Random.value);
                     anglesDeg[index] = Random.Range(-_waveDirectionVariance, _waveDirectionVariance);
                     phases[index] = 2f * Mathf.PI * Random.value;
                 }
 
-                System.Array.Sort(wavelengths, octave * _componentsPerOctave, _componentsPerOctave);
+                System.Array.Sort(wavelengths, octave * componentsPerOctave, componentsPerOctave);
 
                 minWavelength *= 2f;
             }

@@ -5,16 +5,14 @@ using UnityEngine;
 
 namespace Crest
 {
-    [CustomEditor( typeof(WaveSpectrum) )]
-    public class WaveSpectrumEditor : Editor
+    [CustomEditor( typeof(OceanWaveSpectrum) )]
+    public class OceanWaveSpectrumEditor : Editor
     {
         private static GUIStyle ToggleButtonStyleNormal = null;
         private static GUIStyle ToggleButtonStyleToggled = null;
 
         public override void OnInspectorGUI()
         {
-            EditorGUILayout.HelpBox("This component is deprecated and will remove itself at runtime, use OceanWaveSpectrum assets instead.", MessageType.Warning);
-
             base.OnInspectorGUI();
 
             // preamble - styles for toggle buttons. this code and the below was based off the useful info provided by user Lasse here:
@@ -46,7 +44,7 @@ namespace Crest
             EditorGUILayout.LabelField("Spectrum", EditorStyles.boldLabel);
             EditorGUILayout.EndHorizontal();
 
-            var spec = target as WaveSpectrum;
+            var spec = target as OceanWaveSpectrum;
 
             var spPower = serializedObject.FindProperty("_powerLog");
             
@@ -57,10 +55,10 @@ namespace Crest
                 var spDisabled_i = spDisabled.GetArrayElementAtIndex(i);
                 spDisabled_i.boolValue = !EditorGUILayout.Toggle(!spDisabled_i.boolValue, GUILayout.Width(15f));
 
-                float smallWL = WaveSpectrum.SmallWavelength(i);
+                float smallWL = OceanWaveSpectrum.SmallWavelength(i);
                 EditorGUILayout.LabelField(string.Format("{0}", smallWL), GUILayout.Width(30f));
                 var spPower_i = spPower.GetArrayElementAtIndex(i);
-                spPower_i.floatValue = GUILayout.HorizontalSlider(spPower_i.floatValue, WaveSpectrum.MIN_POWER_LOG, WaveSpectrum.MAX_POWER_LOG);
+                spPower_i.floatValue = GUILayout.HorizontalSlider(spPower_i.floatValue, OceanWaveSpectrum.MIN_POWER_LOG, OceanWaveSpectrum.MAX_POWER_LOG);
 
                 EditorGUILayout.EndHorizontal();
             }

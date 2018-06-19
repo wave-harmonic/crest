@@ -55,7 +55,7 @@ namespace Crest
                 var spDisabled_i = spDisabled.GetArrayElementAtIndex(i);
                 spDisabled_i.boolValue = !EditorGUILayout.Toggle(!spDisabled_i.boolValue, GUILayout.Width(15f));
 
-                float smallWL = spec.SmallWavelength(i);
+                float smallWL = WaveSpectrum.SmallWavelength(i);
                 EditorGUILayout.LabelField(string.Format("{0}", smallWL), GUILayout.Width(30f));
                 var spPower_i = spPower.GetArrayElementAtIndex(i);
                 spPower_i.floatValue = GUILayout.HorizontalSlider(spPower_i.floatValue, WaveSpectrum.MIN_POWER_LOG, WaveSpectrum.MAX_POWER_LOG);

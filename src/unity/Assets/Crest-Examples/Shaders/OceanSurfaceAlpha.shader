@@ -55,7 +55,7 @@
 				float3 worldPos = mul(unity_ObjectToWorld, v.vertex);
 
 				// vertex snapping and lod transition
-				float lodAlpha = ComputeLodAlpha_FromLODs(worldPos, _InstanceData.x);
+				float lodAlpha = ComputeLodAlpha(worldPos, _InstanceData.x);
 
 				// sample shape textures - always lerp between 2 scales, so sample two textures
 				half3 n = half3(0., 1., 0.);

@@ -65,7 +65,7 @@ namespace Crest
             float pow = 1.4f; // fudge 2
             float normalScrollSpeed0 = Mathf.Pow( Mathf.Log( 1f + 2f * squareSize ) * mul, pow );
             float normalScrollSpeed1 = Mathf.Pow( Mathf.Log( 1f + 4f * squareSize ) * mul, pow );
-            _mpb.SetVector( "_GeomData", new Vector4( squareSize, normalScrollSpeed0, normalScrollSpeed1, _baseVertDensity ) );
+            _mpb.SetVector( "_GeomData", new Vector3( squareSize, normalScrollSpeed0, normalScrollSpeed1 ) );
 
             // assign shape textures to shader
             // this relies on the render textures being init'd in CreateAssignRenderTexture::Awake().

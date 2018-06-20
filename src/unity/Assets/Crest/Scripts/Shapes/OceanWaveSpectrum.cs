@@ -69,7 +69,7 @@ namespace Crest
             return a;
         }
 
-        float ComputeWaveSpeed(float wavelength/*, float depth*/)
+        float ComputeWaveSpeed(float wavelength)
         {
             // wave speed of deep sea ocean waves: https://en.wikipedia.org/wiki/Wind_wave
             // https://en.wikipedia.org/wiki/Dispersion_(water_waves)#Wave_propagation_and_dispersion
@@ -110,16 +110,8 @@ namespace Crest
             }
         }
 
-        [System.NonSerialized] public bool _applyPhillipsSpectrum = false;
-        [System.NonSerialized] public bool _applyPiersonMoskowitzSpectrum = false;
-        [System.NonSerialized] public bool _applyJONSWAPSpectrum = false;
-
         public void ApplyPhillipsSpectrum(float windSpeed)
         {
-#if UNITY_EDITOR
-            UnityEditor.Undo.RecordObject(this, "Apply Phillips Spectrum");
-#endif
-
             for (int octave = 0; octave < NUM_OCTAVES; octave++)
             {
                 float wl = SmallWavelength(octave) * 1.5f;
@@ -132,10 +124,6 @@ namespace Crest
 
         public void ApplyPiersonMoskowitzSpectrum(float windSpeed)
         {
-#if UNITY_EDITOR
-            UnityEditor.Undo.RecordObject(this, "Apply Pierson-Moskowitz Spectrum");
-#endif
-
             for (int octave = 0; octave < NUM_OCTAVES; octave++)
             {
                 float wl = SmallWavelength(octave) * 1.5f;
@@ -148,10 +136,6 @@ namespace Crest
 
         public void ApplyJONSWAPSpectrum(float windSpeed, float fetch)
         {
-#if UNITY_EDITOR
-            UnityEditor.Undo.RecordObject(this, "Apply JONSWAP Spectrum");
-#endif
-
             for (int octave = 0; octave < NUM_OCTAVES; octave++)
             {
                 float wl = SmallWavelength(octave) * 1.5f;

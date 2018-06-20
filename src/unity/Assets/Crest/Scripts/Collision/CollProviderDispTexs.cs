@@ -17,14 +17,14 @@ namespace Crest
         {
             int lod = WaveDataCam.SuggestCollisionLOD(new Rect(worldPos.x, worldPos.z, 0f, 0f), 0f);
             if (lod == -1) return false;
-            return OceanRenderer.Instance.Builder._shapeWDCs[lod].SampleDisplacement(ref worldPos, ref displacement);
+            return OceanRenderer.Instance.Builder._shapeWDCs[lod].CollData.SampleDisplacement(ref worldPos, ref displacement);
         }
 
         public bool SampleHeight(ref Vector3 worldPos, ref float height)
         {
             int lod = WaveDataCam.SuggestCollisionLOD(new Rect(worldPos.x, worldPos.z, 0f, 0f), 0f);
             if (lod == -1) return false;
-            height = OceanRenderer.Instance.Builder._shapeWDCs[lod].GetHeight(ref worldPos);
+            height = OceanRenderer.Instance.Builder._shapeWDCs[lod].CollData.GetHeight(ref worldPos);
             return true;
         }
 
@@ -38,11 +38,11 @@ namespace Crest
         }
         public bool SampleDisplacementInArea(ref Vector3 worldPos, ref Vector3 displacement)
         {
-            return OceanRenderer.Instance.Builder._shapeWDCs[_areaLod].SampleDisplacement(ref worldPos, ref displacement);
+            return OceanRenderer.Instance.Builder._shapeWDCs[_areaLod].CollData.SampleDisplacement(ref worldPos, ref displacement);
         }
         public bool SampleHeightInArea(ref Vector3 worldPos, ref float height)
         {
-            height = OceanRenderer.Instance.Builder._shapeWDCs[_areaLod].GetHeight(ref worldPos);
+            height = OceanRenderer.Instance.Builder._shapeWDCs[_areaLod].CollData.GetHeight(ref worldPos);
             return true;
         }
     }

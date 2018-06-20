@@ -221,10 +221,8 @@ namespace Crest
             cam.depth = -10 - lodIdx;
             _shapeCameras[lodIdx] = cam;
 
-            var wdc = go.AddComponent<WaveDataCam>();
-            wdc._lodIndex = lodIdx;
-            wdc._lodCount = lodCount;
-            _shapeWDCs[lodIdx] = wdc;
+            _shapeWDCs[lodIdx] = go.AddComponent<WaveDataCam>();
+            _shapeWDCs[lodIdx].InitLODData(lodIdx, lodCount);
 
             var cart = go.AddComponent<CreateAssignRenderTexture>();
             cart._targetName = string.Format( "shapeRT{0}", lodIdx );

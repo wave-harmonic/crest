@@ -48,13 +48,23 @@ public class OceanDebugGUI : MonoBehaviour
             _showSimTargets = GUI.Toggle(new Rect(x, y, w, h), _showSimTargets, "Show shape data"); y += h;
             WaveDataCam._shapeCombinePass = GUI.Toggle(new Rect(x, y, w, h), WaveDataCam._shapeCombinePass, "Shape combine pass"); y += h;
 
-            WaveDataCam._readbackCollData = GUI.Toggle(new Rect(x, y, w, h), WaveDataCam._readbackCollData, "Readback coll data"); y += h;
             int min = int.MaxValue, max = -1;
+            bool readbackShape = true;
             foreach( var wdc in OceanRenderer.Instance.Builder._shapeWDCs)
             {
-                min = Mathf.Min(min, wdc.CollReadbackRequestsQueued);
-                max = Mathf.Max(max, wdc.CollReadbackRequestsQueued);
+                min = Mathf.Min(min, wdc.CollData.CollReadbackRequestsQueued);
+                max = Mathf.Max(max, wdc.CollData.CollReadbackRequestsQueued);
+                readbackShape = readbackShape && wdc._readbackShapeForCollision;
             }
+            if (readbackShape != GUI.Toggle(new Rect(x, y, w, h), readbackShape, "Readback coll data"))
+            {
+                foreach (var wdc in OceanRenderer.Instance.Builder._shapeWDCs)
+                {
+                    wdc._readbackShapeForCollision = !readbackShape;
+                }
+            }
+            y += h;
+
             GUI.Label(new Rect(x, y, w, h), string.Format("Coll Queue Lengths: [{0}, {1}]", min, max)); y += h;
 
             if( OceanRenderer.Instance.CachedCpuOceanQueries)

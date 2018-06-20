@@ -14,9 +14,6 @@ namespace Crest
         public static readonly float MIN_POWER_LOG = -6f;
         public static readonly float MAX_POWER_LOG = 3f;
 
-        [Range(0f, 1f)]
-        public float _weight = 1f;
-
         [Tooltip("Variance of flow direction, in degrees"), Range(0f, 180f)]
         public float _waveDirectionVariance = 90f;
 
@@ -25,15 +22,7 @@ namespace Crest
             { -6f, -4.0088496f, -3.4452133f, -2.6996124f, -2.615044f, -1.2080691f, -0.53905386f, 0.27448857f, 0.53627354f, 1.0282621f, 1.4403292f, -6f };
 
         [SerializeField, HideInInspector]
-        public bool[] _powerDisabled = new bool[NUM_OCTAVES];
-
-        // should this just be an argument to the spectrum calculation, and a temporary UI var?
-        [HideInInspector]
-        public float _windSpeed = 10f;
-
-        // should this just be an argument to the spectrum calculation, and a temporary UI var?
-        [HideInInspector]
-        public float _fetch = 1000000f;
+        bool[] _powerDisabled = new bool[NUM_OCTAVES];
 
         [Tooltip("Scales horizontal displacement"), Range(0f, 2f)]
         public float _chop = 1f;
@@ -77,7 +66,7 @@ namespace Crest
 
             float a_2 = 2f * Mathf.Pow(10f, _powerLog[index]) * domega;
             var a = Mathf.Sqrt(a_2);
-            return a * _weight;
+            return a;
         }
 
         float ComputeWaveSpeed(float wavelength/*, float depth*/)
@@ -157,7 +146,7 @@ namespace Crest
             }
         }
 
-        public void ApplyJONSWAPSpectrum(float windSpeed)
+        public void ApplyJONSWAPSpectrum(float windSpeed, float fetch)
         {
 #if UNITY_EDITOR
             UnityEditor.Undo.RecordObject(this, "Apply JONSWAP Spectrum");
@@ -166,7 +155,7 @@ namespace Crest
             for (int octave = 0; octave < NUM_OCTAVES; octave++)
             {
                 float wl = SmallWavelength(octave) * 1.5f;
-                var pow = JONSWAPSpectrum(Mathf.Abs(Physics.gravity.y), windSpeed, wl, _fetch);
+                var pow = JONSWAPSpectrum(Mathf.Abs(Physics.gravity.y), windSpeed, wl, fetch);
                 // we store power on logarithmic scale. this does not include 0, we represent 0 as min value
                 pow = Mathf.Max(pow, Mathf.Pow(10f, MIN_POWER_LOG));
                 _powerLog[octave] = Mathf.Log10(pow);

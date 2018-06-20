@@ -11,6 +11,9 @@ namespace Crest
         private static GUIStyle ToggleButtonStyleNormal = null;
         private static GUIStyle ToggleButtonStyleToggled = null;
 
+        static float _windSpeed = 10f;
+        static float _fetch = 500000f;
+
         public override void OnInspectorGUI()
         {
             base.OnInspectorGUI();
@@ -68,11 +71,10 @@ namespace Crest
             EditorGUILayout.LabelField("Empirical Spectra", EditorStyles.boldLabel);
 
             EditorGUILayout.BeginHorizontal();
-            var spWindSpeed = serializedObject.FindProperty("_windSpeed");
-            float spd_kmh = spWindSpeed.floatValue * 3.6f;
+            float spd_kmh = _windSpeed * 3.6f;
             EditorGUILayout.LabelField("Wind speed (km/h)", GUILayout.Width(120f));
             spd_kmh = EditorGUILayout.Slider(spd_kmh, 0f, 60f);
-            spWindSpeed.floatValue = spd_kmh / 3.6f;
+            _windSpeed = spd_kmh / 3.6f;
             EditorGUILayout.EndHorizontal();
 
 
@@ -85,7 +87,7 @@ namespace Crest
             if (spec._applyPhillipsSpectrum)
             {
                 spec._applyJONSWAPSpectrum = spec._applyPiersonMoskowitzSpectrum = false;
-                spec.ApplyPhillipsSpectrum(spWindSpeed.floatValue);
+                spec.ApplyPhillipsSpectrum(_windSpeed);
             }
 
             if (GUILayout.Button(new GUIContent("Pierson-Moskowitz", "Fully developed sea with infinite fetch"), spec._applyPiersonMoskowitzSpectrum ? ToggleButtonStyleToggled : ToggleButtonStyleNormal))
@@ -95,13 +97,10 @@ namespace Crest
             if (spec._applyPiersonMoskowitzSpectrum)
             {
                 spec._applyPhillipsSpectrum = spec._applyJONSWAPSpectrum = false;
-                spec.ApplyPiersonMoskowitzSpectrum(spWindSpeed.floatValue);
+                spec.ApplyPiersonMoskowitzSpectrum(_windSpeed);
             }
 
-            EditorGUILayout.BeginHorizontal();
-            var spFetch = serializedObject.FindProperty("_fetch");
-            spFetch.floatValue = EditorGUILayout.Slider("Fetch", spFetch.floatValue, 0f, 1000000f);
-            EditorGUILayout.EndHorizontal();
+            _fetch = EditorGUILayout.Slider("Fetch", _fetch, 0f, 1000000f);
 
 
             if (GUILayout.Button(new GUIContent("JONSWAP", "Fetch limited sea where waves continue to grow"), spec._applyJONSWAPSpectrum ? ToggleButtonStyleToggled : ToggleButtonStyleNormal))
@@ -111,7 +110,7 @@ namespace Crest
             if (spec._applyJONSWAPSpectrum)
             {
                 spec._applyPhillipsSpectrum = spec._applyPiersonMoskowitzSpectrum = false;
-                spec.ApplyJONSWAPSpectrum(spWindSpeed.floatValue);
+                spec.ApplyJONSWAPSpectrum(_windSpeed, _fetch);
             }
 
 

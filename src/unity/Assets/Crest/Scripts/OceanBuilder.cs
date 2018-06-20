@@ -12,8 +12,8 @@ namespace Crest
     /// </summary>
     public class OceanBuilder : MonoBehaviour
     {
-        [Tooltip("Material to use for the ocean surface")]
-        public Material _oceanMaterial;
+        [SerializeField, Tooltip("Material to use for the ocean surface")]
+        Material _oceanMaterial;
 
         const string SHAPE_RENDER_LAYER_NAME = "WaveData";
 
@@ -239,7 +239,7 @@ namespace Crest
             cart.CreateRTAndAssign();
         }
 
-        Mesh BuildOceanPatch(PatchType pt, float baseVertDensity)
+        static Mesh BuildOceanPatch(PatchType pt, float baseVertDensity)
         {
             ArrayList verts = new ArrayList();
             ArrayList indices = new ArrayList();

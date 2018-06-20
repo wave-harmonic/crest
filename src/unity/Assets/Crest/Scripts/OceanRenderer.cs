@@ -14,21 +14,20 @@ namespace Crest
 
         [Tooltip("Wind direction (angle from x axis in degrees)"), Range(-180, 180)]
         public float _windDirectionAngle = 0f;
-        [Tooltip("Wind speed in m/s"), Range(0, 20), HideInInspector]
-        public float _windSpeed = 5f;
         public Vector2 WindDir { get { return new Vector2(Mathf.Cos(Mathf.PI * _windDirectionAngle / 180f), Mathf.Sin(Mathf.PI * _windDirectionAngle / 180f)); } }
 
-        [Tooltip("Cache CPU requests for ocean height. Requires restart.")]
-        public bool _cachedCpuOceanQueries = false;
+        [SerializeField, Tooltip("Cache CPU requests for ocean height. Requires restart.")]
+        bool _cachedCpuOceanQueries = false;
+        public bool CachedCpuOceanQueries { get { return _cachedCpuOceanQueries; } }
 
-        [Range( 0, 15 )]
-        [Tooltip( "Min number of verts / shape texels per wave" )]
+        [Range(0, 15)]
+        [Tooltip("Min number of verts / shape texels per wave.")]
         public float _minTexelsPerWave = 5f;
 
-        [Delayed, Tooltip( "The smallest scale the ocean can be" )]
+        [Delayed, Tooltip("The smallest scale the ocean can be.")]
         public float _minScale = 16f;
 
-        [Delayed, Tooltip( "The largest scale the ocean can be (-1 for unlimited)" )]
+        [Delayed, Tooltip("The largest scale the ocean can be (-1 for unlimited).")]
         public float _maxScale = 128f;
 
         [Header( "Geometry Params" )]
@@ -51,20 +50,15 @@ namespace Crest
         float _deltaTime = 0f;
 
         float _viewerAltitudeLevelAlpha = 0f;
+        /// <summary>
+        /// The ocean changes scale when viewer changes altitude, this gives the interpolation param between scales.
+        /// </summary>
         public float ViewerAltitudeLevelAlpha { get { return _viewerAltitudeLevelAlpha; } }
 
+        /// <summary>
+        /// Sea level is given by y coordinate of GameObject with OceanRenderer script.
+        /// </summary>
         public float SeaLevel { get { return transform.position.y; } }
-
-        public static bool _acceptLargeWavelengthsInLastLOD = true;
-
-        static OceanRenderer _instance;
-        public static OceanRenderer Instance { get { return _instance ?? (_instance = FindObjectOfType<OceanRenderer>()); } }
-
-        OceanBuilder _oceanBuilder;
-        public OceanBuilder Builder { get { return _oceanBuilder; } }
-
-        ICollProvider _collProvider;
-        public ICollProvider CollisionProvider { get { return _collProvider; } }
 
         void Start()
         {
@@ -113,7 +107,7 @@ namespace Crest
             LateUpdateScale();
 
             float maxWavelength = Builder._shapeWDCs[Builder._shapeWDCs.Length - 1].MaxWavelength();
-            Shader.SetGlobalFloat("_MaxWavelength", _acceptLargeWavelengthsInLastLOD ? maxWavelength : 1e10f);
+            Shader.SetGlobalFloat("_MaxWavelength", maxWavelength);
         }
 
         void LateUpdatePosition()
@@ -158,10 +152,15 @@ namespace Crest
             _instance = null;
         }
 
-        public void RegenMesh()
+        [ContextMenu("Regenerate mesh")]
+        void RegenMesh()
         {
             _oceanBuilder.GenerateMesh(_baseVertDensity, _lodCount);
         }
+#if UNITY_EDITOR
+        [ContextMenu("Regenerate mesh", true)]
+        bool RegenPossible() { return UnityEditor.EditorApplication.isPlaying; }
+#endif
 
         public bool ScaleCouldIncrease { get { return _maxScale == -1f || transform.localScale.x < _maxScale * 0.99f; } }
         public bool ScaleCouldDecrease { get { return _minScale == -1f || transform.localScale.x > _minScale * 1.01f; } }
@@ -199,5 +198,14 @@ namespace Crest
             Gizmos.DrawIcon( transform.position, "Ocean" );
         }
 #endif
+
+        static OceanRenderer _instance;
+        public static OceanRenderer Instance { get { return _instance ?? (_instance = FindObjectOfType<OceanRenderer>()); } }
+
+        OceanBuilder _oceanBuilder;
+        public OceanBuilder Builder { get { return _oceanBuilder; } }
+
+        ICollProvider _collProvider;
+        public ICollProvider CollisionProvider { get { return _collProvider; } }
     }
 }

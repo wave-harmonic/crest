@@ -9,12 +9,12 @@ namespace Crest
     /// </summary>
     public class OceanChunkRenderer : MonoBehaviour
     {
+        public bool _drawRenderBounds = false;
+
         Bounds _boundsLocal;
         Mesh _mesh;
         Renderer _rend;
         MaterialPropertyBlock _mpb;
-
-        public bool _drawRenderBounds = false;
 
         int _lodIndex = -1;
         int _totalLodCount = -1;
@@ -32,8 +32,8 @@ namespace Crest
 
         private void Update()
         {
-            // this needs to be called on Update because the bounds depend on transform scale which can change. also OnWillRenderObject depends on
-            // the bounds being correct
+            // This needs to be called on Update because the bounds depend on transform scale which can change. Also OnWillRenderObject depends on
+            // the bounds being correct. This could however be called on scale change events, but would add slightly more complexity.
             UpdateMeshBounds();
         }
 
@@ -104,7 +104,7 @@ namespace Crest
             _lodIndex = lodIndex; _totalLodCount = totalLodCount; _baseVertDensity = baseVertDensity;
         }
 
-        public void DebugDrawRendererBounds()
+        void DebugDrawRendererBounds()
         {
             // source: https://github.com/UnityCommunity/UnityLibrary
             // license: mit - https://github.com/UnityCommunity/UnityLibrary/blob/master/LICENSE.md

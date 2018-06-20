@@ -40,6 +40,9 @@ namespace Crest
         // Called when visible to a camera
         void OnWillRenderObject()
         {
+            // Depth texture is used by ocean shader for transparency/depth fog, and for fading out foam at shoreline.
+            Camera.current.depthTextureMode |= DepthTextureMode.Depth;
+
             // per instance data
 
             if (_mpb == null)

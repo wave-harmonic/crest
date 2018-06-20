@@ -4,33 +4,33 @@ using UnityEngine;
 
 namespace Crest
 {
+    /// <summary>
+    /// Flips between the two render textures each frame, and assigns one of them as the camera target texture.
+    /// </summary>
     public class PingPongRts : MonoBehaviour
     {
-        public RenderTexture _targetThisFrame;
-        public RenderTexture _sourceThisFrame;
+        RenderTexture _rtSource, _rtTarget;
 
-        RenderTexture _rtA, _rtB;
-
-        public void InitRTs( RenderTexture rtA, RenderTexture rtB )
+        public void InitRTs(RenderTexture rtA, RenderTexture rtB)
         {
-            _rtA = rtA;
-            _rtB = rtB;
+            _rtSource = rtA;
+            _rtTarget = rtB;
         }
 
         void Update()
         {
-            UpdatePingPong( out _sourceThisFrame );
+            Flip(ref _rtSource, ref _rtTarget);
 
-            Cam.targetTexture = _targetThisFrame;
+            Cam.targetTexture = _rtTarget;
         }
 
-        void UpdatePingPong( out RenderTexture sourceThisFrame )
+        void Flip(ref RenderTexture rtA, ref RenderTexture rtB)
         {
-            // switch RTs
-            sourceThisFrame = _targetThisFrame;
-            _targetThisFrame = _targetThisFrame == _rtA ? _rtB : _rtA;
+            var temp = rtA;
+            rtA = rtB;
+            rtB = temp;
         }
 
-        Camera _cam; Camera Cam { get { return _cam != null ? _cam : (_cam = GetComponent<Camera>()); } }
+        Camera _cam; Camera Cam { get { return _cam ?? (_cam = GetComponent<Camera>()); } }
     }
 }

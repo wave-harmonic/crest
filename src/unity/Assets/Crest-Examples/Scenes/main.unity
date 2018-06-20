@@ -125,7 +125,6 @@ GameObject:
   - component: {fileID: 227134469}
   - component: {fileID: 227134466}
   - component: {fileID: 227134471}
-  - component: {fileID: 227134472}
   - component: {fileID: 227134473}
   - component: {fileID: 227134467}
   m_Layer: 0
@@ -219,18 +218,6 @@ MonoBehaviour:
   linSpeed: 10
   rotSpeed: 70
   simForwardInput: 0
---- !u!114 &227134472
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 227134465}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 58cd7a4a94e5c044aa2d404a99b1b2a3, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _mode: 1
 --- !u!114 &227134473
 MonoBehaviour:
   m_ObjectHideFlags: 0

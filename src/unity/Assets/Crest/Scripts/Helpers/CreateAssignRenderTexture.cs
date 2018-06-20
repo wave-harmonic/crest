@@ -10,6 +10,9 @@ namespace Crest
     /// </summary>
     public class CreateAssignRenderTexture : MonoBehaviour
     {
+        /// <summary>
+        /// A name for the render texture that will appear in RenderDoc etc.
+        /// </summary>
         public string _targetName = string.Empty;
         public int _width = 32;
         public int _height = 32;
@@ -21,12 +24,16 @@ namespace Crest
         public int _anisoLevel = 0;
         public bool _useMipMap = false;
 
+        /// <summary>
+        /// Creates a pair of render textures with the same format, and adds a PingPongRts component to switch between them each frame.
+        /// </summary>
         public bool _createPingPongTargets = false;
 
         bool _createdAndAssigned = false;
 
         void Start()
         {
+            // Sometimes the RTs need to be created and assigned before Start() - check if it has already been done first.
             if (!_createdAndAssigned)
             {
 	            if (!_createPingPongTargets)

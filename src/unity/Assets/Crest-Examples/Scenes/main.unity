@@ -155,6 +155,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _showSimTargets: 1
   _guiVisible: 1
+  _oceanMaterialAsset: Assets/Crest/Shaders/Materials/Ocean.mat
 --- !u!20 &227134469
 Camera:
   m_ObjectHideFlags: 0
@@ -756,7 +757,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1866213578}
   - component: {fileID: 1866213581}
-  - component: {fileID: 1866213579}
   m_Layer: 8
   m_Name: OceanWavesBatched
   m_TagString: Untagged
@@ -777,37 +777,6 @@ Transform:
   m_Father: {fileID: 995304123}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1866213579
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 1866213577}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 60efd8af8fbfdee4bb291bb685fad3a2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _weight: 1
-  _componentsPerOctave: 5
-  _waveDirectionVariance: 90
-  _powerLog:
-  - -6
-  - -4.0088496
-  - -3.4452133
-  - -2.6996124
-  - -2.615044
-  - -1.2080691
-  - -0.53905386
-  - 0.27448857
-  - 0.53627354
-  - 1.0282621
-  - 1.4403292
-  - -6
-  _powerDisabled: 000000000000000000000000
-  _windSpeed: 11.833333
-  _fetch: 459237
-  _chop: 1
 --- !u!114 &1866213581
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -821,6 +790,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _rasterMesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
   _waveShader: {fileID: 4800000, guid: 680b41329a8923e40a8f9d6ca86f60a8, type: 3}
+  _spectrum: {fileID: 11400000, guid: 454d1b08383f089479cf6794620926f4, type: 2}
+  _componentsPerOctave: 5
+  _weight: 1
   _randomSeed: 0
 --- !u!1 &1899543705
 GameObject:

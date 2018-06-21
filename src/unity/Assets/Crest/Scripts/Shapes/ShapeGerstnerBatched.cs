@@ -9,13 +9,20 @@ namespace Crest
     /// Support script for Gerstner wave ocean shapes.
     /// Generates a number of batches of Gerstner waves.
     /// </summary>
-    [RequireComponent(typeof(WaveSpectrum))]
     public class ShapeGerstnerBatched : MonoBehaviour, ICollProvider
     {
         [Tooltip("Geometry to rasterize into wave buffers to generate waves.")]
         public Mesh _rasterMesh;
         [Tooltip("Shader to be used to render out a single Gerstner octave.")]
         public Shader _waveShader;
+        [Tooltip("The spectrum that defines the ocean surface shape. Create asset of type Crest/Ocean Waves Spectrum.")]
+        public OceanWaveSpectrum _spectrum;
+
+        [Delayed, Tooltip("How many wave components to generate in each octave.")]
+        public int _componentsPerOctave = 5;
+
+        [Range(0f, 1f)]
+        public float _weight = 1f;
 
         public int _randomSeed = 0;
 
@@ -26,7 +33,6 @@ namespace Crest
         float[] _phases;
 
         // useful references
-        WaveSpectrum _spectrum;
         Material[] _materials;
         Material _materialBigWaveTransition;
         CommandBuffer[] _renderWaveShapeCmdBufs;
@@ -37,14 +43,21 @@ namespace Crest
         const int BATCH_SIZE = 32;
 
         // scratch data used by batching code
-        static float[] _wavelengthsBatch = new float[BATCH_SIZE];
-        static float[] _ampsBatch = new float[BATCH_SIZE];
-        static float[] _anglesBatch = new float[BATCH_SIZE];
-        static float[] _phasesBatch = new float[BATCH_SIZE];
+        struct UpdateBatchScratchData
+        {
+            public static float[] _wavelengthsBatch = new float[BATCH_SIZE];
+            public static float[] _ampsBatch = new float[BATCH_SIZE];
+            public static float[] _anglesBatch = new float[BATCH_SIZE];
+            public static float[] _phasesBatch = new float[BATCH_SIZE];
+        }
 
         void Start()
         {
-            _spectrum = GetComponent<WaveSpectrum>();
+            if( _spectrum == null )
+            {
+                _spectrum = ScriptableObject.CreateInstance<OceanWaveSpectrum>();
+                _spectrum.name = "Default Waves (auto)";
+            }
         }
 
         void Update()
@@ -53,7 +66,7 @@ namespace Crest
             Random.State randomStateBkp = Random.state;
             Random.InitState(_randomSeed);
 
-            _spectrum.GenerateWaveData(ref _wavelengths, ref _angleDegs, ref _phases);
+            _spectrum.GenerateWaveData(_componentsPerOctave, ref _wavelengths, ref _angleDegs, ref _phases);
 
             Random.state = randomStateBkp;
 
@@ -83,7 +96,7 @@ namespace Crest
 
             for (int i = 0; i < _wavelengths.Length; i++)
             {
-                _amplitudes[i] = _spectrum.GetAmplitude(_wavelengths[i]);
+                _amplitudes[i] = _weight * _spectrum.GetAmplitude(_wavelengths[i], _componentsPerOctave);
             }
         }
 
@@ -140,10 +153,11 @@ namespace Crest
                 {
                     if( numInBatch < BATCH_SIZE)
                     {
-                        _wavelengthsBatch[numInBatch] = wl;
-                        _ampsBatch[numInBatch] = amp;
-                        _anglesBatch[numInBatch] = Mathf.Deg2Rad * (OceanRenderer.Instance._windDirectionAngle + _angleDegs[firstComponent + i]);
-                        _phasesBatch[numInBatch] = _phases[firstComponent + i];
+                        UpdateBatchScratchData._wavelengthsBatch[numInBatch] = wl;
+                        UpdateBatchScratchData._ampsBatch[numInBatch] = amp;
+                        UpdateBatchScratchData._anglesBatch[numInBatch] = 
+                            Mathf.Deg2Rad * (OceanRenderer.Instance._windDirectionAngle + _angleDegs[firstComponent + i]);
+                        UpdateBatchScratchData._phasesBatch[numInBatch] = _phases[firstComponent + i];
                         numInBatch++;
                     }
                     else
@@ -168,14 +182,14 @@ namespace Crest
             // if we did not fill the batch, put a terminator signal after the last position
             if( numInBatch < BATCH_SIZE)
             {
-                _wavelengthsBatch[numInBatch] = 0f;
+                UpdateBatchScratchData._wavelengthsBatch[numInBatch] = 0f;
             }
 
             // apply the data to the shape material
-            material.SetFloatArray("_Wavelengths", _wavelengthsBatch);
-            material.SetFloatArray("_Amplitudes", _ampsBatch);
-            material.SetFloatArray("_Angles", _anglesBatch);
-            material.SetFloatArray("_Phases", _phasesBatch);
+            material.SetFloatArray("_Wavelengths", UpdateBatchScratchData._wavelengthsBatch);
+            material.SetFloatArray("_Amplitudes", UpdateBatchScratchData._ampsBatch);
+            material.SetFloatArray("_Angles", UpdateBatchScratchData._anglesBatch);
+            material.SetFloatArray("_Phases", UpdateBatchScratchData._phasesBatch);
             material.SetFloat("_NumInBatch", numInBatch);
             material.SetFloat("_Chop", _spectrum._chop);
 

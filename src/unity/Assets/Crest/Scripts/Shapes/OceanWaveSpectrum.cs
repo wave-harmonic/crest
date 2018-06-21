@@ -1,10 +1,12 @@
-// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
-
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace Crest
 {
-    public class WaveSpectrum : MonoBehaviour
+    /// <summary>
+    /// Ocean shape representation - power values for each octave of wave components.
+    /// </summary>
+    [CreateAssetMenu(fileName = "OceanWaves", menuName = "Crest/Ocean Wave Spectrum", order = 10000)]
+    public class OceanWaveSpectrum : ScriptableObject
     {
         private const int NUM_OCTAVES = 12;
         public static readonly float SMALLEST_WL_POW_2 = -2f;
@@ -12,48 +14,22 @@ namespace Crest
         public static readonly float MIN_POWER_LOG = -6f;
         public static readonly float MAX_POWER_LOG = 3f;
 
-        [Range(0f, 1f)]
-        public float _weight = 1f;
-
-        [Delayed]
-        public int _componentsPerOctave = 5;
-
         [Tooltip("Variance of flow direction, in degrees"), Range(0f, 180f)]
         public float _waveDirectionVariance = 90f;
 
-        [HideInInspector]
-        public float[] _powerLog = new float[NUM_OCTAVES];
-        [HideInInspector]
-        public bool[] _powerDisabled = new bool[NUM_OCTAVES];
+        [SerializeField, HideInInspector]
+        float[] _powerLog = new float[NUM_OCTAVES]
+            { -6f, -4.0088496f, -3.4452133f, -2.6996124f, -2.615044f, -1.2080691f, -0.53905386f, 0.27448857f, 0.53627354f, 1.0282621f, 1.4403292f, -6f };
 
-        [HideInInspector]
-        public float _windSpeed = 10f;
-
-        [HideInInspector]
-        public float _fetch = 1000000f;
+        [SerializeField, HideInInspector]
+        bool[] _powerDisabled = new bool[NUM_OCTAVES];
 
         [Tooltip("Scales horizontal displacement"), Range(0f, 2f)]
         public float _chop = 1f;
 
-        private void Start()
-        {
-            Debug.LogWarning("WaveSpectrum is deprecated and is not used anymore, removing this component.", gameObject);
-            Destroy(this);
-        }
-
-        private void Reset()
-        {
-            _powerLog = new float[NUM_OCTAVES];
-
-            for (int i = 0; i < _powerLog.Length; i++)
-            {
-                _powerLog[i] = MIN_POWER_LOG;
-            }
-        }
-
         public static float SmallWavelength(float octaveIndex) { return Mathf.Pow(2f, SMALLEST_WL_POW_2 + octaveIndex); }
 
-        public float GetAmplitude(float wavelength)
+        public float GetAmplitude(float wavelength, float componentsPerOctave)
         {
             if (wavelength <= 0.001f)
             {
@@ -86,14 +62,14 @@ namespace Crest
             float k_hi = 2f * Mathf.PI / wl_hi;
             float omega_hi = k_hi * ComputeWaveSpeed(wl_hi);
 
-            float domega = (omega_lo - omega_hi) / _componentsPerOctave;
+            float domega = (omega_lo - omega_hi) / componentsPerOctave;
 
             float a_2 = 2f * Mathf.Pow(10f, _powerLog[index]) * domega;
             var a = Mathf.Sqrt(a_2);
-            return a * _weight;
+            return a;
         }
 
-        float ComputeWaveSpeed(float wavelength/*, float depth*/)
+        float ComputeWaveSpeed(float wavelength)
         {
             // wave speed of deep sea ocean waves: https://en.wikipedia.org/wiki/Wind_wave
             // https://en.wikipedia.org/wiki/Dispersion_(water_waves)#Wave_propagation_and_dispersion
@@ -108,9 +84,9 @@ namespace Crest
         /// <summary>
         /// Samples spectrum to generate wave data. Wavelengths will be in ascending order.
         /// </summary>
-        public void GenerateWaveData(ref float[] wavelengths, ref float[] anglesDeg, ref float[] phases)
+        public void GenerateWaveData(int componentsPerOctave, ref float[] wavelengths, ref float[] anglesDeg, ref float[] phases)
         {
-            int totalComponents = NUM_OCTAVES * _componentsPerOctave;
+            int totalComponents = NUM_OCTAVES * componentsPerOctave;
 
             if (wavelengths == null || wavelengths.Length != totalComponents) wavelengths = new float[totalComponents];
             if (anglesDeg == null || anglesDeg.Length != totalComponents) anglesDeg = new float[totalComponents];
@@ -120,30 +96,22 @@ namespace Crest
 
             for (int octave = 0; octave < NUM_OCTAVES; octave++)
             {
-                for (int i = 0; i < _componentsPerOctave; i++)
+                for (int i = 0; i < componentsPerOctave; i++)
                 {
-                    int index = octave * _componentsPerOctave + i;
+                    int index = octave * componentsPerOctave + i;
                     wavelengths[index] = minWavelength * (1f + Random.value);
                     anglesDeg[index] = Random.Range(-_waveDirectionVariance, _waveDirectionVariance);
                     phases[index] = 2f * Mathf.PI * Random.value;
                 }
 
-                System.Array.Sort(wavelengths, octave * _componentsPerOctave, _componentsPerOctave);
+                System.Array.Sort(wavelengths, octave * componentsPerOctave, componentsPerOctave);
 
                 minWavelength *= 2f;
             }
         }
 
-        [System.NonSerialized] public bool _applyPhillipsSpectrum = false;
-        [System.NonSerialized] public bool _applyPiersonMoskowitzSpectrum = false;
-        [System.NonSerialized] public bool _applyJONSWAPSpectrum = false;
-
         public void ApplyPhillipsSpectrum(float windSpeed)
         {
-#if UNITY_EDITOR
-            UnityEditor.Undo.RecordObject(this, "Apply Phillips Spectrum");
-#endif
-
             for (int octave = 0; octave < NUM_OCTAVES; octave++)
             {
                 float wl = SmallWavelength(octave) * 1.5f;
@@ -156,10 +124,6 @@ namespace Crest
 
         public void ApplyPiersonMoskowitzSpectrum(float windSpeed)
         {
-#if UNITY_EDITOR
-            UnityEditor.Undo.RecordObject(this, "Apply Pierson-Moskowitz Spectrum");
-#endif
-
             for (int octave = 0; octave < NUM_OCTAVES; octave++)
             {
                 float wl = SmallWavelength(octave) * 1.5f;
@@ -170,16 +134,12 @@ namespace Crest
             }
         }
 
-        public void ApplyJONSWAPSpectrum(float windSpeed)
+        public void ApplyJONSWAPSpectrum(float windSpeed, float fetch)
         {
-#if UNITY_EDITOR
-            UnityEditor.Undo.RecordObject(this, "Apply JONSWAP Spectrum");
-#endif
-
             for (int octave = 0; octave < NUM_OCTAVES; octave++)
             {
                 float wl = SmallWavelength(octave) * 1.5f;
-                var pow = JONSWAPSpectrum(Mathf.Abs(Physics.gravity.y), windSpeed, wl, _fetch);
+                var pow = JONSWAPSpectrum(Mathf.Abs(Physics.gravity.y), windSpeed, wl, fetch);
                 // we store power on logarithmic scale. this does not include 0, we represent 0 as min value
                 pow = Mathf.Max(pow, Mathf.Pow(10f, MIN_POWER_LOG));
                 _powerLog[octave] = Mathf.Log10(pow);

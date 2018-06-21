@@ -11,6 +11,11 @@
 ![Teaser](https://raw.githubusercontent.com/huwb/crest-oceanrender/master/img/teaser4.png)
 
 
+# Releases
+
+Crest exercises [semantic versioning](https://semver.org/) and follows the branching strategy outlined [here](https://gist.github.com/stuartsaunders/448036/5ae4e961f02e441e98528927d071f51bf082662f), although there is no develop branch used yet - development occurs on feature branches that are merged directly into master. Unitypackages are uploaded with each release.
+
+
 # The Tech
 
 Some of the core ideas were described at SIGGRAPH 2017 in the *Advances in Real-Time Rendering* course (course page [link](http://advances.realtimerendering.com/s2017/index.html)). Since this initial publication we have been actively working to extend the feature set, which includes innovations in the following areas.

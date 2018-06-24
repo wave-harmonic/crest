@@ -879,7 +879,7 @@ MonoBehaviour:
   _forceHeightOffset: -0.3
   _enginePower: 11
   _turnPower: 1.3
-  _boatWidth: 4
+  _boatWidth: 4.5
   _dragInWaterUp: 2
   _dragInWaterRight: 2
   _dragInWaterForward: 1

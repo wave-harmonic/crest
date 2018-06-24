@@ -18,7 +18,6 @@ public class BoatAlignNormal : MonoBehaviour
     public float _boatWidth = 2f;
 
     Rigidbody _rb;
-    ShapeGerstnerBatched _waves;
 
     public float _dragInWaterUp = 20000f;
     public float _dragInWaterRight = 20000f;
@@ -30,24 +29,38 @@ public class BoatAlignNormal : MonoBehaviour
     Vector3 _velocityRelativeToWater;
     public Vector3 VelocityRelativeToWater { get { return _velocityRelativeToWater; } }
 
-    Vector3 _displacementToBoat;
+    Vector3 _displacementToBoat, _displacementToBoatLastFrame;
+    bool _displacementToBoatInitd = false;
     public Vector3 DisplacementToBoat { get { return _displacementToBoat; } }
 
     void Start()
     {
         _rb = GetComponent<Rigidbody>();
-        _waves = FindObjectOfType<ShapeGerstnerBatched>();
     }
 
     void FixedUpdate()
     {
+        var colProvider = OceanRenderer.Instance.CollisionProvider;
         var position = transform.position;
 
-        var undispPos = _waves.GetPositionDisplacedToPosition(ref position, 0f);
-        _displacementToBoat = _waves.SampleDisplacement(ref undispPos, 0f);
-        var normal = _waves.GetNormal(ref undispPos, 0f);
+        var undispPos = Vector3.zero;
+        if (!colProvider.ComputeUndisplacedPosition(ref position, ref undispPos)) return;
 
-        var velWater = _waves.GetSurfaceVelocity(ref undispPos, 0f);
+        if (!colProvider.SampleDisplacement(ref undispPos, ref _displacementToBoat)) return;
+        if (!_displacementToBoatInitd)
+        {
+            _displacementToBoatLastFrame = _displacementToBoat;
+            _displacementToBoatInitd = true;
+        }
+
+        // estimate water velocity
+        Vector3 velWater = (_displacementToBoat - _displacementToBoatLastFrame) / Time.deltaTime;
+        _displacementToBoatLastFrame = _displacementToBoat;
+
+        var normal = Vector3.zero;
+        if (!colProvider.SampleNormal(ref undispPos, ref normal, _boatWidth)) return;
+        Debug.DrawLine(transform.position, transform.position + 5f * normal);
+
         _velocityRelativeToWater = _rb.velocity - velWater;
 
         var dispPos = undispPos + _displacementToBoat;

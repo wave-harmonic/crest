@@ -301,6 +301,9 @@ namespace Crest
                 // shape texture needs to completely contain sample area
                 var wdc = wdcs[lod];
                 var wdcRect = wdc._collData.CollisionDataRectXZ;
+                // shrink wdc rect by 1 texel border - this is to make finite differences fit as well
+                wdcRect.x += wdc._renderData._texelWidth; wdcRect.y += wdc._renderData._texelWidth;
+                wdcRect.width -= 2f * wdc._renderData._texelWidth; wdcRect.height -= 2f * wdc._renderData._texelWidth;
                 if (!wdcRect.Contains(sampleAreaXZ.min) || !wdcRect.Contains(sampleAreaXZ.max))
                     continue;
 

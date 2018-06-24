@@ -10,7 +10,7 @@ Shader "Ocean/Shape/Wave Particle"
 
 	Category
 	{
-		Tags { "Queue"="Transparent" }
+		Tags { "Queue"="Transparent" "DisableBatching" = "True" }
 
 		SubShader
 		{

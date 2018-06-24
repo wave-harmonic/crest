@@ -31,6 +31,9 @@ namespace Crest
             rtB = temp;
         }
 
+        public RenderTexture Source { get { return _rtSource; } }
+        public RenderTexture Target { get { return _rtTarget; } }
+
         Camera _cam; Camera Cam { get { return _cam ?? (_cam = GetComponent<Camera>()); } }
     }
 }

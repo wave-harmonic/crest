@@ -47,7 +47,6 @@ namespace Crest
             public float _texelWidth;
             public float _textureRes;
             public Vector3 _posSnapped;
-            public Vector3 _posSnappedLast;
         }
         public RenderData _renderData = new RenderData();
 
@@ -65,8 +64,6 @@ namespace Crest
             {
                 _collData.UpdateShapeReadback(cam, _renderData);
             }
-
-            _renderData._posSnappedLast = _renderData._posSnapped;
 
             // shape combine pass done by last shape camera - lod 0
             if (_lodIndex == 0)

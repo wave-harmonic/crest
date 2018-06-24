@@ -6,7 +6,7 @@ public class OceanDebugGUI : MonoBehaviour
     public bool _showSimTargets = true;
     public bool _guiVisible = true;
     public string _oceanMaterialAsset = "Assets/Crest/Shaders/Materials/Ocean.mat";
-
+    public bool _showSimTargetsAlpha = false;
     static float _leftPanelWidth = 180f;
 
     public static bool OverGUI( Vector2 screenPosition )
@@ -46,6 +46,10 @@ public class OceanDebugGUI : MonoBehaviour
             OceanRenderer.Instance._minTexelsPerWave = GUI.HorizontalSlider(new Rect(x, y, w, h), OceanRenderer.Instance._minTexelsPerWave, 0, 15); y += h;
 
             _showSimTargets = GUI.Toggle(new Rect(x, y, w, h), _showSimTargets, "Show shape data"); y += h;
+            if(_showSimTargets)
+            {
+                _showSimTargetsAlpha = GUI.Toggle(new Rect(x, y, w, h), _showSimTargetsAlpha, "Show shape data alpha"); y += h;
+            }
             WaveDataCam._shapeCombinePass = GUI.Toggle(new Rect(x, y, w, h), WaveDataCam._shapeCombinePass, "Shape combine pass"); y += h;
 
             int min = int.MaxValue, max = -1;
@@ -117,7 +121,7 @@ public class OceanDebugGUI : MonoBehaviour
             GUI.color = Color.black * 0.7f;
             GUI.DrawTexture(new Rect(x, y, w, h), Texture2D.whiteTexture);
             GUI.color = Color.white;
-            GUI.DrawTexture(new Rect(x + b, y + b / 2f, h - b, h - b), shape, ScaleMode.ScaleAndCrop, false);
+            GUI.DrawTexture(new Rect(x + b, y + b / 2f, h - b, h - b), shape, ScaleMode.ScaleAndCrop, _showSimTargetsAlpha);
 
             ind++;
         }

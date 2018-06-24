@@ -14,19 +14,22 @@ public class CamController : MonoBehaviour
 
     void Update()
     {
-        float forward = Input.GetAxis("Vertical");
-        if (simForwardInput)
-            forward = 1f;
+        if( Input.GetMouseButton(0))
+        {
+            float forward = Input.GetAxis("Vertical");
+            if (simForwardInput)
+                forward = 1f;
 
-        transform.position += linSpeed * transform.forward * forward * Time.deltaTime;
-        //transform.position += linSpeed * transform.right * Input.GetAxis( "Horizontal" ) * Time.deltaTime;
-        transform.position += linSpeed * transform.up * (Input.GetKey( KeyCode.E ) ? 1 : 0) * Time.deltaTime;
-        transform.position -= linSpeed * transform.up * (Input.GetKey( KeyCode.Q ) ? 1 : 0) * Time.deltaTime;
-        transform.position -= linSpeed * transform.right * (Input.GetKey( KeyCode.A ) ? 1 : 0) * Time.deltaTime;
-        transform.position += linSpeed * transform.right * (Input.GetKey( KeyCode.D ) ? 1 : 0) * Time.deltaTime;
+            transform.position += linSpeed * transform.forward * forward * Time.deltaTime;
+            //transform.position += linSpeed * transform.right * Input.GetAxis( "Horizontal" ) * Time.deltaTime;
+            transform.position += linSpeed * transform.up * (Input.GetKey(KeyCode.E) ? 1 : 0) * Time.deltaTime;
+            transform.position -= linSpeed * transform.up * (Input.GetKey(KeyCode.Q) ? 1 : 0) * Time.deltaTime;
+            transform.position -= linSpeed * transform.right * (Input.GetKey(KeyCode.A) ? 1 : 0) * Time.deltaTime;
+            transform.position += linSpeed * transform.right * (Input.GetKey(KeyCode.D) ? 1 : 0) * Time.deltaTime;
 
-        transform.rotation = transform.rotation * Quaternion.AngleAxis( rotSpeed * (Input.GetKey( KeyCode.LeftArrow ) ? -1 : 0) * Time.deltaTime, Vector3.up );
-        transform.rotation = transform.rotation * Quaternion.AngleAxis( rotSpeed * (Input.GetKey( KeyCode.RightArrow ) ? 1 : 0) * Time.deltaTime, Vector3.up );
+            transform.rotation = transform.rotation * Quaternion.AngleAxis(rotSpeed * (Input.GetKey(KeyCode.LeftArrow) ? -1 : 0) * Time.deltaTime, Vector3.up);
+            transform.rotation = transform.rotation * Quaternion.AngleAxis(rotSpeed * (Input.GetKey(KeyCode.RightArrow) ? 1 : 0) * Time.deltaTime, Vector3.up);
+        }
 
         UpdateDragging();
 

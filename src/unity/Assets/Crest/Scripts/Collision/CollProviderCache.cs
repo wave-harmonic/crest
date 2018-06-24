@@ -88,6 +88,20 @@ namespace Crest
             return SampleHeight(ref worldPos, ref height);
         }
 
+        public bool SampleNormal(ref Vector3 undisplacedWorldPos, ref Vector3 normal)
+        {
+            return _collProvider.SampleNormal(ref undisplacedWorldPos, ref normal);
+        }
+        public bool SampleNormal(ref Vector3 undisplacedWorldPos, ref Vector3 normal, float minSpatialLength)
+        {
+            return _collProvider.SampleNormal(ref undisplacedWorldPos, ref normal, minSpatialLength);
+        }
+
+        public bool ComputeUndisplacedPosition(ref Vector3 worldPos, ref Vector3 undisplacedWorldPos)
+        {
+            return _collProvider.ComputeUndisplacedPosition(ref worldPos, ref undisplacedWorldPos);
+        }
+
         public int CacheChecks { get { return _cacheChecksLastFrame; } }
         public int CacheHits { get { return _cacheHitsLastFrame; } }
     }

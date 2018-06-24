@@ -488,5 +488,39 @@ namespace Crest
             // revert to usual function
             return SampleHeight(ref worldPos, ref height);
         }
+
+        public bool SampleNormal(ref Vector3 undisplacedWorldPos, ref Vector3 normal)
+        {
+            normal = GetNormal(ref undisplacedWorldPos, 0f);
+            return true;
+        }
+        public bool SampleNormal(ref Vector3 undisplacedWorldPos, ref Vector3 normal, float minSpatialLength)
+        {
+            Debug.LogWarning("ShapeGerstnerBatched: minSpatialLength not implemented for GetNormal(), this parameter will be ignored.", this);
+            normal = GetNormal(ref undisplacedWorldPos, 0f);
+            return true;
+        }
+
+        public bool ComputeUndisplacedPosition(ref Vector3 worldPos, ref Vector3 undisplacedWorldPos)
+        {
+            // fpi - guess should converge to location that displaces to the target position
+            Vector3 guess = worldPos;
+            // 2 iterations was enough to get very close when chop = 1, added 2 more which should be
+            // sufficient for most applications. for high chop values or really stormy conditions there may
+            // be some error here. one could also terminate iteration based on the size of the error, this is
+            // worth trying but is left as future work for now.
+            Vector3 disp = Vector3.zero;
+            for (int i = 0; i < 4 && SampleDisplacement(ref guess, ref disp); i++)
+            {
+                Vector3 error = guess + disp - worldPos;
+                guess.x -= error.x;
+                guess.z -= error.z;
+            }
+
+            undisplacedWorldPos = guess;
+            undisplacedWorldPos.y = OceanRenderer.Instance.SeaLevel;
+
+            return true;
+        }
     }
 }

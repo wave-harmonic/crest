@@ -20,6 +20,17 @@ namespace Crest
         bool SampleHeight(ref Vector3 worldPos, ref float height);
 
         /// <summary>
+        /// Sample ocean normal at an undisplaced world position.
+        /// </summary>
+        bool SampleNormal(ref Vector3 undisplacedWorldPos, ref Vector3 normal);
+        bool SampleNormal(ref Vector3 undisplacedWorldPos, ref Vector3 normal, float minSpatialLength);
+
+        /// <summary>
+        /// Computes the position which will be displaced to the given world position.
+        /// </summary>
+        bool ComputeUndisplacedPosition(ref Vector3 worldPos, ref Vector3 undisplacedWorldPos);
+
+        /// <summary>
         /// Some collision providers benefit from getting prewarmed - call this to set up a sampling area and
         /// then use the 'area' sampling functions below.
         /// </summary>

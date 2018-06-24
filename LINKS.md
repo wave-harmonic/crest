@@ -31,6 +31,11 @@
 * Nice practical demo about testing different wave breakers: https://youtu.be/3yNoy4H2Z-o
 * Useful notes/diagrams on waves: http://hyperphysics.phy-astr.gsu.edu/hbase/Waves/watwav2.html, http://hyperphysics.phy-astr.gsu.edu/hbase/watwav.html#c1
 
+### Wave Simulation
+
+* Mode splitting - surface + volume sim combined: http://www.hilkocords.de/publications/mode_splitting.pdf
+* Boat interaction: https://www.youtube.com/watch?v=YK_Za2MY2a0
+
 ### Wave particles
 
 * Original wave particles work: http://www.cemyuksel.com/research/waveparticles/
@@ -48,7 +53,8 @@
 
 ### Breaking waves
 
-* Real-time: http://matthias-mueller-fischer.ch/publications/breakingWaves.pdf
+* Real-time for shallow water simulations: http://matthias-mueller-fischer.ch/publications/breakingWaves.pdf , https://www.youtube.com/watch?v=Gk0AeRufsws
+
 
 ### Experiments
 

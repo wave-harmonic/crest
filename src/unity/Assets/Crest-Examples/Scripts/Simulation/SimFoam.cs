@@ -14,5 +14,6 @@ namespace Crest
         protected override string ShaderTextureLastSimResult { get { return "_FoamLastFrame"; } }
         protected override string ShaderRenderResultsIntoDispTexture { get { return "Ocean/Shape/Sim/Foam Add To Disps"; } }
         public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RHalf; } }
+        public override int Depth { get { return -20; } }
     }
 }

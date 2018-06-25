@@ -27,6 +27,7 @@ namespace Crest
         protected abstract string ShaderTextureLastSimResult { get; }
         protected abstract string ShaderRenderResultsIntoDispTexture { get; }
         public abstract RenderTextureFormat TextureFormat { get; }
+        public abstract int Depth { get; }
 
         private void Start()
         {
@@ -132,9 +133,15 @@ namespace Crest
                 _copySimResultsCmdBuf.Clear();
                 _copySimResultsCmdBuf.Blit(PPRTs.Target, lodCam.targetTexture, _copySimMaterial);
             }
+
+            AddPostRenderCommands(_copySimResultsCmdBuf);
         }
 
-        PingPongRts _pprts2; PingPongRts PPRTs { get { return _pprts2 ?? (_pprts2 = GetComponent<PingPongRts>()); } }
+        protected virtual void AddPostRenderCommands(CommandBuffer postRenderCmdBuf)
+        {
+        }
+
+        PingPongRts _pprts2; protected PingPongRts PPRTs { get { return _pprts2 ?? (_pprts2 = GetComponent<PingPongRts>()); } }
         Camera _cam2; Camera Cam { get { return _cam2 ?? (_cam2 = GetComponent<Camera>()); } }
     }
 }

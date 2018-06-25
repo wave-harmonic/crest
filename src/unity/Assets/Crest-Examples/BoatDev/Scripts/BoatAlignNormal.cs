@@ -33,6 +33,8 @@ public class BoatAlignNormal : MonoBehaviour
     bool _displacementToBoatInitd = false;
     public Vector3 DisplacementToBoat { get { return _displacementToBoat; } }
 
+    public bool _holdThrottle = false;
+
     void Start()
     {
         _rb = GetComponent<Rigidbody>();
@@ -84,7 +86,7 @@ public class BoatAlignNormal : MonoBehaviour
         _rb.AddForceAtPosition(transform.right * Vector3.Dot(transform.right, -_velocityRelativeToWater) * _dragInWaterRight, forcePosition, ForceMode.Acceleration);
         _rb.AddForceAtPosition(transform.forward * Vector3.Dot(transform.forward, -_velocityRelativeToWater) * _dragInWaterForward, forcePosition, ForceMode.Acceleration);
 
-        float forward = Input.GetAxis("Vertical");
+        float forward = _holdThrottle ? 1f : Input.GetAxis("Vertical");
         _rb.AddForceAtPosition(transform.forward * _enginePower * forward, forcePosition, ForceMode.Acceleration);
         //Debug.DrawLine(transform.position + Vector3.up * 5f, transform.position + 5f * (Vector3.up + transform.forward));
         float sideways = (Input.GetKey(KeyCode.A) ? -1f : 0f) + (Input.GetKey(KeyCode.D) ? 1f : 0f);

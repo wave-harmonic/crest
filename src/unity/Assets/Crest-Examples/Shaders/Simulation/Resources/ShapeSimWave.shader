@@ -104,7 +104,7 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 					if (i.uv.y - e.y <= 0.) ftp = dt*c*(fyp - ft) + ft;
 
 					// Damping
-					ftp *= max(0.0, 1.0 - 0.02 * dt);
+					ftp *= max(0.0, 1.0 - 0.3 * dt);
 					//if (-ft < waterSignedDepth)
 					//{
 					//	ftp = lerp( ft, ftp, min(waterSignedDepth + ft, 1.));
@@ -113,7 +113,8 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 
 					// Foam
 					float accel = ((ftp - ft) - (ft - ftm));
-					float foam = -accel * 3200. / texelSize;
+					float foam = -accel;
+					//foam = smoothstep(.0, .05, foam);
 					foam = max(foam, 0.);
 					// foam could be faded slowly across frames, but right now the combine pass uses the foam channel for
 					// accumulation, so the last frames foam value cannot be used.

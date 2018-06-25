@@ -9,7 +9,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 33068fc021dadc04dab6e00e4ff45c00, type: 3}
-  m_Name: WavesCalm
+  m_Name: WavesDead
   m_EditorClassIdentifier: 
   _waveDirectionVariance: 56
   _powerLog:
@@ -25,5 +25,5 @@ MonoBehaviour:
   - -1.8416357
   - -1.8156034
   - -6
-  _powerDisabled: 000000000000000000000000
+  _powerDisabled: 010101010101010101010101
   _chop: 1

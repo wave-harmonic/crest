@@ -95,7 +95,7 @@ Shader "Ocean/Shape/Sim/Foam"
 					const float _WaveFoamCoverage = 0.75;
 					last += 5. * _MyDeltaTime * _WaveFoamStrength * saturate(_WaveFoamCoverage - det);
 
-					const float foamFadeRate = 0.4;
+					const float foamFadeRate = .6;
 					last *= max(0.0, 1.0 - foamFadeRate * _MyDeltaTime);
 
 					return last;

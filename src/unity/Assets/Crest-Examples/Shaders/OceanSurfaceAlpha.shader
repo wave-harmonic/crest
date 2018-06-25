@@ -4,6 +4,7 @@
 	{
 		_MainTex ("Texture", 2D) = "white" {}
 		_Alpha("Alpha Multiplier", Range(0.0, 1.0)) = 1.0
+		[Toggle] _DebugDisplayUVCheckerboard("Debug Display UV Checkerboard", Float) = 0
 	}
 	SubShader
 	{
@@ -23,7 +24,8 @@
 			#pragma vertex vert
 			#pragma fragment frag
 			#pragma multi_compile_fog
-			
+			#pragma shader_feature _DEBUGDISPLAYUVCHECKERBOARD_ON
+
 			#include "UnityCG.cginc"
 			#include "../../Crest/Shaders/OceanLODData.cginc"
 
@@ -68,17 +70,35 @@
 				SampleDisplacements(_WD_Sampler_0, _WD_OceanDepth_Sampler_0, _WD_Pos_Scale_0.xy, _WD_Params_0.y, _WD_Params_0.w, _WD_Params_0.x, wxz, wt_0, worldPos, n, det, signedOceanDepth);
 				SampleDisplacements(_WD_Sampler_1, _WD_OceanDepth_Sampler_1, _WD_Pos_Scale_1.xy, _WD_Params_1.y, _WD_Params_1.w, _WD_Params_1.x, wxz, wt_1, worldPos, n, det, signedOceanDepth);
 
-				// view-projection	
+				// view-projection
 				o.vertex = mul(UNITY_MATRIX_VP, float4(worldPos, 1.));
 
 				o.uv = TRANSFORM_TEX(v.uv, _MainTex);
 				UNITY_TRANSFER_FOG(o,o.vertex);
 				return o;
 			}
-			
+
 			fixed4 frag (v2f i) : SV_Target
 			{
 				fixed4 col = tex2D(_MainTex, i.uv);
+
+				#if _DEBUGDISPLAYUVCHECKERBOARD_ON
+				float numUVCheckerboards = 1./10.;
+				float xThreshold = fmod(i.uv.x, numUVCheckerboards * 2.);
+				float yThreshold = fmod(i.uv.y, numUVCheckerboards * 2.);
+				bool isWhite = false;
+				if(xThreshold < numUVCheckerboards) {
+					isWhite = !isWhite;
+				}
+				if(yThreshold < numUVCheckerboards) {
+					isWhite = !isWhite;
+				}
+				if(isWhite) {
+					col.rgb = 1.;
+				} else {
+					col.rgb = 0.;
+				}
+				#endif
 
 				UNITY_APPLY_FOG(i.fogCoord, col);
 

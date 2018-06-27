@@ -126,6 +126,8 @@ namespace Crest
             _renderSimMaterial.SetTexture(ShaderTextureLastSimResult, PPRTs.Source);
             wdc.ApplyMaterialParams(0, new PropertyWrapperMaterial(_renderSimMaterial));
 
+            SetAdditionalSimParams(_renderSimMaterial);
+
             if (_copySimMaterial)
             {
                 _copySimMaterial.mainTexture = PPRTs.Target;
@@ -135,6 +137,10 @@ namespace Crest
             }
 
             AddPostRenderCommands(_copySimResultsCmdBuf);
+        }
+
+        protected virtual void SetAdditionalSimParams(Material simMaterial)
+        {
         }
 
         protected virtual void AddPostRenderCommands(CommandBuffer postRenderCmdBuf)

@@ -35,6 +35,7 @@ Shader "Ocean/Shape/Sim/Foam"
 				};
 
 				uniform float3 _CameraPositionDelta;
+				uniform half _FoamFadeRate;
 
 				v2f vert(appdata_t v)
 				{
@@ -95,8 +96,7 @@ Shader "Ocean/Shape/Sim/Foam"
 					const float _WaveFoamCoverage = 0.75;
 					last += 5. * _MyDeltaTime * _WaveFoamStrength * saturate(_WaveFoamCoverage - det);
 
-					const float foamFadeRate = .6;
-					last *= max(0.0, 1.0 - foamFadeRate * _MyDeltaTime);
+					last *= max(0.0, 1.0 - _FoamFadeRate * _MyDeltaTime);
 
 					return last;
 				}

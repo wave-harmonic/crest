@@ -36,6 +36,7 @@ Shader "Ocean/Shape/Sim/Wave Generate Foam"
 			sampler2D _MainTex;
 			float _MinAccel;
 			float _MaxAccel;
+			half _Amount;
 
 			v2f vert (appdata v)
 			{
@@ -49,7 +50,7 @@ Shader "Ocean/Shape/Sim/Wave Generate Foam"
 			half4 frag (v2f i) : SV_Target
 			{
 				half4 simData = tex2D(_MainTex, i.screenPos);
-				half foam = smoothstep(_MinAccel, _MaxAccel, simData.a);
+				half foam = _Amount * smoothstep(_MinAccel, _MaxAccel, simData.a);
 				return half4(foam, 0., 0., 0.);
 			}
 			ENDCG

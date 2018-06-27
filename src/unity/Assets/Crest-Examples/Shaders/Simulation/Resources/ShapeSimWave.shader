@@ -36,6 +36,7 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 				};
 
 				uniform float3 _CameraPositionDelta;
+				uniform half _Damping;
 
 				v2f vert(appdata_t v)
 				{
@@ -104,7 +105,7 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 					if (i.uv.y - e.y <= 0.) ftp = dt*c*(fyp - ft) + ft;
 
 					// Damping
-					ftp *= max(0.0, 1.0 - 0.2 * dt);
+					ftp *= max(0.0, 1.0 - _Damping * dt);
 					//if (-ft < waterSignedDepth)
 					//{
 					//	ftp = lerp( ft, ftp, min(waterSignedDepth + ft, 1.));

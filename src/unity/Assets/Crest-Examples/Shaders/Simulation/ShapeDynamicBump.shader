@@ -27,7 +27,7 @@ Shader "Ocean/Shape/Dynamic Bump"
 				#pragma fragment frag
 				#pragma multi_compile_fog
 				#include "UnityCG.cginc"
-				#include "MultiscaleShape.cginc"
+				#include "../../../Crest/Shaders/Shapes/MultiscaleShape.cginc"
 
 				struct appdata_t {
 					float4 vertex : POSITION;
@@ -72,7 +72,9 @@ Shader "Ocean/Shape/Dynamic Bump"
 
 					r2 = 1. - r2;
 
-					float y = r2 * r2 * _Amplitude;
+					float y = r2 * r2;
+					y = pow(y, 0.05);
+					y *= _Amplitude;
 
 					// treat as an acceleration - dt^2
 					return float4(_MyDeltaTime * _MyDeltaTime * y, 0., 0., 0.);

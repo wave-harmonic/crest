@@ -104,7 +104,7 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 					if (i.uv.y - e.y <= 0.) ftp = dt*c*(fyp - ft) + ft;
 
 					// Damping
-					ftp *= max(0.0, 1.0 - 0.3 * dt);
+					ftp *= max(0.0, 1.0 - 0.2 * dt);
 					//if (-ft < waterSignedDepth)
 					//{
 					//	ftp = lerp( ft, ftp, min(waterSignedDepth + ft, 1.));

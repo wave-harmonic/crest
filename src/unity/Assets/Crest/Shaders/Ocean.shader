@@ -386,6 +386,7 @@ Shader "Ocean/Ocean"
 					#endif
 
 					col.rgb = (half3)i.foam;
+
 					return col;
 				}
 

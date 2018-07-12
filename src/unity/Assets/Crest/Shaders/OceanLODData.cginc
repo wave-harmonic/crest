@@ -27,7 +27,7 @@ float2 WD_uvToWorld(in float2 i_uv, in float2 i_centerPos, in float i_res, in fl
 
 // sample wave or terrain height, with smooth blend towards edges. computes normals and determinant and samples ocean depth.
 // would equally apply to heights instead of displacements.
-void SampleDisplacements(in sampler2D i_dispSampler, in sampler2D i_oceanDepthSampler, in float2 i_centerPos, in float i_res, in float i_invRes, in float i_texelSize, in float2 i_samplePos, in float wt, inout float3 io_worldPos, inout float3 io_n, inout float io_determinant, inout half io_signedOceanDepth, inout half io_foam)
+void SampleDisplacements(in sampler2D i_dispSampler, in sampler2D i_oceanDepthSampler, in float2 i_centerPos, in float i_res, in float i_invRes, in float i_texelSize, in float2 i_samplePos, in float wt, inout float3 io_worldPos, inout float3 io_n, inout half io_signedOceanDepth, inout half io_foam)
 {
 	if (wt < 0.001)
 		return;
@@ -37,24 +37,14 @@ void SampleDisplacements(in sampler2D i_dispSampler, in sampler2D i_oceanDepthSa
 	// do computations for hi-res
 	float3 dd = float3(i_invRes, 0.0, i_texelSize);
 	half4 s = tex2Dlod(i_dispSampler, uv);
-	half3 sx = tex2Dlod(i_dispSampler, uv + dd.xyyy).xyz;
-	half3 sz = tex2Dlod(i_dispSampler, uv + dd.yxyy).xyz;
 	half3 disp = s.xyz;
-	half3 disp_x = dd.zyy + sx;
-	half3 disp_z = dd.yyz + sz;
+	half3 disp_x = dd.zyy + tex2Dlod(i_dispSampler, uv + dd.xyyy).xyz;
+	half3 disp_z = dd.yyz + tex2Dlod(i_dispSampler, uv + dd.yxyy).xyz;
+
 	io_worldPos += wt * disp;
 
 	float3 n = normalize(cross(disp_z - disp, disp_x - disp));
 	io_n.xz += wt * n.xz;
-
-	// todo - compute this outside the ocean material!
-	// The determinant of the displacement Jacobian is a good measure for turbulence:
-	// > 1: Stretch
-	// < 1: Squash
-	// < 0: Overlap
-	float4 du = float4(disp_x.xz, disp_z.xz) - disp.xzxz;
-	float det = (du.x * du.w - du.y * du.z) / (dd.z * dd.z);
-	io_determinant += wt * det;
 
 	io_signedOceanDepth += wt * (tex2Dlod(i_oceanDepthSampler, uv).x + DEPTH_BIAS + disp.y);
 

@@ -10,7 +10,7 @@ namespace Crest
     public class SimFoam : SimBase
     {
         [Range(0f, 5f)]
-        public float _foamFadeRate = 1.2f;
+        public float _foamFadeRate = 0.8f;
 
         public override string SimName { get { return "Foam"; } }
         protected override string ShaderSim { get { return "Ocean/Shape/Sim/Foam"; } }

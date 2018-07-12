@@ -385,7 +385,8 @@ Shader "Ocean/Ocean"
 					col = mix(col.rgb, i.debugtint, 0.5);
 					#endif
 
-					col.rgb = (half3)smoothstep(0.05, 0.1, i.foam);
+					col.rgb = lerp(col.rgb, (half3)1., i.foam);
+					//col.rgb = (half3)smoothstep(0.05, 0.1, i.foam);
 
 					return col;
 				}

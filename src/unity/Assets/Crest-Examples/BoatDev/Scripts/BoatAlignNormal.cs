@@ -34,6 +34,7 @@ public class BoatAlignNormal : MonoBehaviour
     public Vector3 DisplacementToBoat { get { return _displacementToBoat; } }
 
     public bool _holdThrottle = false;
+    public float _steerBias = 0f;
 
     void Start()
     {
@@ -89,7 +90,7 @@ public class BoatAlignNormal : MonoBehaviour
         float forward = _holdThrottle ? 1f : Input.GetAxis("Vertical");
         _rb.AddForceAtPosition(transform.forward * _enginePower * forward, forcePosition, ForceMode.Acceleration);
         //Debug.DrawLine(transform.position + Vector3.up * 5f, transform.position + 5f * (Vector3.up + transform.forward));
-        float sideways = (Input.GetKey(KeyCode.A) ? -1f : 0f) + (Input.GetKey(KeyCode.D) ? 1f : 0f);
+        float sideways = _steerBias + (Input.GetKey(KeyCode.A) ? -1f : 0f) + (Input.GetKey(KeyCode.D) ? 1f : 0f);
         _rb.AddTorque(transform.up * _turnPower * sideways, ForceMode.Acceleration);
 
         // align to normal

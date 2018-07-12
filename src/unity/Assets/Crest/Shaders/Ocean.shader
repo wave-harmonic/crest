@@ -89,13 +89,12 @@ Shader "Ocean/Ocean"
 					float4 vertex : SV_POSITION;
 					half3 n : TEXCOORD1;
 					half4 shorelineFoam_screenPos : TEXCOORD4;
-					half4 invDeterminant_lodAlpha_worldXZUndisplaced : TEXCOORD5;
+					half4 lodAlpha_worldXZUndisplaced_foam : TEXCOORD5;
 					float3 worldPos : TEXCOORD7;
 					#if _DEBUGVISUALISESHAPESAMPLE_ON
 					half3 debugtint : TEXCOORD8;
 					#endif
 					half4 grabPos : TEXCOORD9;
-					half foam : TEXCOORD10;
 
 					UNITY_FOG_COORDS( 3 )
 				};
@@ -120,26 +119,25 @@ Shader "Ocean/Ocean"
 					// vertex snapping and lod transition
 					float lodAlpha;
 					SnapAndTransitionVertLayout(_InstanceData.x, o.worldPos, lodAlpha);
-					o.invDeterminant_lodAlpha_worldXZUndisplaced.y = lodAlpha;
-					o.invDeterminant_lodAlpha_worldXZUndisplaced.zw = o.worldPos.xz;
+					o.lodAlpha_worldXZUndisplaced_foam.x = lodAlpha;
+					o.lodAlpha_worldXZUndisplaced_foam.yz = o.worldPos.xz;
+					o.lodAlpha_worldXZUndisplaced_foam.w = 0.;
 
 					// sample shape textures - always lerp between 2 scales, so sample two textures
 					o.n = half3(0., 1., 0.);
 					half signedOceanDepth = 0.;
-					o.foam = 0.;
 					// sample weights. params.z allows shape to be faded out (used on last lod to support pop-less scale transitions)
 					float wt_0 = (1. - lodAlpha) * _WD_Params_0.z;
 					float wt_1 = (1. - wt_0) * _WD_Params_1.z;
 					// sample displacement textures, add results to current world pos / normal / foam
 					#if !_DEBUGDISABLESHAPETEXTURES_ON
 					const float2 wxz = o.worldPos.xz;
-					SampleDisplacements( _WD_Sampler_0, _WD_OceanDepth_Sampler_0, _WD_Pos_Scale_0.xy, _WD_Params_0.y, _WD_Params_0.w, _WD_Params_0.x, wxz, wt_0, o.worldPos, o.n, signedOceanDepth, o.foam);
-					SampleDisplacements( _WD_Sampler_1, _WD_OceanDepth_Sampler_1, _WD_Pos_Scale_1.xy, _WD_Params_1.y, _WD_Params_1.w, _WD_Params_1.x, wxz, wt_1, o.worldPos, o.n, signedOceanDepth, o.foam);
+					SampleDisplacements( _WD_Sampler_0, _WD_OceanDepth_Sampler_0, _WD_Pos_Scale_0.xy, _WD_Params_0.y, _WD_Params_0.w, _WD_Params_0.x, wxz, wt_0, o.worldPos, o.n, signedOceanDepth, o.lodAlpha_worldXZUndisplaced_foam.w);
+					SampleDisplacements( _WD_Sampler_1, _WD_OceanDepth_Sampler_1, _WD_Pos_Scale_1.xy, _WD_Params_1.y, _WD_Params_1.w, _WD_Params_1.x, wxz, wt_1, o.worldPos, o.n, signedOceanDepth, o.lodAlpha_worldXZUndisplaced_foam.w);
 					#endif
 
-					// actually store 1-determinant. This means that when far lod is faded out to 0, this tends to make foam and scatter color etc fade out, instead of getting stronger.
-					o.invDeterminant_lodAlpha_worldXZUndisplaced.x = 0.;
-
+					o.lodAlpha_worldXZUndisplaced_foam.w = smoothstep(0.2, 0.0, o.lodAlpha_worldXZUndisplaced_foam.w);
+					
 					// foam from shallow water - signed depth is depth compared to sea level, plus wave height. depth bias is an optimisation
 					// which allows the depth data to be initialised once to 0 without generating foam everywhere.
 					o.shorelineFoam_screenPos.x = saturate(1. - signedOceanDepth / _ShorelineFoamMaxDepth);
@@ -352,18 +350,14 @@ Shader "Ocean/Ocean"
 					half3 n_geom = normalize(i.n);
 					half3 n_pixel = n_geom;
 					#if _APPLYNORMALMAPPING_ON
-					ApplyNormalMaps(i.invDeterminant_lodAlpha_worldXZUndisplaced.zw, i.invDeterminant_lodAlpha_worldXZUndisplaced.y, n_pixel);
+					ApplyNormalMaps(i.lodAlpha_worldXZUndisplaced_foam.yz, i.lodAlpha_worldXZUndisplaced_foam.x, n_pixel);
 					#endif
 
 					// Foam - underwater bubbles and whitefoam
 					half3 bubbleCol = (half3)0.;
-
-					float f = smoothstep(0.2, 0.0, i.foam);
-
 					#if _FOAM_ON
 					half4 whiteFoamCol;
-					ComputeFoam(f, i.invDeterminant_lodAlpha_worldXZUndisplaced.zw, i.worldPos.xz, n_pixel, i.shorelineFoam_screenPos.x, pixelZ, sceneZ, view, lightDir, bubbleCol, whiteFoamCol);
-					//whiteFoamCol *= 0.;
+					ComputeFoam(i.lodAlpha_worldXZUndisplaced_foam.w, i.lodAlpha_worldXZUndisplaced_foam.yz, i.worldPos.xz, n_pixel, i.shorelineFoam_screenPos.x, pixelZ, sceneZ, view, lightDir, bubbleCol, whiteFoamCol);
 					#endif
 
 					// Compute color of ocean - in-scattered light + refracted scene
@@ -396,11 +390,6 @@ Shader "Ocean/Ocean"
 					#if _DEBUGVISUALISESHAPESAMPLE_ON
 					col = mix(col.rgb, i.debugtint, 0.5);
 					#endif
-
-					//f = smoothstep( )
-					//f = 1. - f;
-					//col.rgb = lerp(col.rgb, half3(.9,1.,1.)*.9, min(f,1.));
-					//col.rgb = (half3)smoothstep(0.05, 0.1, i.foam);
 
 					return col;
 				}

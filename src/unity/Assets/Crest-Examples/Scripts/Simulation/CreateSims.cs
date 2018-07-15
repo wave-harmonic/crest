@@ -42,13 +42,19 @@ namespace Crest
         {
             foreach (var layer in _simulationLayers)
             {
+                int layerIndex = LayerMask.NameToLayer(layer._shapeRenderLayer);
+
+                if (string.IsNullOrEmpty(layer._shapeRenderLayer) || layerIndex == -1)
+                {
+                    Debug.LogError("Creation of a " + layer._simType.ToString() + " simulation type was skipped because no render layer was provided.", this);
+                    continue;
+                }
+
                 var simGO = new GameObject();
                 simGO.transform.parent = transform;
                 simGO.transform.localPosition = Vector3.zero;
                 simGO.transform.localEulerAngles = 90f * Vector3.right;
                 simGO.transform.localScale = Vector3.one;
-
-                int layerIndex = LayerMask.NameToLayer(layer._shapeRenderLayer);
 
                 var sim = layer._simType == SimType.Wave ? simGO.AddComponent<SimWave>() : simGO.AddComponent<SimFoam>()
                     as SimBase;

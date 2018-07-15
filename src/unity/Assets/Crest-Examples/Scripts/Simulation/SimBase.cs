@@ -19,6 +19,7 @@ namespace Crest
 
         GameObject _renderSim;
         Material _renderSimMaterial;
+        Material _matClearSim;
 
         Vector3 _camPosSnappedLast;
 
@@ -34,6 +35,7 @@ namespace Crest
             CreateRenderSimQuad();
 
             _copySimMaterial = new Material(Shader.Find(ShaderRenderResultsIntoDispTexture));
+            _matClearSim = new Material(Shader.Find("Ocean/Shape/Sim/Clear"));
         }
 
         private void CreateRenderSimQuad()
@@ -93,6 +95,10 @@ namespace Crest
                     OceanRenderer.Instance.Builder._shapeCameras[_bufAssignedCamIdx].RemoveCommandBuffer(CameraEvent.AfterForwardAlpha, _copySimResultsCmdBuf);
                     _bufAssignedCamIdx = -1;
                 }
+
+                // clear the simulation data - so that it doesnt suddenly pop in later
+                Graphics.Blit(Texture2D.blackTexture, PPRTs.Source, _matClearSim);
+                Graphics.Blit(Texture2D.blackTexture, PPRTs.Target, _matClearSim);
 
                 return;
             }

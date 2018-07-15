@@ -147,6 +147,13 @@ namespace Crest
         {
         }
 
+        /// <summary>
+        /// Called after all sims created - gives the sims a chance to reference eachother or do other init.
+        /// </summary>
+        public virtual void AllSimsCreated()
+        {
+        }
+
         PingPongRts _pprts2; protected PingPongRts PPRTs { get { return _pprts2 ?? (_pprts2 = GetComponent<PingPongRts>()); } }
         Camera _cam2; Camera Cam { get { return _cam2 ?? (_cam2 = GetComponent<Camera>()); } }
     }

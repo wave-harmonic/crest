@@ -31,6 +31,23 @@ namespace Crest
         SimFoam _foamSim;
         Material _generateFoamFromSim;
 
+        public override void AllSimsCreated()
+        {
+            base.AllSimsCreated();
+
+            // look for a foam sim - take the first one that matches this resolution
+            var sims = FindObjectsOfType<SimFoam>();
+            foreach (var sim in sims)
+            {
+                var foamSim = sim as SimFoam;
+                if (foamSim != null && foamSim._resolution == _resolution)
+                {
+                    _foamSim = foamSim;
+                    break;
+                }
+            }
+        }
+
         protected override void SetAdditionalSimParams(Material simMaterial)
         {
             base.SetAdditionalSimParams(simMaterial);
@@ -44,7 +61,7 @@ namespace Crest
 
             if (_foamSim == null)
             {
-                _foamSim = FindObjectOfType<SimFoam>();
+                return;
             }
 
             if (_generateFoamFromSim == null)

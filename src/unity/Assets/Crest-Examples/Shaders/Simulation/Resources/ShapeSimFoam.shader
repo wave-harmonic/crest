@@ -35,7 +35,6 @@ Shader "Ocean/Shape/Sim/Foam"
 				};
 
 				uniform float3 _CameraPositionDelta;
-				uniform half _FoamFadeRate;
 
 				v2f vert(appdata_t v)
 				{
@@ -59,6 +58,9 @@ Shader "Ocean/Shape/Sim/Foam"
 				// respects the gui option to freeze time
 				uniform float _MyTime;
 				uniform float _MyDeltaTime;
+				uniform half _FoamFadeRate;
+				uniform half _WaveFoamStrength;
+				uniform half _WaveFoamCoverage;
 
 				uniform sampler2D _FoamLastFrame;
 
@@ -92,8 +94,6 @@ Shader "Ocean/Shape/Sim/Foam"
 					float4 du = float4(disp_x.xz, disp_z.xz) - disp.xzxz;
 					float det = (du.x * du.w - du.y * du.z) / (_WD_Params_0.x * _WD_Params_0.x);
 
-					const float _WaveFoamStrength = 2.;
-					const float _WaveFoamCoverage = 0.75;
 					last += 5. * _MyDeltaTime * _WaveFoamStrength * saturate(_WaveFoamCoverage - det);
 
 					last *= max(0.0, 1.0 - _FoamFadeRate * _MyDeltaTime);

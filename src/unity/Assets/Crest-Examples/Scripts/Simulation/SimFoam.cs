@@ -11,6 +11,10 @@ namespace Crest
     {
         [Range(0f, 5f)]
         public float _foamFadeRate = 0.8f;
+        [Range(0f, 5f)]
+        public float _WaveFoamStrength = 1f;
+        [Range(0f, 1f)]
+        public float _WaveFoamCoverage = 0.75f;
 
         public override string SimName { get { return "Foam"; } }
         protected override string ShaderSim { get { return "Ocean/Shape/Sim/Foam"; } }
@@ -24,6 +28,8 @@ namespace Crest
             base.SetAdditionalSimParams(simMaterial);
 
             simMaterial.SetFloat("_FoamFadeRate", _foamFadeRate);
+            simMaterial.SetFloat("_WaveFoamStrength", _WaveFoamStrength);
+            simMaterial.SetFloat("_WaveFoamCoverage", _WaveFoamCoverage);
         }
     }
 }

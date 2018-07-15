@@ -53,7 +53,7 @@ Shader "Ocean/Shape/Combine"
 				// sample the shape 1 texture at this world pos
 				float2 uv_1 = WD_worldToUV(worldPos, _WD_Pos_Scale_1.xy, _WD_Params_1.y, _WD_Params_1.x);
 
-				// return the shape data to be additiviely blended down the lod chain
+				// return the shape data to be additively blended down the lod chain
 				return tex2D(_MainTex, uv_1);
 			}
 			ENDCG

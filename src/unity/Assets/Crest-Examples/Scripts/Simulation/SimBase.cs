@@ -12,8 +12,6 @@ namespace Crest
     {
         [HideInInspector]
         public float _resolution = 1f;
-        [HideInInspector]
-        public int _shapeRenderLayer;
 
         Material _copySimMaterial = null;
 
@@ -42,12 +40,12 @@ namespace Crest
         {
             // utility quad which will be rasterized by the shape camera
             _renderSim = CreateRasterQuad("RenderSim_" + SimName);
-            _renderSim.layer = _shapeRenderLayer;
             _renderSim.transform.parent = transform;
             _renderSim.transform.localScale = Vector3.one;
             _renderSim.transform.localPosition = Vector3.forward * 25f;
             _renderSim.transform.localRotation = Quaternion.identity;
             _renderSim.GetComponent<Renderer>().material = _renderSimMaterial = new Material(Shader.Find(ShaderSim));
+            _renderSim.GetComponent<Renderer>().enabled = false;
         }
 
         GameObject CreateRasterQuad(string name)
@@ -67,11 +65,20 @@ namespace Crest
             return result;
         }
 
-        CommandBuffer _copySimResultsCmdBuf;
+        CommandBuffer _advanceSimCmdBuf, _copySimResultsCmdBuf;
         int _bufAssignedCamIdx = -1;
 
         void LateUpdate()
         {
+            if (_advanceSimCmdBuf == null)
+            {
+                _advanceSimCmdBuf = new CommandBuffer();
+                _advanceSimCmdBuf.name = "AdvanceSim_" + SimName;
+                Cam.AddCommandBuffer(CameraEvent.BeforeForwardAlpha, _advanceSimCmdBuf);
+                _advanceSimCmdBuf.DrawRenderer(GetComponentInChildren<MeshRenderer>(), _renderSimMaterial);
+            }
+
+
             if (_copySimResultsCmdBuf == null)
             {
                 _copySimResultsCmdBuf = new CommandBuffer();

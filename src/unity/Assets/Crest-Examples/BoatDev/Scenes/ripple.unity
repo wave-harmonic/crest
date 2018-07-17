@@ -277,10 +277,16 @@ MonoBehaviour:
   _simulationLayers:
   - _simType: 1
     _resolution: 1
-    _shapeRenderLayer: FoamSim2
+    _disabled: 0
   - _simType: 0
     _resolution: 1
-    _shapeRenderLayer: DynamicSimData0
+    _disabled: 0
+  - _simType: 1
+    _resolution: 2
+    _disabled: 0
+  - _simType: 0
+    _resolution: 2
+    _disabled: 0
 --- !u!1 &425566348
 GameObject:
   m_ObjectHideFlags: 0

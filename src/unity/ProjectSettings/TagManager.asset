@@ -17,10 +17,8 @@ TagManager:
   - WaveData
   - Terrain
   - EditorOnly
-  - DynamicSimData0
-  - DynamicSimData1
-  - FoamSim2
-  - FoamSim4
+  - SimWave
+  - SimFoam
   - 
   - 
   - 

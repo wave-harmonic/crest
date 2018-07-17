@@ -11,10 +11,7 @@ namespace Crest
         {
             public SimType _simType;
             public SimResolution _resolution;
-
-            [Tooltip("Create a layer for sim inputs to render into and put the name here.")]
-            public string _shapeRenderLayer;
-            // could populate a dropdown list for this: https://answers.unity.com/questions/609385/type-for-layer-selection.html, https://answers.unity.com/questions/458987/dropdownlist-with-string-array-in-editor-inspector.html
+            public bool _disabled;
         }
 
         public enum SimType
@@ -42,9 +39,13 @@ namespace Crest
         {
             foreach (var layer in _simulationLayers)
             {
-                int layerIndex = LayerMask.NameToLayer(layer._shapeRenderLayer);
+                if (layer._disabled)
+                    continue;
 
-                if (string.IsNullOrEmpty(layer._shapeRenderLayer) || layerIndex == -1)
+                string layerName = "Sim" + layer._simType.ToString();
+                int layerIndex = LayerMask.NameToLayer(layerName);
+
+                if (layerIndex == -1)
                 {
                     Debug.LogError("Creation of a " + layer._simType.ToString() + " simulation type was skipped because no render layer was provided.", this);
                     continue;
@@ -59,7 +60,6 @@ namespace Crest
                 var sim = layer._simType == SimType.Wave ? simGO.AddComponent<SimWave>() : simGO.AddComponent<SimFoam>()
                     as SimBase;
                 sim._resolution = GetRes(layer._resolution);
-                sim._shapeRenderLayer = layerIndex;
                 simGO.name = "Sim_" + sim.SimName + "_" + layer._resolution.ToString();
 
                 var cart = simGO.AddComponent<CreateAssignRenderTexture>();

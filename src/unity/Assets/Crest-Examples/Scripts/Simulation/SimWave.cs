@@ -28,6 +28,8 @@ namespace Crest
         [Range(0f, 5f)]
         public float _foamAmount = 0.45f;
 
+        public bool _rotateLaplacian = true;
+
         SimFoam _foamSim;
         Material _generateFoamFromSim;
 
@@ -53,6 +55,9 @@ namespace Crest
             base.SetAdditionalSimParams(simMaterial);
 
             simMaterial.SetFloat("_Damping", _damping);
+
+            float laplacianKernelAngle = _rotateLaplacian ? Mathf.PI * 2f * Random.value : 0f;
+            simMaterial.SetVector("_LaplacianAxisX", new Vector2(Mathf.Cos(laplacianKernelAngle), Mathf.Sin(laplacianKernelAngle)));
         }
 
         protected override void AddPostRenderCommands(CommandBuffer postRenderCmdBuf)

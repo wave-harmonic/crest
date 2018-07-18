@@ -36,7 +36,6 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 				};
 
 				uniform float3 _CameraPositionDelta;
-				uniform half _Damping;
 
 				v2f vert(appdata_t v)
 				{
@@ -57,6 +56,9 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 					return o;
 				}
 
+				uniform half _Damping;
+				uniform float2 _LaplacianAxisX;
+
 				// respects the gui option to freeze time
 				uniform float _MyTime;
 				uniform float _MyDeltaTime;
@@ -69,15 +71,19 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 					// waves, but it does produce some stretchy artifacts at edges.
 
 					float4 uv = float4(i.uv.xy, 0., 0.);
-					float3 e = float3(i.uv.zw, 0.);
 
 					float4 ft_ftm_faccum_foam = tex2Dlod(_WavePPTSource, uv);
 					float ft = ft_ftm_faccum_foam.x; // t - current value before update
 					float ftm = ft_ftm_faccum_foam.y; // t minus - previous value
-					float fxm = tex2Dlod(_WavePPTSource, uv - e.xzzz).x; // x minus
-					float fym = tex2Dlod(_WavePPTSource, uv - e.zyzz).x; // y minus
-					float fxp = tex2Dlod(_WavePPTSource, uv + e.xzzz).x; // x plus
-					float fyp = tex2Dlod(_WavePPTSource, uv + e.zyzz).x; // y plus
+
+					// compute axes of laplacian kernel - rotated every frame
+					float2 e = i.uv.zw;
+					float4 X = float4(_LaplacianAxisX, 0., 0.);
+					float4 Y = float4(-X.y, X.x, 0., 0.);
+					float fxm = tex2Dlod(_WavePPTSource, uv - e.x*X).x; // x minus
+					float fym = tex2Dlod(_WavePPTSource, uv - e.y*Y).x; // y minus
+					float fxp = tex2Dlod(_WavePPTSource, uv + e.x*X).x; // x plus
+					float fyp = tex2Dlod(_WavePPTSource, uv + e.y*Y).x; // y plus
 
 					const float texelSize = 2. * unity_OrthoParams.x * i.uv.z; // assumes square RT
 

@@ -10,8 +10,8 @@ namespace Crest
         public class SimLayer
         {
             public SimType _simType;
-            public SimResolution _resolution;
             public bool _disabled;
+            public SimResolution[] _resolutions;
         }
 
         public enum SimType
@@ -51,44 +51,47 @@ namespace Crest
                     continue;
                 }
 
-                var simGO = new GameObject();
-                simGO.transform.parent = transform;
-                simGO.transform.localPosition = Vector3.zero;
-                simGO.transform.localEulerAngles = 90f * Vector3.right;
-                simGO.transform.localScale = Vector3.one;
+                foreach(var resolution in layer._resolutions)
+                {
+                    var simGO = new GameObject();
+                    simGO.transform.parent = transform;
+                    simGO.transform.localPosition = Vector3.zero;
+                    simGO.transform.localEulerAngles = 90f * Vector3.right;
+                    simGO.transform.localScale = Vector3.one;
 
-                var sim = layer._simType == SimType.Wave ? simGO.AddComponent<SimWave>() : simGO.AddComponent<SimFoam>()
-                    as SimBase;
-                sim._resolution = GetRes(layer._resolution);
-                simGO.name = "Sim_" + sim.SimName + "_" + layer._resolution.ToString();
+                    var sim = layer._simType == SimType.Wave ? simGO.AddComponent<SimWave>() : simGO.AddComponent<SimFoam>()
+                        as SimBase;
+                    sim._resolution = GetRes(resolution);
+                    simGO.name = "Sim_" + sim.SimName + "_" + resolution.ToString();
 
-                var cart = simGO.AddComponent<CreateAssignRenderTexture>();
-                cart._width = cart._height = (int)(4f * OceanRenderer.Instance._baseVertDensity);
-                cart._depthBits = 0;
-                cart._format = sim.TextureFormat;
-                cart._wrapMode = TextureWrapMode.Clamp;
-                cart._antiAliasing = 1;
-                cart._filterMode = FilterMode.Bilinear;
-                cart._anisoLevel = 0;
-                cart._useMipMap = false;
-                cart._createPingPongTargets = true;
-                cart._targetName = simGO.name;
+                    var cart = simGO.AddComponent<CreateAssignRenderTexture>();
+                    cart._width = cart._height = (int)(4f * OceanRenderer.Instance._baseVertDensity);
+                    cart._depthBits = 0;
+                    cart._format = sim.TextureFormat;
+                    cart._wrapMode = TextureWrapMode.Clamp;
+                    cart._antiAliasing = 1;
+                    cart._filterMode = FilterMode.Bilinear;
+                    cart._anisoLevel = 0;
+                    cart._useMipMap = false;
+                    cart._createPingPongTargets = true;
+                    cart._targetName = simGO.name;
 
-                var cam = simGO.AddComponent<Camera>();
-                cam.clearFlags = CameraClearFlags.Nothing;
-                cam.cullingMask = 1 << layerIndex;
-                cam.orthographic = true;
-                cam.nearClipPlane = 0.3f;
-                cam.farClipPlane = 1000f;
-                cam.depth = sim.Depth;
-                cam.renderingPath = RenderingPath.Forward;
-                cam.useOcclusionCulling = false;
-                cam.allowHDR = true;
-                cam.allowMSAA = false;
-                cam.allowDynamicResolution = false;
+                    var cam = simGO.AddComponent<Camera>();
+                    cam.clearFlags = CameraClearFlags.Nothing;
+                    cam.cullingMask = 1 << layerIndex;
+                    cam.orthographic = true;
+                    cam.nearClipPlane = 0.3f;
+                    cam.farClipPlane = 1000f;
+                    cam.depth = sim.Depth;
+                    cam.renderingPath = RenderingPath.Forward;
+                    cam.useOcclusionCulling = false;
+                    cam.allowHDR = true;
+                    cam.allowMSAA = false;
+                    cam.allowDynamicResolution = false;
+                }
             }
 
-            foreach( var child in transform)
+            foreach ( var child in transform)
             {
                 var sim = (child as Transform).GetComponent<SimBase>();
                 if (sim == null) continue;

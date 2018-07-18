@@ -27,7 +27,7 @@ float2 WD_uvToWorld(in float2 i_uv, in float2 i_centerPos, in float i_res, in fl
 
 // sample wave or terrain height, with smooth blend towards edges. computes normals and determinant and samples ocean depth.
 // would equally apply to heights instead of displacements.
-void SampleDisplacements(in sampler2D i_dispSampler, in sampler2D i_oceanDepthSampler, in float2 i_centerPos, in float i_res, in float i_invRes, in float i_texelSize, in float2 i_samplePos, in float wt, inout float3 io_worldPos, inout float3 io_n, inout half io_signedOceanDepth, inout half io_foam)
+void SampleDisplacements(in sampler2D i_dispSampler, in sampler2D i_oceanDepthSampler, in float2 i_centerPos, in float i_res, in float i_invRes, in float i_texelSize, in float2 i_samplePos, in float wt, inout float3 io_worldPos, inout float3 io_n, inout half io_foam)
 {
 	if (wt < 0.001)
 		return;
@@ -45,8 +45,6 @@ void SampleDisplacements(in sampler2D i_dispSampler, in sampler2D i_oceanDepthSa
 
 	float3 n = normalize(cross(disp_z - disp, disp_x - disp));
 	io_n.xz += wt * n.xz;
-
-	io_signedOceanDepth += wt * (tex2Dlod(i_oceanDepthSampler, uv).x + DEPTH_BIAS + disp.y);
 
 	io_foam += wt * s.a;
 }

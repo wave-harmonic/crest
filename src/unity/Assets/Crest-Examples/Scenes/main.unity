@@ -653,11 +653,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _simulationLayers:
   - _simType: 1
-    _resolution: 2
-    _shapeRenderLayer: FoamSim2
-  - _simType: 1
-    _resolution: 3
-    _shapeRenderLayer: FoamSim2
+    _disabled: 0
+    _resolutions: 010000000200000003000000040000000500000006000000
 --- !u!1 &1566317004
 GameObject:
   m_ObjectHideFlags: 0

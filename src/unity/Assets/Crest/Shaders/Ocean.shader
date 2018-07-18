@@ -24,7 +24,6 @@ Shader "Ocean/Ocean"
 		_FoamWhiteColor("White Foam Color", Color) = (1.0, 1.0, 1.0, 1.0)
 		_FoamBubbleColor("Bubble Foam Color", Color) = (0.0, 0.0904, 0.105, 1.0)
 		_ShorelineFoamMinDepth("Shoreline Foam Min Depth", Range(0.0, 5.0)) = 0.27
-		_ShorelineFoamMaxDepth("Shoreline Foam Max Depth", Range(0.0,10.0)) = 1.5
 		_WaveFoamCoverage("Wave Foam Coverage", Range(0.0,5.0)) = 0.95
 		_WaveFoamStrength("Wave Foam Strength", Range(0.0,10.0)) = 2.8
 		_WaveFoamFeather("Wave Foam Feather", Range(0.001,1.0)) = 0.32
@@ -107,7 +106,6 @@ Shader "Ocean/Ocean"
 
 				// MeshScaleLerp, FarNormalsWeight, LODIndex (debug), unused
 				uniform float4 _InstanceData;
-				uniform half _ShorelineFoamMaxDepth;
 
 				v2f vert( appdata_t v )
 				{
@@ -125,20 +123,15 @@ Shader "Ocean/Ocean"
 					// sample shape textures - always lerp between 2 scales, so sample two textures
 					o.n = half3(0., 1., 0.);
 					o.foam_screenPos.x = 0.;
-					half signedOceanDepth = 0.;
 					// sample weights. params.z allows shape to be faded out (used on last lod to support pop-less scale transitions)
 					float wt_0 = (1. - lodAlpha) * _WD_Params_0.z;
 					float wt_1 = (1. - wt_0) * _WD_Params_1.z;
 					// sample displacement textures, add results to current world pos / normal / foam
 					#if !_DEBUGDISABLESHAPETEXTURES_ON
-					const float2 wxz = o.worldPos.xz;
-					SampleDisplacements( _WD_Sampler_0, _WD_OceanDepth_Sampler_0, _WD_Pos_Scale_0.xy, _WD_Params_0.y, _WD_Params_0.w, _WD_Params_0.x, wxz, wt_0, o.worldPos, o.n, signedOceanDepth, o.foam_screenPos.x);
-					SampleDisplacements( _WD_Sampler_1, _WD_OceanDepth_Sampler_1, _WD_Pos_Scale_1.xy, _WD_Params_1.y, _WD_Params_1.w, _WD_Params_1.x, wxz, wt_1, o.worldPos, o.n, signedOceanDepth, o.foam_screenPos.x);
+					const float2 worldXZBefore = o.worldPos.xz;
+					SampleDisplacements( _WD_Sampler_0, _WD_OceanDepth_Sampler_0, _WD_Pos_Scale_0.xy, _WD_Params_0.y, _WD_Params_0.w, _WD_Params_0.x, worldXZBefore, wt_0, o.worldPos, o.n, o.foam_screenPos.x);
+					SampleDisplacements( _WD_Sampler_1, _WD_OceanDepth_Sampler_1, _WD_Pos_Scale_1.xy, _WD_Params_1.y, _WD_Params_1.w, _WD_Params_1.x, worldXZBefore, wt_1, o.worldPos, o.n, o.foam_screenPos.x);
 					#endif
-
-					// foam from shallow water - signed depth is depth compared to sea level, plus wave height. depth bias is an optimisation
-					// which allows the depth data to be initialised once to 0 without generating foam everywhere.
-					o.foam_screenPos.x = max(o.foam_screenPos.x, saturate(1. - signedOceanDepth / _ShorelineFoamMaxDepth));
 
 					// debug tinting to see which shape textures are used
 					#if _DEBUGVISUALISESHAPESAMPLE_ON

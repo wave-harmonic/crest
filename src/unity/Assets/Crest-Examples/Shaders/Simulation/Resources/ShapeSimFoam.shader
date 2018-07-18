@@ -61,6 +61,8 @@ Shader "Ocean/Shape/Sim/Foam"
 				uniform half _FoamFadeRate;
 				uniform half _WaveFoamStrength;
 				uniform half _WaveFoamCoverage;
+				uniform half _ShorelineFoamMaxDepth;
+				uniform half _ShorelineFoamStrength;
 
 				uniform sampler2D _SimDataLastFrame;
 
@@ -95,6 +97,9 @@ Shader "Ocean/Shape/Sim/Foam"
 					float det = (du.x * du.w - du.y * du.z) / (_WD_Params_0.x * _WD_Params_0.x);
 
 					last += 5. * _MyDeltaTime * _WaveFoamStrength * saturate(_WaveFoamCoverage - det);
+
+					float signedOceanDepth = tex2Dlod(_WD_OceanDepth_Sampler_0, uv).x + DEPTH_BIAS + disp.y;
+					last += _ShorelineFoamStrength * _MyDeltaTime * saturate(1. - signedOceanDepth / _ShorelineFoamMaxDepth);
 
 					last *= max(0.0, 1.0 - _FoamFadeRate * _MyDeltaTime);
 

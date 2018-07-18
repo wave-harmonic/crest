@@ -77,13 +77,13 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 					float ftm = ft_ftm_faccum_foam.y; // t minus - previous value
 
 					// compute axes of laplacian kernel - rotated every frame
-					float2 e = i.uv.zw;
+					float e = i.uv.z; // assumes square RT
 					float4 X = float4(_LaplacianAxisX, 0., 0.);
 					float4 Y = float4(-X.y, X.x, 0., 0.);
-					float fxm = tex2Dlod(_WavePPTSource, uv - e.x*X).x; // x minus
-					float fym = tex2Dlod(_WavePPTSource, uv - e.y*Y).x; // y minus
-					float fxp = tex2Dlod(_WavePPTSource, uv + e.x*X).x; // x plus
-					float fyp = tex2Dlod(_WavePPTSource, uv + e.y*Y).x; // y plus
+					float fxm = tex2Dlod(_WavePPTSource, uv - e*X).x; // x minus
+					float fym = tex2Dlod(_WavePPTSource, uv - e*Y).x; // y minus
+					float fxp = tex2Dlod(_WavePPTSource, uv + e*X).x; // x plus
+					float fyp = tex2Dlod(_WavePPTSource, uv + e*Y).x; // y plus
 
 					const float texelSize = 2. * unity_OrthoParams.x * i.uv.z; // assumes square RT
 
@@ -105,10 +105,10 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 					// this actually doesn't work perfectly well - there is some minor reflections of high frequencies.
 					// dudt + c*dudx = 0
 					// (ftp - ft)   +   c*(ft-fxm) = 0.
-					if (i.uv.x + e.x >= 1.) ftp = -dt*c*(ft - fxm) + ft;
-					if (i.uv.y + e.y >= 1.) ftp = -dt*c*(ft - fym) + ft;
-					if (i.uv.x - e.x <= 0.) ftp = dt*c*(fxp - ft) + ft;
-					if (i.uv.y - e.y <= 0.) ftp = dt*c*(fyp - ft) + ft;
+					if (i.uv.x + e >= 1.) ftp = -dt*c*(ft - fxm) + ft;
+					if (i.uv.y + e >= 1.) ftp = -dt*c*(ft - fym) + ft;
+					if (i.uv.x - e <= 0.) ftp = dt*c*(fxp - ft) + ft;
+					if (i.uv.y - e <= 0.) ftp = dt*c*(fyp - ft) + ft;
 
 					// Damping
 					ftp *= max(0.0, 1.0 - _Damping * dt);

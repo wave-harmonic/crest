@@ -63,7 +63,7 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 				uniform float _MyTime;
 				uniform float _MyDeltaTime;
 
-				uniform sampler2D _WavePPTSource;
+				uniform sampler2D _SimDataLastFrame;
 
 				float4 frag(v2f i) : SV_Target
 				{
@@ -72,7 +72,7 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 
 					float4 uv = float4(i.uv.xy, 0., 0.);
 
-					float4 ft_ftm_faccum_foam = tex2Dlod(_WavePPTSource, uv);
+					float4 ft_ftm_faccum_foam = tex2Dlod(_SimDataLastFrame, uv);
 					float ft = ft_ftm_faccum_foam.x; // t - current value before update
 					float ftm = ft_ftm_faccum_foam.y; // t minus - previous value
 
@@ -80,10 +80,10 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 					float e = i.uv.z; // assumes square RT
 					float4 X = float4(_LaplacianAxisX, 0., 0.);
 					float4 Y = float4(-X.y, X.x, 0., 0.);
-					float fxm = tex2Dlod(_WavePPTSource, uv - e*X).x; // x minus
-					float fym = tex2Dlod(_WavePPTSource, uv - e*Y).x; // y minus
-					float fxp = tex2Dlod(_WavePPTSource, uv + e*X).x; // x plus
-					float fyp = tex2Dlod(_WavePPTSource, uv + e*Y).x; // y plus
+					float fxm = tex2Dlod(_SimDataLastFrame, uv - e*X).x; // x minus
+					float fym = tex2Dlod(_SimDataLastFrame, uv - e*Y).x; // y minus
+					float fxp = tex2Dlod(_SimDataLastFrame, uv + e*X).x; // x plus
+					float fyp = tex2Dlod(_SimDataLastFrame, uv + e*Y).x; // y plus
 
 					const float texelSize = 2. * unity_OrthoParams.x * i.uv.z; // assumes square RT
 

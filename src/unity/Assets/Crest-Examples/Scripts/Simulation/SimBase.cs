@@ -23,7 +23,6 @@ namespace Crest
 
         public abstract string SimName { get; }
         protected abstract string ShaderSim { get; }
-        protected abstract string ShaderTextureLastSimResult { get; }
         protected abstract string ShaderRenderResultsIntoDispTexture { get; }
         public abstract RenderTextureFormat TextureFormat { get; }
         public abstract int Depth { get; }
@@ -136,7 +135,7 @@ namespace Crest
             _renderSimMaterial.SetVector("_CameraPositionDelta", posDelta);
             _camPosSnappedLast = wdc._renderData._posSnapped;
 
-            _renderSimMaterial.SetTexture(ShaderTextureLastSimResult, PPRTs.Source);
+            _renderSimMaterial.SetTexture("_SimDataLastFrame", PPRTs.Source);
             wdc.ApplyMaterialParams(0, new PropertyWrapperMaterial(_renderSimMaterial));
 
             SetAdditionalSimParams(_renderSimMaterial);

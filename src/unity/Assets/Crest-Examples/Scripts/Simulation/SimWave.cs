@@ -12,7 +12,6 @@ namespace Crest
     {
         public override string SimName { get { return "Wave"; } }
         protected override string ShaderSim { get { return "Ocean/Shape/Sim/2D Wave Equation"; } }
-        protected override string ShaderTextureLastSimResult { get { return "_WavePPTSource"; } }
         protected override string ShaderRenderResultsIntoDispTexture { get { return "Ocean/Shape/Sim/Wave Add To Disps"; } }
         public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.ARGBHalf; } }
         public override int Depth { get { return -21; } }

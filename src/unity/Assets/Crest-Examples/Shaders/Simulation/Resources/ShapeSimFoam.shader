@@ -62,14 +62,14 @@ Shader "Ocean/Shape/Sim/Foam"
 				uniform half _WaveFoamStrength;
 				uniform half _WaveFoamCoverage;
 
-				uniform sampler2D _FoamLastFrame;
+				uniform sampler2D _SimDataLastFrame;
 
 				half frag(v2f i) : SV_Target
 				{
 					float4 uv = float4(i.uv_lastframe.xy, 0., 0.);
 
 					// sampler will clamp the uv currently
-					half last = tex2Dlod(_FoamLastFrame, uv).x;
+					half last = tex2Dlod(_SimDataLastFrame, uv).x;
 					half2 r = abs(uv.xy - 0.5);
 					if (max(r.x, r.y) > 0.5)
 					{

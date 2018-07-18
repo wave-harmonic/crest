@@ -88,8 +88,8 @@ Shader "Ocean/Ocean"
 				{
 					float4 vertex : SV_POSITION;
 					half3 n : TEXCOORD1;
-					half4 shorelineFoam_screenPos : TEXCOORD4;
-					half4 lodAlpha_worldXZUndisplaced_foam : TEXCOORD5;
+					half4 foam_screenPos : TEXCOORD4;
+					half3 lodAlpha_worldXZUndisplaced : TEXCOORD5;
 					float3 worldPos : TEXCOORD7;
 					#if _DEBUGVISUALISESHAPESAMPLE_ON
 					half3 debugtint : TEXCOORD8;
@@ -119,12 +119,12 @@ Shader "Ocean/Ocean"
 					// vertex snapping and lod transition
 					float lodAlpha;
 					SnapAndTransitionVertLayout(_InstanceData.x, o.worldPos, lodAlpha);
-					o.lodAlpha_worldXZUndisplaced_foam.x = lodAlpha;
-					o.lodAlpha_worldXZUndisplaced_foam.yz = o.worldPos.xz;
-					o.lodAlpha_worldXZUndisplaced_foam.w = 0.;
+					o.lodAlpha_worldXZUndisplaced.x = lodAlpha;
+					o.lodAlpha_worldXZUndisplaced.yz = o.worldPos.xz;
 
 					// sample shape textures - always lerp between 2 scales, so sample two textures
 					o.n = half3(0., 1., 0.);
+					o.foam_screenPos.x = 0.;
 					half signedOceanDepth = 0.;
 					// sample weights. params.z allows shape to be faded out (used on last lod to support pop-less scale transitions)
 					float wt_0 = (1. - lodAlpha) * _WD_Params_0.z;
@@ -132,15 +132,13 @@ Shader "Ocean/Ocean"
 					// sample displacement textures, add results to current world pos / normal / foam
 					#if !_DEBUGDISABLESHAPETEXTURES_ON
 					const float2 wxz = o.worldPos.xz;
-					SampleDisplacements( _WD_Sampler_0, _WD_OceanDepth_Sampler_0, _WD_Pos_Scale_0.xy, _WD_Params_0.y, _WD_Params_0.w, _WD_Params_0.x, wxz, wt_0, o.worldPos, o.n, signedOceanDepth, o.lodAlpha_worldXZUndisplaced_foam.w);
-					SampleDisplacements( _WD_Sampler_1, _WD_OceanDepth_Sampler_1, _WD_Pos_Scale_1.xy, _WD_Params_1.y, _WD_Params_1.w, _WD_Params_1.x, wxz, wt_1, o.worldPos, o.n, signedOceanDepth, o.lodAlpha_worldXZUndisplaced_foam.w);
+					SampleDisplacements( _WD_Sampler_0, _WD_OceanDepth_Sampler_0, _WD_Pos_Scale_0.xy, _WD_Params_0.y, _WD_Params_0.w, _WD_Params_0.x, wxz, wt_0, o.worldPos, o.n, signedOceanDepth, o.foam_screenPos.x);
+					SampleDisplacements( _WD_Sampler_1, _WD_OceanDepth_Sampler_1, _WD_Pos_Scale_1.xy, _WD_Params_1.y, _WD_Params_1.w, _WD_Params_1.x, wxz, wt_1, o.worldPos, o.n, signedOceanDepth, o.foam_screenPos.x);
 					#endif
 
-					o.lodAlpha_worldXZUndisplaced_foam.w = smoothstep(0.2, 0.0, o.lodAlpha_worldXZUndisplaced_foam.w);
-					
 					// foam from shallow water - signed depth is depth compared to sea level, plus wave height. depth bias is an optimisation
 					// which allows the depth data to be initialised once to 0 without generating foam everywhere.
-					o.shorelineFoam_screenPos.x = saturate(1. - signedOceanDepth / _ShorelineFoamMaxDepth);
+					o.foam_screenPos.x = max(o.foam_screenPos.x, saturate(1. - signedOceanDepth / _ShorelineFoamMaxDepth));
 
 					// debug tinting to see which shape textures are used
 					#if _DEBUGVISUALISESHAPESAMPLE_ON
@@ -158,7 +156,7 @@ Shader "Ocean/Ocean"
 					// colours may or may not come from the backbuffer, which means they may or may not be flipped in y. use these macros
 					// to get the right results, every time.
 					o.grabPos = ComputeGrabScreenPos(o.vertex);
-					o.shorelineFoam_screenPos.yzw = ComputeScreenPos(o.vertex).xyw;
+					o.foam_screenPos.yzw = ComputeScreenPos(o.vertex).xyw;
 
 					return o;
 				}
@@ -236,20 +234,21 @@ Shader "Ocean/Ocean"
 				half WhiteFoamTexture(half i_foam, float2 i_worldXZUndisplaced, half2 duv)
 				{
 					half ft = lerp(
-						texture(_FoamTexture, .125*i_worldXZUndisplaced + .85*_Time.x + duv).r,
-						texture(_FoamTexture, .3*i_worldXZUndisplaced - .85*_Time.x + duv).r,
+						texture(_FoamTexture, .125*i_worldXZUndisplaced + .1*_Time.x + duv).r,
+						texture(_FoamTexture, .3*i_worldXZUndisplaced - .1*_Time.x + duv).r,
 						0.5);
-					return smoothstep(i_foam, i_foam + .5, ft);
+
+					// black point fade
+					i_foam = saturate(1. - i_foam);
+					return smoothstep(i_foam, i_foam + .1, ft);
 				}
 
-				void ComputeFoam(half i_foam, float2 i_worldXZUndisplaced, float2 i_worldXZ, half3 i_n, half i_shorelineFoam, float i_pixelZ, float i_sceneZ, half3 i_view, float3 i_lightDir, out half3 o_bubbleCol, out half4 o_whiteFoamCol)
+				void ComputeFoam(half i_foam, float2 i_worldXZUndisplaced, float2 i_worldXZ, half3 i_n, float i_pixelZ, float i_sceneZ, half3 i_view, float3 i_lightDir, out half3 o_bubbleCol, out half4 o_whiteFoamCol)
 				{
 					half foamAmount = i_foam;
-					// Shoreline foam
-					foamAmount += i_shorelineFoam;
+					
 					// feather foam very close to shore
 					foamAmount *= saturate((i_sceneZ - i_pixelZ) / _ShorelineFoamMinDepth);
-
 
 					// Additive underwater foam
 					//float2 foamUVBubbles = (lerp(i_worldXZUndisplaced, i_worldXZ, 0.05) + 0.5 * _MyTime * _WindDirXZ) / _FoamScale;
@@ -260,13 +259,6 @@ Shader "Ocean/Ocean"
 
 					// White foam on top, with black-point fading
 					float2 foamUV = (i_worldXZUndisplaced + 0.05 * _MyTime * _WindDirXZ) / _FoamScale + 0.02 * i_n.xz;
-					//half foamTexValue = texture(_FoamTexture, foamUV).r;
-					//half whiteFoam = 0.;// foamTexValue * (smoothstep(foamAmount + _WaveFoamFeather, foamAmount, 1. - foamTexValue)) * _FoamWhiteColor.a;
-					//float ft = lerp(
-					//	texture(_FoamTexture, .25*i_worldXZUndisplaced + .85*_Time.x).r,
-					//	texture(_FoamTexture, .6*i_worldXZUndisplaced - .85*_Time.x).r,
-					//	0.5);
-					//whiteFoam = smoothstep(foamAmount, foamAmount + .5, ft);
 					half whiteFoam = WhiteFoamTexture(foamAmount, i_worldXZUndisplaced, 0.);
 
 					#if _FOAM3DLIGHTING_ON
@@ -339,7 +331,7 @@ Shader "Ocean/Ocean"
 
 					// water surface depth, and underlying scene opaque surface depth
 					float pixelZ = LinearEyeDepth(i.vertex.z);
-					half3 screenPos = i.shorelineFoam_screenPos.yzw;
+					half3 screenPos = i.foam_screenPos.yzw;
 					half2 uvDepth = screenPos.xy / screenPos.z;
 					float sceneZ = LinearEyeDepth(texture(_CameraDepthTexture, uvDepth).x);
 
@@ -350,14 +342,14 @@ Shader "Ocean/Ocean"
 					half3 n_geom = normalize(i.n);
 					half3 n_pixel = n_geom;
 					#if _APPLYNORMALMAPPING_ON
-					ApplyNormalMaps(i.lodAlpha_worldXZUndisplaced_foam.yz, i.lodAlpha_worldXZUndisplaced_foam.x, n_pixel);
+					ApplyNormalMaps(i.lodAlpha_worldXZUndisplaced.yz, i.lodAlpha_worldXZUndisplaced.x, n_pixel);
 					#endif
 
 					// Foam - underwater bubbles and whitefoam
 					half3 bubbleCol = (half3)0.;
 					#if _FOAM_ON
 					half4 whiteFoamCol;
-					ComputeFoam(i.lodAlpha_worldXZUndisplaced_foam.w, i.lodAlpha_worldXZUndisplaced_foam.yz, i.worldPos.xz, n_pixel, i.shorelineFoam_screenPos.x, pixelZ, sceneZ, view, lightDir, bubbleCol, whiteFoamCol);
+					ComputeFoam(i.foam_screenPos.x, i.lodAlpha_worldXZUndisplaced.yz, i.worldPos.xz, n_pixel, pixelZ, sceneZ, view, lightDir, bubbleCol, whiteFoamCol);
 					#endif
 
 					// Compute color of ocean - in-scattered light + refracted scene

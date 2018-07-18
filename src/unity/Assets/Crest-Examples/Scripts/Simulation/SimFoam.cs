@@ -12,9 +12,9 @@ namespace Crest
         [Range(0f, 5f)]
         public float _foamFadeRate = 0.8f;
         [Range(0f, 5f)]
-        public float _WaveFoamStrength = 1f;
+        public float _WaveFoamStrength = 1.25f;
         [Range(0f, 1f)]
-        public float _WaveFoamCoverage = 0.75f;
+        public float _WaveFoamCoverage = 0.8f;
 
         public override string SimName { get { return "Foam"; } }
         protected override string ShaderSim { get { return "Ocean/Shape/Sim/Foam"; } }

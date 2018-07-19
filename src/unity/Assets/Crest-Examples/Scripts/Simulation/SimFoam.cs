@@ -9,6 +9,13 @@ namespace Crest
     /// </summary>
     public class SimFoam : SimBase
     {
+        public override string SimName { get { return "Foam"; } }
+        protected override string ShaderSim { get { return "Ocean/Shape/Sim/Foam"; } }
+        protected override string ShaderRenderResultsIntoDispTexture { get { return "Ocean/Shape/Sim/Foam Add To Disps"; } }
+        public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RHalf; } }
+        public static readonly int SIM_RENDER_DEPTH = -20;
+        public override int Depth { get { return SIM_RENDER_DEPTH; } }
+
         [Range(0f, 5f)]
         public float _foamFadeRate = 0.8f;
         [Range(0f, 5f)]
@@ -19,12 +26,6 @@ namespace Crest
         public float _ShorelineFoamMaxDepth = 0.65f;
         [Range(0f, 1f)]
         public float _ShorelineFoamStrength = 0.313f;
-
-        public override string SimName { get { return "Foam"; } }
-        protected override string ShaderSim { get { return "Ocean/Shape/Sim/Foam"; } }
-        protected override string ShaderRenderResultsIntoDispTexture { get { return "Ocean/Shape/Sim/Foam Add To Disps"; } }
-        public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RHalf; } }
-        public override int Depth { get { return -20; } }
 
         protected override void SetAdditionalSimParams(Material simMaterial)
         {

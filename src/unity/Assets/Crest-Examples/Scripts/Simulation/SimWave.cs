@@ -14,7 +14,8 @@ namespace Crest
         protected override string ShaderSim { get { return "Ocean/Shape/Sim/2D Wave Equation"; } }
         protected override string ShaderRenderResultsIntoDispTexture { get { return "Ocean/Shape/Sim/Wave Add To Disps"; } }
         public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.ARGBHalf; } }
-        public override int Depth { get { return -21; } }
+        // simulate before foam, because foam sim will generate from the waves (if there are matching resolutions)
+        public override int Depth { get { return SimFoam.SIM_RENDER_DEPTH - 1; } }
 
         [Range(0f, 1f)]
         public float _damping = 0.173f;

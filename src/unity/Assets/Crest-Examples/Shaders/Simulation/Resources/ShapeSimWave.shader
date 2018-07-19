@@ -31,27 +31,18 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 
 				struct v2f {
 					float4 vertex : SV_POSITION;
-					float4 uv : TEXCOORD0;
-					float2 uv_uncompensated : TEXCOORD1;
+					float3 uv_lastframe : TEXCOORD0;
 				};
 
-				uniform float3 _CameraPositionDelta;
+				#include "SimHelpers.cginc"
 
 				v2f vert(appdata_t v)
 				{
 					v2f o;
 					o.vertex = UnityObjectToClipPos(v.vertex);
 
-					// compute uncompensated uv
-					o.uv_uncompensated.xy = o.vertex.xy;
-					o.uv_uncompensated.y = -o.uv_uncompensated.y;
-					o.uv_uncompensated.xy = 0.5*o.uv_uncompensated.xy + 0.5;
-
-					// compensate for camera motion - adjust lookup uv to get texel from last frame sim
-					o.uv.xy = o.uv_uncompensated;
-					o.uv.zw = float2(1., 1.) / _ScreenParams.xy;
-					const float texelSize = 2. * unity_OrthoParams.x * o.uv.z; // assumes square RT
-					o.uv.xy += o.uv.zw * _CameraPositionDelta.xz / texelSize;
+					float2 uv;
+					ComputeUVs(o.vertex.xy, o.uv_lastframe.xy, uv, o.uv_lastframe.z);
 
 					return o;
 				}
@@ -70,22 +61,22 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 					// if i.uv is out of bounds, it will be clamped. this seems to work ok-ish, it doesnt generate shock
 					// waves, but it does produce some stretchy artifacts at edges.
 
-					float4 uv = float4(i.uv.xy, 0., 0.);
+					float4 uv_lastframe = float4(i.uv_lastframe.xy, 0., 0.);
 
-					float4 ft_ftm_faccum_foam = tex2Dlod(_SimDataLastFrame, uv);
+					float4 ft_ftm_faccum_foam = tex2Dlod(_SimDataLastFrame, uv_lastframe);
 					float ft = ft_ftm_faccum_foam.x; // t - current value before update
 					float ftm = ft_ftm_faccum_foam.y; // t minus - previous value
 
 					// compute axes of laplacian kernel - rotated every frame
-					float e = i.uv.z; // assumes square RT
+					float e = i.uv_lastframe.z; // assumes square RT
 					float4 X = float4(_LaplacianAxisX, 0., 0.);
 					float4 Y = float4(-X.y, X.x, 0., 0.);
-					float fxm = tex2Dlod(_SimDataLastFrame, uv - e*X).x; // x minus
-					float fym = tex2Dlod(_SimDataLastFrame, uv - e*Y).x; // y minus
-					float fxp = tex2Dlod(_SimDataLastFrame, uv + e*X).x; // x plus
-					float fyp = tex2Dlod(_SimDataLastFrame, uv + e*Y).x; // y plus
+					float fxm = tex2Dlod(_SimDataLastFrame, uv_lastframe - e*X).x; // x minus
+					float fym = tex2Dlod(_SimDataLastFrame, uv_lastframe - e*Y).x; // y minus
+					float fxp = tex2Dlod(_SimDataLastFrame, uv_lastframe + e*X).x; // x plus
+					float fyp = tex2Dlod(_SimDataLastFrame, uv_lastframe + e*Y).x; // y plus
 
-					const float texelSize = 2. * unity_OrthoParams.x * i.uv.z; // assumes square RT
+					const float texelSize = 2. * unity_OrthoParams.x * i.uv_lastframe.z; // assumes square RT
 
 					//float waterSignedDepth = tex2D(_WD_OceanDepth_Sampler_0, float4(i.uv_uncompensated, 0., 0.)).x;
 					//float h = max(waterSignedDepth + ft, 0.);
@@ -105,10 +96,10 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 					// this actually doesn't work perfectly well - there is some minor reflections of high frequencies.
 					// dudt + c*dudx = 0
 					// (ftp - ft)   +   c*(ft-fxm) = 0.
-					if (i.uv.x + e >= 1.) ftp = -dt*c*(ft - fxm) + ft;
-					if (i.uv.y + e >= 1.) ftp = -dt*c*(ft - fym) + ft;
-					if (i.uv.x - e <= 0.) ftp = dt*c*(fxp - ft) + ft;
-					if (i.uv.y - e <= 0.) ftp = dt*c*(fyp - ft) + ft;
+					if (i.uv_lastframe.x + e >= 1.) ftp = -dt*c*(ft - fxm) + ft;
+					if (i.uv_lastframe.y + e >= 1.) ftp = -dt*c*(ft - fym) + ft;
+					if (i.uv_lastframe.x - e <= 0.) ftp = dt*c*(fxp - ft) + ft;
+					if (i.uv_lastframe.y - e <= 0.) ftp = dt*c*(fyp - ft) + ft;
 
 					// Damping
 					ftp *= max(0.0, 1.0 - _Damping * dt);
@@ -130,7 +121,7 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 					// uses two different blend modes - it multiplies xyz and adds some foam for shallow water.
 					float4 result = float4(ftp, ft, 0., foam);
 
-					return result; // float4(1., 0., 0., 1.);
+					return result;
 				}
 
 				ENDCG

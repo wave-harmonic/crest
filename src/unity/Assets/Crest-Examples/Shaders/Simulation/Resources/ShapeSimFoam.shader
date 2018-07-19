@@ -31,26 +31,18 @@ Shader "Ocean/Shape/Sim/Foam"
 
 				struct v2f {
 					float4 vertex : SV_POSITION;
-					float2 uv_lastframe : TEXCOORD0;
+					float4 uv_uv_lastframe : TEXCOORD0;
 				};
 
-				uniform float3 _CameraPositionDelta;
+				#include "SimHelpers.cginc"
 
 				v2f vert(appdata_t v)
 				{
 					v2f o;
 					o.vertex = UnityObjectToClipPos(v.vertex);
 
-					// compute uncompensated uv
-					float2 uv = o.vertex.xy;
-					uv.y = -uv.y;
-					uv.xy = 0.5*uv.xy + 0.5;
-
-					// compensate for camera motion - adjust lookup uv to get texel from last frame sim
-					o.uv_lastframe.xy = uv;
-					float invRes = 1. / _ScreenParams.x;
-					const float texelSize = 2.0 * unity_OrthoParams.x * invRes;
-					o.uv_lastframe.xy += invRes * _CameraPositionDelta.xz / texelSize;
+					float invRes;
+					ComputeUVs(o.vertex.xy, o.uv_uv_lastframe.zw, o.uv_uv_lastframe.xy, invRes);
 
 					return o;
 				}
@@ -68,42 +60,42 @@ Shader "Ocean/Shape/Sim/Foam"
 
 				half frag(v2f i) : SV_Target
 				{
-					float4 uv = float4(i.uv_lastframe.xy, 0., 0.);
+					float4 uv = float4(i.uv_uv_lastframe.xy, 0., 0.);
+					float4 uv_lastframe = float4(i.uv_uv_lastframe.zw, 0., 0.);
 
 					// sampler will clamp the uv currently
-					half last = tex2Dlod(_SimDataLastFrame, uv).x;
-					half2 r = abs(uv.xy - 0.5);
+					half foam = tex2Dlod(_SimDataLastFrame, uv_lastframe).x;
+					half2 r = abs(uv_lastframe.xy - 0.5);
 					if (max(r.x, r.y) > 0.5)
 					{
 						// no border wrap mode for RTs in unity it seems, so make any off-texture reads 0 manually
-						last = 0.;
+						foam = 0.;
 					}
 
-					// sample waves
+					// sample displacement texture and generate foam from it
 					const float3 dd = float3(_WD_Params_0.w, 0.0, _WD_Params_0.x);
 					half3 s = tex2Dlod(_WD_Sampler_0, uv).xyz;
 					half3 sx = tex2Dlod(_WD_Sampler_0, uv + dd.xyyy).xyz;
 					half3 sz = tex2Dlod(_WD_Sampler_0, uv + dd.yxyy).xyz;
-
 					float3 disp = s.xyz;
 					float3 disp_x = dd.zyy + sx.xyz;
 					float3 disp_z = dd.yyz + sz.xyz;
-
 					// The determinant of the displacement Jacobian is a good measure for turbulence:
 					// > 1: Stretch
 					// < 1: Squash
 					// < 0: Overlap
 					float4 du = float4(disp_x.xz, disp_z.xz) - disp.xzxz;
 					float det = (du.x * du.w - du.y * du.z) / (_WD_Params_0.x * _WD_Params_0.x);
+					foam += 5. * _MyDeltaTime * _WaveFoamStrength * saturate(_WaveFoamCoverage - det);
 
-					last += 5. * _MyDeltaTime * _WaveFoamStrength * saturate(_WaveFoamCoverage - det);
-
+					// add foam in shallow water
 					float signedOceanDepth = tex2Dlod(_WD_OceanDepth_Sampler_0, uv).x + DEPTH_BIAS + disp.y;
-					last += _ShorelineFoamStrength * _MyDeltaTime * saturate(1. - signedOceanDepth / _ShorelineFoamMaxDepth);
+					foam += _ShorelineFoamStrength * _MyDeltaTime * saturate(1. - signedOceanDepth / _ShorelineFoamMaxDepth);
 
-					last *= max(0.0, 1.0 - _FoamFadeRate * _MyDeltaTime);
+					// fade
+					foam *= max(0.0, 1.0 - _FoamFadeRate * _MyDeltaTime);
 
-					return last;
+					return foam;
 				}
 				ENDCG
 			}

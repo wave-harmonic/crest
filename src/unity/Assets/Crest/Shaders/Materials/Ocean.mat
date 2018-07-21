@@ -102,12 +102,12 @@ Material:
     - _TextureRes: 1024
     - _Transparency: 1
     - _Update: 0.083
-    - _WaveFoamBubblesCoverage: 0.115
+    - _WaveFoamBubblesCoverage: 0.18
     - _WaveFoamBubblesFeather: 0.32
     - _WaveFoamBubblesStart: 0.115
     - _WaveFoamBubblesStrength: 0.637
-    - _WaveFoamCoverage: 0.95
-    - _WaveFoamFeather: 0.32
+    - _WaveFoamCoverage: 0.38
+    - _WaveFoamFeather: 0.4
     - _WaveFoamLightScale: 0.62
     - _WaveFoamNormalsY: 0.071
     - _WaveFoamStart: 0
@@ -115,7 +115,7 @@ Material:
     m_Colors:
     - _DepthFogDensity: {r: 0.5568628, g: 0.4352941, b: 0.52156866, a: 1}
     - _Diffuse: {r: 0, g: 0.0067332755, b: 0.35686275, a: 1}
-    - _FoamBubbleColor: {r: 0.36541346, g: 0.62299997, b: 0.5571058, a: 1}
+    - _FoamBubbleColor: {r: 0.32798973, g: 0.566, b: 0.5050461, a: 1}
     - _FoamWhiteColor: {r: 0.92300004, g: 0.90792435, b: 0.83254606, a: 1}
     - _SubSurface: {r: 0, g: 0.48, b: 0.36, a: 1}
     - _SubSurfaceColour: {r: 0.10196078, g: 0.57254905, b: 0.5256646, a: 1}

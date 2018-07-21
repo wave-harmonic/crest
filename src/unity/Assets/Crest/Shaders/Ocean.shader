@@ -25,7 +25,6 @@ Shader "Ocean/Ocean"
 		_FoamBubbleColor("Bubble Foam Color", Color) = (0.0, 0.0904, 0.105, 1.0)
 		_ShorelineFoamMinDepth("Shoreline Foam Min Depth", Range(0.0, 5.0)) = 0.27
 		_WaveFoamCoverage("Wave Foam Coverage", Range(0.0,5.0)) = 0.95
-		_WaveFoamStrength("Wave Foam Strength", Range(0.0,10.0)) = 2.8
 		_WaveFoamFeather("Wave Foam Feather", Range(0.001,1.0)) = 0.32
 		_WaveFoamBubblesCoverage("Wave Foam Bubbles Coverage", Range(0.0,5.0)) = 0.95
 		_WaveFoamLightScale("Wave Foam Light Scale", Range(0.0, 2.0)) = 0.7
@@ -172,7 +171,7 @@ Shader "Ocean/Ocean"
 				uniform half4 _FoamWhiteColor;
 				uniform half4 _FoamBubbleColor;
 				uniform half _ShorelineFoamMinDepth;
-				uniform half _WaveFoamStrength, _WaveFoamCoverage, _WaveFoamFeather;
+				uniform half _WaveFoamCoverage, _WaveFoamFeather;
 				uniform half _WaveFoamBubblesCoverage;
 				uniform half _WaveFoamNormalsY;
 				uniform half _WaveFoamLightScale;
@@ -232,8 +231,8 @@ Shader "Ocean/Ocean"
 						0.5);
 
 					// black point fade
-					i_foam = saturate(1. - i_foam);
-					return smoothstep(i_foam, i_foam + .4, ft);
+					i_foam = saturate(1. - i_foam + _WaveFoamCoverage);
+					return smoothstep(i_foam, i_foam + _WaveFoamFeather, ft);
 				}
 
 				void ComputeFoam(half i_foam, float2 i_worldXZUndisplaced, float2 i_worldXZ, half3 i_n, float i_pixelZ, float i_sceneZ, half3 i_view, float3 i_lightDir, out half3 o_bubbleCol, out half4 o_whiteFoamCol)
@@ -243,15 +242,13 @@ Shader "Ocean/Ocean"
 					// feather foam very close to shore
 					foamAmount *= saturate((i_sceneZ - i_pixelZ) / _ShorelineFoamMinDepth);
 
-					// Additive underwater foam
-					//float2 foamUVBubbles = (lerp(i_worldXZUndisplaced, i_worldXZ, 0.05) + 0.5 * _MyTime * _WindDirXZ) / _FoamScale;
-					//foamUVBubbles += 0.25 * i_n.xz;
-					//half bubbleFoamTexValue = texture(_FoamTexture, .37 * foamUVBubbles - .1*i_view.xz / i_view.y).r;
-					//half bubbleFoam = 0.; // bubbleFoamTexValue * saturate(_WaveFoamBubblesCoverage - i_determinant);
-					o_bubbleCol = (half3)0.;// bubbleFoam * _FoamBubbleColor.rgb * (AmbientLight() + _LightColor0);
+					// Additive underwater foam - use same foam texture but add mip bias to blur for free
+					float2 foamUVBubbles = (lerp(i_worldXZUndisplaced, i_worldXZ, 0.05) + 0.5 * _MyTime * _WindDirXZ) / _FoamScale;
+					foamUVBubbles += 0.25 * i_n.xz;
+					half bubbleFoamTexValue = tex2Dlod(_FoamTexture, float4(.74 * foamUVBubbles - .05*i_view.xz / i_view.y, 0., 5.)).r;
+					o_bubbleCol = (half3)bubbleFoamTexValue * _FoamBubbleColor.rgb * saturate(i_foam - _WaveFoamBubblesCoverage);
 
 					// White foam on top, with black-point fading
-					float2 foamUV = (i_worldXZUndisplaced + 0.05 * _MyTime * _WindDirXZ) / _FoamScale + 0.02 * i_n.xz;
 					half whiteFoam = WhiteFoamTexture(foamAmount, i_worldXZUndisplaced, 0.);
 
 					#if _FOAM3DLIGHTING_ON

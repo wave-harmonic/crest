@@ -154,10 +154,17 @@ namespace Crest
             AddPostRenderCommands(_copySimResultsCmdBuf);
         }
 
+        /// <summary>
+        /// Set any sim-specific shader params.
+        /// </summary>
         protected virtual void SetAdditionalSimParams(Material simMaterial)
         {
         }
 
+        /// <summary>
+        /// Any render commands to perform after the sim has been advanced.
+        /// </summary>
+        /// <param name="postRenderCmdBuf"></param>
         protected virtual void AddPostRenderCommands(CommandBuffer postRenderCmdBuf)
         {
         }

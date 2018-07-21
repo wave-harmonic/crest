@@ -233,7 +233,7 @@ Shader "Ocean/Ocean"
 
 					// black point fade
 					i_foam = saturate(1. - i_foam);
-					return smoothstep(i_foam, i_foam + .1, ft);
+					return smoothstep(i_foam, i_foam + .4, ft);
 				}
 
 				void ComputeFoam(half i_foam, float2 i_worldXZUndisplaced, float2 i_worldXZ, half3 i_n, float i_pixelZ, float i_sceneZ, half3 i_view, float3 i_lightDir, out half3 o_bubbleCol, out half4 o_whiteFoamCol)

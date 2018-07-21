@@ -3,6 +3,7 @@
 // Helpers / shared code for simulation shaders
 
 uniform float3 _CameraPositionDelta;
+uniform float _SimDeltaTime;
 
 // Compute current uv, and a u for the last frame to allow a sim to move around in the world but keep
 // its data stationary, without smudged or blurred data.

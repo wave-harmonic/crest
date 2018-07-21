@@ -135,6 +135,9 @@ namespace Crest
             _renderSimMaterial.SetVector("_CameraPositionDelta", posDelta);
             _camPosSnappedLast = wdc._renderData._posSnapped;
 
+            // fixed dt - hacked for now..
+            _renderSimMaterial.SetFloat("_SimDeltaTime", OceanRenderer.Instance._freezeTime ? 0f : 1f / 60f);
+
             _renderSimMaterial.SetTexture("_SimDataLastFrame", PPRTs.Source);
             wdc.ApplyMaterialParams(0, new PropertyWrapperMaterial(_renderSimMaterial));
 

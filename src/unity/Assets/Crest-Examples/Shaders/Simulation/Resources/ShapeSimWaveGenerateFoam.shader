@@ -21,6 +21,7 @@ Shader "Ocean/Shape/Sim/Wave Generate Foam"
 			#pragma fragment frag
 			
 			#include "UnityCG.cginc"
+			#include "SimHelpers.cginc"
 
 			struct appdata
 			{
@@ -50,7 +51,7 @@ Shader "Ocean/Shape/Sim/Wave Generate Foam"
 			half4 frag (v2f i) : SV_Target
 			{
 				half4 simData = tex2D(_MainTex, i.screenPos);
-				half foam = _Amount * smoothstep(_MinAccel, _MaxAccel, simData.a);
+				half foam = _Amount * 60. * _SimDeltaTime * smoothstep(_MinAccel, _MaxAccel, simData.a);
 				return half4(foam, 0., 0., 0.);
 			}
 			ENDCG

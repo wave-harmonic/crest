@@ -52,7 +52,6 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 
 				// respects the gui option to freeze time
 				uniform float _MyTime;
-				uniform float _MyDeltaTime;
 
 				uniform sampler2D _SimDataLastFrame;
 
@@ -64,6 +63,8 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 					float4 uv_lastframe = float4(i.uv_lastframe.xy, 0., 0.);
 
 					float4 ft_ftm_faccum_foam = tex2Dlod(_SimDataLastFrame, uv_lastframe);
+					if (_SimDeltaTime < 0.01) return ft_ftm_faccum_foam;
+
 					float ft = ft_ftm_faccum_foam.x; // t - current value before update
 					float ftm = ft_ftm_faccum_foam.y; // t minus - previous value
 
@@ -83,9 +84,7 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 					float wavelength = 1.5 * _TexelsPerWave * texelSize;;
 					float c = ComputeWaveSpeed(wavelength /*, h*/);
 
-					const float dt = 1. / 60.;// _MyDeltaTime;
-					// dont support variable framerates, so just abort if dt == 0
-					//if (dt < 0.01) return float4(0., 0., 1., 0.);// ft_ftm_faccum_foam;
+					const float dt = _SimDeltaTime;
 
 					// wave propagation
 					// velocity is implicit - current and previous values stored, time step assumed to be constant.

@@ -18,6 +18,7 @@ public class BoatAlignNormal : MonoBehaviour
     public float _boatWidth = 2f;
 
     Rigidbody _rb;
+    Vector3 _rbVel;
 
     public float _dragInWaterUp = 20000f;
     public float _dragInWaterRight = 20000f;
@@ -43,6 +44,14 @@ public class BoatAlignNormal : MonoBehaviour
 
     void FixedUpdate()
     {
+        // debug feature - support freeze
+        bool oceanFrozen = OceanRenderer.Instance._freezeTime;
+        bool needToFreeze = oceanFrozen && !_rb.isKinematic;
+        bool needToUnfreeze = !oceanFrozen && _rb.isKinematic;
+        if (needToFreeze) _rbVel = _rb.velocity;
+        _rb.isKinematic = OceanRenderer.Instance._freezeTime;
+        if (needToUnfreeze) _rb.velocity = _rbVel;
+        
         var colProvider = OceanRenderer.Instance.CollisionProvider;
         var position = transform.position;
 

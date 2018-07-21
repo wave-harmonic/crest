@@ -20,6 +20,10 @@ public class OceanDebugGUI : MonoBehaviour
         {
             ToggleGUI();
         }
+        if (Input.GetKeyDown(KeyCode.F))
+        {
+            OceanRenderer.Instance._freezeTime = !OceanRenderer.Instance._freezeTime;
+        }
     }
 
     void OnGUI()
@@ -40,7 +44,7 @@ public class OceanDebugGUI : MonoBehaviour
 
             RenderWireFrame._wireFrame = GUI.Toggle(new Rect(x, y, w, h), RenderWireFrame._wireFrame, "Wireframe"); y += h;
 
-            OceanRenderer.Instance._freezeTime = GUI.Toggle(new Rect(x, y, w, h), OceanRenderer.Instance._freezeTime, "Freeze waves"); y += h;
+            OceanRenderer.Instance._freezeTime = GUI.Toggle(new Rect(x, y, w, h), OceanRenderer.Instance._freezeTime, "Freeze waves (F)"); y += h;
 
             GUI.Label(new Rect(x, y, w, h), string.Format("Min verts per wave: {0}", OceanRenderer.Instance._minTexelsPerWave.ToString("0.00"))); y += h;
             OceanRenderer.Instance._minTexelsPerWave = GUI.HorizontalSlider(new Rect(x, y, w, h), OceanRenderer.Instance._minTexelsPerWave, 0, 15); y += h;

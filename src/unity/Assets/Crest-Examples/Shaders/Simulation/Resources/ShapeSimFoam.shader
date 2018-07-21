@@ -49,7 +49,6 @@ Shader "Ocean/Shape/Sim/Foam"
 
 				// respects the gui option to freeze time
 				uniform float _MyTime;
-				uniform float _MyDeltaTime;
 				uniform half _FoamFadeRate;
 				uniform half _WaveFoamStrength;
 				uniform half _WaveFoamCoverage;
@@ -86,14 +85,14 @@ Shader "Ocean/Shape/Sim/Foam"
 					// < 0: Overlap
 					float4 du = float4(disp_x.xz, disp_z.xz) - disp.xzxz;
 					float det = (du.x * du.w - du.y * du.z) / (_WD_Params_0.x * _WD_Params_0.x);
-					foam += 5. * _MyDeltaTime * _WaveFoamStrength * saturate(_WaveFoamCoverage - det);
+					foam += 5. * _SimDeltaTime * _WaveFoamStrength * saturate(_WaveFoamCoverage - det);
 
 					// add foam in shallow water
 					float signedOceanDepth = tex2Dlod(_WD_OceanDepth_Sampler_0, uv).x + DEPTH_BIAS + disp.y;
-					foam += _ShorelineFoamStrength * _MyDeltaTime * saturate(1. - signedOceanDepth / _ShorelineFoamMaxDepth);
+					foam += _ShorelineFoamStrength * _SimDeltaTime * saturate(1. - signedOceanDepth / _ShorelineFoamMaxDepth);
 
 					// fade
-					foam *= max(0.0, 1.0 - _FoamFadeRate * _MyDeltaTime);
+					foam *= max(0.0, 1.0 - _FoamFadeRate * _SimDeltaTime);
 
 					return foam;
 				}

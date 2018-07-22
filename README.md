@@ -27,9 +27,11 @@ It is well known that ocean shape can be well approximated by summing Gerstner w
 
 We generate shape from Gerstner waves efficiently at runtime by rendering at multiple scales, and ensure that waves are never over-sampled (inefficient) or under-sampled (bad quality, aliasing). This is highly performant and gives detail close to the viewer, and shape to the horizon. This gives considerable flexibility in shape and opens possibilities such as attenuating waves based on ocean depth around shorelines.
 
-We also introduce an intuitive and fun shape authoring interface - an *equalizer* style editor which makes it fast and easy to achieve surface shape. Art direction such as *small choppy waves with longer waves rolling in from a storm at the horizon* is simple to achieve in this framework. We also support empirical ocean spectra from the literature (Phillips, JONSWAP, etc) which can be used as a baseline.
+We also introduce an intuitive and fun shape authoring interface - an *equalizer* style editor which makes it fast and easy to achieve surface shape. Art direction such as *small choppy waves with longer waves rolling in from a storm at the horizon* is simple to achieve in this framework. We also support empirical ocean spectra from the literature (Phillips, JONSWAP, etc) which can be used directly or as a comparison.
 
-We also explore simulating shape dynamically by solving the wave equation PDE efficiently in the same multi-scale framework. The branch *dynamic_simulation* generates the entire ocean shape using a dynamic sim that exhibits interesting effects such as dispersion, diffraction and reflection (this refers to physical wave behaviour, not light waves). This works well but is computed on a heightfield and loses some of the characteristic horizontal motion on the surface. The branch *local_sim* has a more practical scenario where a dynamic simulation handles local displacements and is added on top of existing Gerstner waves, to add local interactivity while maintaining the overall look and feel. The displacement of water from the boat's motion is approximated by a simple one-pass shader, and research is ongoing to make this more flexible and expressive.
+The branch *local_sim3* layers a dynamic wave simulation on top of the ocean waves to add local interactivity while maintaining the overall look and feel. The wave simulation also deposits foam enabling boat wakes to be generated.
+
+The final shape is asynchronously read back to the CPU for gameplay/physics use. This gives access to the full, rich shape without requiring expensive CPU calculations or pipeline stalls.
 
 
 ## Mesh
@@ -58,13 +60,15 @@ As an area of future work, the branch *fx_test* explores dynamically generating 
 
 # Setup
 
-The steps to set up Crest in a new or existing project currently look as follows:
+The steps to set up Crest in a new or existing project currently look as follows. There is an example of all this running in *Crest-Examples/Scenes/main*.
 
-* Switch your project to Linear space under *Edit > Project Settings > Player > Other Settings*. If your platform(s) require Gamma space, the surface colours will need to be tweaked accordingly.
+* Switch your project to Linear space rendering under *Edit > Project Settings > Player > Other Settings*. If your platform(s) require Gamma space, the surface colours will need to be tweaked accordingly.
 * Copy across the contents of the *Crest* folder - this has all the necessary components and assets. Be sure to include the .meta files.
-* Drag *Crest/Prefabs/Ocean.prefab* into your scene(s), set height to desired sea level. On startup, this will generate the ocean geometry and initialise the ocean systems.
+  * Some of the infrastructure for versioned Releases has been set up but is still evolving. These steps will be updated the release process has matured.
+* Drag *Crest/Prefabs/Ocean.prefab* into your scene(s), set y coordinate to desired sea level. On startup, this will generate the ocean geometry and initialise the ocean systems.
 * To add waves, create a new GameObject and add the *Shape Gerster Batched* component.
-* A *Wave Spectrum* component should have automatically been added to this same GO. Tweak the sliders to achieve the desired shape, or use the GUI buttons to use empirical wave spectrum.
+  * This will create a default ocean shape. To edit the shape, create an asset of type *Crest/Ocean Wave Spectrum* and assign it to this script.
+  * Smooth blending of ocean shapes can be achieved by adding multiple *Shape Gerstner Batched* scripts and crossfading them using the Weight parameter.
 * For geometry that should influence the ocean (attenuate waves, generate foam):
   * Static geometry should render ocean depth just once on startup into an *Ocean Depth Cache*.
   * Dynamic objects that need to render depth every frame should have a *Render Ocean Depth* component attached.
@@ -103,7 +107,7 @@ On startup, the *OceanBuilder* script creates the ocean geometry as a LODs, each
 
 At run-time, the viewpoint is moved first, and then the *Ocean* object is placed at sea level under the viewer. A horizontal scale is computed for the ocean based on the viewer height, as well as a *_viewerAltitudeLevelAlpha* that captures where the camera is between the current scale and the next scale (x2), and allows a smooth transition between scales to be achieved using the two mechanisms described in the SIGGRAPH course.
 
-Once the ocean has been placed, the ocean surface shape is generated by rendering Gerstner wave components into the shape LODs. These are visualised on screen if the *Show shape data* debug option is enabled. Each wave components is rendered into the shape LOD that is appropriate for the wavelength, to prevent over- or under- sampling and maximize efficiency. A final pass combines the results down the shape LODs (from largest to most-detailed), disable the *Shape combine pass* debug option to see the shape contents before this pass.
+Once the ocean has been placed, the ocean surface shape is generated by rendering Gerstner wave components into the shape LODs. These are visualised on screen if the *Show shape data* debug option is enabled. Each wave component is rendered into the shape LOD that is appropriate for the wavelength, to prevent over- or under- sampling and maximize efficiency. A final pass combines the results down the shape LODs (from largest to most-detailed), disable the *Shape combine pass* debug option to see the shape contents before this pass.
 
 The ocean geometry is rendered with the Ocean shader. The vertex shader snaps the verts to grid positions to make them stable. It then computes a *lodAlpha* which starts at 0 for the inside of the LOD and becomes 1 at the outer edge. It is computed from taxicab distance as noted in the course. This value is used to drive the vertex layout transition, to enable a seemless match between the two. The vertex shader then samples the current LOD shape texture and the next shape texture and uses *lodAlpha* to interpolate them for a smooth transition across displacement textures. A foam value is also computed using the determinant of the Jacobian of the displacement texture. Finally, it passes the LOD geometry scale and *lodAlpha* to the pixel shader.
 

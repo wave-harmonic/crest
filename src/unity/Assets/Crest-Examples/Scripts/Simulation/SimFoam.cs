@@ -15,27 +15,22 @@ namespace Crest
         public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RHalf; } }
         public static readonly int SIM_RENDER_DEPTH = -20;
         public override int Depth { get { return SIM_RENDER_DEPTH; } }
-
-        [Range(0f, 5f)]
-        public float _foamFadeRate = 0.8f;
-        [Range(0f, 5f)]
-        public float _WaveFoamStrength = 1.25f;
-        [Range(0f, 1f)]
-        public float _WaveFoamCoverage = 0.8f;
-        [Range(0f, 3f)]
-        public float _ShorelineFoamMaxDepth = 0.65f;
-        [Range(0f, 1f)]
-        public float _ShorelineFoamStrength = 0.313f;
+        public override SimSettingsBase CreateDefaultSettings()
+        {
+            return ScriptableObject.CreateInstance<SimSettingsFoam>();
+        }
 
         protected override void SetAdditionalSimParams(Material simMaterial)
         {
             base.SetAdditionalSimParams(simMaterial);
 
-            simMaterial.SetFloat("_FoamFadeRate", _foamFadeRate);
-            simMaterial.SetFloat("_WaveFoamStrength", _WaveFoamStrength);
-            simMaterial.SetFloat("_WaveFoamCoverage", _WaveFoamCoverage);
-            simMaterial.SetFloat("_ShorelineFoamMaxDepth", _ShorelineFoamMaxDepth);
-            simMaterial.SetFloat("_ShorelineFoamStrength", _ShorelineFoamStrength);
+            simMaterial.SetFloat("_FoamFadeRate", Settings._foamFadeRate);
+            simMaterial.SetFloat("_WaveFoamStrength", Settings._waveFoamStrength);
+            simMaterial.SetFloat("_WaveFoamCoverage", Settings._waveFoamCoverage);
+            simMaterial.SetFloat("_ShorelineFoamMaxDepth", Settings._shorelineFoamMaxDepth);
+            simMaterial.SetFloat("_ShorelineFoamStrength", Settings._shorelineFoamStrength);
         }
+
+        SimSettingsFoam Settings { get { return _settings as SimSettingsFoam; } }
     }
 }

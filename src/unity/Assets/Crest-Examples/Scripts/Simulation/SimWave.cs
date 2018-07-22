@@ -16,17 +16,10 @@ namespace Crest
         public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.ARGBHalf; } }
         // simulate before foam, because foam sim will generate from the waves (if there are matching resolutions)
         public override int Depth { get { return SimFoam.SIM_RENDER_DEPTH - 1; } }
-
-        [Range(0f, 1f)]
-        public float _damping = 0.173f;
-
-        [Header("Foam Generation")]
-        [Range(0f, 0.1f)]
-        public float _foamMinAccel = 0f;
-        [Range(0f, 0.1f)]
-        public float _foamMaxAccel = 0.0038f;
-        [Range(0f, 5f)]
-        public float _foamAmount = 0.5f;
+        public override SimSettingsBase CreateDefaultSettings()
+        {
+            return ScriptableObject.CreateInstance<SimSettingsWave>();
+        }
 
         public bool _rotateLaplacian = true;
 
@@ -54,7 +47,7 @@ namespace Crest
         {
             base.SetAdditionalSimParams(simMaterial);
 
-            simMaterial.SetFloat("_Damping", _damping);
+            simMaterial.SetFloat("_Damping", Settings._damping);
 
             float laplacianKernelAngle = _rotateLaplacian ? Mathf.PI * 2f * Random.value : 0f;
             simMaterial.SetVector("_LaplacianAxisX", new Vector2(Mathf.Cos(laplacianKernelAngle), Mathf.Sin(laplacianKernelAngle)));
@@ -74,9 +67,9 @@ namespace Crest
                 _generateFoamFromSim = new Material(Shader.Find("Ocean/Shape/Sim/Wave Generate Foam"));
             }
 
-            _generateFoamFromSim.SetFloat("_MinAccel", _foamMinAccel);
-            _generateFoamFromSim.SetFloat("_MaxAccel", _foamMaxAccel);
-            _generateFoamFromSim.SetFloat("_Amount", _foamAmount);
+            _generateFoamFromSim.SetFloat("_MinAccel", Settings._foamMinAccel);
+            _generateFoamFromSim.SetFloat("_MaxAccel", Settings._foamMaxAccel);
+            _generateFoamFromSim.SetFloat("_Amount", Settings._foamAmount);
 
             // fixed dt - hacked for now..
             _generateFoamFromSim.SetFloat("_SimDeltaTime", OceanRenderer.Instance._freezeTime ? 0f : 1f / 60f);
@@ -85,5 +78,7 @@ namespace Crest
 
             postRenderCmdBuf.Blit(PPRTs.Target, _foamSim.GetComponent<Camera>().targetTexture, _generateFoamFromSim);
         }
+
+        SimSettingsWave Settings { get { return _settings as SimSettingsWave; } }
     }
 }

@@ -13,6 +13,10 @@ namespace Crest
         [HideInInspector]
         public float _resolution = 1f;
 
+        [SerializeField]
+        protected SimSettingsBase _settings;
+        public void UseSettings(SimSettingsBase settings) { _settings = settings; }
+
         Material _copySimMaterial = null;
 
         GameObject _renderSim;
@@ -26,6 +30,7 @@ namespace Crest
         protected abstract string ShaderRenderResultsIntoDispTexture { get; }
         public abstract RenderTextureFormat TextureFormat { get; }
         public abstract int Depth { get; }
+        public abstract SimSettingsBase CreateDefaultSettings();
 
         private void Start()
         {

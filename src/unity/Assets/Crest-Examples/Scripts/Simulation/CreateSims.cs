@@ -10,6 +10,7 @@ namespace Crest
         public class SimLayer
         {
             public SimType _simType;
+            public SimSettingsBase _simSettings;
             public bool _disabled;
             public SimResolution[] _resolutions;
         }
@@ -63,6 +64,12 @@ namespace Crest
                         as SimBase;
                     sim._resolution = GetRes(resolution);
                     simGO.name = "Sim_" + sim.SimName + "_" + resolution.ToString();
+                    if (layer._simSettings == null)
+                    {
+                        layer._simSettings = sim.CreateDefaultSettings();
+                        layer._simSettings.name = sim.SimName + " Auto-generated Settings";
+                    }
+                    sim.UseSettings(layer._simSettings);
 
                     var cart = simGO.AddComponent<CreateAssignRenderTexture>();
                     cart._width = cart._height = (int)(4f * OceanRenderer.Instance._baseVertDensity);

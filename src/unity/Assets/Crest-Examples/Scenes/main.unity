@@ -219,6 +219,7 @@ MonoBehaviour:
   linSpeed: 10
   rotSpeed: 70
   simForwardInput: 0
+  _requireLMBToMove: 0
 --- !u!114 &227134473
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -418,6 +419,10 @@ Prefab:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 11417796, guid: 8454e29c2a033974fb559f5f8eff1918, type: 2}
+      propertyPath: _simulationLayers.Array.size
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 478202, guid: 8454e29c2a033974fb559f5f8eff1918, type: 2}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -653,6 +658,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _simulationLayers:
   - _simType: 1
+    _simSettings: {fileID: 0}
     _disabled: 0
     _resolutions: 010000000200000003000000040000000500000006000000
 --- !u!1 &1566317004

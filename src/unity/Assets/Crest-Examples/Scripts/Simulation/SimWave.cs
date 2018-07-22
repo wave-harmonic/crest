@@ -71,8 +71,7 @@ namespace Crest
             _generateFoamFromSim.SetFloat("_MaxAccel", Settings._foamMaxAccel);
             _generateFoamFromSim.SetFloat("_Amount", Settings._foamAmount);
 
-            // fixed dt - hacked for now..
-            _generateFoamFromSim.SetFloat("_SimDeltaTime", OceanRenderer.Instance._freezeTime ? 0f : 1f / 60f);
+            _generateFoamFromSim.SetFloat("_SimDeltaTime", SimDeltaTime);
 
             _generateFoamFromSim.mainTexture = PPRTs.Target;
 

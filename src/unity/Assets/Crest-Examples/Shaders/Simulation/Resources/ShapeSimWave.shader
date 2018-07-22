@@ -50,20 +50,12 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 				uniform half _Damping;
 				uniform float2 _LaplacianAxisX;
 
-				// respects the gui option to freeze time
-				uniform float _MyTime;
-
-				uniform sampler2D _SimDataLastFrame;
-
 				float4 frag(v2f i) : SV_Target
 				{
-					// if i.uv is out of bounds, it will be clamped. this seems to work ok-ish, it doesnt generate shock
-					// waves, but it does produce some stretchy artifacts at edges.
-
 					float4 uv_lastframe = float4(i.uv_lastframe.xy, 0., 0.);
 
 					float4 ft_ftm_faccum_foam = tex2Dlod(_SimDataLastFrame, uv_lastframe);
-					if (_SimDeltaTime < 0.01) return ft_ftm_faccum_foam;
+					if (_SimDeltaTime == 0.0) return ft_ftm_faccum_foam;
 
 					float ft = ft_ftm_faccum_foam.x; // t - current value before update
 					float ftm = ft_ftm_faccum_foam.y; // t minus - previous value
@@ -87,9 +79,9 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 					const float dt = _SimDeltaTime;
 
 					// wave propagation
-					// velocity is implicit - current and previous values stored, time step assumed to be constant.
-					// this only works at a fixed framerate 60hz!
-					float ftp = ft + (ft - ftm) + dt*dt*c*c*(fxm + fxp + fym + fyp - 4.*ft) / (texelSize*texelSize);
+					// velocity is implicit
+					float v = (ft - ftm) / _SimDeltaTimePrev;
+					float ftp = ft + dt*v + dt*dt*c*c*(fxm + fxp + fym + fyp - 4.*ft) / (texelSize*texelSize);
 
 					// open boundary condition, from: http://hplgit.github.io/wavebc/doc/pub/._wavebc_cyborg002.html .
 					// this actually doesn't work perfectly well - there is some minor reflections of high frequencies.
@@ -109,15 +101,10 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 					//ftp *= lerp( 0.996, 1., clamp(waterSignedDepth, 0., 1.) );
 
 					// Foam
-					float accel = ((ftp - ft) - (ft - ftm));
-					float foam = -accel;
-					//foam = smoothstep(.0, .05, foam);
+					float accel = ((ftp - ft)/dt - v);
+					float foam = -accel * dt;
 					foam = max(foam, 0.);
-					// foam could be faded slowly across frames, but right now the combine pass uses the foam channel for
-					// accumulation, so the last frames foam value cannot be used.
 
-					// z channel will be used to accumulate simulation results down the lod chain. the obstacle shader
-					// uses two different blend modes - it multiplies xyz and adds some foam for shallow water.
 					float4 result = float4(ftp, ft, 0., foam);
 
 					return result;

@@ -36,5 +36,7 @@ public class FeedVelocityToExtrude : MonoBehaviour {
         _posLast = transform.position;
 
         _mat.SetFloat("_Weight", (_boat == null || _boat.InWater) ? _weight : 0f);
+
+        _mat.SetFloat("_SimDeltaTime", Mathf.Min(Time.deltaTime, Crest.SimBase.MAX_SIM_DELTA_TIME));
     }
 }

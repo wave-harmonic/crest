@@ -10,6 +10,8 @@ namespace Crest
     /// </summary>
     public abstract class SimBase : MonoBehaviour
     {
+        public static readonly float MAX_SIM_DELTA_TIME = 1f / 30f;
+
         [HideInInspector]
         public float _resolution = 1f;
 
@@ -31,6 +33,9 @@ namespace Crest
         public abstract RenderTextureFormat TextureFormat { get; }
         public abstract int Depth { get; }
         public abstract SimSettingsBase CreateDefaultSettings();
+
+        float _simDeltaTimePrev = 1f / 60f;
+        protected float SimDeltaTime { get { return OceanRenderer.Instance._freezeTime ? 0f : Mathf.Min(Time.deltaTime, MAX_SIM_DELTA_TIME); } }
 
         private void Start()
         {
@@ -140,8 +145,11 @@ namespace Crest
             _renderSimMaterial.SetVector("_CameraPositionDelta", posDelta);
             _camPosSnappedLast = wdc._renderData._posSnapped;
 
-            // fixed dt - hacked for now..
-            _renderSimMaterial.SetFloat("_SimDeltaTime", OceanRenderer.Instance._freezeTime ? 0f : 1f / 60f);
+            float dt = SimDeltaTime;
+            _renderSimMaterial.SetFloat("_SimDeltaTime", dt);
+            _renderSimMaterial.SetFloat("_SimDeltaTimePrev", _simDeltaTimePrev);
+            if (!OceanRenderer.Instance._freezeTime)
+                _simDeltaTimePrev = dt;
 
             _renderSimMaterial.SetTexture("_SimDataLastFrame", PPRTs.Source);
             wdc.ApplyMaterialParams(0, new PropertyWrapperMaterial(_renderSimMaterial));

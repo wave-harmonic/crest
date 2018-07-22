@@ -48,14 +48,11 @@ Shader "Ocean/Shape/Sim/Foam"
 				}
 
 				// respects the gui option to freeze time
-				uniform float _MyTime;
 				uniform half _FoamFadeRate;
 				uniform half _WaveFoamStrength;
 				uniform half _WaveFoamCoverage;
 				uniform half _ShorelineFoamMaxDepth;
 				uniform half _ShorelineFoamStrength;
-
-				uniform sampler2D _SimDataLastFrame;
 
 				half frag(v2f i) : SV_Target
 				{

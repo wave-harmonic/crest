@@ -240,6 +240,7 @@ MonoBehaviour:
   linSpeed: 5
   rotSpeed: 70
   simForwardInput: 0
+  _requireLMBToMove: 0
 --- !u!114 &227134473
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -297,9 +298,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _simulationLayers:
   - _simType: 1
+    _simSettings: {fileID: 0}
     _disabled: 0
     _resolutions: 01000000020000000300000004000000
   - _simType: 0
+    _simSettings: {fileID: 0}
     _disabled: 0
     _resolutions: 0100000002000000
 --- !u!1 &723498130
@@ -490,6 +493,20 @@ Prefab:
     - target: {fileID: 4341219009766782, guid: 71ede3c2ab0b7cb43b7dad6ae3b6190b, type: 2}
       propertyPath: m_RootOrder
       value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 23429759743720956, guid: 71ede3c2ab0b7cb43b7dad6ae3b6190b,
+        type: 2}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1686297963636050, guid: 71ede3c2ab0b7cb43b7dad6ae3b6190b, type: 2}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 114101010989703450, guid: 71ede3c2ab0b7cb43b7dad6ae3b6190b,
+        type: 2}
+      propertyPath: _holdThrottle
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 71ede3c2ab0b7cb43b7dad6ae3b6190b, type: 2}

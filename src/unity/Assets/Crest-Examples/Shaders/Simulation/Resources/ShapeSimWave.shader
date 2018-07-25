@@ -24,6 +24,7 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 				#pragma multi_compile_fog
 				#include "UnityCG.cginc"
 				#include "../../../../Crest/Shaders/Shapes/MultiscaleShape.cginc"
+				#include "../../../../Crest/Shaders/OceanLODData.cginc"
 
 				struct appdata_t {
 					float4 vertex : POSITION;
@@ -32,6 +33,7 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 				struct v2f {
 					float4 vertex : SV_POSITION;
 					float3 uv_lastframe : TEXCOORD0;
+					float2 uv : TEXCOORD1;
 				};
 
 				#include "SimHelpers.cginc"
@@ -41,8 +43,7 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 					v2f o;
 					o.vertex = UnityObjectToClipPos(v.vertex);
 
-					float2 uv;
-					ComputeUVs(o.vertex.xy, o.uv_lastframe.xy, uv, o.uv_lastframe.z);
+					ComputeUVs(o.vertex.xy, o.uv_lastframe.xy, o.uv, o.uv_lastframe.z);
 
 					return o;
 				}
@@ -71,9 +72,10 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 
 					const float texelSize = 2. * unity_OrthoParams.x * i.uv_lastframe.z; // assumes square RT
 
-					//float waterSignedDepth = tex2D(_WD_OceanDepth_Sampler_0, float4(i.uv_uncompensated, 0., 0.)).x;
-					//float h = max(waterSignedDepth + ft, 0.);
+					// average wavelength for this scale
 					float wavelength = 1.5 * _TexelsPerWave * texelSize;;
+					// could make velocity depend on waves
+					//float h = max(waterSignedDepth + ft, 0.);
 					float c = ComputeWaveSpeed(wavelength /*, h*/);
 
 					const float dt = _SimDeltaTime;
@@ -104,6 +106,16 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 					float accel = ((ftp - ft)/dt - v);
 					float foam = -accel * dt;
 					foam = max(foam, 0.);
+
+					// attenuate waves based on ocean depth. if depth is greater than 0.5*wavelength, water is considered Deep and wave is
+					// unaffected. if depth is less than this, wave velocity decreases. waves will then bunch up and grow in amplitude and
+					// eventually break. i model "Deep" water, but then simply ramp down waves in non-deep water with a linear multiplier.
+					// http://hyperphysics.phy-astr.gsu.edu/hbase/Waves/watwav2.html
+					// http://hyperphysics.phy-astr.gsu.edu/hbase/watwav.html#c1
+					float waterSignedDepth = tex2D(_WD_OceanDepth_Sampler_0, float4(i.uv, 0., 0.)).x + DEPTH_BIAS;
+					float depthMul = 1. - (1. - saturate(2.0 * waterSignedDepth / wavelength)) * dt * 2.;
+					ftp *= depthMul;
+					ft *= depthMul;
 
 					float4 result = float4(ftp, ft, 0., foam);
 

@@ -13,7 +13,8 @@
 * Mueller - swe + splashes, ripples - nice results: https://pdfs.semanticscholar.org/e97f/38cb774c96aaf1c359d8331695efa3b2c26c.pdf , video: https://www.youtube.com/watch?v=bojdpqi2l_o
 * Gomez 2000 - Interactive Simulation of Water Surfaces - Game Programming Gems
 * Real-Time Open Water Environments with Interacting Objects - Cords and Staadt. Discusses/justifies multiple sims. Divides collision shapes into particles. - http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.162.2833&rep=rep1&type=pdf
- * Hydrax - open source ocean plug-in for OGRE - https://github.com/imperative/CommunityHydrax
+* Hydrax - open source ocean plug-in for OGRE - https://github.com/imperative/CommunityHydrax
+* Survey ocean simulation techniques - 2011 - https://arxiv.org/pdf/1109.6494.pdf
 
 ### Wave Theory
 
@@ -38,6 +39,9 @@
 * Boat interaction: https://www.youtube.com/watch?v=YK_Za2MY2a0 , paper: http://www.hilkocords.de/publications/open_water.pdf
 * Setting up boat interactioin in maya: https://www.youtube.com/watch?v=O-8ow82gQw8 . Touches on issues related to combining heightfield with displacement texture, and the wake lagging behind the object.
 
+### 3D Simulation
+
+* Bubble sim. Hill spherical vortex - irrotational flow around sphere. http://matthias-mueller-fischer.ch/publications/bubbles.pdf
 
 ### Wave particles
 
@@ -57,7 +61,6 @@
 ### Breaking waves
 
 * Real-time for shallow water simulations: http://matthias-mueller-fischer.ch/publications/breakingWaves.pdf , https://www.youtube.com/watch?v=Gk0AeRufsws
-
 
 ### Experiments
 

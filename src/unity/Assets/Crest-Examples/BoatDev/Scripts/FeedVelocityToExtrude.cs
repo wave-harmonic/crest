@@ -15,7 +15,10 @@ public class FeedVelocityToExtrude : MonoBehaviour {
     [Range(0f, 1f)]
     public float _noiseAmp = 0.5f;
 
-    public float _weight = 1f;
+    [Range(0f, 3f)]
+    public float _weight = 2f;
+    [Range(0f, 2f)]
+    public float _weightUpDownMul = 0.5f;
 
     Material _mat;
 
@@ -32,7 +35,9 @@ public class FeedVelocityToExtrude : MonoBehaviour {
         transform.position = transform.parent.TransformPoint(_localOffset) - disp;
 
         float rnd = 1f + _noiseAmp * (2f * Mathf.PerlinNoise(_noiseFreq * Time.time, 0.5f) - 1f);
-        _mat.SetVector("_Velocity", rnd * (transform.position - _posLast) / Time.deltaTime);
+        Vector3 vel = (transform.position - _posLast) / Time.deltaTime;
+        vel.y *= _weightUpDownMul;
+        _mat.SetVector("_Velocity", rnd * vel);
         _posLast = transform.position;
 
         _mat.SetFloat("_Weight", (_boat == null || _boat.InWater) ? _weight : 0f);

@@ -6,7 +6,7 @@ public class RandomMotion : MonoBehaviour
 {
     public Vector3 _axis = Vector3.up;
     Vector3 _orthoAxis;
-    [Range( 0, 5 )]
+    [Range( 0, 15 )]
     public float _amplitude = 1f;
     [Range( 0, 5 )]
     public float _freq = 1f;

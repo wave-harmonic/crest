@@ -370,7 +370,8 @@ MonoBehaviour:
   _dragInWaterUp: 3
   _dragInWaterRight: 2
   _dragInWaterForward: 1
-  _holdThrottle: 1
+  _playerControlled: 1
+  _throttleBias: 0
   _steerBias: 0
 --- !u!114 &114123981558006810
 MonoBehaviour:
@@ -387,4 +388,5 @@ MonoBehaviour:
   _localOffset: {x: 0, y: 0, z: 0}
   _noiseFreq: 6
   _noiseAmp: 0
-  _weight: 1.5
+  _weight: 2
+  _weightUpDownMul: 1

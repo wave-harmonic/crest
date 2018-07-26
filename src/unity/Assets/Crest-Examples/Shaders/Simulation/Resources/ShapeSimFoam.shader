@@ -32,6 +32,7 @@ Shader "Ocean/Shape/Sim/Foam"
 				struct v2f {
 					float4 vertex : SV_POSITION;
 					float4 uv_uv_lastframe : TEXCOORD0;
+					float invRes : TEXCOORD1;
 				};
 
 				#include "SimHelpers.cginc"
@@ -41,8 +42,7 @@ Shader "Ocean/Shape/Sim/Foam"
 					v2f o;
 					o.vertex = UnityObjectToClipPos(v.vertex);
 
-					float invRes;
-					ComputeUVs(o.vertex.xy, o.uv_uv_lastframe.zw, o.uv_uv_lastframe.xy, invRes);
+					ComputeUVs(o.vertex.xy, o.uv_uv_lastframe.zw, o.uv_uv_lastframe.xy, o.invRes);
 
 					return o;
 				}
@@ -62,7 +62,7 @@ Shader "Ocean/Shape/Sim/Foam"
 					// sampler will clamp the uv currently
 					half foam = tex2Dlod(_SimDataLastFrame, uv_lastframe).x;
 					half2 r = abs(uv_lastframe.xy - 0.5);
-					if (max(r.x, r.y) > 0.5)
+					if (max(r.x, r.y) > 0.5 - i.invRes)
 					{
 						// no border wrap mode for RTs in unity it seems, so make any off-texture reads 0 manually
 						foam = 0.;

@@ -12,7 +12,7 @@ public class SimSettingsWave : SimSettingsBase
     [Range(0f, 0.1f)]
     public float _foamMinAccel = 0f;
     [Range(0f, 0.1f)]
-    public float _foamMaxAccel = 0.0038f;
+    public float _foamMaxAccel = 0.005f;
     [Range(0f, 5f)]
     public float _foamAmount = 0.5f;
 }

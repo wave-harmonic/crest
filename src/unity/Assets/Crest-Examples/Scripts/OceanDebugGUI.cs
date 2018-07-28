@@ -8,10 +8,19 @@ public class OceanDebugGUI : MonoBehaviour
     public string _oceanMaterialAsset = "Assets/Crest/Shaders/Materials/Ocean.mat";
     public bool _showSimTargetsAlpha = false;
     static float _leftPanelWidth = 180f;
+    ShapeGerstnerBatched[] gerstners;
 
     public static bool OverGUI( Vector2 screenPosition )
     {
         return screenPosition.x < _leftPanelWidth;
+    }
+
+    private void Start()
+    {
+        gerstners = FindObjectsOfType<ShapeGerstnerBatched>();
+        // i am getting the array in the reverse order compared to the hierarchy which bugs me. sort them based on sibling index,
+        // which helps if the gerstners are on sibling GOs.
+        System.Array.Sort(gerstners, (a, b) => a.transform.GetSiblingIndex().CompareTo(b.transform.GetSiblingIndex()));
     }
 
     private void Update()
@@ -46,13 +55,16 @@ public class OceanDebugGUI : MonoBehaviour
 
             OceanRenderer.Instance._freezeTime = GUI.Toggle(new Rect(x, y, w, h), OceanRenderer.Instance._freezeTime, "Freeze waves (F)"); y += h;
 
-            GUI.Label(new Rect(x, y, w, h), string.Format("Min verts per wave: {0}", OceanRenderer.Instance._minTexelsPerWave.ToString("0.00"))); y += h;
-            OceanRenderer.Instance._minTexelsPerWave = GUI.HorizontalSlider(new Rect(x, y, w, h), OceanRenderer.Instance._minTexelsPerWave, 0, 15); y += h;
+            GUI.Label(new Rect(x, y, w, h), "Gerstner weight(s)"); y += h;
+            foreach (var gerstner in gerstners)
+            {
+                gerstner._weight = GUI.HorizontalSlider(new Rect(x, y, w, h), gerstner._weight, 0f, 1f); y += h;
+            }
 
             _showSimTargets = GUI.Toggle(new Rect(x, y, w, h), _showSimTargets, "Show shape data"); y += h;
             if(_showSimTargets)
             {
-                _showSimTargetsAlpha = GUI.Toggle(new Rect(x, y, w, h), _showSimTargetsAlpha, "Show shape data alpha"); y += h;
+                _showSimTargetsAlpha = GUI.Toggle(new Rect(x, y, w, h), _showSimTargetsAlpha, "Show shape alpha"); y += h;
             }
             WaveDataCam._shapeCombinePass = GUI.Toggle(new Rect(x, y, w, h), WaveDataCam._shapeCombinePass, "Shape combine pass"); y += h;
 

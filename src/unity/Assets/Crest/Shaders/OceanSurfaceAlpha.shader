@@ -1,4 +1,8 @@
-﻿Shader "Ocean/Ocean Surface Alpha"
+﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
+
+// Renders alpha geometry overlaid on ocean surface. Samples the ocean shape texture in the vertex shader to track
+// the surface. Requires the right texture to be assigned (see RenderAlphaOnSurface script).
+Shader "Ocean/Ocean Surface Alpha"
 {
 	Properties
 	{

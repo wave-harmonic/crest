@@ -126,7 +126,7 @@ namespace Crest
                 case SimResolution.Res32m: return 32f;
             }
 
-            Debug.LogError("Resolution " + res.ToString() + " needs to be added to PersistentFoamSims.cs.", this);
+            Debug.LogError("Support for resolution " + res.ToString() + " needs to be added.", this);
             return -1f;
         }
     }

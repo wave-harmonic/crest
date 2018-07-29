@@ -37,7 +37,9 @@ namespace Crest
             Res32m,
         }
 
-        public SimLayer[] _simulationLayers;
+        public SimLayer[] _simulationLayers = new SimLayer[] {
+            new SimLayer {  _simType = SimType.Foam, _resolutions = new SimResolution[] { SimResolution.Res25cm, SimResolution.Res50cm, SimResolution.Res1m, SimResolution.Res2m, SimResolution.Res4m } }
+        };
 
         void Start()
         {

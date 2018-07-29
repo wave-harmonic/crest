@@ -205,13 +205,6 @@ namespace Crest
         /// </summary>
         public float MaxVertDisplacement { get { return _maxVertDispFromShape; } }
 
-#if UNITY_EDITOR
-        void OnDrawGizmos()
-        {
-            Gizmos.DrawIcon( transform.position, "Ocean" );
-        }
-#endif
-
         static OceanRenderer _instance;
         public static OceanRenderer Instance { get { return _instance ?? (_instance = FindObjectOfType<OceanRenderer>()); } }
 

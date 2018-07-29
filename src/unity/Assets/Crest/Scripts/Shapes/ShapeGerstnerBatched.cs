@@ -192,6 +192,14 @@ namespace Crest
             material.SetFloatArray("_Phases", UpdateBatchScratchData._phasesBatch);
             material.SetFloat("_NumInBatch", numInBatch);
             material.SetFloat("_Chop", _spectrum._chop);
+            material.SetFloat("_SharpenExponent", _spectrum._sharpenExponent);
+
+            // offset wave by (average height) to try to preserve sea level. use 4th order polynomial approx from doc/sharpen_gerstner excel stuff.
+            float x = _spectrum._sharpenExponent;
+            float x2 = x * x;
+            float x4 = x2 * x2;
+            float aveHeight = 0.0027f * x4 - 0.0402f * x * x2 + 0.2376f * x2 - 0.7194f * x + 0.5168f;
+            material.SetFloat("_HeightOffset", -aveHeight);
 
             OceanRenderer.Instance.Builder._shapeWDCs[lodIdx].ApplyMaterialParams(0, new PropertyWrapperMaterial(material), false, false);
 

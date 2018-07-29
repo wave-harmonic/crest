@@ -27,6 +27,9 @@ namespace Crest
         [Tooltip("Scales horizontal displacement"), Range(0f, 2f)]
         public float _chop = 1f;
 
+        [Tooltip("Sharpens Gerstner wave peaks."), Range(1f, 4f)]
+        public float _sharpenExponent = 1f;
+
         public static float SmallWavelength(float octaveIndex) { return Mathf.Pow(2f, SMALLEST_WL_POW_2 + octaveIndex); }
 
         public float GetAmplitude(float wavelength, float componentsPerOctave)

@@ -27,3 +27,4 @@ MonoBehaviour:
   - -6
   _powerDisabled: 000000000000000000000000
   _chop: 1
+  _sharpenExponent: 1

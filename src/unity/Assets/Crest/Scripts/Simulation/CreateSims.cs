@@ -53,7 +53,7 @@ namespace Crest
 
                 if (layerIndex == -1)
                 {
-                    Debug.LogError("Creation of a " + layer._simType.ToString() + " simulation type was skipped because no render layer was provided.", this);
+                    Debug.LogError("A layer named " + layerName + " must be present in the project to create a sim of type " + layer._simType.ToString() + ". Please add this layer to enable this simulation type.", this);
                     continue;
                 }
 

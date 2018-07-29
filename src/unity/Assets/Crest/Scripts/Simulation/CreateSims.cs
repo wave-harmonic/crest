@@ -4,6 +4,9 @@ using UnityEngine;
 
 namespace Crest
 {
+    /// <summary>
+    /// Script that constructs the simulations.
+    /// </summary>
     public class CreateSims : MonoBehaviour
     {
         [System.Serializable]

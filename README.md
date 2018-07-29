@@ -27,9 +27,9 @@ It is well known that ocean shape can be well approximated by summing Gerstner w
 
 We generate shape from Gerstner waves efficiently at runtime by rendering at multiple scales, and ensure that waves are never over-sampled (inefficient) or under-sampled (bad quality, aliasing). This is highly performant and gives detail close to the viewer, and shape to the horizon. This gives considerable flexibility in shape and opens possibilities such as attenuating waves based on ocean depth around shorelines.
 
-We also introduce an intuitive and fun shape authoring interface - an *equalizer* style editor which makes it fast and easy to achieve surface shape. Art direction such as *small choppy waves with longer waves rolling in from a storm at the horizon* is simple to achieve in this framework. We also support empirical ocean spectra from the literature (Phillips, JONSWAP, etc) which can be used directly or as a comparison.
+To control the ocean shape, we introduce an intuitive and fun shape authoring interface - an *equalizer* style editor which makes it fast and easy to achieve surface shape. Art direction such as *small choppy waves with longer waves rolling in from a storm at the horizon* is simple to achieve in this framework. We also support empirical ocean spectra from the literature (Phillips, JONSWAP, etc) which can be used directly or as a comparison.
 
-The branch *local_sim3* layers a dynamic wave simulation on top of the ocean waves to add local interactivity while maintaining the overall look and feel. The wave simulation also deposits foam enabling boat wakes to be generated.
+For interactivity we add a dynamic wave simulation on top of the ocean waves. The wave simulation also deposits foam enabling boat wakes to be generated. This is demonstrated in the *boat* and *threeboats* example scenes.
 
 The final shape is asynchronously read back to the CPU for gameplay/physics use. This gives access to the full, rich shape without requiring expensive CPU calculations or pipeline stalls.
 
@@ -117,8 +117,7 @@ The ocean pixel shader samples normal maps at 2 different scales, both proportio
 
 # Bugs and Improvement Directions
 
-* Using prebaked textures (i.e. from an offline ocean simulation) would be easy to implement in our framework by rendering the prebaked results into the shape textures, and would be the most efficient option (although completely dynamic shape now renders very efficiently).
-* Persistent foam - generate from waves/dynamic sim, fade gradually over time
+* Using prebaked textures (i.e. from an offline ocean simulation) would be easy to implement in our framework by rendering the prebaked results into the shape textures, and would be the most efficient option (although completely dynamic shape renders very efficiently).
 * Wetness simulation for shore
 * Flow - texture to paint wind direction
 

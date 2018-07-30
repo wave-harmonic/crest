@@ -127,6 +127,7 @@ GameObject:
   - component: {fileID: 227134471}
   - component: {fileID: 227134473}
   - component: {fileID: 227134467}
+  - component: {fileID: 227134468}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -156,6 +157,23 @@ MonoBehaviour:
   _guiVisible: 1
   _oceanMaterialAsset: Assets/Crest/Shaders/Materials/Ocean.mat
   _showSimTargetsAlpha: 0
+--- !u!114 &227134468
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 227134465}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a7f1d7afc5dc7ec4ab6fa33a21ede643, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _layerName: 
+  _cullExcludeLayers:
+  - SimFoam
+  - SimWave
+  - SimShape
+  _cullIncludeLayers: []
 --- !u!20 &227134469
 Camera:
   m_ObjectHideFlags: 0
@@ -180,7 +198,7 @@ Camera:
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
-    m_Bits: 4278190847
+    m_Bits: 4294967295
   m_RenderingPath: 1
   m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
@@ -232,6 +250,24 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _gui: 1
+--- !u!1 &498935805 stripped
+GameObject:
+  m_PrefabParentObject: {fileID: 100000, guid: 386033b9b0ae11a40bbd970400b6d7c6, type: 3}
+  m_PrefabInternal: {fileID: 1380102997}
+--- !u!114 &498935808
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 498935805}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a7f1d7afc5dc7ec4ab6fa33a21ede643, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _layerName: Terrain
+  _cullExcludeLayers: []
+  _cullIncludeLayers: []
 --- !u!4 &632841573 stripped
 Transform:
   m_PrefabParentObject: {fileID: 400000, guid: 386033b9b0ae11a40bbd970400b6d7c6, type: 3}
@@ -246,7 +282,8 @@ GameObject:
   - component: {fileID: 723498131}
   - component: {fileID: 723498134}
   - component: {fileID: 723498132}
-  m_Layer: 8
+  - component: {fileID: 723498133}
+  m_Layer: 0
   m_Name: wp0
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -301,6 +338,20 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+--- !u!114 &723498133
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 723498130}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a7f1d7afc5dc7ec4ab6fa33a21ede643, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _layerName: SimShape
+  _cullExcludeLayers: []
+  _cullIncludeLayers: []
 --- !u!33 &723498134
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -538,7 +589,7 @@ Prefab:
       objectReference: {fileID: 0}
     - target: {fileID: 100000, guid: 386033b9b0ae11a40bbd970400b6d7c6, type: 3}
       propertyPath: m_Layer
-      value: 9
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 386033b9b0ae11a40bbd970400b6d7c6, type: 3}
@@ -723,7 +774,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1866213578}
   - component: {fileID: 1866213581}
-  m_Layer: 8
+  m_Layer: 0
   m_Name: OceanWavesBatched
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -788,9 +839,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _populateOnStartup: 1
-  _mask:
-    serializedVersion: 2
-    m_Bits: 512
+  _layerName: Terrain
   _resolution: 384
   _cameraMaxTerrainHeight: 100
   _forceAlwaysUpdateDebug: 0

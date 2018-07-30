@@ -133,6 +133,7 @@ GameObject:
   - component: {fileID: 227134467}
   - component: {fileID: 227134468}
   - component: {fileID: 227134471}
+  - component: {fileID: 227134472}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -241,6 +242,23 @@ MonoBehaviour:
   rotSpeed: 70
   simForwardInput: 0
   _requireLMBToMove: 0
+--- !u!114 &227134472
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 227134465}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a7f1d7afc5dc7ec4ab6fa33a21ede643, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _layerName: 
+  _cullExcludeLayers:
+  - SimShape
+  - SimWave
+  - SimFoam
+  _cullIncludeLayers: []
 --- !u!114 &227134473
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -315,13 +333,14 @@ GameObject:
   - component: {fileID: 723498131}
   - component: {fileID: 723498134}
   - component: {fileID: 723498132}
-  m_Layer: 8
+  - component: {fileID: 723498133}
+  m_Layer: 0
   m_Name: wp0
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_StaticEditorFlags: 4294967295
+  m_IsActive: 0
 --- !u!4 &723498131
 Transform:
   m_ObjectHideFlags: 0
@@ -370,6 +389,20 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+--- !u!114 &723498133
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 723498130}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a7f1d7afc5dc7ec4ab6fa33a21ede643, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _layerName: SimShape
+  _cullExcludeLayers: []
+  _cullIncludeLayers: []
 --- !u!33 &723498134
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -493,11 +526,6 @@ Prefab:
     - target: {fileID: 4341219009766782, guid: 71ede3c2ab0b7cb43b7dad6ae3b6190b, type: 2}
       propertyPath: m_RootOrder
       value: 4
-      objectReference: {fileID: 0}
-    - target: {fileID: 114123981558006810, guid: 71ede3c2ab0b7cb43b7dad6ae3b6190b,
-        type: 2}
-      propertyPath: _weightUpDownMul
-      value: 0.3
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 71ede3c2ab0b7cb43b7dad6ae3b6190b, type: 2}
@@ -673,7 +701,8 @@ GameObject:
   - component: {fileID: 1680820178}
   - component: {fileID: 1680820177}
   - component: {fileID: 1680820176}
-  m_Layer: 11
+  - component: {fileID: 1680820180}
+  m_Layer: 0
   m_Name: RippleTest
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -749,6 +778,20 @@ Transform:
   m_Father: {fileID: 995304123}
   m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
+--- !u!114 &1680820180
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1680820175}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a7f1d7afc5dc7ec4ab6fa33a21ede643, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _layerName: SimWave
+  _cullExcludeLayers: []
+  _cullIncludeLayers: []
 --- !u!1 &1866213577
 GameObject:
   m_ObjectHideFlags: 0
@@ -758,7 +801,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1866213578}
   - component: {fileID: 1866213581}
-  m_Layer: 8
+  m_Layer: 0
   m_Name: OceanWavesBatched
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -808,8 +851,8 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_StaticEditorFlags: 4294967295
+  m_IsActive: 1
 --- !u!4 &1989479267
 Transform:
   m_ObjectHideFlags: 0

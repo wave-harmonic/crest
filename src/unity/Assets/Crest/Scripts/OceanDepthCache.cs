@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
+
+using UnityEngine;
 
 namespace Crest
 {
@@ -9,7 +11,7 @@ namespace Crest
     public class OceanDepthCache : MonoBehaviour
     {
         public bool _populateOnStartup = true;
-        public LayerMask _mask;
+        public string _layerName;
         public int _resolution = 512;
 
         // a big hill will still want to write its height into the depth texture
@@ -23,6 +25,13 @@ namespace Crest
 
         void Start()
         {
+            if (string.IsNullOrEmpty(_layerName) || LayerMask.NameToLayer(_layerName) == -1)
+            {
+                Debug.LogError("Invalid layer name: \"" + _layerName + "\"", this);
+                enabled = false;
+                return;
+            }
+
             if (_populateOnStartup)
             {
                 PopulateCache();
@@ -73,7 +82,7 @@ namespace Crest
                 _camDepthCache.orthographic = true;
                 _camDepthCache.orthographicSize = Mathf.Max(transform.lossyScale.x / 2f, transform.lossyScale.z / 2f);
                 _camDepthCache.targetTexture = _cache;
-                _camDepthCache.cullingMask = _mask;
+                _camDepthCache.cullingMask = 1 << LayerMask.NameToLayer(_layerName);
                 _camDepthCache.clearFlags = CameraClearFlags.SolidColor;
                 _camDepthCache.backgroundColor = Color.red * 10000f;
                 _camDepthCache.enabled = false;

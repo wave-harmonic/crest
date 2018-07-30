@@ -1,3 +1,4 @@
+// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 // how many samples we want in one wave. trade quality for perf.
 uniform float _TexelsPerWave;

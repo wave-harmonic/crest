@@ -14,12 +14,12 @@ TagManager:
   - UI
   - 
   - 
-  - WaveData
+  - 
   - Terrain
   - EditorOnly
   - SimWave
   - SimFoam
-  - 
+  - SimShape
   - 
   - 
   - 

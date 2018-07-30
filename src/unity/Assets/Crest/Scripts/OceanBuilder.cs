@@ -15,7 +15,7 @@ namespace Crest
         [SerializeField, Tooltip("Material to use for the ocean surface")]
         Material _oceanMaterial;
 
-        const string SHAPE_RENDER_LAYER_NAME = "WaveData";
+        const string SHAPE_RENDER_LAYER_NAME = "SimShape";
 
         [HideInInspector]
         public Camera[] _shapeCameras;
@@ -210,7 +210,7 @@ namespace Crest
             cam.clearFlags = CameraClearFlags.Color;
             cam.backgroundColor = new Color(0f, 0f, 0f, 0f);
             // shape cameras will render any shape that is in the WaveData layer into the shape textures
-            cam.cullingMask = 1 << LayerMask.NameToLayer(SHAPE_RENDER_LAYER_NAME);
+            cam.cullingMask = 0;
             cam.orthographic = true;
             cam.nearClipPlane = 1f;
             cam.farClipPlane = 500f;
@@ -221,6 +221,8 @@ namespace Crest
             cam.depth = -10 - lodIdx;
             _shapeCameras[lodIdx] = cam;
 
+            var apply = go.AddComponent<ApplyLayers>();
+            apply._cullIncludeLayers = new string[] { SHAPE_RENDER_LAYER_NAME };
             _shapeWDCs[lodIdx] = go.AddComponent<WaveDataCam>();
             _shapeWDCs[lodIdx].InitLODData(lodIdx, lodCount);
 

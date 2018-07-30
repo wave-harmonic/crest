@@ -87,7 +87,8 @@ GameObject:
   - component: {fileID: 33386523307534470}
   - component: {fileID: 23429759743720956}
   - component: {fileID: 114123981558006810}
-  m_Layer: 11
+  - component: {fileID: 114497185399024552}
+  m_Layer: 0
   m_Name: WaterObjectInteractionSphere0
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -157,7 +158,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1935509346245718}
   m_LocalRotation: {x: 0, y: 0.89341056, z: 0, w: 0.44924098}
-  m_LocalPosition: {x: -6.2, y: 5, z: 24.9}
+  m_LocalPosition: {x: -14.2, y: 5, z: 14.13}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 4396590769128772}
@@ -389,4 +390,18 @@ MonoBehaviour:
   _noiseFreq: 6
   _noiseAmp: 0
   _weight: 2
-  _weightUpDownMul: 1
+  _weightUpDownMul: 0.3
+--- !u!114 &114497185399024552
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1686297963636050}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a7f1d7afc5dc7ec4ab6fa33a21ede643, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _layerName: SimWave
+  _cullExcludeLayers: []
+  _cullIncludeLayers: []

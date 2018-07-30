@@ -227,11 +227,11 @@ Shader "Ocean/Ocean"
 					return half3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w);
 				}
 
-				half WhiteFoamTexture(half i_foam, float2 i_worldXZUndisplaced, half2 duv)
+				half WhiteFoamTexture(half i_foam, float2 i_worldXZUndisplaced)
 				{
 					half ft = lerp(
-						texture(_FoamTexture, .125*i_worldXZUndisplaced + _MyTime/100. + duv).r,
-						texture(_FoamTexture, .3*i_worldXZUndisplaced - _MyTime/100. + duv).r,
+						texture(_FoamTexture, (1.25*i_worldXZUndisplaced + _MyTime / 10.) / _FoamScale).r,
+						texture(_FoamTexture, (3.00*i_worldXZUndisplaced - _MyTime / 10.) / _FoamScale).r,
 						0.5);
 
 					// black point fade
@@ -252,13 +252,13 @@ Shader "Ocean/Ocean"
 					o_bubbleCol = (half3)bubbleFoamTexValue * _FoamBubbleColor.rgb * saturate(i_foam - _WaveFoamBubblesCoverage);
 
 					// White foam on top, with black-point fading
-					half whiteFoam = WhiteFoamTexture(foamAmount, i_worldXZUndisplaced, 0.);
+					half whiteFoam = WhiteFoamTexture(foamAmount, i_worldXZUndisplaced);
 
 					#if _FOAM3DLIGHTING_ON
 					// Scale up delta by Z - keeps 3d look better at distance. better way to do this?
 					float2 dd = float2(0.25 * i_pixelZ * _FoamTexture_TexelSize.x, 0.);
-					half whiteFoam_x = WhiteFoamTexture(foamAmount, i_worldXZUndisplaced + dd.xy, 0.);
-					half whiteFoam_z = WhiteFoamTexture(foamAmount, i_worldXZUndisplaced + dd.yx, 0.);
+					half whiteFoam_x = WhiteFoamTexture(foamAmount, i_worldXZUndisplaced + dd.xy);
+					half whiteFoam_z = WhiteFoamTexture(foamAmount, i_worldXZUndisplaced + dd.yx);
 
 					// compute a foam normal
 					half dfdx = whiteFoam_x - whiteFoam, dfdz = whiteFoam_z - whiteFoam;

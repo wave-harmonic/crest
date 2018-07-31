@@ -1,0 +1,128 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_Name: Ocean-Planar reflections
+  m_Shader: {fileID: 4800000, guid: 8eb4698f33ee9a146bc6c899cc76ff07, type: 3}
+  m_ShaderKeywords: _APPLYNORMALMAPPING_ON _COMPUTEDIRECTIONALLIGHT_ON _DEBUGMULTIPLYBYLIGHT0COLOR_ON
+    _FOAM3DLIGHTING_ON _FOAM_ON _SUBSURFACESCATTERING_ON _TRANSPARENCY_ON
+  m_LightmapFlags: 5
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _FoamTexture:
+        m_Texture: {fileID: 2800000, guid: e330b3b94b6bdfb42ab2a9e1ca3a5efc, type: 3}
+        m_Scale: {x: 0.1, y: 0.1}
+        m_Offset: {x: 0, y: 0}
+    - _MainTex:
+        m_Texture: {fileID: 8400000, guid: 33331381cbc5c564583cd5e47314cf78, type: 2}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Normals:
+        m_Texture: {fileID: 2800000, guid: 73fd396a82b5181479f6602abdf36d5e, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _ReflectionTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Skybox:
+        m_Texture: {fileID: 8900000, guid: 5ee6a2bdc681ba44f927bb8e302699c9, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _WD_Sampler_0:
+        m_Texture: {fileID: 8400000, guid: 33331381cbc5c564583cd5e47314cf78, type: 2}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _WD_Sampler_1:
+        m_Texture: {fileID: 8400000, guid: ba628b5ad7a570e4b95c3ee64a5c605d, type: 2}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _WD_Sampler_2:
+        m_Texture: {fileID: 8400000, guid: 6b165028befdf0745b04ebdfbf672681, type: 2}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _WD_Sampler_3:
+        m_Texture: {fileID: 8400000, guid: e94a5d7132329854281515fe36afb70e, type: 2}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _WD_Sampler_Hi:
+        m_Texture: {fileID: 8400000, guid: 33331381cbc5c564583cd5e47314cf78, type: 2}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _WD_Sampler_Lo:
+        m_Texture: {fileID: 8400000, guid: ba628b5ad7a570e4b95c3ee64a5c605d, type: 2}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _WD_Tex_Hi:
+        m_Texture: {fileID: 8400000, guid: 33331381cbc5c564583cd5e47314cf78, type: 2}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _WaveDataTex:
+        m_Texture: {fileID: 8400000, guid: 33331381cbc5c564583cd5e47314cf78, type: 2}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Floats:
+    - _ApplyNormalMapping: 1
+    - _BumpAmt: 0.514
+    - _CompileShaderWithDebugInfo: 0
+    - _ComputeDirectionalLight: 1
+    - _DebugDisableMultiplyByLight0Color: 0
+    - _DebugDisableShapeTextures: 0
+    - _DebugDisableSmoothLOD: 0
+    - _DebugMultiplyByLight0Color: 1
+    - _DebugShapeSample: 0
+    - _DebugVisualiseShapeSample: 0
+    - _DirectionalLightBoost: 7
+    - _DirectionalLightFallOff: 275
+    - _Foam: 1
+    - _Foam3DLighting: 1
+    - _FoamScale: 10
+    - _FresnelPower: 5
+    - _Invert: 1
+    - _MipBias: 0
+    - _Moving: 0.17
+    - _NormalsScale: 30
+    - _NormalsStrength: 0.22
+    - _Offset: 0.00008
+    - _RefractAmt: 0
+    - _S: 1
+    - _ShorelineFoamMinDepth: 0.27
+    - _StartLevel: 0.157
+    - _SubSurfaceBase: 0.24
+    - _SubSurfaceScattering: 1
+    - _SubSurfaceSun: 4.85
+    - _SubSurfaceSunFallOff: 7.11
+    - _TexelSize: 0.125
+    - _TextureRes: 1024
+    - _Transparency: 1
+    - _Update: 0.083
+    - _WaveFoamBubblesCoverage: 0.18
+    - _WaveFoamBubblesFeather: 0.32
+    - _WaveFoamBubblesStart: 0.115
+    - _WaveFoamBubblesStrength: 0.637
+    - _WaveFoamCoverage: 0.38
+    - _WaveFoamFeather: 0.4
+    - _WaveFoamLightScale: 1.4
+    - _WaveFoamNormalStrength: 3.5
+    - _WaveFoamNormalsY: 0.253
+    - _WaveFoamSpecularBoost: 0.15
+    - _WaveFoamSpecularFallOff: 82
+    - _WaveFoamStart: 0
+    - _WaveFoamStrength: 1
+    m_Colors:
+    - _DepthFogDensity: {r: 0.5568628, g: 0.4352941, b: 0.52156866, a: 1}
+    - _Diffuse: {r: 0, g: 0.0067332755, b: 0.35686275, a: 1}
+    - _FoamBubbleColor: {r: 0.32798973, g: 0.566, b: 0.5050461, a: 1}
+    - _FoamWhiteColor: {r: 1, g: 0.98813045, b: 0.909, a: 1}
+    - _SubSurface: {r: 0, g: 0.48, b: 0.36, a: 1}
+    - _SubSurfaceColour: {r: 0.10196078, g: 0.57254905, b: 0.5256646, a: 1}

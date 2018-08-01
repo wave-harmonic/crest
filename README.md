@@ -66,7 +66,8 @@ The steps to set up Crest in a new or existing project currently look as follows
 * Copy across the contents of the *Crest* folder - this has all the necessary components and assets. Be sure to include the .meta files.
   * Some of the infrastructure for versioned Releases has been set up but is still evolving. These steps will be updated the release process has matured.
 * Drag *Crest/Prefabs/Ocean.prefab* into your scene(s), set y coordinate to desired sea level. On startup, this will generate the ocean geometry and initialise the ocean systems.
-* To add waves, create a new GameObject and add the *Shape Gerster Batched* component.
+* Tag a primary camera as *MainCamera* if one is not tagged already, or provide the viewpoint transform to the *OceanRenderer* script on the preab.
+* To add waves, create a new GameObject and add the *Shape Gerster Batched* component. Add a layer named *SimShape* to the project - any objects in this layer will render shape onto the ocean surface.
   * This will create a default ocean shape. To edit the shape, create an asset of type *Crest/Ocean Wave Spectrum* and assign it to this script.
   * Smooth blending of ocean shapes can be achieved by adding multiple *Shape Gerstner Batched* scripts and crossfading them using the Weight parameter.
 * To simulate and render foam create a new GameObject and add the *Create Sims* component, which will by default be configured to create a foam simulation.

@@ -75,7 +75,14 @@ namespace Crest
 
             if (_viewpoint == null)
             {
-                _viewpoint = Camera.main.transform;
+                if (Camera.main != null)
+                {
+                    _viewpoint = Camera.main.transform;
+                }
+                else
+                {
+                    Debug.LogError("Please provide the viewpoint transform, or tag the primary camera as MainCamera.", this);
+                }
             }
         }
 

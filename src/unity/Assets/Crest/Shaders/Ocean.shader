@@ -272,7 +272,7 @@ Shader "Ocean/Ocean"
 					o_whiteFoamCol.rgb = _FoamWhiteColor.rgb * (AmbientLight() + _WaveFoamLightScale * _LightColor0);
 					#endif // _FOAM3DLIGHTING_ON
 
-					o_whiteFoamCol.a = min(2. * whiteFoam, 1.);
+					o_whiteFoamCol.a = min(2. * whiteFoam, _FoamWhiteColor.a);
 				}
 
 				float3 WorldSpaceLightDir(float3 worldPos)

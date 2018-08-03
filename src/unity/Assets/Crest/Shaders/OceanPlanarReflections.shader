@@ -230,11 +230,11 @@ Shader "Ocean/Ocean (Planar reflections)"
 					return half3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w);
 				}
 
-				half WhiteFoamTexture(half i_foam, float2 i_worldXZUndisplaced, half2 duv)
+				half WhiteFoamTexture(half i_foam, float2 i_worldXZUndisplaced)
 				{
 					half ft = lerp(
-						texture(_FoamTexture, .125*i_worldXZUndisplaced + _MyTime/100. + duv).r,
-						texture(_FoamTexture, .3*i_worldXZUndisplaced - _MyTime/100. + duv).r,
+						texture(_FoamTexture, (1.25*i_worldXZUndisplaced + _MyTime / 10.) / _FoamScale).r,
+						texture(_FoamTexture, (3.00*i_worldXZUndisplaced - _MyTime / 10.) / _FoamScale).r,
 						0.5);
 
 					// black point fade
@@ -255,13 +255,13 @@ Shader "Ocean/Ocean (Planar reflections)"
 					o_bubbleCol = (half3)bubbleFoamTexValue * _FoamBubbleColor.rgb * saturate(i_foam - _WaveFoamBubblesCoverage);
 
 					// White foam on top, with black-point fading
-					half whiteFoam = WhiteFoamTexture(foamAmount, i_worldXZUndisplaced, 0.);
+					half whiteFoam = WhiteFoamTexture(foamAmount, i_worldXZUndisplaced);
 
 					#if _FOAM3DLIGHTING_ON
 					// Scale up delta by Z - keeps 3d look better at distance. better way to do this?
 					float2 dd = float2(0.25 * i_pixelZ * _FoamTexture_TexelSize.x, 0.);
-					half whiteFoam_x = WhiteFoamTexture(foamAmount, i_worldXZUndisplaced + dd.xy, 0.);
-					half whiteFoam_z = WhiteFoamTexture(foamAmount, i_worldXZUndisplaced + dd.yx, 0.);
+					half whiteFoam_x = WhiteFoamTexture(foamAmount, i_worldXZUndisplaced + dd.xy);
+					half whiteFoam_z = WhiteFoamTexture(foamAmount, i_worldXZUndisplaced + dd.yx);
 
 					// compute a foam normal
 					half dfdx = whiteFoam_x - whiteFoam, dfdz = whiteFoam_z - whiteFoam;
@@ -275,7 +275,7 @@ Shader "Ocean/Ocean (Planar reflections)"
 					o_whiteFoamCol.rgb = _FoamWhiteColor.rgb * (AmbientLight() + _WaveFoamLightScale * _LightColor0);
 					#endif // _FOAM3DLIGHTING_ON
 
-					o_whiteFoamCol.a = min(2. * whiteFoam, 1.);
+					o_whiteFoamCol.a = min(2. * whiteFoam, _FoamWhiteColor.a);
 				}
 
 				float3 WorldSpaceLightDir(float3 worldPos)
@@ -289,7 +289,7 @@ Shader "Ocean/Ocean (Planar reflections)"
 					return lightDir;
 				}
 
-				half3 OceanEmission(half3 view, half3 n, half3 n_geom, float3 lightDir, half4 grabPos, half3 screenPos, float pixelZ, half2 uvDepth, float sceneZ, half3 bubbleCol)
+				half3 OceanEmission(half3 view, half3 n, half3 n_geom, float3 lightDir, half4 grabPos, half3 screenPos, float pixelZ, half2 uvDepth, float sceneZ, float sceneZ01, half3 bubbleCol)
 				{
 					// use the constant layer of SH stuff - this is the average. it seems to give the right kind of colour
 					half3 col = _Diffuse * half3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w);
@@ -303,6 +303,11 @@ Shader "Ocean/Ocean (Planar reflections)"
 					col += bubbleCol;
 
 					#if _TRANSPARENCY_ON
+					// zfar? then don't read from the backbuffer at all, as i get occasionally nans spread across the screen when reading
+					// from uninit'd backbuffer
+					if (sceneZ01 == 0.0)
+						return col;
+
 					half2 uvBackgroundRefract = grabPos.xy / grabPos.w + .02 * n.xz;
 					half2 uvDepthRefract = uvDepth +.02 * n.xz;
 					half3 alpha = (half3)1.;
@@ -331,7 +336,8 @@ Shader "Ocean/Ocean (Planar reflections)"
 					float pixelZ = LinearEyeDepth(i.vertex.z);
 					half3 screenPos = i.foam_screenPos.yzw;
 					half2 uvDepth = screenPos.xy / screenPos.z;
-					float sceneZ = LinearEyeDepth(texture(_CameraDepthTexture, uvDepth).x);
+					float sceneZ01 = texture(_CameraDepthTexture, uvDepth).x;
+					float sceneZ = LinearEyeDepth(sceneZ01);
 
 					// could be per-vertex i reckon
 					float3 lightDir = WorldSpaceLightDir(i.worldPos);
@@ -352,7 +358,7 @@ Shader "Ocean/Ocean (Planar reflections)"
 
 
 					// Compute color of ocean - in-scattered light + refracted scene
-					half3 col = OceanEmission(view, n_pixel, n_geom, lightDir, i.grabPos, screenPos, pixelZ, uvDepth, sceneZ, bubbleCol);
+					half3 col = OceanEmission(view, n_pixel, n_geom, lightDir, i.grabPos, screenPos, pixelZ, uvDepth, sceneZ, sceneZ01, bubbleCol);
 
 					// Reflection
 					half3 refl = reflect(-view, n_pixel);

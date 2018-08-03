@@ -272,7 +272,7 @@ Shader "Ocean/Ocean"
 					o_whiteFoamCol.rgb = _FoamWhiteColor.rgb * (AmbientLight() + _WaveFoamLightScale * _LightColor0);
 					#endif // _FOAM3DLIGHTING_ON
 
-					o_whiteFoamCol.a = min(2. * whiteFoam, 1.);
+					o_whiteFoamCol.a = min(2. * whiteFoam, _FoamWhiteColor.a);
 				}
 
 				float3 WorldSpaceLightDir(float3 worldPos)
@@ -286,7 +286,7 @@ Shader "Ocean/Ocean"
 					return lightDir;
 				}
 
-				half3 OceanEmission(half3 view, half3 n, half3 n_geom, float3 lightDir, half4 grabPos, half3 screenPos, float pixelZ, half2 uvDepth, float sceneZ, half3 bubbleCol)
+				half3 OceanEmission(half3 view, half3 n, half3 n_geom, float3 lightDir, half4 grabPos, half3 screenPos, float pixelZ, half2 uvDepth, float sceneZ, float sceneZ01, half3 bubbleCol)
 				{
 					// use the constant layer of SH stuff - this is the average. it seems to give the right kind of colour
 					half3 col = _Diffuse * half3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w);
@@ -300,6 +300,11 @@ Shader "Ocean/Ocean"
 					col += bubbleCol;
 
 					#if _TRANSPARENCY_ON
+					// zfar? then don't read from the backbuffer at all, as i get occasionally nans spread across the screen when reading
+					// from uninit'd backbuffer
+					if (sceneZ01 == 0.0)
+						return col;
+
 					half2 uvBackgroundRefract = grabPos.xy / grabPos.w + .02 * n.xz;
 					half2 uvDepthRefract = uvDepth +.02 * n.xz;
 					half3 alpha = (half3)1.;
@@ -328,7 +333,8 @@ Shader "Ocean/Ocean"
 					float pixelZ = LinearEyeDepth(i.vertex.z);
 					half3 screenPos = i.foam_screenPos.yzw;
 					half2 uvDepth = screenPos.xy / screenPos.z;
-					float sceneZ = LinearEyeDepth(texture(_CameraDepthTexture, uvDepth).x);
+					float sceneZ01 = texture(_CameraDepthTexture, uvDepth).x;
+					float sceneZ = LinearEyeDepth(sceneZ01);
 
 					// could be per-vertex i reckon
 					float3 lightDir = WorldSpaceLightDir(i.worldPos);
@@ -348,7 +354,7 @@ Shader "Ocean/Ocean"
 					#endif
 
 					// Compute color of ocean - in-scattered light + refracted scene
-					half3 col = OceanEmission(view, n_pixel, n_geom, lightDir, i.grabPos, screenPos, pixelZ, uvDepth, sceneZ, bubbleCol);
+					half3 col = OceanEmission(view, n_pixel, n_geom, lightDir, i.grabPos, screenPos, pixelZ, uvDepth, sceneZ, sceneZ01, bubbleCol);
 
 					// Reflection
 					half3 refl = reflect(-view, n_pixel);

@@ -63,8 +63,7 @@ namespace Crest
             _matOceanDepth = new Material(Shader.Find("Ocean/Ocean Depth"));
             _combineMaterial = new Material(Shader.Find("Ocean/Shape/Combine"));
 
-            // create shader param names for each LOD once to avoid creating these strings each frame. these same
-            // params are inserted into multiple shaders/materials, so i don't think i can use an integer ID.
+            // create shader param IDs for each LOD once on start to avoid creating garbage each frame.
             if (_paramsDisplacementsSampler == null)
             {
                 int numToGenerate = 16;

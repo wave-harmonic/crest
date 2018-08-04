@@ -325,7 +325,7 @@ Shader "Ocean/Ocean"
 					return col;
 				}
 
-				half3 frag(v2f i) : SV_Target
+				half4 frag(v2f i) : SV_Target
 				{
 					half3 view = normalize(_WorldSpaceCameraPos - i.worldPos);
 
@@ -384,7 +384,7 @@ Shader "Ocean/Ocean"
 					col = mix(col.rgb, i.debugtint, 0.5);
 					#endif
 
-					return col;
+					return half4(col, 1.);
 				}
 
 				ENDCG

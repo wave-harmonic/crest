@@ -75,9 +75,9 @@ Shader "Ocean/Shape/Object Water Interaction"
 			float _Strength;
 			float _Weight;
 
-			fixed3 frag(v2f i) : SV_Target
+			half4 frag(v2f i) : SV_Target
 			{
-				fixed4 col = (fixed4)0.;
+				half4 col = (half4)0.;
 				col.x = _Strength * (length(i.offsetDist)) * abs(i.normal.y) * sqrt(length(_Velocity)) / 10.;
 
 				if (dot(i.normal, _Velocity) < -0.1)
@@ -88,7 +88,7 @@ Shader "Ocean/Shape/Object Water Interaction"
 				// write to both channels of sim. this has the affect of kinematically moving the water, instead of applying
 				// a force to accelerate it.
 				float dt2 = _SimDeltaTime * _SimDeltaTime;
-				return _Weight * fixed4(col.x*dt2, col.x*dt2, 0., 0.);
+				return _Weight * half4(col.x*dt2, col.x*dt2, 0., 0.);
 			}
 			ENDCG
 		}

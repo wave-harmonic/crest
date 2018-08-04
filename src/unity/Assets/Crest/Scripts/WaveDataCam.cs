@@ -42,6 +42,12 @@ namespace Crest
         // shape texture resolution
         int _shapeRes = -1;
 
+        static int[] _paramsDisplacementsSampler;
+        static int[] _paramsOceanDepthSampler;
+        static int[] _paramsOceanParams;
+        static int[] _paramsPosScale;
+        static int[] _paramsLodIdx;
+
         public struct RenderData
         {
             public float _texelWidth;
@@ -56,6 +62,18 @@ namespace Crest
 
             _matOceanDepth = new Material(Shader.Find("Ocean/Ocean Depth"));
             _combineMaterial = new Material(Shader.Find("Ocean/Shape/Combine"));
+
+            // create shader param names for each LOD once to avoid creating these strings each frame. these same
+            // params are inserted into multiple shaders/materials, so i don't think i can use an integer ID.
+            if (_paramsDisplacementsSampler == null)
+            {
+                int numToGenerate = 16;
+                CreateParamIDs(ref _paramsDisplacementsSampler, "_WD_Sampler_", numToGenerate);
+                CreateParamIDs(ref _paramsOceanDepthSampler, "_WD_OceanDepth_Sampler_", numToGenerate);
+                CreateParamIDs(ref _paramsOceanParams, "_WD_Params_", numToGenerate);
+                CreateParamIDs(ref _paramsPosScale, "_WD_Pos_Scale_", numToGenerate);
+                CreateParamIDs(ref _paramsLodIdx, "_WD_LodIdx_", numToGenerate);
+            }
         }
 
         private void Update()
@@ -75,6 +93,15 @@ namespace Crest
             {
                 UpdateCmdBufOceanFloorDepth();
                 _oceanDepthRenderersDirty = false;
+            }
+        }
+
+        public void CreateParamIDs(ref int[] ids, string prefix, int count)
+        {
+            ids = new int[count];
+            for (int i = 0; i < count; i++)
+            {
+                ids[i] = Shader.PropertyToID(string.Format("{0}{1}", prefix, i));
             }
         }
 
@@ -129,11 +156,12 @@ namespace Crest
         // apply this camera's properties to the shape combine materials
         void LateUpdateShapeCombinePassSettings()
         {
-            ApplyMaterialParams(0, new PropertyWrapperMaterial(_combineMaterial));
+            ApplyMaterialParams(0, _combineMaterial);
+
             if (_lodIndex > 0)
             {
                 var wdcs = OceanRenderer.Instance.Builder._shapeWDCs;
-                ApplyMaterialParams(1, new PropertyWrapperMaterial(wdcs[_lodIndex - 1]._combineMaterial));
+                ApplyMaterialParams(1, wdcs[_lodIndex - 1]._combineMaterial);
             }
         }
 
@@ -257,7 +285,38 @@ namespace Crest
             RemoveCommandBuffers();
         }
 
-        public void ApplyMaterialParams( int shapeSlot, IPropertyWrapper properties)
+        PropertyWrapperMaterial _pwMat = new PropertyWrapperMaterial();
+        PropertyWrapperMPB _pwMPB = new PropertyWrapperMPB();
+
+        public void ApplyMaterialParams(int shapeSlot, Material properties)
+        {
+            _pwMat._target = properties;
+            ApplyMaterialParams(shapeSlot, _pwMat, true, true);
+            _pwMat._target = null;
+        }
+
+        public void ApplyMaterialParams(int shapeSlot, MaterialPropertyBlock properties)
+        {
+            _pwMPB._target = properties;
+            ApplyMaterialParams(shapeSlot, _pwMPB, true, true);
+            _pwMPB._target = null;
+        }
+
+        public void ApplyMaterialParams(int shapeSlot, Material properties, bool applyWaveHeights, bool blendOut)
+        {
+            _pwMat._target = properties;
+            ApplyMaterialParams(shapeSlot, _pwMat, applyWaveHeights, blendOut);
+            _pwMat._target = null;
+        }
+
+        public void ApplyMaterialParams(int shapeSlot, MaterialPropertyBlock properties, bool applyWaveHeights, bool blendOut)
+        {
+            _pwMPB._target = properties;
+            ApplyMaterialParams(shapeSlot, _pwMPB, applyWaveHeights, blendOut);
+            _pwMPB._target = null;
+        }
+
+        public void ApplyMaterialParams(int shapeSlot, IPropertyWrapper properties)
         {
             ApplyMaterialParams(shapeSlot, properties, true, true);
         }
@@ -266,22 +325,22 @@ namespace Crest
         {
             if (applyWaveHeights)
             {
-                properties.SetTexture("_WD_Sampler_" + shapeSlot.ToString(), cam.targetTexture);
+                properties.SetTexture(_paramsDisplacementsSampler[shapeSlot], cam.targetTexture);
             }
 
             if (_rtOceanDepth != null)
             {
-                properties.SetTexture("_WD_OceanDepth_Sampler_" + shapeSlot.ToString(), _rtOceanDepth);
+                properties.SetTexture(_paramsOceanDepthSampler[shapeSlot], _rtOceanDepth);
             }
 
             // need to blend out shape if this is the largest lod, and the ocean might get scaled down later (so the largest lod will disappear)
             bool needToBlendOutShape = _lodIndex == _lodCount - 1 && OceanRenderer.Instance.ScaleCouldDecrease && blendOut;
             float shapeWeight = needToBlendOutShape ? OceanRenderer.Instance.ViewerAltitudeLevelAlpha : 1f;
-            properties.SetVector("_WD_Params_" + shapeSlot.ToString(), 
+            properties.SetVector(_paramsOceanParams[shapeSlot], 
                 new Vector4(_renderData._texelWidth, _renderData._textureRes, shapeWeight, 1f / _renderData._textureRes));
 
-            properties.SetVector("_WD_Pos_Scale_" + shapeSlot.ToString(), new Vector3(_renderData._posSnapped.x, _renderData._posSnapped.z, transform.lossyScale.x));
-            properties.SetFloat("_WD_LodIdx_" + shapeSlot.ToString(), _lodIndex);
+            properties.SetVector(_paramsPosScale[shapeSlot], new Vector3(_renderData._posSnapped.x, _renderData._posSnapped.z, transform.lossyScale.x));
+            properties.SetFloat(_paramsLodIdx[shapeSlot], _lodIndex);
         }
 
         /// <summary>

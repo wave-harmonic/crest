@@ -152,7 +152,7 @@ namespace Crest
                 _simDeltaTimePrev = dt;
 
             _renderSimMaterial.SetTexture("_SimDataLastFrame", PPRTs.Source);
-            wdc.ApplyMaterialParams(0, new PropertyWrapperMaterial(_renderSimMaterial));
+            wdc.ApplyMaterialParams(0, _renderSimMaterial);
 
             SetAdditionalSimParams(_renderSimMaterial);
 

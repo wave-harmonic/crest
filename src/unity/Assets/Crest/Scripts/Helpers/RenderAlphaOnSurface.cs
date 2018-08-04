@@ -8,11 +8,12 @@ namespace Crest
     /// </summary>
     public class RenderAlphaOnSurface : MonoBehaviour
     {
-        Material _mat;
+        MaterialPropertyBlock _mpb;
 
         void Start()
         {
-            _mat = GetComponent<Renderer>().material;
+            _mpb = new MaterialPropertyBlock();
+            GetComponent<Renderer>().GetPropertyBlock(_mpb);
         }
 
         private void LateUpdate()
@@ -23,11 +24,10 @@ namespace Crest
 
             if (idx > -1)
             {
-                var pwm = new PropertyWrapperMaterial(_mat);
                 var wdcs = OceanRenderer.Instance.Builder._shapeWDCs;
-                wdcs[idx].ApplyMaterialParams(0, pwm);
+                wdcs[idx].ApplyMaterialParams(0, _mpb);
                 int idx1 = Mathf.Min(idx + 1, wdcs.Length - 1);
-                wdcs[idx1].ApplyMaterialParams(1, pwm);
+                wdcs[idx1].ApplyMaterialParams(1, _mpb);
 
                 // blend LOD 0 shape in/out to avoid pop, if the ocean might scale up later (it is smaller than its maximum scale)
                 bool needToBlendOutShape = idx == 0 && OceanRenderer.Instance.ScaleCouldIncrease;
@@ -36,7 +36,7 @@ namespace Crest
                 // blend furthest normals scale in/out to avoid pop, if scale could reduce
                 bool needToBlendOutNormals = idx == wdcs.Length - 1 && OceanRenderer.Instance.ScaleCouldDecrease;
                 float farNormalsWeight = needToBlendOutNormals ? OceanRenderer.Instance.ViewerAltitudeLevelAlpha : 1f;
-                pwm.SetVector("_InstanceData", new Vector4(meshScaleLerp, farNormalsWeight, idx));
+                _mpb.SetVector("_InstanceData", new Vector4(meshScaleLerp, farNormalsWeight, idx));
             }
         }
     }

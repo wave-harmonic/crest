@@ -193,7 +193,7 @@ namespace Crest
             material.SetFloat("_NumInBatch", numInBatch);
             material.SetFloat("_Chop", _spectrum._chop);
 
-            OceanRenderer.Instance.Builder._shapeWDCs[lodIdx].ApplyMaterialParams(0, new PropertyWrapperMaterial(material), false, false);
+            OceanRenderer.Instance.Builder._shapeWDCs[lodIdx].ApplyMaterialParams(0, material, false, false);
 
             return numInBatch;
         }

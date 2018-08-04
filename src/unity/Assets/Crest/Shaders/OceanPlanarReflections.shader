@@ -153,7 +153,7 @@ Shader "Ocean/Ocean (Planar reflections)"
 					o.grabPos = ComputeGrabScreenPos(o.vertex);
 					o.foam_screenPos.yzw = ComputeScreenPos(o.vertex).xyw;
 
-					o.ref = ComputeNonStereoScreenPos(UnityObjectToClipPos(v.vertex));
+					o.ref = ComputeNonStereoScreenPos(o.vertex);// UnityObjectToClipPos(float4(o.vertex.xyz, 1.)));
 
 					return o;
 				}

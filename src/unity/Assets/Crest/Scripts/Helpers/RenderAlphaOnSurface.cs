@@ -10,12 +10,6 @@ namespace Crest
     {
         MaterialPropertyBlock _mpb;
 
-        void Start()
-        {
-            _mpb = new MaterialPropertyBlock();
-            GetComponent<Renderer>().GetPropertyBlock(_mpb);
-        }
-
         private void LateUpdate()
         {
             // find which lod this object is overlapping
@@ -24,6 +18,12 @@ namespace Crest
 
             if (idx > -1)
             {
+                if (_mpb == null)
+                {
+                    _mpb = new MaterialPropertyBlock();
+                    GetComponent<Renderer>().GetPropertyBlock(_mpb);
+                }
+
                 var wdcs = OceanRenderer.Instance.Builder._shapeWDCs;
                 wdcs[idx].ApplyMaterialParams(0, _mpb);
                 int idx1 = Mathf.Min(idx + 1, wdcs.Length - 1);

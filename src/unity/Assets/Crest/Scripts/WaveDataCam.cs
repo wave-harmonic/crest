@@ -42,11 +42,12 @@ namespace Crest
         // shape texture resolution
         int _shapeRes = -1;
 
-        static int[] _paramsDisplacementsSampler;
-        static int[] _paramsOceanDepthSampler;
-        static int[] _paramsOceanParams;
-        static int[] _paramsPosScale;
-        static int[] _paramsLodIdx;
+        // these would ideally be static but then they get cleared when editing-and-continuing in the editor.
+        int[] _paramsDisplacementsSampler;
+        int[] _paramsOceanDepthSampler;
+        int[] _paramsOceanParams;
+        int[] _paramsPosScale;
+        int[] _paramsLodIdx;
 
         public struct RenderData
         {

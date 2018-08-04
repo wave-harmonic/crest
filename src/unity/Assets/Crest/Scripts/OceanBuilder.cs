@@ -465,6 +465,7 @@ namespace Crest
             {
                 // instantiate and place patch
                 var patch = new GameObject( string.Format( "Tile_L{0}", lodIndex ) );
+                patch.layer = LayerMask.NameToLayer("Water");
                 patch.transform.parent = parent.transform;
                 Vector2 pos = offsets[i];
                 patch.transform.localPosition = new Vector3( pos.x, 0f, pos.y );

@@ -18,7 +18,7 @@ public class OceanPlanarReflection : MonoBehaviour
     public Material m_OceanMat;
 
 
-    private void Update()
+    private void LateUpdate()
     {
         UpdateReflection();
     }

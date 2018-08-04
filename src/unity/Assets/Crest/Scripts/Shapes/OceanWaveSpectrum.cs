@@ -93,18 +93,23 @@ namespace Crest
             if (phases == null || phases.Length != totalComponents) phases = new float[totalComponents];
 
             float minWavelength = Mathf.Pow(2f, SMALLEST_WL_POW_2);
+            float invComponentsPerOctave = 1f / componentsPerOctave;
 
             for (int octave = 0; octave < NUM_OCTAVES; octave++)
             {
                 for (int i = 0; i < componentsPerOctave; i++)
                 {
                     int index = octave * componentsPerOctave + i;
-                    wavelengths[index] = minWavelength * (1f + Random.value);
+
+                    // stratified random sampling - should give a better range of wavelengths, and also means i can generated the
+                    // wavelengths in sorted order!
+                    float minWavelengthi = minWavelength + invComponentsPerOctave * minWavelength * i;
+                    float maxWavelengthi = Mathf.Min(minWavelengthi + invComponentsPerOctave * minWavelength, 2f * minWavelength);
+                    wavelengths[index] = Mathf.Lerp(minWavelengthi, maxWavelengthi, Random.value);
+
                     anglesDeg[index] = Random.Range(-_waveDirectionVariance, _waveDirectionVariance);
                     phases[index] = 2f * Mathf.PI * Random.value;
                 }
-
-                System.Array.Sort(wavelengths, octave * componentsPerOctave, componentsPerOctave);
 
                 minWavelength *= 2f;
             }

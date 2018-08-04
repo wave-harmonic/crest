@@ -17,6 +17,7 @@ public class OceanPlanarReflection : MonoBehaviour
     private static bool s_InsideWater;
     public Material m_OceanMat;
 
+    public bool _hideCamera = true;
 
     private void LateUpdate()
     {
@@ -181,7 +182,8 @@ public class OceanPlanarReflection : MonoBehaviour
             reflectionCamera.transform.position = transform.position;
             reflectionCamera.transform.rotation = transform.rotation;
             reflectionCamera.gameObject.AddComponent<FlareLayer>();
-            go.hideFlags = HideFlags.HideAndDontSave;
+            if (_hideCamera)
+                go.hideFlags = HideFlags.HideAndDontSave;
             m_ReflectionCameras[currentCamera] = reflectionCamera;
         }
     }

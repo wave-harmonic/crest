@@ -366,6 +366,8 @@ Shader "Ocean/Ocean (Planar reflections)"
 
 					float4 uvRefl = i.ref;
 					uvRefl.xyz += n_pixel;
+					// i think we want to perturb the uvs by the xz components of the normal? the below seems to give the right reflection movement for me.
+					//uvRefl.xy -= 1.*n_pixel.xz;
 
 					half4 skyColor = tex2Dproj(_ReflectionTex, UNITY_PROJ_COORD(uvRefl));
 

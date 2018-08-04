@@ -54,7 +54,7 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 				float4 frag(v2f i) : SV_Target
 				{
 					// hack for issue #34 - guard against _SimDeltaTimePrev being 0 (for as yet unknown reasons)
-					_SimDeltaTimePrev = max(_SimDeltaTimePrev, 0.001f);
+					_SimDeltaTimePrev = max(_SimDeltaTimePrev, 0.001);
 
 					float4 uv_lastframe = float4(i.uv_lastframe.xy, 0., 0.);
 
@@ -81,7 +81,7 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 					//float h = max(waterSignedDepth + ft, 0.);
 					float c = ComputeWaveSpeed(wavelength /*, h*/);
 
-					const float dt = _SimDeltaTime;
+					const float dt = max(_SimDeltaTime, 0.001);
 
 					// wave propagation
 					// velocity is implicit

@@ -42,6 +42,16 @@ namespace Crest
         // IMPORTANT - this mirrors the constant with the same name in ShapeGerstnerBatch.shader, both must be updated together!
         const int BATCH_SIZE = 32;
 
+        enum CmdBufStatus
+        {
+            NoStatus,
+            NotAttached,
+            Attached
+        }
+
+        CmdBufStatus[] _cmdBufWaveAdded = new CmdBufStatus[16];
+        CmdBufStatus _cmdBufBigWavesAdded = CmdBufStatus.NoStatus;
+
         // scratch data used by batching code
         struct UpdateBatchScratchData
         {
@@ -209,9 +219,6 @@ namespace Crest
                 componentIdx++;
             }
 
-            // slightly clunky but remove any draw-shape command buffers - these will be re-added below
-            RemoveDrawShapeCommandBuffers();
-
             // batch together appropriate wavelengths for each lod, except the last lod, which are handled separately below
             for (int lod = 0; lod < OceanRenderer.Instance.Builder.CurrentLodCount - 1; lod++, minWl *= 2f)
             {
@@ -226,6 +233,10 @@ namespace Crest
                     // draw shape into this lod
                     AddDrawShapeCommandBuffer(lod);
                 }
+                else
+                {
+                    RemoveDrawShapeCommandBuffer(lod);
+                }
             }
 
             // the last batch handles waves for the last lod, and waves that did not fit in the last lod
@@ -237,6 +248,10 @@ namespace Crest
                 // special command buffers that get added to last 2 lods, to handle smooth transitions for camera height changes
                 AddDrawShapeBigWavelengthsCommandBuffer();
             }
+            else
+            {
+                RemoveDrawShapeBigWavelengthsCommandBuffer();
+            }
         }
 
         // helper code below to manage command buffers. lods from 0 to N-2 render the gerstner waves from their lod. additionally, any waves
@@ -244,15 +259,46 @@ namespace Crest
         // move these waves between lods without pops when the camera changes heights and the lods need to change scale.
         void AddDrawShapeCommandBuffer(int lodIndex)
         {
-            OceanRenderer.Instance.Builder._shapeCameras[lodIndex].AddCommandBuffer(CameraEvent.BeforeForwardAlpha, _renderWaveShapeCmdBufs[lodIndex]);
+            if(_cmdBufWaveAdded[lodIndex] != CmdBufStatus.Attached)
+            {
+                OceanRenderer.Instance.Builder._shapeCameras[lodIndex].AddCommandBuffer(CameraEvent.BeforeForwardAlpha, _renderWaveShapeCmdBufs[lodIndex]);
+                _cmdBufWaveAdded[lodIndex] = CmdBufStatus.Attached;
+            }
+        }
+
+        void RemoveDrawShapeCommandBuffer(int lodIndex)
+        {
+            if (_cmdBufWaveAdded[lodIndex] != CmdBufStatus.NotAttached)
+            {
+                OceanRenderer.Instance.Builder._shapeCameras[lodIndex].RemoveCommandBuffer(CameraEvent.BeforeForwardAlpha, _renderWaveShapeCmdBufs[lodIndex]);
+                _cmdBufWaveAdded[lodIndex] = CmdBufStatus.NotAttached;
+            }
         }
 
         void AddDrawShapeBigWavelengthsCommandBuffer()
         {
-            int lastLod = OceanRenderer.Instance.Builder.CurrentLodCount - 1;
-            OceanRenderer.Instance.Builder._shapeCameras[lastLod].AddCommandBuffer(CameraEvent.BeforeForwardAlpha, _renderBigWavelengthsShapeCmdBuf);
-            // the second-to-last lod will transition content into it from the last lod
-            OceanRenderer.Instance.Builder._shapeCameras[lastLod - 1].AddCommandBuffer(CameraEvent.BeforeForwardAlpha, _renderBigWavelengthsShapeCmdBufTransition);
+            if(_cmdBufBigWavesAdded != CmdBufStatus.Attached)
+            {
+                int lastLod = OceanRenderer.Instance.Builder.CurrentLodCount - 1;
+                OceanRenderer.Instance.Builder._shapeCameras[lastLod].AddCommandBuffer(CameraEvent.BeforeForwardAlpha, _renderBigWavelengthsShapeCmdBuf);
+                // the second-to-last lod will transition content into it from the last lod
+                OceanRenderer.Instance.Builder._shapeCameras[lastLod - 1].AddCommandBuffer(CameraEvent.BeforeForwardAlpha, _renderBigWavelengthsShapeCmdBufTransition);
+
+                _cmdBufBigWavesAdded = CmdBufStatus.Attached;
+            }
+        }
+
+        void RemoveDrawShapeBigWavelengthsCommandBuffer()
+        {
+            if (_cmdBufBigWavesAdded != CmdBufStatus.NotAttached)
+            {
+                int lastLod = OceanRenderer.Instance.Builder.CurrentLodCount - 1;
+                OceanRenderer.Instance.Builder._shapeCameras[lastLod].RemoveCommandBuffer(CameraEvent.BeforeForwardAlpha, _renderBigWavelengthsShapeCmdBuf);
+                // the second-to-last lod will transition content into it from the last lod
+                OceanRenderer.Instance.Builder._shapeCameras[lastLod - 1].RemoveCommandBuffer(CameraEvent.BeforeForwardAlpha, _renderBigWavelengthsShapeCmdBufTransition);
+
+                _cmdBufBigWavesAdded = CmdBufStatus.NotAttached;
+            }
         }
 
         void RemoveDrawShapeCommandBuffers()
@@ -260,19 +306,12 @@ namespace Crest
             if (OceanRenderer.Instance == null || OceanRenderer.Instance.Builder == null || _renderBigWavelengthsShapeCmdBuf == null || _renderBigWavelengthsShapeCmdBufTransition == null)
                 return;
 
-            for (int lod = 0; lod < OceanRenderer.Instance.Builder.CurrentLodCount; lod++)
+            for (int lod = 0; lod < OceanRenderer.Instance.Builder.CurrentLodCount - 1; lod++)
             {
-                if (lod < OceanRenderer.Instance.Builder.CurrentLodCount - 1)
-                {
-                    if (_renderWaveShapeCmdBufs == null || _renderWaveShapeCmdBufs[lod] == null)
-                        continue;
-
-                    OceanRenderer.Instance.Builder._shapeCameras[lod].RemoveCommandBuffer(CameraEvent.BeforeForwardAlpha, _renderWaveShapeCmdBufs[lod]);
-                }
-
-                OceanRenderer.Instance.Builder._shapeCameras[lod].RemoveCommandBuffer(CameraEvent.BeforeForwardAlpha, _renderBigWavelengthsShapeCmdBuf);
-                OceanRenderer.Instance.Builder._shapeCameras[lod].RemoveCommandBuffer(CameraEvent.BeforeForwardAlpha, _renderBigWavelengthsShapeCmdBufTransition);
+                RemoveDrawShapeCommandBuffer(lod);
             }
+
+            RemoveDrawShapeBigWavelengthsCommandBuffer();
         }
 
         void InitCommandBuffers()

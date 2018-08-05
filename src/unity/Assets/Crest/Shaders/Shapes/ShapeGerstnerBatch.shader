@@ -61,7 +61,7 @@ Shader "Ocean/Shape/Gerstner Batch"
 				uniform half _Angles[BATCH_SIZE];
 				uniform half _Phases[BATCH_SIZE];
 
-				half3 frag (v2f i) : SV_Target
+				half4 frag (v2f i) : SV_Target
 				{
 					const half minWavelength = MinWavelengthForCurrentOrthoCamera();
 			
@@ -103,7 +103,7 @@ Shader "Ocean/Shape/Gerstner Batch"
 						result += result_i;
 					}
 
-					return i.worldPos_wt.z * result;
+					return half4(i.worldPos_wt.z * result, 0.);
 				}
 
 				ENDCG

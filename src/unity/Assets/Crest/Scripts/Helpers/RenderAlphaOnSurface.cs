@@ -9,6 +9,12 @@ namespace Crest
     public class RenderAlphaOnSurface : MonoBehaviour
     {
         MaterialPropertyBlock _mpb;
+        Renderer _rend;
+
+        private void Start()
+        {
+            _rend = GetComponent<Renderer>();
+        }
 
         private void LateUpdate()
         {
@@ -21,8 +27,9 @@ namespace Crest
                 if (_mpb == null)
                 {
                     _mpb = new MaterialPropertyBlock();
-                    GetComponent<Renderer>().GetPropertyBlock(_mpb);
                 }
+
+                _rend.GetPropertyBlock(_mpb);
 
                 var wdcs = OceanRenderer.Instance.Builder._shapeWDCs;
                 wdcs[idx].ApplyMaterialParams(0, _mpb);
@@ -37,6 +44,8 @@ namespace Crest
                 bool needToBlendOutNormals = idx == wdcs.Length - 1 && OceanRenderer.Instance.ScaleCouldDecrease;
                 float farNormalsWeight = needToBlendOutNormals ? OceanRenderer.Instance.ViewerAltitudeLevelAlpha : 1f;
                 _mpb.SetVector("_InstanceData", new Vector4(meshScaleLerp, farNormalsWeight, idx));
+
+                _rend.SetPropertyBlock(_mpb);
             }
         }
     }

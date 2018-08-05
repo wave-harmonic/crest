@@ -362,12 +362,9 @@ Shader "Ocean/Ocean (Planar reflections)"
 
 					// Reflection
 					half3 refl = reflect(-view, n_pixel);
-					//half3 skyColor = texCUBE(_Skybox, refl);
 
 					float4 uvRefl = i.ref;
-					uvRefl.xyz += n_pixel;
-					// i think we want to perturb the uvs by the xz components of the normal? the below seems to give the right reflection movement for me.
-					//uvRefl.xy -= 1.*n_pixel.xz;
+					uvRefl.xy += 1.*n_pixel.xz; // Finally used "+" instead of "-" because the unity water advanced does this way, it adds the normal for reflection; subtracts it for refraction. Works nicely for me. Does it make sense?
 
 					half4 skyColor = tex2Dproj(_ReflectionTex, UNITY_PROJ_COORD(uvRefl));
 

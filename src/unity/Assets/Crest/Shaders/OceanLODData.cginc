@@ -5,6 +5,7 @@
 #define SHAPE_LOD_PARAMS(LODNUM) \
 	uniform sampler2D _WD_Displacement_Sampler_##LODNUM; \
 	uniform sampler2D _WD_OceanDepth_Sampler_##LODNUM; \
+	uniform sampler2D _WD_Foam_Sampler_##LODNUM; \
 	uniform float4 _WD_Params_##LODNUM; \
 	uniform float3 _WD_Pos_Scale_##LODNUM; \
 	uniform int _WD_LodIdx_##LODNUM;
@@ -25,14 +26,20 @@ float2 WD_uvToWorld(in float2 i_uv, in float2 i_centerPos, in float i_res, in fl
 
 #define DEPTH_BIAS 100.
 
+
+float4 CalculateWDSamplerUV(
+	in float2 i_centerPos, in float i_res, in float i_texelSize, in float2 i_samplePos
+) {
+	return float4(WD_worldToUV(i_samplePos, i_centerPos, i_res, i_texelSize), 0., 0.);
+}
+
 // sample wave or terrain height, with smooth blend towards edges. computes normals and determinant and samples ocean depth.
 // would equally apply to heights instead of displacements.
-void SampleDisplacements(in sampler2D i_dispSampler, in sampler2D i_oceanDepthSampler, in float2 i_centerPos, in float i_res, in float i_invRes, in float i_texelSize, in float2 i_samplePos, in float wt, inout float3 io_worldPos, inout float3 io_n, inout half io_foam)
+void SampleDisplacements(in sampler2D i_dispSampler, in float4 uv, in float wt, in float i_invRes, in float i_texelSize, inout float3 io_worldPos, inout float3 io_n)
 {
+	// TODO: find a more sensible place to put this.
 	if (wt < 0.001)
 		return;
-
-	float4 uv = float4(WD_worldToUV(i_samplePos, i_centerPos, i_res, i_texelSize), 0., 0.);
 
 	// do computations for hi-res
 	float3 dd = float3(i_invRes, 0.0, i_texelSize);
@@ -45,9 +52,14 @@ void SampleDisplacements(in sampler2D i_dispSampler, in sampler2D i_oceanDepthSa
 
 	float3 n = normalize(cross(disp_z - disp, disp_x - disp));
 	io_n.xz += wt * n.xz;
+}
 
+// TODO: make the foam use its own seperate sampler.
+void SampleFoam(in sampler2D i_dispSampler, in float4 uv, in float wt, inout half io_foam) {
+	half4 s = tex2Dlod(i_dispSampler, uv);
 	io_foam += wt * s.a;
 }
+
 
 // Geometry data
 // x: A square is formed by 2 triangles in the mesh. Here x is square size

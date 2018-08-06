@@ -130,8 +130,16 @@ Shader "Ocean/Ocean"
 					// sample displacement textures, add results to current world pos / normal / foam
 					#if !_DEBUGDISABLESHAPETEXTURES_ON
 					const float2 worldXZBefore = o.worldPos.xz;
-					SampleDisplacements( _WD_Displacement_Sampler_0, _WD_OceanDepth_Sampler_0, _WD_Pos_Scale_0.xy, _WD_Params_0.y, _WD_Params_0.w, _WD_Params_0.x, worldXZBefore, wt_0, o.worldPos, o.n, o.foam_screenPos.x);
-					SampleDisplacements( _WD_Displacement_Sampler_1, _WD_OceanDepth_Sampler_1, _WD_Pos_Scale_1.xy, _WD_Params_1.y, _WD_Params_1.w, _WD_Params_1.x, worldXZBefore, wt_1, o.worldPos, o.n, o.foam_screenPos.x);
+					if(wt_0 > 0.001) {
+						float4 uv_0 = CalculateWDSamplerUV(_WD_Pos_Scale_0.xy, _WD_Params_0.y, _WD_Params_0.x, worldXZBefore);
+						SampleDisplacements(_WD_Displacement_Sampler_0, uv_0, wt_0, _WD_Params_0.w, _WD_Params_0.x, o.worldPos, o.n);
+						SampleFoam(_WD_Displacement_Sampler_0, uv_0, wt_0, o.foam_screenPos.x);
+					}
+					if(wt_1 > 0.001) {
+						float4 uv_1 = CalculateWDSamplerUV(_WD_Pos_Scale_1.xy, _WD_Params_1.y, _WD_Params_1.x, worldXZBefore);
+						SampleDisplacements(_WD_Displacement_Sampler_1, uv_1, wt_1, _WD_Params_1.w, _WD_Params_1.x, o.worldPos, o.n);
+						SampleFoam(_WD_Displacement_Sampler_1, uv_1, wt_1, o.foam_screenPos.x);
+					}
 					#endif
 
 					// debug tinting to see which shape textures are used
@@ -141,7 +149,7 @@ Shader "Ocean/Ocean"
 					o.debugtint = wt_0 * tintCols[_WD_LodIdx_0 % TINT_COUNT] + wt_1 * tintCols[_WD_LodIdx_1 % TINT_COUNT];
 					#endif
 
-					// view-projection	
+					// view-projection
 					o.vertex = mul(UNITY_MATRIX_VP, float4(o.worldPos, 1.));
 
 					UNITY_TRANSFER_FOG(o, o.vertex);
@@ -179,7 +187,7 @@ Shader "Ocean/Ocean"
 				uniform half _WaveFoamSpecularFallOff;
 				uniform half _WaveFoamSpecularBoost;
 				uniform half _WaveFoamLightScale;
-				
+
 				uniform sampler2D _Normals;
 				uniform half _NormalsStrength;
 				uniform half _NormalsScale;
@@ -242,7 +250,7 @@ Shader "Ocean/Ocean"
 				void ComputeFoam(half i_foam, float2 i_worldXZUndisplaced, float2 i_worldXZ, half3 i_n, float i_pixelZ, float i_sceneZ, half3 i_view, float3 i_lightDir, out half3 o_bubbleCol, out half4 o_whiteFoamCol)
 				{
 					half foamAmount = i_foam;
-					
+
 					// feather foam very close to shore
 					foamAmount *= saturate((i_sceneZ - i_pixelZ) / _ShorelineFoamMinDepth);
 
@@ -379,7 +387,7 @@ Shader "Ocean/Ocean"
 
 					// Fog
 					UNITY_APPLY_FOG(i.fogCoord, col);
-	
+
 					#if _DEBUGVISUALISESHAPESAMPLE_ON
 					col = mix(col.rgb, i.debugtint, 0.5);
 					#endif

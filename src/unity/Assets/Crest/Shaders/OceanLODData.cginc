@@ -41,16 +41,19 @@ void SampleDisplacements(in sampler2D i_dispSampler, in float4 uv, in float wt, 
 	if (wt < 0.001)
 		return;
 
-	// do computations for hi-res
-	float3 dd = float3(i_invRes, 0.0, i_texelSize);
 	half4 s = tex2Dlod(i_dispSampler, uv);
+	// get the vertex displacement
 	half3 disp = s.xyz;
-	half3 disp_x = dd.zyy + tex2Dlod(i_dispSampler, uv + dd.xyyy).xyz;
-	half3 disp_z = dd.yyz + tex2Dlod(i_dispSampler, uv + dd.yxyy).xyz;
+	// calculate the vertex normal
+	float3 n; {
+		float3 dd = float3(i_invRes, 0.0, i_texelSize);
+		half3 disp_x = dd.zyy + tex2Dlod(i_dispSampler, uv + dd.xyyy).xyz;
+		half3 disp_z = dd.yyz + tex2Dlod(i_dispSampler, uv + dd.yxyy).xyz;
+		n = normalize(cross(disp_z - disp, disp_x - disp));
+	}
 
+	// weight the displacement and normal
 	io_worldPos += wt * disp;
-
-	float3 n = normalize(cross(disp_z - disp, disp_x - disp));
 	io_n.xz += wt * n.xz;
 }
 

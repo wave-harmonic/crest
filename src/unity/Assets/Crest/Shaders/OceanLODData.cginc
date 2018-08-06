@@ -3,7 +3,7 @@
 // samplers and data associated with a LOD.
 // _WD_Params: float4(world texel size, texture resolution, shape weight multiplier, 1 / texture resolution)
 #define SHAPE_LOD_PARAMS(LODNUM) \
-	uniform sampler2D _WD_Sampler_##LODNUM; \
+	uniform sampler2D _WD_Displacement_Sampler_##LODNUM; \
 	uniform sampler2D _WD_OceanDepth_Sampler_##LODNUM; \
 	uniform float4 _WD_Params_##LODNUM; \
 	uniform float3 _WD_Pos_Scale_##LODNUM; \

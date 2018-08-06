@@ -266,7 +266,7 @@ namespace Crest
         {
             if (applyWaveHeights)
             {
-                properties.SetTexture("_WD_Sampler_" + shapeSlot.ToString(), cam.targetTexture);
+                properties.SetTexture("_WD_Displacement_Sampler_" + shapeSlot.ToString(), cam.targetTexture);
             }
 
             if (_rtOceanDepth != null)

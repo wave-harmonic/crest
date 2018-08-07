@@ -53,9 +53,6 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 
 				float4 frag(v2f i) : SV_Target
 				{
-					// hack for issue #34 - guard against _SimDeltaTimePrev being 0 (for as yet unknown reasons)
-					_SimDeltaTimePrev = max(_SimDeltaTimePrev, 0.001);
-
 					float4 uv_lastframe = float4(i.uv_lastframe.xy, 0., 0.);
 
 					float4 ft_ftm_faccum_foam = tex2Dlod(_SimDataLastFrame, uv_lastframe);
@@ -85,7 +82,7 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 
 					// wave propagation
 					// velocity is implicit
-					float v = (ft - ftm) / _SimDeltaTimePrev;
+					float v = _SimDeltaTimePrev < 0.0001 ? 0. : (ft - ftm) / _SimDeltaTimePrev;
 					float ftp = ft + dt*v + dt*dt*c*c*(fxm + fxp + fym + fyp - 4.*ft) / (texelSize*texelSize);
 
 					// open boundary condition, from: http://hplgit.github.io/wavebc/doc/pub/._wavebc_cyborg002.html .

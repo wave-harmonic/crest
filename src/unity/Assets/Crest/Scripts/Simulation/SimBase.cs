@@ -148,8 +148,7 @@ namespace Crest
             float dt = SimDeltaTime;
             _renderSimMaterial.SetFloat("_SimDeltaTime", dt);
             _renderSimMaterial.SetFloat("_SimDeltaTimePrev", _simDeltaTimePrev);
-            if (!OceanRenderer.Instance._freezeTime)
-                _simDeltaTimePrev = dt;
+            _simDeltaTimePrev = dt;
 
             _renderSimMaterial.SetTexture("_SimDataLastFrame", PPRTs.Source);
             wdc.ApplyMaterialParams(0, _renderSimMaterial);

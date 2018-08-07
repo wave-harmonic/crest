@@ -185,7 +185,6 @@ Shader "Ocean/Ocean"
 				uniform half _NormalsScale;
 				uniform half _FoamScale;
 				uniform half _FresnelPower;
-				uniform float _MyTime;
 				uniform fixed4 _LightColor0;
 				uniform half2 _WindDirXZ;
 
@@ -200,8 +199,8 @@ Shader "Ocean/Ocean"
 					float nstretch = _NormalsScale * geomSquareSize; // normals scaled with geometry
 					const float spdmulL = _GeomData.y;
 					half2 norm =
-						UnpackNormal(tex2D( _Normals, (v0*_MyTime*spdmulL + worldXZUndisplaced) / nstretch )).xy +
-						UnpackNormal(tex2D( _Normals, (v1*_MyTime*spdmulL + worldXZUndisplaced) / nstretch )).xy;
+						UnpackNormal(tex2D( _Normals, (v0*_Time.y*spdmulL + worldXZUndisplaced) / nstretch )).xy +
+						UnpackNormal(tex2D( _Normals, (v1*_Time.y*spdmulL + worldXZUndisplaced) / nstretch )).xy;
 
 					// blend in next higher scale of normals to obtain continuity
 					const float farNormalsWeight = _InstanceData.y;
@@ -212,8 +211,8 @@ Shader "Ocean/Ocean"
 						nstretch *= 2.;
 						const float spdmulH = _GeomData.z;
 						norm = lerp( norm,
-							UnpackNormal(tex2D( _Normals, (v0*_MyTime*spdmulH + worldXZUndisplaced) / nstretch )).xy +
-							UnpackNormal(tex2D( _Normals, (v1*_MyTime*spdmulH + worldXZUndisplaced) / nstretch )).xy,
+							UnpackNormal(tex2D( _Normals, (v0*_Time.y*spdmulH + worldXZUndisplaced) / nstretch )).xy +
+							UnpackNormal(tex2D( _Normals, (v1*_Time.y*spdmulH + worldXZUndisplaced) / nstretch )).xy,
 							nblend );
 					}
 
@@ -230,8 +229,8 @@ Shader "Ocean/Ocean"
 				half WhiteFoamTexture(half i_foam, float2 i_worldXZUndisplaced)
 				{
 					half ft = lerp(
-						texture(_FoamTexture, (1.25*i_worldXZUndisplaced + _MyTime / 10.) / _FoamScale).r,
-						texture(_FoamTexture, (3.00*i_worldXZUndisplaced - _MyTime / 10.) / _FoamScale).r,
+						texture(_FoamTexture, (1.25*i_worldXZUndisplaced + _Time.y / 10.) / _FoamScale).r,
+						texture(_FoamTexture, (3.00*i_worldXZUndisplaced - _Time.y / 10.) / _FoamScale).r,
 						0.5);
 
 					// black point fade
@@ -247,7 +246,7 @@ Shader "Ocean/Ocean"
 					foamAmount *= saturate((i_sceneZ - i_pixelZ) / _ShorelineFoamMinDepth);
 
 					// Additive underwater foam - use same foam texture but add mip bias to blur for free
-					float2 foamUVBubbles = (lerp(i_worldXZUndisplaced, i_worldXZ, 0.05) + 0.5 * _MyTime * _WindDirXZ) / _FoamScale + 0.25 * i_n.xz;
+					float2 foamUVBubbles = (lerp(i_worldXZUndisplaced, i_worldXZ, 0.05) + 0.5 * _Time.y * _WindDirXZ) / _FoamScale + 0.25 * i_n.xz;
 					half bubbleFoamTexValue = tex2Dlod(_FoamTexture, float4(.74 * foamUVBubbles - .05*i_view.xz / i_view.y, 0., 5.)).r;
 					o_bubbleCol = (half3)bubbleFoamTexValue * _FoamBubbleColor.rgb * saturate(i_foam - _WaveFoamBubblesCoverage);
 

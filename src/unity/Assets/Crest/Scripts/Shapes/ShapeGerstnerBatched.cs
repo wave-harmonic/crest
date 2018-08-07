@@ -384,7 +384,7 @@ namespace Crest
             if (_amplitudes == null) return Vector3.zero;
 
             Vector2 pos = new Vector2(worldPos.x, worldPos.z);
-            float mytime = OceanRenderer.Instance.ElapsedTime + toff;
+            float mytime = Time.time + toff;
             float windAngle = OceanRenderer.Instance._windDirectionAngle;
 
             Vector3 result = Vector3.zero;
@@ -419,7 +419,7 @@ namespace Crest
             if (_amplitudes == null) return Vector3.zero;
 
             var pos = new Vector2(worldPos.x, worldPos.z);
-            float mytime = OceanRenderer.Instance.ElapsedTime + toff;
+            float mytime = Time.time + toff;
             float windAngle = OceanRenderer.Instance._windDirectionAngle;
 
             // base rate of change of our displacement function in x and z is unit
@@ -466,7 +466,7 @@ namespace Crest
             if (_amplitudes == null) return Vector3.zero;
 
             Vector2 pos = new Vector2(worldPos.x, worldPos.z);
-            float mytime = OceanRenderer.Instance.ElapsedTime + toff;
+            float mytime = Time.time + toff;
             float windAngle = OceanRenderer.Instance._windDirectionAngle;
 
             Vector3 result = Vector3.zero;

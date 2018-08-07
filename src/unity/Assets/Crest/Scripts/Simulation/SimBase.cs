@@ -35,7 +35,7 @@ namespace Crest
         public abstract SimSettingsBase CreateDefaultSettings();
 
         float _simDeltaTimePrev = 1f / 60f;
-        protected float SimDeltaTime { get { return OceanRenderer.Instance._freezeTime ? 0f : Mathf.Min(Time.deltaTime, MAX_SIM_DELTA_TIME); } }
+        protected float SimDeltaTime { get { return Mathf.Min(Time.deltaTime, MAX_SIM_DELTA_TIME); } }
 
         private void Start()
         {

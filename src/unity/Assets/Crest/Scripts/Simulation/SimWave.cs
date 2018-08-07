@@ -25,10 +25,23 @@ namespace Crest
 
         SimFoam _foamSim;
         Material _generateFoamFromSim;
+        Material _copySimMaterial = null;
+
+        protected override void LoadSimResults(Camera cam, WaveDataCam wdc) {
+            if (_copySimMaterial) {
+                RenderTexture targetTexture = cam.targetTexture;
+                _copySimMaterial.mainTexture = PPRTs.Target;
+                _copySimResultsCmdBuf.Clear();
+                _copySimResultsCmdBuf.Blit(PPRTs.Target, targetTexture, _copySimMaterial);
+            }
+            return;
+        }
 
         public override void AllSimsCreated()
         {
             base.AllSimsCreated();
+
+            _copySimMaterial = new Material(Shader.Find(ShaderRenderResultsIntoDispTexture));
 
             // look for a foam sim - take the first one that matches this resolution
             var sims = FindObjectsOfType<SimFoam>();
@@ -75,7 +88,7 @@ namespace Crest
 
             _generateFoamFromSim.mainTexture = PPRTs.Target;
 
-            postRenderCmdBuf.Blit(PPRTs.Target, _foamSim.GetComponent<Camera>().targetTexture, _generateFoamFromSim);
+            postRenderCmdBuf.Blit(PPRTs.Target, _foamSim.SimTexture, _generateFoamFromSim);
         }
 
         SimSettingsWave Settings { get { return _settings as SimSettingsWave; } }

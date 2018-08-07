@@ -19,7 +19,7 @@ Shader "Ocean/Shape/Sim/Wave Generate Foam"
 			CGPROGRAM
 			#pragma vertex vert
 			#pragma fragment frag
-			
+
 			#include "UnityCG.cginc"
 			#include "SimHelpers.cginc"
 
@@ -47,12 +47,12 @@ Shader "Ocean/Shape/Sim/Wave Generate Foam"
 				o.screenPos = ComputeScreenPos(o.vertex);
 				return o;
 			}
-			
-			half4 frag (v2f i) : SV_Target
+
+			half frag (v2f i) : SV_Target
 			{
 				half4 simData = tex2D(_MainTex, i.screenPos);
 				half foam = _Amount * 60. * _SimDeltaTime * smoothstep(_MinAccel, _MaxAccel, simData.a);
-				return half4(foam, 0., 0., 0.);
+				return foam;
 			}
 			ENDCG
 		}

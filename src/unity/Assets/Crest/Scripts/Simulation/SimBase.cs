@@ -19,8 +19,6 @@ namespace Crest
         protected SimSettingsBase _settings;
         public void UseSettings(SimSettingsBase settings) { _settings = settings; }
 
-        Material _copySimMaterial = null;
-
         GameObject _renderSim;
         Material _renderSimMaterial;
         Material _matClearSim;
@@ -33,6 +31,11 @@ namespace Crest
         public abstract RenderTextureFormat TextureFormat { get; }
         public abstract int Depth { get; }
         public abstract SimSettingsBase CreateDefaultSettings();
+        public RenderTexture SimTexture { get { return PPRTs.Target; }}
+
+        // Override this function in order to determine how the results of a
+        // given sim can be loaded into the Ocean system.
+        protected abstract void LoadSimResults(Camera cam, WaveDataCam wdc);
 
         float _simDeltaTimePrev = 1f / 60f;
         protected float SimDeltaTime { get { return OceanRenderer.Instance._freezeTime ? 0f : Mathf.Min(Time.deltaTime, MAX_SIM_DELTA_TIME); } }
@@ -41,7 +44,6 @@ namespace Crest
         {
             CreateRenderSimQuad();
 
-            _copySimMaterial = new Material(Shader.Find(ShaderRenderResultsIntoDispTexture));
             _matClearSim = new Material(Shader.Find("Ocean/Shape/Sim/Clear"));
         }
 
@@ -74,7 +76,11 @@ namespace Crest
             return result;
         }
 
-        CommandBuffer _advanceSimCmdBuf, _copySimResultsCmdBuf;
+        CommandBuffer _advanceSimCmdBuf;
+
+        // TODO: Push this down into SimWave class as only it uses this.
+        // (Other sims simply give their texture to the ocean).
+        protected CommandBuffer _copySimResultsCmdBuf;
         int _bufAssignedCamIdx = -1;
 
         void LateUpdate()
@@ -156,13 +162,7 @@ namespace Crest
 
             SetAdditionalSimParams(_renderSimMaterial);
 
-            if (_copySimMaterial)
-            {
-                _copySimMaterial.mainTexture = PPRTs.Target;
-
-                _copySimResultsCmdBuf.Clear();
-                _copySimResultsCmdBuf.Blit(PPRTs.Target, lodCam.targetTexture, _copySimMaterial);
-            }
+            LoadSimResults(lodCam, wdc);
 
             AddPostRenderCommands(_copySimResultsCmdBuf);
         }

@@ -27,6 +27,9 @@ namespace Crest
 
         Material _matOceanDepth;
         RenderTexture _rtOceanDepth;
+
+        public RenderTexture _rtFoam;
+
         CommandBuffer _bufOceanDepth = null;
         bool _oceanDepthRenderersDirty = true;
         /// <summary>Called when one or more objects that will render into depth are created, so that all objects are registered.</summary>
@@ -111,6 +114,10 @@ namespace Crest
                 cam.targetTexture.Release();
                 cam.targetTexture.width = cam.targetTexture.height = _shapeRes;
                 cam.targetTexture.Create();
+                _rtFoam.Release();
+                _rtFoam.width = cam.targetTexture.width;
+                _rtFoam.height = cam.targetTexture.height;
+                _rtFoam.Create();
             }
             _renderData._textureRes = (float)cam.targetTexture.width;
             _renderData._texelWidth = 2f * cam.orthographicSize / _renderData._textureRes;
@@ -269,6 +276,11 @@ namespace Crest
                 properties.SetTexture("_WD_Displacement_Sampler_" + shapeSlot.ToString(), cam.targetTexture);
             }
 
+            if(_rtFoam != null) {
+                properties.SetTexture("_WD_Foam_Sampler_" + shapeSlot.ToString(), _rtFoam);
+            }
+
+
             if (_rtOceanDepth != null)
             {
                 properties.SetTexture("_WD_OceanDepth_Sampler_" + shapeSlot.ToString(), _rtOceanDepth);
@@ -277,7 +289,7 @@ namespace Crest
             // need to blend out shape if this is the largest lod, and the ocean might get scaled down later (so the largest lod will disappear)
             bool needToBlendOutShape = _lodIndex == _lodCount - 1 && OceanRenderer.Instance.ScaleCouldDecrease && blendOut;
             float shapeWeight = needToBlendOutShape ? OceanRenderer.Instance.ViewerAltitudeLevelAlpha : 1f;
-            properties.SetVector("_WD_Params_" + shapeSlot.ToString(), 
+            properties.SetVector("_WD_Params_" + shapeSlot.ToString(),
                 new Vector4(_renderData._texelWidth, _renderData._textureRes, shapeWeight, 1f / _renderData._textureRes));
 
             properties.SetVector("_WD_Pos_Scale_" + shapeSlot.ToString(), new Vector3(_renderData._posSnapped.x, _renderData._posSnapped.z, transform.lossyScale.x));

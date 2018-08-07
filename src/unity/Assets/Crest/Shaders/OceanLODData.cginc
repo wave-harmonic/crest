@@ -58,9 +58,9 @@ void SampleDisplacements(in sampler2D i_dispSampler, in float4 uv, in float wt, 
 }
 
 // TODO: make the foam use its own seperate sampler.
-void SampleFoam(in sampler2D i_dispSampler, in float4 uv, in float wt, inout half io_foam) {
-	half4 s = tex2Dlod(i_dispSampler, uv);
-	io_foam += wt * s.a;
+void SampleFoam(in sampler2D i_foamSampler, in float4 uv, in float wt, inout half io_foam) {
+	half4 s = tex2Dlod(i_foamSampler, uv);
+	io_foam += wt * s.r;
 }
 
 

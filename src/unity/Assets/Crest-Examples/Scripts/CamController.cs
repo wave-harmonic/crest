@@ -13,36 +13,42 @@ public class CamController : MonoBehaviour
     Vector2 _lastMousePos = -Vector2.one;
     bool _dragging = false;
 
+    public float _fixedDt = 1 / 60f;
+
     void Update()
     {
-        UpdateMovement();
+        float dt = Time.deltaTime;
+        if (_fixedDt > 0f)
+            dt = _fixedDt;
 
-        UpdateDragging();
+        UpdateMovement(dt);
+
+        UpdateDragging(dt);
 
         UpdateKillRoll();
     }
 
-    void UpdateMovement()
+    void UpdateMovement(float dt)
     {
         if (!Input.GetMouseButton(0) && _requireLMBToMove)
             return;
 
-        float forward = Input.GetAxis("Vertical");
+        float forward = (Input.GetKey(KeyCode.W) ? 1 : 0) - (Input.GetKey(KeyCode.S) ? 1 : 0);
         if (simForwardInput)
             forward = 1f;
 
-        transform.position += linSpeed * transform.forward * forward * Time.deltaTime;
-        //transform.position += linSpeed * transform.right * Input.GetAxis( "Horizontal" ) * Time.deltaTime;
-        transform.position += linSpeed * transform.up * (Input.GetKey(KeyCode.E) ? 1 : 0) * Time.deltaTime;
-        transform.position -= linSpeed * transform.up * (Input.GetKey(KeyCode.Q) ? 1 : 0) * Time.deltaTime;
-        transform.position -= linSpeed * transform.right * (Input.GetKey(KeyCode.A) ? 1 : 0) * Time.deltaTime;
-        transform.position += linSpeed * transform.right * (Input.GetKey(KeyCode.D) ? 1 : 0) * Time.deltaTime;
+        transform.position += linSpeed * transform.forward * forward * dt;
+        //transform.position += linSpeed * transform.right * Input.GetAxis( "Horizontal" ) * dt;
+        transform.position += linSpeed * transform.up * (Input.GetKey(KeyCode.E) ? 1 : 0) * dt;
+        transform.position -= linSpeed * transform.up * (Input.GetKey(KeyCode.Q) ? 1 : 0) * dt;
+        transform.position -= linSpeed * transform.right * (Input.GetKey(KeyCode.A) ? 1 : 0) * dt;
+        transform.position += linSpeed * transform.right * (Input.GetKey(KeyCode.D) ? 1 : 0) * dt;
 
-        transform.rotation = transform.rotation * Quaternion.AngleAxis(rotSpeed * (Input.GetKey(KeyCode.LeftArrow) ? -1 : 0) * Time.deltaTime, Vector3.up);
-        transform.rotation = transform.rotation * Quaternion.AngleAxis(rotSpeed * (Input.GetKey(KeyCode.RightArrow) ? 1 : 0) * Time.deltaTime, Vector3.up);
+        transform.rotation = transform.rotation * Quaternion.AngleAxis(rotSpeed * (Input.GetKey(KeyCode.LeftArrow) ? -1 : 0) * dt, Vector3.up);
+        transform.rotation = transform.rotation * Quaternion.AngleAxis(rotSpeed * (Input.GetKey(KeyCode.RightArrow) ? 1 : 0) * dt, Vector3.up);
     }
 
-    void UpdateDragging()
+    void UpdateDragging(float dt)
     {
         Vector2 mousePos;
         mousePos.x = Input.mousePosition.x;
@@ -64,8 +70,8 @@ public class CamController : MonoBehaviour
             Vector2 delta = mousePos - _lastMousePos;
 
             Vector3 ea = transform.eulerAngles;
-            ea.x += -0.1f * rotSpeed * delta.y * Time.deltaTime;
-            ea.y += 0.1f * rotSpeed * delta.x * Time.deltaTime;
+            ea.x += -0.1f * rotSpeed * delta.y * dt;
+            ea.y += 0.1f * rotSpeed * delta.x * dt;
             transform.eulerAngles = ea;
 
             _lastMousePos = mousePos;

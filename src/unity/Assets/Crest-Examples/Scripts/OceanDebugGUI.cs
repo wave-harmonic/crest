@@ -33,6 +33,10 @@ public class OceanDebugGUI : MonoBehaviour
         {
             OceanRenderer.Instance._freezeTime = !OceanRenderer.Instance._freezeTime;
         }
+        if (Input.GetKeyDown(KeyCode.T))
+        {
+            Time.timeScale = Time.timeScale == 1f ? 0f : 1f;
+        }
     }
 
     void OnGUI()
@@ -54,6 +58,7 @@ public class OceanDebugGUI : MonoBehaviour
             RenderWireFrame._wireFrame = GUI.Toggle(new Rect(x, y, w, h), RenderWireFrame._wireFrame, "Wireframe"); y += h;
 
             OceanRenderer.Instance._freezeTime = GUI.Toggle(new Rect(x, y, w, h), OceanRenderer.Instance._freezeTime, "Freeze waves (F)"); y += h;
+            Time.timeScale = GUI.Toggle(new Rect(x, y, w, h), Time.timeScale == 0f, "Freeze time (T)") ? 0f : 1f; y += h;
 
             GUI.Label(new Rect(x, y, w, h), "Gerstner weight(s)"); y += h;
             foreach (var gerstner in gerstners)

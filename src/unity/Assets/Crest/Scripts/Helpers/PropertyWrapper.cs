@@ -9,24 +9,22 @@ namespace Crest
     /// </summary>
     public interface IPropertyWrapper
     {
-        void SetFloat(string name, float value);
-        void SetVector(string name, Vector4 value);
-        void SetTexture(string name, Texture value);
+        void SetFloat(int param, float value);
+        void SetVector(int param, Vector4 value);
+        void SetTexture(int param, Texture value);
     }
-    public struct PropertyWrapperMaterial : IPropertyWrapper
+    public class PropertyWrapperMaterial : IPropertyWrapper
     {
-        public PropertyWrapperMaterial(Material mat) { _mat = mat; }
-        public void SetFloat(string name, float value) { _mat.SetFloat(name, value); }
-        public void SetTexture(string name, Texture value) { _mat.SetTexture(name, value); }
-        public void SetVector(string name, Vector4 value) { _mat.SetVector(name, value); }
-        Material _mat;
+        public void SetFloat(int param, float value) { _target.SetFloat(param, value); }
+        public void SetTexture(int param, Texture value) { _target.SetTexture(param, value); }
+        public void SetVector(int param, Vector4 value) { _target.SetVector(param, value); }
+        public Material _target;
     }
-    public struct PropertyWrapperMPB : IPropertyWrapper
+    public class PropertyWrapperMPB : IPropertyWrapper
     {
-        public PropertyWrapperMPB(MaterialPropertyBlock mpb) { _mpb = mpb; }
-        public void SetFloat(string name, float value) { _mpb.SetFloat(name, value); }
-        public void SetTexture(string name, Texture value) { _mpb.SetTexture(name, value); }
-        public void SetVector(string name, Vector4 value) { _mpb.SetVector(name, value); }
-        MaterialPropertyBlock _mpb;
+        public void SetFloat(int param, float value) { _target.SetFloat(param, value); }
+        public void SetTexture(int param, Texture value) { _target.SetTexture(param, value); }
+        public void SetVector(int param, Vector4 value) { _target.SetVector(param, value); }
+        public MaterialPropertyBlock _target;
     }
 }

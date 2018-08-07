@@ -19,7 +19,7 @@ Shader "Ocean/Shape/Sim/Wave Add To Disps"
 			CGPROGRAM
 			#pragma vertex vert
 			#pragma fragment frag
-			
+
 			#include "UnityCG.cginc"
 
 			struct appdata
@@ -34,7 +34,7 @@ Shader "Ocean/Shape/Sim/Wave Add To Disps"
 			};
 
 			sampler2D _MainTex;
-			
+
 			v2f vert (appdata v)
 			{
 				v2f o;
@@ -43,7 +43,7 @@ Shader "Ocean/Shape/Sim/Wave Add To Disps"
 				o.screenPos = ComputeScreenPos(o.vertex);
 				return o;
 			}
-			
+
 			half4 frag (v2f i) : SV_Target
 			{
 				half4 simData = tex2D(_MainTex, i.screenPos);

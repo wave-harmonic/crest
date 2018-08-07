@@ -26,20 +26,15 @@ float2 WD_uvToWorld(in float2 i_uv, in float2 i_centerPos, in float i_res, in fl
 
 #define DEPTH_BIAS 100.
 
-
-float4 CalculateWDSamplerUV(
-	in float2 i_centerPos, in float i_res, in float i_texelSize, in float2 i_samplePos
-) {
-	return float4(WD_worldToUV(i_samplePos, i_centerPos, i_res, i_texelSize), 0., 0.);
-}
-
 // sample wave or terrain height, with smooth blend towards edges. computes normals and determinant and samples ocean depth.
 // would equally apply to heights instead of displacements.
-void SampleDisplacements(in sampler2D i_dispSampler, in float4 uv, in float wt, in float i_invRes, in float i_texelSize, inout float3 io_worldPos, inout float3 io_n)
+void SampleDisplacements(in sampler2D i_dispSampler, in float2 i_uv, in float wt, in float i_invRes, in float i_texelSize, inout float3 io_worldPos, inout float3 io_n)
 {
 	// TODO: find a more sensible place to put this.
 	if (wt < 0.001)
 		return;
+
+	const float4 uv = float4(i_uv, 0., 0.);
 
 	half4 s = tex2Dlod(i_dispSampler, uv);
 	// get the vertex displacement
@@ -58,7 +53,8 @@ void SampleDisplacements(in sampler2D i_dispSampler, in float4 uv, in float wt, 
 }
 
 // TODO: make the foam use its own seperate sampler.
-void SampleFoam(in sampler2D i_foamSampler, in float4 uv, in float wt, inout half io_foam) {
+void SampleFoam(in sampler2D i_foamSampler, in float2 i_uv, in float wt, inout half io_foam) {
+	const float4 uv = float4(i_uv, 0., 0.);
 	half4 s = tex2Dlod(i_foamSampler, uv);
 	io_foam += wt * s.r;
 }

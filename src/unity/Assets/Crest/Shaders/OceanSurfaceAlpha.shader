@@ -68,8 +68,8 @@ Shader "Ocean/Ocean Surface Alpha"
 				float wt_1 = (1. - wt_0) * _WD_Params_1.z;
 				// sample displacement textures, add results to current world pos / normal / foam
 				const float2 wxz = worldPos.xz;
-				float4 uv_0 = CalculateWDSamplerUV(_WD_Pos_Scale_0.xy, _WD_Params_0.y, _WD_Params_0.x, wxz);
-				float4 uv_1 = CalculateWDSamplerUV(_WD_Pos_Scale_1.xy, _WD_Params_1.y, _WD_Params_1.x, wxz);
+				float2 uv_0 = WD_worldToUV(wxz, _WD_Pos_Scale_0.xy, _WD_Params_0.y, _WD_Params_0.x);
+				float2 uv_1 = WD_worldToUV(wxz, _WD_Pos_Scale_1.xy, _WD_Params_1.y, _WD_Params_1.x);
 				SampleDisplacements(_WD_Displacement_Sampler_0, uv_0, wt_0, _WD_Params_0.w, _WD_Params_0.x, worldPos, n);
 				SampleDisplacements(_WD_Displacement_Sampler_1, uv_1, wt_1, _WD_Params_1.w, _WD_Params_1.x, worldPos, n);
 

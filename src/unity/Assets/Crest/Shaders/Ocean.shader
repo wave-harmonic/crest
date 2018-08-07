@@ -131,12 +131,12 @@ Shader "Ocean/Ocean"
 					#if !_DEBUGDISABLESHAPETEXTURES_ON
 					const float2 worldXZBefore = o.worldPos.xz;
 					if(wt_0 > 0.001) {
-						float4 uv_0 = CalculateWDSamplerUV(_WD_Pos_Scale_0.xy, _WD_Params_0.y, _WD_Params_0.x, worldXZBefore);
+						float2 uv_0 = WD_worldToUV(worldXZBefore, _WD_Pos_Scale_0.xy, _WD_Params_0.y, _WD_Params_0.x);
 						SampleDisplacements(_WD_Displacement_Sampler_0, uv_0, wt_0, _WD_Params_0.w, _WD_Params_0.x, o.worldPos, o.n);
 						SampleFoam(_WD_Foam_Sampler_0, uv_0, wt_0, o.foam_screenPos.x);
 					}
 					if(wt_1 > 0.001) {
-						float4 uv_1 = CalculateWDSamplerUV(_WD_Pos_Scale_1.xy, _WD_Params_1.y, _WD_Params_1.x, worldXZBefore);
+						float2 uv_1 = WD_worldToUV(worldXZBefore, _WD_Pos_Scale_1.xy, _WD_Params_1.y, _WD_Params_1.x);
 						SampleDisplacements(_WD_Displacement_Sampler_1, uv_1, wt_1, _WD_Params_1.w, _WD_Params_1.x, o.worldPos, o.n);
 						SampleFoam(_WD_Foam_Sampler_1, uv_1, wt_1, o.foam_screenPos.x);
 					}

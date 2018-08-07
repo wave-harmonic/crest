@@ -52,7 +52,6 @@ void SampleDisplacements(in sampler2D i_dispSampler, in float2 i_uv, in float wt
 	io_n.xz += wt * n.xz;
 }
 
-// TODO: make the foam use its own seperate sampler.
 void SampleFoam(in sampler2D i_foamSampler, in float2 i_uv, in float wt, inout half io_foam) {
 	const float4 uv = float4(i_uv, 0., 0.);
 	half4 s = tex2Dlod(i_foamSampler, uv);

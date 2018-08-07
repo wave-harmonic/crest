@@ -28,6 +28,8 @@ namespace Crest
         Material _matOceanDepth;
         RenderTexture _rtOceanDepth;
 
+        // This is a rendertexture storing foam intensity values on the ocean's
+        // surface for a given LOD. This texture is set directly by SimFoam.
         public RenderTexture _rtFoam;
 
         CommandBuffer _bufOceanDepth = null;
@@ -143,10 +145,6 @@ namespace Crest
                 cam.targetTexture.Release();
                 cam.targetTexture.width = cam.targetTexture.height = _shapeRes;
                 cam.targetTexture.Create();
-                _rtFoam.Release();
-                _rtFoam.width = cam.targetTexture.width;
-                _rtFoam.height = cam.targetTexture.height;
-                _rtFoam.Create();
             }
             _renderData._textureRes = (float)cam.targetTexture.width;
             _renderData._texelWidth = 2f * cam.orthographicSize / _renderData._textureRes;

@@ -36,9 +36,8 @@ void SampleDisplacements(in sampler2D i_dispSampler, in float2 i_uv, in float wt
 
 	const float4 uv = float4(i_uv, 0., 0.);
 
-	half4 s = tex2Dlod(i_dispSampler, uv);
 	// get the vertex displacement
-	half3 disp = s.xyz;
+	half3 disp = tex2Dlod(i_dispSampler, uv).xyz;
 	// calculate the vertex normal
 	float3 n; {
 		float3 dd = float3(i_invRes, 0.0, i_texelSize);
@@ -54,8 +53,7 @@ void SampleDisplacements(in sampler2D i_dispSampler, in float2 i_uv, in float wt
 
 void SampleFoam(in sampler2D i_foamSampler, in float2 i_uv, in float wt, inout half io_foam) {
 	const float4 uv = float4(i_uv, 0., 0.);
-	half4 s = tex2Dlod(i_foamSampler, uv);
-	io_foam += wt * s.r;
+	io_foam += wt * tex2Dlod(i_foamSampler, uv).r;
 }
 
 

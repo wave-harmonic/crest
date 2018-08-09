@@ -31,7 +31,7 @@ public class OceanDebugGUI : MonoBehaviour
         }
         if (Input.GetKeyDown(KeyCode.F))
         {
-            Time.timeScale = Time.timeScale == 1f ? 0f : 1f;
+            Time.timeScale = Time.timeScale == 0f ? 1f : 0f;
         }
     }
 
@@ -53,7 +53,12 @@ public class OceanDebugGUI : MonoBehaviour
 
             RenderWireFrame._wireFrame = GUI.Toggle(new Rect(x, y, w, h), RenderWireFrame._wireFrame, "Wireframe"); y += h;
 
-            Time.timeScale = GUI.Toggle(new Rect(x, y, w, h), Time.timeScale == 0f, "Freeze time (F)") ? 0f : 1f; y += h;
+            GUI.changed = false;
+            bool freeze = GUI.Toggle(new Rect(x, y, w, h), Time.timeScale == 0f, "Freeze time (F)"); y += h;
+            if (GUI.changed)
+            {
+                Time.timeScale = freeze ? 0f : 1f;
+            }
 
             GUI.Label(new Rect(x, y, w, h), "Gerstner weight(s)"); y += h;
             foreach (var gerstner in gerstners)

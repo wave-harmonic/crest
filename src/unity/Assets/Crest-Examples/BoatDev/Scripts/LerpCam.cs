@@ -9,9 +9,7 @@ public class LerpCam : MonoBehaviour
 
 	void Update()
     {
-        if (Crest.OceanRenderer.Instance._freezeTime) return;
-
-        transform.position = Vector3.Lerp(transform.position, _targetPos.position, _lerpAlpha);
+        transform.position = Vector3.Lerp(transform.position, _targetPos.position, _lerpAlpha * Time.deltaTime * 60f);
         transform.LookAt(_targetLookatPos.position + _lookatOffset * Vector3.up);
 	}
 }

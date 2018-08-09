@@ -37,17 +37,10 @@ namespace Crest
         int _lodCount = 6;
 
         [Header("Debug Params")]
-        [Tooltip("Freeze wave shape in place but continues to move geom with camera, useful for hunting down pops")]
-        public bool _freezeTime = false;
         [Tooltip("Whether to generate ocean geometry tiles uniformly (with overlaps)")]
         public bool _uniformTiles = false;
         [Tooltip("Disable generating a wide strip of triangles at the outer edge to extend ocean to edge of view frustum")]
         public bool _disableSkirt = false;
-
-        // these have been useful for debug purposes (to freeze the water surface only)
-        float _elapsedTime = 0f;
-        public float ElapsedTime { get { return _elapsedTime; } }
-        float _deltaTime = 0f;
 
         float _viewerAltitudeLevelAlpha = 0f;
         /// <summary>
@@ -96,16 +89,7 @@ namespace Crest
 
         void LateUpdate()
         {
-            _deltaTime = 0f;
-            if( !_freezeTime )
-            {
-                _deltaTime = Time.deltaTime;
-                _elapsedTime += _deltaTime;
-            }
-
             // set global shader params
-            Shader.SetGlobalFloat( "_MyTime", _elapsedTime );
-            Shader.SetGlobalFloat( "_MyDeltaTime", _deltaTime );
             Shader.SetGlobalFloat( "_TexelsPerWave", _minTexelsPerWave );
             Shader.SetGlobalVector("_WindDirXZ", WindDir);
             Shader.SetGlobalFloat("_SeaLevel", SeaLevel);

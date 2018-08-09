@@ -16,7 +16,7 @@ public class RippleGenerator : MonoBehaviour {
 	
 	void Update()
     {
-        float t = Crest.OceanRenderer.Instance.ElapsedTime;
+        float t = Time.time;
         if (t < _warmUp)
             return;
         t -= _warmUp;

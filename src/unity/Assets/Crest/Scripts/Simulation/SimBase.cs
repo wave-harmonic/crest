@@ -38,7 +38,7 @@ namespace Crest
         protected abstract void LoadSimResults(Camera cam, WaveDataCam wdc);
 
         float _simDeltaTimePrev = 1f / 60f;
-        protected float SimDeltaTime { get { return OceanRenderer.Instance._freezeTime ? 0f : Mathf.Min(Time.deltaTime, MAX_SIM_DELTA_TIME); } }
+        protected float SimDeltaTime { get { return Mathf.Min(Time.deltaTime, MAX_SIM_DELTA_TIME); } }
 
         private void Start()
         {
@@ -154,8 +154,7 @@ namespace Crest
             float dt = SimDeltaTime;
             _renderSimMaterial.SetFloat("_SimDeltaTime", dt);
             _renderSimMaterial.SetFloat("_SimDeltaTimePrev", _simDeltaTimePrev);
-            if (!OceanRenderer.Instance._freezeTime)
-                _simDeltaTimePrev = dt;
+            _simDeltaTimePrev = dt;
 
             _renderSimMaterial.SetTexture("_SimDataLastFrame", PPRTs.Source);
             wdc.ApplyMaterialParams(0, _renderSimMaterial);

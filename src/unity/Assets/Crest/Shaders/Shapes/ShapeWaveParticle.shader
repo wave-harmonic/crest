@@ -63,7 +63,6 @@ Shader "Ocean/Shape/Wave Particle"
 				}
 
 				uniform float _Amplitude;
-				uniform float _MyDeltaTime;
 
 				float4 frag (v2f i) : SV_Target
 				{

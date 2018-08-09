@@ -59,7 +59,6 @@ Shader "Ocean/Shape/Add Foam"
 				}
 
 				uniform float _Amplitude;
-				uniform float _MyDeltaTime;
 
 				float4 frag (v2f i) : SV_Target
 				{
@@ -74,7 +73,7 @@ Shader "Ocean/Shape/Add Foam"
 					float y = r2 * r2 * _Amplitude;
 
 					// treat as an acceleration - dt^2
-					return float4(_MyDeltaTime * _MyDeltaTime * y, 0., 0., 0.);
+					return float4(unity_DeltaTime.x * unity_DeltaTime.x * y, 0., 0., 0.);
 				}
 
 				ENDCG

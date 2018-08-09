@@ -51,12 +51,13 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 				uniform half _Damping;
 				uniform float2 _LaplacianAxisX;
 
+				#define MIN_DT 0.00001
+
 				float4 frag(v2f i) : SV_Target
 				{
 					float4 uv_lastframe = float4(i.uv_lastframe.xy, 0., 0.);
 
 					float4 ft_ftm_faccum_foam = tex2Dlod(_SimDataLastFrame, uv_lastframe);
-					if (_SimDeltaTime == 0.0) return ft_ftm_faccum_foam;
 
 					float ft = ft_ftm_faccum_foam.x; // t - current value before update
 					float ftm = ft_ftm_faccum_foam.y; // t minus - previous value
@@ -78,11 +79,12 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 					//float h = max(waterSignedDepth + ft, 0.);
 					float c = ComputeWaveSpeed(wavelength /*, h*/);
 
-					const float dt = max(_SimDeltaTime, 0.001);
+					const float dt = _SimDeltaTime;
+					const float dtp = _SimDeltaTimePrev;
 
 					// wave propagation
 					// velocity is implicit
-					float v = _SimDeltaTimePrev < 0.0001 ? 0. : (ft - ftm) / _SimDeltaTimePrev;
+					float v = dtp > MIN_DT ? (ft - ftm) / dtp : 0.0;
 					float ftp = ft + dt*v + dt*dt*c*c*(fxm + fxp + fym + fyp - 4.*ft) / (texelSize*texelSize);
 
 					// open boundary condition, from: http://hplgit.github.io/wavebc/doc/pub/._wavebc_cyborg002.html .
@@ -103,7 +105,7 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 					//ftp *= lerp( 0.996, 1., clamp(waterSignedDepth, 0., 1.) );
 
 					// Foam
-					float accel = ((ftp - ft)/dt - v);
+					float accel = dt > MIN_DT ? ((ftp - ft)/dt - v) : 0.0;
 					float foam = -accel * dt;
 					foam = max(foam, 0.);
 

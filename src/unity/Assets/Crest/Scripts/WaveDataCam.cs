@@ -90,6 +90,20 @@ namespace Crest
                 _collData.UpdateShapeReadback(cam, _renderData);
             }
 
+            if(!_rtFoam) {
+                _rtFoam = new RenderTexture(cam.targetTexture.width, cam.targetTexture.height, 0);
+                _rtFoam.name = gameObject.name + "_foam";
+                _rtFoam.format = RenderTextureFormat.RHalf;
+                _rtFoam.useMipMap = false;
+                _rtFoam.anisoLevel = 0;
+                _rtFoam.Create();
+            }
+            // TODO: Find a better way to clear _rtFoam every frame
+            RenderTexture rt = UnityEngine.RenderTexture.active;
+            UnityEngine.RenderTexture.active = _rtFoam;
+            GL.Clear(true, true, Color.clear);
+            UnityEngine.RenderTexture.active = rt;
+
             // shape combine pass done by last shape camera - lod 0
             if (_lodIndex == 0)
             {
@@ -265,6 +279,7 @@ namespace Crest
                     // accumulate shape data down the LOD chain - combine L+1 into L
                     var mat = OceanRenderer.Instance.Builder._shapeWDCs[L]._combineMaterial;
                     _bufCombineShapes.Blit(cams[L + 1].targetTexture, cams[L].targetTexture, mat);
+                    _bufCombineShapes.Blit(wdcs[L + 1]._rtFoam, wdcs[L]._rtFoam, mat);
                 }
             }
         }
@@ -340,15 +355,7 @@ namespace Crest
             }
 
 
-            if(!_rtFoam) {
-                _rtFoam = new RenderTexture(cam.targetTexture.width, cam.targetTexture.height, 0);
-                _rtFoam.name = gameObject.name + "_foam";
-                _rtFoam.format = RenderTextureFormat.RHalf;
-                _rtFoam.useMipMap = false;
-                _rtFoam.anisoLevel = 0;
-                _rtFoam.Create();
-            }
-            {
+            if (_rtFoam != null) {
                 properties.SetTexture(_paramsFoamSampler[shapeSlot], _rtFoam);
             }
 

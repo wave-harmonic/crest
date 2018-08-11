@@ -127,7 +127,6 @@ namespace Crest
                 // clear the simulation data - so that it doesnt suddenly pop in later
                 Graphics.Blit(Texture2D.blackTexture, PPRTs.Source, _matClearSim);
                 Graphics.Blit(Texture2D.blackTexture, PPRTs.Target, _matClearSim);
-
                 return;
             }
 

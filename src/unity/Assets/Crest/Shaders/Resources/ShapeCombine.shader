@@ -17,7 +17,7 @@ Shader "Ocean/Shape/Combine"
 			CGPROGRAM
 			#pragma vertex vert
 			#pragma fragment frag
-			
+
 			#include "UnityCG.cginc"
 
 			struct appdata
@@ -39,11 +39,10 @@ Shader "Ocean/Shape/Combine"
 				o.uv = v.uv;
 				return o;
 			}
-			
+
 			sampler2D _MainTex;
 
 			#include "../../Shaders/OceanLODData.cginc"
-			;
 
 			half4 frag (v2f i) : SV_Target
 			{

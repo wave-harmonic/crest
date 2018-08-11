@@ -145,6 +145,9 @@ namespace Crest
                 cam.targetTexture.Release();
                 cam.targetTexture.width = cam.targetTexture.height = _shapeRes;
                 cam.targetTexture.Create();
+                _rtFoam.Release();
+                _rtFoam.width = cam.targetTexture.width;
+                _rtFoam.Create();
             }
             _renderData._textureRes = (float)cam.targetTexture.width;
             _renderData._texelWidth = 2f * cam.orthographicSize / _renderData._textureRes;
@@ -197,14 +200,6 @@ namespace Crest
                 _rtOceanDepth.useMipMap = false;
                 _rtOceanDepth.anisoLevel = 0;
             }
-
-            // if(!_rtFoam) {
-            //     _rtFoam = new RenderTexture(cam.targetTexture.width, cam.targetTexture.height, 0);
-            //     _rtFoam.name = gameObject.name + "_foam";
-            //     _rtFoam.format = RenderTextureFormat.RHalf;
-            //     _rtFoam.useMipMap = false;
-            //     _rtFoam.anisoLevel = 0;
-            // }
 
             if (_bufOceanDepth == null)
             {
@@ -264,6 +259,7 @@ namespace Crest
                 _bufCombineShapes.name = "Combine Shapes";
 
                 var cams = OceanRenderer.Instance.Builder._shapeCameras;
+                var wdcs = OceanRenderer.Instance.Builder._shapeWDCs;
                 for (int L = cams.Length - 2; L >= 0; L--)
                 {
                     // accumulate shape data down the LOD chain - combine L+1 into L
@@ -343,10 +339,17 @@ namespace Crest
                 properties.SetTexture(_paramsDisplacementsSampler[shapeSlot], cam.targetTexture);
             }
 
-            if(_rtFoam != null) {
+
+            if(!_rtFoam) {
+                _rtFoam = new RenderTexture(cam.targetTexture.width, cam.targetTexture.height, 0);
+                _rtFoam.name = gameObject.name + "_foam";
+                _rtFoam.format = RenderTextureFormat.RHalf;
+                _rtFoam.useMipMap = false;
+                _rtFoam.anisoLevel = 0;
+                _rtFoam.Create();
+            }
+            {
                 properties.SetTexture(_paramsFoamSampler[shapeSlot], _rtFoam);
-            } else {
-                properties.SetTexture(_paramsFoamSampler[shapeSlot], Texture2D.blackTexture);
             }
 
 

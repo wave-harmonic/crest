@@ -32,17 +32,11 @@ namespace Crest
             simMaterial.SetFloat("_ShorelineFoamMaxDepth", Settings._shorelineFoamMaxDepth);
             simMaterial.SetFloat("_ShorelineFoamStrength", Settings._shorelineFoamStrength);
         }
-        protected override void LoadSimResults(Camera cam, WaveDataCam wdc) {
-
+        protected override RenderTexture GetTargetTexture(Camera cam, WaveDataCam wdc) {
+            return wdc._rtFoam;
         }
         protected override void DetachFromCamera(Camera cam, WaveDataCam wdc) {
-            if(wdc._rtFoam == PPRTs.Target) {
-                wdc._rtFoam = null;
-            }
-        }
-
-        protected override void AttachToCamera(Camera cam, WaveDataCam wdc) {
-            wdc._rtFoam = PPRTs.Target;
+            Graphics.Blit(Texture2D.blackTexture, wdc._rtFoam, _matClearSim);
         }
 
         SimSettingsFoam Settings { get { return _settings as SimSettingsFoam; } }

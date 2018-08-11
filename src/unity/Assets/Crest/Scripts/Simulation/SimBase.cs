@@ -21,7 +21,8 @@ namespace Crest
 
         GameObject _renderSim;
         Material _renderSimMaterial;
-        Material _matClearSim;
+        protected Material _matClearSim;
+        protected Material _copySimMaterial;
 
         Vector3 _camPosSnappedLast;
 
@@ -35,10 +36,8 @@ namespace Crest
 
         // Override this function in order to determine how the results of a
         // given sim can be loaded into the Ocean system.
-        protected abstract void LoadSimResults(Camera cam, WaveDataCam wdc);
+        protected abstract RenderTexture GetTargetTexture(Camera cam, WaveDataCam wdc);
         protected abstract void DetachFromCamera(Camera cam, WaveDataCam wdc);
-        protected abstract void AttachToCamera(Camera cam, WaveDataCam wdc);
-
         float _simDeltaTimePrev = 1f / 60f;
         protected float SimDeltaTime { get { return Mathf.Min(Time.deltaTime, MAX_SIM_DELTA_TIME); } }
 
@@ -47,6 +46,7 @@ namespace Crest
             CreateRenderSimQuad();
 
             _matClearSim = new Material(Shader.Find("Ocean/Shape/Sim/Clear"));
+            _copySimMaterial = new Material(Shader.Find(ShaderRenderResultsIntoDispTexture));
         }
 
         private void CreateRenderSimQuad()
@@ -80,8 +80,7 @@ namespace Crest
 
         CommandBuffer _advanceSimCmdBuf;
 
-        // TODO: Push this down into SimWave class as only it uses this.
-        // (Other sims simply give their texture to the ocean).
+
         protected CommandBuffer _copySimResultsCmdBuf;
         int _bufAssignedCamIdx = -1;
 
@@ -146,11 +145,6 @@ namespace Crest
 
                 OceanRenderer.Instance.Builder._shapeCameras[lodIndex].AddCommandBuffer(CameraEvent.AfterForwardAlpha, _copySimResultsCmdBuf);
                 _bufAssignedCamIdx = lodIndex;
-                AttachToCamera(
-                    OceanRenderer.Instance.Builder._shapeCameras[_bufAssignedCamIdx],
-                    OceanRenderer.Instance.Builder._shapeWDCs[_bufAssignedCamIdx]
-                );
-
             }
 
             var lodCam = OceanRenderer.Instance.Builder._shapeCameras[lodIndex];
@@ -177,7 +171,12 @@ namespace Crest
 
             SetAdditionalSimParams(_renderSimMaterial);
 
-            LoadSimResults(lodCam, wdc);
+             if (_copySimMaterial) {
+                RenderTexture targetTexture = GetTargetTexture(lodCam, wdc);
+                _copySimMaterial.mainTexture = PPRTs.Target;
+                _copySimResultsCmdBuf.Clear();
+                _copySimResultsCmdBuf.Blit(PPRTs.Target, targetTexture, _copySimMaterial);
+            }
 
             AddPostRenderCommands(_copySimResultsCmdBuf);
         }

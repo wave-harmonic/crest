@@ -10,7 +10,7 @@ Shader "Ocean/Shape/Sim/Foam Add To Disps"
 	SubShader
 	{
 		Tags { "RenderType" = "Transparent" "Queue" = "Transparent" }
-		Blend One One
+		Blend Off
 		Cull Off Lighting Off ZWrite Off
 		LOD 100
 
@@ -46,7 +46,7 @@ Shader "Ocean/Shape/Sim/Foam Add To Disps"
 
 			half4 frag (v2f i) : SV_Target
 			{
-				return half4(tex2D(_MainTex, i.screenPos).x, 0., 0., 0.);
+				return half4(tex2D(_MainTex, i.screenPos).x, 0., 0., 1.);
 			}
 			ENDCG
 		}

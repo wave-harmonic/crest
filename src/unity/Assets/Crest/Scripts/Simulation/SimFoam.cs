@@ -33,6 +33,15 @@ namespace Crest
             simMaterial.SetFloat("_ShorelineFoamStrength", Settings._shorelineFoamStrength);
         }
         protected override void LoadSimResults(Camera cam, WaveDataCam wdc) {
+
+        }
+        protected override void DetachFromCamera(Camera cam, WaveDataCam wdc) {
+            if(wdc._rtFoam == PPRTs.Target) {
+                wdc._rtFoam = null;
+            }
+        }
+
+        protected override void AttachToCamera(Camera cam, WaveDataCam wdc) {
             wdc._rtFoam = PPRTs.Target;
         }
 

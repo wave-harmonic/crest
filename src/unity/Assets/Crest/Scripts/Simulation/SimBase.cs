@@ -36,6 +36,8 @@ namespace Crest
         // Override this function in order to determine how the results of a
         // given sim can be loaded into the Ocean system.
         protected abstract void LoadSimResults(Camera cam, WaveDataCam wdc);
+        protected abstract void DetachFromCamera(Camera cam, WaveDataCam wdc);
+        protected abstract void AttachToCamera(Camera cam, WaveDataCam wdc);
 
         float _simDeltaTimePrev = 1f / 60f;
         protected float SimDeltaTime { get { return Mathf.Min(Time.deltaTime, MAX_SIM_DELTA_TIME); } }
@@ -102,7 +104,7 @@ namespace Crest
 
             int lodIndex = OceanRenderer.Instance.GetLodIndex(_resolution);
 
-            // is the lod for the sim target resolution currently rendering?
+            // Is the sim rendering at a resolution suitable for any LODs?
             if (lodIndex == -1)
             {
                 // no - clear the copy sim results command buffer
@@ -115,6 +117,11 @@ namespace Crest
                 if (_bufAssignedCamIdx != -1)
                 {
                     OceanRenderer.Instance.Builder._shapeCameras[_bufAssignedCamIdx].RemoveCommandBuffer(CameraEvent.AfterForwardAlpha, _copySimResultsCmdBuf);
+
+                    DetachFromCamera(
+                        OceanRenderer.Instance.Builder._shapeCameras[_bufAssignedCamIdx],
+                        OceanRenderer.Instance.Builder._shapeWDCs[_bufAssignedCamIdx]
+                    );
                     _bufAssignedCamIdx = -1;
                 }
 
@@ -131,10 +138,19 @@ namespace Crest
                 if (_bufAssignedCamIdx != -1)
                 {
                     OceanRenderer.Instance.Builder._shapeCameras[_bufAssignedCamIdx].RemoveCommandBuffer(CameraEvent.AfterForwardAlpha, _copySimResultsCmdBuf);
+                    DetachFromCamera(
+                        OceanRenderer.Instance.Builder._shapeCameras[_bufAssignedCamIdx],
+                        OceanRenderer.Instance.Builder._shapeWDCs[_bufAssignedCamIdx]
+                    );
                 }
 
                 OceanRenderer.Instance.Builder._shapeCameras[lodIndex].AddCommandBuffer(CameraEvent.AfterForwardAlpha, _copySimResultsCmdBuf);
                 _bufAssignedCamIdx = lodIndex;
+                AttachToCamera(
+                    OceanRenderer.Instance.Builder._shapeCameras[_bufAssignedCamIdx],
+                    OceanRenderer.Instance.Builder._shapeWDCs[_bufAssignedCamIdx]
+                );
+
             }
 
             var lodCam = OceanRenderer.Instance.Builder._shapeCameras[lodIndex];

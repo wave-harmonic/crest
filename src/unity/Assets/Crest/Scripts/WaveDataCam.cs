@@ -198,6 +198,14 @@ namespace Crest
                 _rtOceanDepth.anisoLevel = 0;
             }
 
+            // if(!_rtFoam) {
+            //     _rtFoam = new RenderTexture(cam.targetTexture.width, cam.targetTexture.height, 0);
+            //     _rtFoam.name = gameObject.name + "_foam";
+            //     _rtFoam.format = RenderTextureFormat.RHalf;
+            //     _rtFoam.useMipMap = false;
+            //     _rtFoam.anisoLevel = 0;
+            // }
+
             if (_bufOceanDepth == null)
             {
                 _bufOceanDepth = new CommandBuffer();
@@ -337,6 +345,8 @@ namespace Crest
 
             if(_rtFoam != null) {
                 properties.SetTexture(_paramsFoamSampler[shapeSlot], _rtFoam);
+            } else {
+                properties.SetTexture(_paramsFoamSampler[shapeSlot], Texture2D.blackTexture);
             }
 
 

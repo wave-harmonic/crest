@@ -37,6 +37,8 @@ namespace Crest
             return;
         }
 
+        protected override void DetachFromCamera(Camera cam, WaveDataCam wdc) {}
+        protected override void AttachToCamera(Camera cam, WaveDataCam wdc) {}
         public override void AllSimsCreated()
         {
             base.AllSimsCreated();

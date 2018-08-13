@@ -55,51 +55,57 @@ Shader "Ocean/Shape/Gerstner Batch"
 
 				// respects the gui option to freeze time
 				uniform half _Chop;
-				uniform half _Wavelengths[BATCH_SIZE];
-				uniform half _Amplitudes[BATCH_SIZE];
-				uniform half _Angles[BATCH_SIZE];
-				uniform half _Phases[BATCH_SIZE];
+				uniform half4 _Wavelengths[BATCH_SIZE / 4];
+				uniform half4 _Amplitudes[BATCH_SIZE / 4];
+				uniform half4 _Angles[BATCH_SIZE / 4];
+				uniform half4 _Phases[BATCH_SIZE / 4];
 
 				half4 frag (v2f i) : SV_Target
 				{
 					const half minWavelength = MinWavelengthForCurrentOrthoCamera();
 			
 					// sample ocean depth (this render target should 1:1 match depth texture, so UVs are trivial)
-					half depth = tex2D(_WD_OceanDepth_Sampler_0, i.vertex.xy / _ScreenParams.xy).x + DEPTH_BIAS;
+					const half depth = tex2D(_WD_OceanDepth_Sampler_0, i.vertex.xy / _ScreenParams.xy).x + DEPTH_BIAS;
 					half3 result = (half3)0.;
 
 					// unrolling this loop once helped SM Issue Utilization and some other stats, but the GPU time is already very low so leaving this for now
-					for (int j = 0; j < BATCH_SIZE; j++)
+					for (uint vi = 0; vi < BATCH_SIZE / 4; vi++)
 					{
-						if (_Wavelengths[j] == 0.)
-							break;
+						[unroll]
+						for (uint ei = 0; ei < 4; ei++)
+						{
+							if (_Wavelengths[vi][ei] == 0.)
+							{
+								return half4(i.worldPos_wt.z * result, 0.);
+							}
 
-						// weight
-						half wt = ComputeSortedShapeWeight(_Wavelengths[j], minWavelength);
+							// weight
+							half wt = ComputeSortedShapeWeight(_Wavelengths[vi][ei], minWavelength);
 
-						// attenuate waves based on ocean depth. if depth is greater than 0.5*wavelength, water is considered Deep and wave is
-						// unaffected. if depth is less than this, wave velocity decreases. waves will then bunch up and grow in amplitude and
-						// eventually break. i model "Deep" water, but then simply ramp down waves in non-deep water with a linear multiplier.
-						// http://hyperphysics.phy-astr.gsu.edu/hbase/Waves/watwav2.html
-						// http://hyperphysics.phy-astr.gsu.edu/hbase/watwav.html#c1
-						//half depth_wt = saturate(depth / (0.5 * minWavelength)); // slightly different result - do per wavelength for now
-						half depth_wt = saturate(depth / (0.5 * _Wavelengths[j]));
-						// leave a little bit - always keep 10% of amplitude
-						wt *= .1 + .9 * depth_wt;
+							// attenuate waves based on ocean depth. if depth is greater than 0.5*wavelength, water is considered Deep and wave is
+							// unaffected. if depth is less than this, wave velocity decreases. waves will then bunch up and grow in amplitude and
+							// eventually break. i model "Deep" water, but then simply ramp down waves in non-deep water with a linear multiplier.
+							// http://hyperphysics.phy-astr.gsu.edu/hbase/Waves/watwav2.html
+							// http://hyperphysics.phy-astr.gsu.edu/hbase/watwav.html#c1
+							//half depth_wt = saturate(depth / (0.5 * minWavelength)); // slightly different result - do per wavelength for now
+							half depth_wt = saturate(depth / (0.5 * _Wavelengths[vi][ei]));
+							// leave a little bit - always keep 10% of amplitude
+							wt *= .1 + .9 * depth_wt;
 
-						// wave speed
-						half C = ComputeWaveSpeed(_Wavelengths[j]);
-						// direction
-						half2 D = half2(cos(_Angles[j]), sin(_Angles[j]));
-						// wave number
-						half k = TWOPI / _Wavelengths[j];
-						// spatial location
-						half x = dot(D, i.worldPos_wt.xy);
+							// wave speed
+							half C = ComputeWaveSpeed(_Wavelengths[vi][ei]);
+							// direction
+							half2 D = half2(cos(_Angles[vi][ei]), sin(_Angles[vi][ei]));
+							// wave number
+							half k = TWOPI / _Wavelengths[vi][ei];
+							// spatial location
+							half x = dot(D, i.worldPos_wt.xy);
 
-						half3 result_i = wt * _Amplitudes[j];
-						result_i.y *= cos(k*(x + C*_Time.y) + _Phases[j]);
-						result_i.xz *= -_Chop * D * sin(k*(x + C * _Time.y) + _Phases[j]);
-						result += result_i;
+							half3 result_i = wt * _Amplitudes[vi][ei];
+							result_i.y *= cos(k*(x + C * _Time.y) + _Phases[vi][ei]);
+							result_i.xz *= -_Chop * D * sin(k*(x + C * _Time.y) + _Phases[vi][ei]);
+							result += result_i;
+						}
 					}
 
 					return half4(i.worldPos_wt.z * result, 0.);

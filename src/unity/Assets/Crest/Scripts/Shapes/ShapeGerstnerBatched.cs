@@ -55,10 +55,10 @@ namespace Crest
         // scratch data used by batching code
         struct UpdateBatchScratchData
         {
-            public static float[] _wavelengthsBatch = new float[BATCH_SIZE];
-            public static float[] _ampsBatch = new float[BATCH_SIZE];
-            public static float[] _anglesBatch = new float[BATCH_SIZE];
-            public static float[] _phasesBatch = new float[BATCH_SIZE];
+            public static Vector4[] _wavelengthsBatch = new Vector4[BATCH_SIZE / 4];
+            public static Vector4[] _ampsBatch = new Vector4[BATCH_SIZE / 4];
+            public static Vector4[] _anglesBatch = new Vector4[BATCH_SIZE / 4];
+            public static Vector4[] _phasesBatch = new Vector4[BATCH_SIZE / 4];
         }
 
         void Start()
@@ -163,11 +163,13 @@ namespace Crest
                 {
                     if( numInBatch < BATCH_SIZE)
                     {
-                        UpdateBatchScratchData._wavelengthsBatch[numInBatch] = wl;
-                        UpdateBatchScratchData._ampsBatch[numInBatch] = amp;
-                        UpdateBatchScratchData._anglesBatch[numInBatch] = 
+                        int vi = numInBatch / 4;
+                        int ei = numInBatch - vi * 4;
+                        UpdateBatchScratchData._wavelengthsBatch[vi][ei] = wl;
+                        UpdateBatchScratchData._ampsBatch[vi][ei] = amp;
+                        UpdateBatchScratchData._anglesBatch[vi][ei] = 
                             Mathf.Deg2Rad * (OceanRenderer.Instance._windDirectionAngle + _angleDegs[firstComponent + i]);
-                        UpdateBatchScratchData._phasesBatch[numInBatch] = _phases[firstComponent + i];
+                        UpdateBatchScratchData._phasesBatch[vi][ei] = _phases[firstComponent + i];
                         numInBatch++;
                     }
                     else
@@ -192,14 +194,16 @@ namespace Crest
             // if we did not fill the batch, put a terminator signal after the last position
             if( numInBatch < BATCH_SIZE)
             {
-                UpdateBatchScratchData._wavelengthsBatch[numInBatch] = 0f;
+                int vi = numInBatch / 4;
+                int ei = numInBatch - vi * 4;
+                UpdateBatchScratchData._wavelengthsBatch[vi][ei] = 0f;
             }
 
             // apply the data to the shape material
-            material.SetFloatArray("_Wavelengths", UpdateBatchScratchData._wavelengthsBatch);
-            material.SetFloatArray("_Amplitudes", UpdateBatchScratchData._ampsBatch);
-            material.SetFloatArray("_Angles", UpdateBatchScratchData._anglesBatch);
-            material.SetFloatArray("_Phases", UpdateBatchScratchData._phasesBatch);
+            material.SetVectorArray("_Wavelengths", UpdateBatchScratchData._wavelengthsBatch);
+            material.SetVectorArray("_Amplitudes", UpdateBatchScratchData._ampsBatch);
+            material.SetVectorArray("_Angles", UpdateBatchScratchData._anglesBatch);
+            material.SetVectorArray("_Phases", UpdateBatchScratchData._phasesBatch);
             material.SetFloat("_NumInBatch", numInBatch);
             material.SetFloat("_Chop", _spectrum._chop);
 
@@ -208,6 +212,10 @@ namespace Crest
             return numInBatch;
         }
 
+        // more complicated than i would like - loops over each component and assigns to a gerstner batch which will render to a LOD.
+        // the camera WL range does not always match the octave WL range (because the vertices per wave is not constrained to powers of
+        // 2, unfortunately), so i cant easily just loop over octaves. also any WLs that either go to the last WDC, or dont fit in the last
+        // WDC, are rendered into both the last and second-to-last WDCs, in order to transition them smoothly without pops in all scenarios.
         void LateUpdateMaterials()
         {
             int componentIdx = 0;

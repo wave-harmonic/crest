@@ -57,7 +57,7 @@ namespace Crest
 
             var spPower = serializedObject.FindProperty("_powerLog");
             var spChopScales = serializedObject.FindProperty("_chopScales");
-            var spSpeedScales = serializedObject.FindProperty("_speedScales");
+            var spGravScales = serializedObject.FindProperty("_gravityScales");
 
             for( int i = 0; i < spPower.arraySize; i++)
             {
@@ -75,7 +75,7 @@ namespace Crest
                 if (showAdvancedControls)
                 {
                     EditorGUILayout.Slider(spChopScales.GetArrayElementAtIndex(i), 0f, 4f, "Chop Scale");
-                    EditorGUILayout.Slider(spSpeedScales.GetArrayElementAtIndex(i), 0f, 4f, "Speed Scale");
+                    EditorGUILayout.Slider(spGravScales.GetArrayElementAtIndex(i), 0f, 4f, "Grav Scale");
                 }
             }
 

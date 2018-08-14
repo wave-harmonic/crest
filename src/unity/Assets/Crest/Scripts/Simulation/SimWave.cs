@@ -48,6 +48,7 @@ namespace Crest
             base.SetAdditionalSimParams(simMaterial);
 
             simMaterial.SetFloat("_Damping", Settings._damping);
+            simMaterial.SetFloat("_Gravity", OceanRenderer.Instance.Gravity);
 
             float laplacianKernelAngle = _rotateLaplacian ? Mathf.PI * 2f * Random.value : 0f;
             simMaterial.SetVector("_LaplacianAxisX", new Vector2(Mathf.Cos(laplacianKernelAngle), Mathf.Sin(laplacianKernelAngle)));

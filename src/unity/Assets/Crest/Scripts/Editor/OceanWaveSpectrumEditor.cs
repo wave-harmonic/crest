@@ -22,6 +22,8 @@ namespace Crest
         {
             base.OnInspectorGUI();
 
+            var showAdvancedControls = serializedObject.FindProperty("_showAdvancedControls").boolValue;
+
             // preamble - styles for toggle buttons. this code and the below was based off the useful info provided by user Lasse here:
             // https://gamedev.stackexchange.com/questions/98920/how-do-i-create-a-toggle-button-in-unity-inspector
             if (ToggleButtonStyleNormal == null)
@@ -54,7 +56,8 @@ namespace Crest
             var spec = target as OceanWaveSpectrum;
 
             var spPower = serializedObject.FindProperty("_powerLog");
-            
+            var spChopScales = serializedObject.FindProperty("_chopScales");
+
             for( int i = 0; i < spPower.arraySize; i++)
             {
                 EditorGUILayout.BeginHorizontal();
@@ -68,6 +71,10 @@ namespace Crest
                 spPower_i.floatValue = GUILayout.HorizontalSlider(spPower_i.floatValue, OceanWaveSpectrum.MIN_POWER_LOG, OceanWaveSpectrum.MAX_POWER_LOG);
 
                 EditorGUILayout.EndHorizontal();
+                if (showAdvancedControls)
+                {
+                    EditorGUILayout.Slider(spChopScales.GetArrayElementAtIndex(i), 0f, 3f, "Chop Scale");
+                }
             }
 
 

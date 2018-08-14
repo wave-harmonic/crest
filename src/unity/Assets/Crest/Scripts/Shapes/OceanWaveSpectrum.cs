@@ -24,8 +24,14 @@ namespace Crest
         [SerializeField, HideInInspector]
         bool[] _powerDisabled = new bool[NUM_OCTAVES];
 
+        [HideInInspector]
+        public float[] _chopScales = new float[NUM_OCTAVES]
+            { 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f };
+
         [Tooltip("Scales horizontal displacement"), Range(0f, 2f)]
         public float _chop = 1f;
+
+        public bool _showAdvancedControls = false;
 
         public static float SmallWavelength(float octaveIndex) { return Mathf.Pow(2f, SMALLEST_WL_POW_2 + octaveIndex); }
 

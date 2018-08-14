@@ -3,9 +3,9 @@
 --- !u!1 &147084
 GameObject:
   m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
+  m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
-  serializedVersion: 5
+  serializedVersion: 6
   m_Component:
   - component: {fileID: 478202}
   - component: {fileID: 11447936}
@@ -20,7 +20,7 @@ GameObject:
 --- !u!4 &478202
 Transform:
   m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
+  m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 147084}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
@@ -33,7 +33,7 @@ Transform:
 --- !u!114 &11417796
 MonoBehaviour:
   m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
+  m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 147084}
   m_Enabled: 1
@@ -43,20 +43,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _viewpoint: {fileID: 0}
   _windDirectionAngle: 0
-  _windSpeed: 5
   _cachedCpuOceanQueries: 0
-  _minTexelsPerWave: 5
+  _minTexelsPerWave: 3
   _minScale: 8
   _maxScale: 256
   _baseVertDensity: 64
   _lodCount: 7
-  _freezeTime: 0
   _uniformTiles: 0
   _disableSkirt: 0
 --- !u!114 &11447936
 MonoBehaviour:
   m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
+  m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 147084}
   m_Enabled: 1
@@ -75,6 +73,6 @@ Prefab:
     m_TransformParent: {fileID: 0}
     m_Modifications: []
     m_RemovedComponents: []
-  m_ParentPrefab: {fileID: 0}
+  m_SourcePrefab: {fileID: 0}
   m_RootGameObject: {fileID: 147084}
-  m_IsPrefabParent: 1
+  m_IsPrefabAsset: 1

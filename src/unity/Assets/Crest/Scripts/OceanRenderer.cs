@@ -22,7 +22,7 @@ namespace Crest
 
         [Range(0, 15)]
         [Tooltip("Min number of verts / shape texels per wave.")]
-        public float _minTexelsPerWave = 5f;
+        public float _minTexelsPerWave = 3f;
 
         [Delayed, Tooltip("The smallest scale the ocean can be.")]
         public float _minScale = 16f;

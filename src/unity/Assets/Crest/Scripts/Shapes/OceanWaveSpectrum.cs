@@ -28,6 +28,10 @@ namespace Crest
         public float[] _chopScales = new float[NUM_OCTAVES]
             { 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f };
 
+        [HideInInspector]
+        public float[] _speedScales = new float[NUM_OCTAVES]
+            { 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f };
+
         [Tooltip("Scales horizontal displacement"), Range(0f, 2f)]
         public float _chop = 1f;
 

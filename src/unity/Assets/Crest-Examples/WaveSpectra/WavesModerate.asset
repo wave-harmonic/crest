@@ -39,5 +39,18 @@ MonoBehaviour:
   - 1
   - 1
   - 1
+  _speedScales:
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
   _chop: 1
   _showAdvancedControls: 0

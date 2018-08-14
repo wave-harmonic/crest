@@ -60,6 +60,7 @@ Shader "Ocean/Shape/Gerstner Batch"
 				uniform half4 _Angles[BATCH_SIZE / 4];
 				uniform half4 _Phases[BATCH_SIZE / 4];
 				uniform half4 _ChopScales[BATCH_SIZE / 4];
+				uniform half4 _SpeedScales[BATCH_SIZE / 4];
 
 				half4 frag (v2f i) : SV_Target
 				{
@@ -94,7 +95,7 @@ Shader "Ocean/Shape/Gerstner Batch"
 							wt *= .1 + .9 * depth_wt;
 
 							// wave speed
-							half C = ComputeWaveSpeed(_Wavelengths[vi][ei]);
+							half C = _SpeedScales[vi][ei] * ComputeWaveSpeed(_Wavelengths[vi][ei]);
 							// direction
 							half2 D = half2(cos(_Angles[vi][ei]), sin(_Angles[vi][ei]));
 							// wave number

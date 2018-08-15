@@ -22,6 +22,8 @@ namespace Crest
         {
             base.OnInspectorGUI();
 
+            var showAdvancedControls = serializedObject.FindProperty("_showAdvancedControls").boolValue;
+
             // preamble - styles for toggle buttons. this code and the below was based off the useful info provided by user Lasse here:
             // https://gamedev.stackexchange.com/questions/98920/how-do-i-create-a-toggle-button-in-unity-inspector
             if (ToggleButtonStyleNormal == null)
@@ -54,7 +56,9 @@ namespace Crest
             var spec = target as OceanWaveSpectrum;
 
             var spPower = serializedObject.FindProperty("_powerLog");
-            
+            var spChopScales = serializedObject.FindProperty("_chopScales");
+            var spGravScales = serializedObject.FindProperty("_gravityScales");
+
             for( int i = 0; i < spPower.arraySize; i++)
             {
                 EditorGUILayout.BeginHorizontal();
@@ -63,11 +67,26 @@ namespace Crest
                 spDisabled_i.boolValue = !EditorGUILayout.Toggle(!spDisabled_i.boolValue, GUILayout.Width(15f));
 
                 float smallWL = OceanWaveSpectrum.SmallWavelength(i);
-                EditorGUILayout.LabelField(string.Format("{0}", smallWL), GUILayout.Width(30f));
                 var spPower_i = spPower.GetArrayElementAtIndex(i);
-                spPower_i.floatValue = GUILayout.HorizontalSlider(spPower_i.floatValue, OceanWaveSpectrum.MIN_POWER_LOG, OceanWaveSpectrum.MAX_POWER_LOG);
 
-                EditorGUILayout.EndHorizontal();
+                if (showAdvancedControls)
+                {
+                    EditorGUILayout.LabelField(string.Format("{0}", smallWL), EditorStyles.boldLabel);
+                    EditorGUILayout.EndHorizontal();
+                    EditorGUILayout.Slider(spPower_i, OceanWaveSpectrum.MIN_POWER_LOG, OceanWaveSpectrum.MAX_POWER_LOG, "    Power");
+                }
+                else
+                {
+                    EditorGUILayout.LabelField(string.Format("{0}", smallWL), GUILayout.Width(30f));
+                    spPower_i.floatValue = GUILayout.HorizontalSlider(spPower_i.floatValue, OceanWaveSpectrum.MIN_POWER_LOG, OceanWaveSpectrum.MAX_POWER_LOG);
+                    EditorGUILayout.EndHorizontal();
+                }
+
+                if (showAdvancedControls)
+                {
+                    EditorGUILayout.Slider(spChopScales.GetArrayElementAtIndex(i), 0f, 4f, "    Chop Scale");
+                    EditorGUILayout.Slider(spGravScales.GetArrayElementAtIndex(i), 0f, 4f, "    Grav Scale");
+                }
             }
 
 

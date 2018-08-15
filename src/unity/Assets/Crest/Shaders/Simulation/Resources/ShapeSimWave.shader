@@ -50,6 +50,7 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 
 				uniform half _Damping;
 				uniform float2 _LaplacianAxisX;
+				uniform half _Gravity;
 
 				#define MIN_DT 0.00001
 
@@ -77,7 +78,7 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 					float wavelength = 1.5 * _TexelsPerWave * texelSize;;
 					// could make velocity depend on waves
 					//float h = max(waterSignedDepth + ft, 0.);
-					float c = ComputeWaveSpeed(wavelength /*, h*/);
+					float c = ComputeWaveSpeed(wavelength, _Gravity);
 
 					const float dt = _SimDeltaTime;
 					const float dtp = _SimDeltaTimePrev;

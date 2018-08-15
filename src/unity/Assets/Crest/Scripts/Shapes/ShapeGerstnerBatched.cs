@@ -59,6 +59,8 @@ namespace Crest
             public static Vector4[] _ampsBatch = new Vector4[BATCH_SIZE / 4];
             public static Vector4[] _anglesBatch = new Vector4[BATCH_SIZE / 4];
             public static Vector4[] _phasesBatch = new Vector4[BATCH_SIZE / 4];
+            public static Vector4[] _chopScalesBatch = new Vector4[BATCH_SIZE / 4];
+            public static Vector4[] _gravityScalesBatch = new Vector4[BATCH_SIZE / 4];
         }
 
         void Start()
@@ -115,7 +117,7 @@ namespace Crest
             float ampSum = 0f;
             for (int i = 0; i < _wavelengths.Length; i++)
             {
-                ampSum += _amplitudes[i];
+                ampSum += _amplitudes[i] * _spectrum._chopScales[i / _componentsPerOctave];
             }
             OceanRenderer.Instance.ReportMaxDisplacementFromShape(ampSum * _spectrum._chop, ampSum);
         }
@@ -170,6 +172,8 @@ namespace Crest
                         UpdateBatchScratchData._anglesBatch[vi][ei] = 
                             Mathf.Deg2Rad * (OceanRenderer.Instance._windDirectionAngle + _angleDegs[firstComponent + i]);
                         UpdateBatchScratchData._phasesBatch[vi][ei] = _phases[firstComponent + i];
+                        UpdateBatchScratchData._chopScalesBatch[vi][ei] = _spectrum._chopScales[(firstComponent + i) / _componentsPerOctave];
+                        UpdateBatchScratchData._gravityScalesBatch[vi][ei] = _spectrum._gravityScales[(firstComponent + i) / _componentsPerOctave];
                         numInBatch++;
                     }
                     else
@@ -204,8 +208,11 @@ namespace Crest
             material.SetVectorArray("_Amplitudes", UpdateBatchScratchData._ampsBatch);
             material.SetVectorArray("_Angles", UpdateBatchScratchData._anglesBatch);
             material.SetVectorArray("_Phases", UpdateBatchScratchData._phasesBatch);
+            material.SetVectorArray("_ChopScales", UpdateBatchScratchData._chopScalesBatch);
+            material.SetVectorArray("_GravityScales", UpdateBatchScratchData._gravityScalesBatch);
             material.SetFloat("_NumInBatch", numInBatch);
             material.SetFloat("_Chop", _spectrum._chop);
+            material.SetFloat("_Gravity", OceanRenderer.Instance.Gravity * _spectrum._gravityScale);
 
             OceanRenderer.Instance.Builder._shapeWDCs[lodIdx].ApplyMaterialParams(0, material, false, false);
 

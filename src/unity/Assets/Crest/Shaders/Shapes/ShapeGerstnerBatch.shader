@@ -55,10 +55,13 @@ Shader "Ocean/Shape/Gerstner Batch"
 
 				// respects the gui option to freeze time
 				uniform half _Chop;
+				uniform half _Gravity;
 				uniform half4 _Wavelengths[BATCH_SIZE / 4];
 				uniform half4 _Amplitudes[BATCH_SIZE / 4];
 				uniform half4 _Angles[BATCH_SIZE / 4];
 				uniform half4 _Phases[BATCH_SIZE / 4];
+				uniform half4 _ChopScales[BATCH_SIZE / 4];
+				uniform half4 _GravityScales[BATCH_SIZE / 4];
 
 				half4 frag (v2f i) : SV_Target
 				{
@@ -93,7 +96,7 @@ Shader "Ocean/Shape/Gerstner Batch"
 							wt *= .1 + .9 * depth_wt;
 
 							// wave speed
-							half C = ComputeWaveSpeed(_Wavelengths[vi][ei]);
+							half C = ComputeWaveSpeed(_Wavelengths[vi][ei], _Gravity * _GravityScales[vi][ei]);
 							// direction
 							half2 D = half2(cos(_Angles[vi][ei]), sin(_Angles[vi][ei]));
 							// wave number
@@ -103,7 +106,7 @@ Shader "Ocean/Shape/Gerstner Batch"
 
 							half3 result_i = wt * _Amplitudes[vi][ei];
 							result_i.y *= cos(k*(x + C * _Time.y) + _Phases[vi][ei]);
-							result_i.xz *= -_Chop * D * sin(k*(x + C * _Time.y) + _Phases[vi][ei]);
+							result_i.xz *= -_Chop * _ChopScales[vi][ei] * D * sin(k*(x + C * _Time.y) + _Phases[vi][ei]);
 							result += result_i;
 						}
 					}

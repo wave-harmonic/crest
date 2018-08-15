@@ -16,6 +16,10 @@ namespace Crest
         public float _windDirectionAngle = 0f;
         public Vector2 WindDir { get { return new Vector2(Mathf.Cos(Mathf.PI * _windDirectionAngle / 180f), Mathf.Sin(Mathf.PI * _windDirectionAngle / 180f)); } }
 
+        [SerializeField, Delayed, Tooltip("Multiplier for physics gravity."), Range(0f, 10f)]
+        float _gravityMultiplier = 1f;
+        public float Gravity { get { return _gravityMultiplier * Physics.gravity.magnitude; } }
+
         [SerializeField, Tooltip("Cache CPU requests for ocean height. Requires restart.")]
         bool _cachedCpuOceanQueries = false;
         public bool CachedCpuOceanQueries { get { return _cachedCpuOceanQueries; } }

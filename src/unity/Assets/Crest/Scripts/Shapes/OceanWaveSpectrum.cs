@@ -17,6 +17,9 @@ namespace Crest
         [Tooltip("Variance of flow direction, in degrees"), Range(0f, 180f)]
         public float _waveDirectionVariance = 90f;
 
+        [Tooltip("More gravity means faster waves."), Range(0f, 25f)]
+        public float _gravityScale = 1f;
+
         [SerializeField, HideInInspector]
         float[] _powerLog = new float[NUM_OCTAVES]
             { -6f, -4.0088496f, -3.4452133f, -2.6996124f, -2.615044f, -1.2080691f, -0.53905386f, 0.27448857f, 0.53627354f, 1.0282621f, 1.4403292f, -6f };
@@ -24,8 +27,18 @@ namespace Crest
         [SerializeField, HideInInspector]
         bool[] _powerDisabled = new bool[NUM_OCTAVES];
 
+        [HideInInspector]
+        public float[] _chopScales = new float[NUM_OCTAVES]
+            { 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f };
+
+        [HideInInspector]
+        public float[] _gravityScales = new float[NUM_OCTAVES]
+            { 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f };
+
         [Tooltip("Scales horizontal displacement"), Range(0f, 2f)]
         public float _chop = 1f;
+
+        public bool _showAdvancedControls = false;
 
         public static float SmallWavelength(float octaveIndex) { return Mathf.Pow(2f, SMALLEST_WL_POW_2 + octaveIndex); }
 

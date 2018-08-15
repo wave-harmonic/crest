@@ -75,11 +75,11 @@ float ComputeSortedShapeWeight(float wavelengthInShape, float minWavelength)
 	return wavelengthInShape < 2.*minWavelength ? 1. : 1. - _ViewerAltitudeLevelAlpha;
 }
 
-float ComputeWaveSpeed( float wavelength )
+float ComputeWaveSpeed( float wavelength, float g )
 {
 	// wave speed of deep sea ocean waves: https://en.wikipedia.org/wiki/Wind_wave
 	// https://en.wikipedia.org/wiki/Dispersion_(water_waves)#Wave_propagation_and_dispersion
 	//float g = 9.81; float k = 2. * 3.141593 / wavelength; float cp = sqrt(g / k); return cp;
-	float sqrt_g_over_2pi = 1.2495239;
-	return sqrt_g_over_2pi * sqrt(wavelength);
+	const float one_over_2pi = 0.15915494;
+	return sqrt(wavelength*g*one_over_2pi);
 }

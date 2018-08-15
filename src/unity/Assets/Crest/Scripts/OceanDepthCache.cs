@@ -1,6 +1,7 @@
 ﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Crest
 {
@@ -10,13 +11,23 @@ namespace Crest
     /// </summary>
     public class OceanDepthCache : MonoBehaviour
     {
+        [Tooltip("Can be disabled to delay population of the cache.")]
         public bool _populateOnStartup = true;
-        public string _layerName;
+
+        [Tooltip("The layers to render into the depth cache.")]
+        public string[] _layerNames;
+
+        [FormerlySerializedAs("_layerName"), Tooltip("Please use the Layer Names field instead.")]
+        public string _layerNameDEPRECATED;
+
+        [Tooltip("The resolution of the cached depth - lower will be more efficient.")]
         public int _resolution = 512;
 
         // a big hill will still want to write its height into the depth texture
+        [Tooltip("The 'near plane' for the depth cache camera (top down).")]
         public float _cameraMaxTerrainHeight = 100f;
 
+        [Tooltip("Will render into the cache every frame.")]
         public bool _forceAlwaysUpdateDebug = false;
 
         RenderTexture _cache;
@@ -25,9 +36,14 @@ namespace Crest
 
         void Start()
         {
-            if (string.IsNullOrEmpty(_layerName) || LayerMask.NameToLayer(_layerName) == -1)
+            if(!string.IsNullOrEmpty(_layerNameDEPRECATED))
             {
-                Debug.LogError("Invalid layer name: \"" + _layerName + "\"", this);
+                Debug.LogWarning("The Layer Name field is deprecated - please use the Layer Names list instead.", this);
+            }
+
+            if (_layerNames == null || _layerNames.Length < 1)
+            {
+                Debug.LogError("At least one layer name to render into the cache must be provided.", this);
                 enabled = false;
                 return;
             }
@@ -50,6 +66,24 @@ namespace Crest
 
         public void PopulateCache()
         {
+            var layerMask = 0;
+            foreach (var layer in _layerNames)
+            {
+                int layerIdx = LayerMask.NameToLayer(layer);
+                if (string.IsNullOrEmpty(layer) || layerIdx == -1)
+                {
+                    Debug.LogError("Invalid layer specified: \"" + layer + "\"", this);
+                }
+                else
+                {
+                    layerMask = layerMask | (1 << layerIdx);
+                }
+            }
+            if (layerMask == 0)
+            {
+                Debug.LogError("No valid layers for populating depth cache, aborting.", this);
+            }
+
             if (_cache == null)
             {
                 _cache = new RenderTexture(_resolution, _resolution, 0);
@@ -82,7 +116,7 @@ namespace Crest
                 _camDepthCache.orthographic = true;
                 _camDepthCache.orthographicSize = Mathf.Max(transform.lossyScale.x / 2f, transform.lossyScale.z / 2f);
                 _camDepthCache.targetTexture = _cache;
-                _camDepthCache.cullingMask = 1 << LayerMask.NameToLayer(_layerName);
+                _camDepthCache.cullingMask = layerMask;
                 _camDepthCache.clearFlags = CameraClearFlags.SolidColor;
                 _camDepthCache.backgroundColor = Color.red * 10000f;
                 _camDepthCache.enabled = false;

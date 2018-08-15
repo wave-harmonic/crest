@@ -68,6 +68,9 @@ Shader "Ocean/Shape/Sim/Foam"
 						foam = 0.;
 					}
 
+					// fade
+					foam *= max(0.0, 1.0 - _FoamFadeRate * _SimDeltaTime);
+
 					// sample displacement texture and generate foam from it
 					const float3 dd = float3(_WD_Params_0.w, 0.0, _WD_Params_0.x);
 					half3 s = tex2Dlod(_WD_Sampler_0, uv).xyz;
@@ -87,9 +90,6 @@ Shader "Ocean/Shape/Sim/Foam"
 					// add foam in shallow water
 					float signedOceanDepth = tex2Dlod(_WD_OceanDepth_Sampler_0, uv).x + DEPTH_BIAS + disp.y;
 					foam += _ShorelineFoamStrength * _SimDeltaTime * saturate(1. - signedOceanDepth / _ShorelineFoamMaxDepth);
-
-					// fade
-					foam *= max(0.0, 1.0 - _FoamFadeRate * _SimDeltaTime);
 
 					return foam;
 				}

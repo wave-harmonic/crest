@@ -54,6 +54,15 @@ namespace Crest
             simMaterial.SetVector("_LaplacianAxisX", new Vector2(Mathf.Cos(laplacianKernelAngle), Mathf.Sin(laplacianKernelAngle)));
         }
 
+        protected override void SetAdditionalCopySimParams(Material copySimMaterial)
+        {
+            base.SetAdditionalCopySimParams(copySimMaterial);
+
+            copySimMaterial.SetFloat("_HorizDisplace", Settings._horizDisplace);
+            copySimMaterial.SetFloat("_DisplaceClamp", Settings._displaceClamp);
+            copySimMaterial.SetFloat("_TexelWidth", (2f * Cam.orthographicSize) / PPRTs.Target.width);
+        }
+
         protected override void AddPostRenderCommands(CommandBuffer postRenderCmdBuf)
         {
             base.AddPostRenderCommands(postRenderCmdBuf);
@@ -68,9 +77,13 @@ namespace Crest
                 _generateFoamFromSim = new Material(Shader.Find("Ocean/Shape/Sim/Wave Generate Foam"));
             }
 
+            if (Settings._foamAmount > 0f)
+            {
+                Debug.LogWarning("Non-zero foam amount on wave sim settings detected. Foam generated from the wave sim is deprecated and will be removed soon. Going forwards, all foam will be generated based on the final water surface shape.", this);
+            }
+            _generateFoamFromSim.SetFloat("_Amount", Settings._foamAmount);
             _generateFoamFromSim.SetFloat("_MinAccel", Settings._foamMinAccel);
             _generateFoamFromSim.SetFloat("_MaxAccel", Settings._foamMaxAccel);
-            _generateFoamFromSim.SetFloat("_Amount", Settings._foamAmount);
 
             _generateFoamFromSim.SetFloat("_SimDeltaTime", SimDeltaTime);
 

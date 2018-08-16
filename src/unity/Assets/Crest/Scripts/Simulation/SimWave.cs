@@ -1,7 +1,6 @@
 ﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 using UnityEngine;
-using UnityEngine.Rendering;
 
 namespace Crest
 {
@@ -23,26 +22,6 @@ namespace Crest
 
         public bool _rotateLaplacian = true;
 
-        SimFoam _foamSim;
-        Material _generateFoamFromSim;
-
-        public override void AllSimsCreated()
-        {
-            base.AllSimsCreated();
-
-            // look for a foam sim - take the first one that matches this resolution
-            var sims = FindObjectsOfType<SimFoam>();
-            foreach (var sim in sims)
-            {
-                var foamSim = sim as SimFoam;
-                if (foamSim != null && foamSim._resolution == _resolution)
-                {
-                    _foamSim = foamSim;
-                    break;
-                }
-            }
-        }
-
         protected override void SetAdditionalSimParams(Material simMaterial)
         {
             base.SetAdditionalSimParams(simMaterial);
@@ -61,35 +40,6 @@ namespace Crest
             copySimMaterial.SetFloat("_HorizDisplace", Settings._horizDisplace);
             copySimMaterial.SetFloat("_DisplaceClamp", Settings._displaceClamp);
             copySimMaterial.SetFloat("_TexelWidth", (2f * Cam.orthographicSize) / PPRTs.Target.width);
-        }
-
-        protected override void AddPostRenderCommands(CommandBuffer postRenderCmdBuf)
-        {
-            base.AddPostRenderCommands(postRenderCmdBuf);
-
-            if (_foamSim == null)
-            {
-                return;
-            }
-
-            if (_generateFoamFromSim == null)
-            {
-                _generateFoamFromSim = new Material(Shader.Find("Ocean/Shape/Sim/Wave Generate Foam"));
-            }
-
-            if (Settings._foamAmount > 0f)
-            {
-                Debug.LogWarning("Non-zero foam amount on wave sim settings detected. Foam generated from the wave sim is deprecated and will be removed soon. Going forwards, all foam will be generated based on the final water surface shape.", this);
-            }
-            _generateFoamFromSim.SetFloat("_Amount", Settings._foamAmount);
-            _generateFoamFromSim.SetFloat("_MinAccel", Settings._foamMinAccel);
-            _generateFoamFromSim.SetFloat("_MaxAccel", Settings._foamMaxAccel);
-
-            _generateFoamFromSim.SetFloat("_SimDeltaTime", SimDeltaTime);
-
-            _generateFoamFromSim.mainTexture = PPRTs.Target;
-
-            postRenderCmdBuf.Blit(PPRTs.Target, _foamSim.GetComponent<Camera>().targetTexture, _generateFoamFromSim);
         }
 
         SimSettingsWave Settings { get { return _settings as SimSettingsWave; } }

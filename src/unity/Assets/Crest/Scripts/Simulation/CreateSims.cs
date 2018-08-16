@@ -102,13 +102,6 @@ namespace Crest
                     cam.allowDynamicResolution = false;
                 }
             }
-
-            foreach ( var child in transform)
-            {
-                var sim = (child as Transform).GetComponent<SimBase>();
-                if (sim == null) continue;
-                sim.AllSimsCreated();
-            }
         }
 
         float GetRes(SimResolution res)

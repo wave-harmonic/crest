@@ -164,8 +164,6 @@ namespace Crest
                 _copySimResultsCmdBuf.Clear();
                 _copySimResultsCmdBuf.Blit(PPRTs.Target, lodCam.targetTexture, _copySimMaterial);
             }
-
-            AddPostRenderCommands(_copySimResultsCmdBuf);
         }
 
         /// <summary>
@@ -179,21 +177,6 @@ namespace Crest
         /// Set any sim-specific shader params.
         /// </summary>
         protected virtual void SetAdditionalCopySimParams(Material copySimMaterial)
-        {
-        }
-
-        /// <summary>
-        /// Any render commands to perform after the sim has been advanced.
-        /// </summary>
-        /// <param name="postRenderCmdBuf"></param>
-        protected virtual void AddPostRenderCommands(CommandBuffer postRenderCmdBuf)
-        {
-        }
-
-        /// <summary>
-        /// Called after all sims created - gives the sims a chance to reference eachother or do other init.
-        /// </summary>
-        public virtual void AllSimsCreated()
         {
         }
 

@@ -325,7 +325,7 @@ MonoBehaviour:
     _disabled: 0
     _resolutions: 01000000020000000300000004000000
   - _simType: 0
-    _simSettings: {fileID: 11400000, guid: f61e1aa61b9e21247b6031e5cf07a714, type: 2}
+    _simSettings: {fileID: 0}
     _disabled: 0
     _resolutions: 010000000200000003000000
 --- !u!1001 &750723223

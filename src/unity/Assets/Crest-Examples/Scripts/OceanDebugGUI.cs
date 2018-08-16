@@ -148,6 +148,28 @@ public class OceanDebugGUI : MonoBehaviour
 
             ind++;
         }
+        ind = 0;
+        foreach (WaveDataCam wdc in OceanRenderer.Instance.Builder._shapeWDCs)
+        {
+            if (!wdc) continue;
+
+            RenderTexture shape = wdc._rtFoam;
+
+            if (shape == null) continue;
+
+            float b = 7f;
+            float h = Screen.height / (float)OceanRenderer.Instance.Builder._shapeWDCs.Length;
+            float w = h + b;
+            float x = Screen.width - (w + w);
+            float y = ind * h;
+
+            GUI.color = Color.black * 0.7f;
+            GUI.DrawTexture(new Rect(x, y, w, h), Texture2D.whiteTexture);
+            GUI.color = Color.white;
+            GUI.DrawTexture(new Rect(x + b, y + b / 2f, h - b, h - b), shape, ScaleMode.ScaleAndCrop, false);
+
+            ind++;
+        }
     }
 
     void ToggleGUI()

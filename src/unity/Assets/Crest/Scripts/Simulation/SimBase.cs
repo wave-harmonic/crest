@@ -19,11 +19,10 @@ namespace Crest
         protected SimSettingsBase _settings;
         public void UseSettings(SimSettingsBase settings) { _settings = settings; }
 
-        Material _copySimMaterial = null;
-
         GameObject _renderSim;
         Material _renderSimMaterial;
-        Material _matClearSim;
+        protected Material _matClearSim;
+        protected Material _copySimMaterial;
 
         Vector3 _camPosSnappedLast;
 
@@ -33,7 +32,12 @@ namespace Crest
         public abstract RenderTextureFormat TextureFormat { get; }
         public abstract int Depth { get; }
         public abstract SimSettingsBase CreateDefaultSettings();
+        public RenderTexture SimTexture { get { return PPRTs.Target; }}
 
+        // Override this function in order to determine how the results of a
+        // given sim can be loaded into the Ocean system.
+        protected abstract RenderTexture GetTargetTexture(Camera cam, WaveDataCam wdc);
+        protected abstract void DetachFromCamera(Camera cam, WaveDataCam wdc);
         float _simDeltaTimePrev = 1f / 60f;
         protected float SimDeltaTime { get { return Mathf.Min(Time.deltaTime, MAX_SIM_DELTA_TIME); } }
 
@@ -41,8 +45,8 @@ namespace Crest
         {
             CreateRenderSimQuad();
 
-            _copySimMaterial = new Material(Shader.Find(ShaderRenderResultsIntoDispTexture));
             _matClearSim = new Material(Shader.Find("Ocean/Shape/Sim/Clear"));
+            _copySimMaterial = new Material(Shader.Find(ShaderRenderResultsIntoDispTexture));
         }
 
         private void CreateRenderSimQuad()
@@ -74,7 +78,10 @@ namespace Crest
             return result;
         }
 
-        CommandBuffer _advanceSimCmdBuf, _copySimResultsCmdBuf;
+        CommandBuffer _advanceSimCmdBuf;
+
+
+        protected CommandBuffer _copySimResultsCmdBuf;
         int _bufAssignedCamIdx = -1;
 
         void LateUpdate()
@@ -96,7 +103,7 @@ namespace Crest
 
             int lodIndex = OceanRenderer.Instance.GetLodIndex(_resolution);
 
-            // is the lod for the sim target resolution currently rendering?
+            // Is the sim rendering at a resolution suitable for any LODs?
             if (lodIndex == -1)
             {
                 // no - clear the copy sim results command buffer
@@ -109,13 +116,17 @@ namespace Crest
                 if (_bufAssignedCamIdx != -1)
                 {
                     OceanRenderer.Instance.Builder._shapeCameras[_bufAssignedCamIdx].RemoveCommandBuffer(CameraEvent.AfterForwardAlpha, _copySimResultsCmdBuf);
+
+                    DetachFromCamera(
+                        OceanRenderer.Instance.Builder._shapeCameras[_bufAssignedCamIdx],
+                        OceanRenderer.Instance.Builder._shapeWDCs[_bufAssignedCamIdx]
+                    );
                     _bufAssignedCamIdx = -1;
                 }
 
                 // clear the simulation data - so that it doesnt suddenly pop in later
                 Graphics.Blit(Texture2D.blackTexture, PPRTs.Source, _matClearSim);
                 Graphics.Blit(Texture2D.blackTexture, PPRTs.Target, _matClearSim);
-
                 return;
             }
 
@@ -125,6 +136,10 @@ namespace Crest
                 if (_bufAssignedCamIdx != -1)
                 {
                     OceanRenderer.Instance.Builder._shapeCameras[_bufAssignedCamIdx].RemoveCommandBuffer(CameraEvent.AfterForwardAlpha, _copySimResultsCmdBuf);
+                    DetachFromCamera(
+                        OceanRenderer.Instance.Builder._shapeCameras[_bufAssignedCamIdx],
+                        OceanRenderer.Instance.Builder._shapeWDCs[_bufAssignedCamIdx]
+                    );
                 }
 
                 OceanRenderer.Instance.Builder._shapeCameras[lodIndex].AddCommandBuffer(CameraEvent.AfterForwardAlpha, _copySimResultsCmdBuf);
@@ -155,12 +170,11 @@ namespace Crest
 
             SetAdditionalSimParams(_renderSimMaterial);
 
-            if (_copySimMaterial)
-            {
+             if (_copySimMaterial) {
+                RenderTexture targetTexture = GetTargetTexture(lodCam, wdc);
                 _copySimMaterial.mainTexture = PPRTs.Target;
-
                 _copySimResultsCmdBuf.Clear();
-                _copySimResultsCmdBuf.Blit(PPRTs.Target, lodCam.targetTexture, _copySimMaterial);
+                _copySimResultsCmdBuf.Blit(PPRTs.Target, targetTexture, _copySimMaterial);
             }
 
             AddPostRenderCommands(_copySimResultsCmdBuf);

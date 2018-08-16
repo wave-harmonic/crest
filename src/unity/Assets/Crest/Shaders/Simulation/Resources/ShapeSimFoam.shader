@@ -73,9 +73,9 @@ Shader "Ocean/Shape/Sim/Foam"
 
 					// sample displacement texture and generate foam from it
 					const float3 dd = float3(_WD_Params_0.w, 0.0, _WD_Params_0.x);
-					half3 s = tex2Dlod(_WD_Sampler_0, uv).xyz;
-					half3 sx = tex2Dlod(_WD_Sampler_0, uv + dd.xyyy).xyz;
-					half3 sz = tex2Dlod(_WD_Sampler_0, uv + dd.yxyy).xyz;
+					half3 s = tex2Dlod(_WD_Displacement_Sampler_0, uv).xyz;
+					half3 sx = tex2Dlod(_WD_Displacement_Sampler_0, uv + dd.xyyy).xyz;
+					half3 sz = tex2Dlod(_WD_Displacement_Sampler_0, uv + dd.yxyy).xyz;
 					float3 disp = s.xyz;
 					float3 disp_x = dd.zyy + sx.xyz;
 					float3 disp_z = dd.yyz + sz.xyz;

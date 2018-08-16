@@ -26,6 +26,11 @@ namespace Crest
         SimFoam _foamSim;
         Material _generateFoamFromSim;
 
+        protected override RenderTexture GetTargetTexture(Camera cam, WaveDataCam wdc) {
+            return cam.targetTexture;
+        }
+
+        protected override void DetachFromCamera(Camera cam, WaveDataCam wdc) {}
         public override void AllSimsCreated()
         {
             base.AllSimsCreated();
@@ -76,7 +81,7 @@ namespace Crest
 
             _generateFoamFromSim.mainTexture = PPRTs.Target;
 
-            postRenderCmdBuf.Blit(PPRTs.Target, _foamSim.GetComponent<Camera>().targetTexture, _generateFoamFromSim);
+            postRenderCmdBuf.Blit(PPRTs.Target, _foamSim.SimTexture, _generateFoamFromSim);
         }
 
         SimSettingsWave Settings { get { return _settings as SimSettingsWave; } }

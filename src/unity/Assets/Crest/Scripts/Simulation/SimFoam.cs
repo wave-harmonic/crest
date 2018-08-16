@@ -11,6 +11,8 @@ namespace Crest
     {
         public override string SimName { get { return "Foam"; } }
         protected override string ShaderSim { get { return "Ocean/Shape/Sim/Foam"; } }
+
+        // TODO: Delete
         protected override string ShaderRenderResultsIntoDispTexture { get { return "Ocean/Shape/Sim/Foam Add To Disps"; } }
         public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RHalf; } }
         public static readonly int SIM_RENDER_DEPTH = -20;
@@ -29,6 +31,12 @@ namespace Crest
             simMaterial.SetFloat("_WaveFoamCoverage", Settings._waveFoamCoverage);
             simMaterial.SetFloat("_ShorelineFoamMaxDepth", Settings._shorelineFoamMaxDepth);
             simMaterial.SetFloat("_ShorelineFoamStrength", Settings._shorelineFoamStrength);
+        }
+        protected override RenderTexture GetTargetTexture(Camera cam, WaveDataCam wdc) {
+            return wdc._rtFoam;
+        }
+        protected override void DetachFromCamera(Camera cam, WaveDataCam wdc) {
+            Graphics.Blit(Texture2D.blackTexture, wdc._rtFoam, _matClearSim);
         }
 
         SimSettingsFoam Settings { get { return _settings as SimSettingsFoam; } }

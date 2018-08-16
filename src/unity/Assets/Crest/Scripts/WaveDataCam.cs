@@ -27,6 +27,11 @@ namespace Crest
 
         Material _matOceanDepth;
         RenderTexture _rtOceanDepth;
+
+        // This is a rendertexture storing foam intensity values on the ocean's
+        // surface for a given LOD. This texture is set directly by SimFoam.
+        public RenderTexture _rtFoam;
+
         CommandBuffer _bufOceanDepth = null;
         bool _oceanDepthRenderersDirty = true;
         /// <summary>Called when one or more objects that will render into depth are created, so that all objects are registered.</summary>
@@ -44,6 +49,7 @@ namespace Crest
 
         // these would ideally be static but then they get cleared when editing-and-continuing in the editor.
         int[] _paramsDisplacementsSampler;
+        int[] _paramsFoamSampler;
         int[] _paramsOceanDepthSampler;
         int[] _paramsOceanParams;
         int[] _paramsPosScale;
@@ -68,7 +74,8 @@ namespace Crest
             if (_paramsDisplacementsSampler == null)
             {
                 int numToGenerate = 16;
-                CreateParamIDs(ref _paramsDisplacementsSampler, "_WD_Sampler_", numToGenerate);
+                CreateParamIDs(ref _paramsDisplacementsSampler, "_WD_Displacement_Sampler_", numToGenerate);
+                CreateParamIDs(ref _paramsFoamSampler, "_WD_Foam_Sampler_", numToGenerate);
                 CreateParamIDs(ref _paramsOceanDepthSampler, "_WD_OceanDepth_Sampler_", numToGenerate);
                 CreateParamIDs(ref _paramsOceanParams, "_WD_Params_", numToGenerate);
                 CreateParamIDs(ref _paramsPosScale, "_WD_Pos_Scale_", numToGenerate);
@@ -82,6 +89,20 @@ namespace Crest
             {
                 _collData.UpdateShapeReadback(cam, _renderData);
             }
+
+            if(!_rtFoam) {
+                _rtFoam = new RenderTexture(cam.targetTexture.width, cam.targetTexture.height, 0);
+                _rtFoam.name = gameObject.name + "_foam";
+                _rtFoam.format = RenderTextureFormat.RHalf;
+                _rtFoam.useMipMap = false;
+                _rtFoam.anisoLevel = 0;
+                _rtFoam.Create();
+            }
+            // TODO: Find a better way to clear _rtFoam every frame
+            RenderTexture rt = UnityEngine.RenderTexture.active;
+            UnityEngine.RenderTexture.active = _rtFoam;
+            GL.Clear(true, true, Color.clear);
+            UnityEngine.RenderTexture.active = rt;
 
             // shape combine pass done by last shape camera - lod 0
             if (_lodIndex == 0)
@@ -138,6 +159,9 @@ namespace Crest
                 cam.targetTexture.Release();
                 cam.targetTexture.width = cam.targetTexture.height = _shapeRes;
                 cam.targetTexture.Create();
+                _rtFoam.Release();
+                _rtFoam.width = cam.targetTexture.width;
+                _rtFoam.Create();
             }
             _renderData._textureRes = (float)cam.targetTexture.width;
             _renderData._texelWidth = 2f * cam.orthographicSize / _renderData._textureRes;
@@ -249,11 +273,13 @@ namespace Crest
                 _bufCombineShapes.name = "Combine Shapes";
 
                 var cams = OceanRenderer.Instance.Builder._shapeCameras;
+                var wdcs = OceanRenderer.Instance.Builder._shapeWDCs;
                 for (int L = cams.Length - 2; L >= 0; L--)
                 {
                     // accumulate shape data down the LOD chain - combine L+1 into L
                     var mat = OceanRenderer.Instance.Builder._shapeWDCs[L]._combineMaterial;
                     _bufCombineShapes.Blit(cams[L + 1].targetTexture, cams[L].targetTexture, mat);
+                    _bufCombineShapes.Blit(wdcs[L + 1]._rtFoam, wdcs[L]._rtFoam, mat);
                 }
             }
         }
@@ -328,6 +354,12 @@ namespace Crest
                 properties.SetTexture(_paramsDisplacementsSampler[shapeSlot], cam.targetTexture);
             }
 
+
+            if (_rtFoam != null) {
+                properties.SetTexture(_paramsFoamSampler[shapeSlot], _rtFoam);
+            }
+
+
             if (_rtOceanDepth != null)
             {
                 properties.SetTexture(_paramsOceanDepthSampler[shapeSlot], _rtOceanDepth);
@@ -336,7 +368,8 @@ namespace Crest
             // need to blend out shape if this is the largest lod, and the ocean might get scaled down later (so the largest lod will disappear)
             bool needToBlendOutShape = _lodIndex == _lodCount - 1 && OceanRenderer.Instance.ScaleCouldDecrease && blendOut;
             float shapeWeight = needToBlendOutShape ? OceanRenderer.Instance.ViewerAltitudeLevelAlpha : 1f;
-            properties.SetVector(_paramsOceanParams[shapeSlot], 
+
+            properties.SetVector(_paramsOceanParams[shapeSlot],
                 new Vector4(_renderData._texelWidth, _renderData._textureRes, shapeWeight, 1f / _renderData._textureRes));
 
             properties.SetVector(_paramsPosScale[shapeSlot], new Vector3(_renderData._posSnapped.x, _renderData._posSnapped.z, transform.lossyScale.x));

@@ -54,14 +54,14 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 
 				#define MIN_DT 0.00001
 
-				float4 frag(v2f i) : SV_Target
+				half2 frag(v2f i) : SV_Target
 				{
 					float4 uv_lastframe = float4(i.uv_lastframe.xy, 0., 0.);
 
-					float4 ft_ftm_faccum_foam = tex2Dlod(_SimDataLastFrame, uv_lastframe);
+					half2 ft_ftm = tex2Dlod(_SimDataLastFrame, uv_lastframe);
 
-					float ft = ft_ftm_faccum_foam.x; // t - current value before update
-					float ftm = ft_ftm_faccum_foam.y; // t minus - previous value
+					float ft = ft_ftm.x; // t - current value before update
+					float ftm = ft_ftm.y; // t minus - previous value
 
 					// compute axes of laplacian kernel - rotated every frame
 					float e = i.uv_lastframe.z; // assumes square RT
@@ -105,11 +105,6 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 					//}
 					//ftp *= lerp( 0.996, 1., clamp(waterSignedDepth, 0., 1.) );
 
-					// Foam
-					float accel = dt > MIN_DT ? ((ftp - ft)/dt - v) : 0.0;
-					float foam = -accel * dt;
-					foam = max(foam, 0.);
-
 					// attenuate waves based on ocean depth. if depth is greater than 0.5*wavelength, water is considered Deep and wave is
 					// unaffected. if depth is less than this, wave velocity decreases. waves will then bunch up and grow in amplitude and
 					// eventually break. i model "Deep" water, but then simply ramp down waves in non-deep water with a linear multiplier.
@@ -120,9 +115,7 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 					ftp *= depthMul;
 					ft *= depthMul;
 
-					float4 result = float4(ftp, ft, 0., foam);
-
-					return result;
+					return half2(ftp, ft);
 				}
 
 				ENDCG

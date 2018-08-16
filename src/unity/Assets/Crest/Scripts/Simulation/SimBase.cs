@@ -159,6 +159,8 @@ namespace Crest
             {
                 _copySimMaterial.mainTexture = PPRTs.Target;
 
+                SetAdditionalCopySimParams(_copySimMaterial);
+
                 _copySimResultsCmdBuf.Clear();
                 _copySimResultsCmdBuf.Blit(PPRTs.Target, lodCam.targetTexture, _copySimMaterial);
             }
@@ -170,6 +172,13 @@ namespace Crest
         /// Set any sim-specific shader params.
         /// </summary>
         protected virtual void SetAdditionalSimParams(Material simMaterial)
+        {
+        }
+
+        /// <summary>
+        /// Set any sim-specific shader params.
+        /// </summary>
+        protected virtual void SetAdditionalCopySimParams(Material copySimMaterial)
         {
         }
 
@@ -189,6 +198,6 @@ namespace Crest
         }
 
         PingPongRts _pprts2; protected PingPongRts PPRTs { get { return _pprts2 ?? (_pprts2 = GetComponent<PingPongRts>()); } }
-        Camera _cam2; Camera Cam { get { return _cam2 ?? (_cam2 = GetComponent<Camera>()); } }
+        Camera _cam2; protected Camera Cam { get { return _cam2 ?? (_cam2 = GetComponent<Camera>()); } }
     }
 }

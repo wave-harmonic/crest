@@ -54,6 +54,15 @@ namespace Crest
             simMaterial.SetVector("_LaplacianAxisX", new Vector2(Mathf.Cos(laplacianKernelAngle), Mathf.Sin(laplacianKernelAngle)));
         }
 
+        protected override void SetAdditionalCopySimParams(Material copySimMaterial)
+        {
+            base.SetAdditionalCopySimParams(copySimMaterial);
+
+            copySimMaterial.SetFloat("_HorizDisplace", Settings._horizDisplace);
+            copySimMaterial.SetFloat("_DisplaceClamp", Settings._displaceClamp);
+            copySimMaterial.SetFloat("_TexelWidth", (2f * Cam.orthographicSize) / PPRTs.Target.width);
+        }
+
         protected override void AddPostRenderCommands(CommandBuffer postRenderCmdBuf)
         {
             base.AddPostRenderCommands(postRenderCmdBuf);

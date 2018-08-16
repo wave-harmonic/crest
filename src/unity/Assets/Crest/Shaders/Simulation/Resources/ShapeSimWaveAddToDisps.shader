@@ -34,7 +34,10 @@ Shader "Ocean/Shape/Sim/Wave Add To Disps"
 			};
 
 			sampler2D _MainTex;
-			
+			uniform float _HorizDisplace;
+			uniform float _DisplaceClamp;
+			uniform float _TexelWidth;
+
 			v2f vert (appdata v)
 			{
 				v2f o;
@@ -46,8 +49,16 @@ Shader "Ocean/Shape/Sim/Wave Add To Disps"
 			
 			half4 frag (v2f i) : SV_Target
 			{
-				half4 simData = tex2D(_MainTex, i.screenPos);
-				return half4(0., simData.x, 0., 0.);
+				half simData = tex2D(_MainTex, i.screenPos).x;
+				
+				// compute displacement from gradient of water surface - discussed in issue #18 and then in issue #47
+				float2 invRes = float2(1. / _ScreenParams.x, 0.);
+				half simData_x = tex2D(_MainTex, i.screenPos + invRes.xy).x;
+				half simData_z = tex2D(_MainTex, i.screenPos + invRes.yx).x;
+				float2 dispXZ = _HorizDisplace * (float2(simData_x, simData_z) - simData) / _TexelWidth;
+				dispXZ = clamp(dispXZ, -_TexelWidth * _DisplaceClamp, _TexelWidth * _DisplaceClamp);
+
+				return half4(dispXZ.x, simData, dispXZ.y, 0.);
 			}
 			ENDCG
 		}

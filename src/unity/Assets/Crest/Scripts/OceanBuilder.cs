@@ -21,6 +21,8 @@ namespace Crest
         public Camera[] _shapeCameras;
         [HideInInspector]
         public WaveDataCam[] _shapeWDCs;
+        [HideInInspector]
+        public Camera[] _foamCameras;
 
         public int CurrentLodCount { get { return _shapeCameras.Length; } }
 
@@ -167,9 +169,11 @@ namespace Crest
             // create the shape cameras
             _shapeCameras = new Camera[lodCount];
             _shapeWDCs = new WaveDataCam[lodCount];
-            for( int i = 0; i < lodCount; i++ )
+            _foamCameras = new Camera[lodCount];
+            for ( int i = 0; i < lodCount; i++ )
             {
                 CreateWaveDataCam(i, lodCount, baseVertDensity);
+                CreateSimCam(i, lodCount, baseVertDensity, CreateSims.SimType.Foam);
             }
 
             // remove existing LODs
@@ -202,6 +206,23 @@ namespace Crest
 #endif
         }
 
+        void CreateSimCam(int lodIdx, int lodCount, float baseVertDensity, CreateSims.SimType simType)
+        {
+            string layerName = "Sim" + simType.ToString();
+            int layerIndex = LayerMask.NameToLayer(layerName);
+
+            if (layerIndex == -1)
+            {
+                Debug.LogError("A layer named " + layerName + " must be present in the project to create a sim of type " + simType.ToString() + ". Please add this layer to enable this simulation type.", this);
+                return;
+            }
+
+            var go = CreateSims.CreateSimCam(null, simType, string.Format("{0}Cam{1}", simType.ToString(), lodIdx), null, layerIndex, CreateSims.SimResolution.Res1m);
+
+            go.GetComponent<SimBase>()._setScale = false;
+            _foamCameras[lodIdx] = go.GetComponent<Camera>();
+        }
+
         void CreateWaveDataCam(int lodIdx, int lodCount, float baseVertDensity)
         {
             var go = new GameObject( string.Format( "ShapeCam{0}", lodIdx ) );
@@ -214,8 +235,9 @@ namespace Crest
             cam.orthographic = true;
             cam.nearClipPlane = 1f;
             cam.farClipPlane = 500f;
+            cam.renderingPath = RenderingPath.Forward;
             cam.useOcclusionCulling = false;
-            cam.allowHDR = false;
+            cam.allowHDR = true;
             cam.allowMSAA = false;
             // make shape cameras render before main camera, and make LOD0 camera render last
             cam.depth = -10 - lodIdx;
@@ -389,6 +411,12 @@ namespace Crest
             _shapeCameras[lodIndex].transform.localScale = Vector3.one;
             _shapeCameras[lodIndex].transform.localPosition = Vector3.up * 100f;
             _shapeCameras[lodIndex].transform.localEulerAngles = Vector3.right * 90f;
+
+            // add a foam camera below it
+            _foamCameras[lodIndex].transform.parent = parent.transform;
+            _foamCameras[lodIndex].transform.localScale = Vector3.one;
+            _foamCameras[lodIndex].transform.localPosition = Vector3.up * 100f;
+            _foamCameras[lodIndex].transform.localEulerAngles = Vector3.right * 90f;
 
             bool generateSkirt = biggestLOD && !OceanRenderer.Instance._disableSkirt;
 

@@ -42,6 +42,6 @@ namespace Crest
             copySimMaterial.SetFloat("_TexelWidth", (2f * Cam.orthographicSize) / PPRTs.Target.width);
         }
 
-        SimSettingsWave Settings { get { return _settings as SimSettingsWave; } }
+        new SimSettingsWave Settings { get { return _settings as SimSettingsWave; } }
     }
 }

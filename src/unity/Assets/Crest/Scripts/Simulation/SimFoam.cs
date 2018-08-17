@@ -31,6 +31,6 @@ namespace Crest
             simMaterial.SetFloat("_ShorelineFoamStrength", Settings._shorelineFoamStrength);
         }
 
-        SimSettingsFoam Settings { get { return _settings as SimSettingsFoam; } }
+        new SimSettingsFoam Settings { get { return _settings as SimSettingsFoam; } }
     }
 }

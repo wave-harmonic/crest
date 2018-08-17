@@ -15,9 +15,13 @@ namespace Crest
         [HideInInspector]
         public float _resolution = 1f;
 
+        [HideInInspector]
+        public bool _setScale = true;
+
         [SerializeField]
         protected SimSettingsBase _settings;
         public void UseSettings(SimSettingsBase settings) { _settings = settings; }
+        public virtual SimSettingsBase Settings { get { return _settings; } }
 
         Material _copySimMaterial = null;
 
@@ -136,8 +140,15 @@ namespace Crest
 
             transform.position = lodCam.transform.position;
 
-            Cam.orthographicSize = lodCam.orthographicSize;
-            transform.localScale = (Vector3.right + Vector3.up) * Cam.orthographicSize * 2f + Vector3.forward;
+            if(_setScale) // legacy code path
+            {
+                Cam.orthographicSize = lodCam.orthographicSize;
+                transform.localScale = (Vector3.right + Vector3.up) * Cam.orthographicSize * 2f + Vector3.forward;
+            }
+            else
+            {
+                Cam.orthographicSize = 2f * transform.lossyScale.x;
+            }
 
             Cam.projectionMatrix = lodCam.projectionMatrix;
 

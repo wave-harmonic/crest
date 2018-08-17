@@ -41,6 +41,53 @@ namespace Crest
             new SimLayer {  _simType = SimType.Foam, _resolutions = new SimResolution[] { SimResolution.Res25cm, SimResolution.Res50cm, SimResolution.Res1m, SimResolution.Res2m, SimResolution.Res4m } }
         };
 
+        public static GameObject CreateSimCam(Transform parent, SimType simType, string name, SimSettingsBase settings, int layerIndex, SimResolution resolution)
+        {
+            var simGO = new GameObject();
+            simGO.transform.parent = parent;
+            simGO.transform.localPosition = Vector3.zero;
+            simGO.transform.localEulerAngles = 90f * Vector3.right;
+            simGO.transform.localScale = Vector3.one;
+
+            var sim = simType == SimType.Wave ? simGO.AddComponent<SimWave>() : simGO.AddComponent<SimFoam>()
+                as SimBase;
+            sim._resolution = GetRes(resolution);
+            simGO.name = name; // "Sim_" + sim.SimName + "_" + resolution.ToString();
+
+            if(settings == null)
+            {
+                settings = sim.CreateDefaultSettings();
+            }
+            sim.UseSettings(settings);
+
+            var cart = simGO.AddComponent<CreateAssignRenderTexture>();
+            cart._width = cart._height = (int)(4f * OceanRenderer.Instance._baseVertDensity);
+            cart._depthBits = 0;
+            cart._format = sim.TextureFormat;
+            cart._wrapMode = TextureWrapMode.Clamp;
+            cart._antiAliasing = 1;
+            cart._filterMode = FilterMode.Bilinear;
+            cart._anisoLevel = 0;
+            cart._useMipMap = false;
+            cart._createPingPongTargets = true;
+            cart._targetName = simGO.name;
+
+            var cam = simGO.AddComponent<Camera>();
+            cam.clearFlags = CameraClearFlags.Nothing;
+            cam.cullingMask = 1 << layerIndex;
+            cam.orthographic = true;
+            cam.nearClipPlane = 1f;
+            cam.farClipPlane = 500f;
+            cam.depth = sim.Depth;
+            cam.renderingPath = RenderingPath.Forward;
+            cam.useOcclusionCulling = false;
+            cam.allowHDR = true;
+            cam.allowMSAA = false;
+            cam.allowDynamicResolution = false;
+
+            return simGO;
+        }
+
         void Start()
         {
             foreach (var layer in _simulationLayers)
@@ -57,54 +104,19 @@ namespace Crest
                     continue;
                 }
 
-                foreach(var resolution in layer._resolutions)
+                foreach (var resolution in layer._resolutions)
                 {
-                    var simGO = new GameObject();
-                    simGO.transform.parent = transform;
-                    simGO.transform.localPosition = Vector3.zero;
-                    simGO.transform.localEulerAngles = 90f * Vector3.right;
-                    simGO.transform.localScale = Vector3.one;
+                    GameObject simGO = CreateSimCam(transform, layer._simType, "Sim_" + layer._simType.ToString() + "_" + resolution.ToString(), layer._simSettings, layerIndex, resolution);
 
-                    var sim = layer._simType == SimType.Wave ? simGO.AddComponent<SimWave>() : simGO.AddComponent<SimFoam>()
-                        as SimBase;
-                    sim._resolution = GetRes(resolution);
-                    simGO.name = "Sim_" + sim.SimName + "_" + resolution.ToString();
                     if (layer._simSettings == null)
                     {
-                        layer._simSettings = sim.CreateDefaultSettings();
-                        layer._simSettings.name = sim.SimName + " Auto-generated Settings";
+                        layer._simSettings = simGO.GetComponent<SimBase>().Settings;
                     }
-                    sim.UseSettings(layer._simSettings);
-
-                    var cart = simGO.AddComponent<CreateAssignRenderTexture>();
-                    cart._width = cart._height = (int)(4f * OceanRenderer.Instance._baseVertDensity);
-                    cart._depthBits = 0;
-                    cart._format = sim.TextureFormat;
-                    cart._wrapMode = TextureWrapMode.Clamp;
-                    cart._antiAliasing = 1;
-                    cart._filterMode = FilterMode.Bilinear;
-                    cart._anisoLevel = 0;
-                    cart._useMipMap = false;
-                    cart._createPingPongTargets = true;
-                    cart._targetName = simGO.name;
-
-                    var cam = simGO.AddComponent<Camera>();
-                    cam.clearFlags = CameraClearFlags.Nothing;
-                    cam.cullingMask = 1 << layerIndex;
-                    cam.orthographic = true;
-                    cam.nearClipPlane = 0.3f;
-                    cam.farClipPlane = 1000f;
-                    cam.depth = sim.Depth;
-                    cam.renderingPath = RenderingPath.Forward;
-                    cam.useOcclusionCulling = false;
-                    cam.allowHDR = true;
-                    cam.allowMSAA = false;
-                    cam.allowDynamicResolution = false;
                 }
             }
         }
 
-        float GetRes(SimResolution res)
+        static float GetRes(SimResolution res)
         {
             switch (res)
             {
@@ -119,7 +131,7 @@ namespace Crest
                 case SimResolution.Res32m: return 32f;
             }
 
-            Debug.LogError("Support for resolution " + res.ToString() + " needs to be added.", this);
+            Debug.LogError("Support for resolution " + res.ToString() + " needs to be added.");
             return -1f;
         }
     }

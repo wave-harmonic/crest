@@ -153,10 +153,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0f63235a3a133804593f4348e83f77ff, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _showSimTargets: 1
+  _showSimTargets: 0
   _guiVisible: 1
   _oceanMaterialAsset: Assets/Crest/Shaders/Materials/Ocean.mat
-  _showSimTargetsAlpha: 0
 --- !u!114 &227134468
 MonoBehaviour:
   m_ObjectHideFlags: 0

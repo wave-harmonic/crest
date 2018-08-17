@@ -3,10 +3,9 @@ using UnityEngine;
 
 public class OceanDebugGUI : MonoBehaviour
 {
-    public bool _showSimTargets = true;
+    public bool _showSimTargets = false;
     public bool _guiVisible = true;
     public string _oceanMaterialAsset = "Assets/Crest/Shaders/Materials/Ocean.mat";
-    public bool _showSimTargetsAlpha = false;
     static float _leftPanelWidth = 180f;
     ShapeGerstnerBatched[] gerstners;
 
@@ -66,11 +65,8 @@ public class OceanDebugGUI : MonoBehaviour
                 gerstner._weight = GUI.HorizontalSlider(new Rect(x, y, w, h), gerstner._weight, 0f, 1f); y += h;
             }
 
-            _showSimTargets = GUI.Toggle(new Rect(x, y, w, h), _showSimTargets, "Show shape data"); y += h;
-            if(_showSimTargets)
-            {
-                _showSimTargetsAlpha = GUI.Toggle(new Rect(x, y, w, h), _showSimTargetsAlpha, "Show shape alpha"); y += h;
-            }
+            _showSimTargets = GUI.Toggle(new Rect(x, y, w, h), _showSimTargets, "Show sim data"); y += h;
+
             WaveDataCam._shapeCombinePass = GUI.Toggle(new Rect(x, y, w, h), WaveDataCam._shapeCombinePass, "Shape combine pass"); y += h;
 
             int min = int.MaxValue, max = -1;
@@ -126,27 +122,62 @@ public class OceanDebugGUI : MonoBehaviour
 
     void DrawShapeTargets()
     {
-        int ind = 0;
-        foreach (var cam in OceanRenderer.Instance.Builder._shapeCameras)
         {
-            if (!cam) continue;
+            int ind = 0;
+            foreach (var cam in OceanRenderer.Instance.Builder._shapeCameras)
+            {
+                if (!cam) continue;
 
-            RenderTexture shape = cam.targetTexture;
+                RenderTexture shape = cam.targetTexture;
 
-            if (shape == null) continue;
+                if (shape == null) continue;
 
-            float b = 7f;
-            float h = Screen.height / (float)OceanRenderer.Instance.Builder._shapeCameras.Length;
-            float w = h + b;
-            float x = Screen.width - w;
-            float y = ind * h;
+                float b = 7f;
+                float h = Screen.height / (float)OceanRenderer.Instance.Builder._shapeCameras.Length;
+                float w = h + b;
+                float x = Screen.width - w;
+                float y = ind * h;
 
-            GUI.color = Color.black * 0.7f;
-            GUI.DrawTexture(new Rect(x, y, w, h), Texture2D.whiteTexture);
-            GUI.color = Color.white;
-            GUI.DrawTexture(new Rect(x + b, y + b / 2f, h - b, h - b), shape, ScaleMode.ScaleAndCrop, _showSimTargetsAlpha);
+                GUI.color = Color.black * 0.7f;
+                GUI.DrawTexture(new Rect(x, y, w, h), Texture2D.whiteTexture);
+                GUI.color = Color.white;
+                GUI.DrawTexture(new Rect(x + b, y + b / 2f, h - b, h - b), shape, ScaleMode.ScaleAndCrop, false);
 
-            ind++;
+                ind++;
+            }
+        }
+
+        // draw sim data
+        {
+            var simsParent = FindObjectOfType<CreateSims>();
+            if (simsParent == null)
+                return;
+            var sims = FindObjectsOfType<SimBase>();
+            foreach (var sim in sims)
+            {
+                int idx = OceanRenderer.Instance.GetLodIndex(sim._resolution);
+                if (idx == -1) continue;
+
+                var cam = sim.GetComponent<Camera>();
+                if (!cam) continue;
+
+                RenderTexture shape = cam.targetTexture;
+                if (shape == null) continue;
+
+                float b = 7f;
+                float h = Screen.height / (float)OceanRenderer.Instance.Builder._shapeCameras.Length;
+                float w = h + b;
+                float offset = sim is SimWave ? 3f : 2f;
+                float x = Screen.width - w * offset + b * (offset - 1f);
+                float y = idx * h;
+
+                GUI.color = Color.black * 0.7f;
+                GUI.DrawTexture(new Rect(x, y, w - b, h), Texture2D.whiteTexture);
+                GUI.color = Color.white;
+                GUI.DrawTexture(new Rect(x + b, y + b / 2f, h - b, h - b), shape);
+
+                idx++;
+            }
         }
     }
 

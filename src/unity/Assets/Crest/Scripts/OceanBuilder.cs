@@ -20,7 +20,7 @@ namespace Crest
         [HideInInspector]
         public Camera[] _shapeCameras;
         [HideInInspector]
-        public WaveDataCam[] _shapeWDCs;
+        public LodDataAnimatedWaves[] _shapeWDCs;
         [HideInInspector]
         public Camera[] _foamCameras;
         [HideInInspector]
@@ -176,7 +176,7 @@ namespace Crest
 
             // create the shape cameras
             _shapeCameras = new Camera[lodCount];
-            _shapeWDCs = new WaveDataCam[lodCount];
+            _shapeWDCs = new LodDataAnimatedWaves[lodCount];
             _foamCameras = new Camera[lodCount];
             _dynWaveCameras = new Camera[lodCount];
 
@@ -191,7 +191,7 @@ namespace Crest
                         _simSettingsFoam = ScriptableObject.CreateInstance<SimSettingsFoam>();
                         _simSettingsFoam.name = "Foam Auto-generated Settings";
                     }
-                    var simGO = CreateSimCam(i, lodCount, baseVertDensity, CreateSims.SimType.Foam, _simSettingsFoam);
+                    var simGO = CreateSimCam(i, lodCount, baseVertDensity, SimType.Foam, _simSettingsFoam);
                     _foamCameras[i] = simGO.GetComponent<Camera>();
                 }
 
@@ -202,7 +202,7 @@ namespace Crest
                         _simSettingsDynamicWaves = ScriptableObject.CreateInstance<SimSettingsWave>();
                         _simSettingsDynamicWaves.name = "Dynamic Wave Auto-generated Settings";
                     }
-                    var simGO = CreateSimCam(i, lodCount, baseVertDensity, CreateSims.SimType.Wave, _simSettingsDynamicWaves);
+                    var simGO = CreateSimCam(i, lodCount, baseVertDensity, SimType.Wave, _simSettingsDynamicWaves);
                     _dynWaveCameras[i] = simGO.GetComponent<Camera>();
                 }
             }
@@ -237,7 +237,7 @@ namespace Crest
 #endif
         }
 
-        GameObject CreateSimCam(int lodIdx, int lodCount, float baseVertDensity, CreateSims.SimType simType, SimSettingsBase settings)
+        GameObject CreateSimCam(int lodIdx, int lodCount, float baseVertDensity, SimType simType, SimSettingsBase settings)
         {
             string layerName = "Sim" + simType.ToString();
             int layerIndex = LayerMask.NameToLayer(layerName);
@@ -248,7 +248,56 @@ namespace Crest
                 return null;
             }
 
-            return CreateSims.CreateSimCam(lodIdx, lodCount, null, simType, string.Format("{0}Cam{1}", simType.ToString(), lodIdx), settings, layerIndex);
+            return CreateSimCam(lodIdx, lodCount, null, simType, string.Format("{0}Cam{1}", simType.ToString(), lodIdx), settings, layerIndex);
+        }
+
+        enum SimType
+        {
+            Wave,
+            Foam,
+        }
+
+        static GameObject CreateSimCam(int lodIdx, int lodCount, Transform parent, SimType simType, string name, SimSettingsBase settings, int layerIndex)
+        {
+            var simGO = new GameObject();
+            simGO.transform.parent = parent;
+            simGO.transform.localPosition = Vector3.zero;
+            simGO.transform.localEulerAngles = 90f * Vector3.right;
+            simGO.transform.localScale = Vector3.one;
+
+            var sim = simType == SimType.Wave ? simGO.AddComponent<LodDataDynamicWaves>() : simGO.AddComponent<LodDataFoam>()
+                as LodDataPersistent;
+            sim.InitLODData(lodIdx, lodCount);
+            simGO.name = name;
+
+            sim.UseSettings(settings);
+
+            var cart = simGO.AddComponent<CreateAssignRenderTexture>();
+            cart._width = cart._height = (int)(4f * OceanRenderer.Instance._baseVertDensity);
+            cart._depthBits = 0;
+            cart._format = sim.TextureFormat;
+            cart._wrapMode = TextureWrapMode.Clamp;
+            cart._antiAliasing = 1;
+            cart._filterMode = FilterMode.Bilinear;
+            cart._anisoLevel = 0;
+            cart._useMipMap = false;
+            cart._createPingPongTargets = true;
+            cart._targetName = simGO.name;
+
+            var cam = simGO.AddComponent<Camera>();
+            cam.clearFlags = CameraClearFlags.Nothing;
+            cam.cullingMask = 1 << layerIndex;
+            cam.orthographic = true;
+            cam.nearClipPlane = 1f;
+            cam.farClipPlane = 500f;
+            cam.depth = sim.Depth;
+            cam.renderingPath = RenderingPath.Forward;
+            cam.useOcclusionCulling = false;
+            cam.allowHDR = true;
+            cam.allowMSAA = false;
+            cam.allowDynamicResolution = false;
+
+            return simGO;
         }
 
         void CreateWaveDataCam(int lodIdx, int lodCount, float baseVertDensity)
@@ -273,7 +322,7 @@ namespace Crest
 
             var apply = go.AddComponent<ApplyLayers>();
             apply._cullIncludeLayers = new string[] { SHAPE_RENDER_LAYER_NAME };
-            _shapeWDCs[lodIdx] = go.AddComponent<WaveDataCam>();
+            _shapeWDCs[lodIdx] = go.AddComponent<LodDataAnimatedWaves>();
             _shapeWDCs[lodIdx].InitLODData(lodIdx, lodCount);
 
             var cart = go.AddComponent<CreateAssignRenderTexture>();

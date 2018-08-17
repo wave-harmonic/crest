@@ -15,14 +15,14 @@ namespace Crest
 
         public bool SampleDisplacement(ref Vector3 worldPos, ref Vector3 displacement)
         {
-            int lod = WaveDataCam.SuggestCollisionLOD(new Rect(worldPos.x, worldPos.z, 0f, 0f), 0f);
+            int lod = LodDataAnimatedWaves.SuggestCollisionLOD(new Rect(worldPos.x, worldPos.z, 0f, 0f), 0f);
             if (lod == -1) return false;
             return OceanRenderer.Instance.Builder._shapeWDCs[lod].CollData.SampleDisplacement(ref worldPos, ref displacement);
         }
 
         public bool SampleHeight(ref Vector3 worldPos, ref float height)
         {
-            int lod = WaveDataCam.SuggestCollisionLOD(new Rect(worldPos.x, worldPos.z, 0f, 0f), 0f);
+            int lod = LodDataAnimatedWaves.SuggestCollisionLOD(new Rect(worldPos.x, worldPos.z, 0f, 0f), 0f);
             if (lod == -1) return false;
             height = OceanRenderer.Instance.Builder._shapeWDCs[lod].CollData.GetHeight(ref worldPos);
             return true;
@@ -30,11 +30,11 @@ namespace Crest
 
         public void PrewarmForSamplingArea(Rect areaXZ)
         {
-            _areaLod = WaveDataCam.SuggestCollisionLOD(areaXZ);
+            _areaLod = LodDataAnimatedWaves.SuggestCollisionLOD(areaXZ);
         }
         public void PrewarmForSamplingArea(Rect areaXZ, float minSpatialLength)
         {
-            _areaLod = WaveDataCam.SuggestCollisionLOD(areaXZ, minSpatialLength);
+            _areaLod = LodDataAnimatedWaves.SuggestCollisionLOD(areaXZ, minSpatialLength);
         }
         public bool SampleDisplacementInArea(ref Vector3 worldPos, ref Vector3 displacement)
         {

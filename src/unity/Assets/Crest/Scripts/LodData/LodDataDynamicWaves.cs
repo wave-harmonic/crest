@@ -7,14 +7,14 @@ namespace Crest
     /// <summary>
     /// A dynamic shape simulation that moves around with a displacement LOD.
     /// </summary>
-    public class SimWave : SimBase
+    public class LodDataDynamicWaves : LodDataPersistent
     {
         public override string SimName { get { return "Wave"; } }
         protected override string ShaderSim { get { return "Ocean/Shape/Sim/2D Wave Equation"; } }
         protected override string ShaderRenderResultsIntoDispTexture { get { return "Ocean/Shape/Sim/Wave Add To Disps"; } }
         public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RGHalf; } }
         // simulate before foam, because foam sim will generate from the waves (if there are matching resolutions)
-        public override int Depth { get { return SimFoam.SIM_RENDER_DEPTH - 1; } }
+        public override int Depth { get { return LodDataFoam.SIM_RENDER_DEPTH - 1; } }
         protected override Camera[] SimCameras { get { return OceanRenderer.Instance.Builder._dynWaveCameras; } }
 
         public bool _rotateLaplacian = true;
@@ -39,6 +39,6 @@ namespace Crest
             copySimMaterial.SetFloat("_TexelWidth", (2f * Cam.orthographicSize) / PPRTs.Target.width);
         }
 
-        new SimSettingsWave Settings { get { return _settings as SimSettingsWave; } }
+        SimSettingsWave Settings { get { return _settings as SimSettingsWave; } }
     }
 }

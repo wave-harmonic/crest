@@ -12,7 +12,7 @@ namespace Crest
     /// <summary>
     /// Positions wave data render camera. Snaps to shape texels to avoid aliasing.
     /// </summary>
-    public class WaveDataCam : PerLodData
+    public class LodDataAnimatedWaves : LodData
     {
         /// <summary>
         /// Read shape textures back to the CPU for collision purposes

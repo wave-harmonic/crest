@@ -15,10 +15,7 @@ namespace Crest
         public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RHalf; } }
         public static readonly int SIM_RENDER_DEPTH = -20;
         public override int Depth { get { return SIM_RENDER_DEPTH; } }
-        public override SimSettingsBase CreateDefaultSettings()
-        {
-            return ScriptableObject.CreateInstance<SimSettingsFoam>();
-        }
+        protected override Camera[] SimCameras { get { return OceanRenderer.Instance.Builder._foamCameras; } }
 
         protected override void SetAdditionalSimParams(Material simMaterial)
         {

@@ -12,9 +12,9 @@ namespace Crest
     {
         public static readonly float MAX_SIM_DELTA_TIME = 1f / 30f;
 
-        //[HideInInspector]
-        public int _lodIndex = -1;
-        public int _lodCount = -1;
+        int _lodIndex = -1;
+        int _lodCount = -1;
+        public void InitLODData(int lodIndex, int lodCount) { _lodIndex = lodIndex; _lodCount = lodCount; }
 
         [SerializeField]
         protected SimSettingsBase _settings;
@@ -25,7 +25,6 @@ namespace Crest
 
         GameObject _renderSim;
         Material _renderSimMaterial;
-        Material _matClearSim;
 
         Vector3 _camPosSnappedLast;
 
@@ -34,7 +33,7 @@ namespace Crest
         protected abstract string ShaderRenderResultsIntoDispTexture { get; }
         public abstract RenderTextureFormat TextureFormat { get; }
         public abstract int Depth { get; }
-        public abstract SimSettingsBase CreateDefaultSettings();
+        protected abstract Camera[] SimCameras { get; }
 
         float _simDeltaTimePrev = 1f / 60f;
         protected float SimDeltaTime { get { return Mathf.Min(Time.deltaTime, MAX_SIM_DELTA_TIME); } }
@@ -44,7 +43,6 @@ namespace Crest
             CreateRenderSimQuad();
 
             _copySimMaterial = new Material(Shader.Find(ShaderRenderResultsIntoDispTexture));
-            _matClearSim = new Material(Shader.Find("Ocean/Shape/Sim/Clear"));
         }
 
         private void CreateRenderSimQuad()
@@ -77,7 +75,6 @@ namespace Crest
         }
 
         CommandBuffer _advanceSimCmdBuf, _copySimResultsCmdBuf;
-        //int _bufAssignedCamIdx = -1;
         float _oceanLocalScale = -1f;
 
         void LateUpdate()
@@ -98,51 +95,12 @@ namespace Crest
                 OceanRenderer.Instance.Builder._shapeCameras[_lodIndex].AddCommandBuffer(CameraEvent.AfterForwardAlpha, _copySimResultsCmdBuf);
             }
 
-            //int lodIndex = OceanRenderer.Instance.GetLodIndex(_resolution);
-
-            //// is the lod for the sim target resolution currently rendering?
-            //if (lodIndex == -1)
-            //{
-            //    // no - clear the copy sim results command buffer
-            //    if (_copySimResultsCmdBuf != null)
-            //    {
-            //        _copySimResultsCmdBuf.Clear();
-            //    }
-
-            //    // unassign from any camera if it is assigned
-            //    if (_bufAssignedCamIdx != -1)
-            //    {
-            //        OceanRenderer.Instance.Builder._shapeCameras[_bufAssignedCamIdx].RemoveCommandBuffer(CameraEvent.AfterForwardAlpha, _copySimResultsCmdBuf);
-            //        _bufAssignedCamIdx = -1;
-            //    }
-
-            //    // clear the simulation data - so that it doesnt suddenly pop in later
-            //    Graphics.Blit(Texture2D.blackTexture, PPRTs.Source, _matClearSim);
-            //    Graphics.Blit(Texture2D.blackTexture, PPRTs.Target, _matClearSim);
-
-            //    return;
-            //}
-
-            //// now make sure the command buffer is assigned to the correct camera
-            //if(_bufAssignedCamIdx != lodIndex)
-            //{
-            //    if (_bufAssignedCamIdx != -1)
-            //    {
-            //        OceanRenderer.Instance.Builder._shapeCameras[_bufAssignedCamIdx].RemoveCommandBuffer(CameraEvent.AfterForwardAlpha, _copySimResultsCmdBuf);
-            //    }
-
-            //    OceanRenderer.Instance.Builder._shapeCameras[lodIndex].AddCommandBuffer(CameraEvent.AfterForwardAlpha, _copySimResultsCmdBuf);
-            //    _bufAssignedCamIdx = lodIndex;
-            //}
-
             var lodCam = OceanRenderer.Instance.Builder._shapeCameras[_lodIndex];
             var wdc = OceanRenderer.Instance.Builder._shapeWDCs[_lodIndex];
 
             transform.position = lodCam.transform.position;
 
-            //Cam.orthographicSize = lodCam.orthographicSize;
-            //transform.localScale = (Vector3.right + Vector3.up) * Cam.orthographicSize * 2f + Vector3.forward;
-            //Cam.orthographicSize = 2f * transform.lossyScale.x;
+            Cam.orthographicSize = 2f * transform.lossyScale.x;
 
             Cam.projectionMatrix = lodCam.projectionMatrix;
 
@@ -173,14 +131,14 @@ namespace Crest
                 {
                     // down chain
                     //Debug.Log(_lodIndex.ToString() + ": Sample from 1 above");
-                    _renderSimMaterial.SetTexture("_SimDataLastFrame", OceanRenderer.Instance.Builder._foamCameras[_lodIndex + 1].GetComponent<PingPongRts>().Source);
+                    _renderSimMaterial.SetTexture("_SimDataLastFrame", SimCameras[_lodIndex + 1].GetComponent<PingPongRts>().Source);
                     OceanRenderer.Instance.Builder._shapeWDCs[_lodIndex + 1].ApplyMaterialParams(0, _renderSimMaterial);
                 }
                 else if (oceanLocalScale < _oceanLocalScale && _lodIndex > 0)
                 {
                     // up chain
                     //Debug.Log(_lodIndex.ToString() + ": Sample from 1 below");
-                    _renderSimMaterial.SetTexture("_SimDataLastFrame", OceanRenderer.Instance.Builder._foamCameras[_lodIndex - 1].GetComponent<PingPongRts>().Source);
+                    _renderSimMaterial.SetTexture("_SimDataLastFrame", SimCameras[_lodIndex - 1].GetComponent<PingPongRts>().Source);
                     OceanRenderer.Instance.Builder._shapeWDCs[_lodIndex - 1].ApplyMaterialParams(0, _renderSimMaterial);
                 }
                 else

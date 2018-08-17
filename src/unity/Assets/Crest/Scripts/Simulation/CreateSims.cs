@@ -9,39 +9,13 @@ namespace Crest
     /// </summary>
     public class CreateSims : MonoBehaviour
     {
-        [System.Serializable]
-        public class SimLayer
-        {
-            public SimType _simType;
-            public SimSettingsBase _simSettings;
-            public bool _disabled;
-            public SimResolution[] _resolutions;
-        }
-
         public enum SimType
         {
             Wave,
             Foam,
         }
 
-        public enum SimResolution
-        {
-            Res125mm,
-            Res25cm,
-            Res50cm,
-            Res1m,
-            Res2m,
-            Res4m,
-            Res8m,
-            Res16m,
-            Res32m,
-        }
-
-        public SimLayer[] _simulationLayers = new SimLayer[] {
-            new SimLayer {  _simType = SimType.Foam, _resolutions = new SimResolution[] { SimResolution.Res25cm, SimResolution.Res50cm, SimResolution.Res1m, SimResolution.Res2m, SimResolution.Res4m } }
-        };
-
-        public static GameObject CreateSimCam(int lodIdx, int lodCount, Transform parent, SimType simType, string name, SimSettingsBase settings, int layerIndex, SimResolution resolution)
+        public static GameObject CreateSimCam(int lodIdx, int lodCount, Transform parent, SimType simType, string name, SimSettingsBase settings, int layerIndex)
         {
             var simGO = new GameObject();
             simGO.transform.parent = parent;
@@ -51,14 +25,9 @@ namespace Crest
 
             var sim = simType == SimType.Wave ? simGO.AddComponent<SimWave>() : simGO.AddComponent<SimFoam>()
                 as SimBase;
-            sim._lodIndex = lodIdx;
-            sim._lodCount = lodCount;
-            simGO.name = name; // "Sim_" + sim.SimName + "_" + resolution.ToString();
+            sim.InitLODData(lodIdx, lodCount);
+            simGO.name = name;
 
-            if(settings == null)
-            {
-                settings = sim.CreateDefaultSettings();
-            }
             sim.UseSettings(settings);
 
             var cart = simGO.AddComponent<CreateAssignRenderTexture>();
@@ -87,53 +56,6 @@ namespace Crest
             cam.allowDynamicResolution = false;
 
             return simGO;
-        }
-
-        void Start()
-        {
-            foreach (var layer in _simulationLayers)
-            {
-                if (layer._disabled)
-                    continue;
-
-                string layerName = "Sim" + layer._simType.ToString();
-                int layerIndex = LayerMask.NameToLayer(layerName);
-
-                if (layerIndex == -1)
-                {
-                    Debug.LogError("A layer named " + layerName + " must be present in the project to create a sim of type " + layer._simType.ToString() + ". Please add this layer to enable this simulation type.", this);
-                    continue;
-                }
-
-                foreach (var resolution in layer._resolutions)
-                {
-                    GameObject simGO = CreateSimCam((int)resolution, OceanRenderer.Instance.Builder.CurrentLodCount, transform, layer._simType, "Sim_" + layer._simType.ToString() + "_" + resolution.ToString(), layer._simSettings, layerIndex, resolution);
-
-                    if (layer._simSettings == null)
-                    {
-                        layer._simSettings = simGO.GetComponent<SimBase>().Settings;
-                    }
-                }
-            }
-        }
-
-        static float GetRes(SimResolution res)
-        {
-            switch (res)
-            {
-                case SimResolution.Res125mm: return 0.125f;
-                case SimResolution.Res25cm: return 0.25f;
-                case SimResolution.Res50cm: return 0.5f;
-                case SimResolution.Res1m: return 1f;
-                case SimResolution.Res2m: return 2f;
-                case SimResolution.Res4m: return 4f;
-                case SimResolution.Res8m: return 8f;
-                case SimResolution.Res16m: return 16f;
-                case SimResolution.Res32m: return 32f;
-            }
-
-            Debug.LogError("Support for resolution " + res.ToString() + " needs to be added.");
-            return -1f;
         }
     }
 }

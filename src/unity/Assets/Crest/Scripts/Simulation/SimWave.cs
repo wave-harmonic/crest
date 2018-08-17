@@ -15,10 +15,7 @@ namespace Crest
         public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RGHalf; } }
         // simulate before foam, because foam sim will generate from the waves (if there are matching resolutions)
         public override int Depth { get { return SimFoam.SIM_RENDER_DEPTH - 1; } }
-        public override SimSettingsBase CreateDefaultSettings()
-        {
-            return ScriptableObject.CreateInstance<SimSettingsWave>();
-        }
+        protected override Camera[] SimCameras { get { return OceanRenderer.Instance.Builder._dynWaveCameras; } }
 
         public bool _rotateLaplacian = true;
 

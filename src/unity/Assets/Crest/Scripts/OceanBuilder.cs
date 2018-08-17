@@ -23,6 +23,14 @@ namespace Crest
         public WaveDataCam[] _shapeWDCs;
         [HideInInspector]
         public Camera[] _foamCameras;
+        [HideInInspector]
+        public Camera[] _dynWaveCameras;
+
+        [Header("Simulations")]
+        public bool _createFoamSim = true;
+        public SimSettingsFoam _simSettingsFoam;
+        public bool _createDynamicWaveSim = false;
+        public SimSettingsWave _simSettingsDynamicWaves;
 
         public int CurrentLodCount { get { return _shapeCameras.Length; } }
 
@@ -170,10 +178,33 @@ namespace Crest
             _shapeCameras = new Camera[lodCount];
             _shapeWDCs = new WaveDataCam[lodCount];
             _foamCameras = new Camera[lodCount];
+            _dynWaveCameras = new Camera[lodCount];
+
             for ( int i = 0; i < lodCount; i++ )
             {
                 CreateWaveDataCam(i, lodCount, baseVertDensity);
-                CreateSimCam(i, lodCount, baseVertDensity, CreateSims.SimType.Foam);
+
+                if(_createFoamSim)
+                {
+                    if (_simSettingsFoam == null)
+                    {
+                        _simSettingsFoam = ScriptableObject.CreateInstance<SimSettingsFoam>();
+                        _simSettingsFoam.name = "Foam Auto-generated Settings";
+                    }
+                    var simGO = CreateSimCam(i, lodCount, baseVertDensity, CreateSims.SimType.Foam, _simSettingsFoam);
+                    _foamCameras[i] = simGO.GetComponent<Camera>();
+                }
+
+                if (_createDynamicWaveSim)
+                {
+                    if (_simSettingsDynamicWaves == null)
+                    {
+                        _simSettingsDynamicWaves = ScriptableObject.CreateInstance<SimSettingsWave>();
+                        _simSettingsDynamicWaves.name = "Dynamic Wave Auto-generated Settings";
+                    }
+                    var simGO = CreateSimCam(i, lodCount, baseVertDensity, CreateSims.SimType.Wave, _simSettingsDynamicWaves);
+                    _dynWaveCameras[i] = simGO.GetComponent<Camera>();
+                }
             }
 
             // remove existing LODs
@@ -206,7 +237,7 @@ namespace Crest
 #endif
         }
 
-        void CreateSimCam(int lodIdx, int lodCount, float baseVertDensity, CreateSims.SimType simType)
+        GameObject CreateSimCam(int lodIdx, int lodCount, float baseVertDensity, CreateSims.SimType simType, SimSettingsBase settings)
         {
             string layerName = "Sim" + simType.ToString();
             int layerIndex = LayerMask.NameToLayer(layerName);
@@ -214,12 +245,10 @@ namespace Crest
             if (layerIndex == -1)
             {
                 Debug.LogError("A layer named " + layerName + " must be present in the project to create a sim of type " + simType.ToString() + ". Please add this layer to enable this simulation type.", this);
-                return;
+                return null;
             }
 
-            var go = CreateSims.CreateSimCam(lodIdx, lodCount, null, simType, string.Format("{0}Cam{1}", simType.ToString(), lodIdx), null, layerIndex, CreateSims.SimResolution.Res1m);
-
-            _foamCameras[lodIdx] = go.GetComponent<Camera>();
+            return CreateSims.CreateSimCam(lodIdx, lodCount, null, simType, string.Format("{0}Cam{1}", simType.ToString(), lodIdx), settings, layerIndex);
         }
 
         void CreateWaveDataCam(int lodIdx, int lodCount, float baseVertDensity)
@@ -412,10 +441,22 @@ namespace Crest
             _shapeCameras[lodIndex].transform.localEulerAngles = Vector3.right * 90f;
 
             // add a foam camera below it
-            _foamCameras[lodIndex].transform.parent = parent.transform;
-            _foamCameras[lodIndex].transform.localScale = Vector3.one;
-            _foamCameras[lodIndex].transform.localPosition = Vector3.up * 100f;
-            _foamCameras[lodIndex].transform.localEulerAngles = Vector3.right * 90f;
+            if (_foamCameras[lodIndex] != null)
+            {
+                _foamCameras[lodIndex].transform.parent = parent.transform;
+                _foamCameras[lodIndex].transform.localScale = Vector3.one;
+                _foamCameras[lodIndex].transform.localPosition = Vector3.up * 100f;
+                _foamCameras[lodIndex].transform.localEulerAngles = Vector3.right * 90f;
+            }
+
+            // add a wave camera below it
+            if (_dynWaveCameras[lodIndex] != null)
+            {
+                _dynWaveCameras[lodIndex].transform.parent = parent.transform;
+                _dynWaveCameras[lodIndex].transform.localScale = Vector3.one;
+                _dynWaveCameras[lodIndex].transform.localPosition = Vector3.up * 100f;
+                _dynWaveCameras[lodIndex].transform.localEulerAngles = Vector3.right * 90f;
+            }
 
             bool generateSkirt = biggestLOD && !OceanRenderer.Instance._disableSkirt;
 

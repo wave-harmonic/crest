@@ -148,33 +148,32 @@ public class OceanDebugGUI : MonoBehaviour
         }
 
         // draw sim data
+        DrawSims(OceanRenderer.Instance.Builder._foamCameras, 2f);
+        DrawSims(OceanRenderer.Instance.Builder._dynWaveCameras, 3f);
+    }
+
+    static void DrawSims(Camera[] simCameras, float offset)
+    {
+        int idx = 0;
+        foreach (var cam in simCameras)
         {
-            int idx = 0;
-            foreach (var cam in OceanRenderer.Instance.Builder._foamCameras)
-            {
-                //int idx = OceanRenderer.Instance.GetLodIndex(sim._resolution);
-                //if (idx == -1) continue;
+            if (!cam) continue;
 
-                //var cam = sim.GetComponent<Camera>();
-                if (!cam) continue;
+            RenderTexture shape = cam.targetTexture;
+            if (shape == null) continue;
 
-                RenderTexture shape = cam.targetTexture;
-                if (shape == null) continue;
+            float b = 7f;
+            float h = Screen.height / (float)OceanRenderer.Instance.Builder._shapeCameras.Length;
+            float w = h + b;
+            float x = Screen.width - w * offset + b * (offset - 1f);
+            float y = idx * h;
 
-                float b = 7f;
-                float h = Screen.height / (float)OceanRenderer.Instance.Builder._shapeCameras.Length;
-                float w = h + b;
-                float offset = 2f; // sim is SimWave ? 3f : 2f;
-                float x = Screen.width - w * offset + b * (offset - 1f);
-                float y = idx * h;
+            GUI.color = Color.black * 0.7f;
+            GUI.DrawTexture(new Rect(x, y, w - b, h), Texture2D.whiteTexture);
+            GUI.color = Color.white;
+            GUI.DrawTexture(new Rect(x + b, y + b / 2f, h - b, h - b), shape);
 
-                GUI.color = Color.black * 0.7f;
-                GUI.DrawTexture(new Rect(x, y, w - b, h), Texture2D.whiteTexture);
-                GUI.color = Color.white;
-                GUI.DrawTexture(new Rect(x + b, y + b / 2f, h - b, h - b), shape);
-
-                idx++;
-            }
+            idx++;
         }
     }
 

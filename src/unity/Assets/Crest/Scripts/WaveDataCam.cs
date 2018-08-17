@@ -123,7 +123,7 @@ namespace Crest
 
         void LateUpdateTransformData()
         {
-            // ensure camera size matches geometry size
+            // ensure camera size matches geometry size - although the projection matrix is overridden, this is needed for unity shader uniforms
             cam.orthographicSize = 2f * transform.lossyScale.x;
 
             // find snap period

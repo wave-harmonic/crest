@@ -12,9 +12,11 @@ namespace Crest
     {
         public static readonly float MAX_SIM_DELTA_TIME = 1f / 30f;
 
+        public override CameraClearFlags CamClearFlags { get { return CameraClearFlags.Nothing; } }
+
         [SerializeField]
         protected SimSettingsBase _settings;
-        public void UseSettings(SimSettingsBase settings) { _settings = settings; }
+        public override void UseSettings(SimSettingsBase settings) { _settings = settings; }
 
         Material _copySimMaterial = null;
 
@@ -26,8 +28,6 @@ namespace Crest
         public abstract string SimName { get; }
         protected abstract string ShaderSim { get; }
         protected abstract string ShaderRenderResultsIntoDispTexture { get; }
-        public abstract RenderTextureFormat TextureFormat { get; }
-        public abstract int Depth { get; }
         protected abstract Camera[] SimCameras { get; }
 
         float _simDeltaTimePrev = 1f / 60f;
@@ -106,7 +106,7 @@ namespace Crest
             {
                 _oceanLocalScale = OceanRenderer.Instance.transform.localScale.x;
             }
-            else if (_oceanLocalScale == oceanLocalScale /*|| true*/)
+            else if (_oceanLocalScale == oceanLocalScale)
             {
                 // no change in scale - sample from same target as last frame
                 _renderSimMaterial.SetTexture("_SimDataLastFrame", PPRTs.Source);

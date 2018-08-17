@@ -32,6 +32,13 @@ namespace Crest
         /// <summary>Called when one or more objects that will render into depth are created, so that all objects are registered.</summary>
         public void OnOceanDepthRenderersChanged() { _oceanDepthRenderersDirty = true; }
 
+        public override SimSettingsBase CreateDefaultSettings() { return null; }
+        public override void UseSettings(SimSettingsBase settings) {}
+        // shape format. i tried RGB111110Float but error becomes visible. one option would be to use a UNORM setup.
+        public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.ARGBHalf; } }
+        public override int Depth { get { return -10; } }
+        public override CameraClearFlags CamClearFlags { get { return CameraClearFlags.Color; } }
+
         Material _combineMaterial;
         CommandBuffer _bufCombineShapes = null;
 

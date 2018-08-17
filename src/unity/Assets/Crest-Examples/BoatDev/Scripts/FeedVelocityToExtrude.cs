@@ -34,8 +34,6 @@ public class FeedVelocityToExtrude : MonoBehaviour {
         _localOffset = transform.localPosition;
 
         _mat = GetComponent<Renderer>().material;
-
-        gameObject.layer = LayerMask.NameToLayer("SimWave");
     }
 
     void LateUpdate()

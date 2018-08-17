@@ -169,9 +169,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _layerName: 
   _cullExcludeLayers:
-  - SimFoam
-  - SimWave
-  - SimShape
+  - LodDataFoam
+  - LodDataDynamicWaves
+  - LodDataAnimatedWaves
   _cullIncludeLayers: []
 --- !u!20 &227134469
 Camera:
@@ -355,7 +355,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a7f1d7afc5dc7ec4ab6fa33a21ede643, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _layerName: SimShape
+  _layerName: LodDataAnimatedWaves
   _cullExcludeLayers: []
   _cullIncludeLayers: []
 --- !u!33 &723498134

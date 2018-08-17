@@ -17,6 +17,13 @@ namespace Crest
         public override int Depth { get { return SIM_RENDER_DEPTH; } }
         protected override Camera[] SimCameras { get { return OceanRenderer.Instance.Builder._foamCameras; } }
 
+        public override SimSettingsBase CreateDefaultSettings()
+        {
+            var settings = ScriptableObject.CreateInstance<SimSettingsFoam>();
+            settings.name = SimName + " Auto-generated Settings";
+            return settings;
+        }
+
         protected override void SetAdditionalSimParams(Material simMaterial)
         {
             base.SetAdditionalSimParams(simMaterial);

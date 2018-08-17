@@ -149,16 +149,13 @@ public class OceanDebugGUI : MonoBehaviour
 
         // draw sim data
         {
-            var simsParent = FindObjectOfType<CreateSims>();
-            if (simsParent == null)
-                return;
-            var sims = FindObjectsOfType<SimBase>();
-            foreach (var sim in sims)
+            int idx = 0;
+            foreach (var cam in OceanRenderer.Instance.Builder._foamCameras)
             {
-                int idx = OceanRenderer.Instance.GetLodIndex(sim._resolution);
-                if (idx == -1) continue;
+                //int idx = OceanRenderer.Instance.GetLodIndex(sim._resolution);
+                //if (idx == -1) continue;
 
-                var cam = sim.GetComponent<Camera>();
+                //var cam = sim.GetComponent<Camera>();
                 if (!cam) continue;
 
                 RenderTexture shape = cam.targetTexture;
@@ -167,7 +164,7 @@ public class OceanDebugGUI : MonoBehaviour
                 float b = 7f;
                 float h = Screen.height / (float)OceanRenderer.Instance.Builder._shapeCameras.Length;
                 float w = h + b;
-                float offset = sim is SimWave ? 3f : 2f;
+                float offset = 2f; // sim is SimWave ? 3f : 2f;
                 float x = Screen.width - w * offset + b * (offset - 1f);
                 float y = idx * h;
 

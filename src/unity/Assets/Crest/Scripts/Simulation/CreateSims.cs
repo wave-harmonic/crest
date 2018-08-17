@@ -41,7 +41,7 @@ namespace Crest
             new SimLayer {  _simType = SimType.Foam, _resolutions = new SimResolution[] { SimResolution.Res25cm, SimResolution.Res50cm, SimResolution.Res1m, SimResolution.Res2m, SimResolution.Res4m } }
         };
 
-        public static GameObject CreateSimCam(Transform parent, SimType simType, string name, SimSettingsBase settings, int layerIndex, SimResolution resolution)
+        public static GameObject CreateSimCam(int lodIdx, int lodCount, Transform parent, SimType simType, string name, SimSettingsBase settings, int layerIndex, SimResolution resolution)
         {
             var simGO = new GameObject();
             simGO.transform.parent = parent;
@@ -51,7 +51,8 @@ namespace Crest
 
             var sim = simType == SimType.Wave ? simGO.AddComponent<SimWave>() : simGO.AddComponent<SimFoam>()
                 as SimBase;
-            sim._resolution = GetRes(resolution);
+            sim._lodIndex = lodIdx;
+            sim._lodCount = lodCount;
             simGO.name = name; // "Sim_" + sim.SimName + "_" + resolution.ToString();
 
             if(settings == null)
@@ -106,7 +107,7 @@ namespace Crest
 
                 foreach (var resolution in layer._resolutions)
                 {
-                    GameObject simGO = CreateSimCam(transform, layer._simType, "Sim_" + layer._simType.ToString() + "_" + resolution.ToString(), layer._simSettings, layerIndex, resolution);
+                    GameObject simGO = CreateSimCam((int)resolution, OceanRenderer.Instance.Builder.CurrentLodCount, transform, layer._simType, "Sim_" + layer._simType.ToString() + "_" + resolution.ToString(), layer._simSettings, layerIndex, resolution);
 
                     if (layer._simSettings == null)
                     {

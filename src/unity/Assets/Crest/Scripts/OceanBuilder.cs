@@ -217,9 +217,8 @@ namespace Crest
                 return;
             }
 
-            var go = CreateSims.CreateSimCam(null, simType, string.Format("{0}Cam{1}", simType.ToString(), lodIdx), null, layerIndex, CreateSims.SimResolution.Res1m);
+            var go = CreateSims.CreateSimCam(lodIdx, lodCount, null, simType, string.Format("{0}Cam{1}", simType.ToString(), lodIdx), null, layerIndex, CreateSims.SimResolution.Res1m);
 
-            go.GetComponent<SimBase>()._setScale = false;
             _foamCameras[lodIdx] = go.GetComponent<Camera>();
         }
 

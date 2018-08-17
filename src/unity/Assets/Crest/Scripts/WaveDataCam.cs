@@ -12,7 +12,7 @@ namespace Crest
     /// <summary>
     /// Positions wave data render camera. Snaps to shape texels to avoid aliasing.
     /// </summary>
-    public class WaveDataCam : MonoBehaviour
+    public class WaveDataCam : PerLodData
     {
         /// <summary>
         /// Read shape textures back to the CPU for collision purposes
@@ -35,13 +35,6 @@ namespace Crest
         Material _combineMaterial;
         CommandBuffer _bufCombineShapes = null;
 
-        int _lodIndex = -1;
-        int _lodCount = -1;
-        public void InitLODData(int lodIndex, int lodCount) { _lodIndex = lodIndex; _lodCount = lodCount; }
-
-        // shape texture resolution
-        int _shapeRes = -1;
-
         // these would ideally be static but then they get cleared when editing-and-continuing in the editor.
         int[] _paramsDisplacementsSampler;
         int[] _paramsOceanDepthSampler;
@@ -49,17 +42,9 @@ namespace Crest
         int[] _paramsPosScale;
         int[] _paramsLodIdx;
 
-        public struct RenderData
-        {
-            public float _texelWidth;
-            public float _textureRes;
-            public Vector3 _posSnapped;
-        }
-        public RenderData _renderData = new RenderData();
-
         void Start()
         {
-            cam.depthTextureMode = DepthTextureMode.None;
+            Cam.depthTextureMode = DepthTextureMode.None;
 
             _matOceanDepth = new Material(Shader.Find("Ocean/Ocean Depth"));
             _combineMaterial = new Material(Shader.Find("Ocean/Shape/Combine"));
@@ -80,11 +65,11 @@ namespace Crest
         {
             if(_readbackShapeForCollision)
             {
-                _collData.UpdateShapeReadback(cam, _renderData);
+                _collData.UpdateShapeReadback(Cam, _renderData);
             }
 
             // shape combine pass done by last shape camera - lod 0
-            if (_lodIndex == 0)
+            if (LodIndex == 0)
             {
                 UpdateCmdBufShapeCombine();
             }
@@ -108,7 +93,7 @@ namespace Crest
         public float MaxWavelength()
         {
             float oceanBaseScale = OceanRenderer.Instance.transform.lossyScale.x;
-            float maxDiameter = 4f * oceanBaseScale * Mathf.Pow(2f, _lodIndex);
+            float maxDiameter = 4f * oceanBaseScale * Mathf.Pow(2f, LodIndex);
             float maxTexelSize = maxDiameter / (4f * OceanRenderer.Instance._baseVertDensity);
             return 2f * maxTexelSize * OceanRenderer.Instance._minTexelsPerWave;
         }
@@ -121,47 +106,15 @@ namespace Crest
             LateUpdateShapeCombinePassSettings();
         }
 
-        void LateUpdateTransformData()
-        {
-            // ensure camera size matches geometry size - although the projection matrix is overridden, this is needed for unity shader uniforms
-            cam.orthographicSize = 2f * transform.lossyScale.x;
-
-            // find snap period
-            int width = cam.targetTexture.width;
-            // debug functionality to resize RT if different size was specified.
-            if( _shapeRes == -1 )
-            {
-                _shapeRes = width;
-            }
-            else if( width != _shapeRes )
-            {
-                cam.targetTexture.Release();
-                cam.targetTexture.width = cam.targetTexture.height = _shapeRes;
-                cam.targetTexture.Create();
-            }
-            _renderData._textureRes = (float)cam.targetTexture.width;
-            _renderData._texelWidth = 2f * cam.orthographicSize / _renderData._textureRes;
-            // snap so that shape texels are stationary
-            _renderData._posSnapped = transform.position
-                - new Vector3( Mathf.Repeat( transform.position.x, _renderData._texelWidth ), 0f, Mathf.Repeat( transform.position.z, _renderData._texelWidth ) );
-
-            // set projection matrix to snap to texels
-            cam.ResetProjectionMatrix();
-            Matrix4x4 P = cam.projectionMatrix, T = new Matrix4x4();
-            T.SetTRS( new Vector3( transform.position.x - _renderData._posSnapped.x, transform.position.z - _renderData._posSnapped.z ), Quaternion.identity, Vector3.one );
-            P = P * T;
-            cam.projectionMatrix = P;
-        }
-
         // apply this camera's properties to the shape combine materials
         void LateUpdateShapeCombinePassSettings()
         {
             ApplyMaterialParams(0, _combineMaterial);
 
-            if (_lodIndex > 0)
+            if (LodIndex > 0)
             {
                 var wdcs = OceanRenderer.Instance.Builder._shapeWDCs;
-                ApplyMaterialParams(1, wdcs[_lodIndex - 1]._combineMaterial);
+                ApplyMaterialParams(1, wdcs[LodIndex - 1]._combineMaterial);
             }
         }
 
@@ -184,7 +137,7 @@ namespace Crest
 
             if (!_rtOceanDepth)
             {
-                _rtOceanDepth = new RenderTexture(cam.targetTexture.width, cam.targetTexture.height, 0);
+                _rtOceanDepth = new RenderTexture(Cam.targetTexture.width, Cam.targetTexture.height, 0);
                 _rtOceanDepth.name = gameObject.name + "_oceanDepth";
                 _rtOceanDepth.format = RenderTextureFormat.RHalf;
                 _rtOceanDepth.useMipMap = false;
@@ -194,7 +147,7 @@ namespace Crest
             if (_bufOceanDepth == null)
             {
                 _bufOceanDepth = new CommandBuffer();
-                cam.AddCommandBuffer(CameraEvent.BeforeForwardOpaque, _bufOceanDepth);
+                Cam.AddCommandBuffer(CameraEvent.BeforeForwardOpaque, _bufOceanDepth);
                 _bufOceanDepth.name = "Ocean Depth";
             }
 
@@ -234,7 +187,7 @@ namespace Crest
             {
                 if (_bufCombineShapes != null)
                 {
-                    cam.RemoveCommandBuffer(CameraEvent.AfterEverything, _bufCombineShapes);
+                    Cam.RemoveCommandBuffer(CameraEvent.AfterEverything, _bufCombineShapes);
                     _bufCombineShapes = null;
                 }
 
@@ -245,7 +198,7 @@ namespace Crest
             if (_bufCombineShapes == null)
             {
                 _bufCombineShapes = new CommandBuffer();
-                cam.AddCommandBuffer(CameraEvent.AfterEverything, _bufCombineShapes);
+                Cam.AddCommandBuffer(CameraEvent.AfterEverything, _bufCombineShapes);
                 _bufCombineShapes.name = "Combine Shapes";
 
                 var cams = OceanRenderer.Instance.Builder._shapeCameras;
@@ -262,13 +215,13 @@ namespace Crest
         {
             if( _bufOceanDepth != null )
             {
-                cam.RemoveCommandBuffer(CameraEvent.BeforeForwardOpaque, _bufOceanDepth);
+                Cam.RemoveCommandBuffer(CameraEvent.BeforeForwardOpaque, _bufOceanDepth);
                 _bufOceanDepth = null;
             }
 
             if (_bufCombineShapes != null)
             {
-                cam.RemoveCommandBuffer(CameraEvent.AfterEverything, _bufCombineShapes);
+                Cam.RemoveCommandBuffer(CameraEvent.AfterEverything, _bufCombineShapes);
                 _bufCombineShapes = null;
             }
         }
@@ -325,7 +278,7 @@ namespace Crest
         {
             if (applyWaveHeights)
             {
-                properties.SetTexture(_paramsDisplacementsSampler[shapeSlot], cam.targetTexture);
+                properties.SetTexture(_paramsDisplacementsSampler[shapeSlot], Cam.targetTexture);
             }
 
             if (_rtOceanDepth != null)
@@ -334,13 +287,13 @@ namespace Crest
             }
 
             // need to blend out shape if this is the largest lod, and the ocean might get scaled down later (so the largest lod will disappear)
-            bool needToBlendOutShape = _lodIndex == _lodCount - 1 && OceanRenderer.Instance.ScaleCouldDecrease && blendOut;
+            bool needToBlendOutShape = LodIndex == LodCount - 1 && OceanRenderer.Instance.ScaleCouldDecrease && blendOut;
             float shapeWeight = needToBlendOutShape ? OceanRenderer.Instance.ViewerAltitudeLevelAlpha : 1f;
             properties.SetVector(_paramsOceanParams[shapeSlot], 
                 new Vector4(_renderData._texelWidth, _renderData._textureRes, shapeWeight, 1f / _renderData._textureRes));
 
             properties.SetVector(_paramsPosScale[shapeSlot], new Vector3(_renderData._posSnapped.x, _renderData._posSnapped.z, transform.lossyScale.x));
-            properties.SetFloat(_paramsLodIdx[shapeSlot], _lodIndex);
+            properties.SetFloat(_paramsLodIdx[shapeSlot], LodIndex);
         }
 
         /// <summary>
@@ -376,8 +329,6 @@ namespace Crest
 
             return -1;
         }
-
-        Camera _camera; Camera cam { get { return _camera ?? (_camera = GetComponent<Camera>()); } }
 
         /// <summary>
         /// Class that handles copying shape back from the GPU to use for CPU collision.

@@ -24,9 +24,9 @@ namespace Crest
                 return;
 
             // notify WDCs that there is a new contributor to ocean depth
-            foreach (var wdc in OceanRenderer.Instance.Builder._shapeWDCs)
+            foreach (var ldaw in OceanRenderer.Instance.Builder._lodDataAnimWaves)
             {
-                wdc.OnOceanDepthRenderersChanged();
+                ldaw.OnOceanDepthRenderersChanged();
             }
         }
     }

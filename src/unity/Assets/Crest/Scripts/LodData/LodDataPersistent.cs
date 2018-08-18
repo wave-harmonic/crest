@@ -88,7 +88,7 @@ namespace Crest
             {
                 _copySimResultsCmdBuf = new CommandBuffer();
                 _copySimResultsCmdBuf.name = "CopySimResults_" + SimName;
-                OceanRenderer.Instance.Builder._shapeCameras[LodIndex].AddCommandBuffer(CameraEvent.AfterForwardAlpha, _copySimResultsCmdBuf);
+                OceanRenderer.Instance.Builder._camsAnimWaves[LodIndex].AddCommandBuffer(CameraEvent.AfterForwardAlpha, _copySimResultsCmdBuf);
             }
 
             Vector3 posDelta = _renderData._posSnapped - _camPosSnappedLast;
@@ -100,7 +100,7 @@ namespace Crest
             _renderSimMaterial.SetFloat("_SimDeltaTimePrev", _simDeltaTimePrev);
             _simDeltaTimePrev = dt;
 
-            var wdc = OceanRenderer.Instance.Builder._shapeWDCs[LodIndex];
+            var ldaw = OceanRenderer.Instance.Builder._lodDataAnimWaves[LodIndex];
             float oceanLocalScale = OceanRenderer.Instance.transform.localScale.x;
             if (_oceanLocalScale == -1f)
             {
@@ -110,7 +110,7 @@ namespace Crest
             {
                 // no change in scale - sample from same target as last frame
                 _renderSimMaterial.SetTexture("_SimDataLastFrame", PPRTs.Source);
-                wdc.ApplyMaterialParams(0, _renderSimMaterial);
+                ldaw.ApplyMaterialParams(0, _renderSimMaterial);
             }
             else
             {
@@ -119,19 +119,19 @@ namespace Crest
                 {
                     // down chain
                     _renderSimMaterial.SetTexture("_SimDataLastFrame", SimCameras[LodIndex + 1].GetComponent<PingPongRts>().Source);
-                    OceanRenderer.Instance.Builder._shapeWDCs[LodIndex + 1].ApplyMaterialParams(0, _renderSimMaterial);
+                    OceanRenderer.Instance.Builder._lodDataAnimWaves[LodIndex + 1].ApplyMaterialParams(0, _renderSimMaterial);
                 }
                 else if (oceanLocalScale < _oceanLocalScale && LodIndex > 0)
                 {
                     // up chain
                     _renderSimMaterial.SetTexture("_SimDataLastFrame", SimCameras[LodIndex - 1].GetComponent<PingPongRts>().Source);
-                    OceanRenderer.Instance.Builder._shapeWDCs[LodIndex - 1].ApplyMaterialParams(0, _renderSimMaterial);
+                    OceanRenderer.Instance.Builder._lodDataAnimWaves[LodIndex - 1].ApplyMaterialParams(0, _renderSimMaterial);
                 }
                 else
                 {
                     // at top or bottom of chain - no buffer to transfer results from - take 0 state
                     _renderSimMaterial.SetTexture("_SimDataLastFrame", Texture2D.blackTexture);
-                    wdc.ApplyMaterialParams(0, _renderSimMaterial);
+                    ldaw.ApplyMaterialParams(0, _renderSimMaterial);
                 }
 
                 _oceanLocalScale = oceanLocalScale;
@@ -146,7 +146,7 @@ namespace Crest
                 SetAdditionalCopySimParams(_copySimMaterial);
 
                 _copySimResultsCmdBuf.Clear();
-                _copySimResultsCmdBuf.Blit(PPRTs.Target, OceanRenderer.Instance.Builder._shapeCameras[LodIndex].targetTexture, _copySimMaterial);
+                _copySimResultsCmdBuf.Blit(PPRTs.Target, OceanRenderer.Instance.Builder._camsAnimWaves[LodIndex].targetTexture, _copySimMaterial);
             }
         }
 

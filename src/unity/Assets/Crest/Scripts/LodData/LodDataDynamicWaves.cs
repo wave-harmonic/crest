@@ -14,7 +14,7 @@ namespace Crest
         protected override string ShaderRenderResultsIntoDispTexture { get { return "Ocean/Shape/Sim/Wave Add To Disps"; } }
         public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RGHalf; } }
         public override int Depth { get { return LodDataFoam.SIM_RENDER_DEPTH - 10; } }
-        protected override Camera[] SimCameras { get { return OceanRenderer.Instance.Builder._dynWaveCameras; } }
+        protected override Camera[] SimCameras { get { return OceanRenderer.Instance.Builder._camsDynWaves; } }
 
         public override SimSettingsBase CreateDefaultSettings()
         {

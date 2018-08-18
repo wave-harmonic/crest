@@ -101,7 +101,7 @@ namespace Crest
             LateUpdatePosition();
             LateUpdateScale();
 
-            float maxWavelength = Builder._shapeWDCs[Builder._shapeWDCs.Length - 1].MaxWavelength();
+            float maxWavelength = Builder._lodDataAnimWaves[Builder._lodDataAnimWaves.Length - 1].MaxWavelength();
             Shader.SetGlobalFloat("_MaxWavelength", maxWavelength);
         }
 

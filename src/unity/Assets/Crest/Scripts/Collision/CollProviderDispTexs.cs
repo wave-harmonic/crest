@@ -15,34 +15,34 @@ namespace Crest
 
         public bool SampleDisplacement(ref Vector3 worldPos, ref Vector3 displacement)
         {
-            int lod = LodDataAnimatedWaves.SuggestCollisionLOD(new Rect(worldPos.x, worldPos.z, 0f, 0f), 0f);
+            int lod = ReadbackDisplacementsForCollision.SuggestCollisionLOD(new Rect(worldPos.x, worldPos.z, 0f, 0f), 0f);
             if (lod == -1) return false;
-            return OceanRenderer.Instance.Builder._shapeWDCs[lod].CollData.SampleDisplacement(ref worldPos, ref displacement);
+            return OceanRenderer.Instance.Builder._lodDataAnimWaves[lod].CollReadback.SampleDisplacement(ref worldPos, ref displacement);
         }
 
         public bool SampleHeight(ref Vector3 worldPos, ref float height)
         {
-            int lod = LodDataAnimatedWaves.SuggestCollisionLOD(new Rect(worldPos.x, worldPos.z, 0f, 0f), 0f);
+            int lod = ReadbackDisplacementsForCollision.SuggestCollisionLOD(new Rect(worldPos.x, worldPos.z, 0f, 0f), 0f);
             if (lod == -1) return false;
-            height = OceanRenderer.Instance.Builder._shapeWDCs[lod].CollData.GetHeight(ref worldPos);
+            height = OceanRenderer.Instance.Builder._lodDataAnimWaves[lod].CollReadback.GetHeight(ref worldPos);
             return true;
         }
 
         public void PrewarmForSamplingArea(Rect areaXZ)
         {
-            _areaLod = LodDataAnimatedWaves.SuggestCollisionLOD(areaXZ);
+            _areaLod = ReadbackDisplacementsForCollision.SuggestCollisionLOD(areaXZ);
         }
         public void PrewarmForSamplingArea(Rect areaXZ, float minSpatialLength)
         {
-            _areaLod = LodDataAnimatedWaves.SuggestCollisionLOD(areaXZ, minSpatialLength);
+            _areaLod = ReadbackDisplacementsForCollision.SuggestCollisionLOD(areaXZ, minSpatialLength);
         }
         public bool SampleDisplacementInArea(ref Vector3 worldPos, ref Vector3 displacement)
         {
-            return OceanRenderer.Instance.Builder._shapeWDCs[_areaLod].CollData.SampleDisplacement(ref worldPos, ref displacement);
+            return OceanRenderer.Instance.Builder._lodDataAnimWaves[_areaLod].CollReadback.SampleDisplacement(ref worldPos, ref displacement);
         }
         public bool SampleHeightInArea(ref Vector3 worldPos, ref float height)
         {
-            height = OceanRenderer.Instance.Builder._shapeWDCs[_areaLod].CollData.GetHeight(ref worldPos);
+            height = OceanRenderer.Instance.Builder._lodDataAnimWaves[_areaLod].CollReadback.GetHeight(ref worldPos);
             return true;
         }
 
@@ -55,7 +55,7 @@ namespace Crest
             // select lod. this now has a 1 texel buffer, so the finite differences below should all be valid.
             PrewarmForSamplingArea(new Rect(undisplacedWorldPos.x, undisplacedWorldPos.z, 0f, 0f), minSpatialLength);
 
-            float gridSize = OceanRenderer.Instance.Builder._shapeWDCs[_areaLod]._renderData._texelWidth;
+            float gridSize = OceanRenderer.Instance.Builder._lodDataAnimWaves[_areaLod]._renderData._texelWidth;
 
             Vector3 dispCenter = Vector3.zero;
             if (!SampleDisplacementInArea(ref undisplacedWorldPos, ref dispCenter)) return false;

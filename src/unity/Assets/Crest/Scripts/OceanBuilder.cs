@@ -17,13 +17,14 @@ namespace Crest
         Material _oceanMaterial;
 
         [HideInInspector]
-        public Camera[] _shapeCameras;
+        public LodDataAnimatedWaves[] _lodDataAnimWaves;
+
         [HideInInspector]
-        public LodDataAnimatedWaves[] _shapeWDCs;
+        public Camera[] _camsAnimWaves;
         [HideInInspector]
-        public Camera[] _foamCameras;
+        public Camera[] _camsFoam;
         [HideInInspector]
-        public Camera[] _dynWaveCameras;
+        public Camera[] _camsDynWaves;
 
         [Header("Simulations")]
         public bool _createFoamSim = true;
@@ -31,7 +32,7 @@ namespace Crest
         public bool _createDynamicWaveSim = false;
         public SimSettingsWave _simSettingsDynamicWaves;
 
-        public int CurrentLodCount { get { return _shapeCameras.Length; } }
+        public int CurrentLodCount { get { return _camsAnimWaves.Length; } }
 
         // The following apply to BASE_VERT_DENSITY = 2. The ocean mesh is built up from these patches. Rotational symmetry is
         // used where possible to eliminate combinations. The slim variants are used to eliminate overlap between patches.
@@ -174,10 +175,10 @@ namespace Crest
             }
 
             // create the shape cameras
-            _shapeCameras = new Camera[lodCount];
-            _shapeWDCs = new LodDataAnimatedWaves[lodCount];
-            _foamCameras = new Camera[lodCount];
-            _dynWaveCameras = new Camera[lodCount];
+            _camsAnimWaves = new Camera[lodCount];
+            _lodDataAnimWaves = new LodDataAnimatedWaves[lodCount];
+            _camsFoam = new Camera[lodCount];
+            _camsDynWaves = new Camera[lodCount];
 
             var cachedSettings = new Dictionary<System.Type, SimSettingsBase>();
 
@@ -185,20 +186,20 @@ namespace Crest
             {
                 {
                     var go = LodData.CreateLodData(i, lodCount, baseVertDensity, LodData.SimType.AnimatedWaves, cachedSettings);
-                    _shapeCameras[i] = go.GetComponent<Camera>();
-                    _shapeWDCs[i] = go.GetComponent<LodDataAnimatedWaves>();
+                    _camsAnimWaves[i] = go.GetComponent<Camera>();
+                    _lodDataAnimWaves[i] = go.GetComponent<LodDataAnimatedWaves>();
                 }
 
                 if (_createFoamSim)
                 {
                     var go = LodData.CreateLodData(i, lodCount, baseVertDensity, LodData.SimType.Foam, cachedSettings);
-                    _foamCameras[i] = go.GetComponent<Camera>();
+                    _camsFoam[i] = go.GetComponent<Camera>();
                 }
 
                 if (_createDynamicWaveSim)
                 {
                     var go = LodData.CreateLodData(i, lodCount, baseVertDensity, LodData.SimType.DynamicWaves, cachedSettings);
-                    _dynWaveCameras[i] = go.GetComponent<Camera>();
+                    _camsDynWaves[i] = go.GetComponent<Camera>();
                 }
             }
 
@@ -384,9 +385,9 @@ namespace Crest
             parent.transform.localRotation = Quaternion.identity;
 
             // add lod data cameras into this lod
-            PlaceLodData(_shapeCameras[lodIndex].transform, parent.transform);
-            if (_foamCameras[lodIndex] != null) PlaceLodData(_foamCameras[lodIndex].transform, parent.transform);
-            if (_dynWaveCameras[lodIndex] != null) PlaceLodData(_dynWaveCameras[lodIndex].transform, parent.transform);
+            PlaceLodData(_camsAnimWaves[lodIndex].transform, parent.transform);
+            if (_camsFoam[lodIndex] != null) PlaceLodData(_camsFoam[lodIndex].transform, parent.transform);
+            if (_camsDynWaves[lodIndex] != null) PlaceLodData(_camsDynWaves[lodIndex].transform, parent.transform);
 
             bool generateSkirt = biggestLOD && !OceanRenderer.Instance._disableSkirt;
 

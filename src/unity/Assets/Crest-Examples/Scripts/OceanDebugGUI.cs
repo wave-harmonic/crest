@@ -71,17 +71,17 @@ public class OceanDebugGUI : MonoBehaviour
 
             int min = int.MaxValue, max = -1;
             bool readbackShape = true;
-            foreach( var wdc in OceanRenderer.Instance.Builder._shapeWDCs)
+            foreach( var ldaw in OceanRenderer.Instance.Builder._lodDataAnimWaves)
             {
-                min = Mathf.Min(min, wdc.CollData.CollReadbackRequestsQueued);
-                max = Mathf.Max(max, wdc.CollData.CollReadbackRequestsQueued);
-                readbackShape = readbackShape && wdc._readbackShapeForCollision;
+                min = Mathf.Min(min, ldaw.CollReadback.CollReadbackRequestsQueued);
+                max = Mathf.Max(max, ldaw.CollReadback.CollReadbackRequestsQueued);
+                readbackShape = readbackShape && ldaw.CollReadback._readbackShapeForCollision;
             }
             if (readbackShape != GUI.Toggle(new Rect(x, y, w, h), readbackShape, "Readback coll data"))
             {
-                foreach (var wdc in OceanRenderer.Instance.Builder._shapeWDCs)
+                foreach (var ldaw in OceanRenderer.Instance.Builder._lodDataAnimWaves)
                 {
-                    wdc._readbackShapeForCollision = !readbackShape;
+                    ldaw.CollReadback._readbackShapeForCollision = !readbackShape;
                 }
             }
             y += h;
@@ -124,7 +124,7 @@ public class OceanDebugGUI : MonoBehaviour
     {
         {
             int ind = 0;
-            foreach (var cam in OceanRenderer.Instance.Builder._shapeCameras)
+            foreach (var cam in OceanRenderer.Instance.Builder._camsAnimWaves)
             {
                 if (!cam) continue;
 
@@ -133,7 +133,7 @@ public class OceanDebugGUI : MonoBehaviour
                 if (shape == null) continue;
 
                 float b = 7f;
-                float h = Screen.height / (float)OceanRenderer.Instance.Builder._shapeCameras.Length;
+                float h = Screen.height / (float)OceanRenderer.Instance.Builder._camsAnimWaves.Length;
                 float w = h + b;
                 float x = Screen.width - w;
                 float y = ind * h;
@@ -148,8 +148,8 @@ public class OceanDebugGUI : MonoBehaviour
         }
 
         // draw sim data
-        DrawSims(OceanRenderer.Instance.Builder._foamCameras, 2f);
-        DrawSims(OceanRenderer.Instance.Builder._dynWaveCameras, 3f);
+        DrawSims(OceanRenderer.Instance.Builder._camsFoam, 2f);
+        DrawSims(OceanRenderer.Instance.Builder._camsDynWaves, 3f);
     }
 
     static void DrawSims(Camera[] simCameras, float offset)
@@ -163,7 +163,7 @@ public class OceanDebugGUI : MonoBehaviour
             if (shape == null) continue;
 
             float b = 7f;
-            float h = Screen.height / (float)OceanRenderer.Instance.Builder._shapeCameras.Length;
+            float h = Screen.height / (float)OceanRenderer.Instance.Builder._camsAnimWaves.Length;
             float w = h + b;
             float x = Screen.width - w * offset + b * (offset - 1f);
             float y = idx * h;

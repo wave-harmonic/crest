@@ -176,7 +176,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _showSimTargets: 0
   _guiVisible: 1
-  _oceanMaterialAsset: Assets/Crest/Shaders/Materials/Ocean.mat
+  _oceanMaterialAsset: Assets/Crest/Materials/Ocean.mat
 --- !u!20 &227134469
 Camera:
   m_ObjectHideFlags: 0

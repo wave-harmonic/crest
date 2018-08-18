@@ -105,7 +105,13 @@ public class OceanDebugGUI : MonoBehaviour
 #if UNITY_EDITOR
             if (GUI.Button(new Rect(x, y, w, h), "Select Ocean Mat"))
             {
-                UnityEditor.Selection.activeObject = UnityEditor.AssetDatabase.LoadMainAssetAtPath(_oceanMaterialAsset);
+                var asset = UnityEditor.AssetDatabase.LoadMainAssetAtPath(_oceanMaterialAsset);
+                if (asset == null)
+                {
+                    // wow - this causes an editor crash..
+                    Debug.LogWarning("Material at path \"" + _oceanMaterialAsset + "\" not found. Please set this path to point to your ocean material.", this);
+                }
+                UnityEditor.Selection.activeObject = asset;
             }
             y += h;
 #endif

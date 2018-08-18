@@ -68,6 +68,8 @@ namespace Crest
             DynamicWaves,
             Foam,
             AnimatedWaves,
+            // this is currently not used as the sea floor depth is not created as a unique sim object
+            SeaFloorDepth,
         }
 
         public static GameObject CreateLodData(int lodIdx, int lodCount, float baseVertDensity, SimType simType, Dictionary<System.Type, SimSettingsBase> cachedSettings)
@@ -79,6 +81,7 @@ namespace Crest
             {
                 case SimType.AnimatedWaves:
                     sim = go.AddComponent<LodDataAnimatedWaves>();
+                    go.AddComponent<LodDataSeaFloorDepth>();
                     go.AddComponent<ReadbackDisplacementsForCollision>();
                     break;
                 case SimType.DynamicWaves:

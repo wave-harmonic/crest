@@ -108,7 +108,7 @@ public class OceanDebugGUI : MonoBehaviour
                 var asset = UnityEditor.AssetDatabase.LoadMainAssetAtPath(_oceanMaterialAsset);
                 if (asset == null)
                 {
-                    // wow - this causes an editor crash..
+                    // surprisingly, changing the below to an error causes an editor crash..
                     Debug.LogWarning("Material at path \"" + _oceanMaterialAsset + "\" not found. Please set this path to point to your ocean material.", this);
                 }
                 UnityEditor.Selection.activeObject = asset;

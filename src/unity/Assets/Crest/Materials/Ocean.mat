@@ -102,7 +102,7 @@ Material:
     - _TextureRes: 1024
     - _Transparency: 1
     - _Update: 0.083
-    - _WaveFoamBubblesCoverage: 0.18
+    - _WaveFoamBubblesCoverage: 1.68
     - _WaveFoamBubblesFeather: 0.32
     - _WaveFoamBubblesStart: 0.115
     - _WaveFoamBubblesStrength: 0.637

@@ -17,40 +17,27 @@ namespace Crest
     /// </summary>
     public class LodDataAnimatedWaves : LodData
     {
-        // debug use
-        public static bool _shapeCombinePass = true;
-
+        public override SimType LodDataType { get { return SimType.AnimatedWaves; } }
         public override SimSettingsBase CreateDefaultSettings() { return null; }
         public override void UseSettings(SimSettingsBase settings) {}
         // shape format. i tried RGB111110Float but error becomes visible. one option would be to use a UNORM setup.
         public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.ARGBHalf; } }
-        public override int Depth { get { return -10; } }
+        public override int Depth { get { return -30; } }
         public override CameraClearFlags CamClearFlags { get { return CameraClearFlags.Color; } }
+        public override RenderTexture DataTexture { get { return Cam.targetTexture; } }
+
+        // debug use
+        public static bool _shapeCombinePass = true;
 
         Material _combineMaterial;
         CommandBuffer _bufCombineShapes = null;
+        readonly CameraEvent _combineEvent = CameraEvent.AfterEverything;
 
-        // these would ideally be static but then they get cleared when editing-and-continuing in the editor.
-        int[] _paramsDisplacementsSampler;
-        int[] _paramsOceanDepthSampler;
-        int[] _paramsOceanParams;
-        int[] _paramsPosScale;
-        int[] _paramsLodIdx;
-
-        void Start()
+        protected override void Start()
         {
-            _combineMaterial = new Material(Shader.Find("Ocean/Shape/Combine"));
+            base.Start();
 
-            // create shader param IDs for each LOD once on start to avoid creating garbage each frame.
-            if (_paramsDisplacementsSampler == null)
-            {
-                int numToGenerate = 16;
-                CreateParamIDs(ref _paramsDisplacementsSampler, "_WD_Sampler_", numToGenerate);
-                CreateParamIDs(ref _paramsOceanDepthSampler, "_WD_OceanDepth_Sampler_", numToGenerate);
-                CreateParamIDs(ref _paramsOceanParams, "_WD_Params_", numToGenerate);
-                CreateParamIDs(ref _paramsPosScale, "_WD_Pos_Scale_", numToGenerate);
-                CreateParamIDs(ref _paramsLodIdx, "_WD_LodIdx_", numToGenerate);
-            }
+            _combineMaterial = new Material(Shader.Find("Ocean/Shape/Combine"));
         }
 
         private void Update()
@@ -59,15 +46,6 @@ namespace Crest
             if (LodIndex == 0)
             {
                 UpdateCmdBufShapeCombine();
-            }
-        }
-
-        public void CreateParamIDs(ref int[] ids, string prefix, int count)
-        {
-            ids = new int[count];
-            for (int i = 0; i < count; i++)
-            {
-                ids[i] = Shader.PropertyToID(string.Format("{0}{1}", prefix, i));
             }
         }
 
@@ -90,12 +68,12 @@ namespace Crest
         // apply this camera's properties to the shape combine materials
         void LateUpdateShapeCombinePassSettings()
         {
-            ApplyMaterialParams(0, _combineMaterial);
+            BindResultData(0, _combineMaterial);
 
             if (LodIndex > 0)
             {
                 var ldaws = OceanRenderer.Instance.Builder._lodDataAnimWaves;
-                ApplyMaterialParams(1, ldaws[LodIndex - 1]._combineMaterial);
+                BindResultData(1, ldaws[LodIndex - 1]._combineMaterial);
             }
         }
 
@@ -109,7 +87,7 @@ namespace Crest
             {
                 if (_bufCombineShapes != null)
                 {
-                    Cam.RemoveCommandBuffer(CameraEvent.AfterEverything, _bufCombineShapes);
+                    Cam.RemoveCommandBuffer(_combineEvent, _bufCombineShapes);
                     _bufCombineShapes = null;
                 }
 
@@ -120,7 +98,7 @@ namespace Crest
             if (_bufCombineShapes == null)
             {
                 _bufCombineShapes = new CommandBuffer();
-                Cam.AddCommandBuffer(CameraEvent.AfterEverything, _bufCombineShapes);
+                Cam.AddCommandBuffer(_combineEvent, _bufCombineShapes);
                 _bufCombineShapes.name = "Combine Shapes";
 
                 var cams = OceanRenderer.Instance.Builder._camsAnimWaves;
@@ -137,7 +115,7 @@ namespace Crest
         {
             if (_bufCombineShapes != null)
             {
-                Cam.RemoveCommandBuffer(CameraEvent.AfterEverything, _bufCombineShapes);
+                Cam.RemoveCommandBuffer(_combineEvent, _bufCombineShapes);
                 _bufCombineShapes = null;
             }
         }
@@ -152,69 +130,19 @@ namespace Crest
             RemoveCommandBuffers();
         }
 
-        PropertyWrapperMaterial _pwMat = new PropertyWrapperMaterial();
-        PropertyWrapperMPB _pwMPB = new PropertyWrapperMPB();
-
-        public void ApplyMaterialParams(int shapeSlot, Material properties)
+        protected override void BindData(int shapeSlot, IPropertyWrapper properties, Texture applyData, bool blendOut, ref RenderData renderData)
         {
-            _pwMat._target = properties;
-            ApplyMaterialParams(shapeSlot, _pwMat, true, true);
-            _pwMat._target = null;
-        }
-
-        public void ApplyMaterialParams(int shapeSlot, MaterialPropertyBlock properties)
-        {
-            _pwMPB._target = properties;
-            ApplyMaterialParams(shapeSlot, _pwMPB, true, true);
-            _pwMPB._target = null;
-        }
-
-        public void ApplyMaterialParams(int shapeSlot, Material properties, bool applyWaveHeights, bool blendOut)
-        {
-            _pwMat._target = properties;
-            ApplyMaterialParams(shapeSlot, _pwMat, applyWaveHeights, blendOut);
-            _pwMat._target = null;
-        }
-
-        public void ApplyMaterialParams(int shapeSlot, MaterialPropertyBlock properties, bool applyWaveHeights, bool blendOut)
-        {
-            _pwMPB._target = properties;
-            ApplyMaterialParams(shapeSlot, _pwMPB, applyWaveHeights, blendOut);
-            _pwMPB._target = null;
-        }
-
-        public void ApplyMaterialParams(int shapeSlot, IPropertyWrapper properties)
-        {
-            ApplyMaterialParams(shapeSlot, properties, true, true);
-        }
-
-        public void ApplyMaterialParams(int shapeSlot, IPropertyWrapper properties, bool applyWaveHeights, bool blendOut)
-        {
-            if (applyWaveHeights)
-            {
-                properties.SetTexture(_paramsDisplacementsSampler[shapeSlot], Cam.targetTexture);
-            }
-
-            if (LDSD.RTOceanDepth != null)
-            {
-                properties.SetTexture(_paramsOceanDepthSampler[shapeSlot], LDSD.RTOceanDepth);
-            }
+            base.BindData(shapeSlot, properties, applyData, blendOut, ref renderData);
 
             // need to blend out shape if this is the largest lod, and the ocean might get scaled down later (so the largest lod will disappear)
             bool needToBlendOutShape = LodIndex == LodCount - 1 && OceanRenderer.Instance.ScaleCouldDecrease && blendOut;
             float shapeWeight = needToBlendOutShape ? OceanRenderer.Instance.ViewerAltitudeLevelAlpha : 1f;
             properties.SetVector(_paramsOceanParams[shapeSlot], 
                 new Vector4(_renderData._texelWidth, _renderData._textureRes, shapeWeight, 1f / _renderData._textureRes));
-
-            properties.SetVector(_paramsPosScale[shapeSlot], new Vector3(_renderData._posSnapped.x, _renderData._posSnapped.z, transform.lossyScale.x));
-            properties.SetFloat(_paramsLodIdx[shapeSlot], LodIndex);
         }
 
         ReadbackDisplacementsForCollision _collReadback;
         public ReadbackDisplacementsForCollision CollReadback
         { get { return _collReadback ?? (_collReadback = GetComponent<ReadbackDisplacementsForCollision>()); } }
-
-        LodDataSeaFloorDepth _ldsd;
-        public LodDataSeaFloorDepth LDSD { get { return _ldsd ?? (_ldsd = GetComponent<LodDataSeaFloorDepth>()); } }
     }
 }

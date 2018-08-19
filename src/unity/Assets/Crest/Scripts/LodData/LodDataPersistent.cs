@@ -13,31 +13,26 @@ namespace Crest
         public static readonly float MAX_SIM_DELTA_TIME = 1f / 30f;
 
         public override CameraClearFlags CamClearFlags { get { return CameraClearFlags.Nothing; } }
+        public override RenderTexture DataTexture { get { return Cam.targetTexture; } }
 
         [SerializeField]
         protected SimSettingsBase _settings;
         public override void UseSettings(SimSettingsBase settings) { _settings = settings; }
 
-        Material _copySimMaterial = null;
-
         GameObject _renderSim;
         Material _renderSimMaterial;
 
-        Vector3 _camPosSnappedLast;
-
-        public abstract string SimName { get; }
         protected abstract string ShaderSim { get; }
-        protected abstract string ShaderRenderResultsIntoDispTexture { get; }
         protected abstract Camera[] SimCameras { get; }
 
         float _simDeltaTimePrev = 1f / 60f;
         protected float SimDeltaTime { get { return Mathf.Min(Time.deltaTime, MAX_SIM_DELTA_TIME); } }
 
-        private void Start()
+        protected override void Start()
         {
-            CreateRenderSimQuad();
+            base.Start();
 
-            _copySimMaterial = new Material(Shader.Find(ShaderRenderResultsIntoDispTexture));
+            CreateRenderSimQuad();
         }
 
         private void CreateRenderSimQuad()
@@ -69,12 +64,33 @@ namespace Crest
             return result;
         }
 
-        CommandBuffer _advanceSimCmdBuf, _copySimResultsCmdBuf;
-        float _oceanLocalScale = -1f;
+        CommandBuffer _advanceSimCmdBuf;
+        float _oceanLocalScalePrev = -1f;
+
+        public void BindSourceData(int shapeSlot, Material properties, bool paramsOnly)
+        {
+            _pwMat._target = properties;
+            var rd = _renderDataPrevFrame.Validate(-1, this);
+            BindData(shapeSlot, _pwMat, paramsOnly ? Texture2D.blackTexture : (Texture)PPRTs.Source, true, ref rd);
+            _pwMat._target = null;
+        }
 
         void LateUpdate()
         {
-            LateUpdateTransformData();
+            // unfortunate code - the update of the transform data is required further down in this function (to
+            // set up shader params), for ALL LodDatas, because on scale transitions we could sample from data up or
+            // down the chain. this loop ensures all transform data is up to date before proceeding. this would not
+            // be required if there were more update buckets in unity. a solution would be to extract the transform
+            // data into a separate component and set script execution order.
+            if (_transformUpdateFrame < Time.frameCount)
+            {
+                foreach(var cam in SimCameras)
+                {
+                    var ld = cam.GetComponent<LodDataPersistent>();
+                    ld.LateUpdateTransformData();
+                }
+            }
+            //LateUpdateTransformData();
 
             if (_advanceSimCmdBuf == null)
             {
@@ -84,70 +100,39 @@ namespace Crest
                 _advanceSimCmdBuf.DrawRenderer(GetComponentInChildren<MeshRenderer>(), _renderSimMaterial);
             }
 
-            if (_copySimResultsCmdBuf == null)
-            {
-                _copySimResultsCmdBuf = new CommandBuffer();
-                _copySimResultsCmdBuf.name = "CopySimResults_" + SimName;
-                OceanRenderer.Instance.Builder._camsAnimWaves[LodIndex].AddCommandBuffer(CameraEvent.AfterForwardAlpha, _copySimResultsCmdBuf);
-            }
-
-            Vector3 posDelta = _renderData._posSnapped - _camPosSnappedLast;
-            _renderSimMaterial.SetVector("_CameraPositionDelta", posDelta);
-            _camPosSnappedLast = _renderData._posSnapped;
-
             float dt = SimDeltaTime;
             _renderSimMaterial.SetFloat("_SimDeltaTime", dt);
             _renderSimMaterial.SetFloat("_SimDeltaTimePrev", _simDeltaTimePrev);
             _simDeltaTimePrev = dt;
 
-            var ldaw = OceanRenderer.Instance.Builder._lodDataAnimWaves[LodIndex];
+            // compute which lod data we are sampling source data from. if a scale change has happened this can be any lod up or down the chain.
             float oceanLocalScale = OceanRenderer.Instance.transform.localScale.x;
-            if (_oceanLocalScale == -1f)
+            if (_oceanLocalScalePrev == -1f) _oceanLocalScalePrev = oceanLocalScale;
+            float ratio = oceanLocalScale / _oceanLocalScalePrev;
+            _oceanLocalScalePrev = oceanLocalScale;
+            float ratio_l2 = Mathf.Log(ratio) / Mathf.Log(2f);
+            int delta = Mathf.RoundToInt(ratio_l2);
+
+            int srcDataIdx = LodIndex + delta;
+
+            if (srcDataIdx >= 0 && srcDataIdx < SimCameras.Length)
             {
-                _oceanLocalScale = OceanRenderer.Instance.transform.localScale.x;
-            }
-            else if (_oceanLocalScale == oceanLocalScale)
-            {
-                // no change in scale - sample from same target as last frame
-                _renderSimMaterial.SetTexture("_SimDataLastFrame", PPRTs.Source);
-                ldaw.ApplyMaterialParams(0, _renderSimMaterial);
+                // bind data to slot 0 - previous frame data
+                SimCameras[srcDataIdx].GetComponent<LodDataPersistent>().BindSourceData(0, _renderSimMaterial, false);
             }
             else
             {
-                // scale changed - transfer results up or down chain
-                if (oceanLocalScale > _oceanLocalScale && LodIndex < LodCount - 1)
-                {
-                    // down chain
-                    _renderSimMaterial.SetTexture("_SimDataLastFrame", SimCameras[LodIndex + 1].GetComponent<PingPongRts>().Source);
-                    OceanRenderer.Instance.Builder._lodDataAnimWaves[LodIndex + 1].ApplyMaterialParams(0, _renderSimMaterial);
-                }
-                else if (oceanLocalScale < _oceanLocalScale && LodIndex > 0)
-                {
-                    // up chain
-                    _renderSimMaterial.SetTexture("_SimDataLastFrame", SimCameras[LodIndex - 1].GetComponent<PingPongRts>().Source);
-                    OceanRenderer.Instance.Builder._lodDataAnimWaves[LodIndex - 1].ApplyMaterialParams(0, _renderSimMaterial);
-                }
-                else
-                {
-                    // at top or bottom of chain - no buffer to transfer results from - take 0 state
-                    _renderSimMaterial.SetTexture("_SimDataLastFrame", Texture2D.blackTexture);
-                    ldaw.ApplyMaterialParams(0, _renderSimMaterial);
-                }
-
-                _oceanLocalScale = oceanLocalScale;
+                // no source data - bind params only
+                BindSourceData(0, _renderSimMaterial, true);
             }
 
             SetAdditionalSimParams(_renderSimMaterial);
 
-            if (_copySimMaterial)
-            {
-                _copySimMaterial.mainTexture = PPRTs.Target;
+            LateUpdateInternal();
+        }
 
-                SetAdditionalCopySimParams(_copySimMaterial);
-
-                _copySimResultsCmdBuf.Clear();
-                _copySimResultsCmdBuf.Blit(PPRTs.Target, OceanRenderer.Instance.Builder._camsAnimWaves[LodIndex].targetTexture, _copySimMaterial);
-            }
+        protected virtual void LateUpdateInternal()
+        {
         }
 
         /// <summary>
@@ -157,13 +142,6 @@ namespace Crest
         {
         }
 
-        /// <summary>
-        /// Set any sim-specific shader params.
-        /// </summary>
-        protected virtual void SetAdditionalCopySimParams(Material copySimMaterial)
-        {
-        }
-
-        PingPongRts _pprts2; protected PingPongRts PPRTs { get { return _pprts2 ?? (_pprts2 = GetComponent<PingPongRts>()); } }
+        PingPongRts _pprts; protected PingPongRts PPRTs { get { return _pprts ?? (_pprts = GetComponent<PingPongRts>()); } }
     }
 }

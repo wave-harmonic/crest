@@ -1,6 +1,7 @@
 ﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace Crest
 {
@@ -9,11 +10,10 @@ namespace Crest
     /// </summary>
     public class LodDataDynamicWaves : LodDataPersistent
     {
-        public override string SimName { get { return "Wave"; } }
+        public override SimType LodDataType { get { return SimType.DynamicWaves; } }
         protected override string ShaderSim { get { return "Ocean/Shape/Sim/2D Wave Equation"; } }
-        protected override string ShaderRenderResultsIntoDispTexture { get { return "Ocean/Shape/Sim/Wave Add To Disps"; } }
         public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RGHalf; } }
-        public override int Depth { get { return LodDataFoam.SIM_RENDER_DEPTH - 10; } }
+        public override int Depth { get { return -40; } }
         protected override Camera[] SimCameras { get { return OceanRenderer.Instance.Builder._camsDynWaves; } }
 
         public override SimSettingsBase CreateDefaultSettings()
@@ -25,6 +25,39 @@ namespace Crest
 
         public bool _rotateLaplacian = true;
 
+        Material _copySimMaterial = null;
+        CommandBuffer _copySimResultsCmdBuf;
+        
+        protected override void Start()
+        {
+            base.Start();
+
+            _copySimMaterial = new Material(Shader.Find("Ocean/Shape/Sim/Wave Add To Disps"));
+        }
+
+        protected override void LateUpdateInternal()
+        {
+            base.LateUpdateInternal();
+
+            // this sim copies its results into the animated waves
+
+            if (_copySimResultsCmdBuf == null)
+            {
+                _copySimResultsCmdBuf = new CommandBuffer();
+                _copySimResultsCmdBuf.name = "CopySimResults_" + SimName;
+                OceanRenderer.Instance.Builder._camsAnimWaves[LodIndex].AddCommandBuffer(CameraEvent.AfterEverything, _copySimResultsCmdBuf);
+            }
+
+            _copySimMaterial.SetFloat("_HorizDisplace", Settings._horizDisplace);
+            _copySimMaterial.SetFloat("_DisplaceClamp", Settings._displaceClamp);
+            _copySimMaterial.SetFloat("_TexelWidth", (2f * Cam.orthographicSize) / PPRTs.Target.width);
+
+            _copySimMaterial.mainTexture = PPRTs.Target;
+
+            _copySimResultsCmdBuf.Clear();
+            _copySimResultsCmdBuf.Blit(PPRTs.Target, OceanRenderer.Instance.Builder._camsAnimWaves[LodIndex].targetTexture, _copySimMaterial);
+        }
+
         protected override void SetAdditionalSimParams(Material simMaterial)
         {
             base.SetAdditionalSimParams(simMaterial);
@@ -34,15 +67,6 @@ namespace Crest
 
             float laplacianKernelAngle = _rotateLaplacian ? Mathf.PI * 2f * Random.value : 0f;
             simMaterial.SetVector("_LaplacianAxisX", new Vector2(Mathf.Cos(laplacianKernelAngle), Mathf.Sin(laplacianKernelAngle)));
-        }
-
-        protected override void SetAdditionalCopySimParams(Material copySimMaterial)
-        {
-            base.SetAdditionalCopySimParams(copySimMaterial);
-
-            copySimMaterial.SetFloat("_HorizDisplace", Settings._horizDisplace);
-            copySimMaterial.SetFloat("_DisplaceClamp", Settings._displaceClamp);
-            copySimMaterial.SetFloat("_TexelWidth", (2f * Cam.orthographicSize) / PPRTs.Target.width);
         }
 
         SimSettingsWave Settings { get { return _settings as SimSettingsWave; } }

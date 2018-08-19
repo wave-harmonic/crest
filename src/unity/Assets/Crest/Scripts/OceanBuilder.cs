@@ -34,8 +34,8 @@ namespace Crest
 
         public int CurrentLodCount { get { return _camsAnimWaves.Length; } }
 
-        // The following apply to BASE_VERT_DENSITY = 2. The ocean mesh is built up from these patches. Rotational symmetry is
-        // used where possible to eliminate combinations. The slim variants are used to eliminate overlap between patches.
+        // The comments below illustrate casse when BASE_VERT_DENSITY = 2. The ocean mesh is built up from these patches. Rotational symmetry
+        // is used where possible to eliminate combinations. The slim variants are used to eliminate overlap between patches.
         enum PatchType
         {
             /// <summary>
@@ -181,6 +181,8 @@ namespace Crest
             _camsDynWaves = new Camera[lodCount];
 
             var cachedSettings = new Dictionary<System.Type, SimSettingsBase>();
+            if (_simSettingsFoam != null) cachedSettings.Add(typeof(LodDataFoam), _simSettingsFoam);
+            if (_simSettingsDynamicWaves != null) cachedSettings.Add(typeof(LodDataDynamicWaves), _simSettingsDynamicWaves);
 
             for ( int i = 0; i < lodCount; i++ )
             {

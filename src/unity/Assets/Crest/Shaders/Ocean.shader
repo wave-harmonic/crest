@@ -125,20 +125,20 @@ Shader "Ocean/Ocean"
 					o.n = half3(0., 1., 0.);
 					o.foam_screenPos.x = 0.;
 					// sample weights. params.z allows shape to be faded out (used on last lod to support pop-less scale transitions)
-					float wt_0 = (1. - lodAlpha) * _WD_Params_0.z;
-					float wt_1 = (1. - wt_0) * _WD_Params_1.z;
+					float wt_0 = (1. - lodAlpha) * _LD_Params_0.z;
+					float wt_1 = (1. - wt_0) * _LD_Params_1.z;
 					// sample displacement textures, add results to current world pos / normal / foam
 					#if !_DEBUGDISABLESHAPETEXTURES_ON
 					const float2 worldXZBefore = o.worldPos.xz;
-					SampleDisplacements( _WD_Sampler_0, _WD_OceanDepth_Sampler_0, _WD_Pos_Scale_0.xy, _WD_Params_0.y, _WD_Params_0.w, _WD_Params_0.x, worldXZBefore, wt_0, o.worldPos, o.n, o.foam_screenPos.x);
-					SampleDisplacements( _WD_Sampler_1, _WD_OceanDepth_Sampler_1, _WD_Pos_Scale_1.xy, _WD_Params_1.y, _WD_Params_1.w, _WD_Params_1.x, worldXZBefore, wt_1, o.worldPos, o.n, o.foam_screenPos.x);
+					SampleDisplacements(_LD_Sampler_AnimatedWaves_0, _LD_Sampler_Foam_0, _LD_Pos_Scale_0.xy, _LD_Params_0.y, _LD_Params_0.w, _LD_Params_0.x, worldXZBefore, wt_0, o.worldPos, o.n, o.foam_screenPos.x);
+					SampleDisplacements(_LD_Sampler_AnimatedWaves_1, _LD_Sampler_Foam_1, _LD_Pos_Scale_1.xy, _LD_Params_1.y, _LD_Params_1.w, _LD_Params_1.x, worldXZBefore, wt_1, o.worldPos, o.n, o.foam_screenPos.x);
 					#endif
 
 					// debug tinting to see which shape textures are used
 					#if _DEBUGVISUALISESHAPESAMPLE_ON
 					#define TINT_COUNT (uint)7
 					half3 tintCols[TINT_COUNT]; tintCols[0] = half3(1., 0., 0.); tintCols[1] = half3(1., 1., 0.); tintCols[2] = half3(1., 0., 1.); tintCols[3] = half3(0., 1., 1.); tintCols[4] = half3(0., 0., 1.); tintCols[5] = half3(1., 0., 1.); tintCols[6] = half3(.5, .5, 1.);
-					o.debugtint = wt_0 * tintCols[_WD_LodIdx_0 % TINT_COUNT] + wt_1 * tintCols[_WD_LodIdx_1 % TINT_COUNT];
+					o.debugtint = wt_0 * tintCols[_LD_LodIdx_0 % TINT_COUNT] + wt_1 * tintCols[_LD_LodIdx_1 % TINT_COUNT];
 					#endif
 
 					// view-projection	

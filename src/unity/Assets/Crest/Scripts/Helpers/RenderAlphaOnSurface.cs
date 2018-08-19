@@ -32,9 +32,9 @@ namespace Crest
                 _rend.GetPropertyBlock(_mpb);
 
                 var ldaws = OceanRenderer.Instance.Builder._lodDataAnimWaves;
-                ldaws[idx].ApplyMaterialParams(0, _mpb);
+                ldaws[idx].BindResultData(0, _mpb);
                 int idx1 = Mathf.Min(idx + 1, ldaws.Length - 1);
-                ldaws[idx1].ApplyMaterialParams(1, _mpb);
+                ldaws[idx1].BindResultData(1, _mpb);
 
                 // blend LOD 0 shape in/out to avoid pop, if the ocean might scale up later (it is smaller than its maximum scale)
                 bool needToBlendOutShape = idx == 0 && OceanRenderer.Instance.ScaleCouldIncrease;

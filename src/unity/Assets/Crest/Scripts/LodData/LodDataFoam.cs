@@ -9,12 +9,10 @@ namespace Crest
     /// </summary>
     public class LodDataFoam : LodDataPersistent
     {
-        public override string SimName { get { return "Foam"; } }
+        public override SimType LodDataType { get { return SimType.Foam; } }
         protected override string ShaderSim { get { return "Ocean/Shape/Sim/Foam"; } }
-        protected override string ShaderRenderResultsIntoDispTexture { get { return "Ocean/Shape/Sim/Foam Add To Disps"; } }
         public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RHalf; } }
-        public static readonly int SIM_RENDER_DEPTH = -20;
-        public override int Depth { get { return SIM_RENDER_DEPTH; } }
+        public override int Depth { get { return -20; } }
         protected override Camera[] SimCameras { get { return OceanRenderer.Instance.Builder._camsFoam; } }
 
         public override SimSettingsBase CreateDefaultSettings()
@@ -33,6 +31,11 @@ namespace Crest
             simMaterial.SetFloat("_WaveFoamCoverage", Settings._waveFoamCoverage);
             simMaterial.SetFloat("_ShorelineFoamMaxDepth", Settings._shorelineFoamMaxDepth);
             simMaterial.SetFloat("_ShorelineFoamStrength", Settings._shorelineFoamStrength);
+
+            // assign animated waves - to slot 1 current frame data
+            OceanRenderer.Instance.Builder._lodDataAnimWaves[LodIndex].BindResultData(1, simMaterial);
+            // assign sea floor depth - to slot 1 current frame data
+            OceanRenderer.Instance.Builder._lodDataAnimWaves[LodIndex].LDSeaDepth.BindResultData(1, simMaterial);
         }
 
         SimSettingsFoam Settings { get { return _settings as SimSettingsFoam; } }

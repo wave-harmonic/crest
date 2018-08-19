@@ -10,27 +10,37 @@ namespace Crest
     {
         // partially complete info below - this loddata rides on the LodDataAnimatedWaves currently, so a bunch
         // of the below are not used
+        public override SimType LodDataType { get { return SimType.SeaFloorDepth; } }
         public override SimSettingsBase CreateDefaultSettings() { return null; }
         public override void UseSettings(SimSettingsBase settings) { }
         public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RHalf; } }
         public override int Depth { get { return 0; } }
         public override CameraClearFlags CamClearFlags { get { return CameraClearFlags.Color; } }
+        public override RenderTexture DataTexture { get { return _rtOceanDepth; } }
 
         Material _matOceanDepth;
         CommandBuffer _bufOceanDepth = null;
 
         RenderTexture _rtOceanDepth;
-        public RenderTexture RTOceanDepth { get { return _rtOceanDepth; } }
 
         bool _oceanDepthRenderersDirty = true;
         /// <summary>Called when one or more objects that will render into depth are created, so that all objects are registered.</summary>
         public void OnOceanDepthRenderersChanged() { _oceanDepthRenderersDirty = true; }
 
-        private void Start()
+        protected override void Start()
         {
+            base.Start();
+
             Cam.depthTextureMode = DepthTextureMode.None;
 
             _matOceanDepth = new Material(Shader.Find("Ocean/Ocean Depth"));
+
+            int res = OceanRenderer.Instance.LodDataResolution;
+            _rtOceanDepth = new RenderTexture(res, res, 0);
+            _rtOceanDepth.name = gameObject.name + "_oceanDepth";
+            _rtOceanDepth.format = TextureFormat;
+            _rtOceanDepth.useMipMap = false;
+            _rtOceanDepth.anisoLevel = 0;
         }
 
         private void Update()
@@ -40,6 +50,14 @@ namespace Crest
                 UpdateCmdBufOceanFloorDepth();
                 _oceanDepthRenderersDirty = false;
             }
+        }
+
+        // script execution order ensures this runs after ocean has been placed
+        void LateUpdate()
+        {
+            // this lod data currently piggy backs on the animated waves loddata and camera, and it should not
+            // in theory need to update transform data, however it needs data here to apply when Bind() is called.
+            LateUpdateTransformData();
         }
 
         // The command buffer populates the LODs with ocean depth data. It submits any objects with a RenderOceanDepth component attached.
@@ -57,15 +75,6 @@ namespace Crest
                 }
 
                 return;
-            }
-
-            if (!_rtOceanDepth)
-            {
-                _rtOceanDepth = new RenderTexture(Cam.targetTexture.width, Cam.targetTexture.height, 0);
-                _rtOceanDepth.name = gameObject.name + "_oceanDepth";
-                _rtOceanDepth.format = TextureFormat;
-                _rtOceanDepth.useMipMap = false;
-                _rtOceanDepth.anisoLevel = 0;
             }
 
             if (_bufOceanDepth == null)

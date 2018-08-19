@@ -39,6 +39,7 @@ namespace Crest
         public float _baseVertDensity = 32f;
         [SerializeField, Delayed, Tooltip( "Number of ocean tile scales/LODs to generate." ), ]
         int _lodCount = 6;
+        public int LodDataResolution { get { return (int)(4f * _baseVertDensity); } }
 
         [Header("Debug Params")]
         [Tooltip("Whether to generate ocean geometry tiles uniformly (with overlaps)")]

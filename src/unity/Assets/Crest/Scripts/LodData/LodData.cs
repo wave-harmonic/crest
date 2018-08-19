@@ -7,20 +7,33 @@ namespace Crest
 {
     public abstract class LodData : MonoBehaviour
     {
+        public string SimName { get { return LodDataType.ToString(); } }
+        public abstract SimType LodDataType { get; }
+
         public abstract SimSettingsBase CreateDefaultSettings();
         public abstract void UseSettings(SimSettingsBase settings);
 
         public abstract RenderTextureFormat TextureFormat { get; }
         public abstract int Depth { get; }
         public abstract CameraClearFlags CamClearFlags { get; }
+        public abstract RenderTexture DataTexture { get; }
 
         public struct RenderData
         {
             public float _texelWidth;
             public float _textureRes;
             public Vector3 _posSnapped;
+            public int _frame;
+            public RenderData Validate(int frameOffset, Object context)
+            {
+                if (_frame != Time.frameCount + frameOffset)
+                    Debug.LogError(string.Format("Validation failed: _frame of data ({0}) != expected ({1})", _frame, Time.frameCount + frameOffset), context);
+
+                return this;
+            }
         }
         public RenderData _renderData = new RenderData();
+        public RenderData _renderDataPrevFrame = new RenderData();
 
         // shape texture resolution
         int _shapeRes = -1;
@@ -31,13 +44,40 @@ namespace Crest
         protected int LodIndex { get { return _lodIndex; } }
         protected int LodCount { get { return _lodCount; } }
 
+        // these would ideally be static but then they get cleared when editing-and-continuing in the editor.
+        int[] _paramsPosScale;
+        int[] _paramsLodIdx;
+        protected int[] _paramsOceanParams;
+        int[] _paramsLodDataSampler;
+
+        protected virtual void Start()
+        {
+            // create shader param IDs for each LOD once on start to avoid creating garbage each frame.
+            if (_paramsLodDataSampler == null)
+            {
+                CreateParamIDs(ref _paramsLodDataSampler, "_LD_Sampler_" + SimName + "_");
+                CreateParamIDs(ref _paramsOceanParams, "_LD_Params_");
+                CreateParamIDs(ref _paramsPosScale, "_LD_Pos_Scale_");
+                CreateParamIDs(ref _paramsLodIdx, "_LD_LodIdx_");
+            }
+        }
+
+        protected int _transformUpdateFrame = -1;
+
         protected virtual void LateUpdateTransformData()
         {
+            if (_transformUpdateFrame == Time.frameCount)
+                return;
+
+            _transformUpdateFrame = Time.frameCount;
+
+            _renderDataPrevFrame = _renderData;
+
             // ensure camera size matches geometry size - although the projection matrix is overridden, this is needed for unity shader uniforms
             Cam.orthographicSize = 2f * transform.lossyScale.x;
 
             // find snap period
-            int width = Cam.targetTexture.width;
+            int width = DataTexture.width;
             // debug functionality to resize RT if different size was specified.
             if (_shapeRes == -1)
             {
@@ -45,11 +85,11 @@ namespace Crest
             }
             else if (width != _shapeRes)
             {
-                Cam.targetTexture.Release();
-                Cam.targetTexture.width = Cam.targetTexture.height = _shapeRes;
-                Cam.targetTexture.Create();
+                DataTexture.Release();
+                DataTexture.width = DataTexture.height = _shapeRes;
+                DataTexture.Create();
             }
-            _renderData._textureRes = (float)Cam.targetTexture.width;
+            _renderData._textureRes = DataTexture.width;
             _renderData._texelWidth = 2f * Cam.orthographicSize / _renderData._textureRes;
             // snap so that shape texels are stationary
             _renderData._posSnapped = transform.position
@@ -61,6 +101,53 @@ namespace Crest
             T.SetTRS(new Vector3(transform.position.x - _renderData._posSnapped.x, transform.position.z - _renderData._posSnapped.z), Quaternion.identity, Vector3.one);
             P = P * T;
             Cam.projectionMatrix = P;
+
+            _renderData._frame = Time.frameCount;
+
+            // detect first update and populate the render data if so - otherwise it can give divide by 0s and other nastiness
+            if (_renderDataPrevFrame._textureRes == 0f)
+            {
+                _renderDataPrevFrame._posSnapped = _renderData._posSnapped;
+                _renderDataPrevFrame._texelWidth = _renderData._texelWidth;
+                _renderDataPrevFrame._textureRes = _renderData._textureRes;
+            }
+        }
+
+        protected PropertyWrapperMaterial _pwMat = new PropertyWrapperMaterial();
+        protected PropertyWrapperMPB _pwMPB = new PropertyWrapperMPB();
+
+        public void BindResultData(int shapeSlot, Material properties)
+        {
+            _pwMat._target = properties;
+            BindData(shapeSlot, _pwMat, DataTexture, true, ref _renderData);
+            _pwMat._target = null;
+        }
+
+        public void BindResultData(int shapeSlot, MaterialPropertyBlock properties)
+        {
+            _pwMPB._target = properties;
+            BindData(shapeSlot, _pwMPB, DataTexture, true, ref _renderData);
+            _pwMPB._target = null;
+        }
+
+        public void BindResultData(int shapeSlot, Material properties, bool blendOut)
+        {
+            _pwMat._target = properties;
+            BindData(shapeSlot, _pwMat, DataTexture, blendOut, ref _renderData);
+            _pwMat._target = null;
+        }
+
+        protected virtual void BindData(int shapeSlot, IPropertyWrapper properties, Texture applyData, bool blendOut, ref RenderData renderData)
+        {
+            if (applyData)
+            {
+                properties.SetTexture(_paramsLodDataSampler[shapeSlot], applyData);
+            }
+
+            properties.SetVector(_paramsPosScale[shapeSlot], new Vector3(renderData._posSnapped.x, renderData._posSnapped.z, transform.lossyScale.x));
+            properties.SetFloat(_paramsLodIdx[shapeSlot], LodIndex);
+            properties.SetVector(_paramsOceanParams[shapeSlot],
+                new Vector4(renderData._texelWidth, renderData._textureRes, 1f, 1f / renderData._textureRes));
         }
 
         public enum SimType
@@ -137,6 +224,21 @@ namespace Crest
             return go;
         }
 
+        protected void CreateParamIDs(ref int[] ids, string prefix)
+        {
+            int count = 2;
+            ids = new int[count];
+            for (int i = 0; i < count; i++)
+            {
+                ids[i] = Shader.PropertyToID(string.Format("{0}{1}", prefix, i));
+            }
+        }
+
         Camera _camera; protected Camera Cam { get { return _camera ?? (_camera = GetComponent<Camera>()); } }
+        LodDataSeaFloorDepth _ldsd;
+        public LodDataSeaFloorDepth LDSeaDepth { get { return _ldsd ?? (_ldsd = GetComponent<LodDataSeaFloorDepth>()); } }
+        LodDataFoam _ldf; public LodDataFoam LDFoam { get {
+                return _ldf ?? (_ldf = OceanRenderer.Instance.Builder._camsFoam[LodIndex].GetComponent<LodDataFoam>());
+        } }
     }
 }

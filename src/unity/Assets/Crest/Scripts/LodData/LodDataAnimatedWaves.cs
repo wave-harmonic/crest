@@ -99,7 +99,7 @@ namespace Crest
             {
                 _bufCombineShapes = new CommandBuffer();
                 Cam.AddCommandBuffer(_combineEvent, _bufCombineShapes);
-                _bufCombineShapes.name = "Combine Shapes";
+                _bufCombineShapes.name = "Combine Displacements";
 
                 var cams = OceanRenderer.Instance.Builder._camsAnimWaves;
                 for (int L = cams.Length - 2; L >= 0; L--)
@@ -130,7 +130,7 @@ namespace Crest
             RemoveCommandBuffers();
         }
 
-        protected override void BindData(int shapeSlot, IPropertyWrapper properties, Texture applyData, bool blendOut, ref RenderData renderData)
+        protected override void BindData(int shapeSlot, IPropertyWrapper properties, Texture applyData, bool blendOut, ref LodTransform.RenderData renderData)
         {
             base.BindData(shapeSlot, properties, applyData, blendOut, ref renderData);
 

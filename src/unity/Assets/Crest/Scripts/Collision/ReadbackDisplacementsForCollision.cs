@@ -18,7 +18,7 @@ namespace Crest
         struct CollisionRequest
         {
             public AsyncGPUReadbackRequest _request;
-            public LodData.RenderData _renderData;
+            public LodTransform.RenderData _renderData;
         }
 
         Queue<CollisionRequest> _requests = new Queue<CollisionRequest>();
@@ -26,7 +26,7 @@ namespace Crest
 
         // collision data
         NativeArray<ushort> _collDataNative;
-        LodData.RenderData _collRenderData;
+        LodTransform.RenderData _collRenderData;
 
         private void Update()
         {
@@ -39,7 +39,7 @@ namespace Crest
         /// <summary>
         /// Request current contents of cameras shape texture.
         /// </summary>
-        public void UpdateShapeReadback(Camera cam, LodData.RenderData renderData)
+        public void UpdateShapeReadback(Camera cam, LodTransform.RenderData renderData)
         {
             // shape textures are read back to the CPU for collision purposes. this uses an experimental API which
             // will hopefully be settled in future unity versions.
@@ -98,7 +98,7 @@ namespace Crest
             }
         }
 
-        public void EnqueueReadbackRequest(RenderTexture target, LodData.RenderData renderData)
+        public void EnqueueReadbackRequest(RenderTexture target, LodTransform.RenderData renderData)
         {
             if (_requests.Count < MAX_REQUESTS)
             {

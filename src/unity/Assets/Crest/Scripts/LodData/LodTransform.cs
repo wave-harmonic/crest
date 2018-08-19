@@ -5,8 +5,25 @@ namespace Crest
     public class LodTransform : MonoBehaviour
     {
         protected int _transformUpdateFrame = -1;
-        public LodData.RenderData _renderData = new LodData.RenderData();
-        public LodData.RenderData _renderDataPrevFrame = new LodData.RenderData();
+
+        public struct RenderData
+        {
+            public float _texelWidth;
+            public float _textureRes;
+            public Vector3 _posSnapped;
+            public int _frame;
+
+            public RenderData Validate(int frameOffset, Object context)
+            {
+                if (_frame != Time.frameCount + frameOffset)
+                    Debug.LogError(string.Format("RenderData validation failed: _frame of data ({0}) != expected ({1})", _frame, Time.frameCount + frameOffset), context);
+
+                return this;
+            }
+        }
+
+        public RenderData _renderData = new RenderData();
+        public RenderData _renderDataPrevFrame = new RenderData();
 
         int _lodIndex = -1;
         int _lodCount = -1;

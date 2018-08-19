@@ -18,20 +18,6 @@ namespace Crest
         public abstract CameraClearFlags CamClearFlags { get; }
         public abstract RenderTexture DataTexture { get; }
 
-        public struct RenderData
-        {
-            public float _texelWidth;
-            public float _textureRes;
-            public Vector3 _posSnapped;
-            public int _frame;
-            public RenderData Validate(int frameOffset, Object context)
-            {
-                if (_frame != Time.frameCount + frameOffset)
-                    Debug.LogError(string.Format("Validation failed: _frame of data ({0}) != expected ({1})", _frame, Time.frameCount + frameOffset), context);
-
-                return this;
-            }
-        }
 
         // shape texture resolution
         int _shapeRes = -1;
@@ -94,7 +80,7 @@ namespace Crest
             _pwMat._target = null;
         }
 
-        protected virtual void BindData(int shapeSlot, IPropertyWrapper properties, Texture applyData, bool blendOut, ref RenderData renderData)
+        protected virtual void BindData(int shapeSlot, IPropertyWrapper properties, Texture applyData, bool blendOut, ref LodTransform.RenderData renderData)
         {
             if (applyData)
             {

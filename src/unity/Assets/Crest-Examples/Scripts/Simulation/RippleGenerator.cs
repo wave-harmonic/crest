@@ -7,11 +7,13 @@ public class RippleGenerator : MonoBehaviour {
     public float _period = 4f;
 
     MeshRenderer _mr;
+    Material _mat;
 
 	void Start()
     {
         _mr = GetComponent<MeshRenderer>();
         _mr.enabled = false;
+        _mat = _mr.material;
 	}
 	
 	void Update()
@@ -22,5 +24,18 @@ public class RippleGenerator : MonoBehaviour {
         t -= _warmUp;
         t = Mathf.Repeat(t, _period);
         _mr.enabled = t < _onTime;
-	}
+
+        int simsPresent, simsActive;
+        Crest.LodDataDynamicWaves.CountWaveSims(out simsPresent, out simsActive);
+        if (simsPresent == 0)
+        {
+            enabled = false;
+            return;
+        }
+
+        if (simsActive > 0)
+        {
+            _mat.SetFloat("_SimCount", simsActive);
+        }
+    }
 }

@@ -15,8 +15,8 @@ public class FeedVelocityToExtrude : MonoBehaviour {
     [Range(0f, 1f)]
     public float _noiseAmp = 0.5f;
 
-    [Range(0f, 3f)]
-    public float _weight = 2f;
+    [Range(0f, 20f)]
+    public float _weight = 6f;
     [Range(0f, 2f)]
     public float _weightUpDownMul = 0.5f;
 
@@ -38,6 +38,20 @@ public class FeedVelocityToExtrude : MonoBehaviour {
 
     void LateUpdate()
     {
+        int simsPresent, simsActive;
+        Crest.LodDataDynamicWaves.CountWaveSims(out simsPresent, out simsActive);
+
+        // counting non-existent sims is expensive - stop updating if none found
+        if(simsPresent == 0)
+        {
+            enabled = false;
+            return;
+        }
+
+        // no sims running - abort. don't bother switching off renderer - camera wont be active
+        if (simsActive == 0)
+            return;
+
         var disp = _boat ? _boat.DisplacementToBoat : Vector3.zero;
         transform.position = transform.parent.TransformPoint(_localOffset) - disp;
 
@@ -70,7 +84,7 @@ public class FeedVelocityToExtrude : MonoBehaviour {
         _mat.SetVector("_Velocity", rnd * vel);
         _posLast = transform.position;
 
-        _mat.SetFloat("_Weight", (_boat == null || _boat.InWater) ? _weight : 0f);
+        _mat.SetFloat("_Weight", (_boat == null || _boat.InWater) ? _weight / simsActive : 0f);
 
         _mat.SetFloat("_SimDeltaTime", Mathf.Min(Time.deltaTime, Crest.LodDataPersistent.MAX_SIM_DELTA_TIME));
     }

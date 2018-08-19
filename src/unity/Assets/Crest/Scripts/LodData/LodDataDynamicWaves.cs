@@ -29,7 +29,10 @@ namespace Crest
 
         Material _copySimMaterial = null;
         CommandBuffer _copySimResultsCmdBuf;
-        
+
+        bool _active = true;
+        public bool Active { get { return _active; } }
+
         protected override void Start()
         {
             base.Start();
@@ -45,15 +48,15 @@ namespace Crest
 
             // check if the sim should be running
             float texelWidth = LodTransform._renderData.Validate(0, this)._texelWidth;
-            bool active = texelWidth >= Settings._minGridSize && (texelWidth <= Settings._maxGridSize || Settings._maxGridSize == 0f);
-            if (!active && _copySimResultsCmdBuf != null)
+            _active = texelWidth >= Settings._minGridSize && (texelWidth <= Settings._maxGridSize || Settings._maxGridSize == 0f);
+            if (!_active && _copySimResultsCmdBuf != null)
             {
                 // not running - remove command buffer to copy results in
                 OceanRenderer.Instance.Builder._camsAnimWaves[LodTransform.LodIndex]
                     .RemoveCommandBuffer(_copyAttachEvent, _copySimResultsCmdBuf);
                 _copySimResultsCmdBuf = null;
             }
-            else if (active && _copySimResultsCmdBuf == null)
+            else if (_active && _copySimResultsCmdBuf == null)
             {
                 // running - create command buffer
                 _copySimResultsCmdBuf = new CommandBuffer();
@@ -62,7 +65,7 @@ namespace Crest
                     .AddCommandBuffer(_copyAttachEvent, _copySimResultsCmdBuf);
             }
             // only run simulation if enabled
-            Cam.enabled = active;
+            Cam.enabled = _active;
 
             _copySimMaterial.SetFloat("_HorizDisplace", Settings._horizDisplace);
             _copySimMaterial.SetFloat("_DisplaceClamp", Settings._displaceClamp);
@@ -100,6 +103,21 @@ namespace Crest
                 OceanRenderer.Instance.Builder._camsAnimWaves[LodTransform.LodIndex]
                     .RemoveCommandBuffer(_copyAttachEvent, _copySimResultsCmdBuf);
                 _copySimResultsCmdBuf = null;
+            }
+        }
+
+        public static void CountWaveSims(out int present, out int active)
+        {
+            present = active = 0;
+            foreach (var ldaw in Crest.OceanRenderer.Instance.Builder._lodDataAnimWaves)
+            {
+                if (ldaw.LDDynamicWaves == null)
+                    continue;
+                present++;
+
+                if (!ldaw.LDDynamicWaves.Active)
+                    continue;
+                active++;
             }
         }
 

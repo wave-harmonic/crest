@@ -25,6 +25,8 @@ namespace Crest
 
         public bool _rotateLaplacian = true;
 
+        readonly CameraEvent _copyAttachEvent = CameraEvent.AfterEverything;
+
         Material _copySimMaterial = null;
         CommandBuffer _copySimResultsCmdBuf;
         
@@ -41,13 +43,26 @@ namespace Crest
 
             // this sim copies its results into the animated waves
 
-            if (_copySimResultsCmdBuf == null)
+            // check if the sim should be running
+            float texelWidth = LodTransform._renderData.Validate(0, this)._texelWidth;
+            bool active = texelWidth >= Settings._minGridSize && (texelWidth <= Settings._maxGridSize || Settings._maxGridSize == 0f);
+            if (!active && _copySimResultsCmdBuf != null)
             {
+                // not running - remove command buffer to copy results in
+                OceanRenderer.Instance.Builder._camsAnimWaves[LodTransform.LodIndex]
+                    .RemoveCommandBuffer(_copyAttachEvent, _copySimResultsCmdBuf);
+                _copySimResultsCmdBuf = null;
+            }
+            else if (active && _copySimResultsCmdBuf == null)
+            {
+                // running - create command buffer
                 _copySimResultsCmdBuf = new CommandBuffer();
                 _copySimResultsCmdBuf.name = "CopySimResults_" + SimName;
                 OceanRenderer.Instance.Builder._camsAnimWaves[LodTransform.LodIndex]
-                    .AddCommandBuffer(CameraEvent.AfterEverything, _copySimResultsCmdBuf);
+                    .AddCommandBuffer(_copyAttachEvent, _copySimResultsCmdBuf);
             }
+            // only run simulation if enabled
+            Cam.enabled = active;
 
             _copySimMaterial.SetFloat("_HorizDisplace", Settings._horizDisplace);
             _copySimMaterial.SetFloat("_DisplaceClamp", Settings._displaceClamp);
@@ -55,9 +70,12 @@ namespace Crest
 
             _copySimMaterial.mainTexture = PPRTs.Target;
 
-            _copySimResultsCmdBuf.Clear();
-            _copySimResultsCmdBuf.Blit(
-                PPRTs.Target, OceanRenderer.Instance.Builder._camsAnimWaves[LodTransform.LodIndex].targetTexture, _copySimMaterial);
+            if (_copySimResultsCmdBuf != null)
+            {
+                _copySimResultsCmdBuf.Clear();
+                _copySimResultsCmdBuf.Blit(
+                    PPRTs.Target, OceanRenderer.Instance.Builder._camsAnimWaves[LodTransform.LodIndex].targetTexture, _copySimMaterial);
+            }
         }
 
         protected override void SetAdditionalSimParams(Material simMaterial)
@@ -73,6 +91,16 @@ namespace Crest
             // assign sea floor depth - to slot 1 current frame data. minor bug here - this depth will actually be from the previous frame,
             // because the depth is scheduled to render just before the animated waves, and this sim happens before animated waves.
             OceanRenderer.Instance.Builder._lodDataAnimWaves[LodTransform.LodIndex].LDSeaDepth.BindResultData(1, simMaterial);
+        }
+
+        private void OnDisable()
+        {
+            if (_copySimResultsCmdBuf != null)
+            {
+                OceanRenderer.Instance.Builder._camsAnimWaves[LodTransform.LodIndex]
+                    .RemoveCommandBuffer(_copyAttachEvent, _copySimResultsCmdBuf);
+                _copySimResultsCmdBuf = null;
+            }
         }
 
         SimSettingsWave Settings { get { return _settings as SimSettingsWave; } }

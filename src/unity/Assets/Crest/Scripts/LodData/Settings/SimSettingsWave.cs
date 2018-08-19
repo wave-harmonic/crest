@@ -7,6 +7,9 @@ namespace Crest
     [CreateAssetMenu(fileName = "SimSettingsWaves", menuName = "Crest/Wave Sim Settings", order = 10000)]
     public class SimSettingsWave : SimSettingsBase
     {
+        public float _minGridSize = 0f;
+        public float _maxGridSize = 0f;
+
         [Range(0f, 1f)]
         public float _damping = 0.173f;
 

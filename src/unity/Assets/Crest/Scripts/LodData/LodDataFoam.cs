@@ -5,7 +5,7 @@ using UnityEngine;
 namespace Crest
 {
     /// <summary>
-    /// A persistent foam simulation that moves around with a displacement LOD.
+    /// A persistent foam simulation that moves around with a displacement LOD. The input is fully combined water surface shape.
     /// </summary>
     public class LodDataFoam : LodDataPersistent
     {
@@ -33,9 +33,9 @@ namespace Crest
             simMaterial.SetFloat("_ShorelineFoamStrength", Settings._shorelineFoamStrength);
 
             // assign animated waves - to slot 1 current frame data
-            OceanRenderer.Instance.Builder._lodDataAnimWaves[LodIndex].BindResultData(1, simMaterial);
+            OceanRenderer.Instance.Builder._lodDataAnimWaves[LodTransform.LodIndex].BindResultData(1, simMaterial);
             // assign sea floor depth - to slot 1 current frame data
-            OceanRenderer.Instance.Builder._lodDataAnimWaves[LodIndex].LDSeaDepth.BindResultData(1, simMaterial);
+            OceanRenderer.Instance.Builder._lodDataAnimWaves[LodTransform.LodIndex].LDSeaDepth.BindResultData(1, simMaterial);
         }
 
         SimSettingsFoam Settings { get { return _settings as SimSettingsFoam; } }

@@ -70,27 +70,15 @@ namespace Crest
         public void BindSourceData(int shapeSlot, Material properties, bool paramsOnly)
         {
             _pwMat._target = properties;
-            var rd = _renderDataPrevFrame.Validate(-1, this);
+            var rd = LodTransform._renderDataPrevFrame.Validate(-1, this);
             BindData(shapeSlot, _pwMat, paramsOnly ? Texture2D.blackTexture : (Texture)PPRTs.Source, true, ref rd);
             _pwMat._target = null;
         }
 
-        void LateUpdate()
+
+        protected override void LateUpdate()
         {
-            // unfortunate code - the update of the transform data is required further down in this function (to
-            // set up shader params), for ALL LodDatas, because on scale transitions we could sample from data up or
-            // down the chain. this loop ensures all transform data is up to date before proceeding. this would not
-            // be required if there were more update buckets in unity. a solution would be to extract the transform
-            // data into a separate component and set script execution order.
-            if (_transformUpdateFrame < Time.frameCount)
-            {
-                foreach(var cam in SimCameras)
-                {
-                    var ld = cam.GetComponent<LodDataPersistent>();
-                    ld.LateUpdateTransformData();
-                }
-            }
-            //LateUpdateTransformData();
+            base.LateUpdate();
 
             if (_advanceSimCmdBuf == null)
             {
@@ -113,7 +101,7 @@ namespace Crest
             float ratio_l2 = Mathf.Log(ratio) / Mathf.Log(2f);
             int delta = Mathf.RoundToInt(ratio_l2);
 
-            int srcDataIdx = LodIndex + delta;
+            int srcDataIdx = LodTransform.LodIndex + delta;
 
             if (srcDataIdx >= 0 && srcDataIdx < SimCameras.Length)
             {

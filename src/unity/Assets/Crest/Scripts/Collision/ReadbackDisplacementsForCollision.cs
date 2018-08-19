@@ -32,7 +32,7 @@ namespace Crest
         {
             if (_readbackShapeForCollision)
             {
-                UpdateShapeReadback(Cam, LDAW._renderData);
+                UpdateShapeReadback(Cam, LDAW.LodTransform._renderData);
             }
         }
 
@@ -212,8 +212,8 @@ namespace Crest
                 var ldaw = ldaws[lod];
                 var wdcRect = ldaw.CollReadback.CollisionDataRectXZ;
                 // shrink rect by 1 texel border - this is to make finite differences fit as well
-                wdcRect.x += ldaw._renderData._texelWidth; wdcRect.y += ldaw._renderData._texelWidth;
-                wdcRect.width -= 2f * ldaw._renderData._texelWidth; wdcRect.height -= 2f * ldaw._renderData._texelWidth;
+                wdcRect.x += ldaw.LodTransform._renderData._texelWidth; wdcRect.y += ldaw.LodTransform._renderData._texelWidth;
+                wdcRect.width -= 2f * ldaw.LodTransform._renderData._texelWidth; wdcRect.height -= 2f * ldaw.LodTransform._renderData._texelWidth;
                 if (!wdcRect.Contains(sampleAreaXZ.min) || !wdcRect.Contains(sampleAreaXZ.max))
                     continue;
 

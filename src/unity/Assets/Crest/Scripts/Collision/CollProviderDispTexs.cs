@@ -55,7 +55,7 @@ namespace Crest
             // select lod. this now has a 1 texel buffer, so the finite differences below should all be valid.
             PrewarmForSamplingArea(new Rect(undisplacedWorldPos.x, undisplacedWorldPos.z, 0f, 0f), minSpatialLength);
 
-            float gridSize = OceanRenderer.Instance.Builder._lodDataAnimWaves[_areaLod]._renderData._texelWidth;
+            float gridSize = OceanRenderer.Instance.Builder._lodDataAnimWaves[_areaLod].LodTransform._renderData._texelWidth;
 
             Vector3 dispCenter = Vector3.zero;
             if (!SampleDisplacementInArea(ref undisplacedWorldPos, ref dispCenter)) return false;

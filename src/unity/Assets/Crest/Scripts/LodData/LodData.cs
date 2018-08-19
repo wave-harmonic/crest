@@ -32,17 +32,9 @@ namespace Crest
                 return this;
             }
         }
-        public RenderData _renderData = new RenderData();
-        public RenderData _renderDataPrevFrame = new RenderData();
 
         // shape texture resolution
         int _shapeRes = -1;
-
-        int _lodIndex = -1;
-        int _lodCount = -1;
-        public void InitLODData(int lodIndex, int lodCount) { _lodIndex = lodIndex; _lodCount = lodCount; }
-        protected int LodIndex { get { return _lodIndex; } }
-        protected int LodCount { get { return _lodCount; } }
 
         // these would ideally be static but then they get cleared when editing-and-continuing in the editor.
         int[] _paramsPosScale;
@@ -62,22 +54,9 @@ namespace Crest
             }
         }
 
-        protected int _transformUpdateFrame = -1;
-
-        protected virtual void LateUpdateTransformData()
+        protected virtual void LateUpdate()
         {
-            if (_transformUpdateFrame == Time.frameCount)
-                return;
-
-            _transformUpdateFrame = Time.frameCount;
-
-            _renderDataPrevFrame = _renderData;
-
-            // ensure camera size matches geometry size - although the projection matrix is overridden, this is needed for unity shader uniforms
-            Cam.orthographicSize = 2f * transform.lossyScale.x;
-
-            // find snap period
-            int width = DataTexture.width;
+            int width = OceanRenderer.Instance.LodDataResolution;
             // debug functionality to resize RT if different size was specified.
             if (_shapeRes == -1)
             {
@@ -89,28 +68,6 @@ namespace Crest
                 DataTexture.width = DataTexture.height = _shapeRes;
                 DataTexture.Create();
             }
-            _renderData._textureRes = DataTexture.width;
-            _renderData._texelWidth = 2f * Cam.orthographicSize / _renderData._textureRes;
-            // snap so that shape texels are stationary
-            _renderData._posSnapped = transform.position
-                - new Vector3(Mathf.Repeat(transform.position.x, _renderData._texelWidth), 0f, Mathf.Repeat(transform.position.z, _renderData._texelWidth));
-
-            // set projection matrix to snap to texels
-            Cam.ResetProjectionMatrix();
-            Matrix4x4 P = Cam.projectionMatrix, T = new Matrix4x4();
-            T.SetTRS(new Vector3(transform.position.x - _renderData._posSnapped.x, transform.position.z - _renderData._posSnapped.z), Quaternion.identity, Vector3.one);
-            P = P * T;
-            Cam.projectionMatrix = P;
-
-            _renderData._frame = Time.frameCount;
-
-            // detect first update and populate the render data if so - otherwise it can give divide by 0s and other nastiness
-            if (_renderDataPrevFrame._textureRes == 0f)
-            {
-                _renderDataPrevFrame._posSnapped = _renderData._posSnapped;
-                _renderDataPrevFrame._texelWidth = _renderData._texelWidth;
-                _renderDataPrevFrame._textureRes = _renderData._textureRes;
-            }
         }
 
         protected PropertyWrapperMaterial _pwMat = new PropertyWrapperMaterial();
@@ -119,21 +76,21 @@ namespace Crest
         public void BindResultData(int shapeSlot, Material properties)
         {
             _pwMat._target = properties;
-            BindData(shapeSlot, _pwMat, DataTexture, true, ref _renderData);
+            BindData(shapeSlot, _pwMat, DataTexture, true, ref LodTransform._renderData);
             _pwMat._target = null;
         }
 
         public void BindResultData(int shapeSlot, MaterialPropertyBlock properties)
         {
             _pwMPB._target = properties;
-            BindData(shapeSlot, _pwMPB, DataTexture, true, ref _renderData);
+            BindData(shapeSlot, _pwMPB, DataTexture, true, ref LodTransform._renderData);
             _pwMPB._target = null;
         }
 
         public void BindResultData(int shapeSlot, Material properties, bool blendOut)
         {
             _pwMat._target = properties;
-            BindData(shapeSlot, _pwMat, DataTexture, blendOut, ref _renderData);
+            BindData(shapeSlot, _pwMat, DataTexture, blendOut, ref LodTransform._renderData);
             _pwMat._target = null;
         }
 
@@ -145,7 +102,7 @@ namespace Crest
             }
 
             properties.SetVector(_paramsPosScale[shapeSlot], new Vector3(renderData._posSnapped.x, renderData._posSnapped.z, transform.lossyScale.x));
-            properties.SetFloat(_paramsLodIdx[shapeSlot], LodIndex);
+            properties.SetFloat(_paramsLodIdx[shapeSlot], LodTransform.LodIndex);
             properties.SetVector(_paramsOceanParams[shapeSlot],
                 new Vector4(renderData._texelWidth, renderData._textureRes, 1f, 1f / renderData._textureRes));
         }
@@ -162,6 +119,8 @@ namespace Crest
         public static GameObject CreateLodData(int lodIdx, int lodCount, float baseVertDensity, SimType simType, Dictionary<System.Type, SimSettingsBase> cachedSettings)
         {
             var go = new GameObject(string.Format("{0}Cam{1}", simType.ToString(), lodIdx));
+
+            go.AddComponent<LodTransform>().InitLODData(lodIdx, lodCount); ;
 
             LodData sim;
             switch (simType)
@@ -181,7 +140,6 @@ namespace Crest
                     Debug.LogError("Unknown sim type: " + simType.ToString());
                     return null;
             }
-            sim.InitLODData(lodIdx, lodCount);
 
             // create a shared settings object if one doesnt already exist
             SimSettingsBase settings;
@@ -238,7 +196,8 @@ namespace Crest
         LodDataSeaFloorDepth _ldsd;
         public LodDataSeaFloorDepth LDSeaDepth { get { return _ldsd ?? (_ldsd = GetComponent<LodDataSeaFloorDepth>()); } }
         LodDataFoam _ldf; public LodDataFoam LDFoam { get {
-                return _ldf ?? (_ldf = OceanRenderer.Instance.Builder._camsFoam[LodIndex].GetComponent<LodDataFoam>());
+                return _ldf ?? (_ldf = OceanRenderer.Instance.Builder._camsFoam[LodTransform.LodIndex].GetComponent<LodDataFoam>());
         } }
+        LodTransform _lt; public LodTransform LodTransform { get { return _lt ?? (_lt = GetComponent<LodTransform>()); } }
     }
 }

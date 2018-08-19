@@ -10,9 +10,9 @@ namespace Crest
     /// waves are drawn in this way. There are two special features of this particular LodData:
     /// 
     ///  * A combine pass is done which combines downwards from low detail lods down into the high detail lods
-    ///  * The textures from this LodData are passed to the ocean material when the surface is drawn
-    ///  * Foam and Dynamic Waves LodDatas add their results into this LodData. The dynamic waves piggy back off the combine
-    ///    pass. Both piggy back off the assignment to the ocean material.
+    ///  * The textures from this LodData are passed to the ocean material when the surface is drawn (by OceanChunkRenderer)
+    ///  * LodDataDynamicWaves adds its results into this LodData. The dynamic waves piggy back off the combine
+    ///    pass and subsequent assignment to the ocean material.
     ///  * The LodDataSeaFloorDepth sits on this same GameObject and borrows the camera. This could be a model for the other sim types..
     /// </summary>
     public class LodDataAnimatedWaves : LodData
@@ -43,7 +43,7 @@ namespace Crest
         private void Update()
         {
             // shape combine pass done by last shape camera - lod 0
-            if (LodIndex == 0)
+            if (LodTransform.LodIndex == 0)
             {
                 UpdateCmdBufShapeCombine();
             }
@@ -52,15 +52,15 @@ namespace Crest
         public float MaxWavelength()
         {
             float oceanBaseScale = OceanRenderer.Instance.transform.lossyScale.x;
-            float maxDiameter = 4f * oceanBaseScale * Mathf.Pow(2f, LodIndex);
+            float maxDiameter = 4f * oceanBaseScale * Mathf.Pow(2f, LodTransform.LodIndex);
             float maxTexelSize = maxDiameter / (4f * OceanRenderer.Instance._baseVertDensity);
             return 2f * maxTexelSize * OceanRenderer.Instance._minTexelsPerWave;
         }
 
         // script execution order ensures this runs after ocean has been placed
-        void LateUpdate()
+        protected override void LateUpdate()
         {
-            LateUpdateTransformData();
+            base.LateUpdate();
 
             LateUpdateShapeCombinePassSettings();
         }
@@ -70,10 +70,10 @@ namespace Crest
         {
             BindResultData(0, _combineMaterial);
 
-            if (LodIndex > 0)
+            if (LodTransform.LodIndex > 0)
             {
                 var ldaws = OceanRenderer.Instance.Builder._lodDataAnimWaves;
-                BindResultData(1, ldaws[LodIndex - 1]._combineMaterial);
+                BindResultData(1, ldaws[LodTransform.LodIndex - 1]._combineMaterial);
             }
         }
 
@@ -135,10 +135,10 @@ namespace Crest
             base.BindData(shapeSlot, properties, applyData, blendOut, ref renderData);
 
             // need to blend out shape if this is the largest lod, and the ocean might get scaled down later (so the largest lod will disappear)
-            bool needToBlendOutShape = LodIndex == LodCount - 1 && OceanRenderer.Instance.ScaleCouldDecrease && blendOut;
+            bool needToBlendOutShape = LodTransform.LodIndex == LodTransform.LodCount - 1 && OceanRenderer.Instance.ScaleCouldDecrease && blendOut;
             float shapeWeight = needToBlendOutShape ? OceanRenderer.Instance.ViewerAltitudeLevelAlpha : 1f;
             properties.SetVector(_paramsOceanParams[shapeSlot], 
-                new Vector4(_renderData._texelWidth, _renderData._textureRes, shapeWeight, 1f / _renderData._textureRes));
+                new Vector4(LodTransform._renderData._texelWidth, LodTransform._renderData._textureRes, shapeWeight, 1f / LodTransform._renderData._textureRes));
         }
 
         ReadbackDisplacementsForCollision _collReadback;

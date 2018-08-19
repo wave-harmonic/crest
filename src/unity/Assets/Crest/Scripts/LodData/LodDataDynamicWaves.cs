@@ -6,7 +6,7 @@ using UnityEngine.Rendering;
 namespace Crest
 {
     /// <summary>
-    /// A dynamic shape simulation that moves around with a displacement LOD.
+    /// A dynamic shape simulation that moves around with a displacement LOD. It 
     /// </summary>
     public class LodDataDynamicWaves : LodDataPersistent
     {
@@ -45,7 +45,8 @@ namespace Crest
             {
                 _copySimResultsCmdBuf = new CommandBuffer();
                 _copySimResultsCmdBuf.name = "CopySimResults_" + SimName;
-                OceanRenderer.Instance.Builder._camsAnimWaves[LodIndex].AddCommandBuffer(CameraEvent.AfterEverything, _copySimResultsCmdBuf);
+                OceanRenderer.Instance.Builder._camsAnimWaves[LodTransform.LodIndex]
+                    .AddCommandBuffer(CameraEvent.AfterEverything, _copySimResultsCmdBuf);
             }
 
             _copySimMaterial.SetFloat("_HorizDisplace", Settings._horizDisplace);
@@ -55,7 +56,8 @@ namespace Crest
             _copySimMaterial.mainTexture = PPRTs.Target;
 
             _copySimResultsCmdBuf.Clear();
-            _copySimResultsCmdBuf.Blit(PPRTs.Target, OceanRenderer.Instance.Builder._camsAnimWaves[LodIndex].targetTexture, _copySimMaterial);
+            _copySimResultsCmdBuf.Blit(
+                PPRTs.Target, OceanRenderer.Instance.Builder._camsAnimWaves[LodTransform.LodIndex].targetTexture, _copySimMaterial);
         }
 
         protected override void SetAdditionalSimParams(Material simMaterial)
@@ -67,6 +69,10 @@ namespace Crest
 
             float laplacianKernelAngle = _rotateLaplacian ? Mathf.PI * 2f * Random.value : 0f;
             simMaterial.SetVector("_LaplacianAxisX", new Vector2(Mathf.Cos(laplacianKernelAngle), Mathf.Sin(laplacianKernelAngle)));
+
+            // assign sea floor depth - to slot 1 current frame data. minor bug here - this depth will actually be from the previous frame,
+            // because the depth is scheduled to render just before the animated waves, and this sim happens before animated waves.
+            OceanRenderer.Instance.Builder._lodDataAnimWaves[LodTransform.LodIndex].LDSeaDepth.BindResultData(1, simMaterial);
         }
 
         SimSettingsWave Settings { get { return _settings as SimSettingsWave; } }

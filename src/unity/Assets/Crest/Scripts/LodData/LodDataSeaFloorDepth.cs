@@ -52,14 +52,6 @@ namespace Crest
             }
         }
 
-        // script execution order ensures this runs after ocean has been placed
-        void LateUpdate()
-        {
-            // this lod data currently piggy backs on the animated waves loddata and camera, and it should not
-            // in theory need to update transform data, however it needs data here to apply when Bind() is called.
-            LateUpdateTransformData();
-        }
-
         // The command buffer populates the LODs with ocean depth data. It submits any objects with a RenderOceanDepth component attached.
         // It's stateless - the textures don't have to be managed across frames/scale changes
         void UpdateCmdBufOceanFloorDepth()

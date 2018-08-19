@@ -15,7 +15,8 @@ namespace Crest
 
             public RenderData Validate(int frameOffset, Object context)
             {
-                if (_frame != Time.frameCount + frameOffset)
+                // ignore first frame - this patches errors when using edit & continue in editor
+                if (_frame > 0 && _frame != Time.frameCount + frameOffset)
                     Debug.LogError(string.Format("RenderData validation failed: _frame of data ({0}) != expected ({1})", _frame, Time.frameCount + frameOffset), context);
 
                 return this;

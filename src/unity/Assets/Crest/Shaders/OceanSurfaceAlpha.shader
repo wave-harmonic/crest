@@ -69,8 +69,10 @@ Shader "Ocean/Ocean Surface Alpha"
 				// sample displacement textures, add results to current world pos / normal / foam
 				const float2 wxz = worldPos.xz;
 				half foam = 0.;
-				SampleDisplacements(_LD_Sampler_AnimatedWaves_0, _LD_Sampler_Foam_0, _LD_Pos_Scale_0.xy, _LD_Params_0.y, _LD_Params_0.w, _LD_Params_0.x, wxz, wt_0, worldPos, n, foam);
-				SampleDisplacements(_LD_Sampler_AnimatedWaves_1, _LD_Sampler_Foam_1, _LD_Pos_Scale_1.xy, _LD_Params_1.y, _LD_Params_1.w, _LD_Params_1.x, wxz, wt_1, worldPos, n, foam);
+				const float2 uv_0 = LD_worldToUV(wxz, _LD_Pos_Scale_0.xy, _LD_Params_0.y, _LD_Params_0.x);
+				const float2 uv_1 = LD_worldToUV(wxz, _LD_Pos_Scale_1.xy, _LD_Params_1.y, _LD_Params_1.x);
+				SampleDisplacements(_LD_Sampler_AnimatedWaves_0, uv_0, wt_0, _LD_Params_0.w, _LD_Params_0.x, worldPos, n);
+				SampleDisplacements(_LD_Sampler_AnimatedWaves_1, uv_1, wt_1, _LD_Params_1.w, _LD_Params_1.x, worldPos, n);
 
 				// view-projection
 				o.vertex = mul(UNITY_MATRIX_VP, float4(worldPos, 1.));

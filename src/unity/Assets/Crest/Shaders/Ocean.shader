@@ -127,11 +127,23 @@ Shader "Ocean/Ocean"
 					float wt_0 = (1. - lodAlpha) * _LD_Params_0.z;
 					float wt_1 = (1. - wt_0) * _LD_Params_1.z;
 					// sample displacement textures, add results to current world pos / normal / foam
-					#if !_DEBUGDISABLESHAPETEXTURES_ON
 					const float2 worldXZBefore = o.worldPos.xz;
-					SampleDisplacements(_LD_Sampler_AnimatedWaves_0, _LD_Sampler_Foam_0, _LD_Pos_Scale_0.xy, _LD_Params_0.y, _LD_Params_0.w, _LD_Params_0.x, worldXZBefore, wt_0, o.worldPos, o.n, o.foam_screenPos.x);
-					SampleDisplacements(_LD_Sampler_AnimatedWaves_1, _LD_Sampler_Foam_1, _LD_Pos_Scale_1.xy, _LD_Params_1.y, _LD_Params_1.w, _LD_Params_1.x, worldXZBefore, wt_1, o.worldPos, o.n, o.foam_screenPos.x);
-					#endif
+					if (wt_0 > 0.001)
+					{
+						const float2 uv_0 = LD_worldToUV(worldXZBefore, _LD_Pos_Scale_0.xy, _LD_Params_0.y, _LD_Params_0.x);
+						#if !_DEBUGDISABLESHAPETEXTURES_ON
+						SampleDisplacements(_LD_Sampler_AnimatedWaves_0, uv_0, wt_0, _LD_Params_0.w, _LD_Params_0.x, o.worldPos, o.n);
+						#endif
+						SampleFoam(_LD_Sampler_Foam_0, uv_0, wt_0, o.foam_screenPos.x);
+					}
+					if (wt_1 > 0.001)
+					{
+						const float2 uv_1 = LD_worldToUV(worldXZBefore, _LD_Pos_Scale_1.xy, _LD_Params_1.y, _LD_Params_1.x);
+						#if !_DEBUGDISABLESHAPETEXTURES_ON
+						SampleDisplacements(_LD_Sampler_AnimatedWaves_1, uv_1, wt_1, _LD_Params_1.w, _LD_Params_1.x, o.worldPos, o.n);
+						#endif
+						SampleFoam(_LD_Sampler_Foam_1, uv_1, wt_1, o.foam_screenPos.x);
+					}
 
 					// debug tinting to see which shape textures are used
 					#if _DEBUGVISUALISESHAPESAMPLE_ON

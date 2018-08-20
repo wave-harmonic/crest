@@ -27,14 +27,10 @@ float2 LD_uvToWorld(in float2 i_uv, in float2 i_centerPos, in float i_res, in fl
 
 #define DEPTH_BIAS 100.
 
-// sample wave or terrain height, with smooth blend towards edges. computes normals and determinant and samples ocean depth.
-// would equally apply to heights instead of displacements.
-void SampleDisplacements(in sampler2D i_dispSampler, in sampler2D i_oceanFoamSampler, in float2 i_centerPos, in float i_res, in float i_invRes, in float i_texelSize, in float2 i_samplePos, in float wt, inout float3 io_worldPos, inout float3 io_n, inout half io_foam)
+// sample wave displacements. also computes normal using finite differencing
+void SampleDisplacements(in sampler2D i_dispSampler, in float2 i_uv, in float i_wt, in float i_invRes, in float i_texelSize, inout float3 io_worldPos, inout float3 io_n)
 {
-	if (wt < 0.001)
-		return;
-
-	float4 uv = float4(LD_worldToUV(i_samplePos, i_centerPos, i_res, i_texelSize), 0., 0.);
+	const float4 uv = float4(i_uv, 0., 0.);
 
 	// do computations for hi-res
 	float3 dd = float3(i_invRes, 0.0, i_texelSize);
@@ -43,12 +39,16 @@ void SampleDisplacements(in sampler2D i_dispSampler, in sampler2D i_oceanFoamSam
 	half3 disp_x = dd.zyy + tex2Dlod(i_dispSampler, uv + dd.xyyy).xyz;
 	half3 disp_z = dd.yyz + tex2Dlod(i_dispSampler, uv + dd.yxyy).xyz;
 
-	io_worldPos += wt * disp;
+	io_worldPos += i_wt * disp;
 
 	float3 n = normalize(cross(disp_z - disp, disp_x - disp));
-	io_n.xz += wt * n.xz;
+	io_n.xz += i_wt * n.xz;
+}
 
-	io_foam += wt * tex2Dlod(i_oceanFoamSampler, uv).x;
+void SampleFoam(in sampler2D i_oceanFoamSampler, float2 i_uv, in float i_wt, inout half io_foam)
+{
+	const float4 uv = float4(i_uv, 0., 0.);
+	io_foam += i_wt * tex2Dlod(i_oceanFoamSampler, uv).x;
 }
 
 // Geometry data

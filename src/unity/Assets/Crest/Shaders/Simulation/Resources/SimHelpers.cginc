@@ -15,7 +15,7 @@ void ComputeUVs(in float3 world, in float2 vertexXY, out float2 uv_lastframe, ou
 	uv.xy = 0.5*uv.xy + 0.5;
 
 	// uv for source data - use bound data to compute
-	uv_lastframe = LD_worldToUV(world.xz, _LD_Pos_Scale_0.xy, _LD_Params_0.y, _LD_Params_0.x);
+	uv_lastframe = LD_0_WorldToUV(world.xz);
 
 	invRes = 1. / _ScreenParams.x;
 }

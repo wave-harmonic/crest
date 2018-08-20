@@ -1,6 +1,9 @@
-// ocean LOD data
+// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
-// samplers and data associated with a LOD.
+// Ocean LOD data - data, samplers and functions associated with LODs
+
+
+// Samplers and data associated with a LOD.
 // _LD_Params: float4(world texel size, texture resolution, shape weight multiplier, 1 / texture resolution)
 #define LOD_DATA(LODNUM) \
 	uniform sampler2D _LD_Sampler_AnimatedWaves_##LODNUM; \
@@ -11,23 +14,35 @@
 	uniform float3 _LD_Pos_Scale_##LODNUM; \
 	uniform int _LD_LodIdx_##LODNUM;
 
-// create two sets of LOD data. we always need only 2 textures - we're always lerping between two LOD levels
+// Create two sets of LOD data, which have overloaded meaning depending on use:
+// * the ocean surface geometry always lerps from a more detailed LOD (0) to a less detailed LOD (1)
+// * simulations (persistent lod data) read last frame's data from slot 0, and any current frame data from slot 1
+// * any other use that does not fall into the previous categories can use either slot and generally use slot 0
 LOD_DATA( 0 )
 LOD_DATA( 1 )
 
-float2 LD_worldToUV(in float2 i_samplePos, in float2 i_centerPos, in float i_res, in float i_texelSize)
+
+// Conversions for world space from/to UV space
+float2 LD_WorldToUV(in float2 i_samplePos, in float2 i_centerPos, in float i_res, in float i_texelSize)
 {
 	return (i_samplePos - i_centerPos) / (i_texelSize * i_res) + 0.5;
 }
+float2 LD_0_WorldToUV(in float2 i_samplePos) { return LD_WorldToUV(i_samplePos, _LD_Pos_Scale_0.xy, _LD_Params_0.y, _LD_Params_0.x); }
+float2 LD_1_WorldToUV(in float2 i_samplePos) { return LD_WorldToUV(i_samplePos, _LD_Pos_Scale_1.xy, _LD_Params_1.y, _LD_Params_1.x); }
 
-float2 LD_uvToWorld(in float2 i_uv, in float2 i_centerPos, in float i_res, in float i_texelSize)
+float2 LD_UVToWorld(in float2 i_uv, in float2 i_centerPos, in float i_res, in float i_texelSize)
 {
 	return i_texelSize * i_res * (i_uv - 0.5) + i_centerPos;
 }
+float2 LD_0_UVToWorld(in float2 i_uv) { return LD_UVToWorld(i_uv, _LD_Pos_Scale_0.xy, _LD_Params_0.y, _LD_Params_0.x); }
+float2 LD_1_UVToWorld(in float2 i_uv) { return LD_UVToWorld(i_uv, _LD_Pos_Scale_1.xy, _LD_Params_1.y, _LD_Params_1.x); }
 
+
+// Bias ocean floor depth so that default (0) values in texture are not interpreted as shallow and generating foam everywhere
 #define DEPTH_BIAS 100.
 
-// sample wave displacements. also computes normal using finite differencing
+
+// Sampling functions
 void SampleDisplacements(in sampler2D i_dispSampler, in float2 i_uv, in float i_wt, in float i_invRes, in float i_texelSize, inout float3 io_worldPos, inout float3 io_n)
 {
 	const float4 uv = float4(i_uv, 0., 0.);
@@ -49,6 +64,7 @@ void SampleFoam(in sampler2D i_oceanFoamSampler, float2 i_uv, in float i_wt, ino
 	const float4 uv = float4(i_uv, 0., 0.);
 	io_foam += i_wt * tex2Dlod(i_oceanFoamSampler, uv).x;
 }
+
 
 // Geometry data
 // x: A square is formed by 2 triangles in the mesh. Here x is square size

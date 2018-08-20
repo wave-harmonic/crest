@@ -32,16 +32,15 @@ void SampleDisplacements(in sampler2D i_dispSampler, in float2 i_uv, in float i_
 {
 	const float4 uv = float4(i_uv, 0., 0.);
 
-	// do computations for hi-res
-	float3 dd = float3(i_invRes, 0.0, i_texelSize);
-	half4 s = tex2Dlod(i_dispSampler, uv);
-	half3 disp = s.xyz;
-	half3 disp_x = dd.zyy + tex2Dlod(i_dispSampler, uv + dd.xyyy).xyz;
-	half3 disp_z = dd.yyz + tex2Dlod(i_dispSampler, uv + dd.yxyy).xyz;
-
+	half3 disp = tex2Dlod(i_dispSampler, uv).xyz;
 	io_worldPos += i_wt * disp;
 
-	float3 n = normalize(cross(disp_z - disp, disp_x - disp));
+	float3 n; {
+		float3 dd = float3(i_invRes, 0.0, i_texelSize);
+		half3 disp_x = dd.zyy + tex2Dlod(i_dispSampler, uv + dd.xyyy).xyz;
+		half3 disp_z = dd.yyz + tex2Dlod(i_dispSampler, uv + dd.yxyy).xyz;
+		n = normalize(cross(disp_z - disp, disp_x - disp));
+	}
 	io_n.xz += i_wt * n.xz;
 }
 

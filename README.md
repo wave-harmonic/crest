@@ -29,7 +29,7 @@ We generate shape from Gerstner waves efficiently at runtime by rendering at mul
 
 To control the ocean shape, we introduce an intuitive and fun shape authoring interface - an *equalizer* style editor which makes it fast and easy to achieve surface shape. Art direction such as *small choppy waves with longer waves rolling in from a storm at the horizon* is simple to achieve in this framework. We also support empirical ocean spectra from the literature (Phillips, JONSWAP, etc) which can be used directly or as a comparison.
 
-For interactivity we add a dynamic wave simulation on top of the ocean waves. The simulation is computed on a heightfield and then converted into a displacements, which trigger foam generation and enable boat wakes to be generated. This is demonstrated in the *boat* and *threeboats* example scenes.
+For interactivity we add a dynamic wave simulation on top of the ocean waves. The simulation is computed on a heightfield and then converted into displacements, which trigger foam generation and enable boat wakes to be generated. This is demonstrated in the *boat* and *threeboats* example scenes.
 
 The final shape is asynchronously read back to the CPU for gameplay/physics use. This gives access to the full, rich shape without requiring expensive CPU calculations or pipeline stalls.
 

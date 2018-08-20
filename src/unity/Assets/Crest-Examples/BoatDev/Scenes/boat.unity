@@ -154,7 +154,7 @@ MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 227134465}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 93632dc736a214a419a990743badcde2, type: 3}
   m_Name: 
@@ -163,6 +163,7 @@ MonoBehaviour:
   _targetPos: {fileID: 1998311434}
   _targetLookatPos: {fileID: 220162146}
   _lookatOffset: 5
+  _minHeightAboveWater: 1
 --- !u!114 &227134468
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -224,7 +225,7 @@ Transform:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 227134465}
   m_LocalRotation: {x: 0, y: 0.7071068, z: 0, w: 0.70710677}
-  m_LocalPosition: {x: 0, y: 2.51, z: 0}
+  m_LocalPosition: {x: -29.3, y: 10, z: 19.8}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -236,7 +237,7 @@ MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 227134465}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 59a818eaf96544c4994335870fdfe141, type: 3}
   m_Name: 
@@ -484,7 +485,27 @@ Prefab:
       objectReference: {fileID: 0}
     - target: {fileID: 1935509346245718, guid: 71ede3c2ab0b7cb43b7dad6ae3b6190b, type: 2}
       propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 114101010989703450, guid: 71ede3c2ab0b7cb43b7dad6ae3b6190b,
+        type: 2}
+      propertyPath: _throttleBias
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 114101010989703450, guid: 71ede3c2ab0b7cb43b7dad6ae3b6190b,
+        type: 2}
+      propertyPath: _steerBias
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 114101010989703450, guid: 71ede3c2ab0b7cb43b7dad6ae3b6190b,
+        type: 2}
+      propertyPath: _playerControlled
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 114101010989703450, guid: 71ede3c2ab0b7cb43b7dad6ae3b6190b,
+        type: 2}
+      propertyPath: _forceHeightOffset
+      value: -0.2
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 71ede3c2ab0b7cb43b7dad6ae3b6190b, type: 2}
@@ -800,7 +821,7 @@ MonoBehaviour:
   _waveShader: {fileID: 4800000, guid: 680b41329a8923e40a8f9d6ca86f60a8, type: 3}
   _spectrum: {fileID: 11400000, guid: b066d8398541b1844a63a9c12919e528, type: 2}
   _componentsPerOctave: 5
-  _weight: 0.11
+  _weight: 0.303
   _randomSeed: 0
 --- !u!1 &1989479266
 GameObject:

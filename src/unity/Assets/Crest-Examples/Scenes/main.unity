@@ -402,10 +402,6 @@ Prefab:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 11417796, guid: 8454e29c2a033974fb559f5f8eff1918, type: 2}
-      propertyPath: _simulationLayers.Array.size
-      value: 1
-      objectReference: {fileID: 0}
     - target: {fileID: 478202, guid: 8454e29c2a033974fb559f5f8eff1918, type: 2}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -436,14 +432,6 @@ Prefab:
       objectReference: {fileID: 0}
     - target: {fileID: 478202, guid: 8454e29c2a033974fb559f5f8eff1918, type: 2}
       propertyPath: m_RootOrder
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 11447936, guid: 8454e29c2a033974fb559f5f8eff1918, type: 2}
-      propertyPath: _simSettingsFoam
-      value: 
-      objectReference: {fileID: 0}
-    - target: {fileID: 11447936, guid: 8454e29c2a033974fb559f5f8eff1918, type: 2}
-      propertyPath: _createDynamicWaveSim
       value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []

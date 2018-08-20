@@ -158,7 +158,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1935509346245718}
   m_LocalRotation: {x: 0, y: 0.89341056, z: 0, w: 0.44924098}
-  m_LocalPosition: {x: 70.24, y: 6.25, z: 28.25}
+  m_LocalPosition: {x: -6.2, y: 5, z: 24.9}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 4396590769128772}
@@ -373,7 +373,7 @@ MonoBehaviour:
   _dragInWaterForward: 1
   _playerControlled: 0
   _throttleBias: 1
-  _steerBias: -0.85
+  _steerBias: 1
 --- !u!114 &114123981558006810
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -389,7 +389,7 @@ MonoBehaviour:
   _localOffset: {x: 0, y: 0, z: 0}
   _noiseFreq: 6
   _noiseAmp: 0
-  _weight: 0.7
+  _weight: 6
   _weightUpDownMul: 0.3
   _teleportSpeed: 500
   _warnOnTeleport: 0

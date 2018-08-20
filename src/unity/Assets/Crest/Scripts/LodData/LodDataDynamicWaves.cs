@@ -106,14 +106,17 @@ namespace Crest
             }
         }
 
-        public static void CountWaveSims(out int present, out int active)
+        public static void CountWaveSims(int countFrom, out int present, out int active)
         {
             present = active = 0;
-            foreach (var ldaw in Crest.OceanRenderer.Instance.Builder._lodDataAnimWaves)
+            foreach (var ldaw in OceanRenderer.Instance.Builder._lodDataAnimWaves)
             {
                 if (ldaw.LDDynamicWaves == null)
                     continue;
                 present++;
+
+                if (ldaw.LodTransform.LodIndex < countFrom)
+                    continue;
 
                 if (!ldaw.LDDynamicWaves.Active)
                     continue;

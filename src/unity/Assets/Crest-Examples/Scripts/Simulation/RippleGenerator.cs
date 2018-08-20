@@ -1,7 +1,8 @@
 ﻿using UnityEngine;
 
-public class RippleGenerator : MonoBehaviour {
-
+public class RippleGenerator : MonoBehaviour
+{
+    public bool _animate = true;
     public float _warmUp = 3f;
     public float _onTime = 0.2f;
     public float _period = 4f;
@@ -12,18 +13,24 @@ public class RippleGenerator : MonoBehaviour {
 	void Start()
     {
         _mr = GetComponent<MeshRenderer>();
-        _mr.enabled = false;
+        if(_animate)
+        {
+            _mr.enabled = false;
+        }
         _mat = _mr.material;
 	}
 	
 	void Update()
     {
-        float t = Time.time;
-        if (t < _warmUp)
-            return;
-        t -= _warmUp;
-        t = Mathf.Repeat(t, _period);
-        _mr.enabled = t < _onTime;
+        if(_animate)
+        {
+            float t = Time.time;
+            if (t < _warmUp)
+                return;
+            t -= _warmUp;
+            t = Mathf.Repeat(t, _period);
+            _mr.enabled = t < _onTime;
+        }
 
         // which lod is this object in (roughly)?
         Rect thisRect = new Rect(new Vector2(transform.position.x, transform.position.z), Vector3.zero);
@@ -48,5 +55,7 @@ public class RippleGenerator : MonoBehaviour {
         {
             _mat.SetFloat("_SimCount", simsActive);
         }
+
+        _mat.SetFloat("_SimDeltaTime", Mathf.Min(Crest.LodDataPersistent.MAX_SIM_DELTA_TIME, Time.deltaTime));
     }
 }

@@ -134,6 +134,7 @@ GameObject:
   - component: {fileID: 227134468}
   - component: {fileID: 227134471}
   - component: {fileID: 227134472}
+  - component: {fileID: 227134474}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -163,6 +164,7 @@ MonoBehaviour:
   _targetPos: {fileID: 1998311434}
   _targetLookatPos: {fileID: 220162146}
   _lookatOffset: 5
+  _minHeightAboveWater: 0.5
 --- !u!114 &227134468
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -275,6 +277,19 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _gui: 1
+--- !u!114 &227134474
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 227134465}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c8dd4843a97643943a49857c07d54597, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _sleepMs: 0
+  _jitter: 0
 --- !u!1001 &750723223
 Prefab:
   m_ObjectHideFlags: 0
@@ -322,6 +337,10 @@ Prefab:
         type: 2}
       propertyPath: _steerBias
       value: -0.8
+      objectReference: {fileID: 0}
+    - target: {fileID: 1935509346245718, guid: 71ede3c2ab0b7cb43b7dad6ae3b6190b, type: 2}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 71ede3c2ab0b7cb43b7dad6ae3b6190b, type: 2}
@@ -501,6 +520,10 @@ Prefab:
       propertyPath: m_Name
       value: BoatAlignNormal (1)
       objectReference: {fileID: 0}
+    - target: {fileID: 1935509346245718, guid: 71ede3c2ab0b7cb43b7dad6ae3b6190b, type: 2}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 71ede3c2ab0b7cb43b7dad6ae3b6190b, type: 2}
   m_IsPrefabAsset: 0
@@ -629,6 +652,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 09287a67a2abc7943a2310ed30507b52, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _animate: 1
   _warmUp: 1
   _onTime: 0.3
   _period: 6
@@ -794,6 +818,10 @@ Prefab:
         type: 2}
       propertyPath: _steerBias
       value: -0.7
+      objectReference: {fileID: 0}
+    - target: {fileID: 1935509346245718, guid: 71ede3c2ab0b7cb43b7dad6ae3b6190b, type: 2}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 71ede3c2ab0b7cb43b7dad6ae3b6190b, type: 2}

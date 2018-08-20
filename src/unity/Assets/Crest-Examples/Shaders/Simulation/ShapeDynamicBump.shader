@@ -41,6 +41,7 @@ Shader "Ocean/Shape/Dynamic Bump"
 
 				uniform float _Radius;
 				uniform float _SimCount;
+				uniform float _SimDeltaTime;
 
 				v2f vert( appdata_t v )
 				{
@@ -80,7 +81,7 @@ Shader "Ocean/Shape/Dynamic Bump"
 						y /= _SimCount;
 
 					// treat as an acceleration - dt^2
-					return float4(unity_DeltaTime.x * unity_DeltaTime.x * y, 0., 0., 0.);
+					return float4(_SimDeltaTime * _SimDeltaTime * y, 0., 0., 0.);
 				}
 
 				ENDCG

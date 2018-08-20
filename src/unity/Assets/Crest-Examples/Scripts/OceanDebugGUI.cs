@@ -156,6 +156,7 @@ public class OceanDebugGUI : MonoBehaviour
         // draw sim data
         DrawSims(OceanRenderer.Instance.Builder._camsFoam, 2f);
         DrawSims(OceanRenderer.Instance.Builder._camsDynWaves, 3f);
+        DrawSims(OceanRenderer.Instance.Builder._camsDynWavesNew, 4f);
     }
 
     static void DrawSims(Camera[] simCameras, float offset)

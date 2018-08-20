@@ -25,12 +25,15 @@ namespace Crest
         public Camera[] _camsFoam;
         [HideInInspector]
         public Camera[] _camsDynWaves;
+        [HideInInspector]
+        public Camera[] _camsDynWavesNew;
 
         [Header("Simulations")]
         public bool _createFoamSim = true;
         public SimSettingsFoam _simSettingsFoam;
         public bool _createDynamicWaveSim = false;
         public SimSettingsWave _simSettingsDynamicWaves;
+        public bool _createDynamicWaveSimNew = false;
 
         public int CurrentLodCount { get { return _camsAnimWaves.Length; } }
 
@@ -179,10 +182,15 @@ namespace Crest
             _lodDataAnimWaves = new LodDataAnimatedWaves[lodCount];
             _camsFoam = new Camera[lodCount];
             _camsDynWaves = new Camera[lodCount];
+            _camsDynWavesNew = new Camera[lodCount];
 
             var cachedSettings = new Dictionary<System.Type, SimSettingsBase>();
             if (_simSettingsFoam != null) cachedSettings.Add(typeof(LodDataFoam), _simSettingsFoam);
-            if (_simSettingsDynamicWaves != null) cachedSettings.Add(typeof(LodDataDynamicWaves), _simSettingsDynamicWaves);
+            if (_simSettingsDynamicWaves != null)
+            {
+                cachedSettings.Add(typeof(LodDataDynamicWaves), _simSettingsDynamicWaves);
+                cachedSettings.Add(typeof(LodDataDynamicWavesNew), _simSettingsDynamicWaves);
+            }
 
             for ( int i = 0; i < lodCount; i++ )
             {
@@ -202,6 +210,12 @@ namespace Crest
                 {
                     var go = LodData.CreateLodData(i, lodCount, baseVertDensity, LodData.SimType.DynamicWaves, cachedSettings);
                     _camsDynWaves[i] = go.GetComponent<Camera>();
+                }
+
+                if (_createDynamicWaveSimNew)
+                {
+                    var go = LodData.CreateLodData(i, lodCount, baseVertDensity, LodData.SimType.DynamicWavesNew, cachedSettings);
+                    _camsDynWavesNew[i] = go.GetComponent<Camera>();
                 }
             }
 
@@ -390,7 +404,8 @@ namespace Crest
             PlaceLodData(_camsAnimWaves[lodIndex].transform, parent.transform);
             if (_camsFoam[lodIndex] != null) PlaceLodData(_camsFoam[lodIndex].transform, parent.transform);
             if (_camsDynWaves[lodIndex] != null) PlaceLodData(_camsDynWaves[lodIndex].transform, parent.transform);
-
+            if (_camsDynWavesNew[lodIndex] != null) PlaceLodData(_camsDynWavesNew[lodIndex].transform, parent.transform);
+            
             bool generateSkirt = biggestLOD && !OceanRenderer.Instance._disableSkirt;
 
             Vector2[] offsets;

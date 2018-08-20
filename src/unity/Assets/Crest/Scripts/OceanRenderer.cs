@@ -39,6 +39,7 @@ namespace Crest
         public float _baseVertDensity = 32f;
         [SerializeField, Delayed, Tooltip( "Number of ocean tile scales/LODs to generate." ), ]
         int _lodCount = 6;
+        public int LodDataResolution { get { return (int)(4f * _baseVertDensity); } }
 
         [Header("Debug Params")]
         [Tooltip("Whether to generate ocean geometry tiles uniformly (with overlaps)")]
@@ -64,12 +65,6 @@ namespace Crest
             _oceanBuilder = FindObjectOfType<OceanBuilder>();
             _oceanBuilder.GenerateMesh(_baseVertDensity, _lodCount);
 
-            _collProvider = new CollProviderDispTexs();
-            if (_cachedCpuOceanQueries)
-            {
-                _collProvider = new CollProviderCache(_collProvider);
-            }
-
             if (_viewpoint == null)
             {
                 if (Camera.main != null)
@@ -87,7 +82,7 @@ namespace Crest
         {
             if(_cachedCpuOceanQueries)
             {
-                (_collProvider as CollProviderCache).ClearCache();
+                (CollisionProvider as CollProviderCache).ClearCache();
             }
         }
 
@@ -101,7 +96,7 @@ namespace Crest
             LateUpdatePosition();
             LateUpdateScale();
 
-            float maxWavelength = Builder._shapeWDCs[Builder._shapeWDCs.Length - 1].MaxWavelength();
+            float maxWavelength = Builder._lodDataAnimWaves[Builder._lodDataAnimWaves.Length - 1].MaxWavelength();
             Shader.SetGlobalFloat("_MaxWavelength", maxWavelength);
         }
 
@@ -206,7 +201,7 @@ namespace Crest
         OceanBuilder _oceanBuilder;
         public OceanBuilder Builder { get { return _oceanBuilder; } }
 
-        ICollProvider _collProvider;
-        public ICollProvider CollisionProvider { get { return _collProvider; } }
+        ICollProvider _collProvider; public ICollProvider CollisionProvider { get { return _collProvider ?? 
+                    (_collProvider = _cachedCpuOceanQueries ? new CollProviderCache(_collProvider) as ICollProvider : new CollProviderDispTexs()); } }
     }
 }

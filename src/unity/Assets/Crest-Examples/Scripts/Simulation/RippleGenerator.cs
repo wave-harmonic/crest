@@ -7,11 +7,13 @@ public class RippleGenerator : MonoBehaviour {
     public float _period = 4f;
 
     MeshRenderer _mr;
+    Material _mat;
 
 	void Start()
     {
         _mr = GetComponent<MeshRenderer>();
         _mr.enabled = false;
+        _mat = _mr.material;
 	}
 	
 	void Update()
@@ -22,5 +24,29 @@ public class RippleGenerator : MonoBehaviour {
         t -= _warmUp;
         t = Mathf.Repeat(t, _period);
         _mr.enabled = t < _onTime;
-	}
+
+        // which lod is this object in (roughly)?
+        Rect thisRect = new Rect(new Vector2(transform.position.x, transform.position.z), Vector3.zero);
+        int minLod = Crest.ReadbackDisplacementsForCollision.SuggestCollisionLOD(thisRect);
+        if (minLod == -1)
+        {
+            // outside all lods, nothing to update!
+            return;
+        }
+
+        // how many active wave sims currently apply to this object - ideally this would eliminate sims that are too
+        // low res, by providing a max grid size param
+        int simsPresent, simsActive;
+        Crest.LodDataDynamicWaves.CountWaveSims(minLod, out simsPresent, out simsActive);
+        if (simsPresent == 0)
+        {
+            enabled = false;
+            return;
+        }
+
+        if (simsActive > 0)
+        {
+            _mat.SetFloat("_SimCount", simsActive);
+        }
+    }
 }

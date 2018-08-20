@@ -5,19 +5,21 @@ using UnityEngine;
 namespace Crest
 {
     /// <summary>
-    /// A persistent foam simulation that moves around with a displacement LOD.
+    /// A persistent foam simulation that moves around with a displacement LOD. The input is fully combined water surface shape.
     /// </summary>
-    public class SimFoam : SimBase
+    public class LodDataFoam : LodDataPersistent
     {
-        public override string SimName { get { return "Foam"; } }
+        public override SimType LodDataType { get { return SimType.Foam; } }
         protected override string ShaderSim { get { return "Ocean/Shape/Sim/Foam"; } }
-        protected override string ShaderRenderResultsIntoDispTexture { get { return "Ocean/Shape/Sim/Foam Add To Disps"; } }
         public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RHalf; } }
-        public static readonly int SIM_RENDER_DEPTH = -20;
-        public override int Depth { get { return SIM_RENDER_DEPTH; } }
+        public override int Depth { get { return -20; } }
+        protected override Camera[] SimCameras { get { return OceanRenderer.Instance.Builder._camsFoam; } }
+
         public override SimSettingsBase CreateDefaultSettings()
         {
-            return ScriptableObject.CreateInstance<SimSettingsFoam>();
+            var settings = ScriptableObject.CreateInstance<SimSettingsFoam>();
+            settings.name = SimName + " Auto-generated Settings";
+            return settings;
         }
 
         protected override void SetAdditionalSimParams(Material simMaterial)
@@ -29,6 +31,11 @@ namespace Crest
             simMaterial.SetFloat("_WaveFoamCoverage", Settings._waveFoamCoverage);
             simMaterial.SetFloat("_ShorelineFoamMaxDepth", Settings._shorelineFoamMaxDepth);
             simMaterial.SetFloat("_ShorelineFoamStrength", Settings._shorelineFoamStrength);
+
+            // assign animated waves - to slot 1 current frame data
+            OceanRenderer.Instance.Builder._lodDataAnimWaves[LodTransform.LodIndex].BindResultData(1, simMaterial);
+            // assign sea floor depth - to slot 1 current frame data
+            OceanRenderer.Instance.Builder._lodDataAnimWaves[LodTransform.LodIndex].LDSeaDepth.BindResultData(1, simMaterial);
         }
 
         SimSettingsFoam Settings { get { return _settings as SimSettingsFoam; } }

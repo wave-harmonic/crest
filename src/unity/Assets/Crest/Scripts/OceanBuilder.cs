@@ -4,6 +4,7 @@
 
 using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 namespace Crest
 {
@@ -15,17 +16,26 @@ namespace Crest
         [SerializeField, Tooltip("Material to use for the ocean surface")]
         Material _oceanMaterial;
 
-        const string SHAPE_RENDER_LAYER_NAME = "SimShape";
+        [HideInInspector]
+        public LodDataAnimatedWaves[] _lodDataAnimWaves;
 
         [HideInInspector]
-        public Camera[] _shapeCameras;
+        public Camera[] _camsAnimWaves;
         [HideInInspector]
-        public WaveDataCam[] _shapeWDCs;
+        public Camera[] _camsFoam;
+        [HideInInspector]
+        public Camera[] _camsDynWaves;
 
-        public int CurrentLodCount { get { return _shapeCameras.Length; } }
+        [Header("Simulations")]
+        public bool _createFoamSim = true;
+        public SimSettingsFoam _simSettingsFoam;
+        public bool _createDynamicWaveSim = false;
+        public SimSettingsWave _simSettingsDynamicWaves;
 
-        // The following apply to BASE_VERT_DENSITY = 2. The ocean mesh is built up from these patches. Rotational symmetry is
-        // used where possible to eliminate combinations. The slim variants are used to eliminate overlap between patches.
+        public int CurrentLodCount { get { return _camsAnimWaves.Length; } }
+
+        // The comments below illustrate casse when BASE_VERT_DENSITY = 2. The ocean mesh is built up from these patches. Rotational symmetry
+        // is used where possible to eliminate combinations. The slim variants are used to eliminate overlap between patches.
         enum PatchType
         {
             /// <summary>
@@ -165,11 +175,34 @@ namespace Crest
             }
 
             // create the shape cameras
-            _shapeCameras = new Camera[lodCount];
-            _shapeWDCs = new WaveDataCam[lodCount];
-            for( int i = 0; i < lodCount; i++ )
+            _camsAnimWaves = new Camera[lodCount];
+            _lodDataAnimWaves = new LodDataAnimatedWaves[lodCount];
+            _camsFoam = new Camera[lodCount];
+            _camsDynWaves = new Camera[lodCount];
+
+            var cachedSettings = new Dictionary<System.Type, SimSettingsBase>();
+            if (_simSettingsFoam != null) cachedSettings.Add(typeof(LodDataFoam), _simSettingsFoam);
+            if (_simSettingsDynamicWaves != null) cachedSettings.Add(typeof(LodDataDynamicWaves), _simSettingsDynamicWaves);
+
+            for ( int i = 0; i < lodCount; i++ )
             {
-                CreateWaveDataCam(i, lodCount, baseVertDensity);
+                {
+                    var go = LodData.CreateLodData(i, lodCount, baseVertDensity, LodData.SimType.AnimatedWaves, cachedSettings);
+                    _camsAnimWaves[i] = go.GetComponent<Camera>();
+                    _lodDataAnimWaves[i] = go.GetComponent<LodDataAnimatedWaves>();
+                }
+
+                if (_createFoamSim)
+                {
+                    var go = LodData.CreateLodData(i, lodCount, baseVertDensity, LodData.SimType.Foam, cachedSettings);
+                    _camsFoam[i] = go.GetComponent<Camera>();
+                }
+
+                if (_createDynamicWaveSim)
+                {
+                    var go = LodData.CreateLodData(i, lodCount, baseVertDensity, LodData.SimType.DynamicWaves, cachedSettings);
+                    _camsDynWaves[i] = go.GetComponent<Camera>();
+                }
             }
 
             // remove existing LODs
@@ -200,45 +233,6 @@ namespace Crest
             sw.Stop();
             Debug.Log( "Finished generating " + parms._lodCount.ToString() + " LODs, time: " + (1000.0*sw.Elapsed.TotalSeconds).ToString(".000") + "ms" );
 #endif
-        }
-
-        void CreateWaveDataCam(int lodIdx, int lodCount, float baseVertDensity)
-        {
-            var go = new GameObject( string.Format( "ShapeCam{0}", lodIdx ) );
-
-            var cam = go.AddComponent<Camera>();
-            cam.clearFlags = CameraClearFlags.Color;
-            cam.backgroundColor = new Color(0f, 0f, 0f, 0f);
-            // shape cameras will render any shape that is in the WaveData layer into the shape textures
-            cam.cullingMask = 0;
-            cam.orthographic = true;
-            cam.nearClipPlane = 1f;
-            cam.farClipPlane = 500f;
-            cam.useOcclusionCulling = false;
-            cam.allowHDR = false;
-            cam.allowMSAA = false;
-            // make shape cameras render before main camera, and make LOD0 camera render last
-            cam.depth = -10 - lodIdx;
-            _shapeCameras[lodIdx] = cam;
-
-            var apply = go.AddComponent<ApplyLayers>();
-            apply._cullIncludeLayers = new string[] { SHAPE_RENDER_LAYER_NAME };
-            _shapeWDCs[lodIdx] = go.AddComponent<WaveDataCam>();
-            _shapeWDCs[lodIdx].InitLODData(lodIdx, lodCount);
-
-            var cart = go.AddComponent<CreateAssignRenderTexture>();
-            cart._targetName = string.Format( "shapeRT{0}", lodIdx );
-            cart._width = cart._height = (int)(4f * baseVertDensity);
-            cart._depthBits = 0;
-            // shape format. i tried RGB111110Float but error becomes visible. one option would be to use a UNORM setup.
-            cart._format = RenderTextureFormat.ARGBHalf;
-            cart._wrapMode = TextureWrapMode.Clamp;
-            cart._antiAliasing = 1;
-            cart._filterMode = FilterMode.Bilinear;
-            cart._anisoLevel = 0;
-            cart._useMipMap = false;
-            // do this now, because WaveDataCam needs this
-            cart.CreateRTAndAssign();
         }
 
         static Mesh BuildOceanPatch(PatchType pt, float baseVertDensity)
@@ -375,6 +369,14 @@ namespace Crest
             return mesh;
         }
 
+        void PlaceLodData(Transform transform, Transform parent)
+        {
+            transform.parent = parent;
+            transform.localScale = Vector3.one;
+            transform.localPosition = Vector3.up * 100f;
+            transform.localEulerAngles = Vector3.right * 90f;
+        }
+
         GameObject CreateLOD( int lodIndex, int lodCount, bool biggestLOD, Mesh[] meshData, float baseVertDensity )
         {
             // first create parent gameobject for the lod level. the scale of this transform sets the size of the lod.
@@ -384,11 +386,10 @@ namespace Crest
             parent.transform.localPosition = Vector3.zero;
             parent.transform.localRotation = Quaternion.identity;
 
-            // add a shape camera below it
-            _shapeCameras[lodIndex].transform.parent = parent.transform;
-            _shapeCameras[lodIndex].transform.localScale = Vector3.one;
-            _shapeCameras[lodIndex].transform.localPosition = Vector3.up * 100f;
-            _shapeCameras[lodIndex].transform.localEulerAngles = Vector3.right * 90f;
+            // add lod data cameras into this lod
+            PlaceLodData(_camsAnimWaves[lodIndex].transform, parent.transform);
+            if (_camsFoam[lodIndex] != null) PlaceLodData(_camsFoam[lodIndex].transform, parent.transform);
+            if (_camsDynWaves[lodIndex] != null) PlaceLodData(_camsDynWaves[lodIndex].transform, parent.transform);
 
             bool generateSkirt = biggestLOD && !OceanRenderer.Instance._disableSkirt;
 

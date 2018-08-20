@@ -17,9 +17,9 @@ TagManager:
   - 
   - Terrain
   - EditorOnly
-  - SimWave
-  - SimFoam
-  - SimShape
+  - LodDataDynamicWaves
+  - LodDataFoam
+  - LodDataAnimatedWaves
   - 
   - 
   - 

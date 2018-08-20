@@ -1,53 +1,70 @@
-// ocean LOD data
+// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
-// samplers and data associated with a LOD.
-// _WD_Params: float4(world texel size, texture resolution, shape weight multiplier, 1 / texture resolution)
-#define SHAPE_LOD_PARAMS(LODNUM) \
-	uniform sampler2D _WD_Sampler_##LODNUM; \
-	uniform sampler2D _WD_OceanDepth_Sampler_##LODNUM; \
-	uniform float4 _WD_Params_##LODNUM; \
-	uniform float3 _WD_Pos_Scale_##LODNUM; \
-	uniform int _WD_LodIdx_##LODNUM;
+// Ocean LOD data - data, samplers and functions associated with LODs
 
-// create two sets of LOD data. we always need only 2 textures - we're always lerping between two LOD levels
-SHAPE_LOD_PARAMS( 0 )
-SHAPE_LOD_PARAMS( 1 )
 
-float2 WD_worldToUV(in float2 i_samplePos, in float2 i_centerPos, in float i_res, in float i_texelSize)
+// Samplers and data associated with a LOD.
+// _LD_Params: float4(world texel size, texture resolution, shape weight multiplier, 1 / texture resolution)
+#define LOD_DATA(LODNUM) \
+	uniform sampler2D _LD_Sampler_AnimatedWaves_##LODNUM; \
+	uniform sampler2D _LD_Sampler_SeaFloorDepth_##LODNUM; \
+	uniform sampler2D _LD_Sampler_Foam_##LODNUM; \
+	uniform sampler2D _LD_Sampler_DynamicWaves_##LODNUM; \
+	uniform float4 _LD_Params_##LODNUM; \
+	uniform float3 _LD_Pos_Scale_##LODNUM; \
+	uniform int _LD_LodIdx_##LODNUM;
+
+// Create two sets of LOD data, which have overloaded meaning depending on use:
+// * the ocean surface geometry always lerps from a more detailed LOD (0) to a less detailed LOD (1)
+// * simulations (persistent lod data) read last frame's data from slot 0, and any current frame data from slot 1
+// * any other use that does not fall into the previous categories can use either slot and generally use slot 0
+LOD_DATA( 0 )
+LOD_DATA( 1 )
+
+
+// Conversions for world space from/to UV space
+float2 LD_WorldToUV(in float2 i_samplePos, in float2 i_centerPos, in float i_res, in float i_texelSize)
 {
 	return (i_samplePos - i_centerPos) / (i_texelSize * i_res) + 0.5;
 }
+float2 LD_0_WorldToUV(in float2 i_samplePos) { return LD_WorldToUV(i_samplePos, _LD_Pos_Scale_0.xy, _LD_Params_0.y, _LD_Params_0.x); }
+float2 LD_1_WorldToUV(in float2 i_samplePos) { return LD_WorldToUV(i_samplePos, _LD_Pos_Scale_1.xy, _LD_Params_1.y, _LD_Params_1.x); }
 
-float2 WD_uvToWorld(in float2 i_uv, in float2 i_centerPos, in float i_res, in float i_texelSize)
+float2 LD_UVToWorld(in float2 i_uv, in float2 i_centerPos, in float i_res, in float i_texelSize)
 {
 	return i_texelSize * i_res * (i_uv - 0.5) + i_centerPos;
 }
+float2 LD_0_UVToWorld(in float2 i_uv) { return LD_UVToWorld(i_uv, _LD_Pos_Scale_0.xy, _LD_Params_0.y, _LD_Params_0.x); }
+float2 LD_1_UVToWorld(in float2 i_uv) { return LD_UVToWorld(i_uv, _LD_Pos_Scale_1.xy, _LD_Params_1.y, _LD_Params_1.x); }
 
+
+// Bias ocean floor depth so that default (0) values in texture are not interpreted as shallow and generating foam everywhere
 #define DEPTH_BIAS 100.
 
-// sample wave or terrain height, with smooth blend towards edges. computes normals and determinant and samples ocean depth.
-// would equally apply to heights instead of displacements.
-void SampleDisplacements(in sampler2D i_dispSampler, in sampler2D i_oceanDepthSampler, in float2 i_centerPos, in float i_res, in float i_invRes, in float i_texelSize, in float2 i_samplePos, in float wt, inout float3 io_worldPos, inout float3 io_n, inout half io_foam)
+
+// Sampling functions
+void SampleDisplacements(in sampler2D i_dispSampler, in float2 i_uv, in float i_wt, in float i_invRes, in float i_texelSize, inout float3 io_worldPos, inout float3 io_n)
 {
-	if (wt < 0.001)
-		return;
+	const float4 uv = float4(i_uv, 0., 0.);
 
-	float4 uv = float4(WD_worldToUV(i_samplePos, i_centerPos, i_res, i_texelSize), 0., 0.);
+	half3 disp = tex2Dlod(i_dispSampler, uv).xyz;
+	io_worldPos += i_wt * disp;
 
-	// do computations for hi-res
-	float3 dd = float3(i_invRes, 0.0, i_texelSize);
-	half4 s = tex2Dlod(i_dispSampler, uv);
-	half3 disp = s.xyz;
-	half3 disp_x = dd.zyy + tex2Dlod(i_dispSampler, uv + dd.xyyy).xyz;
-	half3 disp_z = dd.yyz + tex2Dlod(i_dispSampler, uv + dd.yxyy).xyz;
-
-	io_worldPos += wt * disp;
-
-	float3 n = normalize(cross(disp_z - disp, disp_x - disp));
-	io_n.xz += wt * n.xz;
-
-	io_foam += wt * s.a;
+	float3 n; {
+		float3 dd = float3(i_invRes, 0.0, i_texelSize);
+		half3 disp_x = dd.zyy + tex2Dlod(i_dispSampler, uv + dd.xyyy).xyz;
+		half3 disp_z = dd.yyz + tex2Dlod(i_dispSampler, uv + dd.yxyy).xyz;
+		n = normalize(cross(disp_z - disp, disp_x - disp));
+	}
+	io_n.xz += i_wt * n.xz;
 }
+
+void SampleFoam(in sampler2D i_oceanFoamSampler, float2 i_uv, in float i_wt, inout half io_foam)
+{
+	const float4 uv = float4(i_uv, 0., 0.);
+	io_foam += i_wt * tex2Dlod(i_oceanFoamSampler, uv).x;
+}
+
 
 // Geometry data
 // x: A square is formed by 2 triangles in the mesh. Here x is square size
@@ -62,7 +79,7 @@ float ComputeLodAlpha(float3 i_worldPos, float i_meshScaleAlpha)
 	float taxicab_norm = max(offsetFromCenter.x, offsetFromCenter.y);
 
 	// interpolation factor to next lod (lower density / higher sampling period)
-	float lodAlpha = taxicab_norm / _WD_Pos_Scale_0.z - 1.0;
+	float lodAlpha = taxicab_norm / _LD_Pos_Scale_0.z - 1.0;
 
 	// lod alpha is remapped to ensure patches weld together properly. patches can vary significantly in shape (with
 	// strips added and removed), and this variance depends on the base density of the mesh, as this defines the strip width.

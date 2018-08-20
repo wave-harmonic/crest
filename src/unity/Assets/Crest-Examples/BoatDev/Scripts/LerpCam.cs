@@ -6,10 +6,18 @@ public class LerpCam : MonoBehaviour
     public Transform _targetPos;
     public Transform _targetLookatPos;
     public float _lookatOffset = 5f;
+    public float _minHeightAboveWater = 0.5f;
 
-	void Update()
+    void Update()
     {
-        transform.position = Vector3.Lerp(transform.position, _targetPos.position, _lerpAlpha * Time.deltaTime * 60f);
+        Vector3 targetPos = _targetPos.position;
+        float h = 0f;
+        if(Crest.OceanRenderer.Instance.CollisionProvider.SampleHeight(ref targetPos, ref h))
+        {
+            targetPos.y = Mathf.Max(targetPos.y, h + _minHeightAboveWater);
+        }
+
+        transform.position = Vector3.Lerp(transform.position, targetPos, _lerpAlpha * Time.deltaTime * 60f);
         transform.LookAt(_targetLookatPos.position + _lookatOffset * Vector3.up);
 	}
 }

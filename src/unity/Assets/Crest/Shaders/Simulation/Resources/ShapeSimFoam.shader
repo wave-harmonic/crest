@@ -22,6 +22,7 @@ Shader "Ocean/Shape/Sim/Foam"
 				#pragma vertex vert
 				#pragma fragment frag
 				#pragma multi_compile_fog
+
 				#include "UnityCG.cginc"
 				#include "../../../../Crest/Shaders/OceanLODData.cginc"
 
@@ -42,7 +43,8 @@ Shader "Ocean/Shape/Sim/Foam"
 					v2f o;
 					o.vertex = UnityObjectToClipPos(v.vertex);
 
-					ComputeUVs(o.vertex.xy, o.uv_uv_lastframe.zw, o.uv_uv_lastframe.xy, o.invRes);
+					float3 world = mul(unity_ObjectToWorld, v.vertex);
+					ComputeUVs(world, o.vertex.xy, o.uv_uv_lastframe.zw, o.uv_uv_lastframe.xy, o.invRes);
 
 					return o;
 				}
@@ -60,7 +62,8 @@ Shader "Ocean/Shape/Sim/Foam"
 					float4 uv_lastframe = float4(i.uv_uv_lastframe.zw, 0., 0.);
 
 					// sampler will clamp the uv currently
-					half foam = tex2Dlod(_SimDataLastFrame, uv_lastframe).x;
+					half foam = tex2Dlod(_LD_Sampler_Foam_0, uv_lastframe).x;
+					//return foam + sin(_Time.w)*.004;
 					half2 r = abs(uv_lastframe.xy - 0.5);
 					if (max(r.x, r.y) > 0.5 - i.invRes)
 					{
@@ -72,10 +75,10 @@ Shader "Ocean/Shape/Sim/Foam"
 					foam *= max(0.0, 1.0 - _FoamFadeRate * _SimDeltaTime);
 
 					// sample displacement texture and generate foam from it
-					const float3 dd = float3(_WD_Params_0.w, 0.0, _WD_Params_0.x);
-					half3 s = tex2Dlod(_WD_Sampler_0, uv).xyz;
-					half3 sx = tex2Dlod(_WD_Sampler_0, uv + dd.xyyy).xyz;
-					half3 sz = tex2Dlod(_WD_Sampler_0, uv + dd.yxyy).xyz;
+					const float3 dd = float3(_LD_Params_1.w, 0.0, _LD_Params_1.x);
+					half3 s = tex2Dlod(_LD_Sampler_AnimatedWaves_1, uv).xyz;
+					half3 sx = tex2Dlod(_LD_Sampler_AnimatedWaves_1, uv + dd.xyyy).xyz;
+					half3 sz = tex2Dlod(_LD_Sampler_AnimatedWaves_1, uv + dd.yxyy).xyz;
 					float3 disp = s.xyz;
 					float3 disp_x = dd.zyy + sx.xyz;
 					float3 disp_z = dd.yyz + sz.xyz;
@@ -84,11 +87,11 @@ Shader "Ocean/Shape/Sim/Foam"
 					// < 1: Squash
 					// < 0: Overlap
 					float4 du = float4(disp_x.xz, disp_z.xz) - disp.xzxz;
-					float det = (du.x * du.w - du.y * du.z) / (_WD_Params_0.x * _WD_Params_0.x);
+					float det = (du.x * du.w - du.y * du.z) / (_LD_Params_1.x * _LD_Params_1.x);
 					foam += 5. * _SimDeltaTime * _WaveFoamStrength * saturate(_WaveFoamCoverage - det);
 
 					// add foam in shallow water
-					float signedOceanDepth = tex2Dlod(_WD_OceanDepth_Sampler_0, uv).x + DEPTH_BIAS + disp.y;
+					float signedOceanDepth = tex2Dlod(_LD_Sampler_SeaFloorDepth_1, uv).x + DEPTH_BIAS + disp.y;
 					foam += _ShorelineFoamStrength * _SimDeltaTime * saturate(1. - signedOceanDepth / _ShorelineFoamMaxDepth);
 
 					return foam;

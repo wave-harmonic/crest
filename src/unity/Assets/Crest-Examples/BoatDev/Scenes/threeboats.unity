@@ -174,9 +174,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0f63235a3a133804593f4348e83f77ff, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _showSimTargets: 0
+  _showSimTargets: 1
   _guiVisible: 1
-  _oceanMaterialAsset: Assets/Crest/Shaders/Materials/Ocean.mat
+  _oceanMaterialAsset: Assets/Crest/Materials/Ocean.mat
 --- !u!20 &227134469
 Camera:
   m_ObjectHideFlags: 0
@@ -259,9 +259,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _layerName: 
   _cullExcludeLayers:
-  - SimShape
-  - SimWave
-  - SimFoam
+  - LodDataAnimatedWaves
+  - LodDataDynamicWaves
+  - LodDataFoam
   _cullIncludeLayers: []
 --- !u!114 &227134473
 MonoBehaviour:
@@ -275,58 +275,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _gui: 1
---- !u!1 &416506602
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 1420422863512664, guid: c2abdff307347d54e9aa1d5628d324e4,
-    type: 2}
-  m_PrefabInternal: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 416506603}
-  - component: {fileID: 416506604}
-  m_Layer: 0
-  m_Name: ShapeDynamicSims
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &416506603
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 4258441226454214, guid: c2abdff307347d54e9aa1d5628d324e4,
-    type: 2}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 416506602}
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_Children: []
-  m_Father: {fileID: 995304123}
-  m_RootOrder: 1
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &416506604
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 114620139337523818, guid: c2abdff307347d54e9aa1d5628d324e4,
-    type: 2}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 416506602}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d93ca17b27da15241b74f3d25f7dbd56, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _simulationLayers:
-  - _simType: 1
-    _simSettings: {fileID: 0}
-    _disabled: 0
-    _resolutions: 01000000020000000300000004000000
-  - _simType: 0
-    _simSettings: {fileID: 0}
-    _disabled: 0
-    _resolutions: 010000000200000003000000
 --- !u!1001 &750723223
 Prefab:
   m_ObjectHideFlags: 0
@@ -372,28 +320,8 @@ Prefab:
       objectReference: {fileID: 0}
     - target: {fileID: 114101010989703450, guid: 71ede3c2ab0b7cb43b7dad6ae3b6190b,
         type: 2}
-      propertyPath: _playerControlled
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 114101010989703450, guid: 71ede3c2ab0b7cb43b7dad6ae3b6190b,
-        type: 2}
-      propertyPath: _throttleBias
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 114101010989703450, guid: 71ede3c2ab0b7cb43b7dad6ae3b6190b,
-        type: 2}
       propertyPath: _steerBias
-      value: -0.7
-      objectReference: {fileID: 0}
-    - target: {fileID: 114123981558006810, guid: 71ede3c2ab0b7cb43b7dad6ae3b6190b,
-        type: 2}
-      propertyPath: _weightUpDownMul
-      value: 0.3
-      objectReference: {fileID: 0}
-    - target: {fileID: 114123981558006810, guid: 71ede3c2ab0b7cb43b7dad6ae3b6190b,
-        type: 2}
-      propertyPath: _weight
-      value: 1.33
+      value: -0.8
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 71ede3c2ab0b7cb43b7dad6ae3b6190b, type: 2}
@@ -424,7 +352,6 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 1866213578}
-  - {fileID: 416506603}
   - {fileID: 1680820179}
   m_Father: {fileID: 0}
   m_RootOrder: 2
@@ -468,9 +395,9 @@ Prefab:
       propertyPath: m_RootOrder
       value: 1
       objectReference: {fileID: 0}
-    - target: {fileID: 11417796, guid: 8454e29c2a033974fb559f5f8eff1918, type: 2}
-      propertyPath: _baseVertDensity
-      value: 48
+    - target: {fileID: 11447936, guid: 8454e29c2a033974fb559f5f8eff1918, type: 2}
+      propertyPath: _createDynamicWaveSim
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 8454e29c2a033974fb559f5f8eff1918, type: 2}
@@ -573,31 +500,6 @@ Prefab:
     - target: {fileID: 1935509346245718, guid: 71ede3c2ab0b7cb43b7dad6ae3b6190b, type: 2}
       propertyPath: m_Name
       value: BoatAlignNormal (1)
-      objectReference: {fileID: 0}
-    - target: {fileID: 114101010989703450, guid: 71ede3c2ab0b7cb43b7dad6ae3b6190b,
-        type: 2}
-      propertyPath: _playerControlled
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 114101010989703450, guid: 71ede3c2ab0b7cb43b7dad6ae3b6190b,
-        type: 2}
-      propertyPath: _throttleBias
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 114101010989703450, guid: 71ede3c2ab0b7cb43b7dad6ae3b6190b,
-        type: 2}
-      propertyPath: _steerBias
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 114123981558006810, guid: 71ede3c2ab0b7cb43b7dad6ae3b6190b,
-        type: 2}
-      propertyPath: _weightUpDownMul
-      value: 0.3
-      objectReference: {fileID: 0}
-    - target: {fileID: 114123981558006810, guid: 71ede3c2ab0b7cb43b7dad6ae3b6190b,
-        type: 2}
-      propertyPath: _weight
-      value: 1.33
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 71ede3c2ab0b7cb43b7dad6ae3b6190b, type: 2}
@@ -783,7 +685,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 995304123}
-  m_RootOrder: 2
+  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
 --- !u!114 &1680820180
 MonoBehaviour:
@@ -796,7 +698,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a7f1d7afc5dc7ec4ab6fa33a21ede643, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _layerName: SimWave
+  _layerName: LodDataDynamicWaves
   _cullExcludeLayers: []
   _cullIncludeLayers: []
 --- !u!1 &1866213577
@@ -890,28 +792,8 @@ Prefab:
       objectReference: {fileID: 0}
     - target: {fileID: 114101010989703450, guid: 71ede3c2ab0b7cb43b7dad6ae3b6190b,
         type: 2}
-      propertyPath: _playerControlled
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 114101010989703450, guid: 71ede3c2ab0b7cb43b7dad6ae3b6190b,
-        type: 2}
-      propertyPath: _throttleBias
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 114101010989703450, guid: 71ede3c2ab0b7cb43b7dad6ae3b6190b,
-        type: 2}
       propertyPath: _steerBias
-      value: -0.85
-      objectReference: {fileID: 0}
-    - target: {fileID: 114123981558006810, guid: 71ede3c2ab0b7cb43b7dad6ae3b6190b,
-        type: 2}
-      propertyPath: _weightUpDownMul
-      value: 0.3
-      objectReference: {fileID: 0}
-    - target: {fileID: 114123981558006810, guid: 71ede3c2ab0b7cb43b7dad6ae3b6190b,
-        type: 2}
-      propertyPath: _weight
-      value: 1.33
+      value: -0.7
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 71ede3c2ab0b7cb43b7dad6ae3b6190b, type: 2}

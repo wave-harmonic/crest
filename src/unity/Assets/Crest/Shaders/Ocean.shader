@@ -24,7 +24,6 @@ Shader "Ocean/Ocean"
 		_FoamWhiteColor("White Foam Color", Color) = (1.0, 1.0, 1.0, 1.0)
 		_FoamBubbleColor("Bubble Foam Color", Color) = (0.0, 0.0904, 0.105, 1.0)
 		_ShorelineFoamMinDepth("Shoreline Foam Min Depth", Range(0.01, 5.0)) = 0.27
-		_WaveFoamCoverage("Wave Foam Coverage", Range(0.0,5.0)) = 0.95
 		_WaveFoamFeather("Wave Foam Feather", Range(0.001,1.0)) = 0.32
 		_WaveFoamBubblesCoverage("Wave Foam Bubbles Coverage", Range(0.0,5.0)) = 0.95
 		[Toggle] _Foam3DLighting("Foam 3D Lighting", Float) = 1
@@ -125,20 +124,32 @@ Shader "Ocean/Ocean"
 					o.n = half3(0., 1., 0.);
 					o.foam_screenPos.x = 0.;
 					// sample weights. params.z allows shape to be faded out (used on last lod to support pop-less scale transitions)
-					float wt_0 = (1. - lodAlpha) * _WD_Params_0.z;
-					float wt_1 = (1. - wt_0) * _WD_Params_1.z;
+					float wt_0 = (1. - lodAlpha) * _LD_Params_0.z;
+					float wt_1 = (1. - wt_0) * _LD_Params_1.z;
 					// sample displacement textures, add results to current world pos / normal / foam
-					#if !_DEBUGDISABLESHAPETEXTURES_ON
 					const float2 worldXZBefore = o.worldPos.xz;
-					SampleDisplacements( _WD_Sampler_0, _WD_OceanDepth_Sampler_0, _WD_Pos_Scale_0.xy, _WD_Params_0.y, _WD_Params_0.w, _WD_Params_0.x, worldXZBefore, wt_0, o.worldPos, o.n, o.foam_screenPos.x);
-					SampleDisplacements( _WD_Sampler_1, _WD_OceanDepth_Sampler_1, _WD_Pos_Scale_1.xy, _WD_Params_1.y, _WD_Params_1.w, _WD_Params_1.x, worldXZBefore, wt_1, o.worldPos, o.n, o.foam_screenPos.x);
-					#endif
+					if (wt_0 > 0.001)
+					{
+						const float2 uv_0 = LD_0_WorldToUV(worldXZBefore);
+						#if !_DEBUGDISABLESHAPETEXTURES_ON
+						SampleDisplacements(_LD_Sampler_AnimatedWaves_0, uv_0, wt_0, _LD_Params_0.w, _LD_Params_0.x, o.worldPos, o.n);
+						#endif
+						SampleFoam(_LD_Sampler_Foam_0, uv_0, wt_0, o.foam_screenPos.x);
+					}
+					if (wt_1 > 0.001)
+					{
+						const float2 uv_1 = LD_1_WorldToUV(worldXZBefore);
+						#if !_DEBUGDISABLESHAPETEXTURES_ON
+						SampleDisplacements(_LD_Sampler_AnimatedWaves_1, uv_1, wt_1, _LD_Params_1.w, _LD_Params_1.x, o.worldPos, o.n);
+						#endif
+						SampleFoam(_LD_Sampler_Foam_1, uv_1, wt_1, o.foam_screenPos.x);
+					}
 
 					// debug tinting to see which shape textures are used
 					#if _DEBUGVISUALISESHAPESAMPLE_ON
 					#define TINT_COUNT (uint)7
 					half3 tintCols[TINT_COUNT]; tintCols[0] = half3(1., 0., 0.); tintCols[1] = half3(1., 1., 0.); tintCols[2] = half3(1., 0., 1.); tintCols[3] = half3(0., 1., 1.); tintCols[4] = half3(0., 0., 1.); tintCols[5] = half3(1., 0., 1.); tintCols[6] = half3(.5, .5, 1.);
-					o.debugtint = wt_0 * tintCols[_WD_LodIdx_0 % TINT_COUNT] + wt_1 * tintCols[_WD_LodIdx_1 % TINT_COUNT];
+					o.debugtint = wt_0 * tintCols[_LD_LodIdx_0 % TINT_COUNT] + wt_1 * tintCols[_LD_LodIdx_1 % TINT_COUNT];
 					#endif
 
 					// view-projection	
@@ -173,7 +184,7 @@ Shader "Ocean/Ocean"
 				uniform half4 _FoamWhiteColor;
 				uniform half4 _FoamBubbleColor;
 				uniform half _ShorelineFoamMinDepth;
-				uniform half _WaveFoamCoverage, _WaveFoamFeather;
+				uniform half _WaveFoamFeather;
 				uniform half _WaveFoamBubblesCoverage;
 				uniform half _WaveFoamNormalStrength;
 				uniform half _WaveFoamSpecularFallOff;
@@ -234,7 +245,7 @@ Shader "Ocean/Ocean"
 						0.5);
 
 					// black point fade
-					i_foam = saturate(1. - i_foam + _WaveFoamCoverage);
+					i_foam = saturate(1. - i_foam);
 					return smoothstep(i_foam, i_foam + _WaveFoamFeather, ft);
 				}
 
@@ -246,9 +257,9 @@ Shader "Ocean/Ocean"
 					foamAmount *= saturate((i_sceneZ - i_pixelZ) / _ShorelineFoamMinDepth);
 
 					// Additive underwater foam - use same foam texture but add mip bias to blur for free
-					float2 foamUVBubbles = (lerp(i_worldXZUndisplaced, i_worldXZ, 0.05) + 0.5 * _Time.y * _WindDirXZ) / _FoamScale + 0.25 * i_n.xz;
+					float2 foamUVBubbles = (lerp(i_worldXZUndisplaced, i_worldXZ, 0.05) + 0.5 * _Time.y * _WindDirXZ) / _FoamScale + 0.125 * i_n.xz;
 					half bubbleFoamTexValue = tex2Dlod(_FoamTexture, float4(.74 * foamUVBubbles - .05*i_view.xz / i_view.y, 0., 5.)).r;
-					o_bubbleCol = (half3)bubbleFoamTexValue * _FoamBubbleColor.rgb * saturate(i_foam - _WaveFoamBubblesCoverage);
+					o_bubbleCol = (half3)bubbleFoamTexValue * _FoamBubbleColor.rgb * saturate(i_foam * _WaveFoamBubblesCoverage);
 
 					// White foam on top, with black-point fading
 					half whiteFoam = WhiteFoamTexture(foamAmount, i_worldXZUndisplaced);

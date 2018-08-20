@@ -64,13 +64,13 @@ Shader "Ocean/Ocean Surface Alpha"
 				// sample shape textures - always lerp between 2 scales, so sample two textures
 				half3 n = half3(0., 1., 0.);
 				// sample weights. params.z allows shape to be faded out (used on last lod to support pop-less scale transitions)
-				float wt_0 = (1. - lodAlpha) * _WD_Params_0.z;
-				float wt_1 = (1. - wt_0) * _WD_Params_1.z;
+				float wt_0 = (1. - lodAlpha) * _LD_Params_0.z;
+				float wt_1 = (1. - wt_0) * _LD_Params_1.z;
 				// sample displacement textures, add results to current world pos / normal / foam
 				const float2 wxz = worldPos.xz;
 				half foam = 0.;
-				SampleDisplacements(_WD_Sampler_0, _WD_OceanDepth_Sampler_0, _WD_Pos_Scale_0.xy, _WD_Params_0.y, _WD_Params_0.w, _WD_Params_0.x, wxz, wt_0, worldPos, n, foam);
-				SampleDisplacements(_WD_Sampler_1, _WD_OceanDepth_Sampler_1, _WD_Pos_Scale_1.xy, _WD_Params_1.y, _WD_Params_1.w, _WD_Params_1.x, wxz, wt_1, worldPos, n, foam);
+				SampleDisplacements(_LD_Sampler_AnimatedWaves_0, LD_0_WorldToUV(wxz), wt_0, _LD_Params_0.w, _LD_Params_0.x, worldPos, n);
+				SampleDisplacements(_LD_Sampler_AnimatedWaves_1, LD_1_WorldToUV(wxz), wt_1, _LD_Params_1.w, _LD_Params_1.x, worldPos, n);
 
 				// view-projection
 				o.vertex = mul(UNITY_MATRIX_VP, float4(worldPos, 1.));

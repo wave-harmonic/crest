@@ -214,7 +214,7 @@ namespace Crest
             material.SetFloat("_Chop", _spectrum._chop);
             material.SetFloat("_Gravity", OceanRenderer.Instance.Gravity * _spectrum._gravityScale);
 
-            OceanRenderer.Instance.Builder._shapeWDCs[lodIdx].ApplyMaterialParams(0, material, false, false);
+            OceanRenderer.Instance.Builder._lodDataAnimWaves[lodIdx].LDSeaDepth.BindResultData(0, material, false);
 
             return numInBatch;
         }
@@ -228,7 +228,7 @@ namespace Crest
             int componentIdx = 0;
 
             // seek forward to first wavelength that is big enough to render into current LODs
-            float minWl = OceanRenderer.Instance.Builder._shapeWDCs[0].MaxWavelength() / 2f;
+            float minWl = OceanRenderer.Instance.Builder._lodDataAnimWaves[0].MaxWavelength() / 2f;
             while (_wavelengths[componentIdx] < minWl && componentIdx < _wavelengths.Length)
             {
                 componentIdx++;
@@ -276,7 +276,7 @@ namespace Crest
         {
             if(_cmdBufWaveAdded[lodIndex] != CmdBufStatus.Attached)
             {
-                OceanRenderer.Instance.Builder._shapeCameras[lodIndex].AddCommandBuffer(CameraEvent.BeforeForwardAlpha, _renderWaveShapeCmdBufs[lodIndex]);
+                OceanRenderer.Instance.Builder._camsAnimWaves[lodIndex].AddCommandBuffer(CameraEvent.BeforeForwardAlpha, _renderWaveShapeCmdBufs[lodIndex]);
                 _cmdBufWaveAdded[lodIndex] = CmdBufStatus.Attached;
             }
         }
@@ -285,7 +285,7 @@ namespace Crest
         {
             if (_cmdBufWaveAdded[lodIndex] != CmdBufStatus.NotAttached)
             {
-                OceanRenderer.Instance.Builder._shapeCameras[lodIndex].RemoveCommandBuffer(CameraEvent.BeforeForwardAlpha, _renderWaveShapeCmdBufs[lodIndex]);
+                OceanRenderer.Instance.Builder._camsAnimWaves[lodIndex].RemoveCommandBuffer(CameraEvent.BeforeForwardAlpha, _renderWaveShapeCmdBufs[lodIndex]);
                 _cmdBufWaveAdded[lodIndex] = CmdBufStatus.NotAttached;
             }
         }
@@ -295,9 +295,9 @@ namespace Crest
             if(_cmdBufBigWavesAdded != CmdBufStatus.Attached)
             {
                 int lastLod = OceanRenderer.Instance.Builder.CurrentLodCount - 1;
-                OceanRenderer.Instance.Builder._shapeCameras[lastLod].AddCommandBuffer(CameraEvent.BeforeForwardAlpha, _renderBigWavelengthsShapeCmdBuf);
+                OceanRenderer.Instance.Builder._camsAnimWaves[lastLod].AddCommandBuffer(CameraEvent.BeforeForwardAlpha, _renderBigWavelengthsShapeCmdBuf);
                 // the second-to-last lod will transition content into it from the last lod
-                OceanRenderer.Instance.Builder._shapeCameras[lastLod - 1].AddCommandBuffer(CameraEvent.BeforeForwardAlpha, _renderBigWavelengthsShapeCmdBufTransition);
+                OceanRenderer.Instance.Builder._camsAnimWaves[lastLod - 1].AddCommandBuffer(CameraEvent.BeforeForwardAlpha, _renderBigWavelengthsShapeCmdBufTransition);
 
                 _cmdBufBigWavesAdded = CmdBufStatus.Attached;
             }
@@ -308,9 +308,9 @@ namespace Crest
             if (_cmdBufBigWavesAdded != CmdBufStatus.NotAttached)
             {
                 int lastLod = OceanRenderer.Instance.Builder.CurrentLodCount - 1;
-                OceanRenderer.Instance.Builder._shapeCameras[lastLod].RemoveCommandBuffer(CameraEvent.BeforeForwardAlpha, _renderBigWavelengthsShapeCmdBuf);
+                OceanRenderer.Instance.Builder._camsAnimWaves[lastLod].RemoveCommandBuffer(CameraEvent.BeforeForwardAlpha, _renderBigWavelengthsShapeCmdBuf);
                 // the second-to-last lod will transition content into it from the last lod
-                OceanRenderer.Instance.Builder._shapeCameras[lastLod - 1].RemoveCommandBuffer(CameraEvent.BeforeForwardAlpha, _renderBigWavelengthsShapeCmdBufTransition);
+                OceanRenderer.Instance.Builder._camsAnimWaves[lastLod - 1].RemoveCommandBuffer(CameraEvent.BeforeForwardAlpha, _renderBigWavelengthsShapeCmdBufTransition);
 
                 _cmdBufBigWavesAdded = CmdBufStatus.NotAttached;
             }

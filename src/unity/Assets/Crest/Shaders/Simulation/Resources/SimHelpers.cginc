@@ -2,23 +2,20 @@
 
 // Helpers / shared code for simulation shaders
 
-uniform sampler2D _SimDataLastFrame;
-
-uniform float3 _CameraPositionDelta;
 uniform float _SimDeltaTime;
 uniform float _SimDeltaTimePrev;
 
-// Compute current uv, and a u for the last frame to allow a sim to move around in the world but keep
+// Compute current uv, and uv for the last frame to allow a sim to move around in the world but keep
 // its data stationary, without smudged or blurred data.
-void ComputeUVs(in float2 vertexXY, out float2 uv_lastframe, out float2 uv, out float invRes)
+void ComputeUVs(in float3 world, in float2 vertexXY, out float2 uv_lastframe, out float2 uv, out float invRes)
 {
-	// compute uncompensated uv
+	// uv for target data - always simply 0-1 so take from geometry
 	uv = vertexXY;
 	uv.y = -uv.y;
 	uv.xy = 0.5*uv.xy + 0.5;
 
-	// compensate for camera motion - adjust lookup uv to get texel from last frame sim
+	// uv for source data - use bound data to compute
+	uv_lastframe = LD_0_WorldToUV(world.xz);
+
 	invRes = 1. / _ScreenParams.x;
-	const float texelSize = 2. * unity_OrthoParams.x * invRes; // assumes square RT
-	uv_lastframe = uv + invRes * _CameraPositionDelta.xz / texelSize;
 }

@@ -9,6 +9,11 @@ namespace Crest
     /// </summary>
     public class PingPongRts : MonoBehaviour
     {
+        /// <summary>
+        /// Track frame when updated to make sure we are always using latest and greatest state.
+        /// </summary>
+        int _frame = -1;
+
         RenderTexture _rtSource, _rtTarget;
 
         public void InitRTs(RenderTexture rtA, RenderTexture rtB)
@@ -19,9 +24,14 @@ namespace Crest
 
         void Update()
         {
-            Flip(ref _rtSource, ref _rtTarget);
+            if (_frame != Time.frameCount)
+            {
+                Flip(ref _rtSource, ref _rtTarget);
 
-            Cam.targetTexture = _rtTarget;
+                Cam.targetTexture = _rtTarget;
+
+                _frame = Time.frameCount;
+            }
         }
 
         void Flip(ref RenderTexture rtA, ref RenderTexture rtB)
@@ -31,8 +41,8 @@ namespace Crest
             rtB = temp;
         }
 
-        public RenderTexture Source { get { return _rtSource; } }
-        public RenderTexture Target { get { return _rtTarget; } }
+        public RenderTexture Source { get { if (_frame != Time.frameCount) Update(); return _rtSource; } }
+        public RenderTexture Target { get { if (_frame != Time.frameCount) Update(); return _rtTarget; } }
 
         Camera _cam; Camera Cam { get { return _cam ?? (_cam = GetComponent<Camera>()); } }
     }

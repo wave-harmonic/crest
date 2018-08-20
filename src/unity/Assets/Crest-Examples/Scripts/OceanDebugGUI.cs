@@ -67,21 +67,21 @@ public class OceanDebugGUI : MonoBehaviour
 
             _showSimTargets = GUI.Toggle(new Rect(x, y, w, h), _showSimTargets, "Show sim data"); y += h;
 
-            WaveDataCam._shapeCombinePass = GUI.Toggle(new Rect(x, y, w, h), WaveDataCam._shapeCombinePass, "Shape combine pass"); y += h;
+            LodDataAnimatedWaves._shapeCombinePass = GUI.Toggle(new Rect(x, y, w, h), LodDataAnimatedWaves._shapeCombinePass, "Shape combine pass"); y += h;
 
             int min = int.MaxValue, max = -1;
             bool readbackShape = true;
-            foreach( var wdc in OceanRenderer.Instance.Builder._shapeWDCs)
+            foreach( var ldaw in OceanRenderer.Instance.Builder._lodDataAnimWaves)
             {
-                min = Mathf.Min(min, wdc.CollData.CollReadbackRequestsQueued);
-                max = Mathf.Max(max, wdc.CollData.CollReadbackRequestsQueued);
-                readbackShape = readbackShape && wdc._readbackShapeForCollision;
+                min = Mathf.Min(min, ldaw.CollReadback.CollReadbackRequestsQueued);
+                max = Mathf.Max(max, ldaw.CollReadback.CollReadbackRequestsQueued);
+                readbackShape = readbackShape && ldaw.CollReadback._readbackShapeForCollision;
             }
             if (readbackShape != GUI.Toggle(new Rect(x, y, w, h), readbackShape, "Readback coll data"))
             {
-                foreach (var wdc in OceanRenderer.Instance.Builder._shapeWDCs)
+                foreach (var ldaw in OceanRenderer.Instance.Builder._lodDataAnimWaves)
                 {
-                    wdc._readbackShapeForCollision = !readbackShape;
+                    ldaw.CollReadback._readbackShapeForCollision = !readbackShape;
                 }
             }
             y += h;
@@ -105,7 +105,13 @@ public class OceanDebugGUI : MonoBehaviour
 #if UNITY_EDITOR
             if (GUI.Button(new Rect(x, y, w, h), "Select Ocean Mat"))
             {
-                UnityEditor.Selection.activeObject = UnityEditor.AssetDatabase.LoadMainAssetAtPath(_oceanMaterialAsset);
+                var asset = UnityEditor.AssetDatabase.LoadMainAssetAtPath(_oceanMaterialAsset);
+                if (asset == null)
+                {
+                    // surprisingly, changing the below to an error causes an editor crash..
+                    Debug.LogWarning("Material at path \"" + _oceanMaterialAsset + "\" not found. Please set this path to point to your ocean material.", this);
+                }
+                UnityEditor.Selection.activeObject = asset;
             }
             y += h;
 #endif
@@ -124,7 +130,7 @@ public class OceanDebugGUI : MonoBehaviour
     {
         {
             int ind = 0;
-            foreach (var cam in OceanRenderer.Instance.Builder._shapeCameras)
+            foreach (var cam in OceanRenderer.Instance.Builder._camsAnimWaves)
             {
                 if (!cam) continue;
 
@@ -133,7 +139,7 @@ public class OceanDebugGUI : MonoBehaviour
                 if (shape == null) continue;
 
                 float b = 7f;
-                float h = Screen.height / (float)OceanRenderer.Instance.Builder._shapeCameras.Length;
+                float h = Screen.height / (float)OceanRenderer.Instance.Builder._camsAnimWaves.Length;
                 float w = h + b;
                 float x = Screen.width - w;
                 float y = ind * h;
@@ -148,36 +154,32 @@ public class OceanDebugGUI : MonoBehaviour
         }
 
         // draw sim data
+        DrawSims(OceanRenderer.Instance.Builder._camsFoam, 2f);
+        DrawSims(OceanRenderer.Instance.Builder._camsDynWaves, 3f);
+    }
+
+    static void DrawSims(Camera[] simCameras, float offset)
+    {
+        int idx = 0;
+        foreach (var cam in simCameras)
         {
-            var simsParent = FindObjectOfType<CreateSims>();
-            if (simsParent == null)
-                return;
-            var sims = FindObjectsOfType<SimBase>();
-            foreach (var sim in sims)
-            {
-                int idx = OceanRenderer.Instance.GetLodIndex(sim._resolution);
-                if (idx == -1) continue;
+            if (!cam) continue;
 
-                var cam = sim.GetComponent<Camera>();
-                if (!cam) continue;
+            RenderTexture shape = cam.targetTexture;
+            if (shape == null) continue;
 
-                RenderTexture shape = cam.targetTexture;
-                if (shape == null) continue;
+            float b = 7f;
+            float h = Screen.height / (float)OceanRenderer.Instance.Builder._camsAnimWaves.Length;
+            float w = h + b;
+            float x = Screen.width - w * offset + b * (offset - 1f);
+            float y = idx * h;
 
-                float b = 7f;
-                float h = Screen.height / (float)OceanRenderer.Instance.Builder._shapeCameras.Length;
-                float w = h + b;
-                float offset = sim is SimWave ? 3f : 2f;
-                float x = Screen.width - w * offset + b * (offset - 1f);
-                float y = idx * h;
+            GUI.color = Color.black * 0.7f;
+            GUI.DrawTexture(new Rect(x, y, w - b, h), Texture2D.whiteTexture);
+            GUI.color = Color.white;
+            GUI.DrawTexture(new Rect(x + b, y + b / 2f, h - b, h - b), shape);
 
-                GUI.color = Color.black * 0.7f;
-                GUI.DrawTexture(new Rect(x, y, w - b, h), Texture2D.whiteTexture);
-                GUI.color = Color.white;
-                GUI.DrawTexture(new Rect(x + b, y + b / 2f, h - b, h - b), shape);
-
-                idx++;
-            }
+            idx++;
         }
     }
 

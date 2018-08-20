@@ -11,8 +11,8 @@ Shader "Ocean/Ocean"
 		[NoScaleOffset] _Skybox ("Skybox", CUBE) = "" {}
 		_Diffuse("Diffuse", Color) = (0.2, 0.05, 0.05, 1.0)
 		[Toggle] _ComputeDirectionalLight("Add Directional Light", Float) = 1
-		_DirectionalLightFallOff("Directional Light Fall-Off", Range(1.0, 512.0)) = 128.0
-		_DirectionalLightBoost("Directional Light Boost", Range(0.0, 16.0)) = 5.0
+		_DirectionalLightFallOff("Directional Light Fall-Off", Range(1.0, 4096.0)) = 128.0
+		_DirectionalLightBoost("Directional Light Boost", Range(0.0, 512.0)) = 5.0
 		[Toggle] _SubSurfaceScattering("Sub-Surface Scattering", Float) = 1
 		_SubSurfaceColour("Sub-Surface Scattering Colour", Color) = (0.0, 0.48, 0.36, 1.)
 		_SubSurfaceBase("Sub-Surface Scattering Base Mul", Range(0.0, 2.0)) = 0.6
@@ -28,7 +28,7 @@ Shader "Ocean/Ocean"
 		_WaveFoamBubblesCoverage("Wave Foam Bubbles Coverage", Range(0.0,5.0)) = 0.95
 		[Toggle] _Foam3DLighting("Foam 3D Lighting", Float) = 1
 		_WaveFoamLightScale("Wave Foam Light Scale", Range(0.0, 2.0)) = 0.7
-		_WaveFoamNormalStrength("Wave Foam Normals Strength", Range(0.0, 10.0)) = 3.5
+		_WaveFoamNormalStrength("Wave Foam Normals Strength", Range(0.0, 30.0)) = 3.5
 		_WaveFoamSpecularFallOff("Wave Foam Specular Fall-Off", Range(1.0, 512.0)) = 275.0
 		_WaveFoamSpecularBoost("Wave Foam Specular Boost", Range(0.0, 16.0)) = 4.0
 		[Toggle] _Transparency("Transparency", Float) = 1

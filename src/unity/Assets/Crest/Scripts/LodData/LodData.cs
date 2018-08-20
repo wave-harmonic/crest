@@ -179,14 +179,18 @@ namespace Crest
         }
 
         Camera _camera; protected Camera Cam { get { return _camera ?? (_camera = GetComponent<Camera>()); } }
+        LodTransform _lt; public LodTransform LodTransform { get { return _lt ?? (_lt = GetComponent<LodTransform>()); } }
         LodDataSeaFloorDepth _ldsd;
-        public LodDataSeaFloorDepth LDSeaDepth { get { return _ldsd ?? (_ldsd = GetComponent<LodDataSeaFloorDepth>()); } }
-        LodDataFoam _ldf; public LodDataFoam LDFoam { get {
+        public LodDataSeaFloorDepth LDSeaDepth { get {
+                return _ldsd ?? (_ldsd = GetComponent<LodDataSeaFloorDepth>());
+        } }
+        LodDataFoam _ldf;
+        public LodDataFoam LDFoam { get {
                 return _ldf ?? (_ldf = OceanRenderer.Instance.Builder._camsFoam[LodTransform.LodIndex].GetComponent<LodDataFoam>());
         } }
-        LodDataDynamicWaves _lddw; public LodDataDynamicWaves LDDynamicWaves { get {
+        LodDataDynamicWaves _lddw;
+        public LodDataDynamicWaves LDDynamicWaves { get {
                 return _lddw ?? (_lddw = OceanRenderer.Instance.Builder._camsDynWaves[LodTransform.LodIndex].GetComponent<LodDataDynamicWaves>());
         } }
-        LodTransform _lt; public LodTransform LodTransform { get { return _lt ?? (_lt = GetComponent<LodTransform>()); } }
     }
 }

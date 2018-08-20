@@ -29,7 +29,7 @@ We generate shape from Gerstner waves efficiently at runtime by rendering at mul
 
 To control the ocean shape, we introduce an intuitive and fun shape authoring interface - an *equalizer* style editor which makes it fast and easy to achieve surface shape. Art direction such as *small choppy waves with longer waves rolling in from a storm at the horizon* is simple to achieve in this framework. We also support empirical ocean spectra from the literature (Phillips, JONSWAP, etc) which can be used directly or as a comparison.
 
-For interactivity we add a dynamic wave simulation on top of the ocean waves. The wave simulation also deposits foam enabling boat wakes to be generated. This is demonstrated in the *boat* and *threeboats* example scenes.
+For interactivity we add a dynamic wave simulation on top of the ocean waves. The simulation is computed on a heightfield and then converted into a displacements, which trigger foam generation and enable boat wakes to be generated. This is demonstrated in the *boat* and *threeboats* example scenes.
 
 The final shape is asynchronously read back to the CPU for gameplay/physics use. This gives access to the full, rich shape without requiring expensive CPU calculations or pipeline stalls.
 
@@ -62,20 +62,22 @@ As an area of future work, the branch *fx_test* explores dynamically generating 
 
 The steps to set up Crest in a new or existing project currently look as follows. There is an example of all this running in *Crest-Examples/Scenes/main*.
 
-* Switch your project to Linear space rendering under *Edit > Project Settings > Player > Other Settings*. If your platform(s) require Gamma space, the surface colours will need to be tweaked accordingly.
+* Switch your project to Linear space rendering under *Edit > Project Settings > Player > Other Settings*. If your platform(s) require Gamma space, the material settings will need to be adjusted to compensate.
 * Copy across the contents of the *Crest* folder - this has all the necessary components and assets. Be sure to include the .meta files.
   * Some of the infrastructure for versioned Releases has been set up but is still evolving. These steps will be updated the release process has matured.
 * Drag *Crest/Prefabs/Ocean.prefab* into your scene(s), set y coordinate to desired sea level. On startup, this will generate the ocean geometry and initialise the ocean systems.
 * Tag a primary camera as *MainCamera* if one is not tagged already, or provide the viewpoint transform to the *OceanRenderer* script on the preab.
-* To add waves, create a new GameObject and add the *Shape Gerster Batched* component. Add a layer named *SimShape* to the project - any objects in this layer will render shape onto the ocean surface.
-  * This will create a default ocean shape. To edit the shape, create an asset of type *Crest/Ocean Wave Spectrum* and assign it to this script.
-  * Smooth blending of ocean shapes can be achieved by adding multiple *Shape Gerstner Batched* scripts and crossfading them using the Weight parameter.
-* To simulate and render foam create a new GameObject and add the *Create Sims* component, which will by default be configured to create a foam simulation.
+* Add the following layers which are required by Crest:
+  * *LodDataAnimatedWaves* - for Gerstner waves and other kinematic shape.
+  * *LodDataFoam* - for the foam simulation.
+  * *LodDataDynamicWaves* - for any dynamically simulated waves such as interactions with objects.
+* To add waves, create a new GameObject and add the *Shape Gerster Batched* component.
+  * On startup this script creates a default ocean shape. To edit the shape, create an asset of type *Crest/Ocean Wave Spectrum* and provide it to this script.
+  * Smooth blending of ocean shapes can be achieved by adding multiple *Shape Gerstner Batched* scripts and crossfading them using the *Weight* parameter.
 * For geometry that should influence the ocean (attenuate waves, generate foam):
-  * Static geometry should render ocean depth just once on startup into an *Ocean Depth Cache*.
+  * Static geometry should render ocean depth just once on startup into an *Ocean Depth Cache* - the island in the main scene in the example content demonstrates this.
   * Dynamic objects that need to render depth every frame should have a *Render Ocean Depth* component attached.
 * Be sure to generate lighting from the Lighting window - the ocean lighting takes the ambient intensity from the baked spherical harmonics.
-* A few of the ocean features require particular layers to be configured the project - these will generate errors in the log with instructions to get them added. These are generally for rendering data into simulations and should be excluded from the culling masks of any render cameras as they should not contribute to the visible render.
 
 Enjoy!
 

@@ -100,6 +100,7 @@ namespace Crest
             AnimatedWaves,
             // this is currently not used as the sea floor depth is not created as a unique sim object
             SeaFloorDepth,
+            Flow,
         }
 
         public static GameObject CreateLodData(int lodIdx, int lodCount, float baseVertDensity, SimType simType, Dictionary<System.Type, SimSettingsBase> cachedSettings)

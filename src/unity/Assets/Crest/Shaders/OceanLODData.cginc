@@ -9,6 +9,7 @@
 	uniform sampler2D _LD_Sampler_AnimatedWaves_##LODNUM; \
 	uniform sampler2D _LD_Sampler_SeaFloorDepth_##LODNUM; \
 	uniform sampler2D _LD_Sampler_Foam_##LODNUM; \
+	uniform sampler2D _LD_Sampler_Flow_##LODNUM; \
 	uniform sampler2D _LD_Sampler_DynamicWaves_##LODNUM; \
 	uniform float4 _LD_Params_##LODNUM; \
 	uniform float3 _LD_Pos_Scale_##LODNUM; \

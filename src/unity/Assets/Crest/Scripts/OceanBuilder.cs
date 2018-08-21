@@ -19,12 +19,10 @@ namespace Crest
         [HideInInspector]
         public LodDataAnimatedWaves[] _lodDataAnimWaves;
 
-        [HideInInspector]
-        public Camera[] _camsAnimWaves;
-        [HideInInspector]
-        public Camera[] _camsFoam;
-        [HideInInspector]
-        public Camera[] _camsDynWaves;
+        [HideInInspector] public Camera[] _camsAnimWaves;
+        [HideInInspector] public Camera[] _camsFoam;
+        [HideInInspector] public Camera[] _camsFlow;
+        [HideInInspector] public Camera[] _camsDynWaves;
 
         [Header("Simulations")]
         public bool _createFoamSim = true;
@@ -40,7 +38,7 @@ namespace Crest
         {
             /// <summary>
             /// Adds no skirt. Used in interior of highest detail lod (0)
-            /// 
+            ///
             ///    1 -------
             ///      |  |  |
             ///  z   -------
@@ -48,13 +46,13 @@ namespace Crest
             ///    0 -------
             ///      0     1
             ///         x
-            /// 
+            ///
             /// </summary>
             Interior,
 
             /// <summary>
             /// Adds a full skirt all of the way arond a patch
-            /// 
+            ///
             ///      -------------
             ///      |  |  |  |  |
             ///    1 -------------
@@ -66,13 +64,13 @@ namespace Crest
             ///      -------------
             ///         0     1
             ///            x
-            ///         
+            ///
             /// </summary>
             Fat,
 
             /// <summary>
             /// Adds a skirt on the right hand side of the patch
-            /// 
+            ///
             ///    1 ----------
             ///      |  |  |  |
             ///  z   ----------
@@ -80,7 +78,7 @@ namespace Crest
             ///    0 ----------
             ///      0     1
             ///         x
-            ///         
+            ///
             /// </summary>
             FatX,
 
@@ -92,7 +90,7 @@ namespace Crest
             /// <summary>
             /// Outer most side - this adds an extra skirt on the left hand side of the patch,
             /// which will point outwards and be extended to Zfar
-            /// 
+            ///
             ///    1 --------------------------------------------------------------------------------------
             ///      |  |  |                                                                              |
             ///  z   --------------------------------------------------------------------------------------
@@ -100,7 +98,7 @@ namespace Crest
             ///    0 --------------------------------------------------------------------------------------
             ///      0     1
             ///         x
-            ///         
+            ///
             /// </summary>
             FatXOuter,
 
@@ -126,7 +124,7 @@ namespace Crest
 
             /// <summary>
             /// One less set of verts in x direction, extra verts at start of z direction
-            /// 
+            ///
             ///      ----
             ///      |  |
             ///    1 ----

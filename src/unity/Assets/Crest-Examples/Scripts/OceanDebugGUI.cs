@@ -67,7 +67,9 @@ public class OceanDebugGUI : MonoBehaviour
 
             _showSimTargets = GUI.Toggle(new Rect(x, y, w, h), _showSimTargets, "Show sim data"); y += h;
 
+#if UNITY_EDITOR
             LodDataAnimatedWaves._shapeCombinePass = GUI.Toggle(new Rect(x, y, w, h), LodDataAnimatedWaves._shapeCombinePass, "Shape combine pass"); y += h;
+#endif
 
             int min = int.MaxValue, max = -1;
             bool readbackShape = true;

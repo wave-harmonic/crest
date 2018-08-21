@@ -33,24 +33,29 @@ namespace Crest
 
         void Start()
         {
+            Create();
+        }
+
+        public void Create()
+        {
             // Sometimes the RTs need to be created and assigned before Start() - check if it has already been done first.
             if (!_createdAndAssigned)
             {
-	            if (!_createPingPongTargets)
-	            {
+                if (!_createPingPongTargets)
+                {
                     CreateRTAndAssign();
-	            }
-	            else
-	            {
-	                CreatePingPongRts();
-	            }
-	        }
+                }
+                else
+                {
+                    CreatePingPongRts();
+                }
+            }
         }
 
         /// <summary>
         /// Creates RT with given settings and assigns to camera on this gameobject.
         /// </summary>
-        public void CreateRTAndAssign()
+        private void CreateRTAndAssign()
         {
             var rt = CreateRT(_targetName);
 
@@ -62,7 +67,7 @@ namespace Crest
         /// <summary>
         /// Creates RT with given settings and returns it.
         /// </summary>
-        public RenderTexture CreateRT(string targetName)
+        private RenderTexture CreateRT(string targetName)
         {
             var tex = new RenderTexture( _width, _height, _depthBits, _format );
 

@@ -65,11 +65,17 @@ namespace Crest
             _oceanBuilder = FindObjectOfType<OceanBuilder>();
             _oceanBuilder.GenerateMesh(_baseVertDensity, _lodCount);
 
+            // set render orders, event hooks, etc
+            var scheduler = GetComponent<IOceanScheduler>();
+            if (scheduler == null) scheduler = gameObject.AddComponent<OceanScheduler>();
+            scheduler.ApplySchedule(_oceanBuilder);
+
             if (_viewpoint == null)
             {
-                if (Camera.main != null)
+                var camMain = Camera.main;
+                if (camMain != null)
                 {
-                    _viewpoint = Camera.main.transform;
+                    _viewpoint = camMain.transform;
                 }
                 else
                 {

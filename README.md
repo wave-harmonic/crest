@@ -6,7 +6,7 @@
 
 # Intro
 
-*Crest* is a technically advanced ocean renderer implemented in Unity3D (2018.2+).
+*Crest* is a technically advanced ocean renderer implemented in Unity3D 2018.2+.
 
 ![Teaser](https://raw.githubusercontent.com/huwb/crest-oceanrender/master/img/teaser4.png)
 
@@ -121,6 +121,7 @@ The ocean pixel shader samples normal maps at 2 different scales, both proportio
 
 # Bugs and Improvement Directions
 
+* A non-backwards-compatible change was made to prefabs in Unity 2018.2, which means some of the example content prefabs may show up as *Missing* in previous versions. See issue #51.
 * Using prebaked textures (i.e. from an offline ocean simulation) would be easy to implement in our framework by rendering the prebaked results into the shape textures, and would be the most efficient option (although completely dynamic shape renders very efficiently).
 * Wetness simulation for shore
 * Flow - texture to paint wind direction

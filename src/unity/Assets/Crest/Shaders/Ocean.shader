@@ -20,11 +20,11 @@ Shader "Ocean/Ocean"
 		_SubSurfaceSunFallOff("    Sun Fall-Off", Range(1.0, 16.0)) = 4.0
 		[Toggle] _SubSurfaceHeightLerp("Sub-Surface Scattering Height Lerp", Float) = 1
 		_SubSurfaceHeightMax("    Height Max", Range(0.0, 50.0)) = 3.0
-		_SubSurfaceHeightPower("    Height Power", Range(0.0, 10.0)) = 1.0
+		_SubSurfaceHeightPower("    Height Power", Range(0.01, 10.0)) = 1.0
 		_SubSurfaceCrestColour("    Crest Colour", Color) = (0.42, 0.69, 0.52)
 		[Toggle] _SubSurfaceShallowColour("Sub-Surface Shallow Colour", Float) = 1
-		_SubSurfaceDepthMax("    Depth Max", Range(0.0, 50.0)) = 3.0
-		_SubSurfaceDepthPower("    Depth Power", Range(0.0, 10.0)) = 1.0
+		_SubSurfaceDepthMax("    Depth Max", Range(0.01, 50.0)) = 3.0
+		_SubSurfaceDepthPower("    Depth Power", Range(0.01, 10.0)) = 1.0
 		_SubSurfaceShallowCol("    Shallow Colour", Color) = (0.42, 0.75, 0.69)
 		[Toggle] _Foam("Foam", Float) = 1
 		[NoScaleOffset] _FoamTexture ( "    Texture", 2D ) = "white" {}

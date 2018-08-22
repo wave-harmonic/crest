@@ -41,6 +41,8 @@ Shader "Ocean/Ocean"
 		_WaveFoamSpecularBoost("    Specular Boost", Range(0.0, 16.0)) = 4.0
 		[Toggle] _Transparency("Transparency", Float) = 1
 		_DepthFogDensity("    Density", Vector) = (0.28, 0.16, 0.24, 1.0)
+		[Toggle] _Caustics("Caustics", Float) = 1
+		[NoScaleOffset] _CausticsTexture ( "    Caustics", 2D ) = "black" {}
 		_FresnelPower("Fresnel Power", Range(0.0,20.0)) = 3.0
 		[Toggle] _DebugDisableShapeTextures("Debug Disable Shape Textures", Float) = 0
 		[Toggle] _DebugVisualiseShapeSample("Debug Visualise Shape Sample", Float) = 0
@@ -73,6 +75,7 @@ Shader "Ocean/Ocean"
 				#pragma shader_feature _SUBSURFACEHEIGHTLERP_ON
 				#pragma shader_feature _SUBSURFACESHALLOWCOLOUR_ON
 				#pragma shader_feature _TRANSPARENCY_ON
+				#pragma shader_feature _CAUSTICS_ON
 				#pragma shader_feature _FOAM_ON
 				#pragma shader_feature _FOAM3DLIGHTING_ON
 				#pragma shader_feature _DEBUGDISABLESHAPETEXTURES_ON
@@ -225,6 +228,8 @@ Shader "Ocean/Ocean"
 				uniform fixed4 _LightColor0;
 				uniform half2 _WindDirXZ;
 
+				uniform sampler2D _CausticsTexture;
+
 				// these are copied from the render target by unity
 				sampler2D _BackgroundTexture;
 				sampler2D _CameraDepthTexture;
@@ -369,6 +374,23 @@ Shader "Ocean/Ocean"
 					}
 
 					half3 sceneColour = texture(_BackgroundTexture, uvBackgroundRefract).rgb;
+
+					#if _CAUSTICS_ON
+					//float3 camForward = UNITY_MATRIX_IT_MV[2].xyz;
+					float3 camForward = mul((float3x3)unity_CameraToWorld, float3(0, 0, 1));
+					float3 scenePos = _WorldSpaceCameraPos - view * sceneZ / dot(camForward, -view);
+					half sceneDepth = _OceanCenterPosWorld.y - scenePos.y;
+					half focalDepth = 2.0;
+					half bias = 3.*abs(sceneDepth - focalDepth);
+					half2 causticN = .3*UnpackNormal(tex2D(_Normals, .1*scenePos.xz)).xy;
+					half4 cuv1 = half4(1.3*(scenePos.xz / 6. + .25*causticN + 4. * half2(.17*_Time.x+3.3, -.65*_Time.x)), 0., bias);
+					half4 cuv2 = half4(1.77*(scenePos.xz / 6. + .25*causticN + 4. * half2( .7*_Time.x,  .33*_Time.x)), 0., bias);
+					sceneColour *= .8
+						+ .5*tex2Dbias(_CausticsTexture, cuv1).x
+						+ .5*tex2Dbias(_CausticsTexture, cuv2).x
+						;
+					#endif
+
 					col = lerp(sceneColour, col, alpha);
 					#endif
 

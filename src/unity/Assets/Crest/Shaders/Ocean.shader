@@ -327,7 +327,7 @@ Shader "Ocean/Ocean"
 					return lightDir;
 				}
 
-				half3 OceanEmission(float3 worldPos, half oceanDepth, half3 view, half3 n, half3 n_geom, float3 lightDir, half4 grabPos, half3 screenPos, float pixelZ, half2 uvDepth, float sceneZ, float sceneZ01, half3 bubbleCol)
+				half3 OceanEmission(float3 worldPos, half oceanDepth, half lodAlpha, half3 view, half3 n, half3 n_geom, float3 lightDir, half4 grabPos, half3 screenPos, float pixelZ, half2 uvDepth, float sceneZ, float sceneZ01, half3 bubbleCol)
 				{
 					// use the constant layer of SH stuff - this is the average. it seems to give the right kind of colour
 					half3 col = _Diffuse;
@@ -376,20 +376,46 @@ Shader "Ocean/Ocean"
 					half3 sceneColour = texture(_BackgroundTexture, uvBackgroundRefract).rgb;
 
 					#if _CAUSTICS_ON
-					// underwater caustics - dedicated to my P
-					//float3 camForward = UNITY_MATRIX_IT_MV[2].xyz;
-					float3 camForward = mul((float3x3)unity_CameraToWorld, float3(0, 0, 1));
-					float3 scenePos = _WorldSpaceCameraPos - view * sceneZ / dot(camForward, -view);
-					half sceneDepth = _OceanCenterPosWorld.y - scenePos.y;
-					half focalDepth = 2.0;
-					half bias = 3.*abs(sceneDepth - focalDepth);
-					half2 causticN = .3*UnpackNormal(tex2D(_Normals, .1*scenePos.xz)).xy;
-					half4 cuv1 = half4(1.3*(scenePos.xz / 6. + .25*causticN + 4. * half2(.17*_Time.x+3.3, -.65*_Time.x)), 0., bias);
-					half4 cuv2 = half4(1.77*(scenePos.xz / 6. + .25*causticN + 4. * half2( .7*_Time.x,  .33*_Time.x)), 0., bias);
-					sceneColour *= .8
-						+ .5*tex2Dbias(_CausticsTexture, cuv1).x
-						+ .5*tex2Dbias(_CausticsTexture, cuv2).x
-						;
+					{
+						// underwater caustics - dedicated to my P
+						//float3 camForward = UNITY_MATRIX_IT_MV[2].xyz;
+						float3 camForward = mul((float3x3)unity_CameraToWorld, float3(0, 0, 1));
+						float3 scenePos = _WorldSpaceCameraPos - view * sceneZ / dot(camForward, -view);
+						half sceneDepth = _OceanCenterPosWorld.y - scenePos.y;
+						half focalDepth = 2.0;
+						half bias = 3.*abs(sceneDepth - focalDepth);
+						half3 causticN = 0.;// .3*UnpackNormal(tex2D(_Normals, .1*scenePos.xz)).xyz;
+
+
+						float wt_0 = 1. - lodAlpha;
+						float wt_1 = lodAlpha;
+						// sample displacement textures, add results to current world pos / normal / foam
+						//const float2 worldXZBefore = o.worldPos.xz;
+						if (wt_0 > 0.001)
+						{
+							#if !_DEBUGDISABLESHAPETEXTURES_ON
+							const float2 uv_0 = LD_0_WorldToUV(worldPos.xz);
+							float3 posDummy;
+							SampleDisplacements(_LD_Sampler_AnimatedWaves_0, uv_0, wt_0, _LD_Params_0.w, _LD_Params_0.x, posDummy, causticN);
+							#endif
+						}
+						if (wt_1 > 0.001)
+						{
+							#if !_DEBUGDISABLESHAPETEXTURES_ON
+							const float2 uv_1 = LD_1_WorldToUV(worldPos.xz);
+							float3 posDummy;
+							SampleDisplacements(_LD_Sampler_AnimatedWaves_1, uv_1, wt_1, _LD_Params_1.w, _LD_Params_1.x, posDummy, causticN);
+							#endif
+						}
+						causticN = 2.*causticN.xzy;
+
+						half4 cuv1 = half4(1.3 *(scenePos.xz / 6. + .25*causticN.xy + 4. * half2(.17*_Time.x+3.3, -.65*_Time.x)), 0., bias);
+						half4 cuv2 = half4(1.77*(scenePos.xz / 6. + .25*causticN.xy + 4. * half2( .7*_Time.x    ,  .33*_Time.x)), 0., bias);
+						sceneColour *= .8
+							+ .5*tex2Dbias(_CausticsTexture, cuv1).x
+							+ .5*tex2Dbias(_CausticsTexture, cuv2).x
+							;
+					}
 					#endif
 
 					col = lerp(sceneColour, col, alpha);
@@ -427,7 +453,7 @@ Shader "Ocean/Ocean"
 					#endif
 
 					// Compute color of ocean - in-scattered light + refracted scene
-					half3 col = OceanEmission(i.worldPos, i.lodAlpha_worldXZUndisplaced_oceanDepth.w, view, n_pixel, n_geom, lightDir, i.grabPos, screenPos, pixelZ, uvDepth, sceneZ, sceneZ01, bubbleCol);
+					half3 col = OceanEmission(i.worldPos, i.lodAlpha_worldXZUndisplaced_oceanDepth.x, i.lodAlpha_worldXZUndisplaced_oceanDepth.w, view, n_pixel, n_geom, lightDir, i.grabPos, screenPos, pixelZ, uvDepth, sceneZ, sceneZ01, bubbleCol);
 
 					// Reflection
 					half3 refl = reflect(-view, n_pixel);

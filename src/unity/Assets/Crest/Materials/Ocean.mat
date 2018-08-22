@@ -76,6 +76,14 @@ Material:
     - _ApplyNormalMapping: 1
     - _BumpAmt: 0.514
     - _Caustics: 1
+    - _CausticsBase: 0.07
+    - _CausticsBias: 0.7
+    - _CausticsDepthOfField: 0.33
+    - _CausticsDistortionScale: 10
+    - _CausticsDistortionStrength: 0.075
+    - _CausticsFocalDepth: 2
+    - _CausticsStrength: 3.2
+    - _CausticsTextureAverage: 0.07
     - _CompileShaderWithDebugInfo: 0
     - _ComputeDirectionalLight: 1
     - _DebugDisableMultiplyByLight0Color: 0

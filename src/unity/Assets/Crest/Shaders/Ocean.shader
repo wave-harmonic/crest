@@ -14,14 +14,14 @@ Shader "Ocean/Ocean"
 		_DirectionalLightFallOff("    Fall-Off", Range(1.0, 4096.0)) = 128.0
 		_DirectionalLightBoost("    Boost", Range(0.0, 512.0)) = 5.0
 		[Toggle] _SubSurfaceScattering("Sub-Surface Scattering", Float) = 1
-		_SubSurfaceColour("    Colour", Color) = (0.0, 0.48, 0.36, 1.)
+		_SubSurfaceColour("    Colour", Color) = (0.0, 0.48, 0.36)
 		_SubSurfaceBase("    Base Mul", Range(0.0, 2.0)) = 0.6
 		_SubSurfaceSun("    Sun Mul", Range(0.0, 10.0)) = 0.8
 		_SubSurfaceSunFallOff("    Sun Fall-Off", Range(1.0, 16.0)) = 4.0
 		[Toggle] _SubSurfaceHeightLerp("Sub-Surface Scattering Height Lerp", Float) = 1
 		_SubSurfaceHeightMax("    Height Max", Range(0.0, 50.0)) = 3.0
 		_SubSurfaceHeightPower("    Height Power", Range(0.0, 10.0)) = 1.0
-		_SubSurfaceCrestColour("    Crest Colour", Color) = (0.0, 0.48, 0.36, 1.)
+		_SubSurfaceCrestColour("    Crest Colour", Color) = (0.42, 0.69, 0.63)
 		[Toggle] _Foam("Foam", Float) = 1
 		[NoScaleOffset] _FoamTexture ( "    Texture", 2D ) = "white" {}
 		_FoamScale("    Scale", Range(0.01, 50.0)) = 10.0
@@ -176,13 +176,13 @@ Shader "Ocean/Ocean"
 				uniform half _DirectionalLightFallOff;
 				uniform half _DirectionalLightBoost;
 
-				uniform half4 _SubSurfaceColour;
+				uniform half3 _SubSurfaceColour;
 				uniform half _SubSurfaceBase;
 				uniform half _SubSurfaceSun;
 				uniform half _SubSurfaceSunFallOff;
 				uniform half _SubSurfaceHeightMax;
 				uniform half _SubSurfaceHeightPower;
-				uniform half4 _SubSurfaceCrestColour;
+				uniform half3 _SubSurfaceCrestColour;
 
 				uniform half4 _DepthFogDensity;
 				uniform samplerCUBE _Skybox;
@@ -313,7 +313,7 @@ Shader "Ocean/Ocean"
 					#if _SUBSURFACEHEIGHTLERP_ON
 					half h = worldPos.y - _OceanCenterPosWorld.y;
 					half s = pow(saturate(0.5 + 2.0 * h / _SubSurfaceHeightMax), _SubSurfaceHeightPower);
-					col = lerp(col, _SubSurfaceCrestColour.rgb * _SubSurfaceCrestColour.a, s);
+					col = lerp(col, _SubSurfaceCrestColour.rgb, s);
 					#endif
 
 					// light
@@ -321,7 +321,7 @@ Shader "Ocean/Ocean"
 
 					// Approximate subsurface scattering - add light when surface faces viewer. Use geometry normal - don't need high freqs.
 					half towardsSun = pow(max(0., dot(lightDir, -view)), _SubSurfaceSunFallOff);
-					col += (_SubSurfaceBase + _SubSurfaceSun * towardsSun) * max(dot(n_geom, view), 0.) * _SubSurfaceColour.rgb * _SubSurfaceColour.a * _LightColor0;
+					col += (_SubSurfaceBase + _SubSurfaceSun * towardsSun) * max(dot(n_geom, view), 0.) * _SubSurfaceColour.rgb * _LightColor0;
 					#endif
 
 					col += bubbleCol;

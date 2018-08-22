@@ -21,7 +21,7 @@ Shader "Ocean/Ocean"
 		[Toggle] _SubSurfaceHeightLerp("Sub-Surface Scattering Height Lerp", Float) = 1
 		_SubSurfaceHeightMax("    Height Max", Range(0.0, 50.0)) = 3.0
 		_SubSurfaceHeightPower("    Height Power", Range(0.0, 10.0)) = 1.0
-		_SubSurfaceCrestColour("    Crest Colour", Color) = (0.42, 0.69, 0.63)
+		_SubSurfaceCrestColour("    Crest Colour", Color) = (0.42, 0.69, 0.52)
 		[Toggle] _Foam("Foam", Float) = 1
 		[NoScaleOffset] _FoamTexture ( "    Texture", 2D ) = "white" {}
 		_FoamScale("    Scale", Range(0.01, 50.0)) = 10.0
@@ -310,10 +310,10 @@ Shader "Ocean/Ocean"
 					half3 col = _Diffuse;
 
 					#if _SUBSURFACESCATTERING_ON
+
 					#if _SUBSURFACEHEIGHTLERP_ON
 					half h = worldPos.y - _OceanCenterPosWorld.y;
-					half s = pow(saturate(0.5 + 2.0 * h / _SubSurfaceHeightMax), _SubSurfaceHeightPower);
-					col = lerp(col, _SubSurfaceCrestColour.rgb, s);
+					col += pow(saturate(0.5 + 2.0 * h / _SubSurfaceHeightMax), _SubSurfaceHeightPower) * _SubSurfaceCrestColour.rgb;
 					#endif
 
 					// light

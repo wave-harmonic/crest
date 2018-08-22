@@ -127,4 +127,4 @@ Material:
     - _FoamWhiteColor: {r: 1, g: 0.98813045, b: 0.909, a: 1}
     - _SubSurface: {r: 0, g: 0.48, b: 0.36, a: 1}
     - _SubSurfaceColour: {r: 0.10196078, g: 0.57254905, b: 0.5256646, a: 1}
-    - _SubSurfaceCrestColour: {r: 0.42, g: 0.69, b: 0.63, a: 1}
+    - _SubSurfaceCrestColour: {r: 0.41999993, g: 0.69, b: 0.525, a: 1}

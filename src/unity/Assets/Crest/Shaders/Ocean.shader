@@ -22,6 +22,10 @@ Shader "Ocean/Ocean"
 		_SubSurfaceHeightMax("    Height Max", Range(0.0, 50.0)) = 3.0
 		_SubSurfaceHeightPower("    Height Power", Range(0.0, 10.0)) = 1.0
 		_SubSurfaceCrestColour("    Crest Colour", Color) = (0.42, 0.69, 0.52)
+		[Toggle] _SubSurfaceShallowColour("Sub-Surface Shallow Colour", Float) = 1
+		_SubSurfaceDepthMax("    Depth Max", Range(0.0, 50.0)) = 3.0
+		_SubSurfaceDepthPower("    Depth Power", Range(0.0, 10.0)) = 1.0
+		_SubSurfaceShallowCol("    Shallow Colour", Color) = (0.42, 0.75, 0.69)
 		[Toggle] _Foam("Foam", Float) = 1
 		[NoScaleOffset] _FoamTexture ( "    Texture", 2D ) = "white" {}
 		_FoamScale("    Scale", Range(0.01, 50.0)) = 10.0
@@ -67,6 +71,7 @@ Shader "Ocean/Ocean"
 				#pragma shader_feature _COMPUTEDIRECTIONALLIGHT_ON
 				#pragma shader_feature _SUBSURFACESCATTERING_ON
 				#pragma shader_feature _SUBSURFACEHEIGHTLERP_ON
+				#pragma shader_feature _SUBSURFACESHALLOWCOLOUR_ON
 				#pragma shader_feature _TRANSPARENCY_ON
 				#pragma shader_feature _FOAM_ON
 				#pragma shader_feature _FOAM3DLIGHTING_ON
@@ -93,7 +98,7 @@ Shader "Ocean/Ocean"
 					float4 vertex : SV_POSITION;
 					half3 n : TEXCOORD1;
 					half4 foam_screenPos : TEXCOORD4;
-					half3 lodAlpha_worldXZUndisplaced : TEXCOORD5;
+					half4 lodAlpha_worldXZUndisplaced_oceanDepth : TEXCOORD5;
 					float3 worldPos : TEXCOORD7;
 					#if _DEBUGVISUALISESHAPESAMPLE_ON
 					half3 debugtint : TEXCOORD8;
@@ -122,12 +127,13 @@ Shader "Ocean/Ocean"
 					// vertex snapping and lod transition
 					float lodAlpha;
 					SnapAndTransitionVertLayout(_InstanceData.x, o.worldPos, lodAlpha);
-					o.lodAlpha_worldXZUndisplaced.x = lodAlpha;
-					o.lodAlpha_worldXZUndisplaced.yz = o.worldPos.xz;
+					o.lodAlpha_worldXZUndisplaced_oceanDepth.x = lodAlpha;
+					o.lodAlpha_worldXZUndisplaced_oceanDepth.yz = o.worldPos.xz;
 
 					// sample shape textures - always lerp between 2 scales, so sample two textures
 					o.n = half3(0., 1., 0.);
 					o.foam_screenPos.x = 0.;
+					o.lodAlpha_worldXZUndisplaced_oceanDepth.w = 0.;
 					// sample weights. params.z allows shape to be faded out (used on last lod to support pop-less scale transitions)
 					float wt_0 = (1. - lodAlpha) * _LD_Params_0.z;
 					float wt_1 = (1. - wt_0) * _LD_Params_1.z;
@@ -140,6 +146,10 @@ Shader "Ocean/Ocean"
 						SampleDisplacements(_LD_Sampler_AnimatedWaves_0, uv_0, wt_0, _LD_Params_0.w, _LD_Params_0.x, o.worldPos, o.n);
 						#endif
 						SampleFoam(_LD_Sampler_Foam_0, uv_0, wt_0, o.foam_screenPos.x);
+
+						#if _SUBSURFACESHALLOWCOLOUR_ON
+						SampleOceanDepth(_LD_Sampler_SeaFloorDepth_0, uv_0, wt_0, o.lodAlpha_worldXZUndisplaced_oceanDepth.w);
+						#endif
 					}
 					if (wt_1 > 0.001)
 					{
@@ -148,6 +158,10 @@ Shader "Ocean/Ocean"
 						SampleDisplacements(_LD_Sampler_AnimatedWaves_1, uv_1, wt_1, _LD_Params_1.w, _LD_Params_1.x, o.worldPos, o.n);
 						#endif
 						SampleFoam(_LD_Sampler_Foam_1, uv_1, wt_1, o.foam_screenPos.x);
+
+						#if _SUBSURFACESHALLOWCOLOUR_ON
+						SampleOceanDepth(_LD_Sampler_SeaFloorDepth_1, uv_1, wt_1, o.lodAlpha_worldXZUndisplaced_oceanDepth.w);
+						#endif
 					}
 
 					// debug tinting to see which shape textures are used
@@ -183,6 +197,10 @@ Shader "Ocean/Ocean"
 				uniform half _SubSurfaceHeightMax;
 				uniform half _SubSurfaceHeightPower;
 				uniform half3 _SubSurfaceCrestColour;
+
+				uniform half _SubSurfaceDepthMax;
+				uniform half _SubSurfaceDepthPower;
+				uniform half3 _SubSurfaceShallowCol;
 
 				uniform half4 _DepthFogDensity;
 				uniform samplerCUBE _Skybox;
@@ -304,12 +322,17 @@ Shader "Ocean/Ocean"
 					return lightDir;
 				}
 
-				half3 OceanEmission(float3 worldPos, half3 view, half3 n, half3 n_geom, float3 lightDir, half4 grabPos, half3 screenPos, float pixelZ, half2 uvDepth, float sceneZ, float sceneZ01, half3 bubbleCol)
+				half3 OceanEmission(float3 worldPos, half oceanDepth, half3 view, half3 n, half3 n_geom, float3 lightDir, half4 grabPos, half3 screenPos, float pixelZ, half2 uvDepth, float sceneZ, float sceneZ01, half3 bubbleCol)
 				{
 					// use the constant layer of SH stuff - this is the average. it seems to give the right kind of colour
 					half3 col = _Diffuse;
 
 					#if _SUBSURFACESCATTERING_ON
+
+					#if _SUBSURFACESHALLOWCOLOUR_ON
+					float deepness = pow(1. - saturate(oceanDepth / _SubSurfaceDepthMax), _SubSurfaceDepthPower);
+					col = lerp(col, _SubSurfaceShallowCol, deepness);
+					#endif
 
 					#if _SUBSURFACEHEIGHTLERP_ON
 					half h = worldPos.y - _OceanCenterPosWorld.y;
@@ -370,18 +393,18 @@ Shader "Ocean/Ocean"
 					half3 n_geom = normalize(i.n);
 					half3 n_pixel = n_geom;
 					#if _APPLYNORMALMAPPING_ON
-					ApplyNormalMaps(i.lodAlpha_worldXZUndisplaced.yz, i.lodAlpha_worldXZUndisplaced.x, n_pixel);
+					ApplyNormalMaps(i.lodAlpha_worldXZUndisplaced_oceanDepth.yz, i.lodAlpha_worldXZUndisplaced_oceanDepth.x, n_pixel);
 					#endif
 
 					// Foam - underwater bubbles and whitefoam
 					half3 bubbleCol = (half3)0.;
 					#if _FOAM_ON
 					half4 whiteFoamCol;
-					ComputeFoam(i.foam_screenPos.x, i.lodAlpha_worldXZUndisplaced.yz, i.worldPos.xz, n_pixel, pixelZ, sceneZ, view, lightDir, bubbleCol, whiteFoamCol);
+					ComputeFoam(i.foam_screenPos.x, i.lodAlpha_worldXZUndisplaced_oceanDepth.yz, i.worldPos.xz, n_pixel, pixelZ, sceneZ, view, lightDir, bubbleCol, whiteFoamCol);
 					#endif
 
 					// Compute color of ocean - in-scattered light + refracted scene
-					half3 col = OceanEmission(i.worldPos, view, n_pixel, n_geom, lightDir, i.grabPos, screenPos, pixelZ, uvDepth, sceneZ, sceneZ01, bubbleCol);
+					half3 col = OceanEmission(i.worldPos, i.lodAlpha_worldXZUndisplaced_oceanDepth.w, view, n_pixel, n_geom, lightDir, i.grabPos, screenPos, pixelZ, uvDepth, sceneZ, sceneZ01, bubbleCol);
 
 					// Reflection
 					half3 refl = reflect(-view, n_pixel);

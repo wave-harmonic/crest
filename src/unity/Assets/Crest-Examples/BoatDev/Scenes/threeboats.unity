@@ -659,8 +659,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _animate: 1
   _warmUp: 1
-  _onTime: 0.3
-  _period: 6
+  _onTime: 3
+  _period: 10
 --- !u!23 &1680820177
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -774,7 +774,7 @@ MonoBehaviour:
   _waveShader: {fileID: 4800000, guid: 680b41329a8923e40a8f9d6ca86f60a8, type: 3}
   _spectrum: {fileID: 11400000, guid: b066d8398541b1844a63a9c12919e528, type: 2}
   _componentsPerOctave: 5
-  _weight: 0.11
+  _weight: 0
   _randomSeed: 0
 --- !u!1001 &1881832844
 Prefab:
@@ -890,8 +890,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _animate: 1
   _warmUp: 1
-  _onTime: 0.3
-  _period: 6
+  _onTime: 3
+  _period: 10
 --- !u!23 &1923338709
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -907,7 +907,7 @@ MeshRenderer:
   m_ReflectionProbeUsage: 1
   m_RenderingLayerMask: 4294967295
   m_Materials:
-  - {fileID: 2100000, guid: 6ab0fd16cc1e4194fb3b8489cffa3afc, type: 2}
+  - {fileID: 2100000, guid: 3d5d628747f2456419fa4129cc092b08, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0

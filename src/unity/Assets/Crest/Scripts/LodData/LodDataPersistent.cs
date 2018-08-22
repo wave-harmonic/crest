@@ -10,7 +10,7 @@ namespace Crest
     /// </summary>
     public abstract class LodDataPersistent : LodData
     {
-        public static readonly float MAX_SIM_DELTA_TIME = 1f / 30f;
+        public static readonly float MAX_SIM_DELTA_TIME = 1f / 60f;
 
         public override CameraClearFlags CamClearFlags { get { return CameraClearFlags.Nothing; } }
         public override RenderTexture DataTexture { get { return Cam.targetTexture; } }

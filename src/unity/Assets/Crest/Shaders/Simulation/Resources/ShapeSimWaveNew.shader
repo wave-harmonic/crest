@@ -59,22 +59,22 @@ Shader "Ocean/Shape/Sim/2D Wave Equation New"
 				{
 					float4 uv_lastframe = float4(i.uv_lastframe.xy, 0., 0.);
 
-					half2 ft_ftm = tex2Dlod(_LD_Sampler_DynamicWavesNew_0, uv_lastframe);
-
-					float ft = ft_ftm.x; // t - current value before update
-					float ftm = ft_ftm.y; // t minus - previous value
+					half2 ft_vt = tex2Dlod(_LD_Sampler_DynamicWavesNew_0, uv_lastframe).xy;
+					
+					float ft = ft_vt.x; // t - current value before update
+					float vt = ft_vt.y; // t minus - previous value
 
 					// compute axes of laplacian kernel - rotated every frame
 					float e = i.uv_lastframe.z; // assumes square RT
 					float4 X = float4(_LaplacianAxisX, 0., 0.);
 					float4 Y = float4(-X.y, X.x, 0., 0.);
-					float fxm = tex2Dlod(_LD_Sampler_DynamicWavesNew_0, uv_lastframe - e*X).x; // x minus
-					float fym = tex2Dlod(_LD_Sampler_DynamicWavesNew_0, uv_lastframe - e*Y).x; // y minus
-					float fxp = tex2Dlod(_LD_Sampler_DynamicWavesNew_0, uv_lastframe + e*X).x; // x plus
-					float fyp = tex2Dlod(_LD_Sampler_DynamicWavesNew_0, uv_lastframe + e*Y).x; // y plus
+					float fxm = tex2Dlod(_LD_Sampler_DynamicWavesNew_0, uv_lastframe - e * X).x; // x minus
+					float fym = tex2Dlod(_LD_Sampler_DynamicWavesNew_0, uv_lastframe - e * Y).x; // y minus
+					float fxp = tex2Dlod(_LD_Sampler_DynamicWavesNew_0, uv_lastframe + e * X).x; // x plus
+					float fyp = tex2Dlod(_LD_Sampler_DynamicWavesNew_0, uv_lastframe + e * Y).x; // y plus
 
 					const float texelSize = 2. * unity_OrthoParams.x * i.uv_lastframe.z; // assumes square RT
-
+					
 					// average wavelength for this scale
 					float wavelength = 1.5 * _TexelsPerWave * texelSize;;
 					// could make velocity depend on waves
@@ -86,20 +86,21 @@ Shader "Ocean/Shape/Sim/2D Wave Equation New"
 
 					// wave propagation
 					// velocity is implicit
-					float v = dtp > MIN_DT ? (ft - ftm) / dtp : 0.0;
-					float ftp = ft + dt*v + dt*dt*c*c*(fxm + fxp + fym + fyp - 4.*ft) / (texelSize*texelSize);
+					//float v = dtp > MIN_DT ? (ft - ftm) / dtp : 0.0;
+					float vtp = vt + dt * c*c*(fxm + fxp + fym + fyp - 4.*ft) / (texelSize*texelSize);
 
 					// open boundary condition, from: http://hplgit.github.io/wavebc/doc/pub/._wavebc_cyborg002.html .
 					// this actually doesn't work perfectly well - there is some minor reflections of high frequencies.
 					// dudt + c*dudx = 0
 					// (ftp - ft)   +   c*(ft-fxm) = 0.
-					if (i.uv_lastframe.x + e >= 1.) ftp = -dt*c*(ft - fxm) + ft;
-					if (i.uv_lastframe.y + e >= 1.) ftp = -dt*c*(ft - fym) + ft;
-					if (i.uv_lastframe.x - e <= 0.) ftp = dt*c*(fxp - ft) + ft;
-					if (i.uv_lastframe.y - e <= 0.) ftp = dt*c*(fyp - ft) + ft;
+					if (i.uv_lastframe.x + e >= 1.) vtp = -dt * c*(ft - fxm);
+					if (i.uv_lastframe.y + e >= 1.) vtp = -dt * c*(ft - fym);
+					if (i.uv_lastframe.x - e <= 0.) vtp = dt * c*(fxp - ft);
+					if (i.uv_lastframe.y - e <= 0.) vtp = dt * c*(fyp - ft);
 
 					// Damping
-					ftp *= max(0.0, 1.0 - _Damping * dt);
+					//ftp *= max(0.0, 1.0 - _Damping * dt);
+					vtp *= max(0.0, 1.0 - _Damping * dt);
 					//if (-ft < waterSignedDepth)
 					//{
 					//	ftp = lerp( ft, ftp, min(waterSignedDepth + ft, 1.));
@@ -113,10 +114,12 @@ Shader "Ocean/Shape/Sim/2D Wave Equation New"
 					// http://hyperphysics.phy-astr.gsu.edu/hbase/watwav.html#c1
 					float waterSignedDepth = tex2D(_LD_Sampler_SeaFloorDepth_1, float4(i.uv, 0., 0.)).x + DEPTH_BIAS;
 					float depthMul = 1. - (1. - saturate(2.0 * waterSignedDepth / wavelength)) * dt * 2.;
-					ftp *= depthMul;
-					ft *= depthMul;
+					vtp *= depthMul;
+					//ft *= depthMul;
 
-					return half2(ftp, ft);
+					float ftp = ft + dt * vtp;
+
+					return half2(ftp, vtp);
 				}
 
 				ENDCG

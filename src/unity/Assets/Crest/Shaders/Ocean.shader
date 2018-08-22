@@ -18,6 +18,10 @@ Shader "Ocean/Ocean"
 		_SubSurfaceBase("    Base Mul", Range(0.0, 2.0)) = 0.6
 		_SubSurfaceSun("    Sun Mul", Range(0.0, 10.0)) = 0.8
 		_SubSurfaceSunFallOff("    Sun Fall-Off", Range(1.0, 16.0)) = 4.0
+		[Toggle] _SubSurfaceHeightLerp("Sub-Surface Scattering Height Lerp", Float) = 1
+		_SubSurfaceHeightMax("    Height Max", Range(0.0, 50.0)) = 3.0
+		_SubSurfaceHeightPower("    Height Power", Range(0.0, 10.0)) = 1.0
+		_SubSurfaceCrestColour("    Crest Colour", Color) = (0.0, 0.48, 0.36, 1.)
 		[Toggle] _Foam("Foam", Float) = 1
 		[NoScaleOffset] _FoamTexture ( "    Texture", 2D ) = "white" {}
 		_FoamScale("    Scale", Range(0.01, 50.0)) = 10.0
@@ -62,6 +66,7 @@ Shader "Ocean/Ocean"
 				#pragma shader_feature _APPLYNORMALMAPPING_ON
 				#pragma shader_feature _COMPUTEDIRECTIONALLIGHT_ON
 				#pragma shader_feature _SUBSURFACESCATTERING_ON
+				#pragma shader_feature _SUBSURFACEHEIGHTLERP_ON
 				#pragma shader_feature _TRANSPARENCY_ON
 				#pragma shader_feature _FOAM_ON
 				#pragma shader_feature _FOAM3DLIGHTING_ON
@@ -175,6 +180,9 @@ Shader "Ocean/Ocean"
 				uniform half _SubSurfaceBase;
 				uniform half _SubSurfaceSun;
 				uniform half _SubSurfaceSunFallOff;
+				uniform half _SubSurfaceHeightMax;
+				uniform half _SubSurfaceHeightPower;
+				uniform half4 _SubSurfaceCrestColour;
 
 				uniform half4 _DepthFogDensity;
 				uniform samplerCUBE _Skybox;
@@ -296,15 +304,24 @@ Shader "Ocean/Ocean"
 					return lightDir;
 				}
 
-				half3 OceanEmission(half3 view, half3 n, half3 n_geom, float3 lightDir, half4 grabPos, half3 screenPos, float pixelZ, half2 uvDepth, float sceneZ, float sceneZ01, half3 bubbleCol)
+				half3 OceanEmission(float3 worldPos, half3 view, half3 n, half3 n_geom, float3 lightDir, half4 grabPos, half3 screenPos, float pixelZ, half2 uvDepth, float sceneZ, float sceneZ01, half3 bubbleCol)
 				{
 					// use the constant layer of SH stuff - this is the average. it seems to give the right kind of colour
-					half3 col = _Diffuse * half3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w);
+					half3 col = _Diffuse;
 
 					#if _SUBSURFACESCATTERING_ON
+					#if _SUBSURFACEHEIGHTLERP_ON
+					half h = worldPos.y - _OceanCenterPosWorld.y;
+					half s = pow(saturate(0.5 + 2.0 * h / _SubSurfaceHeightMax), _SubSurfaceHeightPower);
+					col = lerp(col, _SubSurfaceCrestColour.rgb * _SubSurfaceCrestColour.a, s);
+					#endif
+
+					// light
+					col *= half3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w);
+
 					// Approximate subsurface scattering - add light when surface faces viewer. Use geometry normal - don't need high freqs.
 					half towardsSun = pow(max(0., dot(lightDir, -view)), _SubSurfaceSunFallOff);
-					col += (_SubSurfaceBase + _SubSurfaceSun * towardsSun) * max(dot(n_geom, view), 0.) * _SubSurfaceColour * _LightColor0;
+					col += (_SubSurfaceBase + _SubSurfaceSun * towardsSun) * max(dot(n_geom, view), 0.) * _SubSurfaceColour.rgb * _SubSurfaceColour.a * _LightColor0;
 					#endif
 
 					col += bubbleCol;
@@ -364,7 +381,7 @@ Shader "Ocean/Ocean"
 					#endif
 
 					// Compute color of ocean - in-scattered light + refracted scene
-					half3 col = OceanEmission(view, n_pixel, n_geom, lightDir, i.grabPos, screenPos, pixelZ, uvDepth, sceneZ, sceneZ01, bubbleCol);
+					half3 col = OceanEmission(i.worldPos, view, n_pixel, n_geom, lightDir, i.grabPos, screenPos, pixelZ, uvDepth, sceneZ, sceneZ01, bubbleCol);
 
 					// Reflection
 					half3 refl = reflect(-view, n_pixel);

@@ -376,6 +376,7 @@ Shader "Ocean/Ocean"
 					half3 sceneColour = texture(_BackgroundTexture, uvBackgroundRefract).rgb;
 
 					#if _CAUSTICS_ON
+					// underwater caustics - dedicated to my P
 					//float3 camForward = UNITY_MATRIX_IT_MV[2].xyz;
 					float3 camForward = mul((float3x3)unity_CameraToWorld, float3(0, 0, 1));
 					float3 scenePos = _WorldSpaceCameraPos - view * sceneZ / dot(camForward, -view);

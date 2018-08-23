@@ -43,6 +43,7 @@ Shader "Ocean/Ocean"
 		_DepthFogDensity("    Density", Vector) = (0.28, 0.16, 0.24, 1.0)
 		[Toggle] _Caustics("Caustics", Float) = 1
 		[NoScaleOffset] _CausticsTexture ( "    Caustics", 2D ) = "black" {}
+		_CausticsTextureScale("    Scale", Range(0.0, 25.0)) = 5.0
 		_CausticsTextureAverage("    Texture Average Value", Range(0.0, 1.0)) = 0.07
 		_CausticsStrength("    Strength", Range(0.0, 10.0)) = 3.2
 		_CausticsFocalDepth("    Focal Depth", Range(0.0, 25.0)) = 2.0
@@ -235,6 +236,7 @@ Shader "Ocean/Ocean"
 				uniform half2 _WindDirXZ;
 
 				uniform sampler2D _CausticsTexture;
+				uniform half _CausticsTextureScale;
 				uniform half _CausticsTextureAverage;
 				uniform half _CausticsStrength;
 				uniform half _CausticsFocalDepth;
@@ -394,8 +396,8 @@ Shader "Ocean/Ocean"
 					half sceneDepth = _OceanCenterPosWorld.y - scenePos.y;
 					half bias = abs(sceneDepth - _CausticsFocalDepth) / _CausticsDepthOfField;
 					half2 causticN = _CausticsDistortionStrength * UnpackNormal(tex2D(_Normals, scenePos.xz / _CausticsDistortionScale)).xy;
-					half4 cuv1 = half4((0.217*scenePos.xz + 1.3 *causticN + half2(0.88*_Time.x+17.16, -3.38*_Time.x)), 0., bias);
-					half4 cuv2 = half4((0.295*scenePos.xz + 1.77*causticN + half2(4.96*_Time.x,        2.34*_Time.x)), 0., bias);
+					half4 cuv1 = half4((     scenePos.xz/_CausticsTextureScale + 1.3 *causticN + half2(0.88*_Time.x+17.16, -3.38*_Time.x)), 0., bias);
+					half4 cuv2 = half4((1.37*scenePos.xz/_CausticsTextureScale + 1.77*causticN + half2(4.96*_Time.x,        2.34*_Time.x)), 0., bias);
 					sceneColour *= 1. + _CausticsStrength * 
 						(0.5*tex2Dbias(_CausticsTexture, cuv1).x + 0.5*tex2Dbias(_CausticsTexture, cuv2).x - _CausticsTextureAverage);
 					#endif

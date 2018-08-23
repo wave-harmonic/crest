@@ -7,12 +7,12 @@ namespace Crest
 {
     /// <summary>
     /// Captures waves/shape that is drawn kinematically - there is no frame-to-frame state. The gerstner
-    /// waves are drawn in this way. There are two special features of this particular LodData:
+    /// waves are drawn in this way. There are two special features of this particular LodData.
     /// 
-    ///  * A combine pass is done which combines downwards from low detail lods down into the high detail lods
-    ///  * The textures from this LodData are passed to the ocean material when the surface is drawn (by OceanChunkRenderer)
+    ///  * A combine pass is done which combines downwards from low detail lods down into the high detail lods (see OceanScheduler).
+    ///  * The textures from this LodData are passed to the ocean material when the surface is drawn (by OceanChunkRenderer).
     ///  * LodDataDynamicWaves adds its results into this LodData. The dynamic waves piggy back off the combine
-    ///    pass and subsequent assignment to the ocean material.
+    ///    pass and subsequent assignment to the ocean material (see OceanScheduler).
     ///  * The LodDataSeaFloorDepth sits on this same GameObject and borrows the camera. This could be a model for the other sim types..
     /// </summary>
     public class LodDataAnimatedWaves : LodData
@@ -22,32 +22,68 @@ namespace Crest
         public override void UseSettings(SimSettingsBase settings) {}
         // shape format. i tried RGB111110Float but error becomes visible. one option would be to use a UNORM setup.
         public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.ARGBHalf; } }
-        public override int Depth { get { return -30; } }
         public override CameraClearFlags CamClearFlags { get { return CameraClearFlags.Color; } }
         public override RenderTexture DataTexture { get { return Cam.targetTexture; } }
 
-        // debug use
+        /// <summary>
+        /// Turn shape combine pass on/off. Debug only - idef'd out in standalone
+        /// </summary>
         public static bool _shapeCombinePass = true;
 
-        Material _combineMaterial;
         CommandBuffer _bufCombineShapes = null;
-        readonly CameraEvent _combineEvent = CameraEvent.AfterEverything;
+        CameraEvent _combineEvent = 0;
+        Camera _combineCamera = null;
+        Material _combineMaterial;
+        Material CombineMaterial { get { return _combineMaterial ?? (_combineMaterial = new Material(Shader.Find("Ocean/Shape/Combine"))); } }
 
-        protected override void Start()
+        public void HookCombinePass(Camera camera, CameraEvent onEvent)
         {
-            base.Start();
+            _combineCamera = camera;
+            _combineEvent = onEvent;
 
-            _combineMaterial = new Material(Shader.Find("Ocean/Shape/Combine"));
+            if (_bufCombineShapes == null)
+            {
+                _bufCombineShapes = new CommandBuffer();
+                _bufCombineShapes.name = "Combine Displacements";
+
+                var cams = OceanRenderer.Instance.Builder._camsAnimWaves;
+                for (int L = cams.Length - 2; L >= 0; L--)
+                {
+                    // accumulate shape data down the LOD chain - combine L+1 into L
+                    var mat = OceanRenderer.Instance.Builder._lodDataAnimWaves[L].CombineMaterial;
+                    _bufCombineShapes.Blit(cams[L + 1].targetTexture, cams[L].targetTexture, mat);
+                }
+            }
+
+            _combineCamera.AddCommandBuffer(_combineEvent, _bufCombineShapes);
         }
 
+        public void UnhookCombinePass()
+        {
+            if (_bufCombineShapes != null)
+            {
+                _combineCamera.RemoveCommandBuffer(_combineEvent, _bufCombineShapes);
+                _bufCombineShapes = null;
+            }
+        }
+
+#if UNITY_EDITOR
         private void Update()
         {
             // shape combine pass done by last shape camera - lod 0
             if (LodTransform.LodIndex == 0)
             {
-                UpdateCmdBufShapeCombine();
+                if (_bufCombineShapes != null && !_shapeCombinePass)
+                {
+                    UnhookCombinePass();
+                }
+                else if (_bufCombineShapes == null && _shapeCombinePass)
+                {
+                    HookCombinePass(_combineCamera, _combineEvent);
+                }
             }
         }
+#endif
 
         public float MaxWavelength()
         {
@@ -68,66 +104,18 @@ namespace Crest
         // apply this camera's properties to the shape combine materials
         void LateUpdateShapeCombinePassSettings()
         {
-            BindResultData(0, _combineMaterial);
+            BindResultData(0, CombineMaterial);
 
             if (LodTransform.LodIndex > 0)
             {
                 var ldaws = OceanRenderer.Instance.Builder._lodDataAnimWaves;
-                BindResultData(1, ldaws[LodTransform.LodIndex - 1]._combineMaterial);
+                BindResultData(1, ldaws[LodTransform.LodIndex - 1].CombineMaterial);
             }
-        }
-
-        /// <summary>
-        /// Additively combine shape from biggest LODs to smallest LOD. Executed once per frame - attached to the LOD0 camera which
-        /// is the last LOD camera to render.
-        /// </summary>
-        void UpdateCmdBufShapeCombine()
-        {
-            if(!_shapeCombinePass)
-            {
-                if (_bufCombineShapes != null)
-                {
-                    Cam.RemoveCommandBuffer(_combineEvent, _bufCombineShapes);
-                    _bufCombineShapes = null;
-                }
-
-                return;
-            }
-
-            // create shape combine command buffer if it hasn't been created already
-            if (_bufCombineShapes == null)
-            {
-                _bufCombineShapes = new CommandBuffer();
-                Cam.AddCommandBuffer(_combineEvent, _bufCombineShapes);
-                _bufCombineShapes.name = "Combine Displacements";
-
-                var cams = OceanRenderer.Instance.Builder._camsAnimWaves;
-                for (int L = cams.Length - 2; L >= 0; L--)
-                {
-                    // accumulate shape data down the LOD chain - combine L+1 into L
-                    var mat = OceanRenderer.Instance.Builder._lodDataAnimWaves[L]._combineMaterial;
-                    _bufCombineShapes.Blit(cams[L + 1].targetTexture, cams[L].targetTexture, mat);
-                }
-            }
-        }
-
-        void RemoveCommandBuffers()
-        {
-            if (_bufCombineShapes != null)
-            {
-                Cam.RemoveCommandBuffer(_combineEvent, _bufCombineShapes);
-                _bufCombineShapes = null;
-            }
-        }
-
-        void OnEnable()
-        {
-            RemoveCommandBuffers();
         }
 
         void OnDisable()
         {
-            RemoveCommandBuffers();
+            UnhookCombinePass();
         }
 
         protected override void BindData(int shapeSlot, IPropertyWrapper properties, Texture applyData, bool blendOut, ref LodTransform.RenderData renderData)

@@ -12,5 +12,14 @@ namespace Crest
         public float _shorelineFoamMaxDepth = 0.65f;
         [Range(0f, 5f), Tooltip("Scales intensity of foam generated in shallow water.")]
         public float _shorelineFoamStrength = 2f;
+
+        public override void SetSimParams(Material simMaterial)
+        {
+            base.SetSimParams(simMaterial);
+
+            simMaterial.SetFloat("_FoamFadeRate", _foamFadeRate);
+            simMaterial.SetFloat("_ShorelineFoamMaxDepth", _shorelineFoamMaxDepth);
+            simMaterial.SetFloat("_ShorelineFoamStrength", _shorelineFoamStrength);
+        }
     }
 }

@@ -59,9 +59,10 @@ void SampleDisplacements(in sampler2D i_dispSampler, in float2 i_uv, in float i_
 	io_n.xz += i_wt * n.xz;
 }
 
-void SampleFoam(in sampler2D i_oceanFoamSampler, float2 i_uv, in float i_wt, inout half io_foam)
+void SampleFoam(in sampler2D i_oceanFoamSampler, in sampler2D i_shorelineFoamSampler, float2 i_uv, in float i_wt, inout half io_foam)
 {
 	io_foam += i_wt * tex2Dlod(i_oceanFoamSampler, float4(i_uv, 0., 0.)).x;
+	io_foam += i_wt * tex2Dlod(i_shorelineFoamSampler, float4(i_uv, 0., 0.)).x;
 }
 
 void SampleOceanDepth(in sampler2D i_oceanDepthSampler, float2 i_uv, in float i_wt, inout half io_oceanDepth)

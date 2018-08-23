@@ -72,15 +72,16 @@ namespace Crest
 
             // assign shape textures to shader
             // this relies on the render textures being init'd in CreateAssignRenderTexture::Awake().
-            var shapeCams = OceanRenderer.Instance.Builder._lodDataAnimWaves;
-            shapeCams[_lodIndex].BindResultData(0, _mpb);
-            shapeCams[_lodIndex].LDFoam.BindResultData(0, _mpb);
-            shapeCams[_lodIndex].LDSeaDepth.BindResultData(0, _mpb);
-            if (_lodIndex + 1 < shapeCams.Length)
+            foreach(var simLDs in OceanRenderer.Instance.Builder._simLodDatas.Values)
             {
-                shapeCams[_lodIndex + 1].BindResultData(1, _mpb);
-                shapeCams[_lodIndex + 1].LDFoam.BindResultData(1, _mpb);
-                shapeCams[_lodIndex + 1].LDSeaDepth.BindResultData(1, _mpb);
+                if(simLDs[_lodIndex].BindResultToOceanMaterial)
+                {
+                    simLDs[_lodIndex].BindResultData(0, _mpb);
+                    if (_lodIndex + 1 < simLDs.Count)
+                    {
+                        simLDs[_lodIndex + 1].BindResultData(1, _mpb);
+                    }
+                }
             }
 
             _rend.SetPropertyBlock(_mpb);

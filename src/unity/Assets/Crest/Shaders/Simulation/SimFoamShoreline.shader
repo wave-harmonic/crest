@@ -53,6 +53,7 @@ Shader "Ocean/Shape/Sim/Shoreline Foam"
 				uniform half _FoamFadeRate;
 				uniform half _ShorelineFoamMaxDepth;
 				uniform half _ShorelineFoamStrength;
+				uniform sampler2D _LD_Sampler_SimShorelineFoam_0;
 
 				half frag(v2f i) : SV_Target
 				{
@@ -60,7 +61,7 @@ Shader "Ocean/Shape/Sim/Shoreline Foam"
 					float4 uv_lastframe = float4(i.uv_uv_lastframe.zw, 0., 0.);
 
 					// sampler will clamp the uv currently
-					half foam = tex2Dlod(_LD_Sampler_Foam_0, uv_lastframe).x;
+					half foam = tex2Dlod(_LD_Sampler_SimShorelineFoam_0, uv_lastframe).x;
 					//return foam + sin(_Time.w)*.004;
 					half2 r = abs(uv_lastframe.xy - 0.5);
 					if (max(r.x, r.y) > 0.5 - i.invRes)

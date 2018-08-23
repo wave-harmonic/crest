@@ -1,4 +1,5 @@
 ﻿using Crest;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class OceanDebugGUI : MonoBehaviour
@@ -130,49 +131,25 @@ public class OceanDebugGUI : MonoBehaviour
 
     void DrawShapeTargets()
     {
+        float offset = 1f;
+
+        foreach(var simListEntry in OceanRenderer.Instance.Builder._simLodDatas)
         {
-            int ind = 0;
-            foreach (var cam in OceanRenderer.Instance.Builder._camsAnimWaves)
-            {
-                if (!cam) continue;
+            // havent added a visualisation for the sea floor depth yet
+            if (simListEntry.Key == "SeaFloorDepth") continue;
 
-                RenderTexture shape = cam.targetTexture;
-
-                if (shape == null) continue;
-
-                float b = 7f;
-                float h = Screen.height / (float)OceanRenderer.Instance.Builder._camsAnimWaves.Length;
-                float w = h + b;
-                float x = Screen.width - w;
-                float y = ind * h;
-
-                GUI.color = Color.black * 0.7f;
-                GUI.DrawTexture(new Rect(x, y, w, h), Texture2D.whiteTexture);
-                GUI.color = Color.white;
-                GUI.DrawTexture(new Rect(x + b, y + b / 2f, h - b, h - b), shape, ScaleMode.ScaleAndCrop, false);
-
-                ind++;
-            }
-        }
-
-        // draw sim data
-        float offset = 2f;
-        DrawSims(OceanRenderer.Instance.Builder._camsFoam, offset++);
-        DrawSims(OceanRenderer.Instance.Builder._camsDynWaves, offset++);
-        foreach(var simList in OceanRenderer.Instance.Builder._camArrays.Values)
-        {
-            DrawSims(simList.ToArray(), offset++);
+            DrawSims(simListEntry.Value, offset++);
         }
     }
 
-    static void DrawSims(Camera[] simCameras, float offset)
+    static void DrawSims(List<LodData> simLodDatas, float offset)
     {
         int idx = 0;
-        foreach (var cam in simCameras)
+        foreach (var sim in simLodDatas)
         {
-            if (!cam) continue;
+            if (!sim) continue;
 
-            RenderTexture shape = cam.targetTexture;
+            RenderTexture shape = sim.Cam.targetTexture;
             if (shape == null) continue;
 
             float b = 7f;
@@ -184,7 +161,7 @@ public class OceanDebugGUI : MonoBehaviour
             GUI.color = Color.black * 0.7f;
             GUI.DrawTexture(new Rect(x, y, w - b, h), Texture2D.whiteTexture);
             GUI.color = Color.white;
-            GUI.DrawTexture(new Rect(x + b, y + b / 2f, h - b, h - b), shape);
+            GUI.DrawTexture(new Rect(x + b, y + b / 2f, h - b, h - b), shape, ScaleMode.ScaleAndCrop, false);
 
             idx++;
         }

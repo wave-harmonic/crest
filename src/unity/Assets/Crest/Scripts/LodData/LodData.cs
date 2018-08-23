@@ -19,7 +19,7 @@ namespace Crest
         public abstract RenderTextureFormat TextureFormat { get; }
         public abstract CameraClearFlags CamClearFlags { get; }
         public abstract RenderTexture DataTexture { get; }
-
+        public abstract bool BindResultToOceanMaterial { get; }
 
         // shape texture resolution
         int _shapeRes = -1;
@@ -107,7 +107,7 @@ namespace Crest
 
         public static GameObject CreateLodData(int lodIdx, int lodCount, float baseVertDensity, SimType simType, Dictionary<System.Type, SimSettingsBase> cachedSettings, SimBase simData)
         {
-            var go = new GameObject(string.Format("{0}Cam{1}", simType.ToString(), lodIdx));
+            var go = new GameObject();
 
             go.AddComponent<LodTransform>().InitLODData(lodIdx, lodCount); ;
 
@@ -133,6 +133,8 @@ namespace Crest
                     Debug.LogError("Unknown sim type: " + simType.ToString());
                     return null;
             }
+
+            go.name = string.Format("{0}Cam{1}", sim.SimName, lodIdx);
 
             // create a shared settings object if one doesnt already exist
             SimSettingsBase settings;
@@ -186,7 +188,7 @@ namespace Crest
             }
         }
 
-        Camera _camera; protected Camera Cam { get { return _camera ?? (_camera = GetComponent<Camera>()); } }
+        Camera _camera; public Camera Cam { get { return _camera ?? (_camera = GetComponent<Camera>()); } }
         LodTransform _lt; public LodTransform LodTransform { get { return _lt ?? (_lt = GetComponent<LodTransform>()); } }
         LodDataSeaFloorDepth _ldsd;
         public LodDataSeaFloorDepth LDSeaDepth { get {
@@ -194,11 +196,11 @@ namespace Crest
         } }
         LodDataFoam _ldf;
         public LodDataFoam LDFoam { get {
-                return _ldf ?? (_ldf = OceanRenderer.Instance.Builder._camsFoam[LodTransform.LodIndex].GetComponent<LodDataFoam>());
+                return _ldf ?? (_ldf = OceanRenderer.Instance.Builder._simLodDatas["Foam"][LodTransform.LodIndex] as LodDataFoam);
         } }
         LodDataDynamicWaves _lddw;
         public LodDataDynamicWaves LDDynamicWaves { get {
-                return _lddw ?? (_lddw = OceanRenderer.Instance.Builder._camsDynWaves[LodTransform.LodIndex].GetComponent<LodDataDynamicWaves>());
+                return _lddw ?? (_lddw = OceanRenderer.Instance.Builder._simLodDatas["DynamicWaves"][LodTransform.LodIndex] as LodDataDynamicWaves);
         } }
     }
 }

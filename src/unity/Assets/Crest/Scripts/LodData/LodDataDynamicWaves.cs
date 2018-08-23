@@ -13,7 +13,7 @@ namespace Crest
         public override SimType LodDataType { get { return SimType.DynamicWaves; } }
         protected override string ShaderSim { get { return "Ocean/Shape/Sim/2D Wave Equation"; } }
         public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RGHalf; } }
-        protected override Camera[] SimCameras { get { return OceanRenderer.Instance.Builder._camsDynWaves; } }
+        public override bool BindResultToOceanMaterial { get { return false; } }
 
         public override SimSettingsBase CreateDefaultSettings()
         {

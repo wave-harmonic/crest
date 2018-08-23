@@ -127,6 +127,8 @@ Shader "Ocean/Ocean"
 				// MeshScaleLerp, FarNormalsWeight, LODIndex (debug), unused
 				uniform float4 _InstanceData;
 
+				#include "UserLODData.cginc"
+
 				v2f vert( appdata_t v )
 				{
 					v2f o;
@@ -155,7 +157,7 @@ Shader "Ocean/Ocean"
 						#if !_DEBUGDISABLESHAPETEXTURES_ON
 						SampleDisplacements(_LD_Sampler_AnimatedWaves_0, uv_0, wt_0, _LD_Params_0.w, _LD_Params_0.x, o.worldPos, o.n);
 						#endif
-						SampleFoam(_LD_Sampler_Foam_0, uv_0, wt_0, o.foam_screenPos.x);
+						SampleFoam(_LD_Sampler_Foam_0, _LD_Sampler_SimShorelineFoam_0, uv_0, wt_0, o.foam_screenPos.x);
 
 						#if _SUBSURFACESHALLOWCOLOUR_ON
 						SampleOceanDepth(_LD_Sampler_SeaFloorDepth_0, uv_0, wt_0, o.lodAlpha_worldXZUndisplaced_oceanDepth.w);
@@ -167,7 +169,7 @@ Shader "Ocean/Ocean"
 						#if !_DEBUGDISABLESHAPETEXTURES_ON
 						SampleDisplacements(_LD_Sampler_AnimatedWaves_1, uv_1, wt_1, _LD_Params_1.w, _LD_Params_1.x, o.worldPos, o.n);
 						#endif
-						SampleFoam(_LD_Sampler_Foam_1, uv_1, wt_1, o.foam_screenPos.x);
+						SampleFoam(_LD_Sampler_Foam_1, _LD_Sampler_SimShorelineFoam_1, uv_1, wt_1, o.foam_screenPos.x);
 
 						#if _SUBSURFACESHALLOWCOLOUR_ON
 						SampleOceanDepth(_LD_Sampler_SeaFloorDepth_1, uv_1, wt_1, o.lodAlpha_worldXZUndisplaced_oceanDepth.w);

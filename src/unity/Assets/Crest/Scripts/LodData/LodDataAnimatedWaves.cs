@@ -24,6 +24,7 @@ namespace Crest
         public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.ARGBHalf; } }
         public override CameraClearFlags CamClearFlags { get { return CameraClearFlags.Color; } }
         public override RenderTexture DataTexture { get { return Cam.targetTexture; } }
+        public override bool BindResultToOceanMaterial { get { return true; } }
 
         /// <summary>
         /// Turn shape combine pass on/off. Debug only - idef'd out in standalone

@@ -25,9 +25,10 @@ namespace Crest
         {
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // --- Dynamic waves camera renders first
-            for (int i = 0; i < ocean.CurrentLodCount && ocean._camsDynWaves[i] != null; i++)
+            bool dynamicWavesPresent = ocean._simLodDatas.ContainsKey("DynamicWaves") && ocean._simLodDatas["DynamicWaves"] != null;
+            for (int i = 0; dynamicWavesPresent && i < ocean.CurrentLodCount; i++)
             {
-                ocean._camsDynWaves[i].depth = -40 - i;
+                ocean._simLodDatas["DynamicWaves"][i].Cam.depth = -40 - i;
             }
 
 
@@ -39,9 +40,9 @@ namespace Crest
 
                 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
                 // --- Copy dynamic waves into animated waves (convert to displacements in the process)
-                if (ocean._camsDynWaves[i] != null)
+                if (dynamicWavesPresent)
                 {
-                    ocean._camsDynWaves[i].GetComponent<LodDataDynamicWaves>().HookCombinePass(ocean._camsAnimWaves[i], CameraEvent.AfterForwardAlpha);
+                    (ocean._simLodDatas["DynamicWaves"][i] as LodDataDynamicWaves).HookCombinePass(ocean._camsAnimWaves[i], CameraEvent.AfterForwardAlpha);
                 }
             }
 
@@ -53,11 +54,24 @@ namespace Crest
 
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // --- Foam takes the final combined waves as input and generates foam
-            for (int i = 0; i < ocean.CurrentLodCount && ocean._camsFoam[i] != null; i++)
+            bool foamPresent = ocean._simLodDatas.ContainsKey("Foam") && ocean._simLodDatas["Foam"] != null;
+            for (int i = 0; foamPresent && i < ocean.CurrentLodCount; i++)
             {
-                ocean._camsFoam[i].depth = -20 - i;
+                ocean._simLodDatas["Foam"][i].Cam.depth = -20 - i;
             }
 
+
+            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            // --- Data driven sims
+            foreach (var simList in ocean._simLodDatas)
+            {
+                for(int i = 0; i < simList.Value.Count; i++)
+                {
+                    var lds = simList.Value[i] as LodDataSim;
+                    if(lds != null)
+                        simList.Value[i].Cam.depth = lds._sim._cameraDepthOrder;
+                }
+            }
 
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // --- User cameras render the ocean surface at depth ~0 - above data should be ready to go!

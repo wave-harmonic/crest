@@ -2,6 +2,7 @@
 
 using UnityEngine;
 using UnityEngine.Rendering;
+using System.Collections.Generic;
 
 namespace Crest
 {
@@ -23,7 +24,7 @@ namespace Crest
         Material _renderSimMaterial;
 
         protected abstract string ShaderSim { get; }
-        protected abstract Camera[] SimCameras { get; }
+        protected List<LodData> SimLodDatas { get { return OceanRenderer.Instance.Builder._simLodDatas[SimName]; } }
 
         float _simDeltaTimePrev = 1f / 60f;
         protected float SimDeltaTime { get { return Mathf.Min(Time.deltaTime, MAX_SIM_DELTA_TIME); } }
@@ -103,10 +104,10 @@ namespace Crest
 
             int srcDataIdx = LodTransform.LodIndex + delta;
 
-            if (srcDataIdx >= 0 && srcDataIdx < SimCameras.Length)
+            if (srcDataIdx >= 0 && srcDataIdx < SimLodDatas.Count)
             {
                 // bind data to slot 0 - previous frame data
-                SimCameras[srcDataIdx].GetComponent<LodDataPersistent>().BindSourceData(0, _renderSimMaterial, false);
+                (SimLodDatas[srcDataIdx] as LodDataPersistent).BindSourceData(0, _renderSimMaterial, false);
             }
             else
             {

@@ -13,9 +13,8 @@ namespace Crest
         public override SimType LodDataType { get { return SimType.Foam; } }
         protected override string ShaderSim { get { return _sim._simulationShader.name; } }
         public override RenderTextureFormat TextureFormat { get { return _sim._dataFormat; } }
-        public override int Depth { get { return _sim._cameraDepthOrder; } }
-        protected override Camera[] SimCameras { get { return OceanRenderer.Instance.Builder._camArrays[_sim.GetType()].ToArray(); } }
-        public override string SimName { get { return _sim.GetType().Name; } }
+        public override string SimName { get { return _sim.name; } }
+        public override bool BindResultToOceanMaterial { get { return _sim._bindResultToOceanMaterial; } }
 
         public override SimSettingsBase CreateDefaultSettings()
         {
@@ -28,16 +27,17 @@ namespace Crest
         {
             base.SetAdditionalSimParams(simMaterial);
 
-            simMaterial.SetFloat("_FoamFadeRate", Settings._foamFadeRate);
-            simMaterial.SetFloat("_WaveFoamStrength", Settings._waveFoamStrength);
-            simMaterial.SetFloat("_WaveFoamCoverage", Settings._waveFoamCoverage);
-            simMaterial.SetFloat("_ShorelineFoamMaxDepth", Settings._shorelineFoamMaxDepth);
-            simMaterial.SetFloat("_ShorelineFoamStrength", Settings._shorelineFoamStrength);
+            _sim.SetSimParams(simMaterial);
 
-            // assign animated waves - to slot 1 current frame data
-            OceanRenderer.Instance.Builder._lodDataAnimWaves[LodTransform.LodIndex].BindResultData(1, simMaterial);
-            // assign sea floor depth - to slot 1 current frame data
-            OceanRenderer.Instance.Builder._lodDataAnimWaves[LodTransform.LodIndex].LDSeaDepth.BindResultData(1, simMaterial);
+            foreach(var input in _sim._inputs)
+            {
+                if (!OceanRenderer.Instance.Builder._simLodDatas.ContainsKey(input.ToString()))
+                {
+                    Debug.LogError(_sim.name + " requires input " + input.ToString() + " which is not present, please add this sim to the OceanRenderer component.", this);
+                    continue;
+                }
+                OceanRenderer.Instance.Builder._simLodDatas[input.ToString()][LodTransform.LodIndex].BindResultData(1, simMaterial);
+            }
         }
 
         SimSettingsFoam Settings { get { return _settings as SimSettingsFoam; } }

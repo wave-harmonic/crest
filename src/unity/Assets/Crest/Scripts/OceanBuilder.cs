@@ -21,13 +21,9 @@ namespace Crest
 
         [HideInInspector]
         public Camera[] _camsAnimWaves;
-        [HideInInspector]
-        public Camera[] _camsFoam;
-        [HideInInspector]
-        public Camera[] _camsDynWaves;
 
         [HideInInspector]
-        public Dictionary<System.Type, List<Camera>> _camArrays = new Dictionary<System.Type, List<Camera>>();
+        public Dictionary<string, List<LodData>> _simLodDatas = new Dictionary<string, List<LodData>>();
         public SimBase[] _sims;
 
         [Header("Simulations")]
@@ -181,8 +177,6 @@ namespace Crest
             // create the shape cameras
             _camsAnimWaves = new Camera[lodCount];
             _lodDataAnimWaves = new LodDataAnimatedWaves[lodCount];
-            _camsFoam = new Camera[lodCount];
-            _camsDynWaves = new Camera[lodCount];
 
             var cachedSettings = new Dictionary<System.Type, SimSettingsBase>();
             if (_simSettingsFoam != null) cachedSettings.Add(typeof(LodDataFoam), _simSettingsFoam);
@@ -194,28 +188,40 @@ namespace Crest
                     var go = LodData.CreateLodData(i, lodCount, baseVertDensity, LodData.SimType.AnimatedWaves, cachedSettings, null);
                     _camsAnimWaves[i] = go.GetComponent<Camera>();
                     _lodDataAnimWaves[i] = go.GetComponent<LodDataAnimatedWaves>();
+
+                    if (!_simLodDatas.ContainsKey("AnimatedWaves") || _simLodDatas["AnimatedWaves"] == null)
+                        _simLodDatas["AnimatedWaves"] = new List<LodData>();
+                    _simLodDatas["AnimatedWaves"].Add(go.GetComponent<LodDataAnimatedWaves>());
+                    if (!_simLodDatas.ContainsKey("SeaFloorDepth") || _simLodDatas["SeaFloorDepth"] == null)
+                        _simLodDatas["SeaFloorDepth"] = new List<LodData>();
+                    _simLodDatas["SeaFloorDepth"].Add(go.GetComponent<LodDataSeaFloorDepth>());
                 }
 
                 if (_createFoamSim)
                 {
                     var go = LodData.CreateLodData(i, lodCount, baseVertDensity, LodData.SimType.Foam, cachedSettings, null);
-                    _camsFoam[i] = go.GetComponent<Camera>();
+                    if (!_simLodDatas.ContainsKey("Foam") || _simLodDatas["Foam"] == null)
+                        _simLodDatas["Foam"] = new List<LodData>();
+                    _simLodDatas["Foam"].Add(go.GetComponent<LodDataFoam>());
                 }
 
                 if (_createDynamicWaveSim)
                 {
                     var go = LodData.CreateLodData(i, lodCount, baseVertDensity, LodData.SimType.DynamicWaves, cachedSettings, null);
-                    _camsDynWaves[i] = go.GetComponent<Camera>();
+
+                    if (!_simLodDatas.ContainsKey("DynamicWaves") || _simLodDatas["DynamicWaves"] == null)
+                        _simLodDatas["DynamicWaves"] = new List<LodData>();
+                    _simLodDatas["DynamicWaves"].Add(go.GetComponent<LodDataDynamicWaves>());
                 }
 
                 foreach(var sim in _sims)
                 {
                     var go = LodData.CreateLodData(i, lodCount, baseVertDensity, LodData.SimType.Sim, cachedSettings, sim);
-                    var type = sim.GetType();
-                    if (!_camArrays.ContainsKey(type) || _camArrays[type] == null)
-                        _camArrays[type] = new List<Camera>();
 
-                    _camArrays[sim.GetType()].Add(go.GetComponent<Camera>());
+                    if (!_simLodDatas.ContainsKey(sim.name) || _simLodDatas[sim.name] == null)
+                        _simLodDatas[sim.name] = new List<LodData>();
+
+                    _simLodDatas[sim.name].Add(go.GetComponent<LodData>());
                 }
             }
 
@@ -401,9 +407,10 @@ namespace Crest
             parent.transform.localRotation = Quaternion.identity;
 
             // add lod data cameras into this lod
-            PlaceLodData(_camsAnimWaves[lodIndex].transform, parent.transform);
-            if (_camsFoam[lodIndex] != null) PlaceLodData(_camsFoam[lodIndex].transform, parent.transform);
-            if (_camsDynWaves[lodIndex] != null) PlaceLodData(_camsDynWaves[lodIndex].transform, parent.transform);
+            foreach(var simLDs in _simLodDatas.Values)
+            {
+                PlaceLodData(simLDs[lodIndex].transform, parent.transform);
+            }
 
             bool generateSkirt = biggestLOD && !OceanRenderer.Instance._disableSkirt;
 

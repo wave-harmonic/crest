@@ -26,6 +26,10 @@ namespace Crest
         [HideInInspector]
         public Camera[] _camsDynWaves;
 
+        [HideInInspector]
+        public Dictionary<System.Type, List<Camera>> _camArrays = new Dictionary<System.Type, List<Camera>>();
+        public SimBase[] _sims;
+
         [Header("Simulations")]
         public bool _createFoamSim = true;
         public SimSettingsFoam _simSettingsFoam;
@@ -187,21 +191,31 @@ namespace Crest
             for ( int i = 0; i < lodCount; i++ )
             {
                 {
-                    var go = LodData.CreateLodData(i, lodCount, baseVertDensity, LodData.SimType.AnimatedWaves, cachedSettings);
+                    var go = LodData.CreateLodData(i, lodCount, baseVertDensity, LodData.SimType.AnimatedWaves, cachedSettings, null);
                     _camsAnimWaves[i] = go.GetComponent<Camera>();
                     _lodDataAnimWaves[i] = go.GetComponent<LodDataAnimatedWaves>();
                 }
 
                 if (_createFoamSim)
                 {
-                    var go = LodData.CreateLodData(i, lodCount, baseVertDensity, LodData.SimType.Foam, cachedSettings);
+                    var go = LodData.CreateLodData(i, lodCount, baseVertDensity, LodData.SimType.Foam, cachedSettings, null);
                     _camsFoam[i] = go.GetComponent<Camera>();
                 }
 
                 if (_createDynamicWaveSim)
                 {
-                    var go = LodData.CreateLodData(i, lodCount, baseVertDensity, LodData.SimType.DynamicWaves, cachedSettings);
+                    var go = LodData.CreateLodData(i, lodCount, baseVertDensity, LodData.SimType.DynamicWaves, cachedSettings, null);
                     _camsDynWaves[i] = go.GetComponent<Camera>();
+                }
+
+                foreach(var sim in _sims)
+                {
+                    var go = LodData.CreateLodData(i, lodCount, baseVertDensity, LodData.SimType.Sim, cachedSettings, sim);
+                    var type = sim.GetType();
+                    if (!_camArrays.ContainsKey(type) || _camArrays[type] == null)
+                        _camArrays[type] = new List<Camera>();
+
+                    _camArrays[sim.GetType()].Add(go.GetComponent<Camera>());
                 }
             }
 

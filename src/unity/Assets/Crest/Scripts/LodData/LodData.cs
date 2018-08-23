@@ -10,7 +10,7 @@ namespace Crest
     /// </summary>
     public abstract class LodData : MonoBehaviour
     {
-        public string SimName { get { return LodDataType.ToString(); } }
+        public virtual string SimName { get { return LodDataType.ToString(); } }
         public abstract SimType LodDataType { get; }
 
         public abstract SimSettingsBase CreateDefaultSettings();
@@ -102,9 +102,10 @@ namespace Crest
             AnimatedWaves,
             // this is currently not used as the sea floor depth is not created as a unique sim object
             SeaFloorDepth,
+            Sim,
         }
 
-        public static GameObject CreateLodData(int lodIdx, int lodCount, float baseVertDensity, SimType simType, Dictionary<System.Type, SimSettingsBase> cachedSettings)
+        public static GameObject CreateLodData(int lodIdx, int lodCount, float baseVertDensity, SimType simType, Dictionary<System.Type, SimSettingsBase> cachedSettings, SimBase simData)
         {
             var go = new GameObject(string.Format("{0}Cam{1}", simType.ToString(), lodIdx));
 
@@ -123,6 +124,10 @@ namespace Crest
                     break;
                 case SimType.Foam:
                     sim = go.AddComponent<LodDataFoam>();
+                    break;
+                case SimType.Sim:
+                    sim = go.AddComponent<LodDataSim>();
+                    (sim as LodDataSim)._sim = simData;
                     break;
                 default:
                     Debug.LogError("Unknown sim type: " + simType.ToString());
@@ -166,7 +171,7 @@ namespace Crest
             cart.Create();
 
             var apply = go.AddComponent<ApplyLayers>();
-            apply._cullIncludeLayers = new string[] { string.Format("LodData{0}", simType.ToString()) };
+            apply._cullIncludeLayers = new string[] { string.Format("LodData{0}", sim.SimName) };
 
             return go;
         }

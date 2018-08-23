@@ -20,7 +20,7 @@ namespace Crest
         {
             // find which lod this object is overlapping
             var rect = new Rect(transform.position.x, transform.position.z, 0f, 0f);
-            var idx = ReadbackDisplacementsForCollision.SuggestCollisionLOD(rect);
+            var idx = LodDataAnimatedWaves.SuggestDataLOD(rect);
 
             if (idx > -1)
             {

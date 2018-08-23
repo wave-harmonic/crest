@@ -75,18 +75,20 @@ public class OceanDebugGUI : MonoBehaviour
             bool readbackShape = true;
             foreach( var ldaw in OceanRenderer.Instance.Builder._lodDataAnimWaves)
             {
-                min = Mathf.Min(min, ldaw.CollReadback.CollReadbackRequestsQueued);
-                max = Mathf.Max(max, ldaw.CollReadback.CollReadbackRequestsQueued);
-                readbackShape = readbackShape && ldaw.CollReadback._readbackShapeForCollision;
+                min = Mathf.Min(min, ldaw.DataReadback.ReadbackRequestsQueued);
+                max = Mathf.Max(max, ldaw.DataReadback.ReadbackRequestsQueued);
+                readbackShape = readbackShape && ldaw._readbackShapeForCollision;
             }
+#if UNITY_EDITOR
             if (readbackShape != GUI.Toggle(new Rect(x, y, w, h), readbackShape, "Readback coll data"))
             {
                 foreach (var ldaw in OceanRenderer.Instance.Builder._lodDataAnimWaves)
                 {
-                    ldaw.CollReadback._readbackShapeForCollision = !readbackShape;
+                    ldaw._readbackShapeForCollision = !readbackShape;
                 }
             }
             y += h;
+#endif
 
             // generates garbage
             GUI.Label(new Rect(x, y, w, h), string.Format("Coll Queue Lengths: [{0}, {1}]", min, max)); y += h;

@@ -116,7 +116,7 @@ namespace Crest
                 case SimType.AnimatedWaves:
                     sim = go.AddComponent<LodDataAnimatedWaves>();
                     go.AddComponent<LodDataSeaFloorDepth>();
-                    go.AddComponent<ReadbackDisplacementsForCollision>();
+                    go.AddComponent<ReadbackLodData>();
                     break;
                 case SimType.DynamicWaves:
                     sim = go.AddComponent<LodDataDynamicWaves>();
@@ -145,7 +145,6 @@ namespace Crest
             cam.orthographic = true;
             cam.nearClipPlane = 1f;
             cam.farClipPlane = 500f;
-            //cam.depth = sim.Depth - lodIdx;
             cam.renderingPath = RenderingPath.Forward;
             cam.useOcclusionCulling = false;
             cam.allowHDR = true;

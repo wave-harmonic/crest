@@ -41,7 +41,16 @@ Shader "Ocean/Ocean"
 		_WaveFoamSpecularBoost("    Specular Boost", Range(0.0, 16.0)) = 4.0
 		[Toggle] _Transparency("Transparency", Float) = 1
 		_DepthFogDensity("    Density", Vector) = (0.28, 0.16, 0.24, 1.0)
-		_FresnelPower("Fresnel Power", Range(0.0,20.0)) = 3.0
+		[Toggle] _Caustics("Caustics", Float) = 1
+		[NoScaleOffset] _CausticsTexture ( "    Caustics", 2D ) = "black" {}
+		_CausticsTextureScale("    Scale", Range(0.0, 25.0)) = 5.0
+		_CausticsTextureAverage("    Texture Average Value", Range(0.0, 1.0)) = 0.07
+		_CausticsStrength("    Strength", Range(0.0, 10.0)) = 3.2
+		_CausticsFocalDepth("    Focal Depth", Range(0.0, 25.0)) = 2.0
+		_CausticsDepthOfField("    Depth Of Field", Range(0.01, 10.0)) = 0.33
+		_CausticsDistortionScale("    Distortion Scale", Range(0.01, 50.0)) = 10.0
+		_CausticsDistortionStrength("    Distortion Strength", Range(0.0, 0.25)) = 0.075
+		_FresnelPower("Fresnel Power", Range(0.0, 20.0)) = 3.0
 		[Toggle] _DebugDisableShapeTextures("Debug Disable Shape Textures", Float) = 0
 		[Toggle] _DebugVisualiseShapeSample("Debug Visualise Shape Sample", Float) = 0
 		[Toggle] _DebugDisableSmoothLOD("Debug Disable Smooth LOD", Float) = 0
@@ -73,6 +82,7 @@ Shader "Ocean/Ocean"
 				#pragma shader_feature _SUBSURFACEHEIGHTLERP_ON
 				#pragma shader_feature _SUBSURFACESHALLOWCOLOUR_ON
 				#pragma shader_feature _TRANSPARENCY_ON
+				#pragma shader_feature _CAUSTICS_ON
 				#pragma shader_feature _FOAM_ON
 				#pragma shader_feature _FOAM3DLIGHTING_ON
 				#pragma shader_feature _DEBUGDISABLESHAPETEXTURES_ON
@@ -225,6 +235,15 @@ Shader "Ocean/Ocean"
 				uniform fixed4 _LightColor0;
 				uniform half2 _WindDirXZ;
 
+				uniform sampler2D _CausticsTexture;
+				uniform half _CausticsTextureScale;
+				uniform half _CausticsTextureAverage;
+				uniform half _CausticsStrength;
+				uniform half _CausticsFocalDepth;
+				uniform half _CausticsDepthOfField;
+				uniform half _CausticsDistortionScale;
+				uniform half _CausticsDistortionStrength;
+
 				// these are copied from the render target by unity
 				sampler2D _BackgroundTexture;
 				sampler2D _CameraDepthTexture;
@@ -369,6 +388,20 @@ Shader "Ocean/Ocean"
 					}
 
 					half3 sceneColour = texture(_BackgroundTexture, uvBackgroundRefract).rgb;
+
+					#if _CAUSTICS_ON
+					// underwater caustics - dedicated to P
+					float3 camForward = mul((float3x3)unity_CameraToWorld, float3(0., 0., 1.));
+					float3 scenePos = _WorldSpaceCameraPos - view * sceneZ / dot(camForward, -view);
+					half sceneDepth = _OceanCenterPosWorld.y - scenePos.y;
+					half bias = abs(sceneDepth - _CausticsFocalDepth) / _CausticsDepthOfField;
+					half2 causticN = _CausticsDistortionStrength * UnpackNormal(tex2D(_Normals, scenePos.xz / _CausticsDistortionScale)).xy;
+					half4 cuv1 = half4((     scenePos.xz/_CausticsTextureScale + 1.3 *causticN + half2(0.88*_Time.x+17.16, -3.38*_Time.x)), 0., bias);
+					half4 cuv2 = half4((1.37*scenePos.xz/_CausticsTextureScale + 1.77*causticN + half2(4.96*_Time.x,        2.34*_Time.x)), 0., bias);
+					sceneColour *= 1. + _CausticsStrength * 
+						(0.5*tex2Dbias(_CausticsTexture, cuv1).x + 0.5*tex2Dbias(_CausticsTexture, cuv2).x - _CausticsTextureAverage);
+					#endif
+
 					col = lerp(sceneColour, col, alpha);
 					#endif
 

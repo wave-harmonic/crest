@@ -123,6 +123,9 @@ namespace Crest
                 case SimType.Foam:
                     sim = go.AddComponent<LodDataFoam>();
                     break;
+                case SimType.Flow:
+                    sim = go.AddComponent<LodDataFlow>();
+                    break;
                 default:
                     Debug.LogError("Unknown sim type: " + simType.ToString());
                     return null;
@@ -192,6 +195,10 @@ namespace Crest
         LodDataDynamicWaves _lddw;
         public LodDataDynamicWaves LDDynamicWaves { get {
                 return _lddw ?? (_lddw = OceanRenderer.Instance.Builder._camsDynWaves[LodTransform.LodIndex].GetComponent<LodDataDynamicWaves>());
+        } }
+        LodDataFlow _ldfl;
+        public LodDataFlow LDFlow { get {
+                return _ldfl ?? (_ldfl = OceanRenderer.Instance.Builder._camsFlow[LodTransform.LodIndex].GetComponent<LodDataFlow>());
         } }
     }
 }

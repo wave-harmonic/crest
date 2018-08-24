@@ -11,7 +11,7 @@ namespace Crest
     {
         public override SimType LodDataType { get { return SimType.Flow; } }
         protected override string ShaderSim { get { return "Ocean/Shape/Sim/Flow"; } }
-        public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RHalf; } }
+        public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RGHalf; } }
         public override int Depth { get { return -20; } }
         protected override Camera[] SimCameras { get { return OceanRenderer.Instance.Builder._camsFlow; } }
 
@@ -26,11 +26,7 @@ namespace Crest
         {
             base.SetAdditionalSimParams(simMaterial);
 
-            simMaterial.SetFloat("_FlowFadeRate", Settings._flowFadeRate);
-            simMaterial.SetFloat("_WaveFlowStrength", Settings._waveFlowStrength);
-            simMaterial.SetFloat("_WaveFlowCoverage", Settings._waveFlowCoverage);
-            simMaterial.SetFloat("_ShorelineFlowMaxDepth", Settings._shorelineFlowMaxDepth);
-            simMaterial.SetFloat("_ShorelineFlowStrength", Settings._shorelineFlowStrength);
+            simMaterial.SetFloat("_FlowSpeed", Settings._flowSpeed);
 
             // assign animated waves - to slot 1 current frame data
             OceanRenderer.Instance.Builder._lodDataAnimWaves[LodTransform.LodIndex].BindResultData(1, simMaterial);

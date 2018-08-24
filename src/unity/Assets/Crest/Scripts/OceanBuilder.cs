@@ -29,6 +29,8 @@ namespace Crest
         public SimSettingsFoam _simSettingsFoam;
         public bool _createDynamicWaveSim = false;
         public SimSettingsWave _simSettingsDynamicWaves;
+        public bool _createFlowSim = true;
+        public SimSettingsFlow _simSettingsFlow;
 
         public int CurrentLodCount { get { return _camsAnimWaves.Length; } }
 
@@ -176,10 +178,12 @@ namespace Crest
             _camsAnimWaves = new Camera[lodCount];
             _lodDataAnimWaves = new LodDataAnimatedWaves[lodCount];
             _camsFoam = new Camera[lodCount];
+            _camsFlow = new Camera[lodCount];
             _camsDynWaves = new Camera[lodCount];
 
             var cachedSettings = new Dictionary<System.Type, SimSettingsBase>();
             if (_simSettingsFoam != null) cachedSettings.Add(typeof(LodDataFoam), _simSettingsFoam);
+            if (_simSettingsFlow != null) cachedSettings.Add(typeof(LodDataFlow), _simSettingsFlow);
             if (_simSettingsDynamicWaves != null) cachedSettings.Add(typeof(LodDataDynamicWaves), _simSettingsDynamicWaves);
 
             for ( int i = 0; i < lodCount; i++ )
@@ -194,6 +198,11 @@ namespace Crest
                 {
                     var go = LodData.CreateLodData(i, lodCount, baseVertDensity, LodData.SimType.Foam, cachedSettings);
                     _camsFoam[i] = go.GetComponent<Camera>();
+                }
+
+                if(_createFlowSim) {
+                    var go = LodData.CreateLodData(i, lodCount, baseVertDensity, LodData.SimType.Flow, cachedSettings);
+                    _camsFlow[i] = go.GetComponent<Camera>();
                 }
 
                 if (_createDynamicWaveSim)
@@ -387,6 +396,7 @@ namespace Crest
             // add lod data cameras into this lod
             PlaceLodData(_camsAnimWaves[lodIndex].transform, parent.transform);
             if (_camsFoam[lodIndex] != null) PlaceLodData(_camsFoam[lodIndex].transform, parent.transform);
+            if(_camsFlow[lodIndex] != null) PlaceLodData(_camsFlow[lodIndex].transform, parent.transform);
             if (_camsDynWaves[lodIndex] != null) PlaceLodData(_camsDynWaves[lodIndex].transform, parent.transform);
 
             bool generateSkirt = biggestLOD && !OceanRenderer.Instance._disableSkirt;

@@ -487,6 +487,11 @@ namespace Crest
                 patch.AddComponent<MeshFilter>().mesh = meshData[(int)patchTypes[i]];
 
                 var mr = patch.AddComponent<MeshRenderer>();
+
+                // sorting order to stop unity drawing it back to front. make the innermost 4 tiles draw first, followed by
+                // the rest of the tiles by lod index
+                mr.sortingOrder = patchTypes[i] == PatchType.Interior ? -1 : lodIndex;
+
                 // i dont think one would use lightprobes for a purely specular water surface? (although diffuse foam shading would benefit)
                 mr.lightProbeUsage = UnityEngine.Rendering.LightProbeUsage.Off;
                 mr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off; // arbitrary - could be turned on if desired

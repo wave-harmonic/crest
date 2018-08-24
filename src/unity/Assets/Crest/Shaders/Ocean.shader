@@ -63,7 +63,7 @@ Shader "Ocean/Ocean"
 
 		SubShader
 		{
-			Tags { "LightMode"="ForwardBase" "Queue"="Geometry+100" "IgnoreProjector"="True" "RenderType"="Opaque" }
+			Tags { "LightMode"="ForwardBase" "Queue"="Geometry+501" "IgnoreProjector"="True" "RenderType"="Opaque" }
 
 			GrabPass
 			{

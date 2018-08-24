@@ -16,6 +16,9 @@ namespace Crest
         [SerializeField, Tooltip("Material to use for the ocean surface")]
         Material _oceanMaterial;
 
+        public string _oceanLayerName = "Water";
+        int _oceanLayer = -1;
+
         [HideInInspector]
         public LodDataAnimatedWaves[] _lodDataAnimWaves;
 
@@ -161,6 +164,13 @@ namespace Crest
                 return;
             }
 #endif
+
+            _oceanLayer = LayerMask.NameToLayer(_oceanLayerName);
+            if (_oceanLayer == -1)
+            {
+                Debug.LogError("Invalid ocean layer: " + _oceanLayerName + " please add this layer.", this);
+                _oceanLayer = 0;
+            }
 
 #if PROFILE_CONSTRUCTION
             System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
@@ -382,6 +392,7 @@ namespace Crest
             // first create parent gameobject for the lod level. the scale of this transform sets the size of the lod.
             GameObject parent = new GameObject();
             parent.name = "LOD" + lodIndex;
+            parent.layer = _oceanLayer;
             parent.transform.parent = transform;
             parent.transform.localPosition = Vector3.zero;
             parent.transform.localRotation = Quaternion.identity;
@@ -466,6 +477,7 @@ namespace Crest
             {
                 // instantiate and place patch
                 var patch = new GameObject( string.Format( "Tile_L{0}", lodIndex ) );
+                patch.layer = _oceanLayer;
                 patch.transform.parent = parent.transform;
                 Vector2 pos = offsets[i];
                 patch.transform.localPosition = new Vector3( pos.x, 0f, pos.y );

@@ -72,6 +72,9 @@ Shader "Ocean/Ocean Surface Alpha"
 				SampleDisplacements(_LD_Sampler_AnimatedWaves_0, LD_0_WorldToUV(wxz), wt_0, _LD_Params_0.w, _LD_Params_0.x, worldPos, n);
 				SampleDisplacements(_LD_Sampler_AnimatedWaves_1, LD_1_WorldToUV(wxz), wt_1, _LD_Params_1.w, _LD_Params_1.x, worldPos, n);
 
+				// move to sea level
+				worldPos.y += _OceanCenterPosWorld.y;
+
 				// view-projection
 				o.vertex = mul(UNITY_MATRIX_VP, float4(worldPos, 1.));
 

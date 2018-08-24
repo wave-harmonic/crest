@@ -126,7 +126,7 @@ namespace Crest
             }
 
             // Hackety-hack: this seems to be the only way to pass parameters to the shader when using RenderWithShader!
-            Shader.SetGlobalVector("_OceanCenterPosWorld", transform.position);
+            Shader.SetGlobalVector("_OceanCenterPosWorld", OceanRenderer.Instance.transform.position);
             _camDepthCache.RenderWithShader(Shader.Find("Ocean/Ocean Depth"), null);
         }
 

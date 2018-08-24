@@ -56,7 +56,9 @@ Shader "Ocean/Ocean Surface Alpha"
 				v2f o;
 
 				// move to world
-				float3 worldPos = mul(unity_ObjectToWorld, v.vertex);
+				float3 worldPos;
+				worldPos.xz = mul(unity_ObjectToWorld, v.vertex).xz;
+				worldPos.y = 0.;
 
 				// vertex snapping and lod transition
 				float lodAlpha = ComputeLodAlpha(worldPos, _InstanceData.x);

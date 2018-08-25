@@ -8,12 +8,20 @@ namespace Crest
     /// </summary>
     public class RenderAlphaOnSurface : MonoBehaviour
     {
+        public bool _drawBounds = false;
+
         MaterialPropertyBlock _mpb;
         Renderer _rend;
+        Mesh _mesh;
+        Bounds _boundsLocal;
 
         private void Start()
         {
             _rend = GetComponent<Renderer>();
+            _mesh = GetComponent<MeshFilter>().mesh;
+            _boundsLocal = _mesh.bounds;
+
+            LateUpdateBounds();
         }
 
         private void LateUpdate()
@@ -46,6 +54,27 @@ namespace Crest
                 _mpb.SetVector("_InstanceData", new Vector4(meshScaleLerp, farNormalsWeight, idx));
 
                 _rend.SetPropertyBlock(_mpb);
+            }
+
+            LateUpdateBounds();
+        }
+
+        void LateUpdateBounds()
+        {
+            // make sure we're at sea level. we will expand the bounds which only works at sea level
+            float y = transform.position.y;
+            if (!Mathf.Approximately(y, OceanRenderer.Instance.SeaLevel))
+            {
+                transform.position += (OceanRenderer.Instance.SeaLevel - y) * Vector3.up;
+            }
+
+            var bounds = _boundsLocal;
+            OceanChunkRenderer.ExpandBoundsForDisplacements(transform, ref bounds);
+            _mesh.bounds = bounds;
+
+            if (_drawBounds)
+            {
+                OceanChunkRenderer.DebugDrawRendererBounds(_rend);
             }
         }
     }

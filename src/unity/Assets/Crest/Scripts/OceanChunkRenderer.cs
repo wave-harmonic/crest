@@ -37,6 +37,13 @@ namespace Crest
             UpdateMeshBounds();
         }
 
+        void UpdateMeshBounds()
+        {
+            var newBounds = _boundsLocal;
+            ExpandBoundsForDisplacements(transform, ref newBounds);
+            _mesh.bounds = newBounds;
+        }
+
         // Called when visible to a camera
         void OnWillRenderObject()
         {
@@ -87,22 +94,20 @@ namespace Crest
 
             if (_drawRenderBounds)
             {
-                DebugDrawRendererBounds();
+                DebugDrawRendererBounds(_rend);
             }
         }
 
         // this is called every frame because the bounds are given in world space and depend on the transform scale, which
         // can change depending on view altitude
-        void UpdateMeshBounds()
+        public static void ExpandBoundsForDisplacements(Transform transform, ref Bounds bounds)
         {
-            Bounds bounds = _boundsLocal;
             float boundsPadding = OceanRenderer.Instance.MaxHorizDisplacement;
             float expandXZ = boundsPadding / transform.lossyScale.x;
             float boundsY = OceanRenderer.Instance.MaxVertDisplacement / transform.lossyScale.y;
             // extend the kinematic bounds slightly to give room for dynamic sim stuff
             boundsY = Mathf.Max(boundsY, 1f);
             bounds.extents = new Vector3(bounds.extents.x + expandXZ, boundsY, bounds.extents.z + expandXZ);
-            _mesh.bounds = bounds;
         }
 
         public void SetInstanceData( int lodIndex, int totalLodCount, float baseVertDensity )
@@ -110,14 +115,14 @@ namespace Crest
             _lodIndex = lodIndex; _totalLodCount = totalLodCount; _baseVertDensity = baseVertDensity;
         }
 
-        void DebugDrawRendererBounds()
+        public static void DebugDrawRendererBounds(Renderer rend)
         {
             // source: https://github.com/UnityCommunity/UnityLibrary
             // license: mit - https://github.com/UnityCommunity/UnityLibrary/blob/master/LICENSE.md
 
             // draws mesh renderer bounding box using Debug.Drawline
 
-            var b = _rend.bounds;
+            var b = rend.bounds;
 
             // bottom
             var p1 = new Vector3( b.min.x, b.min.y, b.min.z );

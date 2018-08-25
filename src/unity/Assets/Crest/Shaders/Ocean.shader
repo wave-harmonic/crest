@@ -158,7 +158,10 @@ Shader "Ocean/Ocean"
 						#if !_DEBUGDISABLESHAPETEXTURES_ON
 						SampleDisplacements(_LD_Sampler_AnimatedWaves_0, uv_0, wt_0, _LD_Params_0.w, _LD_Params_0.x, o.worldPos, o.n);
 						#endif
+
+						#if _FOAM_ON
 						SampleFoam(_LD_Sampler_Foam_0, uv_0, wt_0, o.foam_screenPos.x);
+						#endif
 
 						#if _SUBSURFACESHALLOWCOLOUR_ON
 						SampleOceanDepth(_LD_Sampler_SeaFloorDepth_0, uv_0, wt_0, o.lodAlpha_worldXZUndisplaced_oceanDepth.w);
@@ -170,12 +173,18 @@ Shader "Ocean/Ocean"
 						#if !_DEBUGDISABLESHAPETEXTURES_ON
 						SampleDisplacements(_LD_Sampler_AnimatedWaves_1, uv_1, wt_1, _LD_Params_1.w, _LD_Params_1.x, o.worldPos, o.n);
 						#endif
+
+						#if _FOAM_ON
 						SampleFoam(_LD_Sampler_Foam_1, uv_1, wt_1, o.foam_screenPos.x);
+						#endif
 
 						#if _SUBSURFACESHALLOWCOLOUR_ON
 						SampleOceanDepth(_LD_Sampler_SeaFloorDepth_1, uv_1, wt_1, o.lodAlpha_worldXZUndisplaced_oceanDepth.w);
 						#endif
 					}
+
+					// foam can saturate
+					o.foam_screenPos.x = saturate(o.foam_screenPos.x);
 
 					// debug tinting to see which shape textures are used
 					#if _DEBUGVISUALISESHAPESAMPLE_ON
@@ -330,7 +339,7 @@ Shader "Ocean/Ocean"
 					o_whiteFoamCol.rgb = _FoamWhiteColor.rgb * (AmbientLight() + _WaveFoamLightScale * _LightColor0);
 					#endif // _FOAM3DLIGHTING_ON
 
-					o_whiteFoamCol.a = min(2. * whiteFoam, _FoamWhiteColor.a);
+					o_whiteFoamCol.a = _FoamWhiteColor.a * whiteFoam;
 				}
 
 				float3 WorldSpaceLightDir(float3 worldPos)

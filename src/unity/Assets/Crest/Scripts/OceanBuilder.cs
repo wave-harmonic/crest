@@ -489,8 +489,10 @@ namespace Crest
                 var mr = patch.AddComponent<MeshRenderer>();
 
                 // sorting order to stop unity drawing it back to front. make the innermost 4 tiles draw first, followed by
-                // the rest of the tiles by lod index
-                mr.sortingOrder = patchTypes[i] == PatchType.Interior ? -1 : lodIndex;
+                // the rest of the tiles by lod index. all this happens before layer 0 - the sorting layer takes prio over the
+                // render queue it seems! ( https://cdry.wordpress.com/2017/04/28/unity-render-queues-vs-sorting-layers/ ). this pushes
+                // ocean rendering way early, so transparents will by default render afterwards, which is typical for water rendering.
+                mr.sortingOrder = -lodCount + (patchTypes[i] == PatchType.Interior ? -1 : lodIndex);
 
                 // i dont think one would use lightprobes for a purely specular water surface? (although diffuse foam shading would benefit)
                 mr.lightProbeUsage = UnityEngine.Rendering.LightProbeUsage.Off;

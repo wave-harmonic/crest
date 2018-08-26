@@ -1,7 +1,7 @@
 
 # Directions for Optimisation
 
-The foundation of *Crest* is architected, but out of the box it is configured for quality and flexibility.
+The foundation of *Crest* is architected for performance from the ground up with an innovative LOD system. However, out of the box it is configured for quality and flexibility rather than maximum efficiency.
 
 There are a number of directions for optimising the basic vanilla *Crest* that would make sense to explore in production scenarios to squeeze the maximum performance out of the system.
 

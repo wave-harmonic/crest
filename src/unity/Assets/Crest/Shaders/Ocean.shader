@@ -143,7 +143,7 @@ Shader "Ocean/Ocean"
 					o.lodAlpha_worldXZUndisplaced_oceanDepth.x = lodAlpha;
 					o.lodAlpha_worldXZUndisplaced_oceanDepth.yz = o.worldPos.xz;
 
-					// sample shape textures - always lerp between 2 scales, so sample two textures
+					// sample shape textures - always lerp between 2 LOD scales, so sample two textures
 					o.n = half3(0., 1., 0.);
 					o.foam_screenPos.x = 0.;
 					o.lodAlpha_worldXZUndisplaced_oceanDepth.w = 0.;
@@ -355,67 +355,71 @@ Shader "Ocean/Ocean"
 
 				half3 OceanEmission(float3 worldPos, half oceanDepth, half3 view, half3 n, half3 n_geom, float3 lightDir, half4 grabPos, half3 screenPos, float pixelZ, half2 uvDepth, float sceneZ, float sceneZ01, half3 bubbleCol)
 				{
-					// use the constant layer of SH stuff - this is the average. it seems to give the right kind of colour
+					// base colour
 					half3 col = _Diffuse;
 
 					#if _SUBSURFACESCATTERING_ON
+					{
+						#if _SUBSURFACESHALLOWCOLOUR_ON
+						float deepness = pow(1. - saturate(oceanDepth / _SubSurfaceDepthMax), _SubSurfaceDepthPower);
+						col = lerp(col, _SubSurfaceShallowCol, deepness);
+						#endif
 
-					#if _SUBSURFACESHALLOWCOLOUR_ON
-					float deepness = pow(1. - saturate(oceanDepth / _SubSurfaceDepthMax), _SubSurfaceDepthPower);
-					col = lerp(col, _SubSurfaceShallowCol, deepness);
-					#endif
+						#if _SUBSURFACEHEIGHTLERP_ON
+						half h = worldPos.y - _OceanCenterPosWorld.y;
+						col += pow(saturate(0.5 + 2.0 * h / _SubSurfaceHeightMax), _SubSurfaceHeightPower) * _SubSurfaceCrestColour.rgb;
+						#endif
 
-					#if _SUBSURFACEHEIGHTLERP_ON
-					half h = worldPos.y - _OceanCenterPosWorld.y;
-					col += pow(saturate(0.5 + 2.0 * h / _SubSurfaceHeightMax), _SubSurfaceHeightPower) * _SubSurfaceCrestColour.rgb;
-					#endif
+						// light
+						// use the constant term (0th order) of SH stuff - this is the average. it seems to give the right kind of colour
+						col *= half3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w);
 
-					// light
-					col *= half3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w);
+						// Approximate subsurface scattering - add light when surface faces viewer. Use geometry normal - don't need high freqs.
+						half towardsSun = pow(max(0., dot(lightDir, -view)), _SubSurfaceSunFallOff);
+						col += (_SubSurfaceBase + _SubSurfaceSun * towardsSun) * max(dot(n_geom, view), 0.) * _SubSurfaceColour.rgb * _LightColor0;
+					}
+					#endif // _SUBSURFACESCATTERING_ON
 
-					// Approximate subsurface scattering - add light when surface faces viewer. Use geometry normal - don't need high freqs.
-					half towardsSun = pow(max(0., dot(lightDir, -view)), _SubSurfaceSunFallOff);
-					col += (_SubSurfaceBase + _SubSurfaceSun * towardsSun) * max(dot(n_geom, view), 0.) * _SubSurfaceColour.rgb * _LightColor0;
-					#endif
-
+					// underwater bubbles reflect in light
 					col += bubbleCol;
 
 					#if _TRANSPARENCY_ON
+
 					// zfar? then don't read from the backbuffer at all, as i get occasionally nans spread across the screen when reading
 					// from uninit'd backbuffer
-					if (sceneZ01 == 0.0)
-						return col;
-
-					half2 uvBackgroundRefract = grabPos.xy / grabPos.w + .02 * n.xz;
-					half2 uvDepthRefract = uvDepth +.02 * n.xz;
-					half3 alpha = (half3)1.;
-
-					// if we haven't refracted onto a surface in front of the water surface, compute an alpha based on Z delta
-					if (sceneZ > pixelZ)
+					if (sceneZ01 != 0.0)
 					{
-						float sceneZRefract = LinearEyeDepth(texture(_CameraDepthTexture, uvDepthRefract).x);
-						float maxZ = max(sceneZ, sceneZRefract);
-						float deltaZ = maxZ - pixelZ;
-						alpha = 1. - exp(-_DepthFogDensity.xyz * deltaZ);
+						half2 uvBackgroundRefract = grabPos.xy / grabPos.w + .02 * n.xz;
+						half2 uvDepthRefract = uvDepth + .02 * n.xz;
+						half3 alpha = (half3)1.;
+
+						// if we haven't refracted onto a surface in front of the water surface, compute an alpha based on Z delta
+						if (sceneZ > pixelZ)
+						{
+							float sceneZRefract = LinearEyeDepth(texture(_CameraDepthTexture, uvDepthRefract).x);
+							float maxZ = max(sceneZ, sceneZRefract);
+							float deltaZ = maxZ - pixelZ;
+							alpha = 1. - exp(-_DepthFogDensity.xyz * deltaZ);
+						}
+
+						half3 sceneColour = texture(_BackgroundTexture, uvBackgroundRefract).rgb;
+
+						#if _CAUSTICS_ON
+						// underwater caustics - dedicated to P
+						float3 camForward = mul((float3x3)unity_CameraToWorld, float3(0., 0., 1.));
+						float3 scenePos = _WorldSpaceCameraPos - view * sceneZ / dot(camForward, -view);
+						half sceneDepth = _OceanCenterPosWorld.y - scenePos.y;
+						half bias = abs(sceneDepth - _CausticsFocalDepth) / _CausticsDepthOfField;
+						half2 causticN = _CausticsDistortionStrength * UnpackNormal(tex2D(_Normals, scenePos.xz / _CausticsDistortionScale)).xy;
+						half4 cuv1 = half4((scenePos.xz / _CausticsTextureScale + 1.3 *causticN + half2(0.88*_Time.x + 17.16, -3.38*_Time.x)), 0., bias);
+						half4 cuv2 = half4((1.37*scenePos.xz / _CausticsTextureScale + 1.77*causticN + half2(4.96*_Time.x, 2.34*_Time.x)), 0., bias);
+						sceneColour *= 1. + _CausticsStrength *
+							(0.5*tex2Dbias(_CausticsTexture, cuv1).x + 0.5*tex2Dbias(_CausticsTexture, cuv2).x - _CausticsTextureAverage);
+						#endif
+
+						col = lerp(sceneColour, col, alpha);
 					}
-
-					half3 sceneColour = texture(_BackgroundTexture, uvBackgroundRefract).rgb;
-
-					#if _CAUSTICS_ON
-					// underwater caustics - dedicated to P
-					float3 camForward = mul((float3x3)unity_CameraToWorld, float3(0., 0., 1.));
-					float3 scenePos = _WorldSpaceCameraPos - view * sceneZ / dot(camForward, -view);
-					half sceneDepth = _OceanCenterPosWorld.y - scenePos.y;
-					half bias = abs(sceneDepth - _CausticsFocalDepth) / _CausticsDepthOfField;
-					half2 causticN = _CausticsDistortionStrength * UnpackNormal(tex2D(_Normals, scenePos.xz / _CausticsDistortionScale)).xy;
-					half4 cuv1 = half4((     scenePos.xz/_CausticsTextureScale + 1.3 *causticN + half2(0.88*_Time.x+17.16, -3.38*_Time.x)), 0., bias);
-					half4 cuv2 = half4((1.37*scenePos.xz/_CausticsTextureScale + 1.77*causticN + half2(4.96*_Time.x,        2.34*_Time.x)), 0., bias);
-					sceneColour *= 1. + _CausticsStrength * 
-						(0.5*tex2Dbias(_CausticsTexture, cuv1).x + 0.5*tex2Dbias(_CausticsTexture, cuv2).x - _CausticsTextureAverage);
-					#endif
-
-					col = lerp(sceneColour, col, alpha);
-					#endif
+					#endif // _TRANSPARENCY_ON
 
 					return col;
 				}

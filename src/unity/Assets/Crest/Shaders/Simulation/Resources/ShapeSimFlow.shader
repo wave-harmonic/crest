@@ -53,7 +53,7 @@ Shader "Ocean/Shape/Sim/Flow"
 
 				half2 frag(v2f i) : SV_Target
 				{
-					return float2(1, 1) * _FlowSpeed;
+					return float2(1, 0) * _FlowSpeed;
 				}
 				ENDCG
 			}

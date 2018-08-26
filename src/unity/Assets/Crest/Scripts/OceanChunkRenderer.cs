@@ -75,11 +75,12 @@ namespace Crest
             var shapeCams = OceanRenderer.Instance.Builder._lodDataAnimWaves;
             shapeCams[_lodIndex].BindResultData(0, _mpb);
             shapeCams[_lodIndex].LDFoam.BindResultData(0, _mpb);
-            // TODO(TOM): check if this is needed?
+            shapeCams[_lodIndex].LDFlow.BindResultData(0, _mpb);
             if (_lodIndex + 1 < shapeCams.Length)
             {
                 shapeCams[_lodIndex + 1].BindResultData(1, _mpb);
                 shapeCams[_lodIndex + 1].LDFoam.BindResultData(1, _mpb);
+                shapeCams[_lodIndex + 1].LDFlow.BindResultData(1, _mpb);
             }
 
             _rend.SetPropertyBlock(_mpb);

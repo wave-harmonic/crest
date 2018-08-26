@@ -36,6 +36,7 @@ Shader "Ocean/Ocean"
 		_FresnelPower("Fresnel Power", Range(0.0,20.0)) = 3.0
 		[Toggle] _DebugDisableShapeTextures("Debug Disable Shape Textures", Float) = 0
 		[Toggle] _DebugVisualiseShapeSample("Debug Visualise Shape Sample", Float) = 0
+		[Toggle] _DebugVisualiseFlow("Debug Visualise Flow", Float) = 0
 		[Toggle] _DebugDisableSmoothLOD("Debug Disable Smooth LOD", Float) = 0
 		[Toggle] _CompileShaderWithDebugInfo("Compile Shader With Debug Info (D3D11)", Float) = 0
 	}
@@ -67,6 +68,7 @@ Shader "Ocean/Ocean"
 				#pragma shader_feature _FOAM3DLIGHTING_ON
 				#pragma shader_feature _DEBUGDISABLESHAPETEXTURES_ON
 				#pragma shader_feature _DEBUGVISUALISESHAPESAMPLE_ON
+				#pragma shader_feature _DEBUGVISUALISEFLOW_ON
 				#pragma shader_feature _DEBUGDISABLESMOOTHLOD_ON
 				#pragma shader_feature _COMPILESHADERWITHDEBUGINFO_ON
 
@@ -87,6 +89,7 @@ Shader "Ocean/Ocean"
 				{
 					float4 vertex : SV_POSITION;
 					half3 n : TEXCOORD1;
+					half2 flow : TEXCOORD2;
 					half4 foam_screenPos : TEXCOORD4;
 					half3 lodAlpha_worldXZUndisplaced : TEXCOORD5;
 					float3 worldPos : TEXCOORD7;
@@ -123,6 +126,7 @@ Shader "Ocean/Ocean"
 					// sample shape textures - always lerp between 2 scales, so sample two textures
 					o.n = half3(0., 1., 0.);
 					o.foam_screenPos.x = 0.;
+					o.flow = half2(0., 0.);
 					// sample weights. params.z allows shape to be faded out (used on last lod to support pop-less scale transitions)
 					float wt_0 = (1. - lodAlpha) * _LD_Params_0.z;
 					float wt_1 = (1. - wt_0) * _LD_Params_1.z;
@@ -135,6 +139,7 @@ Shader "Ocean/Ocean"
 						SampleDisplacements(_LD_Sampler_AnimatedWaves_0, uv_0, wt_0, _LD_Params_0.w, _LD_Params_0.x, o.worldPos, o.n);
 						#endif
 						SampleFoam(_LD_Sampler_Foam_0, uv_0, wt_0, o.foam_screenPos.x);
+						SampleFlow(_LD_Sampler_Flow_0, uv_0, wt_0, o.flow);
 					}
 					if (wt_1 > 0.001)
 					{
@@ -143,6 +148,7 @@ Shader "Ocean/Ocean"
 						SampleDisplacements(_LD_Sampler_AnimatedWaves_1, uv_1, wt_1, _LD_Params_1.w, _LD_Params_1.x, o.worldPos, o.n);
 						#endif
 						SampleFoam(_LD_Sampler_Foam_1, uv_1, wt_1, o.foam_screenPos.x);
+						SampleFlow(_LD_Sampler_Flow_1, uv_1, wt_1, o.flow);
 					}
 
 					// debug tinting to see which shape textures are used
@@ -152,7 +158,7 @@ Shader "Ocean/Ocean"
 					o.debugtint = wt_0 * tintCols[_LD_LodIdx_0 % TINT_COUNT] + wt_1 * tintCols[_LD_LodIdx_1 % TINT_COUNT];
 					#endif
 
-					// view-projection	
+					// view-projection
 					o.vertex = mul(UNITY_MATRIX_VP, float4(o.worldPos, 1.));
 
 					UNITY_TRANSFER_FOG(o, o.vertex);
@@ -190,7 +196,7 @@ Shader "Ocean/Ocean"
 				uniform half _WaveFoamSpecularFallOff;
 				uniform half _WaveFoamSpecularBoost;
 				uniform half _WaveFoamLightScale;
-				
+
 				uniform sampler2D _Normals;
 				uniform half _NormalsStrength;
 				uniform half _NormalsScale;
@@ -203,9 +209,9 @@ Shader "Ocean/Ocean"
 				sampler2D _BackgroundTexture;
 				sampler2D _CameraDepthTexture;
 
-				void ApplyNormalMaps(float2 worldXZUndisplaced, float lodAlpha, inout half3 io_n )
+				void ApplyNormalMaps(float2 worldXZUndisplaced, float2 flow, float lodAlpha, inout half3 io_n )
 				{
-					const float2 v0 = float2(0.94, 0.34), v1 = float2(-0.85, -0.53);
+					const float2 v0 = float2(0.94, 0.34) + flow, v1 = float2(-0.85, -0.53) + flow;
 					const float geomSquareSize = _GeomData.x;
 					float nstretch = _NormalsScale * geomSquareSize; // normals scaled with geometry
 					const float spdmulL = _GeomData.y;
@@ -252,7 +258,7 @@ Shader "Ocean/Ocean"
 				void ComputeFoam(half i_foam, float2 i_worldXZUndisplaced, float2 i_worldXZ, half3 i_n, float i_pixelZ, float i_sceneZ, half3 i_view, float3 i_lightDir, out half3 o_bubbleCol, out half4 o_whiteFoamCol)
 				{
 					half foamAmount = i_foam;
-					
+
 					// feather foam very close to shore
 					foamAmount *= saturate((i_sceneZ - i_pixelZ) / _ShorelineFoamMinDepth);
 
@@ -353,7 +359,7 @@ Shader "Ocean/Ocean"
 					half3 n_geom = normalize(i.n);
 					half3 n_pixel = n_geom;
 					#if _APPLYNORMALMAPPING_ON
-					ApplyNormalMaps(i.lodAlpha_worldXZUndisplaced.yz, i.lodAlpha_worldXZUndisplaced.x, n_pixel);
+					ApplyNormalMaps(i.lodAlpha_worldXZUndisplaced.yz, i.flow, i.lodAlpha_worldXZUndisplaced.x, n_pixel);
 					#endif
 
 					// Foam - underwater bubbles and whitefoam
@@ -389,9 +395,12 @@ Shader "Ocean/Ocean"
 
 					// Fog
 					UNITY_APPLY_FOG(i.fogCoord, col);
-	
+
 					#if _DEBUGVISUALISESHAPESAMPLE_ON
 					col = mix(col.rgb, i.debugtint, 0.5);
+					#endif
+					#if _DEBUGVISUALISEFLOW_ON
+					col.rg = mix(col.rg, i.flow.xy, 0.5);
 					#endif
 
 					return half4(col, 1.);

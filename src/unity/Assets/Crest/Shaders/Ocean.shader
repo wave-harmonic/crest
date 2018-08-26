@@ -51,6 +51,7 @@ Shader "Ocean/Ocean"
 		_CausticsDistortionScale("    Distortion Scale", Range(0.01, 50.0)) = 10.0
 		_CausticsDistortionStrength("    Distortion Strength", Range(0.0, 0.25)) = 0.075
 		_FresnelPower("Fresnel Power", Range(0.0, 20.0)) = 3.0
+		[Enum(CullMode)] _CullMode("Cull Mode", Int) = 2
 		[Toggle] _DebugDisableShapeTextures("Debug Disable Shape Textures", Float) = 0
 		[Toggle] _DebugVisualiseShapeSample("Debug Visualise Shape Sample", Float) = 0
 		[Toggle] _DebugDisableSmoothLOD("Debug Disable Smooth LOD", Float) = 0
@@ -75,6 +76,8 @@ Shader "Ocean/Ocean"
 
 			Pass
 			{
+				Cull[_CullMode]
+
 				CGPROGRAM
 				#pragma vertex vert
 				#pragma fragment frag

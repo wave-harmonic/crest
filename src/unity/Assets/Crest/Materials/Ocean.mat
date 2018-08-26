@@ -87,6 +87,7 @@ Material:
     - _CausticsTextureScale: 5
     - _CompileShaderWithDebugInfo: 0
     - _ComputeDirectionalLight: 1
+    - _CullMode: 2
     - _DebugDisableMultiplyByLight0Color: 0
     - _DebugDisableShapeTextures: 0
     - _DebugDisableSmoothLOD: 0

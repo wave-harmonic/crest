@@ -121,7 +121,7 @@ The ocean pixel shader samples normal maps at 2 different scales, both proportio
 
 # Optimisation
 
-See the dedicated [OPTIMISATION.md](https://github.com/huwb/crest-oceanrender/blob/master/LINKS.md) doc.
+See the dedicated [OPTIMISATION.md](https://github.com/huwb/crest-oceanrender/blob/master/OPTIMISATION.md) doc.
 
 
 # Bugs and Improvement Directions

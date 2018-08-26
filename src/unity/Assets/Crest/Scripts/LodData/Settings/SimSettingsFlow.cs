@@ -8,6 +8,6 @@ namespace Crest
     public class SimSettingsFlow : SimSettingsBase
     {
         [Range(0f, 500f), Tooltip("Speed of the flow")]
-        public float _flowSpeed = 10.0f;
+        public float _flowSpeed = 100.0f;
     }
 }

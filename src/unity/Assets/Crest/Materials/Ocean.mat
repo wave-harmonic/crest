@@ -9,7 +9,7 @@ Material:
   m_Name: Ocean
   m_Shader: {fileID: 4800000, guid: 668aecf91371c8b4997e42c0c7b19527, type: 3}
   m_ShaderKeywords: _APPLYNORMALMAPPING_ON _COMPUTEDIRECTIONALLIGHT_ON _DEBUGMULTIPLYBYLIGHT0COLOR_ON
-    _DEBUGVISUALISEFLOW_ON _FOAM3DLIGHTING_ON _FOAM_ON _SUBSURFACESCATTERING_ON _TRANSPARENCY_ON
+    _FOAM3DLIGHTING_ON _FOAM_ON _SUBSURFACESCATTERING_ON _TRANSPARENCY_ON
   m_LightmapFlags: 5
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -77,7 +77,7 @@ Material:
     - _DebugDisableSmoothLOD: 0
     - _DebugMultiplyByLight0Color: 1
     - _DebugShapeSample: 0
-    - _DebugVisualiseFlow: 1
+    - _DebugVisualiseFlow: 0
     - _DebugVisualiseShapeSample: 0
     - _DirectionalLightBoost: 7
     - _DirectionalLightFallOff: 275

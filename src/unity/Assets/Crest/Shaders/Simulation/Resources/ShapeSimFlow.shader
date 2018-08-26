@@ -34,6 +34,7 @@ Shader "Ocean/Shape/Sim/Flow"
 					float4 vertex : SV_POSITION;
 					float4 uv_uv_lastframe : TEXCOORD0;
 					float invRes : TEXCOORD1;
+					float3 world : TEXCOORD2;
 				};
 
 				#include "SimHelpers.cginc"
@@ -45,6 +46,7 @@ Shader "Ocean/Shape/Sim/Flow"
 
 					float3 world = mul(unity_ObjectToWorld, v.vertex);
 					ComputeUVs(world, o.vertex.xy, o.uv_uv_lastframe.zw, o.uv_uv_lastframe.xy, o.invRes);
+					o.world = world;
 
 					return o;
 				}
@@ -53,7 +55,10 @@ Shader "Ocean/Shape/Sim/Flow"
 
 				half2 frag(v2f i) : SV_Target
 				{
-					return float2(1, 0) * _FlowSpeed;
+					float2 flow;
+					flow.x = -i.world.z;
+					flow.y = i.world.x;
+					return normalize(flow) * _FlowSpeed;
 				}
 				ENDCG
 			}

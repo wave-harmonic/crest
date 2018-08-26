@@ -209,9 +209,9 @@ Shader "Ocean/Ocean"
 				sampler2D _BackgroundTexture;
 				sampler2D _CameraDepthTexture;
 
-				void ApplyNormalMaps(float2 worldXZUndisplaced, float2 flow, float lodAlpha, inout half3 io_n )
+				half2 SampleNormalMaps(float2 worldXZUndisplaced, float lodAlpha)
 				{
-					const float2 v0 = float2(0.94, 0.34) + flow, v1 = float2(-0.85, -0.53) + flow;
+					const float2 v0 = float2(0.94, 0.34), v1 = float2(-0.85, -0.53);
 					const float geomSquareSize = _GeomData.x;
 					float nstretch = _NormalsScale * geomSquareSize; // normals scaled with geometry
 					const float spdmulL = _GeomData.y;
@@ -234,8 +234,28 @@ Shader "Ocean/Ocean"
 					}
 
 					// approximate combine of normals. would be better if normals applied in local frame.
-					io_n.xz += _NormalsStrength * norm;
-					io_n = normalize(io_n);
+					return _NormalsStrength * norm;
+				}
+
+				void ApplyNormalMaps(float2 worldXZUndisplaced, float2 flow, float lodAlpha, inout half3 io_n )
+				{
+					const float half_period = .05;
+					const float period = half_period * 2;
+					float w1 = fmod(_Time, period);
+					float ww1 = w1/period;
+					if(ww1 > 0.5) ww1 = 1.0 - ww1;
+					float w2 = fmod(_Time + half_period, period);
+					float ww2 = 1.0 - ww1;
+
+					// In order to prevent flow from distorting the UVs too much,
+					// we fade between two samples of normal maps so that for each
+					// sample the UVs can be reset
+					half2 io_n_1 = SampleNormalMaps(worldXZUndisplaced - (flow * w1), lodAlpha);
+					half2 io_n_2 = SampleNormalMaps(worldXZUndisplaced - (flow * w2), lodAlpha);
+					io_n.xz += ww1 * io_n_1;
+					io_n.xz += ww2 * io_n_2;
+					normalize(io_n);
+
 				}
 
 				half3 AmbientLight()

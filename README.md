@@ -119,6 +119,11 @@ The ocean geometry is rendered with the Ocean shader. The vertex shader snaps th
 The ocean pixel shader samples normal maps at 2 different scales, both proportional to the current and next LOD scales, and then interpolates the result using *lodAlpha* for a smooth transition. Two layers of foam are added based on different thresholds of the foam value, with black point fading used to blend them.
 
 
+# Optimisation
+
+See the dedicated [OPTIMISATION.md](https://github.com/huwb/crest-oceanrender/blob/master/LINKS.md) doc.
+
+
 # Bugs and Improvement Directions
 
 * A non-backwards-compatible change was made to prefabs in Unity 2018.2, which means some of the example content prefabs may show up as *Missing* in previous versions. See issue #51.

@@ -51,6 +51,7 @@ Shader "Ocean/Ocean"
 		_CausticsDistortionScale("    Distortion Scale", Range(0.01, 50.0)) = 10.0
 		_CausticsDistortionStrength("    Distortion Strength", Range(0.0, 0.25)) = 0.075
 		_FresnelPower("Fresnel Power", Range(0.0, 20.0)) = 3.0
+		[Toggle] _Shadows("Shadows", Float) = 1
 		[Enum(CullMode)] _CullMode("Cull Mode", Int) = 2
 		[Toggle] _DebugDisableShapeTextures("Debug Disable Shape Textures", Float) = 0
 		[Toggle] _DebugVisualiseShapeSample("Debug Visualise Shape Sample", Float) = 0
@@ -91,6 +92,7 @@ Shader "Ocean/Ocean"
 				#pragma shader_feature _CAUSTICS_ON
 				#pragma shader_feature _FOAM_ON
 				#pragma shader_feature _FOAM3DLIGHTING_ON
+				#pragma shader_feature _SHADOWS_ON
 				#pragma shader_feature _DEBUGDISABLESHAPETEXTURES_ON
 				#pragma shader_feature _DEBUGVISUALISESHAPESAMPLE_ON
 				#pragma shader_feature _DEBUGDISABLESMOOTHLOD_ON
@@ -170,7 +172,9 @@ Shader "Ocean/Ocean"
 						SampleOceanDepth(_LD_Sampler_SeaFloorDepth_0, uv_0, wt_0, o.lodAlpha_worldXZUndisplaced_oceanDepth.w);
 						#endif
 
+						#if _SHADOWS_ON
 						SampleSSS(_LD_Sampler_SubSurfaceScattering_0, uv_0, wt_0, o.n_sss.w);
+						#endif
 					}
 					if (wt_1 > 0.001)
 					{
@@ -187,7 +191,9 @@ Shader "Ocean/Ocean"
 						SampleOceanDepth(_LD_Sampler_SeaFloorDepth_1, uv_1, wt_1, o.lodAlpha_worldXZUndisplaced_oceanDepth.w);
 						#endif
 
+						#if _SHADOWS_ON
 						SampleSSS(_LD_Sampler_SubSurfaceScattering_1, uv_1, wt_1, o.n_sss.w);
+						#endif
 					}
 
 					// invert SSS to play nicely with lods fading in/out
@@ -425,15 +431,19 @@ Shader "Ocean/Ocean"
 						half4 cuv1 = half4((scenePos.xz / _CausticsTextureScale + 1.3 *causticN + half2(0.88*_Time.x + 17.16, -3.38*_Time.x)), 0., bias);
 						half4 cuv2 = half4((1.37*scenePos.xz / _CausticsTextureScale + 1.77*causticN + half2(4.96*_Time.x, 2.34*_Time.x)), 0., bias);
 
-						float causticShadow = 0.;
+						half causticsStrength = _CausticsStrength;
+						#if _SHADOWS_ON
 						{
 							// could probably be computed per-vert
+							float causticShadow = 0.;
 							float2 offset = lightDir.xz * sceneDepth * lightDir.y;
 							const float2 uv_1 = LD_1_WorldToUV(scenePos.xz + offset);
 							SampleSSS(_LD_Sampler_SubSurfaceScattering_1, uv_1, 1.0, causticShadow);
+							causticsStrength *= causticShadow;
 						}
+						#endif
 
-						sceneColour *= 1. + causticShadow * _CausticsStrength *
+						sceneColour *= 1. + causticsStrength *
 							(0.5*tex2Dbias(_CausticsTexture, cuv1).x + 0.5*tex2Dbias(_CausticsTexture, cuv2).x - _CausticsTextureAverage);
 						#endif
 
@@ -457,7 +467,11 @@ Shader "Ocean/Ocean"
 					
 					// could be per-vertex i reckon
 					float3 lightDir = WorldSpaceLightDir(i.worldPos);
-					half shadow = 1.0 - i.n_sss.w;
+					half shadow = 1.0
+					#if _SHADOWS_ON
+						- i.n_sss.w
+					#endif
+						;
 
 					// Normal - geom + normal mapping
 					half3 n_geom = normalize(i.n_sss.xyz);

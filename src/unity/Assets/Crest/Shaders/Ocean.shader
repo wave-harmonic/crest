@@ -428,9 +428,7 @@ Shader "Ocean/Ocean"
 						float causticShadow = 0.;
 						{
 							// could probably be computed per-vert
-							float dx = length(lightDir.xz);
-							float dydx = lightDir.y / dx;
-							float2 offset = (lightDir.xz / dx) * sceneDepth / dydx;
+							float2 offset = lightDir.xz * sceneDepth * lightDir.y;
 							const float2 uv_1 = LD_1_WorldToUV(scenePos.xz + offset);
 							SampleSSS(_LD_Sampler_SubSurfaceScattering_1, uv_1, 1.0, causticShadow);
 						}

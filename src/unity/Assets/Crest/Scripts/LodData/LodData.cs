@@ -102,6 +102,7 @@ namespace Crest
             AnimatedWaves,
             // this is currently not used as the sea floor depth is not created as a unique sim object
             SeaFloorDepth,
+            SubSurfaceScattering,
         }
 
         public static GameObject CreateLodData(int lodIdx, int lodCount, float baseVertDensity, SimType simType, Dictionary<System.Type, SimSettingsBase> cachedSettings)
@@ -123,6 +124,9 @@ namespace Crest
                     break;
                 case SimType.Foam:
                     sim = go.AddComponent<LodDataFoam>();
+                    break;
+                case SimType.SubSurfaceScattering:
+                    sim = go.AddComponent<LodDataSSS>();
                     break;
                 default:
                     Debug.LogError("Unknown sim type: " + simType.ToString());

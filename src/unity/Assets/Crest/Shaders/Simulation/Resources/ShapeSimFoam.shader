@@ -49,7 +49,6 @@ Shader "Ocean/Shape/Sim/Foam"
 					return o;
 				}
 
-				// respects the gui option to freeze time
 				uniform half _FoamFadeRate;
 				uniform half _WaveFoamStrength;
 				uniform half _WaveFoamCoverage;

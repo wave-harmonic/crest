@@ -53,7 +53,6 @@ Shader "Ocean/Shape/Gerstner Batch"
 					return o;
 				}
 
-				// respects the gui option to freeze time
 				uniform half _Chop;
 				uniform half _Gravity;
 				uniform half4 _Wavelengths[BATCH_SIZE / 4];

@@ -7,15 +7,6 @@
 //#define DEBUG_COLORS
 //#define JIGGLE
 
-#define vec2 half2
-#define vec3 half3
-#define vec4 half4
-#define fract frac
-#define mod fmod
-#define texture tex2D
-#define mix lerp
-#define iTime _Time.y
-
 // utilities for randomizing uvs
 vec4 hash4( vec2 p ) { return fract(sin(vec4( 1.0+dot(p,vec2(37.0,17.0)), 2.0+dot(p,vec2(11.0,47.0)), 3.0+dot(p,vec2(41.0,29.0)), 4.0+dot(p,vec2(23.0,31.0))))*103.); }
 vec2 transformUVs( in vec2 iuvCorner, in vec2 uv )

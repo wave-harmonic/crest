@@ -24,6 +24,13 @@ namespace Crest
         public virtual void ApplySchedule(OceanBuilder ocean)
         {
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            // --- Sub surface scattering - does not depend on waves or depth or anything (yet)
+            for (int i = 0; i < ocean.CurrentLodCount && ocean._camsSSS[i] != null; i++)
+            {
+                ocean._camsSSS[i].depth = -50 - i;
+            }
+
+            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // --- Dynamic waves camera renders first
             for (int i = 0; i < ocean.CurrentLodCount && ocean._camsDynWaves[i] != null; i++)
             {

@@ -14,12 +14,13 @@ namespace Crest
 
         public override CameraClearFlags CamClearFlags { get { return CameraClearFlags.Nothing; } }
         public override RenderTexture DataTexture { get { return Cam.targetTexture; } }
+        protected virtual CameraEvent HookEvent { get { return CameraEvent.BeforeForwardAlpha; } }
 
         [SerializeField]
         protected SimSettingsBase _settings;
         public override void UseSettings(SimSettingsBase settings) { _settings = settings; }
 
-        GameObject _renderSim;
+        protected GameObject _renderSim;
         Material _renderSimMaterial;
 
         protected abstract string ShaderSim { get; }
@@ -45,6 +46,7 @@ namespace Crest
             _renderSim.transform.localRotation = Quaternion.identity;
             _renderSim.GetComponent<Renderer>().material = _renderSimMaterial = new Material(Shader.Find(ShaderSim));
             _renderSim.GetComponent<Renderer>().enabled = false;
+            _renderSim.AddComponent<ApplyLayers>()._layerName = GetComponent<ApplyLayers>()._layerName;
         }
 
         GameObject CreateRasterQuad(string name)
@@ -64,7 +66,7 @@ namespace Crest
             return result;
         }
 
-        CommandBuffer _advanceSimCmdBuf;
+        protected CommandBuffer _advanceSimCmdBuf;
         float _oceanLocalScalePrev = -1f;
 
         public void BindSourceData(int shapeSlot, Material properties, bool paramsOnly)
@@ -80,12 +82,12 @@ namespace Crest
         {
             base.LateUpdate();
 
-            if (_advanceSimCmdBuf == null)
+            if (_advanceSimCmdBuf == null && _renderSim != null)
             {
                 _advanceSimCmdBuf = new CommandBuffer();
                 _advanceSimCmdBuf.name = "AdvanceSim_" + SimName;
-                Cam.AddCommandBuffer(CameraEvent.BeforeForwardAlpha, _advanceSimCmdBuf);
-                _advanceSimCmdBuf.DrawRenderer(GetComponentInChildren<MeshRenderer>(), _renderSimMaterial);
+                Cam.AddCommandBuffer(HookEvent, _advanceSimCmdBuf);
+                _advanceSimCmdBuf.DrawRenderer(GetComponentInChildren<MeshRenderer>(), _renderSimMaterial, 0, 0);
             }
 
             float dt = SimDeltaTime;

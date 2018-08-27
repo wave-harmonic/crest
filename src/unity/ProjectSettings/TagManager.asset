@@ -14,13 +14,13 @@ TagManager:
   - UI
   - 
   - 
-  - 
+  - ShadowProxy
   - Terrain
   - EditorOnly
   - LodDataDynamicWaves
   - LodDataFoam
   - LodDataAnimatedWaves
-  - 
+  - LodDataSubSurfaceScattering
   - 
   - 
   - 

@@ -83,11 +83,13 @@ namespace Crest
             shapeCams[_lodIndex].BindResultData(0, _mpb);
             shapeCams[_lodIndex].LDFoam.BindResultData(0, _mpb);
             shapeCams[_lodIndex].LDSeaDepth.BindResultData(0, _mpb);
+            shapeCams[_lodIndex].LDSubSurfaceScattering.BindResultData(0, _mpb);
             if (_lodIndex + 1 < shapeCams.Length)
             {
                 shapeCams[_lodIndex + 1].BindResultData(1, _mpb);
                 shapeCams[_lodIndex + 1].LDFoam.BindResultData(1, _mpb);
                 shapeCams[_lodIndex + 1].LDSeaDepth.BindResultData(1, _mpb);
+                shapeCams[_lodIndex + 1].LDSubSurfaceScattering.BindResultData(1, _mpb);
             }
 
             _rend.SetPropertyBlock(_mpb);

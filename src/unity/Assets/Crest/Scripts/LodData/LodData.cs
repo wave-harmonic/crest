@@ -20,7 +20,6 @@ namespace Crest
         public abstract CameraClearFlags CamClearFlags { get; }
         public abstract RenderTexture DataTexture { get; }
 
-
         // shape texture resolution
         int _shapeRes = -1;
 
@@ -158,7 +157,6 @@ namespace Crest
             var cart = go.AddComponent<CreateAssignRenderTexture>();
             cart._targetName = go.name;
             cart._width = cart._height = (int)(4f * baseVertDensity);
-            cart._depthBits = 0;
             cart._format = sim.TextureFormat;
             cart._wrapMode = TextureWrapMode.Clamp;
             cart._antiAliasing = 1;
@@ -169,8 +167,8 @@ namespace Crest
             cart.Create();
 
             var apply = go.AddComponent<ApplyLayers>();
-            apply._cullIncludeLayers = new string[] { string.Format("LodData{0}", simType.ToString()) };
-
+            apply._layerName = string.Format("LodData{0}", simType.ToString());
+            apply._cullIncludeLayers = new string[] { apply._layerName };
             return go;
         }
 
@@ -197,6 +195,10 @@ namespace Crest
         LodDataDynamicWaves _lddw;
         public LodDataDynamicWaves LDDynamicWaves { get {
                 return _lddw ?? (_lddw = OceanRenderer.Instance.Builder._camsDynWaves[LodTransform.LodIndex].GetComponent<LodDataDynamicWaves>());
+        } }
+        LodDataSSS _ldsss;
+        public LodDataSSS LDSubSurfaceScattering { get {
+                return _ldsss ?? (_ldsss = OceanRenderer.Instance.Builder._camsSSS[LodTransform.LodIndex].GetComponent<LodDataSSS>());
         } }
     }
 }

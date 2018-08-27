@@ -101,7 +101,6 @@ Shader "Ocean/Ocean"
 				#endif
 
 				#include "UnityCG.cginc"
-				#include "TextureBombing.cginc"
 
 				struct appdata_t
 				{
@@ -300,8 +299,8 @@ Shader "Ocean/Ocean"
 				half WhiteFoamTexture(half i_foam, float2 i_worldXZUndisplaced)
 				{
 					half ft = lerp(
-						texture(_FoamTexture, (1.25*i_worldXZUndisplaced + _Time.y / 10.) / _FoamScale).r,
-						texture(_FoamTexture, (3.00*i_worldXZUndisplaced - _Time.y / 10.) / _FoamScale).r,
+						tex2D(_FoamTexture, (1.25*i_worldXZUndisplaced + _Time.y / 10.) / _FoamScale).r,
+						tex2D(_FoamTexture, (3.00*i_worldXZUndisplaced - _Time.y / 10.) / _FoamScale).r,
 						0.5);
 
 					// black point fade
@@ -399,13 +398,13 @@ Shader "Ocean/Ocean"
 						// if we haven't refracted onto a surface in front of the water surface, compute an alpha based on Z delta
 						if (sceneZ > pixelZ)
 						{
-							float sceneZRefract = LinearEyeDepth(texture(_CameraDepthTexture, uvDepthRefract).x);
+							float sceneZRefract = LinearEyeDepth(tex2D(_CameraDepthTexture, uvDepthRefract).x);
 							float maxZ = max(sceneZ, sceneZRefract);
 							float deltaZ = maxZ - pixelZ;
 							alpha = 1. - exp(-_DepthFogDensity.xyz * deltaZ);
 						}
 
-						half3 sceneColour = texture(_BackgroundTexture, uvBackgroundRefract).rgb;
+						half3 sceneColour = tex2D(_BackgroundTexture, uvBackgroundRefract).rgb;
 
 						#if _CAUSTICS_ON
 						// underwater caustics - dedicated to P
@@ -435,7 +434,7 @@ Shader "Ocean/Ocean"
 					float pixelZ = LinearEyeDepth(i.vertex.z);
 					half3 screenPos = i.foam_screenPos.yzw;
 					half2 uvDepth = screenPos.xy / screenPos.z;
-					float sceneZ01 = texture(_CameraDepthTexture, uvDepth).x;
+					float sceneZ01 = tex2D(_CameraDepthTexture, uvDepth).x;
 					float sceneZ = LinearEyeDepth(sceneZ01);
 
 					// could be per-vertex i reckon

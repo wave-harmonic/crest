@@ -67,7 +67,7 @@ Shader "Ocean/Ocean"
 			// ForwardBase - tell unity we're going to render water in forward manner and we're going to do lighting and it will set the appropriate uniforms
 			// Geometry+510 - unity treats anything after Geometry+500 as transparent, and will render it in a forward manner and copy out the gbuffer data
 			//     and do post processing before running it. Discussion of this in issue #53.
-			Tags { "LightMode"="ForwardBase" "Queue"="Geometry+10" "IgnoreProjector"="True" "RenderType"="Opaque" }
+			Tags { "LightMode"="ForwardBase" "Queue"="Geometry+510" "IgnoreProjector"="True" "RenderType"="Opaque" }
 
 			GrabPass
 			{
@@ -82,9 +82,6 @@ Shader "Ocean/Ocean"
 				#pragma vertex vert
 				#pragma fragment frag
 				#pragma multi_compile_fog
-				// from receiving shadows example: https://docs.unity3d.com/Manual/SL-VertexFragmentShaderExamples.html
-				// compile shadow and no shadow variants, but don't include lightmap stuff as its not relevant for the ocean
-				#pragma multi_compile_fwdbase nolightmap nodirlightmap nodynlightmap novertexlight
 				#pragma shader_feature _APPLYNORMALMAPPING_ON
 				#pragma shader_feature _COMPUTEDIRECTIONALLIGHT_ON
 				#pragma shader_feature _SUBSURFACESCATTERING_ON
@@ -104,10 +101,6 @@ Shader "Ocean/Ocean"
 				#endif
 
 				#include "UnityCG.cginc"
-				#include "Lighting.cginc"
-				
-				// shadow helper functions and macros
-				#include "AutoLight.cginc"
 
 				struct appdata_t
 				{
@@ -117,10 +110,8 @@ Shader "Ocean/Ocean"
 
 				struct v2f
 				{
-					float4 pos : SV_POSITION;
+					float4 vertex : SV_POSITION;
 					half3 n : TEXCOORD1;
-					SHADOW_COORDS(2)
-					UNITY_FOG_COORDS(3)
 					half4 foam_screenPos : TEXCOORD4;
 					half4 lodAlpha_worldXZUndisplaced_oceanDepth : TEXCOORD5;
 					float3 worldPos : TEXCOORD7;
@@ -128,6 +119,8 @@ Shader "Ocean/Ocean"
 					half3 debugtint : TEXCOORD8;
 					#endif
 					half4 grabPos : TEXCOORD9;
+
+					UNITY_FOG_COORDS( 3 )
 				};
 
 				// GLOBAL PARAMS
@@ -203,18 +196,15 @@ Shader "Ocean/Ocean"
 					#endif
 
 					// view-projection	
-					o.pos = mul(UNITY_MATRIX_VP, float4(o.worldPos, 1.));
+					o.vertex = mul(UNITY_MATRIX_VP, float4(o.worldPos, 1.));
+
+					UNITY_TRANSFER_FOG(o, o.vertex);
 
 					// unfortunate hoop jumping - this is inputs for refraction. depending on whether HDR is on or off, the grabbed scene
 					// colours may or may not come from the backbuffer, which means they may or may not be flipped in y. use these macros
 					// to get the right results, every time.
-					o.grabPos = ComputeGrabScreenPos(o.pos);
-
-					o.foam_screenPos.yzw =
-						ComputeScreenPos(o.pos).xyw;
-
-					UNITY_TRANSFER_FOG(o, o.pos);
-					TRANSFER_SHADOW(o);
+					o.grabPos = ComputeGrabScreenPos(o.vertex);
+					o.foam_screenPos.yzw = ComputeScreenPos(o.vertex).xyw;
 
 					return o;
 				}
@@ -256,6 +246,7 @@ Shader "Ocean/Ocean"
 				uniform half _NormalsScale;
 				uniform half _FoamScale;
 				uniform half _FresnelPower;
+				uniform fixed4 _LightColor0;
 				uniform half2 _WindDirXZ;
 
 				uniform sampler2D _CausticsTexture;
@@ -440,7 +431,7 @@ Shader "Ocean/Ocean"
 					half3 view = normalize(_WorldSpaceCameraPos - i.worldPos);
 
 					// water surface depth, and underlying scene opaque surface depth
-					float pixelZ = LinearEyeDepth(i.pos.z);
+					float pixelZ = LinearEyeDepth(i.vertex.z);
 					half3 screenPos = i.foam_screenPos.yzw;
 					half2 uvDepth = screenPos.xy / screenPos.z;
 					float sceneZ01 = tex2D(_CameraDepthTexture, uvDepth).x;
@@ -494,9 +485,7 @@ Shader "Ocean/Ocean"
 					col = mix(col.rgb, i.debugtint, 0.5);
 					#endif
 
-					fixed shadow = //SHADOW_ATTENUATION(i);
-						UNITY_SHADOW_ATTENUATION(i, i.worldPos);
-					return half4(shadow, shadow,shadow, 1.);
+					return half4(col, 1.);
 				}
 
 				ENDCG

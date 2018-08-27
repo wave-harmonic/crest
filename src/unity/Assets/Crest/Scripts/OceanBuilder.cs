@@ -497,7 +497,7 @@ namespace Crest
                 // i dont think one would use lightprobes for a purely specular water surface? (although diffuse foam shading would benefit)
                 mr.lightProbeUsage = UnityEngine.Rendering.LightProbeUsage.Off;
                 mr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off; // arbitrary - could be turned on if desired
-                mr.receiveShadows = true;
+                mr.receiveShadows = false; // arbitrary - could be turned on if desired
                 mr.motionVectorGenerationMode = MotionVectorGenerationMode.ForceNoMotion; // TODO
                 mr.material = _oceanMaterial;
 

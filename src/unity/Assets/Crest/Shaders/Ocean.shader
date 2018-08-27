@@ -95,7 +95,7 @@ Shader "Ocean/Ocean"
 				#pragma shader_feature _DEBUGVISUALISESHAPESAMPLE_ON
 				#pragma shader_feature _DEBUGDISABLESMOOTHLOD_ON
 				#pragma shader_feature _COMPILESHADERWITHDEBUGINFO_ON
-
+				
 				#if _COMPILESHADERWITHDEBUGINFO_ON
 				#pragma enable_d3d11_debug_symbols
 				#endif
@@ -389,7 +389,7 @@ Shader "Ocean/Ocean"
 						col += (_SubSurfaceBase + _SubSurfaceSun * towardsSun) * max(dot(n_geom, view), 0.) * _SubSurfaceColour.rgb * _LightColor0 * i_shadow;
 					}
 					#endif // _SUBSURFACESCATTERING_ON
-
+					
 					// underwater bubbles reflect in light
 					col += bubbleCol;
 
@@ -424,7 +424,18 @@ Shader "Ocean/Ocean"
 						half2 causticN = _CausticsDistortionStrength * UnpackNormal(tex2D(_Normals, scenePos.xz / _CausticsDistortionScale)).xy;
 						half4 cuv1 = half4((scenePos.xz / _CausticsTextureScale + 1.3 *causticN + half2(0.88*_Time.x + 17.16, -3.38*_Time.x)), 0., bias);
 						half4 cuv2 = half4((1.37*scenePos.xz / _CausticsTextureScale + 1.77*causticN + half2(4.96*_Time.x, 2.34*_Time.x)), 0., bias);
-						sceneColour *= 1. + _CausticsStrength *
+
+						float causticShadow = 0.;
+						{
+							// could probably be computed per-vert
+							float dx = length(lightDir.xz);
+							float dydx = lightDir.y / dx;
+							float2 offset = (lightDir.xz / dx) * sceneDepth / dydx;
+							const float2 uv_1 = LD_1_WorldToUV(scenePos.xz + offset);
+							SampleSSS(_LD_Sampler_SubSurfaceScattering_1, uv_1, 1.0, causticShadow);
+						}
+
+						sceneColour *= 1. + causticShadow * _CausticsStrength *
 							(0.5*tex2Dbias(_CausticsTexture, cuv1).x + 0.5*tex2Dbias(_CausticsTexture, cuv2).x - _CausticsTextureAverage);
 						#endif
 

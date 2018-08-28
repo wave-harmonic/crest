@@ -36,6 +36,9 @@ namespace Crest
             System.Array.Resize(ref apply._cullIncludeLayers, apply._cullIncludeLayers.Length + 1);
             apply._cullIncludeLayers[apply._cullIncludeLayers.Length - 1] = "ShadowProxy";
 
+            float camoffset = 10f;
+            transform.localPosition = Vector3.up * camoffset;
+
             // only create the shadow catcher for the bigger lod
             if (LodTransform.LodIndex == FIRST_SHADOW_LOD + 1)
             {
@@ -44,7 +47,7 @@ namespace Crest
                 _renderQuad.transform.parent = transform;
                 _renderQuad.transform.localScale = Vector3.one * 4f;
                 // place at sea level
-                _renderQuad.transform.localPosition = Vector3.forward * 100f;
+                _renderQuad.transform.localPosition = Vector3.forward * camoffset;
                 _renderQuad.transform.localRotation = Quaternion.identity;
 
                 // we let the renderer draw - we can't use the commandbuffer because unity refuses to set it up and make it work nice

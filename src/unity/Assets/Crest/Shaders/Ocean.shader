@@ -245,7 +245,7 @@ Shader "Ocean/Ocean"
 					float ww1 = w1/period;
 					if(ww1 > 0.5) ww1 = 1.0 - ww1;
 					float w2 = fmod(_Time + half_period, period);
-					float ww2 = 1.0 - ww1;
+					float ww2 = 0.5 - ww1;
 
 					// In order to prevent flow from distorting the UVs too much,
 					// we fade between two samples of normal maps so that for each
@@ -255,7 +255,6 @@ Shader "Ocean/Ocean"
 					io_n.xz += ww1 * io_n_1;
 					io_n.xz += ww2 * io_n_2;
 					normalize(io_n);
-
 				}
 
 				half3 AmbientLight()

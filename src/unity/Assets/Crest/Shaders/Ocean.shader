@@ -327,7 +327,7 @@ Shader "Ocean/Ocean"
 					half2 io_n_2 = SampleNormalMaps(worldXZUndisplaced - (flow * w2), lodAlpha);
 					io_n.xz += ww1 * io_n_1;
 					io_n.xz += ww2 * io_n_2;
-					normalize(io_n);
+					io_n = normalize(io_n);
 				}
 
 				half3 AmbientLight()
@@ -487,7 +487,7 @@ Shader "Ocean/Ocean"
 					ApplyNormalMapsWithFlow(i.lodAlpha_worldXZUndisplaced_oceanDepth.yz, i.flow, i.lodAlpha_worldXZUndisplaced_oceanDepth.x, n_pixel);
 					#else
 					n_pixel.xz += SampleNormalMaps(i.lodAlpha_worldXZUndisplaced_oceanDepth.yz, i.lodAlpha_worldXZUndisplaced_oceanDepth.x);
-					normalize(n_pixel);
+					n_pixel = normalize(n_pixel);
 					#endif
 					#endif
 

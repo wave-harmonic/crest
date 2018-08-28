@@ -1,18 +1,21 @@
 ﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 using UnityEngine;
-using UnityEngine.Rendering;
 
 namespace Crest
 {
-    // this doesnt need to be loddatapersistent - it just needs to create its own "rendersim" geometry that catches shadows
-    public class LodDataSSS : LodDataPersistent
+    public class LodDataSSS : LodData
     {
         public override SimType LodDataType { get { return SimType.SubSurfaceScattering; } }
-        protected override string ShaderSim { get { return "Ocean/Shape/Sim/Render Shadow Attenuation"; } }
-        public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RHalf; } }
-        protected override Camera[] SimCameras { get { return OceanRenderer.Instance.Builder._camsSSS; } }
         public override SimSettingsBase CreateDefaultSettings() { return null; }
+        public override void UseSettings(SimSettingsBase settings) { }
+        public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.R8; } }
+        public override CameraClearFlags CamClearFlags { get { return CameraClearFlags.Color; } }
+        public override RenderTexture DataTexture { get { return Cam.targetTexture; } }
+
+        readonly string _shaderRenderShadows = "Ocean/Shape/Sim/Render Shadow Attenuation";
+
+        GameObject _renderQuad;
 
         protected override void Start()
         {
@@ -24,25 +27,24 @@ namespace Crest
             UnityEditor.ArrayUtility.Add(ref GetComponent<ApplyLayers>()._cullIncludeLayers, "ShadowProxy");
 
             // only create the shadow catcher for the biggest lod
-            if (LodTransform.LodIndex == LodTransform.LodCount-1)
+            if (LodTransform.LodIndex == LodTransform.LodCount - 1)
             {
+                // utility quad which will be rasterized by the shape camera
+                _renderQuad = CreateRasterQuad("RenderSim_" + SimName);
+                _renderQuad.transform.parent = transform;
+                _renderQuad.transform.localScale = Vector3.one * 4f;
                 // place at sea level
-                _renderSim.transform.localPosition = 100f * Vector3.forward;
+                _renderQuad.transform.localPosition = Vector3.forward * 100f;
+                _renderQuad.transform.localRotation = Quaternion.identity;
 
-                var rend = _renderSim.GetComponent<Renderer>();
-                // draw the renderer - we can't use the commandbuffer because unity refuses to set it up and make it work nice
-                rend.enabled = true;
+                // we let the renderer draw - we can't use the commandbuffer because unity refuses to set it up and make it work nice
+                var rend = _renderQuad.GetComponent<Renderer>();
+                rend.material = new Material(Shader.Find(_shaderRenderShadows));
                 // make sure it receives shadows
                 rend.receiveShadows = true;
-            }
-            else
-            {
-                // destroy all the others, otherwise theyll all render into EVERY lod camera
-                Destroy(_renderSim);
-            }
 
-            // for all lods signal that we are taking control of it, and the underlying code will not create any command buffers
-            _renderSim = null;
+                _renderQuad.AddComponent<ApplyLayers>()._layerName = GetComponent<ApplyLayers>()._layerName;
+            }
         }
     }
 }

@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace Crest
 {
@@ -170,6 +171,23 @@ namespace Crest
             apply._layerName = string.Format("LodData{0}", simType.ToString());
             apply._cullIncludeLayers = new string[] { apply._layerName };
             return go;
+        }
+
+        protected static GameObject CreateRasterQuad(string name)
+        {
+            var result = GameObject.CreatePrimitive(PrimitiveType.Quad);
+            result.name = name;
+            Destroy(result.GetComponent<Collider>());
+
+            var rend = result.GetComponent<Renderer>();
+            rend.lightProbeUsage = LightProbeUsage.Off;
+            rend.reflectionProbeUsage = ReflectionProbeUsage.Off;
+            rend.shadowCastingMode = ShadowCastingMode.Off;
+            rend.receiveShadows = false;
+            rend.motionVectorGenerationMode = MotionVectorGenerationMode.ForceNoMotion;
+            rend.allowOcclusionWhenDynamic = false;
+
+            return result;
         }
 
         protected void CreateParamIDs(ref int[] ids, string prefix)

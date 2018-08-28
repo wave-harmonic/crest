@@ -49,23 +49,6 @@ namespace Crest
             _renderSim.AddComponent<ApplyLayers>()._layerName = GetComponent<ApplyLayers>()._layerName;
         }
 
-        GameObject CreateRasterQuad(string name)
-        {
-            var result = GameObject.CreatePrimitive(PrimitiveType.Quad);
-            result.name = name;
-            Destroy(result.GetComponent<Collider>());
-
-            var rend = result.GetComponent<Renderer>();
-            rend.lightProbeUsage = LightProbeUsage.Off;
-            rend.reflectionProbeUsage = ReflectionProbeUsage.Off;
-            rend.shadowCastingMode = ShadowCastingMode.Off;
-            rend.receiveShadows = false;
-            rend.motionVectorGenerationMode = MotionVectorGenerationMode.ForceNoMotion;
-            rend.allowOcclusionWhenDynamic = false;
-
-            return result;
-        }
-
         protected CommandBuffer _advanceSimCmdBuf;
         float _oceanLocalScalePrev = -1f;
 

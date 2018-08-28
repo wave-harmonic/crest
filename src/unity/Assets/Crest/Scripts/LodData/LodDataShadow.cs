@@ -32,7 +32,9 @@ namespace Crest
             // This lod data does some pretty special stuff with the render sim geometry - it uses it to actually compute the shadows
 
             // make sure shadow proxies draw into our camera
-            UnityEditor.ArrayUtility.Add(ref GetComponent<ApplyLayers>()._cullIncludeLayers, "ShadowProxy");
+            var apply = GetComponent<ApplyLayers>();
+            System.Array.Resize(ref apply._cullIncludeLayers, apply._cullIncludeLayers.Length + 1);
+            apply._cullIncludeLayers[apply._cullIncludeLayers.Length - 1] = "ShadowProxy";
 
             // only create the shadow catcher for the bigger lod
             if (LodTransform.LodIndex == FIRST_SHADOW_LOD + 1)
@@ -65,7 +67,7 @@ namespace Crest
         public static void BindToOceanMaterial(MaterialPropertyBlock mpb)
         {
             var shapeCams = OceanRenderer.Instance.Builder._lodDataAnimWaves;
-
+            
             if (!shapeCams[FIRST_SHADOW_LOD + 0].LDShadow || !shapeCams[FIRST_SHADOW_LOD + 1].LDShadow)
             {
                 BindNoShadows(0, mpb);

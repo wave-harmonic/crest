@@ -37,9 +37,13 @@ Shader "Ocean/Shape/Whirlpool"
 				struct v2f {
 					float4 vertex : SV_POSITION;
 					float2 worldOffsetScaled : TEXCOORD0;
+					float2 uv : TEXCOORD1;
 				};
 
+				uniform float _EyeRadius;
 				uniform float _Radius;
+				uniform float _Swirl;
+				uniform float _MaxSpeed;
 
 				v2f vert( appdata_t v )
 				{
@@ -55,15 +59,44 @@ Shader "Ocean/Shape/Whirlpool"
 					float4 newWorldPos = float4(centerPos, 1.);
 					newWorldPos.xz += o.worldOffsetScaled.xy * _Radius;
 					o.vertex = mul(UNITY_MATRIX_VP, newWorldPos);
+					o.uv = v.texcoord;
 
 					return o;
 				}
 
 				uniform float _Amplitude;
 
-				float4 frag (v2f i) : SV_Target
+				float2 frag (v2f i) : SV_Target
 				{
-					return float4(20, 20, 0, 0);
+					float2 col = float2(0, 0);
+
+					float2 uv_from_cent = (i.uv - float2(.5, .5)) * 2.;
+
+					float r       =           .1; // eye of whirlpool radius
+					const float R =            1; // whirlpool radius
+					float2 o      = float2(0, 0); // origin
+					float  s      =       .5; //_Swirl; // whirlpool 'swirlyness', can vary from 0 - 1
+					float2 p      = uv_from_cent; // our current position
+					float  V      =        20.0; //_MaxSpeed; // maximum whirlpool speed
+
+					float2 PtO  =       o - p;    // vector from position to origin
+					float  lPtO = length(PtO);
+
+					if(lPtO >= R) {
+						col = float2(0,0);
+					} else if (lPtO <= r) {
+						col = float2(0,0);
+					} else {
+						float c = 1.0 - ((lPtO - r) / (R - r));
+						// dynamically calvulate current value of velocity field
+						// (TODO: Make this a texture lookup?)
+						float2 v = V * c * normalize(
+							(s * c * normalize(float2(-PtO.y, PtO.x))) +
+							((s - 1.0) * (c - 1.0) * normalize(PtO))
+						);
+						col = v;
+					}
+					return col;
 				}
 
 				ENDCG

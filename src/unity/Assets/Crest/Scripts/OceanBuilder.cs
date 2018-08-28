@@ -37,6 +37,7 @@ namespace Crest
         public bool _createDynamicWaveSim = false;
         public SimSettingsWave _simSettingsDynamicWaves;
         public bool _createShadowData = false;
+        public string _shadowProxyLayerName = "ShadowProxy";
 
         public int CurrentLodCount { get { return _camsAnimWaves.Length; } }
 

@@ -75,9 +75,9 @@ Shader "Ocean/Shape/Whirlpool"
 					float r       =           .1; // eye of whirlpool radius
 					const float R =            1; // whirlpool radius
 					float2 o      = float2(0, 0); // origin
-					float  s      =       .5; //_Swirl; // whirlpool 'swirlyness', can vary from 0 - 1
+					float  s      =       1; //_Swirl; // whirlpool 'swirlyness', can vary from 0 - 1
 					float2 p      = uv_from_cent; // our current position
-					float  V      =        20.0; //_MaxSpeed; // maximum whirlpool speed
+					float  V      =        70.0; //_MaxSpeed; // maximum whirlpool speed
 
 					float2 PtO  =       o - p;    // vector from position to origin
 					float  lPtO = length(PtO);

@@ -425,19 +425,27 @@ Shader "Ocean/Ocean"
 						// underwater caustics - dedicated to P
 						float3 camForward = mul((float3x3)unity_CameraToWorld, float3(0., 0., 1.));
 						float3 scenePos = _WorldSpaceCameraPos - view * sceneZ / dot(camForward, -view);
-						half sceneDepth = _OceanCenterPosWorld.y - scenePos.y;
+						const float2 scenePosUV = LD_1_WorldToUV(scenePos.xz);
+						half3 disp = 0., n_dummy = 0.;
+						// this gives height at displaced position, not exactly at query position.. but it helps. i cant pass this from vert shader
+						// because i dont know it at scene pos.
+						SampleDisplacements(_LD_Sampler_AnimatedWaves_1, scenePosUV, 1.0, _LD_Params_1.w, _LD_Params_1.x, disp, n_dummy);
+						half waterHeight = _OceanCenterPosWorld.y + disp.y;
+						half sceneDepth = waterHeight - scenePos.y;
 						half bias = abs(sceneDepth - _CausticsFocalDepth) / _CausticsDepthOfField;
-						half2 causticN = _CausticsDistortionStrength * UnpackNormal(tex2D(_Normals, scenePos.xz / _CausticsDistortionScale)).xy;
-						half4 cuv1 = half4((scenePos.xz / _CausticsTextureScale + 1.3 *causticN + half2(0.88*_Time.x + 17.16, -3.38*_Time.x)), 0., bias);
-						half4 cuv2 = half4((1.37*scenePos.xz / _CausticsTextureScale + 1.77*causticN + half2(4.96*_Time.x, 2.34*_Time.x)), 0., bias);
+						// project along light dir, but multiply by a fudge factor reduce the angle bit - compensates for fact that in real life
+						// caustics come from many directions and don't exhibit such a strong directonality
+						float2 surfacePosXZ = scenePos.xz + lightDir.xz * sceneDepth / (4.*lightDir.y);
+						half2 causticN = _CausticsDistortionStrength * UnpackNormal(tex2D(_Normals, surfacePosXZ / _CausticsDistortionScale)).xy;
+						half4 cuv1 = half4((surfacePosXZ / _CausticsTextureScale + 1.3 *causticN + half2(0.88*_Time.x + 17.16, -3.38*_Time.x)), 0., bias);
+						half4 cuv2 = half4((1.37*surfacePosXZ / _CausticsTextureScale + 1.77*causticN + half2(4.96*_Time.x, 2.34*_Time.x)), 0., bias);
 
 						half causticsStrength = _CausticsStrength;
 						#if _SHADOWS_ON
 						{
 							// could probably be computed per-vert
 							float causticShadow = 0.;
-							float2 offset = lightDir.xz * sceneDepth * lightDir.y;
-							const float2 uv_1 = LD_1_WorldToUV(scenePos.xz + offset);
+							const float2 uv_1 = LD_1_WorldToUV(surfacePosXZ);
 							SampleSSS(_LD_Sampler_Shadow_1, uv_1, 1.0, causticShadow);
 							causticsStrength *= causticShadow;
 						}

@@ -368,7 +368,7 @@ MonoBehaviour:
   - LodDataFoam
   - LodDataDynamicWaves
   - LodDataAnimatedWaves
-  - LodDataShadow
+  - ShadowProxy
   _cullIncludeLayers: []
 --- !u!20 &227134469
 Camera:

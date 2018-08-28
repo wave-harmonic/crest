@@ -13,6 +13,7 @@ namespace Crest
     {
         public string SimName { get { return LodDataType.ToString(); } }
         public abstract SimType LodDataType { get; }
+        protected virtual string LayerName { get { return string.Format("LodData{0}", LodDataType.ToString()); } }
 
         public abstract SimSettingsBase CreateDefaultSettings();
         public abstract void UseSettings(SimSettingsBase settings);
@@ -165,7 +166,7 @@ namespace Crest
             cart.Create();
 
             var apply = go.AddComponent<ApplyLayers>();
-            apply._layerName = string.Format("LodData{0}", simType.ToString());
+            apply._layerName = sim.LayerName;
             apply._cullIncludeLayers = new string[] { apply._layerName };
             return go;
         }

@@ -9,6 +9,7 @@ namespace Crest
         public readonly static int FIRST_SHADOW_LOD = 2;
 
         public override SimType LodDataType { get { return SimType.Shadow; } }
+        protected override string LayerName { get { return OceanRenderer.Instance.Builder._shadowProxyLayerName; } }
         public override SimSettingsBase CreateDefaultSettings() { return null; }
         public override void UseSettings(SimSettingsBase settings) { }
         public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.R8; } }

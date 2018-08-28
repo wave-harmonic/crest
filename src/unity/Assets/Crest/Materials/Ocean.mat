@@ -8,7 +8,7 @@ Material:
   m_PrefabInternal: {fileID: 0}
   m_Name: Ocean
   m_Shader: {fileID: 4800000, guid: 668aecf91371c8b4997e42c0c7b19527, type: 3}
-  m_ShaderKeywords: _APPLYNORMALMAPPING_ON _CAUSTICS_ON _COMPUTEDIRECTIONALLIGHT_ON
+  m_ShaderKeywords: _APPLYFLOWTONORMALS_ON _APPLYNORMALMAPPING_ON _CAUSTICS_ON _COMPUTEDIRECTIONALLIGHT_ON
     _DEBUGMULTIPLYBYLIGHT0COLOR_ON _FOAM3DLIGHTING_ON _FOAM_ON _SUBSURFACEHEIGHTLERP_ON
     _SUBSURFACESCATTERING_ON _SUBSURFACESHALLOWCOLOUR_ON _TRANSPARENCY_ON
   m_LightmapFlags: 5
@@ -73,6 +73,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Floats:
+    - _ApplyFlowToNormals: 1
     - _ApplyNormalMapping: 1
     - _BumpAmt: 0.514
     - _Caustics: 1

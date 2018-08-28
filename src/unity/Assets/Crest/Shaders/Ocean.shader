@@ -314,19 +314,19 @@ Shader "Ocean/Ocean"
 				{
 					const float half_period = .05;
 					const float period = half_period * 2;
-					float w1 = fmod(_Time, period);
-					float ww1 = w1 / half_period;
-					if(ww1 > 1.0) ww1 = 2.0 - ww1;
-					float w2 = fmod(_Time + half_period, period);
-					float ww2 = 1.0 - ww1;
+					float sample1_offset = fmod(_Time, period);
+					float sample1_weight = sample1_offset / half_period;
+					if(sample1_weight > 1.0) sample1_weight = 2.0 - sample1_weight;
+					float sample2_offset = fmod(_Time + half_period, period);
+					float sample2_weight = 1.0 - sample1_weight;
 
 					// In order to prevent flow from distorting the UVs too much,
 					// we fade between two samples of normal maps so that for each
 					// sample the UVs can be reset
-					half2 io_n_1 = SampleNormalMaps(worldXZUndisplaced - (flow * w1), lodAlpha);
-					half2 io_n_2 = SampleNormalMaps(worldXZUndisplaced - (flow * w2), lodAlpha);
-					io_n.xz += ww1 * io_n_1;
-					io_n.xz += ww2 * io_n_2;
+					half2 io_n_1 = SampleNormalMaps(worldXZUndisplaced - (flow * sample1_offset), lodAlpha);
+					half2 io_n_2 = SampleNormalMaps(worldXZUndisplaced - (flow * sample2_offset), lodAlpha);
+					io_n.xz += sample1_weight * io_n_1;
+					io_n.xz += sample2_weight * io_n_2;
 					io_n = normalize(io_n);
 				}
 

@@ -547,7 +547,6 @@ GameObject:
   - component: {fileID: 1650202117}
   - component: {fileID: 1650202116}
   - component: {fileID: 1650202114}
-  - component: {fileID: 1650202115}
   m_Layer: 0
   m_Name: Whirlpool
   m_TagString: Untagged
@@ -583,21 +582,6 @@ MonoBehaviour:
   _layerName: LodDataFlow
   _cullExcludeLayers: []
   _cullIncludeLayers: []
---- !u!114 &1650202115
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 1650202112}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: dcb1199285d6d124eba352d8eb580db3, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _animate: 0
-  _warmUp: 3
-  _onTime: 0.2
-  _period: 4
 --- !u!23 &1650202116
 MeshRenderer:
   m_ObjectHideFlags: 0

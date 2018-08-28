@@ -32,7 +32,7 @@ namespace Crest
         public SimSettingsFoam _simSettingsFoam;
         public bool _createDynamicWaveSim = false;
         public SimSettingsWave _simSettingsDynamicWaves;
-        public bool _createFlowSim = true;
+        public bool _createFlowSim = false;
         public SimSettingsFlow _simSettingsFlow;
 
         public int CurrentLodCount { get { return _camsAnimWaves.Length; } }

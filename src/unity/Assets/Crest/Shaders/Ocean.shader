@@ -113,7 +113,7 @@ Shader "Ocean/Ocean"
 				struct v2f
 				{
 					float4 vertex : SV_POSITION;
-					half4 n_sss : TEXCOORD1;
+					half4 n_shadow : TEXCOORD1;
 					half4 foam_screenPos : TEXCOORD4;
 					half4 lodAlpha_worldXZUndisplaced_oceanDepth : TEXCOORD5;
 					float3 worldPos : TEXCOORD7;
@@ -148,8 +148,7 @@ Shader "Ocean/Ocean"
 					o.lodAlpha_worldXZUndisplaced_oceanDepth.yz = o.worldPos.xz;
 
 					// sample shape textures - always lerp between 2 LOD scales, so sample two textures
-					o.n_sss.xyz = half3(0., 1., 0.);
-					o.n_sss.w = 0.;
+					o.n_shadow.xyz = half3(0., 1., 0.);
 					o.foam_screenPos.x = 0.;
 					o.lodAlpha_worldXZUndisplaced_oceanDepth.w = 0.;
 					// sample weights. params.z allows shape to be faded out (used on last lod to support pop-less scale transitions)
@@ -161,7 +160,7 @@ Shader "Ocean/Ocean"
 					{
 						const float2 uv_0 = LD_0_WorldToUV(worldXZBefore);
 						#if !_DEBUGDISABLESHAPETEXTURES_ON
-						SampleDisplacements(_LD_Sampler_AnimatedWaves_0, uv_0, wt_0, _LD_Params_0.w, _LD_Params_0.x, o.worldPos, o.n_sss.xyz);
+						SampleDisplacements(_LD_Sampler_AnimatedWaves_0, uv_0, wt_0, _LD_Params_0.w, _LD_Params_0.x, o.worldPos, o.n_shadow.xyz);
 						#endif
 
 						#if _FOAM_ON
@@ -176,7 +175,7 @@ Shader "Ocean/Ocean"
 					{
 						const float2 uv_1 = LD_1_WorldToUV(worldXZBefore);
 						#if !_DEBUGDISABLESHAPETEXTURES_ON
-						SampleDisplacements(_LD_Sampler_AnimatedWaves_1, uv_1, wt_1, _LD_Params_1.w, _LD_Params_1.x, o.worldPos, o.n_sss.xyz);
+						SampleDisplacements(_LD_Sampler_AnimatedWaves_1, uv_1, wt_1, _LD_Params_1.w, _LD_Params_1.x, o.worldPos, o.n_shadow.xyz);
 						#endif
 
 						#if _FOAM_ON
@@ -188,14 +187,13 @@ Shader "Ocean/Ocean"
 						#endif
 					}
 
+					o.n_shadow.w = 0.;
 					#if _SHADOWS_ON
-					float2 shadowUV0 = LD_WorldToUV(worldXZBefore, _LD_Shadow_Pos_Scale_ScaleAlpha_0.xy, _LD_Shadow_Params_0.y, _LD_Shadow_Params_0.x);
-					SampleSSS(_LD_Sampler_Shadow_0, shadowUV0, 1.- _LD_Shadow_Pos_Scale_ScaleAlpha_0.w, o.n_sss.w);
-					float2 shadowUV1 = LD_WorldToUV(worldXZBefore, _LD_Shadow_Pos_Scale_ScaleAlpha_1.xy, _LD_Shadow_Params_1.y, _LD_Shadow_Params_1.x);
-					SampleSSS(_LD_Sampler_Shadow_1, shadowUV1,     _LD_Shadow_Pos_Scale_ScaleAlpha_1.w, o.n_sss.w);
+					OCEAN_SAMPLE_SHADOW(0, worldXZBefore, 1. - _LD_Shadow_Pos_Scale_ScaleAlpha_0.w, o.n_shadow.w);
+					OCEAN_SAMPLE_SHADOW(1, worldXZBefore,      _LD_Shadow_Pos_Scale_ScaleAlpha_0.w, o.n_shadow.w);
 					#endif
-					// invert SSS to play nicely with lods fading in/out
-					o.n_sss.w = 1.0 - o.n_sss.w;
+					// invert shadow to play nicely with lods fading in/out
+					o.n_shadow.w = 1.0 - o.n_shadow.w;
 
 					// foam can saturate
 					o.foam_screenPos.x = saturate(o.foam_screenPos.x);
@@ -443,9 +441,7 @@ Shader "Ocean/Ocean"
 						{
 							// only sample the bigger lod. if pops are noticeable this could lerp the 2 lods smoothly, but i didnt notice issues.
 							float causticShadow = 0.;
-							const float2 shadowUV1 =
-								LD_WorldToUV(surfacePosXZ, _LD_Shadow_Pos_Scale_ScaleAlpha_1.xy, _LD_Shadow_Params_1.y, _LD_Shadow_Params_1.x);
-							SampleSSS(_LD_Sampler_Shadow_1, shadowUV1, 1.0, causticShadow);
+							OCEAN_SAMPLE_SHADOW(1, surfacePosXZ, 1.0, causticShadow);
 							causticsStrength *= causticShadow;
 						}
 						#endif
@@ -476,12 +472,12 @@ Shader "Ocean/Ocean"
 					float3 lightDir = WorldSpaceLightDir(i.worldPos);
 					half shadow = 1.0
 					#if _SHADOWS_ON
-						- i.n_sss.w
+						- i.n_shadow.w
 					#endif
 						;
 
 					// Normal - geom + normal mapping
-					half3 n_geom = normalize(i.n_sss.xyz);
+					half3 n_geom = normalize(i.n_shadow.xyz);
 					half3 n_pixel = n_geom;
 					#if _APPLYNORMALMAPPING_ON
 					ApplyNormalMaps(i.lodAlpha_worldXZUndisplaced_oceanDepth.yz, i.lodAlpha_worldXZUndisplaced_oceanDepth.x, n_pixel);

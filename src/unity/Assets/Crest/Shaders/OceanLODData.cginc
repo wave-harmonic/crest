@@ -72,10 +72,12 @@ void SampleOceanDepth(in sampler2D i_oceanDepthSampler, float2 i_uv, in float i_
 	io_oceanDepth += i_wt * (tex2Dlod(i_oceanDepthSampler, float4(i_uv, 0., 0.)).x + DEPTH_BIAS);
 }
 
-void SampleSSS(in sampler2D i_oceanSSSSampler, float2 i_uv, in float i_wt, inout half io_oceanSSS)
+void SampleShadow(in sampler2D i_oceanShadowSampler, float2 i_uv, in float i_wt, inout half io_shadow)
 {
-	io_oceanSSS += i_wt * tex2Dlod(i_oceanSSSSampler, float4(i_uv, 0., 0.)).x;
+	io_shadow += i_wt * tex2Dlod(i_oceanShadowSampler, float4(i_uv, 0., 0.)).x;
 }
+#define OCEAN_SAMPLE_SHADOW(SLOT, POSXZ, WEIGHT, SHADOW) SampleShadow(_LD_Sampler_Shadow_##SLOT, LD_WorldToUV(POSXZ, _LD_Shadow_Pos_Scale_ScaleAlpha_##SLOT.xy, _LD_Shadow_Params_##SLOT.y, _LD_Shadow_Params_##SLOT.x), WEIGHT, SHADOW);
+
 
 // Geometry data
 // x: A square is formed by 2 triangles in the mesh. Here x is square size

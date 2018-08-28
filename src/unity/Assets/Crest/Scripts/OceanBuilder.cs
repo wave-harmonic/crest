@@ -218,7 +218,7 @@ namespace Crest
                     _camsDynWaves[i] = go.GetComponent<Camera>();
                 }
 
-                if (_createShadowData && (i == LodDataShadow.FIRST_SHADOW_LOD || i == LodDataShadow.FIRST_SHADOW_LOD + 1))
+                if (_createShadowData && (i == LodDataShadow.FIRST_SHADOW_LOD /*|| i == LodDataShadow.FIRST_SHADOW_LOD + 1*/))
                 {
                     var go = LodData.CreateLodData(i, lodCount, baseVertDensity, LodData.SimType.Shadow, cachedSettings);
                     _camsShadow[i] = go.GetComponent<Camera>();

@@ -40,7 +40,7 @@ namespace Crest
             transform.localPosition = Vector3.up * camoffset;
 
             // only create the shadow catcher for the bigger lod
-            if (LodTransform.LodIndex == FIRST_SHADOW_LOD + 1)
+            if (LodTransform.LodIndex == FIRST_SHADOW_LOD)
             {
                 // utility quad which will be rasterized by the shape camera
                 _renderQuad = CreateRasterQuad("RenderSim_" + SimName);
@@ -70,8 +70,8 @@ namespace Crest
         public static void BindToOceanMaterial(MaterialPropertyBlock mpb)
         {
             var shapeCams = OceanRenderer.Instance.Builder._lodDataAnimWaves;
-            
-            if (!shapeCams[FIRST_SHADOW_LOD + 0].LDShadow || !shapeCams[FIRST_SHADOW_LOD + 1].LDShadow)
+
+            if (!shapeCams[FIRST_SHADOW_LOD + 0].LDShadow) // || !shapeCams[FIRST_SHADOW_LOD + 1].LDShadow)
             {
                 BindNoShadows(0, mpb);
                 BindNoShadows(1, mpb);
@@ -79,7 +79,7 @@ namespace Crest
             else
             {
                 shapeCams[FIRST_SHADOW_LOD + 0].LDShadow.BindResultData(0, mpb);
-                shapeCams[FIRST_SHADOW_LOD + 1].LDShadow.BindResultData(1, mpb);
+                shapeCams[FIRST_SHADOW_LOD + 0].LDShadow.BindResultData(1, mpb);
             }
         }
     }

@@ -4,9 +4,9 @@ using UnityEngine;
 
 namespace Crest
 {
-    public class LodDataSSS : LodData
+    public class LodDataShadow : LodData
     {
-        public override SimType LodDataType { get { return SimType.SubSurfaceScattering; } }
+        public override SimType LodDataType { get { return SimType.Shadow; } }
         public override SimSettingsBase CreateDefaultSettings() { return null; }
         public override void UseSettings(SimSettingsBase settings) { }
         public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.R8; } }
@@ -45,6 +45,12 @@ namespace Crest
 
                 _renderQuad.AddComponent<ApplyLayers>()._layerName = GetComponent<ApplyLayers>()._layerName;
             }
+        }
+
+        static string[] _samplerNames = new string[] { "_LD_Sampler_Shadow_0", "_LD_Sampler_Shadow_1" };
+        public static void BindNoShadows(int slot, MaterialPropertyBlock properties)
+        {
+            properties.SetTexture(_samplerNames[slot], Texture2D.whiteTexture);
         }
     }
 }

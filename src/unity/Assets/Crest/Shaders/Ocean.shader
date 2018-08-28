@@ -173,7 +173,7 @@ Shader "Ocean/Ocean"
 						#endif
 
 						#if _SHADOWS_ON
-						SampleSSS(_LD_Sampler_SubSurfaceScattering_0, uv_0, wt_0, o.n_sss.w);
+						SampleSSS(_LD_Sampler_Shadow_0, uv_0, wt_0, o.n_sss.w);
 						#endif
 					}
 					if (wt_1 > 0.001)
@@ -192,7 +192,7 @@ Shader "Ocean/Ocean"
 						#endif
 
 						#if _SHADOWS_ON
-						SampleSSS(_LD_Sampler_SubSurfaceScattering_1, uv_1, wt_1, o.n_sss.w);
+						SampleSSS(_LD_Sampler_Shadow_1, uv_1, wt_1, o.n_sss.w);
 						#endif
 					}
 
@@ -438,7 +438,7 @@ Shader "Ocean/Ocean"
 							float causticShadow = 0.;
 							float2 offset = lightDir.xz * sceneDepth * lightDir.y;
 							const float2 uv_1 = LD_1_WorldToUV(scenePos.xz + offset);
-							SampleSSS(_LD_Sampler_SubSurfaceScattering_1, uv_1, 1.0, causticShadow);
+							SampleSSS(_LD_Sampler_Shadow_1, uv_1, 1.0, causticShadow);
 							causticsStrength *= causticShadow;
 						}
 						#endif

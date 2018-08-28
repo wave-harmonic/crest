@@ -81,15 +81,30 @@ namespace Crest
             // this relies on the render textures being init'd in CreateAssignRenderTexture::Awake().
             var shapeCams = OceanRenderer.Instance.Builder._lodDataAnimWaves;
             shapeCams[_lodIndex].BindResultData(0, _mpb);
-            shapeCams[_lodIndex].LDFoam.BindResultData(0, _mpb);
             shapeCams[_lodIndex].LDSeaDepth.BindResultData(0, _mpb);
-            shapeCams[_lodIndex].LDSubSurfaceScattering.BindResultData(0, _mpb);
+            if (shapeCams[_lodIndex].LDFoam) shapeCams[_lodIndex].LDFoam.BindResultData(0, _mpb);
+            if (shapeCams[_lodIndex].LDShadow)
+            {
+                shapeCams[_lodIndex].LDShadow.BindResultData(0, _mpb);
+            }
+            else
+            {
+                LodDataShadow.BindNoShadows(0, _mpb);
+            }
+
             if (_lodIndex + 1 < shapeCams.Length)
             {
                 shapeCams[_lodIndex + 1].BindResultData(1, _mpb);
-                shapeCams[_lodIndex + 1].LDFoam.BindResultData(1, _mpb);
                 shapeCams[_lodIndex + 1].LDSeaDepth.BindResultData(1, _mpb);
-                shapeCams[_lodIndex + 1].LDSubSurfaceScattering.BindResultData(1, _mpb);
+                if (shapeCams[_lodIndex + 1].LDFoam) shapeCams[_lodIndex + 1].LDFoam.BindResultData(1, _mpb);
+                if (shapeCams[_lodIndex + 1].LDShadow)
+                {
+                    shapeCams[_lodIndex + 1].LDShadow.BindResultData(1, _mpb);
+                }
+                else
+                {
+                    LodDataShadow.BindNoShadows(1, _mpb);
+                }
             }
 
             _rend.SetPropertyBlock(_mpb);

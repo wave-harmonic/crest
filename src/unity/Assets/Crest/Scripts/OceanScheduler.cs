@@ -25,9 +25,9 @@ namespace Crest
         {
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // --- Sub surface scattering - does not depend on waves or depth or anything (yet)
-            for (int i = 0; i < ocean.CurrentLodCount && ocean._camsSSS[i] != null; i++)
+            for (int i = 0; i < ocean.CurrentLodCount && ocean._camsShadow[i] != null; i++)
             {
-                ocean._camsSSS[i].depth = -50 - i;
+                ocean._camsShadow[i].depth = -50 - i;
             }
 
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////

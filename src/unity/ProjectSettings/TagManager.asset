@@ -20,7 +20,7 @@ TagManager:
   - LodDataDynamicWaves
   - LodDataFoam
   - LodDataAnimatedWaves
-  - LodDataSubSurfaceScattering
+  - LodDataShadow
   - 
   - 
   - 

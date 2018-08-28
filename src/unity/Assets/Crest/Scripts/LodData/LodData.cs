@@ -102,7 +102,7 @@ namespace Crest
             AnimatedWaves,
             // this is currently not used as the sea floor depth is not created as a unique sim object
             SeaFloorDepth,
-            SubSurfaceScattering,
+            Shadow,
         }
 
         public static GameObject CreateLodData(int lodIdx, int lodCount, float baseVertDensity, SimType simType, Dictionary<System.Type, SimSettingsBase> cachedSettings)
@@ -125,8 +125,8 @@ namespace Crest
                 case SimType.Foam:
                     sim = go.AddComponent<LodDataFoam>();
                     break;
-                case SimType.SubSurfaceScattering:
-                    sim = go.AddComponent<LodDataSSS>();
+                case SimType.Shadow:
+                    sim = go.AddComponent<LodDataShadow>();
                     break;
                 default:
                     Debug.LogError("Unknown sim type: " + simType.ToString());
@@ -208,15 +208,19 @@ namespace Crest
         } }
         LodDataFoam _ldf;
         public LodDataFoam LDFoam { get {
-                return _ldf ?? (_ldf = OceanRenderer.Instance.Builder._camsFoam[LodTransform.LodIndex].GetComponent<LodDataFoam>());
+                if (_ldf) return _ldf;
+                if (OceanRenderer.Instance.Builder._camsFoam == null || OceanRenderer.Instance.Builder._camsFoam[0] == null) return null;
+                return _ldf = OceanRenderer.Instance.Builder._camsFoam[LodTransform.LodIndex].GetComponent<LodDataFoam>();
         } }
         LodDataDynamicWaves _lddw;
         public LodDataDynamicWaves LDDynamicWaves { get {
                 return _lddw ?? (_lddw = OceanRenderer.Instance.Builder._camsDynWaves[LodTransform.LodIndex].GetComponent<LodDataDynamicWaves>());
         } }
-        LodDataSSS _ldsss;
-        public LodDataSSS LDSubSurfaceScattering { get {
-                return _ldsss ?? (_ldsss = OceanRenderer.Instance.Builder._camsSSS[LodTransform.LodIndex].GetComponent<LodDataSSS>());
+        LodDataShadow _lds;
+        public LodDataShadow LDShadow { get {
+                if (_lds) return _lds;
+                if (OceanRenderer.Instance.Builder._camsShadow == null || OceanRenderer.Instance.Builder._camsShadow[0] == null) return null;
+                return _lds = OceanRenderer.Instance.Builder._camsShadow[LodTransform.LodIndex].GetComponent<LodDataShadow>();
         } }
     }
 }

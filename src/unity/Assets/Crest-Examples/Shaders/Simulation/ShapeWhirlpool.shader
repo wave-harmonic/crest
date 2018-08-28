@@ -40,8 +40,6 @@ Shader "Ocean/Shape/Whirlpool"
 				};
 
 				uniform float _Radius;
-				//uniform float _SimCount;
-				uniform float _SimDeltaTime;
 
 				v2f vert( appdata_t v )
 				{
@@ -65,7 +63,7 @@ Shader "Ocean/Shape/Whirlpool"
 
 				float4 frag (v2f i) : SV_Target
 				{
-					return float4(200, 200, 0, 0);
+					return float4(20, 20, 0, 0);
 				}
 
 				ENDCG

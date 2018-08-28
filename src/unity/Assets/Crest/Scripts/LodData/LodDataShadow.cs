@@ -6,6 +6,8 @@ namespace Crest
 {
     public class LodDataShadow : LodData
     {
+        public readonly static int FIRST_SHADOW_LOD = 2;
+
         public override SimType LodDataType { get { return SimType.Shadow; } }
         public override SimSettingsBase CreateDefaultSettings() { return null; }
         public override void UseSettings(SimSettingsBase settings) { }
@@ -21,13 +23,19 @@ namespace Crest
         {
             base.Start();
 
+            // make specific variants of some of the params - because the shadow loddata will be different scales etc - they don't track the
+            // geometry 1:1
+            CreateParamIDs(ref _paramsOceanParams, "_LD_Shadow_Params_");
+            CreateParamIDs(ref _paramsPosScaleScaleAlpha, "_LD_Shadow_Pos_Scale_ScaleAlpha_");
+            CreateParamIDs(ref _paramsLodIdx, "_LD_Shadow_LodIdx_");
+
             // This lod data does some pretty special stuff with the render sim geometry - it uses it to actually compute the shadows
 
             // make sure shadow proxies draw into our camera
             UnityEditor.ArrayUtility.Add(ref GetComponent<ApplyLayers>()._cullIncludeLayers, "ShadowProxy");
 
-            // only create the shadow catcher for the biggest lod
-            if (LodTransform.LodIndex == LodTransform.LodCount - 1)
+            // only create the shadow catcher for the bigger lod
+            if (LodTransform.LodIndex == FIRST_SHADOW_LOD + 1)
             {
                 // utility quad which will be rasterized by the shape camera
                 _renderQuad = CreateRasterQuad("RenderSim_" + SimName);
@@ -47,10 +55,27 @@ namespace Crest
             }
         }
 
-        static string[] _samplerNames = new string[] { "_LD_Sampler_Shadow_0", "_LD_Sampler_Shadow_1" };
         public static void BindNoShadows(int slot, MaterialPropertyBlock properties)
         {
-            properties.SetTexture(_samplerNames[slot], Texture2D.whiteTexture);
+            var shadow = OceanRenderer.Instance.Builder._lodDataAnimWaves[FIRST_SHADOW_LOD].LDShadow;
+            if (shadow == null) return;
+            properties.SetTexture(shadow._paramsLodDataSampler[slot], Texture2D.whiteTexture);
+        }
+
+        public static void BindToOceanMaterial(MaterialPropertyBlock mpb)
+        {
+            var shapeCams = OceanRenderer.Instance.Builder._lodDataAnimWaves;
+
+            if (!shapeCams[FIRST_SHADOW_LOD + 0].LDShadow || !shapeCams[FIRST_SHADOW_LOD + 1].LDShadow)
+            {
+                BindNoShadows(0, mpb);
+                BindNoShadows(1, mpb);
+            }
+            else
+            {
+                shapeCams[FIRST_SHADOW_LOD + 0].LDShadow.BindResultData(0, mpb);
+                shapeCams[FIRST_SHADOW_LOD + 1].LDShadow.BindResultData(1, mpb);
+            }
         }
     }
 }

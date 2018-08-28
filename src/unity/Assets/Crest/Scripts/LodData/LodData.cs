@@ -25,21 +25,18 @@ namespace Crest
         int _shapeRes = -1;
 
         // these would ideally be static but then they get cleared when editing-and-continuing in the editor.
-        int[] _paramsPosScale;
-        int[] _paramsLodIdx;
+        protected int[] _paramsPosScaleScaleAlpha;
+        protected int[] _paramsLodIdx;
         protected int[] _paramsOceanParams;
-        int[] _paramsLodDataSampler;
+        protected int[] _paramsLodDataSampler;
 
         protected virtual void Start()
         {
             // create shader param IDs for each LOD once on start to avoid creating garbage each frame.
-            if (_paramsLodDataSampler == null)
-            {
-                CreateParamIDs(ref _paramsLodDataSampler, "_LD_Sampler_" + SimName + "_");
-                CreateParamIDs(ref _paramsOceanParams, "_LD_Params_");
-                CreateParamIDs(ref _paramsPosScale, "_LD_Pos_Scale_");
-                CreateParamIDs(ref _paramsLodIdx, "_LD_LodIdx_");
-            }
+            CreateParamIDs(ref _paramsLodDataSampler, "_LD_Sampler_" + SimName + "_");
+            CreateParamIDs(ref _paramsOceanParams, "_LD_Params_");
+            CreateParamIDs(ref _paramsPosScaleScaleAlpha, "_LD_Pos_Scale_ScaleAlpha_");
+            CreateParamIDs(ref _paramsLodIdx, "_LD_LodIdx_");
         }
 
         protected virtual void LateUpdate()
@@ -89,7 +86,7 @@ namespace Crest
                 properties.SetTexture(_paramsLodDataSampler[shapeSlot], applyData);
             }
 
-            properties.SetVector(_paramsPosScale[shapeSlot], new Vector3(renderData._posSnapped.x, renderData._posSnapped.z, transform.lossyScale.x));
+            properties.SetVector(_paramsPosScaleScaleAlpha[shapeSlot], new Vector4(renderData._posSnapped.x, renderData._posSnapped.z, transform.lossyScale.x, OceanRenderer.Instance.ViewerAltitudeLevelAlpha));
             properties.SetFloat(_paramsLodIdx[shapeSlot], LodTransform.LodIndex);
             properties.SetVector(_paramsOceanParams[shapeSlot],
                 new Vector4(renderData._texelWidth, renderData._textureRes, 1f, 1f / renderData._textureRes));
@@ -209,7 +206,7 @@ namespace Crest
         LodDataFoam _ldf;
         public LodDataFoam LDFoam { get {
                 if (_ldf) return _ldf;
-                if (OceanRenderer.Instance.Builder._camsFoam == null || OceanRenderer.Instance.Builder._camsFoam[0] == null) return null;
+                if (OceanRenderer.Instance.Builder._camsFoam == null || OceanRenderer.Instance.Builder._camsFoam[LodTransform.LodIndex] == null) return null;
                 return _ldf = OceanRenderer.Instance.Builder._camsFoam[LodTransform.LodIndex].GetComponent<LodDataFoam>();
         } }
         LodDataDynamicWaves _lddw;
@@ -219,7 +216,7 @@ namespace Crest
         LodDataShadow _lds;
         public LodDataShadow LDShadow { get {
                 if (_lds) return _lds;
-                if (OceanRenderer.Instance.Builder._camsShadow == null || OceanRenderer.Instance.Builder._camsShadow[0] == null) return null;
+                if (OceanRenderer.Instance.Builder._camsShadow == null || OceanRenderer.Instance.Builder._camsShadow[LodTransform.LodIndex] == null) return null;
                 return _lds = OceanRenderer.Instance.Builder._camsShadow[LodTransform.LodIndex].GetComponent<LodDataShadow>();
         } }
     }

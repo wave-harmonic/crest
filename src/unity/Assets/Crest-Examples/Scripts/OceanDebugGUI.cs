@@ -168,7 +168,7 @@ public class OceanDebugGUI : MonoBehaviour
         int idx = 0;
         foreach (var cam in simCameras)
         {
-            if (!cam) continue;
+            if (!cam) { idx++; continue; }
 
             RenderTexture shape = cam.targetTexture;
             if (shape == null) continue;

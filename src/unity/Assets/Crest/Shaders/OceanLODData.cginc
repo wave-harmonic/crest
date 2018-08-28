@@ -11,8 +11,10 @@
 	uniform sampler2D _LD_Sampler_Foam_##LODNUM; \
 	uniform sampler2D _LD_Sampler_DynamicWaves_##LODNUM; \
 	uniform sampler2D _LD_Sampler_Shadow_##LODNUM; \
+	uniform float4 _LD_Shadow_Params_##LODNUM; \
+	uniform float4 _LD_Shadow_Pos_Scale_ScaleAlpha_##LODNUM; \
 	uniform float4 _LD_Params_##LODNUM; \
-	uniform float3 _LD_Pos_Scale_##LODNUM; \
+	uniform float4 _LD_Pos_Scale_ScaleAlpha_##LODNUM; \
 	uniform int _LD_LodIdx_##LODNUM;
 
 // Create two sets of LOD data, which have overloaded meaning depending on use:
@@ -28,15 +30,15 @@ float2 LD_WorldToUV(in float2 i_samplePos, in float2 i_centerPos, in float i_res
 {
 	return (i_samplePos - i_centerPos) / (i_texelSize * i_res) + 0.5;
 }
-float2 LD_0_WorldToUV(in float2 i_samplePos) { return LD_WorldToUV(i_samplePos, _LD_Pos_Scale_0.xy, _LD_Params_0.y, _LD_Params_0.x); }
-float2 LD_1_WorldToUV(in float2 i_samplePos) { return LD_WorldToUV(i_samplePos, _LD_Pos_Scale_1.xy, _LD_Params_1.y, _LD_Params_1.x); }
+float2 LD_0_WorldToUV(in float2 i_samplePos) { return LD_WorldToUV(i_samplePos, _LD_Pos_Scale_ScaleAlpha_0.xy, _LD_Params_0.y, _LD_Params_0.x); }
+float2 LD_1_WorldToUV(in float2 i_samplePos) { return LD_WorldToUV(i_samplePos, _LD_Pos_Scale_ScaleAlpha_1.xy, _LD_Params_1.y, _LD_Params_1.x); }
 
 float2 LD_UVToWorld(in float2 i_uv, in float2 i_centerPos, in float i_res, in float i_texelSize)
 {
 	return i_texelSize * i_res * (i_uv - 0.5) + i_centerPos;
 }
-float2 LD_0_UVToWorld(in float2 i_uv) { return LD_UVToWorld(i_uv, _LD_Pos_Scale_0.xy, _LD_Params_0.y, _LD_Params_0.x); }
-float2 LD_1_UVToWorld(in float2 i_uv) { return LD_UVToWorld(i_uv, _LD_Pos_Scale_1.xy, _LD_Params_1.y, _LD_Params_1.x); }
+float2 LD_0_UVToWorld(in float2 i_uv) { return LD_UVToWorld(i_uv, _LD_Pos_Scale_ScaleAlpha_0.xy, _LD_Params_0.y, _LD_Params_0.x); }
+float2 LD_1_UVToWorld(in float2 i_uv) { return LD_UVToWorld(i_uv, _LD_Pos_Scale_ScaleAlpha_1.xy, _LD_Params_1.y, _LD_Params_1.x); }
 
 
 // Bias ocean floor depth so that default (0) values in texture are not interpreted as shallow and generating foam everywhere
@@ -88,7 +90,7 @@ float ComputeLodAlpha(float3 i_worldPos, float i_meshScaleAlpha)
 	float taxicab_norm = max(offsetFromCenter.x, offsetFromCenter.y);
 
 	// interpolation factor to next lod (lower density / higher sampling period)
-	float lodAlpha = taxicab_norm / _LD_Pos_Scale_0.z - 1.0;
+	float lodAlpha = taxicab_norm / _LD_Pos_Scale_ScaleAlpha_0.z - 1.0;
 
 	// lod alpha is remapped to ensure patches weld together properly. patches can vary significantly in shape (with
 	// strips added and removed), and this variance depends on the base density of the mesh, as this defines the strip width.

@@ -171,10 +171,6 @@ Shader "Ocean/Ocean"
 						#if _SUBSURFACESHALLOWCOLOUR_ON
 						SampleOceanDepth(_LD_Sampler_SeaFloorDepth_0, uv_0, wt_0, o.lodAlpha_worldXZUndisplaced_oceanDepth.w);
 						#endif
-
-						#if _SHADOWS_ON
-						SampleSSS(_LD_Sampler_Shadow_0, uv_0, wt_0, o.n_sss.w);
-						#endif
 					}
 					if (wt_1 > 0.001)
 					{
@@ -190,12 +186,14 @@ Shader "Ocean/Ocean"
 						#if _SUBSURFACESHALLOWCOLOUR_ON
 						SampleOceanDepth(_LD_Sampler_SeaFloorDepth_1, uv_1, wt_1, o.lodAlpha_worldXZUndisplaced_oceanDepth.w);
 						#endif
-
-						#if _SHADOWS_ON
-						SampleSSS(_LD_Sampler_Shadow_1, uv_1, wt_1, o.n_sss.w);
-						#endif
 					}
 
+					#if _SHADOWS_ON
+					float2 shadowUV0 = LD_WorldToUV(worldXZBefore, _LD_Shadow_Pos_Scale_ScaleAlpha_0.xy, _LD_Shadow_Params_0.y, _LD_Shadow_Params_0.x);
+					SampleSSS(_LD_Sampler_Shadow_0, shadowUV0, 1.- _LD_Shadow_Pos_Scale_ScaleAlpha_0.w, o.n_sss.w);
+					float2 shadowUV1 = LD_WorldToUV(worldXZBefore, _LD_Shadow_Pos_Scale_ScaleAlpha_1.xy, _LD_Shadow_Params_1.y, _LD_Shadow_Params_1.x);
+					SampleSSS(_LD_Sampler_Shadow_1, shadowUV1,     _LD_Shadow_Pos_Scale_ScaleAlpha_1.w, o.n_sss.w);
+					#endif
 					// invert SSS to play nicely with lods fading in/out
 					o.n_sss.w = 1.0 - o.n_sss.w;
 
@@ -443,10 +441,11 @@ Shader "Ocean/Ocean"
 						half causticsStrength = _CausticsStrength;
 						#if _SHADOWS_ON
 						{
-							// could probably be computed per-vert
+							// only sample the bigger lod. if pops are noticeable this could lerp the 2 lods smoothly, but i didnt notice issues.
 							float causticShadow = 0.;
-							const float2 uv_1 = LD_1_WorldToUV(surfacePosXZ);
-							SampleSSS(_LD_Sampler_Shadow_1, uv_1, 1.0, causticShadow);
+							const float2 shadowUV1 =
+								LD_WorldToUV(surfacePosXZ, _LD_Shadow_Pos_Scale_ScaleAlpha_1.xy, _LD_Shadow_Params_1.y, _LD_Shadow_Params_1.x);
+							SampleSSS(_LD_Sampler_Shadow_1, shadowUV1, 1.0, causticShadow);
 							causticsStrength *= causticShadow;
 						}
 						#endif

@@ -6,7 +6,7 @@ Shader "Ocean/Ocean"
 	{
 		[Toggle] _ApplyNormalMapping("Apply Normal Mapping", Float) = 1
 		[NoScaleOffset] _Normals ( "    Normals", 2D ) = "bump" {}
-		_NormalsStrength("    Strength", Range(0.0, 2.0)) = 0.3
+		_NormalsStrength("    Strength", Range(0.01, 2.0)) = 0.3
 		_NormalsScale("    Scale", Range(0.01, 50.0)) = 1.0
 		[NoScaleOffset] _Skybox ("Skybox", CUBE) = "" {}
 		_Diffuse("Diffuse", Color) = (0.2, 0.05, 0.05, 1.0)

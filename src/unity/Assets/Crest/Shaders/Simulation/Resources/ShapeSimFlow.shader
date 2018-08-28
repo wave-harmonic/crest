@@ -55,10 +55,11 @@ Shader "Ocean/Shape/Sim/Flow"
 
 				half2 frag(v2f i) : SV_Target
 				{
-					float2 flow;
-					flow.x = -i.world.z;
-					flow.y = i.world.x;
-					return normalize(flow) * _FlowSpeed;
+					// float2 flow;
+					// flow.x = -i.world.z;
+					// flow.y = i.world.x;
+					// return normalize(flow) * _FlowSpeed;
+					return float2(0., 0.);
 				}
 				ENDCG
 			}

@@ -62,8 +62,7 @@ void SampleDisplacements(in sampler2D i_dispSampler, in float2 i_uv, in float i_
 
 void SampleFoam(in sampler2D i_oceanFoamSampler, float2 i_uv, in float i_wt, inout half io_foam)
 {
-	const float4 uv = float4(i_uv, 0., 0.);
-	io_foam += i_wt * tex2Dlod(i_oceanFoamSampler, uv).x;
+	io_foam += i_wt * tex2Dlod(i_oceanFoamSampler, float4(i_uv, 0., 0.)).x;
 }
 
 void SampleFlow(in sampler2D i_oceanFlowSampler, float2 i_uv, in float i_wt, inout half2 io_flow)
@@ -72,6 +71,10 @@ void SampleFlow(in sampler2D i_oceanFlowSampler, float2 i_uv, in float i_wt, ino
 	io_flow += i_wt * tex2Dlod(i_oceanFlowSampler, uv).xy;
 }
 
+void SampleOceanDepth(in sampler2D i_oceanDepthSampler, float2 i_uv, in float i_wt, inout half io_oceanDepth)
+{
+	io_oceanDepth += i_wt * (tex2Dlod(i_oceanDepthSampler, float4(i_uv, 0., 0.)).x + DEPTH_BIAS);
+}
 
 // Geometry data
 // x: A square is formed by 2 triangles in the mesh. Here x is square size

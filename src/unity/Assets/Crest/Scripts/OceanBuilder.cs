@@ -16,6 +16,9 @@ namespace Crest
         [SerializeField, Tooltip("Material to use for the ocean surface")]
         Material _oceanMaterial;
 
+        public string _oceanLayerName = "Water";
+        int _oceanLayer = -1;
+
         [HideInInspector]
         public LodDataAnimatedWaves[] _lodDataAnimWaves;
 
@@ -161,6 +164,13 @@ namespace Crest
                 return;
             }
 #endif
+
+            _oceanLayer = LayerMask.NameToLayer(_oceanLayerName);
+            if (_oceanLayer == -1)
+            {
+                Debug.LogError("Invalid ocean layer: " + _oceanLayerName + " please add this layer.", this);
+                _oceanLayer = 0;
+            }
 
 #if PROFILE_CONSTRUCTION
             System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
@@ -389,6 +399,7 @@ namespace Crest
             // first create parent gameobject for the lod level. the scale of this transform sets the size of the lod.
             GameObject parent = new GameObject();
             parent.name = "LOD" + lodIndex;
+            parent.layer = _oceanLayer;
             parent.transform.parent = transform;
             parent.transform.localPosition = Vector3.zero;
             parent.transform.localRotation = Quaternion.identity;
@@ -474,6 +485,7 @@ namespace Crest
             {
                 // instantiate and place patch
                 var patch = new GameObject( string.Format( "Tile_L{0}", lodIndex ) );
+                patch.layer = _oceanLayer;
                 patch.transform.parent = parent.transform;
                 Vector2 pos = offsets[i];
                 patch.transform.localPosition = new Vector3( pos.x, 0f, pos.y );
@@ -483,6 +495,13 @@ namespace Crest
                 patch.AddComponent<MeshFilter>().mesh = meshData[(int)patchTypes[i]];
 
                 var mr = patch.AddComponent<MeshRenderer>();
+
+                // sorting order to stop unity drawing it back to front. make the innermost 4 tiles draw first, followed by
+                // the rest of the tiles by lod index. all this happens before layer 0 - the sorting layer takes prio over the
+                // render queue it seems! ( https://cdry.wordpress.com/2017/04/28/unity-render-queues-vs-sorting-layers/ ). this pushes
+                // ocean rendering way early, so transparents will by default render afterwards, which is typical for water rendering.
+                mr.sortingOrder = -lodCount + (patchTypes[i] == PatchType.Interior ? -1 : lodIndex);
+
                 // i dont think one would use lightprobes for a purely specular water surface? (although diffuse foam shading would benefit)
                 mr.lightProbeUsage = UnityEngine.Rendering.LightProbeUsage.Off;
                 mr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off; // arbitrary - could be turned on if desired

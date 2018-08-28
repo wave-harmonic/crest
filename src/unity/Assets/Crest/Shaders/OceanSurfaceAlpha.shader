@@ -56,7 +56,9 @@ Shader "Ocean/Ocean Surface Alpha"
 				v2f o;
 
 				// move to world
-				float3 worldPos = mul(unity_ObjectToWorld, v.vertex);
+				float3 worldPos;
+				worldPos.xz = mul(unity_ObjectToWorld, v.vertex).xz;
+				worldPos.y = 0.;
 
 				// vertex snapping and lod transition
 				float lodAlpha = ComputeLodAlpha(worldPos, _InstanceData.x);
@@ -71,6 +73,9 @@ Shader "Ocean/Ocean Surface Alpha"
 				half foam = 0.;
 				SampleDisplacements(_LD_Sampler_AnimatedWaves_0, LD_0_WorldToUV(wxz), wt_0, _LD_Params_0.w, _LD_Params_0.x, worldPos, n);
 				SampleDisplacements(_LD_Sampler_AnimatedWaves_1, LD_1_WorldToUV(wxz), wt_1, _LD_Params_1.w, _LD_Params_1.x, worldPos, n);
+
+				// move to sea level
+				worldPos.y += _OceanCenterPosWorld.y;
 
 				// view-projection
 				o.vertex = mul(UNITY_MATRIX_VP, float4(worldPos, 1.));

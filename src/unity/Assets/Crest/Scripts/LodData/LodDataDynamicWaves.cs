@@ -13,7 +13,6 @@ namespace Crest
         public override SimType LodDataType { get { return SimType.DynamicWaves; } }
         protected override string ShaderSim { get { return "Ocean/Shape/Sim/2D Wave Equation"; } }
         public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RGHalf; } }
-        public override int Depth { get { return -40; } }
         protected override Camera[] SimCameras { get { return OceanRenderer.Instance.Builder._camsDynWaves; } }
 
         public override SimSettingsBase CreateDefaultSettings()
@@ -25,10 +24,11 @@ namespace Crest
 
         public bool _rotateLaplacian = true;
 
-        readonly CameraEvent _copyAttachEvent = CameraEvent.AfterEverything;
+        CameraEvent _copySimResultEvent = 0;
 
         Material _copySimMaterial = null;
         CommandBuffer _copySimResultsCmdBuf;
+        Camera _copySimResultCamera = null;
 
         bool _active = true;
         public bool Active { get { return _active; } }
@@ -40,11 +40,23 @@ namespace Crest
             _copySimMaterial = new Material(Shader.Find("Ocean/Shape/Sim/Wave Add To Disps"));
         }
 
+        public void HookCombinePass(Camera camera, CameraEvent onEvent)
+        {
+            _copySimResultCamera = camera;
+            _copySimResultEvent = onEvent;
+        }
+
         protected override void LateUpdateInternal()
         {
             base.LateUpdateInternal();
 
             // this sim copies its results into the animated waves
+
+            if (_copySimResultCamera == null)
+            {
+                // the copy results hook is not configured yet
+                return;
+            }
 
             // check if the sim should be running
             float texelWidth = LodTransform._renderData.Validate(0, this)._texelWidth;
@@ -52,8 +64,7 @@ namespace Crest
             if (!_active && _copySimResultsCmdBuf != null)
             {
                 // not running - remove command buffer to copy results in
-                OceanRenderer.Instance.Builder._camsAnimWaves[LodTransform.LodIndex]
-                    .RemoveCommandBuffer(_copyAttachEvent, _copySimResultsCmdBuf);
+                _copySimResultCamera.RemoveCommandBuffer(_copySimResultEvent, _copySimResultsCmdBuf);
                 _copySimResultsCmdBuf = null;
             }
             else if (_active && _copySimResultsCmdBuf == null)
@@ -61,8 +72,7 @@ namespace Crest
                 // running - create command buffer
                 _copySimResultsCmdBuf = new CommandBuffer();
                 _copySimResultsCmdBuf.name = "CopySimResults_" + SimName;
-                OceanRenderer.Instance.Builder._camsAnimWaves[LodTransform.LodIndex]
-                    .AddCommandBuffer(_copyAttachEvent, _copySimResultsCmdBuf);
+                _copySimResultCamera.AddCommandBuffer(_copySimResultEvent, _copySimResultsCmdBuf);
             }
             // only run simulation if enabled
             Cam.enabled = _active;
@@ -100,8 +110,7 @@ namespace Crest
         {
             if (_copySimResultsCmdBuf != null)
             {
-                OceanRenderer.Instance.Builder._camsAnimWaves[LodTransform.LodIndex]
-                    .RemoveCommandBuffer(_copyAttachEvent, _copySimResultsCmdBuf);
+                _copySimResultCamera.RemoveCommandBuffer(_copySimResultEvent, _copySimResultsCmdBuf);
                 _copySimResultsCmdBuf = null;
             }
         }

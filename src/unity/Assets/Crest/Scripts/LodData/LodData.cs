@@ -5,6 +5,9 @@ using UnityEngine;
 
 namespace Crest
 {
+    /// <summary>
+    /// Base class for data/behaviours created on each LOD.
+    /// </summary>
     public abstract class LodData : MonoBehaviour
     {
         public string SimName { get { return LodDataType.ToString(); } }
@@ -14,7 +17,6 @@ namespace Crest
         public abstract void UseSettings(SimSettingsBase settings);
 
         public abstract RenderTextureFormat TextureFormat { get; }
-        public abstract int Depth { get; }
         public abstract CameraClearFlags CamClearFlags { get; }
         public abstract RenderTexture DataTexture { get; }
 
@@ -115,7 +117,7 @@ namespace Crest
                 case SimType.AnimatedWaves:
                     sim = go.AddComponent<LodDataAnimatedWaves>();
                     go.AddComponent<LodDataSeaFloorDepth>();
-                    go.AddComponent<ReadbackDisplacementsForCollision>();
+                    go.AddComponent<ReadbackLodData>();
                     break;
                 case SimType.DynamicWaves:
                     sim = go.AddComponent<LodDataDynamicWaves>();
@@ -147,7 +149,6 @@ namespace Crest
             cam.orthographic = true;
             cam.nearClipPlane = 1f;
             cam.farClipPlane = 500f;
-            cam.depth = sim.Depth - lodIdx;
             cam.renderingPath = RenderingPath.Forward;
             cam.useOcclusionCulling = false;
             cam.allowHDR = true;
@@ -165,6 +166,7 @@ namespace Crest
             cart._anisoLevel = 0;
             cart._useMipMap = false;
             cart._createPingPongTargets = sim as LodDataPersistent != null;
+            cart.Create();
 
             var apply = go.AddComponent<ApplyLayers>();
             apply._cullIncludeLayers = new string[] { string.Format("LodData{0}", simType.ToString()) };

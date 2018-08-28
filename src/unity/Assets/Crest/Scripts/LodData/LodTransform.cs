@@ -17,7 +17,9 @@ namespace Crest
             {
                 // ignore first frame - this patches errors when using edit & continue in editor
                 if (_frame > 0 && _frame != Time.frameCount + frameOffset)
-                    Debug.LogError(string.Format("RenderData validation failed: _frame of data ({0}) != expected ({1})", _frame, Time.frameCount + frameOffset), context);
+                {
+                    Debug.LogError(string.Format("RenderData validation failed: _frame of data ({0}) != expected ({1}). Perhaps a script execution order has not been set for a LodData script?", _frame, Time.frameCount + frameOffset), context);
+                }
 
                 return this;
             }

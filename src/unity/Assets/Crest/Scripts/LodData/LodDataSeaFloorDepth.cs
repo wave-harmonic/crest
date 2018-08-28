@@ -4,17 +4,15 @@ using UnityEngine.Rendering;
 namespace Crest
 {
     /// <summary>
-    /// Renders relative depth of ocean floor, by rendering the relative height of tagged objects from top down.
+    /// Renders relative depth of ocean floor, by rendering the relative height of tagged objects from top down. This loddata rides
+    /// on the LodDataAnimatedWaves currently.
     /// </summary>
     public class LodDataSeaFloorDepth : LodData
     {
-        // partially complete info below - this loddata rides on the LodDataAnimatedWaves currently, so a bunch
-        // of the below are not used
         public override SimType LodDataType { get { return SimType.SeaFloorDepth; } }
         public override SimSettingsBase CreateDefaultSettings() { return null; }
         public override void UseSettings(SimSettingsBase settings) { }
         public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RHalf; } }
-        public override int Depth { get { return 0; } }
         public override CameraClearFlags CamClearFlags { get { return CameraClearFlags.Color; } }
         public override RenderTexture DataTexture { get { return _rtOceanDepth; } }
 

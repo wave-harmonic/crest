@@ -12,7 +12,6 @@ namespace Crest
         public override SimType LodDataType { get { return SimType.Flow; } }
         protected override string ShaderSim { get { return "Ocean/Shape/Sim/Flow"; } }
         public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RGHalf; } }
-        public override int Depth { get { return -20; } }
         protected override Camera[] SimCameras { get { return OceanRenderer.Instance.Builder._camsFlow; } }
 
         public override SimSettingsBase CreateDefaultSettings()

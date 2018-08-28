@@ -26,8 +26,6 @@ Shader "Ocean/Ocean Depth"
 				#include "UnityCG.cginc"
 				#include "../OceanLODData.cginc"
 		
-				uniform float _SeaLevel;
-
 				struct appdata_t {
 					float4 vertex : POSITION;
 				};
@@ -45,7 +43,7 @@ Shader "Ocean/Ocean Depth"
 					half altitude = mul(unity_ObjectToWorld, v.vertex).y;
 
 					//depth bias is an optimisation which allows the depth data to be initialised once to 0 without generating foam everywhere.
-					o.depth = _SeaLevel - altitude - DEPTH_BIAS;
+					o.depth = _OceanCenterPosWorld.y - altitude - DEPTH_BIAS;
 
 					return o;
 				}

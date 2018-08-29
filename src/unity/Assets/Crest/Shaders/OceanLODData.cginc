@@ -9,6 +9,7 @@
 	uniform sampler2D _LD_Sampler_AnimatedWaves_##LODNUM; \
 	uniform sampler2D _LD_Sampler_SeaFloorDepth_##LODNUM; \
 	uniform sampler2D _LD_Sampler_Foam_##LODNUM; \
+	uniform sampler2D _LD_Sampler_Flow_##LODNUM; \
 	uniform sampler2D _LD_Sampler_DynamicWaves_##LODNUM; \
 	uniform float4 _LD_Params_##LODNUM; \
 	uniform float3 _LD_Pos_Scale_##LODNUM; \
@@ -62,6 +63,12 @@ void SampleDisplacements(in sampler2D i_dispSampler, in float2 i_uv, in float i_
 void SampleFoam(in sampler2D i_oceanFoamSampler, float2 i_uv, in float i_wt, inout half io_foam)
 {
 	io_foam += i_wt * tex2Dlod(i_oceanFoamSampler, float4(i_uv, 0., 0.)).x;
+}
+
+void SampleFlow(in sampler2D i_oceanFlowSampler, float2 i_uv, in float i_wt, inout half2 io_flow)
+{
+	const float4 uv = float4(i_uv, 0., 0.);
+	io_flow += i_wt * tex2Dlod(i_oceanFlowSampler, uv).xy;
 }
 
 void SampleOceanDepth(in sampler2D i_oceanDepthSampler, float2 i_uv, in float i_wt, inout half io_oceanDepth)

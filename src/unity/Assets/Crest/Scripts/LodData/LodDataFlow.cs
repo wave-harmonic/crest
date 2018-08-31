@@ -24,13 +24,7 @@ namespace Crest
         protected override void SetAdditionalSimParams(Material simMaterial)
         {
             base.SetAdditionalSimParams(simMaterial);
-
             simMaterial.SetFloat("_FlowSpeed", Settings._flowSpeed);
-
-            // assign animated waves - to slot 1 current frame data
-            OceanRenderer.Instance.Builder._lodDataAnimWaves[LodTransform.LodIndex].BindResultData(1, simMaterial);
-            // assign sea floor depth - to slot 1 current frame data
-            OceanRenderer.Instance.Builder._lodDataAnimWaves[LodTransform.LodIndex].LDSeaDepth.BindResultData(1, simMaterial);
         }
 
         SimSettingsFlow Settings { get { return _settings as SimSettingsFlow; } }

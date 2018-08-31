@@ -60,9 +60,13 @@ Shader "Ocean/Shape/Sim/Foam"
 				{
 					float4 uv = float4(i.uv_uv_lastframe.xy, 0., 0.);
 					float4 uv_lastframe = float4(i.uv_uv_lastframe.zw, 0., 0.);
+					half4 velocity_last_frame = half4(tex2Dlod(_LD_Sampler_Flow_1, uv).xy, 0., 0.);
 
 					// sampler will clamp the uv currently
-					half foam = tex2Dlod(_LD_Sampler_Foam_0, uv_lastframe).x;
+					half foam = tex2Dlod(_LD_Sampler_Foam_0, uv_lastframe
+						- ((_SimDeltaTime * i.invRes) * velocity_last_frame)
+					).x;
+
 					//return foam + sin(_Time.w)*.004;
 					half2 r = abs(uv_lastframe.xy - 0.5);
 					if (max(r.x, r.y) > 0.5 - i.invRes)
@@ -88,7 +92,7 @@ Shader "Ocean/Shape/Sim/Foam"
 					// < 0: Overlap
 					float4 du = float4(disp_x.xz, disp_z.xz) - disp.xzxz;
 					float det = (du.x * du.w - du.y * du.z) / (_LD_Params_1.x * _LD_Params_1.x);
-					foam += 5. * _SimDeltaTime * _WaveFoamStrength * saturate(_WaveFoamCoverage - det);
+					foam += 10 * 5. * _SimDeltaTime * _WaveFoamStrength * saturate(_WaveFoamCoverage - det);
 
 					// add foam in shallow water
 					float signedOceanDepth = tex2Dlod(_LD_Sampler_SeaFloorDepth_1, uv).x + DEPTH_BIAS + disp.y;

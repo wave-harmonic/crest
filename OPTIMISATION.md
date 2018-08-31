@@ -26,7 +26,7 @@ These may make it into *Crest* at some point.
 * Decouple displacements used for geometry from displacements used for shading. Right now geometry and displacement values are 1:1 - every texel in the displacement texture is sampled by a vert. Then normal maps are used to give higher frequency detail. @moosichu and I have discussed decoupling these to reduce the amount of geometry but hopefully retain detailed appearance. There are many very small triangles in the mid-to-background right now which are typically inefficient to render, and this might help.
 * Limit range of LOD data. There is currently a min/max grid size option on the dynamic wave sim to limit what resolutions it runs at, this could be rolled out to other sim types.
 * LOD data such as foam sim/wave sims/etc could be atlased into a single texture and run in one pass. There are quite a few draw calls to run the sims which could collapse significantly. This should help perf but I'm not sure by how much, or what impact this will have on the code/systems.
-
+* Texture readback takes around 0.5ms of main thread CPU time on my laptop (for the default high quality settings in the crest example content). There may be ways to reduce this cost - see issue #60 .
 
 # Other Optimisations
 

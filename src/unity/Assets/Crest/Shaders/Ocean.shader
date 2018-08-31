@@ -51,6 +51,12 @@ Shader "Ocean/Ocean"
 		_CausticsDistortionScale("    Distortion Scale", Range(0.01, 50.0)) = 10.0
 		_CausticsDistortionStrength("    Distortion Strength", Range(0.0, 0.25)) = 0.075
 		_FresnelPower("Fresnel Power", Range(0.0, 20.0)) = 3.0
+		[Toggle] _GradientSky("Gradient Sky", Float) = 0
+		_GradientSkyColourBelow("    Colour Below", Color) = (1.0, 1.0, 1.0, 1.0)
+		_GradientSkyColour0("    Colour A", Color) = (1.0, 1.0, 1.0, 1.0)
+		_GradientSkyColour1("    Colour B", Color) = (1.0, 1.0, 1.0, 1.0)
+		_GradientSkyColour2("    Colour C", Color) = (1.0, 1.0, 1.0, 1.0)
+		_GradientSkyKnots("    Handles", Vector) = (0.0, 0.25, 0.5, 0.75)
 		[Enum(CullMode)] _CullMode("Cull Mode", Int) = 2
 		[Toggle] _DebugDisableShapeTextures("Debug Disable Shape Textures", Float) = 0
 		[Toggle] _DebugVisualiseShapeSample("Debug Visualise Shape Sample", Float) = 0
@@ -93,6 +99,7 @@ Shader "Ocean/Ocean"
 				#pragma shader_feature _CAUSTICS_ON
 				#pragma shader_feature _FOAM_ON
 				#pragma shader_feature _FOAM3DLIGHTING_ON
+				#pragma shader_feature _GRADIENTSKY_ON
 				#pragma shader_feature _DEBUGDISABLESHAPETEXTURES_ON
 				#pragma shader_feature _DEBUGVISUALISESHAPESAMPLE_ON
 				#pragma shader_feature _DEBUGVISUALISEFLOW_ON
@@ -465,6 +472,23 @@ Shader "Ocean/Ocean"
 					return col;
 				}
 
+				uniform fixed3 _GradientSkyColourBelow;
+				uniform fixed3 _GradientSkyColour0;
+				uniform fixed3 _GradientSkyColour1;
+				uniform fixed3 _GradientSkyColour2;
+				uniform half4 _GradientSkyKnots;
+
+				half3 GradientSky(half3 refl)
+				{
+					if (refl.y < _GradientSkyKnots.x)
+						return _GradientSkyColourBelow;
+					if (refl.y < _GradientSkyKnots.y)
+						return lerp(_GradientSkyColourBelow, _GradientSkyColour0, (refl.y - _GradientSkyKnots.x) / (_GradientSkyKnots.y - _GradientSkyKnots.x));
+					if (refl.y < _GradientSkyKnots.z)
+						return lerp(_GradientSkyColour0, _GradientSkyColour1, (refl.y - _GradientSkyKnots.y) / (_GradientSkyKnots.z - _GradientSkyKnots.y));
+					return lerp(_GradientSkyColour1, _GradientSkyColour2, saturate((refl.y - _GradientSkyKnots.z) / (_GradientSkyKnots.w - _GradientSkyKnots.z)));
+				}
+
 				half4 frag(v2f i) : SV_Target
 				{
 					half3 view = normalize(_WorldSpaceCameraPos - i.worldPos);
@@ -503,9 +527,17 @@ Shader "Ocean/Ocean"
 
 					// Reflection
 					half3 refl = reflect(-view, n_pixel);
-					half3 skyColor = texCUBE(_Skybox, refl);
+
+					// Sky colour
+					#if !_GRADIENTSKY_ON
+					half3 skyColour = texCUBE(_Skybox, refl);
+					#else
+					half3 skyColour = GradientSky(refl);
+					#endif
+
+					// Add primary light to boost it
 					#if _COMPUTEDIRECTIONALLIGHT_ON
-					skyColor += pow(max(0., dot(refl, lightDir)), _DirectionalLightFallOff) * _DirectionalLightBoost * _LightColor0;
+					skyColour += pow(max(0., dot(refl, lightDir)), _DirectionalLightFallOff) * _DirectionalLightBoost * _LightColor0;
 					#endif
 
 					// Fresnel
@@ -515,7 +547,7 @@ Shader "Ocean/Ocean"
 					float R_0 = (IOR_AIR - IOR_WATER) / (IOR_AIR + IOR_WATER); R_0 *= R_0;
 					// schlick's approximation
 					float R_theta = R_0 + (1.0 - R_0) * pow(1.0 - max(dot(n_pixel, view), 0.), _FresnelPower);
-					col = lerp(col, skyColor, R_theta);
+					col = lerp(col, skyColour, R_theta);
 
 					// Override final result with white foam - bubbles on surface
 					#if _FOAM_ON

@@ -18,6 +18,8 @@ namespace Crest
         [Tooltip("If a camera is attached, these layer names will be added to the cull mask (so that they will NOT be drawn).")]
         public string[] _cullIncludeLayers;
 
+        public bool _logErrorIfLayerMissing = true;
+
         void Start()
         {
             if(!string.IsNullOrEmpty(_layerName))
@@ -28,7 +30,7 @@ namespace Crest
                 {
                     gameObject.layer = layerIndex;
                 }
-                else
+                else if (_logErrorIfLayerMissing)
                 {
                     Debug.LogError("Layer named \"" + _layerName + "\" does not exist, please add this layer to the project.", this);
                 }
@@ -49,7 +51,11 @@ namespace Crest
                         int idx = LayerMask.NameToLayer(layer);
                         if (idx == -1)
                         {
-                            Debug.LogError("Layer \"" + layer + "\" does not exist in the project, please create it.", this);
+                            if (_logErrorIfLayerMissing)
+                            {
+                                Debug.LogError("Layer \"" + layer + "\" does not exist in the project, please create it.", this);
+                            }
+
                             continue;
                         }
 
@@ -66,7 +72,10 @@ namespace Crest
                         int idx = LayerMask.NameToLayer(layer);
                         if (idx == -1)
                         {
-                            Debug.LogError("Layer \"" + layer + "\" does not exist in the project, please create it.", this);
+                            if (_logErrorIfLayerMissing)
+                            {
+                                Debug.LogError("Layer \"" + layer + "\" does not exist in the project, please create it.", this);
+                            }
                             continue;
                         }
 

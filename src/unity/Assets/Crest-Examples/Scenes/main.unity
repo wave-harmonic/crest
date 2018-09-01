@@ -173,7 +173,9 @@ MonoBehaviour:
   - LodDataFoam
   - LodDataDynamicWaves
   - LodDataAnimatedWaves
+  - LodDataFlow
   _cullIncludeLayers: []
+  _logErrorIfLayerMissing: 0
 --- !u!20 &227134469
 Camera:
   m_ObjectHideFlags: 0
@@ -313,25 +315,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _gui: 1
---- !u!1 &498935805 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 100000, guid: 386033b9b0ae11a40bbd970400b6d7c6,
-    type: 3}
-  m_PrefabInternal: {fileID: 1380102997}
---- !u!114 &498935808
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 498935805}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a7f1d7afc5dc7ec4ab6fa33a21ede643, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _layerName: Terrain
-  _cullExcludeLayers: []
-  _cullIncludeLayers: []
 --- !u!4 &632841573 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 400000, guid: 386033b9b0ae11a40bbd970400b6d7c6,
@@ -417,6 +400,7 @@ MonoBehaviour:
   _layerName: LodDataAnimatedWaves
   _cullExcludeLayers: []
   _cullIncludeLayers: []
+  _logErrorIfLayerMissing: 1
 --- !u!33 &723498134
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -857,7 +841,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _populateOnStartup: 1
   _layerNames:
-  - Terrain
+  - Default
   _layerNameDEPRECATED: 
   _resolution: 384
   _cameraMaxTerrainHeight: 100

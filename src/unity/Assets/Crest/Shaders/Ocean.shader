@@ -57,6 +57,11 @@ Shader "Ocean/Ocean"
 		_GradientSkyColour1("    Colour B", Color) = (1.0, 1.0, 1.0, 1.0)
 		_GradientSkyColour2("    Colour C", Color) = (1.0, 1.0, 1.0, 1.0)
 		_GradientSkyKnots("    Handles", Vector) = (0.0, 0.25, 0.5, 0.75)
+		_SkyHorizGradColBelow("    Horiz Colour Below", Color) = (1.0, 1.0, 1.0, 1.0)
+		_SkyHorizGradCol0("    Horiz Colour A", Color) = (1.0, 1.0, 1.0, 1.0)
+		_SkyHorizGradCol1("    Horiz Colour B", Color) = (1.0, 1.0, 1.0, 1.0)
+		_SkyHorizGradCol2("    Horiz Colour C", Color) = (1.0, 1.0, 1.0, 1.0)
+		_SkyHorizGradKnots("    Horiz Handles", Vector) = (0.0, 0.25, 0.5, 0.75)
 		[Enum(CullMode)] _CullMode("Cull Mode", Int) = 2
 		[Toggle] _DebugDisableShapeTextures("Debug Disable Shape Textures", Float) = 0
 		[Toggle] _DebugVisualiseShapeSample("Debug Visualise Shape Sample", Float) = 0
@@ -478,7 +483,7 @@ Shader "Ocean/Ocean"
 				uniform fixed3 _GradientSkyColour2;
 				uniform half4 _GradientSkyKnots;
 
-				half3 GradientSky(half3 refl)
+				half3 GradientSkyVertical(half3 refl)
 				{
 					if (refl.y < _GradientSkyKnots.x)
 						return _GradientSkyColourBelow;
@@ -487,6 +492,25 @@ Shader "Ocean/Ocean"
 					if (refl.y < _GradientSkyKnots.z)
 						return lerp(_GradientSkyColour0, _GradientSkyColour1, (refl.y - _GradientSkyKnots.y) / (_GradientSkyKnots.z - _GradientSkyKnots.y));
 					return lerp(_GradientSkyColour1, _GradientSkyColour2, saturate((refl.y - _GradientSkyKnots.z) / (_GradientSkyKnots.w - _GradientSkyKnots.z)));
+				}
+
+				uniform fixed3 _SkyHorizGradColBelow;
+				uniform fixed3 _SkyHorizGradCol0;
+				uniform fixed3 _SkyHorizGradCol1;
+				uniform fixed3 _SkyHorizGradCol2;
+				uniform half4 _SkyHorizGradKnots;
+
+				half3 GradientSkyHorizontal(half3 refl)
+				{
+					float angle = atan2(refl.z, refl.x) / 6.28 + 0.5;
+
+					if (angle < _SkyHorizGradKnots.x)
+						return _SkyHorizGradColBelow;
+					if (angle < _SkyHorizGradKnots.y)
+						return lerp(_SkyHorizGradColBelow, _SkyHorizGradCol0, (angle - _SkyHorizGradKnots.x) / (_SkyHorizGradKnots.y - _SkyHorizGradKnots.x));
+					if (angle < _SkyHorizGradKnots.z)
+						return lerp(_SkyHorizGradCol0, _SkyHorizGradCol1, (angle - _SkyHorizGradKnots.y) / (_SkyHorizGradKnots.z - _SkyHorizGradKnots.y));
+					return lerp(_SkyHorizGradCol1, _SkyHorizGradCol2, saturate((angle - _SkyHorizGradKnots.z) / (_SkyHorizGradKnots.w - _SkyHorizGradKnots.z)));
 				}
 
 				half4 frag(v2f i) : SV_Target
@@ -529,10 +553,12 @@ Shader "Ocean/Ocean"
 					half3 refl = reflect(-view, n_pixel);
 
 					// Sky colour
+					half3 skyColour = (half3)0.;
 					#if !_GRADIENTSKY_ON
-					half3 skyColour = texCUBE(_Skybox, refl);
+					skyColour = texCUBE(_Skybox, refl);
 					#else
-					half3 skyColour = GradientSky(refl);
+					skyColour += GradientSkyVertical(refl);
+					skyColour += GradientSkyHorizontal(refl);
 					#endif
 
 					// Add primary light to boost it

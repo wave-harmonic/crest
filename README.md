@@ -44,7 +44,14 @@ Enjoy!
 
 # Configuration
 
-The components described above are driven by a small number of key parameters which are trivial to understand and tweak. The primary parameters configure the multi-scale representation. Unless otherwise specified thes parameters reside on the *OceanRenderer* component.
+## Ocean Look and Behaviour
+
+* Ocean material / shading: The default ocean material *Ocean.mat* contains many tweakable variables to control appearance. Turn off unnecessary features to maximize performance.
+* Animated waves / ocean shape: Configured on the *ShapeGerstnerBatched* script by providing an *Ocean Wave Spectrum* asset. This asset has an equalizer-style interface for tweaking different scales of waves, and also has some parametric wave spectra from the literature for comparison.
+* Ocean foam: Configured on the *OceanBuilder* script by providing a *Sim Settings Foam* asset.
+* Dynamic wave simulation: Configured on the *OceanBuilder* script by providing a *Sim Settings Wave* asset.
+
+All settings can be live authored. When tweaking ocean shape it can be useful to freeze time (set *Time.timeScale* to 0) to clearly see the effect of each octave of waves.
 
 ## Ocean Construction Parameters
 
@@ -58,15 +65,6 @@ There are just two parameters that control the construction of the ocean shape a
 * **Wind direction angle** - this global wind direction affects the ocean shape
 * **Max Scale** - the ocean is scaled horizontally with viewer height, to keep the meshing suitable for elevated viewpoints. This sets the maximum the ocean will be scaled if set to a positive value.
 * **Min Scale** - this clamps the scale from below, to prevent the ocean scaling down to 0 when the camera approaches the sea level. Low values give lots of detail, but will limit the horizontal extents of the ocean detail.
-
-## Ocean Look and Behaviour
-
-* Ocean material / shading: The default ocean material *Ocean.mat* contains many tweakable variables to control appearance. Turn off unnecessary features to maximize performance.
-* Animated waves / ocean shape: Configured on the *ShapeGerstnerBatched* script by providing an *Ocean Wave Spectrum* asset. This asset has an equalizer-style interface for tweaking different scales of waves, and also has some parametric wave spectra from the literature for comparison.
-* Ocean foam: Configured on the *OceanBuilder* script by providing a *Sim Settings Foam* asset.
-* Dynamic wave simulation: Configured on the *OceanBuilder* script by providing a *Sim Settings Wave* asset.
-
-All settings can be live authored. When tweaking ocean shape it can be useful to freeze time (set *Time.timeScale* to 0) to clearly see the effect of each octave of waves.
 
 
 # Technical Details and Contributions

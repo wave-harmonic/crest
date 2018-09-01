@@ -67,10 +67,9 @@ The steps to set up Crest in a new or existing project currently look as follows
   * Some of the infrastructure for versioned Releases has been set up but is still evolving. These steps will be updated the release process has matured.
 * Drag *Crest/Prefabs/Ocean.prefab* into your scene(s), set y coordinate to desired sea level. On startup, this will generate the ocean geometry and initialise the ocean systems.
 * Tag a primary camera as *MainCamera* if one is not tagged already, or provide the viewpoint transform to the *OceanRenderer* script on the preab.
-* Add the following layers which are required by Crest:
+* Crest uses layers to render the different types of ocean data. It will throw errors in the log if a feature is turned on that requires a layer that is missing from the project. Most projects will require at least these two:
   * *LodDataAnimatedWaves* - for Gerstner waves and other kinematic shape.
   * *LodDataFoam* - for the foam simulation.
-  * *LodDataDynamicWaves* - for any dynamically simulated waves such as interactions with objects.
 * To add waves, create a new GameObject and add the *Shape Gerster Batched* component.
   * On startup this script creates a default ocean shape. To edit the shape, create an asset of type *Crest/Ocean Wave Spectrum* and provide it to this script.
   * Smooth blending of ocean shapes can be achieved by adding multiple *Shape Gerstner Batched* scripts and crossfading them using the *Weight* parameter.
@@ -127,6 +126,7 @@ See the dedicated [OPTIMISATION.md](https://github.com/huwb/crest-oceanrender/bl
 # Bugs and Improvement Directions
 
 * A non-backwards-compatible change was made to prefabs in Unity 2018.2, which means some of the example content prefabs may show up as *Missing* in previous versions. See issue #51.
+* Azure[Sky] requires some code to be added to the ocean shader for the fogging/scattering to work. This is a requirement of this product and apparently comes with instructions for what needs to be added. See issue #62.
 * Using prebaked textures (i.e. from an offline ocean simulation) would be easy to implement in our framework by rendering the prebaked results into the shape textures, and would be the most efficient option (although completely dynamic shape renders very efficiently).
 * Wetness simulation for shore
 * Flow - texture to paint wind direction

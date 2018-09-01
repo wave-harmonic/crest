@@ -84,6 +84,9 @@ Shader "Ocean/Ocean"
 				#pragma vertex vert
 				#pragma fragment frag
 				#pragma multi_compile_fog
+				//#pragma multi_compile_fwdadd
+				//#pragma multi_compile_fwdadd_fullshadows
+
 				#pragma shader_feature _APPLYNORMALMAPPING_ON
 				#pragma shader_feature _COMPUTEDIRECTIONALLIGHT_ON
 				#pragma shader_feature _SUBSURFACESCATTERING_ON
@@ -105,6 +108,8 @@ Shader "Ocean/Ocean"
 				#endif
 
 				#include "UnityCG.cginc"
+//#define UNITY_NO_SCREENSPACE_SHADOWS
+				#include "AutoLight.cginc"
 
 				struct appdata_t
 				{
@@ -126,6 +131,9 @@ Shader "Ocean/Ocean"
 					half3 debugtint : TEXCOORD8;
 					#endif
 					half4 grabPos : TEXCOORD9;
+
+					unityShadowCoord4 _ShadowCoord : TEXCOORD6;
+					//SHADOW_COORDS(6)
 
 					UNITY_FOG_COORDS( 3 )
 				};
@@ -226,6 +234,9 @@ Shader "Ocean/Ocean"
 					o.grabPos = ComputeGrabScreenPos(o.vertex);
 					o.foam_screenPos.yzw = ComputeScreenPos(o.vertex).xyw;
 
+					//TRANSFER_SHADOW(o);
+					o._ShadowCoord = mul(unity_WorldToShadow[0], float4(o.worldPos,1.));// mul(unity_ObjectToWorld, v.vertex));
+
 					return o;
 				}
 
@@ -281,6 +292,7 @@ Shader "Ocean/Ocean"
 				// these are copied from the render target by unity
 				sampler2D _BackgroundTexture;
 				sampler2D _CameraDepthTexture;
+				UNITY_DECLARE_SHADOWMAP(_ShadowMapTexture);
 
 				half2 SampleNormalMaps(float2 worldXZUndisplaced, float lodAlpha)
 				{
@@ -305,6 +317,9 @@ Shader "Ocean/Ocean"
 							UnpackNormal(tex2D( _Normals, (v1*_Time.y*spdmulH + worldXZUndisplaced) / nstretch )).xy,
 							nblend );
 					}
+
+					//norm += UNITY_SAMPLE_SHADOW(_ShadowMapTexture, float3(worldXZUndisplaced/100.,20.));
+					//norm += tex2D<float>(_GiveMeZeShadows, (float2)0.5).xy;
 
 					// approximate combine of normals. would be better if normals applied in local frame.
 					return _NormalsStrength * norm;
@@ -521,6 +536,11 @@ Shader "Ocean/Ocean"
 					#if _FOAM_ON
 					col = lerp(col, whiteFoamCol.rgb, whiteFoamCol.a);
 					#endif
+					
+					//col *= UnityComputeForwardShadows(0, i.worldPos, i._ShadowCoord); // SHADOW_ATTENUATION(ia)*.5;
+					//col *= SHADOW_ATTENUATION(i);
+
+					//col *= UnityComputeForwardShadows(0, i.worldPos, float4(screenPos.xy,0., screenPos.z));
 
 					// Fog
 					UNITY_APPLY_FOG(i.fogCoord, col);
@@ -532,6 +552,14 @@ Shader "Ocean/Ocean"
 					col.rg = mix(col.rg, i.flow.xy, 0.5);
 					#endif
 
+					// PUTS SOMETHING ON THE SCREEN!!
+					//col = UNITY_SAMPLE_SHADOW(_ShadowMapTexture, float3(i.grabPos.xy/i.grabPos.w, 0.15))/2.;
+
+					col = UNITY_SAMPLE_SHADOW(_ShadowMapTexture, i._ShadowCoord) / 2.;
+					
+					//col = UNITY_SAMPLE_SHADOW(_ShadowMapTexture, UnityCombineShadowcoordComponents(uvDepth.xy, float2(0, 0), 1000., 0.));
+					//
+					//col = tex2D<float>(_ShadowMapTexture, uvDepth);
 					return half4(col, 1.);
 				}
 

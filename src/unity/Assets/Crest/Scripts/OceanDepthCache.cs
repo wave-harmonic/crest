@@ -84,7 +84,7 @@ namespace Crest
             {
                 Debug.LogError("No valid layers for populating depth cache, aborting.", this);
             }
-
+            
             if (_cache == null)
             {
                 _cache = new RenderTexture(_resolution, _resolution, 0);

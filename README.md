@@ -8,7 +8,7 @@
 
 *Crest* is a technically advanced ocean renderer implemented in Unity3D 2018.2+.
 
-![Teaser](https://raw.githubusercontent.com/huwb/crest-oceanrender/master/img/teaser4.png)
+![Teaser](https://raw.githubusercontent.com/huwb/crest-oceanrender/master/img/teaser5.png)
 
 
 # Releases

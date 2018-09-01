@@ -123,17 +123,15 @@ The ocean pixel shader samples normal maps at 2 different scales, both proportio
 See the dedicated [OPTIMISATION.md](https://github.com/huwb/crest-oceanrender/blob/master/OPTIMISATION.md) doc.
 
 
-# Bugs and Improvement Directions
+# Issues
 
+If you encounter an issue, please search the [Issues page](https://github.com/huwb/crest-oceanrender/issues) to see if there is already a resolution, and if you don't find one then please report it as a new issue.
+
+There are a few known issues worth calling out:
+
+* *Crest* currently only works with the out of the box render pipelines in Unity (forward or deferred). It does not currently support *LWRP* or *HDRP*. If you would find such support useful, please feel free to comment in issue #49.
 * A non-backwards-compatible change was made to prefabs in Unity 2018.2, which means some of the example content prefabs may show up as *Missing* in previous versions. See issue #51.
 * Azure[Sky] requires some code to be added to the ocean shader for the fogging/scattering to work. This is a requirement of this product and apparently comes with instructions for what needs to be added. See issue #62.
-* Using prebaked textures (i.e. from an offline ocean simulation) would be easy to implement in our framework by rendering the prebaked results into the shape textures, and would be the most efficient option (although completely dynamic shape renders very efficiently).
-* Wetness simulation for shore
-* Flow - texture to paint wind direction
-
-# Contacts
-
-Huw Bowles (@hdb1 , huw dot bowles at gmail dot com), Daniel Zimmermann (@DanyGZimmermann, infkdude at gmail dot com), Chino Noris (@chino_noris , chino dot noris at epost dot ch), Beibei Wang (bebei dot wang at gmail dot com)
 
 
 # Links

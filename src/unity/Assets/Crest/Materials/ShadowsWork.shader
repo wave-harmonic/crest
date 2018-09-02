@@ -1,4 +1,6 @@
-﻿Shader "Lit/Diffuse With Shadows"
+﻿// this one produces shadows, but newunlitshader does not. why???
+
+Shader "Lit/Shadows Work"
 {
 	Properties
 	{
@@ -10,9 +12,9 @@
 	{
 		Pass
 		{
-			Tags{ "LightMode" = "ForwardBase" "RenderType"="Transparent" "Queue"="Transparent" }
-			Blend SrcAlpha OneMinusSrcAlpha
-			ZWrite Off
+			Tags{ "LightMode" = "ForwardBase" } //"RenderType" = "Transparent" "Queue" = "Transparent" }
+			//Blend SrcAlpha OneMinusSrcAlpha
+			//ZWrite Off
 
 			CGPROGRAM
 			#pragma vertex vert

@@ -13,7 +13,7 @@
 
 # Releases
 
-Releases are published semi-regularly and posted on the [Releases page](https://github.com/huwb/crest-oceanrender/releases). Unitypackages are uploaded with each release. Since development stability has historically been good, an option would be to grab the latest instead version from the master branch instead of waiting for releases. Be aware though that we actively refactor/cleanup/change the code to pay technical debt and fight complexity so integrations may require some fixup.
+Releases are published semi-regularly and posted on the [Releases page](https://github.com/huwb/crest-oceanrender/releases). Unitypackages are uploaded with each release. Since development stability has historically been good, an option would be to grab the latest version from the master branch instead of waiting for releases. Be aware though that we actively refactor/cleanup/change the code to pay technical debt and fight complexity so integrations may require some fixup.
 
 *Crest* exercises [semantic versioning](https://semver.org/) and follows the branching strategy outlined [here](https://gist.github.com/stuartsaunders/448036/5ae4e961f02e441e98528927d071f51bf082662f), although there is no develop branch used yet - development occurs on feature branches that are merged directly into master.
 

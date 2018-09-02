@@ -1,4 +1,4 @@
-﻿Shader "Unlit/NewUnlitShader"
+﻿Shader "Unlit/No Shadows"
 {
 	Properties
 	{
@@ -6,8 +6,8 @@
 	}
 	SubShader
 	{
-		Tags { "RenderType"="Transparent" "LightMode" = "ForwardBase" }
-		Blend One One
+		Tags {  "LightMode" = "ForwardBase" }
+		//Blend One One
 
 		LOD 100
 
@@ -34,7 +34,10 @@
 				float2 uv : TEXCOORD0;
 				UNITY_FOG_COORDS(1)
 				float4 vertex : SV_POSITION;
-				unityShadowCoord4 _ShadowCoord : TEXCOORD6;
+				//float4 grabPos : TEXCOORD3;
+				//unityShadowCoord4 _ShadowCoord : TEXCOORD6;
+				SHADOW_COORDS(6)
+
 			};
 
 			sampler2D _MainTex;
@@ -46,8 +49,11 @@
 				o.vertex = UnityObjectToClipPos(v.vertex);
 				o.uv = TRANSFORM_TEX(v.uv, _MainTex);
 				UNITY_TRANSFER_FOG(o,o.vertex);
-				o._ShadowCoord = mul(unity_WorldToShadow[0], mul(unity_ObjectToWorld, v.vertex));
+				
+				//o._ShadowCoord = mul(unity_WorldToShadow[0], mul(unity_ObjectToWorld, v.vertex));
+				TRANSFER_SHADOW(o)
 
+				//o.grabPos = ComputeGrabScreenPos(o.vertex);
 				return o;
 			}
 			
@@ -60,7 +66,11 @@
 				UNITY_APPLY_FOG(i.fogCoord, col);
 				col *= .2;*/
 
-				col = UNITY_SAMPLE_SHADOW(_ShadowMapTexture, i._ShadowCoord) / 1.4;
+				//col = UNITY_SAMPLE_SHADOW(_ShadowMapTexture, i._ShadowCoord) / 2.;
+
+				col = SHADOW_ATTENUATION(i);
+
+				//col = UNITY_SAMPLE_SHADOW(_ShadowMapTexture, float3(i.grabPos.xy/i.grabPos.w, 0.15))/2.;
 
 				return col;
 			}

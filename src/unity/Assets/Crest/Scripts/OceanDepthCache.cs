@@ -72,7 +72,8 @@ namespace Crest
                 int layerIdx = LayerMask.NameToLayer(layer);
                 if (string.IsNullOrEmpty(layer) || layerIdx == -1)
                 {
-                    Debug.LogError("Invalid layer specified: \"" + layer + "\"", this);
+                    Debug.LogError("OceanDepthCache: Invalid layer specified: \"" + layer + 
+                        "\". Please specify valid layers for objects/geometry that provide the ocean depth.", this);
                 }
                 else
                 {

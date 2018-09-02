@@ -1,80 +1,55 @@
-﻿Shader "Unlit/No Shadows"
+﻿Shader "Lit/No Shadows"
 {
 	Properties
 	{
-		_MainTex ("Texture", 2D) = "white" {}
+		[NoScaleOffset] _MainTex ("Texture", 2D) = "white" {}
 	}
+
 	SubShader
 	{
-		Tags {  "LightMode" = "ForwardBase" }
-		//Blend One One
-
-		LOD 100
-
 		Pass
 		{
+			Tags{ "LightMode" = "ForwardBase" }
+			Blend One One
+
 			CGPROGRAM
 			#pragma vertex vert
 			#pragma fragment frag
 			// make fog work
-			#pragma multi_compile_fog
+			//#pragma multi_compile_fog
+
+			#pragma multi_compile_fwdbase nolightmap nodirlightmap nodynlightmap novertexlight
 			
 			#include "UnityCG.cginc"
-#include "AutoLight.cginc"
-		UNITY_DECLARE_SHADOWMAP(_ShadowMapTexture);
-
-			struct appdata
-			{
-				float4 vertex : POSITION;
-				float2 uv : TEXCOORD0;
-			};
+			#include "Lighting.cginc"
+			#include "AutoLight.cginc"
 
 			struct v2f
 			{
 				float2 uv : TEXCOORD0;
-				UNITY_FOG_COORDS(1)
-				float4 vertex : SV_POSITION;
-				//float4 grabPos : TEXCOORD3;
-				//unityShadowCoord4 _ShadowCoord : TEXCOORD6;
+				float4 pos : SV_POSITION;
 				SHADOW_COORDS(6)
-
 			};
 
-			sampler2D _MainTex;
-			float4 _MainTex_ST;
-			
-			v2f vert (appdata v)
+			v2f vert(appdata_base v)
 			{
 				v2f o;
-				o.vertex = UnityObjectToClipPos(v.vertex);
-				o.uv = TRANSFORM_TEX(v.uv, _MainTex);
-				UNITY_TRANSFER_FOG(o,o.vertex);
-				
-				//o._ShadowCoord = mul(unity_WorldToShadow[0], mul(unity_ObjectToWorld, v.vertex));
+				o.pos = UnityObjectToClipPos(v.vertex);
+				o.uv = v.texcoord;
 				TRANSFER_SHADOW(o)
-
-				//o.grabPos = ComputeGrabScreenPos(o.vertex);
 				return o;
 			}
 			
-			fixed4 frag (v2f i) : SV_Target
+			sampler2D _MainTex;
+
+			fixed4 frag(v2f i) : SV_Target
 			{
-				// sample the texture
-				fixed4 col;
-			/*= tex2D(_MainTex, i.uv);
-				// apply fog
-				UNITY_APPLY_FOG(i.fogCoord, col);
-				col *= .2;*/
-
-				//col = UNITY_SAMPLE_SHADOW(_ShadowMapTexture, i._ShadowCoord) / 2.;
-
-				col = SHADOW_ATTENUATION(i);
-
-				//col = UNITY_SAMPLE_SHADOW(_ShadowMapTexture, float3(i.grabPos.xy/i.grabPos.w, 0.15))/2.;
-
-				return col;
+				fixed4 col = tex2D(_MainTex, i.uv);
+				fixed shadow = SHADOW_ATTENUATION(i);
+				return col * shadow * .2;
 			}
 			ENDCG
 		}
+		UsePass "Legacy Shaders/VertexLit/SHADOWCASTER"
 	}
 }

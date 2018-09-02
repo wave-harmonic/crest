@@ -1,3 +1,5 @@
+// Upgrade NOTE: commented out 'float4 unity_ShadowFadeCenterAndType', a built-in variable
+
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 Shader "Ocean/Ocean"
@@ -108,7 +110,6 @@ Shader "Ocean/Ocean"
 				#endif
 
 				#include "UnityCG.cginc"
-//#define UNITY_NO_SCREENSPACE_SHADOWS
 				#include "AutoLight.cginc"
 
 				struct appdata_t
@@ -235,7 +236,7 @@ Shader "Ocean/Ocean"
 					o.foam_screenPos.yzw = ComputeScreenPos(o.vertex).xyw;
 
 					//TRANSFER_SHADOW(o);
-					o._ShadowCoord = mul(unity_WorldToShadow[0], float4(o.worldPos,1.));// mul(unity_ObjectToWorld, v.vertex));
+					o._ShadowCoord = mul(unity_WorldToShadow[3], float4(o.worldPos,1.));// mul(unity_ObjectToWorld, v.vertex));
 
 					return o;
 				}
@@ -555,7 +556,9 @@ Shader "Ocean/Ocean"
 					// PUTS SOMETHING ON THE SCREEN!!
 					//col = UNITY_SAMPLE_SHADOW(_ShadowMapTexture, float3(i.grabPos.xy/i.grabPos.w, 0.15))/2.;
 
-					col = UNITY_SAMPLE_SHADOW(_ShadowMapTexture, i._ShadowCoord) / 2.;
+					if (i._ShadowCoord.x > 0. && i._ShadowCoord.x <= 1.)
+						if (i._ShadowCoord.y > 0. && i._ShadowCoord.y <= 1.)
+							col *= UNITY_SAMPLE_SHADOW(_ShadowMapTexture, i._ShadowCoord) * .5 + .5;
 					
 					//col = UNITY_SAMPLE_SHADOW(_ShadowMapTexture, UnityCombineShadowcoordComponents(uvDepth.xy, float2(0, 0), 1000., 0.));
 					//

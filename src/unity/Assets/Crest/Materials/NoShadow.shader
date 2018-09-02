@@ -9,8 +9,12 @@
 	{
 		Pass
 		{
-			Tags{ "LightMode" = "ForwardBase" }
-			Blend One One
+			//Tags{ "LightMode" = "ForwardBase" "RenderType"="Transparent" "Queue"="Geometry+510" }
+			Tags{ "Queue" = "Transparent" "IgnoreProjector" = "True" "RenderType" = "Transparent" }
+			//Tags { "RenderType"="Opaque" }
+			//LOD 100
+			ZWrite Off
+			Blend SrcAlpha OneMinusSrcAlpha
 
 			CGPROGRAM
 			#pragma vertex vert
@@ -46,7 +50,7 @@
 			{
 				fixed4 col = tex2D(_MainTex, i.uv);
 				fixed shadow = SHADOW_ATTENUATION(i);
-				return col * shadow * .2;
+				return fixed4(col.rgb * shadow, .5);
 			}
 			ENDCG
 		}

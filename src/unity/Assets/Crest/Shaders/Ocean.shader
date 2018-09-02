@@ -481,6 +481,23 @@ Shader "Ocean/Ocean"
 					return col;
 				}
 
+
+				inline fixed unitySampleShadow(unityShadowCoord4 shadowCoord)
+				{
+#if defined(SHADOWS_NATIVE)
+					fixed shadow = UNITY_SAMPLE_SHADOW(_ShadowMapTexture, shadowCoord.xyz);
+					shadow = _LightShadowData.r + shadow * (1 - _LightShadowData.r);
+					return shadow;
+#else
+					unityShadowCoord dist = SAMPLE_DEPTH_TEXTURE(_ShadowMapTexture, shadowCoord.xy);
+					// tegra is confused if we use _LightShadowData.x directly
+					// with "ambiguous overloaded function reference max(mediump float, float)"
+					unityShadowCoord lightShadowDataX = _LightShadowData.x;
+					unityShadowCoord threshold = shadowCoord.z;
+					return max(dist > threshold, lightShadowDataX);
+#endif
+				}
+
 				half4 frag(v2f i) : SV_Target
 				{
 					half3 view = normalize(_WorldSpaceCameraPos - i.worldPos);
@@ -556,10 +573,14 @@ Shader "Ocean/Ocean"
 					// PUTS SOMETHING ON THE SCREEN!!
 					//col = UNITY_SAMPLE_SHADOW(_ShadowMapTexture, float3(i.grabPos.xy/i.grabPos.w, 0.15))/2.;
 
-					if (i._ShadowCoord.x > 0. && i._ShadowCoord.x <= 1.)
-						if (i._ShadowCoord.y > 0. && i._ShadowCoord.y <= 1.)
-							col *= UNITY_SAMPLE_SHADOW(_ShadowMapTexture, i._ShadowCoord) * .5 + .5;
+					// my beautiful version
+					//if (i._ShadowCoord.x > 0. && i._ShadowCoord.x <= 1.)
+					//	if (i._ShadowCoord.y > 0. && i._ShadowCoord.y <= 1.)
+					//		col *= UNITY_SAMPLE_SHADOW(_ShadowMapTexture, i._ShadowCoord) * .5 + .5;
 					
+					// scraping together what i could find 
+					col *= unitySampleShadow(mul(unity_WorldToShadow[2], unityShadowCoord4(i.worldPos, 1)));
+
 					//col = UNITY_SAMPLE_SHADOW(_ShadowMapTexture, UnityCombineShadowcoordComponents(uvDepth.xy, float2(0, 0), 1000., 0.));
 					//
 					//col = tex2D<float>(_ShadowMapTexture, uvDepth);

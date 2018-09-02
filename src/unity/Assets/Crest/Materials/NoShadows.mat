@@ -6,7 +6,7 @@ Material:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
-  m_Name: Unlit_NewUnlitShader
+  m_Name: NoShadows
   m_Shader: {fileID: 4800000, guid: 19f560201c5f8634d8dd8e604c2f849b, type: 3}
   m_ShaderKeywords: 
   m_LightmapFlags: 4

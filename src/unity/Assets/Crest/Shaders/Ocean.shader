@@ -62,6 +62,11 @@ Shader "Ocean/Ocean"
 		_SkyHorizGradCol1("    Horiz Colour B", Color) = (1.0, 1.0, 1.0, 1.0)
 		_SkyHorizGradCol2("    Horiz Colour C", Color) = (1.0, 1.0, 1.0, 1.0)
 		_SkyHorizGradKnots("    Horiz Handles", Vector) = (0.0, 0.25, 0.5, 0.75)
+		[Toggle] _DotProductSky("Dot Prod Sky", Float) = 0
+		[HDR] _SkyBase("    Base", Color) = (1.0, 1.0, 1.0, 1.0)
+		[HDR] _SkyTowardsSun("    Towards Sun", Color) = (1.0, 1.0, 1.0, 1.0)
+		_SkyDirectionality("    Directionality", Range(0.0, 0.99)) = 1.0
+		[HDR] _SkyAwayFromSun("    Away From Sun", Color) = (1.0, 1.0, 1.0, 1.0)
 		[Enum(CullMode)] _CullMode("Cull Mode", Int) = 2
 		[Toggle] _DebugDisableShapeTextures("Debug Disable Shape Textures", Float) = 0
 		[Toggle] _DebugVisualiseShapeSample("Debug Visualise Shape Sample", Float) = 0
@@ -105,6 +110,7 @@ Shader "Ocean/Ocean"
 				#pragma shader_feature _FOAM_ON
 				#pragma shader_feature _FOAM3DLIGHTING_ON
 				#pragma shader_feature _GRADIENTSKY_ON
+				#pragma shader_feature _DOTPRODUCTSKY_ON
 				#pragma shader_feature _DEBUGDISABLESHAPETEXTURES_ON
 				#pragma shader_feature _DEBUGVISUALISESHAPESAMPLE_ON
 				#pragma shader_feature _DEBUGVISUALISEFLOW_ON
@@ -477,6 +483,7 @@ Shader "Ocean/Ocean"
 					return col;
 				}
 
+				#if _GRADIENTSKY_ON
 				uniform fixed3 _GradientSkyColourBelow;
 				uniform fixed3 _GradientSkyColour0;
 				uniform fixed3 _GradientSkyColour1;
@@ -512,6 +519,30 @@ Shader "Ocean/Ocean"
 						return lerp(_SkyHorizGradCol0, _SkyHorizGradCol1, (angle - _SkyHorizGradKnots.y) / (_SkyHorizGradKnots.z - _SkyHorizGradKnots.y));
 					return lerp(_SkyHorizGradCol1, _SkyHorizGradCol2, saturate((angle - _SkyHorizGradKnots.z) / (_SkyHorizGradKnots.w - _SkyHorizGradKnots.z)));
 				}
+				#endif
+
+				#if _DOTPRODUCTSKY_ON
+				uniform half3 _SkyBase, _SkyAwayFromSun, _SkyTowardsSun;
+				uniform half _SkyDirectionality;
+				half3 DotProductSky(half3 refl, half3 lightDir)
+				{
+					half dp = dot(refl, lightDir);
+
+					if (dp > _SkyDirectionality)
+					{
+						dp = (dp - _SkyDirectionality) / (1. - _SkyDirectionality);
+						return lerp(_SkyBase, _SkyTowardsSun, dp);
+					}
+					else
+					{
+						dp = (dp - -1.0) / (_SkyDirectionality - -1.0);
+						return lerp(_SkyAwayFromSun, _SkyBase, dp);
+					}
+					//if (dp < 0.)
+					//	return lerp(result, _SkyAwayFromSun, -dp);
+					//return lerp(result, _SkyTowardsSun, pow(dp, _SkyTowardsSunExponent));
+				}
+				#endif
 
 				half4 frag(v2f i) : SV_Target
 				{
@@ -554,11 +585,13 @@ Shader "Ocean/Ocean"
 
 					// Sky colour
 					half3 skyColour = (half3)0.;
-					#if !_GRADIENTSKY_ON
-					skyColour = texCUBE(_Skybox, refl);
-					#else
+					#if _GRADIENTSKY_ON
 					skyColour += GradientSkyVertical(refl);
 					skyColour += GradientSkyHorizontal(refl);
+					#elif _DOTPRODUCTSKY_ON
+					skyColour = DotProductSky(refl, lightDir);
+					#else
+					skyColour = texCUBE(_Skybox, refl);
 					#endif
 
 					// Add primary light to boost it

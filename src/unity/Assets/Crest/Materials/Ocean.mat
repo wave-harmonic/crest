@@ -8,10 +8,9 @@ Material:
   m_PrefabInternal: {fileID: 0}
   m_Name: Ocean
   m_Shader: {fileID: 4800000, guid: 668aecf91371c8b4997e42c0c7b19527, type: 3}
-  m_ShaderKeywords: _APPLYFLOWTONORMALS_ON _APPLYNORMALMAPPING_ON _CAUSTICS_ON _COMPUTEDIRECTIONALLIGHT_ON
-    _DEBUGMULTIPLYBYLIGHT0COLOR_ON _FOAM3DLIGHTING_ON _FOAM_ON _GRADIENTSKYHORIZ_ON
-    _GRADIENTSKY_ON _SUBSURFACEHEIGHTLERP_ON _SUBSURFACESCATTERING_ON _SUBSURFACESHALLOWCOLOUR_ON
-    _TRANSPARENCY_ON
+  m_ShaderKeywords: _APPLYFLOWTONORMALS_ON _APPLYNORMALMAPPING_ON _CAUSTICS_ON _DEBUGMULTIPLYBYLIGHT0COLOR_ON
+    _DOTPRODUCTSKY_ON _FOAM3DLIGHTING_ON _FOAM_ON _GRADIENTSKYHORIZ_ON _SUBSURFACEHEIGHTLERP_ON
+    _SUBSURFACESCATTERING_ON _SUBSURFACESHALLOWCOLOUR_ON _TRANSPARENCY_ON
   m_LightmapFlags: 5
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -88,7 +87,7 @@ Material:
     - _CausticsTextureAverage: 0.07
     - _CausticsTextureScale: 5
     - _CompileShaderWithDebugInfo: 0
-    - _ComputeDirectionalLight: 1
+    - _ComputeDirectionalLight: 0
     - _CullMode: 2
     - _DebugDisableMultiplyByLight0Color: 0
     - _DebugDisableShapeTextures: 0
@@ -99,11 +98,12 @@ Material:
     - _DebugVisualiseShapeSample: 0
     - _DirectionalLightBoost: 7
     - _DirectionalLightFallOff: 275
+    - _DotProductSky: 1
     - _Foam: 1
     - _Foam3DLighting: 1
     - _FoamScale: 10
     - _FresnelPower: 5
-    - _GradientSky: 1
+    - _GradientSky: 0
     - _GradientSkyHoriz: 1
     - _Invert: 1
     - _MipBias: 0
@@ -114,6 +114,8 @@ Material:
     - _RefractAmt: 0
     - _S: 1
     - _ShorelineFoamMinDepth: 0.27
+    - _SkyDirectionality: 0.746
+    - _SkyTowardsSunExponent: 0.85
     - _StartLevel: 0.157
     - _SubSurfaceBase: 0.24
     - _SubSurfaceCrestColour: 1
@@ -154,11 +156,15 @@ Material:
     - _GradientSkyColour3: {r: 1, g: 0, b: 0, a: 1}
     - _GradientSkyColourBelow: {r: 0, g: 0.741, b: 0.021955613, a: 1}
     - _GradientSkyKnots: {r: 0, g: 0.125, b: 0.25, a: 0.5}
+    - _SkyAwayFromSun: {r: 0, g: 0.1764706, b: 1, a: 1}
+    - _SkyBase: {r: 0, g: 0.7411766, b: 1, a: 1}
     - _SkyHorizGradCol0: {r: 0, g: 0, b: 0, a: 1}
     - _SkyHorizGradCol1: {r: 1, g: 0.5589782, b: 0, a: 1}
     - _SkyHorizGradCol2: {r: 0, g: 0, b: 0, a: 1}
     - _SkyHorizGradColBelow: {r: 0, g: 0, b: 0, a: 1}
     - _SkyHorizGradKnots: {r: 0, g: 0.4, b: 0.53, a: 0.6}
+    - _SkyTowardsSun: {r: 2.6390157, g: 1.38, b: 0, a: 1}
+    - _SkyTowardsSunExponent: {r: 1, g: 1, b: 1, a: 1}
     - _SubSurface: {r: 0, g: 0.48, b: 0.36, a: 1}
     - _SubSurfaceColour: {r: 0.10196078, g: 0.57254905, b: 0.5256646, a: 1}
     - _SubSurfaceCrestColour: {r: 0.42, g: 0.69, b: 0.52, a: 1}

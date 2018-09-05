@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.Rendering;
+using System.Collections.Generic;
 
 namespace Crest
 {
@@ -16,22 +17,50 @@ namespace Crest
         public override CameraClearFlags CamClearFlags { get { return CameraClearFlags.Color; } }
         public override RenderTexture DataTexture { get { return _rtOceanDepth; } }
 
-        Material _matOceanDepth;
-        CommandBuffer _bufOceanDepth = null;
+        bool _oceanDepthRenderersDirty = true;
 
         RenderTexture _rtOceanDepth;
+        CommandBuffer _bufOceanDepth = null;
 
-        bool _oceanDepthRenderersDirty = true;
-        /// <summary>Called when one or more objects that will render into depth are created, so that all objects are registered.</summary>
-        public void OnOceanDepthRenderersChanged() { _oceanDepthRenderersDirty = true; }
+        static Dictionary<Renderer, Material> _depthRenderers = new Dictionary<Renderer, Material>();
+        public static void AddRenderOceanDepth(Renderer rend, Material mat)
+        {
+            if (OceanRenderer.Instance == null || OceanRenderer.Instance.Builder == null)
+            {
+                _depthRenderers.Clear();
+                return;
+            }
+
+            _depthRenderers.Add(rend, mat);
+
+            // notify there is a new contributor to ocean depth
+            foreach (var ldaw in OceanRenderer.Instance.Builder._lodDataAnimWaves)
+            {
+                ldaw.LDSeaDepth._oceanDepthRenderersDirty = true;
+            }
+        }
+        public static void RemoveRenderOceanDepth(Renderer rend)
+        {
+            if (OceanRenderer.Instance == null || OceanRenderer.Instance.Builder == null)
+            {
+                _depthRenderers.Clear();
+                return;
+            }
+
+            _depthRenderers.Remove(rend);
+
+            // notify there is a new contributor to ocean depth
+            foreach (var ldaw in OceanRenderer.Instance.Builder._lodDataAnimWaves)
+            {
+                ldaw.LDSeaDepth._oceanDepthRenderersDirty = true;
+            }
+        }
 
         protected override void Start()
         {
             base.Start();
 
             Cam.depthTextureMode = DepthTextureMode.None;
-
-            _matOceanDepth = new Material(Shader.Find("Ocean/Ocean Depth"));
 
             int res = OceanRenderer.Instance.LodDataResolution;
             _rtOceanDepth = new RenderTexture(res, res, 0);
@@ -54,10 +83,8 @@ namespace Crest
         // It's stateless - the textures don't have to be managed across frames/scale changes
         void UpdateCmdBufOceanFloorDepth()
         {
-            var objs = FindObjectsOfType<RenderOceanDepth>();
-
             // if there is nothing in the scene tagged up for depth rendering then there is no depth rendering required
-            if (objs.Length < 1)
+            if (_depthRenderers.Count < 1)
             {
                 if (_bufOceanDepth != null)
                 {
@@ -79,24 +106,9 @@ namespace Crest
             _bufOceanDepth.SetRenderTarget(_rtOceanDepth);
             _bufOceanDepth.ClearRenderTarget(false, true, Color.red * 10000f);
 
-            foreach (var obj in objs)
+            foreach (var entry in _depthRenderers)
             {
-                if (!obj.enabled)
-                    continue;
-
-                var r = obj.GetComponent<Renderer>();
-                if (r == null)
-                {
-                    Debug.LogError("GameObject '" + obj.gameObject.name + "' must have a renderer component attached. Unity Terrain objects are not supported - these must be captured by an Ocean Depth Cache.", obj);
-                }
-                else if (obj.transform.parent != null && obj.transform.parent.GetComponent<OceanDepthCache>() != null)
-                {
-                    _bufOceanDepth.DrawRenderer(r, r.material);
-                }
-                else
-                {
-                    _bufOceanDepth.DrawRenderer(r, _matOceanDepth);
-                }
+                _bufOceanDepth.DrawRenderer(entry.Key, entry.Value);
             }
         }
 

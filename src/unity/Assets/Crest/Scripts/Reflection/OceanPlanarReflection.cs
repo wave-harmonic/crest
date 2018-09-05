@@ -31,7 +31,10 @@ public class OceanPlanarReflection : MonoBehaviour
             return;
         }
 
-        Camera cam = Camera.current;
+        // used to be:
+        // Camera cam = Camera.current;
+        // but this returned null when mouse dragging??
+        Camera cam = Camera.main;
         if (!cam)
         {
             return;

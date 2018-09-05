@@ -1,5 +1,6 @@
 ﻿using Crest;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class OceanDebugGUI : MonoBehaviour
 {
@@ -31,6 +32,10 @@ public class OceanDebugGUI : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.F))
         {
             Time.timeScale = Time.timeScale == 0f ? 1f : 0f;
+        }
+        if( Input.GetKeyDown(KeyCode.R))
+        {
+            SceneManager.LoadScene(SceneManager.GetSceneAt(0).buildIndex);
         }
     }
 

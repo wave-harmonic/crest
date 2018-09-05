@@ -8,9 +8,12 @@ namespace Crest
     /// </summary>
     public class RenderOceanDepth : MonoBehaviour
     {
+        [SerializeField, Tooltip("Material to use to write depth. Leave null to use the default depth material.")]
+        Material _renderDepthMaterial;
+
         private void OnEnable()
         {
-            var mat = new Material(Shader.Find("Ocean/Ocean Depth"));
+            var mat = _renderDepthMaterial ?? new Material(Shader.Find("Ocean/Ocean Depth"));
             LodDataSeaFloorDepth.AddRenderOceanDepth(GetComponent<Renderer>(), mat);
         }
 
@@ -21,9 +24,10 @@ namespace Crest
 
         public void SetMaterial(Material mat)
         {
+            _renderDepthMaterial = mat;
             var rend = GetComponent<Renderer>();
             LodDataSeaFloorDepth.RemoveRenderOceanDepth(rend);
-            LodDataSeaFloorDepth.AddRenderOceanDepth(rend, mat);
+            LodDataSeaFloorDepth.AddRenderOceanDepth(rend, _renderDepthMaterial);
         }
     }
 }

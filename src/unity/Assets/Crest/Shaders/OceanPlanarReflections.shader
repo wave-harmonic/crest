@@ -7,7 +7,7 @@ Shader "Ocean/Ocean (Planar reflections)"
 		[Toggle] _ApplyNormalMapping("Apply Normal Mapping", Float) = 1
 		[NoScaleOffset] _Normals ( "Normals", 2D ) = "bump" {}
 		_NormalsStrength("Normals Strength", Range(0.0, 2.0)) = 0.3
-		_NormalsScale("Normals Scale", Range(0.0, 50.0)) = 1.0
+		_NormalsScale("Normals Scale", Range(0.01, 50.0)) = 1.0
 		_ReflectionTex("Reflection Texture", 2D) = "black" {} //The real-time reflections texture
 		_Diffuse("Diffuse", Color) = (0.2, 0.05, 0.05, 1.0)
 		[Toggle] _ComputeDirectionalLight("Add Directional Light", Float) = 1
@@ -20,10 +20,10 @@ Shader "Ocean/Ocean (Planar reflections)"
 		_SubSurfaceSunFallOff("Sub-Surface Scattering Sun Fall-Off", Range(1.0, 16.0)) = 4.0
 		[Toggle] _Foam("Foam", Float) = 1
 		[NoScaleOffset] _FoamTexture ( "Foam Texture", 2D ) = "white" {}
-		_FoamScale("Foam Scale", Range(0.0, 50.0)) = 10.0
+		_FoamScale("Foam Scale", Range(0.01, 50.0)) = 10.0
 		_FoamWhiteColor("White Foam Color", Color) = (1.0, 1.0, 1.0, 1.0)
 		_FoamBubbleColor("Bubble Foam Color", Color) = (0.0, 0.0904, 0.105, 1.0)
-		_ShorelineFoamMinDepth("Shoreline Foam Min Depth", Range(0.0, 5.0)) = 0.27
+		_ShorelineFoamMinDepth("Shoreline Foam Min Depth", Range(0.01, 5.0)) = 0.27
 		_WaveFoamCoverage("Wave Foam Coverage", Range(0.0,5.0)) = 0.95
 		_WaveFoamFeather("Wave Foam Feather", Range(0.001,1.0)) = 0.32
 		_WaveFoamBubblesCoverage("Wave Foam Bubbles Coverage", Range(0.0,5.0)) = 0.95
@@ -328,7 +328,7 @@ Shader "Ocean/Ocean (Planar reflections)"
 					return col;
 				}
 
-				half3 frag(v2f i) : SV_Target
+				half4 frag(v2f i) : SV_Target
 				{
 					half3 view = normalize(_WorldSpaceCameraPos - i.worldPos);
 
@@ -362,12 +362,9 @@ Shader "Ocean/Ocean (Planar reflections)"
 
 					// Reflection
 					half3 refl = reflect(-view, n_pixel);
-					//half3 skyColor = texCUBE(_Skybox, refl);
 
 					float4 uvRefl = i.ref;
-					uvRefl.xyz += n_pixel;
-					// i think we want to perturb the uvs by the xz components of the normal? the below seems to give the right reflection movement for me.
-					//uvRefl.xy -= 1.*n_pixel.xz;
+					uvRefl.xy += 1.*n_pixel.xz; // Finally used "+" instead of "-" because the unity water advanced does this way, it adds the normal for reflection; subtracts it for refraction. Works nicely for me. Does it make sense?
 
 					half4 skyColor = tex2Dproj(_ReflectionTex, UNITY_PROJ_COORD(uvRefl));
 
@@ -397,7 +394,7 @@ Shader "Ocean/Ocean (Planar reflections)"
 					col = mix(col.rgb, i.debugtint, 0.5);
 					#endif
 
-					return col;
+					return half4(col, 1.);
 				}
 
 				ENDCG

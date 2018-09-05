@@ -17,9 +17,6 @@ namespace Crest
         [Tooltip("The layers to render into the depth cache.")]
         public string[] _layerNames;
 
-        [FormerlySerializedAs("_layerName"), Tooltip("Please use the Layer Names field instead.")]
-        public string _layerNameDEPRECATED;
-
         [Tooltip("The resolution of the cached depth - lower will be more efficient.")]
         public int _resolution = 512;
 
@@ -36,11 +33,6 @@ namespace Crest
 
         void Start()
         {
-            if(!string.IsNullOrEmpty(_layerNameDEPRECATED))
-            {
-                Debug.LogWarning("The Layer Name field is deprecated - please use the Layer Names list instead.", this);
-            }
-
             if (_layerNames == null || _layerNames.Length < 1)
             {
                 Debug.LogError("At least one layer name to render into the cache must be provided.", this);

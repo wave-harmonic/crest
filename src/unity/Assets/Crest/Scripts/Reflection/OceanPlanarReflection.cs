@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
 using UnityEngine;
-
 
 public class OceanPlanarReflection : MonoBehaviour
 {
@@ -9,15 +6,29 @@ public class OceanPlanarReflection : MonoBehaviour
     public int textureSize = 256;
     public float clipPlaneOffset = 0.07f;
     public LayerMask reflectLayers = -1;
+    public bool _showReflection = false;
 
-
-    private Dictionary<Camera, Camera> m_ReflectionCameras = new Dictionary<Camera, Camera>(); // Camera -> Camera table
+    Camera m_ReflectionCamera;
     private RenderTexture m_ReflectionTexture;
     private int m_OldReflectionTextureSize;
-    private static bool s_InsideWater;
     public Material m_OceanMat;
-
+    Camera _camera;
+    [Range(0, 1)]
+    public float _waveHeightOffset = 0f;
+    [Range(0, 1)]
+    public float _waveDispOffset = 0f;
     public bool _hideCamera = true;
+
+    private void Start()
+    {
+        _camera = GetComponent<Camera>();
+        if (!_camera)
+        {
+            Debug.LogWarning("Disabling planar reflections as no camera found on gameobject to generate reflection from.", this);
+            enabled = false;
+            return;
+        }
+    }
 
     private void LateUpdate()
     {
@@ -26,32 +37,16 @@ public class OceanPlanarReflection : MonoBehaviour
 
     public void UpdateReflection()
     {
-        if (!enabled)
-        {
-            return;
-        }
-
-        // used to be:
-        // Camera cam = Camera.current;
-        // but this returned null when mouse dragging??
-        Camera cam = Camera.main;
-        if (!cam)
-        {
-            return;
-        }
-
-        // Safeguard from recursive water reflections.
-        if (s_InsideWater)
-        {
-            return;
-        }
-        s_InsideWater = true;
-
-        Camera reflectionCamera, refractionCamera;
-        CreateWaterObjects(cam, out reflectionCamera, out refractionCamera);
+        CreateWaterObjects(_camera);
 
         // find out the reflection plane: position and normal in world space
-        Vector3 pos = transform.position;
+        Vector3 pos = Crest.OceanRenderer.Instance.transform.position;
+        //pos.y += Crest.OceanRenderer.Instance.MaxVertDisplacement * _waveHeightOffset;
+        //Vector3 disp = Vector3.zero;
+        //if (Crest.OceanRenderer.Instance.CollisionProvider.SampleDisplacement(ref pos, ref disp, 10f))
+        //{
+        //    pos.y += disp.y * _waveDispOffset;
+        //}
         Vector3 normal = Vector3.up;
 
         // Optionally disable pixel lights for reflection/refraction
@@ -61,8 +56,7 @@ public class OceanPlanarReflection : MonoBehaviour
             QualitySettings.pixelLightCount = 0;
         }
 
-        UpdateCameraModes(cam, reflectionCamera);
-        UpdateCameraModes(cam, refractionCamera);
+        UpdateCameraModes(_camera, m_ReflectionCamera);
 
         // Render reflection if needed
         // Reflect camera around reflection plane
@@ -71,27 +65,27 @@ public class OceanPlanarReflection : MonoBehaviour
 
         Matrix4x4 reflection = Matrix4x4.zero;
         CalculateReflectionMatrix(ref reflection, reflectionPlane);
-        Vector3 oldpos = cam.transform.position;
+        Vector3 oldpos = _camera.transform.position;
         Vector3 newpos = reflection.MultiplyPoint(oldpos);
-        reflectionCamera.worldToCameraMatrix = cam.worldToCameraMatrix * reflection;
+        m_ReflectionCamera.worldToCameraMatrix = _camera.worldToCameraMatrix * reflection;
 
         // Setup oblique projection matrix so that near plane is our reflection
         // plane. This way we clip everything below/above it for free.
-        Vector4 clipPlane = CameraSpacePlane(reflectionCamera, pos, normal, 1.0f);
-        reflectionCamera.projectionMatrix = cam.CalculateObliqueMatrix(clipPlane);
+        Vector4 clipPlane = CameraSpacePlane(m_ReflectionCamera, pos, normal, 1.0f);
+        m_ReflectionCamera.projectionMatrix = _camera.CalculateObliqueMatrix(clipPlane);
 
-		// Set custom culling matrix from the current camera
-		reflectionCamera.cullingMatrix = cam.projectionMatrix * cam.worldToCameraMatrix;
+        // Set custom culling matrix from the current camera
+        m_ReflectionCamera.cullingMatrix = _camera.projectionMatrix * _camera.worldToCameraMatrix;
 
-		reflectionCamera.cullingMask = ~(1 << 4) & reflectLayers.value; // never render water layer
-        reflectionCamera.targetTexture = m_ReflectionTexture;
+        m_ReflectionCamera.cullingMask = ~(1 << 4) & reflectLayers.value; // never render water layer
+        m_ReflectionCamera.targetTexture = m_ReflectionTexture;
         bool oldCulling = GL.invertCulling;
         GL.invertCulling = !oldCulling;
-        reflectionCamera.transform.position = newpos;
-        Vector3 euler = cam.transform.eulerAngles;
-        reflectionCamera.transform.eulerAngles = new Vector3(-euler.x, euler.y, euler.z);
-        reflectionCamera.Render();
-        reflectionCamera.transform.position = oldpos;
+        m_ReflectionCamera.transform.position = newpos;
+        Vector3 euler = _camera.transform.eulerAngles;
+        m_ReflectionCamera.transform.eulerAngles = new Vector3(-euler.x, euler.y, euler.z);
+        m_ReflectionCamera.Render();
+        m_ReflectionCamera.transform.position = oldpos;
         GL.invertCulling = oldCulling;
         m_OceanMat.SetTexture("_ReflectionTex", m_ReflectionTexture);
 
@@ -100,25 +94,8 @@ public class OceanPlanarReflection : MonoBehaviour
         {
             QualitySettings.pixelLightCount = oldPixelLightCount;
         }
-
-        s_InsideWater = false;
     }
 
-
-    // Cleanup all the objects we possibly have created
-    void OnDisable()
-    {
-        if (m_ReflectionTexture)
-        {
-            DestroyImmediate(m_ReflectionTexture);
-            m_ReflectionTexture = null;
-        }
-        foreach (var kvp in m_ReflectionCameras)
-        {
-            DestroyImmediate((kvp.Value).gameObject);
-        }
-        m_ReflectionCameras.Clear();
-    }
 
     void UpdateCameraModes(Camera src, Camera dest)
     {
@@ -154,13 +131,9 @@ public class OceanPlanarReflection : MonoBehaviour
         dest.orthographicSize = src.orthographicSize;
     }
 
-
     // On-demand create any objects we need for water
-    void CreateWaterObjects(Camera currentCamera, out Camera reflectionCamera, out Camera refractionCamera)
+    void CreateWaterObjects(Camera currentCamera)
     {
-        reflectionCamera = null;
-        refractionCamera = null;
-
         // Reflection render texture
         if (!m_ReflectionTexture || m_OldReflectionTextureSize != textureSize)
         {
@@ -176,18 +149,16 @@ public class OceanPlanarReflection : MonoBehaviour
         }
 
         // Camera for reflection
-        m_ReflectionCameras.TryGetValue(currentCamera, out reflectionCamera);
-        if (!reflectionCamera) // catch both not-in-dictionary and in-dictionary-but-deleted-GO
+        if (!m_ReflectionCamera) // catch both not-in-dictionary and in-dictionary-but-deleted-GO
         {
             GameObject go = new GameObject("Water Refl Camera id" + GetInstanceID() + " for " + currentCamera.GetInstanceID(), typeof(Camera), typeof(Skybox));
-            reflectionCamera = go.GetComponent<Camera>();
-            reflectionCamera.enabled = false;
-            reflectionCamera.transform.position = transform.position;
-            reflectionCamera.transform.rotation = transform.rotation;
-            reflectionCamera.gameObject.AddComponent<FlareLayer>();
+            m_ReflectionCamera = go.GetComponent<Camera>();
+            m_ReflectionCamera.enabled = false;
+            m_ReflectionCamera.transform.position = transform.position;
+            m_ReflectionCamera.transform.rotation = transform.rotation;
+            m_ReflectionCamera.gameObject.AddComponent<FlareLayer>();
             if (_hideCamera)
                 go.hideFlags = HideFlags.HideAndDontSave;
-            m_ReflectionCameras[currentCamera] = reflectionCamera;
         }
     }
 
@@ -224,5 +195,30 @@ public class OceanPlanarReflection : MonoBehaviour
         reflectionMat.m32 = 0F;
         reflectionMat.m33 = 1F;
     }
+
+    // Cleanup all the objects we possibly have created
+    void OnDisable()
+    {
+        if (m_ReflectionTexture)
+        {
+            Destroy(m_ReflectionTexture);
+            m_ReflectionTexture = null;
+        }
+        if (m_ReflectionCamera)
+        {
+            Destroy(m_ReflectionCamera.gameObject);
+            m_ReflectionCamera = null;
+        }
+    }
+
+#if UNITY_EDITOR
+    private void OnGUI()
+    {
+        if (_showReflection)
+        {
+            GUI.DrawTexture(new Rect(300, 0, 100, 100), m_ReflectionTexture);
+        }
+    }
+#endif
 }
 

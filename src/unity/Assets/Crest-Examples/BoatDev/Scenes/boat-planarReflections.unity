@@ -134,6 +134,7 @@ GameObject:
   - component: {fileID: 227134468}
   - component: {fileID: 227134471}
   - component: {fileID: 227134472}
+  - component: {fileID: 227134474}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -275,6 +276,28 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _gui: 1
+--- !u!114 &227134474
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 227134465}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: da05aab3ba773644eb187d19c55bb05a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  disablePixelLights: 1
+  textureSize: 512
+  clipPlaneOffset: 0.07
+  reflectLayers:
+    serializedVersion: 2
+    m_Bits: 1
+  _showReflection: 1
+  m_OceanMat: {fileID: 2100000, guid: 38d2c25d1dcca034ca4b51b63aa6a4ab, type: 2}
+  _waveHeightOffset: 0
+  _waveDispOffset: 0
+  _hideCamera: 0
 --- !u!1 &416506602
 GameObject:
   m_ObjectHideFlags: 0
@@ -688,7 +711,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1578046892
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -706,7 +729,10 @@ MonoBehaviour:
   reflectLayers:
     serializedVersion: 2
     m_Bits: 1
+  _showReflection: 1
   m_OceanMat: {fileID: 2100000, guid: 38d2c25d1dcca034ca4b51b63aa6a4ab, type: 2}
+  _waveHeightOffset: 0
+  _waveDispOffset: 0
   _hideCamera: 0
 --- !u!4 &1578046893
 Transform:

@@ -79,6 +79,11 @@ namespace Crest
                 shapeCams[_lodIndex + 1].ApplyMaterialParams(1, new PropertyWrapperMPB(_mpb));
             }
 
+            if(OceanRenderer.Instance.PlanarReflection)
+            {
+                _mpb.SetTexture("_ReflectionTex", OceanRenderer.Instance.PlanarReflection.ReflectionTexture);
+            }
+
             _rend.SetPropertyBlock(_mpb);
 
             if (_drawRenderBounds)

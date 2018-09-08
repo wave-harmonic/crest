@@ -8,6 +8,7 @@ Shader "Ocean/Ocean"
 		[NoScaleOffset] _Normals ( "Normals", 2D ) = "bump" {}
 		_NormalsStrength("Normals Strength", Range(0.0, 2.0)) = 0.3
 		_NormalsScale("Normals Scale", Range(0.01, 50.0)) = 1.0
+		[Toggle] _PlanarReflections("Planar Reflections", Float) = 1
 		[NoScaleOffset] _Skybox ("Skybox", CUBE) = "" {}
 		_Diffuse("Diffuse", Color) = (0.2, 0.05, 0.05, 1.0)
 		[Toggle] _ComputeDirectionalLight("Add Directional Light", Float) = 1
@@ -66,6 +67,7 @@ Shader "Ocean/Ocean"
 				#pragma shader_feature _TRANSPARENCY_ON
 				#pragma shader_feature _FOAM_ON
 				#pragma shader_feature _FOAM3DLIGHTING_ON
+				#pragma shader_feature _PLANARREFLECTIONS_ON
 				#pragma shader_feature _DEBUGDISABLESHAPETEXTURES_ON
 				#pragma shader_feature _DEBUGVISUALISESHAPESAMPLE_ON
 				#pragma shader_feature _DEBUGDISABLESMOOTHLOD_ON
@@ -166,7 +168,12 @@ Shader "Ocean/Ocean"
 				uniform half _SubSurfaceSunFallOff;
 
 				uniform half4 _DepthFogDensity;
+
+				#if !_PLANARREFLECTIONS_ON
 				uniform samplerCUBE _Skybox;
+				#else
+				uniform sampler2D _ReflectionTex;
+				#endif
 
 				uniform sampler2D _FoamTexture;
 				uniform float4 _FoamTexture_TexelSize;
@@ -325,6 +332,14 @@ Shader "Ocean/Ocean"
 					return col;
 				}
 
+				#if _PLANARREFLECTIONS_ON
+				half3 PlanarReflection(half3 refl, half4 i_screenPos, half3 n_pixel)
+				{
+					i_screenPos.xy += n_pixel.xz;
+					return tex2Dproj(_ReflectionTex, UNITY_PROJ_COORD(i_screenPos)).xyz;
+				}
+				#endif // _PLANARREFLECTIONS_ON
+
 				half4 frag(v2f i) : SV_Target
 				{
 					half3 view = normalize(_WorldSpaceCameraPos - i.worldPos);
@@ -358,9 +373,16 @@ Shader "Ocean/Ocean"
 
 					// Reflection
 					half3 refl = reflect(-view, n_pixel);
-					half3 skyColor = texCUBE(_Skybox, refl);
+					half3 skyColour;
+
+					#if !_PLANARREFLECTIONS_ON
+					skyColour = texCUBE(_Skybox, refl).rgb;
+					#else // _PLANARREFLECTIONS_ON
+					skyColour = PlanarReflection(refl, i.foam_screenPos.yzzw, n_pixel);
+					#endif // _PLANARREFLECTIONS_ON
+
 					#if _COMPUTEDIRECTIONALLIGHT_ON
-					skyColor += pow(max(0., dot(refl, lightDir)), _DirectionalLightFallOff) * _DirectionalLightBoost * _LightColor0;
+					skyColour += pow(max(0., dot(refl, lightDir)), _DirectionalLightFallOff) * _DirectionalLightBoost * _LightColor0;
 					#endif
 
 					// Fresnel
@@ -370,7 +392,7 @@ Shader "Ocean/Ocean"
 					float R_0 = (IOR_AIR - IOR_WATER) / (IOR_AIR + IOR_WATER); R_0 *= R_0;
 					// schlick's approximation
 					float R_theta = R_0 + (1.0 - R_0) * pow(1.0 - max(dot(n_pixel, view), 0.), _FresnelPower);
-					col = lerp(col, skyColor, R_theta);
+					col = lerp(col, skyColour, R_theta);
 
 					// Override final result with white foam - bubbles on surface
 					#if _FOAM_ON

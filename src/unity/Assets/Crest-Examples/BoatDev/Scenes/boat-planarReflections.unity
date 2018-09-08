@@ -287,17 +287,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da05aab3ba773644eb187d19c55bb05a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  disablePixelLights: 1
-  textureSize: 512
-  clipPlaneOffset: 0.07
-  reflectLayers:
+  _disablePixelLights: 1
+  _textureSize: 256
+  _clipPlaneOffset: 0.07
+  _reflectLayers:
     serializedVersion: 2
-    m_Bits: 519
-  _showReflection: 1
-  m_OceanMat: {fileID: 2100000, guid: 38d2c25d1dcca034ca4b51b63aa6a4ab, type: 2}
-  _waveHeightOffset: 0
-  _waveDispOffset: 0
-  _hideCamera: 0
+    m_Bits: 4294967295
+  _hideCameraGameobject: 1
 --- !u!1 &416506602
 GameObject:
   m_ObjectHideFlags: 0
@@ -515,7 +511,7 @@ Prefab:
     - target: {fileID: 11447936, guid: 8454e29c2a033974fb559f5f8eff1918, type: 2}
       propertyPath: _oceanMaterial
       value: 
-      objectReference: {fileID: 2100000, guid: 38d2c25d1dcca034ca4b51b63aa6a4ab, type: 2}
+      objectReference: {fileID: 2100000, guid: 9def92ac79181fe41b238e91663f0fad, type: 2}
     - target: {fileID: 147084, guid: 8454e29c2a033974fb559f5f8eff1918, type: 2}
       propertyPath: m_Layer
       value: 4

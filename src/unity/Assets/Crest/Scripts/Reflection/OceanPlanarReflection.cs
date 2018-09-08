@@ -16,6 +16,7 @@ namespace Crest
         public int _textureSize = 256;
         public float _clipPlaneOffset = 0.07f;
         public string[] _reflectLayers = new[] { "Default" };
+        public bool _hdr = true;
 
         RenderTexture _reflectionTexture;
         public RenderTexture ReflectionTexture { get { return _reflectionTexture; } }
@@ -139,7 +140,9 @@ namespace Crest
                 {
                     DestroyImmediate(_reflectionTexture);
                 }
-                _reflectionTexture = new RenderTexture(_textureSize, _textureSize, 16);
+
+                var format = _hdr ? RenderTextureFormat.ARGBHalf : RenderTextureFormat.ARGB32;
+                _reflectionTexture = new RenderTexture(_textureSize, _textureSize, 16, format);
                 _reflectionTexture.name = "__WaterReflection" + GetInstanceID();
                 _reflectionTexture.isPowerOfTwo = true;
                 _reflectionTexture.hideFlags = HideFlags.DontSave;

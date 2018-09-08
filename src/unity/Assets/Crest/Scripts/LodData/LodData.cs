@@ -192,15 +192,15 @@ namespace Crest
         } }
         LodDataFoam _ldf;
         public LodDataFoam LDFoam { get {
-                return _ldf ?? (_ldf = OceanRenderer.Instance.Builder._camsFoam[LodTransform.LodIndex].GetComponent<LodDataFoam>());
+                return _ldf ?? (_ldf = OceanRenderer.Instance._camsFoam[LodTransform.LodIndex].GetComponent<LodDataFoam>());
         } }
         LodDataDynamicWaves _lddw;
         public LodDataDynamicWaves LDDynamicWaves { get {
-                return _lddw ?? (_lddw = OceanRenderer.Instance.Builder._camsDynWaves[LodTransform.LodIndex].GetComponent<LodDataDynamicWaves>());
+                return _lddw ?? (_lddw = OceanRenderer.Instance._camsDynWaves[LodTransform.LodIndex].GetComponent<LodDataDynamicWaves>());
         } }
         LodDataFlow _ldfl;
         public LodDataFlow LDFlow { get {
-                return _ldfl ?? (_ldfl = OceanRenderer.Instance.Builder._camsFlow[LodTransform.LodIndex].GetComponent<LodDataFlow>());
+                return _ldfl ?? (_ldfl = OceanRenderer.Instance._camsFlow[LodTransform.LodIndex].GetComponent<LodDataFlow>());
         } }
     }
 }

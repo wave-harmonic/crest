@@ -266,6 +266,7 @@ MonoBehaviour:
   - LodDataDynamicWaves
   - LodDataFoam
   _cullIncludeLayers: []
+  _logErrorIfLayerMissing: 1
 --- !u!114 &227134473
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -474,6 +475,10 @@ Prefab:
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 11447936, guid: 8454e29c2a033974fb559f5f8eff1918, type: 2}
+      propertyPath: _createDynamicWaveSim
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 11417796, guid: 8454e29c2a033974fb559f5f8eff1918, type: 2}
       propertyPath: _createDynamicWaveSim
       value: 1
       objectReference: {fileID: 0}
@@ -784,6 +789,7 @@ MonoBehaviour:
   _layerName: LodDataDynamicWaves
   _cullExcludeLayers: []
   _cullIncludeLayers: []
+  _logErrorIfLayerMissing: 1
 --- !u!1 &1866213577
 GameObject:
   m_ObjectHideFlags: 0

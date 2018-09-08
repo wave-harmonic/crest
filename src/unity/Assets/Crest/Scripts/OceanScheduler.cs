@@ -10,7 +10,7 @@ namespace Crest
     /// </summary>
     public interface IOceanScheduler
     {
-        void ApplySchedule(OceanBuilder ocean);
+        void ApplySchedule(OceanRenderer ocean);
     }
 
     /// <summary>
@@ -21,7 +21,7 @@ namespace Crest
     {
         public bool _warnIfMainCameraDepthLessThan0 = true;
 
-        public virtual void ApplySchedule(OceanBuilder ocean)
+        public virtual void ApplySchedule(OceanRenderer ocean)
         {
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // --- Dynamic waves camera renders first

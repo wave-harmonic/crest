@@ -25,7 +25,7 @@ namespace Crest
         static Dictionary<Renderer, Material> _depthRenderers = new Dictionary<Renderer, Material>();
         public static void AddRenderOceanDepth(Renderer rend, Material mat)
         {
-            if (OceanRenderer.Instance == null || OceanRenderer.Instance.Builder == null)
+            if (OceanRenderer.Instance == null)
             {
                 _depthRenderers.Clear();
                 return;
@@ -34,14 +34,14 @@ namespace Crest
             _depthRenderers.Add(rend, mat);
 
             // notify there is a new contributor to ocean depth
-            foreach (var ldaw in OceanRenderer.Instance.Builder._lodDataAnimWaves)
+            foreach (var ldaw in OceanRenderer.Instance._lodDataAnimWaves)
             {
                 ldaw.LDSeaDepth._oceanDepthRenderersDirty = true;
             }
         }
         public static void RemoveRenderOceanDepth(Renderer rend)
         {
-            if (OceanRenderer.Instance == null || OceanRenderer.Instance.Builder == null)
+            if (OceanRenderer.Instance == null)
             {
                 _depthRenderers.Clear();
                 return;
@@ -50,7 +50,7 @@ namespace Crest
             _depthRenderers.Remove(rend);
 
             // notify there is a new contributor to ocean depth
-            foreach (var ldaw in OceanRenderer.Instance.Builder._lodDataAnimWaves)
+            foreach (var ldaw in OceanRenderer.Instance._lodDataAnimWaves)
             {
                 ldaw.LDSeaDepth._oceanDepthRenderersDirty = true;
             }

@@ -17,7 +17,7 @@ namespace Crest
         {
             int lod = LodDataAnimatedWaves.SuggestDataLOD(new Rect(worldPos.x, worldPos.z, 0f, 0f), 0f);
             if (lod == -1) return false;
-            return OceanRenderer.Instance.Builder._lodDataAnimWaves[lod].SampleDisplacement(ref worldPos, ref displacement);
+            return OceanRenderer.Instance._lodDataAnimWaves[lod].SampleDisplacement(ref worldPos, ref displacement);
         }
         public bool SampleDisplacement(ref Vector3 worldPos, ref Vector3 displacement, float minSpatialLength)
         {
@@ -31,7 +31,7 @@ namespace Crest
         {
             int lod = LodDataAnimatedWaves.SuggestDataLOD(new Rect(worldPos.x, worldPos.z, 0f, 0f), 0f);
             if (lod == -1) return false;
-            height = OceanRenderer.Instance.Builder._lodDataAnimWaves[lod].GetHeight(ref worldPos);
+            height = OceanRenderer.Instance._lodDataAnimWaves[lod].GetHeight(ref worldPos);
             return true;
         }
 
@@ -45,11 +45,11 @@ namespace Crest
         }
         public bool SampleDisplacementInArea(ref Vector3 worldPos, ref Vector3 displacement)
         {
-            return OceanRenderer.Instance.Builder._lodDataAnimWaves[_areaLod].SampleDisplacement(ref worldPos, ref displacement);
+            return OceanRenderer.Instance._lodDataAnimWaves[_areaLod].SampleDisplacement(ref worldPos, ref displacement);
         }
         public bool SampleHeightInArea(ref Vector3 worldPos, ref float height)
         {
-            height = OceanRenderer.Instance.Builder._lodDataAnimWaves[_areaLod].GetHeight(ref worldPos);
+            height = OceanRenderer.Instance._lodDataAnimWaves[_areaLod].GetHeight(ref worldPos);
             return true;
         }
 
@@ -62,7 +62,7 @@ namespace Crest
             // select lod. this now has a 1 texel buffer, so the finite differences below should all be valid.
             PrewarmForSamplingArea(new Rect(undisplacedWorldPos.x, undisplacedWorldPos.z, 0f, 0f), minSpatialLength);
 
-            float gridSize = OceanRenderer.Instance.Builder._lodDataAnimWaves[_areaLod].LodTransform._renderData._texelWidth;
+            float gridSize = OceanRenderer.Instance._lodDataAnimWaves[_areaLod].LodTransform._renderData._texelWidth;
 
             Vector3 dispCenter = Vector3.zero;
             if (!SampleDisplacementInArea(ref undisplacedWorldPos, ref dispCenter)) return false;

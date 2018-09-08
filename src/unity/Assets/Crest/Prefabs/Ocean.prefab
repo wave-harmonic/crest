@@ -8,7 +8,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 478202}
-  - component: {fileID: 11447936}
   - component: {fileID: 11417796}
   m_Layer: 0
   m_Name: Ocean
@@ -24,7 +23,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 147084}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 5, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -42,29 +41,29 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _viewpoint: {fileID: 0}
+  _material: {fileID: 2100000, guid: 9def92ac79181fe41b238e91663f0fad, type: 2}
+  _layerName: Water
   _windDirectionAngle: 0
+  _gravityMultiplier: 1
   _cachedCpuOceanQueries: 0
   _minTexelsPerWave: 3
   _minScale: 8
   _maxScale: 256
   _baseVertDensity: 64
   _lodCount: 7
+  _createFoamSim: 1
+  _simSettingsFoam: {fileID: 0}
+  _createDynamicWaveSim: 0
+  _simSettingsDynamicWaves: {fileID: 0}
+  _createFlowSim: 0
+  _simSettingsFlow: {fileID: 0}
   _uniformTiles: 0
   _disableSkirt: 0
---- !u!114 &11447936
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 147084}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ecf2b25b7104b034086ca7f8a62a7bea, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _oceanMaterial: {fileID: 2100000, guid: 9def92ac79181fe41b238e91663f0fad, type: 2}
-  _shapeCameras: []
-  _shapeWDCs: []
+  _lodDataAnimWaves: []
+  _camsAnimWaves: []
+  _camsFoam: []
+  _camsFlow: []
+  _camsDynWaves: []
 --- !u!1001 &100100000
 Prefab:
   m_ObjectHideFlags: 1

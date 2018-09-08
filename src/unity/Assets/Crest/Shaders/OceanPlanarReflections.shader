@@ -153,8 +153,19 @@ Shader "Ocean/Ocean (Planar reflections)"
 					o.grabPos = ComputeGrabScreenPos(o.vertex);
 					o.foam_screenPos.yzw = ComputeScreenPos(o.vertex).xyw;
 
-					o.ref = ComputeNonStereoScreenPos(o.vertex);// UnityObjectToClipPos(float4(o.vertex.xyz, 1.)));
+					float4 refVert; {
+						// hacky 1 - fudge the reflection position. makes some distortion but works okish. this was the one recorded in the video posted
+						// on issue #31
+						//refVert = o.vertex;
+						//refVert.y -= max(0.,1.6*(o.worldPos.y));
 
+						// hacky 2 - offset actual vert position before computing refl projection. think this is more physically correct, but it
+						// exhibits weirdness when camera below sea level i think? i think this is "more correct" so leaving this turned on.
+						float h = o.worldPos.y - _OceanCenterPosWorld.y;
+						float3 reflWorldPos = o.worldPos + float3(0., -h, 0.);
+						refVert = mul(UNITY_MATRIX_VP, float4(reflWorldPos, 1.));
+					}
+					o.ref = ComputeNonStereoScreenPos(refVert);
 					return o;
 				}
 

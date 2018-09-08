@@ -157,6 +157,8 @@ public class OceanPlanarReflection : MonoBehaviour
             m_ReflectionCamera.transform.position = transform.position;
             m_ReflectionCamera.transform.rotation = transform.rotation;
             m_ReflectionCamera.gameObject.AddComponent<FlareLayer>();
+            var apply = m_ReflectionCamera.gameObject.AddComponent<Crest.ApplyLayers>();
+            apply._cullIncludeLayers = new[] { "ReflectionProxy" };
             if (_hideCamera)
                 go.hideFlags = HideFlags.HideAndDontSave;
         }

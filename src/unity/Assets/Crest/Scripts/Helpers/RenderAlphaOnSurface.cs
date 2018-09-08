@@ -59,13 +59,18 @@ namespace Crest
             LateUpdateBounds();
         }
 
+        public bool _forceToSeaLevel = true;
+
         void LateUpdateBounds()
         {
             // make sure we're at sea level. we will expand the bounds which only works at sea level
-            float y = transform.position.y;
-            if (!Mathf.Approximately(y, OceanRenderer.Instance.SeaLevel))
+            if (_forceToSeaLevel)
             {
-                transform.position += (OceanRenderer.Instance.SeaLevel - y) * Vector3.up;
+                float y = transform.position.y;
+                if (!Mathf.Approximately(y, OceanRenderer.Instance.SeaLevel))
+                {
+                    transform.position += (OceanRenderer.Instance.SeaLevel - y) * Vector3.up;
+                }
             }
 
             var bounds = _boundsLocal;

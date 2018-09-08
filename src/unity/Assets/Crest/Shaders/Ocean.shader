@@ -125,6 +125,9 @@ Shader "Ocean/Ocean"
 				struct v2f
 				{
 					float4 vertex : SV_POSITION;
+					#if _PLANARREFLECTIONS_ON
+					half4 reflectUV : TEXCOORD0;
+					#endif
 					half3 n : TEXCOORD1;
 					#if _APPLYFLOWTONORMALS_ON
 					half2 flow : TEXCOORD2;
@@ -235,6 +238,18 @@ Shader "Ocean/Ocean"
 					// to get the right results, every time.
 					o.grabPos = ComputeGrabScreenPos(o.vertex);
 					o.foam_screenPos.yzw = ComputeScreenPos(o.vertex).xyw;
+
+					#if _PLANARREFLECTIONS_ON
+					float4 refVert = o.vertex; {
+						// fun hack time - 
+						// hacky 2 - offset actual vert position before computing refl projection. think this is more physically correct, but it
+						// exhibits weirdness when camera below sea level i think? i think this is "more correct" so leaving this turned on.
+						float h = o.worldPos.y - _OceanCenterPosWorld.y;
+						float3 reflWorldPos = o.worldPos + float3(0., -h, 0.);
+						refVert = mul(UNITY_MATRIX_VP, float4(reflWorldPos, 1.));
+					}
+					o.reflectUV = ComputeNonStereoScreenPos(refVert);
+					#endif
 
 					return o;
 				}
@@ -547,7 +562,7 @@ Shader "Ocean/Ocean"
 					half3 skyColour;
 
 					#if _PLANARREFLECTIONS_ON
-					skyColour = PlanarReflection(refl, i.foam_screenPos.yzzw, n_pixel);
+					skyColour = PlanarReflection(refl, i.reflectUV, n_pixel);
 					#elif _PROCEDURALSKY_ON
 					skyColour = SkyProceduralDP(refl, lightDir);
 					#else

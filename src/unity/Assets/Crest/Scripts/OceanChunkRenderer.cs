@@ -81,16 +81,15 @@ namespace Crest
             // this relies on the render textures being init'd in CreateAssignRenderTexture::Awake().
             var shapeCams = OceanRenderer.Instance.Builder._lodDataAnimWaves;
             shapeCams[_lodIndex].BindResultData(0, _mpb);
-            shapeCams[_lodIndex].LDFoam.BindResultData(0, _mpb);
-
-            if(OceanRenderer.Instance.Builder._createFlowSim) shapeCams[_lodIndex].LDFlow.BindResultData(0, _mpb);
             shapeCams[_lodIndex].LDSeaDepth.BindResultData(0, _mpb);
+            if (OceanRenderer.Instance.Builder._createFoamSim) shapeCams[_lodIndex].LDFoam.BindResultData(0, _mpb);
+            if (OceanRenderer.Instance.Builder._createFlowSim) shapeCams[_lodIndex].LDFlow.BindResultData(0, _mpb);
             if (_lodIndex + 1 < shapeCams.Length)
             {
                 shapeCams[_lodIndex + 1].BindResultData(1, _mpb);
-                shapeCams[_lodIndex + 1].LDFoam.BindResultData(1, _mpb);
-                if(OceanRenderer.Instance.Builder._createFlowSim) shapeCams[_lodIndex + 1].LDFlow.BindResultData(1, _mpb);
                 shapeCams[_lodIndex + 1].LDSeaDepth.BindResultData(1, _mpb);
+                if (OceanRenderer.Instance.Builder._createFoamSim) shapeCams[_lodIndex + 1].LDFoam.BindResultData(1, _mpb);
+                if (OceanRenderer.Instance.Builder._createFlowSim) shapeCams[_lodIndex + 1].LDFlow.BindResultData(1, _mpb);
             }
 
             if(OceanRenderer.Instance.PlanarReflection)

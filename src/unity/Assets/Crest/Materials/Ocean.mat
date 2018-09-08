@@ -10,7 +10,7 @@ Material:
   m_Shader: {fileID: 4800000, guid: 668aecf91371c8b4997e42c0c7b19527, type: 3}
   m_ShaderKeywords: _APPLYNORMALMAPPING_ON _CAUSTICS_ON _COMPUTEDIRECTIONALLIGHT_ON
     _DEBUGMULTIPLYBYLIGHT0COLOR_ON _FOAM3DLIGHTING_ON _FOAM_ON _GRADIENTSKYHORIZ_ON
-    _SUBSURFACEHEIGHTLERP_ON _SUBSURFACESCATTERING_ON _SUBSURFACESHALLOWCOLOUR_ON
+    _PLANARREFLECTIONS_ON _SUBSURFACEHEIGHTLERP_ON _SUBSURFACESCATTERING_ON _SUBSURFACESHALLOWCOLOUR_ON
     _TRANSPARENCY_ON
   m_LightmapFlags: 5
   m_EnableInstancingVariants: 0
@@ -109,7 +109,7 @@ Material:
     - _NormalsScale: 30
     - _NormalsStrength: 0.22
     - _Offset: 0.00008
-    - _PlanarReflections: 0
+    - _PlanarReflections: 1
     - _ProceduralSky: 0
     - _RefractAmt: 0
     - _S: 1

@@ -64,6 +64,10 @@ namespace Crest
                 }
                 if (_cullIncludeLayers != null && _cullIncludeLayers.Length > 0)
                 {
+                    // if we're not specifying excludes, only includes, assume we only want the specified layers and none others
+                    if (_cullExcludeLayers == null || _cullExcludeLayers.Length == 0)
+                        mask = 0;
+
                     foreach (var layer in _cullIncludeLayers)
                     {
                         if (string.IsNullOrEmpty(layer))

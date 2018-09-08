@@ -842,7 +842,6 @@ MonoBehaviour:
   _populateOnStartup: 1
   _layerNames:
   - Default
-  _layerNameDEPRECATED: 
   _resolution: 384
   _cameraMaxTerrainHeight: 100
   _forceAlwaysUpdateDebug: 0

@@ -15,7 +15,7 @@ namespace Crest
         public bool _disablePixelLights = true;
         public int _textureSize = 256;
         public float _clipPlaneOffset = 0.07f;
-        public LayerMask _reflectLayers = -1;
+        public string[] _reflectLayers = new[] { "Default" };
 
         RenderTexture _reflectionTexture;
         public RenderTexture ReflectionTexture { get { return _reflectionTexture; } }
@@ -81,7 +81,6 @@ namespace Crest
             // Set custom culling matrix from the current camera
             _camReflections.cullingMatrix = _camViewpoint.projectionMatrix * _camViewpoint.worldToCameraMatrix;
 
-            _camReflections.cullingMask = _reflectLayers.value;
             _camReflections.targetTexture = _reflectionTexture;
 
             bool oldCulling = GL.invertCulling;
@@ -155,6 +154,8 @@ namespace Crest
                 _camReflections.transform.position = transform.position;
                 _camReflections.transform.rotation = transform.rotation;
                 _camReflections.gameObject.AddComponent<FlareLayer>();
+                _camReflections.gameObject.AddComponent<ApplyLayers>()._cullIncludeLayers = _reflectLayers;
+
                 if (_hideCameraGameobject)
                 {
                     go.hideFlags = HideFlags.HideAndDontSave;

@@ -93,6 +93,11 @@ namespace Crest
                 shapeCams[_lodIndex + 1].LDSeaDepth.BindResultData(1, _mpb);
             }
 
+            if(OceanRenderer.Instance.PlanarReflection)
+            {
+                _mpb.SetTexture("_ReflectionTex", OceanRenderer.Instance.PlanarReflection.ReflectionTexture);
+            }
+
             _rend.SetPropertyBlock(_mpb);
 
             if (_drawRenderBounds)

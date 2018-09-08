@@ -51,6 +51,7 @@ Shader "Ocean/Ocean"
 		_CausticsDistortionStrength("    Distortion Strength", Range(0.0, 0.25)) = 0.075
 		_FresnelPower("Fresnel Power", Range(0.0, 20.0)) = 3.0
 		[NoScaleOffset] _Skybox ("Skybox", CUBE) = "" {}
+		[Toggle] _PlanarReflections("Planar Reflections", Float) = 1
 		[Toggle] _ProceduralSky("Procedural Sky", Float) = 0
 		[HDR] _SkyBase("    Base", Color) = (1.0, 1.0, 1.0, 1.0)
 		[HDR] _SkyTowardsSun("    Towards Sun", Color) = (1.0, 1.0, 1.0, 1.0)
@@ -89,6 +90,7 @@ Shader "Ocean/Ocean"
 				#pragma vertex vert
 				#pragma fragment frag
 				#pragma multi_compile_fog
+
 				#pragma shader_feature _APPLYNORMALMAPPING_ON
 				#pragma shader_feature _COMPUTEDIRECTIONALLIGHT_ON
 				#pragma shader_feature _SUBSURFACESCATTERING_ON
@@ -98,7 +100,9 @@ Shader "Ocean/Ocean"
 				#pragma shader_feature _CAUSTICS_ON
 				#pragma shader_feature _FOAM_ON
 				#pragma shader_feature _FOAM3DLIGHTING_ON
+				#pragma shader_feature _PLANARREFLECTIONS_ON
 				#pragma shader_feature _PROCEDURALSKY_ON
+
 				#pragma shader_feature _DEBUGDISABLESHAPETEXTURES_ON
 				#pragma shader_feature _DEBUGVISUALISESHAPESAMPLE_ON
 				#pragma shader_feature _DEBUGVISUALISEFLOW_ON
@@ -253,7 +257,12 @@ Shader "Ocean/Ocean"
 				uniform half3 _SubSurfaceShallowCol;
 
 				uniform half4 _DepthFogDensity;
+
+				#if !_PLANARREFLECTIONS_ON
 				uniform samplerCUBE _Skybox;
+				#else
+				uniform sampler2D _ReflectionTex;
+				#endif
 
 				uniform sampler2D _FoamTexture;
 				uniform float4 _FoamTexture_TexelSize;
@@ -489,6 +498,14 @@ Shader "Ocean/Ocean"
 				}
 				#endif
 
+				#if _PLANARREFLECTIONS_ON
+				half3 PlanarReflection(half3 refl, half4 i_screenPos, half3 n_pixel)
+				{
+					i_screenPos.xy += n_pixel.xz;
+					return tex2Dproj(_ReflectionTex, UNITY_PROJ_COORD(i_screenPos)).xyz;
+				}
+				#endif // _PLANARREFLECTIONS_ON
+
 				half4 frag(v2f i) : SV_Target
 				{
 					half3 view = normalize(_WorldSpaceCameraPos - i.worldPos);
@@ -527,13 +544,15 @@ Shader "Ocean/Ocean"
 
 					// Reflection
 					half3 refl = reflect(-view, n_pixel);
+					half3 skyColour;
 
-					// Sky colour
-					#if !_PROCEDURALSKY_ON
-					half3 skyColour = texCUBE(_Skybox, refl);
+					#if _PLANARREFLECTIONS_ON
+					skyColour = PlanarReflection(refl, i.foam_screenPos.yzzw, n_pixel);
+					#elif _PROCEDURALSKY_ON
+					skyColour = SkyProceduralDP(refl, lightDir);
 					#else
-					half3 skyColour = SkyProceduralDP(refl, lightDir);
-					#endif
+					skyColour = texCUBE(_Skybox, refl).rgb;
+					#endif // _PLANARREFLECTIONS_ON
 
 					// Add primary light to boost it
 					#if _COMPUTEDIRECTIONALLIGHT_ON

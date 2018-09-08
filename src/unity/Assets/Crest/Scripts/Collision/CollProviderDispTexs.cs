@@ -19,6 +19,13 @@ namespace Crest
             if (lod == -1) return false;
             return OceanRenderer.Instance.Builder._lodDataAnimWaves[lod].SampleDisplacement(ref worldPos, ref displacement);
         }
+        public bool SampleDisplacement(ref Vector3 worldPos, ref Vector3 displacement, float minSpatialLength)
+        {
+            // select lod. this now has a 1 texel buffer, so the finite differences below should all be valid.
+            PrewarmForSamplingArea(new Rect(worldPos.x, worldPos.z, 0f, 0f), minSpatialLength);
+
+            return SampleDisplacementInArea(ref worldPos, ref displacement);
+        }
 
         public bool SampleHeight(ref Vector3 worldPos, ref float height)
         {

@@ -34,6 +34,9 @@ namespace Crest
         [Delayed, Tooltip("The largest scale the ocean can be (-1 for unlimited).")]
         public float _maxScale = 128f;
 
+        OceanPlanarReflection _planarReflection;
+        public OceanPlanarReflection PlanarReflection { get { return _planarReflection; } }
+
         [Header( "Geometry Params" )]
         [SerializeField, Delayed, Tooltip( "Side dimension in quads of an ocean tile." )]
         public float _baseVertDensity = 32f;
@@ -70,12 +73,19 @@ namespace Crest
             if (scheduler == null) scheduler = gameObject.AddComponent<OceanScheduler>();
             scheduler.ApplySchedule(_oceanBuilder);
 
+            InitViewpoint();
+        }
+
+        void InitViewpoint()
+        {
             if (_viewpoint == null)
             {
                 var camMain = Camera.main;
                 if (camMain != null)
                 {
                     _viewpoint = camMain.transform;
+
+                    _planarReflection = camMain.GetComponent<OceanPlanarReflection>();
                 }
                 else
                 {

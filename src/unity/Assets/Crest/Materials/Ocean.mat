@@ -109,6 +109,7 @@ Material:
     - _NormalsScale: 30
     - _NormalsStrength: 0.22
     - _Offset: 0.00008
+    - _PlanarReflections: 0
     - _ProceduralSky: 0
     - _RefractAmt: 0
     - _S: 1

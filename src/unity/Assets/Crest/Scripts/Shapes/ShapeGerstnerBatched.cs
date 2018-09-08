@@ -516,6 +516,11 @@ namespace Crest
             return true;
         }
 
+        public bool SampleDisplacement(ref Vector3 worldPos, ref Vector3 displacement, float minSpatialLength)
+        {
+            return SampleDisplacement(ref worldPos, ref displacement);
+        }
+
         public bool SampleHeight(ref Vector3 worldPos, ref float height)
         {
             height = SampleHeight(ref worldPos, 0f);

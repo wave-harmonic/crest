@@ -64,7 +64,6 @@ namespace Crest
 
             UpdateCameraModes(_camViewpoint, _camReflections);
 
-            // Render reflection if needed
             // Reflect camera around reflection plane
             float d = -Vector3.Dot(planeNormal, planePos) - _clipPlaneOffset;
             Vector4 reflectionPlane = new Vector4(planeNormal.x, planeNormal.y, planeNormal.z, d);
@@ -84,6 +83,7 @@ namespace Crest
 
             _camReflections.targetTexture = _reflectionTexture;
 
+            // Invert culling because view is mirrored
             bool oldCulling = GL.invertCulling;
             GL.invertCulling = !oldCulling;
             _camReflections.transform.position = newpos;
@@ -149,15 +149,16 @@ namespace Crest
             }
 
             // Camera for reflection
-            if (!_camReflections) // catch both not-in-dictionary and in-dictionary-but-deleted-GO
+            if (!_camReflections)
             {
-                GameObject go = new GameObject("Water Refl Camera id" + GetInstanceID() + " for " + currentCamera.GetInstanceID(), typeof(Camera), typeof(Skybox));
-                _camReflections = go.GetComponent<Camera>();
+                GameObject go = new GameObject("Water Refl Cam");
+                _camReflections = go.AddComponent<Camera>();
                 _camReflections.enabled = false;
                 _camReflections.transform.position = transform.position;
                 _camReflections.transform.rotation = transform.rotation;
-                _camReflections.gameObject.AddComponent<FlareLayer>();
                 _camReflections.gameObject.AddComponent<ApplyLayers>()._cullIncludeLayers = _reflectLayers;
+                _camReflections.gameObject.AddComponent<Skybox>();
+                _camReflections.gameObject.AddComponent<FlareLayer>();
 
                 if (_hideCameraGameobject)
                 {

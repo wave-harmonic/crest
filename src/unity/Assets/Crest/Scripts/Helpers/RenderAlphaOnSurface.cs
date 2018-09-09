@@ -53,6 +53,13 @@ namespace Crest
                 float farNormalsWeight = needToBlendOutNormals ? OceanRenderer.Instance.ViewerAltitudeLevelAlpha : 1f;
                 _mpb.SetVector("_InstanceData", new Vector4(meshScaleLerp, farNormalsWeight, idx));
 
+                Vector3 thisPos = transform.position;
+                Vector3 undispPos = Vector3.zero;
+                if (OceanRenderer.Instance.CollisionProvider.ComputeUndisplacedPosition(ref thisPos, ref undispPos))
+                {
+                    _mpb.SetVector("_DisplacementToObject", thisPos - undispPos);
+                }
+
                 _rend.SetPropertyBlock(_mpb);
             }
 

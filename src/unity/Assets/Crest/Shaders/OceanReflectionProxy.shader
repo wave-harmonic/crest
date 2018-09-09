@@ -37,6 +37,8 @@ Shader "Ocean/Ocean Reflection Proxy"
 			sampler2D _MainTex;
 			float4 _MainTex_ST;
 
+			uniform float4 _DisplacementToObject;
+
 			// MeshScaleLerp, FarNormalsWeight, LODIndex (debug), unused
 			uniform float4 _InstanceData;
 
@@ -45,11 +47,11 @@ Shader "Ocean/Ocean Reflection Proxy"
 				v2f o;
 				// move to world
 				float3 worldPos = mul(unity_ObjectToWorld, v.vertex);
-				float3 worldPosOrig = worldPos;
-				worldPos.y = 0.;
+				float3 displacedPos = worldPos;
+				displacedPos.y = 0.;
 
 				// vertex snapping and lod transition
-				float lodAlpha = ComputeLodAlpha(worldPos, _InstanceData.x);
+				float lodAlpha = ComputeLodAlpha(displacedPos, _InstanceData.x);
 
 				// sample shape textures - always lerp between 2 scales, so sample two textures
 				half3 n = half3(0., 1., 0.);
@@ -57,15 +59,19 @@ Shader "Ocean/Ocean Reflection Proxy"
 				float wt_0 = (1. - lodAlpha) * _LD_Params_0.z;
 				float wt_1 = (1. - wt_0) * _LD_Params_1.z;
 				// sample displacement textures, add results to current world pos / normal / foam
-				const float2 wxz = worldPos.xz;
+				const float2 wxz = displacedPos.xz - _DisplacementToObject.xz;
 				half foam = 0.;
-				SampleDisplacements(_LD_Sampler_AnimatedWaves_0, LD_0_WorldToUV(wxz), wt_0, _LD_Params_0.w, _LD_Params_0.x, worldPos, n);
-				SampleDisplacements(_LD_Sampler_AnimatedWaves_1, LD_1_WorldToUV(wxz), wt_1, _LD_Params_1.w, _LD_Params_1.x, worldPos, n);
+				SampleDisplacements(_LD_Sampler_AnimatedWaves_0, LD_0_WorldToUV(wxz), wt_0, _LD_Params_0.w, _LD_Params_0.x, displacedPos, n);
+				SampleDisplacements(_LD_Sampler_AnimatedWaves_1, LD_1_WorldToUV(wxz), wt_1, _LD_Params_1.w, _LD_Params_1.x, displacedPos, n);
 
 				// want to clip object with clip plane at sea level. if waves positive, push object down into clip.
-				worldPosOrig.y -= worldPos.y;
+				worldPos.y -= displacedPos.y;
 
-				o.vertex = mul(UNITY_MATRIX_VP, float4(worldPosOrig, 1.));
+				// emulate normal influence on reflection - adjust position based on normal, proportional to height above water
+				worldPos.xz -= worldPos.y * n.xz;
+
+				o.vertex = mul(UNITY_MATRIX_VP, float4(worldPos, 1.));
+
 				o.uv = TRANSFORM_TEX(v.uv, _MainTex);
 				UNITY_TRANSFER_FOG(o,o.vertex);
 
@@ -78,8 +84,8 @@ Shader "Ocean/Ocean Reflection Proxy"
 
 				UNITY_APPLY_FOG(i.fogCoord, col);
 
-				col.xy = i.uv.xy;
-				col.b = 0.;
+				//col.xy = i.uv.xy;
+				//col.b = 0.;
 
 				return col;
 			}

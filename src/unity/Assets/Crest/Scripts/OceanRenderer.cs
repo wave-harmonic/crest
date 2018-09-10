@@ -61,6 +61,7 @@ namespace Crest
         public SimSettingsWave _simSettingsDynamicWaves;
         public bool _createFlowSim = false;
         public SimSettingsFlow _simSettingsFlow;
+        public bool _createShadowData = false;
 
         [Header("Debug Params")]
 

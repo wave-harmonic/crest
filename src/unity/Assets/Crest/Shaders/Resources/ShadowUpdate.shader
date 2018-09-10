@@ -19,8 +19,32 @@
 			
 			#include "UnityCG.cginc"
 			#include "AutoLight.cginc"
+			
+			// from https://github.com/Unity-Technologies/ScriptableRenderPipeline/blob/42ce8fe3bab5aa12d8fcbad4d90f8bf3d7f5fad3/com.unity.render-pipelines.lightweight/LWRP/ShaderLibrary/Shadows.hlsl
+			#define MAX_SHADOW_CASCADES 4
 
 			UNITY_DECLARE_SHADOWMAP(_ShadowMapTexture);
+
+
+			// copy pasted like a pro from https://github.com/Unity-Technologies/ScriptableRenderPipeline/blob/42ce8fe3bab5aa12d8fcbad4d90f8bf3d7f5fad3/com.unity.render-pipelines.lightweight/LWRP/ShaderLibrary/Shadows.hlsl
+
+			CBUFFER_START(_DirectionalShadowBuffer)
+			// Last cascade is initialized with a no-op matrix. It always transforms
+			// shadow coord to half(0, 0, NEAR_PLANE). We use this trick to avoid
+			// branching since ComputeCascadeIndex can return cascade index = MAX_SHADOW_CASCADES
+			float4x4    _WorldToShadow[MAX_SHADOW_CASCADES + 1];
+			float4      _DirShadowSplitSpheres0;
+			float4      _DirShadowSplitSpheres1;
+			float4      _DirShadowSplitSpheres2;
+			float4      _DirShadowSplitSpheres3;
+			float4      _DirShadowSplitSphereRadii;
+			half4       _ShadowOffset0;
+			half4       _ShadowOffset1;
+			half4       _ShadowOffset2;
+			half4       _ShadowOffset3;
+			half4       _ShadowData;    // (x: shadowStrength)
+			float4      _ShadowmapSize; // (xy: 1/width and 1/height, zw: width and height)
+			CBUFFER_END
 
 			struct appdata
 			{

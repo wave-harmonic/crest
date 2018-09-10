@@ -79,18 +79,23 @@ namespace Crest
 
             // assign shape textures to shader
             // this relies on the render textures being init'd in CreateAssignRenderTexture::Awake().
-            var shapeCams = OceanRenderer.Instance.Builder._lodDataAnimWaves;
+            var shapeCams = OceanRenderer.Instance._lodDataAnimWaves;
             shapeCams[_lodIndex].BindResultData(0, _mpb);
             shapeCams[_lodIndex].LDFoam.BindResultData(0, _mpb);
 
-            if(OceanRenderer.Instance.Builder._createFlowSim) shapeCams[_lodIndex].LDFlow.BindResultData(0, _mpb);
+            if(OceanRenderer.Instance._createFlowSim) shapeCams[_lodIndex].LDFlow.BindResultData(0, _mpb);
             shapeCams[_lodIndex].LDSeaDepth.BindResultData(0, _mpb);
             if (_lodIndex + 1 < shapeCams.Length)
             {
                 shapeCams[_lodIndex + 1].BindResultData(1, _mpb);
                 shapeCams[_lodIndex + 1].LDFoam.BindResultData(1, _mpb);
-                if(OceanRenderer.Instance.Builder._createFlowSim) shapeCams[_lodIndex + 1].LDFlow.BindResultData(1, _mpb);
+                if(OceanRenderer.Instance._createFlowSim) shapeCams[_lodIndex + 1].LDFlow.BindResultData(1, _mpb);
                 shapeCams[_lodIndex + 1].LDSeaDepth.BindResultData(1, _mpb);
+            }
+
+            if(OceanRenderer.Instance.PlanarReflection)
+            {
+                _mpb.SetTexture("_ReflectionTex", OceanRenderer.Instance.PlanarReflection.ReflectionTexture);
             }
 
             _rend.SetPropertyBlock(_mpb);

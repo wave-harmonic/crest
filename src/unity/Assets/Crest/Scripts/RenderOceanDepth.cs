@@ -8,26 +8,26 @@ namespace Crest
     /// </summary>
     public class RenderOceanDepth : MonoBehaviour
     {
-        void Start()
+        [SerializeField, Tooltip("Material to use to write depth. Leave null to use the default depth material.")]
+        Material _renderDepthMaterial;
+
+        private void OnEnable()
         {
-            RefreshOceanDepthRenderers();
+            var mat = _renderDepthMaterial ?? new Material(Shader.Find("Ocean/Ocean Depth"));
+            LodDataSeaFloorDepth.AddRenderOceanDepth(GetComponent<Renderer>(), mat);
         }
 
-        void OnDisable()
+        private void OnDisable()
         {
-            RefreshOceanDepthRenderers();
+            LodDataSeaFloorDepth.RemoveRenderOceanDepth(GetComponent<Renderer>());
         }
 
-        void RefreshOceanDepthRenderers()
+        public void SetMaterial(Material mat)
         {
-            if (OceanRenderer.Instance == null || OceanRenderer.Instance.Builder == null)
-                return;
-
-            // notify WDCs that there is a new contributor to ocean depth
-            foreach (var ldaw in OceanRenderer.Instance.Builder._lodDataAnimWaves)
-            {
-                ldaw.LDSeaDepth.OnOceanDepthRenderersChanged();
-            }
+            _renderDepthMaterial = mat;
+            var rend = GetComponent<Renderer>();
+            LodDataSeaFloorDepth.RemoveRenderOceanDepth(rend);
+            LodDataSeaFloorDepth.AddRenderOceanDepth(rend, _renderDepthMaterial);
         }
     }
 }

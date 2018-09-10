@@ -74,7 +74,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Floats:
-    - _ApplyFlowToNormals: 1
+    - _ApplyFlowToNormals: 0
     - _ApplyNormalMapping: 1
     - _BumpAmt: 0.514
     - _Caustics: 1
@@ -109,9 +109,12 @@ Material:
     - _NormalsScale: 30
     - _NormalsStrength: 0.22
     - _Offset: 0.00008
+    - _PlanarReflections: 0
+    - _ProceduralSky: 0
     - _RefractAmt: 0
     - _S: 1
     - _ShorelineFoamMinDepth: 0.27
+    - _SkyDirectionality: 0.875
     - _StartLevel: 0.157
     - _SubSurfaceBase: 0.24
     - _SubSurfaceCrestColour: 1
@@ -146,6 +149,9 @@ Material:
     - _Diffuse: {r: 0, g: 0.0067332755, b: 0.35686275, a: 1}
     - _FoamBubbleColor: {r: 0.36416906, g: 0.62299997, b: 0.613971, a: 1}
     - _FoamWhiteColor: {r: 1, g: 0.99634784, b: 0.97199994, a: 0.6862745}
+    - _SkyAwayFromSun: {r: 0.15419213, g: 0.22129796, b: 0.5372549, a: 1}
+    - _SkyBase: {r: 0.55200005, g: 0.85242355, b: 1, a: 1}
+    - _SkyTowardsSun: {r: 2.6390157, g: 1.8217498, b: 0.9236555, a: 1}
     - _SubSurface: {r: 0, g: 0.48, b: 0.36, a: 1}
     - _SubSurfaceColour: {r: 0.10196078, g: 0.57254905, b: 0.5256646, a: 1}
     - _SubSurfaceCrestColour: {r: 0.42, g: 0.69, b: 0.52, a: 1}

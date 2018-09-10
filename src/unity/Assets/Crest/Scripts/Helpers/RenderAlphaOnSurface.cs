@@ -39,7 +39,7 @@ namespace Crest
 
                 _rend.GetPropertyBlock(_mpb);
 
-                var ldaws = OceanRenderer.Instance.Builder._lodDataAnimWaves;
+                var ldaws = OceanRenderer.Instance._lodDataAnimWaves;
                 ldaws[idx].BindResultData(0, _mpb);
                 int idx1 = Mathf.Min(idx + 1, ldaws.Length - 1);
                 ldaws[idx1].BindResultData(1, _mpb);

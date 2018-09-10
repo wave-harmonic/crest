@@ -12,6 +12,16 @@ namespace Crest
         [Tooltip("The viewpoint which drives the ocean detail. Defaults to main camera.")]
         public Transform _viewpoint;
 
+        [Header("Ocean Params")]
+
+        [SerializeField, Tooltip("Material to use for the ocean surface")]
+        Material _material;
+        public Material OceanMaterial { get { return _material; } }
+
+        [SerializeField]
+        string _layerName = "Water";
+        public string LayerName { get { return _layerName; } }
+
         [Tooltip("Wind direction (angle from x axis in degrees)"), Range(-180, 180)]
         public float _windDirectionAngle = 0f;
         public Vector2 WindDir { get { return new Vector2(Mathf.Cos(Mathf.PI * _windDirectionAngle / 180f), Mathf.Sin(Mathf.PI * _windDirectionAngle / 180f)); } }
@@ -24,6 +34,8 @@ namespace Crest
         bool _cachedCpuOceanQueries = false;
         public bool CachedCpuOceanQueries { get { return _cachedCpuOceanQueries; } }
 
+        [Header("Detail Params")]
+
         [Range(0, 15)]
         [Tooltip("Min number of verts / shape texels per wave.")]
         public float _minTexelsPerWave = 3f;
@@ -34,18 +46,31 @@ namespace Crest
         [Delayed, Tooltip("The largest scale the ocean can be (-1 for unlimited).")]
         public float _maxScale = 128f;
 
-        [Header( "Geometry Params" )]
         [SerializeField, Delayed, Tooltip( "Side dimension in quads of an ocean tile." )]
         public float _baseVertDensity = 32f;
+
         [SerializeField, Delayed, Tooltip( "Number of ocean tile scales/LODs to generate." ), ]
         int _lodCount = 6;
         public int LodDataResolution { get { return (int)(4f * _baseVertDensity); } }
 
+        [Header("Simulation Params")]
+
+        public bool _createFoamSim = true;
+        public SimSettingsFoam _simSettingsFoam;
+        public bool _createDynamicWaveSim = false;
+        public SimSettingsWave _simSettingsDynamicWaves;
+        public bool _createFlowSim = false;
+        public SimSettingsFlow _simSettingsFlow;
+
         [Header("Debug Params")]
+
         [Tooltip("Whether to generate ocean geometry tiles uniformly (with overlaps)")]
         public bool _uniformTiles = false;
         [Tooltip("Disable generating a wide strip of triangles at the outer edge to extend ocean to edge of view frustum")]
         public bool _disableSkirt = false;
+
+        OceanPlanarReflection _planarReflection;
+        public OceanPlanarReflection PlanarReflection { get { return _planarReflection; } }
 
         float _viewerAltitudeLevelAlpha = 0f;
         /// <summary>
@@ -58,24 +83,37 @@ namespace Crest
         /// </summary>
         public float SeaLevel { get { return transform.position.y; } }
 
+        [HideInInspector] public LodDataAnimatedWaves[] _lodDataAnimWaves;
+        [HideInInspector] public Camera[] _camsAnimWaves;
+        [HideInInspector] public Camera[] _camsFoam;
+        [HideInInspector] public Camera[] _camsFlow;
+        [HideInInspector] public Camera[] _camsDynWaves;
+        public int CurrentLodCount { get { return _camsAnimWaves.Length; } }
+
         void Start()
         {
             _instance = this;
 
-            _oceanBuilder = FindObjectOfType<OceanBuilder>();
-            _oceanBuilder.GenerateMesh(_baseVertDensity, _lodCount);
+            OceanBuilder.GenerateMesh(this, _baseVertDensity, _lodCount);
 
             // set render orders, event hooks, etc
             var scheduler = GetComponent<IOceanScheduler>();
             if (scheduler == null) scheduler = gameObject.AddComponent<OceanScheduler>();
-            scheduler.ApplySchedule(_oceanBuilder);
+            scheduler.ApplySchedule(this);
 
+            InitViewpoint();
+        }
+
+        void InitViewpoint()
+        {
             if (_viewpoint == null)
             {
                 var camMain = Camera.main;
                 if (camMain != null)
                 {
                     _viewpoint = camMain.transform;
+
+                    _planarReflection = camMain.GetComponent<OceanPlanarReflection>();
                 }
                 else
                 {
@@ -101,7 +139,7 @@ namespace Crest
             LateUpdatePosition();
             LateUpdateScale();
 
-            float maxWavelength = Builder._lodDataAnimWaves[Builder._lodDataAnimWaves.Length - 1].MaxWavelength();
+            float maxWavelength = _lodDataAnimWaves[_lodDataAnimWaves.Length - 1].MaxWavelength();
             Shader.SetGlobalFloat("_MaxWavelength", maxWavelength);
         }
 
@@ -150,7 +188,7 @@ namespace Crest
         [ContextMenu("Regenerate mesh")]
         void RegenMesh()
         {
-            _oceanBuilder.GenerateMesh(_baseVertDensity, _lodCount);
+            OceanBuilder.GenerateMesh(this, _baseVertDensity, _lodCount);
         }
 #if UNITY_EDITOR
         [ContextMenu("Regenerate mesh", true)]
@@ -202,9 +240,6 @@ namespace Crest
 
         static OceanRenderer _instance;
         public static OceanRenderer Instance { get { return _instance ?? (_instance = FindObjectOfType<OceanRenderer>()); } }
-
-        OceanBuilder _oceanBuilder;
-        public OceanBuilder Builder { get { return _oceanBuilder; } }
 
         ICollProvider _collProvider; public ICollProvider CollisionProvider { get { return _collProvider ?? 
                     (_collProvider = _cachedCpuOceanQueries ? new CollProviderCache(_collProvider) as ICollProvider : new CollProviderDispTexs()); } }

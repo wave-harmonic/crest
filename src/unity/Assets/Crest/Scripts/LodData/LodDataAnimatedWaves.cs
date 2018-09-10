@@ -55,11 +55,11 @@ namespace Crest
                 _bufCombineShapes = new CommandBuffer();
                 _bufCombineShapes.name = "Combine Displacements";
 
-                var cams = OceanRenderer.Instance.Builder._camsAnimWaves;
+                var cams = OceanRenderer.Instance._camsAnimWaves;
                 for (int L = cams.Length - 2; L >= 0; L--)
                 {
                     // accumulate shape data down the LOD chain - combine L+1 into L
-                    var mat = OceanRenderer.Instance.Builder._lodDataAnimWaves[L].CombineMaterial;
+                    var mat = OceanRenderer.Instance._lodDataAnimWaves[L].CombineMaterial;
                     _bufCombineShapes.Blit(cams[L + 1].targetTexture, cams[L].targetTexture, mat);
                 }
             }
@@ -122,7 +122,7 @@ namespace Crest
 
             if (LodTransform.LodIndex > 0)
             {
-                var ldaws = OceanRenderer.Instance.Builder._lodDataAnimWaves;
+                var ldaws = OceanRenderer.Instance._lodDataAnimWaves;
                 BindResultData(1, ldaws[LodTransform.LodIndex - 1].CombineMaterial);
             }
         }
@@ -222,7 +222,7 @@ namespace Crest
         }
         public static int SuggestDataLOD(Rect sampleAreaXZ, float minSpatialLength)
         {
-            var ldaws = OceanRenderer.Instance.Builder._lodDataAnimWaves;
+            var ldaws = OceanRenderer.Instance._lodDataAnimWaves;
             for (int lod = 0; lod < ldaws.Length; lod++)
             {
                 // shape texture needs to completely contain sample area

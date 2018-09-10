@@ -11,38 +11,14 @@ namespace Crest
     /// <summary>
     /// Instantiates all the ocean geometry, as a set of tiles.
     /// </summary>
-    public class OceanBuilder : MonoBehaviour
+    public static class OceanBuilder
     {
-        [SerializeField, Tooltip("Material to use for the ocean surface")]
-        Material _oceanMaterial;
-
-        public string _oceanLayerName = "Water";
-        int _oceanLayer = -1;
-
-        [HideInInspector]
-        public LodDataAnimatedWaves[] _lodDataAnimWaves;
-
-        [HideInInspector] public Camera[] _camsAnimWaves;
-        [HideInInspector] public Camera[] _camsFoam;
-        [HideInInspector] public Camera[] _camsFlow;
-        [HideInInspector] public Camera[] _camsDynWaves;
-
-        [Header("Simulations")]
-        public bool _createFoamSim = true;
-        public SimSettingsFoam _simSettingsFoam;
-        public bool _createDynamicWaveSim = false;
-        public SimSettingsWave _simSettingsDynamicWaves;
-        public bool _createFlowSim = false;
-        public SimSettingsFlow _simSettingsFlow;
-
-        public int CurrentLodCount { get { return _camsAnimWaves.Length; } }
-
-        // The comments below illustrate casse when BASE_VERT_DENSITY = 2. The ocean mesh is built up from these patches. Rotational symmetry
+        // The comments below illustrate case when BASE_VERT_DENSITY = 2. The ocean mesh is built up from these patches. Rotational symmetry
         // is used where possible to eliminate combinations. The slim variants are used to eliminate overlap between patches.
         enum PatchType
         {
             /// <summary>
-            /// Adds no skirt. Used in interior of highest detail lod (0)
+            /// Adds no skirt. Used in interior of highest detail LOD (0)
             ///
             ///    1 -------
             ///      |  |  |
@@ -56,7 +32,7 @@ namespace Crest
             Interior,
 
             /// <summary>
-            /// Adds a full skirt all of the way arond a patch
+            /// Adds a full skirt all of the way around a patch
             ///
             ///      -------------
             ///      |  |  |  |  |
@@ -149,27 +125,27 @@ namespace Crest
             Count,
         }
 
-        public void GenerateMesh(float baseVertDensity, int lodCount)
+        public static void GenerateMesh(OceanRenderer ocean, float baseVertDensity, int lodCount)
         {
             if (lodCount < 1)
             {
-                Debug.LogError( "Invalid LOD count: " + lodCount.ToString(), this );
+                Debug.LogError( "Invalid LOD count: " + lodCount.ToString(), ocean );
                 return;
             }
 
 #if UNITY_EDITOR
             if( !UnityEditor.EditorApplication.isPlaying )
             {
-                Debug.LogError( "Ocean mesh meant to be (re)generated in play mode", this );
+                Debug.LogError( "Ocean mesh meant to be (re)generated in play mode", ocean);
                 return;
             }
 #endif
 
-            _oceanLayer = LayerMask.NameToLayer(_oceanLayerName);
-            if (_oceanLayer == -1)
+            int oceanLayer = LayerMask.NameToLayer(ocean.LayerName);
+            if (oceanLayer == -1)
             {
-                Debug.LogError("Invalid ocean layer: " + _oceanLayerName + " please add this layer.", this);
-                _oceanLayer = 0;
+                Debug.LogError("Invalid ocean layer: " + ocean.LayerName + " please add this layer.", ocean);
+                oceanLayer = 0;
             }
 
 #if PROFILE_CONSTRUCTION
@@ -185,51 +161,55 @@ namespace Crest
             }
 
             // create the shape cameras
-            _camsAnimWaves = new Camera[lodCount];
-            _lodDataAnimWaves = new LodDataAnimatedWaves[lodCount];
-            _camsFoam = new Camera[lodCount];
-            _camsFlow = new Camera[lodCount];
-            _camsDynWaves = new Camera[lodCount];
+            ocean._camsAnimWaves = new Camera[lodCount];
+            ocean._lodDataAnimWaves = new LodDataAnimatedWaves[lodCount];
+            ocean._camsFoam = new Camera[lodCount];
+            ocean._camsFlow = new Camera[lodCount];
+            ocean._camsDynWaves = new Camera[lodCount];
 
             var cachedSettings = new Dictionary<System.Type, SimSettingsBase>();
-            if (_simSettingsFoam != null) cachedSettings.Add(typeof(LodDataFoam), _simSettingsFoam);
-            if (_simSettingsFlow != null) cachedSettings.Add(typeof(LodDataFlow), _simSettingsFlow);
-            if (_simSettingsDynamicWaves != null) cachedSettings.Add(typeof(LodDataDynamicWaves), _simSettingsDynamicWaves);
+            if (ocean._simSettingsFoam != null)
+                cachedSettings.Add(typeof(LodDataFoam), ocean._simSettingsFoam);
+            if (ocean._simSettingsFlow != null)
+                cachedSettings.Add(typeof(LodDataFlow), ocean._simSettingsFlow);
+            if (ocean._simSettingsDynamicWaves != null)
+                cachedSettings.Add(typeof(LodDataDynamicWaves), ocean._simSettingsDynamicWaves);
 
             for ( int i = 0; i < lodCount; i++ )
             {
                 {
                     var go = LodData.CreateLodData(i, lodCount, baseVertDensity, LodData.SimType.AnimatedWaves, cachedSettings);
-                    _camsAnimWaves[i] = go.GetComponent<Camera>();
-                    _lodDataAnimWaves[i] = go.GetComponent<LodDataAnimatedWaves>();
+                    ocean._camsAnimWaves[i] = go.GetComponent<Camera>();
+                    ocean._lodDataAnimWaves[i] = go.GetComponent<LodDataAnimatedWaves>();
                 }
 
-                if (_createFoamSim)
+                if (ocean._createFoamSim)
                 {
                     var go = LodData.CreateLodData(i, lodCount, baseVertDensity, LodData.SimType.Foam, cachedSettings);
-                    _camsFoam[i] = go.GetComponent<Camera>();
+                    ocean._camsFoam[i] = go.GetComponent<Camera>();
                 }
 
-                if(_createFlowSim) {
+                if(ocean._createFlowSim)
+                {
                     var go = LodData.CreateLodData(i, lodCount, baseVertDensity, LodData.SimType.Flow, cachedSettings);
-                    _camsFlow[i] = go.GetComponent<Camera>();
+                    ocean._camsFlow[i] = go.GetComponent<Camera>();
                 }
 
-                if (_createDynamicWaveSim)
+                if (ocean._createDynamicWaveSim)
                 {
                     var go = LodData.CreateLodData(i, lodCount, baseVertDensity, LodData.SimType.DynamicWaves, cachedSettings);
-                    _camsDynWaves[i] = go.GetComponent<Camera>();
+                    ocean._camsDynWaves[i] = go.GetComponent<Camera>();
                 }
             }
 
             // remove existing LODs
-            for (int i = 0; i < transform.childCount; i++)
+            for (int i = 0; i < ocean.transform.childCount; i++)
             {
-                var child = transform.GetChild(i);
+                var child = ocean.transform.GetChild(i);
                 if (child.name.StartsWith("LOD"))
                 {
                     child.parent = null;
-                    Destroy(child.gameObject);
+                    Object.Destroy(child.gameObject);
                     i--;
                 }
             }
@@ -238,8 +218,8 @@ namespace Crest
             for( int i = 0; i < lodCount; i++ )
             {
                 bool biggestLOD = i == lodCount - 1;
-                GameObject nextLod = CreateLOD(i, lodCount, biggestLOD, meshInsts, baseVertDensity);
-                nextLod.transform.parent = transform;
+                GameObject nextLod = CreateLOD(ocean, i, lodCount, biggestLOD, meshInsts, baseVertDensity, oceanLayer);
+                nextLod.transform.parent = ocean.transform;
 
                 // scale only horizontally, otherwise culling bounding box will be scaled up in y
                 float horizScale = Mathf.Pow( 2f, (float)(i + startLevel) );
@@ -386,7 +366,7 @@ namespace Crest
             return mesh;
         }
 
-        void PlaceLodData(Transform transform, Transform parent)
+        static void PlaceLodData(Transform transform, Transform parent)
         {
             transform.parent = parent;
             transform.localScale = Vector3.one;
@@ -394,23 +374,26 @@ namespace Crest
             transform.localEulerAngles = Vector3.right * 90f;
         }
 
-        GameObject CreateLOD( int lodIndex, int lodCount, bool biggestLOD, Mesh[] meshData, float baseVertDensity )
+        static GameObject CreateLOD(OceanRenderer ocean, int lodIndex, int lodCount, bool biggestLOD, Mesh[] meshData, float baseVertDensity, int oceanLayer)
         {
             // first create parent gameobject for the lod level. the scale of this transform sets the size of the lod.
             GameObject parent = new GameObject();
             parent.name = "LOD" + lodIndex;
-            parent.layer = _oceanLayer;
-            parent.transform.parent = transform;
+            parent.layer = oceanLayer;
+            parent.transform.parent = ocean.transform;
             parent.transform.localPosition = Vector3.zero;
             parent.transform.localRotation = Quaternion.identity;
 
-            // add lod data cameras into this lod
-            PlaceLodData(_camsAnimWaves[lodIndex].transform, parent.transform);
-            if (_camsFoam[lodIndex] != null) PlaceLodData(_camsFoam[lodIndex].transform, parent.transform);
-            if(_camsFlow[lodIndex] != null) PlaceLodData(_camsFlow[lodIndex].transform, parent.transform);
-            if (_camsDynWaves[lodIndex] != null) PlaceLodData(_camsDynWaves[lodIndex].transform, parent.transform);
+            // add LOD data cameras into this LOD
+            PlaceLodData(ocean._camsAnimWaves[lodIndex].transform, parent.transform);
+            if (ocean._camsFoam[lodIndex] != null)
+                PlaceLodData(ocean._camsFoam[lodIndex].transform, parent.transform);
+            if (ocean._camsFlow[lodIndex] != null)
+                PlaceLodData(ocean._camsFlow[lodIndex].transform, parent.transform);
+            if (ocean._camsDynWaves[lodIndex] != null)
+                PlaceLodData(ocean._camsDynWaves[lodIndex].transform, parent.transform);
 
-            bool generateSkirt = biggestLOD && !OceanRenderer.Instance._disableSkirt;
+            bool generateSkirt = biggestLOD && !ocean._disableSkirt;
 
             Vector2[] offsets;
             PatchType[] patchTypes;
@@ -472,7 +455,7 @@ namespace Crest
 
             // debug toggle to force all patches to be the same. they'll be made with a surrounding skirt to make sure patches
             // overlap
-            if (OceanRenderer.Instance._uniformTiles)
+            if (ocean._uniformTiles)
             {
                 for( int i = 0; i < patchTypes.Length; i++ )
                 {
@@ -485,7 +468,7 @@ namespace Crest
             {
                 // instantiate and place patch
                 var patch = new GameObject( string.Format( "Tile_L{0}", lodIndex ) );
-                patch.layer = _oceanLayer;
+                patch.layer = oceanLayer;
                 patch.transform.parent = parent.transform;
                 Vector2 pos = offsets[i];
                 patch.transform.localPosition = new Vector3( pos.x, 0f, pos.y );
@@ -507,7 +490,7 @@ namespace Crest
                 mr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off; // arbitrary - could be turned on if desired
                 mr.receiveShadows = false; // arbitrary - could be turned on if desired
                 mr.motionVectorGenerationMode = MotionVectorGenerationMode.ForceNoMotion; // TODO
-                mr.material = _oceanMaterial;
+                mr.material = ocean.OceanMaterial;
 
                 // rotate side patches to point the +x side outwards
                 bool rotateXOutwards = patchTypes[i] == PatchType.FatX || patchTypes[i] == PatchType.FatXOuter || patchTypes[i] == PatchType.SlimX || patchTypes[i] == PatchType.SlimXFatZ;

@@ -45,9 +45,14 @@ namespace Crest
             return (uint)(x + 32768 + ((z + 32768) << 16));
         }
 
+        // displacement queries are not cached - only the height computations
         public bool SampleDisplacement(ref Vector3 worldPos, ref Vector3 displacement)
         {
             return _collProvider.SampleDisplacement(ref worldPos, ref displacement);
+        }
+        public bool SampleDisplacement(ref Vector3 worldPos, ref Vector3 displacement, float minSpatialLength)
+        {
+            return _collProvider.SampleDisplacement(ref worldPos, ref displacement, minSpatialLength);
         }
 
         public bool SampleHeight(ref Vector3 worldPos, ref float height)

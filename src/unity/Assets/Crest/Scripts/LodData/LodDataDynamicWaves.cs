@@ -13,7 +13,7 @@ namespace Crest
         public override SimType LodDataType { get { return SimType.DynamicWaves; } }
         protected override string ShaderSim { get { return "Ocean/Shape/Sim/2D Wave Equation"; } }
         public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RGHalf; } }
-        protected override Camera[] SimCameras { get { return OceanRenderer.Instance.Builder._camsDynWaves; } }
+        protected override Camera[] SimCameras { get { return OceanRenderer.Instance._camsDynWaves; } }
 
         public override SimSettingsBase CreateDefaultSettings()
         {
@@ -87,7 +87,7 @@ namespace Crest
             {
                 _copySimResultsCmdBuf.Clear();
                 _copySimResultsCmdBuf.Blit(
-                    PPRTs.Target, OceanRenderer.Instance.Builder._camsAnimWaves[LodTransform.LodIndex].targetTexture, _copySimMaterial);
+                    PPRTs.Target, OceanRenderer.Instance._camsAnimWaves[LodTransform.LodIndex].targetTexture, _copySimMaterial);
             }
         }
 
@@ -103,7 +103,7 @@ namespace Crest
 
             // assign sea floor depth - to slot 1 current frame data. minor bug here - this depth will actually be from the previous frame,
             // because the depth is scheduled to render just before the animated waves, and this sim happens before animated waves.
-            OceanRenderer.Instance.Builder._lodDataAnimWaves[LodTransform.LodIndex].LDSeaDepth.BindResultData(1, simMaterial);
+            OceanRenderer.Instance._lodDataAnimWaves[LodTransform.LodIndex].LDSeaDepth.BindResultData(1, simMaterial);
         }
 
         private void OnDisable()
@@ -118,7 +118,7 @@ namespace Crest
         public static void CountWaveSims(int countFrom, out int present, out int active)
         {
             present = active = 0;
-            foreach (var ldaw in OceanRenderer.Instance.Builder._lodDataAnimWaves)
+            foreach (var ldaw in OceanRenderer.Instance._lodDataAnimWaves)
             {
                 if (ldaw.LDDynamicWaves == null)
                     continue;

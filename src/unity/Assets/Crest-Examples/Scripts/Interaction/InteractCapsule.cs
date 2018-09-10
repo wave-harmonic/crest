@@ -32,7 +32,7 @@ public class InteractCapsule : MonoBehaviour
 
         float V = dy * A;
 
-        float VperLod = V / OceanRenderer.Instance.Builder.CurrentLodCount;
+        float VperLod = V / OceanRenderer.Instance.CurrentLodCount;
 
         _mat.SetFloat( "_displacedVPerLod", VperLod );
 

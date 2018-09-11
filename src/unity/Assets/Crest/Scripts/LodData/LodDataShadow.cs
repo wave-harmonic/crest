@@ -34,7 +34,7 @@ namespace Crest
                 _mainLight = lightGO.GetComponent<Light>();
             }
 
-            _renderMaterial = new Material(Shader.Find("Unlit/ShadowUpdate"));
+            _renderMaterial = new Material(Shader.Find("Ocean/ShadowUpdate"));
         }
 
         private void Update()
@@ -47,7 +47,6 @@ namespace Crest
                 _bufCopyShadowMap.name = "Shadow data " + LodTransform.LodIndex;
                 _mainLight.AddCommandBuffer(LightEvent.BeforeScreenspaceMask, _bufCopyShadowMap);
             }
-
 
             _bufCopyShadowMap.Clear();
             _bufCopyShadowMap.SetRenderTarget(_shadowData);

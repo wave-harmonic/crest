@@ -44,11 +44,18 @@ namespace Crest
             if (_bufCopyShadowMap == null)
             {
                 _bufCopyShadowMap = new CommandBuffer();
-                _bufCopyShadowMap.name = "Shadow data";
-                _bufCopyShadowMap.SetRenderTarget(_shadowData);
-                _bufCopyShadowMap.Blit(Texture2D.blackTexture, _shadowData, _renderMaterial);
-                _mainLight.AddCommandBuffer(LightEvent.AfterShadowMap, _bufCopyShadowMap);
+                _bufCopyShadowMap.name = "Shadow data " + LodTransform.LodIndex;
+                _mainLight.AddCommandBuffer(LightEvent.BeforeScreenspaceMask, _bufCopyShadowMap);
             }
+
+
+            _bufCopyShadowMap.Clear();
+            _bufCopyShadowMap.SetRenderTarget(_shadowData);
+            _renderMaterial.SetVector("_CenterPos", transform.position);
+            _renderMaterial.SetVector("_Scale", transform.lossyScale);
+            _renderMaterial.SetVector("_CamPos", OceanRenderer.Instance._viewpoint.position);
+            _renderMaterial.SetVector("_CamForward", OceanRenderer.Instance._viewpoint.forward);
+            _bufCopyShadowMap.Blit(Texture2D.blackTexture, _shadowData, _renderMaterial);
         }
 
         void OnEnable()
@@ -65,7 +72,7 @@ namespace Crest
         {
             if (_bufCopyShadowMap != null)
             {
-                _mainLight.RemoveCommandBuffer(LightEvent.AfterShadowMap, _bufCopyShadowMap);
+                _mainLight.RemoveCommandBuffer(LightEvent.BeforeScreenspaceMask, _bufCopyShadowMap);
                 _bufCopyShadowMap = null;
             }
         }

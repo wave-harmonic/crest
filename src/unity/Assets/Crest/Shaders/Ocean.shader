@@ -131,6 +131,7 @@ Shader "Ocean/Ocean"
 				struct v2f
 				{
 					float4 vertex : SV_POSITION;
+					half shadow : TEXCOORD0;
 					half3 n : TEXCOORD1;
 					#if _APPLYFLOWTONORMALS_ON
 					half2 flow : TEXCOORD2;
@@ -143,7 +144,7 @@ Shader "Ocean/Ocean"
 					#endif
 					half4 grabPos : TEXCOORD9;
 
-					unityShadowCoord4 _ShadowCoord : TEXCOORD6;
+					//unityShadowCoord4 _ShadowCoord : TEXCOORD6;
 					//SHADOW_COORDS(6)
 
 					UNITY_FOG_COORDS( 3 )
@@ -180,6 +181,9 @@ Shader "Ocean/Ocean"
 					#endif
 
 					o.lodAlpha_worldXZUndisplaced_oceanDepth.w = 0.;
+
+					o.shadow = 0.;
+
 					// sample weights. params.z allows shape to be faded out (used on last lod to support pop-less scale transitions)
 					float wt_0 = (1. - lodAlpha) * _LD_Params_0.z;
 					float wt_1 = (1. - wt_0) * _LD_Params_1.z;
@@ -188,6 +192,7 @@ Shader "Ocean/Ocean"
 					if (wt_0 > 0.001)
 					{
 						const float2 uv_0 = LD_0_WorldToUV(worldXZBefore);
+
 						#if !_DEBUGDISABLESHAPETEXTURES_ON
 						SampleDisplacements(_LD_Sampler_AnimatedWaves_0, uv_0, wt_0, _LD_Params_0.w, _LD_Params_0.x, o.worldPos, o.n);
 						#endif
@@ -203,10 +208,13 @@ Shader "Ocean/Ocean"
 						#if _SUBSURFACESHALLOWCOLOUR_ON
 						SampleOceanDepth(_LD_Sampler_SeaFloorDepth_0, uv_0, wt_0, o.lodAlpha_worldXZUndisplaced_oceanDepth.w);
 						#endif
+
+						SampleShadow(_LD_Sampler_Shadow_0, uv_0, wt_0, o.shadow);
 					}
 					if (wt_1 > 0.001)
 					{
 						const float2 uv_1 = LD_1_WorldToUV(worldXZBefore);
+
 						#if !_DEBUGDISABLESHAPETEXTURES_ON
 						SampleDisplacements(_LD_Sampler_AnimatedWaves_1, uv_1, wt_1, _LD_Params_1.w, _LD_Params_1.x, o.worldPos, o.n);
 						#endif
@@ -222,6 +230,8 @@ Shader "Ocean/Ocean"
 						#if _SUBSURFACESHALLOWCOLOUR_ON
 						SampleOceanDepth(_LD_Sampler_SeaFloorDepth_1, uv_1, wt_1, o.lodAlpha_worldXZUndisplaced_oceanDepth.w);
 						#endif
+
+						SampleShadow(_LD_Sampler_Shadow_1, uv_1, wt_1, o.shadow);
 					}
 
 					// foam can saturate
@@ -246,7 +256,7 @@ Shader "Ocean/Ocean"
 					o.foam_screenPos.yzw = ComputeScreenPos(o.vertex).xyw;
 
 					//TRANSFER_SHADOW(o);
-					o._ShadowCoord = mul(unity_WorldToShadow[3], float4(o.worldPos,1.));// mul(unity_ObjectToWorld, v.vertex));
+					//o._ShadowCoord = mul(unity_WorldToShadow[3], float4(o.worldPos,1.));// mul(unity_ObjectToWorld, v.vertex));
 
 					return o;
 				}
@@ -308,7 +318,7 @@ Shader "Ocean/Ocean"
 				// these are copied from the render target by unity
 				sampler2D _BackgroundTexture;
 				sampler2D _CameraDepthTexture;
-				UNITY_DECLARE_SHADOWMAP(_ShadowMapTexture);
+				//UNITY_DECLARE_SHADOWMAP(_ShadowMapTexture);
 
 				half2 SampleNormalMaps(float2 worldXZUndisplaced, float lodAlpha)
 				{
@@ -333,9 +343,6 @@ Shader "Ocean/Ocean"
 							UnpackNormal(tex2D( _Normals, (v1*_Time.y*spdmulH + worldXZUndisplaced) / nstretch )).xy,
 							nblend );
 					}
-
-					//norm += UNITY_SAMPLE_SHADOW(_ShadowMapTexture, float3(worldXZUndisplaced/100.,20.));
-					//norm += tex2D<float>(_GiveMeZeShadows, (float2)0.5).xy;
 
 					// approximate combine of normals. would be better if normals applied in local frame.
 					return _NormalsStrength * norm;
@@ -496,21 +503,21 @@ Shader "Ocean/Ocean"
 					return col;
 				}
 
-				inline fixed unitySampleShadow(unityShadowCoord4 shadowCoord)
-				{
-#if defined(SHADOWS_NATIVE)
-					fixed shadow = UNITY_SAMPLE_SHADOW(_ShadowMapTexture, shadowCoord.xyz);
-					shadow = _LightShadowData.r + shadow * (1 - _LightShadowData.r);
-					return shadow;
-#else
-					unityShadowCoord dist = SAMPLE_DEPTH_TEXTURE(_ShadowMapTexture, shadowCoord.xy);
-					// tegra is confused if we use _LightShadowData.x directly
-					// with "ambiguous overloaded function reference max(mediump float, float)"
-					unityShadowCoord lightShadowDataX = _LightShadowData.x;
-					unityShadowCoord threshold = shadowCoord.z;
-					return max(dist > threshold, lightShadowDataX);
-#endif
-				}
+//				inline fixed unitySampleShadow(unityShadowCoord4 shadowCoord)
+//				{
+//#if defined(SHADOWS_NATIVE)
+//					fixed shadow = UNITY_SAMPLE_SHADOW(_ShadowMapTexture, shadowCoord.xyz);
+//					shadow = _LightShadowData.r + shadow * (1 - _LightShadowData.r);
+//					return shadow;
+//#else
+//					unityShadowCoord dist = SAMPLE_DEPTH_TEXTURE(_ShadowMapTexture, shadowCoord.xy);
+//					// tegra is confused if we use _LightShadowData.x directly
+//					// with "ambiguous overloaded function reference max(mediump float, float)"
+//					unityShadowCoord lightShadowDataX = _LightShadowData.x;
+//					unityShadowCoord threshold = shadowCoord.z;
+//					return max(dist > threshold, lightShadowDataX);
+//#endif
+//				}
 				
 				#if _PROCEDURALSKY_ON
 				uniform half3 _SkyBase, _SkyAwayFromSun, _SkyTowardsSun;
@@ -614,10 +621,10 @@ Shader "Ocean/Ocean"
 					UNITY_APPLY_FOG(i.fogCoord, col);
 
 					#if _DEBUGVISUALISESHAPESAMPLE_ON
-					col = mix(col.rgb, i.debugtint, 0.5);
+					col = lerp(col.rgb, i.debugtint, 0.5);
 					#endif
 					#if _DEBUGVISUALISEFLOW_ON
-					col.rg = mix(col.rg, i.flow.xy, 0.5);
+					col.rg = lerp(col.rg, i.flow.xy, 0.5);
 					#endif
 
 					// PUTS SOMETHING ON THE SCREEN!!
@@ -629,7 +636,8 @@ Shader "Ocean/Ocean"
 					//		col *= UNITY_SAMPLE_SHADOW(_ShadowMapTexture, i._ShadowCoord) * .5 + .5;
 					
 					// scraping together what i could find 
-					col *= unitySampleShadow(mul(unity_WorldToShadow[2], unityShadowCoord4(i.worldPos, 1)));
+					//col *= unitySampleShadow(mul(unity_WorldToShadow[2], unityShadowCoord4(i.worldPos, 1)));
+					col *= i.shadow;
 
 					//col = UNITY_SAMPLE_SHADOW(_ShadowMapTexture, UnityCombineShadowcoordComponents(uvDepth.xy, float2(0, 0), 1000., 0.));
 					//

@@ -11,6 +11,7 @@
 	uniform sampler2D _LD_Sampler_Foam_##LODNUM; \
 	uniform sampler2D _LD_Sampler_Flow_##LODNUM; \
 	uniform sampler2D _LD_Sampler_DynamicWaves_##LODNUM; \
+	uniform sampler2D _LD_Sampler_Shadow_##LODNUM; \
 	uniform float4 _LD_Params_##LODNUM; \
 	uniform float3 _LD_Pos_Scale_##LODNUM; \
 	uniform int _LD_LodIdx_##LODNUM;
@@ -74,6 +75,11 @@ void SampleFlow(in sampler2D i_oceanFlowSampler, float2 i_uv, in float i_wt, ino
 void SampleOceanDepth(in sampler2D i_oceanDepthSampler, float2 i_uv, in float i_wt, inout half io_oceanDepth)
 {
 	io_oceanDepth += i_wt * (tex2Dlod(i_oceanDepthSampler, float4(i_uv, 0., 0.)).x + DEPTH_BIAS);
+}
+
+void SampleShadow(in sampler2D i_oceanShadowSampler, float2 i_uv, in float i_wt, inout half io_shadow)
+{
+	io_shadow += i_wt * tex2Dlod(i_oceanShadowSampler, float4(i_uv, 0., 0.)).x;
 }
 
 // Geometry data

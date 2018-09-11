@@ -598,7 +598,7 @@ Shader "Ocean/Ocean"
 					#endif
 
 					// write out shadow
-					col *= i.shadow;
+					col *= 1. - i.shadow;
 
 					return half4(col, 1.);
 				}

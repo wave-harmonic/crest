@@ -63,9 +63,15 @@
 				return o;
 			}
 
-			float4 frag (v2f i) : SV_Target
+			float4 ComputeShadow(v2f i)
 			{
 				SHADOW_COLLECTOR_FRAGMENT(i);
+			}
+
+			float frag (v2f i) : SV_Target
+			{
+				float result = ComputeShadow(i).x;
+				return 1. - result;
 			}
 			ENDCG
 		}

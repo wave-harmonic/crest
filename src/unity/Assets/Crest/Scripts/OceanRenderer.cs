@@ -241,7 +241,24 @@ namespace Crest
         static OceanRenderer _instance;
         public static OceanRenderer Instance { get { return _instance ?? (_instance = FindObjectOfType<OceanRenderer>()); } }
 
-        ICollProvider _collProvider; public ICollProvider CollisionProvider { get { return _collProvider ?? 
-                    (_collProvider = _cachedCpuOceanQueries ? new CollProviderCache(_collProvider) as ICollProvider : new CollProviderDispTexs()); } }
+        ICollProvider _collProvider;
+        /// <summary>
+        /// Provides ocean shape to CPU.
+        /// </summary>
+        public ICollProvider CollisionProvider
+        {
+            get
+            {
+                if (_collProvider != null)
+                    return _collProvider;
+
+                _collProvider = new CollProviderDispTexs();
+
+                if (_cachedCpuOceanQueries)
+                    _collProvider = new CollProviderCache(_collProvider);
+
+                return _collProvider;
+            }
+        }
     }
 }

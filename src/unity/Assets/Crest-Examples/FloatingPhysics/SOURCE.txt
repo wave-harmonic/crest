@@ -1,0 +1,5 @@
+Based on the tutorial from Erik Nordeus: https://www.habrador.com/tutorials/unity-boat-tutorial/
+
+Which is in turn based on the Gamasutra tutorial from Jacques Kerner: https://www.gamasutra.com/view/news/237528/Water_interaction_model_for_boats_in_video_games.php
+
+Scripts added and modified here in Crest with Erik's permission. Please consider supporting his work: https://www.habrador.com/about/

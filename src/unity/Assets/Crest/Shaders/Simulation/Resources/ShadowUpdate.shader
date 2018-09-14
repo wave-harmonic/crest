@@ -42,7 +42,9 @@
 				v2f o;
 
 				// the code below is baked out and specialised from C:\Program Files\Unity\Editor\Data\CGIncludes\UnityCG.cginc
-				// TRANSFER_SHADOW_COLLECTOR
+				// TRANSFER_SHADOW_COLLECTOR . it needs to be specialised because its rendering a quad from a Blit(), instead
+				// of rendering real geometry from a worldspace camera. the world space rendering could probably be set up with
+				// some hoop jumping but i guess ill go for this for now.
 
 				o.pos = UnityObjectToClipPos(v.vertex);
 
@@ -63,26 +65,41 @@
 				return o;
 			}
 
-			// sadface - override macro used within SHADOW_COLLECTOR_FRAGMENT
-			#undef COMPUTE_SHADOW_COLLECTOR_SHADOW
-			#define COMPUTE_SHADOW_COLLECTOR_SHADOW(i, weights, shadowFade) \
-				float4 coord = float4(i._ShadowCoord0 * weights[0] + i._ShadowCoord1 * weights[1] + i._ShadowCoord2 * weights[2] + i._ShadowCoord3 * weights[3], 1); \
-				SAMPLE_SHADOW_COLLECTOR_SHADOW(coord) \
-				float res; \
-				res = saturate(shadow);
-
 			float ComputeShadow(v2f i, out float o_shadowFade)
 			{
-				SHADOW_COLLECTOR_FRAGMENT(i);
+				// sadface - copy paste all this deprecated code in from Unity.cginc, because the
+				// macro has a hardcoded return statement
+
+				float3 fromCenter0 = i._WorldPosViewZ.xyz - unity_ShadowSplitSpheres[0].xyz;
+				float3 fromCenter1 = i._WorldPosViewZ.xyz - unity_ShadowSplitSpheres[1].xyz;
+				float3 fromCenter2 = i._WorldPosViewZ.xyz - unity_ShadowSplitSpheres[2].xyz;
+				float3 fromCenter3 = i._WorldPosViewZ.xyz - unity_ShadowSplitSpheres[3].xyz;
+				float4 distances2 = float4(dot(fromCenter0, fromCenter0), dot(fromCenter1, fromCenter1), dot(fromCenter2, fromCenter2), dot(fromCenter3, fromCenter3));
+				float4 cascadeWeights = float4(distances2 < unity_ShadowSplitSqRadii);
+				cascadeWeights.yzw = saturate(cascadeWeights.yzw - cascadeWeights.xyz);
+				float sphereDist = distance(i._WorldPosViewZ.xyz, unity_ShadowFadeCenterAndType.xyz);
+				float shadowFade = saturate(sphereDist * _LightShadowData.z + _LightShadowData.w);
+
+				float4 coord = float4(
+					i._ShadowCoord0 * cascadeWeights[0] + 
+					i._ShadowCoord1 * cascadeWeights[1] + 
+					i._ShadowCoord2 * cascadeWeights[2] + 
+					i._ShadowCoord3 * cascadeWeights[3], 1);
+
+				SAMPLE_SHADOW_COLLECTOR_SHADOW(coord)
 
 				o_shadowFade = shadowFade;
 
-				return res;
+				return shadow;
 			}
 
 			float frag (v2f i) : SV_Target
 			{
 				float2 uv_lastframe = LD_0_WorldToUV(i._WorldPosViewZ.xz);
+
+				// TODO what should 0.6 be??
+				if (dot(normalize(i._WorldPosViewZ.xyz - _CamPos), _CamForward) < 0.6)
+					return 0.;
 
 				half lastShadow = 0.;
 				SampleShadow(_LD_Sampler_Shadow_0, uv_lastframe, 1.0, lastShadow);

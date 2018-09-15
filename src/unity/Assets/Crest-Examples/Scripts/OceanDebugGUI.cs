@@ -137,32 +137,8 @@ public class OceanDebugGUI : MonoBehaviour
 
     void DrawShapeTargets()
     {
-        {
-            int ind = 0;
-            foreach (var cam in OceanRenderer.Instance._camsAnimWaves)
-            {
-                if (!cam) continue;
-
-                RenderTexture shape = cam.targetTexture;
-
-                if (shape == null) continue;
-
-                float b = 7f;
-                float h = Screen.height / (float)OceanRenderer.Instance._camsAnimWaves.Length;
-                float w = h + b;
-                float x = Screen.width - w;
-                float y = ind * h;
-
-                GUI.color = Color.black * 0.7f;
-                GUI.DrawTexture(new Rect(x, y, w, h), Texture2D.whiteTexture);
-                GUI.color = Color.white;
-                GUI.DrawTexture(new Rect(x + b, y + b / 2f, h - b, h - b), shape, ScaleMode.ScaleAndCrop, false);
-
-                ind++;
-            }
-        }
-
         // draw sim data
+        DrawSims(OceanRenderer.Instance._camsAnimWaves, 1f);
         DrawSims(OceanRenderer.Instance._camsFoam, 2f);
         DrawSims(OceanRenderer.Instance._camsDynWaves, 3f);
         DrawSims(OceanRenderer.Instance._camsFlow, 4f);
@@ -175,19 +151,35 @@ public class OceanDebugGUI : MonoBehaviour
         {
             if (!cam) continue;
 
-            RenderTexture shape = cam.targetTexture;
-            if (shape == null) continue;
-
             float b = 7f;
             float h = Screen.height / (float)OceanRenderer.Instance._camsAnimWaves.Length;
             float w = h + b;
             float x = Screen.width - w * offset + b * (offset - 1f);
             float y = idx * h;
 
-            GUI.color = Color.black * 0.7f;
-            GUI.DrawTexture(new Rect(x, y, w - b, h), Texture2D.whiteTexture);
-            GUI.color = Color.white;
-            GUI.DrawTexture(new Rect(x + b, y + b / 2f, h - b, h - b), shape);
+            RenderTexture shape;
+
+            var shad = cam.GetComponent<LodDataShadow>();
+            if (shad)
+            {
+                shape = shad.DataTexture;
+                if (shape == null) continue;
+
+                GUI.color = Color.black * 0.7f;
+                GUI.DrawTexture(new Rect(x, y, w - b, h), Texture2D.whiteTexture);
+                GUI.color = Color.white;
+                GUI.DrawTexture(new Rect(x + b, y + b / 2f, h - b, h - b), shape);
+            }
+            else
+            {
+                shape = cam.targetTexture;
+                if (shape == null) continue;
+
+                GUI.color = Color.black * 0.7f;
+                GUI.DrawTexture(new Rect(x, y, w - b, h), Texture2D.whiteTexture);
+                GUI.color = Color.white;
+                GUI.DrawTexture(new Rect(x + b, y + b / 2f, h - b, h - b), shape);
+            }
 
             idx++;
         }

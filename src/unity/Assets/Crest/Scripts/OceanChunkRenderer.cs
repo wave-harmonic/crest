@@ -85,15 +85,22 @@ namespace Crest
 
             if(OceanRenderer.Instance._createFlowSim) shapeCams[_lodIndex].LDFlow.BindResultData(0, _mpb);
             shapeCams[_lodIndex].LDSeaDepth.BindResultData(0, _mpb);
+
+            var shad0 = shapeCams[_lodIndex].GetComponent<LodDataShadow>();
+            if (shad0) shad0.BindResultData(0, _mpb);
+
             if (_lodIndex + 1 < shapeCams.Length)
             {
                 shapeCams[_lodIndex + 1].BindResultData(1, _mpb);
                 shapeCams[_lodIndex + 1].LDFoam.BindResultData(1, _mpb);
                 if(OceanRenderer.Instance._createFlowSim) shapeCams[_lodIndex + 1].LDFlow.BindResultData(1, _mpb);
                 shapeCams[_lodIndex + 1].LDSeaDepth.BindResultData(1, _mpb);
+
+                var shad1 = shapeCams[_lodIndex + 1].GetComponent<LodDataShadow>();
+                if (shad1) shad1.BindResultData(1, _mpb);
             }
 
-            if(OceanRenderer.Instance.PlanarReflection)
+            if (OceanRenderer.Instance.PlanarReflection)
             {
                 _mpb.SetTexture("_ReflectionTex", OceanRenderer.Instance.PlanarReflection.ReflectionTexture);
             }

@@ -57,6 +57,7 @@ Shader "Ocean/Ocean"
 		[HDR] _SkyTowardsSun("    Towards Sun", Color) = (1.0, 1.0, 1.0, 1.0)
 		_SkyDirectionality("    Directionality", Range(0.0, 0.99)) = 1.0
 		[HDR] _SkyAwayFromSun("    Away From Sun", Color) = (1.0, 1.0, 1.0, 1.0)
+		[Toggle] _Shadows("Shadows", Float) = 1
 		[Enum(CullMode)] _CullMode("Cull Mode", Int) = 2
 		[Toggle] _DebugDisableShapeTextures("Debug Disable Shape Textures", Float) = 0
 		[Toggle] _DebugVisualiseShapeSample("Debug Visualise Shape Sample", Float) = 0
@@ -89,6 +90,7 @@ Shader "Ocean/Ocean"
 				CGPROGRAM
 				#pragma vertex vert
 				#pragma fragment frag
+
 				#pragma multi_compile_fog
 
 				#pragma shader_feature _APPLYNORMALMAPPING_ON
@@ -102,13 +104,14 @@ Shader "Ocean/Ocean"
 				#pragma shader_feature _FOAM3DLIGHTING_ON
 				#pragma shader_feature _PLANARREFLECTIONS_ON
 				#pragma shader_feature _PROCEDURALSKY_ON
+				#pragma shader_feature _APPLYFLOWTONORMALS_ON
+				#pragma shader_feature _SHADOWS_ON
 
 				#pragma shader_feature _DEBUGDISABLESHAPETEXTURES_ON
 				#pragma shader_feature _DEBUGVISUALISESHAPESAMPLE_ON
 				#pragma shader_feature _DEBUGVISUALISEFLOW_ON
 				#pragma shader_feature _DEBUGDISABLESMOOTHLOD_ON
 				#pragma shader_feature _COMPILESHADERWITHDEBUGINFO_ON
-				#pragma shader_feature _APPLYFLOWTONORMALS_ON
 
 				#if _COMPILESHADERWITHDEBUGINFO_ON
 				#pragma enable_d3d11_debug_symbols
@@ -125,10 +128,10 @@ Shader "Ocean/Ocean"
 				struct v2f
 				{
 					float4 vertex : SV_POSITION;
-					half3 n : TEXCOORD1;
 					#if _APPLYFLOWTONORMALS_ON
 					half2 flow : TEXCOORD2;
 					#endif
+					half4 n_shadow : TEXCOORD1;
 					half4 foam_screenPos : TEXCOORD4;
 					half4 lodAlpha_worldXZUndisplaced_oceanDepth : TEXCOORD5;
 					float3 worldPos : TEXCOORD7;
@@ -163,7 +166,7 @@ Shader "Ocean/Ocean"
 					o.lodAlpha_worldXZUndisplaced_oceanDepth.yz = o.worldPos.xz;
 
 					// sample shape textures - always lerp between 2 LOD scales, so sample two textures
-					o.n = half3(0., 1., 0.);
+					o.n_shadow = half4(0., 1., 0., 0.);
 					o.foam_screenPos.x = 0.;
 
 					#if _APPLYFLOWTONORMALS_ON
@@ -171,6 +174,7 @@ Shader "Ocean/Ocean"
 					#endif
 
 					o.lodAlpha_worldXZUndisplaced_oceanDepth.w = 0.;
+
 					// sample weights. params.z allows shape to be faded out (used on last lod to support pop-less scale transitions)
 					float wt_0 = (1. - lodAlpha) * _LD_Params_0.z;
 					float wt_1 = (1. - wt_0) * _LD_Params_1.z;
@@ -179,8 +183,9 @@ Shader "Ocean/Ocean"
 					if (wt_0 > 0.001)
 					{
 						const float2 uv_0 = LD_0_WorldToUV(worldXZBefore);
+
 						#if !_DEBUGDISABLESHAPETEXTURES_ON
-						SampleDisplacements(_LD_Sampler_AnimatedWaves_0, uv_0, wt_0, _LD_Params_0.w, _LD_Params_0.x, o.worldPos, o.n);
+						SampleDisplacements(_LD_Sampler_AnimatedWaves_0, uv_0, wt_0, _LD_Params_0.w, _LD_Params_0.x, o.worldPos, o.n_shadow.xyz);
 						#endif
 
 						#if _FOAM_ON
@@ -194,12 +199,17 @@ Shader "Ocean/Ocean"
 						#if _SUBSURFACESHALLOWCOLOUR_ON
 						SampleOceanDepth(_LD_Sampler_SeaFloorDepth_0, uv_0, wt_0, o.lodAlpha_worldXZUndisplaced_oceanDepth.w);
 						#endif
+
+						#if _SHADOWS_ON
+						SampleShadow(_LD_Sampler_Shadow_0, uv_0, wt_0, o.n_shadow.w);
+						#endif
 					}
 					if (wt_1 > 0.001)
 					{
 						const float2 uv_1 = LD_1_WorldToUV(worldXZBefore);
+
 						#if !_DEBUGDISABLESHAPETEXTURES_ON
-						SampleDisplacements(_LD_Sampler_AnimatedWaves_1, uv_1, wt_1, _LD_Params_1.w, _LD_Params_1.x, o.worldPos, o.n);
+						SampleDisplacements(_LD_Sampler_AnimatedWaves_1, uv_1, wt_1, _LD_Params_1.w, _LD_Params_1.x, o.worldPos, o.n_shadow.xyz);
 						#endif
 
 						#if _FOAM_ON
@@ -212,6 +222,10 @@ Shader "Ocean/Ocean"
 
 						#if _SUBSURFACESHALLOWCOLOUR_ON
 						SampleOceanDepth(_LD_Sampler_SeaFloorDepth_1, uv_1, wt_1, o.lodAlpha_worldXZUndisplaced_oceanDepth.w);
+						#endif
+
+						#if _SHADOWS_ON
+						SampleShadow(_LD_Sampler_Shadow_1, uv_1, wt_1, o.n_shadow.w);
 						#endif
 					}
 
@@ -362,7 +376,7 @@ Shader "Ocean/Ocean"
 					return smoothstep(i_foam, i_foam + _WaveFoamFeather, ft);
 				}
 
-				void ComputeFoam(half i_foam, float2 i_worldXZUndisplaced, float2 i_worldXZ, half3 i_n, float i_pixelZ, float i_sceneZ, half3 i_view, float3 i_lightDir, out half3 o_bubbleCol, out half4 o_whiteFoamCol)
+				void ComputeFoam(half i_foam, float2 i_worldXZUndisplaced, float2 i_worldXZ, half3 i_n, float i_pixelZ, float i_sceneZ, half3 i_view, float3 i_lightDir, half i_shadow, out half3 o_bubbleCol, out half4 o_whiteFoamCol)
 				{
 					half foamAmount = i_foam;
 
@@ -388,17 +402,17 @@ Shader "Ocean/Ocean"
 					half3 fN = normalize(i_n + _WaveFoamNormalStrength * half3(-dfdx, 0., -dfdz));
 					// do simple NdL and phong lighting
 					half foamNdL = max(0., dot(fN, i_lightDir));
-					o_whiteFoamCol.rgb = _FoamWhiteColor.rgb * (AmbientLight() + _WaveFoamLightScale * _LightColor0 * foamNdL);
+					o_whiteFoamCol.rgb = _FoamWhiteColor.rgb * (AmbientLight() + _WaveFoamLightScale * _LightColor0 * foamNdL * i_shadow);
 					half3 refl = reflect(-i_view, fN);
-					o_whiteFoamCol.rgb += pow(max(0., dot(refl, i_lightDir)), _WaveFoamSpecularFallOff) * _WaveFoamSpecularBoost * _LightColor0;
+					o_whiteFoamCol.rgb += pow(max(0., dot(refl, i_lightDir)), _WaveFoamSpecularFallOff) * _WaveFoamSpecularBoost * _LightColor0 * i_shadow;
 					#else // _FOAM3DLIGHTING_ON
-					o_whiteFoamCol.rgb = _FoamWhiteColor.rgb * (AmbientLight() + _WaveFoamLightScale * _LightColor0);
+					o_whiteFoamCol.rgb = _FoamWhiteColor.rgb * (AmbientLight() + _WaveFoamLightScale * _LightColor0 * i_shadow);
 					#endif // _FOAM3DLIGHTING_ON
 
 					o_whiteFoamCol.a = _FoamWhiteColor.a * whiteFoam;
 				}
 
-				void ComputeFoamWithFlow(half2 flow, half i_foam, float2 i_worldXZUndisplaced, float2 i_worldXZ, half3 i_n, float i_pixelZ, float i_sceneZ, half3 i_view, float3 i_lightDir, out half3 o_bubbleCol, out half4 o_whiteFoamCol)
+				void ComputeFoamWithFlow(half2 flow, half i_foam, float2 i_worldXZUndisplaced, float2 i_worldXZ, half3 i_n, float i_pixelZ, float i_sceneZ, half3 i_view, float3 i_lightDir, half i_shadow, out half3 o_bubbleCol, out half4 o_whiteFoamCol)
 				{
 					const float half_period = .05;
 					const float period = half_period * 2;
@@ -417,8 +431,8 @@ Shader "Ocean/Ocean"
 					half4 o_whiteFoamCol2 = half4(0, 0, 0, 0);
 
 
-					ComputeFoam(i_foam, i_worldXZUndisplaced - (flow * sample1_offset), i_worldXZ, i_n, i_pixelZ, i_sceneZ, i_view, i_lightDir, o_bubbleCol1, o_whiteFoamCol1);
-					ComputeFoam(i_foam, i_worldXZUndisplaced - (flow * sample2_offset), i_worldXZ, i_n, i_pixelZ, i_sceneZ, i_view, i_lightDir, o_bubbleCol2, o_whiteFoamCol2);
+					ComputeFoam(i_foam, i_worldXZUndisplaced - (flow * sample1_offset), i_worldXZ, i_n, i_pixelZ, i_sceneZ, i_view, i_lightDir, i_shadow, o_bubbleCol1, o_whiteFoamCol1);
+					ComputeFoam(i_foam, i_worldXZUndisplaced - (flow * sample2_offset), i_worldXZ, i_n, i_pixelZ, i_sceneZ, i_view, i_lightDir, i_shadow, o_bubbleCol2, o_whiteFoamCol2);
 					o_bubbleCol = (sample1_weight * o_bubbleCol1) + (sample2_weight * o_bubbleCol2);
 					o_whiteFoamCol = (sample1_weight * o_whiteFoamCol1) + (sample2_weight * o_whiteFoamCol2);
 				}
@@ -434,7 +448,7 @@ Shader "Ocean/Ocean"
 					return lightDir;
 				}
 
-				half3 OceanEmission(float3 worldPos, half oceanDepth, half3 view, half3 n, half3 n_geom, float3 lightDir, half4 grabPos, half3 screenPos, float pixelZ, half2 uvDepth, float sceneZ, float sceneZ01, half3 bubbleCol)
+				half3 OceanEmission(float3 worldPos, half oceanDepth, half3 view, half3 n, half3 n_geom, float3 lightDir, half i_shadow, half4 grabPos, half3 screenPos, float pixelZ, half2 uvDepth, float sceneZ, float sceneZ01, half3 bubbleCol)
 				{
 					// base colour
 					half3 col = _Diffuse;
@@ -457,7 +471,7 @@ Shader "Ocean/Ocean"
 
 						// Approximate subsurface scattering - add light when surface faces viewer. Use geometry normal - don't need high freqs.
 						half towardsSun = pow(max(0., dot(lightDir, -view)), _SubSurfaceSunFallOff);
-						col += (_SubSurfaceBase + _SubSurfaceSun * towardsSun) * max(dot(n_geom, view), 0.) * _SubSurfaceColour.rgb * _LightColor0;
+						col += (_SubSurfaceBase + _SubSurfaceSun * towardsSun) * max(dot(n_geom, view), 0.) * _SubSurfaceColour.rgb * _LightColor0 * i_shadow;
 					}
 					#endif // _SUBSURFACESCATTERING_ON
 
@@ -486,15 +500,37 @@ Shader "Ocean/Ocean"
 						half3 sceneColour = tex2D(_BackgroundTexture, uvBackgroundRefract).rgb;
 
 						#if _CAUSTICS_ON
+						// could sample from the screen space shadow texture to attenuate this..
 						// underwater caustics - dedicated to P
 						float3 camForward = mul((float3x3)unity_CameraToWorld, float3(0., 0., 1.));
 						float3 scenePos = _WorldSpaceCameraPos - view * sceneZ / dot(camForward, -view);
-						half sceneDepth = _OceanCenterPosWorld.y - scenePos.y;
+						const float2 scenePosUV = LD_1_WorldToUV(scenePos.xz);
+						half3 disp = 0., n_dummy = 0.;
+						// this gives height at displaced position, not exactly at query position.. but it helps. i cant pass this from vert shader
+						// because i dont know it at scene pos.
+						SampleDisplacements(_LD_Sampler_AnimatedWaves_1, scenePosUV, 1.0, _LD_Params_1.w, _LD_Params_1.x, disp, n_dummy);
+						half waterHeight = _OceanCenterPosWorld.y + disp.y;
+						half sceneDepth = waterHeight - scenePos.y;
 						half bias = abs(sceneDepth - _CausticsFocalDepth) / _CausticsDepthOfField;
-						half2 causticN = _CausticsDistortionStrength * UnpackNormal(tex2D(_Normals, scenePos.xz / _CausticsDistortionScale)).xy;
-						half4 cuv1 = half4((scenePos.xz / _CausticsTextureScale + 1.3 *causticN + half2(0.88*_Time.x + 17.16, -3.38*_Time.x)), 0., bias);
-						half4 cuv2 = half4((1.37*scenePos.xz / _CausticsTextureScale + 1.77*causticN + half2(4.96*_Time.x, 2.34*_Time.x)), 0., bias);
-						sceneColour *= 1. + _CausticsStrength *
+						// project along light dir, but multiply by a fudge factor reduce the angle bit - compensates for fact that in real life
+						// caustics come from many directions and don't exhibit such a strong directonality
+						float2 surfacePosXZ = scenePos.xz + lightDir.xz * sceneDepth / (4.*lightDir.y);
+						half2 causticN = _CausticsDistortionStrength * UnpackNormal(tex2D(_Normals, surfacePosXZ / _CausticsDistortionScale)).xy;
+						half4 cuv1 = half4((surfacePosXZ / _CausticsTextureScale + 1.3 *causticN + half2(0.88*_Time.x + 17.16, -3.38*_Time.x)), 0., bias);
+						half4 cuv2 = half4((1.37*surfacePosXZ / _CausticsTextureScale + 1.77*causticN + half2(4.96*_Time.x, 2.34*_Time.x)), 0., bias);
+
+						half causticsStrength = _CausticsStrength;
+						#if _SHADOWS_ON
+						{
+							// only sample the bigger lod. if pops are noticeable this could lerp the 2 lods smoothly, but i didnt notice issues.
+							float causticShadow = 0.;
+							float2 uv_1 = LD_1_WorldToUV(surfacePosXZ);
+							SampleShadow(_LD_Sampler_Shadow_1, uv_1, 1.0, causticShadow);
+							causticsStrength *= 1. - causticShadow;
+						}
+						#endif
+
+						sceneColour *= 1. + causticsStrength *
 							(0.5*tex2Dbias(_CausticsTexture, cuv1).x + 0.5*tex2Dbias(_CausticsTexture, cuv2).x - _CausticsTextureAverage);
 						#endif
 
@@ -504,6 +540,7 @@ Shader "Ocean/Ocean"
 
 					return col;
 				}
+
 
 				#if _PROCEDURALSKY_ON
 				uniform half3 _SkyBase, _SkyAwayFromSun, _SkyTowardsSun;
@@ -544,9 +581,14 @@ Shader "Ocean/Ocean"
 
 					// could be per-vertex i reckon
 					float3 lightDir = WorldSpaceLightDir(i.worldPos);
+					half shadow = 1.0
+					#if _SHADOWS_ON
+						- i.n_shadow.w
+					#endif
+						;
 
 					// Normal - geom + normal mapping
-					half3 n_geom = normalize(i.n);
+					half3 n_geom = normalize(i.n_shadow.xyz);
 					half3 n_pixel = n_geom;
 					#if _APPLYNORMALMAPPING_ON
 					#if _APPLYFLOWTONORMALS_ON
@@ -562,14 +604,14 @@ Shader "Ocean/Ocean"
 					#if _FOAM_ON
 					half4 whiteFoamCol;
 					#if _APPLYFLOWTONORMALS_ON
-					ComputeFoamWithFlow(i.flow, i.foam_screenPos.x, i.lodAlpha_worldXZUndisplaced_oceanDepth.yz, i.worldPos.xz, n_pixel, pixelZ, sceneZ, view, lightDir, bubbleCol, whiteFoamCol);
+					ComputeFoamWithFlow(i.flow, i.foam_screenPos.x, i.lodAlpha_worldXZUndisplaced_oceanDepth.yz, i.worldPos.xz, n_pixel, pixelZ, sceneZ, view, lightDir, shadow, bubbleCol, whiteFoamCol);
 					#else
-					ComputeFoam(i.foam_screenPos.x, i.lodAlpha_worldXZUndisplaced_oceanDepth.yz, i.worldPos.xz, n_pixel, pixelZ, sceneZ, view, lightDir, bubbleCol, whiteFoamCol);
+					ComputeFoam(i.foam_screenPos.x, i.lodAlpha_worldXZUndisplaced_oceanDepth.yz, i.worldPos.xz, n_pixel, pixelZ, sceneZ, view, lightDir, shadow, bubbleCol, whiteFoamCol);
 					#endif
 					#endif
 
 					// Compute color of ocean - in-scattered light + refracted scene
-					half3 col = OceanEmission(i.worldPos, i.lodAlpha_worldXZUndisplaced_oceanDepth.w, view, n_pixel, n_geom, lightDir, i.grabPos, screenPos, pixelZ, uvDepth, sceneZ, sceneZ01, bubbleCol);
+					half3 col = OceanEmission(i.worldPos, i.lodAlpha_worldXZUndisplaced_oceanDepth.w, view, n_pixel, n_geom, lightDir, shadow, i.grabPos, screenPos, pixelZ, uvDepth, sceneZ, sceneZ01, bubbleCol);
 
 					// Reflection
 					half3 refl = reflect(-view, n_pixel);
@@ -585,7 +627,7 @@ Shader "Ocean/Ocean"
 
 					// Add primary light to boost it
 					#if _COMPUTEDIRECTIONALLIGHT_ON
-					skyColour += pow(max(0., dot(refl, lightDir)), _DirectionalLightFallOff) * _DirectionalLightBoost * _LightColor0;
+					skyColour += pow(max(0., dot(refl, lightDir)), _DirectionalLightFallOff) * _DirectionalLightBoost * _LightColor0 * shadow;
 					#endif
 
 					// Fresnel
@@ -606,10 +648,10 @@ Shader "Ocean/Ocean"
 					UNITY_APPLY_FOG(i.fogCoord, col);
 
 					#if _DEBUGVISUALISESHAPESAMPLE_ON
-					col = mix(col.rgb, i.debugtint, 0.5);
+					col = lerp(col.rgb, i.debugtint, 0.5);
 					#endif
 					#if _DEBUGVISUALISEFLOW_ON
-					col.rg = mix(col.rg, i.flow.xy, 0.5);
+					col.rg = lerp(col.rg, i.flow.xy, 0.5);
 					#endif
 
 					return half4(col, 1.);

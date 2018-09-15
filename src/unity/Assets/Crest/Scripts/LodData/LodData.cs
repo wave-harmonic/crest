@@ -23,6 +23,9 @@ namespace Crest
 
         // shape texture resolution
         int _shapeRes = -1;
+        // ocean scale last frame - used to detect scale changes
+        float _oceanLocalScalePrev = -1f;
+        protected int _scaleDifferencePow2 = 0;
 
         // these would ideally be static but then they get cleared when editing-and-continuing in the editor.
         int[] _paramsPosScale;
@@ -56,6 +59,14 @@ namespace Crest
                 DataTexture.width = DataTexture.height = _shapeRes;
                 DataTexture.Create();
             }
+
+            // determine if this lod has changed scale and by how much (in exponent of 2)
+            float oceanLocalScale = OceanRenderer.Instance.transform.localScale.x;
+            if (_oceanLocalScalePrev == -1f) _oceanLocalScalePrev = oceanLocalScale;
+            float ratio = oceanLocalScale / _oceanLocalScalePrev;
+            _oceanLocalScalePrev = oceanLocalScale;
+            float ratio_l2 = Mathf.Log(ratio) / Mathf.Log(2f);
+            _scaleDifferencePow2 = Mathf.RoundToInt(ratio_l2);
         }
 
         protected PropertyWrapperMaterial _pwMat = new PropertyWrapperMaterial();
@@ -103,13 +114,18 @@ namespace Crest
             // this is currently not used as the sea floor depth is not created as a unique sim object
             SeaFloorDepth,
             Flow,
+            Shadow,
         }
 
-        public static GameObject CreateLodData(int lodIdx, int lodCount, float baseVertDensity, SimType simType, Dictionary<System.Type, SimSettingsBase> cachedSettings)
+        public static GameObject CreateLodData(int lodIdx, int lodCount, GameObject attachGO, float baseVertDensity, SimType simType, Dictionary<System.Type, SimSettingsBase> cachedSettings)
         {
-            var go = new GameObject(string.Format("{0}Cam{1}", simType.ToString(), lodIdx));
+            var go = attachGO ?? new GameObject(string.Format("{0}Cam{1}", simType.ToString(), lodIdx));
 
-            go.AddComponent<LodTransform>().InitLODData(lodIdx, lodCount); ;
+            if (attachGO == null)
+            {
+                // Add component if we are creating a loddata GO anew
+                go.AddComponent<LodTransform>().InitLODData(lodIdx, lodCount); ;
+            }
 
             LodData sim;
             switch (simType)
@@ -128,6 +144,9 @@ namespace Crest
                 case SimType.Flow:
                     sim = go.AddComponent<LodDataFlow>();
                     break;
+                case SimType.Shadow:
+                    sim = go.AddComponent<LodDataShadow>();
+                    break;
                 default:
                     Debug.LogError("Unknown sim type: " + simType.ToString());
                     return null;
@@ -142,34 +161,39 @@ namespace Crest
             }
             sim.UseSettings(settings);
 
-            var cam = go.AddComponent<Camera>();
-            cam.clearFlags = sim.CamClearFlags;
-            cam.backgroundColor = new Color(0f, 0f, 0f, 0f);
-            cam.cullingMask = 0;
-            cam.orthographic = true;
-            cam.nearClipPlane = 1f;
-            cam.farClipPlane = 500f;
-            cam.renderingPath = RenderingPath.Forward;
-            cam.useOcclusionCulling = false;
-            cam.allowHDR = true;
-            cam.allowMSAA = false;
-            cam.allowDynamicResolution = false;
+            if (attachGO == null)
+            {
+                // Add components if we are creating a loddata GO anew
 
-            var cart = go.AddComponent<CreateAssignRenderTexture>();
-            cart._targetName = go.name;
-            cart._width = cart._height = (int)(4f * baseVertDensity);
-            cart._depthBits = 0;
-            cart._format = sim.TextureFormat;
-            cart._wrapMode = TextureWrapMode.Clamp;
-            cart._antiAliasing = 1;
-            cart._filterMode = FilterMode.Bilinear;
-            cart._anisoLevel = 0;
-            cart._useMipMap = false;
-            cart._createPingPongTargets = sim as LodDataPersistent != null;
-            cart.Create();
+                var cam = go.AddComponent<Camera>();
+                cam.clearFlags = sim.CamClearFlags;
+                cam.backgroundColor = new Color(0f, 0f, 0f, 0f);
+                cam.cullingMask = 0;
+                cam.orthographic = true;
+                cam.nearClipPlane = 1f;
+                cam.farClipPlane = 500f;
+                cam.renderingPath = RenderingPath.Forward;
+                cam.useOcclusionCulling = false;
+                cam.allowHDR = true;
+                cam.allowMSAA = false;
+                cam.allowDynamicResolution = false;
 
-            var apply = go.AddComponent<ApplyLayers>();
-            apply._cullIncludeLayers = new string[] { string.Format("LodData{0}", simType.ToString()) };
+                var cart = go.AddComponent<CreateAssignRenderTexture>();
+                cart._targetName = go.name;
+                cart._width = cart._height = (int)(4f * baseVertDensity);
+                cart._depthBits = 0;
+                cart._format = sim.TextureFormat;
+                cart._wrapMode = TextureWrapMode.Clamp;
+                cart._antiAliasing = 1;
+                cart._filterMode = FilterMode.Bilinear;
+                cart._anisoLevel = 0;
+                cart._useMipMap = false;
+                cart._createPingPongTargets = sim as LodDataPersistent != null;
+                cart.Create();
+
+                var apply = go.AddComponent<ApplyLayers>();
+                apply._cullIncludeLayers = new string[] { string.Format("LodData{0}", simType.ToString()) };
+            }
 
             return go;
         }
@@ -189,6 +213,10 @@ namespace Crest
         LodDataSeaFloorDepth _ldsd;
         public LodDataSeaFloorDepth LDSeaDepth { get {
                 return _ldsd ?? (_ldsd = GetComponent<LodDataSeaFloorDepth>());
+        } }
+        LodDataShadow _ldshadow;
+        public LodDataShadow LDShadow { get {
+                return _ldshadow ?? (_ldshadow = GetComponent<LodDataShadow>());
         } }
         LodDataFoam _ldf;
         public LodDataFoam LDFoam { get {

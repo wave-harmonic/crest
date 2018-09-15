@@ -174,30 +174,38 @@ namespace Crest
                 cachedSettings.Add(typeof(LodDataFlow), ocean._simSettingsFlow);
             if (ocean._simSettingsDynamicWaves != null)
                 cachedSettings.Add(typeof(LodDataDynamicWaves), ocean._simSettingsDynamicWaves);
+            if (ocean._simSettingsShadow != null)
+                cachedSettings.Add(typeof(LodDataShadow), ocean._simSettingsShadow);
 
             for ( int i = 0; i < lodCount; i++ )
             {
                 {
-                    var go = LodData.CreateLodData(i, lodCount, baseVertDensity, LodData.SimType.AnimatedWaves, cachedSettings);
+                    var go = LodData.CreateLodData(i, lodCount, null, baseVertDensity, LodData.SimType.AnimatedWaves, cachedSettings);
                     ocean._camsAnimWaves[i] = go.GetComponent<Camera>();
                     ocean._lodDataAnimWaves[i] = go.GetComponent<LodDataAnimatedWaves>();
+
+                    if (ocean._createShadowData)
+                    {
+                        // add lod data to same GO
+                        LodData.CreateLodData(i, lodCount, go, baseVertDensity, LodData.SimType.Shadow, cachedSettings);
+                    }
                 }
 
                 if (ocean._createFoamSim)
                 {
-                    var go = LodData.CreateLodData(i, lodCount, baseVertDensity, LodData.SimType.Foam, cachedSettings);
+                    var go = LodData.CreateLodData(i, lodCount, null, baseVertDensity, LodData.SimType.Foam, cachedSettings);
                     ocean._camsFoam[i] = go.GetComponent<Camera>();
                 }
 
                 if(ocean._createFlowSim)
                 {
-                    var go = LodData.CreateLodData(i, lodCount, baseVertDensity, LodData.SimType.Flow, cachedSettings);
+                    var go = LodData.CreateLodData(i, lodCount, null, baseVertDensity, LodData.SimType.Flow, cachedSettings);
                     ocean._camsFlow[i] = go.GetComponent<Camera>();
                 }
 
                 if (ocean._createDynamicWaveSim)
                 {
-                    var go = LodData.CreateLodData(i, lodCount, baseVertDensity, LodData.SimType.DynamicWaves, cachedSettings);
+                    var go = LodData.CreateLodData(i, lodCount, null, baseVertDensity, LodData.SimType.DynamicWaves, cachedSettings);
                     ocean._camsDynWaves[i] = go.GetComponent<Camera>();
                 }
             }
@@ -488,7 +496,7 @@ namespace Crest
                 // i dont think one would use lightprobes for a purely specular water surface? (although diffuse foam shading would benefit)
                 mr.lightProbeUsage = UnityEngine.Rendering.LightProbeUsage.Off;
                 mr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off; // arbitrary - could be turned on if desired
-                mr.receiveShadows = false; // arbitrary - could be turned on if desired
+                mr.receiveShadows = false; // this setting is ignored by unity for the transparent ocean shader
                 mr.motionVectorGenerationMode = MotionVectorGenerationMode.ForceNoMotion; // TODO
                 mr.material = ocean.OceanMaterial;
 

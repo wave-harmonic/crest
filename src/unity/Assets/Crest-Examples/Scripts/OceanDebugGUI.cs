@@ -138,18 +138,23 @@ public class OceanDebugGUI : MonoBehaviour
     void DrawShapeTargets()
     {
         // draw sim data
-        DrawSims(OceanRenderer.Instance._camsAnimWaves, 1f);
-        DrawSims(OceanRenderer.Instance._camsFoam, 2f);
-        DrawSims(OceanRenderer.Instance._camsDynWaves, 3f);
-        DrawSims(OceanRenderer.Instance._camsFlow, 4f);
+        float column = 0f;
+        DrawSims<LodDataAnimatedWaves>(OceanRenderer.Instance._camsAnimWaves, ref column);
+        DrawSims<LodDataFoam>(OceanRenderer.Instance._camsFoam, ref column);
+        DrawSims<LodDataDynamicWaves>(OceanRenderer.Instance._camsDynWaves, ref column);
+        DrawSims<LodDataFlow>(OceanRenderer.Instance._camsFlow, ref column);
+        DrawSims<LodDataShadow>(OceanRenderer.Instance._camsAnimWaves, ref column);
     }
 
-    static void DrawSims(Camera[] simCameras, float offset)
+    static void DrawSims<SimType>(Camera[] simCameras, ref float offset) where SimType : LodData
     {
         int idx = 0;
+        bool drewOne = false;
+
         foreach (var cam in simCameras)
         {
             if (!cam) continue;
+            drewOne = true;
 
             float b = 7f;
             float h = Screen.height / (float)OceanRenderer.Instance._camsAnimWaves.Length;
@@ -159,7 +164,7 @@ public class OceanDebugGUI : MonoBehaviour
 
             RenderTexture shape;
 
-            var shad = cam.GetComponent<LodDataShadow>();
+            var shad = cam.GetComponent<SimType>();
             if (shad)
             {
                 shape = shad.DataTexture;
@@ -170,19 +175,11 @@ public class OceanDebugGUI : MonoBehaviour
                 GUI.color = Color.white;
                 GUI.DrawTexture(new Rect(x + b, y + b / 2f, h - b, h - b), shape);
             }
-            else
-            {
-                shape = cam.targetTexture;
-                if (shape == null) continue;
-
-                GUI.color = Color.black * 0.7f;
-                GUI.DrawTexture(new Rect(x, y, w - b, h), Texture2D.whiteTexture);
-                GUI.color = Color.white;
-                GUI.DrawTexture(new Rect(x + b, y + b / 2f, h - b, h - b), shape);
-            }
 
             idx++;
         }
+
+        if (drewOne) offset++;
     }
 
     void ToggleGUI()

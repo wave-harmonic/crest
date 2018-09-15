@@ -77,27 +77,22 @@ namespace Crest
             float normalScrollSpeed1 = Mathf.Pow( Mathf.Log( 1f + 4f * squareSize ) * mul, pow );
             _mpb.SetVector( "_GeomData", new Vector3( squareSize, normalScrollSpeed0, normalScrollSpeed1 ) );
 
-            // assign shape textures to shader
-            // this relies on the render textures being init'd in CreateAssignRenderTexture::Awake().
+            // assign lod data to ocean shader
             var shapeCams = OceanRenderer.Instance._lodDataAnimWaves;
+
             shapeCams[_lodIndex].BindResultData(0, _mpb);
-            shapeCams[_lodIndex].LDFoam.BindResultData(0, _mpb);
-
-            if(OceanRenderer.Instance._createFlowSim) shapeCams[_lodIndex].LDFlow.BindResultData(0, _mpb);
             shapeCams[_lodIndex].LDSeaDepth.BindResultData(0, _mpb);
-
-            var shad0 = shapeCams[_lodIndex].GetComponent<LodDataShadow>();
-            if (shad0) shad0.BindResultData(0, _mpb);
+            if (OceanRenderer.Instance._createFoamSim) shapeCams[_lodIndex].LDFoam.BindResultData(0, _mpb);
+            if (OceanRenderer.Instance._createFlowSim) shapeCams[_lodIndex].LDFlow.BindResultData(0, _mpb);
+            if (OceanRenderer.Instance._createShadowData) shapeCams[_lodIndex].LDShadow.BindResultData(0, _mpb);
 
             if (_lodIndex + 1 < shapeCams.Length)
             {
                 shapeCams[_lodIndex + 1].BindResultData(1, _mpb);
-                shapeCams[_lodIndex + 1].LDFoam.BindResultData(1, _mpb);
-                if(OceanRenderer.Instance._createFlowSim) shapeCams[_lodIndex + 1].LDFlow.BindResultData(1, _mpb);
                 shapeCams[_lodIndex + 1].LDSeaDepth.BindResultData(1, _mpb);
-
-                var shad1 = shapeCams[_lodIndex + 1].GetComponent<LodDataShadow>();
-                if (shad1) shad1.BindResultData(1, _mpb);
+                if (OceanRenderer.Instance._createFoamSim) shapeCams[_lodIndex + 1].LDFoam.BindResultData(1, _mpb);
+                if (OceanRenderer.Instance._createFlowSim) shapeCams[_lodIndex + 1].LDFlow.BindResultData(1, _mpb);
+                if (OceanRenderer.Instance._createShadowData) shapeCams[_lodIndex + 1].LDShadow.BindResultData(1, _mpb);
             }
 
             if (OceanRenderer.Instance.PlanarReflection)

@@ -31,13 +31,15 @@ namespace Crest
             simMaterial.SetFloat("_ShorelineFoamMaxDepth", Settings._shorelineFoamMaxDepth);
             simMaterial.SetFloat("_ShorelineFoamStrength", Settings._shorelineFoamStrength);
 
-            // assign animated waves - to slot 1 current frame data
-            OceanRenderer.Instance._lodDataAnimWaves[LodTransform.LodIndex].BindResultData(1, simMaterial);
-            // assign sea floor depth - to slot 1 current frame data
-            OceanRenderer.Instance._lodDataAnimWaves[LodTransform.LodIndex].LDSeaDepth.BindResultData(1, simMaterial);
-            // assign flow - to slot 1 current frame data
-            OceanRenderer.Instance._lodDataAnimWaves[LodTransform.LodIndex].LDFlow.BindResultData(1, simMaterial);
+            var animWaves = OceanRenderer.Instance._lodDataAnimWaves;
+            int lodIdx = LodTransform.LodIndex;
 
+            // assign animated waves - to slot 1 current frame data
+            animWaves[lodIdx].BindResultData(1, simMaterial);
+            // assign sea floor depth - to slot 1 current frame data
+            animWaves[lodIdx].LDSeaDepth.BindResultData(1, simMaterial);
+            // assign flow - to slot 1 current frame data
+            if (OceanRenderer.Instance._createFlowSim) animWaves[lodIdx].LDFlow.BindResultData(1, simMaterial);
         }
 
         SimSettingsFoam Settings { get { return _settings as SimSettingsFoam; } }

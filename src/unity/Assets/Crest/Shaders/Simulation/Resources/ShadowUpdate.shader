@@ -37,6 +37,8 @@ Shader "Ocean/ShadowUpdate"
 				half4 ShadowCoord1_dxdz : TEXCOORD6;
 				half4 ShadowCoord2_dxdz : TEXCOORD7;
 				half4 ShadowCoord3_dxdz : TEXCOORD8;
+
+				float4 MainCameraCoords : TEXCOORD9;
 			};
 
 			uniform float3 _CenterPos;
@@ -45,6 +47,7 @@ Shader "Ocean/ShadowUpdate"
 			uniform float3 _CamForward;
 			uniform float _JitterDiameter;
 			uniform float _CurrentFrameWeight;
+			float4x4 _MainCameraProjectionMatrix;
 
 			// noise functions used for jitter
 			#include "../../GPUNoise/GPUNoise.cginc"
@@ -63,7 +66,7 @@ Shader "Ocean/ShadowUpdate"
 				// world pos from [0,1] quad
 				float4 wpos = float4(float3(v.vertex.x - 0.5, 0.0, v.vertex.y - 0.5) * _Scale.xzy * 4. + _CenterPos, 1.);
 
-				// TODO maybe wave height/disp??
+				// this could add wave height/disp??
 				wpos.y = _OceanCenterPosWorld.y;
 
 				o._WorldPosViewZ.xyz = wpos.xyz;
@@ -76,14 +79,16 @@ Shader "Ocean/ShadowUpdate"
 
 				// working hard to get derivatives for shadow uvs, so that i can jitter the world position in the fragment shader. this
 				// enables per-fragment noise (required to avoid wobble), and is required because each cascade has a different scale etc.
-				o.ShadowCoord0_dxdz.xy = mul(unity_WorldToShadow[0], wpos + float3(1., 0., 0.)).xz - o._ShadowCoord0.xz;
-				o.ShadowCoord0_dxdz.zw = mul(unity_WorldToShadow[0], wpos + float3(0., 0., 1.)).xz - o._ShadowCoord0.xz;
-				o.ShadowCoord1_dxdz.xy = mul(unity_WorldToShadow[1], wpos + float3(1., 0., 0.)).xz - o._ShadowCoord1.xz;
-				o.ShadowCoord1_dxdz.zw = mul(unity_WorldToShadow[1], wpos + float3(0., 0., 1.)).xz - o._ShadowCoord1.xz;
-				o.ShadowCoord2_dxdz.xy = mul(unity_WorldToShadow[2], wpos + float3(1., 0., 0.)).xz - o._ShadowCoord2.xz;
-				o.ShadowCoord2_dxdz.zw = mul(unity_WorldToShadow[2], wpos + float3(0., 0., 1.)).xz - o._ShadowCoord2.xz;
-				o.ShadowCoord3_dxdz.xy = mul(unity_WorldToShadow[3], wpos + float3(1., 0., 0.)).xz - o._ShadowCoord3.xz;
-				o.ShadowCoord3_dxdz.zw = mul(unity_WorldToShadow[3], wpos + float3(0., 0., 1.)).xz - o._ShadowCoord3.xz;
+				o.ShadowCoord0_dxdz.xy = mul(unity_WorldToShadow[0], wpos + float4(1., 0., 0., 0.)).xz - o._ShadowCoord0.xz;
+				o.ShadowCoord0_dxdz.zw = mul(unity_WorldToShadow[0], wpos + float4(0., 0., 1., 0.)).xz - o._ShadowCoord0.xz;
+				o.ShadowCoord1_dxdz.xy = mul(unity_WorldToShadow[1], wpos + float4(1., 0., 0., 0.)).xz - o._ShadowCoord1.xz;
+				o.ShadowCoord1_dxdz.zw = mul(unity_WorldToShadow[1], wpos + float4(0., 0., 1., 0.)).xz - o._ShadowCoord1.xz;
+				o.ShadowCoord2_dxdz.xy = mul(unity_WorldToShadow[2], wpos + float4(1., 0., 0., 0.)).xz - o._ShadowCoord2.xz;
+				o.ShadowCoord2_dxdz.zw = mul(unity_WorldToShadow[2], wpos + float4(0., 0., 1., 0.)).xz - o._ShadowCoord2.xz;
+				o.ShadowCoord3_dxdz.xy = mul(unity_WorldToShadow[3], wpos + float4(1., 0., 0., 0.)).xz - o._ShadowCoord3.xz;
+				o.ShadowCoord3_dxdz.zw = mul(unity_WorldToShadow[3], wpos + float4(0., 0., 1., 0.)).xz - o._ShadowCoord3.xz;
+
+				o.MainCameraCoords = mul(_MainCameraProjectionMatrix, wpos);
 
 				return o;
 			}
@@ -127,19 +132,27 @@ Shader "Ocean/ShadowUpdate"
 
 			float frag (v2f i) : SV_Target
 			{
+				half shadow = 0.;
+
+				// shadow from last frame - manually implement black border
 				float2 uv_lastframe = LD_0_WorldToUV(i._WorldPosViewZ.xz);
+				half2 r = abs(uv_lastframe.xy - 0.5);
+				if (max(r.x, r.y) < 0.49)
+				{
+					SampleShadow(_LD_Sampler_Shadow_0, uv_lastframe, 1.0, shadow);
+				}
 
-				// TODO what should 0.6 be??
-				if (dot(normalize(i._WorldPosViewZ.xyz - _CamPos), _CamForward) < 0.6)
-					return 0.;
+				// check if the current sample is visible in the main camera (and therefore shadow map can be sampled)
+				float3 projected = i.MainCameraCoords.xyz / i.MainCameraCoords.w;
+				if (projected.z < 1. && abs(projected.x) < 1. && abs(projected.z) < 1.)
+				{
+					half shadowFade;
+					half shadowThisFrame = ComputeShadow(i, shadowFade).x;
+					shadowThisFrame = 1. - saturate(shadowThisFrame + shadowFade);
+					shadow = lerp(shadow, shadowThisFrame, _CurrentFrameWeight);
+				}
 
-				half lastShadow = 0.;
-				SampleShadow(_LD_Sampler_Shadow_0, uv_lastframe, 1.0, lastShadow);
-
-				float shadowFade;
-				float result = ComputeShadow(i, shadowFade).x;
-
-				return lerp(lastShadow, 1. - result, _CurrentFrameWeight * (1. - shadowFade));
+				return shadow;
 			}
 			ENDCG
 		}

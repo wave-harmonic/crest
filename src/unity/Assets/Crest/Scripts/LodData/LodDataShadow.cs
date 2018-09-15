@@ -16,6 +16,7 @@ namespace Crest
         CommandBuffer _bufCopyShadowMap = null;
         Light _mainLight;
         Material _renderMaterial;
+        Camera _cameraMain;
 
         [SerializeField]
         SimSettingsBase _settings;
@@ -48,6 +49,20 @@ namespace Crest
             }
 
             _renderMaterial = new Material(Shader.Find("Ocean/ShadowUpdate"));
+
+            _cameraMain = Camera.main;
+            if (_cameraMain == null)
+            {
+                var viewpoint = OceanRenderer.Instance._viewpoint;
+                _cameraMain = viewpoint != null ? viewpoint.GetComponent<Camera>() : null;
+
+                if(_cameraMain == null)
+                {
+                    Debug.LogError("Could not find main camera, disabling shadow data", this);
+                    enabled = false;
+                    return;
+                }
+            }
         }
 
         protected override void LateUpdate()
@@ -77,6 +92,7 @@ namespace Crest
             _renderMaterial.SetVector("_CamForward", OceanRenderer.Instance._viewpoint.forward);
             _renderMaterial.SetFloat("_JitterDiameter", Settings._jitterDiameter);
             _renderMaterial.SetFloat("_CurrentFrameWeight", Settings._currentFrameWeight);
+            _renderMaterial.SetMatrix("_MainCameraProjectionMatrix", _cameraMain.projectionMatrix * _cameraMain.worldToCameraMatrix);
 
             // TODO transfer shadows up/down lod chain
             bool paramsOnly = false; // true if prev data didnt exist

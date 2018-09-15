@@ -3,6 +3,10 @@ using UnityEngine.Rendering;
 
 namespace Crest
 {
+    /// <summary>
+    /// Stores shadowing data to use during ocean shading. Shadowing is persistent and supports sampling across
+    /// many frames and jittered sampling for (very) soft shadows.
+    /// </summary>
     public class LodDataShadow : LodData
     {
         public override SimType LodDataType { get { return SimType.Shadow; } }
@@ -42,10 +46,10 @@ namespace Crest
                 _shadowData[i].anisoLevel = 0;
             }
 
-            var lightGO = GameObject.Find("Directional light");
-            if (lightGO)
+            if (!StartInitLight())
             {
-                _mainLight = lightGO.GetComponent<Light>();
+                enabled = false;
+                return;
             }
 
             _renderMaterial = new Material(Shader.Find("Ocean/ShadowUpdate"));
@@ -63,6 +67,31 @@ namespace Crest
                     return;
                 }
             }
+        }
+
+        bool StartInitLight()
+        {
+            _mainLight = OceanRenderer.Instance._primaryLight;
+
+            if (!_mainLight)
+            {
+                Debug.LogError("Primary light must be specified on OceanRenderer script to enable shadows.", this);
+                return false;
+            }
+
+            if (_mainLight.type != LightType.Directional)
+            {
+                Debug.LogError("Primary light must be of type Directional.", this);
+                return false;
+            }
+
+            if (_mainLight.shadows == LightShadows.None)
+            {
+                Debug.LogError("Shadows must be enabled on primary light to enable ocean shadowing (types Hard and Soft are equivalent for the ocean system).", this);
+                return false;
+            }
+
+            return true;
         }
 
         private void Update()

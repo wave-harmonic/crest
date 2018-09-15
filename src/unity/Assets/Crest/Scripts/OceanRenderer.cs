@@ -12,6 +12,9 @@ namespace Crest
         [Tooltip("The viewpoint which drives the ocean detail. Defaults to main camera.")]
         public Transform _viewpoint;
 
+        [Tooltip("The primary directional light. Required if shadowing is enabled.")]
+        public Light _primaryLight;
+
         [Header("Ocean Params")]
 
         [SerializeField, Tooltip("Material to use for the ocean surface")]

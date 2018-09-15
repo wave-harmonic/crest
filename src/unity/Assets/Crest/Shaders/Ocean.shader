@@ -104,13 +104,14 @@ Shader "Ocean/Ocean"
 				#pragma shader_feature _FOAM3DLIGHTING_ON
 				#pragma shader_feature _PLANARREFLECTIONS_ON
 				#pragma shader_feature _PROCEDURALSKY_ON
+				#pragma shader_feature _APPLYFLOWTONORMALS_ON
 				#pragma shader_feature _SHADOWS_ON
+
 				#pragma shader_feature _DEBUGDISABLESHAPETEXTURES_ON
 				#pragma shader_feature _DEBUGVISUALISESHAPESAMPLE_ON
 				#pragma shader_feature _DEBUGVISUALISEFLOW_ON
 				#pragma shader_feature _DEBUGDISABLESMOOTHLOD_ON
 				#pragma shader_feature _COMPILESHADERWITHDEBUGINFO_ON
-				#pragma shader_feature _APPLYFLOWTONORMALS_ON
 				
 				#if _COMPILESHADERWITHDEBUGINFO_ON
 				#pragma enable_d3d11_debug_symbols

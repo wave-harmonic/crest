@@ -34,7 +34,6 @@ Shader "Ocean/Shape/Whirlpool Flow"
 					float2 uv : TEXCOORD1;
 				};
 
-				uniform float _Radius;
 				uniform float _EyeRadiusProportion;
 				//uniform float _Swirl;
 				uniform float _MaxSpeed;
@@ -43,16 +42,6 @@ Shader "Ocean/Shape/Whirlpool Flow"
 				{
 					v2f o;
 					o.vertex = UnityObjectToClipPos( v.vertex );
-
-					float3 worldPos = mul( unity_ObjectToWorld, v.vertex ).xyz;
-					float3 centerPos = unity_ObjectToWorld._m03_m13_m23;
-					o.worldOffsetScaled.xy = worldPos.xz - centerPos.xz;
-
-					// shape is symmetric around center with known radius - fix the vert positions to perfectly wrap the shape.
-					o.worldOffsetScaled.xy = sign(o.worldOffsetScaled.xy);
-					float4 newWorldPos = float4(centerPos, 1.);
-					newWorldPos.xz += o.worldOffsetScaled.xy * _Radius;
-					o.vertex = mul(UNITY_MATRIX_VP, newWorldPos);
 					o.uv = v.texcoord;
 
 					return o;

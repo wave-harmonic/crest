@@ -18,7 +18,6 @@ public class Whirlpool : MonoBehaviour {
     private Material _displacementMaterial;
 
     private void UpdateMaterials() {
-        _flowMaterial.SetFloat("_Radius", radius);
         _flowMaterial.SetFloat("_EyeRadiusProportion", eyeRadius/radius);
         _flowMaterial.SetFloat("_MaxSpeed", maxSpeed);
 
@@ -33,6 +32,7 @@ public class Whirlpool : MonoBehaviour {
         _flow.transform.parent = transform;
         _flow.transform.position = new Vector3(0f, -100f, 0f);
         _flow.transform.localEulerAngles = new Vector3(90f, 0f, 0f);
+        _flow.transform.localScale = new Vector3(radius * 2f, radius * 2f, 1f);
         _flow.AddComponent<ApplyLayers>();
         {
             ApplyLayers applyLayers = _flow.GetComponent<ApplyLayers>();

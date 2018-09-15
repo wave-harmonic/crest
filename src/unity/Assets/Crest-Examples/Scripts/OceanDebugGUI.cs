@@ -138,7 +138,7 @@ public class OceanDebugGUI : MonoBehaviour
     void DrawShapeTargets()
     {
         // draw sim data
-        float column = 0f;
+        float column = 1f;
         DrawSims<LodDataAnimatedWaves>(OceanRenderer.Instance._camsAnimWaves, ref column);
         DrawSims<LodDataFoam>(OceanRenderer.Instance._camsFoam, ref column);
         DrawSims<LodDataDynamicWaves>(OceanRenderer.Instance._camsDynWaves, ref column);
@@ -161,6 +161,7 @@ public class OceanDebugGUI : MonoBehaviour
             float w = h + b;
             float x = Screen.width - w * offset + b * (offset - 1f);
             float y = idx * h;
+            if (offset == 1f) w += b;
 
             RenderTexture shape;
 
@@ -173,7 +174,7 @@ public class OceanDebugGUI : MonoBehaviour
                 GUI.color = Color.black * 0.7f;
                 GUI.DrawTexture(new Rect(x, y, w - b, h), Texture2D.whiteTexture);
                 GUI.color = Color.white;
-                GUI.DrawTexture(new Rect(x + b, y + b / 2f, h - b, h - b), shape);
+                GUI.DrawTexture(new Rect(x + b, y + b / 2f, h - b, h - b), shape, ScaleMode.ScaleAndCrop, false);
             }
 
             idx++;

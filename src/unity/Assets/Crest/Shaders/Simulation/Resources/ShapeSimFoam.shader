@@ -65,7 +65,7 @@ Shader "Ocean/Shape/Sim/Foam"
 					// sampler will clamp the uv currently
 					half foam = tex2Dlod(_LD_Sampler_Foam_0, uv_lastframe
 						- ((_SimDeltaTime * i.invRes) * velocity_last_frame)
-					).x;
+					).x; // TODO: use world coords here.
 
 					//return foam + sin(_Time.w)*.004;
 					half2 r = abs(uv_lastframe.xy - 0.5);

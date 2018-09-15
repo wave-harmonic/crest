@@ -260,6 +260,7 @@ MonoBehaviour:
   - LodDataDynamicWaves
   - LodDataFoam
   _cullIncludeLayers: []
+  _logErrorIfLayerMissing: 1
 --- !u!114 &227134473
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -285,6 +286,48 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _sleepMs: 0
   _jitter: 0
+--- !u!1 &588345736
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 588345737}
+  - component: {fileID: 588345738}
+  m_Layer: 0
+  m_Name: Whirlpool2
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &588345737
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 588345736}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 10, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 995304123}
+  m_RootOrder: 2
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &588345738
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 588345736}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e1af895f8f86c2547a6dfa403ea77f6a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  amplitude: 10
+  radius: 10
 --- !u!1 &995304122
 GameObject:
   m_ObjectHideFlags: 0
@@ -312,6 +355,7 @@ Transform:
   m_Children:
   - {fileID: 1866213578}
   - {fileID: 1650202113}
+  - {fileID: 588345737}
   m_Father: {fileID: 0}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -360,6 +404,14 @@ Prefab:
       objectReference: {fileID: 0}
     - target: {fileID: 11447936, guid: 8454e29c2a033974fb559f5f8eff1918, type: 2}
       propertyPath: _createFlowSim
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 11417796, guid: 8454e29c2a033974fb559f5f8eff1918, type: 2}
+      propertyPath: _createFlowSim
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 11417796, guid: 8454e29c2a033974fb559f5f8eff1918, type: 2}
+      propertyPath: _createDynamicWaveSim
       value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
@@ -619,13 +671,14 @@ GameObject:
   - component: {fileID: 1650202117}
   - component: {fileID: 1650202116}
   - component: {fileID: 1650202114}
+  - component: {fileID: 1650202115}
   m_Layer: 0
   m_Name: Whirlpool
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1650202113
 Transform:
   m_ObjectHideFlags: 0
@@ -654,6 +707,20 @@ MonoBehaviour:
   _layerName: LodDataFlow
   _cullExcludeLayers: []
   _cullIncludeLayers: []
+  _logErrorIfLayerMissing: 1
+--- !u!114 &1650202115
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1650202112}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e1af895f8f86c2547a6dfa403ea77f6a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  amplitude: 10
+  radius: 10
 --- !u!23 &1650202116
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -741,6 +808,7 @@ MonoBehaviour:
   _layerName: LodDataAnimatedWaves
   _cullExcludeLayers: []
   _cullIncludeLayers: []
+  _logErrorIfLayerMissing: 1
 --- !u!23 &1817707443
 MeshRenderer:
   m_ObjectHideFlags: 0

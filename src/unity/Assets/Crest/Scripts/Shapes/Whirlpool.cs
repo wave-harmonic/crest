@@ -28,7 +28,7 @@ public class Whirlpool : MonoBehaviour {
     // Use this for initialization
     void Start () {
         _flow = GameObject.CreatePrimitive(PrimitiveType.Quad);
-        _flow.name = "Swirl";
+        _flow.name = "Flow";
         _flow.transform.parent = transform;
         _flow.transform.position = new Vector3(0f, -100f, 0f);
         _flow.transform.localEulerAngles = new Vector3(90f, 0f, 0f);
@@ -43,7 +43,7 @@ public class Whirlpool : MonoBehaviour {
 
 
         _displacement = GameObject.CreatePrimitive(PrimitiveType.Quad);
-        _displacement.name = "Dip";
+        _displacement.name = "Displacement";
         _displacement.transform.parent = transform;
         _displacement.transform.position = new Vector3(0f, -100f, 0f);
         _displacement.transform.localEulerAngles = new Vector3(90f, 0f, 0f);

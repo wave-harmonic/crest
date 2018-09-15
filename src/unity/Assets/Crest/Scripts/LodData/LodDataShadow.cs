@@ -69,12 +69,14 @@ namespace Crest
 
             _bufCopyShadowMap.Clear();
             _bufCopyShadowMap.SetRenderTarget(_shadowData[_rtIndex]);
+
             LodTransform._renderData.Validate(0, this);
             _renderMaterial.SetVector("_CenterPos", LodTransform._renderData._posSnapped);
             _renderMaterial.SetVector("_Scale", transform.lossyScale);
             _renderMaterial.SetVector("_CamPos", OceanRenderer.Instance._viewpoint.position);
             _renderMaterial.SetVector("_CamForward", OceanRenderer.Instance._viewpoint.forward);
             _renderMaterial.SetFloat("_JitterDiameter", Settings._jitterDiameter);
+            _renderMaterial.SetFloat("_CurrentFrameWeight", Settings._currentFrameWeight);
 
             // TODO transfer shadows up/down lod chain
             bool paramsOnly = false; // true if prev data didnt exist

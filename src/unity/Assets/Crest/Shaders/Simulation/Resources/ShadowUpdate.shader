@@ -32,6 +32,11 @@ Shader "Ocean/ShadowUpdate"
 			struct v2f
 			{
 				V2F_SHADOW_COLLECTOR;
+
+				half4 ShadowCoord0_dxdz : TEXCOORD5;
+				half4 ShadowCoord1_dxdz : TEXCOORD6;
+				half4 ShadowCoord2_dxdz : TEXCOORD7;
+				half4 ShadowCoord3_dxdz : TEXCOORD8;
 			};
 
 			uniform float3 _CenterPos;
@@ -39,6 +44,7 @@ Shader "Ocean/ShadowUpdate"
 			uniform float3 _CamPos;
 			uniform float3 _CamForward;
 			uniform float _JitterDiameter;
+			uniform float _CurrentFrameWeight;
 
 			// noise functions used for jitter
 			#include "../../GPUNoise/GPUNoise.cginc"
@@ -63,15 +69,21 @@ Shader "Ocean/ShadowUpdate"
 				o._WorldPosViewZ.xyz = wpos.xyz;
 				o._WorldPosViewZ.w = dot(wpos.xyz - _CamPos, _CamForward);
 				
-				if (_JitterDiameter > 0.0)
-				{
-					wpos.xyz += _JitterDiameter * (hash33(uint3(abs(wpos.xz*10.), _Time.y*120.)) - 0.5);
-				}
-
 				o._ShadowCoord0 = mul(unity_WorldToShadow[0], wpos).xyz;
 				o._ShadowCoord1 = mul(unity_WorldToShadow[1], wpos).xyz;
 				o._ShadowCoord2 = mul(unity_WorldToShadow[2], wpos).xyz;
 				o._ShadowCoord3 = mul(unity_WorldToShadow[3], wpos).xyz;
+
+				// working hard to get derivatives for shadow uvs, so that i can jitter the world position in the fragment shader. this
+				// enables per-fragment noise (required to avoid wobble), and is required because each cascade has a different scale etc.
+				o.ShadowCoord0_dxdz.xy = mul(unity_WorldToShadow[0], wpos + float3(1., 0., 0.)).xz - o._ShadowCoord0.xz;
+				o.ShadowCoord0_dxdz.zw = mul(unity_WorldToShadow[0], wpos + float3(0., 0., 1.)).xz - o._ShadowCoord0.xz;
+				o.ShadowCoord1_dxdz.xy = mul(unity_WorldToShadow[1], wpos + float3(1., 0., 0.)).xz - o._ShadowCoord1.xz;
+				o.ShadowCoord1_dxdz.zw = mul(unity_WorldToShadow[1], wpos + float3(0., 0., 1.)).xz - o._ShadowCoord1.xz;
+				o.ShadowCoord2_dxdz.xy = mul(unity_WorldToShadow[2], wpos + float3(1., 0., 0.)).xz - o._ShadowCoord2.xz;
+				o.ShadowCoord2_dxdz.zw = mul(unity_WorldToShadow[2], wpos + float3(0., 0., 1.)).xz - o._ShadowCoord2.xz;
+				o.ShadowCoord3_dxdz.xy = mul(unity_WorldToShadow[3], wpos + float3(1., 0., 0.)).xz - o._ShadowCoord3.xz;
+				o.ShadowCoord3_dxdz.zw = mul(unity_WorldToShadow[3], wpos + float3(0., 0., 1.)).xz - o._ShadowCoord3.xz;
 
 				return o;
 			}
@@ -90,6 +102,15 @@ Shader "Ocean/ShadowUpdate"
 				cascadeWeights.yzw = saturate(cascadeWeights.yzw - cascadeWeights.xyz);
 				float sphereDist = distance(i._WorldPosViewZ.xyz, unity_ShadowFadeCenterAndType.xyz);
 				float shadowFade = saturate(sphereDist * _LightShadowData.z + _LightShadowData.w);
+
+				if (_JitterDiameter > 0.0)
+				{
+					half2 jitter = _JitterDiameter * (hash33(uint3(abs(i._WorldPosViewZ.xz*10.), _Time.y*120.)) - 0.5).xy;
+					i._ShadowCoord0.xz += i.ShadowCoord0_dxdz.xy * jitter.x + i.ShadowCoord0_dxdz.zw * jitter.y;
+					i._ShadowCoord1.xz += i.ShadowCoord1_dxdz.xy * jitter.x + i.ShadowCoord1_dxdz.zw * jitter.y;
+					i._ShadowCoord2.xz += i.ShadowCoord2_dxdz.xy * jitter.x + i.ShadowCoord2_dxdz.zw * jitter.y;
+					i._ShadowCoord3.xz += i.ShadowCoord3_dxdz.xy * jitter.x + i.ShadowCoord3_dxdz.zw * jitter.y;
+				}
 
 				float4 coord = float4(
 					i._ShadowCoord0 * cascadeWeights[0] + 
@@ -118,8 +139,7 @@ Shader "Ocean/ShadowUpdate"
 				float shadowFade;
 				float result = ComputeShadow(i, shadowFade).x;
 
-				float amountOfThisFrame = .02;
-				return lerp(lastShadow, 1. - result, amountOfThisFrame * (1. - shadowFade));
+				return lerp(lastShadow, 1. - result, _CurrentFrameWeight * (1. - shadowFade));
 			}
 			ENDCG
 		}

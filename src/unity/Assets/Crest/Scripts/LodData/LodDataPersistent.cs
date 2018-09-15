@@ -21,6 +21,7 @@ namespace Crest
 
         GameObject _renderSim;
         Material _renderSimMaterial;
+        CommandBuffer _advanceSimCmdBuf;
 
         protected abstract string ShaderSim { get; }
         protected abstract Camera[] SimCameras { get; }
@@ -64,9 +65,6 @@ namespace Crest
             return result;
         }
 
-        CommandBuffer _advanceSimCmdBuf;
-        float _oceanLocalScalePrev = -1f;
-
         public void BindSourceData(int shapeSlot, Material properties, bool paramsOnly)
         {
             _pwMat._target = properties;
@@ -94,14 +92,7 @@ namespace Crest
             _simDeltaTimePrev = dt;
 
             // compute which lod data we are sampling source data from. if a scale change has happened this can be any lod up or down the chain.
-            float oceanLocalScale = OceanRenderer.Instance.transform.localScale.x;
-            if (_oceanLocalScalePrev == -1f) _oceanLocalScalePrev = oceanLocalScale;
-            float ratio = oceanLocalScale / _oceanLocalScalePrev;
-            _oceanLocalScalePrev = oceanLocalScale;
-            float ratio_l2 = Mathf.Log(ratio) / Mathf.Log(2f);
-            int delta = Mathf.RoundToInt(ratio_l2);
-
-            int srcDataIdx = LodTransform.LodIndex + delta;
+            int srcDataIdx = LodTransform.LodIndex + _scaleDifferencePow2;
 
             if (srcDataIdx >= 0 && srcDataIdx < SimCameras.Length)
             {

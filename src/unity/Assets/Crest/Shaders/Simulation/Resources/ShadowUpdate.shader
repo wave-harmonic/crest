@@ -130,6 +130,9 @@ Shader "Ocean/ShadowUpdate"
 				return shadow;
 			}
 
+			// Provides _SimDeltaTime (see comment at this definition)
+			#include "SimHelpers.cginc"
+
 			float frag (v2f i) : SV_Target
 			{
 				half shadow = 0.;
@@ -149,7 +152,7 @@ Shader "Ocean/ShadowUpdate"
 					half shadowFade;
 					half shadowThisFrame = ComputeShadow(i, shadowFade).x;
 					shadowThisFrame = 1. - saturate(shadowThisFrame + shadowFade);
-					shadow = lerp(shadow, shadowThisFrame, _CurrentFrameWeight);
+					shadow = lerp(shadow, shadowThisFrame, _CurrentFrameWeight * _SimDeltaTime * 60.);
 				}
 
 				return shadow;

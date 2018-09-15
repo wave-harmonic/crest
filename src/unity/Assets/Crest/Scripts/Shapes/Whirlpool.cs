@@ -8,44 +8,59 @@ public class Whirlpool : MonoBehaviour {
 
 
     [Range(0, 1000)] public float amplitude = 10f;
-    [Range(0, 1000)] public float radius = 10f;
+    [Range(0, 1000)] public float radius = 20f;
+    [Range(0, 1000)] public float eyeRadius = 1f;
+    [Range(0, 1000)] public float maxSpeed = 70f;
 
-    GameObject swirl;
-    GameObject dip;
+    private GameObject _flow;
+    private GameObject _displacement;
+    private Material _flowMaterial;
+    private Material _displacementMaterial;
 
-    ApplyLayers applyLayers;
+    private void UpdateMaterials() {
+        _flowMaterial.SetFloat("_Radius", radius);
+        _flowMaterial.SetFloat("_EyeRadiusProportion", eyeRadius/radius);
+        _flowMaterial.SetFloat("_MaxSpeed", maxSpeed);
+
+        _displacementMaterial.SetFloat("_Radius", radius * 0.5f);
+        _displacementMaterial.SetFloat("_Amplitude", amplitude);
+    }
+
     // Use this for initialization
     void Start () {
-        swirl = GameObject.CreatePrimitive(PrimitiveType.Quad);
-        swirl.name = "Swirl";
-        swirl.transform.parent = transform;
-        swirl.transform.position = new Vector3(0f, -100f, 0f);
-        swirl.AddComponent<ApplyLayers>();
-        applyLayers = swirl.GetComponent<ApplyLayers>();
-        applyLayers._layerName = "LodDataFlow";
+        _flow = GameObject.CreatePrimitive(PrimitiveType.Quad);
+        _flow.name = "Swirl";
+        _flow.transform.parent = transform;
+        _flow.transform.position = new Vector3(0f, -100f, 0f);
+        _flow.AddComponent<ApplyLayers>();
+        {
+            ApplyLayers applyLayers = _flow.GetComponent<ApplyLayers>();
+            applyLayers._layerName = "LodDataFlow";
+        }
+        _flowMaterial = new Material(Shader.Find("Ocean/Shape/Whirlpool Flow"));
+        _flow.GetComponent<Renderer>().material = _flowMaterial;
 
-        Material flowMaterial = new Material(Shader.Find("Ocean/Shape/Whirlpool"));
-        flowMaterial.SetFloat("_Radius", radius * 2f);
-        swirl.GetComponent<Renderer>().material = flowMaterial;
 
+        _displacement = GameObject.CreatePrimitive(PrimitiveType.Quad);
+        _displacement.name = "Dip";
+        _displacement.transform.parent = transform;
+        _displacement.transform.position = new Vector3(0f, -100f, 0f);
+        _displacement.AddComponent<ApplyLayers>();
+        {
+            ApplyLayers applyLayers = _displacement.GetComponent<ApplyLayers>();
+            applyLayers._layerName = "LodDataAnimatedWaves";
+        }
+        _displacementMaterial = new Material(Shader.Find("Ocean/Shape/Whirlpool Displacement"));
+        _displacement.GetComponent<Renderer>().material = _displacementMaterial;
 
-        dip = GameObject.CreatePrimitive(PrimitiveType.Quad);
-        dip.name = "Dip";
-        dip.transform.parent = transform;
-        dip.transform.position = new Vector3(0f, -100f, 0f);
-        dip.AddComponent<ApplyLayers>();
-        applyLayers = dip.GetComponent<ApplyLayers>();
-        applyLayers._layerName = "LodDataAnimatedWaves";
-
-        Material dipMaterial = new Material(Shader.Find("Ocean/Shape/Wave Particle"));
-        dipMaterial.SetFloat("_Radius", radius);
-        dipMaterial.SetFloat("_Amplitude", amplitude * -1f);
-        dip.GetComponent<Renderer>().material = dipMaterial;
+        UpdateMaterials();
     }
 
     // Update is called once per frame
     void Update () {
-        //OceanRenderer.Instance.ReportMaxDisplacementFromShape(radius, -1.0f * amplitude);
+        // TODO: work out appropriate max displacement from shape
+        // OceanRenderer.Instance.ReportMaxDisplacementFromShape();
+        UpdateMaterials();
     }
 }
 

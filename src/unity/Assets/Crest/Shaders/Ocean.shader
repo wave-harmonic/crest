@@ -398,6 +398,31 @@ Shader "Ocean/Ocean"
 					o_whiteFoamCol.a = _FoamWhiteColor.a * whiteFoam;
 				}
 
+				void ComputeFoamWithFlow(half2 flow, half i_foam, float2 i_worldXZUndisplaced, float2 i_worldXZ, half3 i_n, float i_pixelZ, float i_sceneZ, half3 i_view, float3 i_lightDir, out half3 o_bubbleCol, out half4 o_whiteFoamCol)
+				{
+					const float half_period = .05;
+					const float period = half_period * 2;
+					float sample1_offset = fmod(_Time, period);
+					float sample1_weight = sample1_offset / half_period;
+					if(sample1_weight > 1.0) sample1_weight = 2.0 - sample1_weight;
+					float sample2_offset = fmod(_Time + half_period, period);
+					float sample2_weight = 1.0 - sample1_weight;
+
+					// In order to prevent flow from distorting the UVs too much,
+					// we fade between two samples of normal maps so that for each
+					// sample the UVs can be reset
+					half3 o_bubbleCol1 = half3(0, 0, 0);
+					half4 o_whiteFoamCol1 = half4(0, 0, 0, 0);
+					half3 o_bubbleCol2 = half3(0, 0, 0);
+					half4 o_whiteFoamCol2 = half4(0, 0, 0, 0);
+
+
+					ComputeFoam(i_foam, i_worldXZUndisplaced - (flow * sample1_offset), i_worldXZ, i_n, i_pixelZ, i_sceneZ, i_view, i_lightDir, o_bubbleCol1, o_whiteFoamCol1);
+					ComputeFoam(i_foam, i_worldXZUndisplaced - (flow * sample2_offset), i_worldXZ, i_n, i_pixelZ, i_sceneZ, i_view, i_lightDir, o_bubbleCol2, o_whiteFoamCol2);
+					o_bubbleCol = (sample1_weight * o_bubbleCol1) + (sample2_weight * o_bubbleCol2);
+					o_whiteFoamCol = (sample1_weight * o_whiteFoamCol1) + (sample2_weight * o_whiteFoamCol2);
+				}
+
 				float3 WorldSpaceLightDir(float3 worldPos)
 				{
 					float3 lightDir = _WorldSpaceLightPos0.xyz;
@@ -536,7 +561,11 @@ Shader "Ocean/Ocean"
 					half3 bubbleCol = (half3)0.;
 					#if _FOAM_ON
 					half4 whiteFoamCol;
+					#if _APPLYFLOWTONORMALS_ON
+					ComputeFoamWithFlow(i.flow, i.foam_screenPos.x, i.lodAlpha_worldXZUndisplaced_oceanDepth.yz, i.worldPos.xz, n_pixel, pixelZ, sceneZ, view, lightDir, bubbleCol, whiteFoamCol);
+					#else
 					ComputeFoam(i.foam_screenPos.x, i.lodAlpha_worldXZUndisplaced_oceanDepth.yz, i.worldPos.xz, n_pixel, pixelZ, sceneZ, view, lightDir, bubbleCol, whiteFoamCol);
+					#endif
 					#endif
 
 					// Compute color of ocean - in-scattered light + refracted scene

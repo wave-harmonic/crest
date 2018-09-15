@@ -32,6 +32,7 @@ public class Whirlpool : MonoBehaviour {
         _flow.name = "Swirl";
         _flow.transform.parent = transform;
         _flow.transform.position = new Vector3(0f, -100f, 0f);
+        _flow.transform.localEulerAngles = new Vector3(90f, 0f, 0f);
         _flow.AddComponent<ApplyLayers>();
         {
             ApplyLayers applyLayers = _flow.GetComponent<ApplyLayers>();
@@ -45,6 +46,7 @@ public class Whirlpool : MonoBehaviour {
         _displacement.name = "Dip";
         _displacement.transform.parent = transform;
         _displacement.transform.position = new Vector3(0f, -100f, 0f);
+        _displacement.transform.localEulerAngles = new Vector3(90f, 0f, 0f);
         _displacement.AddComponent<ApplyLayers>();
         {
             ApplyLayers applyLayers = _displacement.GetComponent<ApplyLayers>();

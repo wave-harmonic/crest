@@ -65,6 +65,11 @@ namespace Crest
             }
         }
 
+        private void Update()
+        {
+            _rtIndex = (_rtIndex + 1) % 2;
+        }
+
         protected override void LateUpdate()
         {
             base.LateUpdate();
@@ -94,17 +99,21 @@ namespace Crest
             _renderMaterial.SetFloat("_CurrentFrameWeight", Settings._currentFrameWeight);
             _renderMaterial.SetMatrix("_MainCameraProjectionMatrix", _cameraMain.projectionMatrix * _cameraMain.worldToCameraMatrix);
 
-            // TODO transfer shadows up/down lod chain
-            bool paramsOnly = false; // true if prev data didnt exist
+            // compute which lod data we are sampling previous frame shadows from. if a scale change has happened this can be any lod up or down the chain.
+            int srcDataIdx = LodTransform.LodIndex + _scaleDifferencePow2;
+            srcDataIdx = Mathf.Clamp(srcDataIdx, 0, LodTransform.LodCount - 1);
+            var lds = OceanRenderer.Instance._lodDataAnimWaves;
+            // bind data to slot 0 - previous frame data
+            lds[srcDataIdx].LDShadow.BindSourceData(0, _renderMaterial, false);
+            _bufCopyShadowMap.Blit(Texture2D.blackTexture, _shadowData[_rtIndex], _renderMaterial);
+        }
+
+        public void BindSourceData(int slot, Material simMaterial, bool paramsOnly)
+        {
             _pwMat._target = _renderMaterial;
             var rd = LodTransform._renderDataPrevFrame.Validate(-1, this);
             BindData(0, _pwMat, paramsOnly ? Texture2D.blackTexture : (_shadowData[(_rtIndex + 1) % 2] as Texture), true, ref rd);
             _pwMat._target = null;
-
-
-            _bufCopyShadowMap.Blit(Texture2D.blackTexture, _shadowData[_rtIndex], _renderMaterial);
-
-            _rtIndex = (_rtIndex + 1) % 2;
         }
 
         void OnEnable()
@@ -121,7 +130,10 @@ namespace Crest
         {
             if (_bufCopyShadowMap != null)
             {
-                _mainLight.RemoveCommandBuffer(LightEvent.BeforeScreenspaceMask, _bufCopyShadowMap);
+                if (_mainLight)
+                {
+                    _mainLight.RemoveCommandBuffer(LightEvent.BeforeScreenspaceMask, _bufCopyShadowMap);
+                }
                 _bufCopyShadowMap = null;
             }
         }

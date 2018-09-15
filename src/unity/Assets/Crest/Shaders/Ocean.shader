@@ -500,7 +500,7 @@ Shader "Ocean/Ocean"
 							float causticShadow = 0.;
 							float2 uv_1 = LD_1_WorldToUV(surfacePosXZ);
 							SampleShadow(_LD_Sampler_Shadow_1, uv_1, 1.0, causticShadow);
-							causticsStrength *= causticShadow;
+							causticsStrength *= 1. - causticShadow;
 						}
 						#endif
 

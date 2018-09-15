@@ -23,6 +23,9 @@ namespace Crest
 
         // shape texture resolution
         int _shapeRes = -1;
+        // ocean scale last frame - used to detect scale changes
+        float _oceanLocalScalePrev = -1f;
+        protected int _scaleDifferencePow2 = 0;
 
         // these would ideally be static but then they get cleared when editing-and-continuing in the editor.
         int[] _paramsPosScale;
@@ -56,6 +59,14 @@ namespace Crest
                 DataTexture.width = DataTexture.height = _shapeRes;
                 DataTexture.Create();
             }
+
+            // determine if this lod has changed scale and by how much (in exponent of 2)
+            float oceanLocalScale = OceanRenderer.Instance.transform.localScale.x;
+            if (_oceanLocalScalePrev == -1f) _oceanLocalScalePrev = oceanLocalScale;
+            float ratio = oceanLocalScale / _oceanLocalScalePrev;
+            _oceanLocalScalePrev = oceanLocalScale;
+            float ratio_l2 = Mathf.Log(ratio) / Mathf.Log(2f);
+            _scaleDifferencePow2 = Mathf.RoundToInt(ratio_l2);
         }
 
         protected PropertyWrapperMaterial _pwMat = new PropertyWrapperMaterial();
@@ -202,6 +213,10 @@ namespace Crest
         LodDataSeaFloorDepth _ldsd;
         public LodDataSeaFloorDepth LDSeaDepth { get {
                 return _ldsd ?? (_ldsd = GetComponent<LodDataSeaFloorDepth>());
+        } }
+        LodDataShadow _ldshadow;
+        public LodDataShadow LDShadow { get {
+                return _ldshadow ?? (_ldshadow = GetComponent<LodDataShadow>());
         } }
         LodDataFoam _ldf;
         public LodDataFoam LDFoam { get {

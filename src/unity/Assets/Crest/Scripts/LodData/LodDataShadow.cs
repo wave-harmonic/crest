@@ -127,6 +127,7 @@ namespace Crest
             _renderMaterial.SetFloat("_JitterDiameter", Settings._jitterDiameter);
             _renderMaterial.SetFloat("_CurrentFrameWeight", Settings._currentFrameWeight);
             _renderMaterial.SetMatrix("_MainCameraProjectionMatrix", _cameraMain.projectionMatrix * _cameraMain.worldToCameraMatrix);
+            _renderMaterial.SetFloat("_SimDeltaTime", Time.deltaTime);
 
             // compute which lod data we are sampling previous frame shadows from. if a scale change has happened this can be any lod up or down the chain.
             int srcDataIdx = LodTransform.LodIndex + _scaleDifferencePow2;

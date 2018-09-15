@@ -62,6 +62,7 @@ namespace Crest
         public bool _createFlowSim = false;
         public SimSettingsFlow _simSettingsFlow;
         public bool _createShadowData = false;
+        public SimSettingsShadow _simSettingsShadow;
 
         [Header("Debug Params")]
 

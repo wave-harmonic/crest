@@ -1,4 +1,6 @@
-﻿Shader "Ocean/ShadowUpdate"
+﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
+
+Shader "Ocean/ShadowUpdate"
 {
 	Properties
 	{
@@ -36,6 +38,10 @@
 			uniform float3 _Scale;
 			uniform float3 _CamPos;
 			uniform float3 _CamForward;
+			uniform float _JitterDiameter;
+
+			// noise functions used for jitter
+			#include "../../GPUNoise/GPUNoise.cginc"
 
 			v2f vert (appdata v)
 			{
@@ -56,6 +62,11 @@
 
 				o._WorldPosViewZ.xyz = wpos.xyz;
 				o._WorldPosViewZ.w = dot(wpos.xyz - _CamPos, _CamForward);
+				
+				if (_JitterDiameter > 0.0)
+				{
+					wpos.xyz += _JitterDiameter * (hash33(uint3(abs(wpos.xz*10.), _Time.y*120.)) - 0.5);
+				}
 
 				o._ShadowCoord0 = mul(unity_WorldToShadow[0], wpos).xyz;
 				o._ShadowCoord1 = mul(unity_WorldToShadow[1], wpos).xyz;

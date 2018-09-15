@@ -6,8 +6,7 @@ namespace Crest
     public class LodDataShadow : LodData
     {
         public override SimType LodDataType { get { return SimType.Shadow; } }
-        public override SimSettingsBase CreateDefaultSettings() { return null; }
-        public override void UseSettings(SimSettingsBase settings) { }
+        public override void UseSettings(SimSettingsBase settings) { _settings = settings; }
         public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RHalf; } }
         public override CameraClearFlags CamClearFlags { get { return CameraClearFlags.Color; } }
         public override RenderTexture DataTexture { get { return _shadowData[_rtIndex]; } }
@@ -17,6 +16,16 @@ namespace Crest
         CommandBuffer _bufCopyShadowMap = null;
         Light _mainLight;
         Material _renderMaterial;
+
+        [SerializeField]
+        SimSettingsBase _settings;
+
+        public override SimSettingsBase CreateDefaultSettings()
+        {
+            var settings = ScriptableObject.CreateInstance<SimSettingsShadow>();
+            settings.name = SimName + " Auto-generated Settings";
+            return settings;
+        }
 
         protected override void Start()
         {
@@ -65,6 +74,7 @@ namespace Crest
             _renderMaterial.SetVector("_Scale", transform.lossyScale);
             _renderMaterial.SetVector("_CamPos", OceanRenderer.Instance._viewpoint.position);
             _renderMaterial.SetVector("_CamForward", OceanRenderer.Instance._viewpoint.forward);
+            _renderMaterial.SetFloat("_JitterDiameter", Settings._jitterDiameter);
 
             // TODO transfer shadows up/down lod chain
             bool paramsOnly = false; // true if prev data didnt exist
@@ -97,5 +107,7 @@ namespace Crest
                 _bufCopyShadowMap = null;
             }
         }
+
+        SimSettingsShadow Settings { get { return _settings as SimSettingsShadow; } }
     }
 }

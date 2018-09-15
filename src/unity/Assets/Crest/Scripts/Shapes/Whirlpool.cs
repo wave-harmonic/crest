@@ -58,8 +58,7 @@ public class Whirlpool : MonoBehaviour {
 
     // Update is called once per frame
     void Update () {
-        // TODO: work out appropriate max displacement from shape
-        // OceanRenderer.Instance.ReportMaxDisplacementFromShape();
+        OceanRenderer.Instance.ReportMaxDisplacementFromShape(0, amplitude);
         UpdateMaterials();
     }
 }

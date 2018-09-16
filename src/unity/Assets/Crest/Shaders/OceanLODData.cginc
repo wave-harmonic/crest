@@ -45,7 +45,7 @@ float2 LD_1_UVToWorld(in float2 i_uv) { return LD_UVToWorld(i_uv, _LD_Pos_Scale_
 
 
 // Sampling functions
-void SampleDisplacements(in sampler2D i_dispSampler, in float2 i_uv, in float i_wt, in float i_invRes, in float i_texelSize, inout float3 io_worldPos, inout float3 io_n)
+void SampleDisplacements(in sampler2D i_dispSampler, in float2 i_uv, in float i_wt, in float i_invRes, in float i_texelSize, inout float3 io_worldPos, inout half2 io_nxz)
 {
 	const float4 uv = float4(i_uv, 0., 0.);
 
@@ -58,7 +58,7 @@ void SampleDisplacements(in sampler2D i_dispSampler, in float2 i_uv, in float i_
 		half3 disp_z = dd.yyz + tex2Dlod(i_dispSampler, uv + dd.yxyy).xyz;
 		n = normalize(cross(disp_z - disp, disp_x - disp));
 	}
-	io_n.xz += i_wt * n.xz;
+	io_nxz += i_wt * n.xz;
 }
 
 void SampleFoam(in sampler2D i_oceanFoamSampler, float2 i_uv, in float i_wt, inout half io_foam)
@@ -77,9 +77,9 @@ void SampleOceanDepth(in sampler2D i_oceanDepthSampler, float2 i_uv, in float i_
 	io_oceanDepth += i_wt * (tex2Dlod(i_oceanDepthSampler, float4(i_uv, 0., 0.)).x + DEPTH_BIAS);
 }
 
-void SampleShadow(in sampler2D i_oceanShadowSampler, float2 i_uv, in float i_wt, inout half io_shadow)
+void SampleShadow(in sampler2D i_oceanShadowSampler, float2 i_uv, in float i_wt, inout fixed2 io_shadow)
 {
-	io_shadow += i_wt * tex2Dlod(i_oceanShadowSampler, float4(i_uv, 0., 0.)).x;
+	io_shadow += i_wt * tex2Dlod(i_oceanShadowSampler, float4(i_uv, 0., 0.)).xy;
 }
 
 // Geometry data

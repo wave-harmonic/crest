@@ -166,7 +166,7 @@ Shader "Ocean/Ocean"
 					o.lodAlpha_worldXZUndisplaced_oceanDepth.yz = o.worldPos.xz;
 
 					// sample shape textures - always lerp between 2 LOD scales, so sample two textures
-					o.n_shadow = half4(0., 1., 0., 0.);
+					o.n_shadow = half4(0., 0., 0., 0.);
 					o.foam_screenPos.x = 0.;
 
 					#if _APPLYFLOWTONORMALS_ON
@@ -185,7 +185,7 @@ Shader "Ocean/Ocean"
 						const float2 uv_0 = LD_0_WorldToUV(worldXZBefore);
 
 						#if !_DEBUGDISABLESHAPETEXTURES_ON
-						SampleDisplacements(_LD_Sampler_AnimatedWaves_0, uv_0, wt_0, _LD_Params_0.w, _LD_Params_0.x, o.worldPos, o.n_shadow.xyz);
+						SampleDisplacements(_LD_Sampler_AnimatedWaves_0, uv_0, wt_0, _LD_Params_0.w, _LD_Params_0.x, o.worldPos, o.n_shadow.xy);
 						#endif
 
 						#if _FOAM_ON
@@ -201,7 +201,7 @@ Shader "Ocean/Ocean"
 						#endif
 
 						#if _SHADOWS_ON
-						SampleShadow(_LD_Sampler_Shadow_0, uv_0, wt_0, o.n_shadow.w);
+						SampleShadow(_LD_Sampler_Shadow_0, uv_0, wt_0, o.n_shadow.zw);
 						#endif
 					}
 					if (wt_1 > 0.001)
@@ -209,7 +209,7 @@ Shader "Ocean/Ocean"
 						const float2 uv_1 = LD_1_WorldToUV(worldXZBefore);
 
 						#if !_DEBUGDISABLESHAPETEXTURES_ON
-						SampleDisplacements(_LD_Sampler_AnimatedWaves_1, uv_1, wt_1, _LD_Params_1.w, _LD_Params_1.x, o.worldPos, o.n_shadow.xyz);
+						SampleDisplacements(_LD_Sampler_AnimatedWaves_1, uv_1, wt_1, _LD_Params_1.w, _LD_Params_1.x, o.worldPos, o.n_shadow.xy);
 						#endif
 
 						#if _FOAM_ON
@@ -225,7 +225,7 @@ Shader "Ocean/Ocean"
 						#endif
 
 						#if _SHADOWS_ON
-						SampleShadow(_LD_Sampler_Shadow_1, uv_1, wt_1, o.n_shadow.w);
+						SampleShadow(_LD_Sampler_Shadow_1, uv_1, wt_1, o.n_shadow.zw);
 						#endif
 					}
 
@@ -480,7 +480,7 @@ Shader "Ocean/Ocean"
 						float3 camForward = mul((float3x3)unity_CameraToWorld, float3(0., 0., 1.));
 						float3 scenePos = _WorldSpaceCameraPos - view * sceneZ / dot(camForward, -view);
 						const float2 scenePosUV = LD_1_WorldToUV(scenePos.xz);
-						half3 disp = 0., n_dummy = 0.;
+						half3 disp = 0.; half2 n_dummy = 0.;
 						// this gives height at displaced position, not exactly at query position.. but it helps. i cant pass this from vert shader
 						// because i dont know it at scene pos.
 						SampleDisplacements(_LD_Sampler_AnimatedWaves_1, scenePosUV, 1.0, _LD_Params_1.w, _LD_Params_1.x, disp, n_dummy);
@@ -498,10 +498,10 @@ Shader "Ocean/Ocean"
 						#if _SHADOWS_ON
 						{
 							// only sample the bigger lod. if pops are noticeable this could lerp the 2 lods smoothly, but i didnt notice issues.
-							float causticShadow = 0.;
+							fixed2 causticShadow = 0.;
 							float2 uv_1 = LD_1_WorldToUV(surfacePosXZ);
 							SampleShadow(_LD_Sampler_Shadow_1, uv_1, 1.0, causticShadow);
-							causticsStrength *= 1. - causticShadow;
+							causticsStrength *= 1. - causticShadow.y;
 						}
 						#endif
 
@@ -556,14 +556,14 @@ Shader "Ocean/Ocean"
 					
 					// could be per-vertex i reckon
 					float3 lightDir = WorldSpaceLightDir(i.worldPos);
-					half shadow = 1.0
+					fixed2 shadow = (fixed2)1.0
 					#if _SHADOWS_ON
-						- i.n_shadow.w
+						- i.n_shadow.zw
 					#endif
 						;
 
 					// Normal - geom + normal mapping
-					half3 n_geom = normalize(i.n_shadow.xyz);
+					half3 n_geom = normalize(half3(i.n_shadow.x, 1., i.n_shadow.y));
 					half3 n_pixel = n_geom;
 					#if _APPLYNORMALMAPPING_ON
 					#if _APPLYFLOWTONORMALS_ON
@@ -578,11 +578,11 @@ Shader "Ocean/Ocean"
 					half3 bubbleCol = (half3)0.;
 					#if _FOAM_ON
 					half4 whiteFoamCol;
-					ComputeFoam(i.foam_screenPos.x, i.lodAlpha_worldXZUndisplaced_oceanDepth.yz, i.worldPos.xz, n_pixel, pixelZ, sceneZ, view, lightDir, shadow, bubbleCol, whiteFoamCol);
+					ComputeFoam(i.foam_screenPos.x, i.lodAlpha_worldXZUndisplaced_oceanDepth.yz, i.worldPos.xz, n_pixel, pixelZ, sceneZ, view, lightDir, shadow.y, bubbleCol, whiteFoamCol);
 					#endif
 
 					// Compute color of ocean - in-scattered light + refracted scene
-					half3 col = OceanEmission(i.worldPos, i.lodAlpha_worldXZUndisplaced_oceanDepth.w, view, n_pixel, n_geom, lightDir, shadow, i.grabPos, screenPos, pixelZ, uvDepth, sceneZ, sceneZ01, bubbleCol);
+					half3 col = OceanEmission(i.worldPos, i.lodAlpha_worldXZUndisplaced_oceanDepth.w, view, n_pixel, n_geom, lightDir, shadow.x, i.grabPos, screenPos, pixelZ, uvDepth, sceneZ, sceneZ01, bubbleCol);
 
 					// Reflection
 					half3 refl = reflect(-view, n_pixel);
@@ -598,7 +598,7 @@ Shader "Ocean/Ocean"
 
 					// Add primary light to boost it
 					#if _COMPUTEDIRECTIONALLIGHT_ON
-					skyColour += pow(max(0., dot(refl, lightDir)), _DirectionalLightFallOff) * _DirectionalLightBoost * _LightColor0 * shadow;
+					skyColour += pow(max(0., dot(refl, lightDir)), _DirectionalLightFallOff) * _DirectionalLightBoost * _LightColor0 * shadow.y;
 					#endif
 
 					// Fresnel

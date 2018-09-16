@@ -11,9 +11,11 @@ namespace Crest
     {
         public override SimType LodDataType { get { return SimType.Shadow; } }
         public override void UseSettings(SimSettingsBase settings) { _settings = settings; }
-        public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RHalf; } }
+        public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RG16; } }
         public override CameraClearFlags CamClearFlags { get { return CameraClearFlags.Color; } }
         public override RenderTexture DataTexture { get { return _shadowData[_rtIndex]; } }
+
+        public static bool s_processData = true;
 
         int _rtIndex = 1;
         RenderTexture[] _shadowData = new RenderTexture[2];
@@ -105,12 +107,20 @@ namespace Crest
 
             if (!_mainLight) return;
 
-            if (_bufCopyShadowMap == null)
+            if (_bufCopyShadowMap == null && s_processData)
             {
                 _bufCopyShadowMap = new CommandBuffer();
                 _bufCopyShadowMap.name = "Shadow data " + LodTransform.LodIndex;
                 _mainLight.AddCommandBuffer(LightEvent.BeforeScreenspaceMask, _bufCopyShadowMap);
             }
+            else if (!s_processData && _bufCopyShadowMap != null)
+            {
+                _mainLight.RemoveCommandBuffer(LightEvent.BeforeScreenspaceMask, _bufCopyShadowMap);
+                _bufCopyShadowMap = null;
+            }
+
+            if (!s_processData)
+                return;
 
             // clear the shadow collection. it will be overwritten with shadow values IF the shadows render,
             // which only happens if there are (nontransparent) shadow receivers around
@@ -123,8 +133,11 @@ namespace Crest
             _renderMaterial.SetVector("_Scale", transform.lossyScale);
             _renderMaterial.SetVector("_CamPos", OceanRenderer.Instance._viewpoint.position);
             _renderMaterial.SetVector("_CamForward", OceanRenderer.Instance._viewpoint.forward);
-            _renderMaterial.SetFloat("_JitterDiameter", Settings._jitterDiameter);
-            _renderMaterial.SetFloat("_CurrentFrameWeight", Settings._currentFrameWeight);
+            _renderMaterial.SetVector("_JitterDiameters_CurrentFrameWeights",
+                new Vector4(Settings._jitterDiameterSoft, Settings._jitterDiameterSharp, Settings._currentFrameWeightSoft, Settings._currentFrameWeightSharp));
+            _renderMaterial.SetFloat("_CurrentFrameWeights", Settings._currentFrameWeightSoft);
+            _renderMaterial.SetFloat("_JitterDiameterSharp", Settings._jitterDiameterSharp);
+            _renderMaterial.SetFloat("_CurrentFrameWeightSharp", Settings._currentFrameWeightSharp);
             _renderMaterial.SetMatrix("_MainCameraProjectionMatrix", _cameraMain.projectionMatrix * _cameraMain.worldToCameraMatrix);
             _renderMaterial.SetFloat("_SimDeltaTime", Time.deltaTime);
 

@@ -22,7 +22,7 @@ Shader "Ocean/ShadowUpdate"
 			#define SHADOW_COLLECTOR_PASS
 
 			#include "UnityCG.cginc"
-			#include "../../../../Crest/Shaders/OceanLODData.cginc"
+			#include "../../../../Crest/Shaders/OceanLODData.hlsl"
 
 			struct appdata
 			{
@@ -50,7 +50,7 @@ Shader "Ocean/ShadowUpdate"
 			float4x4 _MainCameraProjectionMatrix;
 
 			// noise functions used for jitter
-			#include "../../GPUNoise/GPUNoise.cginc"
+			#include "../../GPUNoise/GPUNoise.hlsl"
 
 			v2f vert (appdata v)
 			{
@@ -131,7 +131,7 @@ Shader "Ocean/ShadowUpdate"
 			}
 
 			// Provides _SimDeltaTime (see comment at this definition)
-			#include "SimHelpers.cginc"
+			#include "SimHelpers.hlsl"
 
 			float frag (v2f i) : SV_Target
 			{

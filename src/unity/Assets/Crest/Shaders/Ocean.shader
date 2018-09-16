@@ -145,7 +145,7 @@ Shader "Ocean/Ocean"
 					UNITY_FOG_COORDS( 3 )
 				};
 
-				#include "OceanLODData.cginc"
+				#include "OceanLODData.hlsl"
 
 				// INSTANCE PARAMS
 

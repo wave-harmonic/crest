@@ -29,7 +29,7 @@ Shader "Ocean/Ocean Surface Alpha"
 			#pragma multi_compile_fog
 			
 			#include "UnityCG.cginc"
-			#include "../../Crest/Shaders/OceanLODData.cginc"
+			#include "../../Crest/Shaders/OceanLODData.hlsl"
 
 			struct appdata
 			{

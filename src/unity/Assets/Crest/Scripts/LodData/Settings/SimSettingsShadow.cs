@@ -7,16 +7,16 @@ namespace Crest
     [CreateAssetMenu(fileName = "SimSettingsShadow", menuName = "Crest/Shadow Sim Settings", order = 10000)]
     public class SimSettingsShadow : SimSettingsBase
     {
-        [Range(0f, 32f), Tooltip("Jitter diameter soft, controls softness of soft shadowing.")]
+        [Range(0f, 32f), Tooltip("Jitter diameter for soft shadows, controls softness of this shadowing component.")]
         public float _jitterDiameterSoft = 15f;
 
-        [Range(0f, 1f), Tooltip("Current frame weight for soft accumulation over frames. Roughly means 'responsiveness' for soft shadows.")]
+        [Range(0f, 1f), Tooltip("Current frame weight for accumulation over frames for soft shadows. Roughly means 'responsiveness' for soft shadows.")]
         public float _currentFrameWeightSoft = 0.02f;
 
-        [Range(0f, 32f), Tooltip("Jitter diameter sharp, controls softness of sharp shadowing.")]
-        public float _jitterDiameterSharp = 0.6f;
+        [Range(0f, 32f), Tooltip("Jitter diameter for hard shadows, controls softness of this shadowing component.")]
+        public float _jitterDiameterHard = 0.6f;
 
-        [Range(0f, 1f), Tooltip("Current frame weight for sharp accumulation over frames. Roughly means 'responsiveness' for sharp shadows.")]
-        public float _currentFrameWeightSharp = 0.15f;
+        [Range(0f, 1f), Tooltip("Current frame weight for accumulation over frames for hard shadows. Roughly means 'responsiveness' for hard shadows.")]
+        public float _currentFrameWeightHard = 0.15f;
     }
 }

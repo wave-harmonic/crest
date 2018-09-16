@@ -134,10 +134,7 @@ namespace Crest
             _renderMaterial.SetVector("_CamPos", OceanRenderer.Instance._viewpoint.position);
             _renderMaterial.SetVector("_CamForward", OceanRenderer.Instance._viewpoint.forward);
             _renderMaterial.SetVector("_JitterDiameters_CurrentFrameWeights",
-                new Vector4(Settings._jitterDiameterSoft, Settings._jitterDiameterSharp, Settings._currentFrameWeightSoft, Settings._currentFrameWeightSharp));
-            _renderMaterial.SetFloat("_CurrentFrameWeights", Settings._currentFrameWeightSoft);
-            _renderMaterial.SetFloat("_JitterDiameterSharp", Settings._jitterDiameterSharp);
-            _renderMaterial.SetFloat("_CurrentFrameWeightSharp", Settings._currentFrameWeightSharp);
+                new Vector4(Settings._jitterDiameterSoft, Settings._jitterDiameterHard, Settings._currentFrameWeightSoft, Settings._currentFrameWeightHard));
             _renderMaterial.SetMatrix("_MainCameraProjectionMatrix", _cameraMain.projectionMatrix * _cameraMain.worldToCameraMatrix);
             _renderMaterial.SetFloat("_SimDeltaTime", Time.deltaTime);
 

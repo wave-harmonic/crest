@@ -24,7 +24,7 @@ Shader "Ocean/Shape/Sim/Foam"
 				#pragma multi_compile_fog
 
 				#include "UnityCG.cginc"
-				#include "../../../../Crest/Shaders/OceanLODData.cginc"
+				#include "../../../../Crest/Shaders/OceanLODData.hlsl"
 
 				struct appdata_t {
 					float4 vertex : POSITION;
@@ -36,7 +36,7 @@ Shader "Ocean/Shape/Sim/Foam"
 					float invRes : TEXCOORD1;
 				};
 
-				#include "SimHelpers.cginc"
+				#include "SimHelpers.hlsl"
 
 				v2f vert(appdata_t v)
 				{

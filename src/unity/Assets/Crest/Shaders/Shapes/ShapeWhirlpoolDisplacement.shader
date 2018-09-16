@@ -19,7 +19,7 @@ Shader "Ocean/Shape/Whirlpool Displacement"
 				#pragma fragment frag
 				#pragma multi_compile_fog
 				#include "UnityCG.cginc"
-				#include "MultiscaleShape.cginc"
+				#include "MultiscaleShape.hlsl"
 
 				struct appdata_t {
 					float4 vertex : POSITION;

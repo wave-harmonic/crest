@@ -23,8 +23,8 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 				#pragma fragment frag
 				#pragma multi_compile_fog
 				#include "UnityCG.cginc"
-				#include "../../../../Crest/Shaders/Shapes/MultiscaleShape.cginc"
-				#include "../../../../Crest/Shaders/OceanLODData.cginc"
+				#include "../../../../Crest/Shaders/Shapes/MultiscaleShape.hlsl"
+				#include "../../../../Crest/Shaders/OceanLODData.hlsl"
 
 				struct appdata_t {
 					float4 vertex : POSITION;
@@ -36,7 +36,7 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 					float2 uv : TEXCOORD1;
 				};
 
-				#include "SimHelpers.cginc"
+				#include "SimHelpers.hlsl"
 
 				v2f vert(appdata_t v)
 				{

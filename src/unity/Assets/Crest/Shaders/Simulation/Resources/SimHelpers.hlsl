@@ -2,6 +2,7 @@
 
 // Helpers / shared code for simulation shaders
 
+// It seems that unity_DeltaTime.x is always >= 0.005! So Crest adds its own dts
 uniform float _SimDeltaTime;
 uniform float _SimDeltaTimePrev;
 

@@ -117,7 +117,6 @@ namespace Crest
             Graphics.Blit(Texture2D.blackTexture, _shadowData[_rtIndex]);
 
             _bufCopyShadowMap.Clear();
-            _bufCopyShadowMap.SetRenderTarget(_shadowData[_rtIndex]);
 
             LodTransform._renderData.Validate(0, this);
             _renderMaterial.SetVector("_CenterPos", LodTransform._renderData._posSnapped);
@@ -140,9 +139,9 @@ namespace Crest
 
         public void BindSourceData(int slot, Material simMaterial, bool paramsOnly)
         {
-            _pwMat._target = _renderMaterial;
+            _pwMat._target = simMaterial;
             var rd = LodTransform._renderDataPrevFrame.Validate(-1, this);
-            BindData(0, _pwMat, paramsOnly ? Texture2D.blackTexture : (_shadowData[(_rtIndex + 1) % 2] as Texture), true, ref rd);
+            BindData(slot, _pwMat, paramsOnly ? Texture2D.blackTexture : (_shadowData[(_rtIndex + 1) % 2] as Texture), true, ref rd);
             _pwMat._target = null;
         }
 

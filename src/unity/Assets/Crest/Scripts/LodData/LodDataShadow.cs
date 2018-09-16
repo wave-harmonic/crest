@@ -11,9 +11,11 @@ namespace Crest
     {
         public override SimType LodDataType { get { return SimType.Shadow; } }
         public override void UseSettings(SimSettingsBase settings) { _settings = settings; }
-        public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RHalf; } }
+        public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RG16; } }
         public override CameraClearFlags CamClearFlags { get { return CameraClearFlags.Color; } }
         public override RenderTexture DataTexture { get { return _shadowData[_rtIndex]; } }
+
+        public static bool s_processData = true;
 
         int _rtIndex = 1;
         RenderTexture[] _shadowData = new RenderTexture[2];
@@ -105,27 +107,34 @@ namespace Crest
 
             if (!_mainLight) return;
 
-            if (_bufCopyShadowMap == null)
+            if (_bufCopyShadowMap == null && s_processData)
             {
                 _bufCopyShadowMap = new CommandBuffer();
                 _bufCopyShadowMap.name = "Shadow data " + LodTransform.LodIndex;
                 _mainLight.AddCommandBuffer(LightEvent.BeforeScreenspaceMask, _bufCopyShadowMap);
             }
+            else if (!s_processData && _bufCopyShadowMap != null)
+            {
+                _mainLight.RemoveCommandBuffer(LightEvent.BeforeScreenspaceMask, _bufCopyShadowMap);
+                _bufCopyShadowMap = null;
+            }
+
+            if (!s_processData)
+                return;
 
             // clear the shadow collection. it will be overwritten with shadow values IF the shadows render,
             // which only happens if there are (nontransparent) shadow receivers around
             Graphics.Blit(Texture2D.blackTexture, _shadowData[_rtIndex]);
 
             _bufCopyShadowMap.Clear();
-            _bufCopyShadowMap.SetRenderTarget(_shadowData[_rtIndex]);
 
             LodTransform._renderData.Validate(0, this);
             _renderMaterial.SetVector("_CenterPos", LodTransform._renderData._posSnapped);
             _renderMaterial.SetVector("_Scale", transform.lossyScale);
             _renderMaterial.SetVector("_CamPos", OceanRenderer.Instance._viewpoint.position);
             _renderMaterial.SetVector("_CamForward", OceanRenderer.Instance._viewpoint.forward);
-            _renderMaterial.SetFloat("_JitterDiameter", Settings._jitterDiameter);
-            _renderMaterial.SetFloat("_CurrentFrameWeight", Settings._currentFrameWeight);
+            _renderMaterial.SetVector("_JitterDiameters_CurrentFrameWeights",
+                new Vector4(Settings._jitterDiameterSoft, Settings._jitterDiameterHard, Settings._currentFrameWeightSoft, Settings._currentFrameWeightHard));
             _renderMaterial.SetMatrix("_MainCameraProjectionMatrix", _cameraMain.projectionMatrix * _cameraMain.worldToCameraMatrix);
             _renderMaterial.SetFloat("_SimDeltaTime", Time.deltaTime);
 
@@ -140,9 +149,9 @@ namespace Crest
 
         public void BindSourceData(int slot, Material simMaterial, bool paramsOnly)
         {
-            _pwMat._target = _renderMaterial;
+            _pwMat._target = simMaterial;
             var rd = LodTransform._renderDataPrevFrame.Validate(-1, this);
-            BindData(0, _pwMat, paramsOnly ? Texture2D.blackTexture : (_shadowData[(_rtIndex + 1) % 2] as Texture), true, ref rd);
+            BindData(slot, _pwMat, paramsOnly ? Texture2D.blackTexture : (_shadowData[(_rtIndex + 1) % 2] as Texture), true, ref rd);
             _pwMat._target = null;
         }
 

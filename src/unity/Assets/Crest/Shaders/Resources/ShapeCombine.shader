@@ -42,7 +42,7 @@ Shader "Ocean/Shape/Combine"
 			
 			sampler2D _MainTex;
 
-			#include "../../Shaders/OceanLODData.cginc"
+			#include "../../Shaders/OceanLODData.hlsl"
 			;
 
 			half4 frag (v2f i) : SV_Target

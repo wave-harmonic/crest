@@ -26,8 +26,8 @@ Shader "Ocean/Shape/Gerstner Batch"
 				#pragma fragment frag
 				#pragma multi_compile_fog
 				#include "UnityCG.cginc"
-				#include "MultiscaleShape.cginc"
-				#include "../OceanLODData.cginc"
+				#include "MultiscaleShape.hlsl"
+				#include "../OceanLODData.hlsl"
 
 				#define TWOPI 6.283185
 

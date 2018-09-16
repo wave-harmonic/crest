@@ -76,6 +76,8 @@ public class OceanDebugGUI : MonoBehaviour
             LodDataAnimatedWaves._shapeCombinePass = GUI.Toggle(new Rect(x, y, w, h), LodDataAnimatedWaves._shapeCombinePass, "Shape combine pass"); y += h;
 #endif
 
+            LodDataShadow.s_processData = GUI.Toggle(new Rect(x, y, w, h), LodDataShadow.s_processData, "Process Shadows"); y += h;
+
             int min = int.MaxValue, max = -1;
             bool readbackShape = true;
             foreach( var ldaw in OceanRenderer.Instance._lodDataAnimWaves)

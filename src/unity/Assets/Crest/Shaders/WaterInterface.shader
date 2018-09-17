@@ -1,10 +1,9 @@
 ﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
-Shader "Ocean/Underwater Skirt"
+Shader "Ocean/Water Interface"
 {
 	Properties
 	{
-		[NoScaleOffset] _Normals ( "    Normals", 2D ) = "bump" {}
 		_Diffuse("Diffuse", Color) = (0.2, 0.05, 0.05, 1.0)
 		[Toggle] _SubSurfaceScattering("Sub-Surface Scattering", Float) = 1
 		_SubSurfaceColour("    Colour", Color) = (0.0, 0.48, 0.36)
@@ -96,32 +95,32 @@ Shader "Ocean/Underwater Skirt"
 					+ 3. * right * v.vertex.x * _ProjectionParams.y
 					+ up * v.vertex.z * _ProjectionParams.y;
 
-				// isolate topmost edge
-				if (v.vertex.z > 0.45)
+
+				half2 nxz_dummy = (half2)0.;
+
+				float2 sampleXZ = o.worldPos.xz;
+				float3 disp;
+				for (int i = 0; i < 6; i++)
 				{
-					half2 nxz_dummy = (half2)0.;
+					// sample displacement textures, add results to current world pos / normal / foam
+					disp = float3(sampleXZ.x, _OceanCenterPosWorld.y, sampleXZ.y);
+					SampleDisplacements(_LD_Sampler_AnimatedWaves_0, LD_0_WorldToUV(sampleXZ), 1.0, _LD_Params_0.w, _LD_Params_0.x, disp, nxz_dummy);
+					float3 nearestPointOnUp = o.worldPos + up * dot(disp - o.worldPos, up);
+					float2 error = disp.xz - nearestPointOnUp.xz;
+					sampleXZ -= error;
+				}
 
-					float2 sampleXZ = o.worldPos.xz;
-					float3 disp;
-					for (int i = 0; i < 6; i++)
-					{
-						// sample displacement textures, add results to current world pos / normal / foam
-						disp = float3(sampleXZ.x, _OceanCenterPosWorld.y, sampleXZ.y);
-						SampleDisplacements(_LD_Sampler_AnimatedWaves_0, LD_0_WorldToUV(sampleXZ), 1.0, _LD_Params_0.w, _LD_Params_0.x, disp, nxz_dummy);
-						float3 nearestPointOnUp = o.worldPos + up * dot(disp - o.worldPos, up);
-						float2 error = disp.xz - nearestPointOnUp.xz;
-						sampleXZ -= error;
-					}
+				o.worldPos = disp;
 
-					o.worldPos = disp;
 
-					// small fudge to lift up geom a bit and cover any cracks. it will render UNDER the ocean so any overlap will be covered
-					o.worldPos += .02 * up;
+				float offset = 0.025;
+				if (v.vertex.z > 0.49)
+				{
+					o.worldPos += offset * up;
 				}
 				else
 				{
-					// bottom row of verts - push them down a bunch
-					o.worldPos -= 8. * up;
+					o.worldPos -= offset * up * .05;
 				}
 
 				// almost works - move overlap based on view direction
@@ -145,22 +144,22 @@ Shader "Ocean/Underwater Skirt"
 
 			half4 frag(v2f i) : SV_Target
 			{
-				half3 view = normalize(_WorldSpaceCameraPos - i.worldPos);
+				//half3 view = normalize(_WorldSpaceCameraPos - i.worldPos);
 
-				float pixelZ = LinearEyeDepth(i.vertex.z);
-				half3 screenPos = i.foam_screenPos.yzw;
-				half2 uvDepth = screenPos.xy / screenPos.z;
-				float sceneZ01 = tex2D(_CameraDepthTexture, uvDepth).x;
-				float sceneZ = LinearEyeDepth(sceneZ01);
-				
-				float3 lightDir = _WorldSpaceLightPos0.xyz;
-				half shadow = 1.;
-				half3 bubbleCol = 0.;
-				half3 col = OceanEmission(i.worldPos, 3. /*i.lodAlpha_worldXZUndisplaced_oceanDepth.w*/, view, (half3)0. /*n_pixel*/, (half3)0. /*n_geom*/, lightDir, shadow.x, i.grabPos, screenPos, pixelZ, uvDepth, sceneZ, sceneZ01, bubbleCol, _Normals, _CameraDepthTexture);
+				//float pixelZ = LinearEyeDepth(i.vertex.z);
+				//half3 screenPos = i.foam_screenPos.yzw;
+				//half2 uvDepth = screenPos.xy / screenPos.z;
+				//float sceneZ01 = tex2D(_CameraDepthTexture, uvDepth).x;
+				//float sceneZ = LinearEyeDepth(sceneZ01);
+				//
+				//float3 lightDir = _WorldSpaceLightPos0.xyz;
+				//half shadow = 1.;
+				//half3 bubbleCol = 0.;
+				//half3 col = OceanEmission(i.worldPos, 3. /*i.lodAlpha_worldXZUndisplaced_oceanDepth.w*/, view, (half3)0. /*n_pixel*/, (half3)0. /*n_geom*/, lightDir, shadow.x, i.grabPos, screenPos, pixelZ, uvDepth, sceneZ, sceneZ01, bubbleCol, _Normals, _CameraDepthTexture);
 
-				// create a fake darkening at the air-water interface
-				col *= lerp(1., saturate((1. - i.uv.y) / .001), .2);
-
+				//// create a fake darkening at the air-water interface
+				//col *= lerp(1., saturate((1. - i.uv.y) / .001), .2);
+				half3 col = lerp(_Diffuse, 0.25, 0.4);
 				return half4(col, 1.);
 			}
 			ENDCG

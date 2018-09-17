@@ -8,6 +8,7 @@ namespace Crest
     {
         public int _horizResolution = 64;
         public float _maxDistFromWater = 1f;
+        public int _overrideSortingOrder = short.MinValue;
 
         MaterialPropertyBlock _mpb;
         Renderer _rend;
@@ -23,7 +24,7 @@ namespace Crest
             _rend = GetComponent<Renderer>();
 
             // Render before the surface mesh
-            _rend.sortingOrder = -LodData.MAX_LOD_COUNT - 1;
+            _rend.sortingOrder = _overrideSortingOrder != short.MinValue ? _overrideSortingOrder : - LodData.MAX_LOD_COUNT - 1;
 
             GetComponent<MeshFilter>().mesh = Mesh2DGrid(0, 2, -0.5f, -0.5f, 1f, 1f, _horizResolution, 1);
         }

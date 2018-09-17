@@ -16,7 +16,7 @@ Shader "Ocean/Underwater Skirt"
 
 		Pass
 		{
-			//Blend SrcAlpha OneMinusSrcAlpha
+			Blend SrcAlpha OneMinusSrcAlpha
 			//ZWrite Off
 			// Depth offset to stop intersection with water. "Factor" and "Units". typical seems to be (-1,-1). (-0.5,0) gives
 			// pretty good results for me when alpha geometry is fairly well matched but fails when alpha geo is too low res.
@@ -92,10 +92,9 @@ Shader "Ocean/Underwater Skirt"
 				return o;
 			}
 			
-			fixed3 frag (v2f i) : SV_Target
+			half4 frag(v2f i) : SV_Target
 			{
-				fixed3 col = tex2D(_MainTex, i.uv);
-				col = 1.;
+				half4 col = half4(.05, .25, .3, .85);
 
 				return col;
 			}

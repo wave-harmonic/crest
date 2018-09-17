@@ -22,6 +22,9 @@ namespace Crest
 
             _rend = GetComponent<Renderer>();
 
+            // render before the surface mesh
+            _rend.sortingOrder = -LodData.MAX_LOD_COUNT - 1;
+
             GetComponent<MeshFilter>().mesh = Mesh2DGrid(0, 2, -0.5f, -0.5f, 1f, 1f, _horizResolution, 1);
         }
 

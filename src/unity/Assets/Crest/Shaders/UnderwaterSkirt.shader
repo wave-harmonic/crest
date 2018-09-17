@@ -47,13 +47,8 @@ Shader "Ocean/Underwater Skirt"
 
 		Pass
 		{
-			//Blend SrcAlpha OneMinusSrcAlpha
-			//ZWrite Off
-			// Depth offset to stop intersection with water. "Factor" and "Units". typical seems to be (-1,-1). (-0.5,0) gives
-			// pretty good results for me when alpha geometry is fairly well matched but fails when alpha geo is too low res.
-			// the ludicrously large value below seems to work in most of my tests.
-			//Offset 0, -1000000
-			//Cull Off
+			// Could turn this off, and it would allow the ocean surface to render through it
+			ZWrite On
 
 			CGPROGRAM
 			#pragma vertex vert

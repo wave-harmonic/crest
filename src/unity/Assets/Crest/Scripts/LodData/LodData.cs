@@ -20,6 +20,7 @@ namespace Crest
         public abstract CameraClearFlags CamClearFlags { get; }
         public abstract RenderTexture DataTexture { get; }
 
+        public const int MAX_LOD_COUNT = 16;
 
         // shape texture resolution
         int _shapeRes = -1;

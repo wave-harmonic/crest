@@ -59,7 +59,7 @@ half3 OceanEmission(float3 worldPos, half oceanDepth, half3 view, half3 n, half3
 
 		// Approximate subsurface scattering - add light when surface faces viewer. Use geometry normal - don't need high freqs.
 		half towardsSun = pow(max(0., dot(lightDir, -view)), _SubSurfaceSunFallOff);
-		col += (_SubSurfaceBase + _SubSurfaceSun * towardsSun) * max(dot(n_geom, view), 0.) * _SubSurfaceColour.rgb * _LightColor0 * i_shadow;
+		col += (_SubSurfaceBase + _SubSurfaceSun * towardsSun) * /*max(dot(n_geom, view), 0.) **/ _SubSurfaceColour.rgb * _LightColor0 * i_shadow;
 	}
 #endif // _SUBSURFACESCATTERING_ON
 

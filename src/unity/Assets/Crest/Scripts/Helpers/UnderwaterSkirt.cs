@@ -7,6 +7,8 @@ namespace Crest
     // todo - set bounds so that it doesnt cull
     public class UnderwaterSkirt : MonoBehaviour
     {
+        public int _horizResolution = 64;
+
         MaterialPropertyBlock _mpb;
         Renderer _rend;
 
@@ -20,7 +22,7 @@ namespace Crest
 
             _rend = GetComponent<Renderer>();
 
-            GetComponent<MeshFilter>().mesh = Mesh2DGrid(0, 2, -0.5f, -0.5f, 1f, 1f, 128, 1);
+            GetComponent<MeshFilter>().mesh = Mesh2DGrid(0, 2, -0.5f, -0.5f, 1f, 1f, _horizResolution, 1);
         }
 
         private void LateUpdate()
@@ -42,13 +44,20 @@ namespace Crest
         static Mesh Mesh2DGrid(int dim0, int dim1, float start0, float start1, float width0, float width1, int divs0, int divs1)
         {
             Vector3[] verts = new Vector3[(divs1 + 1) * (divs0 + 1)];
+            Vector2[] uvs = new Vector2[(divs1 + 1) * (divs0 + 1)];
             float dx0 = width0 / divs0, dx1 = width1 / divs1;
             for( int i1 = 0; i1 < divs1 + 1; i1++)
             {
+                float v = i1 / (float)divs1;
+
                 for (int i0 = 0; i0 < divs0 + 1; i0++)
                 {
-                    verts[(divs0 + 1) * i1 + i0][dim0] = start0 + i0 * dx0;
-                    verts[(divs0 + 1) * i1 + i0][dim1] = start1 + i1 * dx1;
+                    int i = (divs0 + 1) * i1 + i0;
+                    verts[i][dim0] = start0 + i0 * dx0;
+                    verts[i][dim1] = start1 + i1 * dx1;
+
+                    uvs[i][0] = i0 / (float)divs0;
+                    uvs[i][1] = v;
                 }
             }
 
@@ -78,6 +87,7 @@ namespace Crest
             var mesh = new Mesh();
             mesh.name = "Grid2D_" + divs0 + "x" + divs1;
             mesh.vertices = verts;
+            mesh.uv = uvs;
             mesh.SetIndices(indices, MeshTopology.Triangles, 0);
             return mesh;
         }

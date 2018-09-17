@@ -1,7 +1,5 @@
 ﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
-// Renders alpha geometry overlaid on ocean surface. Samples the ocean shape texture in the vertex shader to track
-// the surface. Requires the right texture to be assigned (see RenderAlphaOnSurface script).
 Shader "Ocean/Underwater Skirt"
 {
 	Properties
@@ -54,18 +52,11 @@ Shader "Ocean/Underwater Skirt"
 			#pragma vertex vert
 			#pragma fragment frag
 			
-			//#pragma shader_feature _APPLYNORMALMAPPING_ON
-			//#pragma shader_feature _COMPUTEDIRECTIONALLIGHT_ON
 			#pragma shader_feature _SUBSURFACESCATTERING_ON
 			#pragma shader_feature _SUBSURFACEHEIGHTLERP_ON
 			#pragma shader_feature _SUBSURFACESHALLOWCOLOUR_ON
 			#pragma shader_feature _TRANSPARENCY_ON
 			#pragma shader_feature _CAUSTICS_ON
-			//#pragma shader_feature _FOAM_ON
-			//#pragma shader_feature _FOAM3DLIGHTING_ON
-			//#pragma shader_feature _PLANARREFLECTIONS_ON
-			//#pragma shader_feature _PROCEDURALSKY_ON
-			//#pragma shader_feature _APPLYFLOWTONORMALS_ON
 			#pragma shader_feature _SHADOWS_ON
 
 			#pragma shader_feature _COMPILESHADERWITHDEBUGINFO_ON
@@ -161,15 +152,13 @@ Shader "Ocean/Underwater Skirt"
 				float sceneZ = LinearEyeDepth(sceneZ01);
 				
 				float3 lightDir = _WorldSpaceLightPos0.xyz;
-
 				half shadow = 1.;
-
-				//half4 col = half4(half3(.05, .25, .3) * (1. - sceneZ / 25.), .85);
 				half3 bubbleCol = 0.;
-
 				half3 col = OceanEmission(i.worldPos, 3. /*i.lodAlpha_worldXZUndisplaced_oceanDepth.w*/, view, (half3)0. /*n_pixel*/, (half3)0. /*n_geom*/, lightDir, shadow.x, i.grabPos, screenPos, pixelZ, uvDepth, sceneZ, sceneZ01, bubbleCol, _Normals, _CameraDepthTexture);
 
+				// create a fake darkening at the air-water interface
 				col *= lerp(1., saturate((.9998 - i.uv.y) / .001), .2);
+
 				return half4(col, 1.);
 			}
 			ENDCG

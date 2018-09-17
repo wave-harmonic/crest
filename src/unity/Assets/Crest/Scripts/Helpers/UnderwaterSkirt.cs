@@ -4,10 +4,10 @@ using UnityEngine;
 
 namespace Crest
 {
-    // todo - set bounds so that it doesnt cull
     public class UnderwaterSkirt : MonoBehaviour
     {
         public int _horizResolution = 64;
+        public float _maxDistFromWater = 1f;
 
         MaterialPropertyBlock _mpb;
         Renderer _rend;
@@ -22,7 +22,7 @@ namespace Crest
 
             _rend = GetComponent<Renderer>();
 
-            // render before the surface mesh
+            // Render before the surface mesh
             _rend.sortingOrder = -LodData.MAX_LOD_COUNT - 1;
 
             GetComponent<MeshFilter>().mesh = Mesh2DGrid(0, 2, -0.5f, -0.5f, 1f, 1f, _horizResolution, 1);
@@ -30,18 +30,28 @@ namespace Crest
 
         private void LateUpdate()
         {
-            // underwater skirt always applies to LOD0
-            if (_mpb == null)
+            Vector3 pos = OceanRenderer.Instance._viewpoint.position;
+            float waterHeight = 0f;
+            bool gotHeight = OceanRenderer.Instance.CollisionProvider.SampleHeight(ref pos, ref waterHeight);
+            float heightOffset = pos.y - waterHeight;
+
+            // Disable skirt when camera not close to water. In the first few frames collision may not be avail, in that case no choice
+            // but to assume enabled. In the future this could detect if camera is far enough under water, render a simple quad to avoid
+            // finding the intersection line.
+            _rend.enabled = /*Mathf.Abs*/(heightOffset) < _maxDistFromWater || !gotHeight;
+
+            if (_rend.enabled)
             {
-                _mpb = new MaterialPropertyBlock();
+                // Assign lod0 shape - trivial but bound every frame because lod transform comes from here
+                if (_mpb == null)
+                {
+                    _mpb = new MaterialPropertyBlock();
+                }
+                _rend.GetPropertyBlock(_mpb);
+                var ldaws = OceanRenderer.Instance._lodDataAnimWaves;
+                ldaws[0].BindResultData(0, _mpb);
+                _rend.SetPropertyBlock(_mpb);
             }
-
-            _rend.GetPropertyBlock(_mpb);
-
-            var ldaws = OceanRenderer.Instance._lodDataAnimWaves;
-            ldaws[0].BindResultData(0, _mpb);
-
-            _rend.SetPropertyBlock(_mpb);
         }
 
         static Mesh Mesh2DGrid(int dim0, int dim1, float start0, float start1, float width0, float width1, int divs0, int divs1)

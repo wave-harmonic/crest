@@ -92,8 +92,8 @@ Shader "Ocean/Underwater Skirt"
 				float3 center = _WorldSpaceCameraPos + forward * _ProjectionParams.y * 1.001;
 				// todo - constant needs to depend on FOV
 				o.worldPos = center
-					+ 3. * right * v.vertex.x
-					+ up * v.vertex.z;
+					+ 3. * right * v.vertex.x * _ProjectionParams.y
+					+ up * v.vertex.z * _ProjectionParams.y;
 
 				// isolate topmost edge
 				if (v.vertex.z > 0.45)
@@ -123,10 +123,8 @@ Shader "Ocean/Underwater Skirt"
 					o.worldPos -= 8. * up;
 				}
 
-				// view-projection
 				o.vertex = mul(UNITY_MATRIX_VP, float4(o.worldPos, 1.));
-				o.vertex.w = 1.;
-				o.vertex.z = 1.;
+				o.vertex.z = o.vertex.w;
 
 				o.foam_screenPos.yzw = ComputeScreenPos(o.vertex).xyw;
 				o.foam_screenPos.x = 0.;

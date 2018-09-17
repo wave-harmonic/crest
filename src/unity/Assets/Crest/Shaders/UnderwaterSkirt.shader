@@ -67,26 +67,23 @@ Shader "Ocean/Underwater Skirt"
 					half2 nxz_dummy = (half2)0.;
 
 					float2 sampleXZ = worldPos.xz;
-					float height = 0.;
-					for (int i = 0; i < 4; i++)
+					float3 disp;
+					for (int i = 0; i < 6; i++)
 					{
 						// sample displacement textures, add results to current world pos / normal / foam
-						float3 disp = float3(sampleXZ.x, _OceanCenterPosWorld.y, sampleXZ.y);
+						disp = float3(sampleXZ.x, _OceanCenterPosWorld.y, sampleXZ.y);
 						SampleDisplacements(_LD_Sampler_AnimatedWaves_0, LD_0_WorldToUV(sampleXZ), 1.0, _LD_Params_0.w, _LD_Params_0.x, disp, nxz_dummy);
-						height = disp.y;
-						float2 error = worldPos.xz - disp.xz;
-						sampleXZ += error;
+						float3 nearestPointOnUp = worldPos + up * dot(disp - worldPos, up);
+						float2 error = disp.xz - nearestPointOnUp.xz;
+						sampleXZ -= error;
 					}
 
-					worldPos.y = height;
+					worldPos = disp;
 				}
 				else
 				{
 					worldPos -= 8. * up;
 				}
-
-				//// move to sea level
-				//worldPos.y += _OceanCenterPosWorld.y;
 
 				// view-projection
 				o.vertex = mul(UNITY_MATRIX_VP, float4(worldPos, 1.));

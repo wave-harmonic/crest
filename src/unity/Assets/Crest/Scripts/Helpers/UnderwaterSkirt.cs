@@ -9,7 +9,6 @@ namespace Crest
     {
         MaterialPropertyBlock _mpb;
         Renderer _rend;
-        Mesh _mesh;
 
         private void Start()
         {
@@ -20,7 +19,8 @@ namespace Crest
             }
 
             _rend = GetComponent<Renderer>();
-            _mesh = GetComponent<MeshFilter>().mesh;
+
+            GetComponent<MeshFilter>().mesh = Mesh2DGrid(0, 2, -0.5f, -0.5f, 1f, 1f, 128, 1);
         }
 
         private void LateUpdate()
@@ -37,6 +37,49 @@ namespace Crest
             ldaws[0].BindResultData(0, _mpb);
 
             _rend.SetPropertyBlock(_mpb);
+        }
+
+        static Mesh Mesh2DGrid(int dim0, int dim1, float start0, float start1, float width0, float width1, int divs0, int divs1)
+        {
+            Vector3[] verts = new Vector3[(divs1 + 1) * (divs0 + 1)];
+            float dx0 = width0 / divs0, dx1 = width1 / divs1;
+            for( int i1 = 0; i1 < divs1 + 1; i1++)
+            {
+                for (int i0 = 0; i0 < divs0 + 1; i0++)
+                {
+                    verts[(divs0 + 1) * i1 + i0][dim0] = start0 + i0 * dx0;
+                    verts[(divs0 + 1) * i1 + i0][dim1] = start1 + i1 * dx1;
+                }
+            }
+
+            int[] indices = new int[divs0 * divs1 * 2 * 3];
+            for (int i1 = 0; i1 < divs1; i1++)
+            {
+                for (int i0 = 0; i0 < divs0; i0++)
+                {
+                    int i00 = (divs0 + 1) * (i1 + 0) + (i0 + 0);
+                    int i01 = (divs0 + 1) * (i1 + 0) + (i0 + 1);
+                    int i10 = (divs0 + 1) * (i1 + 1) + (i0 + 0);
+                    int i11 = (divs0 + 1) * (i1 + 1) + (i0 + 1);
+
+                    int tri;
+
+                    tri = 0;
+                    indices[(i1 * divs0 + i0) * 6 + tri * 3 + 0] = i00;
+                    indices[(i1 * divs0 + i0) * 6 + tri * 3 + 1] = i11;
+                    indices[(i1 * divs0 + i0) * 6 + tri * 3 + 2] = i01;
+                    tri = 1;
+                    indices[(i1 * divs0 + i0) * 6 + tri * 3 + 0] = i00;
+                    indices[(i1 * divs0 + i0) * 6 + tri * 3 + 1] = i10;
+                    indices[(i1 * divs0 + i0) * 6 + tri * 3 + 2] = i11;
+                }
+            }
+
+            var mesh = new Mesh();
+            mesh.name = "Grid2D_" + divs0 + "x" + divs1;
+            mesh.vertices = verts;
+            mesh.SetIndices(indices, MeshTopology.Triangles, 0);
+            return mesh;
         }
     }
 }

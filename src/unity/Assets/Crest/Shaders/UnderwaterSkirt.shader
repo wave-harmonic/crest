@@ -59,10 +59,13 @@ Shader "Ocean/Underwater Skirt"
 				float3 forward = mul((float3x3)unity_CameraToWorld, float3(0., 0., 1.));
 
 				float3 center = _WorldSpaceCameraPos + forward * _ProjectionParams.y * 1.01;
-				float3 worldPos = center + .3*right * v.vertex.x + up * v.vertex.z;
+				// todo - constant needs to depend on FOV
+				float3 worldPos = center
+					+ 3. * right * v.vertex.x
+					+ up * v.vertex.z;
 
 				// isolate topmost edge
-				if (v.vertex.z > 4.5)
+				if (v.vertex.z > 0.45)
 				{
 					half2 nxz_dummy = (half2)0.;
 

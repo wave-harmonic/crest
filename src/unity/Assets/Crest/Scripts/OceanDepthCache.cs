@@ -40,6 +40,12 @@ namespace Crest
                 return;
             }
 
+            if (OceanRenderer.Instance == null)
+            {
+                enabled = false;
+                return;
+            }
+
             if (_populateOnStartup)
             {
                 PopulateCache();

@@ -1048,7 +1048,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1689236144
 Transform:
   m_ObjectHideFlags: 0
@@ -1075,7 +1075,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _horizResolution: 64
   _maxDistFromWater: 1.5
-  _overrideSortingOrder: 1
+  _overrideSortingOrder: 0
 --- !u!23 &1689236146
 MeshRenderer:
   m_ObjectHideFlags: 0

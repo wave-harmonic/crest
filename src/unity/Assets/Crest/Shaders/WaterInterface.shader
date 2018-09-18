@@ -35,18 +35,19 @@ Shader "Ocean/Water Interface"
 
 	SubShader
 	{
-		Tags{ "LightMode" = "ForwardBase" "Queue" = "Geometry+510" "IgnoreProjector" = "True" "RenderType" = "Opaque" }
+		Tags{ "LightMode" = "ForwardBase" "Queue" = "Transparent" "IgnoreProjector" = "True" "RenderType" = "Transparent" }
 		LOD 100
 
-		GrabPass
-		{
-			"_BackgroundTexture"
-		}
+		//GrabPass
+		//{
+		//	"_BackgroundTexture"
+		//}
 
 		Pass
 		{
 			// Could turn this off, and it would allow the ocean surface to render through it
 			ZWrite Off
+			Blend SrcAlpha OneMinusSrcAlpha
 
 			CGPROGRAM
 			#pragma vertex vert
@@ -113,14 +114,14 @@ Shader "Ocean/Water Interface"
 				o.worldPos = disp;
 
 
-				float offset = 0.025;
+				float offset = 0.035 * _ProjectionParams.y * 5.;
 				if (v.vertex.z > 0.49)
 				{
 					o.worldPos += offset * up;
 				}
 				else
 				{
-					o.worldPos -= offset * up * .05;
+					o.worldPos -= offset * up;
 				}
 
 				// almost works - move overlap based on view direction
@@ -159,8 +160,10 @@ Shader "Ocean/Water Interface"
 
 				//// create a fake darkening at the air-water interface
 				//col *= lerp(1., saturate((1. - i.uv.y) / .001), .2);
-				half3 col = lerp(_Diffuse, 0.25, 0.4);
-				return half4(col, 1.);
+				half3 col = half3(0.15, .4, .5);
+				float alpha = abs(i.uv.y - 0.5);
+				alpha = pow(smoothstep(0.5, .0, alpha),.5);
+				return half4(col, alpha);
 			}
 			ENDCG
 		}

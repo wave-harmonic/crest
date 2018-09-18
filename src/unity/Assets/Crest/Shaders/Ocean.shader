@@ -295,12 +295,14 @@ Shader "Ocean/Ocean"
 
 					// Normal - geom + normal mapping
 					half3 n_geom = normalize(half3(i.n_shadow.x, 1., i.n_shadow.y));
+					const bool under = dot(view, n_geom) < 0.;
+					if (under) n_geom = -n_geom;
 					half3 n_pixel = n_geom;
 					#if _APPLYNORMALMAPPING_ON
 					#if _APPLYFLOWTONORMALS_ON
 					ApplyNormalMapsWithFlow(i.lodAlpha_worldXZUndisplaced_oceanDepth.yz, i.flow, i.lodAlpha_worldXZUndisplaced_oceanDepth.x, n_pixel);
 					#else
-					n_pixel.xz += SampleNormalMaps(i.lodAlpha_worldXZUndisplaced_oceanDepth.yz, i.lodAlpha_worldXZUndisplaced_oceanDepth.x);
+					n_pixel.xz += (under?-1.:1.)*SampleNormalMaps(i.lodAlpha_worldXZUndisplaced_oceanDepth.yz, i.lodAlpha_worldXZUndisplaced_oceanDepth.x);
 					n_pixel = normalize(n_pixel);
 					#endif
 					#endif
@@ -313,7 +315,12 @@ Shader "Ocean/Ocean"
 					#endif
 
 					// Compute color of ocean - in-scattered light + refracted scene
-					half3 col = OceanEmission(i.worldPos, i.lodAlpha_worldXZUndisplaced_oceanDepth.w, view, n_pixel, n_geom, lightDir, shadow.x, i.grabPos, screenPos, pixelZ, uvDepth, sceneZ, sceneZ01, bubbleCol, _Normals, _CameraDepthTexture);
+					half3 col;
+					half3 emit = 0.;
+					if (!under)
+						col = OceanEmission(i.worldPos, i.lodAlpha_worldXZUndisplaced_oceanDepth.w, view, n_pixel, n_geom, lightDir, shadow.x, i.grabPos, screenPos, pixelZ, uvDepth, sceneZ, sceneZ01, bubbleCol, _Normals, _CameraDepthTexture);
+					else
+						col = OceanEmissionUnder(i.worldPos, i.lodAlpha_worldXZUndisplaced_oceanDepth.w, view, n_pixel, n_geom, lightDir, shadow.x, i.grabPos, screenPos, pixelZ, uvDepth, sceneZ, sceneZ01, bubbleCol, _Normals, _CameraDepthTexture, emit);
 
 					// Light that reflects off water surface
 					ApplyReflection(view, n_pixel, lightDir, shadow.y, i.foam_screenPos.yzzw, col);
@@ -324,7 +331,13 @@ Shader "Ocean/Ocean"
 					#endif
 
 					// Fog
+					if(!under)
 					UNITY_APPLY_FOG(i.fogCoord, col);
+					else
+					{
+						// underwater
+						col = lerp(col, emit, 1. - exp(-_DepthFogDensity.xyz * pixelZ));
+					}
 	
 					#if _DEBUGVISUALISESHAPESAMPLE_ON
 					col = lerp(col.rgb, i.debugtint, 0.5);

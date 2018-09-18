@@ -116,7 +116,7 @@ Shader "Ocean/Underwater Skirt"
 					o.worldPos = disp;
 
 					// small fudge to lift up geom a bit and cover any cracks. it will render UNDER the ocean so any overlap will be covered
-					o.worldPos += .02 * up;
+					//o.worldPos += .02 * up;
 				}
 				else
 				{

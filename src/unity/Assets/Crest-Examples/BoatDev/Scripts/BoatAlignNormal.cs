@@ -47,10 +47,10 @@ public class BoatAlignNormal : MonoBehaviour
         var colProvider = OceanRenderer.Instance.CollisionProvider;
         var position = transform.position;
 
-        var undispPos = Vector3.zero;
-        if (!colProvider.ComputeUndisplacedPosition(ref position, ref undispPos)) return;
+        Vector3 undispPos;
+        if (!colProvider.ComputeUndisplacedPosition(position, out undispPos)) return;
 
-        if (!colProvider.SampleDisplacement(ref undispPos, ref _displacementToBoat)) return;
+        if (!colProvider.SampleDisplacement(undispPos, out _displacementToBoat)) return;
         if (!_displacementToBoatInitd)
         {
             _displacementToBoatLastFrame = _displacementToBoat;
@@ -61,8 +61,8 @@ public class BoatAlignNormal : MonoBehaviour
         Vector3 velWater = (_displacementToBoat - _displacementToBoatLastFrame) / Time.deltaTime;
         _displacementToBoatLastFrame = _displacementToBoat;
 
-        var normal = Vector3.zero;
-        if (!colProvider.SampleNormal(ref undispPos, ref normal, _boatWidth)) return;
+        Vector3 normal;
+        if (!colProvider.SampleNormal(undispPos, out normal, _boatWidth)) return;
         Debug.DrawLine(transform.position, transform.position + 5f * normal);
 
         _velocityRelativeToWater = _rb.velocity - velWater;

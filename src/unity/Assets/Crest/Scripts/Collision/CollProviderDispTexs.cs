@@ -13,25 +13,31 @@ namespace Crest
     {
         int _areaLod = -1;
 
-        public bool SampleDisplacement(ref Vector3 worldPos, ref Vector3 displacement)
+        public bool SampleDisplacement(Vector3 worldPos, out Vector3 displacement)
         {
             int lod = LodDataAnimatedWaves.SuggestDataLOD(new Rect(worldPos.x, worldPos.z, 0f, 0f), 0f);
-            if (lod == -1) return false;
-            return OceanRenderer.Instance._lodDataAnimWaves[lod].SampleDisplacement(ref worldPos, ref displacement);
+            if (lod == -1) {
+                displacement = Vector2.zero;
+                return false;
+            }
+            return OceanRenderer.Instance._lodDataAnimWaves[lod].SampleDisplacement(worldPos, out displacement);
         }
-        public bool SampleDisplacement(ref Vector3 worldPos, ref Vector3 displacement, float minSpatialLength)
+        public bool SampleDisplacement(Vector3 worldPos, out Vector3 displacement, float minSpatialLength)
         {
             // select lod. this now has a 1 texel buffer, so the finite differences below should all be valid.
             PrewarmForSamplingArea(new Rect(worldPos.x, worldPos.z, 0f, 0f), minSpatialLength);
 
-            return SampleDisplacementInArea(ref worldPos, ref displacement);
+            return SampleDisplacementInArea(worldPos, out displacement);
         }
 
-        public bool SampleHeight(ref Vector3 worldPos, ref float height)
+        public bool SampleHeight(Vector3 worldPos, out float height)
         {
             int lod = LodDataAnimatedWaves.SuggestDataLOD(new Rect(worldPos.x, worldPos.z, 0f, 0f), 0f);
-            if (lod == -1) return false;
-            height = OceanRenderer.Instance._lodDataAnimWaves[lod].GetHeight(ref worldPos);
+            if (lod == -1) {
+                height = float.NaN;
+                return false;
+            }
+            height = OceanRenderer.Instance._lodDataAnimWaves[lod].GetHeight(worldPos);
             return true;
         }
 
@@ -43,42 +49,42 @@ namespace Crest
         {
             _areaLod = LodDataAnimatedWaves.SuggestDataLOD(areaXZ, minSpatialLength);
         }
-        public bool SampleDisplacementInArea(ref Vector3 worldPos, ref Vector3 displacement)
+        public bool SampleDisplacementInArea(Vector3 worldPos, out Vector3 displacement)
         {
-            return OceanRenderer.Instance._lodDataAnimWaves[_areaLod].SampleDisplacement(ref worldPos, ref displacement);
+            return OceanRenderer.Instance._lodDataAnimWaves[_areaLod].SampleDisplacement(worldPos, out displacement);
         }
-        public bool SampleHeightInArea(ref Vector3 worldPos, ref float height)
+        public bool SampleHeightInArea(Vector3 worldPos, out float height)
         {
-            height = OceanRenderer.Instance._lodDataAnimWaves[_areaLod].GetHeight(ref worldPos);
+            height = OceanRenderer.Instance._lodDataAnimWaves[_areaLod].GetHeight(worldPos);
             return true;
         }
 
-        public bool SampleNormal(ref Vector3 undisplacedWorldPos, ref Vector3 normal)
+        public bool SampleNormal(Vector3 undisplacedWorldPos, out Vector3 normal)
         {
-            return SampleNormal(ref undisplacedWorldPos, ref normal, 0f);
+            return SampleNormal(undisplacedWorldPos, out normal, 0f);
         }
-        public bool SampleNormal(ref Vector3 undisplacedWorldPos, ref Vector3 normal, float minSpatialLength)
+        public bool SampleNormal(Vector3 undisplacedWorldPos, out Vector3 normal, float minSpatialLength)
         {
             // select lod. this now has a 1 texel buffer, so the finite differences below should all be valid.
             PrewarmForSamplingArea(new Rect(undisplacedWorldPos.x, undisplacedWorldPos.z, 0f, 0f), minSpatialLength);
 
             float gridSize = OceanRenderer.Instance._lodDataAnimWaves[_areaLod].LodTransform._renderData._texelWidth;
-
+            normal = Vector3.zero;
             Vector3 dispCenter = Vector3.zero;
-            if (!SampleDisplacementInArea(ref undisplacedWorldPos, ref dispCenter)) return false;
+            if (!SampleDisplacementInArea(undisplacedWorldPos, out dispCenter)) return false;
             Vector3 undisplacedWorldPosX = undisplacedWorldPos + Vector3.right * gridSize;
             Vector3 dispX = Vector3.zero;
-            if (!SampleDisplacementInArea(ref undisplacedWorldPosX, ref dispX)) return false;
+            if (!SampleDisplacementInArea(undisplacedWorldPosX, out dispX)) return false;
             Vector3 undisplacedWorldPosZ = undisplacedWorldPos + Vector3.forward * gridSize;
             Vector3 dispZ = Vector3.zero;
-            if (!SampleDisplacementInArea(ref undisplacedWorldPosZ, ref dispZ)) return false;
+            if (!SampleDisplacementInArea(undisplacedWorldPosZ, out dispZ)) return false;
 
             normal = Vector3.Cross(dispZ + Vector3.forward * gridSize - dispCenter, dispX + Vector3.right * gridSize - dispCenter).normalized;
 
             return true;
         }
 
-        public bool ComputeUndisplacedPosition(ref Vector3 worldPos, ref Vector3 undisplacedWorldPos)
+        public bool ComputeUndisplacedPosition(Vector3 worldPos, out Vector3 undisplacedWorldPos)
         {
             // fpi - guess should converge to location that displaces to the target position
             Vector3 guess = worldPos;
@@ -87,7 +93,7 @@ namespace Crest
             // be some error here. one could also terminate iteration based on the size of the error, this is
             // worth trying but is left as future work for now.
             Vector3 disp = Vector3.zero;
-            for (int i = 0; i < 4 && SampleDisplacement(ref guess, ref disp); i++)
+            for (int i = 0; i < 4 && SampleDisplacement(guess, out disp); i++)
             {
                 Vector3 error = guess + disp - worldPos;
                 guess.x -= error.x;

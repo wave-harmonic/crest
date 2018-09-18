@@ -11,8 +11,8 @@ public class LerpCam : MonoBehaviour
     void Update()
     {
         Vector3 targetPos = _targetPos.position;
-        float h = 0f;
-        if(Crest.OceanRenderer.Instance.CollisionProvider.SampleHeight(ref targetPos, ref h))
+        float h;
+        if(Crest.OceanRenderer.Instance.CollisionProvider.SampleHeight(targetPos, out h))
         {
             targetPos.y = Mathf.Max(targetPos.y, h + _minHeightAboveWater);
         }

@@ -19,8 +19,8 @@ namespace Crest
 
         public void ApplyForceToRB(ShapeGerstnerBatched _waves, Rigidbody _rb)
         {
-            Vector3 undispPos = _waves.GetPositionDisplacedToPosition(ref _position, 0f);
-            Vector3 displacement = _waves.SampleDisplacement(ref undispPos, 0f);
+            Vector3 undispPos = _waves.GetPositionDisplacedToPosition(_position, 0f);
+            Vector3 displacement = _waves.SampleDisplacement(undispPos, 0f);
             float height = OceanRenderer.Instance.SeaLevel + displacement.y;
 
             Vector3 onSeaLevel = _position;
@@ -50,7 +50,7 @@ namespace Crest
             Debug.DrawLine(_position, _position - F * Physics.gravity.normalized, Color.red * 0.5f);
 
             // apply drag relative to water
-            var vel = _waves.GetSurfaceVelocity(ref undispPos, 0f);
+            var vel = _waves.GetSurfaceVelocity(undispPos, 0f);
             var deltaV = _rb.velocity - vel;
             // approximation - interpolate drag based on how submerged the sphere is
             _rb.AddForceAtPosition(-submergedness * _dragInWater * deltaV, Vector3.Lerp(_rb.position, _position, rotAmt));

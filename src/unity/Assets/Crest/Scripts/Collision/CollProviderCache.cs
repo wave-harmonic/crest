@@ -38,26 +38,26 @@ namespace Crest
             _waterHeightCache.Clear();
         }
 
-        uint CalcHash(Vector3 wp)
+        uint CalcHash(ref Vector3 in__wp)
         {
-            int x = (int)(wp.x * _cacheBucketSizeRecip);
-            int z = (int)(wp.z * _cacheBucketSizeRecip);
+            int x = (int)(in__wp.x * _cacheBucketSizeRecip);
+            int z = (int)(in__wp.z * _cacheBucketSizeRecip);
             return (uint)(x + 32768 + ((z + 32768) << 16));
         }
 
         // displacement queries are not cached - only the height computations
-        public bool SampleDisplacement(Vector3 worldPos, out Vector3 displacement)
+        public bool SampleDisplacement(ref Vector3 in__worldPos, out Vector3 displacement)
         {
-            return _collProvider.SampleDisplacement(worldPos, out displacement);
+            return _collProvider.SampleDisplacement(ref in__worldPos, out displacement);
         }
-        public bool SampleDisplacement(Vector3 worldPos, out Vector3 displacement, float minSpatialLength)
+        public bool SampleDisplacement(ref Vector3 in__worldPos, out Vector3 displacement, float minSpatialLength)
         {
-            return _collProvider.SampleDisplacement(worldPos, out displacement, minSpatialLength);
+            return _collProvider.SampleDisplacement(ref in__worldPos, out displacement, minSpatialLength);
         }
 
-        public bool SampleHeight(Vector3 worldPos, out float height)
+        public bool SampleHeight(ref Vector3 in__worldPos, out float height)
         {
-            var hash = CalcHash(worldPos);
+            var hash = CalcHash(ref in__worldPos);
 
             _cacheChecks++;
             if (_waterHeightCache.TryGetValue(hash, out height))
@@ -68,7 +68,7 @@ namespace Crest
             }
 
             // compute the height
-            bool success = _collProvider.SampleHeight(worldPos, out height);
+            bool success = _collProvider.SampleHeight(ref in__worldPos, out height);
 
             // populate cache (regardless of success for now)
             _waterHeightCache.Add(hash, height);
@@ -84,27 +84,27 @@ namespace Crest
         {
             // nothing to do here
         }
-        public bool SampleDisplacementInArea(Vector3 worldPos, out Vector3 displacement)
+        public bool SampleDisplacementInArea(ref Vector3 in__worldPos, out Vector3 displacement)
         {
-            return _collProvider.SampleDisplacement(worldPos, out displacement);
+            return _collProvider.SampleDisplacement(ref in__worldPos, out displacement);
         }
-        public bool SampleHeightInArea(Vector3 worldPos, out float height)
+        public bool SampleHeightInArea(ref Vector3 in__worldPos, out float height)
         {
-            return SampleHeight(worldPos, out height);
-        }
-
-        public bool SampleNormal(Vector3 undisplacedWorldPos, out Vector3 normal)
-        {
-            return _collProvider.SampleNormal(undisplacedWorldPos, out normal);
-        }
-        public bool SampleNormal(Vector3 undisplacedWorldPos, out Vector3 normal, float minSpatialLength)
-        {
-            return _collProvider.SampleNormal(undisplacedWorldPos, out normal, minSpatialLength);
+            return SampleHeight(ref in__worldPos, out height);
         }
 
-        public bool ComputeUndisplacedPosition(Vector3 worldPos, out Vector3 undisplacedWorldPos)
+        public bool SampleNormal(ref Vector3 in__undisplacedWorldPos, out Vector3 normal)
         {
-            return _collProvider.ComputeUndisplacedPosition(worldPos, out undisplacedWorldPos);
+            return _collProvider.SampleNormal(ref in__undisplacedWorldPos, out normal);
+        }
+        public bool SampleNormal(ref Vector3 in__undisplacedWorldPos, out Vector3 normal, float minSpatialLength)
+        {
+            return _collProvider.SampleNormal(ref in__undisplacedWorldPos, out normal, minSpatialLength);
+        }
+
+        public bool ComputeUndisplacedPosition(ref Vector3 in__worldPos, out Vector3 undisplacedWorldPos)
+        {
+            return _collProvider.ComputeUndisplacedPosition(ref in__worldPos, out undisplacedWorldPos);
         }
 
         public int CacheChecks { get { return _cacheChecksLastFrame; } }

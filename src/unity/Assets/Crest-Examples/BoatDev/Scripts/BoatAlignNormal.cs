@@ -48,9 +48,9 @@ public class BoatAlignNormal : MonoBehaviour
         var position = transform.position;
 
         Vector3 undispPos;
-        if (!colProvider.ComputeUndisplacedPosition(position, out undispPos)) return;
+        if (!colProvider.ComputeUndisplacedPosition(ref position, out undispPos)) return;
 
-        if (!colProvider.SampleDisplacement(undispPos, out _displacementToBoat)) return;
+        if (!colProvider.SampleDisplacement(ref undispPos, out _displacementToBoat)) return;
         if (!_displacementToBoatInitd)
         {
             _displacementToBoatLastFrame = _displacementToBoat;
@@ -62,7 +62,7 @@ public class BoatAlignNormal : MonoBehaviour
         _displacementToBoatLastFrame = _displacementToBoat;
 
         Vector3 normal;
-        if (!colProvider.SampleNormal(undispPos, out normal, _boatWidth)) return;
+        if (!colProvider.SampleNormal(ref undispPos, out normal, _boatWidth)) return;
         Debug.DrawLine(transform.position, transform.position + 5f * normal);
 
         _velocityRelativeToWater = _rb.velocity - velWater;

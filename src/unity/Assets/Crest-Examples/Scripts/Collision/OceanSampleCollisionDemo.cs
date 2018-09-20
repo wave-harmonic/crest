@@ -24,7 +24,7 @@ public class OceanSampleCollisionDemo : MonoBehaviour
         query.y = 0f;
 
         Vector3 disp;
-        if (OceanRenderer.Instance.CollisionProvider.SampleDisplacement(query, out disp))
+        if (OceanRenderer.Instance.CollisionProvider.SampleDisplacement(ref query, out disp))
         {
             Debug.DrawLine(query, query + disp);
             marker.transform.position = query + disp;

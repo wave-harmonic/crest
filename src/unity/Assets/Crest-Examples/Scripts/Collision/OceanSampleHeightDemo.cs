@@ -12,7 +12,7 @@ public class OceanSampleHeightDemo : MonoBehaviour
     {
         var pos = transform.position;
         float height;
-        if (OceanRenderer.Instance.CollisionProvider.SampleHeight(pos, out height))
+        if (OceanRenderer.Instance.CollisionProvider.SampleHeight(ref pos, out height))
         {
             pos.y = height;
             transform.position = pos;

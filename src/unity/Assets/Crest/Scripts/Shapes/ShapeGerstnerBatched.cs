@@ -374,17 +374,18 @@ namespace Crest
             return cp;
         }
 
-        public Vector3 GetPositionDisplacedToPosition(Vector3 displacedWorldPos, float toff)
+
+        public Vector3 GetPositionDisplacedToPosition(ref Vector3 in__displacedWorldPos, float toff)
         {
             // fpi - guess should converge to location that displaces to the target position
-            Vector3 guess = displacedWorldPos;
+            Vector3 guess = in__displacedWorldPos;
             // 2 iterations was enough to get very close when chop = 1, added 2 more which should be
             // sufficient for most applications. for high chop values or really stormy conditions there may
             // be some error here. one could also terminate iteration based on the size of the error, this is
             // worth trying but is left as future work for now.
             for (int i = 0; i < 4; i++)
             {
-                Vector3 error = guess + SampleDisplacement(guess, toff) - displacedWorldPos;
+                Vector3 error = guess + SampleDisplacement(ref guess, toff) - in__displacedWorldPos;
                 guess.x -= error.x;
                 guess.z -= error.z;
             }
@@ -394,11 +395,11 @@ namespace Crest
             return guess;
         }
 
-        public Vector3 SampleDisplacement(Vector3 worldPos, float toff)
+        public Vector3 SampleDisplacement(ref Vector3 in__worldPos, float toff)
         {
             if (_amplitudes == null) return Vector3.zero;
 
-            Vector2 pos = new Vector2(worldPos.x, worldPos.z);
+            Vector2 pos = new Vector2(in__worldPos.x, in__worldPos.z);
             float mytime = Time.time + toff;
             float windAngle = OceanRenderer.Instance._windDirectionAngle;
 
@@ -429,11 +430,11 @@ namespace Crest
         }
 
         // compute normal to a surface with a parameterization - equation 14 here: http://mathworld.wolfram.com/NormalVector.html
-        public Vector3 GetNormal(Vector3 worldPos, float toff)
+        public Vector3 GetNormal(ref Vector3 in__worldPos, float toff)
         {
             if (_amplitudes == null) return Vector3.zero;
 
-            var pos = new Vector2(worldPos.x, worldPos.z);
+            var pos = new Vector2(in__worldPos.x, in__worldPos.z);
             float mytime = Time.time + toff;
             float windAngle = OceanRenderer.Instance._windDirectionAngle;
 
@@ -466,21 +467,21 @@ namespace Crest
             return Vector3.Cross(delfdelz, delfdelx).normalized;
         }
 
-        public float SampleHeight(Vector3 worldPos, float toff)
+        public float SampleHeight(ref Vector3 in__worldPos, float toff)
         {
-            Vector3 posFlatland = worldPos;
+            Vector3 posFlatland = in__worldPos;
             posFlatland.y = OceanRenderer.Instance.transform.position.y;
 
-            Vector3 undisplacedPos = GetPositionDisplacedToPosition(posFlatland, toff);
+            Vector3 undisplacedPos = GetPositionDisplacedToPosition(ref posFlatland, toff);
 
-            return posFlatland.y + SampleDisplacement(undisplacedPos, toff).y;
+            return posFlatland.y + SampleDisplacement(ref undisplacedPos, toff).y;
         }
 
-        public Vector3 GetSurfaceVelocity(Vector3 worldPos, float toff)
+        public Vector3 GetSurfaceVelocity(ref Vector3 in__worldPos, float toff)
         {
             if (_amplitudes == null) return Vector3.zero;
 
-            Vector2 pos = new Vector2(worldPos.x, worldPos.z);
+            Vector2 pos = new Vector2(in__worldPos.x, in__worldPos.z);
             float mytime = Time.time + toff;
             float windAngle = OceanRenderer.Instance._windDirectionAngle;
 
@@ -510,20 +511,20 @@ namespace Crest
             return result;
         }
 
-        public bool SampleDisplacement(Vector3 worldPos, out Vector3 displacement)
+        public bool SampleDisplacement(ref Vector3 in__worldPos, out Vector3 displacement)
         {
-            displacement = SampleDisplacement(worldPos, 0f);
+            displacement = SampleDisplacement(ref in__worldPos, 0f);
             return true;
         }
 
-        public bool SampleDisplacement(Vector3 worldPos, out Vector3 displacement, float minSpatialLength)
+        public bool SampleDisplacement(ref Vector3 in__worldPos, out Vector3 displacement, float minSpatialLength)
         {
-            return SampleDisplacement(worldPos, out displacement);
+            return SampleDisplacement(ref in__worldPos, out displacement);
         }
 
-        public bool SampleHeight(Vector3 worldPos, out float height)
+        public bool SampleHeight(ref Vector3 in__worldPos, out float height)
         {
-            height = SampleHeight(worldPos, 0f);
+            height = SampleHeight(ref in__worldPos, 0f);
             return true;
         }
 
@@ -537,41 +538,41 @@ namespace Crest
             OnDisable();
 
         }
-        public bool SampleDisplacementInArea(Vector3 worldPos, out Vector3 displacement)
+        public bool SampleDisplacementInArea(ref Vector3 in__worldPos, out Vector3 displacement)
         {
             // revert to usual function
-            return SampleDisplacement(worldPos, out displacement);
+            return SampleDisplacement(ref in__worldPos, out displacement);
         }
-        public bool SampleHeightInArea(Vector3 worldPos, out float height)
+        public bool SampleHeightInArea(ref Vector3 in__worldPos, out float height)
         {
             // revert to usual function
-            return SampleHeight(worldPos, out height);
+            return SampleHeight(ref in__worldPos, out height);
         }
 
-        public bool SampleNormal(Vector3 undisplacedWorldPos, out Vector3 normal)
+        public bool SampleNormal(ref Vector3 in__undisplacedWorldPos, out Vector3 normal)
         {
-            normal = GetNormal(undisplacedWorldPos, 0f);
+            normal = GetNormal(ref in__undisplacedWorldPos, 0f);
             return true;
         }
-        public bool SampleNormal(Vector3 undisplacedWorldPos, out Vector3 normal, float minSpatialLength)
+        public bool SampleNormal(ref Vector3 in__undisplacedWorldPos, out Vector3 normal, float minSpatialLength)
         {
             Debug.LogWarning("ShapeGerstnerBatched: minSpatialLength not implemented for GetNormal(), this parameter will be ignored.", this);
-            normal = GetNormal(undisplacedWorldPos, 0f);
+            normal = GetNormal(ref in__undisplacedWorldPos, 0f);
             return true;
         }
 
-        public bool ComputeUndisplacedPosition(Vector3 worldPos, out Vector3 undisplacedWorldPos)
+        public bool ComputeUndisplacedPosition(ref Vector3 in__worldPos, out Vector3 undisplacedWorldPos)
         {
             // fpi - guess should converge to location that displaces to the target position
-            Vector3 guess = worldPos;
+            Vector3 guess = in__worldPos;
             // 2 iterations was enough to get very close when chop = 1, added 2 more which should be
             // sufficient for most applications. for high chop values or really stormy conditions there may
             // be some error here. one could also terminate iteration based on the size of the error, this is
             // worth trying but is left as future work for now.
             Vector3 disp;
-            for (int i = 0; i < 4 && SampleDisplacement(guess, out disp); i++)
+            for (int i = 0; i < 4 && SampleDisplacement(ref guess, out disp); i++)
             {
-                Vector3 error = guess + disp - worldPos;
+                Vector3 error = guess + disp - in__worldPos;
                 guess.x -= error.x;
                 guess.z -= error.z;
             }

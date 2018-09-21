@@ -8,49 +8,40 @@ namespace Crest
     /// <summary>
     /// A persistent flow simulation that moves around with a displacement LOD. The input is fully combined water surface shape.
     /// </summary>
-    public class LodDataFlow : LodDataPersistent
+    public class LodDataFlow : LodData
     {
         public override SimType LodDataType { get { return SimType.Flow; } }
-        protected override string ShaderSim { get { return "Ocean/Shape/Sim/Flow"; } }
         public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RGHalf; } }
-        protected override Camera[] SimCameras { get { return OceanRenderer.Instance._camsFlow; } }
-
-        public override SimSettingsBase CreateDefaultSettings()
-        {
-            var settings = ScriptableObject.CreateInstance<SimSettingsFlow>();
-            settings.name = SimName + " Auto-generated Settings";
-            return settings;
-        }
+        public override CameraClearFlags CamClearFlags { get { return CameraClearFlags.Color; } }
+        public override RenderTexture DataTexture { get { return Cam.targetTexture; } }
+        public override void UseSettings(SimSettingsBase settings) {}
+        public override SimSettingsBase CreateDefaultSettings() { return null;}
 
         protected override void Start() {
             base.Start();
 
             _dataReadback = GetComponent<ReadbackLodData>();
             _dataReadback._textureFormat = ReadbackLodData.TexFormat.RGHalf;
+            _dataReadback._active = true;
         }
 
-        protected override void SetAdditionalSimParams(Material simMaterial)
-        {
-            base.SetAdditionalSimParams(simMaterial);
-            // assign animated waves - to slot 1 current frame data
-            OceanRenderer.Instance._lodDataAnimWaves[LodTransform.LodIndex].BindResultData(1, simMaterial);
-            // assign sea floor depth - to slot 1 current frame data
-            OceanRenderer.Instance._lodDataAnimWaves[LodTransform.LodIndex].LDSeaDepth.BindResultData(1, simMaterial);
+        void OnDisable() {
+            // free native array when component removed or destroyed
+            if (_dataReadback._dataNative.IsCreated)
+            {
+                _dataReadback._dataNative.Dispose();
+            }
         }
 
-        SimSettingsFlow Settings { get { return _settings as SimSettingsFlow; } }
-
-
-
-        public bool SampleFlow(Vector3 worldPos, out Vector2 flow)
+        public bool SampleFlow(ref Vector3 in__worldPos, out Vector2 flow)
         {
-            float xOffset = worldPos.x - _dataReadback._dataRenderData._posSnapped.x;
-            float zOffset = worldPos.z - _dataReadback._dataRenderData._posSnapped.z;
+            float xOffset = in__worldPos.x - _dataReadback._dataRenderData._posSnapped.x;
+            float zOffset = in__worldPos.z - _dataReadback._dataRenderData._posSnapped.z;
             float r = _dataReadback._dataRenderData._texelWidth * _dataReadback._dataRenderData._textureRes / 2f;
             if (Mathf.Abs(xOffset) >= r || Mathf.Abs(zOffset) >= r)
             {
                 // outside of this collision data
-                flow = Vector2.zero;
+                flow = Vector3.zero;
                 return false;
             }
 
@@ -59,7 +50,12 @@ namespace Crest
             var x = Mathf.FloorToInt(u * _dataReadback._dataRenderData._textureRes);
             var y = Mathf.FloorToInt(v * _dataReadback._dataRenderData._textureRes);
             var idx = 4 * (y * (int)_dataReadback._dataRenderData._textureRes + x);
-
+            // TODO: A hack added to ensure _dataNative so we don't get array out of
+            // bounds error, but this shouldn't be happening anyway.
+            if(idx + 1 >= _dataReadback._dataNative.Length) {
+                flow = Vector3.zero;
+                return false;
+            }
             flow.x = Mathf.HalfToFloat(_dataReadback._dataNative[idx + 0]);
             flow.y = Mathf.HalfToFloat(_dataReadback._dataNative[idx + 1]);
 

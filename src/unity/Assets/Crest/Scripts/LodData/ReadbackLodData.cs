@@ -50,7 +50,6 @@ namespace Crest
         public void UpdateReadback(Camera cam, LodTransform.RenderData renderData)
         {
             // queue pattern inspired by: https://github.com/keijiro/AsyncCaptureTest
-
             // beginning of update turns out to be a good time to sample the textures to ensure everything in the frame is done.
             EnqueueReadbackRequest(cam.targetTexture, renderData);
 

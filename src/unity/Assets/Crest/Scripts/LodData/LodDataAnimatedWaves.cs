@@ -157,7 +157,7 @@ namespace Crest
             if (Mathf.Abs(xOffset) >= r || Mathf.Abs(zOffset) >= r)
             {
                 // outside of this collision data
-                displacement = Vector2.zero;
+                displacement = Vector3.zero;
                 return false;
             }
 

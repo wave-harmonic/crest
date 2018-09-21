@@ -17,7 +17,7 @@ namespace Crest
         {
             int lod = LodDataAnimatedWaves.SuggestDataLOD(new Rect(in__worldPos.x, in__worldPos.z, 0f, 0f), 0f);
             if (lod == -1) {
-                displacement = Vector2.zero;
+                displacement = Vector3.zero;
                 return false;
             }
             return OceanRenderer.Instance._lodDataAnimWaves[lod].SampleDisplacement(ref in__worldPos, out displacement);
@@ -34,7 +34,7 @@ namespace Crest
         {
             int lod = LodDataAnimatedWaves.SuggestDataLOD(new Rect(in__worldPos.x, in__worldPos.z, 0f, 0f), 0f);
             if (lod == -1) {
-                height = float.NaN;
+                height = 0;
                 return false;
             }
             height = OceanRenderer.Instance._lodDataAnimWaves[lod].GetHeight(ref in__worldPos);

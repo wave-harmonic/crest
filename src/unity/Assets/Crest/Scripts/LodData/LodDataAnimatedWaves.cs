@@ -8,7 +8,7 @@ namespace Crest
     /// <summary>
     /// Captures waves/shape that is drawn kinematically - there is no frame-to-frame state. The gerstner
     /// waves are drawn in this way. There are two special features of this particular LodData.
-    /// 
+    ///
     ///  * A combine pass is done which combines downwards from low detail lods down into the high detail lods (see OceanScheduler).
     ///  * The textures from this LodData are passed to the ocean material when the surface is drawn (by OceanChunkRenderer).
     ///  * LodDataDynamicWaves adds its results into this LodData. The dynamic waves piggy back off the combine
@@ -145,18 +145,19 @@ namespace Crest
             // need to blend out shape if this is the largest lod, and the ocean might get scaled down later (so the largest lod will disappear)
             bool needToBlendOutShape = LodTransform.LodIndex == LodTransform.LodCount - 1 && OceanRenderer.Instance.ScaleCouldDecrease && blendOut;
             float shapeWeight = needToBlendOutShape ? OceanRenderer.Instance.ViewerAltitudeLevelAlpha : 1f;
-            properties.SetVector(_paramsOceanParams[shapeSlot], 
+            properties.SetVector(_paramsOceanParams[shapeSlot],
                 new Vector4(LodTransform._renderData._texelWidth, LodTransform._renderData._textureRes, shapeWeight, 1f / LodTransform._renderData._textureRes));
         }
 
-        public bool SampleDisplacement(ref Vector3 worldPos, ref Vector3 displacement)
+        public bool SampleDisplacement(ref Vector3 in__worldPos, out Vector3 displacement)
         {
-            float xOffset = worldPos.x - _dataReadback._dataRenderData._posSnapped.x;
-            float zOffset = worldPos.z - _dataReadback._dataRenderData._posSnapped.z;
+            float xOffset = in__worldPos.x - _dataReadback._dataRenderData._posSnapped.x;
+            float zOffset = in__worldPos.z - _dataReadback._dataRenderData._posSnapped.z;
             float r = _dataReadback._dataRenderData._texelWidth * _dataReadback._dataRenderData._textureRes / 2f;
             if (Mathf.Abs(xOffset) >= r || Mathf.Abs(zOffset) >= r)
             {
                 // outside of this collision data
+                displacement = Vector3.zero;
                 return false;
             }
 
@@ -176,11 +177,11 @@ namespace Crest
         /// <summary>
         /// Get position on ocean plane that displaces horizontally to the given position.
         /// </summary>
-        public Vector3 GetPositionDisplacedToPosition(ref Vector3 displacedWorldPos)
+        public Vector3 GetPositionDisplacedToPosition(ref Vector3 in__displacedWorldPos)
         {
             // fixed point iteration - guess should converge to location that displaces to the target position
 
-            var guess = displacedWorldPos;
+            var guess = in__displacedWorldPos;
 
             // 2 iterations was enough to get very close when chop = 1, added 2 more which should be
             // sufficient for most applications. for high chop values or really stormy conditions there may
@@ -189,8 +190,8 @@ namespace Crest
             for (int i = 0; i < 4; i++)
             {
                 var disp = Vector3.zero;
-                SampleDisplacement(ref guess, ref disp);
-                var error = guess + disp - displacedWorldPos;
+                SampleDisplacement(ref guess, out disp);
+                var error = guess + disp - in__displacedWorldPos;
                 guess.x -= error.x;
                 guess.z -= error.z;
             }
@@ -198,15 +199,15 @@ namespace Crest
             return guess;
         }
 
-        public float GetHeight(ref Vector3 worldPos)
+        public float GetHeight(ref Vector3 in__worldPos)
         {
-            var posFlatland = worldPos;
+            var posFlatland = in__worldPos;
             posFlatland.y = OceanRenderer.Instance.transform.position.y;
 
             var undisplacedPos = GetPositionDisplacedToPosition(ref posFlatland);
 
             var disp = Vector3.zero;
-            SampleDisplacement(ref undisplacedPos, ref disp);
+            SampleDisplacement(ref undisplacedPos, out disp);
 
             return posFlatland.y + disp.y;
         }

@@ -36,21 +36,42 @@ uniform half _CausticsDistortionScale;
 uniform half _CausticsDistortionStrength;
 #endif // _CAUSTICS_ON
 
-half3 OceanEmission(float3 worldPos, half oceanDepth, half3 view, half3 n, half3 n_geom, float3 lightDir, fixed i_shadow, half4 grabPos, half3 screenPos, float pixelZ, half2 uvDepth, float sceneZ, float sceneZ01, half3 bubbleCol, in sampler2D i_normals, in sampler2D i_cameraDepths)
+
+half3 ScatterColour(
+	in const float3 i_surfaceWorldPos, in const half i_surfaceOceanDepth, in const float3 i_cameraPos,
+	in const half3 i_lightDir, in const half3 i_view, in const fixed i_shadow,
+	in const bool i_underWater)
 {
 	// base colour
 	half3 col = _Diffuse;
 
+	half depth;
+	half waveHeight;
+	if (i_underWater)
+	{
+		// compute scatter colour from cam pos, because the ray may not even have a surface intersection
+		const float2 uv_1 = LD_1_WorldToUV(i_cameraPos.xz);
+		float seaFloorHeightAboveBaseline = 0.;
+		SampleSeaFloorHeightAboveBaseline(_LD_Sampler_SeaFloorDepth_1, uv_1, 1.0, seaFloorHeightAboveBaseline);
+		depth = DEPTH_BASELINE - seaFloorHeightAboveBaseline;
+		waveHeight = 0.;
+	}
+	else
+	{
+		// above water - take depth from geometry
+		depth = i_surfaceOceanDepth;
+		waveHeight = i_surfaceWorldPos.y - _OceanCenterPosWorld.y;
+	}
+
 #if _SUBSURFACESCATTERING_ON
 	{
 #if _SUBSURFACESHALLOWCOLOUR_ON
-		float shallowness = pow(1. - saturate(oceanDepth / _SubSurfaceDepthMax), _SubSurfaceDepthPower);
+		float shallowness = pow(1. - saturate(depth / _SubSurfaceDepthMax), _SubSurfaceDepthPower);
 		col = lerp(col, _SubSurfaceShallowCol, shallowness);
 #endif
 
 #if _SUBSURFACEHEIGHTLERP_ON
-		half h = worldPos.y - _OceanCenterPosWorld.y;
-		col += pow(saturate(0.5 + 2.0 * h / _SubSurfaceHeightMax), _SubSurfaceHeightPower) * _SubSurfaceCrestColour.rgb;
+		col += pow(saturate(0.5 + 2.0 * waveHeight / _SubSurfaceHeightMax), _SubSurfaceHeightPower) * _SubSurfaceCrestColour.rgb;
 #endif
 
 		// light
@@ -58,10 +79,18 @@ half3 OceanEmission(float3 worldPos, half oceanDepth, half3 view, half3 n, half3
 		col *= half3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w);
 
 		// Approximate subsurface scattering - add light when surface faces viewer. Use geometry normal - don't need high freqs.
-		half towardsSun = pow(max(0., dot(lightDir, -view)), _SubSurfaceSunFallOff);
-		col += (_SubSurfaceBase + _SubSurfaceSun * towardsSun) * /*max(dot(n_geom, view), 0.) **/ _SubSurfaceColour.rgb * _LightColor0 * i_shadow;
+		half towardsSun = pow(max(0., dot(i_lightDir, -i_view)), _SubSurfaceSunFallOff);
+		col += (_SubSurfaceBase + _SubSurfaceSun * towardsSun) * _SubSurfaceColour.rgb * _LightColor0 * i_shadow;
 	}
 #endif // _SUBSURFACESCATTERING_ON
+
+	return col;
+}
+
+
+half3 OceanEmission(half3 view, in const half3 i_n_pixel, float3 lightDir, half4 grabPos, float pixelZ, half2 uvDepth, float sceneZ, float sceneZ01, half3 bubbleCol, in sampler2D i_normals, in sampler2D i_cameraDepths, in const bool i_underwater, in const half3 scatterCol)
+{
+	half3 col = scatterCol;
 
 	// underwater bubbles reflect in light
 	col += bubbleCol;
@@ -72,8 +101,13 @@ half3 OceanEmission(float3 worldPos, half oceanDepth, half3 view, half3 n, half3
 	// from uninit'd backbuffer
 	if (sceneZ01 != 0.0)
 	{
-		half2 uvBackgroundRefract = grabPos.xy / grabPos.w + .02 * n.xz;
-		half2 uvDepthRefract = uvDepth + .02 * n.xz;
+		half2 uvBackgroundRefract = grabPos.xy / grabPos.w;
+		half2 uvDepthRefract = uvDepth;
+		if (i_underwater)
+		{
+			uvBackgroundRefract += .02 * i_n_pixel.xz;
+			uvDepthRefract += .02 * i_n_pixel.xz;
+		}
 		half3 alpha = (half3)1.;
 
 		// if we haven't refracted onto a surface in front of the water surface, compute an alpha based on Z delta

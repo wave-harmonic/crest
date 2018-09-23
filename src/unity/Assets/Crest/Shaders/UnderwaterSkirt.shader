@@ -39,11 +39,6 @@ Shader "Ocean/Underwater Skirt"
 		Tags{ "LightMode" = "ForwardBase" "Queue" = "Geometry+510" "IgnoreProjector" = "True" "RenderType" = "Opaque" }
 		LOD 100
 
-		GrabPass
-		{
-			"_BackgroundTexture"
-		}
-
 		Pass
 		{
 			// Could turn this off, and it would allow the ocean surface to render through it
@@ -153,13 +148,13 @@ Shader "Ocean/Underwater Skirt"
 				float sceneZ01 = tex2D(_CameraDepthTexture, uvDepth).x;
 				float sceneZ = LinearEyeDepth(sceneZ01);
 				
-				float3 lightDir = _WorldSpaceLightPos0.xyz;
-				half shadow = 1.;
-				half3 bubbleCol = 0.;
-				half3 col = OceanEmission(i.worldPos, 3. /*i.lodAlpha_worldXZUndisplaced_oceanDepth.w*/, view, (half3)0. /*n_pixel*/, (half3)0. /*n_geom*/, lightDir, shadow.x, i.grabPos, screenPos, pixelZ, uvDepth, sceneZ, sceneZ01, bubbleCol, _Normals, _CameraDepthTexture);
+				const float3 lightDir = _WorldSpaceLightPos0.xyz;
+				const half shadow = 1.; // TODO ?
+				const half3 n_pixel = 0.;
+				const half3 bubbleCol = 0.;
 
-				// create a fake darkening at the air-water interface
-				col *= lerp(1., saturate((1. - i.uv.y) / .001), .2);
+				half3 scatterCol = ScatterColour(0., 0., _WorldSpaceCameraPos, lightDir, view, shadow, true);
+				half3 col = OceanEmission(view, n_pixel, lightDir, i.grabPos, pixelZ, uvDepth, sceneZ, sceneZ01, bubbleCol, _Normals, _CameraDepthTexture, true, scatterCol);
 
 				return half4(col, 1.);
 			}

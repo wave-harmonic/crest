@@ -329,7 +329,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 59a818eaf96544c4994335870fdfe141, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  linSpeed: 20
+  linSpeed: 5
   rotSpeed: 70
   simForwardInput: 0
   _requireLMBToMove: 0

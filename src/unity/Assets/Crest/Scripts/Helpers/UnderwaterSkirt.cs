@@ -32,8 +32,8 @@ namespace Crest
         private void LateUpdate()
         {
             Vector3 pos = OceanRenderer.Instance._viewpoint.position;
-            float waterHeight = 0f;
-            bool gotHeight = OceanRenderer.Instance.CollisionProvider.SampleHeight(ref pos, ref waterHeight);
+            float waterHeight;
+            bool gotHeight = OceanRenderer.Instance.CollisionProvider.SampleHeight(ref pos, out waterHeight);
             float heightOffset = pos.y - waterHeight;
 
             // Disable skirt when camera not close to water. In the first few frames collision may not be avail, in that case no choice

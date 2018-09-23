@@ -159,7 +159,11 @@ Shader "Ocean/Underwater Skirt"
 				const half3 n_pixel = 0.;
 				const half3 bubbleCol = 0.;
 
-				half3 scatterCol = ScatterColour(0., 0., _WorldSpaceCameraPos, lightDir, view, shadow, true);
+				float3 surfaceAboveCamPosWorld = 0.; half2 nxz_dummy;
+				SampleDisplacements(_LD_Sampler_AnimatedWaves_0, LD_0_WorldToUV(_WorldSpaceCameraPos.xz), 1.0, _LD_Params_0.w, _LD_Params_0.x, surfaceAboveCamPosWorld, nxz_dummy);
+				surfaceAboveCamPosWorld.y += _OceanCenterPosWorld.y;
+
+				half3 scatterCol = ScatterColour(surfaceAboveCamPosWorld, 0., _WorldSpaceCameraPos, lightDir, view, shadow, true, true);
 
 				half3 sceneColour = tex2D(_BackgroundTexture, i.grabPos.xy / i.grabPos.w).rgb;
 
@@ -169,7 +173,6 @@ Shader "Ocean/Underwater Skirt"
 					ApplyCaustics(view, lightDir, sceneZ, _Normals, sceneColour);
 				}
 #endif // _CAUSTICS_ON
-
 
 				half3 col = lerp(sceneColour, scatterCol, 1. - exp(-_DepthFogDensity.xyz * sceneZ));
 

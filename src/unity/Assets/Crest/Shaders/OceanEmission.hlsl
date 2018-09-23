@@ -5,6 +5,8 @@ uniform half4 _Diffuse;
 // this is copied from the render target by unity
 uniform sampler2D _BackgroundTexture;
 
+#define DEPTH_OUTSCATTER_CONSTANT 0.25
+
 #if _TRANSPARENCY_ON
 
 #endif // _TRANSPARENCY_ON
@@ -41,7 +43,7 @@ uniform half _CausticsDistortionStrength;
 half3 ScatterColour(
 	in const float3 i_surfaceWorldPos, in const half i_surfaceOceanDepth, in const float3 i_cameraPos,
 	in const half3 i_lightDir, in const half3 i_view, in const fixed i_shadow,
-	in const bool i_underWater)
+	in const bool i_underWater, in const bool i_outscatterLight)
 {
 	// base colour
 	half3 col = _Diffuse;
@@ -84,6 +86,14 @@ half3 ScatterColour(
 		col += (_SubSurfaceBase + _SubSurfaceSun * towardsSun) * _SubSurfaceColour.rgb * _LightColor0 * i_shadow;
 	}
 #endif // _SUBSURFACESCATTERING_ON
+
+	// outscatter light - attenuate the final colour by the camera depth under the water, to approximate less
+	// throughput due to light scatter as the camera gets further under water.
+	if (i_outscatterLight)
+	{
+		half camDepth = i_surfaceWorldPos.y - _WorldSpaceCameraPos.y;
+		col *= exp(-_DepthFogDensity.xyz * camDepth * DEPTH_OUTSCATTER_CONSTANT);
+	}
 
 	return col;
 }

@@ -318,7 +318,8 @@ Shader "Ocean/Ocean"
 					#endif
 
 					// Compute color of ocean - in-scattered light + refracted scene
-					half3 scatterCol = ScatterColour(i.worldPos, i.lodAlpha_worldXZUndisplaced_oceanDepth.w, _WorldSpaceCameraPos, lightDir, view, shadow, under);
+					half3 scatterCol = ScatterColour(i.worldPos, i.lodAlpha_worldXZUndisplaced_oceanDepth.w, _WorldSpaceCameraPos, lightDir, view, shadow, under, true);
+
 					half3 col = OceanEmission(view, n_pixel, lightDir, i.grabPos, pixelZ, uvDepth, sceneZ, sceneZ01, bubbleCol, _Normals, _CameraDepthTexture, under, scatterCol);
 
 					// Light that reflects off water surface

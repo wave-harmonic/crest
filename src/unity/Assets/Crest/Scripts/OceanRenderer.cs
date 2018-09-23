@@ -167,7 +167,7 @@ namespace Crest
             // to water height but this does help with the problem of horizontal range getting limited at bad times.
             float maxDetailY = SeaLevel - _maxVertDispFromShape / 5f;
             // scale ocean mesh based on camera height to keep uniform detail. this could be abs() if camera can go below water.
-            float camY = Mathf.Max(_viewpoint.position.y - maxDetailY, 0f);
+            float camY = Mathf.Max(Mathf.Abs(_viewpoint.position.y) - maxDetailY, 0f);
 
             const float HEIGHT_LOD_MUL = 2f;
             float level = camY * HEIGHT_LOD_MUL;

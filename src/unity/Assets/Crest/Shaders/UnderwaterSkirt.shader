@@ -39,10 +39,16 @@ Shader "Ocean/Underwater Skirt"
 		Tags{ "LightMode" = "ForwardBase" "Queue" = "Geometry+510" "IgnoreProjector" = "True" "RenderType" = "Opaque" }
 		LOD 100
 
+		GrabPass
+		{
+			"_BackgroundTexture"
+		}
+
 		Pass
 		{
-			// Could turn this off, and it would allow the ocean surface to render through it
+			// The ocean surface will render after the skirt, and overwrite the pixels
 			ZWrite Off
+			ZTest Always
 
 			CGPROGRAM
 			#pragma vertex vert
@@ -140,13 +146,13 @@ Shader "Ocean/Underwater Skirt"
 
 			half4 frag(v2f i) : SV_Target
 			{
-				half3 view = normalize(_WorldSpaceCameraPos - i.worldPos);
+				const half3 view = normalize(_WorldSpaceCameraPos - i.worldPos);
 
 				float pixelZ = LinearEyeDepth(i.vertex.z);
 				half3 screenPos = i.foam_screenPos.yzw;
 				half2 uvDepth = screenPos.xy / screenPos.z;
-				float sceneZ01 = tex2D(_CameraDepthTexture, uvDepth).x;
-				float sceneZ = LinearEyeDepth(sceneZ01);
+				const float sceneZ01 = tex2D(_CameraDepthTexture, uvDepth).x;
+				const float sceneZ = LinearEyeDepth(sceneZ01);
 				
 				const float3 lightDir = _WorldSpaceLightPos0.xyz;
 				const half shadow = 1.; // TODO ?
@@ -154,7 +160,18 @@ Shader "Ocean/Underwater Skirt"
 				const half3 bubbleCol = 0.;
 
 				half3 scatterCol = ScatterColour(0., 0., _WorldSpaceCameraPos, lightDir, view, shadow, true);
-				half3 col = OceanEmission(view, n_pixel, lightDir, i.grabPos, pixelZ, uvDepth, sceneZ, sceneZ01, bubbleCol, _Normals, _CameraDepthTexture, true, scatterCol);
+
+				half3 sceneColour = tex2D(_BackgroundTexture, i.grabPos.xy / i.grabPos.w).rgb;
+
+#if _CAUSTICS_ON
+				if (sceneZ01 != 0.0)
+				{
+					ApplyCaustics(view, lightDir, sceneZ, _Normals, sceneColour);
+				}
+#endif // _CAUSTICS_ON
+
+
+				half3 col = lerp(sceneColour, scatterCol, 1. - exp(-_DepthFogDensity.xyz * sceneZ));
 
 				return half4(col, 1.);
 			}

@@ -2,9 +2,10 @@
 
 uniform half4 _Diffuse;
 
-#if _TRANSPARENCY_ON
 // this is copied from the render target by unity
 uniform sampler2D _BackgroundTexture;
+
+#if _TRANSPARENCY_ON
 
 #endif // _TRANSPARENCY_ON
 uniform half4 _DepthFogDensity;
@@ -88,169 +89,97 @@ half3 ScatterColour(
 }
 
 
-half3 OceanEmission(half3 view, in const half3 i_n_pixel, float3 lightDir, half4 grabPos, float pixelZ, half2 uvDepth, float sceneZ, float sceneZ01, half3 bubbleCol, in sampler2D i_normals, in sampler2D i_cameraDepths, in const bool i_underwater, in const half3 scatterCol)
+#if _CAUSTICS_ON
+void ApplyCaustics(in const half3 i_view, in const half3 i_lightDir, in const float i_sceneZ, in sampler2D i_normals, inout half3 io_sceneColour)
 {
-	half3 col = scatterCol;
+	// could sample from the screen space shadow texture to attenuate this..
+	// underwater caustics - dedicated to P
+	float3 camForward = mul((float3x3)unity_CameraToWorld, float3(0., 0., 1.));
+	float3 scenePos = _WorldSpaceCameraPos - i_view * i_sceneZ / dot(camForward, -i_view);
+	const float2 scenePosUV = LD_1_WorldToUV(scenePos.xz);
+	half3 disp = 0.; half2 n_dummy = 0.;
+	// this gives height at displaced position, not exactly at query position.. but it helps. i cant pass this from vert shader
+	// because i dont know it at scene pos.
+	SampleDisplacements(_LD_Sampler_AnimatedWaves_1, scenePosUV, 1.0, _LD_Params_1.w, _LD_Params_1.x, disp, n_dummy);
+	half waterHeight = _OceanCenterPosWorld.y + disp.y;
+	half sceneDepth = waterHeight - scenePos.y;
+	half bias = abs(sceneDepth - _CausticsFocalDepth) / _CausticsDepthOfField;
+	// project along light dir, but multiply by a fudge factor reduce the angle bit - compensates for fact that in real life
+	// caustics come from many directions and don't exhibit such a strong directonality
+	float2 surfacePosXZ = scenePos.xz + i_lightDir.xz * sceneDepth / (4.*i_lightDir.y);
+	half2 causticN = _CausticsDistortionStrength * UnpackNormal(tex2D(i_normals, surfacePosXZ / _CausticsDistortionScale)).xy;
+	half4 cuv1 = half4((surfacePosXZ / _CausticsTextureScale + 1.3 *causticN + half2(0.88*_Time.x + 17.16, -3.38*_Time.x)), 0., bias);
+	half4 cuv2 = half4((1.37*surfacePosXZ / _CausticsTextureScale + 1.77*causticN + half2(4.96*_Time.x, 2.34*_Time.x)), 0., bias);
+
+	half causticsStrength = _CausticsStrength;
+#if _SHADOWS_ON
+	{
+		// only sample the bigger lod. if pops are noticeable this could lerp the 2 lods smoothly, but i didnt notice issues.
+		fixed2 causticShadow = 0.;
+		float2 uv_1 = LD_1_WorldToUV(surfacePosXZ);
+		SampleShadow(_LD_Sampler_Shadow_1, uv_1, 1.0, causticShadow);
+		causticsStrength *= 1. - causticShadow.y;
+	}
+#endif // _SHADOWS_ON
+
+	io_sceneColour *= 1. + causticsStrength *
+		(0.5*tex2Dbias(_CausticsTexture, cuv1).x + 0.5*tex2Dbias(_CausticsTexture, cuv2).x - _CausticsTextureAverage);
+}
+#endif // _CAUSTICS_ON
+
+
+half3 OceanEmission(in const half3 i_view, in const half3 i_n_pixel, in const float3 i_lightDir,
+	in const half4 i_grabPos, in const float i_pixelZ, in const half2 i_uvDepth, in const float i_sceneZ, in const float i_sceneZ01,
+	in const half3 i_bubbleCol, in sampler2D i_normals, in sampler2D i_cameraDepths, in const bool i_underwater, in const half3 i_scatterCol)
+{
+	half3 col = i_scatterCol;
 
 	// underwater bubbles reflect in light
-	col += bubbleCol;
+	col += i_bubbleCol;
 
 #if _TRANSPARENCY_ON
 
-	// zfar? then don't read from the backbuffer at all, as i get occasionally nans spread across the screen when reading
-	// from uninit'd backbuffer
-	if (sceneZ01 != 0.0)
+	// have we hit a surface? this check ensures we're not sampling an unpopulated backbuffer. 
+	if (i_sceneZ01 != 0.0)
 	{
-		half2 uvBackgroundRefract = grabPos.xy / grabPos.w;
-		half2 uvDepthRefract = uvDepth;
-		if (i_underwater)
-		{
-			uvBackgroundRefract += .02 * i_n_pixel.xz;
-			uvDepthRefract += .02 * i_n_pixel.xz;
-		}
-		half3 alpha = (half3)1.;
+		// view ray intersects geometry surface either above or below ocean surface
 
-		// if we haven't refracted onto a surface in front of the water surface, compute an alpha based on Z delta
-		if (sceneZ > pixelZ)
-		{
-			float sceneZRefract = LinearEyeDepth(tex2D(i_cameraDepths, uvDepthRefract).x);
-			float maxZ = max(sceneZ, sceneZRefract);
-			float deltaZ = maxZ - pixelZ;
-			alpha = 1. - exp(-_DepthFogDensity.xyz * deltaZ);
-		}
-
+		half2 uvBackgroundRefract = i_grabPos.xy / i_grabPos.w + .02 * i_n_pixel.xz;
+		half2 uvDepthRefract = i_uvDepth + .02 * i_n_pixel.xz;
 		half3 sceneColour = tex2D(_BackgroundTexture, uvBackgroundRefract).rgb;
+		half3 alpha = 0.;
+
+		// depth fog & caustics - only if view ray starts from above water
+		if (!i_underwater)
+		{
+			// if we haven't refracted onto a surface in front of the water surface, compute an alpha based on Z delta
+			if (i_sceneZ > i_pixelZ)
+			{
+				float sceneZRefract = LinearEyeDepth(tex2D(i_cameraDepths, uvDepthRefract).x);
+				float maxZ = max(i_sceneZ, sceneZRefract);
+				float deltaZ = maxZ - i_pixelZ;
+				alpha = 1. - exp(-_DepthFogDensity.xyz * deltaZ);
+			}
+			else
+			{
+				alpha = 1.;
+			}
 
 #if _CAUSTICS_ON
-		// could sample from the screen space shadow texture to attenuate this..
-		// underwater caustics - dedicated to P
-		float3 camForward = mul((float3x3)unity_CameraToWorld, float3(0., 0., 1.));
-		float3 scenePos = _WorldSpaceCameraPos - view * sceneZ / dot(camForward, -view);
-		const float2 scenePosUV = LD_1_WorldToUV(scenePos.xz);
-		half3 disp = 0.; half2 n_dummy = 0.;
-		// this gives height at displaced position, not exactly at query position.. but it helps. i cant pass this from vert shader
-		// because i dont know it at scene pos.
-		SampleDisplacements(_LD_Sampler_AnimatedWaves_1, scenePosUV, 1.0, _LD_Params_1.w, _LD_Params_1.x, disp, n_dummy);
-		half waterHeight = _OceanCenterPosWorld.y + disp.y;
-		half sceneDepth = waterHeight - scenePos.y;
-		half bias = abs(sceneDepth - _CausticsFocalDepth) / _CausticsDepthOfField;
-		// project along light dir, but multiply by a fudge factor reduce the angle bit - compensates for fact that in real life
-		// caustics come from many directions and don't exhibit such a strong directonality
-		float2 surfacePosXZ = scenePos.xz + lightDir.xz * sceneDepth / (4.*lightDir.y);
-		half2 causticN = _CausticsDistortionStrength * UnpackNormal(tex2D(i_normals, surfacePosXZ / _CausticsDistortionScale)).xy;
-		half4 cuv1 = half4((surfacePosXZ / _CausticsTextureScale + 1.3 *causticN + half2(0.88*_Time.x + 17.16, -3.38*_Time.x)), 0., bias);
-		half4 cuv2 = half4((1.37*surfacePosXZ / _CausticsTextureScale + 1.77*causticN + half2(4.96*_Time.x, 2.34*_Time.x)), 0., bias);
-
-		half causticsStrength = _CausticsStrength;
-#if _SHADOWS_ON
-		{
-			// only sample the bigger lod. if pops are noticeable this could lerp the 2 lods smoothly, but i didnt notice issues.
-			fixed2 causticShadow = 0.;
-			float2 uv_1 = LD_1_WorldToUV(surfacePosXZ);
-			SampleShadow(_LD_Sampler_Shadow_1, uv_1, 1.0, causticShadow);
-			causticsStrength *= 1. - causticShadow.y;
+			ApplyCaustics(i_view, i_lightDir, i_sceneZ, i_normals, sceneColour);
+#endif
 		}
-#endif
 
-		sceneColour *= 1. + causticsStrength *
-			(0.5*tex2Dbias(_CausticsTexture, cuv1).x + 0.5*tex2Dbias(_CausticsTexture, cuv2).x - _CausticsTextureAverage);
-#endif
-
+		// blend from water colour to the scene colour
 		col = lerp(sceneColour, col, alpha);
 	}
-#endif // _TRANSPARENCY_ON
-
-	return col;
-}
-
-half3 OceanEmissionUnder(float3 worldPos, half oceanDepth, half3 view, half3 n, half3 n_geom, float3 lightDir, fixed i_shadow, half4 grabPos, half3 screenPos, float pixelZ, half2 uvDepth, float sceneZ, float sceneZ01, half3 bubbleCol, in sampler2D i_normals, in sampler2D i_cameraDepths, out half3 o_emitCol)
-{
-	// base colour
-	o_emitCol = _Diffuse;
-
-#if _SUBSURFACESCATTERING_ON
+	else if (i_underwater)
 	{
-#if _SUBSURFACESHALLOWCOLOUR_ON
-		float deepness = pow(1. - saturate(oceanDepth / _SubSurfaceDepthMax), _SubSurfaceDepthPower);
-		o_emitCol = lerp(o_emitCol, _SubSurfaceShallowCol, deepness);
-#endif
-
-#if _SUBSURFACEHEIGHTLERP_ON
-		half h = worldPos.y - _OceanCenterPosWorld.y;
-		o_emitCol += pow(saturate(0.5 + 2.0 * h / _SubSurfaceHeightMax), _SubSurfaceHeightPower) * _SubSurfaceCrestColour.rgb;
-#endif
-
-		// light
-		// use the constant term (0th order) of SH stuff - this is the average. it seems to give the right kind of colour
-		o_emitCol *= half3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w);
-
-		// Approximate subsurface scattering - add light when surface faces viewer. Use geometry normal - don't need high freqs.
-		half towardsSun = pow(max(0., dot(lightDir, -view)), _SubSurfaceSunFallOff);
-		o_emitCol += (_SubSurfaceBase + _SubSurfaceSun * towardsSun) * /*max(dot(n_geom, view), 0.) **/ _SubSurfaceColour.rgb * _LightColor0 * i_shadow;
-	}
-#endif // _SUBSURFACESCATTERING_ON
-
-	// underwater bubbles reflect in light
-	o_emitCol += bubbleCol;
-
-	half3 col = o_emitCol;
-
-#if _TRANSPARENCY_ON
-
-	// zfar? then don't read from the backbuffer at all, as i get occasionally nans spread across the screen when reading
-	// from uninit'd backbuffer
-	//if (sceneZ01 != 0.0)
-	{
-		half2 uvBackgroundRefract = grabPos.xy / grabPos.w + .02 * n.xz;
-		half2 uvDepthRefract = uvDepth + .02 * n.xz;
-		half3 alpha = (half3)0.;
-
-		// if we haven't refracted onto a surface in front of the water surface, compute an alpha based on Z delta
-		//if (sceneZ > pixelZ)
-		//{
-		//	float sceneZRefract = LinearEyeDepth(tex2D(i_cameraDepths, uvDepthRefract).x);
-		//	float maxZ = max(sceneZ, sceneZRefract);
-		//	float deltaZ = maxZ - pixelZ;
-		//	alpha = 1. - exp(-_DepthFogDensity.xyz * deltaZ);
-		//}
-
+		// we've not hit a surface but we're under the water surface - in this case we need to compute an alpha
+		// based on distance to the water surface, and then refract the sky.
+		half2 uvBackgroundRefract = i_grabPos.xy / i_grabPos.w + .02 * i_n_pixel.xz;
 		half3 sceneColour = tex2D(_BackgroundTexture, uvBackgroundRefract).rgb;
-
-//#if _CAUSTICS_ON
-//		// could sample from the screen space shadow texture to attenuate this..
-//		// underwater caustics - dedicated to P
-//		float3 camForward = mul((float3x3)unity_CameraToWorld, float3(0., 0., 1.));
-//		float3 scenePos = _WorldSpaceCameraPos - view * sceneZ / dot(camForward, -view);
-//		const float2 scenePosUV = LD_1_WorldToUV(scenePos.xz);
-//		half3 disp = 0.; half2 n_dummy = 0.;
-//		// this gives height at displaced position, not exactly at query position.. but it helps. i cant pass this from vert shader
-//		// because i dont know it at scene pos.
-//		SampleDisplacements(_LD_Sampler_AnimatedWaves_1, scenePosUV, 1.0, _LD_Params_1.w, _LD_Params_1.x, disp, n_dummy);
-//		half waterHeight = _OceanCenterPosWorld.y + disp.y;
-//		half sceneDepth = waterHeight - scenePos.y;
-//		half bias = abs(sceneDepth - _CausticsFocalDepth) / _CausticsDepthOfField;
-//		// project along light dir, but multiply by a fudge factor reduce the angle bit - compensates for fact that in real life
-//		// caustics come from many directions and don't exhibit such a strong directonality
-//		float2 surfacePosXZ = scenePos.xz + lightDir.xz * sceneDepth / (4.*lightDir.y);
-//		half2 causticN = _CausticsDistortionStrength * UnpackNormal(tex2D(i_normals, surfacePosXZ / _CausticsDistortionScale)).xy;
-//		half4 cuv1 = half4((surfacePosXZ / _CausticsTextureScale + 1.3 *causticN + half2(0.88*_Time.x + 17.16, -3.38*_Time.x)), 0., bias);
-//		half4 cuv2 = half4((1.37*surfacePosXZ / _CausticsTextureScale + 1.77*causticN + half2(4.96*_Time.x, 2.34*_Time.x)), 0., bias);
-//
-//		half causticsStrength = _CausticsStrength;
-//#if _SHADOWS_ON
-//		{
-//			// only sample the bigger lod. if pops are noticeable this could lerp the 2 lods smoothly, but i didnt notice issues.
-//			fixed2 causticShadow = 0.;
-//			float2 uv_1 = LD_1_WorldToUV(surfacePosXZ);
-//			SampleShadow(_LD_Sampler_Shadow_1, uv_1, 1.0, causticShadow);
-//			causticsStrength *= 1. - causticShadow.y;
-//		}
-//#endif
-//
-//		sceneColour *= 1. + causticsStrength *
-//			(0.5*tex2Dbias(_CausticsTexture, cuv1).x + 0.5*tex2Dbias(_CausticsTexture, cuv2).x - _CausticsTextureAverage);
-//#endif
-
+		half3 alpha = 1. - exp(-_DepthFogDensity.xyz * i_pixelZ);
 		col = lerp(sceneColour, col, alpha);
 	}
 #endif // _TRANSPARENCY_ON

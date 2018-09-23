@@ -13,7 +13,7 @@ namespace Crest
         public override SimType LodDataType { get { return SimType.SeaFloorDepth; } }
         public override SimSettingsBase CreateDefaultSettings() { return null; }
         public override void UseSettings(SimSettingsBase settings) { }
-        public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RHalf; } }
+        public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RFloat; } }
         public override CameraClearFlags CamClearFlags { get { return CameraClearFlags.Color; } }
         public override RenderTexture DataTexture { get { return _rtOceanDepth; } }
 
@@ -104,7 +104,7 @@ namespace Crest
             _bufOceanDepth.Clear();
 
             _bufOceanDepth.SetRenderTarget(_rtOceanDepth);
-            _bufOceanDepth.ClearRenderTarget(false, true, Color.red * 10000f);
+            _bufOceanDepth.ClearRenderTarget(false, true, Color.black);
 
             foreach (var entry in _depthRenderers)
             {

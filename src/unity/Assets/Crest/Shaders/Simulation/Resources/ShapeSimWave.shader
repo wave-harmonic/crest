@@ -111,7 +111,7 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 					// eventually break. i model "Deep" water, but then simply ramp down waves in non-deep water with a linear multiplier.
 					// http://hyperphysics.phy-astr.gsu.edu/hbase/Waves/watwav2.html
 					// http://hyperphysics.phy-astr.gsu.edu/hbase/watwav.html#c1
-					float waterSignedDepth = tex2D(_LD_Sampler_SeaFloorDepth_1, float4(i.uv, 0., 0.)).x + DEPTH_BIAS;
+					float waterSignedDepth = DEPTH_BASELINE - tex2D(_LD_Sampler_SeaFloorDepth_1, float4(i.uv, 0., 0.)).x;
 					float depthMul = 1. - (1. - saturate(2.0 * waterSignedDepth / wavelength)) * dt * 2.;
 					ftp *= depthMul;
 					ft *= depthMul;

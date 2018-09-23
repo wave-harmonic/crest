@@ -44,8 +44,8 @@ half3 OceanEmission(float3 worldPos, half oceanDepth, half3 view, half3 n, half3
 #if _SUBSURFACESCATTERING_ON
 	{
 #if _SUBSURFACESHALLOWCOLOUR_ON
-		float deepness = pow(1. - saturate(oceanDepth / _SubSurfaceDepthMax), _SubSurfaceDepthPower);
-		col = lerp(col, _SubSurfaceShallowCol, deepness);
+		float shallowness = pow(1. - saturate(oceanDepth / _SubSurfaceDepthMax), _SubSurfaceDepthPower);
+		col = lerp(col, _SubSurfaceShallowCol, shallowness);
 #endif
 
 #if _SUBSURFACEHEIGHTLERP_ON

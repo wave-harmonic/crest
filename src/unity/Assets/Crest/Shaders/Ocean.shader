@@ -197,7 +197,7 @@ Shader "Ocean/Ocean"
 						#endif
 
 						#if _SUBSURFACESHALLOWCOLOUR_ON
-						SampleOceanDepth(_LD_Sampler_SeaFloorDepth_0, uv_0, wt_0, o.lodAlpha_worldXZUndisplaced_oceanDepth.w);
+						SampleSeaFloorHeightAboveBaseline(_LD_Sampler_SeaFloorDepth_0, uv_0, wt_0, o.lodAlpha_worldXZUndisplaced_oceanDepth.w);
 						#endif
 
 						#if _SHADOWS_ON
@@ -221,13 +221,16 @@ Shader "Ocean/Ocean"
 						#endif
 
 						#if _SUBSURFACESHALLOWCOLOUR_ON
-						SampleOceanDepth(_LD_Sampler_SeaFloorDepth_1, uv_1, wt_1, o.lodAlpha_worldXZUndisplaced_oceanDepth.w);
+						SampleSeaFloorHeightAboveBaseline(_LD_Sampler_SeaFloorDepth_1, uv_1, wt_1, o.lodAlpha_worldXZUndisplaced_oceanDepth.w);
 						#endif
 
 						#if _SHADOWS_ON
 						SampleShadow(_LD_Sampler_Shadow_1, uv_1, wt_1, o.n_shadow.zw);
 						#endif
 					}
+
+					// convert height above -1000m to depth below surface
+					o.lodAlpha_worldXZUndisplaced_oceanDepth.w = DEPTH_BASELINE - o.lodAlpha_worldXZUndisplaced_oceanDepth.w;
 
 					// foam can saturate
 					o.foam_screenPos.x = saturate(o.foam_screenPos.x);

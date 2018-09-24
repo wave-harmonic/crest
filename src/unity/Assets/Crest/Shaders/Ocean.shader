@@ -251,7 +251,9 @@ Shader "Ocean/Ocean"
 					o.foam_screenPos.yzw = ComputeScreenPos(o.vertex).xyw;
 
 					// A hack to so that the flow samples the UV values at the correct scale
+					#if _APPLYFLOWTONORMALS_ON
 					o.flow = o.flow * 20;
+					#endif
 
 					return o;
 				}
@@ -337,7 +339,9 @@ Shader "Ocean/Ocean"
 					col = lerp(col.rgb, i.debugtint, 0.5);
 					#endif
 					#if _DEBUGVISUALISEFLOW_ON
+					#if _APPLYFLOWTONORMALS_ON
 					col.rg = lerp(col.rg, i.flow.xy, 0.5);
+					#endif
 					#endif
 
 					return half4(col, 1.);

@@ -21,7 +21,7 @@ public class Whirlpool : MonoBehaviour {
         _flowMaterial.SetFloat("_EyeRadiusProportion", eyeRadius/radius);
         _flowMaterial.SetFloat("_MaxSpeed", maxSpeed);
 
-        _displacementMaterial.SetFloat("_Radius", radius * 0.5f);
+        _displacementMaterial.SetFloat("_Radius", radius * 0.25f);
         _displacementMaterial.SetFloat("_Amplitude", amplitude);
     }
 

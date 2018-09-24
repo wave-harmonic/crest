@@ -54,7 +54,7 @@ Shader "Ocean/Shape/Whirlpool Flow"
 					float r       = _EyeRadiusProportion;
 					const float R = 1;
 					float2 o      = float2(0, 0);
-					float  s      = 1;            //_Swirl; // whirlpool 'swirlyness', can vary from 0 - 1
+					float  s      = .2;            //_Swirl; // whirlpool 'swirlyness', can vary from 0 - 1
 					float2 p      = uv_from_cent;
 					float  V      = _MaxSpeed;
 

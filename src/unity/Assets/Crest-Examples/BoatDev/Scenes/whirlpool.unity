@@ -327,7 +327,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   amplitude: 20
-  radius: 40
+  radius: 80
   eyeRadius: 1
   maxSpeed: 10
 --- !u!1 &995304122

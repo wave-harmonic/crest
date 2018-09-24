@@ -249,12 +249,6 @@ Shader "Ocean/Ocean"
 					// to get the right results, every time.
 					o.grabPos = ComputeGrabScreenPos(o.vertex);
 					o.foam_screenPos.yzw = ComputeScreenPos(o.vertex).xyw;
-
-					// A hack to so that the flow samples the UV values at the correct scale
-					#if _APPLYFLOWTONORMALS_ON
-					o.flow = o.flow * 20;
-					#endif
-
 					return o;
 				}
 

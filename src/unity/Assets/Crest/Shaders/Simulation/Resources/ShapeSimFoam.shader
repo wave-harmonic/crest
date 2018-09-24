@@ -91,7 +91,7 @@ Shader "Ocean/Shape/Sim/Foam"
 					foam += 5. * _SimDeltaTime * _WaveFoamStrength * saturate(_WaveFoamCoverage - det);
 
 					// add foam in shallow water
-					float signedOceanDepth = tex2Dlod(_LD_Sampler_SeaFloorDepth_1, uv).x + DEPTH_BIAS + disp.y;
+					float signedOceanDepth = DEPTH_BASELINE - tex2Dlod(_LD_Sampler_SeaFloorDepth_1, uv).x + disp.y;
 					foam += _ShorelineFoamStrength * _SimDeltaTime * saturate(1. - signedOceanDepth / _ShorelineFoamMaxDepth);
 
 					return foam;

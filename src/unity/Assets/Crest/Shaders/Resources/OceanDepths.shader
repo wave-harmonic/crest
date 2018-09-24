@@ -17,7 +17,7 @@ Shader "Ocean/Ocean Depth"
 			{
 				Name "BASE"
 				Tags { "LightMode" = "Always" }
-				BlendOp Min
+				BlendOp Max
 
 				CGPROGRAM
 				#pragma vertex vert
@@ -32,7 +32,7 @@ Shader "Ocean/Ocean Depth"
 
 				struct v2f {
 					float4 vertex : SV_POSITION;
-					half depth : TEXCOORD0;
+					float depth : TEXCOORD0;
 				};
 
 				v2f vert( appdata_t v )
@@ -40,15 +40,18 @@ Shader "Ocean/Ocean Depth"
 					v2f o;
 					o.vertex = UnityObjectToClipPos( v.vertex );
 
-					half altitude = mul(unity_ObjectToWorld, v.vertex).y;
+					float altitude = mul(unity_ObjectToWorld, v.vertex).y;
 
-					//depth bias is an optimisation which allows the depth data to be initialised once to 0 without generating foam everywhere.
-					o.depth = _OceanCenterPosWorld.y - altitude - DEPTH_BIAS;
+					// Depth is altitude above 1000m below sea level. This is because '0' needs to signify deep water.
+					// I originally used a simple bias in the depth texture but it would still produce shallow water outside
+					// the biggest LOD texture where the depth would evaluate to 0 in the ocean vert shader, so i've transformed
+					// 0 to mean deep below the surface.
+					o.depth = altitude - (_OceanCenterPosWorld.y - DEPTH_BASELINE);
 
 					return o;
 				}
 
-				half frag (v2f i) : SV_Target
+				float frag (v2f i) : SV_Target
 				{
 					return i.depth;
 				}

@@ -17,6 +17,12 @@ namespace Crest
 
         private void Start()
         {
+            if (OceanRenderer.Instance == null)
+            {
+                enabled = false;
+                return;
+            }
+
             _rend = GetComponent<Renderer>();
             _mesh = GetComponent<MeshFilter>().mesh;
             _boundsLocal = _mesh.bounds;

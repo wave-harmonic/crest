@@ -13,7 +13,7 @@ namespace Crest
 
         private void OnEnable()
         {
-            var mat = _renderDepthMaterial ?? new Material(Shader.Find("Ocean/Ocean Depth"));
+            var mat = _renderDepthMaterial != null ? _renderDepthMaterial : new Material(Shader.Find("Ocean/Ocean Depth"));
             LodDataSeaFloorDepth.AddRenderOceanDepth(GetComponent<Renderer>(), mat);
         }
 

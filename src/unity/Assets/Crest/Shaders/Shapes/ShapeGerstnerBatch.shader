@@ -68,7 +68,7 @@ Shader "Ocean/Shape/Gerstner Batch"
 					const half minWavelength = MinWavelengthForCurrentOrthoCamera();
 			
 					// sample ocean depth (this render target should 1:1 match depth texture, so UVs are trivial)
-					const half depth = tex2D(_LD_Sampler_SeaFloorDepth_0, i.vertex.xy / _ScreenParams.xy).x + DEPTH_BIAS;
+					const half depth = DEPTH_BASELINE - tex2D(_LD_Sampler_SeaFloorDepth_0, i.vertex.xy / _ScreenParams.xy).x;
 					half3 result = (half3)0.;
 
 					// unrolling this loop once helped SM Issue Utilization and some other stats, but the GPU time is already very low so leaving this for now

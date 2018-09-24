@@ -33,6 +33,27 @@ namespace Crest
             }
         }
 
+        public static int SuggestDataLOD(Rect sampleAreaXZ, float minSpatialLength)
+        {
+            var ldaws = OceanRenderer.Instance._lodDataAnimWaves;
+            for (int lod = 0; lod < ldaws.Length; lod++)
+            {
+                // shape texture needs to completely contain sample area
+                var ldaw = ldaws[lod].LDFlow;
+                if (ldaw.DataReadback == null) return -1;
+                var wdcRect = ldaw.DataReadback.DataRectXZ;
+                // shrink rect by 1 texel border - this is to make finite differences fit as well
+                wdcRect.x += ldaw.LodTransform._renderData._texelWidth; wdcRect.y += ldaw.LodTransform._renderData._texelWidth;
+                wdcRect.width -= 2f * ldaw.LodTransform._renderData._texelWidth; wdcRect.height -= 2f * ldaw.LodTransform._renderData._texelWidth;
+                if (!wdcRect.Contains(sampleAreaXZ.min) || !wdcRect.Contains(sampleAreaXZ.max))
+                    continue;
+
+                return lod;
+            }
+
+            return -1;
+        }
+
         public bool SampleFlow(ref Vector3 in__worldPos, out Vector2 flow)
         {
             float xOffset = in__worldPos.x - _dataReadback._dataRenderData._posSnapped.x;
@@ -49,13 +70,7 @@ namespace Crest
             var v = 0.5f + 0.5f * zOffset / r;
             var x = Mathf.FloorToInt(u * _dataReadback._dataRenderData._textureRes);
             var y = Mathf.FloorToInt(v * _dataReadback._dataRenderData._textureRes);
-            var idx = 4 * (y * (int)_dataReadback._dataRenderData._textureRes + x);
-            // TODO: A hack added to ensure _dataNative so we don't get array out of
-            // bounds error, but this shouldn't be happening anyway.
-            if(idx + 1 >= _dataReadback._dataNative.Length) {
-                flow = Vector3.zero;
-                return false;
-            }
+            var idx = 2 * (y * (int)_dataReadback._dataRenderData._textureRes + x);
             flow.x = Mathf.HalfToFloat(_dataReadback._dataNative[idx + 0]);
             flow.y = Mathf.HalfToFloat(_dataReadback._dataNative[idx + 1]);
 

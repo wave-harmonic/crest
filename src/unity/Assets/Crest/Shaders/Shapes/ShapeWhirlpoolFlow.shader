@@ -30,7 +30,6 @@ Shader "Ocean/Shape/Whirlpool Flow"
 
 				struct v2f {
 					float4 vertex : SV_POSITION;
-					float2 worldOffsetScaled : TEXCOORD0;
 					float2 uv : TEXCOORD1;
 				};
 
@@ -50,7 +49,6 @@ Shader "Ocean/Shape/Whirlpool Flow"
 				float2 frag (v2f i) : SV_Target
 				{
 					float2 col = float2(0, 0);
-
 					float2 uv_from_cent = (i.uv - float2(.5, .5)) * 2.;
 
 					float r       = _EyeRadiusProportion;

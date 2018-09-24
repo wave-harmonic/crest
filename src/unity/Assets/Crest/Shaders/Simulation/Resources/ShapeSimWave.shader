@@ -32,7 +32,7 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 
 				struct v2f {
 					float4 vertex : SV_POSITION;
-					float3 uv_lastframe : TEXCOORD0;
+					float3 worldPosLastFrame_invRes : TEXCOORD0;
 					float2 uv : TEXCOORD1;
 				};
 
@@ -44,8 +44,8 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 					o.vertex = UnityObjectToClipPos(v.vertex);
 
 					float3 world = mul(unity_ObjectToWorld, v.vertex);
-					ComputeUVs(world, o.vertex.xy, o.uv_lastframe.xy, o.uv, o.uv_lastframe.z);
-
+					ComputeUVs(world, o.vertex.xy, o.worldPosLastFrame_invRes.xy, o.uv, o.worldPosLastFrame_invRes.z);
+					o.worldPosLastFrame_invRes.xy = world.xz;
 					return o;
 				}
 
@@ -57,23 +57,25 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 
 				half2 frag(v2f i) : SV_Target
 				{
-					float4 uv_lastframe = float4(i.uv_lastframe.xy, 0., 0.);
+					half2 velocity = tex2Dlod(_LD_Sampler_Flow_1, float4(i.uv, 0, 0));
+					float2 uv_lastframe = LD_0_WorldToUV(i.worldPosLastFrame_invRes.xy - (_SimDeltaTime * velocity));
+					float4 uv_lastframe4 = float4(uv_lastframe, 0., 0.);
 
-					half2 ft_ftm = tex2Dlod(_LD_Sampler_DynamicWaves_0, uv_lastframe);
+					half2 ft_ftm = tex2Dlod(_LD_Sampler_DynamicWaves_0, uv_lastframe4);
 
 					float ft = ft_ftm.x; // t - current value before update
 					float ftm = ft_ftm.y; // t minus - previous value
 
 					// compute axes of laplacian kernel - rotated every frame
-					float e = i.uv_lastframe.z; // assumes square RT
+					float e = i.worldPosLastFrame_invRes.z; // assumes square RT
 					float4 X = float4(_LaplacianAxisX, 0., 0.);
 					float4 Y = float4(-X.y, X.x, 0., 0.);
-					float fxm = tex2Dlod(_LD_Sampler_DynamicWaves_0, uv_lastframe - e*X).x; // x minus
-					float fym = tex2Dlod(_LD_Sampler_DynamicWaves_0, uv_lastframe - e*Y).x; // y minus
-					float fxp = tex2Dlod(_LD_Sampler_DynamicWaves_0, uv_lastframe + e*X).x; // x plus
-					float fyp = tex2Dlod(_LD_Sampler_DynamicWaves_0, uv_lastframe + e*Y).x; // y plus
+					float fxm = tex2Dlod(_LD_Sampler_DynamicWaves_0, uv_lastframe4 - e*X).x; // x minus
+					float fym = tex2Dlod(_LD_Sampler_DynamicWaves_0, uv_lastframe4 - e*Y).x; // y minus
+					float fxp = tex2Dlod(_LD_Sampler_DynamicWaves_0, uv_lastframe4 + e*X).x; // x plus
+					float fyp = tex2Dlod(_LD_Sampler_DynamicWaves_0, uv_lastframe4 + e*Y).x; // y plus
 
-					const float texelSize = 2. * unity_OrthoParams.x * i.uv_lastframe.z; // assumes square RT
+					const float texelSize = 2. * unity_OrthoParams.x * i.worldPosLastFrame_invRes.z; // assumes square RT
 
 					// average wavelength for this scale
 					float wavelength = 1.5 * _TexelsPerWave * texelSize;;
@@ -86,17 +88,17 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 
 					// wave propagation
 					// velocity is implicit
-					float v = dtp > MIN_DT ? (ft - ftm) / dtp : 0.0;
+					float v = dtp > MIN_DT ? ((ft - ftm) / dtp) : 0;
 					float ftp = ft + dt*v + dt*dt*c*c*(fxm + fxp + fym + fyp - 4.*ft) / (texelSize*texelSize);
 
 					// open boundary condition, from: http://hplgit.github.io/wavebc/doc/pub/._wavebc_cyborg002.html .
 					// this actually doesn't work perfectly well - there is some minor reflections of high frequencies.
 					// dudt + c*dudx = 0
 					// (ftp - ft)   +   c*(ft-fxm) = 0.
-					if (i.uv_lastframe.x + e >= 1.) ftp = -dt*c*(ft - fxm) + ft;
-					if (i.uv_lastframe.y + e >= 1.) ftp = -dt*c*(ft - fym) + ft;
-					if (i.uv_lastframe.x - e <= 0.) ftp = dt*c*(fxp - ft) + ft;
-					if (i.uv_lastframe.y - e <= 0.) ftp = dt*c*(fyp - ft) + ft;
+					if (uv_lastframe.x + e >= 1.) ftp = -dt*c*(ft - fxm) + ft;
+					if (uv_lastframe.y + e >= 1.) ftp = -dt*c*(ft - fym) + ft;
+					if (uv_lastframe.x - e <= 0.) ftp = dt*c*(fxp - ft) + ft;
+					if (uv_lastframe.y - e <= 0.) ftp = dt*c*(fyp - ft) + ft;
 
 					// Damping
 					ftp *= max(0.0, 1.0 - _Damping * dt);

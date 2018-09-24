@@ -61,10 +61,11 @@ public class BoatAlignNormal : MonoBehaviour
         Vector3 velWater = (_displacementToBoat - _displacementToBoatLastFrame) / Time.deltaTime;
         if(OceanRenderer.Instance._createFlowSim) {
             Vector2 surfaceFlow;
-            int lod = LodDataAnimatedWaves.SuggestDataLOD(new Rect(position.x, position.z, 0f, 0f), 0f);
-            // TODO: Actually sample a sensible LOD.
-            if(OceanRenderer.Instance._lodDataAnimWaves[lod].LDFlow.SampleFlow(ref position, out surfaceFlow)) {
-                velWater += new Vector3(surfaceFlow.x, 0, surfaceFlow.y);
+            int lod  = LodDataFlow.SuggestDataLOD(new Rect(position.x, position.z, 0f, 0f), _boatWidth);
+            if(lod != -1) {
+                if(OceanRenderer.Instance._lodDataAnimWaves[lod].LDFlow.SampleFlow(ref position, out surfaceFlow)) {
+                    velWater += new Vector3(surfaceFlow.x, 0, surfaceFlow.y);
+                }
             }
         }
         _displacementToBoatLastFrame = _displacementToBoat;

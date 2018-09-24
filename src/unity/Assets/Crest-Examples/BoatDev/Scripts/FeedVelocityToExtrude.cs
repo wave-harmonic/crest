@@ -3,7 +3,7 @@
 public class FeedVelocityToExtrude : MonoBehaviour {
 
     public BoatAlignNormal _boat;
-    
+
     Vector3 _posLast;
 
     [HideInInspector]
@@ -67,7 +67,18 @@ public class FeedVelocityToExtrude : MonoBehaviour {
         transform.position = transform.parent.TransformPoint(_localOffset) - disp;
 
         float rnd = 1f + _noiseAmp * (2f * Mathf.PerlinNoise(_noiseFreq * Time.time, 0.5f) - 1f);
+        // feed in water velocity
         Vector3 vel = (transform.position - _posLast) / Time.deltaTime;
+        if(Crest.OceanRenderer.Instance._createFlowSim) {
+            Vector2 surfaceFlow;
+            Vector3 position = transform.position;
+            int lod  = Crest.LodDataFlow.SuggestDataLOD(thisRect, 0f);
+            if(lod != -1) {
+                if(Crest.OceanRenderer.Instance._lodDataAnimWaves[lod].LDFlow.SampleFlow(ref position, out surfaceFlow)) {
+                    vel -= new Vector3(surfaceFlow.x, 0, surfaceFlow.y);
+                }
+            }
+        }
         vel.y *= _weightUpDownMul;
 
         float speedKmh = vel.magnitude * 3.6f;
@@ -91,7 +102,7 @@ public class FeedVelocityToExtrude : MonoBehaviour {
                 Debug.LogWarning("Speed (" + speedKmh.ToString() + ") exceeded max limited, clamped.", this);
             }
         }
-        
+
         _mat.SetVector("_Velocity", rnd * vel);
         _posLast = transform.position;
 

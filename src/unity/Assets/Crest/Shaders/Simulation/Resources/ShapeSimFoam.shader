@@ -60,11 +60,12 @@ Shader "Ocean/Shape/Sim/Foam"
 				{
 					float4 uv = float4(i.uv_uv_lastframe.xy, 0., 0.);
 					float4 uv_lastframe = float4(i.uv_uv_lastframe.zw, 0., 0.);
-					half4 velocity_last_frame = half4(tex2Dlod(_LD_Sampler_Flow_1, uv).xy, 0., 0.);
+					half4 velocity = half4(tex2Dlod(_LD_Sampler_Flow_1, uv).xy, 0., 0.);
+					//velocity = half4(10, 0, 0, 0);
 
 					// sampler will clamp the uv currently
 					half foam = tex2Dlod(_LD_Sampler_Foam_0, uv_lastframe
-						- ((_SimDeltaTime * i.invRes) * velocity_last_frame)
+						- ((_SimDeltaTime * i.invRes) * velocity)
 					).x; // TODO: use world coords here.
 
 					//return foam + sin(_Time.w)*.004;

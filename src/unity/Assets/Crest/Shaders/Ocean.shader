@@ -250,6 +250,9 @@ Shader "Ocean/Ocean"
 					o.grabPos = ComputeGrabScreenPos(o.vertex);
 					o.foam_screenPos.yzw = ComputeScreenPos(o.vertex).xyw;
 
+					// A hack to so that the flow samples the UV values at the correct scale
+					o.flow = o.flow * 20;
+
 					return o;
 				}
 
@@ -284,7 +287,7 @@ Shader "Ocean/Ocean"
 					half2 uvDepth = screenPos.xy / screenPos.z;
 					float sceneZ01 = tex2D(_CameraDepthTexture, uvDepth).x;
 					float sceneZ = LinearEyeDepth(sceneZ01);
-					
+
 					float3 lightDir = WorldSpaceLightDir(i.worldPos);
 					// Soft shadow, hard shadow
 					fixed2 shadow = (fixed2)1.0

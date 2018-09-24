@@ -131,7 +131,6 @@ Shader "Ocean/Ocean"
 				{
 					float4 vertex : SV_POSITION;
 					#if _APPLYFLOWTONORMALS_ON
-					half2 flow : TEXCOORD2;
 					#endif
 					half4 n_shadow : TEXCOORD1;
 					half4 foam_screenPos : TEXCOORD4;
@@ -169,10 +168,6 @@ Shader "Ocean/Ocean"
 					o.n_shadow = half4(0., 0., 0., 0.);
 					o.foam_screenPos.x = 0.;
 
-					#if _APPLYFLOWTONORMALS_ON
-					o.flow = half2(0., 0.);
-					#endif
-
 					o.lodAlpha_worldXZUndisplaced_oceanDepth.w = 0.;
 
 					// sample weights. params.z allows shape to be faded out (used on last lod to support pop-less scale transitions)
@@ -190,10 +185,6 @@ Shader "Ocean/Ocean"
 
 						#if _FOAM_ON
 						SampleFoam(_LD_Sampler_Foam_0, uv_0, wt_0, o.foam_screenPos.x);
-						#endif
-
-						#if _APPLYFLOWTONORMALS_ON
-						SampleFlow(_LD_Sampler_Flow_0, uv_0, wt_0, o.flow);
 						#endif
 
 						#if _SUBSURFACESHALLOWCOLOUR_ON
@@ -214,10 +205,6 @@ Shader "Ocean/Ocean"
 
 						#if _FOAM_ON
 						SampleFoam(_LD_Sampler_Foam_1, uv_1, wt_1, o.foam_screenPos.x);
-						#endif
-
-						#if _APPLYFLOWTONORMALS_ON
-						SampleFlow(_LD_Sampler_Flow_1, uv_1, wt_1, o.flow);
 						#endif
 
 						#if _SUBSURFACESHALLOWCOLOUR_ON
@@ -250,9 +237,6 @@ Shader "Ocean/Ocean"
 					o.grabPos = ComputeGrabScreenPos(o.vertex);
 					o.foam_screenPos.yzw = ComputeScreenPos(o.vertex).xyw;
 
-					// A hack to so that the flow samples the UV values at the correct scale
-					o.flow = o.flow * 20;
-
 					return o;
 				}
 
@@ -279,6 +263,24 @@ Shader "Ocean/Ocean"
 
 				half4 frag(v2f i) : SV_Target
 				{
+					#if _APPLYFLOWTONORMALS_ON
+					float wt_0 = (1. - i.lodAlpha_worldXZUndisplaced_oceanDepth.x) * _LD_Params_0.z;
+					float wt_1 = (1. - wt_0) * _LD_Params_1.z;
+					half2 flow = half2(0, 0);
+					if (wt_0 > 0.001)
+					{
+						const float2 uv_0 = LD_0_WorldToUV(i.worldPos.xz);
+						SampleFlow(_LD_Sampler_Flow_0, uv_0, wt_0, flow);
+					}
+					if (wt_1 > 0.001)
+					{
+						const float2 uv_1 = LD_1_WorldToUV(i.worldPos.xz);
+						SampleFlow(_LD_Sampler_Flow_1, uv_1, wt_1, flow);
+					}
+					// A hack to so that the flow samples the UV values at the correct scale
+					flow *= 20;
+					#endif
+
 					half3 view = normalize(_WorldSpaceCameraPos - i.worldPos);
 
 					// water surface depth, and underlying scene opaque surface depth
@@ -301,7 +303,7 @@ Shader "Ocean/Ocean"
 					half3 n_pixel = n_geom;
 					#if _APPLYNORMALMAPPING_ON
 					#if _APPLYFLOWTONORMALS_ON
-					ApplyNormalMapsWithFlow(i.lodAlpha_worldXZUndisplaced_oceanDepth.yz, i.flow, i.lodAlpha_worldXZUndisplaced_oceanDepth.x, n_pixel);
+					ApplyNormalMapsWithFlow(i.lodAlpha_worldXZUndisplaced_oceanDepth.yz, flow, i.lodAlpha_worldXZUndisplaced_oceanDepth.x, n_pixel);
 					#else
 					n_pixel.xz += SampleNormalMaps(i.lodAlpha_worldXZUndisplaced_oceanDepth.yz, i.lodAlpha_worldXZUndisplaced_oceanDepth.x);
 					n_pixel = normalize(n_pixel);
@@ -315,7 +317,7 @@ Shader "Ocean/Ocean"
 					#if !_APPLYFLOWTONORMALS_ON
 					ComputeFoam(i.foam_screenPos.x, i.lodAlpha_worldXZUndisplaced_oceanDepth.yz, i.worldPos.xz, n_pixel, pixelZ, sceneZ, view, lightDir, shadow.y, bubbleCol, whiteFoamCol);
 					#else
-					ComputeFoamWithFlow(i.flow, i.foam_screenPos.x, i.lodAlpha_worldXZUndisplaced_oceanDepth.yz, i.worldPos.xz, n_pixel, pixelZ, sceneZ, view, lightDir, shadow.y, bubbleCol, whiteFoamCol);
+					ComputeFoamWithFlow(flow, i.foam_screenPos.x, i.lodAlpha_worldXZUndisplaced_oceanDepth.yz, i.worldPos.xz, n_pixel, pixelZ, sceneZ, view, lightDir, shadow.y, bubbleCol, whiteFoamCol);
 					#endif // _APPLYFLOWTONORMALS_ON
 					#endif // _FOAM_ON
 
@@ -337,7 +339,7 @@ Shader "Ocean/Ocean"
 					col = lerp(col.rgb, i.debugtint, 0.5);
 					#endif
 					#if _DEBUGVISUALISEFLOW_ON
-					col.rg = lerp(col.rg, i.flow.xy, 0.5);
+					col.rg = lerp(col.rg, flow.xy, 0.5);
 					#endif
 
 					return half4(col, 1.);

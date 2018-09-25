@@ -47,6 +47,9 @@ Shader "Ocean/Shape/Combine"
 
 			half4 frag (v2f i) : SV_Target
 			{
+				// PROBLEM! nan is read here and 'blurred'. thats not how NaN's are supposed to work :(
+				// i could do the interpolation manually and test if any value is large/inf..
+
 				// go from uv out to world for the current shape texture
 				float2 worldPos = LD_0_UVToWorld(i.uv);
 

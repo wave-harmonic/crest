@@ -477,6 +477,14 @@ Prefab:
       propertyPath: m_RootOrder
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 11417796, guid: 8454e29c2a033974fb559f5f8eff1918, type: 2}
+      propertyPath: _createShadowData
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 11417796, guid: 8454e29c2a033974fb559f5f8eff1918, type: 2}
+      propertyPath: _primaryLight
+      value: 
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 8454e29c2a033974fb559f5f8eff1918, type: 2}
   m_IsPrefabAsset: 0
@@ -701,7 +709,7 @@ Light:
   m_SpotAngle: 30
   m_CookieSize: 10
   m_Shadows:
-    m_Type: 0
+    m_Type: 1
     m_Resolution: -1
     m_CustomResolution: -1
     m_Strength: 1

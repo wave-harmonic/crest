@@ -92,7 +92,7 @@ namespace Crest
                 shapeCams[_lodIndex + 1].LDSeaDepth.BindResultData(1, _mpb);
                 if (OceanRenderer.Instance._createFoamSim) shapeCams[_lodIndex + 1].LDFoam.BindResultData(1, _mpb);
                 if (OceanRenderer.Instance._createFlowSim) shapeCams[_lodIndex + 1].LDFlow.BindResultData(1, _mpb);
-                if (OceanRenderer.Instance._createShadowData) shapeCams[_lodIndex + 1].LDShadow.BindResultData(1, _mpb);
+                if (OceanRenderer.Instance._createShadowData && OceanRenderer.Instance._primaryLight != null) shapeCams[_lodIndex + 1].LDShadow.BindResultData(1, _mpb);
             }
 
             if (OceanRenderer.Instance.PlanarReflection)

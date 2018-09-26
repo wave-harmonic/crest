@@ -62,6 +62,7 @@ Shader "Ocean/Ocean"
 		[Toggle] _DebugDisableShapeTextures("Debug Disable Shape Textures", Float) = 0
 		[Toggle] _DebugVisualiseShapeSample("Debug Visualise Shape Sample", Float) = 0
 		[Toggle] _DebugVisualiseFlow("Debug Visualise Flow", Float) = 0
+		[Toggle] _DebugVisualiseShadows("Debug Visualise Shadows", Float) = 0
 		[Toggle] _DebugDisableSmoothLOD("Debug Disable Smooth LOD", Float) = 0
 		[Toggle] _CompileShaderWithDebugInfo("Compile Shader With Debug Info (D3D11)", Float) = 0
 		[Toggle] _ApplyFlowToNormals("Apply Flow To Normals (Experimental)", Float) = 0
@@ -111,6 +112,7 @@ Shader "Ocean/Ocean"
 				#pragma shader_feature _DEBUGDISABLESHAPETEXTURES_ON
 				#pragma shader_feature _DEBUGVISUALISESHAPESAMPLE_ON
 				#pragma shader_feature _DEBUGVISUALISEFLOW_ON
+				#pragma shader_feature _DEBUGVISUALISESHADOWS_ON
 				#pragma shader_feature _DEBUGDISABLESMOOTHLOD_ON
 				#pragma shader_feature _COMPILESHADERWITHDEBUGINFO_ON
 				
@@ -334,6 +336,9 @@ Shader "Ocean/Ocean"
 					#endif
 					#if _DEBUGVISUALISEFLOW_ON
 					col.rg = lerp(col.rg, i.flow.xy, 0.5);
+					#endif
+					#if _DEBUGVISUALISESHADOWS_ON
+					col.rg = shadow; col.b = 0.;
 					#endif
 
 					return half4(col, 1.);

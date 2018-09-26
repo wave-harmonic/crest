@@ -48,12 +48,6 @@ namespace Crest
                 _shadowData[i].anisoLevel = 0;
             }
 
-            if (!StartInitLight())
-            {
-                enabled = false;
-                return;
-            }
-
             _renderMaterial = new Material(Shader.Find("Ocean/ShadowUpdate"));
 
             _cameraMain = Camera.main;
@@ -103,6 +97,13 @@ namespace Crest
 
         protected override void LateUpdate()
         {
+            if (OceanRenderer.Instance._primaryLight == null) return;
+
+            if (_mainLight == null)
+            {
+                StartInitLight();
+            }
+
             base.LateUpdate();
 
             if (!_mainLight) return;

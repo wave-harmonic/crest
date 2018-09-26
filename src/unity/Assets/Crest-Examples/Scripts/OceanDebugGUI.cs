@@ -17,6 +17,12 @@ public class OceanDebugGUI : MonoBehaviour
 
     private void Start()
     {
+        if (OceanRenderer.Instance == null)
+        {
+            enabled = false;
+            return;
+        }
+
         gerstners = FindObjectsOfType<ShapeGerstnerBatched>();
         // i am getting the array in the reverse order compared to the hierarchy which bugs me. sort them based on sibling index,
         // which helps if the gerstners are on sibling GOs.

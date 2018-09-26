@@ -65,7 +65,13 @@ namespace Crest
 
         void Start()
         {
-            if( _spectrum == null )
+            if (OceanRenderer.Instance == null)
+            {
+                enabled = false;
+                return;
+            }
+
+            if ( _spectrum == null )
             {
                 _spectrum = ScriptableObject.CreateInstance<OceanWaveSpectrum>();
                 _spectrum.name = "Default Waves (auto)";

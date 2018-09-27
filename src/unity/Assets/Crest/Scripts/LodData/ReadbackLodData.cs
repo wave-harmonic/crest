@@ -18,15 +18,6 @@ namespace Crest
             public LodTransform.RenderData _renderData;
         }
 
-        public enum TexFormat
-        {
-            NotSet = 0,
-            RHalf = 1,
-            RGHalf = 2,
-            RGBAHalf = 4,
-        }
-        public TexFormat _textureFormat = TexFormat.RGBAHalf;
-
         Queue<ReadbackRequest> _requests = new Queue<ReadbackRequest>();
         const int MAX_REQUESTS = 8;
 
@@ -36,10 +27,40 @@ namespace Crest
 
         public bool _active = true;
 
+        public enum TexFormat
+        {
+            NotSet = 0,
+            RHalf = 1,
+            RGHalf = 2,
+            RGBAHalf = 4,
+        }
+        [SerializeField] private TexFormat _textureFormat = TexFormat.NotSet;
+
+        public void SetTextureFormat(RenderTextureFormat fmt)
+        {
+            switch(fmt)
+            {
+                case RenderTextureFormat.RHalf:
+                    _textureFormat = TexFormat.RHalf;
+                    break;
+                case RenderTextureFormat.RGHalf:
+                    _textureFormat = TexFormat.RGHalf;
+                    break;
+                case RenderTextureFormat.ARGBHalf:
+                    _textureFormat = TexFormat.RGBAHalf;
+                    break;
+                default:
+                    Debug.LogError("Unsupported texture format for readback: " + fmt.ToString(), this);
+                    break;
+            }
+        }
+
         private void Update()
         {
             if (_active)
             {
+                Debug.Assert(_textureFormat != TexFormat.NotSet, "ReadbackLodData: Texture format must be set.", this);
+
                 UpdateReadback(Cam, LT._renderData);
             }
         }

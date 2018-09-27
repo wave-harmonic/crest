@@ -95,7 +95,8 @@ namespace Crest
 
             if(_mainLight != OceanRenderer.Instance._primaryLight)
             {
-                if(_mainLight) {
+                if(_mainLight)
+                {
                     _mainLight.RemoveCommandBuffer(LightEvent.BeforeScreenspaceMask, _bufCopyShadowMap);
                     for(int i = 0; i < _shadowData.Length; i++)
                     {
@@ -116,7 +117,8 @@ namespace Crest
 
             if(!_mainLight)
             {
-                if(!StartInitLight()) {
+                if(!StartInitLight())
+                {
                     enabled = false;
                     return;
                 }

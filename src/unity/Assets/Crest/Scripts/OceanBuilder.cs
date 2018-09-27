@@ -170,8 +170,6 @@ namespace Crest
             var cachedSettings = new Dictionary<System.Type, SimSettingsBase>();
             if (ocean._simSettingsFoam != null)
                 cachedSettings.Add(typeof(LodDataFoam), ocean._simSettingsFoam);
-            if (ocean._simSettingsFlow != null)
-                cachedSettings.Add(typeof(LodDataFlow), ocean._simSettingsFlow);
             if (ocean._simSettingsDynamicWaves != null)
                 cachedSettings.Add(typeof(LodDataDynamicWaves), ocean._simSettingsDynamicWaves);
             if (ocean._simSettingsShadow != null)

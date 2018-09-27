@@ -6,7 +6,7 @@ using UnityEngine.Rendering;
 namespace Crest
 {
     /// <summary>
-    /// A dynamic shape simulation that moves around with a displacement LOD. It 
+    /// A dynamic shape simulation that moves around with a displacement LOD. It
     /// </summary>
     public class LodDataDynamicWaves : LodDataPersistent
     {
@@ -104,6 +104,10 @@ namespace Crest
             // assign sea floor depth - to slot 1 current frame data. minor bug here - this depth will actually be from the previous frame,
             // because the depth is scheduled to render just before the animated waves, and this sim happens before animated waves.
             OceanRenderer.Instance._lodDataAnimWaves[LodTransform.LodIndex].LDSeaDepth.BindResultData(1, simMaterial);
+            if (OceanRenderer.Instance._createFlowSim) {
+                OceanRenderer.Instance._lodDataAnimWaves[LodTransform.LodIndex].LDFlow.BindResultData(1, simMaterial);
+            }
+
         }
 
         private void OnDisable()

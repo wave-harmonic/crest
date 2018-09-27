@@ -24,7 +24,14 @@ namespace Crest
         public virtual void ApplySchedule(OceanRenderer ocean)
         {
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            // --- Dynamic waves camera renders first
+            // --- Flow camera renders first
+            for (int i = 0; i < ocean.CurrentLodCount && ocean._camsFlow[i] != null; i++)
+            {
+                ocean._camsFlow[i].depth = -50 - i;
+            }
+
+            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            // --- Dynamic waves camera renders second
             for (int i = 0; i < ocean.CurrentLodCount && ocean._camsDynWaves[i] != null; i++)
             {
                 ocean._camsDynWaves[i].depth = -40 - i;

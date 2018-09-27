@@ -41,7 +41,7 @@ float2 LD_1_UVToWorld(in float2 i_uv) { return LD_UVToWorld(i_uv, _LD_Pos_Scale_
 
 
 // Bias ocean floor depth so that default (0) values in texture are not interpreted as shallow and generating foam everywhere
-#define DEPTH_BIAS 100.
+#define DEPTH_BASELINE 1000.
 
 
 // Sampling functions
@@ -72,9 +72,9 @@ void SampleFlow(in sampler2D i_oceanFlowSampler, float2 i_uv, in float i_wt, ino
 	io_flow += i_wt * tex2Dlod(i_oceanFlowSampler, uv).xy;
 }
 
-void SampleOceanDepth(in sampler2D i_oceanDepthSampler, float2 i_uv, in float i_wt, inout half io_oceanDepth)
+void SampleSeaFloorHeightAboveBaseline(in sampler2D i_oceanDepthSampler, float2 i_uv, in float i_wt, inout half io_oceanDepth)
 {
-	io_oceanDepth += i_wt * (tex2Dlod(i_oceanDepthSampler, float4(i_uv, 0., 0.)).x + DEPTH_BIAS);
+	io_oceanDepth += i_wt * (tex2Dlod(i_oceanDepthSampler, float4(i_uv, 0., 0.)).x);
 }
 
 void SampleShadow(in sampler2D i_oceanShadowSampler, float2 i_uv, in float i_wt, inout fixed2 io_shadow)

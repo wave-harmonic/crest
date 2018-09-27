@@ -60,14 +60,15 @@ Shader "Ocean/Shape/Sim/Foam"
 				{
 					float4 uv = float4(i.uv_uv_lastframe.xy, 0., 0.);
 					float4 uv_lastframe = float4(i.uv_uv_lastframe.zw, 0., 0.);
+					// #if _APPLYFLOWTONORMALS_ON
 					half4 velocity = half4(tex2Dlod(_LD_Sampler_Flow_1, uv).xy, 0., 0.);
-					//velocity = half4(10, 0, 0, 0);
-
-					// sampler will clamp the uv currently
 					half foam = tex2Dlod(_LD_Sampler_Foam_0, uv_lastframe
 						- ((_SimDeltaTime * i.invRes) * velocity)
-					).x; // TODO: use world coords here.
-
+					).x;
+					// #else
+					// // sampler will clamp the uv currently
+					// half foam = tex2Dlod(_LD_Sampler_Foam_0, uv_lastframe).x;
+					// #endif
 					//return foam + sin(_Time.w)*.004;
 					half2 r = abs(uv_lastframe.xy - 0.5);
 					if (max(r.x, r.y) > 0.5 - i.invRes)
@@ -96,7 +97,7 @@ Shader "Ocean/Shape/Sim/Foam"
 					foam += 5. * _SimDeltaTime * _WaveFoamStrength * saturate(_WaveFoamCoverage - det);
 
 					// add foam in shallow water
-					float signedOceanDepth = tex2Dlod(_LD_Sampler_SeaFloorDepth_1, uv).x + DEPTH_BIAS + disp.y;
+					float signedOceanDepth = DEPTH_BASELINE - tex2Dlod(_LD_Sampler_SeaFloorDepth_1, uv).x + disp.y;
 					foam += _ShorelineFoamStrength * _SimDeltaTime * saturate(1. - signedOceanDepth / _ShorelineFoamMaxDepth);
 
 					return foam;

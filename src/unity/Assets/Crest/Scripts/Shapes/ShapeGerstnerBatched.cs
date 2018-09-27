@@ -65,7 +65,13 @@ namespace Crest
 
         void Start()
         {
-            if( _spectrum == null )
+            if (OceanRenderer.Instance == null)
+            {
+                enabled = false;
+                return;
+            }
+
+            if ( _spectrum == null )
             {
                 _spectrum = ScriptableObject.CreateInstance<OceanWaveSpectrum>();
                 _spectrum.name = "Default Waves (auto)";
@@ -479,7 +485,6 @@ namespace Crest
 
         public Vector3 GetSurfaceVelocity(ref Vector3 in__worldPos, float toff)
         {
-            // TODO: sample flow texture?
             if (_amplitudes == null) return Vector3.zero;
 
             Vector2 pos = new Vector2(in__worldPos.x, in__worldPos.z);

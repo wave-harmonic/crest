@@ -35,12 +35,12 @@ half2 SampleNormalMaps(float2 worldXZUndisplaced, float lodAlpha)
 
 void ApplyNormalMapsWithFlow(float2 worldXZUndisplaced, float2 flow, float lodAlpha, inout half3 io_n)
 {
-	const float half_period = .05;
+	const float half_period = 1;
 	const float period = half_period * 2;
-	float sample1_offset = fmod(_Time, period);
+	float sample1_offset = fmod(_Time.y, period);
 	float sample1_weight = sample1_offset / half_period;
 	if (sample1_weight > 1.0) sample1_weight = 2.0 - sample1_weight;
-	float sample2_offset = fmod(_Time + half_period, period);
+	float sample2_offset = fmod(_Time.y + half_period, period);
 	float sample2_weight = 1.0 - sample1_weight;
 
 	// In order to prevent flow from distorting the UVs too much,

@@ -21,7 +21,7 @@ namespace Crest
             base.Start();
 
             _dataReadback = GetComponent<ReadbackLodData>();
-            _dataReadback._textureFormat = ReadbackLodData.TexFormat.RGHalf;
+            _dataReadback.SetTextureFormat(TextureFormat);
             _dataReadback._active = true;
         }
 

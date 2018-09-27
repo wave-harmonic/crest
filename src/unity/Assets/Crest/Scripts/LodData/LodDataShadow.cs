@@ -93,6 +93,18 @@ namespace Crest
         {
             base.LateUpdate();
 
+            if(_mainLight != OceanRenderer.Instance._primaryLight)
+            {
+                if(_mainLight) {
+                    _mainLight.RemoveCommandBuffer(LightEvent.BeforeScreenspaceMask, _bufCopyShadowMap);
+                    for(int i = 0; i < _shadowData.Length; i++)
+                    {
+                         Graphics.Blit(Texture2D.blackTexture, _shadowData[i]);
+                    }
+                }
+                _mainLight = null;
+            }
+
             if (!OceanRenderer.Instance._primaryLight)
             {
                 if(!Settings._allowNullLight)
@@ -102,11 +114,8 @@ namespace Crest
                 return;
             }
 
-            if(_mainLight != OceanRenderer.Instance._primaryLight)
+            if(!_mainLight)
             {
-                if(_mainLight) {
-                    _mainLight.RemoveCommandBuffer(LightEvent.BeforeScreenspaceMask, _bufCopyShadowMap);
-                }
                 if(!StartInitLight()) {
                     enabled = false;
                     return;

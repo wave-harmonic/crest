@@ -148,6 +148,7 @@ Material:
     m_Colors:
     - _DepthFogDensity: {r: 0.5568628, g: 0.4352941, b: 0.52156866, a: 1}
     - _Diffuse: {r: 0, g: 0.0067332755, b: 0.35686275, a: 1}
+    - _DiffuseShadow: {r: 0.21067381, g: 0.26255617, b: 0.294, a: 1}
     - _FoamBubbleColor: {r: 0.36416906, g: 0.62299997, b: 0.613971, a: 1}
     - _FoamWhiteColor: {r: 1, g: 0.99634784, b: 0.97199994, a: 0.6862745}
     - _SkyAwayFromSun: {r: 0.15419213, g: 0.22129796, b: 0.5372549, a: 1}
@@ -157,4 +158,5 @@ Material:
     - _SubSurfaceColour: {r: 0.10196078, g: 0.57254905, b: 0.5256646, a: 1}
     - _SubSurfaceCrestColour: {r: 0.42, g: 0.69, b: 0.52, a: 1}
     - _SubSurfaceShallowCol: {r: 0.552, g: 1, b: 1, a: 1}
+    - _SubSurfaceShallowColShadow: {r: 0.14417942, g: 0.2264151, b: 0.21173015, a: 1}
     - _SubSurfaceShallowColour: {r: 0.41999996, g: 0.75, b: 0.69, a: 1}

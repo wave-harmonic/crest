@@ -1,6 +1,6 @@
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
-uniform half4 _Diffuse;
+uniform half3 _Diffuse;
 
 #if _TRANSPARENCY_ON
 // this is copied from the render target by unity
@@ -23,6 +23,9 @@ uniform half3 _SubSurfaceCrestColour;
 uniform half _SubSurfaceDepthMax;
 uniform half _SubSurfaceDepthPower;
 uniform half3 _SubSurfaceShallowCol;
+#if _SHADOWS_ON
+uniform half3 _SubSurfaceShallowColShadow;
+#endif // _SHADOWS_ON
 #endif // _SUBSURFACESHALLOWCOLOUR_ON
 
 #if _CAUSTICS_ON
@@ -36,16 +39,28 @@ uniform half _CausticsDistortionScale;
 uniform half _CausticsDistortionStrength;
 #endif // _CAUSTICS_ON
 
+#if _SHADOWS_ON
+uniform half3 _DiffuseShadow;
+#endif
+
 half3 OceanEmission(float3 worldPos, half oceanDepth, half3 view, half3 n, half3 n_geom, float3 lightDir, fixed i_shadow, half4 grabPos, half3 screenPos, float pixelZ, half2 uvDepth, float sceneZ, float sceneZ01, half3 bubbleCol, in sampler2D i_normals, in sampler2D i_cameraDepths)
 {
 	// base colour
 	half3 col = _Diffuse;
 
+#if _SHADOWS_ON
+	col = lerp(_DiffuseShadow, col, i_shadow);
+#endif
+
 #if _SUBSURFACESCATTERING_ON
 	{
 #if _SUBSURFACESHALLOWCOLOUR_ON
 		float shallowness = pow(1. - saturate(oceanDepth / _SubSurfaceDepthMax), _SubSurfaceDepthPower);
-		col = lerp(col, _SubSurfaceShallowCol, shallowness);
+		half3 shallowCol = _SubSurfaceShallowCol;
+#if _SHADOWS_ON
+		shallowCol = lerp(_SubSurfaceShallowColShadow, shallowCol, i_shadow);
+#endif
+		col = lerp(col, shallowCol, shallowness);
 #endif
 
 #if _SUBSURFACEHEIGHTLERP_ON

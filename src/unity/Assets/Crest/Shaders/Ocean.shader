@@ -25,7 +25,6 @@ Shader "Ocean/Ocean"
 		_SubSurfaceDepthMax("    Depth Max", Range(0.01, 50.0)) = 3.0
 		_SubSurfaceDepthPower("    Depth Power", Range(0.01, 10.0)) = 1.0
 		_SubSurfaceShallowCol("    Shallow Colour", Color) = (0.42, 0.75, 0.69)
-		_SubSurfaceShallowColShadow("    Shallow Colour Shadow", Color) = (0.42, 0.75, 0.69)
 		[Toggle] _Foam("Foam", Float) = 1
 		[NoScaleOffset] _FoamTexture ( "    Texture", 2D ) = "white" {}
 		_FoamScale("    Scale", Range(0.01, 50.0)) = 10.0
@@ -59,7 +58,8 @@ Shader "Ocean/Ocean"
 		_SkyDirectionality("    Directionality", Range(0.0, 0.99)) = 1.0
 		[HDR] _SkyAwayFromSun("    Away From Sun", Color) = (1.0, 1.0, 1.0, 1.0)
 		[Toggle] _Shadows("Shadows", Float) = 1
-		_DiffuseShadow("    Diffuse", Color) = (0.2, 0.05, 0.05, 1.0)
+		_DiffuseShadow("    Diffuse Colour", Color) = (0.2, 0.05, 0.05, 1.0)
+		_SubSurfaceShallowColShadow("    Shallow Colour", Color) = (0.42, 0.75, 0.69)
 		[Toggle] _ApplyFlowToNormals("Apply Flow To Normals (Experimental)", Float) = 0
 		[Enum(CullMode)] _CullMode("Cull Mode", Int) = 2
 		[Toggle] _DebugDisableShapeTextures("Debug Disable Shape Textures", Float) = 0

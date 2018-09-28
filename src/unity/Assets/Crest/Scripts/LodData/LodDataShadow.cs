@@ -48,12 +48,6 @@ namespace Crest
                 _shadowData[i].anisoLevel = 0;
             }
 
-            if (!StartInitLight())
-            {
-                enabled = false;
-                return;
-            }
-
             _renderMaterial = new Material(Shader.Find("Ocean/ShadowUpdate"));
 
             _cameraMain = Camera.main;
@@ -74,12 +68,6 @@ namespace Crest
         bool StartInitLight()
         {
             _mainLight = OceanRenderer.Instance._primaryLight;
-
-            if (!_mainLight)
-            {
-                Debug.LogError("Primary light must be specified on OceanRenderer script to enable shadows.", this);
-                return false;
-            }
 
             if (_mainLight.type != LightType.Directional)
             {
@@ -105,7 +93,36 @@ namespace Crest
         {
             base.LateUpdate();
 
-            if (!_mainLight) return;
+            if(_mainLight != OceanRenderer.Instance._primaryLight)
+            {
+                if(_mainLight)
+                {
+                    _mainLight.RemoveCommandBuffer(LightEvent.BeforeScreenspaceMask, _bufCopyShadowMap);
+                    for(int i = 0; i < _shadowData.Length; i++)
+                    {
+                         Graphics.Blit(Texture2D.blackTexture, _shadowData[i]);
+                    }
+                }
+                _mainLight = null;
+            }
+
+            if (!OceanRenderer.Instance._primaryLight)
+            {
+                if(!Settings._allowNullLight)
+                {
+                    Debug.LogWarning("Primary light must be specified on OceanRenderer script to enable shadows.", this);
+                }
+                return;
+            }
+
+            if(!_mainLight)
+            {
+                if(!StartInitLight())
+                {
+                    enabled = false;
+                    return;
+                }
+            }
 
             if (_bufCopyShadowMap == null && s_processData)
             {

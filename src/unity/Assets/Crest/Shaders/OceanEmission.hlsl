@@ -1,6 +1,6 @@
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
-uniform half4 _Diffuse;
+uniform half3 _Diffuse;
 
 // this is copied from the render target by unity
 uniform sampler2D _BackgroundTexture;
@@ -26,6 +26,9 @@ uniform half3 _SubSurfaceCrestColour;
 uniform half _SubSurfaceDepthMax;
 uniform half _SubSurfaceDepthPower;
 uniform half3 _SubSurfaceShallowCol;
+#if _SHADOWS_ON
+uniform half3 _SubSurfaceShallowColShadow;
+#endif // _SHADOWS_ON
 #endif // _SUBSURFACESHALLOWCOLOUR_ON
 
 #if _CAUSTICS_ON
@@ -39,14 +42,22 @@ uniform half _CausticsDistortionScale;
 uniform half _CausticsDistortionStrength;
 #endif // _CAUSTICS_ON
 
+#if _SHADOWS_ON
+uniform half3 _DiffuseShadow;
+#endif
 
 half3 ScatterColour(
 	in const float3 i_surfaceWorldPos, in const half i_surfaceOceanDepth, in const float3 i_cameraPos,
 	in const half3 i_lightDir, in const half3 i_view, in const fixed i_shadow,
 	in const bool i_underWater, in const bool i_outscatterLight)
+// half3 OceanEmission(float3 worldPos, half oceanDepth, half3 view, half3 n, half3 n_geom, float3 lightDir, fixed i_shadow, half4 grabPos, half3 screenPos, float pixelZ, half2 uvDepth, float sceneZ, float sceneZ01, half3 bubbleCol, in sampler2D i_normals, in sampler2D i_cameraDepths)
 {
 	// base colour
 	half3 col = _Diffuse;
+
+	#if _SHADOWS_ON
+		col = lerp(_DiffuseShadow, col, i_shadow);
+	#endif
 
 	half depth;
 	half waveHeight;
@@ -69,8 +80,12 @@ half3 ScatterColour(
 #if _SUBSURFACESCATTERING_ON
 	{
 #if _SUBSURFACESHALLOWCOLOUR_ON
-		float shallowness = pow(1. - saturate(depth / _SubSurfaceDepthMax), _SubSurfaceDepthPower);
-		col = lerp(col, _SubSurfaceShallowCol, shallowness);
+		float shallowness = pow(1. - saturate(i_surfaceOceanDepth / _SubSurfaceDepthMax), _SubSurfaceDepthPower);
+		half3 shallowCol = _SubSurfaceShallowCol;
+#if _SHADOWS_ON
+		shallowCol = lerp(_SubSurfaceShallowColShadow, shallowCol, i_shadow);
+#endif
+		col = lerp(col, shallowCol, shallowness);
 #endif
 
 #if _SUBSURFACEHEIGHTLERP_ON
@@ -149,7 +164,7 @@ half3 OceanEmission(in const half3 i_view, in const half3 i_n_pixel, in const fl
 
 #if _TRANSPARENCY_ON
 
-	// have we hit a surface? this check ensures we're not sampling an unpopulated backbuffer. 
+	// have we hit a surface? this check ensures we're not sampling an unpopulated backbuffer.
 	if (i_sceneZ01 != 0.0)
 	{
 		// view ray intersects geometry surface either above or below ocean surface

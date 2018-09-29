@@ -44,6 +44,7 @@ namespace Crest
             base.Start();
 
             _dataReadback = GetComponent<ReadbackLodData>();
+            _dataReadback.SetTextureFormat(TextureFormat);
         }
         public void HookCombinePass(Camera camera, CameraEvent onEvent)
         {

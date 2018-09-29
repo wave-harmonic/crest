@@ -39,7 +39,9 @@ namespace Crest
             // assign sea floor depth - to slot 1 current frame data
             animWaves[lodIdx].LDSeaDepth.BindResultData(1, simMaterial);
             // assign flow - to slot 1 current frame data
-            if (OceanRenderer.Instance._createFlowSim) animWaves[lodIdx].LDFlow.BindResultData(1, simMaterial);
+            if (OceanRenderer.Instance._createFlowSim) {
+                animWaves[lodIdx].LDFlow.BindResultData(1, simMaterial);
+            }
         }
 
         SimSettingsFoam Settings { get { return _settings as SimSettingsFoam; } }

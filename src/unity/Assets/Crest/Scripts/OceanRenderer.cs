@@ -60,7 +60,6 @@ namespace Crest
         public bool _createDynamicWaveSim = false;
         public SimSettingsWave _simSettingsDynamicWaves;
         public bool _createFlowSim = false;
-        public SimSettingsFlow _simSettingsFlow;
 
         public bool _createShadowData = false;
         [Tooltip("The primary directional light. Required if shadowing is enabled.")]

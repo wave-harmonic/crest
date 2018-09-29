@@ -107,7 +107,9 @@ half3 ScatterColour(
 	if (i_outscatterLight)
 	{
 		half camDepth = i_surfaceWorldPos.y - _WorldSpaceCameraPos.y;
-		col *= exp(-_DepthFogDensity.xyz * camDepth * DEPTH_OUTSCATTER_CONSTANT);
+		if(camDepth > 0) {
+			col *= exp(-_DepthFogDensity.xyz * camDepth * DEPTH_OUTSCATTER_CONSTANT);
+		}
 	}
 
 	return col;

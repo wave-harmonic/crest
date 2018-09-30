@@ -41,7 +41,7 @@ uniform half _DirectionalLightBoost;
 uniform samplerCUBE _Skybox;
 #endif
 
-void ApplyReflection(half3 view, half3 n_pixel, half3 lightDir, half shadow, half4 i_screenPos, inout half3 col)
+void ApplyReflectionSky(half3 view, half3 n_pixel, half3 lightDir, half shadow, half4 i_screenPos, inout half3 col)
 {
 	// Reflection
 	half3 refl = reflect(-view, n_pixel);
@@ -68,4 +68,24 @@ void ApplyReflection(half3 view, half3 n_pixel, half3 lightDir, half shadow, hal
 	// schlick's approximation
 	float R_theta = R_0 + (1.0 - R_0) * pow(1.0 - max(dot(n_pixel, view), 0.), _FresnelPower);
 	col = lerp(col, skyColour, R_theta);
+}
+
+void ApplyReflectionUnderwater(half3 view, half3 n_pixel, half3 lightDir, half shadow, half4 i_screenPos, inout half3 col)
+{
+	// TODO: refraction from water->air is different then the inverse,
+	// need to find the equations for that
+	// Reflection
+	half3 refl = reflect(-view, n_pixel);
+
+	// TODO: calculate what will be reflected back from the deep
+	half3 underwaterColor = half3(0, 0, .1);
+
+	// Fresnel
+	const float IOR_AIR = 1.0;
+	const float IOR_WATER = 1.33;
+	// reflectance at facing angle
+	float R_0 = (IOR_AIR - IOR_WATER) / (IOR_AIR + IOR_WATER); R_0 *= R_0;
+	// schlick's approximation
+	float R_theta = R_0 + (1.0 - R_0) * pow(1.0 - max(dot(n_pixel, view), 0.), _FresnelPower);
+	col = lerp(col, underwaterColor, R_theta);
 }

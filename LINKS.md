@@ -74,12 +74,30 @@
 * Mixes SPH and WE, uses SPH to get low frequency 3D flow: http://citeseerx.ist.psu.edu/viewdoc/download;jsessionid=8A10D0187910134E8C8330AF1C57B146?doi=10.1.1.127.1749&rep=rep1&type=pdf
 * Mueller - deposits splash particles on surface, video: https://www.youtube.com/watch?v=bojdpqi2l_o
 
-### Ref videos
+### Meshing
+
+* Real-time Optimally-Adapting Meshes - http://www.cognigraph.com/ROAM_homepage/
+
+### Ref - wave videos
 
 * Big waves (Top Fives) - https://www.youtube.com/watch?v=lwuKvmNQrRM . The wave at 8:40 is a monster! Nice foam/bubble ref from 9:05.
 * Boat wakes
 ..* https://www.youtube.com/watch?v=BvB-iYHjqw4
 
-### Meshing
+### Ref - photos
 
-* Real-time Optimally-Adapting Meshes - http://www.cognigraph.com/ROAM_homepage/
+* Shallow water / ocean colouring: https://static1.squarespace.com/static/52cc03b7e4b0f8365c6e11c7/55e807e8e4b018b9867d9e0b/55e80e41e4b0f4565e4d9236/1441271361373/MZA0146-%C2%AETPESCHAK.jpg?format=1000w
+* Shallow water: https://imgcs.artprintimages.com/img/print/print/louise-murray-aerial-photography-of-coral-reef-formations-of-the-great-barrier-reef_a-l-13832306-4990827.jpg?w=550&h=550
+* Crazy shallow water colour: https://www.researchgate.net/profile/Ruy_Kikuchi/publication/306096339/figure/fig2/AS:401490431758337@1472734186304/Aerial-photograph-of-Porto-de-Galinhas-coral-reef-on-the-coast-of-the-State-of.png
+
+### Ref - underwater photos
+
+* Underwater surfers: https://images.fineartamerica.com/images/artworkimages/mediumlarge/1/reef-surfers-sean-davey.jpg
+* Underwater waves: https://static1.squarespace.com/static/52cc03b7e4b0f8365c6e11c7/t/56964bbed8af10829fdf06b7/1452690366672/Thomas+Peschak+13.jpg?format=2500w
+* Water transition: https://static1.squarespace.com/static/52cc03b7e4b0f8365c6e11c7/55eeb228e4b0ca03718d0110/55eeb284e4b05b152fccb7ac/1441706629593/_DSC1344-%C2%AEThomas+P.+Peschak.jpg?format=1000w
+* Water transition: https://static1.squarespace.com/static/52cc03b7e4b0f8365c6e11c7/55ed83e5e4b0b8a6d109b00a/55ed8562e4b067c4314e3c10/1441629539099/010Arabian+Seas-%C2%AEThomas+P.+Peschak.jpg?format=1000w
+* Great barrier reef, water transition: http://katiepurlingphotography.com/galleries/under-the-sea-on-the-great-barrier-reef/
+
+### Other
+
+* Ocean transparency measurements: http://www.dtic.mil/dtic/tr/fulltext/u2/718333.pdf

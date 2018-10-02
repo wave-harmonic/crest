@@ -106,12 +106,13 @@ Material:
     - _Invert: 1
     - _MipBias: 0
     - _Moving: 0.17
-    - _NormalsScale: 30
-    - _NormalsStrength: 0.22
+    - _NormalsScale: 20
+    - _NormalsStrength: 0.7
     - _Offset: 0.00008
     - _PlanarReflections: 0
     - _ProceduralSky: 0
     - _RefractAmt: 0
+    - _RefractionStrength: 0.1
     - _S: 1
     - _Shadows: 0
     - _ShorelineFoamMinDepth: 0.27

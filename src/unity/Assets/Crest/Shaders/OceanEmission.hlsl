@@ -8,7 +8,7 @@ uniform sampler2D _BackgroundTexture;
 #define DEPTH_OUTSCATTER_CONSTANT 0.25
 
 #if _TRANSPARENCY_ON
-
+uniform half _RefractionStrength;
 #endif // _TRANSPARENCY_ON
 uniform half4 _DepthFogDensity;
 
@@ -172,8 +172,8 @@ half3 OceanEmission(in const half3 i_view, in const half3 i_n_pixel, in const fl
 	{
 		// view ray intersects geometry surface either above or below ocean surface
 
-		half2 uvBackgroundRefract = i_grabPos.xy / i_grabPos.w + .02 * i_n_pixel.xz;
-		half2 uvDepthRefract = i_uvDepth + .02 * i_n_pixel.xz;
+		half2 uvBackgroundRefract = i_grabPos.xy / i_grabPos.w + _RefractionStrength * i_n_pixel.xz;
+		half2 uvDepthRefract = i_uvDepth + _RefractionStrength * i_n_pixel.xz;
 		half3 sceneColour = tex2D(_BackgroundTexture, uvBackgroundRefract).rgb;
 		half3 alpha = 0.;
 
@@ -205,7 +205,7 @@ half3 OceanEmission(in const half3 i_view, in const half3 i_n_pixel, in const fl
 	{
 		// we've not hit a surface but we're under the water surface - in this case we need to compute an alpha
 		// based on distance to the water surface, and then refract the sky.
-		half2 uvBackgroundRefract = i_grabPos.xy / i_grabPos.w + .02 * i_n_pixel.xz;
+		half2 uvBackgroundRefract = i_grabPos.xy / i_grabPos.w + _RefractionStrength * i_n_pixel.xz;
 		half3 sceneColour = tex2D(_BackgroundTexture, uvBackgroundRefract).rgb;
 		half3 alpha = 1. - exp(-_DepthFogDensity.xyz * i_pixelZ);
 		col = lerp(sceneColour, col, alpha);

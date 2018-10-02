@@ -40,6 +40,7 @@ Shader "Ocean/Ocean"
 		_WaveFoamSpecularBoost("    Specular Boost", Range(0.0, 16.0)) = 4.0
 		[Toggle] _Transparency("Transparency", Float) = 1
 		_DepthFogDensity("    Density", Vector) = (0.28, 0.16, 0.24, 1.0)
+		_RefractionStrength("    Refraction Strength", Range(0.0, 1.0)) = 0.1
 		[Toggle] _Caustics("Caustics", Float) = 1
 		[NoScaleOffset] _CausticsTexture ( "    Caustics", 2D ) = "black" {}
 		_CausticsTextureScale("    Scale", Range(0.0, 25.0)) = 5.0

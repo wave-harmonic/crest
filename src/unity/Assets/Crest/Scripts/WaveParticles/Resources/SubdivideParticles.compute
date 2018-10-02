@@ -1,0 +1,77 @@
+﻿#include "Assets/Crest/Scripts/WaveParticles/Resources/Utils.compute"
+#include "Assets/Crest/Scripts/WaveParticles/Resources/WaveParticleStruct.compute"
+
+const uint numSubdivisions;
+const float killThreshold;
+RWStructuredBuffer<WaveParticle> waveParticleBuffer;
+StructuredBuffer<int> particleIndicesToSubdivideBuffer;
+AppendStructuredBuffer<WaveParticle> particlesToAddAppendBuffer;
+
+#pragma kernel SubdivideParticles
+[numthreads(THREAD_GROUPS_X, 1, 1)]
+void SubdivideParticles(uint3 id: SV_DispatchThreadID) {
+	if (id.x >= numSubdivisions) {
+		return;
+	}
+	const int index = particleIndicesToSubdivideBuffer[id.x];
+
+	WaveParticle particle = waveParticleBuffer[index];
+	waveParticleBuffer[index] = DEAD_PARTICLE;
+
+	if (abs(particle.amplitude) < killThreshold) {
+		return;
+	}
+
+	const float2 origin = particle.origin;
+	const float newDispersionAngle = particle.dispersionAngle / 3.0;
+	const float newAmplitude = particle.amplitude / 3.0;
+
+	const matrix <float, 2, 2> leftMatrix = {
+		cos(newDispersionAngle), sin(newDispersionAngle),
+		-sin(newDispersionAngle), cos(newDispersionAngle)
+	};
+
+	const matrix <float, 2, 2> rightMatrix = {
+		cos(-newDispersionAngle), sin(-newDispersionAngle),
+		-sin(-newDispersionAngle), cos(-newDispersionAngle)
+	};
+
+	const float2 middleVelocity = particle.velocity;
+	const float2 leftVelocity = mul(leftMatrix, middleVelocity);
+	const float2 rightVelocity = mul(rightMatrix, middleVelocity);
+
+	WaveParticle middleParticle = { origin, middleVelocity, newAmplitude, newDispersionAngle, particle.startingFrame };
+	WaveParticle leftParticle = { origin, leftVelocity, newAmplitude, newDispersionAngle, particle.startingFrame };
+	WaveParticle rightParticle = { origin, rightVelocity, newAmplitude, newDispersionAngle, particle.startingFrame };
+	particlesToAddAppendBuffer.Append(middleParticle);
+	particlesToAddAppendBuffer.Append(leftParticle);
+	particlesToAddAppendBuffer.Append(rightParticle);
+}
+
+const int currentHead;
+const int particleContainerSize;
+const int frameCycleLength;
+const uint numParticlesToAdd;
+const float waveParticleRadius;
+const float fixedDeltaTime;
+const float particleSpeed;
+
+ConsumeStructuredBuffer<WaveParticle> particlesToAddConsumeBuffer;
+RWStructuredBuffer<int2> subdivisionData;
+
+#pragma kernel AddSubdividedParticles
+[numthreads(THREAD_GROUPS_X, 1, 1)]
+void AddSubdividedParticles(uint3 id: SV_DispatchThreadID) {
+	if (id.x >= numParticlesToAdd) {
+		return;
+	}
+	WaveParticle particle = particlesToAddConsumeBuffer.Consume();
+	int particleIndex = (currentHead + id.x) % particleContainerSize;
+
+	float timeToSubdivision = waveParticleRadius * 0.5f / (particleSpeed * particle.dispersionAngle);
+	uint subdivisionFrame = ((uint) round(timeToSubdivision / fixedDeltaTime)) % frameCycleLength;
+	subdivisionFrame = (subdivisionFrame + particle.startingFrame) % frameCycleLength;
+
+	subdivisionData[id.x] = int2(particleIndex, subdivisionFrame);
+	waveParticleBuffer[particleIndex] = particle;
+}

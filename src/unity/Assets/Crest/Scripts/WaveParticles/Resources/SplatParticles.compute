@@ -1,0 +1,33 @@
+﻿#include "Assets/Crest/Scripts/WaveParticles/Resources/Utils.compute"
+#include "Assets/Crest/Scripts/WaveParticles/Resources/WaveParticleStruct.compute"
+#include "Assets/Crest/Scripts/WaveParticles/Resources/WaveParticleStruct.compute"
+const float fixedDeltaTime;
+const int currentFrame;
+const float particleSpeed;
+float2 getPosition(int startingFrame, float2 velocity, float2 origin) {
+	float t = (fixedDeltaTime * (float)(currentFrame - startingFrame));
+	return origin + (t * particleSpeed * velocity);
+}
+
+// TODO: investigate making this an int2?
+const int horiRes;
+const int vertRes;
+const float planeWidth;
+const float planeHeight;
+StructuredBuffer<WaveParticle> waveParticleBuffer;
+RWTexture2D<float4> splatTexture;
+
+///
+/// Splat the wave particles to the splatTexture
+///
+#pragma kernel SplatParticles
+[numthreads(THREAD_GROUPS_X, 1, 1)]
+void SplatParticles(uint3 id : SV_DispatchThreadID)
+{
+	WaveParticle particle = waveParticleBuffer[id.x];
+	float2 waveParticlePosition = getPosition(particle.startingFrame, particle.velocity, particle.origin);
+	int xPos = (int)round((waveParticlePosition.x / planeWidth) * horiRes);
+	int yPos = (int)round((waveParticlePosition.y / planeHeight) * vertRes);
+	splatTexture[int2(xPos, yPos)] += float4(0.0, particle.amplitude, 0.0, 0.0);
+
+}

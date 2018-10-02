@@ -2,10 +2,9 @@
 using UnityEngine.Assertions;
 using System.Collections.Generic;
 using System;
-using UnityEngine.Profiling;
 
 // TODO: insert many assertions into this class.
-public class WaveParticles
+public class WaveParticlesSystem
 {
     /// TODO: give an explanation of this
     private const int THREAD_GROUPS_X = 8;
@@ -61,27 +60,6 @@ public class WaveParticles
     private int kernel_AddSubdividedParticles;
 
     /// <summary>
-    /// There are 3 kinds of AntiAliasing:
-    ///
-    /// NONE  - No AntiAliasing is applied at all
-    /// SMART - Each WaveParticle is splatted across 4 pixels in varying proportions corresponding to its position
-    /// SCALE - The WaveParticles are splatted to a high-resolution texture which is then downsampled
-    /// </summary>
-    private enum AntiAlias
-    {
-        NONE = 0,
-        SMART = 1,
-        SCALE = 2
-    }
-
-    private const string ANTI_ALIASED = "antiAliased";
-    // The downscaling factor for "SCALE" anti-aliasing
-    private const string ANTI_ALIAS_FACTOR = "antiAliasFactor";
-
-    private AntiAlias antiAliased = AntiAlias.SCALE;
-    private const int antiAliasFactor = 4;
-
-    /// <summary>
     ///
     /// The way we handle subdivision events, is through the use of two arrays.
     ///
@@ -128,13 +106,6 @@ public class WaveParticles
     private int _pendingParticlesHead = 0;
     private WaveParticle[] _pendingParticles;
 
-
-    // Downsampling information
-    private Material downsampleMaterial;
-    private int DOWNSAMPLE_ANTI_ALIAS_FACTOR_ID;
-    private int DOWNSAMPLE_TEXTURE_WIDTH_ID;
-    private int DOWNSAMPLE_TEXTURE_HEIGHT_ID;
-
     public void Initialise(int numParticles, float waveParticleKillThreshold)
     {
         _particleContainerSize = numParticles;
@@ -164,11 +135,6 @@ public class WaveParticles
         }
 
         _pendingParticles = new WaveParticle[numParticles / 10];
-
-        downsampleMaterial = new Material(Shader.Find("Unlit/DownSampleTexture"));
-        DOWNSAMPLE_ANTI_ALIAS_FACTOR_ID = Shader.PropertyToID("_antiAliasFactor");
-        DOWNSAMPLE_TEXTURE_WIDTH_ID = Shader.PropertyToID("_textureWidth");
-        DOWNSAMPLE_TEXTURE_HEIGHT_ID = Shader.PropertyToID("_textureHeight");
     }
 
     public void setWaveParticleKillThreshold(float waveParticleKillThreshold)
@@ -378,40 +344,21 @@ public class WaveParticles
         particleIndicesToSubdivideBuffer.Release();
     }
 
-    public void calculateReflections(int currentFrame)
+    public void splatParticles(int currentFrame, ref ExtendedHeightField pointMap)
     {
-    }
 
-    Texture2D outputTexture = null;
-    RenderTexture downscaleRenderTexture = null;
-
-    public void setPointMap(int currentFrame, ref ExtendedHeightField pointMap)
-    {
-        Profiler.BeginSample("Set Point Map Internal");
-        Profiler.BeginSample("Initialisation");
         ///
         /// Initialise _splatTexture if it hasn't been yet.
         ///
         if (_splatTexture == null)
         {
-            if (antiAliased == AntiAlias.SCALE)
-            {
-                _splatTexture = new RenderTexture(pointMap.HoriRes * antiAliasFactor, pointMap.VertRes * antiAliasFactor, 24, RenderTextureFormat.ARGBFloat);
-            }
-            else
-            {
-                _splatTexture = new RenderTexture(pointMap.HoriRes, pointMap.VertRes, 24, RenderTextureFormat.ARGBFloat);
-            }
-            _splatTexture.enableRandomWrite = true;
+            _splatTexture = pointMap.textureHeightMap;
         }
 
         if (!_splatTexture.IsCreated())
         {
             _splatTexture.Create();
         }
-        Profiler.EndSample();
-
-        Profiler.BeginSample("Intitialise Splatter");
         ///
         /// Initialise the SplatParticles GPU Compute Kernel to splat the particles to a texture
         ///
@@ -424,87 +371,12 @@ public class WaveParticles
         _gpuSplatParticles.SetInt(VERT_RES, pointMap.VertRes);
         _gpuSplatParticles.SetFloat(PLANE_WIDTH, pointMap.Width);
         _gpuSplatParticles.SetFloat(PLANE_HEIGHT, pointMap.Height);
-        _gpuSplatParticles.SetInt(ANTI_ALIASED, (int)antiAliased);
-        _gpuSplatParticles.SetInt(ANTI_ALIAS_FACTOR, antiAliasFactor);
 
         ///
         /// Dispatch the kernel that splats wave particles to the _splatTexture
         ///
         _gpuSplatParticles.Dispatch(kernel_SplatParticles, ((int)_particleContainerSize) / THREAD_GROUPS_X, 1, 1);
-        Profiler.EndSample();
-
-        Profiler.BeginSample("Do the splatting");
-        if (antiAliased == AntiAlias.SCALE)
-        {
-            ///
-            /// As we have SCALE anti-aliasing, we need to downscale the texture to a new one.
-            ///
-
-            downsampleMaterial.SetInt(DOWNSAMPLE_ANTI_ALIAS_FACTOR_ID, antiAliasFactor);
-            downsampleMaterial.SetInt(DOWNSAMPLE_TEXTURE_WIDTH_ID, pointMap.HoriRes);
-            downsampleMaterial.SetInt(DOWNSAMPLE_TEXTURE_HEIGHT_ID, pointMap.VertRes);
-
-            if (outputTexture == null || downscaleRenderTexture == null)
-            {
-                pointMap.InitialiseTexture(out outputTexture, name: "Downscale Output Texture");
-
-                // Set the texture to the active one so that it's values can be read back out to the pointMapTexture
-                downscaleRenderTexture = new RenderTexture(pointMap.HoriRes, pointMap.VertRes, 24, RenderTextureFormat.ARGBFloat);
-            }
-
-            if (!downscaleRenderTexture.IsCreated())
-            {
-                downscaleRenderTexture.Create();
-            }
-
-            RenderTexture.active = downscaleRenderTexture;
-
-            GL.Clear(true, true, Color.black);
-
-            // Blit what is stored in the _splatTexture to downscaleRenderTexture
-            Graphics.Blit(_splatTexture, downscaleRenderTexture, downsampleMaterial);
-
-            // Read back values from the render texture
-            outputTexture.ReadPixels(new Rect(0, 0, outputTexture.width, outputTexture.height), 0, 0, false);
-            outputTexture.Apply();
-
-
-            RenderTexture.active = _splatTexture;
-            downscaleRenderTexture.Release();
-
-            GL.Clear(true, true, Color.black);
-
-            RenderTexture.active = null;
-            pointMap.UpdateTexture(outputTexture);
-        }
-        else
-        {
-            // Copy RenderTexture to a Texture2D
-            RenderTexture.active = _splatTexture;
-
-            if (outputTexture == null)
-            {
-                pointMap.InitialiseTexture(out outputTexture, name: "Point Map Texture");
-            }
-
-            // Read back values from the render texture
-            outputTexture.ReadPixels(new Rect(0, 0, outputTexture.width, outputTexture.height), 0, 0, false);
-            outputTexture.Apply();
-
-            pointMap.UpdateTexture(outputTexture);
-
-            GL.Clear(true, true, Color.black);
-            RenderTexture.active = null;
-        }
-        Profiler.EndSample();
-        Profiler.EndSample();
     }
-
-    public IEnumerator<WaveParticle> GetEnumerator()
-    {
-        throw new NotImplementedException();
-    }
-
 
     public void OnDestroy()
     {

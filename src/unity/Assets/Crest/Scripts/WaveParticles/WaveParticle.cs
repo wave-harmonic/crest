@@ -7,6 +7,8 @@ public struct WaveParticle
     // TODO: fix faster speeds not being properly handled :(
     public const float PARTICLE_SPEED = 1f;
     public static readonly WaveParticle DEAD_PARTICLE = new WaveParticle(new Vector2(0, 0), new Vector2(0, 0), 0, 0, 0);
+
+	// TODO: look into calculating this more intelligently
     public const int STRIDE = (4 * sizeof(float)) + (2 * sizeof(float)) + sizeof(uint);
     // TODO: This should be a property of wave particle speed and longest time between subdivisions!
     public const int FRAME_CYCLE_LENGTH = 10000;

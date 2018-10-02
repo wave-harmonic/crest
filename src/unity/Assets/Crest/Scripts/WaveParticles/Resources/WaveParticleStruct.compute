@@ -1,0 +1,20 @@
+﻿#ifndef WAVE_PARTICLE_STRUCT
+#define WAVE_PARTICLE_STRUCT
+
+struct WaveParticle {
+	float2 origin;
+	float2 velocity;
+	float amplitude;
+	float dispersionAngle;
+	int startingFrame;
+};
+
+static const WaveParticle DEAD_PARTICLE = {
+	float2(0.0, 0.0),
+	float2(0.0, 0.0),
+	0.0,
+	0.0,
+	0
+};
+
+#endif

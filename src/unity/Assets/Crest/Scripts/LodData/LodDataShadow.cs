@@ -98,7 +98,8 @@ namespace Crest
                 if(_mainLight)
                 {
                     _mainLight.RemoveCommandBuffer(LightEvent.BeforeScreenspaceMask, _bufCopyShadowMap);
-                    for(int i = 0; i < _shadowData.Length; i++)
+                    _bufCopyShadowMap = null;
+                    for (int i = 0; i < _shadowData.Length; i++)
                     {
                          Graphics.Blit(Texture2D.blackTexture, _shadowData[i]);
                     }

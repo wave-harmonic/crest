@@ -74,11 +74,11 @@ namespace Crest
         }
 
         void Update() {
-            // TODO: clear height field
             RenderTexture.active = _heightField.textureHeightMap;
             GL.Clear(true, true, Color.black);
             RenderTexture.active = null;
-            // Create a small ripple of particles
+
+            // Create a small ripple of particles, as it has a dispersion angle of 360
             {
                 WaveParticle waveParticle = WaveParticle.createWaveParticle(Vector2.zero, new Vector2(0.5f, 0.5f), 0.8f, Mathf.PI * 2, _frame);
                 _waveParticlesSystem.addParticle(waveParticle);
@@ -96,7 +96,7 @@ namespace Crest
             GL.Clear(true, true, Color.black);
             Graphics.Blit(_heightField.textureHeightMap, _finalTexture, convolutionMaterial);
 
-            _frame++;
+            _frame = (_frame + 1) % WaveParticle.FRAME_CYCLE_LENGTH;
         }
 
     }

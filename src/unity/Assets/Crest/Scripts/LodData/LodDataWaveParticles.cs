@@ -61,6 +61,7 @@ namespace Crest
                 _finalTexture.autoGenerateMips = false;
                 _finalTexture.wrapMode = TextureWrapMode.Clamp;
                 _finalTexture.filterMode = FilterMode.Point;
+                _finalTexture.name = "Final Texture";
                 _finalTexture.Create();
                 meshRenderer.material.SetTexture("_MainTex", _finalTexture);
 
@@ -68,6 +69,7 @@ namespace Crest
                 int  kernelHeight = Mathf.CeilToInt((WaveParticle.RADIUS / _heightField.heightFieldInfo.Height) * _heightField.heightFieldInfo.VertRes);
                 Color[] kernelArray = CreateKernel(kernelHeight, kernelWidth, _heightField.heightFieldInfo);
                 _convolutionKernel = new Texture2D(kernelWidth, kernelHeight, TextureFormat.RGBAFloat, false);
+                _convolutionKernel.name = "Convolution Kernel";
                 _convolutionKernel.SetPixels(kernelArray);
                 _convolutionKernel.Apply();
                 convolutionMaterial.SetTexture(Shader.PropertyToID("_KernelTex"), _convolutionKernel);
@@ -80,17 +82,12 @@ namespace Crest
 
             // Create a small ripple of particles, as it has a dispersion angle of 360
             {
-                WaveParticle waveParticle = WaveParticle.createWaveParticle(Vector2.zero, new Vector2(0.5f, 0.5f), 0.8f, Mathf.PI * 2, _frame);
+                WaveParticle waveParticle = WaveParticle.createWaveParticle(Vector2.one * 4f, new Vector2(0.5f, 0.5f), 0.8f, Mathf.PI * 2, _frame);
                 _waveParticlesSystem.addParticle(waveParticle);
             }
             _waveParticlesSystem.commitParticles();
             _waveParticlesSystem.calculateSubdivisions(_frame);
             _waveParticlesSystem.splatParticles(_frame, ref _heightField);
-
-            if (!_finalTexture.IsCreated())
-            {
-                _finalTexture.Create();
-            }
 
             RenderTexture.active = _finalTexture;
             GL.Clear(true, true, Color.black);

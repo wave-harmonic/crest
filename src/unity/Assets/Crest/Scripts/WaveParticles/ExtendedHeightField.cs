@@ -36,18 +36,19 @@ public class ExtendedHeightField
 
     // TODO: rethink how states are handles so that code is less messy
     // DOCUMENT HOW STATES WORK AND THEIR PURPOSE
-    private enum State { IN_SYNC, GPU_DIRTY, GPU_UNITIALISED }
-    private State state = State.GPU_UNITIALISED;
+    private enum State { INITIALISED, UNINITIALISED }
+    private State state = State.UNINITIALISED;
 
     private RenderTexture _textureHeightMap;
     public RenderTexture textureHeightMap
     {
         get
         {
-            if (state == State.GPU_UNITIALISED)
+            if (state == State.UNINITIALISED)
             {
                 InitialiseTexture(out _textureHeightMap);
             }
+            state = State.INITIALISED;
             return _textureHeightMap;
         }
     }

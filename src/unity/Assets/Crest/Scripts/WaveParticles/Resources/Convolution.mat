@@ -66,10 +66,10 @@ Material:
     - _GlossMapScale: 1
     - _Glossiness: 0.5
     - _GlossyReflections: 1
-    - _Height: 4
-    - _HoriRes: 80
-    - _KernelHeight: 10
-    - _KernelWidth: 10
+    - _Height: 8
+    - _HoriRes: 1024
+    - _KernelHeight: 26
+    - _KernelWidth: 26
     - _Metallic: 0
     - _Mode: 0
     - _OcclusionStrength: 1
@@ -79,8 +79,8 @@ Material:
     - _SpecularHighlights: 1
     - _SrcBlend: 1
     - _UVSec: 0
-    - _VertRes: 80
-    - _Width: 4
+    - _VertRes: 1024
+    - _Width: 8
     - _ZWrite: 1
     m_Colors:
     - _Color: {r: 1, g: 1, b: 1, a: 1}

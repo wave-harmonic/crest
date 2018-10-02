@@ -328,9 +328,12 @@ Shader "Ocean/Ocean"
 					half3 col = OceanEmission(view, n_pixel, lightDir, i.grabPos, pixelZ, uvDepth, sceneZ, sceneZ01, bubbleCol, _Normals, _CameraDepthTexture, underwater, scatterCol);
 
 					// Light that reflects off water surface
-					if(!underwater) {
+					if (!underwater)
+					{
 						ApplyReflectionSky(view, n_pixel, lightDir, shadow.y, i.foam_screenPos.yzzw, col);
-					} else {
+					}
+					else
+					{
 						ApplyReflectionUnderwater(view, n_pixel, lightDir, shadow.y, i.foam_screenPos.yzzw, col);
 					}
 

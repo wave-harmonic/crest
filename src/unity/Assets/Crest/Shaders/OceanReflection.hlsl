@@ -88,10 +88,13 @@ void ApplyReflectionUnderwater(half3 view, half3 n_pixel, half3 lightDir, half s
 	float transitionDelta = .1;
 	// a hack to interpolate from refraction to TIR.
 	float lerpFactor = pow(((angle + transitionDelta) - CRITICAL_ANGLE)/transitionDelta, 5);
-
-	if(angle > CRITICAL_ANGLE) {
+	// TODO: look at http://habib.wikidot.com/projected-grid-ocean-shader-full-html-version#toc9
+	if (angle > CRITICAL_ANGLE)
+	{
 		col = underwaterColor;
-	} else if (angle > CRITICAL_ANGLE - transitionDelta) {
+	}
+	else if (angle > CRITICAL_ANGLE - transitionDelta)
+	{
 		col = lerp(col, underwaterColor, lerpFactor);
 	}
 }

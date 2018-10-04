@@ -9,8 +9,9 @@ namespace Crest
     /// </summary>
     public class OceanRenderer : MonoBehaviour
     {
-        [Tooltip("The viewpoint which drives the ocean detail. Defaults to main camera.")]
-        public Transform _viewpoint;
+        [Tooltip("The viewpoint which drives the ocean detail. Defaults to main camera."), SerializeField]
+        Transform _viewpoint;
+        public Transform Viewpoint { get { return _viewpoint; } }
 
         [Header("Ocean Params")]
 

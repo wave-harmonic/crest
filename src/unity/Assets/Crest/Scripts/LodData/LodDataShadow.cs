@@ -53,7 +53,7 @@ namespace Crest
             _cameraMain = Camera.main;
             if (_cameraMain == null)
             {
-                var viewpoint = OceanRenderer.Instance._viewpoint;
+                var viewpoint = OceanRenderer.Instance.Viewpoint;
                 _cameraMain = viewpoint != null ? viewpoint.GetComponent<Camera>() : null;
 
                 if(_cameraMain == null)
@@ -149,8 +149,8 @@ namespace Crest
             LodTransform._renderData.Validate(0, this);
             _renderMaterial.SetVector("_CenterPos", LodTransform._renderData._posSnapped);
             _renderMaterial.SetVector("_Scale", transform.lossyScale);
-            _renderMaterial.SetVector("_CamPos", OceanRenderer.Instance._viewpoint.position);
-            _renderMaterial.SetVector("_CamForward", OceanRenderer.Instance._viewpoint.forward);
+            _renderMaterial.SetVector("_CamPos", OceanRenderer.Instance.Viewpoint.position);
+            _renderMaterial.SetVector("_CamForward", OceanRenderer.Instance.Viewpoint.forward);
             _renderMaterial.SetVector("_JitterDiameters_CurrentFrameWeights",
                 new Vector4(Settings._jitterDiameterSoft, Settings._jitterDiameterHard, Settings._currentFrameWeightSoft, Settings._currentFrameWeightHard));
             _renderMaterial.SetMatrix("_MainCameraProjectionMatrix", _cameraMain.projectionMatrix * _cameraMain.worldToCameraMatrix);

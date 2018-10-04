@@ -13,6 +13,10 @@ namespace Crest
         Transform _viewpoint;
         public Transform Viewpoint { get { return _viewpoint; } }
 
+        [Tooltip("Optional provider for time, can be used to hardcode time for automation, or provide server time. Defaults to local Unity time."), SerializeField]
+        TimeProviderBase _timeProvider;
+        public float CurrentTime { get { return _timeProvider.CurrentTime; } }
+
         [Header("Ocean Params")]
 
         [SerializeField, Tooltip("Material to use for the ocean surface")]
@@ -107,6 +111,7 @@ namespace Crest
             scheduler.ApplySchedule(this);
 
             InitViewpoint();
+            InitTimeProvider();
         }
 
         void InitViewpoint()
@@ -127,6 +132,14 @@ namespace Crest
             }
         }
 
+        void InitTimeProvider()
+        {
+            if (_timeProvider == null)
+            {
+                _timeProvider = gameObject.AddComponent<TimeProviderDefault>();
+            }
+        }
+
         void Update()
         {
             if(_cachedCpuOceanQueries)
@@ -140,6 +153,7 @@ namespace Crest
             // set global shader params
             Shader.SetGlobalFloat( "_TexelsPerWave", _minTexelsPerWave );
             Shader.SetGlobalVector("_WindDirXZ", WindDir);
+            Shader.SetGlobalFloat("_CrestTime", CurrentTime);
 
             LateUpdatePosition();
             LateUpdateScale();

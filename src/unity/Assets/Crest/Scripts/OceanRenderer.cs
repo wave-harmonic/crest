@@ -17,6 +17,7 @@ namespace Crest
         TimeProviderBase _timeProvider;
         public float CurrentTime { get { return _timeProvider.CurrentTime; } }
 
+
         [Header("Ocean Params")]
 
         [SerializeField, Tooltip("Material to use for the ocean surface")]
@@ -39,6 +40,7 @@ namespace Crest
         bool _cachedCpuOceanQueries = false;
         public bool CachedCpuOceanQueries { get { return _cachedCpuOceanQueries; } }
 
+
         [Header("Detail Params")]
 
         [Range(0, 15)]
@@ -58,18 +60,29 @@ namespace Crest
         int _lodCount = 6;
         public int LodDataResolution { get { return (int)(4f * _baseVertDensity); } }
 
+
         [Header("Simulation Params")]
 
+        [Tooltip("Water depth information used for shallow water, shoreline foam, wave attenuation, among others.")]
+        public bool _createSeaFloorDepthData = true;
+
+        [Tooltip("Simulation of foam created in choppy water and dissipating over time.")]
         public bool _createFoamSim = true;
         public SimSettingsFoam _simSettingsFoam;
+
+        [Tooltip("Dynamic waves generated from interactions with objects such as boats.")]
         public bool _createDynamicWaveSim = false;
         public SimSettingsWave _simSettingsDynamicWaves;
+
+        [Tooltip("Horizontal motion of water body, akin to water currents.")]
         public bool _createFlowSim = false;
 
+        [Tooltip("Shadow information used for lighting water.")]
         public bool _createShadowData = false;
         [Tooltip("The primary directional light. Required if shadowing is enabled.")]
         public Light _primaryLight;
         public SimSettingsShadow _simSettingsShadow;
+
 
         [Header("Debug Params")]
 
@@ -77,6 +90,7 @@ namespace Crest
         public bool _uniformTiles = false;
         [Tooltip("Disable generating a wide strip of triangles at the outer edge to extend ocean to edge of view frustum")]
         public bool _disableSkirt = false;
+
 
         OceanPlanarReflection _planarReflection;
         public OceanPlanarReflection PlanarReflection { get { return _planarReflection; } }

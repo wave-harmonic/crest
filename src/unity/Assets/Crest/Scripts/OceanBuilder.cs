@@ -182,6 +182,11 @@ namespace Crest
                     ocean._camsAnimWaves[i] = go.GetComponent<Camera>();
                     ocean._lodDataAnimWaves[i] = go.GetComponent<LodDataAnimatedWaves>();
 
+                    if(ocean._createSeaFloorDepthData)
+                    {
+                        LodData.CreateLodData(i, lodCount, go, baseVertDensity, LodData.SimType.SeaFloorDepth, cachedSettings);
+                    }
+
                     if (ocean._createShadowData)
                     {
                         // add lod data to same GO

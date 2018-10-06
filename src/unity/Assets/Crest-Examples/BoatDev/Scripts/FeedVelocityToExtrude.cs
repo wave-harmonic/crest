@@ -66,7 +66,7 @@ public class FeedVelocityToExtrude : MonoBehaviour {
         var disp = _boat ? _boat.DisplacementToBoat : Vector3.zero;
         transform.position = transform.parent.TransformPoint(_localOffset) - disp;
 
-        float rnd = 1f + _noiseAmp * (2f * Mathf.PerlinNoise(_noiseFreq * Time.time, 0.5f) - 1f);
+        float rnd = 1f + _noiseAmp * (2f * Mathf.PerlinNoise(_noiseFreq * Crest.OceanRenderer.Instance.CurrentTime, 0.5f) - 1f);
         // feed in water velocity
         Vector3 vel = (transform.position - _posLast) / Time.deltaTime;
         if(Crest.OceanRenderer.Instance._createFlowSim) {

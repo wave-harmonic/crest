@@ -149,7 +149,7 @@ Shader "Ocean/Ocean"
 
 				#include "OceanLODData.hlsl"
 
-				// INSTANCE PARAMS
+				uniform float _CrestTime;
 
 				// MeshScaleLerp, FarNormalsWeight, LODIndex (debug), unused
 				uniform float4 _InstanceData;

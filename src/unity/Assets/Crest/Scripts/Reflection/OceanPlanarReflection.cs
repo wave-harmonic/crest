@@ -24,6 +24,8 @@ namespace Crest
         Camera _camViewpoint;
         Camera _camReflections;
 
+        static readonly string SHADER_KEYWORD = "_PLANARREFLECTIONS_ON";
+
         public bool _hideCameraGameobject = true;
 
         private void Start()
@@ -201,9 +203,16 @@ namespace Crest
             reflectionMat.m33 = 1F;
         }
 
-        // Cleanup all the objects we possibly have created
-        void OnDisable()
+        private void OnEnable()
         {
+            OceanRenderer.Instance.OceanMaterial.EnableKeyword(SHADER_KEYWORD);
+        }
+
+        private void OnDisable()
+        {
+            OceanRenderer.Instance.OceanMaterial.DisableKeyword(SHADER_KEYWORD);
+
+            // Cleanup all the objects we possibly have created
             if (_reflectionTexture)
             {
                 Destroy(_reflectionTexture);

@@ -25,14 +25,13 @@ Shader "Ocean/Ocean"
 		_SubSurfaceDepthMax("    Depth Max", Range(0.01, 50.0)) = 3.0
 		_SubSurfaceDepthPower("    Depth Power", Range(0.01, 10.0)) = 1.0
 		_SubSurfaceShallowCol("    Shallow Colour", Color) = (0.42, 0.75, 0.69)
-		[Toggle] _Foam("Foam", Float) = 1
-		[NoScaleOffset] _FoamTexture ( "    Texture", 2D ) = "white" {}
-		_FoamScale("    Scale", Range(0.01, 50.0)) = 10.0
-		_FoamWhiteColor("    White Foam Color", Color) = (1.0, 1.0, 1.0, 1.0)
-		_FoamBubbleColor("    Bubble Foam Color", Color) = (0.64, 0.83, 0.82, 1.0)
-		_ShorelineFoamMinDepth("    Shoreline Foam Min Depth", Range(0.01, 5.0)) = 0.27
-		_WaveFoamFeather("    Wave Foam Feather", Range(0.001,1.0)) = 0.32
-		_WaveFoamBubblesCoverage("    Wave Foam Bubbles Coverage", Range(0.0,5.0)) = 0.95
+		[NoScaleOffset] _FoamTexture ( "Foam Texture", 2D ) = "white" {}
+		_FoamScale("Foam Scale", Range(0.01, 50.0)) = 10.0
+		_FoamWhiteColor("Foam White Foam Color", Color) = (1.0, 1.0, 1.0, 1.0)
+		_FoamBubbleColor("Foam Bubble Foam Color", Color) = (0.64, 0.83, 0.82, 1.0)
+		_ShorelineFoamMinDepth("Foam Shoreline Foam Min Depth", Range(0.01, 5.0)) = 0.27
+		_WaveFoamFeather("Foam Wave Foam Feather", Range(0.001,1.0)) = 0.32
+		_WaveFoamBubblesCoverage("Foam Wave Foam Bubbles Coverage", Range(0.0,5.0)) = 0.95
 		[Toggle] _Foam3DLighting("Foam 3D Lighting", Float) = 1
 		_WaveFoamLightScale("    Light Scale", Range(0.0, 2.0)) = 0.7
 		_WaveFoamNormalStrength("    Normals Strength", Range(0.0, 30.0)) = 3.5
@@ -51,16 +50,14 @@ Shader "Ocean/Ocean"
 		_CausticsDistortionStrength("    Distortion Strength", Range(0.0, 0.25)) = 0.075
 		_FresnelPower("Fresnel Power", Range(0.0, 20.0)) = 3.0
 		[NoScaleOffset] _Skybox ("Skybox", CUBE) = "" {}
-		[Toggle] _PlanarReflections("Planar Reflections", Float) = 1
 		[Toggle] _ProceduralSky("Procedural Sky", Float) = 0
 		[HDR] _SkyBase("    Base", Color) = (1.0, 1.0, 1.0, 1.0)
 		[HDR] _SkyTowardsSun("    Towards Sun", Color) = (1.0, 1.0, 1.0, 1.0)
 		_SkyDirectionality("    Directionality", Range(0.0, 0.99)) = 1.0
 		[HDR] _SkyAwayFromSun("    Away From Sun", Color) = (1.0, 1.0, 1.0, 1.0)
-		[Toggle] _Shadows("Shadows", Float) = 1
-		_DiffuseShadow("    Diffuse Colour", Color) = (0.2, 0.05, 0.05, 1.0)
-		_SubSurfaceShallowColShadow("    Shallow Colour", Color) = (0.42, 0.75, 0.69)
-		[Toggle] _ApplyFlowToNormals("Apply Flow To Normals (Experimental)", Float) = 0
+		_DiffuseShadow("Shadow Diffuse Colour", Color) = (0.2, 0.05, 0.05, 1.0)
+		_SubSurfaceShallowColShadow("Shadow Shallow Colour", Color) = (0.42, 0.75, 0.69)
+		[Toggle] _Flow("Enable", Float) = 0
 		[Enum(CullMode)] _CullMode("Cull Mode", Int) = 2
 		[Toggle] _DebugDisableShapeTextures("Debug Disable Shape Textures", Float) = 0
 		[Toggle] _DebugVisualiseShapeSample("Debug Visualise Shape Sample", Float) = 0
@@ -107,7 +104,7 @@ Shader "Ocean/Ocean"
 				#pragma shader_feature _FOAM3DLIGHTING_ON
 				#pragma shader_feature _PLANARREFLECTIONS_ON
 				#pragma shader_feature _PROCEDURALSKY_ON
-				#pragma shader_feature _APPLYFLOWTONORMALS_ON
+				#pragma shader_feature _FLOW_ON
 				#pragma shader_feature _SHADOWS_ON
 
 				#pragma shader_feature _DEBUGDISABLESHAPETEXTURES_ON
@@ -132,7 +129,7 @@ Shader "Ocean/Ocean"
 				struct v2f
 				{
 					float4 vertex : SV_POSITION;
-					#if _APPLYFLOWTONORMALS_ON
+					#if _FLOW_ON
 					half2 flow : TEXCOORD2;
 					#endif
 					half4 n_shadow : TEXCOORD1;
@@ -171,7 +168,7 @@ Shader "Ocean/Ocean"
 					o.n_shadow = half4(0., 0., 0., 0.);
 					o.foam_screenPos.x = 0.;
 
-					#if _APPLYFLOWTONORMALS_ON
+					#if _FLOW_ON
 					o.flow = half2(0., 0.);
 					#endif
 
@@ -194,7 +191,7 @@ Shader "Ocean/Ocean"
 						SampleFoam(_LD_Sampler_Foam_0, uv_0, wt_0, o.foam_screenPos.x);
 						#endif
 
-						#if _APPLYFLOWTONORMALS_ON
+						#if _FLOW_ON
 						SampleFlow(_LD_Sampler_Flow_0, uv_0, wt_0, o.flow);
 						#endif
 
@@ -218,7 +215,7 @@ Shader "Ocean/Ocean"
 						SampleFoam(_LD_Sampler_Foam_1, uv_1, wt_1, o.foam_screenPos.x);
 						#endif
 
-						#if _APPLYFLOWTONORMALS_ON
+						#if _FLOW_ON
 						SampleFlow(_LD_Sampler_Flow_1, uv_1, wt_1, o.flow);
 						#endif
 
@@ -301,7 +298,7 @@ Shader "Ocean/Ocean"
 					half3 n_geom = normalize(half3(i.n_shadow.x, 1., i.n_shadow.y));
 					half3 n_pixel = n_geom;
 					#if _APPLYNORMALMAPPING_ON
-					#if _APPLYFLOWTONORMALS_ON
+					#if _FLOW_ON
 					ApplyNormalMapsWithFlow(i.lodAlpha_worldXZUndisplaced_oceanDepth.yz, i.flow, i.lodAlpha_worldXZUndisplaced_oceanDepth.x, n_pixel);
 					#else
 					n_pixel.xz += SampleNormalMaps(i.lodAlpha_worldXZUndisplaced_oceanDepth.yz, i.lodAlpha_worldXZUndisplaced_oceanDepth.x);
@@ -313,11 +310,11 @@ Shader "Ocean/Ocean"
 					half3 bubbleCol = (half3)0.;
 					#if _FOAM_ON
 					half4 whiteFoamCol;
-					#if !_APPLYFLOWTONORMALS_ON
+					#if !_FLOW_ON
 					ComputeFoam(i.foam_screenPos.x, i.lodAlpha_worldXZUndisplaced_oceanDepth.yz, i.worldPos.xz, n_pixel, pixelZ, sceneZ, view, lightDir, shadow.y, bubbleCol, whiteFoamCol);
 					#else
 					ComputeFoamWithFlow(i.flow, i.foam_screenPos.x, i.lodAlpha_worldXZUndisplaced_oceanDepth.yz, i.worldPos.xz, n_pixel, pixelZ, sceneZ, view, lightDir, shadow.y, bubbleCol, whiteFoamCol);
-					#endif // _APPLYFLOWTONORMALS_ON
+					#endif // _FLOW_ON
 					#endif // _FOAM_ON
 
 					// Compute color of ocean - in-scattered light + refracted scene
@@ -338,7 +335,7 @@ Shader "Ocean/Ocean"
 					col = lerp(col.rgb, i.debugtint, 0.5);
 					#endif
 					#if _DEBUGVISUALISEFLOW_ON
-					#if _APPLYFLOWTONORMALS_ON
+					#if _FLOW_ON
 					col.rg = lerp(col.rg, i.flow.xy, 0.5);
 					#endif
 					#endif

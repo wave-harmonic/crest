@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
+
+using UnityEngine;
 using UnityEngine.Rendering;
 
 namespace Crest
@@ -14,6 +16,8 @@ namespace Crest
         public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RG16; } }
         public override CameraClearFlags CamClearFlags { get { return CameraClearFlags.Color; } }
         public override RenderTexture DataTexture { get { return _shadowData[_rtIndex]; } }
+
+        static readonly string SHADER_KEYWORD = "_SHADOWS_ON";
 
         public static bool s_processData = true;
 
@@ -176,11 +180,15 @@ namespace Crest
         void OnEnable()
         {
             RemoveCommandBuffers();
+
+            OceanRenderer.Instance.OceanMaterial.EnableKeyword(SHADER_KEYWORD);
         }
 
         void OnDisable()
         {
             RemoveCommandBuffers();
+
+            OceanRenderer.Instance.OceanMaterial.DisableKeyword(SHADER_KEYWORD);
         }
 
         void RemoveCommandBuffers()

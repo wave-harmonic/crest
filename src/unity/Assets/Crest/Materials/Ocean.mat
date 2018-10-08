@@ -87,7 +87,7 @@ Material:
     - _CausticsStrength: 3.2
     - _CausticsTextureAverage: 0.07
     - _CausticsTextureScale: 5
-    - _CompileShaderWithDebugInfo: 1
+    - _CompileShaderWithDebugInfo: 0
     - _ComputeDirectionalLight: 1
     - _CullMode: 2
     - _DebugDisableMultiplyByLight0Color: 0

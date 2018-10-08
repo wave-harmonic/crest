@@ -537,15 +537,15 @@ namespace Crest
             return true;
         }
 
-        public void PrewarmForSamplingArea(Rect areaXZ)
+        public bool PrewarmForSamplingArea(Rect areaXZ)
         {
             // nothing to do here
+            return true;
         }
-        public void PrewarmForSamplingArea(Rect areaXZ, float minSpatialLength)
+        public bool PrewarmForSamplingArea(Rect areaXZ, float minSpatialLength)
         {
             // nothing to do here
-            OnDisable();
-
+            return true;
         }
         public bool SampleDisplacementInArea(ref Vector3 in__worldPos, out Vector3 displacement)
         {

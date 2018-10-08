@@ -47,6 +47,7 @@ public class WaveParticlesSystem
 
     private const string COMMIT_PARTICLES = "CommitParticles";
     private const string SPLAT_PARTICLES = "SplatParticles";
+    private const string SPLAT_PARTICLES_MODULUS = "SplatParticlesModulus";
     private const string SUBDIVIDE_PARTICLES = "SubdivideParticles";
     private const string ADD_SUBDIVIDED_PARTICLES = "AddSubdividedParticles";
 
@@ -55,6 +56,7 @@ public class WaveParticlesSystem
     private ComputeShader _gpuSubdivideParticles;
 
     private int kernel_SplatParticles;
+    private int kernel_SplatParticlesModulus;
     private int kernel_SubdivideParticles;
     private int kernel_CommmitParticles;
     private int kernel_AddSubdividedParticles;
@@ -121,6 +123,7 @@ public class WaveParticlesSystem
 
         kernel_CommmitParticles = _gpuCommitParticles.FindKernel(COMMIT_PARTICLES);
         kernel_SplatParticles = _gpuSplatParticles.FindKernel(SPLAT_PARTICLES);
+        kernel_SplatParticlesModulus = _gpuSplatParticles.FindKernel(SPLAT_PARTICLES_MODULUS);
         kernel_SubdivideParticles = _gpuSubdivideParticles.FindKernel(SUBDIVIDE_PARTICLES);
         kernel_AddSubdividedParticles = _gpuSubdivideParticles.FindKernel(ADD_SUBDIVIDED_PARTICLES);
 
@@ -376,6 +379,40 @@ public class WaveParticlesSystem
         /// Dispatch the kernel that splats wave particles to the _splatTexture
         ///
         _gpuSplatParticles.Dispatch(kernel_SplatParticles, ((int)_particleContainerSize) / THREAD_GROUPS_X, 1, 1);
+    }
+
+    public void splatParticlesModulus(int currentFrame, ref ExtendedHeightField pointMap)
+    {
+
+        ///
+        /// Initialise _splatTexture if it hasn't been yet.
+        ///
+        if (_splatTexture == null)
+        {
+            _splatTexture = pointMap.textureHeightMap;
+        }
+
+        if (!_splatTexture.IsCreated())
+        {
+            _splatTexture.Create();
+        }
+        ///
+        /// Initialise the SplatParticles GPU Compute Kernel to splat the particles to a texture
+        ///
+        _gpuSplatParticles.SetTexture(kernel_SplatParticlesModulus, SPLAT_TEXTURE, _splatTexture);
+        _gpuSplatParticles.SetBuffer(kernel_SplatParticlesModulus, WAVE_PARTICLE_BUFFER, _waveParticlesBuffer);
+        _gpuSplatParticles.SetFloat(FIXED_DELTA_TIME, Time.fixedDeltaTime);
+        _gpuSplatParticles.SetInt(CURRENT_FRAME, currentFrame);
+        _gpuSplatParticles.SetFloat(PARTICLE_SPEED, WaveParticle.PARTICLE_SPEED);
+        _gpuSplatParticles.SetInt(HORI_RES, pointMap.HoriRes);
+        _gpuSplatParticles.SetInt(VERT_RES, pointMap.VertRes);
+        _gpuSplatParticles.SetFloat(PLANE_WIDTH, pointMap.Width);
+        _gpuSplatParticles.SetFloat(PLANE_HEIGHT, pointMap.Height);
+
+        ///
+        /// Dispatch the kernel that splats wave particles to the _splatTexture
+        ///
+        _gpuSplatParticles.Dispatch(kernel_SplatParticlesModulus, ((int)_particleContainerSize) / THREAD_GROUPS_X, 1, 1);
     }
 
     public void OnDestroy()

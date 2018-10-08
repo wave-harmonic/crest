@@ -46,9 +46,8 @@ public class ExtendedHeightField
         {
             if (state == State.UNINITIALISED)
             {
-                InitialiseTexture(out _textureHeightMap);
+                InitialiseTexture();
             }
-            state = State.INITIALISED;
             return _textureHeightMap;
         }
     }
@@ -58,13 +57,14 @@ public class ExtendedHeightField
         heightFieldInfo = new HeightFieldInfo(width, height, horRes, vertRes, ((float)width) / ((float)horRes), ((float)height) / ((float)vertRes));
     }
 
-    public void InitialiseTexture(out RenderTexture texture, string name = "Extended Height Field")
+    public void InitialiseTexture(TextureWrapMode textureWrapMode = TextureWrapMode.Clamp)
     {
-        texture = new RenderTexture(heightFieldInfo.HoriRes, heightFieldInfo.VertRes, 24, RenderTextureFormat.ARGBFloat);
-        texture.anisoLevel = 1;
-        texture.filterMode = FilterMode.Point;
-        texture.wrapMode = TextureWrapMode.Clamp;
-        texture.enableRandomWrite = true;
-        texture.name = name;
+        _textureHeightMap = new RenderTexture(heightFieldInfo.HoriRes, heightFieldInfo.VertRes, 24, RenderTextureFormat.ARGBFloat);
+        _textureHeightMap.anisoLevel = 1;
+        _textureHeightMap.filterMode = FilterMode.Point;
+        _textureHeightMap.wrapMode = textureWrapMode;
+        _textureHeightMap.enableRandomWrite = true;
+        _textureHeightMap.name = "Extended Height Field";
+        state = State.INITIALISED;
     }
 }

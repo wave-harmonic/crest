@@ -8,7 +8,7 @@ namespace Crest
     /// <summary>
     /// A persistent flow simulation that moves around with a displacement LOD. The input is fully combined water surface shape.
     /// </summary>
-    public class LodDataWaveParticles : MonoBehaviour
+    public class LodDataWaveParticlesNoise : MonoBehaviour
     {
         public Material convolutionMaterial;
 
@@ -55,12 +55,14 @@ namespace Crest
         void Start()
         {
             _waveParticlesSystem.Initialise(500000, 0.001f);
+            _heightField.InitialiseTexture(textureWrapMode: TextureWrapMode.Repeat);
+
             MeshRenderer meshRenderer = GetComponent<MeshRenderer>();
             _finalTexture = new RenderTexture(_heightField.heightFieldInfo.HoriRes, _heightField.heightFieldInfo.VertRes, 24, RenderTextureFormat.ARGBFloat);
             _finalTexture.antiAliasing = 1;
             _finalTexture.anisoLevel = 0;
             _finalTexture.autoGenerateMips = false;
-            _finalTexture.wrapMode = TextureWrapMode.Clamp;
+            _finalTexture.wrapMode = TextureWrapMode.Repeat;
             _finalTexture.filterMode = FilterMode.Point;
             _finalTexture.name = "Final Texture";
             _finalTexture.Create();
@@ -81,6 +83,18 @@ namespace Crest
             convolutionMaterial.SetFloat(Shader.PropertyToID("_ParticleRadii"), WaveParticle.RADIUS);
             convolutionMaterial.SetFloat(Shader.PropertyToID("_KernelWidth"), kernelWidth);
             convolutionMaterial.SetFloat(Shader.PropertyToID("_KernelHeight"), kernelHeight);
+
+                        // Create a small ripple of particles, as it has a dispersion angle of 360
+            for(int i = 0; i < 100  ; i++)
+            {
+                float x = Random.Range(0f, _heightField.heightFieldInfo.Width);
+                float y = Random.Range(0f,  _heightField.heightFieldInfo.Height);
+                float vx = Random.Range(-1f, 1f);
+                float vy = Random.Range(-1f, 1f);
+                WaveParticle waveParticle = WaveParticle.createWaveParticle(new Vector2(x, y), new Vector2(vx, vy), .8f, Mathf.PI * 2, _frame);
+                _waveParticlesSystem.addParticle(waveParticle);
+            }
+            _waveParticlesSystem.commitParticles();
         }
 
         bool doneFrame = false;
@@ -91,25 +105,11 @@ namespace Crest
             RenderTexture.active = _heightField.textureHeightMap;
             GL.Clear(true, true, Color.black);
             RenderTexture.active = null;
-
-            // Create a small ripple of particles, as it has a dispersion angle of 360
-            if (_frame % 3 == 0)
-            {
-                float x = Random.Range(0f, 2f);
-                if (x > 1) x = x + 7; else x = -x;
-                float y = Random.Range(0f, 2f);
-                if (y > 1) y = y + 7; else y = -y;
-                WaveParticle waveParticle = WaveParticle.createWaveParticle(new Vector2(x, y), new Vector2(0.5f, 0.5f), 10f, Mathf.PI * 2, _frame);
-                _waveParticlesSystem.addParticle(waveParticle);
-            }
-            _waveParticlesSystem.commitParticles();
-            _waveParticlesSystem.calculateSubdivisions(_frame);
-            _waveParticlesSystem.splatParticles(_frame, ref _heightField);
-
+            _waveParticlesSystem.splatParticlesModulus(_frame, ref _heightField);
             RenderTexture.active = _finalTexture;
             GL.Clear(true, true, Color.black);
             Graphics.Blit(_heightField.textureHeightMap, _finalTexture, convolutionMaterial);
-            _frame = (_frame + 1) % WaveParticle.FRAME_CYCLE_LENGTH;
+            _frame = (_frame + 1);// % WaveParticle.FRAME_CYCLE_LENGTH;
         }
 
         void FixedUpdate()

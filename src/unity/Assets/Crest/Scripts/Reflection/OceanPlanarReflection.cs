@@ -38,6 +38,8 @@ namespace Crest
                 return;
             }
 
+            // This is anyway called in OnPreRender, but was required here as there was a black reflection
+            // for a frame without this earlier setup call.
             CreateWaterObjects(_camViewpoint);
         }
 

@@ -37,14 +37,13 @@ namespace Crest
                 enabled = false;
                 return;
             }
+
+            // This is anyway called in OnPreRender, but was required here as there was a black reflection
+            // for a frame without this earlier setup call.
+            CreateWaterObjects(_camViewpoint);
         }
 
-        private void LateUpdate()
-        {
-            UpdateReflection();
-        }
-
-        private void UpdateReflection()
+        private void OnPreRender()
         {
             CreateWaterObjects(_camViewpoint);
 
@@ -210,7 +209,10 @@ namespace Crest
 
         private void OnDisable()
         {
-            OceanRenderer.Instance.OceanMaterial.DisableKeyword(SHADER_KEYWORD);
+            if (OceanRenderer.Instance)
+            {
+                OceanRenderer.Instance.OceanMaterial.DisableKeyword(SHADER_KEYWORD);
+            }
 
             // Cleanup all the objects we possibly have created
             if (_reflectionTexture)

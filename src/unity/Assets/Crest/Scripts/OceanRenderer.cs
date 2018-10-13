@@ -9,8 +9,14 @@ namespace Crest
     /// </summary>
     public class OceanRenderer : MonoBehaviour
     {
-        [Tooltip("The viewpoint which drives the ocean detail. Defaults to main camera.")]
-        public Transform _viewpoint;
+        [Tooltip("The viewpoint which drives the ocean detail. Defaults to main camera."), SerializeField]
+        Transform _viewpoint;
+        public Transform Viewpoint { get { return _viewpoint; } }
+
+        [Tooltip("Optional provider for time, can be used to hardcode time for automation, or provide server time. Defaults to local Unity time."), SerializeField]
+        TimeProviderBase _timeProvider;
+        public float CurrentTime { get { return _timeProvider.CurrentTime; } }
+
 
         [Header("Ocean Params")]
 
@@ -34,6 +40,7 @@ namespace Crest
         bool _cachedCpuOceanQueries = false;
         public bool CachedCpuOceanQueries { get { return _cachedCpuOceanQueries; } }
 
+
         [Header("Detail Params")]
 
         [Range(0, 15)]
@@ -53,18 +60,29 @@ namespace Crest
         int _lodCount = 6;
         public int LodDataResolution { get { return (int)(4f * _baseVertDensity); } }
 
+
         [Header("Simulation Params")]
 
+        [Tooltip("Water depth information used for shallow water, shoreline foam, wave attenuation, among others.")]
+        public bool _createSeaFloorDepthData = true;
+
+        [Tooltip("Simulation of foam created in choppy water and dissipating over time.")]
         public bool _createFoamSim = true;
         public SimSettingsFoam _simSettingsFoam;
+
+        [Tooltip("Dynamic waves generated from interactions with objects such as boats.")]
         public bool _createDynamicWaveSim = false;
         public SimSettingsWave _simSettingsDynamicWaves;
+
+        [Tooltip("Horizontal motion of water body, akin to water currents.")]
         public bool _createFlowSim = false;
 
+        [Tooltip("Shadow information used for lighting water.")]
         public bool _createShadowData = false;
         [Tooltip("The primary directional light. Required if shadowing is enabled.")]
         public Light _primaryLight;
         public SimSettingsShadow _simSettingsShadow;
+
 
         [Header("Debug Params")]
 
@@ -72,6 +90,7 @@ namespace Crest
         public bool _uniformTiles = false;
         [Tooltip("Disable generating a wide strip of triangles at the outer edge to extend ocean to edge of view frustum")]
         public bool _disableSkirt = false;
+
 
         OceanPlanarReflection _planarReflection;
         public OceanPlanarReflection PlanarReflection { get { return _planarReflection; } }
@@ -106,6 +125,7 @@ namespace Crest
             scheduler.ApplySchedule(this);
 
             InitViewpoint();
+            InitTimeProvider();
         }
 
         void InitViewpoint()
@@ -126,6 +146,14 @@ namespace Crest
             }
         }
 
+        void InitTimeProvider()
+        {
+            if (_timeProvider == null)
+            {
+                _timeProvider = gameObject.AddComponent<TimeProviderDefault>();
+            }
+        }
+
         void Update()
         {
             if(_cachedCpuOceanQueries)
@@ -139,6 +167,7 @@ namespace Crest
             // set global shader params
             Shader.SetGlobalFloat( "_TexelsPerWave", _minTexelsPerWave );
             Shader.SetGlobalVector("_WindDirXZ", WindDir);
+            Shader.SetGlobalFloat("_CrestTime", CurrentTime);
 
             LateUpdatePosition();
             LateUpdateScale();

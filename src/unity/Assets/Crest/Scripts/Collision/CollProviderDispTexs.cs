@@ -25,7 +25,11 @@ namespace Crest
         public bool SampleDisplacement(ref Vector3 in__worldPos, out Vector3 displacement, float minSpatialLength)
         {
             // select lod. this now has a 1 texel buffer, so the finite differences below should all be valid.
-            PrewarmForSamplingArea(new Rect(in__worldPos.x, in__worldPos.z, 0f, 0f), minSpatialLength);
+            if (!PrewarmForSamplingArea(new Rect(in__worldPos.x, in__worldPos.z, 0f, 0f), minSpatialLength))
+            {
+                displacement = Vector3.zero;
+                return false;
+            }
 
             return SampleDisplacementInArea(ref in__worldPos, out displacement);
         }
@@ -41,13 +45,15 @@ namespace Crest
             return true;
         }
 
-        public void PrewarmForSamplingArea(Rect areaXZ)
+        public bool PrewarmForSamplingArea(Rect areaXZ)
         {
             _areaLod = LodDataAnimatedWaves.SuggestDataLOD(areaXZ);
+            return _areaLod > -1;
         }
-        public void PrewarmForSamplingArea(Rect areaXZ, float minSpatialLength)
+        public bool PrewarmForSamplingArea(Rect areaXZ, float minSpatialLength)
         {
             _areaLod = LodDataAnimatedWaves.SuggestDataLOD(areaXZ, minSpatialLength);
+            return _areaLod > -1;
         }
         public bool SampleDisplacementInArea(ref Vector3 in__worldPos, out Vector3 displacement)
         {

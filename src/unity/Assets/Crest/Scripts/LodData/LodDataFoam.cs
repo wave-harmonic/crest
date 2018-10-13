@@ -14,6 +14,8 @@ namespace Crest
         public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RHalf; } }
         protected override Camera[] SimCameras { get { return OceanRenderer.Instance._camsFoam; } }
 
+        static readonly string SHADER_KEYWORD = "_FOAM_ON";
+
         public override SimSettingsBase CreateDefaultSettings()
         {
             var settings = ScriptableObject.CreateInstance<SimSettingsFoam>();
@@ -36,12 +38,28 @@ namespace Crest
 
             // assign animated waves - to slot 1 current frame data
             animWaves[lodIdx].BindResultData(1, simMaterial);
+
             // assign sea floor depth - to slot 1 current frame data
-            animWaves[lodIdx].LDSeaDepth.BindResultData(1, simMaterial);
+            if (OceanRenderer.Instance._createSeaFloorDepthData)
+            {
+                animWaves[lodIdx].LDSeaDepth.BindResultData(1, simMaterial);
+            }
+
             // assign flow - to slot 1 current frame data
-            if (OceanRenderer.Instance._createFlowSim) {
+            if (OceanRenderer.Instance._createFlowSim)
+            {
                 animWaves[lodIdx].LDFlow.BindResultData(1, simMaterial);
             }
+        }
+
+        private void OnEnable()
+        {
+            OceanRenderer.Instance.OceanMaterial.EnableKeyword(SHADER_KEYWORD);
+        }
+
+        private void OnDisable()
+        {
+            OceanRenderer.Instance.OceanMaterial.DisableKeyword(SHADER_KEYWORD);
         }
 
         SimSettingsFoam Settings { get { return _settings as SimSettingsFoam; } }

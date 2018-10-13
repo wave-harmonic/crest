@@ -220,7 +220,10 @@ namespace Crest
             material.SetFloat("_Chop", _spectrum._chop);
             material.SetFloat("_Gravity", OceanRenderer.Instance.Gravity * _spectrum._gravityScale);
 
-            OceanRenderer.Instance._lodDataAnimWaves[lodIdx].LDSeaDepth.BindResultData(0, material, false);
+            if (OceanRenderer.Instance._createSeaFloorDepthData)
+            {
+                OceanRenderer.Instance._lodDataAnimWaves[lodIdx].LDSeaDepth.BindResultData(0, material, false);
+            }
 
             return numInBatch;
         }
@@ -406,7 +409,7 @@ namespace Crest
             if (_amplitudes == null) return Vector3.zero;
 
             Vector2 pos = new Vector2(in__worldPos.x, in__worldPos.z);
-            float mytime = Time.time + toff;
+            float mytime = OceanRenderer.Instance.CurrentTime + toff;
             float windAngle = OceanRenderer.Instance._windDirectionAngle;
 
             Vector3 result = Vector3.zero;
@@ -441,7 +444,7 @@ namespace Crest
             if (_amplitudes == null) return Vector3.zero;
 
             var pos = new Vector2(in__worldPos.x, in__worldPos.z);
-            float mytime = Time.time + toff;
+            float mytime = OceanRenderer.Instance.CurrentTime + toff;
             float windAngle = OceanRenderer.Instance._windDirectionAngle;
 
             // base rate of change of our displacement function in x and z is unit
@@ -488,7 +491,7 @@ namespace Crest
             if (_amplitudes == null) return Vector3.zero;
 
             Vector2 pos = new Vector2(in__worldPos.x, in__worldPos.z);
-            float mytime = Time.time + toff;
+            float mytime = OceanRenderer.Instance.CurrentTime + toff;
             float windAngle = OceanRenderer.Instance._windDirectionAngle;
 
             Vector3 result = Vector3.zero;
@@ -534,15 +537,15 @@ namespace Crest
             return true;
         }
 
-        public void PrewarmForSamplingArea(Rect areaXZ)
+        public bool PrewarmForSamplingArea(Rect areaXZ)
         {
             // nothing to do here
+            return true;
         }
-        public void PrewarmForSamplingArea(Rect areaXZ, float minSpatialLength)
+        public bool PrewarmForSamplingArea(Rect areaXZ, float minSpatialLength)
         {
             // nothing to do here
-            OnDisable();
-
+            return true;
         }
         public bool SampleDisplacementInArea(ref Vector3 in__worldPos, out Vector3 displacement)
         {

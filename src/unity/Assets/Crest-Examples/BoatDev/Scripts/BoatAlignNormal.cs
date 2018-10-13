@@ -50,7 +50,7 @@ public class BoatAlignNormal : MonoBehaviour
         Vector3 undispPos;
         if (!colProvider.ComputeUndisplacedPosition(ref position, out undispPos)) return;
 
-        if (!colProvider.SampleDisplacement(ref undispPos, out _displacementToBoat)) return;
+        if (!colProvider.SampleDisplacement(ref undispPos, out _displacementToBoat, _boatWidth)) return;
         if (!_displacementToBoatInitd)
         {
             _displacementToBoatLastFrame = _displacementToBoat;

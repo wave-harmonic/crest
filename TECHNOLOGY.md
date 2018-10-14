@@ -71,6 +71,8 @@ In this example the LODs cover a large area in the world with a very modest amou
 
 ![ShapePacked](https://raw.githubusercontent.com/huwb/crest-oceanrender/master/img/doc/ShapePacked.png)
 
+When rendering the ocean, the various LOD data are sample for each vert and the vert is displaced. This means that the data is carried with the waves away from its rest position. For some data like wave foam this is fine and desirable. For other data such as the depth to the ocean floor, this is not a quantity that should move around with the waves and this can currently cause issues, such as shallow water appearing to move with the waves as in issue 96.
+
 The following sections describe the LOD data types in more detail.
 
 ## Animated Waves

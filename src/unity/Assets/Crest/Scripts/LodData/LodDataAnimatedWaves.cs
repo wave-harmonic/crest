@@ -133,9 +133,9 @@ namespace Crest
             UnhookCombinePass();
 
             // free native array when component removed or destroyed
-            if (_dataReadback._dataNative.IsCreated)
+            if (_dataReadback._result._data.IsCreated)
             {
-                _dataReadback._dataNative.Dispose();
+                _dataReadback._result._data.Dispose();
             }
         }
 
@@ -152,27 +152,7 @@ namespace Crest
 
         public bool SampleDisplacement(ref Vector3 in__worldPos, out Vector3 displacement)
         {
-            float xOffset = in__worldPos.x - _dataReadback._dataRenderData._posSnapped.x;
-            float zOffset = in__worldPos.z - _dataReadback._dataRenderData._posSnapped.z;
-            float r = _dataReadback._dataRenderData._texelWidth * _dataReadback._dataRenderData._textureRes / 2f;
-            if (Mathf.Abs(xOffset) >= r || Mathf.Abs(zOffset) >= r)
-            {
-                // outside of this collision data
-                displacement = Vector3.zero;
-                return false;
-            }
-
-            var u = 0.5f + 0.5f * xOffset / r;
-            var v = 0.5f + 0.5f * zOffset / r;
-            var x = Mathf.FloorToInt(u * _dataReadback._dataRenderData._textureRes);
-            var y = Mathf.FloorToInt(v * _dataReadback._dataRenderData._textureRes);
-            var idx = 4 * (y * (int)_dataReadback._dataRenderData._textureRes + x);
-
-            displacement.x = Mathf.HalfToFloat(_dataReadback._dataNative[idx + 0]);
-            displacement.y = Mathf.HalfToFloat(_dataReadback._dataNative[idx + 1]);
-            displacement.z = Mathf.HalfToFloat(_dataReadback._dataNative[idx + 2]);
-
-            return true;
+            return _dataReadback._result.SampleARGB16(ref in__worldPos, out displacement);
         }
 
         /// <summary>

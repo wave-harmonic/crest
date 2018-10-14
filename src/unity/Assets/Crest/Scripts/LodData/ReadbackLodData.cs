@@ -22,8 +22,61 @@ namespace Crest
         const int MAX_REQUESTS = 8;
 
         // data
-        public NativeArray<ushort> _dataNative;
-        public LodTransform.RenderData _dataRenderData;
+        public struct Result
+        {
+            public NativeArray<ushort> _data;
+            public LodTransform.RenderData _renderData;
+            public float _time;
+
+            public bool SampleARGB16(ref Vector3 in__worldPos, out Vector3 displacement)
+            {
+                float xOffset = in__worldPos.x - _renderData._posSnapped.x;
+                float zOffset = in__worldPos.z - _renderData._posSnapped.z;
+                float r = _renderData._texelWidth * _renderData._textureRes / 2f;
+                if (Mathf.Abs(xOffset) >= r || Mathf.Abs(zOffset) >= r)
+                {
+                    // outside of this collision data
+                    displacement = Vector3.zero;
+                    return false;
+                }
+
+                var u = 0.5f + 0.5f * xOffset / r;
+                var v = 0.5f + 0.5f * zOffset / r;
+                var x = Mathf.FloorToInt(u * _renderData._textureRes);
+                var y = Mathf.FloorToInt(v * _renderData._textureRes);
+                var idx = 4 * (y * (int)_renderData._textureRes + x);
+
+                displacement.x = Mathf.HalfToFloat(_data[idx + 0]);
+                displacement.y = Mathf.HalfToFloat(_data[idx + 1]);
+                displacement.z = Mathf.HalfToFloat(_data[idx + 2]);
+
+                return true;
+            }
+
+            public bool SampleRG16(ref Vector3 in__worldPos, out Vector2 flow)
+            {
+                float xOffset = in__worldPos.x - _renderData._posSnapped.x;
+                float zOffset = in__worldPos.z - _renderData._posSnapped.z;
+                float r = _renderData._texelWidth * _renderData._textureRes / 2f;
+                if (Mathf.Abs(xOffset) >= r || Mathf.Abs(zOffset) >= r)
+                {
+                    // outside of this collision data
+                    flow = Vector3.zero;
+                    return false;
+                }
+
+                var u = 0.5f + 0.5f * xOffset / r;
+                var v = 0.5f + 0.5f * zOffset / r;
+                var x = Mathf.FloorToInt(u * _renderData._textureRes);
+                var y = Mathf.FloorToInt(v * _renderData._textureRes);
+                var idx = 2 * (y * (int)_renderData._textureRes + x);
+                flow.x = Mathf.HalfToFloat(_data[idx + 0]);
+                flow.y = Mathf.HalfToFloat(_data[idx + 1]);
+
+                return true;
+            }
+        }
+        public Result _result;
 
         public bool _active = true;
 
@@ -91,9 +144,9 @@ namespace Crest
 
             // create array to hold data if we don't have one already
             var num = ((int)_textureFormat) * cam.targetTexture.width * cam.targetTexture.height;
-            if (!_dataNative.IsCreated || _dataNative.Length != num)
+            if (!_result._data.IsCreated || _result._data.Length != num)
             {
-                _dataNative = new NativeArray<ushort>(num, Allocator.Persistent);
+                _result._data = new NativeArray<ushort>(num, Allocator.Persistent);
             }
 
             // process current request queue
@@ -115,9 +168,9 @@ namespace Crest
                     Profiler.BeginSample("Copy out readback data");
 
                     var data = request._request.GetData<ushort>();
-                    data.CopyTo(_dataNative);
-                    _dataRenderData = request._renderData;
-
+                    data.CopyTo(_result._data);
+                    _result._renderData = request._renderData;
+                    
                     Profiler.EndSample();
                 }
             }
@@ -141,8 +194,8 @@ namespace Crest
         {
             get
             {
-                float w = _dataRenderData._texelWidth * _dataRenderData._textureRes;
-                return new Rect(_dataRenderData._posSnapped.x - w / 2f, _dataRenderData._posSnapped.z - w / 2f, w, w);
+                float w = _result._renderData._texelWidth * _result._renderData._textureRes;
+                return new Rect(_result._renderData._posSnapped.x - w / 2f, _result._renderData._posSnapped.z - w / 2f, w, w);
             }
         }
 
@@ -151,9 +204,9 @@ namespace Crest
         void OnDisable()
         {
             // free native array when component removed or destroyed
-            if (_dataNative.IsCreated)
+            if (_result._data.IsCreated)
             {
-                _dataNative.Dispose();
+                _result._data.Dispose();
             }
         }
 

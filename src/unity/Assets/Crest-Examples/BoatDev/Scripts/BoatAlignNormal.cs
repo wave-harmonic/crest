@@ -22,6 +22,10 @@ public class BoatAlignNormal : MonoBehaviour
     public float _dragInWaterRight = 20000f;
     public float _dragInWaterForward = 20000f;
 
+    [SerializeField] bool _computeWaterVel = false;
+    //[SerializeField, Range(0f, 1f)] float _waterSurfaceVelFilterWeight = 0.02f;
+    Vector3 _waterSurfaceVelFiltered = Vector3.zero;
+
     bool _inWater;
     public bool InWater { get { return _inWater; } }
 
@@ -60,23 +64,34 @@ public class BoatAlignNormal : MonoBehaviour
         }
 
         // estimate water velocity
-        Vector3 velWater = (_displacementToBoat - _displacementToBoatLastFrame) / Time.deltaTime;
-        if(OceanRenderer.Instance._createFlowSim) {
+        var velWaterNew = (_displacementToBoat - _displacementToBoatLastFrame) / Time.deltaTime;
+        if(_computeWaterVel)
+        {
+            _waterSurfaceVelFiltered = velWaterNew;
+        }
+        //_waterSurfaceVelFiltered = Vector3.Lerp(_waterSurfaceVelFiltered, velWaterNew, Mathf.Min(_waterSurfaceVelFilterWeight * Time.deltaTime * 60f, 1f));
+        if (OceanRenderer.Instance._createFlowSim) {
             Vector2 surfaceFlow;
             int lod  = LodDataFlow.SuggestDataLOD(new Rect(position.x, position.z, 0f, 0f), _boatWidth);
             if(lod != -1) {
                 if(OceanRenderer.Instance._lodDataAnimWaves[lod].LDFlow.SampleFlow(ref position, out surfaceFlow)) {
-                    velWater += new Vector3(surfaceFlow.x, 0, surfaceFlow.y);
+                    _waterSurfaceVelFiltered += new Vector3(surfaceFlow.x, 0, surfaceFlow.y);
                 }
             }
         }
+        if (_debugDraw)
+        {
+            Debug.DrawLine(transform.position + 5f * Vector3.up, transform.position + 5f * Vector3.up + _waterSurfaceVelFiltered,
+                new Color(1, 1, 1, 0.6f));
+        }
+
         _displacementToBoatLastFrame = _displacementToBoat;
 
         Vector3 normal;
         if (!colProvider.SampleNormal(ref undispPos, out normal, _boatWidth)) return;
         if(_debugDraw) Debug.DrawLine(transform.position, transform.position + 5f * normal, Color.green);
 
-        _velocityRelativeToWater = _rb.velocity - velWater;
+        _velocityRelativeToWater = _rb.velocity - _waterSurfaceVelFiltered;
 
         var dispPos = undispPos + _displacementToBoat;
         if (_debugDraw) DebugDrawCross(dispPos, 4f, Color.white);

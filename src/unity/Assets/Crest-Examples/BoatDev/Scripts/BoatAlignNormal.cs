@@ -6,7 +6,6 @@ using Crest;
 public class BoatAlignNormal : MonoBehaviour
 {
     public float _bottomH = -1f;
-    public bool _debugDraw = false;
     public float _overrideProbeRadius = -1f;
     public float _buoyancyCoeff = 40000f;
     public float _boyancyTorque = 2f;
@@ -37,6 +36,8 @@ public class BoatAlignNormal : MonoBehaviour
     public float _throttleBias = 0f;
     public float _steerBias = 0f;
 
+    [SerializeField] bool _debugDraw = false;
+
     void Start()
     {
         _rb = GetComponent<Rigidbody>();
@@ -49,6 +50,7 @@ public class BoatAlignNormal : MonoBehaviour
 
         Vector3 undispPos;
         if (!colProvider.ComputeUndisplacedPosition(ref position, out undispPos)) return;
+        if (_debugDraw) DebugDrawCross(undispPos, 1f, Color.red);
 
         if (!colProvider.SampleDisplacement(ref undispPos, out _displacementToBoat, _boatWidth)) return;
         if (!_displacementToBoatInitd)
@@ -72,11 +74,13 @@ public class BoatAlignNormal : MonoBehaviour
 
         Vector3 normal;
         if (!colProvider.SampleNormal(ref undispPos, out normal, _boatWidth)) return;
-        Debug.DrawLine(transform.position, transform.position + 5f * normal);
+        if(_debugDraw) Debug.DrawLine(transform.position, transform.position + 5f * normal, Color.green);
 
         _velocityRelativeToWater = _rb.velocity - velWater;
 
         var dispPos = undispPos + _displacementToBoat;
+        if (_debugDraw) DebugDrawCross(dispPos, 4f, Color.white);
+
         float height = dispPos.y;
 
         float bottomDepth = height - transform.position.y - _bottomH;
@@ -100,7 +104,6 @@ public class BoatAlignNormal : MonoBehaviour
         float forward = _throttleBias;
         if(_playerControlled) forward += Input.GetAxis("Vertical");
         _rb.AddForceAtPosition(transform.forward * _enginePower * forward, forcePosition, ForceMode.Acceleration);
-        //Debug.DrawLine(transform.position + Vector3.up * 5f, transform.position + 5f * (Vector3.up + transform.forward));
 
         float sideways = _steerBias;
         if(_playerControlled ) sideways += (Input.GetKey(KeyCode.A) ? -1f : 0f) + (Input.GetKey(KeyCode.D) ? 1f : 0f);
@@ -111,5 +114,12 @@ public class BoatAlignNormal : MonoBehaviour
         var target = normal;
         var torque = Vector3.Cross(current, target);
         _rb.AddTorque(torque * _boyancyTorque, ForceMode.Acceleration);
+    }
+
+    void DebugDrawCross(Vector3 pos, float r, Color col)
+    {
+        Debug.DrawLine(pos - Vector3.up * r, pos + Vector3.up * r, col);
+        Debug.DrawLine(pos - Vector3.right * r, pos + Vector3.right * r, col);
+        Debug.DrawLine(pos - Vector3.forward * r, pos + Vector3.forward * r, col);
     }
 }

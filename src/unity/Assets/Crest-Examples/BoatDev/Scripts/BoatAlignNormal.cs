@@ -23,8 +23,6 @@ public class BoatAlignNormal : MonoBehaviour
     public float _dragInWaterForward = 20000f;
 
     [SerializeField] bool _computeWaterVel = false;
-    //[SerializeField, Range(0f, 1f)] float _waterSurfaceVelFilterWeight = 0.02f;
-    Vector3 _waterSurfaceVelFiltered = Vector3.zero;
 
     bool _inWater;
     public bool InWater { get { return _inWater; } }
@@ -32,8 +30,7 @@ public class BoatAlignNormal : MonoBehaviour
     Vector3 _velocityRelativeToWater;
     public Vector3 VelocityRelativeToWater { get { return _velocityRelativeToWater; } }
 
-    Vector3 _displacementToBoat, _displacementToBoatLastFrame;
-    bool _displacementToBoatInitd = false;
+    Vector3 _displacementToBoat;
     public Vector3 DisplacementToBoat { get { return _displacementToBoat; } }
 
     public bool _playerControlled = true;
@@ -66,42 +63,35 @@ public class BoatAlignNormal : MonoBehaviour
         if (!colProvider.ComputeUndisplacedPosition(ref position, out undispPos)) return;
         if (_debugDraw) DebugDrawCross(undispPos, 1f, Color.red);
 
-        if (!colProvider.SampleDisplacement(ref undispPos, out _displacementToBoat, _boatWidth)) return;
-        if (!_displacementToBoatInitd)
+        var waterSurfaceVel = Vector3.zero;
+        if (!colProvider.SampleDisplacementVel(ref undispPos, out _displacementToBoat, out waterSurfaceVel, _boatWidth)) return;
+
+        if (!_computeWaterVel)
         {
-            _displacementToBoatLastFrame = _displacementToBoat;
-            _displacementToBoatInitd = true;
+            waterSurfaceVel = Vector3.zero;
         }
 
-        // estimate water velocity
-        var velWaterNew = (_displacementToBoat - _displacementToBoatLastFrame) / Time.deltaTime;
-        if(_computeWaterVel)
+        if (OceanRenderer.Instance._createFlowSim)
         {
-            _waterSurfaceVelFiltered = velWaterNew;
-        }
-        //_waterSurfaceVelFiltered = Vector3.Lerp(_waterSurfaceVelFiltered, velWaterNew, Mathf.Min(_waterSurfaceVelFilterWeight * Time.deltaTime * 60f, 1f));
-        if (OceanRenderer.Instance._createFlowSim) {
             Vector2 surfaceFlow;
             int lod  = LodDataFlow.SuggestDataLOD(new Rect(position.x, position.z, 0f, 0f), _boatWidth);
             if(lod != -1) {
                 if(OceanRenderer.Instance._lodDataAnimWaves[lod].LDFlow.SampleFlow(ref position, out surfaceFlow)) {
-                    _waterSurfaceVelFiltered += new Vector3(surfaceFlow.x, 0, surfaceFlow.y);
+                    waterSurfaceVel += new Vector3(surfaceFlow.x, 0, surfaceFlow.y);
                 }
             }
         }
         if (_debugDraw)
         {
-            Debug.DrawLine(transform.position + 5f * Vector3.up, transform.position + 5f * Vector3.up + _waterSurfaceVelFiltered,
+            Debug.DrawLine(transform.position + 5f * Vector3.up, transform.position + 5f * Vector3.up + waterSurfaceVel,
                 new Color(1, 1, 1, 0.6f));
         }
-
-        _displacementToBoatLastFrame = _displacementToBoat;
 
         Vector3 normal;
         if (!colProvider.SampleNormal(ref undispPos, out normal, _boatWidth)) return;
         if(_debugDraw) Debug.DrawLine(transform.position, transform.position + 5f * normal, Color.green);
 
-        _velocityRelativeToWater = _rb.velocity - _waterSurfaceVelFiltered;
+        _velocityRelativeToWater = _rb.velocity - waterSurfaceVel;
 
         var dispPos = undispPos + _displacementToBoat;
         if (_debugDraw) DebugDrawCross(dispPos, 4f, Color.white);

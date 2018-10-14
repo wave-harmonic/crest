@@ -1,0 +1,7 @@
+﻿#ifndef UTILS
+#define UTILS
+
+#define THREAD_GROUPS_X 8
+static const float PI = 3.14159265f;
+
+#endif

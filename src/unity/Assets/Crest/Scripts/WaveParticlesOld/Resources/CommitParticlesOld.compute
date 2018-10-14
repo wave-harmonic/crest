@@ -1,0 +1,21 @@
+﻿#include "Assets/Crest/Scripts/WaveParticlesOld/Resources/UtilsOld.compute"
+#include "Assets/Crest/Scripts/WaveParticlesOld/Resources/WaveParticleStructOld.compute"
+
+const int currentHead;
+const int particleContainerSize;
+const uint pendingParticlesHead;
+StructuredBuffer<WaveParticle> pendingParticlesBuffer;
+RWStructuredBuffer<WaveParticle> waveParticleBuffer;
+
+///
+/// Take the wave particles in the pendingParticlesBuffer and add them all to the main waveParticleBuffer
+///
+#pragma kernel CommitParticles
+[numthreads(THREAD_GROUPS_X, 1, 1)]
+void CommitParticles(uint3 id: SV_DispatchThreadID) {
+	if (id.x >= pendingParticlesHead) {
+		return;
+	}
+	WaveParticle particle = pendingParticlesBuffer[id.x];
+	waveParticleBuffer[(id.x + currentHead) % particleContainerSize] = particle;
+}

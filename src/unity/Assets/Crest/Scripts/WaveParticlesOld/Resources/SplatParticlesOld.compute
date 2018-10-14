@@ -1,0 +1,66 @@
+﻿#include "Assets/Crest/Scripts/WaveParticlesOld/Resources/UtilsOld.compute"
+#include "Assets/Crest/Scripts/WaveParticlesOld/Resources/WaveParticleStructOld.compute"
+#include "Assets/Crest/Scripts/WaveParticlesOld/Resources/WaveParticleStructOld.compute"
+const float fixedDeltaTime;
+const int currentFrame;
+const float particleSpeed;
+float2 getPosition(int startingFrame, float2 velocity, float2 origin)
+{
+	float t = (fixedDeltaTime * (float)(currentFrame - startingFrame));
+	return origin + (t * particleSpeed * velocity);
+}
+
+// TODO: investigate making this an int2?
+const int horiRes;
+const int vertRes;
+const float planeWidth;
+const float planeHeight;
+StructuredBuffer<WaveParticle> waveParticleBuffer;
+RWTexture2D<float4> splatTexture;
+
+///
+/// Splat the wave particles to the splatTexture
+///
+#pragma kernel SplatParticles
+[numthreads(THREAD_GROUPS_X, 1, 1)]
+void SplatParticles(uint3 id : SV_DispatchThreadID)
+{
+	WaveParticle particle = waveParticleBuffer[id.x];
+	float2 waveParticlePosition = getPosition(particle.startingFrame, particle.velocity, particle.origin);
+	uint xPos = (uint) round((waveParticlePosition.x / planeWidth) * horiRes);// % horiRes;
+	uint yPos = (uint) round((waveParticlePosition.y / planeHeight) * vertRes);// % vertRes;
+	splatTexture[uint2(xPos, yPos)] += float4(0.0, particle.amplitude, 0.0, 0.0);
+}
+
+#pragma kernel SplatParticlesModulus
+[numthreads(THREAD_GROUPS_X, 1, 1)]
+void SplatParticlesModulus(uint3 id : SV_DispatchThreadID)
+{
+	WaveParticle particle = waveParticleBuffer[id.x];
+	float2 waveParticlePosition = getPosition(particle.startingFrame, particle.velocity, particle.origin);
+	uint xPos;
+	{
+		int xPosSigned = round((waveParticlePosition.x / planeWidth) * horiRes);
+		if(xPosSigned < 0)
+		{
+			xPos = (uint) (xPosSigned - (((xPosSigned / horiRes) - 1) * horiRes));
+		}
+		else
+		{
+			xPos = ((uint) xPosSigned) % horiRes;
+		}
+	}
+	uint yPos;
+	{
+		int yPosSigned = round((waveParticlePosition.y / planeWidth) * vertRes);
+		if(yPosSigned < 0)
+		{
+			yPos = (uint) (yPosSigned - (((yPosSigned / vertRes) - 1) * vertRes));
+		}
+		else
+		{
+			yPos = ((uint) yPosSigned) % vertRes;
+		}
+	}
+	splatTexture[uint2(xPos, yPos)] += float4(0.0, particle.amplitude, 0.0, 0.0);
+}

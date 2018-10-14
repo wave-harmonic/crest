@@ -49,6 +49,16 @@ public class BoatAlignNormal : MonoBehaviour
 
     void FixedUpdate()
     {
+        // Manually trigger request update - this is because FixedUpdate executes before Update, so process the requests
+        // early so that latest and greatest data is available. This should remove a frame of latency from physics!
+        foreach(var aw in OceanRenderer.Instance._lodDataAnimWaves)
+        {
+            if (aw && aw.DataReadback)
+            {
+                aw.DataReadback.UpdateProcessRequests();
+            }
+        }
+
         var colProvider = OceanRenderer.Instance.CollisionProvider;
         var position = transform.position;
 

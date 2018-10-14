@@ -113,7 +113,7 @@ namespace Crest
         [HideInInspector] public Camera[] _camsDynWaves;
         public int CurrentLodCount { get { return _camsAnimWaves.Length; } }
 
-        void Start()
+        void Awake()
         {
             _instance = this;
 

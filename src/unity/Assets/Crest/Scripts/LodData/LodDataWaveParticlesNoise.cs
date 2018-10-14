@@ -54,7 +54,18 @@ namespace Crest
 
         void Start()
         {
-            _waveParticlesSystem.Initialise(500000, 0.001f);
+            WaveParticle[] waveParticlesBuffer = new WaveParticle[100];
+            for(int i = 0; i < waveParticlesBuffer.Length  ; i++)
+            {
+                float x = Random.Range(0f, _heightField.heightFieldInfo.Width);
+                float y = Random.Range(0f,  _heightField.heightFieldInfo.Height);
+                float vx = Random.Range(-1f, 1f);
+                float vy = Random.Range(-1f, 1f);
+                WaveParticle waveParticle = WaveParticle.createWaveParticle(new Vector2(x, y), new Vector2(vx, vy), .8f);
+                waveParticlesBuffer[i] = waveParticle;
+            }
+
+            _waveParticlesSystem.Initialise(waveParticlesBuffer, 0.001f);
             _heightField.InitialiseTexture(textureWrapMode: TextureWrapMode.Repeat);
 
             MeshRenderer meshRenderer = GetComponent<MeshRenderer>();
@@ -70,6 +81,7 @@ namespace Crest
 
             int kernelWidth = Mathf.CeilToInt((WaveParticle.RADIUS / _heightField.heightFieldInfo.Width) * _heightField.heightFieldInfo.HoriRes);
             int kernelHeight = Mathf.CeilToInt((WaveParticle.RADIUS / _heightField.heightFieldInfo.Height) * _heightField.heightFieldInfo.VertRes);
+
             Color[] kernelArray = CreateKernel(kernelHeight, kernelWidth, _heightField.heightFieldInfo);
             _convolutionKernel = new Texture2D(kernelWidth, kernelHeight, TextureFormat.RGBAFloat, false);
             _convolutionKernel.name = "Convolution Kernel";
@@ -84,17 +96,6 @@ namespace Crest
             convolutionMaterial.SetFloat(Shader.PropertyToID("_KernelWidth"), kernelWidth);
             convolutionMaterial.SetFloat(Shader.PropertyToID("_KernelHeight"), kernelHeight);
 
-                        // Create a small ripple of particles, as it has a dispersion angle of 360
-            for(int i = 0; i < 100  ; i++)
-            {
-                float x = Random.Range(0f, _heightField.heightFieldInfo.Width);
-                float y = Random.Range(0f,  _heightField.heightFieldInfo.Height);
-                float vx = Random.Range(-1f, 1f);
-                float vy = Random.Range(-1f, 1f);
-                WaveParticle waveParticle = WaveParticle.createWaveParticle(new Vector2(x, y), new Vector2(vx, vy), .8f, Mathf.PI * 2, _frame);
-                _waveParticlesSystem.addParticle(waveParticle);
-            }
-            _waveParticlesSystem.commitParticles();
         }
 
         bool doneFrame = false;
@@ -105,7 +106,7 @@ namespace Crest
             RenderTexture.active = _heightField.textureHeightMap;
             GL.Clear(true, true, Color.black);
             RenderTexture.active = null;
-            _waveParticlesSystem.splatParticlesModulus(_frame, ref _heightField);
+            _waveParticlesSystem.splatParticlesModulus(Time.time, ref _heightField);
             RenderTexture.active = _finalTexture;
             GL.Clear(true, true, Color.black);
             Graphics.Blit(_heightField.textureHeightMap, _finalTexture, convolutionMaterial);

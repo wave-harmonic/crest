@@ -2,12 +2,11 @@
 #include "Assets/Crest/Scripts/WaveParticles/Resources/WaveParticleStruct.compute"
 #include "Assets/Crest/Scripts/WaveParticles/Resources/WaveParticleStruct.compute"
 const float fixedDeltaTime;
-const int currentFrame;
 const float particleSpeed;
-float2 getPosition(int startingFrame, float2 velocity, float2 origin)
+const float time;
+float2 getPosition(float2 velocity, float2 origin)
 {
-	float t = (fixedDeltaTime * (float)(currentFrame - startingFrame));
-	return origin + (t * particleSpeed * velocity);
+	return origin + (time * particleSpeed * velocity);
 }
 
 // TODO: investigate making this an int2?
@@ -26,7 +25,7 @@ RWTexture2D<float4> splatTexture;
 void SplatParticles(uint3 id : SV_DispatchThreadID)
 {
 	WaveParticle particle = waveParticleBuffer[id.x];
-	float2 waveParticlePosition = getPosition(particle.startingFrame, particle.velocity, particle.origin);
+	float2 waveParticlePosition = getPosition(particle.velocity, particle.origin);
 	uint xPos = (uint) round((waveParticlePosition.x / planeWidth) * horiRes);// % horiRes;
 	uint yPos = (uint) round((waveParticlePosition.y / planeHeight) * vertRes);// % vertRes;
 	splatTexture[uint2(xPos, yPos)] += float4(0.0, particle.amplitude, 0.0, 0.0);
@@ -37,7 +36,7 @@ void SplatParticles(uint3 id : SV_DispatchThreadID)
 void SplatParticlesModulus(uint3 id : SV_DispatchThreadID)
 {
 	WaveParticle particle = waveParticleBuffer[id.x];
-	float2 waveParticlePosition = getPosition(particle.startingFrame, particle.velocity, particle.origin);
+	float2 waveParticlePosition = getPosition(particle.velocity, particle.origin);
 	uint xPos;
 	{
 		int xPosSigned = round((waveParticlePosition.x / planeWidth) * horiRes);

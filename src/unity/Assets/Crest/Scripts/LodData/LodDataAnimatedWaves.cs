@@ -227,19 +227,20 @@ namespace Crest
             var ldaws = OceanRenderer.Instance._lodDataAnimWaves;
             for (int lod = 0; lod < ldaws.Length; lod++)
             {
-                // shape texture needs to completely contain sample area
+                // Shape texture needs to completely contain sample area
                 var ldaw = ldaws[lod];
                 if (ldaw.DataReadback == null) return -1;
                 var wdcRect = ldaw.DataReadback.DataRectXZ;
-                // shrink rect by 1 texel border - this is to make finite differences fit as well
+                // Shrink rect by 1 texel border - this is to make finite differences fit as well
                 wdcRect.x += ldaw.LodTransform._renderData._texelWidth; wdcRect.y += ldaw.LodTransform._renderData._texelWidth;
                 wdcRect.width -= 2f * ldaw.LodTransform._renderData._texelWidth; wdcRect.height -= 2f * ldaw.LodTransform._renderData._texelWidth;
                 if (!wdcRect.Contains(sampleAreaXZ.min) || !wdcRect.Contains(sampleAreaXZ.max))
                     continue;
 
-                // the smallest wavelengths should repeat no more than twice across the smaller spatial length
+                // The smallest wavelengths should repeat no more than twice across the smaller spatial length. Unless we're
+                // in the last LOD - then this is the best we can do.
                 var minWL = ldaw.MaxWavelength() / 2f;
-                if (minWL < minSpatialLength / 2f)
+                if (minWL < minSpatialLength / 2f && lod < ldaws.Length - 1)
                     continue;
 
                 return lod;

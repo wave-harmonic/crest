@@ -155,6 +155,24 @@ namespace Crest
             return _dataReadback._result.SampleARGB16(ref in__worldPos, out displacement);
         }
 
+        public bool SampleDisplacementVel(ref Vector3 in__worldPos, out Vector3 displacement, out Vector3 displacementVel)
+        {
+            if (!_dataReadback._result.SampleARGB16(ref in__worldPos, out displacement))
+            {
+                displacementVel = Vector3.zero;
+                return false;
+            }
+            Vector3 dispLast;
+            if (!_dataReadback._resultLast.SampleARGB16(ref in__worldPos, out dispLast))
+            {
+                displacementVel = Vector3.zero;
+                return false;
+            }
+
+            displacementVel = (displacement - dispLast) / (_dataReadback._result._time - _dataReadback._resultLast._time);
+            return true;
+        }
+
         /// <summary>
         /// Get position on ocean plane that displaces horizontally to the given position.
         /// </summary>

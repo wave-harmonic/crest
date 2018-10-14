@@ -14,6 +14,7 @@ namespace Crest
         /// </summary>
         bool SampleDisplacement(ref Vector3 in__worldPos, out Vector3 displacement);
         bool SampleDisplacement(ref Vector3 in__worldPos, out Vector3 displacement, float minSpatialLength);
+        bool SampleDisplacementVel(ref Vector3 in__worldPos, out Vector3 displacement, out Vector3 displacementVel, float minSpatialLength);
 
         /// <summary>
         /// Samples ocean surface height at given world position.

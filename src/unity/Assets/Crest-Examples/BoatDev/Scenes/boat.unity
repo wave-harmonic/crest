@@ -589,7 +589,7 @@ Prefab:
     - target: {fileID: 114101010989703450, guid: 71ede3c2ab0b7cb43b7dad6ae3b6190b,
         type: 2}
       propertyPath: _debugDraw
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1686297963636050, guid: 71ede3c2ab0b7cb43b7dad6ae3b6190b, type: 2}
       propertyPath: m_IsActive

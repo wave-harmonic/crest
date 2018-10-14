@@ -183,7 +183,7 @@ namespace Crest
                 return;
             }
 
-            displacementVel = (displacement - dispLast) / (_dataReadback._result._time - _dataReadback._resultLast._time);
+            displacementVel = (displacement - dispLast) / Mathf.Max(0.0001f, _dataReadback._result._time - _dataReadback._resultLast._time);
         }
 
         /// <summary>

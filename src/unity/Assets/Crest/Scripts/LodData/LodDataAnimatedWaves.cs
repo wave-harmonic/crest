@@ -152,12 +152,12 @@ namespace Crest
 
         public bool SampleDisplacement(ref Vector3 in__worldPos, out Vector3 displacement)
         {
-            return _dataReadback._result.SampleARGB16(ref in__worldPos, out displacement);
+            return _dataReadback._result.InterpolateARGB16(ref in__worldPos, out displacement);
         }
 
         public void SampleDisplacementVel(ref Vector3 in__worldPos, out Vector3 displacement, out bool displacementValid, out Vector3 displacementVel, out bool velValid)
         {
-            displacementValid = _dataReadback._result.SampleARGB16(ref in__worldPos, out displacement);
+            displacementValid = _dataReadback._result.InterpolateARGB16(ref in__worldPos, out displacement);
             if (!displacementValid)
             {
                 displacementVel = Vector3.zero;
@@ -176,7 +176,7 @@ namespace Crest
             }
 
             Vector3 dispLast;
-            velValid = _dataReadback._resultLast.SampleARGB16(ref in__worldPos, out dispLast);
+            velValid = _dataReadback._resultLast.InterpolateARGB16(ref in__worldPos, out dispLast);
             if (!velValid)
             {
                 displacementVel = Vector3.zero;

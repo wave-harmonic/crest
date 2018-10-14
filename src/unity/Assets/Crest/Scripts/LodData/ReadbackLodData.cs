@@ -57,6 +57,54 @@ namespace Crest
                 return true;
             }
 
+            public bool InterpolateARGB16(ref Vector3 in__worldPos, out Vector3 displacement)
+            {
+                float xOffset = in__worldPos.x - _renderData._posSnapped.x;
+                float zOffset = in__worldPos.z - _renderData._posSnapped.z;
+                float r = _renderData._texelWidth * _renderData._textureRes / 2f;
+                if (Mathf.Abs(xOffset) >= r || Mathf.Abs(zOffset) >= r)
+                {
+                    // outside of this collision data
+                    displacement = Vector3.zero;
+                    return false;
+                }
+
+                var u = 0.5f + 0.5f * xOffset / r;
+                var v = 0.5f + 0.5f * zOffset / r;
+                float u_texels = Mathf.Max(u * _renderData._textureRes, 0f);
+                float v_texels = Mathf.Max(v * _renderData._textureRes, 0f);
+
+                var x = Mathf.FloorToInt(u_texels);
+                var z = Mathf.FloorToInt(v_texels);
+
+                int width = (int)_renderData._textureRes;
+                var idx00 = 4 * ((z + 0) * width + x + 0);
+                var idx01 = 4 * ((z + 0) * width + x + 1);
+                var idx10 = 4 * ((z + 1) * width + x + 0);
+                var idx11 = 4 * ((z + 1) * width + x + 1);
+
+                float x00 = Mathf.HalfToFloat(_data[idx00 + 0]);
+                float y00 = Mathf.HalfToFloat(_data[idx00 + 1]);
+                float z00 = Mathf.HalfToFloat(_data[idx00 + 2]);
+                float x01 = Mathf.HalfToFloat(_data[idx01 + 0]);
+                float y01 = Mathf.HalfToFloat(_data[idx01 + 1]);
+                float z01 = Mathf.HalfToFloat(_data[idx01 + 2]);
+                float x10 = Mathf.HalfToFloat(_data[idx10 + 0]);
+                float y10 = Mathf.HalfToFloat(_data[idx10 + 1]);
+                float z10 = Mathf.HalfToFloat(_data[idx10 + 2]);
+                float x11 = Mathf.HalfToFloat(_data[idx11 + 0]);
+                float y11 = Mathf.HalfToFloat(_data[idx11 + 1]);
+                float z11 = Mathf.HalfToFloat(_data[idx11 + 2]);
+
+                var xf = Mathf.Repeat(u_texels, 1f);
+                var zf = Mathf.Repeat(v_texels, 1f);
+                displacement.x = Mathf.Lerp(Mathf.Lerp(x00, x01, xf), Mathf.Lerp(x10, x11, xf), zf);
+                displacement.y = Mathf.Lerp(Mathf.Lerp(y00, y01, xf), Mathf.Lerp(y10, y11, xf), zf);
+                displacement.z = Mathf.Lerp(Mathf.Lerp(z00, z01, xf), Mathf.Lerp(z10, z11, xf), zf);
+
+                return true;
+            }
+
             public bool SampleRG16(ref Vector3 in__worldPos, out Vector2 flow)
             {
                 float xOffset = in__worldPos.x - _renderData._posSnapped.x;

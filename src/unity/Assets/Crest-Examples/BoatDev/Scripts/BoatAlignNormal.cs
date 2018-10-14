@@ -38,6 +38,7 @@ public class BoatAlignNormal : MonoBehaviour
     public float _steerBias = 0f;
 
     [SerializeField] bool _debugDraw = false;
+    [SerializeField] bool _debugDrawSurroundingColl = false;
 
     void Start()
     {
@@ -135,6 +136,41 @@ public class BoatAlignNormal : MonoBehaviour
         var torque = Vector3.Cross(current, target);
         _rb.AddTorque(torque * _boyancyTorque, ForceMode.Acceleration);
     }
+
+#if UNITY_EDITOR
+    private void Update()
+    {
+        if (_debugDrawSurroundingColl)
+        {
+            UpdateDebugDrawSurroundingColl();
+        }
+    }
+
+    private void UpdateDebugDrawSurroundingColl()
+    {
+        float r = 5f;
+        float steps = 10;
+        for (float i = 0; i < steps; i++)
+        {
+            for (float j = 0; j < steps; j++)
+            {
+                Vector3 pos = new Vector3(((i + 0.5f) - steps / 2f) * r, 0f, ((j + 0.5f) - steps / 2f) * r);
+                pos.x += transform.position.x;
+                pos.z += transform.position.z;
+
+                Vector3 disp;
+                if (OceanRenderer.Instance.CollisionProvider.SampleDisplacement(ref pos, out disp, _boatWidth))
+                {
+                    DebugDrawCross(pos + disp, 1f, Color.green);
+                }
+                else
+                {
+                    DebugDrawCross(pos, 0.25f, Color.red);
+                }
+            }
+        }
+    }
+#endif
 
     void DebugDrawCross(Vector3 pos, float r, Color col)
     {

@@ -74,14 +74,17 @@ namespace Crest
                 float u_texels = Mathf.Max(u * _renderData._textureRes, 0f);
                 float v_texels = Mathf.Max(v * _renderData._textureRes, 0f);
 
-                var x = Mathf.FloorToInt(u_texels);
-                var z = Mathf.FloorToInt(v_texels);
-
                 int width = (int)_renderData._textureRes;
-                var idx00 = 4 * ((z + 0) * width + x + 0);
-                var idx01 = 4 * ((z + 0) * width + x + 1);
-                var idx10 = 4 * ((z + 1) * width + x + 0);
-                var idx11 = 4 * ((z + 1) * width + x + 1);
+
+                var x0 = Mathf.FloorToInt(u_texels);
+                var x1 = Mathf.Min(x0 + 1, width - 1);
+                var z0 = Mathf.FloorToInt(v_texels);
+                var z1 = Mathf.Min(z0 + 1, width - 1);
+
+                var idx00 = 4 * (z0 * width + x0);
+                var idx01 = 4 * (z0 * width + x1);
+                var idx10 = 4 * (z1 * width + x0);
+                var idx11 = 4 * (z1 * width + x1);
 
                 float x00 = Mathf.HalfToFloat(_data[idx00 + 0]);
                 float y00 = Mathf.HalfToFloat(_data[idx00 + 1]);

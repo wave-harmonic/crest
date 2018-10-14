@@ -155,22 +155,35 @@ namespace Crest
             return _dataReadback._result.SampleARGB16(ref in__worldPos, out displacement);
         }
 
-        public bool SampleDisplacementVel(ref Vector3 in__worldPos, out Vector3 displacement, out Vector3 displacementVel)
+        public void SampleDisplacementVel(ref Vector3 in__worldPos, out Vector3 displacement, out bool displacementValid, out Vector3 displacementVel, out bool velValid)
         {
-            if (!_dataReadback._result.SampleARGB16(ref in__worldPos, out displacement))
+            displacementValid = _dataReadback._result.SampleARGB16(ref in__worldPos, out displacement);
+            if (!displacementValid)
             {
                 displacementVel = Vector3.zero;
-                return false;
+                velValid = false;
+                return;
             }
-            Vector3 dispLast;
-            if (!_dataReadback._resultLast.SampleARGB16(ref in__worldPos, out dispLast))
+
+            // Check if this lod changed scales between result and previous result - if so can't compute vel. This should
+            // probably go search for the results in the other LODs but returning 0 is easiest for now and should be ok-ish
+            // for physics code.
+            if (_dataReadback._resultLast._renderData._texelWidth != _dataReadback._result._renderData._texelWidth)
             {
                 displacementVel = Vector3.zero;
-                return false;
+                velValid = false;
+                return;
+            }
+
+            Vector3 dispLast;
+            velValid = _dataReadback._resultLast.SampleARGB16(ref in__worldPos, out dispLast);
+            if (!velValid)
+            {
+                displacementVel = Vector3.zero;
+                return;
             }
 
             displacementVel = (displacement - dispLast) / (_dataReadback._result._time - _dataReadback._resultLast._time);
-            return true;
         }
 
         /// <summary>

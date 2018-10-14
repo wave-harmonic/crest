@@ -64,7 +64,9 @@ public class BoatAlignNormal : MonoBehaviour
         if (_debugDraw) DebugDrawCross(undispPos, 1f, Color.red);
 
         var waterSurfaceVel = Vector3.zero;
-        if (!colProvider.SampleDisplacementVel(ref undispPos, out _displacementToBoat, out waterSurfaceVel, _boatWidth)) return;
+        bool dispValid, velValid;
+        colProvider.SampleDisplacementVel(ref undispPos, out _displacementToBoat, out dispValid, out waterSurfaceVel, out velValid, _boatWidth);
+        if (!dispValid) return;
 
         if (!_computeWaterVel)
         {
@@ -91,7 +93,10 @@ public class BoatAlignNormal : MonoBehaviour
         if (!colProvider.SampleNormal(ref undispPos, out normal, _boatWidth)) return;
         if(_debugDraw) Debug.DrawLine(transform.position, transform.position + 5f * normal, Color.green);
 
-        _velocityRelativeToWater = _rb.velocity - waterSurfaceVel;
+        if (velValid)
+        {
+            _velocityRelativeToWater = _rb.velocity - waterSurfaceVel;
+        }
 
         var dispPos = undispPos + _displacementToBoat;
         if (_debugDraw) DebugDrawCross(dispPos, 4f, Color.white);

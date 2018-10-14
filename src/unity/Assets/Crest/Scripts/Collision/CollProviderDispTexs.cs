@@ -33,17 +33,19 @@ namespace Crest
 
             return SampleDisplacementInArea(ref in__worldPos, out displacement);
         }
-        public bool SampleDisplacementVel(ref Vector3 in__worldPos, out Vector3 displacement, out Vector3 displacementVel, float minSpatialLength)
+        public void SampleDisplacementVel(ref Vector3 in__worldPos, out Vector3 displacement, out bool displacementValid, out Vector3 displacementVel, out bool velValid, float minSpatialLength)
         {
             // select lod. this now has a 1 texel buffer, so the finite differences below should all be valid.
             if (!PrewarmForSamplingArea(new Rect(in__worldPos.x, in__worldPos.z, 0f, 0f), minSpatialLength))
             {
                 displacement = Vector3.zero;
+                displacementValid = false;
                 displacementVel = Vector3.zero;
-                return false;
+                velValid = false;
+                return;
             }
 
-            return SampleDisplacementVelInArea(ref in__worldPos, out displacement, out displacementVel);
+            SampleDisplacementVelInArea(ref in__worldPos, out displacement, out displacementValid, out displacementVel, out velValid);
         }
 
         public bool SampleHeight(ref Vector3 in__worldPos, out float height)
@@ -71,9 +73,9 @@ namespace Crest
         {
             return OceanRenderer.Instance._lodDataAnimWaves[_areaLod].SampleDisplacement(ref in__worldPos, out displacement);
         }
-        public bool SampleDisplacementVelInArea(ref Vector3 in__worldPos, out Vector3 displacement, out Vector3 displacementVel)
+        public void SampleDisplacementVelInArea(ref Vector3 in__worldPos, out Vector3 displacement, out bool displacementValid, out Vector3 displacementVel, out bool velValid)
         {
-            return OceanRenderer.Instance._lodDataAnimWaves[_areaLod].SampleDisplacementVel(ref in__worldPos, out displacement, out displacementVel);
+            OceanRenderer.Instance._lodDataAnimWaves[_areaLod].SampleDisplacementVel(ref in__worldPos, out displacement, out displacementValid, out displacementVel, out velValid);
         }
         public bool SampleHeightInArea(ref Vector3 in__worldPos, out float height)
         {

@@ -12,10 +12,14 @@ namespace Crest
     /// </summary>
     public class ReadbackLodData : MonoBehaviour
     {
+        float _prevTime;
+        int _updateFrame = -1;
+
         struct ReadbackRequest
         {
             public AsyncGPUReadbackRequest _request;
             public LodTransform.RenderData _renderData;
+            public float _time;
         }
 
         Queue<ReadbackRequest> _requests = new Queue<ReadbackRequest>();
@@ -77,6 +81,7 @@ namespace Crest
             }
         }
         public Result _result;
+        public Result _resultLast;
 
         public bool _active = true;
 
@@ -108,14 +113,16 @@ namespace Crest
             }
         }
 
-        private void Update()
+        private void Start()
         {
-            if (_active)
-            {
-                Debug.Assert(_textureFormat != TexFormat.NotSet, "ReadbackLodData: Texture format must be set.", this);
+            _prevTime = Time.time;
+        }
 
-                UpdateReadback(Cam, LT._renderData);
-            }
+        public void Update()
+        {
+            UpdateReadback(Cam, LT._renderData);
+
+            UpdateProcessRequests();
         }
 
         /// <summary>
@@ -123,10 +130,32 @@ namespace Crest
         /// </summary>
         public void UpdateReadback(Camera cam, LodTransform.RenderData renderData)
         {
+            if (!_active)
+            {
+                return;
+            }
+
             // queue pattern inspired by: https://github.com/keijiro/AsyncCaptureTest
 
             // beginning of update turns out to be a good time to sample the textures to ensure everything in the frame is done.
-            EnqueueReadbackRequest(cam.targetTexture, renderData);
+            EnqueueReadbackRequest(cam.targetTexture, renderData, _prevTime);
+            _prevTime = Time.time;
+        }
+
+        public void UpdateProcessRequests()
+        {
+            if (!_active)
+            {
+                return;
+            }
+
+            // Physics stuff may call update from FixedUpdate() - therefore check if this component was already
+            // updated this frame.
+            if (_updateFrame == Time.frameCount)
+            {
+                return;
+            }
+            _updateFrame = Time.frameCount;
 
             // remove any failed readback requests
             for (int i = 0; i < MAX_REQUESTS && _requests.Count > 0; i++)
@@ -143,10 +172,12 @@ namespace Crest
             }
 
             // create array to hold data if we don't have one already
-            var num = ((int)_textureFormat) * cam.targetTexture.width * cam.targetTexture.height;
+            Debug.Assert(_textureFormat != TexFormat.NotSet, "ReadbackLodData: Texture format must be set.", this);
+            var num = ((int)_textureFormat) * Cam.targetTexture.width * Cam.targetTexture.height;
             if (!_result._data.IsCreated || _result._data.Length != num)
             {
                 _result._data = new NativeArray<ushort>(num, Allocator.Persistent);
+                _resultLast._data = new NativeArray<ushort>(num, Allocator.Persistent);
             }
 
             // process current request queue
@@ -167,24 +198,42 @@ namespace Crest
 
                     Profiler.BeginSample("Copy out readback data");
 
+                    _resultLast._renderData = _result._renderData;
+                    _resultLast._time = _result._time;
+                    Swap(ref _result._data, ref _resultLast._data);
+
                     var data = request._request.GetData<ushort>();
                     data.CopyTo(_result._data);
                     _result._renderData = request._renderData;
-                    
+                    _result._time = request._time;
+
                     Profiler.EndSample();
                 }
             }
         }
 
-        public void EnqueueReadbackRequest(RenderTexture target, LodTransform.RenderData renderData)
+        void Swap(ref NativeArray<ushort> arr1, ref NativeArray<ushort> arr2)
         {
+            var temp = arr2;
+            arr2 = arr1;
+            arr1 = temp;
+        }
+
+        public void EnqueueReadbackRequest(RenderTexture target, LodTransform.RenderData renderData, float time)
+        {
+            if(time <= _result._time)
+            {
+                return;
+            }
+
             if (_requests.Count < MAX_REQUESTS)
             {
                 _requests.Enqueue(
                     new ReadbackRequest
                     {
                         _request = AsyncGPUReadback.Request(target),
-                        _renderData = renderData
+                        _renderData = renderData,
+                        _time = time,
                     }
                 );
             }
@@ -204,10 +253,8 @@ namespace Crest
         void OnDisable()
         {
             // free native array when component removed or destroyed
-            if (_result._data.IsCreated)
-            {
-                _result._data.Dispose();
-            }
+            if (_result._data.IsCreated) _result._data.Dispose();
+            if (_resultLast._data.IsCreated) _resultLast._data.Dispose();
         }
 
         LodTransform _lt; LodTransform LT { get { return _lt ?? (_lt = GetComponent<LodTransform>()); } }

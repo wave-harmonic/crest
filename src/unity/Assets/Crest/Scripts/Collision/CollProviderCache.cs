@@ -54,6 +54,10 @@ namespace Crest
         {
             return _collProvider.SampleDisplacement(ref in__worldPos, out displacement, minSpatialLength);
         }
+        public void SampleDisplacementVel(ref Vector3 in__worldPos, out Vector3 displacement, out bool displacementValid, out Vector3 displacementVel, out bool velValid, float minSpatialLength)
+        {
+            _collProvider.SampleDisplacementVel(ref in__worldPos, out displacement, out displacementValid, out displacementVel, out velValid, minSpatialLength);
+        }
 
         public bool SampleHeight(ref Vector3 in__worldPos, out float height)
         {

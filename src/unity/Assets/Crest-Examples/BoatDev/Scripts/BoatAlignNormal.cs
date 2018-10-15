@@ -6,7 +6,6 @@ using Crest;
 public class BoatAlignNormal : MonoBehaviour
 {
     public float _bottomH = -1f;
-    public bool _debugDraw = false;
     public float _overrideProbeRadius = -1f;
     public float _buoyancyCoeff = 40000f;
     public float _boyancyTorque = 2f;
@@ -23,19 +22,23 @@ public class BoatAlignNormal : MonoBehaviour
     public float _dragInWaterRight = 20000f;
     public float _dragInWaterForward = 20000f;
 
+    [SerializeField] bool _computeWaterVel = false;
+
     bool _inWater;
     public bool InWater { get { return _inWater; } }
 
     Vector3 _velocityRelativeToWater;
     public Vector3 VelocityRelativeToWater { get { return _velocityRelativeToWater; } }
 
-    Vector3 _displacementToBoat, _displacementToBoatLastFrame;
-    bool _displacementToBoatInitd = false;
+    Vector3 _displacementToBoat;
     public Vector3 DisplacementToBoat { get { return _displacementToBoat; } }
 
     public bool _playerControlled = true;
     public float _throttleBias = 0f;
     public float _steerBias = 0f;
+
+    [SerializeField] bool _debugDraw = false;
+    [SerializeField] bool _debugDrawSurroundingColl = false;
 
     void Start()
     {
@@ -44,39 +47,61 @@ public class BoatAlignNormal : MonoBehaviour
 
     void FixedUpdate()
     {
+        // Manually trigger request update - this is because FixedUpdate executes before Update, so process the requests
+        // early so that latest and greatest data is available. This should remove a frame of latency from physics!
+        foreach(var aw in OceanRenderer.Instance._lodDataAnimWaves)
+        {
+            if (aw && aw.DataReadback)
+            {
+                aw.DataReadback.UpdateProcessRequests();
+            }
+        }
+
         var colProvider = OceanRenderer.Instance.CollisionProvider;
         var position = transform.position;
 
         Vector3 undispPos;
         if (!colProvider.ComputeUndisplacedPosition(ref position, out undispPos)) return;
+        if (_debugDraw) DebugDrawCross(undispPos, 1f, Color.red);
 
-        if (!colProvider.SampleDisplacement(ref undispPos, out _displacementToBoat, _boatWidth)) return;
-        if (!_displacementToBoatInitd)
+        var waterSurfaceVel = Vector3.zero;
+        bool dispValid, velValid;
+        colProvider.SampleDisplacementVel(ref undispPos, out _displacementToBoat, out dispValid, out waterSurfaceVel, out velValid, _boatWidth);
+        if (!dispValid) return;
+
+        if (!_computeWaterVel)
         {
-            _displacementToBoatLastFrame = _displacementToBoat;
-            _displacementToBoatInitd = true;
+            waterSurfaceVel = Vector3.zero;
         }
 
-        // estimate water velocity
-        Vector3 velWater = (_displacementToBoat - _displacementToBoatLastFrame) / Time.deltaTime;
-        if(OceanRenderer.Instance._createFlowSim) {
+        if (OceanRenderer.Instance._createFlowSim)
+        {
             Vector2 surfaceFlow;
             int lod  = LodDataFlow.SuggestDataLOD(new Rect(position.x, position.z, 0f, 0f), _boatWidth);
             if(lod != -1) {
                 if(OceanRenderer.Instance._lodDataAnimWaves[lod].LDFlow.SampleFlow(ref position, out surfaceFlow)) {
-                    velWater += new Vector3(surfaceFlow.x, 0, surfaceFlow.y);
+                    waterSurfaceVel += new Vector3(surfaceFlow.x, 0, surfaceFlow.y);
                 }
             }
         }
-        _displacementToBoatLastFrame = _displacementToBoat;
+        if (_debugDraw)
+        {
+            Debug.DrawLine(transform.position + 5f * Vector3.up, transform.position + 5f * Vector3.up + waterSurfaceVel,
+                new Color(1, 1, 1, 0.6f));
+        }
 
         Vector3 normal;
         if (!colProvider.SampleNormal(ref undispPos, out normal, _boatWidth)) return;
-        Debug.DrawLine(transform.position, transform.position + 5f * normal);
+        if(_debugDraw) Debug.DrawLine(transform.position, transform.position + 5f * normal, Color.green);
 
-        _velocityRelativeToWater = _rb.velocity - velWater;
+        if (velValid)
+        {
+            _velocityRelativeToWater = _rb.velocity - waterSurfaceVel;
+        }
 
         var dispPos = undispPos + _displacementToBoat;
+        if (_debugDraw) DebugDrawCross(dispPos, 4f, Color.white);
+
         float height = dispPos.y;
 
         float bottomDepth = height - transform.position.y - _bottomH;
@@ -100,7 +125,6 @@ public class BoatAlignNormal : MonoBehaviour
         float forward = _throttleBias;
         if(_playerControlled) forward += Input.GetAxis("Vertical");
         _rb.AddForceAtPosition(transform.forward * _enginePower * forward, forcePosition, ForceMode.Acceleration);
-        //Debug.DrawLine(transform.position + Vector3.up * 5f, transform.position + 5f * (Vector3.up + transform.forward));
 
         float sideways = _steerBias;
         if(_playerControlled ) sideways += (Input.GetKey(KeyCode.A) ? -1f : 0f) + (Input.GetKey(KeyCode.D) ? 1f : 0f);
@@ -111,5 +135,47 @@ public class BoatAlignNormal : MonoBehaviour
         var target = normal;
         var torque = Vector3.Cross(current, target);
         _rb.AddTorque(torque * _boyancyTorque, ForceMode.Acceleration);
+    }
+
+#if UNITY_EDITOR
+    private void Update()
+    {
+        if (_debugDrawSurroundingColl)
+        {
+            UpdateDebugDrawSurroundingColl();
+        }
+    }
+
+    private void UpdateDebugDrawSurroundingColl()
+    {
+        float r = 5f;
+        float steps = 10;
+        for (float i = 0; i < steps; i++)
+        {
+            for (float j = 0; j < steps; j++)
+            {
+                Vector3 pos = new Vector3(((i + 0.5f) - steps / 2f) * r, 0f, ((j + 0.5f) - steps / 2f) * r);
+                pos.x += transform.position.x;
+                pos.z += transform.position.z;
+
+                Vector3 disp;
+                if (OceanRenderer.Instance.CollisionProvider.SampleDisplacement(ref pos, out disp, _boatWidth))
+                {
+                    DebugDrawCross(pos + disp, 1f, Color.green);
+                }
+                else
+                {
+                    DebugDrawCross(pos, 0.25f, Color.red);
+                }
+            }
+        }
+    }
+#endif
+
+    void DebugDrawCross(Vector3 pos, float r, Color col)
+    {
+        Debug.DrawLine(pos - Vector3.up * r, pos + Vector3.up * r, col);
+        Debug.DrawLine(pos - Vector3.right * r, pos + Vector3.right * r, col);
+        Debug.DrawLine(pos - Vector3.forward * r, pos + Vector3.forward * r, col);
     }
 }

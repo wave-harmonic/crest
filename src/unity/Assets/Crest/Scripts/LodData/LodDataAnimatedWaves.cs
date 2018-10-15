@@ -133,9 +133,9 @@ namespace Crest
             UnhookCombinePass();
 
             // free native array when component removed or destroyed
-            if (_dataReadback._dataNative.IsCreated)
+            if (_dataReadback._result._data.IsCreated)
             {
-                _dataReadback._dataNative.Dispose();
+                _dataReadback._result._data.Dispose();
             }
         }
 
@@ -152,27 +152,38 @@ namespace Crest
 
         public bool SampleDisplacement(ref Vector3 in__worldPos, out Vector3 displacement)
         {
-            float xOffset = in__worldPos.x - _dataReadback._dataRenderData._posSnapped.x;
-            float zOffset = in__worldPos.z - _dataReadback._dataRenderData._posSnapped.z;
-            float r = _dataReadback._dataRenderData._texelWidth * _dataReadback._dataRenderData._textureRes / 2f;
-            if (Mathf.Abs(xOffset) >= r || Mathf.Abs(zOffset) >= r)
+            return _dataReadback._result.InterpolateARGB16(ref in__worldPos, out displacement);
+        }
+
+        public void SampleDisplacementVel(ref Vector3 in__worldPos, out Vector3 displacement, out bool displacementValid, out Vector3 displacementVel, out bool velValid)
+        {
+            displacementValid = _dataReadback._result.InterpolateARGB16(ref in__worldPos, out displacement);
+            if (!displacementValid)
             {
-                // outside of this collision data
-                displacement = Vector3.zero;
-                return false;
+                displacementVel = Vector3.zero;
+                velValid = false;
+                return;
             }
 
-            var u = 0.5f + 0.5f * xOffset / r;
-            var v = 0.5f + 0.5f * zOffset / r;
-            var x = Mathf.FloorToInt(u * _dataReadback._dataRenderData._textureRes);
-            var y = Mathf.FloorToInt(v * _dataReadback._dataRenderData._textureRes);
-            var idx = 4 * (y * (int)_dataReadback._dataRenderData._textureRes + x);
+            // Check if this lod changed scales between result and previous result - if so can't compute vel. This should
+            // probably go search for the results in the other LODs but returning 0 is easiest for now and should be ok-ish
+            // for physics code.
+            if (_dataReadback._resultLast._renderData._texelWidth != _dataReadback._result._renderData._texelWidth)
+            {
+                displacementVel = Vector3.zero;
+                velValid = false;
+                return;
+            }
 
-            displacement.x = Mathf.HalfToFloat(_dataReadback._dataNative[idx + 0]);
-            displacement.y = Mathf.HalfToFloat(_dataReadback._dataNative[idx + 1]);
-            displacement.z = Mathf.HalfToFloat(_dataReadback._dataNative[idx + 2]);
+            Vector3 dispLast;
+            velValid = _dataReadback._resultLast.InterpolateARGB16(ref in__worldPos, out dispLast);
+            if (!velValid)
+            {
+                displacementVel = Vector3.zero;
+                return;
+            }
 
-            return true;
+            displacementVel = (displacement - dispLast) / Mathf.Max(0.0001f, _dataReadback._result._time - _dataReadback._resultLast._time);
         }
 
         /// <summary>

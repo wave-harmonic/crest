@@ -11,8 +11,8 @@ namespace Crest
         [SerializeField] protected float _maxGridSize = 4f;
         [SerializeField] protected LodDataType[] _lodData;
 
-        Dictionary<float, ReadbackResult> _result = new Dictionary<float, ReadbackResult>();
-        Dictionary<float, ReadbackResult> _resultLast = new Dictionary<float, ReadbackResult>();
+        SortedList<float, ReadbackResults> _results = new SortedList<float, ReadbackResults>();
+        //SortedList<float, ReadbackResult> _resultLast = new SortedList<float, ReadbackResult>();
 
         struct ReadbackRequest
         {
@@ -45,26 +45,26 @@ namespace Crest
                 {
                     var cam = lt.GetComponent<Camera>();
 
-                    if (!_result.ContainsKey(lt._renderData._texelWidth))
+                    if (!_results.ContainsKey(lt._renderData._texelWidth))
                     {
-                        var result = new ReadbackResult();
-                        var resultLast = new ReadbackResult();
+                        var resultData = new ReadbackResults();
+                        resultData._result = new ReadbackResult();
+                        resultData._resultLast = new ReadbackResult();
 
                         // create native arrays
                         Debug.Assert(_textureFormat != TexFormat.NotSet, "ReadbackLodData: Texture format must be set.", this);
                         var num = ((int)_textureFormat) * cam.targetTexture.width * cam.targetTexture.height;
-                        if (!result._data.IsCreated || result._data.Length != num)
+                        if (!resultData._result._data.IsCreated || resultData._result._data.Length != num)
                         {
-                            result._data = new NativeArray<ushort>(num, Allocator.Persistent);
-                            resultLast._data = new NativeArray<ushort>(num, Allocator.Persistent);
+                            resultData._result._data = new NativeArray<ushort>(num, Allocator.Persistent);
+                            resultData._resultLast._data = new NativeArray<ushort>(num, Allocator.Persistent);
                         }
 
-                        _result.Add(lt._renderData._texelWidth, result);
-                        _resultLast.Add(lt._renderData._texelWidth, resultLast);
+                        _results.Add(lt._renderData._texelWidth, resultData);
                     }
 
                     UpdateReadback(cam.targetTexture, lt._renderData);
-                    UpdateProcessRequests(cam);
+                    ProcessRequests(cam);
                 }
             }
         }
@@ -84,7 +84,7 @@ namespace Crest
         public void EnqueueReadbackRequest(RenderTexture target, LodTransform.RenderData renderData, float time)
         {
             // only queue up requests while time is advancing
-            if (time <= _result[renderData._texelWidth]._time)
+            if (time <= _results[renderData._texelWidth]._result._time)
             {
                 return;
             }
@@ -102,7 +102,7 @@ namespace Crest
             }
         }
 
-        public void UpdateProcessRequests(Camera cam)
+        public void ProcessRequests(Camera cam)
         {
             // Physics stuff may call update from FixedUpdate() - therefore check if this component was already
             // updated this frame.
@@ -146,8 +146,8 @@ namespace Crest
 
                     float gridSize = request._renderData._texelWidth;
 
-                    var result = _result[gridSize];
-                    var resultLast = _resultLast[gridSize];
+                    var result = _results[gridSize]._result;
+                    var resultLast = _results[gridSize]._resultLast;
 
                     // copy result into resultLast
                     resultLast._renderData = result._renderData;
@@ -202,20 +202,18 @@ namespace Crest
         void OnDisable()
         {
             // free native array when component removed or destroyed
-            foreach (var val in _result.Values)
+            foreach(var result in _results.Values)
             {
-                if (val != null && val._data.IsCreated)
-                {
-                    val._data.Dispose();
-                }
+                if (result == null || result._result == null) continue;
+                if (result._result._data.IsCreated) result._result._data.Dispose();
+                if (result._resultLast._data.IsCreated) result._resultLast._data.Dispose();
             }
-            foreach (var val in _resultLast.Values)
-            {
-                if (val != null && val._data.IsCreated)
-                {
-                    val._data.Dispose();
-                }
-            }
+        }
+
+        public class ReadbackResults
+        {
+            public ReadbackResult _result;
+            public ReadbackResult _resultLast;
         }
 
         public class ReadbackResult
@@ -322,6 +320,57 @@ namespace Crest
 
                 return true;
             }
+
+            public Rect DataRectXZ
+            {
+                get
+                {
+                    float w = _renderData._texelWidth * _renderData._textureRes;
+                    return new Rect(_renderData._posSnapped.x - w / 2f, _renderData._posSnapped.z - w / 2f, w, w);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Returns result of GPU readback of a LOD data. Do not hold onto the returned reference across frames.
+        /// </summary>
+        /// <param name="sampleAreaXZ">The area of interest, can be 0 area.</param>
+        /// <param name="minSpatialLength">Min spatial length is the minimum side length that you care about. For e.g.
+        /// if a boat has dimensions 3m x 2m, set this to 2, and then suitable wavelengths will be preferred.</param>
+        protected ReadbackResults GetData(Rect sampleAreaXZ, float minSpatialLength)
+        {
+            ReadbackResults lastCandidate = null;
+
+            foreach (var frameResults in _results)
+            {
+                // Check that the region of interest is covered by this data
+                var wdcRect = frameResults.Value._result.DataRectXZ;
+                // Shrink rect by 1 texel border - this is to make finite differences fit as well
+                float texelWidth = frameResults.Key;
+                wdcRect.x += texelWidth; wdcRect.y += texelWidth;
+                wdcRect.width -= 2f * texelWidth; wdcRect.height -= 2f * texelWidth;
+                if (!wdcRect.Contains(sampleAreaXZ.min) || !wdcRect.Contains(sampleAreaXZ.max))
+                {
+                    continue;
+                }
+
+                // This data covers our required area, so store it as a potential candidate
+                lastCandidate = frameResults.Value;
+
+                // The smallest wavelengths should repeat no more than twice across the smaller spatial length. Unless we're
+                // in the last LOD - then this is the best we can do.
+                float minWavelength = texelWidth * OceanRenderer.Instance._minTexelsPerWave;
+                if (minSpatialLength / minWavelength > 2f)
+                {
+                    continue;
+                }
+
+                // A good match - return immediately
+                return frameResults.Value;
+            }
+
+            // We didnt get a perfect match, but pick the next best candidate
+            return lastCandidate;
         }
     }
 }

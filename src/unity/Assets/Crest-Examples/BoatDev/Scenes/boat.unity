@@ -226,7 +226,7 @@ Transform:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 227134465}
   m_LocalRotation: {x: 0, y: 0.7071068, z: 0, w: 0.70710677}
-  m_LocalPosition: {x: -53.7, y: 10, z: 19.8}
+  m_LocalPosition: {x: -29.3, y: 10, z: 19.8}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -511,10 +511,6 @@ Prefab:
       value: 
       objectReference: {fileID: 11400000, guid: 8e1de4c30452ccf499882fefe206c5cd,
         type: 2}
-    - target: {fileID: 11417796, guid: 8454e29c2a033974fb559f5f8eff1918, type: 2}
-      propertyPath: _cachedCpuOceanQueries
-      value: 1
-      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 8454e29c2a033974fb559f5f8eff1918, type: 2}
   m_IsPrefabAsset: 0
@@ -580,35 +576,6 @@ Prefab:
         type: 2}
       propertyPath: _forceHeightOffset
       value: -0.2
-      objectReference: {fileID: 0}
-    - target: {fileID: 114101010989703450, guid: 71ede3c2ab0b7cb43b7dad6ae3b6190b,
-        type: 2}
-      propertyPath: _boatWidth
-      value: 32
-      objectReference: {fileID: 0}
-    - target: {fileID: 114101010989703450, guid: 71ede3c2ab0b7cb43b7dad6ae3b6190b,
-        type: 2}
-      propertyPath: _debugDraw
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1686297963636050, guid: 71ede3c2ab0b7cb43b7dad6ae3b6190b, type: 2}
-      propertyPath: m_IsActive
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 114101010989703450, guid: 71ede3c2ab0b7cb43b7dad6ae3b6190b,
-        type: 2}
-      propertyPath: _computeWaterHorizVel
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 114101010989703450, guid: 71ede3c2ab0b7cb43b7dad6ae3b6190b,
-        type: 2}
-      propertyPath: _waterSurfaceVelFilterWeight
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 114101010989703450, guid: 71ede3c2ab0b7cb43b7dad6ae3b6190b,
-        type: 2}
-      propertyPath: _computeWaterVel
-      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 71ede3c2ab0b7cb43b7dad6ae3b6190b, type: 2}
@@ -678,7 +645,7 @@ Prefab:
       objectReference: {fileID: 0}
     - target: {fileID: 1935509346245718, guid: 71ede3c2ab0b7cb43b7dad6ae3b6190b, type: 2}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 71ede3c2ab0b7cb43b7dad6ae3b6190b, type: 2}
@@ -924,9 +891,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _rasterMesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
   _waveShader: {fileID: 4800000, guid: 680b41329a8923e40a8f9d6ca86f60a8, type: 3}
-  _spectrum: {fileID: 11400000, guid: 5bcee09b2f876aa48b04e487c9991f08, type: 2}
+  _spectrum: {fileID: 11400000, guid: b066d8398541b1844a63a9c12919e528, type: 2}
   _componentsPerOctave: 5
-  _weight: 0.452
+  _weight: 0.303
   _randomSeed: 0
 --- !u!1 &1989479266
 GameObject:

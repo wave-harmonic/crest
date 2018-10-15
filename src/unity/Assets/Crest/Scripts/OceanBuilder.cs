@@ -176,6 +176,8 @@ namespace Crest
                 cachedSettings.Add(typeof(LodDataDynamicWaves), ocean._simSettingsDynamicWaves);
             if (ocean._simSettingsShadow != null)
                 cachedSettings.Add(typeof(LodDataShadow), ocean._simSettingsShadow);
+            if (ocean._simSettingsFlow != null)
+                cachedSettings.Add(typeof(LodDataFlow), ocean._simSettingsFlow);
 
             for ( int i = 0; i < lodCount; i++ )
             {
@@ -217,9 +219,19 @@ namespace Crest
 
             // add any required readbacks
             {
-                if(ocean._lodDataAnimWaves[0].Settings._readbackData)
+                var ssaw = cachedSettings[typeof(LodDataAnimatedWaves)] as SimSettingsAnimatedWaves;
+                if (ssaw && ssaw._readbackData)
                 {
                     ocean.gameObject.AddComponent<GPUReadbackDisps>();
+                }
+
+                if (ocean._createFlowSim)
+                {
+                    var ssf = cachedSettings[typeof(LodDataFlow)] as SimSettingsFlow;
+                    if (ssf && ssf._readbackData)
+                    {
+                        ocean.gameObject.AddComponent<GPUReadbackFlow>();
+                    }
                 }
             }
 

@@ -78,6 +78,7 @@ namespace Crest
 
         [Tooltip("Horizontal motion of water body, akin to water currents.")]
         public bool _createFlowSim = false;
+        public SimSettingsFlow _simSettingsFlow;
 
         [Tooltip("Shadow information used for lighting water.")]
         public bool _createShadowData = false;

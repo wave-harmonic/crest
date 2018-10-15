@@ -47,7 +47,8 @@ public class BoatAlignNormal : MonoBehaviour
 
     void FixedUpdate()
     {
-        if(GPUReadbackDisps.Instance)
+        // make sure any newly arrive physics data is up to date
+        if (GPUReadbackDisps.Instance)
         {
             GPUReadbackDisps.Instance.ProcessRequests();
         }
@@ -69,16 +70,15 @@ public class BoatAlignNormal : MonoBehaviour
             waterSurfaceVel = Vector3.zero;
         }
 
-        if (OceanRenderer.Instance._createFlowSim)
+        if (GPUReadbackFlow.Instance)
         {
+            GPUReadbackFlow.Instance.ProcessRequests();
+
             Vector2 surfaceFlow;
-            int lod  = LodDataFlow.SuggestDataLOD(new Rect(position.x, position.z, 0f, 0f), _boatWidth);
-            if(lod != -1) {
-                if(OceanRenderer.Instance._lodDataAnimWaves[lod].LDFlow.SampleFlow(ref position, out surfaceFlow)) {
-                    waterSurfaceVel += new Vector3(surfaceFlow.x, 0, surfaceFlow.y);
-                }
-            }
+            GPUReadbackFlow.Instance.SampleFlow(ref position, out surfaceFlow, _boatWidth);
+            waterSurfaceVel += new Vector3(surfaceFlow.x, 0, surfaceFlow.y);
         }
+
         if (_debugDraw)
         {
             Debug.DrawLine(transform.position + 5f * Vector3.up, transform.position + 5f * Vector3.up + waterSurfaceVel,

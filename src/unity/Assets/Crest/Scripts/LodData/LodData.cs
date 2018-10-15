@@ -138,7 +138,6 @@ namespace Crest
                     break;
                 case SimType.Flow:
                     sim = go.AddComponent<LodDataFlow>();
-                    go.AddComponent<ReadbackLodData>();
                     break;
                 case SimType.Foam:
                     sim = go.AddComponent<LodDataFoam>();

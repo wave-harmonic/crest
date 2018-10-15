@@ -38,10 +38,9 @@ namespace Crest
         Material CombineMaterial { get { return _combineMaterial ?? (_combineMaterial = new Material(Shader.Find("Ocean/Shape/Combine"))); } }
 
         [SerializeField]
-        protected SimSettingsBase _settings;
-        public override void UseSettings(SimSettingsBase settings) { _settings = settings; }
+        protected SimSettingsAnimatedWaves _settings;
+        public override void UseSettings(SimSettingsBase settings) { _settings = settings as SimSettingsAnimatedWaves; }
         public SimSettingsAnimatedWaves Settings { get { return _settings as SimSettingsAnimatedWaves; } }
-
         public override SimSettingsBase CreateDefaultSettings()
         {
             var settings = ScriptableObject.CreateInstance<SimSettingsAnimatedWaves>();

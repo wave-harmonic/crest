@@ -560,11 +560,6 @@ namespace Crest
             // revert to usual function
             return SampleDisplacement(ref in__worldPos, out displacement);
         }
-        public bool SampleHeightInArea(ref Vector3 in__worldPos, out float height)
-        {
-            // revert to usual function
-            return SampleHeight(ref in__worldPos, out height);
-        }
 
         public bool SampleNormal(ref Vector3 in__undisplacedWorldPos, out Vector3 normal)
         {
@@ -598,6 +593,22 @@ namespace Crest
             undisplacedWorldPos.y = OceanRenderer.Instance.SeaLevel;
 
             return true;
+        }
+
+        public bool SampleHeight(ref Vector3 in__worldPos, out float height, float minSpatialLength)
+        {
+            height = SampleHeight(ref in__worldPos, 0f);
+            return true;
+        }
+
+        public void SampleDisplacementVelInArea(ref Vector3 in__worldPos, out Vector3 displacement, out bool displacementValid, out Vector3 displacementVel, out bool velValid)
+        {
+            SampleDisplacementVel(ref in__worldPos, out displacement, out displacementValid, out displacementVel, out velValid, 0f);
+        }
+
+        public bool SampleNormalInArea(ref Vector3 in__undisplacedWorldPos, out Vector3 normal)
+        {
+            return SampleNormal(ref in__undisplacedWorldPos, out normal);
         }
     }
 }

@@ -61,6 +61,45 @@ namespace Crest
 
         public bool SampleHeight(ref Vector3 in__worldPos, out float height)
         {
+            return SampleHeight(ref in__worldPos, out height, 0f);
+        }
+
+        public bool PrewarmForSamplingArea(Rect areaXZ)
+        {
+            // nothing to do here
+            return true;
+        }
+        public bool PrewarmForSamplingArea(Rect areaXZ, float minSpatialLength)
+        {
+            // nothing to do here
+            return true;
+        }
+        public bool SampleDisplacementInArea(ref Vector3 in__worldPos, out Vector3 displacement)
+        {
+            return _collProvider.SampleDisplacement(ref in__worldPos, out displacement);
+        }
+
+        public bool SampleNormal(ref Vector3 in__undisplacedWorldPos, out Vector3 normal)
+        {
+            return _collProvider.SampleNormal(ref in__undisplacedWorldPos, out normal);
+        }
+        public bool SampleNormal(ref Vector3 in__undisplacedWorldPos, out Vector3 normal, float minSpatialLength)
+        {
+            return _collProvider.SampleNormal(ref in__undisplacedWorldPos, out normal, minSpatialLength);
+        }
+
+        public bool ComputeUndisplacedPosition(ref Vector3 in__worldPos, out Vector3 undisplacedWorldPos)
+        {
+            return _collProvider.ComputeUndisplacedPosition(ref in__worldPos, out undisplacedWorldPos);
+        }
+
+        public void SampleDisplacementVelInArea(ref Vector3 in__worldPos, out Vector3 displacement, out bool displacementValid, out Vector3 displacementVel, out bool velValid)
+        {
+            _collProvider.SampleDisplacementVelInArea(ref in__worldPos, out displacement, out displacementValid, out displacementVel, out velValid);
+        }
+
+        public bool SampleHeight(ref Vector3 in__worldPos, out float height, float minSpatialLength)
+        {
             var hash = CalcHash(ref in__worldPos);
 
             _cacheChecks++;
@@ -80,37 +119,9 @@ namespace Crest
             return success;
         }
 
-        public bool PrewarmForSamplingArea(Rect areaXZ)
-        {
-            // nothing to do here
-            return true;
-        }
-        public bool PrewarmForSamplingArea(Rect areaXZ, float minSpatialLength)
-        {
-            // nothing to do here
-            return true;
-        }
-        public bool SampleDisplacementInArea(ref Vector3 in__worldPos, out Vector3 displacement)
-        {
-            return _collProvider.SampleDisplacement(ref in__worldPos, out displacement);
-        }
-        public bool SampleHeightInArea(ref Vector3 in__worldPos, out float height)
-        {
-            return SampleHeight(ref in__worldPos, out height);
-        }
-
-        public bool SampleNormal(ref Vector3 in__undisplacedWorldPos, out Vector3 normal)
+        public bool SampleNormalInArea(ref Vector3 in__undisplacedWorldPos, out Vector3 normal)
         {
             return _collProvider.SampleNormal(ref in__undisplacedWorldPos, out normal);
-        }
-        public bool SampleNormal(ref Vector3 in__undisplacedWorldPos, out Vector3 normal, float minSpatialLength)
-        {
-            return _collProvider.SampleNormal(ref in__undisplacedWorldPos, out normal, minSpatialLength);
-        }
-
-        public bool ComputeUndisplacedPosition(ref Vector3 in__worldPos, out Vector3 undisplacedWorldPos)
-        {
-            return _collProvider.ComputeUndisplacedPosition(ref in__worldPos, out undisplacedWorldPos);
         }
 
         public int CacheChecks { get { return _cacheChecksLastFrame; } }

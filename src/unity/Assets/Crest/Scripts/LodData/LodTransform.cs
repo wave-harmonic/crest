@@ -23,6 +23,15 @@ namespace Crest
 
                 return this;
             }
+
+            public Rect RectXZ
+            {
+                get
+                {
+                    float w = _texelWidth * _textureRes;
+                    return new Rect(_posSnapped.x - w / 2f, _posSnapped.z - w / 2f, w, w);
+                }
+            }
         }
 
         public RenderData _renderData = new RenderData();

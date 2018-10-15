@@ -63,6 +63,8 @@ namespace Crest
 
         [Header("Simulation Params")]
 
+        public SimSettingsAnimatedWaves _simSettingsAnimatedWaves;
+
         [Tooltip("Water depth information used for shallow water, shoreline foam, wave attenuation, among others.")]
         public bool _createSeaFloorDepthData = true;
 
@@ -285,7 +287,7 @@ namespace Crest
                 if (_collProvider != null)
                     return _collProvider;
 
-                _collProvider = new CollProviderDispTexs();
+                _collProvider = GPUReadbackDisps.Instance;
 
                 if (_cachedCpuOceanQueries)
                     _collProvider = new CollProviderCache(_collProvider);

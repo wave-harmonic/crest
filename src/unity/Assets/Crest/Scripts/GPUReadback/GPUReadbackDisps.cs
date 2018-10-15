@@ -6,10 +6,46 @@ namespace Crest
     {
         ReadbackResults _areaData;
 
+        public static GPUReadbackDisps Instance { get; private set; }
+
+        protected override void Start()
+        {
+            base.Start();
+
+            if (enabled == false)
+            {
+                return;
+            }
+
+            Debug.Assert(Instance == null);
+            Instance = this;
+
+            _minGridSize = 0.5f * _lodData[0].Settings._minObjectWidth / OceanRenderer.Instance._minTexelsPerWave;
+            _maxGridSize = 0.5f * _lodData[0].Settings._maxObjectWidth / OceanRenderer.Instance._minTexelsPerWave;
+            _maxGridSize = Mathf.Max(_maxGridSize, 2f * _minGridSize);
+        }
+
         #region ICollProvider
         public bool ComputeUndisplacedPosition(ref Vector3 in__worldPos, out Vector3 undisplacedWorldPos)
         {
-            throw new System.NotImplementedException();
+            // fpi - guess should converge to location that displaces to the target position
+            Vector3 guess = in__worldPos;
+            // 2 iterations was enough to get very close when chop = 1, added 2 more which should be
+            // sufficient for most applications. for high chop values or really stormy conditions there may
+            // be some error here. one could also terminate iteration based on the size of the error, this is
+            // worth trying but is left as future work for now.
+            Vector3 disp = Vector3.zero;
+            for (int i = 0; i < 4 && SampleDisplacement(ref guess, out disp); i++)
+            {
+                Vector3 error = guess + disp - in__worldPos;
+                guess.x -= error.x;
+                guess.z -= error.z;
+            }
+
+            undisplacedWorldPos = guess;
+            undisplacedWorldPos.y = OceanRenderer.Instance.SeaLevel;
+
+            return true;
         }
 
         public bool PrewarmForSamplingArea(Rect areaXZ)

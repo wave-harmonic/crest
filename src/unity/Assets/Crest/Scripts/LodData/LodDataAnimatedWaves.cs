@@ -18,8 +18,6 @@ namespace Crest
     public class LodDataAnimatedWaves : LodData
     {
         public override SimType LodDataType { get { return SimType.AnimatedWaves; } }
-        public override SimSettingsBase CreateDefaultSettings() { return null; }
-        public override void UseSettings(SimSettingsBase settings) {}
         // shape format. i tried RGB111110Float but error becomes visible. one option would be to use a UNORM setup.
         public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.ARGBHalf; } }
         public override CameraClearFlags CamClearFlags { get { return CameraClearFlags.Color; } }
@@ -39,13 +37,18 @@ namespace Crest
         Material _combineMaterial;
         Material CombineMaterial { get { return _combineMaterial ?? (_combineMaterial = new Material(Shader.Find("Ocean/Shape/Combine"))); } }
 
-        protected override void Start()
-        {
-            base.Start();
+        [SerializeField]
+        protected SimSettingsBase _settings;
+        public override void UseSettings(SimSettingsBase settings) { _settings = settings; }
+        public SimSettingsAnimatedWaves Settings { get { return _settings as SimSettingsAnimatedWaves; } }
 
-            _dataReadback = GetComponent<ReadbackLodData>();
-            _dataReadback.SetTextureFormat(TextureFormat);
+        public override SimSettingsBase CreateDefaultSettings()
+        {
+            var settings = ScriptableObject.CreateInstance<SimSettingsAnimatedWaves>();
+            settings.name = SimName + " Auto-generated Settings";
+            return settings;
         }
+
         public void HookCombinePass(Camera camera, CameraEvent onEvent)
         {
             _combineCamera = camera;
@@ -80,11 +83,6 @@ namespace Crest
 #if UNITY_EDITOR
         private void Update()
         {
-            if (_dataReadback != null)
-            {
-                _dataReadback._active = _readbackShapeForCollision;
-            }
-
             // shape combine pass done by last shape camera - lod 0
             if (LodTransform.LodIndex == 0)
             {
@@ -131,12 +129,6 @@ namespace Crest
         void OnDisable()
         {
             UnhookCombinePass();
-
-            // free native array when component removed or destroyed
-            if (_dataReadback._result._data.IsCreated)
-            {
-                _dataReadback._result._data.Dispose();
-            }
         }
 
         protected override void BindData(int shapeSlot, IPropertyWrapper properties, Texture applyData, bool blendOut, ref LodTransform.RenderData renderData)
@@ -148,80 +140,6 @@ namespace Crest
             float shapeWeight = needToBlendOutShape ? OceanRenderer.Instance.ViewerAltitudeLevelAlpha : 1f;
             properties.SetVector(_paramsOceanParams[shapeSlot],
                 new Vector4(LodTransform._renderData._texelWidth, LodTransform._renderData._textureRes, shapeWeight, 1f / LodTransform._renderData._textureRes));
-        }
-
-        public bool SampleDisplacement(ref Vector3 in__worldPos, out Vector3 displacement)
-        {
-            return _dataReadback._result.InterpolateARGB16(ref in__worldPos, out displacement);
-        }
-
-        public void SampleDisplacementVel(ref Vector3 in__worldPos, out Vector3 displacement, out bool displacementValid, out Vector3 displacementVel, out bool velValid)
-        {
-            displacementValid = _dataReadback._result.InterpolateARGB16(ref in__worldPos, out displacement);
-            if (!displacementValid)
-            {
-                displacementVel = Vector3.zero;
-                velValid = false;
-                return;
-            }
-
-            // Check if this lod changed scales between result and previous result - if so can't compute vel. This should
-            // probably go search for the results in the other LODs but returning 0 is easiest for now and should be ok-ish
-            // for physics code.
-            if (_dataReadback._resultLast._renderData._texelWidth != _dataReadback._result._renderData._texelWidth)
-            {
-                displacementVel = Vector3.zero;
-                velValid = false;
-                return;
-            }
-
-            Vector3 dispLast;
-            velValid = _dataReadback._resultLast.InterpolateARGB16(ref in__worldPos, out dispLast);
-            if (!velValid)
-            {
-                displacementVel = Vector3.zero;
-                return;
-            }
-
-            displacementVel = (displacement - dispLast) / Mathf.Max(0.0001f, _dataReadback._result._time - _dataReadback._resultLast._time);
-        }
-
-        /// <summary>
-        /// Get position on ocean plane that displaces horizontally to the given position.
-        /// </summary>
-        public Vector3 GetPositionDisplacedToPosition(ref Vector3 in__displacedWorldPos)
-        {
-            // fixed point iteration - guess should converge to location that displaces to the target position
-
-            var guess = in__displacedWorldPos;
-
-            // 2 iterations was enough to get very close when chop = 1, added 2 more which should be
-            // sufficient for most applications. for high chop values or really stormy conditions there may
-            // be some error here. one could also terminate iteration based on the size of the error, this is
-            // worth trying but is left as future work for now.
-            for (int i = 0; i < 4; i++)
-            {
-                var disp = Vector3.zero;
-                SampleDisplacement(ref guess, out disp);
-                var error = guess + disp - in__displacedWorldPos;
-                guess.x -= error.x;
-                guess.z -= error.z;
-            }
-            guess.y = OceanRenderer.Instance.SeaLevel;
-            return guess;
-        }
-
-        public float GetHeight(ref Vector3 in__worldPos)
-        {
-            var posFlatland = in__worldPos;
-            posFlatland.y = OceanRenderer.Instance.transform.position.y;
-
-            var undisplacedPos = GetPositionDisplacedToPosition(ref posFlatland);
-
-            var disp = Vector3.zero;
-            SampleDisplacement(ref undisplacedPos, out disp);
-
-            return posFlatland.y + disp.y;
         }
 
         /// <summary>
@@ -240,12 +158,11 @@ namespace Crest
             {
                 // Shape texture needs to completely contain sample area
                 var ldaw = ldaws[lod];
-                if (ldaw.DataReadback == null) return -1;
-                var wdcRect = ldaw.DataReadback.DataRectXZ;
+                var lodRect = ldaw.LodTransform._renderData.RectXZ;
                 // Shrink rect by 1 texel border - this is to make finite differences fit as well
-                wdcRect.x += ldaw.LodTransform._renderData._texelWidth; wdcRect.y += ldaw.LodTransform._renderData._texelWidth;
-                wdcRect.width -= 2f * ldaw.LodTransform._renderData._texelWidth; wdcRect.height -= 2f * ldaw.LodTransform._renderData._texelWidth;
-                if (!wdcRect.Contains(sampleAreaXZ.min) || !wdcRect.Contains(sampleAreaXZ.max))
+                lodRect.x += ldaw.LodTransform._renderData._texelWidth; lodRect.y += ldaw.LodTransform._renderData._texelWidth;
+                lodRect.width -= 2f * ldaw.LodTransform._renderData._texelWidth; lodRect.height -= 2f * ldaw.LodTransform._renderData._texelWidth;
+                if (!lodRect.Contains(sampleAreaXZ.min) || !lodRect.Contains(sampleAreaXZ.max))
                     continue;
 
                 // The smallest wavelengths should repeat no more than twice across the smaller spatial length. Unless we're
@@ -259,7 +176,5 @@ namespace Crest
 
             return -1;
         }
-
-        ReadbackLodData _dataReadback; public ReadbackLodData DataReadback { get { return _dataReadback; } }
     }
 }

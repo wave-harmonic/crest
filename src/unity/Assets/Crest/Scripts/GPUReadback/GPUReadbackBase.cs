@@ -7,12 +7,20 @@ namespace Crest
 {
     public class GPUReadbackBase<LodDataType> : MonoBehaviour where LodDataType : LodData
     {
-        [SerializeField] protected float _minGridSize = 4f;
-        [SerializeField] protected float _maxGridSize = 4f;
         [SerializeField] protected LodDataType[] _lodData;
 
+        /// <summary>
+        /// Minimum floating object width. The larger the objects that will float, the lower the resolution of the read data.
+        /// If an object is small, the highest resolution LODs will be sample for physics. This is an optimisation. Set to 0
+        /// to disable this optimisation and always copy high res data.
+        /// </summary>
+        protected float _minGridSize = 0f;
+        /// <summary>
+        /// Similar to the minimum width, but this setting will exclude the larger LODs from being copied. Set to 0 to disable
+        /// this optimisation and always copy low res data.
+        /// </summary>
+        protected float _maxGridSize = 0f;
         SortedList<float, ReadbackResults> _results = new SortedList<float, ReadbackResults>();
-        //SortedList<float, ReadbackResult> _resultLast = new SortedList<float, ReadbackResult>();
 
         struct ReadbackRequest
         {
@@ -31,6 +39,13 @@ namespace Crest
         protected virtual void Start()
         {
             _lodData = OceanRenderer.Instance.GetComponentsInChildren<LodDataType>();
+            if(_lodData.Length == 0)
+            {
+                Debug.LogError("No data components of type " + typeof(LodDataType).Name + " found in the scene. Disabling GPU readback.", this);
+                enabled = false;
+                return;
+            }
+
             _prevTime = Time.time;
 
             SetTextureFormat(_lodData[0].TextureFormat);
@@ -38,10 +53,21 @@ namespace Crest
 
         protected virtual void Update()
         {
+            ProcessRequestsInternal(true);
+        }
+
+        public void ProcessRequests()
+        {
+            // can process any newly arrived requests but don't queue up new ones
+            ProcessRequestsInternal(false);
+        }
+
+        void ProcessRequestsInternal(bool runningFromUpdate)
+        {
             foreach(var data in _lodData)
             {
                 var lt = data.LodTransform;
-                if (lt._renderData._texelWidth >= _minGridSize && lt._renderData._texelWidth <= _maxGridSize)
+                if (lt._renderData._texelWidth >= _minGridSize && (lt._renderData._texelWidth <= _maxGridSize || _maxGridSize == 0f))
                 {
                     var cam = lt.GetComponent<Camera>();
 
@@ -63,25 +89,23 @@ namespace Crest
                         _results.Add(lt._renderData._texelWidth, resultData);
                     }
 
-                    UpdateReadback(cam.targetTexture, lt._renderData);
+                    // Only enqueue new requests at beginning of update turns out to be a good time to sample the textures to
+                    // ensure everything in the frame is done.
+                    if (runningFromUpdate)
+                    {
+                        EnqueueReadbackRequest(cam.targetTexture, lt._renderData, _prevTime);
+                        _prevTime = Time.time;
+                    }
+
                     ProcessRequests(cam);
                 }
             }
         }
 
         /// <summary>
-        /// Request current contents of cameras shape texture.
+        /// Request current contents of cameras shape texture. queue pattern inspired by: https://github.com/keijiro/AsyncCaptureTest
         /// </summary>
-        public void UpdateReadback(RenderTexture target, LodTransform.RenderData renderData)
-        {
-            // queue pattern inspired by: https://github.com/keijiro/AsyncCaptureTest
-
-            // beginning of update turns out to be a good time to sample the textures to ensure everything in the frame is done.
-            EnqueueReadbackRequest(target, renderData, _prevTime);
-            _prevTime = Time.time;
-        }
-
-        public void EnqueueReadbackRequest(RenderTexture target, LodTransform.RenderData renderData, float time)
+        void EnqueueReadbackRequest(RenderTexture target, LodTransform.RenderData renderData, float time)
         {
             // only queue up requests while time is advancing
             if (time <= _results[renderData._texelWidth]._result._time)
@@ -102,7 +126,7 @@ namespace Crest
             }
         }
 
-        public void ProcessRequests(Camera cam)
+        void ProcessRequests(Camera cam)
         {
             // Physics stuff may call update from FixedUpdate() - therefore check if this component was already
             // updated this frame.
@@ -320,15 +344,6 @@ namespace Crest
 
                 return true;
             }
-
-            public Rect DataRectXZ
-            {
-                get
-                {
-                    float w = _renderData._texelWidth * _renderData._textureRes;
-                    return new Rect(_renderData._posSnapped.x - w / 2f, _renderData._posSnapped.z - w / 2f, w, w);
-                }
-            }
         }
 
         /// <summary>
@@ -344,7 +359,7 @@ namespace Crest
             foreach (var frameResults in _results)
             {
                 // Check that the region of interest is covered by this data
-                var wdcRect = frameResults.Value._result.DataRectXZ;
+                var wdcRect = frameResults.Value._result._renderData.RectXZ;
                 // Shrink rect by 1 texel border - this is to make finite differences fit as well
                 float texelWidth = frameResults.Key;
                 wdcRect.x += texelWidth; wdcRect.y += texelWidth;

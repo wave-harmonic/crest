@@ -168,6 +168,8 @@ namespace Crest
             ocean._camsDynWaves = new Camera[lodCount];
 
             var cachedSettings = new Dictionary<System.Type, SimSettingsBase>();
+            if (ocean._simSettingsAnimatedWaves != null)
+                cachedSettings.Add(typeof(LodDataAnimatedWaves), ocean._simSettingsAnimatedWaves);
             if (ocean._simSettingsFoam != null)
                 cachedSettings.Add(typeof(LodDataFoam), ocean._simSettingsFoam);
             if (ocean._simSettingsDynamicWaves != null)
@@ -210,6 +212,14 @@ namespace Crest
                 {
                     var go = LodData.CreateLodData(i, lodCount, null, baseVertDensity, LodData.SimType.DynamicWaves, cachedSettings);
                     ocean._camsDynWaves[i] = go.GetComponent<Camera>();
+                }
+            }
+
+            // add any required readbacks
+            {
+                if(ocean._lodDataAnimWaves[0].Settings._readbackData)
+                {
+                    ocean.gameObject.AddComponent<GPUReadbackDisps>();
                 }
             }
 

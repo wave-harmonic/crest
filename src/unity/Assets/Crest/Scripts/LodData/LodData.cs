@@ -132,7 +132,6 @@ namespace Crest
             {
                 case SimType.AnimatedWaves:
                     sim = go.AddComponent<LodDataAnimatedWaves>();
-                    go.AddComponent<ReadbackLodData>();
                     break;
                 case SimType.DynamicWaves:
                     sim = go.AddComponent<LodDataDynamicWaves>();

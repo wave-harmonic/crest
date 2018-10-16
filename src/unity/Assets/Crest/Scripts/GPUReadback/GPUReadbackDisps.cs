@@ -4,7 +4,7 @@ namespace Crest
 {
     public class GPUReadbackDisps : GPUReadbackBase<LodDataAnimatedWaves>, ICollProvider
     {
-        ReadbackResults _areaData;
+        PerLodData _areaData;
 
         public static GPUReadbackDisps Instance { get; private set; }
 
@@ -20,13 +20,13 @@ namespace Crest
             Debug.Assert(Instance == null);
             Instance = this;
 
-            _minGridSize = 0.5f * _lodData[0].Settings._minObjectWidth / OceanRenderer.Instance._minTexelsPerWave;
-            _maxGridSize = 0.5f * _lodData[0].Settings._maxObjectWidth / OceanRenderer.Instance._minTexelsPerWave;
+            _minGridSize = 0.5f * _lodComponents[0].Settings._minObjectWidth / OceanRenderer.Instance._minTexelsPerWave;
+            _maxGridSize = 0.5f * _lodComponents[0].Settings._maxObjectWidth / OceanRenderer.Instance._minTexelsPerWave;
             _maxGridSize = Mathf.Max(_maxGridSize, 2f * _minGridSize);
         }
 
         #region ICollProvider
-        public bool ComputeUndisplacedPosition(ref Vector3 in__worldPos, out Vector3 undisplacedWorldPos)
+        public bool ComputeUndisplacedPosition(ref Vector3 in__worldPos, out Vector3 undisplacedWorldPos, float minSpatialLength)
         {
             // fpi - guess should converge to location that displaces to the target position
             Vector3 guess = in__worldPos;
@@ -35,7 +35,7 @@ namespace Crest
             // be some error here. one could also terminate iteration based on the size of the error, this is
             // worth trying but is left as future work for now.
             Vector3 disp = Vector3.zero;
-            for (int i = 0; i < 4 && SampleDisplacement(ref guess, out disp); i++)
+            for (int i = 0; i < 4 && SampleDisplacement(ref guess, out disp, minSpatialLength); i++)
             {
                 Vector3 error = guess + disp - in__worldPos;
                 guess.x -= error.x;
@@ -66,7 +66,7 @@ namespace Crest
                 displacement = Vector3.zero;
                 return false;
             }
-            return data._result.InterpolateARGB16(ref in__worldPos, out displacement);
+            return data._resultData.InterpolateARGB16(ref in__worldPos, out displacement);
         }
 
         public bool SampleDisplacement(ref Vector3 in__worldPos, out Vector3 displacement, float minSpatialLength)
@@ -77,12 +77,12 @@ namespace Crest
                 displacement = Vector3.zero;
                 return false;
             }
-            return data._result.InterpolateARGB16(ref in__worldPos, out displacement);
+            return data._resultData.InterpolateARGB16(ref in__worldPos, out displacement);
         }
 
         public bool SampleDisplacementInArea(ref Vector3 in__worldPos, out Vector3 displacement)
         {
-            return _areaData._result.InterpolateARGB16(ref in__worldPos, out displacement);
+            return _areaData._resultData.InterpolateARGB16(ref in__worldPos, out displacement);
         }
 
         public void SampleDisplacementVel(ref Vector3 in__worldPos, out Vector3 displacement, out bool displacementValid, out Vector3 displacementVel, out bool velValid, float minSpatialLength)
@@ -101,7 +101,7 @@ namespace Crest
 
         public void SampleDisplacementVelInArea(ref Vector3 in__worldPos, out Vector3 displacement, out bool displacementValid, out Vector3 displacementVel, out bool velValid)
         {
-            displacementValid = _areaData._result.InterpolateARGB16(ref in__worldPos, out displacement);
+            displacementValid = _areaData._resultData.InterpolateARGB16(ref in__worldPos, out displacement);
             if (!displacementValid)
             {
                 displacementVel = Vector3.zero;
@@ -112,7 +112,7 @@ namespace Crest
             // Check if this lod changed scales between result and previous result - if so can't compute vel. This should
             // probably go search for the results in the other LODs but returning 0 is easiest for now and should be ok-ish
             // for physics code.
-            if (_areaData._resultLast._renderData._texelWidth != _areaData._result._renderData._texelWidth)
+            if (_areaData._resultDataPrevFrame._renderData._texelWidth != _areaData._resultData._renderData._texelWidth)
             {
                 displacementVel = Vector3.zero;
                 velValid = false;
@@ -120,14 +120,15 @@ namespace Crest
             }
 
             Vector3 dispLast;
-            velValid = _areaData._resultLast.InterpolateARGB16(ref in__worldPos, out dispLast);
+            velValid = _areaData._resultDataPrevFrame.InterpolateARGB16(ref in__worldPos, out dispLast);
             if (!velValid)
             {
                 displacementVel = Vector3.zero;
                 return;
             }
 
-            displacementVel = (displacement - dispLast) / Mathf.Max(0.0001f, _areaData._result._time - _areaData._resultLast._time);
+            Debug.Assert(_areaData._resultData.Valid && _areaData._resultDataPrevFrame.Valid);
+            displacementVel = (displacement - dispLast) / Mathf.Max(0.0001f, _areaData._resultData._time - _areaData._resultDataPrevFrame._time);
         }
 
         public bool SampleHeight(ref Vector3 in__worldPos, out float height)
@@ -189,7 +190,7 @@ namespace Crest
 
         public bool SampleNormalInArea(ref Vector3 in__undisplacedWorldPos, out Vector3 normal)
         {
-            float gridSize = _areaData._result._renderData._texelWidth;
+            float gridSize = _areaData._resultData._renderData._texelWidth;
             normal = Vector3.zero;
             Vector3 dispCenter = Vector3.zero;
             if (!SampleDisplacementInArea(ref in__undisplacedWorldPos, out dispCenter)) return false;

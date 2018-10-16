@@ -7,7 +7,7 @@ namespace Crest
 {
     public class GPUReadbackBase<LodDataType> : MonoBehaviour where LodDataType : LodData
     {
-        [SerializeField] protected LodDataType[] _lodData;
+        protected LodDataType[] _lodComponents;
 
         /// <summary>
         /// Minimum floating object width. The larger the objects that will float, the lower the resolution of the read data.
@@ -20,40 +20,53 @@ namespace Crest
         /// this optimisation and always copy low res data.
         /// </summary>
         protected float _maxGridSize = 0f;
-        SortedList<float, ReadbackResults> _results = new SortedList<float, ReadbackResults>();
 
-        struct ReadbackRequest
+        protected class PerLodData
+        {
+            public ReadbackData _resultData;
+            public ReadbackData _resultDataPrevFrame;
+            public Queue<ReadbackRequest> _requests = new Queue<ReadbackRequest>();
+
+            public int _lastUpdateFrame = -1;
+            public bool _activelyBeingRendered = true;
+        }
+        SortedList<float, PerLodData> _perLodData = new SortedList<float, PerLodData>();
+
+        protected struct ReadbackRequest
         {
             public AsyncGPUReadbackRequest _request;
             public LodTransform.RenderData _renderData;
             public float _time;
         }
 
-        Queue<ReadbackRequest> _requests = new Queue<ReadbackRequest>();
-        const int MAX_REQUESTS = 16;
+        const int MAX_REQUESTS = 4;
 
-        float _prevTime;
-        int _updateFrame;
         TexFormat _textureFormat = TexFormat.NotSet;
+
+        /// <summary>
+        /// When we do a readback we will get the rendered state for the previous time. This is associated with Time.time
+        /// at the previous frame. This member stores this value.
+        /// </summary>
+        float _prevFrameTime = 0f;
 
         protected virtual void Start()
         {
-            _lodData = OceanRenderer.Instance.GetComponentsInChildren<LodDataType>();
-            if(_lodData.Length == 0)
+            _lodComponents = OceanRenderer.Instance.GetComponentsInChildren<LodDataType>();
+            if(_lodComponents.Length == 0)
             {
                 Debug.LogError("No data components of type " + typeof(LodDataType).Name + " found in the scene. Disabling GPU readback.", this);
                 enabled = false;
                 return;
             }
 
-            _prevTime = Time.time;
-
-            SetTextureFormat(_lodData[0].TextureFormat);
+            SetTextureFormat(_lodComponents[0].TextureFormat);
         }
 
         protected virtual void Update()
         {
             ProcessRequestsInternal(true);
+
+            _prevFrameTime = Time.time;
         }
 
         public void ProcessRequests()
@@ -64,40 +77,60 @@ namespace Crest
 
         void ProcessRequestsInternal(bool runningFromUpdate)
         {
-            foreach(var data in _lodData)
+            // When viewer changes altitude, lods will start/stop updating. Mark ones that are/arent being rendered!
+            foreach (var gridSize_lodData in _perLodData)
+            {
+                gridSize_lodData.Value._activelyBeingRendered =
+                    gridSize_lodData.Key >= _lodComponents[0].LodTransform._renderData._texelWidth &&
+                    gridSize_lodData.Key <= _lodComponents[_lodComponents.Length - 1].LodTransform._renderData._texelWidth;
+
+                if (!gridSize_lodData.Value._activelyBeingRendered)
+                {
+                    // It would be cleaner to destroy these. However they contain a NativeArray with a non-negligible amount of data
+                    // which we don't want to alloc and dealloc willy nilly, so just mark as invalid by setting time to -1.
+                    gridSize_lodData.Value._resultData._time = -1f;
+                    gridSize_lodData.Value._resultDataPrevFrame._time = -1f;
+                }
+            }
+
+            foreach (var data in _lodComponents)
             {
                 var lt = data.LodTransform;
                 if (lt._renderData._texelWidth >= _minGridSize && (lt._renderData._texelWidth <= _maxGridSize || _maxGridSize == 0f))
                 {
                     var cam = lt.GetComponent<Camera>();
 
-                    if (!_results.ContainsKey(lt._renderData._texelWidth))
+                    if (!_perLodData.ContainsKey(lt._renderData._texelWidth))
                     {
-                        var resultData = new ReadbackResults();
-                        resultData._result = new ReadbackResult();
-                        resultData._resultLast = new ReadbackResult();
+                        var resultData = new PerLodData();
+                        resultData._resultData = new ReadbackData();
+                        resultData._resultDataPrevFrame = new ReadbackData();
 
                         // create native arrays
                         Debug.Assert(_textureFormat != TexFormat.NotSet, "ReadbackLodData: Texture format must be set.", this);
                         var num = ((int)_textureFormat) * cam.targetTexture.width * cam.targetTexture.height;
-                        if (!resultData._result._data.IsCreated || resultData._result._data.Length != num)
+                        if (!resultData._resultData._data.IsCreated || resultData._resultData._data.Length != num)
                         {
-                            resultData._result._data = new NativeArray<ushort>(num, Allocator.Persistent);
-                            resultData._resultLast._data = new NativeArray<ushort>(num, Allocator.Persistent);
+                            resultData._resultData._data = new NativeArray<ushort>(num, Allocator.Persistent);
+                            resultData._resultDataPrevFrame._data = new NativeArray<ushort>(num, Allocator.Persistent);
                         }
 
-                        _results.Add(lt._renderData._texelWidth, resultData);
+                        _perLodData.Add(lt._renderData._texelWidth, resultData);
                     }
 
-                    // Only enqueue new requests at beginning of update turns out to be a good time to sample the textures to
-                    // ensure everything in the frame is done.
-                    if (runningFromUpdate)
+                    var lodData = _perLodData[lt._renderData._texelWidth];
+
+                    if(lodData._activelyBeingRendered)
                     {
-                        EnqueueReadbackRequest(cam.targetTexture, lt._renderData, _prevTime);
-                        _prevTime = Time.time;
-                    }
+                        // Only enqueue new requests at beginning of update turns out to be a good time to sample the textures to
+                        // ensure everything in the frame is done.
+                        if (runningFromUpdate)
+                        {
+                            EnqueueReadbackRequest(cam.targetTexture, lt._renderData, _prevFrameTime);
+                        }
 
-                    ProcessRequests(cam);
+                        ProcessArrivedRequests(lodData);
+                    }
                 }
             }
         }
@@ -105,73 +138,83 @@ namespace Crest
         /// <summary>
         /// Request current contents of cameras shape texture. queue pattern inspired by: https://github.com/keijiro/AsyncCaptureTest
         /// </summary>
-        void EnqueueReadbackRequest(RenderTexture target, LodTransform.RenderData renderData, float time)
+        void EnqueueReadbackRequest(RenderTexture target, LodTransform.RenderData renderData, float previousFrameTime)
         {
+            var lodData = _perLodData[renderData._texelWidth];
+
             // only queue up requests while time is advancing
-            if (time <= _results[renderData._texelWidth]._result._time)
+            if (previousFrameTime <= lodData._resultData._time)
             {
                 return;
             }
 
-            if (_requests.Count < MAX_REQUESTS)
+            if (lodData._requests.Count < MAX_REQUESTS)
             {
-                _requests.Enqueue(
+                lodData._requests.Enqueue(
                     new ReadbackRequest
                     {
                         _request = AsyncGPUReadback.Request(target),
                         _renderData = renderData,
-                        _time = time,
+                        _time = previousFrameTime,
                     }
                 );
             }
         }
 
-        void ProcessRequests(Camera cam)
+        void ProcessArrivedRequests(PerLodData lodData)
         {
+            var requests = lodData._requests;
+
+            if (!lodData._activelyBeingRendered)
+            {
+                // Dump all requests :/. No point processing these, and we have marked the data as being invalid and don't
+                // want any new data coming in and stomping the valid flag.
+                requests.Clear();
+                return;
+            }
+
             // Physics stuff may call update from FixedUpdate() - therefore check if this component was already
             // updated this frame.
-            if (_updateFrame == Time.frameCount)
+            if (lodData._lastUpdateFrame == Time.frameCount)
             {
                 return;
             }
-            _updateFrame = Time.frameCount;
+            lodData._lastUpdateFrame = Time.frameCount;
 
             // remove any failed readback requests
-            for (int i = 0; i < MAX_REQUESTS && _requests.Count > 0; i++)
+            for (int i = 0; i < MAX_REQUESTS && requests.Count > 0; i++)
             {
-                var request = _requests.Peek();
+                var request = requests.Peek();
                 if (request._request.hasError)
                 {
-                    _requests.Dequeue();
+                    requests.Dequeue();
                 }
                 else
                 {
                     break;
                 }
             }
-
+            
             // process current request queue
-            if (_requests.Count > 0)
+            if (requests.Count > 0)
             {
-                var request = _requests.Peek();
+                var request = requests.Peek();
                 if (request._request.done)
                 {
-                    _requests.Dequeue();
+                    requests.Dequeue();
 
                     // eat up any more completed requests to squeeze out latency wherever possible
                     ReadbackRequest nextRequest;
-                    while (_requests.Count > 0 && (nextRequest = _requests.Peek())._request.done)
+                    while (requests.Count > 0 && (nextRequest = requests.Peek())._request.done)
                     {
                         request = nextRequest;
-                        _requests.Dequeue();
+                        requests.Dequeue();
                     }
 
                     UnityEngine.Profiling.Profiler.BeginSample("Copy out readback data");
 
-                    float gridSize = request._renderData._texelWidth;
-
-                    var result = _results[gridSize]._result;
-                    var resultLast = _results[gridSize]._resultLast;
+                    var result = lodData._resultData;
+                    var resultLast = lodData._resultDataPrevFrame;
 
                     // copy result into resultLast
                     resultLast._renderData = result._renderData;
@@ -226,28 +269,26 @@ namespace Crest
         void OnDisable()
         {
             // free native array when component removed or destroyed
-            foreach(var result in _results.Values)
+            foreach(var lodData in _perLodData.Values)
             {
-                if (result == null || result._result == null) continue;
-                if (result._result._data.IsCreated) result._result._data.Dispose();
-                if (result._resultLast._data.IsCreated) result._resultLast._data.Dispose();
+                if (lodData == null || lodData._resultData == null) continue;
+                if (lodData._resultData._data.IsCreated) lodData._resultData._data.Dispose();
+                if (lodData._resultDataPrevFrame._data.IsCreated) lodData._resultDataPrevFrame._data.Dispose();
             }
         }
 
-        public class ReadbackResults
-        {
-            public ReadbackResult _result;
-            public ReadbackResult _resultLast;
-        }
-
-        public class ReadbackResult
+        public class ReadbackData
         {
             public NativeArray<ushort> _data;
             public LodTransform.RenderData _renderData;
             public float _time;
 
+            public bool Valid { get { return _time >= 0f; } }
+
             public bool SampleARGB16(ref Vector3 in__worldPos, out Vector3 displacement)
             {
+                if (!Valid) { displacement = Vector3.zero; return false; }
+
                 float xOffset = in__worldPos.x - _renderData._posSnapped.x;
                 float zOffset = in__worldPos.z - _renderData._posSnapped.z;
                 float r = _renderData._texelWidth * _renderData._textureRes / 2f;
@@ -273,6 +314,8 @@ namespace Crest
 
             public bool InterpolateARGB16(ref Vector3 in__worldPos, out Vector3 displacement)
             {
+                if (!Valid) { displacement = Vector3.zero; return false; }
+
                 float xOffset = in__worldPos.x - _renderData._posSnapped.x;
                 float zOffset = in__worldPos.z - _renderData._posSnapped.z;
                 float r = _renderData._texelWidth * _renderData._textureRes / 2f;
@@ -324,6 +367,8 @@ namespace Crest
 
             public bool SampleRG16(ref Vector3 in__worldPos, out Vector2 flow)
             {
+                if (!Valid) { flow = Vector2.zero; return false; }
+
                 float xOffset = in__worldPos.x - _renderData._posSnapped.x;
                 float zOffset = in__worldPos.z - _renderData._posSnapped.z;
                 float r = _renderData._texelWidth * _renderData._textureRes / 2f;
@@ -352,16 +397,21 @@ namespace Crest
         /// <param name="sampleAreaXZ">The area of interest, can be 0 area.</param>
         /// <param name="minSpatialLength">Min spatial length is the minimum side length that you care about. For e.g.
         /// if a boat has dimensions 3m x 2m, set this to 2, and then suitable wavelengths will be preferred.</param>
-        protected ReadbackResults GetData(Rect sampleAreaXZ, float minSpatialLength)
+        protected PerLodData GetData(Rect sampleAreaXZ, float minSpatialLength)
         {
-            ReadbackResults lastCandidate = null;
+            PerLodData lastCandidate = null;
 
-            foreach (var frameResults in _results)
+            foreach (var gridSize_lodData in _perLodData)
             {
+                if (!gridSize_lodData.Value._activelyBeingRendered || gridSize_lodData.Value._resultData._time == -1f)
+                {
+                    continue;
+                }
+
                 // Check that the region of interest is covered by this data
-                var wdcRect = frameResults.Value._result._renderData.RectXZ;
+                var wdcRect = gridSize_lodData.Value._resultData._renderData.RectXZ;
                 // Shrink rect by 1 texel border - this is to make finite differences fit as well
-                float texelWidth = frameResults.Key;
+                float texelWidth = gridSize_lodData.Key;
                 wdcRect.x += texelWidth; wdcRect.y += texelWidth;
                 wdcRect.width -= 2f * texelWidth; wdcRect.height -= 2f * texelWidth;
                 if (!wdcRect.Contains(sampleAreaXZ.min) || !wdcRect.Contains(sampleAreaXZ.max))
@@ -370,7 +420,7 @@ namespace Crest
                 }
 
                 // This data covers our required area, so store it as a potential candidate
-                lastCandidate = frameResults.Value;
+                lastCandidate = gridSize_lodData.Value;
 
                 // The smallest wavelengths should repeat no more than twice across the smaller spatial length. Unless we're
                 // in the last LOD - then this is the best we can do.
@@ -381,7 +431,7 @@ namespace Crest
                 }
 
                 // A good match - return immediately
-                return frameResults.Value;
+                return gridSize_lodData.Value;
             }
 
             // We didnt get a perfect match, but pick the next best candidate

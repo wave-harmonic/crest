@@ -4,7 +4,7 @@ namespace Crest
 {
     public class GPUReadbackFlow : GPUReadbackBase<LodDataFlow>
     {
-        ReadbackResults _areaData;
+        PerLodData _areaData;
 
         public static GPUReadbackFlow Instance { get; private set; }
 
@@ -20,8 +20,8 @@ namespace Crest
             Debug.Assert(Instance == null);
             Instance = this;
 
-            _minGridSize = 0.5f * _lodData[0].Settings._minObjectWidth / OceanRenderer.Instance._minTexelsPerWave;
-            _maxGridSize = 0.5f * _lodData[0].Settings._maxObjectWidth / OceanRenderer.Instance._minTexelsPerWave;
+            _minGridSize = 0.5f * _lodComponents[0].Settings._minObjectWidth / OceanRenderer.Instance._minTexelsPerWave;
+            _maxGridSize = 0.5f * _lodComponents[0].Settings._maxObjectWidth / OceanRenderer.Instance._minTexelsPerWave;
             _maxGridSize = Mathf.Max(_maxGridSize, 2f * _minGridSize);
         }
 
@@ -33,7 +33,7 @@ namespace Crest
                 flow = Vector2.zero;
                 return false;
             }
-            return data._result.SampleRG16(ref in__worldPos, out flow);
+            return data._resultData.SampleRG16(ref in__worldPos, out flow);
         }
     }
 }

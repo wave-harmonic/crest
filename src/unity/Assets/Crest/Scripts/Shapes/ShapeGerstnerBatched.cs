@@ -573,7 +573,7 @@ namespace Crest
             return true;
         }
 
-        public bool ComputeUndisplacedPosition(ref Vector3 in__worldPos, out Vector3 undisplacedWorldPos)
+        public bool ComputeUndisplacedPosition(ref Vector3 in__worldPos, out Vector3 undisplacedWorldPos, float minSpatialLength)
         {
             // fpi - guess should converge to location that displaces to the target position
             Vector3 guess = in__worldPos;
@@ -582,7 +582,7 @@ namespace Crest
             // be some error here. one could also terminate iteration based on the size of the error, this is
             // worth trying but is left as future work for now.
             Vector3 disp;
-            for (int i = 0; i < 4 && SampleDisplacement(ref guess, out disp); i++)
+            for (int i = 0; i < 4 && SampleDisplacement(ref guess, out disp, minSpatialLength); i++)
             {
                 Vector3 error = guess + disp - in__worldPos;
                 guess.x -= error.x;

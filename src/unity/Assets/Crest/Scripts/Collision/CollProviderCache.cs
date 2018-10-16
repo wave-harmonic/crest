@@ -88,9 +88,9 @@ namespace Crest
             return _collProvider.SampleNormal(ref in__undisplacedWorldPos, out normal, minSpatialLength);
         }
 
-        public bool ComputeUndisplacedPosition(ref Vector3 in__worldPos, out Vector3 undisplacedWorldPos)
+        public bool ComputeUndisplacedPosition(ref Vector3 in__worldPos, out Vector3 undisplacedWorldPos, float minSpatialLength)
         {
-            return _collProvider.ComputeUndisplacedPosition(ref in__worldPos, out undisplacedWorldPos);
+            return _collProvider.ComputeUndisplacedPosition(ref in__worldPos, out undisplacedWorldPos, minSpatialLength);
         }
 
         public void SampleDisplacementVelInArea(ref Vector3 in__worldPos, out Vector3 displacement, out bool displacementValid, out Vector3 displacementVel, out bool velValid)

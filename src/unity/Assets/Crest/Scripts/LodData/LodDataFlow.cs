@@ -36,26 +36,5 @@ namespace Crest
         {
             OceanRenderer.Instance.OceanMaterial.DisableKeyword(SHADER_KEYWORD);
         }
-
-        //public static int SuggestDataLOD(Rect sampleAreaXZ, float minSpatialLength)
-        //{
-        //    var ldaws = OceanRenderer.Instance._lodDataAnimWaves;
-        //    for (int lod = 0; lod < ldaws.Length; lod++)
-        //    {
-        //        // shape texture needs to completely contain sample area
-        //        var ldaw = ldaws[lod].LDFlow;
-        //        if (ldaw.DataReadback == null) return -1;
-        //        var wdcRect = ldaw.DataReadback.DataRectXZ;
-        //        // shrink rect by 1 texel border - this is to make finite differences fit as well
-        //        wdcRect.x += ldaw.LodTransform._renderData._texelWidth; wdcRect.y += ldaw.LodTransform._renderData._texelWidth;
-        //        wdcRect.width -= 2f * ldaw.LodTransform._renderData._texelWidth; wdcRect.height -= 2f * ldaw.LodTransform._renderData._texelWidth;
-        //        if (!wdcRect.Contains(sampleAreaXZ.min) || !wdcRect.Contains(sampleAreaXZ.max))
-        //            continue;
-
-        //        return lod;
-        //    }
-
-        //    return -1;
-        //}
     }
 }

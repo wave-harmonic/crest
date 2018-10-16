@@ -31,7 +31,7 @@ namespace Crest
         /// <summary>
         /// Computes the position which will be displaced to the given world position.
         /// </summary>
-        bool ComputeUndisplacedPosition(ref Vector3 in__worldPos, out Vector3 undisplacedWorldPos);
+        bool ComputeUndisplacedPosition(ref Vector3 in__worldPos, out Vector3 undisplacedWorldPos, float minSpatialLength);
 
         /// <summary>
         /// Some collision providers benefit from getting prewarmed - call this to set up a sampling area and

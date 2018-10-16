@@ -20,9 +20,7 @@ namespace Crest
             Debug.Assert(Instance == null);
             Instance = this;
 
-            _minGridSize = 0.5f * _lodComponents[0].Settings._minObjectWidth / OceanRenderer.Instance._minTexelsPerWave;
-            _maxGridSize = 0.5f * _lodComponents[0].Settings._maxObjectWidth / OceanRenderer.Instance._minTexelsPerWave;
-            _maxGridSize = Mathf.Max(_maxGridSize, 2f * _minGridSize);
+            _settingsProvider = _lodComponents[0].Settings as SimSettingsAnimatedWaves;
         }
 
         #region ICollProvider

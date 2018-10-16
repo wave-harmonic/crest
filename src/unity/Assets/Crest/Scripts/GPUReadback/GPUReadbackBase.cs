@@ -5,6 +5,11 @@ using UnityEngine.Rendering;
 
 namespace Crest
 {
+    public interface IReadbackSettingsProvider
+    {
+        void GetMinMaxGridSizes(out float minGridSize, out float maxGridSize);
+    }
+
     public class GPUReadbackBase<LodDataType> : MonoBehaviour where LodDataType : LodData
     {
         protected LodDataType[] _lodComponents;
@@ -20,6 +25,8 @@ namespace Crest
         /// this optimisation and always copy low res data.
         /// </summary>
         protected float _maxGridSize = 0f;
+
+        protected IReadbackSettingsProvider _settingsProvider;
 
         protected class PerLodData
         {
@@ -64,9 +71,23 @@ namespace Crest
 
         protected virtual void Update()
         {
+            UpdateGridSizes();
+
             ProcessRequestsInternal(true);
 
             _prevFrameTime = Time.time;
+        }
+
+        void UpdateGridSizes()
+        {
+            if (_settingsProvider != null)
+            {
+                _settingsProvider.GetMinMaxGridSizes(out _minGridSize, out _maxGridSize);
+            }
+
+            // Grid sizes are on powers of two - make sure at least one grid is always included
+            _maxGridSize = Mathf.Max(_maxGridSize, 1.999f * _minGridSize);
+            Debug.Assert(_maxGridSize > 0f);
         }
 
         public void ProcessRequests()

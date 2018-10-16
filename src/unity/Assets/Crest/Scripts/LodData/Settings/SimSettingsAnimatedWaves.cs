@@ -11,9 +11,12 @@ namespace Crest
         public bool _readbackData = true;
 
         [Tooltip("Minimum floating object width. The larger the objects that will float, the lower the resolution of the read data. If an object is small, the highest resolution LODs will be sample for physics. This is an optimisation. Set to 0 to disable this optimisation and always copy high res data.")]
-        public float _minObjectWidth = 0f;
+        public float _minObjectWidth = 3f;
+
+        // By default copy waves big enough to do buoyancy on a 50m wide object. This ensures we get the wavelengths, and by extension makes
+        // sure we get good range on wave physics.
         [Tooltip("Similar to the minimum width, but this setting will exclude the larger LODs from being copied. Set to 0 to disable this optimisation and always copy low res data.")]
-        public float _maxObjectWidth = 0f;
+        public float _maxObjectWidth = 50f;
 
         public void GetMinMaxGridSizes(out float minGridSize, out float maxGridSize)
         {

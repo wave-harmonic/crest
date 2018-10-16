@@ -181,7 +181,11 @@ namespace Crest
         public bool SampleNormal(ref Vector3 in__undisplacedWorldPos, out Vector3 normal, float minSpatialLength)
         {
             // select lod. this now has a 1 texel buffer, so the finite differences below should all be valid.
-            PrewarmForSamplingArea(new Rect(in__undisplacedWorldPos.x, in__undisplacedWorldPos.z, 0f, 0f), minSpatialLength);
+            if (!PrewarmForSamplingArea(new Rect(in__undisplacedWorldPos.x, in__undisplacedWorldPos.z, 0f, 0f), minSpatialLength))
+            {
+                normal = Vector3.zero;
+                return false;
+            }
 
             return SampleNormalInArea(ref in__undisplacedWorldPos, out normal);
         }

@@ -57,13 +57,17 @@ public class BoatAlignNormal : MonoBehaviour
         var position = transform.position;
 
         Vector3 undispPos;
-        if (!colProvider.ComputeUndisplacedPosition(ref position, out undispPos, _boatWidth)) return;
+        if (!colProvider.ComputeUndisplacedPosition(ref position, out undispPos, _boatWidth))
+        {
+            // If we couldn't get wave shape, assume flat water at sea level
+            undispPos = position;
+            undispPos.y = OceanRenderer.Instance.SeaLevel;
+        }
         if (_debugDraw) DebugDrawCross(undispPos, 1f, Color.red);
 
         var waterSurfaceVel = Vector3.zero;
         bool dispValid, velValid;
         colProvider.SampleDisplacementVel(ref undispPos, out _displacementToBoat, out dispValid, out waterSurfaceVel, out velValid, _boatWidth);
-        if (!dispValid) return;
 
         if (!_computeWaterVel)
         {
@@ -89,13 +93,13 @@ public class BoatAlignNormal : MonoBehaviour
         }
 
         Vector3 normal;
-        if (!colProvider.SampleNormal(ref undispPos, out normal, _boatWidth)) return;
+        if (!colProvider.SampleNormal(ref undispPos, out normal, _boatWidth))
+        {
+            normal = Vector3.up;
+        }
         if(_debugDraw) Debug.DrawLine(transform.position, transform.position + 5f * normal, Color.green);
 
-        if (velValid)
-        {
-            _velocityRelativeToWater = _rb.velocity - waterSurfaceVel;
-        }
+        _velocityRelativeToWater = _rb.velocity - waterSurfaceVel;
 
         var dispPos = undispPos + _displacementToBoat;
         if (_debugDraw) DebugDrawCross(dispPos, 4f, Color.white);

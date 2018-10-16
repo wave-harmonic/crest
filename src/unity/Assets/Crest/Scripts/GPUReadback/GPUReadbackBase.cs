@@ -12,6 +12,8 @@ namespace Crest
 
     public class GPUReadbackBase<LodDataType> : MonoBehaviour where LodDataType : LodData
     {
+        public bool _doReadback = true;
+
         protected LodDataType[] _lodComponents;
 
         /// <summary>
@@ -161,6 +163,11 @@ namespace Crest
         /// </summary>
         void EnqueueReadbackRequest(RenderTexture target, LodTransform.RenderData renderData, float previousFrameTime)
         {
+            if (!_doReadback)
+            {
+                return;
+            }
+
             var lodData = _perLodData[renderData._texelWidth];
 
             // only queue up requests while time is advancing
@@ -457,6 +464,30 @@ namespace Crest
 
             // We didnt get a perfect match, but pick the next best candidate
             return lastCandidate;
+        }
+
+        public void GetStats(out int count, out int minQueueLength, out int maxQueueLength)
+        {
+            minQueueLength = MAX_REQUESTS;
+            maxQueueLength = 0;
+            count = 0;
+
+            foreach (var gridSize_lodData in _perLodData)
+            {
+                if (!gridSize_lodData.Value._activelyBeingRendered)
+                {
+                    continue;
+                }
+
+                count++;
+
+                var queueLength = gridSize_lodData.Value._requests.Count;
+                minQueueLength = Mathf.Min(queueLength, minQueueLength);
+                maxQueueLength = Mathf.Max(queueLength, maxQueueLength);
+            }
+
+            if (minQueueLength == MAX_REQUESTS) minQueueLength = -1;
+            if (maxQueueLength == 0) maxQueueLength = -1;
         }
     }
 }

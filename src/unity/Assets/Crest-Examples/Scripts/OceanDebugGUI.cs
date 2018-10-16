@@ -88,30 +88,18 @@ public class OceanDebugGUI : MonoBehaviour
 
             LodDataShadow.s_processData = GUI.Toggle(new Rect(x, y, w, h), LodDataShadow.s_processData, "Process Shadows"); y += h;
 
-//            if(GPUReadbackDisps.Instance)
-//            {
-//                int min = int.MaxValue, max = -1;
-//                bool readbackShape = true;
-//                foreach (var ldaw in OceanRenderer.Instance._lodDataAnimWaves)
-//                {
-//                    min = Mathf.Min(min, ldaw.DataReadback.ReadbackRequestsQueued);
-//                    max = Mathf.Max(max, ldaw.DataReadback.ReadbackRequestsQueued);
-//                    readbackShape = readbackShape && ldaw._readbackShapeForCollision;
-//                }
-//#if UNITY_EDITOR
-//                if (readbackShape != GUI.Toggle(new Rect(x, y, w, h), readbackShape, "Readback coll data"))
-//                {
-//                    foreach (var ldaw in OceanRenderer.Instance._lodDataAnimWaves)
-//                    {
-//                        ldaw._readbackShapeForCollision = !readbackShape;
-//                    }
-//                }
-//                y += h;
-//#endif
-                //// generates garbage
-                //GUI.Label(new Rect(x, y, w, h), string.Format("Coll Queue Lengths: [{0}, {1}]", min, max)); y += h;
-//            }
+            if (GPUReadbackDisps.Instance)
+            {
+                int count, min, max;
+                GPUReadbackDisps.Instance.GetStats(out count, out min, out max);
 
+#if UNITY_EDITOR
+                GPUReadbackDisps.Instance._doReadback = GUI.Toggle(new Rect(x, y, w, h), GPUReadbackDisps.Instance._doReadback, "Readback coll data"); y += h;
+#endif
+                // generates garbage
+                GUI.Label(new Rect(x, y, w, h), string.Format("Coll Texture Count: {0}", count)); y += h;
+                GUI.Label(new Rect(x, y, w, h), string.Format("Coll Queue Lengths: [{0}, {1}]", min, max)); y += h;
+            }
 
             if (OceanRenderer.Instance.CachedCpuOceanQueries)
             {

@@ -36,9 +36,9 @@ namespace Crest
             OceanRenderer.Instance.OceanMaterial.DisableKeyword(SHADER_KEYWORD);
 
             // free native array when component removed or destroyed
-            if (_dataReadback._dataNative.IsCreated)
+            if (_dataReadback._result._data.IsCreated)
             {
-                _dataReadback._dataNative.Dispose();
+                _dataReadback._result._data.Dispose();
             }
         }
 
@@ -65,25 +65,7 @@ namespace Crest
 
         public bool SampleFlow(ref Vector3 in__worldPos, out Vector2 flow)
         {
-            float xOffset = in__worldPos.x - _dataReadback._dataRenderData._posSnapped.x;
-            float zOffset = in__worldPos.z - _dataReadback._dataRenderData._posSnapped.z;
-            float r = _dataReadback._dataRenderData._texelWidth * _dataReadback._dataRenderData._textureRes / 2f;
-            if (Mathf.Abs(xOffset) >= r || Mathf.Abs(zOffset) >= r)
-            {
-                // outside of this collision data
-                flow = Vector3.zero;
-                return false;
-            }
-
-            var u = 0.5f + 0.5f * xOffset / r;
-            var v = 0.5f + 0.5f * zOffset / r;
-            var x = Mathf.FloorToInt(u * _dataReadback._dataRenderData._textureRes);
-            var y = Mathf.FloorToInt(v * _dataReadback._dataRenderData._textureRes);
-            var idx = 2 * (y * (int)_dataReadback._dataRenderData._textureRes + x);
-            flow.x = Mathf.HalfToFloat(_dataReadback._dataNative[idx + 0]);
-            flow.y = Mathf.HalfToFloat(_dataReadback._dataNative[idx + 1]);
-
-            return true;
+            return _dataReadback._result.SampleRG16(ref in__worldPos, out flow);
         }
 
         ReadbackLodData _dataReadback; public ReadbackLodData DataReadback { get { return _dataReadback; } }

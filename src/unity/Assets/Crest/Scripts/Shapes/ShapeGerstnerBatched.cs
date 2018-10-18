@@ -531,6 +531,14 @@ namespace Crest
             return SampleDisplacement(ref in__worldPos, out displacement);
         }
 
+        public void SampleDisplacementVel(ref Vector3 in__worldPos, out Vector3 displacement, out bool displacementValid, out Vector3 displacementVel, out bool velValid, float minSpatialLength)
+        {
+            velValid = true;
+            displacementVel = GetSurfaceVelocity(ref in__worldPos, 0f);
+            displacementValid = SampleDisplacement(ref in__worldPos, out displacement);
+            return;
+        }
+
         public bool SampleHeight(ref Vector3 in__worldPos, out float height)
         {
             height = SampleHeight(ref in__worldPos, 0f);

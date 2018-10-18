@@ -33,6 +33,20 @@ namespace Crest
 
             return SampleDisplacementInArea(ref in__worldPos, out displacement);
         }
+        public void SampleDisplacementVel(ref Vector3 in__worldPos, out Vector3 displacement, out bool displacementValid, out Vector3 displacementVel, out bool velValid, float minSpatialLength)
+        {
+            // select lod. this now has a 1 texel buffer, so the finite differences below should all be valid.
+            if (!PrewarmForSamplingArea(new Rect(in__worldPos.x, in__worldPos.z, 0f, 0f), minSpatialLength))
+            {
+                displacement = Vector3.zero;
+                displacementValid = false;
+                displacementVel = Vector3.zero;
+                velValid = false;
+                return;
+            }
+
+            SampleDisplacementVelInArea(ref in__worldPos, out displacement, out displacementValid, out displacementVel, out velValid);
+        }
 
         public bool SampleHeight(ref Vector3 in__worldPos, out float height)
         {
@@ -58,6 +72,10 @@ namespace Crest
         public bool SampleDisplacementInArea(ref Vector3 in__worldPos, out Vector3 displacement)
         {
             return OceanRenderer.Instance._lodDataAnimWaves[_areaLod].SampleDisplacement(ref in__worldPos, out displacement);
+        }
+        public void SampleDisplacementVelInArea(ref Vector3 in__worldPos, out Vector3 displacement, out bool displacementValid, out Vector3 displacementVel, out bool velValid)
+        {
+            OceanRenderer.Instance._lodDataAnimWaves[_areaLod].SampleDisplacementVel(ref in__worldPos, out displacement, out displacementValid, out displacementVel, out velValid);
         }
         public bool SampleHeightInArea(ref Vector3 in__worldPos, out float height)
         {

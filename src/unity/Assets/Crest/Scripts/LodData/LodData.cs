@@ -132,18 +132,20 @@ namespace Crest
             {
                 case SimType.AnimatedWaves:
                     sim = go.AddComponent<LodDataAnimatedWaves>();
-                    go.AddComponent<LodDataSeaFloorDepth>();
                     go.AddComponent<ReadbackLodData>();
                     break;
                 case SimType.DynamicWaves:
                     sim = go.AddComponent<LodDataDynamicWaves>();
                     break;
-                case SimType.Foam:
-                    sim = go.AddComponent<LodDataFoam>();
-                    break;
                 case SimType.Flow:
                     sim = go.AddComponent<LodDataFlow>();
                     go.AddComponent<ReadbackLodData>();
+                    break;
+                case SimType.Foam:
+                    sim = go.AddComponent<LodDataFoam>();
+                    break;
+                case SimType.SeaFloorDepth:
+                    sim = go.AddComponent<LodDataSeaFloorDepth>();
                     break;
                 case SimType.Shadow:
                     sim = go.AddComponent<LodDataShadow>();

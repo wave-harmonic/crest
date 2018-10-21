@@ -10,7 +10,7 @@ Material:
   m_Shader: {fileID: 4800000, guid: 668aecf91371c8b4997e42c0c7b19527, type: 3}
   m_ShaderKeywords: _APPLYNORMALMAPPING_ON _CAUSTICS_ON _COMPILESHADERWITHDEBUGINFO_ON
     _COMPUTEDIRECTIONALLIGHT_ON _DEBUGMULTIPLYBYLIGHT0COLOR_ON _FOAM3DLIGHTING_ON
-    _FOAM_ON _SUBSURFACEHEIGHTLERP_ON _SUBSURFACESCATTERING_ON _SUBSURFACESHALLOWCOLOUR_ON
+    _SUBSURFACEHEIGHTLERP_ON _SUBSURFACESCATTERING_ON _SUBSURFACESHALLOWCOLOUR_ON
     _TRANSPARENCY_ON
   m_LightmapFlags: 5
   m_EnableInstancingVariants: 0
@@ -87,7 +87,7 @@ Material:
     - _CausticsStrength: 3.2
     - _CausticsTextureAverage: 0.07
     - _CausticsTextureScale: 5
-    - _CompileShaderWithDebugInfo: 1
+    - _CompileShaderWithDebugInfo: 0
     - _ComputeDirectionalLight: 1
     - _CullMode: 2
     - _DebugDisableMultiplyByLight0Color: 0
@@ -99,7 +99,7 @@ Material:
     - _DebugVisualiseShapeSample: 0
     - _DirectionalLightBoost: 7
     - _DirectionalLightFallOff: 275
-    - _Foam: 1
+    - _Flow: 0
     - _Foam3DLighting: 1
     - _FoamScale: 10
     - _FresnelPower: 5
@@ -114,7 +114,6 @@ Material:
     - _RefractAmt: 0
     - _RefractionStrength: 0.1
     - _S: 1
-    - _Shadows: 0
     - _ShorelineFoamMinDepth: 0.27
     - _SkyDirectionality: 0.875
     - _StartLevel: 0.157

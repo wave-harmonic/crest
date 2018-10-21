@@ -81,21 +81,21 @@ namespace Crest
             var shapeCams = OceanRenderer.Instance._lodDataAnimWaves;
 
             shapeCams[_lodIndex].BindResultData(0, _mpb);
-            shapeCams[_lodIndex].LDSeaDepth.BindResultData(0, _mpb);
-            if (OceanRenderer.Instance._createFoamSim) shapeCams[_lodIndex].LDFoam.BindResultData(0, _mpb);
             if (OceanRenderer.Instance._createFlowSim) shapeCams[_lodIndex].LDFlow.BindResultData(0, _mpb);
+            if (OceanRenderer.Instance._createFoamSim) shapeCams[_lodIndex].LDFoam.BindResultData(0, _mpb);
+            if (OceanRenderer.Instance._createSeaFloorDepthData) shapeCams[_lodIndex].LDSeaDepth.BindResultData(0, _mpb);
             if (OceanRenderer.Instance._createShadowData) shapeCams[_lodIndex].LDShadow.BindResultData(0, _mpb);
 
             if (_lodIndex + 1 < shapeCams.Length)
             {
                 shapeCams[_lodIndex + 1].BindResultData(1, _mpb);
-                shapeCams[_lodIndex + 1].LDSeaDepth.BindResultData(1, _mpb);
-                if (OceanRenderer.Instance._createFoamSim) shapeCams[_lodIndex + 1].LDFoam.BindResultData(1, _mpb);
                 if (OceanRenderer.Instance._createFlowSim) shapeCams[_lodIndex + 1].LDFlow.BindResultData(1, _mpb);
+                if (OceanRenderer.Instance._createFoamSim) shapeCams[_lodIndex + 1].LDFoam.BindResultData(1, _mpb);
+                if (OceanRenderer.Instance._createSeaFloorDepthData) shapeCams[_lodIndex + 1].LDSeaDepth.BindResultData(1, _mpb);
                 if (OceanRenderer.Instance._createShadowData) shapeCams[_lodIndex + 1].LDShadow.BindResultData(1, _mpb);
             }
 
-            if (OceanRenderer.Instance.PlanarReflection)
+            if (OceanRenderer.Instance.PlanarReflection && OceanRenderer.Instance.PlanarReflection.ReflectionTexture)
             {
                 _mpb.SetTexture("_ReflectionTex", OceanRenderer.Instance.PlanarReflection.ReflectionTexture);
             }

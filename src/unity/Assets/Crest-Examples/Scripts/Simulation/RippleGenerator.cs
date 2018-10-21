@@ -24,7 +24,7 @@ public class RippleGenerator : MonoBehaviour
     {
         if(_animate)
         {
-            float t = Time.time;
+            float t = Crest.OceanRenderer.Instance.CurrentTime;
             if (t < _warmUp)
                 return;
             t -= _warmUp;

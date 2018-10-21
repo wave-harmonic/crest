@@ -1,7 +1,6 @@
 ﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 using UnityEngine;
-using UnityEngine.Rendering;
 
 namespace Crest
 {
@@ -17,6 +16,8 @@ namespace Crest
         public override void UseSettings(SimSettingsBase settings) {}
         public override SimSettingsBase CreateDefaultSettings() { return null;}
 
+        static readonly string SHADER_KEYWORD = "_FLOW_ON";
+
         protected override void Start() {
             base.Start();
 
@@ -25,7 +26,15 @@ namespace Crest
             _dataReadback._active = true;
         }
 
-        void OnDisable() {
+        void OnEnable()
+        {
+            OceanRenderer.Instance.OceanMaterial.EnableKeyword(SHADER_KEYWORD);
+        }
+
+        void OnDisable()
+        {
+            OceanRenderer.Instance.OceanMaterial.DisableKeyword(SHADER_KEYWORD);
+
             // free native array when component removed or destroyed
             if (_dataReadback._dataNative.IsCreated)
             {

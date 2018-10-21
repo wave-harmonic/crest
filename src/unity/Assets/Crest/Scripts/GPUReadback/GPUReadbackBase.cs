@@ -10,6 +10,9 @@ namespace Crest
         void GetMinMaxGridSizes(out float minGridSize, out float maxGridSize);
     }
 
+    /// <summary>
+    /// Base class for reading back GPU data of a particular type to the CPU.
+    /// </summary>
     public class GPUReadbackBase<LodDataType> : MonoBehaviour where LodDataType : LodData
     {
         public bool _doReadback = true;
@@ -372,8 +375,8 @@ namespace Crest
 
                 var u = 0.5f + 0.5f * xOffset / r;
                 var v = 0.5f + 0.5f * zOffset / r;
-                float u_texels = Mathf.Max(u * _renderData._textureRes, 0f) - 0.5f;
-                float v_texels = Mathf.Max(v * _renderData._textureRes, 0f) - 0.5f;
+                float u_texels = Mathf.Max(u * _renderData._textureRes - 0.5f, 0f);
+                float v_texels = Mathf.Max(v * _renderData._textureRes - 0.5f, 0f);
 
                 int width = (int)_renderData._textureRes;
 

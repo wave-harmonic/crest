@@ -39,6 +39,7 @@ public class BoatAlignNormal : MonoBehaviour
 
     [SerializeField] bool _debugDraw = false;
     [SerializeField] bool _debugDrawSurroundingColl = false;
+    [SerializeField] bool _debugValidateCollision = true;
 
     void Start()
     {
@@ -55,6 +56,15 @@ public class BoatAlignNormal : MonoBehaviour
 
         var colProvider = OceanRenderer.Instance.CollisionProvider;
         var position = transform.position;
+
+        if (_debugValidateCollision)
+        {
+            var result = colProvider.CheckAvailability(ref position, _boatWidth);
+            if (result != AvailabilityResult.DataAvailable)
+            {
+                Debug.LogWarning("Validation failed: " + result.ToString() + ". See comments on the AvailabilityResult enum.", this);
+            }
+        }
 
         Vector3 undispPos;
         if (!colProvider.ComputeUndisplacedPosition(ref position, out undispPos, _boatWidth))

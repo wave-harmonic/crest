@@ -4,6 +4,29 @@ using UnityEngine;
 
 namespace Crest
 {
+    public enum AvailabilityResult
+    {
+        /// <summary>
+        /// Collision data available, good to go
+        /// </summary>
+        DataAvailable,
+        /// <summary>
+        /// There is no data available (yet) that covers the query position. This might be because the query was made
+        /// before async data started flowing back to the CPU, or the query position may be outside the largest LOD.
+        /// </summary>
+        NoDataAtThisPosition,
+        /// <summary>
+        /// A min spatial width was specified with the expectation that wavelengths much smaller than this width would
+        /// be filtered out. There is currently no LOD big enough that filters out these wavelengths. Data will still
+        /// be return but it will contain wavelengths smaller than expected.
+        /// </summary>
+        NoLODsBigEnoughToFilterOutWavelengths,
+        /// <summary>
+        /// This should never be hit, and indicates that the validation logic is broken.
+        /// </summary>
+        ValidationFailed,
+    }
+
     /// <summary>
     /// Interface for an object that returns ocean surface displacement and height.
     /// </summary>
@@ -61,5 +84,7 @@ namespace Crest
         // These 'InArea' variants cannot exist because these perform a dynamic search and the area cannot be predicted in advance
         //bool SampleNormalInArea(ref Vector3 in__undisplacedWorldPos, out Vector3 normal);
         //bool ComputeUndisplacedPositionInArea(ref Vector3 in__worldPos, out Vector3 undisplacedWorldPos);
+
+        AvailabilityResult CheckAvailability(ref Vector3 in__worldPos, float minSpatialLength);
     }
 }

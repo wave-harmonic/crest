@@ -124,6 +124,11 @@ namespace Crest
             return _collProvider.SampleNormal(ref in__undisplacedWorldPos, out normal);
         }
 
+        public AvailabilityResult CheckAvailability(ref Vector3 in__worldPos, float minSpatialLength)
+        {
+            return _collProvider.CheckAvailability(ref in__worldPos, minSpatialLength);
+        }
+
         public int CacheChecks { get { return _cacheChecksLastFrame; } }
         public int CacheHits { get { return _cacheHitsLastFrame; } }
     }

@@ -513,13 +513,12 @@ Prefab:
         type: 2}
     - target: {fileID: 11417796, guid: 8454e29c2a033974fb559f5f8eff1918, type: 2}
       propertyPath: _cachedCpuOceanQueries
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 11417796, guid: 8454e29c2a033974fb559f5f8eff1918, type: 2}
       propertyPath: _simSettingsAnimatedWaves
       value: 
-      objectReference: {fileID: 11400000, guid: cfd737d72477c7c4cb0a704a1e157b81,
-        type: 2}
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 8454e29c2a033974fb559f5f8eff1918, type: 2}
   m_IsPrefabAsset: 0
@@ -613,6 +612,11 @@ Prefab:
     - target: {fileID: 114101010989703450, guid: 71ede3c2ab0b7cb43b7dad6ae3b6190b,
         type: 2}
       propertyPath: _computeWaterVel
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 114101010989703450, guid: 71ede3c2ab0b7cb43b7dad6ae3b6190b,
+        type: 2}
+      propertyPath: _debugValidateCollision
       value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []

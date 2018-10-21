@@ -482,6 +482,56 @@ namespace Crest
             return lastCandidate;
         }
 
+        public AvailabilityResult CheckAvailability(ref Vector3 in__worldPos, float minSpatialLength)
+        {
+            var sampleAreaXZ = new Rect(in__worldPos.x, in__worldPos.z, 0f, 0f);
+
+            bool oneWasInRect = false;
+            bool wavelengthsLargeEnough = false;
+            
+            foreach (var gridSize_lodData in _perLodData)
+            {
+                if (!gridSize_lodData.Value._activelyBeingRendered || gridSize_lodData.Value._resultData._time == -1f)
+                {
+                    continue;
+                }
+
+                // Check that the region of interest is covered by this data
+                var wdcRect = gridSize_lodData.Value._resultData._renderData.RectXZ;
+                // Shrink rect by 1 texel border - this is to make finite differences fit as well
+                float texelWidth = gridSize_lodData.Key;
+                wdcRect.x += texelWidth; wdcRect.y += texelWidth;
+                wdcRect.width -= 2f * texelWidth; wdcRect.height -= 2f * texelWidth;
+                if (!wdcRect.Contains(sampleAreaXZ.min) || !wdcRect.Contains(sampleAreaXZ.max))
+                {
+                    continue;
+                }
+                oneWasInRect = true;
+
+                // The smallest wavelengths should repeat no more than twice across the smaller spatial length. Unless we're
+                // in the last LOD - then this is the best we can do.
+                float minWavelength = texelWidth * OceanRenderer.Instance._minTexelsPerWave;
+                if (minSpatialLength / minWavelength > 2f)
+                {
+                    continue;
+                }
+                wavelengthsLargeEnough = true;
+
+                return AvailabilityResult.DataAvailable;
+            }
+
+            if (!oneWasInRect)
+            {
+                return AvailabilityResult.NoDataAtThisPosition;
+            }
+            if (!wavelengthsLargeEnough)
+            {
+                return AvailabilityResult.NoLODsBigEnoughToFilterOutWavelengths;
+            }
+            // Should not get here.
+            return AvailabilityResult.ValidationFailed;
+        }
+
         public void GetStats(out int count, out int minQueueLength, out int maxQueueLength)
         {
             minQueueLength = MAX_REQUESTS;

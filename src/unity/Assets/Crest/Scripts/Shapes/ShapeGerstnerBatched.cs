@@ -610,5 +610,10 @@ namespace Crest
         {
             return SampleNormal(ref in__undisplacedWorldPos, out normal);
         }
+
+        public AvailabilityResult CheckAvailability(ref Vector3 in__worldPos, float minSpatialLength)
+        {
+            return AvailabilityResult.DataAvailable;
+        }
     }
 }

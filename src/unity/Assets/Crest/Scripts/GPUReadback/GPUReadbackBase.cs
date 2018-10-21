@@ -372,8 +372,8 @@ namespace Crest
 
                 var u = 0.5f + 0.5f * xOffset / r;
                 var v = 0.5f + 0.5f * zOffset / r;
-                float u_texels = Mathf.Max(u * _renderData._textureRes, 0f);
-                float v_texels = Mathf.Max(v * _renderData._textureRes, 0f);
+                float u_texels = Mathf.Max(u * _renderData._textureRes, 0f) - 0.5f;
+                float v_texels = Mathf.Max(v * _renderData._textureRes, 0f) - 0.5f;
 
                 int width = (int)_renderData._textureRes;
 

@@ -107,7 +107,7 @@ Material:
     - _MipBias: 0
     - _Moving: 0.17
     - _NormalsScale: 20
-    - _NormalsStrength: 0.4
+    - _NormalsStrength: 0.28
     - _Offset: 0.00008
     - _PlanarReflections: 0
     - _ProceduralSky: 0

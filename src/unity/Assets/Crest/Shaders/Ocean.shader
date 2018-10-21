@@ -69,6 +69,7 @@ Shader "Ocean/Ocean"
 		[Header(Transparency)]
 		[Toggle] _Transparency("Enable", Float) = 1
 		_DepthFogDensity("Density", Vector) = (0.28, 0.16, 0.24, 1.0)
+		_RefractionStrength("Refraction Strength", Range(0.0, 1.0)) = 0.1
 
 		[Header(Caustics)]
 		[Toggle] _Caustics("Enable", Float) = 1

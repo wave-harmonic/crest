@@ -5,7 +5,7 @@ uniform half3 _Diffuse;
 #if _TRANSPARENCY_ON
 // this is copied from the render target by unity
 uniform sampler2D _BackgroundTexture;
-
+uniform half _RefractionStrength;
 uniform half4 _DepthFogDensity;
 #endif // _TRANSPARENCY_ON
 
@@ -87,8 +87,8 @@ half3 OceanEmission(float3 worldPos, half oceanDepth, half3 view, half3 n, half3
 	// from uninit'd backbuffer
 	if (sceneZ01 != 0.0)
 	{
-		half2 uvBackgroundRefract = grabPos.xy / grabPos.w + .02 * n.xz;
-		half2 uvDepthRefract = uvDepth + .02 * n.xz;
+		half2 uvBackgroundRefract = grabPos.xy / grabPos.w + _RefractionStrength * n.xz;
+		half2 uvDepthRefract = uvDepth + _RefractionStrength * n.xz;
 		half3 alpha = (half3)1.;
 
 		// if we haven't refracted onto a surface in front of the water surface, compute an alpha based on Z delta

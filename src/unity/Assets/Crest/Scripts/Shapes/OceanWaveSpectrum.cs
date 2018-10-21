@@ -120,8 +120,13 @@ namespace Crest
                     float maxWavelengthi = Mathf.Min(minWavelengthi + invComponentsPerOctave * minWavelength, 2f * minWavelength);
                     wavelengths[index] = Mathf.Lerp(minWavelengthi, maxWavelengthi, Random.value);
 
-                    anglesDeg[index] = Random.Range(-_waveDirectionVariance, _waveDirectionVariance);
-                    phases[index] = 2f * Mathf.PI * Random.value;
+                    float rnd;
+
+                    rnd = (i + Random.value) * invComponentsPerOctave;
+                    anglesDeg[index] = (2f * rnd - 1f) * _waveDirectionVariance;
+
+                    rnd = (i + Random.value) * invComponentsPerOctave;
+                    phases[index] = 2f * Mathf.PI * rnd;
                 }
 
                 minWavelength *= 2f;

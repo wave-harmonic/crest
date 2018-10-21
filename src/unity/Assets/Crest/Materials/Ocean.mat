@@ -106,12 +106,13 @@ Material:
     - _Invert: 1
     - _MipBias: 0
     - _Moving: 0.17
-    - _NormalsScale: 30
-    - _NormalsStrength: 0.22
+    - _NormalsScale: 20
+    - _NormalsStrength: 0.28
     - _Offset: 0.00008
     - _PlanarReflections: 0
     - _ProceduralSky: 0
     - _RefractAmt: 0
+    - _RefractionStrength: 0.1
     - _S: 1
     - _ShorelineFoamMinDepth: 0.27
     - _SkyDirectionality: 0.875
@@ -145,7 +146,7 @@ Material:
     - _WaveFoamStart: 0
     - _WaveFoamStrength: 1
     m_Colors:
-    - _DepthFogDensity: {r: 0.5568628, g: 0.4352941, b: 0.52156866, a: 1}
+    - _DepthFogDensity: {r: 0.3, g: 0.22, b: 0.3, a: 1}
     - _Diffuse: {r: 0, g: 0.0067332755, b: 0.35686275, a: 1}
     - _DiffuseShadow: {r: 0.21067381, g: 0.26255617, b: 0.294, a: 1}
     - _FoamBubbleColor: {r: 0.6383055, g: 0.8301887, b: 0.8243741, a: 1}

@@ -168,16 +168,13 @@ namespace Crest
             ocean._camsDynWaves = new Camera[lodCount];
 
             var cachedSettings = new Dictionary<System.Type, SimSettingsBase>();
-            if (ocean._simSettingsAnimatedWaves != null)
-                cachedSettings.Add(typeof(LodDataAnimatedWaves), ocean._simSettingsAnimatedWaves);
-            if (ocean._simSettingsFoam != null)
-                cachedSettings.Add(typeof(LodDataFoam), ocean._simSettingsFoam);
-            if (ocean._simSettingsDynamicWaves != null)
-                cachedSettings.Add(typeof(LodDataDynamicWaves), ocean._simSettingsDynamicWaves);
-            if (ocean._simSettingsShadow != null)
-                cachedSettings.Add(typeof(LodDataShadow), ocean._simSettingsShadow);
-            if (ocean._simSettingsFlow != null)
-                cachedSettings.Add(typeof(LodDataFlow), ocean._simSettingsFlow);
+
+            // If a settings asset was assigned, add it to a dictionary so that all components can use it.
+            AddSettings<LodDataAnimatedWaves>(ocean._simSettingsAnimatedWaves, cachedSettings);
+            AddSettings<LodDataFoam>(ocean._simSettingsFoam, cachedSettings);
+            AddSettings<LodDataDynamicWaves>(ocean._simSettingsDynamicWaves, cachedSettings);
+            AddSettings<LodDataShadow>(ocean._simSettingsShadow, cachedSettings);
+            AddSettings<LodDataFlow>(ocean._simSettingsFlow, cachedSettings);
 
             for ( int i = 0; i < lodCount; i++ )
             {
@@ -217,7 +214,15 @@ namespace Crest
                 }
             }
 
-            // add any required readbacks
+            // If no settings asset was assigned, the Create() methods will create a default settings object. Assign this back to the
+            // ocean script so that it can be easily accessed.
+            PopulateSettings<LodDataAnimatedWaves, SimSettingsAnimatedWaves>(cachedSettings, ref ocean._simSettingsAnimatedWaves);
+            PopulateSettings<LodDataDynamicWaves, SimSettingsWave>(cachedSettings, ref ocean._simSettingsDynamicWaves);
+            PopulateSettings<LodDataFlow, SimSettingsFlow>(cachedSettings, ref ocean._simSettingsFlow);
+            PopulateSettings<LodDataFoam, SimSettingsFoam>(cachedSettings, ref ocean._simSettingsFoam);
+            PopulateSettings<LodDataShadow, SimSettingsShadow>(cachedSettings, ref ocean._simSettingsShadow);
+
+            // Add any required GPU readbacks
             {
                 var ssaw = cachedSettings[typeof(LodDataAnimatedWaves)] as SimSettingsAnimatedWaves;
                 if (ssaw && ssaw._readbackData)
@@ -263,6 +268,21 @@ namespace Crest
             sw.Stop();
             Debug.Log( "Finished generating " + parms._lodCount.ToString() + " LODs, time: " + (1000.0*sw.Elapsed.TotalSeconds).ToString(".000") + "ms" );
 #endif
+        }
+
+        static void AddSettings<LodDataType>(SimSettingsBase settings, Dictionary<System.Type, SimSettingsBase> cachedSettings)
+        {
+            if (settings != null)
+            {
+                cachedSettings.Add(typeof(LodDataType), settings);
+            }
+        }
+
+        static void PopulateSettings<LodDataType, LodDataSettingsType>(Dictionary<System.Type, SimSettingsBase> cachedSettings, ref LodDataSettingsType settingsRef) where LodDataSettingsType : SimSettingsBase
+        {
+            SimSettingsBase settings;
+            cachedSettings.TryGetValue(typeof(LodDataType), out settings);
+            settingsRef = settings as LodDataSettingsType;
         }
 
         static Mesh BuildOceanPatch(PatchType pt, float baseVertDensity)

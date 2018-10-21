@@ -48,18 +48,19 @@ public class BoatAlignNormal : MonoBehaviour
 
     void FixedUpdate()
     {
-        // make sure any newly arrive physics data is up to date
+        // Trigger processing of displacement textures that have come back this frame. This will be processed
+        // anyway in Update(), but FixedUpdate() is earlier so make sure it's up to date now.
         if (GPUReadbackDisps.Instance)
         {
             GPUReadbackDisps.Instance.ProcessRequests();
         }
 
-        var colProvider = OceanRenderer.Instance.CollisionProvider;
+        var collProvider = OceanRenderer.Instance.CollisionProvider;
         var position = transform.position;
 
         if (_debugValidateCollision)
         {
-            var result = colProvider.CheckAvailability(ref position, _boatWidth);
+            var result = collProvider.CheckAvailability(ref position, _boatWidth);
             if (result != AvailabilityResult.DataAvailable)
             {
                 Debug.LogWarning("Validation failed: " + result.ToString() + ". See comments on the AvailabilityResult enum.", this);
@@ -67,7 +68,7 @@ public class BoatAlignNormal : MonoBehaviour
         }
 
         Vector3 undispPos;
-        if (!colProvider.ComputeUndisplacedPosition(ref position, out undispPos, _boatWidth))
+        if (!collProvider.ComputeUndisplacedPosition(ref position, out undispPos, _boatWidth))
         {
             // If we couldn't get wave shape, assume flat water at sea level
             undispPos = position;
@@ -77,7 +78,7 @@ public class BoatAlignNormal : MonoBehaviour
 
         var waterSurfaceVel = Vector3.zero;
         bool dispValid, velValid;
-        colProvider.SampleDisplacementVel(ref undispPos, out _displacementToBoat, out dispValid, out waterSurfaceVel, out velValid, _boatWidth);
+        collProvider.SampleDisplacementVel(ref undispPos, out _displacementToBoat, out dispValid, out waterSurfaceVel, out velValid, _boatWidth);
 
         if (!_computeWaterVel)
         {
@@ -103,7 +104,7 @@ public class BoatAlignNormal : MonoBehaviour
         }
 
         Vector3 normal;
-        if (!colProvider.SampleNormal(ref undispPos, out normal, _boatWidth))
+        if (!collProvider.SampleNormal(ref undispPos, out normal, _boatWidth))
         {
             normal = Vector3.up;
         }

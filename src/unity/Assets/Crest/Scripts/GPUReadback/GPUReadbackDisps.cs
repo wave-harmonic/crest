@@ -7,7 +7,18 @@ namespace Crest
         PerLodData _areaData;
 
         static GPUReadbackDisps _instance;
-        public static GPUReadbackDisps Instance { get { return _instance ?? (_instance = FindObjectOfType<GPUReadbackDisps>()); } }
+        public static GPUReadbackDisps Instance
+        {
+            get
+            {
+                return _instance
+#if UNITY_EDITOR
+                    // Allow hot code edit/recompile in editor - reinit singleton reference.
+                    ?? (_instance = FindObjectOfType<GPUReadbackDisps>())
+#endif
+                    ;
+            }
+        }
 
         protected override bool CanUseLastLOD
         {

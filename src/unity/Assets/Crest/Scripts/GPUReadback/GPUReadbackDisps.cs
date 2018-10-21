@@ -6,7 +6,8 @@ namespace Crest
     {
         PerLodData _areaData;
 
-        public static GPUReadbackDisps Instance { get; private set; }
+        static GPUReadbackDisps _instance;
+        public static GPUReadbackDisps Instance { get { return _instance ?? (_instance = FindObjectOfType<GPUReadbackDisps>()); } }
 
         protected override bool CanUseLastLOD
         {
@@ -27,8 +28,8 @@ namespace Crest
                 return;
             }
 
-            Debug.Assert(Instance == null);
-            Instance = this;
+            Debug.Assert(_instance == null);
+            _instance = this;
 
             _settingsProvider = _lodComponents[0].Settings as SimSettingsAnimatedWaves;
         }

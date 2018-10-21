@@ -30,6 +30,8 @@ namespace Crest
 
         protected IReadbackSettingsProvider _settingsProvider;
 
+        protected virtual bool CanUseLastLOD { get { return true; } }
+
         protected class PerLodData
         {
             public ReadbackData _resultData;
@@ -61,11 +63,22 @@ namespace Crest
         protected virtual void Start()
         {
             _lodComponents = OceanRenderer.Instance.GetComponentsInChildren<LodDataType>();
-            if(_lodComponents.Length == 0)
+            if(_lodComponents.Length <= (CanUseLastLOD ? 0 : 1))
             {
                 Debug.LogError("No data components of type " + typeof(LodDataType).Name + " found in the scene. Disabling GPU readback.", this);
                 enabled = false;
                 return;
+            }
+
+            if (!CanUseLastLOD)
+            {
+                // Remove last element
+                var temp = _lodComponents;
+                _lodComponents = new LodDataType[_lodComponents.Length - 1];
+                for (int i = 0; i < _lodComponents.Length; i++)
+                {
+                    _lodComponents[i] = temp[i];
+                }
             }
 
             SetTextureFormat(_lodComponents[0].TextureFormat);
@@ -103,9 +116,12 @@ namespace Crest
             // When viewer changes altitude, lods will start/stop updating. Mark ones that are/arent being rendered!
             foreach (var gridSize_lodData in _perLodData)
             {
+                bool CAN_USE_LAST_LOD = false;
+                int lastUsableIndex = CAN_USE_LAST_LOD ? (_lodComponents.Length - 1) : (_lodComponents.Length - 2);
+
                 gridSize_lodData.Value._activelyBeingRendered =
                     gridSize_lodData.Key >= _lodComponents[0].LodTransform._renderData._texelWidth &&
-                    gridSize_lodData.Key <= _lodComponents[_lodComponents.Length - 1].LodTransform._renderData._texelWidth;
+                    gridSize_lodData.Key <= _lodComponents[lastUsableIndex].LodTransform._renderData._texelWidth;
 
                 if (!gridSize_lodData.Value._activelyBeingRendered)
                 {

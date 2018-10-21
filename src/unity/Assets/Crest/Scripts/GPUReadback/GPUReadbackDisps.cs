@@ -8,6 +8,16 @@ namespace Crest
 
         public static GPUReadbackDisps Instance { get; private set; }
 
+        protected override bool CanUseLastLOD
+        {
+            get
+            {
+                // The wave contents from the last LOD can be moved back and forth between the second-to-last LOD and it
+                // results in pops if we use it
+                return false;
+            }
+        }
+
         protected override void Start()
         {
             base.Start();

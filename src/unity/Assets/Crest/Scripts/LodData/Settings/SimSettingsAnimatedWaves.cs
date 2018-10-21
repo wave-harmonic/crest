@@ -16,7 +16,7 @@ namespace Crest
         // By default copy waves big enough to do buoyancy on a 50m wide object. This ensures we get the wavelengths, and by extension makes
         // sure we get good range on wave physics.
         [Tooltip("Similar to the minimum width, but this setting will exclude the larger LODs from being copied. Set to 0 to disable this optimisation and always copy low res data.")]
-        public float _maxObjectWidth = 50f;
+        public float _maxObjectWidth = 500f;
 
         public void GetMinMaxGridSizes(out float minGridSize, out float maxGridSize)
         {

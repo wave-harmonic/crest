@@ -315,6 +315,34 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _gui: 1
+--- !u!1 &510293660
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 510293661}
+  m_Layer: 0
+  m_Name: StaticViewpoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &510293661
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 510293660}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 107.6, y: 100, z: 91.1}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 4
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &632841573 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 400000, guid: 386033b9b0ae11a40bbd970400b6d7c6,
@@ -477,6 +505,35 @@ Prefab:
       propertyPath: m_RootOrder
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 11417796, guid: 8454e29c2a033974fb559f5f8eff1918, type: 2}
+      propertyPath: _lodCount
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 11417796, guid: 8454e29c2a033974fb559f5f8eff1918, type: 2}
+      propertyPath: _disableSkirt
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 11417796, guid: 8454e29c2a033974fb559f5f8eff1918, type: 2}
+      propertyPath: _simSettingsAnimatedWaves
+      value: 
+      objectReference: {fileID: 11400000, guid: 37d04a2a4ec07c749824c127931b9d8d,
+        type: 2}
+    - target: {fileID: 11417796, guid: 8454e29c2a033974fb559f5f8eff1918, type: 2}
+      propertyPath: _maxScale
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 11417796, guid: 8454e29c2a033974fb559f5f8eff1918, type: 2}
+      propertyPath: _baseVertDensity
+      value: 64
+      objectReference: {fileID: 0}
+    - target: {fileID: 11417796, guid: 8454e29c2a033974fb559f5f8eff1918, type: 2}
+      propertyPath: _minScale
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 11417796, guid: 8454e29c2a033974fb559f5f8eff1918, type: 2}
+      propertyPath: _viewpoint
+      value: 
+      objectReference: {fileID: 510293661}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 8454e29c2a033974fb559f5f8eff1918, type: 2}
   m_IsPrefabAsset: 0

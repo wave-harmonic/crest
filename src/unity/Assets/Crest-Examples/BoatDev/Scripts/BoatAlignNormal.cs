@@ -22,7 +22,7 @@ public class BoatAlignNormal : MonoBehaviour
     public float _dragInWaterRight = 20000f;
     public float _dragInWaterForward = 20000f;
 
-    [SerializeField] bool _computeWaterVel = false;
+    [SerializeField] bool _computeWaterVel = true;
 
     bool _inWater;
     public bool InWater { get { return _inWater; } }

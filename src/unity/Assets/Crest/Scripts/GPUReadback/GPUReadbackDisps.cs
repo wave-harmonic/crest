@@ -164,7 +164,7 @@ namespace Crest
             var undisplacedPos = GetPositionDisplacedToPosition(ref posFlatland, minSpatialLength);
 
             var disp = Vector3.zero;
-            SampleDisplacement(ref undisplacedPos, out disp);
+            SampleDisplacement(ref undisplacedPos, out disp, minSpatialLength);
 
             height = posFlatland.y + disp.y;
             return true;

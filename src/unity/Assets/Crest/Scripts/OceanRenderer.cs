@@ -36,10 +36,6 @@ namespace Crest
         float _gravityMultiplier = 1f;
         public float Gravity { get { return _gravityMultiplier * Physics.gravity.magnitude; } }
 
-        [SerializeField, Tooltip("Cache CPU requests for ocean height. Requires restart.")]
-        bool _cachedCpuOceanQueries = false;
-        public bool CachedCpuOceanQueries { get { return _cachedCpuOceanQueries; } }
-
 
         [Header("Detail Params")]
 
@@ -159,10 +155,7 @@ namespace Crest
 
         void Update()
         {
-            if(_cachedCpuOceanQueries)
-            {
-                (CollisionProvider as CollProviderCache).ClearCache();
-            }
+            _simSettingsAnimatedWaves.UpdateCollision();
         }
 
         void LateUpdate()
@@ -277,24 +270,9 @@ namespace Crest
         static OceanRenderer _instance;
         public static OceanRenderer Instance { get { return _instance ?? (_instance = FindObjectOfType<OceanRenderer>()); } }
 
-        ICollProvider _collProvider;
         /// <summary>
         /// Provides ocean shape to CPU.
         /// </summary>
-        public ICollProvider CollisionProvider
-        {
-            get
-            {
-                if (_collProvider != null)
-                    return _collProvider;
-
-                _collProvider = GPUReadbackDisps.Instance;
-
-                if (_cachedCpuOceanQueries)
-                    _collProvider = new CollProviderCache(_collProvider);
-
-                return _collProvider;
-            }
-        }
+        public ICollProvider CollisionProvider { get { return _simSettingsAnimatedWaves.CollisionProvider; } }
     }
 }

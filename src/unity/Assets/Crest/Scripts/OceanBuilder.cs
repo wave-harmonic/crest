@@ -225,7 +225,7 @@ namespace Crest
             // Add any required GPU readbacks
             {
                 var ssaw = cachedSettings[typeof(LodDataAnimatedWaves)] as SimSettingsAnimatedWaves;
-                if (ssaw && ssaw._readbackData)
+                if (ssaw && ssaw.CollisionSource == SimSettingsAnimatedWaves.CollisionSources.OceanDisplacementTexturesGPU)
                 {
                     ocean.gameObject.AddComponent<GPUReadbackDisps>();
                 }

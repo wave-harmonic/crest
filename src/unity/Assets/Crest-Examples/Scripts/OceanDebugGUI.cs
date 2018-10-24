@@ -101,7 +101,7 @@ public class OceanDebugGUI : MonoBehaviour
                 GUI.Label(new Rect(x, y, w, h), string.Format("Coll Queue Lengths: [{0}, {1}]", min, max)); y += h;
             }
 
-            if (OceanRenderer.Instance.CachedCpuOceanQueries)
+            if (OceanRenderer.Instance._simSettingsAnimatedWaves.CachedHeightQueries)
             {
                 var cache = OceanRenderer.Instance.CollisionProvider as CollProviderCache;
                 // generates garbage

@@ -111,7 +111,7 @@ namespace Crest
             }
 
             // compute the height
-            bool success = _collProvider.SampleHeight(ref in__worldPos, out height);
+            bool success = _collProvider.SampleHeight(ref in__worldPos, out height, minSpatialLength);
 
             // populate cache (regardless of success for now)
             _waterHeightCache.Add(hash, height);

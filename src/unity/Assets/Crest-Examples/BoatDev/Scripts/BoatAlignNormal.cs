@@ -39,7 +39,7 @@ public class BoatAlignNormal : MonoBehaviour
 
     [SerializeField] bool _debugDraw = false;
     [SerializeField] bool _debugDrawSurroundingColl = false;
-    [SerializeField] bool _debugValidateCollision = true;
+    [SerializeField] bool _debugValidateCollision = false;
 
     void Start()
     {

@@ -88,29 +88,20 @@ public class OceanDebugGUI : MonoBehaviour
 
             LodDataShadow.s_processData = GUI.Toggle(new Rect(x, y, w, h), LodDataShadow.s_processData, "Process Shadows"); y += h;
 
-            int min = int.MaxValue, max = -1;
-            bool readbackShape = true;
-            foreach( var ldaw in OceanRenderer.Instance._lodDataAnimWaves)
+            if (GPUReadbackDisps.Instance)
             {
-                min = Mathf.Min(min, ldaw.DataReadback.ReadbackRequestsQueued);
-                max = Mathf.Max(max, ldaw.DataReadback.ReadbackRequestsQueued);
-                readbackShape = readbackShape && ldaw._readbackShapeForCollision;
-            }
+                int count, min, max;
+                GPUReadbackDisps.Instance.GetStats(out count, out min, out max);
+
 #if UNITY_EDITOR
-            if (readbackShape != GUI.Toggle(new Rect(x, y, w, h), readbackShape, "Readback coll data"))
-            {
-                foreach (var ldaw in OceanRenderer.Instance._lodDataAnimWaves)
-                {
-                    ldaw._readbackShapeForCollision = !readbackShape;
-                }
-            }
-            y += h;
+                GPUReadbackDisps.Instance._doReadback = GUI.Toggle(new Rect(x, y, w, h), GPUReadbackDisps.Instance._doReadback, "Readback coll data"); y += h;
 #endif
+                // generates garbage
+                GUI.Label(new Rect(x, y, w, h), string.Format("Coll Texture Count: {0}", count)); y += h;
+                GUI.Label(new Rect(x, y, w, h), string.Format("Coll Queue Lengths: [{0}, {1}]", min, max)); y += h;
+            }
 
-            // generates garbage
-            GUI.Label(new Rect(x, y, w, h), string.Format("Coll Queue Lengths: [{0}, {1}]", min, max)); y += h;
-
-            if (OceanRenderer.Instance.CachedCpuOceanQueries)
+            if (OceanRenderer.Instance._simSettingsAnimatedWaves.CachedHeightQueries)
             {
                 var cache = OceanRenderer.Instance.CollisionProvider as CollProviderCache;
                 // generates garbage

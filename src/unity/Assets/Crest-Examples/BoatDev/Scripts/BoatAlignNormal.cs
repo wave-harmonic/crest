@@ -22,7 +22,7 @@ public class BoatAlignNormal : MonoBehaviour
     public float _dragInWaterRight = 20000f;
     public float _dragInWaterForward = 20000f;
 
-    [SerializeField] bool _computeWaterVel = false;
+    [SerializeField] bool _computeWaterVel = true;
 
     bool _inWater;
     public bool InWater { get { return _inWater; } }
@@ -39,6 +39,7 @@ public class BoatAlignNormal : MonoBehaviour
 
     [SerializeField] bool _debugDraw = false;
     [SerializeField] bool _debugDrawSurroundingColl = false;
+    [SerializeField] bool _debugValidateCollision = true;
 
     void Start()
     {
@@ -47,43 +48,55 @@ public class BoatAlignNormal : MonoBehaviour
 
     void FixedUpdate()
     {
-        // Manually trigger request update - this is because FixedUpdate executes before Update, so process the requests
-        // early so that latest and greatest data is available. This should remove a frame of latency from physics!
-        foreach(var aw in OceanRenderer.Instance._lodDataAnimWaves)
+        // Trigger processing of displacement textures that have come back this frame. This will be processed
+        // anyway in Update(), but FixedUpdate() is earlier so make sure it's up to date now.
+        if (OceanRenderer.Instance._simSettingsAnimatedWaves.CollisionSource == SimSettingsAnimatedWaves.CollisionSources.OceanDisplacementTexturesGPU && GPUReadbackDisps.Instance)
         {
-            if (aw && aw.DataReadback)
+            GPUReadbackDisps.Instance.ProcessRequests();
+        }
+
+        var collProvider = OceanRenderer.Instance.CollisionProvider;
+        var position = transform.position;
+
+        if (_debugValidateCollision)
+        {
+            var result = collProvider.CheckAvailability(ref position, _boatWidth);
+            if (result != AvailabilityResult.DataAvailable)
             {
-                aw.DataReadback.UpdateProcessRequests();
+                Debug.LogWarning("Validation failed: " + result.ToString() + ". See comments on the AvailabilityResult enum.", this);
             }
         }
 
-        var colProvider = OceanRenderer.Instance.CollisionProvider;
-        var position = transform.position;
-
         Vector3 undispPos;
-        if (!colProvider.ComputeUndisplacedPosition(ref position, out undispPos)) return;
+        if (!collProvider.ComputeUndisplacedPosition(ref position, out undispPos, _boatWidth))
+        {
+            // If we couldn't get wave shape, assume flat water at sea level
+            undispPos = position;
+            undispPos.y = OceanRenderer.Instance.SeaLevel;
+        }
         if (_debugDraw) DebugDrawCross(undispPos, 1f, Color.red);
 
         var waterSurfaceVel = Vector3.zero;
         bool dispValid, velValid;
-        colProvider.SampleDisplacementVel(ref undispPos, out _displacementToBoat, out dispValid, out waterSurfaceVel, out velValid, _boatWidth);
-        if (!dispValid) return;
+        collProvider.SampleDisplacementVel(ref undispPos, out _displacementToBoat, out dispValid, out waterSurfaceVel, out velValid, _boatWidth);
 
         if (!_computeWaterVel)
         {
             waterSurfaceVel = Vector3.zero;
         }
 
-        if (OceanRenderer.Instance._createFlowSim)
+        if (GPUReadbackFlow.Instance)
         {
+            GPUReadbackFlow.Instance.ProcessRequests();
+
             Vector2 surfaceFlow;
-            int lod  = LodDataFlow.SuggestDataLOD(new Rect(position.x, position.z, 0f, 0f), _boatWidth);
-            if(lod != -1) {
-                if(OceanRenderer.Instance._lodDataAnimWaves[lod].LDFlow.SampleFlow(ref position, out surfaceFlow)) {
-                    waterSurfaceVel += new Vector3(surfaceFlow.x, 0, surfaceFlow.y);
-                }
-            }
+            GPUReadbackFlow.Instance.SampleFlow(ref position, out surfaceFlow, _boatWidth);
+            waterSurfaceVel += new Vector3(surfaceFlow.x, 0, surfaceFlow.y);
         }
+
+        // I could filter the surface vel as the min of the last 2 frames. theres a hard case where a wavelength is turned on/off
+        // which generates single frame vel spikes - because the surface legitimately moves very fast. 
+
         if (_debugDraw)
         {
             Debug.DrawLine(transform.position + 5f * Vector3.up, transform.position + 5f * Vector3.up + waterSurfaceVel,
@@ -91,13 +104,13 @@ public class BoatAlignNormal : MonoBehaviour
         }
 
         Vector3 normal;
-        if (!colProvider.SampleNormal(ref undispPos, out normal, _boatWidth)) return;
+        if (!collProvider.SampleNormal(ref undispPos, out normal, _boatWidth))
+        {
+            normal = Vector3.up;
+        }
         if(_debugDraw) Debug.DrawLine(transform.position, transform.position + 5f * normal, Color.green);
 
-        if (velValid)
-        {
-            _velocityRelativeToWater = _rb.velocity - waterSurfaceVel;
-        }
+        _velocityRelativeToWater = _rb.velocity - waterSurfaceVel;
 
         var dispPos = undispPos + _displacementToBoat;
         if (_debugDraw) DebugDrawCross(dispPos, 4f, Color.white);

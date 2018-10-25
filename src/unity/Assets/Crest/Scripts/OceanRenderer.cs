@@ -36,10 +36,6 @@ namespace Crest
         float _gravityMultiplier = 1f;
         public float Gravity { get { return _gravityMultiplier * Physics.gravity.magnitude; } }
 
-        [SerializeField, Tooltip("Cache CPU requests for ocean height. Requires restart.")]
-        bool _cachedCpuOceanQueries = false;
-        public bool CachedCpuOceanQueries { get { return _cachedCpuOceanQueries; } }
-
 
         [Header("Detail Params")]
 
@@ -63,6 +59,8 @@ namespace Crest
 
         [Header("Simulation Params")]
 
+        public SimSettingsAnimatedWaves _simSettingsAnimatedWaves;
+
         [Tooltip("Water depth information used for shallow water, shoreline foam, wave attenuation, among others.")]
         public bool _createSeaFloorDepthData = true;
 
@@ -76,6 +74,7 @@ namespace Crest
 
         [Tooltip("Horizontal motion of water body, akin to water currents.")]
         public bool _createFlowSim = false;
+        public SimSettingsFlow _simSettingsFlow;
 
         [Tooltip("Shadow information used for lighting water.")]
         public bool _createShadowData = false;
@@ -113,7 +112,7 @@ namespace Crest
         [HideInInspector] public Camera[] _camsDynWaves;
         public int CurrentLodCount { get { return _camsAnimWaves.Length; } }
 
-        void Start()
+        void Awake()
         {
             _instance = this;
 
@@ -156,10 +155,7 @@ namespace Crest
 
         void Update()
         {
-            if(_cachedCpuOceanQueries)
-            {
-                (CollisionProvider as CollProviderCache).ClearCache();
-            }
+            _simSettingsAnimatedWaves.UpdateCollision();
         }
 
         void LateUpdate()
@@ -274,24 +270,9 @@ namespace Crest
         static OceanRenderer _instance;
         public static OceanRenderer Instance { get { return _instance ?? (_instance = FindObjectOfType<OceanRenderer>()); } }
 
-        ICollProvider _collProvider;
         /// <summary>
         /// Provides ocean shape to CPU.
         /// </summary>
-        public ICollProvider CollisionProvider
-        {
-            get
-            {
-                if (_collProvider != null)
-                    return _collProvider;
-
-                _collProvider = new CollProviderDispTexs();
-
-                if (_cachedCpuOceanQueries)
-                    _collProvider = new CollProviderCache(_collProvider);
-
-                return _collProvider;
-            }
-        }
+        public ICollProvider CollisionProvider { get { return _simSettingsAnimatedWaves.CollisionProvider; } }
     }
 }

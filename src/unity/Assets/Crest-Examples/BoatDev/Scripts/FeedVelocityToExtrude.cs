@@ -69,7 +69,8 @@ public class FeedVelocityToExtrude : MonoBehaviour {
         float rnd = 1f + _noiseAmp * (2f * Mathf.PerlinNoise(_noiseFreq * Crest.OceanRenderer.Instance.CurrentTime, 0.5f) - 1f);
         // feed in water velocity
         Vector3 vel = (transform.position - _posLast) / Time.deltaTime;
-        if(Crest.GPUReadbackFlow.Instance) {
+        if (Crest.OceanRenderer.Instance._simSettingsFlow._readbackData && Crest.GPUReadbackFlow.Instance)
+        {
             Vector2 surfaceFlow;
             Vector3 position = transform.position;
             Crest.GPUReadbackFlow.Instance.SampleFlow(ref position, out surfaceFlow, _boat._boatWidth);

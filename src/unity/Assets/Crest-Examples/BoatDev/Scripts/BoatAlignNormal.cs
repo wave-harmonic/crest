@@ -38,7 +38,6 @@ public class BoatAlignNormal : MonoBehaviour
     public float _steerBias = 0f;
 
     [SerializeField] bool _debugDraw = false;
-    [SerializeField] bool _debugDrawSurroundingColl = false;
     [SerializeField] bool _debugValidateCollision = false;
 
     void Start()
@@ -153,10 +152,7 @@ public class BoatAlignNormal : MonoBehaviour
 #if UNITY_EDITOR
     private void Update()
     {
-        if (_debugDrawSurroundingColl)
-        {
-            UpdateDebugDrawSurroundingColl();
-        }
+        //UpdateDebugDrawSurroundingColl();
     }
 
     private void UpdateDebugDrawSurroundingColl()

@@ -43,6 +43,12 @@ public class BoatAlignNormal : MonoBehaviour
     void Start()
     {
         _rb = GetComponent<Rigidbody>();
+
+        if (OceanRenderer.Instance == null)
+        {
+            enabled = false;
+            return;
+        }
     }
 
     void FixedUpdate()

@@ -31,6 +31,12 @@ public class FeedVelocityToExtrude : MonoBehaviour {
 
     private void Start()
     {
+        if (Crest.OceanRenderer.Instance == null || !Crest.OceanRenderer.Instance._createDynamicWaveSim)
+        {
+            enabled = false;
+            return;
+        }
+
         _localOffset = transform.localPosition;
 
         _mat = GetComponent<Renderer>().material;

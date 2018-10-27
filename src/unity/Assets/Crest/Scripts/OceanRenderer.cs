@@ -44,16 +44,16 @@ namespace Crest
         public float _minTexelsPerWave = 3f;
 
         [Delayed, Tooltip("The smallest scale the ocean can be.")]
-        public float _minScale = 16f;
+        public float _minScale = 8f;
 
         [Delayed, Tooltip("The largest scale the ocean can be (-1 for unlimited).")]
-        public float _maxScale = 128f;
+        public float _maxScale = 256f;
 
         [SerializeField, Delayed, Tooltip( "Side dimension in quads of an ocean tile." )]
-        public float _baseVertDensity = 32f;
+        public float _baseVertDensity = 64f;
 
         [SerializeField, Delayed, Tooltip( "Number of ocean tile scales/LODs to generate." ), ]
-        int _lodCount = 6;
+        int _lodCount = 7;
         public int LodDataResolution { get { return (int)(4f * _baseVertDensity); } }
 
 
@@ -114,6 +114,13 @@ namespace Crest
 
         void Awake()
         {
+            if (_material == null)
+            {
+                Debug.LogError("A material for the ocean must be assigned on the Material property of the OceanRenderer.", this);
+                enabled = false;
+                return;
+            }
+
             _instance = this;
 
             OceanBuilder.GenerateMesh(this, _baseVertDensity, _lodCount);

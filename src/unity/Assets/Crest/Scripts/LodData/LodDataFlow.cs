@@ -14,8 +14,6 @@ namespace Crest
         public override CameraClearFlags CamClearFlags { get { return CameraClearFlags.Color; } }
         public override RenderTexture DataTexture { get { return Cam.targetTexture; } }
 
-        static readonly string SHADER_KEYWORD = "_FLOW_ON";
-
         [SerializeField]
         protected SimSettingsFlow _settings;
         public override void UseSettings(SimSettingsBase settings) { _settings = settings as SimSettingsFlow; }
@@ -27,14 +25,16 @@ namespace Crest
             return settings;
         }
 
-        void OnEnable()
+        protected override void Start()
         {
-            OceanRenderer.Instance.OceanMaterial.EnableKeyword(SHADER_KEYWORD);
-        }
+            base.Start();
 
-        void OnDisable()
-        {
-            OceanRenderer.Instance.OceanMaterial.DisableKeyword(SHADER_KEYWORD);
+#if UNITY_EDITOR
+            if (!OceanRenderer.Instance.OceanMaterial.IsKeywordEnabled("_FLOW_ON"))
+            {
+                Debug.LogWarning("Flow is not enabled on the current ocean material and will not be visible.", this);
+            }
+#endif
         }
     }
 }

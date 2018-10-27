@@ -24,8 +24,6 @@ namespace Crest
         Camera _camViewpoint;
         Camera _camReflections;
 
-        static readonly string SHADER_KEYWORD = "_PLANARREFLECTIONS_ON";
-
         public bool _hideCameraGameobject = true;
 
         private void Start()
@@ -41,6 +39,13 @@ namespace Crest
             // This is anyway called in OnPreRender, but was required here as there was a black reflection
             // for a frame without this earlier setup call.
             CreateWaterObjects(_camViewpoint);
+
+#if UNITY_EDITOR
+            if (!OceanRenderer.Instance.OceanMaterial.IsKeywordEnabled("_PLANARREFLECTIONS_ON"))
+            {
+                Debug.LogWarning("Planar reflections are not enabled on the current ocean material and will not be visible.", this);
+            }
+#endif
         }
 
         private void OnPreRender()
@@ -202,18 +207,8 @@ namespace Crest
             reflectionMat.m33 = 1F;
         }
 
-        private void OnEnable()
-        {
-            OceanRenderer.Instance.OceanMaterial.EnableKeyword(SHADER_KEYWORD);
-        }
-
         private void OnDisable()
         {
-            if (OceanRenderer.Instance)
-            {
-                OceanRenderer.Instance.OceanMaterial.DisableKeyword(SHADER_KEYWORD);
-            }
-
             // Cleanup all the objects we possibly have created
             if (_reflectionTexture)
             {

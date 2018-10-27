@@ -17,8 +17,6 @@ namespace Crest
         public override CameraClearFlags CamClearFlags { get { return CameraClearFlags.Color; } }
         public override RenderTexture DataTexture { get { return _shadowData[_rtIndex]; } }
 
-        static readonly string SHADER_KEYWORD = "_SHADOWS_ON";
-
         public static bool s_processData = true;
 
         int _rtIndex = 1;
@@ -67,6 +65,13 @@ namespace Crest
                     return;
                 }
             }
+
+#if UNITY_EDITOR
+            if (!OceanRenderer.Instance.OceanMaterial.IsKeywordEnabled("_SHADOWS_ON"))
+            {
+                Debug.LogWarning("Shadowing is not enabled on the current ocean material and will not be visible.", this);
+            }
+#endif
         }
 
         bool StartInitLight()
@@ -180,15 +185,11 @@ namespace Crest
         void OnEnable()
         {
             RemoveCommandBuffers();
-
-            OceanRenderer.Instance.OceanMaterial.EnableKeyword(SHADER_KEYWORD);
         }
 
         void OnDisable()
         {
             RemoveCommandBuffers();
-
-            OceanRenderer.Instance.OceanMaterial.DisableKeyword(SHADER_KEYWORD);
         }
 
         void RemoveCommandBuffers()

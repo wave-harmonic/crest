@@ -12,6 +12,7 @@ Shader "Ocean/Ocean"
 
 		[Header(Scattering)]
 		_Diffuse("Diffuse", Color) = (0.2, 0.05, 0.05, 1.0)
+		[Toggle] _Shadows("Shadowing", Float) = 0
 		_DiffuseShadow("Shadow Diffuse Colour", Color) = (0.2, 0.05, 0.05, 1.0)
 		_SubSurfaceShallowColShadow("Shadow Shallow Colour", Color) = (0.42, 0.75, 0.69)
 
@@ -37,6 +38,7 @@ Shader "Ocean/Ocean"
 		[Header(Reflection Environment)]
 		_FresnelPower("Fresnel Power", Range(0.0, 20.0)) = 3.0
 		[NoScaleOffset] _Skybox ("Skybox", CUBE) = "" {}
+		[Toggle] _PlanarReflections("Planar Reflections", Float) = 0
 
 		[Header(Procedural Skybox)]
 		[Toggle] _ProceduralSky("Enable", Float) = 0
@@ -51,6 +53,7 @@ Shader "Ocean/Ocean"
 		_DirectionalLightBoost("Boost", Range(0.0, 512.0)) = 5.0
 
 		[Header(Foam)]
+		[Toggle] _Foam("Enable", Float) = 1
 		[NoScaleOffset] _FoamTexture ( "Texture", 2D ) = "white" {}
 		_FoamScale("Scale", Range(0.01, 50.0)) = 10.0
 		_FoamWhiteColor("White Foam Color", Color) = (1.0, 1.0, 1.0, 1.0)

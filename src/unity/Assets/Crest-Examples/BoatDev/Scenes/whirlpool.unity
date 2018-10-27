@@ -418,8 +418,15 @@ Prefab:
     - target: {fileID: 11417796, guid: 8454e29c2a033974fb559f5f8eff1918, type: 2}
       propertyPath: _simSettingsFlow
       value: 
-      objectReference: {fileID: 11400000, guid: 6fb51a3a6c4878041909429ea6874ff3,
-        type: 2}
+      objectReference: {fileID: 0}
+    - target: {fileID: 11417796, guid: 8454e29c2a033974fb559f5f8eff1918, type: 2}
+      propertyPath: _createShadowData
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 11417796, guid: 8454e29c2a033974fb559f5f8eff1918, type: 2}
+      propertyPath: _material
+      value: 
+      objectReference: {fileID: 2100000, guid: 5cca1e9734badca47a1fff682d3c122b, type: 2}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 8454e29c2a033974fb559f5f8eff1918, type: 2}
   m_IsPrefabAsset: 0

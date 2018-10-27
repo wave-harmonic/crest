@@ -8,11 +8,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 19dae60af28271c45a418e0869b9b921, type: 3}
-  m_Name: SettingsFoamWakes
+  m_Script: {fileID: 11500000, guid: 467d18cefc08f7f44bd5688ce841f075, type: 3}
+  m_Name: SettingsWavesWakes
   m_EditorClassIdentifier: 
-  _foamFadeRate: 0.8
-  _waveFoamStrength: 2.41
-  _waveFoamCoverage: 0.879
-  _shorelineFoamMaxDepth: 0.65
-  _shorelineFoamStrength: 2
+  _minGridSize: 0
+  _maxGridSize: 0
+  _damping: 0.173
+  _horizDisplace: 2
+  _displaceClamp: 0.3

@@ -31,7 +31,7 @@ namespace Crest
 
         private void LateUpdate()
         {
-            Vector3 pos = OceanRenderer.Instance._viewpoint.position;
+            Vector3 pos = OceanRenderer.Instance.Viewpoint.position;
             float waterHeight;
             bool gotHeight = OceanRenderer.Instance.CollisionProvider.SampleHeight(ref pos, out waterHeight);
             float heightOffset = pos.y - waterHeight;

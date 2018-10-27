@@ -2,15 +2,15 @@
 
 uniform half3 _Diffuse;
 
+uniform half4 _DepthFogDensity;
+#define DEPTH_OUTSCATTER_CONSTANT 0.25
+
 // this is copied from the render target by unity
 uniform sampler2D _BackgroundTexture;
-
-#define DEPTH_OUTSCATTER_CONSTANT 0.25
 
 #if _TRANSPARENCY_ON
 uniform half _RefractionStrength;
 #endif // _TRANSPARENCY_ON
-uniform half4 _DepthFogDensity;
 
 #if _SUBSURFACESCATTERING_ON
 uniform half3 _SubSurfaceColour;
@@ -44,7 +44,7 @@ uniform half _CausticsDistortionStrength;
 
 #if _SHADOWS_ON
 uniform half3 _DiffuseShadow;
-#endif
+#endif // _SHADOWS_ON
 
 half3 ScatterColour(
 	in const float3 i_surfaceWorldPos, in const half i_surfaceOceanDepth, in const float3 i_cameraPos,
@@ -55,9 +55,9 @@ half3 ScatterColour(
 	// base colour
 	half3 col = _Diffuse;
 
-	#if _SHADOWS_ON
-		col = lerp(_DiffuseShadow, col, i_shadow);
-	#endif
+#if _SHADOWS_ON
+	col = lerp(_DiffuseShadow, col, i_shadow);
+#endif // _SHADOWS_ON
 
 	half depth;
 	half waveHeight;
@@ -86,7 +86,7 @@ half3 ScatterColour(
 		shallowCol = lerp(_SubSurfaceShallowColShadow, shallowCol, i_shadow);
 #endif
 		col = lerp(col, shallowCol, shallowness);
-#endif
+#endif // _SUBSURFACESHALLOWCOLOUR_ON
 
 #if _SUBSURFACEHEIGHTLERP_ON
 		col += pow(saturate(0.5 + 2.0 * waveHeight / _SubSurfaceHeightMax), _SubSurfaceHeightPower) * _SubSurfaceCrestColour.rgb;
@@ -171,14 +171,43 @@ half3 OceanEmission(in const half3 i_view, in const half3 i_n_pixel, in const fl
 	if (i_sceneZ01 != 0.0)
 	{
 		// view ray intersects geometry surface either above or below ocean surface
+		half2 uvBackgroundRefract = grabPos.xy / grabPos.w + _RefractionStrength * n.xz;
+		half2 uvDepthRefract = uvDepth + _RefractionStrength * n.xz;
+		half3 alpha = (half3)1.;
 
-		half2 uvBackgroundRefract = i_grabPos.xy / i_grabPos.w + _RefractionStrength * i_n_pixel.xz;
-		half2 uvDepthRefract = i_uvDepth + _RefractionStrength * i_n_pixel.xz;
-		half3 sceneColour = tex2D(_BackgroundTexture, uvBackgroundRefract).rgb;
-		half3 alpha = 0.;
+		// if we haven't refracted onto a surface in front of the water surface, compute an alpha based on Z delta
+		if (sceneZ > pixelZ)
+		{
+			float sceneZRefract = LinearEyeDepth(tex2D(i_cameraDepths, uvDepthRefract).x);
+			float maxZ = max(sceneZ, sceneZRefract);
+			float deltaZ = maxZ - pixelZ;
+			alpha = 1. - exp(-_DepthFogDensity.xyz * deltaZ);
+		}
 
-		// depth fog & caustics - only if view ray starts from above water
-		if (!i_underwater)
+#if _CAUSTICS_ON
+		// could sample from the screen space shadow texture to attenuate this..
+		// underwater caustics - dedicated to P
+		float3 camForward = mul((float3x3)unity_CameraToWorld, float3(0., 0., 1.));
+		float3 scenePos = _WorldSpaceCameraPos - view * sceneZ / dot(camForward, -view);
+		const float2 scenePosUV = LD_1_WorldToUV(scenePos.xz);
+		half3 disp = 0.; half2 n_dummy = 0.;
+		// this gives height at displaced position, not exactly at query position.. but it helps. i cant pass this from vert shader
+		// because i dont know it at scene pos.
+		SampleDisplacements(_LD_Sampler_AnimatedWaves_1, scenePosUV, 1.0, _LD_Params_1.w, _LD_Params_1.x, disp, n_dummy);
+		half waterHeight = _OceanCenterPosWorld.y + disp.y;
+		half sceneDepth = waterHeight - scenePos.y;
+		half bias = abs(sceneDepth - _CausticsFocalDepth) / _CausticsDepthOfField;
+		// project along light dir, but multiply by a fudge factor reduce the angle bit - compensates for fact that in real life
+		// caustics come from many directions and don't exhibit such a strong directonality
+		float2 surfacePosXZ = scenePos.xz + lightDir.xz * sceneDepth / (4.*lightDir.y);
+		half2 causticN = _CausticsDistortionStrength * UnpackNormal(tex2D(i_normals, surfacePosXZ / _CausticsDistortionScale)).xy;
+		half4 cuv1 = half4((surfacePosXZ / _CausticsTextureScale + 1.3 *causticN + half2(0.044*_CrestTime + 17.16, -0.169*_CrestTime)), 0., bias);
+		half4 cuv2 = half4((1.37*surfacePosXZ / _CausticsTextureScale + 1.77*causticN + half2(0.248*_CrestTime, 0.117*_CrestTime)), 0., bias);
+
+		half causticsStrength = _CausticsStrength;
+#endif // _CAUSTICS_ON
+
+//#if _SHADOWS_ON
 		{
 			// if we haven't refracted onto a surface in front of the water surface, compute an alpha based on Z delta
 			if (i_sceneZ > i_pixelZ)
@@ -195,7 +224,7 @@ half3 OceanEmission(in const half3 i_view, in const half3 i_n_pixel, in const fl
 
 #if _CAUSTICS_ON
 			ApplyCaustics(i_view, i_lightDir, i_sceneZ, i_normals, sceneColour);
-#endif
+#endif // _CAUSTICS_ON
 		}
 
 		// blend from water colour to the scene colour

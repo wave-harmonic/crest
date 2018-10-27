@@ -28,6 +28,12 @@ namespace Crest
         // Use this for initialization
         void Start ()
         {
+            if (Crest.OceanRenderer.Instance == null || !Crest.OceanRenderer.Instance._createDynamicWaveSim)
+            {
+                enabled = false;
+                return;
+            }
+
             _flow = GameObject.CreatePrimitive(PrimitiveType.Quad);
             _flow.name = "Flow";
             _flow.transform.parent = transform;

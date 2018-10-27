@@ -28,7 +28,9 @@ The steps to set up *Crest* in a new or existing project currently look as follo
 * The *Crest* files are separated into the core files to import in any project and the example content. If you are getting started for the first time you may want to import both and then remove what you don't need from the example content. You can do this by either:
   * Picking a release from the [Releases page](https://github.com/huwb/crest-oceanrender/releases) and importing the desired packages
   * Getting latest by either cloning this repos or downloading it as a zip, and copying the *Crest* folder and the desired content from the *Crest-Examples* folders into your project. Be sure to always copy the .meta files.
-* Drag *Crest/Prefabs/Ocean.prefab* into your scene(s), set y coordinate to desired sea level. On startup, this will generate the ocean geometry and initialise the ocean systems.
+* Create a new game object for the ocean
+  * Assign the *OceanRenderer* component to it. On startup this component will generate the ocean geometry and do all required initialisation.
+  * Set the Y coordinate of the position to the desired sea level.
 * Tag a primary camera as *MainCamera* if one is not tagged already, or provide the viewpoint transform to the *OceanRenderer* script on the preab.
 * Crest uses layers to render the different types of ocean data. It will throw errors in the log if a feature is turned on that requires a layer that is missing from the project. Most projects will require at least these two:
   * *LodDataAnimatedWaves* - for Gerstner waves and other kinematic shape.

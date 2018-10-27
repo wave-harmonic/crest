@@ -12,6 +12,12 @@ public class RippleGenerator : MonoBehaviour
 
 	void Start()
     {
+        if (Crest.OceanRenderer.Instance == null || !Crest.OceanRenderer.Instance._createDynamicWaveSim)
+        {
+            enabled = false;
+            return;
+        }
+
         _mr = GetComponent<MeshRenderer>();
         if(_animate)
         {
@@ -24,7 +30,7 @@ public class RippleGenerator : MonoBehaviour
     {
         if(_animate)
         {
-            float t = Time.time;
+            float t = Crest.OceanRenderer.Instance.CurrentTime;
             if (t < _warmUp)
                 return;
             t -= _warmUp;

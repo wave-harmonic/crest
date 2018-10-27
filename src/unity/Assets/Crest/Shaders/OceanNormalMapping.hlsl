@@ -12,8 +12,8 @@ half2 SampleNormalMaps(float2 worldXZUndisplaced, float lodAlpha)
 	float nstretch = _NormalsScale * geomSquareSize; // normals scaled with geometry
 	const float spdmulL = _GeomData.y;
 	half2 norm =
-		UnpackNormal(tex2D(_Normals, (v0*_Time.y*spdmulL + worldXZUndisplaced) / nstretch)).xy +
-		UnpackNormal(tex2D(_Normals, (v1*_Time.y*spdmulL + worldXZUndisplaced) / nstretch)).xy;
+		UnpackNormal(tex2D(_Normals, (v0*_CrestTime*spdmulL + worldXZUndisplaced) / nstretch)).xy +
+		UnpackNormal(tex2D(_Normals, (v1*_CrestTime*spdmulL + worldXZUndisplaced) / nstretch)).xy;
 
 	// blend in next higher scale of normals to obtain continuity
 	const float farNormalsWeight = _InstanceData.y;
@@ -24,8 +24,8 @@ half2 SampleNormalMaps(float2 worldXZUndisplaced, float lodAlpha)
 		nstretch *= 2.;
 		const float spdmulH = _GeomData.z;
 		norm = lerp(norm,
-			UnpackNormal(tex2D(_Normals, (v0*_Time.y*spdmulH + worldXZUndisplaced) / nstretch)).xy +
-			UnpackNormal(tex2D(_Normals, (v1*_Time.y*spdmulH + worldXZUndisplaced) / nstretch)).xy,
+			UnpackNormal(tex2D(_Normals, (v0*_CrestTime*spdmulH + worldXZUndisplaced) / nstretch)).xy +
+			UnpackNormal(tex2D(_Normals, (v1*_CrestTime*spdmulH + worldXZUndisplaced) / nstretch)).xy,
 			nblend);
 	}
 
@@ -37,10 +37,10 @@ void ApplyNormalMapsWithFlow(float2 worldXZUndisplaced, float2 flow, float lodAl
 {
 	const float half_period = 1;
 	const float period = half_period * 2;
-	float sample1_offset = fmod(_Time.y, period);
+	float sample1_offset = fmod(_CrestTime, period);
 	float sample1_weight = sample1_offset / half_period;
 	if (sample1_weight > 1.0) sample1_weight = 2.0 - sample1_weight;
-	float sample2_offset = fmod(_Time.y + half_period, period);
+	float sample2_offset = fmod(_CrestTime + half_period, period);
 	float sample2_weight = 1.0 - sample1_weight;
 
 	// In order to prevent flow from distorting the UVs too much,

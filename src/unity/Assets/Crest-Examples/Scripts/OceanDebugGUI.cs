@@ -1,4 +1,5 @@
 ﻿using Crest;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -9,6 +10,9 @@ public class OceanDebugGUI : MonoBehaviour
     public string _oceanMaterialAsset = "Assets/Crest/Shaders/Materials/Ocean.mat";
     static float _leftPanelWidth = 180f;
     ShapeGerstnerBatched[] gerstners;
+
+    static Dictionary<System.Type, bool> _drawTargets = new Dictionary<System.Type, bool>();
+    static Dictionary<System.Type, string> _simNames = new Dictionary<System.Type, string>();
 
     public static bool OverGUI( Vector2 screenPosition )
     {
@@ -84,29 +88,20 @@ public class OceanDebugGUI : MonoBehaviour
 
             LodDataShadow.s_processData = GUI.Toggle(new Rect(x, y, w, h), LodDataShadow.s_processData, "Process Shadows"); y += h;
 
-            int min = int.MaxValue, max = -1;
-            bool readbackShape = true;
-            foreach( var ldaw in OceanRenderer.Instance._lodDataAnimWaves)
+            if (GPUReadbackDisps.Instance)
             {
-                min = Mathf.Min(min, ldaw.DataReadback.ReadbackRequestsQueued);
-                max = Mathf.Max(max, ldaw.DataReadback.ReadbackRequestsQueued);
-                readbackShape = readbackShape && ldaw._readbackShapeForCollision;
-            }
+                int count, min, max;
+                GPUReadbackDisps.Instance.GetStats(out count, out min, out max);
+
 #if UNITY_EDITOR
-            if (readbackShape != GUI.Toggle(new Rect(x, y, w, h), readbackShape, "Readback coll data"))
-            {
-                foreach (var ldaw in OceanRenderer.Instance._lodDataAnimWaves)
-                {
-                    ldaw._readbackShapeForCollision = !readbackShape;
-                }
-            }
-            y += h;
+                GPUReadbackDisps.Instance._doReadback = GUI.Toggle(new Rect(x, y, w, h), GPUReadbackDisps.Instance._doReadback, "Readback coll data"); y += h;
 #endif
+                // generates garbage
+                GUI.Label(new Rect(x, y, w, h), string.Format("Coll Texture Count: {0}", count)); y += h;
+                GUI.Label(new Rect(x, y, w, h), string.Format("Coll Queue Lengths: [{0}, {1}]", min, max)); y += h;
+            }
 
-            // generates garbage
-            GUI.Label(new Rect(x, y, w, h), string.Format("Coll Queue Lengths: [{0}, {1}]", min, max)); y += h;
-
-            if (OceanRenderer.Instance.CachedCpuOceanQueries)
+            if (OceanRenderer.Instance._simSettingsAnimatedWaves.CachedHeightQueries)
             {
                 var cache = OceanRenderer.Instance.CollisionProvider as CollProviderCache;
                 // generates garbage
@@ -147,48 +142,64 @@ public class OceanDebugGUI : MonoBehaviour
     {
         // draw sim data
         float column = 1f;
-        DrawSims<LodDataAnimatedWaves>(OceanRenderer.Instance._camsAnimWaves, ref column);
-        DrawSims<LodDataFoam>(OceanRenderer.Instance._camsFoam, ref column);
-        DrawSims<LodDataDynamicWaves>(OceanRenderer.Instance._camsDynWaves, ref column);
-        DrawSims<LodDataFlow>(OceanRenderer.Instance._camsFlow, ref column);
-        DrawSims<LodDataShadow>(OceanRenderer.Instance._camsAnimWaves, ref column);
+
+        DrawSims<LodDataAnimatedWaves>(OceanRenderer.Instance._camsAnimWaves, true, ref column);
+        if (OceanRenderer.Instance._createFoamSim) DrawSims<LodDataFoam>(OceanRenderer.Instance._camsFoam, false, ref column);
+        if (OceanRenderer.Instance._createDynamicWaveSim) DrawSims<LodDataDynamicWaves>(OceanRenderer.Instance._camsDynWaves, false, ref column);
+        if (OceanRenderer.Instance._createFlowSim) DrawSims<LodDataFlow>(OceanRenderer.Instance._camsFlow, false, ref column);
+        if (OceanRenderer.Instance._createShadowData) DrawSims<LodDataShadow>(OceanRenderer.Instance._camsAnimWaves, false, ref column);
+        DrawSims<LodDataSeaFloorDepth>(OceanRenderer.Instance._camsAnimWaves, false, ref column);
     }
 
-    static void DrawSims<SimType>(Camera[] simCameras, ref float offset) where SimType : LodData
+    static void DrawSims<SimType>(Camera[] simCameras, bool showByDefault, ref float offset) where SimType : LodData
     {
-        int idx = 0;
-        bool drewOne = false;
-
-        foreach (var cam in simCameras)
+        var type = typeof(SimType);
+        if (!_drawTargets.ContainsKey(type))
         {
-            if (!cam) continue;
-            drewOne = true;
-
-            float b = 7f;
-            float h = Screen.height / (float)OceanRenderer.Instance._camsAnimWaves.Length;
-            float w = h + b;
-            float x = Screen.width - w * offset + b * (offset - 1f);
-            float y = idx * h;
-            if (offset == 1f) w += b;
-
-            RenderTexture shape;
-
-            var shad = cam.GetComponent<SimType>();
-            if (shad)
-            {
-                shape = shad.DataTexture;
-                if (shape == null) continue;
-
-                GUI.color = Color.black * 0.7f;
-                GUI.DrawTexture(new Rect(x, y, w - b, h), Texture2D.whiteTexture);
-                GUI.color = Color.white;
-                GUI.DrawTexture(new Rect(x + b, y + b / 2f, h - b, h - b), shape, ScaleMode.ScaleAndCrop, false);
-            }
-
-            idx++;
+            _drawTargets.Add(type, showByDefault);
+        }
+        if (!_simNames.ContainsKey(type))
+        {
+            _simNames.Add(type, type.Name.Substring(7));
         }
 
-        if (drewOne) offset++;
+        float b = 7f;
+        float h = Screen.height / (float)OceanRenderer.Instance._camsAnimWaves.Length;
+        float w = h + b;
+        float x = Screen.width - w * offset + b * (offset - 1f);
+
+        if (_drawTargets[type])
+        {
+            int idx = 0;
+
+            foreach (var cam in simCameras)
+            {
+                if (!cam) continue;
+
+                float y = idx * h;
+                if (offset == 1f) w += b;
+
+                RenderTexture shape;
+
+                var shad = cam.GetComponent<SimType>();
+                if (shad)
+                {
+                    shape = shad.DataTexture;
+                    if (shape == null) continue;
+
+                    GUI.color = Color.black * 0.7f;
+                    GUI.DrawTexture(new Rect(x, y, w - b, h), Texture2D.whiteTexture);
+                    GUI.color = Color.white;
+                    GUI.DrawTexture(new Rect(x + b, y + b / 2f, h - b, h - b), shape, ScaleMode.ScaleAndCrop, false);
+                }
+
+                idx++;
+            }
+        }
+
+        _drawTargets[type] = GUI.Toggle(new Rect(x + b, Screen.height - 25f, w - 2f * b, 25f), _drawTargets[type], _simNames[type]);
+
+        offset++;
     }
 
     void ToggleGUI()

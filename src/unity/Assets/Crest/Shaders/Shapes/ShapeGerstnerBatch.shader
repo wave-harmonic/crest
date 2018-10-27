@@ -53,7 +53,7 @@ Shader "Ocean/Shape/Gerstner Batch"
 					return o;
 				}
 
-				// respects the gui option to freeze time
+				uniform float _CrestTime;
 				uniform half _Chop;
 				uniform half _Gravity;
 				uniform half4 _Wavelengths[BATCH_SIZE / 4];
@@ -105,8 +105,8 @@ Shader "Ocean/Shape/Gerstner Batch"
 							half x = dot(D, i.worldPos_wt.xy);
 
 							half3 result_i = wt * _Amplitudes[vi][ei];
-							result_i.y *= cos(k*(x + C * _Time.y) + _Phases[vi][ei]);
-							result_i.xz *= -_Chop * _ChopScales[vi][ei] * D * sin(k*(x + C * _Time.y) + _Phases[vi][ei]);
+							result_i.y *= cos(k*(x + C * _CrestTime) + _Phases[vi][ei]);
+							result_i.xz *= -_Chop * _ChopScales[vi][ei] * D * sin(k*(x + C * _CrestTime) + _Phases[vi][ei]);
 							result += result_i;
 						}
 					}

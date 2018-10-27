@@ -36,6 +36,7 @@ namespace Crest
             // notify there is a new contributor to ocean depth
             foreach (var ldaw in OceanRenderer.Instance._lodDataAnimWaves)
             {
+                if (!ldaw.LDSeaDepth) continue;
                 ldaw.LDSeaDepth._oceanDepthRenderersDirty = true;
             }
         }
@@ -52,6 +53,7 @@ namespace Crest
             // notify there is a new contributor to ocean depth
             foreach (var ldaw in OceanRenderer.Instance._lodDataAnimWaves)
             {
+                if (!ldaw.LDSeaDepth) continue;
                 ldaw.LDSeaDepth._oceanDepthRenderersDirty = true;
             }
         }

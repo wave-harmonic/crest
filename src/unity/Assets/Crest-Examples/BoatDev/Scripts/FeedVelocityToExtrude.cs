@@ -31,6 +31,12 @@ public class FeedVelocityToExtrude : MonoBehaviour {
 
     private void Start()
     {
+        if (Crest.OceanRenderer.Instance == null || !Crest.OceanRenderer.Instance._createDynamicWaveSim)
+        {
+            enabled = false;
+            return;
+        }
+
         _localOffset = transform.localPosition;
 
         _mat = GetComponent<Renderer>().material;
@@ -66,18 +72,17 @@ public class FeedVelocityToExtrude : MonoBehaviour {
         var disp = _boat ? _boat.DisplacementToBoat : Vector3.zero;
         transform.position = transform.parent.TransformPoint(_localOffset) - disp;
 
-        float rnd = 1f + _noiseAmp * (2f * Mathf.PerlinNoise(_noiseFreq * Time.time, 0.5f) - 1f);
+        float rnd = 1f + _noiseAmp * (2f * Mathf.PerlinNoise(_noiseFreq * Crest.OceanRenderer.Instance.CurrentTime, 0.5f) - 1f);
         // feed in water velocity
         Vector3 vel = (transform.position - _posLast) / Time.deltaTime;
-        if(Crest.OceanRenderer.Instance._createFlowSim) {
+        if (Crest.OceanRenderer.Instance._simSettingsFlow != null &&
+            Crest.OceanRenderer.Instance._simSettingsFlow._readbackData &&
+            Crest.GPUReadbackFlow.Instance)
+        {
             Vector2 surfaceFlow;
             Vector3 position = transform.position;
-            int lod  = Crest.LodDataFlow.SuggestDataLOD(thisRect, 0f);
-            if(lod != -1) {
-                if(Crest.OceanRenderer.Instance._lodDataAnimWaves[lod].LDFlow.SampleFlow(ref position, out surfaceFlow)) {
-                    vel -= new Vector3(surfaceFlow.x, 0, surfaceFlow.y);
-                }
-            }
+            Crest.GPUReadbackFlow.Instance.SampleFlow(ref position, out surfaceFlow, _boat._boatWidth);
+            vel -= new Vector3(surfaceFlow.x, 0, surfaceFlow.y);
         }
         vel.y *= _weightUpDownMul;
 

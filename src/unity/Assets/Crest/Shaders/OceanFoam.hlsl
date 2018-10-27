@@ -24,8 +24,8 @@ half3 AmbientLight()
 half WhiteFoamTexture(half i_foam, float2 i_worldXZUndisplaced)
 {
 	half ft = lerp(
-		tex2D(_FoamTexture, (1.25*i_worldXZUndisplaced + _Time.y / 10.) / _FoamScale).r,
-		tex2D(_FoamTexture, (3.00*i_worldXZUndisplaced - _Time.y / 10.) / _FoamScale).r,
+		tex2D(_FoamTexture, (1.25*i_worldXZUndisplaced + _CrestTime / 10.) / _FoamScale).r,
+		tex2D(_FoamTexture, (3.00*i_worldXZUndisplaced - _CrestTime / 10.) / _FoamScale).r,
 		0.5);
 
 	// black point fade
@@ -41,9 +41,9 @@ void ComputeFoam(half i_foam, float2 i_worldXZUndisplaced, float2 i_worldXZ, hal
 	foamAmount *= saturate((i_sceneZ - i_pixelZ) / _ShorelineFoamMinDepth);
 
 	// Additive underwater foam - use same foam texture but add mip bias to blur for free
-	float2 foamUVBubbles = (lerp(i_worldXZUndisplaced, i_worldXZ, 0.05) + 0.5 * _Time.y * _WindDirXZ) / _FoamScale + 0.125 * i_n.xz;
+	float2 foamUVBubbles = (lerp(i_worldXZUndisplaced, i_worldXZ, 0.05) + 0.5 * _CrestTime * _WindDirXZ) / _FoamScale + 0.125 * i_n.xz;
 	half bubbleFoamTexValue = tex2Dlod(_FoamTexture, float4(.74 * foamUVBubbles - .05*i_view.xz / i_view.y, 0., 5.)).r;
-	o_bubbleCol = (half3)bubbleFoamTexValue * _FoamBubbleColor.rgb * saturate(i_foam * _WaveFoamBubblesCoverage);
+	o_bubbleCol = (half3)bubbleFoamTexValue * _FoamBubbleColor.rgb * saturate(i_foam * _WaveFoamBubblesCoverage) * AmbientLight();
 
 	// White foam on top, with black-point fading
 	half whiteFoam = WhiteFoamTexture(foamAmount, i_worldXZUndisplaced);
@@ -73,10 +73,10 @@ void ComputeFoamWithFlow(half2 flow, half i_foam, float2 i_worldXZUndisplaced, f
 {
 	const float half_period = 1;
 	const float period = half_period * 2;
-	float sample1_offset = fmod(_Time.y, period);
+	float sample1_offset = fmod(_CrestTime, period);
 	float sample1_weight = sample1_offset / half_period;
 	if (sample1_weight > 1.0) sample1_weight = 2.0 - sample1_weight;
-	float sample2_offset = fmod(_Time.y + half_period, period);
+	float sample2_offset = fmod(_CrestTime + half_period, period);
 	float sample2_weight = 1.0 - sample1_weight;
 
 	// In order to prevent flow from distorting the UVs too much,

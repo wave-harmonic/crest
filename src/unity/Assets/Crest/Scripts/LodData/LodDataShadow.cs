@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
+
+using UnityEngine;
 using UnityEngine.Rendering;
 
 namespace Crest
@@ -53,7 +55,7 @@ namespace Crest
             _cameraMain = Camera.main;
             if (_cameraMain == null)
             {
-                var viewpoint = OceanRenderer.Instance._viewpoint;
+                var viewpoint = OceanRenderer.Instance.Viewpoint;
                 _cameraMain = viewpoint != null ? viewpoint.GetComponent<Camera>() : null;
 
                 if(_cameraMain == null)
@@ -63,6 +65,13 @@ namespace Crest
                     return;
                 }
             }
+
+#if UNITY_EDITOR
+            if (!OceanRenderer.Instance.OceanMaterial.IsKeywordEnabled("_SHADOWS_ON"))
+            {
+                Debug.LogWarning("Shadowing is not enabled on the current ocean material and will not be visible.", this);
+            }
+#endif
         }
 
         bool StartInitLight()
@@ -98,7 +107,8 @@ namespace Crest
                 if(_mainLight)
                 {
                     _mainLight.RemoveCommandBuffer(LightEvent.BeforeScreenspaceMask, _bufCopyShadowMap);
-                    for(int i = 0; i < _shadowData.Length; i++)
+                    _bufCopyShadowMap = null;
+                    for (int i = 0; i < _shadowData.Length; i++)
                     {
                          Graphics.Blit(Texture2D.blackTexture, _shadowData[i]);
                     }
@@ -148,8 +158,8 @@ namespace Crest
             LodTransform._renderData.Validate(0, this);
             _renderMaterial.SetVector("_CenterPos", LodTransform._renderData._posSnapped);
             _renderMaterial.SetVector("_Scale", transform.lossyScale);
-            _renderMaterial.SetVector("_CamPos", OceanRenderer.Instance._viewpoint.position);
-            _renderMaterial.SetVector("_CamForward", OceanRenderer.Instance._viewpoint.forward);
+            _renderMaterial.SetVector("_CamPos", OceanRenderer.Instance.Viewpoint.position);
+            _renderMaterial.SetVector("_CamForward", OceanRenderer.Instance.Viewpoint.forward);
             _renderMaterial.SetVector("_JitterDiameters_CurrentFrameWeights",
                 new Vector4(Settings._jitterDiameterSoft, Settings._jitterDiameterHard, Settings._currentFrameWeightSoft, Settings._currentFrameWeightHard));
             _renderMaterial.SetMatrix("_MainCameraProjectionMatrix", _cameraMain.projectionMatrix * _cameraMain.worldToCameraMatrix);

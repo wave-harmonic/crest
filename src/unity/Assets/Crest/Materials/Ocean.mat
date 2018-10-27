@@ -87,7 +87,7 @@ Material:
     - _CausticsStrength: 3.2
     - _CausticsTextureAverage: 0.07
     - _CausticsTextureScale: 5
-    - _CompileShaderWithDebugInfo: 1
+    - _CompileShaderWithDebugInfo: 0
     - _ComputeDirectionalLight: 1
     - _CullMode: 0
     - _DebugDisableMultiplyByLight0Color: 0
@@ -99,6 +99,7 @@ Material:
     - _DebugVisualiseShapeSample: 0
     - _DirectionalLightBoost: 7
     - _DirectionalLightFallOff: 275
+    - _Flow: 0
     - _Foam: 1
     - _Foam3DLighting: 1
     - _FoamScale: 10
@@ -147,10 +148,10 @@ Material:
     - _WaveFoamStart: 0
     - _WaveFoamStrength: 1
     m_Colors:
-    - _DepthFogDensity: {r: 0.5568628, g: 0.4352941, b: 0.52156866, a: 1}
+    - _DepthFogDensity: {r: 0.3, g: 0.22, b: 0.3, a: 1}
     - _Diffuse: {r: 0, g: 0.0067332755, b: 0.35686275, a: 1}
     - _DiffuseShadow: {r: 0.21067381, g: 0.26255617, b: 0.294, a: 1}
-    - _FoamBubbleColor: {r: 0.36416906, g: 0.62299997, b: 0.613971, a: 1}
+    - _FoamBubbleColor: {r: 0.6383055, g: 0.8301887, b: 0.8243741, a: 1}
     - _FoamWhiteColor: {r: 1, g: 0.99634784, b: 0.97199994, a: 0.6862745}
     - _SkyAwayFromSun: {r: 0.15419213, g: 0.22129796, b: 0.5372549, a: 1}
     - _SkyBase: {r: 0.55200005, g: 0.85242355, b: 1, a: 1}

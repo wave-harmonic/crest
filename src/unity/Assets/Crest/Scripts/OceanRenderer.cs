@@ -9,8 +9,14 @@ namespace Crest
     /// </summary>
     public class OceanRenderer : MonoBehaviour
     {
-        [Tooltip("The viewpoint which drives the ocean detail. Defaults to main camera.")]
-        public Transform _viewpoint;
+        [Tooltip("The viewpoint which drives the ocean detail. Defaults to main camera."), SerializeField]
+        Transform _viewpoint;
+        public Transform Viewpoint { get { return _viewpoint; } }
+
+        [Tooltip("Optional provider for time, can be used to hardcode time for automation, or provide server time. Defaults to local Unity time."), SerializeField]
+        TimeProviderBase _timeProvider;
+        public float CurrentTime { get { return _timeProvider.CurrentTime; } }
+
 
         [Header("Ocean Params")]
 
@@ -30,9 +36,6 @@ namespace Crest
         float _gravityMultiplier = 1f;
         public float Gravity { get { return _gravityMultiplier * Physics.gravity.magnitude; } }
 
-        [SerializeField, Tooltip("Cache CPU requests for ocean height. Requires restart.")]
-        bool _cachedCpuOceanQueries = false;
-        public bool CachedCpuOceanQueries { get { return _cachedCpuOceanQueries; } }
 
         [Header("Detail Params")]
 
@@ -41,30 +44,44 @@ namespace Crest
         public float _minTexelsPerWave = 3f;
 
         [Delayed, Tooltip("The smallest scale the ocean can be.")]
-        public float _minScale = 16f;
+        public float _minScale = 8f;
 
         [Delayed, Tooltip("The largest scale the ocean can be (-1 for unlimited).")]
-        public float _maxScale = 128f;
+        public float _maxScale = 256f;
 
         [SerializeField, Delayed, Tooltip( "Side dimension in quads of an ocean tile." )]
-        public float _baseVertDensity = 32f;
+        public float _baseVertDensity = 64f;
 
         [SerializeField, Delayed, Tooltip( "Number of ocean tile scales/LODs to generate." ), Range(2, LodData.MAX_LOD_COUNT)]
-        int _lodCount = 6;
+        int _lodCount = 7;
         public int LodDataResolution { get { return (int)(4f * _baseVertDensity); } }
+
 
         [Header("Simulation Params")]
 
+        public SimSettingsAnimatedWaves _simSettingsAnimatedWaves;
+
+        [Tooltip("Water depth information used for shallow water, shoreline foam, wave attenuation, among others.")]
+        public bool _createSeaFloorDepthData = true;
+
+        [Tooltip("Simulation of foam created in choppy water and dissipating over time.")]
         public bool _createFoamSim = true;
         public SimSettingsFoam _simSettingsFoam;
+
+        [Tooltip("Dynamic waves generated from interactions with objects such as boats.")]
         public bool _createDynamicWaveSim = false;
         public SimSettingsWave _simSettingsDynamicWaves;
-        public bool _createFlowSim = false;
 
+        [Tooltip("Horizontal motion of water body, akin to water currents.")]
+        public bool _createFlowSim = false;
+        public SimSettingsFlow _simSettingsFlow;
+
+        [Tooltip("Shadow information used for lighting water.")]
         public bool _createShadowData = false;
         [Tooltip("The primary directional light. Required if shadowing is enabled.")]
         public Light _primaryLight;
         public SimSettingsShadow _simSettingsShadow;
+
 
         [Header("Debug Params")]
 
@@ -72,6 +89,7 @@ namespace Crest
         public bool _uniformTiles = false;
         [Tooltip("Disable generating a wide strip of triangles at the outer edge to extend ocean to edge of view frustum")]
         public bool _disableSkirt = false;
+
 
         OceanPlanarReflection _planarReflection;
         public OceanPlanarReflection PlanarReflection { get { return _planarReflection; } }
@@ -94,8 +112,15 @@ namespace Crest
         [HideInInspector] public Camera[] _camsDynWaves;
         public int CurrentLodCount { get { return _camsAnimWaves.Length; } }
 
-        void Start()
+        void Awake()
         {
+            if (_material == null)
+            {
+                Debug.LogError("A material for the ocean must be assigned on the Material property of the OceanRenderer.", this);
+                enabled = false;
+                return;
+            }
+
             _instance = this;
 
             OceanBuilder.GenerateMesh(this, _baseVertDensity, _lodCount);
@@ -106,6 +131,7 @@ namespace Crest
             scheduler.ApplySchedule(this);
 
             InitViewpoint();
+            InitTimeProvider();
         }
 
         void InitViewpoint()
@@ -126,12 +152,17 @@ namespace Crest
             }
         }
 
+        void InitTimeProvider()
+        {
+            if (_timeProvider == null)
+            {
+                _timeProvider = gameObject.AddComponent<TimeProviderDefault>();
+            }
+        }
+
         void Update()
         {
-            if(_cachedCpuOceanQueries)
-            {
-                (CollisionProvider as CollProviderCache).ClearCache();
-            }
+            _simSettingsAnimatedWaves.UpdateCollision();
         }
 
         void LateUpdate()
@@ -139,6 +170,7 @@ namespace Crest
             // set global shader params
             Shader.SetGlobalFloat( "_TexelsPerWave", _minTexelsPerWave );
             Shader.SetGlobalVector("_WindDirXZ", WindDir);
+            Shader.SetGlobalFloat("_CrestTime", CurrentTime);
 
             LateUpdatePosition();
             LateUpdateScale();
@@ -245,24 +277,9 @@ namespace Crest
         static OceanRenderer _instance;
         public static OceanRenderer Instance { get { return _instance ?? (_instance = FindObjectOfType<OceanRenderer>()); } }
 
-        ICollProvider _collProvider;
         /// <summary>
         /// Provides ocean shape to CPU.
         /// </summary>
-        public ICollProvider CollisionProvider
-        {
-            get
-            {
-                if (_collProvider != null)
-                    return _collProvider;
-
-                _collProvider = new CollProviderDispTexs();
-
-                if (_cachedCpuOceanQueries)
-                    _collProvider = new CollProviderCache(_collProvider);
-
-                return _collProvider;
-            }
-        }
+        public ICollProvider CollisionProvider { get { return _simSettingsAnimatedWaves.CollisionProvider; } }
     }
 }

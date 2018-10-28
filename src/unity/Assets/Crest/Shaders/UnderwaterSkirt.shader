@@ -88,18 +88,26 @@ Shader "Ocean/Underwater Skirt"
 			{
 				v2f o;
 
-				// actually this should follow camera around
+				// Goal of this vert shader is to place a sheet of triangles in front of the camera. The geometry has
+				// two rows of verts, the top row and the bottom row (top and bottom are view relative). The bottom row
+				// is pushed down below the bottom of the screen. Every vert in the top row can take any vertical position
+				// on the near plane in order to find the hibiscus of the water. Due to render states, the ocean surface
+				// will stomp over the results of this shader. The ocean surface has necessary code to render from underneath
+				// and correctly fog etc.
+
+				// view coordinate frame for camera
 				float3 right   = mul((float3x3)unity_CameraToWorld, float3(1., 0., 0.));
 				float3 up      = mul((float3x3)unity_CameraToWorld, float3(0., 1., 0.));
 				float3 forward = mul((float3x3)unity_CameraToWorld, float3(0., 0., 1.));
 
-				float3 center = _WorldSpaceCameraPos + forward * _ProjectionParams.y * 1.001;
-				// todo - constant needs to depend on FOV
-				o.worldPos = center
+				float3 nearPlaneCenter = _WorldSpaceCameraPos + forward * _ProjectionParams.y * 1.001;
+				// Spread verts across the near plane.
+				// TODO replace 3. with a projection specific value
+				o.worldPos = nearPlaneCenter
 					+ 3. * right * v.vertex.x * _ProjectionParams.y
 					+ up * v.vertex.z * _ProjectionParams.y;
 
-				// isolate topmost edge
+				// Isolate topmost edge
 				if (v.vertex.z > 0.45)
 				{
 					half2 nxz_dummy = (half2)0.;
@@ -123,7 +131,7 @@ Shader "Ocean/Underwater Skirt"
 				}
 				else
 				{
-					// bottom row of verts - push them down a bunch
+					// Bottom row of verts - push them down below bottom of screen
 					o.worldPos -= 8. * up;
 				}
 

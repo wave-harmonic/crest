@@ -217,7 +217,7 @@ Shader "Ocean/Ocean"
 						const float2 uv_0 = LD_0_WorldToUV(worldXZBefore);
 
 						#if !_DEBUGDISABLESHAPETEXTURES_ON
-						SampleDisplacements(_LD_Sampler_AnimatedWaves_0, uv_0, wt_0, _LD_Params_0.w, _LD_Params_0.x, o.worldPos, o.n_shadow.xy);
+						SampleDisplacementsNormals(_LD_Sampler_AnimatedWaves_0, uv_0, wt_0, _LD_Params_0.w, _LD_Params_0.x, o.worldPos, o.n_shadow.xy);
 						#endif
 
 						#if _FOAM_ON
@@ -241,7 +241,7 @@ Shader "Ocean/Ocean"
 						const float2 uv_1 = LD_1_WorldToUV(worldXZBefore);
 
 						#if !_DEBUGDISABLESHAPETEXTURES_ON
-						SampleDisplacements(_LD_Sampler_AnimatedWaves_1, uv_1, wt_1, _LD_Params_1.w, _LD_Params_1.x, o.worldPos, o.n_shadow.xy);
+						SampleDisplacementsNormals(_LD_Sampler_AnimatedWaves_1, uv_1, wt_1, _LD_Params_1.w, _LD_Params_1.x, o.worldPos, o.n_shadow.xy);
 						#endif
 
 						#if _FOAM_ON

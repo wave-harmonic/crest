@@ -19,6 +19,7 @@
 // Create two sets of LOD data, which have overloaded meaning depending on use:
 // * the ocean surface geometry always lerps from a more detailed LOD (0) to a less detailed LOD (1)
 // * simulations (persistent lod data) read last frame's data from slot 0, and any current frame data from slot 1
+// * underwater rendering uses LOD0 for intersecting the waves with the near plane, and LOD1 for sampling ocean depth (see ScatterColour())
 // * any other use that does not fall into the previous categories can use either slot and generally use slot 0
 LOD_DATA( 0 )
 LOD_DATA( 1 )

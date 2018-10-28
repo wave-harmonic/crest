@@ -63,6 +63,10 @@ Shader "Ocean/Underwater Skirt"
 
 			#pragma shader_feature _COMPILESHADERWITHDEBUGINFO_ON
 
+			#if _COMPILESHADERWITHDEBUGINFO_ON
+			#pragma enable_d3d11_debug_symbols
+			#endif
+
 			#include "UnityCG.cginc"
 			#include "Lighting.cginc"
 			#include "../../Crest/Shaders/OceanLODData.hlsl"
@@ -196,10 +200,14 @@ Shader "Ocean/Underwater Skirt"
 				const half3 bubbleCol = 0.;
 
 				float3 surfaceAboveCamPosWorld = 0.;
-				SampleDisplacements(_LD_Sampler_AnimatedWaves_0, LD_0_WorldToUV(_WorldSpaceCameraPos.xz), 1.0, _LD_Params_0.w, _LD_Params_0.x, surfaceAboveCamPosWorld);
+				const float2 uv_0 = LD_0_WorldToUV(_WorldSpaceCameraPos.xz);
+				SampleDisplacements(_LD_Sampler_AnimatedWaves_0, uv_0, 1.0, _LD_Params_0.w, _LD_Params_0.x, surfaceAboveCamPosWorld);
 				surfaceAboveCamPosWorld.y += _OceanCenterPosWorld.y;
 
-				const half3 scatterCol = ScatterColour(surfaceAboveCamPosWorld, 0., _WorldSpaceCameraPos, lightDir, view, shadow, true, true);
+				// depth is computed in ScatterColour when underwater==true, using the LOD1 texture.
+				const float depth = 0.;
+
+				const half3 scatterCol = ScatterColour(surfaceAboveCamPosWorld, depth, _WorldSpaceCameraPos, lightDir, view, shadow, true, true);
 
 				half3 sceneColour = tex2D(_BackgroundTexture, i.grabPos.xy / i.grabPos.w).rgb;
 

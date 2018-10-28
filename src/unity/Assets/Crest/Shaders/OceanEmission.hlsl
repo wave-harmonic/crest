@@ -50,7 +50,6 @@ half3 ScatterColour(
 	in const float3 i_surfaceWorldPos, in const half i_surfaceOceanDepth, in const float3 i_cameraPos,
 	in const half3 i_lightDir, in const half3 i_view, in const fixed i_shadow,
 	in const bool i_underWater, in const bool i_outscatterLight)
-// half3 OceanEmission(float3 worldPos, half oceanDepth, half3 view, half3 n, half3 n_geom, float3 lightDir, fixed i_shadow, half4 grabPos, half3 screenPos, float pixelZ, half2 uvDepth, float sceneZ, float sceneZ01, half3 bubbleCol, in sampler2D i_normals, in sampler2D i_cameraDepths)
 {
 	// base colour
 	half3 col = _Diffuse;
@@ -63,7 +62,12 @@ half3 ScatterColour(
 	half waveHeight;
 	if (i_underWater)
 	{
-		// compute scatter colour from cam pos, because the ray may not even have a surface intersection
+		// compute scatter colour from cam pos. two scenarios this can be called:
+		// 1. rendering ocean surface from bottom, in which case the surface may be some distance away. use the scatter
+		//    colour at the camera, not at the surface, to make sure its consistent.
+		// 2. for the underwater skirt geometry, we don't have the lod data sampled from the verts with lod transitions etc,
+		//    so just approximate by sampling at the camera position.
+		// in both cases just sample lod 1 as its larger, hopefully this doesnt cause pops.
 		const float2 uv_1 = LD_1_WorldToUV(i_cameraPos.xz);
 		float seaFloorHeightAboveBaseline = 0.;
 		SampleSeaFloorHeightAboveBaseline(_LD_Sampler_SeaFloorDepth_1, uv_1, 1.0, seaFloorHeightAboveBaseline);

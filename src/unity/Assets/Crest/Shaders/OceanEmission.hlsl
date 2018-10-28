@@ -51,15 +51,9 @@ half3 ScatterColour(
 	in const half3 i_lightDir, in const half3 i_view, in const fixed i_shadow,
 	in const bool i_underWater, in const bool i_outscatterLight)
 {
-	// base colour
-	half3 col = _Diffuse;
-
-	#if _SHADOWS_ON
-		col = lerp(_DiffuseShadow, col, i_shadow);
-	#endif
-
 	half depth;
 	half waveHeight;
+	half shadow = 0.;
 	if (i_underWater)
 	{
 		// compute scatter colour from cam pos. two scenarios this can be called:
@@ -73,13 +67,25 @@ half3 ScatterColour(
 		SampleSeaFloorHeightAboveBaseline(_LD_Sampler_SeaFloorDepth_1, uv_1, 1.0, seaFloorHeightAboveBaseline);
 		depth = DEPTH_BASELINE - seaFloorHeightAboveBaseline;
 		waveHeight = 0.;
+		
+		fixed2 shadowSoftHard = 0.;
+		SampleShadow(_LD_Sampler_Shadow_1, uv_1, 1.0, shadowSoftHard);
+		shadow = 1. - shadowSoftHard.x;
 	}
 	else
 	{
-		// above water - take depth from geometry
+		// above water - take data from geometry
 		depth = i_surfaceOceanDepth;
 		waveHeight = i_surfaceWorldPos.y - _OceanCenterPosWorld.y;
+		shadow = i_shadow;
 	}
+
+	// base colour
+	half3 col = _Diffuse;
+
+#if _SHADOWS_ON
+	col = lerp(_DiffuseShadow, col, shadow);
+#endif
 
 #if _SUBSURFACESCATTERING_ON
 	{
@@ -87,7 +93,7 @@ half3 ScatterColour(
 		float shallowness = pow(1. - saturate(depth / _SubSurfaceDepthMax), _SubSurfaceDepthPower);
 		half3 shallowCol = _SubSurfaceShallowCol;
 #if _SHADOWS_ON
-		shallowCol = lerp(_SubSurfaceShallowColShadow, shallowCol, i_shadow);
+		shallowCol = lerp(_SubSurfaceShallowColShadow, shallowCol, shadow);
 #endif
 		col = lerp(col, shallowCol, shallowness);
 #endif
@@ -102,7 +108,7 @@ half3 ScatterColour(
 
 		// Approximate subsurface scattering - add light when surface faces viewer. Use geometry normal - don't need high freqs.
 		half towardsSun = pow(max(0., dot(i_lightDir, -i_view)), _SubSurfaceSunFallOff);
-		col += (_SubSurfaceBase + _SubSurfaceSun * towardsSun) * _SubSurfaceColour.rgb * _LightColor0 * i_shadow;
+		col += (_SubSurfaceBase + _SubSurfaceSun * towardsSun) * _SubSurfaceColour.rgb * _LightColor0 * shadow;
 	}
 #endif // _SUBSURFACESCATTERING_ON
 

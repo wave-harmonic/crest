@@ -5,12 +5,15 @@ Shader "Ocean/Underwater Skirt"
 	Properties
 	{
 		[NoScaleOffset] _Normals ( "    Normals", 2D ) = "bump" {}
+
 		_Diffuse("Diffuse", Color) = (0.2, 0.05, 0.05, 1.0)
+		[Toggle] _Shadows("Shadowing", Float) = 0
 		[Toggle] _SubSurfaceScattering("Sub-Surface Scattering", Float) = 1
 		_SubSurfaceColour("    Colour", Color) = (0.0, 0.48, 0.36)
 		_SubSurfaceBase("    Base Mul", Range(0.0, 2.0)) = 0.6
 		_SubSurfaceSun("    Sun Mul", Range(0.0, 10.0)) = 0.8
 		_SubSurfaceSunFallOff("    Sun Fall-Off", Range(1.0, 16.0)) = 4.0
+
 		[Toggle] _SubSurfaceHeightLerp("Sub-Surface Scattering Height Lerp", Float) = 1
 		_SubSurfaceHeightMax("    Height Max", Range(0.0, 50.0)) = 3.0
 		_SubSurfaceHeightPower("    Height Power", Range(0.01, 10.0)) = 1.0
@@ -195,7 +198,6 @@ Shader "Ocean/Underwater Skirt"
 				const float sceneZ = LinearEyeDepth(sceneZ01);
 				
 				const float3 lightDir = _WorldSpaceLightPos0.xyz;
-				const half shadow = 1.; // TODO ?
 				const half3 n_pixel = 0.;
 				const half3 bubbleCol = 0.;
 
@@ -204,8 +206,9 @@ Shader "Ocean/Underwater Skirt"
 				SampleDisplacements(_LD_Sampler_AnimatedWaves_0, uv_0, 1.0, _LD_Params_0.w, _LD_Params_0.x, surfaceAboveCamPosWorld);
 				surfaceAboveCamPosWorld.y += _OceanCenterPosWorld.y;
 
-				// depth is computed in ScatterColour when underwater==true, using the LOD1 texture.
+				// depth and shadow are computed in ScatterColour when underwater==true, using the LOD1 texture.
 				const float depth = 0.;
+				const half shadow = 1.;
 
 				const half3 scatterCol = ScatterColour(surfaceAboveCamPosWorld, depth, _WorldSpaceCameraPos, lightDir, view, shadow, true, true);
 

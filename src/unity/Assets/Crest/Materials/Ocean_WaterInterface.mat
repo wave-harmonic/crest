@@ -102,6 +102,7 @@ Material:
     - _FoamScale: 10
     - _FresnelPower: 5
     - _Invert: 1
+    - _MeniscusWidth: 1.15
     - _MipBias: 0
     - _Moving: 0.17
     - _NormalsScale: 30

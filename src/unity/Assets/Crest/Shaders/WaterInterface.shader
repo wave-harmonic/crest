@@ -4,6 +4,7 @@ Shader "Ocean/Water Interface"
 {
 	Properties
 	{
+		_MeniscusWidth("Meniscus Width", Range(0.0, 100.0)) = 1.0
 		_Diffuse("Diffuse", Color) = (0.2, 0.05, 0.05, 1.0)
 		[Toggle] _SubSurfaceScattering("Sub-Surface Scattering", Float) = 1
 		_SubSurfaceColour("    Colour", Color) = (0.0, 0.48, 0.36)
@@ -63,7 +64,8 @@ Shader "Ocean/Water Interface"
 			#include "../../Crest/Shaders/OceanLODData.hlsl"
 
 			uniform float _CrestTime;
-			
+			uniform float _MeniscusWidth;
+
 			struct appdata
 			{
 				float4 vertex : POSITION;
@@ -110,7 +112,7 @@ Shader "Ocean/Water Interface"
 				o.worldPos = disp;
 
 
-				const float offset = 0.003 * _ProjectionParams.y * 5.;
+				const float offset = 0.001 * _ProjectionParams.y * _MeniscusWidth;
 				if (v.vertex.z > 0.49)
 				{
 					o.worldPos += offset * up;
@@ -138,7 +140,7 @@ Shader "Ocean/Water Interface"
 
 			half4 frag(v2f i) : SV_Target
 			{
-				const half3 col = 1.9*half3(0.37, .4, .45);
+				const half3 col = 1.3*half3(0.37, .4, .5);
 				float alpha = abs(i.uv.y - 0.5);
 				alpha = pow(smoothstep(0.5, .0, alpha), .5);
 				return half4(lerp(1., col, alpha), alpha);

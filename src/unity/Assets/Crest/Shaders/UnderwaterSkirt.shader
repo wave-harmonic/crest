@@ -95,10 +95,13 @@ Shader "Ocean/Underwater Skirt"
 				// will stomp over the results of this shader. The ocean surface has necessary code to render from underneath
 				// and correctly fog etc.
 
-				// Potential optimisations:
+				// Potential optimisations (note that this shader runs over a few dozen vertices, not over screen pixels!):
 				// - pull the view vectors out of the cam matrix directly
 				// - test lower FPI iteration count
 				// - sample displacements without normal..
+				// - when looking down through the water surface, the code currently pushes the top verts of the skirt
+				//   up to cover the whole screen, but it only needs to get pushed up to the horizon level to meet the water surface
+				// - the projection to the horizon could probably collapse down to a few LOC to compute the NDC y without a full projection
 
 				// view coordinate frame for camera
 				float3 right   = mul((float3x3)unity_CameraToWorld, float3(1., 0., 0.));
@@ -143,15 +146,30 @@ Shader "Ocean/Underwater Skirt"
 						// Push top edge down if we are looking up so that the screen defaults to looking out of water.
 						o.worldPos -= sign(forward.y) * 2. * up;
 					}
+
+					// Move the geometry towards the horizon. As noted above, the skirt will be stomped by the ocean
+					// surface render. If we project a bit towards the horizon to make a bit of overlap then we can reduce
+					// the chance render issues from cracks/gaps with down angles, or of the skirt being too high for up angles.
+					float3 horizonPoint = _WorldSpaceCameraPos + (o.worldPos - _WorldSpaceCameraPos) * 10000.;
+					horizonPoint.y = _OceanCenterPosWorld.y;
+					float3 horizonDir = normalize(horizonPoint - _WorldSpaceCameraPos);
+					float3 projectionOfHorizonOnNearPlane = _WorldSpaceCameraPos + horizonDir / dot(horizonDir, forward);
+					o.worldPos = lerp(o.worldPos, projectionOfHorizonOnNearPlane, 0.1);
+					
+					// Test - always put top row of verts at water horizon, because then it will always meet the water
+					// surface. Good idea but didnt work because it then does underwater shading on opaque surfaces which
+					// can be ABOVE the water surface. Not sure if theres any way around this.
+					o.vertex = mul(UNITY_MATRIX_VP, float4(o.worldPos, 1.));
+					o.vertex.z = o.vertex.w;
 				}
 				else
 				{
 					// Bottom row of verts - push them down below bottom of screen
 					o.worldPos -= 8. * up;
-				}
 
-				o.vertex = mul(UNITY_MATRIX_VP, float4(o.worldPos, 1.));
-				o.vertex.z = o.vertex.w;
+					o.vertex = mul(UNITY_MATRIX_VP, float4(o.worldPos, 1.));
+					o.vertex.z = o.vertex.w;
+				}
 
 				o.foam_screenPos.yzw = ComputeScreenPos(o.vertex).xyw;
 				o.foam_screenPos.x = 0.;

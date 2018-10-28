@@ -47,7 +47,8 @@ Shader "Ocean/Water Interface"
 		{
 			// Could turn this off, and it would allow the ocean surface to render through it
 			ZWrite Off
-			Blend SrcAlpha OneMinusSrcAlpha
+			//Blend SrcAlpha OneMinusSrcAlpha
+			Blend DstColor Zero
 
 			CGPROGRAM
 			#pragma vertex vert
@@ -116,7 +117,7 @@ Shader "Ocean/Water Interface"
 				o.worldPos = disp;
 
 
-				float offset = 0.035 * _ProjectionParams.y * 5.;
+				float offset = 0.003 * _ProjectionParams.y * 5.;
 				if (v.vertex.z > 0.49)
 				{
 					o.worldPos += offset * up;
@@ -125,9 +126,6 @@ Shader "Ocean/Water Interface"
 				{
 					o.worldPos -= offset * up;
 				}
-
-				// almost works - move overlap based on view direction
-				//o.worldPos += -sign(o.worldPos.y - _WorldSpaceCameraPos.y) * 0.02 * up;
 
 				o.vertex = mul(UNITY_MATRIX_VP, float4(o.worldPos, 1.));
 				o.vertex.z = o.vertex.w;
@@ -147,25 +145,10 @@ Shader "Ocean/Water Interface"
 
 			half4 frag(v2f i) : SV_Target
 			{
-				//half3 view = normalize(_WorldSpaceCameraPos - i.worldPos);
-
-				//float pixelZ = LinearEyeDepth(i.vertex.z);
-				//half3 screenPos = i.foam_screenPos.yzw;
-				//half2 uvDepth = screenPos.xy / screenPos.z;
-				//float sceneZ01 = tex2D(_CameraDepthTexture, uvDepth).x;
-				//float sceneZ = LinearEyeDepth(sceneZ01);
-				//
-				//float3 lightDir = _WorldSpaceLightPos0.xyz;
-				//half shadow = 1.;
-				//half3 bubbleCol = 0.;
-				//half3 col = OceanEmission(i.worldPos, 3. /*i.lodAlpha_worldXZUndisplaced_oceanDepth.w*/, view, (half3)0. /*n_pixel*/, (half3)0. /*n_geom*/, lightDir, shadow.x, i.grabPos, screenPos, pixelZ, uvDepth, sceneZ, sceneZ01, bubbleCol, _Normals, _CameraDepthTexture);
-
-				//// create a fake darkening at the air-water interface
-				//col *= lerp(1., saturate((1. - i.uv.y) / .001), .2);
-				half3 col = half3(0.15, .4, .5);
+				half3 col = 1.9*half3(0.37, .4, .45);
 				float alpha = abs(i.uv.y - 0.5);
 				alpha = pow(smoothstep(0.5, .0, alpha),.5);
-				return half4(col, alpha);
+				return half4(lerp(1., col, alpha), alpha);
 			}
 			ENDCG
 		}

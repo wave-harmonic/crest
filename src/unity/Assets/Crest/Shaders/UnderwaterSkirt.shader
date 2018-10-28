@@ -67,6 +67,8 @@ Shader "Ocean/Underwater Skirt"
 			#include "Lighting.cginc"
 			#include "../../Crest/Shaders/OceanLODData.hlsl"
 
+			uniform float _CrestTime;
+
 			struct appdata
 			{
 				float4 vertex : POSITION;

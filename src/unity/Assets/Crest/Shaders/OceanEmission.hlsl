@@ -108,10 +108,10 @@ half3 OceanEmission(float3 worldPos, half oceanDepth, half3 view, half3 n, half3
 		float3 camForward = mul((float3x3)unity_CameraToWorld, float3(0., 0., 1.));
 		float3 scenePos = _WorldSpaceCameraPos - view * sceneZ / dot(camForward, -view);
 		const float2 scenePosUV = LD_1_WorldToUV(scenePos.xz);
-		half3 disp = 0.; half2 n_dummy = 0.;
+		half3 disp = 0.;
 		// this gives height at displaced position, not exactly at query position.. but it helps. i cant pass this from vert shader
 		// because i dont know it at scene pos.
-		SampleDisplacements(_LD_Sampler_AnimatedWaves_1, scenePosUV, 1.0, _LD_Params_1.w, _LD_Params_1.x, disp, n_dummy);
+		SampleDisplacements(_LD_Sampler_AnimatedWaves_1, scenePosUV, 1.0, _LD_Params_1.w, _LD_Params_1.x, disp);
 		half waterHeight = _OceanCenterPosWorld.y + disp.y;
 		half sceneDepth = waterHeight - scenePos.y;
 		half bias = abs(sceneDepth - _CausticsFocalDepth) / _CausticsDepthOfField;

@@ -64,15 +64,15 @@ Shader "Ocean/Ocean Surface Alpha"
 				float lodAlpha = ComputeLodAlpha(worldPos, _InstanceData.x);
 
 				// sample shape textures - always lerp between 2 scales, so sample two textures
-				half2 nxz = (half2)0.;
+
 				// sample weights. params.z allows shape to be faded out (used on last lod to support pop-less scale transitions)
 				float wt_0 = (1. - lodAlpha) * _LD_Params_0.z;
 				float wt_1 = (1. - wt_0) * _LD_Params_1.z;
 				// sample displacement textures, add results to current world pos / normal / foam
 				const float2 wxz = worldPos.xz;
 				half foam = 0.;
-				SampleDisplacements(_LD_Sampler_AnimatedWaves_0, LD_0_WorldToUV(wxz), wt_0, _LD_Params_0.w, _LD_Params_0.x, worldPos, nxz);
-				SampleDisplacements(_LD_Sampler_AnimatedWaves_1, LD_1_WorldToUV(wxz), wt_1, _LD_Params_1.w, _LD_Params_1.x, worldPos, nxz);
+				SampleDisplacements(_LD_Sampler_AnimatedWaves_0, LD_0_WorldToUV(wxz), wt_0, _LD_Params_0.w, _LD_Params_0.x, worldPos);
+				SampleDisplacements(_LD_Sampler_AnimatedWaves_1, LD_1_WorldToUV(wxz), wt_1, _LD_Params_1.w, _LD_Params_1.x, worldPos);
 
 				// move to sea level
 				worldPos.y += _OceanCenterPosWorld.y;

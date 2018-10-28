@@ -100,15 +100,13 @@ Shader "Ocean/Water Interface"
 					+ up * v.vertex.z * _ProjectionParams.y;
 
 
-				half2 nxz_dummy = (half2)0.;
-
 				float2 sampleXZ = o.worldPos.xz;
 				float3 disp;
 				for (int i = 0; i < 6; i++)
 				{
 					// sample displacement textures, add results to current world pos / normal / foam
 					disp = float3(sampleXZ.x, _OceanCenterPosWorld.y, sampleXZ.y);
-					SampleDisplacements(_LD_Sampler_AnimatedWaves_0, LD_0_WorldToUV(sampleXZ), 1.0, _LD_Params_0.w, _LD_Params_0.x, disp, nxz_dummy);
+					SampleDisplacements(_LD_Sampler_AnimatedWaves_0, LD_0_WorldToUV(sampleXZ), 1.0, _LD_Params_0.w, _LD_Params_0.x, disp);
 					float3 nearestPointOnUp = o.worldPos + up * dot(disp - o.worldPos, up);
 					float2 error = disp.xz - nearestPointOnUp.xz;
 					sampleXZ -= error;

@@ -98,7 +98,6 @@ Shader "Ocean/Underwater Skirt"
 				// Potential optimisations (note that this shader runs over a few dozen vertices, not over screen pixels!):
 				// - pull the view vectors out of the cam matrix directly
 				// - test lower FPI iteration count
-				// - sample displacements without normal..
 				// - when looking down through the water surface, the code currently pushes the top verts of the skirt
 				//   up to cover the whole screen, but it only needs to get pushed up to the horizon level to meet the water surface
 				// - the projection to the horizon could probably collapse down to a few LOC to compute the NDC y without a full projection
@@ -122,8 +121,6 @@ Shader "Ocean/Underwater Skirt"
 					// too much up or down, the intersection between the near plane and the water surface can be complex.
 					if (abs(forward.y) < .8)
 					{
-						half2 nxz_dummy = (half2)0.;
-
 						// Find intersection of the near plane and the water surface at this vert using FPI. See here for info about
 						// FPI http://www.huwbowles.com/fpi-gdc-2016/
 						float2 sampleXZ = o.worldPos.xz;
@@ -132,7 +129,7 @@ Shader "Ocean/Underwater Skirt"
 						{
 							// Sample displacement textures, add results to current world pos / normal / foam
 							disp = float3(sampleXZ.x, _OceanCenterPosWorld.y, sampleXZ.y);
-							SampleDisplacements(_LD_Sampler_AnimatedWaves_0, LD_0_WorldToUV(sampleXZ), 1.0, _LD_Params_0.w, _LD_Params_0.x, disp, nxz_dummy);
+							SampleDisplacements(_LD_Sampler_AnimatedWaves_0, LD_0_WorldToUV(sampleXZ), 1.0, _LD_Params_0.w, _LD_Params_0.x, disp);
 							float3 nearestPointOnUp = o.worldPos + up * dot(disp - o.worldPos, up);
 							float2 error = disp.xz - nearestPointOnUp.xz;
 							sampleXZ -= error;
@@ -199,8 +196,8 @@ Shader "Ocean/Underwater Skirt"
 				const half3 n_pixel = 0.;
 				const half3 bubbleCol = 0.;
 
-				float3 surfaceAboveCamPosWorld = 0.; half2 nxz_dummy;
-				SampleDisplacements(_LD_Sampler_AnimatedWaves_0, LD_0_WorldToUV(_WorldSpaceCameraPos.xz), 1.0, _LD_Params_0.w, _LD_Params_0.x, surfaceAboveCamPosWorld, nxz_dummy);
+				float3 surfaceAboveCamPosWorld = 0.;
+				SampleDisplacements(_LD_Sampler_AnimatedWaves_0, LD_0_WorldToUV(_WorldSpaceCameraPos.xz), 1.0, _LD_Params_0.w, _LD_Params_0.x, surfaceAboveCamPosWorld);
 				surfaceAboveCamPosWorld.y += _OceanCenterPosWorld.y;
 
 				half3 scatterCol = ScatterColour(surfaceAboveCamPosWorld, 0., _WorldSpaceCameraPos, lightDir, view, shadow, true, true);

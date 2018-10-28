@@ -96,18 +96,17 @@ Shader "Ocean/Underwater Skirt"
 				// and correctly fog etc.
 
 				// Potential optimisations (note that this shader runs over a few dozen vertices, not over screen pixels!):
-				// - pull the view vectors out of the cam matrix directly
 				// - test lower FPI iteration count
 				// - when looking down through the water surface, the code currently pushes the top verts of the skirt
 				//   up to cover the whole screen, but it only needs to get pushed up to the horizon level to meet the water surface
 				// - the projection to the horizon could probably collapse down to a few LOC to compute the NDC y without a full projection
 
 				// view coordinate frame for camera
-				float3 right   = mul((float3x3)unity_CameraToWorld, float3(1., 0., 0.));
-				float3 up      = mul((float3x3)unity_CameraToWorld, float3(0., 1., 0.));
-				float3 forward = mul((float3x3)unity_CameraToWorld, float3(0., 0., 1.));
+				const float3 right   = unity_CameraToWorld._11_21_31;
+				const float3 up      = unity_CameraToWorld._12_22_32;
+				const float3 forward = unity_CameraToWorld._13_23_33;
 
-				float3 nearPlaneCenter = _WorldSpaceCameraPos + forward * _ProjectionParams.y * 1.001;
+				const float3 nearPlaneCenter = _WorldSpaceCameraPos + forward * _ProjectionParams.y * 1.001;
 				// Spread verts across the near plane.
 				// TODO replace 3. with a projection specific value
 				o.worldPos = nearPlaneCenter
@@ -130,8 +129,8 @@ Shader "Ocean/Underwater Skirt"
 							// Sample displacement textures, add results to current world pos / normal / foam
 							disp = float3(sampleXZ.x, _OceanCenterPosWorld.y, sampleXZ.y);
 							SampleDisplacements(_LD_Sampler_AnimatedWaves_0, LD_0_WorldToUV(sampleXZ), 1.0, _LD_Params_0.w, _LD_Params_0.x, disp);
-							float3 nearestPointOnUp = o.worldPos + up * dot(disp - o.worldPos, up);
-							float2 error = disp.xz - nearestPointOnUp.xz;
+							const float3 nearestPointOnUp = o.worldPos + up * dot(disp - o.worldPos, up);
+							const float2 error = disp.xz - nearestPointOnUp.xz;
 							sampleXZ -= error;
 						}
 
@@ -149,8 +148,8 @@ Shader "Ocean/Underwater Skirt"
 					// the chance render issues from cracks/gaps with down angles, or of the skirt being too high for up angles.
 					float3 horizonPoint = _WorldSpaceCameraPos + (o.worldPos - _WorldSpaceCameraPos) * 10000.;
 					horizonPoint.y = _OceanCenterPosWorld.y;
-					float3 horizonDir = normalize(horizonPoint - _WorldSpaceCameraPos);
-					float3 projectionOfHorizonOnNearPlane = _WorldSpaceCameraPos + horizonDir / dot(horizonDir, forward);
+					const float3 horizonDir = normalize(horizonPoint - _WorldSpaceCameraPos);
+					const float3 projectionOfHorizonOnNearPlane = _WorldSpaceCameraPos + horizonDir / dot(horizonDir, forward);
 					o.worldPos = lerp(o.worldPos, projectionOfHorizonOnNearPlane, 0.1);
 					
 					// Test - always put top row of verts at water horizon, because then it will always meet the water
@@ -185,9 +184,9 @@ Shader "Ocean/Underwater Skirt"
 			{
 				const half3 view = normalize(_WorldSpaceCameraPos - i.worldPos);
 
-				float pixelZ = LinearEyeDepth(i.vertex.z);
-				half3 screenPos = i.foam_screenPos.yzw;
-				half2 uvDepth = screenPos.xy / screenPos.z;
+				const float pixelZ = LinearEyeDepth(i.vertex.z);
+				const half3 screenPos = i.foam_screenPos.yzw;
+				const half2 uvDepth = screenPos.xy / screenPos.z;
 				const float sceneZ01 = tex2D(_CameraDepthTexture, uvDepth).x;
 				const float sceneZ = LinearEyeDepth(sceneZ01);
 				
@@ -200,7 +199,7 @@ Shader "Ocean/Underwater Skirt"
 				SampleDisplacements(_LD_Sampler_AnimatedWaves_0, LD_0_WorldToUV(_WorldSpaceCameraPos.xz), 1.0, _LD_Params_0.w, _LD_Params_0.x, surfaceAboveCamPosWorld);
 				surfaceAboveCamPosWorld.y += _OceanCenterPosWorld.y;
 
-				half3 scatterCol = ScatterColour(surfaceAboveCamPosWorld, 0., _WorldSpaceCameraPos, lightDir, view, shadow, true, true);
+				const half3 scatterCol = ScatterColour(surfaceAboveCamPosWorld, 0., _WorldSpaceCameraPos, lightDir, view, shadow, true, true);
 
 				half3 sceneColour = tex2D(_BackgroundTexture, i.grabPos.xy / i.grabPos.w).rgb;
 

@@ -38,11 +38,6 @@ Shader "Ocean/Water Interface"
 		Tags{ "LightMode" = "ForwardBase" "Queue" = "Transparent" "IgnoreProjector" = "True" "RenderType" = "Transparent" }
 		LOD 100
 
-		//GrabPass
-		//{
-		//	"_BackgroundTexture"
-		//}
-
 		Pass
 		{
 			// Could turn this off, and it would allow the ocean surface to render through it
@@ -88,10 +83,10 @@ Shader "Ocean/Water Interface"
 			{
 				v2f o;
 
-				// actually this should follow camera around
-				float3 right   = mul((float3x3)unity_CameraToWorld, float3(1., 0., 0.));
-				float3 up      = mul((float3x3)unity_CameraToWorld, float3(0., 1., 0.));
-				float3 forward = mul((float3x3)unity_CameraToWorld, float3(0., 0., 1.));
+				// view coordinate frame for camera
+				const float3 right = unity_CameraToWorld._11_21_31;
+				const float3 up = unity_CameraToWorld._12_22_32;
+				const float3 forward = unity_CameraToWorld._13_23_33;
 
 				float3 center = _WorldSpaceCameraPos + forward * _ProjectionParams.y * 1.001;
 				// todo - constant needs to depend on FOV
@@ -107,15 +102,15 @@ Shader "Ocean/Water Interface"
 					// sample displacement textures, add results to current world pos / normal / foam
 					disp = float3(sampleXZ.x, _OceanCenterPosWorld.y, sampleXZ.y);
 					SampleDisplacements(_LD_Sampler_AnimatedWaves_0, LD_0_WorldToUV(sampleXZ), 1.0, _LD_Params_0.w, _LD_Params_0.x, disp);
-					float3 nearestPointOnUp = o.worldPos + up * dot(disp - o.worldPos, up);
-					float2 error = disp.xz - nearestPointOnUp.xz;
+					const float3 nearestPointOnUp = o.worldPos + up * dot(disp - o.worldPos, up);
+					const float2 error = disp.xz - nearestPointOnUp.xz;
 					sampleXZ -= error;
 				}
 
 				o.worldPos = disp;
 
 
-				float offset = 0.003 * _ProjectionParams.y * 5.;
+				const float offset = 0.003 * _ProjectionParams.y * 5.;
 				if (v.vertex.z > 0.49)
 				{
 					o.worldPos += offset * up;
@@ -143,9 +138,9 @@ Shader "Ocean/Water Interface"
 
 			half4 frag(v2f i) : SV_Target
 			{
-				half3 col = 1.9*half3(0.37, .4, .45);
+				const half3 col = 1.9*half3(0.37, .4, .45);
 				float alpha = abs(i.uv.y - 0.5);
-				alpha = pow(smoothstep(0.5, .0, alpha),.5);
+				alpha = pow(smoothstep(0.5, .0, alpha), .5);
 				return half4(lerp(1., col, alpha), alpha);
 			}
 			ENDCG

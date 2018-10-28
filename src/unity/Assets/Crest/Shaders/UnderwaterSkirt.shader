@@ -95,6 +95,11 @@ Shader "Ocean/Underwater Skirt"
 				// will stomp over the results of this shader. The ocean surface has necessary code to render from underneath
 				// and correctly fog etc.
 
+				// Potential optimisations:
+				// - pull the view vectors out of the cam matrix directly
+				// - test lower FPI iteration count
+				// - sample displacements without normal..
+
 				// view coordinate frame for camera
 				float3 right   = mul((float3x3)unity_CameraToWorld, float3(1., 0., 0.));
 				float3 up      = mul((float3x3)unity_CameraToWorld, float3(0., 1., 0.));
@@ -110,33 +115,40 @@ Shader "Ocean/Underwater Skirt"
 				// Isolate topmost edge
 				if (v.vertex.z > 0.45)
 				{
-					half2 nxz_dummy = (half2)0.;
-
-					float2 sampleXZ = o.worldPos.xz;
-					float3 disp;
-					for (int i = 0; i < 6; i++)
+					// Only compute intersection of water if viewer is looking "horizontal-ish". When the viewer starts to look
+					// too much up or down, the intersection between the near plane and the water surface can be complex.
+					if (abs(forward.y) < .8)
 					{
-						// sample displacement textures, add results to current world pos / normal / foam
-						disp = float3(sampleXZ.x, _OceanCenterPosWorld.y, sampleXZ.y);
-						SampleDisplacements(_LD_Sampler_AnimatedWaves_0, LD_0_WorldToUV(sampleXZ), 1.0, _LD_Params_0.w, _LD_Params_0.x, disp, nxz_dummy);
-						float3 nearestPointOnUp = o.worldPos + up * dot(disp - o.worldPos, up);
-						float2 error = disp.xz - nearestPointOnUp.xz;
-						sampleXZ -= error;
+						half2 nxz_dummy = (half2)0.;
+
+						// Find intersection of the near plane and the water surface at this vert using FPI. See here for info about
+						// FPI http://www.huwbowles.com/fpi-gdc-2016/
+						float2 sampleXZ = o.worldPos.xz;
+						float3 disp;
+						for (int i = 0; i < 6; i++)
+						{
+							// Sample displacement textures, add results to current world pos / normal / foam
+							disp = float3(sampleXZ.x, _OceanCenterPosWorld.y, sampleXZ.y);
+							SampleDisplacements(_LD_Sampler_AnimatedWaves_0, LD_0_WorldToUV(sampleXZ), 1.0, _LD_Params_0.w, _LD_Params_0.x, disp, nxz_dummy);
+							float3 nearestPointOnUp = o.worldPos + up * dot(disp - o.worldPos, up);
+							float2 error = disp.xz - nearestPointOnUp.xz;
+							sampleXZ -= error;
+						}
+
+						o.worldPos = disp;
 					}
-
-					o.worldPos = disp;
-
-					// small fudge to lift up geom a bit and cover any cracks. it will render UNDER the ocean so any overlap will be covered
-					//o.worldPos += .02 * up;
+					else
+					{
+						// Push top edge up if we are looking down so that the screen defaults to looking underwater.
+						// Push top edge down if we are looking up so that the screen defaults to looking out of water.
+						o.worldPos -= sign(forward.y) * 2. * up;
+					}
 				}
 				else
 				{
 					// Bottom row of verts - push them down below bottom of screen
 					o.worldPos -= 8. * up;
 				}
-
-				// almost works - move overlap based on view direction
-				//o.worldPos += -sign(o.worldPos.y - _WorldSpaceCameraPos.y) * 0.02 * up;
 
 				o.vertex = mul(UNITY_MATRIX_VP, float4(o.worldPos, 1.));
 				o.vertex.z = o.vertex.w;

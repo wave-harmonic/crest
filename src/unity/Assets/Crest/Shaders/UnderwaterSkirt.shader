@@ -131,6 +131,15 @@ Shader "Ocean/Underwater Skirt"
 					if (abs(forward.y) < MAX_UPDOWN_AMOUNT)
 					{
 						o.worldPos = IntersectRayWithWaterSurface(o.worldPos, up);
+
+						// Move the geometry towards the horizon. As noted above, the skirt will be stomped by the ocean
+						// surface render. If we project a bit towards the horizon to make a bit of overlap then we can reduce
+						// the chance render issues from cracks/gaps with down angles, or of the skirt being too high for up angles.
+						float3 horizonPoint = _WorldSpaceCameraPos + (posOnNearPlane - _WorldSpaceCameraPos) * 10000.;
+						horizonPoint.y = _OceanCenterPosWorld.y;
+						const float3 horizonDir = normalize(horizonPoint - _WorldSpaceCameraPos);
+						const float3 projectionOfHorizonOnNearPlane = _WorldSpaceCameraPos + horizonDir / dot(horizonDir, forward);
+						o.worldPos = lerp(o.worldPos, projectionOfHorizonOnNearPlane, 0.1);
 					}
 					else
 					{
@@ -138,15 +147,6 @@ Shader "Ocean/Underwater Skirt"
 						// Push top edge down if we are looking up so that the screen defaults to looking out of water.
 						o.worldPos -= sign(forward.y) * 2. * up;
 					}
-
-					// Move the geometry towards the horizon. As noted above, the skirt will be stomped by the ocean
-					// surface render. If we project a bit towards the horizon to make a bit of overlap then we can reduce
-					// the chance render issues from cracks/gaps with down angles, or of the skirt being too high for up angles.
-					float3 horizonPoint = _WorldSpaceCameraPos + (posOnNearPlane - _WorldSpaceCameraPos) * 10000.;
-					horizonPoint.y = _OceanCenterPosWorld.y;
-					const float3 horizonDir = normalize(horizonPoint - _WorldSpaceCameraPos);
-					const float3 projectionOfHorizonOnNearPlane = _WorldSpaceCameraPos + horizonDir / dot(horizonDir, forward);
-					o.worldPos = lerp(o.worldPos, projectionOfHorizonOnNearPlane, 0.1);
 					
 					// Test - always put top row of verts at water horizon, because then it will always meet the water
 					// surface. Good idea but didnt work because it then does underwater shading on opaque surfaces which

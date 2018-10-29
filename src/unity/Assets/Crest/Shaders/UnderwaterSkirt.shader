@@ -73,6 +73,7 @@ Shader "Ocean/Underwater Skirt"
 			#include "UnityCG.cginc"
 			#include "Lighting.cginc"
 			#include "../../Crest/Shaders/OceanLODData.hlsl"
+			#include "../../Crest/Shaders/UnderwaterShared.hlsl"
 
 			uniform float _CrestTime;
 
@@ -127,23 +128,9 @@ Shader "Ocean/Underwater Skirt"
 
 					// Only compute intersection of water if viewer is looking "horizontal-ish". When the viewer starts to look
 					// too much up or down, the intersection between the near plane and the water surface can be complex.
-					if (abs(forward.y) < .8)
+					if (abs(forward.y) < MAX_UPDOWN_AMOUNT)
 					{
-						// Find intersection of the near plane and the water surface at this vert using FPI. See here for info about
-						// FPI http://www.huwbowles.com/fpi-gdc-2016/
-						float2 sampleXZ = o.worldPos.xz;
-						float3 disp;
-						for (int i = 0; i < 6; i++)
-						{
-							// Sample displacement textures, add results to current world pos / normal / foam
-							disp = float3(sampleXZ.x, _OceanCenterPosWorld.y, sampleXZ.y);
-							SampleDisplacements(_LD_Sampler_AnimatedWaves_0, LD_0_WorldToUV(sampleXZ), 1.0, _LD_Params_0.w, _LD_Params_0.x, disp);
-							const float3 nearestPointOnUp = o.worldPos + up * dot(disp - o.worldPos, up);
-							const float2 error = disp.xz - nearestPointOnUp.xz;
-							sampleXZ -= error;
-						}
-
-						o.worldPos = disp;
+						o.worldPos = IntersectRayWithWaterSurface(o.worldPos, up);
 					}
 					else
 					{

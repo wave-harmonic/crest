@@ -62,6 +62,7 @@ Shader "Ocean/Water Interface"
 			#include "UnityCG.cginc"
 			#include "Lighting.cginc"
 			#include "../../Crest/Shaders/OceanLODData.hlsl"
+			#include "../../Crest/Shaders/UnderwaterShared.hlsl"
 
 			uniform float _CrestTime;
 			uniform float _MeniscusWidth;
@@ -97,21 +98,9 @@ Shader "Ocean/Water Interface"
 					+ up * v.vertex.z * _ProjectionParams.y;
 
 
-				if (abs(forward.y) < .8)
+				if (abs(forward.y) < MAX_UPDOWN_AMOUNT)
 				{
-					float2 sampleXZ = o.worldPos.xz;
-					float3 disp;
-					for (int i = 0; i < 6; i++)
-					{
-						// sample displacement textures, add results to current world pos / normal / foam
-						disp = float3(sampleXZ.x, _OceanCenterPosWorld.y, sampleXZ.y);
-						SampleDisplacements(_LD_Sampler_AnimatedWaves_0, LD_0_WorldToUV(sampleXZ), 1.0, _LD_Params_0.w, _LD_Params_0.x, disp);
-						const float3 nearestPointOnUp = o.worldPos + up * dot(disp - o.worldPos, up);
-						const float2 error = disp.xz - nearestPointOnUp.xz;
-						sampleXZ -= error;
-					}
-
-					o.worldPos = disp;
+					o.worldPos = IntersectRayWithWaterSurface(o.worldPos, up);
 
 					const float offset = 0.001 * _ProjectionParams.y * _MeniscusWidth;
 					if (v.vertex.z > 0.49)

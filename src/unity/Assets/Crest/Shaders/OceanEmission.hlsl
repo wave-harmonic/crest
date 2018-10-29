@@ -61,15 +61,15 @@ half3 ScatterColour(
 		//    colour at the camera, not at the surface, to make sure its consistent.
 		// 2. for the underwater skirt geometry, we don't have the lod data sampled from the verts with lod transitions etc,
 		//    so just approximate by sampling at the camera position.
-		// in both cases just sample lod 1 as its larger, hopefully this doesnt cause pops.
-		const float2 uv_1 = LD_1_WorldToUV(i_cameraPos.xz);
+		// this used to sample LOD1 but that doesnt work in last LOD, the data will be missing.
+		const float2 uv_0 = LD_0_WorldToUV(i_cameraPos.xz);
 		float seaFloorHeightAboveBaseline = 0.;
-		SampleSeaFloorHeightAboveBaseline(_LD_Sampler_SeaFloorDepth_1, uv_1, 1.0, seaFloorHeightAboveBaseline);
+		SampleSeaFloorHeightAboveBaseline(_LD_Sampler_SeaFloorDepth_0, uv_0, 1.0, seaFloorHeightAboveBaseline);
 		depth = DEPTH_BASELINE - seaFloorHeightAboveBaseline;
 		waveHeight = 0.;
 		
 		fixed2 shadowSoftHard = 0.;
-		SampleShadow(_LD_Sampler_Shadow_1, uv_1, 1.0, shadowSoftHard);
+		SampleShadow(_LD_Sampler_Shadow_0, uv_0, 1.0, shadowSoftHard);
 		shadow = 1. - shadowSoftHard.x;
 	}
 	else

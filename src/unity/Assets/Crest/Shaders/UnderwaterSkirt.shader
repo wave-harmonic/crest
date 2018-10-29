@@ -123,6 +123,8 @@ Shader "Ocean/Underwater Skirt"
 				// Isolate topmost edge
 				if (v.vertex.z > 0.45)
 				{
+					const float3 posOnNearPlane = o.worldPos;
+
 					// Only compute intersection of water if viewer is looking "horizontal-ish". When the viewer starts to look
 					// too much up or down, the intersection between the near plane and the water surface can be complex.
 					if (abs(forward.y) < .8)
@@ -153,7 +155,7 @@ Shader "Ocean/Underwater Skirt"
 					// Move the geometry towards the horizon. As noted above, the skirt will be stomped by the ocean
 					// surface render. If we project a bit towards the horizon to make a bit of overlap then we can reduce
 					// the chance render issues from cracks/gaps with down angles, or of the skirt being too high for up angles.
-					float3 horizonPoint = _WorldSpaceCameraPos + (o.worldPos - _WorldSpaceCameraPos) * 10000.;
+					float3 horizonPoint = _WorldSpaceCameraPos + (posOnNearPlane - _WorldSpaceCameraPos) * 10000.;
 					horizonPoint.y = _OceanCenterPosWorld.y;
 					const float3 horizonDir = normalize(horizonPoint - _WorldSpaceCameraPos);
 					const float3 projectionOfHorizonOnNearPlane = _WorldSpaceCameraPos + horizonDir / dot(horizonDir, forward);

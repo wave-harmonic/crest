@@ -93,10 +93,11 @@ Shader "Ocean/Water Interface"
 				const float3 up = unity_CameraToWorld._12_22_32;
 				const float3 forward = unity_CameraToWorld._13_23_33;
 
-				float3 center = _WorldSpaceCameraPos + forward * _ProjectionParams.y * 1.001;
-				// todo - constant needs to depend on FOV
-				o.worldPos = center
-					+ 3. * right * v.vertex.x * _ProjectionParams.y
+				const float3 nearPlaneCenter = _WorldSpaceCameraPos + forward * _ProjectionParams.y * 1.001;
+				// Spread verts across the near plane.
+				const float aspect = _ScreenParams.x / _ScreenParams.y;
+				o.worldPos = nearPlaneCenter
+					+ 2.01 * unity_CameraInvProjection._m11 * aspect * right * v.vertex.x * _ProjectionParams.y
 					+ up * v.vertex.z * _ProjectionParams.y;
 
 

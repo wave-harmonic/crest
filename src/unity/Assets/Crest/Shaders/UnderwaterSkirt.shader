@@ -101,7 +101,7 @@ Shader "Ocean/Underwater Skirt"
 				// Goal of this vert shader is to place a sheet of triangles in front of the camera. The geometry has
 				// two rows of verts, the top row and the bottom row (top and bottom are view relative). The bottom row
 				// is pushed down below the bottom of the screen. Every vert in the top row can take any vertical position
-				// on the near plane in order to find the hibiscus of the water. Due to render states, the ocean surface
+				// on the near plane in order to find the meniscus of the water. Due to render states, the ocean surface
 				// will stomp over the results of this shader. The ocean surface has necessary code to render from underneath
 				// and correctly fog etc.
 
@@ -116,9 +116,9 @@ Shader "Ocean/Underwater Skirt"
 
 				const float3 nearPlaneCenter = _WorldSpaceCameraPos + forward * _ProjectionParams.y * 1.001;
 				// Spread verts across the near plane.
-				// TODO replace 3. with a projection specific value
+				const float aspect = _ScreenParams.x / _ScreenParams.y;
 				o.worldPos = nearPlaneCenter
-					+ 3. * right * v.vertex.x * _ProjectionParams.y
+					+ 2.01 * unity_CameraInvProjection._m11 * aspect * right * v.vertex.x * _ProjectionParams.y
 					+ up * v.vertex.z * _ProjectionParams.y;
 
 				// Isolate topmost edge

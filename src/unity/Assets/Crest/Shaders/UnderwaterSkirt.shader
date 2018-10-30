@@ -92,6 +92,8 @@ Shader "Ocean/Underwater Skirt"
 				float3 worldPos : TEXCOORD3;
 			};
 
+			#define MAX_OFFSET 5.
+
 			v2f vert (appdata v)
 			{
 				v2f o;
@@ -104,10 +106,8 @@ Shader "Ocean/Underwater Skirt"
 				// and correctly fog etc.
 
 				// Potential optimisations (note that this shader runs over a few dozen vertices, not over screen pixels!):
-				// - test lower FPI iteration count
 				// - when looking down through the water surface, the code currently pushes the top verts of the skirt
 				//   up to cover the whole screen, but it only needs to get pushed up to the horizon level to meet the water surface
-				// - the projection to the horizon could probably collapse down to a few LOC to compute the NDC y without a full projection
 
 				// view coordinate frame for camera
 				const float3 right   = unity_CameraToWorld._11_21_31;
@@ -130,7 +130,8 @@ Shader "Ocean/Underwater Skirt"
 					// too much up or down, the intersection between the near plane and the water surface can be complex.
 					if (abs(forward.y) < MAX_UPDOWN_AMOUNT)
 					{
-						o.worldPos = IntersectRayWithWaterSurface(o.worldPos, up);
+						// move vert in the up direction, but only to an extent, otherwise numerical issues can cause weirdness
+						o.worldPos += min(IntersectRayWithWaterSurface(o.worldPos, up), MAX_OFFSET) * up;
 
 						// Move the geometry towards the horizon. As noted above, the skirt will be stomped by the ocean
 						// surface render. If we project a bit towards the horizon to make a bit of overlap then we can reduce
@@ -145,7 +146,7 @@ Shader "Ocean/Underwater Skirt"
 					{
 						// Push top edge up if we are looking down so that the screen defaults to looking underwater.
 						// Push top edge down if we are looking up so that the screen defaults to looking out of water.
-						o.worldPos -= sign(forward.y) * 2. * up;
+						o.worldPos -= sign(forward.y) * MAX_OFFSET * up;
 					}
 					
 					// Test - always put top row of verts at water horizon, because then it will always meet the water
@@ -157,7 +158,7 @@ Shader "Ocean/Underwater Skirt"
 				else
 				{
 					// Bottom row of verts - push them down below bottom of screen
-					o.worldPos -= 8. * up;
+					o.worldPos -= MAX_OFFSET * up;
 
 					o.vertex = mul(UNITY_MATRIX_VP, float4(o.worldPos, 1.));
 					o.vertex.z = o.vertex.w;

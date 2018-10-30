@@ -82,6 +82,8 @@ Shader "Ocean/Water Interface"
 				float3 worldPos : TEXCOORD3;
 			};
 
+			#define MAX_OFFSET 5.0
+
 			v2f vert (appdata v)
 			{
 				v2f o;
@@ -100,7 +102,7 @@ Shader "Ocean/Water Interface"
 
 				if (abs(forward.y) < MAX_UPDOWN_AMOUNT)
 				{
-					o.worldPos = IntersectRayWithWaterSurface(o.worldPos, up);
+					o.worldPos += min(IntersectRayWithWaterSurface(o.worldPos, up), MAX_OFFSET) * up;
 
 					const float offset = 0.001 * _ProjectionParams.y * _MeniscusWidth;
 					if (v.vertex.z > 0.49)
@@ -114,6 +116,7 @@ Shader "Ocean/Water Interface"
 				}
 				else
 				{
+					// kill completely if looking up/down
 					o.worldPos *= 0.0;
 				}
 

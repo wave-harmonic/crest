@@ -22,7 +22,7 @@ GameObject:
   - component: {fileID: 33478687144416888}
   - component: {fileID: 23363507218070258}
   - component: {fileID: 114136469499409476}
-  m_Layer: 0
+  m_Layer: 4
   m_Name: UnderWaterCurtainGeom
   m_TagString: Untagged
   m_Icon: {fileID: 0}

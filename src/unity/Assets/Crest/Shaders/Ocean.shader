@@ -85,6 +85,9 @@ Shader "Ocean/Ocean"
 		_CausticsDistortionScale("Distortion Scale", Range(0.01, 50.0)) = 10.0
 		_CausticsDistortionStrength("Distortion Strength", Range(0.0, 0.25)) = 0.075
 
+		[Header(Underwater)]
+		[Toggle] _Underwater("Enable", Float) = 0
+
 		[Header(Flow)]
 		[Toggle] _Flow("Enable", Float) = 0
 
@@ -137,6 +140,7 @@ Shader "Ocean/Ocean"
 				#pragma shader_feature _FOAM3DLIGHTING_ON
 				#pragma shader_feature _PLANARREFLECTIONS_ON
 				#pragma shader_feature _PROCEDURALSKY_ON
+				#pragma shader_feature _UNDERWATER_ON
 				#pragma shader_feature _FLOW_ON
 				#pragma shader_feature _SHADOWS_ON
 
@@ -308,8 +312,15 @@ Shader "Ocean/Ocean"
 					return lightDir;
 				}
 
-				half4 frag(v2f i) : SV_Target
+				half4 frag(const v2f i, const bool i_isFrontFace : SV_IsFrontFace) : SV_Target
 				{
+					const bool underwater =
+#if _UNDERWATER_ON
+						!i_isFrontFace;
+#else
+						false;
+#endif
+
 					half3 view = normalize(_WorldSpaceCameraPos - i.worldPos);
 
 					// water surface depth, and underlying scene opaque surface depth
@@ -329,12 +340,13 @@ Shader "Ocean/Ocean"
 
 					// Normal - geom + normal mapping
 					half3 n_geom = normalize(half3(i.n_shadow.x, 1., i.n_shadow.y));
+					if (underwater) n_geom = -n_geom;
 					half3 n_pixel = n_geom;
 					#if _APPLYNORMALMAPPING_ON
 					#if _FLOW_ON
 					ApplyNormalMapsWithFlow(i.lodAlpha_worldXZUndisplaced_oceanDepth.yz, i.flow, i.lodAlpha_worldXZUndisplaced_oceanDepth.x, n_pixel);
 					#else
-					n_pixel.xz += SampleNormalMaps(i.lodAlpha_worldXZUndisplaced_oceanDepth.yz, i.lodAlpha_worldXZUndisplaced_oceanDepth.x);
+					n_pixel.xz += (underwater ? -1. : 1.) * SampleNormalMaps(i.lodAlpha_worldXZUndisplaced_oceanDepth.yz, i.lodAlpha_worldXZUndisplaced_oceanDepth.x);
 					n_pixel = normalize(n_pixel);
 					#endif
 					#endif
@@ -351,10 +363,12 @@ Shader "Ocean/Ocean"
 					#endif // _FOAM_ON
 
 					// Compute color of ocean - in-scattered light + refracted scene
-					half3 col = OceanEmission(i.worldPos, i.lodAlpha_worldXZUndisplaced_oceanDepth.w, view, n_pixel, n_geom, lightDir, shadow.x, i.grabPos, screenPos, pixelZ, uvDepth, sceneZ, sceneZ01, bubbleCol, _Normals, _CameraDepthTexture);
+					half3 scatterCol = ScatterColour(i.worldPos, i.lodAlpha_worldXZUndisplaced_oceanDepth.w, _WorldSpaceCameraPos, lightDir, view, shadow.x, underwater, true);
+
+					half3 col = OceanEmission(view, n_pixel, lightDir, i.grabPos, pixelZ, uvDepth, sceneZ, sceneZ01, bubbleCol, _Normals, _CameraDepthTexture, underwater, scatterCol);
 
 					// Light that reflects off water surface
-					ApplyReflection(view, n_pixel, lightDir, shadow.y, i.foam_screenPos.yzzw, col);
+					ApplyReflectionSky(view, n_pixel, lightDir, shadow.y, i.foam_screenPos.yzzw, col);
 
 					// Override final result with white foam - bubbles on surface
 					#if _FOAM_ON
@@ -362,8 +376,16 @@ Shader "Ocean/Ocean"
 					#endif
 
 					// Fog
-					UNITY_APPLY_FOG(i.fogCoord, col);
-
+					if (!underwater)
+					{
+						// above water - do atmospheric fog
+						UNITY_APPLY_FOG(i.fogCoord, col);
+					}
+					else
+					{
+						// underwater - do depth fog
+						col = lerp(col, scatterCol, 1. - exp(-_DepthFogDensity.xyz * pixelZ));
+					}
 					#if _DEBUGVISUALISESHAPESAMPLE_ON
 					col = lerp(col.rgb, i.debugtint, 0.5);
 					#endif

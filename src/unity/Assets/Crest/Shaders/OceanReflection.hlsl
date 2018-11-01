@@ -41,7 +41,7 @@ uniform half _DirectionalLightBoost;
 uniform samplerCUBE _Skybox;
 #endif
 
-void ApplyReflection(half3 view, half3 n_pixel, half3 lightDir, half shadow, half4 i_screenPos, inout half3 col)
+void ApplyReflectionSky(half3 view, half3 n_pixel, half3 lightDir, half shadow, half4 i_screenPos, inout half3 col)
 {
 	// Reflection
 	half3 refl = reflect(-view, n_pixel);
@@ -69,3 +69,35 @@ void ApplyReflection(half3 view, half3 n_pixel, half3 lightDir, half shadow, hal
 	float R_theta = R_0 + (1.0 - R_0) * pow(1.0 - max(dot(n_pixel, view), 0.), _FresnelPower);
 	col = lerp(col, skyColour, R_theta);
 }
+
+// disabling for now as this is WIP
+#if 0
+void ApplyReflectionUnderwater(half3 view, half3 n_pixel, half3 lightDir, half shadow, half4 i_screenPos, inout half3 col)
+{
+	// Reflection
+	half3 refl = reflect(-view, n_pixel);
+
+	// TODO: calculate what will be reflected back from the deep
+	half3 underwaterColor = half3(0, 0, .01);
+
+	// Total Internal Reflection
+	const float IOR_AIR = 1.0;
+	const float IOR_WATER = 1.33;
+	const float CRITICAL_ANGLE = asin(IOR_AIR/IOR_WATER);
+
+	float angle = acos(dot(n_pixel, view));
+
+	float transitionDelta = .1;
+	// a hack to interpolate from refraction to TIR.
+	float lerpFactor = pow(((angle + transitionDelta) - CRITICAL_ANGLE)/transitionDelta, 5);
+	// TODO: look at http://habib.wikidot.com/projected-grid-ocean-shader-full-html-version#toc9
+	if (angle > CRITICAL_ANGLE)
+	{
+		col = underwaterColor;
+	}
+	else if (angle > CRITICAL_ANGLE - transitionDelta)
+	{
+		col = lerp(col, underwaterColor, lerpFactor);
+	}
+}
+#endif

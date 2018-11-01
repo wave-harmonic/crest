@@ -52,7 +52,7 @@ namespace Crest
         [SerializeField, Delayed, Tooltip( "Side dimension in quads of an ocean tile." )]
         public float _baseVertDensity = 64f;
 
-        [SerializeField, Delayed, Tooltip( "Number of ocean tile scales/LODs to generate." ), ]
+        [SerializeField, Delayed, Tooltip( "Number of ocean tile scales/LODs to generate." ), Range(2, LodData.MAX_LOD_COUNT)]
         int _lodCount = 7;
         public int LodDataResolution { get { return (int)(4f * _baseVertDensity); } }
 
@@ -197,8 +197,8 @@ namespace Crest
             // when water height is low and camera is suspended in air. i tried a scheme where it was based on difference
             // to water height but this does help with the problem of horizontal range getting limited at bad times.
             float maxDetailY = SeaLevel - _maxVertDispFromShape / 5f;
-            // scale ocean mesh based on camera height to keep uniform detail. this could be abs() if camera can go below water.
-            float camY = Mathf.Max(_viewpoint.position.y - maxDetailY, 0f);
+            // scale ocean mesh based on camera distance to sea level, to keep uniform detail.
+            float camY = Mathf.Max(Mathf.Abs(_viewpoint.position.y) - maxDetailY, 0f);
 
             const float HEIGHT_LOD_MUL = 2f;
             float level = camY * HEIGHT_LOD_MUL;

@@ -51,7 +51,7 @@ namespace Crest
             Attached
         }
 
-        CmdBufStatus[] _cmdBufWaveAdded = new CmdBufStatus[16];
+        CmdBufStatus[] _cmdBufWaveAdded = new CmdBufStatus[LodData.MAX_LOD_COUNT];
         CmdBufStatus _cmdBufBigWavesAdded = CmdBufStatus.NoStatus;
 
         // scratch data used by batching code

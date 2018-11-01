@@ -70,6 +70,8 @@ void ApplyReflectionSky(half3 view, half3 n_pixel, half3 lightDir, half shadow, 
 	col = lerp(col, skyColour, R_theta);
 }
 
+// disabling for now as this is WIP
+#if 0
 void ApplyReflectionUnderwater(half3 view, half3 n_pixel, half3 lightDir, half shadow, half4 i_screenPos, inout half3 col)
 {
 	// Reflection
@@ -98,3 +100,4 @@ void ApplyReflectionUnderwater(half3 view, half3 n_pixel, half3 lightDir, half s
 		col = lerp(col, underwaterColor, lerpFactor);
 	}
 }
+#endif

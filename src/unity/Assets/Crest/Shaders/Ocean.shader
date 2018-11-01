@@ -85,6 +85,9 @@ Shader "Ocean/Ocean"
 		_CausticsDistortionScale("Distortion Scale", Range(0.01, 50.0)) = 10.0
 		_CausticsDistortionStrength("Distortion Strength", Range(0.0, 0.25)) = 0.075
 
+		[Header(Underwater)]
+		[Toggle] _Underwater("Enable", Float) = 0
+
 		[Header(Flow)]
 		[Toggle] _Flow("Enable", Float) = 0
 
@@ -137,6 +140,7 @@ Shader "Ocean/Ocean"
 				#pragma shader_feature _FOAM3DLIGHTING_ON
 				#pragma shader_feature _PLANARREFLECTIONS_ON
 				#pragma shader_feature _PROCEDURALSKY_ON
+				#pragma shader_feature _UNDERWATER_ON
 				#pragma shader_feature _FLOW_ON
 				#pragma shader_feature _SHADOWS_ON
 
@@ -310,7 +314,13 @@ Shader "Ocean/Ocean"
 
 				half4 frag(const v2f i, const bool i_isFrontFace : SV_IsFrontFace) : SV_Target
 				{
-					const bool underwater = !i_isFrontFace;
+					const bool underwater =
+#if _UNDERWATER_ON
+						!i_isFrontFace;
+#else
+						false;
+#endif
+
 					half3 view = normalize(_WorldSpaceCameraPos - i.worldPos);
 
 					// water surface depth, and underlying scene opaque surface depth

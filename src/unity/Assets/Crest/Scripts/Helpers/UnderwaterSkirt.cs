@@ -6,9 +6,12 @@ namespace Crest
 {
     public class UnderwaterSkirt : MonoBehaviour
     {
-        public int _horizResolution = 64;
-        public float _maxDistFromWater = 1f;
-        public int _overrideSortingOrder = short.MinValue;
+        [SerializeField] float _maxDistFromWater = 1f;
+        [SerializeField] bool _overrideSortingOrder = false;
+        [SerializeField] int _overridenSortingOrder = 0;
+
+        // how many vertical edges to add to curtain geometry
+        const int GEOM_HORIZ_DIVISIONS = 64;
 
         MaterialPropertyBlock _mpb;
         Renderer _rend;
@@ -24,9 +27,9 @@ namespace Crest
             _rend = GetComponent<Renderer>();
 
             // Render before the surface mesh
-            _rend.sortingOrder = _overrideSortingOrder != short.MinValue ? _overrideSortingOrder : - LodData.MAX_LOD_COUNT - 1;
+            _rend.sortingOrder = _overrideSortingOrder ? _overridenSortingOrder : -LodData.MAX_LOD_COUNT - 1;
 
-            GetComponent<MeshFilter>().mesh = Mesh2DGrid(0, 2, -0.5f, -0.5f, 1f, 1f, _horizResolution, 1);
+            GetComponent<MeshFilter>().mesh = Mesh2DGrid(0, 2, -0.5f, -0.5f, 1f, 1f, GEOM_HORIZ_DIVISIONS, 1);
         }
 
         private void LateUpdate()
@@ -39,7 +42,7 @@ namespace Crest
             // Disable skirt when camera not close to water. In the first few frames collision may not be avail, in that case no choice
             // but to assume enabled. In the future this could detect if camera is far enough under water, render a simple quad to avoid
             // finding the intersection line.
-            _rend.enabled = /*Mathf.Abs*/(heightOffset) < _maxDistFromWater || !gotHeight;
+            _rend.enabled = heightOffset < _maxDistFromWater || !gotHeight;
 
             if (_rend.enabled)
             {

@@ -36,7 +36,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1040961582426892}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -57,7 +57,7 @@ MeshRenderer:
   m_ReflectionProbeUsage: 1
   m_RenderingLayerMask: 4294967295
   m_Materials:
-  - {fileID: 2100000, guid: 174cd2ae2eaeeb64d860d03f38e8dfe1, type: 2}
+  - {fileID: 2100000, guid: 5ec5f3ec071403f4abc8b8c0271a5523, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -95,6 +95,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3189b4f2b56a4cd4bab9b4e3d761a0bf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _maxDistFromWater: 1.5
-  _overrideSortingOrder: 0
+  _maxHeightAboveWater: 1.5
+  _overrideSortingOrder: 1
   _overridenSortingOrder: 0
+  _copyParamsOnStartup: 0
+  _copyParamsEachFrame: 0

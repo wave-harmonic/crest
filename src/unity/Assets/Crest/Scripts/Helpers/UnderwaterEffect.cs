@@ -4,11 +4,19 @@ using UnityEngine;
 
 namespace Crest
 {
-    public class UnderwaterSkirt : MonoBehaviour
+    /// <summary>
+    /// Handles effects that need to track the water surface. Feeds in wave data and disables rendering when
+    /// not close to water.
+    /// </summary>
+    public class UnderwaterEffect : MonoBehaviour
     {
-        [SerializeField] float _maxDistFromWater = 1f;
+        [SerializeField] float _maxHeightAboveWater = 1.5f;
         [SerializeField] bool _overrideSortingOrder = false;
         [SerializeField] int _overridenSortingOrder = 0;
+
+        [Header("Copy params from Ocean material")]
+        [SerializeField] bool _copyParamsOnStartup = true;
+        [SerializeField] bool _copyParamsEachFrame = false;
 
         // how many vertical edges to add to curtain geometry
         const int GEOM_HORIZ_DIVISIONS = 64;
@@ -28,8 +36,38 @@ namespace Crest
 
             // Render before the surface mesh
             _rend.sortingOrder = _overrideSortingOrder ? _overridenSortingOrder : -LodData.MAX_LOD_COUNT - 1;
-
             GetComponent<MeshFilter>().mesh = Mesh2DGrid(0, 2, -0.5f, -0.5f, 1f, 1f, GEOM_HORIZ_DIVISIONS, 1);
+
+            // hack - push forward so the geometry wont be frustum culled. there might be better ways to draw
+            // this stuff.
+            if (transform.parent.GetComponent<Camera>() == null)
+            {
+                Debug.LogError("Underwater effects expect to be parented to a camera.", this);
+                enabled = false;
+                return;
+            }
+            transform.localPosition = Vector3.forward;
+
+            ConfigureMaterial();
+        }
+
+        void ConfigureMaterial()
+        {
+            var keywords = _rend.material.shaderKeywords;
+            foreach (var keyword in keywords)
+            {
+                if (keyword == "_COMPILESHADERWITHDEBUGINFO_ON") continue;
+
+                if (!OceanRenderer.Instance.OceanMaterial.IsKeywordEnabled(keyword))
+                {
+                    Debug.LogWarning("Keyword " + keyword + " was enabled on the ocean material but not on the underwater material " + _rend.sharedMaterial.name + ", underwater appearance may not match ocean surface in standalone builds.", this);
+                }
+            }
+
+            if (_copyParamsOnStartup)
+            {
+                _rend.material.CopyPropertiesFromMaterial(OceanRenderer.Instance.OceanMaterial);
+            }
         }
 
         private void LateUpdate()
@@ -42,10 +80,15 @@ namespace Crest
             // Disable skirt when camera not close to water. In the first few frames collision may not be avail, in that case no choice
             // but to assume enabled. In the future this could detect if camera is far enough under water, render a simple quad to avoid
             // finding the intersection line.
-            _rend.enabled = heightOffset < _maxDistFromWater || !gotHeight;
+            _rend.enabled = heightOffset < _maxHeightAboveWater || !gotHeight;
 
             if (_rend.enabled)
             {
+                if(_copyParamsEachFrame)
+                {
+                    _rend.material.CopyPropertiesFromMaterial(OceanRenderer.Instance.OceanMaterial);
+                }
+
                 // Assign lod0 shape - trivial but bound every frame because lod transform comes from here
                 if (_mpb == null)
                 {

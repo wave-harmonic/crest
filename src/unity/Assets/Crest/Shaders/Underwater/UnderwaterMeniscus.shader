@@ -1,36 +1,10 @@
 ﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
-Shader "Ocean/Water Interface"
+Shader "Ocean/Underwater Meniscus"
 {
 	Properties
 	{
 		_MeniscusWidth("Meniscus Width", Range(0.0, 100.0)) = 1.0
-		_Diffuse("Diffuse", Color) = (0.2, 0.05, 0.05, 1.0)
-		[Toggle] _SubSurfaceScattering("Sub-Surface Scattering", Float) = 1
-		_SubSurfaceColour("    Colour", Color) = (0.0, 0.48, 0.36)
-		_SubSurfaceBase("    Base Mul", Range(0.0, 2.0)) = 0.6
-		_SubSurfaceSun("    Sun Mul", Range(0.0, 10.0)) = 0.8
-		_SubSurfaceSunFallOff("    Sun Fall-Off", Range(1.0, 16.0)) = 4.0
-		[Toggle] _SubSurfaceHeightLerp("Sub-Surface Scattering Height Lerp", Float) = 1
-		_SubSurfaceHeightMax("    Height Max", Range(0.0, 50.0)) = 3.0
-		_SubSurfaceHeightPower("    Height Power", Range(0.01, 10.0)) = 1.0
-		_SubSurfaceCrestColour("    Crest Colour", Color) = (0.42, 0.69, 0.52)
-		[Toggle] _SubSurfaceShallowColour("Sub-Surface Shallow Colour", Float) = 1
-		_SubSurfaceDepthMax("    Depth Max", Range(0.01, 50.0)) = 3.0
-		_SubSurfaceDepthPower("    Depth Power", Range(0.01, 10.0)) = 1.0
-		_SubSurfaceShallowCol("    Shallow Colour", Color) = (0.42, 0.75, 0.69)
-		[Toggle] _Transparency("Transparency", Float) = 1
-		_DepthFogDensity("    Density", Vector) = (0.28, 0.16, 0.24, 1.0)
-		[Toggle] _Caustics("Caustics", Float) = 1
-		[NoScaleOffset] _CausticsTexture("    Caustics", 2D) = "black" {}
-		_CausticsTextureScale("    Scale", Range(0.0, 25.0)) = 5.0
-		_CausticsTextureAverage("    Texture Average Value", Range(0.0, 1.0)) = 0.07
-		_CausticsStrength("    Strength", Range(0.0, 10.0)) = 3.2
-		_CausticsFocalDepth("    Focal Depth", Range(0.0, 25.0)) = 2.0
-		_CausticsDepthOfField("    Depth Of Field", Range(0.01, 10.0)) = 0.33
-		_CausticsDistortionScale("    Distortion Scale", Range(0.01, 50.0)) = 10.0
-		_CausticsDistortionStrength("    Distortion Strength", Range(0.0, 0.25)) = 0.075
-		[Toggle] _Shadows("Shadows", Float) = 1
 		[Toggle] _CompileShaderWithDebugInfo("Compile Shader With Debug Info (D3D11)", Float) = 0
 	}
 
@@ -50,19 +24,12 @@ Shader "Ocean/Water Interface"
 			#pragma vertex vert
 			#pragma fragment frag
 			
-			#pragma shader_feature _SUBSURFACESCATTERING_ON
-			#pragma shader_feature _SUBSURFACEHEIGHTLERP_ON
-			#pragma shader_feature _SUBSURFACESHALLOWCOLOUR_ON
-			#pragma shader_feature _TRANSPARENCY_ON
-			#pragma shader_feature _CAUSTICS_ON
-			#pragma shader_feature _SHADOWS_ON
-
 			#pragma shader_feature _COMPILESHADERWITHDEBUGINFO_ON
 
 			#include "UnityCG.cginc"
 			#include "Lighting.cginc"
-			#include "../../Crest/Shaders/OceanLODData.hlsl"
-			#include "../../Crest/Shaders/UnderwaterShared.hlsl"
+			#include "../OceanLODData.hlsl"
+			#include "UnderwaterShared.hlsl"
 
 			uniform float _CrestTime;
 			uniform float _MeniscusWidth;
@@ -133,10 +100,6 @@ Shader "Ocean/Water Interface"
 				return o;
 			}
 			
-			#include "OceanEmission.hlsl"
-			uniform sampler2D _CameraDepthTexture;
-			uniform sampler2D _Normals;
-
 			half4 frag(v2f i) : SV_Target
 			{
 				const half3 col = 1.3*half3(0.37, .4, .5);

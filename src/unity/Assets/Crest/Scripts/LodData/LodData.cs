@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace Crest
 {
@@ -208,6 +209,10 @@ namespace Crest
             {
                 ids[i] = Shader.PropertyToID(string.Format("{0}{1}", prefix, i));
             }
+        }
+
+        public virtual void BuildCommandBuffer(OceanRenderer ocean, CommandBuffer buf)
+        {
         }
 
         Camera _camera; public Camera Cam { get { return _camera ?? (_camera = GetComponent<Camera>()); } }

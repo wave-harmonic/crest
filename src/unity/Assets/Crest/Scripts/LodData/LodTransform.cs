@@ -43,7 +43,7 @@ namespace Crest
         public int LodIndex { get { return _lodIndex; } }
         public int LodCount { get { return _lodCount; } }
 
-        void LateUpdate()
+        public void LateUpdate()
         {
             if (_transformUpdateFrame == Time.frameCount)
                 return;

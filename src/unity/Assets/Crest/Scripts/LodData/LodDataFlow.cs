@@ -1,6 +1,8 @@
 ﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace Crest
 {
@@ -11,7 +13,7 @@ namespace Crest
     {
         public override SimType LodDataType { get { return SimType.Flow; } }
         public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RGHalf; } }
-        public override CameraClearFlags CamClearFlags { get { return CameraClearFlags.Color; } }
+        public override CameraClearFlags CamClearFlags { get { return CameraClearFlags.Nothing; } }
         public override RenderTexture DataTexture { get { return Cam.targetTexture; } }
 
         [SerializeField]
@@ -25,6 +27,33 @@ namespace Crest
             return settings;
         }
 
+
+        static List<Renderer> _drawList = new List<Renderer>();
+
+        public static void AddDraw(Renderer rend)
+        {
+            if (OceanRenderer.Instance == null)
+            {
+                _drawList.Clear();
+                return;
+            }
+
+            _drawList.Add(rend);
+        }
+
+        public static void RemoveDraw(Renderer rend)
+        {
+            // If ocean has unloaded, clear out
+            if (OceanRenderer.Instance == null)
+            {
+                _drawList.Clear();
+                return;
+            }
+
+            _drawList.Remove(rend);
+        }
+
+
         protected override void Start()
         {
             base.Start();
@@ -35,6 +64,20 @@ namespace Crest
                 Debug.LogWarning("Flow is not enabled on the current ocean material and will not be visible.", this);
             }
 #endif
+        }
+
+        public override void BuildCommandBuffer(OceanRenderer ocean, CommandBuffer buf)
+        {
+            base.BuildCommandBuffer(ocean, buf);
+
+            buf.SetRenderTarget(DataTexture);
+            buf.ClearRenderTarget(false, true, Color.black);
+            buf.SetViewProjectionMatrices(Cam.worldToCameraMatrix, Cam.projectionMatrix);
+
+            foreach(var draw in _drawList)
+            {
+                buf.DrawRenderer(draw, draw.material);
+            }
         }
     }
 }

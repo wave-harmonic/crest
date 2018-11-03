@@ -357,6 +357,7 @@ Transform:
   m_Children:
   - {fileID: 1866213578}
   - {fileID: 588345737}
+  - {fileID: 1448233061}
   m_Father: {fileID: 0}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -506,12 +507,12 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1448233057}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 10, y: 0, z: 0}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 10, y: 10, z: 0}
   m_LocalScale: {x: 2, y: 2, z: 2}
   m_Children: []
-  m_Father: {fileID: 0}
-  m_RootOrder: 5
+  m_Father: {fileID: 995304123}
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1566317004
 GameObject:
@@ -720,7 +721,8 @@ MonoBehaviour:
   _uniformTiles: 0
   _disableSkirt: 0
   _lodDataAnimWaves: []
-  _camsAnimWaves: []
-  _camsFoam: []
-  _camsFlow: []
-  _camsDynWaves: []
+  _lodDataSeaDepths: []
+  _lodDataFoam: []
+  _lodDataFlow: []
+  _lodDataDynWaves: []
+  _lodDataShadow: []

@@ -118,6 +118,8 @@ namespace Crest
         /// </summary>
         public float ViewerHeightAboveWater { get; private set; }
 
+        [SerializeField] BuildCommandBuffer _commandBufferBuilder;
+
         void Awake()
         {
             if (_material == null)
@@ -135,6 +137,11 @@ namespace Crest
             var scheduler = GetComponent<IOceanScheduler>();
             if (scheduler == null) scheduler = gameObject.AddComponent<OceanScheduler>();
             scheduler.ApplySchedule(this);
+
+            if (null == _commandBufferBuilder)
+            {
+                _commandBufferBuilder = gameObject.AddComponent<BuildCommandBuffer>();
+            }
 
             InitViewpoint();
             InitTimeProvider();

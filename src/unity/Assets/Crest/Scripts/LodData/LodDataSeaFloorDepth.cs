@@ -34,10 +34,10 @@ namespace Crest
             _depthRenderers.Add(rend, mat);
 
             // notify there is a new contributor to ocean depth
-            foreach (var ldaw in OceanRenderer.Instance._lodDataAnimWaves)
+            foreach (var ldsd in OceanRenderer.Instance._lodDataSeaDepths)
             {
-                if (!ldaw.LDSeaDepth) continue;
-                ldaw.LDSeaDepth._oceanDepthRenderersDirty = true;
+                if (!ldsd) continue;
+                ldsd._oceanDepthRenderersDirty = true;
             }
         }
         public static void RemoveRenderOceanDepth(Renderer rend)
@@ -51,10 +51,10 @@ namespace Crest
             _depthRenderers.Remove(rend);
 
             // notify there is a new contributor to ocean depth
-            foreach (var ldaw in OceanRenderer.Instance._lodDataAnimWaves)
+            foreach (var ldsd in OceanRenderer.Instance._lodDataSeaDepths)
             {
-                if (!ldaw.LDSeaDepth) continue;
-                ldaw.LDSeaDepth._oceanDepthRenderersDirty = true;
+                if (!ldsd) continue;
+                ldsd._oceanDepthRenderersDirty = true;
             }
         }
 

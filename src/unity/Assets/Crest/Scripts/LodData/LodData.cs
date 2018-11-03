@@ -212,9 +212,5 @@ namespace Crest
 
         Camera _camera; protected Camera Cam { get { return _camera ?? (_camera = GetComponent<Camera>()); } }
         LodTransform _lt; public LodTransform LodTransform { get { return _lt ?? (_lt = GetComponent<LodTransform>()); } }
-        LodDataSeaFloorDepth _ldsd;
-        public LodDataSeaFloorDepth LDSeaDepth { get {
-                return _ldsd ?? (_ldsd = GetComponent<LodDataSeaFloorDepth>());
-        } }
     }
 }

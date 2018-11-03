@@ -162,9 +162,11 @@ namespace Crest
 
             // create the shape cameras
             ocean._lodDataAnimWaves = new LodDataAnimatedWaves[lodCount];
-            ocean._lodDataFoam = new LodDataFoam[lodCount];
-            ocean._lodDataFlow = new LodDataFlow[lodCount];
             ocean._lodDataDynWaves = new LodDataDynamicWaves[lodCount];
+            ocean._lodDataFlow = new LodDataFlow[lodCount];
+            ocean._lodDataFoam = new LodDataFoam[lodCount];
+            ocean._lodDataSeaDepths = new LodDataSeaFloorDepth[lodCount];
+            ocean._lodDataShadow = new LodDataShadow[lodCount];
 
             var cachedSettings = new Dictionary<System.Type, SimSettingsBase>();
 
@@ -184,12 +186,14 @@ namespace Crest
                     if(ocean._createSeaFloorDepthData)
                     {
                         LodData.CreateLodData(i, lodCount, go, baseVertDensity, LodData.SimType.SeaFloorDepth, cachedSettings);
+                        ocean._lodDataSeaDepths[i] = go.GetComponent<LodDataSeaFloorDepth>();
                     }
 
                     if (ocean._createShadowData)
                     {
                         // add lod data to same GO
                         LodData.CreateLodData(i, lodCount, go, baseVertDensity, LodData.SimType.Shadow, cachedSettings);
+                        ocean._lodDataShadow[i] = go.GetComponent<LodDataShadow>();
                     }
                 }
 

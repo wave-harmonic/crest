@@ -93,12 +93,11 @@ namespace Crest
                 }
                 _rend.GetPropertyBlock(_mpb);
 
-                var ldaws = OceanRenderer.Instance._lodDataAnimWaves;
-                var ldss = OceanRenderer.Instance._lodDataShadow;
                 // Underwater rendering uses displacements for intersecting the waves with the near plane, and ocean depth/shadows for ScatterColour()
-                ldaws[0].BindResultData(0, _mpb);
-                if (OceanRenderer.Instance._createSeaFloorDepthData) ldaws[0].LDSeaDepth.BindResultData(0, _mpb);
-                if (OceanRenderer.Instance._createShadowData) ldss[0].BindResultData(0, _mpb);
+                OceanRenderer.Instance._lodDataAnimWaves[0].BindResultData(0, _mpb);
+                if (OceanRenderer.Instance._createSeaFloorDepthData) OceanRenderer.Instance._lodDataSeaDepths[0].BindResultData(0, _mpb);
+                if (OceanRenderer.Instance._createShadowData) OceanRenderer.Instance._lodDataShadow[0].BindResultData(0, _mpb);
+
                 _rend.SetPropertyBlock(_mpb);
             }
         }

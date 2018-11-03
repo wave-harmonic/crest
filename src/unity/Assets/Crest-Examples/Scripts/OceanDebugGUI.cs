@@ -147,8 +147,8 @@ public class OceanDebugGUI : MonoBehaviour
         if (OceanRenderer.Instance._createFoamSim) DrawSims<LodDataFoam>(OceanRenderer.Instance._lodDataFoam, false, ref column);
         if (OceanRenderer.Instance._createDynamicWaveSim) DrawSims<LodDataDynamicWaves>(OceanRenderer.Instance._lodDataDynWaves, false, ref column);
         if (OceanRenderer.Instance._createFlowSim) DrawSims<LodDataFlow>(OceanRenderer.Instance._lodDataFlow, false, ref column);
-        if (OceanRenderer.Instance._createShadowData) DrawSims<LodDataShadow>(OceanRenderer.Instance._lodDataAnimWaves, false, ref column);
-        DrawSims<LodDataSeaFloorDepth>(OceanRenderer.Instance._lodDataAnimWaves, false, ref column);
+        if (OceanRenderer.Instance._createShadowData) DrawSims<LodDataShadow>(OceanRenderer.Instance._lodDataShadow, false, ref column);
+        DrawSims<LodDataSeaFloorDepth>(OceanRenderer.Instance._lodDataSeaDepths, false, ref column);
     }
 
     static void DrawSims<SimType>(LodData[] lodDatas, bool showByDefault, ref float offset) where SimType : LodData

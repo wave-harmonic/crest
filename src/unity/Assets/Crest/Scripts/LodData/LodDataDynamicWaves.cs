@@ -105,7 +105,7 @@ namespace Crest
             // because the depth is scheduled to render just before the animated waves, and this sim happens before animated waves.
             if (OceanRenderer.Instance._createSeaFloorDepthData)
             {
-                OceanRenderer.Instance._lodDataAnimWaves[LodTransform.LodIndex].LDSeaDepth.BindResultData(1, simMaterial);
+                OceanRenderer.Instance._lodDataSeaDepths[LodTransform.LodIndex].BindResultData(1, simMaterial);
             }
 
             if (OceanRenderer.Instance._createFlowSim)

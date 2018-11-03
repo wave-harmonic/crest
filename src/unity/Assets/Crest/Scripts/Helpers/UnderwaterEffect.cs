@@ -72,15 +72,12 @@ namespace Crest
 
         private void LateUpdate()
         {
-            Vector3 pos = OceanRenderer.Instance.Viewpoint.position;
-            float waterHeight;
-            bool gotHeight = OceanRenderer.Instance.CollisionProvider.SampleHeight(ref pos, out waterHeight);
-            float heightOffset = pos.y - waterHeight;
+            float heightOffset = OceanRenderer.Instance.ViewerHeightAboveWater;
 
             // Disable skirt when camera not close to water. In the first few frames collision may not be avail, in that case no choice
             // but to assume enabled. In the future this could detect if camera is far enough under water, render a simple quad to avoid
             // finding the intersection line.
-            _rend.enabled = heightOffset < _maxHeightAboveWater || !gotHeight;
+            _rend.enabled = heightOffset < _maxHeightAboveWater;
 
             if (_rend.enabled)
             {
@@ -95,6 +92,7 @@ namespace Crest
                     _mpb = new MaterialPropertyBlock();
                 }
                 _rend.GetPropertyBlock(_mpb);
+
                 var ldaws = OceanRenderer.Instance._lodDataAnimWaves;
                 // Underwater rendering uses displacements for intersecting the waves with the near plane, and ocean depth/shadows for ScatterColour()
                 ldaws[0].BindResultData(0, _mpb);

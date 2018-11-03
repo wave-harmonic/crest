@@ -100,6 +100,13 @@ namespace Crest
                 _mpb.SetTexture("_ReflectionTex", OceanRenderer.Instance.PlanarReflection.ReflectionTexture);
             }
 
+            // Hack - due to SV_IsFrontFace occasionally coming through as true for backfaces,
+            // add a param here that forces ocean to be in undrwater state. I think the root
+            // cause here might be imprecision or numerical issues at ocean tile boundaries, although
+            // i'm not sure why cracks are not visible in this case.
+            float heightOffset = OceanRenderer.Instance.ViewerHeightAboveWater;
+            _mpb.SetFloat("_ForceUnderwater", heightOffset < -2f ? 1f : 0f);
+
             _rend.SetPropertyBlock(_mpb);
 
             if (_drawRenderBounds)

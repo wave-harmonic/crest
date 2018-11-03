@@ -301,6 +301,12 @@ Shader "Ocean/Ocean"
 
 				uniform sampler2D _CameraDepthTexture;
 
+				// Hack - due to SV_IsFrontFace occasionally coming through as true for backfaces,
+				// add a param here that forces ocean to be in undrwater state. I think the root
+				// cause here might be imprecision or numerical issues at ocean tile boundaries, although
+				// i'm not sure why cracks are not visible in this case.
+				uniform float _ForceUnderwater;
+
 				float3 WorldSpaceLightDir(float3 worldPos)
 				{
 					float3 lightDir = _WorldSpaceLightPos0.xyz;
@@ -312,14 +318,18 @@ Shader "Ocean/Ocean"
 					return lightDir;
 				}
 
+				bool IsUnderwater(const bool i_isFrontFace)
+				{
+#if _UNDERWATER_ON
+					return !i_isFrontFace || _ForceUnderwater > 0.0;
+#else
+					return false;
+#endif
+				}
+
 				half4 frag(const v2f i, const bool i_isFrontFace : SV_IsFrontFace) : SV_Target
 				{
-					const bool underwater =
-#if _UNDERWATER_ON
-						!i_isFrontFace;
-#else
-						false;
-#endif
+					const bool underwater = IsUnderwater(i_isFrontFace);
 
 					half3 view = normalize(_WorldSpaceCameraPos - i.worldPos);
 

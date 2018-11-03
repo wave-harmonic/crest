@@ -112,6 +112,11 @@ namespace Crest
         [HideInInspector] public Camera[] _camsDynWaves;
         public int CurrentLodCount { get { return _camsAnimWaves.Length; } }
 
+        /// <summary>
+        /// Vertical offset of viewer vs water surface
+        /// </summary>
+        public float ViewerHeightAboveWater { get; private set; }
+
         void Awake()
         {
             if (_material == null)
@@ -174,6 +179,7 @@ namespace Crest
 
             LateUpdatePosition();
             LateUpdateScale();
+            LateUpdateViewerHeight();
 
             float maxWavelength = _lodDataAnimWaves[_lodDataAnimWaves.Length - 1].MaxWavelength();
             Shader.SetGlobalFloat("_MaxWavelength", maxWavelength);
@@ -214,6 +220,16 @@ namespace Crest
             transform.localScale = new Vector3(newScale, 1f, newScale);
 
             Shader.SetGlobalFloat("_ViewerAltitudeLevelAlpha", _viewerAltitudeLevelAlpha);
+        }
+
+        void LateUpdateViewerHeight()
+        {
+            Vector3 pos = Viewpoint.position;
+            float waterHeight;
+            if (CollisionProvider.SampleHeight(ref pos, out waterHeight))
+            {
+                ViewerHeightAboveWater = pos.y - waterHeight;
+            }
         }
 
         private void OnDestroy()

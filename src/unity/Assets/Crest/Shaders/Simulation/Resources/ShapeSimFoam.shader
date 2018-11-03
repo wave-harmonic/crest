@@ -28,6 +28,7 @@ Shader "Ocean/Shape/Sim/Foam"
 
 				struct appdata_t {
 					float4 vertex : POSITION;
+					float2 uv : TEXCOORD0;
 				};
 
 				struct v2f {
@@ -43,8 +44,10 @@ Shader "Ocean/Shape/Sim/Foam"
 					v2f o;
 					o.vertex = UnityObjectToClipPos(v.vertex);
 
-					float3 world = mul(unity_ObjectToWorld, v.vertex);
-					ComputeUVs(world, o.vertex.xy, o.uv_uv_lastframe.zw, o.uv_uv_lastframe.xy, o.invRes);
+					// lod data 1 is current frame, compute world pos from quad uv
+					float2 worldXZ = LD_1_UVToWorld(v.uv);
+
+					ComputeUVs(worldXZ, o.vertex.xy, o.uv_uv_lastframe.zw, o.uv_uv_lastframe.xy, o.invRes);
 
 					return o;
 				}

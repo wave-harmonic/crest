@@ -33,36 +33,7 @@ namespace Crest
         {
             base.Start();
 
-            CreateRenderSimQuad();
-        }
-
-        private void CreateRenderSimQuad()
-        {
-            // utility quad which will be rasterized by the shape camera
-            _renderSim = CreateRasterQuad("RenderSim_" + SimName);
-            _renderSim.transform.parent = transform;
-            _renderSim.transform.localScale = Vector3.one * 4f;
-            _renderSim.transform.localPosition = Vector3.forward * 25f;
-            _renderSim.transform.localRotation = Quaternion.identity;
-            _renderSim.GetComponent<Renderer>().material = _renderSimMaterial = new Material(Shader.Find(ShaderSim));
-            _renderSim.GetComponent<Renderer>().enabled = false;
-        }
-
-        GameObject CreateRasterQuad(string name)
-        {
-            var result = GameObject.CreatePrimitive(PrimitiveType.Quad);
-            result.name = name;
-            Destroy(result.GetComponent<Collider>());
-
-            var rend = result.GetComponent<Renderer>();
-            rend.lightProbeUsage = LightProbeUsage.Off;
-            rend.reflectionProbeUsage = ReflectionProbeUsage.Off;
-            rend.shadowCastingMode = ShadowCastingMode.Off;
-            rend.receiveShadows = false;
-            rend.motionVectorGenerationMode = MotionVectorGenerationMode.ForceNoMotion;
-            rend.allowOcclusionWhenDynamic = false;
-
-            return result;
+            _renderSimMaterial = new Material(Shader.Find(ShaderSim));
         }
 
         public void BindSourceData(int shapeSlot, Material properties, bool paramsOnly)
@@ -83,8 +54,10 @@ namespace Crest
                 _advanceSimCmdBuf = new CommandBuffer();
                 _advanceSimCmdBuf.name = "AdvanceSim_" + SimName;
                 Cam.AddCommandBuffer(CameraEvent.BeforeForwardAlpha, _advanceSimCmdBuf);
-                _advanceSimCmdBuf.DrawRenderer(GetComponentInChildren<MeshRenderer>(), _renderSimMaterial);
             }
+
+            _advanceSimCmdBuf.Clear();
+            _advanceSimCmdBuf.Blit(null, PPRTs.Target, _renderSimMaterial);
 
             float dt = SimDeltaTime;
             _renderSimMaterial.SetFloat("_SimDeltaTime", dt);

@@ -28,6 +28,7 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 
 				struct appdata_t {
 					float4 vertex : POSITION;
+					float2 uv : TEXCOORD0;
 				};
 
 				struct v2f {
@@ -43,9 +44,12 @@ Shader "Ocean/Shape/Sim/2D Wave Equation"
 					v2f o;
 					o.vertex = UnityObjectToClipPos(v.vertex);
 
-					float3 world = mul(unity_ObjectToWorld, v.vertex);
-					ComputeUVs(world, o.vertex.xy, o.worldPosLastFrame_invRes.xy, o.uv, o.worldPosLastFrame_invRes.z);
-					o.worldPosLastFrame_invRes.xy = world.xz;
+					// lod data 1 is current frame, compute world pos from quad uv
+					float2 worldXZ = LD_1_UVToWorld(v.uv);
+
+					ComputeUVs(worldXZ, o.vertex.xy, o.worldPosLastFrame_invRes.xy, o.uv, o.worldPosLastFrame_invRes.z);
+					o.worldPosLastFrame_invRes.xy = worldXZ;
+
 					return o;
 				}
 

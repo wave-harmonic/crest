@@ -95,6 +95,7 @@ namespace Crest
             _camReflections.transform.position = newpos;
             Vector3 euler = _camViewpoint.transform.eulerAngles;
             _camReflections.transform.eulerAngles = new Vector3(-euler.x, euler.y, euler.z);
+            _camReflections.cullingMatrix = _camReflections.projectionMatrix * _camReflections.worldToCameraMatrix;
             _camReflections.Render();
             GL.invertCulling = oldCulling;
 

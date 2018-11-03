@@ -98,7 +98,7 @@ Shader "Ocean/Underwater Curtain"
 				// Spread verts across the near plane.
 				const float aspect = _ScreenParams.x / _ScreenParams.y;
 				o.worldPos = nearPlaneCenter
-					+ 2.01 * unity_CameraInvProjection._m11 * aspect * right * v.vertex.x * _ProjectionParams.y
+					+ 2.1 * unity_CameraInvProjection._m11 * aspect * right * v.vertex.x * _ProjectionParams.y
 					+ up * v.vertex.z * _ProjectionParams.y;
 
 				// Isolate topmost edge

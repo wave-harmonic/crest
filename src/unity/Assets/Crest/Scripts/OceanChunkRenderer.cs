@@ -85,7 +85,7 @@ namespace Crest
             var ldshadows = OceanRenderer.Instance._lodDataShadow;
 
             ldaws[_lodIndex].BindResultData(0, _mpb);
-            if (OceanRenderer.Instance._createFlowSim) ldaws[_lodIndex].BindResultData(0, _mpb);
+            if (OceanRenderer.Instance._createFlowSim) ldflows[_lodIndex].BindResultData(0, _mpb);
             if (OceanRenderer.Instance._createFoamSim) ldfoams[_lodIndex].BindResultData(0, _mpb);
             if (OceanRenderer.Instance._createSeaFloorDepthData) ldsds[_lodIndex].BindResultData(0, _mpb);
             if (OceanRenderer.Instance._createShadowData) ldshadows[_lodIndex].BindResultData(0, _mpb);

@@ -140,7 +140,7 @@ namespace Crest
                 var lt = data.LodTransform;
                 if (lt._renderData._texelWidth >= _minGridSize && (lt._renderData._texelWidth <= _maxGridSize || _maxGridSize == 0f))
                 {
-                    var cam = lt.GetComponent<Camera>();
+                    var cam = data.GetComponent<Camera>();
 
                     if (!_perLodData.ContainsKey(lt._renderData._texelWidth))
                     {

@@ -69,6 +69,16 @@ namespace Crest
             _oceanLocalScalePrev = oceanLocalScale;
             float ratio_l2 = Mathf.Log(ratio) / Mathf.Log(2f);
             _scaleDifferencePow2 = Mathf.RoundToInt(ratio_l2);
+
+            // ensure camera size matches geometry size - although the projection matrix is overridden, this is needed for unity shader uniforms
+            Cam.orthographicSize = 2f * transform.lossyScale.x;
+
+            // set projection matrix to snap to texels
+            Cam.ResetProjectionMatrix();
+            Matrix4x4 P = Cam.projectionMatrix, T = new Matrix4x4();
+            T.SetTRS(new Vector3(transform.position.x - LodTransform._renderData._posSnapped.x, transform.position.z - LodTransform._renderData._posSnapped.z), Quaternion.identity, Vector3.one);
+            P = P * T;
+            Cam.projectionMatrix = P;
         }
 
         protected PropertyWrapperMaterial _pwMat = new PropertyWrapperMaterial();
@@ -122,12 +132,6 @@ namespace Crest
         public static GameObject CreateLodData(int lodIdx, int lodCount, GameObject attachGO, float baseVertDensity, SimType simType, Dictionary<System.Type, SimSettingsBase> cachedSettings)
         {
             var go = attachGO ?? new GameObject(string.Format("{0}Cam{1}", simType.ToString(), lodIdx));
-
-            if (attachGO == null)
-            {
-                // Add component if we are creating a loddata GO anew
-                go.AddComponent<LodTransform>().InitLODData(lodIdx, lodCount); ;
-            }
 
             LodData sim;
             switch (simType)
@@ -216,6 +220,6 @@ namespace Crest
         }
 
         Camera _camera; public Camera Cam { get { return _camera ?? (_camera = GetComponent<Camera>()); } }
-        LodTransform _lt; public LodTransform LodTransform { get { return _lt ?? (_lt = GetComponent<LodTransform>()); } }
+        LodTransform _lt; public LodTransform LodTransform { get { return _lt ?? (_lt = transform.parent.GetComponent<LodTransform>()); } }
     }
 }

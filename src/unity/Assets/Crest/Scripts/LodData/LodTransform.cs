@@ -52,22 +52,14 @@ namespace Crest
 
             _renderDataPrevFrame = _renderData;
 
-            // ensure camera size matches geometry size - although the projection matrix is overridden, this is needed for unity shader uniforms
-            Cam.orthographicSize = 2f * transform.lossyScale.x;
+            float camOrthSize = 2f * transform.lossyScale.x;
 
             // find snap period
             _renderData._textureRes = OceanRenderer.Instance.LodDataResolution;
-            _renderData._texelWidth = 2f * Cam.orthographicSize / _renderData._textureRes;
+            _renderData._texelWidth = 2f * camOrthSize / _renderData._textureRes;
             // snap so that shape texels are stationary
             _renderData._posSnapped = transform.position
                 - new Vector3(Mathf.Repeat(transform.position.x, _renderData._texelWidth), 0f, Mathf.Repeat(transform.position.z, _renderData._texelWidth));
-
-            // set projection matrix to snap to texels
-            Cam.ResetProjectionMatrix();
-            Matrix4x4 P = Cam.projectionMatrix, T = new Matrix4x4();
-            T.SetTRS(new Vector3(transform.position.x - _renderData._posSnapped.x, transform.position.z - _renderData._posSnapped.z), Quaternion.identity, Vector3.one);
-            P = P * T;
-            Cam.projectionMatrix = P;
 
             _renderData._frame = Time.frameCount;
 
@@ -79,7 +71,5 @@ namespace Crest
                 _renderDataPrevFrame._textureRes = _renderData._textureRes;
             }
         }
-
-        Camera _camera; protected Camera Cam { get { return _camera ?? (_camera = GetComponent<Camera>()); } }
     }
 }

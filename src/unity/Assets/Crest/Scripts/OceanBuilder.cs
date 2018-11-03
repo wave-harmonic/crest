@@ -439,6 +439,9 @@ namespace Crest
             parent.transform.localPosition = Vector3.zero;
             parent.transform.localRotation = Quaternion.identity;
 
+            var lt = parent.AddComponent<LodTransform>();
+            lt.InitLODData(lodIndex, lodCount);
+
             // add LOD data cameras into this LOD
             PlaceLodData(ocean._lodDataAnimWaves[lodIndex].transform, parent.transform);
             if (ocean._lodDataFoam[lodIndex] != null)

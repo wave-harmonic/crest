@@ -32,9 +32,9 @@ namespace Crest
 
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // --- Dynamic waves camera renders second
-            for (int i = 0; i < ocean.CurrentLodCount && ocean._camsDynWaves[i] != null; i++)
+            for (int i = 0; i < ocean.CurrentLodCount && ocean._lodDataDynWaves[i] != null; i++)
             {
-                ocean._camsDynWaves[i].depth = -40 - i;
+                ocean._lodDataDynWaves[i].GetComponent<Camera>().depth = -40 - i;
             }
 
 
@@ -46,9 +46,9 @@ namespace Crest
 
                 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
                 // --- Copy dynamic waves into animated waves (convert to displacements in the process)
-                if (ocean._camsDynWaves[i] != null)
+                if (ocean._lodDataDynWaves[i] != null)
                 {
-                    ocean._camsDynWaves[i].GetComponent<LodDataDynamicWaves>().HookCombinePass(ocean._camsAnimWaves[i], CameraEvent.AfterForwardAlpha);
+                    ocean._lodDataDynWaves[i].HookCombinePass(ocean._camsAnimWaves[i], CameraEvent.AfterForwardAlpha);
                 }
             }
 
@@ -60,9 +60,9 @@ namespace Crest
 
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // --- Foam takes the final combined waves as input and generates foam
-            for (int i = 0; i < ocean.CurrentLodCount && ocean._camsFoam[i] != null; i++)
+            for (int i = 0; i < ocean.CurrentLodCount && ocean._lodDataFoam[i] != null; i++)
             {
-                ocean._camsFoam[i].depth = -20 - i;
+                ocean._lodDataFoam[i].GetComponent<Camera>().depth = -20 - i;
             }
 
 

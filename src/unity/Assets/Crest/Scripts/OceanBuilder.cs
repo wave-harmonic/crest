@@ -163,9 +163,9 @@ namespace Crest
             // create the shape cameras
             ocean._camsAnimWaves = new Camera[lodCount];
             ocean._lodDataAnimWaves = new LodDataAnimatedWaves[lodCount];
-            ocean._camsFoam = new Camera[lodCount];
+            ocean._lodDataFoam = new LodDataFoam[lodCount];
             ocean._camsFlow = new Camera[lodCount];
-            ocean._camsDynWaves = new Camera[lodCount];
+            ocean._lodDataDynWaves = new LodDataDynamicWaves[lodCount];
 
             var cachedSettings = new Dictionary<System.Type, SimSettingsBase>();
 
@@ -198,7 +198,7 @@ namespace Crest
                 if (ocean._createFoamSim)
                 {
                     var go = LodData.CreateLodData(i, lodCount, null, baseVertDensity, LodData.SimType.Foam, cachedSettings);
-                    ocean._camsFoam[i] = go.GetComponent<Camera>();
+                    ocean._lodDataFoam[i] = go.GetComponent<LodDataFoam>();
                 }
 
                 if(ocean._createFlowSim)
@@ -210,7 +210,7 @@ namespace Crest
                 if (ocean._createDynamicWaveSim)
                 {
                     var go = LodData.CreateLodData(i, lodCount, null, baseVertDensity, LodData.SimType.DynamicWaves, cachedSettings);
-                    ocean._camsDynWaves[i] = go.GetComponent<Camera>();
+                    ocean._lodDataDynWaves[i] = go.GetComponent<LodDataDynamicWaves>();
                 }
             }
 
@@ -439,12 +439,12 @@ namespace Crest
 
             // add LOD data cameras into this LOD
             PlaceLodData(ocean._camsAnimWaves[lodIndex].transform, parent.transform);
-            if (ocean._camsFoam[lodIndex] != null)
-                PlaceLodData(ocean._camsFoam[lodIndex].transform, parent.transform);
+            if (ocean._lodDataFoam[lodIndex] != null)
+                PlaceLodData(ocean._lodDataFoam[lodIndex].transform, parent.transform);
             if (ocean._camsFlow[lodIndex] != null)
                 PlaceLodData(ocean._camsFlow[lodIndex].transform, parent.transform);
-            if (ocean._camsDynWaves[lodIndex] != null)
-                PlaceLodData(ocean._camsDynWaves[lodIndex].transform, parent.transform);
+            if (ocean._lodDataDynWaves[lodIndex] != null)
+                PlaceLodData(ocean._lodDataDynWaves[lodIndex].transform, parent.transform);
 
             bool generateSkirt = biggestLOD && !ocean._disableSkirt;
 

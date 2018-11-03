@@ -144,8 +144,8 @@ public class OceanDebugGUI : MonoBehaviour
         float column = 1f;
 
         DrawSims<LodDataAnimatedWaves>(OceanRenderer.Instance._camsAnimWaves, true, ref column);
-        if (OceanRenderer.Instance._createFoamSim) DrawSims<LodDataFoam>(OceanRenderer.Instance._camsFoam, false, ref column);
-        if (OceanRenderer.Instance._createDynamicWaveSim) DrawSims<LodDataDynamicWaves>(OceanRenderer.Instance._camsDynWaves, false, ref column);
+        //if (OceanRenderer.Instance._createFoamSim) DrawSims<LodDataFoam>(OceanRenderer.Instance._lodDataFoam, false, ref column);
+        //if (OceanRenderer.Instance._createDynamicWaveSim) DrawSims<LodDataDynamicWaves>(OceanRenderer.Instance._lodDataDynWaves, false, ref column);
         if (OceanRenderer.Instance._createFlowSim) DrawSims<LodDataFlow>(OceanRenderer.Instance._camsFlow, false, ref column);
         if (OceanRenderer.Instance._createShadowData) DrawSims<LodDataShadow>(OceanRenderer.Instance._camsAnimWaves, false, ref column);
         DrawSims<LodDataSeaFloorDepth>(OceanRenderer.Instance._camsAnimWaves, false, ref column);

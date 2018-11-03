@@ -24,7 +24,7 @@ namespace Crest
         CommandBuffer _advanceSimCmdBuf;
 
         protected abstract string ShaderSim { get; }
-        protected abstract Camera[] SimCameras { get; }
+        protected abstract LodDataPersistent[] SimComponents { get; }
 
         float _simDeltaTimePrev = 1f / 60f;
         protected float SimDeltaTime { get { return Mathf.Min(Time.deltaTime, MAX_SIM_DELTA_TIME); } }
@@ -67,10 +67,10 @@ namespace Crest
             // compute which lod data we are sampling source data from. if a scale change has happened this can be any lod up or down the chain.
             int srcDataIdx = LodTransform.LodIndex + _scaleDifferencePow2;
 
-            if (srcDataIdx >= 0 && srcDataIdx < SimCameras.Length)
+            if (srcDataIdx >= 0 && srcDataIdx < SimComponents.Length)
             {
                 // bind data to slot 0 - previous frame data
-                SimCameras[srcDataIdx].GetComponent<LodDataPersistent>().BindSourceData(0, _renderSimMaterial, false);
+                SimComponents[srcDataIdx].BindSourceData(0, _renderSimMaterial, false);
             }
             else
             {

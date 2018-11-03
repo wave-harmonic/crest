@@ -12,7 +12,7 @@ namespace Crest
         public override SimType LodDataType { get { return SimType.Foam; } }
         protected override string ShaderSim { get { return "Ocean/Shape/Sim/Foam"; } }
         public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RHalf; } }
-        protected override Camera[] SimCameras { get { return OceanRenderer.Instance._camsFoam; } }
+        protected override LodDataPersistent[] SimComponents { get { return OceanRenderer.Instance._lodDataFoam; } }
 
         public override SimSettingsBase CreateDefaultSettings()
         {

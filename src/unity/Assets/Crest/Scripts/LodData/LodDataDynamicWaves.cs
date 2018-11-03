@@ -13,7 +13,7 @@ namespace Crest
         public override SimType LodDataType { get { return SimType.DynamicWaves; } }
         protected override string ShaderSim { get { return "Ocean/Shape/Sim/2D Wave Equation"; } }
         public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RGHalf; } }
-        protected override Camera[] SimCameras { get { return OceanRenderer.Instance._camsDynWaves; } }
+        protected override LodDataPersistent[] SimComponents { get { return OceanRenderer.Instance._lodDataDynWaves; } }
 
         public override SimSettingsBase CreateDefaultSettings()
         {
@@ -127,16 +127,16 @@ namespace Crest
         public static void CountWaveSims(int countFrom, out int present, out int active)
         {
             present = active = 0;
-            foreach (var ldaw in OceanRenderer.Instance._lodDataAnimWaves)
+            foreach (var lddw in OceanRenderer.Instance._lodDataDynWaves)
             {
-                if (ldaw.LDDynamicWaves == null)
+                if (lddw == null)
                     continue;
                 present++;
 
-                if (ldaw.LodTransform.LodIndex < countFrom)
+                if (lddw.LodTransform.LodIndex < countFrom)
                     continue;
 
-                if (!ldaw.LDDynamicWaves.Active)
+                if (!lddw.Active)
                     continue;
                 active++;
             }

@@ -81,12 +81,13 @@ namespace Crest
             var ldaws = OceanRenderer.Instance._lodDataAnimWaves;
             var ldfoams = OceanRenderer.Instance._lodDataFoam;
             var ldflows = OceanRenderer.Instance._lodDataFlow;
+            var ldshadows = OceanRenderer.Instance._lodDataFlow;
 
             ldaws[_lodIndex].BindResultData(0, _mpb);
             if (OceanRenderer.Instance._createFlowSim) ldaws[_lodIndex].BindResultData(0, _mpb);
             if (OceanRenderer.Instance._createFoamSim) ldfoams[_lodIndex].BindResultData(0, _mpb);
             if (OceanRenderer.Instance._createSeaFloorDepthData) ldaws[_lodIndex].LDSeaDepth.BindResultData(0, _mpb);
-            if (OceanRenderer.Instance._createShadowData) ldaws[_lodIndex].LDShadow.BindResultData(0, _mpb);
+            if (OceanRenderer.Instance._createShadowData) ldshadows[_lodIndex].BindResultData(0, _mpb);
 
             if (_lodIndex + 1 < ldaws.Length)
             {
@@ -94,7 +95,7 @@ namespace Crest
                 if (OceanRenderer.Instance._createFlowSim) ldflows[_lodIndex + 1].BindResultData(1, _mpb);
                 if (OceanRenderer.Instance._createFoamSim) ldfoams[_lodIndex + 1].BindResultData(1, _mpb);
                 if (OceanRenderer.Instance._createSeaFloorDepthData) ldaws[_lodIndex + 1].LDSeaDepth.BindResultData(1, _mpb);
-                if (OceanRenderer.Instance._createShadowData) ldaws[_lodIndex + 1].LDShadow.BindResultData(1, _mpb);
+                if (OceanRenderer.Instance._createShadowData) ldshadows[_lodIndex + 1].BindResultData(1, _mpb);
             }
 
             if (OceanRenderer.Instance.PlanarReflection && OceanRenderer.Instance.PlanarReflection.ReflectionTexture)

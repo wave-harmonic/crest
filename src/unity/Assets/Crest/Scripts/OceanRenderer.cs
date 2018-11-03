@@ -109,6 +109,7 @@ namespace Crest
         [HideInInspector] public LodDataFoam[] _lodDataFoam;
         [HideInInspector] public LodDataFlow[] _lodDataFlow;
         [HideInInspector] public LodDataDynamicWaves[] _lodDataDynWaves;
+        [HideInInspector] public LodDataShadow[] _lodDataShadow;
         public int CurrentLodCount { get { return _lodDataAnimWaves.Length; } }
 
         /// <summary>

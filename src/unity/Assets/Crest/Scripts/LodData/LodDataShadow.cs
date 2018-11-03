@@ -168,9 +168,9 @@ namespace Crest
             // compute which lod data we are sampling previous frame shadows from. if a scale change has happened this can be any lod up or down the chain.
             int srcDataIdx = LodTransform.LodIndex + _scaleDifferencePow2;
             srcDataIdx = Mathf.Clamp(srcDataIdx, 0, LodTransform.LodCount - 1);
-            var lds = OceanRenderer.Instance._lodDataAnimWaves;
+            var ldss = OceanRenderer.Instance._lodDataShadow;
             // bind data to slot 0 - previous frame data
-            lds[srcDataIdx].LDShadow.BindSourceData(0, _renderMaterial, false);
+            ldss[srcDataIdx].BindSourceData(0, _renderMaterial, false);
             _bufCopyShadowMap.Blit(Texture2D.blackTexture, _shadowData[_rtIndex], _renderMaterial);
         }
 

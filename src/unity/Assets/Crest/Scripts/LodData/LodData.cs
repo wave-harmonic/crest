@@ -216,9 +216,5 @@ namespace Crest
         public LodDataSeaFloorDepth LDSeaDepth { get {
                 return _ldsd ?? (_ldsd = GetComponent<LodDataSeaFloorDepth>());
         } }
-        LodDataShadow _ldshadow;
-        public LodDataShadow LDShadow { get {
-                return _ldshadow ?? (_ldshadow = GetComponent<LodDataShadow>());
-        } }
     }
 }

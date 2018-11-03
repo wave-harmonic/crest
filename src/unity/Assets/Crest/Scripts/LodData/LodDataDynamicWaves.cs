@@ -110,7 +110,7 @@ namespace Crest
 
             if (OceanRenderer.Instance._createFlowSim)
             {
-                OceanRenderer.Instance._lodDataAnimWaves[LodTransform.LodIndex].LDFlow.BindResultData(1, simMaterial);
+                OceanRenderer.Instance._lodDataFlow[LodTransform.LodIndex].BindResultData(1, simMaterial);
             }
 
         }

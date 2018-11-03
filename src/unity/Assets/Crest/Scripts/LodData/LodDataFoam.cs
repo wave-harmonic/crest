@@ -44,6 +44,7 @@ namespace Crest
             simMaterial.SetFloat("_ShorelineFoamStrength", Settings._shorelineFoamStrength);
 
             var animWaves = OceanRenderer.Instance._lodDataAnimWaves;
+            var flows = OceanRenderer.Instance._lodDataAnimWaves;
             int lodIdx = LodTransform.LodIndex;
 
             // assign animated waves - to slot 1 current frame data
@@ -58,7 +59,7 @@ namespace Crest
             // assign flow - to slot 1 current frame data
             if (OceanRenderer.Instance._createFlowSim)
             {
-                animWaves[lodIdx].LDFlow.BindResultData(1, simMaterial);
+                flows[lodIdx].BindResultData(1, simMaterial);
             }
         }
 

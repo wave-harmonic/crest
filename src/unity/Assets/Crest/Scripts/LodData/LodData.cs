@@ -220,9 +220,5 @@ namespace Crest
         public LodDataShadow LDShadow { get {
                 return _ldshadow ?? (_ldshadow = GetComponent<LodDataShadow>());
         } }
-        LodDataFlow _ldfl;
-        public LodDataFlow LDFlow { get {
-                return _ldfl ?? (_ldfl = OceanRenderer.Instance._lodDataFlow[LodTransform.LodIndex]);
-        } }
     }
 }

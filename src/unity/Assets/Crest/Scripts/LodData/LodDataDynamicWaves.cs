@@ -87,7 +87,7 @@ namespace Crest
             {
                 _copySimResultsCmdBuf.Clear();
                 _copySimResultsCmdBuf.Blit(
-                    PPRTs.Target, OceanRenderer.Instance._lodDataAnimWaves[LodTransform.LodIndex].GetComponent<Camera>().targetTexture, _copySimMaterial);
+                    PPRTs.Target, OceanRenderer.Instance._lodDataAnimWaves[LodTransform.LodIndex].Cam.targetTexture, _copySimMaterial);
             }
         }
 

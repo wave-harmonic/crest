@@ -58,9 +58,10 @@ Shader "Ocean/Ocean"
 		_FoamScale("Scale", Range(0.01, 50.0)) = 10.0
 		_FoamWhiteColor("White Foam Color", Color) = (1.0, 1.0, 1.0, 1.0)
 		_FoamBubbleColor("Bubble Foam Color", Color) = (0.64, 0.83, 0.82, 1.0)
+		_FoamBubbleParallax("Bubble Foam Parallax", Range(0.0, 0.25)) = 0.05
 		_ShorelineFoamMinDepth("Shoreline Foam Min Depth", Range(0.01, 5.0)) = 0.27
-		_WaveFoamFeather("Wave Foam Feather", Range(0.001,1.0)) = 0.32
-		_WaveFoamBubblesCoverage("Wave Foam Bubbles Coverage", Range(0.0,5.0)) = 0.95
+		_WaveFoamFeather("Wave Foam Feather", Range(0.001, 1.0)) = 0.32
+		_WaveFoamBubblesCoverage("Wave Foam Bubbles Coverage", Range(0.0, 5.0)) = 0.95
 
 		[Header(Foam 3D Lighting)]
 		[Toggle] _Foam3DLighting("Enable", Float) = 1

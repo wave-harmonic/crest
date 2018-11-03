@@ -222,7 +222,7 @@ namespace Crest
         } }
         LodDataFlow _ldfl;
         public LodDataFlow LDFlow { get {
-                return _ldfl ?? (_ldfl = OceanRenderer.Instance._camsFlow[LodTransform.LodIndex].GetComponent<LodDataFlow>());
+                return _ldfl ?? (_ldfl = OceanRenderer.Instance._lodDataFlow[LodTransform.LodIndex]);
         } }
     }
 }

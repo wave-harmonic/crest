@@ -25,9 +25,9 @@ namespace Crest
         {
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // --- Flow camera renders first
-            for (int i = 0; i < ocean.CurrentLodCount && ocean._camsFlow[i] != null; i++)
+            for (int i = 0; i < ocean.CurrentLodCount && ocean._lodDataFlow[i] != null; i++)
             {
-                ocean._camsFlow[i].depth = -50 - i;
+                ocean._lodDataFlow[i].GetComponent<Camera>().depth = -50 - i;
             }
 
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -42,20 +42,20 @@ namespace Crest
             // --- Animated waves next
             for (int i = 0; i < ocean.CurrentLodCount; i++)
             {
-                ocean._camsAnimWaves[i].depth = -30 - i;
+                ocean._lodDataAnimWaves[i].GetComponent<Camera>().depth = -30 - i;
 
                 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
                 // --- Copy dynamic waves into animated waves (convert to displacements in the process)
                 if (ocean._lodDataDynWaves[i] != null)
                 {
-                    ocean._lodDataDynWaves[i].HookCombinePass(ocean._camsAnimWaves[i], CameraEvent.AfterForwardAlpha);
+                    ocean._lodDataDynWaves[i].HookCombinePass(ocean._lodDataAnimWaves[i].GetComponent<Camera>(), CameraEvent.AfterForwardAlpha);
                 }
             }
 
 
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // --- Do combine passes to carry long wavelengths/low detail up the chain into the high detail lods
-            ocean._lodDataAnimWaves[0].HookCombinePass(ocean._camsAnimWaves[0], CameraEvent.AfterEverything);
+            ocean._lodDataAnimWaves[0].HookCombinePass(ocean._lodDataAnimWaves[0].GetComponent<Camera>(), CameraEvent.AfterEverything);
 
 
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////

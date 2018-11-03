@@ -289,7 +289,8 @@ namespace Crest
         {
             if(_cmdBufWaveAdded[lodIndex] != CmdBufStatus.Attached)
             {
-                OceanRenderer.Instance._camsAnimWaves[lodIndex].AddCommandBuffer(CameraEvent.BeforeForwardAlpha, _renderWaveShapeCmdBufs[lodIndex]);
+                OceanRenderer.Instance._lodDataAnimWaves[lodIndex].GetComponent<Camera>()
+                    .AddCommandBuffer(CameraEvent.BeforeForwardAlpha, _renderWaveShapeCmdBufs[lodIndex]);
                 _cmdBufWaveAdded[lodIndex] = CmdBufStatus.Attached;
             }
         }
@@ -298,7 +299,8 @@ namespace Crest
         {
             if (_cmdBufWaveAdded[lodIndex] != CmdBufStatus.NotAttached)
             {
-                OceanRenderer.Instance._camsAnimWaves[lodIndex].RemoveCommandBuffer(CameraEvent.BeforeForwardAlpha, _renderWaveShapeCmdBufs[lodIndex]);
+                OceanRenderer.Instance._lodDataAnimWaves[lodIndex].GetComponent<Camera>()
+                    .RemoveCommandBuffer(CameraEvent.BeforeForwardAlpha, _renderWaveShapeCmdBufs[lodIndex]);
                 _cmdBufWaveAdded[lodIndex] = CmdBufStatus.NotAttached;
             }
         }
@@ -308,9 +310,11 @@ namespace Crest
             if(_cmdBufBigWavesAdded != CmdBufStatus.Attached)
             {
                 int lastLod = OceanRenderer.Instance.CurrentLodCount - 1;
-                OceanRenderer.Instance._camsAnimWaves[lastLod].AddCommandBuffer(CameraEvent.BeforeForwardAlpha, _renderBigWavelengthsShapeCmdBuf);
+                OceanRenderer.Instance._lodDataAnimWaves[lastLod].GetComponent<Camera>()
+                    .AddCommandBuffer(CameraEvent.BeforeForwardAlpha, _renderBigWavelengthsShapeCmdBuf);
                 // the second-to-last lod will transition content into it from the last lod
-                OceanRenderer.Instance._camsAnimWaves[lastLod - 1].AddCommandBuffer(CameraEvent.BeforeForwardAlpha, _renderBigWavelengthsShapeCmdBufTransition);
+                OceanRenderer.Instance._lodDataAnimWaves[lastLod - 1].GetComponent<Camera>()
+                    .AddCommandBuffer(CameraEvent.BeforeForwardAlpha, _renderBigWavelengthsShapeCmdBufTransition);
 
                 _cmdBufBigWavesAdded = CmdBufStatus.Attached;
             }
@@ -321,9 +325,11 @@ namespace Crest
             if (_cmdBufBigWavesAdded != CmdBufStatus.NotAttached)
             {
                 int lastLod = OceanRenderer.Instance.CurrentLodCount - 1;
-                OceanRenderer.Instance._camsAnimWaves[lastLod].RemoveCommandBuffer(CameraEvent.BeforeForwardAlpha, _renderBigWavelengthsShapeCmdBuf);
+                OceanRenderer.Instance._lodDataAnimWaves[lastLod].GetComponent<Camera>()
+                    .RemoveCommandBuffer(CameraEvent.BeforeForwardAlpha, _renderBigWavelengthsShapeCmdBuf);
                 // the second-to-last lod will transition content into it from the last lod
-                OceanRenderer.Instance._camsAnimWaves[lastLod - 1].RemoveCommandBuffer(CameraEvent.BeforeForwardAlpha, _renderBigWavelengthsShapeCmdBufTransition);
+                OceanRenderer.Instance._lodDataAnimWaves[lastLod - 1].GetComponent<Camera>()
+                    .RemoveCommandBuffer(CameraEvent.BeforeForwardAlpha, _renderBigWavelengthsShapeCmdBufTransition);
 
                 _cmdBufBigWavesAdded = CmdBufStatus.NotAttached;
             }

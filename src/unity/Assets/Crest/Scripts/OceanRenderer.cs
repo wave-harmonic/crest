@@ -106,11 +106,10 @@ namespace Crest
         public float SeaLevel { get { return transform.position.y; } }
 
         [HideInInspector] public LodDataAnimatedWaves[] _lodDataAnimWaves;
-        [HideInInspector] public Camera[] _camsAnimWaves;
         [HideInInspector] public LodDataFoam[] _lodDataFoam;
-        [HideInInspector] public Camera[] _camsFlow;
+        [HideInInspector] public LodDataFlow[] _lodDataFlow;
         [HideInInspector] public LodDataDynamicWaves[] _lodDataDynWaves;
-        public int CurrentLodCount { get { return _camsAnimWaves.Length; } }
+        public int CurrentLodCount { get { return _lodDataAnimWaves.Length; } }
 
         /// <summary>
         /// Vertical offset of viewer vs water surface

@@ -143,15 +143,15 @@ public class OceanDebugGUI : MonoBehaviour
         // draw sim data
         float column = 1f;
 
-        DrawSims<LodDataAnimatedWaves>(OceanRenderer.Instance._camsAnimWaves, true, ref column);
-        //if (OceanRenderer.Instance._createFoamSim) DrawSims<LodDataFoam>(OceanRenderer.Instance._lodDataFoam, false, ref column);
-        //if (OceanRenderer.Instance._createDynamicWaveSim) DrawSims<LodDataDynamicWaves>(OceanRenderer.Instance._lodDataDynWaves, false, ref column);
-        if (OceanRenderer.Instance._createFlowSim) DrawSims<LodDataFlow>(OceanRenderer.Instance._camsFlow, false, ref column);
-        if (OceanRenderer.Instance._createShadowData) DrawSims<LodDataShadow>(OceanRenderer.Instance._camsAnimWaves, false, ref column);
-        DrawSims<LodDataSeaFloorDepth>(OceanRenderer.Instance._camsAnimWaves, false, ref column);
+        DrawSims<LodDataAnimatedWaves>(OceanRenderer.Instance._lodDataAnimWaves, true, ref column);
+        if (OceanRenderer.Instance._createFoamSim) DrawSims<LodDataFoam>(OceanRenderer.Instance._lodDataFoam, false, ref column);
+        if (OceanRenderer.Instance._createDynamicWaveSim) DrawSims<LodDataDynamicWaves>(OceanRenderer.Instance._lodDataDynWaves, false, ref column);
+        if (OceanRenderer.Instance._createFlowSim) DrawSims<LodDataFlow>(OceanRenderer.Instance._lodDataFlow, false, ref column);
+        if (OceanRenderer.Instance._createShadowData) DrawSims<LodDataShadow>(OceanRenderer.Instance._lodDataAnimWaves, false, ref column);
+        DrawSims<LodDataSeaFloorDepth>(OceanRenderer.Instance._lodDataAnimWaves, false, ref column);
     }
 
-    static void DrawSims<SimType>(Camera[] simCameras, bool showByDefault, ref float offset) where SimType : LodData
+    static void DrawSims<SimType>(LodData[] lodDatas, bool showByDefault, ref float offset) where SimType : LodData
     {
         var type = typeof(SimType);
         if (!_drawTargets.ContainsKey(type))
@@ -164,7 +164,7 @@ public class OceanDebugGUI : MonoBehaviour
         }
 
         float b = 7f;
-        float h = Screen.height / (float)OceanRenderer.Instance._camsAnimWaves.Length;
+        float h = Screen.height / (float)OceanRenderer.Instance._lodDataAnimWaves.Length;
         float w = h + b;
         float x = Screen.width - w * offset + b * (offset - 1f);
 
@@ -172,26 +172,22 @@ public class OceanDebugGUI : MonoBehaviour
         {
             int idx = 0;
 
-            foreach (var cam in simCameras)
+            foreach (var lodData in lodDatas)
             {
-                if (!cam) continue;
+                if (!lodData) continue;
 
                 float y = idx * h;
                 if (offset == 1f) w += b;
 
                 RenderTexture shape;
 
-                var shad = cam.GetComponent<SimType>();
-                if (shad)
-                {
-                    shape = shad.DataTexture;
-                    if (shape == null) continue;
+                shape = lodData.DataTexture;
+                if (shape == null) continue;
 
-                    GUI.color = Color.black * 0.7f;
-                    GUI.DrawTexture(new Rect(x, y, w - b, h), Texture2D.whiteTexture);
-                    GUI.color = Color.white;
-                    GUI.DrawTexture(new Rect(x + b, y + b / 2f, h - b, h - b), shape, ScaleMode.ScaleAndCrop, false);
-                }
+                GUI.color = Color.black * 0.7f;
+                GUI.DrawTexture(new Rect(x, y, w - b, h), Texture2D.whiteTexture);
+                GUI.color = Color.white;
+                GUI.DrawTexture(new Rect(x + b, y + b / 2f, h - b, h - b), shape, ScaleMode.ScaleAndCrop, false);
 
                 idx++;
             }

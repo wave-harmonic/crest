@@ -58,12 +58,12 @@ namespace Crest
                 _bufCombineShapes = new CommandBuffer();
                 _bufCombineShapes.name = "Combine Displacements";
 
-                var cams = OceanRenderer.Instance._camsAnimWaves;
+                var cams = OceanRenderer.Instance._lodDataAnimWaves;
                 for (int L = cams.Length - 2; L >= 0; L--)
                 {
                     // accumulate shape data down the LOD chain - combine L+1 into L
                     var mat = OceanRenderer.Instance._lodDataAnimWaves[L].CombineMaterial;
-                    _bufCombineShapes.Blit(cams[L + 1].targetTexture, cams[L].targetTexture, mat);
+                    _bufCombineShapes.Blit(cams[L + 1].GetComponent<Camera>().targetTexture, cams[L].GetComponent<Camera>().targetTexture, mat);
                 }
             }
 

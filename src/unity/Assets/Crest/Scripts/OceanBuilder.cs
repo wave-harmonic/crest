@@ -161,10 +161,9 @@ namespace Crest
             }
 
             // create the shape cameras
-            ocean._camsAnimWaves = new Camera[lodCount];
             ocean._lodDataAnimWaves = new LodDataAnimatedWaves[lodCount];
             ocean._lodDataFoam = new LodDataFoam[lodCount];
-            ocean._camsFlow = new Camera[lodCount];
+            ocean._lodDataFlow = new LodDataFlow[lodCount];
             ocean._lodDataDynWaves = new LodDataDynamicWaves[lodCount];
 
             var cachedSettings = new Dictionary<System.Type, SimSettingsBase>();
@@ -180,7 +179,6 @@ namespace Crest
             {
                 {
                     var go = LodData.CreateLodData(i, lodCount, null, baseVertDensity, LodData.SimType.AnimatedWaves, cachedSettings);
-                    ocean._camsAnimWaves[i] = go.GetComponent<Camera>();
                     ocean._lodDataAnimWaves[i] = go.GetComponent<LodDataAnimatedWaves>();
 
                     if(ocean._createSeaFloorDepthData)
@@ -204,7 +202,7 @@ namespace Crest
                 if(ocean._createFlowSim)
                 {
                     var go = LodData.CreateLodData(i, lodCount, null, baseVertDensity, LodData.SimType.Flow, cachedSettings);
-                    ocean._camsFlow[i] = go.GetComponent<Camera>();
+                    ocean._lodDataFlow[i] = go.GetComponent<LodDataFlow>();
                 }
 
                 if (ocean._createDynamicWaveSim)
@@ -438,11 +436,11 @@ namespace Crest
             parent.transform.localRotation = Quaternion.identity;
 
             // add LOD data cameras into this LOD
-            PlaceLodData(ocean._camsAnimWaves[lodIndex].transform, parent.transform);
+            PlaceLodData(ocean._lodDataAnimWaves[lodIndex].transform, parent.transform);
             if (ocean._lodDataFoam[lodIndex] != null)
                 PlaceLodData(ocean._lodDataFoam[lodIndex].transform, parent.transform);
-            if (ocean._camsFlow[lodIndex] != null)
-                PlaceLodData(ocean._camsFlow[lodIndex].transform, parent.transform);
+            if (ocean._lodDataFlow[lodIndex] != null)
+                PlaceLodData(ocean._lodDataFlow[lodIndex].transform, parent.transform);
             if (ocean._lodDataDynWaves[lodIndex] != null)
                 PlaceLodData(ocean._lodDataDynWaves[lodIndex].transform, parent.transform);
 

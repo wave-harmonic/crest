@@ -37,15 +37,15 @@ namespace Crest
             _maxGridSize = Mathf.Max(_maxGridSize, 2f * _minGridSize);
         }
 
-        public bool SampleFlow(ref Vector3 in__worldPos, out Vector2 flow, float minSpatialLength)
+        public bool SampleFlow(ref Vector3 i_worldPos, out Vector2 flow, float minSpatialLength)
         {
-            var data = GetData(new Rect(in__worldPos.x, in__worldPos.z, 0f, 0f), minSpatialLength);
+            var data = GetData(new Rect(i_worldPos.x, i_worldPos.z, 0f, 0f), minSpatialLength);
             if (data == null)
             {
                 flow = Vector2.zero;
                 return false;
             }
-            return data._resultData.SampleRG16(ref in__worldPos, out flow);
+            return data._resultData.SampleRG16(ref i_worldPos, out flow);
         }
     }
 }

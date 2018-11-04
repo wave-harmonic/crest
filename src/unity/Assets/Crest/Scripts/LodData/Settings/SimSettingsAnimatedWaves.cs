@@ -61,7 +61,8 @@ namespace Crest
                 switch (_collisionSource)
                 {
                     case CollisionSources.None:
-                        return null;
+                        _collProvider = new CollProviderNull();
+                        break;
                     case CollisionSources.OceanDisplacementTexturesGPU:
                         _collProvider = GPUReadbackDisps.Instance;
                         break;

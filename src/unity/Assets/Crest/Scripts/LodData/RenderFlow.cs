@@ -9,7 +9,7 @@ namespace Crest
             var rend = GetComponent<Renderer>();
             if (rend)
             {
-                LodDataFlow.AddDraw(rend);
+                LodDataMgrFlow.AddDraw(rend);
             }
         }
 
@@ -18,7 +18,7 @@ namespace Crest
             var rend = GetComponent<Renderer>();
             if (rend)
             {
-                LodDataFlow.AddDraw(rend);
+                LodDataMgrFlow.RemoveDraw(rend);
             }
         }
     }

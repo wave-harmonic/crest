@@ -146,7 +146,7 @@ public class OceanDebugGUI : MonoBehaviour
         DrawSims<LodDataAnimatedWaves>(OceanRenderer.Instance._lodDataAnimWaves, true, ref column);
         if (OceanRenderer.Instance._createFoamSim) DrawSims<LodDataFoam>(OceanRenderer.Instance._lodDataFoam, false, ref column);
         if (OceanRenderer.Instance._createDynamicWaveSim) DrawSims<LodDataDynamicWaves>(OceanRenderer.Instance._lodDataDynWaves, false, ref column);
-        if (OceanRenderer.Instance._createFlowSim) DrawSims<LodDataFlow>(OceanRenderer.Instance._lodDataFlow, false, ref column);
+        if (OceanRenderer.Instance._createFlowSim) DrawSims<LodDataMgrFlow>(OceanRenderer.Instance._lodDataFlow, false, ref column);
         if (OceanRenderer.Instance._createShadowData) DrawSims<LodDataShadow>(OceanRenderer.Instance._lodDataShadow, false, ref column);
         DrawSims<LodDataSeaFloorDepth>(OceanRenderer.Instance._lodDataSeaDepths, false, ref column);
     }
@@ -190,6 +190,47 @@ public class OceanDebugGUI : MonoBehaviour
                 GUI.DrawTexture(new Rect(x + b, y + b / 2f, h - b, h - b), shape, ScaleMode.ScaleAndCrop, false);
 
                 idx++;
+            }
+        }
+
+        _drawTargets[type] = GUI.Toggle(new Rect(x + b, Screen.height - 25f, w - 2f * b, 25f), _drawTargets[type], _simNames[type]);
+
+        offset++;
+    }
+
+    static void DrawSims<SimType>(LodDataMgr lodData, bool showByDefault, ref float offset) where SimType : LodDataMgr
+    {
+        var type = typeof(SimType);
+        if (!_drawTargets.ContainsKey(type))
+        {
+            _drawTargets.Add(type, showByDefault);
+        }
+        if (!_simNames.ContainsKey(type))
+        {
+            _simNames.Add(type, type.Name.Substring(7));
+        }
+
+        float b = 7f;
+        float h = Screen.height / (float)OceanRenderer.Instance._lodDataAnimWaves.Length;
+        float w = h + b;
+        float x = Screen.width - w * offset + b * (offset - 1f);
+
+        if (_drawTargets[type])
+        {
+            for (int idx = 0; idx < OceanRenderer.Instance.CurrentLodCount; idx++)
+            {
+                float y = idx * h;
+                if (offset == 1f) w += b;
+
+                RenderTexture shape;
+
+                shape = lodData.DataTexture(idx);
+                if (shape == null) continue;
+
+                GUI.color = Color.black * 0.7f;
+                GUI.DrawTexture(new Rect(x, y, w - b, h), Texture2D.whiteTexture);
+                GUI.color = Color.white;
+                GUI.DrawTexture(new Rect(x + b, y + b / 2f, h - b, h - b), shape, ScaleMode.ScaleAndCrop, false);
             }
         }
 

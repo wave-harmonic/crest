@@ -57,7 +57,7 @@ namespace Crest
             // assign flow - to slot 1 current frame data
             if (OceanRenderer.Instance._createFlowSim)
             {
-                OceanRenderer.Instance._lodDataFlow[lodIdx].BindResultData(1, simMaterial);
+                OceanRenderer.Instance._lodDataFlow.BindResultData(lodIdx, 1, simMaterial);
             }
         }
 

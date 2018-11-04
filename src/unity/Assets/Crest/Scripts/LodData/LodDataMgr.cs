@@ -9,21 +9,29 @@ namespace Crest
     /// <summary>
     /// Base class for data/behaviours created on each LOD.
     /// </summary>
-    public abstract class LodData : MonoBehaviour
+    public abstract class LodDataMgr : MonoBehaviour
     {
         public string SimName { get { return LodDataType.ToString(); } }
-        public abstract SimType LodDataType { get; }
+        public abstract LodData.SimType LodDataType { get; }
 
         public abstract SimSettingsBase CreateDefaultSettings();
         public abstract void UseSettings(SimSettingsBase settings);
 
         public abstract RenderTextureFormat TextureFormat { get; }
         public abstract CameraClearFlags CamClearFlags { get; }
-        public abstract RenderTexture DataTexture { get; }
-
-        public virtual bool RequiresCamera { get { return true; } }
 
         public const int MAX_LOD_COUNT = 16;
+
+        public virtual RenderTexture DataTexture(int lodIdx)
+        {
+            return _targets[lodIdx];
+        }
+        public LodTransform GetLodTransform(int lodIdx)
+        {
+            return transform.GetChild(lodIdx).GetComponent<LodTransform>();
+        }
+
+        public RenderTexture[] _targets;
 
         // shape texture resolution
         int _shapeRes = -1;
@@ -59,9 +67,13 @@ namespace Crest
             }
             else if (width != _shapeRes)
             {
-                DataTexture.Release();
-                DataTexture.width = DataTexture.height = _shapeRes;
-                DataTexture.Create();
+                for(int i = 0; i < OceanRenderer.Instance.CurrentLodCount; i++)
+                {
+                    var tex = DataTexture(i);
+                    tex.Release();
+                    tex.width = tex.height = _shapeRes;
+                    tex.Create();
+                }
             }
 
             // determine if this lod has changed scale and by how much (in exponent of 2)
@@ -72,19 +84,6 @@ namespace Crest
             float ratio_l2 = Mathf.Log(ratio) / Mathf.Log(2f);
             _scaleDifferencePow2 = Mathf.RoundToInt(ratio_l2);
 
-            if (RequiresCamera)
-            {
-                // ensure camera size matches geometry size - although the projection matrix is overridden, this is needed for unity shader uniforms
-                Cam.orthographicSize = 2f * transform.lossyScale.x;
-
-                // set projection matrix to snap to texels
-                Cam.ResetProjectionMatrix();
-                Matrix4x4 P = Cam.projectionMatrix, T = new Matrix4x4();
-                T.SetTRS(new Vector3(transform.position.x - LodTransform._renderData._posSnapped.x, transform.position.z - LodTransform._renderData._posSnapped.z), Quaternion.identity, Vector3.one);
-                P = P * T;
-                Cam.projectionMatrix = P;
-            }
-            else
             {
                 _worldToCameraMatrix = CalculateWorldToCameraMatrixRHS(transform.position, Quaternion.AngleAxis(90f, Vector3.right));
 
@@ -104,28 +103,28 @@ namespace Crest
         protected PropertyWrapperMaterial _pwMat = new PropertyWrapperMaterial();
         protected PropertyWrapperMPB _pwMPB = new PropertyWrapperMPB();
 
-        public void BindResultData(int shapeSlot, Material properties)
+        public void BindResultData(int lodIdx, int shapeSlot, Material properties)
         {
             _pwMat._target = properties;
-            BindData(shapeSlot, _pwMat, DataTexture, true, ref LodTransform._renderData);
+            BindData(lodIdx, shapeSlot, _pwMat, DataTexture(lodIdx), true, ref GetLodTransform(lodIdx)._renderData);
             _pwMat._target = null;
         }
 
-        public void BindResultData(int shapeSlot, MaterialPropertyBlock properties)
+        public void BindResultData(int lodIdx, int shapeSlot, MaterialPropertyBlock properties)
         {
             _pwMPB._target = properties;
-            BindData(shapeSlot, _pwMPB, DataTexture, true, ref LodTransform._renderData);
+            BindData(lodIdx, shapeSlot, _pwMPB, DataTexture(lodIdx), true, ref GetLodTransform(lodIdx)._renderData);
             _pwMPB._target = null;
         }
 
-        public void BindResultData(int shapeSlot, Material properties, bool blendOut)
+        public void BindResultData(int lodIdx, int shapeSlot, Material properties, bool blendOut)
         {
             _pwMat._target = properties;
-            BindData(shapeSlot, _pwMat, DataTexture, blendOut, ref LodTransform._renderData);
+            BindData(lodIdx, shapeSlot, _pwMat, DataTexture(lodIdx), blendOut, ref GetLodTransform(lodIdx)._renderData);
             _pwMat._target = null;
         }
 
-        protected virtual void BindData(int shapeSlot, IPropertyWrapper properties, Texture applyData, bool blendOut, ref LodTransform.RenderData renderData)
+        protected virtual void BindData(int lodIdx, int shapeSlot, IPropertyWrapper properties, Texture applyData, bool blendOut, ref LodTransform.RenderData renderData)
         {
             if (applyData)
             {
@@ -133,43 +132,18 @@ namespace Crest
             }
 
             properties.SetVector(_paramsPosScale[shapeSlot], new Vector3(renderData._posSnapped.x, renderData._posSnapped.z, transform.lossyScale.x));
-            properties.SetFloat(_paramsLodIdx[shapeSlot], LodTransform.LodIndex);
+            properties.SetFloat(_paramsLodIdx[shapeSlot], GetLodTransform(lodIdx).LodIndex);
             properties.SetVector(_paramsOceanParams[shapeSlot],
                 new Vector4(renderData._texelWidth, renderData._textureRes, 1f, 1f / renderData._textureRes));
         }
 
-        public enum SimType
+        public static LodDataMgr Create(int lodCount, GameObject attachGO, float baseVertDensity, LodData.SimType simType, Dictionary<System.Type, SimSettingsBase> cachedSettings)
         {
-            DynamicWaves,
-            Foam,
-            AnimatedWaves,
-            // this is currently not used as the sea floor depth is not created as a unique sim object
-            SeaFloorDepth,
-            Flow,
-            Shadow,
-        }
-
-        public static GameObject CreateLodData(int lodIdx, int lodCount, GameObject attachGO, float baseVertDensity, SimType simType, Dictionary<System.Type, SimSettingsBase> cachedSettings)
-        {
-            var go = attachGO ?? new GameObject(string.Format("{0}Cam{1}", simType.ToString(), lodIdx));
-
-            LodData sim;
+            LodDataMgr sim;
             switch (simType)
             {
-                case SimType.AnimatedWaves:
-                    sim = go.AddComponent<LodDataAnimatedWaves>();
-                    break;
-                case SimType.DynamicWaves:
-                    sim = go.AddComponent<LodDataDynamicWaves>();
-                    break;
-                case SimType.Foam:
-                    sim = go.AddComponent<LodDataFoam>();
-                    break;
-                case SimType.SeaFloorDepth:
-                    sim = go.AddComponent<LodDataSeaFloorDepth>();
-                    break;
-                case SimType.Shadow:
-                    sim = go.AddComponent<LodDataShadow>();
+                case LodData.SimType.Flow:
+                    sim = attachGO.AddComponent<LodDataMgrFlow>();
                     break;
                 default:
                     Debug.LogError("Unknown sim type: " + simType.ToString());
@@ -185,45 +159,20 @@ namespace Crest
             }
             sim.UseSettings(settings);
 
-            if (attachGO == null)
+            sim._targets = new RenderTexture[lodCount];
+            var desc = new RenderTextureDescriptor((int)(4 * baseVertDensity), (int)(4 * baseVertDensity), sim.TextureFormat, 0);
+            for (int i = 0; i < sim._targets.Length; i++)
             {
-                // Add components if we are creating a loddata GO anew
-
-                if (sim.RequiresCamera)
-                {
-                    var cam = go.GetComponent<Camera>();
-                    if (cam == null) cam = go.AddComponent<Camera>();
-                    cam.clearFlags = sim.CamClearFlags;
-                    cam.backgroundColor = new Color(0f, 0f, 0f, 0f);
-                    cam.cullingMask = 0;
-                    cam.orthographic = true;
-                    cam.nearClipPlane = 1f;
-                    cam.farClipPlane = 500f;
-                    cam.renderingPath = RenderingPath.Forward;
-                    cam.useOcclusionCulling = false;
-                    cam.allowHDR = true;
-                    cam.allowMSAA = false;
-                    cam.allowDynamicResolution = false;
-                }
-
-                var cart = go.AddComponent<CreateAssignRenderTexture>();
-                cart._targetName = go.name;
-                cart._width = cart._height = (int)(4f * baseVertDensity);
-                cart._depthBits = 0;
-                cart._format = sim.TextureFormat;
-                cart._wrapMode = TextureWrapMode.Clamp;
-                cart._antiAliasing = 1;
-                cart._filterMode = FilterMode.Bilinear;
-                cart._anisoLevel = 0;
-                cart._useMipMap = false;
-                cart._createPingPongTargets = sim as LodDataPersistent != null;
-                cart.Create();
-
-                var apply = go.AddComponent<ApplyLayers>();
-                apply._cullIncludeLayers = new string[] { string.Format("LodData{0}", simType.ToString()) };
+                sim._targets[i] = new RenderTexture(desc);
+                sim._targets[i].wrapMode = TextureWrapMode.Clamp;
+                sim._targets[i].antiAliasing = 1;
+                sim._targets[i].filterMode = FilterMode.Bilinear;
+                sim._targets[i].anisoLevel = 0;
+                sim._targets[i].useMipMap = false;
+                sim._targets[i].name = simType.ToString() + "_" + i;
             }
 
-            return go;
+            return sim;
         }
 
         protected void CreateParamIDs(ref int[] ids, string prefix)
@@ -239,9 +188,5 @@ namespace Crest
         public virtual void BuildCommandBuffer(OceanRenderer ocean, CommandBuffer buf)
         {
         }
-
-        Camera _camera; public Camera Cam { get { return _camera ?? (_camera = GetComponent<Camera>()); } }
-        CreateAssignRenderTexture _cart; public CreateAssignRenderTexture CART { get { return _cart ?? (_cart = GetComponent<CreateAssignRenderTexture>()); } }
-        LodTransform _lt; public LodTransform LodTransform { get { return _lt ?? (_lt = transform.parent.GetComponent<LodTransform>()); } }
     }
 }

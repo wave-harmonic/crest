@@ -11,9 +11,9 @@ namespace Crest
         {
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // --- Flow camera renders first
-            for (int i = ocean.CurrentLodCount - 1; i >= 0 && ocean._lodDataFlow[i] != null; i--)
+            if (ocean._lodDataFlow)
             {
-                ocean._lodDataFlow[i].BuildCommandBuffer(ocean, buf);
+                ocean._lodDataFlow.BuildCommandBuffer(ocean, buf);
             }
         }
 

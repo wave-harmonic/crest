@@ -90,14 +90,15 @@ public class BoatAlignNormal : MonoBehaviour
             waterSurfaceVel = Vector3.zero;
         }
 
-        if (GPUReadbackFlow.Instance)
-        {
-            GPUReadbackFlow.Instance.ProcessRequests();
+        // TODO
+        //if (GPUReadbackFlow.Instance)
+        //{
+        //    GPUReadbackFlow.Instance.ProcessRequests();
 
-            Vector2 surfaceFlow;
-            GPUReadbackFlow.Instance.SampleFlow(ref position, out surfaceFlow, _boatWidth);
-            waterSurfaceVel += new Vector3(surfaceFlow.x, 0, surfaceFlow.y);
-        }
+        //    Vector2 surfaceFlow;
+        //    GPUReadbackFlow.Instance.SampleFlow(ref position, out surfaceFlow, _boatWidth);
+        //    waterSurfaceVel += new Vector3(surfaceFlow.x, 0, surfaceFlow.y);
+        //}
 
         // I could filter the surface vel as the min of the last 2 frames. theres a hard case where a wavelength is turned on/off
         // which generates single frame vel spikes - because the surface legitimately moves very fast. 

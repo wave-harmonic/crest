@@ -163,7 +163,6 @@ namespace Crest
             // create the shape cameras
             ocean._lodDataAnimWaves = new LodDataAnimatedWaves[lodCount];
             ocean._lodDataDynWaves = new LodDataDynamicWaves[lodCount];
-            ocean._lodDataFlow = new LodDataFlow[lodCount];
             ocean._lodDataFoam = new LodDataFoam[lodCount];
             ocean._lodDataSeaDepths = new LodDataSeaFloorDepth[lodCount];
             ocean._lodDataShadow = new LodDataShadow[lodCount];
@@ -175,7 +174,12 @@ namespace Crest
             AddSettings<LodDataFoam>(ocean._simSettingsFoam, cachedSettings);
             AddSettings<LodDataDynamicWaves>(ocean._simSettingsDynamicWaves, cachedSettings);
             AddSettings<LodDataShadow>(ocean._simSettingsShadow, cachedSettings);
-            AddSettings<LodDataFlow>(ocean._simSettingsFlow, cachedSettings);
+            AddSettings<LodDataMgrFlow>(ocean._simSettingsFlow, cachedSettings);
+
+            if (ocean._createFlowSim)
+            {
+                ocean._lodDataFlow = LodDataMgr.Create(lodCount, ocean.gameObject, baseVertDensity, LodData.SimType.Flow, cachedSettings) as LodDataMgrFlow;
+            }
 
             for ( int i = 0; i < lodCount; i++ )
             {
@@ -203,12 +207,6 @@ namespace Crest
                     ocean._lodDataFoam[i] = go.GetComponent<LodDataFoam>();
                 }
 
-                if(ocean._createFlowSim)
-                {
-                    var go = LodData.CreateLodData(i, lodCount, null, baseVertDensity, LodData.SimType.Flow, cachedSettings);
-                    ocean._lodDataFlow[i] = go.GetComponent<LodDataFlow>();
-                }
-
                 if (ocean._createDynamicWaveSim)
                 {
                     var go = LodData.CreateLodData(i, lodCount, null, baseVertDensity, LodData.SimType.DynamicWaves, cachedSettings);
@@ -220,7 +218,7 @@ namespace Crest
             // ocean script so that it can be easily accessed.
             PopulateSettings<LodDataAnimatedWaves, SimSettingsAnimatedWaves>(cachedSettings, ref ocean._simSettingsAnimatedWaves);
             PopulateSettings<LodDataDynamicWaves, SimSettingsWave>(cachedSettings, ref ocean._simSettingsDynamicWaves);
-            PopulateSettings<LodDataFlow, SimSettingsFlow>(cachedSettings, ref ocean._simSettingsFlow);
+            PopulateSettings<LodDataMgrFlow, SimSettingsFlow>(cachedSettings, ref ocean._simSettingsFlow);
             PopulateSettings<LodDataFoam, SimSettingsFoam>(cachedSettings, ref ocean._simSettingsFoam);
             PopulateSettings<LodDataShadow, SimSettingsShadow>(cachedSettings, ref ocean._simSettingsShadow);
 
@@ -232,14 +230,15 @@ namespace Crest
                     ocean.gameObject.AddComponent<GPUReadbackDisps>();
                 }
 
-                if (ocean._createFlowSim)
-                {
-                    var ssf = cachedSettings[typeof(LodDataFlow)] as SimSettingsFlow;
-                    if (ssf && ssf._readbackData)
-                    {
-                        ocean.gameObject.AddComponent<GPUReadbackFlow>();
-                    }
-                }
+                // TODO
+                //if (ocean._createFlowSim)
+                //{
+                //    var ssf = cachedSettings[typeof(LodDataMgrFlow)] as SimSettingsFlow;
+                //    if (ssf && ssf._readbackData)
+                //    {
+                //        ocean.gameObject.AddComponent<GPUReadbackFlow>();
+                //    }
+                //}
             }
 
             // remove existing LODs
@@ -446,8 +445,6 @@ namespace Crest
             PlaceLodData(ocean._lodDataAnimWaves[lodIndex].transform, parent.transform);
             if (ocean._lodDataFoam[lodIndex] != null)
                 PlaceLodData(ocean._lodDataFoam[lodIndex].transform, parent.transform);
-            if (ocean._lodDataFlow[lodIndex] != null)
-                PlaceLodData(ocean._lodDataFlow[lodIndex].transform, parent.transform);
             if (ocean._lodDataDynWaves[lodIndex] != null)
                 PlaceLodData(ocean._lodDataDynWaves[lodIndex].transform, parent.transform);
 

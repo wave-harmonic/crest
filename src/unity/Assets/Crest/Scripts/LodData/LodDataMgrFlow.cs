@@ -9,13 +9,11 @@ namespace Crest
     /// <summary>
     /// A persistent flow simulation that moves around with a displacement LOD. The input is fully combined water surface shape.
     /// </summary>
-    public class LodDataFlow : LodData
+    public class LodDataMgrFlow : LodDataMgr
     {
-        public override SimType LodDataType { get { return SimType.Flow; } }
+        public override LodData.SimType LodDataType { get { return LodData.SimType.Flow; } }
         public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RGHalf; } }
         public override CameraClearFlags CamClearFlags { get { return CameraClearFlags.Nothing; } }
-        public override RenderTexture DataTexture { get { return CART.RT; } }
-        public override bool RequiresCamera { get { return false; } }
 
         [SerializeField]
         protected SimSettingsFlow _settings;
@@ -71,13 +69,16 @@ namespace Crest
         {
             base.BuildCommandBuffer(ocean, buf);
 
-            buf.SetRenderTarget(DataTexture);
-            buf.ClearRenderTarget(false, true, Color.black);
-            buf.SetViewProjectionMatrices(_worldToCameraMatrix, _projectionMatrix);
-
-            foreach(var draw in _drawList)
+            for (int i = OceanRenderer.Instance.CurrentLodCount - 1; i >= 0; i--)
             {
-                buf.DrawRenderer(draw, draw.material);
+                buf.SetRenderTarget(DataTexture(i));
+                buf.ClearRenderTarget(false, true, Color.black);
+                buf.SetViewProjectionMatrices(_worldToCameraMatrix, _projectionMatrix);
+
+                foreach (var draw in _drawList)
+                {
+                    buf.DrawRenderer(draw, draw.material);
+                }
             }
         }
     }

@@ -140,8 +140,9 @@ namespace Crest
                 properties.SetTexture(_paramsLodDataSampler[shapeSlot], applyData);
             }
 
-            properties.SetVector(_paramsPosScale[shapeSlot], new Vector3(renderData._posSnapped.x, renderData._posSnapped.z, transform.lossyScale.x));
-            properties.SetFloat(_paramsLodIdx[shapeSlot], OceanRenderer.Instance._lods[lodIdx].LodIndex);
+            var lt = OceanRenderer.Instance._lods[lodIdx];
+            properties.SetVector(_paramsPosScale[shapeSlot], new Vector3(renderData._posSnapped.x, renderData._posSnapped.z, lt.transform.lossyScale.x));
+            properties.SetFloat(_paramsLodIdx[shapeSlot], lt.LodIndex);
             properties.SetVector(_paramsOceanParams[shapeSlot],
                 new Vector4(renderData._texelWidth, renderData._textureRes, 1f, 1f / renderData._textureRes));
         }

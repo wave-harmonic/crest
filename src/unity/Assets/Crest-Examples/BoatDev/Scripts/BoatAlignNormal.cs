@@ -53,12 +53,13 @@ public class BoatAlignNormal : MonoBehaviour
 
     void FixedUpdate()
     {
-        // Trigger processing of displacement textures that have come back this frame. This will be processed
-        // anyway in Update(), but FixedUpdate() is earlier so make sure it's up to date now.
-        if (OceanRenderer.Instance._simSettingsAnimatedWaves.CollisionSource == SimSettingsAnimatedWaves.CollisionSources.OceanDisplacementTexturesGPU && GPUReadbackDisps.Instance)
-        {
-            GPUReadbackDisps.Instance.ProcessRequests();
-        }
+        // TODO
+        //// Trigger processing of displacement textures that have come back this frame. This will be processed
+        //// anyway in Update(), but FixedUpdate() is earlier so make sure it's up to date now.
+        //if (OceanRenderer.Instance._simSettingsAnimatedWaves.CollisionSource == SimSettingsAnimatedWaves.CollisionSources.OceanDisplacementTexturesGPU && GPUReadbackDisps.Instance)
+        //{
+        //    GPUReadbackDisps.Instance.ProcessRequests();
+        //}
 
         var collProvider = OceanRenderer.Instance.CollisionProvider;
         var position = transform.position;
@@ -90,15 +91,14 @@ public class BoatAlignNormal : MonoBehaviour
             waterSurfaceVel = Vector3.zero;
         }
 
-        // TODO
-        //if (GPUReadbackFlow.Instance)
-        //{
-        //    GPUReadbackFlow.Instance.ProcessRequests();
+        if (GPUReadbackFlow.Instance)
+        {
+            GPUReadbackFlow.Instance.ProcessRequests();
 
-        //    Vector2 surfaceFlow;
-        //    GPUReadbackFlow.Instance.SampleFlow(ref position, out surfaceFlow, _boatWidth);
-        //    waterSurfaceVel += new Vector3(surfaceFlow.x, 0, surfaceFlow.y);
-        //}
+            Vector2 surfaceFlow;
+            GPUReadbackFlow.Instance.SampleFlow(ref position, out surfaceFlow, _boatWidth);
+            waterSurfaceVel += new Vector3(surfaceFlow.x, 0, surfaceFlow.y);
+        }
 
         // I could filter the surface vel as the min of the last 2 frames. theres a hard case where a wavelength is turned on/off
         // which generates single frame vel spikes - because the surface legitimately moves very fast. 

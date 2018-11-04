@@ -13,11 +13,11 @@ namespace Crest
     /// <summary>
     /// Base class for reading back GPU data of a particular type to the CPU.
     /// </summary>
-    public class GPUReadbackBase<LodDataType> : MonoBehaviour where LodDataType : LodData
+    public class GPUReadbackBase<LodDataType> : MonoBehaviour where LodDataType : LodDataMgr
     {
         public bool _doReadback = true;
 
-        protected LodDataType[] _lodComponents;
+        protected LodDataType _lodComponent;
 
         /// <summary>
         /// Minimum floating object width. The larger the objects that will float, the lower the resolution of the read data.
@@ -65,26 +65,27 @@ namespace Crest
 
         protected virtual void Start()
         {
-            _lodComponents = OceanRenderer.Instance.GetComponentsInChildren<LodDataType>();
-            if(_lodComponents.Length <= (CanUseLastLOD ? 0 : 1))
+            _lodComponent = OceanRenderer.Instance.GetComponent<LodDataType>();
+            if(OceanRenderer.Instance.CurrentLodCount <= (CanUseLastLOD ? 0 : 1))
             {
                 Debug.LogError("No data components of type " + typeof(LodDataType).Name + " found in the scene. Disabling GPU readback.", this);
                 enabled = false;
                 return;
             }
 
-            if (!CanUseLastLOD)
-            {
-                // Remove last element
-                var temp = _lodComponents;
-                _lodComponents = new LodDataType[_lodComponents.Length - 1];
-                for (int i = 0; i < _lodComponents.Length; i++)
-                {
-                    _lodComponents[i] = temp[i];
-                }
-            }
+            // TODO
+            //if (!CanUseLastLOD)
+            //{
+            //    // Remove last element
+            //    var temp = _lodComponents;
+            //    _lodComponents = new LodDataType[_lodComponents.Length - 1];
+            //    for (int i = 0; i < _lodComponents.Length; i++)
+            //    {
+            //        _lodComponents[i] = temp[i];
+            //    }
+            //}
 
-            SetTextureFormat(_lodComponents[0].TextureFormat);
+            SetTextureFormat(_lodComponent.TextureFormat);
         }
 
         protected virtual void Update()
@@ -116,15 +117,18 @@ namespace Crest
 
         void ProcessRequestsInternal(bool runningFromUpdate)
         {
+            var ocean = OceanRenderer.Instance;
+            int lodCount = ocean.CurrentLodCount;
+
             // When viewer changes altitude, lods will start/stop updating. Mark ones that are/arent being rendered!
             foreach (var gridSize_lodData in _perLodData)
             {
                 bool CAN_USE_LAST_LOD = false;
-                int lastUsableIndex = CAN_USE_LAST_LOD ? (_lodComponents.Length - 1) : (_lodComponents.Length - 2);
+                int lastUsableIndex = CAN_USE_LAST_LOD ? (lodCount - 1) : (lodCount - 2);
 
                 gridSize_lodData.Value._activelyBeingRendered =
-                    gridSize_lodData.Key >= _lodComponents[0].LodTransform._renderData._texelWidth &&
-                    gridSize_lodData.Key <= _lodComponents[lastUsableIndex].LodTransform._renderData._texelWidth;
+                    gridSize_lodData.Key >= ocean._lods[0]._renderData._texelWidth &&
+                    gridSize_lodData.Key <= ocean._lods[lastUsableIndex]._renderData._texelWidth;
 
                 if (!gridSize_lodData.Value._activelyBeingRendered)
                 {
@@ -135,12 +139,11 @@ namespace Crest
                 }
             }
 
-            foreach (var data in _lodComponents)
+            foreach (var lt in ocean._lods)
             {
-                var lt = data.LodTransform;
                 if (lt._renderData._texelWidth >= _minGridSize && (lt._renderData._texelWidth <= _maxGridSize || _maxGridSize == 0f))
                 {
-                    var tex = data.DataTexture;
+                    var tex = _lodComponent.DataTexture(lt.LodIndex);
                     if (tex == null) continue;
 
                     if (!_perLodData.ContainsKey(lt._renderData._texelWidth))

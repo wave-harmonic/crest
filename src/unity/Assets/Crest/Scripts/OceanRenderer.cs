@@ -105,6 +105,7 @@ namespace Crest
         /// </summary>
         public float SeaLevel { get { return transform.position.y; } }
 
+        [HideInInspector] public LodTransform[] _lods;
         [HideInInspector] public LodDataAnimatedWaves[] _lodDataAnimWaves;
         [HideInInspector] public LodDataSeaFloorDepth[] _lodDataSeaDepths;
         [HideInInspector] public LodDataFoam[] _lodDataFoam;

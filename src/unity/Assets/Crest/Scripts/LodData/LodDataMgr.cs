@@ -26,10 +26,6 @@ namespace Crest
         {
             return _targets[lodIdx];
         }
-        public LodTransform GetLodTransform(int lodIdx)
-        {
-            return transform.GetChild(lodIdx).GetComponent<LodTransform>();
-        }
 
         public RenderTexture[] _targets;
 
@@ -106,21 +102,21 @@ namespace Crest
         public void BindResultData(int lodIdx, int shapeSlot, Material properties)
         {
             _pwMat._target = properties;
-            BindData(lodIdx, shapeSlot, _pwMat, DataTexture(lodIdx), true, ref GetLodTransform(lodIdx)._renderData);
+            BindData(lodIdx, shapeSlot, _pwMat, DataTexture(lodIdx), true, ref OceanRenderer.Instance._lods[lodIdx]._renderData);
             _pwMat._target = null;
         }
 
         public void BindResultData(int lodIdx, int shapeSlot, MaterialPropertyBlock properties)
         {
             _pwMPB._target = properties;
-            BindData(lodIdx, shapeSlot, _pwMPB, DataTexture(lodIdx), true, ref GetLodTransform(lodIdx)._renderData);
+            BindData(lodIdx, shapeSlot, _pwMPB, DataTexture(lodIdx), true, ref OceanRenderer.Instance._lods[lodIdx]._renderData);
             _pwMPB._target = null;
         }
 
         public void BindResultData(int lodIdx, int shapeSlot, Material properties, bool blendOut)
         {
             _pwMat._target = properties;
-            BindData(lodIdx, shapeSlot, _pwMat, DataTexture(lodIdx), blendOut, ref GetLodTransform(lodIdx)._renderData);
+            BindData(lodIdx, shapeSlot, _pwMat, DataTexture(lodIdx), blendOut, ref OceanRenderer.Instance._lods[lodIdx]._renderData);
             _pwMat._target = null;
         }
 
@@ -132,7 +128,7 @@ namespace Crest
             }
 
             properties.SetVector(_paramsPosScale[shapeSlot], new Vector3(renderData._posSnapped.x, renderData._posSnapped.z, transform.lossyScale.x));
-            properties.SetFloat(_paramsLodIdx[shapeSlot], GetLodTransform(lodIdx).LodIndex);
+            properties.SetFloat(_paramsLodIdx[shapeSlot], OceanRenderer.Instance._lods[lodIdx].LodIndex);
             properties.SetVector(_paramsOceanParams[shapeSlot],
                 new Vector4(renderData._texelWidth, renderData._textureRes, 1f, 1f / renderData._textureRes));
         }

@@ -161,6 +161,7 @@ namespace Crest
             }
 
             // create the shape cameras
+            ocean._lods = new LodTransform[lodCount];
             ocean._lodDataAnimWaves = new LodDataAnimatedWaves[lodCount];
             ocean._lodDataDynWaves = new LodDataDynamicWaves[lodCount];
             ocean._lodDataFoam = new LodDataFoam[lodCount];
@@ -224,21 +225,20 @@ namespace Crest
 
             // Add any required GPU readbacks
             {
-                var ssaw = cachedSettings[typeof(LodDataAnimatedWaves)] as SimSettingsAnimatedWaves;
-                if (ssaw && ssaw.CollisionSource == SimSettingsAnimatedWaves.CollisionSources.OceanDisplacementTexturesGPU)
-                {
-                    ocean.gameObject.AddComponent<GPUReadbackDisps>();
-                }
-
-                // TODO
-                //if (ocean._createFlowSim)
+                //var ssaw = cachedSettings[typeof(LodDataAnimatedWaves)] as SimSettingsAnimatedWaves;
+                //if (ssaw && ssaw.CollisionSource == SimSettingsAnimatedWaves.CollisionSources.OceanDisplacementTexturesGPU)
                 //{
-                //    var ssf = cachedSettings[typeof(LodDataMgrFlow)] as SimSettingsFlow;
-                //    if (ssf && ssf._readbackData)
-                //    {
-                //        ocean.gameObject.AddComponent<GPUReadbackFlow>();
-                //    }
+                //    ocean.gameObject.AddComponent<GPUReadbackDisps>();
                 //}
+
+                if (ocean._createFlowSim)
+                {
+                    var ssf = cachedSettings[typeof(LodDataMgrFlow)] as SimSettingsFlow;
+                    if (ssf && ssf._readbackData)
+                    {
+                        ocean.gameObject.AddComponent<GPUReadbackFlow>();
+                    }
+                }
             }
 
             // remove existing LODs
@@ -438,8 +438,8 @@ namespace Crest
             parent.transform.localPosition = Vector3.zero;
             parent.transform.localRotation = Quaternion.identity;
 
-            var lt = parent.AddComponent<LodTransform>();
-            lt.InitLODData(lodIndex, lodCount);
+            ocean._lods[lodIndex] = parent.AddComponent<LodTransform>();
+            ocean._lods[lodIndex].InitLODData(lodIndex, lodCount);
 
             // add LOD data cameras into this LOD
             PlaceLodData(ocean._lodDataAnimWaves[lodIndex].transform, parent.transform);

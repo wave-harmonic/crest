@@ -461,7 +461,8 @@ MonoBehaviour:
   _maxScale: 256
   _baseVertDensity: 64
   _lodCount: 7
-  _simSettingsAnimatedWaves: {fileID: 0}
+  _simSettingsAnimatedWaves: {fileID: 11400000, guid: ad2c516132f9a2e46ab494e37f58cdc4,
+    type: 2}
   _createSeaFloorDepthData: 1
   _createFoamSim: 1
   _simSettingsFoam: {fileID: 0}
@@ -474,11 +475,14 @@ MonoBehaviour:
   _simSettingsShadow: {fileID: 0}
   _uniformTiles: 0
   _disableSkirt: 0
+  _lods: []
   _lodDataAnimWaves: []
-  _camsAnimWaves: []
-  _camsFoam: []
-  _camsFlow: []
-  _camsDynWaves: []
+  _lodDataSeaDepths: []
+  _lodDataDynWaves: {fileID: 0}
+  _lodDataFlow: {fileID: 0}
+  _lodDataFoam: {fileID: 0}
+  _lodDataShadow: []
+  _commandBufferBuilder: {fileID: 0}
 --- !u!1 &995304122
 GameObject:
   m_ObjectHideFlags: 0

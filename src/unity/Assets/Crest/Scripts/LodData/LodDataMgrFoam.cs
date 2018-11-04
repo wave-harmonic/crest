@@ -1,15 +1,15 @@
 ﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 using UnityEngine;
-#if NOTDEF
+
 namespace Crest
 {
     /// <summary>
     /// A persistent foam simulation that moves around with a displacement LOD. The input is fully combined water surface shape.
     /// </summary>
-    public class LodDataFoam : LodDataPersistent
+    public class LodDataMgrFoam : LodDataMgrPersistent
     {
-        public override SimType LodDataType { get { return SimType.Foam; } }
+        public override LodData.SimType LodDataType { get { return LodData.SimType.Foam; } }
         protected override string ShaderSim { get { return "Ocean/Shape/Sim/Foam"; } }
         public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RHalf; } }
 
@@ -32,17 +32,15 @@ namespace Crest
 #endif
         }
 
-        protected override void SetAdditionalSimParams(Material simMaterial)
+        protected override void SetAdditionalSimParams(int lodIdx, Material simMaterial)
         {
-            base.SetAdditionalSimParams(simMaterial);
+            base.SetAdditionalSimParams(lodIdx, simMaterial);
 
             simMaterial.SetFloat("_FoamFadeRate", Settings._foamFadeRate);
             simMaterial.SetFloat("_WaveFoamStrength", Settings._waveFoamStrength);
             simMaterial.SetFloat("_WaveFoamCoverage", Settings._waveFoamCoverage);
             simMaterial.SetFloat("_ShorelineFoamMaxDepth", Settings._shorelineFoamMaxDepth);
             simMaterial.SetFloat("_ShorelineFoamStrength", Settings._shorelineFoamStrength);
-
-            int lodIdx = LodTransform.LodIndex;
 
             // assign animated waves - to slot 1 current frame data
             OceanRenderer.Instance._lodDataAnimWaves[lodIdx].BindResultData(1, simMaterial);
@@ -63,4 +61,3 @@ namespace Crest
         SimSettingsFoam Settings { get { return _settings as SimSettingsFoam; } }
     }
 }
-#endif

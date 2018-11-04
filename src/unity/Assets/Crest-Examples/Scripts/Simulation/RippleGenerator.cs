@@ -62,6 +62,6 @@ public class RippleGenerator : MonoBehaviour
             _mat.SetFloat("_SimCount", simsActive);
         }
 
-        _mat.SetFloat("_SimDeltaTime", Mathf.Min(Crest.LodDataPersistent.MAX_SIM_DELTA_TIME, Time.deltaTime));
+        _mat.SetFloat("_SimDeltaTime", Mathf.Min(Crest.LodDataMgrPersistent.MAX_SIM_DELTA_TIME, Time.deltaTime));
     }
 }

@@ -257,7 +257,6 @@ MonoBehaviour:
   _layerName: 
   _cullExcludeLayers:
   - LodDataAnimatedWaves
-  - LodDataFoam
   _cullIncludeLayers: []
   _logErrorIfLayerMissing: 1
 --- !u!114 &227134473
@@ -301,6 +300,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 942c4eeba14a7db4882e57488905e8eb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _disableRenderer: 1
 --- !u!1 &588345736
 GameObject:
   m_ObjectHideFlags: 0
@@ -468,13 +468,26 @@ GameObject:
   - component: {fileID: 1448233061}
   - component: {fileID: 1448233060}
   - component: {fileID: 1448233059}
-  m_Layer: 12
+  - component: {fileID: 1448233058}
+  m_Layer: 0
   m_Name: DepositFoam
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
+--- !u!114 &1448233058
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1448233057}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 66f48a8051df1bc4580cc98f58f1114b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _disableRenderer: 1
 --- !u!23 &1448233059
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -740,8 +753,8 @@ MonoBehaviour:
   _lods: []
   _lodDataAnimWaves: []
   _lodDataSeaDepths: []
-  _lodDataFoam: []
-  _lodDataFlow: {fileID: 0}
   _lodDataDynWaves: {fileID: 0}
+  _lodDataFlow: {fileID: 0}
+  _lodDataFoam: {fileID: 0}
   _lodDataShadow: []
   _commandBufferBuilder: {fileID: 0}

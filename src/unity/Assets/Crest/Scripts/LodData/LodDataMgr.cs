@@ -71,7 +71,7 @@ namespace Crest
                 _targets[i].filterMode = FilterMode.Bilinear;
                 _targets[i].anisoLevel = 0;
                 _targets[i].useMipMap = false;
-                _targets[i].name = SimName + "_" + i;
+                _targets[i].name = SimName + "_" + i + "_0";
             }
         }
 
@@ -156,6 +156,9 @@ namespace Crest
                     break;
                 case LodData.SimType.Flow:
                     sim = attachGO.AddComponent<LodDataMgrFlow>();
+                    break;
+                case LodData.SimType.Foam:
+                    sim = attachGO.AddComponent<LodDataMgrFoam>();
                     break;
                 default:
                     Debug.LogError("Unknown sim type: " + simType.ToString());

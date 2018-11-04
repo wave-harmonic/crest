@@ -22,7 +22,6 @@ namespace Crest
 
         GameObject _renderSim;
         Material[] _renderSimMaterial;
-        //CommandBuffer _advanceSimCmdBuf;
 
         protected abstract string ShaderSim { get; }
 
@@ -56,7 +55,7 @@ namespace Crest
                 _sources[i].filterMode = FilterMode.Bilinear;
                 _sources[i].anisoLevel = 0;
                 _sources[i].useMipMap = false;
-                _sources[i].name = SimName + "_" + i;
+                _sources[i].name = SimName + "_" + i + "_1";
             }
         }
 

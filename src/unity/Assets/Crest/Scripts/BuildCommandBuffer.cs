@@ -24,6 +24,15 @@ namespace Crest
             {
                 ocean._lodDataDynWaves.BuildCommandBuffer(ocean, buf);
             }
+
+            // all the other things..
+
+            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            // --- Foam takes the final combined waves as input and generates foam
+            if (ocean._lodDataFoam)
+            {
+                ocean._lodDataFoam.BuildCommandBuffer(ocean, buf);
+            }
         }
 
         private void LateUpdate()

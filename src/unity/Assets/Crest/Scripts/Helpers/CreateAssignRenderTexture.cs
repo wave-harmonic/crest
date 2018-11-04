@@ -24,15 +24,7 @@ namespace Crest
         public int _anisoLevel = 0;
         public bool _useMipMap = false;
 
-        /// <summary>
-        /// Creates a pair of render textures with the same format, and adds a PingPongRts component to switch between them each frame.
-        /// </summary>
-        public bool _createPingPongTargets = false;
-
         bool _createdAndAssigned = false;
-
-        RenderTexture _RT;
-        public RenderTexture RT { get { return _createPingPongTargets ? GetComponent<PingPongRts>().Target : _RT; } }
 
         void Start()
         {
@@ -44,14 +36,7 @@ namespace Crest
             // Sometimes the RTs need to be created and assigned before Start() - check if it has already been done first.
             if (!_createdAndAssigned)
             {
-                if (!_createPingPongTargets)
-                {
-                    CreateRTAndAssign();
-                }
-                else
-                {
-                    CreatePingPongRts();
-                }
+                CreateRTAndAssign();
             }
         }
 
@@ -60,12 +45,12 @@ namespace Crest
         /// </summary>
         private void CreateRTAndAssign()
         {
-            _RT = CreateRT(_targetName);
+            var rt = CreateRT(_targetName);
 
             var cam = GetComponent<Camera>();
             if (null != cam)
             {
-                cam.targetTexture = _RT;
+                cam.targetTexture = rt;
             }
 
             _createdAndAssigned = true;
@@ -90,19 +75,6 @@ namespace Crest
             tex.useMipMap = _useMipMap;
 
             return tex;
-        }
-
-        void CreatePingPongRts()
-        {
-            PingPongRts ppr = GetComponent<PingPongRts>();
-            if (ppr == null)
-            {
-                ppr = gameObject.AddComponent<PingPongRts>();
-            }
-
-            ppr.InitRTs(CreateRT(_targetName + "_A"), CreateRT(_targetName + "_B"));
-
-            _createdAndAssigned = true;
         }
     }
 }

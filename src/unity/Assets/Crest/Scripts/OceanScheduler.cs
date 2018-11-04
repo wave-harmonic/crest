@@ -60,10 +60,10 @@ namespace Crest
 
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // --- Foam takes the final combined waves as input and generates foam
-            for (int i = 0; i < ocean.CurrentLodCount && ocean._lodDataFoam[i] != null; i++)
-            {
-                ocean._lodDataFoam[i].Cam.depth = -20 - i;
-            }
+            //for (int i = 0; i < ocean.CurrentLodCount && ocean._lodDataFoam[i] != null; i++)
+            //{
+            //    ocean._lodDataFoam[i].Cam.depth = -20 - i;
+            //}
 
 
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////

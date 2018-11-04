@@ -159,9 +159,6 @@ namespace Crest
                 case SimType.AnimatedWaves:
                     sim = go.AddComponent<LodDataAnimatedWaves>();
                     break;
-                case SimType.Foam:
-                    sim = go.AddComponent<LodDataFoam>();
-                    break;
                 case SimType.SeaFloorDepth:
                     sim = go.AddComponent<LodDataSeaFloorDepth>();
                     break;
@@ -213,7 +210,6 @@ namespace Crest
                 cart._filterMode = FilterMode.Bilinear;
                 cart._anisoLevel = 0;
                 cart._useMipMap = false;
-                cart._createPingPongTargets = sim as LodDataPersistent != null;
                 cart.Create();
 
                 var apply = go.AddComponent<ApplyLayers>();

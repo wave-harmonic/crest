@@ -163,7 +163,6 @@ namespace Crest
             // create the shape cameras
             ocean._lods = new LodTransform[lodCount];
             ocean._lodDataAnimWaves = new LodDataAnimatedWaves[lodCount];
-            ocean._lodDataFoam = new LodDataFoam[lodCount];
             ocean._lodDataSeaDepths = new LodDataSeaFloorDepth[lodCount];
             ocean._lodDataShadow = new LodDataShadow[lodCount];
 
@@ -171,8 +170,8 @@ namespace Crest
 
             // If a settings asset was assigned, add it to a dictionary so that all components can use it.
             AddSettings<LodDataAnimatedWaves>(ocean._simSettingsAnimatedWaves, cachedSettings);
-            AddSettings<LodDataFoam>(ocean._simSettingsFoam, cachedSettings);
             AddSettings<LodDataMgrDynWaves>(ocean._simSettingsDynamicWaves, cachedSettings);
+            AddSettings<LodDataMgrFoam>(ocean._simSettingsFoam, cachedSettings);
             AddSettings<LodDataShadow>(ocean._simSettingsShadow, cachedSettings);
             AddSettings<LodDataMgrFlow>(ocean._simSettingsFlow, cachedSettings);
 
@@ -186,6 +185,12 @@ namespace Crest
             {
                 ocean._lodDataFlow =
                     LodDataMgr.Create(lodCount, ocean.gameObject, baseVertDensity, LodData.SimType.Flow, cachedSettings) as LodDataMgrFlow;
+            }
+
+            if (ocean._createFoamSim)
+            {
+                ocean._lodDataFoam =
+                    LodDataMgr.Create(lodCount, ocean.gameObject, baseVertDensity, LodData.SimType.Foam, cachedSettings) as LodDataMgrFoam;
             }
 
             for ( int i = 0; i < lodCount; i++ )
@@ -207,12 +212,6 @@ namespace Crest
                         ocean._lodDataShadow[i] = go.GetComponent<LodDataShadow>();
                     }
                 }
-
-                if (ocean._createFoamSim)
-                {
-                    var go = LodData.CreateLodData(i, lodCount, null, baseVertDensity, LodData.SimType.Foam, cachedSettings);
-                    ocean._lodDataFoam[i] = go.GetComponent<LodDataFoam>();
-                }
             }
 
             // If no settings asset was assigned, the Create() methods will create a default settings object. Assign this back to the
@@ -220,7 +219,7 @@ namespace Crest
             PopulateSettings<LodDataAnimatedWaves, SimSettingsAnimatedWaves>(cachedSettings, ref ocean._simSettingsAnimatedWaves);
             PopulateSettings<LodDataMgrDynWaves, SimSettingsWave>(cachedSettings, ref ocean._simSettingsDynamicWaves);
             PopulateSettings<LodDataMgrFlow, SimSettingsFlow>(cachedSettings, ref ocean._simSettingsFlow);
-            PopulateSettings<LodDataFoam, SimSettingsFoam>(cachedSettings, ref ocean._simSettingsFoam);
+            PopulateSettings<LodDataMgrFoam, SimSettingsFoam>(cachedSettings, ref ocean._simSettingsFoam);
             PopulateSettings<LodDataShadow, SimSettingsShadow>(cachedSettings, ref ocean._simSettingsShadow);
 
             // Add any required GPU readbacks
@@ -443,8 +442,6 @@ namespace Crest
 
             // add LOD data cameras into this LOD
             PlaceLodData(ocean._lodDataAnimWaves[lodIndex].transform, parent.transform);
-            if (ocean._lodDataFoam[lodIndex] != null)
-                PlaceLodData(ocean._lodDataFoam[lodIndex].transform, parent.transform);
 
             bool generateSkirt = biggestLOD && !ocean._disableSkirt;
 

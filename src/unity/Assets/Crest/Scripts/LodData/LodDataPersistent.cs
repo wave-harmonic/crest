@@ -3,6 +3,8 @@
 using UnityEngine;
 using UnityEngine.Rendering;
 
+#if NODEF
+
 namespace Crest
 {
     /// <summary>
@@ -93,7 +95,6 @@ namespace Crest
         protected virtual void SetAdditionalSimParams(Material simMaterial)
         {
         }
-
-        PingPongRts _pprts; protected PingPongRts PPRTs { get { return _pprts ?? (_pprts = GetComponent<PingPongRts>()); } }
     }
 }
+#endif

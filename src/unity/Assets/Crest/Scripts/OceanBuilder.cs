@@ -164,7 +164,6 @@ namespace Crest
             ocean._lods = new LodTransform[lodCount];
             ocean._lodDataAnimWaves = new LodDataAnimatedWaves[lodCount];
             ocean._lodDataSeaDepths = new LodDataSeaFloorDepth[lodCount];
-            ocean._lodDataShadow = new LodDataShadow[lodCount];
 
             var cachedSettings = new Dictionary<System.Type, SimSettingsBase>();
 
@@ -172,7 +171,7 @@ namespace Crest
             AddSettings<LodDataAnimatedWaves>(ocean._simSettingsAnimatedWaves, cachedSettings);
             AddSettings<LodDataMgrDynWaves>(ocean._simSettingsDynamicWaves, cachedSettings);
             AddSettings<LodDataMgrFoam>(ocean._simSettingsFoam, cachedSettings);
-            AddSettings<LodDataShadow>(ocean._simSettingsShadow, cachedSettings);
+            AddSettings<LodDataMgrShadow>(ocean._simSettingsShadow, cachedSettings);
             AddSettings<LodDataMgrFlow>(ocean._simSettingsFlow, cachedSettings);
 
             if (ocean._createDynamicWaveSim)
@@ -193,6 +192,12 @@ namespace Crest
                     LodDataMgr.Create(lodCount, ocean.gameObject, baseVertDensity, LodData.SimType.Foam, cachedSettings) as LodDataMgrFoam;
             }
 
+            if (ocean._createShadowData)
+            {
+                ocean._lodDataShadow = 
+                    LodDataMgr.Create(lodCount, ocean.gameObject, baseVertDensity, LodData.SimType.Shadow, cachedSettings) as LodDataMgrShadow;
+            }
+
             for ( int i = 0; i < lodCount; i++ )
             {
                 {
@@ -204,13 +209,6 @@ namespace Crest
                         LodData.CreateLodData(i, lodCount, go, baseVertDensity, LodData.SimType.SeaFloorDepth, cachedSettings);
                         ocean._lodDataSeaDepths[i] = go.GetComponent<LodDataSeaFloorDepth>();
                     }
-
-                    if (ocean._createShadowData)
-                    {
-                        // add lod data to same GO
-                        LodData.CreateLodData(i, lodCount, go, baseVertDensity, LodData.SimType.Shadow, cachedSettings);
-                        ocean._lodDataShadow[i] = go.GetComponent<LodDataShadow>();
-                    }
                 }
             }
 
@@ -220,7 +218,7 @@ namespace Crest
             PopulateSettings<LodDataMgrDynWaves, SimSettingsWave>(cachedSettings, ref ocean._simSettingsDynamicWaves);
             PopulateSettings<LodDataMgrFlow, SimSettingsFlow>(cachedSettings, ref ocean._simSettingsFlow);
             PopulateSettings<LodDataMgrFoam, SimSettingsFoam>(cachedSettings, ref ocean._simSettingsFoam);
-            PopulateSettings<LodDataShadow, SimSettingsShadow>(cachedSettings, ref ocean._simSettingsShadow);
+            PopulateSettings<LodDataMgrShadow, SimSettingsShadow>(cachedSettings, ref ocean._simSettingsShadow);
 
             // Add any required GPU readbacks
             {

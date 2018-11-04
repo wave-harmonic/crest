@@ -160,6 +160,9 @@ namespace Crest
                 case LodData.SimType.Foam:
                     sim = attachGO.AddComponent<LodDataMgrFoam>();
                     break;
+                case LodData.SimType.Shadow:
+                    sim = attachGO.AddComponent<LodDataMgrShadow>();
+                    break;
                 default:
                     Debug.LogError("Unknown sim type: " + simType.ToString());
                     return null;
@@ -213,6 +216,13 @@ namespace Crest
             }
 
             _drawList.Remove(rend);
+        }
+
+        protected void SwapRTs(ref RenderTexture o_a, ref RenderTexture o_b)
+        {
+            var temp = o_a;
+            o_a = o_b;
+            o_b = temp;
         }
     }
 }

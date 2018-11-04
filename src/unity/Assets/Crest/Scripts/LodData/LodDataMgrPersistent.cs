@@ -67,13 +67,6 @@ namespace Crest
             _pwMat._target = null;
         }
 
-        void Swap(ref RenderTexture o_a, ref RenderTexture o_b)
-        {
-            var temp = o_a;
-            o_a = o_b;
-            o_b = temp;
-        }
-
         public override void BuildCommandBuffer(OceanRenderer ocean, CommandBuffer buf)
         {
             base.BuildCommandBuffer(ocean, buf);
@@ -92,7 +85,7 @@ namespace Crest
 
             for (var lodIdx = lodCount - 1; lodIdx >= 0; lodIdx--)
             {
-                Swap(ref _sources[lodIdx], ref _targets[lodIdx]);
+                SwapRTs(ref _sources[lodIdx], ref _targets[lodIdx]);
             }
 
             for (var lodIdx = lodCount - 1; lodIdx >= 0; lodIdx--)

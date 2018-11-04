@@ -88,7 +88,7 @@ public class OceanDebugGUI : MonoBehaviour
             LodDataAnimatedWaves._shapeCombinePass = GUI.Toggle(new Rect(x, y, w, h), LodDataAnimatedWaves._shapeCombinePass, "Shape combine pass"); y += h;
 #endif
 
-            LodDataShadow.s_processData = GUI.Toggle(new Rect(x, y, w, h), LodDataShadow.s_processData, "Process Shadows"); y += h;
+            LodDataMgrShadow.s_processData = GUI.Toggle(new Rect(x, y, w, h), LodDataMgrShadow.s_processData, "Process Shadows"); y += h;
 
             // TODO
 //            if (GPUReadbackDisps.Instance)
@@ -150,7 +150,7 @@ public class OceanDebugGUI : MonoBehaviour
         if (OceanRenderer.Instance._createDynamicWaveSim) DrawSims<LodDataMgrDynWaves>(OceanRenderer.Instance._lodDataDynWaves, false, ref column);
         if (OceanRenderer.Instance._createFoamSim) DrawSims<LodDataMgrFoam>(OceanRenderer.Instance._lodDataFoam, false, ref column);
         if (OceanRenderer.Instance._createFlowSim) DrawSims<LodDataMgrFlow>(OceanRenderer.Instance._lodDataFlow, false, ref column);
-        if (OceanRenderer.Instance._createShadowData) DrawSims<LodDataShadow>(OceanRenderer.Instance._lodDataShadow, false, ref column);
+        if (OceanRenderer.Instance._createShadowData) DrawSims<LodDataMgrShadow>(OceanRenderer.Instance._lodDataShadow, false, ref column);
         DrawSims<LodDataSeaFloorDepth>(OceanRenderer.Instance._lodDataSeaDepths, false, ref column);
     }
 

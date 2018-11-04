@@ -64,7 +64,7 @@ Shader "Ocean/ShadowUpdate"
 				o.pos = UnityObjectToClipPos(v.vertex);
 
 				// world pos from [0,1] quad
-				float4 wpos = float4(float3(v.vertex.x - 0.5, 0.0, v.vertex.y - 0.5) * _Scale.xzy * 4. + _CenterPos, 1.);
+				float4 wpos = float4(float3(v.vertex.x - 0.5, 0.0, v.vertex.y - 0.5) * _Scale * 4. + _CenterPos, 1.);
 
 				// this could add wave height/disp??
 				wpos.y = _OceanCenterPosWorld.y;

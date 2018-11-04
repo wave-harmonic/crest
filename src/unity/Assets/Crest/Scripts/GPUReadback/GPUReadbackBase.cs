@@ -33,7 +33,7 @@ namespace Crest
 
         protected IReadbackSettingsProvider _settingsProvider;
 
-        protected virtual bool CanUseLastLOD { get { return true; } }
+        protected virtual bool CanUseLastTwoLODs { get { return true; } }
 
         protected class PerLodData
         {
@@ -66,7 +66,7 @@ namespace Crest
         protected virtual void Start()
         {
             _lodComponent = OceanRenderer.Instance.GetComponent<LodDataType>();
-            if(OceanRenderer.Instance.CurrentLodCount <= (CanUseLastLOD ? 0 : 1))
+            if(OceanRenderer.Instance.CurrentLodCount <= (CanUseLastTwoLODs ? 0 : 1))
             {
                 Debug.LogError("No data components of type " + typeof(LodDataType).Name + " found in the scene. Disabling GPU readback.", this);
                 enabled = false;
@@ -123,8 +123,7 @@ namespace Crest
             // When viewer changes altitude, lods will start/stop updating. Mark ones that are/arent being rendered!
             foreach (var gridSize_lodData in _perLodData)
             {
-                bool CAN_USE_LAST_LOD = false;
-                int lastUsableIndex = CAN_USE_LAST_LOD ? (lodCount - 1) : (lodCount - 2);
+                int lastUsableIndex = CanUseLastTwoLODs ? (lodCount - 1) : (lodCount - 3);
 
                 gridSize_lodData.Value._activelyBeingRendered =
                     gridSize_lodData.Key >= ocean._lods[0]._renderData._texelWidth &&

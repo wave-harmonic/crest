@@ -14,7 +14,8 @@ namespace Crest
         public override SimType LodDataType { get { return SimType.Flow; } }
         public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RGHalf; } }
         public override CameraClearFlags CamClearFlags { get { return CameraClearFlags.Nothing; } }
-        public override RenderTexture DataTexture { get { return Cam.targetTexture; } }
+        public override RenderTexture DataTexture { get { return CART.RT; } }
+        public override bool RequiresCamera { get { return false; } }
 
         [SerializeField]
         protected SimSettingsFlow _settings;
@@ -72,7 +73,7 @@ namespace Crest
 
             buf.SetRenderTarget(DataTexture);
             buf.ClearRenderTarget(false, true, Color.black);
-            buf.SetViewProjectionMatrices(Cam.worldToCameraMatrix, Cam.projectionMatrix);
+            buf.SetViewProjectionMatrices(_worldToCameraMatrix, _projectionMatrix);
 
             foreach(var draw in _drawList)
             {

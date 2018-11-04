@@ -31,6 +31,9 @@ namespace Crest
 
         bool _createdAndAssigned = false;
 
+        RenderTexture _RT;
+        public RenderTexture RT { get { return _createPingPongTargets ? GetComponent<PingPongRts>().Target : _RT; } }
+
         void Start()
         {
             Create();
@@ -57,9 +60,13 @@ namespace Crest
         /// </summary>
         private void CreateRTAndAssign()
         {
-            var rt = CreateRT(_targetName);
+            _RT = CreateRT(_targetName);
 
-            GetComponent<Camera>().targetTexture = rt;
+            var cam = GetComponent<Camera>();
+            if (null != cam)
+            {
+                cam.targetTexture = _RT;
+            }
 
             _createdAndAssigned = true;
         }

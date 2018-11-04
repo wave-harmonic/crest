@@ -180,10 +180,12 @@ MonoBehaviour:
   _uniformTiles: 0
   _disableSkirt: 0
   _lodDataAnimWaves: []
-  _camsAnimWaves: []
-  _camsFoam: []
-  _camsFlow: []
-  _camsDynWaves: []
+  _lodDataSeaDepths: []
+  _lodDataFoam: []
+  _lodDataFlow: []
+  _lodDataDynWaves: []
+  _lodDataShadow: []
+  _commandBufferBuilder: {fileID: 0}
 --- !u!4 &220162146 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4341219009766782, guid: 71ede3c2ab0b7cb43b7dad6ae3b6190b,

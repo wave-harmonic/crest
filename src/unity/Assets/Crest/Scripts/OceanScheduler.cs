@@ -25,10 +25,10 @@ namespace Crest
         {
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // --- Flow camera renders first
-            for (int i = 0; i < ocean.CurrentLodCount && ocean._lodDataFlow[i] != null; i++)
-            {
-                ocean._lodDataFlow[i].Cam.depth = -50 - i;
-            }
+            //for (int i = 0; i < ocean.CurrentLodCount && ocean._lodDataFlow[i] != null; i++)
+            //{
+            //    ocean._lodDataFlow[i].Cam.depth = -50 - i;
+            //}
 
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // --- Dynamic waves camera renders second

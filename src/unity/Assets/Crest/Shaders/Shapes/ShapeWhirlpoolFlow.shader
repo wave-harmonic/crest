@@ -34,7 +34,6 @@ Shader "Ocean/Shape/Whirlpool Flow"
 				};
 
 				uniform float _EyeRadiusProportion;
-				//uniform float _Swirl;
 				uniform float _MaxSpeed;
 
 				v2f vert( appdata_t v )
@@ -54,7 +53,7 @@ Shader "Ocean/Shape/Whirlpool Flow"
 					float r       = _EyeRadiusProportion;
 					const float R = 1;
 					float2 o      = float2(0, 0);
-					float  s      = .2;            //_Swirl; // whirlpool 'swirlyness', can vary from 0 - 1
+					float  s      = .2;            // whirlpool 'swirlyness', can vary from 0 - 1
 					float2 p      = uv_from_cent;
 					float  V      = _MaxSpeed;
 

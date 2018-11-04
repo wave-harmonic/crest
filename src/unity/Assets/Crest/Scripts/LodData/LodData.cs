@@ -21,6 +21,8 @@ namespace Crest
         public abstract CameraClearFlags CamClearFlags { get; }
         public abstract RenderTexture DataTexture { get; }
 
+        public virtual bool RequiresCamera { get { return true; } }
+
         public const int MAX_LOD_COUNT = 16;
 
         // shape texture resolution
@@ -70,16 +72,34 @@ namespace Crest
             float ratio_l2 = Mathf.Log(ratio) / Mathf.Log(2f);
             _scaleDifferencePow2 = Mathf.RoundToInt(ratio_l2);
 
-            // ensure camera size matches geometry size - although the projection matrix is overridden, this is needed for unity shader uniforms
-            Cam.orthographicSize = 2f * transform.lossyScale.x;
+            if (RequiresCamera)
+            {
+                // ensure camera size matches geometry size - although the projection matrix is overridden, this is needed for unity shader uniforms
+                Cam.orthographicSize = 2f * transform.lossyScale.x;
 
-            // set projection matrix to snap to texels
-            Cam.ResetProjectionMatrix();
-            Matrix4x4 P = Cam.projectionMatrix, T = new Matrix4x4();
-            T.SetTRS(new Vector3(transform.position.x - LodTransform._renderData._posSnapped.x, transform.position.z - LodTransform._renderData._posSnapped.z), Quaternion.identity, Vector3.one);
-            P = P * T;
-            Cam.projectionMatrix = P;
+                // set projection matrix to snap to texels
+                Cam.ResetProjectionMatrix();
+                Matrix4x4 P = Cam.projectionMatrix, T = new Matrix4x4();
+                T.SetTRS(new Vector3(transform.position.x - LodTransform._renderData._posSnapped.x, transform.position.z - LodTransform._renderData._posSnapped.z), Quaternion.identity, Vector3.one);
+                P = P * T;
+                Cam.projectionMatrix = P;
+            }
+            else
+            {
+                _worldToCameraMatrix = CalculateWorldToCameraMatrixRHS(transform.position, Quaternion.AngleAxis(90f, Vector3.right));
+
+                _projectionMatrix = Matrix4x4.Ortho(-2f * transform.lossyScale.x, 2f * transform.lossyScale.x, -2f * transform.lossyScale.x, 2f * transform.lossyScale.x, 1f, 500f);
+            }
         }
+
+        // Borrowed from LWRP code: https://github.com/Unity-Technologies/ScriptableRenderPipeline/blob/2a68d8073c4eeef7af3be9e4811327a522434d5f/com.unity.render-pipelines.high-definition/Runtime/Core/Utilities/GeometryUtils.cs
+        public static Matrix4x4 CalculateWorldToCameraMatrixRHS(Vector3 position, Quaternion rotation)
+        {
+            return Matrix4x4.Scale(new Vector3(1, 1, -1)) * Matrix4x4.TRS(position, rotation, Vector3.one).inverse;
+        }
+
+        public Matrix4x4 _worldToCameraMatrix;
+        public Matrix4x4 _projectionMatrix;
 
         protected PropertyWrapperMaterial _pwMat = new PropertyWrapperMaterial();
         protected PropertyWrapperMPB _pwMPB = new PropertyWrapperMPB();
@@ -172,18 +192,22 @@ namespace Crest
             {
                 // Add components if we are creating a loddata GO anew
 
-                var cam = go.AddComponent<Camera>();
-                cam.clearFlags = sim.CamClearFlags;
-                cam.backgroundColor = new Color(0f, 0f, 0f, 0f);
-                cam.cullingMask = 0;
-                cam.orthographic = true;
-                cam.nearClipPlane = 1f;
-                cam.farClipPlane = 500f;
-                cam.renderingPath = RenderingPath.Forward;
-                cam.useOcclusionCulling = false;
-                cam.allowHDR = true;
-                cam.allowMSAA = false;
-                cam.allowDynamicResolution = false;
+                if (sim.RequiresCamera)
+                {
+                    var cam = go.GetComponent<Camera>();
+                    if (cam == null) cam = go.AddComponent<Camera>();
+                    cam.clearFlags = sim.CamClearFlags;
+                    cam.backgroundColor = new Color(0f, 0f, 0f, 0f);
+                    cam.cullingMask = 0;
+                    cam.orthographic = true;
+                    cam.nearClipPlane = 1f;
+                    cam.farClipPlane = 500f;
+                    cam.renderingPath = RenderingPath.Forward;
+                    cam.useOcclusionCulling = false;
+                    cam.allowHDR = true;
+                    cam.allowMSAA = false;
+                    cam.allowDynamicResolution = false;
+                }
 
                 var cart = go.AddComponent<CreateAssignRenderTexture>();
                 cart._targetName = go.name;
@@ -220,6 +244,7 @@ namespace Crest
         }
 
         Camera _camera; public Camera Cam { get { return _camera ?? (_camera = GetComponent<Camera>()); } }
+        CreateAssignRenderTexture _cart; public CreateAssignRenderTexture CART { get { return _cart ?? (_cart = GetComponent<CreateAssignRenderTexture>()); } }
         LodTransform _lt; public LodTransform LodTransform { get { return _lt ?? (_lt = transform.parent.GetComponent<LodTransform>()); } }
     }
 }

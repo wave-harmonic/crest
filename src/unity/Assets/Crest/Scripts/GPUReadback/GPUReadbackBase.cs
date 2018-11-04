@@ -140,7 +140,8 @@ namespace Crest
                 var lt = data.LodTransform;
                 if (lt._renderData._texelWidth >= _minGridSize && (lt._renderData._texelWidth <= _maxGridSize || _maxGridSize == 0f))
                 {
-                    var cam = data.GetComponent<Camera>();
+                    var tex = data.DataTexture;
+                    if (tex == null) continue;
 
                     if (!_perLodData.ContainsKey(lt._renderData._texelWidth))
                     {
@@ -150,7 +151,7 @@ namespace Crest
 
                         // create native arrays
                         Debug.Assert(_textureFormat != TexFormat.NotSet, "ReadbackLodData: Texture format must be set.", this);
-                        var num = ((int)_textureFormat) * cam.targetTexture.width * cam.targetTexture.height;
+                        var num = ((int)_textureFormat) * tex.width * tex.height;
                         if (!resultData._resultData._data.IsCreated || resultData._resultData._data.Length != num)
                         {
                             resultData._resultData._data = new NativeArray<ushort>(num, Allocator.Persistent);
@@ -168,7 +169,7 @@ namespace Crest
                         // ensure everything in the frame is done.
                         if (runningFromUpdate)
                         {
-                            EnqueueReadbackRequest(cam.targetTexture, lt._renderData, _prevFrameTime);
+                            EnqueueReadbackRequest(tex, lt._renderData, _prevFrameTime);
                         }
 
                         ProcessArrivedRequests(lodData);

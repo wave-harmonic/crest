@@ -39,23 +39,23 @@ namespace Crest
         /// <summary>
         /// Samples displacement of ocean surface from the given world position.
         /// </summary>
-        bool SampleDisplacement(ref Vector3 in__worldPos, out Vector3 displacement, float minSpatialLength = 0f);
-        void SampleDisplacementVel(ref Vector3 in__worldPos, out Vector3 displacement, out bool displacementValid, out Vector3 displacementVel, out bool velValid, float minSpatialLength = 0f);
+        bool SampleDisplacement(ref Vector3 i_worldPos, out Vector3 o_displacement, float minSpatialLength = 0f);
+        void SampleDisplacementVel(ref Vector3 i_worldPos, out Vector3 o_displacement, out bool o_displacementValid, out Vector3 o_displacementVel, out bool o_velValid, float minSpatialLength = 0f);
 
         /// <summary>
         /// Samples ocean surface height at given world position.
         /// </summary>
-        bool SampleHeight(ref Vector3 in__worldPos, out float height, float minSpatialLength = 0f);
+        bool SampleHeight(ref Vector3 i_worldPos, out float height, float minSpatialLength = 0f);
 
         /// <summary>
         /// Sample ocean normal at an undisplaced world position.
         /// </summary>
-        bool SampleNormal(ref Vector3 in__undisplacedWorldPos, out Vector3 normal, float minSpatialLength = 0f);
+        bool SampleNormal(ref Vector3 in__undisplacedWorldPos, out Vector3 o_normal, float minSpatialLength = 0f);
 
         /// <summary>
         /// Computes the position which will be displaced to the given world position.
         /// </summary>
-        bool ComputeUndisplacedPosition(ref Vector3 in__worldPos, out Vector3 undisplacedWorldPos, float minSpatialLength = 0f);
+        bool ComputeUndisplacedPosition(ref Vector3 i_worldPos, out Vector3 undisplacedWorldPos, float minSpatialLength = 0f);
 
         /// <summary>
         /// Some collision providers benefit from getting prewarmed - call this to set up a sampling area and
@@ -67,20 +67,20 @@ namespace Crest
         /// <summary>
         /// Some collision providers benefit from getting prewarmed - call this after setting up a sampling area using the Prewarm function.
         /// </summary>
-        bool SampleDisplacementInArea(ref Vector3 in__worldPos, out Vector3 displacement);
+        bool SampleDisplacementInArea(ref Vector3 i_worldPos, out Vector3 o_displacement);
         /// <summary>
         /// Some collision providers benefit from getting prewarmed - call this after setting up a sampling area using the Prewarm function.
         /// </summary>
-        void SampleDisplacementVelInArea(ref Vector3 in__worldPos, out Vector3 displacement, out bool displacementValid, out Vector3 displacementVel, out bool velValid);
+        void SampleDisplacementVelInArea(ref Vector3 i_worldPos, out Vector3 o_displacement, out bool o_displacementValid, out Vector3 o_displacementVel, out bool o_velValid);
         /// <summary>
         /// Some collision providers benefit from getting prewarmed - call this after setting up a sampling area using the Prewarm function.
         /// </summary>
-        bool SampleNormalInArea(ref Vector3 in__undisplacedWorldPos, out Vector3 normal);
+        bool SampleNormalInArea(ref Vector3 in__undisplacedWorldPos, out Vector3 o_normal);
 
         // NOTE: These 'InArea' variants cannot exist because these perform a dynamic search and the area cannot be predicted in advance
-        //bool SampleNormalInArea(ref Vector3 in__undisplacedWorldPos, out Vector3 normal);
-        //bool ComputeUndisplacedPositionInArea(ref Vector3 in__worldPos, out Vector3 undisplacedWorldPos);
+        //bool SampleNormalInArea(ref Vector3 in__undisplacedWorldPos, out Vector3 o_normal);
+        //bool ComputeUndisplacedPositionInArea(ref Vector3 i_worldPos, out Vector3 undisplacedWorldPos);
 
-        AvailabilityResult CheckAvailability(ref Vector3 in__worldPos, float minSpatialLength);
+        AvailabilityResult CheckAvailability(ref Vector3 i_worldPos, float minSpatialLength);
     }
 }

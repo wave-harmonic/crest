@@ -332,17 +332,17 @@ namespace Crest
 
             public bool Valid { get { return _time >= 0f; } }
 
-            public bool SampleARGB16(ref Vector3 in__worldPos, out Vector3 displacement)
+            public bool SampleARGB16(ref Vector3 i_worldPos, out Vector3 o_displacement)
             {
-                if (!Valid) { displacement = Vector3.zero; return false; }
+                if (!Valid) { o_displacement = Vector3.zero; return false; }
 
-                float xOffset = in__worldPos.x - _renderData._posSnapped.x;
-                float zOffset = in__worldPos.z - _renderData._posSnapped.z;
+                float xOffset = i_worldPos.x - _renderData._posSnapped.x;
+                float zOffset = i_worldPos.z - _renderData._posSnapped.z;
                 float r = _renderData._texelWidth * _renderData._textureRes / 2f;
                 if (Mathf.Abs(xOffset) >= r || Mathf.Abs(zOffset) >= r)
                 {
                     // outside of this collision data
-                    displacement = Vector3.zero;
+                    o_displacement = Vector3.zero;
                     return false;
                 }
 
@@ -352,24 +352,24 @@ namespace Crest
                 var y = Mathf.FloorToInt(v * _renderData._textureRes);
                 var idx = 4 * (y * (int)_renderData._textureRes + x);
 
-                displacement.x = Mathf.HalfToFloat(_data[idx + 0]);
-                displacement.y = Mathf.HalfToFloat(_data[idx + 1]);
-                displacement.z = Mathf.HalfToFloat(_data[idx + 2]);
+                o_displacement.x = Mathf.HalfToFloat(_data[idx + 0]);
+                o_displacement.y = Mathf.HalfToFloat(_data[idx + 1]);
+                o_displacement.z = Mathf.HalfToFloat(_data[idx + 2]);
 
                 return true;
             }
 
-            public bool InterpolateARGB16(ref Vector3 in__worldPos, out Vector3 displacement)
+            public bool InterpolateARGB16(ref Vector3 i_worldPos, out Vector3 o_displacement)
             {
-                if (!Valid) { displacement = Vector3.zero; return false; }
+                if (!Valid) { o_displacement = Vector3.zero; return false; }
 
-                float xOffset = in__worldPos.x - _renderData._posSnapped.x;
-                float zOffset = in__worldPos.z - _renderData._posSnapped.z;
+                float xOffset = i_worldPos.x - _renderData._posSnapped.x;
+                float zOffset = i_worldPos.z - _renderData._posSnapped.z;
                 float r = _renderData._texelWidth * _renderData._textureRes / 2f;
                 if (Mathf.Abs(xOffset) >= r || Mathf.Abs(zOffset) >= r)
                 {
                     // outside of this collision data
-                    displacement = Vector3.zero;
+                    o_displacement = Vector3.zero;
                     return false;
                 }
 
@@ -405,19 +405,19 @@ namespace Crest
 
                 var xf = Mathf.Repeat(u_texels, 1f);
                 var zf = Mathf.Repeat(v_texels, 1f);
-                displacement.x = Mathf.Lerp(Mathf.Lerp(x00, x01, xf), Mathf.Lerp(x10, x11, xf), zf);
-                displacement.y = Mathf.Lerp(Mathf.Lerp(y00, y01, xf), Mathf.Lerp(y10, y11, xf), zf);
-                displacement.z = Mathf.Lerp(Mathf.Lerp(z00, z01, xf), Mathf.Lerp(z10, z11, xf), zf);
+                o_displacement.x = Mathf.Lerp(Mathf.Lerp(x00, x01, xf), Mathf.Lerp(x10, x11, xf), zf);
+                o_displacement.y = Mathf.Lerp(Mathf.Lerp(y00, y01, xf), Mathf.Lerp(y10, y11, xf), zf);
+                o_displacement.z = Mathf.Lerp(Mathf.Lerp(z00, z01, xf), Mathf.Lerp(z10, z11, xf), zf);
 
                 return true;
             }
 
-            public bool SampleRG16(ref Vector3 in__worldPos, out Vector2 flow)
+            public bool SampleRG16(ref Vector3 i_worldPos, out Vector2 flow)
             {
                 if (!Valid) { flow = Vector2.zero; return false; }
 
-                float xOffset = in__worldPos.x - _renderData._posSnapped.x;
-                float zOffset = in__worldPos.z - _renderData._posSnapped.z;
+                float xOffset = i_worldPos.x - _renderData._posSnapped.x;
+                float zOffset = i_worldPos.z - _renderData._posSnapped.z;
                 float r = _renderData._texelWidth * _renderData._textureRes / 2f;
                 if (Mathf.Abs(xOffset) >= r || Mathf.Abs(zOffset) >= r)
                 {
@@ -485,9 +485,9 @@ namespace Crest
             return lastCandidate;
         }
 
-        public AvailabilityResult CheckAvailability(ref Vector3 in__worldPos, float minSpatialLength)
+        public AvailabilityResult CheckAvailability(ref Vector3 i_worldPos, float minSpatialLength)
         {
-            var sampleAreaXZ = new Rect(in__worldPos.x, in__worldPos.z, 0f, 0f);
+            var sampleAreaXZ = new Rect(i_worldPos.x, i_worldPos.z, 0f, 0f);
 
             bool oneWasInRect = false;
             bool wavelengthsLargeEnough = false;

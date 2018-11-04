@@ -387,16 +387,16 @@ namespace Crest
             return cp;
         }
 
-        public bool SampleDisplacement(ref Vector3 in__worldPos, out Vector3 displacement, float minSpatialLength = 0f)
+        public bool SampleDisplacement(ref Vector3 i_worldPos, out Vector3 o_displacement, float minSpatialLength = 0f)
         {
-            displacement = Vector3.zero;
+            o_displacement = Vector3.zero;
 
             if (_amplitudes == null)
             {
                 return false;
             }
 
-            Vector2 pos = new Vector2(in__worldPos.x, in__worldPos.z);
+            Vector2 pos = new Vector2(i_worldPos.x, i_worldPos.z);
             float mytime = OceanRenderer.Instance.CurrentTime;
             float windAngle = OceanRenderer.Instance._windDirectionAngle;
             float minWavelength = minSpatialLength / 2f;
@@ -416,7 +416,7 @@ namespace Crest
                 float x = Vector2.Dot(D, pos);
                 float t = k * (x + C * mytime) + _phases[j];
                 float disp = -_spectrum._chop * Mathf.Sin(t);
-                displacement += _amplitudes[j] * new Vector3(
+                o_displacement += _amplitudes[j] * new Vector3(
                     D.x * disp,
                     Mathf.Cos(t),
                     D.y * disp
@@ -426,13 +426,13 @@ namespace Crest
             return true;
         }
 
-        public bool GetSurfaceVelocity(ref Vector3 in__worldPos, out Vector3 surfaceVel, float minSpatialLength)
+        public bool GetSurfaceVelocity(ref Vector3 i_worldPos, out Vector3 surfaceVel, float minSpatialLength)
         {
             surfaceVel = Vector3.zero;
 
             if (_amplitudes == null) return false;
 
-            Vector2 pos = new Vector2(in__worldPos.x, in__worldPos.z);
+            Vector2 pos = new Vector2(i_worldPos.x, i_worldPos.z);
             float mytime = OceanRenderer.Instance.CurrentTime;
             float windAngle = OceanRenderer.Instance._windDirectionAngle;
             float minWaveLength = minSpatialLength / 2f;
@@ -462,17 +462,17 @@ namespace Crest
             return true;
         }
 
-        public void SampleDisplacementVel(ref Vector3 in__worldPos, out Vector3 displacement, out bool displacementValid, out Vector3 displacementVel, out bool velValid, float minSpatialLength)
+        public void SampleDisplacementVel(ref Vector3 i_worldPos, out Vector3 o_displacement, out bool o_displacementValid, out Vector3 o_displacementVel, out bool o_velValid, float minSpatialLength)
         {
-            displacementValid = SampleDisplacement(ref in__worldPos, out displacement, minSpatialLength);
-            velValid = GetSurfaceVelocity(ref in__worldPos, out displacementVel, minSpatialLength);
+            o_displacementValid = SampleDisplacement(ref i_worldPos, out o_displacement, minSpatialLength);
+            o_velValid = GetSurfaceVelocity(ref i_worldPos, out o_displacementVel, minSpatialLength);
         }
 
-        public bool SampleHeight(ref Vector3 in__worldPos, out float height, float minSpatialLength = 0f)
+        public bool SampleHeight(ref Vector3 i_worldPos, out float height, float minSpatialLength = 0f)
         {
             height = 0f;
 
-            Vector3 posFlatland = in__worldPos;
+            Vector3 posFlatland = i_worldPos;
             posFlatland.y = OceanRenderer.Instance.transform.position.y;
 
             Vector3 undisplacedPos;
@@ -496,16 +496,16 @@ namespace Crest
         }
         public bool PrewarmForSamplingArea(Rect areaXZ, float minSpatialLength)
         {
-            // Compute min wavelength based on the min spatial length of teh subject. Don't bother computing waves that cross
+            // Compute min wavelength based on the min spatial length of the subject. Don't bother computing waves that cross
             // the object more than twice.
             _minSpatialLengthForArea = minSpatialLength;
             return true;
         }
 
         // compute normal to a surface with a parameterization - equation 14 here: http://mathworld.wolfram.com/NormalVector.html
-        public bool SampleNormal(ref Vector3 in__undisplacedWorldPos, out Vector3 normal, float minSpatialLength)
+        public bool SampleNormal(ref Vector3 in__undisplacedWorldPos, out Vector3 o_normal, float minSpatialLength)
         {
-            normal = Vector3.zero;
+            o_normal = Vector3.zero;
 
             if (_amplitudes == null) return false;
 
@@ -541,15 +541,15 @@ namespace Crest
                 delfdelz += _amplitudes[j] * new Vector3(D.x * dispz, D.y * dispy, D.y * dispz);
             }
 
-            normal = Vector3.Cross(delfdelz, delfdelx).normalized;
+            o_normal = Vector3.Cross(delfdelz, delfdelx).normalized;
 
             return true;
         }
 
-        public bool ComputeUndisplacedPosition(ref Vector3 in__worldPos, out Vector3 undisplacedWorldPos, float minSpatialLength)
+        public bool ComputeUndisplacedPosition(ref Vector3 i_worldPos, out Vector3 undisplacedWorldPos, float minSpatialLength)
         {
             // fpi - guess should converge to location that displaces to the target position
-            Vector3 guess = in__worldPos;
+            Vector3 guess = i_worldPos;
             // 2 iterations was enough to get very close when chop = 1, added 2 more which should be
             // sufficient for most applications. for high chop values or really stormy conditions there may
             // be some error here. one could also terminate iteration based on the size of the error, this is
@@ -557,7 +557,7 @@ namespace Crest
             Vector3 disp;
             for (int i = 0; i < 4 && SampleDisplacement(ref guess, out disp, minSpatialLength); i++)
             {
-                Vector3 error = guess + disp - in__worldPos;
+                Vector3 error = guess + disp - i_worldPos;
                 guess.x -= error.x;
                 guess.z -= error.z;
             }
@@ -568,22 +568,22 @@ namespace Crest
             return true;
         }
 
-        public bool SampleDisplacementInArea(ref Vector3 in__worldPos, out Vector3 displacement)
+        public bool SampleDisplacementInArea(ref Vector3 i_worldPos, out Vector3 o_displacement)
         {
-            return SampleDisplacement(ref in__worldPos, out displacement, _minSpatialLengthForArea);
+            return SampleDisplacement(ref i_worldPos, out o_displacement, _minSpatialLengthForArea);
         }
 
-        public void SampleDisplacementVelInArea(ref Vector3 in__worldPos, out Vector3 displacement, out bool displacementValid, out Vector3 displacementVel, out bool velValid)
+        public void SampleDisplacementVelInArea(ref Vector3 i_worldPos, out Vector3 o_displacement, out bool o_displacementValid, out Vector3 o_displacementVel, out bool o_velValid)
         {
-            SampleDisplacementVel(ref in__worldPos, out displacement, out displacementValid, out displacementVel, out velValid, _minSpatialLengthForArea);
+            SampleDisplacementVel(ref i_worldPos, out o_displacement, out o_displacementValid, out o_displacementVel, out o_velValid, _minSpatialLengthForArea);
         }
 
-        public bool SampleNormalInArea(ref Vector3 in__undisplacedWorldPos, out Vector3 normal)
+        public bool SampleNormalInArea(ref Vector3 in__undisplacedWorldPos, out Vector3 o_normal)
         {
-            return SampleNormal(ref in__undisplacedWorldPos, out normal, _minSpatialLengthForArea);
+            return SampleNormal(ref in__undisplacedWorldPos, out o_normal, _minSpatialLengthForArea);
         }
 
-        public AvailabilityResult CheckAvailability(ref Vector3 in__worldPos, float minSpatialLength)
+        public AvailabilityResult CheckAvailability(ref Vector3 i_worldPos, float minSpatialLength)
         {
             return _amplitudes == null ? AvailabilityResult.NotInitialisedYet : AvailabilityResult.DataAvailable;
         }

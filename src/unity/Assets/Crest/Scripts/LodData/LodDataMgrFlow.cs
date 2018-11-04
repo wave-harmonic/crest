@@ -25,6 +25,8 @@ namespace Crest
             return settings;
         }
 
+        bool _targetsClear = false;
+
         protected override void Start()
         {
             base.Start();
@@ -41,17 +43,24 @@ namespace Crest
         {
             base.BuildCommandBuffer(ocean, buf);
 
+            // if there is nothing in the scene tagged up for depth rendering, and we have cleared the RTs, then we can early out
+            if (_drawList.Count == 0 && _targetsClear)
+            {
+                return;
+            }
+
             for (int lodIdx = OceanRenderer.Instance.CurrentLodCount - 1; lodIdx >= 0; lodIdx--)
             {
                 buf.SetRenderTarget(DataTexture(lodIdx));
                 buf.ClearRenderTarget(false, true, Color.black);
 
-                var lt = OceanRenderer.Instance._lods[lodIdx];
-                buf.SetViewProjectionMatrices(lt._worldToCameraMatrix, lt._projectionMatrix);
-                foreach (var draw in _drawList)
-                {
-                    buf.DrawRenderer(draw, draw.material);
-                }
+                SubmitDraws(lodIdx, buf);
+            }
+
+            // targets have now been cleared, we can early out next time around
+            if (_drawList.Count == 0)
+            {
+                _targetsClear = true;
             }
         }
     }

@@ -2,6 +2,7 @@
 using UnityEngine.Rendering;
 using System.Collections.Generic;
 
+#if NOTDEF
 namespace Crest
 {
     /// <summary>
@@ -134,3 +135,4 @@ namespace Crest
         }
     }
 }
+#endif

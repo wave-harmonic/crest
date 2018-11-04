@@ -12,14 +12,21 @@ namespace Crest
         void Build(OceanRenderer ocean, CommandBuffer buf)
         {
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            // --- Flow camera renders first
+            // --- Ocean depths
+            if (ocean._lodDataSeaDepths)
+            {
+                ocean._lodDataSeaDepths.BuildCommandBuffer(ocean, buf);
+            }
+
+            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            // --- Flow data
             if (ocean._lodDataFlow)
             {
                 ocean._lodDataFlow.BuildCommandBuffer(ocean, buf);
             }
 
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            // --- Dynamic waves camera renders second
+            // --- Dynamic wave simulations
             if (ocean._lodDataDynWaves)
             {
                 ocean._lodDataDynWaves.BuildCommandBuffer(ocean, buf);
@@ -28,7 +35,7 @@ namespace Crest
             // all the other things..
 
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            // --- Foam takes the final combined waves as input and generates foam
+            // --- Foam simulation
             if (ocean._lodDataFoam)
             {
                 ocean._lodDataFoam.BuildCommandBuffer(ocean, buf);

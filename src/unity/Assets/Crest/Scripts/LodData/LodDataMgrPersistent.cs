@@ -114,12 +114,7 @@ namespace Crest
                 buf.SetRenderTarget(DataTexture(lodIdx));
                 buf.Blit(null, _targets[lodIdx], _renderSimMaterial[lodIdx]);
 
-                var lt = OceanRenderer.Instance._lods[lodIdx];
-                buf.SetViewProjectionMatrices(lt._worldToCameraMatrix, lt._projectionMatrix);
-                foreach (var draw in _drawList)
-                {
-                    buf.DrawRenderer(draw, draw.material);
-                }
+                SubmitDraws(lodIdx, buf);
 
                 if (!BuildCommandBufferInternal(lodIdx))
                     continue;

@@ -48,7 +48,7 @@ namespace Crest
             // assign sea floor depth - to slot 1 current frame data
             if (OceanRenderer.Instance._createSeaFloorDepthData)
             {
-                OceanRenderer.Instance._lodDataSeaDepths[lodIdx].BindResultData(1, simMaterial);
+                OceanRenderer.Instance._lodDataSeaDepths.BindResultData(lodIdx, 1, simMaterial);
             }
 
             // assign flow - to slot 1 current frame data

@@ -99,12 +99,11 @@ namespace Crest
                 _drawCacheQuad.name = "Draw_" + _cache.name;
                 _drawCacheQuad.transform.SetParent(transform, false);
                 _drawCacheQuad.transform.localEulerAngles = 90f * Vector3.right;
-                var rod = _drawCacheQuad.AddComponent<RenderOceanDepth>();
                 var qr = _drawCacheQuad.GetComponent<Renderer>();
                 qr.material = new Material(Shader.Find("Ocean/Ocean Depth Cache"));
                 qr.material.mainTexture = _cache;
-                rod.SetMaterial(qr.material);
                 qr.enabled = false;
+                _drawCacheQuad.AddComponent<RegisterSeaFloorDepthInput>();
             }
 
             if (_camDepthCache == null)

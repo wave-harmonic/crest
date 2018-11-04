@@ -107,7 +107,7 @@ namespace Crest
 
         [HideInInspector] public LodTransform[] _lods;
         [HideInInspector] public LodDataAnimatedWaves[] _lodDataAnimWaves;
-        [HideInInspector] public LodDataSeaFloorDepth[] _lodDataSeaDepths;
+        [HideInInspector] public LodDataMgrSeaFloorDepth _lodDataSeaDepths;
         [HideInInspector] public LodDataMgrDynWaves _lodDataDynWaves;
         [HideInInspector] public LodDataMgrFlow _lodDataFlow;
         [HideInInspector] public LodDataMgrFoam _lodDataFoam;

@@ -160,6 +160,9 @@ namespace Crest
                 case LodData.SimType.Foam:
                     sim = attachGO.AddComponent<LodDataMgrFoam>();
                     break;
+                case LodData.SimType.SeaFloorDepth:
+                    sim = attachGO.AddComponent<LodDataMgrSeaFloorDepth>();
+                    break;
                 case LodData.SimType.Shadow:
                     sim = attachGO.AddComponent<LodDataMgrShadow>();
                     break;
@@ -223,6 +226,16 @@ namespace Crest
             var temp = o_a;
             o_a = o_b;
             o_b = temp;
+        }
+
+        protected void SubmitDraws(int lodIdx, CommandBuffer buf)
+        {
+            var lt = OceanRenderer.Instance._lods[lodIdx];
+            buf.SetViewProjectionMatrices(lt._worldToCameraMatrix, lt._projectionMatrix);
+            foreach (var draw in _drawList)
+            {
+                buf.DrawRenderer(draw, draw.material);
+            }
         }
     }
 }

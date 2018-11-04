@@ -159,9 +159,6 @@ namespace Crest
                 case SimType.AnimatedWaves:
                     sim = go.AddComponent<LodDataAnimatedWaves>();
                     break;
-                case SimType.SeaFloorDepth:
-                    sim = go.AddComponent<LodDataSeaFloorDepth>();
-                    break;
                 default:
                     Debug.LogError("Unknown sim type: " + simType.ToString());
                     return null;

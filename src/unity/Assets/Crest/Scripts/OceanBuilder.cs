@@ -163,7 +163,6 @@ namespace Crest
             // create the shape cameras
             ocean._lods = new LodTransform[lodCount];
             ocean._lodDataAnimWaves = new LodDataAnimatedWaves[lodCount];
-            ocean._lodDataSeaDepths = new LodDataSeaFloorDepth[lodCount];
 
             var cachedSettings = new Dictionary<System.Type, SimSettingsBase>();
 
@@ -198,17 +197,17 @@ namespace Crest
                     LodDataMgr.Create(lodCount, ocean.gameObject, baseVertDensity, LodData.SimType.Shadow, cachedSettings) as LodDataMgrShadow;
             }
 
+            if (ocean._createSeaFloorDepthData)
+            {
+                ocean._lodDataSeaDepths = 
+                    LodDataMgr.Create(lodCount, ocean.gameObject, baseVertDensity, LodData.SimType.SeaFloorDepth, cachedSettings) as LodDataMgrSeaFloorDepth;
+            }
+
             for ( int i = 0; i < lodCount; i++ )
             {
                 {
                     var go = LodData.CreateLodData(i, lodCount, null, baseVertDensity, LodData.SimType.AnimatedWaves, cachedSettings);
                     ocean._lodDataAnimWaves[i] = go.GetComponent<LodDataAnimatedWaves>();
-
-                    if(ocean._createSeaFloorDepthData)
-                    {
-                        LodData.CreateLodData(i, lodCount, go, baseVertDensity, LodData.SimType.SeaFloorDepth, cachedSettings);
-                        ocean._lodDataSeaDepths[i] = go.GetComponent<LodDataSeaFloorDepth>();
-                    }
                 }
             }
 

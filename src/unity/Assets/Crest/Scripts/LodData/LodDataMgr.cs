@@ -232,6 +232,7 @@ namespace Crest
         protected void SubmitDraws(int lodIdx, CommandBuffer buf)
         {
             var lt = OceanRenderer.Instance._lods[lodIdx];
+            lt._renderData.Validate(0, this);
             buf.SetViewProjectionMatrices(lt._worldToCameraMatrix, lt._projectionMatrix);
             foreach (var draw in _drawList)
             {

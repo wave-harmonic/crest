@@ -75,9 +75,9 @@ namespace Crest
             }
 
             {
-                _worldToCameraMatrix = CalculateWorldToCameraMatrixRHS(transform.position + Vector3.up * 100f, Quaternion.AngleAxis(90f, Vector3.right));
+                _worldToCameraMatrix = CalculateWorldToCameraMatrixRHS(_renderData._posSnapped + Vector3.up * 100f, Quaternion.AngleAxis(90f, Vector3.right));
 
-                _projectionMatrix = Matrix4x4.Ortho(-2f * transform.lossyScale.x, 2f * transform.lossyScale.x, -2f * transform.lossyScale.x, 2f * transform.lossyScale.x, 1f, 500f);
+                _projectionMatrix = Matrix4x4.Ortho(-2f * transform.lossyScale.x, 2f * transform.lossyScale.x, -2f * transform.lossyScale.z, 2f * transform.lossyScale.z, 1f, 500f);
             }
 
         }

@@ -1,5 +1,7 @@
 ﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+using UnityEngine;
+
 namespace Crest
 {
     /// <summary>
@@ -8,5 +10,17 @@ namespace Crest
     /// </summary>
     public class RegisterSeaFloorDepthInput : RegisterLodDataInput<LodDataMgrSeaFloorDepth>
     {
+        [SerializeField] bool _assignOceanDepthMaterial = true;
+
+        protected override void OnEnable()
+        {
+            base.OnEnable();
+
+            if (_assignOceanDepthMaterial)
+            {
+                var rend = GetComponent<Renderer>();
+                rend.material = new Material(Shader.Find("Ocean/Ocean Depth"));
+            }
+        }
     }
 }

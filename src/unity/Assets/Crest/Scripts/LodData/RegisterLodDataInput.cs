@@ -7,7 +7,7 @@ namespace Crest
     {
         [SerializeField] bool _disableRenderer = true;
 
-        private void OnEnable()
+        protected virtual void OnEnable()
         {
             var rend = GetComponent<Renderer>();
 
@@ -27,7 +27,7 @@ namespace Crest
             }
         }
 
-        private void OnDisable()
+        protected virtual void OnDisable()
         {
             var rend = GetComponent<Renderer>();
             var ocean = OceanRenderer.Instance;

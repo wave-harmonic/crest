@@ -3,18 +3,16 @@
 using UnityEngine;
 using UnityEngine.Rendering;
 
-#if NOTDEF
 namespace Crest
 {
     /// <summary>
     /// A dynamic shape simulation that moves around with a displacement LOD. It
     /// </summary>
-    public class LodDataDynamicWaves : LodDataPersistent
+    public class LodDataMgrDynWaves : LodDataMgrPersistent
     {
-        public override SimType LodDataType { get { return SimType.DynamicWaves; } }
+        public override LodData.SimType LodDataType { get { return LodData.SimType.DynamicWaves; } }
         protected override string ShaderSim { get { return "Ocean/Shape/Sim/2D Wave Equation"; } }
         public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RGHalf; } }
-        protected override LodDataPersistent[] SimComponents { get { return OceanRenderer.Instance._lodDataDynWaves; } }
 
         public override SimSettingsBase CreateDefaultSettings()
         {
@@ -31,8 +29,8 @@ namespace Crest
         CommandBuffer _copySimResultsCmdBuf;
         Camera _copySimResultCamera = null;
 
-        bool _active = true;
-        public bool Active { get { return _active; } }
+        bool[] _active;
+        public bool SimActive(int lodIdx) { return _active[lodIdx]; }
 
         protected override void Start()
         {
@@ -41,34 +39,43 @@ namespace Crest
             _copySimMaterial = new Material(Shader.Find("Ocean/Shape/Sim/Wave Add To Disps"));
         }
 
+        protected override void InitData()
+        {
+            base.InitData();
+
+            _active = new bool[OceanRenderer.Instance.CurrentLodCount];
+            for (int i = 0; i < _active.Length; i++) _active[i] = true;
+        }
+
         public void HookCombinePass(Camera camera, CameraEvent onEvent)
         {
             _copySimResultCamera = camera;
             _copySimResultEvent = onEvent;
         }
 
-        protected override void LateUpdateInternal()
+        protected override bool BuildCommandBufferInternal(int lodIdx)
         {
-            base.LateUpdateInternal();
+            if (!base.BuildCommandBufferInternal(lodIdx))
+                return false;
 
             // this sim copies its results into the animated waves
 
             if (_copySimResultCamera == null)
             {
                 // the copy results hook is not configured yet
-                return;
+                return false;
             }
 
             // check if the sim should be running
-            float texelWidth = LodTransform._renderData.Validate(0, this)._texelWidth;
-            _active = texelWidth >= Settings._minGridSize && (texelWidth <= Settings._maxGridSize || Settings._maxGridSize == 0f);
-            if (!_active && _copySimResultsCmdBuf != null)
+            float texelWidth = OceanRenderer.Instance._lods[lodIdx]._renderData.Validate(0, this)._texelWidth;
+            _active[lodIdx] = texelWidth >= Settings._minGridSize && (texelWidth <= Settings._maxGridSize || Settings._maxGridSize == 0f);
+            if (!_active[lodIdx] && _copySimResultsCmdBuf != null)
             {
                 // not running - remove command buffer to copy results in
                 _copySimResultCamera.RemoveCommandBuffer(_copySimResultEvent, _copySimResultsCmdBuf);
                 _copySimResultsCmdBuf = null;
             }
-            else if (_active && _copySimResultsCmdBuf == null)
+            else if (_active[lodIdx] && _copySimResultsCmdBuf == null)
             {
                 // running - create command buffer
                 _copySimResultsCmdBuf = new CommandBuffer();
@@ -76,25 +83,27 @@ namespace Crest
                 _copySimResultCamera.AddCommandBuffer(_copySimResultEvent, _copySimResultsCmdBuf);
             }
             // only run simulation if enabled
-            Cam.enabled = _active;
+            if (!_active[lodIdx])
+                return false;
 
             _copySimMaterial.SetFloat("_HorizDisplace", Settings._horizDisplace);
             _copySimMaterial.SetFloat("_DisplaceClamp", Settings._displaceClamp);
-            _copySimMaterial.SetFloat("_TexelWidth", (2f * Cam.orthographicSize) / PPRTs.Target.width);
-
-            _copySimMaterial.mainTexture = PPRTs.Target;
+            _copySimMaterial.SetFloat("_TexelWidth", OceanRenderer.Instance._lods[lodIdx]._renderData._texelWidth);
+            _copySimMaterial.mainTexture = _targets[lodIdx];
 
             if (_copySimResultsCmdBuf != null)
             {
                 _copySimResultsCmdBuf.Clear();
                 _copySimResultsCmdBuf.Blit(
-                    PPRTs.Target, OceanRenderer.Instance._lodDataAnimWaves[LodTransform.LodIndex].Cam.targetTexture, _copySimMaterial);
+                    _targets[lodIdx], OceanRenderer.Instance._lodDataAnimWaves[lodIdx].Cam.targetTexture, _copySimMaterial);
             }
+
+            return true;
         }
 
-        protected override void SetAdditionalSimParams(Material simMaterial)
+        protected override void SetAdditionalSimParams(int lodIdx, Material simMaterial)
         {
-            base.SetAdditionalSimParams(simMaterial);
+            base.SetAdditionalSimParams(lodIdx, simMaterial);
 
             simMaterial.SetFloat("_Damping", Settings._damping);
             simMaterial.SetFloat("_Gravity", OceanRenderer.Instance.Gravity);
@@ -106,12 +115,12 @@ namespace Crest
             // because the depth is scheduled to render just before the animated waves, and this sim happens before animated waves.
             if (OceanRenderer.Instance._createSeaFloorDepthData)
             {
-                OceanRenderer.Instance._lodDataSeaDepths[LodTransform.LodIndex].BindResultData(1, simMaterial);
+                OceanRenderer.Instance._lodDataSeaDepths[lodIdx].BindResultData(1, simMaterial);
             }
 
             if (OceanRenderer.Instance._createFlowSim)
             {
-                OceanRenderer.Instance._lodDataFlow.BindResultData(LodTransform.LodIndex, 1, simMaterial);
+                OceanRenderer.Instance._lodDataFlow.BindResultData(lodIdx, 1, simMaterial);
             }
 
         }
@@ -125,25 +134,19 @@ namespace Crest
             }
         }
 
-        public static void CountWaveSims(int countFrom, out int present, out int active)
+        public static void CountWaveSims(int countFrom, out int o_present, out int o_active)
         {
-            present = active = 0;
-            foreach (var lddw in OceanRenderer.Instance._lodDataDynWaves)
+            o_present = OceanRenderer.Instance.CurrentLodCount;
+            o_active = 0;
+            for (int i = 0; i < o_present; i++)
             {
-                if (lddw == null)
-                    continue;
-                present++;
+                if (i < countFrom) continue;
+                if (!OceanRenderer.Instance._lodDataDynWaves.SimActive(i)) continue;
 
-                if (lddw.LodTransform.LodIndex < countFrom)
-                    continue;
-
-                if (!lddw.Active)
-                    continue;
-                active++;
+                o_active++;
             }
         }
 
         SimSettingsWave Settings { get { return _settings as SimSettingsWave; } }
     }
 }
-#endif

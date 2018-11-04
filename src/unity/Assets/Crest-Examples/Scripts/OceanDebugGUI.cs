@@ -1,4 +1,6 @@
-﻿using Crest;
+﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
+
+using Crest;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -145,8 +147,8 @@ public class OceanDebugGUI : MonoBehaviour
         float column = 1f;
 
         DrawSims<LodDataAnimatedWaves>(OceanRenderer.Instance._lodDataAnimWaves, true, ref column);
+        if (OceanRenderer.Instance._createDynamicWaveSim) DrawSims<LodDataMgrDynWaves>(OceanRenderer.Instance._lodDataDynWaves, false, ref column);
         if (OceanRenderer.Instance._createFoamSim) DrawSims<LodDataFoam>(OceanRenderer.Instance._lodDataFoam, false, ref column);
-        if (OceanRenderer.Instance._createDynamicWaveSim) DrawSims<LodDataDynamicWaves>(OceanRenderer.Instance._lodDataDynWaves, false, ref column);
         if (OceanRenderer.Instance._createFlowSim) DrawSims<LodDataMgrFlow>(OceanRenderer.Instance._lodDataFlow, false, ref column);
         if (OceanRenderer.Instance._createShadowData) DrawSims<LodDataShadow>(OceanRenderer.Instance._lodDataShadow, false, ref column);
         DrawSims<LodDataSeaFloorDepth>(OceanRenderer.Instance._lodDataSeaDepths, false, ref column);

@@ -44,7 +44,7 @@ namespace Crest
                 rend.material = _flowMaterial;
                 rend.enabled = false;
             }
-            _flow.AddComponent<RenderFlow>();
+            _flow.AddComponent<RegisterFlowInput>();
 
             _displacement = GameObject.CreatePrimitive(PrimitiveType.Quad);
             Destroy(_displacement.GetComponent<Collider>());

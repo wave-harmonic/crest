@@ -50,7 +50,7 @@ public class RippleGenerator : MonoBehaviour
         // how many active wave sims currently apply to this object - ideally this would eliminate sims that are too
         // low res, by providing a max grid size param
         int simsPresent, simsActive;
-        Crest.LodDataDynamicWaves.CountWaveSims(minLod, out simsPresent, out simsActive);
+        Crest.LodDataMgrDynWaves.CountWaveSims(minLod, out simsPresent, out simsActive);
         if (simsPresent == 0)
         {
             enabled = false;

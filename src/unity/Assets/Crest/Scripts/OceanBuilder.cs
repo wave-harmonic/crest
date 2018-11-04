@@ -163,7 +163,6 @@ namespace Crest
             // create the shape cameras
             ocean._lods = new LodTransform[lodCount];
             ocean._lodDataAnimWaves = new LodDataAnimatedWaves[lodCount];
-            ocean._lodDataDynWaves = new LodDataDynamicWaves[lodCount];
             ocean._lodDataFoam = new LodDataFoam[lodCount];
             ocean._lodDataSeaDepths = new LodDataSeaFloorDepth[lodCount];
             ocean._lodDataShadow = new LodDataShadow[lodCount];
@@ -173,13 +172,20 @@ namespace Crest
             // If a settings asset was assigned, add it to a dictionary so that all components can use it.
             AddSettings<LodDataAnimatedWaves>(ocean._simSettingsAnimatedWaves, cachedSettings);
             AddSettings<LodDataFoam>(ocean._simSettingsFoam, cachedSettings);
-            AddSettings<LodDataDynamicWaves>(ocean._simSettingsDynamicWaves, cachedSettings);
+            AddSettings<LodDataMgrDynWaves>(ocean._simSettingsDynamicWaves, cachedSettings);
             AddSettings<LodDataShadow>(ocean._simSettingsShadow, cachedSettings);
             AddSettings<LodDataMgrFlow>(ocean._simSettingsFlow, cachedSettings);
 
+            if (ocean._createDynamicWaveSim)
+            {
+                ocean._lodDataDynWaves =
+                    LodDataMgr.Create(lodCount, ocean.gameObject, baseVertDensity, LodData.SimType.DynamicWaves, cachedSettings) as LodDataMgrDynWaves;
+            }
+
             if (ocean._createFlowSim)
             {
-                ocean._lodDataFlow = LodDataMgr.Create(lodCount, ocean.gameObject, baseVertDensity, LodData.SimType.Flow, cachedSettings) as LodDataMgrFlow;
+                ocean._lodDataFlow =
+                    LodDataMgr.Create(lodCount, ocean.gameObject, baseVertDensity, LodData.SimType.Flow, cachedSettings) as LodDataMgrFlow;
             }
 
             for ( int i = 0; i < lodCount; i++ )
@@ -207,18 +213,12 @@ namespace Crest
                     var go = LodData.CreateLodData(i, lodCount, null, baseVertDensity, LodData.SimType.Foam, cachedSettings);
                     ocean._lodDataFoam[i] = go.GetComponent<LodDataFoam>();
                 }
-
-                if (ocean._createDynamicWaveSim)
-                {
-                    var go = LodData.CreateLodData(i, lodCount, null, baseVertDensity, LodData.SimType.DynamicWaves, cachedSettings);
-                    ocean._lodDataDynWaves[i] = go.GetComponent<LodDataDynamicWaves>();
-                }
             }
 
             // If no settings asset was assigned, the Create() methods will create a default settings object. Assign this back to the
             // ocean script so that it can be easily accessed.
             PopulateSettings<LodDataAnimatedWaves, SimSettingsAnimatedWaves>(cachedSettings, ref ocean._simSettingsAnimatedWaves);
-            PopulateSettings<LodDataDynamicWaves, SimSettingsWave>(cachedSettings, ref ocean._simSettingsDynamicWaves);
+            PopulateSettings<LodDataMgrDynWaves, SimSettingsWave>(cachedSettings, ref ocean._simSettingsDynamicWaves);
             PopulateSettings<LodDataMgrFlow, SimSettingsFlow>(cachedSettings, ref ocean._simSettingsFlow);
             PopulateSettings<LodDataFoam, SimSettingsFoam>(cachedSettings, ref ocean._simSettingsFoam);
             PopulateSettings<LodDataShadow, SimSettingsShadow>(cachedSettings, ref ocean._simSettingsShadow);
@@ -445,8 +445,6 @@ namespace Crest
             PlaceLodData(ocean._lodDataAnimWaves[lodIndex].transform, parent.transform);
             if (ocean._lodDataFoam[lodIndex] != null)
                 PlaceLodData(ocean._lodDataFoam[lodIndex].transform, parent.transform);
-            if (ocean._lodDataDynWaves[lodIndex] != null)
-                PlaceLodData(ocean._lodDataDynWaves[lodIndex].transform, parent.transform);
 
             bool generateSkirt = biggestLOD && !ocean._disableSkirt;
 

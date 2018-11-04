@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
+
+using UnityEngine;
 
 public class FeedVelocityToExtrude : MonoBehaviour {
 
@@ -56,7 +58,7 @@ public class FeedVelocityToExtrude : MonoBehaviour {
         // how many active wave sims currently apply to this object - ideally this would eliminate sims that are too
         // low res, by providing a max grid size param
         int simsPresent, simsActive;
-        Crest.LodDataDynamicWaves.CountWaveSims(minLod, out simsPresent, out simsActive);
+        Crest.LodDataMgrDynWaves.CountWaveSims(minLod, out simsPresent, out simsActive);
 
         // counting non-existent sims is expensive - stop updating if none found
         if(simsPresent == 0)

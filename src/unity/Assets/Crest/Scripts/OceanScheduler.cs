@@ -32,10 +32,10 @@ namespace Crest
 
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // --- Dynamic waves camera renders second
-            for (int i = 0; i < ocean.CurrentLodCount && ocean._lodDataDynWaves[i] != null; i++)
-            {
-                ocean._lodDataDynWaves[i].Cam.depth = -40 - i;
-            }
+            //for (int i = 0; i < ocean.CurrentLodCount && ocean._lodDataDynWaves[i] != null; i++)
+            //{
+            //    ocean._lodDataDynWaves[i].Cam.depth = -40 - i;
+            //}
 
 
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -46,10 +46,10 @@ namespace Crest
 
                 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
                 // --- Copy dynamic waves into animated waves (convert to displacements in the process)
-                if (ocean._lodDataDynWaves[i] != null)
-                {
-                    ocean._lodDataDynWaves[i].HookCombinePass(ocean._lodDataAnimWaves[i].Cam, CameraEvent.AfterForwardAlpha);
-                }
+                //if (ocean._lodDataDynWaves[i] != null)
+                //{
+                //    ocean._lodDataDynWaves[i].HookCombinePass(ocean._lodDataAnimWaves[i].Cam, CameraEvent.AfterForwardAlpha);
+                //}
             }
 
 

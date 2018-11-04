@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
+
+using UnityEngine;
 using UnityEngine.Rendering;
 
 namespace Crest
@@ -14,6 +16,13 @@ namespace Crest
             if (ocean._lodDataFlow)
             {
                 ocean._lodDataFlow.BuildCommandBuffer(ocean, buf);
+            }
+
+            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            // --- Dynamic waves camera renders second
+            if (ocean._lodDataDynWaves)
+            {
+                ocean._lodDataDynWaves.BuildCommandBuffer(ocean, buf);
             }
         }
 

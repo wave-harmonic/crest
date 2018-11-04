@@ -35,6 +35,8 @@ namespace Crest
         float _oceanLocalScalePrev = -1f;
         protected int _scaleDifferencePow2 = 0;
 
+        protected List<Renderer> _drawList = new List<Renderer>();
+
         // these would ideally be static but then they get cleared when editing-and-continuing in the editor.
         int[] _paramsPosScale;
         int[] _paramsLodIdx;
@@ -50,6 +52,26 @@ namespace Crest
                 CreateParamIDs(ref _paramsOceanParams, "_LD_Params_");
                 CreateParamIDs(ref _paramsPosScale, "_LD_Pos_Scale_");
                 CreateParamIDs(ref _paramsLodIdx, "_LD_LodIdx_");
+            }
+
+            InitData();
+        }
+
+        protected virtual void InitData()
+        {
+            int resolution = OceanRenderer.Instance.LodDataResolution;
+            var desc = new RenderTextureDescriptor(resolution, resolution, TextureFormat, 0);
+
+            _targets = new RenderTexture[OceanRenderer.Instance.CurrentLodCount];
+            for (int i = 0; i < _targets.Length; i++)
+            {
+                _targets[i] = new RenderTexture(desc);
+                _targets[i].wrapMode = TextureWrapMode.Clamp;
+                _targets[i].antiAliasing = 1;
+                _targets[i].filterMode = FilterMode.Bilinear;
+                _targets[i].anisoLevel = 0;
+                _targets[i].useMipMap = false;
+                _targets[i].name = SimName + "_" + i;
             }
         }
 
@@ -79,12 +101,6 @@ namespace Crest
             _oceanLocalScalePrev = oceanLocalScale;
             float ratio_l2 = Mathf.Log(ratio) / Mathf.Log(2f);
             _scaleDifferencePow2 = Mathf.RoundToInt(ratio_l2);
-
-            {
-                _worldToCameraMatrix = CalculateWorldToCameraMatrixRHS(transform.position, Quaternion.AngleAxis(90f, Vector3.right));
-
-                _projectionMatrix = Matrix4x4.Ortho(-2f * transform.lossyScale.x, 2f * transform.lossyScale.x, -2f * transform.lossyScale.x, 2f * transform.lossyScale.x, 1f, 500f);
-            }
         }
 
         // Borrowed from LWRP code: https://github.com/Unity-Technologies/ScriptableRenderPipeline/blob/2a68d8073c4eeef7af3be9e4811327a522434d5f/com.unity.render-pipelines.high-definition/Runtime/Core/Utilities/GeometryUtils.cs
@@ -92,9 +108,6 @@ namespace Crest
         {
             return Matrix4x4.Scale(new Vector3(1, 1, -1)) * Matrix4x4.TRS(position, rotation, Vector3.one).inverse;
         }
-
-        public Matrix4x4 _worldToCameraMatrix;
-        public Matrix4x4 _projectionMatrix;
 
         protected PropertyWrapperMaterial _pwMat = new PropertyWrapperMaterial();
         protected PropertyWrapperMPB _pwMPB = new PropertyWrapperMPB();
@@ -138,6 +151,9 @@ namespace Crest
             LodDataMgr sim;
             switch (simType)
             {
+                case LodData.SimType.DynamicWaves:
+                    sim = attachGO.AddComponent<LodDataMgrDynWaves>();
+                    break;
                 case LodData.SimType.Flow:
                     sim = attachGO.AddComponent<LodDataMgrFlow>();
                     break;
@@ -155,19 +171,6 @@ namespace Crest
             }
             sim.UseSettings(settings);
 
-            sim._targets = new RenderTexture[lodCount];
-            var desc = new RenderTextureDescriptor((int)(4 * baseVertDensity), (int)(4 * baseVertDensity), sim.TextureFormat, 0);
-            for (int i = 0; i < sim._targets.Length; i++)
-            {
-                sim._targets[i] = new RenderTexture(desc);
-                sim._targets[i].wrapMode = TextureWrapMode.Clamp;
-                sim._targets[i].antiAliasing = 1;
-                sim._targets[i].filterMode = FilterMode.Bilinear;
-                sim._targets[i].anisoLevel = 0;
-                sim._targets[i].useMipMap = false;
-                sim._targets[i].name = simType.ToString() + "_" + i;
-            }
-
             return sim;
         }
 
@@ -183,6 +186,30 @@ namespace Crest
 
         public virtual void BuildCommandBuffer(OceanRenderer ocean, CommandBuffer buf)
         {
+        }
+
+        public void AddDraw(Renderer rend)
+        {
+            if (OceanRenderer.Instance == null)
+            {
+                // Ocean has unloaded, clear out
+                _drawList.Clear();
+                return;
+            }
+
+            _drawList.Add(rend);
+        }
+
+        public void RemoveDraw(Renderer rend)
+        {
+            if (OceanRenderer.Instance == null)
+            {
+                // Ocean has unloaded, clear out
+                _drawList.Clear();
+                return;
+            }
+
+            _drawList.Remove(rend);
         }
     }
 }

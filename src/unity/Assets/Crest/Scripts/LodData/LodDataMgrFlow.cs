@@ -1,6 +1,5 @@
 ﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -26,33 +25,6 @@ namespace Crest
             return settings;
         }
 
-
-        static List<Renderer> _drawList = new List<Renderer>();
-
-        public static void AddDraw(Renderer rend)
-        {
-            if (OceanRenderer.Instance == null)
-            {
-                _drawList.Clear();
-                return;
-            }
-
-            _drawList.Add(rend);
-        }
-
-        public static void RemoveDraw(Renderer rend)
-        {
-            // If ocean has unloaded, clear out
-            if (OceanRenderer.Instance == null)
-            {
-                _drawList.Clear();
-                return;
-            }
-
-            _drawList.Remove(rend);
-        }
-
-
         protected override void Start()
         {
             base.Start();
@@ -69,12 +41,13 @@ namespace Crest
         {
             base.BuildCommandBuffer(ocean, buf);
 
-            for (int i = OceanRenderer.Instance.CurrentLodCount - 1; i >= 0; i--)
+            for (int lodIdx = OceanRenderer.Instance.CurrentLodCount - 1; lodIdx >= 0; lodIdx--)
             {
-                buf.SetRenderTarget(DataTexture(i));
+                buf.SetRenderTarget(DataTexture(lodIdx));
                 buf.ClearRenderTarget(false, true, Color.black);
-                buf.SetViewProjectionMatrices(_worldToCameraMatrix, _projectionMatrix);
 
+                var lt = OceanRenderer.Instance._lods[lodIdx];
+                buf.SetViewProjectionMatrices(lt._worldToCameraMatrix, lt._projectionMatrix);
                 foreach (var draw in _drawList)
                 {
                     buf.DrawRenderer(draw, draw.material);

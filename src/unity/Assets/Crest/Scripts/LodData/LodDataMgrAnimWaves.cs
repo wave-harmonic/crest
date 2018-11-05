@@ -17,7 +17,7 @@ namespace Crest
     /// </summary>
     public class LodDataMgrAnimWaves : LodDataMgr
     {
-        public override LodData.SimType LodDataType { get { return LodData.SimType.AnimatedWaves; } }
+        public override SimType LodDataType { get { return SimType.AnimatedWaves; } }
         // shape format. i tried RGB111110Float but error becomes visible. one option would be to use a UNORM setup.
         public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.ARGBHalf; } }
         public override CameraClearFlags CamClearFlags { get { return CameraClearFlags.Color; } }
@@ -31,7 +31,6 @@ namespace Crest
         public static bool _shapeCombinePass = true;
 
         Material[] _combineMaterial;
-        public Material GetMaterial(int lodIdx) { return _combineMaterial[lodIdx]; }
 
         [SerializeField] SimSettingsAnimatedWaves _settings;
         public override void UseSettings(SimSettingsBase settings) { _settings = settings as SimSettingsAnimatedWaves; }
@@ -85,11 +84,9 @@ namespace Crest
             }
             for (int lodIdx = lodCount - 2; lodIdx >= 0; lodIdx--)
             {
-                buf.SetRenderTarget(DataTexture(lodIdx));
-
                 // accumulate shape data down the LOD chain - combine L+1 into L
-                var mat = _combineMaterial[lodIdx];
-                buf.Blit(DataTexture(lodIdx + 1), DataTexture(lodIdx), mat);
+                buf.SetRenderTarget(DataTexture(lodIdx));
+                buf.Blit(DataTexture(lodIdx + 1), DataTexture(lodIdx), _combineMaterial[lodIdx]);
             }
 
             // lod-independent data

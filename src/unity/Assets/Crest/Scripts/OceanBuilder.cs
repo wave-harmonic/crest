@@ -173,36 +173,36 @@ namespace Crest
             AddSettings<LodDataMgrFlow>(ocean._simSettingsFlow, cachedSettings);
 
             ocean._lodDataAnimWaves = 
-                LodDataMgr.Create(lodCount, ocean.gameObject, baseVertDensity, LodData.SimType.AnimatedWaves, cachedSettings) as LodDataMgrAnimWaves;
+                LodDataMgr.Create(lodCount, ocean.gameObject, baseVertDensity, LodDataMgr.SimType.AnimatedWaves, cachedSettings) as LodDataMgrAnimWaves;
 
             if (ocean._createDynamicWaveSim)
             {
                 ocean._lodDataDynWaves =
-                    LodDataMgr.Create(lodCount, ocean.gameObject, baseVertDensity, LodData.SimType.DynamicWaves, cachedSettings) as LodDataMgrDynWaves;
+                    LodDataMgr.Create(lodCount, ocean.gameObject, baseVertDensity, LodDataMgr.SimType.DynamicWaves, cachedSettings) as LodDataMgrDynWaves;
             }
 
             if (ocean._createFlowSim)
             {
                 ocean._lodDataFlow =
-                    LodDataMgr.Create(lodCount, ocean.gameObject, baseVertDensity, LodData.SimType.Flow, cachedSettings) as LodDataMgrFlow;
+                    LodDataMgr.Create(lodCount, ocean.gameObject, baseVertDensity, LodDataMgr.SimType.Flow, cachedSettings) as LodDataMgrFlow;
             }
 
             if (ocean._createFoamSim)
             {
                 ocean._lodDataFoam =
-                    LodDataMgr.Create(lodCount, ocean.gameObject, baseVertDensity, LodData.SimType.Foam, cachedSettings) as LodDataMgrFoam;
+                    LodDataMgr.Create(lodCount, ocean.gameObject, baseVertDensity, LodDataMgr.SimType.Foam, cachedSettings) as LodDataMgrFoam;
             }
 
             if (ocean._createShadowData)
             {
                 ocean._lodDataShadow = 
-                    LodDataMgr.Create(lodCount, ocean.gameObject, baseVertDensity, LodData.SimType.Shadow, cachedSettings) as LodDataMgrShadow;
+                    LodDataMgr.Create(lodCount, ocean.gameObject, baseVertDensity, LodDataMgr.SimType.Shadow, cachedSettings) as LodDataMgrShadow;
             }
 
             if (ocean._createSeaFloorDepthData)
             {
                 ocean._lodDataSeaDepths = 
-                    LodDataMgr.Create(lodCount, ocean.gameObject, baseVertDensity, LodData.SimType.SeaFloorDepth, cachedSettings) as LodDataMgrSeaFloorDepth;
+                    LodDataMgr.Create(lodCount, ocean.gameObject, baseVertDensity, LodDataMgr.SimType.SeaFloorDepth, cachedSettings) as LodDataMgrSeaFloorDepth;
             }
 
 

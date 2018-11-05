@@ -11,8 +11,18 @@ namespace Crest
     /// </summary>
     public abstract class LodDataMgr : MonoBehaviour
     {
+        public enum SimType
+        {
+            DynamicWaves,
+            Foam,
+            AnimatedWaves,
+            SeaFloorDepth,
+            Flow,
+            Shadow,
+        }
+
         public string SimName { get { return LodDataType.ToString(); } }
-        public abstract LodData.SimType LodDataType { get; }
+        public abstract SimType LodDataType { get; }
 
         public abstract SimSettingsBase CreateDefaultSettings();
         public abstract void UseSettings(SimSettingsBase settings);
@@ -147,27 +157,27 @@ namespace Crest
                 new Vector4(renderData._texelWidth, renderData._textureRes, 1f, 1f / renderData._textureRes));
         }
 
-        public static LodDataMgr Create(int lodCount, GameObject attachGO, float baseVertDensity, LodData.SimType simType, Dictionary<System.Type, SimSettingsBase> cachedSettings)
+        public static LodDataMgr Create(int lodCount, GameObject attachGO, float baseVertDensity, SimType simType, Dictionary<System.Type, SimSettingsBase> cachedSettings)
         {
             LodDataMgr sim;
             switch (simType)
             {
-                case LodData.SimType.AnimatedWaves:
+                case SimType.AnimatedWaves:
                     sim = attachGO.AddComponent<LodDataMgrAnimWaves>();
                     break;
-                case LodData.SimType.DynamicWaves:
+                case SimType.DynamicWaves:
                     sim = attachGO.AddComponent<LodDataMgrDynWaves>();
                     break;
-                case LodData.SimType.Flow:
+                case SimType.Flow:
                     sim = attachGO.AddComponent<LodDataMgrFlow>();
                     break;
-                case LodData.SimType.Foam:
+                case SimType.Foam:
                     sim = attachGO.AddComponent<LodDataMgrFoam>();
                     break;
-                case LodData.SimType.SeaFloorDepth:
+                case SimType.SeaFloorDepth:
                     sim = attachGO.AddComponent<LodDataMgrSeaFloorDepth>();
                     break;
-                case LodData.SimType.Shadow:
+                case SimType.Shadow:
                     sim = attachGO.AddComponent<LodDataMgrShadow>();
                     break;
                 default:

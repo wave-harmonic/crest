@@ -10,7 +10,7 @@ namespace Crest
     /// </summary>
     public class LodDataMgrFlow : LodDataMgr
     {
-        public override LodData.SimType LodDataType { get { return LodData.SimType.Flow; } }
+        public override SimType LodDataType { get { return SimType.Flow; } }
         public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RGHalf; } }
         public override CameraClearFlags CamClearFlags { get { return CameraClearFlags.Nothing; } }
 

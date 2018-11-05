@@ -35,7 +35,7 @@ namespace Crest
             _rend = GetComponent<Renderer>();
 
             // Render before the surface mesh
-            _rend.sortingOrder = _overrideSortingOrder ? _overridenSortingOrder : -LodData.MAX_LOD_COUNT - 1;
+            _rend.sortingOrder = _overrideSortingOrder ? _overridenSortingOrder : -LodDataMgr.MAX_LOD_COUNT - 1;
             GetComponent<MeshFilter>().mesh = Mesh2DGrid(0, 2, -0.5f, -0.5f, 1f, 1f, GEOM_HORIZ_DIVISIONS, 1);
 
             // hack - push forward so the geometry wont be frustum culled. there might be better ways to draw

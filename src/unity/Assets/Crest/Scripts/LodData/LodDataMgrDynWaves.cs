@@ -10,7 +10,7 @@ namespace Crest
     /// </summary>
     public class LodDataMgrDynWaves : LodDataMgrPersistent
     {
-        public override LodData.SimType LodDataType { get { return LodData.SimType.DynamicWaves; } }
+        public override SimType LodDataType { get { return SimType.DynamicWaves; } }
         protected override string ShaderSim { get { return "Ocean/Shape/Sim/2D Wave Equation"; } }
         public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RGHalf; } }
 

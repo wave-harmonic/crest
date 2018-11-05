@@ -52,7 +52,7 @@ namespace Crest
         [SerializeField, Delayed, Tooltip( "Side dimension in quads of an ocean tile." )]
         public float _baseVertDensity = 64f;
 
-        [SerializeField, Delayed, Tooltip( "Number of ocean tile scales/LODs to generate." ), Range(2, LodData.MAX_LOD_COUNT)]
+        [SerializeField, Delayed, Tooltip( "Number of ocean tile scales/LODs to generate." ), Range(2, LodDataMgr.MAX_LOD_COUNT)]
         int _lodCount = 7;
         public int LodDataResolution { get { return (int)(4f * _baseVertDensity); } }
 

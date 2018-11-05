@@ -37,9 +37,9 @@ namespace Crest
         // useful references
         Material[] _materials;
         Material _materialBigWaveTransition;
-        CommandBuffer[] _renderWaveShapeCmdBufs;
+        //CommandBuffer[] _renderWaveShapeCmdBufs;
         // the command buffers to transition big waves between the last 2 lods
-        CommandBuffer _renderBigWavelengthsShapeCmdBuf, _renderBigWavelengthsShapeCmdBufTransition;
+        //CommandBuffer _renderBigWavelengthsShapeCmdBuf, _renderBigWavelengthsShapeCmdBufTransition;
 
         // IMPORTANT - this mirrors the constant with the same name in ShapeGerstnerBatch.shader, both must be updated together!
         const int BATCH_SIZE = 32;
@@ -102,11 +102,11 @@ namespace Crest
                 InitMaterials();
             }
 
-            // this is done every frame for flexibility/convenience, in case the lod count changes
-            if (_renderWaveShapeCmdBufs == null || _renderWaveShapeCmdBufs.Length != OceanRenderer.Instance.CurrentLodCount - 1)
-            {
-                InitCommandBuffers();
-            }
+            //// this is done every frame for flexibility/convenience, in case the lod count changes
+            //if (_renderWaveShapeCmdBufs == null || _renderWaveShapeCmdBufs.Length != OceanRenderer.Instance.CurrentLodCount - 1)
+            //{
+            //    InitCommandBuffers();
+            //}
         }
 
         void UpdateAmplitudes()
@@ -329,51 +329,75 @@ namespace Crest
             //}
         }
 
-        void RemoveDrawShapeCommandBuffers()
-        {
-            if (OceanRenderer.Instance == null || _renderBigWavelengthsShapeCmdBuf == null || _renderBigWavelengthsShapeCmdBufTransition == null)
-                return;
+        //void RemoveDrawShapeCommandBuffers()
+        //{
+        //    if (OceanRenderer.Instance == null || _renderBigWavelengthsShapeCmdBuf == null || _renderBigWavelengthsShapeCmdBufTransition == null)
+        //        return;
 
-            for (int lod = 0; lod < OceanRenderer.Instance.CurrentLodCount - 1; lod++)
+        //    for (int lod = 0; lod < OceanRenderer.Instance.CurrentLodCount - 1; lod++)
+        //    {
+        //        RemoveDrawShapeCommandBuffer(lod);
+        //    }
+
+        //    RemoveDrawShapeBigWavelengthsCommandBuffer();
+        //}
+
+        public void BuildCommandBuffer(int lodIdx, OceanRenderer ocean, CommandBuffer buf)
+        {
+            var drawMatrix = Matrix4x4.TRS(Vector3.zero, Quaternion.AngleAxis(90f, Vector3.right), Vector3.one * 100000f);
+            var lodCount = ocean.CurrentLodCount;
+
+            // lods up to but not including the last lod get the normal sets of waves
+            if (lodIdx < lodCount - 1)
             {
-                RemoveDrawShapeCommandBuffer(lod);
+                buf.DrawMesh(_rasterMesh, drawMatrix, _materials[lodIdx]);
             }
 
-            RemoveDrawShapeBigWavelengthsCommandBuffer();
-        }
-
-        void InitCommandBuffers()
-        {
-            Matrix4x4 drawMatrix = Matrix4x4.TRS(Vector3.zero, Quaternion.AngleAxis(90f, Vector3.right), Vector3.one * 100000f);
-
-            // see the command buffer helpers below for comments about how the command buffers are arranged
-            _renderWaveShapeCmdBufs = new CommandBuffer[OceanRenderer.Instance.CurrentLodCount - 1];
-            for (int i = 0; i < _renderWaveShapeCmdBufs.Length; i++)
+            // the second-to-last lod will transition content into it from the last lod
+            if (lodIdx == lodCount - 2)
             {
-                _renderWaveShapeCmdBufs[i] = new CommandBuffer();
-                _renderWaveShapeCmdBufs[i].name = "ShapeGerstnerBatched" + i;
-                _renderWaveShapeCmdBufs[i].DrawMesh(_rasterMesh, drawMatrix, _materials[i]);
+                buf.DrawMesh(_rasterMesh, drawMatrix, _materialBigWaveTransition);
             }
 
-            _renderBigWavelengthsShapeCmdBuf = new CommandBuffer();
-            _renderBigWavelengthsShapeCmdBuf.name = "ShapeGerstnerBatchedBigWavelengths";
-            _renderBigWavelengthsShapeCmdBuf.DrawMesh(_rasterMesh, drawMatrix, _materials[OceanRenderer.Instance.CurrentLodCount - 1]);
-
-            _renderBigWavelengthsShapeCmdBufTransition = new CommandBuffer();
-            _renderBigWavelengthsShapeCmdBufTransition.name = "ShapeGerstnerBatchedBigWavelengthsTrans";
-            _renderBigWavelengthsShapeCmdBufTransition.DrawMesh(_rasterMesh, drawMatrix, _materialBigWaveTransition);
+            // last lod gets the big wavelengths
+            if (lodIdx == lodCount - 1)
+            {
+                buf.DrawMesh(_rasterMesh, drawMatrix, _materials[OceanRenderer.Instance.CurrentLodCount - 1]);
+            }
         }
 
-        // copied from unity's command buffer examples because it sounds important
-        void OnEnable()
-        {
-            RemoveDrawShapeCommandBuffers();
-        }
+        //void InitCommandBuffers()
+        //{
+        //    Matrix4x4 drawMatrix = Matrix4x4.TRS(Vector3.zero, Quaternion.AngleAxis(90f, Vector3.right), Vector3.one * 100000f);
 
-        void OnDisable()
-        {
-            RemoveDrawShapeCommandBuffers();
-        }
+        //    // see the command buffer helpers below for comments about how the command buffers are arranged
+        //    _renderWaveShapeCmdBufs = new CommandBuffer[OceanRenderer.Instance.CurrentLodCount - 1];
+        //    for (int i = 0; i < _renderWaveShapeCmdBufs.Length; i++)
+        //    {
+        //        _renderWaveShapeCmdBufs[i] = new CommandBuffer();
+        //        _renderWaveShapeCmdBufs[i].name = "ShapeGerstnerBatched" + i;
+        //        _renderWaveShapeCmdBufs[i].DrawMesh(_rasterMesh, drawMatrix, _materials[i]);
+        //    }
+
+        //    _renderBigWavelengthsShapeCmdBuf = new CommandBuffer();
+        //    _renderBigWavelengthsShapeCmdBuf.name = "ShapeGerstnerBatchedBigWavelengths";
+        //    _renderBigWavelengthsShapeCmdBuf.DrawMesh(_rasterMesh, drawMatrix, _materials[OceanRenderer.Instance.CurrentLodCount - 1]);
+
+        //    _renderBigWavelengthsShapeCmdBufTransition = new CommandBuffer();
+        //    _renderBigWavelengthsShapeCmdBufTransition.name = "ShapeGerstnerBatchedBigWavelengthsTrans";
+        //    _renderBigWavelengthsShapeCmdBufTransition.DrawMesh(_rasterMesh, drawMatrix, _materialBigWaveTransition);
+        //}
+
+        //// copied from unity's command buffer examples because it sounds important
+        //void OnEnable()
+        //{
+        //    RemoveDrawShapeCommandBuffers();
+        //}
+
+        //void OnDisable()
+        //{
+        //    RemoveDrawShapeCommandBuffers();
+        //}
 
         float ComputeWaveSpeed(float wavelength/*, float depth*/)
         {

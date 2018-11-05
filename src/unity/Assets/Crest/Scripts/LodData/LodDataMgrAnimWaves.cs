@@ -58,35 +58,48 @@ namespace Crest
         {
             base.BuildCommandBuffer(ocean, buf);
 
-            for (int lodIdx = OceanRenderer.Instance.CurrentLodCount - 1; lodIdx >= 0; lodIdx--)
+            var lodCount = OceanRenderer.Instance.CurrentLodCount;
+
+            // lod-dependent data
+            var gerstner = FindObjectOfType<ShapeGerstnerBatched>();
+            for (int lodIdx = lodCount - 1; lodIdx >= 0; lodIdx--)
             {
                 buf.SetRenderTarget(DataTexture(lodIdx));
                 buf.ClearRenderTarget(false, true, Color.black);
 
+                if (gerstner != null)
+                {
+                    gerstner.BuildCommandBuffer(lodIdx, ocean, buf);
+                }
+            }
+
+            // combine pass
+            for (int lodIdx = lodCount - 1; lodIdx >= 0; lodIdx--)
+            {
+                BindResultData(lodIdx, 0, _combineMaterial[lodIdx]);
+
+                if (lodIdx > 0)
+                {
+                    BindResultData(lodIdx - 1, 1, _combineMaterial[lodIdx - 1]);
+                }
+            }
+            for (int lodIdx = lodCount - 2; lodIdx >= 0; lodIdx--)
+            {
+                buf.SetRenderTarget(DataTexture(lodIdx));
+
+                // accumulate shape data down the LOD chain - combine L+1 into L
+                var mat = _combineMaterial[lodIdx];
+                buf.Blit(DataTexture(lodIdx + 1), DataTexture(lodIdx), mat);
+            }
+
+            // lod-independent data
+            for (int lodIdx = lodCount - 1; lodIdx >= 0; lodIdx--)
+            {
+                buf.SetRenderTarget(DataTexture(lodIdx));
+
                 SubmitDraws(lodIdx, buf);
             }
         }
-        //public void HookCombinePass(Camera camera, CameraEvent onEvent)
-        //{
-        //    _combineCamera = camera;
-        //    _combineEvent = onEvent;
-
-        //    if (_bufCombineShapes == null)
-        //    {
-        //        _bufCombineShapes = new CommandBuffer();
-        //        _bufCombineShapes.name = "Combine Displacements";
-
-        //        var ldaw = OceanRenderer.Instance._lodDataAnimWaves;
-        //        for (int L = ldaw.Length - 2; L >= 0; L--)
-        //        {
-        //            // accumulate shape data down the LOD chain - combine L+1 into L
-        //            var mat = _combineMaterial[L];
-        //            _bufCombineShapes.Blit(ldaw[L + 1].Cam.targetTexture, ldaw[L].Cam.targetTexture, mat);
-        //        }
-        //    }
-
-        //    _combineCamera.AddCommandBuffer(_combineEvent, _bufCombineShapes);
-        //}
 
         public float MaxWavelength(int lodIndex)
         {
@@ -95,31 +108,6 @@ namespace Crest
             float maxTexelSize = maxDiameter / (4f * OceanRenderer.Instance._baseVertDensity);
             return 2f * maxTexelSize * OceanRenderer.Instance._minTexelsPerWave;
         }
-
-        //// script execution order ensures this runs after ocean has been placed
-        //protected override void LateUpdate()
-        //{
-        //    base.LateUpdate();
-
-        //    LateUpdateShapeCombinePassSettings();
-        //}
-
-        //// apply this camera's properties to the shape combine materials
-        //void LateUpdateShapeCombinePassSettings()
-        //{
-        //    BindResultData(0, CombineMaterial);
-
-        //    if (LodTransform.LodIndex > 0)
-        //    {
-        //        var ldaws = OceanRenderer.Instance._lodDataAnimWaves;
-        //        BindResultData(1, ldaws[LodTransform.LodIndex - 1].CombineMaterial);
-        //    }
-        //}
-
-        //void OnDisable()
-        //{
-        //    UnhookCombinePass();
-        //}
 
         protected override void BindData(int lodIdx, int shapeSlot, IPropertyWrapper properties, Texture applyData, bool blendOut, ref LodTransform.RenderData renderData)
         {

@@ -152,6 +152,9 @@ namespace Crest
             LodDataMgr sim;
             switch (simType)
             {
+                case LodData.SimType.AnimatedWaves:
+                    sim = attachGO.AddComponent<LodDataMgrAnimWaves>();
+                    break;
                 case LodData.SimType.DynamicWaves:
                     sim = attachGO.AddComponent<LodDataMgrDynWaves>();
                     break;

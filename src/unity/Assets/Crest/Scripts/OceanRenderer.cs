@@ -106,13 +106,13 @@ namespace Crest
         public float SeaLevel { get { return transform.position.y; } }
 
         [HideInInspector] public LodTransform[] _lods;
-        [HideInInspector] public LodDataAnimatedWaves[] _lodDataAnimWaves;
+        [HideInInspector] public LodDataMgrAnimWaves _lodDataAnimWaves;
         [HideInInspector] public LodDataMgrSeaFloorDepth _lodDataSeaDepths;
         [HideInInspector] public LodDataMgrDynWaves _lodDataDynWaves;
         [HideInInspector] public LodDataMgrFlow _lodDataFlow;
         [HideInInspector] public LodDataMgrFoam _lodDataFoam;
         [HideInInspector] public LodDataMgrShadow _lodDataShadow;
-        public int CurrentLodCount { get { return _lodDataAnimWaves.Length; } }
+        public int CurrentLodCount { get { return _lods.Length; } }
 
         /// <summary>
         /// Vertical offset of viewer vs water surface
@@ -190,7 +190,7 @@ namespace Crest
             LateUpdateScale();
             LateUpdateViewerHeight();
 
-            float maxWavelength = _lodDataAnimWaves[_lodDataAnimWaves.Length - 1].MaxWavelength();
+            float maxWavelength = _lodDataAnimWaves.MaxWavelength(CurrentLodCount - 1);
             Shader.SetGlobalFloat("_MaxWavelength", maxWavelength);
         }
 

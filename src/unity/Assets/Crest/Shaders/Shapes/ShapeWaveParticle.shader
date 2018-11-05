@@ -54,10 +54,11 @@ Shader "Ocean/Shape/Wave Particle"
 					newWorldPos.xz += o.worldOffsetScaled_wt.xy * _Radius;
 					o.vertex = mul(UNITY_MATRIX_VP, newWorldPos);
 
-					// if wavelength is too small, kill this quad so that it doesnt render any shape
-					float wavelength = 2. * _Radius;
-					if( !SamplingIsAppropriate(wavelength, o.worldOffsetScaled_wt.z) )
-						o.vertex.xy *= 0.;
+					//// if wavelength is too small, kill this quad so that it doesnt render any shape
+					//float wavelength = 2. * _Radius;
+					//if( !SamplingIsAppropriate(wavelength, o.worldOffsetScaled_wt.z) )
+					//	o.vertex.xy *= 0.;
+					o.worldOffsetScaled_wt.z = 1.;
 
 					return o;
 				}

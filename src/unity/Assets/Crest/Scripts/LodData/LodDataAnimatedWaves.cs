@@ -3,6 +3,7 @@
 using UnityEngine;
 using UnityEngine.Rendering;
 
+#if NOTDEF
 namespace Crest
 {
     /// <summary>
@@ -59,10 +60,10 @@ namespace Crest
                 _bufCombineShapes.name = "Combine Displacements";
 
                 var ldaw = OceanRenderer.Instance._lodDataAnimWaves;
-                for (int L = ldaw.Length - 2; L >= 0; L--)
+                for (int L = OceanRenderer.Instance.CurrentLodCount - 2; L >= 0; L--)
                 {
                     // accumulate shape data down the LOD chain - combine L+1 into L
-                    var mat = OceanRenderer.Instance._lodDataAnimWaves[L].CombineMaterial;
+                    var mat = OceanRenderer.Instance._lodDataAnimWaves.CombineMaterial;
                     _bufCombineShapes.Blit(ldaw[L + 1].Cam.targetTexture, ldaw[L].Cam.targetTexture, mat);
                 }
             }
@@ -177,3 +178,4 @@ namespace Crest
         }
     }
 }
+#endif

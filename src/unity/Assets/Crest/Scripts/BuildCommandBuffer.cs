@@ -32,7 +32,12 @@ namespace Crest
                 ocean._lodDataDynWaves.BuildCommandBuffer(ocean, buf);
             }
 
-            // all the other things..
+            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            // --- Animated waves next
+            if (ocean._lodDataAnimWaves)
+            {
+                ocean._lodDataAnimWaves.BuildCommandBuffer(ocean, buf);
+            }
 
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // --- Foam simulation

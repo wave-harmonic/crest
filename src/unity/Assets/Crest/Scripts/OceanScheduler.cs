@@ -38,24 +38,24 @@ namespace Crest
             //}
 
 
-            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            // --- Animated waves next
-            for (int i = 0; i < ocean.CurrentLodCount; i++)
-            {
-                ocean._lodDataAnimWaves[i].Cam.depth = -30 - i;
+            ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            //// --- Animated waves next
+            //for (int i = 0; i < ocean.CurrentLodCount; i++)
+            //{
+            //    ocean._lodDataAnimWaves[i].Cam.depth = -30 - i;
 
-                /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-                // --- Copy dynamic waves into animated waves (convert to displacements in the process)
-                //if (ocean._lodDataDynWaves[i] != null)
-                //{
-                //    ocean._lodDataDynWaves[i].HookCombinePass(ocean._lodDataAnimWaves[i].Cam, CameraEvent.AfterForwardAlpha);
-                //}
-            }
+            //    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            //    // --- Copy dynamic waves into animated waves (convert to displacements in the process)
+            //    //if (ocean._lodDataDynWaves[i] != null)
+            //    //{
+            //    //    ocean._lodDataDynWaves[i].HookCombinePass(ocean._lodDataAnimWaves[i].Cam, CameraEvent.AfterForwardAlpha);
+            //    //}
+            //}
 
 
-            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            // --- Do combine passes to carry long wavelengths/low detail up the chain into the high detail lods
-            ocean._lodDataAnimWaves[0].HookCombinePass(ocean._lodDataAnimWaves[0].Cam, CameraEvent.AfterEverything);
+            ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            //// --- Do combine passes to carry long wavelengths/low detail up the chain into the high detail lods
+            //ocean._lodDataAnimWaves[0].HookCombinePass(ocean._lodDataAnimWaves[0].Cam, CameraEvent.AfterEverything);
 
 
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -51,8 +51,8 @@ namespace Crest
             Attached
         }
 
-        CmdBufStatus[] _cmdBufWaveAdded = new CmdBufStatus[LodData.MAX_LOD_COUNT];
-        CmdBufStatus _cmdBufBigWavesAdded = CmdBufStatus.NoStatus;
+        //CmdBufStatus[] _cmdBufWaveAdded = new CmdBufStatus[LodData.MAX_LOD_COUNT];
+        //CmdBufStatus _cmdBufBigWavesAdded = CmdBufStatus.NoStatus;
 
         // scratch data used by batching code
         struct UpdateBatchScratchData
@@ -241,7 +241,7 @@ namespace Crest
             int componentIdx = 0;
 
             // seek forward to first wavelength that is big enough to render into current LODs
-            float minWl = OceanRenderer.Instance._lodDataAnimWaves[0].MaxWavelength() / 2f;
+            float minWl = OceanRenderer.Instance._lodDataAnimWaves.MaxWavelength(0) / 2f;
             while (_wavelengths[componentIdx] < minWl && componentIdx < _wavelengths.Length)
             {
                 componentIdx++;
@@ -287,46 +287,46 @@ namespace Crest
         // move these waves between lods without pops when the camera changes heights and the lods need to change scale.
         void AddDrawShapeCommandBuffer(int lodIndex)
         {
-            if(_cmdBufWaveAdded[lodIndex] != CmdBufStatus.Attached)
-            {
-                OceanRenderer.Instance._lodDataAnimWaves[lodIndex].Cam.AddCommandBuffer(CameraEvent.BeforeForwardAlpha, _renderWaveShapeCmdBufs[lodIndex]);
-                _cmdBufWaveAdded[lodIndex] = CmdBufStatus.Attached;
-            }
+            //if(_cmdBufWaveAdded[lodIndex] != CmdBufStatus.Attached)
+            //{
+            //    OceanRenderer.Instance._lodDataAnimWaves[lodIndex].Cam.AddCommandBuffer(CameraEvent.BeforeForwardAlpha, _renderWaveShapeCmdBufs[lodIndex]);
+            //    _cmdBufWaveAdded[lodIndex] = CmdBufStatus.Attached;
+            //}
         }
 
         void RemoveDrawShapeCommandBuffer(int lodIndex)
         {
-            if (_cmdBufWaveAdded[lodIndex] != CmdBufStatus.NotAttached)
-            {
-                OceanRenderer.Instance._lodDataAnimWaves[lodIndex].Cam.RemoveCommandBuffer(CameraEvent.BeforeForwardAlpha, _renderWaveShapeCmdBufs[lodIndex]);
-                _cmdBufWaveAdded[lodIndex] = CmdBufStatus.NotAttached;
-            }
+            //if (_cmdBufWaveAdded[lodIndex] != CmdBufStatus.NotAttached)
+            //{
+            //    OceanRenderer.Instance._lodDataAnimWaves[lodIndex].Cam.RemoveCommandBuffer(CameraEvent.BeforeForwardAlpha, _renderWaveShapeCmdBufs[lodIndex]);
+            //    _cmdBufWaveAdded[lodIndex] = CmdBufStatus.NotAttached;
+            //}
         }
 
         void AddDrawShapeBigWavelengthsCommandBuffer()
         {
-            if(_cmdBufBigWavesAdded != CmdBufStatus.Attached)
-            {
-                int lastLod = OceanRenderer.Instance.CurrentLodCount - 1;
-                OceanRenderer.Instance._lodDataAnimWaves[lastLod].Cam.AddCommandBuffer(CameraEvent.BeforeForwardAlpha, _renderBigWavelengthsShapeCmdBuf);
-                // the second-to-last lod will transition content into it from the last lod
-                OceanRenderer.Instance._lodDataAnimWaves[lastLod - 1].Cam.AddCommandBuffer(CameraEvent.BeforeForwardAlpha, _renderBigWavelengthsShapeCmdBufTransition);
+            //if(_cmdBufBigWavesAdded != CmdBufStatus.Attached)
+            //{
+            //    int lastLod = OceanRenderer.Instance.CurrentLodCount - 1;
+            //    OceanRenderer.Instance._lodDataAnimWaves[lastLod].Cam.AddCommandBuffer(CameraEvent.BeforeForwardAlpha, _renderBigWavelengthsShapeCmdBuf);
+            //    // the second-to-last lod will transition content into it from the last lod
+            //    OceanRenderer.Instance._lodDataAnimWaves[lastLod - 1].Cam.AddCommandBuffer(CameraEvent.BeforeForwardAlpha, _renderBigWavelengthsShapeCmdBufTransition);
 
-                _cmdBufBigWavesAdded = CmdBufStatus.Attached;
-            }
+            //    _cmdBufBigWavesAdded = CmdBufStatus.Attached;
+            //}
         }
 
         void RemoveDrawShapeBigWavelengthsCommandBuffer()
         {
-            if (_cmdBufBigWavesAdded != CmdBufStatus.NotAttached)
-            {
-                int lastLod = OceanRenderer.Instance.CurrentLodCount - 1;
-                OceanRenderer.Instance._lodDataAnimWaves[lastLod].Cam.RemoveCommandBuffer(CameraEvent.BeforeForwardAlpha, _renderBigWavelengthsShapeCmdBuf);
-                // the second-to-last lod will transition content into it from the last lod
-                OceanRenderer.Instance._lodDataAnimWaves[lastLod - 1].Cam.RemoveCommandBuffer(CameraEvent.BeforeForwardAlpha, _renderBigWavelengthsShapeCmdBufTransition);
+            //if (_cmdBufBigWavesAdded != CmdBufStatus.NotAttached)
+            //{
+            //    int lastLod = OceanRenderer.Instance.CurrentLodCount - 1;
+            //    OceanRenderer.Instance._lodDataAnimWaves[lastLod].Cam.RemoveCommandBuffer(CameraEvent.BeforeForwardAlpha, _renderBigWavelengthsShapeCmdBuf);
+            //    // the second-to-last lod will transition content into it from the last lod
+            //    OceanRenderer.Instance._lodDataAnimWaves[lastLod - 1].Cam.RemoveCommandBuffer(CameraEvent.BeforeForwardAlpha, _renderBigWavelengthsShapeCmdBufTransition);
 
-                _cmdBufBigWavesAdded = CmdBufStatus.NotAttached;
-            }
+            //    _cmdBufBigWavesAdded = CmdBufStatus.NotAttached;
+            //}
         }
 
         void RemoveDrawShapeCommandBuffers()

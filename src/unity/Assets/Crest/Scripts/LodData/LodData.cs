@@ -143,7 +143,6 @@ namespace Crest
             DynamicWaves,
             Foam,
             AnimatedWaves,
-            // this is currently not used as the sea floor depth is not created as a unique sim object
             SeaFloorDepth,
             Flow,
             Shadow,
@@ -151,66 +150,63 @@ namespace Crest
 
         public static GameObject CreateLodData(int lodIdx, int lodCount, GameObject attachGO, float baseVertDensity, SimType simType, Dictionary<System.Type, SimSettingsBase> cachedSettings)
         {
-            var go = attachGO ?? new GameObject(string.Format("{0}Cam{1}", simType.ToString(), lodIdx));
+            //var go = attachGO ?? new GameObject(string.Format("{0}Cam{1}", simType.ToString(), lodIdx));
 
-            LodData sim;
+            //LodData sim;
             switch (simType)
             {
-                case SimType.AnimatedWaves:
-                    sim = go.AddComponent<LodDataAnimatedWaves>();
-                    break;
                 default:
                     Debug.LogError("Unknown sim type: " + simType.ToString());
                     return null;
             }
 
-            // create a shared settings object if one doesnt already exist
-            SimSettingsBase settings;
-            if (!cachedSettings.TryGetValue(sim.GetType(), out settings))
-            {
-                settings = sim.CreateDefaultSettings();
-                cachedSettings.Add(sim.GetType(), settings);
-            }
-            sim.UseSettings(settings);
+            //// create a shared settings object if one doesnt already exist
+            //SimSettingsBase settings;
+            //if (!cachedSettings.TryGetValue(sim.GetType(), out settings))
+            //{
+            //    settings = sim.CreateDefaultSettings();
+            //    cachedSettings.Add(sim.GetType(), settings);
+            //}
+            //sim.UseSettings(settings);
 
-            if (attachGO == null)
-            {
-                // Add components if we are creating a loddata GO anew
+            //if (attachGO == null)
+            //{
+            //    // Add components if we are creating a loddata GO anew
 
-                if (sim.RequiresCamera)
-                {
-                    var cam = go.GetComponent<Camera>();
-                    if (cam == null) cam = go.AddComponent<Camera>();
-                    cam.clearFlags = sim.CamClearFlags;
-                    cam.backgroundColor = new Color(0f, 0f, 0f, 0f);
-                    cam.cullingMask = 0;
-                    cam.orthographic = true;
-                    cam.nearClipPlane = 1f;
-                    cam.farClipPlane = 500f;
-                    cam.renderingPath = RenderingPath.Forward;
-                    cam.useOcclusionCulling = false;
-                    cam.allowHDR = true;
-                    cam.allowMSAA = false;
-                    cam.allowDynamicResolution = false;
-                }
+            //    if (sim.RequiresCamera)
+            //    {
+            //        var cam = go.GetComponent<Camera>();
+            //        if (cam == null) cam = go.AddComponent<Camera>();
+            //        cam.clearFlags = sim.CamClearFlags;
+            //        cam.backgroundColor = new Color(0f, 0f, 0f, 0f);
+            //        cam.cullingMask = 0;
+            //        cam.orthographic = true;
+            //        cam.nearClipPlane = 1f;
+            //        cam.farClipPlane = 500f;
+            //        cam.renderingPath = RenderingPath.Forward;
+            //        cam.useOcclusionCulling = false;
+            //        cam.allowHDR = true;
+            //        cam.allowMSAA = false;
+            //        cam.allowDynamicResolution = false;
+            //    }
 
-                var cart = go.AddComponent<CreateAssignRenderTexture>();
-                cart._targetName = go.name;
-                cart._width = cart._height = (int)(4f * baseVertDensity);
-                cart._depthBits = 0;
-                cart._format = sim.TextureFormat;
-                cart._wrapMode = TextureWrapMode.Clamp;
-                cart._antiAliasing = 1;
-                cart._filterMode = FilterMode.Bilinear;
-                cart._anisoLevel = 0;
-                cart._useMipMap = false;
-                cart.Create();
+            //    var cart = go.AddComponent<CreateAssignRenderTexture>();
+            //    cart._targetName = go.name;
+            //    cart._width = cart._height = (int)(4f * baseVertDensity);
+            //    cart._depthBits = 0;
+            //    cart._format = sim.TextureFormat;
+            //    cart._wrapMode = TextureWrapMode.Clamp;
+            //    cart._antiAliasing = 1;
+            //    cart._filterMode = FilterMode.Bilinear;
+            //    cart._anisoLevel = 0;
+            //    cart._useMipMap = false;
+            //    cart.Create();
 
-                var apply = go.AddComponent<ApplyLayers>();
-                apply._cullIncludeLayers = new string[] { string.Format("LodData{0}", simType.ToString()) };
-            }
+            //    var apply = go.AddComponent<ApplyLayers>();
+            //    apply._cullIncludeLayers = new string[] { string.Format("LodData{0}", simType.ToString()) };
+            //}
 
-            return go;
+            //return go;
         }
 
         protected void CreateParamIDs(ref int[] ids, string prefix)

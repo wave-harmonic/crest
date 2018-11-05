@@ -43,7 +43,7 @@ namespace Crest
             simMaterial.SetFloat("_ShorelineFoamStrength", Settings._shorelineFoamStrength);
 
             // assign animated waves - to slot 1 current frame data
-            OceanRenderer.Instance._lodDataAnimWaves[lodIdx].BindResultData(1, simMaterial);
+            OceanRenderer.Instance._lodDataAnimWaves.BindResultData(lodIdx, 1, simMaterial);
 
             // assign sea floor depth - to slot 1 current frame data
             if (OceanRenderer.Instance._createSeaFloorDepthData)

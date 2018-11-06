@@ -35,7 +35,7 @@ The steps to set up *Crest* in a new or existing project currently look as follo
 * Crest uses layers to render the different types of ocean data. It will throw errors in the log if a feature is turned on that requires a layer that is missing from the project. Most projects will require at least these two:
   * *LodDataAnimatedWaves* - for Gerstner waves and other kinematic shape.
   * *LodDataFoam* - for the foam simulation.
-* To add waves, create a new GameObject and add the *Shape Gerster Batched* component.
+* To add waves, create a new GameObject and add the *Shape Gerstner Batched* component.
   * On startup this script creates a default ocean shape. To edit the shape, create an asset of type *Crest/Ocean Wave Spectrum* and provide it to this script.
   * Smooth blending of ocean shapes can be achieved by adding multiple *Shape Gerstner Batched* scripts and crossfading them using the *Weight* parameter.
 * For geometry that should influence the ocean (attenuate waves, generate foam):

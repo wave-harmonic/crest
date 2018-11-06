@@ -353,9 +353,9 @@ namespace Crest
             return true;
         }
 
-        public bool GetSurfaceVelocity(ref Vector3 i_worldPos, out Vector3 surfaceVel, float minSpatialLength)
+        public bool GetSurfaceVelocity(ref Vector3 i_worldPos, out Vector3 o_surfaceVel, float minSpatialLength)
         {
-            surfaceVel = Vector3.zero;
+            o_surfaceVel = Vector3.zero;
 
             if (_amplitudes == null) return false;
 
@@ -379,7 +379,7 @@ namespace Crest
                 float x = Vector2.Dot(D, pos);
                 float t = k * (x + C * mytime) + _phases[j];
                 float disp = -_spectrum._chop * k * C * Mathf.Cos(t);
-                surfaceVel += _amplitudes[j] * new Vector3(
+                o_surfaceVel += _amplitudes[j] * new Vector3(
                     D.x * disp,
                     -k * C * Mathf.Sin(t),
                     D.y * disp
@@ -395,9 +395,9 @@ namespace Crest
             o_velValid = GetSurfaceVelocity(ref i_worldPos, out o_displacementVel, minSpatialLength);
         }
 
-        public bool SampleHeight(ref Vector3 i_worldPos, out float height, float minSpatialLength = 0f)
+        public bool SampleHeight(ref Vector3 i_worldPos, out float o_height, float minSpatialLength = 0f)
         {
-            height = 0f;
+            o_height = 0f;
 
             Vector3 posFlatland = i_worldPos;
             posFlatland.y = OceanRenderer.Instance.transform.position.y;
@@ -410,7 +410,7 @@ namespace Crest
             if (!SampleDisplacement(ref undisplacedPos, out disp, minSpatialLength))
                 return false;
 
-            height = posFlatland.y + disp.y;
+            o_height = posFlatland.y + disp.y;
 
             return true;
         }
@@ -430,13 +430,13 @@ namespace Crest
         }
 
         // compute normal to a surface with a parameterization - equation 14 here: http://mathworld.wolfram.com/NormalVector.html
-        public bool SampleNormal(ref Vector3 in__undisplacedWorldPos, out Vector3 o_normal, float minSpatialLength)
+        public bool SampleNormal(ref Vector3 i_undisplacedWorldPos, out Vector3 o_normal, float minSpatialLength)
         {
             o_normal = Vector3.zero;
 
             if (_amplitudes == null) return false;
 
-            var pos = new Vector2(in__undisplacedWorldPos.x, in__undisplacedWorldPos.z);
+            var pos = new Vector2(i_undisplacedWorldPos.x, i_undisplacedWorldPos.z);
             float mytime = OceanRenderer.Instance.CurrentTime;
             float windAngle = OceanRenderer.Instance._windDirectionAngle;
             float minWaveLength = minSpatialLength / 2f;
@@ -473,9 +473,9 @@ namespace Crest
             return true;
         }
 
-        public bool ComputeUndisplacedPosition(ref Vector3 i_worldPos, out Vector3 undisplacedWorldPos, float minSpatialLength)
+        public bool ComputeUndisplacedPosition(ref Vector3 i_worldPos, out Vector3 o_undisplacedWorldPos, float minSpatialLength)
         {
-            // fpi - guess should converge to location that displaces to the target position
+            // FPI - guess should converge to location that displaces to the target position
             Vector3 guess = i_worldPos;
             // 2 iterations was enough to get very close when chop = 1, added 2 more which should be
             // sufficient for most applications. for high chop values or really stormy conditions there may
@@ -489,8 +489,8 @@ namespace Crest
                 guess.z -= error.z;
             }
 
-            undisplacedWorldPos = guess;
-            undisplacedWorldPos.y = OceanRenderer.Instance.SeaLevel;
+            o_undisplacedWorldPos = guess;
+            o_undisplacedWorldPos.y = OceanRenderer.Instance.SeaLevel;
 
             return true;
         }
@@ -505,9 +505,9 @@ namespace Crest
             SampleDisplacementVel(ref i_worldPos, out o_displacement, out o_displacementValid, out o_displacementVel, out o_velValid, _minSpatialLengthForArea);
         }
 
-        public bool SampleNormalInArea(ref Vector3 in__undisplacedWorldPos, out Vector3 o_normal)
+        public bool SampleNormalInArea(ref Vector3 i_undisplacedWorldPos, out Vector3 o_normal)
         {
-            return SampleNormal(ref in__undisplacedWorldPos, out o_normal, _minSpatialLengthForArea);
+            return SampleNormal(ref i_undisplacedWorldPos, out o_normal, _minSpatialLengthForArea);
         }
 
         public AvailabilityResult CheckAvailability(ref Vector3 i_worldPos, float minSpatialLength)

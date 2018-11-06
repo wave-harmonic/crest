@@ -33,6 +33,7 @@ Shader "Ocean/Shape/Gerstner Batch"
 
 				struct appdata_t {
 					float4 vertex : POSITION;
+					float2 uv : TEXCOORD0;
 					half color : COLOR0;
 				};
 
@@ -48,7 +49,11 @@ Shader "Ocean/Shape/Gerstner Batch"
 				{
 					v2f o;
 					o.vertex = UnityObjectToClipPos( v.vertex );
-					o.worldPos_wt.xy = mul( unity_ObjectToWorld, v.vertex ).xz;
+
+					// compute world pos from quad uv
+					float2 worldXZ = LD_0_UVToWorld(v.uv);
+
+					o.worldPos_wt.xy = worldXZ;// mul(unity_ObjectToWorld, v.vertex).xz;
 					o.worldPos_wt.z = v.color.x;
 					return o;
 				}

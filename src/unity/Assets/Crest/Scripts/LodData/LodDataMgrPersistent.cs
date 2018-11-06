@@ -20,7 +20,6 @@ namespace Crest
 
         RenderTexture[] _sources;
 
-        GameObject _renderSim;
         Material[] _renderSimMaterial;
 
         protected abstract string ShaderSim { get; }
@@ -101,6 +100,7 @@ namespace Crest
 
                 SetAdditionalSimParams(lodIdx, _renderSimMaterial[lodIdx]);
 
+                // TODO - does it need the set render target call?
                 buf.SetRenderTarget(DataTexture(lodIdx));
                 buf.Blit(null, _targets[lodIdx], _renderSimMaterial[lodIdx]);
 

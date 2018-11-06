@@ -79,9 +79,10 @@ namespace Crest
 
                 if (lodIdx > 0)
                 {
-                    BindResultData(lodIdx - 1, 1, _combineMaterial[lodIdx - 1]);
+                    BindResultData(lodIdx, 1, _combineMaterial[lodIdx - 1]);
                 }
             }
+
             for (int lodIdx = lodCount - 2; lodIdx >= 0; lodIdx--)
             {
                 // accumulate shape data down the LOD chain - combine L+1 into L

@@ -23,11 +23,7 @@ namespace Crest
 
         public bool _rotateLaplacian = true;
 
-        CameraEvent _copySimResultEvent = 0;
-
-        Material _copySimMaterial = null;
-        CommandBuffer _copySimResultsCmdBuf;
-        Camera _copySimResultCamera = null;
+        public Material[] _copySimMaterial;
 
         bool[] _active;
         public bool SimActive(int lodIdx) { return _active[lodIdx]; }
@@ -36,7 +32,11 @@ namespace Crest
         {
             base.Start();
 
-            _copySimMaterial = new Material(Shader.Find("Ocean/Shape/Sim/Wave Add To Disps"));
+            _copySimMaterial = new Material[OceanRenderer.Instance.CurrentLodCount];
+            for (int i = 0; i < _copySimMaterial.Length; i++)
+            {
+                _copySimMaterial[i] = new Material(Shader.Find("Ocean/Shape/Sim/Wave Add To Disps"));
+            }
         }
 
         protected override void InitData()
@@ -47,12 +47,6 @@ namespace Crest
             for (int i = 0; i < _active.Length; i++) _active[i] = true;
         }
 
-        public void HookCombinePass(Camera camera, CameraEvent onEvent)
-        {
-            _copySimResultCamera = camera;
-            _copySimResultEvent = onEvent;
-        }
-
         protected override bool BuildCommandBufferInternal(int lodIdx)
         {
             if (!base.BuildCommandBufferInternal(lodIdx))
@@ -60,43 +54,18 @@ namespace Crest
 
             // this sim copies its results into the animated waves
 
-            if (_copySimResultCamera == null)
-            {
-                // the copy results hook is not configured yet
-                return false;
-            }
-
             // check if the sim should be running
             float texelWidth = OceanRenderer.Instance._lods[lodIdx]._renderData.Validate(0, this)._texelWidth;
             _active[lodIdx] = texelWidth >= Settings._minGridSize && (texelWidth <= Settings._maxGridSize || Settings._maxGridSize == 0f);
-            if (!_active[lodIdx] && _copySimResultsCmdBuf != null)
-            {
-                // not running - remove command buffer to copy results in
-                _copySimResultCamera.RemoveCommandBuffer(_copySimResultEvent, _copySimResultsCmdBuf);
-                _copySimResultsCmdBuf = null;
-            }
-            else if (_active[lodIdx] && _copySimResultsCmdBuf == null)
-            {
-                // running - create command buffer
-                _copySimResultsCmdBuf = new CommandBuffer();
-                _copySimResultsCmdBuf.name = "CopySimResults_" + SimName;
-                _copySimResultCamera.AddCommandBuffer(_copySimResultEvent, _copySimResultsCmdBuf);
-            }
+
             // only run simulation if enabled
             if (!_active[lodIdx])
                 return false;
 
-            _copySimMaterial.SetFloat("_HorizDisplace", Settings._horizDisplace);
-            _copySimMaterial.SetFloat("_DisplaceClamp", Settings._displaceClamp);
-            _copySimMaterial.SetFloat("_TexelWidth", OceanRenderer.Instance._lods[lodIdx]._renderData._texelWidth);
-            _copySimMaterial.mainTexture = _targets[lodIdx];
-
-            if (_copySimResultsCmdBuf != null)
-            {
-                _copySimResultsCmdBuf.Clear();
-                _copySimResultsCmdBuf.Blit(
-                    _targets[lodIdx], OceanRenderer.Instance._lodDataAnimWaves.DataTexture(lodIdx), _copySimMaterial);
-            }
+            _copySimMaterial[lodIdx].SetFloat("_HorizDisplace", Settings._horizDisplace);
+            _copySimMaterial[lodIdx].SetFloat("_DisplaceClamp", Settings._displaceClamp);
+            _copySimMaterial[lodIdx].SetFloat("_TexelWidth", OceanRenderer.Instance._lods[lodIdx]._renderData._texelWidth);
+            _copySimMaterial[lodIdx].mainTexture = _targets[lodIdx];
 
             return true;
         }
@@ -121,16 +90,6 @@ namespace Crest
             if (OceanRenderer.Instance._createFlowSim)
             {
                 OceanRenderer.Instance._lodDataFlow.BindResultData(lodIdx, 1, simMaterial);
-            }
-
-        }
-
-        private void OnDisable()
-        {
-            if (_copySimResultsCmdBuf != null)
-            {
-                _copySimResultCamera.RemoveCommandBuffer(_copySimResultEvent, _copySimResultsCmdBuf);
-                _copySimResultsCmdBuf = null;
             }
         }
 

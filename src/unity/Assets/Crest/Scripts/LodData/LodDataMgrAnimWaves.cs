@@ -70,6 +70,12 @@ namespace Crest
                 {
                     gerstner.BuildCommandBuffer(lodIdx, ocean, buf);
                 }
+
+                if (OceanRenderer.Instance._lodDataDynWaves)
+                {
+                    // this should call another build command buffer function on the dyn waves
+                    buf.Blit(OceanRenderer.Instance._lodDataDynWaves.DataTexture(lodIdx), DataTexture(lodIdx), OceanRenderer.Instance._lodDataDynWaves._copySimMaterial[lodIdx]);
+                }
             }
 
             // combine pass

@@ -71,16 +71,6 @@ namespace Crest
         {
             base.BuildCommandBuffer(ocean, buf);
 
-            //if (_advanceSimCmdBuf == null)
-            //{
-            //    _advanceSimCmdBuf = new CommandBuffer();
-            //    _advanceSimCmdBuf.name = "AdvanceSim_" + SimName;
-            //    // TODO
-            //    //Cam.AddCommandBuffer(CameraEvent.BeforeForwardAlpha, _advanceSimCmdBuf);
-            //}
-
-            //_advanceSimCmdBuf.Clear();
-
             var lodCount = OceanRenderer.Instance.CurrentLodCount;
 
             for (var lodIdx = lodCount - 1; lodIdx >= 0; lodIdx--)

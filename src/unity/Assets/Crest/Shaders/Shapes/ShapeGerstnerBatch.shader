@@ -40,6 +40,7 @@ Shader "Ocean/Shape/Gerstner Batch"
 				struct v2f {
 					float4 vertex : SV_POSITION;
 					float3 worldPos_wt : TEXCOORD0;
+					float2 uv : TEXCOORD1;
 				};
 
 				// IMPORTANT - this mirrors the constant with the same name in ShapeGerstnerBatched.cs, both must be updated together!
@@ -48,13 +49,15 @@ Shader "Ocean/Shape/Gerstner Batch"
 				v2f vert( appdata_t v )
 				{
 					v2f o;
-					o.vertex = UnityObjectToClipPos( v.vertex );
+					o.vertex = float4(v.vertex.x, -v.vertex.y, 0., .5);
 
-					// compute world pos from quad uv
 					float2 worldXZ = LD_0_UVToWorld(v.uv);
 
-					o.worldPos_wt.xy = worldXZ;// mul(unity_ObjectToWorld, v.vertex).xz;
+					o.worldPos_wt.xy = worldXZ;
 					o.worldPos_wt.z = v.color.x;
+
+					o.uv = v.uv;
+
 					return o;
 				}
 
@@ -73,7 +76,7 @@ Shader "Ocean/Shape/Gerstner Batch"
 					const half minWavelength = MinWavelengthForCurrentOrthoCamera();
 			
 					// sample ocean depth (this render target should 1:1 match depth texture, so UVs are trivial)
-					const half depth = DEPTH_BASELINE - tex2D(_LD_Sampler_SeaFloorDepth_0, i.vertex.xy / _ScreenParams.xy).x;
+					const half depth = DEPTH_BASELINE - tex2D(_LD_Sampler_SeaFloorDepth_0, i.uv).x;
 					half3 result = (half3)0.;
 
 					// unrolling this loop once helped SM Issue Utilization and some other stats, but the GPU time is already very low so leaving this for now

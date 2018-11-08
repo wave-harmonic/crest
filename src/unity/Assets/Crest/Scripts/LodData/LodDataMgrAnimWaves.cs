@@ -79,21 +79,24 @@ namespace Crest
             }
 
             // combine pass
-            for (int lodIdx = lodCount - 1; lodIdx >= 0; lodIdx--)
+            if (_shapeCombinePass)
             {
-                BindResultData(lodIdx, 0, _combineMaterial[lodIdx]);
-
-                if (lodIdx > 0)
+                for (int lodIdx = lodCount - 1; lodIdx >= 0; lodIdx--)
                 {
-                    BindResultData(lodIdx, 1, _combineMaterial[lodIdx - 1]);
-                }
-            }
+                    BindResultData(lodIdx, 0, _combineMaterial[lodIdx]);
 
-            for (int lodIdx = lodCount - 2; lodIdx >= 0; lodIdx--)
-            {
-                // accumulate shape data down the LOD chain - combine L+1 into L
-                buf.SetRenderTarget(DataTexture(lodIdx));
-                buf.Blit(DataTexture(lodIdx + 1), DataTexture(lodIdx), _combineMaterial[lodIdx]);
+                    if (lodIdx > 0)
+                    {
+                        BindResultData(lodIdx, 1, _combineMaterial[lodIdx - 1]);
+                    }
+                }
+
+                for (int lodIdx = lodCount - 2; lodIdx >= 0; lodIdx--)
+                {
+                    // accumulate shape data down the LOD chain - combine L+1 into L
+                    buf.SetRenderTarget(DataTexture(lodIdx));
+                    buf.Blit(DataTexture(lodIdx + 1), DataTexture(lodIdx), _combineMaterial[lodIdx]);
+                }
             }
 
             // lod-independent data

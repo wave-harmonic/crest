@@ -280,25 +280,25 @@ namespace Crest
 
         public void BuildCommandBuffer(int lodIdx, OceanRenderer ocean, CommandBuffer buf)
         {
-            var drawMatrix = Matrix4x4.TRS(Vector3.zero, Quaternion.AngleAxis(90f, Vector3.right), Vector3.one);
             var lodCount = ocean.CurrentLodCount;
 
             // lods up to but not including the last lod get the normal sets of waves
             if (lodIdx < lodCount - 1)
             {
-                buf.DrawMesh(_rasterMesh, drawMatrix, _materials[lodIdx]);
+                buf.DrawMesh(_rasterMesh, Matrix4x4.identity, _materials[lodIdx]);
             }
 
-            // the second-to-last lod will transition content into it from the last lod
-            if (lodIdx == lodCount - 2)
-            {
-                buf.DrawMesh(_rasterMesh, drawMatrix, _materialBigWaveTransition);
-            }
+            // TODO knocked this out because waves are not weighted properly
+            //// the second-to-last lod will transition content into it from the last lod
+            //if (lodIdx == lodCount - 2)
+            //{
+            //    buf.DrawMesh(_rasterMesh, Matrix4x4.identity, _materialBigWaveTransition);
+            //}
 
             // last lod gets the big wavelengths
             if (lodIdx == lodCount - 1)
             {
-                buf.DrawMesh(_rasterMesh, drawMatrix, _materials[OceanRenderer.Instance.CurrentLodCount - 1]);
+                buf.DrawMesh(_rasterMesh, Matrix4x4.identity, _materials[OceanRenderer.Instance.CurrentLodCount - 1]);
             }
         }
 

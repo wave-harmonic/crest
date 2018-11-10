@@ -147,13 +147,16 @@ namespace Crest
                 if (camMain != null)
                 {
                     _viewpoint = camMain.transform;
-
-                    _planarReflection = camMain.GetComponent<OceanPlanarReflection>();
                 }
                 else
                 {
                     Debug.LogError("Please provide the viewpoint transform, or tag the primary camera as MainCamera.", this);
                 }
+            }
+
+            if (_viewpoint != null)
+            {
+                _planarReflection = _viewpoint.GetComponent<OceanPlanarReflection>();
             }
         }
 

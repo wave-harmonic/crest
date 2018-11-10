@@ -12,10 +12,10 @@ namespace Crest
     /// </summary>
     public class OceanPlanarReflection : MonoBehaviour
     {
+        public LayerMask _reflectionLayers = 1;
         public bool _disablePixelLights = true;
         public int _textureSize = 256;
         public float _clipPlaneOffset = 0.07f;
-        public string[] _reflectLayers = new[] { "Default" };
         public bool _hdr = true;
 
         RenderTexture _reflectionTexture;
@@ -163,7 +163,7 @@ namespace Crest
                 _camReflections.enabled = false;
                 _camReflections.transform.position = transform.position;
                 _camReflections.transform.rotation = transform.rotation;
-                _camReflections.gameObject.AddComponent<ApplyLayers>()._cullIncludeLayers = _reflectLayers;
+                _camReflections.cullingMask = _reflectionLayers;
                 _camReflections.gameObject.AddComponent<Skybox>();
                 _camReflections.gameObject.AddComponent<FlareLayer>();
 

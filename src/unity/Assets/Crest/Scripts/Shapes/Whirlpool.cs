@@ -52,11 +52,7 @@ namespace Crest
             _displacement.transform.parent = transform;
             _displacement.transform.position = new Vector3(0f, -100f, 0f);
             _displacement.transform.localEulerAngles = new Vector3(90f, 0f, 0f);
-            _displacement.AddComponent<ApplyLayers>();
-            {
-                ApplyLayers applyLayers = _displacement.GetComponent<ApplyLayers>();
-                applyLayers._layerName = "LodDataAnimatedWaves";
-            }
+            _displacement.AddComponent<RegisterAnimWavesInput>();
             _displacementMaterial = new Material(Shader.Find("Ocean/Shape/Whirlpool Displacement"));
             _displacement.GetComponent<Renderer>().material = _displacementMaterial;
 

@@ -128,7 +128,6 @@ GameObject:
   - component: {fileID: 227134467}
   - component: {fileID: 227134468}
   - component: {fileID: 227134471}
-  - component: {fileID: 227134472}
   - component: {fileID: 227134474}
   m_Layer: 0
   m_Name: Main Camera
@@ -243,22 +242,6 @@ MonoBehaviour:
   simForwardInput: 0
   _requireLMBToMove: 0
   _fixedDt: 0.016666668
---- !u!114 &227134472
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 227134465}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a7f1d7afc5dc7ec4ab6fa33a21ede643, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _layerName: 
-  _cullExcludeLayers:
-  - LodDataAnimatedWaves
-  _cullIncludeLayers: []
-  _logErrorIfLayerMissing: 1
 --- !u!114 &227134473
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -693,7 +676,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2147412152}
   - component: {fileID: 2147412153}
-  m_Layer: 0
+  m_Layer: 4
   m_Name: Ocean
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -735,8 +718,7 @@ MonoBehaviour:
   _maxScale: 256
   _baseVertDensity: 64
   _lodCount: 7
-  _simSettingsAnimatedWaves: {fileID: 11400000, guid: 29f72da49fa4be442b4f38e049c3c2ba,
-    type: 2}
+  _simSettingsAnimatedWaves: {fileID: 0}
   _createSeaFloorDepthData: 1
   _createFoamSim: 1
   _simSettingsFoam: {fileID: 11400000, guid: 8e1de4c30452ccf499882fefe206c5cd, type: 2}
@@ -751,10 +733,10 @@ MonoBehaviour:
   _uniformTiles: 0
   _disableSkirt: 0
   _lods: []
-  _lodDataAnimWaves: []
-  _lodDataSeaDepths: []
+  _lodDataAnimWaves: {fileID: 0}
+  _lodDataSeaDepths: {fileID: 0}
   _lodDataDynWaves: {fileID: 0}
   _lodDataFlow: {fileID: 0}
   _lodDataFoam: {fileID: 0}
-  _lodDataShadow: []
+  _lodDataShadow: {fileID: 0}
   _commandBufferBuilder: {fileID: 0}

@@ -127,7 +127,6 @@ GameObject:
   - component: {fileID: 227134471}
   - component: {fileID: 227134473}
   - component: {fileID: 227134467}
-  - component: {fileID: 227134468}
   - component: {fileID: 227134472}
   m_Layer: 0
   m_Name: Main Camera
@@ -157,25 +156,6 @@ MonoBehaviour:
   _showSimTargets: 1
   _guiVisible: 1
   _oceanMaterialAsset: Assets/Crest/Materials/Ocean.mat
---- !u!114 &227134468
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 227134465}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a7f1d7afc5dc7ec4ab6fa33a21ede643, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _layerName: 
-  _cullExcludeLayers:
-  - LodDataFoam
-  - LodDataDynamicWaves
-  - LodDataAnimatedWaves
-  - LodDataFlow
-  _cullIncludeLayers: []
-  _logErrorIfLayerMissing: 0
 --- !u!20 &227134469
 Camera:
   m_ObjectHideFlags: 0
@@ -402,7 +382,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _disableRenderer: 1
-  _createOceanDepthMaterial: 1
+  _assignOceanDepthMaterial: 1
 --- !u!4 &632841573 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 400000, guid: 386033b9b0ae11a40bbd970400b6d7c6,
@@ -482,13 +462,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 723498130}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a7f1d7afc5dc7ec4ab6fa33a21ede643, type: 3}
+  m_Script: {fileID: 11500000, guid: 26cbe8d1fc0a69249bc135d85739ad39, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _layerName: LodDataAnimatedWaves
-  _cullExcludeLayers: []
-  _cullIncludeLayers: []
-  _logErrorIfLayerMissing: 1
+  _disableRenderer: 1
 --- !u!33 &723498134
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -505,7 +482,7 @@ GameObject:
   m_Component:
   - component: {fileID: 847119698}
   - component: {fileID: 847119699}
-  m_Layer: 0
+  m_Layer: 4
   m_Name: Ocean
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -562,7 +539,7 @@ MonoBehaviour:
   _uniformTiles: 0
   _disableSkirt: 0
   _lods: []
-  _lodDataAnimWaves: []
+  _lodDataAnimWaves: {fileID: 0}
   _lodDataSeaDepths: {fileID: 0}
   _lodDataDynWaves: {fileID: 0}
   _lodDataFlow: {fileID: 0}

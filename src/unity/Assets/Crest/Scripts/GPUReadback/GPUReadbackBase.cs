@@ -73,18 +73,6 @@ namespace Crest
                 return;
             }
 
-            // TODO
-            //if (!CanUseLastLOD)
-            //{
-            //    // Remove last element
-            //    var temp = _lodComponents;
-            //    _lodComponents = new LodDataType[_lodComponents.Length - 1];
-            //    for (int i = 0; i < _lodComponents.Length; i++)
-            //    {
-            //        _lodComponents[i] = temp[i];
-            //    }
-            //}
-
             SetTextureFormat(_lodComponent.TextureFormat);
         }
 

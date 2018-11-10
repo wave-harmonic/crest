@@ -11,7 +11,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6fcc1742c5d877741b8e82fe2bb66a75, type: 3}
   m_Name: SimSettingsAnimatedWaves
   m_EditorClassIdentifier: 
-  _collisionSource: 0
+  _collisionSource: 1
   _cachedHeightQueries: 1
   _minObjectWidth: 3
   _maxObjectWidth: 500

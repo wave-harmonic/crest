@@ -63,9 +63,9 @@ namespace Crest
                     case CollisionSources.None:
                         _collProvider = new CollProviderNull();
                         break;
-                    //case CollisionSources.OceanDisplacementTexturesGPU:
-                    //    _collProvider = GPUReadbackDisps.Instance;
-                    //    break;
+                    case CollisionSources.OceanDisplacementTexturesGPU:
+                        _collProvider = GPUReadbackDisps.Instance;
+                        break;
                     case CollisionSources.GerstnerWavesCPU:
                         _collProvider = FindObjectOfType<ShapeGerstnerBatched>();
                         break;

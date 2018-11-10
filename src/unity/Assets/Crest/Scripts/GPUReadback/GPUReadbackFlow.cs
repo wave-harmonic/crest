@@ -4,19 +4,17 @@ namespace Crest
 {
     public class GPUReadbackFlow : GPUReadbackBase<LodDataMgrFlow>
     {
-        PerLodData _areaData;
-
         static GPUReadbackFlow _instance;
         public static GPUReadbackFlow Instance
         {
             get
             {
-                return _instance
-#if UNITY_EDITOR
-                    // Allow hot code edit/recompile in editor - reinit singleton reference.
-                    ?? (_instance = FindObjectOfType<GPUReadbackFlow>())
+#if !UNITY_EDITOR
+                return _instance;
+#else
+                // Allow hot code edit/recompile in editor - re-init singleton reference.
+                return _instance != null ? _instance : (_instance = FindObjectOfType<GPUReadbackFlow>());
 #endif
-                    ;
             }
         }
 

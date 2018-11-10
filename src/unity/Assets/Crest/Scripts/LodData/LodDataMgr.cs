@@ -28,7 +28,6 @@ namespace Crest
         public abstract void UseSettings(SimSettingsBase settings);
 
         public abstract RenderTextureFormat TextureFormat { get; }
-        public abstract CameraClearFlags CamClearFlags { get; }
 
         public const int MAX_LOD_COUNT = 16;
 

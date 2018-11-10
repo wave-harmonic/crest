@@ -12,8 +12,6 @@ namespace Crest
     {
         public static readonly float MAX_SIM_DELTA_TIME = 1f / 30f;
 
-        public override CameraClearFlags CamClearFlags { get { return CameraClearFlags.Nothing; } }
-
         [SerializeField]
         protected SimSettingsBase _settings;
         public override void UseSettings(SimSettingsBase settings) { _settings = settings; }

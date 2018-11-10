@@ -13,7 +13,6 @@ namespace Crest
         public override SimSettingsBase CreateDefaultSettings() { return null; }
         public override void UseSettings(SimSettingsBase settings) { }
         public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RFloat; } }
-        public override CameraClearFlags CamClearFlags { get { return CameraClearFlags.Color; } }
 
         bool _targetsClear = false;
 

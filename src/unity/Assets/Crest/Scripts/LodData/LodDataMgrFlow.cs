@@ -12,7 +12,6 @@ namespace Crest
     {
         public override SimType LodDataType { get { return SimType.Flow; } }
         public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RGHalf; } }
-        public override CameraClearFlags CamClearFlags { get { return CameraClearFlags.Nothing; } }
 
         [SerializeField]
         protected SimSettingsFlow _settings;

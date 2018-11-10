@@ -14,7 +14,6 @@ namespace Crest
         public override SimType LodDataType { get { return SimType.Shadow; } }
         public override void UseSettings(SimSettingsBase settings) { _settings = settings; }
         public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RG16; } }
-        public override CameraClearFlags CamClearFlags { get { return CameraClearFlags.Color; } }
 
         public static bool s_processData = true;
 

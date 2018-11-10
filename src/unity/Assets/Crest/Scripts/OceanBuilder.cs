@@ -4,7 +4,6 @@
 
 using UnityEngine;
 using System.Collections;
-using System.Collections.Generic;
 
 namespace Crest
 {
@@ -160,63 +159,34 @@ namespace Crest
                 meshInsts[i] = BuildOceanPatch((PatchType)i, baseVertDensity);
             }
 
-            // create the shape cameras
             ocean._lods = new LodTransform[lodCount];
 
-            var cachedSettings = new Dictionary<System.Type, SimSettingsBase>();
-
-            // If a settings asset was assigned, add it to a dictionary so that all components can use it.
-            AddSettings<LodDataMgrAnimWaves>(ocean._simSettingsAnimatedWaves, cachedSettings);
-            AddSettings<LodDataMgrDynWaves>(ocean._simSettingsDynamicWaves, cachedSettings);
-            AddSettings<LodDataMgrFoam>(ocean._simSettingsFoam, cachedSettings);
-            AddSettings<LodDataMgrShadow>(ocean._simSettingsShadow, cachedSettings);
-            AddSettings<LodDataMgrFlow>(ocean._simSettingsFlow, cachedSettings);
-
-            ocean._lodDataAnimWaves = 
-                LodDataMgr.Create(lodCount, ocean.gameObject, baseVertDensity, LodDataMgr.SimType.AnimatedWaves, cachedSettings) as LodDataMgrAnimWaves;
-
+            // Create the lod data managers
+            ocean._lodDataAnimWaves = LodDataMgr.Create<LodDataMgrAnimWaves, SimSettingsAnimatedWaves>(ocean.gameObject, ref ocean._simSettingsAnimatedWaves);
             if (ocean._createDynamicWaveSim)
             {
-                ocean._lodDataDynWaves =
-                    LodDataMgr.Create(lodCount, ocean.gameObject, baseVertDensity, LodDataMgr.SimType.DynamicWaves, cachedSettings) as LodDataMgrDynWaves;
+                ocean._lodDataDynWaves = LodDataMgr.Create<LodDataMgrDynWaves, SimSettingsWave>(ocean.gameObject, ref ocean._simSettingsDynamicWaves);
             }
-
             if (ocean._createFlowSim)
             {
-                ocean._lodDataFlow =
-                    LodDataMgr.Create(lodCount, ocean.gameObject, baseVertDensity, LodDataMgr.SimType.Flow, cachedSettings) as LodDataMgrFlow;
+                ocean._lodDataFlow = LodDataMgr.Create<LodDataMgrFlow, SimSettingsFlow>(ocean.gameObject, ref ocean._simSettingsFlow);
             }
-
             if (ocean._createFoamSim)
             {
-                ocean._lodDataFoam =
-                    LodDataMgr.Create(lodCount, ocean.gameObject, baseVertDensity, LodDataMgr.SimType.Foam, cachedSettings) as LodDataMgrFoam;
+                ocean._lodDataFoam = LodDataMgr.Create<LodDataMgrFoam, SimSettingsFoam>(ocean.gameObject, ref ocean._simSettingsFoam);
             }
-
             if (ocean._createShadowData)
             {
-                ocean._lodDataShadow = 
-                    LodDataMgr.Create(lodCount, ocean.gameObject, baseVertDensity, LodDataMgr.SimType.Shadow, cachedSettings) as LodDataMgrShadow;
+                ocean._lodDataShadow = LodDataMgr.Create<LodDataMgrShadow, SimSettingsShadow>(ocean.gameObject, ref ocean._simSettingsShadow);
             }
-
             if (ocean._createSeaFloorDepthData)
             {
-                ocean._lodDataSeaDepths = 
-                    LodDataMgr.Create(lodCount, ocean.gameObject, baseVertDensity, LodDataMgr.SimType.SeaFloorDepth, cachedSettings) as LodDataMgrSeaFloorDepth;
+                ocean._lodDataSeaDepths = ocean.gameObject.AddComponent<LodDataMgrSeaFloorDepth>();
             }
-
-
-            // If no settings asset was assigned, the Create() methods will create a default settings object. Assign this back to the
-            // ocean script so that it can be easily accessed.
-            PopulateSettings<LodDataMgrAnimWaves, SimSettingsAnimatedWaves>(cachedSettings, ref ocean._simSettingsAnimatedWaves);
-            PopulateSettings<LodDataMgrDynWaves, SimSettingsWave>(cachedSettings, ref ocean._simSettingsDynamicWaves);
-            PopulateSettings<LodDataMgrFlow, SimSettingsFlow>(cachedSettings, ref ocean._simSettingsFlow);
-            PopulateSettings<LodDataMgrFoam, SimSettingsFoam>(cachedSettings, ref ocean._simSettingsFoam);
-            PopulateSettings<LodDataMgrShadow, SimSettingsShadow>(cachedSettings, ref ocean._simSettingsShadow);
 
             // Add any required GPU readbacks
             {
-                var ssaw = cachedSettings[typeof(LodDataMgrAnimWaves)] as SimSettingsAnimatedWaves;
+                var ssaw = ocean._simSettingsAnimatedWaves;
                 if (ssaw && ssaw.CollisionSource == SimSettingsAnimatedWaves.CollisionSources.OceanDisplacementTexturesGPU)
                 {
                     ocean.gameObject.AddComponent<GPUReadbackDisps>();
@@ -224,7 +194,7 @@ namespace Crest
 
                 if (ocean._createFlowSim)
                 {
-                    var ssf = cachedSettings[typeof(LodDataMgrFlow)] as SimSettingsFlow;
+                    var ssf = ocean._simSettingsFlow;
                     if (ssf && ssf._readbackData)
                     {
                         ocean.gameObject.AddComponent<GPUReadbackFlow>();
@@ -232,7 +202,7 @@ namespace Crest
                 }
             }
 
-            // remove existing LODs
+            // Remove existing LODs
             for (int i = 0; i < ocean.transform.childCount; i++)
             {
                 var child = ocean.transform.GetChild(i);
@@ -260,21 +230,6 @@ namespace Crest
             sw.Stop();
             Debug.Log( "Finished generating " + parms._lodCount.ToString() + " LODs, time: " + (1000.0*sw.Elapsed.TotalSeconds).ToString(".000") + "ms" );
 #endif
-        }
-
-        static void AddSettings<LodDataType>(SimSettingsBase settings, Dictionary<System.Type, SimSettingsBase> cachedSettings)
-        {
-            if (settings != null)
-            {
-                cachedSettings.Add(typeof(LodDataType), settings);
-            }
-        }
-
-        static void PopulateSettings<LodDataType, LodDataSettingsType>(Dictionary<System.Type, SimSettingsBase> cachedSettings, ref LodDataSettingsType settingsRef) where LodDataSettingsType : SimSettingsBase
-        {
-            SimSettingsBase settings;
-            cachedSettings.TryGetValue(typeof(LodDataType), out settings);
-            settingsRef = settings as LodDataSettingsType;
         }
 
         static Mesh BuildOceanPatch(PatchType pt, float baseVertDensity)

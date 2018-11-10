@@ -36,7 +36,7 @@ namespace Crest
             return _targets[lodIdx];
         }
 
-        public RenderTexture[] _targets;
+        protected RenderTexture[] _targets;
 
         // shape texture resolution
         int _shapeRes = -1;
@@ -156,40 +156,14 @@ namespace Crest
                 new Vector4(renderData._texelWidth, renderData._textureRes, 1f, 1f / renderData._textureRes));
         }
 
-        public static LodDataMgr Create(int lodCount, GameObject attachGO, float baseVertDensity, SimType simType, Dictionary<System.Type, SimSettingsBase> cachedSettings)
+        public static LodDataType Create<LodDataType, LodDataSettings>(GameObject attachGO, ref LodDataSettings settings)
+            where LodDataType : LodDataMgr where LodDataSettings : SimSettingsBase
         {
-            LodDataMgr sim;
-            switch (simType)
-            {
-                case SimType.AnimatedWaves:
-                    sim = attachGO.AddComponent<LodDataMgrAnimWaves>();
-                    break;
-                case SimType.DynamicWaves:
-                    sim = attachGO.AddComponent<LodDataMgrDynWaves>();
-                    break;
-                case SimType.Flow:
-                    sim = attachGO.AddComponent<LodDataMgrFlow>();
-                    break;
-                case SimType.Foam:
-                    sim = attachGO.AddComponent<LodDataMgrFoam>();
-                    break;
-                case SimType.SeaFloorDepth:
-                    sim = attachGO.AddComponent<LodDataMgrSeaFloorDepth>();
-                    break;
-                case SimType.Shadow:
-                    sim = attachGO.AddComponent<LodDataMgrShadow>();
-                    break;
-                default:
-                    Debug.LogError("Unknown sim type: " + simType.ToString());
-                    return null;
-            }
+            var sim = attachGO.AddComponent<LodDataType>();
 
-            // create a shared settings object if one doesnt already exist
-            SimSettingsBase settings;
-            if (!cachedSettings.TryGetValue(sim.GetType(), out settings))
+            if (settings == null)
             {
-                settings = sim.CreateDefaultSettings();
-                cachedSettings.Add(sim.GetType(), settings);
+                settings = sim.CreateDefaultSettings() as LodDataSettings;
             }
             sim.UseSettings(settings);
 

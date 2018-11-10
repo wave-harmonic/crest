@@ -134,11 +134,6 @@ namespace Crest
 
             OceanBuilder.GenerateMesh(this, _baseVertDensity, _lodCount);
 
-            // set render orders, event hooks, etc
-            var scheduler = GetComponent<IOceanScheduler>();
-            if (scheduler == null) scheduler = gameObject.AddComponent<OceanScheduler>();
-            scheduler.ApplySchedule(this);
-
             if (null == _commandBufferBuilder)
             {
                 _commandBufferBuilder = gameObject.AddComponent<BuildCommandBuffer>();

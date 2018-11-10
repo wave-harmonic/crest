@@ -520,7 +520,7 @@ namespace Crest
                 mr.lightProbeUsage = UnityEngine.Rendering.LightProbeUsage.Off;
                 mr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off; // arbitrary - could be turned on if desired
                 mr.receiveShadows = false; // this setting is ignored by unity for the transparent ocean shader
-                mr.motionVectorGenerationMode = MotionVectorGenerationMode.ForceNoMotion; // TODO
+                mr.motionVectorGenerationMode = MotionVectorGenerationMode.ForceNoMotion;
                 mr.material = ocean.OceanMaterial;
 
                 // rotate side patches to point the +x side outwards

@@ -36,7 +36,9 @@ namespace Crest
 
         // useful references
         Material[] _materials;
+        bool[] _drawLOD;
         Material _materialBigWaveTransition;
+        bool _drawLODTransitionWaves;
 
         // IMPORTANT - this mirrors the constant with the same name in ShapeGerstnerBatch.shader, both must be updated together!
         const int BATCH_SIZE = 32;
@@ -129,18 +131,16 @@ namespace Crest
 
             // num octaves plus one, because there is an additional last bucket for large wavelengths
             _materials = new Material[OceanRenderer.Instance.CurrentLodCount];
+            _drawLOD = new bool[_materials.Length];
 
             for (int i = 0; i < _materials.Length; i++)
             {
                 _materials[i] = new Material(_waveShader);
+                _drawLOD[i] = false;
             }
 
             _materialBigWaveTransition = new Material(_waveShader);
-        }
-
-        private void LateUpdate()
-        {
-            LateUpdateMaterials();
+            _drawLODTransitionWaves = false;
         }
 
         /// <summary>
@@ -223,11 +223,13 @@ namespace Crest
             return numInBatch;
         }
 
-        // more complicated than i would like - loops over each component and assigns to a gerstner batch which will render to a LOD.
-        // the camera WL range does not always match the octave WL range (because the vertices per wave is not constrained to powers of
-        // 2, unfortunately), so i cant easily just loop over octaves. also any WLs that either go to the last WDC, or dont fit in the last
-        // WDC, are rendered into both the last and second-to-last WDCs, in order to transition them smoothly without pops in all scenarios.
-        void LateUpdateMaterials()
+        /// <summary>
+        /// More complicated than one would hope - loops over each component and assigns to a Gerstner batch which will render to a LOD.
+        /// the camera WL range does not always match the octave WL range (because the vertices per wave is not constrained to powers of
+        /// 2, unfortunately), so i cant easily just loop over octaves. also any WLs that either go to the last WDC, or don't fit in the last
+        /// WDC, are rendered into both the last and second-to-last WDCs, in order to transition them smoothly without pops in all scenarios.
+        /// </summary>
+        void LateUpdate()
         {
             int componentIdx = 0;
 
@@ -247,57 +249,39 @@ namespace Crest
                     componentIdx++;
                 }
 
-                // TODO - where should this logic go?
-                if (UpdateBatch(lod, startCompIdx, componentIdx, _materials[lod]) > 0)
-                {
-                    // draw shape into this lod
-                    //AddDrawShapeCommandBuffer(lod);
-                }
-                else
-                {
-                    //RemoveDrawShapeCommandBuffer(lod);
-                }
+                _drawLOD[lod] = UpdateBatch(lod, startCompIdx, componentIdx, _materials[lod]) > 0;
             }
 
             // the last batch handles waves for the last lod, and waves that did not fit in the last lod
-            int lastBatchCount = UpdateBatch(OceanRenderer.Instance.CurrentLodCount - 1, componentIdx, _wavelengths.Length, _materials[OceanRenderer.Instance.CurrentLodCount - 1]);
-            UpdateBatch(OceanRenderer.Instance.CurrentLodCount - 2, componentIdx, _wavelengths.Length, _materialBigWaveTransition);
-
-            // TODO - where should this logic go?
-            if (lastBatchCount > 0)
-            {
-                // special command buffers that get added to last 2 lods, to handle smooth transitions for camera height changes
-                //AddDrawShapeBigWavelengthsCommandBuffer();
-            }
-            else
-            {
-                //RemoveDrawShapeBigWavelengthsCommandBuffer();
-            }
+            _drawLOD[OceanRenderer.Instance.CurrentLodCount - 1] =
+                UpdateBatch(OceanRenderer.Instance.CurrentLodCount - 1, componentIdx, _wavelengths.Length, _materials[OceanRenderer.Instance.CurrentLodCount - 1]) > 0;
+            _drawLODTransitionWaves =
+                UpdateBatch(OceanRenderer.Instance.CurrentLodCount - 2, componentIdx, _wavelengths.Length, _materialBigWaveTransition) > 0;
         }
 
-        // helper code below to manage command buffers. lods from 0 to N-2 render the gerstner waves from their lod. additionally, any waves
-        // in the biggest lod, or too big for the biggest lod, are rendered into both of the last two lods N-1 and N-2, as this allows us to
-        // move these waves between lods without pops when the camera changes heights and the lods need to change scale.
-
+        /// <summary>
+        /// Submit draws to create the Gerstner waves. LODs from 0 to N-2 render the Gerstner waves from their lod. Additionally, any waves
+        /// in the biggest lod, or too big for the biggest lod, are rendered into both of the last two LODs N-1 and N-2, as this allows us to
+        /// move these waves between LODs without pops when the camera changes heights and the LODs need to change scale.
+        /// </summary>
         public void BuildCommandBuffer(int lodIdx, OceanRenderer ocean, CommandBuffer buf)
         {
             var lodCount = ocean.CurrentLodCount;
 
-            // lods up to but not including the last lod get the normal sets of waves
-            if (lodIdx < lodCount - 1)
+            // LODs up to but not including the last lod get the normal sets of waves
+            if (lodIdx < lodCount - 1 && _drawLOD[lodIdx])
             {
                 buf.DrawMesh(_rasterMesh, Matrix4x4.identity, _materials[lodIdx]);
             }
 
-            // TODO knocked this out because waves are not weighted properly
-            //// the second-to-last lod will transition content into it from the last lod
-            //if (lodIdx == lodCount - 2)
-            //{
-            //    buf.DrawMesh(_rasterMesh, Matrix4x4.identity, _materialBigWaveTransition);
-            //}
+            // The second-to-last lod will transition content into it from the last lod
+            if (lodIdx == lodCount - 2 && _drawLODTransitionWaves)
+            {
+                buf.DrawMesh(_rasterMesh, Matrix4x4.identity, _materialBigWaveTransition);
+            }
 
-            // last lod gets the big wavelengths
-            if (lodIdx == lodCount - 1)
+            // Last lod gets the big wavelengths
+            if (lodIdx == lodCount - 1 && _drawLOD[lodIdx])
             {
                 buf.DrawMesh(_rasterMesh, Matrix4x4.identity, _materials[OceanRenderer.Instance.CurrentLodCount - 1]);
             }

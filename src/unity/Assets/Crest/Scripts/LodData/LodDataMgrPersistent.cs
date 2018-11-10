@@ -100,9 +100,7 @@ namespace Crest
 
                 SetAdditionalSimParams(lodIdx, _renderSimMaterial[lodIdx]);
 
-                // TODO - does it need the set render target call?
-                buf.SetRenderTarget(DataTexture(lodIdx));
-                buf.Blit(null, _targets[lodIdx], _renderSimMaterial[lodIdx]);
+                buf.Blit(null, DataTexture(lodIdx), _renderSimMaterial[lodIdx]);
 
                 SubmitDraws(lodIdx, buf);
 

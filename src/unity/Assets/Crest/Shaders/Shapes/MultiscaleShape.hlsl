@@ -4,16 +4,13 @@
 uniform float _TexelsPerWave;
 uniform float _MaxWavelength;
 uniform float _ViewerAltitudeLevelAlpha;
+uniform float _GridSize;
 
 // assumes orthographic camera. uses camera dimensions, target resolution, and texels-per-wave quality setting
 // to give the min supported wavelength for the current render.
 float MinWavelengthForCurrentOrthoCamera()
 {
-	const float cameraWidth = 2. * unity_OrthoParams.x;
-	const float renderTargetRes = _ScreenParams.x;
-	const float texSize = cameraWidth / renderTargetRes;
-	const float minWavelength = texSize * _TexelsPerWave;
-	return minWavelength;
+	return _GridSize * _TexelsPerWave;
 }
 
 bool SamplingIsAppropriate(float wavelengthInShape, out float wt)

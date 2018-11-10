@@ -211,6 +211,7 @@ namespace Crest
             material.SetFloat("_NumInBatch", numInBatch);
             material.SetFloat("_Chop", _spectrum._chop);
             material.SetFloat("_Gravity", OceanRenderer.Instance.Gravity * _spectrum._gravityScale);
+            material.SetFloat("_GridSize", OceanRenderer.Instance._lods[lodIdx]._renderData._texelWidth);
 
             OceanRenderer.Instance._lodDataAnimWaves.BindResultData(lodIdx, 0, material);
 

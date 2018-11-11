@@ -112,12 +112,6 @@ namespace Crest
             _scaleDifferencePow2 = Mathf.RoundToInt(ratio_l2);
         }
 
-        // Borrowed from LWRP code: https://github.com/Unity-Technologies/ScriptableRenderPipeline/blob/2a68d8073c4eeef7af3be9e4811327a522434d5f/com.unity.render-pipelines.high-definition/Runtime/Core/Utilities/GeometryUtils.cs
-        public static Matrix4x4 CalculateWorldToCameraMatrixRHS(Vector3 position, Quaternion rotation)
-        {
-            return Matrix4x4.Scale(new Vector3(1, 1, -1)) * Matrix4x4.TRS(position, rotation, Vector3.one).inverse;
-        }
-
         protected PropertyWrapperMaterial _pwMat = new PropertyWrapperMaterial();
         protected PropertyWrapperMPB _pwMPB = new PropertyWrapperMPB();
 
@@ -219,7 +213,9 @@ namespace Crest
         {
             var lt = OceanRenderer.Instance._lods[lodIdx];
             lt._renderData.Validate(0, this);
-            buf.SetViewProjectionMatrices(lt._worldToCameraMatrix, lt._projectionMatrix);
+
+            lt.SetViewProjectionMatrices(buf);
+
             foreach (var draw in _drawList)
             {
                 buf.DrawRenderer(draw, draw.material);

@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace Crest
 {
@@ -43,8 +44,8 @@ namespace Crest
         public int LodIndex { get { return _lodIndex; } }
         public int LodCount { get { return _lodCount; } }
 
-        public Matrix4x4 _worldToCameraMatrix;
-        public Matrix4x4 _projectionMatrix;
+        Matrix4x4 _worldToCameraMatrix;
+        Matrix4x4 _projectionMatrix;
 
         public void LateUpdate()
         {
@@ -74,18 +75,20 @@ namespace Crest
                 _renderDataPrevFrame._textureRes = _renderData._textureRes;
             }
 
-            {
-                _worldToCameraMatrix = CalculateWorldToCameraMatrixRHS(_renderData._posSnapped + Vector3.up * 100f, Quaternion.AngleAxis(90f, Vector3.right));
+            _worldToCameraMatrix = CalculateWorldToCameraMatrixRHS(_renderData._posSnapped + Vector3.up * 100f, Quaternion.AngleAxis(90f, Vector3.right));
 
-                _projectionMatrix = Matrix4x4.Ortho(-2f * transform.lossyScale.x, 2f * transform.lossyScale.x, -2f * transform.lossyScale.z, 2f * transform.lossyScale.z, 1f, 500f);
-            }
-
+            _projectionMatrix = Matrix4x4.Ortho(-2f * transform.lossyScale.x, 2f * transform.lossyScale.x, -2f * transform.lossyScale.z, 2f * transform.lossyScale.z, 1f, 500f);
         }
 
         // Borrowed from LWRP code: https://github.com/Unity-Technologies/ScriptableRenderPipeline/blob/2a68d8073c4eeef7af3be9e4811327a522434d5f/com.unity.render-pipelines.high-definition/Runtime/Core/Utilities/GeometryUtils.cs
         public static Matrix4x4 CalculateWorldToCameraMatrixRHS(Vector3 position, Quaternion rotation)
         {
             return Matrix4x4.Scale(new Vector3(1, 1, -1)) * Matrix4x4.TRS(position, rotation, Vector3.one).inverse;
+        }
+
+        public void SetViewProjectionMatrices(CommandBuffer buf)
+        {
+            buf.SetViewProjectionMatrices(_worldToCameraMatrix, _projectionMatrix);
         }
     }
 }

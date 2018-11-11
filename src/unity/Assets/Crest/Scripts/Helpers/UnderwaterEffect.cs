@@ -95,9 +95,25 @@ namespace Crest
 
                 // Underwater rendering uses displacements for intersecting the waves with the near plane, and ocean depth/shadows for ScatterColour()
                 OceanRenderer.Instance._lodDataAnimWaves.BindResultData(0, 0, _mpb);
-                if (OceanRenderer.Instance._createSeaFloorDepthData) OceanRenderer.Instance._lodDataSeaDepths.BindResultData(0, 0, _mpb);
-                if (OceanRenderer.Instance._createShadowData) OceanRenderer.Instance._lodDataShadow.BindResultData(0, 0, _mpb);
 
+                if (OceanRenderer.Instance._createSeaFloorDepthData)
+                {
+                    OceanRenderer.Instance._lodDataSeaDepths.BindResultData(0, 0, _mpb);
+                }
+                else
+                {
+                    _mpb.SetTexture("_LD_Sampler_SeaFloorDepth_0", Texture2D.blackTexture);
+                }
+
+                if (OceanRenderer.Instance._createShadowData)
+                {
+                    OceanRenderer.Instance._lodDataShadow.BindResultData(0, 0, _mpb);
+                }
+                else
+                {
+                    _mpb.SetTexture("_LD_Sampler_Shadow_0", Texture2D.blackTexture);
+
+                }
                 _rend.SetPropertyBlock(_mpb);
             }
         }

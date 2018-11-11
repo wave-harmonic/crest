@@ -86,11 +86,20 @@ namespace Crest
             {
                 OceanRenderer.Instance._lodDataSeaDepths.BindResultData(lodIdx, 1, simMaterial);
             }
+            else
+            {
+                simMaterial.SetTexture("_LD_Sampler_SeaFloorDepth_1", Texture2D.blackTexture);
+            }
 
             if (OceanRenderer.Instance._createFlowSim)
             {
                 OceanRenderer.Instance._lodDataFlow.BindResultData(lodIdx, 1, simMaterial);
             }
+            else
+            {
+                simMaterial.SetTexture("_LD_Sampler_Flow_1", Texture2D.blackTexture);
+            }
+
         }
 
         public static void CountWaveSims(int countFrom, out int o_present, out int o_active)

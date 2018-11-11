@@ -50,11 +50,19 @@ namespace Crest
             {
                 OceanRenderer.Instance._lodDataSeaDepths.BindResultData(lodIdx, 1, simMaterial);
             }
+            else
+            {
+                simMaterial.SetTexture("_LD_Sampler_SeaFloorDepth_1", Texture2D.blackTexture);
+            }
 
             // assign flow - to slot 1 current frame data
             if (OceanRenderer.Instance._createFlowSim)
             {
                 OceanRenderer.Instance._lodDataFlow.BindResultData(lodIdx, 1, simMaterial);
+            }
+            else
+            {
+                simMaterial.SetTexture("_LD_Sampler_Shadow_1", Texture2D.blackTexture);
             }
         }
 

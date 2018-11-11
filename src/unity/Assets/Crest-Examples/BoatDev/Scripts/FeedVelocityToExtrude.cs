@@ -34,7 +34,7 @@ public class FeedVelocityToExtrude : MonoBehaviour {
 
     private void Start()
     {
-        if (Crest.OceanRenderer.Instance == null || !Crest.OceanRenderer.Instance._createDynamicWaveSim)
+        if (OceanRenderer.Instance == null || !OceanRenderer.Instance._createDynamicWaveSim)
         {
             enabled = false;
             return;
@@ -49,7 +49,7 @@ public class FeedVelocityToExtrude : MonoBehaviour {
     {
         // which lod is this object in (roughly)?
         Rect thisRect = new Rect(new Vector2(transform.position.x, transform.position.z), Vector3.zero);
-        int minLod = Crest.LodDataMgrAnimWaves.SuggestDataLOD(thisRect);
+        int minLod = LodDataMgrAnimWaves.SuggestDataLOD(thisRect);
         if (minLod == -1)
         {
             // outside all lods, nothing to update!
@@ -59,7 +59,7 @@ public class FeedVelocityToExtrude : MonoBehaviour {
         // how many active wave sims currently apply to this object - ideally this would eliminate sims that are too
         // low res, by providing a max grid size param
         int simsPresent, simsActive;
-        Crest.LodDataMgrDynWaves.CountWaveSims(minLod, out simsPresent, out simsActive);
+        LodDataMgrDynWaves.CountWaveSims(minLod, out simsPresent, out simsActive);
 
         // counting non-existent sims is expensive - stop updating if none found
         if(simsPresent == 0)
@@ -75,17 +75,17 @@ public class FeedVelocityToExtrude : MonoBehaviour {
         var disp = _boat ? _boat.DisplacementToBoat : Vector3.zero;
         transform.position = transform.parent.TransformPoint(_localOffset) - disp;
 
-        float rnd = 1f + _noiseAmp * (2f * Mathf.PerlinNoise(_noiseFreq * Crest.OceanRenderer.Instance.CurrentTime, 0.5f) - 1f);
+        float rnd = 1f + _noiseAmp * (2f * Mathf.PerlinNoise(_noiseFreq * OceanRenderer.Instance.CurrentTime, 0.5f) - 1f);
         // feed in water velocity
         Vector3 vel = (transform.position - _posLast) / Time.deltaTime;
 
-        if (Crest.OceanRenderer.Instance._simSettingsFlow != null &&
-            Crest.OceanRenderer.Instance._simSettingsFlow._readbackData &&
-            Crest.GPUReadbackFlow.Instance)
+        if (OceanRenderer.Instance._simSettingsFlow != null &&
+            OceanRenderer.Instance._simSettingsFlow._readbackData &&
+            GPUReadbackFlow.Instance)
         {
             Vector2 surfaceFlow;
             Vector3 position = transform.position;
-            Crest.GPUReadbackFlow.Instance.SampleFlow(ref position, out surfaceFlow, _boat._boatWidth);
+            GPUReadbackFlow.Instance.SampleFlow(ref position, out surfaceFlow, _boat._boatWidth);
             vel -= new Vector3(surfaceFlow.x, 0, surfaceFlow.y);
         }
         vel.y *= _weightUpDownMul;

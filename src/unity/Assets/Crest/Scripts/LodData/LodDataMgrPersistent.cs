@@ -23,7 +23,7 @@ namespace Crest
         protected abstract string ShaderSim { get; }
 
         float _simDeltaTimePrev = 1f / 60f;
-        protected float SimDeltaTime { get { return Mathf.Min(Time.deltaTime, MAX_SIM_DELTA_TIME); } }
+        public static float SimDeltaTime { get { return Mathf.Min(Time.deltaTime, MAX_SIM_DELTA_TIME); } }
 
         protected override void Start()
         {
@@ -81,6 +81,8 @@ namespace Crest
                 _renderSimMaterial[lodIdx].SetFloat("_SimDeltaTime", dt);
                 _renderSimMaterial[lodIdx].SetFloat("_SimDeltaTimePrev", _simDeltaTimePrev);
                 _simDeltaTimePrev = dt;
+
+                _renderSimMaterial[lodIdx].SetFloat("_GridSize", OceanRenderer.Instance._lods[lodIdx]._renderData._texelWidth);
 
                 // compute which lod data we are sampling source data from. if a scale change has happened this can be any lod up or down the chain.
                 var srcDataIdx = lodIdx + _scaleDifferencePow2;

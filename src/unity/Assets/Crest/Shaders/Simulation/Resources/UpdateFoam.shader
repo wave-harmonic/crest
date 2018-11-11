@@ -35,7 +35,6 @@ Shader "Ocean/Simulation/Update Foam"
 				struct v2f {
 					float4 vertex : SV_POSITION;
 					float4 uv_uv_lastframe : TEXCOORD0;
-					float invRes : TEXCOORD1;
 				};
 
 				#include "SimHelpers.hlsl"
@@ -48,7 +47,7 @@ Shader "Ocean/Simulation/Update Foam"
 					// lod data 1 is current frame, compute world pos from quad uv
 					float2 worldXZ = LD_1_UVToWorld(v.uv);
 
-					ComputeUVs(worldXZ, o.vertex.xy, o.uv_uv_lastframe.zw, o.uv_uv_lastframe.xy, o.invRes);
+					ComputeUVs(worldXZ, o.vertex.xy, o.uv_uv_lastframe.zw, o.uv_uv_lastframe.xy);
 
 					return o;
 				}
@@ -67,14 +66,14 @@ Shader "Ocean/Simulation/Update Foam"
 					// #if _FLOW_ON
 					half4 velocity = half4(tex2Dlod(_LD_Sampler_Flow_1, uv).xy, 0., 0.);
 					half foam = tex2Dlod(_LD_Sampler_Foam_0, uv_lastframe
-						- ((_SimDeltaTime * i.invRes) * velocity)
+						- ((_SimDeltaTime * _LD_Params_0.w) * velocity)
 					).x;
 					// #else
 					// // sampler will clamp the uv currently
 					// half foam = tex2Dlod(_LD_Sampler_Foam_0, uv_lastframe).x;
 					// #endif
 					half2 r = abs(uv_lastframe.xy - 0.5);
-					if (max(r.x, r.y) > 0.5 - i.invRes)
+					if (max(r.x, r.y) > 0.5 - _LD_Params_0.w)
 					{
 						// no border wrap mode for RTs in unity it seems, so make any off-texture reads 0 manually
 						foam = 0.;

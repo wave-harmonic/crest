@@ -1,5 +1,6 @@
 ﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+using Crest;
 using UnityEngine;
 
 public class FeedVelocityToExtrude : MonoBehaviour {
@@ -116,6 +117,6 @@ public class FeedVelocityToExtrude : MonoBehaviour {
 
         _mat.SetFloat("_Weight", (_boat == null || _boat.InWater) ? _weight / simsActive : 0f);
 
-        _mat.SetFloat("_SimDeltaTime", Mathf.Min(Time.deltaTime, Crest.LodDataMgrPersistent.MAX_SIM_DELTA_TIME));
+        _mat.SetFloat("_SimDeltaTime", LodDataMgrPersistent.SimDeltaTime);
     }
 }

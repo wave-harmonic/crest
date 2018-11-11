@@ -75,12 +75,12 @@ namespace Crest
                 SwapRTs(ref _sources[lodIdx], ref _targets[lodIdx]);
             }
 
+            var dt = SimDeltaTime;
+
             for (var lodIdx = lodCount - 1; lodIdx >= 0; lodIdx--)
             {
-                var dt = SimDeltaTime;
                 _renderSimMaterial[lodIdx].SetFloat("_SimDeltaTime", dt);
                 _renderSimMaterial[lodIdx].SetFloat("_SimDeltaTimePrev", _simDeltaTimePrev);
-                _simDeltaTimePrev = dt;
 
                 _renderSimMaterial[lodIdx].SetFloat("_GridSize", OceanRenderer.Instance._lods[lodIdx]._renderData._texelWidth);
 
@@ -107,6 +107,8 @@ namespace Crest
                 if (!BuildCommandBufferInternal(lodIdx))
                     continue;
             }
+
+            _simDeltaTimePrev = dt;
         }
 
         protected virtual bool BuildCommandBufferInternal(int lodIdx)

@@ -54,11 +54,15 @@ Shader "Ocean/Inputs/Animated Waves/Wave Particle"
 					newWorldPos.xz += o.worldOffsetScaled_wt.xy * _Radius;
 					o.vertex = mul(UNITY_MATRIX_VP, newWorldPos);
 
+					o.worldOffsetScaled_wt.z = 1.;
+
+					// The code below is currently disabled - this WP will render into all LODs (after combine pass!) so we dont need
+					// to do per lod selection etc
+
 					//// if wavelength is too small, kill this quad so that it doesnt render any shape
 					//float wavelength = 2. * _Radius;
 					//if( !SamplingIsAppropriate(wavelength, o.worldOffsetScaled_wt.z) )
 					//	o.vertex.xy *= 0.;
-					o.worldOffsetScaled_wt.z = 1.;
 
 					return o;
 				}

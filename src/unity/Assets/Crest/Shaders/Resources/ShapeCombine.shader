@@ -1,6 +1,8 @@
-﻿// This shader takes a shape result, zooms in on it (2X scale), and then adds it to the target.
+﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
+
+// This shader takes a shape result, zooms in on it (2X scale), and then adds it to the target.
 // This is run on each sim lod from largest to smallest, to accumulate the results downwards.
-Shader "Ocean/Shape/Combine"
+Shader "Ocean/Simulation/Combine Animated Wave LODs"
 {
 	Properties
 	{

@@ -101,7 +101,7 @@ namespace Crest
                 _drawCacheQuad.transform.localEulerAngles = 90f * Vector3.right;
                 _drawCacheQuad.AddComponent<RegisterSeaFloorDepthInput>();
                 var qr = _drawCacheQuad.GetComponent<Renderer>();
-                qr.material = new Material(Shader.Find("Ocean/Ocean Depth Cache"));
+                qr.material = new Material(Shader.Find("Ocean/Inputs/Depth/Cached Depths"));
                 qr.material.mainTexture = _cache;
                 qr.enabled = false;
             }
@@ -127,7 +127,7 @@ namespace Crest
 
             // Hackety-hack: this seems to be the only way to pass parameters to the shader when using RenderWithShader!
             Shader.SetGlobalVector("_OceanCenterPosWorld", OceanRenderer.Instance.transform.position);
-            _camDepthCache.RenderWithShader(Shader.Find("Ocean/Ocean Depth"), null);
+            _camDepthCache.RenderWithShader(Shader.Find("Ocean/Inputs/Depth/Ocean Depth From Geometry"), null);
         }
 
         void OnDrawGizmosSelected()

@@ -19,7 +19,7 @@ namespace Crest
             if (_assignOceanDepthMaterial)
             {
                 var rend = GetComponent<Renderer>();
-                rend.material = new Material(Shader.Find("Ocean/Ocean Depth"));
+                rend.material = new Material(Shader.Find("Ocean/Inputs/Depth/Ocean Depth From Geometry"));
             }
         }
     }

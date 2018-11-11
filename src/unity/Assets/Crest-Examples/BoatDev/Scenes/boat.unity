@@ -165,8 +165,7 @@ MonoBehaviour:
   _maxScale: 256
   _baseVertDensity: 48
   _lodCount: 7
-  _simSettingsAnimatedWaves: {fileID: 11400000, guid: 51cfefe5be46d53418542b616a43e0b9,
-    type: 2}
+  _simSettingsAnimatedWaves: {fileID: 0}
   _createSeaFloorDepthData: 1
   _createFoamSim: 1
   _simSettingsFoam: {fileID: 11400000, guid: 8e1de4c30452ccf499882fefe206c5cd, type: 2}
@@ -485,7 +484,7 @@ GameObject:
   m_Component:
   - component: {fileID: 995304123}
   m_Layer: 0
-  m_Name: ShapeRender
+  m_Name: OceanInputs
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -548,6 +547,8 @@ Prefab:
       objectReference: {fileID: 0}
     - target: {fileID: 114123981558006810, guid: 71ede3c2ab0b7cb43b7dad6ae3b6190b,
         type: 2}
+      propertyPath: 
+      value: 
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 71ede3c2ab0b7cb43b7dad6ae3b6190b, type: 2}

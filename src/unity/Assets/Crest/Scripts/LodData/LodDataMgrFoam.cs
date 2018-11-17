@@ -62,7 +62,7 @@ namespace Crest
             }
             else
             {
-                simMaterial.SetTexture("_LD_Sampler_Shadow_1", Texture2D.blackTexture);
+                simMaterial.SetTexture("_LD_Sampler_Flow_1", Texture2D.blackTexture);
             }
         }
 

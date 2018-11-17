@@ -191,7 +191,7 @@ namespace Crest
                 _renderMaterial[lodIdx].SetFloat("_SimDeltaTime", Time.deltaTime);
 
                 // compute which lod data we are sampling previous frame shadows from. if a scale change has happened this can be any lod up or down the chain.
-                var srcDataIdx = lt.LodIndex + _scaleDifferencePow2;
+                var srcDataIdx = lt.LodIndex + ScaleDifferencePow2;
                 srcDataIdx = Mathf.Clamp(srcDataIdx, 0, lt.LodCount - 1);
                 // bind data to slot 0 - previous frame data
                 BindSourceData(srcDataIdx, 0, _renderMaterial[lodIdx], false);

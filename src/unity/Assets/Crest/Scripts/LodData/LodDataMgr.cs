@@ -42,7 +42,9 @@ namespace Crest
         int _shapeRes = -1;
         // ocean scale last frame - used to detect scale changes
         float _oceanLocalScalePrev = -1f;
-        protected int _scaleDifferencePow2 = 0;
+
+        int _scaleDifferencePow2 = 0;
+        protected int ScaleDifferencePow2 { get { return _scaleDifferencePow2; } }
 
         protected List<Renderer> _drawList = new List<Renderer>();
 

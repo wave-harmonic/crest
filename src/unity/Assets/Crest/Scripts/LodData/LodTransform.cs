@@ -47,7 +47,7 @@ namespace Crest
         Matrix4x4 _worldToCameraMatrix;
         Matrix4x4 _projectionMatrix;
 
-        public void LateUpdate()
+        public void UpdateTransform()
         {
             if (_transformUpdateFrame == Time.frameCount)
                 return;

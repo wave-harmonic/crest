@@ -108,9 +108,9 @@ namespace Crest
             return true;
         }
 
-        protected override void LateUpdate()
+        public override void UpdateLodData()
         {
-            base.LateUpdate();
+            base.UpdateLodData();
 
             if(_mainLight != OceanRenderer.Instance._primaryLight)
             {

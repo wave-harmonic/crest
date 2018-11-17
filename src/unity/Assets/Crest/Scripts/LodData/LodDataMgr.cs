@@ -86,7 +86,7 @@ namespace Crest
             }
         }
 
-        protected virtual void LateUpdate()
+        public virtual void UpdateLodData()
         {
             int width = OceanRenderer.Instance.LodDataResolution;
             // debug functionality to resize RT if different size was specified.

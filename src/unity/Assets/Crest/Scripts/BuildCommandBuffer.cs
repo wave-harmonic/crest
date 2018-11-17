@@ -5,7 +5,15 @@ using UnityEngine.Rendering;
 
 namespace Crest
 {
-    public class BuildCommandBuffer : MonoBehaviour
+    public interface IBuildCommandBuffer
+    {
+        /// <summary>
+        /// Construct the command buffer and attach it to the camera so that it will be executed in the render.
+        /// </summary>
+        void LateUpdateBuild(OceanRenderer ocean);
+    }
+
+    public class BuildCommandBuffer : MonoBehaviour, IBuildCommandBuffer
     {
         CommandBuffer _buf;
 
@@ -47,7 +55,7 @@ namespace Crest
             }
         }
 
-        private void LateUpdate()
+        public void LateUpdateBuild(OceanRenderer ocean)
         {
             if (_buf == null)
             {
@@ -58,7 +66,7 @@ namespace Crest
             }
 
             _buf.Clear();
-            Build(OceanRenderer.Instance, _buf);
+            Build(ocean, _buf);
         }
 
         CameraEvent GetHookEvent(Camera cam)

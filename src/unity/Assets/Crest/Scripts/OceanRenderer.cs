@@ -119,7 +119,7 @@ namespace Crest
         /// </summary>
         public float ViewerHeightAboveWater { get; private set; }
 
-        [SerializeField] BuildCommandBuffer _commandBufferBuilder;
+        [SerializeField] IBuildCommandBuffer _commandBufferBuilder;
 
         void Awake()
         {
@@ -190,6 +190,10 @@ namespace Crest
 
             float maxWavelength = _lodDataAnimWaves.MaxWavelength(CurrentLodCount - 1);
             Shader.SetGlobalFloat("_MaxWavelength", maxWavelength);
+
+            LateUpdateLods();
+
+            _commandBufferBuilder.LateUpdateBuild(this);
         }
 
         void LateUpdatePosition()
@@ -237,6 +241,21 @@ namespace Crest
             {
                 ViewerHeightAboveWater = pos.y - waterHeight;
             }
+        }
+
+        void LateUpdateLods()
+        {
+            foreach (var lt in _lods)
+            {
+                lt.UpdateTransform();
+            }
+
+            if (_lodDataAnimWaves) _lodDataAnimWaves.UpdateLodData();
+            if (_lodDataDynWaves) _lodDataDynWaves.UpdateLodData();
+            if (_lodDataFlow) _lodDataFlow.UpdateLodData();
+            if (_lodDataFoam) _lodDataFoam.UpdateLodData();
+            if (_lodDataSeaDepths) _lodDataSeaDepths.UpdateLodData();
+            if (_lodDataShadow) _lodDataShadow.UpdateLodData();
         }
 
         private void OnDestroy()

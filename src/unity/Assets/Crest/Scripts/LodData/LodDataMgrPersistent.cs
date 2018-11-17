@@ -12,13 +12,16 @@ namespace Crest
     {
         public static readonly float MAX_SIM_DELTA_TIME = 1f / 30f;
 
+        public int _steps = 1;
+
         [SerializeField]
         protected SimSettingsBase _settings;
         public override void UseSettings(SimSettingsBase settings) { _settings = settings; }
 
         RenderTexture[] _sources;
 
-        Material[] _renderSimMaterial;
+        int MAX_SIM_STEPS = 4;
+        Material[,] _renderSimMaterial;
 
         protected abstract string ShaderSim { get; }
 
@@ -29,10 +32,14 @@ namespace Crest
         {
             base.Start();
 
-            _renderSimMaterial = new Material[OceanRenderer.Instance.CurrentLodCount];
-            for (int i = 0; i < _renderSimMaterial.Length; i++)
+            var lodCount = OceanRenderer.Instance.CurrentLodCount;
+            _renderSimMaterial = new Material[MAX_SIM_STEPS, lodCount];
+            for(int stepi = 0; stepi < MAX_SIM_STEPS; stepi++)
             {
-                _renderSimMaterial[i] = new Material(Shader.Find(ShaderSim));
+                for (int i = 0; i < lodCount; i++)
+                {
+                    _renderSimMaterial[stepi, i] = new Material(Shader.Find(ShaderSim));
+                }
             }
         }
 
@@ -56,10 +63,14 @@ namespace Crest
             }
         }
 
-        public void BindSourceData(int lodIdx, int shapeSlot, Material properties, bool paramsOnly)
+        public void BindSourceData(int lodIdx, int shapeSlot, Material properties, bool paramsOnly, bool usePrevTransform)
         {
             _pwMat._target = properties;
-            var rd = OceanRenderer.Instance._lods[lodIdx]._renderDataPrevFrame.Validate(-1, this);
+
+            var rd = usePrevTransform ?
+                OceanRenderer.Instance._lods[lodIdx]._renderDataPrevFrame.Validate(-1, this)
+                : OceanRenderer.Instance._lods[lodIdx]._renderData.Validate(0, this);
+
             BindData(lodIdx, shapeSlot, _pwMat, paramsOnly ? Texture2D.blackTexture : (Texture)_sources[lodIdx], true, ref rd);
             _pwMat._target = null;
         }
@@ -69,46 +80,54 @@ namespace Crest
             base.BuildCommandBuffer(ocean, buf);
 
             var lodCount = OceanRenderer.Instance.CurrentLodCount;
+            var steps = _steps;
+            var dt = SimDeltaTime / steps;
 
-            for (var lodIdx = lodCount - 1; lodIdx >= 0; lodIdx--)
+            for (int stepi = 0; stepi < steps; stepi++)
             {
-                SwapRTs(ref _sources[lodIdx], ref _targets[lodIdx]);
-            }
-
-            var dt = SimDeltaTime;
-
-            for (var lodIdx = lodCount - 1; lodIdx >= 0; lodIdx--)
-            {
-                _renderSimMaterial[lodIdx].SetFloat("_SimDeltaTime", dt);
-                _renderSimMaterial[lodIdx].SetFloat("_SimDeltaTimePrev", _simDeltaTimePrev);
-
-                _renderSimMaterial[lodIdx].SetFloat("_GridSize", OceanRenderer.Instance._lods[lodIdx]._renderData._texelWidth);
-
-                // compute which lod data we are sampling source data from. if a scale change has happened this can be any lod up or down the chain.
-                var srcDataIdx = lodIdx + _scaleDifferencePow2;
-
-                if (srcDataIdx >= 0 && srcDataIdx < lodCount)
+                for (var lodIdx = lodCount - 1; lodIdx >= 0; lodIdx--)
                 {
-                    // bind data to slot 0 - previous frame data
-                    BindSourceData(srcDataIdx, 0, _renderSimMaterial[lodIdx], false);
-                }
-                else
-                {
-                    // no source data - bind params only
-                    BindSourceData(lodIdx, 0, _renderSimMaterial[lodIdx], true);
+                    SwapRTs(ref _sources[lodIdx], ref _targets[lodIdx]);
                 }
 
-                SetAdditionalSimParams(lodIdx, _renderSimMaterial[lodIdx]);
+                for (var lodIdx = lodCount - 1; lodIdx >= 0; lodIdx--)
+                {
+                    _renderSimMaterial[stepi, lodIdx].SetFloat("_SimDeltaTime", dt);
+                    _renderSimMaterial[stepi, lodIdx].SetFloat("_SimDeltaTimePrev", _simDeltaTimePrev);
 
-                buf.Blit(null, DataTexture(lodIdx), _renderSimMaterial[lodIdx]);
+                    _renderSimMaterial[stepi, lodIdx].SetFloat("_GridSize", OceanRenderer.Instance._lods[lodIdx]._renderData._texelWidth);
 
-                SubmitDraws(lodIdx, buf);
+                    // compute which lod data we are sampling source data from. if a scale change has happened this can be any lod up or down the chain.
+                    // this is only valid on the first update step, after that the scale src/target data are in the right places.
+                    var srcDataIdx = lodIdx + ((stepi == 0) ? ScaleDifferencePow2 : 0);
 
-                if (!BuildCommandBufferInternal(lodIdx))
-                    continue;
+                    if (srcDataIdx >= 0 && srcDataIdx < lodCount)
+                    {
+                        // bind data to slot 0 - previous frame data
+                        BindSourceData(srcDataIdx, 0, _renderSimMaterial[stepi, lodIdx], false, stepi == 0);
+                    }
+                    else
+                    {
+                        // no source data - bind params only
+                        BindSourceData(lodIdx, 0, _renderSimMaterial[stepi, lodIdx], true, stepi == 0);
+                    }
+
+                    SetAdditionalSimParams(lodIdx, _renderSimMaterial[stepi, lodIdx]);
+
+                    buf.Blit(null, DataTexture(lodIdx), _renderSimMaterial[stepi, lodIdx]);
+
+                    SubmitDraws(lodIdx, buf);
+                }
+
+                _simDeltaTimePrev = dt;
             }
 
-            _simDeltaTimePrev = dt;
+            // any post-sim steps. the dyn waves updates the copy sim material, which the anim wave will later use to copy in
+            // the dyn waves results.
+            for (var lodIdx = lodCount - 1; lodIdx >= 0; lodIdx--)
+            {
+                BuildCommandBufferInternal(lodIdx);
+            }
         }
 
         protected virtual bool BuildCommandBufferInternal(int lodIdx)

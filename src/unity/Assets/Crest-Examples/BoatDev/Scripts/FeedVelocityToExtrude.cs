@@ -117,6 +117,6 @@ public class FeedVelocityToExtrude : MonoBehaviour {
 
         _mat.SetFloat("_Weight", (_boat == null || _boat.InWater) ? _weight / simsActive : 0f);
 
-        _mat.SetFloat("_SimDeltaTime", LodDataMgrPersistent.SimDeltaTime);
+        _mat.SetFloat("_SimDeltaTime", OceanRenderer.Instance._lodDataDynWaves.SimDeltaTime);
     }
 }

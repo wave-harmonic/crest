@@ -114,6 +114,19 @@ namespace Crest
             }
         }
 
+        protected override int GetNumSubsteps(float dt)
+        {
+            return Mathf.Min(MAX_SIM_STEPS, Mathf.CeilToInt(dt / Settings._maxSubstepDt));
+        }
+
+        public float SimDeltaTime
+        {
+            get
+            {
+                return Time.deltaTime / GetNumSubsteps(Time.deltaTime);
+            }
+        }
+
         SimSettingsWave Settings { get { return _settings as SimSettingsWave; } }
     }
 }

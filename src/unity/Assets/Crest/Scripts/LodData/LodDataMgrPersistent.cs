@@ -10,23 +10,18 @@ namespace Crest
     /// </summary>
     public abstract class LodDataMgrPersistent : LodDataMgr
     {
-        public static readonly float MAX_SIM_DELTA_TIME = 1f / 30f;
-
-        public int _steps = 1;
-
         [SerializeField]
         protected SimSettingsBase _settings;
         public override void UseSettings(SimSettingsBase settings) { _settings = settings; }
 
-        RenderTexture[] _sources;
+        protected readonly int MAX_SIM_STEPS = 4;
 
-        int MAX_SIM_STEPS = 4;
+        RenderTexture[] _sources;
         Material[,] _renderSimMaterial;
 
         protected abstract string ShaderSim { get; }
 
-        float _simDeltaTimePrev = 1f / 60f;
-        public static float SimDeltaTime { get { return Mathf.Min(Time.deltaTime, MAX_SIM_DELTA_TIME); } }
+        float _substepDtPrevious = 1f / 60f;
 
         protected override void Start()
         {
@@ -75,13 +70,15 @@ namespace Crest
             _pwMat._target = null;
         }
 
+        protected abstract int GetNumSubsteps(float dt);
+
         public override void BuildCommandBuffer(OceanRenderer ocean, CommandBuffer buf)
         {
             base.BuildCommandBuffer(ocean, buf);
 
             var lodCount = OceanRenderer.Instance.CurrentLodCount;
-            var steps = _steps;
-            var dt = SimDeltaTime / steps;
+            var steps = GetNumSubsteps(Time.deltaTime);
+            var substepDt = Time.deltaTime / steps;
 
             for (int stepi = 0; stepi < steps; stepi++)
             {
@@ -92,8 +89,8 @@ namespace Crest
 
                 for (var lodIdx = lodCount - 1; lodIdx >= 0; lodIdx--)
                 {
-                    _renderSimMaterial[stepi, lodIdx].SetFloat("_SimDeltaTime", dt);
-                    _renderSimMaterial[stepi, lodIdx].SetFloat("_SimDeltaTimePrev", _simDeltaTimePrev);
+                    _renderSimMaterial[stepi, lodIdx].SetFloat("_SimDeltaTime", substepDt);
+                    _renderSimMaterial[stepi, lodIdx].SetFloat("_SimDeltaTimePrev", _substepDtPrevious);
 
                     _renderSimMaterial[stepi, lodIdx].SetFloat("_GridSize", OceanRenderer.Instance._lods[lodIdx]._renderData._texelWidth);
 
@@ -101,15 +98,18 @@ namespace Crest
                     // this is only valid on the first update step, after that the scale src/target data are in the right places.
                     var srcDataIdx = lodIdx + ((stepi == 0) ? ScaleDifferencePow2 : 0);
 
+                    // only take transform from previous frame on first substep
+                    var usePreviousFrameTransform = stepi == 0;
+
                     if (srcDataIdx >= 0 && srcDataIdx < lodCount)
                     {
                         // bind data to slot 0 - previous frame data
-                        BindSourceData(srcDataIdx, 0, _renderSimMaterial[stepi, lodIdx], false, stepi == 0);
+                        BindSourceData(srcDataIdx, 0, _renderSimMaterial[stepi, lodIdx], false, usePreviousFrameTransform);
                     }
                     else
                     {
                         // no source data - bind params only
-                        BindSourceData(lodIdx, 0, _renderSimMaterial[stepi, lodIdx], true, stepi == 0);
+                        BindSourceData(lodIdx, 0, _renderSimMaterial[stepi, lodIdx], true, usePreviousFrameTransform);
                     }
 
                     SetAdditionalSimParams(lodIdx, _renderSimMaterial[stepi, lodIdx]);
@@ -119,7 +119,7 @@ namespace Crest
                     SubmitDraws(lodIdx, buf);
                 }
 
-                _simDeltaTimePrev = dt;
+                _substepDtPrevious = substepDt;
             }
 
             // any post-sim steps. the dyn waves updates the copy sim material, which the anim wave will later use to copy in

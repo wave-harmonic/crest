@@ -13,6 +13,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _minGridSize: 0
   _maxGridSize: 0
+  _maxSubstepDt: 0.016666668
   _damping: 0.173
   _horizDisplace: 2
   _displaceClamp: 0.3

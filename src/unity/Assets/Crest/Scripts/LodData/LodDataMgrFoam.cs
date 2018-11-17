@@ -66,6 +66,12 @@ namespace Crest
             }
         }
 
+        protected override int GetNumSubsteps(float dt)
+        {
+            // foam always does just one sim step
+            return 1;
+        }
+
         SimSettingsFoam Settings { get { return _settings as SimSettingsFoam; } }
     }
 }

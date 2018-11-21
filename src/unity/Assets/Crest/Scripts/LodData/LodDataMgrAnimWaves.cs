@@ -1,5 +1,6 @@
 ﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -28,6 +29,8 @@ namespace Crest
         /// Turn shape combine pass on/off. Debug only - ifdef'd out in standalone
         /// </summary>
         public static bool _shapeCombinePass = true;
+
+        List<ShapeGerstnerBatched> _gerstnerComponents = new List<ShapeGerstnerBatched>();
 
         Material[] _combineMaterial;
 
@@ -59,13 +62,12 @@ namespace Crest
             var lodCount = OceanRenderer.Instance.CurrentLodCount;
 
             // lod-dependent data
-            var gerstner = FindObjectOfType<ShapeGerstnerBatched>();
             for (int lodIdx = lodCount - 1; lodIdx >= 0; lodIdx--)
             {
                 buf.SetRenderTarget(DataTexture(lodIdx));
                 buf.ClearRenderTarget(false, true, Color.black);
 
-                if (gerstner != null)
+                foreach(var gerstner in _gerstnerComponents)
                 {
                     gerstner.BuildCommandBuffer(lodIdx, ocean, buf);
                 }
@@ -164,6 +166,30 @@ namespace Crest
             }
 
             return -1;
+        }
+
+        public void AddGerstnerComponent(ShapeGerstnerBatched gerstner)
+        {
+            if (OceanRenderer.Instance == null)
+            {
+                // Ocean has unloaded, clear out
+                _gerstnerComponents.Clear();
+                return;
+            }
+
+            _gerstnerComponents.Add(gerstner);
+        }
+
+        public void RemoveGerstnerComponent(ShapeGerstnerBatched gerstner)
+        {
+            if (OceanRenderer.Instance == null)
+            {
+                // Ocean has unloaded, clear out
+                _gerstnerComponents.Clear();
+                return;
+            }
+
+            _gerstnerComponents.Remove(gerstner);
         }
     }
 }

@@ -499,5 +499,21 @@ namespace Crest
         {
             return _amplitudes == null ? AvailabilityResult.NotInitialisedYet : AvailabilityResult.DataAvailable;
         }
+
+        void OnEnable()
+        {
+            if (OceanRenderer.Instance != null && OceanRenderer.Instance._lodDataAnimWaves != null)
+            {
+                OceanRenderer.Instance._lodDataAnimWaves.AddGerstnerComponent(this);
+            }
+        }
+
+        void OnDisable()
+        {
+            if (OceanRenderer.Instance != null && OceanRenderer.Instance._lodDataAnimWaves != null)
+            {
+                OceanRenderer.Instance._lodDataAnimWaves.RemoveGerstnerComponent(this);
+            }
+        }
     }
 }

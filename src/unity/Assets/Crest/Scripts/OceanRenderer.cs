@@ -119,8 +119,6 @@ namespace Crest
         /// </summary>
         public float ViewerHeightAboveWater { get; private set; }
 
-        [SerializeField] IBuildCommandBuffer _commandBufferBuilder;
-
         void Awake()
         {
             if (_material == null)
@@ -134,9 +132,9 @@ namespace Crest
 
             OceanBuilder.GenerateMesh(this, _baseVertDensity, _lodCount);
 
-            if (null == _commandBufferBuilder)
+            if (null == GetComponent<BuildCommandBufferBase>())
             {
-                _commandBufferBuilder = gameObject.AddComponent<BuildCommandBuffer>();
+                gameObject.AddComponent<BuildCommandBuffer>();
             }
 
             InitViewpoint();
@@ -192,8 +190,6 @@ namespace Crest
             Shader.SetGlobalFloat("_MaxWavelength", maxWavelength);
 
             LateUpdateLods();
-
-            _commandBufferBuilder.LateUpdateBuild(this);
         }
 
         void LateUpdatePosition()

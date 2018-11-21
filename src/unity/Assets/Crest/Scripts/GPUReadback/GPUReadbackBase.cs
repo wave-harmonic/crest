@@ -44,7 +44,7 @@ namespace Crest
             public int _lastUpdateFrame = -1;
             public bool _activelyBeingRendered = true;
         }
-        SortedList<float, PerLodData> _perLodData = new SortedList<float, PerLodData>();
+        SortedListCachedArrays<float, PerLodData> _perLodData = new SortedListCachedArrays<float, PerLodData>();
 
         protected struct ReadbackRequest
         {
@@ -109,20 +109,20 @@ namespace Crest
             int lodCount = ocean.CurrentLodCount;
 
             // When viewer changes altitude, lods will start/stop updating. Mark ones that are/arent being rendered!
-            foreach (var gridSize_lodData in _perLodData)
+            for (int i = 0; i < _perLodData.KeyArray.Length; i++)
             {
                 int lastUsableIndex = CanUseLastTwoLODs ? (lodCount - 1) : (lodCount - 3);
 
-                gridSize_lodData.Value._activelyBeingRendered =
-                    gridSize_lodData.Key >= ocean._lods[0]._renderData._texelWidth &&
-                    gridSize_lodData.Key <= ocean._lods[lastUsableIndex]._renderData._texelWidth;
+                _perLodData.ValueArray[i]._activelyBeingRendered =
+                    _perLodData.KeyArray[i] >= ocean._lods[0]._renderData._texelWidth &&
+                    _perLodData.KeyArray[i] <= ocean._lods[lastUsableIndex]._renderData._texelWidth;
 
-                if (!gridSize_lodData.Value._activelyBeingRendered)
+                if (!_perLodData.ValueArray[i]._activelyBeingRendered)
                 {
                     // It would be cleaner to destroy these. However they contain a NativeArray with a non-negligible amount of data
                     // which we don't want to alloc and dealloc willy nilly, so just mark as invalid by setting time to -1.
-                    gridSize_lodData.Value._resultData._time = -1f;
-                    gridSize_lodData.Value._resultDataPrevFrame._time = -1f;
+                    _perLodData.ValueArray[i]._resultData._time = -1f;
+                    _perLodData.ValueArray[i]._resultDataPrevFrame._time = -1f;
                 }
             }
 
@@ -439,17 +439,19 @@ namespace Crest
         {
             PerLodData lastCandidate = null;
 
-            foreach (var gridSize_lodData in _perLodData)
+            for (int i = 0; i < _perLodData.KeyArray.Length; i++)
             {
-                if (!gridSize_lodData.Value._activelyBeingRendered || gridSize_lodData.Value._resultData._time == -1f)
+                var lodData = _perLodData.ValueArray[i];
+
+                if (!lodData._activelyBeingRendered || lodData._resultData._time == -1f)
                 {
                     continue;
                 }
 
                 // Check that the region of interest is covered by this data
-                var wdcRect = gridSize_lodData.Value._resultData._renderData.RectXZ;
+                var wdcRect = lodData._resultData._renderData.RectXZ;
                 // Shrink rect by 1 texel border - this is to make finite differences fit as well
-                float texelWidth = gridSize_lodData.Key;
+                float texelWidth = _perLodData.KeyArray[i];
                 wdcRect.x += texelWidth; wdcRect.y += texelWidth;
                 wdcRect.width -= 2f * texelWidth; wdcRect.height -= 2f * texelWidth;
                 if (!wdcRect.Contains(sampleAreaXZ.min) || !wdcRect.Contains(sampleAreaXZ.max))
@@ -458,7 +460,7 @@ namespace Crest
                 }
 
                 // This data covers our required area, so store it as a potential candidate
-                lastCandidate = gridSize_lodData.Value;
+                lastCandidate = lodData;
 
                 // The smallest wavelengths should repeat no more than twice across the smaller spatial length. Unless we're
                 // in the last LOD - then this is the best we can do.
@@ -469,7 +471,7 @@ namespace Crest
                 }
 
                 // A good match - return immediately
-                return gridSize_lodData.Value;
+                return lodData;
             }
 
             // We didnt get a perfect match, but pick the next best candidate

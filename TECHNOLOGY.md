@@ -169,3 +169,13 @@ This avoids some of the complexity of using the displacement textures described 
 It also does not include wave attenuation from water depth or any custom rendered shape.
 A final limitation is the current system finds the first GerstnerWavesBatched component in the scene which may or may not be the correct one.
 The system does not support cross blending of multiple scripts.
+
+# Update / Execution Order
+
+The ocean system updates its state in *LateUpdate*, after game state update and animation, etc.
+
+*OceanRenderer* updates before other scripts and first calculates a position and scale for the ocean based on the view location, and then calls update on the various LOD data types.
+
+Next the rest of the *LateUpdate* bucket runs. Any view-dependent ocean data that wasn't updated by the *OceanRenderer* updates here, such as the Gerstner waves which taylors the wave data based on the LOD scales.
+
+Finally *BuildCommandBuffer* runs after everything else and constructs a command buffer for the ocean that is hooked to the beginning of the main camera rendering and executes on the GPU. The command buffer sequence can be observed in *BuildCommandBuffer*. This is where the ocean data is updated.

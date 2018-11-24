@@ -468,6 +468,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _disableRenderer: 1
   _octaveWavelength: 11
+  _maxDisplacementVertical: 5.5
+  _maxDisplacementHorizontal: 0
+  _reportRendererBoundsToOceanSystem: 0
 --- !u!33 &723498134
 MeshFilter:
   m_ObjectHideFlags: 0

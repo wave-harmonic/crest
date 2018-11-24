@@ -1,126 +1,96 @@
 
-# crest
+<img src="https://raw.githubusercontent.com/huwb/crest-oceanrender/master/logo/crest-oceanrender-logotype1.png" width="214">
 
-![Teaser](https://raw.githubusercontent.com/huwb/crest-oceanrender/master/img/teaser.png)  
-
-Contacts: Huw Bowles (@hdb1 , huw dot bowles at gmail dot com), Daniel Zimmermann (@DanyGZimmermann, infkdude at gmail dot com), Chino Noris (@chino_noris , chino dot noris at epost dot ch), Beibei Wang (bebei dot wang at gmail dot com)
+&nbsp;
 
 
-## Introduction
+# Intro
 
-*Crest* is a Unity3D implementation of a number of novel ocean rendering techniques published at SIGGRAPH 2017 in the *Advances in Real-Time Rendering* course (course page [link](http://advances.realtimerendering.com/s2017/index.html)).
+*Crest* is a technically advanced ocean renderer implemented in Unity3D 2018.2+.
 
-It demonstrates a number of techniques described in this course:
-
-* CDClipmaps - a new meshing approach that combines the simplicity of Clipmaps with the Continuous Detail of CDLOD.
-* GPU-based shape system - each LOD has an associated displacement texture which is rendered by the *WaveDataCam* game object.
-* Normal map scaling - a technique to improve the range of view distances for which a set of normal maps will work.
-* Foam - two foam layers that are computed on the fly from the displacement textures.
-
-The branch *dynamic_simulation* contains a fully dynamic multi-scale water simulation (isntead of a kinematic animation). This gives interesting effects such as depth-dependent wave speeds, refraction, shadowing, reflections, etc. However it currently does not support displacement shapes and does not give the same quality animation as the kinematic version in the master branch.
+![Teaser](https://raw.githubusercontent.com/huwb/crest-oceanrender/master/img/teaser5.png)
 
 
-## Summary of contributions
+# Releases
 
-We introduce an elegant, unified data structure for an anti-aliased, level of detail water simulation and rendering system.
+Releases are published semi-regularly and posted on the [Releases page](https://github.com/huwb/crest-oceanrender/releases). Unity packages are uploaded with each release.
+Since development stability has historically been good, an option would be to grab the latest version from the master branch instead of waiting for releases.
+Be aware though that we actively refactor/cleanup/change the code to pay technical debt and fight complexity so integrations may require some fixup.
 
-Level of detail is a central consideration in our system. We use the infinity norm with square isolines to drive the detail - this fits well to the square textures we use to render/simulate the water shape. We do not require spatial data structures such as quad trees to select detail which simplifies our implementation enormously.
-
-The water shape is stored in multiple overlapping nested textures that are centered around the viewer. Each texture represents a different scale. The smallest scale gives high detail close to the viewer. TODO update these notes with latest implementation.
-
-The ocean surface is rendered by submitting geometry tiles which are placed around the viewer on startup. The tiles are generated on the CPU on startup. The shape textures are sampled in the vertex shader to compute the final shape. The layout and resolution of the tiles match 1:1 with the shape texture resolution, so that data resolution and sampling rate are well matched. Building the mesh out of tiles afford standard frustum culling.
-
-When the viewer moves, shape rendering snaps to texel positions and geometry is smoothly transitioned out towards the boundaries. The LODs also slide up and down scales when the viewer changes altitude. A height interpolation parameter deals with fading shape in/out at the lowest/highest levels of detail. This eliminates visible pops/discontinuities.
-
-Although normal maps are not stored in shape textures or simulated, they are treated as first class shape, and are scaled with the LODs so that they always give the appearance of waves that are higher detailed than the most detailed shape LOD. The required scaling and blending calculations hang off the ocean geometry scales and use the same interpolation parameters.
-
-The above gives a complete ocean rendering system. There are just a few core parameters which are intuitive to tweak, such as a single overall resolution slider and the number of LOD levels to generate.
+*Crest* exercises [semantic versioning](https://semver.org/) and follows the branching strategy outlined [here](https://gist.github.com/stuartsaunders/448036/5ae4e961f02e441e98528927d071f51bf082662f), although there is no develop branch used yet - development occurs on feature branches that are merged directly into master.
 
 
-## How it Works
+# Setup
 
-On startup, the *OceanBuilder* script creates the ocean geometry as a LODs, each composed of geometry tiles and a shape camera to render the displacement texture for that LOD. It has the following parameters that are passed to it on startup from the OceanRenderer script:
+The steps to set up *Crest* in a new or existing project currently look as follows. There is an example of all this running in *Crest-Examples/Scenes/main*.
 
-* Base Vert density - the base vert/shape texel density of an ocean patch. If you set the scale of a LOD to 1, this density would be the world space verts/m. More means more verts/shape, at the cost of more processing.
-* Lod Count - the number of levels of detail / scales of ocean geometry to generate. More means more dynamic range of usable shape/mesh at the cost of more processing.
-* Max Wave Height - this is just so that the ocean tiles bounding box height can be set, to ensure culling eliminates tiles correctly.
-* Max Scale - the ocean is scaled horizontally with viewer height, to keep the meshing suitable for elevated viewpoints. This sets the maximum the ocean will be scaled if set to a positive value.
-* Min Scale - this clamps the scale from below, to prevent the ocean scaling down to 0 when the camera approaches the sea level. This should be set to a low value gives lots of detail, but will limmit the horizontal extents of the ocean as the detail scales have a limited dynamic range (set by the previous Lod Count parameter).
+* Switch your project to Linear space rendering under *Edit > Project Settings > Player > Other Settings*. If your platform(s) require Gamma space, the material settings will need to be adjusted to compensate.
+* The *Crest* files are separated into the core files to import in any project and the example content. If you are getting started for the first time you may want to import both and then remove what you don't need from the example content. You can do this by either:
+  * Picking a release from the [Releases page](https://github.com/huwb/crest-oceanrender/releases) and importing the desired packages
+  * Getting latest by either cloning this repos or downloading it as a zip, and copying the *Crest* folder and the desired content from the *Crest-Examples* folders into your project. Be sure to always copy the .meta files.
+* Create a new game object for the ocean
+  * Assign the *OceanRenderer* component to it. On startup this component will generate the ocean geometry and do all required initialisation.
+  * Set the Y coordinate of the position to the desired sea level.
+* Tag a primary camera as *MainCamera* if one is not tagged already, or provide the viewpoint transform to the *OceanRenderer* script.
+* To add waves, create a new GameObject and add the *Shape Gerster Batched* component.
+  * On startup this script creates a default ocean shape. To edit the shape, create an asset of type *Crest/Ocean Wave Spectrum* and provide it to this script.
+  * Smooth blending of ocean shapes can be achieved by adding multiple *Shape Gerstner Batched* scripts and crossfading them using the *Weight* parameter.
+* For geometry that should influence the ocean (attenuate waves, generate foam):
+  * Static geometry should render ocean depth just once on startup into an *Ocean Depth Cache* - the island in the main scene in the example content demonstrates this.
+  * Dynamic objects that need to render depth every frame should have a *Register Sea Floor Depth Input* component attached.
+* Be sure to generate lighting from the Lighting window - the ocean lighting takes the ambient intensity from the baked spherical harmonics.
 
-At run-time, the viewpoint is moved first, and then the *Ocean* object is placed at sea level under the viewer. A horizontal scale is compute for the ocean based on the viewer height, as well as a *_viewerAltitudeLevelAlpha* that captures where the camera is between the current scale and the next scale (x2), and allows a smooth transition between scales to be achieved using the two mechanisms described in the course.
-
-Once the ocean has been placed, the ocean surface shape is generated by rendering Gerstner wave components into the shape LODs.
-
-The ocean geometry itself as the Ocean shader attached. The vertex shader snaps the verts to grid positions to make them stable. It then computes a *lodAlpha* which starts at 0 for the inside of the LOD and becomes 1 at the outer edge. It is computed from taxicab distance as noted in the course. This value is used to drive the vertex layout transition, to enable a seemless match between the two. The vertex shader then samples the current LOD shape texture and the next shape texture and uses *lodAlpha* to interpolate them for a smooth transition across displacement textures. A foam value is also computed using the determinant of the Jacobian of the displacement texture. Finally, it passes the LOD geometry scale and *lodAlpha* to the pixel shader.
-
-The ocean pixel shader samples normal maps at 2 different scales, both proportional to the current and next LOD scales, and then interpolates the result using *lodAlpha* for a smooth transition. Two layers of foam are added based on different thresholds of the foam value, with black point fading used to blend them.
-
-
-## Bugs and Improvement Directions
-
-* Each Gerstner wave is computed and blended into the displacement texture individually. This makes them very easy to work and convenient, but baking them down to a single pass would be an interesting optimisation direction. Using prebaked textures (i.e. from an offline ocean simulation) would also be an option.
-* Ocean tiles are updated and drawn as separate draw calls. This is convenient for research and supports frustum culling easily, but it might make sense to instance these in a production scenario.
+Enjoy!
 
 
-## Links
+# Configuration
 
-### Core work
+## Ocean Look and Behaviour
 
-* A classic - Simulating Ocean Water - Tessendorf - has iWave approach for interactive apps: http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.131.5567&rep=rep1&type=pdf
-* Also from tessendorf: https://people.cs.clemson.edu/~jtessen/papers_files/Interactive_Water_Surfaces.pdf
-* Great thesis about implementing water sim into frostbite: http://www.dice.se/wp-content/uploads/2014/12/water-interaction-ottosson_bjorn.pdf
-* Rigorous follow up work to Ottosson: https://gmrv.es/Publications/2016/CMTKPO16/main.pdf
-* Water sim on (fixed) quad tree, talks about some of the issues with this: https://pdfs.semanticscholar.org/a3c5/5aeda63895d846c38ae23e921cec7320f584.pdf
-* Strugar does multiple overlapping sims: article: http://vertexasylum.com/2010/10/30/gpu-based-water-simulator-thingie/ , video: https://www.youtube.com/watch?time_continue=20&v=jrhjxudnMNg
-* GDC course notes from matthias mueller fischer: http://matthias-mueller-fischer.ch/talks/GDC2008.pdf
-* Slightly old list of CG water references: http://vterrain.org/Water/
-* Mueller - swe + splashes, ripples - nice results: https://pdfs.semanticscholar.org/e97f/38cb774c96aaf1c359d8331695efa3b2c26c.pdf , video: https://www.youtube.com/watch?v=bojdpqi2l_o
-* Gomez 2000 - Interactive Simulation of Water Surfaces - Game Programming Gems
-* Real-Time Open Water Environments with Interacting Objects - Cords and Staadt. Discusses/justifies multiple sims. Divides collision shapes into particles. - http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.162.2833&rep=rep1&type=pdf
+* Ocean material / shading: The default ocean materials contain many tweakable variables to control appearance. Turn off unnecessary features to maximize performance.
+* Animated waves / ocean shape: Configured on the *ShapeGerstnerBatched* script by providing an *Ocean Wave Spectrum* asset. This asset has an equalizer-style interface for tweaking different scales of waves, and also has some parametric wave spectra from the literature for comparison.
+* Ocean foam: Configured on the *OceanRenderer* script by providing a *Sim Settings Foam* asset.
+* Dynamic wave simulation: Configured on the *OceanRenderer* script by providing a *Sim Settings Wave* asset.
+* A big strength of *Crest* is that you can add whatever contributions you like into the system. You could add your own shape or deposit foam onto the surface where desired. Inputs are generally tagged with the *Register* scripts and examples can be found in the example content scenes.
 
-### Wave Theory
+All settings can be live authored. When tweaking ocean shape it can be useful to freeze time (set *Time.timeScale* to 0) to clearly see the effect of each octave of waves.
 
-* Useful notes on dispersive and non-dispersive waves: http://www-eaps.mit.edu/~rap/courses/12333_notes/dispersion.pdf
-* More notes on waves: https://thayer.dartmouth.edu/~d30345d/books/EFM/chap4.pdf
-* Dispersive wave equation: https://ccrma.stanford.edu/~jos/pasp/Dispersive_1D_Wave_Equation.html
-* Dispersion does not apply to tsunamis: http://www.bu.edu/pasi-tsunami/files/2013/01/daytwo12.pdf
-* Longer wavelengths travel faster. For a swell, longest wavelengths arrive first: 
-..* https://physics.stackexchange.com/questions/121327/what-determines-the-speed-of-waves-in-water/121330#121330
-..* https://en.wikipedia.org/wiki/Wind_wave
-* Detailed SWE description from Thuerey: https://pdfs.semanticscholar.org/c902/c4f2c61734cbf4ec7ee8b792ccb01644943d.pdf
-* Using SWE for ocean on large scales: http://kestrel.nmt.edu/~raymond/classes/ph332/notes/shallowgov/shallowgov.pdf
-* Three stages of how wind generates waves, with refs: https://www.wikiwaves.org/Ocean-Wave_Spectra
-* Miles - how energy is transferred from wind to wave: https://www.cambridge.org/core/journals/journal-of-fluid-mechanics/article/on-the-generation-of-surface-waves-by-shear-flows/40B503619B6D4571BEF3D31CB8925084
-* Realistic simulation of waves using wave spectra: https://hal.archives-ouvertes.fr/file/index/docid/307938/filename/frechot_realistic_simulation_of_ocean_surface_using_wave_spectra.pdf
-* Nice practical demo about testing different wave breakers: https://youtu.be/3yNoy4H2Z-o
+## Ocean Construction Parameters
 
-### Boundary conditions
+There are just two parameters that control the construction of the ocean shape and geometry:
 
-* http://hplgit.github.io/wavebc/doc/pub/._wavebc_cyborg002.html
-* https://pdfs.semanticscholar.org/c902/c4f2c61734cbf4ec7ee8b792ccb01644943d.pdf
+* **Base Vert density** - the base vert/shape texel density of an ocean patch. If you set the scale of a LOD to 1, this density would be the world space verts/m. More means more verts/shape, at the cost of more processing.
+* **Lod Count** - the number of levels of detail / scales of ocean geometry to generate. More means more dynamic range of usable shape/mesh at the cost of more processing.
 
-### Water depth
+## Global Parameters
 
-* Wave speeds for different water depths (after eqn 4.9): https://tutcris.tut.fi/portal/files/4312220/kellomaki_1354.pdf . It also says the SWE are equivlanet to the WE although i didnt understand how/why. also discusses RB coupling.
-* SWE with changing ocean depths: https://arxiv.org/pdf/1202.6542.pdf
+* **Wind direction angle** - this global wind direction affects the ocean shape
+* **Max Scale** - the ocean is scaled horizontally with viewer height, to keep the meshing suitable for elevated viewpoints. This sets the maximum the ocean will be scaled if set to a positive value.
+* **Min Scale** - this clamps the scale from below, to prevent the ocean scaling down to 0 when the camera approaches the sea level. Low values give lots of detail, but will limit the horizontal extents of the ocean detail.
 
-### Breaking waves
 
-* Real-time: http://matthias-mueller-fischer.ch/publications/breakingWaves.pdf
+# Technical Details and Contributions
 
-### Experiments
+See the dedicated [TECHNOLOGY.md](https://github.com/huwb/crest-oceanrender/blob/master/TECHNOLOGY.md) doc.
 
-* 1D wave equation in shadertoy: https://www.shadertoy.com/view/MtlfzM
-* Propagate gerstner waves with wave equation - click to simulate wind: https://www.shadertoy.com/view/XtlBDr
 
-### Particle sim
+# Performance
 
-* Mixes SPH and WE, uses SPH to get low frequency 3D flow: http://citeseerx.ist.psu.edu/viewdoc/download;jsessionid=8A10D0187910134E8C8330AF1C57B146?doi=10.1.1.127.1749&rep=rep1&type=pdf
-* Mueller - deposits splash particles on surface, looks good, video: https://www.youtube.com/watch?v=bojdpqi2l_o
+The foundation of *Crest* is architected for performance from the ground up with an innovative LOD system. However, out of the box it is configured for quality and flexibility rather than maximum efficiency.
 
-### Generating ocean waves into simulation
+There are a number of directions for optimising the basic vanilla *Crest* that would make sense to explore in production scenarios to squeeze the maximum performance out of the system. See the dedicated [OPTIMISATION.md](https://github.com/huwb/crest-oceanrender/blob/master/OPTIMISATION.md) doc.
 
-* Sum of gerstner waves - each frame compute gerstner waves that are appropriate for each sim, apply a force to the ocean surface to pull towards gerstner wave
-* Write dynamic state into sim - write dynamic state of an FFT or the sum of gerstner waves into the sim. This could be stamped onto the sim periodically, if the surface repeats with a given period. This is possible - each sim has a particular wave speed. If a strict scheme of only writing a particular wave length into each sim was employed, this would mean the waves would repeat with a particular period. However it's non-obvious how this could be strictly enforced in a practical game-like situation.
-* The generation of waves by wind is well understood: https://www.wikiwaves.org/Ocean-Wave_Spectra . This could be modelled. There is a transfer of energy across wavelengths that allows waves that travel faster than wind to be generated, perhaps this can be modelled by transferring energy across sims. This feels like the approach that fits most accurately into the sim paradigm. It would require wind to be defined everywhere. Another problem is that this process occurs over large fetch areas (thousands of wavelengths in size), whereas the sim domains are very bounded, so the process would need to be accelerated (?).
 
+# Issues
+
+If you encounter an issue, please search the [Issues page](https://github.com/huwb/crest-oceanrender/issues) to see if there is already a resolution, and if you don't find one then please report it as a new issue.
+
+There are a few known issues worth calling out:
+
+* *Crest* currently only works with the out of the box render pipelines in Unity (forward or deferred). It does not currently support *LWRP* or *HDRP*. If you would find such support useful, please feel free to comment in issue #49.
+* Azure[Sky] requires some code to be added to the ocean shader for the fogging/scattering to work. This is a requirement of this product and apparently comes with instructions for what needs to be added. See issue #62.
+
+
+# Links
+
+Moved to [LINKS.md](https://github.com/huwb/crest-oceanrender/blob/master/LINKS.md).

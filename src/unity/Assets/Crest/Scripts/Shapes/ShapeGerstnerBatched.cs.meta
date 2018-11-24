@@ -1,0 +1,13 @@
+fileFormatVersion: 2
+guid: 7581c8217e105de4b83ca0ce4f8fa8c2
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - _rasterMesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
+  - _waveShader: {fileID: 4800000, guid: 680b41329a8923e40a8f9d6ca86f60a8, type: 3}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

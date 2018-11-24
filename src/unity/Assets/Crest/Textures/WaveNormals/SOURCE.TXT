@@ -1,0 +1,3 @@
+This texture came from https://github.com/ludwigpe/WaterSimulation
+
+The _blurred version is this texture with a slight gaussian blur, by huwb.

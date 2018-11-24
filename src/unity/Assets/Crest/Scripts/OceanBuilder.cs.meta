@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: ecf2b25b7104b034086ca7f8a62a7bea
+timeCreated: 1464517848
+licenseType: Free
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - _oceanMaterial: {fileID: 2100000, guid: 9def92ac79181fe41b238e91663f0fad, type: 2}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

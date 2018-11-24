@@ -1,0 +1,20 @@
+fileFormatVersion: 2
+guid: dde37eff0f7685f41902f400d1de0c6c
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - _viewpoint: {instanceID: 0}
+  - _timeProvider: {instanceID: 0}
+  - _material: {fileID: 2100000, guid: 9def92ac79181fe41b238e91663f0fad, type: 2}
+  - _simSettingsAnimatedWaves: {instanceID: 0}
+  - _simSettingsFoam: {instanceID: 0}
+  - _simSettingsDynamicWaves: {instanceID: 0}
+  - _simSettingsFlow: {instanceID: 0}
+  - _primaryLight: {instanceID: 0}
+  - _simSettingsShadow: {instanceID: 0}
+  executionOrder: -100
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

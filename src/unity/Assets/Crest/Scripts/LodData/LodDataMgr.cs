@@ -3,7 +3,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
-using DrawFilter = System.Func<float, bool>;
+using DrawFilter = System.Func<Crest.RegisterLodDataInputBase, bool>;
 
 namespace Crest
 {
@@ -217,17 +217,11 @@ namespace Crest
             var lt = OceanRenderer.Instance._lods[lodIdx];
             lt._renderData.Validate(0, this);
 
-            var lodMaxWavelength = lt.MaxWavelength();
-            var lodMinWavelength = lodMaxWavelength / 2f;
-
             lt.SetViewProjectionMatrices(buf);
 
             foreach (var draw in _drawList)
             {
-                if (draw.OctaveWavelength == 0f || (draw.OctaveWavelength >= lodMinWavelength && draw.OctaveWavelength < lodMaxWavelength))
-                {
-                    buf.DrawRenderer(draw.RendererComponent, draw.RendererComponent.material);
-                }
+                buf.DrawRenderer(draw.RendererComponent, draw.RendererComponent.material);
             }
         }
 
@@ -240,7 +234,7 @@ namespace Crest
 
             foreach (var draw in _drawList)
             {
-                if (filter(draw.OctaveWavelength))
+                if (filter(draw))
                 {
                     buf.DrawRenderer(draw.RendererComponent, draw.RendererComponent.material);
                 }

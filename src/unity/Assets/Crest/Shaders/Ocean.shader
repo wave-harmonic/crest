@@ -232,14 +232,6 @@ Shader "Ocean/Ocean"
 						#if _FLOW_ON
 						SampleFlow(_LD_Sampler_Flow_0, uv_0, wt_0, o.flow);
 						#endif
-
-						#if _SUBSURFACESHALLOWCOLOUR_ON
-						SampleSeaFloorHeightAboveBaseline(_LD_Sampler_SeaFloorDepth_0, uv_0, wt_0, o.lodAlpha_worldXZUndisplaced_oceanDepth.w);
-						#endif
-
-						#if _SHADOWS_ON
-						SampleShadow(_LD_Sampler_Shadow_0, uv_0, wt_0, o.n_shadow.zw);
-						#endif
 					}
 					if (wt_1 > 0.001)
 					{
@@ -256,9 +248,27 @@ Shader "Ocean/Ocean"
 						#if _FLOW_ON
 						SampleFlow(_LD_Sampler_Flow_1, uv_1, wt_1, o.flow);
 						#endif
+					}
+
+					// second set of samples after displacement computed
+					if (wt_0 > 0.001)
+					{
+						float2 uv_0_displaced = LD_0_WorldToUV(o.worldPos.xz);
 
 						#if _SUBSURFACESHALLOWCOLOUR_ON
-						SampleSeaFloorHeightAboveBaseline(_LD_Sampler_SeaFloorDepth_1, uv_1, wt_1, o.lodAlpha_worldXZUndisplaced_oceanDepth.w);
+						SampleSeaFloorHeightAboveBaseline(_LD_Sampler_SeaFloorDepth_0, uv_0_displaced, wt_0, o.lodAlpha_worldXZUndisplaced_oceanDepth.w);
+						#endif
+
+						#if _SHADOWS_ON
+						SampleShadow(_LD_Sampler_Shadow_0, uv_0, wt_0, o.n_shadow.zw);
+						#endif
+					}
+					if (wt_1 > 0.001)
+					{
+						const float2 uv_1_displaced = LD_1_WorldToUV(o.worldPos.xz);
+
+						#if _SUBSURFACESHALLOWCOLOUR_ON
+						SampleSeaFloorHeightAboveBaseline(_LD_Sampler_SeaFloorDepth_1, uv_1_displaced, wt_1, o.lodAlpha_worldXZUndisplaced_oceanDepth.w);
 						#endif
 
 						#if _SHADOWS_ON

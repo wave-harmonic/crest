@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
+using DrawFilter = System.Func<float, bool>;
 
 namespace Crest
 {
@@ -72,6 +73,16 @@ namespace Crest
                     gerstner.BuildCommandBuffer(lodIdx, ocean, buf);
                 }
 
+                // draw any data with lod preference
+                var lodMaxWavelength = OceanRenderer.Instance._lods[lodIdx].MaxWavelength();
+                var lodMinWavelength = lodMaxWavelength / 2f;
+                DrawFilter filter = (drawOctaveWavelength) =>
+                {
+                    return lodMinWavelength <= drawOctaveWavelength && drawOctaveWavelength < lodMaxWavelength;
+                };
+
+                SubmitDrawsFiltered(lodIdx, buf, filter);
+
                 if (OceanRenderer.Instance._lodDataDynWaves)
                 {
                     // this should call another build command buffer function on the dyn waves
@@ -105,7 +116,12 @@ namespace Crest
             {
                 buf.SetRenderTarget(DataTexture(lodIdx));
 
-                SubmitDraws(lodIdx, buf);
+                // draw any data that did not express a preference for one lod or another
+                DrawFilter filter = (drawOctaveWavelength) =>
+                {
+                    return drawOctaveWavelength == 0f;
+                };
+                SubmitDrawsFiltered(lodIdx, buf, filter);
             }
         }
 

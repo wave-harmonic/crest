@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
+using DrawFilter = System.Func<float, bool>;
 
 namespace Crest
 {
@@ -46,7 +47,7 @@ namespace Crest
         int _scaleDifferencePow2 = 0;
         protected int ScaleDifferencePow2 { get { return _scaleDifferencePow2; } }
 
-        protected List<Renderer> _drawList = new List<Renderer>();
+        protected List<RegisterLodDataInputBase> _drawList = new List<RegisterLodDataInputBase>();
 
         // these would ideally be static but then they get cleared when editing-and-continuing in the editor.
         int[] _paramsPosScale;
@@ -180,7 +181,7 @@ namespace Crest
         {
         }
 
-        public void AddDraw(Renderer rend)
+        public void AddDraw(RegisterLodDataInputBase data)
         {
             if (OceanRenderer.Instance == null)
             {
@@ -189,10 +190,10 @@ namespace Crest
                 return;
             }
 
-            _drawList.Add(rend);
+            _drawList.Add(data);
         }
 
-        public void RemoveDraw(Renderer rend)
+        public void RemoveDraw(RegisterLodDataInputBase data)
         {
             if (OceanRenderer.Instance == null)
             {
@@ -201,7 +202,7 @@ namespace Crest
                 return;
             }
 
-            _drawList.Remove(rend);
+            _drawList.Remove(data);
         }
 
         protected void SwapRTs(ref RenderTexture o_a, ref RenderTexture o_b)
@@ -216,11 +217,33 @@ namespace Crest
             var lt = OceanRenderer.Instance._lods[lodIdx];
             lt._renderData.Validate(0, this);
 
+            var lodMaxWavelength = lt.MaxWavelength();
+            var lodMinWavelength = lodMaxWavelength / 2f;
+
             lt.SetViewProjectionMatrices(buf);
 
             foreach (var draw in _drawList)
             {
-                buf.DrawRenderer(draw, draw.material);
+                if (draw.OctaveWavelength == 0f || (draw.OctaveWavelength >= lodMinWavelength && draw.OctaveWavelength < lodMaxWavelength))
+                {
+                    buf.DrawRenderer(draw.RendererComponent, draw.RendererComponent.material);
+                }
+            }
+        }
+
+        protected void SubmitDrawsFiltered(int lodIdx, CommandBuffer buf, DrawFilter filter)
+        {
+            var lt = OceanRenderer.Instance._lods[lodIdx];
+            lt._renderData.Validate(0, this);
+
+            lt.SetViewProjectionMatrices(buf);
+
+            foreach (var draw in _drawList)
+            {
+                if (filter(draw.OctaveWavelength))
+                {
+                    buf.DrawRenderer(draw.RendererComponent, draw.RendererComponent.material);
+                }
             }
         }
     }

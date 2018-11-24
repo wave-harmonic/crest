@@ -234,7 +234,7 @@ namespace Crest
             int componentIdx = 0;
 
             // seek forward to first wavelength that is big enough to render into current LODs
-            float minWl = OceanRenderer.Instance._lodDataAnimWaves.MaxWavelength(0) / 2f;
+            float minWl = OceanRenderer.Instance._lods[0].MaxWavelength() / 2f;
             while (_wavelengths[componentIdx] < minWl && componentIdx < _wavelengths.Length)
             {
                 componentIdx++;

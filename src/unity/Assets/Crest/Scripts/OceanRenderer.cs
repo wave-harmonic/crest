@@ -186,7 +186,7 @@ namespace Crest
             LateUpdateScale();
             LateUpdateViewerHeight();
 
-            float maxWavelength = _lodDataAnimWaves.MaxWavelength(CurrentLodCount - 1);
+            float maxWavelength = _lods[CurrentLodCount - 1].MaxWavelength();
             Shader.SetGlobalFloat("_MaxWavelength", maxWavelength);
 
             LateUpdateLods();

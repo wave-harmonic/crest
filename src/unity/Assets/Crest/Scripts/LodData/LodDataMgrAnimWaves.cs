@@ -109,14 +109,6 @@ namespace Crest
             }
         }
 
-        public float MaxWavelength(int lodIndex)
-        {
-            float oceanBaseScale = OceanRenderer.Instance.transform.lossyScale.x;
-            float maxDiameter = 4f * oceanBaseScale * Mathf.Pow(2f, lodIndex);
-            float maxTexelSize = maxDiameter / (4f * OceanRenderer.Instance._baseVertDensity);
-            return 2f * maxTexelSize * OceanRenderer.Instance._minTexelsPerWave;
-        }
-
         protected override void BindData(int lodIdx, int shapeSlot, IPropertyWrapper properties, Texture applyData, bool blendOut, ref LodTransform.RenderData renderData)
         {
             base.BindData(lodIdx, shapeSlot, properties, applyData, blendOut, ref renderData);
@@ -158,7 +150,7 @@ namespace Crest
 
                 // The smallest wavelengths should repeat no more than twice across the smaller spatial length. Unless we're
                 // in the last LOD - then this is the best we can do.
-                var minWL = OceanRenderer.Instance._lodDataAnimWaves.MaxWavelength(lod) / 2f;
+                var minWL = OceanRenderer.Instance._lods[lod].MaxWavelength() / 2f;
                 if (minWL < minSpatialLength / 2f && lod < lodCount - 1)
                     continue;
 

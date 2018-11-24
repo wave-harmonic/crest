@@ -379,8 +379,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 26cbe8d1fc0a69249bc135d85739ad39, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _octaveWavelength: 11
   _disableRenderer: 1
+  _octaveWavelength: 11
+  _maxDisplacementVertical: 0
+  _maxDisplacementHorizontal: 0
+  _reportRendererBoundsToOceanSystem: 0
 --- !u!33 &723498134
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -397,6 +400,7 @@ GameObject:
   m_Component:
   - component: {fileID: 847119698}
   - component: {fileID: 847119699}
+  - component: {fileID: 847119700}
   m_Layer: 4
   m_Name: Ocean
   m_TagString: Untagged
@@ -459,6 +463,23 @@ MonoBehaviour:
   _lodDataFlow: {fileID: 0}
   _lodDataFoam: {fileID: 0}
   _lodDataShadow: {fileID: 0}
+--- !u!114 &847119700
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 847119697}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c05329bb2141cfe4e875f5050dc226d4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _samplesPerFrame: 32
+  _particlePrefab: {fileID: 198469713140804422, guid: ba3f1c2c283de1f4cac56461315564ea,
+    type: 2}
+  _emitThresh: 0.7
+  _minYVel: 1
+  _showPoints: 0
 --- !u!1 &995304122
 GameObject:
   m_ObjectHideFlags: 0

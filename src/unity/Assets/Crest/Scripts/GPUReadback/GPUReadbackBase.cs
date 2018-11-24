@@ -13,11 +13,11 @@ namespace Crest
     /// <summary>
     /// Base class for reading back GPU data of a particular type to the CPU.
     /// </summary>
-    public class GPUReadbackBase<LodDataType> : MonoBehaviour where LodDataType : LodData
+    public class GPUReadbackBase<LodDataType> : MonoBehaviour where LodDataType : LodDataMgr
     {
         public bool _doReadback = true;
 
-        protected LodDataType[] _lodComponents;
+        protected LodDataType _lodComponent;
 
         /// <summary>
         /// Minimum floating object width. The larger the objects that will float, the lower the resolution of the read data.
@@ -33,7 +33,7 @@ namespace Crest
 
         protected IReadbackSettingsProvider _settingsProvider;
 
-        protected virtual bool CanUseLastLOD { get { return true; } }
+        protected virtual bool CanUseLastTwoLODs { get { return true; } }
 
         protected class PerLodData
         {
@@ -44,7 +44,7 @@ namespace Crest
             public int _lastUpdateFrame = -1;
             public bool _activelyBeingRendered = true;
         }
-        SortedList<float, PerLodData> _perLodData = new SortedList<float, PerLodData>();
+        SortedListCachedArrays<float, PerLodData> _perLodData = new SortedListCachedArrays<float, PerLodData>();
 
         protected struct ReadbackRequest
         {
@@ -65,26 +65,15 @@ namespace Crest
 
         protected virtual void Start()
         {
-            _lodComponents = OceanRenderer.Instance.GetComponentsInChildren<LodDataType>();
-            if(_lodComponents.Length <= (CanUseLastLOD ? 0 : 1))
+            _lodComponent = OceanRenderer.Instance.GetComponent<LodDataType>();
+            if(OceanRenderer.Instance.CurrentLodCount <= (CanUseLastTwoLODs ? 0 : 1))
             {
                 Debug.LogError("No data components of type " + typeof(LodDataType).Name + " found in the scene. Disabling GPU readback.", this);
                 enabled = false;
                 return;
             }
 
-            if (!CanUseLastLOD)
-            {
-                // Remove last element
-                var temp = _lodComponents;
-                _lodComponents = new LodDataType[_lodComponents.Length - 1];
-                for (int i = 0; i < _lodComponents.Length; i++)
-                {
-                    _lodComponents[i] = temp[i];
-                }
-            }
-
-            SetTextureFormat(_lodComponents[0].TextureFormat);
+            SetTextureFormat(_lodComponent.TextureFormat);
         }
 
         protected virtual void Update()
@@ -116,31 +105,33 @@ namespace Crest
 
         void ProcessRequestsInternal(bool runningFromUpdate)
         {
+            var ocean = OceanRenderer.Instance;
+            int lodCount = ocean.CurrentLodCount;
+
             // When viewer changes altitude, lods will start/stop updating. Mark ones that are/arent being rendered!
-            foreach (var gridSize_lodData in _perLodData)
+            for (int i = 0; i < _perLodData.KeyArray.Length; i++)
             {
-                bool CAN_USE_LAST_LOD = false;
-                int lastUsableIndex = CAN_USE_LAST_LOD ? (_lodComponents.Length - 1) : (_lodComponents.Length - 2);
+                int lastUsableIndex = CanUseLastTwoLODs ? (lodCount - 1) : (lodCount - 3);
 
-                gridSize_lodData.Value._activelyBeingRendered =
-                    gridSize_lodData.Key >= _lodComponents[0].LodTransform._renderData._texelWidth &&
-                    gridSize_lodData.Key <= _lodComponents[lastUsableIndex].LodTransform._renderData._texelWidth;
+                _perLodData.ValueArray[i]._activelyBeingRendered =
+                    _perLodData.KeyArray[i] >= ocean._lods[0]._renderData._texelWidth &&
+                    _perLodData.KeyArray[i] <= ocean._lods[lastUsableIndex]._renderData._texelWidth;
 
-                if (!gridSize_lodData.Value._activelyBeingRendered)
+                if (!_perLodData.ValueArray[i]._activelyBeingRendered)
                 {
                     // It would be cleaner to destroy these. However they contain a NativeArray with a non-negligible amount of data
                     // which we don't want to alloc and dealloc willy nilly, so just mark as invalid by setting time to -1.
-                    gridSize_lodData.Value._resultData._time = -1f;
-                    gridSize_lodData.Value._resultDataPrevFrame._time = -1f;
+                    _perLodData.ValueArray[i]._resultData._time = -1f;
+                    _perLodData.ValueArray[i]._resultDataPrevFrame._time = -1f;
                 }
             }
 
-            foreach (var data in _lodComponents)
+            foreach (var lt in ocean._lods)
             {
-                var lt = data.LodTransform;
                 if (lt._renderData._texelWidth >= _minGridSize && (lt._renderData._texelWidth <= _maxGridSize || _maxGridSize == 0f))
                 {
-                    var cam = lt.GetComponent<Camera>();
+                    var tex = _lodComponent.DataTexture(lt.LodIndex);
+                    if (tex == null) continue;
 
                     if (!_perLodData.ContainsKey(lt._renderData._texelWidth))
                     {
@@ -150,7 +141,7 @@ namespace Crest
 
                         // create native arrays
                         Debug.Assert(_textureFormat != TexFormat.NotSet, "ReadbackLodData: Texture format must be set.", this);
-                        var num = ((int)_textureFormat) * cam.targetTexture.width * cam.targetTexture.height;
+                        var num = ((int)_textureFormat) * tex.width * tex.height;
                         if (!resultData._resultData._data.IsCreated || resultData._resultData._data.Length != num)
                         {
                             resultData._resultData._data = new NativeArray<ushort>(num, Allocator.Persistent);
@@ -168,7 +159,7 @@ namespace Crest
                         // ensure everything in the frame is done.
                         if (runningFromUpdate)
                         {
-                            EnqueueReadbackRequest(cam.targetTexture, lt._renderData, _prevFrameTime);
+                            EnqueueReadbackRequest(tex, lt._renderData, _prevFrameTime);
                         }
 
                         ProcessArrivedRequests(lodData);
@@ -448,17 +439,19 @@ namespace Crest
         {
             PerLodData lastCandidate = null;
 
-            foreach (var gridSize_lodData in _perLodData)
+            for (int i = 0; i < _perLodData.KeyArray.Length; i++)
             {
-                if (!gridSize_lodData.Value._activelyBeingRendered || gridSize_lodData.Value._resultData._time == -1f)
+                var lodData = _perLodData.ValueArray[i];
+
+                if (!lodData._activelyBeingRendered || lodData._resultData._time == -1f)
                 {
                     continue;
                 }
 
                 // Check that the region of interest is covered by this data
-                var wdcRect = gridSize_lodData.Value._resultData._renderData.RectXZ;
+                var wdcRect = lodData._resultData._renderData.RectXZ;
                 // Shrink rect by 1 texel border - this is to make finite differences fit as well
-                float texelWidth = gridSize_lodData.Key;
+                float texelWidth = _perLodData.KeyArray[i];
                 wdcRect.x += texelWidth; wdcRect.y += texelWidth;
                 wdcRect.width -= 2f * texelWidth; wdcRect.height -= 2f * texelWidth;
                 if (!wdcRect.Contains(sampleAreaXZ.min) || !wdcRect.Contains(sampleAreaXZ.max))
@@ -467,7 +460,7 @@ namespace Crest
                 }
 
                 // This data covers our required area, so store it as a potential candidate
-                lastCandidate = gridSize_lodData.Value;
+                lastCandidate = lodData;
 
                 // The smallest wavelengths should repeat no more than twice across the smaller spatial length. Unless we're
                 // in the last LOD - then this is the best we can do.
@@ -478,7 +471,7 @@ namespace Crest
                 }
 
                 // A good match - return immediately
-                return gridSize_lodData.Value;
+                return lodData;
             }
 
             // We didnt get a perfect match, but pick the next best candidate

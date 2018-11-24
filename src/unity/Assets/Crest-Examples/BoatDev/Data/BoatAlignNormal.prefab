@@ -87,7 +87,7 @@ GameObject:
   - component: {fileID: 33386523307534470}
   - component: {fileID: 23429759743720956}
   - component: {fileID: 114123981558006810}
-  - component: {fileID: 114497185399024552}
+  - component: {fileID: 114574073881893622}
   m_Layer: 0
   m_Name: WaterObjectInteractionSphere0
   m_TagString: Untagged
@@ -158,7 +158,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1935509346245718}
   m_LocalRotation: {x: 0, y: 0.89341056, z: 0, w: 0.44924098}
-  m_LocalPosition: {x: -6.2, y: 5, z: 24.9}
+  m_LocalPosition: {x: -14.2, y: 5, z: 14.13}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 4396590769128772}
@@ -360,7 +360,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _bottomH: -1
-  _debugDraw: 0
   _overrideProbeRadius: -1
   _buoyancyCoeff: 1.5
   _boyancyTorque: 8
@@ -371,9 +370,12 @@ MonoBehaviour:
   _dragInWaterUp: 3
   _dragInWaterRight: 2
   _dragInWaterForward: 1
-  _playerControlled: 0
-  _throttleBias: 1
-  _steerBias: 1
+  _computeWaterVel: 1
+  _playerControlled: 1
+  _throttleBias: 0
+  _steerBias: 0
+  _debugDraw: 0
+  _debugValidateCollision: 0
 --- !u!114 &114123981558006810
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -389,13 +391,13 @@ MonoBehaviour:
   _localOffset: {x: 0, y: 0, z: 0}
   _noiseFreq: 6
   _noiseAmp: 0
-  _weight: 6
+  _weight: 12
   _weightUpDownMul: 0.3
   _teleportSpeed: 500
   _warnOnTeleport: 0
   _maxSpeed: 100
   _warnOnSpeedClamp: 0
---- !u!114 &114497185399024552
+--- !u!114 &114574073881893622
 MonoBehaviour:
   m_ObjectHideFlags: 1
   m_CorrespondingSourceObject: {fileID: 0}
@@ -403,9 +405,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1686297963636050}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a7f1d7afc5dc7ec4ab6fa33a21ede643, type: 3}
+  m_Script: {fileID: 11500000, guid: 942c4eeba14a7db4882e57488905e8eb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _layerName: LodDataDynamicWaves
-  _cullExcludeLayers: []
-  _cullIncludeLayers: []
+  _disableRenderer: 1

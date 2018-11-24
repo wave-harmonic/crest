@@ -52,7 +52,7 @@ namespace Crest
         [SerializeField, Delayed, Tooltip( "Side dimension in quads of an ocean tile." )]
         public float _baseVertDensity = 64f;
 
-        [SerializeField, Delayed, Tooltip( "Number of ocean tile scales/LODs to generate." ), Range(2, LodData.MAX_LOD_COUNT)]
+        [SerializeField, Delayed, Tooltip( "Number of ocean tile scales/LODs to generate." ), Range(2, LodDataMgr.MAX_LOD_COUNT)]
         int _lodCount = 7;
         public int LodDataResolution { get { return (int)(4f * _baseVertDensity); } }
 
@@ -105,12 +105,14 @@ namespace Crest
         /// </summary>
         public float SeaLevel { get { return transform.position.y; } }
 
-        [HideInInspector] public LodDataAnimatedWaves[] _lodDataAnimWaves;
-        [HideInInspector] public Camera[] _camsAnimWaves;
-        [HideInInspector] public Camera[] _camsFoam;
-        [HideInInspector] public Camera[] _camsFlow;
-        [HideInInspector] public Camera[] _camsDynWaves;
-        public int CurrentLodCount { get { return _camsAnimWaves.Length; } }
+        [HideInInspector] public LodTransform[] _lods;
+        [HideInInspector] public LodDataMgrAnimWaves _lodDataAnimWaves;
+        [HideInInspector] public LodDataMgrSeaFloorDepth _lodDataSeaDepths;
+        [HideInInspector] public LodDataMgrDynWaves _lodDataDynWaves;
+        [HideInInspector] public LodDataMgrFlow _lodDataFlow;
+        [HideInInspector] public LodDataMgrFoam _lodDataFoam;
+        [HideInInspector] public LodDataMgrShadow _lodDataShadow;
+        public int CurrentLodCount { get { return _lods.Length; } }
 
         /// <summary>
         /// Vertical offset of viewer vs water surface
@@ -130,10 +132,10 @@ namespace Crest
 
             OceanBuilder.GenerateMesh(this, _baseVertDensity, _lodCount);
 
-            // set render orders, event hooks, etc
-            var scheduler = GetComponent<IOceanScheduler>();
-            if (scheduler == null) scheduler = gameObject.AddComponent<OceanScheduler>();
-            scheduler.ApplySchedule(this);
+            if (null == GetComponent<BuildCommandBufferBase>())
+            {
+                gameObject.AddComponent<BuildCommandBuffer>();
+            }
 
             InitViewpoint();
             InitTimeProvider();
@@ -184,8 +186,10 @@ namespace Crest
             LateUpdateScale();
             LateUpdateViewerHeight();
 
-            float maxWavelength = _lodDataAnimWaves[_lodDataAnimWaves.Length - 1].MaxWavelength();
+            float maxWavelength = _lodDataAnimWaves.MaxWavelength(CurrentLodCount - 1);
             Shader.SetGlobalFloat("_MaxWavelength", maxWavelength);
+
+            LateUpdateLods();
         }
 
         void LateUpdatePosition()
@@ -233,6 +237,21 @@ namespace Crest
             {
                 ViewerHeightAboveWater = pos.y - waterHeight;
             }
+        }
+
+        void LateUpdateLods()
+        {
+            foreach (var lt in _lods)
+            {
+                lt.UpdateTransform();
+            }
+
+            if (_lodDataAnimWaves) _lodDataAnimWaves.UpdateLodData();
+            if (_lodDataDynWaves) _lodDataDynWaves.UpdateLodData();
+            if (_lodDataFlow) _lodDataFlow.UpdateLodData();
+            if (_lodDataFoam) _lodDataFoam.UpdateLodData();
+            if (_lodDataSeaDepths) _lodDataSeaDepths.UpdateLodData();
+            if (_lodDataShadow) _lodDataShadow.UpdateLodData();
         }
 
         private void OnDestroy()

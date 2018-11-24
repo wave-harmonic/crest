@@ -2,7 +2,7 @@
 
 namespace Crest
 {
-    public class GPUReadbackDisps : GPUReadbackBase<LodDataAnimatedWaves>, ICollProvider
+    public class GPUReadbackDisps : GPUReadbackBase<LodDataMgrAnimWaves>, ICollProvider
     {
         PerLodData _areaData;
 
@@ -11,16 +11,16 @@ namespace Crest
         {
             get
             {
-                return _instance
-#if UNITY_EDITOR
-                    // Allow hot code edit/recompile in editor - reinit singleton reference.
-                    ?? (_instance = FindObjectOfType<GPUReadbackDisps>())
+#if !UNITY_EDITOR
+                return _instance;
+#else
+                // Allow hot code edit/recompile in editor - re-init singleton reference.
+                return _instance != null ? _instance : (_instance = FindObjectOfType<GPUReadbackDisps>());
 #endif
-                    ;
             }
         }
 
-        protected override bool CanUseLastLOD
+        protected override bool CanUseLastTwoLODs
         {
             get
             {
@@ -42,13 +42,13 @@ namespace Crest
             Debug.Assert(_instance == null);
             _instance = this;
 
-            _settingsProvider = _lodComponents[0].Settings as SimSettingsAnimatedWaves;
+            _settingsProvider = _lodComponent.Settings as SimSettingsAnimatedWaves;
         }
 
         #region ICollProvider
         public bool ComputeUndisplacedPosition(ref Vector3 i_worldPos, out Vector3 undisplacedWorldPos, float minSpatialLength)
         {
-            // fpi - guess should converge to location that displaces to the target position
+            // FPI - guess should converge to location that displaces to the target position
             Vector3 guess = i_worldPos;
             // 2 iterations was enough to get very close when chop = 1, added 2 more which should be
             // sufficient for most applications. for high chop values or really stormy conditions there may

@@ -31,16 +31,13 @@ The steps to set up *Crest* in a new or existing project currently look as follo
 * Create a new game object for the ocean
   * Assign the *OceanRenderer* component to it. On startup this component will generate the ocean geometry and do all required initialisation.
   * Set the Y coordinate of the position to the desired sea level.
-* Tag a primary camera as *MainCamera* if one is not tagged already, or provide the viewpoint transform to the *OceanRenderer* script on the preab.
-* Crest uses layers to render the different types of ocean data. It will throw errors in the log if a feature is turned on that requires a layer that is missing from the project. Most projects will require at least these two:
-  * *LodDataAnimatedWaves* - for Gerstner waves and other kinematic shape.
-  * *LodDataFoam* - for the foam simulation.
-* To add waves, create a new GameObject and add the *Shape Gerstner Batched* component.
+* Tag a primary camera as *MainCamera* if one is not tagged already, or provide the viewpoint transform to the *OceanRenderer* script.
+* To add waves, create a new GameObject and add the *Shape Gerster Batched* component.
   * On startup this script creates a default ocean shape. To edit the shape, create an asset of type *Crest/Ocean Wave Spectrum* and provide it to this script.
   * Smooth blending of ocean shapes can be achieved by adding multiple *Shape Gerstner Batched* scripts and crossfading them using the *Weight* parameter.
 * For geometry that should influence the ocean (attenuate waves, generate foam):
   * Static geometry should render ocean depth just once on startup into an *Ocean Depth Cache* - the island in the main scene in the example content demonstrates this.
-  * Dynamic objects that need to render depth every frame should have a *Render Ocean Depth* component attached.
+  * Dynamic objects that need to render depth every frame should have a *Register Sea Floor Depth Input* component attached.
 * Be sure to generate lighting from the Lighting window - the ocean lighting takes the ambient intensity from the baked spherical harmonics.
 
 Enjoy!
@@ -50,10 +47,11 @@ Enjoy!
 
 ## Ocean Look and Behaviour
 
-* Ocean material / shading: The default ocean material *Ocean.mat* contains many tweakable variables to control appearance. Turn off unnecessary features to maximize performance.
+* Ocean material / shading: The default ocean materials contain many tweakable variables to control appearance. Turn off unnecessary features to maximize performance.
 * Animated waves / ocean shape: Configured on the *ShapeGerstnerBatched* script by providing an *Ocean Wave Spectrum* asset. This asset has an equalizer-style interface for tweaking different scales of waves, and also has some parametric wave spectra from the literature for comparison.
 * Ocean foam: Configured on the *OceanRenderer* script by providing a *Sim Settings Foam* asset.
 * Dynamic wave simulation: Configured on the *OceanRenderer* script by providing a *Sim Settings Wave* asset.
+* A big strength of *Crest* is that you can add whatever contributions you like into the system. You could add your own shape or deposit foam onto the surface where desired. Inputs are generally tagged with the *Register* scripts and examples can be found in the example content scenes.
 
 All settings can be live authored. When tweaking ocean shape it can be useful to freeze time (set *Time.timeScale* to 0) to clearly see the effect of each octave of waves.
 
@@ -90,7 +88,6 @@ If you encounter an issue, please search the [Issues page](https://github.com/hu
 There are a few known issues worth calling out:
 
 * *Crest* currently only works with the out of the box render pipelines in Unity (forward or deferred). It does not currently support *LWRP* or *HDRP*. If you would find such support useful, please feel free to comment in issue #49.
-* A non-backwards-compatible change was made to prefabs in Unity 2018.2, which means some of the example content prefabs may show up as *Missing* in previous versions. See issue #51.
 * Azure[Sky] requires some code to be added to the ocean shader for the fogging/scattering to work. This is a requirement of this product and apparently comes with instructions for what needs to be added. See issue #62.
 
 

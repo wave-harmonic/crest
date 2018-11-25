@@ -20,12 +20,16 @@ namespace Crest
         int _totalLodCount = -1;
         float _baseVertDensity = 32f;
 
+        int _reflectionTexId = -1;
+
         void Start()
         {
             _rend = GetComponent<Renderer>();
             _mesh = GetComponent<MeshFilter>().mesh;
 
             _boundsLocal = _mesh.bounds;
+
+            _reflectionTexId = Shader.PropertyToID("_ReflectionTex");
 
             UpdateMeshBounds();
         }
@@ -101,7 +105,11 @@ namespace Crest
 
             if (OceanRenderer.Instance.PlanarReflection && OceanRenderer.Instance.PlanarReflection.ReflectionTexture)
             {
-                _mpb.SetTexture("_ReflectionTex", OceanRenderer.Instance.PlanarReflection.ReflectionTexture);
+                _mpb.SetTexture(_reflectionTexId, OceanRenderer.Instance.PlanarReflection.ReflectionTexture);
+            }
+            else
+            {
+                _mpb.SetTexture(_reflectionTexId, Texture2D.blackTexture);
             }
 
             // Hack - due to SV_IsFrontFace occasionally coming through as true for backfaces,

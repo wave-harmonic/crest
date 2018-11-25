@@ -13,8 +13,7 @@
 	uniform sampler2D _LD_Sampler_DynamicWaves_##LODNUM; \
 	uniform sampler2D _LD_Sampler_Shadow_##LODNUM; \
 	uniform float4 _LD_Params_##LODNUM; \
-	uniform float3 _LD_Pos_Scale_##LODNUM; \
-	uniform int _LD_LodIdx_##LODNUM;
+	uniform float3 _LD_Pos_Scale_##LODNUM;
 
 // Create two sets of LOD data, which have overloaded meaning depending on use:
 // * the ocean surface geometry always lerps from a more detailed LOD (0) to a less detailed LOD (1)

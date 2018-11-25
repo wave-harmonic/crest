@@ -44,6 +44,17 @@ Shader "Hidden/Ocean/Simulation/Combine Animated Wave LODs"
 
 			uniform float _HorizDisplace;
 			uniform float _DisplaceClamp;
+			uniform float _CrestTime;
+
+			void Flow(out float2 offsets, out float2 weights)
+			{
+				const float period = 2.;
+				const float half_period = 1.;
+				offsets = fmod(float2(_CrestTime, _CrestTime + half_period), period);
+				weights.x = offsets.x / half_period;
+				if (weights.x > 1.0) weights.x = 2.0 - weights.x;
+				weights.y = 1.0 - weights.x;
+			}
 
 			half4 frag (v2f i) : SV_Target
 			{
@@ -53,10 +64,19 @@ Shader "Hidden/Ocean/Simulation/Combine Animated Wave LODs"
 				// sample the shape 1 texture at this world pos
 				const float2 uv_1 = LD_1_WorldToUV(worldPosXZ);
 
+				float2 flow = 0.;
+				SampleFlow(_LD_Sampler_Flow_0, i.uv, 1., flow);
+
 				float3 result = 0.;
 
+				float2 offsets, weights;
+				Flow(offsets, weights);
+
 				// this lods waves
-				SampleDisplacements(_LD_Sampler_AnimatedWaves_0, i.uv, 1.0, 0.0, 0., result);
+				float2 uv_0_flow_0 = LD_0_WorldToUV(worldPosXZ - offsets[0] * flow);
+				float2 uv_0_flow_1 = LD_0_WorldToUV(worldPosXZ - offsets[1] * flow);
+				SampleDisplacements(_LD_Sampler_AnimatedWaves_0, uv_0_flow_0, weights[0], 0.0, 0., result);
+				SampleDisplacements(_LD_Sampler_AnimatedWaves_0, uv_0_flow_1, weights[1], 0.0, 0., result);
 
 				// waves to combine down from the next lod up the chain
 				SampleDisplacements(_LD_Sampler_AnimatedWaves_1, uv_1, 1.0, 0.0, 0., result);

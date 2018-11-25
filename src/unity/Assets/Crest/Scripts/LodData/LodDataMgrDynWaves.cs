@@ -22,21 +22,8 @@ namespace Crest
 
         public bool _rotateLaplacian = true;
 
-        public Material[] _copySimMaterial;
-
         bool[] _active;
         public bool SimActive(int lodIdx) { return _active[lodIdx]; }
-
-        protected override void Start()
-        {
-            base.Start();
-
-            _copySimMaterial = new Material[OceanRenderer.Instance.CurrentLodCount];
-            for (int i = 0; i < _copySimMaterial.Length; i++)
-            {
-                _copySimMaterial[i] = new Material(Shader.Find("Hidden/Ocean/Simulation/Add Dyn Waves To Anim Waves"));
-            }
-        }
 
         protected override void InitData()
         {
@@ -51,22 +38,17 @@ namespace Crest
             if (!base.BuildCommandBufferInternal(lodIdx))
                 return false;
 
-            // this sim copies its results into the animated waves
-
             // check if the sim should be running
             float texelWidth = OceanRenderer.Instance._lods[lodIdx]._renderData.Validate(0, this)._texelWidth;
             _active[lodIdx] = texelWidth >= Settings._minGridSize && (texelWidth <= Settings._maxGridSize || Settings._maxGridSize == 0f);
 
-            // only run simulation if enabled
-            if (!_active[lodIdx])
-                return false;
-
-            _copySimMaterial[lodIdx].SetFloat("_HorizDisplace", Settings._horizDisplace);
-            _copySimMaterial[lodIdx].SetFloat("_DisplaceClamp", Settings._displaceClamp);
-            _copySimMaterial[lodIdx].SetFloat("_TexelWidth", OceanRenderer.Instance._lods[lodIdx]._renderData._texelWidth);
-            _copySimMaterial[lodIdx].mainTexture = _targets[lodIdx];
-
             return true;
+        }
+
+        public void BindCopySettings(Material target)
+        {
+            target.SetFloat("_HorizDisplace", Settings._horizDisplace);
+            target.SetFloat("_DisplaceClamp", Settings._displaceClamp);
         }
 
         protected override void SetAdditionalSimParams(int lodIdx, Material simMaterial)

@@ -15,5 +15,5 @@ MonoBehaviour:
   _maxGridSize: 0
   _maxSubstepDt: 0.016666668
   _damping: 0.173
-  _horizDisplace: 10
+  _horizDisplace: 1
   _displaceClamp: 0.3

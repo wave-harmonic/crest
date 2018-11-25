@@ -2,7 +2,7 @@
 
 // Persistent foam sim
 
-Shader "Ocean/Simulation/Update Foam"
+Shader "Hidden/Ocean/Simulation/Update Foam"
 {
 	Properties {
 	}

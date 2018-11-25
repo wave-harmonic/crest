@@ -10,7 +10,7 @@ namespace Crest
     public class LodDataMgrDynWaves : LodDataMgrPersistent
     {
         public override SimType LodDataType { get { return SimType.DynamicWaves; } }
-        protected override string ShaderSim { get { return "Ocean/Simulation/Update Dynamic Waves"; } }
+        protected override string ShaderSim { get { return "Hidden/Ocean/Simulation/Update Dynamic Waves"; } }
         public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RGHalf; } }
 
         public override SimSettingsBase CreateDefaultSettings()
@@ -34,7 +34,7 @@ namespace Crest
             _copySimMaterial = new Material[OceanRenderer.Instance.CurrentLodCount];
             for (int i = 0; i < _copySimMaterial.Length; i++)
             {
-                _copySimMaterial[i] = new Material(Shader.Find("Ocean/Simulation/Add Dyn Waves To Anim Waves"));
+                _copySimMaterial[i] = new Material(Shader.Find("Hidden/Ocean/Simulation/Add Dyn Waves To Anim Waves"));
             }
         }
 

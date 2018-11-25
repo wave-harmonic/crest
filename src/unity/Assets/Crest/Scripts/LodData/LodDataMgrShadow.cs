@@ -40,7 +40,7 @@ namespace Crest
 
             {
                 _renderMaterial = new Material[OceanRenderer.Instance.CurrentLodCount];
-                var shader = Shader.Find("Ocean/Simulation/Update Shadow");
+                var shader = Shader.Find("Hidden/Ocean/Simulation/Update Shadow");
                 for (int i = 0; i < _renderMaterial.Length; i++)
                 {
                     _renderMaterial[i] = new Material(shader);

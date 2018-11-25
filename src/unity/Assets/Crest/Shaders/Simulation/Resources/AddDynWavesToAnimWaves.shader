@@ -1,6 +1,6 @@
 ﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
-Shader "Ocean/Simulation/Add Dyn Waves To Anim Waves"
+Shader "Hidden/Ocean/Simulation/Add Dyn Waves To Anim Waves"
 {
 	Properties
 	{

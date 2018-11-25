@@ -2,7 +2,7 @@
 
 // This shader takes a shape result, zooms in on it (2X scale), and then adds it to the target.
 // This is run on each sim lod from largest to smallest, to accumulate the results downwards.
-Shader "Ocean/Simulation/Combine Animated Wave LODs"
+Shader "Hidden/Ocean/Simulation/Combine Animated Wave LODs"
 {
 	Properties
 	{

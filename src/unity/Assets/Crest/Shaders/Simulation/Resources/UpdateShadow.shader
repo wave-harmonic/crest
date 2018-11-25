@@ -1,6 +1,6 @@
 ﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
-Shader "Ocean/Simulation/Update Shadow"
+Shader "Hidden/Ocean/Simulation/Update Shadow"
 {
 	Properties
 	{

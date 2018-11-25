@@ -1,7 +1,7 @@
 ﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 // solve 2D wave equation
-Shader "Ocean/Simulation/Update Dynamic Waves"
+Shader "Hidden/Ocean/Simulation/Update Dynamic Waves"
 {
 	Properties {
 	}

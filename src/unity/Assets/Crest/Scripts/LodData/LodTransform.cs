@@ -7,6 +7,9 @@ namespace Crest
     {
         protected int _transformUpdateFrame = -1;
 
+        static int[] _paramsPosScale = null;
+        static int[] _paramsOcean = null;
+
         public struct RenderData
         {
             public float _texelWidth;
@@ -97,6 +100,30 @@ namespace Crest
             float maxDiameter = 4f * oceanBaseScale * Mathf.Pow(2f, _lodIndex);
             float maxTexelSize = maxDiameter / (4f * OceanRenderer.Instance._baseVertDensity);
             return 2f * maxTexelSize * OceanRenderer.Instance._minTexelsPerWave;
+        }
+
+        public static int ParamIdPosScale(int slot)
+        {
+            if (_paramsPosScale == null)
+                CreateParamIDs(ref _paramsPosScale, "_LD_Pos_Scale_");
+            return _paramsPosScale[slot];
+        }
+
+        public static int ParamIdOcean(int slot)
+        {
+            if (_paramsOcean == null)
+                CreateParamIDs(ref _paramsOcean, "_LD_Params_");
+            return _paramsOcean[slot];
+        }
+
+        public static void CreateParamIDs(ref int[] ids, string prefix)
+        {
+            int count = 2;
+            ids = new int[count];
+            for (int i = 0; i < count; i++)
+            {
+                ids[i] = Shader.PropertyToID(string.Format("{0}{1}", prefix, i));
+            }
         }
     }
 }

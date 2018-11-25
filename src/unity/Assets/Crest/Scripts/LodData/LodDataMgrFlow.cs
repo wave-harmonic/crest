@@ -62,5 +62,25 @@ namespace Crest
                 _targetsClear = true;
             }
         }
+
+        static int[] _paramsSampler;
+        public static int ParamIdSampler(int slot)
+        {
+            if (_paramsSampler == null)
+                LodTransform.CreateParamIDs(ref _paramsSampler, "_LD_Sampler_Flow_");
+            return _paramsSampler[slot];
+        }
+        protected override int GetParamIdSampler(int slot)
+        {
+            return ParamIdSampler(slot);
+        }
+        public static void BindNull(int shapeSlot, Material properties)
+        {
+            properties.SetTexture(ParamIdSampler(shapeSlot), Texture2D.blackTexture);
+        }
+        public static void BindNull(int shapeSlot, MaterialPropertyBlock properties)
+        {
+            properties.SetTexture(ParamIdSampler(shapeSlot), Texture2D.blackTexture);
+        }
     }
 }

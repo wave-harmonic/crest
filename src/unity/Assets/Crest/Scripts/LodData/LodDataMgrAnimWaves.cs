@@ -173,7 +173,7 @@ namespace Crest
             // need to blend out shape if this is the largest lod, and the ocean might get scaled down later (so the largest lod will disappear)
             bool needToBlendOutShape = lodIdx == OceanRenderer.Instance.CurrentLodCount - 1 && OceanRenderer.Instance.ScaleCouldDecrease && blendOut;
             float shapeWeight = needToBlendOutShape ? OceanRenderer.Instance.ViewerAltitudeLevelAlpha : 1f;
-            properties.SetVector(_paramsOceanParams[shapeSlot], new Vector4(
+            properties.SetVector(LodTransform.ParamIdOcean(shapeSlot), new Vector4(
                 lt._renderData._texelWidth,
                 lt._renderData._textureRes, shapeWeight, 
                 1f / lt._renderData._textureRes));
@@ -237,6 +237,26 @@ namespace Crest
             }
 
             _gerstnerComponents.Remove(gerstner);
+        }
+
+        static int[] _paramsSampler;
+        public static int ParamIdSampler(int slot)
+        {
+            if (_paramsSampler == null)
+                LodTransform.CreateParamIDs(ref _paramsSampler, "_LD_Sampler_AnimatedWaves_");
+            return _paramsSampler[slot];
+        }
+        protected override int GetParamIdSampler(int slot)
+        {
+            return ParamIdSampler(slot);
+        }
+        public static void BindNull(int shapeSlot, Material properties)
+        {
+            properties.SetTexture(ParamIdSampler(shapeSlot), Texture2D.blackTexture);
+        }
+        public static void BindNull(int shapeSlot, MaterialPropertyBlock properties)
+        {
+            properties.SetTexture(ParamIdSampler(shapeSlot), Texture2D.blackTexture);
         }
     }
 }

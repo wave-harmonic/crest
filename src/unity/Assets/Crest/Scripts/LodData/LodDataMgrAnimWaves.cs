@@ -126,7 +126,7 @@ namespace Crest
                 }
                 else
                 {
-                    _combineMaterial[lodIdx].SetTexture("_LD_Sampler_DynamicWaves_0", Texture2D.blackTexture);
+                    LodDataMgrDynWaves.BindNull(0, _combineMaterial[lodIdx]);
                 }
 
                 // flow
@@ -136,7 +136,7 @@ namespace Crest
                 }
                 else
                 {
-                    _combineMaterial[lodIdx].SetTexture("_LD_Sampler_Flow_0", Texture2D.blackTexture);
+                    LodDataMgrFlow.BindNull(0, _combineMaterial[lodIdx]);
                 }
 
                 buf.Blit(null, DataTexture(lodIdx), _combineMaterial[lodIdx]);

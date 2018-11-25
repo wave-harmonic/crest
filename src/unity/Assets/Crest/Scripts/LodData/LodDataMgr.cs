@@ -37,10 +37,13 @@ namespace Crest
             return _targets[lodIdx];
         }
 
+        protected abstract int GetParamIdSampler(int slot);
+
         protected RenderTexture[] _targets;
 
         // shape texture resolution
         int _shapeRes = -1;
+
         // ocean scale last frame - used to detect scale changes
         float _oceanLocalScalePrev = -1f;
 
@@ -49,23 +52,8 @@ namespace Crest
 
         protected List<RegisterLodDataInputBase> _drawList = new List<RegisterLodDataInputBase>();
 
-        // these would ideally be static but then they get cleared when editing-and-continuing in the editor.
-        int[] _paramsPosScale;
-        int[] _paramsLodIdx;
-        protected int[] _paramsOceanParams;
-        int[] _paramsLodDataSampler;
-
         protected virtual void Start()
         {
-            // create shader param IDs for each LOD once on start to avoid creating garbage each frame.
-            if (_paramsLodDataSampler == null)
-            {
-                CreateParamIDs(ref _paramsLodDataSampler, "_LD_Sampler_" + SimName + "_");
-                CreateParamIDs(ref _paramsOceanParams, "_LD_Params_");
-                CreateParamIDs(ref _paramsPosScale, "_LD_Pos_Scale_");
-                CreateParamIDs(ref _paramsLodIdx, "_LD_LodIdx_");
-            }
-
             InitData();
         }
 
@@ -106,7 +94,7 @@ namespace Crest
                 }
             }
 
-            // determine if this lod has changed scale and by how much (in exponent of 2)
+            // determine if this LOD has changed scale and by how much (in exponent of 2)
             float oceanLocalScale = OceanRenderer.Instance.transform.localScale.x;
             if (_oceanLocalScalePrev == -1f) _oceanLocalScalePrev = oceanLocalScale;
             float ratio = oceanLocalScale / _oceanLocalScalePrev;
@@ -143,13 +131,12 @@ namespace Crest
         {
             if (applyData)
             {
-                properties.SetTexture(_paramsLodDataSampler[shapeSlot], applyData);
+                properties.SetTexture(GetParamIdSampler(shapeSlot), applyData);
             }
 
             var lt = OceanRenderer.Instance._lods[lodIdx];
-            properties.SetVector(_paramsPosScale[shapeSlot], new Vector3(renderData._posSnapped.x, renderData._posSnapped.z, lt.transform.lossyScale.x));
-            properties.SetFloat(_paramsLodIdx[shapeSlot], lt.LodIndex);
-            properties.SetVector(_paramsOceanParams[shapeSlot],
+            properties.SetVector(LodTransform.ParamIdPosScale(shapeSlot), new Vector3(renderData._posSnapped.x, renderData._posSnapped.z, lt.transform.lossyScale.x));
+            properties.SetVector(LodTransform.ParamIdOcean(shapeSlot),
                 new Vector4(renderData._texelWidth, renderData._textureRes, 1f, 1f / renderData._textureRes));
         }
 
@@ -165,16 +152,6 @@ namespace Crest
             sim.UseSettings(settings);
 
             return sim;
-        }
-
-        protected void CreateParamIDs(ref int[] ids, string prefix)
-        {
-            int count = 2;
-            ids = new int[count];
-            for (int i = 0; i < count; i++)
-            {
-                ids[i] = Shader.PropertyToID(string.Format("{0}{1}", prefix, i));
-            }
         }
 
         public virtual void BuildCommandBuffer(OceanRenderer ocean, CommandBuffer buf)

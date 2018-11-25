@@ -87,7 +87,7 @@ namespace Crest
             }
             else
             {
-                simMaterial.SetTexture("_LD_Sampler_SeaFloorDepth_1", Texture2D.blackTexture);
+                LodDataMgrSeaFloorDepth.BindNull(1, simMaterial);
             }
 
             if (OceanRenderer.Instance._createFlowSim)
@@ -96,7 +96,7 @@ namespace Crest
             }
             else
             {
-                simMaterial.SetTexture("_LD_Sampler_Flow_1", Texture2D.blackTexture);
+                LodDataMgrFlow.BindNull(1, simMaterial);
             }
 
         }
@@ -125,6 +125,26 @@ namespace Crest
             {
                 return Time.deltaTime / GetNumSubsteps(Time.deltaTime);
             }
+        }
+
+        static int[] _paramsSampler;
+        public static int ParamIdSampler(int slot)
+        {
+            if (_paramsSampler == null)
+                LodTransform.CreateParamIDs(ref _paramsSampler, "_LD_Sampler_DynamicWaves_");
+            return _paramsSampler[slot];
+        }
+        protected override int GetParamIdSampler(int slot)
+        {
+            return ParamIdSampler(slot);
+        }
+        public static void BindNull(int shapeSlot, Material properties)
+        {
+            properties.SetTexture(ParamIdSampler(shapeSlot), Texture2D.blackTexture);
+        }
+        public static void BindNull(int shapeSlot, MaterialPropertyBlock properties)
+        {
+            properties.SetTexture(ParamIdSampler(shapeSlot), Texture2D.blackTexture);
         }
 
         SimSettingsWave Settings { get { return _settings as SimSettingsWave; } }

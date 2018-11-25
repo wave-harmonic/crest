@@ -102,7 +102,7 @@ namespace Crest
                 }
                 else
                 {
-                    _mpb.SetTexture("_LD_Sampler_SeaFloorDepth_0", Texture2D.blackTexture);
+                    LodDataMgrSeaFloorDepth.BindNull(0, _mpb);
                 }
 
                 if (OceanRenderer.Instance._createShadowData)
@@ -111,9 +111,9 @@ namespace Crest
                 }
                 else
                 {
-                    _mpb.SetTexture("_LD_Sampler_Shadow_0", Texture2D.blackTexture);
-
+                    LodDataMgrShadow.BindNull(0, _mpb);
                 }
+
                 _rend.SetPropertyBlock(_mpb);
             }
         }

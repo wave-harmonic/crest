@@ -119,7 +119,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1686297963636050}
   m_LocalRotation: {x: 0.7071068, y: -0, z: -0, w: 0.7071068}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 1.04}
   m_LocalScale: {x: 4.5, y: 4, z: 4}
   m_Children: []
   m_Father: {fileID: 4341219009766782}
@@ -359,7 +359,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1ed9066fe88d1d640889621f4d7684e3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _bottomH: -1
+  _bottomH: -1.3
   _overrideProbeRadius: -1
   _buoyancyCoeff: 1.5
   _boyancyTorque: 8
@@ -391,7 +391,7 @@ MonoBehaviour:
   _localOffset: {x: 0, y: 0, z: 0}
   _noiseFreq: 6
   _noiseAmp: 0
-  _weight: 12
+  _weight: 7.5
   _weightUpDownMul: 0.3
   _teleportSpeed: 500
   _warnOnTeleport: 0

@@ -48,8 +48,8 @@ Shader "Hidden/Ocean/Simulation/Combine Animated Wave LODs"
 
 			void Flow(out float2 offsets, out float2 weights)
 			{
-				const float period = 2.;
-				const float half_period = 1.;
+				const float period = 3. * _LD_Params_0.x;
+				const float half_period = period / 2.;
 				offsets = fmod(float2(_CrestTime, _CrestTime + half_period), period);
 				weights.x = offsets.x / half_period;
 				if (weights.x > 1.0) weights.x = 2.0 - weights.x;

@@ -33,6 +33,16 @@ namespace Crest
             for (int i = 0; i < _active.Length; i++) _active[i] = true;
         }
 
+        private void OnEnable()
+        {
+            Shader.EnableKeyword("_DYNAMIC_WAVE_SIM_ON");
+        }
+
+        private void OnDisable()
+        {
+            Shader.DisableKeyword("_DYNAMIC_WAVE_SIM_ON");
+        }
+
         protected override bool BuildCommandBufferInternal(int lodIdx)
         {
             if (!base.BuildCommandBufferInternal(lodIdx))

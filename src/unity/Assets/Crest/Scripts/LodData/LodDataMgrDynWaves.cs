@@ -22,6 +22,8 @@ namespace Crest
 
         public bool _rotateLaplacian = true;
 
+        const string DYNWAVES_KEYWORD = "_DYNAMIC_WAVE_SIM_ON";
+
         bool[] _active;
         public bool SimActive(int lodIdx) { return _active[lodIdx]; }
 
@@ -35,12 +37,12 @@ namespace Crest
 
         private void OnEnable()
         {
-            Shader.EnableKeyword("_DYNAMIC_WAVE_SIM_ON");
+            Shader.EnableKeyword(DYNWAVES_KEYWORD);
         }
 
         private void OnDisable()
         {
-            Shader.DisableKeyword("_DYNAMIC_WAVE_SIM_ON");
+            Shader.DisableKeyword(DYNWAVES_KEYWORD);
         }
 
         protected override bool BuildCommandBufferInternal(int lodIdx)

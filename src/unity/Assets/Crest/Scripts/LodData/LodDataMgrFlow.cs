@@ -26,12 +26,14 @@ namespace Crest
 
         bool _targetsClear = false;
 
+        const string FLOW_KEYWORD = "_FLOW_ON";
+
         protected override void Start()
         {
             base.Start();
 
 #if UNITY_EDITOR
-            if (!OceanRenderer.Instance.OceanMaterial.IsKeywordEnabled("_FLOW_ON"))
+            if (!OceanRenderer.Instance.OceanMaterial.IsKeywordEnabled(FLOW_KEYWORD))
             {
                 Debug.LogWarning("Flow is not enabled on the current ocean material and will not be visible.", this);
             }
@@ -40,12 +42,12 @@ namespace Crest
 
         private void OnEnable()
         {
-            Shader.EnableKeyword("_FLOW_ON");
+            Shader.EnableKeyword(FLOW_KEYWORD);
         }
 
         private void OnDisable()
         {
-            Shader.DisableKeyword("_FLOW_ON");
+            Shader.DisableKeyword(FLOW_KEYWORD);
         }
 
         public override void BuildCommandBuffer(OceanRenderer ocean, CommandBuffer buf)

@@ -38,6 +38,16 @@ namespace Crest
 #endif
         }
 
+        private void OnEnable()
+        {
+            Shader.EnableKeyword("_FLOW_ON");
+        }
+
+        private void OnDisable()
+        {
+            Shader.DisableKeyword("_FLOW_ON");
+        }
+
         public override void BuildCommandBuffer(OceanRenderer ocean, CommandBuffer buf)
         {
             base.BuildCommandBuffer(ocean, buf);

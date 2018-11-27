@@ -18,6 +18,7 @@ Shader "Hidden/Ocean/Simulation/Combine Animated Wave LODs"
 			#pragma fragment frag
 			
 			#pragma shader_feature _DYNAMIC_WAVE_SIM_ON
+			#pragma shader_feature _FLOW_ON
 
 			#include "UnityCG.cginc"
 
@@ -71,14 +72,18 @@ Shader "Hidden/Ocean/Simulation/Combine Animated Wave LODs"
 
 				float3 result = 0.;
 
+				// this lods waves
+#if _FLOW_ON
 				float2 offsets, weights;
 				Flow(offsets, weights);
 
-				// this lods waves
 				float2 uv_0_flow_0 = LD_0_WorldToUV(worldPosXZ - offsets[0] * flow);
 				float2 uv_0_flow_1 = LD_0_WorldToUV(worldPosXZ - offsets[1] * flow);
 				SampleDisplacements(_LD_Sampler_AnimatedWaves_0, uv_0_flow_0, weights[0], result);
 				SampleDisplacements(_LD_Sampler_AnimatedWaves_0, uv_0_flow_1, weights[1], result);
+#else
+				SampleDisplacements(_LD_Sampler_AnimatedWaves_0, i.uv, 1.0, result);
+#endif
 
 				// waves to combine down from the next lod up the chain
 				SampleDisplacements(_LD_Sampler_AnimatedWaves_1, uv_1, 1.0, result);

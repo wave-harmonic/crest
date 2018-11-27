@@ -25,7 +25,7 @@ namespace Crest
 
         void Start()
         {
-            if (OceanRenderer.Instance == null || !OceanRenderer.Instance._createDynamicWaveSim)
+            if (OceanRenderer.Instance == null)
             {
                 enabled = false;
                 return;

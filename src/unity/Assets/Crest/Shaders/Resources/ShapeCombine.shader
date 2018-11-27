@@ -17,6 +17,8 @@ Shader "Hidden/Ocean/Simulation/Combine Animated Wave LODs"
 			#pragma vertex vert
 			#pragma fragment frag
 			
+			#pragma shader_feature _DYNAMIC_WAVE_SIM_ON
+
 			#include "UnityCG.cginc"
 
 			struct appdata
@@ -75,14 +77,16 @@ Shader "Hidden/Ocean/Simulation/Combine Animated Wave LODs"
 				// this lods waves
 				float2 uv_0_flow_0 = LD_0_WorldToUV(worldPosXZ - offsets[0] * flow);
 				float2 uv_0_flow_1 = LD_0_WorldToUV(worldPosXZ - offsets[1] * flow);
-				SampleDisplacements(_LD_Sampler_AnimatedWaves_0, uv_0_flow_0, weights[0], 0.0, 0., result);
-				SampleDisplacements(_LD_Sampler_AnimatedWaves_0, uv_0_flow_1, weights[1], 0.0, 0., result);
+				SampleDisplacements(_LD_Sampler_AnimatedWaves_0, uv_0_flow_0, weights[0], result);
+				SampleDisplacements(_LD_Sampler_AnimatedWaves_0, uv_0_flow_1, weights[1], result);
 
 				// waves to combine down from the next lod up the chain
-				SampleDisplacements(_LD_Sampler_AnimatedWaves_1, uv_1, 1.0, 0.0, 0., result);
+				SampleDisplacements(_LD_Sampler_AnimatedWaves_1, uv_1, 1.0, result);
 
-				// convert dynamic wave sim to displacements
+#if _DYNAMIC_WAVE_SIM_ON
 				{
+					// convert dynamic wave sim to displacements
+
 					half waveSimY = tex2Dlod(_LD_Sampler_DynamicWaves_0, float4(i.uv, 0., 0.)).x;
 					result.y += waveSimY;
 
@@ -97,6 +101,7 @@ Shader "Hidden/Ocean/Simulation/Combine Animated Wave LODs"
 
 					result.xz += dispXZ;
 				}
+#endif // _DYNAMIC_WAVE_SIM_
 
 				return half4(result, 1.);
 			}

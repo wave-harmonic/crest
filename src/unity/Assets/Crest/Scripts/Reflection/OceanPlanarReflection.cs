@@ -12,19 +12,19 @@ namespace Crest
     /// </summary>
     public class OceanPlanarReflection : MonoBehaviour
     {
-        public LayerMask _reflectionLayers = 1;
-        public bool _disablePixelLights = true;
-        public int _textureSize = 256;
-        public float _clipPlaneOffset = 0.07f;
-        public bool _hdr = true;
+        [SerializeField] LayerMask _reflectionLayers = 1;
+        [SerializeField] bool _disablePixelLights = true;
+        [SerializeField] int _textureSize = 256;
+        [SerializeField] float _clipPlaneOffset = 0.07f;
+        [SerializeField] bool _hdr = true;
+        [SerializeField] bool _stencil = false;
+        [SerializeField] bool _hideCameraGameobject = true;
 
         RenderTexture _reflectionTexture;
         public RenderTexture ReflectionTexture { get { return _reflectionTexture; } }
 
         Camera _camViewpoint;
         Camera _camReflections;
-
-        public bool _hideCameraGameobject = true;
 
         private void Start()
         {
@@ -149,7 +149,7 @@ namespace Crest
                 }
 
                 var format = _hdr ? RenderTextureFormat.ARGBHalf : RenderTextureFormat.ARGB32;
-                _reflectionTexture = new RenderTexture(_textureSize, _textureSize, 16, format);
+                _reflectionTexture = new RenderTexture(_textureSize, _textureSize, _stencil ? 24 : 16, format);
                 _reflectionTexture.name = "__WaterReflection" + GetInstanceID();
                 _reflectionTexture.isPowerOfTwo = true;
                 _reflectionTexture.hideFlags = HideFlags.DontSave;

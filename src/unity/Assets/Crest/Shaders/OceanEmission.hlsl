@@ -138,7 +138,7 @@ void ApplyCaustics(in const half3 i_view, in const half3 i_lightDir, in const fl
 	half3 disp = 0.;
 	// this gives height at displaced position, not exactly at query position.. but it helps. i cant pass this from vert shader
 	// because i dont know it at scene pos.
-	SampleDisplacements(_LD_Sampler_AnimatedWaves_1, scenePosUV, 1.0, _LD_Params_1.w, _LD_Params_1.x, disp);
+	SampleDisplacements(_LD_Sampler_AnimatedWaves_1, scenePosUV, 1.0, disp);
 	half waterHeight = _OceanCenterPosWorld.y + disp.y;
 	half sceneDepth = waterHeight - scenePos.y;
 	half bias = abs(sceneDepth - _CausticsFocalDepth) / _CausticsDepthOfField;

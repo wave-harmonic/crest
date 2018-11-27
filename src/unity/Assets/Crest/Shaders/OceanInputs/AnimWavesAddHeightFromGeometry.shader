@@ -1,8 +1,9 @@
 ﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
-// This writes straight into the displacement texture and sets the water height to the y value of the geometry.
+// This adds the height from the geometry. This allows setting the water height to some level for rivers etc, but still
+// getting the waves added on top.
 
-Shader "Ocean/Inputs/Animated Waves/Set Water Height To Geometry"
+Shader "Ocean/Inputs/Animated Waves/Add Water Height From Geometry"
 {
 	Properties
 	{
@@ -14,7 +15,7 @@ Shader "Ocean/Inputs/Animated Waves/Set Water Height To Geometry"
 		LOD 100
  		Pass
 		{
-			Blend Off
+			Blend One One
 
  			CGPROGRAM
 			#pragma vertex vert

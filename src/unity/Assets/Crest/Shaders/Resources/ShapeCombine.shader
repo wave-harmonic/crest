@@ -56,10 +56,10 @@ Shader "Hidden/Ocean/Simulation/Combine Animated Wave LODs"
 				float3 result = 0.;
 
 				// this lods waves
-				SampleDisplacements(_LD_Sampler_AnimatedWaves_0, i.uv, 1.0, 0.0, 0., result);
+				SampleDisplacements(_LD_Sampler_AnimatedWaves_0, i.uv, 1.0, result);
 
 				// waves to combine down from the next lod up the chain
-				SampleDisplacements(_LD_Sampler_AnimatedWaves_1, uv_1, 1.0, 0.0, 0., result);
+				SampleDisplacements(_LD_Sampler_AnimatedWaves_1, uv_1, 1.0, result);
 
 				// convert dynamic wave sim to displacements
 				{

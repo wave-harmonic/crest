@@ -430,7 +430,7 @@ Prefab:
     - target: {fileID: 114123981558006810, guid: 71ede3c2ab0b7cb43b7dad6ae3b6190b,
         type: 2}
       propertyPath: _weight
-      value: 6
+      value: 7.5
       objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 114497185399024552, guid: 71ede3c2ab0b7cb43b7dad6ae3b6190b, type: 2}

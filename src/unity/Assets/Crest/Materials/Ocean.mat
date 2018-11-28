@@ -102,6 +102,7 @@ Material:
     - _Flow: 0
     - _Foam: 1
     - _Foam3DLighting: 1
+    - _FoamBubbleParallax: 0.05
     - _FoamScale: 10
     - _FresnelPower: 5
     - _Invert: 1
@@ -128,7 +129,7 @@ Material:
     - _SubSurfaceHeightPower: 1.68
     - _SubSurfaceScattering: 1
     - _SubSurfaceShallowColour: 1
-    - _SubSurfaceSun: 4.85
+    - _SubSurfaceSun: 2.3
     - _SubSurfaceSunFallOff: 7.11
     - _TexelSize: 0.125
     - _TextureRes: 1024

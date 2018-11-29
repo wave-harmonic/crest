@@ -7,6 +7,7 @@ Shader "Ocean/Inputs/Animated Waves/Add Water Height From Geometry"
 {
 	Properties
 	{
+		[Toggle] _AddHeightsBelowSeaLevel("Add Heights Below Sea Level", Float) = 1.0
 	}
 
  	SubShader
@@ -20,6 +21,7 @@ Shader "Ocean/Inputs/Animated Waves/Add Water Height From Geometry"
  			CGPROGRAM
 			#pragma vertex vert
 			#pragma fragment frag
+			#pragma shader_feature _ADDHEIGHTSBELOWSEALEVEL_ON
 
  			#include "UnityCG.cginc"
 			#include "../OceanLODData.hlsl"
@@ -45,10 +47,18 @@ Shader "Ocean/Inputs/Animated Waves/Add Water Height From Geometry"
 				return o;
 			}
 
+			uniform float _AddHeightsBelowSeaLevel;
+
  			half4 frag (v2f i) : SV_Target
 			{
+				float addHeight = i.worldPos.y - _OceanCenterPosWorld.y;
+
+				#if !_ADDHEIGHTSBELOWSEALEVEL_ON
+				addHeight = max(addHeight, 0.);
+				#endif // _ADDHEIGHTSBELOWSEALEVEL_ON
+
 				// Write displacement to get from sea level of ocean to the y value of this geometry
-				return half4(0., i.worldPos.y - _OceanCenterPosWorld.y, 0., 1.);
+				return half4(0., addHeight, 0., 1.);
 			}
 			ENDCG
 		}

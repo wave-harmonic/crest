@@ -114,6 +114,11 @@ Shader "Ocean/Ocean"
 			//     and do post processing before running it. Discussion of this in issue #53.
 			Tags { "LightMode"="ForwardBase" "Queue"="Geometry+510" "IgnoreProjector"="True" "RenderType"="Opaque" }
 
+			Stencil {
+				Ref 0
+				Comp equal
+			}
+
 			GrabPass
 			{
 				"_BackgroundTexture"

@@ -94,6 +94,8 @@ Shader "Ocean/Ocean"
 
 		[Header(Render State)]
 		[Enum(CullMode)] _CullMode("Cull Mode", Int) = 2
+		// Used to enable stencil-based per-pixel masking of the ocean surface.
+		[Enum(StencilFunction)] _StencilFunction("Stencil Function", Int) = 0
 
 		[Header(Debug Options)]
 		[Toggle] _DebugDisableShapeTextures("Debug Disable Shape Textures", Float) = 0
@@ -116,7 +118,7 @@ Shader "Ocean/Ocean"
 
 			Stencil {
 				Ref 0
-				Comp equal
+				Comp [_StencilFunction]
 			}
 
 			GrabPass

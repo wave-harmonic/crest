@@ -98,9 +98,12 @@ Shader "Hidden/Ocean/Simulation/Combine Animated Wave LODs"
 
 					// compute displacement from gradient of water surface - discussed in issue #18 and then in issue #47
 					const float2 invRes = float2(_LD_Params_0.w, 0.);
-					const half waveSimY_x = tex2Dlod(_LD_Sampler_DynamicWaves_0, float4(i.uv + invRes.xy, 0., 0.)).x;
-					const half waveSimY_z = tex2Dlod(_LD_Sampler_DynamicWaves_0, float4(i.uv + invRes.yx, 0., 0.)).x;
-					float2 dispXZ = _HorizDisplace * (float2(waveSimY_x, waveSimY_z) - waveSimY) / _LD_Params_0.x;
+					const half waveSimY_px = tex2Dlod(_LD_Sampler_DynamicWaves_0, float4(i.uv + invRes.xy, 0., 0.)).x;
+					const half waveSimY_nx = tex2Dlod(_LD_Sampler_DynamicWaves_0, float4(i.uv - invRes.xy, 0., 0.)).x;
+					const half waveSimY_pz = tex2Dlod(_LD_Sampler_DynamicWaves_0, float4(i.uv + invRes.yx, 0., 0.)).x;
+					const half waveSimY_nz = tex2Dlod(_LD_Sampler_DynamicWaves_0, float4(i.uv - invRes.yx, 0., 0.)).x;
+
+					float2 dispXZ = _HorizDisplace * (float2(waveSimY_px, waveSimY_pz) - float2(waveSimY_nx, waveSimY_nz)) / (2. * _LD_Params_0.x);
 
 					const float maxDisp = _LD_Params_0.x * _DisplaceClamp;
 					dispXZ = clamp(dispXZ, -maxDisp, maxDisp);

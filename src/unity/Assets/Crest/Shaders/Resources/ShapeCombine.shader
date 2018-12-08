@@ -17,8 +17,8 @@ Shader "Hidden/Ocean/Simulation/Combine Animated Wave LODs"
 			#pragma vertex vert
 			#pragma fragment frag
 			
-			#pragma shader_feature _DYNAMIC_WAVE_SIM_ON
-			#pragma shader_feature _FLOW_ON
+			#pragma multi_compile __ _DYNAMIC_WAVE_SIM_ON
+			#pragma multi_compile __ _FLOW_ON
 
 			#include "UnityCG.cginc"
 
@@ -89,7 +89,7 @@ Shader "Hidden/Ocean/Simulation/Combine Animated Wave LODs"
 				SampleDisplacements(_LD_Sampler_AnimatedWaves_1, uv_1, 1.0, result);
 
 				// TODO - uncomment this define once it works in standalone builds
-//#if _DYNAMIC_WAVE_SIM_ON
+#if _DYNAMIC_WAVE_SIM_ON
 				{
 					// convert dynamic wave sim to displacements
 
@@ -107,7 +107,7 @@ Shader "Hidden/Ocean/Simulation/Combine Animated Wave LODs"
 
 					result.xz += dispXZ;
 				}
-//#endif // _DYNAMIC_WAVE_SIM_
+#endif // _DYNAMIC_WAVE_SIM_
 
 				return half4(result, 1.);
 			}

@@ -5,22 +5,22 @@ using Crest;
 
 public class BoatAlignNormal : MonoBehaviour
 {
-    public float _bottomH = -1f;
-    public float _overrideProbeRadius = -1f;
-    public float _buoyancyCoeff = 40000f;
-    public float _boyancyTorque = 2f;
+    [SerializeField] float _bottomH = -1f;
+    [SerializeField] float _buoyancyCoeff = 1.5f;
+    [SerializeField] float _boyancyTorque = 8f;
 
-    public float _forceHeightOffset = -1f;
-    public float _enginePower = 10000f;
-    public float _turnPower = 100f;
+    [SerializeField] float _forceHeightOffset = -0.3f;
+    [SerializeField] float _enginePower = 11f;
+    [SerializeField] float _turnPower = 1.3f;
 
-    public float _boatWidth = 2f;
+    [SerializeField] float _boatWidth = 3f;
+    public float BoatWidth { get { return _boatWidth; } }
 
     Rigidbody _rb;
 
-    public float _dragInWaterUp = 20000f;
-    public float _dragInWaterRight = 20000f;
-    public float _dragInWaterForward = 20000f;
+    [SerializeField] float _dragInWaterUp = 3f;
+    [SerializeField] float _dragInWaterRight = 2f;
+    [SerializeField] float _dragInWaterForward = 1f;
 
     [SerializeField] bool _computeWaterVel = true;
 
@@ -33,9 +33,9 @@ public class BoatAlignNormal : MonoBehaviour
     Vector3 _displacementToBoat;
     public Vector3 DisplacementToBoat { get { return _displacementToBoat; } }
 
-    public bool _playerControlled = true;
-    public float _throttleBias = 0f;
-    public float _steerBias = 0f;
+    [SerializeField] bool _playerControlled = true;
+    [SerializeField] float _throttleBias = 0f;
+    [SerializeField] float _steerBias = 0f;
 
     [SerializeField] bool _debugDraw = false;
     [SerializeField] bool _debugValidateCollision = false;

@@ -85,7 +85,7 @@ public class FeedVelocityToExtrude : MonoBehaviour {
         {
             Vector2 surfaceFlow;
             Vector3 position = transform.position;
-            GPUReadbackFlow.Instance.SampleFlow(ref position, out surfaceFlow, _boat._boatWidth);
+            GPUReadbackFlow.Instance.SampleFlow(ref position, out surfaceFlow, _boat.BoatWidth);
             vel -= new Vector3(surfaceFlow.x, 0, surfaceFlow.y);
         }
         vel.y *= _weightUpDownMul;

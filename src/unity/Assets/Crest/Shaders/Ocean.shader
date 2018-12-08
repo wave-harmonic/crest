@@ -94,6 +94,8 @@ Shader "Ocean/Ocean"
 
 		[Header(Render State)]
 		[Enum(CullMode)] _CullMode("Cull Mode", Int) = 2
+		// Used to enable stencil-based per-pixel masking of the ocean surface.
+		[Enum(StencilFunction)] _StencilFunction("Stencil Function", Int) = 0
 
 		[Header(Debug Options)]
 		[Toggle] _DebugDisableShapeTextures("Debug Disable Shape Textures", Float) = 0
@@ -113,6 +115,11 @@ Shader "Ocean/Ocean"
 			// Geometry+510 - unity treats anything after Geometry+500 as transparent, and will render it in a forward manner and copy out the gbuffer data
 			//     and do post processing before running it. Discussion of this in issue #53.
 			Tags { "LightMode"="ForwardBase" "Queue"="Geometry+510" "IgnoreProjector"="True" "RenderType"="Opaque" }
+
+			Stencil {
+				Ref 0
+				Comp [_StencilFunction]
+			}
 
 			GrabPass
 			{

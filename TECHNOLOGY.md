@@ -170,6 +170,16 @@ It also does not include wave attenuation from water depth or any custom rendere
 A final limitation is the current system finds the first GerstnerWavesBatched component in the scene which may or may not be the correct one.
 The system does not support cross blending of multiple scripts.
 
+
+# Masking Out Surface
+
+There are times when it is useful to mask out the ocean surface which prevents it drawing on some part of the screen.
+The scene *main.unity* in the example content has a rowboat which, without masking, would appear to be full of water.
+To prevent water appearing inside the boat, the *WaterMask* gameobject sets a value in the GPU's stencil buffer to disable drawing water inside the boat.
+The *RegisterMaskInput* component is required to ensure this mask draws before the ocean surface.
+Also, *Stencil Function* must be enabled on the ocean material.
+
+
 # Update / Execution Order
 
 The ocean system updates its state in *LateUpdate*, after game state update and animation, etc.

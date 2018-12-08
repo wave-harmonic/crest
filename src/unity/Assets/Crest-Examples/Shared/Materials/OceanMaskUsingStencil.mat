@@ -6,7 +6,7 @@ Material:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
-  m_Name: Masked_MaskUsingStencil
+  m_Name: OceanMaskUsingStencil
   m_Shader: {fileID: 4800000, guid: 77b29ae351822be4489d49e8c87d6fca, type: 3}
   m_ShaderKeywords: 
   m_LightmapFlags: 4

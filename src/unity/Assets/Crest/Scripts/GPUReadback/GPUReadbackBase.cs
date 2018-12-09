@@ -313,6 +313,8 @@ namespace Crest
                 if (lodData._resultData._data.IsCreated) lodData._resultData._data.Dispose();
                 if (lodData._resultDataPrevFrame._data.IsCreated) lodData._resultDataPrevFrame._data.Dispose();
             }
+
+            _perLodData.Clear();
         }
 
         public class ReadbackData

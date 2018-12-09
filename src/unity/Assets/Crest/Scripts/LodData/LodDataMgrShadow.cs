@@ -202,7 +202,7 @@ namespace Crest
         public void BindSourceData(int lodIdx, int slot, Material simMaterial, bool paramsOnly)
         {
             _pwMat._target = simMaterial;
-            var rd = OceanRenderer.Instance._lods[lodIdx]._renderDataPrevFrame.Validate(-1, this);
+            var rd = OceanRenderer.Instance._lods[lodIdx]._renderDataPrevFrame.Validate(BuildCommandBufferBase._lastUpdateFrame - Time.frameCount, this);
             BindData(lodIdx, slot, _pwMat, paramsOnly ? Texture2D.blackTexture : (_sources[lodIdx] as Texture), true, ref rd);
             _pwMat._target = null;
         }

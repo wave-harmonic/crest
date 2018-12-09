@@ -63,7 +63,7 @@ namespace Crest
             _pwMat._target = properties;
 
             var rd = usePrevTransform ?
-                OceanRenderer.Instance._lods[lodIdx]._renderDataPrevFrame.Validate(-1, this)
+                OceanRenderer.Instance._lods[lodIdx]._renderDataPrevFrame.Validate(BuildCommandBufferBase._lastUpdateFrame - Time.frameCount, this)
                 : OceanRenderer.Instance._lods[lodIdx]._renderData.Validate(0, this);
 
             BindData(lodIdx, shapeSlot, _pwMat, paramsOnly ? Texture2D.blackTexture : (Texture)_sources[lodIdx], true, ref rd);

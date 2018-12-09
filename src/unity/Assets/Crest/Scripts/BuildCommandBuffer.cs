@@ -7,6 +7,7 @@ namespace Crest
 {
     public abstract class BuildCommandBufferBase : MonoBehaviour
     {
+        public static int _lastUpdateFrame = -1;
     }
 
     public class BuildCommandBuffer : BuildCommandBufferBase
@@ -68,6 +69,8 @@ namespace Crest
 
             _buf.Clear();
             Build(OceanRenderer.Instance, _buf);
+
+            _lastUpdateFrame = Time.frameCount;
         }
 
         CameraEvent GetHookEvent(Camera cam)

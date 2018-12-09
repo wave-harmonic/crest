@@ -5,28 +5,45 @@ using Crest;
 
 public class BoatAlignNormal : MonoBehaviour
 {
-    [SerializeField] float _bottomH = -1f;
-    [SerializeField] float _buoyancyCoeff = 1.5f;
-    [SerializeField] float _boyancyTorque = 8f;
+    [Header("Buoyancy Force")]
+    [Tooltip("Height offset from transform center to bottom of boat (if any)."), SerializeField]
+    float _bottomH = 0f;
+    [Tooltip("Strength of buoyancy force per meter of submersion in water."), SerializeField]
+    float _buoyancyCoeff = 1.5f;
+    [Tooltip("Strength of torque applied to match boat orientation to water normal."), SerializeField]
+    float _boyancyTorque = 8f;
 
-    [SerializeField] float _forceHeightOffset = -0.3f;
+    [Header("Engine Power")]
+    [Tooltip("Vertical offset for where engine force should be applied."), SerializeField]
+    float _forceHeightOffset = -0.3f;
     [SerializeField] float _enginePower = 11f;
     [SerializeField] float _turnPower = 1.3f;
 
-    [SerializeField] float _boatWidth = 3f;
+    [Header("Wave Response")]
+    [Tooltip("Width dimension of boat. The larger this value, the more filtered/smooth the wave response will be."), SerializeField]
+    float _boatWidth = 3f;
     public float BoatWidth { get { return _boatWidth; } }
 
-    Rigidbody _rb;
     [SerializeField, Tooltip("Computes a separate normal based on boat length to get more accurate orientations, at the cost of an extra collision sample.")]
     bool _useBoatLength = false;
     [Tooltip("Length dimension of boat. Only used if Use Boat Length is enabled."), SerializeField]
     float _boatLength = 3f;
 
+    [Header("Drag")]
     [SerializeField] float _dragInWaterUp = 3f;
     [SerializeField] float _dragInWaterRight = 2f;
     [SerializeField] float _dragInWaterForward = 1f;
 
-    [SerializeField] bool _computeWaterVel = true;
+    [Header("Controls")]
+    [SerializeField] bool _playerControlled = true;
+    [Tooltip("Used to automatically add throttle input"), SerializeField]
+    float _throttleBias = 0f;
+    [Tooltip("Used to automatically add turning input"), SerializeField]
+    float _steerBias = 0f;
+
+    [Header("Debug")]
+    [SerializeField] bool _debugDraw = false;
+    [SerializeField] bool _debugValidateCollision = false;
 
     bool _inWater;
     public bool InWater { get { return _inWater; } }
@@ -37,12 +54,7 @@ public class BoatAlignNormal : MonoBehaviour
     Vector3 _displacementToBoat;
     public Vector3 DisplacementToBoat { get { return _displacementToBoat; } }
 
-    [SerializeField] bool _playerControlled = true;
-    [SerializeField] float _throttleBias = 0f;
-    [SerializeField] float _steerBias = 0f;
-
-    [SerializeField] bool _debugDraw = false;
-    [SerializeField] bool _debugValidateCollision = false;
+    Rigidbody _rb;
 
     void Start()
     {
@@ -88,11 +100,6 @@ public class BoatAlignNormal : MonoBehaviour
         var waterSurfaceVel = Vector3.zero;
         bool dispValid, velValid;
         collProvider.SampleDisplacementVel(ref undispPos, out _displacementToBoat, out dispValid, out waterSurfaceVel, out velValid, _boatWidth);
-
-        if (!_computeWaterVel)
-        {
-            waterSurfaceVel = Vector3.zero;
-        }
 
         if (GPUReadbackFlow.Instance)
         {

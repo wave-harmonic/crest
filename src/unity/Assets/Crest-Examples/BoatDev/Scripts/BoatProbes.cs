@@ -33,11 +33,14 @@ public class BoatProbes : MonoBehaviour
     private const float WATER_DENSITY = 1000;
 
     Rigidbody _rb;
+    SamplingData _samplingData;
 
     private void Start()
     {
         _rb = GetComponent<Rigidbody>();
         _rb.centerOfMass = _centerOfMass;
+
+        _samplingData = new SamplingData();
 
         if (OceanRenderer.Instance == null)
         {
@@ -53,9 +56,17 @@ public class BoatProbes : MonoBehaviour
             GPUReadbackDisps.Instance.ProcessRequests();
         }
 
+        var collProvider = OceanRenderer.Instance.CollisionProvider;
+        Rect thisRect = new Rect(transform.position.x - 10f, transform.position.z - 10f, 20f, 20f);
+        if(collProvider.GetSamplingData(ref thisRect, _minSpatialLength, _samplingData))
+        {
+            FixedUpdateBuoyancy(collProvider);
+        }
+
         FixedUpdateEngine();
-        FixedUpdateBuoyancy();
         FixedUpdateDrag();
+
+        collProvider.ReturnSamplingData(_samplingData);
     }
 
     void FixedUpdateEngine()
@@ -75,10 +86,9 @@ public class BoatProbes : MonoBehaviour
         _rb.AddTorque((transform.up + heel) * TurnPower * sideways, ForceMode.Acceleration);
     }
 
-    void FixedUpdateBuoyancy()
+    void FixedUpdateBuoyancy(ICollProvider collProvider)
     {
         float archimedesForceMagnitude = WATER_DENSITY * Mathf.Abs(Physics.gravity.y);
-        var collProvider = OceanRenderer.Instance.CollisionProvider;
 
         for (int i = 0; i < ForcePoints.Length; i++)
         {
@@ -86,28 +96,21 @@ public class BoatProbes : MonoBehaviour
             var transformedPoint = transform.TransformPoint(point._offsetPosition + new Vector3(0, _centerOfMass.y, 0));
 
             Vector3 undispPos;
-            if (!collProvider.ComputeUndisplacedPosition(ref transformedPoint, out undispPos, _minSpatialLength))
+            if (!collProvider.ComputeUndisplacedPosition(ref transformedPoint, _samplingData, out undispPos))
             {
                 // If we couldn't get wave shape, assume flat water at sea level
                 undispPos = transformedPoint;
                 undispPos.y = OceanRenderer.Instance.SeaLevel;
             }
 
-            var waterSurfaceVel = Vector3.zero;
+            Vector3 displaced;
+            collProvider.SampleDisplacement(ref undispPos, _samplingData, out displaced);
 
-            bool dispValid, velValid;
-            collProvider.SampleDisplacementVel(ref undispPos, out point._displaced, out dispValid, out waterSurfaceVel, out velValid, _minSpatialLength);
-
-            var dispPos = undispPos + point._displaced;
-
-            float height;
-            collProvider.SampleHeight(ref transformedPoint, out height, _minSpatialLength);
-
-            float distance = dispPos.y - transformedPoint.y;
-
-            if (height - transformedPoint.y > 0)
+            var dispPos = undispPos + displaced;
+            var heightDiff = dispPos.y - transformedPoint.y;
+            if (heightDiff > 0)
             {
-                _rb.AddForceAtPosition(archimedesForceMagnitude * distance * Vector3.up * point._factor * _forceMultiplier, transformedPoint);
+                _rb.AddForceAtPosition(archimedesForceMagnitude * heightDiff * Vector3.up * point._factor * _forceMultiplier, transformedPoint);
             }
         }
     }
@@ -163,7 +166,4 @@ public class FloaterForcePoints
 
     [FormerlySerializedAs("_offSetPosition")]
     public Vector3 _offsetPosition;
-
-    [NonSerialized]
-    public Vector3 _displaced;
 }

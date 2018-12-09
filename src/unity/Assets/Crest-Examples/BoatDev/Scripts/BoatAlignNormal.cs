@@ -58,10 +58,12 @@ public class BoatAlignNormal : MonoBehaviour
     public Vector3 DisplacementToBoat { get { return _displacementToBoat; } }
 
     Rigidbody _rb;
+    SamplingData _samplingData;
 
     void Start()
     {
         _rb = GetComponent<Rigidbody>();
+        _samplingData = new SamplingData();
 
         if (OceanRenderer.Instance == null)
         {
@@ -72,6 +74,8 @@ public class BoatAlignNormal : MonoBehaviour
 
     void FixedUpdate()
     {
+        UnityEngine.Profiling.Profiler.BeginSample("BoatAlignNormal.FixedUpdate");
+
         // Trigger processing of displacement textures that have come back this frame. This will be processed
         // anyway in Update(), but FixedUpdate() is earlier so make sure it's up to date now.
         if (OceanRenderer.Instance._simSettingsAnimatedWaves.CollisionSource == SimSettingsAnimatedWaves.CollisionSources.OceanDisplacementTexturesGPU && GPUReadbackDisps.Instance)
@@ -91,8 +95,14 @@ public class BoatAlignNormal : MonoBehaviour
             }
         }
 
+        var thisRect = new Rect(transform.position.x, transform.position.z, 0f, 0f);
+        if (!collProvider.GetSamplingData(ref thisRect, _boatWidth, _samplingData))
+        {
+            return;
+        }
+
         Vector3 undispPos;
-        if (!collProvider.ComputeUndisplacedPosition(ref position, out undispPos, _boatWidth))
+        if (!collProvider.ComputeUndisplacedPosition(ref position, _samplingData, out undispPos))
         {
             // If we couldn't get wave shape, assume flat water at sea level
             undispPos = position;
@@ -102,14 +112,14 @@ public class BoatAlignNormal : MonoBehaviour
 
         var waterSurfaceVel = Vector3.zero;
         bool dispValid, velValid;
-        collProvider.SampleDisplacementVel(ref undispPos, out _displacementToBoat, out dispValid, out waterSurfaceVel, out velValid, _boatWidth);
+        collProvider.SampleDisplacementVel(ref undispPos, _samplingData, out _displacementToBoat, out dispValid, out waterSurfaceVel, out velValid);
 
         if (GPUReadbackFlow.Instance)
         {
             GPUReadbackFlow.Instance.ProcessRequests();
 
             Vector2 surfaceFlow;
-            GPUReadbackFlow.Instance.SampleFlow(ref position, out surfaceFlow, _boatWidth);
+            GPUReadbackFlow.Instance.SampleFlow(ref position, _samplingData, out surfaceFlow);
             waterSurfaceVel += new Vector3(surfaceFlow.x, 0, surfaceFlow.y);
         }
 
@@ -155,17 +165,21 @@ public class BoatAlignNormal : MonoBehaviour
         if(_playerControlled ) sideways += (Input.GetKey(KeyCode.A) ? -1f : 0f) + (Input.GetKey(KeyCode.D) ? 1f : 0f);
         _rb.AddTorque(transform.up * _turnPower * sideways, ForceMode.Acceleration);
 
-        FixedUpdateOrientation(collProvider, undispPos);
+        FixedUpdateOrientation(collProvider, undispPos, _samplingData);
+
+        collProvider.ReturnSamplingData(_samplingData);
+
+        UnityEngine.Profiling.Profiler.EndSample();
     }
 
     /// <summary>
     /// Align to water normal. One normal by default, but can use a separate normal based on boat length vs width. This gives
     /// varying rotations based on boat dimensions.
     /// </summary>
-    void FixedUpdateOrientation(ICollProvider collProvider, Vector3 undisplacedPos)
+    void FixedUpdateOrientation(ICollProvider collProvider, Vector3 undisplacedPos, SamplingData i_samplingData)
     {
         Vector3 normal, normalLongitudinal;
-        if (!collProvider.SampleNormal(ref undisplacedPos, out normal, _boatWidth))
+        if (!collProvider.SampleNormal(ref undisplacedPos, i_samplingData, out normal))
         {
             normal = Vector3.up;
         }

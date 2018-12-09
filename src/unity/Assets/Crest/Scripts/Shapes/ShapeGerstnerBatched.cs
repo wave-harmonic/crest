@@ -400,6 +400,18 @@ namespace Crest
             return true;
         }
 
+        public bool GetSamplingData(ref Rect i_displacedSamplingArea, float i_minSpatialLength, SamplingData o_samplingData2)
+        {
+            // We're not bothered with areas as the waves are infinite, so just store the min wavelength.
+            o_samplingData2._minSpatialLength = i_minSpatialLength;
+            return true;
+        }
+
+        public void ReturnSamplingData(SamplingData o_data)
+        {
+            o_data._minSpatialLength = -1f;
+        }
+
         public bool PrewarmForSamplingArea(Rect areaXZ)
         {
             // We're not bothered with areas as the waves are infinite, so just reset the cached min wavelength.
@@ -480,6 +492,11 @@ namespace Crest
             return true;
         }
 
+        public bool ComputeUndisplacedPosition(ref Vector3 i_worldPos, SamplingData i_samplingData, out Vector3 undisplacedWorldPos)
+        {
+            return ComputeUndisplacedPosition(ref i_worldPos, out undisplacedWorldPos, i_samplingData._minSpatialLength);
+        }
+
         public bool SampleDisplacementInArea(ref Vector3 i_worldPos, out Vector3 o_displacement)
         {
             return SampleDisplacement(ref i_worldPos, out o_displacement, _minSpatialLengthForArea);
@@ -514,6 +531,21 @@ namespace Crest
             {
                 OceanRenderer.Instance._lodDataAnimWaves.RemoveGerstnerComponent(this);
             }
+        }
+
+        public void SampleDisplacementVel(ref Vector3 i_worldPos, SamplingData i_samplingData, out Vector3 o_displacement, out bool o_displacementValid, out Vector3 o_displacementVel, out bool o_velValid)
+        {
+            SampleDisplacementVel(ref i_worldPos, out o_displacement, out o_displacementValid, out o_displacementVel, out o_velValid, i_samplingData._minSpatialLength);
+        }
+
+        public bool SampleNormal(ref Vector3 i_undisplacedWorldPos, SamplingData i_samplingData, out Vector3 o_normal)
+        {
+            return SampleNormal(ref i_undisplacedWorldPos, out o_normal, i_samplingData._minSpatialLength);
+        }
+
+        public bool SampleDisplacement(ref Vector3 i_worldPos, SamplingData i_samplingData, out Vector3 o_displacement)
+        {
+            return SampleDisplacement(ref i_worldPos, out o_displacement, i_samplingData._minSpatialLength);
         }
     }
 }

@@ -31,16 +31,28 @@ namespace Crest
         ValidationFailed,
     }
 
+    public class SamplingData
+    {
+        //public int _lodIndex = -1;
+        //public int _firstComponentIndex = -1;
+        public object _tag = null;
+        public float _minSpatialLength = -1f;
+    }
     /// <summary>
     /// Interface for an object that returns ocean surface displacement and height.
     /// </summary>
     public interface ICollProvider
     {
+        bool GetSamplingData(ref Rect i_displacedSamplingArea, float i_minSpatialLength, SamplingData o_samplingData);
+        void ReturnSamplingData(SamplingData o_data);
+
         /// <summary>
         /// Samples displacement of ocean surface from the given world position.
         /// </summary>
+        bool SampleDisplacement(ref Vector3 i_worldPos, SamplingData i_samplingData, out Vector3 o_displacement);
         bool SampleDisplacement(ref Vector3 i_worldPos, out Vector3 o_displacement, float minSpatialLength = 0f);
         void SampleDisplacementVel(ref Vector3 i_worldPos, out Vector3 o_displacement, out bool o_displacementValid, out Vector3 o_displacementVel, out bool o_velValid, float minSpatialLength = 0f);
+        void SampleDisplacementVel(ref Vector3 i_worldPos, SamplingData i_samplingData, out Vector3 o_displacement, out bool o_displacementValid, out Vector3 o_displacementVel, out bool o_velValid);
 
         /// <summary>
         /// Samples ocean surface height at given world position.
@@ -50,11 +62,13 @@ namespace Crest
         /// <summary>
         /// Sample ocean normal at an undisplaced world position.
         /// </summary>
-        bool SampleNormal(ref Vector3 in__undisplacedWorldPos, out Vector3 o_normal, float minSpatialLength = 0f);
+        bool SampleNormal(ref Vector3 i_undisplacedWorldPos, out Vector3 o_normal, float minSpatialLength = 0f);
+        bool SampleNormal(ref Vector3 i_undisplacedWorldPos, SamplingData i_samplingData, out Vector3 o_normal);
 
         /// <summary>
         /// Computes the position which will be displaced to the given world position.
         /// </summary>
+        bool ComputeUndisplacedPosition(ref Vector3 i_worldPos, SamplingData i_samplingData, out Vector3 undisplacedWorldPos);
         bool ComputeUndisplacedPosition(ref Vector3 i_worldPos, out Vector3 undisplacedWorldPos, float minSpatialLength = 0f);
 
         /// <summary>
@@ -75,10 +89,10 @@ namespace Crest
         /// <summary>
         /// Some collision providers benefit from getting prewarmed - call this after setting up a sampling area using the Prewarm function.
         /// </summary>
-        bool SampleNormalInArea(ref Vector3 in__undisplacedWorldPos, out Vector3 o_normal);
+        bool SampleNormalInArea(ref Vector3 i_undisplacedWorldPos, out Vector3 o_normal);
 
         // NOTE: These 'InArea' variants cannot exist because these perform a dynamic search and the area cannot be predicted in advance
-        //bool SampleNormalInArea(ref Vector3 in__undisplacedWorldPos, out Vector3 o_normal);
+        //bool SampleNormalInArea(ref Vector3 i_undisplacedWorldPos, out Vector3 o_normal);
         //bool ComputeUndisplacedPositionInArea(ref Vector3 i_worldPos, out Vector3 undisplacedWorldPos);
 
         AvailabilityResult CheckAvailability(ref Vector3 i_worldPos, float minSpatialLength);

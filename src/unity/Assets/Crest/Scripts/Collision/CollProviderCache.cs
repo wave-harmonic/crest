@@ -38,10 +38,10 @@ namespace Crest
             _waterHeightCache.Clear();
         }
 
-        uint CalcHash(ref Vector3 i_wp)
+        uint CalcHash(ref Vector3 in__wp)
         {
-            int x = (int)(i_wp.x * _cacheBucketSizeRecip);
-            int z = (int)(i_wp.z * _cacheBucketSizeRecip);
+            int x = (int)(in__wp.x * _cacheBucketSizeRecip);
+            int z = (int)(in__wp.z * _cacheBucketSizeRecip);
             return (uint)(x + 32768 + ((z + 32768) << 16));
         }
 
@@ -65,9 +65,9 @@ namespace Crest
             return _collProvider.SampleDisplacementInArea(ref i_worldPos, out o_displacement);
         }
 
-        public bool SampleNormal(ref Vector3 i_undisplacedWorldPos, out Vector3 o_normal, float minSpatialLength)
+        public bool SampleNormal(ref Vector3 in__undisplacedWorldPos, out Vector3 o_normal, float minSpatialLength)
         {
-            return _collProvider.SampleNormal(ref i_undisplacedWorldPos, out o_normal, minSpatialLength);
+            return _collProvider.SampleNormal(ref in__undisplacedWorldPos, out o_normal, minSpatialLength);
         }
 
         public bool ComputeUndisplacedPosition(ref Vector3 i_worldPos, out Vector3 undisplacedWorldPos, float minSpatialLength)
@@ -104,44 +104,14 @@ namespace Crest
             return success;
         }
 
-        public bool SampleNormalInArea(ref Vector3 i_undisplacedWorldPos, out Vector3 o_normal)
+        public bool SampleNormalInArea(ref Vector3 in__undisplacedWorldPos, out Vector3 o_normal)
         {
-            return _collProvider.SampleNormalInArea(ref i_undisplacedWorldPos, out o_normal);
+            return _collProvider.SampleNormalInArea(ref in__undisplacedWorldPos, out o_normal);
         }
 
         public AvailabilityResult CheckAvailability(ref Vector3 i_worldPos, float minSpatialLength)
         {
             return _collProvider.CheckAvailability(ref i_worldPos, minSpatialLength);
-        }
-
-        public bool GetSamplingData(ref Rect i_displacedSamplingArea, float i_minSpatialLength, SamplingData o_samplingData)
-        {
-            return _collProvider.GetSamplingData(ref i_displacedSamplingArea, i_minSpatialLength, o_samplingData);
-        }
-
-        public void ReturnSamplingData(SamplingData o_data)
-        {
-            _collProvider.ReturnSamplingData(o_data);
-        }
-
-        public bool ComputeUndisplacedPosition(ref Vector3 i_worldPos, SamplingData i_samplingData, out Vector3 undisplacedWorldPos)
-        {
-            return _collProvider.ComputeUndisplacedPosition(ref i_worldPos, i_samplingData, out undisplacedWorldPos);
-        }
-
-        public void SampleDisplacementVel(ref Vector3 i_worldPos, SamplingData i_samplingData, out Vector3 o_displacement, out bool o_displacementValid, out Vector3 o_displacementVel, out bool o_velValid)
-        {
-            _collProvider.SampleDisplacementVel(ref i_worldPos, i_samplingData, out o_displacement, out o_displacementValid, out o_displacementVel, out o_velValid);
-        }
-
-        public bool SampleNormal(ref Vector3 i_undisplacedWorldPos, SamplingData i_samplingData, out Vector3 o_normal)
-        {
-            return _collProvider.SampleNormal(ref i_undisplacedWorldPos, i_samplingData, out o_normal);
-        }
-
-        public bool SampleDisplacement(ref Vector3 i_worldPos, SamplingData i_samplingData, out Vector3 o_displacement)
-        {
-            return _collProvider.SampleDisplacement(ref i_worldPos, i_samplingData, out o_displacement);
         }
 
         public int CacheChecks { get { return _cacheChecksLastFrame; } }

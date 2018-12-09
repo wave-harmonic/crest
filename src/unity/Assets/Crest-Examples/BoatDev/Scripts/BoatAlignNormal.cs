@@ -3,6 +3,9 @@
 using UnityEngine;
 using Crest;
 
+/// <summary>
+/// Simple type of buoyancy - takes one sample and matches boat height and orientation to water height and normal.
+/// </summary>
 public class BoatAlignNormal : MonoBehaviour
 {
     [Header("Buoyancy Force")]

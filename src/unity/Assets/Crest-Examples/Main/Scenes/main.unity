@@ -155,7 +155,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _showSimTargets: 1
   _guiVisible: 1
-  _oceanMaterialAsset: Assets/Crest/Materials/Ocean.mat
 --- !u!20 &227134469
 Camera:
   m_ObjectHideFlags: 0
@@ -961,32 +960,6 @@ Prefab:
     - target: {fileID: 4317204734693030, guid: d954bade270d6474e8d7b513f76b114c, type: 2}
       propertyPath: m_RootOrder
       value: 3
-      objectReference: {fileID: 0}
-    - target: {fileID: 114280736342770890, guid: d954bade270d6474e8d7b513f76b114c,
-        type: 2}
-      propertyPath: _debugDraw
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4317204734693030, guid: d954bade270d6474e8d7b513f76b114c, type: 2}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 109.77
-      objectReference: {fileID: 0}
-    - target: {fileID: 114280736342770890, guid: d954bade270d6474e8d7b513f76b114c,
-        type: 2}
-      propertyPath: _playerControlled
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4317204734693030, guid: d954bade270d6474e8d7b513f76b114c, type: 2}
-      propertyPath: m_LocalScale.x
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 4317204734693030, guid: d954bade270d6474e8d7b513f76b114c, type: 2}
-      propertyPath: m_LocalScale.z
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 1890078257128186, guid: d954bade270d6474e8d7b513f76b114c, type: 2}
-      propertyPath: m_Name
-      value: RowBoat
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: d954bade270d6474e8d7b513f76b114c, type: 2}

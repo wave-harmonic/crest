@@ -17,6 +17,10 @@ public class BoatAlignNormal : MonoBehaviour
     public float BoatWidth { get { return _boatWidth; } }
 
     Rigidbody _rb;
+    [SerializeField, Tooltip("Computes a separate normal based on boat length to get more accurate orientations, at the cost of an extra collision sample.")]
+    bool _useBoatLength = false;
+    [Tooltip("Length dimension of boat. Only used if Use Boat Length is enabled."), SerializeField]
+    float _boatLength = 3f;
 
     [SerializeField] float _dragInWaterUp = 3f;
     [SerializeField] float _dragInWaterRight = 2f;
@@ -108,13 +112,6 @@ public class BoatAlignNormal : MonoBehaviour
                 new Color(1, 1, 1, 0.6f));
         }
 
-        Vector3 normal;
-        if (!collProvider.SampleNormal(ref undispPos, out normal, _boatWidth))
-        {
-            normal = Vector3.up;
-        }
-        if(_debugDraw) Debug.DrawLine(transform.position, transform.position + 5f * normal, Color.green);
-
         _velocityRelativeToWater = _rb.velocity - waterSurfaceVel;
 
         var dispPos = undispPos + _displacementToBoat;
@@ -148,18 +145,55 @@ public class BoatAlignNormal : MonoBehaviour
         if(_playerControlled ) sideways += (Input.GetKey(KeyCode.A) ? -1f : 0f) + (Input.GetKey(KeyCode.D) ? 1f : 0f);
         _rb.AddTorque(transform.up * _turnPower * sideways, ForceMode.Acceleration);
 
-        // align to normal
-        var current = transform.up;
-        var target = normal;
-        var torque = Vector3.Cross(current, target);
-        _rb.AddTorque(torque * _boyancyTorque, ForceMode.Acceleration);
+        FixedUpdateOrientation(collProvider, undispPos);
+    }
+
+    /// <summary>
+    /// Align to water normal. One normal by default, but can use a separate normal based on boat length vs width. This gives
+    /// varying rotations based on boat dimensions.
+    /// </summary>
+    void FixedUpdateOrientation(ICollProvider collProvider, Vector3 undisplacedPos)
+    {
+        Vector3 normal, normalLongitudinal;
+        if (!collProvider.SampleNormal(ref undisplacedPos, out normal, _boatWidth))
+        {
+            normal = Vector3.up;
+        }
+
+        if (_useBoatLength && collProvider.SampleNormal(ref undisplacedPos, out normalLongitudinal, _boatLength))
+        {
+            var F = transform.forward;
+            F.y = 0f;
+            F.Normalize();
+            normal -= Vector3.Dot(F, normal) * F;
+
+            var R = transform.right;
+            R.y = 0f;
+            R.Normalize();
+            normalLongitudinal -= Vector3.Dot(R, normalLongitudinal) * R;
+        }
+        else
+        {
+            normalLongitudinal = Vector3.up;
+        }
+
+        if (_debugDraw) Debug.DrawLine(transform.position, transform.position + 5f * normal, Color.green);
+        if (_debugDraw && _useBoatLength) Debug.DrawLine(transform.position, transform.position + 5f * normalLongitudinal, Color.green);
+
+        var torqueWidth = Vector3.Cross(transform.up, normal);
+        _rb.AddTorque(torqueWidth * _boyancyTorque, ForceMode.Acceleration);
+        if (_useBoatLength)
+        {
+            var torqueLength = Vector3.Cross(transform.up, normalLongitudinal);
+            _rb.AddTorque(torqueLength * _boyancyTorque, ForceMode.Acceleration);
+        }
     }
 
 #if UNITY_EDITOR
-    private void Update()
-    {
-        //UpdateDebugDrawSurroundingColl();
-    }
+    //private void Update()
+    //{
+    //    UpdateDebugDrawSurroundingColl();
+    //}
 
     private void UpdateDebugDrawSurroundingColl()
     {

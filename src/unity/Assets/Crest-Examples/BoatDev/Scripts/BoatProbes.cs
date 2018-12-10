@@ -63,10 +63,10 @@ public class BoatProbes : MonoBehaviour
         if(collProvider.GetSamplingData(ref thisRect, _minSpatialLength, _samplingData))
         {
             FixedUpdateBuoyancy(collProvider);
+            FixedUpdateDrag();
         }
 
         FixedUpdateEngine();
-        FixedUpdateDrag();
 
         collProvider.ReturnSamplingData(_samplingData);
     }
@@ -124,7 +124,7 @@ public class BoatProbes : MonoBehaviour
 
         var pos = _rb.position;
         Vector3 undispPos;
-        if (!collProvider.ComputeUndisplacedPosition(ref pos, out undispPos, _minSpatialLength))
+        if (!collProvider.ComputeUndisplacedPosition(ref pos, _samplingData, out undispPos))
         {
             // If we couldn't get wave shape, assume flat water at sea level
             undispPos = pos;
@@ -134,7 +134,7 @@ public class BoatProbes : MonoBehaviour
         Vector3 displacement;
         var waterSurfaceVel = Vector3.zero;
         bool dispValid, velValid;
-        collProvider.SampleDisplacementVel(ref undispPos, out displacement, out dispValid, out waterSurfaceVel, out velValid, _minSpatialLength);
+        collProvider.SampleDisplacementVel(ref undispPos, _samplingData, out displacement, out dispValid, out waterSurfaceVel, out velValid);
 
         var _velocityRelativeToWater = _rb.velocity - waterSurfaceVel;
 

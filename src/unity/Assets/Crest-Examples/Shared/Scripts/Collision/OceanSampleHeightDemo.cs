@@ -8,21 +8,30 @@ using Crest;
 /// </summary>
 public class OceanSampleHeightDemo : MonoBehaviour
 {
-	void Update()
-    {
-        // If you are taking multiple samples over an area, setup up the collision sampling state first by calling
-        // PrewarmForSamplingArea().
+    SamplingData _samplingData;
 
-        // Assume a primitive like a sphere or box, providing this side length means high frequency waves
-        // much shorter than the object will be ignored.
-        float shapeLength = 2f * transform.lossyScale.magnitude;
+    private void Start()
+    {
+        _samplingData = new SamplingData();
+    }
+
+    void Update()
+    {
+        // Assume a primitive like a sphere or box.
+        var r = transform.lossyScale.magnitude;
+
+        var collProvider = OceanRenderer.Instance.CollisionProvider;
+        var rect = new Rect(new Vector2(transform.position.x - r, transform.position.z - r), 2f * r * Vector2.one);
+        collProvider.GetSamplingData(ref rect, 2f * r, _samplingData);
 
         var pos = transform.position;
         float height;
-        if (OceanRenderer.Instance.CollisionProvider.SampleHeight(ref pos, out height, shapeLength))
+        if (OceanRenderer.Instance.CollisionProvider.SampleHeight(ref pos, _samplingData, out height))
         {
             pos.y = height;
             transform.position = pos;
         }
+
+        collProvider.ReturnSamplingData(_samplingData);
     }
 }

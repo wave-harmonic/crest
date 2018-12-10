@@ -58,12 +58,14 @@ public class BoatAlignNormal : MonoBehaviour
     public Vector3 DisplacementToBoat { get { return _displacementToBoat; } }
 
     Rigidbody _rb;
-    SamplingData _samplingData;
+    SamplingData _samplingData, _samplingDataLengthWise;
 
     void Start()
     {
         _rb = GetComponent<Rigidbody>();
+
         _samplingData = new SamplingData();
+        _samplingDataLengthWise = new SamplingData();
 
         if (OceanRenderer.Instance == null)
         {
@@ -165,7 +167,7 @@ public class BoatAlignNormal : MonoBehaviour
         if(_playerControlled ) sideways += (Input.GetKey(KeyCode.A) ? -1f : 0f) + (Input.GetKey(KeyCode.D) ? 1f : 0f);
         _rb.AddTorque(transform.up * _turnPower * sideways, ForceMode.Acceleration);
 
-        FixedUpdateOrientation(collProvider, undispPos, _samplingData);
+        FixedUpdateOrientation(collProvider, undispPos);
 
         collProvider.ReturnSamplingData(_samplingData);
 
@@ -176,29 +178,34 @@ public class BoatAlignNormal : MonoBehaviour
     /// Align to water normal. One normal by default, but can use a separate normal based on boat length vs width. This gives
     /// varying rotations based on boat dimensions.
     /// </summary>
-    void FixedUpdateOrientation(ICollProvider collProvider, Vector3 undisplacedPos, SamplingData i_samplingData)
+    void FixedUpdateOrientation(ICollProvider collProvider, Vector3 undisplacedPos)
     {
-        Vector3 normal, normalLongitudinal;
-        if (!collProvider.SampleNormal(ref undisplacedPos, i_samplingData, out normal))
+        Vector3 normal, normalLongitudinal = Vector3.up;
+        if (!collProvider.SampleNormal(ref undisplacedPos, _samplingData, out normal))
         {
             normal = Vector3.up;
         }
 
-        if (_useBoatLength && collProvider.SampleNormal(ref undisplacedPos, out normalLongitudinal, _boatLength))
+        if (_useBoatLength)
         {
-            var F = transform.forward;
-            F.y = 0f;
-            F.Normalize();
-            normal -= Vector3.Dot(F, normal) * F;
+            // Compute a new sampling data that takes into account the boat length (as opposed to boat width)
+            var thisRect = new Rect(transform.position.x, transform.position.z, 0f, 0f);
+            collProvider.GetSamplingData(ref thisRect, _boatLength, _samplingDataLengthWise);
 
-            var R = transform.right;
-            R.y = 0f;
-            R.Normalize();
-            normalLongitudinal -= Vector3.Dot(R, normalLongitudinal) * R;
-        }
-        else
-        {
-            normalLongitudinal = Vector3.up;
+            if (collProvider.SampleNormal(ref undisplacedPos, _samplingDataLengthWise, out normalLongitudinal))
+            {
+                var F = transform.forward;
+                F.y = 0f;
+                F.Normalize();
+                normal -= Vector3.Dot(F, normal) * F;
+
+                var R = transform.right;
+                R.y = 0f;
+                R.Normalize();
+                normalLongitudinal -= Vector3.Dot(R, normalLongitudinal) * R;
+            }
+
+            collProvider.ReturnSamplingData(_samplingDataLengthWise);
         }
 
         if (_debugDraw) Debug.DrawLine(transform.position, transform.position + 5f * normal, Color.green);
@@ -221,8 +228,16 @@ public class BoatAlignNormal : MonoBehaviour
 
     private void UpdateDebugDrawSurroundingColl()
     {
-        float r = 5f;
-        float steps = 10;
+        var r = 5f;
+        var steps = 10;
+
+        var collProvider = OceanRenderer.Instance.CollisionProvider;
+        var thisRect = new Rect(transform.position.x - r * steps / 2f, transform.position.z - r * steps / 2f, r * steps / 2f, r * steps / 2f);
+        if (!collProvider.GetSamplingData(ref thisRect, _boatWidth, _samplingData))
+        {
+            return;
+        }
+
         for (float i = 0; i < steps; i++)
         {
             for (float j = 0; j < steps; j++)
@@ -232,7 +247,7 @@ public class BoatAlignNormal : MonoBehaviour
                 pos.z += transform.position.z;
 
                 Vector3 disp;
-                if (OceanRenderer.Instance.CollisionProvider.SampleDisplacement(ref pos, out disp, _boatWidth))
+                if (collProvider.SampleDisplacement(ref pos, _samplingData, out disp))
                 {
                     DebugDrawCross(pos + disp, 1f, Color.green);
                 }
@@ -242,6 +257,8 @@ public class BoatAlignNormal : MonoBehaviour
                 }
             }
         }
+
+        collProvider.ReturnSamplingData(_samplingData);
     }
 #endif
 

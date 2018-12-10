@@ -59,8 +59,8 @@ All settings can be live authored. When tweaking ocean shape it can be useful to
 
 There are just two parameters that control the construction of the ocean shape and geometry:
 
-* **Base Vert density** - the base vert/shape texel density of an ocean patch. If you set the scale of a LOD to 1, this density would be the world space verts/m. More means more verts/shape, at the cost of more processing.
-* **Lod Count** - the number of levels of detail / scales of ocean geometry to generate. More means more dynamic range of usable shape/mesh at the cost of more processing.
+* **Base Vert density** - the base vert/shape texel density of the ocean. Higher values give more detail on the ocean surface at the cost of more processing time on the GPU.
+* **Lod Count** - the number of levels of detail / scales of ocean geometry to generate. The horizontal range of the ocean surface doubles for each added LOD, while GPU processing time increases linearly. It can be useful to select the ocean in the scene view while running in editor to inspect where LODs are present.
 
 ## Global Parameters
 

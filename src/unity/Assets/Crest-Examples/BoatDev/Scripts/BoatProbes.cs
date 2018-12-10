@@ -33,6 +33,7 @@ public class BoatProbes : MonoBehaviour
 
     Rigidbody _rb;
     SamplingData _samplingData;
+    Rect _localSamplingAABB;
 
     private void Start()
     {
@@ -46,6 +47,8 @@ public class BoatProbes : MonoBehaviour
             enabled = false;
             return;
         }
+
+        _localSamplingAABB = ComputeLocalSamplingAABB();
     }
 
     private void FixedUpdate()
@@ -55,8 +58,8 @@ public class BoatProbes : MonoBehaviour
             GPUReadbackDisps.Instance.ProcessRequests();
         }
 
+        Rect thisRect = GetWorldAABB();
         var collProvider = OceanRenderer.Instance.CollisionProvider;
-        Rect thisRect = new Rect(transform.position.x - 10f, transform.position.z - 10f, 20f, 20f);
         if(collProvider.GetSamplingData(ref thisRect, _minSpatialLength, _samplingData))
         {
             FixedUpdateBuoyancy(collProvider);
@@ -155,6 +158,33 @@ public class BoatProbes : MonoBehaviour
             Gizmos.color = Color.red;
             Gizmos.DrawCube(transformedPoint, Vector3.one * 0.5f);
         }
+    }
+
+    Rect ComputeLocalSamplingAABB()
+    {
+        if (ForcePoints.Length == 0) return new Rect();
+
+        float xmin = ForcePoints[0]._offsetPosition.x;
+        float zmin = ForcePoints[0]._offsetPosition.z;
+        float xmax = xmin, zmax = zmin;
+        for (int i = 1; i < ForcePoints.Length; i++)
+        {
+            float x = ForcePoints[i]._offsetPosition.x, z = ForcePoints[i]._offsetPosition.z;
+            xmin = Mathf.Min(xmin, x); xmax = Mathf.Max(xmax, x);
+            zmin = Mathf.Min(zmin, z); zmax = Mathf.Max(zmax, z);
+        }
+
+        return Rect.MinMaxRect(xmin, zmin, xmax, zmax);
+    }
+
+    Rect GetWorldAABB()
+    {
+        Bounds b = new Bounds(transform.position, Vector3.one);
+        b.Encapsulate(transform.TransformPoint(new Vector3(_localSamplingAABB.xMin, 0f, _localSamplingAABB.yMin)));
+        b.Encapsulate(transform.TransformPoint(new Vector3(_localSamplingAABB.xMin, 0f, _localSamplingAABB.yMax)));
+        b.Encapsulate(transform.TransformPoint(new Vector3(_localSamplingAABB.xMax, 0f, _localSamplingAABB.yMin)));
+        b.Encapsulate(transform.TransformPoint(new Vector3(_localSamplingAABB.xMax, 0f, _localSamplingAABB.yMax)));
+        return Rect.MinMaxRect(b.min.x, b.min.z, b.max.x, b.max.z);
     }
 }
 

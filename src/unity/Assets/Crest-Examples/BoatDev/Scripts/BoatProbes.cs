@@ -5,7 +5,6 @@
 using Crest;
 using System;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 /// <summary>
 /// Boat physics by sampling at multiple probe points.
@@ -163,7 +162,5 @@ public class BoatProbes : MonoBehaviour
 public class FloaterForcePoints
 {
     public float _factor = 1f;
-
-    [FormerlySerializedAs("_offSetPosition")]
     public Vector3 _offsetPosition;
 }

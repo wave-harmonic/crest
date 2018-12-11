@@ -234,7 +234,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1371779553471058}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 49.3, y: 0, z: -21.3}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 4559169209441218}
@@ -494,37 +494,37 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _centerOfMass: {x: 0, y: -1, z: 0}
   ForcePoints:
-  - Factor: 1
-    OffSetPosition: {x: -2.5, y: 0, z: 6}
-  - Factor: 1
-    OffSetPosition: {x: 0, y: 0, z: 6}
-  - Factor: 1
-    OffSetPosition: {x: 2.5, y: 0, z: 6}
-  - Factor: 1
-    OffSetPosition: {x: -2.5, y: 0, z: 2}
-  - Factor: 1
-    OffSetPosition: {x: 0, y: 0, z: 2}
-  - Factor: 1
-    OffSetPosition: {x: 2.5, y: 0, z: 2}
-  - Factor: 1
-    OffSetPosition: {x: -2.5, y: 0, z: -2}
-  - Factor: 1
-    OffSetPosition: {x: 0, y: 0, z: -2}
-  - Factor: 1
-    OffSetPosition: {x: 2, y: 0, z: -2}
-  - Factor: 1
-    OffSetPosition: {x: -2.5, y: 0, z: -6}
-  - Factor: 1
-    OffSetPosition: {x: 0, y: 0, z: -6}
-  - Factor: 1
-    OffSetPosition: {x: 2.5, y: 0, z: -6}
+  - _factor: 1
+    _offsetPosition: {x: -2.5, y: 0, z: 6}
+  - _factor: 1
+    _offsetPosition: {x: 0, y: 0, z: 6}
+  - _factor: 1
+    _offsetPosition: {x: 2.5, y: 0, z: 6}
+  - _factor: 1
+    _offsetPosition: {x: -2.5, y: 0, z: 2}
+  - _factor: 1
+    _offsetPosition: {x: 0, y: 0, z: 2}
+  - _factor: 1
+    _offsetPosition: {x: 2.5, y: 0, z: 2}
+  - _factor: 1
+    _offsetPosition: {x: -2.5, y: 0, z: -2}
+  - _factor: 1
+    _offsetPosition: {x: 0, y: 0, z: -2}
+  - _factor: 1
+    _offsetPosition: {x: 2, y: 0, z: -2}
+  - _factor: 1
+    _offsetPosition: {x: -2.5, y: 0, z: -6}
+  - _factor: 1
+    _offsetPosition: {x: 0, y: 0, z: -6}
+  - _factor: 1
+    _offsetPosition: {x: 2.5, y: 0, z: -6}
   _forceHeightOffset: 0
-  _minSpatialLength: 24
   _forceMultiplier: 0.5
+  _minSpatialLength: 24
   _dragInWaterUp: 3
   _dragInWaterRight: 4
   _dragInWaterForward: 0.5
-  _playerControlled: 1
+  _playerControlled: 0
   EnginePower: 3.5
   TurnPower: 0.5
 --- !u!136 &136924487614729660

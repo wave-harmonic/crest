@@ -4,6 +4,9 @@ using UnityEngine;
 
 namespace Crest
 {
+    /// <summary>
+    /// Collision diagnostics result.
+    /// </summary>
     public enum AvailabilityResult
     {
         /// <summary>
@@ -31,6 +34,9 @@ namespace Crest
         ValidationFailed,
     }
 
+    /// <summary>
+    /// Sampling state used to speed up queries.
+    /// </summary>
     public class SamplingData
     {
         public object _tag = null;
@@ -42,7 +48,17 @@ namespace Crest
     /// </summary>
     public interface ICollProvider
     {
+        /// <summary>
+        /// Computes sampling state.
+        /// </summary>
+        /// <param name="i_displacedSamplingArea">The XZ rect in world space that bounds any collision queries.</param>
+        /// <param name="i_minSpatialLength">Minimum width or length that we care about. Used to filter out high frequency waves as an optimisation.</param>
+        /// <param name="o_samplingData">Result. Needs to be new'd in advance - passing a null pointer is not valid.</param>
         bool GetSamplingData(ref Rect i_displacedSamplingArea, float i_minSpatialLength, SamplingData o_samplingData);
+
+        /// <summary>
+        /// Clear sampling data state, call this when done with a state.
+        /// </summary>
         void ReturnSamplingData(SamplingData i_data);
 
         /// <summary>
@@ -66,6 +82,9 @@ namespace Crest
         /// </summary>
         bool ComputeUndisplacedPosition(ref Vector3 i_worldPos, SamplingData i_samplingData, out Vector3 undisplacedWorldPos);
 
+        /// <summary>
+        /// Run diagnostics at a position.
+        /// </summary>
         AvailabilityResult CheckAvailability(ref Vector3 i_worldPos, SamplingData i_samplingData);
     }
 }

@@ -2,6 +2,9 @@
 
 namespace Crest
 {
+    /// <summary>
+    /// Gives a flat, still ocean.
+    /// </summary>
     public class CollProviderNull : ICollProvider
     {
         public AvailabilityResult CheckAvailability(ref Vector3 i_worldPos, SamplingData i_samplingData)

@@ -128,8 +128,25 @@ half3 ScatterColour(
 
 
 #if _CAUSTICS_ON
-void ApplyCaustics(in const half3 i_view, in const half3 i_lightDir, in const float i_sceneZ, in sampler2D i_normals, inout half3 io_sceneColour)
+void ApplyCaustics(in const half3 i_view, in const half3 i_lightDir, in const float i_sceneZ, in sampler2D i_normals
+	#if _FLOW_ON
+	, in const half2 i_flow
+	#endif // _FLOW_ON
+	, inout half3 io_sceneColour)
 {
+	float sample1_offset = 0., sample2_offset = 0.;
+	float sample1_weight = 0.5, sample2_weight = 0.5;
+
+#if _FLOW_ON
+	const float half_period = 1;
+	const float period = half_period * 2;
+	sample1_offset = fmod(_CrestTime, period);
+	sample1_weight = sample1_offset / half_period;
+	if (sample1_weight > 1.0) sample1_weight = 2.0 - sample1_weight;
+	sample2_offset = fmod(_CrestTime + half_period, period);
+	sample2_weight = 1.0 - sample1_weight;
+#endif // _FLOW_ON
+
 	// could sample from the screen space shadow texture to attenuate this..
 	// underwater caustics - dedicated to P
 	float3 camForward = mul((float3x3)unity_CameraToWorld, float3(0., 0., 1.));
@@ -145,9 +162,9 @@ void ApplyCaustics(in const half3 i_view, in const half3 i_lightDir, in const fl
 	// project along light dir, but multiply by a fudge factor reduce the angle bit - compensates for fact that in real life
 	// caustics come from many directions and don't exhibit such a strong directonality
 	float2 surfacePosXZ = scenePos.xz + i_lightDir.xz * sceneDepth / (4.*i_lightDir.y);
-	half2 causticN = _CausticsDistortionStrength * UnpackNormal(tex2D(i_normals, surfacePosXZ / _CausticsDistortionScale)).xy;
-	half4 cuv1 = half4((surfacePosXZ / _CausticsTextureScale + 1.3 *causticN + half2(0.044*_CrestTime + 17.16, -0.169*_CrestTime)), 0., bias);
-	half4 cuv2 = half4((1.37*surfacePosXZ / _CausticsTextureScale + 1.77*causticN + half2(0.248*_CrestTime, 0.117*_CrestTime)), 0., bias);
+	half2 causticN = _CausticsDistortionStrength * UnpackNormal(tex2D(i_normals, (surfacePosXZ- i_flow*_CrestTime) / _CausticsDistortionScale)).xy;
+	half4 cuv1 = half4(((surfacePosXZ-i_flow* sample1_offset) / _CausticsTextureScale + 1.3 *causticN + half2(0.044*_CrestTime + 17.16, -0.169*_CrestTime)), 0., bias);
+	half4 cuv2 = half4(((1.37*surfacePosXZ-i_flow*sample2_offset) / _CausticsTextureScale + 1.77*causticN + half2(0.248*_CrestTime, 0.117*_CrestTime)), 0., bias);
 
 	half causticsStrength = _CausticsStrength;
 #if _SHADOWS_ON
@@ -161,14 +178,18 @@ void ApplyCaustics(in const half3 i_view, in const half3 i_lightDir, in const fl
 #endif // _SHADOWS_ON
 
 	io_sceneColour *= 1. + causticsStrength *
-		(0.5*tex2Dbias(_CausticsTexture, cuv1).x + 0.5*tex2Dbias(_CausticsTexture, cuv2).x - _CausticsTextureAverage);
+		(sample1_weight*tex2Dbias(_CausticsTexture, cuv1).x + sample2_weight*tex2Dbias(_CausticsTexture, cuv2).x - _CausticsTextureAverage);
 }
 #endif // _CAUSTICS_ON
 
 
 half3 OceanEmission(in const half3 i_view, in const half3 i_n_pixel, in const float3 i_lightDir,
 	in const half4 i_grabPos, in const float i_pixelZ, in const half2 i_uvDepth, in const float i_sceneZ, in const float i_sceneZ01,
-	in const half3 i_bubbleCol, in sampler2D i_normals, in sampler2D i_cameraDepths, in const bool i_underwater, in const half3 i_scatterCol)
+	in const half3 i_bubbleCol, in sampler2D i_normals, in sampler2D i_cameraDepths, in const bool i_underwater, in const half3 i_scatterCol
+	#if _FLOW_ON
+	, in const float2 i_flow
+	#endif // _FLOW_ON
+	)
 {
 	half3 col = i_scatterCol;
 
@@ -204,7 +225,12 @@ half3 OceanEmission(in const half3 i_view, in const half3 i_n_pixel, in const fl
 			}
 
 #if _CAUSTICS_ON
-			ApplyCaustics(i_view, i_lightDir, i_sceneZ, i_normals, sceneColour);
+			ApplyCaustics(i_view, i_lightDir, i_sceneZ, i_normals
+				#if _FLOW_ON
+				, i_flow
+				#endif // _FLOW_ON
+				, sceneColour
+			);
 #endif
 		}
 

@@ -18,7 +18,7 @@ public class FeedVelocityToExtrude : MonoBehaviour {
     [Range(0f, 1f)]
     public float _noiseAmp = 0.5f;
 
-    [Range(0f, 20f)]
+    [Range(0f, 100f)]
     public float _weight = 6f;
     [Range(0f, 2f)]
     public float _weightUpDownMul = 0.5f;
@@ -85,7 +85,8 @@ public class FeedVelocityToExtrude : MonoBehaviour {
         {
             Vector2 surfaceFlow;
             Vector3 position = transform.position;
-            GPUReadbackFlow.Instance.SampleFlow(ref position, out surfaceFlow, _boat.BoatWidth);
+            float minLength = _boat ? _boat.BoatWidth : 2f * transform.lossyScale.magnitude;
+            GPUReadbackFlow.Instance.SampleFlow(ref position, out surfaceFlow, minLength);
             vel -= new Vector3(surfaceFlow.x, 0, surfaceFlow.y);
         }
         vel.y *= _weightUpDownMul;

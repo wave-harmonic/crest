@@ -45,5 +45,16 @@ namespace Crest
             }
             return data._resultData.SampleRG16(ref i_worldPos, out flow);
         }
+
+        public bool SampleFlow(ref Vector3 i_worldPos, SamplingData i_samplingData, out Vector2 flow)
+        {
+            var data = i_samplingData._tag as PerLodData;
+            if (data == null)
+            {
+                flow = Vector2.zero;
+                return false;
+            }
+            return data._resultData.SampleRG16(ref i_worldPos, out flow);
+        }
     }
 }

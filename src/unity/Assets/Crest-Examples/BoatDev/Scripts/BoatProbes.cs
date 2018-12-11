@@ -5,7 +5,6 @@
 using Crest;
 using System;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 /// <summary>
 /// Boat physics by sampling at multiple probe points.
@@ -33,17 +32,23 @@ public class BoatProbes : MonoBehaviour
     private const float WATER_DENSITY = 1000;
 
     Rigidbody _rb;
+    SamplingData _samplingData;
+    Rect _localSamplingAABB;
 
     private void Start()
     {
         _rb = GetComponent<Rigidbody>();
         _rb.centerOfMass = _centerOfMass;
 
+        _samplingData = new SamplingData();
+
         if (OceanRenderer.Instance == null)
         {
             enabled = false;
             return;
         }
+
+        _localSamplingAABB = ComputeLocalSamplingAABB();
     }
 
     private void FixedUpdate()
@@ -53,9 +58,17 @@ public class BoatProbes : MonoBehaviour
             GPUReadbackDisps.Instance.ProcessRequests();
         }
 
+        Rect thisRect = GetWorldAABB();
+        var collProvider = OceanRenderer.Instance.CollisionProvider;
+        if(collProvider.GetSamplingData(ref thisRect, _minSpatialLength, _samplingData))
+        {
+            FixedUpdateBuoyancy(collProvider);
+            FixedUpdateDrag();
+        }
+
         FixedUpdateEngine();
-        FixedUpdateBuoyancy();
-        FixedUpdateDrag();
+
+        collProvider.ReturnSamplingData(_samplingData);
     }
 
     void FixedUpdateEngine()
@@ -75,10 +88,9 @@ public class BoatProbes : MonoBehaviour
         _rb.AddTorque((transform.up + heel) * TurnPower * sideways, ForceMode.Acceleration);
     }
 
-    void FixedUpdateBuoyancy()
+    void FixedUpdateBuoyancy(ICollProvider collProvider)
     {
         float archimedesForceMagnitude = WATER_DENSITY * Mathf.Abs(Physics.gravity.y);
-        var collProvider = OceanRenderer.Instance.CollisionProvider;
 
         for (int i = 0; i < ForcePoints.Length; i++)
         {
@@ -86,28 +98,21 @@ public class BoatProbes : MonoBehaviour
             var transformedPoint = transform.TransformPoint(point._offsetPosition + new Vector3(0, _centerOfMass.y, 0));
 
             Vector3 undispPos;
-            if (!collProvider.ComputeUndisplacedPosition(ref transformedPoint, out undispPos, _minSpatialLength))
+            if (!collProvider.ComputeUndisplacedPosition(ref transformedPoint, _samplingData, out undispPos))
             {
                 // If we couldn't get wave shape, assume flat water at sea level
                 undispPos = transformedPoint;
                 undispPos.y = OceanRenderer.Instance.SeaLevel;
             }
 
-            var waterSurfaceVel = Vector3.zero;
+            Vector3 displaced;
+            collProvider.SampleDisplacement(ref undispPos, _samplingData, out displaced);
 
-            bool dispValid, velValid;
-            collProvider.SampleDisplacementVel(ref undispPos, out point._displaced, out dispValid, out waterSurfaceVel, out velValid, _minSpatialLength);
-
-            var dispPos = undispPos + point._displaced;
-
-            float height;
-            collProvider.SampleHeight(ref transformedPoint, out height, _minSpatialLength);
-
-            float distance = dispPos.y - transformedPoint.y;
-
-            if (height - transformedPoint.y > 0)
+            var dispPos = undispPos + displaced;
+            var heightDiff = dispPos.y - transformedPoint.y;
+            if (heightDiff > 0)
             {
-                _rb.AddForceAtPosition(archimedesForceMagnitude * distance * Vector3.up * point._factor * _forceMultiplier, transformedPoint);
+                _rb.AddForceAtPosition(archimedesForceMagnitude * heightDiff * Vector3.up * point._factor * _forceMultiplier, transformedPoint);
             }
         }
     }
@@ -119,7 +124,7 @@ public class BoatProbes : MonoBehaviour
 
         var pos = _rb.position;
         Vector3 undispPos;
-        if (!collProvider.ComputeUndisplacedPosition(ref pos, out undispPos, _minSpatialLength))
+        if (!collProvider.ComputeUndisplacedPosition(ref pos, _samplingData, out undispPos))
         {
             // If we couldn't get wave shape, assume flat water at sea level
             undispPos = pos;
@@ -129,7 +134,7 @@ public class BoatProbes : MonoBehaviour
         Vector3 displacement;
         var waterSurfaceVel = Vector3.zero;
         bool dispValid, velValid;
-        collProvider.SampleDisplacementVel(ref undispPos, out displacement, out dispValid, out waterSurfaceVel, out velValid, _minSpatialLength);
+        collProvider.SampleDisplacementVel(ref undispPos, _samplingData, out displacement, out dispValid, out waterSurfaceVel, out velValid);
 
         var _velocityRelativeToWater = _rb.velocity - waterSurfaceVel;
 
@@ -154,16 +159,38 @@ public class BoatProbes : MonoBehaviour
             Gizmos.DrawCube(transformedPoint, Vector3.one * 0.5f);
         }
     }
+
+    Rect ComputeLocalSamplingAABB()
+    {
+        if (ForcePoints.Length == 0) return new Rect();
+
+        float xmin = ForcePoints[0]._offsetPosition.x;
+        float zmin = ForcePoints[0]._offsetPosition.z;
+        float xmax = xmin, zmax = zmin;
+        for (int i = 1; i < ForcePoints.Length; i++)
+        {
+            float x = ForcePoints[i]._offsetPosition.x, z = ForcePoints[i]._offsetPosition.z;
+            xmin = Mathf.Min(xmin, x); xmax = Mathf.Max(xmax, x);
+            zmin = Mathf.Min(zmin, z); zmax = Mathf.Max(zmax, z);
+        }
+
+        return Rect.MinMaxRect(xmin, zmin, xmax, zmax);
+    }
+
+    Rect GetWorldAABB()
+    {
+        Bounds b = new Bounds(transform.position, Vector3.one);
+        b.Encapsulate(transform.TransformPoint(new Vector3(_localSamplingAABB.xMin, 0f, _localSamplingAABB.yMin)));
+        b.Encapsulate(transform.TransformPoint(new Vector3(_localSamplingAABB.xMin, 0f, _localSamplingAABB.yMax)));
+        b.Encapsulate(transform.TransformPoint(new Vector3(_localSamplingAABB.xMax, 0f, _localSamplingAABB.yMin)));
+        b.Encapsulate(transform.TransformPoint(new Vector3(_localSamplingAABB.xMax, 0f, _localSamplingAABB.yMax)));
+        return Rect.MinMaxRect(b.min.x, b.min.z, b.max.x, b.max.z);
+    }
 }
 
 [Serializable]
 public class FloaterForcePoints
 {
     public float _factor = 1f;
-
-    [FormerlySerializedAs("_offSetPosition")]
     public Vector3 _offsetPosition;
-
-    [NonSerialized]
-    public Vector3 _displaced;
 }

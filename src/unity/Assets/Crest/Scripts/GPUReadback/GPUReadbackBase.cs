@@ -434,9 +434,14 @@ namespace Crest
         /// <summary>
         /// Returns result of GPU readback of a LOD data. Do not hold onto the returned reference across frames.
         /// </summary>
-        /// <param name="sampleAreaXZ">The area of interest, can be 0 area.</param>
-        /// <param name="minSpatialLength">Min spatial length is the minimum side length that you care about. For e.g.
-        /// if a boat has dimensions 3m x 2m, set this to 2, and then suitable wavelengths will be preferred.</param>
+        protected PerLodData GetData(float gridSize)
+        {
+            return _perLodData[gridSize];
+        }
+
+        /// <summary>
+        /// Returns result of GPU readback of a LOD data. Do not hold onto the returned reference across frames.
+        /// </summary>
         protected PerLodData GetData(Rect sampleAreaXZ, float minSpatialLength)
         {
             PerLodData lastCandidate = null;
@@ -444,7 +449,6 @@ namespace Crest
             for (int i = 0; i < _perLodData.KeyArray.Length; i++)
             {
                 var lodData = _perLodData.ValueArray[i];
-
                 if (!lodData._activelyBeingRendered || lodData._resultData._time == -1f)
                 {
                     continue;
@@ -480,8 +484,10 @@ namespace Crest
             return lastCandidate;
         }
 
-        public AvailabilityResult CheckAvailability(ref Vector3 i_worldPos, float minSpatialLength)
+        public AvailabilityResult CheckAvailability(ref Vector3 i_worldPos, SamplingData i_samplingData)
         {
+            Debug.Assert(i_samplingData._minSpatialLength >= 0f && i_samplingData._tag != null);
+
             var sampleAreaXZ = new Rect(i_worldPos.x, i_worldPos.z, 0f, 0f);
 
             bool oneWasInRect = false;
@@ -509,7 +515,7 @@ namespace Crest
                 // The smallest wavelengths should repeat no more than twice across the smaller spatial length. Unless we're
                 // in the last LOD - then this is the best we can do.
                 float minWavelength = texelWidth * OceanRenderer.Instance._minTexelsPerWave;
-                if (minSpatialLength / minWavelength > 2f)
+                if (i_samplingData._minSpatialLength / minWavelength > 2f)
                 {
                     continue;
                 }

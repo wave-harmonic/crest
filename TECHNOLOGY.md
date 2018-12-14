@@ -175,9 +175,8 @@ The system does not support cross blending of multiple scripts.
 
 There are times when it is useful to mask out the ocean surface which prevents it drawing on some part of the screen.
 The scene *main.unity* in the example content has a rowboat which, without masking, would appear to be full of water.
-To prevent water appearing inside the boat, the *WaterMask* gameobject sets a value in the GPU's stencil buffer to disable drawing water inside the boat.
-The *RegisterMaskInput* component is required to ensure this mask draws before the ocean surface.
-Also, *Stencil Function* must be enabled on the ocean material.
+To prevent water appearing inside the boat, the *WaterMask* gameobject writes depth into the GPU's depth buffer which can occlude any water behind it, and therefore prevent drawing water inside the boat.
+The *RegisterMaskInput* component is required to ensure this depth draws early before the ocean surface.
 
 
 # Update / Execution Order

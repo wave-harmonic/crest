@@ -320,20 +320,4 @@ namespace Crest
         /// </summary>
         public ICollProvider CollisionProvider { get { return _simSettingsAnimatedWaves.CollisionProvider; } }
     }
-
-    /// <summary>
-    /// Used to enable stencil-based per-pixel masking of ocean surface. Used in place of CompareFunction enum
-    /// </summary>
-    public enum StencilFunction
-    {
-        /// <summary>
-        /// Deisable stencil masking.
-        /// </summary>
-        Disabled = 0,
-
-        /// <summary>
-        /// Enable stencil masking - set stencil function to 'Equal'.
-        /// </summary>
-        Enabled = 3,
-    }
 }

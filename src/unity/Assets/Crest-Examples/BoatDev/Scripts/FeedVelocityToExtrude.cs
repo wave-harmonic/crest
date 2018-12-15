@@ -21,10 +21,15 @@ public class FeedVelocityToExtrude : MonoBehaviour
 
     [Tooltip("Teleport speed (km/h) - if the calculated speed is larger than this amount, the object is deemed to have teleported and the computed velocity is discarded."), SerializeField]
     float _teleportSpeed = 500f;
-    [SerializeField] bool _warnOnTeleport = false;
+    [SerializeField]
+    bool _warnOnTeleport = false;
     [Tooltip("Maximum speed clamp (km/h), useful for controlling/limiting wake."), SerializeField]
     float _maxSpeed = 100f;
-    [SerializeField] bool _warnOnSpeedClamp = false;
+    [SerializeField]
+    bool _warnOnSpeedClamp = false;
+
+    [SerializeField]
+    float _velocityPositionOffset = 0.2f;
 
     Material _mat;
     IBoat _boat;
@@ -72,7 +77,7 @@ public class FeedVelocityToExtrude : MonoBehaviour
             return;
 
         var disp = _boat != null ? _boat.DisplacementToBoat : Vector3.zero;
-        transform.position = transform.parent.TransformPoint(_localOffset) - disp;
+        transform.position = transform.parent.TransformPoint(_localOffset) - disp + _velocityPositionOffset * _boat.RB.velocity;
 
         float rnd = 1f + _noiseAmp * (2f * Mathf.PerlinNoise(_noiseFreq * OceanRenderer.Instance.CurrentTime, 0.5f) - 1f);
         // feed in water velocity

@@ -57,11 +57,11 @@ public class BoatAlignNormal : MonoBehaviour, IBoat
     Vector3 _displacementToBoat;
     public Vector3 DisplacementToBoat { get { return _displacementToBoat; } }
 
-    Rigidbody _rb;
+    public Rigidbody RB { get; private set; }
 
     void Start()
     {
-        _rb = GetComponent<Rigidbody>();
+        RB = GetComponent<Rigidbody>();
 
         if (OceanRenderer.Instance == null)
         {
@@ -122,7 +122,7 @@ public class BoatAlignNormal : MonoBehaviour, IBoat
                 new Color(1, 1, 1, 0.6f));
         }
 
-        _velocityRelativeToWater = _rb.velocity - waterSurfaceVel;
+        _velocityRelativeToWater = RB.velocity - waterSurfaceVel;
 
         var dispPos = undispPos + _displacementToBoat;
         if (_debugDraw) DebugDrawCross(dispPos, 4f, Color.white);
@@ -138,22 +138,22 @@ public class BoatAlignNormal : MonoBehaviour, IBoat
         }
 
         var buoyancy = -Physics.gravity.normalized * _buoyancyCoeff * bottomDepth * bottomDepth * bottomDepth;
-        _rb.AddForce(buoyancy, ForceMode.Acceleration);
+        RB.AddForce(buoyancy, ForceMode.Acceleration);
 
 
         // apply drag relative to water
-        var forcePosition = _rb.position + _forceHeightOffset * Vector3.up;
-        _rb.AddForceAtPosition(Vector3.up * Vector3.Dot(Vector3.up, -_velocityRelativeToWater) * _dragInWaterUp, forcePosition, ForceMode.Acceleration);
-        _rb.AddForceAtPosition(transform.right * Vector3.Dot(transform.right, -_velocityRelativeToWater) * _dragInWaterRight, forcePosition, ForceMode.Acceleration);
-        _rb.AddForceAtPosition(transform.forward * Vector3.Dot(transform.forward, -_velocityRelativeToWater) * _dragInWaterForward, forcePosition, ForceMode.Acceleration);
+        var forcePosition = RB.position + _forceHeightOffset * Vector3.up;
+        RB.AddForceAtPosition(Vector3.up * Vector3.Dot(Vector3.up, -_velocityRelativeToWater) * _dragInWaterUp, forcePosition, ForceMode.Acceleration);
+        RB.AddForceAtPosition(transform.right * Vector3.Dot(transform.right, -_velocityRelativeToWater) * _dragInWaterRight, forcePosition, ForceMode.Acceleration);
+        RB.AddForceAtPosition(transform.forward * Vector3.Dot(transform.forward, -_velocityRelativeToWater) * _dragInWaterForward, forcePosition, ForceMode.Acceleration);
 
         float forward = _throttleBias;
         if(_playerControlled) forward += Input.GetAxis("Vertical");
-        _rb.AddForceAtPosition(transform.forward * _enginePower * forward, forcePosition, ForceMode.Acceleration);
+        RB.AddForceAtPosition(transform.forward * _enginePower * forward, forcePosition, ForceMode.Acceleration);
 
         float sideways = _steerBias;
         if(_playerControlled ) sideways += (Input.GetKey(KeyCode.A) ? -1f : 0f) + (Input.GetKey(KeyCode.D) ? 1f : 0f);
-        _rb.AddTorque(transform.up * _turnPower * sideways, ForceMode.Acceleration);
+        RB.AddTorque(transform.up * _turnPower * sideways, ForceMode.Acceleration);
 
         FixedUpdateOrientation(collProvider, undispPos);
     }
@@ -191,11 +191,11 @@ public class BoatAlignNormal : MonoBehaviour, IBoat
         if (_debugDraw && _useBoatLength) Debug.DrawLine(transform.position, transform.position + 5f * normalLongitudinal, Color.green);
 
         var torqueWidth = Vector3.Cross(transform.up, normal);
-        _rb.AddTorque(torqueWidth * _boyancyTorque, ForceMode.Acceleration);
+        RB.AddTorque(torqueWidth * _boyancyTorque, ForceMode.Acceleration);
         if (_useBoatLength)
         {
             var torqueLength = Vector3.Cross(transform.up, normalLongitudinal);
-            _rb.AddTorque(torqueLength * _boyancyTorque, ForceMode.Acceleration);
+            RB.AddTorque(torqueLength * _boyancyTorque, ForceMode.Acceleration);
         }
     }
 

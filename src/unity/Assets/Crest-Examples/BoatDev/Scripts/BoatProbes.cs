@@ -51,7 +51,7 @@ public class BoatProbes : MonoBehaviour, IBoat
 
     private const float WATER_DENSITY = 1000;
 
-    Rigidbody _rb;
+    public Rigidbody RB { get; private set; }
     float _totalWeight;
 
     public Vector3 DisplacementToBoat { get; private set; }
@@ -60,8 +60,8 @@ public class BoatProbes : MonoBehaviour, IBoat
 
     private void Start()
     {
-        _rb = GetComponent<Rigidbody>();
-        _rb.centerOfMass = _centerOfMass;
+        RB = GetComponent<Rigidbody>();
+        RB.centerOfMass = _centerOfMass;
 
         if (OceanRenderer.Instance == null)
         {
@@ -118,17 +118,16 @@ public class BoatProbes : MonoBehaviour, IBoat
 
     void FixedUpdateEngine()
     {
-        if (!_playerControlled)
-            return;
+        var forcePosition = RB.position;
 
-        var forcePosition = _rb.position;
+        var forward = _engineBias;
+        if (_playerControlled) forward += Input.GetAxis("Vertical");
+        RB.AddForceAtPosition(transform.forward * _enginePower * forward, forcePosition, ForceMode.Acceleration);
 
-        var forward = Input.GetAxis("Vertical") + _engineBias;
-        _rb.AddForceAtPosition(transform.forward * _enginePower * forward, forcePosition, ForceMode.Acceleration);
-
-        var sideways = (Input.GetKey(KeyCode.A) ? -1f : 0f) + (Input.GetKey(KeyCode.D) ? 1f : 0f) + _turnBias;
+        var sideways = _turnBias;
+        if (_playerControlled) sideways += (Input.GetKey(KeyCode.A) ? -1f : 0f) + (Input.GetKey(KeyCode.D) ? 1f : 0f);
         var rotVec = transform.up + _turningHeel * transform.forward;
-        _rb.AddTorque(rotVec * _turnPower * sideways, ForceMode.Acceleration);
+        RB.AddTorque(rotVec * _turnPower * sideways, ForceMode.Acceleration);
     }
 
     void FixedUpdateBuoyancy()
@@ -163,7 +162,7 @@ public class BoatProbes : MonoBehaviour, IBoat
 
             if (height - transformedPoint.y > 0)
             {
-                _rb.AddForceAtPosition(archimedesForceMagnitude * distance * Vector3.up * point._weight * _forceMultiplier / _totalWeight, transformedPoint);
+                RB.AddForceAtPosition(archimedesForceMagnitude * distance * Vector3.up * point._weight * _forceMultiplier / _totalWeight, transformedPoint);
             }
         }
     }
@@ -173,7 +172,7 @@ public class BoatProbes : MonoBehaviour, IBoat
         // Apply drag relative to water
         var collProvider = OceanRenderer.Instance.CollisionProvider;
 
-        var pos = _rb.position;
+        var pos = RB.position;
         Vector3 undispPos;
         if (!collProvider.ComputeUndisplacedPosition(ref pos, out undispPos, _minSpatialLength))
         {
@@ -187,12 +186,12 @@ public class BoatProbes : MonoBehaviour, IBoat
         bool dispValid, velValid;
         collProvider.SampleDisplacementVel(ref undispPos, out displacement, out dispValid, out waterSurfaceVel, out velValid, _minSpatialLength);
 
-        var _velocityRelativeToWater = _rb.velocity - waterSurfaceVel;
+        var _velocityRelativeToWater = RB.velocity - waterSurfaceVel;
 
-        var forcePosition = _rb.position + _forceHeightOffset * Vector3.up;
-        _rb.AddForceAtPosition(Vector3.up * Vector3.Dot(Vector3.up, -_velocityRelativeToWater) * _dragInWaterUp, forcePosition, ForceMode.Acceleration);
-        _rb.AddForceAtPosition(transform.right * Vector3.Dot(transform.right, -_velocityRelativeToWater) * _dragInWaterRight, forcePosition, ForceMode.Acceleration);
-        _rb.AddForceAtPosition(transform.forward * Vector3.Dot(transform.forward, -_velocityRelativeToWater) * _dragInWaterForward, forcePosition, ForceMode.Acceleration);
+        var forcePosition = RB.position + _forceHeightOffset * Vector3.up;
+        RB.AddForceAtPosition(Vector3.up * Vector3.Dot(Vector3.up, -_velocityRelativeToWater) * _dragInWaterUp, forcePosition, ForceMode.Acceleration);
+        RB.AddForceAtPosition(transform.right * Vector3.Dot(transform.right, -_velocityRelativeToWater) * _dragInWaterRight, forcePosition, ForceMode.Acceleration);
+        RB.AddForceAtPosition(transform.forward * Vector3.Dot(transform.forward, -_velocityRelativeToWater) * _dragInWaterForward, forcePosition, ForceMode.Acceleration);
     }
 
     private void OnDrawGizmos()

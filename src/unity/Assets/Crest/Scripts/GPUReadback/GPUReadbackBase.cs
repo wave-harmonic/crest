@@ -66,7 +66,7 @@ namespace Crest
         protected virtual void Start()
         {
             _lodComponent = OceanRenderer.Instance.GetComponent<LodDataType>();
-            if(OceanRenderer.Instance.CurrentLodCount <= (CanUseLastTwoLODs ? 0 : 1))
+            if (OceanRenderer.Instance.CurrentLodCount <= (CanUseLastTwoLODs ? 0 : 1))
             {
                 Debug.LogError("No data components of type " + typeof(LodDataType).Name + " found in the scene. Disabling GPU readback.", this);
                 enabled = false;
@@ -153,7 +153,7 @@ namespace Crest
 
                     var lodData = _perLodData[lt._renderData._texelWidth];
 
-                    if(lodData._activelyBeingRendered)
+                    if (lodData._activelyBeingRendered)
                     {
                         // Only enqueue new requests at beginning of update turns out to be a good time to sample the textures to
                         // ensure everything in the frame is done.
@@ -232,7 +232,7 @@ namespace Crest
                     break;
                 }
             }
-            
+
             // process current request queue
             if (requests.Count > 0)
             {
@@ -241,11 +241,15 @@ namespace Crest
                 {
                     requests.Dequeue();
 
-                    // eat up any more completed requests to squeeze out latency wherever possible
+                    // Eat up any more completed requests to squeeze out latency wherever possible
                     ReadbackRequest nextRequest;
                     while (requests.Count > 0 && (nextRequest = requests.Peek())._request.done)
                     {
-                        request = nextRequest;
+                        // Has error will be true if data already destroyed and is therefore unusable
+                        if (!nextRequest._request.hasError)
+                        {
+                            request = nextRequest;
+                        }
                         requests.Dequeue();
                     }
 
@@ -307,7 +311,7 @@ namespace Crest
         void OnDisable()
         {
             // free native array when component removed or destroyed
-            foreach(var lodData in _perLodData.Values)
+            foreach (var lodData in _perLodData.Values)
             {
                 if (lodData == null || lodData._resultData == null) continue;
                 if (lodData._resultData._data.IsCreated) lodData._resultData._data.Dispose();
@@ -486,7 +490,7 @@ namespace Crest
 
             bool oneWasInRect = false;
             bool wavelengthsLargeEnough = false;
-            
+
             foreach (var gridSize_lodData in _perLodData)
             {
                 if (!gridSize_lodData.Value._activelyBeingRendered || gridSize_lodData.Value._resultData._time == -1f)

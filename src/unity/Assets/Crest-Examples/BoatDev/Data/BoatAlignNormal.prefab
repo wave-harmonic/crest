@@ -360,17 +360,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _bottomH: -1.3
-  _overrideProbeRadius: -1
   _buoyancyCoeff: 1.5
   _boyancyTorque: 8
   _forceHeightOffset: -0.3
   _enginePower: 11
   _turnPower: 1.3
   _boatWidth: 4.5
+  _useBoatLength: 1
+  _boatLength: 2.25
   _dragInWaterUp: 3
   _dragInWaterRight: 2
   _dragInWaterForward: 1
-  _computeWaterVel: 1
   _playerControlled: 1
   _throttleBias: 0
   _steerBias: 0

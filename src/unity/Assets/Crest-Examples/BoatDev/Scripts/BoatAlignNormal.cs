@@ -6,7 +6,7 @@ using Crest;
 /// <summary>
 /// Simple type of buoyancy - takes one sample and matches boat height and orientation to water height and normal.
 /// </summary>
-public class BoatAlignNormal : MonoBehaviour
+public class BoatAlignNormal : MonoBehaviour, IBoat
 {
     [Header("Buoyancy Force")]
     [Tooltip("Height offset from transform center to bottom of boat (if any)."), SerializeField]

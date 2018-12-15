@@ -10,29 +10,53 @@ using UnityEngine.Serialization;
 /// <summary>
 /// Boat physics by sampling at multiple probe points.
 /// </summary>
-public class BoatProbes : MonoBehaviour
+public class BoatProbes : MonoBehaviour, IBoat
 {
     [Header("Forces")]
     [Tooltip("Override RB center of mass, in local space."), SerializeField]
     Vector3 _centerOfMass;
-    [SerializeField] FloaterForcePoints[] ForcePoints;
-    [SerializeField] float _forceHeightOffset = 0f;
-    [SerializeField] float _forceMultiplier = 10f;
-    [SerializeField] float _minSpatialLength = 12f;
+    [SerializeField, FormerlySerializedAs("ForcePoints")]
+    FloaterForcePoints[] _forcePoints;
+    [SerializeField]
+    float _forceHeightOffset = 0f;
+    [SerializeField]
+    float _forceMultiplier = 10f;
+    [SerializeField]
+    float _minSpatialLength = 12f;
+    [SerializeField, Range(0, 1)]
+    float _turningHeel = 0.35f;
 
     [Header("Drag")]
-    [SerializeField] float _dragInWaterUp = 3f;
-    [SerializeField] float _dragInWaterRight = 2f;
-    [SerializeField] float _dragInWaterForward = 1f;
+
+    [SerializeField]
+    float _dragInWaterUp = 3f;
+    [SerializeField]
+    float _dragInWaterRight = 2f;
+    [SerializeField]
+    float _dragInWaterForward = 1f;
 
     [Header("Control")]
-    [SerializeField] bool _playerControlled = true;
-    [SerializeField] float EnginePower = 10;
-    [SerializeField] float TurnPower = 0.5f;
+
+    [SerializeField, FormerlySerializedAs("EnginePower")]
+    float _enginePower = 7;
+    [SerializeField, FormerlySerializedAs("TurnPower")]
+    float _turnPower = 0.5f;
+    [SerializeField]
+    bool _playerControlled = true;
+    [SerializeField]
+    float _engineBias = 0f;
+    [SerializeField]
+    float _turnBias = 0f;
+
 
     private const float WATER_DENSITY = 1000;
 
     Rigidbody _rb;
+    float _totalWeight;
+
+    public Vector3 DisplacementToBoat { get; private set; }
+    public float BoatWidth { get { return _minSpatialLength; } }
+    public bool InWater { get { return true; } }
 
     private void Start()
     {
@@ -46,11 +70,45 @@ public class BoatProbes : MonoBehaviour
         }
     }
 
+    void CalcTotalWeight()
+    {
+        _totalWeight = 0f;
+        foreach (var pt in _forcePoints)
+        {
+            _totalWeight += pt._weight;
+        }
+    }
+
     private void FixedUpdate()
     {
-        if (GPUReadbackDisps.Instance)
+#if UNITY_EDITOR
+        // Sum weights every frame when running in editor in case weights are edited in the inspector.
+        CalcTotalWeight();
+#endif
+
+        // Trigger processing of displacement textures that have come back this frame. This will be processed
+        // anyway in Update(), but FixedUpdate() is earlier so make sure it's up to date now.
+        if (OceanRenderer.Instance._simSettingsAnimatedWaves.CollisionSource == SimSettingsAnimatedWaves.CollisionSources.OceanDisplacementTexturesGPU && GPUReadbackDisps.Instance)
         {
             GPUReadbackDisps.Instance.ProcessRequests();
+        }
+
+        var collProvider = OceanRenderer.Instance.CollisionProvider;
+        var position = transform.position;
+        Vector3 undispPos;
+        if (!collProvider.ComputeUndisplacedPosition(ref position, out undispPos, _minSpatialLength))
+        {
+            // If we couldn't get wave shape, assume flat water at sea level
+            undispPos = position;
+            undispPos.y = OceanRenderer.Instance.SeaLevel;
+        }
+
+        Vector3 displacement, waterSurfaceVel;
+        bool dispValid, velValid;
+        collProvider.SampleDisplacementVel(ref undispPos, out displacement, out dispValid, out waterSurfaceVel, out velValid, _minSpatialLength);
+        if (dispValid)
+        {
+            DisplacementToBoat = displacement;
         }
 
         FixedUpdateEngine();
@@ -65,14 +123,12 @@ public class BoatProbes : MonoBehaviour
 
         var forcePosition = _rb.position;
 
-        var forward = Input.GetAxis("Vertical");
-        _rb.AddForceAtPosition(transform.forward * EnginePower * forward, forcePosition, ForceMode.Acceleration);
+        var forward = Input.GetAxis("Vertical") + _engineBias;
+        _rb.AddForceAtPosition(transform.forward * _enginePower * forward, forcePosition, ForceMode.Acceleration);
 
-        var sideways = (Input.GetKey(KeyCode.A) ? -1f : 0f) + (Input.GetKey(KeyCode.D) ? 1f : 0f);
-
-        Vector3 heel = transform.forward;
-
-        _rb.AddTorque((transform.up + heel) * TurnPower * sideways, ForceMode.Acceleration);
+        var sideways = (Input.GetKey(KeyCode.A) ? -1f : 0f) + (Input.GetKey(KeyCode.D) ? 1f : 0f) + _turnBias;
+        var rotVec = transform.up + _turningHeel * transform.forward;
+        _rb.AddTorque(rotVec * _turnPower * sideways, ForceMode.Acceleration);
     }
 
     void FixedUpdateBuoyancy()
@@ -80,9 +136,9 @@ public class BoatProbes : MonoBehaviour
         float archimedesForceMagnitude = WATER_DENSITY * Mathf.Abs(Physics.gravity.y);
         var collProvider = OceanRenderer.Instance.CollisionProvider;
 
-        for (int i = 0; i < ForcePoints.Length; i++)
+        for (int i = 0; i < _forcePoints.Length; i++)
         {
-            FloaterForcePoints point = ForcePoints[i];
+            FloaterForcePoints point = _forcePoints[i];
             var transformedPoint = transform.TransformPoint(point._offsetPosition + new Vector3(0, _centerOfMass.y, 0));
 
             Vector3 undispPos;
@@ -107,11 +163,11 @@ public class BoatProbes : MonoBehaviour
 
             if (height - transformedPoint.y > 0)
             {
-                _rb.AddForceAtPosition(archimedesForceMagnitude * distance * Vector3.up * point._factor * _forceMultiplier, transformedPoint);
+                _rb.AddForceAtPosition(archimedesForceMagnitude * distance * Vector3.up * point._weight * _forceMultiplier / _totalWeight, transformedPoint);
             }
         }
     }
-    
+
     void FixedUpdateDrag()
     {
         // Apply drag relative to water
@@ -144,9 +200,9 @@ public class BoatProbes : MonoBehaviour
         Gizmos.color = Color.yellow;
         Gizmos.DrawCube(transform.TransformPoint(_centerOfMass), Vector3.one * 0.25f);
 
-        for (int i = 0; i < ForcePoints.Length; i++)
+        for (int i = 0; i < _forcePoints.Length; i++)
         {
-            var point = ForcePoints[i];
+            var point = _forcePoints[i];
 
             var transformedPoint = transform.TransformPoint(point._offsetPosition + new Vector3(0, _centerOfMass.y, 0));
 
@@ -159,7 +215,8 @@ public class BoatProbes : MonoBehaviour
 [Serializable]
 public class FloaterForcePoints
 {
-    public float _factor = 1f;
+    [FormerlySerializedAs("_factor")]
+    public float _weight = 1f;
 
     [FormerlySerializedAs("_offSetPosition")]
     public Vector3 _offsetPosition;

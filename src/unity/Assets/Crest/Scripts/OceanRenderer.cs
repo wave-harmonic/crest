@@ -91,9 +91,6 @@ namespace Crest
         public bool _disableSkirt = false;
 
 
-        OceanPlanarReflection _planarReflection;
-        public OceanPlanarReflection PlanarReflection { get { return _planarReflection; } }
-
         float _viewerAltitudeLevelAlpha = 0f;
         /// <summary>
         /// The ocean changes scale when viewer changes altitude, this gives the interpolation param between scales.
@@ -154,11 +151,6 @@ namespace Crest
                 {
                     Debug.LogError("Please provide the viewpoint transform, or tag the primary camera as MainCamera.", this);
                 }
-            }
-
-            if (_viewpoint != null)
-            {
-                _planarReflection = _viewpoint.GetComponent<OceanPlanarReflection>();
             }
         }
 

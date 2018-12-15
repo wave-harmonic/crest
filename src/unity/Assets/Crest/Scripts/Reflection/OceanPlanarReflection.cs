@@ -20,8 +20,15 @@ namespace Crest
         [SerializeField] bool _stencil = false;
         [SerializeField] bool _hideCameraGameobject = true;
 
+        const int MAX_DISPLAY_COUNT = 8;
+
         RenderTexture _reflectionTexture;
-        public RenderTexture ReflectionTexture { get { return _reflectionTexture; } }
+
+        static RenderTexture[] _displayReflTextures;
+        public static RenderTexture GetRenderTexture(int displayIndex)
+        {
+            return _displayReflTextures[displayIndex];
+        }
 
         Camera _camViewpoint;
         Camera _camReflections;
@@ -172,6 +179,13 @@ namespace Crest
                     go.hideFlags = HideFlags.HideAndDontSave;
                 }
             }
+
+            // Keep list of reflection textures fresh
+            if (_displayReflTextures == null || _displayReflTextures.Length != MAX_DISPLAY_COUNT)
+            {
+                _displayReflTextures = new RenderTexture[MAX_DISPLAY_COUNT];
+            }
+            _displayReflTextures[currentCamera.targetDisplay] = _reflectionTexture;
         }
 
         // Given position/normal of the plane, calculates plane in camera space.
@@ -215,6 +229,7 @@ namespace Crest
             {
                 Destroy(_reflectionTexture);
                 _reflectionTexture = null;
+                _displayReflTextures = null;
             }
             if (_camReflections)
             {

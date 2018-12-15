@@ -27,7 +27,12 @@ namespace Crest
         static RenderTexture[] _displayReflTextures;
         public static RenderTexture GetRenderTexture(int displayIndex)
         {
-            return _displayReflTextures[displayIndex];
+            if (_displayReflTextures != null && _displayReflTextures.Length > displayIndex)
+            {
+                return _displayReflTextures[displayIndex];
+            }
+
+            return null;
         }
 
         Camera _camViewpoint;

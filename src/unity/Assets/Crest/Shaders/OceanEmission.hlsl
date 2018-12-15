@@ -67,7 +67,7 @@ half3 ScatterColour(
 		SampleSeaFloorHeightAboveBaseline(_LD_Sampler_SeaFloorDepth_0, uv_0, 1.0, seaFloorHeightAboveBaseline);
 		depth = DEPTH_BASELINE - seaFloorHeightAboveBaseline;
 		waveHeight = 0.;
-		
+
 		fixed2 shadowSoftHard = 0.;
 		SampleShadow(_LD_Sampler_Shadow_0, uv_0, 1.0, shadowSoftHard);
 		shadow = 1. - shadowSoftHard.x;
@@ -177,49 +177,48 @@ half3 OceanEmission(in const half3 i_view, in const half3 i_n_pixel, in const fl
 
 #if _TRANSPARENCY_ON
 
-	// have we hit a surface? this check ensures we're not sampling an unpopulated backbuffer.
-	if (i_sceneZ01 != 0.0)
+	// View ray intersects geometry surface either above or below ocean surface
+
+	const half2 uvBackground = i_grabPos.xy / i_grabPos.w;
+	half2 uvBackgroundRefract = uvBackground + _RefractionStrength * i_n_pixel.xz;
+	half3 sceneColour;
+	half3 alpha = 0.;
+	float depthFogDistance;
+
+	// Depth fog & caustics - only if view ray starts from above water
+	if (!i_underwater)
 	{
-		// view ray intersects geometry surface either above or below ocean surface
+		const half2 uvDepthRefract = i_uvDepth + _RefractionStrength * i_n_pixel.xz;
+		const float sceneZRefract = LinearEyeDepth(tex2D(i_cameraDepths, uvDepthRefract).x);
 
-		half2 uvBackgroundRefract = i_grabPos.xy / i_grabPos.w + _RefractionStrength * i_n_pixel.xz;
-		half2 uvDepthRefract = i_uvDepth + _RefractionStrength * i_n_pixel.xz;
-		half3 sceneColour = tex2D(_BackgroundTexture, uvBackgroundRefract).rgb;
-		half3 alpha = 0.;
-
-		// depth fog & caustics - only if view ray starts from above water
-		if (!i_underwater)
+		// Compute depth fog alpha based on refracted position if it landed on an underwater surface, or on unrefracted depth otherwise
+		if (sceneZRefract > i_pixelZ)
 		{
-			// if we haven't refracted onto a surface in front of the water surface, compute an alpha based on Z delta
-			if (i_sceneZ > i_pixelZ)
-			{
-				float sceneZRefract = LinearEyeDepth(tex2D(i_cameraDepths, uvDepthRefract).x);
-				float maxZ = max(i_sceneZ, sceneZRefract);
-				float deltaZ = maxZ - i_pixelZ;
-				alpha = 1. - exp(-_DepthFogDensity.xyz * deltaZ);
-			}
-			else
-			{
-				alpha = 1.;
-			}
+			depthFogDistance = sceneZRefract - i_pixelZ;
+		}
+		else
+		{
+			depthFogDistance = i_sceneZ - i_pixelZ;
 
-#if _CAUSTICS_ON
-			ApplyCaustics(i_view, i_lightDir, i_sceneZ, i_normals, sceneColour);
-#endif
+			// We have refracted onto a surface in front of the water. Cancel the refraction offset.
+			uvBackgroundRefract = uvBackground;
 		}
 
-		// blend from water colour to the scene colour
-		col = lerp(sceneColour, col, alpha);
+#if _CAUSTICS_ON
+		ApplyCaustics(i_view, i_lightDir, i_sceneZ, i_normals, sceneColour);
+#endif
 	}
-	else if (i_underwater)
+	else
 	{
-		// we've not hit a surface but we're under the water surface - in this case we need to compute an alpha
-		// based on distance to the water surface, and then refract the sky.
-		half2 uvBackgroundRefract = i_grabPos.xy / i_grabPos.w + _RefractionStrength * i_n_pixel.xz;
-		half3 sceneColour = tex2D(_BackgroundTexture, uvBackgroundRefract).rgb;
-		half3 alpha = 1. - exp(-_DepthFogDensity.xyz * i_pixelZ);
-		col = lerp(sceneColour, col, alpha);
+		depthFogDistance = i_pixelZ;
 	}
+
+	sceneColour = tex2D(_BackgroundTexture, uvBackgroundRefract).rgb;
+	alpha = 1. - exp(-_DepthFogDensity.xyz * depthFogDistance);
+
+	// blend from water colour to the scene colour
+	col = lerp(sceneColour, col, alpha);
+
 #endif // _TRANSPARENCY_ON
 
 	return col;

@@ -187,4 +187,4 @@ The ocean system updates its state in *LateUpdate*, after game state update and 
 
 Next the rest of the *LateUpdate* bucket runs. Any view-dependent ocean data that wasn't updated by the *OceanRenderer* updates here, such as the Gerstner waves which taylors the wave data based on the LOD scales.
 
-Finally *BuildCommandBuffer* runs after everything else and constructs a command buffer for the ocean that is hooked to the beginning of the main camera rendering and executes on the GPU. The command buffer sequence can be observed in *BuildCommandBuffer*. This is where the ocean data is updated.
+Finally *BuildCommandBuffer* runs after everything else and constructs a command buffer for the ocean. This is executed early in the frame before the graphics queue starts. See the *BuildCommandBuffer* code for the update logic.

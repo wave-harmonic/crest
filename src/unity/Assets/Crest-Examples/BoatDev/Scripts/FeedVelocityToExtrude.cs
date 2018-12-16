@@ -34,6 +34,7 @@ public class FeedVelocityToExtrude : MonoBehaviour
     Material _mat;
     IBoat _boat;
     Vector3 _posLast;
+    SamplingData _samplingDataFlow = new SamplingData();
 
     private void Start()
     {
@@ -52,8 +53,8 @@ public class FeedVelocityToExtrude : MonoBehaviour
     void LateUpdate()
     {
         // which lod is this object in (roughly)?
-        Rect thisRect = new Rect(new Vector2(transform.position.x, transform.position.z), Vector3.zero);
-        int minLod = LodDataMgrAnimWaves.SuggestDataLOD(thisRect);
+        var thisRect = new Rect(new Vector2(transform.position.x, transform.position.z), Vector3.zero);
+        var minLod = LodDataMgrAnimWaves.SuggestDataLOD(thisRect);
         if (minLod == -1)
         {
             // outside all lods, nothing to update!
@@ -79,22 +80,28 @@ public class FeedVelocityToExtrude : MonoBehaviour
         var disp = _boat != null ? _boat.DisplacementToBoat : Vector3.zero;
         transform.position = transform.parent.TransformPoint(_localOffset) - disp + _velocityPositionOffset * _boat.RB.velocity;
 
-        float rnd = 1f + _noiseAmp * (2f * Mathf.PerlinNoise(_noiseFreq * OceanRenderer.Instance.CurrentTime, 0.5f) - 1f);
+        var rnd = 1f + _noiseAmp * (2f * Mathf.PerlinNoise(_noiseFreq * OceanRenderer.Instance.CurrentTime, 0.5f) - 1f);
         // feed in water velocity
-        Vector3 vel = (transform.position - _posLast) / Time.deltaTime;
+        var vel = (transform.position - _posLast) / Time.deltaTime;
 
         if (OceanRenderer.Instance._simSettingsFlow != null &&
             OceanRenderer.Instance._simSettingsFlow._readbackData &&
             GPUReadbackFlow.Instance)
         {
+            var position = transform.position;
+            var samplingArea = new Rect(position.x, position.z, 0f, 0f);
+            GPUReadbackFlow.Instance.GetSamplingData(ref samplingArea, _boat.BoatWidth, _samplingDataFlow);
+
             Vector2 surfaceFlow;
-            Vector3 position = transform.position;
-            GPUReadbackFlow.Instance.SampleFlow(ref position, out surfaceFlow, _boat.BoatWidth);
+            GPUReadbackFlow.Instance.SampleFlow(ref position, _samplingDataFlow, out surfaceFlow);
+
             vel -= new Vector3(surfaceFlow.x, 0, surfaceFlow.y);
+
+            GPUReadbackFlow.Instance.ReturnSamplingData(_samplingDataFlow);
         }
         vel.y *= _weightUpDownMul;
 
-        float speedKmh = vel.magnitude * 3.6f;
+        var speedKmh = vel.magnitude * 3.6f;
         if (speedKmh > _teleportSpeed)
         {
             // teleport detected

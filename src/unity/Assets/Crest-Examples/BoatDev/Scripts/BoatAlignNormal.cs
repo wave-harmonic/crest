@@ -62,14 +62,13 @@ public class BoatAlignNormal : MonoBehaviour, IBoat
 
     public Rigidbody RB { get; private set; }
 
-    SamplingData _samplingData, _samplingDataLengthWise;
+    SamplingData _samplingData = new SamplingData();
+    SamplingData _samplingDataLengthWise = new SamplingData();
+    SamplingData _samplingDataFlow = new SamplingData();
 
     void Start()
     {
         RB = GetComponent<Rigidbody>();
-
-        _samplingData = new SamplingData();
-        _samplingDataLengthWise = new SamplingData();
 
         if (OceanRenderer.Instance == null)
         {
@@ -125,9 +124,14 @@ public class BoatAlignNormal : MonoBehaviour, IBoat
         {
             GPUReadbackFlow.Instance.ProcessRequests();
 
+            var flowRect = new Rect(position.x, position.z, 0f, 0f);
+            GPUReadbackFlow.Instance.GetSamplingData(ref flowRect, _boatWidth, _samplingDataFlow);
+
             Vector2 surfaceFlow;
-            GPUReadbackFlow.Instance.SampleFlow(ref position, _samplingData, out surfaceFlow);
+            GPUReadbackFlow.Instance.SampleFlow(ref position, _samplingDataFlow, out surfaceFlow);
             waterSurfaceVel += new Vector3(surfaceFlow.x, 0, surfaceFlow.y);
+
+            GPUReadbackFlow.Instance.ReturnSamplingData(_samplingDataFlow);
         }
 
         // I could filter the surface vel as the min of the last 2 frames. theres a hard case where a wavelength is turned on/off

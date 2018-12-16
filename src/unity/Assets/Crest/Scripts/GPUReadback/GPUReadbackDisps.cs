@@ -46,26 +46,6 @@ namespace Crest
         }
 
         #region ICollProvider
-        public bool GetSamplingData(ref Rect i_displacedSamplingArea, float i_minSpatialLength, SamplingData o_samplingData)
-        {
-            o_samplingData._minSpatialLength = i_minSpatialLength;
-
-            Rect undisplacedRect = new Rect(
-                i_displacedSamplingArea.xMin - OceanRenderer.Instance.MaxHorizDisplacement,
-                i_displacedSamplingArea.yMin - OceanRenderer.Instance.MaxHorizDisplacement,
-                i_displacedSamplingArea.width + 2f * OceanRenderer.Instance.MaxHorizDisplacement,
-                i_displacedSamplingArea.height + 2f * OceanRenderer.Instance.MaxHorizDisplacement
-                );
-            o_samplingData._tag = GetData(undisplacedRect, i_minSpatialLength);
-
-            return o_samplingData._tag != null;
-        }
-
-        public void ReturnSamplingData(SamplingData i_data)
-        {
-            i_data._tag = null;
-        }
-
         public bool ComputeUndisplacedPosition(ref Vector3 i_worldPos, SamplingData i_samplingData, out Vector3 undisplacedWorldPos)
         {
             var lodData = i_samplingData._tag as PerLodData;

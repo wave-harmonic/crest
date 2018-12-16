@@ -1,12 +1,12 @@
 
-# Directions for Optimisation
+# Directions for optimisation
 
-The foundation of *Crest* is architected for performance from the ground up with an innovative LOD system. However, out of the box it is configured for quality and flexibility rather than maximum efficiency.
+The foundation of *Crest* is architected for performance from the ground up with an innovative LOD system. However, the out-of-the-box example content is configured for quality and flexibility rather than maximum efficiency.
 
 There are a number of directions for optimising the basic vanilla *Crest* that would make sense to explore in production scenarios to squeeze the maximum performance out of the system.
 
 
-# Tweakable Variables
+# Tweakable variables
 
 These are currently available for tweaking and should be explored on every project:
 
@@ -17,7 +17,7 @@ These are currently available for tweaking and should be explored on every proje
 Consider tweaking these on a per scene/level basis.
 
 
-# Optimisations Under Consideration
+# Optimisations under consideration
 
 These may make it into *Crest* at some point.
 
@@ -28,7 +28,8 @@ These may make it into *Crest* at some point.
 * Limit range of LOD data. There is currently a min/max grid size option on the dynamic wave sim to limit what resolutions it runs at, this could be rolled out to other sim types.
 * LOD data such as foam sim/wave sims/etc could be atlased into a single texture and run in one pass. There are quite a few draw calls to run the sims which could collapse significantly. This should help perf but I'm not sure by how much, or what impact this will have on the code/systems.
 * Texture readback takes around 0.5ms of main thread CPU time on a Dell XPS 15 laptop (for the default high quality settings in the crest example content). There may be ways to reduce this cost - see issue #60 . See also the object width settings mentioned above.
+* The ocean update runs as a command buffer which could potentially be ran asynchronously which may improve utilisation.
 
-# Other Optimisations
+# Other optimisations
 
 * GPU-instance ocean material tiles. Discussed in Issue #27.

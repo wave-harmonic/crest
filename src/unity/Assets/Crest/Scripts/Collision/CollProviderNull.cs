@@ -60,5 +60,7 @@ namespace Crest
             o_normal = Vector3.up;
             return true;
         }
+
+        public static readonly CollProviderNull Instance = new CollProviderNull();
     }
 }

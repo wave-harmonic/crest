@@ -7,21 +7,25 @@ Shader "Ocean/Inputs/Animated Waves/Add Water Height From Geometry"
 {
 	Properties
 	{
-		[Toggle] _AddHeightsBelowSeaLevel("Add Heights Below Sea Level", Float) = 1.0
+		[Enum(BlendOp)] _BlendOp("Blend Op", Int) = 0
+		[Enum(UnityEngine.Rendering.BlendMode)] _BlendModeSrc("Src Blend Mode", Int) = 1
+		[Enum(UnityEngine.Rendering.BlendMode)] _BlendModeTgt("Tgt Blend Mode", Int) = 1
+		[Enum(ColorWriteMask)] _ColorWriteMask("Color Write Mask", Int) = 15
 	}
 
  	SubShader
 	{
 		Tags{ "Queue" = "Transparent" }
-		LOD 100
+
  		Pass
 		{
-			Blend One One
+			BlendOp [_BlendOp]
+			Blend [_BlendModeSrc] [_BlendModeTgt]
+			ColorMask [_ColorWriteMask]
 
  			CGPROGRAM
 			#pragma vertex vert
 			#pragma fragment frag
-			#pragma shader_feature _ADDHEIGHTSBELOWSEALEVEL_ON
 
  			#include "UnityCG.cginc"
 			#include "../OceanLODData.hlsl"
@@ -40,24 +44,15 @@ Shader "Ocean/Inputs/Animated Waves/Add Water Height From Geometry"
  			v2f vert (appdata v)
 			{
 				v2f o;
-
 				o.vertex = UnityObjectToClipPos(v.vertex);
 				o.worldPos = mul(unity_ObjectToWorld, v.vertex).xyz;
-
 				return o;
 			}
 
-			uniform float _AddHeightsBelowSeaLevel;
-
  			half4 frag (v2f i) : SV_Target
 			{
-				float addHeight = i.worldPos.y - _OceanCenterPosWorld.y;
-
-				#if !_ADDHEIGHTSBELOWSEALEVEL_ON
-				addHeight = max(addHeight, 0.);
-				#endif // _ADDHEIGHTSBELOWSEALEVEL_ON
-
 				// Write displacement to get from sea level of ocean to the y value of this geometry
+				float addHeight = i.worldPos.y - _OceanCenterPosWorld.y;
 				return half4(0., addHeight, 0., 1.);
 			}
 			ENDCG

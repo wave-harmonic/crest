@@ -120,6 +120,7 @@ Material:
     - _ShorelineFoamMinDepth: 0.27
     - _SkyDirectionality: 0.875
     - _StartLevel: 0.157
+    - _StencilFunction: 0
     - _SubSurfaceBase: 0.24
     - _SubSurfaceCrestColour: 1
     - _SubSurfaceDepthMax: 9.4

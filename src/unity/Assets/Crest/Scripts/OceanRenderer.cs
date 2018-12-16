@@ -91,9 +91,6 @@ namespace Crest
         public bool _disableSkirt = false;
 
 
-        OceanPlanarReflection _planarReflection;
-        public OceanPlanarReflection PlanarReflection { get { return _planarReflection; } }
-
         float _viewerAltitudeLevelAlpha = 0f;
         /// <summary>
         /// The ocean changes scale when viewer changes altitude, this gives the interpolation param between scales.
@@ -158,11 +155,6 @@ namespace Crest
                 {
                     Debug.LogError("Please provide the viewpoint transform, or tag the primary camera as MainCamera.", this);
                 }
-            }
-
-            if (_viewpoint != null)
-            {
-                _planarReflection = _viewpoint.GetComponent<OceanPlanarReflection>();
             }
         }
 
@@ -328,21 +320,5 @@ namespace Crest
         /// Provides ocean shape to CPU.
         /// </summary>
         public ICollProvider CollisionProvider { get { return _simSettingsAnimatedWaves.CollisionProvider; } }
-    }
-
-    /// <summary>
-    /// Used to enable stencil-based per-pixel masking of ocean surface. Used in place of CompareFunction enum
-    /// </summary>
-    public enum StencilFunction
-    {
-        /// <summary>
-        /// Deisable stencil masking.
-        /// </summary>
-        Disabled = 0,
-
-        /// <summary>
-        /// Enable stencil masking - set stencil function to 'Equal'.
-        /// </summary>
-        Enabled = 3,
     }
 }

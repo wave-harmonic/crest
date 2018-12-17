@@ -204,16 +204,17 @@ half3 OceanEmission(in const half3 i_view, in const half3 i_n_pixel, in const fl
 			uvBackgroundRefract = uvBackground;
 		}
 
+		sceneColour = tex2D(_BackgroundTexture, uvBackgroundRefract).rgb;
 #if _CAUSTICS_ON
 		ApplyCaustics(i_view, i_lightDir, i_sceneZ, i_normals, sceneColour);
 #endif
 	}
 	else
 	{
+		sceneColour = tex2D(_BackgroundTexture, uvBackgroundRefract).rgb;
 		depthFogDistance = i_pixelZ;
 	}
 
-	sceneColour = tex2D(_BackgroundTexture, uvBackgroundRefract).rgb;
 	alpha = 1. - exp(-_DepthFogDensity.xyz * depthFogDistance);
 
 	// blend from water colour to the scene colour

@@ -5,7 +5,7 @@ using UnityEngine.Rendering;
 
 namespace Crest
 {
-    public class LodTransform : MonoBehaviour
+    public class LodTransform : MonoBehaviour, IFloatingOrigin
     {
         protected int _transformUpdateFrame = -1;
 
@@ -126,6 +126,12 @@ namespace Crest
             {
                 ids[i] = Shader.PropertyToID(string.Format("{0}{1}", prefix, i));
             }
+        }
+
+        public void SetOrigin(Vector3 newOrigin)
+        {
+            _renderData._posSnapped -= newOrigin;
+            _renderDataPrevFrame._posSnapped -= newOrigin;
         }
     }
 }

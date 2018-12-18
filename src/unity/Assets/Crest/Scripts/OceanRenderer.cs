@@ -162,6 +162,15 @@ namespace Crest
             }
         }
 
+        public void SetOrigin(Vector3 newOrigin)
+        {
+            var fos = GetComponentsInChildren<IFloatingOrigin>();
+            foreach (var fo in fos)
+            {
+                fo.SetOrigin(newOrigin);
+            }
+        }
+
         void Update()
         {
             _simSettingsAnimatedWaves.UpdateCollision();

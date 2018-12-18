@@ -76,13 +76,58 @@ namespace Crest
             }
         }
 
+        void InitPhases()
+        {
+            var totalComps = _componentsPerOctave * OceanWaveSpectrum.NUM_OCTAVES;
+            _phases = new float[totalComps];
+            for (var octave = 0; octave < OceanWaveSpectrum.NUM_OCTAVES; octave++)
+            {
+                for (var i = 0; i < _componentsPerOctave; i++)
+                {
+                    var index = octave * _componentsPerOctave + i;
+                    var rnd = (i + Random.value) / _componentsPerOctave;
+                    _phases[index] = 2f * Mathf.PI * rnd;
+                }
+            }
+        }
+
+        public void SetOrigin(Vector3 newOrigin)
+        {
+            if (_phases == null) return;
+            var windAngle = OceanRenderer.Instance._windDirectionAngle;
+            for (int i = 0; i < _phases.Length; i++)
+            {
+                var direction = new Vector3(Mathf.Cos((windAngle + _angleDegs[i]) * Mathf.Deg2Rad), 0f, Mathf.Sin((windAngle + _angleDegs[i]) * Mathf.Deg2Rad));
+                float phaseOffM = Vector3.Dot(newOrigin, direction);
+                //float phaseOffRadians;
+
+                // wave number
+                float k = 2f * Mathf.PI / _wavelengths[i];
+
+                _phases[i] += phaseOffM * k;
+                //float x = Vector2.Dot(D, pos);
+                //float t = k * (x + C * mytime) + _phases[j];
+                //float disp = -_spectrum._chop * Mathf.Sin(t);
+                //o_displacement += _amplitudes[j] * new Vector3(
+                //    D.x * disp,
+                //    Mathf.Cos(t),
+                //    D.y * disp
+                //    );
+            }
+        }
+
         void Update()
         {
+            if (_phases == null || _phases.Length != _componentsPerOctave * OceanWaveSpectrum.NUM_OCTAVES)
+            {
+                InitPhases();
+            }
+
             // Set random seed to get repeatable results
             Random.State randomStateBkp = Random.state;
             Random.InitState(_randomSeed);
 
-            _spectrum.GenerateWaveData(_componentsPerOctave, ref _wavelengths, ref _angleDegs, ref _phases);
+            _spectrum.GenerateWaveData(_componentsPerOctave, ref _wavelengths, ref _angleDegs);
 
             Random.state = randomStateBkp;
 

@@ -94,25 +94,17 @@ namespace Crest
         public void SetOrigin(Vector3 newOrigin)
         {
             if (_phases == null) return;
+
             var windAngle = OceanRenderer.Instance._windDirectionAngle;
             for (int i = 0; i < _phases.Length; i++)
             {
                 var direction = new Vector3(Mathf.Cos((windAngle + _angleDegs[i]) * Mathf.Deg2Rad), 0f, Mathf.Sin((windAngle + _angleDegs[i]) * Mathf.Deg2Rad));
-                float phaseOffM = Vector3.Dot(newOrigin, direction);
-                //float phaseOffRadians;
+                var phaseOffsetMeters = Vector3.Dot(newOrigin, direction);
 
                 // wave number
-                float k = 2f * Mathf.PI / _wavelengths[i];
+                var k = 2f * Mathf.PI / _wavelengths[i];
 
-                _phases[i] += phaseOffM * k;
-                //float x = Vector2.Dot(D, pos);
-                //float t = k * (x + C * mytime) + _phases[j];
-                //float disp = -_spectrum._chop * Mathf.Sin(t);
-                //o_displacement += _amplitudes[j] * new Vector3(
-                //    D.x * disp,
-                //    Mathf.Cos(t),
-                //    D.y * disp
-                //    );
+                _phases[i] = Mathf.Repeat(_phases[i] + phaseOffsetMeters * k, Mathf.PI * 2f);
             }
         }
 

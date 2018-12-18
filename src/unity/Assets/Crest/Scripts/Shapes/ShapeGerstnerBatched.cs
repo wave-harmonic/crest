@@ -69,7 +69,7 @@ namespace Crest
                 return;
             }
 
-            if ( _spectrum == null )
+            if (_spectrum == null)
             {
                 _spectrum = ScriptableObject.CreateInstance<OceanWaveSpectrum>();
                 _spectrum.name = "Default Waves (auto)";
@@ -154,14 +154,14 @@ namespace Crest
             int dropped = 0;
 
             // register any nonzero components
-            for( int i = 0; i < numComponents; i++)
+            for (int i = 0; i < numComponents; i++)
             {
                 float wl = _wavelengths[firstComponent + i];
                 float amp = _amplitudes[firstComponent + i];
 
-                if( amp >= 0.001f )
+                if (amp >= 0.001f)
                 {
-                    if( numInBatch < BATCH_SIZE)
+                    if (numInBatch < BATCH_SIZE)
                     {
                         int vi = numInBatch / 4;
                         int ei = numInBatch - vi * 4;
@@ -194,7 +194,7 @@ namespace Crest
             }
 
             // if we did not fill the batch, put a terminator signal after the last position
-            if( numInBatch < BATCH_SIZE)
+            if (numInBatch < BATCH_SIZE)
             {
                 int vi = numInBatch / 4;
                 int ei = numInBatch - vi * 4;
@@ -244,7 +244,7 @@ namespace Crest
             for (int lod = 0; lod < OceanRenderer.Instance.CurrentLodCount - 1; lod++, minWl *= 2f)
             {
                 int startCompIdx = componentIdx;
-                while(componentIdx < _wavelengths.Length && _wavelengths[componentIdx] < 2f * minWl)
+                while (componentIdx < _wavelengths.Length && _wavelengths[componentIdx] < 2f * minWl)
                 {
                     componentIdx++;
                 }

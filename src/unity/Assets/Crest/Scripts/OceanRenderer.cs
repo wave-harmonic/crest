@@ -49,10 +49,10 @@ namespace Crest
         [Delayed, Tooltip("The largest scale the ocean can be (-1 for unlimited).")]
         public float _maxScale = 256f;
 
-        [SerializeField, Delayed, Tooltip( "Side dimension in quads of an ocean tile." )]
+        [SerializeField, Delayed, Tooltip("Side dimension in quads of an ocean tile.")]
         public float _baseVertDensity = 64f;
 
-        [SerializeField, Delayed, Tooltip( "Number of ocean tile scales/LODs to generate." ), Range(2, LodDataMgr.MAX_LOD_COUNT)]
+        [SerializeField, Delayed, Tooltip("Number of ocean tile scales/LODs to generate."), Range(2, LodDataMgr.MAX_LOD_COUNT)]
         int _lodCount = 7;
         public int LodDataResolution { get { return (int)(4f * _baseVertDensity); } }
 
@@ -170,7 +170,7 @@ namespace Crest
         void LateUpdate()
         {
             // set global shader params
-            Shader.SetGlobalFloat( "_TexelsPerWave", _minTexelsPerWave );
+            Shader.SetGlobalFloat("_TexelsPerWave", _minTexelsPerWave);
             Shader.SetGlobalVector("_WindDirXZ", WindDir);
             Shader.SetGlobalFloat("_CrestTime", CurrentTime);
 

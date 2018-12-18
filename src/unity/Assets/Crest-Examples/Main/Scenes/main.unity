@@ -167,12 +167,12 @@ MonoBehaviour:
   m_GameObject: {fileID: 227134465}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c374fafbaa75a114d9f70d66379035cf, type: 3}
+  m_Script: {fileID: 11500000, guid: bcc1c94cba029a84fa8a7db313427f3a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  threshold: 100
-  physicsThreshold: 1000
-  defaultSleepThreshold: 0.14
+  _threshold: 16384
+  _physicsThreshold: 1000
+  _defaultSleepThreshold: 0.14
 --- !u!20 &227134469
 Camera:
   m_ObjectHideFlags: 0

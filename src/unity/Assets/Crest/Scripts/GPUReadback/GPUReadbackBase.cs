@@ -15,7 +15,8 @@ namespace Crest
     /// <summary>
     /// Base class for reading back GPU data of a particular type to the CPU.
     /// </summary>
-    public class GPUReadbackBase<LodDataType> : MonoBehaviour where LodDataType : LodDataMgr
+    public class GPUReadbackBase<LodDataType> : MonoBehaviour, IFloatingOrigin
+        where LodDataType : LodDataMgr
     {
         public bool _doReadback = true;
 
@@ -584,6 +585,25 @@ namespace Crest
         public void ReturnSamplingData(SamplingData i_data)
         {
             i_data._tag = null;
+        }
+
+        public void SetOrigin(Vector3 newOrigin)
+        {
+            foreach (var pld in _perLodData)
+            {
+                pld.Value._resultData._renderData._posSnapped -= newOrigin;
+                pld.Value._resultDataPrevFrame._renderData._posSnapped -= newOrigin;
+
+                // manually update each request
+                Queue<ReadbackRequest> newRequests = new Queue<ReadbackRequest>();
+                while (pld.Value._requests.Count > 0)
+                {
+                    var req = pld.Value._requests.Dequeue();
+                    req._renderData._posSnapped -= newOrigin;
+                    newRequests.Enqueue(req);
+                }
+                pld.Value._requests = newRequests;
+            }
         }
     }
 }

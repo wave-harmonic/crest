@@ -4,9 +4,12 @@ using UnityEngine;
 
 namespace Crest
 {
+    /// <summary>
+    /// Gives a flat, still ocean.
+    /// </summary>
     public class CollProviderNull : ICollProvider
     {
-        public AvailabilityResult CheckAvailability(ref Vector3 i_worldPos, float minSpatialLength)
+        public AvailabilityResult CheckAvailability(ref Vector3 i_worldPos, SamplingData i_samplingData)
         {
             return AvailabilityResult.DataAvailable;
         }
@@ -18,32 +21,29 @@ namespace Crest
             return true;
         }
 
-        public bool PrewarmForSamplingArea(Rect areaXZ, float minSpatialLength)
+        public bool ComputeUndisplacedPosition(ref Vector3 i_worldPos, SamplingData i_samplingData, out Vector3 undisplacedWorldPos)
+        {
+            undisplacedWorldPos = i_worldPos;
+            undisplacedWorldPos.y = OceanRenderer.Instance.SeaLevel;
+            return true;
+        }
+
+        public bool GetSamplingData(ref Rect i_displacedSamplingArea, float i_minSpatialLength, SamplingData o_samplingData2)
         {
             return true;
         }
 
-        public bool SampleDisplacement(ref Vector3 i_worldPos, out Vector3 o_displacement, float minSpatialLength = 0)
+        public void ReturnSamplingData(SamplingData i_data)
+        {
+        }
+
+        public bool SampleDisplacement(ref Vector3 i_worldPos, SamplingData i_samplingData, out Vector3 o_displacement)
         {
             o_displacement = Vector3.zero;
             return true;
         }
 
-        public bool SampleDisplacementInArea(ref Vector3 i_worldPos, out Vector3 o_displacement)
-        {
-            o_displacement = Vector3.zero;
-            return true;
-        }
-
-        public void SampleDisplacementVel(ref Vector3 i_worldPos, out Vector3 o_displacement, out bool o_displacementValid, out Vector3 o_displacementVel, out bool o_velValid, float minSpatialLength = 0)
-        {
-            o_displacement = Vector3.zero;
-            o_displacementValid = true;
-            o_displacementVel = Vector3.zero;
-            o_velValid = true;
-        }
-
-        public void SampleDisplacementVelInArea(ref Vector3 i_worldPos, out Vector3 o_displacement, out bool o_displacementValid, out Vector3 o_displacementVel, out bool o_velValid)
+        public void SampleDisplacementVel(ref Vector3 i_worldPos, SamplingData i_samplingData, out Vector3 o_displacement, out bool o_displacementValid, out Vector3 o_displacementVel, out bool o_velValid)
         {
             o_displacement = Vector3.zero;
             o_displacementValid = true;
@@ -51,22 +51,18 @@ namespace Crest
             o_velValid = true;
         }
 
-        public bool SampleHeight(ref Vector3 i_worldPos, out float height, float minSpatialLength = 0)
+        public bool SampleHeight(ref Vector3 i_worldPos, SamplingData i_samplingData, out float o_height)
         {
-            height = OceanRenderer.Instance.SeaLevel;
+            o_height = OceanRenderer.Instance.SeaLevel;
             return true;
         }
 
-        public bool SampleNormal(ref Vector3 in__undisplacedWorldPos, out Vector3 o_normal, float minSpatialLength = 0)
+        public bool SampleNormal(ref Vector3 i_undisplacedWorldPos, SamplingData i_samplingData, out Vector3 o_normal)
         {
             o_normal = Vector3.up;
             return true;
         }
 
-        public bool SampleNormalInArea(ref Vector3 in__undisplacedWorldPos, out Vector3 o_normal)
-        {
-            o_normal = Vector3.up;
-            return true;
-        }
+        public static readonly CollProviderNull Instance = new CollProviderNull();
     }
 }

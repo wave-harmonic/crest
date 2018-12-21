@@ -83,7 +83,7 @@ namespace Crest
 
             if (_drawBounds)
             {
-                OceanChunkRenderer.DebugDrawRendererBounds(_rend);
+                _rend.bounds.DebugDraw();
             }
         }
     }

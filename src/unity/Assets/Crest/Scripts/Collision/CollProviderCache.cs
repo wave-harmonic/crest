@@ -38,57 +38,22 @@ namespace Crest
             _waterHeightCache.Clear();
         }
 
-        uint CalcHash(ref Vector3 in__wp)
+        uint CalcHash(ref Vector3 i_wp)
         {
-            int x = (int)(in__wp.x * _cacheBucketSizeRecip);
-            int z = (int)(in__wp.z * _cacheBucketSizeRecip);
+            int x = (int)(i_wp.x * _cacheBucketSizeRecip);
+            int z = (int)(i_wp.z * _cacheBucketSizeRecip);
             return (uint)(x + 32768 + ((z + 32768) << 16));
-        }
-
-        public bool SampleDisplacement(ref Vector3 i_worldPos, out Vector3 o_displacement, float minSpatialLength)
-        {
-            return _collProvider.SampleDisplacement(ref i_worldPos, out o_displacement, minSpatialLength);
-        }
-
-        public void SampleDisplacementVel(ref Vector3 i_worldPos, out Vector3 o_displacement, out bool o_displacementValid, out Vector3 o_displacementVel, out bool o_velValid, float minSpatialLength)
-        {
-            _collProvider.SampleDisplacementVel(ref i_worldPos, out o_displacement, out o_displacementValid, out o_displacementVel, out o_velValid, minSpatialLength);
-        }
-
-        public bool PrewarmForSamplingArea(Rect areaXZ, float minSpatialLength)
-        {
-            return _collProvider.PrewarmForSamplingArea(areaXZ, minSpatialLength);
-        }
-
-        public bool SampleDisplacementInArea(ref Vector3 i_worldPos, out Vector3 o_displacement)
-        {
-            return _collProvider.SampleDisplacementInArea(ref i_worldPos, out o_displacement);
-        }
-
-        public bool SampleNormal(ref Vector3 in__undisplacedWorldPos, out Vector3 o_normal, float minSpatialLength)
-        {
-            return _collProvider.SampleNormal(ref in__undisplacedWorldPos, out o_normal, minSpatialLength);
-        }
-
-        public bool ComputeUndisplacedPosition(ref Vector3 i_worldPos, out Vector3 undisplacedWorldPos, float minSpatialLength)
-        {
-            return _collProvider.ComputeUndisplacedPosition(ref i_worldPos, out undisplacedWorldPos, minSpatialLength);
-        }
-
-        public void SampleDisplacementVelInArea(ref Vector3 i_worldPos, out Vector3 o_displacement, out bool o_displacementValid, out Vector3 o_displacementVel, out bool o_velValid)
-        {
-            _collProvider.SampleDisplacementVelInArea(ref i_worldPos, out o_displacement, out o_displacementValid, out o_displacementVel, out o_velValid);
         }
 
         /// <summary>
         /// Height is the only thing that is cached right now. We could cache disps and normals too, but the height queries are heaviest.
         /// </summary>
-        public bool SampleHeight(ref Vector3 i_worldPos, out float height, float minSpatialLength)
+        public bool SampleHeight(ref Vector3 i_worldPos, SamplingData i_samplingData, out float o_height)
         {
             var hash = CalcHash(ref i_worldPos);
 
             _cacheChecks++;
-            if (_waterHeightCache.TryGetValue(hash, out height))
+            if (_waterHeightCache.TryGetValue(hash, out o_height))
             {
                 // got it from the cache!
                 _cacheHits++;
@@ -96,22 +61,47 @@ namespace Crest
             }
 
             // compute the height
-            bool success = _collProvider.SampleHeight(ref i_worldPos, out height, minSpatialLength);
+            bool success = _collProvider.SampleHeight(ref i_worldPos, i_samplingData, out o_height);
 
             // populate cache (regardless of success for now)
-            _waterHeightCache.Add(hash, height);
+            _waterHeightCache.Add(hash, o_height);
 
             return success;
         }
 
-        public bool SampleNormalInArea(ref Vector3 in__undisplacedWorldPos, out Vector3 o_normal)
+        public AvailabilityResult CheckAvailability(ref Vector3 i_worldPos, SamplingData i_samplingData)
         {
-            return _collProvider.SampleNormalInArea(ref in__undisplacedWorldPos, out o_normal);
+            return _collProvider.CheckAvailability(ref i_worldPos, i_samplingData);
         }
 
-        public AvailabilityResult CheckAvailability(ref Vector3 i_worldPos, float minSpatialLength)
+        public bool GetSamplingData(ref Rect i_displacedSamplingArea, float i_minSpatialLength, SamplingData o_samplingData)
         {
-            return _collProvider.CheckAvailability(ref i_worldPos, minSpatialLength);
+            return _collProvider.GetSamplingData(ref i_displacedSamplingArea, i_minSpatialLength, o_samplingData);
+        }
+
+        public void ReturnSamplingData(SamplingData i_data)
+        {
+            _collProvider.ReturnSamplingData(i_data);
+        }
+
+        public bool ComputeUndisplacedPosition(ref Vector3 i_worldPos, SamplingData i_samplingData, out Vector3 undisplacedWorldPos)
+        {
+            return _collProvider.ComputeUndisplacedPosition(ref i_worldPos, i_samplingData, out undisplacedWorldPos);
+        }
+
+        public void SampleDisplacementVel(ref Vector3 i_worldPos, SamplingData i_samplingData, out Vector3 o_displacement, out bool o_displacementValid, out Vector3 o_displacementVel, out bool o_velValid)
+        {
+            _collProvider.SampleDisplacementVel(ref i_worldPos, i_samplingData, out o_displacement, out o_displacementValid, out o_displacementVel, out o_velValid);
+        }
+
+        public bool SampleNormal(ref Vector3 i_undisplacedWorldPos, SamplingData i_samplingData, out Vector3 o_normal)
+        {
+            return _collProvider.SampleNormal(ref i_undisplacedWorldPos, i_samplingData, out o_normal);
+        }
+
+        public bool SampleDisplacement(ref Vector3 i_worldPos, SamplingData i_samplingData, out Vector3 o_displacement)
+        {
+            return _collProvider.SampleDisplacement(ref i_worldPos, i_samplingData, out o_displacement);
         }
 
         public int CacheChecks { get { return _cacheChecksLastFrame; } }

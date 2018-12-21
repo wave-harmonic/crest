@@ -33,19 +33,22 @@ public class BoatAlignNormal : MonoBehaviour, IBoat
     float _boatLength = 3f;
 
     [Header("Drag")]
-    [SerializeField] float _dragInWaterUp = 3f;
+    [SerializeField]
+    float _dragInWaterUp = 3f;
     [SerializeField] float _dragInWaterRight = 2f;
     [SerializeField] float _dragInWaterForward = 1f;
 
     [Header("Controls")]
-    [SerializeField] bool _playerControlled = true;
+    [SerializeField]
+    bool _playerControlled = true;
     [Tooltip("Used to automatically add throttle input"), SerializeField]
     float _throttleBias = 0f;
     [Tooltip("Used to automatically add turning input"), SerializeField]
     float _steerBias = 0f;
 
     [Header("Debug")]
-    [SerializeField] bool _debugDraw = false;
+    [SerializeField]
+    bool _debugDraw = false;
     [SerializeField] bool _debugValidateCollision = false;
 
     bool _inWater;
@@ -58,6 +61,10 @@ public class BoatAlignNormal : MonoBehaviour, IBoat
     public Vector3 DisplacementToBoat { get { return _displacementToBoat; } }
 
     public Rigidbody RB { get; private set; }
+
+    SamplingData _samplingData = new SamplingData();
+    SamplingData _samplingDataLengthWise = new SamplingData();
+    SamplingData _samplingDataFlow = new SamplingData();
 
     void Start()
     {
@@ -72,6 +79,8 @@ public class BoatAlignNormal : MonoBehaviour, IBoat
 
     void FixedUpdate()
     {
+        UnityEngine.Profiling.Profiler.BeginSample("BoatAlignNormal.FixedUpdate");
+
         // Trigger processing of displacement textures that have come back this frame. This will be processed
         // anyway in Update(), but FixedUpdate() is earlier so make sure it's up to date now.
         if (OceanRenderer.Instance._simSettingsAnimatedWaves.CollisionSource == SimSettingsAnimatedWaves.CollisionSources.OceanDisplacementTexturesGPU && GPUReadbackDisps.Instance)
@@ -82,9 +91,16 @@ public class BoatAlignNormal : MonoBehaviour, IBoat
         var collProvider = OceanRenderer.Instance.CollisionProvider;
         var position = transform.position;
 
+        var thisRect = new Rect(transform.position.x, transform.position.z, 0f, 0f);
+        if (!collProvider.GetSamplingData(ref thisRect, _boatWidth, _samplingData))
+        {
+            // No collision coverage for the sample area, in this case use the null provider.
+            collProvider = CollProviderNull.Instance;
+        }
+
         if (_debugValidateCollision)
         {
-            var result = collProvider.CheckAvailability(ref position, _boatWidth);
+            var result = collProvider.CheckAvailability(ref position, _samplingData);
             if (result != AvailabilityResult.DataAvailable)
             {
                 Debug.LogWarning("Validation failed: " + result.ToString() + ". See comments on the AvailabilityResult enum.", this);
@@ -92,7 +108,7 @@ public class BoatAlignNormal : MonoBehaviour, IBoat
         }
 
         Vector3 undispPos;
-        if (!collProvider.ComputeUndisplacedPosition(ref position, out undispPos, _boatWidth))
+        if (!collProvider.ComputeUndisplacedPosition(ref position, _samplingData, out undispPos))
         {
             // If we couldn't get wave shape, assume flat water at sea level
             undispPos = position;
@@ -102,15 +118,20 @@ public class BoatAlignNormal : MonoBehaviour, IBoat
 
         var waterSurfaceVel = Vector3.zero;
         bool dispValid, velValid;
-        collProvider.SampleDisplacementVel(ref undispPos, out _displacementToBoat, out dispValid, out waterSurfaceVel, out velValid, _boatWidth);
+        collProvider.SampleDisplacementVel(ref undispPos, _samplingData, out _displacementToBoat, out dispValid, out waterSurfaceVel, out velValid);
 
         if (GPUReadbackFlow.Instance)
         {
             GPUReadbackFlow.Instance.ProcessRequests();
 
+            var flowRect = new Rect(position.x, position.z, 0f, 0f);
+            GPUReadbackFlow.Instance.GetSamplingData(ref flowRect, _boatWidth, _samplingDataFlow);
+
             Vector2 surfaceFlow;
-            GPUReadbackFlow.Instance.SampleFlow(ref position, out surfaceFlow, _boatWidth);
+            GPUReadbackFlow.Instance.SampleFlow(ref position, _samplingDataFlow, out surfaceFlow);
             waterSurfaceVel += new Vector3(surfaceFlow.x, 0, surfaceFlow.y);
+
+            GPUReadbackFlow.Instance.ReturnSamplingData(_samplingDataFlow);
         }
 
         // I could filter the surface vel as the min of the last 2 frames. theres a hard case where a wavelength is turned on/off
@@ -148,14 +169,18 @@ public class BoatAlignNormal : MonoBehaviour, IBoat
         RB.AddForceAtPosition(transform.forward * Vector3.Dot(transform.forward, -_velocityRelativeToWater) * _dragInWaterForward, forcePosition, ForceMode.Acceleration);
 
         float forward = _throttleBias;
-        if(_playerControlled) forward += Input.GetAxis("Vertical");
+        if (_playerControlled) forward += Input.GetAxis("Vertical");
         RB.AddForceAtPosition(transform.forward * _enginePower * forward, forcePosition, ForceMode.Acceleration);
 
         float sideways = _steerBias;
-        if(_playerControlled ) sideways += (Input.GetKey(KeyCode.A) ? -1f : 0f) + (Input.GetKey(KeyCode.D) ? 1f : 0f);
+        if (_playerControlled) sideways += (Input.GetKey(KeyCode.A) ? -1f : 0f) + (Input.GetKey(KeyCode.D) ? 1f : 0f);
         RB.AddTorque(transform.up * _turnPower * sideways, ForceMode.Acceleration);
 
         FixedUpdateOrientation(collProvider, undispPos);
+
+        collProvider.ReturnSamplingData(_samplingData);
+
+        UnityEngine.Profiling.Profiler.EndSample();
     }
 
     /// <summary>
@@ -164,27 +189,32 @@ public class BoatAlignNormal : MonoBehaviour, IBoat
     /// </summary>
     void FixedUpdateOrientation(ICollProvider collProvider, Vector3 undisplacedPos)
     {
-        Vector3 normal, normalLongitudinal;
-        if (!collProvider.SampleNormal(ref undisplacedPos, out normal, _boatWidth))
+        Vector3 normal, normalLongitudinal = Vector3.up;
+        if (!collProvider.SampleNormal(ref undisplacedPos, _samplingData, out normal))
         {
             normal = Vector3.up;
         }
 
-        if (_useBoatLength && collProvider.SampleNormal(ref undisplacedPos, out normalLongitudinal, _boatLength))
+        if (_useBoatLength)
         {
-            var F = transform.forward;
-            F.y = 0f;
-            F.Normalize();
-            normal -= Vector3.Dot(F, normal) * F;
+            // Compute a new sampling data that takes into account the boat length (as opposed to boat width)
+            var thisRect = new Rect(transform.position.x, transform.position.z, 0f, 0f);
+            collProvider.GetSamplingData(ref thisRect, _boatLength, _samplingDataLengthWise);
 
-            var R = transform.right;
-            R.y = 0f;
-            R.Normalize();
-            normalLongitudinal -= Vector3.Dot(R, normalLongitudinal) * R;
-        }
-        else
-        {
-            normalLongitudinal = Vector3.up;
+            if (collProvider.SampleNormal(ref undisplacedPos, _samplingDataLengthWise, out normalLongitudinal))
+            {
+                var F = transform.forward;
+                F.y = 0f;
+                F.Normalize();
+                normal -= Vector3.Dot(F, normal) * F;
+
+                var R = transform.right;
+                R.y = 0f;
+                R.Normalize();
+                normalLongitudinal -= Vector3.Dot(R, normalLongitudinal) * R;
+            }
+
+            collProvider.ReturnSamplingData(_samplingDataLengthWise);
         }
 
         if (_debugDraw) Debug.DrawLine(transform.position, transform.position + 5f * normal, Color.green);
@@ -207,8 +237,16 @@ public class BoatAlignNormal : MonoBehaviour, IBoat
 
     private void UpdateDebugDrawSurroundingColl()
     {
-        float r = 5f;
-        float steps = 10;
+        var r = 5f;
+        var steps = 10;
+
+        var collProvider = OceanRenderer.Instance.CollisionProvider;
+        var thisRect = new Rect(transform.position.x - r * steps / 2f, transform.position.z - r * steps / 2f, r * steps / 2f, r * steps / 2f);
+        if (!collProvider.GetSamplingData(ref thisRect, _boatWidth, _samplingData))
+        {
+            return;
+        }
+
         for (float i = 0; i < steps; i++)
         {
             for (float j = 0; j < steps; j++)
@@ -218,7 +256,7 @@ public class BoatAlignNormal : MonoBehaviour, IBoat
                 pos.z += transform.position.z;
 
                 Vector3 disp;
-                if (OceanRenderer.Instance.CollisionProvider.SampleDisplacement(ref pos, out disp, _boatWidth))
+                if (collProvider.SampleDisplacement(ref pos, _samplingData, out disp))
                 {
                     DebugDrawCross(pos + disp, 1f, Color.green);
                 }
@@ -228,6 +266,8 @@ public class BoatAlignNormal : MonoBehaviour, IBoat
                 }
             }
         }
+
+        collProvider.ReturnSamplingData(_samplingData);
     }
 #endif
 

@@ -124,7 +124,7 @@ namespace Crest
 
             if (_drawRenderBounds)
             {
-                DebugDrawRendererBounds(_rend);
+                _rend.bounds.DebugDraw();
             }
         }
 
@@ -144,15 +144,16 @@ namespace Crest
         {
             _lodIndex = lodIndex; _totalLodCount = totalLodCount; _baseVertDensity = baseVertDensity;
         }
+    }
 
-        public static void DebugDrawRendererBounds(Renderer rend)
+    static class BoundsHelper
+    {
+        public static void DebugDraw(this Bounds b)
         {
             // source: https://github.com/UnityCommunity/UnityLibrary
             // license: mit - https://github.com/UnityCommunity/UnityLibrary/blob/master/LICENSE.md
 
-            // draws mesh renderer bounding box using Debug.Drawline
-
-            var b = rend.bounds;
+            // bounding box using Debug.Drawline
 
             // bottom
             var p1 = new Vector3(b.min.x, b.min.y, b.min.z);

@@ -523,6 +523,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: MediumBoat
       objectReference: {fileID: 0}
+    - target: {fileID: 1371779553471058, guid: a9de35a642561b7479e8ab40bb529e8c, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 4872491186423460, guid: a9de35a642561b7479e8ab40bb529e8c, type: 3}
       propertyPath: m_LocalPosition.x
       value: 52.9
@@ -622,7 +626,7 @@ MonoBehaviour:
   _minScale: 8
   _maxScale: 256
   _baseVertDensity: 64
-  _lodCount: 7
+  _lodCount: 8
   _simSettingsAnimatedWaves: {fileID: 0}
   _createSeaFloorDepthData: 1
   _createFoamSim: 1

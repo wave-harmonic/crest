@@ -13,6 +13,13 @@ public class OceanSampleDisplacementDemo : MonoBehaviour
     GameObject _marker, _markerX, _markerZ;
     Vector3 _markerPos, _markerPosX, _markerPosZ;
 
+    SamplingData _samplingData;
+
+    private void Start()
+    {
+        _samplingData = new SamplingData();
+    }
+
     void PlaceMarkerCube(ref GameObject marker, Vector3 query)
     {
         if (marker == null)
@@ -23,15 +30,8 @@ public class OceanSampleDisplacementDemo : MonoBehaviour
 
         query.y = 0f;
 
-        // If you are taking multiple samples over an area, setup up the collision sampling state first by calling
-        // PrewarmForSamplingArea().
-
-        // Assume a primitive like a sphere or box, providing this side length means high frequency waves
-        // much shorter than the object will be ignored.
-        float shapeLength = 2f * transform.lossyScale.magnitude;
-
         Vector3 disp;
-        if (OceanRenderer.Instance.CollisionProvider.SampleDisplacement(ref query, out disp, shapeLength))
+        if (OceanRenderer.Instance.CollisionProvider.SampleDisplacement(ref query, _samplingData, out disp))
         {
             Debug.DrawLine(query, query + disp);
             marker.transform.position = query + disp;
@@ -40,19 +40,30 @@ public class OceanSampleDisplacementDemo : MonoBehaviour
         {
             marker.transform.position = query;
         }
-
-        // if you are taking multiple samples over an area, setup up the collision sampling state first by calling
-        // PrewarmForSamplingArea()
     }
 
     void Update()
     {
+        float r = 5f;
         if (_trackCamera) _markerPos = Camera.main.transform.position + Camera.main.transform.forward * 10f;
-        if (_trackCamera) _markerPosX = Camera.main.transform.position + Camera.main.transform.forward * 10f + 5f * Vector3.right;
-        if (_trackCamera) _markerPosZ = Camera.main.transform.position + Camera.main.transform.forward * 10f + 5f * Vector3.forward;
+        if (_trackCamera) _markerPosX = Camera.main.transform.position + Camera.main.transform.forward * 10f + r * Vector3.right;
+        if (_trackCamera) _markerPosZ = Camera.main.transform.position + Camera.main.transform.forward * 10f + r * Vector3.forward;
+
+        // Assume a primitive like a sphere or box, providing this side length means high frequency waves
+        // much shorter than the object will be ignored.
+        float shapeLength = 2f * transform.lossyScale.magnitude;
+
+        var collProvider = OceanRenderer.Instance.CollisionProvider;
+        var thisRect = new Rect(transform.position.x, transform.position.z, r, r);
+        if (!collProvider.GetSamplingData(ref thisRect, shapeLength, _samplingData))
+        {
+            return;
+        }
 
         PlaceMarkerCube(ref _marker, _markerPos);
         PlaceMarkerCube(ref _markerX, _markerPosX);
         PlaceMarkerCube(ref _markerZ, _markerPosZ);
+
+        collProvider.ReturnSamplingData(_samplingData);
     }
 }

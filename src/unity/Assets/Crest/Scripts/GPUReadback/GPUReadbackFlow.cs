@@ -37,11 +37,16 @@ namespace Crest
             _maxGridSize = Mathf.Max(_maxGridSize, 2f * _minGridSize);
         }
 
-        public bool SampleFlow(ref Vector3 i_worldPos, out Vector2 flow, float minSpatialLength)
+        public bool SampleFlow(ref Vector3 i_worldPos, SamplingData i_samplingData, out Vector2 flow)
         {
-            var data = GetData(new Rect(i_worldPos.x, i_worldPos.z, 0f, 0f), minSpatialLength);
+            var data = i_samplingData._tag as PerLodData;
             if (data == null)
             {
+                if (i_samplingData._tag != null)
+                {
+                    Debug.LogError("Wrong kind of SamplingData provided - sampling data for e.g. collision and flow are not interchangeable.", this);
+                }
+
                 flow = Vector2.zero;
                 return false;
             }

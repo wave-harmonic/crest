@@ -4,6 +4,9 @@ using UnityEngine;
 
 namespace Crest
 {
+    /// <summary>
+    /// Collision diagnostics result.
+    /// </summary>
     public enum AvailabilityResult
     {
         /// <summary>
@@ -32,55 +35,56 @@ namespace Crest
     }
 
     /// <summary>
+    /// Sampling state used to speed up queries.
+    /// </summary>
+    public class SamplingData
+    {
+        public object _tag = null;
+        public float _minSpatialLength = -1f;
+    }
+
+    /// <summary>
     /// Interface for an object that returns ocean surface displacement and height.
     /// </summary>
     public interface ICollProvider
     {
         /// <summary>
+        /// Computes sampling state.
+        /// </summary>
+        /// <param name="i_displacedSamplingArea">The XZ rect in world space that bounds any collision queries.</param>
+        /// <param name="i_minSpatialLength">Minimum width or length that we care about. Used to filter out high frequency waves as an optimisation.</param>
+        /// <param name="o_samplingData">Result. Needs to be new'd in advance - passing a null pointer is not valid.</param>
+        bool GetSamplingData(ref Rect i_displacedSamplingArea, float i_minSpatialLength, SamplingData o_samplingData);
+
+        /// <summary>
+        /// Clear sampling data state, call this when done with a state.
+        /// </summary>
+        void ReturnSamplingData(SamplingData i_data);
+
+        /// <summary>
         /// Samples displacement of ocean surface from the given world position.
         /// </summary>
-        bool SampleDisplacement(ref Vector3 i_worldPos, out Vector3 o_displacement, float minSpatialLength = 0f);
-        void SampleDisplacementVel(ref Vector3 i_worldPos, out Vector3 o_displacement, out bool o_displacementValid, out Vector3 o_displacementVel, out bool o_velValid, float minSpatialLength = 0f);
+        bool SampleDisplacement(ref Vector3 i_worldPos, SamplingData i_samplingData, out Vector3 o_displacement);
+        void SampleDisplacementVel(ref Vector3 i_worldPos, SamplingData i_samplingData, out Vector3 o_displacement, out bool o_displacementValid, out Vector3 o_displacementVel, out bool o_velValid);
 
         /// <summary>
         /// Samples ocean surface height at given world position.
         /// </summary>
-        bool SampleHeight(ref Vector3 i_worldPos, out float height, float minSpatialLength = 0f);
+        bool SampleHeight(ref Vector3 i_worldPos, SamplingData i_samplingData, out float o_height);
 
         /// <summary>
         /// Sample ocean normal at an undisplaced world position.
         /// </summary>
-        bool SampleNormal(ref Vector3 in__undisplacedWorldPos, out Vector3 o_normal, float minSpatialLength = 0f);
+        bool SampleNormal(ref Vector3 i_undisplacedWorldPos, SamplingData i_samplingData, out Vector3 o_normal);
 
         /// <summary>
         /// Computes the position which will be displaced to the given world position.
         /// </summary>
-        bool ComputeUndisplacedPosition(ref Vector3 i_worldPos, out Vector3 undisplacedWorldPos, float minSpatialLength = 0f);
+        bool ComputeUndisplacedPosition(ref Vector3 i_worldPos, SamplingData i_samplingData, out Vector3 undisplacedWorldPos);
 
         /// <summary>
-        /// Some collision providers benefit from getting prewarmed - call this to set up a sampling area and
-        /// then use the 'area' sampling functions below. Min spatial length is the minimum side length that you
-        /// care about. For e.g. if a boat has dimensions 3m x 2m, set this to 2, and then suitable wavelengths will
-        /// be preferred.
+        /// Run diagnostics at a position.
         /// </summary>
-        bool PrewarmForSamplingArea(Rect areaXZ, float minSpatialLength);
-        /// <summary>
-        /// Some collision providers benefit from getting prewarmed - call this after setting up a sampling area using the Prewarm function.
-        /// </summary>
-        bool SampleDisplacementInArea(ref Vector3 i_worldPos, out Vector3 o_displacement);
-        /// <summary>
-        /// Some collision providers benefit from getting prewarmed - call this after setting up a sampling area using the Prewarm function.
-        /// </summary>
-        void SampleDisplacementVelInArea(ref Vector3 i_worldPos, out Vector3 o_displacement, out bool o_displacementValid, out Vector3 o_displacementVel, out bool o_velValid);
-        /// <summary>
-        /// Some collision providers benefit from getting prewarmed - call this after setting up a sampling area using the Prewarm function.
-        /// </summary>
-        bool SampleNormalInArea(ref Vector3 in__undisplacedWorldPos, out Vector3 o_normal);
-
-        // NOTE: These 'InArea' variants cannot exist because these perform a dynamic search and the area cannot be predicted in advance
-        //bool SampleNormalInArea(ref Vector3 in__undisplacedWorldPos, out Vector3 o_normal);
-        //bool ComputeUndisplacedPositionInArea(ref Vector3 i_worldPos, out Vector3 undisplacedWorldPos);
-
-        AvailabilityResult CheckAvailability(ref Vector3 i_worldPos, float minSpatialLength);
+        AvailabilityResult CheckAvailability(ref Vector3 i_worldPos, SamplingData i_samplingData);
     }
 }

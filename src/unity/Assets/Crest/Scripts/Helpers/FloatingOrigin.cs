@@ -41,8 +41,6 @@ namespace Crest
 
         [SerializeField] float _defaultSleepThreshold = 0.14f;
 
-        ParticleSystem.Particle[] _particleBuffer = null;
-
         [Tooltip("Optionally provide a list of transforms to avoid doing a FindObjectsOfType() call."), SerializeField]
         Transform[] _overrideTransformList;
         [Tooltip("Optionally provide a list of particle systems to avoid doing a FindObjectsOfType() call."), SerializeField]
@@ -50,9 +48,34 @@ namespace Crest
         [Tooltip("Optionally provide a list of rigidbodies to avoid doing a FindObjectsOfType() call."), SerializeField]
         Rigidbody[] _overrideRigidbodyList;
 
+        ParticleSystem.Particle[] _particleBuffer = null;
+
+        void LateUpdate()
+        {
+            var newOrigin = Vector3.zero;
+            if (Mathf.Abs(transform.position.x) > _threshold) newOrigin.x += transform.position.x;
+            if (Mathf.Abs(transform.position.z) > _threshold) newOrigin.z += transform.position.z;
+
+            if (newOrigin != Vector3.zero)
+            {
+                MoveOrigin(newOrigin);
+            }
+        }
+
         void MoveOrigin(Vector3 newOrigin)
         {
-            // Transforms
+            MoveOriginTransforms(newOrigin);
+            MoveOriginParticles(newOrigin);
+            MoveOriginOcean(newOrigin);
+
+            MoveOriginDisablePhysics();
+        }
+
+        /// <summary>
+        /// Move transforms to recenter around new origin
+        /// </summary>
+        void MoveOriginTransforms(Vector3 newOrigin)
+        {
             var transforms = (_overrideTransformList != null && _overrideTransformList.Length > 0) ? _overrideTransformList : FindObjectsOfType<Transform>();
             foreach (var t in transforms)
             {
@@ -61,8 +84,13 @@ namespace Crest
                     t.position -= newOrigin;
                 }
             }
+        }
 
-            // Particle systems
+        /// <summary>
+        /// Move all particles that are simulated in world space
+        /// </summary>
+        void MoveOriginParticles(Vector3 newOrigin)
+        {
             var pss = (_overrideParticleSystemList != null && _overrideParticleSystemList.Length > 0) ? _overrideParticleSystemList : FindObjectsOfType<ParticleSystem>();
             foreach (var sys in pss)
             {
@@ -98,8 +126,28 @@ namespace Crest
                     sys.Play();
                 }
             }
+        }
 
-            // Disable physics outside radius
+        /// <summary>
+        /// Notify ocean of origin shift
+        /// </summary>
+        void MoveOriginOcean(Vector3 newOrigin)
+        {
+            if (OceanRenderer.Instance)
+            {
+                var fos = OceanRenderer.Instance.GetComponentsInChildren<IFloatingOrigin>();
+                foreach (var fo in fos)
+                {
+                    fo.SetOrigin(newOrigin);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Disable physics outside radius
+        /// </summary>
+        void MoveOriginDisablePhysics()
+        {
             if (_physicsThreshold > 0f)
             {
                 var physicsThreshold2 = _physicsThreshold * _physicsThreshold;
@@ -115,28 +163,6 @@ namespace Crest
                         rb.sleepThreshold = _defaultSleepThreshold;
                     }
                 }
-            }
-
-            // Notify ocean of origin shift
-            if (OceanRenderer.Instance)
-            {
-                var fos = OceanRenderer.Instance.GetComponentsInChildren<IFloatingOrigin>();
-                foreach (var fo in fos)
-                {
-                    fo.SetOrigin(newOrigin);
-                }
-            }
-        }
-
-        void LateUpdate()
-        {
-            var newOrigin = Vector3.zero;
-            if (Mathf.Abs(transform.position.x) > _threshold) newOrigin.x += transform.position.x;
-            if (Mathf.Abs(transform.position.z) > _threshold) newOrigin.z += transform.position.z;
-
-            if (newOrigin != Vector3.zero)
-            {
-                MoveOrigin(newOrigin);
             }
         }
     }

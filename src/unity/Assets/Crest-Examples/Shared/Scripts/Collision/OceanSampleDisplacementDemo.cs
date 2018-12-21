@@ -13,12 +13,7 @@ public class OceanSampleDisplacementDemo : MonoBehaviour
     GameObject _marker, _markerX, _markerZ;
     Vector3 _markerPos, _markerPosX, _markerPosZ;
 
-    SamplingData _samplingData;
-
-    private void Start()
-    {
-        _samplingData = new SamplingData();
-    }
+    SamplingData _samplingData = new SamplingData();
 
     void PlaceMarkerCube(ref GameObject marker, Vector3 query)
     {

@@ -8,12 +8,7 @@ using Crest;
 /// </summary>
 public class OceanSampleHeightDemo : MonoBehaviour
 {
-    SamplingData _samplingData;
-
-    private void Start()
-    {
-        _samplingData = new SamplingData();
-    }
+    SamplingData _samplingData = new SamplingData();
 
     void Update()
     {

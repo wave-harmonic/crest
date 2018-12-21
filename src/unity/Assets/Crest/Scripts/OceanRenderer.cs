@@ -116,7 +116,7 @@ namespace Crest
         /// </summary>
         public float ViewerHeightAboveWater { get; private set; }
 
-        SamplingData _samplingData;
+        SamplingData _samplingData = new SamplingData();
 
         void Awake()
         {
@@ -138,8 +138,6 @@ namespace Crest
 
             InitViewpoint();
             InitTimeProvider();
-
-            _samplingData = new SamplingData();
         }
 
         void InitViewpoint()

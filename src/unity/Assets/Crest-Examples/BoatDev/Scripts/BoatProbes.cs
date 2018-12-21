@@ -57,7 +57,7 @@ public class BoatProbes : MonoBehaviour, IBoat
     public float BoatWidth { get { return _minSpatialLength; } }
     public bool InWater { get { return true; } }
 
-    SamplingData _samplingData;
+    SamplingData _samplingData = new SamplingData();
     Rect _localSamplingAABB;
     float _totalWeight;
 
@@ -65,8 +65,6 @@ public class BoatProbes : MonoBehaviour, IBoat
     {
         RB = GetComponent<Rigidbody>();
         RB.centerOfMass = _centerOfMass;
-
-        _samplingData = new SamplingData();
 
         if (OceanRenderer.Instance == null)
         {

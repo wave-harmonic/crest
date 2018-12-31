@@ -6,8 +6,8 @@ using UnityEngine;
 public class LerpCam : MonoBehaviour
 {
     [SerializeField] float _lerpAlpha = 0.1f;
-    [SerializeField] Transform _targetPos;
-    [SerializeField] Transform _targetLookatPos;
+    [SerializeField] Transform _targetPos = null;
+    [SerializeField] Transform _targetLookatPos = null;
     [SerializeField] float _lookatOffset = 5f;
     [SerializeField] float _minHeightAboveWater = 0.5f;
 

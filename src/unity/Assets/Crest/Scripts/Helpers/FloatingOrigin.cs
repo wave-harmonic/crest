@@ -42,11 +42,11 @@ namespace Crest
         [SerializeField] float _defaultSleepThreshold = 0.14f;
 
         [Tooltip("Optionally provide a list of transforms to avoid doing a FindObjectsOfType() call."), SerializeField]
-        Transform[] _overrideTransformList;
+        Transform[] _overrideTransformList = null;
         [Tooltip("Optionally provide a list of particle systems to avoid doing a FindObjectsOfType() call."), SerializeField]
-        ParticleSystem[] _overrideParticleSystemList;
+        ParticleSystem[] _overrideParticleSystemList = null;
         [Tooltip("Optionally provide a list of rigidbodies to avoid doing a FindObjectsOfType() call."), SerializeField]
-        Rigidbody[] _overrideRigidbodyList;
+        Rigidbody[] _overrideRigidbodyList = null;
 
         ParticleSystem.Particle[] _particleBuffer = null;
 

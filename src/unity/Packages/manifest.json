@@ -1,6 +1,8 @@
 {
   "dependencies": {
+    "com.unity.burst": "0.2.4-preview.37",
     "com.unity.collab-proxy": "1.2.15",
+    "com.unity.mathematics": "0.0.12-preview.19",
     "com.unity.package-manager-ui": "2.0.3",
     "com.unity.postprocessing": "2.0.15-preview",
     "com.unity.modules.animation": "1.0.0",

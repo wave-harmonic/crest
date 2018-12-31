@@ -118,6 +118,16 @@ namespace Crest
 
         SamplingData _samplingData = new SamplingData();
 
+        private void OnEnable()
+        {
+            ShapeGerstnerJobs.Init();
+        }
+
+        private void OnDisable()
+        {
+            ShapeGerstnerJobs.Cleanup();
+        }
+
         void Awake()
         {
             if (_material == null)

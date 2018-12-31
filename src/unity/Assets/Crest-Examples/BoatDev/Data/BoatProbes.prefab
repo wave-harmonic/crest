@@ -108,6 +108,182 @@ MonoBehaviour:
     _offsetPosition: {x: 0, y: 0, z: -6}
   - _weight: 1
     _offsetPosition: {x: 2.5, y: 0, z: -6}
+  - _weight: 1
+    _offsetPosition: {x: -2.5, y: 0, z: 6}
+  - _weight: 1
+    _offsetPosition: {x: 0, y: 0, z: 6}
+  - _weight: 1
+    _offsetPosition: {x: 2.5, y: 0, z: 6}
+  - _weight: 1
+    _offsetPosition: {x: -2.5, y: 0, z: 2}
+  - _weight: 1
+    _offsetPosition: {x: 0, y: 0, z: 2}
+  - _weight: 1
+    _offsetPosition: {x: 2.5, y: 0, z: 2}
+  - _weight: 1
+    _offsetPosition: {x: -2.5, y: 0, z: -2}
+  - _weight: 1
+    _offsetPosition: {x: 0, y: 0, z: -2}
+  - _weight: 1
+    _offsetPosition: {x: 2, y: 0, z: -2}
+  - _weight: 1
+    _offsetPosition: {x: -2.5, y: 0, z: -6}
+  - _weight: 1
+    _offsetPosition: {x: 0, y: 0, z: -6}
+  - _weight: 1
+    _offsetPosition: {x: 2.5, y: 0, z: -6}
+  - _weight: 1
+    _offsetPosition: {x: -2.5, y: 0, z: 6}
+  - _weight: 1
+    _offsetPosition: {x: 0, y: 0, z: 6}
+  - _weight: 1
+    _offsetPosition: {x: 2.5, y: 0, z: 6}
+  - _weight: 1
+    _offsetPosition: {x: -2.5, y: 0, z: 2}
+  - _weight: 1
+    _offsetPosition: {x: 0, y: 0, z: 2}
+  - _weight: 1
+    _offsetPosition: {x: 2.5, y: 0, z: 2}
+  - _weight: 1
+    _offsetPosition: {x: -2.5, y: 0, z: -2}
+  - _weight: 1
+    _offsetPosition: {x: 0, y: 0, z: -2}
+  - _weight: 1
+    _offsetPosition: {x: 2, y: 0, z: -2}
+  - _weight: 1
+    _offsetPosition: {x: -2.5, y: 0, z: -6}
+  - _weight: 1
+    _offsetPosition: {x: 0, y: 0, z: -6}
+  - _weight: 1
+    _offsetPosition: {x: 2.5, y: 0, z: -6}
+  - _weight: 1
+    _offsetPosition: {x: -2.5, y: 0, z: 6}
+  - _weight: 1
+    _offsetPosition: {x: 0, y: 0, z: 6}
+  - _weight: 1
+    _offsetPosition: {x: 2.5, y: 0, z: 6}
+  - _weight: 1
+    _offsetPosition: {x: -2.5, y: 0, z: 2}
+  - _weight: 1
+    _offsetPosition: {x: 0, y: 0, z: 2}
+  - _weight: 1
+    _offsetPosition: {x: 2.5, y: 0, z: 2}
+  - _weight: 1
+    _offsetPosition: {x: -2.5, y: 0, z: -2}
+  - _weight: 1
+    _offsetPosition: {x: 0, y: 0, z: -2}
+  - _weight: 1
+    _offsetPosition: {x: 2, y: 0, z: -2}
+  - _weight: 1
+    _offsetPosition: {x: -2.5, y: 0, z: -6}
+  - _weight: 1
+    _offsetPosition: {x: 0, y: 0, z: -6}
+  - _weight: 1
+    _offsetPosition: {x: 2.5, y: 0, z: -6}
+  - _weight: 1
+    _offsetPosition: {x: 2, y: 0, z: -2}
+  - _weight: 1
+    _offsetPosition: {x: -2.5, y: 0, z: -6}
+  - _weight: 1
+    _offsetPosition: {x: -2.5, y: 0, z: 6}
+  - _weight: 1
+    _offsetPosition: {x: 0, y: 0, z: 6}
+  - _weight: 1
+    _offsetPosition: {x: 2.5, y: 0, z: 6}
+  - _weight: 1
+    _offsetPosition: {x: -2.5, y: 0, z: 2}
+  - _weight: 1
+    _offsetPosition: {x: 0, y: 0, z: 2}
+  - _weight: 1
+    _offsetPosition: {x: 2.5, y: 0, z: 2}
+  - _weight: 1
+    _offsetPosition: {x: -2.5, y: 0, z: -2}
+  - _weight: 1
+    _offsetPosition: {x: 0, y: 0, z: -2}
+  - _weight: 1
+    _offsetPosition: {x: 2, y: 0, z: -2}
+  - _weight: 1
+    _offsetPosition: {x: -2.5, y: 0, z: -6}
+  - _weight: 1
+    _offsetPosition: {x: 0, y: 0, z: -6}
+  - _weight: 1
+    _offsetPosition: {x: 2.5, y: 0, z: -6}
+  - _weight: 1
+    _offsetPosition: {x: -2.5, y: 0, z: 6}
+  - _weight: 1
+    _offsetPosition: {x: 0, y: 0, z: 6}
+  - _weight: 1
+    _offsetPosition: {x: 2.5, y: 0, z: 6}
+  - _weight: 1
+    _offsetPosition: {x: -2.5, y: 0, z: 2}
+  - _weight: 1
+    _offsetPosition: {x: 0, y: 0, z: 2}
+  - _weight: 1
+    _offsetPosition: {x: 2.5, y: 0, z: 2}
+  - _weight: 1
+    _offsetPosition: {x: -2.5, y: 0, z: -2}
+  - _weight: 1
+    _offsetPosition: {x: 0, y: 0, z: -2}
+  - _weight: 1
+    _offsetPosition: {x: 2, y: 0, z: -2}
+  - _weight: 1
+    _offsetPosition: {x: -2.5, y: 0, z: -6}
+  - _weight: 1
+    _offsetPosition: {x: 0, y: 0, z: -6}
+  - _weight: 1
+    _offsetPosition: {x: 2.5, y: 0, z: -6}
+  - _weight: 1
+    _offsetPosition: {x: -2.5, y: 0, z: 6}
+  - _weight: 1
+    _offsetPosition: {x: 0, y: 0, z: 6}
+  - _weight: 1
+    _offsetPosition: {x: 2.5, y: 0, z: 6}
+  - _weight: 1
+    _offsetPosition: {x: -2.5, y: 0, z: 2}
+  - _weight: 1
+    _offsetPosition: {x: 0, y: 0, z: 2}
+  - _weight: 1
+    _offsetPosition: {x: 2.5, y: 0, z: 2}
+  - _weight: 1
+    _offsetPosition: {x: -2.5, y: 0, z: -2}
+  - _weight: 1
+    _offsetPosition: {x: 0, y: 0, z: -2}
+  - _weight: 1
+    _offsetPosition: {x: 2, y: 0, z: -2}
+  - _weight: 1
+    _offsetPosition: {x: -2.5, y: 0, z: -6}
+  - _weight: 1
+    _offsetPosition: {x: 0, y: 0, z: -6}
+  - _weight: 1
+    _offsetPosition: {x: 2.5, y: 0, z: -6}
+  - _weight: 1
+    _offsetPosition: {x: -2.5, y: 0, z: 6}
+  - _weight: 1
+    _offsetPosition: {x: 0, y: 0, z: 6}
+  - _weight: 1
+    _offsetPosition: {x: 2.5, y: 0, z: 6}
+  - _weight: 1
+    _offsetPosition: {x: -2.5, y: 0, z: 2}
+  - _weight: 1
+    _offsetPosition: {x: 0, y: 0, z: 2}
+  - _weight: 1
+    _offsetPosition: {x: 2.5, y: 0, z: 2}
+  - _weight: 1
+    _offsetPosition: {x: -2.5, y: 0, z: -2}
+  - _weight: 1
+    _offsetPosition: {x: 0, y: 0, z: -2}
+  - _weight: 1
+    _offsetPosition: {x: 2, y: 0, z: -2}
+  - _weight: 1
+    _offsetPosition: {x: -2.5, y: 0, z: -6}
+  - _weight: 1
+    _offsetPosition: {x: 0, y: 0, z: -6}
+  - _weight: 1
+    _offsetPosition: {x: 2.5, y: 0, z: -6}
+  - _weight: 1
+    _offsetPosition: {x: 2, y: 0, z: -2}
+  - _weight: 1
+    _offsetPosition: {x: -2.5, y: 0, z: -6}
   _forceHeightOffset: 0
   _forceMultiplier: 6
   _minSpatialLength: 24

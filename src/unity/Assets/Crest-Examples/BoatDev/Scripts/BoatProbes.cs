@@ -2,6 +2,11 @@
 
 // Shout out to @holdingjason who posted a first version of this script here: https://github.com/huwb/crest-oceanrender/pull/100
 
+#define USE_JOBS
+#if USE_JOBS
+using Unity.Mathematics;
+#endif
+
 using Crest;
 using System;
 using UnityEngine;
@@ -61,6 +66,15 @@ public class BoatProbes : MonoBehaviour, IBoat
     Rect _localSamplingAABB;
     float _totalWeight;
 
+#if USE_JOBS
+    // Height job stuff
+    int _guid;
+    // Inputs
+    float3[] _queryPositions;
+    // Outputs
+    float[] _resultHeights;
+#endif
+
     private void Start()
     {
         RB = GetComponent<Rigidbody>();
@@ -73,6 +87,10 @@ public class BoatProbes : MonoBehaviour, IBoat
         }
 
         _localSamplingAABB = ComputeLocalSamplingAABB();
+
+#if USE_JOBS
+        _guid = GetInstanceID();
+#endif
     }
 
     void CalcTotalWeight()
@@ -84,11 +102,39 @@ public class BoatProbes : MonoBehaviour, IBoat
         }
     }
 
+#if USE_JOBS
+    void EnsureJobDataAllocated()
+    {
+        if (_resultHeights == null || _resultHeights.Length != _forcePoints.Length)
+        {
+            _resultHeights = new float[_forcePoints.Length];
+
+            // Initialise heights to sea level, so it doesnt matter too much if results retrieval below fails
+            for (int i = 0; i < _resultHeights.Length; i++) _resultHeights[i] = OceanRenderer.Instance.SeaLevel;
+        }
+
+        if (_queryPositions == null || _queryPositions.Length != _forcePoints.Length)
+        {
+            _queryPositions = new float3[_forcePoints.Length];
+
+            // Give them defaults
+            UpdateJobQueryPositions();
+        }
+    }
+#endif
+
     private void FixedUpdate()
     {
 #if UNITY_EDITOR
         // Sum weights every frame when running in editor in case weights are edited in the inspector.
         CalcTotalWeight();
+#endif
+
+#if USE_JOBS
+        // Get the job data back. TODO - do this on first update only?
+        EnsureJobDataAllocated();
+        ShapeGerstnerJobs.CompleteJobs();
+        ShapeGerstnerJobs.RetrieveResultHeights(_guid, ref _resultHeights);
 #endif
 
         // Trigger processing of displacement textures that have come back this frame. This will be processed
@@ -159,8 +205,15 @@ public class BoatProbes : MonoBehaviour, IBoat
 
         for (int i = 0; i < _forcePoints.Length; i++)
         {
-            FloaterForcePoints point = _forcePoints[i];
-            var transformedPoint = transform.TransformPoint(point._offsetPosition + new Vector3(0, _centerOfMass.y, 0));
+#if USE_JOBS
+            var heightDiff = _resultHeights[i] - _queryPositions[i].y;
+
+            if (heightDiff > 0)
+            {
+                RB.AddForceAtPosition(archimedesForceMagnitude * heightDiff * Vector3.up * _forcePoints[i]._weight * _forceMultiplier / _totalWeight, _queryPositions[i]);
+            }
+#else
+            var transformedPoint = transform.TransformPoint(_forcePoints[i]._offsetPosition + new Vector3(0, _centerOfMass.y, 0));
 
             Vector3 undispPos;
             if (!collProvider.ComputeUndisplacedPosition(ref transformedPoint, _samplingData, out undispPos))
@@ -175,10 +228,12 @@ public class BoatProbes : MonoBehaviour, IBoat
 
             var dispPos = undispPos + displaced;
             var heightDiff = dispPos.y - transformedPoint.y;
+
             if (heightDiff > 0)
             {
-                RB.AddForceAtPosition(archimedesForceMagnitude * heightDiff * Vector3.up * point._weight * _forceMultiplier / _totalWeight, transformedPoint);
+                RB.AddForceAtPosition(archimedesForceMagnitude * heightDiff * Vector3.up * _forcePoints[i]._weight * _forceMultiplier / _totalWeight, transformedPoint);
             }
+#endif
         }
     }
 
@@ -202,6 +257,26 @@ public class BoatProbes : MonoBehaviour, IBoat
         RB.AddForceAtPosition(transform.forward * Vector3.Dot(transform.forward, -_velocityRelativeToWater) * _dragInWaterForward, forcePosition, ForceMode.Acceleration);
     }
 
+#if USE_JOBS
+    void Update()
+    {
+        EnsureJobDataAllocated();
+
+        UpdateJobQueryPositions();
+
+        ShapeGerstnerJobs.UpdateQueryPoints(_guid, _queryPositions);
+    }
+
+    void UpdateJobQueryPositions()
+    {
+        for (var i = 0; i < _forcePoints.Length; i++)
+        {
+            _queryPositions[i] = transform.TransformPoint(_forcePoints[i]._offsetPosition + new Vector3(0, _centerOfMass.y, 0));
+        }
+    }
+#endif
+
+#if UNITY_EDITOR
     private void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.yellow;
@@ -220,6 +295,7 @@ public class BoatProbes : MonoBehaviour, IBoat
         var worldAABB = GetWorldAABB();
         new Bounds(new Vector3(worldAABB.center.x, 0f, worldAABB.center.y), Vector3.right * worldAABB.width + Vector3.forward * worldAABB.height).DebugDraw();
     }
+#endif
 
     Rect ComputeLocalSamplingAABB()
     {
@@ -246,6 +322,11 @@ public class BoatProbes : MonoBehaviour, IBoat
         b.Encapsulate(transform.TransformPoint(new Vector3(_localSamplingAABB.xMax, 0f, _localSamplingAABB.yMin)));
         b.Encapsulate(transform.TransformPoint(new Vector3(_localSamplingAABB.xMax, 0f, _localSamplingAABB.yMax)));
         return Rect.MinMaxRect(b.min.x, b.min.z, b.max.x, b.max.z);
+    }
+
+    private void OnDisable()
+    {
+        ShapeGerstnerJobs.RemoveQueryPoints(_guid);
     }
 }
 

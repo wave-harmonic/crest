@@ -22,12 +22,12 @@ namespace Crest
         const int MAX_WAVE_COMPONENTS = 512;
 
         // Wave data
-        static NativeArray<float4> s_wavelengths;
+        static NativeArray<float4> s_waveNumbers;
         static NativeArray<float4> s_amps;
-        static NativeArray<float4> s_angles;
+        static NativeArray<float4> s_windDirX;
+        static NativeArray<float4> s_windDirZ;
         static NativeArray<float4> s_phases;
-        static NativeArray<float4> s_chopScales;
-        static NativeArray<float4> s_gravityScales;
+        static NativeArray<float4> s_chopAmps;
 
         static int _waveVecCount = 0;
         static int _waveVecElemIndex = 0;
@@ -40,6 +40,8 @@ namespace Crest
         static NativeArray<float> s_resultHeights;
         static JobHandle s_handleHeights;
         static Dictionary<int, int2> s_segmentRegistry = new Dictionary<int, int2>();
+
+        static readonly float s_twoPi = Mathf.PI * 2f;
 
         /// <summary>
         /// Allocate storage. Should be called once - will assert if called while already initialised.
@@ -55,12 +57,12 @@ namespace Crest
             s_queryPositionsHeights = new NativeArray<float3>(MAX_QUERIES, Allocator.Persistent);
             s_resultHeights = new NativeArray<float>(MAX_QUERIES, Allocator.Persistent);
 
-            s_wavelengths = new NativeArray<float4>(MAX_WAVE_COMPONENTS / 4, Allocator.Persistent);
+            s_waveNumbers = new NativeArray<float4>(MAX_WAVE_COMPONENTS / 4, Allocator.Persistent);
             s_amps = new NativeArray<float4>(MAX_WAVE_COMPONENTS / 4, Allocator.Persistent);
-            s_angles = new NativeArray<float4>(MAX_WAVE_COMPONENTS / 4, Allocator.Persistent);
+            s_windDirX = new NativeArray<float4>(MAX_WAVE_COMPONENTS / 4, Allocator.Persistent);
+            s_windDirZ = new NativeArray<float4>(MAX_WAVE_COMPONENTS / 4, Allocator.Persistent);
             s_phases = new NativeArray<float4>(MAX_WAVE_COMPONENTS / 4, Allocator.Persistent);
-            s_chopScales = new NativeArray<float4>(MAX_WAVE_COMPONENTS / 4, Allocator.Persistent);
-            s_gravityScales = new NativeArray<float4>(MAX_WAVE_COMPONENTS / 4, Allocator.Persistent);
+            s_chopAmps = new NativeArray<float4>(MAX_WAVE_COMPONENTS / 4, Allocator.Persistent);
 
             s_segmentRegistry.Clear();
             s_lastQueryIndexHeights = 0;
@@ -107,14 +109,19 @@ namespace Crest
                 if (_waveVecCount >= MAX_WAVE_COMPONENTS / 4) return false;
                 if (amps[inputi] <= 0.001f) continue;
 
-                SetArrayFloat4(s_wavelengths, wavelengths[inputi]);
+                var k = s_twoPi / wavelengths[inputi];
+                SetArrayFloat4(s_waveNumbers, k);
                 SetArrayFloat4(s_amps, amps[inputi]);
-                SetArrayFloat4(s_angles, angles[inputi]);
-                SetArrayFloat4(s_phases, phases[inputi]);
 
                 var octavei = inputi / compPerOctave;
-                SetArrayFloat4(s_chopScales, chopScales[octavei]);
-                SetArrayFloat4(s_gravityScales, gravityScales[octavei]);
+                SetArrayFloat4(s_chopAmps, chopScales[octavei] * amps[inputi]);
+
+                float angle = (OceanRenderer.Instance._windDirectionAngle + angles[inputi]) * Mathf.Deg2Rad;
+                SetArrayFloat4(s_windDirX, Mathf.Cos(angle));
+                SetArrayFloat4(s_windDirZ, Mathf.Sin(angle));
+
+                var C = Mathf.Sqrt(9.81f * wavelengths[inputi] * gravityScales[octavei] / s_twoPi);
+                SetArrayFloat4(s_phases, phases[inputi] + k * C * OceanRenderer.Instance.CurrentTime);
 
                 NextElem();
             }
@@ -130,12 +137,12 @@ namespace Crest
             // Zero out trailing entries in the last vec
             while (_waveVecElemIndex != 0)
             {
-                SetArrayFloat4(s_wavelengths, 1f);
+                SetArrayFloat4(s_waveNumbers, 0f);
                 SetArrayFloat4(s_amps, 0f);
-                SetArrayFloat4(s_angles, 0f);
+                SetArrayFloat4(s_windDirX, 0f);
+                SetArrayFloat4(s_windDirZ, 0f);
                 SetArrayFloat4(s_phases, 0f);
-                SetArrayFloat4(s_chopScales, 1f);
-                SetArrayFloat4(s_gravityScales, 1f);
+                SetArrayFloat4(s_chopAmps, 1f);
 
                 NextElem();
             }
@@ -150,12 +157,12 @@ namespace Crest
 
             s_handleHeights.Complete();
 
-            s_wavelengths.Dispose();
+            s_waveNumbers.Dispose();
             s_amps.Dispose();
-            s_angles.Dispose();
+            s_windDirX.Dispose();
+            s_windDirZ.Dispose();
             s_phases.Dispose();
-            s_chopScales.Dispose();
-            s_gravityScales.Dispose();
+            s_chopAmps.Dispose();
 
             s_queryPositionsHeights.Dispose();
             s_resultHeights.Dispose();
@@ -276,17 +283,16 @@ namespace Crest
 
             var heightJob = new HeightJob()
             {
-                _wavelengths = s_wavelengths,
+                _waveNumbers = s_waveNumbers,
                 _amps = s_amps,
-                _angles = s_angles,
+                _windDirX = s_windDirX,
+                _windDirZ = s_windDirZ,
                 _phases = s_phases,
-                _chopScales = s_chopScales,
-                _gravityScales = s_gravityScales,
+                _chopAmps = s_chopAmps,
                 _numWaveVecs = _waveVecCount,
                 _queryPositions = s_queryPositionsHeights,
                 _computeSegment = new int2(0, s_queryPositionsHeights.Length),
                 _time = OceanRenderer.Instance.CurrentTime,
-                _globalWindAngle = OceanRenderer.Instance._windDirectionAngle,
                 _outHeights = s_resultHeights,
                 _seaLevel = OceanRenderer.Instance.SeaLevel,
             };
@@ -319,83 +325,17 @@ namespace Crest
         public struct VerticalDisplacementJob : IJobParallelFor
         {
             [ReadOnly]
-            public NativeArray<float4> _wavelengths;
+            public NativeArray<float4> _waveNumbers;
             [ReadOnly]
             public NativeArray<float4> _amps;
             [ReadOnly]
-            public NativeArray<float4> _angles;
+            public NativeArray<float4> _windDirX;
+            [ReadOnly]
+            public NativeArray<float4> _windDirZ;
             [ReadOnly]
             public NativeArray<float4> _phases;
             [ReadOnly]
-            public NativeArray<float4> _chopScales;
-            [ReadOnly]
-            public NativeArray<float4> _gravityScales;
-            [ReadOnly]
-            public int _numWaveVecs;
-
-            [ReadOnly]
-            public NativeArray<float3> _queryPositions;
-
-            [WriteOnly]
-            public NativeArray<float> _outHeights;
-
-            [ReadOnly]
-            public float _time;
-            [ReadOnly]
-            public float _globalWindAngle;
-            [ReadOnly]
-            public int2 _computeSegment;
-
-            public void Execute(int iinput)
-            {
-                if (iinput >= _computeSegment.x && iinput < _computeSegment.y - _computeSegment.x)
-                {
-                    float resultHeight = 0f;
-                    float4 twoPi = 2f * Mathf.PI;
-                    float4 g_over_2pi = 9.81f / twoPi;
-
-                    for (var iwavevec = 0; iwavevec < _numWaveVecs; iwavevec++)
-                    {
-                        // Wave speed
-                        float4 C = math.sqrt(g_over_2pi * _wavelengths[iwavevec] * _gravityScales[iwavevec]);
-
-                        // Wave direction
-                        float4 angle = (_globalWindAngle + _angles[iwavevec]) * Mathf.Deg2Rad;
-                        float4 Dx = math.cos(angle);
-                        float4 Dz = math.sin(angle);
-
-                        // Wave number
-                        float4 k = twoPi / _wavelengths[iwavevec];
-
-                        float4 x = Dx * _queryPositions[iinput].x + Dz * _queryPositions[iinput].z;
-                        float4 t = k * (x + C * _time) + _phases[iwavevec];
-
-                        resultHeight += math.csum(_amps[iwavevec] * math.cos(t));
-                    }
-
-                    _outHeights[iinput] = resultHeight;
-                }
-            }
-        }
-
-        /// <summary>
-        /// This inverts the displacement to get the true water height at a position.
-        /// </summary>
-        [BurstCompile]
-        public struct HeightJob : IJobParallelFor
-        {
-            [ReadOnly]
-            public NativeArray<float4> _wavelengths;
-            [ReadOnly]
-            public NativeArray<float4> _amps;
-            [ReadOnly]
-            public NativeArray<float4> _angles;
-            [ReadOnly]
-            public NativeArray<float4> _phases;
-            [ReadOnly]
-            public NativeArray<float4> _chopScales;
-            [ReadOnly]
-            public NativeArray<float4> _gravityScales;
+            public NativeArray<float4> _chopAmps;
             [ReadOnly]
             public int _numWaveVecs;
 
@@ -414,34 +354,95 @@ namespace Crest
             [ReadOnly]
             public float _seaLevel;
 
+            public void Execute(int iinput)
+            {
+                if (iinput >= _computeSegment.x && iinput < _computeSegment.y - _computeSegment.x)
+                {
+                    float resultHeight = 0f;
+
+                    for (var iwavevec = 0; iwavevec < _numWaveVecs; iwavevec++)
+                    {
+                        // Wave direction
+                        float4 Dx = _windDirX[iwavevec], Dz = _windDirZ[iwavevec];
+
+                        // Wave number
+                        float4 k = _waveNumbers[iwavevec];
+
+                        // SIMD Dot product of wave direction with query pos
+                        float4 x = Dx * _queryPositions[iinput].x + Dz * _queryPositions[iinput].z;
+
+                        // Angle
+                        float4 t = k * x + _phases[iwavevec];
+
+                        resultHeight += math.csum(_amps[iwavevec] * math.cos(t));
+                    }
+
+                    _outHeights[iinput] = resultHeight + _seaLevel;
+                }
+            }
+        }
+
+        /// <summary>
+        /// This inverts the displacement to get the true water height at a position.
+        /// </summary>
+        [BurstCompile]
+        public struct HeightJob : IJobParallelFor
+        {
+            [ReadOnly]
+            public NativeArray<float4> _waveNumbers;
+            [ReadOnly]
+            public NativeArray<float4> _amps;
+            [ReadOnly]
+            public NativeArray<float4> _windDirX;
+            [ReadOnly]
+            public NativeArray<float4> _windDirZ;
+            [ReadOnly]
+            public NativeArray<float4> _phases;
+            [ReadOnly]
+            public NativeArray<float4> _chopAmps;
+            [ReadOnly]
+            public int _numWaveVecs;
+
+            [ReadOnly]
+            public NativeArray<float3> _queryPositions;
+
+            [WriteOnly]
+            public NativeArray<float> _outHeights;
+
+            [ReadOnly]
+            public float _time;
+            [ReadOnly]
+            public int2 _computeSegment;
+            [ReadOnly]
+            public float _seaLevel;
+
             float3 ComputeDisplacement(float3 queryPos)
             {
-                float4 twoPi = 2f * Mathf.PI;
-                float4 g_over_2pi = 9.81f / twoPi;
-
                 float3 displacement = 0f;
 
                 for (var iwavevec = 0; iwavevec < _numWaveVecs; iwavevec++)
                 {
-                    // Wave speed
-                    float4 C = math.sqrt(g_over_2pi * _wavelengths[iwavevec] * _gravityScales[iwavevec]);
-
                     // Wave direction
-                    float4 angle = (_globalWindAngle + _angles[iwavevec]) * Mathf.Deg2Rad;
-                    float4 Dx = math.cos(angle);
-                    float4 Dz = math.sin(angle);
+                    float4 Dx = _windDirX[iwavevec], Dz = _windDirZ[iwavevec];
 
                     // Wave number
-                    float4 k = twoPi / _wavelengths[iwavevec];
+                    float4 k = _waveNumbers[iwavevec];
 
+                    // SIMD Dot product of wave direction with query pos
                     float4 x = Dx * queryPos.x + Dz * queryPos.z;
-                    float4 t = k * (x + C * _time) + _phases[iwavevec];
 
-                    displacement.y += math.csum(_amps[iwavevec] * math.cos(t));
+                    // Angle
+                    float4 t = k * x + _phases[iwavevec];
 
-                    float4 disp = -_chopScales[iwavevec] * math.sin(t);
-                    displacement.x += math.csum(_amps[iwavevec] * Dx * disp);
-                    displacement.z += math.csum(_amps[iwavevec] * Dz * disp);
+                    float4 sint, cost;
+                    math.sincos(t, out sint, out cost);
+
+                    // Add the four SIMD results
+                    displacement.y += math.csum(_amps[iwavevec] * cost);
+
+                    float4 disp = -_chopAmps[iwavevec] * sint;
+                    displacement.x += math.csum(Dx * disp);
+                    displacement.z += math.csum(Dz * disp);
                 }
 
                 return displacement;
@@ -465,7 +466,7 @@ namespace Crest
                         undisplacedPos.xz -= error;
                     }
 
-                    // Our height is now the displacement at the final pos
+                    // Our height is now the vertical component of the displacement from the undisp pos
                     float3 displacement = ComputeDisplacement(undisplacedPos);
 
                     _outHeights[iinput] = displacement.y + _seaLevel;

@@ -1,5 +1,4 @@
-﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
-
+﻿
 using System.Collections.Generic;
 using Unity.Burst;
 using Unity.Collections;
@@ -35,7 +34,7 @@ namespace Crest
         const int MAX_QUERIES = 4096;
 
         // Query data for height samples
-        static NativeArray<float3> s_queryPositionsHeights;
+        static NativeArray<float2> s_queryPositionsHeights;
         static int s_lastQueryIndexHeights = 0;
         static NativeArray<float> s_resultHeights;
         static JobHandle s_handleHeights;
@@ -54,7 +53,7 @@ namespace Crest
                 return;
             }
 
-            s_queryPositionsHeights = new NativeArray<float3>(MAX_QUERIES, Allocator.Persistent);
+            s_queryPositionsHeights = new NativeArray<float2>(MAX_QUERIES, Allocator.Persistent);
             s_resultHeights = new NativeArray<float>(MAX_QUERIES, Allocator.Persistent);
 
             s_waveNumbers = new NativeArray<float4>(MAX_WAVE_COMPONENTS / 4, Allocator.Persistent);
@@ -215,7 +214,7 @@ namespace Crest
             // Save off the query data
             for (var i = querySegment.x; i < querySegment.y; i++)
             {
-                s_queryPositionsHeights[i] = queryPoints[i - querySegment.x];
+                s_queryPositionsHeights[i] = queryPoints[i - querySegment.x].xz;
             }
 
             return true;
@@ -340,7 +339,7 @@ namespace Crest
             public int _numWaveVecs;
 
             [ReadOnly]
-            public NativeArray<float3> _queryPositions;
+            public NativeArray<float2> _queryPositions;
 
             [WriteOnly]
             public NativeArray<float> _outHeights;
@@ -369,7 +368,7 @@ namespace Crest
                         float4 k = _waveNumbers[iwavevec];
 
                         // SIMD Dot product of wave direction with query pos
-                        float4 x = Dx * _queryPositions[iinput].x + Dz * _queryPositions[iinput].z;
+                        float4 x = Dx * _queryPositions[iinput].x + Dz * _queryPositions[iinput].y;
 
                         // Angle
                         float4 t = k * x + _phases[iwavevec];
@@ -404,7 +403,7 @@ namespace Crest
             public int _numWaveVecs;
 
             [ReadOnly]
-            public NativeArray<float3> _queryPositions;
+            public NativeArray<float2> _queryPositions;
 
             [WriteOnly]
             public NativeArray<float> _outHeights;
@@ -416,9 +415,9 @@ namespace Crest
             [ReadOnly]
             public float _seaLevel;
 
-            float3 ComputeDisplacement(float3 queryPos)
+            float2 ComputeDisplacementHoriz(float2 queryPos)
             {
-                float3 displacement = 0f;
+                float2 displacement = 0f;
 
                 for (var iwavevec = 0; iwavevec < _numWaveVecs; iwavevec++)
                 {
@@ -429,23 +428,43 @@ namespace Crest
                     float4 k = _waveNumbers[iwavevec];
 
                     // SIMD Dot product of wave direction with query pos
-                    float4 x = Dx * queryPos.x + Dz * queryPos.z;
+                    float4 x = Dx * queryPos.x + Dz * queryPos.y;
 
                     // Angle
                     float4 t = k * x + _phases[iwavevec];
 
-                    float4 sint, cost;
-                    math.sincos(t, out sint, out cost);
-
                     // Add the four SIMD results
-                    displacement.y += math.csum(_amps[iwavevec] * cost);
-
-                    float4 disp = -_chopAmps[iwavevec] * sint;
+                    float4 disp = -_chopAmps[iwavevec] * math.sin(t);
                     displacement.x += math.csum(Dx * disp);
-                    displacement.z += math.csum(Dz * disp);
+                    displacement.y += math.csum(Dz * disp);
                 }
 
                 return displacement;
+            }
+
+            float ComputeDisplacementVert(float2 queryPos)
+            {
+                float height = 0f;
+
+                for (var iwavevec = 0; iwavevec < _numWaveVecs; iwavevec++)
+                {
+                    // Wave direction
+                    float4 Dx = _windDirX[iwavevec], Dz = _windDirZ[iwavevec];
+
+                    // Wave number
+                    float4 k = _waveNumbers[iwavevec];
+
+                    // SIMD Dot product of wave direction with query pos
+                    float4 x = Dx * queryPos.x + Dz * queryPos.y;
+
+                    // Angle
+                    float4 t = k * x + _phases[iwavevec];
+
+                    // Add the four SIMD results
+                    height += math.csum(_amps[iwavevec] * math.cos(t));
+                }
+
+                return height;
             }
 
             public void Execute(int iinput)
@@ -454,22 +473,19 @@ namespace Crest
                 {
                     // This could be even faster if i could allocate scratch space to store intermediate calculation results (not supported by burst yet)
 
-                    float3 undisplacedPos = _queryPositions[iinput];
-                    undisplacedPos.y = 0f;
+                    float2 undisplacedPos = _queryPositions[iinput];
 
                     for (int iter = 0; iter < 4; iter++)
                     {
-                        float3 disp = ComputeDisplacement(undisplacedPos);
+                        float2 displacement = ComputeDisplacementHoriz(undisplacedPos);
 
                         // Correct the undisplaced position - goal is to find the position that displaces to the query position
-                        float2 error = undisplacedPos.xz + disp.xz - _queryPositions[iinput].xz;
-                        undisplacedPos.xz -= error;
+                        float2 error = undisplacedPos + displacement - _queryPositions[iinput];
+                        undisplacedPos -= error;
                     }
 
                     // Our height is now the vertical component of the displacement from the undisp pos
-                    float3 displacement = ComputeDisplacement(undisplacedPos);
-
-                    _outHeights[iinput] = displacement.y + _seaLevel;
+                    _outHeights[iinput] = ComputeDisplacementVert(undisplacedPos) + _seaLevel;
                 }
             }
         }

@@ -290,11 +290,11 @@ namespace Crest
                 UpdateBatch(OceanRenderer.Instance.CurrentLodCount - 1, componentIdx, _wavelengths.Length, _materials[OceanRenderer.Instance.CurrentLodCount - 1]) > 0;
             _drawLODTransitionWaves =
                 UpdateBatch(OceanRenderer.Instance.CurrentLodCount - 2, componentIdx, _wavelengths.Length, _materialBigWaveTransition) > 0;
+        }
 
-            // Run any Gerstner-related jobs
-            // TODO how to handle multiple gerstner sets??
-            ShapeGerstnerJobs.SetWaveData(_wavelengths, _amplitudes, _angleDegs, _phases, _spectrum._chopScales, _spectrum._gravityScales, _componentsPerOctave);
-            ShapeGerstnerJobs.ScheduleJobs();
+        public void AddGerstnerData()
+        {
+            ShapeGerstnerJobs.AddWaveData(_wavelengths, _amplitudes, _angleDegs, _phases, _spectrum._chopScales, _spectrum._gravityScales, _componentsPerOctave);
         }
 
         /// <summary>

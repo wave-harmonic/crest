@@ -17,6 +17,8 @@ namespace Crest
         public static bool s_firstFrame = true;
         public static bool s_jobsRunning = false;
 
+        const int MAX_WAVE_COMPONENTS = 512;
+
         // Wave data
         static NativeArray<float4> s_wavelengths;
         static NativeArray<float4> s_amps;
@@ -24,6 +26,9 @@ namespace Crest
         static NativeArray<float4> s_phases;
         static NativeArray<float4> s_chopScales;
         static NativeArray<float4> s_gravityScales;
+
+        static int _waveVecIndex = 0;
+        static int _waveVecElemIndex = 0;
 
         const int MAX_QUERIES = 4096;
 
@@ -48,115 +53,83 @@ namespace Crest
             s_queryPositionsHeights = new NativeArray<float3>(MAX_QUERIES, Allocator.Persistent);
             s_resultHeights = new NativeArray<float>(MAX_QUERIES, Allocator.Persistent);
 
+            s_wavelengths = new NativeArray<float4>(MAX_WAVE_COMPONENTS / 4, Allocator.Persistent);
+            s_amps = new NativeArray<float4>(MAX_WAVE_COMPONENTS / 4, Allocator.Persistent);
+            s_angles = new NativeArray<float4>(MAX_WAVE_COMPONENTS / 4, Allocator.Persistent);
+            s_phases = new NativeArray<float4>(MAX_WAVE_COMPONENTS / 4, Allocator.Persistent);
+            s_chopScales = new NativeArray<float4>(MAX_WAVE_COMPONENTS / 4, Allocator.Persistent);
+            s_gravityScales = new NativeArray<float4>(MAX_WAVE_COMPONENTS / 4, Allocator.Persistent);
+
             s_segmentRegistry.Clear();
             s_lastQueryIndexHeights = 0;
 
             s_initialised = true;
         }
 
-        static void CopyFloatsToVectors(float[] inputData, ref NativeArray<float4> outputData)
+        static void NextElem()
         {
-            int numFloats = inputData.Length;
-
-            // How many vectors required to accommodate length numFloats
-            int numVecs = numFloats / 4;
-            if (numVecs * 4 < numFloats) numVecs++;
-
-            if (!outputData.IsCreated || outputData.Length != numVecs)
-            {
-                if (outputData.IsCreated)
-                {
-                    outputData.Dispose();
-                }
-
-                outputData = new NativeArray<float4>(numVecs, Allocator.Persistent);
-            }
-
-            // Fill in data
-            for (int inputi = 0; inputi < inputData.Length; inputi++)
-            {
-                int veci = inputi / 4;
-                int elemi = inputi % 4;
-
-                // Do the read/write dance as i cant write the data directly
-                float4 data = outputData[veci];
-                data[elemi] = inputData[inputi];
-                outputData[veci] = data;
-            }
-
-            // Zero out trailing entries
-            for (int remainderi = inputData.Length; remainderi < 4 * numVecs; remainderi++)
-            {
-                int veci = remainderi / 4;
-                int elemi = remainderi % 4;
-
-                // Do the read/write dance as i cant write the data directly
-                float4 data = outputData[veci];
-                data[elemi] = 0f;
-                outputData[veci] = data;
-            }
+            _waveVecElemIndex = (_waveVecElemIndex + 1) % 4;
+            if (_waveVecElemIndex == 0) _waveVecIndex++;
         }
 
-        static void CopyPerOctaveFloatsToVectors(float[] perOctaveInputData, int componentsPerOctave, ref NativeArray<float4> outputData)
+        static void SetArrayFloat4(NativeArray<float4> array, float value)
         {
-            int numFloats = perOctaveInputData.Length * componentsPerOctave;
+            float4 tmp = array[_waveVecIndex];
+            tmp[_waveVecElemIndex] = value;
+            array[_waveVecIndex] = tmp;
+        }
 
-            // How many vectors required to accommodate length numFloats
-            int numVecs = numFloats / 4;
-            if (numVecs * 4 < numFloats) numVecs++;
-
-            if (!outputData.IsCreated || outputData.Length != numVecs)
-            {
-                if (outputData.IsCreated)
-                {
-                    outputData.Dispose();
-                }
-
-                outputData = new NativeArray<float4>(numVecs, Allocator.Persistent);
-            }
-
-            // Fill the data - repeat per octave data componentsPerOctave times
-            int veci = 0;
-            int elemi = 0;
-            for (int octavei = 0; octavei < perOctaveInputData.Length; octavei++)
-            {
-                for (int compi = 0; compi < componentsPerOctave; compi++)
-                {
-                    // Do the read/write dance as i cant write the data directly
-                    float4 data = outputData[veci];
-                    data[elemi] = perOctaveInputData[octavei];
-                    outputData[veci] = data;
-
-                    elemi = (elemi + 1) % 4;
-                    if (elemi == 0) veci++;
-                }
-            }
-
-            // Zero out trailing entries
-            while (veci < numVecs)
-            {
-                // Do the read/write dance as i cant write the data directly
-                float4 data = outputData[veci];
-                data[elemi] = 0f;
-                outputData[veci] = data;
-
-                elemi = (elemi + 1) % 4;
-                if (elemi == 0) veci++;
-            }
+        public static void StartSettingWaveData()
+        {
+            _waveVecIndex = 0;
+            _waveVecElemIndex = 0;
         }
 
         /// <summary>
         /// Set the Gerstner wave data. Will reallocate data if the number of waves changes.
         /// </summary>
-        public static void SetWaveData(float[] wavelengths, float[] amps, float[] angles, float[] phases, float[] chopScales, float[] gravityScales, int compPerOctave)
+        /// <returns>True if all added, false if ran out of space in wave data buffer.</returns>
+        public static bool AddWaveData(float[] wavelengths, float[] amps, float[] angles, float[] phases, float[] chopScales, float[] gravityScales, int compPerOctave)
         {
-            CopyFloatsToVectors(wavelengths, ref s_wavelengths);
-            CopyFloatsToVectors(amps, ref s_amps);
-            CopyFloatsToVectors(angles, ref s_angles);
-            CopyFloatsToVectors(phases, ref s_phases);
+            // How many vectors required to accommodate length numFloats
+            var numFloats = wavelengths.Length;
+            var numVecs = numFloats / 4;
+            if (numVecs * 4 < numFloats) numVecs++;
 
-            CopyPerOctaveFloatsToVectors(chopScales, compPerOctave, ref s_chopScales);
-            CopyPerOctaveFloatsToVectors(gravityScales, compPerOctave, ref s_gravityScales);
+            for (var inputi = 0; inputi < numFloats; inputi++)
+            {
+                if (_waveVecIndex >= MAX_WAVE_COMPONENTS / 4) return false;
+                if (amps[inputi] <= 0.001f) continue;
+
+                SetArrayFloat4(s_wavelengths, wavelengths[inputi]);
+                SetArrayFloat4(s_amps, amps[inputi]);
+                SetArrayFloat4(s_angles, angles[inputi]);
+                SetArrayFloat4(s_phases, phases[inputi]);
+
+                var octavei = inputi / compPerOctave;
+                SetArrayFloat4(s_chopScales, chopScales[octavei]);
+                SetArrayFloat4(s_gravityScales, gravityScales[octavei]);
+
+                NextElem();
+            }
+
+            return true;
+        }
+
+        public static void FinishAddingWaveData()
+        {
+            // Zero out trailing entries in the last vec
+            while (_waveVecElemIndex != 0)
+            {
+                SetArrayFloat4(s_wavelengths, 0f);
+                SetArrayFloat4(s_amps, 0f);
+                SetArrayFloat4(s_angles, 0f);
+                SetArrayFloat4(s_phases, 0f);
+                SetArrayFloat4(s_chopScales, 0f);
+                SetArrayFloat4(s_gravityScales, 0f);
+
+                NextElem();
+            }
         }
 
         /// <summary>
@@ -299,6 +272,7 @@ namespace Crest
                 _phases = s_phases,
                 _chopScales = s_chopScales,
                 _gravityScales = s_gravityScales,
+                _numWaveVecs = _waveVecIndex,
                 _queryPositions = s_queryPositionsHeights,
                 // TODO - segment could effect both the min wavelength and also unused waves at the end?
                 _computeSegment = new int2(0, s_queryPositionsHeights.Length),
@@ -347,6 +321,8 @@ namespace Crest
             public NativeArray<float4> _chopScales;
             [ReadOnly]
             public NativeArray<float4> _gravityScales;
+            [ReadOnly]
+            public int _numWaveVecs;
 
             [ReadOnly]
             public NativeArray<float3> _queryPositions;
@@ -369,7 +345,7 @@ namespace Crest
                     float4 twoPi = 2f * Mathf.PI;
                     float4 g_over_2pi = 9.81f / twoPi;
 
-                    for (var iwavevec = 0; iwavevec < _wavelengths.Length; iwavevec++)
+                    for (var iwavevec = 0; iwavevec < _numWaveVecs; iwavevec++)
                     {
                         // Wave speed
                         float4 C = math.sqrt(g_over_2pi * _wavelengths[iwavevec] * _gravityScales[iwavevec]);
@@ -411,6 +387,8 @@ namespace Crest
             public NativeArray<float4> _chopScales;
             [ReadOnly]
             public NativeArray<float4> _gravityScales;
+            [ReadOnly]
+            public int _numWaveVecs;
 
             [ReadOnly]
             public NativeArray<float3> _queryPositions;
@@ -434,7 +412,7 @@ namespace Crest
 
                 float3 displacement = 0f;
 
-                for (var iwavevec = 0; iwavevec < _wavelengths.Length; iwavevec++)
+                for (var iwavevec = 0; iwavevec < _numWaveVecs; iwavevec++)
                 {
                     // Wave speed
                     float4 C = math.sqrt(g_over_2pi * _wavelengths[iwavevec] * _gravityScales[iwavevec]);

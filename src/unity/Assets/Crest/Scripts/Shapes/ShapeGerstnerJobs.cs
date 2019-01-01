@@ -121,12 +121,12 @@ namespace Crest
             // Zero out trailing entries in the last vec
             while (_waveVecElemIndex != 0)
             {
-                SetArrayFloat4(s_wavelengths, 0f);
+                SetArrayFloat4(s_wavelengths, 1f);
                 SetArrayFloat4(s_amps, 0f);
                 SetArrayFloat4(s_angles, 0f);
                 SetArrayFloat4(s_phases, 0f);
-                SetArrayFloat4(s_chopScales, 0f);
-                SetArrayFloat4(s_gravityScales, 0f);
+                SetArrayFloat4(s_chopScales, 1f);
+                SetArrayFloat4(s_gravityScales, 1f);
 
                 NextElem();
             }

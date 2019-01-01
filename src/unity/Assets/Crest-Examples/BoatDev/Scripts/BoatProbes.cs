@@ -67,11 +67,9 @@ public class BoatProbes : MonoBehaviour, IBoat
     float _totalWeight;
 
 #if USE_JOBS
-    // Height job stuff
+    // Gerstner job inputs and outputs
     int _guid;
-    // Inputs
     float3[] _queryPositions;
-    // Outputs
     float[] _resultHeights;
 #endif
 
@@ -131,7 +129,7 @@ public class BoatProbes : MonoBehaviour, IBoat
 #endif
 
 #if USE_JOBS
-        // Get the job data back. TODO - do this on first update only?
+        // Get the job data back.
         EnsureJobDataAllocated();
         ShapeGerstnerJobs.CompleteJobs();
         ShapeGerstnerJobs.RetrieveResultHeights(_guid, ref _resultHeights);

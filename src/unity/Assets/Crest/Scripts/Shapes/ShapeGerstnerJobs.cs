@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
+
+using System.Collections.Generic;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Jobs;
@@ -27,7 +29,7 @@ namespace Crest
         static NativeArray<float4> s_chopScales;
         static NativeArray<float4> s_gravityScales;
 
-        static int _waveVecIndex = 0;
+        static int _waveVecCount = 0;
         static int _waveVecElemIndex = 0;
 
         const int MAX_QUERIES = 4096;
@@ -69,19 +71,23 @@ namespace Crest
         static void NextElem()
         {
             _waveVecElemIndex = (_waveVecElemIndex + 1) % 4;
-            if (_waveVecElemIndex == 0) _waveVecIndex++;
+            if (_waveVecElemIndex == 0) _waveVecCount++;
         }
 
         static void SetArrayFloat4(NativeArray<float4> array, float value)
         {
-            float4 tmp = array[_waveVecIndex];
-            tmp[_waveVecElemIndex] = value;
-            array[_waveVecIndex] = tmp;
+            // Do the read/write dance as poking in the data directly is not possible
+            float4 vec = array[_waveVecCount];
+            vec[_waveVecElemIndex] = value;
+            array[_waveVecCount] = vec;
         }
 
+        /// <summary>
+        /// Call this once before calling AddWaveData().
+        /// </summary>
         public static void StartSettingWaveData()
         {
-            _waveVecIndex = 0;
+            _waveVecCount = 0;
             _waveVecElemIndex = 0;
         }
 
@@ -98,7 +104,7 @@ namespace Crest
 
             for (var inputi = 0; inputi < numFloats; inputi++)
             {
-                if (_waveVecIndex >= MAX_WAVE_COMPONENTS / 4) return false;
+                if (_waveVecCount >= MAX_WAVE_COMPONENTS / 4) return false;
                 if (amps[inputi] <= 0.001f) continue;
 
                 SetArrayFloat4(s_wavelengths, wavelengths[inputi]);
@@ -116,6 +122,9 @@ namespace Crest
             return true;
         }
 
+        /// <summary>
+        /// Call this after calling AddWaveData().
+        /// </summary>
         public static void FinishAddingWaveData()
         {
             // Zero out trailing entries in the last vec
@@ -153,8 +162,9 @@ namespace Crest
         }
 
         /// <summary>
-        /// Updates the query positions (creates space for them the first time). If the query count doesnt match a new set of query
-        /// position data will be created. This will force any running jobs to complete.
+        /// Updates the query positions (creates space for them the first time). If the query count doesn't match a new set of query
+        /// position data will be created. This will force any running jobs to complete. The jobs will be kicked off in LateUpdate,
+        /// so this should be called before the kick-off, such as from Update.
         /// </summary>
         /// <returns>True if successful.</returns>
         public static bool UpdateQueryPoints(int guid, float3[] queryPoints)
@@ -272,9 +282,8 @@ namespace Crest
                 _phases = s_phases,
                 _chopScales = s_chopScales,
                 _gravityScales = s_gravityScales,
-                _numWaveVecs = _waveVecIndex,
+                _numWaveVecs = _waveVecCount,
                 _queryPositions = s_queryPositionsHeights,
-                // TODO - segment could effect both the min wavelength and also unused waves at the end?
                 _computeSegment = new int2(0, s_queryPositionsHeights.Length),
                 _time = OceanRenderer.Instance.CurrentTime,
                 _globalWindAngle = OceanRenderer.Instance._windDirectionAngle,

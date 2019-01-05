@@ -4,7 +4,8 @@
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
@@ -14,6 +15,6 @@ MonoBehaviour:
   _minGridSize: 0
   _maxGridSize: 0
   _maxSubstepDt: 0.016666668
-  _damping: 0.173
-  _horizDisplace: 10
+  _damping: 0.01
+  _horizDisplace: 2
   _displaceClamp: 0.3

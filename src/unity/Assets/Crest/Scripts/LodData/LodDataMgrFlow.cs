@@ -26,16 +26,28 @@ namespace Crest
 
         bool _targetsClear = false;
 
+        const string FLOW_KEYWORD = "_FLOW_ON";
+
         protected override void Start()
         {
             base.Start();
 
 #if UNITY_EDITOR
-            if (!OceanRenderer.Instance.OceanMaterial.IsKeywordEnabled("_FLOW_ON"))
+            if (!OceanRenderer.Instance.OceanMaterial.IsKeywordEnabled(FLOW_KEYWORD))
             {
                 Debug.LogWarning("Flow is not enabled on the current ocean material and will not be visible.", this);
             }
 #endif
+        }
+
+        private void OnEnable()
+        {
+            Shader.EnableKeyword(FLOW_KEYWORD);
+        }
+
+        private void OnDisable()
+        {
+            Shader.DisableKeyword(FLOW_KEYWORD);
         }
 
         public override void BuildCommandBuffer(OceanRenderer ocean, CommandBuffer buf)
@@ -61,6 +73,26 @@ namespace Crest
             {
                 _targetsClear = true;
             }
+        }
+
+        static int[] _paramsSampler;
+        public static int ParamIdSampler(int slot)
+        {
+            if (_paramsSampler == null)
+                LodTransform.CreateParamIDs(ref _paramsSampler, "_LD_Sampler_Flow_");
+            return _paramsSampler[slot];
+        }
+        protected override int GetParamIdSampler(int slot)
+        {
+            return ParamIdSampler(slot);
+        }
+        public static void BindNull(int shapeSlot, Material properties)
+        {
+            properties.SetTexture(ParamIdSampler(shapeSlot), Texture2D.blackTexture);
+        }
+        public static void BindNull(int shapeSlot, MaterialPropertyBlock properties)
+        {
+            properties.SetTexture(ParamIdSampler(shapeSlot), Texture2D.blackTexture);
         }
     }
 }

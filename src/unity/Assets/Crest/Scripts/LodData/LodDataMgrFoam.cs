@@ -10,7 +10,7 @@ namespace Crest
     public class LodDataMgrFoam : LodDataMgrPersistent
     {
         public override SimType LodDataType { get { return SimType.Foam; } }
-        protected override string ShaderSim { get { return "Ocean/Simulation/Update Foam"; } }
+        protected override string ShaderSim { get { return "Hidden/Ocean/Simulation/Update Foam"; } }
         public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RHalf; } }
 
         public override SimSettingsBase CreateDefaultSettings()
@@ -52,7 +52,7 @@ namespace Crest
             }
             else
             {
-                simMaterial.SetTexture("_LD_Sampler_SeaFloorDepth_1", Texture2D.blackTexture);
+                LodDataMgrSeaFloorDepth.BindNull(1, simMaterial);
             }
 
             // assign flow - to slot 1 current frame data
@@ -62,7 +62,7 @@ namespace Crest
             }
             else
             {
-                simMaterial.SetTexture("_LD_Sampler_Flow_1", Texture2D.blackTexture);
+                LodDataMgrFlow.BindNull(1, simMaterial);
             }
         }
 
@@ -70,6 +70,26 @@ namespace Crest
         {
             // foam always does just one sim step
             return 1;
+        }
+
+        static int[] _paramsSampler;
+        public static int ParamIdSampler(int slot)
+        {
+            if (_paramsSampler == null)
+                LodTransform.CreateParamIDs(ref _paramsSampler, "_LD_Sampler_Foam_");
+            return _paramsSampler[slot];
+        }
+        protected override int GetParamIdSampler(int slot)
+        {
+            return ParamIdSampler(slot);
+        }
+        public static void BindNull(int shapeSlot, Material properties)
+        {
+            properties.SetTexture(ParamIdSampler(shapeSlot), Texture2D.blackTexture);
+        }
+        public static void BindNull(int shapeSlot, MaterialPropertyBlock properties)
+        {
+            properties.SetTexture(ParamIdSampler(shapeSlot), Texture2D.blackTexture);
         }
 
         SimSettingsFoam Settings { get { return _settings as SimSettingsFoam; } }

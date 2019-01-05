@@ -170,6 +170,15 @@ It also does not include wave attenuation from water depth or any custom rendere
 A final limitation is the current system finds the first GerstnerWavesBatched component in the scene which may or may not be the correct one.
 The system does not support cross blending of multiple scripts.
 
+
+# Masking Out Surface
+
+There are times when it is useful to mask out the ocean surface which prevents it drawing on some part of the screen.
+The scene *main.unity* in the example content has a rowboat which, without masking, would appear to be full of water.
+To prevent water appearing inside the boat, the *WaterMask* gameobject writes depth into the GPU's depth buffer which can occlude any water behind it, and therefore prevent drawing water inside the boat.
+The *RegisterMaskInput* component is required to ensure this depth draws early before the ocean surface.
+
+
 # Update / Execution Order
 
 The ocean system updates its state in *LateUpdate*, after game state update and animation, etc.
@@ -178,4 +187,19 @@ The ocean system updates its state in *LateUpdate*, after game state update and 
 
 Next the rest of the *LateUpdate* bucket runs. Any view-dependent ocean data that wasn't updated by the *OceanRenderer* updates here, such as the Gerstner waves which taylors the wave data based on the LOD scales.
 
-Finally *BuildCommandBuffer* runs after everything else and constructs a command buffer for the ocean that is hooked to the beginning of the main camera rendering and executes on the GPU. The command buffer sequence can be observed in *BuildCommandBuffer*. This is where the ocean data is updated.
+Finally *BuildCommandBuffer* runs after everything else and constructs a command buffer for the ocean. This is executed early in the frame before the graphics queue starts. See the *BuildCommandBuffer* code for the update logic.
+
+
+# Floating Origin
+
+*Crest* has support for 'floating origin' functionality, based on code from the Unity community wiki. See the original wiki page for an overview and original code: [link](http://wiki.unity3d.com/index.php/Floating_Origin).
+
+It is tricky to get pop free results for world space texturing. To make it work the following is required:
+
+* Set the floating origin threshold to a power of 2 value such as 4096.
+* Set the size/scale of any world space textures to be a smaller power of 2. This way the texture tiles an integral number of times across the threshold, and when the origin moves no change in appearance is noticeable. This includes the following textures:
+  * Normals - set the Normal Mapping Scale on the ocean material
+  * Foam texture - set the Foam Scale on the ocean material
+  * Caustics - also should be a power of 2 scale, if caustics are visible when origin shifts happen 
+
+By default the *FloatingOrigin* script will call *FindObjectsOfType()* for a few different component types, which is a notoriously expensive operation. It is possible to provide custom lists of components to the 'override' fields, either by hand or programmatically, to avoid searching the entire scene(s) for the components. Managing these lists at run-time is left to the user.

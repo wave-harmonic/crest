@@ -10,7 +10,7 @@ namespace Crest
     public class LodDataMgrDynWaves : LodDataMgrPersistent
     {
         public override SimType LodDataType { get { return SimType.DynamicWaves; } }
-        protected override string ShaderSim { get { return "Ocean/Simulation/Update Dynamic Waves"; } }
+        protected override string ShaderSim { get { return "Hidden/Ocean/Simulation/Update Dynamic Waves"; } }
         public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RGHalf; } }
 
         public override SimSettingsBase CreateDefaultSettings()
@@ -22,21 +22,10 @@ namespace Crest
 
         public bool _rotateLaplacian = true;
 
-        public Material[] _copySimMaterial;
+        const string DYNWAVES_KEYWORD = "_DYNAMIC_WAVE_SIM_ON";
 
         bool[] _active;
         public bool SimActive(int lodIdx) { return _active[lodIdx]; }
-
-        protected override void Start()
-        {
-            base.Start();
-
-            _copySimMaterial = new Material[OceanRenderer.Instance.CurrentLodCount];
-            for (int i = 0; i < _copySimMaterial.Length; i++)
-            {
-                _copySimMaterial[i] = new Material(Shader.Find("Ocean/Simulation/Add Dyn Waves To Anim Waves"));
-            }
-        }
 
         protected override void InitData()
         {
@@ -46,27 +35,32 @@ namespace Crest
             for (int i = 0; i < _active.Length; i++) _active[i] = true;
         }
 
+        private void OnEnable()
+        {
+            Shader.EnableKeyword(DYNWAVES_KEYWORD);
+        }
+
+        private void OnDisable()
+        {
+            Shader.DisableKeyword(DYNWAVES_KEYWORD);
+        }
+
         protected override bool BuildCommandBufferInternal(int lodIdx)
         {
             if (!base.BuildCommandBufferInternal(lodIdx))
                 return false;
 
-            // this sim copies its results into the animated waves
-
             // check if the sim should be running
             float texelWidth = OceanRenderer.Instance._lods[lodIdx]._renderData.Validate(0, this)._texelWidth;
             _active[lodIdx] = texelWidth >= Settings._minGridSize && (texelWidth <= Settings._maxGridSize || Settings._maxGridSize == 0f);
 
-            // only run simulation if enabled
-            if (!_active[lodIdx])
-                return false;
-
-            _copySimMaterial[lodIdx].SetFloat("_HorizDisplace", Settings._horizDisplace);
-            _copySimMaterial[lodIdx].SetFloat("_DisplaceClamp", Settings._displaceClamp);
-            _copySimMaterial[lodIdx].SetFloat("_TexelWidth", OceanRenderer.Instance._lods[lodIdx]._renderData._texelWidth);
-            _copySimMaterial[lodIdx].mainTexture = _targets[lodIdx];
-
             return true;
+        }
+
+        public void BindCopySettings(Material target)
+        {
+            target.SetFloat("_HorizDisplace", Settings._horizDisplace);
+            target.SetFloat("_DisplaceClamp", Settings._displaceClamp);
         }
 
         protected override void SetAdditionalSimParams(int lodIdx, Material simMaterial)
@@ -87,7 +81,7 @@ namespace Crest
             }
             else
             {
-                simMaterial.SetTexture("_LD_Sampler_SeaFloorDepth_1", Texture2D.blackTexture);
+                LodDataMgrSeaFloorDepth.BindNull(1, simMaterial);
             }
 
             if (OceanRenderer.Instance._createFlowSim)
@@ -96,7 +90,7 @@ namespace Crest
             }
             else
             {
-                simMaterial.SetTexture("_LD_Sampler_Flow_1", Texture2D.blackTexture);
+                LodDataMgrFlow.BindNull(1, simMaterial);
             }
 
         }
@@ -125,6 +119,26 @@ namespace Crest
             {
                 return Time.deltaTime / GetNumSubsteps(Time.deltaTime);
             }
+        }
+
+        static int[] _paramsSampler;
+        public static int ParamIdSampler(int slot)
+        {
+            if (_paramsSampler == null)
+                LodTransform.CreateParamIDs(ref _paramsSampler, "_LD_Sampler_DynamicWaves_");
+            return _paramsSampler[slot];
+        }
+        protected override int GetParamIdSampler(int slot)
+        {
+            return ParamIdSampler(slot);
+        }
+        public static void BindNull(int shapeSlot, Material properties)
+        {
+            properties.SetTexture(ParamIdSampler(shapeSlot), Texture2D.blackTexture);
+        }
+        public static void BindNull(int shapeSlot, MaterialPropertyBlock properties)
+        {
+            properties.SetTexture(ParamIdSampler(shapeSlot), Texture2D.blackTexture);
         }
 
         SimSettingsWave Settings { get { return _settings as SimSettingsWave; } }

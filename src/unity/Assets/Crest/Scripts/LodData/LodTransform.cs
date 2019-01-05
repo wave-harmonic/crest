@@ -1,11 +1,16 @@
-﻿using UnityEngine;
+﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
+
+using UnityEngine;
 using UnityEngine.Rendering;
 
 namespace Crest
 {
-    public class LodTransform : MonoBehaviour
+    public class LodTransform : MonoBehaviour, IFloatingOrigin
     {
         protected int _transformUpdateFrame = -1;
+
+        static int[] _paramsPosScale = null;
+        static int[] _paramsOcean = null;
 
         public struct RenderData
         {
@@ -19,7 +24,7 @@ namespace Crest
                 // ignore first frame - this patches errors when using edit & continue in editor
                 if (_frame > 0 && _frame != Time.frameCount + frameOffset)
                 {
-                    Debug.LogError(string.Format("RenderData validation failed: _frame of data ({0}) != expected ({1}). Perhaps a script execution order has not been set for a LodData script?", _frame, Time.frameCount + frameOffset), context);
+                    Debug.LogWarning(string.Format("RenderData validation failed: _frame of data ({0}) != expected ({1}), which may indicate some update functions are being called out of order, or script execution order is broken.", _frame, Time.frameCount + frameOffset), context);
                 }
 
                 return this;
@@ -97,6 +102,36 @@ namespace Crest
             float maxDiameter = 4f * oceanBaseScale * Mathf.Pow(2f, _lodIndex);
             float maxTexelSize = maxDiameter / (4f * OceanRenderer.Instance._baseVertDensity);
             return 2f * maxTexelSize * OceanRenderer.Instance._minTexelsPerWave;
+        }
+
+        public static int ParamIdPosScale(int slot)
+        {
+            if (_paramsPosScale == null)
+                CreateParamIDs(ref _paramsPosScale, "_LD_Pos_Scale_");
+            return _paramsPosScale[slot];
+        }
+
+        public static int ParamIdOcean(int slot)
+        {
+            if (_paramsOcean == null)
+                CreateParamIDs(ref _paramsOcean, "_LD_Params_");
+            return _paramsOcean[slot];
+        }
+
+        public static void CreateParamIDs(ref int[] ids, string prefix)
+        {
+            int count = 2;
+            ids = new int[count];
+            for (int i = 0; i < count; i++)
+            {
+                ids[i] = Shader.PropertyToID(string.Format("{0}{1}", prefix, i));
+            }
+        }
+
+        public void SetOrigin(Vector3 newOrigin)
+        {
+            _renderData._posSnapped -= newOrigin;
+            _renderDataPrevFrame._posSnapped -= newOrigin;
         }
     }
 }

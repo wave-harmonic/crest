@@ -2,19 +2,21 @@
 
 // This writes straight into the displacement texture and sets the water height to the y value of the geometry.
 
-Shader "Ocean/Inputs/Animated Waves/Set Water Height From Geometry"
+Shader "Ocean/Inputs/Animated Waves/Set Water Height To Geometry"
 {
 	Properties
 	{
+		[Enum(ColorWriteMask)] _ColorWriteMask("Color Write Mask", Int) = 15
 	}
 
  	SubShader
 	{
 		Tags{ "Queue" = "Transparent" }
-		LOD 100
+
  		Pass
 		{
 			Blend Off
+			ColorMask [_ColorWriteMask]
 
  			CGPROGRAM
 			#pragma vertex vert
@@ -37,17 +39,16 @@ Shader "Ocean/Inputs/Animated Waves/Set Water Height From Geometry"
  			v2f vert (appdata v)
 			{
 				v2f o;
-
 				o.vertex = UnityObjectToClipPos(v.vertex);
 				o.worldPos = mul(unity_ObjectToWorld, v.vertex).xyz;
-
 				return o;
 			}
 
  			half4 frag (v2f i) : SV_Target
 			{
 				// Write displacement to get from sea level of ocean to the y value of this geometry
-				return half4(0., i.worldPos.y - _OceanCenterPosWorld.y, 0., 1.);
+				float height = i.worldPos.y - _OceanCenterPosWorld.y;
+				return half4(0., height, 0., 1.);
 			}
 			ENDCG
 		}

@@ -122,7 +122,7 @@ Shader "Ocean/Ocean"
 			Pass
 			{
 				// Culling user defined - can be inverted for under water
-				Cull[_CullMode]
+				Cull [_CullMode]
 
 				CGPROGRAM
 				#pragma vertex vert

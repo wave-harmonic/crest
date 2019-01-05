@@ -12,19 +12,31 @@ namespace Crest
     /// </summary>
     public class OceanPlanarReflection : MonoBehaviour
     {
-        public LayerMask _reflectionLayers = 1;
-        public bool _disablePixelLights = true;
-        public int _textureSize = 256;
-        public float _clipPlaneOffset = 0.07f;
-        public bool _hdr = true;
+        [SerializeField] LayerMask _reflectionLayers = 1;
+        [SerializeField] bool _disablePixelLights = true;
+        [SerializeField] int _textureSize = 256;
+        [SerializeField] float _clipPlaneOffset = 0.07f;
+        [SerializeField] bool _hdr = true;
+        [SerializeField] bool _stencil = false;
+        [SerializeField] bool _hideCameraGameobject = true;
+
+        const int MAX_DISPLAY_COUNT = 8;
 
         RenderTexture _reflectionTexture;
-        public RenderTexture ReflectionTexture { get { return _reflectionTexture; } }
+
+        static RenderTexture[] _displayReflTextures;
+        public static RenderTexture GetRenderTexture(int displayIndex)
+        {
+            if (_displayReflTextures != null && _displayReflTextures.Length > displayIndex)
+            {
+                return _displayReflTextures[displayIndex];
+            }
+
+            return null;
+        }
 
         Camera _camViewpoint;
         Camera _camReflections;
-
-        public bool _hideCameraGameobject = true;
 
         private void Start()
         {
@@ -149,7 +161,7 @@ namespace Crest
                 }
 
                 var format = _hdr ? RenderTextureFormat.ARGBHalf : RenderTextureFormat.ARGB32;
-                _reflectionTexture = new RenderTexture(_textureSize, _textureSize, 16, format);
+                _reflectionTexture = new RenderTexture(_textureSize, _textureSize, _stencil ? 24 : 16, format);
                 _reflectionTexture.name = "__WaterReflection" + GetInstanceID();
                 _reflectionTexture.isPowerOfTwo = true;
                 _reflectionTexture.hideFlags = HideFlags.DontSave;
@@ -172,6 +184,13 @@ namespace Crest
                     go.hideFlags = HideFlags.HideAndDontSave;
                 }
             }
+
+            // Keep list of reflection textures fresh
+            if (_displayReflTextures == null || _displayReflTextures.Length != MAX_DISPLAY_COUNT)
+            {
+                _displayReflTextures = new RenderTexture[MAX_DISPLAY_COUNT];
+            }
+            _displayReflTextures[currentCamera.targetDisplay] = _reflectionTexture;
         }
 
         // Given position/normal of the plane, calculates plane in camera space.
@@ -215,6 +234,7 @@ namespace Crest
             {
                 Destroy(_reflectionTexture);
                 _reflectionTexture = null;
+                _displayReflTextures = null;
             }
             if (_camReflections)
             {

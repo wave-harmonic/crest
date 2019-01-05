@@ -7,9 +7,8 @@ using UnityEngine.SceneManagement;
 
 public class OceanDebugGUI : MonoBehaviour
 {
-    public bool _showSimTargets = false;
-    public bool _guiVisible = true;
-    public string _oceanMaterialAsset = "Assets/Crest/Shaders/Materials/Ocean.mat";
+    [SerializeField] bool _showSimTargets = false;
+    [SerializeField] bool _guiVisible = true;
     static float _leftPanelWidth = 180f;
     ShapeGerstnerBatched[] gerstners;
 
@@ -119,12 +118,8 @@ public class OceanDebugGUI : MonoBehaviour
 #if UNITY_EDITOR
             if (GUI.Button(new Rect(x, y, w, h), "Select Ocean Mat"))
             {
-                var asset = UnityEditor.AssetDatabase.LoadMainAssetAtPath(_oceanMaterialAsset);
-                if (asset == null)
-                {
-                    // surprisingly, changing the below to an error causes an editor crash..
-                    Debug.LogWarning("Material at path \"" + _oceanMaterialAsset + "\" not found. Please set this path to point to your ocean material.", this);
-                }
+                var path = UnityEditor.AssetDatabase.GetAssetPath(OceanRenderer.Instance.OceanMaterial);
+                var asset = UnityEditor.AssetDatabase.LoadMainAssetAtPath(path);
                 UnityEditor.Selection.activeObject = asset;
             }
             y += h;
@@ -162,7 +157,7 @@ public class OceanDebugGUI : MonoBehaviour
         }
         if (!_simNames.ContainsKey(type))
         {
-            _simNames.Add(type, type.Name.Substring(7));
+            _simNames.Add(type, type.Name.Substring(10));
         }
 
         float b = 7f;

@@ -7,6 +7,7 @@ namespace Crest
 {
     public abstract class BuildCommandBufferBase : MonoBehaviour
     {
+        public static int _lastUpdateFrame = -1;
     }
 
     public class BuildCommandBuffer : BuildCommandBufferBase
@@ -62,12 +63,15 @@ namespace Crest
             {
                 _buf = new CommandBuffer();
                 _buf.name = "CrestLodData";
-                var cam = OceanRenderer.Instance.Viewpoint.GetComponent<Camera>();
-                cam.AddCommandBuffer(GetHookEvent(cam), _buf);
             }
 
             _buf.Clear();
+
             Build(OceanRenderer.Instance, _buf);
+
+            Graphics.ExecuteCommandBuffer(_buf);
+
+            _lastUpdateFrame = Time.frameCount;
         }
 
         CameraEvent GetHookEvent(Camera cam)

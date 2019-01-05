@@ -2,7 +2,7 @@
 
 // Persistent foam sim
 
-Shader "Ocean/Simulation/Update Foam"
+Shader "Hidden/Ocean/Simulation/Update Foam"
 {
 	Properties {
 	}
@@ -35,6 +35,7 @@ Shader "Ocean/Simulation/Update Foam"
 				struct v2f {
 					float4 vertex : SV_POSITION;
 					float4 uv_uv_lastframe : TEXCOORD0;
+					float2 worldXZ : TEXCOORD1;
 				};
 
 				#include "SimHelpers.hlsl"
@@ -45,9 +46,9 @@ Shader "Ocean/Simulation/Update Foam"
 					o.vertex = UnityObjectToClipPos(v.vertex);
 
 					// lod data 1 is current frame, compute world pos from quad uv
-					float2 worldXZ = LD_1_UVToWorld(v.uv);
+					o.worldXZ = LD_1_UVToWorld(v.uv);
 
-					ComputeUVs(worldXZ, o.vertex.xy, o.uv_uv_lastframe.zw, o.uv_uv_lastframe.xy);
+					ComputeUVs(o.worldXZ, o.vertex.xy, o.uv_uv_lastframe.zw, o.uv_uv_lastframe.xy);
 
 					return o;
 				}
@@ -98,8 +99,9 @@ Shader "Ocean/Simulation/Update Foam"
 					float det = (du.x * du.w - du.y * du.z) / (_LD_Params_1.x * _LD_Params_1.x);
 					foam += 5. * _SimDeltaTime * _WaveFoamStrength * saturate(_WaveFoamCoverage - det);
 
-					// add foam in shallow water
-					float signedOceanDepth = DEPTH_BASELINE - tex2Dlod(_LD_Sampler_SeaFloorDepth_1, uv).x + disp.y;
+					// add foam in shallow water. use the displaced position to ensure we add foam where world objects are.
+					float4 uv_1_displaced = float4(LD_1_WorldToUV(i.worldXZ + disp.xz), 0., 1.);
+					float signedOceanDepth = DEPTH_BASELINE - tex2Dlod(_LD_Sampler_SeaFloorDepth_1, uv_1_displaced).x + disp.y;
 					foam += _ShorelineFoamStrength * _SimDeltaTime * saturate(1. - signedOceanDepth / _ShorelineFoamMaxDepth);
 
 					return foam;

@@ -40,7 +40,7 @@ namespace Crest
 
             {
                 _renderMaterial = new Material[OceanRenderer.Instance.CurrentLodCount];
-                var shader = Shader.Find("Ocean/Simulation/Update Shadow");
+                var shader = Shader.Find("Hidden/Ocean/Simulation/Update Shadow");
                 for (int i = 0; i < _renderMaterial.Length; i++)
                 {
                     _renderMaterial[i] = new Material(shader);
@@ -202,7 +202,7 @@ namespace Crest
         public void BindSourceData(int lodIdx, int slot, Material simMaterial, bool paramsOnly)
         {
             _pwMat._target = simMaterial;
-            var rd = OceanRenderer.Instance._lods[lodIdx]._renderDataPrevFrame.Validate(-1, this);
+            var rd = OceanRenderer.Instance._lods[lodIdx]._renderDataPrevFrame.Validate(BuildCommandBufferBase._lastUpdateFrame - Time.frameCount, this);
             BindData(lodIdx, slot, _pwMat, paramsOnly ? Texture2D.blackTexture : (_sources[lodIdx] as Texture), true, ref rd);
             _pwMat._target = null;
         }
@@ -227,6 +227,26 @@ namespace Crest
                 }
                 _bufCopyShadowMap = null;
             }
+        }
+
+        static int[] _paramsSampler;
+        public static int ParamIdSampler(int slot)
+        {
+            if (_paramsSampler == null)
+                LodTransform.CreateParamIDs(ref _paramsSampler, "_LD_Sampler_Shadow_");
+            return _paramsSampler[slot];
+        }
+        protected override int GetParamIdSampler(int slot)
+        {
+            return ParamIdSampler(slot);
+        }
+        public static void BindNull(int shapeSlot, Material properties)
+        {
+            properties.SetTexture(ParamIdSampler(shapeSlot), Texture2D.blackTexture);
+        }
+        public static void BindNull(int shapeSlot, MaterialPropertyBlock properties)
+        {
+            properties.SetTexture(ParamIdSampler(shapeSlot), Texture2D.blackTexture);
         }
 
         SimSettingsShadow Settings { get { return _settings as SimSettingsShadow; } }

@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
+
+using System.Collections.Generic;
 using Unity.Collections;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -13,7 +15,8 @@ namespace Crest
     /// <summary>
     /// Base class for reading back GPU data of a particular type to the CPU.
     /// </summary>
-    public class GPUReadbackBase<LodDataType> : MonoBehaviour where LodDataType : LodDataMgr
+    public class GPUReadbackBase<LodDataType> : MonoBehaviour, IFloatingOrigin
+        where LodDataType : LodDataMgr
     {
         public bool _doReadback = true;
 
@@ -66,7 +69,7 @@ namespace Crest
         protected virtual void Start()
         {
             _lodComponent = OceanRenderer.Instance.GetComponent<LodDataType>();
-            if(OceanRenderer.Instance.CurrentLodCount <= (CanUseLastTwoLODs ? 0 : 1))
+            if (OceanRenderer.Instance.CurrentLodCount <= (CanUseLastTwoLODs ? 0 : 1))
             {
                 Debug.LogError("No data components of type " + typeof(LodDataType).Name + " found in the scene. Disabling GPU readback.", this);
                 enabled = false;
@@ -153,7 +156,7 @@ namespace Crest
 
                     var lodData = _perLodData[lt._renderData._texelWidth];
 
-                    if(lodData._activelyBeingRendered)
+                    if (lodData._activelyBeingRendered)
                     {
                         // Only enqueue new requests at beginning of update turns out to be a good time to sample the textures to
                         // ensure everything in the frame is done.
@@ -232,7 +235,7 @@ namespace Crest
                     break;
                 }
             }
-            
+
             // process current request queue
             if (requests.Count > 0)
             {
@@ -241,11 +244,15 @@ namespace Crest
                 {
                     requests.Dequeue();
 
-                    // eat up any more completed requests to squeeze out latency wherever possible
+                    // Eat up any more completed requests to squeeze out latency wherever possible
                     ReadbackRequest nextRequest;
                     while (requests.Count > 0 && (nextRequest = requests.Peek())._request.done)
                     {
-                        request = nextRequest;
+                        // Has error will be true if data already destroyed and is therefore unusable
+                        if (!nextRequest._request.hasError)
+                        {
+                            request = nextRequest;
+                        }
                         requests.Dequeue();
                     }
 
@@ -307,12 +314,14 @@ namespace Crest
         void OnDisable()
         {
             // free native array when component removed or destroyed
-            foreach(var lodData in _perLodData.Values)
+            foreach (var lodData in _perLodData.Values)
             {
                 if (lodData == null || lodData._resultData == null) continue;
                 if (lodData._resultData._data.IsCreated) lodData._resultData._data.Dispose();
                 if (lodData._resultDataPrevFrame._data.IsCreated) lodData._resultDataPrevFrame._data.Dispose();
             }
+
+            _perLodData.Clear();
         }
 
         public class ReadbackData
@@ -432,9 +441,14 @@ namespace Crest
         /// <summary>
         /// Returns result of GPU readback of a LOD data. Do not hold onto the returned reference across frames.
         /// </summary>
-        /// <param name="sampleAreaXZ">The area of interest, can be 0 area.</param>
-        /// <param name="minSpatialLength">Min spatial length is the minimum side length that you care about. For e.g.
-        /// if a boat has dimensions 3m x 2m, set this to 2, and then suitable wavelengths will be preferred.</param>
+        protected PerLodData GetData(float gridSize)
+        {
+            return _perLodData[gridSize];
+        }
+
+        /// <summary>
+        /// Returns result of GPU readback of a LOD data. Do not hold onto the returned reference across frames.
+        /// </summary>
         protected PerLodData GetData(Rect sampleAreaXZ, float minSpatialLength)
         {
             PerLodData lastCandidate = null;
@@ -442,7 +456,6 @@ namespace Crest
             for (int i = 0; i < _perLodData.KeyArray.Length; i++)
             {
                 var lodData = _perLodData.ValueArray[i];
-
                 if (!lodData._activelyBeingRendered || lodData._resultData._time == -1f)
                 {
                     continue;
@@ -478,13 +491,15 @@ namespace Crest
             return lastCandidate;
         }
 
-        public AvailabilityResult CheckAvailability(ref Vector3 i_worldPos, float minSpatialLength)
+        public AvailabilityResult CheckAvailability(ref Vector3 i_worldPos, SamplingData i_samplingData)
         {
+            Debug.Assert(i_samplingData._minSpatialLength >= 0f && i_samplingData._tag != null);
+
             var sampleAreaXZ = new Rect(i_worldPos.x, i_worldPos.z, 0f, 0f);
 
             bool oneWasInRect = false;
             bool wavelengthsLargeEnough = false;
-            
+
             foreach (var gridSize_lodData in _perLodData)
             {
                 if (!gridSize_lodData.Value._activelyBeingRendered || gridSize_lodData.Value._resultData._time == -1f)
@@ -507,7 +522,7 @@ namespace Crest
                 // The smallest wavelengths should repeat no more than twice across the smaller spatial length. Unless we're
                 // in the last LOD - then this is the best we can do.
                 float minWavelength = texelWidth * OceanRenderer.Instance._minTexelsPerWave;
-                if (minSpatialLength / minWavelength > 2f)
+                if (i_samplingData._minSpatialLength / minWavelength > 2f)
                 {
                     continue;
                 }
@@ -550,6 +565,45 @@ namespace Crest
 
             if (minQueueLength == MAX_REQUESTS) minQueueLength = -1;
             if (maxQueueLength == 0) maxQueueLength = -1;
+        }
+
+        public bool GetSamplingData(ref Rect i_displacedSamplingArea, float i_minSpatialLength, SamplingData o_samplingData)
+        {
+            o_samplingData._minSpatialLength = i_minSpatialLength;
+
+            Rect undisplacedRect = new Rect(
+                i_displacedSamplingArea.xMin - OceanRenderer.Instance.MaxHorizDisplacement,
+                i_displacedSamplingArea.yMin - OceanRenderer.Instance.MaxHorizDisplacement,
+                i_displacedSamplingArea.width + 2f * OceanRenderer.Instance.MaxHorizDisplacement,
+                i_displacedSamplingArea.height + 2f * OceanRenderer.Instance.MaxHorizDisplacement
+                );
+            o_samplingData._tag = GetData(undisplacedRect, i_minSpatialLength);
+
+            return o_samplingData._tag != null;
+        }
+
+        public void ReturnSamplingData(SamplingData i_data)
+        {
+            i_data._tag = null;
+        }
+
+        public void SetOrigin(Vector3 newOrigin)
+        {
+            foreach (var pld in _perLodData)
+            {
+                pld.Value._resultData._renderData._posSnapped -= newOrigin;
+                pld.Value._resultDataPrevFrame._renderData._posSnapped -= newOrigin;
+
+                // manually update each request
+                Queue<ReadbackRequest> newRequests = new Queue<ReadbackRequest>();
+                while (pld.Value._requests.Count > 0)
+                {
+                    var req = pld.Value._requests.Dequeue();
+                    req._renderData._posSnapped -= newOrigin;
+                    newRequests.Enqueue(req);
+                }
+                pld.Value._requests = newRequests;
+            }
         }
     }
 }

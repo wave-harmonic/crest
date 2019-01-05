@@ -1,7 +1,8 @@
 {
   "dependencies": {
-    "com.unity.package-manager-ui": "1.9.11",
-    "com.unity.postprocessing": "2.0.11-preview",
+    "com.unity.collab-proxy": "1.2.15",
+    "com.unity.package-manager-ui": "2.0.3",
+    "com.unity.postprocessing": "2.0.15-preview",
     "com.unity.modules.animation": "1.0.0",
     "com.unity.modules.assetbundle": "1.0.0",
     "com.unity.modules.audio": "1.0.0",
@@ -18,7 +19,11 @@
     "com.unity.modules.ui": "1.0.0",
     "com.unity.modules.uielements": "1.0.0",
     "com.unity.modules.umbra": "1.0.0",
+    "com.unity.modules.unityanalytics": "1.0.0",
+    "com.unity.modules.unitywebrequest": "1.0.0",
+    "com.unity.modules.video": "1.0.0",
     "com.unity.modules.vr": "1.0.0",
-    "com.unity.modules.wind": "1.0.0"
+    "com.unity.modules.wind": "1.0.0",
+    "com.unity.modules.xr": "1.0.0"
   }
 }

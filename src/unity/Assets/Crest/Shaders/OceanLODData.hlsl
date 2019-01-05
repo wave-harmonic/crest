@@ -13,8 +13,7 @@
 	uniform sampler2D _LD_Sampler_DynamicWaves_##LODNUM; \
 	uniform sampler2D _LD_Sampler_Shadow_##LODNUM; \
 	uniform float4 _LD_Params_##LODNUM; \
-	uniform float3 _LD_Pos_Scale_##LODNUM; \
-	uniform int _LD_LodIdx_##LODNUM;
+	uniform float3 _LD_Pos_Scale_##LODNUM;
 
 // Create two sets of LOD data, which have overloaded meaning depending on use:
 // * the ocean surface geometry always lerps from a more detailed LOD (0) to a less detailed LOD (1)
@@ -45,7 +44,7 @@ float2 LD_1_UVToWorld(in float2 i_uv) { return LD_UVToWorld(i_uv, _LD_Pos_Scale_
 
 
 // Sampling functions
-void SampleDisplacements(in sampler2D i_dispSampler, in float2 i_uv, in float i_wt, in float i_invRes, in float i_texelSize, inout float3 io_worldPos)
+void SampleDisplacements(in sampler2D i_dispSampler, in float2 i_uv, in float i_wt, inout float3 io_worldPos)
 {
 	const half3 disp = tex2Dlod(i_dispSampler, float4(i_uv, 0., 0.)).xyz;
 	io_worldPos += i_wt * disp;

@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
+
+using UnityEngine;
 
 namespace Crest
 {
@@ -8,7 +10,7 @@ namespace Crest
     [CreateAssetMenu(fileName = "OceanWaves", menuName = "Crest/Ocean Wave Spectrum", order = 10000)]
     public class OceanWaveSpectrum : ScriptableObject
     {
-        private const int NUM_OCTAVES = 12;
+        public const int NUM_OCTAVES = 12;
         public static readonly float SMALLEST_WL_POW_2 = -2f;
 
         public static readonly float MIN_POWER_LOG = -6f;
@@ -97,36 +99,30 @@ namespace Crest
         /// <summary>
         /// Samples spectrum to generate wave data. Wavelengths will be in ascending order.
         /// </summary>
-        public void GenerateWaveData(int componentsPerOctave, ref float[] wavelengths, ref float[] anglesDeg, ref float[] phases)
+        public void GenerateWaveData(int componentsPerOctave, ref float[] wavelengths, ref float[] anglesDeg)
         {
-            int totalComponents = NUM_OCTAVES * componentsPerOctave;
+            var totalComponents = NUM_OCTAVES * componentsPerOctave;
 
             if (wavelengths == null || wavelengths.Length != totalComponents) wavelengths = new float[totalComponents];
             if (anglesDeg == null || anglesDeg.Length != totalComponents) anglesDeg = new float[totalComponents];
-            if (phases == null || phases.Length != totalComponents) phases = new float[totalComponents];
 
-            float minWavelength = Mathf.Pow(2f, SMALLEST_WL_POW_2);
-            float invComponentsPerOctave = 1f / componentsPerOctave;
+            var minWavelength = Mathf.Pow(2f, SMALLEST_WL_POW_2);
+            var invComponentsPerOctave = 1f / componentsPerOctave;
 
-            for (int octave = 0; octave < NUM_OCTAVES; octave++)
+            for (var octave = 0; octave < NUM_OCTAVES; octave++)
             {
-                for (int i = 0; i < componentsPerOctave; i++)
+                for (var i = 0; i < componentsPerOctave; i++)
                 {
-                    int index = octave * componentsPerOctave + i;
+                    var index = octave * componentsPerOctave + i;
 
                     // stratified random sampling - should give a better range of wavelengths, and also means i can generated the
                     // wavelengths in sorted order!
-                    float minWavelengthi = minWavelength + invComponentsPerOctave * minWavelength * i;
-                    float maxWavelengthi = Mathf.Min(minWavelengthi + invComponentsPerOctave * minWavelength, 2f * minWavelength);
+                    var minWavelengthi = minWavelength + invComponentsPerOctave * minWavelength * i;
+                    var  maxWavelengthi = Mathf.Min(minWavelengthi + invComponentsPerOctave * minWavelength, 2f * minWavelength);
                     wavelengths[index] = Mathf.Lerp(minWavelengthi, maxWavelengthi, Random.value);
 
-                    float rnd;
-
-                    rnd = (i + Random.value) * invComponentsPerOctave;
+                    var rnd = (i + Random.value) * invComponentsPerOctave;
                     anglesDeg[index] = (2f * rnd - 1f) * _waveDirectionVariance;
-
-                    rnd = (i + Random.value) * invComponentsPerOctave;
-                    phases[index] = 2f * Mathf.PI * rnd;
                 }
 
                 minWavelength *= 2f;

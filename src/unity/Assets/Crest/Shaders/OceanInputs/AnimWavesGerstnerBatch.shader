@@ -11,19 +11,15 @@ Shader "Ocean/Inputs/Animated Waves/Gerstner Batch"
 
 	Category
 	{
-		Tags{ "Queue" = "Transparent" }
-
 		SubShader
 		{
 			Pass
 			{
-				Name "BASE"
-				Tags { "LightMode" = "Always" }
 				Blend One One
 			
 				CGPROGRAM
-				#pragma vertex vert
-				#pragma fragment frag
+				#pragma vertex Vert
+				#pragma fragment Frag
 				#pragma multi_compile_fog
 				#include "UnityCG.cginc"
 				#include "../MultiscaleShape.hlsl"
@@ -31,14 +27,16 @@ Shader "Ocean/Inputs/Animated Waves/Gerstner Batch"
 
 				#define TWOPI 6.283185
 
-				struct appdata_t {
-					float4 vertex : POSITION;
+				struct Attributes
+				{
+					float4 positionOS : POSITION;
 					float2 uv : TEXCOORD0;
 					half color : COLOR0;
 				};
 
-				struct v2f {
-					float4 vertex : SV_POSITION;
+				struct Varyings
+				{
+					float4 positionCS : SV_POSITION;
 					float3 worldPos_wt : TEXCOORD0;
 					float2 uv : TEXCOORD1;
 				};
@@ -46,17 +44,17 @@ Shader "Ocean/Inputs/Animated Waves/Gerstner Batch"
 				// IMPORTANT - this mirrors the constant with the same name in ShapeGerstnerBatched.cs, both must be updated together!
 				#define BATCH_SIZE 32
 
-				v2f vert( appdata_t v )
+				Varyings Vert(Attributes input)
 				{
-					v2f o;
-					o.vertex = float4(v.vertex.x, -v.vertex.y, 0., .5);
+					Varyings o;
+					o.positionCS = float4(input.positionOS.x, -input.positionOS.y, 0., .5);
 
-					float2 worldXZ = LD_0_UVToWorld(v.uv);
+					float2 worldXZ = LD_0_UVToWorld(input.uv);
 
 					o.worldPos_wt.xy = worldXZ;
-					o.worldPos_wt.z = v.color.x;
+					o.worldPos_wt.z = input.color.x;
 
-					o.uv = v.uv;
+					o.uv = input.uv;
 
 					return o;
 				}
@@ -73,7 +71,7 @@ Shader "Ocean/Inputs/Animated Waves/Gerstner Batch"
 				uniform half4 _ChopScales[BATCH_SIZE / 4];
 				uniform half4 _GravityScales[BATCH_SIZE / 4];
 
-				half4 frag (v2f i) : SV_Target
+				half4 Frag(Varyings i) : SV_Target
 				{
 					const half minWavelength = MinWavelengthForCurrentOrthoCamera();
 					const half oneMinusAttenuation = 1.0 - _AttenuationInShallows;

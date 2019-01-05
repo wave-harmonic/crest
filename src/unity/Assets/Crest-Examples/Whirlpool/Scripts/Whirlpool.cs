@@ -15,8 +15,16 @@ namespace Crest
         [Range(0, 1000), SerializeField]
         float _maxSpeed = 70f;
 
+        [SerializeField]
+        bool _createDisplacement = true;
+        [SerializeField]
+        bool _createFlow = true;
+        [SerializeField]
+        bool _createDynWavesDampen = true;
+
         Material _flowMaterial;
         Material _displacementMaterial;
+        Material _dampDynWavesMaterial;
 
         private void UpdateMaterials()
         {
@@ -35,11 +43,23 @@ namespace Crest
                 return;
             }
 
-            _flowMaterial = new Material(Shader.Find("Ocean/Inputs/Flow/Whirlpool"));
-            AddInput<RegisterFlowInput>(_flowMaterial, _radius);
-
             _displacementMaterial = new Material(Shader.Find("Ocean/Inputs/Animated Waves/Whirlpool"));
-            AddInput<RegisterAnimWavesInput>(_displacementMaterial, _radius);
+            if (_createDisplacement)
+            {
+                AddInput<RegisterAnimWavesInput>(_displacementMaterial, _radius);
+            }
+
+            _flowMaterial = new Material(Shader.Find("Ocean/Inputs/Flow/Whirlpool"));
+            if (_createFlow)
+            {
+                AddInput<RegisterFlowInput>(_flowMaterial, _radius);
+            }
+
+            _dampDynWavesMaterial = new Material(Shader.Find("Ocean/Inputs/Dynamic Waves/Dampen Circle"));
+            if (_createDynWavesDampen)
+            {
+                AddInput<RegisterDynWavesInput>(_dampDynWavesMaterial, _radius);
+            }
 
             UpdateMaterials();
         }

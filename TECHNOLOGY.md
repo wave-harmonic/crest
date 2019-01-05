@@ -88,7 +88,7 @@ There is an example in the *boat.unity* scene, gameobject *wp0*, where a smooths
 
 The final shape textures are copied back to the CPU to provide collision information for physics etc, using the *ReadbackLodData* script.
 
-The animated waves sim can be configured by assigning an Animated Waves Sim Settings asset to the OceanRenderer script in your scene (*Create/Crest/Animated Wave Sim Settings*). The waves will be dampened/attenuated in shallow water if a *Sea Floor Depth* LOD data is used (see below). The amount that waves are attenuated is configurable in these settings.
+The animated waves sim can be configured by assigning an Animated Waves Sim Settings asset to the OceanRenderer script in your scene (*Create/Crest/Animated Wave Sim Settings*). The waves will be dampened/attenuated in shallow water if a *Sea Floor Depth* LOD data is used (see below). The amount that waves are attenuated is configurable using the *Attenuation In Shallows* setting.
 
 
 ## Dynamic Waves

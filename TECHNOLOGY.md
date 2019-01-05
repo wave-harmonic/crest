@@ -88,6 +88,8 @@ There is an example in the *boat.unity* scene, gameobject *wp0*, where a smooths
 
 The final shape textures are copied back to the CPU to provide collision information for physics etc, using the *ReadbackLodData* script.
 
+The animated waves sim can be configured by assigning an Animated Waves Sim Settings asset to the OceanRenderer script in your scene (*Create/Crest/Animated Wave Sim Settings*). The waves will be dampened/attenuated in shallow water if a *Sea Floor Depth* LOD data is used (see below). The amount that waves are attenuated is configurable in these settings.
+
 
 ## Dynamic Waves
 
@@ -99,7 +101,7 @@ After the simulation is advanced, the results are converted into displacements a
 
 Similar to animated waves, user provided contributions can be rendered into this LOD data to create dynamic wave effects. An example can be found in the boat prefab. Each LOD sim runs independently and it is desirable to add interaction forces into all appropriate sims. The *FeedVelocityToExtrude* script takes into account the boat size and counts how many sims are appropriate, and then weights the interaction forces based on this number, so the force is spread evenly to all sims. As noted above, the sim results will be copied into the dynamic waves LODs and then accumulated up the LOD chain to reconstruct a single simulation.
 
-The dynamic waves sim can be configured by assigning a Wave Sim Settings asset to the OceanRenderer script in your scene (*Create/Crest/Wave Sim Settings*).
+The dynamic waves sim can be configured by assigning a Dynamic Wave Sim Settings asset to the OceanRenderer script in your scene (*Create/Crest/Dynamic Wave Sim Settings*).
 
 
 ## Foam

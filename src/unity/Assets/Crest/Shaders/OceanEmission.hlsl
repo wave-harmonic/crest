@@ -198,7 +198,8 @@ half3 OceanEmission(in const half3 i_view, in const half3 i_n_pixel, in const fl
 		}
 		else
 		{
-			depthFogDistance = i_sceneZ - i_pixelZ;
+			// It seems that when MSAA is enabled this can sometimes be negative
+			depthFogDistance = max(i_sceneZ - i_pixelZ, 0.0);
 
 			// We have refracted onto a surface in front of the water. Cancel the refraction offset.
 			uvBackgroundRefract = uvBackground;
@@ -215,7 +216,7 @@ half3 OceanEmission(in const half3 i_view, in const half3 i_n_pixel, in const fl
 		depthFogDistance = i_pixelZ;
 	}
 
-	alpha = 1. - exp(-_DepthFogDensity.xyz * depthFogDistance);
+	alpha = 1.0 - exp(-_DepthFogDensity.xyz * depthFogDistance);
 
 	// blend from water colour to the scene colour
 	col = lerp(sceneColour, col, alpha);

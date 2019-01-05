@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
+
+using UnityEngine;
 
 namespace Crest
 {
@@ -14,10 +16,11 @@ namespace Crest
         public bool _showPoints = false;
 
         Camera _cam;
+        SamplingData _samplingData = new SamplingData();
 
         private void Start()
         {
-            if(OceanRenderer.Instance.Viewpoint != null)
+            if (OceanRenderer.Instance.Viewpoint != null)
             {
                 _cam = OceanRenderer.Instance.Viewpoint.GetComponent<Camera>();
             }
@@ -30,6 +33,7 @@ namespace Crest
 
         void Update()
         {
+            var collision = OceanRenderer.Instance.CollisionProvider;
             var seaLevel = OceanRenderer.Instance.SeaLevel;
 
             for (int i = 0; i < _samplesPerFrame; i++)
@@ -42,10 +46,14 @@ namespace Crest
                     continue;
 
                 var queryPos = ray.origin + ray.direction * (seaLevel - ray.origin.y) / ray.direction.y;
+                var samplingRect = new Rect(queryPos.x, queryPos.z, 0f, 0f);
+                if (!collision.GetSamplingData(ref samplingRect, 0f, _samplingData)) continue;
+
                 Vector3 disp, vel;
-                //_gerstner.SampleDisplacement(ref queryPos, out disp, 0f);
                 bool dispValid, velValid;
-                OceanRenderer.Instance.CollisionProvider.SampleDisplacementVel(ref queryPos, out disp, out dispValid, out vel, out velValid, 0f);
+                collision.SampleDisplacementVel(ref queryPos, _samplingData, out disp, out dispValid, out vel, out velValid);
+                if (!dispValid || !velValid) continue;
+
                 if (_showPoints)
                 {
                     Debug.DrawLine(queryPos, queryPos + disp);
@@ -55,11 +63,11 @@ namespace Crest
 
                 var queryPos_x = queryPos + Vector3.right * ss;
                 Vector3 disp_x;
-                OceanRenderer.Instance.CollisionProvider.SampleDisplacement(ref queryPos_x, out disp_x);
+                collision.SampleDisplacement(ref queryPos_x, _samplingData, out disp_x);
 
                 var queryPos_z = queryPos + Vector3.forward * ss;
                 Vector3 disp_z;
-                OceanRenderer.Instance.CollisionProvider.SampleDisplacement(ref queryPos_z, out disp_z);
+                collision.SampleDisplacement(ref queryPos_z, _samplingData, out disp_z);
 
                 disp_x += Vector3.right * ss;
                 disp_z += Vector3.forward * ss;
@@ -83,6 +91,8 @@ namespace Crest
                     ps.GetComponent<TrackOceanSurface>()._basePosition = queryPos;
                 }
             }
+
+            collision.ReturnSamplingData(_samplingData);
         }
     }
 }

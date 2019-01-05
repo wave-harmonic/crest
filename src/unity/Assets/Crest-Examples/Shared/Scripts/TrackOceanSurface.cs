@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
+
+using UnityEngine;
 
 namespace Crest
 {
@@ -8,6 +10,7 @@ namespace Crest
     public class TrackOceanSurface : MonoBehaviour
     {
         public Vector3 _basePosition;
+        SamplingData _samplingData = new SamplingData();
 
         private void Start()
         {
@@ -23,9 +26,18 @@ namespace Crest
 
         void Place()
         {
+            var collision = OceanRenderer.Instance.CollisionProvider;
+
+            var samplingRect = new Rect(transform.position.x, transform.position.z, 0f, 0f);
+            if (!collision.GetSamplingData(ref samplingRect, 0f, _samplingData)) return;
+
             Vector3 disp;
-            OceanRenderer.Instance.CollisionProvider.SampleDisplacement(ref _basePosition, out disp, 0f);
-            transform.position = _basePosition + disp;
+            if (collision.SampleDisplacement(ref _basePosition, _samplingData, out disp))
+            {
+                transform.position = _basePosition + disp;
+            }
+
+            collision.ReturnSamplingData(_samplingData);
         }
     }
 }

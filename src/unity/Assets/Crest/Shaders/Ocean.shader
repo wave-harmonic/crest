@@ -387,12 +387,10 @@ Shader "Ocean/Ocean"
 						ApplyReflectionUnderwater(view, n_pixel, lightDir, shadow.y, i.foam_screenPos.yzzw, scatterCol, col);
 					}
 					else
+					#endif
 					{
 						ApplyReflectionSky(view, n_pixel, lightDir, shadow.y, i.foam_screenPos.yzzw, col);
 					}
-					#else
-					ApplyReflectionSky(view, n_pixel, lightDir, shadow.y, i.foam_screenPos.yzzw, col);
-					#endif
 
 					// Override final result with white foam - bubbles on surface
 					#if _FOAM_ON

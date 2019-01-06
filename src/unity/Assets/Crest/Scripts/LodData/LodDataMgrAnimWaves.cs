@@ -17,7 +17,7 @@ namespace Crest
     ///    pass and subsequent assignment to the ocean material (see OceanScheduler).
     ///  * The LodDataSeaFloorDepth sits on this same GameObject and borrows the camera. This could be a model for the other sim types..
     /// </summary>
-    public class LodDataMgrAnimWaves : LodDataMgr
+    public class LodDataMgrAnimWaves : LodDataMgr, IFloatingOrigin
     {
         public override SimType LodDataType { get { return SimType.AnimatedWaves; } }
         // shape format. i tried RGB111110Float but error becomes visible. one option would be to use a UNORM setup.
@@ -85,7 +85,7 @@ namespace Crest
                 buf.SetRenderTarget(_waveBuffers[lodIdx]);
                 buf.ClearRenderTarget(false, true, Color.black);
 
-                foreach(var gerstner in _gerstnerComponents)
+                foreach (var gerstner in _gerstnerComponents)
                 {
                     gerstner.BuildCommandBuffer(lodIdx, ocean, buf);
                 }
@@ -119,7 +119,7 @@ namespace Crest
                 }
 
                 // dynamic waves
-                if(OceanRenderer.Instance._lodDataDynWaves)
+                if (OceanRenderer.Instance._lodDataDynWaves)
                 {
                     OceanRenderer.Instance._lodDataDynWaves.BindCopySettings(_combineMaterial[lodIdx]);
                     OceanRenderer.Instance._lodDataDynWaves.BindResultData(lodIdx, 0, _combineMaterial[lodIdx]);
@@ -175,7 +175,7 @@ namespace Crest
             float shapeWeight = needToBlendOutShape ? OceanRenderer.Instance.ViewerAltitudeLevelAlpha : 1f;
             properties.SetVector(LodTransform.ParamIdOcean(shapeSlot), new Vector4(
                 lt._renderData._texelWidth,
-                lt._renderData._textureRes, shapeWeight, 
+                lt._renderData._textureRes, shapeWeight,
                 1f / lt._renderData._textureRes));
         }
 
@@ -257,6 +257,14 @@ namespace Crest
         public static void BindNull(int shapeSlot, MaterialPropertyBlock properties)
         {
             properties.SetTexture(ParamIdSampler(shapeSlot), Texture2D.blackTexture);
+        }
+
+        public void SetOrigin(Vector3 newOrigin)
+        {
+            foreach (var gerstner in _gerstnerComponents)
+            {
+                gerstner.SetOrigin(newOrigin);
+            }
         }
     }
 }

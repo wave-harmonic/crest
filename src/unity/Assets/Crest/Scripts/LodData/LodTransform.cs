@@ -1,9 +1,11 @@
-﻿using UnityEngine;
+﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
+
+using UnityEngine;
 using UnityEngine.Rendering;
 
 namespace Crest
 {
-    public class LodTransform : MonoBehaviour
+    public class LodTransform : MonoBehaviour, IFloatingOrigin
     {
         protected int _transformUpdateFrame = -1;
 
@@ -22,6 +24,9 @@ namespace Crest
                 // ignore first frame - this patches errors when using edit & continue in editor
                 if (_frame > 0 && _frame != Time.frameCount + frameOffset)
                 {
+                    Debug.Log("Frame " + _frame);
+                    Debug.Log("Time Frame " + Time.frameCount);
+                    Debug.Log("frame offset " + frameOffset);
                     Debug.LogWarning(string.Format("RenderData validation failed: _frame of data ({0}) != expected ({1}), which may indicate some update functions are being called out of order, or script execution order is broken.", _frame, Time.frameCount + frameOffset), context);
                 }
 
@@ -124,6 +129,12 @@ namespace Crest
             {
                 ids[i] = Shader.PropertyToID(string.Format("{0}{1}", prefix, i));
             }
+        }
+
+        public void SetOrigin(Vector3 newOrigin)
+        {
+            _renderData._posSnapped -= newOrigin;
+            _renderDataPrevFrame._posSnapped -= newOrigin;
         }
     }
 }

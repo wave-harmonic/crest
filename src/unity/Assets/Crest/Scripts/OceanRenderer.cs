@@ -11,7 +11,7 @@ namespace Crest
     {
         [Tooltip("The viewpoint which drives the ocean detail. Defaults to main camera."), SerializeField]
         Transform _viewpoint;
-        public Transform Viewpoint { get { return _viewpoint; } }
+        public Transform Viewpoint { get { return _viewpoint; } set { _viewpoint = value; } }
 
         [Tooltip("Optional provider for time, can be used to hardcode time for automation, or provide server time. Defaults to local Unity time."), SerializeField]
         TimeProviderBase _timeProvider;
@@ -21,7 +21,7 @@ namespace Crest
         [Header("Ocean Params")]
 
         [SerializeField, Tooltip("Material to use for the ocean surface")]
-        Material _material;
+        Material _material = null;
         public Material OceanMaterial { get { return _material; } }
 
         [SerializeField]
@@ -49,10 +49,10 @@ namespace Crest
         [Delayed, Tooltip("The largest scale the ocean can be (-1 for unlimited).")]
         public float _maxScale = 256f;
 
-        [SerializeField, Delayed, Tooltip( "Side dimension in quads of an ocean tile." )]
+        [SerializeField, Delayed, Tooltip("Side dimension in quads of an ocean tile.")]
         public float _baseVertDensity = 64f;
 
-        [SerializeField, Delayed, Tooltip( "Number of ocean tile scales/LODs to generate." ), Range(2, LodDataMgr.MAX_LOD_COUNT)]
+        [SerializeField, Delayed, Tooltip("Number of ocean tile scales/LODs to generate."), Range(2, LodDataMgr.MAX_LOD_COUNT)]
         int _lodCount = 7;
         public int LodDataResolution { get { return (int)(4f * _baseVertDensity); } }
 
@@ -91,9 +91,6 @@ namespace Crest
         public bool _disableSkirt = false;
 
 
-        OceanPlanarReflection _planarReflection;
-        public OceanPlanarReflection PlanarReflection { get { return _planarReflection; } }
-
         float _viewerAltitudeLevelAlpha = 0f;
         /// <summary>
         /// The ocean changes scale when viewer changes altitude, this gives the interpolation param between scales.
@@ -118,6 +115,8 @@ namespace Crest
         /// Vertical offset of viewer vs water surface
         /// </summary>
         public float ViewerHeightAboveWater { get; private set; }
+
+        SamplingData _samplingData = new SamplingData();
 
         void Awake()
         {
@@ -155,11 +154,6 @@ namespace Crest
                     Debug.LogError("Please provide the viewpoint transform, or tag the primary camera as MainCamera.", this);
                 }
             }
-
-            if (_viewpoint != null)
-            {
-                _planarReflection = _viewpoint.GetComponent<OceanPlanarReflection>();
-            }
         }
 
         void InitTimeProvider()
@@ -178,7 +172,7 @@ namespace Crest
         void LateUpdate()
         {
             // set global shader params
-            Shader.SetGlobalFloat( "_TexelsPerWave", _minTexelsPerWave );
+            Shader.SetGlobalFloat("_TexelsPerWave", _minTexelsPerWave);
             Shader.SetGlobalVector("_WindDirXZ", WindDir);
             Shader.SetGlobalFloat("_CrestTime", CurrentTime);
 
@@ -231,12 +225,17 @@ namespace Crest
 
         void LateUpdateViewerHeight()
         {
-            Vector3 pos = Viewpoint.position;
+            var pos = Viewpoint.position;
+            var rect = new Rect(pos, Vector3.zero);
+
             float waterHeight;
-            if (CollisionProvider.SampleHeight(ref pos, out waterHeight))
+            if (CollisionProvider.GetSamplingData(ref rect, 0f, _samplingData)
+                && CollisionProvider.SampleHeight(ref pos, _samplingData, out waterHeight))
             {
                 ViewerHeightAboveWater = pos.y - waterHeight;
             }
+
+            CollisionProvider.ReturnSamplingData(_samplingData);
         }
 
         void LateUpdateLods()
@@ -319,21 +318,5 @@ namespace Crest
         /// Provides ocean shape to CPU.
         /// </summary>
         public ICollProvider CollisionProvider { get { return _simSettingsAnimatedWaves.CollisionProvider; } }
-    }
-
-    /// <summary>
-    /// Used to enable stencil-based per-pixel masking of ocean surface. Used in place of CompareFunction enum
-    /// </summary>
-    public enum StencilFunction
-    {
-        /// <summary>
-        /// Deisable stencil masking.
-        /// </summary>
-        Disabled = 0,
-
-        /// <summary>
-        /// Enable stencil masking - set stencil function to 'Equal'.
-        /// </summary>
-        Enabled = 3,
     }
 }

@@ -114,6 +114,8 @@ namespace Crest
                     LodDataMgrShadow.BindNull(0, _mpb);
                 }
 
+                _mpb.SetFloat("_HeightOffset", heightOffset);
+
                 _rend.SetPropertyBlock(_mpb);
             }
         }

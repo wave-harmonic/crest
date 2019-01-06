@@ -157,7 +157,7 @@ public class OceanDebugGUI : MonoBehaviour
         }
         if (!_simNames.ContainsKey(type))
         {
-            _simNames.Add(type, type.Name.Substring(7));
+            _simNames.Add(type, type.Name.Substring(10));
         }
 
         float b = 7f;

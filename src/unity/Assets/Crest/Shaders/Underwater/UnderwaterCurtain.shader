@@ -55,7 +55,8 @@ Shader "Ocean/Underwater Curtain"
 			#include "../OceanLODData.hlsl"
 			#include "UnderwaterShared.hlsl"
 
-			uniform float _CrestTime;
+			float _CrestTime;
+			float _HeightOffset;
 
 			struct appdata
 			{
@@ -126,7 +127,7 @@ Shader "Ocean/Underwater Curtain"
 					{
 						// Push top edge up if we are looking down so that the screen defaults to looking underwater.
 						// Push top edge down if we are looking up so that the screen defaults to looking out of water.
-						o.worldPos -= sign(forward.y) * MAX_OFFSET * up;
+						o.worldPos -= sign(forward.y) * MAX_OFFSET * up * sign(_HeightOffset + 1.0);
 					}
 					
 					// Test - always put top row of verts at water horizon, because then it will always meet the water

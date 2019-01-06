@@ -209,14 +209,15 @@ half3 OceanEmission(in const half3 i_view, in const half3 i_n_pixel, in const fl
 #if _CAUSTICS_ON
 		ApplyCaustics(i_view, i_lightDir, i_sceneZ, i_normals, sceneColour);
 #endif
+		alpha = 1.0 - exp(-_DepthFogDensity.xyz * depthFogDistance);
 	}
 	else
 	{
 		sceneColour = tex2D(_BackgroundTexture, uvBackgroundRefract).rgb;
 		depthFogDistance = i_pixelZ;
+		// keep alpha at 0 as UnderwaterReflection shader handles the blend
+		// appropriately when looking at water from below
 	}
-
-	alpha = 1.0 - exp(-_DepthFogDensity.xyz * depthFogDistance);
 
 	// blend from water colour to the scene colour
 	col = lerp(sceneColour, col, alpha);

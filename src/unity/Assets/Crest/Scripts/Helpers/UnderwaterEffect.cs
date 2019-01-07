@@ -13,6 +13,7 @@ namespace Crest
         [SerializeField] float _maxHeightAboveWater = 1.5f;
         [SerializeField] bool _overrideSortingOrder = false;
         [SerializeField] int _overridenSortingOrder = 0;
+        [SerializeField] bool _pushInFrontOfCamera = true;
 
         [Header("Copy params from Ocean material")]
         [SerializeField] bool _copyParamsOnStartup = true;
@@ -38,15 +39,18 @@ namespace Crest
             _rend.sortingOrder = _overrideSortingOrder ? _overridenSortingOrder : -LodDataMgr.MAX_LOD_COUNT - 1;
             GetComponent<MeshFilter>().mesh = Mesh2DGrid(0, 2, -0.5f, -0.5f, 1f, 1f, GEOM_HORIZ_DIVISIONS, 1);
 
-            // hack - push forward so the geometry wont be frustum culled. there might be better ways to draw
-            // this stuff.
-            if (transform.parent.GetComponent<Camera>() == null)
+            if (_pushInFrontOfCamera)
             {
-                Debug.LogError("Underwater effects expect to be parented to a camera.", this);
-                enabled = false;
-                return;
+                // hack - push forward so the geometry wont be frustum culled. there might be better ways to draw
+                // this stuff.
+                if (transform.parent.GetComponent<Camera>() == null)
+                {
+                    Debug.LogError("Underwater effects expect to be parented to a camera.", this);
+                    enabled = false;
+                    return;
+                }
+                transform.localPosition = Vector3.forward;
             }
-            transform.localPosition = Vector3.forward;
 
             ConfigureMaterial();
         }

@@ -154,8 +154,18 @@ void ApplyCaustics(in const half3 i_view, in const half3 i_lightDir, in const fl
 	{
 		// only sample the bigger lod. if pops are noticeable this could lerp the 2 lods smoothly, but i didnt notice issues.
 		fixed2 causticShadow = 0.;
-		float2 uv_1 = LD_1_WorldToUV(surfacePosXZ);
-		SampleShadow(_LD_Sampler_Shadow_1, uv_1, 1.0, causticShadow);
+		// See comment for underwater code ScatterColour for why this is done
+		#if _UNDERWATER_CURTAIN
+		{
+			const float2 uv_0 = LD_0_WorldToUV(surfacePosXZ);
+			SampleShadow(_LD_Sampler_Shadow_0, uv_0, 1.0, causticShadow);
+		}
+		#else
+		{
+			float2 uv_1 = LD_1_WorldToUV(surfacePosXZ);
+			SampleShadow(_LD_Sampler_Shadow_1, uv_1, 1.0, causticShadow);
+		}
+		#endif
 		causticsStrength *= 1. - causticShadow.y;
 	}
 #endif // _SHADOWS_ON
@@ -168,7 +178,7 @@ void ApplyCaustics(in const half3 i_view, in const half3 i_lightDir, in const fl
 
 half3 OceanEmission(in const half3 i_view, in const half3 i_n_pixel, in const float3 i_lightDir,
 	in const half4 i_grabPos, in const float i_pixelZ, in const half2 i_uvDepth, in const float i_sceneZ, in const float i_sceneZ01,
-	in const half3 i_bubbleCol, in sampler2D i_normals, in sampler2D i_cameraDepths, in const bool i_underwater, in const half3 i_scatterCol)
+	in const half3 i_bubbleCol, in sampler2D i_normals, in sampler2D i_cameraDepths, in const bool i_underWater, in const half3 i_scatterCol)
 {
 	half3 col = i_scatterCol;
 
@@ -186,7 +196,7 @@ half3 OceanEmission(in const half3 i_view, in const half3 i_n_pixel, in const fl
 	float depthFogDistance;
 
 	// Depth fog & caustics - only if view ray starts from above water
-	if (!i_underwater)
+	if (!i_underWater)
 	{
 		const half2 uvDepthRefract = i_uvDepth + _RefractionStrength * i_n_pixel.xz;
 		const float sceneZRefract = LinearEyeDepth(tex2D(i_cameraDepths, uvDepthRefract).x);

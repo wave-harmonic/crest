@@ -49,12 +49,12 @@ uniform half3 _DiffuseShadow;
 half3 ScatterColour(
 	in const float3 i_surfaceWorldPos, in const half i_surfaceOceanDepth, in const float3 i_cameraPos,
 	in const half3 i_lightDir, in const half3 i_view, in const fixed i_shadow,
-	in const bool i_underWater, in const bool i_outscatterLight)
+	in const bool i_underwater, in const bool i_outscatterLight)
 {
 	half depth;
 	half waveHeight;
 	half shadow = 0.;
-	if (i_underWater)
+	if (i_underwater)
 	{
 		// compute scatter colour from cam pos. two scenarios this can be called:
 		// 1. rendering ocean surface from bottom, in which case the surface may be some distance away. use the scatter
@@ -117,7 +117,7 @@ half3 ScatterColour(
 	if (i_outscatterLight)
 	{
 		half camDepth = i_surfaceWorldPos.y - _WorldSpaceCameraPos.y;
-		if (i_underWater)
+		if (i_underwater)
 		{
 			col *= exp(-_DepthFogDensity.xyz * camDepth * DEPTH_OUTSCATTER_CONSTANT);
 		}
@@ -128,7 +128,7 @@ half3 ScatterColour(
 
 
 #if _CAUSTICS_ON
-void ApplyCaustics(in const half3 i_view, in const half3 i_lightDir, in const float i_sceneZ, in sampler2D i_normals, inout half3 io_sceneColour)
+void ApplyCaustics(in const half3 i_view, in const half3 i_lightDir, in const float i_sceneZ, in sampler2D i_normals, in const bool i_underwater, inout half3 io_sceneColour)
 {
 	// could sample from the screen space shadow texture to attenuate this..
 	// underwater caustics - dedicated to P
@@ -152,10 +152,20 @@ void ApplyCaustics(in const half3 i_view, in const half3 i_lightDir, in const fl
 	half causticsStrength = _CausticsStrength;
 #if _SHADOWS_ON
 	{
-		// only sample the bigger lod. if pops are noticeable this could lerp the 2 lods smoothly, but i didnt notice issues.
 		fixed2 causticShadow = 0.;
-		float2 uv_1 = LD_1_WorldToUV(surfacePosXZ);
-		SampleShadow(_LD_Sampler_Shadow_1, uv_1, 1.0, causticShadow);
+		// As per the comment for the underwater code in ScatterColour,
+		// LOD_1 data can be missing when underwater
+		if(i_underwater)
+		{
+			const float2 uv_0 = LD_0_WorldToUV(surfacePosXZ);
+			SampleShadow(_LD_Sampler_Shadow_0, uv_0, 1.0, causticShadow);
+		}
+		else
+		{
+			// only sample the bigger lod. if pops are noticeable this could lerp the 2 lods smoothly, but i didnt notice issues.
+			float2 uv_1 = LD_1_WorldToUV(surfacePosXZ);
+			SampleShadow(_LD_Sampler_Shadow_1, uv_1, 1.0, causticShadow);
+		}
 		causticsStrength *= 1. - causticShadow.y;
 	}
 #endif // _SHADOWS_ON
@@ -207,7 +217,7 @@ half3 OceanEmission(in const half3 i_view, in const half3 i_n_pixel, in const fl
 
 		sceneColour = tex2D(_BackgroundTexture, uvBackgroundRefract).rgb;
 #if _CAUSTICS_ON
-		ApplyCaustics(i_view, i_lightDir, i_sceneZ, i_normals, sceneColour);
+		ApplyCaustics(i_view, i_lightDir, i_sceneZ, i_normals, i_underwater, sceneColour);
 #endif
 		alpha = 1.0 - exp(-_DepthFogDensity.xyz * depthFogDistance);
 	}

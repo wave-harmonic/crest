@@ -36,7 +36,7 @@ Shader "Ocean/Underwater Curtain"
 			CGPROGRAM
 			#pragma vertex vert
 			#pragma fragment frag
-			
+
 			#pragma shader_feature _SUBSURFACESCATTERING_ON
 			#pragma shader_feature _SUBSURFACEHEIGHTLERP_ON
 			#pragma shader_feature _SUBSURFACESHALLOWCOLOUR_ON
@@ -129,7 +129,7 @@ Shader "Ocean/Underwater Curtain"
 						// Push top edge down if we are looking up so that the screen defaults to looking out of water.
 						o.worldPos -= sign(forward.y) * MAX_OFFSET * up * sign(_HeightOffset + 1.0);
 					}
-					
+
 					// Test - always put top row of verts at water horizon, because then it will always meet the water
 					// surface. Good idea but didnt work because it then does underwater shading on opaque surfaces which
 					// can be ABOVE the water surface. Not sure if theres any way around this.
@@ -153,7 +153,7 @@ Shader "Ocean/Underwater Curtain"
 
 				return o;
 			}
-			
+
 			#include "../OceanEmission.hlsl"
 			uniform sampler2D _CameraDepthTexture;
 			uniform sampler2D _Normals;
@@ -167,7 +167,7 @@ Shader "Ocean/Underwater Curtain"
 				const half2 uvDepth = screenPos.xy / screenPos.z;
 				const float sceneZ01 = tex2D(_CameraDepthTexture, uvDepth).x;
 				const float sceneZ = LinearEyeDepth(sceneZ01);
-				
+
 				const float3 lightDir = _WorldSpaceLightPos0.xyz;
 				const half3 n_pixel = 0.;
 				const half3 bubbleCol = 0.;
@@ -188,7 +188,7 @@ Shader "Ocean/Underwater Curtain"
 #if _CAUSTICS_ON
 				if (sceneZ01 != 0.0)
 				{
-					ApplyCaustics(view, lightDir, sceneZ, _Normals, sceneColour);
+					ApplyCaustics(view, lightDir, sceneZ, _Normals, true, sceneColour);
 				}
 #endif // _CAUSTICS_ON
 

@@ -46,8 +46,6 @@ Shader "Ocean/Underwater Curtain"
 
 			#pragma shader_feature _COMPILESHADERWITHDEBUGINFO_ON
 
-			#define _UNDERWATER_CURTAIN 1
-
 			#if _COMPILESHADERWITHDEBUGINFO_ON
 			#pragma enable_d3d11_debug_symbols
 			#endif
@@ -190,7 +188,7 @@ Shader "Ocean/Underwater Curtain"
 #if _CAUSTICS_ON
 				if (sceneZ01 != 0.0)
 				{
-					ApplyCaustics(view, lightDir, sceneZ, _Normals, sceneColour);
+					ApplyCaustics(view, lightDir, sceneZ, _Normals, true, sceneColour);
 				}
 #endif // _CAUSTICS_ON
 

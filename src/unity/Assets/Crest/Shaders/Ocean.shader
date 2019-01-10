@@ -407,6 +407,9 @@ Shader "Ocean/Ocean"
 					{
 						// underwater - do depth fog
 						col = lerp(col, scatterCol, 1. - exp(-_DepthFogDensity.xyz * pixelZ));
+						#if _CAUSTICS_ON
+							ApplyGodRays(view, lightDir, _Normals, true, col);
+						#endif
 					}
 					#if _DEBUGVISUALISESHAPESAMPLE_ON
 					col = lerp(col.rgb, i.debugtint, 0.5);

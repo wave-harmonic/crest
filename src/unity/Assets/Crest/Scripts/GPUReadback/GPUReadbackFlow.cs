@@ -37,6 +37,11 @@ namespace Crest
             _maxGridSize = Mathf.Max(_maxGridSize, 2f * _minGridSize);
         }
 
+        private void OnDestroy()
+        {
+            _instance = null;
+        }
+
         public bool SampleFlow(ref Vector3 i_worldPos, SamplingData i_samplingData, out Vector2 flow)
         {
             var data = i_samplingData._tag as PerLodData;

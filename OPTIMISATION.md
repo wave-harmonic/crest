@@ -1,22 +1,23 @@
 
-# Directions for Optimisation
+# Directions for optimisation
 
-The foundation of *Crest* is architected for performance from the ground up with an innovative LOD system. However, out of the box it is configured for quality and flexibility rather than maximum efficiency.
+The foundation of *Crest* is architected for performance from the ground up with an innovative LOD system. However, the out-of-the-box example content is configured for quality and flexibility rather than maximum efficiency.
 
 There are a number of directions for optimising the basic vanilla *Crest* that would make sense to explore in production scenarios to squeeze the maximum performance out of the system.
 
 
-# Tweakable Variables
+# Tweakable variables
 
 These are currently available for tweaking and should be explored on every project:
 
 * See the two *Ocean Construction Parameters* on the main README - the LOD count and the base vert density - these directly control how much detail is in the ocean, and therefore the work required to render it.
 * The ocean shader has accrued a number of features and has become a reasonably heavy shader. Where possible these are on toggles and can be disabled, which will help the rendering cost.
+* If the collision source is the GPU displacement textures, create an *Animated Waves Sim Settings* asset and set the *Min Object Width* and *Max Object Width* fields to the expect range of object sizes. Due to the dynamic nature of the LOD system underpinning *Crest* these settings can produce non-intuitive results. There is a validation helper function provided for assitance, see the collision section of [TECHNOLOGY.md](https://github.com/huwb/crest-oceanrender/blob/master/TECHNOLOGY.md).
 
 Consider tweaking these on a per scene/level basis.
 
 
-# Optimisations Under Consideration
+# Optimisations under consideration
 
 These may make it into *Crest* at some point.
 
@@ -26,8 +27,9 @@ These may make it into *Crest* at some point.
 * Decouple displacements used for geometry from displacements used for shading. Right now geometry and displacement values are 1:1 - every texel in the displacement texture is sampled by a vert. Then normal maps are used to give higher frequency detail. @moosichu and I have discussed decoupling these to reduce the amount of geometry but hopefully retain detailed appearance. There are many very small triangles in the mid-to-background right now which are typically inefficient to render, and this might help.
 * Limit range of LOD data. There is currently a min/max grid size option on the dynamic wave sim to limit what resolutions it runs at, this could be rolled out to other sim types.
 * LOD data such as foam sim/wave sims/etc could be atlased into a single texture and run in one pass. There are quite a few draw calls to run the sims which could collapse significantly. This should help perf but I'm not sure by how much, or what impact this will have on the code/systems.
-* Texture readback takes around 0.5ms of main thread CPU time on my laptop (for the default high quality settings in the crest example content). There may be ways to reduce this cost - see issue #60 .
+* Texture readback takes around 0.5ms of main thread CPU time on a Dell XPS 15 laptop (for the default high quality settings in the crest example content). There may be ways to reduce this cost - see issue #60 . See also the object width settings mentioned above.
+* The ocean update runs as a command buffer which could potentially be ran asynchronously which may improve utilisation.
 
-# Other Optimisations
+# Other optimisations
 
 * GPU-instance ocean material tiles. Discussed in Issue #27.

@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
+
+using UnityEngine;
 
 namespace Crest
 {
@@ -17,6 +19,12 @@ namespace Crest
 
         private void Start()
         {
+            if (OceanRenderer.Instance == null)
+            {
+                enabled = false;
+                return;
+            }
+
             _rend = GetComponent<Renderer>();
             _mesh = GetComponent<MeshFilter>().mesh;
             _boundsLocal = _mesh.bounds;
@@ -28,7 +36,7 @@ namespace Crest
         {
             // find which lod this object is overlapping
             var rect = new Rect(transform.position.x, transform.position.z, 0f, 0f);
-            var idx = LodDataAnimatedWaves.SuggestDataLOD(rect);
+            var idx = LodDataMgrAnimWaves.SuggestDataLOD(rect);
 
             if (idx > -1)
             {
@@ -39,17 +47,18 @@ namespace Crest
 
                 _rend.GetPropertyBlock(_mpb);
 
-                var ldaws = OceanRenderer.Instance._lodDataAnimWaves;
-                ldaws[idx].BindResultData(0, _mpb);
-                int idx1 = Mathf.Min(idx + 1, ldaws.Length - 1);
-                ldaws[idx1].BindResultData(1, _mpb);
+                var lodCount = OceanRenderer.Instance.CurrentLodCount;
+                var ldaw = OceanRenderer.Instance._lodDataAnimWaves;
+                ldaw.BindResultData(idx, 0, _mpb);
+                int idx1 = Mathf.Min(idx + 1, lodCount - 1);
+                ldaw.BindResultData(idx1, 1, _mpb);
 
                 // blend LOD 0 shape in/out to avoid pop, if the ocean might scale up later (it is smaller than its maximum scale)
                 bool needToBlendOutShape = idx == 0 && OceanRenderer.Instance.ScaleCouldIncrease;
                 float meshScaleLerp = needToBlendOutShape ? OceanRenderer.Instance.ViewerAltitudeLevelAlpha : 0f;
 
                 // blend furthest normals scale in/out to avoid pop, if scale could reduce
-                bool needToBlendOutNormals = idx == ldaws.Length - 1 && OceanRenderer.Instance.ScaleCouldDecrease;
+                bool needToBlendOutNormals = idx == lodCount - 1 && OceanRenderer.Instance.ScaleCouldDecrease;
                 float farNormalsWeight = needToBlendOutNormals ? OceanRenderer.Instance.ViewerAltitudeLevelAlpha : 1f;
                 _mpb.SetVector("_InstanceData", new Vector4(meshScaleLerp, farNormalsWeight, idx));
 
@@ -74,7 +83,7 @@ namespace Crest
 
             if (_drawBounds)
             {
-                OceanChunkRenderer.DebugDrawRendererBounds(_rend);
+                _rend.bounds.DebugDraw();
             }
         }
     }

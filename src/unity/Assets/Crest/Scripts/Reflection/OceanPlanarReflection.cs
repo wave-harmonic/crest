@@ -12,19 +12,31 @@ namespace Crest
     /// </summary>
     public class OceanPlanarReflection : MonoBehaviour
     {
-        public bool _disablePixelLights = true;
-        public int _textureSize = 256;
-        public float _clipPlaneOffset = 0.07f;
-        public string[] _reflectLayers = new[] { "Default" };
-        public bool _hdr = true;
+        [SerializeField] LayerMask _reflectionLayers = 1;
+        [SerializeField] bool _disablePixelLights = true;
+        [SerializeField] int _textureSize = 256;
+        [SerializeField] float _clipPlaneOffset = 0.07f;
+        [SerializeField] bool _hdr = true;
+        [SerializeField] bool _stencil = false;
+        [SerializeField] bool _hideCameraGameobject = true;
+
+        const int MAX_DISPLAY_COUNT = 8;
 
         RenderTexture _reflectionTexture;
-        public RenderTexture ReflectionTexture { get { return _reflectionTexture; } }
+
+        static RenderTexture[] _displayReflTextures;
+        public static RenderTexture GetRenderTexture(int displayIndex)
+        {
+            if (_displayReflTextures != null && _displayReflTextures.Length > displayIndex)
+            {
+                return _displayReflTextures[displayIndex];
+            }
+
+            return null;
+        }
 
         Camera _camViewpoint;
         Camera _camReflections;
-
-        public bool _hideCameraGameobject = true;
 
         private void Start()
         {
@@ -35,14 +47,20 @@ namespace Crest
                 enabled = false;
                 return;
             }
+
+            // This is anyway called in OnPreRender, but was required here as there was a black reflection
+            // for a frame without this earlier setup call.
+            CreateWaterObjects(_camViewpoint);
+
+#if UNITY_EDITOR
+            if (!OceanRenderer.Instance.OceanMaterial.IsKeywordEnabled("_PLANARREFLECTIONS_ON"))
+            {
+                Debug.LogWarning("Planar reflections are not enabled on the current ocean material and will not be visible.", this);
+            }
+#endif
         }
 
-        private void LateUpdate()
-        {
-            UpdateReflection();
-        }
-
-        private void UpdateReflection()
+        private void OnPreRender()
         {
             CreateWaterObjects(_camViewpoint);
 
@@ -89,6 +107,7 @@ namespace Crest
             _camReflections.transform.position = newpos;
             Vector3 euler = _camViewpoint.transform.eulerAngles;
             _camReflections.transform.eulerAngles = new Vector3(-euler.x, euler.y, euler.z);
+            _camReflections.cullingMatrix = _camReflections.projectionMatrix * _camReflections.worldToCameraMatrix;
             _camReflections.Render();
             GL.invertCulling = oldCulling;
 
@@ -142,7 +161,7 @@ namespace Crest
                 }
 
                 var format = _hdr ? RenderTextureFormat.ARGBHalf : RenderTextureFormat.ARGB32;
-                _reflectionTexture = new RenderTexture(_textureSize, _textureSize, 16, format);
+                _reflectionTexture = new RenderTexture(_textureSize, _textureSize, _stencil ? 24 : 16, format);
                 _reflectionTexture.name = "__WaterReflection" + GetInstanceID();
                 _reflectionTexture.isPowerOfTwo = true;
                 _reflectionTexture.hideFlags = HideFlags.DontSave;
@@ -156,7 +175,7 @@ namespace Crest
                 _camReflections.enabled = false;
                 _camReflections.transform.position = transform.position;
                 _camReflections.transform.rotation = transform.rotation;
-                _camReflections.gameObject.AddComponent<ApplyLayers>()._cullIncludeLayers = _reflectLayers;
+                _camReflections.cullingMask = _reflectionLayers;
                 _camReflections.gameObject.AddComponent<Skybox>();
                 _camReflections.gameObject.AddComponent<FlareLayer>();
 
@@ -165,6 +184,13 @@ namespace Crest
                     go.hideFlags = HideFlags.HideAndDontSave;
                 }
             }
+
+            // Keep list of reflection textures fresh
+            if (_displayReflTextures == null || _displayReflTextures.Length != MAX_DISPLAY_COUNT)
+            {
+                _displayReflTextures = new RenderTexture[MAX_DISPLAY_COUNT];
+            }
+            _displayReflTextures[currentCamera.targetDisplay] = _reflectionTexture;
         }
 
         // Given position/normal of the plane, calculates plane in camera space.
@@ -201,13 +227,14 @@ namespace Crest
             reflectionMat.m33 = 1F;
         }
 
-        // Cleanup all the objects we possibly have created
-        void OnDisable()
+        private void OnDisable()
         {
+            // Cleanup all the objects we possibly have created
             if (_reflectionTexture)
             {
                 Destroy(_reflectionTexture);
                 _reflectionTexture = null;
+                _displayReflTextures = null;
             }
             if (_camReflections)
             {

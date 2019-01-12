@@ -13,8 +13,7 @@
 	uniform sampler2D _LD_Sampler_DynamicWaves_##LODNUM; \
 	uniform sampler2D _LD_Sampler_Shadow_##LODNUM; \
 	uniform float4 _LD_Params_##LODNUM; \
-	uniform float3 _LD_Pos_Scale_##LODNUM; \
-	uniform int _LD_LodIdx_##LODNUM;
+	uniform float3 _LD_Pos_Scale_##LODNUM;
 
 // Create two sets of LOD data, which have overloaded meaning depending on use:
 // * the ocean surface geometry always lerps from a more detailed LOD (0) to a less detailed LOD (1)
@@ -41,15 +40,21 @@ float2 LD_1_UVToWorld(in float2 i_uv) { return LD_UVToWorld(i_uv, _LD_Pos_Scale_
 
 
 // Bias ocean floor depth so that default (0) values in texture are not interpreted as shallow and generating foam everywhere
-#define DEPTH_BIAS 100.
+#define DEPTH_BASELINE 1000.
 
 
 // Sampling functions
-void SampleDisplacements(in sampler2D i_dispSampler, in float2 i_uv, in float i_wt, in float i_invRes, in float i_texelSize, inout float3 io_worldPos, inout half2 io_nxz)
+void SampleDisplacements(in sampler2D i_dispSampler, in float2 i_uv, in float i_wt, inout float3 io_worldPos)
+{
+	const half3 disp = tex2Dlod(i_dispSampler, float4(i_uv, 0., 0.)).xyz;
+	io_worldPos += i_wt * disp;
+}
+
+void SampleDisplacementsNormals(in sampler2D i_dispSampler, in float2 i_uv, in float i_wt, in float i_invRes, in float i_texelSize, inout float3 io_worldPos, inout half2 io_nxz)
 {
 	const float4 uv = float4(i_uv, 0., 0.);
 
-	half3 disp = tex2Dlod(i_dispSampler, uv).xyz;
+	const half3 disp = tex2Dlod(i_dispSampler, uv).xyz;
 	io_worldPos += i_wt * disp;
 
 	float3 n; {
@@ -72,9 +77,9 @@ void SampleFlow(in sampler2D i_oceanFlowSampler, float2 i_uv, in float i_wt, ino
 	io_flow += i_wt * tex2Dlod(i_oceanFlowSampler, uv).xy;
 }
 
-void SampleOceanDepth(in sampler2D i_oceanDepthSampler, float2 i_uv, in float i_wt, inout half io_oceanDepth)
+void SampleSeaFloorHeightAboveBaseline(in sampler2D i_oceanDepthSampler, float2 i_uv, in float i_wt, inout half io_oceanDepth)
 {
-	io_oceanDepth += i_wt * (tex2Dlod(i_oceanDepthSampler, float4(i_uv, 0., 0.)).x + DEPTH_BIAS);
+	io_oceanDepth += i_wt * (tex2Dlod(i_oceanDepthSampler, float4(i_uv, 0., 0.)).x);
 }
 
 void SampleShadow(in sampler2D i_oceanShadowSampler, float2 i_uv, in float i_wt, inout fixed2 io_shadow)
@@ -99,7 +104,7 @@ float ComputeLodAlpha(float3 i_worldPos, float i_meshScaleAlpha)
 
 	// lod alpha is remapped to ensure patches weld together properly. patches can vary significantly in shape (with
 	// strips added and removed), and this variance depends on the base density of the mesh, as this defines the strip width.
-	// using .15 as black and .85 as white should work for base mesh density as low as 16. TODO - make this automatic?
+	// using .15 as black and .85 as white should work for base mesh density as low as 16.
 	const float BLACK_POINT = 0.15, WHITE_POINT = 0.85;
 	lodAlpha = max((lodAlpha - BLACK_POINT) / (WHITE_POINT - BLACK_POINT), 0.);
 

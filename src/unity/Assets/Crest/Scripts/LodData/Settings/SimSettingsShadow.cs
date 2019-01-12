@@ -18,5 +18,8 @@ namespace Crest
 
         [Range(0f, 1f), Tooltip("Current frame weight for accumulation over frames for hard shadows. Roughly means 'responsiveness' for hard shadows.")]
         public float _currentFrameWeightHard = 0.15f;
+
+        [Tooltip("Whether to disable the null light warning, use this if you assign it dynamically and expect it to be null at points")]
+        public bool _allowNullLight = false;
     }
 }

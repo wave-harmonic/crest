@@ -1,125 +1,259 @@
-﻿using UnityEngine;
+﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
-namespace Crest
+// Shout out to @holdingjason who posted a first version of this script here: https://github.com/huwb/crest-oceanrender/pull/100
+
+using Crest;
+using System;
+using UnityEngine;
+using UnityEngine.Serialization;
+
+/// <summary>
+/// Boat physics by sampling at multiple probe points.
+/// </summary>
+public class BoatProbes : MonoBehaviour, IBoat
 {
-    [System.Serializable]
-    public class BuoyancyProbeSphere
+    [Header("Forces")]
+    [Tooltip("Override RB center of mass, in local space."), SerializeField]
+    Vector3 _centerOfMass = Vector3.zero;
+    [SerializeField, FormerlySerializedAs("ForcePoints")]
+    FloaterForcePoints[] _forcePoints = new FloaterForcePoints[] {};
+    [SerializeField]
+    float _forceHeightOffset = 0f;
+    [SerializeField]
+    float _forceMultiplier = 10f;
+    [SerializeField]
+    float _minSpatialLength = 12f;
+    [SerializeField, Range(0, 1)]
+    float _turningHeel = 0.35f;
+
+    [Header("Drag")]
+
+    [SerializeField]
+    float _dragInWaterUp = 3f;
+    [SerializeField]
+    float _dragInWaterRight = 2f;
+    [SerializeField]
+    float _dragInWaterForward = 1f;
+
+    [Header("Control")]
+
+    [SerializeField, FormerlySerializedAs("EnginePower")]
+    float _enginePower = 7;
+    [SerializeField, FormerlySerializedAs("TurnPower")]
+    float _turnPower = 0.5f;
+    [SerializeField]
+    bool _playerControlled = true;
+    [SerializeField]
+    float _engineBias = 0f;
+    [SerializeField]
+    float _turnBias = 0f;
+
+
+    private const float WATER_DENSITY = 1000;
+
+    public Rigidbody RB { get; private set; }
+
+    public Vector3 DisplacementToBoat { get; private set; }
+    public float BoatWidth { get { return _minSpatialLength; } }
+    public bool InWater { get { return true; } }
+
+    SamplingData _samplingData = new SamplingData();
+    Rect _localSamplingAABB;
+    float _totalWeight;
+
+    private void Start()
     {
-        public Vector3 _localPosition;
-        public float _r = 1f;
+        RB = GetComponent<Rigidbody>();
+        RB.centerOfMass = _centerOfMass;
 
-        //[HideInInspector]
-        //public float _volume = 1f;
-        [HideInInspector]
-        public Vector3 _position;
-        [HideInInspector]
-        public float _waterDensity = 1000f;
-        [HideInInspector]
-        public float _dragInWater = 370f;
-
-        public void ApplyForceToRB(ShapeGerstnerBatched _waves, Rigidbody _rb)
+        if (OceanRenderer.Instance == null)
         {
-            Vector3 undispPos = _waves.GetPositionDisplacedToPosition(ref _position, 0f);
-            Vector3 displacement = _waves.SampleDisplacement(ref undispPos, 0f);
-            float height = OceanRenderer.Instance.SeaLevel + displacement.y;
-
-            Vector3 onSeaLevel = _position;
-            onSeaLevel.y = OceanRenderer.Instance.SeaLevel;
-
-            // h is the height of the water relative to the center of the sphere
-            float h = height - _position.y + _r;
-            h = Mathf.Min(h, 2f * _r);
-
-            float submergedness = Mathf.Clamp01(h / (2f * _r));
-            if (submergedness < 0.001f)
-            {
-                // not in water
-                return;
-            }
-
-            // volume of spherical cap, from https://en.wikipedia.org/wiki/Spherical_cap
-            float Vdisp = Mathf.PI * h * h * (3f * _r - h) / 3f;
-            // scale up to full volume
-            //float Vfull = 4f * Mathf.PI * _r * _r * _r / 3f;
-            float V = Vdisp;// _volume * Vdisp / Vfull;
-
-            float rotAmt = .1f;
-
-            float F = V * _waterDensity * Physics.gravity.magnitude;
-            _rb.AddForceAtPosition(-F * Physics.gravity.normalized, Vector3.Lerp(_rb.position, _position, rotAmt));
-            Debug.DrawLine(_position, _position - F * Physics.gravity.normalized, Color.red * 0.5f);
-
-            // apply drag relative to water
-            var vel = _waves.GetSurfaceVelocity(ref undispPos, 0f);
-            var deltaV = _rb.velocity - vel;
-            // approximation - interpolate drag based on how submerged the sphere is
-            _rb.AddForceAtPosition(-submergedness * _dragInWater * deltaV, Vector3.Lerp(_rb.position, _position, rotAmt));
-            Debug.DrawLine(_position, _position - submergedness * _dragInWater * deltaV, Color.white);
+            enabled = false;
+            return;
         }
 
-        public void DebugDraw()
+        _localSamplingAABB = ComputeLocalSamplingAABB();
+    }
+
+    void CalcTotalWeight()
+    {
+        _totalWeight = 0f;
+        foreach (var pt in _forcePoints)
         {
-            Debug.DrawLine(_position - Vector3.up * _r, _position + Vector3.up * _r);
-            Debug.DrawLine(_position - Vector3.forward * _r, _position + Vector3.forward * _r);
-            Debug.DrawLine(_position - Vector3.right * _r, _position + Vector3.right * _r);
+            _totalWeight += pt._weight;
         }
     }
 
-    public class BoatProbes : MonoBehaviour
+    private void FixedUpdate()
     {
-        public BuoyancyProbeSphere[] _probes;
+#if UNITY_EDITOR
+        // Sum weights every frame when running in editor in case weights are edited in the inspector.
+        CalcTotalWeight();
+#endif
 
-        [Delayed]
-        public float _densityRelativeToSeaWater = 1f;
-        public bool _debugDraw = false;
-        [Delayed]
-        public float _volume = 100f;
-        public float _probePositionMultiplier = 1.5f;
-
-        const float SEA_WATER_DENSITY = 1023.6f; // kg/m3 - depends on conditions - https://en.wikipedia.org/wiki/Seawater
-
-        public float _overrideProbeRadius = -1f;
-
-        Rigidbody _rb;
-        ShapeGerstnerBatched _waves;
-
-        public float _dragInWater = 370f;
-
-        void Start()
+        // Trigger processing of displacement textures that have come back this frame. This will be processed
+        // anyway in Update(), but FixedUpdate() is earlier so make sure it's up to date now.
+        if (OceanRenderer.Instance._simSettingsAnimatedWaves.CollisionSource == SimSettingsAnimatedWaves.CollisionSources.OceanDisplacementTexturesGPU && GPUReadbackDisps.Instance)
         {
-            _rb = GetComponent<Rigidbody>();
-            _waves = FindObjectOfType<ShapeGerstnerBatched>();
+            GPUReadbackDisps.Instance.ProcessRequests();
         }
 
-        void FixedUpdate()
+        var collProvider = OceanRenderer.Instance.CollisionProvider;
+        var thisRect = GetWorldAABB();
+        if (!collProvider.GetSamplingData(ref thisRect, _minSpatialLength, _samplingData))
         {
-            //float r = 0.5f * transform.localScale.x;
-            //float V = 4f * Mathf.PI * r * r * r / 3f;
-            //_rb.mass = _densityRelativeToSeaWater * SEA_WATER_DENSITY * V;
-            _rb.mass = _volume * _densityRelativeToSeaWater * SEA_WATER_DENSITY;
-            //_rb.ResetInertiaTensor();
-            //_rb.inertiaTensor *= 4f;
+            // No collision coverage for the sample area, in this case use the null provider.
+            collProvider = CollProviderNull.Instance;
+        }
 
-            //float probeVolume = _volume / _probes.Length;
+        var position = transform.position;
+        Vector3 undispPos;
+        if (!collProvider.ComputeUndisplacedPosition(ref position, _samplingData, out undispPos))
+        {
+            // If we couldn't get wave shape, assume flat water at sea level
+            undispPos = position;
+            undispPos.y = OceanRenderer.Instance.SeaLevel;
+        }
 
-            foreach (var probe in _probes)
+        Vector3 displacement, waterSurfaceVel;
+        bool dispValid, velValid;
+        collProvider.SampleDisplacementVel(ref undispPos, _samplingData, out displacement, out dispValid, out waterSurfaceVel, out velValid);
+        if (dispValid)
+        {
+            DisplacementToBoat = displacement;
+        }
+
+        if (GPUReadbackFlow.Instance)
+        {
+            GPUReadbackFlow.Instance.ProcessRequests();
+
+            Vector2 surfaceFlow;
+            GPUReadbackFlow.Instance.SampleFlow(ref position, _samplingData, out surfaceFlow);
+            waterSurfaceVel += new Vector3(surfaceFlow.x, 0, surfaceFlow.y);
+        }
+
+        FixedUpdateBuoyancy(collProvider);
+        FixedUpdateDrag(collProvider, waterSurfaceVel);
+        FixedUpdateEngine();
+
+        collProvider.ReturnSamplingData(_samplingData);
+    }
+
+    void FixedUpdateEngine()
+    {
+        var forcePosition = RB.position;
+
+        var forward = _engineBias;
+        if (_playerControlled) forward += Input.GetAxis("Vertical");
+        RB.AddForceAtPosition(transform.forward * _enginePower * forward, forcePosition, ForceMode.Acceleration);
+
+        var sideways = _turnBias;
+        if (_playerControlled) sideways += (Input.GetKey(KeyCode.A) ? -1f : 0f) + (Input.GetKey(KeyCode.D) ? 1f : 0f);
+        var rotVec = transform.up + _turningHeel * transform.forward;
+        RB.AddTorque(rotVec * _turnPower * sideways, ForceMode.Acceleration);
+    }
+
+    void FixedUpdateBuoyancy(ICollProvider collProvider)
+    {
+        float archimedesForceMagnitude = WATER_DENSITY * Mathf.Abs(Physics.gravity.y);
+
+        for (int i = 0; i < _forcePoints.Length; i++)
+        {
+            FloaterForcePoints point = _forcePoints[i];
+            var transformedPoint = transform.TransformPoint(point._offsetPosition + new Vector3(0, _centerOfMass.y, 0));
+
+            Vector3 undispPos;
+            if (!collProvider.ComputeUndisplacedPosition(ref transformedPoint, _samplingData, out undispPos))
             {
-                if (_overrideProbeRadius != -1f)
-                {
-                    probe._r = _overrideProbeRadius;
-                }
+                // If we couldn't get wave shape, assume flat water at sea level
+                undispPos = transformedPoint;
+                undispPos.y = OceanRenderer.Instance.SeaLevel;
+            }
 
-                probe._dragInWater = _dragInWater;
-                probe._waterDensity = SEA_WATER_DENSITY;
-                probe._position = transform.TransformPoint(_probePositionMultiplier * probe._localPosition);
+            Vector3 displaced;
+            collProvider.SampleDisplacement(ref undispPos, _samplingData, out displaced);
 
-                probe.ApplyForceToRB(_waves, _rb);
-
-                if (_debugDraw)
-                {
-                    probe.DebugDraw();
-                }
+            var dispPos = undispPos + displaced;
+            var heightDiff = dispPos.y - transformedPoint.y;
+            if (heightDiff > 0)
+            {
+                RB.AddForceAtPosition(archimedesForceMagnitude * heightDiff * Vector3.up * point._weight * _forceMultiplier / _totalWeight, transformedPoint);
             }
         }
     }
+
+    void FixedUpdateDrag(ICollProvider collProvider, Vector3 waterSurfaceVel)
+    {
+        // Apply drag relative to water
+        var pos = RB.position;
+        Vector3 undispPos;
+        if (!collProvider.ComputeUndisplacedPosition(ref pos, _samplingData, out undispPos))
+        {
+            // If we couldn't get wave shape, assume flat water at sea level
+            undispPos = pos;
+            undispPos.y = OceanRenderer.Instance.SeaLevel;
+        }
+
+        var _velocityRelativeToWater = RB.velocity - waterSurfaceVel;
+
+        var forcePosition = RB.position + _forceHeightOffset * Vector3.up;
+        RB.AddForceAtPosition(Vector3.up * Vector3.Dot(Vector3.up, -_velocityRelativeToWater) * _dragInWaterUp, forcePosition, ForceMode.Acceleration);
+        RB.AddForceAtPosition(transform.right * Vector3.Dot(transform.right, -_velocityRelativeToWater) * _dragInWaterRight, forcePosition, ForceMode.Acceleration);
+        RB.AddForceAtPosition(transform.forward * Vector3.Dot(transform.forward, -_velocityRelativeToWater) * _dragInWaterForward, forcePosition, ForceMode.Acceleration);
+    }
+
+    private void OnDrawGizmosSelected()
+    {
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawCube(transform.TransformPoint(_centerOfMass), Vector3.one * 0.25f);
+
+        for (int i = 0; i < _forcePoints.Length; i++)
+        {
+            var point = _forcePoints[i];
+
+            var transformedPoint = transform.TransformPoint(point._offsetPosition + new Vector3(0, _centerOfMass.y, 0));
+
+            Gizmos.color = Color.red;
+            Gizmos.DrawCube(transformedPoint, Vector3.one * 0.5f);
+        }
+
+        var worldAABB = GetWorldAABB();
+        new Bounds(new Vector3(worldAABB.center.x, 0f, worldAABB.center.y), Vector3.right * worldAABB.width + Vector3.forward * worldAABB.height).DebugDraw();
+    }
+
+    Rect ComputeLocalSamplingAABB()
+    {
+        if (_forcePoints.Length == 0) return new Rect();
+
+        float xmin = _forcePoints[0]._offsetPosition.x;
+        float zmin = _forcePoints[0]._offsetPosition.z;
+        float xmax = xmin, zmax = zmin;
+        for (int i = 1; i < _forcePoints.Length; i++)
+        {
+            float x = _forcePoints[i]._offsetPosition.x, z = _forcePoints[i]._offsetPosition.z;
+            xmin = Mathf.Min(xmin, x); xmax = Mathf.Max(xmax, x);
+            zmin = Mathf.Min(zmin, z); zmax = Mathf.Max(zmax, z);
+        }
+
+        return Rect.MinMaxRect(xmin, zmin, xmax, zmax);
+    }
+
+    Rect GetWorldAABB()
+    {
+        Bounds b = new Bounds(transform.position, Vector3.one);
+        b.Encapsulate(transform.TransformPoint(new Vector3(_localSamplingAABB.xMin, 0f, _localSamplingAABB.yMin)));
+        b.Encapsulate(transform.TransformPoint(new Vector3(_localSamplingAABB.xMin, 0f, _localSamplingAABB.yMax)));
+        b.Encapsulate(transform.TransformPoint(new Vector3(_localSamplingAABB.xMax, 0f, _localSamplingAABB.yMin)));
+        b.Encapsulate(transform.TransformPoint(new Vector3(_localSamplingAABB.xMax, 0f, _localSamplingAABB.yMax)));
+        return Rect.MinMaxRect(b.min.x, b.min.z, b.max.x, b.max.z);
+    }
+}
+
+[Serializable]
+public class FloaterForcePoints
+{
+    [FormerlySerializedAs("_factor")]
+    public float _weight = 1f;
+
+    public Vector3 _offsetPosition;
 }

@@ -178,62 +178,68 @@ void ApplyCaustics(in const half3 i_view, in const half3 i_lightDir, in const fl
 #if _CAUSTICS_ON
 void ApplyGodRays(in const half3 i_view, in const half3 i_lightDir, in const float i_sceneZ, in sampler2D i_normals, in const bool i_underwater, in const float3 i_screenPos, inout half3 io_sceneColour)
 {
-				const uint numSamples = 32;
-				float sampleDistance = .1;
-				float totalSampleDistance = 1;
-				float3 camForward = mul((float3x3)unity_CameraToWorld, float3(0., 0., 1.));
-				for(uint currentSample = 0; currentSample < numSamples; currentSample++)
-				{
-					float3 samplePos = _WorldSpaceCameraPos + (-i_view * totalSampleDistance);
-					const float2 samplePosUV = LD_1_WorldToUV(samplePos.xz);
+	const uint numSamples = 32;
+	float sampleDistance = .1;
+	float totalSampleDistance = 1;
+	float3 camForward = mul((float3x3)unity_CameraToWorld, float3(0., 0., 1.));
+	for(uint currentSample = 0; currentSample < numSamples; currentSample++)
+	{
+		float3 samplePos = _WorldSpaceCameraPos + (-i_view * totalSampleDistance);
+		const float2 samplePosUV = LD_1_WorldToUV(samplePos.xz);
 
-					half3 disp = 0.;
-					SampleDisplacements(_LD_Sampler_AnimatedWaves_1, samplePosUV, 1.0, disp);
-					half waterHeight = _OceanCenterPosWorld.y + disp.y;
-					half sampleDepth = samplePos.y - waterHeight;
-					const half bias = abs(sampleDepth - _CausticsFocalDepth) / _CausticsDepthOfField;
+		half3 disp = 0.;
+		SampleDisplacements(_LD_Sampler_AnimatedWaves_1, samplePosUV, 1.0, disp);
+		half waterHeight = _OceanCenterPosWorld.y + disp.y;
+		half sampleDepth = samplePos.y - waterHeight;
+		const half bias = abs(sampleDepth - _CausticsFocalDepth) / _CausticsDepthOfField;
 
 
-					if(samplePos.y > waterHeight) return;
+		if(samplePos.y > waterHeight) return;
 
-					const float2 surfacePosXZ = float2(samplePos.x, samplePos.z) - (i_lightDir * dot(i_lightDir, _OceanCenterPosWorld.y - samplePos.y)).xz;
+		const float2 surfacePosXZ = float2(samplePos.x, samplePos.z) - (i_lightDir * dot(i_lightDir, _OceanCenterPosWorld.y - samplePos.y)).xz;
 
-					const half2 causticN = _CausticsDistortionStrength * UnpackNormal(tex2D(i_normals, surfacePosXZ / _CausticsDistortionScale)).xy;
-					const half4 cuv1 = half4((surfacePosXZ / _CausticsTextureScale + 1.3 * causticN + half2(0.044*_CrestTime + 17.16, -0.169*_CrestTime)), 0., bias);
-					const half4 cuv2 = half4((1.37*surfacePosXZ / _CausticsTextureScale + 1.77 * causticN + half2(0.248*_CrestTime, 0.117*_CrestTime)), 0., bias);
+		const half2 causticN = _CausticsDistortionStrength * UnpackNormal(tex2D(i_normals, surfacePosXZ / _CausticsDistortionScale)).xy;
+		const half4 cuv1 = half4((surfacePosXZ / _CausticsTextureScale + 1.3 * causticN + half2(0.044*_CrestTime + 17.16, -0.169*_CrestTime)), 0., bias);
+		const half4 cuv2 = half4((1.37*surfacePosXZ / _CausticsTextureScale + 1.77 * causticN + half2(0.248*_CrestTime, 0.117*_CrestTime)), 0., bias);
 
-					half causticsStrength = _CausticsStrength;
+		half causticsStrength = _CausticsStrength;
 #if _SHADOWS_ON
-					{
-						fixed2 causticShadow = 0.;
-						// As per the comment for the underwater code in ScatterColour,
-						// LOD_1 data can be missing when underwater
-						if(i_underwater)
-						{
-							const float2 uv_0 = LD_0_WorldToUV(surfacePosXZ);
-							SampleShadow(_LD_Sampler_Shadow_0, uv_0, 1.0, causticShadow);
-						}
-						else
-						{
-							// only sample the bigger lod. if pops are noticeable this could lerp the 2 lods smoothly, but i didnt notice issues.
-							float2 uv_1 = LD_1_WorldToUV(surfacePosXZ);
-							SampleShadow(_LD_Sampler_Shadow_1, uv_1, 1.0, causticShadow);
-						}
-						causticsStrength *= 1. - causticShadow.y;
+		{
+			fixed2 causticShadow = 0.;
+			// As per the comment for the underwater code in ScatterColour,
+			// LOD_1 data can be missing when underwater
+			if(i_underwater)
+			{
+				const float2 uv_0 = LD_0_WorldToUV(surfacePosXZ);
+				SampleShadow(_LD_Sampler_Shadow_0, uv_0, 1.0, causticShadow);
+			}
+			else
+			{
+				// only sample the bigger lod. if pops are noticeable this could lerp the 2 lods smoothly, but i didnt notice issues.
+				float2 uv_1 = LD_1_WorldToUV(surfacePosXZ);
+				SampleShadow(_LD_Sampler_Shadow_1, uv_1, 1.0, causticShadow);
+			}
+			causticsStrength *= 1. - causticShadow.y;
 
-						// Don't draw caustics behind the scene
-						if (totalSampleDistance > (i_sceneZ / dot(-camForward, i_view))) causticsStrength = 0;
-					}
+			// Don't draw caustics behind the scene
+			if (totalSampleDistance > (i_sceneZ / dot(-camForward, i_view))) causticsStrength = 0;
+		}
 #endif // _SHADOWS_ON
 
-					causticsStrength *=
-						0.02 * exp(-_DepthFogDensity * totalSampleDistance * DEPTH_OUTSCATTER_CONSTANT);
+		causticsStrength *=
+			0.2 *
+			(
+				exp(-_DepthFogDensity * (totalSampleDistance + sampleDistance) * DEPTH_OUTSCATTER_CONSTANT)
+				- exp(-_DepthFogDensity * (totalSampleDistance) * DEPTH_OUTSCATTER_CONSTANT)
+			) /
+			(-_DepthFogDensity * DEPTH_OUTSCATTER_CONSTANT);
 
-					io_sceneColour += causticsStrength *
-						(0.5*tex2Dbias(_CausticsTexture, cuv1).x + 0.5*tex2Dbias(_CausticsTexture, cuv2).x - _CausticsTextureAverage);
+		io_sceneColour += causticsStrength *
+			(0.5*tex2Dbias(_CausticsTexture, cuv1).x + 0.5*tex2Dbias(_CausticsTexture, cuv2).x - _CausticsTextureAverage);
 
-					totalSampleDistance += sampleDistance;
-				}
+		totalSampleDistance += sampleDistance;
+		sampleDistance *= 1.01;
+	}
 }
 #endif // _CAUSTICS_ON
 

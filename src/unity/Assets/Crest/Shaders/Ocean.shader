@@ -423,7 +423,7 @@ Shader "Ocean/Ocean"
 					{
 						// Underwater, apply god rays
 						#if _CAUSTICS_ON
-							ApplyGodRays(view, lightDir, _Normals, true, col);
+							ApplyGodRays(view, lightDir, sceneZ, _Normals, true, screenPos, col);
 						#endif
 					}
 

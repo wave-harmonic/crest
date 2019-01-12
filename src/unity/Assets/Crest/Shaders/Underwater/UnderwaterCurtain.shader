@@ -194,7 +194,7 @@ Shader "Ocean/Underwater Curtain"
 
 				half3 col = lerp(sceneColour, scatterCol, 1. - exp(-_DepthFogDensity.xyz * sceneZ));
 #if _CAUSTICS_ON
-				ApplyGodRays(view, lightDir, _Normals, true, col);
+				ApplyGodRays(view, lightDir, sceneZ, _Normals, true, screenPos, col);
 #endif // _CAUSTICS_ON
 
 				return half4(col, 1.);

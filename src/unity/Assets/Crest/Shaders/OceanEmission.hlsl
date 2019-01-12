@@ -133,7 +133,7 @@ void ApplyCaustics(in const half3 i_view, in const half3 i_lightDir, in const fl
 	// could sample from the screen space shadow texture to attenuate this..
 	// underwater caustics - dedicated to P
 	float3 camForward = mul((float3x3)unity_CameraToWorld, float3(0., 0., 1.));
-	float3 scenePos = _WorldSpaceCameraPos - i_view * i_sceneZ / dot(camForward, -i_view);
+	float3 scenePos = _WorldSpaceCameraPos + (i_view * i_sceneZ / dot(camForward, i_view));
 	const float2 scenePosUV = LD_1_WorldToUV(scenePos.xz);
 	half3 disp = 0.;
 	// this gives height at displaced position, not exactly at query position.. but it helps. i cant pass this from vert shader
@@ -176,34 +176,31 @@ void ApplyCaustics(in const half3 i_view, in const half3 i_lightDir, in const fl
 #endif // _CAUSTICS_ON
 
 #if _CAUSTICS_ON
-void ApplyGodRays(in const half3 i_view, in const half3 i_lightDir, in sampler2D i_normals, in const bool i_underwater, inout half3 io_sceneColour)
+void ApplyGodRays(in const half3 i_view, in const half3 i_lightDir, in const float i_sceneZ, in sampler2D i_normals, in const bool i_underwater, in const float3 i_screenPos, inout half3 io_sceneColour)
 {
-				const uint numSamples = 24;
-				float sampleDistance = 0.1;
-				float totalSampleDistance = .5;
-				float distanceStrength = 0.1;
+				const uint numSamples = 32;
+				float sampleDistance = .1;
+				float totalSampleDistance = 1;
+				float3 camForward = mul((float3x3)unity_CameraToWorld, float3(0., 0., 1.));
 				for(uint currentSample = 0; currentSample < numSamples; currentSample++)
 				{
-					float3 camForward = mul((float3x3)unity_CameraToWorld, float3(0., 0., 1.));
-					float3 scenePos = _WorldSpaceCameraPos - i_view * totalSampleDistance / dot(camForward, -i_view);
+					float3 samplePos = _WorldSpaceCameraPos + (-i_view * totalSampleDistance);
+					const float2 samplePosUV = LD_1_WorldToUV(samplePos.xz);
 
-					// TODO: move texture by light dir
-					const float2 scenePosUV = LD_1_WorldToUV(scenePos.xz);
 					half3 disp = 0.;
-
-					// this gives height at displaced position, not exactly at query position.. but it helps. i cant pass this from vert shader
-					// because i dont know it at scene pos.
-					SampleDisplacements(_LD_Sampler_AnimatedWaves_1, scenePosUV, 1.0, disp);
+					SampleDisplacements(_LD_Sampler_AnimatedWaves_1, samplePosUV, 1.0, disp);
 					half waterHeight = _OceanCenterPosWorld.y + disp.y;
-					half sceneDepth = waterHeight - scenePos.y;
-					half bias = abs(sceneDepth - _CausticsFocalDepth) / _CausticsDepthOfField;
+					half sampleDepth = samplePos.y - waterHeight;
+					const half bias = abs(sampleDepth - _CausticsFocalDepth) / _CausticsDepthOfField;
 
-					// project along light dir, but multiply by a fudge factor reduce the angle bit - compensates for fact that in real life
-					// caustics come from many directions and don't exhibit such a strong directonality
-					float2 surfacePosXZ = scenePos.xz + i_lightDir.xz * sceneDepth / (4.*i_lightDir.y);
-					half2 causticN = _CausticsDistortionStrength * UnpackNormal(tex2D(i_normals, surfacePosXZ / _CausticsDistortionScale)).xy;
-					half4 cuv1 = half4((surfacePosXZ / _CausticsTextureScale + 1.3 *causticN + half2(0.044*_CrestTime + 17.16, -0.169*_CrestTime)), 0., bias);
-					half4 cuv2 = half4((1.37*surfacePosXZ / _CausticsTextureScale + 1.77*causticN + half2(0.248*_CrestTime, 0.117*_CrestTime)), 0., bias);
+
+					if(samplePos.y > waterHeight) return;
+
+					const float2 surfacePosXZ = float2(samplePos.x, samplePos.z) - (i_lightDir * dot(i_lightDir, _OceanCenterPosWorld.y - samplePos.y)).xz;
+
+					const half2 causticN = _CausticsDistortionStrength * UnpackNormal(tex2D(i_normals, surfacePosXZ / _CausticsDistortionScale)).xy;
+					const half4 cuv1 = half4((surfacePosXZ / _CausticsTextureScale + 1.3 * causticN + half2(0.044*_CrestTime + 17.16, -0.169*_CrestTime)), 0., bias);
+					const half4 cuv2 = half4((1.37*surfacePosXZ / _CausticsTextureScale + 1.77 * causticN + half2(0.248*_CrestTime, 0.117*_CrestTime)), 0., bias);
 
 					half causticsStrength = _CausticsStrength;
 #if _SHADOWS_ON
@@ -223,16 +220,19 @@ void ApplyGodRays(in const half3 i_view, in const half3 i_lightDir, in sampler2D
 							SampleShadow(_LD_Sampler_Shadow_1, uv_1, 1.0, causticShadow);
 						}
 						causticsStrength *= 1. - causticShadow.y;
-						causticsStrength *= distanceStrength;
+
+						// Don't draw caustics behind the scene
+						if (totalSampleDistance > (i_sceneZ / dot(-camForward, i_view))) causticsStrength = 0;
 					}
 #endif // _SHADOWS_ON
+
+					causticsStrength *=
+						0.02 * exp(-_DepthFogDensity * totalSampleDistance * DEPTH_OUTSCATTER_CONSTANT);
 
 					io_sceneColour += causticsStrength *
 						(0.5*tex2Dbias(_CausticsTexture, cuv1).x + 0.5*tex2Dbias(_CausticsTexture, cuv2).x - _CausticsTextureAverage);
 
 					totalSampleDistance += sampleDistance;
-					sampleDistance *= 2;
-					distanceStrength *= 0.5;
 				}
 }
 #endif // _CAUSTICS_ON

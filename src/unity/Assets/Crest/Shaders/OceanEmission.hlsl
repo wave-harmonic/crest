@@ -288,7 +288,6 @@ half3 OceanEmission(in const half3 i_view, in const half3 i_n_pixel, in const fl
 		sceneColour = tex2D(_BackgroundTexture, uvBackgroundRefract).rgb;
 #if _CAUSTICS_ON
 		ApplyCaustics(i_view, i_lightDir, i_sceneZ, i_normals, i_underwater, sceneColour);
-		ApplyGodRays(i_view, i_lightDir, i_sceneZ, i_normals, i_underwater, sceneColour);
 #endif
 		alpha = 1.0 - exp(-_DepthFogDensity.xyz * depthFogDistance);
 	}

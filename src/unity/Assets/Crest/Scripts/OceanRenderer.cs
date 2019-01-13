@@ -166,7 +166,15 @@ namespace Crest
 
         void Update()
         {
-            _simSettingsAnimatedWaves.UpdateCollision();
+            UpdateCollision();
+        }
+
+        public void UpdateCollision()
+        {
+            if (_simSettingsAnimatedWaves.CachedHeightQueries)
+            {
+                (CollisionProvider as CollProviderCache).ClearCache();
+            }
         }
 
         void LateUpdate()
@@ -317,6 +325,7 @@ namespace Crest
         /// <summary>
         /// Provides ocean shape to CPU.
         /// </summary>
-        public ICollProvider CollisionProvider { get { return _simSettingsAnimatedWaves.CollisionProvider; } }
+        ICollProvider _collProvider;
+        public ICollProvider CollisionProvider { get { return _collProvider != null ? _collProvider : (_collProvider = _simSettingsAnimatedWaves.CreateCollisionProvider()); } }
     }
 }

@@ -135,7 +135,7 @@ public class BoatAlignNormal : MonoBehaviour, IBoat
         }
 
         // I could filter the surface vel as the min of the last 2 frames. theres a hard case where a wavelength is turned on/off
-        // which generates single frame vel spikes - because the surface legitimately moves very fast. 
+        // which generates single frame vel spikes - because the surface legitimately moves very fast.
 
         if (_debugDraw)
         {
@@ -169,11 +169,15 @@ public class BoatAlignNormal : MonoBehaviour, IBoat
         RB.AddForceAtPosition(transform.forward * Vector3.Dot(transform.forward, -_velocityRelativeToWater) * _dragInWaterForward, forcePosition, ForceMode.Acceleration);
 
         float forward = _throttleBias;
-        if (_playerControlled) forward += Input.GetAxis("Vertical");
+        float rawForward = Input.GetAxis("Vertical");
+        if (_playerControlled) forward += rawForward;
         RB.AddForceAtPosition(transform.forward * _enginePower * forward, forcePosition, ForceMode.Acceleration);
 
+        float reverseMultiplier = (rawForward < 0f ? -1f : 1f);
         float sideways = _steerBias;
-        if (_playerControlled) sideways += (Input.GetKey(KeyCode.A) ? -1f : 0f) + (Input.GetKey(KeyCode.D) ? 1f : 0f);
+        if (_playerControlled) sideways +=
+                (Input.GetKey(KeyCode.A) ? reverseMultiplier * -1f : 0f) +
+                (Input.GetKey(KeyCode.D) ? reverseMultiplier * 1f : 0f);
         RB.AddTorque(transform.up * _turnPower * sideways, ForceMode.Acceleration);
 
         FixedUpdateOrientation(collProvider, undispPos);

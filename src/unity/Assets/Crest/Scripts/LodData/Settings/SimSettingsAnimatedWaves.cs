@@ -35,14 +35,6 @@ namespace Crest
         [Tooltip("Similar to the minimum width, but this setting will exclude the larger LODs from being copied. Set to 0 to disable this optimisation and always copy low res data.")]
         public float _maxObjectWidth = 500f;
 
-        public void UpdateCollision()
-        {
-            if (_cachedHeightQueries)
-            {
-                (CollisionProvider as CollProviderCache).ClearCache();
-            }
-        }
-
         public void GetMinMaxGridSizes(out float minGridSize, out float maxGridSize)
         {
             // Wavelengths that repeat twice or more across the object are irrelevant and don't need to be read back.
@@ -50,44 +42,37 @@ namespace Crest
             maxGridSize = 0.5f * _maxObjectWidth / OceanRenderer.Instance._minTexelsPerWave;
         }
 
-        ICollProvider _collProvider;
         /// <summary>
         /// Provides ocean shape to CPU.
         /// </summary>
-        public ICollProvider CollisionProvider
+        public ICollProvider CreateCollisionProvider()
         {
-            get
+            ICollProvider result = null;
+
+            switch (_collisionSource)
             {
-                if (_collProvider != null)
-                {
-                    return _collProvider;
-                }
-
-                switch (_collisionSource)
-                {
-                    case CollisionSources.None:
-                        _collProvider = new CollProviderNull();
-                        break;
-                    case CollisionSources.OceanDisplacementTexturesGPU:
-                        _collProvider = GPUReadbackDisps.Instance;
-                        break;
-                    case CollisionSources.GerstnerWavesCPU:
-                        _collProvider = FindObjectOfType<ShapeGerstnerBatched>();
-                        break;
-                }
-
-                if (_collProvider == null)
-                {
-                    return null;
-                }
-
-                if (_cachedHeightQueries)
-                {
-                    _collProvider = new CollProviderCache(_collProvider);
-                }
-
-                return _collProvider;
+                case CollisionSources.None:
+                    result = new CollProviderNull();
+                    break;
+                case CollisionSources.OceanDisplacementTexturesGPU:
+                    result = GPUReadbackDisps.Instance;
+                    break;
+                case CollisionSources.GerstnerWavesCPU:
+                    result = FindObjectOfType<ShapeGerstnerBatched>();
+                    break;
             }
+
+            if (result == null)
+            {
+                return null;
+            }
+
+            if (_cachedHeightQueries)
+            {
+                result = new CollProviderCache(result);
+            }
+
+            return result;
         }
     }
 }

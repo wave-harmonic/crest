@@ -123,11 +123,19 @@ Shader "Ocean/Underwater Curtain"
 						const float3 projectionOfHorizonOnNearPlane = _WorldSpaceCameraPos + horizonDir / dot(horizonDir, forward);
 						o.worldPos = lerp(o.worldPos, projectionOfHorizonOnNearPlane, 0.1);
 					}
+					else if (_HeightOffset < -1.0)
+					{
+						// Deep under water - always push top edge up to cover screen
+						o.worldPos += MAX_OFFSET * up;
+					}
 					else
 					{
+						// Near water surface - this is where the water can intersect the lens in nontrivial ways and causes problems
+						// for finding the meniscus / water line.
+
 						// Push top edge up if we are looking down so that the screen defaults to looking underwater.
 						// Push top edge down if we are looking up so that the screen defaults to looking out of water.
-						o.worldPos -= sign(forward.y) * MAX_OFFSET * up * sign(_HeightOffset + 1.0);
+						o.worldPos -= sign(forward.y) * MAX_OFFSET * up;
 					}
 
 					// Test - always put top row of verts at water horizon, because then it will always meet the water

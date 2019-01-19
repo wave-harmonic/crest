@@ -72,11 +72,41 @@ float ComputeSortedShapeWeight(float wavelengthInShape, float minWavelength)
 	return wavelengthInShape < 2.*minWavelength ? 1. : 1. - _ViewerAltitudeLevelAlpha;
 }
 
-float ComputeWaveSpeed( float wavelength, float g )
+half4 ComputeSortedShapeWeight4(float4 wavelengthInShape4, float minWavelength)
+{
+	const bool renderingIntoLastTwoLods = minWavelength * 4.01 > _MaxWavelength;
+	if (!renderingIntoLastTwoLods)
+	{
+		// no special weighting needed for any lods except the last 2
+		return 1.;
+	}
+
+	const bool renderingIntoLastLod = minWavelength * 2.01 > _MaxWavelength;
+	if (renderingIntoLastLod)
+	{
+		// example: fade out the last lod as viewer drops in altitude, so there is no pop when the lod chain shifts in scale
+		return _ViewerAltitudeLevelAlpha;
+	}
+
+	// rendering to second-to-last lod. nothing required unless we are dealing with large wavelengths, which we want to transition into
+	// this second-to-last lod when the viewer drops in altitude, ready for a seemless transition when the lod chain shifts in scale
+	return 1.0 - float4(wavelengthInShape4 >= 2.0 * minWavelength) * _ViewerAltitudeLevelAlpha;
+}
+
+float ComputeWaveSpeed(float wavelength, float g)
 {
 	// wave speed of deep sea ocean waves: https://en.wikipedia.org/wiki/Wind_wave
 	// https://en.wikipedia.org/wiki/Dispersion_(water_waves)#Wave_propagation_and_dispersion
 	//float g = 9.81; float k = 2. * 3.141593 / wavelength; float cp = sqrt(g / k); return cp;
 	const float one_over_2pi = 0.15915494;
 	return sqrt(wavelength*g*one_over_2pi);
+}
+
+float4 ComputeWaveSpeed4(float4 wavelength4, float4 g4)
+{
+	// wave speed of deep sea ocean waves: https://en.wikipedia.org/wiki/Wind_wave
+	// https://en.wikipedia.org/wiki/Dispersion_(water_waves)#Wave_propagation_and_dispersion
+	//float g = 9.81; float k = 2. * 3.141593 / wavelength; float cp = sqrt(g / k); return cp;
+	const float4 one_over_2pi = 0.15915494;
+	return sqrt(wavelength4 * g4 * one_over_2pi);
 }

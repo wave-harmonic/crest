@@ -74,55 +74,58 @@ Shader "Ocean/Inputs/Animated Waves/Gerstner Batch"
 				half4 Frag(Varyings i) : SV_Target
 				{
 					const half minWavelength = MinWavelengthForCurrentOrthoCamera();
-					const half oneMinusAttenuation = 1.0 - _AttenuationInShallows;
+					const half4 oneMinusAttenuation = (half4)1.0 - (half4)_AttenuationInShallows;
 
 					// sample ocean depth (this render target should 1:1 match depth texture, so UVs are trivial)
 					const half depth = DEPTH_BASELINE - tex2D(_LD_Sampler_SeaFloorDepth_0, i.uv).x;
 					half3 result = (half3)0.;
 
-					// unrolling this loop once helped SM Issue Utilization and some other stats, but the GPU time is already very low so leaving this for now
+					// gerstner computation is vectorized - processes 4 wave components at once
 					for (uint vi = 0; vi < BATCH_SIZE / 4; vi++)
 					{
-						[unroll]
-						for (uint ei = 0; ei < 4; ei++)
+						if (_Amplitudes[vi][0] < 0.001)
 						{
-							if (_Wavelengths[vi][ei] == 0.)
-							{
-								return half4(i.worldPos_wt.z * result, 0.);
-							}
-
-							// weight
-							half wt = ComputeSortedShapeWeight(_Wavelengths[vi][ei], minWavelength);
-
-							// attenuate waves based on ocean depth. if depth is greater than 0.5*wavelength, water is considered Deep and wave is
-							// unaffected. if depth is less than this, wave velocity decreases. waves will then bunch up and grow in amplitude and
-							// eventually break. i model "Deep" water, but then simply ramp down waves in non-deep water with a linear multiplier.
-							// http://hyperphysics.phy-astr.gsu.edu/hbase/Waves/watwav2.html
-							// http://hyperphysics.phy-astr.gsu.edu/hbase/watwav.html#c1
-							//half depth_wt = saturate(depth / (0.5 * minWavelength)); // slightly different result - do per wavelength for now
-							half depth_wt = saturate(depth / (0.5 * _Wavelengths[vi][ei]));
-							// keep some proportion of amplitude so that there is some waves remaining
-							wt *= oneMinusAttenuation + _AttenuationInShallows * depth_wt;
-
-							// wave speed
-							half C = ComputeWaveSpeed(_Wavelengths[vi][ei], _Gravity * _GravityScales[vi][ei]);
-							// direction
-							half2 D = half2(cos(_Angles[vi][ei]), sin(_Angles[vi][ei]));
-							// wave number
-							half k = TWOPI / _Wavelengths[vi][ei];
-							// spatial location
-							half x = dot(D, i.worldPos_wt.xy);
-
-							half3 result_i = wt * _Amplitudes[vi][ei];
-							result_i.y *= cos(k*(x + C * _CrestTime) + _Phases[vi][ei]);
-							result_i.xz *= -_Chop * _ChopScales[vi][ei] * D * sin(k*(x + C * _CrestTime) + _Phases[vi][ei]);
-							result += result_i;
+							return half4(i.worldPos_wt.z * result, 0.);
 						}
+
+						// weight
+						half4 wt = ComputeSortedShapeWeight4(_Wavelengths[vi], minWavelength);
+
+						// attenuate waves based on ocean depth. if depth is greater than 0.5*wavelength, water is considered Deep and wave is
+						// unaffected. if depth is less than this, wave velocity decreases. waves will then bunch up and grow in amplitude and
+						// eventually break. i model "Deep" water, but then simply ramp down waves in non-deep water with a linear multiplier.
+						// http://hyperphysics.phy-astr.gsu.edu/hbase/Waves/watwav2.html
+						// http://hyperphysics.phy-astr.gsu.edu/hbase/watwav.html#c1
+						//half depth_wt = saturate(depth / (0.5 * minWavelength)); // slightly different result - do per wavelength for now
+						half4 depth_wt = saturate(depth / (0.5 * _Wavelengths[vi]));
+						// keep some proportion of amplitude so that there is some waves remaining
+						wt *= _AttenuationInShallows * depth_wt + oneMinusAttenuation;
+
+						// wave speed
+						half4 C = ComputeWaveSpeed4(_Wavelengths[vi], _Gravity * _GravityScales[vi]);
+						// direction
+						half4 Dx = cos(_Angles[vi]);
+						half4 Dz = sin(_Angles[vi]);
+						// wave number
+						half4 k = TWOPI / _Wavelengths[vi];
+						// spatial location
+						half4 x = Dx * i.worldPos_wt.x + Dz * i.worldPos_wt.y;
+						half4 angle = k * (C * _CrestTime + x) + _Phases[vi];
+
+						half4 disp = _Amplitudes[vi] * _Chop * _ChopScales[vi] * sin(angle);
+						half4 resultx = disp * Dx;
+						half4 resultz = disp * Dz;
+
+						half4 resulty = _Amplitudes[vi] * cos(angle);
+
+						// sum the vector results
+						result.x -= dot(resultx, wt);
+						result.y += dot(resulty, wt);
+						result.z -= dot(resultz, wt);
 					}
 
 					return half4(i.worldPos_wt.z * result, 0.);
 				}
-
 				ENDCG
 			}
 		}

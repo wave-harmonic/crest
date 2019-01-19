@@ -229,9 +229,23 @@ namespace Crest
             // if we did not fill the batch, put a terminator signal after the last position
             if (numInBatch < BATCH_SIZE)
             {
-                int vi = numInBatch / 4;
-                int ei = numInBatch - vi * 4;
-                UpdateBatchScratchData._wavelengthsBatch[vi][ei] = 0f;
+                int vi_last = numInBatch / 4;
+                int ei_last = numInBatch - vi_last * 4;
+
+                for (int vi = vi_last; vi < BATCH_SIZE / 4; vi++)
+                {
+                    for (int ei = ei_last; ei < 4; ei++)
+                    {
+                        UpdateBatchScratchData._wavelengthsBatch[vi][ei] = 1f; // wary of nans
+                        UpdateBatchScratchData._ampsBatch[vi][ei] = 0f;
+                        UpdateBatchScratchData._anglesBatch[vi][ei] = 0f;
+                        UpdateBatchScratchData._phasesBatch[vi][ei] = 0f;
+                        UpdateBatchScratchData._chopScalesBatch[vi][ei] = 0f;
+                        UpdateBatchScratchData._gravityScalesBatch[vi][ei] = 0f;
+                    }
+
+                    ei_last = 0;
+                }
             }
 
             // apply the data to the shape material

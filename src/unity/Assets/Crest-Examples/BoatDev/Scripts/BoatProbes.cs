@@ -73,6 +73,8 @@ public class BoatProbes : MonoBehaviour, IBoat
         }
 
         _localSamplingAABB = ComputeLocalSamplingAABB();
+        
+        CalcTotalWeight();
     }
 
     void CalcTotalWeight()

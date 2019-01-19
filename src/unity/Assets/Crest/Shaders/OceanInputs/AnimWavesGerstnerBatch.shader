@@ -31,7 +31,7 @@ Shader "Ocean/Inputs/Animated Waves/Gerstner Batch"
 				{
 					float4 positionOS : POSITION;
 					float2 uv : TEXCOORD0;
-					half color : COLOR0;
+					half4 color : COLOR0;
 				};
 
 				struct Varyings

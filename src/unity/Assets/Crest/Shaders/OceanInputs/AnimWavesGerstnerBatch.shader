@@ -59,15 +59,16 @@ Shader "Ocean/Inputs/Animated Waves/Gerstner Batch"
 					return o;
 				}
 
-				uniform float _CrestTime;
-				uniform half _AttenuationInShallows;
+				float _CrestTime;
+				half _AttenuationInShallows;
+				uint _NumWaveVecs;
 
-				uniform half4 _Wavelengths[BATCH_SIZE / 4];
-				uniform half4 _Amplitudes[BATCH_SIZE / 4];
-				uniform half4 _WaveDirX[BATCH_SIZE / 4];
-				uniform half4 _WaveDirZ[BATCH_SIZE / 4];
-				uniform half4 _Phases[BATCH_SIZE / 4];
-				uniform half4 _ChopAmps[BATCH_SIZE / 4];
+				half4 _Wavelengths[BATCH_SIZE / 4];
+				half4 _Amplitudes[BATCH_SIZE / 4];
+				half4 _WaveDirX[BATCH_SIZE / 4];
+				half4 _WaveDirZ[BATCH_SIZE / 4];
+				half4 _Phases[BATCH_SIZE / 4];
+				half4 _ChopAmps[BATCH_SIZE / 4];
 
 				half4 Frag(Varyings i) : SV_Target
 				{
@@ -79,13 +80,8 @@ Shader "Ocean/Inputs/Animated Waves/Gerstner Batch"
 					half3 result = (half3)0.;
 
 					// gerstner computation is vectorized - processes 4 wave components at once
-					for (uint vi = 0; vi < BATCH_SIZE / 4; vi++)
+					for (uint vi = 0; vi < _NumWaveVecs; vi++)
 					{
-						if (_Amplitudes[vi][0] < 0.001)
-						{
-							return half4(i.worldPos_wt.z * result, 0.);
-						}
-
 						// weight
 						half4 wt = ComputeSortedShapeWeight4(_Wavelengths[vi], minWavelength);
 
@@ -115,9 +111,9 @@ Shader "Ocean/Inputs/Animated Waves/Gerstner Batch"
 						half4 resulty = _Amplitudes[vi] * cos(angle);
 
 						// sum the vector results
-						result.x -= dot(resultx, wt);
+						result.x += dot(resultx, wt);
 						result.y += dot(resulty, wt);
-						result.z -= dot(resultz, wt);
+						result.z += dot(resultz, wt);
 					}
 
 					return half4(i.worldPos_wt.z * result, 0.);

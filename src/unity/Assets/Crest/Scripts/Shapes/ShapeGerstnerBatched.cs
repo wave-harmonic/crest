@@ -206,7 +206,7 @@ namespace Crest
                         UpdateBatchScratchData._ampsBatch[vi][ei] = amp;
 
                         float chopScale = _spectrum._chopScales[(firstComponent + i) / _componentsPerOctave];
-                        UpdateBatchScratchData._chopAmpsBatch[vi][ei] = chopScale * _spectrum._chop * amp;
+                        UpdateBatchScratchData._chopAmpsBatch[vi][ei] = -chopScale * _spectrum._chop * amp;
 
                         float angle = Mathf.Deg2Rad * (OceanRenderer.Instance._windDirectionAngle + _angleDegs[firstComponent + i]);
                         UpdateBatchScratchData._waveDirXBatch[vi][ei] = Mathf.Cos(angle);
@@ -273,6 +273,7 @@ namespace Crest
             material.SetFloat("_NumInBatch", numInBatch);
             material.SetFloat("_GridSize", OceanRenderer.Instance._lods[lodIdx]._renderData._texelWidth);
             material.SetFloat("_AttenuationInShallows", OceanRenderer.Instance._lodDataAnimWaves.Settings.AttenuationInShallows);
+            material.SetInt("_NumWaveVecs", 1 + numInBatch / 4);
 
             OceanRenderer.Instance._lodDataAnimWaves.BindResultData(lodIdx, 0, material);
 

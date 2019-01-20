@@ -188,12 +188,34 @@ namespace Crest
 
             float twopi = 2f * Mathf.PI;
             float one_over_2pi = 1f / twopi;
+            float minWavelengthThisBatch = OceanRenderer.Instance._lods[lodIdx].MaxWavelength() / 2f;
+            float maxWavelengthCurrentlyRendering = OceanRenderer.Instance._lods[OceanRenderer.Instance.CurrentLodCount - 1].MaxWavelength();
+            float viewerAltitudeLevelAlpha = OceanRenderer.Instance.ViewerAltitudeLevelAlpha;
 
             // register any nonzero components
             for (int i = 0; i < numComponents; i++)
             {
                 float wl = _wavelengths[firstComponent + i];
+
+                // compute amp - contains logic for shifting wave components between last two lods..
                 float amp = _amplitudes[firstComponent + i];
+                bool renderingIntoLastTwoLods = minWavelengthThisBatch * 4.01f > maxWavelengthCurrentlyRendering;
+                // no special weighting needed for any lods except the last 2
+                if (renderingIntoLastTwoLods)
+                {
+                    bool renderingIntoLastLod = minWavelengthThisBatch * 2.01f > maxWavelengthCurrentlyRendering;
+                    if (renderingIntoLastLod)
+                    {
+                        // example: fade out the last lod as viewer drops in altitude, so there is no pop when the lod chain shifts in scale
+                        amp *= viewerAltitudeLevelAlpha;
+                    }
+                    else
+                    {
+                        // rendering to second-to-last lod. nothing required unless we are dealing with large wavelengths, which we want to transition into
+                        // this second-to-last lod when the viewer drops in altitude, ready for a seamless transition when the lod chain shifts in scale
+                        amp *= (wl < 2f * minWavelengthThisBatch) ? 1f : 1f - viewerAltitudeLevelAlpha;
+                    }
+                }
 
                 if (amp >= 0.001f)
                 {

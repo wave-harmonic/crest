@@ -22,7 +22,6 @@ Shader "Ocean/Inputs/Animated Waves/Gerstner Batch"
 				#pragma fragment Frag
 				#pragma multi_compile_fog
 				#include "UnityCG.cginc"
-				#include "../MultiscaleShape.hlsl"
 				#include "../OceanLODData.hlsl"
 
 				#define TWOPI 6.283185
@@ -59,7 +58,6 @@ Shader "Ocean/Inputs/Animated Waves/Gerstner Batch"
 					return o;
 				}
 
-				float _CrestTime;
 				half _AttenuationInShallows;
 				uint _NumWaveVecs;
 
@@ -72,7 +70,6 @@ Shader "Ocean/Inputs/Animated Waves/Gerstner Batch"
 
 				half4 Frag(Varyings i) : SV_Target
 				{
-					const half minWavelength = MinWavelengthForCurrentOrthoCamera();
 					const half4 oneMinusAttenuation = (half4)1.0 - (half4)_AttenuationInShallows;
 
 					// sample ocean depth (this render target should 1:1 match depth texture, so UVs are trivial)
@@ -82,18 +79,15 @@ Shader "Ocean/Inputs/Animated Waves/Gerstner Batch"
 					// gerstner computation is vectorized - processes 4 wave components at once
 					for (uint vi = 0; vi < _NumWaveVecs; vi++)
 					{
-						// weight
-						half4 wt = ComputeSortedShapeWeight4(_Wavelengths[vi], minWavelength);
-
 						// attenuate waves based on ocean depth. if depth is greater than 0.5*wavelength, water is considered Deep and wave is
 						// unaffected. if depth is less than this, wave velocity decreases. waves will then bunch up and grow in amplitude and
 						// eventually break. i model "Deep" water, but then simply ramp down waves in non-deep water with a linear multiplier.
 						// http://hyperphysics.phy-astr.gsu.edu/hbase/Waves/watwav2.html
 						// http://hyperphysics.phy-astr.gsu.edu/hbase/watwav.html#c1
-						//half depth_wt = saturate(depth / (0.5 * minWavelength)); // slightly different result - do per wavelength for now
+						//half depth_wt = saturate(depth / (0.5 * _MinWavelength)); // slightly different result - do per wavelength for now
 						half4 depth_wt = saturate(depth2 / _Wavelengths[vi]);
 						// keep some proportion of amplitude so that there is some waves remaining
-						wt *= _AttenuationInShallows * depth_wt + oneMinusAttenuation;
+						half4 wt = _AttenuationInShallows * depth_wt + oneMinusAttenuation;
 
 						// direction
 						half4 Dx = _WaveDirX[vi];

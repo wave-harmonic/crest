@@ -61,7 +61,6 @@ Shader "Ocean/Inputs/Animated Waves/Gerstner Batch"
 
 				uniform float _CrestTime;
 				uniform half _Chop;
-				uniform half _Gravity;
 				uniform half _AttenuationInShallows;
 
 				uniform half4 _Wavelengths[BATCH_SIZE / 4];
@@ -70,7 +69,7 @@ Shader "Ocean/Inputs/Animated Waves/Gerstner Batch"
 				uniform half4 _WaveDirZ[BATCH_SIZE / 4];
 				uniform half4 _Phases[BATCH_SIZE / 4];
 				uniform half4 _ChopScales[BATCH_SIZE / 4];
-				uniform half4 _GravityScales[BATCH_SIZE / 4];
+				uniform half4 _WaveSpeeds[BATCH_SIZE / 4];
 
 				half4 Frag(Varyings i) : SV_Target
 				{
@@ -103,7 +102,7 @@ Shader "Ocean/Inputs/Animated Waves/Gerstner Batch"
 						wt *= _AttenuationInShallows * depth_wt + oneMinusAttenuation;
 
 						// wave speed
-						half4 C = ComputeWaveSpeed4(_Wavelengths[vi], _Gravity * _GravityScales[vi]);
+						half4 C = _WaveSpeeds[vi];
 						// direction
 						half4 Dx = _WaveDirX[vi];
 						half4 Dz = _WaveDirZ[vi];

@@ -99,6 +99,7 @@ Shader "Ocean/Inputs/Animated Waves/Gerstner Batch"
 						half4 x = Dx * i.worldPos_wt.x + Dz * i.worldPos_wt.y;
 						half4 angle = k * x + _Phases[vi];
 
+						// dx and dz could be baked into _ChopAmps
 						half4 disp = _ChopAmps[vi] * sin(angle);
 						half4 resultx = disp * Dx;
 						half4 resultz = disp * Dz;

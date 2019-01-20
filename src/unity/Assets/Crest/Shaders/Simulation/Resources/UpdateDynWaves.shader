@@ -23,7 +23,6 @@ Shader "Hidden/Ocean/Simulation/Update Dynamic Waves"
 				#pragma fragment frag
 				#pragma multi_compile_fog
 				#include "UnityCG.cginc"
-				#include "../../../../Crest/Shaders/MultiscaleShape.hlsl"
 				#include "../../../../Crest/Shaders/OceanLODData.hlsl"
 
 				struct appdata_t {
@@ -38,6 +37,20 @@ Shader "Hidden/Ocean/Simulation/Update Dynamic Waves"
 				};
 
 				#include "SimHelpers.hlsl"
+
+				// How many samples we want in one wave. trade quality for perf.
+				uniform float _TexelsPerWave;
+				// Current resolution
+				uniform float _GridSize;
+
+				float ComputeWaveSpeed(float wavelength, float g)
+				{
+					// wave speed of deep sea ocean waves: https://en.wikipedia.org/wiki/Wind_wave
+					// https://en.wikipedia.org/wiki/Dispersion_(water_waves)#Wave_propagation_and_dispersion
+					//float g = 9.81; float k = 2. * 3.141593 / wavelength; float cp = sqrt(g / k); return cp;
+					const float one_over_2pi = 0.15915494;
+					return sqrt(wavelength*g*one_over_2pi);
+				}
 
 				v2f vert(appdata_t v)
 				{

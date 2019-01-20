@@ -324,10 +324,12 @@ public class BoatProbes : MonoBehaviour, IBoat
         return Rect.MinMaxRect(b.min.x, b.min.z, b.max.x, b.max.z);
     }
 
+#if USE_JOBS
     private void OnDisable()
     {
         ShapeGerstnerJobs.RemoveQueryPoints(_guid);
     }
+#endif
 }
 
 [Serializable]

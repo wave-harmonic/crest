@@ -53,7 +53,8 @@ namespace Crest
         {
             public static Vector4[] _wavelengthsBatch = new Vector4[BATCH_SIZE / 4];
             public static Vector4[] _ampsBatch = new Vector4[BATCH_SIZE / 4];
-            public static Vector4[] _anglesBatch = new Vector4[BATCH_SIZE / 4];
+            public static Vector4[] _waveDirXBatch = new Vector4[BATCH_SIZE / 4];
+            public static Vector4[] _waveDirZBatch = new Vector4[BATCH_SIZE / 4];
             public static Vector4[] _phasesBatch = new Vector4[BATCH_SIZE / 4];
             public static Vector4[] _chopScalesBatch = new Vector4[BATCH_SIZE / 4];
             public static Vector4[] _gravityScalesBatch = new Vector4[BATCH_SIZE / 4];
@@ -198,13 +199,15 @@ namespace Crest
                     {
                         int vi = numInBatch / 4;
                         int ei = numInBatch - vi * 4;
+
                         UpdateBatchScratchData._wavelengthsBatch[vi][ei] = wl;
                         UpdateBatchScratchData._ampsBatch[vi][ei] = amp;
-                        UpdateBatchScratchData._anglesBatch[vi][ei] =
-                            Mathf.Deg2Rad * (OceanRenderer.Instance._windDirectionAngle + _angleDegs[firstComponent + i]);
                         UpdateBatchScratchData._phasesBatch[vi][ei] = _phases[firstComponent + i];
                         UpdateBatchScratchData._chopScalesBatch[vi][ei] = _spectrum._chopScales[(firstComponent + i) / _componentsPerOctave];
                         UpdateBatchScratchData._gravityScalesBatch[vi][ei] = _spectrum._gravityScales[(firstComponent + i) / _componentsPerOctave];
+                        float angle = Mathf.Deg2Rad * (OceanRenderer.Instance._windDirectionAngle + _angleDegs[firstComponent + i]);
+                        UpdateBatchScratchData._waveDirXBatch[vi][ei] = Mathf.Cos(angle);
+                        UpdateBatchScratchData._waveDirZBatch[vi][ei] = Mathf.Sin(angle);
                         numInBatch++;
                     }
                     else
@@ -236,9 +239,10 @@ namespace Crest
                 {
                     for (int ei = ei_last; ei < 4; ei++)
                     {
-                        UpdateBatchScratchData._wavelengthsBatch[vi][ei] = 1f; // wary of nans
+                        UpdateBatchScratchData._wavelengthsBatch[vi][ei] = 1f; // wary of NaNs
                         UpdateBatchScratchData._ampsBatch[vi][ei] = 0f;
-                        UpdateBatchScratchData._anglesBatch[vi][ei] = 0f;
+                        UpdateBatchScratchData._waveDirXBatch[vi][ei] = 0f;
+                        UpdateBatchScratchData._waveDirZBatch[vi][ei] = 0f;
                         UpdateBatchScratchData._phasesBatch[vi][ei] = 0f;
                         UpdateBatchScratchData._chopScalesBatch[vi][ei] = 0f;
                         UpdateBatchScratchData._gravityScalesBatch[vi][ei] = 0f;
@@ -251,7 +255,8 @@ namespace Crest
             // apply the data to the shape material
             material.SetVectorArray("_Wavelengths", UpdateBatchScratchData._wavelengthsBatch);
             material.SetVectorArray("_Amplitudes", UpdateBatchScratchData._ampsBatch);
-            material.SetVectorArray("_Angles", UpdateBatchScratchData._anglesBatch);
+            material.SetVectorArray("_WaveDirX", UpdateBatchScratchData._waveDirXBatch);
+            material.SetVectorArray("_WaveDirZ", UpdateBatchScratchData._waveDirZBatch);
             material.SetVectorArray("_Phases", UpdateBatchScratchData._phasesBatch);
             material.SetVectorArray("_ChopScales", UpdateBatchScratchData._chopScalesBatch);
             material.SetVectorArray("_GravityScales", UpdateBatchScratchData._gravityScalesBatch);

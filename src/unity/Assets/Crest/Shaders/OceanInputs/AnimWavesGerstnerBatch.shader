@@ -66,7 +66,8 @@ Shader "Ocean/Inputs/Animated Waves/Gerstner Batch"
 
 				uniform half4 _Wavelengths[BATCH_SIZE / 4];
 				uniform half4 _Amplitudes[BATCH_SIZE / 4];
-				uniform half4 _Angles[BATCH_SIZE / 4];
+				uniform half4 _WaveDirX[BATCH_SIZE / 4];
+				uniform half4 _WaveDirZ[BATCH_SIZE / 4];
 				uniform half4 _Phases[BATCH_SIZE / 4];
 				uniform half4 _ChopScales[BATCH_SIZE / 4];
 				uniform half4 _GravityScales[BATCH_SIZE / 4];
@@ -104,8 +105,8 @@ Shader "Ocean/Inputs/Animated Waves/Gerstner Batch"
 						// wave speed
 						half4 C = ComputeWaveSpeed4(_Wavelengths[vi], _Gravity * _GravityScales[vi]);
 						// direction
-						half4 Dx = cos(_Angles[vi]);
-						half4 Dz = sin(_Angles[vi]);
+						half4 Dx = _WaveDirX[vi];
+						half4 Dz = _WaveDirZ[vi];
 						// wave number
 						half4 k = TWOPI / _Wavelengths[vi];
 						// spatial location

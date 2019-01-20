@@ -37,6 +37,8 @@ Shader "Ocean/Ocean"
 
 		[Header(Reflection Environment)]
 		_FresnelPower("Fresnel Power", Range(0.0, 20.0)) = 3.0
+		_RefractiveIndexOfAir("Refractive Index of Air", Range(1.0, 2.0)) = 1.0
+		_RefractiveIndexOfWater("Refractive Index of Water", Range(1.0, 2.0)) = 1.333
 		[NoScaleOffset] _Skybox ("Skybox", CUBE) = "" {}
 		[Toggle] _PlanarReflections("Planar Reflections", Float) = 0
 
@@ -379,7 +381,16 @@ Shader "Ocean/Ocean"
 					half3 col = OceanEmission(view, n_pixel, lightDir, i.grabPos, pixelZ, uvDepth, sceneZ, sceneZ01, bubbleCol, _Normals, _CameraDepthTexture, underwater, scatterCol);
 
 					// Light that reflects off water surface
-					ApplyReflectionSky(view, n_pixel, lightDir, shadow.y, i.foam_screenPos.yzzw, col);
+					#if _UNDERWATER_ON
+					if (underwater)
+					{
+						ApplyReflectionUnderwater(view, n_pixel, lightDir, shadow.y, i.foam_screenPos.yzzw, scatterCol, col);
+					}
+					else
+					#endif
+					{
+						ApplyReflectionSky(view, n_pixel, lightDir, shadow.y, i.foam_screenPos.yzzw, col);
+					}
 
 					// Override final result with white foam - bubbles on surface
 					#if _FOAM_ON

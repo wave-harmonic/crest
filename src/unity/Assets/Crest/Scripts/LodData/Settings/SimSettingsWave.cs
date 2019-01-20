@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Crest
 {
-    [CreateAssetMenu(fileName = "SimSettingsWaves", menuName = "Crest/Wave Sim Settings", order = 10000)]
+    [CreateAssetMenu(fileName = "SimSettingsDynamicWaves", menuName = "Crest/Dynamic Wave Sim Settings", order = 10000)]
     public class SimSettingsWave : SimSettingsBase
     {
         [Header("Simulation Settings")]

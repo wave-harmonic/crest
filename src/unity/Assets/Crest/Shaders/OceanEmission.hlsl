@@ -49,12 +49,12 @@ uniform half3 _DiffuseShadow;
 half3 ScatterColour(
 	in const float3 i_surfaceWorldPos, in const half i_surfaceOceanDepth, in const float3 i_cameraPos,
 	in const half3 i_lightDir, in const half3 i_view, in const fixed i_shadow,
-	in const bool i_underWater, in const bool i_outscatterLight)
+	in const bool i_underwater, in const bool i_outscatterLight)
 {
 	half depth;
 	half waveHeight;
 	half shadow = 0.;
-	if (i_underWater)
+	if (i_underwater)
 	{
 		// compute scatter colour from cam pos. two scenarios this can be called:
 		// 1. rendering ocean surface from bottom, in which case the surface may be some distance away. use the scatter
@@ -117,7 +117,7 @@ half3 ScatterColour(
 	if (i_outscatterLight)
 	{
 		half camDepth = i_surfaceWorldPos.y - _WorldSpaceCameraPos.y;
-		if (i_underWater)
+		if (i_underwater)
 		{
 			col *= exp(-_DepthFogDensity.xyz * camDepth * DEPTH_OUTSCATTER_CONSTANT);
 		}
@@ -128,7 +128,7 @@ half3 ScatterColour(
 
 
 #if _CAUSTICS_ON
-void ApplyCaustics(in const half3 i_view, in const half3 i_lightDir, in const float i_sceneZ, in sampler2D i_normals, inout half3 io_sceneColour)
+void ApplyCaustics(in const half3 i_view, in const half3 i_lightDir, in const float i_sceneZ, in sampler2D i_normals, in const bool i_underwater, inout half3 io_sceneColour)
 {
 	// could sample from the screen space shadow texture to attenuate this..
 	// underwater caustics - dedicated to P
@@ -141,27 +141,40 @@ void ApplyCaustics(in const half3 i_view, in const half3 i_lightDir, in const fl
 	SampleDisplacements(_LD_Sampler_AnimatedWaves_1, scenePosUV, 1.0, disp);
 	half waterHeight = _OceanCenterPosWorld.y + disp.y;
 	half sceneDepth = waterHeight - scenePos.y;
-	half bias = abs(sceneDepth - _CausticsFocalDepth) / _CausticsDepthOfField;
+	// Compute mip index manually, with bias based on sea floor depth. We compute it manually because if it is computed automatically it produces ugly patches
+	// where samples are stretched/dilated. The bias is to give a focusing effect to caustics - they are sharpest at a particular depth. This doesn't work amazingly
+	// well and could be replaced.
+	float mipLod = log2(i_sceneZ) + abs(sceneDepth - _CausticsFocalDepth) / _CausticsDepthOfField;
 	// project along light dir, but multiply by a fudge factor reduce the angle bit - compensates for fact that in real life
 	// caustics come from many directions and don't exhibit such a strong directonality
 	float2 surfacePosXZ = scenePos.xz + i_lightDir.xz * sceneDepth / (4.*i_lightDir.y);
 	half2 causticN = _CausticsDistortionStrength * UnpackNormal(tex2D(i_normals, surfacePosXZ / _CausticsDistortionScale)).xy;
-	half4 cuv1 = half4((surfacePosXZ / _CausticsTextureScale + 1.3 *causticN + half2(0.044*_CrestTime + 17.16, -0.169*_CrestTime)), 0., bias);
-	half4 cuv2 = half4((1.37*surfacePosXZ / _CausticsTextureScale + 1.77*causticN + half2(0.248*_CrestTime, 0.117*_CrestTime)), 0., bias);
+	half4 cuv1 = half4((surfacePosXZ / _CausticsTextureScale + 1.3 *causticN + half2(0.044*_CrestTime + 17.16, -0.169*_CrestTime)), 0., mipLod);
+	half4 cuv2 = half4((1.37*surfacePosXZ / _CausticsTextureScale + 1.77*causticN + half2(0.248*_CrestTime, 0.117*_CrestTime)), 0., mipLod);
 
 	half causticsStrength = _CausticsStrength;
 #if _SHADOWS_ON
 	{
-		// only sample the bigger lod. if pops are noticeable this could lerp the 2 lods smoothly, but i didnt notice issues.
 		fixed2 causticShadow = 0.;
-		float2 uv_1 = LD_1_WorldToUV(surfacePosXZ);
-		SampleShadow(_LD_Sampler_Shadow_1, uv_1, 1.0, causticShadow);
+		// As per the comment for the underwater code in ScatterColour,
+		// LOD_1 data can be missing when underwater
+		if(i_underwater)
+		{
+			const float2 uv_0 = LD_0_WorldToUV(surfacePosXZ);
+			SampleShadow(_LD_Sampler_Shadow_0, uv_0, 1.0, causticShadow);
+		}
+		else
+		{
+			// only sample the bigger lod. if pops are noticeable this could lerp the 2 lods smoothly, but i didnt notice issues.
+			float2 uv_1 = LD_1_WorldToUV(surfacePosXZ);
+			SampleShadow(_LD_Sampler_Shadow_1, uv_1, 1.0, causticShadow);
+		}
 		causticsStrength *= 1. - causticShadow.y;
 	}
 #endif // _SHADOWS_ON
 
 	io_sceneColour *= 1. + causticsStrength *
-		(0.5*tex2Dbias(_CausticsTexture, cuv1).x + 0.5*tex2Dbias(_CausticsTexture, cuv2).x - _CausticsTextureAverage);
+		(0.5*tex2Dlod(_CausticsTexture, cuv1).x + 0.5*tex2Dlod(_CausticsTexture, cuv2).x - _CausticsTextureAverage);
 }
 #endif // _CAUSTICS_ON
 
@@ -198,7 +211,8 @@ half3 OceanEmission(in const half3 i_view, in const half3 i_n_pixel, in const fl
 		}
 		else
 		{
-			depthFogDistance = i_sceneZ - i_pixelZ;
+			// It seems that when MSAA is enabled this can sometimes be negative
+			depthFogDistance = max(i_sceneZ - i_pixelZ, 0.0);
 
 			// We have refracted onto a surface in front of the water. Cancel the refraction offset.
 			uvBackgroundRefract = uvBackground;
@@ -206,16 +220,17 @@ half3 OceanEmission(in const half3 i_view, in const half3 i_n_pixel, in const fl
 
 		sceneColour = tex2D(_BackgroundTexture, uvBackgroundRefract).rgb;
 #if _CAUSTICS_ON
-		ApplyCaustics(i_view, i_lightDir, i_sceneZ, i_normals, sceneColour);
+		ApplyCaustics(i_view, i_lightDir, i_sceneZ, i_normals, i_underwater, sceneColour);
 #endif
+		alpha = 1.0 - exp(-_DepthFogDensity.xyz * depthFogDistance);
 	}
 	else
 	{
 		sceneColour = tex2D(_BackgroundTexture, uvBackgroundRefract).rgb;
 		depthFogDistance = i_pixelZ;
+		// keep alpha at 0 as UnderwaterReflection shader handles the blend
+		// appropriately when looking at water from below
 	}
-
-	alpha = 1. - exp(-_DepthFogDensity.xyz * depthFogDistance);
 
 	// blend from water colour to the scene colour
 	col = lerp(sceneColour, col, alpha);

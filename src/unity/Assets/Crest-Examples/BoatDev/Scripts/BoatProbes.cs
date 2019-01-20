@@ -86,6 +86,8 @@ public class BoatProbes : MonoBehaviour, IBoat
 
         _localSamplingAABB = ComputeLocalSamplingAABB();
 
+        CalcTotalWeight();
+
 #if USE_JOBS
         _guid = GetInstanceID();
 #endif

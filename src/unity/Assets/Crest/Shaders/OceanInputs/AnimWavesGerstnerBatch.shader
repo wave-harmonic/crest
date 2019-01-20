@@ -60,7 +60,6 @@ Shader "Ocean/Inputs/Animated Waves/Gerstner Batch"
 				}
 
 				uniform float _CrestTime;
-				uniform half _Chop;
 				uniform half _AttenuationInShallows;
 
 				uniform half4 _Wavelengths[BATCH_SIZE / 4];
@@ -68,7 +67,7 @@ Shader "Ocean/Inputs/Animated Waves/Gerstner Batch"
 				uniform half4 _WaveDirX[BATCH_SIZE / 4];
 				uniform half4 _WaveDirZ[BATCH_SIZE / 4];
 				uniform half4 _Phases[BATCH_SIZE / 4];
-				uniform half4 _ChopScales[BATCH_SIZE / 4];
+				uniform half4 _ChopAmps[BATCH_SIZE / 4];
 
 				half4 Frag(Varyings i) : SV_Target
 				{
@@ -76,7 +75,7 @@ Shader "Ocean/Inputs/Animated Waves/Gerstner Batch"
 					const half4 oneMinusAttenuation = (half4)1.0 - (half4)_AttenuationInShallows;
 
 					// sample ocean depth (this render target should 1:1 match depth texture, so UVs are trivial)
-					const half depth = DEPTH_BASELINE - tex2D(_LD_Sampler_SeaFloorDepth_0, i.uv).x;
+					const half depth2 = (DEPTH_BASELINE - tex2D(_LD_Sampler_SeaFloorDepth_0, i.uv).x) * 2.0;
 					half3 result = (half3)0.;
 
 					// gerstner computation is vectorized - processes 4 wave components at once
@@ -96,7 +95,7 @@ Shader "Ocean/Inputs/Animated Waves/Gerstner Batch"
 						// http://hyperphysics.phy-astr.gsu.edu/hbase/Waves/watwav2.html
 						// http://hyperphysics.phy-astr.gsu.edu/hbase/watwav.html#c1
 						//half depth_wt = saturate(depth / (0.5 * minWavelength)); // slightly different result - do per wavelength for now
-						half4 depth_wt = saturate(depth / (0.5 * _Wavelengths[vi]));
+						half4 depth_wt = saturate(depth2 / _Wavelengths[vi]);
 						// keep some proportion of amplitude so that there is some waves remaining
 						wt *= _AttenuationInShallows * depth_wt + oneMinusAttenuation;
 
@@ -109,7 +108,7 @@ Shader "Ocean/Inputs/Animated Waves/Gerstner Batch"
 						half4 x = Dx * i.worldPos_wt.x + Dz * i.worldPos_wt.y;
 						half4 angle = k * x + _Phases[vi];
 
-						half4 disp = _Amplitudes[vi] * _Chop * _ChopScales[vi] * sin(angle);
+						half4 disp = _ChopAmps[vi] * sin(angle);
 						half4 resultx = disp * Dx;
 						half4 resultz = disp * Dz;
 

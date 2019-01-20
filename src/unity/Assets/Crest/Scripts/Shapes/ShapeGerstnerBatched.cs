@@ -56,7 +56,7 @@ namespace Crest
             public static Vector4[] _waveDirXBatch = new Vector4[BATCH_SIZE / 4];
             public static Vector4[] _waveDirZBatch = new Vector4[BATCH_SIZE / 4];
             public static Vector4[] _phasesBatch = new Vector4[BATCH_SIZE / 4];
-            public static Vector4[] _chopScalesBatch = new Vector4[BATCH_SIZE / 4];
+            public static Vector4[] _chopAmpsBatch = new Vector4[BATCH_SIZE / 4];
         }
 
         void Start()
@@ -204,7 +204,9 @@ namespace Crest
 
                         UpdateBatchScratchData._wavelengthsBatch[vi][ei] = wl;
                         UpdateBatchScratchData._ampsBatch[vi][ei] = amp;
-                        UpdateBatchScratchData._chopScalesBatch[vi][ei] = _spectrum._chopScales[(firstComponent + i) / _componentsPerOctave];
+
+                        float chopScale = _spectrum._chopScales[(firstComponent + i) / _componentsPerOctave];
+                        UpdateBatchScratchData._chopAmpsBatch[vi][ei] = chopScale * _spectrum._chop * amp;
 
                         float angle = Mathf.Deg2Rad * (OceanRenderer.Instance._windDirectionAngle + _angleDegs[firstComponent + i]);
                         UpdateBatchScratchData._waveDirXBatch[vi][ei] = Mathf.Cos(angle);
@@ -254,7 +256,7 @@ namespace Crest
                         UpdateBatchScratchData._waveDirXBatch[vi][ei] = 0f;
                         UpdateBatchScratchData._waveDirZBatch[vi][ei] = 0f;
                         UpdateBatchScratchData._phasesBatch[vi][ei] = 0f;
-                        UpdateBatchScratchData._chopScalesBatch[vi][ei] = 0f;
+                        UpdateBatchScratchData._chopAmpsBatch[vi][ei] = 0f;
                     }
 
                     ei_last = 0;
@@ -267,9 +269,8 @@ namespace Crest
             material.SetVectorArray("_WaveDirX", UpdateBatchScratchData._waveDirXBatch);
             material.SetVectorArray("_WaveDirZ", UpdateBatchScratchData._waveDirZBatch);
             material.SetVectorArray("_Phases", UpdateBatchScratchData._phasesBatch);
-            material.SetVectorArray("_ChopScales", UpdateBatchScratchData._chopScalesBatch);
+            material.SetVectorArray("_ChopAmps", UpdateBatchScratchData._chopAmpsBatch);
             material.SetFloat("_NumInBatch", numInBatch);
-            material.SetFloat("_Chop", _spectrum._chop);
             material.SetFloat("_GridSize", OceanRenderer.Instance._lods[lodIdx]._renderData._texelWidth);
             material.SetFloat("_AttenuationInShallows", OceanRenderer.Instance._lodDataAnimWaves.Settings.AttenuationInShallows);
 

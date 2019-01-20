@@ -57,7 +57,6 @@ namespace Crest
             public static Vector4[] _waveDirZBatch = new Vector4[BATCH_SIZE / 4];
             public static Vector4[] _phasesBatch = new Vector4[BATCH_SIZE / 4];
             public static Vector4[] _chopScalesBatch = new Vector4[BATCH_SIZE / 4];
-            public static Vector4[] _waveSpeedsBatch = new Vector4[BATCH_SIZE / 4];
         }
 
         void Start()
@@ -187,6 +186,9 @@ namespace Crest
             int numInBatch = 0;
             int dropped = 0;
 
+            float twopi = 2f * Mathf.PI;
+            float one_over_2pi = 1f / twopi;
+
             // register any nonzero components
             for (int i = 0; i < numComponents; i++)
             {
@@ -202,18 +204,19 @@ namespace Crest
 
                         UpdateBatchScratchData._wavelengthsBatch[vi][ei] = wl;
                         UpdateBatchScratchData._ampsBatch[vi][ei] = amp;
-                        UpdateBatchScratchData._phasesBatch[vi][ei] = _phases[firstComponent + i];
                         UpdateBatchScratchData._chopScalesBatch[vi][ei] = _spectrum._chopScales[(firstComponent + i) / _componentsPerOctave];
 
                         float angle = Mathf.Deg2Rad * (OceanRenderer.Instance._windDirectionAngle + _angleDegs[firstComponent + i]);
                         UpdateBatchScratchData._waveDirXBatch[vi][ei] = Mathf.Cos(angle);
                         UpdateBatchScratchData._waveDirZBatch[vi][ei] = Mathf.Sin(angle);
 
+                        // used to be this, but im pushing all the stuff that doesnt depend on position into the phase
+                        //half4 angle = k * (C * _CrestTime + x) + _Phases[vi];
                         float gravityScale = _spectrum._gravityScales[(firstComponent + i) / _componentsPerOctave];
                         float gravity = OceanRenderer.Instance.Gravity * _spectrum._gravityScale;
-                        float one_over_2pi = 0.15915494f;
                         float C = Mathf.Sqrt(wl * gravity * gravityScale * one_over_2pi);
-                        UpdateBatchScratchData._waveSpeedsBatch[vi][ei] = C;
+                        float k = twopi / wl;
+                        UpdateBatchScratchData._phasesBatch[vi][ei] = _phases[firstComponent + i] + k * C * OceanRenderer.Instance.CurrentTime;
 
                         numInBatch++;
                     }
@@ -252,7 +255,6 @@ namespace Crest
                         UpdateBatchScratchData._waveDirZBatch[vi][ei] = 0f;
                         UpdateBatchScratchData._phasesBatch[vi][ei] = 0f;
                         UpdateBatchScratchData._chopScalesBatch[vi][ei] = 0f;
-                        UpdateBatchScratchData._waveSpeedsBatch[vi][ei] = 0f;
                     }
 
                     ei_last = 0;
@@ -266,7 +268,6 @@ namespace Crest
             material.SetVectorArray("_WaveDirZ", UpdateBatchScratchData._waveDirZBatch);
             material.SetVectorArray("_Phases", UpdateBatchScratchData._phasesBatch);
             material.SetVectorArray("_ChopScales", UpdateBatchScratchData._chopScalesBatch);
-            material.SetVectorArray("_WaveSpeeds", UpdateBatchScratchData._waveSpeedsBatch);
             material.SetFloat("_NumInBatch", numInBatch);
             material.SetFloat("_Chop", _spectrum._chop);
             material.SetFloat("_GridSize", OceanRenderer.Instance._lods[lodIdx]._renderData._texelWidth);

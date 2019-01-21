@@ -187,10 +187,6 @@ namespace Crest
             LateUpdatePosition();
             LateUpdateScale();
             LateUpdateViewerHeight();
-
-            float maxWavelength = _lods[CurrentLodCount - 1].MaxWavelength();
-            Shader.SetGlobalFloat("_MaxWavelength", maxWavelength);
-
             LateUpdateLods();
         }
 
@@ -227,8 +223,6 @@ namespace Crest
 
             float newScale = Mathf.Pow(2f, l2f);
             transform.localScale = new Vector3(newScale, 1f, newScale);
-
-            Shader.SetGlobalFloat("_ViewerAltitudeLevelAlpha", _viewerAltitudeLevelAlpha);
         }
 
         void LateUpdateViewerHeight()

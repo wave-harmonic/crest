@@ -22,10 +22,7 @@ Shader "Ocean/Inputs/Animated Waves/Gerstner Batch"
 				#pragma fragment Frag
 				#pragma multi_compile_fog
 				#include "UnityCG.cginc"
-				#include "../MultiscaleShape.hlsl"
 				#include "../OceanLODData.hlsl"
-
-				#define TWOPI 6.283185
 
 				struct Attributes
 				{
@@ -59,70 +56,64 @@ Shader "Ocean/Inputs/Animated Waves/Gerstner Batch"
 					return o;
 				}
 
-				uniform float _CrestTime;
-				uniform half _Chop;
-				uniform half _Gravity;
-				uniform half _AttenuationInShallows;
+				#define PI 3.141593
 
-				uniform half4 _Wavelengths[BATCH_SIZE / 4];
-				uniform half4 _Amplitudes[BATCH_SIZE / 4];
-				uniform half4 _Angles[BATCH_SIZE / 4];
-				uniform half4 _Phases[BATCH_SIZE / 4];
-				uniform half4 _ChopScales[BATCH_SIZE / 4];
-				uniform half4 _GravityScales[BATCH_SIZE / 4];
+				half _AttenuationInShallows;
+				uint _NumWaveVecs;
+
+				half4 _TwoPiOverWavelengths[BATCH_SIZE / 4];
+				half4 _Amplitudes[BATCH_SIZE / 4];
+				half4 _WaveDirX[BATCH_SIZE / 4];
+				half4 _WaveDirZ[BATCH_SIZE / 4];
+				half4 _Phases[BATCH_SIZE / 4];
+				half4 _ChopAmps[BATCH_SIZE / 4];
 
 				half4 Frag(Varyings i) : SV_Target
 				{
-					const half minWavelength = MinWavelengthForCurrentOrthoCamera();
-					const half oneMinusAttenuation = 1.0 - _AttenuationInShallows;
+					const half4 oneMinusAttenuation = (half4)1.0 - (half4)_AttenuationInShallows;
 
 					// sample ocean depth (this render target should 1:1 match depth texture, so UVs are trivial)
 					const half depth = DEPTH_BASELINE - tex2D(_LD_Sampler_SeaFloorDepth_0, i.uv).x;
 					half3 result = (half3)0.;
 
-					// unrolling this loop once helped SM Issue Utilization and some other stats, but the GPU time is already very low so leaving this for now
-					for (uint vi = 0; vi < BATCH_SIZE / 4; vi++)
+					// gerstner computation is vectorized - processes 4 wave components at once
+					for (uint vi = 0; vi < _NumWaveVecs; vi++)
 					{
-						[unroll]
-						for (uint ei = 0; ei < 4; ei++)
-						{
-							if (_Wavelengths[vi][ei] == 0.)
-							{
-								return half4(i.worldPos_wt.z * result, 0.);
-							}
+						// attenuate waves based on ocean depth. if depth is greater than 0.5*wavelength, water is considered Deep and wave is
+						// unaffected. if depth is less than this, wave velocity decreases. waves will then bunch up and grow in amplitude and
+						// eventually break. i model "Deep" water, but then simply ramp down waves in non-deep water with a linear multiplier.
+						// http://hyperphysics.phy-astr.gsu.edu/hbase/Waves/watwav2.html
+						// http://hyperphysics.phy-astr.gsu.edu/hbase/watwav.html#c1
+						//half depth_wt = saturate(depth / (0.5 * _MinWavelength)); // slightly different result - do per wavelength for now
+						// The below is a few things collapsed together.
+						half4 depth_wt = saturate(depth * _TwoPiOverWavelengths[vi] / PI);
+						// keep some proportion of amplitude so that there is some waves remaining
+						half4 wt = _AttenuationInShallows * depth_wt + oneMinusAttenuation;
 
-							// weight
-							half wt = ComputeSortedShapeWeight(_Wavelengths[vi][ei], minWavelength);
+						// direction
+						half4 Dx = _WaveDirX[vi];
+						half4 Dz = _WaveDirZ[vi];
+						// wave number
+						half4 k = _TwoPiOverWavelengths[vi];
+						// spatial location
+						half4 x = Dx * i.worldPos_wt.x + Dz * i.worldPos_wt.y;
+						half4 angle = k * x + _Phases[vi];
 
-							// attenuate waves based on ocean depth. if depth is greater than 0.5*wavelength, water is considered Deep and wave is
-							// unaffected. if depth is less than this, wave velocity decreases. waves will then bunch up and grow in amplitude and
-							// eventually break. i model "Deep" water, but then simply ramp down waves in non-deep water with a linear multiplier.
-							// http://hyperphysics.phy-astr.gsu.edu/hbase/Waves/watwav2.html
-							// http://hyperphysics.phy-astr.gsu.edu/hbase/watwav.html#c1
-							//half depth_wt = saturate(depth / (0.5 * minWavelength)); // slightly different result - do per wavelength for now
-							half depth_wt = saturate(depth / (0.5 * _Wavelengths[vi][ei]));
-							// keep some proportion of amplitude so that there is some waves remaining
-							wt *= oneMinusAttenuation + _AttenuationInShallows * depth_wt;
+						// dx and dz could be baked into _ChopAmps
+						half4 disp = _ChopAmps[vi] * sin(angle);
+						half4 resultx = disp * Dx;
+						half4 resultz = disp * Dz;
 
-							// wave speed
-							half C = ComputeWaveSpeed(_Wavelengths[vi][ei], _Gravity * _GravityScales[vi][ei]);
-							// direction
-							half2 D = half2(cos(_Angles[vi][ei]), sin(_Angles[vi][ei]));
-							// wave number
-							half k = TWOPI / _Wavelengths[vi][ei];
-							// spatial location
-							half x = dot(D, i.worldPos_wt.xy);
+						half4 resulty = _Amplitudes[vi] * cos(angle);
 
-							half3 result_i = wt * _Amplitudes[vi][ei];
-							result_i.y *= cos(k*(x + C * _CrestTime) + _Phases[vi][ei]);
-							result_i.xz *= -_Chop * _ChopScales[vi][ei] * D * sin(k*(x + C * _CrestTime) + _Phases[vi][ei]);
-							result += result_i;
-						}
+						// sum the vector results
+						result.x += dot(resultx, wt);
+						result.y += dot(resulty, wt);
+						result.z += dot(resultz, wt);
 					}
 
 					return half4(i.worldPos_wt.z * result, 0.);
 				}
-
 				ENDCG
 			}
 		}

@@ -26,7 +26,7 @@ half3 PlanarReflection(in const half4 i_screenPos, in const half3 i_n_pixel)
 {
 	half4 screenPos = i_screenPos;
 	screenPos.xy += i_n_pixel.xz;
-	return tex2Dproj(_ReflectionTex, UNITY_PROJ_COORD(i_screenPos)).xyz;
+	return tex2Dproj(_ReflectionTex, UNITY_PROJ_COORD(screenPos)).xyz;
 }
 #endif // _PLANARREFLECTIONS_ON
 

@@ -27,7 +27,6 @@ Shader "Ocean/Inputs/Dynamic Waves/Add Bump"
 				#pragma fragment frag
 				#pragma multi_compile_fog
 				#include "UnityCG.cginc"
-				#include "../MultiscaleShape.hlsl"
 
 				struct appdata_t {
 					float4 vertex : POSITION;

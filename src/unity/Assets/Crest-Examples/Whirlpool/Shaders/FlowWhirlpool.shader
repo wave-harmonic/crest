@@ -21,7 +21,6 @@ Shader "Ocean/Inputs/Flow/Whirlpool"
 				#pragma fragment frag
 				#pragma multi_compile_fog
 				#include "UnityCG.cginc"
-				#include "../../../Crest/Shaders/MultiscaleShape.hlsl"
 
 				struct appdata_t {
 					float4 vertex : POSITION;

@@ -19,7 +19,6 @@ Shader "Ocean/Inputs/Dynamic Waves/Dampen Circle"
 			#pragma fragment Frag
 
 			#include "UnityCG.cginc"
-			#include "../MultiscaleShape.hlsl"
 
 			struct Attributes
 			{

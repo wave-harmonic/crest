@@ -294,7 +294,7 @@ namespace Crest
             material.SetVectorArray("_ChopAmps", UpdateBatchScratchData._chopAmpsBatch);
             material.SetFloat("_NumInBatch", numInBatch);
             material.SetFloat("_AttenuationInShallows", OceanRenderer.Instance._lodDataAnimWaves.Settings.AttenuationInShallows);
-            material.SetInt("_NumWaveVecs", 1 + numInBatch / 4);
+            material.SetInt("_NumWaveVecs", Mathf.Min(1 + numInBatch / 4, BATCH_SIZE / 4));
 
             OceanRenderer.Instance._lodDataAnimWaves.BindResultData(lodIdx, 0, material);
 

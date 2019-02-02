@@ -228,7 +228,7 @@ namespace Crest
         void LateUpdateViewerHeight()
         {
             var pos = Viewpoint.position;
-            var rect = new Rect(pos, Vector3.zero);
+            var rect = new Rect(pos.x, pos.z, 0f, 0f);
 
             float waterHeight;
             if (CollisionProvider.GetSamplingData(ref rect, 0f, _samplingData)

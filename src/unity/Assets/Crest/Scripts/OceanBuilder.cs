@@ -163,7 +163,7 @@ namespace Crest
 
             ocean._lods = new LodTransform[lodCount];
 
-            // Create the lod data managers
+            // Create the LOD data managers
             ocean._lodDataAnimWaves = LodDataMgr.Create<LodDataMgrAnimWaves, SimSettingsAnimatedWaves>(ocean.gameObject, ref ocean._simSettingsAnimatedWaves);
             if (ocean._createDynamicWaveSim)
             {
@@ -370,7 +370,7 @@ namespace Crest
 
         static GameObject CreateLOD(OceanRenderer ocean, int lodIndex, int lodCount, bool biggestLOD, Mesh[] meshData, int lodDataResolution, int geoDownSampleFactor, int oceanLayer)
         {
-            // first create parent gameobject for the lod level. the scale of this transform sets the size of the lod.
+            // first create parent GameObject for the LOD level. the scale of this transform sets the size of the LOD.
             GameObject parent = new GameObject();
             parent.name = "LOD" + lodIndex;
             parent.layer = oceanLayer;

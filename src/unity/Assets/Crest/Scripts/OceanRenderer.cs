@@ -51,7 +51,6 @@ namespace Crest
         public float _maxScale = 256f;
 
         [SerializeField, Delayed, Tooltip("Resolution of ocean LOD data. Use even numbers like 48 or 64.")]
-        [FormerlySerializedAs("_baseVertDensity")]
         int _lodDataResolution = 256;
         public int LodDataResolution { get { return _lodDataResolution; } }
 

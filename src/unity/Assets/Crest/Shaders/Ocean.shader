@@ -355,8 +355,8 @@ Shader "Ocean/Ocean"
 						const float wt_0 = (1. - lodAlpha) * _LD_Params_0.z;
 						const float wt_1 = (1. - wt_0) * _LD_Params_1.z;
 						float3 dummy = 0.;
-						SampleDisplacementsNormals(_LD_Sampler_AnimatedWaves_0, uv_0, wt_0, _LD_Params_0.w, _LD_Params_0.x, dummy, n_geom.xz);
-						SampleDisplacementsNormals(_LD_Sampler_AnimatedWaves_1, uv_1, wt_1, _LD_Params_1.w, _LD_Params_1.x, dummy, n_geom.xz);
+						if (wt_0 > 0.001) SampleDisplacementsNormals(_LD_Sampler_AnimatedWaves_0, uv_0, wt_0, _LD_Params_0.w, _LD_Params_0.x, dummy, n_geom.xz);
+						if (wt_1 > 0.001) SampleDisplacementsNormals(_LD_Sampler_AnimatedWaves_1, uv_1, wt_1, _LD_Params_1.w, _LD_Params_1.x, dummy, n_geom.xz);
 						n_geom = normalize(n_geom);
 					}
 

@@ -50,7 +50,7 @@ namespace Crest
         [Delayed, Tooltip("The largest scale the ocean can be (-1 for unlimited).")]
         public float _maxScale = 256f;
 
-        [SerializeField, Delayed, Tooltip("Resolution of ocean LOD data. Use even numbers like 48 or 64.")]
+        [SerializeField, Delayed, Tooltip("Resolution of ocean LOD data. Use even numbers like 256 or 384. This is 4x the old 'Base Vert Density' param, so if you used 64 for this param, set this to 256.")]
         int _lodDataResolution = 256;
         public int LodDataResolution { get { return _lodDataResolution; } }
 

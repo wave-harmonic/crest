@@ -4,7 +4,8 @@
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
@@ -14,19 +15,19 @@ MonoBehaviour:
   _waveDirectionVariance: 90
   _gravityScale: 1
   _powerLog:
-  - -4.6633663
-  - -4.632612
-  - -3.9353123
-  - -3.2213879
-  - -2.4813807
-  - -1.2080691
-  - -0.53905386
-  - 0.27448857
-  - 0.53627354
-  - 1.0282621
-  - 1.4403292
-  - -6
-  _powerDisabled: 000000000000000000000000
+  - -5.695021
+  - -4.942448
+  - -3.7066584
+  - -3.215855
+  - -2.2419102
+  - -1.731374
+  - -0.8999733
+  - -0.43612215
+  - 0.2890743
+  - 0.9321812
+  - 1.7480713
+  - 0.24703239
+  _powerDisabled: 000000000000000000000001
   _chopScales:
   - 1
   - 1

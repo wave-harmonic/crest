@@ -16,9 +16,11 @@ namespace Crest
         Renderer _rend;
         MaterialPropertyBlock _mpb;
 
+        // Cache these off to support regenerating ocean surface
         int _lodIndex = -1;
         int _totalLodCount = -1;
-        float _baseVertDensity = 32f;
+        int _lodDataResolution = 256;
+        int _geoDownSampleFactor = 1;
 
         int _reflectionTexId = -1;
 
@@ -74,7 +76,7 @@ namespace Crest
             // geometry data
             // compute grid size of geometry. take the long way to get there - make sure we land exactly on a power of two
             // and not inherit any of the lossy-ness from lossyScale.
-            float squareSize = Mathf.Pow(2f, Mathf.Round(Mathf.Log(transform.lossyScale.x) / Mathf.Log(2f))) / _baseVertDensity;
+            float squareSize = Mathf.Pow(2f, Mathf.Round(Mathf.Log(transform.lossyScale.x) / Mathf.Log(2f))) / (0.25f * _lodDataResolution);
             float mul = 1.875f; // fudge 1
             float pow = 1.4f; // fudge 2
             float normalScrollSpeed0 = Mathf.Pow(Mathf.Log(1f + 2f * squareSize) * mul, pow);
@@ -140,9 +142,9 @@ namespace Crest
             bounds.extents = new Vector3(bounds.extents.x + expandXZ, boundsY, bounds.extents.z + expandXZ);
         }
 
-        public void SetInstanceData(int lodIndex, int totalLodCount, float baseVertDensity)
+        public void SetInstanceData(int lodIndex, int totalLodCount, int lodDataResolution, int geoDownSampleFactor)
         {
-            _lodIndex = lodIndex; _totalLodCount = totalLodCount; _baseVertDensity = baseVertDensity;
+            _lodIndex = lodIndex; _totalLodCount = totalLodCount; _lodDataResolution = lodDataResolution; _geoDownSampleFactor = geoDownSampleFactor;
         }
     }
 

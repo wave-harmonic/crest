@@ -100,7 +100,7 @@ namespace Crest
         {
             float oceanBaseScale = OceanRenderer.Instance.transform.lossyScale.x;
             float maxDiameter = 4f * oceanBaseScale * Mathf.Pow(2f, _lodIndex);
-            float maxTexelSize = maxDiameter / (4f * OceanRenderer.Instance._baseVertDensity);
+            float maxTexelSize = maxDiameter / OceanRenderer.Instance.LodDataResolution;
             return 2f * maxTexelSize * OceanRenderer.Instance._minTexelsPerWave;
         }
 

@@ -169,10 +169,7 @@ Shader "Ocean/Ocean"
 				struct v2f
 				{
 					float4 vertex : SV_POSITION;
-					#if _FLOW_ON
-					half2 flow : TEXCOORD2;
-					#endif
-					half4 n_shadow : TEXCOORD1;
+					half4 flow_shadow : TEXCOORD1;
 					half4 foam_screenPos : TEXCOORD4;
 					half4 lodAlpha_worldXZUndisplaced_oceanDepth : TEXCOORD5;
 					float3 worldPos : TEXCOORD7;
@@ -205,12 +202,8 @@ Shader "Ocean/Ocean"
 					o.lodAlpha_worldXZUndisplaced_oceanDepth.yz = o.worldPos.xz;
 
 					// sample shape textures - always lerp between 2 LOD scales, so sample two textures
-					o.n_shadow = half4(0., 0., 0., 0.);
+					o.flow_shadow = half4(0., 0., 0., 0.);
 					o.foam_screenPos.x = 0.;
-
-					#if _FLOW_ON
-					o.flow = half2(0., 0.);
-					#endif
 
 					o.lodAlpha_worldXZUndisplaced_oceanDepth.w = 0.;
 
@@ -224,7 +217,7 @@ Shader "Ocean/Ocean"
 						const float2 uv_0 = LD_0_WorldToUV(worldXZBefore);
 
 						#if !_DEBUGDISABLESHAPETEXTURES_ON
-						SampleDisplacementsNormals(_LD_Sampler_AnimatedWaves_0, uv_0, wt_0, _LD_Params_0.w, _LD_Params_0.x, o.worldPos, o.n_shadow.xy);
+						SampleDisplacements(_LD_Sampler_AnimatedWaves_0, uv_0, wt_0, o.worldPos);
 						#endif
 
 						#if _FOAM_ON
@@ -232,7 +225,7 @@ Shader "Ocean/Ocean"
 						#endif
 
 						#if _FLOW_ON
-						SampleFlow(_LD_Sampler_Flow_0, uv_0, wt_0, o.flow);
+						SampleFlow(_LD_Sampler_Flow_0, uv_0, wt_0, o.flow_shadow.xy);
 						#endif
 
 						#if _SUBSURFACESHALLOWCOLOUR_ON
@@ -240,7 +233,7 @@ Shader "Ocean/Ocean"
 						#endif
 
 						#if _SHADOWS_ON
-						SampleShadow(_LD_Sampler_Shadow_0, uv_0, wt_0, o.n_shadow.zw);
+						SampleShadow(_LD_Sampler_Shadow_0, uv_0, wt_0, o.flow_shadow.zw);
 						#endif
 					}
 					if (wt_1 > 0.001)
@@ -248,7 +241,7 @@ Shader "Ocean/Ocean"
 						const float2 uv_1 = LD_1_WorldToUV(worldXZBefore);
 
 						#if !_DEBUGDISABLESHAPETEXTURES_ON
-						SampleDisplacementsNormals(_LD_Sampler_AnimatedWaves_1, uv_1, wt_1, _LD_Params_1.w, _LD_Params_1.x, o.worldPos, o.n_shadow.xy);
+						SampleDisplacements(_LD_Sampler_AnimatedWaves_1, uv_1, wt_1, o.worldPos);
 						#endif
 
 						#if _FOAM_ON
@@ -256,7 +249,7 @@ Shader "Ocean/Ocean"
 						#endif
 
 						#if _FLOW_ON
-						SampleFlow(_LD_Sampler_Flow_1, uv_1, wt_1, o.flow);
+						SampleFlow(_LD_Sampler_Flow_1, uv_1, wt_1, o.flow_shadow.xy);
 						#endif
 
 						#if _SUBSURFACESHALLOWCOLOUR_ON
@@ -264,10 +257,10 @@ Shader "Ocean/Ocean"
 						#endif
 
 						#if _SHADOWS_ON
-						SampleShadow(_LD_Sampler_Shadow_1, uv_1, wt_1, o.n_shadow.zw);
+						SampleShadow(_LD_Sampler_Shadow_1, uv_1, wt_1, o.flow_shadow.zw);
 						#endif
 					}
-
+					
 					// convert height above -1000m to depth below surface
 					o.lodAlpha_worldXZUndisplaced_oceanDepth.w = DEPTH_BASELINE - o.lodAlpha_worldXZUndisplaced_oceanDepth.w;
 
@@ -347,17 +340,31 @@ Shader "Ocean/Ocean"
 					// Soft shadow, hard shadow
 					fixed2 shadow = (fixed2)1.0
 					#if _SHADOWS_ON
-						- i.n_shadow.zw
+						- i.flow_shadow.zw
 					#endif
 						;
 
 					// Normal - geom + normal mapping
-					half3 n_geom = normalize(half3(i.n_shadow.x, 1., i.n_shadow.y));
+					half3 n_geom = half3(0.0, 1.0, 0.0);
+
+					//if(false)
+					{
+						const float lodAlpha = i.lodAlpha_worldXZUndisplaced_oceanDepth.x;
+						const float2 uv_0 = LD_0_WorldToUV(i.lodAlpha_worldXZUndisplaced_oceanDepth.yz);
+						const float2 uv_1 = LD_1_WorldToUV(i.lodAlpha_worldXZUndisplaced_oceanDepth.yz);
+						const float wt_0 = (1. - lodAlpha) * _LD_Params_0.z;
+						const float wt_1 = (1. - wt_0) * _LD_Params_1.z;
+						float3 dummy = 0.;
+						if (wt_0 > 0.001) SampleDisplacementsNormals(_LD_Sampler_AnimatedWaves_0, uv_0, wt_0, _LD_Params_0.w, _LD_Params_0.x, dummy, n_geom.xz);
+						if (wt_1 > 0.001) SampleDisplacementsNormals(_LD_Sampler_AnimatedWaves_1, uv_1, wt_1, _LD_Params_1.w, _LD_Params_1.x, dummy, n_geom.xz);
+						n_geom = normalize(n_geom);
+					}
+
 					if (underwater) n_geom = -n_geom;
 					half3 n_pixel = n_geom;
 					#if _APPLYNORMALMAPPING_ON
 					#if _FLOW_ON
-					ApplyNormalMapsWithFlow(i.lodAlpha_worldXZUndisplaced_oceanDepth.yz, i.flow, i.lodAlpha_worldXZUndisplaced_oceanDepth.x, n_pixel);
+					ApplyNormalMapsWithFlow(i.lodAlpha_worldXZUndisplaced_oceanDepth.yz, i.flow_shadow.xy, i.lodAlpha_worldXZUndisplaced_oceanDepth.x, n_pixel);
 					#else
 					n_pixel.xz += (underwater ? -1. : 1.) * SampleNormalMaps(i.lodAlpha_worldXZUndisplaced_oceanDepth.yz, i.lodAlpha_worldXZUndisplaced_oceanDepth.x);
 					n_pixel = normalize(n_pixel);
@@ -371,7 +378,7 @@ Shader "Ocean/Ocean"
 					#if !_FLOW_ON
 					ComputeFoam(i.foam_screenPos.x, i.lodAlpha_worldXZUndisplaced_oceanDepth.yz, i.worldPos.xz, n_pixel, pixelZ, sceneZ, view, lightDir, shadow.y, bubbleCol, whiteFoamCol);
 					#else
-					ComputeFoamWithFlow(i.flow, i.foam_screenPos.x, i.lodAlpha_worldXZUndisplaced_oceanDepth.yz, i.worldPos.xz, n_pixel, pixelZ, sceneZ, view, lightDir, shadow.y, bubbleCol, whiteFoamCol);
+					ComputeFoamWithFlow(i.flow_shadow.xy, i.foam_screenPos.x, i.lodAlpha_worldXZUndisplaced_oceanDepth.yz, i.worldPos.xz, n_pixel, pixelZ, sceneZ, view, lightDir, shadow.y, bubbleCol, whiteFoamCol);
 					#endif // _FLOW_ON
 					#endif // _FOAM_ON
 
@@ -413,7 +420,7 @@ Shader "Ocean/Ocean"
 					#endif
 					#if _DEBUGVISUALISEFLOW_ON
 					#if _FLOW_ON
-					col.rg = lerp(col.rg, i.flow.xy, 0.5);
+					col.rg = lerp(col.rg, i.flow_shadow.xy, 0.5);
 					#endif
 					#endif
 

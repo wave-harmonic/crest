@@ -1,6 +1,7 @@
 ﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Crest
 {
@@ -49,12 +50,15 @@ namespace Crest
         [Delayed, Tooltip("The largest scale the ocean can be (-1 for unlimited).")]
         public float _maxScale = 256f;
 
-        [SerializeField, Delayed, Tooltip("Side dimension in quads of an ocean tile.")]
-        public float _baseVertDensity = 64f;
+        [SerializeField, Delayed, Tooltip("Resolution of ocean LOD data. Use even numbers like 256 or 384. This is 4x the old 'Base Vert Density' param, so if you used 64 for this param, set this to 256.")]
+        int _lodDataResolution = 256;
+        public int LodDataResolution { get { return _lodDataResolution; } }
+
+        [SerializeField, Delayed, Tooltip("How much of the water shape gets tessellated by geometry. If set to e.g. 4, every geometry quad will cover 4x4 LOD data texels. Use power of 2 values like 1, 2, 4...")]
+        int _geometryDownSampleFactor = 2;
 
         [SerializeField, Delayed, Tooltip("Number of ocean tile scales/LODs to generate."), Range(2, LodDataMgr.MAX_LOD_COUNT)]
         int _lodCount = 7;
-        public int LodDataResolution { get { return (int)(4f * _baseVertDensity); } }
 
 
         [Header("Simulation Params")]
@@ -129,7 +133,7 @@ namespace Crest
 
             _instance = this;
 
-            OceanBuilder.GenerateMesh(this, _baseVertDensity, _lodCount);
+            OceanBuilder.GenerateMesh(this, _lodDataResolution, _geometryDownSampleFactor, _lodCount);
 
             if (null == GetComponent<BuildCommandBufferBase>())
             {
@@ -263,7 +267,7 @@ namespace Crest
         [ContextMenu("Regenerate mesh")]
         void RegenMesh()
         {
-            OceanBuilder.GenerateMesh(this, _baseVertDensity, _lodCount);
+            OceanBuilder.GenerateMesh(this, _lodDataResolution, _geometryDownSampleFactor, _lodCount);
         }
 #if UNITY_EDITOR
         [ContextMenu("Regenerate mesh", true)]
@@ -275,8 +279,8 @@ namespace Crest
 
         public int GetLodIndex(float gridSize)
         {
-            //gridSize = 4f * transform.lossyScale.x * Mathf.Pow(2f, result) / (4f * _baseVertDensity);
-            int result = Mathf.RoundToInt(Mathf.Log((4f * _baseVertDensity) * gridSize / (4f * transform.lossyScale.x)) / Mathf.Log(2f));
+            //gridSize = 4f * transform.lossyScale.x * Mathf.Pow(2f, result) / _lodDataResolution;
+            int result = Mathf.RoundToInt(Mathf.Log(_lodDataResolution * gridSize / (4f * transform.lossyScale.x)) / Mathf.Log(2f));
 
             if (result < 0 || result >= _lodCount)
             {

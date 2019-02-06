@@ -88,9 +88,10 @@ void SampleShadow(in sampler2D i_oceanShadowSampler, float2 i_uv, in float i_wt,
 }
 
 // Geometry data
-// x: A square is formed by 2 triangles in the mesh. Here x is square size
-// yz: normalScrollSpeed0, normalScrollSpeed1
-uniform float3 _GeomData;
+// x: Grid size of lod data - size of lod data texel in world space.
+// y: Grid size of geometry - distance between verts in mesh.
+// zw: normalScrollSpeed0, normalScrollSpeed1
+uniform float4 _GeomData;
 uniform float3 _OceanCenterPosWorld;
 
 float ComputeLodAlpha(float3 i_worldPos, float i_meshScaleAlpha)
@@ -121,20 +122,20 @@ float ComputeLodAlpha(float3 i_worldPos, float i_meshScaleAlpha)
 void SnapAndTransitionVertLayout(float i_meshScaleAlpha, inout float3 io_worldPos, out float o_lodAlpha)
 {
 	// see comments above on _GeomData
-	const float SQUARE_SIZE_2 = 2.0*_GeomData.x, SQUARE_SIZE_4 = 4.0*_GeomData.x;
+	const float GRID_SIZE_2 = 2.0*_GeomData.y, GRID_SIZE_4 = 4.0*_GeomData.y;
 
 	// snap the verts to the grid
 	// The snap size should be twice the original size to keep the shape of the eight triangles (otherwise the edge layout changes).
-	io_worldPos.xz -= frac(unity_ObjectToWorld._m03_m23 / SQUARE_SIZE_2) * SQUARE_SIZE_2; // caution - sign of frac might change in non-hlsl shaders
+	io_worldPos.xz -= frac(unity_ObjectToWorld._m03_m23 / GRID_SIZE_2) * GRID_SIZE_2; // caution - sign of frac might change in non-hlsl shaders
 
 	// compute lod transition alpha
 	o_lodAlpha = ComputeLodAlpha(io_worldPos, i_meshScaleAlpha);
 
 	// now smoothly transition vert layouts between lod levels - move interior verts inwards towards center
-	float2 m = frac(io_worldPos.xz / SQUARE_SIZE_4); // this always returns positive
+	float2 m = frac(io_worldPos.xz / GRID_SIZE_4); // this always returns positive
 	float2 offset = m - 0.5;
 	// check if vert is within one square from the center point which the verts move towards
 	const float minRadius = 0.26; //0.26 is 0.25 plus a small "epsilon" - should solve numerical issues
-	if (abs(offset.x) < minRadius) io_worldPos.x += offset.x * o_lodAlpha * SQUARE_SIZE_4;
-	if (abs(offset.y) < minRadius) io_worldPos.z += offset.y * o_lodAlpha * SQUARE_SIZE_4;
+	if (abs(offset.x) < minRadius) io_worldPos.x += offset.x * o_lodAlpha * GRID_SIZE_4;
+	if (abs(offset.y) < minRadius) io_worldPos.z += offset.y * o_lodAlpha * GRID_SIZE_4;
 }

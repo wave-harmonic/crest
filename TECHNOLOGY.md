@@ -19,7 +19,9 @@ The final shape is asynchronously read back to the CPU for gameplay/physics use.
 
 ## Mesh
 
-We implement a 100% pop-free meshing solution, which follows the same unified multi-scale structure/layout as the shape data. The vertex densities and locations match the shape texels 1:1. This ensures that the shape is never over-sampled or under-sampled, giving the same guarantees as described above.
+We implement a 100% pop-free meshing solution, which follows the same unified multi-scale structure/layout as the shape data.
+The vertex densities and locations can be configured to match the shape texels 1:1, or the geometry can be generated at lower resolution for higher performance.
+When running at 1:1 resolution the shape is never over-sampled or under-sampled, giving the same guarantees as described above.
 
 Our meshing approach requires only simple shader instructions in a vertex shader, and does not rely on tessellation or compute shaders or any other advanced shader model features. The geometry is composed of tiles which have strictly no overlap, and support frustum culling. These tiles are generated quickly on startup.
 
@@ -61,7 +63,9 @@ Let's study one of the LOD data types in more detail. The surface shape is gener
 
 ![CascadedShapeOverlapped](https://raw.githubusercontent.com/huwb/crest-oceanrender/master/img/doc/CascadedShapeOverlapped.png)
 
-Each LOD is the same resolution (256x256 here). In this example the largest LOD covers a large area (4km squared), and the most detail LOD provides plenty of resolution close to the viewer. These textures are visualised in the Debug GUI on the right hand side of the screen:
+Each LOD is the same resolution (256x256 here), configured on the *OceanRenderer* script.
+In this example the largest LOD covers a large area (4km squared), and the most detail LOD provides plenty of resolution close to the viewer.
+These textures are visualised in the Debug GUI on the right hand side of the screen:
 
 ![DebugShapeVis](https://raw.githubusercontent.com/huwb/crest-oceanrender/master/img/doc/DebugShapeVis.png)
 

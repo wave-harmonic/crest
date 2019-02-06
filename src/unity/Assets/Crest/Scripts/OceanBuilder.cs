@@ -124,7 +124,7 @@ namespace Crest
             Count,
         }
 
-        public static void GenerateMesh(OceanRenderer ocean, float baseVertDensity, int lodCount)
+        public static void GenerateMesh(OceanRenderer ocean, int lodDataResolution, int geoDownSampleFactor, int lodCount)
         {
             if (lodCount < 1)
             {
@@ -154,14 +154,16 @@ namespace Crest
 
             // create mesh data
             Mesh[] meshInsts = new Mesh[(int)PatchType.Count];
+            // 4 tiles across a LOD, and support lowering density by a factor
+            var tileResolution = Mathf.Round(0.25f * lodDataResolution / geoDownSampleFactor);
             for (int i = 0; i < (int)PatchType.Count; i++)
             {
-                meshInsts[i] = BuildOceanPatch((PatchType)i, baseVertDensity);
+                meshInsts[i] = BuildOceanPatch((PatchType)i, tileResolution);
             }
 
             ocean._lods = new LodTransform[lodCount];
 
-            // Create the lod data managers
+            // Create the LOD data managers
             ocean._lodDataAnimWaves = LodDataMgr.Create<LodDataMgrAnimWaves, SimSettingsAnimatedWaves>(ocean.gameObject, ref ocean._simSettingsAnimatedWaves);
             if (ocean._createDynamicWaveSim)
             {
@@ -218,7 +220,7 @@ namespace Crest
             for( int i = 0; i < lodCount; i++ )
             {
                 bool biggestLOD = i == lodCount - 1;
-                GameObject nextLod = CreateLOD(ocean, i, lodCount, biggestLOD, meshInsts, baseVertDensity, oceanLayer);
+                GameObject nextLod = CreateLOD(ocean, i, lodCount, biggestLOD, meshInsts, lodDataResolution, geoDownSampleFactor, oceanLayer);
                 nextLod.transform.parent = ocean.transform;
 
                 // scale only horizontally, otherwise culling bounding box will be scaled up in y
@@ -232,13 +234,13 @@ namespace Crest
 #endif
         }
 
-        static Mesh BuildOceanPatch(PatchType pt, float baseVertDensity)
+        static Mesh BuildOceanPatch(PatchType pt, float vertDensity)
         {
             ArrayList verts = new ArrayList();
             ArrayList indices = new ArrayList();
 
             // stick a bunch of verts into a 1m x 1m patch (scaling happens later)
-            float dx = 1f / baseVertDensity;
+            float dx = 1f / vertDensity;
 
 
             //////////////////////////////////////////////////////////////////////////////////
@@ -258,8 +260,8 @@ namespace Crest
             else if( pt == PatchType.SlimXZ ) { skirtXplus = skirtZplus = -1f; }
             else if( pt == PatchType.SlimXFatZ ) { skirtXplus = -1f; skirtZplus = 1f; }
 
-            float sideLength_verts_x = 1f + baseVertDensity + skirtXminus + skirtXplus;
-            float sideLength_verts_z = 1f + baseVertDensity + skirtZminus + skirtZplus;
+            float sideLength_verts_x = 1f + vertDensity + skirtXminus + skirtXplus;
+            float sideLength_verts_z = 1f + vertDensity + skirtZminus + skirtZplus;
 
             float start_x = -0.5f - skirtXminus * dx;
             float start_z = -0.5f - skirtZminus * dx;
@@ -366,9 +368,9 @@ namespace Crest
             return mesh;
         }
 
-        static GameObject CreateLOD(OceanRenderer ocean, int lodIndex, int lodCount, bool biggestLOD, Mesh[] meshData, float baseVertDensity, int oceanLayer)
+        static GameObject CreateLOD(OceanRenderer ocean, int lodIndex, int lodCount, bool biggestLOD, Mesh[] meshData, int lodDataResolution, int geoDownSampleFactor, int oceanLayer)
         {
-            // first create parent gameobject for the lod level. the scale of this transform sets the size of the lod.
+            // first create parent GameObject for the LOD level. the scale of this transform sets the size of the LOD.
             GameObject parent = new GameObject();
             parent.name = "LOD" + lodIndex;
             parent.layer = oceanLayer;
@@ -460,7 +462,7 @@ namespace Crest
                 patch.transform.localPosition = new Vector3( pos.x, 0f, pos.y );
                 patch.transform.localScale = Vector3.one;
 
-                patch.AddComponent<OceanChunkRenderer>().SetInstanceData( lodIndex, lodCount, baseVertDensity ); ;
+                patch.AddComponent<OceanChunkRenderer>().SetInstanceData(lodIndex, lodCount, lodDataResolution, geoDownSampleFactor);
                 patch.AddComponent<MeshFilter>().mesh = meshData[(int)patchTypes[i]];
 
                 var mr = patch.AddComponent<MeshRenderer>();

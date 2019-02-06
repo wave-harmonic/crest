@@ -25,7 +25,8 @@ Be aware though that we actively refactor/cleanup/change the code to pay technic
 * Unity version:
   * Releases specify which version of Unity they were developed on.
   * The master branch generally moves forward with Unity releases to take advantage of improvements. It's rare that we take a hard dependency on a new feature in the core *Crest* code, so it is usually possible to stand *Crest* up in earlier versions of Unity.
-  * A notable exception to the previous point is the async readback API used to read collisions and flow data back to the CPU. This code will need to be manually disabled on pre-2018 versions.
+  * One exception to the previous point is the async readback API used to read collisions and flow data back to the CPU. This code will need to be manually disabled on pre-2018 versions.
+  * Another exception is prefabs which are used sparingly in *Crest* and generally do not change much between releases, but are moved forward with Unity versions and are have limited backwards compatibility.
 * *Crest* example content:
   * The content requires a layer named *Terrain* which should be added to your project.
   * The post processing package is used (for aesthetic reasons), if this is not present in your project you will see an unassigned script warning which you can fix by removing the offending script.
@@ -78,7 +79,8 @@ All settings can be live authored. When tweaking ocean shape it can be useful to
 
 There are just two parameters that control the construction of the ocean shape and geometry:
 
-* **Base Vert density** - the base vert/shape texel density of the ocean. Higher values give more detail on the ocean surface at the cost of more processing time on the GPU.
+* **Lod Data Resolution** - the resolution of the various ocean LOD data including displacement textures, foam data, dynamic wave sims, etc. Sets the 'detail' present in the ocean - larger values give more detail at increased run-time expense.
+* **Geometry Down Sample Factor** - geometry density - a value of 2 will generate one vert per 2x2 LOD data texels. A value of 1 means a vert is generated for every LOD data texel. Larger values give lower fidelity surface shape with higher performance.
 * **Lod Count** - the number of levels of detail / scales of ocean geometry to generate. The horizontal range of the ocean surface doubles for each added LOD, while GPU processing time increases linearly. It can be useful to select the ocean in the scene view while running in editor to inspect where LODs are present.
 
 ## Global parameters

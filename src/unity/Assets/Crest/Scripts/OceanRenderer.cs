@@ -55,7 +55,7 @@ namespace Crest
         public int LodDataResolution { get { return _lodDataResolution; } }
 
         [SerializeField, Delayed, Tooltip("How much of the water shape gets tessellated by geometry. If set to e.g. 4, every geometry quad will cover 4x4 LOD data texels. Use power of 2 values like 1, 2, 4...")]
-        int _geometryDownSampleFactor = 1;
+        int _geometryDownSampleFactor = 2;
 
         [SerializeField, Delayed, Tooltip("Number of ocean tile scales/LODs to generate."), Range(2, LodDataMgr.MAX_LOD_COUNT)]
         int _lodCount = 7;

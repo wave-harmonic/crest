@@ -44,36 +44,31 @@ Shader "Ocean/Inputs/Flow/Whirlpool"
 					return o;
 				}
 
-				float2 frag (v2f i) : SV_Target
+				float2 frag (v2f input) : SV_Target
 				{
-					float2 col = float2(0, 0);
-					float2 uv_from_cent = (i.uv - float2(.5, .5)) * 2.;
+					float2 flow = float2(0.0, 0.0);
 
-					float r       = _EyeRadiusProportion;
-					const float R = 1;
-					float2 o      = float2(0, 0);
-					float  s      = .2;            // whirlpool 'swirlyness', can vary from 0 - 1
-					float2 p      = uv_from_cent;
-					float  V      = _MaxSpeed;
+					float2 pointToCenter = (float2(0.5, 0.5) - input.uv) * 2.0;
+					float  distToCenter2 = dot(pointToCenter, pointToCenter);
 
-					float2 PtO  =       o - p;
-					float  lPtO = length(PtO);
+					if (distToCenter2 < 1.0 && distToCenter2 > _EyeRadiusProportion * _EyeRadiusProportion)
+					{
+						float distToCenter = sqrt(distToCenter2);
 
-					if(lPtO >= R) {
-						col = float2(0,0);
-					} else if (lPtO <= r) {
-						col = float2(0,0);
-					} else {
-						float c = 1.0 - ((lPtO - r) / (R - r));
-						// dynamically calvulate current value of velocity field
-						// (TODO: Make this a texture lookup?)
-						float2 v = V * c * normalize(
-							(s * c * normalize(float2(-PtO.y, PtO.x))) +
-							((s - 1.0) * (c - 1.0) * normalize(PtO))
+						float centerProp = 1.0 - (distToCenter - _EyeRadiusProportion) / (1.0 - _EyeRadiusProportion);
+						pointToCenter /= distToCenter;
+
+						// Whirlpool 'swirlyness', can vary from 0 - 1
+						const float swirl = 0.6;
+
+						// Dynamically calculate current value of velocity field
+						flow = _MaxSpeed * centerProp * normalize(
+							swirl * centerProp * float2(-pointToCenter.y, pointToCenter.x) +
+							(swirl - 1.0) * (centerProp - 1.0) * pointToCenter
 						);
-						col = v;
 					}
-					return col;
+
+					return flow;
 				}
 
 				ENDCG

@@ -8,7 +8,10 @@ Shader "Ocean/Ocean Surface Alpha"
 	{
 		_MainTex ("Texture", 2D) = "white" {}
 		_Alpha("Alpha Multiplier", Range(0.0, 1.0)) = 1.0
+		[Enum(UnityEngine.Rendering.BlendMode)] _BlendModeSrc("Src Blend Mode", Int) = 5
+		[Enum(UnityEngine.Rendering.BlendMode)] _BlendModeTgt("Tgt Blend Mode", Int) = 10
 	}
+
 	SubShader
 	{
 		Tags { "RenderType"="Transparent" "Queue"="Transparent" }
@@ -16,7 +19,8 @@ Shader "Ocean/Ocean Surface Alpha"
 
 		Pass
 		{
-			Blend SrcAlpha OneMinusSrcAlpha
+			Blend [_BlendModeSrc] [_BlendModeTgt]
+
 			ZWrite Off
 			// Depth offset to stop intersection with water. "Factor" and "Units". typical seems to be (-1,-1). (-0.5,0) gives
 			// pretty good results for me when alpha geometry is fairly well matched but fails when alpha geo is too low res.

@@ -58,6 +58,8 @@ public class BoatProbes : MonoBehaviour, IBoat
     public bool InWater { get { return true; } }
 
     SamplingData _samplingData = new SamplingData();
+    SamplingData _samplingDataFlow = new SamplingData();
+    
     Rect _localSamplingAABB;
     float _totalWeight;
 
@@ -129,9 +131,15 @@ public class BoatProbes : MonoBehaviour, IBoat
         {
             GPUReadbackFlow.Instance.ProcessRequests();
 
-            Vector2 surfaceFlow;
-            GPUReadbackFlow.Instance.SampleFlow(ref position, _samplingData, out surfaceFlow);
-            waterSurfaceVel += new Vector3(surfaceFlow.x, 0, surfaceFlow.y);
+            var flowRect = new Rect(position.x, position.z, 0f, 0f);
+            if (GPUReadbackFlow.Instance.GetSamplingData(ref flowRect, _minSpatialLength, _samplingDataFlow))
+            {
+                Vector2 surfaceFlow;
+                GPUReadbackFlow.Instance.SampleFlow(ref position, _samplingDataFlow, out surfaceFlow);
+                waterSurfaceVel += new Vector3(surfaceFlow.x, 0, surfaceFlow.y);
+
+                GPUReadbackFlow.Instance.ReturnSamplingData(_samplingDataFlow);
+            }
         }
 
         FixedUpdateBuoyancy(collProvider);

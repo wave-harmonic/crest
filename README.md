@@ -10,6 +10,9 @@
 
 ![Teaser](https://raw.githubusercontent.com/huwb/crest-oceanrender/master/img/teaser5.png)
 
+# Gallery
+
+*Your game here. I'm looking for projects to showcase - if you upload a video of your work to youtube and send me a link I'll put a thumbnail here and link to it.*
 
 # Releases
 

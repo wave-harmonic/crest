@@ -131,6 +131,9 @@ namespace Crest
 
             foreach (var lt in ocean._lods)
             {
+                // Don't add uninitialised data
+                if (lt._renderData._texelWidth == 0f) continue;
+
                 if (lt._renderData._texelWidth >= _minGridSize && (lt._renderData._texelWidth <= _maxGridSize || _maxGridSize == 0f))
                 {
                     var tex = _lodComponent.DataTexture(lt.LodIndex);

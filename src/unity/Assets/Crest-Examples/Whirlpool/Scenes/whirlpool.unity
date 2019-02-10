@@ -151,7 +151,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 227134465}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 93632dc736a214a419a990743badcde2, type: 3}
   m_Name: 
@@ -238,7 +238,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 227134465}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 59a818eaf96544c4994335870fdfe141, type: 3}
   m_Name: 
@@ -701,7 +701,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _rasterMesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
   _waveShader: {fileID: 4800000, guid: 680b41329a8923e40a8f9d6ca86f60a8, type: 3}
-  _spectrum: {fileID: 11400000, guid: 454d1b08383f089479cf6794620926f4, type: 2}
+  _spectrum: {fileID: 11400000, guid: 186227a27f77efc40a71bc440ee55a05, type: 2}
   _componentsPerOctave: 5
   _weight: 1
   _randomSeed: 0
@@ -757,12 +757,13 @@ MonoBehaviour:
   _minTexelsPerWave: 3
   _minScale: 8
   _maxScale: 256
-  _baseVertDensity: 64
+  _lodDataResolution: 256
+  _geometryDownSampleFactor: 2
   _lodCount: 7
   _simSettingsAnimatedWaves: {fileID: 0}
   _createSeaFloorDepthData: 1
   _createFoamSim: 1
-  _simSettingsFoam: {fileID: 11400000, guid: 8e1de4c30452ccf499882fefe206c5cd, type: 2}
+  _simSettingsFoam: {fileID: 11400000, guid: a0d6b2faf12e6c249a81cb063d80bc7f, type: 2}
   _createDynamicWaveSim: 1
   _simSettingsDynamicWaves: {fileID: 11400000, guid: 2191178a667ebae4594740b717a322f6,
     type: 2}

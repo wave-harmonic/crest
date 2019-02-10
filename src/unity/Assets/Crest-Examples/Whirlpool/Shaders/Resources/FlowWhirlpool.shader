@@ -17,34 +17,36 @@ Shader "Ocean/Inputs/Flow/Whirlpool"
 				Blend One One
 
 				CGPROGRAM
-				#pragma vertex vert
-				#pragma fragment frag
+				#pragma vertex Vert
+				#pragma fragment Frag
 				#pragma multi_compile_fog
 				#include "UnityCG.cginc"
 
-				struct appdata_t {
+				struct Attributes
+				{
 					float4 vertex : POSITION;
 					float2 texcoord : TEXCOORD0;
 				};
 
-				struct v2f {
+				struct Varyings
+				{
 					float4 vertex : SV_POSITION;
 					float2 uv : TEXCOORD1;
 				};
 
-				uniform float _EyeRadiusProportion;
-				uniform float _MaxSpeed;
+				float _EyeRadiusProportion;
+				float _MaxSpeed;
 
-				v2f vert( appdata_t v )
+				Varyings Vert(Attributes input)
 				{
-					v2f o;
-					o.vertex = UnityObjectToClipPos( v.vertex );
-					o.uv = v.texcoord;
+					Varyings o;
+					o.vertex = UnityObjectToClipPos(input.vertex);
+					o.uv = input.texcoord;
 
 					return o;
 				}
 
-				float2 frag (v2f input) : SV_Target
+				float2 Frag(Varyings input) : SV_Target
 				{
 					float2 flow = float2(0.0, 0.0);
 

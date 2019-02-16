@@ -37,7 +37,7 @@ namespace Crest
             }
 
             // targets have now been cleared, we can early out next time around
-            if(_drawList.Count == 0)
+            if (_drawList.Count == 0)
             {
                 _targetsClear = true;
             }

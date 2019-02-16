@@ -53,7 +53,7 @@ namespace Crest
                 var viewpoint = OceanRenderer.Instance.Viewpoint;
                 _cameraMain = viewpoint != null ? viewpoint.GetComponent<Camera>() : null;
 
-                if(_cameraMain == null)
+                if (_cameraMain == null)
                 {
                     Debug.LogError("Could not find main camera, disabling shadow data", this);
                     enabled = false;
@@ -112,9 +112,9 @@ namespace Crest
         {
             base.UpdateLodData();
 
-            if(_mainLight != OceanRenderer.Instance._primaryLight)
+            if (_mainLight != OceanRenderer.Instance._primaryLight)
             {
-                if(_mainLight)
+                if (_mainLight)
                 {
                     _mainLight.RemoveCommandBuffer(LightEvent.BeforeScreenspaceMask, _bufCopyShadowMap);
                     _bufCopyShadowMap = null;
@@ -132,16 +132,16 @@ namespace Crest
 
             if (!OceanRenderer.Instance._primaryLight)
             {
-                if(!Settings._allowNullLight)
+                if (!Settings._allowNullLight)
                 {
                     Debug.LogWarning("Primary light must be specified on OceanRenderer script to enable shadows.", this);
                 }
                 return;
             }
 
-            if(!_mainLight)
+            if (!_mainLight)
             {
-                if(!StartInitLight())
+                if (!StartInitLight())
                 {
                     enabled = false;
                     return;

@@ -29,11 +29,12 @@ namespace Crest
 
             var lodCount = OceanRenderer.Instance.CurrentLodCount;
             _renderSimMaterial = new Material[MAX_SIM_STEPS, lodCount];
-            for(int stepi = 0; stepi < MAX_SIM_STEPS; stepi++)
+            var shader = Shader.Find(ShaderSim);
+            for (int stepi = 0; stepi < MAX_SIM_STEPS; stepi++)
             {
                 for (int i = 0; i < lodCount; i++)
                 {
-                    _renderSimMaterial[stepi, i] = new Material(Shader.Find(ShaderSim));
+                    _renderSimMaterial[stepi, i] = new Material(shader);
                 }
             }
         }

@@ -5,11 +5,11 @@ using UnityEngine;
 namespace Crest
 {
     /// <summary>
-    /// A dynamic shape simulation that moves around with a displacement LOD. It
+    /// A dynamic shape simulation that moves around with a displacement LOD.
     /// </summary>
     public class LodDataMgrDynWaves : LodDataMgrPersistent
     {
-        public override SimType LodDataType { get { return SimType.DynamicWaves; } }
+        public override string SimName { get { return "DynamicWaves"; } }
         protected override string ShaderSim { get { return "Hidden/Ocean/Simulation/Update Dynamic Waves"; } }
         public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RGHalf; } }
 

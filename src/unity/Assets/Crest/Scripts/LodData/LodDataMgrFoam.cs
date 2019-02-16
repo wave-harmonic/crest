@@ -9,7 +9,7 @@ namespace Crest
     /// </summary>
     public class LodDataMgrFoam : LodDataMgrPersistent
     {
-        public override SimType LodDataType { get { return SimType.Foam; } }
+        public override string SimName { get { return "Foam"; } }
         protected override string ShaderSim { get { return "Hidden/Ocean/Simulation/Update Foam"; } }
         public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RHalf; } }
 

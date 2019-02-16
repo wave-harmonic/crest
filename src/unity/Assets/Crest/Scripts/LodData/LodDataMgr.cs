@@ -12,18 +12,7 @@ namespace Crest
     /// </summary>
     public abstract class LodDataMgr : MonoBehaviour
     {
-        public enum SimType
-        {
-            DynamicWaves,
-            Foam,
-            AnimatedWaves,
-            SeaFloorDepth,
-            Flow,
-            Shadow,
-        }
-
-        public string SimName { get { return LodDataType.ToString(); } }
-        public abstract SimType LodDataType { get; }
+        public abstract string SimName { get; }
 
         public abstract SimSettingsBase CreateDefaultSettings();
         public abstract void UseSettings(SimSettingsBase settings);

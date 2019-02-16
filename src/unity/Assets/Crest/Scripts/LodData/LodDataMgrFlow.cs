@@ -10,7 +10,7 @@ namespace Crest
     /// </summary>
     public class LodDataMgrFlow : LodDataMgr
     {
-        public override SimType LodDataType { get { return SimType.Flow; } }
+        public override string SimName { get { return "Flow"; } }
         public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RGHalf; } }
 
         [SerializeField]

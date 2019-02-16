@@ -11,7 +11,7 @@ namespace Crest
     /// </summary>
     public class LodDataMgrShadow : LodDataMgr
     {
-        public override SimType LodDataType { get { return SimType.Shadow; } }
+        public override string SimName { get { return "Shadow"; } }
         public override void UseSettings(SimSettingsBase settings) { _settings = settings; }
         public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RG16; } }
 

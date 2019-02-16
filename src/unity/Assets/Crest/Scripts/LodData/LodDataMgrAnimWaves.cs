@@ -19,7 +19,7 @@ namespace Crest
     /// </summary>
     public class LodDataMgrAnimWaves : LodDataMgr, IFloatingOrigin
     {
-        public override SimType LodDataType { get { return SimType.AnimatedWaves; } }
+        public override string SimName { get { return "AnimatedWaves"; } }
         // shape format. i tried RGB111110Float but error becomes visible. one option would be to use a UNORM setup.
         public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.ARGBHalf; } }
 

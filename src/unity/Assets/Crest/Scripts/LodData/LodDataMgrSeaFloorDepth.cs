@@ -11,7 +11,7 @@ namespace Crest
     /// </summary>
     public class LodDataMgrSeaFloorDepth : LodDataMgr
     {
-        public override SimType LodDataType { get { return SimType.SeaFloorDepth; } }
+        public override string SimName { get { return "SeaFloorDepth"; } }
         public override SimSettingsBase CreateDefaultSettings() { return null; }
         public override void UseSettings(SimSettingsBase settings) { }
         public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RFloat; } }

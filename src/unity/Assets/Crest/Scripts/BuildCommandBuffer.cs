@@ -73,32 +73,5 @@ namespace Crest
 
             _lastUpdateFrame = Time.frameCount;
         }
-
-        CameraEvent GetHookEvent(Camera cam)
-        {
-            // unfortunately deferred and forward paths do not have a shared 'start' event we can hook on to, so decide
-            // base on path. https://docs.unity3d.com/Manual/GraphicsCommandBuffers.html
-
-            switch (cam.actualRenderingPath)
-            {
-                case RenderingPath.DeferredShading:
-                    return CameraEvent.BeforeGBuffer;
-
-                case RenderingPath.Forward:
-                case RenderingPath.DeferredLighting:
-                    return CameraEvent.BeforeDepthTexture;
-
-                case RenderingPath.VertexLit:
-                    // This didn't work for me when i tested it - no ocean surface was visible at all. Since this is a legacy path I'm
-                    // not going to investigate further.
-                    Debug.LogWarning("Vertex Lit is not tested with Crest and may not work.", this);
-                    return CameraEvent.BeforeDepthTexture;
-
-                default:
-                    Debug.LogWarning("Not sure where to hook ocean rendering command buffer - rendering path is: " + cam.actualRenderingPath
-                        + ". Assuming forward rendering is enabled.", this);
-                    return CameraEvent.BeforeDepthTexture;
-            }
-        }
     }
 }

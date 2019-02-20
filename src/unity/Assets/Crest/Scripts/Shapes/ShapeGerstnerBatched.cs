@@ -76,6 +76,10 @@ namespace Crest
 
         void InitPhases()
         {
+            // Set random seed to get repeatable results
+            Random.State randomStateBkp = Random.state;
+            Random.InitState(_randomSeed);
+
             var totalComps = _componentsPerOctave * OceanWaveSpectrum.NUM_OCTAVES;
             _phases = new float[totalComps];
             for (var octave = 0; octave < OceanWaveSpectrum.NUM_OCTAVES; octave++)
@@ -87,6 +91,8 @@ namespace Crest
                     _phases[index] = 2f * Mathf.PI * rnd;
                 }
             }
+
+            Random.state = randomStateBkp;
         }
 
         public void SetOrigin(Vector3 newOrigin)

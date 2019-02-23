@@ -169,6 +169,10 @@ namespace Crest
             {
                 ocean._lodDataDynWaves = LodDataMgr.Create<LodDataMgrDynWaves, SimSettingsWave>(ocean.gameObject, ref ocean._simSettingsDynamicWaves);
             }
+            if (ocean.CreateDynamicWaveSimSWE)
+            {
+                ocean._lodDataDynWavesSWE = LodDataMgr.Create<LodDataMgrDynWavesSWE, SimSettingsWave>(ocean.gameObject, ref ocean._simSettingsDynamicWaves);
+            }
             if (ocean.CreateFlowSim)
             {
                 ocean._lodDataFlow = LodDataMgr.Create<LodDataMgrFlow, SimSettingsFlow>(ocean.gameObject, ref ocean._simSettingsFlow);

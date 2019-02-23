@@ -2,7 +2,7 @@
 
 namespace Crest
 {
-    public class RegisterDynWavesInput : RegisterLodDataInput<LodDataMgrDynWaves>
+    public class RegisterDynWavesInput : RegisterLodDataInput<LodDataMgrDynWaves, LodDataMgrDynWavesSWE>
     {
     }
 }

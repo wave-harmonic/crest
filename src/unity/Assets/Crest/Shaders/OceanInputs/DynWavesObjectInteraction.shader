@@ -77,7 +77,13 @@ Shader "Ocean/Inputs/Dynamic Waves/Object Interaction"
 			float _Strength;
 			float _Weight;
 
-			half4 Frag(Varyings input) : SV_Target
+			struct SimOutput
+			{
+				half2 h_hprev : SV_Target0;
+				half4 uv_uvprev : SV_Target1;
+			};
+
+			SimOutput Frag(Varyings input)
 			{
 				half4 col = (half4)0.;
 				col.x = _Strength * (length(input.offsetDist)) * abs(input.normal.y) * sqrt(length(_Velocity)) / 10.;
@@ -90,7 +96,9 @@ Shader "Ocean/Inputs/Dynamic Waves/Object Interaction"
 				// write to both channels of sim. this has the affect of kinematically moving the water, instead of applying
 				// a force to accelerate it.
 				float dt2 = _SimDeltaTime * _SimDeltaTime;
-				return _Weight * half4(col.x*dt2, col.x*dt2, 0., 0.);
+				SimOutput o = (SimOutput)0;
+				o.h_hprev = _Weight * half2(col.x*dt2, col.x*dt2);
+				return o;
 			}
 			ENDCG
 		}

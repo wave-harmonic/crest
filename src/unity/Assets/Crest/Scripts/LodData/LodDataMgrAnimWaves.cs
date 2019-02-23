@@ -124,6 +124,12 @@ namespace Crest
                     OceanRenderer.Instance._lodDataDynWaves.BindCopySettings(_combineMaterial[lodIdx]);
                     OceanRenderer.Instance._lodDataDynWaves.BindResultData(lodIdx, 0, 0, _combineMaterial[lodIdx]);
                 }
+                else if(OceanRenderer.Instance._lodDataDynWavesSWE)
+                {
+                    OceanRenderer.Instance._lodDataDynWavesSWE.BindCopySettings(_combineMaterial[lodIdx]);
+                    // Bind  only heights for now
+                    OceanRenderer.Instance._lodDataDynWavesSWE.BindResultData(lodIdx, 0, 0, _combineMaterial[lodIdx]);
+                }
                 else
                 {
                     LodDataMgrDynWaves.BindNull(0, _combineMaterial[lodIdx]);

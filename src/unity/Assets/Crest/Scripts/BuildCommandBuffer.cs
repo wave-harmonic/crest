@@ -38,6 +38,13 @@ namespace Crest
             }
 
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            // --- Shallow water simulations
+            if (ocean._lodDataDynWavesSWE)
+            {
+                ocean._lodDataDynWavesSWE.BuildCommandBuffer(ocean, buf);
+            }
+
+            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // --- Animated waves next
             if (ocean._lodDataAnimWaves)
             {

@@ -5,13 +5,13 @@ using UnityEngine;
 namespace Crest
 {
     /// <summary>
-    /// A dynamic shape simulation that moves around with a displacement LOD.
+    /// Dynamic wave sim based on shallow water equations.
     /// </summary>
-    public class LodDataMgrDynWaves : LodDataMgrPersistent
+    public class LodDataMgrDynWavesSWE : LodDataMgrPersistent
     {
-        public override string SimName { get { return "DynamicWaves"; } }
-        protected override string ShaderSim { get { return "Hidden/Ocean/Simulation/Update Dynamic Waves"; } }
-        public override RenderTextureFormat[] TextureFormats { get { return new[] { RenderTextureFormat.RGHalf }; } }
+        public override string SimName { get { return "DynamicWavesSWE"; } }
+        protected override string ShaderSim { get { return "Hidden/Ocean/Simulation/Update Dynamic Waves SWE"; } }
+        public override RenderTextureFormat[] TextureFormats { get { return new[] { RenderTextureFormat.RGHalf, RenderTextureFormat.ARGBHalf }; } }
 
         public override SimSettingsBase CreateDefaultSettings()
         {
@@ -95,9 +95,22 @@ namespace Crest
 
         }
 
+        public static void CountWaveSims(int countFrom, out int o_present, out int o_active)
+        {
+            o_present = OceanRenderer.Instance.CurrentLodCount;
+            o_active = 0;
+            for (int i = 0; i < o_present; i++)
+            {
+                if (i < countFrom) continue;
+                if (!OceanRenderer.Instance._lodDataDynWaves.SimActive(i)) continue;
+
+                o_active++;
+            }
+        }
+
         protected override int GetNumSubsteps(float dt)
         {
-            return Mathf.Min(MAX_SIM_STEPS, Mathf.CeilToInt(dt / Settings._maxSubstepDt));
+            return Mathf.Max(1,Mathf.Min(MAX_SIM_STEPS, Mathf.CeilToInt(dt / Settings._maxSubstepDt)));
         }
 
         public float SimDeltaTime
@@ -108,25 +121,31 @@ namespace Crest
             }
         }
 
-        static int[] _paramsSampler;
-        public static int ParamIdSampler(int slot)
+        static int[][] _paramsSamplers;
+        public int ParamIdSampler(int dataIdx, int slot)
         {
-            if (_paramsSampler == null)
-                LodTransform.CreateParamIDs(ref _paramsSampler, "_LD_Sampler_DynamicWaves_");
-            return _paramsSampler[slot];
+            if (_paramsSamplers == null)
+            {
+                _paramsSamplers = new int[NumDataTextures][];
+                for (var i = 0; i < NumDataTextures; i++)
+                {
+                    LodTransform.CreateParamIDs(ref _paramsSamplers[i], "_LD_Sampler_DynamicWavesSWE" + i + "_");
+                }
+            }
+            return _paramsSamplers[dataIdx][slot];
         }
         protected override int GetParamIdSampler(int dataIdx, int slot)
         {
-            Debug.Assert(dataIdx == 0);
-            return ParamIdSampler(slot);
+            Debug.Assert(dataIdx < 2);
+            return ParamIdSampler(dataIdx, slot);
         }
-        public static void BindNull(int shapeSlot, Material properties)
+        public void BindNull(int dataIdx, int shapeSlot, Material properties)
         {
-            properties.SetTexture(ParamIdSampler(shapeSlot), Texture2D.blackTexture);
+            properties.SetTexture(ParamIdSampler(dataIdx, shapeSlot), Texture2D.blackTexture);
         }
-        public static void BindNull(int shapeSlot, MaterialPropertyBlock properties)
+        public void BindNull(int dataIdx, int shapeSlot, MaterialPropertyBlock properties)
         {
-            properties.SetTexture(ParamIdSampler(shapeSlot), Texture2D.blackTexture);
+            properties.SetTexture(ParamIdSampler(dataIdx, shapeSlot), Texture2D.blackTexture);
         }
 
         SimSettingsWave Settings { get { return _settings as SimSettingsWave; } }

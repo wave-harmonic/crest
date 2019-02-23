@@ -38,7 +38,7 @@ public class FeedVelocityToExtrude : MonoBehaviour
 
     private void Start()
     {
-        if (OceanRenderer.Instance == null || !OceanRenderer.Instance.CreateDynamicWaveSim)
+        if (OceanRenderer.Instance == null || (!OceanRenderer.Instance.CreateDynamicWaveSim && !OceanRenderer.Instance.CreateDynamicWaveSimSWE))
         {
             enabled = false;
             return;
@@ -64,7 +64,7 @@ public class FeedVelocityToExtrude : MonoBehaviour
         // how many active wave sims currently apply to this object - ideally this would eliminate sims that are too
         // low res, by providing a max grid size param
         int simsPresent, simsActive;
-        LodDataMgrDynWaves.CountWaveSims(minLod, out simsPresent, out simsActive);
+        OceanRenderer.Instance.CountDynamicWaveSims(minLod, out simsPresent, out simsActive);
 
         // counting non-existent sims is expensive - stop updating if none found
         if (simsPresent == 0)
@@ -128,6 +128,9 @@ public class FeedVelocityToExtrude : MonoBehaviour
 
         _mat.SetFloat("_Weight", (_boat == null || _boat.InWater) ? _weight / simsActive : 0f);
 
-        _mat.SetFloat("_SimDeltaTime", OceanRenderer.Instance._lodDataDynWaves.SimDeltaTime);
+        float simDt = 1f;
+        if (OceanRenderer.Instance._lodDataDynWaves != null) simDt = OceanRenderer.Instance._lodDataDynWaves.SimDeltaTime;
+        if (OceanRenderer.Instance._lodDataDynWavesSWE != null) simDt = OceanRenderer.Instance._lodDataDynWavesSWE.SimDeltaTime;
+        _mat.SetFloat("_SimDeltaTime", simDt);
     }
 }

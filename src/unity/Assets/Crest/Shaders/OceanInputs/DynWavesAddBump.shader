@@ -17,6 +17,7 @@ Shader "Ocean/Inputs/Dynamic Waves/Add Bump"
 			CGPROGRAM
 			#pragma vertex Vert
 			#pragma fragment Frag
+
 			#include "UnityCG.cginc"
 
 			struct Attributes
@@ -55,13 +56,21 @@ Shader "Ocean/Inputs/Dynamic Waves/Add Bump"
 
 			float _Amplitude;
 
-			float4 Frag(Varyings input) : SV_Target
+			struct SimOutput
 			{
+				half2 h_hprev : SV_Target0;
+				half4 uv_uvprev : SV_Target1;
+			};
+
+			SimOutput Frag(Varyings input)
+			{
+				SimOutput o = (SimOutput)0;
+
 				// power 4 smoothstep - no normalize needed
 				// credit goes to stubbe's shadertoy: https://www.shadertoy.com/view/4ldSD2
 				float r2 = dot(input.worldOffsetScaled.xy, input.worldOffsetScaled.xy);
 				if (r2 > 1.0)
-						return (float4)0.0;
+					return o;
 
 				r2 = 1.0 - r2;
 
@@ -69,11 +78,12 @@ Shader "Ocean/Inputs/Dynamic Waves/Add Bump"
 				y = pow(y, 0.05);
 				y *= _Amplitude;
 
-				if (_SimCount > 0.) // user friendly - avoid nans
+				if (_SimCount > 0.0) // user friendly - avoid nans
 					y /= _SimCount;
 
 				// treat as an acceleration - dt^2
-				return float4(_SimDeltaTime * _SimDeltaTime * y, 0.0, 0.0, 0.0);
+				o.h_hprev = float2(_SimDeltaTime * _SimDeltaTime * y, 0.0);
+				return o;
 			}
 
 			ENDCG

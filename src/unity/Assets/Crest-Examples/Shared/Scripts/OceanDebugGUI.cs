@@ -142,6 +142,7 @@ public class OceanDebugGUI : MonoBehaviour
 
         DrawSims<LodDataMgrAnimWaves>(OceanRenderer.Instance._lodDataAnimWaves, true, ref column);
         DrawSims<LodDataMgrDynWaves>(OceanRenderer.Instance._lodDataDynWaves, false, ref column);
+        DrawSims<LodDataMgrDynWavesSWE>(OceanRenderer.Instance._lodDataDynWavesSWE, true, ref column);
         DrawSims<LodDataMgrFoam>(OceanRenderer.Instance._lodDataFoam, false, ref column);
         DrawSims<LodDataMgrFlow>(OceanRenderer.Instance._lodDataFlow, false, ref column);
         DrawSims<LodDataMgrShadow>(OceanRenderer.Instance._lodDataShadow, false, ref column);

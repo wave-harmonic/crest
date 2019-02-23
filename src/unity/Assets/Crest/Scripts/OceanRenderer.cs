@@ -1,7 +1,6 @@
 ﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 using UnityEngine;
-using UnityEngine.Serialization;
 
 namespace Crest
 {
@@ -65,23 +64,28 @@ namespace Crest
 
         public SimSettingsAnimatedWaves _simSettingsAnimatedWaves;
 
-        [Tooltip("Water depth information used for shallow water, shoreline foam, wave attenuation, among others.")]
-        public bool _createSeaFloorDepthData = true;
+        [Tooltip("Water depth information used for shallow water, shoreline foam, wave attenuation, among others."), SerializeField]
+        bool _createSeaFloorDepthData = true;
+        public bool CreateSeaFloorDepthData { get { return _createSeaFloorDepthData; } }
 
-        [Tooltip("Simulation of foam created in choppy water and dissipating over time.")]
-        public bool _createFoamSim = true;
+        [Tooltip("Simulation of foam created in choppy water and dissipating over time."), SerializeField]
+        bool _createFoamSim = true;
+        public bool CreateFoamSim { get { return _createFoamSim; } }
         public SimSettingsFoam _simSettingsFoam;
 
-        [Tooltip("Dynamic waves generated from interactions with objects such as boats.")]
-        public bool _createDynamicWaveSim = false;
+        [Tooltip("Dynamic waves generated from interactions with objects such as boats."), SerializeField]
+        bool _createDynamicWaveSim = false;
+        public bool CreateDynamicWaveSim { get { return _createDynamicWaveSim; } }
         public SimSettingsWave _simSettingsDynamicWaves;
 
-        [Tooltip("Horizontal motion of water body, akin to water currents.")]
-        public bool _createFlowSim = false;
+        [Tooltip("Horizontal motion of water body, akin to water currents."), SerializeField]
+        bool _createFlowSim = false;
+        public bool CreateFlowSim { get { return _createFlowSim; } }
         public SimSettingsFlow _simSettingsFlow;
 
-        [Tooltip("Shadow information used for lighting water.")]
-        public bool _createShadowData = false;
+        [Tooltip("Shadow information used for lighting water."), SerializeField]
+        bool _createShadowData = false;
+        public bool CreateShadowData { get { return _createShadowData; } }
         [Tooltip("The primary directional light. Required if shadowing is enabled.")]
         public Light _primaryLight;
         public SimSettingsShadow _simSettingsShadow;

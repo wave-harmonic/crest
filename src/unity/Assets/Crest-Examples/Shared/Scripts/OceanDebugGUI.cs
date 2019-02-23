@@ -15,7 +15,7 @@ public class OceanDebugGUI : MonoBehaviour
     static Dictionary<System.Type, bool> _drawTargets = new Dictionary<System.Type, bool>();
     static Dictionary<System.Type, string> _simNames = new Dictionary<System.Type, string>();
 
-    public static bool OverGUI( Vector2 screenPosition )
+    public static bool OverGUI(Vector2 screenPosition)
     {
         return screenPosition.x < _leftPanelWidth;
     }
@@ -44,7 +44,7 @@ public class OceanDebugGUI : MonoBehaviour
         {
             Time.timeScale = Time.timeScale == 0f ? 1f : 0f;
         }
-        if( Input.GetKeyDown(KeyCode.R))
+        if (Input.GetKeyDown(KeyCode.R))
         {
             SceneManager.LoadScene(SceneManager.GetSceneAt(0).buildIndex);
         }
@@ -127,7 +127,7 @@ public class OceanDebugGUI : MonoBehaviour
         }
 
         // draw source textures to screen
-        if ( _showSimTargets )
+        if (_showSimTargets)
         {
             DrawShapeTargets();
         }
@@ -141,10 +141,10 @@ public class OceanDebugGUI : MonoBehaviour
         float column = 1f;
 
         DrawSims<LodDataMgrAnimWaves>(OceanRenderer.Instance._lodDataAnimWaves, true, ref column);
-        if (OceanRenderer.Instance._createDynamicWaveSim) DrawSims<LodDataMgrDynWaves>(OceanRenderer.Instance._lodDataDynWaves, false, ref column);
-        if (OceanRenderer.Instance._createFoamSim) DrawSims<LodDataMgrFoam>(OceanRenderer.Instance._lodDataFoam, false, ref column);
-        if (OceanRenderer.Instance._createFlowSim) DrawSims<LodDataMgrFlow>(OceanRenderer.Instance._lodDataFlow, false, ref column);
-        if (OceanRenderer.Instance._createShadowData) DrawSims<LodDataMgrShadow>(OceanRenderer.Instance._lodDataShadow, false, ref column);
+        if (OceanRenderer.Instance.CreateDynamicWaveSim) DrawSims<LodDataMgrDynWaves>(OceanRenderer.Instance._lodDataDynWaves, false, ref column);
+        if (OceanRenderer.Instance.CreateFoamSim) DrawSims<LodDataMgrFoam>(OceanRenderer.Instance._lodDataFoam, false, ref column);
+        if (OceanRenderer.Instance.CreateFlowSim) DrawSims<LodDataMgrFlow>(OceanRenderer.Instance._lodDataFlow, false, ref column);
+        if (OceanRenderer.Instance.CreateShadowData) DrawSims<LodDataMgrShadow>(OceanRenderer.Instance._lodDataShadow, false, ref column);
         DrawSims<LodDataMgrSeaFloorDepth>(OceanRenderer.Instance._lodDataSeaDepths, false, ref column);
     }
 

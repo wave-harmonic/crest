@@ -75,7 +75,7 @@ namespace Crest
 
             // assign sea floor depth - to slot 1 current frame data. minor bug here - this depth will actually be from the previous frame,
             // because the depth is scheduled to render just before the animated waves, and this sim happens before animated waves.
-            if (OceanRenderer.Instance._createSeaFloorDepthData)
+            if (OceanRenderer.Instance._lodDataSeaDepths)
             {
                 OceanRenderer.Instance._lodDataSeaDepths.BindResultData(lodIdx, 1, simMaterial);
             }
@@ -84,7 +84,7 @@ namespace Crest
                 LodDataMgrSeaFloorDepth.BindNull(1, simMaterial);
             }
 
-            if (OceanRenderer.Instance._createFlowSim)
+            if (OceanRenderer.Instance._lodDataFlow)
             {
                 OceanRenderer.Instance._lodDataFlow.BindResultData(lodIdx, 1, simMaterial);
             }

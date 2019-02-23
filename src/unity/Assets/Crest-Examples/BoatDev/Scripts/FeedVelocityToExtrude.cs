@@ -38,7 +38,7 @@ public class FeedVelocityToExtrude : MonoBehaviour
 
     private void Start()
     {
-        if (OceanRenderer.Instance == null || !OceanRenderer.Instance._createDynamicWaveSim)
+        if (OceanRenderer.Instance == null || !OceanRenderer.Instance.CreateDynamicWaveSim)
         {
             enabled = false;
             return;

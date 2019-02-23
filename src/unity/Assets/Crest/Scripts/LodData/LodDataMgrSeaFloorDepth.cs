@@ -6,8 +6,7 @@ using UnityEngine.Rendering;
 namespace Crest
 {
     /// <summary>
-    /// Renders relative depth of ocean floor, by rendering the relative height of tagged objects from top down. This loddata rides
-    /// on the LodDataAnimatedWaves currently.
+    /// Renders relative depth of ocean floor, by rendering the relative height of tagged objects from top down.
     /// </summary>
     public class LodDataMgrSeaFloorDepth : LodDataMgr
     {

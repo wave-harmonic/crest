@@ -305,7 +305,7 @@ namespace Crest
             material.SetInt("_NumWaveVecs", numVecs);
             OceanRenderer.Instance._lodDataAnimWaves.BindResultData(lodIdx, 0, material);
 
-            if (OceanRenderer.Instance._createSeaFloorDepthData)
+            if (OceanRenderer.Instance._lodDataSeaDepths)
             {
                 OceanRenderer.Instance._lodDataSeaDepths.BindResultData(lodIdx, 0, material, false);
             }

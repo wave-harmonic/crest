@@ -165,23 +165,23 @@ namespace Crest
 
             // Create the LOD data managers
             ocean._lodDataAnimWaves = LodDataMgr.Create<LodDataMgrAnimWaves, SimSettingsAnimatedWaves>(ocean.gameObject, ref ocean._simSettingsAnimatedWaves);
-            if (ocean._createDynamicWaveSim)
+            if (ocean.CreateDynamicWaveSim)
             {
                 ocean._lodDataDynWaves = LodDataMgr.Create<LodDataMgrDynWaves, SimSettingsWave>(ocean.gameObject, ref ocean._simSettingsDynamicWaves);
             }
-            if (ocean._createFlowSim)
+            if (ocean.CreateFlowSim)
             {
                 ocean._lodDataFlow = LodDataMgr.Create<LodDataMgrFlow, SimSettingsFlow>(ocean.gameObject, ref ocean._simSettingsFlow);
             }
-            if (ocean._createFoamSim)
+            if (ocean.CreateFoamSim)
             {
                 ocean._lodDataFoam = LodDataMgr.Create<LodDataMgrFoam, SimSettingsFoam>(ocean.gameObject, ref ocean._simSettingsFoam);
             }
-            if (ocean._createShadowData)
+            if (ocean.CreateShadowData)
             {
                 ocean._lodDataShadow = LodDataMgr.Create<LodDataMgrShadow, SimSettingsShadow>(ocean.gameObject, ref ocean._simSettingsShadow);
             }
-            if (ocean._createSeaFloorDepthData)
+            if (ocean.CreateSeaFloorDepthData)
             {
                 ocean._lodDataSeaDepths = ocean.gameObject.AddComponent<LodDataMgrSeaFloorDepth>();
             }
@@ -194,7 +194,7 @@ namespace Crest
                     ocean.gameObject.AddComponent<GPUReadbackDisps>();
                 }
 
-                if (ocean._createFlowSim)
+                if (ocean.CreateFlowSim)
                 {
                     var ssf = ocean._simSettingsFlow;
                     if (ssf && ssf._readbackData)

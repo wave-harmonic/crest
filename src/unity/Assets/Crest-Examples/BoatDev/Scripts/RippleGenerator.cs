@@ -17,7 +17,7 @@ public class RippleGenerator : MonoBehaviour
     {
         _rdwi = GetComponent<RegisterDynWavesInput>();
 
-        if (OceanRenderer.Instance == null || !OceanRenderer.Instance._createDynamicWaveSim || _rdwi == null)
+        if (OceanRenderer.Instance == null || !OceanRenderer.Instance.CreateDynamicWaveSim || _rdwi == null)
         {
             enabled = false;
             return;

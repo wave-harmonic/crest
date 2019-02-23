@@ -93,18 +93,18 @@ namespace Crest
             var ldshadows = OceanRenderer.Instance._lodDataShadow;
 
             ldaws.BindResultData(_lodIndex, 0, _mpb);
-            if (OceanRenderer.Instance._createFlowSim) ldflow.BindResultData(_lodIndex, 0, _mpb);
-            if (OceanRenderer.Instance._createFoamSim) ldfoam.BindResultData(_lodIndex, 0, _mpb);
-            if (OceanRenderer.Instance._createSeaFloorDepthData) ldsds.BindResultData(_lodIndex, 0, _mpb);
-            if (OceanRenderer.Instance._createShadowData) ldshadows.BindResultData(_lodIndex, 0, _mpb);
+            if (OceanRenderer.Instance.CreateFlowSim) ldflow.BindResultData(_lodIndex, 0, _mpb);
+            if (OceanRenderer.Instance.CreateFoamSim) ldfoam.BindResultData(_lodIndex, 0, _mpb);
+            if (OceanRenderer.Instance.CreateSeaFloorDepthData) ldsds.BindResultData(_lodIndex, 0, _mpb);
+            if (OceanRenderer.Instance.CreateShadowData) ldshadows.BindResultData(_lodIndex, 0, _mpb);
 
             if (_lodIndex + 1 < OceanRenderer.Instance.CurrentLodCount)
             {
                 ldaws.BindResultData(_lodIndex + 1, 1, _mpb);
-                if (OceanRenderer.Instance._createFlowSim) ldflow.BindResultData(_lodIndex + 1, 1, _mpb);
-                if (OceanRenderer.Instance._createFoamSim) ldfoam.BindResultData(_lodIndex + 1, 1, _mpb);
-                if (OceanRenderer.Instance._createSeaFloorDepthData) ldsds.BindResultData(_lodIndex + 1, 1, _mpb);
-                if (OceanRenderer.Instance._createShadowData) ldshadows.BindResultData(_lodIndex + 1, 1, _mpb);
+                if (OceanRenderer.Instance.CreateFlowSim) ldflow.BindResultData(_lodIndex + 1, 1, _mpb);
+                if (OceanRenderer.Instance.CreateFoamSim) ldfoam.BindResultData(_lodIndex + 1, 1, _mpb);
+                if (OceanRenderer.Instance.CreateSeaFloorDepthData) ldsds.BindResultData(_lodIndex + 1, 1, _mpb);
+                if (OceanRenderer.Instance.CreateShadowData) ldshadows.BindResultData(_lodIndex + 1, 1, _mpb);
             }
 
             var reflTex = OceanPlanarReflection.GetRenderTexture(Camera.current.targetDisplay);

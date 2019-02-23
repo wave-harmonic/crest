@@ -13,7 +13,7 @@ namespace Crest
         public override string SimName { get { return "SeaFloorDepth"; } }
         public override SimSettingsBase CreateDefaultSettings() { return null; }
         public override void UseSettings(SimSettingsBase settings) { }
-        public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RFloat; } }
+        public override RenderTextureFormat[] TextureFormats { get { return new[] { RenderTextureFormat.RFloat }; } }
 
         bool _targetsClear = false;
 
@@ -29,7 +29,7 @@ namespace Crest
 
             for (int lodIdx = OceanRenderer.Instance.CurrentLodCount - 1; lodIdx >= 0; lodIdx--)
             {
-                buf.SetRenderTarget(_targets[lodIdx]);
+                buf.SetRenderTarget(DataTexture(lodIdx, 0));
                 buf.ClearRenderTarget(false, true, Color.black);
 
                 SubmitDraws(lodIdx, buf);
@@ -49,8 +49,9 @@ namespace Crest
                 LodTransform.CreateParamIDs(ref _paramsSampler, "_LD_Sampler_SeaFloorDepth_");
             return _paramsSampler[slot];
         }
-        protected override int GetParamIdSampler(int slot)
+        protected override int GetParamIdSampler(int dataIdx, int slot)
         {
+            Debug.Assert(dataIdx == 0);
             return ParamIdSampler(slot);
         }
         public static void BindNull(int shapeSlot, Material properties)

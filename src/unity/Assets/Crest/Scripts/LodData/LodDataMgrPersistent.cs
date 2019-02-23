@@ -16,7 +16,7 @@ namespace Crest
 
         protected readonly int MAX_SIM_STEPS = 4;
 
-        RenderTexture[] _sources;
+        RenderTexture[,] _sources;
         Material[,] _renderSimMaterial;
 
         protected abstract string ShaderSim { get; }
@@ -30,11 +30,11 @@ namespace Crest
             var lodCount = OceanRenderer.Instance.CurrentLodCount;
             _renderSimMaterial = new Material[MAX_SIM_STEPS, lodCount];
             var shader = Shader.Find(ShaderSim);
-            for (int stepi = 0; stepi < MAX_SIM_STEPS; stepi++)
+            for (var stepi = 0; stepi < MAX_SIM_STEPS; stepi++)
             {
-                for (int i = 0; i < lodCount; i++)
+                for (var lodi = 0; lodi < lodCount; lodi++)
                 {
-                    _renderSimMaterial[stepi, i] = new Material(shader);
+                    _renderSimMaterial[stepi, lodi] = new Material(shader);
                 }
             }
         }
@@ -43,23 +43,27 @@ namespace Crest
         {
             base.InitData();
 
-            int resolution = OceanRenderer.Instance.LodDataResolution;
-            var desc = new RenderTextureDescriptor(resolution, resolution, TextureFormat, 0);
+            var resolution = OceanRenderer.Instance.LodDataResolution;
 
-            _sources = new RenderTexture[OceanRenderer.Instance.CurrentLodCount];
-            for (int i = 0; i < _sources.Length; i++)
+            _sources = new RenderTexture[OceanRenderer.Instance.CurrentLodCount, NumDataTextures];
+            for (var datai = 0; datai < NumDataTextures; datai++)
             {
-                _sources[i] = new RenderTexture(desc);
-                _sources[i].wrapMode = TextureWrapMode.Clamp;
-                _sources[i].antiAliasing = 1;
-                _sources[i].filterMode = FilterMode.Bilinear;
-                _sources[i].anisoLevel = 0;
-                _sources[i].useMipMap = false;
-                _sources[i].name = SimName + "_" + i + "_1";
+                var desc = new RenderTextureDescriptor(resolution, resolution, TextureFormats[datai], 0);
+
+                for (var lodi = 0; lodi < OceanRenderer.Instance.CurrentLodCount; lodi++)
+                {
+                    _sources[lodi, datai] = new RenderTexture(desc);
+                    _sources[lodi, datai].wrapMode = TextureWrapMode.Clamp;
+                    _sources[lodi, datai].antiAliasing = 1;
+                    _sources[lodi, datai].filterMode = FilterMode.Bilinear;
+                    _sources[lodi, datai].anisoLevel = 0;
+                    _sources[lodi, datai].useMipMap = false;
+                    _sources[lodi, datai].name = SimName + datai + "_" + lodi + "_1";
+                }
             }
         }
 
-        public void BindSourceData(int lodIdx, int shapeSlot, Material properties, bool paramsOnly, bool usePrevTransform)
+        public void BindSourceData(int lodIdx, int dataIdx, int shapeSlot, Material properties, bool paramsOnly, bool usePrevTransform)
         {
             _pwMat._target = properties;
 
@@ -67,7 +71,7 @@ namespace Crest
                 OceanRenderer.Instance._lods[lodIdx]._renderDataPrevFrame.Validate(BuildCommandBufferBase._lastUpdateFrame - Time.frameCount, this)
                 : OceanRenderer.Instance._lods[lodIdx]._renderData.Validate(0, this);
 
-            BindData(lodIdx, shapeSlot, _pwMat, paramsOnly ? Texture2D.blackTexture : (Texture)_sources[lodIdx], true, ref rd);
+            BindData(lodIdx, dataIdx, shapeSlot, _pwMat, paramsOnly ? Texture2D.blackTexture : (Texture)_sources[lodIdx, dataIdx], true, ref rd);
             _pwMat._target = null;
         }
 
@@ -85,7 +89,10 @@ namespace Crest
             {
                 for (var lodIdx = lodCount - 1; lodIdx >= 0; lodIdx--)
                 {
-                    SwapRTs(ref _sources[lodIdx], ref _targets[lodIdx]);
+                    for (var dataIdx = 0; dataIdx < NumDataTextures; dataIdx++)
+                    {
+                        SwapRTs(ref _sources[lodIdx, dataIdx], ref _targets[lodIdx, dataIdx]);
+                    }
                 }
 
                 for (var lodIdx = lodCount - 1; lodIdx >= 0; lodIdx--)
@@ -105,19 +112,32 @@ namespace Crest
                     if (srcDataIdx >= 0 && srcDataIdx < lodCount)
                     {
                         // bind data to slot 0 - previous frame data
-                        BindSourceData(srcDataIdx, 0, _renderSimMaterial[stepi, lodIdx], false, usePreviousFrameTransform);
+                        for (var dataIdx = 0; dataIdx < NumDataTextures; dataIdx++)
+                        {
+                            BindSourceData(srcDataIdx, dataIdx, 0, _renderSimMaterial[stepi, lodIdx], false, usePreviousFrameTransform);
+                        }
                     }
                     else
                     {
                         // no source data - bind params only
-                        BindSourceData(lodIdx, 0, _renderSimMaterial[stepi, lodIdx], true, usePreviousFrameTransform);
+                        for (var dataIdx = 0; dataIdx < NumDataTextures; dataIdx++)
+                        {
+                            BindSourceData(lodIdx, dataIdx, 0, _renderSimMaterial[stepi, lodIdx], true, usePreviousFrameTransform);
+                        }
                     }
 
                     SetAdditionalSimParams(lodIdx, _renderSimMaterial[stepi, lodIdx]);
 
+                    if (NumDataTextures == 1)
                     {
-                        var rt = DataTexture(lodIdx);
+                        var rt = DataTexture(lodIdx, 0);
                         buf.SetRenderTarget(rt, rt.depthBuffer);
+                    }
+                    else
+                    {
+                        var rt0 = DataTexture(lodIdx, 0);
+                        var rt1 = DataTexture(lodIdx, 1);
+                        buf.SetRenderTarget(new RenderTargetIdentifier[] { rt0, rt1 }, rt0.depthBuffer);
                     }
 
                     buf.DrawMesh(FullScreenQuad(), Matrix4x4.identity, _renderSimMaterial[stepi, lodIdx]);

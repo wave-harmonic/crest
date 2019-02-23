@@ -66,6 +66,9 @@ namespace Crest
         /// </summary>
         float _prevFrameTime = 0f;
 
+        // Could consult the lod component for the index of the data that should be read back. For now always read back the first.
+        static readonly int DATA_INDEX = 0;
+
         protected virtual void Start()
         {
             _lodComponent = OceanRenderer.Instance.GetComponent<LodDataType>();
@@ -76,7 +79,7 @@ namespace Crest
                 return;
             }
 
-            SetTextureFormat(_lodComponent.TextureFormat);
+            SetTextureFormat(_lodComponent.TextureFormats[DATA_INDEX]);
         }
 
         protected virtual void Update()
@@ -136,7 +139,7 @@ namespace Crest
 
                 if (lt._renderData._texelWidth >= _minGridSize && (lt._renderData._texelWidth <= _maxGridSize || _maxGridSize == 0f))
                 {
-                    var tex = _lodComponent.DataTexture(lt.LodIndex);
+                    var tex = _lodComponent.DataTexture(lt.LodIndex, DATA_INDEX);
                     if (tex == null) continue;
 
                     if (!_perLodData.ContainsKey(lt._renderData._texelWidth))

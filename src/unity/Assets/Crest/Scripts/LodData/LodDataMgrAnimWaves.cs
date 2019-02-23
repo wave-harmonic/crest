@@ -21,7 +21,7 @@ namespace Crest
     {
         public override string SimName { get { return "AnimatedWaves"; } }
         // shape format. i tried RGB111110Float but error becomes visible. one option would be to use a UNORM setup.
-        public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.ARGBHalf; } }
+        public override RenderTextureFormat[] TextureFormats { get { return new[] { RenderTextureFormat.ARGBHalf }; } }
 
         [Tooltip("Read shape textures back to the CPU for collision purposes.")]
         public bool _readbackShapeForCollision = true;
@@ -58,7 +58,7 @@ namespace Crest
             }
 
             int resolution = OceanRenderer.Instance.LodDataResolution;
-            var desc = new RenderTextureDescriptor(resolution, resolution, TextureFormat, 0);
+            var desc = new RenderTextureDescriptor(resolution, resolution, TextureFormats[0], 0);
 
             _waveBuffers = new RenderTexture[OceanRenderer.Instance.CurrentLodCount];
             for (int i = 0; i < _waveBuffers.Length; i++)
@@ -105,24 +105,24 @@ namespace Crest
             for (int lodIdx = lodCount - 1; lodIdx >= 0; lodIdx--)
             {
                 // this lod data
-                BindWaveBuffer(lodIdx, 0, _combineMaterial[lodIdx], false);
+                BindWaveBuffer(lodIdx, 0, 0, _combineMaterial[lodIdx], false);
 
                 // combine data from next larger lod into this one
                 if (lodIdx < lodCount - 1 && _shapeCombinePass)
                 {
-                    BindResultData(lodIdx + 1, 1, _combineMaterial[lodIdx]);
+                    BindResultData(lodIdx + 1, 0, 1, _combineMaterial[lodIdx]);
                 }
                 else
                 {
                     // this binds black texture
-                    BindWaveBuffer(lodIdx, 1, _combineMaterial[lodIdx], true);
+                    BindWaveBuffer(lodIdx, 0, 1, _combineMaterial[lodIdx], true);
                 }
 
                 // dynamic waves
                 if (OceanRenderer.Instance._lodDataDynWaves)
                 {
                     OceanRenderer.Instance._lodDataDynWaves.BindCopySettings(_combineMaterial[lodIdx]);
-                    OceanRenderer.Instance._lodDataDynWaves.BindResultData(lodIdx, 0, _combineMaterial[lodIdx]);
+                    OceanRenderer.Instance._lodDataDynWaves.BindResultData(lodIdx, 0, 0, _combineMaterial[lodIdx]);
                 }
                 else
                 {
@@ -132,20 +132,20 @@ namespace Crest
                 // flow
                 if (OceanRenderer.Instance._lodDataFlow)
                 {
-                    OceanRenderer.Instance._lodDataFlow.BindResultData(lodIdx, 0, _combineMaterial[lodIdx]);
+                    OceanRenderer.Instance._lodDataFlow.BindResultData(lodIdx, 0, 0, _combineMaterial[lodIdx]);
                 }
                 else
                 {
                     LodDataMgrFlow.BindNull(0, _combineMaterial[lodIdx]);
                 }
 
-                buf.Blit(null, DataTexture(lodIdx), _combineMaterial[lodIdx]);
+                buf.Blit(null, DataTexture(lodIdx, 0), _combineMaterial[lodIdx]);
             }
 
             // lod-independent data
             for (int lodIdx = lodCount - 1; lodIdx >= 0; lodIdx--)
             {
-                buf.SetRenderTarget(DataTexture(lodIdx));
+                buf.SetRenderTarget(DataTexture(lodIdx, 0));
 
                 // draw any data that did not express a preference for one lod or another
                 DrawFilter filter = (data) =>
@@ -156,17 +156,17 @@ namespace Crest
             }
         }
 
-        public void BindWaveBuffer(int lodIdx, int shapeSlot, Material properties, bool paramsOnly)
+        public void BindWaveBuffer(int lodIdx, int dataIdx, int shapeSlot, Material properties, bool paramsOnly)
         {
             _pwMat._target = properties;
             var rd = OceanRenderer.Instance._lods[lodIdx]._renderData.Validate(0, this);
-            BindData(lodIdx, shapeSlot, _pwMat, paramsOnly ? Texture2D.blackTexture : (Texture)_waveBuffers[lodIdx], true, ref rd);
+            BindData(lodIdx, dataIdx, shapeSlot, _pwMat, paramsOnly ? Texture2D.blackTexture : (Texture)_waveBuffers[lodIdx], true, ref rd);
             _pwMat._target = null;
         }
 
-        protected override void BindData(int lodIdx, int shapeSlot, IPropertyWrapper properties, Texture applyData, bool blendOut, ref LodTransform.RenderData renderData)
+        protected override void BindData(int lodIdx, int dataIdx, int shapeSlot, IPropertyWrapper properties, Texture applyData, bool blendOut, ref LodTransform.RenderData renderData)
         {
-            base.BindData(lodIdx, shapeSlot, properties, applyData, blendOut, ref renderData);
+            base.BindData(lodIdx, dataIdx, shapeSlot, properties, applyData, blendOut, ref renderData);
 
             var lt = OceanRenderer.Instance._lods[lodIdx];
 
@@ -246,7 +246,7 @@ namespace Crest
                 LodTransform.CreateParamIDs(ref _paramsSampler, "_LD_Sampler_AnimatedWaves_");
             return _paramsSampler[slot];
         }
-        protected override int GetParamIdSampler(int slot)
+        protected override int GetParamIdSampler(int dataIdx, int slot)
         {
             return ParamIdSampler(slot);
         }

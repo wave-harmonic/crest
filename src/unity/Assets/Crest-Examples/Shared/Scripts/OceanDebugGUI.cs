@@ -152,43 +152,46 @@ public class OceanDebugGUI : MonoBehaviour
     {
         if (lodData == null) return;
 
-        var type = typeof(SimType);
-        if (!_drawTargets.ContainsKey(type))
+        for (var dataIdx = 0; dataIdx < lodData.TextureFormats.Length; dataIdx++)
         {
-            _drawTargets.Add(type, showByDefault);
-        }
-        if (!_simNames.ContainsKey(type))
-        {
-            _simNames.Add(type, type.Name.Substring(10));
-        }
-
-        float b = 7f;
-        float h = Screen.height / (float)OceanRenderer.Instance._lods.Length;
-        float w = h + b;
-        float x = Screen.width - w * offset + b * (offset - 1f);
-
-        if (_drawTargets[type])
-        {
-            for (int idx = 0; idx < OceanRenderer.Instance.CurrentLodCount; idx++)
+            var type = typeof(SimType);
+            if (!_drawTargets.ContainsKey(type))
             {
-                float y = idx * h;
-                if (offset == 1f) w += b;
-
-                RenderTexture shape;
-
-                shape = lodData.DataTexture(idx);
-                if (shape == null) continue;
-
-                GUI.color = Color.black * 0.7f;
-                GUI.DrawTexture(new Rect(x, y, w - b, h), Texture2D.whiteTexture);
-                GUI.color = Color.white;
-                GUI.DrawTexture(new Rect(x + b, y + b / 2f, h - b, h - b), shape, ScaleMode.ScaleAndCrop, false);
+                _drawTargets.Add(type, showByDefault);
             }
+            if (!_simNames.ContainsKey(type))
+            {
+                _simNames.Add(type, type.Name.Substring(10));
+            }
+
+            float b = 7f;
+            float h = Screen.height / (float)OceanRenderer.Instance._lods.Length;
+            float w = h + b;
+            float x = Screen.width - w * offset + b * (offset - 1f);
+
+            if (_drawTargets[type])
+            {
+                for (int idx = 0; idx < OceanRenderer.Instance.CurrentLodCount; idx++)
+                {
+                    float y = idx * h;
+                    if (offset == 1f) w += b;
+
+                    RenderTexture shape;
+
+                    shape = lodData.DataTexture(idx, dataIdx);
+                    if (shape == null) continue;
+
+                    GUI.color = Color.black * 0.7f;
+                    GUI.DrawTexture(new Rect(x, y, w - b, h), Texture2D.whiteTexture);
+                    GUI.color = Color.white;
+                    GUI.DrawTexture(new Rect(x + b, y + b / 2f, h - b, h - b), shape, ScaleMode.ScaleAndCrop, false);
+                }
+            }
+
+            _drawTargets[type] = GUI.Toggle(new Rect(x + b, Screen.height - 25f, w - 2f * b, 25f), _drawTargets[type], _simNames[type]);
+
+            offset++;
         }
-
-        _drawTargets[type] = GUI.Toggle(new Rect(x + b, Screen.height - 25f, w - 2f * b, 25f), _drawTargets[type], _simNames[type]);
-
-        offset++;
     }
 
     void ToggleGUI()

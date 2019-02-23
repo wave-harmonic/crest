@@ -17,18 +17,19 @@ namespace Crest
         public abstract SimSettingsBase CreateDefaultSettings();
         public abstract void UseSettings(SimSettingsBase settings);
 
-        public abstract RenderTextureFormat TextureFormat { get; }
+        public abstract RenderTextureFormat[] TextureFormats { get; }
 
         public const int MAX_LOD_COUNT = 16;
 
-        public virtual RenderTexture DataTexture(int lodIdx)
+        public virtual RenderTexture DataTexture(int lodIdx, int dataIdx)
         {
-            return _targets[lodIdx];
+            return _targets[lodIdx, dataIdx];
         }
+        protected int NumDataTextures { get { return TextureFormats.Length; } }
 
-        protected abstract int GetParamIdSampler(int slot);
+        protected abstract int GetParamIdSampler(int dataIdx, int slot);
 
-        protected RenderTexture[] _targets;
+        protected RenderTexture[,] _targets;
 
         // shape texture resolution
         int _shapeRes = -1;
@@ -48,19 +49,23 @@ namespace Crest
 
         protected virtual void InitData()
         {
-            int resolution = OceanRenderer.Instance.LodDataResolution;
-            var desc = new RenderTextureDescriptor(resolution, resolution, TextureFormat, 0);
+            _targets = new RenderTexture[OceanRenderer.Instance.CurrentLodCount, NumDataTextures];
 
-            _targets = new RenderTexture[OceanRenderer.Instance.CurrentLodCount];
-            for (int i = 0; i < _targets.Length; i++)
+            var resolution = OceanRenderer.Instance.LodDataResolution;
+            for (var datai = 0; datai < NumDataTextures; datai++)
             {
-                _targets[i] = new RenderTexture(desc);
-                _targets[i].wrapMode = TextureWrapMode.Clamp;
-                _targets[i].antiAliasing = 1;
-                _targets[i].filterMode = FilterMode.Bilinear;
-                _targets[i].anisoLevel = 0;
-                _targets[i].useMipMap = false;
-                _targets[i].name = SimName + "_" + i + "_0";
+                var desc = new RenderTextureDescriptor(resolution, resolution, TextureFormats[datai], 0);
+
+                for (var lodi = 0; lodi < OceanRenderer.Instance.CurrentLodCount; lodi++)
+                {
+                    _targets[lodi, datai] = new RenderTexture(desc);
+                    _targets[lodi, datai].wrapMode = TextureWrapMode.Clamp;
+                    _targets[lodi, datai].antiAliasing = 1;
+                    _targets[lodi, datai].filterMode = FilterMode.Bilinear;
+                    _targets[lodi, datai].anisoLevel = 0;
+                    _targets[lodi, datai].useMipMap = false;
+                    _targets[lodi, datai].name = SimName + datai + "_" + lodi + "_0";
+                }
             }
         }
 
@@ -74,12 +79,15 @@ namespace Crest
             }
             else if (width != _shapeRes)
             {
-                for(int i = 0; i < OceanRenderer.Instance.CurrentLodCount; i++)
+                for (int lodi = 0; lodi < OceanRenderer.Instance.CurrentLodCount; lodi++)
                 {
-                    var tex = DataTexture(i);
-                    tex.Release();
-                    tex.width = tex.height = _shapeRes;
-                    tex.Create();
+                    for (int texi = 0; texi < NumDataTextures; texi++)
+                    {
+                        var tex = DataTexture(lodi, texi);
+                        tex.Release();
+                        tex.width = tex.height = _shapeRes;
+                        tex.Create();
+                    }
                 }
             }
 
@@ -95,32 +103,32 @@ namespace Crest
         protected PropertyWrapperMaterial _pwMat = new PropertyWrapperMaterial();
         protected PropertyWrapperMPB _pwMPB = new PropertyWrapperMPB();
 
-        public void BindResultData(int lodIdx, int shapeSlot, Material properties)
+        public void BindResultData(int lodIdx, int dataIdx, int shapeSlot, Material properties)
         {
             _pwMat._target = properties;
-            BindData(lodIdx, shapeSlot, _pwMat, DataTexture(lodIdx), true, ref OceanRenderer.Instance._lods[lodIdx]._renderData);
+            BindData(lodIdx, dataIdx, shapeSlot, _pwMat, DataTexture(lodIdx, dataIdx), true, ref OceanRenderer.Instance._lods[lodIdx]._renderData);
             _pwMat._target = null;
         }
 
-        public void BindResultData(int lodIdx, int shapeSlot, MaterialPropertyBlock properties)
+        public void BindResultData(int lodIdx, int dataIdx, int shapeSlot, MaterialPropertyBlock properties)
         {
             _pwMPB._target = properties;
-            BindData(lodIdx, shapeSlot, _pwMPB, DataTexture(lodIdx), true, ref OceanRenderer.Instance._lods[lodIdx]._renderData);
+            BindData(lodIdx, dataIdx, shapeSlot, _pwMPB, DataTexture(lodIdx, dataIdx), true, ref OceanRenderer.Instance._lods[lodIdx]._renderData);
             _pwMPB._target = null;
         }
 
-        public void BindResultData(int lodIdx, int shapeSlot, Material properties, bool blendOut)
+        public void BindResultData(int lodIdx, int dataIdx, int shapeSlot, Material properties, bool blendOut)
         {
             _pwMat._target = properties;
-            BindData(lodIdx, shapeSlot, _pwMat, DataTexture(lodIdx), blendOut, ref OceanRenderer.Instance._lods[lodIdx]._renderData);
+            BindData(lodIdx, dataIdx, shapeSlot, _pwMat, DataTexture(lodIdx, dataIdx), blendOut, ref OceanRenderer.Instance._lods[lodIdx]._renderData);
             _pwMat._target = null;
         }
 
-        protected virtual void BindData(int lodIdx, int shapeSlot, IPropertyWrapper properties, Texture applyData, bool blendOut, ref LodTransform.RenderData renderData)
+        protected virtual void BindData(int lodIdx, int dataIdx, int shapeSlot, IPropertyWrapper properties, Texture applyData, bool blendOut, ref LodTransform.RenderData renderData)
         {
             if (applyData)
             {
-                properties.SetTexture(GetParamIdSampler(shapeSlot), applyData);
+                properties.SetTexture(GetParamIdSampler(dataIdx, shapeSlot), applyData);
             }
 
             var lt = OceanRenderer.Instance._lods[lodIdx];

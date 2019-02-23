@@ -11,7 +11,7 @@ namespace Crest
     {
         public override string SimName { get { return "Foam"; } }
         protected override string ShaderSim { get { return "Hidden/Ocean/Simulation/Update Foam"; } }
-        public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RHalf; } }
+        public override RenderTextureFormat[] TextureFormats { get { return new[] { RenderTextureFormat.RHalf }; } }
 
         public override SimSettingsBase CreateDefaultSettings()
         {
@@ -43,12 +43,12 @@ namespace Crest
             simMaterial.SetFloat("_ShorelineFoamStrength", Settings._shorelineFoamStrength);
 
             // assign animated waves - to slot 1 current frame data
-            OceanRenderer.Instance._lodDataAnimWaves.BindResultData(lodIdx, 1, simMaterial);
+            OceanRenderer.Instance._lodDataAnimWaves.BindResultData(lodIdx, 0, 1, simMaterial);
 
             // assign sea floor depth - to slot 1 current frame data
             if (OceanRenderer.Instance._lodDataSeaDepths)
             {
-                OceanRenderer.Instance._lodDataSeaDepths.BindResultData(lodIdx, 1, simMaterial);
+                OceanRenderer.Instance._lodDataSeaDepths.BindResultData(lodIdx, 0, 1, simMaterial);
             }
             else
             {
@@ -58,7 +58,7 @@ namespace Crest
             // assign flow - to slot 1 current frame data
             if (OceanRenderer.Instance._lodDataFlow)
             {
-                OceanRenderer.Instance._lodDataFlow.BindResultData(lodIdx, 1, simMaterial);
+                OceanRenderer.Instance._lodDataFlow.BindResultData(lodIdx, 0, 1, simMaterial);
             }
             else
             {
@@ -79,8 +79,9 @@ namespace Crest
                 LodTransform.CreateParamIDs(ref _paramsSampler, "_LD_Sampler_Foam_");
             return _paramsSampler[slot];
         }
-        protected override int GetParamIdSampler(int slot)
+        protected override int GetParamIdSampler(int dataIdx, int slot)
         {
+            Debug.Assert(dataIdx == 0);
             return ParamIdSampler(slot);
         }
         public static void BindNull(int shapeSlot, Material properties)

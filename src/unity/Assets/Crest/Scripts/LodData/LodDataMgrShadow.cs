@@ -13,7 +13,7 @@ namespace Crest
     {
         public override string SimName { get { return "Shadow"; } }
         public override void UseSettings(SimSettingsBase settings) { _settings = settings; }
-        public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RG16; } }
+        public override RenderTextureFormat[] TextureFormats { get { return new[] { RenderTextureFormat.RG16 }; } }
 
         public static bool s_processData = true;
 
@@ -74,7 +74,7 @@ namespace Crest
             base.InitData();
 
             int resolution = OceanRenderer.Instance.LodDataResolution;
-            var desc = new RenderTextureDescriptor(resolution, resolution, TextureFormat, 0);
+            var desc = new RenderTextureDescriptor(resolution, resolution, TextureFormats[0], 0);
 
             _sources = new RenderTexture[OceanRenderer.Instance.CurrentLodCount];
             for (int i = 0; i < _sources.Length; i++)
@@ -168,7 +168,7 @@ namespace Crest
 
             for (var lodIdx = lodCount - 1; lodIdx >= 0; lodIdx--)
             {
-                SwapRTs(ref _sources[lodIdx], ref _targets[lodIdx]);
+                SwapRTs(ref _sources[lodIdx], ref _targets[lodIdx, 0]);
             }
 
             _bufCopyShadowMap.Clear();
@@ -177,7 +177,7 @@ namespace Crest
             {
                 // clear the shadow collection. it will be overwritten with shadow values IF the shadows render,
                 // which only happens if there are (nontransparent) shadow receivers around
-                Graphics.Blit(Texture2D.blackTexture, _targets[lodIdx]);
+                Graphics.Blit(Texture2D.blackTexture, DataTexture(lodIdx, 0));
 
                 var lt = OceanRenderer.Instance._lods[lodIdx];
 
@@ -195,7 +195,7 @@ namespace Crest
                 srcDataIdx = Mathf.Clamp(srcDataIdx, 0, lt.LodCount - 1);
                 // bind data to slot 0 - previous frame data
                 BindSourceData(srcDataIdx, 0, _renderMaterial[lodIdx], false);
-                _bufCopyShadowMap.Blit(Texture2D.blackTexture, _targets[lodIdx], _renderMaterial[lodIdx]);
+                _bufCopyShadowMap.Blit(Texture2D.blackTexture, DataTexture(lodIdx, 0), _renderMaterial[lodIdx]);
             }
         }
 
@@ -203,7 +203,7 @@ namespace Crest
         {
             _pwMat._target = simMaterial;
             var rd = OceanRenderer.Instance._lods[lodIdx]._renderDataPrevFrame.Validate(BuildCommandBufferBase._lastUpdateFrame - Time.frameCount, this);
-            BindData(lodIdx, slot, _pwMat, paramsOnly ? Texture2D.blackTexture : (_sources[lodIdx] as Texture), true, ref rd);
+            BindData(lodIdx, 0, slot, _pwMat, paramsOnly ? Texture2D.blackTexture : (_sources[lodIdx] as Texture), true, ref rd);
             _pwMat._target = null;
         }
 
@@ -236,8 +236,9 @@ namespace Crest
                 LodTransform.CreateParamIDs(ref _paramsSampler, "_LD_Sampler_Shadow_");
             return _paramsSampler[slot];
         }
-        protected override int GetParamIdSampler(int slot)
+        protected override int GetParamIdSampler(int dataIdx, int slot)
         {
+            Debug.Assert(dataIdx == 0);
             return ParamIdSampler(slot);
         }
         public static void BindNull(int shapeSlot, Material properties)

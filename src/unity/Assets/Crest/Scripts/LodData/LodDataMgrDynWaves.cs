@@ -11,7 +11,7 @@ namespace Crest
     {
         public override string SimName { get { return "DynamicWaves"; } }
         protected override string ShaderSim { get { return "Hidden/Ocean/Simulation/Update Dynamic Waves"; } }
-        public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RGHalf; } }
+        public override RenderTextureFormat[] TextureFormats { get { return new[] { RenderTextureFormat.RGHalf }; } }
 
         public override SimSettingsBase CreateDefaultSettings()
         {
@@ -77,7 +77,7 @@ namespace Crest
             // because the depth is scheduled to render just before the animated waves, and this sim happens before animated waves.
             if (OceanRenderer.Instance._lodDataSeaDepths)
             {
-                OceanRenderer.Instance._lodDataSeaDepths.BindResultData(lodIdx, 1, simMaterial);
+                OceanRenderer.Instance._lodDataSeaDepths.BindResultData(lodIdx, 0, 1, simMaterial);
             }
             else
             {
@@ -86,7 +86,7 @@ namespace Crest
 
             if (OceanRenderer.Instance._lodDataFlow)
             {
-                OceanRenderer.Instance._lodDataFlow.BindResultData(lodIdx, 1, simMaterial);
+                OceanRenderer.Instance._lodDataFlow.BindResultData(lodIdx, 0, 1, simMaterial);
             }
             else
             {
@@ -128,8 +128,9 @@ namespace Crest
                 LodTransform.CreateParamIDs(ref _paramsSampler, "_LD_Sampler_DynamicWaves_");
             return _paramsSampler[slot];
         }
-        protected override int GetParamIdSampler(int slot)
+        protected override int GetParamIdSampler(int dataIdx, int slot)
         {
+            Debug.Assert(dataIdx == 0);
             return ParamIdSampler(slot);
         }
         public static void BindNull(int shapeSlot, Material properties)

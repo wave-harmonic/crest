@@ -303,11 +303,11 @@ namespace Crest
 
             int numVecs = (numInBatch + 3) / 4;
             material.SetInt("_NumWaveVecs", numVecs);
-            OceanRenderer.Instance._lodDataAnimWaves.BindResultData(lodIdx, 0, material);
+            OceanRenderer.Instance._lodDataAnimWaves.BindResultData(lodIdx, 0, 0, material);
 
             if (OceanRenderer.Instance._lodDataSeaDepths)
             {
-                OceanRenderer.Instance._lodDataSeaDepths.BindResultData(lodIdx, 0, material, false);
+                OceanRenderer.Instance._lodDataSeaDepths.BindResultData(lodIdx, 0, 0, material, false);
             }
 
             return numInBatch;

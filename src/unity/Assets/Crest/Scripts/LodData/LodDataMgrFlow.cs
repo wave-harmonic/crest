@@ -11,7 +11,7 @@ namespace Crest
     public class LodDataMgrFlow : LodDataMgr
     {
         public override string SimName { get { return "Flow"; } }
-        public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RGHalf; } }
+        public override RenderTextureFormat[] TextureFormats { get { return new[] { RenderTextureFormat.RGHalf }; } }
 
         [SerializeField]
         protected SimSettingsFlow _settings;
@@ -62,7 +62,7 @@ namespace Crest
 
             for (int lodIdx = OceanRenderer.Instance.CurrentLodCount - 1; lodIdx >= 0; lodIdx--)
             {
-                buf.SetRenderTarget(DataTexture(lodIdx));
+                buf.SetRenderTarget(DataTexture(lodIdx, 0));
                 buf.ClearRenderTarget(false, true, Color.black);
 
                 SubmitDraws(lodIdx, buf);
@@ -82,8 +82,9 @@ namespace Crest
                 LodTransform.CreateParamIDs(ref _paramsSampler, "_LD_Sampler_Flow_");
             return _paramsSampler[slot];
         }
-        protected override int GetParamIdSampler(int slot)
+        protected override int GetParamIdSampler(int dataIdx, int slot)
         {
+            Debug.Assert(dataIdx == 0);
             return ParamIdSampler(slot);
         }
         public static void BindNull(int shapeSlot, Material properties)

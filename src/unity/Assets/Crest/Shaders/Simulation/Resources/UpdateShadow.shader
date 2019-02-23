@@ -120,7 +120,8 @@ Shader "Hidden/Ocean/Simulation/Update Shadow"
 			}
 
 			// Provides _SimDeltaTime (see comment at this definition)
-			#include "SimHelpers.hlsl"
+			float _SimDeltaTime;
+			float _SimDeltaTimePrev;
 
 			fixed2 frag (v2f i) : SV_Target
 			{

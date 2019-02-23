@@ -115,7 +115,12 @@ namespace Crest
 
                     SetAdditionalSimParams(lodIdx, _renderSimMaterial[stepi, lodIdx]);
 
-                    buf.Blit(null, DataTexture(lodIdx), _renderSimMaterial[stepi, lodIdx]);
+                    {
+                        var rt = DataTexture(lodIdx);
+                        buf.SetRenderTarget(rt, rt.depthBuffer);
+                    }
+
+                    buf.DrawMesh(FullScreenQuad(), Matrix4x4.identity, _renderSimMaterial[stepi, lodIdx]);
 
                     SubmitDraws(lodIdx, buf);
                 }
@@ -141,6 +146,36 @@ namespace Crest
         /// </summary>
         protected virtual void SetAdditionalSimParams(int lodIdx, Material simMaterial)
         {
+        }
+
+        static Mesh s_fullScreenQuad;
+        static Mesh FullScreenQuad()
+        {
+            if (s_fullScreenQuad != null) return s_fullScreenQuad;
+
+            s_fullScreenQuad = new Mesh();
+            s_fullScreenQuad.name = "FullScreenQuad";
+            s_fullScreenQuad.vertices = new Vector3[]
+            {
+                new Vector3(-1f, -1f, 0.1f),
+                new Vector3(-1f,  1f, 0.1f),
+                new Vector3( 1f,  1f, 0.1f),
+                new Vector3( 1f, -1f, 0.1f),
+            };
+            s_fullScreenQuad.uv = new Vector2[]
+            {
+                Vector2.up,
+                Vector2.zero,
+                Vector2.right,
+                Vector2.one,
+            };
+
+            s_fullScreenQuad.SetIndices(new int[]
+            {
+                0, 2, 1, 0, 3, 2
+            }, MeshTopology.Triangles, 0);
+
+            return s_fullScreenQuad;
         }
     }
 }

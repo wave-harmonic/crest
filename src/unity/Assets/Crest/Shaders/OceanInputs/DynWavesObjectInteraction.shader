@@ -23,6 +23,8 @@ Shader "Ocean/Inputs/Dynamic Waves/Object Interaction"
 			#pragma vertex Vert
 			#pragma fragment Frag
 
+			#pragma enable_d3d11_debug_symbols
+
 			#include "UnityCG.cginc"
 
 			struct Varyings

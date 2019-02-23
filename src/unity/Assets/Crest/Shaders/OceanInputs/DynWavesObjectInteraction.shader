@@ -14,16 +14,18 @@ Shader "Ocean/Inputs/Dynamic Waves/Object Interaction"
 	{
 		Tags{ "Queue" = "Transparent" }
 		Blend One One
+		ZTest Always
+		ZWrite Off
 
 		Pass
 		{
 			CGPROGRAM
-			#pragma vertex vert
-			#pragma fragment frag
+			#pragma vertex Vert
+			#pragma fragment Frag
 
 			#include "UnityCG.cginc"
 
-			struct v2f
+			struct Varyings
 			{
 				float4 vertex : SV_POSITION;
 				float3 normal : NORMAL;
@@ -33,15 +35,15 @@ Shader "Ocean/Inputs/Dynamic Waves/Object Interaction"
 
 			float _FactorParallel, _FactorOrthogonal;
 			float4 _Velocity;
-			uniform float _SimDeltaTime;
+			float _SimDeltaTime;
 
-			v2f vert(appdata_base v)
+			Varyings Vert(appdata_base input)
 			{
-				v2f o;
+				Varyings o;
 
-				float3 vertexWorldPos = mul(unity_ObjectToWorld, v.vertex).xyz;
+				float3 vertexWorldPos = mul(unity_ObjectToWorld, input.vertex).xyz;
 
-				o.normal = normalize(mul(unity_ObjectToWorld, float4(v.normal, 0.)).xyz);
+				o.normal = normalize(mul(unity_ObjectToWorld, float4(input.normal, 0.)).xyz);
 
 				float3 vel =_Velocity /= 30.;
 
@@ -75,12 +77,12 @@ Shader "Ocean/Inputs/Dynamic Waves/Object Interaction"
 			float _Strength;
 			float _Weight;
 
-			half4 frag(v2f i) : SV_Target
+			half4 Frag(Varyings input) : SV_Target
 			{
 				half4 col = (half4)0.;
-				col.x = _Strength * (length(i.offsetDist)) * abs(i.normal.y) * sqrt(length(_Velocity)) / 10.;
+				col.x = _Strength * (length(input.offsetDist)) * abs(input.normal.y) * sqrt(length(_Velocity)) / 10.;
 
-				if (dot(i.normal, _Velocity) < -0.1)
+				if (dot(input.normal, _Velocity) < -0.1)
 				{
 					col.x *= -.5;
 				}

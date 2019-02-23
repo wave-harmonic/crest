@@ -17,6 +17,7 @@
 * Survey ocean simulation techniques - 2011 - https://arxiv.org/pdf/1109.6494.pdf
 * Weta - Synthesizing waves from animated heightfields - 2012 - deals with optimizing a physical ocean surface to match an artist authored shape, numerical issues with tanh(), eliminating overlaps, computing a 3D velocity field: http://cs.au.dk/~bang/publications/NielsenSoderstromBridsonTOG2012.pdf
 * Hitman Ocean Technology - they mix a few systems together (thanks for link @ajweeks) https://www.eidosmontreal.com/en/news/hitman-ocean-technology
+* Kass - derive / justify wave equation: http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.89.1204&rep=rep1&type=pdf
 
 ### Wave Theory
 

@@ -6,14 +6,14 @@
 // Samplers and data associated with a LOD.
 // _LD_Params: float4(world texel size, texture resolution, shape weight multiplier, 1 / texture resolution)
 #define LOD_DATA(LODNUM) \
-	uniform sampler2D _LD_Sampler_AnimatedWaves_##LODNUM; \
-	uniform sampler2D _LD_Sampler_SeaFloorDepth_##LODNUM; \
-	uniform sampler2D _LD_Sampler_Foam_##LODNUM; \
-	uniform sampler2D _LD_Sampler_Flow_##LODNUM; \
-	uniform sampler2D _LD_Sampler_DynamicWaves_##LODNUM; \
-	uniform sampler2D _LD_Sampler_Shadow_##LODNUM; \
-	uniform float4 _LD_Params_##LODNUM; \
-	uniform float3 _LD_Pos_Scale_##LODNUM;
+	sampler2D _LD_Sampler_AnimatedWaves_##LODNUM; \
+	sampler2D _LD_Sampler_SeaFloorDepth_##LODNUM; \
+	sampler2D _LD_Sampler_Foam_##LODNUM; \
+	sampler2D _LD_Sampler_Flow_##LODNUM; \
+	Texture2D _LD_Sampler_DynamicWaves_##LODNUM; \
+	sampler2D _LD_Sampler_Shadow_##LODNUM; \
+	float4 _LD_Params_##LODNUM; \
+	float3 _LD_Pos_Scale_##LODNUM;
 
 // Create two sets of LOD data, which have overloaded meaning depending on use:
 // * the ocean surface geometry always lerps from a more detailed LOD (0) to a less detailed LOD (1)
@@ -21,6 +21,8 @@
 // * any other use that does not fall into the previous categories can use either slot and generally use slot 0
 LOD_DATA( 0 )
 LOD_DATA( 1 )
+
+SamplerState my_point_clamp_sampler;
 
 
 // Conversions for world space from/to UV space

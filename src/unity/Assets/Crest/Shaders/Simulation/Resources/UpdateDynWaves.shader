@@ -65,11 +65,12 @@ Shader "Hidden/Ocean/Simulation/Update Dynamic Waves"
 
 			half2 Frag(Varyings i) : SV_Target
 			{
+				//half2 velocity = _LD_Sampler_Flow_1.Sample(my_point_clamp_sampler, float4(i.uv, 0.0, 0.0)).xy;
 				half2 velocity = tex2Dlod(_LD_Sampler_Flow_1, float4(i.uv, 0, 0));
 				float2 uv_lastframe = LD_0_WorldToUV(i.worldPosXZ - (_SimDeltaTime * velocity));
 				float4 uv_lastframe4 = float4(uv_lastframe, 0., 0.);
 
-				half2 ft_ftm = tex2Dlod(_LD_Sampler_DynamicWaves_0, uv_lastframe4);
+				half2 ft_ftm = _LD_Sampler_DynamicWaves_0.Sample(my_point_clamp_sampler, uv_lastframe4);
 
 				float ft = ft_ftm.x; // t - current value before update
 				float ftm = ft_ftm.y; // t minus - previous value
@@ -78,10 +79,10 @@ Shader "Hidden/Ocean/Simulation/Update Dynamic Waves"
 				float e = _LD_Params_0.w; // assumes square RT
 				float4 X = float4(_LaplacianAxisX, 0., 0.);
 				float4 Y = float4(-X.y, X.x, 0., 0.);
-				float fxm = tex2Dlod(_LD_Sampler_DynamicWaves_0, uv_lastframe4 - e*X).x; // x minus
-				float fym = tex2Dlod(_LD_Sampler_DynamicWaves_0, uv_lastframe4 - e*Y).x; // y minus
-				float fxp = tex2Dlod(_LD_Sampler_DynamicWaves_0, uv_lastframe4 + e*X).x; // x plus
-				float fyp = tex2Dlod(_LD_Sampler_DynamicWaves_0, uv_lastframe4 + e*Y).x; // y plus
+				float fxm = _LD_Sampler_DynamicWaves_0.Sample(my_point_clamp_sampler, uv_lastframe4 - e*X).x; // x minus
+				float fym = _LD_Sampler_DynamicWaves_0.Sample(my_point_clamp_sampler, uv_lastframe4 - e*Y).x; // y minus
+				float fxp = _LD_Sampler_DynamicWaves_0.Sample(my_point_clamp_sampler, uv_lastframe4 + e*X).x; // x plus
+				float fyp = _LD_Sampler_DynamicWaves_0.Sample(my_point_clamp_sampler, uv_lastframe4 + e*Y).x; // y plus
 
 				// average wavelength for this scale
 				float wavelength = 1.5 * _TexelsPerWave * _GridSize;

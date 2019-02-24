@@ -93,15 +93,15 @@ Shader "Hidden/Ocean/Simulation/Combine Animated Wave LODs"
 				{
 					// convert dynamic wave sim to displacements
 
-					half waveSimY = tex2Dlod(_LD_Sampler_DynamicWaves_0, float4(i.uv, 0., 0.)).x;
+					half waveSimY = _LD_Sampler_DynamicWaves_0.Sample(my_point_clamp_sampler, float4(i.uv, 0., 0.)).x;
 					result.y += waveSimY;
 
 					// compute displacement from gradient of water surface - discussed in issue #18 and then in issue #47
 					const float2 invRes = float2(_LD_Params_0.w, 0.);
-					const half waveSimY_px = tex2Dlod(_LD_Sampler_DynamicWaves_0, float4(i.uv + invRes.xy, 0., 0.)).x;
-					const half waveSimY_nx = tex2Dlod(_LD_Sampler_DynamicWaves_0, float4(i.uv - invRes.xy, 0., 0.)).x;
-					const half waveSimY_pz = tex2Dlod(_LD_Sampler_DynamicWaves_0, float4(i.uv + invRes.yx, 0., 0.)).x;
-					const half waveSimY_nz = tex2Dlod(_LD_Sampler_DynamicWaves_0, float4(i.uv - invRes.yx, 0., 0.)).x;
+					const half waveSimY_px = _LD_Sampler_DynamicWaves_0.Sample(my_point_clamp_sampler, float4(i.uv + invRes.xy, 0., 0.)).x;
+					const half waveSimY_nx = _LD_Sampler_DynamicWaves_0.Sample(my_point_clamp_sampler, float4(i.uv - invRes.xy, 0., 0.)).x;
+					const half waveSimY_pz = _LD_Sampler_DynamicWaves_0.Sample(my_point_clamp_sampler, float4(i.uv + invRes.yx, 0., 0.)).x;
+					const half waveSimY_nz = _LD_Sampler_DynamicWaves_0.Sample(my_point_clamp_sampler, float4(i.uv - invRes.yx, 0., 0.)).x;
 
 					float2 dispXZ = _HorizDisplace * (float2(waveSimY_px, waveSimY_pz) - float2(waveSimY_nx, waveSimY_nz)) / (2. * _LD_Params_0.x);
 

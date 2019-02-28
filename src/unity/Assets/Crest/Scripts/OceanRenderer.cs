@@ -11,7 +11,7 @@ namespace Crest
     {
         [Tooltip("The viewpoint which drives the ocean detail. Defaults to main camera."), SerializeField]
         Transform _viewpoint;
-        public Transform Viewpoint { get { return _viewpoint; } set { _viewpoint = value; } }
+        public Transform Viewpoint { get { return _viewpoint; } }
 
         [Tooltip("Optional provider for time, can be used to hardcode time for automation, or provide server time. Defaults to local Unity time."), SerializeField]
         TimeProviderBase _timeProvider;
@@ -93,11 +93,12 @@ namespace Crest
 
         [Header("Debug Params")]
 
-        [Tooltip("Whether to generate ocean geometry tiles uniformly (with overlaps)")]
+        [Tooltip("Whether to generate ocean geometry tiles uniformly (with overlaps).")]
         public bool _uniformTiles = false;
-        [Tooltip("Disable generating a wide strip of triangles at the outer edge to extend ocean to edge of view frustum")]
+        [Tooltip("Disable generating a wide strip of triangles at the outer edge to extend ocean to edge of view frustum.")]
         public bool _disableSkirt = false;
-
+        [Tooltip("Move ocean with viewpoint.")]
+        public bool _followViewpoint = true;
 
         float _viewerAltitudeLevelAlpha = 0f;
         /// <summary>
@@ -192,9 +193,13 @@ namespace Crest
             Shader.SetGlobalVector("_WindDirXZ", WindDir);
             Shader.SetGlobalFloat("_CrestTime", CurrentTime);
 
-            LateUpdatePosition();
-            LateUpdateScale();
-            LateUpdateViewerHeight();
+            if (_followViewpoint)
+            {
+                LateUpdatePosition();
+                LateUpdateScale();
+                LateUpdateViewerHeight();
+            }
+
             LateUpdateLods();
         }
 

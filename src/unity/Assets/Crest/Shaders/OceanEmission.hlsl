@@ -193,7 +193,7 @@ half3 OceanEmission(in const half3 i_view, in const half3 i_n_pixel, in const fl
 	// View ray intersects geometry surface either above or below ocean surface
 
 	const half2 uvBackground = i_grabPos.xy / i_grabPos.w;
-	half2 uvBackgroundRefract = uvBackground + _RefractionStrength * i_n_pixel.xz;
+	half2 uvBackgroundRefract = uvBackground + _RefractionStrength * i_n_pixel.xz * min(1.0, 0.5*(i_sceneZ - i_pixelZ));
 	half3 sceneColour;
 	half3 alpha = 0.;
 	float depthFogDistance;

@@ -53,10 +53,10 @@ namespace Crest
         int _lodDataResolution = 256;
         public int LodDataResolution { get { return _lodDataResolution; } }
 
-        [SerializeField, Delayed, Tooltip("How much of the water shape gets tessellated by geometry. If set to e.g. 4, every geometry quad will cover 4x4 LOD data texels. Use power of 2 values like 1, 2, 4...")]
+        [SerializeField, Delayed, Tooltip("How much of the water shape gets tessellated by geometry. If set to e.g. 4, every geometry quad will span 4x4 LOD data texels. Use power of 2 values like 1, 2, 4...")]
         int _geometryDownSampleFactor = 2;
 
-        [SerializeField, Delayed, Tooltip("Number of ocean tile scales/LODs to generate."), Range(2, LodDataMgr.MAX_LOD_COUNT)]
+        [SerializeField, Tooltip("Number of ocean tile scales/LODs to generate."), Range(2, LodDataMgr.MAX_LOD_COUNT)]
         int _lodCount = 7;
 
 
@@ -329,5 +329,36 @@ namespace Crest
         /// </summary>
         ICollProvider _collProvider;
         public ICollProvider CollisionProvider { get { return _collProvider != null ? _collProvider : (_collProvider = _simSettingsAnimatedWaves.CreateCollisionProvider()); } }
+
+#if UNITY_EDITOR
+        private void OnValidate()
+        {
+            // Must be at least 0.25, and must be on a power of 2
+            _minScale = Mathf.Pow(2f, Mathf.Round(Mathf.Log(Mathf.Max(_minScale, 0.25f), 2f)));
+
+            // Max can be -1 which means no maximum
+            if (_maxScale != -1f)
+            {
+                // otherwise must be at least 0.25, and must be on a power of 2
+                _maxScale = Mathf.Pow(2f, Mathf.Round(Mathf.Log(Mathf.Max(_maxScale, _minScale), 2f)));
+            }
+
+            // Gravity 0 makes waves freeze which is weird but doesn't seem to break anything so allowing this for now
+            _gravityMultiplier = Mathf.Max(_gravityMultiplier, 0f);
+
+            // LOD data resolution multiple of 2 for general GPU texture reasons (like pixel quads)
+            _lodDataResolution -= _lodDataResolution % 2;
+
+            _geometryDownSampleFactor = Mathf.ClosestPowerOfTwo(Mathf.Max(_geometryDownSampleFactor, 1));
+
+            var remGeo = _lodDataResolution % _geometryDownSampleFactor;
+            if (remGeo > 0)
+            {
+                var newLDR = _lodDataResolution - (_lodDataResolution % _geometryDownSampleFactor);
+                Debug.LogWarning("Adjusted Lod Data Resolution from " + _lodDataResolution + " to " + newLDR + " to ensure the Geometry Down Sample Factor is a factor (" + _geometryDownSampleFactor + ").", this);
+                _lodDataResolution = newLDR;
+            }
+        }
+#endif
     }
 }

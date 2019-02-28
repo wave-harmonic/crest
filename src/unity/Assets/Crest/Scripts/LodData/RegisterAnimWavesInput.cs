@@ -1,6 +1,5 @@
 ﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
-using System.Collections;
 using UnityEngine;
 
 namespace Crest
@@ -29,37 +28,27 @@ namespace Crest
 
         private void Start()
         {
-            if (_reportRendererBoundsToOceanSystem || _maxDisplacementVertical > 0f || _maxDisplacementHorizontal > 0f)
-            {
-                _rend = GetComponent<Renderer>();
-
-                StartCoroutine(ReportDisplacements());
-            }
+            _rend = GetComponent<Renderer>();
         }
 
-        IEnumerator ReportDisplacements()
+        private void Update()
         {
-            while (true)
+            var maxDispVert = 0f;
+
+            // let ocean system know how far from the sea level this shape may displace the surface
+            if (_reportRendererBoundsToOceanSystem)
             {
-                var maxDispVert = 0f;
+                var minY = _rend.bounds.min.y;
+                var maxY = _rend.bounds.max.y;
+                var seaLevel = OceanRenderer.Instance.SeaLevel;
+                maxDispVert = Mathf.Max(Mathf.Abs(seaLevel - minY), Mathf.Abs(seaLevel - maxY));
+            }
 
-                // let ocean system know how far from the sea level this shape may displace the surface
-                if (_rend != null)
-                {
-                    var minY = _rend.bounds.min.y;
-                    var maxY = _rend.bounds.max.y;
-                    var seaLevel = OceanRenderer.Instance.SeaLevel;
-                    maxDispVert = Mathf.Max(Mathf.Abs(seaLevel - minY), Mathf.Abs(seaLevel - maxY));
-                }
+            maxDispVert = Mathf.Max(maxDispVert, _maxDisplacementVertical);
 
-                maxDispVert = Mathf.Max(maxDispVert, _maxDisplacementVertical);
-
-                if (_maxDisplacementHorizontal > 0f || _maxDisplacementVertical > 0f)
-                {
-                    OceanRenderer.Instance.ReportMaxDisplacementFromShape(_maxDisplacementHorizontal, maxDispVert);
-                }
-
-                yield return new WaitForEndOfFrame();
+            if (_maxDisplacementHorizontal > 0f || _maxDisplacementVertical > 0f)
+            {
+                OceanRenderer.Instance.ReportMaxDisplacementFromShape(_maxDisplacementHorizontal, maxDispVert);
             }
         }
     }

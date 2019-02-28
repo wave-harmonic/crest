@@ -35,6 +35,8 @@
 * Realistic simulation of waves using wave spectra: https://hal.archives-ouvertes.fr/file/index/docid/307938/filename/frechot_realistic_simulation_of_ocean_surface_using_wave_spectra.pdf
 * Nice practical demo about testing different wave breakers: https://youtu.be/3yNoy4H2Z-o
 * Useful notes/diagrams on waves: http://hyperphysics.phy-astr.gsu.edu/hbase/Waves/watwav2.html, http://hyperphysics.phy-astr.gsu.edu/hbase/watwav.html#c1
+* Nice slides on natural wave phenomena http://www2.ess.ucla.edu/~schauble/EPSS15_Oceanography/LEC13S17_Waves_6perpage.pdf
+* Demonstration that Gerstner wave motion is physically possible https://www.tandfonline.com/doi/abs/10.2991/jnmp.2008.15.S2.7
 
 ### Wave Simulation
 

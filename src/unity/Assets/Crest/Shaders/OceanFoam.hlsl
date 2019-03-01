@@ -43,7 +43,8 @@ void ComputeFoam(half i_foam, float2 i_worldXZUndisplaced, float2 i_worldXZ, hal
 
 	// Additive underwater foam - use same foam texture but add mip bias to blur for free
 	float2 foamUVBubbles = (lerp(i_worldXZUndisplaced, i_worldXZ, 0.05) + 0.5 * _CrestTime * _WindDirXZ) / _FoamScale + 0.125 * i_n.xz;
-	half bubbleFoamTexValue = tex2Dlod(_FoamTexture, float4(.74 * foamUVBubbles - _FoamBubbleParallax * i_view.xz / i_view.y, 0., 5.)).r;
+	float2 parallaxOffset = -_FoamBubbleParallax * i_view.xz / dot(i_n, i_view);
+	half bubbleFoamTexValue = tex2Dlod(_FoamTexture, float4(.74 * foamUVBubbles + parallaxOffset, 0., 4.)).r;
 	o_bubbleCol = (half3)bubbleFoamTexValue * _FoamBubbleColor.rgb * saturate(i_foam * _WaveFoamBubblesCoverage) * AmbientLight();
 
 	// White foam on top, with black-point fading

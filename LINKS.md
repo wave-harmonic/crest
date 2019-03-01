@@ -106,3 +106,4 @@
 ### Other
 
 * Ocean transparency measurements: http://www.dtic.mil/dtic/tr/fulltext/u2/718333.pdf
+* Great slides on 2D FFT with applications http://www.robots.ox.ac.uk/~az/lectures/ia/lect2.pdf

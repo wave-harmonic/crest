@@ -3,6 +3,8 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
+#if UNITY_EDITOR
+
 public class SimpleAutomation : MonoBehaviour
 {
     static bool _reloadPending = true;
@@ -29,3 +31,5 @@ public class SimpleAutomation : MonoBehaviour
         }
     }
 }
+
+#endif

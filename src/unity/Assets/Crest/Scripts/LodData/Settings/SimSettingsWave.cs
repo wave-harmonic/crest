@@ -20,7 +20,7 @@ namespace Crest
 
         [Header("Displacement Generation")]
         [Range(0f, 20f), Tooltip("Induce horizontal displacements to sharpen simulated waves.")]
-        public float _horizDisplace = 10f;
+        public float _horizDisplace = 3f;
         [Range(0f, 1f), Tooltip("Clamp displacement to help prevent self-intersection in steep waves. Zero means unclamped.")]
         public float _displaceClamp = 0.3f;
     }

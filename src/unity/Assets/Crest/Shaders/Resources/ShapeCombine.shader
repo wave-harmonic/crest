@@ -85,25 +85,29 @@ Shader "Hidden/Ocean/Simulation/Combine Animated Wave LODs"
 				SampleDisplacements(_LD_Sampler_AnimatedWaves_0, i.uv, 1.0, result);
 #endif
 
-				// waves to combine down from the next lod up the chain
+				// Waves to combine down from the next lod up the chain
 				SampleDisplacements(_LD_Sampler_AnimatedWaves_1, uv_1, 1.0, result);
 
 				// TODO - uncomment this define once it works in standalone builds
 #if _DYNAMIC_WAVE_SIM_ON
 				{
-					// convert dynamic wave sim to displacements
+					// Convert dynamic wave sim to displacements
 
 					half waveSimY = tex2Dlod(_LD_Sampler_DynamicWaves_0, float4(i.uv, 0., 0.)).x;
 					result.y += waveSimY;
 
-					// compute displacement from gradient of water surface - discussed in issue #18 and then in issue #47
+					// Compute displacement from gradient of water surface - discussed in issue #18 and then in issue #47
 					const float2 invRes = float2(_LD_Params_0.w, 0.);
 					const half waveSimY_px = tex2Dlod(_LD_Sampler_DynamicWaves_0, float4(i.uv + invRes.xy, 0., 0.)).x;
 					const half waveSimY_nx = tex2Dlod(_LD_Sampler_DynamicWaves_0, float4(i.uv - invRes.xy, 0., 0.)).x;
 					const half waveSimY_pz = tex2Dlod(_LD_Sampler_DynamicWaves_0, float4(i.uv + invRes.yx, 0., 0.)).x;
 					const half waveSimY_nz = tex2Dlod(_LD_Sampler_DynamicWaves_0, float4(i.uv - invRes.yx, 0., 0.)).x;
 
-					float2 dispXZ = _HorizDisplace * (float2(waveSimY_px, waveSimY_pz) - float2(waveSimY_nx, waveSimY_nz)) / (2. * _LD_Params_0.x);
+					// For gerstner waves, horiz displacement is proportional to derivative of vertical displacement multiplied by the wavelength
+					const float wavelength_mid = 2.0 * _LD_Params_0.x * 1.5;
+					const float wavevector = 2.0 * 3.14159 / wavelength_mid;
+					const float2 dydx = (float2(waveSimY_px, waveSimY_pz) - float2(waveSimY_nx, waveSimY_nz)) / (2. * _LD_Params_0.x);
+					float2 dispXZ = _HorizDisplace * dydx / wavevector;
 
 					const float maxDisp = _LD_Params_0.x * _DisplaceClamp;
 					dispXZ = clamp(dispXZ, -maxDisp, maxDisp);

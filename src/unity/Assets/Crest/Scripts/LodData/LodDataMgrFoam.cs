@@ -66,10 +66,11 @@ namespace Crest
             }
         }
 
-        protected override int GetNumSubsteps(float dt)
+        public override void GetSimSubstepData(float frameDt, out int numSubsteps, out float substepDt)
         {
             // foam always does just one sim step
-            return 1;
+            substepDt = frameDt;
+            numSubsteps = 1;
         }
 
         static int[] _paramsSampler;

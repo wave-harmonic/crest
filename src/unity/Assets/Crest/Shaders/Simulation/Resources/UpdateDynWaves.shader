@@ -65,8 +65,11 @@ Shader "Hidden/Ocean/Simulation/Update Dynamic Waves"
 
 			half2 Frag(Varyings i) : SV_Target
 			{
+				const float dt = _SimDeltaTime;
+				const float dtp = _SimDeltaTimePrev;
+
 				half2 velocity = tex2Dlod(_LD_Sampler_Flow_1, float4(i.uv, 0, 0));
-				float2 uv_lastframe = LD_0_WorldToUV(i.worldPosXZ - (_SimDeltaTime * velocity));
+				float2 uv_lastframe = LD_0_WorldToUV(i.worldPosXZ - (dt * velocity));
 				float4 uv_lastframe4 = float4(uv_lastframe, 0., 0.);
 
 				half2 ft_ftm = tex2Dlod(_LD_Sampler_DynamicWaves_0, uv_lastframe4);
@@ -89,9 +92,6 @@ Shader "Hidden/Ocean/Simulation/Update Dynamic Waves"
 				//float h = max(waterSignedDepth + ft, 0.);
 				float c = ComputeWaveSpeed(wavelength, _Gravity);
 
-				const float dt = _SimDeltaTime;
-				const float dtp = _SimDeltaTimePrev;
-
 				// wave propagation
 				// velocity is implicit
 				float v = dtp > MIN_DT ? (ft - ftm) / dtp : 0.;
@@ -107,9 +107,9 @@ Shader "Hidden/Ocean/Simulation/Update Dynamic Waves"
 				// dudt + c*dudx = 0
 				// (ftp - ft)   +   c*(ft-fxm) = 0.
 				if (uv_lastframe.x + e >= 1.) ftp = -dt*c*(ft - fxm) + ft;
+				else if (uv_lastframe.x - e <= 0.) ftp = dt * c*(fxp - ft) + ft;
 				if (uv_lastframe.y + e >= 1.) ftp = -dt*c*(ft - fym) + ft;
-				if (uv_lastframe.x - e <= 0.) ftp = dt*c*(fxp - ft) + ft;
-				if (uv_lastframe.y - e <= 0.) ftp = dt*c*(fyp - ft) + ft;
+				else if (uv_lastframe.y - e <= 0.) ftp = dt*c*(fyp - ft) + ft;
 
 				// attenuate waves based on ocean depth. if depth is greater than 0.5*wavelength, water is considered Deep and wave is
 				// unaffected. if depth is less than this, wave velocity decreases. waves will then bunch up and grow in amplitude and

@@ -62,6 +62,8 @@ public class RippleGenerator : MonoBehaviour
             _mat.SetFloat("_SimCount", simsActive);
         }
 
-        _mat.SetFloat("_SimDeltaTime", OceanRenderer.Instance._lodDataDynWaves.SimDeltaTime);
+        float dt; int steps;
+        OceanRenderer.Instance._lodDataDynWaves.GetSimSubstepData(Time.deltaTime, out steps, out dt);
+        _mat.SetFloat("_SimDeltaTime", dt);
     }
 }

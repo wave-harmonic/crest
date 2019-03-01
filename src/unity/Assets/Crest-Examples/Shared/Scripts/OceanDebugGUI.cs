@@ -117,6 +117,13 @@ public class OceanDebugGUI : MonoBehaviour
                 GUI.Label(new Rect(x, y, w, h), string.Format("Cache hits: {0}/{1}", cache.CacheHits, cache.CacheChecks)); y += h;
             }
 
+            if (OceanRenderer.Instance._lodDataDynWaves != null)
+            {
+                int steps; float dt;
+                OceanRenderer.Instance._lodDataDynWaves.GetSimSubstepData(Time.deltaTime, out steps, out dt);
+                GUI.Label(new Rect(x, y, w, h), string.Format("Sim steps: {0:0.00000} x {1}", dt, steps)); y += h;
+            }
+
             if (GUI.Button(new Rect(x, y, w, h), "Hide GUI (G)"))
             {
                 ToggleGUI();

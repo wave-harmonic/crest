@@ -71,17 +71,18 @@ namespace Crest
             _pwMat._target = null;
         }
 
-        protected abstract int GetNumSubsteps(float dt);
+        public abstract void GetSimSubstepData(float frameDt, out int numSubsteps, out float substepDt);
 
         public override void BuildCommandBuffer(OceanRenderer ocean, CommandBuffer buf)
         {
             base.BuildCommandBuffer(ocean, buf);
 
             var lodCount = OceanRenderer.Instance.CurrentLodCount;
-            var steps = GetNumSubsteps(Time.deltaTime);
-            var substepDt = Time.deltaTime / steps;
+            float substepDt;
+            int numSubsteps;
+            GetSimSubstepData(Time.deltaTime, out numSubsteps, out substepDt);
 
-            for (int stepi = 0; stepi < steps; stepi++)
+            for (int stepi = 0; stepi < numSubsteps; stepi++)
             {
                 for (var lodIdx = lodCount - 1; lodIdx >= 0; lodIdx--)
                 {

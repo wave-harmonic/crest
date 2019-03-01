@@ -108,16 +108,17 @@ namespace Crest
             }
         }
 
-        protected override int GetNumSubsteps(float dt)
+        public override void GetSimSubstepData(float frameDt, out int numSubsteps, out float substepDt)
         {
-            return Mathf.Min(MAX_SIM_STEPS, Mathf.CeilToInt(dt / Settings._maxSubstepDt));
-        }
-
-        public float SimDeltaTime
-        {
-            get
+            numSubsteps = Mathf.CeilToInt(frameDt / Settings._maxSubstepDt);
+            numSubsteps = Mathf.Min(MAX_SIM_STEPS, numSubsteps);
+            if (numSubsteps > 0)
             {
-                return Time.deltaTime / GetNumSubsteps(Time.deltaTime);
+                substepDt = Mathf.Min(Settings._maxSubstepDt, frameDt / numSubsteps);
+            }
+            else
+            {
+                substepDt = 0f;
             }
         }
 

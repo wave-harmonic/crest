@@ -182,12 +182,17 @@ namespace Crest
             _drawLODTransitionWaves = false;
         }
 
+        public int _period = 8;
+
         /// <summary>
         /// Computes Gerstner params for a set of waves, for the given lod idx. Writes shader data to the given material.
         /// Returns number of wave components rendered in this batch.
         /// </summary>
         int UpdateBatch(int lodIdx, int firstComponent, int lastComponentNonInc, Material material)
         {
+            //var stream = System.IO.File.AppendText("c:\\users\\theco\\desktop\\data.txt");
+            //stream.WriteLine();
+
             int numComponents = lastComponentNonInc - firstComponent;
             int numInBatch = 0;
             int dropped = 0;
@@ -245,6 +250,17 @@ namespace Crest
                         float gravityScale = _spectrum._gravityScales[(firstComponent + i) / _componentsPerOctave];
                         float gravity = OceanRenderer.Instance.Gravity * _spectrum._gravityScale;
                         float C = Mathf.Sqrt(wl * gravity * gravityScale * one_over_2pi);
+
+                        //// make sure wave cycles an integral number of times in period T
+                        //float T = _period;
+                        //float numWLsCovered = T * C / wl;
+                        //numWLsCovered = Mathf.Round(numWLsCovered);
+                        //numWLsCovered = Mathf.Max(numWLsCovered, 1f);
+                        //float newC = numWLsCovered * wl / T;
+                        ////Debug.Log("OldC: " + C + ", NewC: " + newC);
+                        ////stream.WriteLine(wl + "\t" + C + "\t" + newC);
+                        //C = newC;
+
                         float k = twopi / wl;
                         UpdateBatchScratchData._phasesBatch[vi][ei] = _phases[firstComponent + i] + k * C * OceanRenderer.Instance.CurrentTime;
 
@@ -309,6 +325,8 @@ namespace Crest
             {
                 OceanRenderer.Instance._lodDataSeaDepths.BindResultData(lodIdx, 0, material, false);
             }
+
+            //stream.Close();
 
             return numInBatch;
         }

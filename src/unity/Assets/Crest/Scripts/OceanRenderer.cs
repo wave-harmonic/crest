@@ -220,7 +220,7 @@ namespace Crest
             // reach maximum detail at slightly below sea level. this should combat cases where visual range can be lost
             // when water height is low and camera is suspended in air. i tried a scheme where it was based on difference
             // to water height but this does help with the problem of horizontal range getting limited at bad times.
-            float maxDetailY = SeaLevel - _maxVertDispFromShape / 5f;
+            float maxDetailY = SeaLevel + 5f; // - _maxVertDispFromShape / 5f;
             // scale ocean mesh based on camera distance to sea level, to keep uniform detail.
             float camY = Mathf.Max(Mathf.Abs(_viewpoint.position.y) - maxDetailY, 0f);
 

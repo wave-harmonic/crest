@@ -34,7 +34,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _Normals:
-        m_Texture: {fileID: 2800000, guid: 73fd396a82b5181479f6602abdf36d5e, type: 3}
+        m_Texture: {fileID: 2800000, guid: 800e061692ff7a84e887f439d3364410, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _Skybox:
@@ -109,8 +109,8 @@ Material:
     - _Invert: 1
     - _MipBias: 0
     - _Moving: 0.17
-    - _NormalsScale: 20
-    - _NormalsStrength: 0.28
+    - _NormalsScale: 40
+    - _NormalsStrength: 0.36
     - _Offset: 0.00008
     - _PlanarReflections: 0
     - _ProceduralSky: 0

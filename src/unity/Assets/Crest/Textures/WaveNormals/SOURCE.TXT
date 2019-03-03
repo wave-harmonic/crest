@@ -1,3 +1,3 @@
-This texture came from https://github.com/ludwigpe/WaterSimulation
+Source: https://blenderartists.org/t/animated-water-normal-map-tileable-looped/673140
 
-The _blurred version is this texture with a slight gaussian blur, by huwb.
+Direct download link: https://blenderartists.org/uploads/default/95d0cfb2406ee5a65491bbaba429713684b5b089

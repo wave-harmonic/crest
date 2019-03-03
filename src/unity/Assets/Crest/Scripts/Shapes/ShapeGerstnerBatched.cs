@@ -21,7 +21,7 @@ namespace Crest
         [Delayed, Tooltip("How many wave components to generate in each octave.")]
         public int _componentsPerOctave = 5;
 
-        [Range(0f, 1f)]
+        [Range(0f, 5f)]
         public float _weight = 1f;
 
         public int _randomSeed = 0;

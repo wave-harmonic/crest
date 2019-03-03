@@ -13,8 +13,8 @@ namespace Crest
         public const int NUM_OCTAVES = 12;
         public static readonly float SMALLEST_WL_POW_2 = -2f;
 
-        public static readonly float MIN_POWER_LOG = -6f;
-        public static readonly float MAX_POWER_LOG = 3f;
+        public static readonly float MIN_POWER_LOG = -8f;
+        public static readonly float MAX_POWER_LOG = 8f;
 
         [Tooltip("Variance of flow direction, in degrees"), Range(0f, 180f)]
         public float _waveDirectionVariance = 90f;
@@ -41,7 +41,7 @@ namespace Crest
         public float[] _gravityScales = new float[NUM_OCTAVES]
             { 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f };
 
-        [Tooltip("Scales horizontal displacement"), Range(0f, 2f)]
+        [Tooltip("Scales horizontal displacement"), Range(0f, 10f)]
         public float _chop = 1f;
 
         public bool _showAdvancedControls = false;
@@ -133,7 +133,7 @@ namespace Crest
                     // stratified random sampling - should give a better range of wavelengths, and also means i can generated the
                     // wavelengths in sorted order!
                     var minWavelengthi = minWavelength + invComponentsPerOctave * minWavelength * i;
-                    var  maxWavelengthi = Mathf.Min(minWavelengthi + invComponentsPerOctave * minWavelength, 2f * minWavelength);
+                    var maxWavelengthi = Mathf.Min(minWavelengthi + invComponentsPerOctave * minWavelength, 2f * minWavelength);
                     wavelengths[index] = Mathf.Lerp(minWavelengthi, maxWavelengthi, Random.value);
 
                     var rnd = (i + Random.value) * invComponentsPerOctave;

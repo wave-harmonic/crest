@@ -4,7 +4,8 @@
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
@@ -12,20 +13,22 @@ MonoBehaviour:
   m_Name: WavesModerate
   m_EditorClassIdentifier: 
   _waveDirectionVariance: 90
+  _windBias: 1.54
+  _againstWindWaves: 1
   _gravityScale: 1
   _powerLog:
-  - -4.6633663
-  - -4.632612
-  - -3.9353123
-  - -3.2213879
-  - -2.4813807
-  - -1.2080691
-  - -0.53905386
-  - 0.27448857
-  - 0.53627354
-  - 1.0282621
-  - 1.4403292
-  - -6
+  - -2.5528996
+  - -2.343667
+  - -2.0102887
+  - -1.3046812
+  - -1.119171
+  - -0.037666425
+  - 0.93007624
+  - 0.5669251
+  - 0.80766046
+  - 2.1789668
+  - -8
+  - -8
   _powerDisabled: 000000000000000000000000
   _chopScales:
   - 1
@@ -53,5 +56,5 @@ MonoBehaviour:
   - 1
   - 1
   - 1
-  _chop: 1.5
+  _chop: 1.76
   _showAdvancedControls: 0

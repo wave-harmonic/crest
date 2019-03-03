@@ -454,8 +454,8 @@ MonoBehaviour:
   _layerName: Water
   _windDirectionAngle: 0
   _gravityMultiplier: 1
-  _minTexelsPerWave: 3
-  _minScale: 8
+  _minTexelsPerWave: 4
+  _minScale: 2
   _maxScale: 256
   _lodDataResolution: 256
   _geometryDownSampleFactor: 2
@@ -473,6 +473,7 @@ MonoBehaviour:
   _simSettingsShadow: {fileID: 0}
   _uniformTiles: 0
   _disableSkirt: 0
+  _followViewpoint: 1
   _lods: []
   _lodDataAnimWaves: {fileID: 0}
   _lodDataSeaDepths: {fileID: 0}
@@ -866,6 +867,7 @@ MonoBehaviour:
   _componentsPerOctave: 5
   _weight: 1
   _randomSeed: 0
+  _componentsDrawn: 0
 --- !u!1001 &1898459823
 PrefabInstance:
   m_ObjectHideFlags: 0

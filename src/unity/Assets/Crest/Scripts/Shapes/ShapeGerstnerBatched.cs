@@ -26,6 +26,8 @@ namespace Crest
 
         public int _randomSeed = 0;
 
+        public int _componentsDrawn = 0;
+
         // data for all components
         float[] _wavelengths;
         float[] _amplitudes;
@@ -322,6 +324,8 @@ namespace Crest
         /// </summary>
         void LateUpdate()
         {
+            _componentsDrawn = 0;
+
             int componentIdx = 0;
 
             // seek forward to first wavelength that is big enough to render into current LODs
@@ -340,14 +344,18 @@ namespace Crest
                     componentIdx++;
                 }
 
-                _drawLOD[lod] = UpdateBatch(lod, startCompIdx, componentIdx, _materials[lod]) > 0;
+                var batchCount = UpdateBatch(lod, startCompIdx, componentIdx, _materials[lod]);
+                _componentsDrawn += batchCount;
+                _drawLOD[lod] = batchCount > 0;
             }
 
             // the last batch handles waves for the last lod, and waves that did not fit in the last lod
-            _drawLOD[OceanRenderer.Instance.CurrentLodCount - 1] =
-                UpdateBatch(OceanRenderer.Instance.CurrentLodCount - 1, componentIdx, _wavelengths.Length, _materials[OceanRenderer.Instance.CurrentLodCount - 1]) > 0;
-            _drawLODTransitionWaves =
-                UpdateBatch(OceanRenderer.Instance.CurrentLodCount - 2, componentIdx, _wavelengths.Length, _materialBigWaveTransition) > 0;
+            var lastBatchCount = UpdateBatch(OceanRenderer.Instance.CurrentLodCount - 1, componentIdx, _wavelengths.Length, _materials[OceanRenderer.Instance.CurrentLodCount - 1]);
+            _componentsDrawn += lastBatchCount;
+            _drawLOD[OceanRenderer.Instance.CurrentLodCount - 1] = lastBatchCount > 0;
+
+            // draw penultimate batch into last lod as well, to transition waves over when viewer altitude changes
+            _drawLODTransitionWaves = UpdateBatch(OceanRenderer.Instance.CurrentLodCount - 2, componentIdx, _wavelengths.Length, _materialBigWaveTransition) > 0;
         }
 
         /// <summary>

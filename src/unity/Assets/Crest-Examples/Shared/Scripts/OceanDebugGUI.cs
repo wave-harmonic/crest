@@ -75,9 +75,12 @@ public class OceanDebugGUI : MonoBehaviour
                 Time.timeScale = freeze ? 0f : 1f;
             }
 
+            var totalComponents = 0;
             GUI.Label(new Rect(x, y, w, h), "Gerstner weight(s)"); y += h;
             foreach (var gerstner in gerstners)
             {
+                totalComponents += gerstner._componentsDrawn;
+
                 var specW = 75f;
                 gerstner._weight = GUI.HorizontalSlider(new Rect(x, y, w - specW - 5f, h), gerstner._weight, 0f, 1f);
 
@@ -91,6 +94,7 @@ public class OceanDebugGUI : MonoBehaviour
 #endif
                 y += h;
             }
+            GUI.Label(new Rect(x, y, w, h), "Gerstner components: " + totalComponents); y += h;
 
             _showSimTargets = GUI.Toggle(new Rect(x, y, w, h), _showSimTargets, "Show sim data"); y += h;
 

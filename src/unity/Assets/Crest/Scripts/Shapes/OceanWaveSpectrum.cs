@@ -18,6 +18,10 @@ namespace Crest
 
         [Tooltip("Variance of flow direction, in degrees"), Range(0f, 180f)]
         public float _waveDirectionVariance = 90f;
+        [Range(0f, 5f)]
+        public float _windBias = 1f;
+        [Range(0, 1)]
+        public float _againstWindWaves = 0.5f;
 
         [Tooltip("More gravity means faster waves."), Range(0f, 25f)]
         public float _gravityScale = 1f;
@@ -44,7 +48,7 @@ namespace Crest
 
         public static float SmallWavelength(float octaveIndex) { return Mathf.Pow(2f, SMALLEST_WL_POW_2 + octaveIndex); }
 
-        public float GetAmplitude(float wavelength, float componentsPerOctave)
+        public float GetAmplitude(float wavelength, float angle, Vector2 windDir, float componentsPerOctave)
         {
             if (wavelength <= 0.001f)
             {
@@ -68,19 +72,30 @@ namespace Crest
                 return 0f;
             }
 
-            // The amplitude calculation follows this nice paper from Frechot:
-            // https://hal.archives-ouvertes.fr/file/index/docid/307938/filename/frechot_realistic_simulation_of_ocean_surface_using_wave_spectra.pdf
-            float wl_lo = Mathf.Pow(2f, Mathf.Floor(wl_pow2));
-            float k_lo = 2f * Mathf.PI / wl_lo;
-            float omega_lo = k_lo * ComputeWaveSpeed(wl_lo);
-            float wl_hi = 2f * wl_lo;
-            float k_hi = 2f * Mathf.PI / wl_hi;
-            float omega_hi = k_hi * ComputeWaveSpeed(wl_hi);
+            float pow = Mathf.Pow(10f, _powerLog[index]);
+            pow /= componentsPerOctave;
 
-            float domega = (omega_lo - omega_hi) / componentsPerOctave;
+            // wind influence
+            {
+                float wavenumber = 2f * Mathf.PI / wavelength;
 
-            float a_2 = 2f * Mathf.Pow(10f, _powerLog[index]) * domega;
-            var a = Mathf.Sqrt(a_2);
+                float angle_radians = Mathf.PI * angle / 180f;
+                float kx = Mathf.Cos(angle_radians);
+                float kz = Mathf.Sin(angle_radians);
+
+                float wx = windDir.x;
+                float wz = windDir.y;
+
+                float kdotw = (wx * kx + wz * kz);
+
+                if (kdotw < 0f)
+                {
+                    kdotw *= _againstWindWaves;
+                }
+                pow *= Mathf.Pow(Mathf.Abs(kdotw), _windBias);
+            }
+
+            float a = Mathf.Sqrt(pow / 2f);
             return a;
         }
 
@@ -134,7 +149,7 @@ namespace Crest
             for (int octave = 0; octave < NUM_OCTAVES; octave++)
             {
                 float wl = SmallWavelength(octave) * 1.5f;
-                var pow = PhillipsSpectrum(windSpeed, OceanRenderer.Instance.WindDir, Mathf.Abs(Physics.gravity.y), Mathf.Pow(2f, SMALLEST_WL_POW_2), wl, 0f);
+                var pow = PhillipsSpectrum(windSpeed, /*OceanRenderer.Instance.WindDir,*/ Mathf.Abs(Physics.gravity.y), Mathf.Pow(2f, SMALLEST_WL_POW_2), wl/*, 0f*/);
                 // we store power on logarithmic scale. this does not include 0, we represent 0 as min value
                 pow = Mathf.Max(pow, Mathf.Pow(10f, MIN_POWER_LOG));
                 _powerLog[octave] = Mathf.Log10(pow);
@@ -166,26 +181,25 @@ namespace Crest
         }
 
 
-        static float PhillipsSpectrum(float windSpeed, Vector2 windDir, float gravity, float smallestWavelength, float wavelength, float angle)
+        static float PhillipsSpectrum(float windSpeed, /*Vector2 windDir,*/ float gravity, float smallestWavelength, float wavelength/*, float angle*/)
         {
-            float wavenumber = 2f * Mathf.PI / wavelength;
-            float angle_radians = Mathf.PI * angle / 180f;
-            float kx = Mathf.Cos(angle_radians) * wavenumber;
-            float kz = Mathf.Sin(angle_radians) * wavenumber;
+            // wavenumber
+            var k = 2f * Mathf.PI / wavelength;
+            var k2 = k * k;
 
-            float k2 = kx * kx + kz * kz;
+            // phillips constant ( https://hal.archives-ouvertes.fr/file/index/docid/307938/filename/frechot_realistic_simulation_of_ocean_surface_using_wave_spectra.pdf )
+            var a = 0.0081f;
 
-            float windSpeed2 = windSpeed * windSpeed;
-            float wx = windDir.x;
-            float wz = windDir.y;
+            // largest possible wavelength
+            var windSpeed2 = windSpeed * windSpeed;
+            var L = windSpeed2 / gravity;
 
-            float kdotw = (wx * kx + wz * kz);
-
-            float a = 0.0081f; // phillips constant ( https://hal.archives-ouvertes.fr/file/index/docid/307938/filename/frechot_realistic_simulation_of_ocean_surface_using_wave_spectra.pdf )
-            float L = windSpeed2 / gravity;
+            // smallest wavelength
+            var l = 0f * Mathf.Pow(2f, SMALLEST_WL_POW_2 - 1f);
 
             // http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.161.9102&rep=rep1&type=pdf
-            return a * kdotw * kdotw * Mathf.Exp(-1f / (k2 * L * L)) / (k2 * k2);
+            // has small wavelength correction as suggested by Tessendorf. without this power values for small wavelengths never go small enough
+            return a * Mathf.Exp(-1f / (k2 * L * L) - k2 * l * l) / (k2 * k2);
         }
 
         // base of modern parametric wave spectrum

@@ -125,9 +125,9 @@ namespace Crest
 
             _spectrum.GenerateWaveData(_componentsPerOctave, ref _wavelengths, ref _angleDegs);
 
-            Random.state = randomStateBkp;
-
             UpdateAmplitudes();
+
+            Random.state = randomStateBkp;
 
             ReportMaxDisplacement();
 
@@ -147,7 +147,8 @@ namespace Crest
 
             for (int i = 0; i < _wavelengths.Length; i++)
             {
-                _amplitudes[i] = _weight * _spectrum.GetAmplitude(_wavelengths[i], _componentsPerOctave);
+                float wt = Random.value;
+                _amplitudes[i] = _weight * wt * _spectrum.GetAmplitude(_wavelengths[i], _angleDegs[i], OceanRenderer.Instance.WindDir, _componentsPerOctave);
             }
         }
 

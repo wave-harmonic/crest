@@ -11,23 +11,26 @@ namespace Crest
     /// </summary>
     public class OceanDepthCache : MonoBehaviour
     {
-        [Tooltip("Can be disabled to delay population of the cache.")]
-        public bool _populateOnStartup = true;
+        [Tooltip("Can be disabled to delay population of the cache."), SerializeField]
+        bool _populateOnStartup = true;
 
-        [Tooltip("The layers to render into the depth cache.")]
-        public string[] _layerNames;
+        [Tooltip("Renderers in scene to render into this depth cache. When provided this saves the code from doing an expensive FindObjectsOfType() call. If one or more renderers are specified, the layer setting is ignored."), SerializeField]
+        Renderer[] _geometryToRenderIntoCache = new Renderer[0];
 
-        [Tooltip("The resolution of the cached depth - lower will be more efficient.")]
-        public int _resolution = 512;
+        [Tooltip("The layers to render into the depth cache. This is ignored if geometry instances are specified in the Geometry To Render Into Cache field."), SerializeField]
+        string[] _layerNames = null;
 
-        // a big hill will still want to write its height into the depth texture
-        [Tooltip("The 'near plane' for the depth cache camera (top down).")]
-        public float _cameraMaxTerrainHeight = 100f;
+        [Tooltip("The resolution of the cached depth - lower will be more efficient."), SerializeField]
+        int _resolution = 512;
 
-        [Tooltip("Will render into the cache every frame.")]
-        public bool _forceAlwaysUpdateDebug = false;
+        // A big hill will still want to write its height into the depth texture
+        [Tooltip("The 'near plane' for the depth cache camera (top down)."), SerializeField]
+        float _cameraMaxTerrainHeight = 100f;
 
-        RenderTexture _cache;
+        [Tooltip("Will render into the cache every frame. Intended for debugging, will generate garbage."), SerializeField]
+        bool _forceAlwaysUpdateDebug = false;
+
+        RenderTexture _cacheTexture;
         GameObject _drawCacheQuad;
         Camera _camDepthCache;
 
@@ -83,26 +86,26 @@ namespace Crest
                 Debug.LogError("No valid layers for populating depth cache, aborting.", this);
             }
             
-            if (_cache == null)
+            if (_cacheTexture == null)
             {
-                _cache = new RenderTexture(_resolution, _resolution, 0);
-                _cache.name = gameObject.name + "_oceanDepth";
-                _cache.format = RenderTextureFormat.RHalf;
-                _cache.useMipMap = false;
-                _cache.anisoLevel = 0;
+                _cacheTexture = new RenderTexture(_resolution, _resolution, 0);
+                _cacheTexture.name = gameObject.name + "_oceanDepth";
+                _cacheTexture.format = RenderTextureFormat.RHalf;
+                _cacheTexture.useMipMap = false;
+                _cacheTexture.anisoLevel = 0;
             }
 
             if (_drawCacheQuad == null)
             {
                 _drawCacheQuad = GameObject.CreatePrimitive(PrimitiveType.Quad);
                 Destroy(_drawCacheQuad.GetComponent<Collider>());
-                _drawCacheQuad.name = "Draw_" + _cache.name;
+                _drawCacheQuad.name = "Draw_" + _cacheTexture.name;
                 _drawCacheQuad.transform.SetParent(transform, false);
                 _drawCacheQuad.transform.localEulerAngles = 90f * Vector3.right;
                 _drawCacheQuad.AddComponent<RegisterSeaFloorDepthInput>();
                 var qr = _drawCacheQuad.GetComponent<Renderer>();
                 qr.material = new Material(Shader.Find("Ocean/Inputs/Depth/Cached Depths"));
-                qr.material.mainTexture = _cache;
+                qr.material.mainTexture = _cacheTexture;
                 qr.enabled = false;
             }
 
@@ -114,7 +117,7 @@ namespace Crest
                 _camDepthCache.transform.localEulerAngles = 90f * Vector3.right;
                 _camDepthCache.orthographic = true;
                 _camDepthCache.orthographicSize = Mathf.Max(transform.lossyScale.x / 2f, transform.lossyScale.z / 2f);
-                _camDepthCache.targetTexture = _cache;
+                _camDepthCache.targetTexture = _cacheTexture;
                 _camDepthCache.cullingMask = layerMask;
                 _camDepthCache.clearFlags = CameraClearFlags.SolidColor;
                 // 0 means '0m above very deep sea floor'
@@ -130,10 +133,12 @@ namespace Crest
             _camDepthCache.RenderWithShader(Shader.Find("Ocean/Inputs/Depth/Ocean Depth From Geometry"), null);
         }
 
+#if UNITY_EDITOR
         void OnDrawGizmosSelected()
         {
             Gizmos.matrix = transform.localToWorldMatrix;
             Gizmos.DrawWireCube(Vector3.zero, new Vector3(1f, 0f, 1f));
         }
+#endif
     }
 }

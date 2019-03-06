@@ -5,6 +5,7 @@ using UnityEngine;
 
 namespace Crest
 {
+#if UNITY_EDITOR
     [CustomEditor( typeof(OceanWaveSpectrum) )]
     public class OceanWaveSpectrumEditor : Editor
     {
@@ -149,4 +150,5 @@ namespace Crest
             serializedObject.ApplyModifiedProperties();
         }
     }
+#endif
 }

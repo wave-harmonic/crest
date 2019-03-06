@@ -1,6 +1,7 @@
 ﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 
 namespace Crest
 {
@@ -50,11 +51,33 @@ namespace Crest
             _mesh.bounds = newBounds;
         }
 
+        private void OnEnable()
+        {
+            RenderPipeline.beginCameraRendering += BeginCameraRendering;
+        }
+        private void OnDisable()
+        {
+            RenderPipeline.beginCameraRendering -= BeginCameraRendering;
+        }
+
+        static Camera _currentCamera = null;
+
+        private void BeginCameraRendering(Camera cam)
+        {
+            _currentCamera = cam;
+        }
+
         // Called when visible to a camera
         void OnWillRenderObject()
         {
+            // check if built-in pipeline being used
+            if (Camera.current != null)
+            {
+                _currentCamera = Camera.current;
+            }
+
             // Depth texture is used by ocean shader for transparency/depth fog, and for fading out foam at shoreline.
-            Camera.current.depthTextureMode |= DepthTextureMode.Depth;
+            _currentCamera.depthTextureMode |= DepthTextureMode.Depth;
 
             // per instance data
 
@@ -107,7 +130,7 @@ namespace Crest
                 if (OceanRenderer.Instance.CreateShadowData) ldshadows.BindResultData(_lodIndex + 1, 1, _mpb);
             }
 
-            var reflTex = OceanPlanarReflection.GetRenderTexture(Camera.current.targetDisplay);
+            var reflTex = OceanPlanarReflection.GetRenderTexture(_currentCamera.targetDisplay);
             if (reflTex)
             {
                 _mpb.SetTexture(_reflectionTexId, reflTex);

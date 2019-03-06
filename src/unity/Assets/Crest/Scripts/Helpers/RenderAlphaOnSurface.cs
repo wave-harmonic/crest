@@ -83,7 +83,9 @@ namespace Crest
 
             if (_drawBounds)
             {
+#if UNITY_EDITOR
                 _rend.bounds.DebugDraw();
+#endif
             }
         }
     }

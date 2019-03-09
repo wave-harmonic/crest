@@ -1,6 +1,6 @@
 ﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
-Shader "Ocean/Inputs/Foam/Add From Vert Colours"
+Shader "Crest/Inputs/Foam/Add From Vert Colours"
 {
 	Properties
 	{
@@ -9,43 +9,41 @@ Shader "Ocean/Inputs/Foam/Add From Vert Colours"
 
 	SubShader
 	{
-		Tags { "RenderType"="Transparent" }
 		Blend One One
 
 		Pass
 		{
 			CGPROGRAM
-			#pragma vertex vert
-			#pragma fragment frag
-			
+			#pragma vertex Vert
+			#pragma fragment Frag
+
 			#include "UnityCG.cginc"
 
-			struct appdata
+			float _Strength;
+
+			struct Attributes
 			{
-				float4 vertex : POSITION;
-				float2 uv : TEXCOORD0;
+				float3 positionOS : POSITION;
 				float4 col : COLOR0;
 			};
 
-			struct v2f
+			struct Varyings
 			{
-				float4 vertex : SV_POSITION;
+				float4 positionCS : SV_POSITION;
 				float4 col : COLOR0;
 			};
 
-			v2f vert (appdata v)
+			Varyings Vert(Attributes input)
 			{
-				v2f o;
-				o.vertex = UnityObjectToClipPos(v.vertex);
-				o.col = v.col;
+				Varyings o;
+				o.positionCS = UnityObjectToClipPos(input.positionOS);
+				o.col = input.col;
 				return o;
 			}
-			
-			uniform float _Strength;
 
-			half4 frag (v2f i) : SV_Target
+			half4 Frag(Varyings input) : SV_Target
 			{
-				return _Strength * i.col.x;
+				return _Strength * input.col.x;
 			}
 			ENDCG
 		}

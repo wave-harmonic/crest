@@ -55,7 +55,7 @@ namespace Crest
                 AddInput<RegisterFlowInput>(_flowMaterial, _radius);
             }
 
-            _dampDynWavesMaterial = new Material(Shader.Find("Ocean/Inputs/Dynamic Waves/Dampen Circle"));
+            _dampDynWavesMaterial = new Material(Shader.Find("Crest/Inputs/Dynamic Waves/Dampen Circle"));
             if (_createDynWavesDampen)
             {
                 AddInput<RegisterDynWavesInput>(_dampDynWavesMaterial, _radius);

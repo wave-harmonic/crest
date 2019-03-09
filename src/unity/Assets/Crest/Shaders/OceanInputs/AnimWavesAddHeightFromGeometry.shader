@@ -3,7 +3,7 @@
 // This adds the height from the geometry. This allows setting the water height to some level for rivers etc, but still
 // getting the waves added on top.
 
-Shader "Ocean/Inputs/Animated Waves/Add Water Height From Geometry"
+Shader "Crest/Inputs/Animated Waves/Add Water Height From Geometry"
 {
 	Properties
 	{
@@ -15,8 +15,6 @@ Shader "Ocean/Inputs/Animated Waves/Add Water Height From Geometry"
 
  	SubShader
 	{
-		Tags{ "Queue" = "Transparent" }
-
  		Pass
 		{
 			BlendOp [_BlendOp]
@@ -24,36 +22,36 @@ Shader "Ocean/Inputs/Animated Waves/Add Water Height From Geometry"
 			ColorMask [_ColorWriteMask]
 
  			CGPROGRAM
-			#pragma vertex vert
-			#pragma fragment frag
+			#pragma vertex Vert
+			#pragma fragment Frag
 
  			#include "UnityCG.cginc"
 			#include "../OceanLODData.hlsl"
 
- 			struct appdata
+ 			struct Attributes
 			{
-				float4 vertex : POSITION;
+				float3 positionOS : POSITION;
 			};
 
- 			struct v2f
+ 			struct Varyings
 			{
-				float4 vertex : SV_POSITION;
+				float4 positionCS : SV_POSITION;
 				float3 worldPos : TEXCOORD0;
 			};
 
- 			v2f vert (appdata v)
+ 			Varyings Vert(Attributes input)
 			{
-				v2f o;
-				o.vertex = UnityObjectToClipPos(v.vertex);
-				o.worldPos = mul(unity_ObjectToWorld, v.vertex).xyz;
+				Varyings o;
+				o.positionCS = UnityObjectToClipPos(input.positionOS);
+				o.worldPos = mul(unity_ObjectToWorld, float4(input.positionOS, 1.0));
 				return o;
 			}
 
- 			half4 frag (v2f i) : SV_Target
+ 			half4 Frag(Varyings input) : SV_Target
 			{
 				// Write displacement to get from sea level of ocean to the y value of this geometry
-				float addHeight = i.worldPos.y - _OceanCenterPosWorld.y;
-				return half4(0., addHeight, 0., 1.);
+				float addHeight = input.worldPos.y - _OceanCenterPosWorld.y;
+				return half4(0.0, addHeight, 0.0, 1.0);
 			}
 			ENDCG
 		}

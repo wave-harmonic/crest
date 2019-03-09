@@ -1,6 +1,6 @@
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
-Shader "Ocean/Inputs/Animated Waves/Wave Particle"
+Shader "Crest/Inputs/Animated Waves/Wave Particle"
 {
 	Properties
 	{
@@ -8,73 +8,66 @@ Shader "Ocean/Inputs/Animated Waves/Wave Particle"
 		_Radius( "Radius", float) = 3
 	}
 
-	Category
+	SubShader
 	{
-		Tags { "Queue"="Transparent" "DisableBatching" = "True" }
+		Tags { "DisableBatching" = "True" }
 
-		SubShader
+		Pass
 		{
-			Pass
+			Blend One One
+
+			CGPROGRAM
+			#pragma vertex Vert
+			#pragma fragment Frag
+
+			float _Radius;
+			float _Amplitude;
+
+			struct Attributes
 			{
-				Name "BASE"
-				Tags { "LightMode" = "Always" }
-				Blend One One
-			
-				CGPROGRAM
-				#pragma vertex vert
-				#pragma fragment frag
+				float3 positionOS : POSITION;
+			};
 
-				#include "UnityCG.cginc"
+			struct Varyings
+			{
+				float4 positionCS : SV_POSITION;
+				float2 worldOffsetScaledXZ : TEXCOORD0;
+			};
 
-				struct appdata_t {
-					float4 vertex : POSITION;
-					float2 texcoord : TEXCOORD0;
-				};
+			Varyings Vert(Attributes input)
+			{
+				Varyings o;
+				o.positionCS = UnityObjectToClipPos(input.positionOS);
 
-				struct v2f {
-					float4 vertex : SV_POSITION;
-					float2 worldOffsetScaledXZ : TEXCOORD0;
-				};
+				float3 worldPos = mul(unity_ObjectToWorld, float4(input.positionOS, 1.0));
+				float3 centerPos = unity_ObjectToWorld._m03_m13_m23;
+				o.worldOffsetScaledXZ = worldPos.xz - centerPos.xz;
 
-				uniform float _Radius;
+				// shape is symmetric around center with known radius - fix the vert positions to perfectly wrap the shape.
+				o.worldOffsetScaledXZ = sign(o.worldOffsetScaledXZ);
+				float4 newWorldPos = float4(centerPos, 1.);
+				newWorldPos.xz += o.worldOffsetScaledXZ * _Radius;
+				o.positionCS = mul(UNITY_MATRIX_VP, newWorldPos);
 
-				v2f vert( appdata_t v )
-				{
-					v2f o;
-					o.vertex = UnityObjectToClipPos( v.vertex );
-
-					float3 worldPos = mul( unity_ObjectToWorld, v.vertex ).xyz;
-					float3 centerPos = unity_ObjectToWorld._m03_m13_m23;
-					o.worldOffsetScaledXZ = worldPos.xz - centerPos.xz;
-
-					// shape is symmetric around center with known radius - fix the vert positions to perfectly wrap the shape.
-					o.worldOffsetScaledXZ = sign(o.worldOffsetScaledXZ);
-					float4 newWorldPos = float4(centerPos, 1.);
-					newWorldPos.xz += o.worldOffsetScaledXZ * _Radius;
-					o.vertex = mul(UNITY_MATRIX_VP, newWorldPos);
-
-					return o;
-				}
-
-				uniform float _Amplitude;
-
-				float4 frag (v2f i) : SV_Target
-				{
-					// power 4 smoothstep - no normalize needed
-					// credit goes to stubbe's shadertoy: https://www.shadertoy.com/view/4ldSD2
-					float r2 = dot( i.worldOffsetScaledXZ, i.worldOffsetScaledXZ);
-					if( r2 > 1. )
-						return (float4)0.;
-
-					r2 = 1. - r2;
-
-					float y = r2 * r2 * _Amplitude;
-
-					return float4(0., y, 0., 0.);
-				}
-
-				ENDCG
+				return o;
 			}
+
+			float4 Frag(Varyings input) : SV_Target
+			{
+				// power 4 smoothstep - no normalize needed
+				// credit goes to stubbe's shadertoy: https://www.shadertoy.com/view/4ldSD2
+				float r2 = dot( input.worldOffsetScaledXZ, input.worldOffsetScaledXZ);
+				if( r2 > 1.0 )
+					return (float4)0.0;
+
+				r2 = 1.0 - r2;
+
+				float y = r2 * r2 * _Amplitude;
+
+				return float4(0.0, y, 0.0, 0.0);
+			}
+			
+			ENDCG
 		}
 	}
 }

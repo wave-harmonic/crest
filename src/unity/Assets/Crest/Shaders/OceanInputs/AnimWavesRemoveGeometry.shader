@@ -1,20 +1,15 @@
 ﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
-// This writes straight into the displacement texture and sets the water height to the y value of the geometry.
+// Push water under the geometry. Needs to be rendered into all LODs - set Octave Wave length to 0.
 
-Shader "Crest/Inputs/Animated Waves/Set Water Height To Geometry"
+Shader "Crest/Inputs/Animated Waves/Push Water Under Convex Hull"
 {
-	Properties
-	{
-		[Enum(ColorWriteMask)] _ColorWriteMask("Color Write Mask", Int) = 15
-	}
-
  	SubShader
 	{
  		Pass
 		{
-			Blend Off
-			ColorMask [_ColorWriteMask]
+			BlendOp Min
+			Cull Front
 
  			CGPROGRAM
 			#pragma vertex Vert
@@ -44,9 +39,11 @@ Shader "Crest/Inputs/Animated Waves/Set Water Height To Geometry"
 
  			half4 Frag(Varyings input) : SV_Target
 			{
-				// Write displacement to get from sea level of ocean to the y value of this geometry
-				float height = input.worldPos.y - _OceanCenterPosWorld.y;
-				return half4(0.0, height, 0.0, 1.0);
+				// Write displacement to get from sea level of ocean to the y value of this geometry.
+
+				// Write large XZ components - using min blending so this should not affect them.
+				
+				return half4(10000.0, input.worldPos.y - _OceanCenterPosWorld.y, 10000.0, 1.0);
 			}
 			ENDCG
 		}

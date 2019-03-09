@@ -262,7 +262,7 @@ Shader "Ocean/Ocean"
 					}
 					
 					// convert height above -1000m to depth below surface
-					o.lodAlpha_worldXZUndisplaced_oceanDepth.w = DEPTH_BASELINE - o.lodAlpha_worldXZUndisplaced_oceanDepth.w;
+					o.lodAlpha_worldXZUndisplaced_oceanDepth.w = CREST_OCEAN_DEPTH_BASELINE - o.lodAlpha_worldXZUndisplaced_oceanDepth.w;
 
 					// foam can saturate
 					o.foam_screenPos.x = saturate(o.foam_screenPos.x);

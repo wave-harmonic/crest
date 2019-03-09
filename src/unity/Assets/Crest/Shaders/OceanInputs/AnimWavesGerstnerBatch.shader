@@ -70,7 +70,7 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Batch"
 				const half4 oneMinusAttenuation = (half4)1.0 - (half4)_AttenuationInShallows;
 
 				// sample ocean depth (this render target should 1:1 match depth texture, so UVs are trivial)
-				const half depth = DEPTH_BASELINE - tex2D(_LD_Sampler_SeaFloorDepth_0, input.uv).x;
+				const half depth = CREST_OCEAN_DEPTH_BASELINE - tex2D(_LD_Sampler_SeaFloorDepth_0, input.uv).x;
 				half3 result = (half3)0.0;
 
 				// gerstner computation is vectorized - processes 4 wave components at once

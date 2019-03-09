@@ -40,7 +40,7 @@ float2 LD_1_UVToWorld(in float2 i_uv) { return LD_UVToWorld(i_uv, _LD_Pos_Scale_
 
 
 // Bias ocean floor depth so that default (0) values in texture are not interpreted as shallow and generating foam everywhere
-#define DEPTH_BASELINE 1000.
+#define CREST_OCEAN_DEPTH_BASELINE 1000.
 
 
 // Sampling functions

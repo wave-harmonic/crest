@@ -1,17 +1,15 @@
 ﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 // Draw cached depths into current frame ocean depth data
-Shader "Ocean/Inputs/Depth/Cached Depths"
+Shader "Crest/Inputs/Depth/Cached Depths"
 {
 	Properties
 	{
 		_MainTex ("Texture", 2D) = "white" {}
 	}
+
 	SubShader
 	{
-		Tags { "RenderType"="Opaque" }
-		LOD 100
-
 		Pass
 		{
 			// Min blending to take the min of all depths. Similar in spirit to zbuffer'd visibility when viewing from top down.
@@ -20,37 +18,37 @@ Shader "Ocean/Inputs/Depth/Cached Depths"
 			BlendOp Max
 
 			CGPROGRAM
-			#pragma vertex vert
-			#pragma fragment frag
+			#pragma vertex Vert
+			#pragma fragment Frag
 
 			#include "UnityCG.cginc"
-
-			struct appdata
-			{
-				float4 vertex : POSITION;
-				float2 uv : TEXCOORD0;
-			};
-
-			struct v2f
-			{
-				float2 uv : TEXCOORD0;
-				float4 vertex : SV_POSITION;
-			};
-
+			
 			sampler2D _MainTex;
 			float4 _MainTex_ST;
-			
-			v2f vert (appdata v)
+
+			struct Attributes
 			{
-				v2f o;
-				o.vertex = UnityObjectToClipPos(v.vertex);
-				o.uv = TRANSFORM_TEX(v.uv, _MainTex);
+				float3 positionOS : POSITION;
+				float2 uv : TEXCOORD0;
+			};
+
+			struct Varyings
+			{
+				float4 positionCS : SV_POSITION;
+				float2 uv : TEXCOORD0;
+			};
+
+			Varyings Vert(Attributes input)
+			{
+				Varyings o;
+				o.positionCS = UnityObjectToClipPos(input.positionOS);
+				o.uv = TRANSFORM_TEX(input.uv, _MainTex);
 				return o;
 			}
 			
-			half frag (v2f i) : SV_Target
+			half Frag(Varyings input) : SV_Target
 			{
-				return tex2D(_MainTex, i.uv).x;
+				return tex2D(_MainTex, input.uv).x;
 			}
 			ENDCG
 		}

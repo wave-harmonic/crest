@@ -65,7 +65,7 @@ half3 ScatterColour(
 		const float2 uv_0 = LD_0_WorldToUV(i_cameraPos.xz);
 		float seaFloorHeightAboveBaseline = 0.;
 		SampleSeaFloorHeightAboveBaseline(_LD_Sampler_SeaFloorDepth_0, uv_0, 1.0, seaFloorHeightAboveBaseline);
-		depth = DEPTH_BASELINE - seaFloorHeightAboveBaseline;
+		depth = CREST_OCEAN_DEPTH_BASELINE - seaFloorHeightAboveBaseline;
 		waveHeight = 0.;
 
 		fixed2 shadowSoftHard = 0.;

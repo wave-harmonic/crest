@@ -23,6 +23,12 @@ Shader "Crest/Inputs/Foam/Add From Texture"
 
 			#include "UnityCG.cginc"
 
+			sampler2D _MainTex;
+			
+			float4 _MainTex_ST;
+			float _Radius;
+			float _Amplitude;
+
 			struct Attributes
 			{
 				float3 positionOS : POSITION;
@@ -34,11 +40,6 @@ Shader "Crest/Inputs/Foam/Add From Texture"
 				float4 positionCS : SV_POSITION;
 				float2 uv : TEXCOORD0;
 			};
-
-			sampler2D _MainTex;
-			float4 _MainTex_ST;
-			float _Radius;
-			float _Amplitude;
 
 			Varyings Vert(Attributes input)
 			{

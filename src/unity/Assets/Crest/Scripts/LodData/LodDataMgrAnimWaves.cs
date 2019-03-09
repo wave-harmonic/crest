@@ -54,7 +54,7 @@ namespace Crest
             _combineMaterial = new Material[OceanRenderer.Instance.CurrentLodCount];
             for (int i = 0; i < _combineMaterial.Length; i++)
             {
-                _combineMaterial[i] = new Material(Shader.Find("Hidden/Ocean/Simulation/Combine Animated Wave LODs"));
+                _combineMaterial[i] = new Material(Shader.Find("Hidden/Crest/Simulation/Combine Animated Wave LODs"));
             }
 
             int resolution = OceanRenderer.Instance.LodDataResolution;

@@ -1,6 +1,9 @@
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
-#define MAX_UPDOWN_AMOUNT 0.8
+#ifndef CREST_UNDERWATER_SHARED_INCLUDED
+#define CREST_UNDERWATER_SHARED_INCLUDED
+
+#define CREST_MAX_UPDOWN_AMOUNT 0.8
 
 float IntersectRayWithWaterSurface(const float3 pos, const float3 dir)
 {
@@ -22,3 +25,5 @@ float IntersectRayWithWaterSurface(const float3 pos, const float3 dir)
 
 	return dot(disp - pos, dir);
 }
+
+#endif // CREST_UNDERWATER_SHARED_INCLUDED

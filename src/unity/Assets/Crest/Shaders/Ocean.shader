@@ -1,6 +1,6 @@
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
-Shader "Ocean/Ocean"
+Shader "Crest/Ocean"
 {
 	Properties
 	{
@@ -105,330 +105,324 @@ Shader "Ocean/Ocean"
 		[Toggle] _CompileShaderWithDebugInfo("Compile Shader With Debug Info (D3D11)", Float) = 0
 	}
 
-	Category
+	SubShader
 	{
-		Tags {}
+		// ForwardBase - tell unity we're going to render water in forward manner and we're going to do lighting and it will set the appropriate uniforms
+		// Geometry+510 - unity treats anything after Geometry+500 as transparent, and will render it in a forward manner and copy out the gbuffer data
+		//     and do post processing before running it. Discussion of this in issue #53.
+		Tags { "LightMode"="ForwardBase" "Queue"="Geometry+510" "IgnoreProjector"="True" "RenderType"="Opaque" }
 
-		SubShader
+		GrabPass
 		{
-			// ForwardBase - tell unity we're going to render water in forward manner and we're going to do lighting and it will set the appropriate uniforms
-			// Geometry+510 - unity treats anything after Geometry+500 as transparent, and will render it in a forward manner and copy out the gbuffer data
-			//     and do post processing before running it. Discussion of this in issue #53.
-			Tags { "LightMode"="ForwardBase" "Queue"="Geometry+510" "IgnoreProjector"="True" "RenderType"="Opaque" }
+			"_BackgroundTexture"
+		}
 
-			GrabPass
+		Pass
+		{
+			// Culling user defined - can be inverted for under water
+			Cull [_CullMode]
+
+			CGPROGRAM
+			#pragma vertex Vert
+			#pragma fragment Frag
+
+			#pragma multi_compile_fog
+
+			#pragma shader_feature _APPLYNORMALMAPPING_ON
+			#pragma shader_feature _COMPUTEDIRECTIONALLIGHT_ON
+			#pragma shader_feature _SUBSURFACESCATTERING_ON
+			#pragma shader_feature _SUBSURFACEHEIGHTLERP_ON
+			#pragma shader_feature _SUBSURFACESHALLOWCOLOUR_ON
+			#pragma shader_feature _TRANSPARENCY_ON
+			#pragma shader_feature _CAUSTICS_ON
+			#pragma shader_feature _FOAM_ON
+			#pragma shader_feature _FOAM3DLIGHTING_ON
+			#pragma shader_feature _PLANARREFLECTIONS_ON
+			#pragma shader_feature _PROCEDURALSKY_ON
+			#pragma shader_feature _UNDERWATER_ON
+			#pragma shader_feature _FLOW_ON
+			#pragma shader_feature _SHADOWS_ON
+
+			#pragma shader_feature _DEBUGDISABLESHAPETEXTURES_ON
+			#pragma shader_feature _DEBUGVISUALISESHAPESAMPLE_ON
+			#pragma shader_feature _DEBUGVISUALISEFLOW_ON
+			#pragma shader_feature _DEBUGDISABLESMOOTHLOD_ON
+			#pragma shader_feature _COMPILESHADERWITHDEBUGINFO_ON
+
+			#if _COMPILESHADERWITHDEBUGINFO_ON
+			#pragma enable_d3d11_debug_symbols
+			#endif
+
+			#include "UnityCG.cginc"
+			#include "Lighting.cginc"
+
+			struct Attributes
 			{
-				"_BackgroundTexture"
-			}
+				float3 positionOS : POSITION;
+			};
 
-			Pass
+			struct Varyings
 			{
-				// Culling user defined - can be inverted for under water
-				Cull [_CullMode]
+				float4 positionCS : SV_POSITION;
+				half4 flow_shadow : TEXCOORD1;
+				half4 foam_screenPos : TEXCOORD4;
+				half4 lodAlpha_worldXZUndisplaced_oceanDepth : TEXCOORD5;
+				float3 worldPos : TEXCOORD7;
+				#if _DEBUGVISUALISESHAPESAMPLE_ON
+				half3 debugtint : TEXCOORD8;
+				#endif
+				half4 grabPos : TEXCOORD9;
 
-				CGPROGRAM
-				#pragma vertex vert
-				#pragma fragment frag
+				UNITY_FOG_COORDS(3)
+			};
 
-				#pragma multi_compile_fog
+			#include "OceanLODData.hlsl"
 
-				#pragma shader_feature _APPLYNORMALMAPPING_ON
-				#pragma shader_feature _COMPUTEDIRECTIONALLIGHT_ON
-				#pragma shader_feature _SUBSURFACESCATTERING_ON
-				#pragma shader_feature _SUBSURFACEHEIGHTLERP_ON
-				#pragma shader_feature _SUBSURFACESHALLOWCOLOUR_ON
-				#pragma shader_feature _TRANSPARENCY_ON
-				#pragma shader_feature _CAUSTICS_ON
-				#pragma shader_feature _FOAM_ON
-				#pragma shader_feature _FOAM3DLIGHTING_ON
-				#pragma shader_feature _PLANARREFLECTIONS_ON
-				#pragma shader_feature _PROCEDURALSKY_ON
-				#pragma shader_feature _UNDERWATER_ON
-				#pragma shader_feature _FLOW_ON
-				#pragma shader_feature _SHADOWS_ON
+			uniform float _CrestTime;
 
-				#pragma shader_feature _DEBUGDISABLESHAPETEXTURES_ON
-				#pragma shader_feature _DEBUGVISUALISESHAPESAMPLE_ON
-				#pragma shader_feature _DEBUGVISUALISEFLOW_ON
-				#pragma shader_feature _DEBUGDISABLESMOOTHLOD_ON
-				#pragma shader_feature _COMPILESHADERWITHDEBUGINFO_ON
+			// MeshScaleLerp, FarNormalsWeight, LODIndex (debug), unused
+			uniform float4 _InstanceData;
 
-				#if _COMPILESHADERWITHDEBUGINFO_ON
-				#pragma enable_d3d11_debug_symbols
+			Varyings Vert(Attributes input)
+			{
+				Varyings o;
+
+				// move to world
+				o.worldPos = mul(unity_ObjectToWorld, float4(input.positionOS, 1.0));
+
+				// vertex snapping and lod transition
+				float lodAlpha;
+				SnapAndTransitionVertLayout(_InstanceData.x, o.worldPos, lodAlpha);
+				o.lodAlpha_worldXZUndisplaced_oceanDepth.x = lodAlpha;
+				o.lodAlpha_worldXZUndisplaced_oceanDepth.yz = o.worldPos.xz;
+
+				// sample shape textures - always lerp between 2 LOD scales, so sample two textures
+				o.flow_shadow = half4(0., 0., 0., 0.);
+				o.foam_screenPos.x = 0.;
+
+				o.lodAlpha_worldXZUndisplaced_oceanDepth.w = 0.;
+
+				// sample weights. params.z allows shape to be faded out (used on last lod to support pop-less scale transitions)
+				float wt_0 = (1. - lodAlpha) * _LD_Params_0.z;
+				float wt_1 = (1. - wt_0) * _LD_Params_1.z;
+				// sample displacement textures, add results to current world pos / normal / foam
+				const float2 worldXZBefore = o.worldPos.xz;
+				if (wt_0 > 0.001)
+				{
+					const float2 uv_0 = LD_0_WorldToUV(worldXZBefore);
+
+					#if !_DEBUGDISABLESHAPETEXTURES_ON
+					SampleDisplacements(_LD_Sampler_AnimatedWaves_0, uv_0, wt_0, o.worldPos);
+					#endif
+
+					#if _FOAM_ON
+					SampleFoam(_LD_Sampler_Foam_0, uv_0, wt_0, o.foam_screenPos.x);
+					#endif
+
+					#if _FLOW_ON
+					SampleFlow(_LD_Sampler_Flow_0, uv_0, wt_0, o.flow_shadow.xy);
+					#endif
+
+					#if _SUBSURFACESHALLOWCOLOUR_ON
+					SampleSeaFloorHeightAboveBaseline(_LD_Sampler_SeaFloorDepth_0, uv_0, wt_0, o.lodAlpha_worldXZUndisplaced_oceanDepth.w);
+					#endif
+
+					#if _SHADOWS_ON
+					SampleShadow(_LD_Sampler_Shadow_0, uv_0, wt_0, o.flow_shadow.zw);
+					#endif
+				}
+				if (wt_1 > 0.001)
+				{
+					const float2 uv_1 = LD_1_WorldToUV(worldXZBefore);
+
+					#if !_DEBUGDISABLESHAPETEXTURES_ON
+					SampleDisplacements(_LD_Sampler_AnimatedWaves_1, uv_1, wt_1, o.worldPos);
+					#endif
+
+					#if _FOAM_ON
+					SampleFoam(_LD_Sampler_Foam_1, uv_1, wt_1, o.foam_screenPos.x);
+					#endif
+
+					#if _FLOW_ON
+					SampleFlow(_LD_Sampler_Flow_1, uv_1, wt_1, o.flow_shadow.xy);
+					#endif
+
+					#if _SUBSURFACESHALLOWCOLOUR_ON
+					SampleSeaFloorHeightAboveBaseline(_LD_Sampler_SeaFloorDepth_1, uv_1, wt_1, o.lodAlpha_worldXZUndisplaced_oceanDepth.w);
+					#endif
+
+					#if _SHADOWS_ON
+					SampleShadow(_LD_Sampler_Shadow_1, uv_1, wt_1, o.flow_shadow.zw);
+					#endif
+				}
+				
+				// convert height above -1000m to depth below surface
+				o.lodAlpha_worldXZUndisplaced_oceanDepth.w = CREST_OCEAN_DEPTH_BASELINE - o.lodAlpha_worldXZUndisplaced_oceanDepth.w;
+
+				// foam can saturate
+				o.foam_screenPos.x = saturate(o.foam_screenPos.x);
+
+				// debug tinting to see which shape textures are used
+				#if _DEBUGVISUALISESHAPESAMPLE_ON
+				#define TINT_COUNT (uint)7
+				half3 tintCols[TINT_COUNT]; tintCols[0] = half3(1., 0., 0.); tintCols[1] = half3(1., 1., 0.); tintCols[2] = half3(1., 0., 1.); tintCols[3] = half3(0., 1., 1.); tintCols[4] = half3(0., 0., 1.); tintCols[5] = half3(1., 0., 1.); tintCols[6] = half3(.5, .5, 1.);
+				o.debugtint = wt_0 * tintCols[_LD_LodIdx_0 % TINT_COUNT] + wt_1 * tintCols[_LD_LodIdx_1 % TINT_COUNT];
 				#endif
 
-				#include "UnityCG.cginc"
-				#include "Lighting.cginc"
+				// view-projection
+				o.positionCS = mul(UNITY_MATRIX_VP, float4(o.worldPos, 1.));
 
-				struct appdata_t
-				{
-					float4 vertex : POSITION;
-					float2 texcoord: TEXCOORD0;
-				};
+				UNITY_TRANSFER_FOG(o, o.positionCS);
 
-				struct v2f
-				{
-					float4 vertex : SV_POSITION;
-					half4 flow_shadow : TEXCOORD1;
-					half4 foam_screenPos : TEXCOORD4;
-					half4 lodAlpha_worldXZUndisplaced_oceanDepth : TEXCOORD5;
-					float3 worldPos : TEXCOORD7;
-					#if _DEBUGVISUALISESHAPESAMPLE_ON
-					half3 debugtint : TEXCOORD8;
-					#endif
-					half4 grabPos : TEXCOORD9;
-
-					UNITY_FOG_COORDS( 3 )
-				};
-
-				#include "OceanLODData.hlsl"
-
-				uniform float _CrestTime;
-
-				// MeshScaleLerp, FarNormalsWeight, LODIndex (debug), unused
-				uniform float4 _InstanceData;
-
-				v2f vert( appdata_t v )
-				{
-					v2f o;
-
-					// move to world
-					o.worldPos = mul(unity_ObjectToWorld, v.vertex);
-
-					// vertex snapping and lod transition
-					float lodAlpha;
-					SnapAndTransitionVertLayout(_InstanceData.x, o.worldPos, lodAlpha);
-					o.lodAlpha_worldXZUndisplaced_oceanDepth.x = lodAlpha;
-					o.lodAlpha_worldXZUndisplaced_oceanDepth.yz = o.worldPos.xz;
-
-					// sample shape textures - always lerp between 2 LOD scales, so sample two textures
-					o.flow_shadow = half4(0., 0., 0., 0.);
-					o.foam_screenPos.x = 0.;
-
-					o.lodAlpha_worldXZUndisplaced_oceanDepth.w = 0.;
-
-					// sample weights. params.z allows shape to be faded out (used on last lod to support pop-less scale transitions)
-					float wt_0 = (1. - lodAlpha) * _LD_Params_0.z;
-					float wt_1 = (1. - wt_0) * _LD_Params_1.z;
-					// sample displacement textures, add results to current world pos / normal / foam
-					const float2 worldXZBefore = o.worldPos.xz;
-					if (wt_0 > 0.001)
-					{
-						const float2 uv_0 = LD_0_WorldToUV(worldXZBefore);
-
-						#if !_DEBUGDISABLESHAPETEXTURES_ON
-						SampleDisplacements(_LD_Sampler_AnimatedWaves_0, uv_0, wt_0, o.worldPos);
-						#endif
-
-						#if _FOAM_ON
-						SampleFoam(_LD_Sampler_Foam_0, uv_0, wt_0, o.foam_screenPos.x);
-						#endif
-
-						#if _FLOW_ON
-						SampleFlow(_LD_Sampler_Flow_0, uv_0, wt_0, o.flow_shadow.xy);
-						#endif
-
-						#if _SUBSURFACESHALLOWCOLOUR_ON
-						SampleSeaFloorHeightAboveBaseline(_LD_Sampler_SeaFloorDepth_0, uv_0, wt_0, o.lodAlpha_worldXZUndisplaced_oceanDepth.w);
-						#endif
-
-						#if _SHADOWS_ON
-						SampleShadow(_LD_Sampler_Shadow_0, uv_0, wt_0, o.flow_shadow.zw);
-						#endif
-					}
-					if (wt_1 > 0.001)
-					{
-						const float2 uv_1 = LD_1_WorldToUV(worldXZBefore);
-
-						#if !_DEBUGDISABLESHAPETEXTURES_ON
-						SampleDisplacements(_LD_Sampler_AnimatedWaves_1, uv_1, wt_1, o.worldPos);
-						#endif
-
-						#if _FOAM_ON
-						SampleFoam(_LD_Sampler_Foam_1, uv_1, wt_1, o.foam_screenPos.x);
-						#endif
-
-						#if _FLOW_ON
-						SampleFlow(_LD_Sampler_Flow_1, uv_1, wt_1, o.flow_shadow.xy);
-						#endif
-
-						#if _SUBSURFACESHALLOWCOLOUR_ON
-						SampleSeaFloorHeightAboveBaseline(_LD_Sampler_SeaFloorDepth_1, uv_1, wt_1, o.lodAlpha_worldXZUndisplaced_oceanDepth.w);
-						#endif
-
-						#if _SHADOWS_ON
-						SampleShadow(_LD_Sampler_Shadow_1, uv_1, wt_1, o.flow_shadow.zw);
-						#endif
-					}
-					
-					// convert height above -1000m to depth below surface
-					o.lodAlpha_worldXZUndisplaced_oceanDepth.w = CREST_OCEAN_DEPTH_BASELINE - o.lodAlpha_worldXZUndisplaced_oceanDepth.w;
-
-					// foam can saturate
-					o.foam_screenPos.x = saturate(o.foam_screenPos.x);
-
-					// debug tinting to see which shape textures are used
-					#if _DEBUGVISUALISESHAPESAMPLE_ON
-					#define TINT_COUNT (uint)7
-					half3 tintCols[TINT_COUNT]; tintCols[0] = half3(1., 0., 0.); tintCols[1] = half3(1., 1., 0.); tintCols[2] = half3(1., 0., 1.); tintCols[3] = half3(0., 1., 1.); tintCols[4] = half3(0., 0., 1.); tintCols[5] = half3(1., 0., 1.); tintCols[6] = half3(.5, .5, 1.);
-					o.debugtint = wt_0 * tintCols[_LD_LodIdx_0 % TINT_COUNT] + wt_1 * tintCols[_LD_LodIdx_1 % TINT_COUNT];
-					#endif
-
-					// view-projection
-					o.vertex = mul(UNITY_MATRIX_VP, float4(o.worldPos, 1.));
-
-					UNITY_TRANSFER_FOG(o, o.vertex);
-
-					// unfortunate hoop jumping - this is inputs for refraction. depending on whether HDR is on or off, the grabbed scene
-					// colours may or may not come from the backbuffer, which means they may or may not be flipped in y. use these macros
-					// to get the right results, every time.
-					o.grabPos = ComputeGrabScreenPos(o.vertex);
-					o.foam_screenPos.yzw = ComputeScreenPos(o.vertex).xyw;
-					return o;
-				}
-
-				// frag shader uniforms
-
-				#include "OceanFoam.hlsl"
-				#include "OceanEmission.hlsl"
-				#include "OceanReflection.hlsl"
-				uniform sampler2D _Normals;
-				#include "OceanNormalMapping.hlsl"
-
-				uniform sampler2D _CameraDepthTexture;
-
-				// Hack - due to SV_IsFrontFace occasionally coming through as true for backfaces,
-				// add a param here that forces ocean to be in undrwater state. I think the root
-				// cause here might be imprecision or numerical issues at ocean tile boundaries, although
-				// i'm not sure why cracks are not visible in this case.
-				uniform float _ForceUnderwater;
-
-				float3 WorldSpaceLightDir(float3 worldPos)
-				{
-					float3 lightDir = _WorldSpaceLightPos0.xyz;
-					if (_WorldSpaceLightPos0.w > 0.)
-					{
-						// non-directional light - this is a position, not a direction
-						lightDir = normalize(lightDir - worldPos.xyz);
-					}
-					return lightDir;
-				}
-
-				bool IsUnderwater(const bool i_isFrontFace)
-				{
-#if _UNDERWATER_ON
-					return !i_isFrontFace || _ForceUnderwater > 0.0;
-#else
-					return false;
-#endif
-				}
-
-				half4 frag(const v2f i, const bool i_isFrontFace : SV_IsFrontFace) : SV_Target
-				{
-					const bool underwater = IsUnderwater(i_isFrontFace);
-
-					half3 view = normalize(_WorldSpaceCameraPos - i.worldPos);
-
-					// water surface depth, and underlying scene opaque surface depth
-					float pixelZ = LinearEyeDepth(i.vertex.z);
-					half3 screenPos = i.foam_screenPos.yzw;
-					half2 uvDepth = screenPos.xy / screenPos.z;
-					float sceneZ01 = tex2D(_CameraDepthTexture, uvDepth).x;
-					float sceneZ = LinearEyeDepth(sceneZ01);
-
-					float3 lightDir = WorldSpaceLightDir(i.worldPos);
-					// Soft shadow, hard shadow
-					fixed2 shadow = (fixed2)1.0
-					#if _SHADOWS_ON
-						- i.flow_shadow.zw
-					#endif
-						;
-
-					// Normal - geom + normal mapping
-					half3 n_geom = half3(0.0, 1.0, 0.0);
-
-					//if(false)
-					{
-						const float lodAlpha = i.lodAlpha_worldXZUndisplaced_oceanDepth.x;
-						const float2 uv_0 = LD_0_WorldToUV(i.lodAlpha_worldXZUndisplaced_oceanDepth.yz);
-						const float2 uv_1 = LD_1_WorldToUV(i.lodAlpha_worldXZUndisplaced_oceanDepth.yz);
-						const float wt_0 = (1. - lodAlpha) * _LD_Params_0.z;
-						const float wt_1 = (1. - wt_0) * _LD_Params_1.z;
-						float3 dummy = 0.;
-						if (wt_0 > 0.001) SampleDisplacementsNormals(_LD_Sampler_AnimatedWaves_0, uv_0, wt_0, _LD_Params_0.w, _LD_Params_0.x, dummy, n_geom.xz);
-						if (wt_1 > 0.001) SampleDisplacementsNormals(_LD_Sampler_AnimatedWaves_1, uv_1, wt_1, _LD_Params_1.w, _LD_Params_1.x, dummy, n_geom.xz);
-						n_geom = normalize(n_geom);
-					}
-
-					if (underwater) n_geom = -n_geom;
-					half3 n_pixel = n_geom;
-					#if _APPLYNORMALMAPPING_ON
-					#if _FLOW_ON
-					ApplyNormalMapsWithFlow(i.lodAlpha_worldXZUndisplaced_oceanDepth.yz, i.flow_shadow.xy, i.lodAlpha_worldXZUndisplaced_oceanDepth.x, n_pixel);
-					#else
-					n_pixel.xz += (underwater ? -1. : 1.) * SampleNormalMaps(i.lodAlpha_worldXZUndisplaced_oceanDepth.yz, i.lodAlpha_worldXZUndisplaced_oceanDepth.x);
-					n_pixel = normalize(n_pixel);
-					#endif
-					#endif
-
-					// Foam - underwater bubbles and whitefoam
-					half3 bubbleCol = (half3)0.;
-					#if _FOAM_ON
-					half4 whiteFoamCol;
-					#if !_FLOW_ON
-					ComputeFoam(i.foam_screenPos.x, i.lodAlpha_worldXZUndisplaced_oceanDepth.yz, i.worldPos.xz, n_pixel, pixelZ, sceneZ, view, lightDir, shadow.y, bubbleCol, whiteFoamCol);
-					#else
-					ComputeFoamWithFlow(i.flow_shadow.xy, i.foam_screenPos.x, i.lodAlpha_worldXZUndisplaced_oceanDepth.yz, i.worldPos.xz, n_pixel, pixelZ, sceneZ, view, lightDir, shadow.y, bubbleCol, whiteFoamCol);
-					#endif // _FLOW_ON
-					#endif // _FOAM_ON
-
-					// Compute color of ocean - in-scattered light + refracted scene
-					half3 scatterCol = ScatterColour(i.worldPos, i.lodAlpha_worldXZUndisplaced_oceanDepth.w, _WorldSpaceCameraPos, lightDir, view, shadow.x, underwater, true);
-
-					half3 col = OceanEmission(view, n_pixel, lightDir, i.grabPos, pixelZ, uvDepth, sceneZ, sceneZ01, bubbleCol, _Normals, _CameraDepthTexture, underwater, scatterCol);
-
-					// Light that reflects off water surface
-					#if _UNDERWATER_ON
-					if (underwater)
-					{
-						ApplyReflectionUnderwater(view, n_pixel, lightDir, shadow.y, i.foam_screenPos.yzzw, scatterCol, col);
-					}
-					else
-					#endif
-					{
-						ApplyReflectionSky(view, n_pixel, lightDir, shadow.y, i.foam_screenPos.yzzw, col);
-					}
-
-					// Override final result with white foam - bubbles on surface
-					#if _FOAM_ON
-					col = lerp(col, whiteFoamCol.rgb, whiteFoamCol.a);
-					#endif
-
-					// Fog
-					if (!underwater)
-					{
-						// above water - do atmospheric fog
-						UNITY_APPLY_FOG(i.fogCoord, col);
-					}
-					else
-					{
-						// underwater - do depth fog
-						col = lerp(col, scatterCol, 1. - exp(-_DepthFogDensity.xyz * pixelZ));
-					}
-					#if _DEBUGVISUALISESHAPESAMPLE_ON
-					col = lerp(col.rgb, i.debugtint, 0.5);
-					#endif
-					#if _DEBUGVISUALISEFLOW_ON
-					#if _FLOW_ON
-					col.rg = lerp(col.rg, i.flow_shadow.xy, 0.5);
-					#endif
-					#endif
-
-					return half4(col, 1.);
-				}
-
-				ENDCG
+				// unfortunate hoop jumping - this is inputs for refraction. depending on whether HDR is on or off, the grabbed scene
+				// colours may or may not come from the backbuffer, which means they may or may not be flipped in y. use these macros
+				// to get the right results, every time.
+				o.grabPos = ComputeGrabScreenPos(o.positionCS);
+				o.foam_screenPos.yzw = ComputeScreenPos(o.positionCS).xyw;
+				return o;
 			}
+
+			// frag shader uniforms
+
+			#include "OceanFoam.hlsl"
+			#include "OceanEmission.hlsl"
+			#include "OceanReflection.hlsl"
+			uniform sampler2D _Normals;
+			#include "OceanNormalMapping.hlsl"
+
+			uniform sampler2D _CameraDepthTexture;
+
+			// Hack - due to SV_IsFrontFace occasionally coming through as true for backfaces,
+			// add a param here that forces ocean to be in undrwater state. I think the root
+			// cause here might be imprecision or numerical issues at ocean tile boundaries, although
+			// i'm not sure why cracks are not visible in this case.
+			uniform float _ForceUnderwater;
+
+			float3 WorldSpaceLightDir(float3 worldPos)
+			{
+				float3 lightDir = _WorldSpaceLightPos0.xyz;
+				if (_WorldSpaceLightPos0.w > 0.)
+				{
+					// non-directional light - this is a position, not a direction
+					lightDir = normalize(lightDir - worldPos.xyz);
+				}
+				return lightDir;
+			}
+
+			bool IsUnderwater(const bool i_isFrontFace)
+			{
+#if _UNDERWATER_ON
+				return !i_isFrontFace || _ForceUnderwater > 0.0;
+#else
+				return false;
+#endif
+			}
+
+			half4 Frag(const Varyings input, const bool i_isFrontFace : SV_IsFrontFace) : SV_Target
+			{
+				const bool underwater = IsUnderwater(i_isFrontFace);
+
+				half3 view = normalize(_WorldSpaceCameraPos - input.worldPos);
+
+				// water surface depth, and underlying scene opaque surface depth
+				float pixelZ = LinearEyeDepth(input.positionCS.z);
+				half3 screenPos = input.foam_screenPos.yzw;
+				half2 uvDepth = screenPos.xy / screenPos.z;
+				float sceneZ01 = tex2D(_CameraDepthTexture, uvDepth).x;
+				float sceneZ = LinearEyeDepth(sceneZ01);
+
+				float3 lightDir = WorldSpaceLightDir(input.worldPos);
+				// Soft shadow, hard shadow
+				fixed2 shadow = (fixed2)1.0
+				#if _SHADOWS_ON
+					- input.flow_shadow.zw
+				#endif
+					;
+
+				// Normal - geom + normal mapping
+				half3 n_geom = half3(0.0, 1.0, 0.0);
+
+				//if(false)
+				{
+					const float lodAlpha = input.lodAlpha_worldXZUndisplaced_oceanDepth.x;
+					const float2 uv_0 = LD_0_WorldToUV(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz);
+					const float2 uv_1 = LD_1_WorldToUV(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz);
+					const float wt_0 = (1. - lodAlpha) * _LD_Params_0.z;
+					const float wt_1 = (1. - wt_0) * _LD_Params_1.z;
+					float3 dummy = 0.;
+					if (wt_0 > 0.001) SampleDisplacementsNormals(_LD_Sampler_AnimatedWaves_0, uv_0, wt_0, _LD_Params_0.w, _LD_Params_0.x, dummy, n_geom.xz);
+					if (wt_1 > 0.001) SampleDisplacementsNormals(_LD_Sampler_AnimatedWaves_1, uv_1, wt_1, _LD_Params_1.w, _LD_Params_1.x, dummy, n_geom.xz);
+					n_geom = normalize(n_geom);
+				}
+
+				if (underwater) n_geom = -n_geom;
+				half3 n_pixel = n_geom;
+				#if _APPLYNORMALMAPPING_ON
+				#if _FLOW_ON
+				ApplyNormalMapsWithFlow(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, input.flow_shadow.xy, input.lodAlpha_worldXZUndisplaced_oceanDepth.x, n_pixel);
+				#else
+				n_pixel.xz += (underwater ? -1. : 1.) * SampleNormalMaps(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, input.lodAlpha_worldXZUndisplaced_oceanDepth.x);
+				n_pixel = normalize(n_pixel);
+				#endif
+				#endif
+
+				// Foam - underwater bubbles and whitefoam
+				half3 bubbleCol = (half3)0.;
+				#if _FOAM_ON
+				half4 whiteFoamCol;
+				#if !_FLOW_ON
+				ComputeFoam(input.foam_screenPos.x, input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, input.worldPos.xz, n_pixel, pixelZ, sceneZ, view, lightDir, shadow.y, bubbleCol, whiteFoamCol);
+				#else
+				ComputeFoamWithFlow(input.flow_shadow.xy, input.foam_screenPos.x, input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, input.worldPos.xz, n_pixel, pixelZ, sceneZ, view, lightDir, shadow.y, bubbleCol, whiteFoamCol);
+				#endif // _FLOW_ON
+				#endif // _FOAM_ON
+
+				// Compute color of ocean - in-scattered light + refracted scene
+				half3 scatterCol = ScatterColour(input.worldPos, input.lodAlpha_worldXZUndisplaced_oceanDepth.w, _WorldSpaceCameraPos, lightDir, view, shadow.x, underwater, true);
+
+				half3 col = OceanEmission(view, n_pixel, lightDir, input.grabPos, pixelZ, uvDepth, sceneZ, sceneZ01, bubbleCol, _Normals, _CameraDepthTexture, underwater, scatterCol);
+
+				// Light that reflects off water surface
+				#if _UNDERWATER_ON
+				if (underwater)
+				{
+					ApplyReflectionUnderwater(view, n_pixel, lightDir, shadow.y, input.foam_screenPos.yzzw, scatterCol, col);
+				}
+				else
+				#endif
+				{
+					ApplyReflectionSky(view, n_pixel, lightDir, shadow.y, input.foam_screenPos.yzzw, col);
+				}
+
+				// Override final result with white foam - bubbles on surface
+				#if _FOAM_ON
+				col = lerp(col, whiteFoamCol.rgb, whiteFoamCol.a);
+				#endif
+
+				// Fog
+				if (!underwater)
+				{
+					// above water - do atmospheric fog
+					UNITY_APPLY_FOG(input.fogCoord, col);
+				}
+				else
+				{
+					// underwater - do depth fog
+					col = lerp(col, scatterCol, 1. - exp(-_DepthFogDensity.xyz * pixelZ));
+				}
+				#if _DEBUGVISUALISESHAPESAMPLE_ON
+				col = lerp(col.rgb, input.debugtint, 0.5);
+				#endif
+				#if _DEBUGVISUALISEFLOW_ON
+				#if _FLOW_ON
+				col.rg = lerp(col.rg, input.flow_shadow.xy, 0.5);
+				#endif
+				#endif
+
+				return half4(col, 1.);
+			}
+
+			ENDCG
 		}
 	}
 }

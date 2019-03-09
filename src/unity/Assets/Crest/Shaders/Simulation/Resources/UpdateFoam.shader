@@ -1,19 +1,28 @@
 ﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 // Persistent foam sim
-
-Shader "Hidden/Ocean/Simulation/Update Foam"
+Shader "Hidden/Crest/Simulation/Update Foam"
 {
 	SubShader
 	{
 		Pass
 		{
+			Name "UpdateFoam"
+
 			CGPROGRAM
 			#pragma vertex Vert
 			#pragma fragment Frag
 
 			#include "UnityCG.cginc"
 			#include "../../../../Crest/Shaders/OceanLODData.hlsl"
+
+			float _FoamFadeRate;
+			float _WaveFoamStrength;
+			float _WaveFoamCoverage;
+			float _ShorelineFoamMaxDepth;
+			float _ShorelineFoamStrength;
+			float _SimDeltaTime;
+			float _SimDeltaTimePrev;
 
 			struct Attributes
 			{
@@ -27,9 +36,6 @@ Shader "Hidden/Ocean/Simulation/Update Foam"
 				float4 uv_uv_lastframe : TEXCOORD0;
 				float2 worldXZ : TEXCOORD1;
 			};
-
-			float _SimDeltaTime;
-			float _SimDeltaTimePrev;
 
 			Varyings Vert(Attributes input)
 			{
@@ -45,26 +51,21 @@ Shader "Hidden/Ocean/Simulation/Update Foam"
 				return o;
 			}
 
-			// respects the gui option to freeze time
-			half _FoamFadeRate;
-			half _WaveFoamStrength;
-			half _WaveFoamCoverage;
-			half _ShorelineFoamMaxDepth;
-			half _ShorelineFoamStrength;
-
 			half Frag(Varyings input) : SV_Target
 			{
 				float4 uv = float4(input.uv_uv_lastframe.xy, 0., 0.);
 				float4 uv_lastframe = float4(input.uv_uv_lastframe.zw, 0., 0.);
+
 				// #if _FLOW_ON
 				half4 velocity = half4(tex2Dlod(_LD_Sampler_Flow_1, uv).xy, 0., 0.);
 				half foam = tex2Dlod(_LD_Sampler_Foam_0, uv_lastframe
 					- ((_SimDeltaTime * _LD_Params_0.w) * velocity)
-				).x;
+					).x;
 				// #else
 				// // sampler will clamp the uv currently
 				// half foam = tex2Dlod(_LD_Sampler_Foam_0, uv_lastframe).x;
 				// #endif
+
 				half2 r = abs(uv_lastframe.xy - 0.5);
 				if (max(r.x, r.y) > 0.5 - _LD_Params_0.w)
 				{

@@ -43,13 +43,13 @@ namespace Crest
                 return;
             }
 
-            _displacementMaterial = new Material(Shader.Find("Ocean/Inputs/Animated Waves/Whirlpool"));
+            _displacementMaterial = new Material(Shader.Find("Crest/Inputs/Animated Waves/Whirlpool"));
             if (_createDisplacement)
             {
                 AddInput<RegisterAnimWavesInput>(_displacementMaterial, _radius);
             }
 
-            _flowMaterial = new Material(Shader.Find("Ocean/Inputs/Flow/Whirlpool"));
+            _flowMaterial = new Material(Shader.Find("Crest/Inputs/Flow/Whirlpool"));
             if (_createFlow)
             {
                 AddInput<RegisterFlowInput>(_flowMaterial, _radius);

@@ -1,6 +1,6 @@
 ﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
-Shader "Ocean/Underwater Curtain"
+Shader "Crest/Underwater Curtain"
 {
 	Properties
 	{
@@ -20,7 +20,6 @@ Shader "Ocean/Underwater Curtain"
 	SubShader
 	{
 		Tags{ "LightMode" = "ForwardBase" "Queue" = "Geometry+510" "IgnoreProjector" = "True" "RenderType" = "Opaque" }
-		LOD 100
 
 		GrabPass
 		{
@@ -34,8 +33,8 @@ Shader "Ocean/Underwater Curtain"
 			ZTest Always
 
 			CGPROGRAM
-			#pragma vertex vert
-			#pragma fragment frag
+			#pragma vertex Vert
+			#pragma fragment Frag
 
 			#pragma shader_feature _SUBSURFACESCATTERING_ON
 			#pragma shader_feature _SUBSURFACEHEIGHTLERP_ON
@@ -43,7 +42,6 @@ Shader "Ocean/Underwater Curtain"
 			#pragma shader_feature _TRANSPARENCY_ON
 			#pragma shader_feature _CAUSTICS_ON
 			#pragma shader_feature _SHADOWS_ON
-
 			#pragma shader_feature _COMPILESHADERWITHDEBUGINFO_ON
 
 			#if _COMPILESHADERWITHDEBUGINFO_ON
@@ -58,26 +56,31 @@ Shader "Ocean/Underwater Curtain"
 			float _CrestTime;
 			float _HeightOffset;
 
-			struct appdata
+			#include "../OceanEmission.hlsl"
+
+			#define MAX_OFFSET 5.0
+
+			sampler2D _CameraDepthTexture;
+			sampler2D _Normals;
+
+			struct Attributes
 			{
-				float4 vertex : POSITION;
+				float4 positionOS : POSITION;
 				float2 uv : TEXCOORD0;
 			};
 
-			struct v2f
+			struct Varyings
 			{
-				float4 vertex : SV_POSITION;
+				float4 positionCS : SV_POSITION;
 				float2 uv : TEXCOORD0;
 				half4 foam_screenPos : TEXCOORD1;
 				half4 grabPos : TEXCOORD2;
 				float3 worldPos : TEXCOORD3;
 			};
 
-			#define MAX_OFFSET 5.
-
-			v2f vert (appdata v)
+			Varyings Vert(Attributes input)
 			{
-				v2f o;
+				Varyings o;
 
 				// Goal of this vert shader is to place a sheet of triangles in front of the camera. The geometry has
 				// two rows of verts, the top row and the bottom row (top and bottom are view relative). The bottom row
@@ -99,17 +102,17 @@ Shader "Ocean/Underwater Curtain"
 				// Spread verts across the near plane.
 				const float aspect = _ScreenParams.x / _ScreenParams.y;
 				o.worldPos = nearPlaneCenter
-					+ 2.1 * unity_CameraInvProjection._m11 * aspect * right * v.vertex.x * _ProjectionParams.y
-					+ up * v.vertex.z * _ProjectionParams.y;
+					+ 2.1 * unity_CameraInvProjection._m11 * aspect * right * input.positionOS.x * _ProjectionParams.y
+					+ up * input.positionOS.z * _ProjectionParams.y;
 
 				// Isolate topmost edge
-				if (v.vertex.z > 0.45)
+				if (input.positionOS.z > 0.45)
 				{
 					const float3 posOnNearPlane = o.worldPos;
 
 					// Only compute intersection of water if viewer is looking "horizontal-ish". When the viewer starts to look
 					// too much up or down, the intersection between the near plane and the water surface can be complex.
-					if (abs(forward.y) < MAX_UPDOWN_AMOUNT)
+					if (abs(forward.y) < CREST_MAX_UPDOWN_AMOUNT)
 					{
 						// move vert in the up direction, but only to an extent, otherwise numerical issues can cause weirdness
 						o.worldPos += min(IntersectRayWithWaterSurface(o.worldPos, up), MAX_OFFSET) * up;
@@ -117,7 +120,7 @@ Shader "Ocean/Underwater Curtain"
 						// Move the geometry towards the horizon. As noted above, the skirt will be stomped by the ocean
 						// surface render. If we project a bit towards the horizon to make a bit of overlap then we can reduce
 						// the chance render issues from cracks/gaps with down angles, or of the skirt being too high for up angles.
-						float3 horizonPoint = _WorldSpaceCameraPos + (posOnNearPlane - _WorldSpaceCameraPos) * 10000.;
+						float3 horizonPoint = _WorldSpaceCameraPos + (posOnNearPlane - _WorldSpaceCameraPos) * 10000.0;
 						horizonPoint.y = _OceanCenterPosWorld.y;
 						const float3 horizonDir = normalize(horizonPoint - _WorldSpaceCameraPos);
 						const float3 projectionOfHorizonOnNearPlane = _WorldSpaceCameraPos + horizonDir / dot(horizonDir, forward);
@@ -141,57 +144,53 @@ Shader "Ocean/Underwater Curtain"
 					// Test - always put top row of verts at water horizon, because then it will always meet the water
 					// surface. Good idea but didnt work because it then does underwater shading on opaque surfaces which
 					// can be ABOVE the water surface. Not sure if theres any way around this.
-					o.vertex = mul(UNITY_MATRIX_VP, float4(o.worldPos, 1.));
-					o.vertex.z = o.vertex.w;
+					o.positionCS = mul(UNITY_MATRIX_VP, float4(o.worldPos, 1.0));
+					o.positionCS.z = o.positionCS.w;
 				}
 				else
 				{
 					// Bottom row of verts - push them down below bottom of screen
 					o.worldPos -= MAX_OFFSET * up;
 
-					o.vertex = mul(UNITY_MATRIX_VP, float4(o.worldPos, 1.));
-					o.vertex.z = o.vertex.w;
+					o.positionCS = mul(UNITY_MATRIX_VP, float4(o.worldPos, 1.0));
+					o.positionCS.z = o.positionCS.w;
 				}
 
-				o.foam_screenPos.yzw = ComputeScreenPos(o.vertex).xyw;
-				o.foam_screenPos.x = 0.;
-				o.grabPos = ComputeGrabScreenPos(o.vertex);
+				o.foam_screenPos.yzw = ComputeScreenPos(o.positionCS).xyw;
+				o.foam_screenPos.x = 0.0;
+				o.grabPos = ComputeGrabScreenPos(o.positionCS);
 
-				o.uv = v.uv;
+				o.uv = input.uv;
 
 				return o;
 			}
 
-			#include "../OceanEmission.hlsl"
-			uniform sampler2D _CameraDepthTexture;
-			uniform sampler2D _Normals;
-
-			half4 frag(v2f i) : SV_Target
+			half4 Frag(Varyings input) : SV_Target
 			{
-				const half3 view = normalize(_WorldSpaceCameraPos - i.worldPos);
+				const half3 view = normalize(_WorldSpaceCameraPos - input.worldPos);
 
-				const float pixelZ = LinearEyeDepth(i.vertex.z);
-				const half3 screenPos = i.foam_screenPos.yzw;
+				const float pixelZ = LinearEyeDepth(input.positionCS.z);
+				const half3 screenPos = input.foam_screenPos.yzw;
 				const half2 uvDepth = screenPos.xy / screenPos.z;
 				const float sceneZ01 = tex2D(_CameraDepthTexture, uvDepth).x;
 				const float sceneZ = LinearEyeDepth(sceneZ01);
 
 				const float3 lightDir = _WorldSpaceLightPos0.xyz;
-				const half3 n_pixel = 0.;
-				const half3 bubbleCol = 0.;
+				const half3 n_pixel = 0.0;
+				const half3 bubbleCol = 0.0;
 
-				float3 surfaceAboveCamPosWorld = 0.;
+				float3 surfaceAboveCamPosWorld = 0.0;
 				const float2 uv_0 = LD_0_WorldToUV(_WorldSpaceCameraPos.xz);
 				SampleDisplacements(_LD_Sampler_AnimatedWaves_0, uv_0, 1.0, surfaceAboveCamPosWorld);
 				surfaceAboveCamPosWorld.y += _OceanCenterPosWorld.y;
 
 				// depth and shadow are computed in ScatterColour when underwater==true, using the LOD1 texture.
-				const float depth = 0.;
-				const half shadow = 1.;
+				const float depth = 0.0;
+				const half shadow = 1.0;
 
 				const half3 scatterCol = ScatterColour(surfaceAboveCamPosWorld, depth, _WorldSpaceCameraPos, lightDir, view, shadow, true, true);
 
-				half3 sceneColour = tex2D(_BackgroundTexture, i.grabPos.xy / i.grabPos.w).rgb;
+				half3 sceneColour = tex2D(_BackgroundTexture, input.grabPos.xy / input.grabPos.w).rgb;
 
 #if _CAUSTICS_ON
 				if (sceneZ01 != 0.0)
@@ -200,9 +199,9 @@ Shader "Ocean/Underwater Curtain"
 				}
 #endif // _CAUSTICS_ON
 
-				half3 col = lerp(sceneColour, scatterCol, 1. - exp(-_DepthFogDensity.xyz * sceneZ));
+				half3 col = lerp(sceneColour, scatterCol, 1.0 - exp(-_DepthFogDensity.xyz * sceneZ));
 
-				return half4(col, 1.);
+				return half4(col, 1.0);
 			}
 			ENDCG
 		}

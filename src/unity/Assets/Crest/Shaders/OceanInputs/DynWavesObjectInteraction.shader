@@ -32,6 +32,7 @@ Shader "Crest/Inputs/Dynamic Waves/Object Interaction"
 			float _SimDeltaTime;
 			float _Strength;
 			float _Weight;
+			
 			struct Attributes
 			{
 				float3 positionOS : POSITION;

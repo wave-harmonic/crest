@@ -1,18 +1,28 @@
 ﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 // solve 2D wave equation
-Shader "Hidden/Ocean/Simulation/Update Dynamic Waves"
+Shader "Hidden/Crest/Simulation/Update Dynamic Waves"
 {
 	SubShader
 	{
 		Pass
 		{
+			Name "UpdateDynWaves"
+
 			CGPROGRAM
 			#pragma vertex Vert
 			#pragma fragment Frag
 
 			#include "UnityCG.cginc"
 			#include "../../../../Crest/Shaders/OceanLODData.hlsl"
+
+			#define MIN_DT 0.00001
+
+			half _Damping;
+			float2 _LaplacianAxisX;
+			half _Gravity;
+			float _SimDeltaTime;
+			float _SimDeltaTimePrev;
 
 			struct Attributes
 			{
@@ -26,9 +36,6 @@ Shader "Hidden/Ocean/Simulation/Update Dynamic Waves"
 				float2 worldPosXZ : TEXCOORD0;
 				float2 uv : TEXCOORD1;
 			};
-
-			float _SimDeltaTime;
-			float _SimDeltaTimePrev;
 
 			// How many samples we want in one wave. trade quality for perf.
 			float _TexelsPerWave;
@@ -44,32 +51,26 @@ Shader "Hidden/Ocean/Simulation/Update Dynamic Waves"
 				return sqrt(wavelength*g*one_over_2pi);
 			}
 
-			Varyings Vert(Attributes v)
+			Varyings Vert(Attributes input)
 			{
-				Varyings o;
+				Varyings o = (Varyings)0;
 
-				o.positionCS = v.positionCS;
-				o.uv = v.uv;
+				o.positionCS = input.positionCS;
+				o.uv = input.uv;
 
 				// lod data 1 is current frame, compute world pos from quad uv
-				o.worldPosXZ = LD_1_UVToWorld(v.uv);
+				o.worldPosXZ = LD_1_UVToWorld(input.uv);
 
 				return o;
 			}
 
-			half _Damping;
-			float2 _LaplacianAxisX;
-			half _Gravity;
-
-			#define MIN_DT 0.00001
-
-			half2 Frag(Varyings i) : SV_Target
+			half2 Frag(Varyings input) : SV_Target
 			{
 				const float dt = _SimDeltaTime;
 				const float dtp = _SimDeltaTimePrev;
 
-				half2 velocity = tex2Dlod(_LD_Sampler_Flow_1, float4(i.uv, 0, 0));
-				float2 uv_lastframe = LD_0_WorldToUV(i.worldPosXZ - (dt * velocity));
+				half2 velocity = tex2Dlod(_LD_Sampler_Flow_1, float4(input.uv, 0, 0));
+				float2 uv_lastframe = LD_0_WorldToUV(input.worldPosXZ - (dt * velocity));
 				float4 uv_lastframe4 = float4(uv_lastframe, 0., 0.);
 
 				half2 ft_ftm = tex2Dlod(_LD_Sampler_DynamicWaves_0, uv_lastframe4);
@@ -116,14 +117,13 @@ Shader "Hidden/Ocean/Simulation/Update Dynamic Waves"
 				// eventually break. i model "Deep" water, but then simply ramp down waves in non-deep water with a linear multiplier.
 				// http://hyperphysics.phy-astr.gsu.edu/hbase/Waves/watwav2.html
 				// http://hyperphysics.phy-astr.gsu.edu/hbase/watwav.html#c1
-				float waterSignedDepth = CREST_OCEAN_DEPTH_BASELINE - tex2D(_LD_Sampler_SeaFloorDepth_1, float4(i.uv, 0., 0.)).x;
+				float waterSignedDepth = CREST_OCEAN_DEPTH_BASELINE - tex2D(_LD_Sampler_SeaFloorDepth_1, float4(input.uv, 0., 0.)).x;
 				float depthMul = 1. - (1. - saturate(2.0 * waterSignedDepth / wavelength)) * dt * 2.;
 				ftp *= depthMul;
 				ft *= depthMul;
 
 				return half2(ftp, ft);
 			}
-
 			ENDCG
 		}
 	}

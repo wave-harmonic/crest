@@ -1,22 +1,14 @@
 ﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
-Shader "Hidden/Ocean/Simulation/Update Shadow"
+Shader "Hidden/Crest/Simulation/Update Shadow"
 {
-	Properties
-	{
-	}
 	SubShader
 	{
-		Tags { "RenderType"="Opaque" }
-		LOD 100
-
 		Pass
 		{
 			CGPROGRAM
-			#pragma vertex vert
-			#pragma fragment frag
-
-			#pragma enable_d3d11_debug_symbols
+			#pragma vertex Vert
+			#pragma fragment Frag
 
 			// this turns on all the shady stuff (literally - its all deprecated)
 			#define SHADOW_COLLECTOR_PASS
@@ -24,12 +16,12 @@ Shader "Hidden/Ocean/Simulation/Update Shadow"
 			#include "UnityCG.cginc"
 			#include "../../../../Crest/Shaders/OceanLODData.hlsl"
 
-			struct appdata
+			struct Attributes
 			{
-				float4 vertex : POSITION;
+				float4 positionOS : POSITION;
 			};
 
-			struct v2f
+			struct Varyings
 			{
 				V2F_SHADOW_COLLECTOR;
 
@@ -52,19 +44,23 @@ Shader "Hidden/Ocean/Simulation/Update Shadow"
 			// noise functions used for jitter
 			#include "../../GPUNoise/GPUNoise.hlsl"
 
-			v2f vert (appdata v)
+			// Provides _SimDeltaTime (see comment at this definition)
+			float _SimDeltaTime;
+			float _SimDeltaTimePrev;
+
+			Varyings Vert(Attributes v)
 			{
-				v2f o;
+				Varyings o;
 
 				// the code below is baked out and specialised from C:\Program Files\Unity\Editor\Data\CGIncludes\UnityCG.cginc
 				// TRANSFER_SHADOW_COLLECTOR . it needs to be specialised because its rendering a quad from a Blit(), instead
 				// of rendering real geometry from a worldspace camera. the world space rendering could probably be set up with
 				// some hoop jumping but i guess ill go for this for now.
 
-				o.pos = UnityObjectToClipPos(v.vertex);
+				o.pos = UnityObjectToClipPos(v.positionOS);
 
 				// world pos from [0,1] quad
-				float4 wpos = float4(float3(v.vertex.x - 0.5, 0.0, v.vertex.y - 0.5) * _Scale * 4. + _CenterPos, 1.);
+				float4 wpos = float4(float3(v.positionOS.x - 0.5, 0.0, v.positionOS.y - 0.5) * _Scale * 4.0 + _CenterPos, 1.0);
 
 				// this could add wave height/disp??
 				wpos.y = _OceanCenterPosWorld.y;
@@ -79,21 +75,21 @@ Shader "Hidden/Ocean/Simulation/Update Shadow"
 
 				// working hard to get derivatives for shadow uvs, so that i can jitter the world position in the fragment shader. this
 				// enables per-fragment noise (required to avoid wobble), and is required because each cascade has a different scale etc.
-				o.ShadowCoord0_dxdz.xy = mul(unity_WorldToShadow[0], wpos + float4(1., 0., 0., 0.)).xz - o._ShadowCoord0.xz;
-				o.ShadowCoord0_dxdz.zw = mul(unity_WorldToShadow[0], wpos + float4(0., 0., 1., 0.)).xz - o._ShadowCoord0.xz;
-				o.ShadowCoord1_dxdz.xy = mul(unity_WorldToShadow[1], wpos + float4(1., 0., 0., 0.)).xz - o._ShadowCoord1.xz;
-				o.ShadowCoord1_dxdz.zw = mul(unity_WorldToShadow[1], wpos + float4(0., 0., 1., 0.)).xz - o._ShadowCoord1.xz;
-				o.ShadowCoord2_dxdz.xy = mul(unity_WorldToShadow[2], wpos + float4(1., 0., 0., 0.)).xz - o._ShadowCoord2.xz;
-				o.ShadowCoord2_dxdz.zw = mul(unity_WorldToShadow[2], wpos + float4(0., 0., 1., 0.)).xz - o._ShadowCoord2.xz;
-				o.ShadowCoord3_dxdz.xy = mul(unity_WorldToShadow[3], wpos + float4(1., 0., 0., 0.)).xz - o._ShadowCoord3.xz;
-				o.ShadowCoord3_dxdz.zw = mul(unity_WorldToShadow[3], wpos + float4(0., 0., 1., 0.)).xz - o._ShadowCoord3.xz;
+				o.ShadowCoord0_dxdz.xy = mul(unity_WorldToShadow[0], wpos + float4(1.0, 0.0, 0.0, 0.0)).xz - o._ShadowCoord0.xz;
+				o.ShadowCoord0_dxdz.zw = mul(unity_WorldToShadow[0], wpos + float4(0.0, 0.0, 1.0, 0.0)).xz - o._ShadowCoord0.xz;
+				o.ShadowCoord1_dxdz.xy = mul(unity_WorldToShadow[1], wpos + float4(1.0, 0.0, 0.0, 0.0)).xz - o._ShadowCoord1.xz;
+				o.ShadowCoord1_dxdz.zw = mul(unity_WorldToShadow[1], wpos + float4(0.0, 0.0, 1.0, 0.0)).xz - o._ShadowCoord1.xz;
+				o.ShadowCoord2_dxdz.xy = mul(unity_WorldToShadow[2], wpos + float4(1.0, 0.0, 0.0, 0.0)).xz - o._ShadowCoord2.xz;
+				o.ShadowCoord2_dxdz.zw = mul(unity_WorldToShadow[2], wpos + float4(0.0, 0.0, 1.0, 0.0)).xz - o._ShadowCoord2.xz;
+				o.ShadowCoord3_dxdz.xy = mul(unity_WorldToShadow[3], wpos + float4(1.0, 0.0, 0.0, 0.0)).xz - o._ShadowCoord3.xz;
+				o.ShadowCoord3_dxdz.zw = mul(unity_WorldToShadow[3], wpos + float4(0.0, 0.0, 1.0, 0.0)).xz - o._ShadowCoord3.xz;
 
 				o.MainCameraCoords = mul(_MainCameraProjectionMatrix, wpos);
 
 				return o;
 			}
 
-			fixed ComputeShadow(in v2f i, in float jitterDiameter, in float4 cascadeWeights)
+			fixed ComputeShadow(in Varyings input, in float jitterDiameter, in float4 cascadeWeights)
 			{
 				// Sadface - copy paste all this deprecated code in from Unity.cginc, because the
 				// macro has a hardcoded return statement and i need the fade param for blending, and
@@ -101,34 +97,30 @@ Shader "Hidden/Ocean/Simulation/Update Shadow"
 
 				if (jitterDiameter > 0.0)
 				{
-					half2 jitter = jitterDiameter * (hash33(uint3(abs(i._WorldPosViewZ.xz*10.), _Time.y*120.)) - 0.5).xy;
-					i._ShadowCoord0.xz += i.ShadowCoord0_dxdz.xy * jitter.x + i.ShadowCoord0_dxdz.zw * jitter.y;
-					i._ShadowCoord1.xz += i.ShadowCoord1_dxdz.xy * jitter.x + i.ShadowCoord1_dxdz.zw * jitter.y;
-					i._ShadowCoord2.xz += i.ShadowCoord2_dxdz.xy * jitter.x + i.ShadowCoord2_dxdz.zw * jitter.y;
-					i._ShadowCoord3.xz += i.ShadowCoord3_dxdz.xy * jitter.x + i.ShadowCoord3_dxdz.zw * jitter.y;
+					half2 jitter = jitterDiameter * (hash33(uint3(abs(input._WorldPosViewZ.xz*10.0), _Time.y*120.0)) - 0.5).xy;
+					input._ShadowCoord0.xz += input.ShadowCoord0_dxdz.xy * jitter.x + input.ShadowCoord0_dxdz.zw * jitter.y;
+					input._ShadowCoord1.xz += input.ShadowCoord1_dxdz.xy * jitter.x + input.ShadowCoord1_dxdz.zw * jitter.y;
+					input._ShadowCoord2.xz += input.ShadowCoord2_dxdz.xy * jitter.x + input.ShadowCoord2_dxdz.zw * jitter.y;
+					input._ShadowCoord3.xz += input.ShadowCoord3_dxdz.xy * jitter.x + input.ShadowCoord3_dxdz.zw * jitter.y;
 				}
 
 				float4 coord = float4(
-					i._ShadowCoord0 * cascadeWeights[0] + 
-					i._ShadowCoord1 * cascadeWeights[1] + 
-					i._ShadowCoord2 * cascadeWeights[2] + 
-					i._ShadowCoord3 * cascadeWeights[3], 1);
+					input._ShadowCoord0 * cascadeWeights[0] + 
+					input._ShadowCoord1 * cascadeWeights[1] + 
+					input._ShadowCoord2 * cascadeWeights[2] + 
+					input._ShadowCoord3 * cascadeWeights[3], 1);
 
 				SAMPLE_SHADOW_COLLECTOR_SHADOW(coord)
 
 				return shadow;
 			}
 
-			// Provides _SimDeltaTime (see comment at this definition)
-			float _SimDeltaTime;
-			float _SimDeltaTimePrev;
-
-			fixed2 frag (v2f i) : SV_Target
+			fixed2 Frag(Varyings input) : SV_Target
 			{
-				fixed2 shadow = 0.;
+				fixed2 shadow = 0.0;
 
 				// Shadow from last frame - manually implement black border
-				float2 uv_lastframe = LD_0_WorldToUV(i._WorldPosViewZ.xz);
+				float2 uv_lastframe = LD_0_WorldToUV(input._WorldPosViewZ.xz);
 				half2 r = abs(uv_lastframe.xy - 0.5);
 				if (max(r.x, r.y) < 0.49)
 				{
@@ -136,26 +128,26 @@ Shader "Hidden/Ocean/Simulation/Update Shadow"
 				}
 
 				// Check if the current sample is visible in the main camera (and therefore shadow map can be sampled)
-				float3 projected = i.MainCameraCoords.xyz / i.MainCameraCoords.w;
-				if (projected.z < 1. && abs(projected.x) < 1. && abs(projected.z) < 1.)
+				float3 projected = input.MainCameraCoords.xyz / input.MainCameraCoords.w;
+				if (projected.z < 1.0 && abs(projected.x) < 1.0 && abs(projected.z) < 1.0)
 				{
 					// Sadface - copy paste all this deprecated code in from Unity.cginc, see similar comment above
-					float3 fromCenter0 = i._WorldPosViewZ.xyz - unity_ShadowSplitSpheres[0].xyz;
-					float3 fromCenter1 = i._WorldPosViewZ.xyz - unity_ShadowSplitSpheres[1].xyz;
-					float3 fromCenter2 = i._WorldPosViewZ.xyz - unity_ShadowSplitSpheres[2].xyz;
-					float3 fromCenter3 = i._WorldPosViewZ.xyz - unity_ShadowSplitSpheres[3].xyz;
+					float3 fromCenter0 = input._WorldPosViewZ.xyz - unity_ShadowSplitSpheres[0].xyz;
+					float3 fromCenter1 = input._WorldPosViewZ.xyz - unity_ShadowSplitSpheres[1].xyz;
+					float3 fromCenter2 = input._WorldPosViewZ.xyz - unity_ShadowSplitSpheres[2].xyz;
+					float3 fromCenter3 = input._WorldPosViewZ.xyz - unity_ShadowSplitSpheres[3].xyz;
 					float4 distances2 = float4(dot(fromCenter0, fromCenter0), dot(fromCenter1, fromCenter1), dot(fromCenter2, fromCenter2), dot(fromCenter3, fromCenter3));
 					float4 cascadeWeights = float4(distances2 < unity_ShadowSplitSqRadii);
 					cascadeWeights.yzw = saturate(cascadeWeights.yzw - cascadeWeights.xyz);
-					float sphereDist = distance(i._WorldPosViewZ.xyz, unity_ShadowFadeCenterAndType.xyz);
+					float sphereDist = distance(input._WorldPosViewZ.xyz, unity_ShadowFadeCenterAndType.xyz);
 					half shadowFade = saturate(sphereDist * _LightShadowData.z + _LightShadowData.w);
 
 					fixed2 shadowThisFrame;
-					shadowThisFrame.x = ComputeShadow(i, _JitterDiameters_CurrentFrameWeights.x, cascadeWeights);
-					shadowThisFrame.y = ComputeShadow(i, _JitterDiameters_CurrentFrameWeights.y, cascadeWeights);
-					shadowThisFrame = (fixed2)1. - saturate(shadowThisFrame + shadowFade);
+					shadowThisFrame.x = ComputeShadow(input, _JitterDiameters_CurrentFrameWeights.x, cascadeWeights);
+					shadowThisFrame.y = ComputeShadow(input, _JitterDiameters_CurrentFrameWeights.y, cascadeWeights);
+					shadowThisFrame = (fixed2)1.0 - saturate(shadowThisFrame + shadowFade);
 
-					shadow = lerp(shadow, shadowThisFrame, _JitterDiameters_CurrentFrameWeights.zw * _SimDeltaTime * 60.);
+					shadow = lerp(shadow, shadowThisFrame, _JitterDiameters_CurrentFrameWeights.zw * _SimDeltaTime * 60.0);
 				}
 
 				return shadow;

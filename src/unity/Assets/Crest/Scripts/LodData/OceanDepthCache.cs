@@ -28,7 +28,10 @@ namespace Crest
         float _cameraMaxTerrainHeight = 100f;
 
         [Tooltip("Will render into the cache every frame. Intended for debugging, will generate garbage."), SerializeField]
+        // public to fix warning when building standalone
+#pragma warning disable 414
         bool _forceAlwaysUpdateDebug = false;
+#pragma warning restore 414
 
         RenderTexture _cacheTexture;
         GameObject _drawCacheQuad;

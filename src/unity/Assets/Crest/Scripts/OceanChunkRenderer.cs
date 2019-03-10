@@ -173,7 +173,7 @@ namespace Crest
         }
     }
 
-    static class BoundsHelper
+    public static class BoundsHelper
     {
         public static void DebugDraw(this Bounds b)
         {

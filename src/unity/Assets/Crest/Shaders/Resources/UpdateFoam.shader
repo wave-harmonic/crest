@@ -14,7 +14,7 @@ Shader "Hidden/Crest/Simulation/Update Foam"
 			#pragma fragment Frag
 
 			#include "UnityCG.cginc"
-			#include "../../../../Crest/Shaders/OceanLODData.hlsl"
+			#include "../../../Crest/Shaders/OceanLODData.hlsl"
 
 			float _FoamFadeRate;
 			float _WaveFoamStrength;
@@ -26,6 +26,7 @@ Shader "Hidden/Crest/Simulation/Update Foam"
 
 			struct Attributes
 			{
+				// input geo should be clip space
 				float4 positionCS : POSITION;
 				float2 uv : TEXCOORD0;
 			};
@@ -34,7 +35,7 @@ Shader "Hidden/Crest/Simulation/Update Foam"
 			{
 				float4 positionCS : SV_POSITION;
 				float4 uv_uv_lastframe : TEXCOORD0;
-				float2 worldXZ : TEXCOORD1;
+				float2 positionWS_XZ : TEXCOORD1;
 			};
 
 			Varyings Vert(Attributes input)
@@ -45,19 +46,19 @@ Shader "Hidden/Crest/Simulation/Update Foam"
 				o.uv_uv_lastframe.xy = input.uv;
 
 				// lod data 1 is current frame, compute world pos from quad uv
-				o.worldXZ = LD_1_UVToWorld(input.uv);
-				o.uv_uv_lastframe.zw = LD_0_WorldToUV(o.worldXZ);
+				o.positionWS_XZ = LD_1_UVToWorld(input.uv);
+				o.uv_uv_lastframe.zw = LD_0_WorldToUV(o.positionWS_XZ);
 
 				return o;
 			}
 
 			half Frag(Varyings input) : SV_Target
 			{
-				float4 uv = float4(input.uv_uv_lastframe.xy, 0., 0.);
-				float4 uv_lastframe = float4(input.uv_uv_lastframe.zw, 0., 0.);
+				float4 uv = float4(input.uv_uv_lastframe.xy, 0.0, 0.0);
+				float4 uv_lastframe = float4(input.uv_uv_lastframe.zw, 0.0, 0.0);
 
 				// #if _FLOW_ON
-				half4 velocity = half4(tex2Dlod(_LD_Sampler_Flow_1, uv).xy, 0., 0.);
+				half4 velocity = half4(tex2Dlod(_LD_Sampler_Flow_1, uv).xy, 0.0, 0.0);
 				half foam = tex2Dlod(_LD_Sampler_Foam_0, uv_lastframe
 					- ((_SimDeltaTime * _LD_Params_0.w) * velocity)
 					).x;
@@ -70,7 +71,7 @@ Shader "Hidden/Crest/Simulation/Update Foam"
 				if (max(r.x, r.y) > 0.5 - _LD_Params_0.w)
 				{
 					// no border wrap mode for RTs in unity it seems, so make any off-texture reads 0 manually
-					foam = 0.;
+					foam = 0.0;
 				}
 
 				// fade
@@ -90,12 +91,12 @@ Shader "Hidden/Crest/Simulation/Update Foam"
 				// < 0: Overlap
 				float4 du = float4(disp_x.xz, disp_z.xz) - disp.xzxz;
 				float det = (du.x * du.w - du.y * du.z) / (_LD_Params_1.x * _LD_Params_1.x);
-				foam += 5. * _SimDeltaTime * _WaveFoamStrength * saturate(_WaveFoamCoverage - det);
+				foam += 5.0 * _SimDeltaTime * _WaveFoamStrength * saturate(_WaveFoamCoverage - det);
 
 				// add foam in shallow water. use the displaced position to ensure we add foam where world objects are.
-				float4 uv_1_displaced = float4(LD_1_WorldToUV(input.worldXZ + disp.xz), 0., 1.);
+				float4 uv_1_displaced = float4(LD_1_WorldToUV(input.positionWS_XZ + disp.xz), 0.0, 1.0);
 				float signedOceanDepth = CREST_OCEAN_DEPTH_BASELINE - tex2Dlod(_LD_Sampler_SeaFloorDepth_1, uv_1_displaced).x + disp.y;
-				foam += _ShorelineFoamStrength * _SimDeltaTime * saturate(1. - signedOceanDepth / _ShorelineFoamMaxDepth);
+				foam += _ShorelineFoamStrength * _SimDeltaTime * saturate(1.0 - signedOceanDepth / _ShorelineFoamMaxDepth);
 
 				return foam;
 			}

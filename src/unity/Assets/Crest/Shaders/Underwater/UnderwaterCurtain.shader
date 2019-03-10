@@ -65,7 +65,7 @@ Shader "Crest/Underwater Curtain"
 
 			struct Attributes
 			{
-				float4 positionOS : POSITION;
+				float3 positionOS : POSITION;
 				float2 uv : TEXCOORD0;
 			};
 
@@ -75,7 +75,7 @@ Shader "Crest/Underwater Curtain"
 				float2 uv : TEXCOORD0;
 				half4 foam_screenPos : TEXCOORD1;
 				half4 grabPos : TEXCOORD2;
-				float3 worldPos : TEXCOORD3;
+				float3 positionWS : TEXCOORD3;
 			};
 
 			Varyings Vert(Attributes input)
@@ -101,21 +101,21 @@ Shader "Crest/Underwater Curtain"
 				const float3 nearPlaneCenter = _WorldSpaceCameraPos + forward * _ProjectionParams.y * 1.001;
 				// Spread verts across the near plane.
 				const float aspect = _ScreenParams.x / _ScreenParams.y;
-				o.worldPos = nearPlaneCenter
+				o.positionWS = nearPlaneCenter
 					+ 2.1 * unity_CameraInvProjection._m11 * aspect * right * input.positionOS.x * _ProjectionParams.y
 					+ up * input.positionOS.z * _ProjectionParams.y;
 
 				// Isolate topmost edge
 				if (input.positionOS.z > 0.45)
 				{
-					const float3 posOnNearPlane = o.worldPos;
+					const float3 posOnNearPlane = o.positionWS;
 
 					// Only compute intersection of water if viewer is looking "horizontal-ish". When the viewer starts to look
 					// too much up or down, the intersection between the near plane and the water surface can be complex.
 					if (abs(forward.y) < CREST_MAX_UPDOWN_AMOUNT)
 					{
 						// move vert in the up direction, but only to an extent, otherwise numerical issues can cause weirdness
-						o.worldPos += min(IntersectRayWithWaterSurface(o.worldPos, up), MAX_OFFSET) * up;
+						o.positionWS += min(IntersectRayWithWaterSurface(o.positionWS, up), MAX_OFFSET) * up;
 
 						// Move the geometry towards the horizon. As noted above, the skirt will be stomped by the ocean
 						// surface render. If we project a bit towards the horizon to make a bit of overlap then we can reduce
@@ -124,12 +124,12 @@ Shader "Crest/Underwater Curtain"
 						horizonPoint.y = _OceanCenterPosWorld.y;
 						const float3 horizonDir = normalize(horizonPoint - _WorldSpaceCameraPos);
 						const float3 projectionOfHorizonOnNearPlane = _WorldSpaceCameraPos + horizonDir / dot(horizonDir, forward);
-						o.worldPos = lerp(o.worldPos, projectionOfHorizonOnNearPlane, 0.1);
+						o.positionWS = lerp(o.positionWS, projectionOfHorizonOnNearPlane, 0.1);
 					}
 					else if (_HeightOffset < -1.0)
 					{
 						// Deep under water - always push top edge up to cover screen
-						o.worldPos += MAX_OFFSET * up;
+						o.positionWS += MAX_OFFSET * up;
 					}
 					else
 					{
@@ -138,26 +138,26 @@ Shader "Crest/Underwater Curtain"
 
 						// Push top edge up if we are looking down so that the screen defaults to looking underwater.
 						// Push top edge down if we are looking up so that the screen defaults to looking out of water.
-						o.worldPos -= sign(forward.y) * MAX_OFFSET * up;
+						o.positionWS -= sign(forward.y) * MAX_OFFSET * up;
 					}
 
 					// Test - always put top row of verts at water horizon, because then it will always meet the water
 					// surface. Good idea but didnt work because it then does underwater shading on opaque surfaces which
 					// can be ABOVE the water surface. Not sure if theres any way around this.
-					o.positionCS = mul(UNITY_MATRIX_VP, float4(o.worldPos, 1.0));
+					o.positionCS = mul(UNITY_MATRIX_VP, float4(o.positionWS, 1.0));
 					o.positionCS.z = o.positionCS.w;
 				}
 				else
 				{
 					// Bottom row of verts - push them down below bottom of screen
-					o.worldPos -= MAX_OFFSET * up;
+					o.positionWS -= MAX_OFFSET * up;
 
-					o.positionCS = mul(UNITY_MATRIX_VP, float4(o.worldPos, 1.0));
+					o.positionCS = mul(UNITY_MATRIX_VP, float4(o.positionWS, 1.0));
 					o.positionCS.z = o.positionCS.w;
 				}
 
-				o.foam_screenPos.yzw = ComputeScreenPos(o.positionCS).xyw;
 				o.foam_screenPos.x = 0.0;
+				o.foam_screenPos.yzw = ComputeScreenPos(o.positionCS).xyw;
 				o.grabPos = ComputeGrabScreenPos(o.positionCS);
 
 				o.uv = input.uv;
@@ -167,7 +167,7 @@ Shader "Crest/Underwater Curtain"
 
 			half4 Frag(Varyings input) : SV_Target
 			{
-				const half3 view = normalize(_WorldSpaceCameraPos - input.worldPos);
+				const half3 view = normalize(_WorldSpaceCameraPos - input.positionWS);
 
 				const float pixelZ = LinearEyeDepth(input.positionCS.z);
 				const half3 screenPos = input.foam_screenPos.yzw;

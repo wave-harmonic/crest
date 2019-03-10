@@ -12,11 +12,11 @@ Shader "Hidden/Crest/Simulation/Update Dynamic Waves"
 			CGPROGRAM
 			#pragma vertex Vert
 			#pragma fragment Frag
+			
+			#define MIN_DT 0.00001
 
 			#include "UnityCG.cginc"
-			#include "../../../../Crest/Shaders/OceanLODData.hlsl"
-
-			#define MIN_DT 0.00001
+			#include "../../../Crest/Shaders/OceanLODData.hlsl"
 
 			half _Damping;
 			float2 _LaplacianAxisX;
@@ -33,7 +33,7 @@ Shader "Hidden/Crest/Simulation/Update Dynamic Waves"
 			struct Varyings
 			{
 				float4 positionCS : SV_POSITION;
-				float2 worldPosXZ : TEXCOORD0;
+				float2 positionWS_XZ : TEXCOORD0;
 				float2 uv : TEXCOORD1;
 			};
 
@@ -59,7 +59,7 @@ Shader "Hidden/Crest/Simulation/Update Dynamic Waves"
 				o.uv = input.uv;
 
 				// lod data 1 is current frame, compute world pos from quad uv
-				o.worldPosXZ = LD_1_UVToWorld(input.uv);
+				o.positionWS_XZ = LD_1_UVToWorld(input.uv);
 
 				return o;
 			}
@@ -69,11 +69,11 @@ Shader "Hidden/Crest/Simulation/Update Dynamic Waves"
 				const float dt = _SimDeltaTime;
 				const float dtp = _SimDeltaTimePrev;
 
-				half2 velocity = tex2Dlod(_LD_Sampler_Flow_1, float4(input.uv, 0, 0));
-				float2 uv_lastframe = LD_0_WorldToUV(input.worldPosXZ - (dt * velocity));
-				float4 uv_lastframe4 = float4(uv_lastframe, 0., 0.);
+				half2 velocity = tex2Dlod(_LD_Sampler_Flow_1, float4(input.uv, 0.0, 0.0)).xy;
+				float2 uv_lastframe = LD_0_WorldToUV(input.positionWS_XZ - (dt * velocity));
+				float4 uv_lastframe4 = float4(uv_lastframe, 0.0, 0.0);
 
-				half2 ft_ftm = tex2Dlod(_LD_Sampler_DynamicWaves_0, uv_lastframe4);
+				half2 ft_ftm = tex2Dlod(_LD_Sampler_DynamicWaves_0, uv_lastframe4).xy;
 
 				float ft = ft_ftm.x; // t - current value before update
 				float ftm = ft_ftm.y; // t minus - previous value

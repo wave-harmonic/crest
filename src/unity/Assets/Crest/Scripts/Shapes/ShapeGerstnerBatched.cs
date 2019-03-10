@@ -13,8 +13,6 @@ namespace Crest
     {
         [Tooltip("Geometry to rasterize into wave buffers to generate waves.")]
         public Mesh _rasterMesh;
-        [Tooltip("Shader to be used to render out a single Gerstner octave.")]
-        public Shader _waveShader;
         [Tooltip("The spectrum that defines the ocean surface shape. Create asset of type Crest/Ocean Waves Spectrum.")]
         public OceanWaveSpectrum _spectrum;
 
@@ -37,6 +35,9 @@ namespace Crest
         bool[] _drawLOD;
         Material _materialBigWaveTransition;
         bool _drawLODTransitionWaves;
+
+        // Shader to be used to render evaluate Gerstner waves for each LOD
+        Shader _waveShader;
 
         // IMPORTANT - this mirrors the constant with the same name in ShapeGerstnerBatch.shader, both must be updated together!
         const int BATCH_SIZE = 32;
@@ -66,6 +67,8 @@ namespace Crest
                 enabled = false;
                 return;
             }
+
+            _waveShader = Shader.Find("Crest/Inputs/Animated Waves/Gerstner Batch");
 
             if (_spectrum == null)
             {

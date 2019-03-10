@@ -7,13 +7,13 @@ namespace Crest
     public class Whirlpool : MonoBehaviour
     {
         [Range(0, 1000), SerializeField]
-        float _amplitude = 10f;
+        float _amplitude = 20f;
         [Range(0, 1000), SerializeField]
-        float _radius = 20f;
+        float _radius = 80f;
         [Range(0, 1000), SerializeField]
         float _eyeRadius = 1f;
         [Range(0, 1000), SerializeField]
-        float _maxSpeed = 70f;
+        float _maxSpeed = 10f;
 
         [SerializeField]
         bool _createDisplacement = true;

@@ -21,7 +21,7 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Batch"
 			#pragma vertex Vert
 			#pragma fragment Frag
 			#include "UnityCG.cginc"
-			#include "../OceanLODData.hlsl"
+			#include "../../OceanLODData.hlsl"
 
 			// IMPORTANT - this mirrors the constant with the same name in ShapeGerstnerBatched.cs, both must be updated together!
 			#define BATCH_SIZE 32

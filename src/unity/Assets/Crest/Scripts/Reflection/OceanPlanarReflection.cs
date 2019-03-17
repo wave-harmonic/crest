@@ -1,3 +1,5 @@
+// Crest Ocean System
+
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 // This script originated from the unity standard assets. It has been modified heavily to be camera-centric (as opposed to

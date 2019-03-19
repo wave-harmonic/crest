@@ -5,7 +5,7 @@
 
 # Overview
 
-*Crest* is a technically-advanced, flexible ocean system for Unity.
+*Crest* is a technically-advanced ocean system for Unity. It is architected for performance and makes heavy use of Level Of Detail (LOD) strategies and GPU acceleration for fast update and rendering. It is also highly flexible and allows any custom input to the water shape/foam/dynamic waves/etc, and has an intuitive and easy to use shape authoring interface.
 
 
 # Initial setup
@@ -205,6 +205,10 @@ The system does not support cross blending of multiple scripts.
 
 
 # Other features
+
+## Underwater
+
+*Crest* supports seamless transitions above/below water. This is demonstrated in the *main.unity* scene in the example content. The ocean in this scene uses the material *Ocean-Underwater.mat* which enables rendering the underside of the surface, and has the prefab *UnderWaterCurtainGeom* parented to the camera which renders the underwater effect. It also has the prefab *UnderWaterMeniscus* parented which renders a subtle line at the intersection between the camera lens and the water to visually help the transition.
 
 ## Masking out surface
 

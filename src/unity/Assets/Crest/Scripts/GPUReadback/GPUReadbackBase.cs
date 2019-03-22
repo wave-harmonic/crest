@@ -9,6 +9,9 @@ using UnityEngine.Rendering;
 
 namespace Crest
 {
+    /// <summary>
+    /// Interface for an object that will provide min and max resolutions that should be read back.
+    /// </summary>
     public interface IReadbackSettingsProvider
     {
         void GetMinMaxGridSizes(out float minGridSize, out float maxGridSize);

@@ -6,6 +6,9 @@ using UnityEngine;
 
 namespace Crest
 {
+    /// <summary>
+    /// Reads back flow data - horizontal velocity of water - so that it is available for physics.
+    /// </summary>
     public class GPUReadbackFlow : GPUReadbackBase<LodDataMgrFlow>
     {
         static GPUReadbackFlow _instance;

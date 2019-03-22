@@ -7,7 +7,8 @@ using UnityEngine;
 namespace Crest
 {
     /// <summary>
-    /// Scales the ocean horizontally based on the camera height, to keep geometry detail uniform-ish in screen space.
+    /// The main script for the ocean system. Attach this to a GameObject to create an ocean. This script initialises the various data types and systems
+    /// and moves/scales the ocean based on the viewpoint. It also hosts a number of global settings that can be tweaked here.
     /// </summary>
     public class OceanRenderer : MonoBehaviour
     {
@@ -120,6 +121,9 @@ namespace Crest
         [HideInInspector] public LodDataMgrFlow _lodDataFlow;
         [HideInInspector] public LodDataMgrFoam _lodDataFoam;
         [HideInInspector] public LodDataMgrShadow _lodDataShadow;
+        /// <summary>
+        /// The number of LODs/scales that the ocean is currently using.
+        /// </summary>
         public int CurrentLodCount { get { return _lods.Length; } }
 
         /// <summary>
@@ -180,7 +184,7 @@ namespace Crest
             UpdateCollision();
         }
 
-        public void UpdateCollision()
+        void UpdateCollision()
         {
             if (_simSettingsAnimatedWaves.CachedHeightQueries)
             {
@@ -257,6 +261,8 @@ namespace Crest
 
         void LateUpdateLods()
         {
+            // Do any per-frame update for each LOD type.
+
             foreach (var lt in _lods)
             {
                 lt.UpdateTransform();
@@ -285,21 +291,14 @@ namespace Crest
         bool RegenPossible() { return UnityEditor.EditorApplication.isPlaying; }
 #endif
 
+        /// <summary>
+        /// Could the ocean horizontal scale increase (for e.g. if the viewpoint gains altitude). Will be false if ocean already at maximum scale.
+        /// </summary>
         public bool ScaleCouldIncrease { get { return _maxScale == -1f || transform.localScale.x < _maxScale * 0.99f; } }
+        /// <summary>
+        /// Could the ocean horizontal scale decrease (for e.g. if the viewpoint drops in altitude). Will be false if ocean already at minimum scale.
+        /// </summary>
         public bool ScaleCouldDecrease { get { return _minScale == -1f || transform.localScale.x > _minScale * 1.01f; } }
-
-        public int GetLodIndex(float gridSize)
-        {
-            //gridSize = 4f * transform.lossyScale.x * Mathf.Pow(2f, result) / _lodDataResolution;
-            int result = Mathf.RoundToInt(Mathf.Log(_lodDataResolution * gridSize / (4f * transform.lossyScale.x)) / Mathf.Log(2f));
-
-            if (result < 0 || result >= _lodCount)
-            {
-                result = -1;
-            }
-
-            return result;
-        }
 
         /// <summary>
         /// Shape scripts can report in how far they might displace the shape horizontally. The max value is saved here.

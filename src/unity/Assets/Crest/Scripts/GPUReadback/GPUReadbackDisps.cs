@@ -6,6 +6,9 @@ using UnityEngine;
 
 namespace Crest
 {
+    /// <summary>
+    /// Reads back displacements - this is the ocean shape, which includes any dynamic waves and any custom shape.
+    /// </summary>
     public class GPUReadbackDisps : GPUReadbackBase<LodDataMgrAnimWaves>, ICollProvider
     {
         PerLodData _areaData;

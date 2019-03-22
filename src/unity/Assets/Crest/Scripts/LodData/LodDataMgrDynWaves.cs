@@ -11,8 +11,8 @@ namespace Crest
     /// </summary>
     public class LodDataMgrDynWaves : LodDataMgrPersistent
     {
-        public override string SimName { get { return "DynamicWaves"; } }
         protected override string ShaderSim { get { return "Hidden/Crest/Simulation/Update Dynamic Waves"; } }
+        public override string SimName { get { return "DynamicWaves"; } }
         public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RGHalf; } }
 
         public override SimSettingsBase CreateDefaultSettings()

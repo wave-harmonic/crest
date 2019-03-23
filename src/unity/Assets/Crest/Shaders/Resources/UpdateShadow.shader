@@ -16,7 +16,7 @@ Shader "Hidden/Crest/Simulation/Update Shadow"
 			#define SHADOW_COLLECTOR_PASS
 
 			#include "UnityCG.cginc"
-			#include "../../../../Crest/Shaders/OceanLODData.hlsl"
+			#include "../OceanLODData.hlsl"
 
 			struct Attributes
 			{
@@ -44,7 +44,7 @@ Shader "Hidden/Crest/Simulation/Update Shadow"
 			float4x4 _MainCameraProjectionMatrix;
 
 			// noise functions used for jitter
-			#include "../../GPUNoise/GPUNoise.hlsl"
+			#include "../GPUNoise/GPUNoise.hlsl"
 
 			// Provides _SimDeltaTime (see comment at this definition)
 			float _SimDeltaTime;

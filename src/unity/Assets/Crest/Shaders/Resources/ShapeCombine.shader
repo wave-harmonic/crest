@@ -21,7 +21,7 @@ Shader "Hidden/Crest/Simulation/Combine Animated Wave LODs"
 			#pragma multi_compile __ _FLOW_ON
 
 			#include "UnityCG.cginc"
-			#include "../../Shaders/OceanLODData.hlsl"
+			#include "../OceanLODData.hlsl"
 
 			float _HorizDisplace;
 			float _DisplaceClamp;

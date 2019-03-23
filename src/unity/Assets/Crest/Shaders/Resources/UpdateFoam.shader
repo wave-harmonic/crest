@@ -16,8 +16,8 @@ Shader "Hidden/Crest/Simulation/Update Foam"
 			#pragma fragment Frag
 
 			#include "UnityCG.cginc"
-			#include "../../../Crest/Shaders/OceanLODData.hlsl"
-
+			#include "../OceanLODData.hlsl"
+		
 			float _FoamFadeRate;
 			float _WaveFoamStrength;
 			float _WaveFoamCoverage;

@@ -18,7 +18,7 @@ Shader "Hidden/Crest/Simulation/Update Dynamic Waves"
 			#define MIN_DT 0.00001
 
 			#include "UnityCG.cginc"
-			#include "../../../Crest/Shaders/OceanLODData.hlsl"
+			#include "../OceanLODData.hlsl"
 
 			half _Damping;
 			float2 _LaplacianAxisX;

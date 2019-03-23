@@ -216,6 +216,7 @@ Shader "Crest/Ocean"
 
 			struct Attributes
 			{
+				// The old unity macros require this name and type.
 				float4 vertex : POSITION;
 			};
 

@@ -81,8 +81,8 @@ Material:
     - _CausticsBase: 0.07
     - _CausticsBias: 0.7
     - _CausticsDepthOfField: 0.33
-    - _CausticsDistortionScale: 10
-    - _CausticsDistortionStrength: 0.075
+    - _CausticsDistortionScale: 25
+    - _CausticsDistortionStrength: 0.16
     - _CausticsFocalDepth: 2
     - _CausticsStrength: 3.2
     - _CausticsTextureAverage: 0.07

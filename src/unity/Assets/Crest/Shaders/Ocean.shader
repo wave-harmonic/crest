@@ -182,7 +182,8 @@ Shader "Crest/Ocean"
 			CGPROGRAM
 			#pragma vertex Vert
 			#pragma fragment Frag
-
+			// for VFACE
+			#pragma target 3.0
 			#pragma multi_compile_fog
 
 			#pragma shader_feature _APPLYNORMALMAPPING_ON
@@ -366,18 +367,26 @@ Shader "Crest/Ocean"
 				return lightDir;
 			}
 
-			bool IsUnderwater(const bool i_isFrontFace)
+			bool IsUnderwater(const float facing)
 			{
-#if _UNDERWATER_ON
-				return !i_isFrontFace || _ForceUnderwater > 0.0;
-#else
+#if !_UNDERWATER_ON
 				return false;
 #endif
+
+				const bool backface =
+#if !SHADER_API_METAL
+					facing < 0.0;
+#else
+					// on metal, value is flipped? https://answers.unity.com/questions/1262709/shader-semantics-vface-error-in-ios-metal.html
+					facing > 0.0;
+#endif
+
+				return backface || _ForceUnderwater > 0.0;
 			}
 
-			half4 Frag(const Varyings input, const bool i_isFrontFace : SV_IsFrontFace) : SV_Target
+			half4 Frag(const Varyings input, const float facing : VFACE) : SV_Target
 			{
-				const bool underwater = IsUnderwater(i_isFrontFace);
+				const bool underwater = IsUnderwater(facing);
 
 				half3 view = normalize(_WorldSpaceCameraPos - input.worldPos);
 

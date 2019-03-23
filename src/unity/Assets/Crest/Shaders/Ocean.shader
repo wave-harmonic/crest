@@ -211,9 +211,6 @@ Shader "Crest/Ocean"
 			#pragma enable_d3d11_debug_symbols
 			#endif
 
-			// Temporary to allow workaround for 182
-			#pragma multi_compile __ _SHADOWS_ON
-
 			#include "UnityCG.cginc"
 			#include "Lighting.cginc"
 

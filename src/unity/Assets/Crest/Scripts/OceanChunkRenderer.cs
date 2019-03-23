@@ -121,7 +121,7 @@ namespace Crest
             if (ldflow) ldflow.BindResultData(_lodIndex, 0, _mpb);
             if (ldfoam) ldfoam.BindResultData(_lodIndex, 0, _mpb);
             if (ldsds) ldsds.BindResultData(_lodIndex, 0, _mpb);
-            if (ldshadows) ldshadows.BindResultData(_lodIndex, 0, _mpb);
+            if (ldshadows) ldshadows.BindResultData(_lodIndex, 0, _mpb); else LodDataMgrShadow.BindNull(0, _mpb);
 
             if (_lodIndex + 1 < OceanRenderer.Instance.CurrentLodCount)
             {
@@ -129,7 +129,7 @@ namespace Crest
                 if (ldflow) ldflow.BindResultData(_lodIndex + 1, 1, _mpb);
                 if (ldfoam) ldfoam.BindResultData(_lodIndex + 1, 1, _mpb);
                 if (ldsds) ldsds.BindResultData(_lodIndex + 1, 1, _mpb);
-                if (ldshadows) ldshadows.BindResultData(_lodIndex + 1, 1, _mpb);
+                if (ldshadows) ldshadows.BindResultData(_lodIndex + 1, 1, _mpb); else LodDataMgrShadow.BindNull(1, _mpb);
             }
 
             var reflTex = OceanPlanarReflection.GetRenderTexture(_currentCamera.targetDisplay);

@@ -16,7 +16,7 @@ Shader "Crest/Ocean"
 		[Header(Scattering)]
 		// Base colour
 		_Diffuse("Diffuse", Color) = (0.2, 0.05, 0.05, 1.0)
-		// Changes colour in shadow. Requires Create Shadow Data enabled on OceanRenderer script
+		// Changes colour in shadow. Requires 'Create Shadow Data' enabled on OceanRenderer script.
 		[Toggle] _Shadows("Shadowing", Float) = 0
 		// Base colour in shadow
 		_DiffuseShadow("Diffuse (Shadow)", Color) = (0.2, 0.05, 0.05, 1.0)

@@ -55,7 +55,7 @@ half3 ScatterColour(
 {
 	half depth;
 	half waveHeight;
-	half shadow = 0.;
+	half shadow = 1.0;
 	if (i_underwater)
 	{
 		// compute scatter colour from cam pos. two scenarios this can be called:
@@ -65,14 +65,16 @@ half3 ScatterColour(
 		//    so just approximate by sampling at the camera position.
 		// this used to sample LOD1 but that doesnt work in last LOD, the data will be missing.
 		const float2 uv_0 = LD_0_WorldToUV(i_cameraPos.xz);
-		float seaFloorHeightAboveBaseline = 0.;
+		float seaFloorHeightAboveBaseline = 0.0;
 		SampleSeaFloorHeightAboveBaseline(_LD_Sampler_SeaFloorDepth_0, uv_0, 1.0, seaFloorHeightAboveBaseline);
 		depth = CREST_OCEAN_DEPTH_BASELINE - seaFloorHeightAboveBaseline;
-		waveHeight = 0.;
+		waveHeight = 0.0;
 
-		fixed2 shadowSoftHard = 0.;
+#if _SHADOWS_ON
+		fixed2 shadowSoftHard = 0.0;
 		SampleShadow(_LD_Sampler_Shadow_0, uv_0, 1.0, shadowSoftHard);
-		shadow = 1. - shadowSoftHard.x;
+		shadow = 1.0 - shadowSoftHard.x;
+#endif
 	}
 	else
 	{
@@ -118,7 +120,7 @@ half3 ScatterColour(
 	// throughput due to light scatter as the camera gets further under water.
 	if (i_outscatterLight)
 	{
-		half camDepth = i_surfaceWorldPos.y - _WorldSpaceCameraPos.y;
+		half camDepth = max(_OceanCenterPosWorld.y - _WorldSpaceCameraPos.y, 0.0);
 		if (i_underwater)
 		{
 			col *= exp(-_DepthFogDensity.xyz * camDepth * DEPTH_OUTSCATTER_CONSTANT);

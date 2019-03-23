@@ -12,13 +12,21 @@ namespace Crest
     /// </summary>
     public class UnderwaterEffect : MonoBehaviour
     {
-        [SerializeField] float _maxHeightAboveWater = 1.5f;
-        [SerializeField] bool _overrideSortingOrder = false;
-        [SerializeField] int _overridenSortingOrder = 0;
-
         [Header("Copy params from Ocean material")]
-        [SerializeField] bool _copyParamsOnStartup = true;
-        [SerializeField] bool _copyParamsEachFrame = false;
+
+        [Tooltip("Copy ocean material settings on startup, to ensure consistent appearance between underwater effect and ocean surface."), SerializeField]
+        bool _copyParamsOnStartup = true;
+        [Tooltip("Copy ocean material settings on each frame, to ensure consistent appearance between underwater effect and ocean surface. This should be turned off if you are not changing the ocean material values every frame."), SerializeField]
+        bool _copyParamsEachFrame = true;
+
+        [Header("Advanced")]
+
+        [Tooltip("This GameObject will be disabled when view height is more than this much above the water surface."), SerializeField]
+        float _maxHeightAboveWater = 1.5f;
+        [Tooltip("Override the default Unity draw order."), SerializeField]
+        bool _overrideSortingOrder = false;
+        [Tooltip("If the draw order override is enabled use this new order value."), SerializeField]
+        int _overridenSortingOrder = 0;
 
         // how many vertical edges to add to curtain geometry
         const int GEOM_HORIZ_DIVISIONS = 64;

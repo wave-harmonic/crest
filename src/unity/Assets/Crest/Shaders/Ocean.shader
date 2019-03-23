@@ -216,7 +216,7 @@ Shader "Crest/Ocean"
 
 			struct Attributes
 			{
-				float3 positionOS : POSITION;
+				float4 vertex : POSITION;
 			};
 
 			struct Varyings
@@ -241,12 +241,13 @@ Shader "Crest/Ocean"
 			// MeshScaleLerp, FarNormalsWeight, LODIndex (debug), unused
 			uniform float4 _InstanceData;
 
-			Varyings Vert(Attributes input)
+			// Argument name is v because some macros like COMPUTE_EYEDEPTH require it.
+			Varyings Vert(Attributes v)
 			{
 				Varyings o;
 
 				// move to world
-				o.worldPos = mul(unity_ObjectToWorld, float4(input.positionOS, 1.0));
+				o.worldPos = mul(unity_ObjectToWorld, float4(v.vertex.xyz, 1.0));
 
 				// vertex snapping and lod transition
 				float lodAlpha;

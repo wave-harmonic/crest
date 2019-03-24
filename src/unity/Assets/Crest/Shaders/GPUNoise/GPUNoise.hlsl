@@ -1,6 +1,9 @@
 // See header/license in SOURCE.txt file accompanying this shader.
 
-// Trivial modifications made to the code to translate it to HLSL
+// Trivial modifications made to the code to translate it to HLSL by Huw Bowles
+
+#ifndef CREST_GPU_NOISE_INCLUDED
+#define CREST_GPU_NOISE_INCLUDED
 
 uint baseHash(uint3 p)
 {
@@ -28,3 +31,5 @@ float3 hash33(uint3 x)
 	uint3 rz = uint3(n, n * 16807U, n * 48271U); //see: http://random.mat.sbg.ac.at/results/karl/server/node4.html
 	return float3(rz & (uint3)0x7fffffffU) / float(0x7fffffff);
 }
+
+#endif // CREST_GPU_NOISE_INCLUDED

@@ -8,7 +8,7 @@ Shader "Crest/Ocean"
 	{
 		[Header(Normal Mapping)]
 		[Toggle] _ApplyNormalMapping("Enable", Float) = 1
-		[NoScaleOffset] _Normals ( "Normal Map", 2D ) = "bump" {}
+		[NoScaleOffset] _Normals("Normal Map", 2D) = "bump" {}
 		_NormalsStrength("Strength", Range(0.01, 2.0)) = 0.3
 		_NormalsScale("Scale", Range(0.01, 50.0)) = 1.0
 
@@ -37,7 +37,7 @@ Shader "Crest/Ocean"
 		[Header(Height Based Scattering)]
 		[Toggle] _SubSurfaceHeightLerp("Enable", Float) = 1
 		// Height from sea level where scattering is at maximum
-		_SubSurfaceHeightMax("Height Max", Range(0.0, 50.0)) = 3.0
+		_SubSurfaceHeightMax("Height Max", Range(0.0, 100.0)) = 3.0
 		// Fall off of height scattering
 		_SubSurfaceHeightPower("Height Power", Range(0.01, 10.0)) = 1.0
 		// Tint for height scattering
@@ -247,10 +247,10 @@ Shader "Crest/Ocean"
 			{
 				Varyings o;
 
-				// move to world
+				// Move to world space
 				o.worldPos = mul(unity_ObjectToWorld, float4(v.vertex.xyz, 1.0));
 
-				// vertex snapping and lod transition
+				// Vertex snapping and lod transition
 				float lodAlpha;
 				SnapAndTransitionVertLayout(_InstanceData.x, o.worldPos, lodAlpha);
 				o.lodAlpha_worldXZUndisplaced_oceanDepth.x = lodAlpha;
@@ -261,15 +261,17 @@ Shader "Crest/Ocean"
 				o.foam_screenPos.x = 0.;
 
 				o.lodAlpha_worldXZUndisplaced_oceanDepth.w = 0.;
+				
+				// Sample shape textures - always lerp between 2 LOD scales, so sample two textures
 
-				// sample weights. params.z allows shape to be faded out (used on last lod to support pop-less scale transitions)
+				// Calculate sample weights. params.z allows shape to be faded out (used on last lod to support pop-less scale transitions)
 				float wt_0 = (1. - lodAlpha) * _LD_Params_0.z;
 				float wt_1 = (1. - wt_0) * _LD_Params_1.z;
-				// sample displacement textures, add results to current world pos / normal / foam
-				const float2 worldXZBefore = o.worldPos.xz;
+				const float2 positionWS_XZ_before = o.worldPos.xz;
+				// Sample displacement textures, add results to current world pos / normal / foam
 				if (wt_0 > 0.001)
 				{
-					const float2 uv_0 = LD_0_WorldToUV(worldXZBefore);
+					const float2 uv_0 = LD_0_WorldToUV(positionWS_XZ_before);
 
 					#if !_DEBUGDISABLESHAPETEXTURES_ON
 					SampleDisplacements(_LD_Sampler_AnimatedWaves_0, uv_0, wt_0, o.worldPos);
@@ -293,7 +295,7 @@ Shader "Crest/Ocean"
 				}
 				if (wt_1 > 0.001)
 				{
-					const float2 uv_1 = LD_1_WorldToUV(worldXZBefore);
+					const float2 uv_1 = LD_1_WorldToUV(positionWS_XZ_before);
 
 					#if !_DEBUGDISABLESHAPETEXTURES_ON
 					SampleDisplacements(_LD_Sampler_AnimatedWaves_1, uv_1, wt_1, o.worldPos);
@@ -315,11 +317,11 @@ Shader "Crest/Ocean"
 					SampleShadow(_LD_Sampler_Shadow_1, uv_1, wt_1, o.flow_shadow.zw);
 					#endif
 				}
-				
-				// convert height above -1000m to depth below surface
+
+				// Convert height above -1000m to depth below surface
 				o.lodAlpha_worldXZUndisplaced_oceanDepth.w = CREST_OCEAN_DEPTH_BASELINE - o.lodAlpha_worldXZUndisplaced_oceanDepth.w;
 
-				// foam can saturate
+				// Foam can saturate
 				o.foam_screenPos.x = saturate(o.foam_screenPos.x);
 
 				// debug tinting to see which shape textures are used

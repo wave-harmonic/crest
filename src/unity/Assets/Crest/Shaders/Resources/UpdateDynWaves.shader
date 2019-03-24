@@ -14,7 +14,7 @@ Shader "Hidden/Crest/Simulation/Update Dynamic Waves"
 			CGPROGRAM
 			#pragma vertex Vert
 			#pragma fragment Frag
-			
+
 			#define MIN_DT 0.00001
 
 			#include "UnityCG.cginc"
@@ -82,8 +82,8 @@ Shader "Hidden/Crest/Simulation/Update Dynamic Waves"
 
 				// compute axes of laplacian kernel - rotated every frame
 				float e = _LD_Params_0.w; // assumes square RT
-				float4 X = float4(_LaplacianAxisX, 0., 0.);
-				float4 Y = float4(-X.y, X.x, 0., 0.);
+				float4 X = float4(_LaplacianAxisX, 0.0, 0.0);
+				float4 Y = float4(-X.y, X.x, 0.0, 0.0);
 				float fxm = tex2Dlod(_LD_Sampler_DynamicWaves_0, uv_lastframe4 - e*X).x; // x minus
 				float fym = tex2Dlod(_LD_Sampler_DynamicWaves_0, uv_lastframe4 - e*Y).x; // y minus
 				float fxp = tex2Dlod(_LD_Sampler_DynamicWaves_0, uv_lastframe4 + e*X).x; // x plus
@@ -97,30 +97,30 @@ Shader "Hidden/Crest/Simulation/Update Dynamic Waves"
 
 				// wave propagation
 				// velocity is implicit
-				float v = dtp > MIN_DT ? (ft - ftm) / dtp : 0.;
+				float v = dtp > MIN_DT ? (ft - ftm) / dtp : 0.0;
 
 				// damping
-				v *= 1. - min(1., _Damping * dt);
+				v *= 1.0 - min(1.0, _Damping * dt);
 
 				// wave equation
-				float ftp = ft + dt*v + dt*dt*c*c*(fxm + fxp + fym + fyp - 4.*ft) / (_GridSize*_GridSize);
+				float ftp = ft + dt*v + dt*dt*c*c*(fxm + fxp + fym + fyp - 4.0*ft) / (_GridSize*_GridSize);
 
 				// open boundary condition, from: http://hplgit.github.io/wavebc/doc/pub/._wavebc_cyborg002.html .
 				// this actually doesn't work perfectly well - there is some minor reflections of high frequencies.
 				// dudt + c*dudx = 0
 				// (ftp - ft)   +   c*(ft-fxm) = 0.
-				if (uv_lastframe.x + e >= 1.) ftp = -dt*c*(ft - fxm) + ft;
-				else if (uv_lastframe.x - e <= 0.) ftp = dt * c*(fxp - ft) + ft;
-				if (uv_lastframe.y + e >= 1.) ftp = -dt*c*(ft - fym) + ft;
-				else if (uv_lastframe.y - e <= 0.) ftp = dt*c*(fyp - ft) + ft;
+				if (uv_lastframe.x + e >= 1.0) ftp = -dt*c*(ft - fxm) + ft;
+				else if (uv_lastframe.x - e <= 0.0) ftp = dt * c*(fxp - ft) + ft;
+				if (uv_lastframe.y + e >= 1.0) ftp = -dt*c*(ft - fym) + ft;
+				else if (uv_lastframe.y - e <= 0.0) ftp = dt*c*(fyp - ft) + ft;
 
 				// attenuate waves based on ocean depth. if depth is greater than 0.5*wavelength, water is considered Deep and wave is
 				// unaffected. if depth is less than this, wave velocity decreases. waves will then bunch up and grow in amplitude and
 				// eventually break. i model "Deep" water, but then simply ramp down waves in non-deep water with a linear multiplier.
 				// http://hyperphysics.phy-astr.gsu.edu/hbase/Waves/watwav2.html
 				// http://hyperphysics.phy-astr.gsu.edu/hbase/watwav.html#c1
-				float waterSignedDepth = CREST_OCEAN_DEPTH_BASELINE - tex2D(_LD_Sampler_SeaFloorDepth_1, float4(input.uv, 0., 0.)).x;
-				float depthMul = 1. - (1. - saturate(2.0 * waterSignedDepth / wavelength)) * dt * 2.;
+				float waterSignedDepth = CREST_OCEAN_DEPTH_BASELINE - tex2D(_LD_Sampler_SeaFloorDepth_1, input.uv).x;
+				float depthMul = 1.0 - (1.0 - saturate(2.0 * waterSignedDepth / wavelength)) * dt * 2.0;
 				ftp *= depthMul;
 				ft *= depthMul;
 

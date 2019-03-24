@@ -17,7 +17,7 @@ Shader "Crest/Inputs/Depth/Ocean Depth From Geometry"
 
 			#include "UnityCG.cginc"
 			#include "../../OceanLODData.hlsl"
-	
+
 			struct Attributes
 			{
 				float3 positionOS : POSITION;

@@ -13,7 +13,7 @@ namespace Crest
         public float _jitterDiameterSoft = 15f;
 
         [Range(0f, 1f), Tooltip("Current frame weight for accumulation over frames for soft shadows. Roughly means 'responsiveness' for soft shadows.")]
-        public float _currentFrameWeightSoft = 0.02f;
+        public float _currentFrameWeightSoft = 0.03f;
 
         [Range(0f, 32f), Tooltip("Jitter diameter for hard shadows, controls softness of this shadowing component.")]
         public float _jitterDiameterHard = 0.6f;

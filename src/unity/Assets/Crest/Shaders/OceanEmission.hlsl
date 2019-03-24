@@ -71,7 +71,7 @@ half3 ScatterColour(
 		waveHeight = 0.0;
 
 #if _SHADOWS_ON
-		fixed2 shadowSoftHard = 0.0;
+		half2 shadowSoftHard = 0.0;
 		SampleShadow(_LD_Sampler_Shadow_0, uv_0, 1.0, shadowSoftHard);
 		shadow = 1.0 - shadowSoftHard.x;
 #endif
@@ -159,7 +159,7 @@ void ApplyCaustics(in const half3 i_view, in const half3 i_lightDir, in const fl
 	half causticsStrength = _CausticsStrength;
 #if _SHADOWS_ON
 	{
-		fixed2 causticShadow = 0.;
+		half2 causticShadow = 0.0;
 		// As per the comment for the underwater code in ScatterColour,
 		// LOD_1 data can be missing when underwater
 		if(i_underwater)
@@ -173,11 +173,11 @@ void ApplyCaustics(in const half3 i_view, in const half3 i_lightDir, in const fl
 			float2 uv_1 = LD_1_WorldToUV(surfacePosXZ);
 			SampleShadow(_LD_Sampler_Shadow_1, uv_1, 1.0, causticShadow);
 		}
-		causticsStrength *= 1. - causticShadow.y;
+		causticsStrength *= 1.0 - causticShadow.y;
 	}
 #endif // _SHADOWS_ON
 
-	io_sceneColour *= 1. + causticsStrength *
+	io_sceneColour *= 1.0 + causticsStrength *
 		(0.5*tex2Dlod(_CausticsTexture, cuv1).x + 0.5*tex2Dlod(_CausticsTexture, cuv2).x - _CausticsTextureAverage);
 }
 #endif // _CAUSTICS_ON

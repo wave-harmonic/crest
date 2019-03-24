@@ -2,8 +2,9 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+// This is the original version that uses an auxillary camera and works with Unity's GPU terrain - issue 152.
+
 using UnityEngine;
-using UnityEngine.Serialization;
 
 namespace Crest
 {
@@ -78,7 +79,7 @@ namespace Crest
                 int layerIdx = LayerMask.NameToLayer(layer);
                 if (string.IsNullOrEmpty(layer) || layerIdx == -1)
                 {
-                    Debug.LogError("OceanDepthCache: Invalid layer specified: \"" + layer + 
+                    Debug.LogError("OceanDepthCache: Invalid layer specified: \"" + layer +
                         "\". Please specify valid layers for objects/geometry that provide the ocean depth.", this);
                 }
                 else
@@ -90,7 +91,7 @@ namespace Crest
             {
                 Debug.LogError("No valid layers for populating depth cache, aborting.", this);
             }
-            
+
             if (_cacheTexture == null)
             {
                 _cacheTexture = new RenderTexture(_resolution, _resolution, 0);

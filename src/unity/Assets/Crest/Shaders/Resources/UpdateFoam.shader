@@ -28,7 +28,7 @@ Shader "Hidden/Crest/Simulation/Update Foam"
 
 			struct Attributes
 			{
-				// input geo should be clip space
+				// the input geom has clip space positions
 				float4 positionCS : POSITION;
 				float2 uv : TEXCOORD0;
 			};

@@ -11,7 +11,9 @@
 ![Teaser](https://raw.githubusercontent.com/huwb/crest-oceanrender/master/img/teaser5.png)
 
 **Discord:** https://discord.gg/6rYtPk
+
 **Twitter:** @crest_ocean
+
 **LWRP asset:** https://assetstore.unity.com/packages/tools/particles-effects/crest-ocean-system-lwrp-141674
 
 # Gallery

@@ -14,7 +14,7 @@
 
 **Twitter:** @crest_ocean
 
-**LWRP asset:** https://assetstore.unity.com/packages/tools/particles-effects/crest-ocean-system-lwrp-141674
+**LWRP asset:** [Crest Ocean System LWRP](https://assetstore.unity.com/packages/tools/particles-effects/crest-ocean-system-lwrp-141674)
 
 # Gallery
 
@@ -54,5 +54,5 @@ If you encounter an issue, please search the [Issues page](https://github.com/hu
 
 There are a few issues worth calling out here:
 
-* *Crest* currently only works with the out of the box render pipelines in Unity (forward or deferred). It does not currently support *LWRP* or *HDRP*. If you would find such support useful, please feel free to comment in issue #49.
+* *Crest* does not yet support *HDRP*. If you would find such support useful, please feel free to comment in issue #201.
 * Azure[Sky] requires some code to be added to the ocean shader for the fogging/scattering to work. This is a requirement of this product and apparently comes with instructions for what needs to be added. See issue #62.

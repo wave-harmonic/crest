@@ -10,6 +10,9 @@
 
 ![Teaser](https://raw.githubusercontent.com/huwb/crest-oceanrender/master/img/teaser5.png)
 
+**Discord:** https://discord.gg/6rYtPk
+**Twitter:** @crest_ocean
+**LWRP asset:** https://assetstore.unity.com/packages/tools/particles-effects/crest-ocean-system-lwrp-141674
 
 # Gallery
 
@@ -20,6 +23,7 @@
 
 Refer to [USERGUIDE.md](https://github.com/huwb/crest-oceanrender/blob/master/USERGUIDE.md) for full documentation, including **Initial setup steps**.
 
+There is also a getting started video here: https://www.youtube.com/watch?v=qsgeG4sSLFw&t=142s .
 
 # Prerequisites
 

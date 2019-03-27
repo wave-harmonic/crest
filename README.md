@@ -56,3 +56,4 @@ There are a few issues worth calling out here:
 
 * *Crest* does not yet support *HDRP*. If you would find such support useful, please feel free to comment in issue #201.
 * Azure[Sky] requires some code to be added to the ocean shader for the fogging/scattering to work. This is a requirement of this product and apparently comes with instructions for what needs to be added. See issue #62.
+* Issue with LWRP and VR - refraction appears broken due to what seems to be a bug in LWRP. See issue #206.

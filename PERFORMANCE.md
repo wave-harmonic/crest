@@ -8,7 +8,7 @@ The foundation of *Crest* is architected for performance from the ground up with
 
 These are currently available for tweaking and should be explored on every project:
 
-* See the *Ocean Construction Parameters* described in the README.md which directly control how much detail is in the ocean, and therefore the work required to update and render it.
+* See the *Ocean Construction Parameters* described in the USERGUIDE.md which directly control how much detail is in the ocean, and therefore the work required to update and render it.
 * The ocean shader has accrued a number of features and has become a reasonably heavy shader. Where possible these are on toggles and can be disabled, which will help the rendering cost.
 * If the collision source is the GPU displacement textures, create an *Animated Waves Sim Settings* asset and set the *Min Object Width* and *Max Object Width* fields to the expect range of object sizes. Due to the dynamic nature of the LOD system underpinning *Crest* these settings can produce non-intuitive results. There is a validation helper function provided for assitance, see the collision section of [TECHNOLOGY.md](https://github.com/huwb/crest-oceanrender/blob/master/TECHNOLOGY.md).
 

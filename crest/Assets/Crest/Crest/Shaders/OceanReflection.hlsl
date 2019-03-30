@@ -47,7 +47,7 @@ uniform half _DirectionalLightBoost;
 uniform samplerCUBE _Skybox;
 #endif
 
-float CalculateFresnelReflectionCoeffecient(float cosTheta)
+float CalculateFresnelReflectionCoefficient(float cosTheta)
 {
 	// Fresnel calculated using Schlick's approximation
 	// See: http://www.cs.virginia.edu/~jdl/bib/appearance/analytic%20models/schlick94b.pdf
@@ -77,7 +77,7 @@ void ApplyReflectionSky(in const half3 i_view, in const half3 i_n_pixel, in cons
 #endif
 
 	// Fresnel
-	float R_theta = CalculateFresnelReflectionCoeffecient(max(dot(i_n_pixel, i_view), 0.0));
+	float R_theta = CalculateFresnelReflectionCoefficient(max(dot(i_n_pixel, i_view), 0.0));
 	io_col = lerp(io_col, skyColour, R_theta);
 }
 
@@ -94,7 +94,7 @@ void ApplyReflectionUnderwater(in const half3 i_view, in const half3 i_n_pixel, 
 		// have to calculate the incident angle of incoming light to water
 		// surface based on how it would be refracted so as to hit the camera
 		const float cosIncomingAngle = cos(asin((_RefractiveIndexOfWater * sin(acos(cosOutgoingAngle)))/_RefractiveIndexOfAir));
-		const float reflectionCoefficient = CalculateFresnelReflectionCoeffecient(cosIncomingAngle);
+		const float reflectionCoefficient = CalculateFresnelReflectionCoefficient(cosIncomingAngle);
 		io_col = io_col * (1 - reflectionCoefficient);
 		io_col = max(io_col, 0);
 	}
@@ -103,7 +103,7 @@ void ApplyReflectionUnderwater(in const half3 i_view, in const half3 i_n_pixel, 
 	{
 		// angle of incident is angle of reflection
 		const float cosIncomingAngle = cosOutgoingAngle;
-		const float reflectionCoefficient = CalculateFresnelReflectionCoeffecient(cosIncomingAngle);
+		const float reflectionCoefficient = CalculateFresnelReflectionCoefficient(cosIncomingAngle);
 		io_col = io_col + (underwaterColor * reflectionCoefficient);
 	}
 }

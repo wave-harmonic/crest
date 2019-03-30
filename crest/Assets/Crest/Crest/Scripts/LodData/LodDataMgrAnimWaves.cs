@@ -98,7 +98,7 @@ namespace Crest
                 DrawFilter filter = (data) =>
                 {
                     var drawOctaveWavelength = (data as RegisterAnimWavesInput).OctaveWavelength;
-                    return lodMinWavelength <= drawOctaveWavelength && drawOctaveWavelength < lodMaxWavelength;
+                    return (lodMinWavelength <= drawOctaveWavelength) && (drawOctaveWavelength < lodMaxWavelength || lodIdx == lodCount - 1);
                 };
                 SubmitDrawsFiltered(lodIdx, buf, filter);
             }

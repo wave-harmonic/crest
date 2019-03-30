@@ -66,6 +66,7 @@ Shader "Crest/Ocean"
 		[NoScaleOffset] _Skybox ("Skybox", CUBE) = "" {}
 		// Dynamically rendered 'reflection plane' style reflections. Requires OceanPlanarReflection script added to main camera.
 		[Toggle] _PlanarReflections("Planar Reflections", Float) = 0
+		_CustomFresnelRamp("_CustomFresnelRamp", 2D) = "white" {}
 
 		// A simple procedural skybox, not suitable for rendering on screen, but can be useful to give control over reflection colour
 		// especially in stylized/non realistic applications

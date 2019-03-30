@@ -47,6 +47,8 @@ uniform half _DirectionalLightBoost;
 uniform samplerCUBE _Skybox;
 #endif
 
+sampler2D _CustomFresnelRamp;
+
 float CalculateFresnelReflectionCoefficient(float cosTheta)
 {
 	// Fresnel calculated using Schlick's approximation
@@ -55,6 +57,11 @@ float CalculateFresnelReflectionCoefficient(float cosTheta)
 	float R_0 = (_RefractiveIndexOfAir - _RefractiveIndexOfWater) / (_RefractiveIndexOfAir + _RefractiveIndexOfWater); R_0 *= R_0;
 	const float R_theta = R_0 + (1.0 - R_0) * pow(1.0 - cosTheta, _FresnelPower);
 	return R_theta;
+}
+
+float CalculateFresnelCustom(float cosTheta)
+{
+	return tex2D(_CustomFresnelRamp, float2(cosTheta, 0.5)).x;
 }
 
 void ApplyReflectionSky(in const half3 i_view, in const half3 i_n_pixel, in const half3 i_lightDir, in const half i_shadow, in const half4 i_screenPos, inout half3 io_col)
@@ -77,7 +84,7 @@ void ApplyReflectionSky(in const half3 i_view, in const half3 i_n_pixel, in cons
 #endif
 
 	// Fresnel
-	float R_theta = CalculateFresnelReflectionCoefficient(max(dot(i_n_pixel, i_view), 0.0));
+	float R_theta = CalculateFresnelCustom(max(dot(i_n_pixel, i_view), 0.0));
 	io_col = lerp(io_col, skyColour, R_theta);
 }
 
@@ -94,7 +101,7 @@ void ApplyReflectionUnderwater(in const half3 i_view, in const half3 i_n_pixel, 
 		// have to calculate the incident angle of incoming light to water
 		// surface based on how it would be refracted so as to hit the camera
 		const float cosIncomingAngle = cos(asin((_RefractiveIndexOfWater * sin(acos(cosOutgoingAngle)))/_RefractiveIndexOfAir));
-		const float reflectionCoefficient = CalculateFresnelReflectionCoefficient(cosIncomingAngle);
+		const float reflectionCoefficient = CalculateFresnelCustom(cosIncomingAngle);
 		io_col = io_col * (1 - reflectionCoefficient);
 		io_col = max(io_col, 0);
 	}
@@ -103,7 +110,7 @@ void ApplyReflectionUnderwater(in const half3 i_view, in const half3 i_n_pixel, 
 	{
 		// angle of incident is angle of reflection
 		const float cosIncomingAngle = cosOutgoingAngle;
-		const float reflectionCoefficient = CalculateFresnelReflectionCoefficient(cosIncomingAngle);
+		const float reflectionCoefficient = CalculateFresnelCustom(cosIncomingAngle);
 		io_col = io_col + (underwaterColor * reflectionCoefficient);
 	}
 }

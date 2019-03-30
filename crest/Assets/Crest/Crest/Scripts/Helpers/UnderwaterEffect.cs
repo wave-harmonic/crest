@@ -36,12 +36,6 @@ namespace Crest
 
         private void Start()
         {
-            if (OceanRenderer.Instance == null)
-            {
-                enabled = false;
-                return;
-            }
-
             _rend = GetComponent<Renderer>();
 
             // Render before the surface mesh
@@ -82,6 +76,12 @@ namespace Crest
 
         private void LateUpdate()
         {
+            if (OceanRenderer.Instance == null)
+            {
+                _rend.enabled = false;
+                return;
+            }
+
             float heightOffset = OceanRenderer.Instance.ViewerHeightAboveWater;
 
             // Disable skirt when camera not close to water. In the first few frames collision may not be avail, in that case no choice
@@ -91,7 +91,7 @@ namespace Crest
 
             if (_rend.enabled)
             {
-                if(_copyParamsEachFrame)
+                if (_copyParamsEachFrame)
                 {
                     _rend.material.CopyPropertiesFromMaterial(OceanRenderer.Instance.OceanMaterial);
                 }
@@ -135,7 +135,7 @@ namespace Crest
             Vector3[] verts = new Vector3[(divs1 + 1) * (divs0 + 1)];
             Vector2[] uvs = new Vector2[(divs1 + 1) * (divs0 + 1)];
             float dx0 = width0 / divs0, dx1 = width1 / divs1;
-            for( int i1 = 0; i1 < divs1 + 1; i1++)
+            for (int i1 = 0; i1 < divs1 + 1; i1++)
             {
                 float v = i1 / (float)divs1;
 

@@ -1,7 +1,7 @@
 ﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
-using UnityEngine;
 using Crest;
+using UnityEngine;
 
 /// <summary>
 /// Simple type of buoyancy - takes one sample and matches boat height and orientation to water height and normal.
@@ -80,6 +80,11 @@ public class BoatAlignNormal : MonoBehaviour, IBoat
     void FixedUpdate()
     {
         UnityEngine.Profiling.Profiler.BeginSample("BoatAlignNormal.FixedUpdate");
+
+        if (OceanRenderer.Instance == null)
+        {
+            return;
+        }
 
         // Trigger processing of displacement textures that have come back this frame. This will be processed
         // anyway in Update(), but FixedUpdate() is earlier so make sure it's up to date now.

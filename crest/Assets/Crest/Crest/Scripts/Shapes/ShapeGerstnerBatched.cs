@@ -64,13 +64,8 @@ namespace Crest
 
         void Start()
         {
-            if (OceanRenderer.Instance == null)
-            {
-                enabled = false;
-                return;
-            }
-
             _waveShader = Shader.Find("Crest/Inputs/Animated Waves/Gerstner Batch");
+            Debug.Assert(_waveShader, "Could not load Gerstner wave shader, make sure it is packaged in the build.");
 
             if (_spectrum == null)
             {
@@ -326,6 +321,11 @@ namespace Crest
         /// </summary>
         void LateUpdate()
         {
+            if (OceanRenderer.Instance == null)
+            {
+                return;
+            }
+
             int componentIdx = 0;
 
             // seek forward to first wavelength that is big enough to render into current LODs

@@ -142,7 +142,7 @@ namespace Crest
                 return;
             }
 
-            _instance = this;
+            Instance = this;
 
             OceanBuilder.GenerateMesh(this, _lodDataResolution, _geometryDownSampleFactor, _lodCount);
 
@@ -276,11 +276,6 @@ namespace Crest
             if (_lodDataShadow) _lodDataShadow.UpdateLodData();
         }
 
-        private void OnDestroy()
-        {
-            _instance = null;
-        }
-
         [ContextMenu("Regenerate mesh")]
         void RegenMesh()
         {
@@ -327,8 +322,7 @@ namespace Crest
         /// </summary>
         public float MaxVertDisplacement { get { return _maxVertDispFromShape; } }
 
-        static OceanRenderer _instance;
-        public static OceanRenderer Instance { get { return _instance ?? (_instance = FindObjectOfType<OceanRenderer>()); } }
+        public static OceanRenderer Instance { get; private set; }
 
         /// <summary>
         /// Provides ocean shape to CPU.

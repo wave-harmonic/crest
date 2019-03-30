@@ -21,21 +21,23 @@ namespace Crest
 
         private void Start()
         {
-            if (OceanRenderer.Instance == null)
-            {
-                enabled = false;
-                return;
-            }
-
             _rend = GetComponent<Renderer>();
             _mesh = GetComponent<MeshFilter>().mesh;
             _boundsLocal = _mesh.bounds;
 
-            LateUpdateBounds();
+            if (OceanRenderer.Instance != null)
+            {
+                LateUpdateBounds();
+            }
         }
 
         private void LateUpdate()
         {
+            if(OceanRenderer.Instance == null)
+            {
+                return;
+            }
+
             // find which lod this object is overlapping
             var rect = new Rect(transform.position.x, transform.position.z, 0f, 0f);
             var idx = LodDataMgrAnimWaves.SuggestDataLOD(rect);

@@ -276,16 +276,6 @@ namespace Crest
             if (_lodDataShadow) _lodDataShadow.UpdateLodData();
         }
 
-        [ContextMenu("Regenerate mesh")]
-        void RegenMesh()
-        {
-            OceanBuilder.GenerateMesh(this, _lodDataResolution, _geometryDownSampleFactor, _lodCount);
-        }
-#if UNITY_EDITOR
-        [ContextMenu("Regenerate mesh", true)]
-        bool RegenPossible() { return UnityEditor.EditorApplication.isPlaying; }
-#endif
-
         /// <summary>
         /// Could the ocean horizontal scale increase (for e.g. if the viewpoint gains altitude). Will be false if ocean already at maximum scale.
         /// </summary>

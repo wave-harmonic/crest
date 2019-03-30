@@ -81,6 +81,11 @@ namespace Crest
             // Depth texture is used by ocean shader for transparency/depth fog, and for fading out foam at shoreline.
             _currentCamera.depthTextureMode |= DepthTextureMode.Depth;
 
+            if (_rend.material != OceanRenderer.Instance.OceanMaterial)
+            {
+                _rend.material = OceanRenderer.Instance.OceanMaterial;
+            }
+
             // per instance data
 
             if (_mpb == null)

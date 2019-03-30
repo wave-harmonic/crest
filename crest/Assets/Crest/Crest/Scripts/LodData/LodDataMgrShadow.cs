@@ -14,7 +14,6 @@ namespace Crest
     public class LodDataMgrShadow : LodDataMgr
     {
         public override string SimName { get { return "Shadow"; } }
-        public override void UseSettings(SimSettingsBase settings) { _settings = settings; }
         public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RG16; } }
 
         public static bool s_processData = true;
@@ -26,9 +25,8 @@ namespace Crest
         RenderTexture[] _sources;
         Material[] _renderMaterial;
 
-        [SerializeField]
-        SimSettingsBase _settings;
-
+        SimSettingsShadow Settings { get { return OceanRenderer.Instance._simSettingsShadow; } }
+        public override void UseSettings(SimSettingsBase settings) { OceanRenderer.Instance._simSettingsShadow = settings as SimSettingsShadow; }
         public override SimSettingsBase CreateDefaultSettings()
         {
             var settings = ScriptableObject.CreateInstance<SimSettingsShadow>();
@@ -250,7 +248,5 @@ namespace Crest
         {
             properties.SetTexture(ParamIdSampler(shapeSlot), Texture2D.blackTexture);
         }
-
-        SimSettingsShadow Settings { get { return _settings as SimSettingsShadow; } }
     }
 }

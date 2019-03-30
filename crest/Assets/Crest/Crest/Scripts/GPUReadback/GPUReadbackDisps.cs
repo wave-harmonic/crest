@@ -49,7 +49,7 @@ namespace Crest
             Debug.Assert(_instance == null);
             _instance = this;
 
-            _settingsProvider = _lodComponent.Settings as SimSettingsAnimatedWaves;
+            _settingsProvider = OceanRenderer.Instance._simSettingsAnimatedWaves;
         }
 
         private void OnDestroy()

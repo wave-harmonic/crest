@@ -15,10 +15,8 @@ namespace Crest
         public override string SimName { get { return "Flow"; } }
         public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RGHalf; } }
 
-        [SerializeField]
-        protected SimSettingsFlow _settings;
-        public override void UseSettings(SimSettingsBase settings) { _settings = settings as SimSettingsFlow; }
-        public SimSettingsFlow Settings { get { return _settings as SimSettingsFlow; } }
+        public SimSettingsFlow Settings { get { return OceanRenderer.Instance._simSettingsFlow; } }
+        public override void UseSettings(SimSettingsBase settings) { OceanRenderer.Instance._simSettingsFlow = settings as SimSettingsFlow; }
         public override SimSettingsBase CreateDefaultSettings()
         {
             var settings = ScriptableObject.CreateInstance<SimSettingsFlow>();

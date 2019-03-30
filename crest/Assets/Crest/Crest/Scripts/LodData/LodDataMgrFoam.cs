@@ -15,6 +15,8 @@ namespace Crest
         public override string SimName { get { return "Foam"; } }
         public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RHalf; } }
 
+        SimSettingsFoam Settings { get { return OceanRenderer.Instance._simSettingsFoam; } }
+        public override void UseSettings(SimSettingsBase settings) { OceanRenderer.Instance._simSettingsFoam = settings as SimSettingsFoam; }
         public override SimSettingsBase CreateDefaultSettings()
         {
             var settings = ScriptableObject.CreateInstance<SimSettingsFoam>();
@@ -94,7 +96,5 @@ namespace Crest
         {
             properties.SetTexture(ParamIdSampler(shapeSlot), Texture2D.blackTexture);
         }
-
-        SimSettingsFoam Settings { get { return _settings as SimSettingsFoam; } }
     }
 }

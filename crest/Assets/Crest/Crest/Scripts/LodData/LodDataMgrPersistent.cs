@@ -12,10 +12,6 @@ namespace Crest
     /// </summary>
     public abstract class LodDataMgrPersistent : LodDataMgr
     {
-        [SerializeField]
-        protected SimSettingsBase _settings;
-        public override void UseSettings(SimSettingsBase settings) { _settings = settings; }
-
         protected readonly int MAX_SIM_STEPS = 4;
 
         RenderTexture[] _sources;

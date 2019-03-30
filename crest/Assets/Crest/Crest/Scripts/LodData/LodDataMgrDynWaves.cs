@@ -15,6 +15,8 @@ namespace Crest
         public override string SimName { get { return "DynamicWaves"; } }
         public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RGHalf; } }
 
+        SimSettingsWave Settings { get { return OceanRenderer.Instance._simSettingsDynamicWaves; } }
+        public override void UseSettings(SimSettingsBase settings) { OceanRenderer.Instance._simSettingsDynamicWaves = settings as SimSettingsWave; }
         public override SimSettingsBase CreateDefaultSettings()
         {
             var settings = ScriptableObject.CreateInstance<SimSettingsWave>();
@@ -143,7 +145,5 @@ namespace Crest
         {
             properties.SetTexture(ParamIdSampler(shapeSlot), Texture2D.blackTexture);
         }
-
-        SimSettingsWave Settings { get { return _settings as SimSettingsWave; } }
     }
 }

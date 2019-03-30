@@ -39,9 +39,7 @@ namespace Crest
 
         Material[] _combineMaterial;
 
-        [SerializeField] SimSettingsAnimatedWaves _settings;
-        public override void UseSettings(SimSettingsBase settings) { _settings = settings as SimSettingsAnimatedWaves; }
-        public SimSettingsAnimatedWaves Settings { get { return _settings as SimSettingsAnimatedWaves; } }
+        public override void UseSettings(SimSettingsBase settings) { OceanRenderer.Instance._simSettingsAnimatedWaves = settings as SimSettingsAnimatedWaves; }
         public override SimSettingsBase CreateDefaultSettings()
         {
             var settings = ScriptableObject.CreateInstance<SimSettingsAnimatedWaves>();

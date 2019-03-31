@@ -412,13 +412,14 @@ Shader "Crest/Ocean"
 				// Normal - geom + normal mapping
 				half3 n_geom = half3(0.0, 1.0, 0.0);
 
+				float weight = 1.0 - 0.7 * min(4.0* pow(tex2D(_CausticsTexture, input.lodAlpha_worldXZUndisplaced_oceanDepth.yz / 1000. + _CrestTime / 100.).z, 1.), 1.);
 				//if(false)
 				{
 					const float lodAlpha = input.lodAlpha_worldXZUndisplaced_oceanDepth.x;
 					const float2 uv_0 = LD_0_WorldToUV(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz);
 					const float2 uv_1 = LD_1_WorldToUV(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz);
-					const float wt_0 = (1. - lodAlpha) * _LD_Params_0.z;
-					const float wt_1 = (1. - wt_0) * _LD_Params_1.z;
+					const float wt_0 = (1. - lodAlpha) * _LD_Params_0.z * weight;
+					const float wt_1 = (1. - wt_0) * _LD_Params_1.z * weight;
 					float3 dummy = 0.;
 					if (wt_0 > 0.001) SampleDisplacementsNormals(_LD_Sampler_AnimatedWaves_0, uv_0, wt_0, _LD_Params_0.w, _LD_Params_0.x, dummy, n_geom.xz);
 					if (wt_1 > 0.001) SampleDisplacementsNormals(_LD_Sampler_AnimatedWaves_1, uv_1, wt_1, _LD_Params_1.w, _LD_Params_1.x, dummy, n_geom.xz);
@@ -431,7 +432,7 @@ Shader "Crest/Ocean"
 				#if _FLOW_ON
 				ApplyNormalMapsWithFlow(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, input.flow_shadow.xy, input.lodAlpha_worldXZUndisplaced_oceanDepth.x, n_pixel);
 				#else
-				n_pixel.xz += (underwater ? -1. : 1.) * SampleNormalMaps(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, input.lodAlpha_worldXZUndisplaced_oceanDepth.x);
+				n_pixel.xz += weight * (underwater ? -1. : 1.) * SampleNormalMaps(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, input.lodAlpha_worldXZUndisplaced_oceanDepth.x);
 				n_pixel = normalize(n_pixel);
 				#endif
 				#endif

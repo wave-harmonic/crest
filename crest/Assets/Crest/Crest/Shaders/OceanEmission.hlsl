@@ -33,8 +33,8 @@ uniform half3 _SubSurfaceShallowColShadow;
 #endif // _SHADOWS_ON
 #endif // _SUBSURFACESHALLOWCOLOUR_ON
 
+uniform sampler2D _CausticsTexture; // TODO - moved out as normals mask is temporarily using it
 #if _CAUSTICS_ON
-uniform sampler2D _CausticsTexture;
 uniform half _CausticsTextureScale;
 uniform half _CausticsTextureAverage;
 uniform half _CausticsStrength;

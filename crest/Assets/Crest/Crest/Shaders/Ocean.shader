@@ -461,7 +461,7 @@ Shader "Crest/Ocean"
 				else
 				#endif
 				{
-					ApplyReflectionSky(view, n_pixel, lightDir, shadow.y, input.foam_screenPos.yzzw, col);
+					ApplyReflectionSky(view, n_pixel, lightDir, shadow.y, input.foam_screenPos.yzzw, input.worldPos.y, input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, scatterCol, col);
 				}
 
 				// Override final result with white foam - bubbles on surface

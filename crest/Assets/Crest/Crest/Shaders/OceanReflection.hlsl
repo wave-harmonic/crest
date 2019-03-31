@@ -57,7 +57,7 @@ float CalculateFresnelReflectionCoefficient(float cosTheta)
 	return R_theta;
 }
 
-void ApplyReflectionSky(in const half3 i_view, in const half3 i_n_pixel, in const half3 i_lightDir, in const half i_shadow, in const half4 i_screenPos, inout half3 io_col)
+void ApplyReflectionSky(in const half3 i_view, in const half3 i_n_pixel, in const half3 i_lightDir, in const half i_shadow, in const half4 i_screenPos, in const float surfaceY, in const float2 worldXZUndisplaced, in const float3 scatterCol, inout half3 io_col)
 {
 	// Reflection
 	half3 refl = reflect(-i_view, i_n_pixel);
@@ -78,6 +78,24 @@ void ApplyReflectionSky(in const half3 i_view, in const half3 i_n_pixel, in cons
 
 	// Fresnel
 	float R_theta = CalculateFresnelReflectionCoefficient(max(dot(i_n_pixel, i_view), 0.0));
+
+	if (R_theta > 0.01)
+	{
+		// RM a few steps
+		float2 xz = worldXZUndisplaced;
+		float yray = surfaceY - _OceanCenterPosWorld.y;
+		float vis = 1.0;
+		for (float steps = 0.0; steps < 5.0; steps += 1.0)
+		{
+			// how much underwater?
+			float ydiff = (yray + refl.y) - tex2Dlod(_LD_Sampler_AnimatedWaves_1, float4(LD_1_WorldToUV(xz + refl.xz), 0.0, 0.0)).y;
+			vis *= saturate(1.0 + 0.5*ydiff);
+			//vis *= saturate(ydiff / (0.5 * steps));
+			refl *= 2.0;
+		}
+		vis = max(vis, 0.2);
+		skyColour = lerp(scatterCol, skyColour, vis);
+	}
 	io_col = lerp(io_col, skyColour, R_theta);
 }
 

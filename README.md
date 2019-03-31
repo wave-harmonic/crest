@@ -10,7 +10,7 @@
 
 ![Teaser](https://raw.githubusercontent.com/huwb/crest-oceanrender/master/img/teaser5.png)
 
-**Discord:** https://discord.gg/6rYtPk
+**Discord for news/updates/discussions:** https://discord.gg/6rYtPk
 
 **Twitter:** @crest_ocean
 

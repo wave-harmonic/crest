@@ -18,7 +18,6 @@ namespace Crest
         Mesh _mesh;
         Renderer _rend;
         MaterialPropertyBlock _mpb;
-        private Material _lastmaterial;
 
         // Cache these off to support regenerating ocean surface
         int _lodIndex = -1;
@@ -32,7 +31,6 @@ namespace Crest
         {
             _rend = GetComponent<Renderer>();
             _mesh = GetComponent<MeshFilter>().mesh;
-            _lastmaterial = _rend.material;
             _boundsLocal = _mesh.bounds;
 
             _reflectionTexId = Shader.PropertyToID("_ReflectionTex");
@@ -82,10 +80,9 @@ namespace Crest
             // Depth texture is used by ocean shader for transparency/depth fog, and for fading out foam at shoreline.
             _currentCamera.depthTextureMode |= DepthTextureMode.Depth;
 
-            if (_lastmaterial != OceanRenderer.Instance.OceanMaterial)
+            if (_rend.sharedMaterial != OceanRenderer.Instance.OceanMaterial)
             {
-                _lastmaterial = OceanRenderer.Instance.OceanMaterial;
-                _rend.material = _lastmaterial;
+                _rend.sharedMaterial = OceanRenderer.Instance.OceanMaterial;
             }
 
             // per instance data

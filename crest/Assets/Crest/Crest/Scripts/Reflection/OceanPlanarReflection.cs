@@ -5,10 +5,63 @@
 // This script originated from the unity standard assets. It has been modified heavily to be camera-centric (as opposed to
 // geometry-centric) and assumes a single main camera which simplifies the code.
 
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using UnityEditor;
 using UnityEngine;
 
 namespace Crest
 {
+    internal static class PreparedReflections
+    {
+        private static volatile RenderTexture _currentreflectiontexture;
+        private static volatile int _referenceCameraInstanceId=-1;             
+        private static volatile KeyValuePair<int,RenderTexture> [] _collection=new KeyValuePair<int, RenderTexture>[0];
+        public static RenderTexture GetRenderTexture(int camerainstanceid)
+        {
+            if(camerainstanceid==_referenceCameraInstanceId)
+                return _currentreflectiontexture;
+
+            var currentcollection = _collection;    //prevent crash if somebody change collection now in over thread, useless in unity now
+            for (int i = 0; i < currentcollection.Length; i++)
+            {
+                if (currentcollection[i].Key == camerainstanceid)
+                {
+                    var texture = currentcollection[i].Value;
+                    _currentreflectiontexture = texture;
+                    _referenceCameraInstanceId = camerainstanceid;
+                    return texture;
+                }
+            }
+            return null;
+        }
+
+        public static void Remove(int camerainstanceid)  //remove element if exists
+        {
+            if (!GetRenderTexture(camerainstanceid)) return;
+            _collection = _collection.Where(e => e.Key != camerainstanceid).ToArray(); //rebuild array without element
+            _currentreflectiontexture = null;
+            _referenceCameraInstanceId = -1;
+        }
+
+        public static void Register(int instanceId, RenderTexture reflectionTexture)
+        {
+            var currentcollection = _collection;
+            for (var i = 0; i < currentcollection.Length; i++)
+            {
+                if (currentcollection[i].Key == instanceId)
+                {
+                    currentcollection[i] = new KeyValuePair<int, RenderTexture>(instanceId, reflectionTexture);
+                    return;
+                }
+            }
+            //rebuild with new element if not found
+            _collection = currentcollection
+                .Append(new KeyValuePair<int, RenderTexture>(instanceId, reflectionTexture)).ToArray();
+        }
+    }
+
     /// <summary>
     /// Attach to a camera to generate a reflection texture which can be sampled in the ocean shader.
     /// </summary>
@@ -22,21 +75,7 @@ namespace Crest
         [SerializeField] bool _stencil = false;
         [SerializeField] bool _hideCameraGameobject = true;
 
-        const int MAX_DISPLAY_COUNT = 8;
-
         RenderTexture _reflectionTexture;
-
-        static RenderTexture[] _displayReflTextures;
-        public static RenderTexture GetRenderTexture(int displayIndex)
-        {
-            if (_displayReflTextures != null && _displayReflTextures.Length > displayIndex)
-            {
-                return _displayReflTextures[displayIndex];
-            }
-
-            return null;
-        }
-
         Camera _camViewpoint;
         Camera _camReflections;
 
@@ -163,10 +202,13 @@ namespace Crest
                 }
 
                 var format = _hdr ? RenderTextureFormat.ARGBHalf : RenderTextureFormat.ARGB32;
-                _reflectionTexture = new RenderTexture(_textureSize, _textureSize, _stencil ? 24 : 16, format);
-                _reflectionTexture.name = "__WaterReflection" + GetInstanceID();
-                _reflectionTexture.isPowerOfTwo = true;
-                _reflectionTexture.hideFlags = HideFlags.DontSave;
+                _reflectionTexture = new RenderTexture(_textureSize, _textureSize, _stencil ? 24 : 16, format)
+                {
+                    name = "__WaterReflection" + GetInstanceID(),
+                    isPowerOfTwo = true,
+                    hideFlags = HideFlags.DontSave
+                };
+                PreparedReflections.Register(currentCamera.GetInstanceID(), _reflectionTexture);
             }
 
             // Camera for reflection
@@ -187,12 +229,6 @@ namespace Crest
                 }
             }
 
-            // Keep list of reflection textures fresh
-            if (_displayReflTextures == null || _displayReflTextures.Length != MAX_DISPLAY_COUNT)
-            {
-                _displayReflTextures = new RenderTexture[MAX_DISPLAY_COUNT];
-            }
-            _displayReflTextures[currentCamera.targetDisplay] = _reflectionTexture;
         }
 
         // Given position/normal of the plane, calculates plane in camera space.
@@ -231,12 +267,16 @@ namespace Crest
 
         private void OnDisable()
         {
+            if (_camViewpoint != null)
+            {
+                PreparedReflections.Remove(_camViewpoint.GetInstanceID());
+            }
+
             // Cleanup all the objects we possibly have created
             if (_reflectionTexture)
             {
                 Destroy(_reflectionTexture);
                 _reflectionTexture = null;
-                _displayReflTextures = null;
             }
             if (_camReflections)
             {

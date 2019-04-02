@@ -9,6 +9,7 @@ namespace Crest
     /// <summary>
     /// Base class for scripts that register input to the various LOD data types.
     /// </summary>
+    [ExecuteInEditMode]
     public abstract class RegisterLodDataInputBase : MonoBehaviour
     {
         Renderer _renderer;
@@ -24,6 +25,7 @@ namespace Crest
     /// <summary>
     /// Registers input to a particular LOD data.
     /// </summary>
+    [ExecuteInEditMode]
     public class RegisterLodDataInput<LodDataType> : RegisterLodDataInputBase
         where LodDataType : LodDataMgr
     {

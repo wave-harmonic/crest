@@ -12,6 +12,7 @@ namespace Crest
     /// Renders terrain height / ocean depth once into a render target to cache this off and avoid rendering it every frame.
     /// This should be used for static geometry, dynamic objects should be tagged with the Render Ocean Depth component.
     /// </summary>
+    [ExecuteInEditMode]
     public class OceanDepthCache : MonoBehaviour
     {
         [Tooltip("Can be disabled to delay population of the cache."), SerializeField]
@@ -104,6 +105,7 @@ namespace Crest
             if (_drawCacheQuad == null)
             {
                 _drawCacheQuad = GameObject.CreatePrimitive(PrimitiveType.Quad);
+                _drawCacheQuad.hideFlags = HideFlags.DontSave;
                 Destroy(_drawCacheQuad.GetComponent<Collider>());
                 _drawCacheQuad.name = "Draw_" + _cacheTexture.name;
                 _drawCacheQuad.transform.SetParent(transform, false);

@@ -19,6 +19,7 @@ namespace Crest
     ///    pass and subsequent assignment to the ocean material (see OceanScheduler).
     ///  * The LodDataSeaFloorDepth sits on this same GameObject and borrows the camera. This could be a model for the other sim types..
     /// </summary>
+    [ExecuteInEditMode]
     public class LodDataMgrAnimWaves : LodDataMgr, IFloatingOrigin
     {
         public override string SimName { get { return "AnimatedWaves"; } }

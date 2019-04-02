@@ -11,6 +11,7 @@ namespace Crest
     /// Stores shadowing data to use during ocean shading. Shadowing is persistent and supports sampling across
     /// many frames and jittered sampling for (very) soft shadows.
     /// </summary>
+    [ExecuteInEditMode]
     public class LodDataMgrShadow : LodDataMgr
     {
         public override string SimName { get { return "Shadow"; } }

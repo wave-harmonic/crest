@@ -10,6 +10,7 @@ namespace Crest
     /// Handles effects that need to track the water surface. Feeds in wave data and disables rendering when
     /// not close to water.
     /// </summary>
+    [ExecuteInEditMode]
     public class UnderwaterEffect : MonoBehaviour
     {
         [Header("Copy params from Ocean material")]
@@ -40,7 +41,7 @@ namespace Crest
 
             // Render before the surface mesh
             _rend.sortingOrder = _overrideSortingOrder ? _overridenSortingOrder : -LodDataMgr.MAX_LOD_COUNT - 1;
-            GetComponent<MeshFilter>().mesh = Mesh2DGrid(0, 2, -0.5f, -0.5f, 1f, 1f, GEOM_HORIZ_DIVISIONS, 1);
+            GetComponent<MeshFilter>().sharedMesh = Mesh2DGrid(0, 2, -0.5f, -0.5f, 1f, 1f, GEOM_HORIZ_DIVISIONS, 1);
 
             // hack - push forward so the geometry wont be frustum culled. there might be better ways to draw
             // this stuff.
@@ -57,7 +58,7 @@ namespace Crest
 
         void ConfigureMaterial()
         {
-            var keywords = _rend.material.shaderKeywords;
+            var keywords = _rend.sharedMaterial.shaderKeywords;
             foreach (var keyword in keywords)
             {
                 if (keyword == "_COMPILESHADERWITHDEBUGINFO_ON") continue;
@@ -70,7 +71,7 @@ namespace Crest
 
             if (_copyParamsOnStartup)
             {
-                _rend.material.CopyPropertiesFromMaterial(OceanRenderer.Instance.OceanMaterial);
+                _rend.sharedMaterial.CopyPropertiesFromMaterial(OceanRenderer.Instance.OceanMaterial);
             }
         }
 

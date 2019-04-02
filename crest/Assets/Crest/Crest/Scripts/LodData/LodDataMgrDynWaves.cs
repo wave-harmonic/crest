@@ -9,6 +9,7 @@ namespace Crest
     /// <summary>
     /// A dynamic shape simulation that moves around with a displacement LOD.
     /// </summary>
+    [ExecuteInEditMode]
     public class LodDataMgrDynWaves : LodDataMgrPersistent
     {
         protected override string ShaderSim { get { return "Hidden/Crest/Simulation/Update Dynamic Waves"; } }

@@ -10,6 +10,7 @@ namespace Crest
     /// <summary>
     /// Renders relative depth of ocean floor, by rendering the relative height of tagged objects from top down.
     /// </summary>
+    [ExecuteInEditMode]
     public class LodDataMgrSeaFloorDepth : LodDataMgr
     {
         public override string SimName { get { return "SeaFloorDepth"; } }

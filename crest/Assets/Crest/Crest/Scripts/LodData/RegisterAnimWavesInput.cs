@@ -9,6 +9,7 @@ namespace Crest
     /// <summary>
     /// Registers a custom input to the wave shape. Attach this GameObjects that you want to render into the displacmeent textures to affect ocean shape.
     /// </summary>
+    [ExecuteInEditMode]
     public class RegisterAnimWavesInput : RegisterLodDataInput<LodDataMgrAnimWaves>
     {
         [SerializeField, Tooltip("Which octave to render into, for example set this to 2 to use render into the 2m-4m octave. These refer to the same octaves as the wave spectrum editor. Set this value to 0 to render into all LODs.")]

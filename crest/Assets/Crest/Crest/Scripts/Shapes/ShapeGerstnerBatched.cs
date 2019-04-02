@@ -11,6 +11,7 @@ namespace Crest
     /// Support script for Gerstner wave ocean shapes.
     /// Generates a number of batches of Gerstner waves.
     /// </summary>
+    [ExecuteInEditMode]
     public class ShapeGerstnerBatched : MonoBehaviour, ICollProvider
     {
         [Tooltip("Geometry to rasterize into wave buffers to generate waves.")]

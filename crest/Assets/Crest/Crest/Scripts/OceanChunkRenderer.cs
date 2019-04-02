@@ -10,6 +10,7 @@ namespace Crest
     /// <summary>
     /// Sets shader parameters for each geometry tile/chunk.
     /// </summary>
+    [ExecuteInEditMode]
     public class OceanChunkRenderer : MonoBehaviour
     {
         public bool _drawRenderBounds = false;
@@ -30,7 +31,7 @@ namespace Crest
         void Start()
         {
             _rend = GetComponent<Renderer>();
-            _mesh = GetComponent<MeshFilter>().mesh;
+            _mesh = GetComponent<MeshFilter>().sharedMesh;
 
             _boundsLocal = _mesh.bounds;
 
@@ -81,9 +82,9 @@ namespace Crest
             // Depth texture is used by ocean shader for transparency/depth fog, and for fading out foam at shoreline.
             _currentCamera.depthTextureMode |= DepthTextureMode.Depth;
 
-            if (_rend.material != OceanRenderer.Instance.OceanMaterial)
+            if (_rend.sharedMaterial != OceanRenderer.Instance.OceanMaterial)
             {
-                _rend.material = OceanRenderer.Instance.OceanMaterial;
+                _rend.sharedMaterial = OceanRenderer.Instance.OceanMaterial;
             }
 
             // per instance data

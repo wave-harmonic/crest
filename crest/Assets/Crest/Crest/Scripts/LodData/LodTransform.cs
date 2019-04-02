@@ -10,6 +10,7 @@ namespace Crest
     /// <summary>
     /// This script is attached to the parent GameObject of each LOD. It provides helper functionality related to each LOD.
     /// </summary>
+    [ExecuteInEditMode]
     public class LodTransform : MonoBehaviour, IFloatingOrigin
     {
         protected int _transformUpdateFrame = -1;

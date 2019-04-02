@@ -9,6 +9,7 @@ namespace Crest
     /// <summary>
     /// A persistent foam simulation that moves around with a displacement LOD. The input is fully combined water surface shape.
     /// </summary>
+    [ExecuteInEditMode]
     public class LodDataMgrFoam : LodDataMgrPersistent
     {
         protected override string ShaderSim { get { return "Hidden/Crest/Simulation/Update Foam"; } }

@@ -10,6 +10,7 @@ namespace Crest
     /// The main script for the ocean system. Attach this to a GameObject to create an ocean. This script initialises the various data types and systems
     /// and moves/scales the ocean based on the viewpoint. It also hosts a number of global settings that can be tweaked here.
     /// </summary>
+    [ExecuteInEditMode]
     public class OceanRenderer : MonoBehaviour
     {
         [Tooltip("The viewpoint which drives the ocean detail. Defaults to main camera."), SerializeField]
@@ -153,6 +154,12 @@ namespace Crest
 
             InitViewpoint();
             InitTimeProvider();
+        }
+
+        [UnityEditor.Callbacks.DidReloadScripts]
+        private static void OnReLoadScripts()
+        {
+            Instance = FindObjectOfType<OceanRenderer>();
         }
 
         void InitViewpoint()

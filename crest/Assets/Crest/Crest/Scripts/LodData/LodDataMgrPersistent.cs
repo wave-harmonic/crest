@@ -10,6 +10,7 @@ namespace Crest
     /// <summary>
     /// A persistent simulation that moves around with a displacement LOD.
     /// </summary>
+    [ExecuteInEditMode]
     public abstract class LodDataMgrPersistent : LodDataMgr
     {
         protected readonly int MAX_SIM_STEPS = 4;

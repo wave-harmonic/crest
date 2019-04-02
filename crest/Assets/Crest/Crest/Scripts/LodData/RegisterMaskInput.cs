@@ -9,6 +9,7 @@ namespace Crest
     /// <summary>
     /// Assign this to depth masks - objects that will occlude the water. This ensures that the mask will render before any of the ocean surface.
     /// </summary>
+    [ExecuteInEditMode]
     public class RegisterMaskInput : MonoBehaviour
     {
         void Start()

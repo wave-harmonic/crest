@@ -12,6 +12,7 @@ namespace Crest
     /// <summary>
     /// Base class for data/behaviours created on each LOD.
     /// </summary>
+    [ExecuteInEditMode]
     public abstract class LodDataMgr : MonoBehaviour
     {
         public abstract string SimName { get; }
@@ -135,7 +136,7 @@ namespace Crest
             where LodDataType : LodDataMgr where LodDataSettings : SimSettingsBase
         {
             var sim = attachGO.AddComponent<LodDataType>();
-
+            sim.hideFlags = HideFlags.DontSave;
             if (settings == null)
             {
                 settings = sim.CreateDefaultSettings() as LodDataSettings;

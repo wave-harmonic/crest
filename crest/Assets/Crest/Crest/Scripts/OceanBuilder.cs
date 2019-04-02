@@ -134,14 +134,6 @@ namespace Crest
                 return;
             }
 
-#if UNITY_EDITOR
-            if( !UnityEditor.EditorApplication.isPlaying )
-            {
-                Debug.LogError( "Ocean mesh meant to be (re)generated in play mode", ocean);
-                return;
-            }
-#endif
-
             int oceanLayer = LayerMask.NameToLayer(ocean.LayerName);
             if (oceanLayer == -1)
             {
@@ -373,12 +365,13 @@ namespace Crest
         static GameObject CreateLOD(OceanRenderer ocean, int lodIndex, int lodCount, bool biggestLOD, Mesh[] meshData, int lodDataResolution, int geoDownSampleFactor, int oceanLayer)
         {
             // first create parent GameObject for the LOD level. the scale of this transform sets the size of the LOD.
-            GameObject parent = new GameObject();
+            var parent = new GameObject();
             parent.name = "LOD" + lodIndex;
             parent.layer = oceanLayer;
             parent.transform.parent = ocean.transform;
             parent.transform.localPosition = Vector3.zero;
             parent.transform.localRotation = Quaternion.identity;
+            parent.hideFlags = HideFlags.DontSave;
 
             ocean._lods[lodIndex] = parent.AddComponent<LodTransform>();
             ocean._lods[lodIndex].InitLODData(lodIndex, lodCount);
@@ -465,7 +458,7 @@ namespace Crest
                 patch.transform.localScale = Vector3.one;
 
                 patch.AddComponent<OceanChunkRenderer>().SetInstanceData(lodIndex, lodCount, lodDataResolution, geoDownSampleFactor);
-                patch.AddComponent<MeshFilter>().mesh = meshData[(int)patchTypes[i]];
+                patch.AddComponent<MeshFilter>().sharedMesh = meshData[(int)patchTypes[i]];
 
                 var mr = patch.AddComponent<MeshRenderer>();
 

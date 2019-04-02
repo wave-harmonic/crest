@@ -32,7 +32,6 @@ namespace Crest
         {
             _rend = GetComponent<Renderer>();
             _mesh = GetComponent<MeshFilter>().sharedMesh;
-
             _boundsLocal = _mesh.bounds;
 
             _reflectionTexId = Shader.PropertyToID("_ReflectionTex");

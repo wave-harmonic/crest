@@ -3,6 +3,7 @@
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 uniform half3 _Diffuse;
+uniform half3 _DiffuseGrazing;
 
 // this is copied from the render target by unity
 uniform sampler2D _BackgroundTexture;
@@ -51,7 +52,7 @@ uniform half3 _DiffuseShadow;
 half3 ScatterColour(
 	in const float3 i_surfaceWorldPos, in const half i_surfaceOceanDepth, in const float3 i_cameraPos,
 	in const half3 i_lightDir, in const half3 i_view, in const fixed i_shadow,
-	in const bool i_underwater, in const bool i_outscatterLight)
+	in const bool i_underwater, in const bool i_outscatterLight, float sss)
 {
 	half depth;
 	half waveHeight;
@@ -85,7 +86,8 @@ half3 ScatterColour(
 	}
 
 	// base colour
-	half3 col = _Diffuse;
+	float v = saturate(i_view.y);
+	half3 col = lerp(_Diffuse, _DiffuseGrazing, 1. - pow(v, 0.4));
 
 #if _SHADOWS_ON
 	col = lerp(_DiffuseShadow, col, shadow);
@@ -112,7 +114,7 @@ half3 ScatterColour(
 
 		// Approximate subsurface scattering - add light when surface faces viewer. Use geometry normal - don't need high freqs.
 		half towardsSun = pow(max(0., dot(i_lightDir, -i_view)), _SubSurfaceSunFallOff);
-		col += (_SubSurfaceBase + _SubSurfaceSun * towardsSun) * _SubSurfaceColour.rgb * _LightColor0 * shadow;
+		col += (_SubSurfaceBase*sss + _SubSurfaceSun * towardsSun) * _SubSurfaceColour.rgb * _LightColor0 * shadow;
 	}
 #endif // _SUBSURFACESCATTERING_ON
 
@@ -162,7 +164,7 @@ void ApplyCaustics(in const half3 i_view, in const half3 i_lightDir, in const fl
 		half2 causticShadow = 0.0;
 		// As per the comment for the underwater code in ScatterColour,
 		// LOD_1 data can be missing when underwater
-		if(i_underwater)
+		if (i_underwater)
 		{
 			const float2 uv_0 = LD_0_WorldToUV(surfacePosXZ);
 			SampleShadow(_LD_Sampler_Shadow_0, uv_0, 1.0, causticShadow);

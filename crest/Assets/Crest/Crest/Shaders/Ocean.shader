@@ -376,15 +376,7 @@ Shader "Crest/Ocean"
 #if !_UNDERWATER_ON
 				return false;
 #endif
-
-				const bool backface =
-#if !SHADER_API_METAL
-					facing < 0.0;
-#else
-					// on metal, value is flipped? https://answers.unity.com/questions/1262709/shader-semantics-vface-error-in-ios-metal.html
-					facing > 0.0;
-#endif
-
+				const bool backface = facing < 0.0;
 				return backface || _ForceUnderwater > 0.0;
 			}
 

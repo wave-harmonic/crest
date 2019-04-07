@@ -5,6 +5,8 @@
 // Updated to Unity 5.x particle system by Tony Lovell 14 January, 2016
 // fix to ensure ALL particles get moved by Tony Lovell 8 September, 2016
 //
+// URL: http://wiki.unity3d.com/index.php/Floating_Origin
+//
 // Adjusted to suit Crest by Huw Bowles:
 // * Recommend a power-of-2 threshold - this avoids pops in the ocean geometry.
 // * Move origin when x or z exceeds threshold (not the dist from origin exceeds threshold). This is required to support the previous point.
@@ -12,7 +14,9 @@
 // * Misc style adjustments to align with Crest
 // * Optional lists of components that can be provided to avoid evil FindObjectsOfType() calls
 //
-// URL: http://wiki.unity3d.com/index.php/Floating_Origin
+// NOTE 1: This thread discusses usage of this script: https://github.com/huwb/crest-oceanrender/issues/150
+// NOTE 2: Of particular note - any world space texturing should have a period that tiles perfectly across the teleport distance, otherwise visible
+// pops will occur. Example - set teleport radius to 16384m, and set normal map scale to 16m which divides evenly into the teleport radius.
 
 using UnityEngine;
 

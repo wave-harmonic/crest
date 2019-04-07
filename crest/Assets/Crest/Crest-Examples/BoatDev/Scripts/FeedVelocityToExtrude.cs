@@ -3,6 +3,9 @@
 using Crest;
 using UnityEngine;
 
+/// <summary>
+/// Drives object/water interaction - sets parameters each frame on material that renders into the dynamic wave sim.
+/// </summary>
 public class FeedVelocityToExtrude : MonoBehaviour
 {
     [HideInInspector]
@@ -48,6 +51,13 @@ public class FeedVelocityToExtrude : MonoBehaviour
 
         _mat = GetComponent<Renderer>().material;
         _boat = GetComponentInParent<IBoat>();
+
+        if (_boat == null)
+        {
+            Debug.LogError("Boat script required. Disabling FeedVelocityToExtrude.", this);
+            enabled = false;
+            return;
+        }
     }
 
     void LateUpdate()
@@ -77,7 +87,7 @@ public class FeedVelocityToExtrude : MonoBehaviour
         if (simsActive == 0)
             return;
 
-        var disp = _boat != null ? _boat.DisplacementToBoat : Vector3.zero;
+        var disp = _boat.DisplacementToBoat;
         transform.position = transform.parent.TransformPoint(_localOffset) - disp + _velocityPositionOffset * _boat.RB.velocity;
 
         var rnd = 1f + _noiseAmp * (2f * Mathf.PerlinNoise(_noiseFreq * OceanRenderer.Instance.CurrentTime, 0.5f) - 1f);
@@ -126,7 +136,7 @@ public class FeedVelocityToExtrude : MonoBehaviour
         _mat.SetVector("_Velocity", rnd * vel);
         _posLast = transform.position;
 
-        _mat.SetFloat("_Weight", (_boat == null || _boat.InWater) ? _weight / simsActive : 0f);
+        _mat.SetFloat("_Weight", _boat.InWater ? _weight / simsActive : 0f);
 
         float dt; int steps;
         OceanRenderer.Instance._lodDataDynWaves.GetSimSubstepData(Time.deltaTime, out steps, out dt);

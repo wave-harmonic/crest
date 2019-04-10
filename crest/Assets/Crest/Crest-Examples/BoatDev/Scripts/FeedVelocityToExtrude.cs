@@ -35,7 +35,7 @@ public class FeedVelocityToExtrude : MonoBehaviour
     float _velocityPositionOffset = 0.2f;
 
     Material _mat;
-    IBoat _boat;
+    BoatBase _boat;
     Vector3 _posLast;
     SamplingData _samplingDataFlow = new SamplingData();
 
@@ -50,7 +50,7 @@ public class FeedVelocityToExtrude : MonoBehaviour
         _localOffset = transform.localPosition;
 
         _mat = GetComponent<Renderer>().material;
-        _boat = GetComponentInParent<IBoat>();
+        _boat = GetComponentInParent<BoatBase>();
 
         if (_boat == null)
         {

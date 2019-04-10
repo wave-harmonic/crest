@@ -2,10 +2,10 @@
 
 using UnityEngine;
 
-public interface IBoat
+public abstract class BoatBase : MonoBehaviour
 {
-    Vector3 DisplacementToBoat { get; }
-    float BoatWidth { get; }
-    bool InWater { get; }
-    Rigidbody RB { get; }
+    public abstract Vector3 DisplacementToBoat { get; set; }
+    public abstract float BoatWidth { get; }
+    public abstract bool InWater { get; }
+    public abstract Rigidbody RB { get; set; }
 }

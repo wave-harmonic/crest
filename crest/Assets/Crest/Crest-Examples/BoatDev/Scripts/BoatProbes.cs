@@ -10,7 +10,7 @@ using UnityEngine.Serialization;
 /// <summary>
 /// Boat physics by sampling at multiple probe points.
 /// </summary>
-public class BoatProbes : MonoBehaviour, IBoat
+public class BoatProbes : BoatBase
 {
     [Header("Forces")]
     [Tooltip("Override RB center of mass, in local space."), SerializeField]
@@ -51,11 +51,11 @@ public class BoatProbes : MonoBehaviour, IBoat
 
     private const float WATER_DENSITY = 1000;
 
-    public Rigidbody RB { get; private set; }
+    public override Rigidbody RB { get; set; }
 
-    public Vector3 DisplacementToBoat { get; private set; }
-    public float BoatWidth { get { return _minSpatialLength; } }
-    public bool InWater { get { return true; } }
+    public override Vector3 DisplacementToBoat { get; set; }
+    public override float BoatWidth { get { return _minSpatialLength; } }
+    public override bool InWater { get { return true; } }
 
     SamplingData _samplingData = new SamplingData();
     SamplingData _samplingDataFlow = new SamplingData();

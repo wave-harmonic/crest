@@ -349,6 +349,12 @@ namespace Crest
                 _lodDataResolution = newLDR;
             }
         }
+
+        [UnityEditor.Callbacks.DidReloadScripts]
+        private static void OnReLoadScripts()
+        {
+            Instance = FindObjectOfType<OceanRenderer>();
+        }
 #endif
     }
 }

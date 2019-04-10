@@ -25,7 +25,11 @@ namespace Crest
         {
             base.Start();
 
-            var lodCount = OceanRenderer.Instance.CurrentLodCount;
+            CreateMaterials(OceanRenderer.Instance.CurrentLodCount);
+        }
+
+        void CreateMaterials(int lodCount)
+        {
             _renderSimMaterial = new Material[MAX_SIM_STEPS, lodCount];
             var shader = Shader.Find(ShaderSim);
             for (int stepi = 0; stepi < MAX_SIM_STEPS; stepi++)
@@ -176,5 +180,19 @@ namespace Crest
 
             return s_fullScreenQuad;
         }
+
+#if UNITY_EDITOR
+        [UnityEditor.Callbacks.DidReloadScripts]
+        private static void OnReLoadScripts()
+        {
+            var ocean = FindObjectOfType<OceanRenderer>();
+            foreach (var ldp in ocean.GetComponents<LodDataMgrPersistent>())
+            {
+                // Unity does not serialize multidimensional arrays, or arrays of arrays. It does serialise arrays of objects containing arrays though.
+                ldp.CreateMaterials(ocean.CurrentLodCount);
+            }
+        }
+#endif
+
     }
 }

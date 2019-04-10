@@ -13,19 +13,7 @@ namespace Crest
     {
         PerLodData _areaData;
 
-        static GPUReadbackDisps _instance;
-        public static GPUReadbackDisps Instance
-        {
-            get
-            {
-#if !UNITY_EDITOR
-                return _instance;
-#else
-                // Allow hot code edit/recompile in editor - re-init singleton reference.
-                return _instance != null ? _instance : (_instance = FindObjectOfType<GPUReadbackDisps>());
-#endif
-            }
-        }
+        public static GPUReadbackDisps Instance { get; private set; }
 
         protected override bool CanUseLastTwoLODs
         {
@@ -46,15 +34,14 @@ namespace Crest
                 return;
             }
 
-            Debug.Assert(_instance == null);
-            _instance = this;
+            Instance = this;
 
             _settingsProvider = OceanRenderer.Instance._simSettingsAnimatedWaves;
         }
 
         private void OnDestroy()
         {
-            _instance = null;
+            Instance = null;
         }
 
         #region ICollProvider
@@ -210,5 +197,13 @@ namespace Crest
             return true;
         }
         #endregion
+
+#if UNITY_EDITOR
+        [UnityEditor.Callbacks.DidReloadScripts]
+        private static void OnReLoadScripts()
+        {
+            Instance = FindObjectOfType<GPUReadbackDisps>();
+        }
+#endif
     }
 }

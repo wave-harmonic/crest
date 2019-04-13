@@ -57,6 +57,8 @@ namespace Crest
 
         void ConfigureMaterial()
         {
+            if (OceanRenderer.Instance == null) return;
+
             var keywords = _rend.material.shaderKeywords;
             foreach (var keyword in keywords)
             {

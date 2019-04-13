@@ -186,6 +186,7 @@ namespace Crest
         private static void OnReLoadScripts()
         {
             var ocean = FindObjectOfType<OceanRenderer>();
+            if (ocean == null) return;
             foreach (var ldp in ocean.GetComponents<LodDataMgrPersistent>())
             {
                 // Unity does not serialize multidimensional arrays, or arrays of arrays. It does serialise arrays of objects containing arrays though.

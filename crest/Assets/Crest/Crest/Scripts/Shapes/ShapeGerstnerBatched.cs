@@ -114,6 +114,8 @@ namespace Crest
 
         void Update()
         {
+            if (OceanRenderer.Instance == null) return;
+
             if (_phases == null || _phases.Length != _componentsPerOctave * OceanWaveSpectrum.NUM_OCTAVES)
             {
                 InitPhases();

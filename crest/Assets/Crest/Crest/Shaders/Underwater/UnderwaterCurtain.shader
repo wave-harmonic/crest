@@ -104,7 +104,7 @@ Shader "Crest/Underwater Curtain"
 				// Spread verts across the near plane.
 				const float aspect = _ScreenParams.x / _ScreenParams.y;
 				o.positionWS = nearPlaneCenter
-					+ 2.1 * unity_CameraInvProjection._m11 * aspect * right * input.positionOS.x * _ProjectionParams.y
+					+ 2.6 * unity_CameraInvProjection._m11 * aspect * right * input.positionOS.x * _ProjectionParams.y
 					+ up * input.positionOS.z * _ProjectionParams.y;
 
 				// Isolate topmost edge

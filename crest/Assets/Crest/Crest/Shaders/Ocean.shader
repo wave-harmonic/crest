@@ -62,8 +62,6 @@ Shader "Crest/Ocean"
 		// Refractive indices
 		_RefractiveIndexOfAir("Refractive Index of Air", Range(1.0, 2.0)) = 1.0
 		_RefractiveIndexOfWater("Refractive Index of Water", Range(1.0, 2.0)) = 1.333
-		// Environment map to reflect
-		[NoScaleOffset] _Skybox ("Skybox", CUBE) = "" {}
 		// Dynamically rendered 'reflection plane' style reflections. Requires OceanPlanarReflection script added to main camera.
 		[Toggle] _PlanarReflections("Planar Reflections", Float) = 0
 

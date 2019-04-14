@@ -43,10 +43,6 @@ uniform half _DirectionalLightFallOff;
 uniform half _DirectionalLightBoost;
 #endif
 
-#if !_PLANARREFLECTIONS_ON
-uniform samplerCUBE _Skybox;
-#endif
-
 float CalculateFresnelReflectionCoefficient(float cosTheta)
 {
 	// Fresnel calculated using Schlick's approximation
@@ -61,6 +57,7 @@ void ApplyReflectionSky(in const half3 i_view, in const half3 i_n_pixel, in cons
 {
 	// Reflection
 	half3 refl = reflect(-i_view, i_n_pixel);
+	refl.y = abs(refl.y);
 	half3 skyColour;
 
 #if _PLANARREFLECTIONS_ON
@@ -68,7 +65,8 @@ void ApplyReflectionSky(in const half3 i_view, in const half3 i_n_pixel, in cons
 #elif _PROCEDURALSKY_ON
 	skyColour = SkyProceduralDP(refl, i_lightDir);
 #else
-	skyColour = texCUBE(_Skybox, refl).rgb;
+	half4 val = UNITY_SAMPLE_TEXCUBE_LOD(unity_SpecCube0, refl, 0.);
+	skyColour = DecodeHDR(val, unity_SpecCube0_HDR);
 #endif
 
 	// Add primary light to boost it

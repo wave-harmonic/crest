@@ -10,15 +10,18 @@
 
 # Initial setup
 
+A video walkthrough of the setup steps below is available on youtube: https://www.youtube.com/watch?v=qsgeG4sSLFw .
+
+Note: Frequently when changing Unity versions the project can appear to break (no ocean rendering, materials appear pink, other issues). Usually restarting the Editor fixes it. In one case the scripts became unassigned in the example content scene, but closing Unity, removing the Library folder, and restarting resolved it.
+
 ## Importing Crest files into project
 
 The steps to set up *Crest* in a new or existing project currently look as follows:
 
-* Switch your project to Linear space rendering under *Edit > Project Settings > Player > Other Settings*. If your platform(s) require Gamma space, the material settings will need to be adjusted to compensate.
+* Switch to Linear space rendering under *Edit/Project Settings/Player/Other Settings*. If your platform(s) require Gamma space, the material settings will need to be adjusted to compensate.
 * Import *Crest* assets by either:
   * Picking a release from the [Releases page](https://github.com/huwb/crest-oceanrender/releases) and importing the desired packages
   * Getting latest by either cloning this repos or downloading it as a zip, and copying the *Crest* folder and the desired content from the *Crest-Examples* folders into your project. Be sure to always copy the .meta files.
-  * Note that the *Crest* files are separated into the core files to import in any project, and example content. The core is intentionally kept small and general. If you are getting started for the first time you may want to import both and then remove what you don't need from the example content.
 
 ## Adding the ocean to a scene
 

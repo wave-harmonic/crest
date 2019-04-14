@@ -10,6 +10,9 @@ Shader "Hidden/Crest/Simulation/Update Dynamic Waves"
 		Pass
 		{
 			Name "UpdateDynWaves"
+			Blend Off
+			ZWrite Off
+			ZTest Always
 
 			CGPROGRAM
 			#pragma vertex Vert
@@ -58,6 +61,11 @@ Shader "Hidden/Crest/Simulation/Update Dynamic Waves"
 				Varyings o = (Varyings)0;
 
 				o.positionCS = input.positionCS;
+
+#if !UNITY_UV_STARTS_AT_TOP // https://docs.unity3d.com/Manual/SL-PlatformDifferences.html
+				o.positionCS.y = -o.positionCS.y;
+#endif
+
 				o.uv = input.uv;
 
 				// lod data 1 is current frame, compute world pos from quad uv

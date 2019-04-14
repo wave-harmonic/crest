@@ -10,6 +10,9 @@ Shader "Hidden/Crest/Simulation/Update Foam"
 		Pass
 		{
 			Name "UpdateFoam"
+			Blend Off
+			ZWrite Off
+			ZTest Always
 
 			CGPROGRAM
 			#pragma vertex Vert
@@ -45,6 +48,11 @@ Shader "Hidden/Crest/Simulation/Update Foam"
 				Varyings o;
 
 				o.positionCS = input.positionCS;
+
+#if !UNITY_UV_STARTS_AT_TOP // https://docs.unity3d.com/Manual/SL-PlatformDifferences.html
+				o.positionCS.y = -o.positionCS.y;
+#endif
+
 				o.uv_uv_lastframe.xy = input.uv;
 
 				// lod data 1 is current frame, compute world pos from quad uv

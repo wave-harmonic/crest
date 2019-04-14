@@ -15,8 +15,11 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Batch"
 	{
 		Pass
 		{
-			Blend One One
-		
+			Blend SrcAlpha One
+			ZWrite Off
+			ZTest Always
+			Cull Off
+
 			CGPROGRAM
 			#pragma vertex Vert
 			#pragma fragment Frag
@@ -111,7 +114,7 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Batch"
 					result.z += dot(resultz, wt);
 				}
 
-				return half4(input.worldPos_wt.z * result, 0.0);
+				return half4(result, input.worldPos_wt.z);
 			}
 
 			ENDCG

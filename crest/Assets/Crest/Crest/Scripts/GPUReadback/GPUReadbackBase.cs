@@ -81,6 +81,13 @@ namespace Crest
                 return;
             }
 
+            if (!SystemInfo.supportsAsyncGPUReadback)
+            {
+                Debug.LogError("This device does not support GPU readback. " + this.GetType().Name + " will be disabled.", this);
+                enabled = false;
+                return;
+            }
+
             SetTextureFormat(_lodComponent.TextureFormat);
         }
 

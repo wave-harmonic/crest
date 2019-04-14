@@ -64,8 +64,16 @@ namespace Crest
                     break;
             }
 
+            if (result == null && _collisionSource == CollisionSources.OceanDisplacementTexturesGPU)
+            {
+                // can happen if async readback not supported on device
+                result = new CollProviderNull();
+            }
+
             if (result == null)
             {
+                // this should not be hit - return null to create null ref exceptions
+                Debug.Assert(false, "Could not create collision provider. Collision source = " + _collisionSource.ToString());
                 return null;
             }
 

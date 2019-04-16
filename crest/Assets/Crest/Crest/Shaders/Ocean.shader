@@ -23,7 +23,7 @@ Shader "Crest/Ocean"
 		_DiffuseShadow("Diffuse (Shadow)", Color) = (0.2, 0.05, 0.05, 1.0)
 
 		// Light scattering contribution from primary light
-		[Header(Directional Scattering)]
+		[Header(Subsurface Scattering)]
 		[Toggle] _SubSurfaceScattering("Enable", Float) = 1
 		// Colour tint for primary light contribution
 		_SubSurfaceColour("Colour", Color) = (0.0, 0.48, 0.36)
@@ -35,14 +35,14 @@ Shader "Crest/Ocean"
 		_SubSurfaceSunFallOff("Sun Fall-Off", Range(1.0, 16.0)) = 4.0
 
 		// Light scattering at wave peaks
-		[Header(Height Based Scattering)]
-		[Toggle] _SubSurfaceHeightLerp("Enable", Float) = 1
-		// Height from sea level where scattering is at maximum
-		_SubSurfaceHeightMax("Height Max", Range(0.0, 100.0)) = 3.0
-		// Fall off of height scattering
-		_SubSurfaceHeightPower("Height Power", Range(0.01, 10.0)) = 1.0
-		// Tint for height scattering
-		_SubSurfaceCrestColour("Crest Colour", Color) = (0.42, 0.69, 0.52)
+		//[Header(Height Based Scattering)]
+		//[Toggle] _SubSurfaceHeightLerp("Enable", Float) = 1
+		//// Height from sea level where scattering is at maximum
+		//_SubSurfaceHeightMax("Height Max", Range(0.0, 100.0)) = 3.0
+		//// Fall off of height scattering
+		//_SubSurfaceHeightPower("Height Power", Range(0.01, 10.0)) = 1.0
+		//// Tint for height scattering
+		//_SubSurfaceCrestColour("Crest Colour", Color) = (0.42, 0.69, 0.52)
 
 		// Light scattering in shallow water
 		[Header(Shallow Scattering)]
@@ -188,7 +188,7 @@ Shader "Crest/Ocean"
 			#pragma shader_feature _APPLYNORMALMAPPING_ON
 			#pragma shader_feature _COMPUTEDIRECTIONALLIGHT_ON
 			#pragma shader_feature _SUBSURFACESCATTERING_ON
-			#pragma shader_feature _SUBSURFACEHEIGHTLERP_ON
+			//#pragma shader_feature _SUBSURFACEHEIGHTLERP_ON
 			#pragma shader_feature _SUBSURFACESHALLOWCOLOUR_ON
 			#pragma shader_feature _TRANSPARENCY_ON
 			#pragma shader_feature _CAUSTICS_ON
@@ -419,6 +419,7 @@ Shader "Crest/Ocean"
 					sss += wt_0 * tex2Dlod(_LD_Sampler_AnimatedWaves_0, float4(uv_0, 0., 0.)).w;
 					sss += wt_1 * tex2Dlod(_LD_Sampler_AnimatedWaves_1, float4(uv_1, 0., 0.)).w;
 
+					//sss = length(input.worldPos.xz - input.lodAlpha_worldXZUndisplaced_oceanDepth.yz);
 					//void SampleDisplacements(in sampler2D i_dispSampler, in float2 i_uv, in float i_wt, inout float3 io_worldPos)
 					//{
 					//	const half3 disp = tex2Dlod(i_dispSampler, float4(i_uv, 0., 0.)).xyz;

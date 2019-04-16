@@ -104,9 +104,9 @@ half3 ScatterColour(
 		col = lerp(col, shallowCol, shallowness);
 #endif
 
-#if _SUBSURFACEHEIGHTLERP_ON
-		col += pow(saturate(0.5 + 2.0 * waveHeight / _SubSurfaceHeightMax), _SubSurfaceHeightPower) * _SubSurfaceCrestColour.rgb;
-#endif
+//#if _SUBSURFACEHEIGHTLERP_ON
+//		col += pow(saturate(0.5 + 2.0 * waveHeight / _SubSurfaceHeightMax), _SubSurfaceHeightPower) * _SubSurfaceCrestColour.rgb;
+//#endif
 
 		// light
 		// use the constant term (0th order) of SH stuff - this is the average. it seems to give the right kind of colour

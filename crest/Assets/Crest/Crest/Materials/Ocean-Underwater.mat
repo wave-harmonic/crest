@@ -124,7 +124,7 @@ Material:
     - _SkyDirectionality: 0.875
     - _StartLevel: 0.157
     - _StencilFunction: 0
-    - _SubSurfaceBase: 0
+    - _SubSurfaceBase: 0.911
     - _SubSurfaceCrestColour: 1
     - _SubSurfaceDepthMax: 9.4
     - _SubSurfaceDepthPower: 2.57

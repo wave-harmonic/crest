@@ -83,6 +83,7 @@ Shader "Hidden/Crest/Simulation/Combine Animated Wave LODs"
 				float4 data = tex2Dlod(_LD_Sampler_AnimatedWaves_0, float4(input.uv, 0., 0.));
 				result += data.xyz;
 				float stretch = length(result.xz) / _LD_Params_0.x;
+				//float stretch = _LD_Params_0.x < 8.0 ? length(result.xz) : 0.;// / _LD_Params_0.x;
 #endif
 
 				// waves to combine down from the next lod up the chain

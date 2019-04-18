@@ -57,6 +57,8 @@ namespace Crest
                 _combineMaterial[i] = new Material(Shader.Find("Hidden/Crest/Simulation/Combine Animated Wave LODs"));
             }
 
+            Debug.Assert(SystemInfo.SupportsRenderTextureFormat(TextureFormat), "The graphics device does not support the render texture format " + TextureFormat.ToString());
+
             int resolution = OceanRenderer.Instance.LodDataResolution;
             var desc = new RenderTextureDescriptor(resolution, resolution, TextureFormat, 0);
 

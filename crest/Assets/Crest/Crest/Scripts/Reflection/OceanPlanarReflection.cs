@@ -163,6 +163,7 @@ namespace Crest
                 }
 
                 var format = _hdr ? RenderTextureFormat.ARGBHalf : RenderTextureFormat.ARGB32;
+                Debug.Assert(SystemInfo.SupportsRenderTextureFormat(format), "The graphics device does not support the render texture format " + format.ToString());
                 _reflectionTexture = new RenderTexture(_textureSize, _textureSize, _stencil ? 24 : 16, format);
                 _reflectionTexture.name = "__WaterReflection" + GetInstanceID();
                 _reflectionTexture.isPowerOfTwo = true;

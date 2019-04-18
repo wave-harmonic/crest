@@ -94,9 +94,11 @@ namespace Crest
 
             if (_cacheTexture == null)
             {
+                var fmt = RenderTextureFormat.RHalf;
+                Debug.Assert(SystemInfo.SupportsRenderTextureFormat(fmt), "The graphics device does not support the render texture format " + fmt.ToString());
                 _cacheTexture = new RenderTexture(_resolution, _resolution, 0);
                 _cacheTexture.name = gameObject.name + "_oceanDepth";
-                _cacheTexture.format = RenderTextureFormat.RHalf;
+                _cacheTexture.format = fmt;
                 _cacheTexture.useMipMap = false;
                 _cacheTexture.anisoLevel = 0;
             }

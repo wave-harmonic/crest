@@ -124,27 +124,19 @@ namespace Crest
                     SetAdditionalSimParams(lodIdx, _renderSimPropertyWrapperCompute[stepi, lodIdx]);
 
                     {
-                        var rt = DataTexture(lodIdx);
-                        //buf.SetRenderTarget(rt, rt.depthBuffer);
-                        if(!rt.IsCreated())
+                        var renderTarget = DataTexture(lodIdx);
+                        if(!renderTarget.IsCreated())
                         {
-                            rt.Create();
+                            renderTarget.Create();
                         }
-                        buf.SetComputeTextureParam(
+
+                        _renderSimPropertyWrapperCompute[stepi, lodIdx].InitialiseAndDispatchShader(
+                            buf,
                             _computeShader,
                             _computeKernel,
-                            "Result",
-                            rt
+                            renderTarget
                         );
                     }
-
-                    _renderSimPropertyWrapperCompute[stepi, lodIdx].InitialiseAndDispatchShader(
-                        buf,
-                        _computeShader,
-                        _computeKernel
-                    );
-
-                    SubmitDraws(lodIdx, buf);
                 }
 
                 _substepDtPrevious = substepDt;

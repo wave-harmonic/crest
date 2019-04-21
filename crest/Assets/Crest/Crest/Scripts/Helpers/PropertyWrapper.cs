@@ -78,7 +78,7 @@ namespace Crest
 
         public void InitialiseAndDispatchShader(
             CommandBuffer commandBuffer, ComputeShader computeShader,
-            int computeKernel
+            int computeKernel, RenderTexture renderTarget
         )
         {
             foreach(KeyValuePair<int, float> pair in _floats)
@@ -106,6 +106,13 @@ namespace Crest
                     pair.Value
                 );
             }
+
+            commandBuffer.SetComputeTextureParam(
+                computeShader,
+                computeKernel,
+                "Result",
+                renderTarget
+            );
 
             commandBuffer.DispatchCompute(
                 computeShader, computeKernel,

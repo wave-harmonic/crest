@@ -119,7 +119,7 @@ namespace Crest
         [HideInInspector] public LodDataMgrSeaFloorDepth _lodDataSeaDepths;
         [HideInInspector] public LodDataMgrDynWaves _lodDataDynWaves;
         [HideInInspector] public LodDataMgrFlow _lodDataFlow;
-        [HideInInspector] public LodDataMgrFoam _lodDataFoam;
+        [HideInInspector] public LodDataMgrFoamCompute _lodDataFoam;
         [HideInInspector] public LodDataMgrShadow _lodDataShadow;
         /// <summary>
         /// The number of LODs/scales that the ocean is currently using.

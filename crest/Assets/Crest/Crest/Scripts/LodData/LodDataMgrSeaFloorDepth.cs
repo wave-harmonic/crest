@@ -64,5 +64,9 @@ namespace Crest
         {
             properties.SetTexture(ParamIdSampler(shapeSlot), Texture2D.blackTexture);
         }
+        public static void BindNull(int shapeSlot, IPropertyWrapper properties)
+        {
+            properties.SetTexture(ParamIdSampler(shapeSlot), Texture2D.blackTexture);
+        }
     }
 }

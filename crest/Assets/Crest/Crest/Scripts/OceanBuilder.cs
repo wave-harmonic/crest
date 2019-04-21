@@ -177,7 +177,7 @@ namespace Crest
             }
             if (ocean.CreateFoamSim)
             {
-                ocean._lodDataFoam = LodDataMgr.Create<LodDataMgrFoam, SimSettingsFoam>(ocean.gameObject, ref ocean._simSettingsFoam);
+                ocean._lodDataFoam = LodDataMgr.Create<LodDataMgrFoamCompute, SimSettingsFoam>(ocean.gameObject, ref ocean._simSettingsFoam);
             }
             if (ocean.CreateShadowData)
             {

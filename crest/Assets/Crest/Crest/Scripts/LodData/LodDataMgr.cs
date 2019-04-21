@@ -65,6 +65,7 @@ namespace Crest
                 _targets[i].anisoLevel = 0;
                 _targets[i].useMipMap = false;
                 _targets[i].name = SimName + "_" + i + "_0";
+                _targets[i].enableRandomWrite = true;
             }
         }
 
@@ -118,6 +119,16 @@ namespace Crest
             _pwMat._target = properties;
             BindData(lodIdx, shapeSlot, _pwMat, DataTexture(lodIdx), blendOut, ref OceanRenderer.Instance._lods[lodIdx]._renderData);
             _pwMat._target = null;
+        }
+
+        public void BindResultData(int lodIdx, int shapeSlot, IPropertyWrapper properties)
+        {
+            BindData(lodIdx, shapeSlot, properties, DataTexture(lodIdx), true, ref OceanRenderer.Instance._lods[lodIdx]._renderData);
+        }
+
+        public void BindResultData(int lodIdx, int shapeSlot, IPropertyWrapper properties, bool blendOut)
+        {
+            BindData(lodIdx, shapeSlot, properties, DataTexture(lodIdx), blendOut, ref OceanRenderer.Instance._lods[lodIdx]._renderData);
         }
 
         protected virtual void BindData(int lodIdx, int shapeSlot, IPropertyWrapper properties, Texture applyData, bool blendOut, ref LodTransform.RenderData renderData)

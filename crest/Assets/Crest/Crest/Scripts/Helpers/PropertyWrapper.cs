@@ -3,6 +3,8 @@
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 using UnityEngine;
+using UnityEngine.Rendering;
+using System.Collections.Generic;
 
 namespace Crest
 {
@@ -28,5 +30,89 @@ namespace Crest
         public void SetTexture(int param, Texture value) { _target.SetTexture(param, value); }
         public void SetVector(int param, Vector4 value) { _target.SetVector(param, value); }
         public MaterialPropertyBlock _target;
+    }
+
+
+
+    public class PropertyWrapperCompute : IPropertyWrapper
+    {
+        private Dictionary<int, float> _floats = new Dictionary<int, float>();
+        private Dictionary<int, Texture> _textures = new Dictionary<int, Texture>();
+        private Dictionary<int, Vector4> _vectors = new Dictionary<int, Vector4>();
+
+        public void SetFloat(int param, float value)
+        {
+            if(_floats.ContainsKey(param))
+            {
+                _floats[param] = value;
+            }
+            else
+            {
+                _floats.Add(param, value);
+            }
+        }
+
+        public void SetTexture(int param, Texture value)
+        {
+            if(_textures.ContainsKey(param))
+            {
+                _textures[param] = value;
+            }
+            else
+            {
+                _textures.Add(param, value);
+            }
+        }
+
+        public void SetVector(int param, Vector4 value)
+        {
+            if(_vectors.ContainsKey(param))
+            {
+                _vectors[param] = value;
+            }
+            else
+            {
+                _vectors.Add(param, value);
+            }
+        }
+
+        public void InitialiseAndDispatchShader(
+            CommandBuffer commandBuffer, ComputeShader computeShader,
+            int computeKernel
+        )
+        {
+            foreach(KeyValuePair<int, float> pair in _floats)
+            {
+                commandBuffer.SetComputeFloatParam(
+                    computeShader,
+                    pair.Key,
+                    pair.Value
+                );
+            }
+            foreach(KeyValuePair<int, Texture> pair in _textures)
+            {
+                commandBuffer.SetComputeTextureParam(
+                    computeShader,
+                    computeKernel,
+                    pair.Key,
+                    pair.Value
+                );
+            }
+            foreach(KeyValuePair<int, Vector4> pair in _vectors)
+            {
+                commandBuffer.SetComputeVectorParam(
+                    computeShader,
+                    pair.Key,
+                    pair.Value
+                );
+            }
+
+            commandBuffer.DispatchCompute(
+                computeShader, computeKernel,
+                OceanRenderer.Instance.LodDataResolution,
+                OceanRenderer.Instance.LodDataResolution,
+                1
+            );
+        }
     }
 }

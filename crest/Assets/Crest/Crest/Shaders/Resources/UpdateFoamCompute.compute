@@ -1,0 +1,133 @@
+﻿// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel UpdateFoamCompute
+
+
+// Samplers and data associated with a LOD.
+// _LD_Params: float4(world texel size, texture resolution, shape weight multiplier, 1 / texture resolution)
+#define LOD_DATA(LODNUM) \
+	uniform sampler2D _LD_Sampler_AnimatedWaves_##LODNUM; \
+	uniform sampler2D _LD_Sampler_SeaFloorDepth_##LODNUM; \
+	uniform sampler2D _LD_Sampler_Foam_##LODNUM; \
+	uniform sampler2D _LD_Sampler_Flow_##LODNUM; \
+	uniform sampler2D _LD_Sampler_DynamicWaves_##LODNUM; \
+	uniform sampler2D _LD_Sampler_Shadow_##LODNUM; \
+	uniform float4 _LD_Params_##LODNUM; \
+	uniform float3 _LD_Pos_Scale_##LODNUM;
+
+// Create two sets of LOD data, which have overloaded meaning depending on use:
+// * the ocean surface geometry always lerps from a more detailed LOD (0) to a less detailed LOD (1)
+// * simulations (persistent lod data) read last frame's data from slot 0, and any current frame data from slot 1
+// * any other use that does not fall into the previous categories can use either slot and generally use slot 0
+LOD_DATA( 0 )
+LOD_DATA( 1 )
+
+#define CREST_OCEAN_DEPTH_BASELINE 1000.
+
+// Geometry data
+// x: Grid size of lod data - size of lod data texel in world space.
+// y: Grid size of geometry - distance between verts in mesh.
+// zw: normalScrollSpeed0, normalScrollSpeed1
+uniform float4 _GeomData;
+uniform float3 _OceanCenterPosWorld;
+
+// Conversions for world space from/to UV space
+float2 LD_WorldToUV(in float2 i_samplePos, in float2 i_centerPos, in float i_res, in float i_texelSize)
+{
+	return (i_samplePos - i_centerPos) / (i_texelSize * i_res) + 0.5;
+}
+float2 LD_0_WorldToUV(in float2 i_samplePos) { return LD_WorldToUV(i_samplePos, _LD_Pos_Scale_0.xy, _LD_Params_0.y, _LD_Params_0.x); }
+float2 LD_1_WorldToUV(in float2 i_samplePos) { return LD_WorldToUV(i_samplePos, _LD_Pos_Scale_1.xy, _LD_Params_1.y, _LD_Params_1.x); }
+
+float2 LD_UVToWorld(in float2 i_uv, in float2 i_centerPos, in float i_res, in float i_texelSize)
+{
+	return i_texelSize * i_res * (i_uv - 0.5) + i_centerPos;
+}
+float2 LD_0_UVToWorld(in float2 i_uv) { return LD_UVToWorld(i_uv, _LD_Pos_Scale_0.xy, _LD_Params_0.y, _LD_Params_0.x); }
+float2 LD_1_UVToWorld(in float2 i_uv) { return LD_UVToWorld(i_uv, _LD_Pos_Scale_1.xy, _LD_Params_1.y, _LD_Params_1.x); }
+
+// Conversions for world space from/to id space
+float2 LD_WorldToID(in float2 i_samplePos, in float2 i_centerPos, in float i_res, in float i_texelSize)
+{
+	return ((i_samplePos - i_centerPos) / i_texelSize) + (0.5 * i_res);
+}
+float2 LD_0_WorldToID(in float2 i_samplePos) { return LD_WorldToID(i_samplePos, _LD_Pos_Scale_0.xy, _LD_Params_0.y, _LD_Params_0.x); }
+float2 LD_1_WorldToID(in float2 i_samplePos) { return LD_WorldToID(i_samplePos, _LD_Pos_Scale_1.xy, _LD_Params_1.y, _LD_Params_1.x); }
+
+float2 LD_IDToWorld(in float2 i_id, in float2 i_centerPos, in float i_res, in float i_texelSize)
+{
+	return i_texelSize * (i_id - (i_res * 0.5)) + i_centerPos;
+}
+float2 LD_0_IDToWorld(in float2 i_id) { return LD_IDToWorld(i_id, _LD_Pos_Scale_0.xy, _LD_Params_0.y, _LD_Params_0.x); }
+float2 LD_1_IDToWorld(in float2 i_id) { return LD_IDToWorld(i_id, _LD_Pos_Scale_1.xy, _LD_Params_1.y, _LD_Params_1.x); }
+
+// TODO: make sure this actually works
+float4 IDtoUV(in float2 i_id)
+{
+	return float4(float2(i_id) / float2(256, 256) + 0.5 / float2(256, 256), 0, 0);
+}
+
+// END SHARED
+
+
+float _FoamFadeRate;
+float _WaveFoamStrength;
+float _WaveFoamCoverage;
+float _ShorelineFoamMaxDepth;
+float _ShorelineFoamStrength;
+float _SimDeltaTime;
+float _SimDeltaTimePrev;
+
+RWTexture2D<float> Result;
+
+[numthreads(8,8,1)]
+void UpdateFoamCompute (uint3 id : SV_DispatchThreadID)
+{
+	// lod data 1 is current frame, compute world pos from quad uv
+	float2 positionWS_XZ = LD_1_IDToWorld(id.xy);
+	float2 id_lastframe = LD_0_WorldToID(positionWS_XZ);
+	float4 uv = IDtoUV(id.xy);
+	float4 uv_lastframe = IDtoUV(id_lastframe);
+
+	// #if _FLOW_ON
+	half4 velocity = half4(tex2Dlod(_LD_Sampler_Flow_1, uv).xy, 0.0, 0.0);
+	half foam = tex2Dlod(_LD_Sampler_Foam_0, uv_lastframe
+		- ((_SimDeltaTime * _LD_Params_0.w) * velocity)
+		).x;
+	// #else
+	// // sampler will clamp the uv currently
+	// half foam = tex2Dlod(_LD_Sampler_Foam_0, uv_lastframe).x;
+	// #endif
+
+	half2 r = abs(uv_lastframe.xy - 0.5);
+	if (max(r.x, r.y) > 0.5 - _LD_Params_0.w)
+	{
+		// no border wrap mode for RTs in unity it seems, so make any off-texture reads 0 manually
+		foam = 0.0;
+	}
+
+	// fade
+	foam *= max(0.0, 1.0 - _FoamFadeRate * _SimDeltaTime);
+
+	// sample displacement texture and generate foam from it
+	const float3 dd = float3(_LD_Params_1.w, 0.0, _LD_Params_1.x);
+	half3 s = tex2Dlod(_LD_Sampler_AnimatedWaves_1, uv).xyz;
+	half3 sx = tex2Dlod(_LD_Sampler_AnimatedWaves_1, uv + dd.xyyy).xyz;
+	half3 sz = tex2Dlod(_LD_Sampler_AnimatedWaves_1, uv + dd.yxyy).xyz;
+	float3 disp = s.xyz;
+	float3 disp_x = dd.zyy + sx.xyz;
+	float3 disp_z = dd.yyz + sz.xyz;
+	// The determinant of the displacement Jacobian is a good measure for turbulence:
+	// > 1: Stretch
+	// < 1: Squash
+	// < 0: Overlap
+	float4 du = float4(disp_x.xz, disp_z.xz) - disp.xzxz;
+	float det = (du.x * du.w - du.y * du.z) / (_LD_Params_1.x * _LD_Params_1.x);
+	foam += 5.0 * _SimDeltaTime * _WaveFoamStrength * saturate(_WaveFoamCoverage - det);
+
+	// add foam in shallow water. use the displaced position to ensure we add foam where world objects are.
+	float4 uv_1_displaced = float4(LD_1_WorldToUV(positionWS_XZ + disp.xz), 0.0, 1.0);
+	float signedOceanDepth = CREST_OCEAN_DEPTH_BASELINE - tex2Dlod(_LD_Sampler_SeaFloorDepth_1, uv_1_displaced).x + disp.y;
+	foam += _ShorelineFoamStrength * _SimDeltaTime * saturate(1.0 - signedOceanDepth / _ShorelineFoamMaxDepth);
+
+    Result[id.xy] = foam;
+}

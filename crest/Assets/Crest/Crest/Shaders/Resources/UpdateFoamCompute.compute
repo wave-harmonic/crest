@@ -1,74 +1,10 @@
-﻿// Each #kernel tells which function to compile; you can have many kernels
+﻿// Crest Ocean System
+
+// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
+
 #pragma kernel UpdateFoamCompute
 
-
-//// START SHARED HEADERS
-// Samplers and data associated with a LOD.
-// _LD_Params: float4(world texel size, texture resolution, shape weight multiplier, 1 / texture resolution)
-#define LOD_DATA(LODNUM) \
-	uniform sampler2D _LD_Sampler_AnimatedWaves_##LODNUM; \
-	uniform sampler2D _LD_Sampler_SeaFloorDepth_##LODNUM; \
-	uniform sampler2D _LD_Sampler_Foam_##LODNUM; \
-	uniform sampler2D _LD_Sampler_Flow_##LODNUM; \
-	uniform sampler2D _LD_Sampler_DynamicWaves_##LODNUM; \
-	uniform sampler2D _LD_Sampler_Shadow_##LODNUM; \
-	uniform float4 _LD_Params_##LODNUM; \
-	uniform float3 _LD_Pos_Scale_##LODNUM;
-
-// Create two sets of LOD data, which have overloaded meaning depending on use:
-// * the ocean surface geometry always lerps from a more detailed LOD (0) to a less detailed LOD (1)
-// * simulations (persistent lod data) read last frame's data from slot 0, and any current frame data from slot 1
-// * any other use that does not fall into the previous categories can use either slot and generally use slot 0
-LOD_DATA( 0 )
-LOD_DATA( 1 )
-
-#define CREST_OCEAN_DEPTH_BASELINE 1000.
-
-// Geometry data
-// x: Grid size of lod data - size of lod data texel in world space.
-// y: Grid size of geometry - distance between verts in mesh.
-// zw: normalScrollSpeed0, normalScrollSpeed1
-uniform float4 _GeomData;
-uniform float3 _OceanCenterPosWorld;
-
-// Conversions for world space from/to UV space
-float2 LD_WorldToUV(in float2 i_samplePos, in float2 i_centerPos, in float i_res, in float i_texelSize)
-{
-	return (i_samplePos - i_centerPos) / (i_texelSize * i_res) + 0.5;
-}
-float2 LD_0_WorldToUV(in float2 i_samplePos) { return LD_WorldToUV(i_samplePos, _LD_Pos_Scale_0.xy, _LD_Params_0.y, _LD_Params_0.x); }
-float2 LD_1_WorldToUV(in float2 i_samplePos) { return LD_WorldToUV(i_samplePos, _LD_Pos_Scale_1.xy, _LD_Params_1.y, _LD_Params_1.x); }
-
-float2 LD_UVToWorld(in float2 i_uv, in float2 i_centerPos, in float i_res, in float i_texelSize)
-{
-	return i_texelSize * i_res * (i_uv - 0.5) + i_centerPos;
-}
-float2 LD_0_UVToWorld(in float2 i_uv) { return LD_UVToWorld(i_uv, _LD_Pos_Scale_0.xy, _LD_Params_0.y, _LD_Params_0.x); }
-float2 LD_1_UVToWorld(in float2 i_uv) { return LD_UVToWorld(i_uv, _LD_Pos_Scale_1.xy, _LD_Params_1.y, _LD_Params_1.x); }
-
-// Conversions for world space from/to id space
-float2 LD_WorldToID(in float2 i_samplePos, in float2 i_centerPos, in float i_res, in float i_texelSize)
-{
-	return ((i_samplePos - i_centerPos) / i_texelSize) + (0.5 * i_res);
-}
-float2 LD_0_WorldToID(in float2 i_samplePos) { return LD_WorldToID(i_samplePos, _LD_Pos_Scale_0.xy, _LD_Params_0.y, _LD_Params_0.x); }
-float2 LD_1_WorldToID(in float2 i_samplePos) { return LD_WorldToID(i_samplePos, _LD_Pos_Scale_1.xy, _LD_Params_1.y, _LD_Params_1.x); }
-
-float2 LD_IDToWorld(in float2 i_id, in float2 i_centerPos, in float i_res, in float i_texelSize)
-{
-	return i_texelSize * (i_id - (i_res * 0.5)) + i_centerPos;
-}
-float2 LD_0_IDToWorld(in float2 i_id) { return LD_IDToWorld(i_id, _LD_Pos_Scale_0.xy, _LD_Params_0.y, _LD_Params_0.x); }
-float2 LD_1_IDToWorld(in float2 i_id) { return LD_IDToWorld(i_id, _LD_Pos_Scale_1.xy, _LD_Params_1.y, _LD_Params_1.x); }
-
-// TODO(Tom): make sure this actually works
-float4 IDtoUV(in float2 i_id)
-{
-	return float4(float2(i_id) / float2(256, 256) + 0.5 / float2(256, 256), 0, 0);
-}
-
-// END SHARED HEADERS TODO(Tom) SORT
-
+#include "../OceanLODShared.hlsl"
 
 float _FoamFadeRate;
 float _WaveFoamStrength;

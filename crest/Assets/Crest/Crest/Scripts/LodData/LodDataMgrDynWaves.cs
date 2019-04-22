@@ -67,6 +67,12 @@ namespace Crest
             target.SetFloat("_DisplaceClamp", Settings._displaceClamp);
         }
 
+        public void BindCopySettings(IPropertyWrapper target)
+        {
+            target.SetFloat(Shader.PropertyToID("_HorizDisplace"), Settings._horizDisplace);
+            target.SetFloat(Shader.PropertyToID("_DisplaceClamp"), Settings._displaceClamp);
+        }
+
         protected override void SetAdditionalSimParams(int lodIdx, Material simMaterial)
         {
             base.SetAdditionalSimParams(lodIdx, simMaterial);
@@ -142,6 +148,10 @@ namespace Crest
             properties.SetTexture(ParamIdSampler(shapeSlot), Texture2D.blackTexture);
         }
         public static void BindNull(int shapeSlot, MaterialPropertyBlock properties)
+        {
+            properties.SetTexture(ParamIdSampler(shapeSlot), Texture2D.blackTexture);
+        }
+        public static void BindNull(int shapeSlot, IPropertyWrapper properties)
         {
             properties.SetTexture(ParamIdSampler(shapeSlot), Texture2D.blackTexture);
         }

@@ -85,8 +85,8 @@ namespace Crest
             // lod-dependent data
             for (int lodIdx = lodCount - 1; lodIdx >= 0; lodIdx--)
             {
-                // buf.SetRenderTarget(_waveBuffers[lodIdx]);
-                // buf.ClearRenderTarget(false, true, Color.black);
+                buf.SetRenderTarget(_waveBuffers[lodIdx]);
+                buf.ClearRenderTarget(false, true, Color.black);
                 if(!_waveBuffers[lodIdx].IsCreated())
                 {
                     _waveBuffers[lodIdx].Create();

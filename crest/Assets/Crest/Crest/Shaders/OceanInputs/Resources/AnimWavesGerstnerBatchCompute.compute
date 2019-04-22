@@ -134,5 +134,5 @@ void AnimWavesGerstnerBatchCompute (uint3 id : SV_DispatchThreadID)
         result.z += dot(resultz, wt);
     }
 
-    Result[id.xy] = half4(result, 0);
+    Result[id.xy] += half4(result, 0);
 }

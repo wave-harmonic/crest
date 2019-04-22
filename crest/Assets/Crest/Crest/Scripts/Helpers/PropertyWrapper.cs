@@ -39,6 +39,8 @@ namespace Crest
         private Dictionary<int, float> _floats = new Dictionary<int, float>();
         private Dictionary<int, Texture> _textures = new Dictionary<int, Texture>();
         private Dictionary<int, Vector4> _vectors = new Dictionary<int, Vector4>();
+        private Dictionary<int, Vector4[]> _vectorArrays = new Dictionary<int, Vector4[]>();
+        private Dictionary<int, int> _ints = new Dictionary<int, int>();
 
         public void SetFloat(int param, float value)
         {
@@ -49,6 +51,18 @@ namespace Crest
             else
             {
                 _floats.Add(param, value);
+            }
+        }
+
+        public void SetInt(int param, int value)
+        {
+            if(_ints.ContainsKey(param))
+            {
+                _ints[param] = value;
+            }
+            else
+            {
+                _ints.Add(param, value);
             }
         }
 
@@ -76,6 +90,20 @@ namespace Crest
             }
         }
 
+        public void SetVectorArray(int param, Vector4[] value)
+        {
+            if(_vectorArrays.ContainsKey(param))
+            {
+                System.Array.Copy(value, _vectorArrays[param], value.Length);
+            }
+            else
+            {
+                Vector4[] newValue = new Vector4[value.Length];
+                System.Array.Copy(value, newValue, value.Length);
+                _vectorArrays.Add(param, newValue);
+            }
+        }
+
         public void InitialiseAndDispatchShader(
             CommandBuffer commandBuffer, ComputeShader computeShader,
             int computeKernel, RenderTexture renderTarget
@@ -84,6 +112,14 @@ namespace Crest
             foreach(KeyValuePair<int, float> pair in _floats)
             {
                 commandBuffer.SetComputeFloatParam(
+                    computeShader,
+                    pair.Key,
+                    pair.Value
+                );
+            }
+            foreach(KeyValuePair<int, int> pair in _ints)
+            {
+                commandBuffer.SetComputeIntParam(
                     computeShader,
                     pair.Key,
                     pair.Value
@@ -101,6 +137,14 @@ namespace Crest
             foreach(KeyValuePair<int, Vector4> pair in _vectors)
             {
                 commandBuffer.SetComputeVectorParam(
+                    computeShader,
+                    pair.Key,
+                    pair.Value
+                );
+            }
+            foreach(KeyValuePair<int, Vector4[]> pair in _vectorArrays)
+            {
+                commandBuffer.SetComputeVectorArrayParam(
                     computeShader,
                     pair.Key,
                     pair.Value

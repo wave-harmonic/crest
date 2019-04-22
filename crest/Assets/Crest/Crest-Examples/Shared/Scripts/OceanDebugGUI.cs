@@ -95,7 +95,7 @@ public class OceanDebugGUI : MonoBehaviour
             _showSimTargets = GUI.Toggle(new Rect(x, y, w, h), _showSimTargets, "Show sim data"); y += h;
 
 #if UNITY_EDITOR
-            LodDataMgrAnimWaves._shapeCombinePass = GUI.Toggle(new Rect(x, y, w, h), LodDataMgrAnimWaves._shapeCombinePass, "Shape combine pass"); y += h;
+            LodDataMgrAnimWavesCompute._shapeCombinePass = GUI.Toggle(new Rect(x, y, w, h), LodDataMgrAnimWavesCompute._shapeCombinePass, "Shape combine pass"); y += h;
 #endif
 
             LodDataMgrShadow.s_processData = GUI.Toggle(new Rect(x, y, w, h), LodDataMgrShadow.s_processData, "Process Shadows"); y += h;
@@ -158,7 +158,7 @@ public class OceanDebugGUI : MonoBehaviour
         // draw sim data
         float column = 1f;
 
-        DrawSims<LodDataMgrAnimWaves>(OceanRenderer.Instance._lodDataAnimWaves, true, ref column);
+        DrawSims<LodDataMgrAnimWavesCompute>(OceanRenderer.Instance._lodDataAnimWaves, true, ref column);
         DrawSims<LodDataMgrDynWaves>(OceanRenderer.Instance._lodDataDynWaves, false, ref column);
         DrawSims<LodDataMgrFoamCompute>(OceanRenderer.Instance._lodDataFoam, false, ref column);
         DrawSims<LodDataMgrFlow>(OceanRenderer.Instance._lodDataFlow, false, ref column);

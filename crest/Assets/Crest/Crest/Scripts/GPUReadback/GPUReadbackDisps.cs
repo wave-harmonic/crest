@@ -9,7 +9,7 @@ namespace Crest
     /// <summary>
     /// Reads back displacements - this is the ocean shape, which includes any dynamic waves and any custom shape.
     /// </summary>
-    public class GPUReadbackDisps : GPUReadbackBase<LodDataMgrAnimWaves>, ICollProvider
+    public class GPUReadbackDisps : GPUReadbackBase<LodDataMgrAnimWavesCompute>, ICollProvider
     {
         PerLodData _areaData;
 

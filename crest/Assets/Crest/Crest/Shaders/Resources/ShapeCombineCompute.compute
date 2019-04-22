@@ -1,4 +1,5 @@
-﻿#pragma kernel ShapeCombineCompute _DYNAMIC_WAVE_SIM_ON _FLOW_ON
+﻿// TODO(Tom): Find solution lack of compute shader variants :'(
+#pragma kernel ShapeCombineCompute _DYNAMIC_WAVE_SIM_ON _FLOW_ON
 
 #include "../OceanLODShared.hlsl"
 

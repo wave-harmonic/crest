@@ -158,10 +158,11 @@ namespace Crest
                 renderTarget
             );
 
+            // TODO(Tom): enforce that this matches thread group size in shader
             commandBuffer.DispatchCompute(
                 computeShader, computeKernel,
-                OceanRenderer.Instance.LodDataResolution,
-                OceanRenderer.Instance.LodDataResolution,
+                OceanRenderer.Instance.LodDataResolution / 8,
+                OceanRenderer.Instance.LodDataResolution / 8,
                 1
             );
         }

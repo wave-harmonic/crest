@@ -61,21 +61,21 @@ namespace Crest
             return true;
         }
 
-        public void BindCopySettings(Material target)
+        public void BindCopySettings(PropertyWrapperMaterial target)
         {
-            target.SetFloat("_HorizDisplace", Settings._horizDisplace);
-            target.SetFloat("_DisplaceClamp", Settings._displaceClamp);
+            target.SetFloat(Shader.PropertyToID("_HorizDisplace"), Settings._horizDisplace);
+            target.SetFloat(Shader.PropertyToID("_DisplaceClamp"), Settings._displaceClamp);
         }
 
-        protected override void SetAdditionalSimParams(int lodIdx, Material simMaterial)
+        protected override void SetAdditionalSimParams(int lodIdx, PropertyWrapperMaterial simMaterial)
         {
             base.SetAdditionalSimParams(lodIdx, simMaterial);
 
-            simMaterial.SetFloat("_Damping", Settings._damping);
-            simMaterial.SetFloat("_Gravity", OceanRenderer.Instance.Gravity);
+            simMaterial.SetFloat(Shader.PropertyToID("_Damping"), Settings._damping);
+            simMaterial.SetFloat(Shader.PropertyToID("_Gravity"), OceanRenderer.Instance.Gravity);
 
             float laplacianKernelAngle = _rotateLaplacian ? Mathf.PI * 2f * Random.value : 0f;
-            simMaterial.SetVector("_LaplacianAxisX", new Vector2(Mathf.Cos(laplacianKernelAngle), Mathf.Sin(laplacianKernelAngle)));
+            simMaterial.SetVector(Shader.PropertyToID("_LaplacianAxisX"), new Vector2(Mathf.Cos(laplacianKernelAngle), Mathf.Sin(laplacianKernelAngle)));
 
             // assign sea floor depth - to slot 1 current frame data. minor bug here - this depth will actually be from the previous frame,
             // because the depth is scheduled to render just before the animated waves, and this sim happens before animated waves.
@@ -137,11 +137,7 @@ namespace Crest
         {
             return ParamIdSampler(slot);
         }
-        public static void BindNull(int shapeSlot, Material properties)
-        {
-            properties.SetTexture(ParamIdSampler(shapeSlot), Texture2D.blackTexture);
-        }
-        public static void BindNull(int shapeSlot, MaterialPropertyBlock properties)
+        public static void BindNull(int shapeSlot, IPropertyWrapper properties)
         {
             properties.SetTexture(ParamIdSampler(shapeSlot), Texture2D.blackTexture);
         }

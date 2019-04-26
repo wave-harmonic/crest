@@ -23,7 +23,7 @@ namespace Crest
 
         CommandBuffer _bufCopyShadowMap = null;
         RenderTexture[] _sources;
-        Material[] _renderMaterial;
+        PropertyWrapperMaterial[] _renderMaterial;
 
         SimSettingsShadow Settings { get { return OceanRenderer.Instance._simSettingsShadow; } }
         public override void UseSettings(SimSettingsBase settings) { OceanRenderer.Instance._simSettingsShadow = settings as SimSettingsShadow; }
@@ -39,11 +39,11 @@ namespace Crest
             base.Start();
 
             {
-                _renderMaterial = new Material[OceanRenderer.Instance.CurrentLodCount];
+                _renderMaterial = new PropertyWrapperMaterial[OceanRenderer.Instance.CurrentLodCount];
                 var shader = Shader.Find("Hidden/Crest/Simulation/Update Shadow");
                 for (int i = 0; i < _renderMaterial.Length; i++)
                 {
-                    _renderMaterial[i] = new Material(shader);
+                    _renderMaterial[i] = new PropertyWrapperMaterial(shader);
                 }
             }
 
@@ -184,29 +184,27 @@ namespace Crest
                 var lt = OceanRenderer.Instance._lods[lodIdx];
 
                 lt._renderData.Validate(0, this);
-                _renderMaterial[lodIdx].SetVector("_CenterPos", lt._renderData._posSnapped);
-                _renderMaterial[lodIdx].SetVector("_Scale", lt.transform.lossyScale);
-                _renderMaterial[lodIdx].SetVector("_CamPos", OceanRenderer.Instance.Viewpoint.position);
-                _renderMaterial[lodIdx].SetVector("_CamForward", OceanRenderer.Instance.Viewpoint.forward);
-                _renderMaterial[lodIdx].SetVector("_JitterDiameters_CurrentFrameWeights", new Vector4(Settings._jitterDiameterSoft, Settings._jitterDiameterHard, Settings._currentFrameWeightSoft, Settings._currentFrameWeightHard));
-                _renderMaterial[lodIdx].SetMatrix("_MainCameraProjectionMatrix", _cameraMain.projectionMatrix * _cameraMain.worldToCameraMatrix);
-                _renderMaterial[lodIdx].SetFloat("_SimDeltaTime", Time.deltaTime);
+                _renderMaterial[lodIdx].SetVector(Shader.PropertyToID("_CenterPos"), lt._renderData._posSnapped);
+                _renderMaterial[lodIdx].SetVector(Shader.PropertyToID("_Scale"), lt.transform.lossyScale);
+                _renderMaterial[lodIdx].SetVector(Shader.PropertyToID("_CamPos"), OceanRenderer.Instance.Viewpoint.position);
+                _renderMaterial[lodIdx].SetVector(Shader.PropertyToID("_CamForward"), OceanRenderer.Instance.Viewpoint.forward);
+                _renderMaterial[lodIdx].SetVector(Shader.PropertyToID("_JitterDiameters_CurrentFrameWeights"), new Vector4(Settings._jitterDiameterSoft, Settings._jitterDiameterHard, Settings._currentFrameWeightSoft, Settings._currentFrameWeightHard));
+                _renderMaterial[lodIdx].SetMatrix(Shader.PropertyToID("_MainCameraProjectionMatrix"), _cameraMain.projectionMatrix * _cameraMain.worldToCameraMatrix);
+                _renderMaterial[lodIdx].SetFloat(Shader.PropertyToID("_SimDeltaTime"), Time.deltaTime);
 
                 // compute which lod data we are sampling previous frame shadows from. if a scale change has happened this can be any lod up or down the chain.
                 var srcDataIdx = lt.LodIndex + ScaleDifferencePow2;
                 srcDataIdx = Mathf.Clamp(srcDataIdx, 0, lt.LodCount - 1);
                 // bind data to slot 0 - previous frame data
                 BindSourceData(srcDataIdx, 0, _renderMaterial[lodIdx], false);
-                _bufCopyShadowMap.Blit(Texture2D.blackTexture, _targets[lodIdx], _renderMaterial[lodIdx]);
+                _bufCopyShadowMap.Blit(Texture2D.blackTexture, _targets[lodIdx], _renderMaterial[lodIdx].material);
             }
         }
 
-        public void BindSourceData(int lodIdx, int slot, Material simMaterial, bool paramsOnly)
+        public void BindSourceData(int lodIdx, int slot, PropertyWrapperMaterial simMaterial, bool paramsOnly)
         {
-            _pwMat._target = simMaterial;
             var rd = OceanRenderer.Instance._lods[lodIdx]._renderDataPrevFrame.Validate(BuildCommandBufferBase._lastUpdateFrame - Time.frameCount, this);
-            BindData(lodIdx, slot, _pwMat, paramsOnly ? Texture2D.blackTexture : (_sources[lodIdx] as Texture), true, ref rd);
-            _pwMat._target = null;
+            BindData(lodIdx, slot, simMaterial, paramsOnly ? Texture2D.blackTexture : (_sources[lodIdx] as Texture), true, ref rd);
         }
 
         void OnEnable()
@@ -242,11 +240,7 @@ namespace Crest
         {
             return ParamIdSampler(slot);
         }
-        public static void BindNull(int shapeSlot, Material properties)
-        {
-            properties.SetTexture(ParamIdSampler(shapeSlot), Texture2D.blackTexture);
-        }
-        public static void BindNull(int shapeSlot, MaterialPropertyBlock properties)
+        public static void BindNull(int shapeSlot, IPropertyWrapper properties)
         {
             properties.SetTexture(ParamIdSampler(shapeSlot), Texture2D.blackTexture);
         }

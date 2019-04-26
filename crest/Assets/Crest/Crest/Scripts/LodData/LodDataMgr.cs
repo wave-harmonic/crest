@@ -97,30 +97,6 @@ namespace Crest
             _scaleDifferencePow2 = Mathf.RoundToInt(ratio_l2);
         }
 
-        protected PropertyWrapperMaterial _pwMat = new PropertyWrapperMaterial();
-        protected PropertyWrapperMPB _pwMPB = new PropertyWrapperMPB();
-
-        public void BindResultData(int lodIdx, int shapeSlot, Material properties)
-        {
-            _pwMat._target = properties;
-            BindData(lodIdx, shapeSlot, _pwMat, DataTexture(lodIdx), true, ref OceanRenderer.Instance._lods[lodIdx]._renderData);
-            _pwMat._target = null;
-        }
-
-        public void BindResultData(int lodIdx, int shapeSlot, MaterialPropertyBlock properties)
-        {
-            _pwMPB._target = properties;
-            BindData(lodIdx, shapeSlot, _pwMPB, DataTexture(lodIdx), true, ref OceanRenderer.Instance._lods[lodIdx]._renderData);
-            _pwMPB._target = null;
-        }
-
-        public void BindResultData(int lodIdx, int shapeSlot, Material properties, bool blendOut)
-        {
-            _pwMat._target = properties;
-            BindData(lodIdx, shapeSlot, _pwMat, DataTexture(lodIdx), blendOut, ref OceanRenderer.Instance._lods[lodIdx]._renderData);
-            _pwMat._target = null;
-        }
-
         public void BindResultData(int lodIdx, int shapeSlot, IPropertyWrapper properties)
         {
             BindData(lodIdx, shapeSlot, properties, DataTexture(lodIdx), true, ref OceanRenderer.Instance._lods[lodIdx]._renderData);

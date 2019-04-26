@@ -14,7 +14,7 @@ namespace Crest
     {
         public bool _drawBounds = false;
 
-        MaterialPropertyBlock _mpb;
+        PropertyWrapperMPB _mpb;
         Renderer _rend;
         Mesh _mesh;
         Bounds _boundsLocal;
@@ -44,12 +44,12 @@ namespace Crest
 
             if (idx > -1)
             {
-                if (_mpb == null)
+                if (_mpb.materialPropertyBlock == null)
                 {
-                    _mpb = new MaterialPropertyBlock();
+                    _mpb = new PropertyWrapperMPB(new MaterialPropertyBlock());
                 }
 
-                _rend.GetPropertyBlock(_mpb);
+                _rend.GetPropertyBlock(_mpb.materialPropertyBlock);
 
                 var lodCount = OceanRenderer.Instance.CurrentLodCount;
                 var ldaw = OceanRenderer.Instance._lodDataAnimWaves;
@@ -64,9 +64,9 @@ namespace Crest
                 // blend furthest normals scale in/out to avoid pop, if scale could reduce
                 bool needToBlendOutNormals = idx == lodCount - 1 && OceanRenderer.Instance.ScaleCouldDecrease;
                 float farNormalsWeight = needToBlendOutNormals ? OceanRenderer.Instance.ViewerAltitudeLevelAlpha : 1f;
-                _mpb.SetVector("_InstanceData", new Vector4(meshScaleLerp, farNormalsWeight, idx));
+                _mpb.SetVector(Shader.PropertyToID("_InstanceData"), new Vector4(meshScaleLerp, farNormalsWeight, idx));
 
-                _rend.SetPropertyBlock(_mpb);
+                _rend.SetPropertyBlock(_mpb.materialPropertyBlock);
             }
 
             LateUpdateBounds();

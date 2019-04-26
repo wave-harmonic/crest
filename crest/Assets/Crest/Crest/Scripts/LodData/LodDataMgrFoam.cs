@@ -36,15 +36,15 @@ namespace Crest
 #endif
         }
 
-        protected override void SetAdditionalSimParams(int lodIdx, Material simMaterial)
+        protected override void SetAdditionalSimParams(int lodIdx, PropertyWrapperMaterial simMaterial)
         {
             base.SetAdditionalSimParams(lodIdx, simMaterial);
 
-            simMaterial.SetFloat("_FoamFadeRate", Settings._foamFadeRate);
-            simMaterial.SetFloat("_WaveFoamStrength", Settings._waveFoamStrength);
-            simMaterial.SetFloat("_WaveFoamCoverage", Settings._waveFoamCoverage);
-            simMaterial.SetFloat("_ShorelineFoamMaxDepth", Settings._shorelineFoamMaxDepth);
-            simMaterial.SetFloat("_ShorelineFoamStrength", Settings._shorelineFoamStrength);
+            simMaterial.SetFloat(Shader.PropertyToID("_FoamFadeRate"), Settings._foamFadeRate);
+            simMaterial.SetFloat(Shader.PropertyToID("_WaveFoamStrength"), Settings._waveFoamStrength);
+            simMaterial.SetFloat(Shader.PropertyToID("_WaveFoamCoverage"), Settings._waveFoamCoverage);
+            simMaterial.SetFloat(Shader.PropertyToID("_ShorelineFoamMaxDepth"), Settings._shorelineFoamMaxDepth);
+            simMaterial.SetFloat(Shader.PropertyToID("_ShorelineFoamStrength"), Settings._shorelineFoamStrength);
 
             // assign animated waves - to slot 1 current frame data
             OceanRenderer.Instance._lodDataAnimWaves.BindResultData(lodIdx, 1, simMaterial);

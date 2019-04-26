@@ -37,7 +37,7 @@ namespace Crest
 
         RenderTexture[] _waveBuffers;
 
-        Material[] _combineMaterial;
+        PropertyWrapperMaterial[] _combineProperties;
 
         public override void UseSettings(SimSettingsBase settings) { OceanRenderer.Instance._simSettingsAnimatedWaves = settings as SimSettingsAnimatedWaves; }
         public override SimSettingsBase CreateDefaultSettings()
@@ -51,10 +51,12 @@ namespace Crest
         {
             base.InitData();
 
-            _combineMaterial = new Material[OceanRenderer.Instance.CurrentLodCount];
-            for (int i = 0; i < _combineMaterial.Length; i++)
+            _combineProperties = new PropertyWrapperMaterial[OceanRenderer.Instance.CurrentLodCount];
+            for (int i = 0; i < _combineProperties.Length; i++)
             {
-                _combineMaterial[i] = new Material(Shader.Find("Hidden/Crest/Simulation/Combine Animated Wave LODs"));
+                _combineProperties[i] = new PropertyWrapperMaterial(
+                    new Material(Shader.Find("Hidden/Crest/Simulation/Combine Animated Wave LODs"))
+                );
             }
 
             Debug.Assert(SystemInfo.SupportsRenderTextureFormat(TextureFormat), "The graphics device does not support the render texture format " + TextureFormat.ToString());
@@ -107,41 +109,41 @@ namespace Crest
             for (int lodIdx = lodCount - 1; lodIdx >= 0; lodIdx--)
             {
                 // this lod data
-                BindWaveBuffer(lodIdx, 0, _combineMaterial[lodIdx], false);
+                BindWaveBuffer(lodIdx, 0, _combineProperties[lodIdx], false);
 
                 // combine data from next larger lod into this one
                 if (lodIdx < lodCount - 1 && _shapeCombinePass)
                 {
-                    BindResultData(lodIdx + 1, 1, _combineMaterial[lodIdx]);
+                    BindResultData(lodIdx + 1, 1, _combineProperties[lodIdx]);
                 }
                 else
                 {
                     // this binds black texture
-                    BindWaveBuffer(lodIdx, 1, _combineMaterial[lodIdx], true);
+                    BindWaveBuffer(lodIdx, 1, _combineProperties[lodIdx], true);
                 }
 
                 // dynamic waves
                 if (OceanRenderer.Instance._lodDataDynWaves)
                 {
-                    OceanRenderer.Instance._lodDataDynWaves.BindCopySettings(_combineMaterial[lodIdx]);
-                    OceanRenderer.Instance._lodDataDynWaves.BindResultData(lodIdx, 0, _combineMaterial[lodIdx]);
+                    OceanRenderer.Instance._lodDataDynWaves.BindCopySettings(_combineProperties[lodIdx]);
+                    OceanRenderer.Instance._lodDataDynWaves.BindResultData(lodIdx, 0, _combineProperties[lodIdx]);
                 }
                 else
                 {
-                    LodDataMgrDynWaves.BindNull(0, _combineMaterial[lodIdx]);
+                    LodDataMgrDynWaves.BindNull(0, _combineProperties[lodIdx]);
                 }
 
                 // flow
                 if (OceanRenderer.Instance._lodDataFlow)
                 {
-                    OceanRenderer.Instance._lodDataFlow.BindResultData(lodIdx, 0, _combineMaterial[lodIdx]);
+                    OceanRenderer.Instance._lodDataFlow.BindResultData(lodIdx, 0, _combineProperties[lodIdx]);
                 }
                 else
                 {
-                    LodDataMgrFlow.BindNull(0, _combineMaterial[lodIdx]);
+                    LodDataMgrFlow.BindNull(0, _combineProperties[lodIdx]);
                 }
 
-                buf.Blit(null, DataTexture(lodIdx), _combineMaterial[lodIdx]);
+                buf.Blit(null, DataTexture(lodIdx), _combineProperties[lodIdx].material);
             }
 
             // lod-independent data
@@ -158,12 +160,10 @@ namespace Crest
             }
         }
 
-        public void BindWaveBuffer(int lodIdx, int shapeSlot, Material properties, bool paramsOnly)
+        public void BindWaveBuffer(int lodIdx, int shapeSlot, IPropertyWrapper properties, bool paramsOnly)
         {
-            _pwMat._target = properties;
             var rd = OceanRenderer.Instance._lods[lodIdx]._renderData.Validate(0, this);
-            BindData(lodIdx, shapeSlot, _pwMat, paramsOnly ? Texture2D.blackTexture : (Texture)_waveBuffers[lodIdx], true, ref rd);
-            _pwMat._target = null;
+            BindData(lodIdx, shapeSlot, properties, paramsOnly ? Texture2D.blackTexture : (Texture)_waveBuffers[lodIdx], true, ref rd);
         }
 
         protected override void BindData(int lodIdx, int shapeSlot, IPropertyWrapper properties, Texture applyData, bool blendOut, ref LodTransform.RenderData renderData)
@@ -252,11 +252,7 @@ namespace Crest
         {
             return ParamIdSampler(slot);
         }
-        public static void BindNull(int shapeSlot, Material properties)
-        {
-            properties.SetTexture(ParamIdSampler(shapeSlot), Texture2D.blackTexture);
-        }
-        public static void BindNull(int shapeSlot, MaterialPropertyBlock properties)
+        public static void BindNull(int shapeSlot, IPropertyWrapper properties)
         {
             properties.SetTexture(ParamIdSampler(shapeSlot), Texture2D.blackTexture);
         }

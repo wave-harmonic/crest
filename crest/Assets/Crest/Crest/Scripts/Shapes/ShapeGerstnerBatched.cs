@@ -33,9 +33,9 @@ namespace Crest
         float[] _phases;
 
         // useful references
-        Material[] _materials;
+        PropertyWrapperMaterial[] _materials;
         bool[] _drawLOD;
-        Material _materialBigWaveTransition;
+        PropertyWrapperMaterial _materialBigWaveTransition;
         bool _drawLODTransitionWaves;
 
         // Shader to be used to render evaluate Gerstner waves for each LOD
@@ -171,24 +171,24 @@ namespace Crest
             }
 
             // num octaves plus one, because there is an additional last bucket for large wavelengths
-            _materials = new Material[OceanRenderer.Instance.CurrentLodCount];
+            _materials = new PropertyWrapperMaterial[OceanRenderer.Instance.CurrentLodCount];
             _drawLOD = new bool[_materials.Length];
 
             for (int i = 0; i < _materials.Length; i++)
             {
-                _materials[i] = new Material(_waveShader);
+                _materials[i] = new PropertyWrapperMaterial(new Material(_waveShader));
                 _drawLOD[i] = false;
             }
 
-            _materialBigWaveTransition = new Material(_waveShader);
+            _materialBigWaveTransition = new PropertyWrapperMaterial(new Material(_waveShader));
             _drawLODTransitionWaves = false;
         }
 
         /// <summary>
-        /// Computes Gerstner params for a set of waves, for the given lod idx. Writes shader data to the given material.
+        /// Computes Gerstner params for a set of waves, for the given lod idx. Writes shader data to the given property.
         /// Returns number of wave components rendered in this batch.
         /// </summary>
-        int UpdateBatch(int lodIdx, int firstComponent, int lastComponentNonInc, Material material)
+        int UpdateBatch(int lodIdx, int firstComponent, int lastComponentNonInc, IPropertyWrapper property)
         {
             int numComponents = lastComponentNonInc - firstComponent;
             int numInBatch = 0;
@@ -294,23 +294,23 @@ namespace Crest
                 }
             }
 
-            // apply the data to the shape material
-            material.SetVectorArray("_TwoPiOverWavelengths", UpdateBatchScratchData._twoPiOverWavelengthsBatch);
-            material.SetVectorArray("_Amplitudes", UpdateBatchScratchData._ampsBatch);
-            material.SetVectorArray("_WaveDirX", UpdateBatchScratchData._waveDirXBatch);
-            material.SetVectorArray("_WaveDirZ", UpdateBatchScratchData._waveDirZBatch);
-            material.SetVectorArray("_Phases", UpdateBatchScratchData._phasesBatch);
-            material.SetVectorArray("_ChopAmps", UpdateBatchScratchData._chopAmpsBatch);
-            material.SetFloat("_NumInBatch", numInBatch);
-            material.SetFloat("_AttenuationInShallows", OceanRenderer.Instance._simSettingsAnimatedWaves.AttenuationInShallows);
+            // apply the data to the shape property
+            property.SetVectorArray(Shader.PropertyToID("_TwoPiOverWavelengths"), UpdateBatchScratchData._twoPiOverWavelengthsBatch);
+            property.SetVectorArray(Shader.PropertyToID("_Amplitudes"), UpdateBatchScratchData._ampsBatch);
+            property.SetVectorArray(Shader.PropertyToID("_WaveDirX"), UpdateBatchScratchData._waveDirXBatch);
+            property.SetVectorArray(Shader.PropertyToID("_WaveDirZ"), UpdateBatchScratchData._waveDirZBatch);
+            property.SetVectorArray(Shader.PropertyToID("_Phases"), UpdateBatchScratchData._phasesBatch);
+            property.SetVectorArray(Shader.PropertyToID("_ChopAmps"), UpdateBatchScratchData._chopAmpsBatch);
+            property.SetFloat(Shader.PropertyToID("_NumInBatch"), numInBatch);
+            property.SetFloat(Shader.PropertyToID("_AttenuationInShallows"), OceanRenderer.Instance._simSettingsAnimatedWaves.AttenuationInShallows);
 
             int numVecs = (numInBatch + 3) / 4;
-            material.SetInt("_NumWaveVecs", numVecs);
-            OceanRenderer.Instance._lodDataAnimWaves.BindResultData(lodIdx, 0, material);
+            property.SetInt(Shader.PropertyToID("_NumWaveVecs"), numVecs);
+            OceanRenderer.Instance._lodDataAnimWaves.BindResultData(lodIdx, 0, property);
 
             if (OceanRenderer.Instance._lodDataSeaDepths)
             {
-                OceanRenderer.Instance._lodDataSeaDepths.BindResultData(lodIdx, 0, material, false);
+                OceanRenderer.Instance._lodDataSeaDepths.BindResultData(lodIdx, 0, property, false);
             }
 
             return numInBatch;
@@ -369,19 +369,19 @@ namespace Crest
             // LODs up to but not including the last lod get the normal sets of waves
             if (lodIdx < lodCount - 1 && _drawLOD[lodIdx])
             {
-                buf.DrawMesh(_rasterMesh, Matrix4x4.identity, _materials[lodIdx]);
+                buf.DrawMesh(_rasterMesh, Matrix4x4.identity, _materials[lodIdx].material);
             }
 
             // The second-to-last lod will transition content into it from the last lod
             if (lodIdx == lodCount - 2 && _drawLODTransitionWaves)
             {
-                buf.DrawMesh(_rasterMesh, Matrix4x4.identity, _materialBigWaveTransition);
+                buf.DrawMesh(_rasterMesh, Matrix4x4.identity, _materialBigWaveTransition.material);
             }
 
             // Last lod gets the big wavelengths
             if (lodIdx == lodCount - 1 && _drawLOD[lodIdx])
             {
-                buf.DrawMesh(_rasterMesh, Matrix4x4.identity, _materials[OceanRenderer.Instance.CurrentLodCount - 1]);
+                buf.DrawMesh(_rasterMesh, Matrix4x4.identity, _materials[OceanRenderer.Instance.CurrentLodCount - 1].material);
             }
         }
 

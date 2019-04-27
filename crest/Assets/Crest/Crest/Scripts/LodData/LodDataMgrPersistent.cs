@@ -21,6 +21,10 @@ namespace Crest
 
         float _substepDtPrevious = 1f / 60f;
 
+        static int sp_SimDeltaTime = Shader.PropertyToID("_SimDeltaTime");
+        static int sp_SimDeltaTimePrev = Shader.PropertyToID("_SimDeltaTimePrev");
+        static int sp_GridSize = Shader.PropertyToID("_GridSize");
+
         protected override void Start()
         {
             base.Start();
@@ -92,10 +96,10 @@ namespace Crest
 
                 for (var lodIdx = lodCount - 1; lodIdx >= 0; lodIdx--)
                 {
-                    _renderSimMaterial[stepi, lodIdx].SetFloat(Shader.PropertyToID("_SimDeltaTime"), substepDt);
-                    _renderSimMaterial[stepi, lodIdx].SetFloat(Shader.PropertyToID("_SimDeltaTimePrev"), _substepDtPrevious);
+                    _renderSimMaterial[stepi, lodIdx].SetFloat(sp_SimDeltaTime, substepDt);
+                    _renderSimMaterial[stepi, lodIdx].SetFloat(sp_SimDeltaTimePrev, _substepDtPrevious);
 
-                    _renderSimMaterial[stepi, lodIdx].SetFloat(Shader.PropertyToID("_GridSize"), OceanRenderer.Instance._lods[lodIdx]._renderData._texelWidth);
+                    _renderSimMaterial[stepi, lodIdx].SetFloat(sp_GridSize, OceanRenderer.Instance._lods[lodIdx]._renderData._texelWidth);
 
                     // compute which lod data we are sampling source data from. if a scale change has happened this can be any lod up or down the chain.
                     // this is only valid on the first update step, after that the scale src/target data are in the right places.

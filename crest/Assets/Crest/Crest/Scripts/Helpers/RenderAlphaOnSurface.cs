@@ -19,6 +19,8 @@ namespace Crest
         Mesh _mesh;
         Bounds _boundsLocal;
 
+        static int sp_InstanceData = Shader.PropertyToID("_InstanceData");
+
         private void Start()
         {
             _rend = GetComponent<Renderer>();
@@ -44,7 +46,7 @@ namespace Crest
 
             if (idx > -1)
             {
-                if (_mpb.materialPropertyBlock == null)
+                if (_mpb == null)
                 {
                     _mpb = new PropertyWrapperMPB(new MaterialPropertyBlock());
                 }
@@ -64,7 +66,7 @@ namespace Crest
                 // blend furthest normals scale in/out to avoid pop, if scale could reduce
                 bool needToBlendOutNormals = idx == lodCount - 1 && OceanRenderer.Instance.ScaleCouldDecrease;
                 float farNormalsWeight = needToBlendOutNormals ? OceanRenderer.Instance.ViewerAltitudeLevelAlpha : 1f;
-                _mpb.SetVector(Shader.PropertyToID("_InstanceData"), new Vector4(meshScaleLerp, farNormalsWeight, idx));
+                _mpb.SetVector(sp_InstanceData, new Vector4(meshScaleLerp, farNormalsWeight, idx));
 
                 _rend.SetPropertyBlock(_mpb.materialPropertyBlock);
             }

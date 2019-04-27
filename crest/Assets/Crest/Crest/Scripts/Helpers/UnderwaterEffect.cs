@@ -34,6 +34,8 @@ namespace Crest
         PropertyWrapperMPB _mpb;
         Renderer _rend;
 
+        static int sp_HeightOffset = Shader.PropertyToID("_HeightOffset");
+
         private void Start()
         {
             _rend = GetComponent<Renderer>();
@@ -99,7 +101,7 @@ namespace Crest
                 }
 
                 // Assign lod0 shape - trivial but bound every frame because lod transform comes from here
-                if (_mpb.materialPropertyBlock == null)
+                if (_mpb == null)
                 {
                     _mpb = new PropertyWrapperMPB(new MaterialPropertyBlock());
                 }
@@ -126,7 +128,7 @@ namespace Crest
                     LodDataMgrShadow.BindNull(0, _mpb);
                 }
 
-                _mpb.SetFloat(Shader.PropertyToID("_HeightOffset"), heightOffset);
+                _mpb.SetFloat(sp_HeightOffset, heightOffset);
 
                 _rend.SetPropertyBlock(_mpb.materialPropertyBlock);
             }

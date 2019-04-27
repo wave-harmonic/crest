@@ -24,6 +24,12 @@ namespace Crest
             return settings;
         }
 
+        static int sp_FoamFadeRate = Shader.PropertyToID("_FoamFadeRate");
+        static int sp_WaveFoamStrength = Shader.PropertyToID("_WaveFoamStrength");
+        static int sp_WaveFoamCoverage = Shader.PropertyToID("_WaveFoamCoverage");
+        static int sp_ShorelineFoamMaxDepth = Shader.PropertyToID("_ShorelineFoamMaxDepth");
+        static int sp_ShorelineFoamStrength = Shader.PropertyToID("_ShorelineFoamStrength");
+
         protected override void Start()
         {
             base.Start();
@@ -40,11 +46,11 @@ namespace Crest
         {
             base.SetAdditionalSimParams(lodIdx, simMaterial);
 
-            simMaterial.SetFloat(Shader.PropertyToID("_FoamFadeRate"), Settings._foamFadeRate);
-            simMaterial.SetFloat(Shader.PropertyToID("_WaveFoamStrength"), Settings._waveFoamStrength);
-            simMaterial.SetFloat(Shader.PropertyToID("_WaveFoamCoverage"), Settings._waveFoamCoverage);
-            simMaterial.SetFloat(Shader.PropertyToID("_ShorelineFoamMaxDepth"), Settings._shorelineFoamMaxDepth);
-            simMaterial.SetFloat(Shader.PropertyToID("_ShorelineFoamStrength"), Settings._shorelineFoamStrength);
+            simMaterial.SetFloat(sp_FoamFadeRate, Settings._foamFadeRate);
+            simMaterial.SetFloat(sp_WaveFoamStrength, Settings._waveFoamStrength);
+            simMaterial.SetFloat(sp_WaveFoamCoverage, Settings._waveFoamCoverage);
+            simMaterial.SetFloat(sp_ShorelineFoamMaxDepth, Settings._shorelineFoamMaxDepth);
+            simMaterial.SetFloat(sp_ShorelineFoamStrength, Settings._shorelineFoamStrength);
 
             // assign animated waves - to slot 1 current frame data
             OceanRenderer.Instance._lodDataAnimWaves.BindResultData(lodIdx, 1, simMaterial);

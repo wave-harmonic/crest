@@ -401,7 +401,7 @@ namespace Crest
         {
             if (OceanRenderer.Instance != null && OceanRenderer.Instance._lodDataAnimWaves != null)
             {
-                //OceanRenderer.Instance._lodDataAnimWaves.AddGerstnerComponent(this);
+                OceanRenderer.Instance._lodDataAnimWaves.AddGerstnerComponent(this);
             }
         }
 
@@ -409,7 +409,7 @@ namespace Crest
         {
             if (OceanRenderer.Instance != null && OceanRenderer.Instance._lodDataAnimWaves != null)
             {
-                //OceanRenderer.Instance._lodDataAnimWaves.RemoveGerstnerComponent(this);
+                OceanRenderer.Instance._lodDataAnimWaves.RemoveGerstnerComponent(this);
             }
         }
 

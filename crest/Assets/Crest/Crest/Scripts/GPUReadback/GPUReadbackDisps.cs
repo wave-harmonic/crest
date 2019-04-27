@@ -48,6 +48,12 @@ namespace Crest
         public bool ComputeUndisplacedPosition(ref Vector3 i_worldPos, SamplingData i_samplingData, out Vector3 undisplacedWorldPos)
         {
             var lodData = i_samplingData._tag as PerLodData;
+            
+            if (lodData == null)
+            {
+                undisplacedWorldPos = Vector3.zero;
+                return false;
+            }
 
             // FPI - guess should converge to location that displaces to the target position
             Vector3 guess = i_worldPos;

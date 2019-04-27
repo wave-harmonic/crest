@@ -5,7 +5,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
-using DrawFilter = System.Func<Crest.RegisterLodDataInputBase, bool>;
 
 namespace Crest
 {
@@ -168,6 +167,11 @@ namespace Crest
             o_b = temp;
         }
 
+        public interface IDrawFilter
+        {
+            bool Filter(RegisterLodDataInputBase data);
+        }
+
         protected void SubmitDraws(int lodIdx, CommandBuffer buf)
         {
             var lt = OceanRenderer.Instance._lods[lodIdx];
@@ -177,11 +181,11 @@ namespace Crest
 
             foreach (var draw in _drawList)
             {
-                buf.DrawRenderer(draw.RendererComponent, draw.RendererComponent.material);
+                buf.DrawRenderer(draw.RendererComponent, draw.RendererComponent.sharedMaterial);
             }
         }
 
-        protected void SubmitDrawsFiltered(int lodIdx, CommandBuffer buf, DrawFilter filter)
+        protected void SubmitDrawsFiltered(int lodIdx, CommandBuffer buf, IDrawFilter filter)
         {
             var lt = OceanRenderer.Instance._lods[lodIdx];
             lt._renderData.Validate(0, this);
@@ -190,9 +194,9 @@ namespace Crest
 
             foreach (var draw in _drawList)
             {
-                if (filter(draw))
+                if (filter.Filter(draw))
                 {
-                    buf.DrawRenderer(draw.RendererComponent, draw.RendererComponent.material);
+                    buf.DrawRenderer(draw.RendererComponent, draw.RendererComponent.sharedMaterial);
                 }
             }
         }

@@ -5,7 +5,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
-using DrawFilter = System.Func<Crest.RegisterLodDataInputBase, bool>;
 
 namespace Crest
 {
@@ -77,6 +76,31 @@ namespace Crest
             }
         }
 
+        // Filter object for assigning shapes to lods. This was much more elegant with a lambda but it generated garbage.
+        public class FilterWavelength : IDrawFilter
+        {
+            public float _lodMinWavelength;
+            public float _lodMaxWavelength;
+            public int _lodIdx;
+            public int _lodCount;
+
+            public bool Filter(RegisterLodDataInputBase data)
+            {
+                var drawOctaveWavelength = (data as RegisterAnimWavesInput).OctaveWavelength;
+                return (_lodMinWavelength <= drawOctaveWavelength) && (drawOctaveWavelength < _lodMaxWavelength || _lodIdx == _lodCount - 1);
+            }
+        }
+        FilterWavelength _filterWavelength = new FilterWavelength();
+
+        public class FilterNoLodPreference : IDrawFilter
+        {
+            public bool Filter(RegisterLodDataInputBase data)
+            {
+                return (data as RegisterAnimWavesInput).OctaveWavelength == 0f;
+            }
+        }
+        FilterNoLodPreference _filterNoLodPreference = new FilterNoLodPreference();
+
         public override void BuildCommandBuffer(OceanRenderer ocean, CommandBuffer buf)
         {
             base.BuildCommandBuffer(ocean, buf);
@@ -84,6 +108,7 @@ namespace Crest
             var lodCount = OceanRenderer.Instance.CurrentLodCount;
 
             // lod-dependent data
+            _filterWavelength._lodCount = lodCount;
             for (int lodIdx = lodCount - 1; lodIdx >= 0; lodIdx--)
             {
                 buf.SetRenderTarget(_waveBuffers[lodIdx]);
@@ -95,14 +120,10 @@ namespace Crest
                 }
 
                 // draw any data with lod preference
-                var lodMaxWavelength = OceanRenderer.Instance._lods[lodIdx].MaxWavelength();
-                var lodMinWavelength = lodMaxWavelength / 2f;
-                DrawFilter filter = (data) =>
-                {
-                    var drawOctaveWavelength = (data as RegisterAnimWavesInput).OctaveWavelength;
-                    return (lodMinWavelength <= drawOctaveWavelength) && (drawOctaveWavelength < lodMaxWavelength || lodIdx == lodCount - 1);
-                };
-                SubmitDrawsFiltered(lodIdx, buf, filter);
+                _filterWavelength._lodIdx = lodIdx;
+                _filterWavelength._lodMaxWavelength = OceanRenderer.Instance._lods[lodIdx].MaxWavelength();
+                _filterWavelength._lodMinWavelength = _filterWavelength._lodMaxWavelength / 2f;
+                SubmitDrawsFiltered(lodIdx, buf, _filterWavelength);
             }
 
             // combine waves
@@ -152,11 +173,7 @@ namespace Crest
                 buf.SetRenderTarget(DataTexture(lodIdx));
 
                 // draw any data that did not express a preference for one lod or another
-                DrawFilter filter = (data) =>
-                {
-                    return (data as RegisterAnimWavesInput).OctaveWavelength == 0f;
-                };
-                SubmitDrawsFiltered(lodIdx, buf, filter);
+                SubmitDrawsFiltered(lodIdx, buf, _filterNoLodPreference);
             }
         }
 

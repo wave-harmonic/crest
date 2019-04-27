@@ -2,8 +2,6 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
-#if !ENABLE_COMPUTE_SHADERS
-
 using UnityEngine;
 
 namespace Crest
@@ -13,7 +11,13 @@ namespace Crest
     /// </summary>
     public class LodDataMgrFoam : LodDataMgrPersistent
     {
-        protected override string ShaderSim { get { return "Hidden/Crest/Simulation/Update Foam"; } }
+        protected override string ShaderSim { get {
+#if ENABLE_COMPUTE_SHADERS
+            return "UpdateFoamCompute";
+#else
+            return "Hidden/Crest/Simulation/Update Foam";
+#endif
+        } }
         public override string SimName { get { return "Foam"; } }
         public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RHalf; } }
 
@@ -44,37 +48,37 @@ namespace Crest
 #endif
         }
 
-        protected override void SetAdditionalSimParams(int lodIdx, PropertyWrapperMaterial simMaterial)
+        protected override void SetAdditionalSimParams(int lodIdx, IPropertyWrapper simProperties)
         {
-            base.SetAdditionalSimParams(lodIdx, simMaterial);
+            base.SetAdditionalSimParams(lodIdx, simProperties);
 
-            simMaterial.SetFloat(sp_FoamFadeRate, Settings._foamFadeRate);
-            simMaterial.SetFloat(sp_WaveFoamStrength, Settings._waveFoamStrength);
-            simMaterial.SetFloat(sp_WaveFoamCoverage, Settings._waveFoamCoverage);
-            simMaterial.SetFloat(sp_ShorelineFoamMaxDepth, Settings._shorelineFoamMaxDepth);
-            simMaterial.SetFloat(sp_ShorelineFoamStrength, Settings._shorelineFoamStrength);
+            simProperties.SetFloat(sp_FoamFadeRate, Settings._foamFadeRate);
+            simProperties.SetFloat(sp_WaveFoamStrength, Settings._waveFoamStrength);
+            simProperties.SetFloat(sp_WaveFoamCoverage, Settings._waveFoamCoverage);
+            simProperties.SetFloat(sp_ShorelineFoamMaxDepth, Settings._shorelineFoamMaxDepth);
+            simProperties.SetFloat(sp_ShorelineFoamStrength, Settings._shorelineFoamStrength);
 
             // assign animated waves - to slot 1 current frame data
-            OceanRenderer.Instance._lodDataAnimWaves.BindResultData(lodIdx, 1, simMaterial);
+            OceanRenderer.Instance._lodDataAnimWaves.BindResultData(lodIdx, 1, simProperties);
 
             // assign sea floor depth - to slot 1 current frame data
             if (OceanRenderer.Instance._lodDataSeaDepths)
             {
-                OceanRenderer.Instance._lodDataSeaDepths.BindResultData(lodIdx, 1, simMaterial);
+                OceanRenderer.Instance._lodDataSeaDepths.BindResultData(lodIdx, 1, simProperties);
             }
             else
             {
-                LodDataMgrSeaFloorDepth.BindNull(1, simMaterial);
+                LodDataMgrSeaFloorDepth.BindNull(1, simProperties);
             }
 
             // assign flow - to slot 1 current frame data
             if (OceanRenderer.Instance._lodDataFlow)
             {
-                OceanRenderer.Instance._lodDataFlow.BindResultData(lodIdx, 1, simMaterial);
+                OceanRenderer.Instance._lodDataFlow.BindResultData(lodIdx, 1, simProperties);
             }
             else
             {
-                LodDataMgrFlow.BindNull(1, simMaterial);
+                LodDataMgrFlow.BindNull(1, simProperties);
             }
         }
 
@@ -106,5 +110,3 @@ namespace Crest
         }
     }
 }
-
-#endif

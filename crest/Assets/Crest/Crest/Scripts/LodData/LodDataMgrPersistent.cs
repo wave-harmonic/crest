@@ -152,7 +152,7 @@ namespace Crest
         /// <summary>
         /// Set any sim-specific shader params.
         /// </summary>
-        protected virtual void SetAdditionalSimParams(int lodIdx, PropertyWrapperMaterial simMaterial)
+        protected virtual void SetAdditionalSimParams(int lodIdx, IPropertyWrapper simMaterial)
         {
         }
 

@@ -2,10 +2,14 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
-#if !ENABLE_COMPUTE_SHADERS
-
 using UnityEngine;
 using UnityEngine.Rendering;
+
+#if ENABLE_COMPUTE_SHADERS
+using Property = Crest.PropertWrapperCompute;
+#else
+using Property = Crest.PropertyWrapperMaterial;
+#endif
 
 namespace Crest
 {
@@ -15,8 +19,18 @@ namespace Crest
     /// </summary>
     public class ShapeGerstnerBatched : MonoBehaviour, ICollProvider
     {
+#if ENABLE_COMPUTE_SHADERS
+        // Shader to be used to render evaluate Gerstner waves for each LOD
+        int _waveShaderKernel = -1;
+        ComputeShader _waveShader;
+        String _shaderName = "AnimWavesGerstnerBatchCompute";
+#else
         [Tooltip("Geometry to rasterize into wave buffers to generate waves.")]
         public Mesh _rasterMesh;
+        // Shader to be used to render evaluate Gerstner waves for each LOD
+        Shader _waveShader;
+        string _shaderName = "Crest/Inputs/Animated Waves/Gerstner Batch";
+#endif
         [Tooltip("The spectrum that defines the ocean surface shape. Create asset of type Crest/Ocean Waves Spectrum.")]
         public OceanWaveSpectrum _spectrum;
 
@@ -35,13 +49,11 @@ namespace Crest
         float[] _phases;
 
         // useful references
-        PropertyWrapperMaterial[] _materials;
+        Property[] _properties;
         bool[] _drawLOD;
-        PropertyWrapperMaterial _materialBigWaveTransition;
+        Property _propertyBigWaveTransition;
         bool _drawLODTransitionWaves;
 
-        // Shader to be used to render evaluate Gerstner waves for each LOD
-        Shader _waveShader;
 
         static int sp_TwoPiOverWavelengths = Shader.PropertyToID("_TwoPiOverWavelengths");
         static int sp_Amplitudes = Shader.PropertyToID("_Amplitudes");
@@ -76,7 +88,12 @@ namespace Crest
 
         void Start()
         {
-            _waveShader = Shader.Find("Crest/Inputs/Animated Waves/Gerstner Batch");
+#if ENABLE_COMPUTE_SHADERS
+           _waveShader = Resources.Load<ComputeShader>(_shaderName);
+            _waveShaderKernel = _waveShader.FindKernel(_shaderName);
+#else
+            _waveShader = Shader.Find(_shaderName);
+#endif
             Debug.Assert(_waveShader, "Could not load Gerstner wave shader, make sure it is packaged in the build.");
 
             if (_spectrum == null)
@@ -146,7 +163,7 @@ namespace Crest
             ReportMaxDisplacement();
 
             // this is done every frame for flexibility/convenience, in case the lod count changes
-            if (_materials == null || _materials.Length != OceanRenderer.Instance.CurrentLodCount)
+            if (_properties == null || _properties.Length != OceanRenderer.Instance.CurrentLodCount)
             {
                 InitMaterials();
             }
@@ -183,16 +200,16 @@ namespace Crest
             }
 
             // num octaves plus one, because there is an additional last bucket for large wavelengths
-            _materials = new PropertyWrapperMaterial[OceanRenderer.Instance.CurrentLodCount];
-            _drawLOD = new bool[_materials.Length];
+            _properties = new Property[OceanRenderer.Instance.CurrentLodCount];
+            _drawLOD = new bool[_properties.Length];
 
-            for (int i = 0; i < _materials.Length; i++)
+            for (int i = 0; i < _properties.Length; i++)
             {
-                _materials[i] = new PropertyWrapperMaterial(new Material(_waveShader));
+                _properties[i] = new Property(_waveShader);
                 _drawLOD[i] = false;
             }
 
-            _materialBigWaveTransition = new PropertyWrapperMaterial(new Material(_waveShader));
+            _propertyBigWaveTransition = new Property(_waveShader);
             _drawLODTransitionWaves = false;
         }
 
@@ -359,16 +376,46 @@ namespace Crest
                     componentIdx++;
                 }
 
-                _drawLOD[lod] = UpdateBatch(lod, startCompIdx, componentIdx, _materials[lod]) > 0;
+                _drawLOD[lod] = UpdateBatch(lod, startCompIdx, componentIdx, _properties[lod]) > 0;
             }
 
             // the last batch handles waves for the last lod, and waves that did not fit in the last lod
             _drawLOD[OceanRenderer.Instance.CurrentLodCount - 1] =
-                UpdateBatch(OceanRenderer.Instance.CurrentLodCount - 1, componentIdx, _wavelengths.Length, _materials[OceanRenderer.Instance.CurrentLodCount - 1]) > 0;
+                UpdateBatch(OceanRenderer.Instance.CurrentLodCount - 1, componentIdx, _wavelengths.Length, _properties[OceanRenderer.Instance.CurrentLodCount - 1]) > 0;
             _drawLODTransitionWaves =
-                UpdateBatch(OceanRenderer.Instance.CurrentLodCount - 2, componentIdx, _wavelengths.Length, _materialBigWaveTransition) > 0;
+                UpdateBatch(OceanRenderer.Instance.CurrentLodCount - 2, componentIdx, _wavelengths.Length, _propertyBigWaveTransition) > 0;
         }
 
+#if ENABLE_COMPUTE_SHADERS
+        public void BuildCommandBuffer(int lodIdx, OceanRenderer ocean, CommandBuffer buf, RenderTexture targetTexture)
+        {
+            var lodCount = ocean.CurrentLodCount;
+
+            // LODs up to but not including the last lod get the normal sets of waves
+            if (lodIdx < lodCount - 1 && _drawLOD[lodIdx])
+            {
+                _properties[lodIdx].InitialiseAndDispatchShader(
+                    buf, _waveShader, _waveShaderKernel, targetTexture
+                );
+            }
+
+            // The second-to-last lod will transition content into it from the last lod
+            if (lodIdx == lodCount - 2 && _drawLODTransitionWaves)
+            {
+                _propertyBigWaveTransition.InitialiseAndDispatchShader(
+                    buf, _waveShader, _waveShaderKernel, targetTexture
+                );
+            }
+
+            // Last lod gets the big wavelengths
+            if (lodIdx == lodCount - 1 && _drawLOD[lodIdx])
+            {
+                _properties[OceanRenderer.Instance.CurrentLodCount - 1].InitialiseAndDispatchShader(
+                    buf, _waveShader, _waveShaderKernel, targetTexture
+                );
+            }
+        }
+#else
         /// <summary>
         /// Submit draws to create the Gerstner waves. LODs from 0 to N-2 render the Gerstner waves from their lod. Additionally, any waves
         /// in the biggest lod, or too big for the biggest lod, are rendered into both of the last two LODs N-1 and N-2, as this allows us to
@@ -381,21 +428,22 @@ namespace Crest
             // LODs up to but not including the last lod get the normal sets of waves
             if (lodIdx < lodCount - 1 && _drawLOD[lodIdx])
             {
-                buf.DrawMesh(_rasterMesh, Matrix4x4.identity, _materials[lodIdx].material);
+                buf.DrawMesh(_rasterMesh, Matrix4x4.identity, _properties[lodIdx].material);
             }
 
             // The second-to-last lod will transition content into it from the last lod
             if (lodIdx == lodCount - 2 && _drawLODTransitionWaves)
             {
-                buf.DrawMesh(_rasterMesh, Matrix4x4.identity, _materialBigWaveTransition.material);
+                buf.DrawMesh(_rasterMesh, Matrix4x4.identity, _propertyBigWaveTransition.material);
             }
 
             // Last lod gets the big wavelengths
             if (lodIdx == lodCount - 1 && _drawLOD[lodIdx])
             {
-                buf.DrawMesh(_rasterMesh, Matrix4x4.identity, _materials[OceanRenderer.Instance.CurrentLodCount - 1].material);
+                buf.DrawMesh(_rasterMesh, Matrix4x4.identity, _properties[OceanRenderer.Instance.CurrentLodCount - 1].material);
             }
         }
+#endif
 
         void OnEnable()
         {
@@ -611,4 +659,3 @@ namespace Crest
     }
 }
 
-#endif

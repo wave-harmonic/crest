@@ -44,7 +44,7 @@ namespace Crest
 
             if (idx > -1)
             {
-                if (_mpb.materialPropertyBlock == null)
+                if (_mpb == null)
                 {
                     _mpb = new PropertyWrapperMPB(new MaterialPropertyBlock());
                 }

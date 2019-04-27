@@ -87,7 +87,7 @@ namespace Crest
 
             // per instance data
 
-            if (_mpb.materialPropertyBlock == null)
+            if (_mpb == null)
             {
                 _mpb = new PropertyWrapperMPB(new MaterialPropertyBlock());
             }

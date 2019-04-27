@@ -99,7 +99,7 @@ namespace Crest
                 }
 
                 // Assign lod0 shape - trivial but bound every frame because lod transform comes from here
-                if (_mpb.materialPropertyBlock == null)
+                if (_mpb == null)
                 {
                     _mpb = new PropertyWrapperMPB(new MaterialPropertyBlock());
                 }

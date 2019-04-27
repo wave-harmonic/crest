@@ -19,7 +19,7 @@ namespace Crest
         void SetInt(int param, int value);
     }
 
-    public struct PropertyWrapperMaterial : IPropertyWrapper
+    public class PropertyWrapperMaterial : IPropertyWrapper
     {
         public PropertyWrapperMaterial(Material target) { _target = target; }
         public PropertyWrapperMaterial(Shader shader) { _target = new Material(shader); }
@@ -33,7 +33,7 @@ namespace Crest
         public Material material { get { return _target; }}
         private Material _target;
     }
-    public struct PropertyWrapperMPB : IPropertyWrapper
+    public class PropertyWrapperMPB : IPropertyWrapper
     {
         public PropertyWrapperMPB(MaterialPropertyBlock target) { _target = target; }
         public void SetFloat(int param, float value) { _target.SetFloat(param, value); }

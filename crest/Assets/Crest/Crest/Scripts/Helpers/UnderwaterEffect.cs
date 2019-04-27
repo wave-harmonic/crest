@@ -31,8 +31,10 @@ namespace Crest
         // how many vertical edges to add to curtain geometry
         const int GEOM_HORIZ_DIVISIONS = 64;
 
-        MaterialPropertyBlock _mpb;
+        PropertyWrapperMPB _mpb;
         Renderer _rend;
+
+        static int sp_HeightOffset = Shader.PropertyToID("_HeightOffset");
 
         private void Start()
         {
@@ -101,9 +103,9 @@ namespace Crest
                 // Assign lod0 shape - trivial but bound every frame because lod transform comes from here
                 if (_mpb == null)
                 {
-                    _mpb = new MaterialPropertyBlock();
+                    _mpb = new PropertyWrapperMPB(new MaterialPropertyBlock());
                 }
-                _rend.GetPropertyBlock(_mpb);
+                _rend.GetPropertyBlock(_mpb.materialPropertyBlock);
 
                 // Underwater rendering uses displacements for intersecting the waves with the near plane, and ocean depth/shadows for ScatterColour()
                 OceanRenderer.Instance._lodDataAnimWaves.BindResultData(0, 0, _mpb);
@@ -126,9 +128,9 @@ namespace Crest
                     LodDataMgrShadow.BindNull(0, _mpb);
                 }
 
-                _mpb.SetFloat("_HeightOffset", heightOffset);
+                _mpb.SetFloat(sp_HeightOffset, heightOffset);
 
-                _rend.SetPropertyBlock(_mpb);
+                _rend.SetPropertyBlock(_mpb.materialPropertyBlock);
             }
         }
 

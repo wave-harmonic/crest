@@ -827,7 +827,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1866213578}
   - component: {fileID: 1866213581}
-  - component: {fileID: 1866213579}
   m_Layer: 0
   m_Name: OceanWavesBatched
   m_TagString: Untagged
@@ -849,7 +848,7 @@ Transform:
   m_Father: {fileID: 995304123}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1866213579
+--- !u!114 &1866213581
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -858,26 +857,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 1866213577}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: effc0749d2f3ec5448ec5aa724c0a822, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _spectrum: {fileID: 11400000, guid: 454d1b08383f089479cf6794620926f4, type: 2}
-  _componentsPerOctave: 5
-  _weight: 1
-  _randomSeed: 0
---- !u!114 &1866213581
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1866213577}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7581c8217e105de4b83ca0ce4f8fa8c2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _rasterMesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 3}
+  _rasterMesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
   _spectrum: {fileID: 11400000, guid: 454d1b08383f089479cf6794620926f4, type: 2}
   _componentsPerOctave: 5
   _weight: 1

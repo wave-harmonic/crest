@@ -64,7 +64,7 @@ public class FeedVelocityToExtrude : MonoBehaviour
     {
         // which lod is this object in (roughly)?
         var thisRect = new Rect(new Vector2(transform.position.x, transform.position.z), Vector3.zero);
-        var minLod = LodDataMgrAnimWavesCompute.SuggestDataLOD(thisRect);
+        var minLod = LodDataMgrAnimWaves.SuggestDataLOD(thisRect);
         if (minLod == -1)
         {
             // outside all lods, nothing to update!

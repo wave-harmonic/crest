@@ -2,6 +2,8 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+#if !ENABLE_COMPUTE_SHADERS
+
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -200,3 +202,5 @@ namespace Crest
 
     }
 }
+
+#endif

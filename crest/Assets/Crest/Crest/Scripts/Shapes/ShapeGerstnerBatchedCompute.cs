@@ -2,6 +2,8 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+#if ENABLE_COMPUTE_SHADERS
+
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -11,7 +13,7 @@ namespace Crest
     /// Support script for Gerstner wave ocean shapes.
     /// Generates a number of batches of Gerstner waves.
     /// </summary>
-    public class ShapeGerstnerBatchedCompute : MonoBehaviour, ICollProvider
+    public class ShapeGerstnerBatched : MonoBehaviour, ICollProvider
     {
         [Tooltip("The spectrum that defines the ocean surface shape. Create asset of type Crest/Ocean Waves Spectrum.")]
         public OceanWaveSpectrum _spectrum;
@@ -608,3 +610,5 @@ namespace Crest
         }
     }
 }
+
+#endif

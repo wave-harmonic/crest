@@ -2,6 +2,8 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+#if ENABLE_COMPUTE_SHADERS
+
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -10,7 +12,7 @@ namespace Crest
     /// <summary>
     /// A persistent simulation that moves around with a displacement LOD.
     /// </summary>
-    public abstract class LodDataMgrPersistentCompute : LodDataMgr
+    public abstract class LodDataMgrPersistent : LodDataMgr
     {
         protected readonly int MAX_SIM_STEPS = 4;
 
@@ -168,7 +170,7 @@ namespace Crest
         {
             var ocean = FindObjectOfType<OceanRenderer>();
             if (ocean == null) return;
-            foreach (var ldp in ocean.GetComponents<LodDataMgrPersistentCompute>())
+            foreach (var ldp in ocean.GetComponents<LodDataMgrPersistent>())
             {
                 // Unity does not serialize multidimensional arrays, or arrays of arrays. It does serialise arrays of objects containing arrays though.
                 ldp.CreatePropertyWrapperComputes(ocean.CurrentLodCount);
@@ -178,3 +180,5 @@ namespace Crest
 
     }
 }
+
+#endif

@@ -42,7 +42,7 @@ namespace Crest
 
             // find which lod this object is overlapping
             var rect = new Rect(transform.position.x, transform.position.z, 0f, 0f);
-            var idx = LodDataMgrAnimWavesCompute.SuggestDataLOD(rect);
+            var idx = LodDataMgrAnimWaves.SuggestDataLOD(rect);
 
             if (idx > -1)
             {

@@ -40,7 +40,7 @@ public class RippleGenerator : MonoBehaviour
 
         // which lod is this object in (roughly)?
         Rect thisRect = new Rect(new Vector2(transform.position.x, transform.position.z), Vector3.zero);
-        int minLod = LodDataMgrAnimWavesCompute.SuggestDataLOD(thisRect);
+        int minLod = LodDataMgrAnimWaves.SuggestDataLOD(thisRect);
         if (minLod == -1)
         {
             // outside all lods, nothing to update!

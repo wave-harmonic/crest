@@ -2,6 +2,8 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+#if ENABLE_COMPUTE_SHADERS
+
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -19,7 +21,7 @@ namespace Crest
     ///    pass and subsequent assignment to the ocean material (see OceanScheduler).
     ///  * The LodDataSeaFloorDepth sits on this same GameObject and borrows the camera. This could be a model for the other sim types..
     /// </summary>
-    public class LodDataMgrAnimWavesCompute : LodDataMgr, IFloatingOrigin
+    public class LodDataMgrAnimWaves : LodDataMgr, IFloatingOrigin
     {
         public override string SimName { get { return "AnimatedWaves"; } }
         // shape format. i tried RGB111110Float but error becomes visible. one option would be to use a UNORM setup.
@@ -33,7 +35,7 @@ namespace Crest
         /// </summary>
         public static bool _shapeCombinePass = true;
 
-        List<ShapeGerstnerBatchedCompute> _gerstnerComponents = new List<ShapeGerstnerBatchedCompute>();
+        List<ShapeGerstnerBatched> _gerstnerComponents = new List<ShapeGerstnerBatched>();
 
         RenderTexture[] _waveBuffers;
 
@@ -232,7 +234,7 @@ namespace Crest
             return -1;
         }
 
-        public void AddGerstnerComponent(ShapeGerstnerBatchedCompute gerstner)
+        public void AddGerstnerComponent(ShapeGerstnerBatched gerstner)
         {
             if (OceanRenderer.Instance == null)
             {
@@ -244,7 +246,7 @@ namespace Crest
             _gerstnerComponents.Add(gerstner);
         }
 
-        public void RemoveGerstnerComponent(ShapeGerstnerBatchedCompute gerstner)
+        public void RemoveGerstnerComponent(ShapeGerstnerBatched gerstner)
         {
             if (OceanRenderer.Instance == null)
             {
@@ -285,3 +287,5 @@ namespace Crest
         }
     }
 }
+
+#endif

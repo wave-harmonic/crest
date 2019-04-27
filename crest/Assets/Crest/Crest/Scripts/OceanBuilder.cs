@@ -166,7 +166,7 @@ namespace Crest
             ocean._lods = new LodTransform[lodCount];
 
             // Create the LOD data managers
-            ocean._lodDataAnimWaves = LodDataMgr.Create<LodDataMgrAnimWavesCompute, SimSettingsAnimatedWaves>(ocean.gameObject, ref ocean._simSettingsAnimatedWaves);
+            ocean._lodDataAnimWaves = LodDataMgr.Create<LodDataMgrAnimWaves, SimSettingsAnimatedWaves>(ocean.gameObject, ref ocean._simSettingsAnimatedWaves);
             if (ocean.CreateDynamicWaveSim)
             {
                 ocean._lodDataDynWaves = LodDataMgr.Create<LodDataMgrDynWaves, SimSettingsWave>(ocean.gameObject, ref ocean._simSettingsDynamicWaves);
@@ -177,7 +177,7 @@ namespace Crest
             }
             if (ocean.CreateFoamSim)
             {
-                ocean._lodDataFoam = LodDataMgr.Create<LodDataMgrFoamCompute, SimSettingsFoam>(ocean.gameObject, ref ocean._simSettingsFoam);
+                ocean._lodDataFoam = LodDataMgr.Create<LodDataMgrFoam, SimSettingsFoam>(ocean.gameObject, ref ocean._simSettingsFoam);
             }
             if (ocean.CreateShadowData)
             {

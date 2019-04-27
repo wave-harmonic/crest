@@ -75,7 +75,7 @@ namespace Crest
             target.SetFloat(sp_DisplaceClamp, Settings._displaceClamp);
         }
 
-        protected override void SetAdditionalSimParams(int lodIdx, PropertyWrapperCompute simProperty)
+        protected override void SetAdditionalSimParams(int lodIdx, IPropertyWrapper simProperty)
         {
             base.SetAdditionalSimParams(lodIdx, simProperty);
 

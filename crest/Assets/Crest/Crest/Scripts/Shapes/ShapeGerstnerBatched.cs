@@ -6,7 +6,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 
 #if ENABLE_COMPUTE_SHADERS
-using Property = Crest.PropertWrapperCompute;
+using Property = Crest.PropertyWrapperCompute;
 #else
 using Property = Crest.PropertyWrapperMaterial;
 #endif
@@ -23,7 +23,7 @@ namespace Crest
         // Shader to be used to render evaluate Gerstner waves for each LOD
         int _waveShaderKernel = -1;
         ComputeShader _waveShader;
-        String _shaderName = "AnimWavesGerstnerBatchCompute";
+        string _shaderName = "AnimWavesGerstnerBatchCompute";
 #else
         [Tooltip("Geometry to rasterize into wave buffers to generate waves.")]
         public Mesh _rasterMesh;
@@ -192,6 +192,15 @@ namespace Crest
             OceanRenderer.Instance.ReportMaxDisplacementFromShape(ampSum * _spectrum._chop, ampSum);
         }
 
+        private Property CreateProperty()
+        {
+#if ENABLE_COMPUTE_SHADERS
+            return new Property();
+#else
+            return new Property(_waveShader);
+#endif
+        }
+
         void InitMaterials()
         {
             foreach (var child in transform)
@@ -205,11 +214,11 @@ namespace Crest
 
             for (int i = 0; i < _properties.Length; i++)
             {
-                _properties[i] = new Property(_waveShader);
+                _properties[i] = CreateProperty();
                 _drawLOD[i] = false;
             }
 
-            _propertyBigWaveTransition = new Property(_waveShader);
+            _propertyBigWaveTransition = CreateProperty();
             _drawLODTransitionWaves = false;
         }
 

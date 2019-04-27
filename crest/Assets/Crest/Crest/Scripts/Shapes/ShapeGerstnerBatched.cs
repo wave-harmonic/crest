@@ -41,6 +41,16 @@ namespace Crest
         // Shader to be used to render evaluate Gerstner waves for each LOD
         Shader _waveShader;
 
+        static int sp_TwoPiOverWavelengths = Shader.PropertyToID("_TwoPiOverWavelengths");
+        static int sp_Amplitudes = Shader.PropertyToID("_Amplitudes");
+        static int sp_WaveDirX = Shader.PropertyToID("_WaveDirX");
+        static int sp_WaveDirZ = Shader.PropertyToID("_WaveDirZ");
+        static int sp_Phases = Shader.PropertyToID("_Phases");
+        static int sp_ChopAmps = Shader.PropertyToID("_ChopAmps");
+        static int sp_NumInBatch = Shader.PropertyToID("_NumInBatch");
+        static int sp_AttenuationInShallows = Shader.PropertyToID("_AttenuationInShallows");
+        static int sp_NumWaveVecs = Shader.PropertyToID("_NumWaveVecs");
+
         // IMPORTANT - this mirrors the constant with the same name in ShapeGerstnerBatch.shader, both must be updated together!
         const int BATCH_SIZE = 32;
 
@@ -295,17 +305,17 @@ namespace Crest
             }
 
             // apply the data to the shape property
-            property.SetVectorArray(Shader.PropertyToID("_TwoPiOverWavelengths"), UpdateBatchScratchData._twoPiOverWavelengthsBatch);
-            property.SetVectorArray(Shader.PropertyToID("_Amplitudes"), UpdateBatchScratchData._ampsBatch);
-            property.SetVectorArray(Shader.PropertyToID("_WaveDirX"), UpdateBatchScratchData._waveDirXBatch);
-            property.SetVectorArray(Shader.PropertyToID("_WaveDirZ"), UpdateBatchScratchData._waveDirZBatch);
-            property.SetVectorArray(Shader.PropertyToID("_Phases"), UpdateBatchScratchData._phasesBatch);
-            property.SetVectorArray(Shader.PropertyToID("_ChopAmps"), UpdateBatchScratchData._chopAmpsBatch);
-            property.SetFloat(Shader.PropertyToID("_NumInBatch"), numInBatch);
-            property.SetFloat(Shader.PropertyToID("_AttenuationInShallows"), OceanRenderer.Instance._simSettingsAnimatedWaves.AttenuationInShallows);
+            property.SetVectorArray(sp_TwoPiOverWavelengths, UpdateBatchScratchData._twoPiOverWavelengthsBatch);
+            property.SetVectorArray(sp_Amplitudes, UpdateBatchScratchData._ampsBatch);
+            property.SetVectorArray(sp_WaveDirX, UpdateBatchScratchData._waveDirXBatch);
+            property.SetVectorArray(sp_WaveDirZ, UpdateBatchScratchData._waveDirZBatch);
+            property.SetVectorArray(sp_Phases, UpdateBatchScratchData._phasesBatch);
+            property.SetVectorArray(sp_ChopAmps, UpdateBatchScratchData._chopAmpsBatch);
+            property.SetFloat(sp_NumInBatch, numInBatch);
+            property.SetFloat(sp_AttenuationInShallows, OceanRenderer.Instance._simSettingsAnimatedWaves.AttenuationInShallows);
 
             int numVecs = (numInBatch + 3) / 4;
-            property.SetInt(Shader.PropertyToID("_NumWaveVecs"), numVecs);
+            property.SetInt(sp_NumWaveVecs, numVecs);
             OceanRenderer.Instance._lodDataAnimWaves.BindResultData(lodIdx, 0, property);
 
             if (OceanRenderer.Instance._lodDataSeaDepths)

@@ -25,6 +25,14 @@ namespace Crest
         RenderTexture[] _sources;
         PropertyWrapperMaterial[] _renderMaterial;
 
+        static int sp_CenterPos = Shader.PropertyToID("_CenterPos");
+        static int sp_Scale = Shader.PropertyToID("_Scale");
+        static int sp_CamPos = Shader.PropertyToID("_CamPos");
+        static int sp_CamForward = Shader.PropertyToID("_CamForward");
+        static int sp_JitterDiameters_CurrentFrameWeights = Shader.PropertyToID("_JitterDiameters_CurrentFrameWeights");
+        static int sp_MainCameraProjectionMatrix = Shader.PropertyToID("_MainCameraProjectionMatrix");
+        static int sp_SimDeltaTime = Shader.PropertyToID("_SimDeltaTime");
+
         SimSettingsShadow Settings { get { return OceanRenderer.Instance._simSettingsShadow; } }
         public override void UseSettings(SimSettingsBase settings) { OceanRenderer.Instance._simSettingsShadow = settings as SimSettingsShadow; }
         public override SimSettingsBase CreateDefaultSettings()
@@ -184,13 +192,13 @@ namespace Crest
                 var lt = OceanRenderer.Instance._lods[lodIdx];
 
                 lt._renderData.Validate(0, this);
-                _renderMaterial[lodIdx].SetVector(Shader.PropertyToID("_CenterPos"), lt._renderData._posSnapped);
-                _renderMaterial[lodIdx].SetVector(Shader.PropertyToID("_Scale"), lt.transform.lossyScale);
-                _renderMaterial[lodIdx].SetVector(Shader.PropertyToID("_CamPos"), OceanRenderer.Instance.Viewpoint.position);
-                _renderMaterial[lodIdx].SetVector(Shader.PropertyToID("_CamForward"), OceanRenderer.Instance.Viewpoint.forward);
-                _renderMaterial[lodIdx].SetVector(Shader.PropertyToID("_JitterDiameters_CurrentFrameWeights"), new Vector4(Settings._jitterDiameterSoft, Settings._jitterDiameterHard, Settings._currentFrameWeightSoft, Settings._currentFrameWeightHard));
-                _renderMaterial[lodIdx].SetMatrix(Shader.PropertyToID("_MainCameraProjectionMatrix"), _cameraMain.projectionMatrix * _cameraMain.worldToCameraMatrix);
-                _renderMaterial[lodIdx].SetFloat(Shader.PropertyToID("_SimDeltaTime"), Time.deltaTime);
+                _renderMaterial[lodIdx].SetVector(sp_CenterPos, lt._renderData._posSnapped);
+                _renderMaterial[lodIdx].SetVector(sp_Scale, lt.transform.lossyScale);
+                _renderMaterial[lodIdx].SetVector(sp_CamPos, OceanRenderer.Instance.Viewpoint.position);
+                _renderMaterial[lodIdx].SetVector(sp_CamForward, OceanRenderer.Instance.Viewpoint.forward);
+                _renderMaterial[lodIdx].SetVector(sp_JitterDiameters_CurrentFrameWeights, new Vector4(Settings._jitterDiameterSoft, Settings._jitterDiameterHard, Settings._currentFrameWeightSoft, Settings._currentFrameWeightHard));
+                _renderMaterial[lodIdx].SetMatrix(sp_MainCameraProjectionMatrix, _cameraMain.projectionMatrix * _cameraMain.worldToCameraMatrix);
+                _renderMaterial[lodIdx].SetFloat(sp_SimDeltaTime, Time.deltaTime);
 
                 // compute which lod data we are sampling previous frame shadows from. if a scale change has happened this can be any lod up or down the chain.
                 var srcDataIdx = lt.LodIndex + ScaleDifferencePow2;

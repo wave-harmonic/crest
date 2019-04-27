@@ -34,6 +34,8 @@ namespace Crest
         PropertyWrapperMPB _mpb;
         Renderer _rend;
 
+        static int sp_HeightOffset = Shader.PropertyToID("_HeightOffset");
+
         private void Start()
         {
             _rend = GetComponent<Renderer>();
@@ -126,7 +128,7 @@ namespace Crest
                     LodDataMgrShadow.BindNull(0, _mpb);
                 }
 
-                _mpb.SetFloat(Shader.PropertyToID("_HeightOffset"), heightOffset);
+                _mpb.SetFloat(sp_HeightOffset, heightOffset);
 
                 _rend.SetPropertyBlock(_mpb.materialPropertyBlock);
             }

@@ -137,7 +137,7 @@ namespace Crest
                 if (ldshadows) ldshadows.BindResultData(_lodIndex + 1, 1, _mpb); else LodDataMgrShadow.BindNull(1, _mpb);
             }
 
-            var reflTex = OceanPlanarReflection.GetRenderTexture(_currentCamera.targetDisplay);
+            var reflTex = PreparedReflections.GetRenderTexture(_currentCamera.GetInstanceID());
             if (reflTex)
             {
                 _mpb.SetTexture(sp_ReflectionTex, reflTex);

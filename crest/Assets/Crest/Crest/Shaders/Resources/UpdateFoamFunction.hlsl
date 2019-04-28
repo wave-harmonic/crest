@@ -1,3 +1,7 @@
+// Crest Ocean System
+
+// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
+
 // unifies traditional and compute shader implementation code
 
 half UpdateFoamFunction(float4 uv, float4 uv_lastframe, float2 positionWS_XZ)

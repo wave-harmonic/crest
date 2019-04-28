@@ -2,7 +2,11 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
-#if !ENABLE_COMPUTE_SHADERS
+#if ENABLE_COMPUTE_SHADERS
+using Property = Crest.PropertyWrapperCompute;
+#else
+using Property = Crest.PropertyWrapperMaterial;
+#endif
 
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -17,7 +21,13 @@ namespace Crest
         protected readonly int MAX_SIM_STEPS = 4;
 
         RenderTexture[] _sources;
-        PropertyWrapperMaterial[,] _renderSimMaterial;
+        Property[,] _simProperty;
+#if ENABLE_COMPUTE_SHADERS
+        private ComputeShader _shader;
+        private int _computeKernel;
+#else
+        Shader _shader;
+#endif
 
         protected abstract string ShaderSim { get; }
 
@@ -31,18 +41,32 @@ namespace Crest
         {
             base.Start();
 
-            CreateMaterials(OceanRenderer.Instance.CurrentLodCount);
+            CreateProperties(OceanRenderer.Instance.CurrentLodCount);
         }
 
-        void CreateMaterials(int lodCount)
+        private Property CreateProperty()
         {
-            _renderSimMaterial = new PropertyWrapperMaterial[MAX_SIM_STEPS, lodCount];
-            var shader = Shader.Find(ShaderSim);
+#if ENABLE_COMPUTE_SHADERS
+            return new Property();
+#else
+            return new Property(_shader);
+#endif
+        }
+
+        void CreateProperties(int lodCount)
+        {
+            _simProperty = new Property[MAX_SIM_STEPS, lodCount];
+#if ENABLE_COMPUTE_SHADERS
+            _shader = Resources.Load<ComputeShader>(ShaderSim);
+            _computeKernel = _shader.FindKernel(ShaderSim);
+#else
+            _shader = Shader.Find(ShaderSim);
+#endif
             for (int stepi = 0; stepi < MAX_SIM_STEPS; stepi++)
             {
                 for (int i = 0; i < lodCount; i++)
                 {
-                    _renderSimMaterial[stepi, i] = new PropertyWrapperMaterial(shader);
+                    _simProperty[stepi, i] = CreateProperty();
                 }
             }
         }
@@ -66,10 +90,13 @@ namespace Crest
                 _sources[i].anisoLevel = 0;
                 _sources[i].useMipMap = false;
                 _sources[i].name = SimName + "_" + i + "_1";
+#if ENABLE_COMPUTE_SHADERS
+                _sources[i].enableRandomWrite = true;
+#endif
             }
         }
 
-        public void BindSourceData(int lodIdx, int shapeSlot, PropertyWrapperMaterial properties, bool paramsOnly, bool usePrevTransform)
+        public void BindSourceData(int lodIdx, int shapeSlot, Property properties, bool paramsOnly, bool usePrevTransform)
         {
             var rd = usePrevTransform ?
                 OceanRenderer.Instance._lods[lodIdx]._renderDataPrevFrame.Validate(BuildCommandBufferBase._lastUpdateFrame - Time.frameCount, this)
@@ -98,10 +125,10 @@ namespace Crest
 
                 for (var lodIdx = lodCount - 1; lodIdx >= 0; lodIdx--)
                 {
-                    _renderSimMaterial[stepi, lodIdx].SetFloat(sp_SimDeltaTime, substepDt);
-                    _renderSimMaterial[stepi, lodIdx].SetFloat(sp_SimDeltaTimePrev, _substepDtPrevious);
+                    _simProperty[stepi, lodIdx].SetFloat(sp_SimDeltaTime, substepDt);
+                    _simProperty[stepi, lodIdx].SetFloat(sp_SimDeltaTimePrev, _substepDtPrevious);
 
-                    _renderSimMaterial[stepi, lodIdx].SetFloat(sp_GridSize, OceanRenderer.Instance._lods[lodIdx]._renderData._texelWidth);
+                    _simProperty[stepi, lodIdx].SetFloat(sp_GridSize, OceanRenderer.Instance._lods[lodIdx]._renderData._texelWidth);
 
                     // compute which lod data we are sampling source data from. if a scale change has happened this can be any lod up or down the chain.
                     // this is only valid on the first update step, after that the scale src/target data are in the right places.
@@ -113,24 +140,37 @@ namespace Crest
                     if (srcDataIdx >= 0 && srcDataIdx < lodCount)
                     {
                         // bind data to slot 0 - previous frame data
-                        BindSourceData(srcDataIdx, 0, _renderSimMaterial[stepi, lodIdx], false, usePreviousFrameTransform);
+                        BindSourceData(srcDataIdx, 0, _simProperty[stepi, lodIdx], false, usePreviousFrameTransform);
                     }
                     else
                     {
                         // no source data - bind params only
-                        BindSourceData(lodIdx, 0, _renderSimMaterial[stepi, lodIdx], true, usePreviousFrameTransform);
+                        BindSourceData(lodIdx, 0, _simProperty[stepi, lodIdx], true, usePreviousFrameTransform);
                     }
 
-                    SetAdditionalSimParams(lodIdx, _renderSimMaterial[stepi, lodIdx]);
+                    SetAdditionalSimParams(lodIdx, _simProperty[stepi, lodIdx]);
 
                     {
-                        var rt = DataTexture(lodIdx);
-                        buf.SetRenderTarget(rt, rt.depthBuffer);
+                        var renderTexture = DataTexture(lodIdx);
+#if ENABLE_COMPUTE_SHADERS
+                        if(!renderTexture.IsCreated())
+                        {
+                            renderTexture.Create();
+                        }
+
+                        _simProperty[stepi, lodIdx].InitialiseAndDispatchShader(
+                            buf,
+                            _shader,
+                            _computeKernel,
+                            renderTexture
+                        );
+#else
+                        buf.SetRenderTarget(renderTexture, renderTexture.depthBuffer);
+                        buf.DrawMesh(FullScreenQuad(), Matrix4x4.identity, _simProperty[stepi, lodIdx].material);
+                        SubmitDraws(lodIdx, buf);
+#endif
                     }
 
-                    buf.DrawMesh(FullScreenQuad(), Matrix4x4.identity, _renderSimMaterial[stepi, lodIdx].material);
-
-                    SubmitDraws(lodIdx, buf);
                 }
 
                 _substepDtPrevious = substepDt;
@@ -156,6 +196,7 @@ namespace Crest
         {
         }
 
+#if !ENABLE_COMPUTE_SHADERS
         static Mesh s_fullScreenQuad;
         static Mesh FullScreenQuad()
         {
@@ -185,6 +226,7 @@ namespace Crest
 
             return s_fullScreenQuad;
         }
+#endif
 
 #if UNITY_EDITOR
         [UnityEditor.Callbacks.DidReloadScripts]
@@ -195,12 +237,10 @@ namespace Crest
             foreach (var ldp in ocean.GetComponents<LodDataMgrPersistent>())
             {
                 // Unity does not serialize multidimensional arrays, or arrays of arrays. It does serialise arrays of objects containing arrays though.
-                ldp.CreateMaterials(ocean.CurrentLodCount);
+                ldp.CreateProperties(ocean.CurrentLodCount);
             }
         }
 #endif
 
     }
 }
-
-#endif

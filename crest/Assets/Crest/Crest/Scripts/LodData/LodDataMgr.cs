@@ -65,7 +65,9 @@ namespace Crest
                 _targets[i].anisoLevel = 0;
                 _targets[i].useMipMap = false;
                 _targets[i].name = SimName + "_" + i + "_0";
+#if ENABLE_COMPUTE_SHADERS
                 _targets[i].enableRandomWrite = true;
+#endif
             }
         }
 

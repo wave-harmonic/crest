@@ -1,4 +1,4 @@
-// unify shape combine traditional and compute shaders
+// unifies traditional and compute shader implementation code
 
 void Flow(out float2 offsets, out float2 weights)
 {

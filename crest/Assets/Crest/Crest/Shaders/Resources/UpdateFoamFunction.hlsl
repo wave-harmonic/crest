@@ -1,6 +1,5 @@
+// unifies traditional and compute shader implementation code
 
-// Pull this function out of original implementation so that it can be shared
-// between a compute and traditional shader implementation.
 half UpdateFoamFunction(float4 uv, float4 uv_lastframe, float2 positionWS_XZ)
 {
 	// #if _FLOW_ON

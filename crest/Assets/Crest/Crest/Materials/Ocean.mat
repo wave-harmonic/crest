@@ -115,7 +115,7 @@ Material:
     - _PlanarReflections: 0
     - _ProceduralSky: 0
     - _RefractAmt: 0
-    - _RefractionStrength: 0.1
+    - _RefractionStrength: 1
     - _RefractiveIndexOfAir: 1
     - _RefractiveIndexOfWater: 1.333
     - _S: 1

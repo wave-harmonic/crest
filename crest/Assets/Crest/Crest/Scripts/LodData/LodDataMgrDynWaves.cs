@@ -2,7 +2,6 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
-#if !ENABLE_COMPUTE_SHADERS
 
 using UnityEngine;
 
@@ -75,34 +74,34 @@ namespace Crest
             target.SetFloat(sp_DisplaceClamp, Settings._displaceClamp);
         }
 
-        protected override void SetAdditionalSimParams(int lodIdx, IPropertyWrapper simMaterial)
+        protected override void SetAdditionalSimParams(int lodIdx, IPropertyWrapper simProperty)
         {
-            base.SetAdditionalSimParams(lodIdx, simMaterial);
+            base.SetAdditionalSimParams(lodIdx, simProperty);
 
-            simMaterial.SetFloat(sp_Damping, Settings._damping);
-            simMaterial.SetFloat(sp_Gravity, OceanRenderer.Instance.Gravity);
+            simProperty.SetFloat(sp_Damping, Settings._damping);
+            simProperty.SetFloat(sp_Gravity, OceanRenderer.Instance.Gravity);
 
             float laplacianKernelAngle = _rotateLaplacian ? Mathf.PI * 2f * Random.value : 0f;
-            simMaterial.SetVector(sp_LaplacianAxisX, new Vector2(Mathf.Cos(laplacianKernelAngle), Mathf.Sin(laplacianKernelAngle)));
+            simProperty.SetVector(sp_LaplacianAxisX, new Vector2(Mathf.Cos(laplacianKernelAngle), Mathf.Sin(laplacianKernelAngle)));
 
             // assign sea floor depth - to slot 1 current frame data. minor bug here - this depth will actually be from the previous frame,
             // because the depth is scheduled to render just before the animated waves, and this sim happens before animated waves.
             if (OceanRenderer.Instance._lodDataSeaDepths)
             {
-                OceanRenderer.Instance._lodDataSeaDepths.BindResultData(lodIdx, 1, simMaterial);
+                OceanRenderer.Instance._lodDataSeaDepths.BindResultData(lodIdx, 1, simProperty);
             }
             else
             {
-                LodDataMgrSeaFloorDepth.BindNull(1, simMaterial);
+                LodDataMgrSeaFloorDepth.BindNull(1, simProperty);
             }
 
             if (OceanRenderer.Instance._lodDataFlow)
             {
-                OceanRenderer.Instance._lodDataFlow.BindResultData(lodIdx, 1, simMaterial);
+                OceanRenderer.Instance._lodDataFlow.BindResultData(lodIdx, 1, simProperty);
             }
             else
             {
-                LodDataMgrFlow.BindNull(1, simMaterial);
+                LodDataMgrFlow.BindNull(1, simProperty);
             }
 
         }
@@ -151,5 +150,3 @@ namespace Crest
         }
     }
 }
-
-#endif

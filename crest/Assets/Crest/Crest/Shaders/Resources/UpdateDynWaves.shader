@@ -47,15 +47,6 @@ Shader "Hidden/Crest/Simulation/Update Dynamic Waves"
 			// Current resolution
 			float _GridSize;
 
-			float ComputeWaveSpeed(float wavelength, float g)
-			{
-				// wave speed of deep sea ocean waves: https://en.wikipedia.org/wiki/Wind_wave
-				// https://en.wikipedia.org/wiki/Dispersion_(water_waves)#Wave_propagation_and_dispersion
-				//float g = 9.81; float k = 2. * 3.141593 / wavelength; float cp = sqrt(g / k); return cp;
-				const float one_over_2pi = 0.15915494;
-				return sqrt(wavelength*g*one_over_2pi);
-			}
-
 			Varyings Vert(Attributes input)
 			{
 				Varyings o = (Varyings)0;

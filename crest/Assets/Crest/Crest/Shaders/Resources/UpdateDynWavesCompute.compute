@@ -1,0 +1,32 @@
+﻿// TODO(Tom): Find solution lack of compute shader variants :'(
+#pragma kernel UpdateDynWavesCompute _DYNAMIC_WAVE_SIM_ON _FLOW_ON
+
+#include "../OceanLODShared.hlsl"
+
+#define MIN_DT 0.00001
+
+half _Damping;
+float2 _LaplacianAxisX;
+half _Gravity;
+float _SimDeltaTime;
+float _SimDeltaTimePrev;
+
+// How many samples we want in one wave. trade quality for perf.
+float _TexelsPerWave;
+// Current resolution
+float _GridSize;
+
+RWTexture2D<float2> Result;
+
+#include "UpdateDynWavesFunction.hlsl"
+
+[numthreads(8,8,1)]
+void UpdateDynWavesCompute (uint3 id : SV_DispatchThreadID)
+{
+	// TODO: insert actual code here!
+
+	const float2 input_uv = IDtoUV(id.xy).xy;
+	const float2 worldPosXZ = LD_0_IDToWorld(id.xy);
+
+	Result[id.xy] = UpdateDynWavesFunction(input_uv, worldPosXZ);
+}

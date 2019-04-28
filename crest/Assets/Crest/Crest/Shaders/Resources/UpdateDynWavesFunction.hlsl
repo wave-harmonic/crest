@@ -2,18 +2,27 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+// unifies traditional and compute shader implementation code
 
+float ComputeWaveSpeed(float wavelength, float g)
+{
+	// wave speed of deep sea ocean waves: https://en.wikipedia.org/wiki/Wind_wave
+	// https://en.wikipedia.org/wiki/Dispersion_(water_waves)#Wave_propagation_and_dispersion
+	//float g = 9.81; float k = 2. * 3.141593 / wavelength; float cp = sqrt(g / k); return cp;
+	const float one_over_2pi = 0.15915494;
+	return sqrt(wavelength*g*one_over_2pi);
+}
 
 half2 UpdateDynWavesFunction(
 	const float2 input_uv,
-	const float2 positionWS_XZ
+	const float2 worldPosXZ
 )
 {
 	const float dt = _SimDeltaTime;
 	const float dtp = _SimDeltaTimePrev;
 
 	half2 velocity = tex2Dlod(_LD_Sampler_Flow_1, float4(input_uv, 0.0, 0.0)).xy;
-	float2 uv_lastframe = LD_0_WorldToUV(positionWS_XZ - (dt * velocity));
+	float2 uv_lastframe = LD_0_WorldToUV(worldPosXZ - (dt * velocity));
 	float4 uv_lastframe4 = float4(uv_lastframe, 0.0, 0.0);
 
 	half2 ft_ftm = tex2Dlod(_LD_Sampler_DynamicWaves_0, uv_lastframe4).xy;
@@ -60,7 +69,7 @@ half2 UpdateDynWavesFunction(
 	// eventually break. i model "Deep" water, but then simply ramp down waves in non-deep water with a linear multiplier.
 	// http://hyperphysics.phy-astr.gsu.edu/hbase/Waves/watwav2.html
 	// http://hyperphysics.phy-astr.gsu.edu/hbase/watwav.html#c1
-	float waterSignedDepth = CREST_OCEAN_DEPTH_BASELINE - tex2D(_LD_Sampler_SeaFloorDepth_1, input_uv).x;
+	float waterSignedDepth = CREST_OCEAN_DEPTH_BASELINE - tex2Dlod(_LD_Sampler_SeaFloorDepth_1, float4(input_uv, 0, 0)).x;
 	float depthMul = 1.0 - (1.0 - saturate(2.0 * waterSignedDepth / wavelength)) * dt * 2.0;
 	ftp *= depthMul;
 	ft *= depthMul;

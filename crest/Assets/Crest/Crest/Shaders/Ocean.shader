@@ -117,7 +117,7 @@ Shader "Crest/Ocean"
 		// Scattering coefficient within water volume, per channel
 		_DepthFogDensity("Fog Density", Vector) = (0.28, 0.16, 0.24, 1.0)
 		// How strongly light is refracted when passing through water surface
-		_RefractionStrength("Refraction Strength", Range(0.0, 1.0)) = 0.1
+		_RefractionStrength("Refraction Strength", Range(0.0, 2.0)) = 0.1
 
 		// Appoximate rays being focused/defocused on geometry under water
 		[Header(Caustics)]

@@ -197,7 +197,8 @@ half3 OceanEmission(in const half3 i_view, in const half3 i_n_pixel, in const fl
 	// View ray intersects geometry surface either above or below ocean surface
 
 	const half2 uvBackground = i_grabPos.xy / i_grabPos.w;
-	half2 uvBackgroundRefract = uvBackground + _RefractionStrength * i_n_pixel.xz * min(1.0, 0.5*(i_sceneZ - i_pixelZ));
+	const half2 refractOffset = _RefractionStrength * i_n_pixel.xz * min(1.0, 0.5*(i_sceneZ - i_pixelZ)) / i_sceneZ;
+	half2 uvBackgroundRefract = uvBackground + refractOffset;
 	half3 sceneColour;
 	half3 alpha = 0.;
 	float depthFogDistance;
@@ -205,8 +206,7 @@ half3 OceanEmission(in const half3 i_view, in const half3 i_n_pixel, in const fl
 	// Depth fog & caustics - only if view ray starts from above water
 	if (!i_underwater)
 	{
-		const half2 uvDepthRefract = i_uvDepth + _RefractionStrength * i_n_pixel.xz;
-		const float sceneZRefract = LinearEyeDepth(tex2D(i_cameraDepths, uvDepthRefract).x);
+		const float sceneZRefract = LinearEyeDepth(tex2D(i_cameraDepths, i_uvDepth + refractOffset).x);
 
 		// Compute depth fog alpha based on refracted position if it landed on an underwater surface, or on unrefracted depth otherwise
 		if (sceneZRefract > i_pixelZ)

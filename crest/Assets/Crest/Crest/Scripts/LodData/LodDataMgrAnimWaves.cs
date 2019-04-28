@@ -2,7 +2,11 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
-#if !ENABLE_COMPUTE_SHADERS
+#if ENABLE_COMPUTE_SHADERS
+using Property = Crest.PropertyWrapperCompute;
+#else
+using Property = Crest.PropertyWrapperMaterial;
+#endif
 
 using System.Collections.Generic;
 using UnityEngine;
@@ -39,7 +43,15 @@ namespace Crest
 
         RenderTexture[] _waveBuffers;
 
-        PropertyWrapperMaterial[] _combineProperties;
+#if ENABLE_COMPUTE_SHADERS
+        const string ShaderName = "ShapeCombineCompute";
+        ComputeShader _combineShader;
+        int _combineShaderKernel = -1;
+#else
+        const string ShaderName = "Hidden/Crest/Simulation/Combine Animated Wave LODs";
+        Shader _combineShader;
+#endif
+        Property[] _combineProperties;
 
         public override void UseSettings(SimSettingsBase settings) { OceanRenderer.Instance._simSettingsAnimatedWaves = settings as SimSettingsAnimatedWaves; }
         public override SimSettingsBase CreateDefaultSettings()
@@ -49,16 +61,28 @@ namespace Crest
             return settings;
         }
 
+        private Property CreateProperty()
+        {
+#if ENABLE_COMPUTE_SHADERS
+            return new Property();
+#else
+            return new Property(_combineShader);
+#endif
+        }
+
         protected override void InitData()
         {
             base.InitData();
-
-            _combineProperties = new PropertyWrapperMaterial[OceanRenderer.Instance.CurrentLodCount];
+#if ENABLE_COMPUTE_SHADERS
+            _combineShader = Resources.Load<ComputeShader>(ShaderName);
+            _combineShaderKernel = _combineShader.FindKernel(ShaderName);
+#else
+            _combineShader = Shader.Find(ShaderName);
+#endif
+            _combineProperties = new Property[OceanRenderer.Instance.CurrentLodCount];
             for (int i = 0; i < _combineProperties.Length; i++)
             {
-                _combineProperties[i] = new PropertyWrapperMaterial(
-                    new Material(Shader.Find("Hidden/Crest/Simulation/Combine Animated Wave LODs"))
-                );
+                _combineProperties[i] = CreateProperty();
             }
 
             Debug.Assert(SystemInfo.SupportsRenderTextureFormat(TextureFormat), "The graphics device does not support the render texture format " + TextureFormat.ToString());
@@ -76,6 +100,9 @@ namespace Crest
                 _waveBuffers[i].anisoLevel = 0;
                 _waveBuffers[i].useMipMap = false;
                 _waveBuffers[i].name = "WaveBuffer_" + i + "_1";
+#if ENABLE_COMPUTE_SHADERS
+                _waveBuffers[i].enableRandomWrite = true;
+#endif
             }
         }
 
@@ -90,13 +117,25 @@ namespace Crest
             {
                 buf.SetRenderTarget(_waveBuffers[lodIdx]);
                 buf.ClearRenderTarget(false, true, Color.black);
+#if ENABLE_COMPUTE_SHADERS
+                if(!_waveBuffers[lodIdx].IsCreated())
+                {
+                    _waveBuffers[lodIdx].Create();
+                }
 
+                foreach (var gerstner in _gerstnerComponents)
+                {
+                    gerstner.BuildCommandBuffer(lodIdx, ocean, buf, _waveBuffers[lodIdx]);
+                }
+#else
                 foreach (var gerstner in _gerstnerComponents)
                 {
                     gerstner.BuildCommandBuffer(lodIdx, ocean, buf);
                 }
+#endif
 
                 // draw any data with lod preference
+                // TODO(Tom): Workout how filters are going to work with compute shaders
                 var lodMaxWavelength = OceanRenderer.Instance._lods[lodIdx].MaxWavelength();
                 var lodMinWavelength = lodMaxWavelength / 2f;
                 DrawFilter filter = (data) =>
@@ -145,7 +184,16 @@ namespace Crest
                     LodDataMgrFlow.BindNull(0, _combineProperties[lodIdx]);
                 }
 
+#if ENABLE_COMPUTE_SHADERS
+                _combineProperties[lodIdx].InitialiseAndDispatchShader(
+                    buf,
+                    _combineShader, _combineShaderKernel,
+                    DataTexture(lodIdx)
+
+                );
+#else
                 buf.Blit(null, DataTexture(lodIdx), _combineProperties[lodIdx].material);
+#endif
             }
 
             // lod-independent data
@@ -268,5 +316,3 @@ namespace Crest
         }
     }
 }
-
-#endif

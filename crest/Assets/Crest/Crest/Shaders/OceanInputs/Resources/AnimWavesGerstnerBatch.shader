@@ -76,11 +76,17 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Batch"
 
 			half4 Frag(Varyings input) : SV_Target
 			{
+				half3 result = (half3)0.0;
+
 				const half4 oneMinusAttenuation = (half4)1.0 - (half4)_AttenuationInShallows;
 
 				// sample ocean depth (this render target should 1:1 match depth texture, so UVs are trivial)
 				const half depth = CREST_OCEAN_DEPTH_BASELINE - tex2D(_LD_Sampler_SeaFloorDepth_0, input.uv).x;
-				half3 result = (half3)0.0;
+
+				// Experiment - preferred wave directions
+				half2 preferredDir = normalize(input.worldPos_wt.xy);
+				half4 preferredDirX = preferredDir.x;
+				half4 preferredDirZ = preferredDir.y;
 
 				// gerstner computation is vectorized - processes 4 wave components at once
 				for (uint vi = 0; vi < _NumWaveVecs; vi++)
@@ -99,6 +105,10 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Batch"
 					// direction
 					half4 Dx = _WaveDirX[vi];
 					half4 Dz = _WaveDirZ[vi];
+
+					// Peferred wave direction
+					wt *= max(Dx * preferredDirX + Dz * preferredDirZ, 0.1);
+
 					// wave number
 					half4 k = _TwoPiOverWavelengths[vi];
 					// spatial location

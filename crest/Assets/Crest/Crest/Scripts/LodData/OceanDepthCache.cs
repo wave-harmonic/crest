@@ -31,7 +31,6 @@ namespace Crest
         float _cameraMaxTerrainHeight = 100f;
 
         [Tooltip("Will render into the cache every frame. Intended for debugging, will generate garbage."), SerializeField]
-        // public to fix warning when building standalone
 #pragma warning disable 414
         bool _forceAlwaysUpdateDebug = false;
 #pragma warning restore 414
@@ -58,6 +57,11 @@ namespace Crest
             if (_populateOnStartup)
             {
                 PopulateCache();
+            }
+
+            if (transform.lossyScale.magnitude < 5f)
+            {
+                Debug.LogWarning("Ocean depth cache transform scale is small and will capture a small area of the world. Is this intended?", this);
             }
         }
 
@@ -145,7 +149,10 @@ namespace Crest
         void OnDrawGizmosSelected()
         {
             Gizmos.matrix = transform.localToWorldMatrix;
+            Gizmos.color = Color.white;
             Gizmos.DrawWireCube(Vector3.zero, new Vector3(1f, 0f, 1f));
+            Gizmos.color = new Color(1f, 1f, 1f, 0.2f);
+            Gizmos.DrawCube(Vector3.up * _cameraMaxTerrainHeight / transform.lossyScale.y, new Vector3(1f, 0f, 1f));
         }
 #endif
     }

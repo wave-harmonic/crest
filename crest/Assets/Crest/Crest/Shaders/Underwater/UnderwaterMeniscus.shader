@@ -102,7 +102,7 @@ Shader "Crest/Underwater Meniscus"
 				const half3 col = 1.3*half3(0.37, 0.4, 0.5);
 				float alpha = abs(input.uv.y - 0.5);
 				alpha = pow(smoothstep(0.5, 0.0, alpha), 0.5);
-				return half4(lerp(1.0, col, alpha), alpha);
+				return half4(lerp((half3)1.0, col, alpha), alpha);
 			}
 			ENDCG
 		}

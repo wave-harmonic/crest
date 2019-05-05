@@ -28,6 +28,8 @@ Shader "Crest/Inputs/Depth/Cached Depths"
 			sampler2D _MainTex;
 			float4 _MainTex_ST;
 
+			#include "../../OceanLODData.hlsl"
+
 			struct Attributes
 			{
 				float3 positionOS : POSITION;
@@ -50,7 +52,7 @@ Shader "Crest/Inputs/Depth/Cached Depths"
 			
 			half4 Frag(Varyings input) : SV_Target
 			{
-				return half4(tex2D(_MainTex, input.uv).x, 0.0, 0.0, 0.0);
+				return half4(tex2D(_MainTex, input.uv).x + CREST_OCEAN_DEPTH_BASELINE, 0.0, 0.0, 0.0);
 			}
 			ENDCG
 		}

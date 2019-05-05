@@ -467,7 +467,7 @@ Shader "Crest/Ocean"
 				// Fog
 				if (!underwater)
 				{
-					// Above water - do atmospheric fog. If you are using Azure, replace this with their stuff!
+					// Above water - do atmospheric fog. If you are using a third party sky package such as Azure, replace this with their stuff!
 					UNITY_APPLY_FOG(input.fogCoord, col);
 				}
 				else

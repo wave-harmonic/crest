@@ -32,6 +32,9 @@ half3 PlanarReflection(in const half4 i_screenPos, in const half3 i_n_pixel)
 }
 #endif // _PLANARREFLECTIONS_ON
 
+#if _OVERRIDEREFLECTIONCUBEMAP_ON
+samplerCUBE _ReflectionCubemapOverride;
+#endif // _OVERRIDEREFLECTIONCUBEMAP_ON
 
 uniform half _FresnelPower;
 uniform float  _RefractiveIndexOfAir;
@@ -65,7 +68,11 @@ void ApplyReflectionSky(in const half3 i_view, in const half3 i_n_pixel, in cons
 #elif _PROCEDURALSKY_ON
 	skyColour = SkyProceduralDP(refl, i_lightDir);
 #else
+#if _OVERRIDEREFLECTIONCUBEMAP_ON
+	half4 val = texCUBE(_ReflectionCubemapOverride, refl);
+#else // _OVERRIDEREFLECTIONCUBEMAP_ON
 	half4 val = UNITY_SAMPLE_TEXCUBE_LOD(unity_SpecCube0, refl, 0.);
+#endif // _OVERRIDEREFLECTIONCUBEMAP_ON
 	skyColour = DecodeHDR(val, unity_SpecCube0_HDR);
 #endif
 

@@ -64,6 +64,9 @@ Shader "Crest/Ocean"
 		_RefractiveIndexOfWater("Refractive Index of Water", Range(1.0, 2.0)) = 1.333
 		// Dynamically rendered 'reflection plane' style reflections. Requires OceanPlanarReflection script added to main camera.
 		[Toggle] _PlanarReflections("Planar Reflections", Float) = 0
+		[Toggle] _OverrideReflectionCubemap("Override Reflection Cubemap", Float) = 0
+		// Environment map to reflect
+		[NoScaleOffset] _ReflectionCubemapOverride("Override Reflection Cubemap", CUBE) = "" {}
 
 		// A simple procedural skybox, not suitable for rendering on screen, but can be useful to give control over reflection colour
 		// especially in stylized/non realistic applications
@@ -194,6 +197,8 @@ Shader "Crest/Ocean"
 			#pragma shader_feature _FOAM_ON
 			#pragma shader_feature _FOAM3DLIGHTING_ON
 			#pragma shader_feature _PLANARREFLECTIONS_ON
+			#pragma shader_feature _OVERRIDEREFLECTIONCUBEMAP_ON
+		
 			#pragma shader_feature _PROCEDURALSKY_ON
 			#pragma shader_feature _UNDERWATER_ON
 			#pragma shader_feature _FLOW_ON

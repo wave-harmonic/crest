@@ -259,10 +259,20 @@ We've found issues caused by having multiple overlapping physics collision primi
 
 # Q&A
 
-Is Crest well suited for medium-to-low powered mobile devices? Crest is built to be performant by design and has numerous quality/performance levers. However it is also built to be very flexible and powerful and as such can not compete with a minimal, mobile-centric ocean renderer such as the one in the *BoatAttack* project. Therefore we target Crest at PC/console platforms.
+**Is Crest well suited for medium-to-low powered mobile devices?**
+Crest is built to be performant by design and has numerous quality/performance levers.
+However it is also built to be very flexible and powerful and as such can not compete with a minimal, mobile-centric ocean renderer such as the one in the *BoatAttack* project.
+Therefore we target Crest at PC/console platforms.
 
-Which platforms does Crest support? Testing occurs primarily on Windows. We have users targeting Windows, Mac, Linux, PS4, XboxOne, Switch and iOS/Android. Performance is a challenge on Switch and mobile platforms - see the previous question.
+**Which platforms does Crest support?**
+Testing occurs primarily on Windows.
+We have users targeting Windows, Mac, Linux, PS4, XboxOne, Switch and iOS/Android.
+Performance is a challenge on Switch and mobile platforms - see the previous question.
 
-Is Crest well suited for localised bodies of water such as lakes? Currently Crest is currrently targeted towards large bodies of water. The water could be pushed down where it's not wanted which would allow it to achieve rivers and lakes to some extent.
+**Is Crest well suited for localised bodies of water such as lakes?**
+Currently Crest is currrently targeted towards large bodies of water.
+The water could be pushed down where it's not wanted which would allow it to achieve rivers and lakes to some extent.
 
-Does Crest support third party sky assets? We have heard of Crest users using TrueSky, AzureSky. These may require some code to be inserted into the ocean shader - there is a comment referring to this, search *Ocean.shader* for 'Azure'.
+**Does Crest support third party sky assets?**
+We have heard of Crest users using TrueSky, AzureSky.
+These may require some code to be inserted into the ocean shader - there is a comment referring to this, search *Ocean.shader* for 'Azure'.

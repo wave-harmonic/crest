@@ -95,7 +95,7 @@ Shader "Crest/Ocean"
 		// Colour tint bubble foam underneath water surface
 		_FoamBubbleColor("Bubble Foam Color", Color) = (0.64, 0.83, 0.82, 1.0)
 		// Parallax for underwater bubbles to give feeling of volume
-		_FoamBubbleParallax("Bubble Foam Parallax", Range(0.0, 0.25)) = 0.05
+		_FoamBubbleParallax("Bubble Foam Parallax", Range(0.0, 0.5)) = 0.05
 		// Proximity to sea floor where foam starts to get generated
 		_ShorelineFoamMinDepth("Shoreline Foam Min Depth", Range(0.01, 5.0)) = 0.27
 		// Controls how gradual the transition is from full foam to no foam
@@ -406,10 +406,10 @@ Shader "Crest/Ocean"
 
 				// Normal - geom + normal mapping
 				half3 n_geom = half3(0.0, 1.0, 0.0);
+				const float lodAlpha = input.lodAlpha_worldXZUndisplaced_oceanDepth.x;
 
 				//if(false)
 				{
-					const float lodAlpha = input.lodAlpha_worldXZUndisplaced_oceanDepth.x;
 					const float2 uv_0 = LD_0_WorldToUV(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz);
 					const float2 uv_1 = LD_1_WorldToUV(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz);
 					const float wt_0 = (1. - lodAlpha) * _LD_Params_0.z;
@@ -436,9 +436,9 @@ Shader "Crest/Ocean"
 				#if _FOAM_ON
 				half4 whiteFoamCol;
 				#if !_FLOW_ON
-				ComputeFoam(input.foam_screenPos.x, input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, input.worldPos.xz, n_pixel, pixelZ, sceneZ, view, lightDir, shadow.y, bubbleCol, whiteFoamCol);
+				ComputeFoam(input.foam_screenPos.x, input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, input.worldPos.xz, n_pixel, pixelZ, sceneZ, view, lightDir, shadow.y, lodAlpha, bubbleCol, whiteFoamCol);
 				#else
-				ComputeFoamWithFlow(input.flow_shadow.xy, input.foam_screenPos.x, input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, input.worldPos.xz, n_pixel, pixelZ, sceneZ, view, lightDir, shadow.y, bubbleCol, whiteFoamCol);
+				ComputeFoamWithFlow(input.flow_shadow.xy, input.foam_screenPos.x, input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, input.worldPos.xz, n_pixel, pixelZ, sceneZ, view, lightDir, shadow.y, lodAlpha, bubbleCol, whiteFoamCol);
 				#endif // _FLOW_ON
 				#endif // _FOAM_ON
 

@@ -55,14 +55,15 @@ All settings can be live authored. When tweaking ocean shape it can be useful to
 
 ### Reflections
 
-Reflections contribute hugely to the appearance of the ocean. The specular slider controls the strength and the Index of Refraction settings control how much reflection contributes for different view angles. The reflected colour can come from a number of different sources with different tradeoffs:
+Reflections contribute hugely to the appearance of the ocean. The Index of Refraction settings control how much reflection contributes for different view angles. 
 
-* Unity's specular cubemap. This is the default and is the same as what is applied to glossy objects in the scene. It will support reflection probes, as long as the probe extents cover the ocean tiles. To support dynamic time of day or non-trivial reflection environments the probe should be configured to render on startup or render every frame.
-* Planar reflections. This can be enabled by applying the *Ocean Planar Reflections* script to the active camera and configuring which layers get reflected (don't include water). This renders every frame by default but can be configured to render less frequently. This only renders one view but also only captures a limited field of view of reflections, and the reflection directions are scaled down to help keep them in this limited view, which can give a different appearance. Furthermore 'planar' means the surface is approximated by a plane which is not the case for wavey ocean, so the effect can break down. This method is good for capturing local objects like boats etc.
+The base reflection comes from a one of these sources:
+
+* Unity's specular cubemap. This is the default and is the same as what is applied to glossy objects in the scene. It will support reflection probes, as long as the probe extents cover the ocean tiles, which enables real-time update of the reflection environment (see Unity documentation for more details).
 * Override reflection cubemap. If desired a cubemap can be provided to use for the reflections. For best results supply a HDR cubemap.
 * Procedural skybox - developed for stylized games, this is a simple approximation of sky colours that will give soft results.
 
-It should be possible to combine dynamic objects from planar reflections with other types of reflection to combine benefits of both, but this has not been implemented yet.
+This base reflection can then be overridden by dynamic planar reflections. This can be used to augment the reflection with 3D objects such as boat or terrain. This can be enabled by applying the *Ocean Planar Reflections* script to the active camera and configuring which layers get reflected (don't include water). This renders every frame by default but can be configured to render less frequently. This only renders one view but also only captures a limited field of view of reflections, and the reflection directions are scaled down to help keep them in this limited view, which can give a different appearance. Furthermore 'planar' means the surface is approximated by a plane which is not the case for wavey ocean, so the effect can break down. This method is good for capturing local objects like boats etc.
 
 ## Ocean construction parameters
 

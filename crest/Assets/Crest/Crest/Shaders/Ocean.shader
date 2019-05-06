@@ -58,14 +58,17 @@ Shader "Crest/Ocean"
 		// Reflection properites
 		[Header(Reflection Environment)]
 		// Controls harshness of Fresnel behaviour
-		_FresnelPower("Fresnel Power", Range(0.0, 20.0)) = 3.0
+		_FresnelPower("Fresnel Power", Range(1.0, 20.0)) = 5.0
 		// Refractive indices
 		_RefractiveIndexOfAir("Refractive Index of Air", Range(1.0, 2.0)) = 1.0
 		_RefractiveIndexOfWater("Refractive Index of Water", Range(1.0, 2.0)) = 1.333
 		// Dynamically rendered 'reflection plane' style reflections. Requires OceanPlanarReflection script added to main camera.
 		[Toggle] _PlanarReflections("Planar Reflections", Float) = 0
+		// How much the water normal affects the planar reflection
+		_PlanarReflectionNormalsStrength("Planar Reflections Distortion", Float) = 1
+		// Whether to use an overridden reflection cubemap (provided in the next property)
 		[Toggle] _OverrideReflectionCubemap("Override Reflection Cubemap", Float) = 0
-		// Environment map to reflect
+		// Custom environment map to reflect
 		[NoScaleOffset] _ReflectionCubemapOverride("Override Reflection Cubemap", CUBE) = "" {}
 
 		// A simple procedural skybox, not suitable for rendering on screen, but can be useful to give control over reflection colour

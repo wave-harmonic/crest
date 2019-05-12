@@ -63,7 +63,7 @@ void ApplyReflectionSky(in const half3 i_view, in const half3 i_n_pixel, in cons
 	// Reflection
 	half3 refl = reflect(-i_view, i_n_pixel);
 	// Dont reflect below horizon
-	refl.y = abs(refl.y);
+	refl.y = max(refl.y, 0.0);
 
 	half3 skyColour;
 

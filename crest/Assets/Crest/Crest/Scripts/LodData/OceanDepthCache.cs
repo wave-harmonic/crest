@@ -132,8 +132,8 @@ namespace Crest
                 _camDepthCache.targetTexture = _cacheTexture;
                 _camDepthCache.cullingMask = layerMask;
                 _camDepthCache.clearFlags = CameraClearFlags.SolidColor;
-                // 0 means '0m above very deep sea floor'
-                _camDepthCache.backgroundColor = Color.black;
+                // Clear to 'very deep'
+                _camDepthCache.backgroundColor = Color.white * 1000f;
                 _camDepthCache.enabled = false;
                 _camDepthCache.allowMSAA = false;
                 // I'd prefer to destroy the cam object, but I found sometimes (on first start of editor) it will fail to render.

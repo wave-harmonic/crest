@@ -24,8 +24,7 @@
 LOD_DATA( 0 )
 LOD_DATA( 1 )
 
-// Bias ocean floor depth so that default (0) values in texture are not interpreted as shallow and generating foam everywhere
-#define CREST_OCEAN_DEPTH_BASELINE 1000.
+#define CREST_OCEAN_DEPTH_BASELINE -1000.0
 
 // Conversions for world space from/to UV space
 float2 LD_WorldToUV(in float2 i_samplePos, in float2 i_centerPos, in float i_res, in float i_texelSize)
@@ -77,9 +76,9 @@ void SampleFlow(in sampler2D i_oceanFlowSampler, float2 i_uv, in float i_wt, ino
 	io_flow += i_wt * tex2Dlod(i_oceanFlowSampler, uv).xy;
 }
 
-void SampleSeaFloorHeightAboveBaseline(in sampler2D i_oceanDepthSampler, float2 i_uv, in float i_wt, inout half io_oceanDepth)
+void SampleSeaDepth(in sampler2D i_oceanDepthSampler, float2 i_uv, in float i_wt, inout half io_oceanDepth)
 {
-	io_oceanDepth += i_wt * (tex2Dlod(i_oceanDepthSampler, float4(i_uv, 0., 0.)).x);
+	io_oceanDepth += i_wt * (tex2Dlod(i_oceanDepthSampler, float4(i_uv, 0.0, 0.0)).x - CREST_OCEAN_DEPTH_BASELINE);
 }
 
 void SampleShadow(in sampler2D i_oceanShadowSampler, float2 i_uv, in float i_wt, inout half2 io_shadow)

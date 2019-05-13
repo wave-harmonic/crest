@@ -8,7 +8,7 @@ using UnityEngine.Rendering;
 namespace Crest
 {
     /// <summary>
-    /// Renders relative depth of ocean floor, by rendering the relative height of tagged objects from top down.
+    /// Renders depth of the ocean (height of sea level above ocean floor), by rendering the relative height of tagged objects from top down.
     /// </summary>
     public class LodDataMgrSeaFloorDepth : LodDataMgr
     {
@@ -33,7 +33,7 @@ namespace Crest
             for (int lodIdx = OceanRenderer.Instance.CurrentLodCount - 1; lodIdx >= 0; lodIdx--)
             {
                 buf.SetRenderTarget(_targets[lodIdx]);
-                buf.ClearRenderTarget(false, true, Color.black);
+                buf.ClearRenderTarget(false, true, Color.white * 1000f);
 
                 SubmitDraws(lodIdx, buf);
             }

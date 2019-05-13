@@ -281,4 +281,6 @@ These may require some code to be inserted into the ocean shader - there is a co
 **Can Crest work in Edit mode in the Unity Editor, or only in Play mode?**
 Currently it only works in Play mode. Some work has been done to make it work in Edit mode but more work/fixes/testing is needed. https://github.com/huwb/crest-oceanrender/issues/208
 
+**Can Crest work with multiplayer?**
+Yes. See discussion in https://github.com/huwb/crest-oceanrender/issues/75 .
 

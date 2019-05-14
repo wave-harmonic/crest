@@ -127,8 +127,8 @@ Shader "Hidden/Crest/Simulation/Update Dynamic Waves"
 				// eventually break. i model "Deep" water, but then simply ramp down waves in non-deep water with a linear multiplier.
 				// http://hyperphysics.phy-astr.gsu.edu/hbase/Waves/watwav2.html
 				// http://hyperphysics.phy-astr.gsu.edu/hbase/watwav.html#c1
-				float waterSignedDepth = CREST_OCEAN_DEPTH_BASELINE - tex2D(_LD_Sampler_SeaFloorDepth_1, input.uv).x;
-				float depthMul = 1.0 - (1.0 - saturate(2.0 * waterSignedDepth / wavelength)) * dt * 2.0;
+				float waterDepth = tex2D(_LD_Sampler_SeaFloorDepth_1, input.uv).x;
+				float depthMul = 1.0 - (1.0 - saturate(2.0 * waterDepth / wavelength)) * dt * 2.0;
 				ftp *= depthMul;
 				ft *= depthMul;
 

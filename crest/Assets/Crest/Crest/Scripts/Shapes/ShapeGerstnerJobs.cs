@@ -70,7 +70,7 @@ namespace Crest
             s_initialised = true;
         }
 
-        static void NextElem()
+        static void NextElement()
         {
             _waveVecElemIndex = (_waveVecElemIndex + 1) % 4;
             if (_waveVecElemIndex == 0) _waveVecCount++;
@@ -123,7 +123,7 @@ namespace Crest
                 var C = Mathf.Sqrt(9.81f * wavelengths[inputi] * gravityScales[octavei] / s_twoPi);
                 SetArrayFloat4(s_phases, phases[inputi] + k * C * OceanRenderer.Instance.CurrentTime);
 
-                NextElem();
+                NextElement();
             }
 
             return true;
@@ -144,7 +144,7 @@ namespace Crest
                 SetArrayFloat4(s_phases, 0f);
                 SetArrayFloat4(s_chopAmps, 1f);
 
-                NextElem();
+                NextElement();
             }
         }
 
@@ -354,9 +354,9 @@ namespace Crest
             [ReadOnly]
             public float _seaLevel;
 
-            public void Execute(int iinput)
+            public void Execute(int index)
             {
-                if (iinput >= _computeSegment.x && iinput < _computeSegment.y - _computeSegment.x)
+                if (index >= _computeSegment.x && index < _computeSegment.y - _computeSegment.x)
                 {
                     float resultHeight = 0f;
 
@@ -369,7 +369,7 @@ namespace Crest
                         float4 k = _waveNumbers[iwavevec];
 
                         // SIMD Dot product of wave direction with query pos
-                        float4 x = Dx * _queryPositions[iinput].x + Dz * _queryPositions[iinput].y;
+                        float4 x = Dx * _queryPositions[index].x + Dz * _queryPositions[index].y;
 
                         // Angle
                         float4 t = k * x + _phases[iwavevec];
@@ -377,7 +377,7 @@ namespace Crest
                         resultHeight += math.csum(_amps[iwavevec] * math.cos(t));
                     }
 
-                    _outHeights[iinput] = resultHeight + _seaLevel;
+                    _outHeights[index] = resultHeight + _seaLevel;
                 }
             }
         }
@@ -468,25 +468,25 @@ namespace Crest
                 return height;
             }
 
-            public void Execute(int iinput)
+            public void Execute(int index)
             {
-                if (iinput >= _computeSegment.x && iinput < _computeSegment.y - _computeSegment.x)
+                if (index >= _computeSegment.x && index < _computeSegment.y - _computeSegment.x)
                 {
                     // This could be even faster if i could allocate scratch space to store intermediate calculation results (not supported by burst yet)
 
-                    float2 undisplacedPos = _queryPositions[iinput];
+                    float2 undisplacedPos = _queryPositions[index];
 
                     for (int iter = 0; iter < 4; iter++)
                     {
                         float2 displacement = ComputeDisplacementHoriz(undisplacedPos);
 
                         // Correct the undisplaced position - goal is to find the position that displaces to the query position
-                        float2 error = undisplacedPos + displacement - _queryPositions[iinput];
+                        float2 error = undisplacedPos + displacement - _queryPositions[index];
                         undisplacedPos -= error;
                     }
 
                     // Our height is now the vertical component of the displacement from the undisp pos
-                    _outHeights[iinput] = ComputeDisplacementVert(undisplacedPos) + _seaLevel;
+                    _outHeights[index] = ComputeDisplacementVert(undisplacedPos) + _seaLevel;
                 }
             }
         }

@@ -35,13 +35,14 @@ namespace Crest
         const int MAX_QUERIES = 4096;
 
         // Query data for height samples
-        static NativeArray<float2> s_queryPositionsHeights;
-        static int s_lastQueryIndexHeights = 0;
+        static NativeArray<Vector3> s_localQueryPositions;
+		static NativeArray<Matrix4x4> s_queryPositionsMatrixes;
+		static int s_lastQueryIndexHeights = 0;
         static NativeArray<float> s_resultHeights;
         static JobHandle s_handleHeights;
         static Dictionary<int, int2> s_segmentRegistry = new Dictionary<int, int2>();
 
-        static readonly float s_twoPi = Mathf.PI * 2f;
+		static readonly float s_twoPi = Mathf.PI * 2f;
 
         /// <summary>
         /// Allocate storage. Should be called once - will assert if called while already initialised.
@@ -50,12 +51,11 @@ namespace Crest
         {
             Debug.Assert(s_initialised == false);
             if (s_initialised)
-            {
                 return;
-            }
 
-            s_queryPositionsHeights = new NativeArray<float2>(MAX_QUERIES, Allocator.Persistent);
-            s_resultHeights = new NativeArray<float>(MAX_QUERIES, Allocator.Persistent);
+            s_localQueryPositions = new NativeArray<Vector3>(MAX_QUERIES, Allocator.Persistent);
+			s_queryPositionsMatrixes = new NativeArray<Matrix4x4>(MAX_QUERIES, Allocator.Persistent);
+			s_resultHeights = new NativeArray<float>(MAX_QUERIES, Allocator.Persistent);
 
             s_waveNumbers = new NativeArray<float4>(MAX_WAVE_COMPONENTS / 4, Allocator.Persistent);
             s_amps = new NativeArray<float4>(MAX_WAVE_COMPONENTS / 4, Allocator.Persistent);
@@ -100,11 +100,15 @@ namespace Crest
         public static bool AddWaveData(float[] wavelengths, float[] amps, float[] angles, float[] phases, float[] chopScales, float[] gravityScales, int compPerOctave)
         {
             // How many vectors required to accommodate length numFloats
+
+			// TODO - should add an option to not add all the waves in case we want smoother reading of the wave info
+
             var numFloats = wavelengths.Length;
             var numVecs = numFloats / 4;
-            if (numVecs * 4 < numFloats) numVecs++;
+            if (numVecs * 4 < numFloats)
+				numVecs++;
 
-            for (var inputi = 0; inputi < numFloats; inputi++)
+			for (var inputi = 0; inputi < numFloats; inputi++)
             {
                 if (_waveVecCount >= MAX_WAVE_COMPONENTS / 4) return false;
                 if (amps[inputi] <= 0.001f) continue;
@@ -164,8 +168,9 @@ namespace Crest
             s_phases.Dispose();
             s_chopAmps.Dispose();
 
-            s_queryPositionsHeights.Dispose();
-            s_resultHeights.Dispose();
+            s_localQueryPositions.Dispose();
+			s_queryPositionsMatrixes.Dispose();
+			s_resultHeights.Dispose();
         }
 
         /// <summary>
@@ -174,7 +179,7 @@ namespace Crest
         /// so this should be called before the kick-off, such as from Update.
         /// </summary>
         /// <returns>True if successful.</returns>
-        public static bool UpdateQueryPoints(int guid, float3[] queryPoints)
+        public static bool UpdateQueryPoints(int guid, Vector3[] queryPoints)
         {
             // Call this in case the user has not called it.
             CompleteJobs();
@@ -215,17 +220,74 @@ namespace Crest
             // Save off the query data
             for (var i = querySegment.x; i < querySegment.y; i++)
             {
-                s_queryPositionsHeights[i] = queryPoints[i - querySegment.x].xz;
-            }
+                s_localQueryPositions[i] = queryPoints[i - querySegment.x];
+				s_queryPositionsMatrixes[i] = new Matrix4x4();
+			}
 
             return true;
         }
 
-        /// <summary>
-        /// Signal that the query storage for a particular guid is no longer required. This will leave air bubbles in the buffer -
-        /// call CompactQueryStorage() to reorganise.
-        /// </summary>
-        public static void RemoveQueryPoints(int guid)
+		/// <summary>
+		/// Updates the query positions and the boat matrix (creates space for them the first time). If the query count doesn't match a new set of query
+		/// position data will be created. This will force any running jobs to complete. The jobs will be kicked off in LateUpdate,
+		/// so this should be called before the kick-off, such as from Update.
+		/// </summary>
+		/// <returns>True if successful.</returns>
+		public static bool UpdateQueryPoints(int guid, Matrix4x4 currentBoatMatrix, Vector3[] localQueryPoints)
+		{
+			// Call this in case the user has not called it.
+			CompleteJobs();
+
+			// Get segment
+			var segmentRetrieved = false;
+			int2 querySegment;
+			if(s_segmentRegistry.TryGetValue(guid, out querySegment))
+			{
+				// make sure segment size matches our query count
+				var segmentSize = querySegment[1] - querySegment[0];
+				if(segmentSize == localQueryPoints.Length)
+				{
+					// All good
+					segmentRetrieved = true;
+				}
+				else
+				{
+					// Query count does not match segment - remove it. The segment will be recreated below.
+					s_segmentRegistry.Remove(guid);
+				}
+			}
+
+			// If no segment was retrieved, add one if there is space
+			if(!segmentRetrieved)
+			{
+				if(s_lastQueryIndexHeights + localQueryPoints.Length > MAX_QUERIES)
+				{
+					Debug.LogError("Out of query data space. Try calling Compact() to reorganise query segments.");
+					return false;
+				}
+
+				querySegment = new int2(s_lastQueryIndexHeights, s_lastQueryIndexHeights + localQueryPoints.Length);
+				s_segmentRegistry.Add(guid, querySegment);
+				s_lastQueryIndexHeights += localQueryPoints.Length;
+			}
+
+			// Save off the query data
+			// This could be changed to read the remote native array as a reference and reduce the if statement over this
+			NativeArray<Vector3>.Copy(localQueryPoints, 0, s_localQueryPositions, querySegment.x, querySegment.y - querySegment.x);
+
+			NativeArray<Matrix4x4> boatMatrixes = new NativeArray<Matrix4x4>(1, Allocator.Temp);
+
+			for(var i = querySegment.x; i < querySegment.y; i++)
+				s_queryPositionsMatrixes[i] = currentBoatMatrix;
+
+			return true;
+		}
+
+		/// <summary>
+		/// Signal that the query storage for a particular guid is no longer required. This will leave air bubbles in the buffer -
+		/// call CompactQueryStorage() to reorganise.
+		/// </summary>
+		public static void RemoveQueryPoints(int guid)
         {
             if (s_segmentRegistry.ContainsKey(guid))
             {
@@ -281,17 +343,18 @@ namespace Crest
 
             s_jobsRunning = true;
 
-            var heightJob = new HeightJob()
-            {
-                _waveNumbers = s_waveNumbers,
-                _amps = s_amps,
-                _windDirX = s_windDirX,
-                _windDirZ = s_windDirZ,
-                _phases = s_phases,
-                _chopAmps = s_chopAmps,
-                _numWaveVecs = _waveVecCount,
-                _queryPositions = s_queryPositionsHeights,
-                _computeSegment = new int2(0, s_queryPositionsHeights.Length),
+			var heightJob = new HeightJob()
+			{
+				_waveNumbers = s_waveNumbers,
+				_amps = s_amps,
+				_windDirX = s_windDirX,
+				_windDirZ = s_windDirZ,
+				_phases = s_phases,
+				_chopAmps = s_chopAmps,
+				_numWaveVecs = _waveVecCount,
+				_localQueryPositions = s_localQueryPositions,
+				_boatMatrixes = s_queryPositionsMatrixes,
+                _computeSegment = new int2(0, s_localQueryPositions.Length),
                 _time = OceanRenderer.Instance.CurrentTime,
                 _outHeights = s_resultHeights,
                 _seaLevel = OceanRenderer.Instance.SeaLevel,
@@ -382,12 +445,14 @@ namespace Crest
             }
         }
 
-        /// <summary>
-        /// This inverts the displacement to get the true water height at a position.
-        /// </summary>
-        [BurstCompile]
-        public struct HeightJob : IJobParallelFor
+		/// <summary>
+		/// This inverts the displacement to get the true water height at a position.
+		/// </summary>
+		[BurstCompile]
+		public struct HeightJob : IJobParallelFor
         {
+			// TODO - Allow use to not use some waves in case we want less accuracy on the boat
+
             [ReadOnly]
             public NativeArray<float4> _waveNumbers;
             [ReadOnly]
@@ -403,8 +468,10 @@ namespace Crest
             [ReadOnly]
             public int _numWaveVecs;
 
-            [ReadOnly]
-            public NativeArray<float2> _queryPositions;
+			[ReadOnly]
+			public NativeArray<Matrix4x4> _boatMatrixes;
+			[ReadOnly]
+            public NativeArray<Vector3> _localQueryPositions;
 
             [WriteOnly]
             public NativeArray<float> _outHeights;
@@ -416,72 +483,23 @@ namespace Crest
             [ReadOnly]
             public float _seaLevel;
 
-            float2 ComputeDisplacementHoriz(float2 queryPos)
-            {
-                float2 displacement = 0f;
-
-                for (var iwavevec = 0; iwavevec < _numWaveVecs; iwavevec++)
-                {
-                    // Wave direction
-                    float4 Dx = _windDirX[iwavevec], Dz = _windDirZ[iwavevec];
-
-                    // Wave number
-                    float4 k = _waveNumbers[iwavevec];
-
-                    // SIMD Dot product of wave direction with query pos
-                    float4 x = Dx * queryPos.x + Dz * queryPos.y;
-
-                    // Angle
-                    float4 t = k * x + _phases[iwavevec];
-
-                    // Add the four SIMD results
-                    float4 disp = -_chopAmps[iwavevec] * math.sin(t);
-                    displacement.x += math.csum(Dx * disp);
-                    displacement.y += math.csum(Dz * disp);
-                }
-
-                return displacement;
-            }
-
-            float ComputeDisplacementVert(float2 queryPos)
-            {
-                float height = 0f;
-
-                for (var iwavevec = 0; iwavevec < _numWaveVecs; iwavevec++)
-                {
-                    // Wave direction
-                    float4 Dx = _windDirX[iwavevec], Dz = _windDirZ[iwavevec];
-
-                    // Wave number
-                    float4 k = _waveNumbers[iwavevec];
-
-                    // SIMD Dot product of wave direction with query pos
-                    float4 x = Dx * queryPos.x + Dz * queryPos.y;
-
-                    // Angle
-                    float4 t = k * x + _phases[iwavevec];
-
-                    // Add the four SIMD results
-                    height += math.csum(_amps[iwavevec] * math.cos(t));
-                }
-
-                return height;
-            }
-
             public void Execute(int index)
             {
-                if (index >= _computeSegment.x && index < _computeSegment.y - _computeSegment.x)
+				if (index >= _computeSegment.x && index < _computeSegment.y - _computeSegment.x)
                 {
-                    // This could be even faster if i could allocate scratch space to store intermediate calculation results (not supported by burst yet)
+					float3 worldPos = _boatMatrixes[index].MultiplyPoint3x4(_localQueryPositions[index]);
+					float2 queryPosition = new float2(worldPos.x, worldPos.z);
 
-                    float2 undisplacedPos = _queryPositions[index];
+					// This could be even faster if i could allocate scratch space to store intermediate calculation results (not supported by burst yet)
+
+					float2 undisplacedPos = queryPosition;
 
                     for (int iter = 0; iter < 4; iter++)
                     {
                         float2 displacement = ComputeDisplacementHoriz(undisplacedPos);
 
                         // Correct the undisplaced position - goal is to find the position that displaces to the query position
-                        float2 error = undisplacedPos + displacement - _queryPositions[index];
+                        float2 error = undisplacedPos + displacement - queryPosition;
                         undisplacedPos -= error;
                     }
 
@@ -489,6 +507,58 @@ namespace Crest
                     _outHeights[index] = ComputeDisplacementVert(undisplacedPos) + _seaLevel;
                 }
             }
-        }
+
+			float2 ComputeDisplacementHoriz(float2 queryPos)
+			{
+				float2 displacement = 0f;
+
+				for(var iwavevec = 0; iwavevec < _numWaveVecs; iwavevec++)
+				{
+					// Wave direction
+					float4 Dx = _windDirX[iwavevec], Dz = _windDirZ[iwavevec];
+
+					// Wave number
+					float4 k = _waveNumbers[iwavevec];
+					
+					// SIMD Dot product of wave direction with query pos
+					float4 x = Dx * queryPos.x + Dz * queryPos.y;
+
+					// Angle
+					float4 t = k * x + _phases[iwavevec];
+
+					// Add the four SIMD results
+					float4 disp = -_chopAmps[iwavevec] * math.sin(t);
+					displacement.x += math.csum(Dx * disp);
+					displacement.y += math.csum(Dz * disp);
+				}
+
+				return displacement;
+			}
+
+			float ComputeDisplacementVert(float2 queryPos)
+			{
+				float height = 0f;
+
+				for(var iwavevec = 0; iwavevec < _numWaveVecs; iwavevec++)
+				{
+					// Wave direction
+					float4 Dx = _windDirX[iwavevec], Dz = _windDirZ[iwavevec];
+
+					// Wave number
+					float4 k = _waveNumbers[iwavevec];
+
+					// SIMD Dot product of wave direction with query pos
+					float4 x = Dx * queryPos.x + Dz * queryPos.y;
+
+					// Angle
+					float4 t = k * x + _phases[iwavevec];
+
+					// Add the four SIMD results
+					height += math.csum(_amps[iwavevec] * math.cos(t));
+				}
+
+				return height;
+			}
+		}
     }
 }

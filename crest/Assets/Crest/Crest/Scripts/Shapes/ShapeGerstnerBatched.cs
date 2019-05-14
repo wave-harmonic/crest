@@ -367,10 +367,12 @@ namespace Crest
                 UpdateBatch(OceanRenderer.Instance.CurrentLodCount - 2, componentIdx, _wavelengths.Length, _materialBigWaveTransition) > 0;
         }
 
+		#if USE_JOBS
         public void AddGerstnerData()
         {
             ShapeGerstnerJobs.AddWaveData(_wavelengths, _amplitudes, _angleDegs, _phases, _spectrum._chopScales, _spectrum._gravityScales, _componentsPerOctave);
         }
+		#endif
 
         /// <summary>
         /// Submit draws to create the Gerstner waves. LODs from 0 to N-2 render the Gerstner waves from their lod. Additionally, any waves

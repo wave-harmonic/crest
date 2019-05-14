@@ -71,7 +71,7 @@ public class BoatProbes : BoatBase
 #if USE_JOBS
     // Gerstner job inputs and outputs
     int _guid;
-    float3[] _queryPositions;
+    Vector3[] _queryPositions;
     float[] _resultHeights;
 #endif
 
@@ -117,7 +117,7 @@ public class BoatProbes : BoatBase
 
         if (_queryPositions == null || _queryPositions.Length != _forcePoints.Length)
         {
-            _queryPositions = new float3[_forcePoints.Length];
+            _queryPositions = new Vector3[_forcePoints.Length];
 
             // Give them defaults
             UpdateJobQueryPositions();
@@ -271,6 +271,8 @@ public class BoatProbes : BoatBase
         EnsureJobDataAllocated();
 
         UpdateJobQueryPositions();
+
+
 
         ShapeGerstnerJobs.UpdateQueryPoints(_guid, _queryPositions);
     }

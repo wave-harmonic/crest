@@ -679,11 +679,14 @@ MonoBehaviour:
   m_GameObject: {fileID: 1145282964}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bf7233a36eca62243a28ef6b0d639aa1, type: 3}
+  m_Script: {fileID: 11500000, guid: 886a835da6a35fa41a98ebb25057dcb6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _minSpatialLength: 12
-  _forcePoints: []
+  localQueryPositions:
+  - {x: 1, y: 0, z: 1}
+  - {x: -1, y: 0, z: 1}
+  - {x: -1, y: 0, z: -1}
+  - {x: 1, y: 0, z: -1}
 --- !u!1 &1152287478
 GameObject:
   m_ObjectHideFlags: 0

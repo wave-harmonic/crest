@@ -71,7 +71,7 @@ public class BoatProbes : BoatBase
 #if USE_JOBS
     // Gerstner job inputs and outputs
     int _guid;
-    Vector3[] _queryPositions;
+    Vector3[] _queryPositions; // local to this transform's query positions
     float[] _resultHeights;
 #endif
 
@@ -214,11 +214,11 @@ public class BoatProbes : BoatBase
         for (int i = 0; i < _forcePoints.Length; i++)
         {
 #if USE_JOBS
-            var heightDiff = _resultHeights[i] - _queryPositions[i].y;
+            var heightDiff = _resultHeights[i] - transform.TransformPoint(_queryPositions[i]).y;
 
             if (heightDiff > 0)
             {
-                RB.AddForceAtPosition(archimedesForceMagnitude * heightDiff * Vector3.up * _forcePoints[i]._weight * _forceMultiplier / _totalWeight, _queryPositions[i]);
+                RB.AddForceAtPosition(archimedesForceMagnitude * heightDiff * Vector3.up * _forcePoints[i]._weight * _forceMultiplier / _totalWeight, transform.TransformPoint(_queryPositions[i]));
             }
 #else
             var transformedPoint = transform.TransformPoint(_forcePoints[i]._offsetPosition + new Vector3(0, _centerOfMass.y, 0));
@@ -272,16 +272,14 @@ public class BoatProbes : BoatBase
 
         UpdateJobQueryPositions();
 
-
-
-        ShapeGerstnerJobs.UpdateQueryPoints(_guid, _queryPositions);
-    }
+		ShapeGerstnerJobs.UpdateQueryPoints(_guid, this.transform, _queryPositions);
+	}
 
     void UpdateJobQueryPositions()
     {
         for (var i = 0; i < _forcePoints.Length; i++)
         {
-            _queryPositions[i] = transform.TransformPoint(_forcePoints[i]._offsetPosition + new Vector3(0, _centerOfMass.y, 0));
+            _queryPositions[i] = _forcePoints[i]._offsetPosition + new Vector3(0, _centerOfMass.y, 0);
         }
     }
 #endif

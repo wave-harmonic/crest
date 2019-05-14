@@ -314,7 +314,12 @@ namespace Crest
 			if(_matrixes.IsCreated) _matrixes.Dispose();
 
 			// Create a list of guid matrixes (do this every time a schedule happens since the matrixes are always updating)
-			NativeArray<int> guids = new NativeArray<int>(s_segmentRegistry.Keys.ToArray<int>(), Allocator.Temp);
+			// Does it this way to not generate managed garbage
+			NativeArray<int> guids = new NativeArray<int>(s_segmentRegistry.Count, Allocator.Temp);
+			int index = 0;
+			foreach(var guid in s_segmentRegistry.Keys)
+				guids[index++] = guid;
+
 			_segments = new NativeArray<int2>(guids.Length, Allocator.TempJob);
 			_matrixes = new NativeArray<Matrix4x4>(guids.Length, Allocator.TempJob);
 

@@ -2,6 +2,8 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+#define USE_JOBS
+
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -45,6 +47,18 @@ namespace Crest
             settings.name = SimName + " Auto-generated Settings";
             return settings;
         }
+
+#if USE_JOBS
+        private void OnEnable()
+        {
+            ShapeGerstnerJobs.Init();
+        }
+
+        private void OnDisable()
+        {
+            ShapeGerstnerJobs.Cleanup();
+        }
+#endif
 
         protected override void InitData()
         {
@@ -177,8 +191,33 @@ namespace Crest
             }
         }
 
-        public void BindWaveBuffer(int lodIdx, int shapeSlot, IPropertyWrapper properties, bool paramsOnly)
-        {
+#if USE_JOBS
+		private void LateUpdate()
+		{
+			LateUpdateGerstnerJobs();
+		}
+
+		private void LateUpdateGerstnerJobs()
+		{
+			ShapeGerstnerJobs.StartSettingWaveData();
+
+			foreach(var gerstner in _gerstnerComponents)
+			{
+				// Run any Gerstner-related jobs
+				if(gerstner._weight > 0.0001f)
+				{
+					gerstner.AddGerstnerData();
+				}
+			}
+
+			ShapeGerstnerJobs.FinishAddingWaveData();
+
+			ShapeGerstnerJobs.ScheduleJobs();
+		}
+#endif
+			   		
+		public void BindWaveBuffer(int lodIdx, int shapeSlot, IPropertyWrapper properties, bool paramsOnly)
+		{
             var rd = OceanRenderer.Instance._lods[lodIdx]._renderData.Validate(0, this);
             BindData(lodIdx, shapeSlot, properties, paramsOnly ? Texture2D.blackTexture : (Texture)_waveBuffers[lodIdx], true, ref rd);
         }

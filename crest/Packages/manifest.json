@@ -1,8 +1,12 @@
 {
   "dependencies": {
-    "com.unity.collab-proxy": "1.2.15",
-    "com.unity.package-manager-ui": "2.0.3",
-    "com.unity.postprocessing": "2.0.15-preview",
+    "com.unity.burst": "1.0.2",
+    "com.unity.collab-proxy": "1.2.16",
+    "com.unity.mathematics": "1.0.1",
+    "com.unity.package-manager-ui": "2.1.2",
+    "com.unity.postprocessing": "2.1.4",
+    "com.unity.timeline": "1.0.0",
+    "com.unity.xr.legacyinputhelpers": "2.0.2",
     "com.unity.modules.animation": "1.0.0",
     "com.unity.modules.assetbundle": "1.0.0",
     "com.unity.modules.audio": "1.0.0",

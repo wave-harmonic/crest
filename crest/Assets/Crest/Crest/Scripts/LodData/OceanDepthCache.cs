@@ -34,12 +34,17 @@ namespace Crest
 #pragma warning disable 414
         bool _forceAlwaysUpdateDebug = false;
 #pragma warning restore 414
-
-        RenderTexture _cacheTexture;
+		
+		[SerializeField]
+		RenderTexture _cacheTexture;
         GameObject _drawCacheQuad;
         Camera _camDepthCache;
 
-        void Start()
+		// Getters for the jobs system
+		public RenderTexture CacheTexture { get { return _cacheTexture; } }
+		public int Resolution {  get { return _resolution; } }
+
+		void Start()
         {
             if (_layerNames == null || _layerNames.Length < 1)
             {
@@ -63,6 +68,8 @@ namespace Crest
             {
                 Debug.LogWarning("Ocean depth cache transform scale is small and will capture a small area of the world. Is this intended?", this);
             }
+
+			
         }
 
 #if UNITY_EDITOR
@@ -143,7 +150,12 @@ namespace Crest
             // Hackety-hack: this seems to be the only way to pass parameters to the shader when using RenderWithShader!
             Shader.SetGlobalVector("_OceanCenterPosWorld", OceanRenderer.Instance.transform.position);
             _camDepthCache.RenderWithShader(Shader.Find("Crest/Inputs/Depth/Ocean Depth From Geometry"), null);
-        }
+
+#if USE_JOBS
+			// Registers this ocean graph with the jobs system
+			ShapeGerstnerJobs.AddNewOceanDepthCache(this);
+#endif
+		}
 
 #if UNITY_EDITOR
         void OnDrawGizmosSelected()

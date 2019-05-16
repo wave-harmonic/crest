@@ -28,6 +28,7 @@ namespace Crest
 
         // data for all components
         float[] _wavelengths;
+		float[] _twoPis;
         float[] _amplitudes;
         float[] _angleDegs;
         float[] _phases;
@@ -370,6 +371,8 @@ namespace Crest
 		#if USE_JOBS
         public void AddGerstnerData()
         {
+			float[] twoPis = new float[_wavelengths.Length];
+
             ShapeGerstnerJobs.AddWaveData(_wavelengths, _amplitudes, _angleDegs, _phases, _spectrum._chopScales, _spectrum._gravityScales, _componentsPerOctave);
         }
 		#endif

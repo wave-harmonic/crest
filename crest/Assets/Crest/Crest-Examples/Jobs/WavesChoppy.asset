@@ -12,22 +12,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 33068fc021dadc04dab6e00e4ff45c00, type: 3}
   m_Name: WavesChoppy
   m_EditorClassIdentifier: 
-  _waveDirectionVariance: 14
+  _waveDirectionVariance: 16
   _gravityScale: 1
   _powerLog:
-  - -4.901695
-  - -4.5661016
-  - -3.2847457
+  - -5.275862
+  - -5.1034484
+  - -4.206897
   - -2.277647
   - -1.9046361
   - -1.5762713
   - -0.78305095
   - -0.23389846
   - 0.5593219
-  - 0.49830514
-  - 1.1999998
-  - 1.7796608
-  _powerDisabled: 010000000001010101010101
+  - 1.1911767
+  - 1.8088237
+  - 2.2649548
+  _powerDisabled: 000000000000000000000000
   _chopScales:
   - 1
   - 1

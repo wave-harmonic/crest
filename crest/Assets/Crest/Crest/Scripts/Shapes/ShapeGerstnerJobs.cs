@@ -13,34 +13,36 @@ using UnityEngine;
 
 namespace Crest
 {
-    public static class ShapeGerstnerJobs
-    {
-        // General variables
-        public static bool s_initialised = false;
-        public static bool s_firstFrame = true;
-        public static bool s_jobsRunning = false;
+	public static class ShapeGerstnerJobs
+	{
+		// General variables
+		public static bool s_initialised = false;
+		public static bool s_firstFrame = true;
+		public static bool s_jobsRunning = false;
 
-        const int MAX_WAVE_COMPONENTS = 512;
+		const int MAX_WAVE_COMPONENTS = 512;
 
-        // Wave data
-        static NativeArray<float4> s_waveNumbers;
-        static NativeArray<float4> s_amps;
-        static NativeArray<float4> s_windDirX;
-        static NativeArray<float4> s_windDirZ;
-        static NativeArray<float4> s_phases;
-        static NativeArray<float4> s_chopAmps;
+		// Wave data
+		static NativeArray<float4> s_waveNumbers;
+		static NativeArray<float4> s_amps;
+		static NativeArray<float4> s_windDirX;
+		static NativeArray<float4> s_windDirZ;
+		static NativeArray<float4> s_phases;
+		static NativeArray<float4> s_chopAmps;
 
-        static int _waveVecCount = 0;
-        static int _waveVecElemIndex = 0;
+		static int _waveVecCount = 0;
+		static int _waveVecElemIndex = 0;
 
-        const int MAX_QUERIES = 4096;
+		const int MAX_QUERIES = 4096;
 
+		static readonly float s_twoPi = Mathf.PI * 2f;
 
 		// Query data for height samples
 		static int s_lastQueryIndexHeights = 0;
 		static NativeArray<Matrix4x4> s_queryPositionsMatrixes; // a simple list of how to transform the matrixes
 		static NativeArray<Vector3> s_localQueryPositions; // the list of local query positions for all the points
 		static NativeArray<float2> s_worldQueryPositions; // the world query positions which have been transformed by a job
+		static NativeArray<float> s_heightQueryPositions; // the world query positions which have been transformed by a job
 
 		// temp allocations
 		static NativeArray<int2> _segments;
@@ -50,143 +52,248 @@ namespace Crest
 		static NativeArray<float> s_resultHeights;
 
 		static JobHandle s_matrixes;
-        static JobHandle s_handleHeights;
+		static JobHandle s_handleHeights;
 
 		// Registries for the sampler IDs
-        static Dictionary<int, int2> s_segmentRegistry = new Dictionary<int, int2>();
+		static Dictionary<int, int2> s_segmentRegistry = new Dictionary<int, int2>();
 		static Dictionary<int, Transform> s_transformsRegistry = new Dictionary<int, Transform>();
 
-		static readonly float s_twoPi = Mathf.PI * 2f;
+		// list of Ocean Depth Caches, the float array is a flat representation of the depths and is updated only with a function
+		static Dictionary<OceanDepthCache, float[]> depthCachesRegistry = new Dictionary<OceanDepthCache, float[]>();
+		
+		static NativeArray<int2> c_segmentRegistry;
+		static NativeArray<Matrix4x4> c_matrix;
+		static NativeArray<int> c_resolution;
+		static NativeArray<float> c_size;
 
-        /// <summary>
-        /// Allocate storage. Should be called once - will assert if called while already initialised.
-        /// </summary>
-        public static void Init()
-        {
-            Debug.Assert(s_initialised == false);
-            if (s_initialised)
-                return;
+		static NativeArray<float> c_depthCaches;
 
-            s_localQueryPositions = new NativeArray<Vector3>(MAX_QUERIES, Allocator.Persistent);
+
+		#region Init
+
+		/// <summary>
+		/// Allocate storage. Should be called once - will assert if called while already initialised.
+		/// </summary>
+		public static void Init()
+		{
+			Debug.Assert(s_initialised == false);
+			if(s_initialised)
+				return;
+
+			s_localQueryPositions = new NativeArray<Vector3>(MAX_QUERIES, Allocator.Persistent);
 			s_worldQueryPositions = new NativeArray<float2>(MAX_QUERIES, Allocator.Persistent);
+			s_heightQueryPositions = new NativeArray<float>(MAX_QUERIES, Allocator.Persistent);
 			s_queryPositionsMatrixes = new NativeArray<Matrix4x4>(MAX_QUERIES, Allocator.Persistent);
 			s_resultHeights = new NativeArray<float>(MAX_QUERIES, Allocator.Persistent);
 
-            s_waveNumbers = new NativeArray<float4>(MAX_WAVE_COMPONENTS / 4, Allocator.Persistent);
-            s_amps = new NativeArray<float4>(MAX_WAVE_COMPONENTS / 4, Allocator.Persistent);
-            s_windDirX = new NativeArray<float4>(MAX_WAVE_COMPONENTS / 4, Allocator.Persistent);
-            s_windDirZ = new NativeArray<float4>(MAX_WAVE_COMPONENTS / 4, Allocator.Persistent);
-            s_phases = new NativeArray<float4>(MAX_WAVE_COMPONENTS / 4, Allocator.Persistent);
-            s_chopAmps = new NativeArray<float4>(MAX_WAVE_COMPONENTS / 4, Allocator.Persistent);
+			s_waveNumbers = new NativeArray<float4>(MAX_WAVE_COMPONENTS / 4, Allocator.Persistent);
+			s_amps = new NativeArray<float4>(MAX_WAVE_COMPONENTS / 4, Allocator.Persistent);
+			s_windDirX = new NativeArray<float4>(MAX_WAVE_COMPONENTS / 4, Allocator.Persistent);
+			s_windDirZ = new NativeArray<float4>(MAX_WAVE_COMPONENTS / 4, Allocator.Persistent);
+			s_phases = new NativeArray<float4>(MAX_WAVE_COMPONENTS / 4, Allocator.Persistent);
+			s_chopAmps = new NativeArray<float4>(MAX_WAVE_COMPONENTS / 4, Allocator.Persistent);
 
-            s_segmentRegistry.Clear();
-            s_lastQueryIndexHeights = 0;
+			c_segmentRegistry = new NativeArray<int2>(0, Allocator.Persistent);
+			c_matrix = new NativeArray<Matrix4x4>(0, Allocator.Persistent);
+			c_resolution = new NativeArray<int>(0, Allocator.Persistent);
+			c_size = new NativeArray<float>(0, Allocator.Persistent);
 
-            s_initialised = true;
-        }
+			c_depthCaches = new NativeArray<float>(0, Allocator.Persistent);
 
-        static void NextElement()
-        {
-            _waveVecElemIndex = (_waveVecElemIndex + 1) % 4;
-            if (_waveVecElemIndex == 0) _waveVecCount++;
-        }
+			s_segmentRegistry.Clear();
+			s_lastQueryIndexHeights = 0;
 
-        static void SetArrayFloat4(NativeArray<float4> array, float value)
-        {
-            // Do the read/write dance as poking in the data directly is not possible
-            float4 vec = array[_waveVecCount];
-            vec[_waveVecElemIndex] = value;
-            array[_waveVecCount] = vec;
-        }
+			s_initialised = true;
+		}
 
-        /// <summary>
-        /// Call this once before calling AddWaveData().
-        /// </summary>
-        public static void StartSettingWaveData()
-        {
-            _waveVecCount = 0;
-            _waveVecElemIndex = 0;
-        }
+		static void NextElement()
+		{
+			_waveVecElemIndex = (_waveVecElemIndex + 1) % 4;
+			if(_waveVecElemIndex == 0) _waveVecCount++;
+		}
 
-        /// <summary>
-        /// Set the Gerstner wave data. Will reallocate data if the number of waves changes.
-        /// </summary>
-        /// <returns>True if all added, false if ran out of space in wave data buffer.</returns>
-        public static bool AddWaveData(float[] wavelengths, float[] amps, float[] angles, float[] phases, float[] chopScales, float[] gravityScales, int compPerOctave)
-        {
-            // How many vectors required to accommodate length numFloats
+		static void SetArrayFloat4(NativeArray<float4> array, float value)
+		{
+			// Do the read/write dance as poking in the data directly is not possible
+			float4 vec = array[_waveVecCount];
+			vec[_waveVecElemIndex] = value;
+			array[_waveVecCount] = vec;
+		}
+
+		/// <summary>
+		/// Call this once before calling AddWaveData().
+		/// </summary>
+		public static void StartSettingWaveData()
+		{
+			_waveVecCount = 0;
+			_waveVecElemIndex = 0;
+		}
+
+		/// <summary>
+		/// Set the Gerstner wave data. Will reallocate data if the number of waves changes.
+		/// </summary>
+		/// <returns>True if all added, false if ran out of space in wave data buffer.</returns>
+		public static bool AddWaveData(float[] wavelengths, float[] amps, float[] angles, float[] phases, float[] chopScales, float[] gravityScales, int compPerOctave)
+		{
+			// How many vectors required to accommodate length numFloats
 
 			// TODO - should add an option to not add all the waves in case we want smoother reading of the wave info
 
-            var numFloats = wavelengths.Length;
-            var numVecs = numFloats / 4;
-            if (numVecs * 4 < numFloats)
+			var numFloats = wavelengths.Length;
+			var numVecs = numFloats / 4;
+			if(numVecs * 4 < numFloats)
 				numVecs++;
 
-			for (var inputi = 0; inputi < numFloats; inputi++)
-            {
-                if (_waveVecCount >= MAX_WAVE_COMPONENTS / 4) return false;
-                if (amps[inputi] <= 0.001f) continue;
+			for(var inputi = 0; inputi < numFloats; inputi++)
+			{
+				if(_waveVecCount >= MAX_WAVE_COMPONENTS / 4) return false;
+				if(amps[inputi] <= 0.001f) continue;
 
-                var k = s_twoPi / wavelengths[inputi];
-                SetArrayFloat4(s_waveNumbers, k);
-                SetArrayFloat4(s_amps, amps[inputi]);
+				var k = s_twoPi / wavelengths[inputi];
+				SetArrayFloat4(s_waveNumbers, k);
+				SetArrayFloat4(s_amps, amps[inputi]);
 
-                var octavei = inputi / compPerOctave;
-                SetArrayFloat4(s_chopAmps, chopScales[octavei] * amps[inputi]);
+				var octavei = inputi / compPerOctave;
+				SetArrayFloat4(s_chopAmps, chopScales[octavei] * amps[inputi]);
 
-                float angle = (OceanRenderer.Instance._windDirectionAngle + angles[inputi]) * Mathf.Deg2Rad;
-                SetArrayFloat4(s_windDirX, Mathf.Cos(angle));
-                SetArrayFloat4(s_windDirZ, Mathf.Sin(angle));
+				float angle = (OceanRenderer.Instance._windDirectionAngle + angles[inputi]) * Mathf.Deg2Rad;
+				SetArrayFloat4(s_windDirX, Mathf.Cos(angle));
+				SetArrayFloat4(s_windDirZ, Mathf.Sin(angle));
 
-                var C = Mathf.Sqrt(9.81f * wavelengths[inputi] * gravityScales[octavei] / s_twoPi);
-                SetArrayFloat4(s_phases, phases[inputi] + k * C * OceanRenderer.Instance.CurrentTime);
+				var C = Mathf.Sqrt(9.81f * wavelengths[inputi] * gravityScales[octavei] / s_twoPi);
+				SetArrayFloat4(s_phases, phases[inputi] + k * C * OceanRenderer.Instance.CurrentTime);
 
-                NextElement();
-            }
+				NextElement();
+			}
 
-            return true;
-        }
+			return true;
+		}
 
-        /// <summary>
-        /// Call this after calling AddWaveData().
-        /// </summary>
-        public static void FinishAddingWaveData()
-        {
-            // Zero out trailing entries in the last vec
-            while (_waveVecElemIndex != 0)
-            {
-                SetArrayFloat4(s_waveNumbers, 0f);
-                SetArrayFloat4(s_amps, 0f);
-                SetArrayFloat4(s_windDirX, 0f);
-                SetArrayFloat4(s_windDirZ, 0f);
-                SetArrayFloat4(s_phases, 0f);
-                SetArrayFloat4(s_chopAmps, 1f);
+		/// <summary>
+		/// Call this after calling AddWaveData().
+		/// </summary>
+		public static void FinishAddingWaveData()
+		{
+			// Zero out trailing entries in the last vec
+			while(_waveVecElemIndex != 0)
+			{
+				SetArrayFloat4(s_waveNumbers, 0f);
+				SetArrayFloat4(s_amps, 0f);
+				SetArrayFloat4(s_windDirX, 0f);
+				SetArrayFloat4(s_windDirZ, 0f);
+				SetArrayFloat4(s_phases, 0f);
+				SetArrayFloat4(s_chopAmps, 1f);
 
-                NextElement();
-            }
-        }
+				NextElement();
+			}
+		}
 
-        /// <summary>
-        /// Dispose storage
-        /// </summary>
-        public static void Cleanup()
-        {
-            s_initialised = false;
+		#endregion
 
-            s_handleHeights.Complete();
+		public static void AddNewOceanDepthCache(OceanDepthCache newCache)
+		{
+			if(newCache.CacheTexture == null)
+				return;
 
-            s_waveNumbers.Dispose();
-            s_amps.Dispose();
-            s_windDirX.Dispose();
-            s_windDirZ.Dispose();
-            s_phases.Dispose();
-            s_chopAmps.Dispose();
+			// Call this so that nothing has issues
+			CompleteJobs();
+
+			RenderTexture renderTexture = newCache.CacheTexture;
+			RenderTexture activeTexture = RenderTexture.active;
+
+			Texture2D texture = new Texture2D(renderTexture.width, renderTexture.height, TextureFormat.RGB24, false);
+			Rect rectReadPicture = new Rect(0, 0, renderTexture.width, renderTexture.height);
+			RenderTexture.active = renderTexture;
+
+			// Read pixels
+			texture.ReadPixels(rectReadPicture, 0, 0);
+			texture.Apply();
+
+			RenderTexture.active = activeTexture; // added to avoid errors 
+
+			//// TODO - Need a faster way to do this
+			Color[] readMap = texture.GetPixels(0, 0, texture.width, texture.height);
+			float[] simpleCache = new float[readMap.Length];
+			for(int i = 0; i < readMap.Length; i++)
+				simpleCache[i] = readMap[i].r;
+
+			if(depthCachesRegistry.ContainsKey(newCache) == false)
+				depthCachesRegistry.Add(newCache, simpleCache);
+			else
+				depthCachesRegistry[newCache] = simpleCache;
+
+			UpdateJobOceanDepthCaches();
+		}
+
+		// Regenerates all the caches when a new one is added
+		public static void UpdateJobOceanDepthCaches()
+		{
+			if(c_segmentRegistry.IsCreated) c_segmentRegistry.Dispose();
+			if(c_matrix.IsCreated) c_matrix.Dispose();
+			if(c_resolution.IsCreated) c_resolution.Dispose();
+			if(c_size.IsCreated) c_size.Dispose();
+
+			// Find the total length of the cache
+			int totalLength = 0;
+			foreach(var floats in depthCachesRegistry.Values)
+				totalLength += floats.Length;
+
+			int totalRegistries = depthCachesRegistry.Count;
+			
+			c_segmentRegistry = new NativeArray<int2>(totalRegistries, Allocator.Persistent);
+			c_matrix = new NativeArray<Matrix4x4>(totalRegistries, Allocator.Persistent);
+			c_resolution = new NativeArray<int>(totalRegistries, Allocator.Persistent);
+			c_size = new NativeArray<float>(totalRegistries, Allocator.Persistent);
+
+			c_depthCaches = new NativeArray<float>(totalLength, Allocator.Persistent);
+						
+			int registryIndex = 0;
+			int cacheStart = 0;
+			foreach(var depthC in depthCachesRegistry.Keys)
+			{
+				int endOfCache = cacheStart + depthCachesRegistry[depthC].Length;
+
+				c_segmentRegistry[registryIndex] = new int2(cacheStart, endOfCache);
+				c_matrix[registryIndex] = depthC.transform.worldToLocalMatrix;
+				c_resolution[registryIndex] = depthC.Resolution;
+				c_size[registryIndex] = depthC.transform.lossyScale.x;
+
+				NativeArray<float>.Copy(depthCachesRegistry[depthC], 0, c_depthCaches, cacheStart, depthCachesRegistry[depthC].Length);
+
+				cacheStart = endOfCache;
+				registryIndex++;
+			}
+		}
+
+		#region ALLLLLLL
+
+		/// <summary>
+		/// Dispose storage
+		/// </summary>
+		public static void Cleanup()
+		{
+			s_initialised = false;
+
+			s_handleHeights.Complete();
+
+			s_waveNumbers.Dispose();
+			s_amps.Dispose();
+			s_windDirX.Dispose();
+			s_windDirZ.Dispose();
+			s_phases.Dispose();
+			s_chopAmps.Dispose();
 
 			s_localQueryPositions.Dispose();
 			s_queryPositionsMatrixes.Dispose();
+			s_heightQueryPositions.Dispose();
 			s_worldQueryPositions.Dispose();
 			s_resultHeights.Dispose();
+
+			c_segmentRegistry.Dispose();
+			c_matrix.Dispose();
+			c_resolution.Dispose();
+			c_size.Dispose();
+			c_depthCaches.Dispose();
 
 			// Dispose the temp jobs
 			if(_segments.IsCreated) _segments.Dispose();
@@ -252,61 +359,61 @@ namespace Crest
 		/// call CompactQueryStorage() to reorganise.
 		/// </summary>
 		public static void RemoveQueryPoints(int guid)
-        {
-            if (s_segmentRegistry.ContainsKey(guid))
-            {
-                s_segmentRegistry.Remove(guid);
-            }
-        }
+		{
+			if(s_segmentRegistry.ContainsKey(guid))
+			{
+				s_segmentRegistry.Remove(guid);
+			}
+		}
 
-        /// <summary>
-        /// Change segment IDs to make them contiguous. This will invalidate any jobs and job results!
-        /// </summary>
-        public static void CompactQueryStorage()
-        {
-            // Make sure jobs are not running
-            CompleteJobs();
+		/// <summary>
+		/// Change segment IDs to make them contiguous. This will invalidate any jobs and job results!
+		/// </summary>
+		public static void CompactQueryStorage()
+		{
+			// Make sure jobs are not running
+			CompleteJobs();
 
-            // A bit sneaky but just clear the registry. Will force segments to recreate which achieves the desired effect.
-            s_segmentRegistry.Clear();
-            s_lastQueryIndexHeights = 0;
-        }
+			// A bit sneaky but just clear the registry. Will force segments to recreate which achieves the desired effect.
+			s_segmentRegistry.Clear();
+			s_lastQueryIndexHeights = 0;
+		}
 
-        /// <summary>
-        /// Retrieve result data from jobs.
-        /// </summary>
-        /// <returns>True if data returned, false if failed</returns>
-        public static bool RetrieveResultHeights(int guid, ref float[] outHeights)
-        {
-            var segment = new int2(0, 0);
-            if (!s_segmentRegistry.TryGetValue(guid, out segment))
-            {
-                return false;
-            }
+		/// <summary>
+		/// Retrieve result data from jobs.
+		/// </summary>
+		/// <returns>True if data returned, false if failed</returns>
+		public static bool RetrieveResultHeights(int guid, ref float[] outHeights)
+		{
+			var segment = new int2(0, 0);
+			if(!s_segmentRegistry.TryGetValue(guid, out segment))
+			{
+				return false;
+			}
 
 			if(outHeights.Length != segment.y - segment.x)
 				outHeights = new float[segment.y - segment.x];
 
-            s_resultHeights.Slice(segment.x, segment.y - segment.x).CopyTo(outHeights);
-            return true;
-        }
+			s_resultHeights.Slice(segment.x, segment.y - segment.x).CopyTo(outHeights);
+			return true;
+		}
 
-        /// <summary>
-        /// Run the jobs
-        /// </summary>
-        /// <returns>True if jobs kicked off, false if jobs already running.</returns>
-        public static bool ScheduleJobs()
-        {
-            if (s_jobsRunning)
-            {
-                return false;
-            }
+		/// <summary>
+		/// Run the jobs
+		/// </summary>
+		/// <returns>True if jobs kicked off, false if jobs already running.</returns>
+		public static bool ScheduleJobs()
+		{
+			if(s_jobsRunning)
+			{
+				return false;
+			}
 
-            if (s_lastQueryIndexHeights == 0)
-            {
-                // Nothing to do
-                return true;
-            }
+			if(s_lastQueryIndexHeights == 0)
+			{
+				// Nothing to do
+				return true;
+			}
 
 			s_jobsRunning = true;
 
@@ -346,12 +453,22 @@ namespace Crest
 				_querySegments = _segments,
 				_guidMatrixes = _matrixes,
 
+				_segmentRegistry = c_segmentRegistry,
+				_matrix = c_matrix,
+				_resolution = c_resolution,
+				_size = c_size,
+
+				_depthCaches = c_depthCaches,
+
 				_localPositions = s_localQueryPositions,
 				_worldQueryPositions = s_worldQueryPositions,
+				_depthAtHeight = s_heightQueryPositions,
 			};
 
+			
 			var heightJob = new HeightJob()
 			{
+				_attenuationInShallows = 0.95f, // TODO - hook this up with the info from the simulation settings
 				_waveNumbers = s_waveNumbers,
 				_amps = s_amps,
 				_windDirX = s_windDirX,
@@ -360,36 +477,39 @@ namespace Crest
 				_chopAmps = s_chopAmps,
 				_numWaveVecs = _waveVecCount,
 				_queryPositions = s_worldQueryPositions,
-                _computeSegment = new int2(0, s_localQueryPositions.Length),
-                _time = OceanRenderer.Instance.CurrentTime,
-                _outHeights = s_resultHeights,
-                _seaLevel = OceanRenderer.Instance.SeaLevel,
-            };
+				_depths = s_heightQueryPositions,
+				_computeSegment = new int2(0, s_localQueryPositions.Length),
+				_time = OceanRenderer.Instance.CurrentTime,
+				_outHeights = s_resultHeights,
+				_seaLevel = OceanRenderer.Instance.SeaLevel,
+			};
 
 			JobHandle handler = matrixJob.Schedule();
 			s_handleHeights = heightJob.Schedule(s_lastQueryIndexHeights, 32, handler);
 
-            JobHandle.ScheduleBatchedJobs();
+			JobHandle.ScheduleBatchedJobs();
 
-            s_firstFrame = false;
+			s_firstFrame = false;
 
-            return true;
-        }
+			return true;
+		}
 
-        /// <summary>
-        /// Ensure that jobs are completed. Blocks until complete.
-        /// </summary>
-        public static void CompleteJobs()
-        {
-            if (!s_firstFrame && s_jobsRunning)
-            {
-                s_handleHeights.Complete();
-                s_jobsRunning = false;
-            }
+		/// <summary>
+		/// Ensure that jobs are completed. Blocks until complete.
+		/// </summary>
+		public static void CompleteJobs()
+		{
+			if(!s_firstFrame && s_jobsRunning)
+			{
+				s_handleHeights.Complete();
+				s_jobsRunning = false;
+			}
 
 			if(_segments.IsCreated) _segments.Dispose();
 			if(_matrixes.IsCreated) _matrixes.Dispose();
 		}
+
+		#endregion
 
 		/// <summary>
 		/// This sets up the proper matrixes so that the local points can be transformed to world points
@@ -401,7 +521,15 @@ namespace Crest
 			[ReadOnly] public NativeArray<Matrix4x4> _guidMatrixes; // same length as the query segements
 			[ReadOnly] public NativeArray<Vector3> _localPositions;
 
+			[ReadOnly] public NativeArray<int2> _segmentRegistry;
+			[ReadOnly] public NativeArray<Matrix4x4> _matrix;
+			[ReadOnly] public NativeArray<int> _resolution;
+			[ReadOnly] public NativeArray<float> _size;
+
+			[ReadOnly] public NativeArray<float> _depthCaches;
+
 			[WriteOnly] public NativeArray<float2> _worldQueryPositions;
+			[WriteOnly] public NativeArray<float> _depthAtHeight;
 
 			public void Execute()
 			{
@@ -412,12 +540,56 @@ namespace Crest
 					for(int i = segment.x, l = segment.y - segment.x; i < l; i++)
 					{
 						float3 worldPos = _guidMatrixes[segmentIndex].MultiplyPoint3x4(_localPositions[i]);
+
+						// Find the height at this point
+						_depthAtHeight[i] = FindHeightAtWorldPosition(worldPos, _segmentRegistry, _matrix, _resolution, _size, _depthCaches);
+
 						_worldQueryPositions[i] = new float2(worldPos.x, worldPos.z);
 					}
 				}
 			}
+
+			// This function is messy and not done well. Feel free to clean up!
+			public float FindHeightAtWorldPosition(float3 worldTestPos, 
+				NativeArray<int2> segmentRegistry, NativeArray<Matrix4x4> matrix, NativeArray<int> resolution, NativeArray<float> size,
+				NativeArray<float> depthCaches)
+			{
+				float returnHeight = 1000;
+
+				for(int i = 0, l = _segmentRegistry.Length; i < l; i++)
+				{
+					// Brings the local test point to local (should be aligned properly in the grid)
+					float3 point = matrix[i].MultiplyPoint3x4(worldTestPos);
+					float2 localTestPoint = new float2(point.x, point.z);
+
+					float halfSize = size[i] / 2;
+					float radisuSqr = halfSize * halfSize;
+					radisuSqr += radisuSqr;
+
+					// Ignore this height query since it is not within the radius of this at all
+					if(math.length(localTestPoint) > radisuSqr)
+						continue;
+
+					// Moves the test point into a positive spot so we can figure out where in the grid it is
+					localTestPoint += new float2(halfSize, halfSize);
+
+					float2 testIntPoint = new float2(localTestPoint.x / size[i], localTestPoint.y / size[i]);
+					testIntPoint = math.round(testIntPoint * resolution[i]);
+					int flatPoint = (int)testIntPoint.y * resolution[i] + (int)testIntPoint.x + segmentRegistry[i].x;
+
+					if(flatPoint >= segmentRegistry[i].x && flatPoint < segmentRegistry[i].y)
+					{
+						float possibleHeight = depthCaches[flatPoint];
+
+						if(possibleHeight < returnHeight)
+							returnHeight = possibleHeight;
+					}
+				}
+				
+				return returnHeight;
+			}
 		}
-		
+
 		/// <summary>
 		/// This inverts the displacement to get the true water height at a position.
 		/// </summary>
@@ -438,9 +610,11 @@ namespace Crest
 			public NativeArray<float4> _chopAmps;
 			[ReadOnly]
 			public int _numWaveVecs;
-
+			
 			[ReadOnly]
 			public NativeArray<float2> _queryPositions;
+			[ReadOnly]
+			public NativeArray<float> _depths;
 
 			[WriteOnly]
 			public NativeArray<float> _outHeights;
@@ -451,6 +625,48 @@ namespace Crest
 			public int2 _computeSegment;
 			[ReadOnly]
 			public float _seaLevel;
+			[ReadOnly]
+			public float _attenuationInShallows;
+			[ReadOnly]
+			public bool DontUseDepth;
+
+			// runtime
+			const float PI = 3.141593f;
+			float4 oneMinusAttenuation;
+
+			public void Execute(int index)
+			{
+				oneMinusAttenuation = FindOneMinusAttenuation(_attenuationInShallows);
+
+				if(index >= _computeSegment.x && index < _computeSegment.y - _computeSegment.x)
+				{
+					// This could be even faster if i could allocate scratch space to store intermediate calculation results (not supported by burst yet)
+
+					float2 undisplacedPos = _queryPositions[index];
+					float seaFloorHeight = _depths[index];
+
+					for(int iter = 0; iter < 4; iter++)
+					{
+						float2 displacement = new float2();
+						if(DontUseDepth)
+							displacement = ComputeDisplacementHoriz(undisplacedPos);
+						else
+							displacement = ComputeDisplacementHorizWithOceanFloorData(undisplacedPos, seaFloorHeight);
+
+						// Correct the undisplaced position - goal is to find the position that displaces to the query position
+						float2 error = undisplacedPos + displacement - _queryPositions[index];
+						undisplacedPos -= error;
+					}
+
+					// Our height is now the vertical component of the displacement from the undisp pos
+					if(DontUseDepth)
+						_outHeights[index] = ComputeDisplacementVert(undisplacedPos) + _seaLevel;
+					else
+						_outHeights[index] = ComputeDisplacementVertWithOceanFloorData(undisplacedPos, seaFloorHeight) + _seaLevel;
+				}
+			}
+
+			#region Depthless Calculations (slightly faster)
 
 			float2 ComputeDisplacementHoriz(float2 queryPos)
 			{
@@ -504,27 +720,100 @@ namespace Crest
 				return height;
 			}
 
-			public void Execute(int iinput)
+			#endregion
+
+			float2 ComputeDisplacementHorizWithOceanFloorData(float2 queryPos, float depth)
 			{
-				if(iinput >= _computeSegment.x && iinput < _computeSegment.y - _computeSegment.x)
+				float2 displacement = 0f;
+
+				for(var iWaveVec = 0; iWaveVec < _numWaveVecs; iWaveVec++)
 				{
-					// This could be even faster if i could allocate scratch space to store intermediate calculation results (not supported by burst yet)
+					//float4 depth_wt = saturate(Depth / (0.5f * this.MinWaveLength)); // slightly different result - do per wavelength for now
+					float4 depth_wt = saturate(depth * _waveNumbers[iWaveVec] / PI);
+					//// keep some proportion of amplitude so that there is some waves remaining					
+					float4 wt = _attenuationInShallows * depth_wt + oneMinusAttenuation;
 
-					float2 undisplacedPos = _queryPositions[iinput];
+					// Wave direction
+					float4 Dx = _windDirX[iWaveVec];
+					float4 Dz = _windDirZ[iWaveVec];
 
-					for(int iter = 0; iter < 4; iter++)
-					{
-						float2 displacement = ComputeDisplacementHoriz(undisplacedPos);
+					// Wave number
+					float4 k = _waveNumbers[iWaveVec];
 
-						// Correct the undisplaced position - goal is to find the position that displaces to the query position
-						float2 error = undisplacedPos + displacement - _queryPositions[iinput];
-						undisplacedPos -= error;
-					}
+					// SIMD Dot product of wave direction with query pos
+					float4 x = Dx * queryPos.x + Dz * queryPos.y;
 
-					// Our height is now the vertical component of the displacement from the undisp pos
-					_outHeights[iinput] = ComputeDisplacementVert(undisplacedPos) + _seaLevel;
+					// Angle
+					float4 t = k * x + _phases[iWaveVec];
+
+					// Add the four SIMD results
+					float4 disp = -_chopAmps[iWaveVec] * math.sin(t);
+
+					displacement.x += math.dot(disp.x * Dx.x, wt.x);
+					displacement.x += math.dot(disp.y * Dx.y, wt.y);
+					displacement.x += math.dot(disp.z * Dx.z, wt.z);
+					displacement.x += math.dot(disp.w * Dx.w, wt.w);
+
+					displacement.y += math.dot(disp.x * Dz.x, wt.x);
+					displacement.y += math.dot(disp.y * Dz.y, wt.y);
+					displacement.y += math.dot(disp.z * Dz.z, wt.z);
+					displacement.y += math.dot(disp.w * Dz.w, wt.w);
 				}
+
+				return displacement;
 			}
+
+			float ComputeDisplacementVertWithOceanFloorData(float2 queryPos, float depth)
+			{
+				float height = 0f;
+				
+				float PI = 3.141593f;
+				float4 oneMinusAttenuation = FindOneMinusAttenuation(_attenuationInShallows);
+
+				for(var iWaveVec = 0; iWaveVec < _numWaveVecs; iWaveVec++)
+				{
+					//float4 depth_wt = saturate(Depth / (0.5f * this.MinWaveLength)); // slightly different result - do per wavelength for now
+					float4 depth_wt = saturate(depth * _waveNumbers[iWaveVec] / PI);
+					//// keep some proportion of amplitude so that there is some waves remaining					
+					float4 wt = _attenuationInShallows * depth_wt + oneMinusAttenuation;
+
+					// Wave direction
+					float4 Dx = _windDirX[iWaveVec];
+					float4 Dz = _windDirZ[iWaveVec];
+
+					// Wave number
+					float4 k = _waveNumbers[iWaveVec];
+
+					// SIMD Dot product of wave direction with query pos
+					float4 x = Dx * queryPos.x + Dz * queryPos.y;
+
+					// Angle
+					float4 t = k * x + _phases[iWaveVec];
+
+					// Add the four SIMD results
+					height += math.dot((_amps[iWaveVec] * math.cos(t)).x, wt.x);
+					height += math.dot((_amps[iWaveVec] * math.cos(t)).y, wt.y);
+					height += math.dot((_amps[iWaveVec] * math.cos(t)).z, wt.z);
+					height += math.dot((_amps[iWaveVec] * math.cos(t)).w, wt.w);
+				}
+
+				return height;
+			}
+
+			float4 FindOneMinusAttenuation(float attenuationInShallows)
+			{
+				return new float4(1 - attenuationInShallows, 1 - attenuationInShallows, 1 - attenuationInShallows, 1 - attenuationInShallows);
+			}
+
+			float4 saturate(float4 floatToSaturate)
+			{
+				floatToSaturate.x = math.max(0, math.min(1, floatToSaturate.x));
+				floatToSaturate.y = math.max(0, math.min(1, floatToSaturate.y));
+				floatToSaturate.z = math.max(0, math.min(1, floatToSaturate.z));
+				floatToSaturate.w = math.max(0, math.min(1, floatToSaturate.w));
+
+				return floatToSaturate;
+			}			
 		}
 
 		/// <summary>

@@ -114,7 +114,7 @@ Material:
     - _MipBias: 0
     - _Moving: 0.17
     - _NormalsScale: 40
-    - _NormalsStrength: 0.09
+    - _NormalsStrength: 0.12
     - _Offset: 0.00008
     - _OverrideReflectionCubemap: 0
     - _PlanarReflectionNormalsStrength: 1

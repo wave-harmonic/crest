@@ -93,7 +93,7 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Batch"
 					//half depth_wt = saturate(depth / (0.5 * _MinWavelength)); // slightly different result - do per wavelength for now
 					// The below is a few things collapsed together.
 					half4 depth_wt = saturate(depth * _TwoPiOverWavelengths[vi] / PI);
-					// keep some proportion of amplitude so that there is some waves remaining
+					// keep some proportion of amplitude so that there is some waves remaining					
 					half4 wt = _AttenuationInShallows * depth_wt + oneMinusAttenuation;
 
 					// direction

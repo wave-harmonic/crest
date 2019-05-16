@@ -17,8 +17,8 @@ These are very helpful to understand and diagnose issues.
 Which versions are you on? Asset store (LWRP/HDRP) or built-in? Which version of unity (including minor, i.e. 2019.1.0f2)?
 
 **To Reproduce**
-How can the developers reproduce this bug? Can it be reproduced in the example content/scenes?
-Steps to reproduce the behaviour.
+How can the developers reproduce this bug? Are you able to reproduce the issue in the example content/scenes?
+Please include steps to reproduce the behaviour, with the example content ideally so we can follow the steps on our side.
 
 **Platform**
  - Editor or standalone?

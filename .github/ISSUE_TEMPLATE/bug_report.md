@@ -13,6 +13,9 @@ A clear and concise description of what the bug is.
 **Screenshots / video**
 These are very helpful to understand and diagnose issues.
 
+**Log**
+What is in the editor log? Clear before running and then provide any errors/warnings that appear. The log frequently provides the key hints.
+
 **Versions**
 Which versions are you on? Asset store (LWRP/HDRP) or built-in? Which version of unity (including minor, i.e. 2019.1.0f2)?
 

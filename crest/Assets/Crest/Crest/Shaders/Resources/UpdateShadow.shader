@@ -25,7 +25,7 @@ Shader "Hidden/Crest/Simulation/Update Shadow"
 			// typically this external shadow function would return the min(externalShadow, existingShadow) but this is left up to the implementation
 			//#define EXTERNAL_SHADOW_PASS
 #if defined(EXTERNAL_SHADOW_PASS)
-			#define EXTERNAL_SHADOWS_HIGH_DETAIL false // set to true for high quality external shadows
+			#define EXTERNAL_SHADOW_PASS_HIGH_DETAIL false // set to true for high quality external shadows
 			#include "../../../../YourAsset/Shaders/ExternalShadowShader.cginc" // change to the path for your shadow shader to include
 #endif
 
@@ -165,7 +165,7 @@ Shader "Hidden/Crest/Simulation/Update Shadow"
 					shadowThisFrame.y = ComputeShadow(input, _JitterDiameters_CurrentFrameWeights.y, cascadeWeights);
 
 #if defined(EXTERNAL_SHADOW_PASS) && defined(EXTERNAL_SHADOW_PASS_FUNC)
-					shadowThisFrame = EXTERNAL_SHADOW_PASS_FUNC(input.WorldPos, shadowThisFrame, EXTERNAL_SHADOWS_HIGH_DETAIL);
+					shadowThisFrame = EXTERNAL_SHADOW_PASS_FUNC(input.WorldPos, shadowThisFrame, EXTERNAL_SHADOW_PASS_HIGH_DETAIL);
 #endif
 
 					shadowThisFrame = (fixed2)1.0 - saturate(shadowThisFrame + shadowFade);

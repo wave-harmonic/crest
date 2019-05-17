@@ -1,8 +1,8 @@
 {
   "dependencies": {
     "com.unity.collab-proxy": "1.2.15",
-    "com.unity.package-manager-ui": "2.0.3",
-    "com.unity.postprocessing": "2.0.15-preview",
+    "com.unity.package-manager-ui": "2.0.7",
+    "com.unity.postprocessing": "2.1.6",
     "com.unity.modules.animation": "1.0.0",
     "com.unity.modules.assetbundle": "1.0.0",
     "com.unity.modules.audio": "1.0.0",

@@ -220,6 +220,15 @@ Shader "Crest/Ocean"
 			#include "UnityCG.cginc"
 			#include "Lighting.cginc"
 
+			// for external fog, uncomment the next line, the fog function is half4 EXTERNAL_FOG_PASS_FUNC(half4 pixelColor, float3 worldPos, bool highDetail);
+			// pixelColor is the existing water pixel color, worldPos is the water surface world pos, highDetail adds higher detail fog, volumetric light, etc.
+			// function returns the new color
+			//#define EXTERNAL_FOG_PASS
+#if defined(EXTERNAL_FOG_PASS)
+			#define EXTERNAL_FOG_PASS_HIGH_DETAIL false // set to true for high detail or volumetric fog
+			#include "../../../YourAsset/Shaders/ExternalFogShaderInclude.cginc" // change to the path for your fog shader to include
+#endif
+
 			struct Attributes
 			{
 				// The old unity macros require this name and type.
@@ -487,6 +496,10 @@ Shader "Crest/Ocean"
 				col.rg = lerp(col.rg, input.flow_shadow.xy, 0.5);
 				#endif
 				#endif
+
+#if defined(EXTERNAL_FOG_PASS) && defined(EXTERNAL_FOG_PASS_FUNC)
+				col = EXTERNAL_FOG_PASS_FUNC(fixed4(col, 1.0), input.worldPos, EXTERNAL_FOG_PASS_HIGH_DETAIL).rgb;
+#endif
 
 				return half4(col, 1.);
 			}

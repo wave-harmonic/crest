@@ -97,7 +97,7 @@ half3 ScatterColour(
 		float shallowness = pow(1. - saturate(depth / _SubSurfaceDepthMax), _SubSurfaceDepthPower);
 		half3 shallowCol = _SubSurfaceShallowCol;
 #if _SHADOWS_ON
-		shallowCol = lerp(_SubSurfaceShallowColShadow, shallowCol, shadow);
+		shallowCol = lerp(_SubSurfaceShallowColShadow, shallowCol, shadow * shadow * shadow);
 #endif
 		col = lerp(col, shallowCol, shallowness);
 #endif
@@ -112,7 +112,7 @@ half3 ScatterColour(
 
 		// Approximate subsurface scattering - add light when surface faces viewer. Use geometry normal - don't need high freqs.
 		half towardsSun = pow(max(0., dot(i_lightDir, -i_view)), _SubSurfaceSunFallOff);
-		col += (_SubSurfaceBase + _SubSurfaceSun * towardsSun) * _SubSurfaceColour.rgb * _LightColor0 * shadow;
+		col += (_SubSurfaceBase + _SubSurfaceSun * towardsSun) * _SubSurfaceColour.rgb * _LightColor0 * shadow * shadow * shadow;
 	}
 #endif // _SUBSURFACESCATTERING_ON
 

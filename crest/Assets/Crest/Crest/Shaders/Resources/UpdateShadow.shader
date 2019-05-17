@@ -18,6 +18,17 @@ Shader "Hidden/Crest/Simulation/Update Shadow"
 			#include "UnityCG.cginc"
 			#include "../OceanLODData.hlsl"
 
+			// To enable external shadows (i.e. clouds, fog, etc.), uncomment the following line and set the path to your shader that provides the shadows
+			// the shader include file should provide a function called float EXTERNAL_SHADOW_PASS_FUNC(float3 worldPos, float existingShadow, bool highDetail)
+			// return value is the new shadow value (0-1, 0 for full shadow, 1 for no shadow), the worldPos is in world space, existing shadow is the current amount of shadow,
+			// and highDetail is an option to provide high or low shadow quality for performance
+			// typically this external shadow function would return the min(externalShadow, existingShadow) but this is left up to the implementation
+			//#define EXTERNAL_SHADOW_PASS
+#if defined(EXTERNAL_SHADOW_PASS)
+			#define EXTERNAL_SHADOWS_HIGH_DETAIL false // set to true for high quality external shadows
+			#include "../../../../YourAsset/Shaders/ExternalShadowShader.cginc" // change to the path for your shadow shader to include
+#endif
+
 			struct Attributes
 			{
 				float4 positionOS : POSITION;
@@ -26,13 +37,14 @@ Shader "Hidden/Crest/Simulation/Update Shadow"
 			struct Varyings
 			{
 				V2F_SHADOW_COLLECTOR;
-
 				half4 ShadowCoord0_dxdz : TEXCOORD5;
 				half4 ShadowCoord1_dxdz : TEXCOORD6;
 				half4 ShadowCoord2_dxdz : TEXCOORD7;
 				half4 ShadowCoord3_dxdz : TEXCOORD8;
-
 				float4 MainCameraCoords : TEXCOORD9;
+#if defined(EXTERNAL_SHADOW_PASS) && defined(EXTERNAL_SHADOW_PASS_FUNC)
+				float3 WorldPos			: TEXCOORD10;
+#endif
 			};
 
 			uniform float3 _CenterPos;
@@ -66,6 +78,10 @@ Shader "Hidden/Crest/Simulation/Update Shadow"
 
 				// this could add wave height/disp??
 				wpos.y = _OceanCenterPosWorld.y;
+
+#if defined(EXTERNAL_SHADOW_PASS) && defined(EXTERNAL_SHADOW_PASS_FUNC)
+				o.WorldPos = wpos.xyz;
+#endif
 
 				o._WorldPosViewZ.xyz = wpos.xyz;
 				o._WorldPosViewZ.w = dot(wpos.xyz - _CamPos, _CamForward);
@@ -147,6 +163,13 @@ Shader "Hidden/Crest/Simulation/Update Shadow"
 					fixed2 shadowThisFrame;
 					shadowThisFrame.x = ComputeShadow(input, _JitterDiameters_CurrentFrameWeights.x, cascadeWeights);
 					shadowThisFrame.y = ComputeShadow(input, _JitterDiameters_CurrentFrameWeights.y, cascadeWeights);
+
+#if defined(EXTERNAL_SHADOW_PASS) && defined(EXTERNAL_SHADOW_PASS_FUNC)
+
+					shadowThisFrame = EXTERNAL_SHADOW_PASS_FUNC(input.WorldPos, shadowThisFrame, EXTERNAL_SHADOWS_HIGH_DETAIL);
+
+#endif
+
 					shadowThisFrame = (fixed2)1.0 - saturate(shadowThisFrame + shadowFade);
 
 					shadow = lerp(shadow, shadowThisFrame, _JitterDiameters_CurrentFrameWeights.zw * _SimDeltaTime * 60.0);

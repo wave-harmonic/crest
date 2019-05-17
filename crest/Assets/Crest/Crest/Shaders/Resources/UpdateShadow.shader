@@ -19,7 +19,7 @@ Shader "Hidden/Crest/Simulation/Update Shadow"
 			#include "../OceanLODData.hlsl"
 
 			// To enable external shadows (i.e. clouds, fog, etc.), uncomment the following line and set the path to your shader that provides the shadows
-			// the shader include file should provide a function called float EXTERNAL_SHADOW_PASS_FUNC(float3 worldPos, float existingShadow, bool highDetail)
+			// the shader include file should provide a function called float EXTERNAL_SHADOW_PASS_FUNC(float3 worldPos, float existingShadow, bool highDetail, inout half shadowFade)
 			// return value is the new shadow value (0-1, 0 for full shadow, 1 for no shadow), the worldPos is in world space, existing shadow is the current amount of shadow,
 			// and highDetail is an option to provide high or low shadow quality for performance
 			// typically this external shadow function would return the min(externalShadow, existingShadow) but this is left up to the implementation
@@ -157,15 +157,15 @@ Shader "Hidden/Crest/Simulation/Update Shadow"
 					float4 distances2 = float4(dot(fromCenter0, fromCenter0), dot(fromCenter1, fromCenter1), dot(fromCenter2, fromCenter2), dot(fromCenter3, fromCenter3));
 					float4 cascadeWeights = float4(distances2 < unity_ShadowSplitSqRadii);
 					cascadeWeights.yzw = saturate(cascadeWeights.yzw - cascadeWeights.xyz);
-					//float sphereDist = distance(input._WorldPosViewZ.xyz, unity_ShadowFadeCenterAndType.xyz);
-					half shadowFade = 0.0;// saturate(sphereDist * _LightShadowData.z + _LightShadowData.w); // horrible artifacts at horizon
+					float sphereDist = distance(input._WorldPosViewZ.xyz, unity_ShadowFadeCenterAndType.xyz);
+					half shadowFade = saturate(sphereDist * _LightShadowData.z + _LightShadowData.w);
 
 					fixed2 shadowThisFrame;
 					shadowThisFrame.x = ComputeShadow(input, _JitterDiameters_CurrentFrameWeights.x, cascadeWeights);
 					shadowThisFrame.y = ComputeShadow(input, _JitterDiameters_CurrentFrameWeights.y, cascadeWeights);
 
 #if defined(EXTERNAL_SHADOW_PASS) && defined(EXTERNAL_SHADOW_PASS_FUNC)
-					shadowThisFrame = EXTERNAL_SHADOW_PASS_FUNC(input.WorldPos, shadowThisFrame, EXTERNAL_SHADOW_PASS_HIGH_DETAIL);
+					shadowThisFrame = EXTERNAL_SHADOW_PASS_FUNC(input.WorldPos, shadowThisFrame, EXTERNAL_SHADOW_PASS_HIGH_DETAIL, shadowFade);
 #endif
 
 					shadowThisFrame = (fixed2)1.0 - saturate(shadowThisFrame + shadowFade);

@@ -165,9 +165,7 @@ Shader "Hidden/Crest/Simulation/Update Shadow"
 					shadowThisFrame.y = ComputeShadow(input, _JitterDiameters_CurrentFrameWeights.y, cascadeWeights);
 
 #if defined(EXTERNAL_SHADOW_PASS) && defined(EXTERNAL_SHADOW_PASS_FUNC)
-
 					shadowThisFrame = EXTERNAL_SHADOW_PASS_FUNC(input.WorldPos, shadowThisFrame, EXTERNAL_SHADOWS_HIGH_DETAIL);
-
 #endif
 
 					shadowThisFrame = (fixed2)1.0 - saturate(shadowThisFrame + shadowFade);

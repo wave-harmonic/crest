@@ -157,8 +157,8 @@ Shader "Hidden/Crest/Simulation/Update Shadow"
 					float4 distances2 = float4(dot(fromCenter0, fromCenter0), dot(fromCenter1, fromCenter1), dot(fromCenter2, fromCenter2), dot(fromCenter3, fromCenter3));
 					float4 cascadeWeights = float4(distances2 < unity_ShadowSplitSqRadii);
 					cascadeWeights.yzw = saturate(cascadeWeights.yzw - cascadeWeights.xyz);
-					float sphereDist = distance(input._WorldPosViewZ.xyz, unity_ShadowFadeCenterAndType.xyz);
-					half shadowFade = saturate(sphereDist * _LightShadowData.z + _LightShadowData.w);
+					//float sphereDist = distance(input._WorldPosViewZ.xyz, unity_ShadowFadeCenterAndType.xyz);
+					half shadowFade = 0.0;// saturate(sphereDist * _LightShadowData.z + _LightShadowData.w); // horrible artifacts at horizon
 
 					fixed2 shadowThisFrame;
 					shadowThisFrame.x = ComputeShadow(input, _JitterDiameters_CurrentFrameWeights.x, cascadeWeights);

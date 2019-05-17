@@ -190,39 +190,58 @@ namespace Crest
 
 		#endregion
 
+        /// <summary>
+        /// DOES NOT WORK YET, need to find depth from the ocean cache texture
+        /// </summary>
 		public static void AddNewOceanDepthCache(OceanDepthCache newCache)
 		{
+            return;
+
 			if(newCache.CacheTexture == null)
 				return;
 
 			// Call this so that nothing has issues
 			CompleteJobs();
 
-			RenderTexture renderTexture = newCache.CacheTexture;
-			RenderTexture activeTexture = RenderTexture.active;
+            // Code to read off the texture caches
+            // TODO - figure out how to read the depths from the ocean cache
+            RenderTexture renderTexture = newCache.CacheTexture;
+            RenderTexture activeTexture = RenderTexture.active;
 
-			Texture2D texture = new Texture2D(renderTexture.width, renderTexture.height, TextureFormat.RGB24, false);
-			Rect rectReadPicture = new Rect(0, 0, renderTexture.width, renderTexture.height);
-			RenderTexture.active = renderTexture;
+            Texture2D texture = new Texture2D(renderTexture.width, renderTexture.height, TextureFormat.R16, false, true);
+            Rect rectReadPicture = new Rect(0, 0, renderTexture.width, renderTexture.height);
+            RenderTexture.active = renderTexture;
 
-			// Read pixels
-			texture.ReadPixels(rectReadPicture, 0, 0);
-			texture.Apply();
+            // Read pixels
+            texture.ReadPixels(rectReadPicture, 0, 0);
+            texture.Apply();
 
-			RenderTexture.active = activeTexture; // added to avoid errors 
+            RenderTexture.active = activeTexture; // added to avoid errors 
 
-			//// TODO - Need a faster way to do this
-			Color[] readMap = texture.GetPixels(0, 0, texture.width, texture.height);
-			float[] simpleCache = new float[readMap.Length];
-			for(int i = 0; i < readMap.Length; i++)
-				simpleCache[i] = readMap[i].r;
+            //// TODO - Need a faster way to do this
+            Color[] readMap = texture.GetPixels(0, 0, texture.width, texture.height);
+            float[] simpleCache = new float[readMap.Length];
 
-			if(depthCachesRegistry.ContainsKey(newCache) == false)
-				depthCachesRegistry.Add(newCache, simpleCache);
-			else
-				depthCachesRegistry[newCache] = simpleCache;
+            byte[] bytes;
+            bytes = texture.EncodeToPNG();
+            //System.IO.File.WriteAllBytes(Application.dataPath + "/texture.png", bytes);
 
-			UpdateJobOceanDepthCaches();
+            for(int i = 0; i < readMap.Length; i++)
+            {
+                float redChannel = readMap[i].r;
+
+                // ????
+                // here we need to convert the r channel to the depth in meters. Positive for deeper too.
+
+                simpleCache[i] = 1000;
+            }
+
+            if(depthCachesRegistry.ContainsKey(newCache) == false)
+                depthCachesRegistry.Add(newCache, simpleCache);
+            else
+                depthCachesRegistry[newCache] = simpleCache;
+
+            UpdateJobOceanDepthCaches();
 		}
 
 		// Regenerates all the caches when a new one is added
@@ -232,9 +251,10 @@ namespace Crest
 			if(c_matrix.IsCreated) c_matrix.Dispose();
 			if(c_resolution.IsCreated) c_resolution.Dispose();
 			if(c_size.IsCreated) c_size.Dispose();
+            if(c_depthCaches.IsCreated) c_depthCaches.Dispose();
 
-			// Find the total length of the cache
-			int totalLength = 0;
+            // Find the total length of the cache
+            int totalLength = 0;
 			foreach(var floats in depthCachesRegistry.Values)
 				totalLength += floats.Length;
 
@@ -264,8 +284,6 @@ namespace Crest
 				registryIndex++;
 			}
 		}
-
-		#region ALLLLLLL
 
 		/// <summary>
 		/// Dispose storage
@@ -465,7 +483,7 @@ namespace Crest
 				_depthAtHeight = s_heightQueryPositions,
 			};
 
-			
+
 			var heightJob = new HeightJob()
 			{
 				_attenuationInShallows = 0.95f, // TODO - hook this up with the info from the simulation settings
@@ -482,6 +500,7 @@ namespace Crest
 				_time = OceanRenderer.Instance.CurrentTime,
 				_outHeights = s_resultHeights,
 				_seaLevel = OceanRenderer.Instance.SeaLevel,
+				_dontUseDepth = false,
 			};
 
 			JobHandle handler = matrixJob.Schedule();
@@ -508,9 +527,7 @@ namespace Crest
 			if(_segments.IsCreated) _segments.Dispose();
 			if(_matrixes.IsCreated) _matrixes.Dispose();
 		}
-
-		#endregion
-
+        		
 		/// <summary>
 		/// This sets up the proper matrixes so that the local points can be transformed to world points
 		/// </summary>
@@ -549,46 +566,85 @@ namespace Crest
 				}
 			}
 
-			// This function is messy and not done well. Feel free to clean up!
-			public float FindHeightAtWorldPosition(float3 worldTestPos, 
+			//This function is messy and not done well.Feel free to clean up!
+			//public float FindHeightAtWorldPosition(float3 worldTestPos,
+			//	NativeArray<int2> segmentRegistry, NativeArray<Matrix4x4> matrix, NativeArray<int> resolution, NativeArray<float> size,
+			//	NativeArray<float> depthCaches)
+			//{
+			//	float returnHeight = 10000;
+
+			//	for(int i = 0, l = _segmentRegistry.Length; i < l; i++)
+			//	{
+			//		// Brings the local test point to local (should be aligned properly in the grid)
+			//		float3 point = matrix[i].MultiplyPoint3x4(worldTestPos);
+			//		float2 localTestPoint = new float2(point.x, point.z);
+
+			//		float halfSize = size[i] / 2;
+			//		float radisuSqr = halfSize * halfSize;
+			//		radisuSqr += radisuSqr;
+
+			//		// Ignore this height query since it is not within the radius of this at all
+			//		if(math.length(localTestPoint) > radisuSqr)
+			//			continue;
+
+			//		// Moves the test point into a positive spot so we can figure out where in the grid it is
+			//		localTestPoint += new float2(halfSize, halfSize);
+
+			//		float2 testIntPoint = new float2(localTestPoint.x / size[i], localTestPoint.y / size[i]);
+			//		testIntPoint = math.round(testIntPoint * resolution[i]);
+			//		int flatPoint = (int)testIntPoint.y * resolution[i] + (int)testIntPoint.x + segmentRegistry[i].x;
+
+			//		if(flatPoint >= segmentRegistry[i].x && flatPoint < segmentRegistry[i].y)
+			//		{
+			//			float possibleHeight = depthCaches[flatPoint];
+
+			//			if(possibleHeight < returnHeight)
+			//				returnHeight = possibleHeight;
+			//		}
+			//	}
+
+			//	return returnHeight;
+			//}
+
+			public float FindHeightAtWorldPosition(float3 worldTestPos,
 				NativeArray<int2> segmentRegistry, NativeArray<Matrix4x4> matrix, NativeArray<int> resolution, NativeArray<float> size,
 				NativeArray<float> depthCaches)
 			{
-				float returnHeight = 1000;
+				float returnHeight = 10000;
 
 				for(int i = 0, l = _segmentRegistry.Length; i < l; i++)
 				{
-					// Brings the local test point to local (should be aligned properly in the grid)
+					// Brings the local test point to local (should be aligned properly with the texture the grid)
 					float3 point = matrix[i].MultiplyPoint3x4(worldTestPos);
-					float2 localTestPoint = new float2(point.x, point.z);
 
-					float halfSize = size[i] / 2;
-					float radisuSqr = halfSize * halfSize;
-					radisuSqr += radisuSqr;
-
-					// Ignore this height query since it is not within the radius of this at all
-					if(math.length(localTestPoint) > radisuSqr)
-						continue;
-
-					// Moves the test point into a positive spot so we can figure out where in the grid it is
-					localTestPoint += new float2(halfSize, halfSize);
-
-					float2 testIntPoint = new float2(localTestPoint.x / size[i], localTestPoint.y / size[i]);
-					testIntPoint = math.round(testIntPoint * resolution[i]);
-					int flatPoint = (int)testIntPoint.y * resolution[i] + (int)testIntPoint.x + segmentRegistry[i].x;
-
-					if(flatPoint >= segmentRegistry[i].x && flatPoint < segmentRegistry[i].y)
+					float xOffset = point.x;
+					float zOffset = point.z;
+					float r = size[i] * resolution[i] / 2f;
+					if(math.abs(xOffset) >= r || math.abs(zOffset) >= r)
 					{
-						float possibleHeight = depthCaches[flatPoint];
-
-						if(possibleHeight < returnHeight)
-							returnHeight = possibleHeight;
+						// outside of this collision data
+						continue;
 					}
+
+					float u = 0.5f + 0.5f * xOffset / r;
+					float v = 0.5f + 0.5f * zOffset / r;
+					int x = (int)math.floor(u * resolution[i]);
+					int y = (int)math.floor(v * resolution[i]);
+					int id = segmentRegistry[i].x + y * resolution[i] + x;
+
+					float possibleHeight = depthCaches[id];
+
+					if(possibleHeight < returnHeight)
+						returnHeight = possibleHeight;
 				}
-				
+
 				return returnHeight;
 			}
 		}
+
+	
+
+	
 
 		/// <summary>
 		/// This inverts the displacement to get the true water height at a position.
@@ -628,7 +684,7 @@ namespace Crest
 			[ReadOnly]
 			public float _attenuationInShallows;
 			[ReadOnly]
-			public bool DontUseDepth;
+			public bool _dontUseDepth;
 
 			// runtime
 			const float PI = 3.141593f;
@@ -648,7 +704,7 @@ namespace Crest
 					for(int iter = 0; iter < 4; iter++)
 					{
 						float2 displacement = new float2();
-						if(DontUseDepth)
+						if(_dontUseDepth)
 							displacement = ComputeDisplacementHoriz(undisplacedPos);
 						else
 							displacement = ComputeDisplacementHorizWithOceanFloorData(undisplacedPos, seaFloorHeight);
@@ -659,7 +715,7 @@ namespace Crest
 					}
 
 					// Our height is now the vertical component of the displacement from the undisp pos
-					if(DontUseDepth)
+					if(_dontUseDepth)
 						_outHeights[index] = ComputeDisplacementVert(undisplacedPos) + _seaLevel;
 					else
 						_outHeights[index] = ComputeDisplacementVertWithOceanFloorData(undisplacedPos, seaFloorHeight) + _seaLevel;

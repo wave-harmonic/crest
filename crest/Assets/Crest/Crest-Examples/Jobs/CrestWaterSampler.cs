@@ -17,6 +17,7 @@ public class CrestWaterSampler : MonoBehaviour
 
 	[Tooltip("Fills in points for testing purposes")]
 	public bool UseUseTestData = false;
+	public float Spacing = 0.2f;
 
 	[Header("Info")]
 	[Tooltip("The points in local space relative to this gameObject")]
@@ -33,7 +34,7 @@ public class CrestWaterSampler : MonoBehaviour
 		guid = GetInstanceID();
 
 		if(UseUseTestData)
-			FillQueriesWithTestData();
+			FillQueriesWithTestData(Spacing);
 	}
 
 	private void OnDisable()
@@ -56,7 +57,7 @@ public class CrestWaterSampler : MonoBehaviour
 				Vector3 point = this.transform.TransformPoint(LocalQueryPositions[i]);
 				point.y = ResultsHeight[i];
 
-				Utility.Draw3DCross(point, Color.magenta, 0.25f);
+				Utility.Draw3DCross(point, Color.magenta, Spacing / 2);
 			}
 		}
 

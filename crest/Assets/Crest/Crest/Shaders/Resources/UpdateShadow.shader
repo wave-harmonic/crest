@@ -21,7 +21,8 @@ Shader "Hidden/Crest/Simulation/Update Shadow"
 			// To enable external shadows (i.e. clouds, fog, etc.), uncomment the following line and set the path to your shader that provides the shadows
 			// the shader include file should provide a function called float EXTERNAL_SHADOW_PASS_FUNC(float3 worldPos, float existingShadow, bool highDetail, inout half shadowFade)
 			// return value is the new shadow value (0-1, 0 for full shadow, 1 for no shadow), the worldPos is in world space, existing shadow is the current amount of shadow,
-			// and highDetail is an option to provide high or low shadow quality for performance
+			// highDetail is an option to provide high or low shadow quality for performance
+			// shadowFade can be set to 0 to disable shadow fade entirely, or to a custom value or left alone
 			// typically this external shadow function would return the min(externalShadow, existingShadow) but this is left up to the implementation
 			//#define EXTERNAL_SHADOW_PASS
 #if defined(EXTERNAL_SHADOW_PASS)

@@ -32,10 +32,52 @@ namespace Crest
 
             for (int lodIdx = OceanRenderer.Instance.CurrentLodCount - 1; lodIdx >= 0; lodIdx--)
             {
-                buf.SetRenderTarget(_targets[lodIdx]);
+
+                int sliceCount = lodIdx + 1;
+                if(sliceCount > 4) sliceCount = 4;
+                RenderTexture targetSlice = new RenderTexture(
+                    _targets[lodIdx]
+                );
+
+
+                targetSlice.dimension = TextureDimension.Tex2DArray;
+                targetSlice.volumeDepth = 4;
+                targetSlice.name = "SeaFloorDepth " + lodIdx + " to " + (lodIdx - (sliceCount - 1));
+
+                targetSlice.Create();
+                for (int slice = 0; slice < sliceCount; slice++)
+                {
+                    Graphics.CopyTexture(_targets[lodIdx - slice], 0, 0, targetSlice, slice, 0);
+                }
+
+                buf.SetRenderTarget(targetSlice, 0, CubemapFace.Unknown, -1); // TODO make this a depth slice
+
                 buf.ClearRenderTarget(false, true, Color.black);
 
-                SubmitDraws(lodIdx, buf);
+                Matrix4x4[] matrixArray = new Matrix4x4[sliceCount];
+                for (int slice = 0; slice < sliceCount; slice++)
+                {
+                    var lt = OceanRenderer.Instance._lods[lodIdx - slice];
+                    lt._renderData.Validate(0, this);
+
+                    Matrix4x4 worldToClipPos = lt.ProjectionMatrix * lt.WorldToCameraMatrix;
+                    // TODO (TRC): for some reason, the projection matrix that is sent to the
+                    // shader by `SetViewProjectionMatrices` in the command buffer has
+                    // it's middle two rows inverted, which then propagates to the
+                    // worldToClipPos matrix. We need to find out why this is so
+                    // this hacky stuff does not need to happen
+                    worldToClipPos.SetRow(1, worldToClipPos.GetRow(1) * -1);
+                    worldToClipPos.SetRow(2, worldToClipPos.GetRow(2) * -1);
+                    matrixArray[slice] = worldToClipPos;
+                }
+
+                buf.SetGlobalMatrixArray("_SliceViewProjMatrices", matrixArray);
+                foreach (var draw in _drawList)
+                {
+                    buf.DrawRenderer(draw.RendererComponent, draw.RendererComponent.sharedMaterial);
+                }
+
+                lodIdx = lodIdx - (sliceCount - 1);
             }
 
             // targets have now been cleared, we can early out next time around

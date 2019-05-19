@@ -166,6 +166,8 @@ public class OceanDebugGUI : MonoBehaviour
         DrawSims<LodDataMgrSeaFloorDepth>(OceanRenderer.Instance._lodDataSeaDepths, false, ref column);
     }
 
+    static Dictionary<System.Type, RenderTexture> shapes = new Dictionary<System.Type, RenderTexture>();
+
     static void DrawSims<SimType>(LodDataMgr lodData, bool showByDefault, ref float offset) where SimType : LodDataMgr
     {
         if (lodData == null) return;
@@ -192,9 +194,16 @@ public class OceanDebugGUI : MonoBehaviour
                 float y = idx * h;
                 if (offset == 1f) w += b;
 
-                RenderTexture shape;
+                RenderTexture shape = null;
 
-                shape = lodData.DataTexture(idx);
+                // TODO(MRT): clean up this section, workout if we can use texture2d arrays directly.
+                if(!shapes.ContainsKey(typeof(SimType)))
+                {
+                    shapes.Add(typeof(SimType), new RenderTexture(lodData.DataTexture));
+                    shapes[typeof(SimType)].dimension = UnityEngine.Rendering.TextureDimension.Tex2D;
+                }
+                shape = shapes[typeof(SimType)];
+                Graphics.CopyTexture(lodData.DataTexture, idx, 0, shape, 0, 0);
                 if (shape == null) continue;
 
                 GUI.color = Color.black * 0.7f;

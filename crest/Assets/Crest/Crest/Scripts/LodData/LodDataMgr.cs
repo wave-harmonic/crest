@@ -22,14 +22,13 @@ namespace Crest
 
         public const int MAX_LOD_COUNT = 16;
 
-        public virtual RenderTexture DataTexture(int lodIdx)
-        {
-            return _targets[lodIdx];
-        }
-
         protected abstract int GetParamIdSampler(int slot);
 
-        protected RenderTexture[] _targets;
+        protected RenderTexture _targets;
+
+        public RenderTexture DataTexture { get { return _targets; } }
+
+        public const int SLICE_COUNT = 16; // MUST match the value in OceanLODData.hlsl
 
         // shape texture resolution
         int _shapeRes = -1;
@@ -54,17 +53,17 @@ namespace Crest
             int resolution = OceanRenderer.Instance.LodDataResolution;
             var desc = new RenderTextureDescriptor(resolution, resolution, TextureFormat, 0);
 
-            _targets = new RenderTexture[OceanRenderer.Instance.CurrentLodCount];
-            for (int i = 0; i < _targets.Length; i++)
-            {
-                _targets[i] = new RenderTexture(desc);
-                _targets[i].wrapMode = TextureWrapMode.Clamp;
-                _targets[i].antiAliasing = 1;
-                _targets[i].filterMode = FilterMode.Bilinear;
-                _targets[i].anisoLevel = 0;
-                _targets[i].useMipMap = false;
-                _targets[i].name = SimName + "_" + i + "_0";
-            }
+
+            _targets = new RenderTexture(desc);
+            _targets.wrapMode = TextureWrapMode.Clamp;
+            _targets.antiAliasing = 1;
+            _targets.filterMode = FilterMode.Bilinear;
+            _targets.anisoLevel = 0;
+            _targets.useMipMap = false;
+            _targets.name = SimName;
+            _targets.dimension = TextureDimension.Tex2DArray;
+            _targets.volumeDepth = OceanRenderer.Instance.CurrentLodCount;
+            Debug.Assert(_targets.depth <= SLICE_COUNT);
         }
 
         public virtual void UpdateLodData()
@@ -77,13 +76,9 @@ namespace Crest
             }
             else if (width != _shapeRes)
             {
-                for(int i = 0; i < OceanRenderer.Instance.CurrentLodCount; i++)
-                {
-                    var tex = DataTexture(i);
-                    tex.Release();
-                    tex.width = tex.height = _shapeRes;
-                    tex.Create();
-                }
+                _targets.Release();
+                _targets.width = _targets.height = _shapeRes;
+                _targets.Create();
             }
 
             // determine if this LOD has changed scale and by how much (in exponent of 2)
@@ -97,12 +92,12 @@ namespace Crest
 
         public void BindResultData(int lodIdx, int shapeSlot, IPropertyWrapper properties)
         {
-            BindData(lodIdx, shapeSlot, properties, DataTexture(lodIdx), true, ref OceanRenderer.Instance._lods[lodIdx]._renderData);
+            BindData(lodIdx, shapeSlot, properties, _targets, true, ref OceanRenderer.Instance._lods[lodIdx]._renderData);
         }
 
         public void BindResultData(int lodIdx, int shapeSlot, IPropertyWrapper properties, bool blendOut)
         {
-            BindData(lodIdx, shapeSlot, properties, DataTexture(lodIdx), blendOut, ref OceanRenderer.Instance._lods[lodIdx]._renderData);
+            BindData(lodIdx, shapeSlot, properties, _targets, blendOut, ref OceanRenderer.Instance._lods[lodIdx]._renderData);
         }
 
         protected virtual void BindData(int lodIdx, int shapeSlot, IPropertyWrapper properties, Texture applyData, bool blendOut, ref LodTransform.RenderData renderData)
@@ -110,6 +105,7 @@ namespace Crest
             if (applyData)
             {
                 properties.SetTexture(GetParamIdSampler(shapeSlot), applyData);
+                properties.SetFloat(Shader.PropertyToID("_LD_SLICE_Index_0"), lodIdx);
             }
 
             var lt = OceanRenderer.Instance._lods[lodIdx];

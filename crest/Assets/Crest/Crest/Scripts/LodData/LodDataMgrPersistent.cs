@@ -14,7 +14,7 @@ namespace Crest
     {
         protected readonly int MAX_SIM_STEPS = 4;
 
-        RenderTexture[] _sources;
+        RenderTexture _sources;
         PropertyWrapperMaterial[,] _renderSimMaterial;
 
         protected abstract string ShaderSim { get; }
@@ -54,17 +54,17 @@ namespace Crest
             int resolution = OceanRenderer.Instance.LodDataResolution;
             var desc = new RenderTextureDescriptor(resolution, resolution, TextureFormat, 0);
 
-            _sources = new RenderTexture[OceanRenderer.Instance.CurrentLodCount];
-            for (int i = 0; i < _sources.Length; i++)
-            {
-                _sources[i] = new RenderTexture(desc);
-                _sources[i].wrapMode = TextureWrapMode.Clamp;
-                _sources[i].antiAliasing = 1;
-                _sources[i].filterMode = FilterMode.Bilinear;
-                _sources[i].anisoLevel = 0;
-                _sources[i].useMipMap = false;
-                _sources[i].name = SimName + "_" + i + "_1";
-            }
+
+            _sources = new RenderTexture(desc);
+            _sources.wrapMode = TextureWrapMode.Clamp;
+            _sources.antiAliasing = 1;
+            _sources.filterMode = FilterMode.Bilinear;
+            _sources.anisoLevel = 0;
+            _sources.useMipMap = false;
+            _sources.name = SimName;
+            _sources.dimension = TextureDimension.Tex2DArray;
+            _sources.volumeDepth = OceanRenderer.Instance.CurrentLodCount;
+
         }
 
         public void BindSourceData(int lodIdx, int shapeSlot, PropertyWrapperMaterial properties, bool paramsOnly, bool usePrevTransform)
@@ -73,7 +73,7 @@ namespace Crest
                 OceanRenderer.Instance._lods[lodIdx]._renderDataPrevFrame.Validate(BuildCommandBufferBase._lastUpdateFrame - Time.frameCount, this)
                 : OceanRenderer.Instance._lods[lodIdx]._renderData.Validate(0, this);
 
-            BindData(lodIdx, shapeSlot, properties, paramsOnly ? Texture2D.blackTexture : (Texture)_sources[lodIdx], true, ref rd);
+            BindData(lodIdx, shapeSlot, properties, paramsOnly ? Texture2D.blackTexture : (Texture) _sources, true, ref rd);
         }
 
         public abstract void GetSimSubstepData(float frameDt, out int numSubsteps, out float substepDt);
@@ -89,10 +89,8 @@ namespace Crest
 
             for (int stepi = 0; stepi < numSubsteps; stepi++)
             {
-                for (var lodIdx = lodCount - 1; lodIdx >= 0; lodIdx--)
-                {
-                    SwapRTs(ref _sources[lodIdx], ref _targets[lodIdx]);
-                }
+
+                SwapRTs(ref _sources, ref _targets);
 
                 for (var lodIdx = lodCount - 1; lodIdx >= 0; lodIdx--)
                 {
@@ -122,9 +120,10 @@ namespace Crest
                     SetAdditionalSimParams(lodIdx, _renderSimMaterial[stepi, lodIdx]);
 
                     {
-                        var rt = DataTexture(lodIdx);
-                        buf.SetRenderTarget(rt, rt.depthBuffer);
+                        buf.SetRenderTarget(_targets, _targets.depthBuffer, 0, CubemapFace.Unknown, lodIdx);
                     }
+
+                    buf.SetGlobalFloat("_LD_SLICE_Index_0", lodIdx);
 
                     buf.DrawMesh(FullScreenQuad(), Matrix4x4.identity, _renderSimMaterial[stepi, lodIdx].material);
 

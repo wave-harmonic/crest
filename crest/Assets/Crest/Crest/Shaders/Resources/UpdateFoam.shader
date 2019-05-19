@@ -20,7 +20,7 @@ Shader "Hidden/Crest/Simulation/Update Foam"
 
 			#include "UnityCG.cginc"
 			#include "../OceanLODData.hlsl"
-		
+
 			float _FoamFadeRate;
 			float _WaveFoamStrength;
 			float _WaveFoamCoverage;
@@ -39,8 +39,9 @@ Shader "Hidden/Crest/Simulation/Update Foam"
 			struct Varyings
 			{
 				float4 positionCS : SV_POSITION;
-				float4 uv_uv_lastframe : TEXCOORD0;
-				float2 positionWS_XZ : TEXCOORD1;
+				float3 uv_slice : TEXCOORD0;
+				float3 uv_slice_lastframe : TEXCOORD1;
+				float2 positionWS_XZ : TEXCOORD2;
 			};
 
 			Varyings Vert(Attributes input)
@@ -53,31 +54,31 @@ Shader "Hidden/Crest/Simulation/Update Foam"
 				o.positionCS.y = -o.positionCS.y;
 #endif
 
-				o.uv_uv_lastframe.xy = input.uv;
+				// TODO(MRT): when porting this to geometry shader, set the slice there instead
+				o.uv_slice = ADD_SLICE_0_TO_UV(input.uv);
 
 				// lod data 1 is current frame, compute world pos from quad uv
 				o.positionWS_XZ = LD_1_UVToWorld(input.uv);
-				o.uv_uv_lastframe.zw = LD_0_WorldToUV(o.positionWS_XZ);
+				o.uv_slice_lastframe = ADD_SLICE_0_TO_UV(LD_0_WorldToUV(o.positionWS_XZ));
 
 				return o;
 			}
 
 			half Frag(Varyings input) : SV_Target
 			{
-				float4 uv = float4(input.uv_uv_lastframe.xy, 0.0, 0.0);
-				float4 uv_lastframe = float4(input.uv_uv_lastframe.zw, 0.0, 0.0);
-
+				float3 uv_slice = input.uv_slice;
+				float3 uv_slice_lastframe = input.uv_slice_lastframe;
 				// #if _FLOW_ON
-				half4 velocity = half4(tex2Dlod(_LD_Sampler_Flow_1, uv).xy, 0.0, 0.0);
-				half foam = tex2Dlod(_LD_Sampler_Foam_0, uv_lastframe
+				half3 velocity = half3(_LD_TexArray_Flow_1.Sample(LODData_linear_clamp_sampler, uv_slice).xy, 0.0);
+				half foam = _LD_TexArray_Foam_0.Sample(LODData_linear_clamp_sampler, uv_slice_lastframe
 					- ((_SimDeltaTime * _LD_Params_0.w) * velocity)
 					).x;
 				// #else
-				// // sampler will clamp the uv currently
-				// half foam = tex2Dlod(_LD_Sampler_Foam_0, uv_lastframe).x;
+				// // sampler will clamp the uv_slice currently
+				// half foam = tex2Dlod(_LD_TexArray_Foam_0, uv_slice_lastframe).x;
 				// #endif
 
-				half2 r = abs(uv_lastframe.xy - 0.5);
+				half2 r = abs(uv_slice_lastframe.xy - 0.5);
 				if (max(r.x, r.y) > 0.5 - _LD_Params_0.w)
 				{
 					// no border wrap mode for RTs in unity it seems, so make any off-texture reads 0 manually
@@ -89,9 +90,9 @@ Shader "Hidden/Crest/Simulation/Update Foam"
 
 				// sample displacement texture and generate foam from it
 				const float3 dd = float3(_LD_Params_1.w, 0.0, _LD_Params_1.x);
-				half3 s = tex2Dlod(_LD_Sampler_AnimatedWaves_1, uv).xyz;
-				half3 sx = tex2Dlod(_LD_Sampler_AnimatedWaves_1, uv + dd.xyyy).xyz;
-				half3 sz = tex2Dlod(_LD_Sampler_AnimatedWaves_1, uv + dd.yxyy).xyz;
+				half3 s = _LD_TexArray_AnimatedWaves_1.Sample(LODData_linear_clamp_sampler, uv_slice).xyz;
+				half3 sx = _LD_TexArray_AnimatedWaves_1.SampleLevel(LODData_linear_clamp_sampler, uv_slice + float3(dd.xy, 0), dd.yy).xyz;
+				half3 sz = _LD_TexArray_AnimatedWaves_1.SampleLevel(LODData_linear_clamp_sampler, uv_slice + float3(dd.yx, 0), dd.yy).xyz;
 				float3 disp = s.xyz;
 				float3 disp_x = dd.zyy + sx.xyz;
 				float3 disp_z = dd.yyz + sz.xyz;
@@ -104,8 +105,8 @@ Shader "Hidden/Crest/Simulation/Update Foam"
 				foam += 5.0 * _SimDeltaTime * _WaveFoamStrength * saturate(_WaveFoamCoverage - det);
 
 				// add foam in shallow water. use the displaced position to ensure we add foam where world objects are.
-				float4 uv_1_displaced = float4(LD_1_WorldToUV(input.positionWS_XZ + disp.xz), 0.0, 1.0);
-				float signedOceanDepth = CREST_OCEAN_DEPTH_BASELINE - tex2Dlod(_LD_Sampler_SeaFloorDepth_1, uv_1_displaced).x + disp.y;
+				float3 uv_slice_1_displaced = float3(LD_1_WorldToUV(input.positionWS_XZ + disp.xz), uv_slice.z);
+				float signedOceanDepth = CREST_OCEAN_DEPTH_BASELINE - _LD_TexArray_SeaFloorDepth_1.SampleLevel(LODData_linear_clamp_sampler, uv_slice_1_displaced, float2(0, 1)).x + disp.y;
 				foam += _ShorelineFoamStrength * _SimDeltaTime * saturate(1.0 - signedOceanDepth / _ShorelineFoamMaxDepth);
 
 				return foam;

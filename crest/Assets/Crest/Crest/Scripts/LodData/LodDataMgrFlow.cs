@@ -62,9 +62,9 @@ namespace Crest
 
             for (int lodIdx = OceanRenderer.Instance.CurrentLodCount - 1; lodIdx >= 0; lodIdx--)
             {
-                buf.SetRenderTarget(DataTexture(lodIdx));
+                buf.SetRenderTarget(_targets, 0, CubemapFace.Unknown, lodIdx);
                 buf.ClearRenderTarget(false, true, Color.black);
-
+                buf.SetGlobalFloat("_LD_SLICE_Index_0", lodIdx);
                 SubmitDraws(lodIdx, buf);
             }
 
@@ -79,7 +79,7 @@ namespace Crest
         public static int ParamIdSampler(int slot)
         {
             if (_paramsSampler == null)
-                LodTransform.CreateParamIDs(ref _paramsSampler, "_LD_Sampler_Flow_");
+                LodTransform.CreateParamIDs(ref _paramsSampler, "_LD_TexArray_Flow_");
             return _paramsSampler[slot];
         }
         protected override int GetParamIdSampler(int slot)

@@ -136,7 +136,7 @@ namespace Crest
         public static int ParamIdSampler(int slot)
         {
             if (_paramsSampler == null)
-                LodTransform.CreateParamIDs(ref _paramsSampler, "_LD_Sampler_DynamicWaves_");
+                LodTransform.CreateParamIDs(ref _paramsSampler, "_LD_TexArray_DynamicWaves_");
             return _paramsSampler[slot];
         }
         protected override int GetParamIdSampler(int slot)

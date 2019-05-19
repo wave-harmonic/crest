@@ -32,7 +32,7 @@ Shader "Crest/Ocean Surface Alpha"
 			#pragma vertex Vert
 			#pragma fragment Frag
 			#pragma multi_compile_fog
-			
+
 			#include "UnityCG.cginc"
 			#include "OceanLODData.hlsl"
 
@@ -76,8 +76,8 @@ Shader "Crest/Ocean Surface Alpha"
 				// sample displacement textures, add results to current world pos / normal / foam
 				const float2 wxz = worldPos.xz;
 				half foam = 0.0;
-				SampleDisplacements(_LD_Sampler_AnimatedWaves_0, LD_0_WorldToUV(wxz), wt_0, worldPos);
-				SampleDisplacements(_LD_Sampler_AnimatedWaves_1, LD_1_WorldToUV(wxz), wt_1, worldPos);
+				SampleDisplacements(_LD_TexArray_AnimatedWaves_0, ADD_SLICE_0_TO_UV(LD_0_WorldToUV(wxz)), wt_0, worldPos);
+				SampleDisplacements(_LD_TexArray_AnimatedWaves_1, ADD_SLICE_1_TO_UV(LD_1_WorldToUV(wxz)), wt_1, worldPos);
 
 				// move to sea level
 				worldPos.y += _OceanCenterPosWorld.y;
@@ -89,7 +89,7 @@ Shader "Crest/Ocean Surface Alpha"
 				UNITY_TRANSFER_FOG(o, o.positionCS);
 				return o;
 			}
-			
+
 			half4 Frag(Varyings input) : SV_Target
 			{
 				half4 col = tex2D(_MainTex, input.uv);

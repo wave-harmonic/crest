@@ -52,7 +52,7 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Batch"
 			{
 				float4 positionCS : SV_POSITION;
 				float3 worldPos_wt : TEXCOORD0;
-				float2 uv : TEXCOORD1;
+				float3 uv_slice : TEXCOORD1;
 			};
 
 			Varyings Vert(Attributes input)
@@ -69,7 +69,7 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Batch"
 				o.worldPos_wt.xy = worldXZ;
 				o.worldPos_wt.z = input.color.x;
 
-				o.uv = input.uv;
+				o.uv_slice = ADD_SLICE_0_TO_UV(input.uv);
 
 				return o;
 			}
@@ -79,7 +79,7 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Batch"
 				const half4 oneMinusAttenuation = (half4)1.0 - (half4)_AttenuationInShallows;
 
 				// sample ocean depth (this render target should 1:1 match depth texture, so UVs are trivial)
-				const half depth = CREST_OCEAN_DEPTH_BASELINE - tex2D(_LD_Sampler_SeaFloorDepth_0, input.uv).x;
+				const half depth = CREST_OCEAN_DEPTH_BASELINE - _LD_TexArray_SeaFloorDepth_0.Sample(LODData_linear_clamp_sampler, input.uv_slice).x;
 				half3 result = (half3)0.0;
 
 				// gerstner computation is vectorized - processes 4 wave components at once

@@ -148,7 +148,7 @@ namespace Crest
 
                 if (lt._renderData._texelWidth >= _minGridSize && (lt._renderData._texelWidth <= _maxGridSize || _maxGridSize == 0f))
                 {
-                    var tex = _lodComponent.DataTexture(lt.LodIndex);
+                    var tex = _lodComponent.DataTexture;
                     if (tex == null) continue;
 
                     if (!_perLodData.ContainsKey(lt._renderData._texelWidth))
@@ -177,7 +177,7 @@ namespace Crest
                         // ensure everything in the frame is done.
                         if (runningFromUpdate)
                         {
-                            EnqueueReadbackRequest(tex, lt._renderData, _prevFrameTime);
+                            EnqueueReadbackRequest(tex, lt.LodIndex, lt._renderData, _prevFrameTime);
                         }
 
                         ProcessArrivedRequests(lodData);
@@ -189,7 +189,7 @@ namespace Crest
         /// <summary>
         /// Request current contents of cameras shape texture. queue pattern inspired by: https://github.com/keijiro/AsyncCaptureTest
         /// </summary>
-        void EnqueueReadbackRequest(RenderTexture target, LodTransform.RenderData renderData, float previousFrameTime)
+        void EnqueueReadbackRequest(RenderTexture target, int lodIndex, LodTransform.RenderData renderData, float previousFrameTime)
         {
             if (!_doReadback)
             {
@@ -209,7 +209,7 @@ namespace Crest
                 lodData._requests.Enqueue(
                     new ReadbackRequest
                     {
-                        _request = AsyncGPUReadback.Request(target),
+                        _request = AsyncGPUReadback.Request(target, 0, 0, target.width, 0, target.height, lodIndex, 1),
                         _renderData = renderData,
                         _time = previousFrameTime,
                     }

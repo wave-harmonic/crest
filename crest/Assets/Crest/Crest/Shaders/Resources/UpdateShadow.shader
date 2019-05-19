@@ -126,7 +126,7 @@ Shader "Hidden/Crest/Simulation/Update Shadow"
 				half2 r = abs(uv_lastframe.xy - 0.5);
 				if (max(r.x, r.y) < 0.49)
 				{
-					SampleShadow(_LD_Sampler_Shadow_0, uv_lastframe, 1.0, shadow);
+					SampleShadow(_LD_TexArray_Shadow_0, uv_lastframe, 1.0, shadow);
 				}
 
 				// Check if the current sample is visible in the main camera (and therefore shadow map can be sampled)

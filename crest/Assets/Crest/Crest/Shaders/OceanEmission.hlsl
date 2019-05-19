@@ -64,15 +64,15 @@ half3 ScatterColour(
 		// 2. for the underwater skirt geometry, we don't have the lod data sampled from the verts with lod transitions etc,
 		//    so just approximate by sampling at the camera position.
 		// this used to sample LOD1 but that doesnt work in last LOD, the data will be missing.
-		const float2 uv_0 = LD_0_WorldToUV(i_cameraPos.xz);
+		const float3 uv_0 = ADD_SLICE_0_TO_UV(LD_0_WorldToUV(i_cameraPos.xz));
 		float seaFloorHeightAboveBaseline = 0.0;
-		SampleSeaFloorHeightAboveBaseline(_LD_Sampler_SeaFloorDepth_0, uv_0, 1.0, seaFloorHeightAboveBaseline);
+		SampleSeaFloorHeightAboveBaseline(_LD_TexArray_SeaFloorDepth_0, uv_0, 1.0, seaFloorHeightAboveBaseline);
 		depth = CREST_OCEAN_DEPTH_BASELINE - seaFloorHeightAboveBaseline;
 		waveHeight = 0.0;
 
 #if _SHADOWS_ON
 		half2 shadowSoftHard = 0.0;
-		SampleShadow(_LD_Sampler_Shadow_0, uv_0, 1.0, shadowSoftHard);
+		SampleShadow(_LD_TexArray_Shadow_0, uv_0, 1.0, shadowSoftHard);
 		shadow = 1.0 - shadowSoftHard.x;
 #endif
 	}
@@ -138,11 +138,11 @@ void ApplyCaustics(in const half3 i_view, in const half3 i_lightDir, in const fl
 	// underwater caustics - dedicated to P
 	float3 camForward = mul((float3x3)unity_CameraToWorld, float3(0., 0., 1.));
 	float3 scenePos = _WorldSpaceCameraPos - i_view * i_sceneZ / dot(camForward, -i_view);
-	const float2 scenePosUV = LD_1_WorldToUV(scenePos.xz);
+	const float3 scenePosUV = ADD_SLICE_1_TO_UV(LD_1_WorldToUV(scenePos.xz));
 	half3 disp = 0.;
 	// this gives height at displaced position, not exactly at query position.. but it helps. i cant pass this from vert shader
 	// because i dont know it at scene pos.
-	SampleDisplacements(_LD_Sampler_AnimatedWaves_1, scenePosUV, 1.0, disp);
+	SampleDisplacements(_LD_TexArray_AnimatedWaves_1, scenePosUV, 1.0, disp);
 	half waterHeight = _OceanCenterPosWorld.y + disp.y;
 	half sceneDepth = waterHeight - scenePos.y;
 	// Compute mip index manually, with bias based on sea floor depth. We compute it manually because if it is computed automatically it produces ugly patches
@@ -165,13 +165,13 @@ void ApplyCaustics(in const half3 i_view, in const half3 i_lightDir, in const fl
 		if(i_underwater)
 		{
 			const float2 uv_0 = LD_0_WorldToUV(surfacePosXZ);
-			SampleShadow(_LD_Sampler_Shadow_0, uv_0, 1.0, causticShadow);
+			SampleShadow(_LD_TexArray_Shadow_0, uv_0, 1.0, causticShadow);
 		}
 		else
 		{
 			// only sample the bigger lod. if pops are noticeable this could lerp the 2 lods smoothly, but i didnt notice issues.
 			float2 uv_1 = LD_1_WorldToUV(surfacePosXZ);
-			SampleShadow(_LD_Sampler_Shadow_1, uv_1, 1.0, causticShadow);
+			SampleShadow(_LD_TexArray_Shadow_1, uv_1, 1.0, causticShadow);
 		}
 		causticsStrength *= 1.0 - causticShadow.y;
 	}

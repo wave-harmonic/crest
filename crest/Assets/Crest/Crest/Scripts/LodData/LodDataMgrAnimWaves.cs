@@ -34,7 +34,7 @@ namespace Crest
 
         List<ShapeGerstnerBatched> _gerstnerComponents = new List<ShapeGerstnerBatched>();
 
-        RenderTexture[] _waveBuffers;
+        RenderTexture _waveBuffers;
 
         PropertyWrapperMaterial[] _combineProperties;
 
@@ -63,17 +63,17 @@ namespace Crest
             int resolution = OceanRenderer.Instance.LodDataResolution;
             var desc = new RenderTextureDescriptor(resolution, resolution, TextureFormat, 0);
 
-            _waveBuffers = new RenderTexture[OceanRenderer.Instance.CurrentLodCount];
-            for (int i = 0; i < _waveBuffers.Length; i++)
-            {
-                _waveBuffers[i] = new RenderTexture(desc);
-                _waveBuffers[i].wrapMode = TextureWrapMode.Clamp;
-                _waveBuffers[i].antiAliasing = 1;
-                _waveBuffers[i].filterMode = FilterMode.Bilinear;
-                _waveBuffers[i].anisoLevel = 0;
-                _waveBuffers[i].useMipMap = false;
-                _waveBuffers[i].name = "WaveBuffer_" + i + "_1";
-            }
+
+            _waveBuffers = new RenderTexture(desc);
+            _waveBuffers.wrapMode = TextureWrapMode.Clamp;
+            _waveBuffers.antiAliasing = 1;
+            _waveBuffers.filterMode = FilterMode.Bilinear;
+            _waveBuffers.anisoLevel = 0;
+            _waveBuffers.useMipMap = false;
+            _waveBuffers.name = "WaveBuffer";
+            _waveBuffers.dimension = TextureDimension.Tex2DArray;
+            _waveBuffers.volumeDepth = OceanRenderer.Instance.CurrentLodCount;
+
         }
 
         // Filter object for assigning shapes to lods. This was much more elegant with a lambda but it generated garbage.
@@ -111,8 +111,9 @@ namespace Crest
             _filterWavelength._lodCount = lodCount;
             for (int lodIdx = lodCount - 1; lodIdx >= 0; lodIdx--)
             {
-                buf.SetRenderTarget(_waveBuffers[lodIdx]);
+                buf.SetRenderTarget(_waveBuffers, 0, CubemapFace.Unknown, lodIdx);
                 buf.ClearRenderTarget(false, true, Color.black);
+                buf.SetGlobalFloat("_LD_SLICE_Index_0", lodIdx);
 
                 foreach (var gerstner in _gerstnerComponents)
                 {
@@ -164,13 +165,13 @@ namespace Crest
                     LodDataMgrFlow.BindNull(0, _combineProperties[lodIdx]);
                 }
 
-                buf.Blit(null, DataTexture(lodIdx), _combineProperties[lodIdx].material);
+                buf.Blit(Texture2D.blackTexture, DataTexture, _combineProperties[lodIdx].material, -1, lodIdx);
             }
 
             // lod-independent data
             for (int lodIdx = lodCount - 1; lodIdx >= 0; lodIdx--)
             {
-                buf.SetRenderTarget(DataTexture(lodIdx));
+                buf.SetRenderTarget(_targets, 0, CubemapFace.Unknown, lodIdx);
 
                 // draw any data that did not express a preference for one lod or another
                 SubmitDrawsFiltered(lodIdx, buf, _filterNoLodPreference);
@@ -180,7 +181,7 @@ namespace Crest
         public void BindWaveBuffer(int lodIdx, int shapeSlot, IPropertyWrapper properties, bool paramsOnly)
         {
             var rd = OceanRenderer.Instance._lods[lodIdx]._renderData.Validate(0, this);
-            BindData(lodIdx, shapeSlot, properties, paramsOnly ? Texture2D.blackTexture : (Texture)_waveBuffers[lodIdx], true, ref rd);
+            BindData(lodIdx, shapeSlot, properties, paramsOnly ? Texture2D.blackTexture : (Texture) _waveBuffers, true, ref rd);
         }
 
         protected override void BindData(int lodIdx, int shapeSlot, IPropertyWrapper properties, Texture applyData, bool blendOut, ref LodTransform.RenderData renderData)
@@ -262,7 +263,7 @@ namespace Crest
         public static int ParamIdSampler(int slot)
         {
             if (_paramsSampler == null)
-                LodTransform.CreateParamIDs(ref _paramsSampler, "_LD_Sampler_AnimatedWaves_");
+                LodTransform.CreateParamIDs(ref _paramsSampler, "_LD_TexArray_AnimatedWaves_");
             return _paramsSampler[slot];
         }
         protected override int GetParamIdSampler(int slot)

@@ -87,7 +87,7 @@ namespace Crest
         public static int ParamIdSampler(int slot)
         {
             if (_paramsSampler == null)
-                LodTransform.CreateParamIDs(ref _paramsSampler, "_LD_Sampler_Foam_");
+                LodTransform.CreateParamIDs(ref _paramsSampler, "_LD_TexArray_Foam_");
             return _paramsSampler[slot];
         }
         protected override int GetParamIdSampler(int slot)

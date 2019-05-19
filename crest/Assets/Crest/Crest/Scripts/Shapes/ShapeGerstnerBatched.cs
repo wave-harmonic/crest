@@ -375,6 +375,7 @@ namespace Crest
         public void BuildCommandBuffer(int lodIdx, OceanRenderer ocean, CommandBuffer buf)
         {
             var lodCount = ocean.CurrentLodCount;
+            buf.SetGlobalFloat("_LD_SLICE_Index_0", lodIdx);
 
             // LODs up to but not including the last lod get the normal sets of waves
             if (lodIdx < lodCount - 1 && _drawLOD[lodIdx])

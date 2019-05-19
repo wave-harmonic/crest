@@ -22,7 +22,7 @@ namespace Crest
         Camera _cameraMain;
 
         CommandBuffer _bufCopyShadowMap = null;
-        RenderTexture[] _sources;
+        RenderTexture _sources;
         PropertyWrapperMaterial[] _renderMaterial;
 
         static int sp_CenterPos = Shader.PropertyToID("_CenterPos");
@@ -86,17 +86,15 @@ namespace Crest
             int resolution = OceanRenderer.Instance.LodDataResolution;
             var desc = new RenderTextureDescriptor(resolution, resolution, TextureFormat, 0);
 
-            _sources = new RenderTexture[OceanRenderer.Instance.CurrentLodCount];
-            for (int i = 0; i < _sources.Length; i++)
-            {
-                _sources[i] = new RenderTexture(desc);
-                _sources[i].wrapMode = TextureWrapMode.Clamp;
-                _sources[i].antiAliasing = 1;
-                _sources[i].filterMode = FilterMode.Bilinear;
-                _sources[i].anisoLevel = 0;
-                _sources[i].useMipMap = false;
-                _sources[i].name = SimName + "_" + i + "_1";
-            }
+            _sources = new RenderTexture(desc);
+            _sources.wrapMode = TextureWrapMode.Clamp;
+            _sources.antiAliasing = 1;
+            _sources.filterMode = FilterMode.Bilinear;
+            _sources.anisoLevel = 0;
+            _sources.useMipMap = false;
+            _sources.name = SimName;
+            _sources.dimension = TextureDimension.Tex2DArray;
+            _sources.volumeDepth = OceanRenderer.Instance.CurrentLodCount;
         }
 
         bool StartInitLight()
@@ -128,13 +126,11 @@ namespace Crest
                 {
                     _mainLight.RemoveCommandBuffer(LightEvent.BeforeScreenspaceMask, _bufCopyShadowMap);
                     _bufCopyShadowMap = null;
-                    foreach (var source in _sources)
+                    for(int lodIdx = 0; lodIdx < _targets.volumeDepth; lodIdx++)
                     {
-                        Graphics.Blit(Texture2D.blackTexture, source);
-                    }
-                    foreach (var target in _targets)
-                    {
-                        Graphics.Blit(Texture2D.blackTexture, target);
+                        // TODO(MRT): is this the best way to do things within the new system?
+                        Graphics.Blit(Texture2D.blackTexture, _sources, -1, lodIdx);
+                        Graphics.Blit(Texture2D.blackTexture, _targets, -1, lodIdx);
                     }
                 }
                 _mainLight = null;
@@ -176,10 +172,7 @@ namespace Crest
 
             var lodCount = OceanRenderer.Instance.CurrentLodCount;
 
-            for (var lodIdx = lodCount - 1; lodIdx >= 0; lodIdx--)
-            {
-                SwapRTs(ref _sources[lodIdx], ref _targets[lodIdx]);
-            }
+            SwapRTs(ref _sources, ref _targets);
 
             _bufCopyShadowMap.Clear();
 
@@ -187,7 +180,7 @@ namespace Crest
             {
                 // clear the shadow collection. it will be overwritten with shadow values IF the shadows render,
                 // which only happens if there are (nontransparent) shadow receivers around
-                Graphics.Blit(Texture2D.blackTexture, _targets[lodIdx]);
+                Graphics.Blit(Texture2D.blackTexture, _targets, -1, lodIdx);
 
                 var lt = OceanRenderer.Instance._lods[lodIdx];
 
@@ -205,14 +198,14 @@ namespace Crest
                 srcDataIdx = Mathf.Clamp(srcDataIdx, 0, lt.LodCount - 1);
                 // bind data to slot 0 - previous frame data
                 BindSourceData(srcDataIdx, 0, _renderMaterial[lodIdx], false);
-                _bufCopyShadowMap.Blit(Texture2D.blackTexture, _targets[lodIdx], _renderMaterial[lodIdx].material);
+                _bufCopyShadowMap.Blit(Texture2D.blackTexture, _targets, _renderMaterial[lodIdx].material, -1, lodIdx);
             }
         }
 
         public void BindSourceData(int lodIdx, int slot, PropertyWrapperMaterial simMaterial, bool paramsOnly)
         {
             var rd = OceanRenderer.Instance._lods[lodIdx]._renderDataPrevFrame.Validate(BuildCommandBufferBase._lastUpdateFrame - Time.frameCount, this);
-            BindData(lodIdx, slot, simMaterial, paramsOnly ? Texture2D.blackTexture : (_sources[lodIdx] as Texture), true, ref rd);
+            BindData(lodIdx, slot, simMaterial, paramsOnly ? Texture2D.blackTexture : _sources as Texture, true, ref rd);
         }
 
         void OnEnable()

@@ -20,8 +20,6 @@ namespace Crest
 
         bool _targetsClear = false;
 
-        public const int SLICE_COUNT = 8; // must match the value in OceanLODData.hlsl
-
         public override void BuildCommandBuffer(OceanRenderer ocean, CommandBuffer buf)
         {
             base.BuildCommandBuffer(ocean, buf);
@@ -34,24 +32,13 @@ namespace Crest
 
             Debug.Assert(OceanRenderer.Instance.CurrentLodCount < SLICE_COUNT);
 
-            RenderTexture targetSlice = new RenderTexture(
-                _targets[0]
-            );
-
-            targetSlice.dimension = TextureDimension.Tex2DArray;
-            targetSlice.volumeDepth = SLICE_COUNT;
-            targetSlice.name = SimName;
-            targetSlice.Create();
-
-            buf.SetRenderTarget(targetSlice, 0, CubemapFace.Unknown, -1);
+            buf.SetRenderTarget(_targets, 0, CubemapFace.Unknown, -1);
             buf.ClearRenderTarget(false, true, Color.black);
 
             Matrix4x4[] matrixArray = new Matrix4x4[SLICE_COUNT];
 
             for (int lodIdx = OceanRenderer.Instance.CurrentLodCount - 1; lodIdx >= 0; lodIdx--)
             {
-                Graphics.CopyTexture(_targets[lodIdx], 0, 0, targetSlice, lodIdx, 0);
-
                 var lt = OceanRenderer.Instance._lods[lodIdx];
                 lt._renderData.Validate(0, this);
 
@@ -64,7 +51,6 @@ namespace Crest
                 worldToClipPos.SetRow(1, worldToClipPos.GetRow(1) * -1);
                 worldToClipPos.SetRow(2, worldToClipPos.GetRow(2) * -1);
                 matrixArray[lodIdx] = worldToClipPos;
-
             }
 
             buf.SetGlobalMatrixArray("_SliceViewProjMatrices", matrixArray);
@@ -84,7 +70,7 @@ namespace Crest
         public static int ParamIdSampler(int slot)
         {
             if (_paramsSampler == null)
-                LodTransform.CreateParamIDs(ref _paramsSampler, "_LD_Sampler_SeaFloorDepth_");
+                LodTransform.CreateParamIDs(ref _paramsSampler, "_LD_TexArray_SeaFloorDepth_");
             return _paramsSampler[slot];
         }
         protected override int GetParamIdSampler(int slot)

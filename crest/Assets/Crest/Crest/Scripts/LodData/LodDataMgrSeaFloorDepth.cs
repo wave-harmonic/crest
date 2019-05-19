@@ -8,7 +8,7 @@ using UnityEngine.Rendering;
 namespace Crest
 {
     /// <summary>
-    /// Renders relative depth of ocean floor, by rendering the relative height of tagged objects from top down.
+    /// Renders depth of the ocean (height of sea level above ocean floor), by rendering the relative height of tagged objects from top down.
     /// </summary>
     public class LodDataMgrSeaFloorDepth : LodDataMgr
     {
@@ -33,7 +33,7 @@ namespace Crest
             Debug.Assert(OceanRenderer.Instance.CurrentLodCount < SLICE_COUNT);
 
             buf.SetRenderTarget(_targets, 0, CubemapFace.Unknown, -1);
-            buf.ClearRenderTarget(false, true, Color.black);
+            buf.ClearRenderTarget(false, true,  Color.white * 1000f);
 
             Matrix4x4[] matrixArray = new Matrix4x4[SLICE_COUNT];
 

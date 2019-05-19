@@ -106,7 +106,7 @@ Shader "Hidden/Crest/Simulation/Update Foam"
 
 				// add foam in shallow water. use the displaced position to ensure we add foam where world objects are.
 				float3 uv_slice_1_displaced = float3(LD_1_WorldToUV(input.positionWS_XZ + disp.xz), uv_slice.z);
-				float signedOceanDepth = CREST_OCEAN_DEPTH_BASELINE - _LD_TexArray_SeaFloorDepth_1.SampleLevel(LODData_linear_clamp_sampler, uv_slice_1_displaced, float2(0, 1)).x + disp.y;
+				float signedOceanDepth = _LD_TexArray_SeaFloorDepth_1.SampleLevel(LODData_linear_clamp_sampler, uv_slice_1_displaced, float2(0, 1)).x + disp.y;
 				foam += _ShorelineFoamStrength * _SimDeltaTime * saturate(1.0 - signedOceanDepth / _ShorelineFoamMaxDepth);
 
 				return foam;

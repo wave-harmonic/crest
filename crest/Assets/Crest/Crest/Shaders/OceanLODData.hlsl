@@ -28,7 +28,7 @@ LOD_DATA( 0 )
 LOD_DATA( 1 )
 
 // Bias ocean floor depth so that default (0) values in texture are not interpreted as shallow and generating foam everywhere
-#define CREST_OCEAN_DEPTH_BASELINE 1000.
+#define CREST_OCEAN_DEPTH_BASELINE -1000.0
 #define SLICE_COUNT 16
 
 float3 ADD_SLICE_0_TO_UV(in float2 i_uv)
@@ -89,9 +89,9 @@ void SampleFlow(in Texture2DArray i_oceanFlowSampler, float3 i_uv_slice, in floa
 	io_flow += i_wt * i_oceanFlowSampler.Sample(LODData_linear_clamp_sampler, i_uv_slice).xy;
 }
 
-void SampleSeaFloorHeightAboveBaseline(in Texture2DArray i_oceanDepthSampler, float3 i_uv_slice, in float i_wt, inout half io_oceanDepth)
+void SampleSeaDepth(in Texture2DArray i_oceanDepthSampler, float3 i_uv_slice, in float i_wt, inout half io_oceanDepth)
 {
-	io_oceanDepth += i_wt * (i_oceanDepthSampler.SampleLevel(LODData_linear_clamp_sampler, i_uv_slice, float2(0, 0)).x);
+	io_oceanDepth += i_wt * (i_oceanDepthSampler.SampleLevel(LODData_linear_clamp_sampler, i_uv_slice, float2(0.0, 0.0)).x - CREST_OCEAN_DEPTH_BASELINE);
 }
 
 void SampleShadow(in Texture2DArray i_oceanShadowSampler, float3 i_uv_slice, in float i_wt, inout half2 io_shadow)

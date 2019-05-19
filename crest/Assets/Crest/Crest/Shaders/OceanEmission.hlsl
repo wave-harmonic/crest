@@ -65,9 +65,8 @@ half3 ScatterColour(
 		//    so just approximate by sampling at the camera position.
 		// this used to sample LOD1 but that doesnt work in last LOD, the data will be missing.
 		const float3 uv_0 = ADD_SLICE_0_TO_UV(LD_0_WorldToUV(i_cameraPos.xz));
-		float seaFloorHeightAboveBaseline = 0.0;
-		SampleSeaFloorHeightAboveBaseline(_LD_TexArray_SeaFloorDepth_0, uv_0, 1.0, seaFloorHeightAboveBaseline);
-		depth = CREST_OCEAN_DEPTH_BASELINE - seaFloorHeightAboveBaseline;
+		depth = CREST_OCEAN_DEPTH_BASELINE;
+		SampleSeaDepth(_LD_TexArray_SeaFloorDepth_0, uv_0, 1.0, depth);
 		waveHeight = 0.0;
 
 #if _SHADOWS_ON

@@ -127,6 +127,7 @@ GameObject:
   - component: {fileID: 227134473}
   - component: {fileID: 227134467}
   - component: {fileID: 227134472}
+  - component: {fileID: 227134468}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -156,6 +157,33 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _showSimTargets: 1
   _guiVisible: 1
+--- !u!114 &227134468
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 227134465}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: da05aab3ba773644eb187d19c55bb05a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _reflectionLayers:
+    serializedVersion: 2
+    m_Bits: 1
+  _disablePixelLights: 1
+  _textureSize: 512
+  _clipPlaneOffset: 0.07
+  _hdr: 1
+  _stencil: 0
+  _hideCameraGameobject: 1
+  _allowMSAA: 0
+  _farClipPlane: 1000
+  _forceForwardRenderingPath: 1
+  _clearFlags: 1
+  RefreshPerFrames: 1
+  _frameRefreshOffset: 0
 --- !u!20 &227134469
 Camera:
   m_ObjectHideFlags: 0
@@ -711,8 +739,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1447045896}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 16, z: 64}
-  m_LocalScale: {x: 64, y: 16, z: 64}
+  m_LocalPosition: {x: 0, y: 32, z: 64}
+  m_LocalScale: {x: 512, y: 16, z: 512}
   m_Children: []
   m_Father: {fileID: 227134470}
   m_RootOrder: 2

@@ -47,7 +47,7 @@ Shader "Crest/Inputs/Depth/Cached Depths"
 			struct SlicedVaryings
 			{
 				float4 positionCS : SV_POSITION;
-				float uv : TEXCOORD0;
+				float2 uv : TEXCOORD0;
 				uint sliceIndex : SV_RenderTargetArrayIndex;
 			};
 

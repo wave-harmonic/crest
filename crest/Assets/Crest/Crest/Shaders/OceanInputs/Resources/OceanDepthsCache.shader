@@ -25,8 +25,7 @@ Shader "Crest/Inputs/Depth/Cached Depths"
 			#pragma fragment Frag
 
 			#include "UnityCG.cginc"
-
-			#define SLICE_COUNT 4
+			#include "../../OceanLodData.hlsl"
 
 			sampler2D _MainTex;
 			float4 _MainTex_ST;

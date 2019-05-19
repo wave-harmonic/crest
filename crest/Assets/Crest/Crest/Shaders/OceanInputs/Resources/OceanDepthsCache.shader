@@ -39,7 +39,7 @@ Shader "Crest/Inputs/Depth/Cached Depths"
 
 			struct Varyings
 			{
-				float4 positionCS : SV_POSITION;
+				float4 positionWS : SV_POSITION;
 				float2 uv : TEXCOORD0;
 			};
 
@@ -53,19 +53,19 @@ Shader "Crest/Inputs/Depth/Cached Depths"
 			Varyings Vert(Attributes input)
 			{
 				Varyings o;
-				o.positionCS = mul(unity_ObjectToWorld, float4(input.positionOS, 1));
+				o.positionWS = mul(unity_ObjectToWorld, float4(input.positionOS, 1));
 				o.uv = TRANSFORM_TEX(input.uv, _MainTex);
 				return o;
 			}
 
-			float4 ObjectToClipPos(float4 positionCS, uint sliceIndex)
+			float4 WorldToClipPos(float4 positionWS, uint sliceIndex)
 			{
-				return mul(_SliceViewProjMatrices[sliceIndex], positionCS);
+				return mul(_SliceViewProjMatrices[sliceIndex], positionWS);
 			}
 
 			[maxvertexcount(SLICE_COUNT * 3)]
 			void Geometry(
-				triangle SlicedVaryings input[3],
+				triangle Varyings input[3],
 				inout TriangleStream<SlicedVaryings> outStream
 			)
 			{
@@ -75,7 +75,7 @@ Shader "Crest/Inputs/Depth/Cached Depths"
 					output.sliceIndex = sliceIndex;
 					for(int vertex = 0; vertex < 3; vertex++)
 					{
-						output.positionCS = ObjectToClipPos(input[vertex].positionCS, sliceIndex);
+						output.positionCS = WorldToClipPos(input[vertex].positionWS, sliceIndex);
 						output.uv = input[vertex].uv;
 						outStream.Append(output);
 					}

@@ -38,6 +38,7 @@ void PlanarReflection(in const half4 i_screenPos, in const half3 i_n_pixel, inou
 samplerCUBE _ReflectionCubemapOverride;
 #endif // _OVERRIDEREFLECTIONCUBEMAP_ON
 
+uniform half _Specular;
 uniform half _FresnelPower;
 uniform float  _RefractiveIndexOfAir;
 uniform float  _RefractiveIndexOfWater;
@@ -98,7 +99,7 @@ void ApplyReflectionSky(in const half3 i_view, in const half3 i_n_pixel, in cons
 
 	// Fresnel
 	float R_theta = CalculateFresnelReflectionCoefficient(max(dot(i_n_pixel, i_view), 0.0));
-	io_col = lerp(io_col, skyColour, R_theta);
+	io_col = lerp(io_col, skyColour, R_theta * _Specular);
 }
 
 #if _UNDERWATER_ON

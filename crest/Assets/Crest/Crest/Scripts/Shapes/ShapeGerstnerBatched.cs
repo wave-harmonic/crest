@@ -13,7 +13,7 @@ namespace Crest
     /// </summary>
     public class ShapeGerstnerBatched : MonoBehaviour, ICollProvider
     {
-        [Tooltip("Geometry to rasterize into wave buffers to generate waves.")]
+        [Tooltip("Geometry to rasterize into wave buffers to generate waves. Defaults to quad that renders everywhere.")]
         public Mesh _rasterMesh;
         [Tooltip("The spectrum that defines the ocean surface shape. Create asset of type Crest/Ocean Waves Spectrum.")]
         public OceanWaveSpectrum _spectrum;
@@ -81,6 +81,21 @@ namespace Crest
             {
                 _spectrum = ScriptableObject.CreateInstance<OceanWaveSpectrum>();
                 _spectrum.name = "Default Waves (auto)";
+            }
+
+            InitRasterMesh();
+        }
+
+        void InitRasterMesh()
+        {
+            if (_rasterMesh == null)
+            {
+                // If not provided, use a quad which will render waves everywhere
+                _rasterMesh = new Mesh();
+                _rasterMesh.vertices = new Vector3[] { new Vector3(-0.5f, -0.5f, 0f), new Vector3(0.5f, 0.5f, 0f), new Vector3(0.5f, -0.5f, 0f), new Vector3(-0.5f, 0.5f, 0f) };
+                _rasterMesh.uv = new Vector2[] { Vector2.zero, Vector2.one, Vector2.right, Vector2.up };
+                _rasterMesh.normals = new Vector3[] { -Vector3.forward, -Vector3.forward, -Vector3.forward, -Vector3.forward };
+                _rasterMesh.SetIndices(new int[] { 0, 1, 2, 1, 0, 3 }, MeshTopology.Triangles, 0);
             }
         }
 

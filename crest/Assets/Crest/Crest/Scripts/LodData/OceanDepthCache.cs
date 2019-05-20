@@ -31,7 +31,6 @@ namespace Crest
         float _cameraMaxTerrainHeight = 100f;
 
         [Tooltip("Will render into the cache every frame. Intended for debugging, will generate garbage."), SerializeField]
-        // public to fix warning when building standalone
 #pragma warning disable 414
         bool _forceAlwaysUpdateDebug = false;
 #pragma warning restore 414
@@ -58,6 +57,16 @@ namespace Crest
             if (_populateOnStartup)
             {
                 PopulateCache();
+            }
+
+            if (transform.lossyScale.magnitude < 5f)
+            {
+                Debug.LogWarning("Ocean depth cache transform scale is small and will capture a small area of the world. Is this intended?", this);
+            }
+
+            if(_forceAlwaysUpdateDebug)
+            {
+                Debug.LogWarning("Note: Force Always Update Debug option is enabled on depth cache " + gameObject.name, this);
             }
         }
 
@@ -94,9 +103,11 @@ namespace Crest
 
             if (_cacheTexture == null)
             {
+                var fmt = RenderTextureFormat.RHalf;
+                Debug.Assert(SystemInfo.SupportsRenderTextureFormat(fmt), "The graphics device does not support the render texture format " + fmt.ToString());
                 _cacheTexture = new RenderTexture(_resolution, _resolution, 0);
                 _cacheTexture.name = gameObject.name + "_oceanDepth";
-                _cacheTexture.format = RenderTextureFormat.RHalf;
+                _cacheTexture.format = fmt;
                 _cacheTexture.useMipMap = false;
                 _cacheTexture.anisoLevel = 0;
             }
@@ -126,8 +137,8 @@ namespace Crest
                 _camDepthCache.targetTexture = _cacheTexture;
                 _camDepthCache.cullingMask = layerMask;
                 _camDepthCache.clearFlags = CameraClearFlags.SolidColor;
-                // 0 means '0m above very deep sea floor'
-                _camDepthCache.backgroundColor = Color.black;
+                // Clear to 'very deep'
+                _camDepthCache.backgroundColor = Color.white * 1000f;
                 _camDepthCache.enabled = false;
                 _camDepthCache.allowMSAA = false;
                 // I'd prefer to destroy the cam object, but I found sometimes (on first start of editor) it will fail to render.
@@ -143,7 +154,10 @@ namespace Crest
         void OnDrawGizmosSelected()
         {
             Gizmos.matrix = transform.localToWorldMatrix;
+            Gizmos.color = Color.white;
             Gizmos.DrawWireCube(Vector3.zero, new Vector3(1f, 0f, 1f));
+            Gizmos.color = new Color(1f, 1f, 1f, 0.2f);
+            Gizmos.DrawCube(Vector3.up * _cameraMaxTerrainHeight / transform.lossyScale.y, new Vector3(1f, 0f, 1f));
         }
 #endif
     }

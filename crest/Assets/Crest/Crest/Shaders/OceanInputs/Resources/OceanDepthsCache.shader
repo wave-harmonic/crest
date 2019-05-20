@@ -17,7 +17,7 @@ Shader "Crest/Inputs/Depth/Cached Depths"
 			// Min blending to take the min of all depths. Similar in spirit to zbuffer'd visibility when viewing from top down.
 			// To confuse matters further, ocean depth is now more like 'sea floor altitude' - a height above a deep water value,
 			// so values are increasing in Y and we need to take the MAX of all depths.
-			BlendOp Max
+			BlendOp Min
 
 			CGPROGRAM
 			#pragma vertex Vert
@@ -48,9 +48,9 @@ Shader "Crest/Inputs/Depth/Cached Depths"
 				return o;
 			}
 			
-			half Frag(Varyings input) : SV_Target
+			half4 Frag(Varyings input) : SV_Target
 			{
-				return tex2D(_MainTex, input.uv).x;
+				return half4(tex2D(_MainTex, input.uv).x, 0.0, 0.0, 0.0);
 			}
 			ENDCG
 		}

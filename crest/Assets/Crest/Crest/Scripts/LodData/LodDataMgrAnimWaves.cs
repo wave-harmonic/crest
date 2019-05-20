@@ -5,7 +5,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
-using DrawFilter = System.Func<Crest.RegisterLodDataInputBase, bool>;
 
 namespace Crest
 {
@@ -37,7 +36,7 @@ namespace Crest
 
         RenderTexture[] _waveBuffers;
 
-        Material[] _combineMaterial;
+        PropertyWrapperMaterial[] _combineProperties;
 
         public override void UseSettings(SimSettingsBase settings) { OceanRenderer.Instance._simSettingsAnimatedWaves = settings as SimSettingsAnimatedWaves; }
         public override SimSettingsBase CreateDefaultSettings()
@@ -51,11 +50,15 @@ namespace Crest
         {
             base.InitData();
 
-            _combineMaterial = new Material[OceanRenderer.Instance.CurrentLodCount];
-            for (int i = 0; i < _combineMaterial.Length; i++)
+            _combineProperties = new PropertyWrapperMaterial[OceanRenderer.Instance.CurrentLodCount];
+            for (int i = 0; i < _combineProperties.Length; i++)
             {
-                _combineMaterial[i] = new Material(Shader.Find("Hidden/Crest/Simulation/Combine Animated Wave LODs"));
+                _combineProperties[i] = new PropertyWrapperMaterial(
+                    new Material(Shader.Find("Hidden/Crest/Simulation/Combine Animated Wave LODs"))
+                );
             }
+
+            Debug.Assert(SystemInfo.SupportsRenderTextureFormat(TextureFormat), "The graphics device does not support the render texture format " + TextureFormat.ToString());
 
             int resolution = OceanRenderer.Instance.LodDataResolution;
             var desc = new RenderTextureDescriptor(resolution, resolution, TextureFormat, 0);
@@ -73,6 +76,31 @@ namespace Crest
             }
         }
 
+        // Filter object for assigning shapes to lods. This was much more elegant with a lambda but it generated garbage.
+        public class FilterWavelength : IDrawFilter
+        {
+            public float _lodMinWavelength;
+            public float _lodMaxWavelength;
+            public int _lodIdx;
+            public int _lodCount;
+
+            public bool Filter(RegisterLodDataInputBase data)
+            {
+                var drawOctaveWavelength = (data as RegisterAnimWavesInput).OctaveWavelength;
+                return (_lodMinWavelength <= drawOctaveWavelength) && (drawOctaveWavelength < _lodMaxWavelength || _lodIdx == _lodCount - 1);
+            }
+        }
+        FilterWavelength _filterWavelength = new FilterWavelength();
+
+        public class FilterNoLodPreference : IDrawFilter
+        {
+            public bool Filter(RegisterLodDataInputBase data)
+            {
+                return (data as RegisterAnimWavesInput).OctaveWavelength == 0f;
+            }
+        }
+        FilterNoLodPreference _filterNoLodPreference = new FilterNoLodPreference();
+
         public override void BuildCommandBuffer(OceanRenderer ocean, CommandBuffer buf)
         {
             base.BuildCommandBuffer(ocean, buf);
@@ -80,6 +108,7 @@ namespace Crest
             var lodCount = OceanRenderer.Instance.CurrentLodCount;
 
             // lod-dependent data
+            _filterWavelength._lodCount = lodCount;
             for (int lodIdx = lodCount - 1; lodIdx >= 0; lodIdx--)
             {
                 buf.SetRenderTarget(_waveBuffers[lodIdx]);
@@ -91,55 +120,51 @@ namespace Crest
                 }
 
                 // draw any data with lod preference
-                var lodMaxWavelength = OceanRenderer.Instance._lods[lodIdx].MaxWavelength();
-                var lodMinWavelength = lodMaxWavelength / 2f;
-                DrawFilter filter = (data) =>
-                {
-                    var drawOctaveWavelength = (data as RegisterAnimWavesInput).OctaveWavelength;
-                    return (lodMinWavelength <= drawOctaveWavelength) && (drawOctaveWavelength < lodMaxWavelength || lodIdx == lodCount - 1);
-                };
-                SubmitDrawsFiltered(lodIdx, buf, filter);
+                _filterWavelength._lodIdx = lodIdx;
+                _filterWavelength._lodMaxWavelength = OceanRenderer.Instance._lods[lodIdx].MaxWavelength();
+                _filterWavelength._lodMinWavelength = _filterWavelength._lodMaxWavelength / 2f;
+                SubmitDrawsFiltered(lodIdx, buf, _filterWavelength);
             }
 
             // combine waves
             for (int lodIdx = lodCount - 1; lodIdx >= 0; lodIdx--)
             {
                 // this lod data
-                BindWaveBuffer(lodIdx, 0, _combineMaterial[lodIdx], false);
+                BindWaveBuffer(lodIdx, 0, _combineProperties[lodIdx], false);
 
                 // combine data from next larger lod into this one
                 if (lodIdx < lodCount - 1 && _shapeCombinePass)
                 {
-                    BindResultData(lodIdx + 1, 1, _combineMaterial[lodIdx]);
+                    BindResultData(lodIdx + 1, 1, _combineProperties[lodIdx]);
                 }
                 else
                 {
                     // this binds black texture
-                    BindWaveBuffer(lodIdx, 1, _combineMaterial[lodIdx], true);
+                    BindWaveBuffer(lodIdx, 1, _combineProperties[lodIdx], true);
                 }
 
                 // dynamic waves
                 if (OceanRenderer.Instance._lodDataDynWaves)
                 {
-                    OceanRenderer.Instance._lodDataDynWaves.BindCopySettings(_combineMaterial[lodIdx]);
-                    OceanRenderer.Instance._lodDataDynWaves.BindResultData(lodIdx, 0, _combineMaterial[lodIdx]);
+                    OceanRenderer.Instance._lodDataDynWaves.BindCopySettings(_combineProperties[lodIdx]);
+                    OceanRenderer.Instance._lodDataDynWaves.BindResultData(lodIdx, 0, _combineProperties[lodIdx]);
                 }
                 else
                 {
-                    LodDataMgrDynWaves.BindNull(0, _combineMaterial[lodIdx]);
+                    LodDataMgrDynWaves.BindNull(0, _combineProperties[lodIdx]);
                 }
 
                 // flow
                 if (OceanRenderer.Instance._lodDataFlow)
                 {
-                    OceanRenderer.Instance._lodDataFlow.BindResultData(lodIdx, 0, _combineMaterial[lodIdx]);
+                    OceanRenderer.Instance._lodDataFlow.BindResultData(lodIdx, 0, _combineProperties[lodIdx]);
                 }
                 else
                 {
-                    LodDataMgrFlow.BindNull(0, _combineMaterial[lodIdx]);
+                    LodDataMgrFlow.BindNull(0, _combineProperties[lodIdx]);
                 }
 
-                buf.Blit(null, DataTexture(lodIdx), _combineMaterial[lodIdx]);
+                buf.Blit(null, DataTexture(lodIdx), _combineProperties[lodIdx].material);
             }
 
             // lod-independent data
@@ -148,20 +173,14 @@ namespace Crest
                 buf.SetRenderTarget(DataTexture(lodIdx));
 
                 // draw any data that did not express a preference for one lod or another
-                DrawFilter filter = (data) =>
-                {
-                    return (data as RegisterAnimWavesInput).OctaveWavelength == 0f;
-                };
-                SubmitDrawsFiltered(lodIdx, buf, filter);
+                SubmitDrawsFiltered(lodIdx, buf, _filterNoLodPreference);
             }
         }
 
-        public void BindWaveBuffer(int lodIdx, int shapeSlot, Material properties, bool paramsOnly)
+        public void BindWaveBuffer(int lodIdx, int shapeSlot, IPropertyWrapper properties, bool paramsOnly)
         {
-            _pwMat._target = properties;
             var rd = OceanRenderer.Instance._lods[lodIdx]._renderData.Validate(0, this);
-            BindData(lodIdx, shapeSlot, _pwMat, paramsOnly ? Texture2D.blackTexture : (Texture)_waveBuffers[lodIdx], true, ref rd);
-            _pwMat._target = null;
+            BindData(lodIdx, shapeSlot, properties, paramsOnly ? Texture2D.blackTexture : (Texture)_waveBuffers[lodIdx], true, ref rd);
         }
 
         protected override void BindData(int lodIdx, int shapeSlot, IPropertyWrapper properties, Texture applyData, bool blendOut, ref LodTransform.RenderData renderData)
@@ -250,11 +269,7 @@ namespace Crest
         {
             return ParamIdSampler(slot);
         }
-        public static void BindNull(int shapeSlot, Material properties)
-        {
-            properties.SetTexture(ParamIdSampler(shapeSlot), Texture2D.blackTexture);
-        }
-        public static void BindNull(int shapeSlot, MaterialPropertyBlock properties)
+        public static void BindNull(int shapeSlot, IPropertyWrapper properties)
         {
             properties.SetTexture(ParamIdSampler(shapeSlot), Texture2D.blackTexture);
         }

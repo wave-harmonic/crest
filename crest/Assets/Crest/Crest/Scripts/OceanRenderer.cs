@@ -199,6 +199,11 @@ namespace Crest
             Shader.SetGlobalVector("_WindDirXZ", WindDir);
             Shader.SetGlobalFloat("_CrestTime", CurrentTime);
 
+            if (_viewpoint == null)
+            {
+                Debug.LogError("_viewpoint is null, ocean update will fail.", this);
+            }
+
             if (_followViewpoint)
             {
                 LateUpdatePosition();
@@ -228,7 +233,7 @@ namespace Crest
             // to water height but this does help with the problem of horizontal range getting limited at bad times.
             float maxDetailY = SeaLevel - _maxVertDispFromShape / 5f;
             // scale ocean mesh based on camera distance to sea level, to keep uniform detail.
-            float camY = Mathf.Max(Mathf.Abs(_viewpoint.position.y) - maxDetailY, 0f);
+            float camY = Mathf.Max(Mathf.Abs(_viewpoint.position.y - SeaLevel) - maxDetailY, 0f);
 
             const float HEIGHT_LOD_MUL = 2f;
             float level = camY * HEIGHT_LOD_MUL;

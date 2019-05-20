@@ -31,6 +31,12 @@ namespace Crest
         bool[] _active;
         public bool SimActive(int lodIdx) { return _active[lodIdx]; }
 
+        static int sp_HorizDisplace = Shader.PropertyToID("_HorizDisplace");
+        static int sp_DisplaceClamp = Shader.PropertyToID("_DisplaceClamp");
+        static int sp_Damping = Shader.PropertyToID("_Damping");
+        static int sp_Gravity = Shader.PropertyToID("_Gravity");
+        static int sp_LaplacianAxisX = Shader.PropertyToID("_LaplacianAxisX");
+
         protected override void InitData()
         {
             base.InitData();
@@ -61,21 +67,21 @@ namespace Crest
             return true;
         }
 
-        public void BindCopySettings(Material target)
+        public void BindCopySettings(PropertyWrapperMaterial target)
         {
-            target.SetFloat("_HorizDisplace", Settings._horizDisplace);
-            target.SetFloat("_DisplaceClamp", Settings._displaceClamp);
+            target.SetFloat(sp_HorizDisplace, Settings._horizDisplace);
+            target.SetFloat(sp_DisplaceClamp, Settings._displaceClamp);
         }
 
-        protected override void SetAdditionalSimParams(int lodIdx, Material simMaterial)
+        protected override void SetAdditionalSimParams(int lodIdx, PropertyWrapperMaterial simMaterial)
         {
             base.SetAdditionalSimParams(lodIdx, simMaterial);
 
-            simMaterial.SetFloat("_Damping", Settings._damping);
-            simMaterial.SetFloat("_Gravity", OceanRenderer.Instance.Gravity);
+            simMaterial.SetFloat(sp_Damping, Settings._damping);
+            simMaterial.SetFloat(sp_Gravity, OceanRenderer.Instance.Gravity);
 
             float laplacianKernelAngle = _rotateLaplacian ? Mathf.PI * 2f * Random.value : 0f;
-            simMaterial.SetVector("_LaplacianAxisX", new Vector2(Mathf.Cos(laplacianKernelAngle), Mathf.Sin(laplacianKernelAngle)));
+            simMaterial.SetVector(sp_LaplacianAxisX, new Vector2(Mathf.Cos(laplacianKernelAngle), Mathf.Sin(laplacianKernelAngle)));
 
             // assign sea floor depth - to slot 1 current frame data. minor bug here - this depth will actually be from the previous frame,
             // because the depth is scheduled to render just before the animated waves, and this sim happens before animated waves.
@@ -137,11 +143,7 @@ namespace Crest
         {
             return ParamIdSampler(slot);
         }
-        public static void BindNull(int shapeSlot, Material properties)
-        {
-            properties.SetTexture(ParamIdSampler(shapeSlot), Texture2D.blackTexture);
-        }
-        public static void BindNull(int shapeSlot, MaterialPropertyBlock properties)
+        public static void BindNull(int shapeSlot, IPropertyWrapper properties)
         {
             properties.SetTexture(ParamIdSampler(shapeSlot), Texture2D.blackTexture);
         }

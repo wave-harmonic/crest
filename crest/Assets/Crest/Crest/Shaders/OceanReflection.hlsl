@@ -93,7 +93,7 @@ void ApplyReflectionSky(in const half3 i_view, in const half3 i_n_pixel, in cons
 
 	// Add primary light
 #if _COMPUTEDIRECTIONALLIGHT_ON
-	skyColour += (pow(max(0., dot(refl, i_lightDir)), _DirectionalLightFallOff) * _DirectionalLightBoost * _LightColor0 * i_shadow * i_shadow * i_shadow);
+	skyColour += (pow(max(0., dot(refl, i_lightDir)), _DirectionalLightFallOff) * _DirectionalLightBoost * _LightColor0 * i_shadow);
 #endif
 
 	// Fresnel

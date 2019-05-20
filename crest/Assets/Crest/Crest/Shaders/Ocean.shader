@@ -305,7 +305,7 @@ Shader "Crest/Ocean"
 					const float2 uv_0_disp = LD_0_WorldToUV(o.worldPos.xz);
 
 					#if _SUBSURFACESHALLOWCOLOUR_ON
-					SampleSeaDepth(_LD_Sampler_SeaFloorDepth_0, uv_0, wt_0, o.lodAlpha_worldXZUndisplaced_oceanDepth.w);
+					SampleSeaDepth(_LD_Sampler_SeaFloorDepth_0, uv_0_disp, wt_0, o.lodAlpha_worldXZUndisplaced_oceanDepth.w);
 					#endif
 
 					#if _SHADOWS_ON
@@ -331,7 +331,7 @@ Shader "Crest/Ocean"
 					const float2 uv_1_disp = LD_1_WorldToUV(o.worldPos.xz);
 
 					#if _SUBSURFACESHALLOWCOLOUR_ON
-					SampleSeaDepth(_LD_Sampler_SeaFloorDepth_1, uv_1, wt_1, o.lodAlpha_worldXZUndisplaced_oceanDepth.w);
+					SampleSeaDepth(_LD_Sampler_SeaFloorDepth_1, uv_1_disp, wt_1, o.lodAlpha_worldXZUndisplaced_oceanDepth.w);
 					#endif
 
 					#if _SHADOWS_ON

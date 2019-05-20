@@ -9,7 +9,7 @@ Shader "Crest/Inputs/Depth/Ocean Depth From Geometry"
 	{
 		Pass
 		{
-			BlendOp Max
+			BlendOp Min
 
 			CGPROGRAM
 			#pragma vertex Vert
@@ -36,11 +36,7 @@ Shader "Crest/Inputs/Depth/Ocean Depth From Geometry"
 
 				float altitude = mul(unity_ObjectToWorld, float4(input.positionOS, 1.0)).y;
 
-				// Depth is altitude above 1000m below sea level. This is because '0' needs to signify deep water.
-				// I originally used a simple bias in the depth texture but it would still produce shallow water outside
-				// the biggest LOD texture where the depth would evaluate to 0 in the ocean vert shader, so i've transformed
-				// 0 to mean deep below the surface.
-				o.depth = altitude - (_OceanCenterPosWorld.y - CREST_OCEAN_DEPTH_BASELINE);
+				o.depth = _OceanCenterPosWorld.y - altitude;
 
 				return o;
 			}

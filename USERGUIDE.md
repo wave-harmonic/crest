@@ -21,7 +21,7 @@ The steps to set up *Crest* in a new or existing project currently look as follo
 * Switch to Linear space rendering under *Edit/Project Settings/Player/Other Settings*. If your platform(s) require Gamma space, the material settings will need to be adjusted to compensate.
 * Import *Crest* assets by either:
   * Picking a release from the [Releases page](https://github.com/huwb/crest-oceanrender/releases) and importing the desired packages
-  * Getting latest by either cloning this repos or downloading it as a zip, and copying the *Crest* folder and the desired content from the *Crest-Examples* folders into your project. Be sure to always copy the .meta files.
+  * Getting latest by either cloning this repos or downloading it as a zip, and copying the *Crest/Assets/Crest/Crest* folder and the desired content from the nearby *Crest-Examples* folders into your project. Be sure to always copy the .meta files.
 
 ## Adding the ocean to a scene
 

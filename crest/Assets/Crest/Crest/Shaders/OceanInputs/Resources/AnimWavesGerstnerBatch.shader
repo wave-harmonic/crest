@@ -127,7 +127,15 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Batch"
 
 				// its worrying that displacementNormalized.x appears to be smooth - but abs(displacementNormalized.x) is not. something fundamental wrong with this non-linearity?
 				// i guess its screwing the lerp that happens - wt0 * v + wt1 * v becomes wt0 * abs(v) + wt1 * abs(v) - but if v is the same in both, what is the problem?
+
+				// simply using abs(result.x) vs result.x is enough to screw it..
+
 				return input.worldPos_wt.z * half4(result, length(displacementNormalized));
+
+				//works
+				return input.worldPos_wt.z * half4(result, (result.x));
+				//broken
+				return input.worldPos_wt.z * half4(result, abs(result.x));
 			}
 
 			ENDCG

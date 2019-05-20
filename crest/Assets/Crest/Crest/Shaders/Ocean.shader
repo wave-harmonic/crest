@@ -423,8 +423,8 @@ Shader "Crest/Ocean"
 					if (wt_1 > 0.001) SampleDisplacementsNormals(_LD_Sampler_AnimatedWaves_1, uv_1, wt_1, _LD_Params_1.w, _LD_Params_1.x, dummy, n_geom.xz);
 					n_geom = normalize(n_geom);
 
-					sss += wt_0 * tex2Dlod(_LD_Sampler_AnimatedWaves_0, float4(uv_0, 0., 0.)).w;
-					sss += wt_1 * tex2Dlod(_LD_Sampler_AnimatedWaves_1, float4(uv_1, 0., 0.)).w;
+					sss += wt_0 * tex2Dlod(_LD_Sampler_AnimatedWaves_0, float4(uv_0, 0., 0.)).a;
+					sss += wt_1 * tex2Dlod(_LD_Sampler_AnimatedWaves_1, float4(uv_1, 0., 0.)).a;
 
 					//sss = length(input.worldPos.xz - input.lodAlpha_worldXZUndisplaced_oceanDepth.yz);
 					//void SampleDisplacements(in sampler2D i_dispSampler, in float2 i_uv, in float i_wt, inout float3 io_worldPos)
@@ -434,6 +434,7 @@ Shader "Crest/Ocean"
 					//}
 
 				}
+				//sss = abs(input.lodAlpha_worldXZUndisplaced_oceanDepth.y - input.worldPos.x) * 0.1;
 
 				if (underwater) n_geom = -n_geom;
 				half3 n_pixel = n_geom;
@@ -500,7 +501,7 @@ Shader "Crest/Ocean"
 				#endif
 				#endif
 
-				//col = sss;
+				col = sss;
 				return half4(col, 1.);
 			}
 

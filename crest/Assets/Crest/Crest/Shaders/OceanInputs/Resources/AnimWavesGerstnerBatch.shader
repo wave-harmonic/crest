@@ -15,7 +15,7 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Batch"
 	{
 		Pass
 		{
-			Blend SrcAlpha One
+			Blend One One
 			ZWrite Off
 			ZTest Always
 			Cull Off
@@ -82,6 +82,8 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Batch"
 				const half depth = tex2D(_LD_Sampler_SeaFloorDepth_0, input.uv).x;
 				half3 result = (half3)0.0;
 
+				float2 displacementNormalized = 0.0;
+
 				// gerstner computation is vectorized - processes 4 wave components at once
 				for (uint vi = 0; vi < _NumWaveVecs; vi++)
 				{
@@ -116,9 +118,16 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Batch"
 					result.x += dot(resultx, wt);
 					result.y += dot(resulty, wt);
 					result.z += dot(resultz, wt);
+
+					// have no idea why this doesnt work :/. the weights for blending between the last two lods should be baked into _ChopAmps which
+					// therefore should follow into this through resultx & resultz.
+					displacementNormalized.x += dot(resultx, wt * _TwoPiOverWavelengths[vi]);
+					displacementNormalized.y += dot(resultz, wt * _TwoPiOverWavelengths[vi]);
 				}
 
-				return half4(result, input.worldPos_wt.z);
+				// its worrying that displacementNormalized.x appears to be smooth - but abs(displacementNormalized.x) is not. something fundamental wrong with this non-linearity?
+				// i guess its screwing the lerp that happens - wt0 * v + wt1 * v becomes wt0 * abs(v) + wt1 * abs(v) - but if v is the same in both, what is the problem?
+				return input.worldPos_wt.z * half4(result, length(displacementNormalized));
 			}
 
 			ENDCG

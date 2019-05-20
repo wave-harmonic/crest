@@ -112,7 +112,7 @@ namespace Crest
             for (int lodIdx = lodCount - 1; lodIdx >= 0; lodIdx--)
             {
                 buf.SetRenderTarget(_waveBuffers[lodIdx]);
-                buf.ClearRenderTarget(false, true, Color.black);
+                buf.ClearRenderTarget(false, true, new Color(0f, 0f, 0f, 0f));
 
                 foreach (var gerstner in _gerstnerComponents)
                 {

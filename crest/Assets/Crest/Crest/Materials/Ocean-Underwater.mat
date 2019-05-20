@@ -37,6 +37,10 @@ Material:
         m_Texture: {fileID: 2800000, guid: 800e061692ff7a84e887f439d3364410, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _ReflectionCubemapOverride:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _Skybox:
         m_Texture: {fileID: 8900000, guid: f9a8c5bb065e21748a23f214a1f3a250, type: 3}
         m_Scale: {x: 1, y: 1}
@@ -113,6 +117,7 @@ Material:
     - _NormalsStrength: 0.36
     - _Offset: 0.00008
     - _OverrideReflectionCubemap: 0
+    - _PlanarReflectionNormalsStrength: 1
     - _PlanarReflections: 0
     - _ProceduralSky: 0
     - _RefractAmt: 0
@@ -123,9 +128,10 @@ Material:
     - _Shadows: 0
     - _ShorelineFoamMinDepth: 0.27
     - _SkyDirectionality: 0.875
+    - _Specular: 1
     - _StartLevel: 0.157
     - _StencilFunction: 0
-    - _SubSurfaceBase: 0.911
+    - _SubSurfaceBase: 0.95
     - _SubSurfaceCrestColour: 1
     - _SubSurfaceDepthMax: 9.4
     - _SubSurfaceDepthPower: 2.57

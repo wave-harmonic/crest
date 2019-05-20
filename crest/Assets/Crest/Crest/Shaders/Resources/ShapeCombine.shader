@@ -10,6 +10,7 @@ Shader "Hidden/Crest/Simulation/Combine Animated Wave LODs"
 		Cull Off
 		ZWrite Off
 		ZTest Always
+		Blend Off
 
 		Pass
 		{
@@ -82,13 +83,14 @@ Shader "Hidden/Crest/Simulation/Combine Animated Wave LODs"
 #else
 				float4 data = tex2Dlod(_LD_Sampler_AnimatedWaves_0, float4(input.uv, 0., 0.));
 				result += data.xyz;
-				float stretch = length(result.xz) / _LD_Params_0.x;
+				float stretch = (data.a); // length(result.xz) / _LD_Params_0.x;
 				//float stretch = _LD_Params_0.x < 8.0 ? length(result.xz) : 0.;// / _LD_Params_0.x;
 #endif
 
 				// waves to combine down from the next lod up the chain
 				SampleDisplacements(_LD_Sampler_AnimatedWaves_1, uv_1, 1.0, result);
-				stretch += tex2Dlod(_LD_Sampler_AnimatedWaves_1, float4(uv_1, 0., 0.)).w;
+				stretch += tex2Dlod(_LD_Sampler_AnimatedWaves_1, float4(uv_1, 0., 0.)).a;
+				//stretch = abs(result.x);
 
 				// TODO - uncomment this define once it works in standalone builds
 #if _DYNAMIC_WAVE_SIM_ON

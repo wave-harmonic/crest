@@ -136,7 +136,7 @@ void SampleFoam(in Texture2DArray i_oceanFoamSampler, in float3 i_uv_slice, in f
 
 void SampleFlow(in Texture2DArray i_oceanFlowSampler, in float3 i_uv_slice, in float i_wt, inout half2 io_flow)
 {
-	io_flow += i_wt * i_oceanFlowSampler.Sample(LODData_linear_clamp_sampler, i_uv_slice).xy;
+	io_flow += i_wt * i_oceanFlowSampler.SampleLevel(LODData_linear_clamp_sampler, i_uv_slice, float2(0, 0)).xy;
 }
 
 void SampleSeaDepth(in Texture2DArray i_oceanDepthSampler, in float3 i_uv_slice, in float i_wt, inout half io_oceanDepth)

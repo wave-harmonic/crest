@@ -92,7 +92,7 @@ Shader "Hidden/Crest/Simulation/Update Dynamic Waves"
 				float ftm = ft_ftm.y; // t minus - previous value
 
 				// compute axes of laplacian kernel - rotated every frame
-				float e = _LD_Params_PrevFrame.w; // assumes square RT
+				float e = _LD_Params_PrevFrame[_LD_SLICE_Index_ThisLod].w; // assumes square RT
 				float3 X = float3(_LaplacianAxisX, 0.0);
 				float3 Y = float3(-X.y, X.x, 0.0);
 				float fxm = SampleLod(_LD_TexArray_DynamicWaves_PrevFrame, uv_prevFrame - e*X).x; // x minus

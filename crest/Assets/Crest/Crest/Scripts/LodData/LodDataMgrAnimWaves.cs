@@ -113,7 +113,7 @@ namespace Crest
             {
                 buf.SetRenderTarget(_waveBuffers, 0, CubemapFace.Unknown, lodIdx);
                 buf.ClearRenderTarget(false, true, Color.black);
-                buf.SetGlobalFloat("_LD_SLICE_Index_0", lodIdx);
+                buf.SetGlobalFloat("_LD_SLICE_Index_ThisLod", lodIdx);
 
                 foreach (var gerstner in _gerstnerComponents)
                 {
@@ -131,38 +131,39 @@ namespace Crest
             for (int lodIdx = lodCount - 1; lodIdx >= 0; lodIdx--)
             {
                 // this lod data
-                BindWaveBuffer(lodIdx, 0, _combineProperties[lodIdx], false);
+                BindWaveBuffer(lodIdx, _combineProperties[lodIdx], false);
 
                 // combine data from next larger lod into this one
-                if (lodIdx < lodCount - 1 && _shapeCombinePass)
+                // if (lodIdx < lodCount - 1 && _shapeCombinePass)
+                // {
+                //     BindResultData(lodIdx + 1, 1, _combineProperties[lodIdx]);
+                // }
+                // else
                 {
-                    BindResultData(lodIdx + 1, 1, _combineProperties[lodIdx]);
-                }
-                else
-                {
+                    // TODO(MRT): Look at how to achieve this with TextureArrays?
                     // this binds black texture
-                    BindWaveBuffer(lodIdx, 1, _combineProperties[lodIdx], true);
+                    // BindWaveBuffer(lodIdx, 1, _combineProperties[lodIdx], true);
                 }
 
                 // dynamic waves
                 if (OceanRenderer.Instance._lodDataDynWaves)
                 {
                     OceanRenderer.Instance._lodDataDynWaves.BindCopySettings(_combineProperties[lodIdx]);
-                    OceanRenderer.Instance._lodDataDynWaves.BindResultData(lodIdx, 0, _combineProperties[lodIdx]);
+                    OceanRenderer.Instance._lodDataDynWaves.BindResultData(lodIdx, _combineProperties[lodIdx]);
                 }
                 else
                 {
-                    LodDataMgrDynWaves.BindNull(0, _combineProperties[lodIdx]);
+                    LodDataMgrDynWaves.BindNull(_combineProperties[lodIdx]);
                 }
 
                 // flow
                 if (OceanRenderer.Instance._lodDataFlow)
                 {
-                    OceanRenderer.Instance._lodDataFlow.BindResultData(lodIdx, 0, _combineProperties[lodIdx]);
+                    OceanRenderer.Instance._lodDataFlow.BindResultData(lodIdx, _combineProperties[lodIdx]);
                 }
                 else
                 {
-                    LodDataMgrFlow.BindNull(0, _combineProperties[lodIdx]);
+                    LodDataMgrFlow.BindNull(_combineProperties[lodIdx]);
                 }
 
                 buf.Blit(Texture2D.blackTexture, DataTexture, _combineProperties[lodIdx].material, -1, lodIdx);
@@ -178,22 +179,22 @@ namespace Crest
             }
         }
 
-        public void BindWaveBuffer(int lodIdx, int shapeSlot, IPropertyWrapper properties, bool paramsOnly)
+        public void BindWaveBuffer(int lodIdx, IPropertyWrapper properties, bool paramsOnly, bool prevFrame = false)
         {
             var rd = OceanRenderer.Instance._lods[lodIdx]._renderData.Validate(0, this);
-            BindData(lodIdx, shapeSlot, properties, paramsOnly ? Texture2D.blackTexture : (Texture) _waveBuffers, true, ref rd);
+            BindData(lodIdx, properties, paramsOnly ? Texture2D.blackTexture : (Texture) _waveBuffers, true, ref rd, prevFrame);
         }
 
-        protected override void BindData(int lodIdx, int shapeSlot, IPropertyWrapper properties, Texture applyData, bool blendOut, ref LodTransform.RenderData renderData)
+        protected override void BindData(int lodIdx, IPropertyWrapper properties, Texture applyData, bool blendOut, ref LodTransform.RenderData renderData, bool prevFrame = false)
         {
-            base.BindData(lodIdx, shapeSlot, properties, applyData, blendOut, ref renderData);
+            base.BindData(lodIdx, properties, applyData, blendOut, ref renderData, prevFrame);
 
             var lt = OceanRenderer.Instance._lods[lodIdx];
 
             // need to blend out shape if this is the largest lod, and the ocean might get scaled down later (so the largest lod will disappear)
             bool needToBlendOutShape = lodIdx == OceanRenderer.Instance.CurrentLodCount - 1 && OceanRenderer.Instance.ScaleCouldDecrease && blendOut;
             float shapeWeight = needToBlendOutShape ? OceanRenderer.Instance.ViewerAltitudeLevelAlpha : 1f;
-            properties.SetVector(LodTransform.ParamIdOcean(shapeSlot), new Vector4(
+            properties.SetVector(LodTransform.ParamIdOcean(prevFrame), new Vector4(
                 lt._renderData._texelWidth,
                 lt._renderData._textureRes, shapeWeight,
                 1f / lt._renderData._textureRes));
@@ -259,20 +260,28 @@ namespace Crest
             _gerstnerComponents.Remove(gerstner);
         }
 
-        static int[] _paramsSampler;
-        public static int ParamIdSampler(int slot)
+        // TODO(Factor these out to be shared with other classes who have same code
+        public static string TextureArrayName = "_LD_TexArray_AnimatedWaves_";
+        public static int ParamIDTextureArray_ThisFrame = Shader.PropertyToID(TextureArrayName + "ThisFrame");
+        public static int ParamIDTextureArray_PrevFrame = Shader.PropertyToID(TextureArrayName + "PrevFrame");
+        public static int ParamIdSampler(bool prevFrame = false)
         {
-            if (_paramsSampler == null)
-                LodTransform.CreateParamIDs(ref _paramsSampler, "_LD_TexArray_AnimatedWaves_");
-            return _paramsSampler[slot];
+            if(prevFrame)
+            {
+                return ParamIDTextureArray_PrevFrame;
+            }
+            else
+            {
+                return ParamIDTextureArray_ThisFrame;
+            }
         }
-        protected override int GetParamIdSampler(int slot)
+        protected override int GetParamIdSampler(bool prevFrame = false)
         {
-            return ParamIdSampler(slot);
+            return ParamIdSampler(prevFrame);
         }
-        public static void BindNull(int shapeSlot, IPropertyWrapper properties)
+        public static void BindNull(IPropertyWrapper properties, bool prevFrame = false)
         {
-            properties.SetTexture(ParamIdSampler(shapeSlot), Texture2D.blackTexture);
+            properties.SetTexture(ParamIdSampler(prevFrame), Texture2D.blackTexture);
         }
 
         public void SetOrigin(Vector3 newOrigin)

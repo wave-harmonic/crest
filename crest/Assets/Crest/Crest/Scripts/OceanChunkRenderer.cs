@@ -122,20 +122,21 @@ namespace Crest
             var ldflow = OceanRenderer.Instance._lodDataFlow;
             var ldshadows = OceanRenderer.Instance._lodDataShadow;
 
-            ldaws.BindResultData(_lodIndex, 0, _mpb);
-            if (ldflow) ldflow.BindResultData(_lodIndex, 0, _mpb);
-            if (ldfoam) ldfoam.BindResultData(_lodIndex, 0, _mpb);
-            if (ldsds) ldsds.BindResultData(_lodIndex, 0, _mpb);
-            if (ldshadows) ldshadows.BindResultData(_lodIndex, 0, _mpb); else LodDataMgrShadow.BindNull(0, _mpb);
+            ldaws.BindResultData(_lodIndex, _mpb);
+            if (ldflow) ldflow.BindResultData(_lodIndex, _mpb);
+            if (ldfoam) ldfoam.BindResultData(_lodIndex, _mpb);
+            if (ldsds) ldsds.BindResultData(_lodIndex, _mpb);
+            if (ldshadows) ldshadows.BindResultData(_lodIndex, _mpb); else LodDataMgrShadow.BindNull( _mpb);
 
-            if (_lodIndex + 1 < OceanRenderer.Instance.CurrentLodCount)
-            {
-                ldaws.BindResultData(_lodIndex + 1, 1, _mpb);
-                if (ldflow) ldflow.BindResultData(_lodIndex + 1, 1, _mpb);
-                if (ldfoam) ldfoam.BindResultData(_lodIndex + 1, 1, _mpb);
-                if (ldsds) ldsds.BindResultData(_lodIndex + 1, 1, _mpb);
-                if (ldshadows) ldshadows.BindResultData(_lodIndex + 1, 1, _mpb); else LodDataMgrShadow.BindNull(1, _mpb);
-            }
+            // TOOD: how to handle this with texture arrays
+            // if (_lodIndex + 1 < OceanRenderer.Instance.CurrentLodCount)
+            // {
+            //     ldaws.BindResultData(_lodIndex + 1, 1, _mpb);
+            //     if (ldflow) ldflow.BindResultData(_lodIndex + 1, 1, _mpb);
+            //     if (ldfoam) ldfoam.BindResultData(_lodIndex + 1, 1, _mpb);
+            //     if (ldsds) ldsds.BindResultData(_lodIndex + 1, 1, _mpb);
+            //     if (ldshadows) ldshadows.BindResultData(_lodIndex + 1, 1, _mpb); else LodDataMgrShadow.BindNull(1, _mpb);
+            // }
 
             var reflTex = PreparedReflections.GetRenderTexture(_currentCamera.GetInstanceID());
             if (reflTex)

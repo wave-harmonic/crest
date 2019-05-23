@@ -67,13 +67,13 @@ namespace Crest
 
         }
 
-        public void BindSourceData(int lodIdx, int shapeSlot, PropertyWrapperMaterial properties, bool paramsOnly, bool usePrevTransform)
+        public void BindSourceData(int lodIdx, PropertyWrapperMaterial properties, bool paramsOnly, bool usePrevTransform, bool prevFrame = false)
         {
             var rd = usePrevTransform ?
                 OceanRenderer.Instance._lods[lodIdx]._renderDataPrevFrame.Validate(BuildCommandBufferBase._lastUpdateFrame - Time.frameCount, this)
                 : OceanRenderer.Instance._lods[lodIdx]._renderData.Validate(0, this);
 
-            BindData(lodIdx, shapeSlot, properties, paramsOnly ? Texture2D.blackTexture : (Texture) _sources, true, ref rd);
+            BindData(lodIdx, properties, paramsOnly ? Texture2D.blackTexture : (Texture) _sources, true, ref rd, prevFrame);
         }
 
         public abstract void GetSimSubstepData(float frameDt, out int numSubsteps, out float substepDt);
@@ -109,12 +109,12 @@ namespace Crest
                     if (srcDataIdx >= 0 && srcDataIdx < lodCount)
                     {
                         // bind data to slot 0 - previous frame data
-                        BindSourceData(srcDataIdx, 0, _renderSimMaterial[stepi, lodIdx], false, usePreviousFrameTransform);
+                        BindSourceData(srcDataIdx, _renderSimMaterial[stepi, lodIdx], false, usePreviousFrameTransform, true);
                     }
                     else
                     {
                         // no source data - bind params only
-                        BindSourceData(lodIdx, 0, _renderSimMaterial[stepi, lodIdx], true, usePreviousFrameTransform);
+                        BindSourceData(lodIdx, _renderSimMaterial[stepi, lodIdx], true, usePreviousFrameTransform, true);
                     }
 
                     SetAdditionalSimParams(lodIdx, _renderSimMaterial[stepi, lodIdx]);
@@ -123,7 +123,7 @@ namespace Crest
                         buf.SetRenderTarget(_targets, _targets.depthBuffer, 0, CubemapFace.Unknown, lodIdx);
                     }
 
-                    buf.SetGlobalFloat("_LD_SLICE_Index_0", lodIdx);
+                    buf.SetGlobalFloat("_LD_SLICE_Index_ThisLod", lodIdx);
 
                     buf.DrawMesh(FullScreenQuad(), Matrix4x4.identity, _renderSimMaterial[stepi, lodIdx].material);
 

@@ -69,7 +69,7 @@ Shader "Hidden/Crest/Simulation/Update Shadow"
 
 				o._WorldPosViewZ.xyz = wpos.xyz;
 				o._WorldPosViewZ.w = dot(wpos.xyz - _CamPos, _CamForward);
-				
+
 				o._ShadowCoord0 = mul(unity_WorldToShadow[0], wpos).xyz;
 				o._ShadowCoord1 = mul(unity_WorldToShadow[1], wpos).xyz;
 				o._ShadowCoord2 = mul(unity_WorldToShadow[2], wpos).xyz;
@@ -107,9 +107,9 @@ Shader "Hidden/Crest/Simulation/Update Shadow"
 				}
 
 				float4 coord = float4(
-					input._ShadowCoord0 * cascadeWeights[0] + 
-					input._ShadowCoord1 * cascadeWeights[1] + 
-					input._ShadowCoord2 * cascadeWeights[2] + 
+					input._ShadowCoord0 * cascadeWeights[0] +
+					input._ShadowCoord1 * cascadeWeights[1] +
+					input._ShadowCoord2 * cascadeWeights[2] +
 					input._ShadowCoord3 * cascadeWeights[3], 1);
 
 				SAMPLE_SHADOW_COLLECTOR_SHADOW(coord)
@@ -122,11 +122,11 @@ Shader "Hidden/Crest/Simulation/Update Shadow"
 				fixed2 shadow = 0.0;
 
 				// Shadow from last frame - manually implement black border
-				float2 uv_lastframe = LD_0_WorldToUV(input._WorldPosViewZ.xz);
-				half2 r = abs(uv_lastframe.xy - 0.5);
+				float3 uv_prevFrame = WorldToUV_PrevFrame(input._WorldPosViewZ.xz);
+				half2 r = abs(uv_prevFrame.xy - 0.5);
 				if (max(r.x, r.y) < 0.49)
 				{
-					SampleShadow(_LD_TexArray_Shadow_0, uv_lastframe, 1.0, shadow);
+					SampleShadow(_LD_TexArray_Shadow_PrevFrame, uv_prevFrame, 1.0, shadow);
 				}
 
 				// Check if the current sample is visible in the main camera (and therefore shadow map can be sampled)

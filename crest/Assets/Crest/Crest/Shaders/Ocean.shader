@@ -270,56 +270,56 @@ Shader "Crest/Ocean"
 				// Sample shape textures - always lerp between 2 LOD scales, so sample two textures
 
 				// Calculate sample weights. params.z allows shape to be faded out (used on last lod to support pop-less scale transitions)
-				float wt_0 = (1. - lodAlpha) * _LD_Params_0.z;
-				float wt_1 = (1. - wt_0) * _LD_Params_1.z;
+				float wt_thisLod = (1. - lodAlpha) * _LD_Params_ThisLod().z;
+				float wt_nextLod = (1. - wt_thisLod) * _LD_Params_NextLod().z;
 				const float2 positionWS_XZ_before = o.worldPos.xz;
 				// Sample displacement textures, add results to current world pos / normal / foam
-				if (wt_0 > 0.001)
+				if (wt_thisLod > 0.001)
 				{
-					const float3 uv_slice_0 = ADD_SLICE_0_TO_UV(LD_0_WorldToUV(positionWS_XZ_before));
+					const float3 uv_slice_thisLod = WorldToUV_ThisLod(positionWS_XZ_before);
 
 					#if !_DEBUGDISABLESHAPETEXTURES_ON
-					SampleDisplacements(_LD_TexArray_AnimatedWaves_0, uv_slice_0, wt_0, o.worldPos);
+					SampleDisplacements(_LD_TexArray_AnimatedWaves_ThisFrame, uv_slice_thisLod, wt_thisLod, o.worldPos);
 					#endif
 
 					#if _FOAM_ON
-					SampleFoam(_LD_TexArray_Foam_0, uv_slice_0, wt_0, o.foam_screenPos.x);
+					SampleFoam(_LD_TexArray_Foam_ThisFrame, uv_slice_thisLod, wt_thisLod, o.foam_screenPos.x);
 					#endif
 
 					#if _FLOW_ON
-					SampleFlow(_LD_TexArray_Flow_0, uv_slice_0, wt_0, o.flow_shadow.xy);
+					SampleFlow(_LD_TexArray_Flow_ThisFrame, uv_slice_thisLod, wt_thisLod, o.flow_shadow.xy);
 					#endif
 
 					#if _SUBSURFACESHALLOWCOLOUR_ON
-					SampleSeaDepth(_LD_TexArray_SeaFloorDepth_0, uv_slice_0, wt_0, o.lodAlpha_worldXZUndisplaced_oceanDepth.w);
+					SampleSeaDepth(_LD_TexArray_SeaFloorDepth_ThisFrame, uv_slice_thisLod, wt_thisLod, o.lodAlpha_worldXZUndisplaced_oceanDepth.w);
 					#endif
 
 					#if _SHADOWS_ON
-					SampleShadow(_LD_TexArray_Shadow_0, uv_slice_0, wt_0, o.flow_shadow.zw);
+					SampleShadow(_LD_TexArray_Shadow_ThisFrame, uv_slice_thisLod, wt_thisLod, o.flow_shadow.zw);
 					#endif
 				}
-				if (wt_1 > 0.001)
+				if (wt_nextLod > 0.001)
 				{
-					const float3 uv_slice_1 = ADD_SLICE_1_TO_UV(LD_1_WorldToUV(positionWS_XZ_before));
+					const float3 uv_slice_nextLod = WorldToUV_NextLod(positionWS_XZ_before);
 
 					#if !_DEBUGDISABLESHAPETEXTURES_ON
-					SampleDisplacements(_LD_TexArray_AnimatedWaves_1, uv_slice_1, wt_1, o.worldPos);
+					SampleDisplacements(_LD_TexArray_AnimatedWaves_ThisFrame, uv_slice_nextLod, wt_nextLod, o.worldPos);
 					#endif
 
 					#if _FOAM_ON
-					SampleFoam(_LD_TexArray_Foam_1, uv_slice_1, wt_1, o.foam_screenPos.x);
+					SampleFoam(_LD_TexArray_Foam_ThisFrame, uv_slice_nextLod, wt_nextLod, o.foam_screenPos.x);
 					#endif
 
 					#if _FLOW_ON
-					SampleFlow(_LD_TexArray_Flow_1, uv_slice_1, wt_1, o.flow_shadow.xy);
+					SampleFlow(_LD_TexArray_Flow_ThisFrame, uv_slice_nextLod, wt_nextLod, o.flow_shadow.xy);
 					#endif
 
 					#if _SUBSURFACESHALLOWCOLOUR_ON
-					SampleSeaDepth(_LD_TexArray_SeaFloorDepth_1, uv_slice_1, wt_1, o.lodAlpha_worldXZUndisplaced_oceanDepth.w);
+					SampleSeaDepth(_LD_TexArray_SeaFloorDepth_ThisFrame, uv_slice_nextLod, wt_nextLod, o.lodAlpha_worldXZUndisplaced_oceanDepth.w);
 					#endif
 
 					#if _SHADOWS_ON
-					SampleShadow(_LD_TexArray_Shadow_1, uv_slice_1, wt_1, o.flow_shadow.zw);
+					SampleShadow(_LD_TexArray_Shadow_ThisFrame, uv_slice_nextLod, wt_nextLod, o.flow_shadow.zw);
 					#endif
 				}
 
@@ -330,7 +330,7 @@ Shader "Crest/Ocean"
 				#if _DEBUGVISUALISESHAPESAMPLE_ON
 				#define TINT_COUNT (uint)7
 				half3 tintCols[TINT_COUNT]; tintCols[0] = half3(1., 0., 0.); tintCols[1] = half3(1., 1., 0.); tintCols[2] = half3(1., 0., 1.); tintCols[3] = half3(0., 1., 1.); tintCols[4] = half3(0., 0., 1.); tintCols[5] = half3(1., 0., 1.); tintCols[6] = half3(.5, .5, 1.);
-				o.debugtint = wt_0 * tintCols[_LD_LodIdx_0 % TINT_COUNT] + wt_1 * tintCols[_LD_LodIdx_1 % TINT_COUNT];
+				o.debugtint = wt_thisLod * tintCols[_LD_LodIdx_0 % TINT_COUNT] + wt_nextLod * tintCols[_LD_LodIdx_1 % TINT_COUNT];
 				#endif
 
 				// view-projection
@@ -409,13 +409,13 @@ Shader "Crest/Ocean"
 
 				//if(false)
 				{
-					const float3 uv_slice_0 = ADD_SLICE_0_TO_UV(LD_0_WorldToUV(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz));
-					const float3 uv_slice_1 = ADD_SLICE_0_TO_UV(LD_1_WorldToUV(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz));
-					const float wt_0 = (1. - lodAlpha) * _LD_Params_0.z;
-					const float wt_1 = (1. - wt_0) * _LD_Params_1.z;
+					const float3 uv_slice_thisLod = WorldToUV_ThisLod(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz);
+					const float3 uv_slice_nextLod = WorldToUV_NextLod(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz);
+					const float wt_thisLod = (1. - lodAlpha) * _LD_Params_ThisLod().z;
+					const float wt_nextLod = (1. - wt_thisLod) * _LD_Params_NextLod().z;
 					float3 dummy = 0.;
-					if (wt_0 > 0.001) SampleDisplacementsNormals(_LD_TexArray_AnimatedWaves_0, uv_slice_0, wt_0, _LD_Params_0.w, _LD_Params_0.x, dummy, n_geom.xz);
-					if (wt_1 > 0.001) SampleDisplacementsNormals(_LD_TexArray_AnimatedWaves_1, uv_slice_1, wt_1, _LD_Params_1.w, _LD_Params_1.x, dummy, n_geom.xz);
+					if (wt_thisLod > 0.001) SampleDisplacementsNormals(_LD_TexArray_AnimatedWaves_ThisFrame, uv_slice_thisLod, wt_thisLod, _LD_Params_ThisLod().w, _LD_Params_ThisLod().x, dummy, n_geom.xz);
+					if (wt_nextLod > 0.001) SampleDisplacementsNormals(_LD_TexArray_AnimatedWaves_ThisFrame, uv_slice_nextLod, wt_nextLod, _LD_Params_NextLod().w, _LD_Params_NextLod().x, dummy, n_geom.xz);
 					n_geom = normalize(n_geom);
 				}
 

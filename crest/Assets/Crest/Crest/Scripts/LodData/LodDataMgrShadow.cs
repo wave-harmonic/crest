@@ -197,15 +197,15 @@ namespace Crest
                 var srcDataIdx = lt.LodIndex + ScaleDifferencePow2;
                 srcDataIdx = Mathf.Clamp(srcDataIdx, 0, lt.LodCount - 1);
                 // bind data to slot 0 - previous frame data
-                BindSourceData(srcDataIdx, 0, _renderMaterial[lodIdx], false);
+                BindSourceData(srcDataIdx, _renderMaterial[lodIdx], false, true);
                 _bufCopyShadowMap.Blit(Texture2D.blackTexture, _targets, _renderMaterial[lodIdx].material, -1, lodIdx);
             }
         }
 
-        public void BindSourceData(int lodIdx, int slot, PropertyWrapperMaterial simMaterial, bool paramsOnly)
+        public void BindSourceData(int lodIdx, PropertyWrapperMaterial simMaterial, bool paramsOnly, bool prevFrame = false)
         {
             var rd = OceanRenderer.Instance._lods[lodIdx]._renderDataPrevFrame.Validate(BuildCommandBufferBase._lastUpdateFrame - Time.frameCount, this);
-            BindData(lodIdx, slot, simMaterial, paramsOnly ? Texture2D.blackTexture : _sources as Texture, true, ref rd);
+            BindData(lodIdx, simMaterial, paramsOnly ? Texture2D.blackTexture : _sources as Texture, true, ref rd, prevFrame);
         }
 
         void OnEnable()
@@ -230,20 +230,28 @@ namespace Crest
             }
         }
 
-        static int[] _paramsSampler;
-        public static int ParamIdSampler(int slot)
+        // TODO(Factor these out to be shared with other classes who have same code
+        public static string TextureArrayName = "_LD_TexArray_Shadow_";
+        public static int ParamIDTextureArray_ThisFrame = Shader.PropertyToID(TextureArrayName + "ThisFrame");
+        public static int ParamIDTextureArray_PrevFrame = Shader.PropertyToID(TextureArrayName + "PrevFrame");
+        public static int ParamIdSampler(bool prevFrame = false)
         {
-            if (_paramsSampler == null)
-                LodTransform.CreateParamIDs(ref _paramsSampler, "_LD_Sampler_Shadow_");
-            return _paramsSampler[slot];
+            if(prevFrame)
+            {
+                return ParamIDTextureArray_PrevFrame;
+            }
+            else
+            {
+                return ParamIDTextureArray_ThisFrame;
+            }
         }
-        protected override int GetParamIdSampler(int slot)
+        protected override int GetParamIdSampler(bool prevFrame = false)
         {
-            return ParamIdSampler(slot);
+            return ParamIdSampler(prevFrame);
         }
-        public static void BindNull(int shapeSlot, IPropertyWrapper properties)
+        public static void BindNull(IPropertyWrapper properties, bool prevFrame = false)
         {
-            properties.SetTexture(ParamIdSampler(shapeSlot), Texture2D.blackTexture);
+            properties.SetTexture(ParamIdSampler(prevFrame), Texture2D.blackTexture);
         }
     }
 }

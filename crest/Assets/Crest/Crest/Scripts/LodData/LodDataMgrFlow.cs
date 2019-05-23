@@ -64,7 +64,7 @@ namespace Crest
             {
                 buf.SetRenderTarget(_targets, 0, CubemapFace.Unknown, lodIdx);
                 buf.ClearRenderTarget(false, true, Color.black);
-                buf.SetGlobalFloat("_LD_SLICE_Index_0", lodIdx);
+                buf.SetGlobalFloat("_LD_SLICE_Index_ThisLod", lodIdx);
                 SubmitDraws(lodIdx, buf);
             }
 
@@ -75,20 +75,28 @@ namespace Crest
             }
         }
 
-        static int[] _paramsSampler;
-        public static int ParamIdSampler(int slot)
+        // TODO(Factor these out to be shared with other classes who have same code
+        public static string TextureArrayName = "_LD_TexArray_Flow_";
+        public static int ParamIDTextureArray_ThisFrame = Shader.PropertyToID(TextureArrayName + "ThisFrame");
+        public static int ParamIDTextureArray_PrevFrame = Shader.PropertyToID(TextureArrayName + "PrevFrame");
+        public static int ParamIdSampler(bool prevFrame = false)
         {
-            if (_paramsSampler == null)
-                LodTransform.CreateParamIDs(ref _paramsSampler, "_LD_TexArray_Flow_");
-            return _paramsSampler[slot];
+            if(prevFrame)
+            {
+                return ParamIDTextureArray_PrevFrame;
+            }
+            else
+            {
+                return ParamIDTextureArray_ThisFrame;
+            }
         }
-        protected override int GetParamIdSampler(int slot)
+        protected override int GetParamIdSampler(bool prevFrame = false)
         {
-            return ParamIdSampler(slot);
+            return ParamIdSampler(prevFrame);
         }
-        public static void BindNull(int shapeSlot, IPropertyWrapper properties)
+        public static void BindNull(IPropertyWrapper properties, bool prevFrame = false)
         {
-            properties.SetTexture(ParamIdSampler(shapeSlot), Texture2D.blackTexture);
+            properties.SetTexture(ParamIdSampler(prevFrame), Texture2D.blackTexture);
         }
     }
 }

@@ -14,8 +14,10 @@ namespace Crest
     {
         protected int _transformUpdateFrame = -1;
 
-        static int[] _paramsPosScale = null;
-        static int[] _paramsOcean = null;
+        static int _paramsPosScaleThisFrame = Shader.PropertyToID("_LD_Pos_Scale_ThisFrame");
+        static int _paramsPosScalePrevFrame = Shader.PropertyToID("_LD_Pos_Scale_PrevFrame");
+        static int _paramsOceanThisFrame = Shader.PropertyToID("_LD_Params_ThisFrame");
+        static int _paramsOceanPrevFrame = Shader.PropertyToID("_LD_Params_PrevFrame");
 
         public struct RenderData
         {
@@ -112,27 +114,27 @@ namespace Crest
             return 2f * maxTexelSize * OceanRenderer.Instance._minTexelsPerWave;
         }
 
-        public static int ParamIdPosScale(int slot)
+        public static int ParamIdPosScale(bool prevFrame = false)
         {
-            if (_paramsPosScale == null)
-                CreateParamIDs(ref _paramsPosScale, "_LD_Pos_Scale_");
-            return _paramsPosScale[slot];
-        }
-
-        public static int ParamIdOcean(int slot)
-        {
-            if (_paramsOcean == null)
-                CreateParamIDs(ref _paramsOcean, "_LD_Params_");
-            return _paramsOcean[slot];
-        }
-
-        public static void CreateParamIDs(ref int[] ids, string prefix)
-        {
-            int count = 2;
-            ids = new int[count];
-            for (int i = 0; i < count; i++)
+            if(prevFrame)
             {
-                ids[i] = Shader.PropertyToID(string.Format("{0}{1}", prefix, i));
+                return _paramsPosScalePrevFrame;
+            }
+            else
+            {
+                return _paramsPosScaleThisFrame;
+            }
+        }
+
+        public static int ParamIdOcean(bool prevFrame = false)
+        {
+            if(prevFrame)
+            {
+                return _paramsOceanPrevFrame;
+            }
+            else
+            {
+                return _paramsOceanThisFrame;
             }
         }
 

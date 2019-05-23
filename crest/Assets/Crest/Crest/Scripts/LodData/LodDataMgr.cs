@@ -22,7 +22,7 @@ namespace Crest
 
         public const int MAX_LOD_COUNT = 16;
 
-        protected abstract int GetParamIdSampler(int slot);
+        protected abstract int GetParamIdSampler(bool prevFrame = false);
 
         protected RenderTexture _targets;
 
@@ -90,27 +90,27 @@ namespace Crest
             _scaleDifferencePow2 = Mathf.RoundToInt(ratio_l2);
         }
 
-        public void BindResultData(int lodIdx, int shapeSlot, IPropertyWrapper properties)
+        public void BindResultData(int lodIdx, IPropertyWrapper properties, bool prevFrame = false)
         {
-            BindData(lodIdx, shapeSlot, properties, _targets, true, ref OceanRenderer.Instance._lods[lodIdx]._renderData);
+            BindData(lodIdx, properties, _targets, true, ref OceanRenderer.Instance._lods[lodIdx]._renderData, prevFrame);
         }
 
-        public void BindResultData(int lodIdx, int shapeSlot, IPropertyWrapper properties, bool blendOut)
+        public void BindResultData(int lodIdx, IPropertyWrapper properties, bool blendOut, bool prevFrame = false)
         {
-            BindData(lodIdx, shapeSlot, properties, _targets, blendOut, ref OceanRenderer.Instance._lods[lodIdx]._renderData);
+            BindData(lodIdx, properties, _targets, blendOut, ref OceanRenderer.Instance._lods[lodIdx]._renderData, prevFrame);
         }
 
-        protected virtual void BindData(int lodIdx, int shapeSlot, IPropertyWrapper properties, Texture applyData, bool blendOut, ref LodTransform.RenderData renderData)
+        protected virtual void BindData(int lodIdx, IPropertyWrapper properties, Texture applyData, bool blendOut, ref LodTransform.RenderData renderData, bool prevFrame = false)
         {
             if (applyData)
             {
-                properties.SetTexture(GetParamIdSampler(shapeSlot), applyData);
-                properties.SetFloat(Shader.PropertyToID("_LD_SLICE_Index_0"), lodIdx);
+                properties.SetTexture(GetParamIdSampler(prevFrame), applyData);
+                properties.SetFloat(Shader.PropertyToID("_LD_SLICE_Index_ThisLod"), lodIdx);
             }
 
             var lt = OceanRenderer.Instance._lods[lodIdx];
-            properties.SetVector(LodTransform.ParamIdPosScale(shapeSlot), new Vector3(renderData._posSnapped.x, renderData._posSnapped.z, lt.transform.lossyScale.x));
-            properties.SetVector(LodTransform.ParamIdOcean(shapeSlot),
+            properties.SetVector(LodTransform.ParamIdPosScale(prevFrame), new Vector3(renderData._posSnapped.x, renderData._posSnapped.z, lt.transform.lossyScale.x));
+            properties.SetVector(LodTransform.ParamIdOcean(prevFrame),
                 new Vector4(renderData._texelWidth, renderData._textureRes, 1f, 1f / renderData._textureRes));
         }
 

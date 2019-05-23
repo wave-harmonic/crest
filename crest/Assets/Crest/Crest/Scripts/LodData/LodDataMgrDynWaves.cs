@@ -87,20 +87,20 @@ namespace Crest
             // because the depth is scheduled to render just before the animated waves, and this sim happens before animated waves.
             if (OceanRenderer.Instance._lodDataSeaDepths)
             {
-                OceanRenderer.Instance._lodDataSeaDepths.BindResultData(lodIdx, 1, simMaterial);
+                OceanRenderer.Instance._lodDataSeaDepths.BindResultData(lodIdx, simMaterial);
             }
             else
             {
-                LodDataMgrSeaFloorDepth.BindNull(1, simMaterial);
+                LodDataMgrSeaFloorDepth.BindNull(simMaterial);
             }
 
             if (OceanRenderer.Instance._lodDataFlow)
             {
-                OceanRenderer.Instance._lodDataFlow.BindResultData(lodIdx, 1, simMaterial);
+                OceanRenderer.Instance._lodDataFlow.BindResultData(lodIdx, simMaterial);
             }
             else
             {
-                LodDataMgrFlow.BindNull(1, simMaterial);
+                LodDataMgrFlow.BindNull(simMaterial);
             }
 
         }
@@ -132,20 +132,28 @@ namespace Crest
             }
         }
 
-        static int[] _paramsSampler;
-        public static int ParamIdSampler(int slot)
+        // TODO(Factor these out to be shared with other classes who have same code
+        public static string TextureArrayName = "_LD_TexArray_DynamicWaves_";
+        public static int ParamIDTextureArray_ThisFrame = Shader.PropertyToID(TextureArrayName + "ThisFrame");
+        public static int ParamIDTextureArray_PrevFrame = Shader.PropertyToID(TextureArrayName + "PrevFrame");
+        public static int ParamIdSampler(bool prevFrame = false)
         {
-            if (_paramsSampler == null)
-                LodTransform.CreateParamIDs(ref _paramsSampler, "_LD_TexArray_DynamicWaves_");
-            return _paramsSampler[slot];
+            if(prevFrame)
+            {
+                return ParamIDTextureArray_PrevFrame;
+            }
+            else
+            {
+                return ParamIDTextureArray_ThisFrame;
+            }
         }
-        protected override int GetParamIdSampler(int slot)
+        protected override int GetParamIdSampler(bool prevFrame = false)
         {
-            return ParamIdSampler(slot);
+            return ParamIdSampler(prevFrame);
         }
-        public static void BindNull(int shapeSlot, IPropertyWrapper properties)
+        public static void BindNull(IPropertyWrapper properties, bool prevFrame = false)
         {
-            properties.SetTexture(ParamIdSampler(shapeSlot), Texture2D.blackTexture);
+            properties.SetTexture(ParamIdSampler(prevFrame), Texture2D.blackTexture);
         }
     }
 }

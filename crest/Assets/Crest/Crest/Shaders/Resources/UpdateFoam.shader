@@ -40,7 +40,7 @@ Shader "Hidden/Crest/Simulation/Update Foam"
 			{
 				float4 positionCS : SV_POSITION;
 				float3 uv_slice : TEXCOORD0;
-				float3 uv_slice_lastframe : TEXCOORD1;
+				float3 uv_slice_prevFrame : TEXCOORD1;
 				float2 positionWS_XZ : TEXCOORD2;
 			};
 
@@ -55,11 +55,11 @@ Shader "Hidden/Crest/Simulation/Update Foam"
 #endif
 
 				// TODO(MRT): when porting this to geometry shader, set the slice there instead
-				o.uv_slice = ADD_SLICE_0_TO_UV(input.uv);
+				o.uv_slice = ADD_SLICE_THIS_LOD_TO_UV(input.uv);
 
 				// lod data 1 is current frame, compute world pos from quad uv
-				o.positionWS_XZ = LD_1_UVToWorld(input.uv);
-				o.uv_slice_lastframe = ADD_SLICE_0_TO_UV(LD_0_WorldToUV(o.positionWS_XZ));
+				o.positionWS_XZ = UVToWorld_ThisFrame(input.uv);
+				o.uv_slice_prevFrame = WorldToUV_PrevFrame(o.positionWS_XZ);
 
 				return o;
 			}
@@ -67,19 +67,19 @@ Shader "Hidden/Crest/Simulation/Update Foam"
 			half Frag(Varyings input) : SV_Target
 			{
 				float3 uv_slice = input.uv_slice;
-				float3 uv_slice_lastframe = input.uv_slice_lastframe;
+				float3 uv_slice_prevFrame = input.uv_slice_prevFrame;
 				// #if _FLOW_ON
-				half3 velocity = half3(_LD_TexArray_Flow_1.Sample(LODData_linear_clamp_sampler, uv_slice).xy, 0.0);
-				half foam = _LD_TexArray_Foam_0.Sample(LODData_linear_clamp_sampler, uv_slice_lastframe
-					- ((_SimDeltaTime * _LD_Params_0.w) * velocity)
+				half3 velocity = half3(_LD_TexArray_Flow_ThisFrame.Sample(LODData_linear_clamp_sampler, uv_slice).xy, 0.0);
+				half foam = _LD_TexArray_Foam_PrevFrame.Sample(LODData_linear_clamp_sampler, uv_slice_prevFrame
+					- ((_SimDeltaTime * _LD_Params_PrevFrame[_LD_SLICE_Index_ThisLod].w) * velocity)
 					).x;
 				// #else
 				// // sampler will clamp the uv_slice currently
-				// half foam = tex2Dlod(_LD_TexArray_Foam_0, uv_slice_lastframe).x;
+				// half foam = tex2Dlod(_LD_TexArray_Foam_PrevFrame, uv_slice_prevFrame).x;
 				// #endif
 
-				half2 r = abs(uv_slice_lastframe.xy - 0.5);
-				if (max(r.x, r.y) > 0.5 - _LD_Params_0.w)
+				half2 r = abs(uv_slice_prevFrame.xy - 0.5);
+				if (max(r.x, r.y) > 0.5 - _LD_Params_PrevFrame[_LD_SLICE_Index_ThisLod].w)
 				{
 					// no border wrap mode for RTs in unity it seems, so make any off-texture reads 0 manually
 					foam = 0.0;
@@ -89,10 +89,10 @@ Shader "Hidden/Crest/Simulation/Update Foam"
 				foam *= max(0.0, 1.0 - _FoamFadeRate * _SimDeltaTime);
 
 				// sample displacement texture and generate foam from it
-				const float3 dd = float3(_LD_Params_1.w, 0.0, _LD_Params_1.x);
-				half3 s = _LD_TexArray_AnimatedWaves_1.Sample(LODData_linear_clamp_sampler, uv_slice).xyz;
-				half3 sx = _LD_TexArray_AnimatedWaves_1.SampleLevel(LODData_linear_clamp_sampler, uv_slice + float3(dd.xy, 0), dd.yy).xyz;
-				half3 sz = _LD_TexArray_AnimatedWaves_1.SampleLevel(LODData_linear_clamp_sampler, uv_slice + float3(dd.yx, 0), dd.yy).xyz;
+				const float3 dd = float3(_LD_Params_ThisFrame[_LD_SLICE_Index_ThisLod].w, 0.0, _LD_Params_ThisFrame[_LD_SLICE_Index_ThisLod].x);
+				half3 s = SampleLod(_LD_TexArray_AnimatedWaves_ThisFrame, uv_slice).xyz;
+				half3 sx = SampleLodLevel(_LD_TexArray_AnimatedWaves_ThisFrame, uv_slice + float3(dd.xy, 0), dd.yy).xyz;
+				half3 sz = SampleLodLevel(_LD_TexArray_AnimatedWaves_ThisFrame, uv_slice + float3(dd.yx, 0), dd.yy).xyz;
 				float3 disp = s.xyz;
 				float3 disp_x = dd.zyy + sx.xyz;
 				float3 disp_z = dd.yyz + sz.xyz;
@@ -101,12 +101,12 @@ Shader "Hidden/Crest/Simulation/Update Foam"
 				// < 1: Squash
 				// < 0: Overlap
 				float4 du = float4(disp_x.xz, disp_z.xz) - disp.xzxz;
-				float det = (du.x * du.w - du.y * du.z) / (_LD_Params_1.x * _LD_Params_1.x);
+				float det = (du.x * du.w - du.y * du.z) / (_LD_Params_ThisFrame[_LD_SLICE_Index_ThisLod].x * _LD_Params_ThisFrame[_LD_SLICE_Index_ThisLod].x);
 				foam += 5.0 * _SimDeltaTime * _WaveFoamStrength * saturate(_WaveFoamCoverage - det);
 
 				// add foam in shallow water. use the displaced position to ensure we add foam where world objects are.
-				float3 uv_slice_1_displaced = float3(LD_1_WorldToUV(input.positionWS_XZ + disp.xz), uv_slice.z);
-				float signedOceanDepth = _LD_TexArray_SeaFloorDepth_1.SampleLevel(LODData_linear_clamp_sampler, uv_slice_1_displaced, float2(0, 1)).x + disp.y;
+				float3 uv_slice_thisFrame_displaced = WorldToUV_ThisFrame(input.positionWS_XZ + disp.xz);
+				float signedOceanDepth = SampleLodLevel(_LD_TexArray_SeaFloorDepth_ThisFrame, uv_slice_thisFrame_displaced, float2(0, 1)).x + disp.y;
 				foam += _ShorelineFoamStrength * _SimDeltaTime * saturate(1.0 - signedOceanDepth / _ShorelineFoamMaxDepth);
 
 				return foam;

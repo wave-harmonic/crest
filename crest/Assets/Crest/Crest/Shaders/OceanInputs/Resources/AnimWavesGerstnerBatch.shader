@@ -23,6 +23,7 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Batch"
 			CGPROGRAM
 			#pragma vertex Vert
 			#pragma fragment Frag
+			#pragma enable_d3d11_debug_symbols
 			#include "UnityCG.cginc"
 			#include "../../OceanLODData.hlsl"
 
@@ -79,7 +80,7 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Batch"
 				const half4 oneMinusAttenuation = (half4)1.0 - (half4)_AttenuationInShallows;
 
 				// sample ocean depth (this render target should 1:1 match depth texture, so UVs are trivial)
-				const half depth = _LD_TexArray_SeaFloorDepth_PrevFrame.Sample(LODData_linear_clamp_sampler, input.uv_slice).x;
+				const half depth = _LD_TexArray_SeaFloorDepth_ThisFrame.Sample(LODData_linear_clamp_sampler, input.uv_slice).x;
 
 				half3 result = (half3)0.0;
 

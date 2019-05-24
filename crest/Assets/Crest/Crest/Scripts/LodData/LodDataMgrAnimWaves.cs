@@ -134,15 +134,14 @@ namespace Crest
                 BindWaveBuffer(lodIdx, _combineProperties[lodIdx], false);
 
                 // combine data from next larger lod into this one
-                // if (lodIdx < lodCount - 1 && _shapeCombinePass)
-                // {
-                //     BindResultData(lodIdx + 1, 1, _combineProperties[lodIdx]);
-                // }
-                // else
+                if (lodIdx < lodCount - 1 && _shapeCombinePass)
+                {
+                    BindResultData(lodIdx + 1, _combineProperties[lodIdx]);
+                }
+                else
                 {
                     // TODO(MRT): Look at how to achieve this with TextureArrays?
-                    // this binds black texture
-                    // BindWaveBuffer(lodIdx, 1, _combineProperties[lodIdx], true);
+                    // BindWaveBuffer(lodIdx, _combineProperties[lodIdx], true);
                 }
 
                 // dynamic waves

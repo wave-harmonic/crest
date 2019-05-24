@@ -109,9 +109,16 @@ namespace Crest
             }
 
             var lt = OceanRenderer.Instance._lods[lodIdx];
-            properties.SetVector(LodTransform.ParamIdPosScale(prevFrame), new Vector3(renderData._posSnapped.x, renderData._posSnapped.z, lt.transform.lossyScale.x));
-            properties.SetVector(LodTransform.ParamIdOcean(prevFrame),
-                new Vector4(renderData._texelWidth, renderData._textureRes, 1f, 1f / renderData._textureRes));
+
+            // TODO(MRT): Fix absolute hack!
+            var hackyParamIdPosScale = new Vector4[SLICE_COUNT];
+            hackyParamIdPosScale[lodIdx] = new Vector4(renderData._posSnapped.x, renderData._posSnapped.z, lt.transform.lossyScale.x, 0); // NOTE: gets zeroed by unity, see https://www.alanzucconi.com/2016/10/24/arrays-shaders-unity-5-4/
+            properties.SetVectorArray(LodTransform.ParamIdPosScale(prevFrame), hackyParamIdPosScale);
+
+            var hackyParamIdOcean = new Vector4[SLICE_COUNT];
+            hackyParamIdOcean[lodIdx] =new Vector4(renderData._texelWidth, renderData._textureRes, 1f, 1f / renderData._textureRes);
+            properties.SetVectorArray(LodTransform.ParamIdOcean(prevFrame),
+                hackyParamIdOcean);
         }
 
         public static LodDataType Create<LodDataType, LodDataSettings>(GameObject attachGO, ref LodDataSettings settings)

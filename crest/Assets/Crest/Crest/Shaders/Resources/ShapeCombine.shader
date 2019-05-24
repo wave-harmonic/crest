@@ -16,6 +16,7 @@ Shader "Hidden/Crest/Simulation/Combine Animated Wave LODs"
 			CGPROGRAM
 			#pragma vertex Vert
 			#pragma fragment Frag
+			#pragma enable_d3d11_debug_symbols
 
 			#pragma multi_compile __ _DYNAMIC_WAVE_SIM_ON
 			#pragma multi_compile __ _FLOW_ON

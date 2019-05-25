@@ -81,7 +81,7 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Batch"
 				const half4 oneMinusAttenuation = (half4)1.0 - (half4)_AttenuationInShallows;
 
 				// sample ocean depth (this render target should 1:1 match depth texture, so UVs are trivial)
-				const half depth = CREST_OCEAN_DEPTH_BASELINE - tex2D(_LD_Sampler_SeaFloorDepth_0, input.uv).x;
+				const half depth = tex2D(_LD_Sampler_SeaFloorDepth_0, input.uv).x;
 
 				// Experiment - preferred wave directions
 				half2 preferredDir = normalize(input.worldPos_wt.xy);

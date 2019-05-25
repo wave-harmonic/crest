@@ -57,13 +57,21 @@ Shader "Crest/Ocean"
 
 		// Reflection properites
 		[Header(Reflection Environment)]
+		// Controls specular response of water surface
+		_Specular("Specular", Range(0.0, 1.0)) = 1.0
 		// Controls harshness of Fresnel behaviour
-		_FresnelPower("Fresnel Power", Range(0.0, 20.0)) = 3.0
+		_FresnelPower("Fresnel Power", Range(1.0, 20.0)) = 5.0
 		// Refractive indices
 		_RefractiveIndexOfAir("Refractive Index of Air", Range(1.0, 2.0)) = 1.0
 		_RefractiveIndexOfWater("Refractive Index of Water", Range(1.0, 2.0)) = 1.333
 		// Dynamically rendered 'reflection plane' style reflections. Requires OceanPlanarReflection script added to main camera.
 		[Toggle] _PlanarReflections("Planar Reflections", Float) = 0
+		// How much the water normal affects the planar reflection
+		_PlanarReflectionNormalsStrength("Planar Reflections Distortion", Float) = 1
+		// Whether to use an overridden reflection cubemap (provided in the next property)
+		[Toggle] _OverrideReflectionCubemap("Override Reflection Cubemap", Float) = 0
+		// Custom environment map to reflect
+		[NoScaleOffset] _ReflectionCubemapOverride("Override Reflection Cubemap", CUBE) = "" {}
 
 		// A simple procedural skybox, not suitable for rendering on screen, but can be useful to give control over reflection colour
 		// especially in stylized/non realistic applications
@@ -92,7 +100,7 @@ Shader "Crest/Ocean"
 		// Colour tint bubble foam underneath water surface
 		_FoamBubbleColor("Bubble Foam Color", Color) = (0.64, 0.83, 0.82, 1.0)
 		// Parallax for underwater bubbles to give feeling of volume
-		_FoamBubbleParallax("Bubble Foam Parallax", Range(0.0, 0.25)) = 0.05
+		_FoamBubbleParallax("Bubble Foam Parallax", Range(0.0, 0.5)) = 0.05
 		// Proximity to sea floor where foam starts to get generated
 		_ShorelineFoamMinDepth("Shoreline Foam Min Depth", Range(0.01, 5.0)) = 0.27
 		// Controls how gradual the transition is from full foam to no foam
@@ -194,6 +202,8 @@ Shader "Crest/Ocean"
 			#pragma shader_feature _FOAM_ON
 			#pragma shader_feature _FOAM3DLIGHTING_ON
 			#pragma shader_feature _PLANARREFLECTIONS_ON
+			#pragma shader_feature _OVERRIDEREFLECTIONCUBEMAP_ON
+		
 			#pragma shader_feature _PROCEDURALSKY_ON
 			#pragma shader_feature _UNDERWATER_ON
 			#pragma shader_feature _FLOW_ON
@@ -258,7 +268,7 @@ Shader "Crest/Ocean"
 				o.flow_shadow = half4(0., 0., 0., 0.);
 				o.foam_screenPos.x = 0.;
 
-				o.lodAlpha_worldXZUndisplaced_oceanDepth.w = 0.;
+				o.lodAlpha_worldXZUndisplaced_oceanDepth.w = CREST_OCEAN_DEPTH_BASELINE;
 				
 				// Sample shape textures - always lerp between 2 LOD scales, so sample two textures
 
@@ -283,12 +293,14 @@ Shader "Crest/Ocean"
 					SampleFlow(_LD_Sampler_Flow_0, uv_0, wt_0, o.flow_shadow.xy);
 					#endif
 
+					const float2 uv_0_disp = LD_0_WorldToUV(o.worldPos.xz);
+
 					#if _SUBSURFACESHALLOWCOLOUR_ON
-					SampleSeaFloorHeightAboveBaseline(_LD_Sampler_SeaFloorDepth_0, uv_0, wt_0, o.lodAlpha_worldXZUndisplaced_oceanDepth.w);
+					SampleSeaDepth(_LD_Sampler_SeaFloorDepth_0, uv_0_disp, wt_0, o.lodAlpha_worldXZUndisplaced_oceanDepth.w);
 					#endif
 
 					#if _SHADOWS_ON
-					SampleShadow(_LD_Sampler_Shadow_0, uv_0, wt_0, o.flow_shadow.zw);
+					SampleShadow(_LD_Sampler_Shadow_0, uv_0_disp, wt_0, o.flow_shadow.zw);
 					#endif
 				}
 				if (wt_1 > 0.001)
@@ -307,17 +319,16 @@ Shader "Crest/Ocean"
 					SampleFlow(_LD_Sampler_Flow_1, uv_1, wt_1, o.flow_shadow.xy);
 					#endif
 
+					const float2 uv_1_disp = LD_1_WorldToUV(o.worldPos.xz);
+
 					#if _SUBSURFACESHALLOWCOLOUR_ON
-					SampleSeaFloorHeightAboveBaseline(_LD_Sampler_SeaFloorDepth_1, uv_1, wt_1, o.lodAlpha_worldXZUndisplaced_oceanDepth.w);
+					SampleSeaDepth(_LD_Sampler_SeaFloorDepth_1, uv_1_disp, wt_1, o.lodAlpha_worldXZUndisplaced_oceanDepth.w);
 					#endif
 
 					#if _SHADOWS_ON
-					SampleShadow(_LD_Sampler_Shadow_1, uv_1, wt_1, o.flow_shadow.zw);
+					SampleShadow(_LD_Sampler_Shadow_1, uv_1_disp, wt_1, o.flow_shadow.zw);
 					#endif
 				}
-
-				// Convert height above -1000m to depth below surface
-				o.lodAlpha_worldXZUndisplaced_oceanDepth.w = CREST_OCEAN_DEPTH_BASELINE - o.lodAlpha_worldXZUndisplaced_oceanDepth.w;
 
 				// Foam can saturate
 				o.foam_screenPos.x = saturate(o.foam_screenPos.x);
@@ -401,10 +412,10 @@ Shader "Crest/Ocean"
 
 				// Normal - geom + normal mapping
 				half3 n_geom = half3(0.0, 1.0, 0.0);
+				const float lodAlpha = input.lodAlpha_worldXZUndisplaced_oceanDepth.x;
 
 				//if(false)
 				{
-					const float lodAlpha = input.lodAlpha_worldXZUndisplaced_oceanDepth.x;
 					const float2 uv_0 = LD_0_WorldToUV(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz);
 					const float2 uv_1 = LD_1_WorldToUV(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz);
 					const float wt_0 = (1. - lodAlpha) * _LD_Params_0.z;
@@ -431,9 +442,9 @@ Shader "Crest/Ocean"
 				#if _FOAM_ON
 				half4 whiteFoamCol;
 				#if !_FLOW_ON
-				ComputeFoam(input.foam_screenPos.x, input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, input.worldPos.xz, n_pixel, pixelZ, sceneZ, view, lightDir, shadow.y, bubbleCol, whiteFoamCol);
+				ComputeFoam(input.foam_screenPos.x, input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, input.worldPos.xz, n_pixel, pixelZ, sceneZ, view, lightDir, shadow.y, lodAlpha, bubbleCol, whiteFoamCol);
 				#else
-				ComputeFoamWithFlow(input.flow_shadow.xy, input.foam_screenPos.x, input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, input.worldPos.xz, n_pixel, pixelZ, sceneZ, view, lightDir, shadow.y, bubbleCol, whiteFoamCol);
+				ComputeFoamWithFlow(input.flow_shadow.xy, input.foam_screenPos.x, input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, input.worldPos.xz, n_pixel, pixelZ, sceneZ, view, lightDir, shadow.y, lodAlpha, bubbleCol, whiteFoamCol);
 				#endif // _FLOW_ON
 				#endif // _FOAM_ON
 
@@ -462,7 +473,7 @@ Shader "Crest/Ocean"
 				// Fog
 				if (!underwater)
 				{
-					// Above water - do atmospheric fog. If you are using Azure, replace this with their stuff!
+					// Above water - do atmospheric fog. If you are using a third party sky package such as Azure, replace this with their stuff!
 					UNITY_APPLY_FOG(input.fogCoord, col);
 				}
 				else

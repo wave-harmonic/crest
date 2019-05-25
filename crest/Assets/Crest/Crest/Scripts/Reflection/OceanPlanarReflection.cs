@@ -77,6 +77,7 @@ namespace Crest
         [SerializeField] bool _allowMSAA = false;           //allow MSAA on reflection camera
         [SerializeField] float _farClipPlane = 1000;             //far clip plane for reflection camera on all layers
         [SerializeField] bool _forceForwardRenderingPath = true;
+        [SerializeField] CameraClearFlags _clearFlags = CameraClearFlags.Color;
 
         /// <summary>
         /// Refresh reflection every x frames(1-every frame)
@@ -148,6 +149,7 @@ namespace Crest
             {
                 QualitySettings.pixelLightCount = 0;
             }
+
             UpdateCameraModes(_camViewpoint, _camReflections);
 
             // Reflect camera around reflection plane
@@ -178,7 +180,8 @@ namespace Crest
             _camReflections.transform.eulerAngles = new Vector3(-euler.x, euler.y, euler.z);
             _camReflections.cullingMatrix = _camReflections.projectionMatrix * _camReflections.worldToCameraMatrix;
 
-            ForceDistanceCooling(_farClipPlane);
+            ForceDistanceCulling(_farClipPlane);
+            
             _camReflections.Render();
 
             GL.invertCulling = oldCulling;
@@ -197,7 +200,7 @@ namespace Crest
         /// Limit render distance for reflection camera for first 32 layers
         /// </summary>
         /// <param name="farClipPlane">reflection far clip distance</param>
-        private void ForceDistanceCooling(float farClipPlane)
+        private void ForceDistanceCulling(float farClipPlane)
         {
             if (_cullDistances == null)
                 _cullDistances = new float[32];
@@ -212,10 +215,10 @@ namespace Crest
         void UpdateCameraModes(Camera src, Camera dest)
         {
             // set water camera to clear the same way as current camera
-            dest.clearFlags = src.clearFlags;
             dest.renderingPath = _forceForwardRenderingPath ? RenderingPath.Forward : src.renderingPath;
-            dest.backgroundColor = src.backgroundColor;
-            if (src.clearFlags == CameraClearFlags.Skybox)
+            dest.backgroundColor = new Color(0f, 0f, 0f, 0f);
+            dest.clearFlags = _clearFlags;
+            if (_clearFlags == CameraClearFlags.Skybox)
             {
                 Skybox sky = src.GetComponent<Skybox>();
                 Skybox mysky = dest.GetComponent<Skybox>();
@@ -236,8 +239,6 @@ namespace Crest
 
             dest.farClipPlane = src.farClipPlane;
             dest.nearClipPlane = src.nearClipPlane;
-
-
             dest.orthographic = src.orthographic;
             dest.fieldOfView = src.fieldOfView;
             dest.orthographicSize = src.orthographicSize;

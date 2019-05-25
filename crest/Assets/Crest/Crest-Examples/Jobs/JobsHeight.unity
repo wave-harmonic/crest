@@ -259,8 +259,7 @@ MonoBehaviour:
   _lodDataResolution: 256
   _geometryDownSampleFactor: 2
   _lodCount: 7
-  _simSettingsAnimatedWaves: {fileID: 11400000, guid: 397582598b0b9d34193c1cf23e1548b3,
-    type: 2}
+  _simSettingsAnimatedWaves: {fileID: 0}
   _createSeaFloorDepthData: 1
   _createFoamSim: 1
   _simSettingsFoam: {fileID: 11400000, guid: 8e1de4c30452ccf499882fefe206c5cd, type: 2}
@@ -830,7 +829,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 825864825}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: -2000, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1410987017}
@@ -977,7 +976,7 @@ MonoBehaviour:
   - Terrain
   _resolution: 384
   _cameraMaxTerrainHeight: 0
-  _forceAlwaysUpdateDebug: 0
+  _forceAlwaysUpdateDebug: 1
   _cacheTexture: {fileID: 0}
 --- !u!1 &1410987016
 GameObject:

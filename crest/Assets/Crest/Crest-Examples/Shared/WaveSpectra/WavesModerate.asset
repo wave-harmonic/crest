@@ -4,8 +4,7 @@
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
@@ -18,16 +17,16 @@ MonoBehaviour:
   - -4.6633663
   - -4.632612
   - -3.9353123
-  - -4.027905
-  - -1.2186111
-  - 0.3308592
-  - 0.57082915
-  - 1.4626074
+  - -3.2213879
+  - -2.4813807
+  - -1.2080691
+  - -0.53905386
+  - 0.27448857
   - 0.53627354
-  - 1.2403257
-  - 3
+  - 1.0282621
+  - 1.4403292
   - -6
-  _powerDisabled: 010101010101010101010001
+  _powerDisabled: 000000000000000000000000
   _chopScales:
   - 1
   - 1
@@ -54,5 +53,5 @@ MonoBehaviour:
   - 1
   - 1
   - 1
-  _chop: 1.16
+  _chop: 1.5
   _showAdvancedControls: 0

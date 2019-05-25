@@ -501,7 +501,7 @@ Shader "Crest/Ocean"
 				#endif
 				#endif
 
-				col = sss;
+				//col = sss/2.;
 				return half4(col, 1.);
 			}
 

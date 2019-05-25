@@ -96,7 +96,7 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Batch"
 					// The below is a few things collapsed together.
 					half4 depth_wt = saturate(depth * _TwoPiOverWavelengths[vi] / PI);
 					// keep some proportion of amplitude so that there is some waves remaining
-					half4 wt = _AttenuationInShallows * depth_wt + oneMinusAttenuation;
+					half4 wt = 1;// _AttenuationInShallows * depth_wt + oneMinusAttenuation;
 
 					// direction
 					half4 Dx = _WaveDirX[vi];
@@ -121,8 +121,8 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Batch"
 
 					// have no idea why this doesnt work :/. the weights for blending between the last two lods should be baked into _ChopAmps which
 					// therefore should follow into this through resultx & resultz.
-					displacementNormalized.x += dot(resultx, wt * _TwoPiOverWavelengths[vi]);
-					displacementNormalized.y += dot(resultz, wt * _TwoPiOverWavelengths[vi]);
+					displacementNormalized.x += dot(/*abs*/(resultx * _TwoPiOverWavelengths[vi]), wt);
+					displacementNormalized.y += dot(/*abs*/(resultz * _TwoPiOverWavelengths[vi]), wt);
 				}
 
 				// its worrying that displacementNormalized.x appears to be smooth - but abs(displacementNormalized.x) is not. something fundamental wrong with this non-linearity?
@@ -130,10 +130,10 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Batch"
 
 				// simply using abs(result.x) vs result.x is enough to screw it..
 
-				return input.worldPos_wt.z * half4(result, length(displacementNormalized));
+				//return input.worldPos_wt.z * half4(half3(result.x,100.*length(displacementNormalized).x,result.z), (displacementNormalized).x);
 
 				//works
-				return input.worldPos_wt.z * half4(result, (result.x));
+				return input.worldPos_wt.z * half4(result, length(displacementNormalized));
 				//broken
 				return input.worldPos_wt.z * half4(result, abs(result.x));
 			}

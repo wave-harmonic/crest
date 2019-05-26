@@ -4,7 +4,10 @@
 
 // This is the original version that uses an auxillary camera and works with Unity's GPU terrain - issue 152.
 
+using System;
+using Unity.Collections;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace Crest
 {
@@ -34,48 +37,46 @@ namespace Crest
 #pragma warning disable 414
         bool _forceAlwaysUpdateDebug = false;
 #pragma warning restore 414
-		
-		[SerializeField]
-		RenderTexture _cacheTexture;
+
+        [SerializeField]
+        RenderTexture _cacheTexture;
         GameObject _drawCacheQuad;
         Camera _camDepthCache;
 
-		// Getters for the jobs system
-		public RenderTexture CacheTexture { get { return _cacheTexture; } }
-		public int Resolution {  get { return _resolution; } }
+        // Getters for the jobs system
+        public RenderTexture CacheTexture { get { return _cacheTexture; } }
+        public int Resolution { get { return _resolution; } }
 
-		void Start()
+        void Start()
         {
-            if (_layerNames == null || _layerNames.Length < 1)
+            if(_layerNames == null || _layerNames.Length < 1)
             {
                 Debug.LogError("At least one layer name to render into the cache must be provided.", this);
                 enabled = false;
                 return;
             }
 
-            if (OceanRenderer.Instance == null)
+            if(OceanRenderer.Instance == null)
             {
                 enabled = false;
                 return;
             }
 
-            if (_populateOnStartup)
+            if(_populateOnStartup)
             {
                 PopulateCache();
             }
 
-            if (transform.lossyScale.magnitude < 5f)
+            if(transform.lossyScale.magnitude < 5f)
             {
                 Debug.LogWarning("Ocean depth cache transform scale is small and will capture a small area of the world. Is this intended?", this);
             }
-
-			
         }
 
 #if UNITY_EDITOR
         void Update()
         {
-            if (_forceAlwaysUpdateDebug)
+            if(_forceAlwaysUpdateDebug)
             {
                 PopulateCache();
             }
@@ -85,10 +86,10 @@ namespace Crest
         public void PopulateCache()
         {
             var layerMask = 0;
-            foreach (var layer in _layerNames)
+            foreach(var layer in _layerNames)
             {
                 int layerIdx = LayerMask.NameToLayer(layer);
-                if (string.IsNullOrEmpty(layer) || layerIdx == -1)
+                if(string.IsNullOrEmpty(layer) || layerIdx == -1)
                 {
                     Debug.LogError("OceanDepthCache: Invalid layer specified: \"" + layer +
                         "\". Please specify valid layers for objects/geometry that provide the ocean depth.", this);
@@ -98,12 +99,12 @@ namespace Crest
                     layerMask = layerMask | (1 << layerIdx);
                 }
             }
-            if (layerMask == 0)
+            if(layerMask == 0)
             {
                 Debug.LogError("No valid layers for populating depth cache, aborting.", this);
             }
 
-            if (_cacheTexture == null)
+            if(_cacheTexture == null)
             {
                 var fmt = RenderTextureFormat.RHalf;
                 Debug.Assert(SystemInfo.SupportsRenderTextureFormat(fmt), "The graphics device does not support the render texture format " + fmt.ToString());
@@ -114,7 +115,7 @@ namespace Crest
                 _cacheTexture.anisoLevel = 0;
             }
 
-            if (_drawCacheQuad == null)
+            if(_drawCacheQuad == null)
             {
                 _drawCacheQuad = GameObject.CreatePrimitive(PrimitiveType.Quad);
                 Destroy(_drawCacheQuad.GetComponent<Collider>());
@@ -128,7 +129,7 @@ namespace Crest
                 qr.enabled = false;
             }
 
-            if (_camDepthCache == null)
+            if(_camDepthCache == null)
             {
                 _camDepthCache = new GameObject("DepthCacheCam").AddComponent<Camera>();
                 _camDepthCache.transform.position = transform.position + Vector3.up * _cameraMaxTerrainHeight;
@@ -152,10 +153,27 @@ namespace Crest
             _camDepthCache.RenderWithShader(Shader.Find("Crest/Inputs/Depth/Ocean Depth From Geometry"), null);
 
 #if USE_JOBS
-			// Registers this ocean graph with the jobs system
-			ShapeGerstnerJobs.AddNewOceanDepthCache(this);
+            // Registers this ocean graph with the jobs system
+            Action<AsyncGPUReadbackRequest> newAction = UpdateJobsGerstnerCache;
+            AsyncGPUReadback.Request(_cacheTexture, 0, newAction);
 #endif
-		}
+        }
+
+#if USE_JOBS
+
+        public void UpdateJobsGerstnerCache(AsyncGPUReadbackRequest request)
+        {
+            NativeArray<ushort> resultData = request.GetData<ushort>();
+            NativeArray<ushort> data = new NativeArray<ushort>(resultData, Allocator.Temp);
+
+			ShapeGerstnerJobs.AddNewOceanDepthCache(this, data);
+
+			data.Dispose();
+        }
+
+        
+
+#endif
 
 #if UNITY_EDITOR
         void OnDrawGizmosSelected()

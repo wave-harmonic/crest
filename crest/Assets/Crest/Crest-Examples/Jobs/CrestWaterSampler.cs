@@ -18,6 +18,7 @@ public class CrestWaterSampler : MonoBehaviour
 	[Tooltip("Fills in points for testing purposes")]
 	public bool UseUseTestData = false;
 	public float Spacing = 0.2f;
+	public int SampleLength = 32;
 
 	[Header("Info")]
 	[Tooltip("The points in local space relative to this gameObject")]
@@ -82,8 +83,8 @@ public class CrestWaterSampler : MonoBehaviour
 	
 	private void FillQueriesWithTestData(float spacing = 2f)
 	{
-		int xLength = 32;
-		int zLength = 32;
+		int xLength = SampleLength;
+		int zLength = SampleLength;
 
 		LocalQueryPositions = new Vector3[xLength * zLength];
 		int index = 0;

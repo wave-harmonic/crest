@@ -7,6 +7,7 @@ using Unity.Collections;
 using Unity.Jobs;
 using Unity.Mathematics;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 // A potential optimisation in the future would be to allocate scratch space in the job. this isn't supported yet in burst but will be
 // https://forum.unity.com/threads/burst-dont-allow-me-to-create-a-nativearray.556105/
@@ -59,14 +60,14 @@ namespace Crest
 		static Dictionary<int, Transform> s_transformsRegistry = new Dictionary<int, Transform>();
 
 		// list of Ocean Depth Caches, the float array is a flat representation of the depths and is updated only with a function
-		static Dictionary<OceanDepthCache, float[]> depthCachesRegistry = new Dictionary<OceanDepthCache, float[]>();
+		static Dictionary<OceanDepthCache, NativeArray<ushort>> depthCachesRegistry = new Dictionary<OceanDepthCache, NativeArray<ushort>>();
 		
 		static NativeArray<int2> c_segmentRegistry;
 		static NativeArray<Matrix4x4> c_matrix;
 		static NativeArray<int> c_resolution;
 		static NativeArray<float> c_size;
 
-		static NativeArray<float> c_depthCaches;
+		static NativeArray<ushort> c_depthCaches;
 
 
 		#region Init
@@ -98,7 +99,7 @@ namespace Crest
 			c_resolution = new NativeArray<int>(0, Allocator.Persistent);
 			c_size = new NativeArray<float>(0, Allocator.Persistent);
 
-			c_depthCaches = new NativeArray<float>(0, Allocator.Persistent);
+			c_depthCaches = new NativeArray<ushort>(0, Allocator.Persistent);
 
 			s_segmentRegistry.Clear();
 			s_lastQueryIndexHeights = 0;
@@ -193,55 +194,27 @@ namespace Crest
         /// <summary>
         /// DOES NOT WORK YET, need to find depth from the ocean cache texture
         /// </summary>
-		public static void AddNewOceanDepthCache(OceanDepthCache newCache)
+		public static void AddNewOceanDepthCache(OceanDepthCache newCache, NativeArray<ushort> depthData)
 		{
-            return;
-
 			if(newCache.CacheTexture == null)
 				return;
 
 			// Call this so that nothing has issues
 			CompleteJobs();
 
-            // Code to read off the texture caches
-            // TODO - figure out how to read the depths from the ocean cache
-            RenderTexture renderTexture = newCache.CacheTexture;
-            RenderTexture activeTexture = RenderTexture.active;
+			NativeArray<ushort> permDepthData = new NativeArray<ushort>(depthData, Allocator.Persistent);
 
-            Texture2D texture = new Texture2D(renderTexture.width, renderTexture.height, TextureFormat.R16, false, true);
-            Rect rectReadPicture = new Rect(0, 0, renderTexture.width, renderTexture.height);
-            RenderTexture.active = renderTexture;
+			if(depthCachesRegistry.ContainsKey(newCache) == false)
+			{
+				depthCachesRegistry.Add(newCache, permDepthData);
+			}	
+			else
+			{
+				depthCachesRegistry[newCache].Dispose();
+				depthCachesRegistry[newCache] = permDepthData;
+			}	
 
-            // Read pixels
-            texture.ReadPixels(rectReadPicture, 0, 0);
-            texture.Apply();
-
-            RenderTexture.active = activeTexture; // added to avoid errors 
-
-            //// TODO - Need a faster way to do this
-            Color[] readMap = texture.GetPixels(0, 0, texture.width, texture.height);
-            float[] simpleCache = new float[readMap.Length];
-
-            byte[] bytes;
-            bytes = texture.EncodeToPNG();
-            //System.IO.File.WriteAllBytes(Application.dataPath + "/texture.png", bytes);
-
-            for(int i = 0; i < readMap.Length; i++)
-            {
-                float redChannel = readMap[i].r;
-
-                // ????
-                // here we need to convert the r channel to the depth in meters. Positive for deeper too.
-
-                simpleCache[i] = 1000;
-            }
-
-            if(depthCachesRegistry.ContainsKey(newCache) == false)
-                depthCachesRegistry.Add(newCache, simpleCache);
-            else
-                depthCachesRegistry[newCache] = simpleCache;
-
-            UpdateJobOceanDepthCaches();
+			UpdateJobOceanDepthCaches();
 		}
 
 		// Regenerates all the caches when a new one is added
@@ -255,8 +228,8 @@ namespace Crest
 
             // Find the total length of the cache
             int totalLength = 0;
-			foreach(var floats in depthCachesRegistry.Values)
-				totalLength += floats.Length;
+			foreach(var ushorts in depthCachesRegistry.Values)
+				totalLength += ushorts.Length;
 
 			int totalRegistries = depthCachesRegistry.Count;
 			
@@ -265,8 +238,8 @@ namespace Crest
 			c_resolution = new NativeArray<int>(totalRegistries, Allocator.Persistent);
 			c_size = new NativeArray<float>(totalRegistries, Allocator.Persistent);
 
-			c_depthCaches = new NativeArray<float>(totalLength, Allocator.Persistent);
-						
+			c_depthCaches = new NativeArray<ushort>(totalLength, Allocator.Persistent);
+									
 			int registryIndex = 0;
 			int cacheStart = 0;
 			foreach(var depthC in depthCachesRegistry.Keys)
@@ -278,17 +251,19 @@ namespace Crest
 				c_resolution[registryIndex] = depthC.Resolution;
 				c_size[registryIndex] = depthC.transform.lossyScale.x;
 
-				NativeArray<float>.Copy(depthCachesRegistry[depthC], 0, c_depthCaches, cacheStart, depthCachesRegistry[depthC].Length);
+				NativeArray<ushort>.Copy(depthCachesRegistry[depthC], 0, c_depthCaches, cacheStart, depthCachesRegistry[depthC].Length);
 
 				cacheStart = endOfCache;
 				registryIndex++;
 			}
 		}
 
-		/// <summary>
-		/// Dispose storage
-		/// </summary>
-		public static void Cleanup()
+        
+
+        /// <summary>
+        /// Dispose storage
+        /// </summary>
+        public static void Cleanup()
 		{
 			s_initialised = false;
 
@@ -316,6 +291,9 @@ namespace Crest
 			// Dispose the temp jobs
 			if(_segments.IsCreated) _segments.Dispose();
 			if(_matrixes.IsCreated) _matrixes.Dispose();
+
+			foreach(var depths in depthCachesRegistry.Values)
+				depths.Dispose();
 		}
 
 		/// <summary>
@@ -457,10 +435,8 @@ namespace Crest
 
 				Transform trans;
 				if(s_transformsRegistry.TryGetValue(guids[i], out trans))
-				{
-					_matrixes[i] = Matrix4x4.TRS(trans.position, trans.rotation, trans.lossyScale);
-					//matrixes[i] = trans.localToWorldMatrix;
-				}
+					_matrixes[i] = trans.localToWorldMatrix;
+
 				// else a new matrix is empty which SHOULD transform that just based on world
 			}
 
@@ -482,7 +458,6 @@ namespace Crest
 				_worldQueryPositions = s_worldQueryPositions,
 				_depthAtHeight = s_heightQueryPositions,
 			};
-
 
 			var heightJob = new HeightJob()
 			{
@@ -527,7 +502,7 @@ namespace Crest
 			if(_segments.IsCreated) _segments.Dispose();
 			if(_matrixes.IsCreated) _matrixes.Dispose();
 		}
-        		
+
 		/// <summary>
 		/// This sets up the proper matrixes so that the local points can be transformed to world points
 		/// </summary>
@@ -543,7 +518,7 @@ namespace Crest
 			[ReadOnly] public NativeArray<int> _resolution;
 			[ReadOnly] public NativeArray<float> _size;
 
-			[ReadOnly] public NativeArray<float> _depthCaches;
+			[ReadOnly] public NativeArray<ushort> _depthCaches;
 
 			[WriteOnly] public NativeArray<float2> _worldQueryPositions;
 			[WriteOnly] public NativeArray<float> _depthAtHeight;
@@ -566,85 +541,73 @@ namespace Crest
 				}
 			}
 
-			//This function is messy and not done well.Feel free to clean up!
-			//public float FindHeightAtWorldPosition(float3 worldTestPos,
-			//	NativeArray<int2> segmentRegistry, NativeArray<Matrix4x4> matrix, NativeArray<int> resolution, NativeArray<float> size,
-			//	NativeArray<float> depthCaches)
-			//{
-			//	float returnHeight = 10000;
-
-			//	for(int i = 0, l = _segmentRegistry.Length; i < l; i++)
-			//	{
-			//		// Brings the local test point to local (should be aligned properly in the grid)
-			//		float3 point = matrix[i].MultiplyPoint3x4(worldTestPos);
-			//		float2 localTestPoint = new float2(point.x, point.z);
-
-			//		float halfSize = size[i] / 2;
-			//		float radisuSqr = halfSize * halfSize;
-			//		radisuSqr += radisuSqr;
-
-			//		// Ignore this height query since it is not within the radius of this at all
-			//		if(math.length(localTestPoint) > radisuSqr)
-			//			continue;
-
-			//		// Moves the test point into a positive spot so we can figure out where in the grid it is
-			//		localTestPoint += new float2(halfSize, halfSize);
-
-			//		float2 testIntPoint = new float2(localTestPoint.x / size[i], localTestPoint.y / size[i]);
-			//		testIntPoint = math.round(testIntPoint * resolution[i]);
-			//		int flatPoint = (int)testIntPoint.y * resolution[i] + (int)testIntPoint.x + segmentRegistry[i].x;
-
-			//		if(flatPoint >= segmentRegistry[i].x && flatPoint < segmentRegistry[i].y)
-			//		{
-			//			float possibleHeight = depthCaches[flatPoint];
-
-			//			if(possibleHeight < returnHeight)
-			//				returnHeight = possibleHeight;
-			//		}
-			//	}
-
-			//	return returnHeight;
-			//}
-
 			public float FindHeightAtWorldPosition(float3 worldTestPos,
 				NativeArray<int2> segmentRegistry, NativeArray<Matrix4x4> matrix, NativeArray<int> resolution, NativeArray<float> size,
-				NativeArray<float> depthCaches)
+				NativeArray<ushort> depthCaches)
 			{
-				float returnHeight = 10000;
+				float returnHeight = 1000;
 
 				for(int i = 0, l = _segmentRegistry.Length; i < l; i++)
 				{
-					// Brings the local test point to local (should be aligned properly with the texture the grid)
 					float3 point = matrix[i].MultiplyPoint3x4(worldTestPos);
 
-					float xOffset = point.x;
-					float zOffset = point.z;
-					float r = size[i] * resolution[i] / 2f;
-					if(math.abs(xOffset) >= r || math.abs(zOffset) >= r)
+					int depthCatchLength = depthCaches.Length;
+
+					float xOffset = point.x + 0.5f;
+					float zOffset = point.z + 0.5f;
+					
+					float r = .5f;
+					if(Mathf.Abs(xOffset) >= 1 || Mathf.Abs(zOffset) >= 1 || xOffset < 0 || zOffset < 0)
 					{
-						// outside of this collision data
-						continue;
+						continue; // lies outside the range of this depth cache
 					}
 
-					float u = 0.5f + 0.5f * xOffset / r;
-					float v = 0.5f + 0.5f * zOffset / r;
-					int x = (int)math.floor(u * resolution[i]);
-					int y = (int)math.floor(v * resolution[i]);
-					int id = segmentRegistry[i].x + y * resolution[i] + x;
+					var u = 0.5f + 0.5f * xOffset / r;
+					var v = 0.5f + 0.5f * zOffset / r;
+					float u_texels = Mathf.Max(xOffset * resolution[i], 0f);
+					float v_texels = Mathf.Max(zOffset * resolution[i], 0f);
 
-					float possibleHeight = depthCaches[id];
+					int width = (int)resolution[i];
 
-					if(possibleHeight < returnHeight)
+					var x0 = Mathf.FloorToInt(u_texels);
+					var x1 = Mathf.Min(x0 + 1, width - 1);
+					var z0 = Mathf.FloorToInt(v_texels);
+					var z1 = Mathf.Min(z0 + 1, width - 1);
+
+					var idx00 = (z0 * width + x0);
+					var idx01 = (z0 * width + x1);
+					var idx10 = (z1 * width + x0);
+					var idx11 = (z1 * width + x1);
+
+					float y01, y10, y11;
+					float y00 = Mathf.HalfToFloat(depthCaches[idx00]);
+					y01 = y10 = y11 = y00;
+
+					// Ensure no spill over, may not need this though
+					if(idx01 < depthCatchLength)
+						y01 = Mathf.HalfToFloat(depthCaches[idx01]);
+					if(idx10 < depthCatchLength)
+						y10 = Mathf.HalfToFloat(depthCaches[idx10]);
+					if(idx11 < depthCatchLength)
+						y11 = Mathf.HalfToFloat(depthCaches[idx11]);
+
+					var xf = Mathf.Repeat(u_texels, 1f);
+					var zf = Mathf.Repeat(v_texels, 1f);
+					float possibleHeight = Mathf.Lerp(Mathf.Lerp(y00, y01, xf), Mathf.Lerp(y10, y11, xf), zf);
+
+					if(possibleHeight >= 0 && possibleHeight < returnHeight)
 						returnHeight = possibleHeight;
+
+					if(possibleHeight < 0)
+					{
+						returnHeight = 0;
+						break;
+					}
 				}
 
 				return returnHeight;
 			}
 		}
-
-	
-
-	
 
 		/// <summary>
 		/// This inverts the displacement to get the true water height at a position.
@@ -823,13 +786,12 @@ namespace Crest
 			{
 				float height = 0f;
 				
-				float PI = 3.141593f;
 				float4 oneMinusAttenuation = FindOneMinusAttenuation(_attenuationInShallows);
 
 				for(var iWaveVec = 0; iWaveVec < _numWaveVecs; iWaveVec++)
 				{
 					//float4 depth_wt = saturate(Depth / (0.5f * this.MinWaveLength)); // slightly different result - do per wavelength for now
-					float4 depth_wt = saturate(depth * _waveNumbers[iWaveVec] / PI);
+					float4 depth_wt = saturate(depth * _waveNumbers[iWaveVec] / math.PI);
 					//// keep some proportion of amplitude so that there is some waves remaining					
 					float4 wt = _attenuationInShallows * depth_wt + oneMinusAttenuation;
 
@@ -935,121 +897,5 @@ namespace Crest
 				}
 			}
 		}
-
-		///// <summary>
-		///// This inverts the displacement to get the true water height at a position.
-		///// </summary>
-		//[BurstCompile]
-		//public struct HeightJob : IJobParallelFor
-		//      {
-		//	// TODO - Allow use to not use some waves in case we want less accuracy on the boat
-
-		//          [ReadOnly]
-		//          public NativeArray<float4> _waveNumbers;
-		//          [ReadOnly]
-		//          public NativeArray<float4> _amps;
-		//          [ReadOnly]
-		//          public NativeArray<float4> _windDirX;
-		//          [ReadOnly]
-		//          public NativeArray<float4> _windDirZ;
-		//          [ReadOnly]
-		//          public NativeArray<float4> _phases;
-		//          [ReadOnly]
-		//          public NativeArray<float4> _chopAmps;
-		//          [ReadOnly]
-		//          public int _numWaveVecs;
-
-		//	[ReadOnly]
-		//	public NativeArray<Matrix4x4> _boatMatrixes;
-		//	[ReadOnly]
-		//          public NativeArray<Vector3> _localQueryPositions;
-
-		//          [WriteOnly]
-		//          public NativeArray<float> _outHeights;
-
-		//          [ReadOnly]
-		//          public float _time;
-		//          [ReadOnly]
-		//          public int2 _computeSegment;
-		//          [ReadOnly]
-		//          public float _seaLevel;
-
-		//          public void Execute(int index)
-		//          {
-		//		if (index >= _computeSegment.x && index < _computeSegment.y - _computeSegment.x)
-		//              {
-		//			float3 worldPos = _boatMatrixes[index].MultiplyPoint3x4(_localQueryPositions[index]);
-		//			float2 queryPosition = new float2(worldPos.x, worldPos.z);
-
-		//			// This could be even faster if i could allocate scratch space to store intermediate calculation results (not supported by burst yet)
-
-		//			float2 undisplacedPos = queryPosition;
-
-		//                  for (int iter = 0; iter < 4; iter++)
-		//                  {
-		//                      float2 displacement = ComputeDisplacementHoriz(undisplacedPos);
-
-		//                      // Correct the undisplaced position - goal is to find the position that displaces to the query position
-		//                      float2 error = undisplacedPos + displacement - queryPosition;
-		//                      undisplacedPos -= error;
-		//                  }
-
-		//                  // Our height is now the vertical component of the displacement from the undisp pos
-		//                  _outHeights[index] = ComputeDisplacementVert(undisplacedPos) + _seaLevel;
-		//              }
-		//          }
-
-		//	float2 ComputeDisplacementHoriz(float2 queryPos)
-		//	{
-		//		float2 displacement = 0f;
-
-		//		for(var iwavevec = 0; iwavevec < _numWaveVecs; iwavevec++)
-		//		{
-		//			// Wave direction
-		//			float4 Dx = _windDirX[iwavevec], Dz = _windDirZ[iwavevec];
-
-		//			// Wave number
-		//			float4 k = _waveNumbers[iwavevec];
-
-		//			// SIMD Dot product of wave direction with query pos
-		//			float4 x = Dx * queryPos.x + Dz * queryPos.y;
-
-		//			// Angle
-		//			float4 t = k * x + _phases[iwavevec];
-
-		//			// Add the four SIMD results
-		//			float4 disp = -_chopAmps[iwavevec] * math.sin(t);
-		//			displacement.x += math.csum(Dx * disp);
-		//			displacement.y += math.csum(Dz * disp);
-		//		}
-
-		//		return displacement;
-		//	}
-
-		//	float ComputeDisplacementVert(float2 queryPos)
-		//	{
-		//		float height = 0f;
-
-		//		for(var iwavevec = 0; iwavevec < _numWaveVecs; iwavevec++)
-		//		{
-		//			// Wave direction
-		//			float4 Dx = _windDirX[iwavevec], Dz = _windDirZ[iwavevec];
-
-		//			// Wave number
-		//			float4 k = _waveNumbers[iwavevec];
-
-		//			// SIMD Dot product of wave direction with query pos
-		//			float4 x = Dx * queryPos.x + Dz * queryPos.y;
-
-		//			// Angle
-		//			float4 t = k * x + _phases[iwavevec];
-
-		//			// Add the four SIMD results
-		//			height += math.csum(_amps[iwavevec] * math.cos(t));
-		//		}
-
-		//		return height;
-		//	}
-		//}
 	}
 }

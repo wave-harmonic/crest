@@ -136,12 +136,12 @@ namespace Crest
                 // combine data from next larger lod into this one
                 if (lodIdx < lodCount - 1 && _shapeCombinePass)
                 {
-                    BindResultData(lodIdx + 1, _combineProperties[lodIdx]);
+                    BindResultData(lodIdx, _combineProperties[lodIdx]);
                 }
                 else
                 {
-                    // TODO(MRT): Look at how to achieve this with TextureArrays?
-                    BindWaveBuffer(lodIdx, _combineProperties[lodIdx], true);
+                    // bin black animated waves
+                    BindAnimatedWaves(lodIdx, _combineProperties[lodIdx], true);
                 }
 
                 // dynamic waves
@@ -184,6 +184,12 @@ namespace Crest
             BindData2(lodIdx, properties, paramsOnly ? Texture2D.blackTexture : (Texture) _waveBuffers, true, ref rd, prevFrame);
         }
 
+        public void BindAnimatedWaves(int lodIdx, IPropertyWrapper properties, bool paramsOnly, bool prevFrame = false)
+        {
+            var rd = OceanRenderer.Instance._lods[lodIdx]._renderData.Validate(0, this);
+            BindData3(lodIdx, properties, paramsOnly ? TextureArray.Black : (Texture) _targets, true, ref rd, prevFrame);
+        }
+
         protected override void BindData(int lodIdx, IPropertyWrapper properties, Texture applyData, bool blendOut, ref LodTransform.RenderData renderData, bool prevFrame = false)
         {
             base.BindData(lodIdx, properties, applyData, blendOut, ref renderData, prevFrame);
@@ -205,6 +211,27 @@ namespace Crest
             if (applyData)
             {
                 properties.SetTexture(Shader.PropertyToID("_LD_TexArray_WaveBuffer_ThisFrame"), applyData);
+                properties.SetFloat(Shader.PropertyToID("_LD_SLICE_Index_ThisLod"), lodIdx);
+            }
+            base.BindData(lodIdx, properties, null, blendOut, ref renderData, prevFrame);
+
+            var lt = OceanRenderer.Instance._lods[lodIdx];
+
+            // need to blend out shape if this is the largest lod, and the ocean might get scaled down later (so the largest lod will disappear)
+            bool needToBlendOutShape = lodIdx == OceanRenderer.Instance.CurrentLodCount - 1 && OceanRenderer.Instance.ScaleCouldDecrease && blendOut;
+            float shapeWeight = needToBlendOutShape ? OceanRenderer.Instance.ViewerAltitudeLevelAlpha : 1f;
+            properties.SetVector(LodTransform.ParamIdOcean(prevFrame), new Vector4(
+                lt._renderData._texelWidth,
+                lt._renderData._textureRes, shapeWeight,
+                1f / lt._renderData._textureRes));
+        }
+
+        // TODO(MRT): CLEANUP HACKY HACK!
+        protected void BindData3(int lodIdx, IPropertyWrapper properties, Texture applyData, bool blendOut, ref LodTransform.RenderData renderData, bool prevFrame = false)
+        {
+            if (applyData)
+            {
+                properties.SetTexture(Shader.PropertyToID("_LD_TexArray_AnimatedWaves_ThisFrame"), applyData);
                 properties.SetFloat(Shader.PropertyToID("_LD_SLICE_Index_ThisLod"), lodIdx);
             }
             base.BindData(lodIdx, properties, null, blendOut, ref renderData, prevFrame);

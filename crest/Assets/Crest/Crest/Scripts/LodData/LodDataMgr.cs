@@ -90,6 +90,7 @@ namespace Crest
             _scaleDifferencePow2 = Mathf.RoundToInt(ratio_l2);
         }
 
+        // TODO(MRT): Eventually we want to remove lodIdx from here completely
         public void BindResultData(int lodIdx, IPropertyWrapper properties, bool prevFrame = false)
         {
             BindData(lodIdx, properties, _targets, true, ref OceanRenderer.Instance._lods[lodIdx]._renderData, prevFrame);

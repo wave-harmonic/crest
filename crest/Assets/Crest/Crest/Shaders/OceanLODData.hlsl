@@ -10,6 +10,7 @@
 // _LD_Params: float4(world texel size, texture resolution, shape weight multiplier, 1 / texture resolution)
 #define LOD_DATA(FRAMENUM) \
 	Texture2DArray _LD_TexArray_AnimatedWaves_##FRAMENUM; \
+	Texture2DArray _LD_TexArray_WaveBuffer_##FRAMENUM; \
 	Texture2DArray _LD_TexArray_SeaFloorDepth_##FRAMENUM; \
 	Texture2DArray _LD_TexArray_Foam_##FRAMENUM; \
 	Texture2DArray _LD_TexArray_Flow_##FRAMENUM; \

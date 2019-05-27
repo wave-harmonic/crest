@@ -80,10 +80,10 @@ Shader "Hidden/Crest/Simulation/Combine Animated Wave LODs"
 
 				float3 uv_thisLod_flow_0 = WorldToUV_ThisLod(worldPosXZ - offsets[0] * flow);
 				float3 uv_thisLod_flow_1 = WorldToUV_ThisLod(worldPosXZ - offsets[1] * flow);
-				SampleDisplacements(_LD_TexArray_AnimatedWaves_ThisFrame, uv_thisLod_flow_0, weights[0], result);
-				SampleDisplacements(_LD_TexArray_AnimatedWaves_ThisFrame, uv_thisLod_flow_1, weights[1], result);
+				SampleDisplacements(_LD_TexArray_WaveBuffer_ThisFrame, uv_thisLod_flow_0, weights[0], result);
+				SampleDisplacements(_LD_TexArray_WaveBuffer_ThisFrame, uv_thisLod_flow_1, weights[1], result);
 #else
-				SampleDisplacements(_LD_TexArray_AnimatedWaves_ThisFrame, ADD_SLICE_THIS_LOD_TO_UV(uv_thisLod), 1.0, result);
+				SampleDisplacements(_LD_TexArray_WaveBuffer_ThisFrame, ADD_SLICE_THIS_LOD_TO_UV(uv_thisLod), 1.0, result);
 #endif
 
 				// waves to combine down from the next lod up the chain

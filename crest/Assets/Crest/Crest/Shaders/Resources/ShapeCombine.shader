@@ -14,6 +14,7 @@ Shader "Hidden/Crest/Simulation/Combine Animated Wave LODs"
 		Pass
 		{
 			CGPROGRAM
+			// For SV_VertexID
 			#pragma target 3.5
 			#pragma vertex Vert
 			#pragma fragment Frag

@@ -63,6 +63,8 @@ namespace Crest
             _targets.name = SimName;
             _targets.dimension = TextureDimension.Tex2DArray;
             _targets.volumeDepth = OceanRenderer.Instance.CurrentLodCount;
+            // TODO(MRT): restrict this so that it only applies to compute shaders
+            _targets.enableRandomWrite = true;
             Debug.Assert(_targets.depth <= SLICE_COUNT);
         }
 

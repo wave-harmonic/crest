@@ -37,7 +37,7 @@ namespace Crest
 
         RenderTexture _waveBuffers;
 
-        const string ShaderName = "ShapeCombineCompute";
+        const string ShaderName = "ShapeCombine";
         ComputeShader _combineShader;
         int _combineShaderKernel = -1;
         Property[] _combineProperties;

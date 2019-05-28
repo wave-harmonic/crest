@@ -67,7 +67,7 @@ namespace Crest
             return true;
         }
 
-        public void BindCopySettings(PropertyWrapperMaterial target)
+        public void BindCopySettings(IPropertyWrapper target)
         {
             target.SetFloat(sp_HorizDisplace, Settings._horizDisplace);
             target.SetFloat(sp_DisplaceClamp, Settings._displaceClamp);

@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
+using Property = Crest.PropertyWrapperCompute;
 
 namespace Crest
 {
@@ -36,7 +37,10 @@ namespace Crest
 
         RenderTexture _waveBuffers;
 
-        PropertyWrapperMaterial[] _combineProperties;
+        const string ShaderName = "ShapeCombineCompute";
+        ComputeShader _combineShader;
+        int _combineShaderKernel = -1;
+        Property[] _combineProperties;
 
         public override void UseSettings(SimSettingsBase settings) { OceanRenderer.Instance._simSettingsAnimatedWaves = settings as SimSettingsAnimatedWaves; }
         public override SimSettingsBase CreateDefaultSettings()
@@ -46,23 +50,26 @@ namespace Crest
             return settings;
         }
 
+        private Property CreateProperty()
+        {
+            return new Property();
+        }
+
         protected override void InitData()
         {
             base.InitData();
-
-            _combineProperties = new PropertyWrapperMaterial[OceanRenderer.Instance.CurrentLodCount];
+            _combineShader = Resources.Load<ComputeShader>(ShaderName);
+            _combineShaderKernel = _combineShader.FindKernel(ShaderName);
+            _combineProperties = new Property[OceanRenderer.Instance.CurrentLodCount];
             for (int i = 0; i < _combineProperties.Length; i++)
             {
-                _combineProperties[i] = new PropertyWrapperMaterial(
-                    new Material(Shader.Find("Hidden/Crest/Simulation/Combine Animated Wave LODs"))
-                );
+                _combineProperties[i] = CreateProperty();
             }
 
             Debug.Assert(SystemInfo.SupportsRenderTextureFormat(TextureFormat), "The graphics device does not support the render texture format " + TextureFormat.ToString());
 
             int resolution = OceanRenderer.Instance.LodDataResolution;
             var desc = new RenderTextureDescriptor(resolution, resolution, TextureFormat, 0);
-
 
             _waveBuffers = new RenderTexture(desc);
             _waveBuffers.wrapMode = TextureWrapMode.Clamp;
@@ -109,6 +116,8 @@ namespace Crest
 
             // lod-dependent data
             _filterWavelength._lodCount = lodCount;
+
+            // TODO(MRT): Do this all in a single (geometry) shader call :D
             for (int lodIdx = lodCount - 1; lodIdx >= 0; lodIdx--)
             {
                 buf.SetRenderTarget(_waveBuffers, 0, CubemapFace.Unknown, lodIdx);
@@ -140,7 +149,7 @@ namespace Crest
                 }
                 else
                 {
-                    // bin black animated waves
+                    // bind black texture as animated waves
                     BindAnimatedWaves(lodIdx, _combineProperties[lodIdx], true);
                 }
 
@@ -165,7 +174,11 @@ namespace Crest
                     LodDataMgrFlow.BindNull(_combineProperties[lodIdx]);
                 }
 
-                buf.Blit(Texture2D.blackTexture, DataTexture, _combineProperties[lodIdx].material, -1, lodIdx);
+                _combineProperties[lodIdx].InitialiseAndDispatchShader(
+                    buf,
+                    _combineShader, _combineShaderKernel,
+                    DataTexture
+                );
             }
 
             // lod-independent data

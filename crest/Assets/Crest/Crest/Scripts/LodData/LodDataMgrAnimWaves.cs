@@ -212,10 +212,12 @@ namespace Crest
             // need to blend out shape if this is the largest lod, and the ocean might get scaled down later (so the largest lod will disappear)
             bool needToBlendOutShape = lodIdx == OceanRenderer.Instance.CurrentLodCount - 1 && OceanRenderer.Instance.ScaleCouldDecrease && blendOut;
             float shapeWeight = needToBlendOutShape ? OceanRenderer.Instance.ViewerAltitudeLevelAlpha : 1f;
-            properties.SetVector(LodTransform.ParamIdOcean(prevFrame), new Vector4(
+            var hackyParamIdOcean = new Vector4[SLICE_COUNT];
+            hackyParamIdOcean[lodIdx] = new Vector4(
                 lt._renderData._texelWidth,
                 lt._renderData._textureRes, shapeWeight,
-                1f / lt._renderData._textureRes));
+                1f / lt._renderData._textureRes);
+            properties.SetVectorArray(LodTransform.ParamIdOcean(prevFrame), hackyParamIdOcean);
         }
 
         // TODO(MRT): CLEANUP HACKY HACK!
@@ -233,10 +235,12 @@ namespace Crest
             // need to blend out shape if this is the largest lod, and the ocean might get scaled down later (so the largest lod will disappear)
             bool needToBlendOutShape = lodIdx == OceanRenderer.Instance.CurrentLodCount - 1 && OceanRenderer.Instance.ScaleCouldDecrease && blendOut;
             float shapeWeight = needToBlendOutShape ? OceanRenderer.Instance.ViewerAltitudeLevelAlpha : 1f;
-            properties.SetVector(LodTransform.ParamIdOcean(prevFrame), new Vector4(
+            var hackyParamIdOcean = new Vector4[SLICE_COUNT];
+            hackyParamIdOcean[lodIdx] = new Vector4(
                 lt._renderData._texelWidth,
                 lt._renderData._textureRes, shapeWeight,
-                1f / lt._renderData._textureRes));
+                1f / lt._renderData._textureRes);
+            properties.SetVectorArray(LodTransform.ParamIdOcean(prevFrame), hackyParamIdOcean);
         }
 
         // TODO(MRT): CLEANUP HACKY HACK!
@@ -254,10 +258,12 @@ namespace Crest
             // need to blend out shape if this is the largest lod, and the ocean might get scaled down later (so the largest lod will disappear)
             bool needToBlendOutShape = lodIdx == OceanRenderer.Instance.CurrentLodCount - 1 && OceanRenderer.Instance.ScaleCouldDecrease && blendOut;
             float shapeWeight = needToBlendOutShape ? OceanRenderer.Instance.ViewerAltitudeLevelAlpha : 1f;
-            properties.SetVector(LodTransform.ParamIdOcean(prevFrame), new Vector4(
+            var hackyParamIdOcean = new Vector4[SLICE_COUNT];
+            hackyParamIdOcean[lodIdx] = new Vector4(
                 lt._renderData._texelWidth,
                 lt._renderData._textureRes, shapeWeight,
-                1f / lt._renderData._textureRes));
+                1f / lt._renderData._textureRes);
+            properties.SetVectorArray(LodTransform.ParamIdOcean(prevFrame), hackyParamIdOcean);
         }
 
         /// <summary>

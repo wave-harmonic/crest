@@ -119,7 +119,7 @@ namespace Crest
             properties.SetVectorArray(LodTransform.ParamIdPosScale(prevFrame), hackyParamIdPosScale);
 
             var hackyParamIdOcean = new Vector4[SLICE_COUNT];
-            hackyParamIdOcean[lodIdx] =new Vector4(renderData._texelWidth, renderData._textureRes, 1f, 1f / renderData._textureRes);
+            hackyParamIdOcean[lodIdx] = new Vector4(renderData._texelWidth, renderData._textureRes, 1f, 1f / renderData._textureRes);
             properties.SetVectorArray(LodTransform.ParamIdOcean(prevFrame),
                 hackyParamIdOcean);
         }

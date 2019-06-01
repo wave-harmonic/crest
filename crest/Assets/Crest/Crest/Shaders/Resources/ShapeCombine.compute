@@ -26,14 +26,30 @@ void Flow(out float2 offsets, out float2 weights)
 	weights.y = 1.0 - weights.x;
 }
 
-uint3 UVSliceToID(in float3 i_uv)
+float3 UVSliceToID(in float3 i_uv)
 {
-	return uint3((i_uv.xy - (0.5 / float2(256, 256))) * float2(256, 256), i_uv.z);
+	return float3((i_uv.xy * float2(256, 256)) - 0.5, i_uv.z);
 }
 
 void SampleDisplacementsCompute(in RWTexture2DArray<float4> i_dispSampler, in float3 i_uv_slice, in float i_wt, inout float3 io_worldPos)
 {
-	const half3 disp = i_dispSampler[UVSliceToID(i_uv_slice)].xyz;
+	// TODO(MRT): Replace this hacky attempt at bilenear filtering once I have
+	// an internet connection to research something more standard. If that isn't
+	// possible, verify that this actually generates the values we want.
+	float3 posCenter = UVSliceToID(i_uv_slice);
+	float2 botLeft = posCenter + float2(-.5, -.5);
+	float2 topLeft = posCenter + float2(-.5, .5);
+	float2 topRite = posCenter + float2(.5, .5);
+	float2 botRite = posCenter + float2(.5, -.5);
+	float botLeftProp = (1 - topRite.x % 1. + 1 - topRite.y % 1.) * .25;
+	float topLeftProp = (1 - topRite.x % 1. + topRite.y % 1.) * .25;
+	float topRiteProp = (topRite.x % 1. + topRite.y % 1.) * .25;
+	float botRiteProp = (topRite.x % 1. + 1 - topRite.y % 1.) * .25;
+	// const half3 disp = i_dispSampler[UVSliceToID(i_uv_slice)].xyz;
+	half3 disp = i_dispSampler[float3(botLeft, posCenter.z)].xyz * botLeftProp;
+	disp += i_dispSampler[float3(topLeft, posCenter.z)].xyz * topLeftProp;
+	disp += i_dispSampler[float3(topRite, posCenter.z)].xyz * topRiteProp;
+	disp += i_dispSampler[float3(botRite, posCenter.z)].xyz * botRiteProp;
 	io_worldPos += i_wt * disp;
 }
 

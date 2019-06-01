@@ -96,7 +96,7 @@ uniform float3 _OceanCenterPosWorld;
 float ComputeLodAlpha(float3 i_worldPos, float i_meshScaleAlpha)
 {
 	// taxicab distance from ocean center drives LOD transitions
-	float2 offsetFromCenter = float2(abs(i_worldPos.x - _OceanCenterPosWorld.x), abs(i_worldPos.z - _OceanCenterPosWorld.z));
+	float2 offsetFromCenter = abs(float2(i_worldPos.x - _OceanCenterPosWorld.x, i_worldPos.z - _OceanCenterPosWorld.z));
 	float taxicab_norm = max(offsetFromCenter.x, offsetFromCenter.y);
 
 	// interpolation factor to next lod (lower density / higher sampling period)

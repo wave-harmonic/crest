@@ -164,6 +164,8 @@ namespace Crest
             }
 
             ocean._lods = new LodTransform[lodCount];
+            LodTransform._staticRenderData = new LodTransform.RenderData[lodCount];
+            LodTransform._staticRenderDataPrevFrame = new LodTransform.RenderData[lodCount];
 
             // Create the LOD data managers
             ocean._lodDataAnimWaves = LodDataMgr.Create<LodDataMgrAnimWaves, SimSettingsAnimatedWaves>(ocean.gameObject, ref ocean._simSettingsAnimatedWaves);

@@ -122,11 +122,12 @@ namespace Crest
             var ldflow = OceanRenderer.Instance._lodDataFlow;
             var ldshadows = OceanRenderer.Instance._lodDataShadow;
 
-            ldaws.BindResultData(_lodIndex, _mpb);
-            if (ldflow) ldflow.BindResultData(_lodIndex, _mpb);
-            if (ldfoam) ldfoam.BindResultData(_lodIndex, _mpb);
-            if (ldsds) ldsds.BindResultData(_lodIndex, _mpb);
-            if (ldshadows) ldshadows.BindResultData(_lodIndex, _mpb); else LodDataMgrShadow.BindNull( _mpb);
+            _mpb.SetFloat(Shader.PropertyToID("_LD_SLICE_Index_ThisLod"), _lodIndex);
+            ldaws.BindResultData(_mpb);
+            if (ldflow) ldflow.BindResultData(_mpb);
+            if (ldfoam) ldfoam.BindResultData(_mpb);
+            if (ldsds) ldsds.BindResultData(_mpb);
+            if (ldshadows) ldshadows.BindResultData(_mpb); else LodDataMgrShadow.BindNull( _mpb);
 
             // TOOD: how to handle this with texture arrays
             // if (_lodIndex + 1 < OceanRenderer.Instance.CurrentLodCount)

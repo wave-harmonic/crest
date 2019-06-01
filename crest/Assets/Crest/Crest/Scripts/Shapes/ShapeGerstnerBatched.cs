@@ -316,11 +316,13 @@ namespace Crest
 
             int numVecs = (numInBatch + 3) / 4;
             property.SetInt(sp_NumWaveVecs, numVecs);
-            OceanRenderer.Instance._lodDataAnimWaves.BindResultData(lodIdx, property);
+            property.SetFloat(Shader.PropertyToID("_LD_SLICE_Index_ThisLod"), lodIdx);
+
+            OceanRenderer.Instance._lodDataAnimWaves.BindResultData(property);
 
             if (OceanRenderer.Instance._lodDataSeaDepths)
             {
-                OceanRenderer.Instance._lodDataSeaDepths.BindResultData(lodIdx, property, false);
+                OceanRenderer.Instance._lodDataSeaDepths.BindResultData(property, false);
             }
 
             return numInBatch;

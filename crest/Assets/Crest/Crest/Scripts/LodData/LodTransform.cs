@@ -10,6 +10,7 @@ namespace Crest
     /// <summary>
     /// This script is attached to the parent GameObject of each LOD. It provides helper functionality related to each LOD.
     /// </summary>
+    // TODO(MRT): See if we can make the is a struct of arrays or something similar.
     public class LodTransform : MonoBehaviour, IFloatingOrigin
     {
         protected int _transformUpdateFrame = -1;
@@ -26,6 +27,7 @@ namespace Crest
             public Vector3 _posSnapped;
             public int _frame;
 
+            // TODO(MRT): Check this makes sense in the context of SOA
             public RenderData Validate(int frameOffset, Object context)
             {
                 // ignore first frame - this patches errors when using edit & continue in editor
@@ -33,7 +35,6 @@ namespace Crest
                 {
                     Debug.LogWarning(string.Format("RenderData validation failed: _frame of data ({0}) != expected ({1}), which may indicate some update functions are being called out of order, or script execution order is broken.", _frame, Time.frameCount + frameOffset), context);
                 }
-
                 return this;
             }
 
@@ -47,8 +48,12 @@ namespace Crest
             }
         }
 
-        public RenderData _renderData = new RenderData();
-        public RenderData _renderDataPrevFrame = new RenderData();
+        // TODO(MRT): Make these not static singletons
+        public static RenderData[] _staticRenderData = null;
+        public static RenderData[] _staticRenderDataPrevFrame = null;
+
+        public RenderData _renderData { get { return _staticRenderData[_lodIndex]; }}
+        public RenderData _renderDataPrevFrame { get { return _staticRenderDataPrevFrame[_lodIndex]; }}
 
         int _lodIndex = -1;
         int _lodCount = -1;
@@ -69,28 +74,28 @@ namespace Crest
 
             _transformUpdateFrame = Time.frameCount;
 
-            _renderDataPrevFrame = _renderData;
+            _staticRenderDataPrevFrame[LodIndex] = _staticRenderData[LodIndex];
 
             float camOrthSize = 2f * transform.lossyScale.x;
 
             // find snap period
-            _renderData._textureRes = OceanRenderer.Instance.LodDataResolution;
-            _renderData._texelWidth = 2f * camOrthSize / _renderData._textureRes;
+            _staticRenderData[LodIndex]._textureRes = OceanRenderer.Instance.LodDataResolution;
+            _staticRenderData[LodIndex]._texelWidth = 2f * camOrthSize / _staticRenderData[LodIndex]._textureRes;
             // snap so that shape texels are stationary
-            _renderData._posSnapped = transform.position
-                - new Vector3(Mathf.Repeat(transform.position.x, _renderData._texelWidth), 0f, Mathf.Repeat(transform.position.z, _renderData._texelWidth));
+            _staticRenderData[LodIndex]._posSnapped = transform.position
+                - new Vector3(Mathf.Repeat(transform.position.x, _staticRenderData[LodIndex]._texelWidth), 0f, Mathf.Repeat(transform.position.z, _staticRenderData[LodIndex]._texelWidth));
 
-            _renderData._frame = Time.frameCount;
+            _staticRenderData[LodIndex]._frame = Time.frameCount;
 
             // detect first update and populate the render data if so - otherwise it can give divide by 0s and other nastiness
-            if (_renderDataPrevFrame._textureRes == 0f)
+            if (_staticRenderDataPrevFrame[LodIndex]._textureRes == 0f)
             {
-                _renderDataPrevFrame._posSnapped = _renderData._posSnapped;
-                _renderDataPrevFrame._texelWidth = _renderData._texelWidth;
-                _renderDataPrevFrame._textureRes = _renderData._textureRes;
+                _staticRenderDataPrevFrame[LodIndex]._posSnapped = _staticRenderData[LodIndex]._posSnapped;
+                _staticRenderDataPrevFrame[LodIndex]._texelWidth = _staticRenderData[LodIndex]._texelWidth;
+                _staticRenderDataPrevFrame[LodIndex]._textureRes = _staticRenderData[LodIndex]._textureRes;
             }
 
-            _worldToCameraMatrix = CalculateWorldToCameraMatrixRHS(_renderData._posSnapped + Vector3.up * 100f, Quaternion.AngleAxis(90f, Vector3.right));
+            _worldToCameraMatrix = CalculateWorldToCameraMatrixRHS(_staticRenderData[LodIndex]._posSnapped + Vector3.up * 100f, Quaternion.AngleAxis(90f, Vector3.right));
 
             _projectionMatrix = Matrix4x4.Ortho(-2f * transform.lossyScale.x, 2f * transform.lossyScale.x, -2f * transform.lossyScale.z, 2f * transform.lossyScale.z, 1f, 500f);
         }
@@ -140,8 +145,8 @@ namespace Crest
 
         public void SetOrigin(Vector3 newOrigin)
         {
-            _renderData._posSnapped -= newOrigin;
-            _renderDataPrevFrame._posSnapped -= newOrigin;
+            _staticRenderData[LodIndex]._posSnapped -= newOrigin;
+            _staticRenderDataPrevFrame[LodIndex]._posSnapped -= newOrigin;
         }
     }
 }

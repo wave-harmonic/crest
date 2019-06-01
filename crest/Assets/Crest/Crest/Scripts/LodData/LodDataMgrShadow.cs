@@ -197,15 +197,17 @@ namespace Crest
                 var srcDataIdx = lt.LodIndex + ScaleDifferencePow2;
                 srcDataIdx = Mathf.Clamp(srcDataIdx, 0, lt.LodCount - 1);
                 // bind data to slot 0 - previous frame data
-                BindSourceData(srcDataIdx, _renderMaterial[lodIdx], false, true);
+                _renderMaterial[lodIdx].SetFloat(Shader.PropertyToID("_LD_SLICE_Index_ThisLod"), lodIdx);
+                BindSourceData(_renderMaterial[lodIdx], false, true);
                 _bufCopyShadowMap.Blit(Texture2D.blackTexture, _targets, _renderMaterial[lodIdx].material, -1, lodIdx);
             }
         }
 
-        public void BindSourceData(int lodIdx, PropertyWrapperMaterial simMaterial, bool paramsOnly, bool prevFrame = false)
+        public void BindSourceData(PropertyWrapperMaterial simMaterial, bool paramsOnly, bool prevFrame = false)
         {
-            var rd = OceanRenderer.Instance._lods[lodIdx]._renderDataPrevFrame.Validate(BuildCommandBufferBase._lastUpdateFrame - Time.frameCount, this);
-            BindData(lodIdx, simMaterial, paramsOnly ? Texture2D.blackTexture : _sources as Texture, true, ref rd, prevFrame);
+            // TODO(MRT): Validate this
+            var rd = LodTransform._staticRenderDataPrevFrame; //.Validate(BuildCommandBufferBase._lastUpdateFrame - Time.frameCount, this);
+            BindData(simMaterial, paramsOnly ? Texture2D.blackTexture : _sources as Texture, true, ref rd, prevFrame);
         }
 
         void OnEnable()

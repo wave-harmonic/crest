@@ -93,35 +93,36 @@ namespace Crest
         }
 
         // TODO(MRT): Eventually we want to remove lodIdx from here completely
-        public void BindResultData(int lodIdx, IPropertyWrapper properties, bool prevFrame = false)
+        public void BindResultData(IPropertyWrapper properties, bool prevFrame = false)
         {
-            BindData(lodIdx, properties, _targets, true, ref OceanRenderer.Instance._lods[lodIdx]._renderData, prevFrame);
+            // TODO(MRT): Use prev frame renderdata sometimes? Check
+            BindData(properties, _targets, true, ref LodTransform._staticRenderData, prevFrame);
         }
 
-        public void BindResultData(int lodIdx, IPropertyWrapper properties, bool blendOut, bool prevFrame = false)
+        public void BindResultData(IPropertyWrapper properties, bool blendOut, bool prevFrame = false)
         {
-            BindData(lodIdx, properties, _targets, blendOut, ref OceanRenderer.Instance._lods[lodIdx]._renderData, prevFrame);
+            BindData(properties, _targets, blendOut, ref LodTransform._staticRenderData, prevFrame);
         }
 
-        protected virtual void BindData(int lodIdx, IPropertyWrapper properties, Texture applyData, bool blendOut, ref LodTransform.RenderData renderData, bool prevFrame = false)
+        protected virtual void BindData(IPropertyWrapper properties, Texture applyData, bool blendOut, ref LodTransform.RenderData[] renderData, bool prevFrame = false)
         {
             if (applyData)
             {
                 properties.SetTexture(GetParamIdSampler(prevFrame), applyData);
-                properties.SetFloat(Shader.PropertyToID("_LD_SLICE_Index_ThisLod"), lodIdx);
             }
 
-            var lt = OceanRenderer.Instance._lods[lodIdx];
+            var paramIdPosScales = new Vector4[SLICE_COUNT];
+            var paramIdOceans = new Vector4[SLICE_COUNT];
+            for(int lodIdx = 0; lodIdx < OceanRenderer.Instance.CurrentLodCount; lodIdx++)
+            {
+                var lt = OceanRenderer.Instance._lods[lodIdx];
 
-            // TODO(MRT): Fix absolute hack!
-            var hackyParamIdPosScale = new Vector4[SLICE_COUNT];
-            hackyParamIdPosScale[lodIdx] = new Vector4(renderData._posSnapped.x, renderData._posSnapped.z, lt.transform.lossyScale.x, 0); // NOTE: gets zeroed by unity, see https://www.alanzucconi.com/2016/10/24/arrays-shaders-unity-5-4/
-            properties.SetVectorArray(LodTransform.ParamIdPosScale(prevFrame), hackyParamIdPosScale);
-
-            var hackyParamIdOcean = new Vector4[SLICE_COUNT];
-            hackyParamIdOcean[lodIdx] = new Vector4(renderData._texelWidth, renderData._textureRes, 1f, 1f / renderData._textureRes);
-            properties.SetVectorArray(LodTransform.ParamIdOcean(prevFrame),
-                hackyParamIdOcean);
+                // NOTE: gets zeroed by unity, see https://www.alanzucconi.com/2016/10/24/arrays-shaders-unity-5-4/
+                paramIdPosScales[lodIdx] = new Vector4(renderData[lodIdx]._posSnapped.x, renderData[lodIdx]._posSnapped.z, lt.transform.lossyScale.x, 0);
+                paramIdOceans[lodIdx] = new Vector4(renderData[lodIdx]._texelWidth, renderData[lodIdx]._textureRes, 1f, 1f / renderData[lodIdx]._textureRes);
+            }
+            properties.SetVectorArray(LodTransform.ParamIdPosScale(prevFrame), paramIdPosScales);
+            properties.SetVectorArray(LodTransform.ParamIdOcean(prevFrame), paramIdOceans);
         }
 
         public static LodDataType Create<LodDataType, LodDataSettings>(GameObject attachGO, ref LodDataSettings settings)

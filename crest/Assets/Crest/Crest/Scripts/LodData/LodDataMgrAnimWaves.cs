@@ -43,7 +43,7 @@ namespace Crest
         const int CombineShaderKernel = 0;
         const int CombineShaderKernel_CombineDisabled = 1;
         ComputeShader _combineShader;
-        PropertyWrapperCompute[] _combineProperties;
+        PropertyWrapperCompute _combineProperties;
 
         static int sp_LD_TexArray_AnimatedWaves_Compute = Shader.PropertyToID("_LD_TexArray_AnimatedWaves_Compute");
 
@@ -64,11 +64,7 @@ namespace Crest
             // for all LODs, we employ a compute shader as only they can
             // read and write to the same texture.
             _combineShader = Resources.Load<ComputeShader>(ShaderName);
-            _combineProperties = new PropertyWrapperCompute[OceanRenderer.Instance.CurrentLodCount];
-            for (int i = 0; i < _combineProperties.Length; i++)
-            {
-                _combineProperties[i] = new PropertyWrapperCompute();
-            }
+            _combineProperties = new PropertyWrapperCompute();
 
             Debug.Assert(SystemInfo.SupportsRenderTextureFormat(TextureFormat), "The graphics device does not support the render texture format " + TextureFormat.ToString());
             // TODO(MRT): Is this the best place to put these? Or should we put support querying inside some global init?
@@ -159,43 +155,43 @@ namespace Crest
                     combineShaderKernel = CombineShaderKernel_CombineDisabled;
                 }
 
-                _combineProperties[lodIdx].Initialise(buf, _combineShader, combineShaderKernel);
+                _combineProperties.Initialise(buf, _combineShader, combineShaderKernel);
 
-                _combineProperties[lodIdx].SetFloat(OceanRenderer.sp_LD_SLICE_Index_ThisLod, lodIdx);
+                _combineProperties.SetFloat(OceanRenderer.sp_LD_SLICE_Index_ThisLod, lodIdx);
 
-                BindWaveBuffer(_combineProperties[lodIdx]);
+                BindWaveBuffer(_combineProperties);
                 // combine data from next larger lod into this one
-                BindResultData(_combineProperties[lodIdx]);
+                BindResultData(_combineProperties);
 
 
                 // dynamic waves
                 if (OceanRenderer.Instance._lodDataDynWaves)
                 {
-                    OceanRenderer.Instance._lodDataDynWaves.BindCopySettings(_combineProperties[lodIdx]);
-                    OceanRenderer.Instance._lodDataDynWaves.BindResultData(_combineProperties[lodIdx]);
+                    OceanRenderer.Instance._lodDataDynWaves.BindCopySettings(_combineProperties);
+                    OceanRenderer.Instance._lodDataDynWaves.BindResultData(_combineProperties);
                 }
                 else
                 {
-                    LodDataMgrDynWaves.BindNull(_combineProperties[lodIdx]);
+                    LodDataMgrDynWaves.BindNull(_combineProperties);
                 }
 
                 // flow
                 if (OceanRenderer.Instance._lodDataFlow)
                 {
-                    OceanRenderer.Instance._lodDataFlow.BindResultData(_combineProperties[lodIdx]);
+                    OceanRenderer.Instance._lodDataFlow.BindResultData(_combineProperties);
                 }
                 else
                 {
-                    LodDataMgrFlow.BindNull(_combineProperties[lodIdx]);
+                    LodDataMgrFlow.BindNull(_combineProperties);
                 }
 
                 // Set the animated waves texture where the results will be combined.
-                _combineProperties[lodIdx].SetTexture(
+                _combineProperties.SetTexture(
                     sp_LD_TexArray_AnimatedWaves_Compute,
                     DataTexture
                 );
 
-                _combineProperties[lodIdx].DispatchShader();
+                _combineProperties.DispatchShader();
             }
 
             // lod-independent data

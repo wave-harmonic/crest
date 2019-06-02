@@ -12,8 +12,6 @@
 #pragma kernel ShapeCombine _SHAPE_COMBINE
 #pragma kernel ShapeCombine
 
-#pragma enable_d3d11_debug_symbols
-
 // TODO(MRT): Get this to work
 #include "../OceanLODDataShared.hlsl"
 

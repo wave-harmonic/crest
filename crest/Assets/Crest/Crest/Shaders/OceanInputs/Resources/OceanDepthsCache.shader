@@ -23,7 +23,6 @@ Shader "Crest/Inputs/Depth/Cached Depths"
 			#pragma vertex Vert
 			#pragma geometry Geometry
 			#pragma fragment Frag
-			#pragma enable_d3d11_debug_symbols
 
 			#include "UnityCG.cginc"
 			#include "../../OceanLodData.hlsl"

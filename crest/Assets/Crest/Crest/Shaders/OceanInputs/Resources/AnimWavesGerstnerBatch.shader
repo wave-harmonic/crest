@@ -24,7 +24,6 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Batch"
 			#pragma vertex Vert
 			#pragma fragment Frag
 			#pragma multi_compile __ _DIRECT_TOWARDS_POINT
-			#pragma enable_d3d11_debug_symbols
 
 			#include "UnityCG.cginc"
 			#include "../../OceanLODData.hlsl"

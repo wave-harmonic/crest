@@ -49,135 +49,41 @@ namespace Crest
 
      public class PropertyWrapperCompute : IPropertyWrapper
     {
-        private Dictionary<int, float> _floats = new Dictionary<int, float>();
-        private Dictionary<int, Texture> _textures = new Dictionary<int, Texture>();
-        private Dictionary<int, Vector4> _vectors = new Dictionary<int, Vector4>();
-        private Dictionary<int, Vector4[]> _vectorArrays = new Dictionary<int, Vector4[]>();
-        private Dictionary<int, int> _ints = new Dictionary<int, int>();
+        private CommandBuffer _commandBuffer = null;
+        ComputeShader _computeShader = null;
+        int _computeKernel = -1;
 
-        public void SetFloat(int param, float value)
-        {
-            if(_floats.ContainsKey(param))
-            {
-                _floats[param] = value;
-            }
-            else
-            {
-                _floats.Add(param, value);
-            }
-        }
-
-        public void SetInt(int param, int value)
-        {
-            if(_ints.ContainsKey(param))
-            {
-                _ints[param] = value;
-            }
-            else
-            {
-                _ints.Add(param, value);
-            }
-        }
-
-        public void SetTexture(int param, Texture value)
-        {
-            if(_textures.ContainsKey(param))
-            {
-                _textures[param] = value;
-            }
-            else
-            {
-                _textures.Add(param, value);
-            }
-        }
-
-        public void SetVector(int param, Vector4 value)
-        {
-            if(_vectors.ContainsKey(param))
-            {
-                _vectors[param] = value;
-            }
-            else
-            {
-                _vectors.Add(param, value);
-            }
-        }
-
-        public void SetVectorArray(int param, Vector4[] value)
-        {
-            if(_vectorArrays.ContainsKey(param))
-            {
-                System.Array.Copy(value, _vectorArrays[param], value.Length);
-            }
-            else
-            {
-                Vector4[] newValue = new Vector4[value.Length];
-                System.Array.Copy(value, newValue, value.Length);
-                _vectorArrays.Add(param, newValue);
-            }
-        }
-
-        public void InitialiseAndDispatchShader(
-            CommandBuffer commandBuffer, ComputeShader computeShader,
-            int computeKernel, RenderTexture renderTarget
+        public void Initialise(
+            CommandBuffer commandBuffer,
+            ComputeShader computeShader, int computeKernel
         )
         {
-            foreach(KeyValuePair<int, float> pair in _floats)
-            {
-                commandBuffer.SetComputeFloatParam(
-                    computeShader,
-                    pair.Key,
-                    pair.Value
-                );
-            }
-            foreach(KeyValuePair<int, int> pair in _ints)
-            {
-                commandBuffer.SetComputeIntParam(
-                    computeShader,
-                    pair.Key,
-                    pair.Value
-                );
-            }
-            foreach(KeyValuePair<int, Texture> pair in _textures)
-            {
-                commandBuffer.SetComputeTextureParam(
-                    computeShader,
-                    computeKernel,
-                    pair.Key,
-                    pair.Value
-                );
-            }
-            foreach(KeyValuePair<int, Vector4> pair in _vectors)
-            {
-                commandBuffer.SetComputeVectorParam(
-                    computeShader,
-                    pair.Key,
-                    pair.Value
-                );
-            }
-            foreach(KeyValuePair<int, Vector4[]> pair in _vectorArrays)
-            {
-                commandBuffer.SetComputeVectorArrayParam(
-                    computeShader,
-                    pair.Key,
-                    pair.Value
-                );
-            }
+            _commandBuffer = commandBuffer;
+            _computeShader = computeShader;
+            _computeKernel = computeKernel;
+        }
 
-            // TODO(Tom): enforce that this matches thread group size in shader
-            commandBuffer.DispatchCompute(
-                computeShader, computeKernel,
+        public void SetFloat(int param, float value) { _commandBuffer.SetComputeFloatParam(_computeShader, param, value); }
+        public void SetInt(int param, int value) { _commandBuffer.SetComputeIntParam(_computeShader, param, value); }
+        public void SetTexture(int param, Texture value) { _commandBuffer.SetComputeTextureParam(_computeShader, _computeKernel, param, value); }
+        public void SetVector(int param, Vector4 value) { _commandBuffer.SetComputeVectorParam(_computeShader, param, value); }
+        public void SetVectorArray(int param, Vector4[] value) { _commandBuffer.SetComputeVectorArrayParam(_computeShader, param, value); }
+        public void SetMatrix(int param, Matrix4x4 value) { _commandBuffer.SetComputeMatrixParam(_computeShader, param, value); }
+
+        public void DispatchShader()
+        {
+            // TODO(MRT): enforce that this matches thread group size in shader
+            // somehow?
+            _commandBuffer.DispatchCompute(
+                _computeShader, _computeKernel,
                 OceanRenderer.Instance.LodDataResolution / 8,
                 OceanRenderer.Instance.LodDataResolution / 8,
                 1
             );
-        }
 
-        public void SetMatrix(int param, Matrix4x4 matrix)
-        {
-            // Not called anywhere for Compute Shaders anywhere,
-            // so why waste the data?
-            throw new System.NotImplementedException();
+            _commandBuffer = null;
+            _computeShader = null;
+            _computeKernel = -1;
         }
     }
 }

@@ -146,12 +146,6 @@ namespace Crest
             // combine waves
             for (int lodIdx = lodCount - 1; lodIdx >= 0; lodIdx--)
             {
-                // this lod data
-                _combineProperties[lodIdx].SetFloat(OceanRenderer.sp_LD_SLICE_Index_ThisLod, lodIdx);
-                BindWaveBuffer(_combineProperties[lodIdx]);
-                // combine data from next larger lod into this one
-                BindResultData(_combineProperties[lodIdx]);
-
                 // TODO(MRT): See if we can find a programmatic solution to also
                 // select a kernel variant depending on if flow or dynamic waves
                 // are enabled.
@@ -164,6 +158,15 @@ namespace Crest
                 {
                     combineShaderKernel = CombineShaderKernel_CombineDisabled;
                 }
+
+                _combineProperties[lodIdx].Initialise(buf, _combineShader, combineShaderKernel);
+
+                _combineProperties[lodIdx].SetFloat(OceanRenderer.sp_LD_SLICE_Index_ThisLod, lodIdx);
+
+                BindWaveBuffer(_combineProperties[lodIdx]);
+                // combine data from next larger lod into this one
+                BindResultData(_combineProperties[lodIdx]);
+
 
                 // dynamic waves
                 if (OceanRenderer.Instance._lodDataDynWaves)
@@ -192,11 +195,7 @@ namespace Crest
                     DataTexture
                 );
 
-                _combineProperties[lodIdx].InitialiseAndDispatchShader(
-                    buf,
-                    _combineShader, combineShaderKernel,
-                    DataTexture
-                );
+                _combineProperties[lodIdx].DispatchShader();
             }
 
             // lod-independent data

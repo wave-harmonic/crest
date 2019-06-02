@@ -31,35 +31,34 @@ void Flow(out float2 offsets, out float2 weights)
 	weights.y = 1.0 - weights.x;
 }
 
-float3 UVSliceToID(in float3 i_uv)
-{
-	return float3((i_uv.xy * float2(256, 256)) - 0.5, i_uv.z);
-}
-
 void SampleDisplacementsCompute(in RWTexture2DArray<float4> i_dispSampler, in float3 i_uv_slice, in float i_wt, inout float3 io_worldPos)
 {
-	// TODO(MRT): Replace this hacky attempt at bilenear filtering once I have
-	// an internet connection to research something more standard. If that isn't
-	// possible, verify that this actually generates the values we want.
-	//
-	// NOTE: It seems we may have to roll our own bilinear filter:
+	// NOTE: We have to roll our own bilinear filter in Compute shaders when
+	// reading from a RWTexture. The documentation below explains how SRV
+	// and UAV mappings of the same texture cannot exist at the same time.
 	// https://docs.microsoft.com/en-us/windows/desktop/direct3dhlsl/sm5-object-rwtexture2d
-	// However, we still should give this a anotehr pass to ensure it is as
+
+	// TODO(MRT): Give this code another pass to ensure it is as
 	// optimal and as accurate as possible.
-	float3 posCenter = UVSliceToID(i_uv_slice);
-	float2 botLeft = posCenter.xy + float2(-.5, -.5);
-	float2 topLeft = posCenter.xy + float2(-.5, .5);
-	float2 topRite = posCenter.xy + float2(.5, .5);
-	float2 botRite = posCenter.xy + float2(.5, -.5);
-	float botLeftProp = (1 - topRite.x % 1. + 1 - topRite.y % 1.) * .25;
-	float topLeftProp = (1 - topRite.x % 1. + topRite.y % 1.) * .25;
-	float topRiteProp = (topRite.x % 1. + topRite.y % 1.) * .25;
-	float botRiteProp = (topRite.x % 1. + 1 - topRite.y % 1.) * .25;
-	// const half3 disp = i_dispSampler[UVSliceToID(i_uv_slice)].xyz;
-	half3 disp = i_dispSampler[float3(botLeft, posCenter.z)].xyz * botLeftProp;
-	disp += i_dispSampler[float3(topLeft, posCenter.z)].xyz * topLeftProp;
-	disp += i_dispSampler[float3(topRite, posCenter.z)].xyz * topRiteProp;
-	disp += i_dispSampler[float3(botRite, posCenter.z)].xyz * botRiteProp;
+	float2 texCoordCenter = UVToID(i_uv_slice.xy);
+	// Calculate the locations of the 4 pixels from which we will be sampling
+	float2 bottomLeftPixelPosition = texCoordCenter + float2(-.5, -.5);
+	float2 topLeftPixelPosition = texCoordCenter + float2(-.5, .5);
+	float2 topRightPixelPosition = texCoordCenter + float2(.5, .5);
+	float2 bottomRightPixelPosition = texCoordCenter + float2(.5, -.5);
+
+	// Calculate how much to weight the contribution of each pixel when we sample
+	// it.
+	float bottomLeftPixelPositionProportion = (1 - frac(topRightPixelPosition.x) + 1 - frac(topRightPixelPosition.y)) * .25;
+	float topLeftPixelPositionProportion = (1 - frac(topRightPixelPosition.x) + frac(topRightPixelPosition.y)) * .25;
+	float topRightPixelPositionProportion = (frac(topRightPixelPosition.x) + frac(topRightPixelPosition.y)) * .25;
+	float bottomRightPixelPositionProportion = (frac(topRightPixelPosition.x) + 1 - frac(topRightPixelPosition.y)) * .25;
+
+	// Sample each pixel and add to final result.
+	half3 disp = i_dispSampler[float3(bottomLeftPixelPosition, i_uv_slice.z)].xyz * bottomLeftPixelPositionProportion;
+	disp += i_dispSampler[float3(topLeftPixelPosition, i_uv_slice.z)].xyz * topLeftPixelPositionProportion;
+	disp += i_dispSampler[float3(topRightPixelPosition, i_uv_slice.z)].xyz * topRightPixelPositionProportion;
+	disp += i_dispSampler[float3(bottomRightPixelPosition, i_uv_slice.z)].xyz * bottomRightPixelPositionProportion;
 	io_worldPos += i_wt * disp;
 }
 
@@ -89,7 +88,7 @@ void ShapeCombine (uint3 id : SV_DispatchThreadID)
 	SampleDisplacements(_LD_TexArray_WaveBuffer_ThisFrame, uv_thisLod_flow_0, weights[0], result);
 	SampleDisplacements(_LD_TexArray_WaveBuffer_ThisFrame, uv_thisLod_flow_1, weights[1], result);
 #else
-	SampleDisplacements(_LD_TexArray_WaveBuffer_ThisFrame, ADD_SLICE_THIS_LOD_TO_UV(uv_thisLod), 1.0, result);
+	SampleDisplacements(_LD_TexArray_WaveBuffer_ThisFrame, uv_thisLod, 1.0, result);
 #endif
 
 // C# Script determines whether this enabled or not by selecting appropriate

@@ -111,7 +111,16 @@ float2 UVToWorld_ThisFrame(in float2 i_uv) { return LD_UVToWorld(i_uv, _LD_Pos_S
 
 float2 IDtoUV(in float2 i_id)
 {
+	// We only use 2D floats, as array index has the same value in UV coors and
+	// CS indeces
 	return float2(float2(i_id) / float2(256, 256) + 0.5 / float2(256, 256));
+}
+
+float2 UVToID(in float2 i_uv)
+{
+	// We only use 2D floats, as array index has the same value in UV coors and
+	// CS indeces
+	return float2((i_uv.xy * float2(256, 256)) - 0.5);
 }
 
 // Sampling functions

@@ -164,13 +164,6 @@ namespace Crest
                 );
             }
 
-            commandBuffer.SetComputeTextureParam(
-                computeShader,
-                computeKernel,
-                "Result",
-                renderTarget
-            );
-
             // TODO(Tom): enforce that this matches thread group size in shader
             commandBuffer.DispatchCompute(
                 computeShader, computeKernel,

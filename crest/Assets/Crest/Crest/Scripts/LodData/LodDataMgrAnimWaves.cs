@@ -45,6 +45,8 @@ namespace Crest
         ComputeShader _combineShader;
         PropertyWrapperCompute[] _combineProperties;
 
+        static int sp_LD_TexArray_AnimatedWaves_Compute = Shader.PropertyToID("_LD_TexArray_AnimatedWaves_Compute");
+
         public override void UseSettings(SimSettingsBase settings) { OceanRenderer.Instance._simSettingsAnimatedWaves = settings as SimSettingsAnimatedWaves; }
         public override SimSettingsBase CreateDefaultSettings()
         {
@@ -122,7 +124,8 @@ namespace Crest
             // lod-dependent data
             _filterWavelength._lodCount = lodCount;
 
-            // TODO(MRT): Do this all in a single (geometry) shader call
+            // TODO(MRT): Support doing this with shaders which can do everything
+            // in a single draw call with geometry shaders?
             for (int lodIdx = lodCount - 1; lodIdx >= 0; lodIdx--)
             {
                 buf.SetRenderTarget(_waveBuffers, 0, CubemapFace.Unknown, lodIdx);
@@ -144,7 +147,7 @@ namespace Crest
             for (int lodIdx = lodCount - 1; lodIdx >= 0; lodIdx--)
             {
                 // this lod data
-                _combineProperties[lodIdx].SetFloat(OceanRenderer.Instance.SP_ThisLODSliceIndex, lodIdx);
+                _combineProperties[lodIdx].SetFloat(OceanRenderer.sp_LD_SLICE_Index_ThisLod, lodIdx);
                 BindWaveBuffer(_combineProperties[lodIdx]);
                 // combine data from next larger lod into this one
                 BindResultData(_combineProperties[lodIdx]);
@@ -182,6 +185,12 @@ namespace Crest
                 {
                     LodDataMgrFlow.BindNull(_combineProperties[lodIdx]);
                 }
+
+                // Set the animated waves texture where the results will be combined.
+                _combineProperties[lodIdx].SetTexture(
+                    sp_LD_TexArray_AnimatedWaves_Compute,
+                    DataTexture
+                );
 
                 _combineProperties[lodIdx].InitialiseAndDispatchShader(
                     buf,

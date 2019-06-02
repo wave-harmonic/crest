@@ -349,7 +349,7 @@ namespace Crest
 
             int numVecs = (numInBatch + 3) / 4;
             property.SetInt(sp_NumWaveVecs, numVecs);
-            property.SetFloat(OceanRenderer.Instance.SP_ThisLODSliceIndex, lodIdx);
+            property.SetFloat(OceanRenderer.sp_LD_SLICE_Index_ThisLod, lodIdx);
 
             OceanRenderer.Instance._lodDataAnimWaves.BindResultData(property);
 

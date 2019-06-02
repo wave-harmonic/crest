@@ -68,7 +68,7 @@ namespace Crest
 
         }
 
-        public void BindSourceData(int lodIdx, IPropertyWrapper properties, bool paramsOnly, bool usePrevTransform, bool prevFrame = false)
+        public void BindSourceData(IPropertyWrapper properties, bool paramsOnly, bool usePrevTransform, bool prevFrame = false)
         {
             //TODO(MRT): Call Validate to make sure things work here.
             // var renderData = usePrevTransform ?
@@ -116,12 +116,12 @@ namespace Crest
                     if (srcDataIdx >= 0 && srcDataIdx < lodCount)
                     {
                         // bind data to slot 0 - previous frame data
-                        BindSourceData(srcDataIdx, _renderSimProperties[stepi, lodIdx], false, usePreviousFrameTransform, true);
+                        BindSourceData(_renderSimProperties[stepi, lodIdx], false, usePreviousFrameTransform, true);
                     }
                     else
                     {
                         // no source data - bind params only
-                        BindSourceData(lodIdx, _renderSimProperties[stepi, lodIdx], true, usePreviousFrameTransform, true);
+                        BindSourceData(_renderSimProperties[stepi, lodIdx], true, usePreviousFrameTransform, true);
                     }
 
                     SetAdditionalSimParams(lodIdx, _renderSimProperties[stepi, lodIdx]);

@@ -76,8 +76,6 @@ Shader "Hidden/Crest/Simulation/Update Dynamic Waves"
 				const float dt = _SimDeltaTime;
 				const float dtp = _SimDeltaTimePrev;
 
-
-
 				float3 uv_thisFrame = ADD_SLICE_THIS_LOD_TO_UV(input.uv);
 
 				half2 velocity = SampleLod(_LD_TexArray_Flow_ThisFrame, uv_thisFrame).xy;

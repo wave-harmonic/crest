@@ -47,10 +47,10 @@ void SampleDisplacementsCompute(in RWTexture2DArray<float4> i_dispSampler, in fl
 	// However, we still should give this a anotehr pass to ensure it is as
 	// optimal and as accurate as possible.
 	float3 posCenter = UVSliceToID(i_uv_slice);
-	float2 botLeft = posCenter + float2(-.5, -.5);
-	float2 topLeft = posCenter + float2(-.5, .5);
-	float2 topRite = posCenter + float2(.5, .5);
-	float2 botRite = posCenter + float2(.5, -.5);
+	float2 botLeft = posCenter.xy + float2(-.5, -.5);
+	float2 topLeft = posCenter.xy + float2(-.5, .5);
+	float2 topRite = posCenter.xy + float2(.5, .5);
+	float2 botRite = posCenter.xy + float2(.5, -.5);
 	float botLeftProp = (1 - topRite.x % 1. + 1 - topRite.y % 1.) * .25;
 	float topLeftProp = (1 - topRite.x % 1. + topRite.y % 1.) * .25;
 	float topRiteProp = (topRite.x % 1. + topRite.y % 1.) * .25;

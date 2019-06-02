@@ -2,7 +2,14 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
-// TODO(MRT): Find solution lack of compute shader variants :'(
+// TODO(MRT): Find solution lack of compute shader variants with regards to both
+// flow and the dynamic wave sim
+
+// NOTE: The order of these kernels is extremely important. They are used to
+// allow LodDataMgrAnimWaves to select the appropriate compute shader variant
+// depending on whether we want to combine LODs or not.
+// see https://forum.unity.com/threads/how-to-create-compute-shader-variants.453638/
+#pragma kernel ShapeCombine _SHAPE_COMBINE
 #pragma kernel ShapeCombine
 
 #pragma enable_d3d11_debug_symbols
@@ -87,11 +94,11 @@ void ShapeCombine (uint3 id : SV_DispatchThreadID)
 	SampleDisplacements(_LD_TexArray_WaveBuffer_ThisFrame, ADD_SLICE_THIS_LOD_TO_UV(uv_thisLod), 1.0, result);
 #endif
 
-	// waves to combine down from the next lod up the chain
-	// TODO(MRT): Remove hacky hack :(
-	if(_LD_SLICE_Index_ThisLod < 6) {
-		SampleDisplacementsCompute(Result, uv_nextLod, 1.0, result);
-	}
+// C# Script determines whether this enabled or not by selecting appropriate
+// kernel for each LOD.
+#if _SHAPE_COMBINE
+	SampleDisplacementsCompute(Result, uv_nextLod, 1.0, result);
+#endif
 
 	// TODO - uncomment this define once it works in standalone builds
 #if _DYNAMIC_WAVE_SIM_ON

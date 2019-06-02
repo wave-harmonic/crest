@@ -37,7 +37,10 @@ namespace Crest
         RenderTexture _waveBuffers;
 
         const string ShaderName = "ShapeCombine";
-        int _combineShaderKernel = -1;
+        // NOTE: These values are determined and must match the order in which
+        // different kernel variants are defined in `ShapeCombine.compute`.
+        const int CombineShaderKernel = 0;
+        const int CombineShaderKernel_CombineDisabled = 1;
         ComputeShader _combineShader;
         PropertyWrapperCompute[] _combineProperties;
 
@@ -58,7 +61,6 @@ namespace Crest
             // for all LODs, we employ a compute shader as only they can
             // read and write to the same texture.
             _combineShader = Resources.Load<ComputeShader>(ShaderName);
-            _combineShaderKernel = _combineShader.FindKernel(ShaderName);
             _combineProperties = new PropertyWrapperCompute[OceanRenderer.Instance.CurrentLodCount];
             for (int i = 0; i < _combineProperties.Length; i++)
             {
@@ -142,17 +144,22 @@ namespace Crest
             {
                 // this lod data
                 _combineProperties[lodIdx].SetFloat(Shader.PropertyToID("_LD_SLICE_Index_ThisLod"), lodIdx);
-                BindWaveBuffer(_combineProperties[lodIdx], false);
+                BindWaveBuffer(_combineProperties[lodIdx]);
 
                 // combine data from next larger lod into this one
+                BindResultData(_combineProperties[lodIdx]);
+
+                // TODO(MRT): See if we can find a programmatic solution to also
+                // select a kernel variant depending on if flow or dynamic waves
+                // are enabled.
+                int combineShaderKernel;
                 if (lodIdx < lodCount - 1 && _shapeCombinePass)
                 {
-                    BindResultData(_combineProperties[lodIdx]);
+                    combineShaderKernel = CombineShaderKernel;
                 }
                 else
                 {
-                    // bind black texture as animated waves
-                    BindAnimatedWaves(_combineProperties[lodIdx], true);
+                    combineShaderKernel = CombineShaderKernel_CombineDisabled;
                 }
 
                 // dynamic waves
@@ -178,7 +185,7 @@ namespace Crest
 
                 _combineProperties[lodIdx].InitialiseAndDispatchShader(
                     buf,
-                    _combineShader, _combineShaderKernel,
+                    _combineShader, combineShaderKernel,
                     DataTexture
                 );
             }
@@ -193,22 +200,15 @@ namespace Crest
             }
         }
 
-        public void BindWaveBuffer(IPropertyWrapper properties, bool paramsOnly, bool prevFrame = false)
+        public void BindWaveBuffer(IPropertyWrapper properties, bool prevFrame = false)
         {
+            // TODO(MRT): See if there is a better way to validate all lods at
+            // once.
             for(int lodIdx = 0; lodIdx < OceanRenderer.Instance.CurrentLodCount; lodIdx++)
             {
                 LodTransform._staticRenderData[lodIdx].Validate(0, this);
             }
-            BindData2(properties, paramsOnly ? Texture2D.blackTexture : (Texture) _waveBuffers, true, ref LodTransform._staticRenderData, prevFrame);
-        }
-
-        public void BindAnimatedWaves(IPropertyWrapper properties, bool paramsOnly, bool prevFrame = false)
-        {
-            for(int lodIdx = 0; lodIdx < OceanRenderer.Instance.CurrentLodCount; lodIdx++)
-            {
-                LodTransform._staticRenderData[lodIdx].Validate(0, this);
-            }
-            BindData3(properties, paramsOnly ? TextureArray.Black : (Texture) _targets, true, ref LodTransform._staticRenderData, prevFrame);
+            BindDataWaveBufferHack(properties, (Texture) _waveBuffers, true, ref LodTransform._staticRenderData, prevFrame);
         }
 
         protected override void BindData(IPropertyWrapper properties, Texture applyData, bool blendOut, ref LodTransform.RenderData[] renderData, bool prevFrame = false)
@@ -232,36 +232,11 @@ namespace Crest
         }
 
         // TODO(MRT): CLEANUP HACKY HACK!
-        protected void BindData2(IPropertyWrapper properties, Texture applyData, bool blendOut, ref LodTransform.RenderData[] renderData, bool prevFrame = false)
+        protected void BindDataWaveBufferHack(IPropertyWrapper properties, Texture applyData, bool blendOut, ref LodTransform.RenderData[] renderData, bool prevFrame = false)
         {
             if (applyData)
             {
                 properties.SetTexture(Shader.PropertyToID("_LD_TexArray_WaveBuffer_ThisFrame"), applyData);
-            }
-            base.BindData(properties, null, blendOut, ref renderData, prevFrame);
-
-            var paramIdOcean = new Vector4[SLICE_COUNT];
-            for(int lodIdx = 0; lodIdx < OceanRenderer.Instance.CurrentLodCount; lodIdx++)
-            {
-                var lt = OceanRenderer.Instance._lods[lodIdx];
-
-                // need to blend out shape if this is the largest lod, and the ocean might get scaled down later (so the largest lod will disappear)
-                bool needToBlendOutShape = lodIdx == OceanRenderer.Instance.CurrentLodCount - 1 && OceanRenderer.Instance.ScaleCouldDecrease && blendOut;
-                float shapeWeight = needToBlendOutShape ? OceanRenderer.Instance.ViewerAltitudeLevelAlpha : 1f;
-                paramIdOcean[lodIdx] = new Vector4(
-                    lt._renderData._texelWidth,
-                    lt._renderData._textureRes, shapeWeight,
-                    1f / lt._renderData._textureRes);
-            }
-            properties.SetVectorArray(LodTransform.ParamIdOcean(prevFrame), paramIdOcean);
-        }
-
-        // TODO(MRT): CLEANUP HACKY HACK!
-        protected void BindData3(IPropertyWrapper properties, Texture applyData, bool blendOut, ref LodTransform.RenderData[] renderData, bool prevFrame = false)
-        {
-            if (applyData)
-            {
-                properties.SetTexture(Shader.PropertyToID("_LD_TexArray_AnimatedWaves_ThisFrame"), applyData);
             }
             base.BindData(properties, null, blendOut, ref renderData, prevFrame);
 

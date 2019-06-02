@@ -20,6 +20,8 @@ namespace Crest
 
         public abstract RenderTextureFormat TextureFormat { get; }
 
+        // NOTE: This MUST match the value in OceanLODDataShared.hlsl, as it
+        // determines the size of the texture arrays in the shaders.
         public const int MAX_LOD_COUNT = 16;
 
         protected abstract int GetParamIdSampler(bool prevFrame = false);
@@ -29,8 +31,6 @@ namespace Crest
         protected RenderTexture _targets;
 
         public RenderTexture DataTexture { get { return _targets; } }
-
-        public const int SLICE_COUNT = 16; // MUST match the value in OceanLODData.hlsl
 
         // shape texture resolution
         int _shapeRes = -1;
@@ -52,7 +52,7 @@ namespace Crest
         {
             Debug.Assert(SystemInfo.SupportsRenderTextureFormat(TextureFormat), "The graphics device does not support the render texture format " + TextureFormat.ToString());
 
-            Debug.Assert(OceanRenderer.Instance.CurrentLodCount <= SLICE_COUNT);
+            Debug.Assert(OceanRenderer.Instance.CurrentLodCount <= MAX_LOD_COUNT);
 
             int resolution = OceanRenderer.Instance.LodDataResolution;
             var desc = new RenderTextureDescriptor(resolution, resolution, TextureFormat, 0);
@@ -114,8 +114,8 @@ namespace Crest
                 properties.SetTexture(GetParamIdSampler(prevFrame), applyData);
             }
 
-            var paramIdPosScales = new Vector4[SLICE_COUNT];
-            var paramIdOceans = new Vector4[SLICE_COUNT];
+            var paramIdPosScales = new Vector4[MAX_LOD_COUNT];
+            var paramIdOceans = new Vector4[MAX_LOD_COUNT];
             for(int lodIdx = 0; lodIdx < OceanRenderer.Instance.CurrentLodCount; lodIdx++)
             {
                 var lt = OceanRenderer.Instance._lods[lodIdx];

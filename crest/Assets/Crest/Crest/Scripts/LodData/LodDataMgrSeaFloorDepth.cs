@@ -31,12 +31,12 @@ namespace Crest
                 return;
             }
 
-            Debug.Assert(OceanRenderer.Instance.CurrentLodCount < SLICE_COUNT);
+            Debug.Assert(OceanRenderer.Instance.CurrentLodCount < MAX_LOD_COUNT);
 
             buf.SetRenderTarget(_targets, 0, CubemapFace.Unknown, -1);
             buf.ClearRenderTarget(false, true,  Color.white * 1000f);
 
-            Matrix4x4[] matrixArray = new Matrix4x4[SLICE_COUNT];
+            Matrix4x4[] matrixArray = new Matrix4x4[MAX_LOD_COUNT];
 
             for (int lodIdx = OceanRenderer.Instance.CurrentLodCount - 1; lodIdx >= 0; lodIdx--)
             {

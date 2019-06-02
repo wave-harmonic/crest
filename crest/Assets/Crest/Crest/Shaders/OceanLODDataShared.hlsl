@@ -4,7 +4,9 @@
 
 // Ocean LOD data - data, samplers and functions associated with LODs
 
-#define SLICE_COUNT 16
+// NOTE: This must match the value in LodDataMgr.cs, as it is used to allow the
+// C# code to check if any parameters are within the MAX_LOD_COUNT limits
+#define MAX_LOD_COUNT 16
 
 // Samplers and data associated with a LOD.
 // _LD_Params: float4(world texel size, texture resolution, shape weight multiplier, 1 / texture resolution)
@@ -16,8 +18,8 @@
 	Texture2DArray _LD_TexArray_Flow_##FRAMENUM; \
 	Texture2DArray _LD_TexArray_DynamicWaves_##FRAMENUM; \
 	Texture2DArray _LD_TexArray_Shadow_##FRAMENUM; \
-	uniform float4 _LD_Params_##FRAMENUM[SLICE_COUNT]; \
-	uniform float3 _LD_Pos_Scale_##FRAMENUM[SLICE_COUNT];
+	uniform float4 _LD_Params_##FRAMENUM[MAX_LOD_COUNT]; \
+	uniform float3 _LD_Pos_Scale_##FRAMENUM[MAX_LOD_COUNT];
 
 uniform float _LD_SLICE_Index_ThisLod;
 

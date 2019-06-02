@@ -29,7 +29,7 @@ Shader "Crest/Inputs/Depth/Cached Depths"
 
 			sampler2D _MainTex;
 			float4 _MainTex_ST;
-			float4x4 _SliceViewProjMatrices[SLICE_COUNT];
+			float4x4 _SliceViewProjMatrices[MAX_LOD_COUNT];
 
 			struct Attributes
 			{
@@ -63,14 +63,14 @@ Shader "Crest/Inputs/Depth/Cached Depths"
 				return mul(_SliceViewProjMatrices[sliceIndex], positionWS);
 			}
 
-			[maxvertexcount(SLICE_COUNT * 3)]
+			[maxvertexcount(MAX_LOD_COUNT * 3)]
 			void Geometry(
 				triangle Varyings input[3],
 				inout TriangleStream<SlicedVaryings> outStream
 			)
 			{
 				SlicedVaryings output;
-				for(int sliceIndex = 0; sliceIndex  < SLICE_COUNT; sliceIndex++)
+				for(int sliceIndex = 0; sliceIndex  < MAX_LOD_COUNT; sliceIndex++)
 				{
 					output.sliceIndex = sliceIndex;
 					for(int vertex = 0; vertex < 3; vertex++)

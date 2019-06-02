@@ -216,7 +216,7 @@ namespace Crest
         {
             base.BindData(properties, applyData, blendOut, ref renderData, prevFrame);
 
-            var paramIdOcean = new Vector4[SLICE_COUNT];
+            var paramIdOcean = new Vector4[MAX_LOD_COUNT];
             for(int lodIdx = 0; lodIdx < OceanRenderer.Instance.CurrentLodCount; lodIdx++)
             {
                 var lt = OceanRenderer.Instance._lods[lodIdx];

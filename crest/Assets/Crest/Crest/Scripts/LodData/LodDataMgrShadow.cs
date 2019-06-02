@@ -15,6 +15,7 @@ namespace Crest
     {
         public override string SimName { get { return "Shadow"; } }
         public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RG16; } }
+        protected override bool NeedToReadWriteTextureData { get { return false; } }
 
         public static bool s_processData = true;
 

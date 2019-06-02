@@ -24,6 +24,8 @@ namespace Crest
 
         protected abstract int GetParamIdSampler(bool prevFrame = false);
 
+        protected abstract bool NeedToReadWriteTextureData { get; }
+
         protected RenderTexture _targets;
 
         public RenderTexture DataTexture { get { return _targets; } }
@@ -50,9 +52,10 @@ namespace Crest
         {
             Debug.Assert(SystemInfo.SupportsRenderTextureFormat(TextureFormat), "The graphics device does not support the render texture format " + TextureFormat.ToString());
 
+            Debug.Assert(OceanRenderer.Instance.CurrentLodCount <= SLICE_COUNT);
+
             int resolution = OceanRenderer.Instance.LodDataResolution;
             var desc = new RenderTextureDescriptor(resolution, resolution, TextureFormat, 0);
-
 
             _targets = new RenderTexture(desc);
             _targets.wrapMode = TextureWrapMode.Clamp;
@@ -63,9 +66,7 @@ namespace Crest
             _targets.name = SimName;
             _targets.dimension = TextureDimension.Tex2DArray;
             _targets.volumeDepth = OceanRenderer.Instance.CurrentLodCount;
-            // TODO(MRT): restrict this so that it only applies to compute shaders
-            _targets.enableRandomWrite = true;
-            Debug.Assert(_targets.depth <= SLICE_COUNT);
+            _targets.enableRandomWrite = NeedToReadWriteTextureData;
         }
 
         public virtual void UpdateLodData()

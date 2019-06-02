@@ -14,6 +14,7 @@ namespace Crest
     {
         public override string SimName { get { return "SeaFloorDepth"; } }
         public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RFloat; } }
+        protected override bool NeedToReadWriteTextureData { get { return false; } }
 
         public override SimSettingsBase CreateDefaultSettings() { return null; }
         public override void UseSettings(SimSettingsBase settings) { }

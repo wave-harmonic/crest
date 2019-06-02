@@ -14,6 +14,7 @@ namespace Crest
     {
         public override string SimName { get { return "Flow"; } }
         public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RGHalf; } }
+        protected override bool NeedToReadWriteTextureData { get { return false; } }
 
         public SimSettingsFlow Settings { get { return OceanRenderer.Instance._simSettingsFlow; } }
         public override void UseSettings(SimSettingsBase settings) { OceanRenderer.Instance._simSettingsFlow = settings as SimSettingsFlow; }

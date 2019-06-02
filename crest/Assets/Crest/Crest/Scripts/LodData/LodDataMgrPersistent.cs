@@ -12,6 +12,8 @@ namespace Crest
     /// </summary>
     public abstract class LodDataMgrPersistent : LodDataMgr
     {
+        protected override bool NeedToReadWriteTextureData { get { return false; } }
+
         protected readonly int MAX_SIM_STEPS = 4;
 
         RenderTexture _sources;

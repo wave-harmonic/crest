@@ -92,7 +92,6 @@ namespace Crest
             _scaleDifferencePow2 = Mathf.RoundToInt(ratio_l2);
         }
 
-        // TODO(MRT): Eventually we want to remove lodIdx from here completely
         public void BindResultData(IPropertyWrapper properties, bool prevFrame = false)
         {
             // TODO(MRT): Use prev frame renderdata sometimes? Check
@@ -104,6 +103,9 @@ namespace Crest
             BindData(properties, _targets, blendOut, ref LodTransform._staticRenderData, prevFrame);
         }
 
+        // TODO(MRT): remove all of the array allocations here.
+        // Considering the fact that all the data set here is going to be the same for every lod
+        // we should be calling this function a lot less a well.
         protected virtual void BindData(IPropertyWrapper properties, Texture applyData, bool blendOut, ref LodTransform.RenderData[] renderData, bool prevFrame = false)
         {
             if (applyData)

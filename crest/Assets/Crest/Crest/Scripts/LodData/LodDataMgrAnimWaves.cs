@@ -5,7 +5,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
-using Property = Crest.PropertyWrapperCompute;
 
 namespace Crest
 {
@@ -40,7 +39,7 @@ namespace Crest
         const string ShaderName = "ShapeCombine";
         int _combineShaderKernel = -1;
         ComputeShader _combineShader;
-        Property[] _combineProperties;
+        PropertyWrapperCompute[] _combineProperties;
 
         public override void UseSettings(SimSettingsBase settings) { OceanRenderer.Instance._simSettingsAnimatedWaves = settings as SimSettingsAnimatedWaves; }
         public override SimSettingsBase CreateDefaultSettings()
@@ -50,24 +49,27 @@ namespace Crest
             return settings;
         }
 
-        private Property CreateProperty()
-        {
-            return new Property();
-        }
-
         protected override void InitData()
         {
             base.InitData();
 
+            // Setup the RenderTexture and compute shader for combining
+            // different animated wave LODs. As we use a single texture array
+            // for all LODs, we employ a compute shader as only they can
+            // read and write to the same texture.
             _combineShader = Resources.Load<ComputeShader>(ShaderName);
             _combineShaderKernel = _combineShader.FindKernel(ShaderName);
-            _combineProperties = new Property[OceanRenderer.Instance.CurrentLodCount];
+            _combineProperties = new PropertyWrapperCompute[OceanRenderer.Instance.CurrentLodCount];
             for (int i = 0; i < _combineProperties.Length; i++)
             {
-                _combineProperties[i] = CreateProperty();
+                _combineProperties[i] = new PropertyWrapperCompute();
             }
 
             Debug.Assert(SystemInfo.SupportsRenderTextureFormat(TextureFormat), "The graphics device does not support the render texture format " + TextureFormat.ToString());
+            // TODO(MRT): Is this the best place to put these? Or should we put support querying inside some global init?
+            // Or a function the user can query themselves? Or even in an editor script? All three?
+            Debug.Assert(SystemInfo.supports2DArrayTextures, "The graphics device does not support 2D array textures");
+            Debug.Assert(SystemInfo.supportsComputeShaders, "The graphics device does not support comptue shaders");
 
             int resolution = OceanRenderer.Instance.LodDataResolution;
             var desc = new RenderTextureDescriptor(resolution, resolution, TextureFormat, 0);
@@ -81,7 +83,6 @@ namespace Crest
             _waveBuffers.name = "WaveBuffer";
             _waveBuffers.dimension = TextureDimension.Tex2DArray;
             _waveBuffers.volumeDepth = OceanRenderer.Instance.CurrentLodCount;
-
         }
 
         // Filter object for assigning shapes to LODs. This was much more elegant with a lambda but it generated garbage.
@@ -118,12 +119,11 @@ namespace Crest
             // lod-dependent data
             _filterWavelength._lodCount = lodCount;
 
-            // TODO(MRT): Do this all in a single (geometry) shader call :D
+            // TODO(MRT): Do this all in a single (geometry) shader call
             for (int lodIdx = lodCount - 1; lodIdx >= 0; lodIdx--)
             {
                 buf.SetRenderTarget(_waveBuffers, 0, CubemapFace.Unknown, lodIdx);
                 buf.ClearRenderTarget(false, true, Color.black);
-                buf.SetGlobalFloat("_LD_SLICE_Index_ThisLod", lodIdx);
 
                 foreach (var gerstner in _gerstnerComponents)
                 {

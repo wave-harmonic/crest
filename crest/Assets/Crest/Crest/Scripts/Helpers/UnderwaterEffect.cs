@@ -103,7 +103,7 @@ namespace Crest
                 // Assign lod0 shape - trivial but bound every frame because lod transform comes from here
                 if (_mpb == null)
                 {
-                    _mpb = new PropertyWrapperMPB(new MaterialPropertyBlock());
+                    _mpb = new PropertyWrapperMPB();
                 }
                 _rend.GetPropertyBlock(_mpb.materialPropertyBlock);
 

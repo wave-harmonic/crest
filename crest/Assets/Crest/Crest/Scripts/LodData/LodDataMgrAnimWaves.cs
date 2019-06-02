@@ -38,8 +38,8 @@ namespace Crest
         RenderTexture _waveBuffers;
 
         const string ShaderName = "ShapeCombine";
-        ComputeShader _combineShader;
         int _combineShaderKernel = -1;
+        ComputeShader _combineShader;
         Property[] _combineProperties;
 
         public override void UseSettings(SimSettingsBase settings) { OceanRenderer.Instance._simSettingsAnimatedWaves = settings as SimSettingsAnimatedWaves; }
@@ -58,6 +58,7 @@ namespace Crest
         protected override void InitData()
         {
             base.InitData();
+
             _combineShader = Resources.Load<ComputeShader>(ShaderName);
             _combineShaderKernel = _combineShader.FindKernel(ShaderName);
             _combineProperties = new Property[OceanRenderer.Instance.CurrentLodCount];
@@ -83,7 +84,7 @@ namespace Crest
 
         }
 
-        // Filter object for assigning shapes to lods. This was much more elegant with a lambda but it generated garbage.
+        // Filter object for assigning shapes to LODs. This was much more elegant with a lambda but it generated garbage.
         public class FilterWavelength : IDrawFilter
         {
             public float _lodMinWavelength;

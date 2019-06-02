@@ -23,30 +23,28 @@ namespace Crest
 
     public class PropertyWrapperMaterial : IPropertyWrapper
     {
-        public PropertyWrapperMaterial(Material target) { _target = target; }
-        public PropertyWrapperMaterial(Shader shader) { _target = new Material(shader); }
-        public void SetFloat(int param, float value) { _target.SetFloat(param, value); }
-        public void SetTexture(int param, Texture value) { _target.SetTexture(param, value); }
-        public void SetVector(int param, Vector4 value) { _target.SetVector(param, value); }
-        public void SetVectorArray(int param, Vector4[] value) { _target.SetVectorArray(param, value); }
-        public void SetMatrix(int param, Matrix4x4 value) { _target.SetMatrix(param, value); }
-        public void SetInt(int param, int value) { _target.SetInt(param, value); }
+        public PropertyWrapperMaterial(Material target) { material = target; }
+        public PropertyWrapperMaterial(Shader shader) { material = new Material(shader); }
+        public void SetFloat(int param, float value) { material.SetFloat(param, value); }
+        public void SetTexture(int param, Texture value) { material.SetTexture(param, value); }
+        public void SetVector(int param, Vector4 value) { material.SetVector(param, value); }
+        public void SetVectorArray(int param, Vector4[] value) { material.SetVectorArray(param, value); }
+        public void SetMatrix(int param, Matrix4x4 value) { material.SetMatrix(param, value); }
+        public void SetInt(int param, int value) { material.SetInt(param, value); }
 
-        public Material material { get { return _target; }}
-        private Material _target;
+        public Material material { get; private set; }
     }
     public class PropertyWrapperMPB : IPropertyWrapper
     {
-        public PropertyWrapperMPB(MaterialPropertyBlock target) { _target = target; }
-        public void SetFloat(int param, float value) { _target.SetFloat(param, value); }
-        public void SetTexture(int param, Texture value) { _target.SetTexture(param, value); }
-        public void SetVector(int param, Vector4 value) { _target.SetVector(param, value); }
-        public void SetVectorArray(int param, Vector4[] value) { _target.SetVectorArray(param, value); }
-        public void SetMatrix(int param, Matrix4x4 value) { _target.SetMatrix(param, value); }
-        public void SetInt(int param, int value) { _target.SetInt(param, value); }
+        public PropertyWrapperMPB() { materialPropertyBlock = new MaterialPropertyBlock(); }
+        public void SetFloat(int param, float value) { materialPropertyBlock.SetFloat(param, value); }
+        public void SetTexture(int param, Texture value) { materialPropertyBlock.SetTexture(param, value); }
+        public void SetVector(int param, Vector4 value) { materialPropertyBlock.SetVector(param, value); }
+        public void SetVectorArray(int param, Vector4[] value) { materialPropertyBlock.SetVectorArray(param, value); }
+        public void SetMatrix(int param, Matrix4x4 value) { materialPropertyBlock.SetMatrix(param, value); }
+        public void SetInt(int param, int value) { materialPropertyBlock.SetInt(param, value); }
 
-        public MaterialPropertyBlock materialPropertyBlock { get { return _target; }}
-        private MaterialPropertyBlock _target;
+        public MaterialPropertyBlock materialPropertyBlock { get; private set; }
     }
 
      public class PropertyWrapperCompute : IPropertyWrapper

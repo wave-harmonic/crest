@@ -63,6 +63,11 @@ namespace Crest
             {
                 Debug.LogWarning("Ocean depth cache transform scale is small and will capture a small area of the world. Is this intended?", this);
             }
+
+            if(_forceAlwaysUpdateDebug)
+            {
+                Debug.LogWarning("Note: Force Always Update Debug option is enabled on depth cache " + gameObject.name, this);
+            }
         }
 
 #if UNITY_EDITOR

@@ -42,7 +42,7 @@ namespace Crest
 #endif
         }
 
-        protected override void SetAdditionalSimParams(int lodIdx, PropertyWrapperMaterial simMaterial)
+        protected override void SetAdditionalSimParams(int lodIdx, IPropertyWrapper simMaterial)
         {
             base.SetAdditionalSimParams(lodIdx, simMaterial);
 

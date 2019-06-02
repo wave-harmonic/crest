@@ -48,7 +48,7 @@ namespace Crest
             {
                 if (_mpb == null)
                 {
-                    _mpb = new PropertyWrapperMPB(new MaterialPropertyBlock());
+                    _mpb = new PropertyWrapperMPB();
                 }
 
                 _rend.GetPropertyBlock(_mpb.materialPropertyBlock);

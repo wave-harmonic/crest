@@ -15,7 +15,8 @@ namespace Crest
         protected readonly int MAX_SIM_STEPS = 4;
 
         RenderTexture _sources;
-        PropertyWrapperMaterial[,] _renderSimMaterial;
+        Material _renderSimMaterial;
+        PropertyWrapperMPB[,] _renderSimProperties;
 
         protected abstract string ShaderSim { get; }
 
@@ -34,13 +35,13 @@ namespace Crest
 
         void CreateMaterials(int lodCount)
         {
-            _renderSimMaterial = new PropertyWrapperMaterial[MAX_SIM_STEPS, lodCount];
-            var shader = Shader.Find(ShaderSim);
+            _renderSimMaterial = new Material(Shader.Find(ShaderSim));
+            _renderSimProperties = new PropertyWrapperMPB[MAX_SIM_STEPS, lodCount];
             for (int stepi = 0; stepi < MAX_SIM_STEPS; stepi++)
             {
                 for (int i = 0; i < lodCount; i++)
                 {
-                    _renderSimMaterial[stepi, i] = new PropertyWrapperMaterial(shader);
+                    _renderSimProperties[stepi, i] = new PropertyWrapperMPB();
                 }
             }
         }
@@ -67,7 +68,7 @@ namespace Crest
 
         }
 
-        public void BindSourceData(int lodIdx, PropertyWrapperMaterial properties, bool paramsOnly, bool usePrevTransform, bool prevFrame = false)
+        public void BindSourceData(int lodIdx, IPropertyWrapper properties, bool paramsOnly, bool usePrevTransform, bool prevFrame = false)
         {
             //TODO(MRT): Call Validate to make sure things work here.
             // var renderData = usePrevTransform ?
@@ -100,10 +101,10 @@ namespace Crest
 
                 for (var lodIdx = lodCount - 1; lodIdx >= 0; lodIdx--)
                 {
-                    _renderSimMaterial[stepi, lodIdx].SetFloat(sp_SimDeltaTime, substepDt);
-                    _renderSimMaterial[stepi, lodIdx].SetFloat(sp_SimDeltaTimePrev, _substepDtPrevious);
+                    _renderSimProperties[stepi, lodIdx].SetFloat(sp_SimDeltaTime, substepDt);
+                    _renderSimProperties[stepi, lodIdx].SetFloat(sp_SimDeltaTimePrev, _substepDtPrevious);
 
-                    _renderSimMaterial[stepi, lodIdx].SetFloat(sp_GridSize, OceanRenderer.Instance._lods[lodIdx]._renderData._texelWidth);
+                    _renderSimProperties[stepi, lodIdx].SetFloat(sp_GridSize, OceanRenderer.Instance._lods[lodIdx]._renderData._texelWidth);
 
                     // compute which lod data we are sampling source data from. if a scale change has happened this can be any lod up or down the chain.
                     // this is only valid on the first update step, after that the scale src/target data are in the right places.
@@ -115,23 +116,22 @@ namespace Crest
                     if (srcDataIdx >= 0 && srcDataIdx < lodCount)
                     {
                         // bind data to slot 0 - previous frame data
-                        BindSourceData(srcDataIdx, _renderSimMaterial[stepi, lodIdx], false, usePreviousFrameTransform, true);
+                        BindSourceData(srcDataIdx, _renderSimProperties[stepi, lodIdx], false, usePreviousFrameTransform, true);
                     }
                     else
                     {
                         // no source data - bind params only
-                        BindSourceData(lodIdx, _renderSimMaterial[stepi, lodIdx], true, usePreviousFrameTransform, true);
+                        BindSourceData(lodIdx, _renderSimProperties[stepi, lodIdx], true, usePreviousFrameTransform, true);
                     }
 
-                    SetAdditionalSimParams(lodIdx, _renderSimMaterial[stepi, lodIdx]);
+                    SetAdditionalSimParams(lodIdx, _renderSimProperties[stepi, lodIdx]);
 
                     {
                         buf.SetRenderTarget(_targets, _targets.depthBuffer, 0, CubemapFace.Unknown, lodIdx);
                     }
-
                     buf.SetGlobalFloat("_LD_SLICE_Index_ThisLod", lodIdx);
 
-                    buf.DrawMesh(FullScreenQuad(), Matrix4x4.identity, _renderSimMaterial[stepi, lodIdx].material);
+                    buf.DrawProcedural(Matrix4x4.identity, _renderSimMaterial, 0, MeshTopology.Triangles, 3, 1, _renderSimProperties[stepi, lodIdx].materialPropertyBlock);
 
                     SubmitDraws(lodIdx, buf);
                 }
@@ -155,38 +155,8 @@ namespace Crest
         /// <summary>
         /// Set any sim-specific shader params.
         /// </summary>
-        protected virtual void SetAdditionalSimParams(int lodIdx, PropertyWrapperMaterial simMaterial)
+        protected virtual void SetAdditionalSimParams(int lodIdx, IPropertyWrapper simMaterial)
         {
-        }
-
-        static Mesh s_fullScreenQuad;
-        static Mesh FullScreenQuad()
-        {
-            if (s_fullScreenQuad != null) return s_fullScreenQuad;
-
-            s_fullScreenQuad = new Mesh();
-            s_fullScreenQuad.name = "FullScreenQuad";
-            s_fullScreenQuad.vertices = new Vector3[]
-            {
-                new Vector3(-1f, -1f, 0.1f),
-                new Vector3(-1f,  1f, 0.1f),
-                new Vector3( 1f,  1f, 0.1f),
-                new Vector3( 1f, -1f, 0.1f),
-            };
-            s_fullScreenQuad.uv = new Vector2[]
-            {
-                Vector2.up,
-                Vector2.zero,
-                Vector2.right,
-                Vector2.one,
-            };
-
-            s_fullScreenQuad.SetIndices(new int[]
-            {
-                0, 2, 1, 0, 3, 2
-            }, MeshTopology.Triangles, 0);
-
-            return s_fullScreenQuad;
         }
 
 #if UNITY_EDITOR

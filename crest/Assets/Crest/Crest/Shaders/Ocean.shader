@@ -57,6 +57,8 @@ Shader "Crest/Ocean"
 
 		// Reflection properites
 		[Header(Reflection Environment)]
+		// Controls specular response of water surface
+		_Specular("Specular", Range(0.0, 1.0)) = 1.0
 		// Controls harshness of Fresnel behaviour
 		_FresnelPower("Fresnel Power", Range(1.0, 20.0)) = 5.0
 		// Refractive indices
@@ -290,12 +292,14 @@ Shader "Crest/Ocean"
 					SampleFlow(_LD_TexArray_Flow_ThisFrame, uv_slice_thisLod, wt_thisLod, o.flow_shadow.xy);
 					#endif
 
+					const float3 uv_slice_thisLodDisp = WorldToUV_ThisFrame(o.worldPos.xz);
+
 					#if _SUBSURFACESHALLOWCOLOUR_ON
-					SampleSeaDepth(_LD_TexArray_SeaFloorDepth_ThisFrame, uv_slice_thisLod, wt_thisLod, o.lodAlpha_worldXZUndisplaced_oceanDepth.w);
+					SampleSeaDepth(_LD_TexArray_SeaFloorDepth_ThisFrame, uv_slice_thisLodDisp, wt_thisLod, o.lodAlpha_worldXZUndisplaced_oceanDepth.w);
 					#endif
 
 					#if _SHADOWS_ON
-					SampleShadow(_LD_TexArray_Shadow_ThisFrame, uv_slice_thisLod, wt_thisLod, o.flow_shadow.zw);
+					SampleShadow(_LD_TexArray_Shadow_ThisFrame, uv_slice_thisLodDisp, wt_thisLod, o.flow_shadow.zw);
 					#endif
 				}
 				if (wt_nextLod > 0.001)
@@ -314,12 +318,14 @@ Shader "Crest/Ocean"
 					SampleFlow(_LD_TexArray_Flow_ThisFrame, uv_slice_nextLod, wt_nextLod, o.flow_shadow.xy);
 					#endif
 
+					const float3 uv_slice_nextLodDisp = WorldToUV_NextLod(o.worldPos.xz);
+
 					#if _SUBSURFACESHALLOWCOLOUR_ON
-					SampleSeaDepth(_LD_TexArray_SeaFloorDepth_ThisFrame, uv_slice_nextLod, wt_nextLod, o.lodAlpha_worldXZUndisplaced_oceanDepth.w);
+					SampleSeaDepth(_LD_TexArray_SeaFloorDepth_ThisFrame, uv_slice_nextLodDisp, wt_nextLod, o.lodAlpha_worldXZUndisplaced_oceanDepth.w);
 					#endif
 
 					#if _SHADOWS_ON
-					SampleShadow(_LD_TexArray_Shadow_ThisFrame, uv_slice_nextLod, wt_nextLod, o.flow_shadow.zw);
+					SampleShadow(_LD_TexArray_Shadow_ThisFrame, uv_slice_nextLodDisp, wt_nextLod, o.flow_shadow.zw);
 					#endif
 				}
 

@@ -53,7 +53,7 @@ float4 _LD_Params_NextLod()
 	return _LD_Params_ThisFrame[_LD_SLICE_Index_ThisLod + 1];
 }
 
-// Conversions for world space from/to UV space
+// Conversions for world space from/to UV space. All these should *not* be clamped otherwise they'll break fullscreen triangles.
 float2 LD_WorldToUV(in float2 i_samplePos, in float2 i_centerPos, in float i_res, in float i_texelSize)
 {
 	return (i_samplePos - i_centerPos) / (i_texelSize * i_res) + 0.5;

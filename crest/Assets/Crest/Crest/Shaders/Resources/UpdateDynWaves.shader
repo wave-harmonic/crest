@@ -15,6 +15,8 @@ Shader "Hidden/Crest/Simulation/Update Dynamic Waves"
 			ZTest Always
 
 			CGPROGRAM
+			// For SV_VertexID
+			#pragma target 3.5
 			#pragma vertex Vert
 			#pragma fragment Frag
 
@@ -22,6 +24,7 @@ Shader "Hidden/Crest/Simulation/Update Dynamic Waves"
 
 			#include "UnityCG.cginc"
 			#include "../OceanLODData.hlsl"
+			#include "../FullScreenTriangle.hlsl"
 
 			half _Damping;
 			float2 _LaplacianAxisX;
@@ -31,8 +34,7 @@ Shader "Hidden/Crest/Simulation/Update Dynamic Waves"
 
 			struct Attributes
 			{
-				float4 positionCS : POSITION;
-				float2 uv : TEXCOORD0;
+				uint vertexID : SV_VertexID;
 			};
 
 			struct Varyings
@@ -58,20 +60,15 @@ Shader "Hidden/Crest/Simulation/Update Dynamic Waves"
 
 			Varyings Vert(Attributes input)
 			{
-				Varyings o = (Varyings)0;
+				Varyings output;
 
-				o.positionCS = input.positionCS;
-
-#if !UNITY_UV_STARTS_AT_TOP // https://docs.unity3d.com/Manual/SL-PlatformDifferences.html
-				o.positionCS.y = -o.positionCS.y;
-#endif
-
-				o.uv = input.uv;
+				output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID);
+				output.uv = GetFullScreenTriangleTexCoord(input.vertexID);
 
 				// lod data 1 is current frame, compute world pos from quad uv
-				o.positionWS_XZ = UVToWorld_ThisFrame(input.uv);
+				output.positionWS_XZ = UVToWorld_ThisFrame(output.uv);
 
-				return o;
+				return output;
 			}
 
 			half2 Frag(Varyings input) : SV_Target

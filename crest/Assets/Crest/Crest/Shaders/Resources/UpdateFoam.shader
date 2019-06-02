@@ -15,11 +15,14 @@ Shader "Hidden/Crest/Simulation/Update Foam"
 			ZTest Always
 
 			CGPROGRAM
+			// For SV_VertexID
+			#pragma target 3.5
 			#pragma vertex Vert
 			#pragma fragment Frag
 
 			#include "UnityCG.cginc"
 			#include "../OceanLODData.hlsl"
+			#include "../FullScreenTriangle.hlsl"
 
 			float _FoamFadeRate;
 			float _WaveFoamStrength;
@@ -31,9 +34,7 @@ Shader "Hidden/Crest/Simulation/Update Foam"
 
 			struct Attributes
 			{
-				// the input geom has clip space positions
-				float4 positionCS : POSITION;
-				float2 uv : TEXCOORD0;
+				uint vertexID : SV_VertexID;
 			};
 
 			struct Varyings
@@ -46,22 +47,19 @@ Shader "Hidden/Crest/Simulation/Update Foam"
 
 			Varyings Vert(Attributes input)
 			{
-				Varyings o;
+				Varyings output;
 
-				o.positionCS = input.positionCS;
-
-#if !UNITY_UV_STARTS_AT_TOP // https://docs.unity3d.com/Manual/SL-PlatformDifferences.html
-				o.positionCS.y = -o.positionCS.y;
-#endif
+				output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID);
+				float2 uv = GetFullScreenTriangleTexCoord(input.vertexID);
 
 				// TODO(MRT): when porting this to geometry shader, set the slice there instead
-				o.uv_slice = ADD_SLICE_THIS_LOD_TO_UV(input.uv);
+				output.uv_slice = ADD_SLICE_THIS_LOD_TO_UV(uv);
 
 				// lod data 1 is current frame, compute world pos from quad uv
-				o.positionWS_XZ = UVToWorld_ThisFrame(input.uv);
-				o.uv_slice_prevFrame = WorldToUV_PrevFrame(o.positionWS_XZ);
+				output.positionWS_XZ = UVToWorld_ThisFrame(uv);
+				output.uv_slice_prevFrame = WorldToUV_PrevFrame(output.positionWS_XZ);
 
-				return o;
+				return output;
 			}
 
 			half Frag(Varyings input) : SV_Target

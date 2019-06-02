@@ -145,7 +145,6 @@ namespace Crest
                 // this lod data
                 _combineProperties[lodIdx].SetFloat(Shader.PropertyToID("_LD_SLICE_Index_ThisLod"), lodIdx);
                 BindWaveBuffer(_combineProperties[lodIdx]);
-
                 // combine data from next larger lod into this one
                 BindResultData(_combineProperties[lodIdx]);
 
@@ -208,37 +207,13 @@ namespace Crest
             {
                 LodTransform._staticRenderData[lodIdx].Validate(0, this);
             }
-            BindDataWaveBufferHack(properties, (Texture) _waveBuffers, true, ref LodTransform._staticRenderData, prevFrame);
+            properties.SetTexture(Shader.PropertyToID("_LD_TexArray_WaveBuffer_ThisFrame"), _waveBuffers);
+            BindData(properties, null, true, ref LodTransform._staticRenderData, prevFrame);
         }
 
         protected override void BindData(IPropertyWrapper properties, Texture applyData, bool blendOut, ref LodTransform.RenderData[] renderData, bool prevFrame = false)
         {
             base.BindData(properties, applyData, blendOut, ref renderData, prevFrame);
-
-            var paramIdOcean = new Vector4[SLICE_COUNT];
-            for(int lodIdx = 0; lodIdx < OceanRenderer.Instance.CurrentLodCount; lodIdx++)
-            {
-                var lt = OceanRenderer.Instance._lods[lodIdx];
-
-                // need to blend out shape if this is the largest lod, and the ocean might get scaled down later (so the largest lod will disappear)
-                bool needToBlendOutShape = lodIdx == OceanRenderer.Instance.CurrentLodCount - 1 && OceanRenderer.Instance.ScaleCouldDecrease && blendOut;
-                float shapeWeight = needToBlendOutShape ? OceanRenderer.Instance.ViewerAltitudeLevelAlpha : 1f;
-                paramIdOcean[lodIdx] = new Vector4(
-                    lt._renderData._texelWidth,
-                    lt._renderData._textureRes, shapeWeight,
-                    1f / lt._renderData._textureRes);
-            }
-            properties.SetVectorArray(LodTransform.ParamIdOcean(prevFrame), paramIdOcean);
-        }
-
-        // TODO(MRT): CLEANUP HACKY HACK!
-        protected void BindDataWaveBufferHack(IPropertyWrapper properties, Texture applyData, bool blendOut, ref LodTransform.RenderData[] renderData, bool prevFrame = false)
-        {
-            if (applyData)
-            {
-                properties.SetTexture(Shader.PropertyToID("_LD_TexArray_WaveBuffer_ThisFrame"), applyData);
-            }
-            base.BindData(properties, null, blendOut, ref renderData, prevFrame);
 
             var paramIdOcean = new Vector4[SLICE_COUNT];
             for(int lodIdx = 0; lodIdx < OceanRenderer.Instance.CurrentLodCount; lodIdx++)
@@ -316,7 +291,7 @@ namespace Crest
             _gerstnerComponents.Remove(gerstner);
         }
 
-        // TODO(Factor these out to be shared with other classes who have same code
+        // TODO(MRT): Factor these out to be shared with other classes who have to do similar things
         public static string TextureArrayName = "_LD_TexArray_AnimatedWaves_";
         public static int ParamIDTextureArray_ThisFrame = Shader.PropertyToID(TextureArrayName + "ThisFrame");
         public static int ParamIDTextureArray_PrevFrame = Shader.PropertyToID(TextureArrayName + "PrevFrame");

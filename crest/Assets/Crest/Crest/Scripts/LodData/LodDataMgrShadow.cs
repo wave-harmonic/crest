@@ -197,7 +197,7 @@ namespace Crest
                 var srcDataIdx = lt.LodIndex + ScaleDifferencePow2;
                 srcDataIdx = Mathf.Clamp(srcDataIdx, 0, lt.LodCount - 1);
                 // bind data to slot 0 - previous frame data
-                _renderMaterial[lodIdx].SetFloat(Shader.PropertyToID("_LD_SLICE_Index_ThisLod"), lodIdx);
+                _renderMaterial[lodIdx].SetFloat(OceanRenderer.Instance.SP_ThisLODSliceIndex, lodIdx);
                 BindSourceData(_renderMaterial[lodIdx], false, true);
                 _bufCopyShadowMap.Blit(Texture2D.blackTexture, _targets, _renderMaterial[lodIdx].material, -1, lodIdx);
             }

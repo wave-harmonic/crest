@@ -122,22 +122,12 @@ namespace Crest
             var ldflow = OceanRenderer.Instance._lodDataFlow;
             var ldshadows = OceanRenderer.Instance._lodDataShadow;
 
-            _mpb.SetFloat(Shader.PropertyToID("_LD_SLICE_Index_ThisLod"), _lodIndex);
+            _mpb.SetFloat(OceanRenderer.Instance.SP_ThisLODSliceIndex, _lodIndex);
             ldaws.BindResultData(_mpb);
             if (ldflow) ldflow.BindResultData(_mpb);
             if (ldfoam) ldfoam.BindResultData(_mpb); else LodDataMgrFoam.BindNull(_mpb);
             if (ldsds) ldsds.BindResultData(_mpb);
             if (ldshadows) ldshadows.BindResultData(_mpb); else LodDataMgrShadow.BindNull( _mpb);
-
-            // TOOD(MRT): how to handle this with texture arrays
-            // if (_lodIndex + 1 < OceanRenderer.Instance.CurrentLodCount)
-            // {
-            //     ldaws.BindResultData(_lodIndex + 1, 1, _mpb);
-            //     if (ldflow) ldflow.BindResultData(_lodIndex + 1, 1, _mpb);
-            //     if (ldfoam) ldfoam.BindResultData(_lodIndex + 1, 1, _mpb);  else LodDataMgrFoam.BindNull(_mbp);
-            //     if (ldsds) ldsds.BindResultData(_lodIndex + 1, 1, _mpb);
-            //     if (ldshadows) ldshadows.BindResultData(_lodIndex + 1, 1, _mpb); else LodDataMgrShadow.BindNull(1, _mpb);
-            // }
 
             var reflTex = PreparedReflections.GetRenderTexture(_currentCamera.GetInstanceID());
             if (reflTex)

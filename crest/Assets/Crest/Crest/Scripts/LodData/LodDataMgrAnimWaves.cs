@@ -143,7 +143,7 @@ namespace Crest
             for (int lodIdx = lodCount - 1; lodIdx >= 0; lodIdx--)
             {
                 // this lod data
-                _combineProperties[lodIdx].SetFloat(Shader.PropertyToID("_LD_SLICE_Index_ThisLod"), lodIdx);
+                _combineProperties[lodIdx].SetFloat(OceanRenderer.Instance.SP_ThisLODSliceIndex, lodIdx);
                 BindWaveBuffer(_combineProperties[lodIdx]);
                 // combine data from next larger lod into this one
                 BindResultData(_combineProperties[lodIdx]);

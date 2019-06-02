@@ -108,8 +108,7 @@ namespace Crest
                 _rend.GetPropertyBlock(_mpb.materialPropertyBlock);
 
                 // Underwater rendering uses displacements for intersecting the waves with the near plane, and ocean depth/shadows for ScatterColour()
-                // TODO(MRT): Look at everywhere this is used
-                _mpb.SetFloat(Shader.PropertyToID("_LD_SLICE_Index_ThisLod"), 0);
+                _mpb.SetFloat(OceanRenderer.Instance.SP_ThisLODSliceIndex, 0);
                 OceanRenderer.Instance._lodDataAnimWaves.BindResultData(_mpb);
 
                 if (OceanRenderer.Instance._lodDataSeaDepths)

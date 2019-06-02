@@ -55,7 +55,7 @@ namespace Crest
 
                 var lodCount = OceanRenderer.Instance.CurrentLodCount;
                 var lodDataAnimWaves = OceanRenderer.Instance._lodDataAnimWaves;
-                _mpb.SetFloat(Shader.PropertyToID("_LD_SLICE_Index_ThisLod"), lodIdx);
+                _mpb.SetFloat(OceanRenderer.Instance.SP_ThisLODSliceIndex, lodIdx);
                 lodDataAnimWaves.BindResultData(_mpb);
 
                 // blend LOD 0 shape in/out to avoid pop, if the ocean might scale up later (it is smaller than its maximum scale)

@@ -143,6 +143,7 @@ namespace Crest
             }
 
             Instance = this;
+            _sp_ThisLODSliceIndex = Shader.PropertyToID("_LD_SLICE_Index_ThisLod");
 
             OceanBuilder.GenerateMesh(this, _lodDataResolution, _geometryDownSampleFactor, _lodCount);
 
@@ -318,6 +319,10 @@ namespace Crest
         public float MaxVertDisplacement { get { return _maxVertDispFromShape; } }
 
         public static OceanRenderer Instance { get; private set; }
+
+        /// <summary> 
+        private int _sp_ThisLODSliceIndex = -1;
+        public int SP_ThisLODSliceIndex { get { return _sp_ThisLODSliceIndex; } }
 
         /// <summary>
         /// Provides ocean shape to CPU.

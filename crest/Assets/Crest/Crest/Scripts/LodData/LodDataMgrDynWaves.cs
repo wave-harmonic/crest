@@ -82,7 +82,7 @@ namespace Crest
 
             float laplacianKernelAngle = _rotateLaplacian ? Mathf.PI * 2f * Random.value : 0f;
             simMaterial.SetVector(sp_LaplacianAxisX, new Vector2(Mathf.Cos(laplacianKernelAngle), Mathf.Sin(laplacianKernelAngle)));
-            simMaterial.SetFloat(Shader.PropertyToID("_LD_SLICE_Index_ThisLod"), lodIdx);
+            simMaterial.SetFloat(OceanRenderer.Instance.SP_ThisLODSliceIndex, lodIdx);
 
 
             // assign sea floor depth - to slot 1 current frame data. minor bug here - this depth will actually be from the previous frame,

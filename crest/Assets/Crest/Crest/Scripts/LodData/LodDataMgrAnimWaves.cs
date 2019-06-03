@@ -229,7 +229,7 @@ namespace Crest
                 );
 
                 _combineProperties.DispatchShader();
-            } 
+            }
 
             // lod-independent data
             for (int lodIdx = lodCount - 1; lodIdx >= 0; lodIdx--)

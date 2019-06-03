@@ -2,14 +2,6 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
-// TODO(MRT): Find solution lack of compute shader variants with regards to both
-// flow and the dynamic wave sim
-
-// NOTE: The order of these kernels is extremely important. They are used to
-// allow LodDataMgrAnimWaves to select the appropriate compute shader variant
-// depending on whether we want to combine LODs or not.
-// see https://forum.unity.com/threads/how-to-create-compute-shader-variants.453638/
-#pragma kernel ShapeCombine
 #pragma kernel ShapeCombine_DISABLE_COMBINE _DISABLE_COMBINE
 #pragma kernel ShapeCombine_FLOW_ON _FLOW_ON
 #pragma kernel ShapeCombine_FLOW_ON_DISABLE_COMBINE _FLOW_ON _DISABLE_COMBINE

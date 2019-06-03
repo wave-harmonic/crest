@@ -26,7 +26,7 @@ namespace Crest
 
         public bool _rotateLaplacian = true;
 
-        const string DYNWAVES_KEYWORD = "_DYNAMIC_WAVE_SIM_ON";
+        public const string DYNWAVES_KEYWORD = "_DYNAMIC_WAVE_SIM_ON";
 
         bool[] _active;
         public bool SimActive(int lodIdx) { return _active[lodIdx]; }

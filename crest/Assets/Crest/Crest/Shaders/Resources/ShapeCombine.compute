@@ -9,8 +9,14 @@
 // allow LodDataMgrAnimWaves to select the appropriate compute shader variant
 // depending on whether we want to combine LODs or not.
 // see https://forum.unity.com/threads/how-to-create-compute-shader-variants.453638/
-#pragma kernel ShapeCombine _SHAPE_COMBINE
 #pragma kernel ShapeCombine
+#pragma kernel ShapeCombine_DISABLE_COMBINE _DISABLE_COMBINE
+#pragma kernel ShapeCombine_FLOW_ON _FLOW_ON
+#pragma kernel ShapeCombine_FLOW_ON_DISABLE_COMBINE _FLOW_ON _DISABLE_COMBINE
+#pragma kernel ShapeCombine_DYNAMIC_WAVE_SIM_ON _DYNAMIC_WAVE_SIM_ON
+#pragma kernel ShapeCombine_DYNAMIC_WAVE_SIM_ON_DISABLE_COMBINE _DYNAMIC_WAVE_SIM_ON _DISABLE_COMBINE
+#pragma kernel ShapeCombine_FLOW_ON_DYNAMIC_WAVE_SIM_ON _FLOW_ON _DYNAMIC_WAVE_SIM_ON
+#pragma kernel ShapeCombine_FLOW_ON_DYNAMIC_WAVE_SIM_ON_DISABLE_COMBINE _FLOW_ON _DYNAMIC_WAVE_SIM_ON _DISABLE_COMBINE
 
 // TODO(MRT): Get this to work
 #include "../OceanLODDataShared.hlsl"
@@ -62,8 +68,7 @@ void SampleDisplacementsCompute(in RWTexture2DArray<float4> i_dispSampler, in fl
 	io_worldPos += i_wt * disp;
 }
 
-[numthreads(8,8,1)]
-void ShapeCombine (uint3 id : SV_DispatchThreadID)
+void ShapeCombineBase (uint3 id)
 {
 	const float2 input_uv = IDtoUV(id.xy);
 
@@ -78,7 +83,7 @@ void ShapeCombine (uint3 id : SV_DispatchThreadID)
 	// this lods waves
 #if _FLOW_ON
 	float2 flow = 0.0;
-	SampleFlow(_LD_TexArray_Flow_PrevFrame, uv_thisLod, 1.0, flow);
+	SampleFlow(_LD_TexArray_Flow_ThisFrame, uv_thisLod, 1.0, flow);
 
 	float2 offsets, weights;
 	Flow(offsets, weights);
@@ -93,7 +98,7 @@ void ShapeCombine (uint3 id : SV_DispatchThreadID)
 
 // C# Script determines whether this enabled or not by selecting appropriate
 // kernel for each LOD.
-#if _SHAPE_COMBINE
+#if !_DISABLE_COMBINE
 	SampleDisplacementsCompute(_LD_TexArray_AnimatedWaves_Compute, uv_nextLod, 1.0, result);
 #endif
 
@@ -126,3 +131,13 @@ void ShapeCombine (uint3 id : SV_DispatchThreadID)
 
 	_LD_TexArray_AnimatedWaves_Compute[uint3(id.xy, _LD_SLICE_Index_ThisLod)] = half4(result, 1.0);
 }
+
+
+[numthreads(8,8,1)] void ShapeCombine(uint3 id : SV_DispatchThreadID) { ShapeCombineBase(id); }
+[numthreads(8,8,1)] void ShapeCombine_DISABLE_COMBINE(uint3 id : SV_DispatchThreadID) { ShapeCombineBase(id); }
+[numthreads(8,8,1)] void ShapeCombine_FLOW_ON(uint3 id : SV_DispatchThreadID) { ShapeCombineBase(id); }
+[numthreads(8,8,1)] void ShapeCombine_FLOW_ON_DISABLE_COMBINE(uint3 id : SV_DispatchThreadID) { ShapeCombineBase(id); }
+[numthreads(8,8,1)] void ShapeCombine_DYNAMIC_WAVE_SIM_ON(uint3 id : SV_DispatchThreadID) { ShapeCombineBase(id); }
+[numthreads(8,8,1)] void ShapeCombine_DYNAMIC_WAVE_SIM_ON_DISABLE_COMBINE(uint3 id : SV_DispatchThreadID) { ShapeCombineBase(id); }
+[numthreads(8,8,1)] void ShapeCombine_FLOW_ON_DYNAMIC_WAVE_SIM_ON(uint3 id : SV_DispatchThreadID) { ShapeCombineBase(id); }
+[numthreads(8,8,1)] void ShapeCombine_FLOW_ON_DYNAMIC_WAVE_SIM_ON_DISABLE_COMBINE(uint3 id : SV_DispatchThreadID) { ShapeCombineBase(id); }

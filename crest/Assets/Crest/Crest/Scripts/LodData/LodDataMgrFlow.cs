@@ -27,7 +27,7 @@ namespace Crest
 
         bool _targetsClear = false;
 
-        const string FLOW_KEYWORD = "_FLOW_ON";
+        public const string FLOW_KEYWORD = "_FLOW_ON";
 
         protected override void Start()
         {

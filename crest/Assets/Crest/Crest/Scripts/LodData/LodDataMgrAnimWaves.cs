@@ -38,10 +38,16 @@ namespace Crest
         RenderTexture _waveBuffers;
 
         const string ShaderName = "ShapeCombine";
-        // NOTE: These values are determined and must match the order in which
-        // different kernel variants are defined in `ShapeCombine.compute`.
-        const int CombineShaderKernel = 0;
-        const int CombineShaderKernel_CombineDisabled = 1;
+
+        static int krnl_ShapeCombine = -1;
+        static int krnl_ShapeCombine_DISABLE_COMBINE = -1;
+        static int krnl_ShapeCombine_FLOW_ON = -1;
+        static int krnl_ShapeCombine_FLOW_ON_DISABLE_COMBINE = -1;
+        static int krnl_ShapeCombine_DYNAMIC_WAVE_SIM_ON = -1;
+        static int krnl_ShapeCombine_DYNAMIC_WAVE_SIM_ON_DISABLE_COMBINE = -1;
+        static int krnl_ShapeCombine_FLOW_ON_DYNAMIC_WAVE_SIM_ON = -1;
+        static int krnl_ShapeCombine_FLOW_ON_DYNAMIC_WAVE_SIM_ON_DISABLE_COMBINE = -1;
+
         ComputeShader _combineShader;
         PropertyWrapperCompute _combineProperties;
 
@@ -64,6 +70,14 @@ namespace Crest
             // for all LODs, we employ a compute shader as only they can
             // read and write to the same texture.
             _combineShader = Resources.Load<ComputeShader>(ShaderName);
+            krnl_ShapeCombine = _combineShader.FindKernel("ShapeCombine");
+            krnl_ShapeCombine_DISABLE_COMBINE = _combineShader.FindKernel("ShapeCombine_DISABLE_COMBINE");
+            krnl_ShapeCombine_FLOW_ON = _combineShader.FindKernel("ShapeCombine_FLOW_ON");
+            krnl_ShapeCombine_FLOW_ON_DISABLE_COMBINE = _combineShader.FindKernel("ShapeCombine_FLOW_ON_DISABLE_COMBINE");
+            krnl_ShapeCombine_DYNAMIC_WAVE_SIM_ON = _combineShader.FindKernel("ShapeCombine_DYNAMIC_WAVE_SIM_ON");
+            krnl_ShapeCombine_DYNAMIC_WAVE_SIM_ON_DISABLE_COMBINE = _combineShader.FindKernel("ShapeCombine_DYNAMIC_WAVE_SIM_ON_DISABLE_COMBINE");
+            krnl_ShapeCombine_FLOW_ON_DYNAMIC_WAVE_SIM_ON = _combineShader.FindKernel("ShapeCombine_FLOW_ON_DYNAMIC_WAVE_SIM_ON");
+            krnl_ShapeCombine_FLOW_ON_DYNAMIC_WAVE_SIM_ON_DISABLE_COMBINE = _combineShader.FindKernel("ShapeCombine_FLOW_ON_DYNAMIC_WAVE_SIM_ON_DISABLE_COMBINE");
             _combineProperties = new PropertyWrapperCompute();
 
             Debug.Assert(SystemInfo.SupportsRenderTextureFormat(TextureFormat), "The graphics device does not support the render texture format " + TextureFormat.ToString());
@@ -139,23 +153,46 @@ namespace Crest
                 SubmitDrawsFiltered(lodIdx, buf, _filterWavelength);
             }
 
+            int combineShaderKernel = krnl_ShapeCombine;
+            int combineShaderKernel_lastLOD = krnl_ShapeCombine_DISABLE_COMBINE;
+            {
+                bool isFlowOn = OceanRenderer.Instance.OceanMaterial.IsKeywordEnabled(LodDataMgrFlow.FLOW_KEYWORD);
+                bool isDynWaveson = OceanRenderer.Instance.OceanMaterial.IsKeywordEnabled(LodDataMgrDynWaves.DYNWAVES_KEYWORD);
+                // set the shader kernels that we will use.
+                if(isFlowOn && isDynWaveson)
+                {
+                    combineShaderKernel = krnl_ShapeCombine_FLOW_ON_DYNAMIC_WAVE_SIM_ON;
+                    combineShaderKernel_lastLOD = krnl_ShapeCombine_FLOW_ON_DYNAMIC_WAVE_SIM_ON_DISABLE_COMBINE;
+                }
+                else if(isFlowOn)
+                {
+                    combineShaderKernel = krnl_ShapeCombine_FLOW_ON;
+                    combineShaderKernel_lastLOD = krnl_ShapeCombine_FLOW_ON_DISABLE_COMBINE;
+                }
+                else if(isDynWaveson)
+                {
+                    combineShaderKernel = krnl_ShapeCombine_DYNAMIC_WAVE_SIM_ON;
+                    combineShaderKernel_lastLOD = krnl_ShapeCombine_DYNAMIC_WAVE_SIM_ON_DISABLE_COMBINE;
+                }
+            }
+
             // combine waves
             for (int lodIdx = lodCount - 1; lodIdx >= 0; lodIdx--)
             {
                 // TODO(MRT): See if we can find a programmatic solution to also
                 // select a kernel variant depending on if flow or dynamic waves
                 // are enabled.
-                int combineShaderKernel;
+                int selectedShaderKernel;
                 if (lodIdx < lodCount - 1 && _shapeCombinePass)
                 {
-                    combineShaderKernel = CombineShaderKernel;
+                    selectedShaderKernel = combineShaderKernel;
                 }
                 else
                 {
-                    combineShaderKernel = CombineShaderKernel_CombineDisabled;
+                    selectedShaderKernel = combineShaderKernel_lastLOD;
                 }
 
-                _combineProperties.Initialise(buf, _combineShader, combineShaderKernel);
+                _combineProperties.Initialise(buf, _combineShader, selectedShaderKernel);
 
                 _combineProperties.SetFloat(OceanRenderer.sp_LD_SLICE_Index_ThisLod, lodIdx);
 
@@ -192,7 +229,7 @@ namespace Crest
                 );
 
                 _combineProperties.DispatchShader();
-            }
+            } 
 
             // lod-independent data
             for (int lodIdx = lodCount - 1; lodIdx >= 0; lodIdx--)

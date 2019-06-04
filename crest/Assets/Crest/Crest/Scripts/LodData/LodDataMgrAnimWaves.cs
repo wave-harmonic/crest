@@ -156,10 +156,10 @@ namespace Crest
             int combineShaderKernel = krnl_ShapeCombine;
             int combineShaderKernel_lastLOD = krnl_ShapeCombine_DISABLE_COMBINE;
             {
-                bool isFlowOn = OceanRenderer.Instance.OceanMaterial.IsKeywordEnabled(LodDataMgrFlow.FLOW_KEYWORD);
-                bool isDynWaveson = OceanRenderer.Instance.OceanMaterial.IsKeywordEnabled(LodDataMgrDynWaves.DYNWAVES_KEYWORD);
+                bool isFlowOn = OceanRenderer.Instance._lodDataFlow != null;
+                bool isDynWavesOn = OceanRenderer.Instance._lodDataDynWaves != null;
                 // set the shader kernels that we will use.
-                if(isFlowOn && isDynWaveson)
+                if(isFlowOn && isDynWavesOn)
                 {
                     combineShaderKernel = krnl_ShapeCombine_FLOW_ON_DYNAMIC_WAVE_SIM_ON;
                     combineShaderKernel_lastLOD = krnl_ShapeCombine_FLOW_ON_DYNAMIC_WAVE_SIM_ON_DISABLE_COMBINE;
@@ -169,7 +169,7 @@ namespace Crest
                     combineShaderKernel = krnl_ShapeCombine_FLOW_ON;
                     combineShaderKernel_lastLOD = krnl_ShapeCombine_FLOW_ON_DISABLE_COMBINE;
                 }
-                else if(isDynWaveson)
+                else if(isDynWavesOn)
                 {
                     combineShaderKernel = krnl_ShapeCombine_DYNAMIC_WAVE_SIM_ON;
                     combineShaderKernel_lastLOD = krnl_ShapeCombine_DYNAMIC_WAVE_SIM_ON_DISABLE_COMBINE;

@@ -128,10 +128,11 @@ namespace Crest
 
                     SetAdditionalSimParams(lodIdx, _renderSimProperties[stepi, lodIdx]);
 
-                    {
-                        buf.SetRenderTarget(_targets, _targets.depthBuffer, 0, CubemapFace.Unknown, lodIdx);
-                    }
+                    buf.SetRenderTarget(_targets, _targets.depthBuffer, 0, CubemapFace.Unknown, lodIdx);
+
                     buf.SetGlobalFloat("_LD_SLICE_Index_ThisLod", lodIdx);
+                    // TODO(MRT): Set correct LOD for frame
+                    buf.SetGlobalFloat("_LD_SLICE_Index_ThisLod_PrevFrame", srcDataIdx);
 
                     buf.DrawProcedural(Matrix4x4.identity, _renderSimMaterial, 0, MeshTopology.Triangles, 3, 1, _renderSimProperties[stepi, lodIdx].materialPropertyBlock);
 

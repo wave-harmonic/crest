@@ -82,18 +82,31 @@ Shader "Hidden/Crest/Simulation/Update Dynamic Waves"
 				float3 uv_prevFrame = WorldToUV_PrevFrame(input.positionWS_XZ - (dt * velocity));
 
 				half2 ft_ftm = SampleLod(_LD_TexArray_DynamicWaves_PrevFrame, uv_prevFrame).xy;
+				//TODO(MRT): Remove the need for this by makinng a sampler that returns 0 outisde of the slice bounds.
+				if(_LD_SLICE_Index_ThisLod_PrevFrame > 6 || _LD_SLICE_Index_ThisLod_PrevFrame < 0)
+				{
+					ft_ftm = half2(0, 0);
+				}
 
 				float ft = ft_ftm.x; // t - current value before update
 				float ftm = ft_ftm.y; // t minus - previous value
 
 				// compute axes of laplacian kernel - rotated every frame
-				float e = _LD_Params_PrevFrame[_LD_SLICE_Index_ThisLod].w; // assumes square RT
+				float e = _LD_Params_PrevFrame[_LD_SLICE_Index_ThisLod_PrevFrame].w; // assumes square RT
 				float3 X = float3(_LaplacianAxisX, 0.0);
 				float3 Y = float3(-X.y, X.x, 0.0);
 				float fxm = SampleLod(_LD_TexArray_DynamicWaves_PrevFrame, uv_prevFrame - e*X).x; // x minus
 				float fym = SampleLod(_LD_TexArray_DynamicWaves_PrevFrame, uv_prevFrame - e*Y).x; // y minus
 				float fxp = SampleLod(_LD_TexArray_DynamicWaves_PrevFrame, uv_prevFrame + e*X).x; // x plus
 				float fyp = SampleLod(_LD_TexArray_DynamicWaves_PrevFrame, uv_prevFrame + e*Y).x; // y plus
+				//TODO(MRT): Remove the need for this by makinng a sampler that returns 0 outisde of the slice bounds.
+				if(_LD_SLICE_Index_ThisLod_PrevFrame > 6 || _LD_SLICE_Index_ThisLod_PrevFrame < 0)
+				{
+					fxm = 0;
+					fym = 0;
+					fxp = 0;
+					fyp = 0;
+				}
 
 				// average wavelength for this scale
 				float wavelength = 1.5 * _TexelsPerWave * _GridSize;

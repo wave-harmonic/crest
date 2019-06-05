@@ -134,7 +134,7 @@ namespace Crest
             }
         }
 
-        // TODO(Factor these out to be shared with other classes who have same code
+        // TODO(MRT): Factor these out to be shared with other classes who have same code
         public static string TextureArrayName = "_LD_TexArray_DynamicWaves_";
         public static int ParamIDTextureArray_ThisFrame = Shader.PropertyToID(TextureArrayName + "ThisFrame");
         public static int ParamIDTextureArray_PrevFrame = Shader.PropertyToID(TextureArrayName + "PrevFrame");

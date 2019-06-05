@@ -19,6 +19,7 @@ Shader "Hidden/Crest/Simulation/Update Foam"
 			#pragma target 3.5
 			#pragma vertex Vert
 			#pragma fragment Frag
+			#pragma enable_d3d11_debug_symbols
 
 			#include "UnityCG.cginc"
 			#include "../OceanLODData.hlsl"
@@ -69,7 +70,7 @@ Shader "Hidden/Crest/Simulation/Update Foam"
 				// #if _FLOW_ON
 				half3 velocity = half3(_LD_TexArray_Flow_ThisFrame.Sample(LODData_linear_clamp_sampler, uv_slice).xy, 0.0);
 				half foam = _LD_TexArray_Foam_PrevFrame.Sample(LODData_linear_clamp_sampler, uv_slice_prevFrame
-					- ((_SimDeltaTime * _LD_Params_PrevFrame[_LD_SLICE_Index_ThisLod].w) * velocity)
+					- ((_SimDeltaTime * _LD_Params_PrevFrame[_LD_SLICE_Index_ThisLod_PrevFrame].w) * velocity)
 					).x;
 				// #else
 				// // sampler will clamp the uv_slice currently
@@ -77,7 +78,7 @@ Shader "Hidden/Crest/Simulation/Update Foam"
 				// #endif
 
 				half2 r = abs(uv_slice_prevFrame.xy - 0.5);
-				if (max(r.x, r.y) > 0.5 - _LD_Params_PrevFrame[_LD_SLICE_Index_ThisLod].w)
+				if (max(r.x, r.y) > 0.5 - _LD_Params_PrevFrame[_LD_SLICE_Index_ThisLod_PrevFrame].w)
 				{
 					// no border wrap mode for RTs in unity it seems, so make any off-texture reads 0 manually
 					foam = 0.0;
@@ -106,6 +107,13 @@ Shader "Hidden/Crest/Simulation/Update Foam"
 				float3 uv_slice_thisFrame_displaced = WorldToUV_ThisFrame(input.positionWS_XZ + disp.xz);
 				float signedOceanDepth = SampleLodLevel(_LD_TexArray_SeaFloorDepth_ThisFrame, uv_slice_thisFrame_displaced, float2(0, 1)).x + disp.y;
 				foam += _ShorelineFoamStrength * _SimDeltaTime * saturate(1.0 - signedOceanDepth / _ShorelineFoamMaxDepth);
+
+
+				//TODO(MRT): Remove the need for this by makinng a sampler that returns 0 outisde of the slice bounds.
+				if(_LD_SLICE_Index_ThisLod_PrevFrame > 6 || _LD_SLICE_Index_ThisLod_PrevFrame < 0)
+				{
+					foam = 0;
+				}
 
 				return foam;
 			}

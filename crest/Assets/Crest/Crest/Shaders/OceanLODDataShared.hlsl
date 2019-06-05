@@ -21,7 +21,8 @@
 	uniform float4 _LD_Params_##FRAMENUM[MAX_LOD_COUNT]; \
 	uniform float3 _LD_Pos_Scale_##FRAMENUM[MAX_LOD_COUNT];
 
-uniform float _LD_SLICE_Index_ThisLod;
+uniform const float _LD_SLICE_Index_ThisLod;
+uniform const float _LD_SLICE_Index_ThisLod_PrevFrame;
 
 SamplerState LODData_linear_clamp_sampler;
 
@@ -91,14 +92,16 @@ float3 WorldToUV_ThisFrame(in float2 i_samplePos) {
 	return ADD_SLICE_THIS_LOD_TO_UV(result);
 }
 
+// TODO(MRT): make sure that every shader that calls this
+// actually sets _LD_SLICE_Index_ThisLod_PrevFrame
 float3 WorldToUV_PrevFrame(in float2 i_samplePos) {
 	const float2 result = LD_WorldToUV(
 		i_samplePos,
-		_LD_Pos_Scale_PrevFrame[_LD_SLICE_Index_ThisLod].xy,
-		_LD_Params_PrevFrame[_LD_SLICE_Index_ThisLod].y,
-		_LD_Params_PrevFrame[_LD_SLICE_Index_ThisLod].x
+		_LD_Pos_Scale_PrevFrame[_LD_SLICE_Index_ThisLod_PrevFrame].xy,
+		_LD_Params_PrevFrame[_LD_SLICE_Index_ThisLod_PrevFrame].y,
+		_LD_Params_PrevFrame[_LD_SLICE_Index_ThisLod_PrevFrame].x
 	);
-	return ADD_SLICE_THIS_LOD_TO_UV(result);
+	return float3(result, _LD_SLICE_Index_ThisLod_PrevFrame);
 }
 
 

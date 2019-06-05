@@ -19,7 +19,6 @@ Shader "Hidden/Crest/Simulation/Update Foam"
 			#pragma target 3.5
 			#pragma vertex Vert
 			#pragma fragment Frag
-			#pragma enable_d3d11_debug_symbols
 
 			#include "UnityCG.cginc"
 			#include "../OceanLODData.hlsl"

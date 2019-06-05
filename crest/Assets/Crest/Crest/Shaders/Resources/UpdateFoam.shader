@@ -77,8 +77,16 @@ Shader "Hidden/Crest/Simulation/Update Foam"
 				// #endif
 
 				half2 r = abs(uv_slice_prevFrame.xy - 0.5);
-				if (max(r.x, r.y) > 0.5 - _LD_Params_PrevFrame[_LD_SLICE_Index_ThisLod_PrevFrame].w)
+
+				float depth;
 				{
+					float width; float height;
+					_LD_TexArray_Foam_PrevFrame.GetDimensions(width, height, depth);
+				}
+				if (
+					(_LD_SLICE_Index_ThisLod_PrevFrame < 0) || (_LD_SLICE_Index_ThisLod_PrevFrame > depth) ||
+					(max(r.x, r.y) > 0.5 - _LD_Params_PrevFrame[_LD_SLICE_Index_ThisLod_PrevFrame].w)
+				) {
 					// no border wrap mode for RTs in unity it seems, so make any off-texture reads 0 manually
 					foam = 0.0;
 				}
@@ -106,13 +114,6 @@ Shader "Hidden/Crest/Simulation/Update Foam"
 				float3 uv_slice_thisFrame_displaced = WorldToUV_ThisFrame(input.positionWS_XZ + disp.xz);
 				float signedOceanDepth = SampleLodLevel(_LD_TexArray_SeaFloorDepth_ThisFrame, uv_slice_thisFrame_displaced, float2(0, 1)).x + disp.y;
 				foam += _ShorelineFoamStrength * _SimDeltaTime * saturate(1.0 - signedOceanDepth / _ShorelineFoamMaxDepth);
-
-
-				//TODO(MRT): Remove the need for this by makinng a sampler that returns 0 outisde of the slice bounds.
-				if(_LD_SLICE_Index_ThisLod_PrevFrame > 6 || _LD_SLICE_Index_ThisLod_PrevFrame < 0)
-				{
-					foam = 0;
-				}
 
 				return foam;
 			}

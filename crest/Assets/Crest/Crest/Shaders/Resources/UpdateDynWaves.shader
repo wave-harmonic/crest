@@ -81,16 +81,6 @@ Shader "Hidden/Crest/Simulation/Update Dynamic Waves"
 				half2 velocity = SampleLod(_LD_TexArray_Flow_ThisFrame, uv_thisFrame).xy;
 				float3 uv_prevFrame = WorldToUV_PrevFrame(input.positionWS_XZ - (dt * velocity));
 
-				half2 ft_ftm = SampleLod(_LD_TexArray_DynamicWaves_PrevFrame, uv_prevFrame).xy;
-				//TODO(MRT): Remove the need for this by makinng a sampler that returns 0 outisde of the slice bounds.
-				if(_LD_SLICE_Index_ThisLod_PrevFrame > 6 || _LD_SLICE_Index_ThisLod_PrevFrame < 0)
-				{
-					ft_ftm = half2(0, 0);
-				}
-
-				float ft = ft_ftm.x; // t - current value before update
-				float ftm = ft_ftm.y; // t minus - previous value
-
 				// compute axes of laplacian kernel - rotated every frame
 				float e = _LD_Params_PrevFrame[_LD_SLICE_Index_ThisLod_PrevFrame].w; // assumes square RT
 				float3 X = float3(_LaplacianAxisX, 0.0);
@@ -99,14 +89,25 @@ Shader "Hidden/Crest/Simulation/Update Dynamic Waves"
 				float fym = SampleLod(_LD_TexArray_DynamicWaves_PrevFrame, uv_prevFrame - e*Y).x; // y minus
 				float fxp = SampleLod(_LD_TexArray_DynamicWaves_PrevFrame, uv_prevFrame + e*X).x; // x plus
 				float fyp = SampleLod(_LD_TexArray_DynamicWaves_PrevFrame, uv_prevFrame + e*Y).x; // y plus
-				//TODO(MRT): Remove the need for this by makinng a sampler that returns 0 outisde of the slice bounds.
-				if(_LD_SLICE_Index_ThisLod_PrevFrame > 6 || _LD_SLICE_Index_ThisLod_PrevFrame < 0)
+				half2 ft_ftm = SampleLod(_LD_TexArray_DynamicWaves_PrevFrame, uv_prevFrame).xy;
+				float depth;
 				{
+					float width; float height;
+					_LD_TexArray_DynamicWaves_PrevFrame.GetDimensions(width, height, depth);
+				}
+				if(_LD_SLICE_Index_ThisLod_PrevFrame > depth || _LD_SLICE_Index_ThisLod_PrevFrame < 0)
+				{
+					// no border wrap mode for RTs in unity it seems,
+					// so make any off-array reads 0 manually
 					fxm = 0;
 					fym = 0;
 					fxp = 0;
 					fyp = 0;
+					ft_ftm = half2(0, 0);
 				}
+
+				float ft = ft_ftm.x; // t - current value before update
+				float ftm = ft_ftm.y; // t minus - previous value
 
 				// average wavelength for this scale
 				float wavelength = 1.5 * _TexelsPerWave * _GridSize;

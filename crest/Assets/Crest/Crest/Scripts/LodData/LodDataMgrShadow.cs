@@ -254,7 +254,7 @@ namespace Crest
         }
         public static void BindNull(IPropertyWrapper properties, bool prevFrame = false)
         {
-            properties.SetTexture(ParamIdSampler(prevFrame), Texture2D.blackTexture);
+            properties.SetTexture(ParamIdSampler(prevFrame), TextureArray.Black);
         }
     }
 }

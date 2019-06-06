@@ -12,15 +12,19 @@ namespace Crest
     /// </summary>
     public abstract class LodDataMgrPersistent : LodDataMgr
     {
-        protected override bool NeedToReadWriteTextureData { get { return false; } }
+        protected override bool NeedToReadWriteTextureData { get { return true; } }
 
         protected readonly int MAX_SIM_STEPS = 4;
 
         RenderTexture _sources;
-        Material _renderSimMaterial;
-        PropertyWrapperMPB[,] _renderSimProperties;
+        PropertyWrapperCompute[,] _renderSimProperties;
+
+        static int sp_LD_TexArray_Target = Shader.PropertyToID("_LD_TexArray_Target");
+
+        protected ComputeShader _shader;
 
         protected abstract string ShaderSim { get; }
+        protected abstract int krnl_ShaderSim { get; }
 
         float _substepDtPrevious = 1f / 60f;
 
@@ -32,18 +36,18 @@ namespace Crest
         {
             base.Start();
 
-            CreateMaterials(OceanRenderer.Instance.CurrentLodCount);
+            CreateProperties(OceanRenderer.Instance.CurrentLodCount);
         }
 
-        void CreateMaterials(int lodCount)
+        void CreateProperties(int lodCount)
         {
-            _renderSimMaterial = new Material(Shader.Find(ShaderSim));
-            _renderSimProperties = new PropertyWrapperMPB[MAX_SIM_STEPS, lodCount];
+            _shader = Resources.Load<ComputeShader>(ShaderSim);
+            _renderSimProperties = new PropertyWrapperCompute[MAX_SIM_STEPS, lodCount];
             for (int stepi = 0; stepi < MAX_SIM_STEPS; stepi++)
             {
                 for (int i = 0; i < lodCount; i++)
                 {
-                    _renderSimProperties[stepi, i] = new PropertyWrapperMPB();
+                    _renderSimProperties[stepi, i] = new PropertyWrapperCompute();
                 }
             }
         }
@@ -67,6 +71,7 @@ namespace Crest
             _sources.name = SimName;
             _sources.dimension = TextureDimension.Tex2DArray;
             _sources.volumeDepth = OceanRenderer.Instance.CurrentLodCount;
+            _sources.enableRandomWrite = NeedToReadWriteTextureData;
 
         }
 
@@ -82,7 +87,7 @@ namespace Crest
                 LodTransform._staticRenderDataPrevFrame
                 : LodTransform._staticRenderData;
 
-            BindData(properties, paramsOnly ? Texture2D.blackTexture : (Texture) _sources, true, ref renderData, prevFrame);
+            BindData(properties, paramsOnly ? TextureArray.Black : (Texture) _sources, true, ref renderData, prevFrame);
         }
 
         public abstract void GetSimSubstepData(float frameDt, out int numSubsteps, out float substepDt);
@@ -95,6 +100,14 @@ namespace Crest
             float substepDt;
             int numSubsteps;
             GetSimSubstepData(Time.deltaTime, out numSubsteps, out substepDt);
+            if(!_sources.IsCreated())
+            {
+                _sources.Create();
+            }
+            if(!_targets.IsCreated())
+            {
+                _targets.Create();
+            }
 
             for (int stepi = 0; stepi < numSubsteps; stepi++)
             {
@@ -103,6 +116,8 @@ namespace Crest
 
                 for (var lodIdx = lodCount - 1; lodIdx >= 0; lodIdx--)
                 {
+                    _renderSimProperties[stepi, lodIdx].Initialise(buf, _shader, krnl_ShaderSim);
+
                     _renderSimProperties[stepi, lodIdx].SetFloat(sp_SimDeltaTime, substepDt);
                     _renderSimProperties[stepi, lodIdx].SetFloat(sp_SimDeltaTimePrev, _substepDtPrevious);
 
@@ -134,9 +149,12 @@ namespace Crest
                     // TODO(MRT): Set correct LOD for frame
                     buf.SetGlobalFloat("_LD_SLICE_Index_ThisLod_PrevFrame", srcDataIdx);
 
-                    buf.DrawProcedural(Matrix4x4.identity, _renderSimMaterial, 0, MeshTopology.Triangles, 3, 1, _renderSimProperties[stepi, lodIdx].materialPropertyBlock);
+                    _renderSimProperties[stepi, lodIdx].SetTexture(
+                        sp_LD_TexArray_Target,
+                        DataTexture
+                    );
 
-                    SubmitDraws(lodIdx, buf);
+                    _renderSimProperties[stepi, lodIdx].DispatchShader();
                 }
 
                 _substepDtPrevious = substepDt;
@@ -164,14 +182,14 @@ namespace Crest
 
 #if UNITY_EDITOR
         [UnityEditor.Callbacks.DidReloadScripts]
-        private static void OnReLoadScripts()
+        protected static void OnReLoadScripts()
         {
             var ocean = FindObjectOfType<OceanRenderer>();
             if (ocean == null) return;
             foreach (var ldp in ocean.GetComponents<LodDataMgrPersistent>())
             {
                 // Unity does not serialize multidimensional arrays, or arrays of arrays. It does serialise arrays of objects containing arrays though.
-                ldp.CreateMaterials(ocean.CurrentLodCount);
+                ldp.CreateProperties(ocean.CurrentLodCount);
             }
         }
 #endif

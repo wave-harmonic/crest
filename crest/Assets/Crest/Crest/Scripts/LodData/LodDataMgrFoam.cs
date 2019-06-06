@@ -11,7 +11,8 @@ namespace Crest
     /// </summary>
     public class LodDataMgrFoam : LodDataMgrPersistent
     {
-        protected override string ShaderSim { get { return "Hidden/Crest/Simulation/Update Foam"; } }
+        protected override string ShaderSim { get { return "UpdateFoam"; } }
+        protected override int krnl_ShaderSim { get { return _shader.FindKernel(ShaderSim); }}
         public override string SimName { get { return "Foam"; } }
         public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RHalf; } }
 
@@ -29,6 +30,7 @@ namespace Crest
         static int sp_WaveFoamCoverage = Shader.PropertyToID("_WaveFoamCoverage");
         static int sp_ShorelineFoamMaxDepth = Shader.PropertyToID("_ShorelineFoamMaxDepth");
         static int sp_ShorelineFoamStrength = Shader.PropertyToID("_ShorelineFoamStrength");
+
 
         protected override void Start()
         {
@@ -105,7 +107,7 @@ namespace Crest
         }
         public static void BindNull(IPropertyWrapper properties, bool prevFrame = false)
         {
-            properties.SetTexture(ParamIdSampler(prevFrame), Texture2D.blackTexture);
+            properties.SetTexture(ParamIdSampler(prevFrame), TextureArray.Black);
         }
     }
 }

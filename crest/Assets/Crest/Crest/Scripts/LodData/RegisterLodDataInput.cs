@@ -24,6 +24,7 @@ namespace Crest
     /// <summary>
     /// Registers input to a particular LOD data.
     /// </summary>
+    // TODO(MRT): Support compute shaders here.
     public class RegisterLodDataInput<LodDataType> : RegisterLodDataInputBase
         where LodDataType : LodDataMgr
     {

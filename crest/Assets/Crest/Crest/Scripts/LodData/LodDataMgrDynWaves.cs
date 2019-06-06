@@ -11,7 +11,9 @@ namespace Crest
     /// </summary>
     public class LodDataMgrDynWaves : LodDataMgrPersistent
     {
-        protected override string ShaderSim { get { return "Hidden/Crest/Simulation/Update Dynamic Waves"; } }
+        protected override string ShaderSim { get { return "UpdateDynWaves"; } }
+        protected override int krnl_ShaderSim { get { return _shader.FindKernel(ShaderSim); }}
+
         public override string SimName { get { return "DynamicWaves"; } }
         public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RGHalf; } }
 
@@ -155,7 +157,7 @@ namespace Crest
         }
         public static void BindNull(IPropertyWrapper properties, bool prevFrame = false)
         {
-            properties.SetTexture(ParamIdSampler(prevFrame), Texture2D.blackTexture);
+            properties.SetTexture(ParamIdSampler(prevFrame), TextureArray.Black);
         }
     }
 }

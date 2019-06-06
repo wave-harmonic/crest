@@ -183,6 +183,9 @@ namespace Crest
             bool Filter(RegisterLodDataInputBase data);
         }
 
+        // TODO(MRT): Plan a way to encourage using compute shaders so that we
+        // can run these asynchronously. Then use Graphics fences to manage when
+        // these are run.
         protected void SubmitDraws(int lodIdx, CommandBuffer buf)
         {
             var lt = OceanRenderer.Instance._lods[lodIdx];

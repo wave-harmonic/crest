@@ -46,14 +46,14 @@ namespace Crest
 		static NativeArray<float> s_heightQueryPositions; // the world query positions which have been transformed by a job
 
 		// temp allocations
-		static NativeArray<int2> _segments;
-		static NativeArray<Matrix4x4> _matrixes;
+		static NativeArray<int2> s_segments;
+		static NativeArray<Matrix4x4> s_matrixes;
 
 		// results
 		static NativeArray<float> s_resultHeights;
 
-		static JobHandle s_matrixes;
-		static JobHandle s_handleHeights;
+		static JobHandle s_matrixesHandler;
+		static JobHandle s_handleHeightsHandler;
 
 		// Registries for the sampler IDs
 		static Dictionary<int, int2> s_segmentRegistry = new Dictionary<int, int2>();
@@ -267,7 +267,7 @@ namespace Crest
 		{
 			s_initialised = false;
 
-			s_handleHeights.Complete();
+			s_handleHeightsHandler.Complete();
 
 			s_waveNumbers.Dispose();
 			s_amps.Dispose();
@@ -289,8 +289,8 @@ namespace Crest
 			c_depthCaches.Dispose();
 
 			// Dispose the temp jobs
-			if(_segments.IsCreated) _segments.Dispose();
-			if(_matrixes.IsCreated) _matrixes.Dispose();
+			if(s_segments.IsCreated) s_segments.Dispose();
+			if(s_matrixes.IsCreated) s_matrixes.Dispose();
 
 			foreach(var depths in depthCachesRegistry.Values)
 				depths.Dispose();
@@ -336,6 +336,7 @@ namespace Crest
 				}
 
 				querySegment = new int2(s_lastQueryIndexHeights, s_lastQueryIndexHeights + localQueryPoints.Length);
+
 				s_segmentRegistry.Add(guid, querySegment);
 				s_transformsRegistry.Add(guid, samplerTransform);
 				s_lastQueryIndexHeights += localQueryPoints.Length;
@@ -401,9 +402,7 @@ namespace Crest
 		public static bool ScheduleJobs()
 		{
 			if(s_jobsRunning)
-			{
 				return false;
-			}
 
 			if(s_lastQueryIndexHeights == 0)
 			{
@@ -413,29 +412,30 @@ namespace Crest
 
 			s_jobsRunning = true;
 
-			if(_segments.IsCreated) _segments.Dispose();
-			if(_matrixes.IsCreated) _matrixes.Dispose();
+			if(s_segments.IsCreated) s_segments.Dispose();
+			if(s_matrixes.IsCreated) s_matrixes.Dispose();
 
 			// Create a list of guid matrixes (do this every time a schedule happens since the matrixes are always updating)
-			// Does it this way to not generate managed garbage
+			// Does it this way to not generate garbage
 			NativeArray<int> guids = new NativeArray<int>(s_segmentRegistry.Count, Allocator.Temp);
+			
 			int index = 0;
 			foreach(var guid in s_segmentRegistry.Keys)
 				guids[index++] = guid;
 
-			_segments = new NativeArray<int2>(guids.Length, Allocator.TempJob);
-			_matrixes = new NativeArray<Matrix4x4>(guids.Length, Allocator.TempJob);
+			s_segments = new NativeArray<int2>(guids.Length, Allocator.TempJob);
+			s_matrixes = new NativeArray<Matrix4x4>(guids.Length, Allocator.TempJob);
 
 			for(int i = 0, l = guids.Length; i < l; i++)
 			{
 				int2 segment;
 				s_segmentRegistry.TryGetValue(guids[i], out segment); // this should NEVER be false
 
-				_segments[i] = segment;
+				s_segments[i] = segment;
 
 				Transform trans;
 				if(s_transformsRegistry.TryGetValue(guids[i], out trans))
-					_matrixes[i] = trans.localToWorldMatrix;
+					s_matrixes[i] = trans.localToWorldMatrix;
 
 				// else a new matrix is empty which SHOULD transform that just based on world
 			}
@@ -444,8 +444,8 @@ namespace Crest
 
 			var matrixJob = new MatrixTransformJob()
 			{
-				_querySegments = _segments,
-				_guidMatrixes = _matrixes,
+				_querySegments = s_segments,
+				_guidMatrixes = s_matrixes,
 
 				_segmentRegistry = c_segmentRegistry,
 				_matrix = c_matrix,
@@ -479,7 +479,7 @@ namespace Crest
 			};
 
 			JobHandle handler = matrixJob.Schedule();
-			s_handleHeights = heightJob.Schedule(s_lastQueryIndexHeights, 32, handler);
+			s_handleHeightsHandler = heightJob.Schedule(s_lastQueryIndexHeights, 32, handler);
 
 			JobHandle.ScheduleBatchedJobs();
 
@@ -495,18 +495,18 @@ namespace Crest
 		{
 			if(!s_firstFrame && s_jobsRunning)
 			{
-				s_handleHeights.Complete();
+				s_handleHeightsHandler.Complete();
 				s_jobsRunning = false;
 			}
 
-			if(_segments.IsCreated) _segments.Dispose();
-			if(_matrixes.IsCreated) _matrixes.Dispose();
+			if(s_segments.IsCreated) s_segments.Dispose();
+			if(s_matrixes.IsCreated) s_matrixes.Dispose();
 		}
 
 		/// <summary>
 		/// This sets up the proper matrixes so that the local points can be transformed to world points
 		/// </summary>
-		[BurstCompile]
+		//[BurstCompile]
 		public struct MatrixTransformJob : IJob
 		{
 			[ReadOnly] public NativeArray<int2> _querySegments; // same length as the guid matrixes
@@ -529,7 +529,7 @@ namespace Crest
 				{
 					int2 segment = _querySegments[segmentIndex];
 
-					for(int i = segment.x, l = segment.y - segment.x; i < l; i++)
+					for(int i = segment.x, l = segment.y; i < l; i++)
 					{
 						float3 worldPos = _guidMatrixes[segmentIndex].MultiplyPoint3x4(_localPositions[i]);
 

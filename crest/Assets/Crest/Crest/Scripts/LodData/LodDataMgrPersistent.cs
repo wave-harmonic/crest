@@ -17,7 +17,7 @@ namespace Crest
         protected readonly int MAX_SIM_STEPS = 4;
 
         RenderTexture _sources;
-        PropertyWrapperCompute[,] _renderSimProperties;
+        PropertyWrapperCompute _renderSimProperties;
 
         static int sp_LD_TexArray_Target = Shader.PropertyToID("_LD_TexArray_Target");
 
@@ -30,7 +30,6 @@ namespace Crest
 
         static int sp_SimDeltaTime = Shader.PropertyToID("_SimDeltaTime");
         static int sp_SimDeltaTimePrev = Shader.PropertyToID("_SimDeltaTimePrev");
-        static int sp_GridSize = Shader.PropertyToID("_GridSize");
 
         protected override void Start()
         {
@@ -42,14 +41,7 @@ namespace Crest
         void CreateProperties(int lodCount)
         {
             _shader = Resources.Load<ComputeShader>(ShaderSim);
-            _renderSimProperties = new PropertyWrapperCompute[MAX_SIM_STEPS, lodCount];
-            for (int stepi = 0; stepi < MAX_SIM_STEPS; stepi++)
-            {
-                for (int i = 0; i < lodCount; i++)
-                {
-                    _renderSimProperties[stepi, i] = new PropertyWrapperCompute();
-                }
-            }
+            _renderSimProperties = new PropertyWrapperCompute();
         }
 
         protected override void InitData()
@@ -114,47 +106,37 @@ namespace Crest
 
                 SwapRTs(ref _sources, ref _targets);
 
+
+                _renderSimProperties.Initialise(buf, _shader, krnl_ShaderSim);
+
+                _renderSimProperties.SetFloat(sp_SimDeltaTime, substepDt);
+                _renderSimProperties.SetFloat(sp_SimDeltaTimePrev, _substepDtPrevious);
+
+                // compute which lod data we are sampling source data from. if a scale change has happened this can be any lod up or down the chain.
+                // this is only valid on the first update step, after that the scale src/target data are in the right places.
+                var srcDataIdxChange = ((stepi == 0) ? ScaleDifferencePow2 : 0);
+
+                // only take transform from previous frame on first substep
+                var usePreviousFrameTransform = stepi == 0;
+
+                // bind data to slot 0 - previous frame data
+                BindSourceData(_renderSimProperties, false, usePreviousFrameTransform, true);
+
+                SetAdditionalSimParams(_renderSimProperties);
+
+                //buf.SetGlobalFloat("_LD_SLICE_Index_ThisLod", lodIdx);
+                // TODO(MRT): Set correct LOD for frame
+                buf.SetGlobalFloat("_LODChange", srcDataIdxChange);
+
+                _renderSimProperties.SetTexture(
+                    sp_LD_TexArray_Target,
+                    DataTexture
+                );
+
+                _renderSimProperties.DispatchShaderMultiLOD();
+
                 for (var lodIdx = lodCount - 1; lodIdx >= 0; lodIdx--)
                 {
-                    _renderSimProperties[stepi, lodIdx].Initialise(buf, _shader, krnl_ShaderSim);
-
-                    _renderSimProperties[stepi, lodIdx].SetFloat(sp_SimDeltaTime, substepDt);
-                    _renderSimProperties[stepi, lodIdx].SetFloat(sp_SimDeltaTimePrev, _substepDtPrevious);
-
-                    _renderSimProperties[stepi, lodIdx].SetFloat(sp_GridSize, OceanRenderer.Instance._lods[lodIdx]._renderData._texelWidth);
-
-                    // compute which lod data we are sampling source data from. if a scale change has happened this can be any lod up or down the chain.
-                    // this is only valid on the first update step, after that the scale src/target data are in the right places.
-                    var srcDataIdx = lodIdx + ((stepi == 0) ? ScaleDifferencePow2 : 0);
-
-                    // only take transform from previous frame on first substep
-                    var usePreviousFrameTransform = stepi == 0;
-
-                    if (srcDataIdx >= 0 && srcDataIdx < lodCount)
-                    {
-                        // bind data to slot 0 - previous frame data
-                        BindSourceData(_renderSimProperties[stepi, lodIdx], false, usePreviousFrameTransform, true);
-                    }
-                    else
-                    {
-                        // no source data - bind params only
-                        BindSourceData(_renderSimProperties[stepi, lodIdx], true, usePreviousFrameTransform, true);
-                    }
-
-                    SetAdditionalSimParams(lodIdx, _renderSimProperties[stepi, lodIdx]);
-
-
-                    buf.SetGlobalFloat("_LD_SLICE_Index_ThisLod", lodIdx);
-                    // TODO(MRT): Set correct LOD for frame
-                    buf.SetGlobalFloat("_LD_SLICE_Index_ThisLod_PrevFrame", srcDataIdx);
-
-                    _renderSimProperties[stepi, lodIdx].SetTexture(
-                        sp_LD_TexArray_Target,
-                        DataTexture
-                    );
-
-                    _renderSimProperties[stepi, lodIdx].DispatchShader();
-
                     buf.SetRenderTarget(_targets, _targets.depthBuffer, 0, CubemapFace.Unknown, lodIdx);
                     SubmitDraws(lodIdx, buf);
                 }
@@ -178,7 +160,7 @@ namespace Crest
         /// <summary>
         /// Set any sim-specific shader params.
         /// </summary>
-        protected virtual void SetAdditionalSimParams(int lodIdx, IPropertyWrapper simMaterial)
+        protected virtual void SetAdditionalSimParams(IPropertyWrapper simMaterial)
         {
         }
 

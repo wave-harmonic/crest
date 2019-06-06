@@ -44,16 +44,15 @@ namespace Crest
 #endif
         }
 
-        protected override void SetAdditionalSimParams(int lodIdx, IPropertyWrapper simMaterial)
+        protected override void SetAdditionalSimParams(IPropertyWrapper simMaterial)
         {
-            base.SetAdditionalSimParams(lodIdx, simMaterial);
+            base.SetAdditionalSimParams(simMaterial);
 
             simMaterial.SetFloat(sp_FoamFadeRate, Settings._foamFadeRate);
             simMaterial.SetFloat(sp_WaveFoamStrength, Settings._waveFoamStrength);
             simMaterial.SetFloat(sp_WaveFoamCoverage, Settings._waveFoamCoverage);
             simMaterial.SetFloat(sp_ShorelineFoamMaxDepth, Settings._shorelineFoamMaxDepth);
             simMaterial.SetFloat(sp_ShorelineFoamStrength, Settings._shorelineFoamStrength);
-            simMaterial.SetFloat(OceanRenderer.sp_LD_SLICE_Index_ThisLod, lodIdx);
 
             // assign animated waves - to slot 1 current frame data
             OceanRenderer.Instance._lodDataAnimWaves.BindResultData(simMaterial);

@@ -38,6 +38,7 @@ namespace Crest
         static int sp_Damping = Shader.PropertyToID("_Damping");
         static int sp_Gravity = Shader.PropertyToID("_Gravity");
         static int sp_LaplacianAxisX = Shader.PropertyToID("_LaplacianAxisX");
+        static int sp_GridSize = Shader.PropertyToID("_GridSize");
 
         protected override void InitData()
         {
@@ -75,17 +76,24 @@ namespace Crest
             target.SetFloat(sp_DisplaceClamp, Settings._displaceClamp);
         }
 
-        protected override void SetAdditionalSimParams(int lodIdx, IPropertyWrapper simMaterial)
+
+        float[] _texelWidths = new float[MAX_LOD_COUNT];
+        protected override void SetAdditionalSimParams(IPropertyWrapper simMaterial)
         {
-            base.SetAdditionalSimParams(lodIdx, simMaterial);
+            base.SetAdditionalSimParams(simMaterial);
 
             simMaterial.SetFloat(sp_Damping, Settings._damping);
             simMaterial.SetFloat(sp_Gravity, OceanRenderer.Instance.Gravity);
+            // TODO(MRT): Clean this up, so we aren't assigning to a whole array every time.
+            for(int lodIdx = 0; lodIdx < OceanRenderer.Instance.CurrentLodCount; lodIdx++)
+            {
+                _texelWidths[lodIdx] = OceanRenderer.Instance._lods[lodIdx]._renderData._texelWidth;
+            }
+            simMaterial.SetFloatArray(sp_GridSize, _texelWidths);
+
 
             float laplacianKernelAngle = _rotateLaplacian ? Mathf.PI * 2f * Random.value : 0f;
             simMaterial.SetVector(sp_LaplacianAxisX, new Vector2(Mathf.Cos(laplacianKernelAngle), Mathf.Sin(laplacianKernelAngle)));
-            simMaterial.SetFloat(OceanRenderer.sp_LD_SLICE_Index_ThisLod, lodIdx);
-
 
             // assign sea floor depth - to slot 1 current frame data. minor bug here - this depth will actually be from the previous frame,
             // because the depth is scheduled to render just before the animated waves, and this sim happens before animated waves.

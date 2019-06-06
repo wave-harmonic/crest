@@ -143,7 +143,6 @@ namespace Crest
 
                     SetAdditionalSimParams(lodIdx, _renderSimProperties[stepi, lodIdx]);
 
-                    buf.SetRenderTarget(_targets, _targets.depthBuffer, 0, CubemapFace.Unknown, lodIdx);
 
                     buf.SetGlobalFloat("_LD_SLICE_Index_ThisLod", lodIdx);
                     // TODO(MRT): Set correct LOD for frame
@@ -156,7 +155,7 @@ namespace Crest
 
                     _renderSimProperties[stepi, lodIdx].DispatchShader();
 
-                    buf.SetRenderTarget(_targets);
+                    buf.SetRenderTarget(_targets, _targets.depthBuffer, 0, CubemapFace.Unknown, lodIdx);
                     SubmitDraws(lodIdx, buf);
                 }
 

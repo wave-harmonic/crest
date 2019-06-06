@@ -155,6 +155,9 @@ namespace Crest
                     );
 
                     _renderSimProperties[stepi, lodIdx].DispatchShader();
+
+                    buf.SetRenderTarget(_targets);
+                    SubmitDraws(lodIdx, buf);
                 }
 
                 _substepDtPrevious = substepDt;

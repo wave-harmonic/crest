@@ -253,11 +253,14 @@ namespace Crest
             BindData(properties, null, true, ref LodTransform._staticRenderData, prevFrame);
         }
 
+        // TODO(MRT): This is a temporary hack to avoid a lot of array allocations which are then GCed.
+        // this will need to be fixed by changing the BindData API to something more appropriate, and making
+        // the LodTransform class SOA
+        Vector4[] _paramIdOceans = new Vector4[MAX_LOD_COUNT];
         protected override void BindData(IPropertyWrapper properties, Texture applyData, bool blendOut, ref LodTransform.RenderData[] renderData, bool prevFrame = false)
         {
             base.BindData(properties, applyData, blendOut, ref renderData, prevFrame);
 
-            var paramIdOcean = new Vector4[MAX_LOD_COUNT];
             for(int lodIdx = 0; lodIdx < OceanRenderer.Instance.CurrentLodCount; lodIdx++)
             {
                 var lt = OceanRenderer.Instance._lods[lodIdx];
@@ -265,12 +268,12 @@ namespace Crest
                 // need to blend out shape if this is the largest lod, and the ocean might get scaled down later (so the largest lod will disappear)
                 bool needToBlendOutShape = lodIdx == OceanRenderer.Instance.CurrentLodCount - 1 && OceanRenderer.Instance.ScaleCouldDecrease && blendOut;
                 float shapeWeight = needToBlendOutShape ? OceanRenderer.Instance.ViewerAltitudeLevelAlpha : 1f;
-                paramIdOcean[lodIdx] = new Vector4(
+                _paramIdOceans[lodIdx] = new Vector4(
                     lt._renderData._texelWidth,
                     lt._renderData._textureRes, shapeWeight,
                     1f / lt._renderData._textureRes);
             }
-            properties.SetVectorArray(LodTransform.ParamIdOcean(prevFrame), paramIdOcean);
+            properties.SetVectorArray(LodTransform.ParamIdOcean(prevFrame), _paramIdOceans);
         }
 
         /// <summary>

@@ -104,9 +104,12 @@ namespace Crest
             BindData(properties, _targets, blendOut, ref LodTransform._staticRenderData, prevFrame);
         }
 
-        // TODO(MRT): remove all of the array allocations here.
-        // Considering the fact that all the data set here is going to be the same for every lod
-        // we should be calling this function a lot less a well.
+
+        // TODO(MRT): This is a temporary hack to avoid a lot of array allocations which are then GCed.
+        // this will need to be fixed by changing the BindData API to something more appropriate, and making
+        // the LodTransform class SOA
+        Vector4[] _paramIdPosScales = new Vector4[MAX_LOD_COUNT];
+        Vector4[] _paramIdOceans = new Vector4[MAX_LOD_COUNT];
         protected virtual void BindData(IPropertyWrapper properties, Texture applyData, bool blendOut, ref LodTransform.RenderData[] renderData, bool prevFrame = false)
         {
             if (applyData)
@@ -114,18 +117,16 @@ namespace Crest
                 properties.SetTexture(GetParamIdSampler(prevFrame), applyData);
             }
 
-            var paramIdPosScales = new Vector4[MAX_LOD_COUNT];
-            var paramIdOceans = new Vector4[MAX_LOD_COUNT];
             for(int lodIdx = 0; lodIdx < OceanRenderer.Instance.CurrentLodCount; lodIdx++)
             {
                 var lt = OceanRenderer.Instance._lods[lodIdx];
 
                 // NOTE: gets zeroed by unity, see https://www.alanzucconi.com/2016/10/24/arrays-shaders-unity-5-4/
-                paramIdPosScales[lodIdx] = new Vector4(renderData[lodIdx]._posSnapped.x, renderData[lodIdx]._posSnapped.z, lt.transform.lossyScale.x, 0);
-                paramIdOceans[lodIdx] = new Vector4(renderData[lodIdx]._texelWidth, renderData[lodIdx]._textureRes, 1f, 1f / renderData[lodIdx]._textureRes);
+                _paramIdPosScales[lodIdx] = new Vector4(renderData[lodIdx]._posSnapped.x, renderData[lodIdx]._posSnapped.z, lt.transform.lossyScale.x, 0);
+                _paramIdOceans[lodIdx] = new Vector4(renderData[lodIdx]._texelWidth, renderData[lodIdx]._textureRes, 1f, 1f / renderData[lodIdx]._textureRes);
             }
-            properties.SetVectorArray(LodTransform.ParamIdPosScale(prevFrame), paramIdPosScales);
-            properties.SetVectorArray(LodTransform.ParamIdOcean(prevFrame), paramIdOceans);
+            properties.SetVectorArray(LodTransform.ParamIdPosScale(prevFrame), _paramIdPosScales);
+            properties.SetVectorArray(LodTransform.ParamIdOcean(prevFrame), _paramIdOceans);
         }
 
         public static LodDataType Create<LodDataType, LodDataSettings>(GameObject attachGO, ref LodDataSettings settings)

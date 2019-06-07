@@ -57,6 +57,8 @@ Shader "Crest/Ocean"
 
 		// Reflection properites
 		[Header(Reflection Environment)]
+		// Controls specular response of water surface
+		_Specular("Specular", Range(0.0, 1.0)) = 1.0
 		// Controls harshness of Fresnel behaviour
 		_FresnelPower("Fresnel Power", Range(1.0, 20.0)) = 5.0
 		// Refractive indices
@@ -266,7 +268,7 @@ Shader "Crest/Ocean"
 				o.flow_shadow = half4(0., 0., 0., 0.);
 				o.foam_screenPos.x = 0.;
 
-				o.lodAlpha_worldXZUndisplaced_oceanDepth.w = 0.;
+				o.lodAlpha_worldXZUndisplaced_oceanDepth.w = CREST_OCEAN_DEPTH_BASELINE;
 				
 				// Sample shape textures - always lerp between 2 LOD scales, so sample two textures
 
@@ -291,12 +293,14 @@ Shader "Crest/Ocean"
 					SampleFlow(_LD_Sampler_Flow_0, uv_0, wt_0, o.flow_shadow.xy);
 					#endif
 
+					const float2 uv_0_disp = LD_0_WorldToUV(o.worldPos.xz);
+
 					#if _SUBSURFACESHALLOWCOLOUR_ON
-					SampleSeaFloorHeightAboveBaseline(_LD_Sampler_SeaFloorDepth_0, uv_0, wt_0, o.lodAlpha_worldXZUndisplaced_oceanDepth.w);
+					SampleSeaDepth(_LD_Sampler_SeaFloorDepth_0, uv_0_disp, wt_0, o.lodAlpha_worldXZUndisplaced_oceanDepth.w);
 					#endif
 
 					#if _SHADOWS_ON
-					SampleShadow(_LD_Sampler_Shadow_0, uv_0, wt_0, o.flow_shadow.zw);
+					SampleShadow(_LD_Sampler_Shadow_0, uv_0_disp, wt_0, o.flow_shadow.zw);
 					#endif
 				}
 				if (wt_1 > 0.001)
@@ -315,17 +319,16 @@ Shader "Crest/Ocean"
 					SampleFlow(_LD_Sampler_Flow_1, uv_1, wt_1, o.flow_shadow.xy);
 					#endif
 
+					const float2 uv_1_disp = LD_1_WorldToUV(o.worldPos.xz);
+
 					#if _SUBSURFACESHALLOWCOLOUR_ON
-					SampleSeaFloorHeightAboveBaseline(_LD_Sampler_SeaFloorDepth_1, uv_1, wt_1, o.lodAlpha_worldXZUndisplaced_oceanDepth.w);
+					SampleSeaDepth(_LD_Sampler_SeaFloorDepth_1, uv_1_disp, wt_1, o.lodAlpha_worldXZUndisplaced_oceanDepth.w);
 					#endif
 
 					#if _SHADOWS_ON
-					SampleShadow(_LD_Sampler_Shadow_1, uv_1, wt_1, o.flow_shadow.zw);
+					SampleShadow(_LD_Sampler_Shadow_1, uv_1_disp, wt_1, o.flow_shadow.zw);
 					#endif
 				}
-
-				// Convert height above -1000m to depth below surface
-				o.lodAlpha_worldXZUndisplaced_oceanDepth.w = CREST_OCEAN_DEPTH_BASELINE - o.lodAlpha_worldXZUndisplaced_oceanDepth.w;
 
 				// Foam can saturate
 				o.foam_screenPos.x = saturate(o.foam_screenPos.x);

@@ -15,12 +15,15 @@ Shader "Hidden/Crest/Simulation/Update Foam"
 			ZTest Always
 
 			CGPROGRAM
+			// For SV_VertexID
+			#pragma target 3.5
 			#pragma vertex Vert
 			#pragma fragment Frag
 
 			#include "UnityCG.cginc"
 			#include "../OceanLODData.hlsl"
-		
+			#include "../FullScreenTriangle.hlsl"
+
 			float _FoamFadeRate;
 			float _WaveFoamStrength;
 			float _WaveFoamCoverage;
@@ -31,9 +34,7 @@ Shader "Hidden/Crest/Simulation/Update Foam"
 
 			struct Attributes
 			{
-				// the input geom has clip space positions
-				float4 positionCS : POSITION;
-				float2 uv : TEXCOORD0;
+				uint vertexID : SV_VertexID;
 			};
 
 			struct Varyings
@@ -45,21 +46,18 @@ Shader "Hidden/Crest/Simulation/Update Foam"
 
 			Varyings Vert(Attributes input)
 			{
-				Varyings o;
+				Varyings output;
 
-				o.positionCS = input.positionCS;
+				output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID);
+				float2 uv = GetFullScreenTriangleTexCoord(input.vertexID);
 
-#if !UNITY_UV_STARTS_AT_TOP // https://docs.unity3d.com/Manual/SL-PlatformDifferences.html
-				o.positionCS.y = -o.positionCS.y;
-#endif
-
-				o.uv_uv_lastframe.xy = input.uv;
+				output.uv_uv_lastframe.xy = uv;
 
 				// lod data 1 is current frame, compute world pos from quad uv
-				o.positionWS_XZ = LD_1_UVToWorld(input.uv);
-				o.uv_uv_lastframe.zw = LD_0_WorldToUV(o.positionWS_XZ);
+				output.positionWS_XZ = LD_1_UVToWorld(uv);
+				output.uv_uv_lastframe.zw = LD_0_WorldToUV(output.positionWS_XZ);
 
-				return o;
+				return output;
 			}
 
 			half Frag(Varyings input) : SV_Target
@@ -105,8 +103,8 @@ Shader "Hidden/Crest/Simulation/Update Foam"
 
 				// add foam in shallow water. use the displaced position to ensure we add foam where world objects are.
 				float4 uv_1_displaced = float4(LD_1_WorldToUV(input.positionWS_XZ + disp.xz), 0.0, 1.0);
-				float signedOceanDepth = CREST_OCEAN_DEPTH_BASELINE - tex2Dlod(_LD_Sampler_SeaFloorDepth_1, uv_1_displaced).x + disp.y;
-				foam += _ShorelineFoamStrength * _SimDeltaTime * saturate(1.0 - signedOceanDepth / _ShorelineFoamMaxDepth);
+				float waterDepth = tex2Dlod(_LD_Sampler_SeaFloorDepth_1, uv_1_displaced).x + disp.y;
+				foam += _ShorelineFoamStrength * _SimDeltaTime * saturate(1.0 - waterDepth / _ShorelineFoamMaxDepth);
 
 				return foam;
 			}

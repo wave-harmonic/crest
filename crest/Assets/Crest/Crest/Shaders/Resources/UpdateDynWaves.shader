@@ -15,6 +15,8 @@ Shader "Hidden/Crest/Simulation/Update Dynamic Waves"
 			ZTest Always
 
 			CGPROGRAM
+			// For SV_VertexID
+			#pragma target 3.5
 			#pragma vertex Vert
 			#pragma fragment Frag
 
@@ -22,6 +24,7 @@ Shader "Hidden/Crest/Simulation/Update Dynamic Waves"
 
 			#include "UnityCG.cginc"
 			#include "../OceanLODData.hlsl"
+			#include "../FullScreenTriangle.hlsl"
 
 			half _Damping;
 			float2 _LaplacianAxisX;
@@ -31,8 +34,7 @@ Shader "Hidden/Crest/Simulation/Update Dynamic Waves"
 
 			struct Attributes
 			{
-				float4 positionCS : POSITION;
-				float2 uv : TEXCOORD0;
+				uint vertexID : SV_VertexID;
 			};
 
 			struct Varyings
@@ -58,20 +60,15 @@ Shader "Hidden/Crest/Simulation/Update Dynamic Waves"
 
 			Varyings Vert(Attributes input)
 			{
-				Varyings o = (Varyings)0;
+				Varyings output;
 
-				o.positionCS = input.positionCS;
-
-#if !UNITY_UV_STARTS_AT_TOP // https://docs.unity3d.com/Manual/SL-PlatformDifferences.html
-				o.positionCS.y = -o.positionCS.y;
-#endif
-
-				o.uv = input.uv;
+				output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID);
+				output.uv = GetFullScreenTriangleTexCoord(input.vertexID);
 
 				// lod data 1 is current frame, compute world pos from quad uv
-				o.positionWS_XZ = LD_1_UVToWorld(input.uv);
+				output.positionWS_XZ = LD_1_UVToWorld(output.uv);
 
-				return o;
+				return output;
 			}
 
 			half2 Frag(Varyings input) : SV_Target
@@ -127,8 +124,8 @@ Shader "Hidden/Crest/Simulation/Update Dynamic Waves"
 				// eventually break. i model "Deep" water, but then simply ramp down waves in non-deep water with a linear multiplier.
 				// http://hyperphysics.phy-astr.gsu.edu/hbase/Waves/watwav2.html
 				// http://hyperphysics.phy-astr.gsu.edu/hbase/watwav.html#c1
-				float waterSignedDepth = CREST_OCEAN_DEPTH_BASELINE - tex2D(_LD_Sampler_SeaFloorDepth_1, input.uv).x;
-				float depthMul = 1.0 - (1.0 - saturate(2.0 * waterSignedDepth / wavelength)) * dt * 2.0;
+				float waterDepth = tex2D(_LD_Sampler_SeaFloorDepth_1, input.uv).x;
+				float depthMul = 1.0 - (1.0 - saturate(2.0 * waterDepth / wavelength)) * dt * 2.0;
 				ftp *= depthMul;
 				ft *= depthMul;
 

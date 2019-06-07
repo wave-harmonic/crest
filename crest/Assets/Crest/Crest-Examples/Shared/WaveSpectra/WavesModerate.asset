@@ -4,27 +4,28 @@
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 33068fc021dadc04dab6e00e4ff45c00, type: 3}
   m_Name: WavesModerate
   m_EditorClassIdentifier: 
-  _waveDirectionVariance: 90
+  _waveDirectionVariance: 180
   _gravityScale: 1
   _powerLog:
-  - -4.6633663
-  - -4.632612
-  - -3.9353123
-  - -3.2213879
-  - -2.4813807
-  - -1.2080691
-  - -0.53905386
-  - 0.27448857
-  - 0.53627354
-  - 1.0282621
-  - 1.4403292
+  - -4.4257426
+  - -4.2761765
+  - -3.370956
+  - -2.7461402
+  - -2.1249452
+  - -0.55460376
+  - 0.055005528
+  - 0.6012212
+  - 0.92241216
+  - 1.5629156
+  - 1.7670618
   - -6
   _powerDisabled: 000000000000000000000000
   _chopScales:

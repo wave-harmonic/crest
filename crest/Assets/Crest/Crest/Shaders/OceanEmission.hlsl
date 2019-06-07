@@ -65,9 +65,8 @@ half3 ScatterColour(
 		//    so just approximate by sampling at the camera position.
 		// this used to sample LOD1 but that doesnt work in last LOD, the data will be missing.
 		const float2 uv_0 = LD_0_WorldToUV(i_cameraPos.xz);
-		float seaFloorHeightAboveBaseline = 0.0;
-		SampleSeaFloorHeightAboveBaseline(_LD_Sampler_SeaFloorDepth_0, uv_0, 1.0, seaFloorHeightAboveBaseline);
-		depth = CREST_OCEAN_DEPTH_BASELINE - seaFloorHeightAboveBaseline;
+		depth = CREST_OCEAN_DEPTH_BASELINE;
+		SampleSeaDepth(_LD_Sampler_SeaFloorDepth_0, uv_0, 1.0, depth);
 		waveHeight = 0.0;
 
 #if _SHADOWS_ON
@@ -197,8 +196,6 @@ half3 OceanEmission(in const half3 i_view, in const half3 i_n_pixel, in const fl
 	// View ray intersects geometry surface either above or below ocean surface
 
 	const half2 uvBackground = i_grabPos.xy / i_grabPos.w;
-	const half2 refractOffset = _RefractionStrength * i_n_pixel.xz * min(1.0, 0.5*(i_sceneZ - i_pixelZ)) / i_sceneZ;
-	half2 uvBackgroundRefract = uvBackground + refractOffset;
 	half3 sceneColour;
 	half3 alpha = 0.;
 	float depthFogDistance;
@@ -206,12 +203,15 @@ half3 OceanEmission(in const half3 i_view, in const half3 i_n_pixel, in const fl
 	// Depth fog & caustics - only if view ray starts from above water
 	if (!i_underwater)
 	{
+		const half2 refractOffset = _RefractionStrength * i_n_pixel.xz * min(1.0, 0.5*(i_sceneZ - i_pixelZ)) / i_sceneZ;
 		const float sceneZRefract = LinearEyeDepth(tex2D(i_cameraDepths, i_uvDepth + refractOffset).x);
+		half2 uvBackgroundRefract;
 
 		// Compute depth fog alpha based on refracted position if it landed on an underwater surface, or on unrefracted depth otherwise
 		if (sceneZRefract > i_pixelZ)
 		{
 			depthFogDistance = sceneZRefract - i_pixelZ;
+			uvBackgroundRefract = uvBackground + refractOffset;
 		}
 		else
 		{
@@ -230,7 +230,8 @@ half3 OceanEmission(in const half3 i_view, in const half3 i_n_pixel, in const fl
 	}
 	else
 	{
-		sceneColour = tex2D(_BackgroundTexture, uvBackgroundRefract).rgb;
+		half2 uvBackgroundRefractSky = uvBackground + _RefractionStrength * i_n_pixel.xz;
+		sceneColour = tex2D(_BackgroundTexture, uvBackgroundRefractSky).rgb;
 		depthFogDistance = i_pixelZ;
 		// keep alpha at 0 as UnderwaterReflection shader handles the blend
 		// appropriately when looking at water from below

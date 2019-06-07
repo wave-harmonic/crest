@@ -24,10 +24,9 @@
 LOD_DATA( 0 )
 LOD_DATA( 1 )
 
-// Bias ocean floor depth so that default (0) values in texture are not interpreted as shallow and generating foam everywhere
-#define CREST_OCEAN_DEPTH_BASELINE 1000.
+#define CREST_OCEAN_DEPTH_BASELINE -1000.0
 
-// Conversions for world space from/to UV space
+// Conversions for world space from/to UV space. All these should *not* be clamped otherwise they'll break fullscreen triangles.
 float2 LD_WorldToUV(in float2 i_samplePos, in float2 i_centerPos, in float i_res, in float i_texelSize)
 {
 	return (i_samplePos - i_centerPos) / (i_texelSize * i_res) + 0.5;
@@ -77,9 +76,9 @@ void SampleFlow(in sampler2D i_oceanFlowSampler, float2 i_uv, in float i_wt, ino
 	io_flow += i_wt * tex2Dlod(i_oceanFlowSampler, uv).xy;
 }
 
-void SampleSeaFloorHeightAboveBaseline(in sampler2D i_oceanDepthSampler, float2 i_uv, in float i_wt, inout half io_oceanDepth)
+void SampleSeaDepth(in sampler2D i_oceanDepthSampler, float2 i_uv, in float i_wt, inout half io_oceanDepth)
 {
-	io_oceanDepth += i_wt * (tex2Dlod(i_oceanDepthSampler, float4(i_uv, 0., 0.)).x);
+	io_oceanDepth += i_wt * (tex2Dlod(i_oceanDepthSampler, float4(i_uv, 0.0, 0.0)).x - CREST_OCEAN_DEPTH_BASELINE);
 }
 
 void SampleShadow(in sampler2D i_oceanShadowSampler, float2 i_uv, in float i_wt, inout half2 io_shadow)
@@ -97,7 +96,7 @@ uniform float3 _OceanCenterPosWorld;
 float ComputeLodAlpha(float3 i_worldPos, float i_meshScaleAlpha)
 {
 	// taxicab distance from ocean center drives LOD transitions
-	float2 offsetFromCenter = float2(abs(i_worldPos.x - _OceanCenterPosWorld.x), abs(i_worldPos.z - _OceanCenterPosWorld.z));
+	float2 offsetFromCenter = abs(float2(i_worldPos.x - _OceanCenterPosWorld.x, i_worldPos.z - _OceanCenterPosWorld.z));
 	float taxicab_norm = max(offsetFromCenter.x, offsetFromCenter.y);
 
 	// interpolation factor to next lod (lower density / higher sampling period)

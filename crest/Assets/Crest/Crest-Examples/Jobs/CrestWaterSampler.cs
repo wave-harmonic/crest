@@ -27,7 +27,8 @@ public class CrestWaterSampler : MonoBehaviour
 	[Tooltip("The results in a y height")]
 	public float[] ResultsHeight = new float[0];
 
-	int guid; // local guid to submit to the jobs scheduler
+	// private vars
+	private int guid; // local guid to submit to the jobs scheduler
 
 	private void Awake()
 	{
@@ -58,7 +59,7 @@ public class CrestWaterSampler : MonoBehaviour
 				Vector3 point = this.transform.TransformPoint(LocalQueryPositions[i]);
 				point.y = ResultsHeight[i];
 
-				Utility.Draw3DCross(point, Color.magenta, Spacing / 2);
+				Draw3DCross(point, Color.magenta, Spacing / 2);
 			}
 		}
 
@@ -80,7 +81,9 @@ public class CrestWaterSampler : MonoBehaviour
 
 		System.Array.Copy(points, this.LocalQueryPositions, points.Length);
 	}
-	
+
+	#region Debug Stuff
+
 	private void FillQueriesWithTestData(float spacing = 2f)
 	{
 		int xLength = SampleLength;
@@ -92,5 +95,17 @@ public class CrestWaterSampler : MonoBehaviour
 			for(int z = 0; z < zLength; z++)
 				LocalQueryPositions[index++] = new Vector3((float)x * spacing, 0, (float)z * spacing);
 	}
+
+	public static void Draw3DCross(Vector3 point, Color color, float size)
+	{
+		Debug.DrawLine(point, point + Vector3.up * size, color);
+		Debug.DrawLine(point, point + Vector3.down * size, color);
+		Debug.DrawLine(point, point + Vector3.right * size, color);
+		Debug.DrawLine(point, point + Vector3.left * size, color);
+		Debug.DrawLine(point, point + Vector3.forward * size, color);
+		Debug.DrawLine(point, point + Vector3.back * size, color);
+	}
+
+	#endregion
 }
 #endif

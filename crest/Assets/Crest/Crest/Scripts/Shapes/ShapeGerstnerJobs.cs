@@ -62,12 +62,14 @@ namespace Crest
 		// list of Ocean Depth Caches, the float array is a flat representation of the depths and is updated only with a function
 		static Dictionary<OceanDepthCache, NativeArray<ushort>> depthCachesRegistry = new Dictionary<OceanDepthCache, NativeArray<ushort>>();
 		
-		static NativeArray<int2> c_segmentRegistry;
-		static NativeArray<Matrix4x4> c_matrix;
-		static NativeArray<int> c_resolution;
-		static NativeArray<float> c_size;
+		// Native arrays to transfer the info into the job
+		static NativeArray<int2> s_segmentRegistryArray;
+		static NativeArray<Matrix4x4> s_matrixArray;
+		static NativeArray<int> s_resolutionArray;
+		static NativeArray<float> s_sizeArray;
 
-		static NativeArray<ushort> c_depthCaches;
+		// The depth cache for calculating depts
+		static NativeArray<ushort> s_depthCachesArray;
 
 		#region Init
 
@@ -93,12 +95,12 @@ namespace Crest
 			s_phases = new NativeArray<float4>(MAX_WAVE_COMPONENTS / 4, Allocator.Persistent);
 			s_chopAmps = new NativeArray<float4>(MAX_WAVE_COMPONENTS / 4, Allocator.Persistent);
 
-			c_segmentRegistry = new NativeArray<int2>(0, Allocator.Persistent);
-			c_matrix = new NativeArray<Matrix4x4>(0, Allocator.Persistent);
-			c_resolution = new NativeArray<int>(0, Allocator.Persistent);
-			c_size = new NativeArray<float>(0, Allocator.Persistent);
+			s_segmentRegistryArray = new NativeArray<int2>(0, Allocator.Persistent);
+			s_matrixArray = new NativeArray<Matrix4x4>(0, Allocator.Persistent);
+			s_resolutionArray = new NativeArray<int>(0, Allocator.Persistent);
+			s_sizeArray = new NativeArray<float>(0, Allocator.Persistent);
 
-			c_depthCaches = new NativeArray<ushort>(0, Allocator.Persistent);
+			s_depthCachesArray = new NativeArray<ushort>(0, Allocator.Persistent);
 
 			s_segmentRegistry.Clear();
 			s_lastQueryIndexHeights = 0;
@@ -190,15 +192,12 @@ namespace Crest
 
 		#endregion
 
-        /// <summary>
-        /// DOES NOT WORK YET, need to find depth from the ocean cache texture
-        /// </summary>
 		public static void AddNewOceanDepthCache(OceanDepthCache newCache, NativeArray<ushort> depthData)
 		{
 			if(newCache.CacheTexture == null)
 				return;
 
-			// Call this so that nothing has issues
+			// Call this so that updating the depth caches doesn't cause problems
 			CompleteJobs();
 
 			NativeArray<ushort> permDepthData = new NativeArray<ushort>(depthData, Allocator.Persistent);
@@ -219,11 +218,11 @@ namespace Crest
 		// Regenerates all the caches when a new one is added
 		public static void UpdateJobOceanDepthCaches()
 		{
-			if(c_segmentRegistry.IsCreated) c_segmentRegistry.Dispose();
-			if(c_matrix.IsCreated) c_matrix.Dispose();
-			if(c_resolution.IsCreated) c_resolution.Dispose();
-			if(c_size.IsCreated) c_size.Dispose();
-            if(c_depthCaches.IsCreated) c_depthCaches.Dispose();
+			if(s_segmentRegistryArray.IsCreated) s_segmentRegistryArray.Dispose();
+			if(s_matrixArray.IsCreated) s_matrixArray.Dispose();
+			if(s_resolutionArray.IsCreated) s_resolutionArray.Dispose();
+			if(s_sizeArray.IsCreated) s_sizeArray.Dispose();
+            if(s_depthCachesArray.IsCreated) s_depthCachesArray.Dispose();
 
             // Find the total length of the cache
             int totalLength = 0;
@@ -232,12 +231,12 @@ namespace Crest
 
 			int totalRegistries = depthCachesRegistry.Count;
 			
-			c_segmentRegistry = new NativeArray<int2>(totalRegistries, Allocator.Persistent);
-			c_matrix = new NativeArray<Matrix4x4>(totalRegistries, Allocator.Persistent);
-			c_resolution = new NativeArray<int>(totalRegistries, Allocator.Persistent);
-			c_size = new NativeArray<float>(totalRegistries, Allocator.Persistent);
+			s_segmentRegistryArray = new NativeArray<int2>(totalRegistries, Allocator.Persistent);
+			s_matrixArray = new NativeArray<Matrix4x4>(totalRegistries, Allocator.Persistent);
+			s_resolutionArray = new NativeArray<int>(totalRegistries, Allocator.Persistent);
+			s_sizeArray = new NativeArray<float>(totalRegistries, Allocator.Persistent);
 
-			c_depthCaches = new NativeArray<ushort>(totalLength, Allocator.Persistent);
+			s_depthCachesArray = new NativeArray<ushort>(totalLength, Allocator.Persistent);
 									
 			int registryIndex = 0;
 			int cacheStart = 0;
@@ -245,12 +244,12 @@ namespace Crest
 			{
 				int endOfCache = cacheStart + depthCachesRegistry[depthC].Length;
 
-				c_segmentRegistry[registryIndex] = new int2(cacheStart, endOfCache);
-				c_matrix[registryIndex] = depthC.transform.worldToLocalMatrix;
-				c_resolution[registryIndex] = depthC.Resolution;
-				c_size[registryIndex] = depthC.transform.lossyScale.x;
+				s_segmentRegistryArray[registryIndex] = new int2(cacheStart, endOfCache);
+				s_matrixArray[registryIndex] = depthC.transform.worldToLocalMatrix;
+				s_resolutionArray[registryIndex] = depthC.Resolution;
+				s_sizeArray[registryIndex] = depthC.transform.lossyScale.x;
 
-				NativeArray<ushort>.Copy(depthCachesRegistry[depthC], 0, c_depthCaches, cacheStart, depthCachesRegistry[depthC].Length);
+				NativeArray<ushort>.Copy(depthCachesRegistry[depthC], 0, s_depthCachesArray, cacheStart, depthCachesRegistry[depthC].Length);
 
 				cacheStart = endOfCache;
 				registryIndex++;
@@ -281,11 +280,11 @@ namespace Crest
 			s_worldQueryPositions.Dispose();
 			s_resultHeights.Dispose();
 
-			c_segmentRegistry.Dispose();
-			c_matrix.Dispose();
-			c_resolution.Dispose();
-			c_size.Dispose();
-			c_depthCaches.Dispose();
+			s_segmentRegistryArray.Dispose();
+			s_matrixArray.Dispose();
+			s_resolutionArray.Dispose();
+			s_sizeArray.Dispose();
+			s_depthCachesArray.Dispose();
 
 			// Dispose the temp jobs
 			if(s_segments.IsCreated) s_segments.Dispose();
@@ -446,12 +445,12 @@ namespace Crest
 				_querySegments = s_segments,
 				_guidMatrixes = s_matrixes,
 
-				_segmentRegistry = c_segmentRegistry,
-				_matrix = c_matrix,
-				_resolution = c_resolution,
-				_size = c_size,
+				_segmentRegistry = s_segmentRegistryArray,
+				_matrix = s_matrixArray,
+				_resolution = s_resolutionArray,
+				_size = s_sizeArray,
 
-				_depthCaches = c_depthCaches,
+				_depthCaches = s_depthCachesArray,
 
 				_localPositions = s_localQueryPositions,
 				_worldQueryPositions = s_worldQueryPositions,
@@ -540,13 +539,13 @@ namespace Crest
 				}
 			}
 
-			public float FindHeightAtWorldPosition(float3 worldTestPos,
+			public static float FindHeightAtWorldPosition(float3 worldTestPos,
 				NativeArray<int2> segmentRegistry, NativeArray<Matrix4x4> matrix, NativeArray<int> resolution, NativeArray<float> size,
 				NativeArray<ushort> depthCaches)
 			{
 				float returnHeight = 1000;
 
-				for(int i = 0, l = _segmentRegistry.Length; i < l; i++)
+				for(int i = 0, l = segmentRegistry.Length; i < l; i++)
 				{
 					float3 point = matrix[i].MultiplyPoint3x4(worldTestPos);
 
@@ -740,6 +739,8 @@ namespace Crest
 
 			#endregion
 
+			#region Depth Inclusive Calculations (slighly slower)
+
 			float2 ComputeDisplacementHorizWithOceanFloorData(float2 queryPos, float depth)
 			{
 				float2 displacement = 0f;
@@ -747,7 +748,7 @@ namespace Crest
 				for(var iWaveVec = 0; iWaveVec < _numWaveVecs; iWaveVec++)
 				{
 					//float4 depth_wt = saturate(Depth / (0.5f * this.MinWaveLength)); // slightly different result - do per wavelength for now
-					float4 depth_wt = saturate(depth * _waveNumbers[iWaveVec] / PI);
+					float4 depth_wt = Saturate(depth * _waveNumbers[iWaveVec] / PI);
 					//// keep some proportion of amplitude so that there is some waves remaining					
 					float4 wt = _attenuationInShallows * depth_wt + oneMinusAttenuation;
 
@@ -790,7 +791,7 @@ namespace Crest
 				for(var iWaveVec = 0; iWaveVec < _numWaveVecs; iWaveVec++)
 				{
 					//float4 depth_wt = saturate(Depth / (0.5f * this.MinWaveLength)); // slightly different result - do per wavelength for now
-					float4 depth_wt = saturate(depth * _waveNumbers[iWaveVec] / math.PI);
+					float4 depth_wt = Saturate(depth * _waveNumbers[iWaveVec] / math.PI);
 					//// keep some proportion of amplitude so that there is some waves remaining					
 					float4 wt = _attenuationInShallows * depth_wt + oneMinusAttenuation;
 
@@ -822,7 +823,7 @@ namespace Crest
 				return new float4(1 - attenuationInShallows, 1 - attenuationInShallows, 1 - attenuationInShallows, 1 - attenuationInShallows);
 			}
 
-			float4 saturate(float4 floatToSaturate)
+			float4 Saturate(float4 floatToSaturate)
 			{
 				floatToSaturate.x = math.max(0, math.min(1, floatToSaturate.x));
 				floatToSaturate.y = math.max(0, math.min(1, floatToSaturate.y));
@@ -830,7 +831,9 @@ namespace Crest
 				floatToSaturate.w = math.max(0, math.min(1, floatToSaturate.w));
 
 				return floatToSaturate;
-			}			
+			}
+
+			#endregion
 		}
 
 		/// <summary>

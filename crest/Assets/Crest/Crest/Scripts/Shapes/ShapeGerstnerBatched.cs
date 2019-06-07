@@ -349,7 +349,7 @@ namespace Crest
 
             int numVecs = (numInBatch + 3) / 4;
             property.SetInt(sp_NumWaveVecs, numVecs);
-            property.SetFloat(OceanRenderer.sp_LD_SLICE_Index_ThisLod, lodIdx);
+            property.SetFloat(OceanRenderer.sp_LD_SliceIndex, lodIdx);
 
             OceanRenderer.Instance._lodDataAnimWaves.BindResultData(property);
 
@@ -419,7 +419,7 @@ namespace Crest
         public void BuildCommandBuffer(int lodIdx, OceanRenderer ocean, CommandBuffer buf)
         {
             var lodCount = ocean.CurrentLodCount;
-            buf.SetGlobalFloat("_LD_SLICE_Index_ThisLod", lodIdx);
+            buf.SetGlobalFloat("_LD_SliceIndex", lodIdx);
 
             // LODs up to but not including the last lod get the normal sets of waves
             if (lodIdx < lodCount - 1 && _drawLOD[lodIdx])

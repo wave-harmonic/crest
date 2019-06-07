@@ -73,7 +73,7 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Batch"
 				o.worldPos_wt.xy = worldXZ;
 				o.worldPos_wt.z = input.color.x;
 
-				o.uv_slice = ADD_SLICE_THIS_LOD_TO_UV(input.uv);
+				o.uv_slice = float3(input.uv, _LD_SliceIndex);
 
 				return o;
 			}

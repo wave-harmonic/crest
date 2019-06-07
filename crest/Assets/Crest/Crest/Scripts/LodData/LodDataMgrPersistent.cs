@@ -124,7 +124,7 @@ namespace Crest
 
                 SetAdditionalSimParams(_renderSimProperties);
 
-                //buf.SetGlobalFloat("_LD_SLICE_Index_ThisLod", lodIdx);
+                //buf.SetGlobalFloat("_LD_SliceIndex", lodIdx);
                 // TODO(MRT): Set correct LOD for frame
                 buf.SetGlobalFloat("_LODChange", srcDataIdxChange);
 

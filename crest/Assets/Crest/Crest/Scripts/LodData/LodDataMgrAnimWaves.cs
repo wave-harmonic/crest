@@ -194,7 +194,6 @@ namespace Crest
 
                 _combineProperties.Initialise(buf, _combineShader, selectedShaderKernel);
 
-                _combineProperties.SetFloat(OceanRenderer.sp_LD_SLICE_Index_ThisLod, lodIdx);
 
                 BindWaveBuffer(_combineProperties);
                 // combine data from next larger lod into this one
@@ -228,6 +227,7 @@ namespace Crest
                     DataTexture
                 );
 
+                _combineProperties.SetFloat(OceanRenderer.sp_LD_SliceIndex, lodIdx);
                 _combineProperties.DispatchShader();
             }
 

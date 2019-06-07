@@ -64,7 +64,7 @@ half3 ScatterColour(
 		// 2. for the underwater skirt geometry, we don't have the lod data sampled from the verts with lod transitions etc,
 		//    so just approximate by sampling at the camera position.
 		// this used to sample LOD1 but that doesnt work in last LOD, the data will be missing.
-		const float3 uv_thisLod = WorldToUV_ThisLod(i_cameraPos.xz);
+		const float3 uv_thisLod = WorldToUV(i_cameraPos.xz);
 		depth = CREST_OCEAN_DEPTH_BASELINE;
 		SampleSeaDepth(_LD_TexArray_SeaFloorDepth, uv_thisLod, 1.0, depth);
 		waveHeight = 0.0;
@@ -163,7 +163,7 @@ void ApplyCaustics(in const half3 i_view, in const half3 i_lightDir, in const fl
 		// LOD_1 data can be missing when underwater
 		if(i_underwater)
 		{
-			const float3 uv_thisLod = WorldToUV_ThisLod(surfacePosXZ);
+			const float3 uv_thisLod = WorldToUV(surfacePosXZ);
 			SampleShadow(_LD_TexArray_Shadow, uv_thisLod, 1.0, causticShadow);
 		}
 		else

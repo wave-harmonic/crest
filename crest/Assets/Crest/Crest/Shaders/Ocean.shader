@@ -272,13 +272,13 @@ Shader "Crest/Ocean"
 				// Sample shape textures - always lerp between 2 LOD scales, so sample two textures
 
 				// Calculate sample weights. params.z allows shape to be faded out (used on last lod to support pop-less scale transitions)
-				float wt_thisLod = (1. - lodAlpha) * _LD_Params_ThisLod().z;
-				float wt_nextLod = (1. - wt_thisLod) * _LD_Params_NextLod().z;
+				float wt_thisLod = (1. - lodAlpha) * _LD_Params[_LD_SliceIndex].z;
+				float wt_nextLod = (1. - wt_thisLod) * _LD_Params[_LD_SliceIndex + 1].z;
 				const float2 positionWS_XZ_before = o.worldPos.xz;
 				// Sample displacement textures, add results to current world pos / normal / foam
 				if (wt_thisLod > 0.001)
 				{
-					const float3 uv_slice_thisLod = WorldToUV_ThisLod(positionWS_XZ_before);
+					const float3 uv_slice_thisLod = WorldToUV(positionWS_XZ_before);
 
 					#if !_DEBUGDISABLESHAPETEXTURES_ON
 					SampleDisplacements(_LD_TexArray_AnimatedWaves, uv_slice_thisLod, wt_thisLod, o.worldPos);
@@ -415,13 +415,13 @@ Shader "Crest/Ocean"
 
 				//if(false)
 				{
-					const float3 uv_slice_thisLod = WorldToUV_ThisLod(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz);
+					const float3 uv_slice_thisLod = WorldToUV(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz);
 					const float3 uv_slice_nextLod = WorldToUV_NextLod(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz);
-					const float wt_thisLod = (1. - lodAlpha) * _LD_Params_ThisLod().z;
-					const float wt_nextLod = (1. - wt_thisLod) * _LD_Params_NextLod().z;
+					const float wt_thisLod = (1. - lodAlpha) * _LD_Params[_LD_SliceIndex].z;
+					const float wt_nextLod = (1. - wt_thisLod) * _LD_Params[_LD_SliceIndex + 1].z;
 					float3 dummy = 0.;
-					if (wt_thisLod > 0.001) SampleDisplacementsNormals(_LD_TexArray_AnimatedWaves, uv_slice_thisLod, wt_thisLod, _LD_Params_ThisLod().w, _LD_Params_ThisLod().x, dummy, n_geom.xz);
-					if (wt_nextLod > 0.001) SampleDisplacementsNormals(_LD_TexArray_AnimatedWaves, uv_slice_nextLod, wt_nextLod, _LD_Params_NextLod().w, _LD_Params_NextLod().x, dummy, n_geom.xz);
+					if (wt_thisLod > 0.001) SampleDisplacementsNormals(_LD_TexArray_AnimatedWaves, uv_slice_thisLod, wt_thisLod, _LD_Params[_LD_SliceIndex].w, _LD_Params[_LD_SliceIndex].x, dummy, n_geom.xz);
+					if (wt_nextLod > 0.001) SampleDisplacementsNormals(_LD_TexArray_AnimatedWaves, uv_slice_nextLod, wt_nextLod, _LD_Params[_LD_SliceIndex + 1].w, _LD_Params[_LD_SliceIndex + 1].x, dummy, n_geom.xz);
 					n_geom = normalize(n_geom);
 				}
 

@@ -65,7 +65,7 @@ namespace Crest
             {
                 buf.SetRenderTarget(_targets, 0, CubemapFace.Unknown, lodIdx);
                 buf.ClearRenderTarget(false, true, Color.black);
-                buf.SetGlobalFloat("_LD_SLICE_Index_ThisLod", lodIdx);
+                buf.SetGlobalFloat("_LD_SliceIndex", lodIdx);
                 SubmitDraws(lodIdx, buf);
             }
 

@@ -71,12 +71,12 @@ Shader "Crest/Ocean Surface Alpha"
 				// sample shape textures - always lerp between 2 scales, so sample two textures
 
 				// sample weights. params.z allows shape to be faded out (used on last lod to support pop-less scale transitions)
-				float wt_thisLod = (1.0 - lodAlpha) * _LD_Params_ThisLod().z;
-				float wt_nextLod = (1.0 - wt_thisLod) * _LD_Params_NextLod().z;
+				float wt_thisLod = (1.0 - lodAlpha) * _LD_Params[_LD_SliceIndex].z;
+				float wt_nextLod = (1.0 - wt_thisLod) * _LD_Params[_LD_SliceIndex + 1].z;
 				// sample displacement textures, add results to current world pos / normal / foam
 				const float2 wxz = worldPos.xz;
 				half foam = 0.0;
-				SampleDisplacements(_LD_TexArray_AnimatedWaves, WorldToUV_ThisLod(wxz), wt_thisLod, worldPos);
+				SampleDisplacements(_LD_TexArray_AnimatedWaves, WorldToUV(wxz), wt_thisLod, worldPos);
 				SampleDisplacements(_LD_TexArray_AnimatedWaves, WorldToUV_NextLod(wxz), wt_nextLod, worldPos);
 
 				// move to sea level

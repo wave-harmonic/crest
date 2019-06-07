@@ -131,7 +131,7 @@ Material:
     - _Specular: 1
     - _StartLevel: 0.157
     - _StencilFunction: 0
-    - _SubSurfaceBase: 0.95
+    - _SubSurfaceBase: 1.08
     - _SubSurfaceCrestColour: 1
     - _SubSurfaceDepthMax: 9.4
     - _SubSurfaceDepthPower: 2.57
@@ -171,7 +171,7 @@ Material:
     - _SkyBase: {r: 0.55200005, g: 0.85242355, b: 1, a: 1}
     - _SkyTowardsSun: {r: 2.6390157, g: 1.8217498, b: 0.9236555, a: 1}
     - _SubSurface: {r: 0, g: 0.48, b: 0.36, a: 1}
-    - _SubSurfaceColour: {r: 0.090835415, g: 0.552, b: 0.3353924, a: 1}
+    - _SubSurfaceColour: {r: 1, g: 0, b: 0, a: 1}
     - _SubSurfaceCrestColour: {r: 0.42, g: 0.69, b: 0.52, a: 1}
     - _SubSurfaceShallowCol: {r: 0.552, g: 1, b: 1, a: 1}
     - _SubSurfaceShallowColShadow: {r: 0.14417942, g: 0.2264151, b: 0.21173015, a: 1}

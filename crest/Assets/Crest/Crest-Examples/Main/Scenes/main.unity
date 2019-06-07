@@ -226,7 +226,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 59a818eaf96544c4994335870fdfe141, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  linSpeed: 10
+  linSpeed: 3
   rotSpeed: 70
   simForwardInput: 0
   _requireLMBToMove: 0
@@ -458,7 +458,7 @@ MonoBehaviour:
   _maxScale: 256
   _lodDataResolution: 256
   _geometryDownSampleFactor: 2
-  _lodCount: 7
+  _lodCount: 4
   _simSettingsAnimatedWaves: {fileID: 0}
   _createSeaFloorDepthData: 1
   _createFoamSim: 1
@@ -800,7 +800,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1591410378
 Transform:
   m_ObjectHideFlags: 0
@@ -862,7 +862,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _rasterMesh: {fileID: 0}
   _spectrum: {fileID: 11400000, guid: 454d1b08383f089479cf6794620926f4, type: 2}
-  _componentsPerOctave: 5
+  _componentsPerOctave: 2
   _weight: 1
   _randomSeed: 0
 --- !u!1001 &1898459823

@@ -50,6 +50,7 @@ namespace Crest
         static int sp_NumInBatch = Shader.PropertyToID("_NumInBatch");
         static int sp_AttenuationInShallows = Shader.PropertyToID("_AttenuationInShallows");
         static int sp_NumWaveVecs = Shader.PropertyToID("_NumWaveVecs");
+        static int sp_BlendOutSampling = Shader.PropertyToID("_BlendOutSampling");
 
         // IMPORTANT - this mirrors the constant with the same name in ShapeGerstnerBatch.shader, both must be updated together!
         const int BATCH_SIZE = 32;
@@ -232,11 +233,11 @@ namespace Crest
 
                 // compute amp - contains logic for shifting wave components between last two lods..
                 float amp = _amplitudes[firstComponent + i];
-                bool renderingIntoLastTwoLods = minWavelengthThisBatch * 4.01f > maxWavelengthCurrentlyRendering;
+                bool renderingIntoLastTwoLods = lodIdx >= OceanRenderer.Instance.CurrentLodCount - 2;// minWavelengthThisBatch * 4.01f > maxWavelengthCurrentlyRendering;
                 // no special weighting needed for any lods except the last 2
                 if (renderingIntoLastTwoLods)
                 {
-                    bool renderingIntoLastLod = minWavelengthThisBatch * 2.01f > maxWavelengthCurrentlyRendering;
+                    bool renderingIntoLastLod = lodIdx == OceanRenderer.Instance.CurrentLodCount - 1;// minWavelengthThisBatch * 2.01f > maxWavelengthCurrentlyRendering;
                     if (renderingIntoLastLod)
                     {
                         // example: fade out the last lod as viewer drops in altitude, so there is no pop when the lod chain shifts in scale
@@ -328,7 +329,7 @@ namespace Crest
             property.SetVectorArray(sp_ChopAmps, UpdateBatchScratchData._chopAmpsBatch);
             property.SetFloat(sp_NumInBatch, numInBatch);
             property.SetFloat(sp_AttenuationInShallows, OceanRenderer.Instance._simSettingsAnimatedWaves.AttenuationInShallows);
-
+            
             int numVecs = (numInBatch + 3) / 4;
             property.SetInt(sp_NumWaveVecs, numVecs);
             OceanRenderer.Instance._lodDataAnimWaves.BindResultData(lodIdx, 0, property);
@@ -378,8 +379,11 @@ namespace Crest
             // the last batch handles waves for the last lod, and waves that did not fit in the last lod
             _drawLOD[OceanRenderer.Instance.CurrentLodCount - 1] =
                 UpdateBatch(OceanRenderer.Instance.CurrentLodCount - 1, componentIdx, _wavelengths.Length, _materials[OceanRenderer.Instance.CurrentLodCount - 1]) > 0;
+            _materials[OceanRenderer.Instance.CurrentLodCount - 1].SetFloat(sp_BlendOutSampling, OceanRenderer.Instance.ViewerAltitudeLevelAlpha);
+            //_materials[OceanRenderer.Instance.CurrentLodCount-1].SetFloat(Shader.PropertyToID("_LerpyWeight"), )
             _drawLODTransitionWaves =
                 UpdateBatch(OceanRenderer.Instance.CurrentLodCount - 2, componentIdx, _wavelengths.Length, _materialBigWaveTransition) > 0;
+            _materialBigWaveTransition.SetFloat(sp_BlendOutSampling, 1f - OceanRenderer.Instance.ViewerAltitudeLevelAlpha);
         }
 
         /// <summary>

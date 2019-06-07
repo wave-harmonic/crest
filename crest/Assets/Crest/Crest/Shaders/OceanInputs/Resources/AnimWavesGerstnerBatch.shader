@@ -40,6 +40,7 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Batch"
 			half4 _WaveDirZ[BATCH_SIZE / 4];
 			half4 _Phases[BATCH_SIZE / 4];
 			half4 _ChopAmps[BATCH_SIZE / 4];
+			float _BlendOutSampling;
 
 			struct Attributes
 			{
@@ -125,17 +126,11 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Batch"
 					displacementNormalized.y += dot(/*abs*/(resultz * _TwoPiOverWavelengths[vi]), wt);
 				}
 
-				// its worrying that displacementNormalized.x appears to be smooth - but abs(displacementNormalized.x) is not. something fundamental wrong with this non-linearity?
-				// i guess its screwing the lerp that happens - wt0 * v + wt1 * v becomes wt0 * abs(v) + wt1 * abs(v) - but if v is the same in both, what is the problem?
+				return input.worldPos_wt.z * half4(result, length(displacementNormalized)); // *(1. - _BlendOutSampling);
 
-				// simply using abs(result.x) vs result.x is enough to screw it..
+				result.y = 2.*sin(input.worldPos_wt.x / 10.);// *_ChopAmps[0].x;
 
-				//return input.worldPos_wt.z * half4(half3(result.x,100.*length(displacementNormalized).x,result.z), (displacementNormalized).x);
-
-				//works
-				return input.worldPos_wt.z * half4(result, length(displacementNormalized));
-				//broken
-				return input.worldPos_wt.z * half4(result, abs(result.x));
+				return /*input.worldPos_wt.z **/ half4(0., abs(result.y), 0., 1.) * _BlendOutSampling;// mul*length(displacementNormalized));
 			}
 
 			ENDCG

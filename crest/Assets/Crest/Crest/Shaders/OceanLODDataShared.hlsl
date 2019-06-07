@@ -135,7 +135,7 @@ void SampleSeaDepth(in Texture2DArray i_oceanDepthSampler, in float3 i_uv_slice,
 
 void SampleShadow(in Texture2DArray i_oceanShadowSampler, in float3 i_uv_slice, in float i_wt, inout half2 io_shadow)
 {
-	io_shadow += i_wt * i_oceanShadowSampler.Sample(LODData_linear_clamp_sampler, i_uv_slice).xy;
+	io_shadow += i_wt * i_oceanShadowSampler.SampleLevel(LODData_linear_clamp_sampler, i_uv_slice, 0).xy;
 }
 
 // TODO(MRT): replace these with something better in code that uses them.

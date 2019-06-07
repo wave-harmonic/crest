@@ -145,9 +145,9 @@ namespace Crest
         }
 
         // TODO(MRT): Factor these out to be shared with other classes who have same code
-        public static string TextureArrayName = "_LD_TexArray_DynamicWaves_";
-        public static int ParamIDTextureArray_ThisFrame = Shader.PropertyToID(TextureArrayName + "ThisFrame");
-        public static int ParamIDTextureArray_PrevFrame = Shader.PropertyToID(TextureArrayName + "PrevFrame");
+        public static string TextureArrayName = "_LD_TexArray_DynamicWaves";
+        public static int ParamIDTextureArray = Shader.PropertyToID(TextureArrayName);
+        public static int ParamIDTextureArray_PrevFrame = Shader.PropertyToID(TextureArrayName + "_PrevFrame");
         public static int ParamIdSampler(bool prevFrame = false)
         {
             if(prevFrame)
@@ -156,7 +156,7 @@ namespace Crest
             }
             else
             {
-                return ParamIDTextureArray_ThisFrame;
+                return ParamIDTextureArray;
             }
         }
         protected override int GetParamIdSampler(bool prevFrame = false)

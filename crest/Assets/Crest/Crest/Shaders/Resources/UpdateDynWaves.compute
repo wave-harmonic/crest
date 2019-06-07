@@ -6,8 +6,6 @@
 
 #pragma kernel UpdateDynWaves
 
-#pragma enable_d3d11_debug_symbols
-
 #define MIN_DT 0.00001
 
 #include "../OceanLODDataShared.hlsl"
@@ -25,9 +23,9 @@ float _TexelsPerWave;
 float _GridSize[MAX_LOD_COUNT];
 
 // TODO(MRT): Refactor OceanLODDataShared so that this code is actually shareable.
-float2 UVToWorld_ThisFrameTest(in float2 i_uv, in float sliceIndex) { return LD_UVToWorld(i_uv, _LD_Pos_Scale_ThisFrame[sliceIndex].xy, _LD_Params_ThisFrame[sliceIndex].y, _LD_Params_ThisFrame[sliceIndex].x); }
+float2 UVToWorld(in float2 i_uv, in float sliceIndex) { return LD_UVToWorld(i_uv, _LD_Pos_Scale[sliceIndex].xy, _LD_Params[sliceIndex].y, _LD_Params[sliceIndex].x); }
 
-float3 WorldToUV_PrevFrameTest(in float2 i_samplePos, in float sliceIndexPrevFrame) {
+float3 WorldToUV_PrevFrame(in float2 i_samplePos, in float sliceIndexPrevFrame) {
 	const float2 result = LD_WorldToUV(
 		i_samplePos,
 		_LD_Pos_Scale_PrevFrame[sliceIndexPrevFrame].xy,
@@ -54,14 +52,14 @@ void UpdateDynWaves(uint3 id : SV_DispatchThreadID)
 	const float sliceIndex = id.z;
 	const float sliceIndexPrevFrame = id.z + _LODChange;
 	const float2 input_uv = IDtoUV(id.xy);
-	const float2 worldPosXZ = UVToWorld_ThisFrameTest(input_uv, sliceIndex);
+	const float2 worldPosXZ = UVToWorld(input_uv, sliceIndex);
 	const float dt = _SimDeltaTime;
 	const float dtp = _SimDeltaTimePrev;
 
 	float3 uv_thisFrame = float3(input_uv, sliceIndex);
 
-	half2 velocity = SampleLod(_LD_TexArray_Flow_ThisFrame, uv_thisFrame).xy;
-	float3 uv_prevFrame = WorldToUV_PrevFrameTest(worldPosXZ - (dt * velocity), sliceIndexPrevFrame);
+	half2 velocity = SampleLod(_LD_TexArray_Flow, uv_thisFrame).xy;
+	float3 uv_prevFrame = WorldToUV_PrevFrame(worldPosXZ - (dt * velocity), sliceIndexPrevFrame);
 
 	// compute axes of laplacian kernel - rotated every frame
 	float e = _LD_Params_PrevFrame[sliceIndexPrevFrame].w; // assumes square RT
@@ -123,7 +121,7 @@ void UpdateDynWaves(uint3 id : SV_DispatchThreadID)
 	// eventually break. i model "Deep" water, but then simply ramp down waves in non-deep water with a linear multiplier.
 	// http://hyperphysics.phy-astr.gsu.edu/hbase/Waves/watwav2.html
 	// http://hyperphysics.phy-astr.gsu.edu/hbase/watwav.html#c1
-	float waterDepth = SampleLod(_LD_TexArray_SeaFloorDepth_ThisFrame, uv_thisFrame).x;
+	float waterDepth = SampleLod(_LD_TexArray_SeaFloorDepth, uv_thisFrame).x;
 	float depthMul = 1.0 - (1.0 - saturate(2.0 * waterDepth / wavelength)) * dt * 2.0;
 
 	ftp *= depthMul;

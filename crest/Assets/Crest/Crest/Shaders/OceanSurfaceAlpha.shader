@@ -76,8 +76,8 @@ Shader "Crest/Ocean Surface Alpha"
 				// sample displacement textures, add results to current world pos / normal / foam
 				const float2 wxz = worldPos.xz;
 				half foam = 0.0;
-				SampleDisplacements(_LD_TexArray_AnimatedWaves_ThisFrame, WorldToUV_ThisLod(wxz), wt_thisLod, worldPos);
-				SampleDisplacements(_LD_TexArray_AnimatedWaves_ThisFrame, WorldToUV_NextLod(wxz), wt_nextLod, worldPos);
+				SampleDisplacements(_LD_TexArray_AnimatedWaves, WorldToUV_ThisLod(wxz), wt_thisLod, worldPos);
+				SampleDisplacements(_LD_TexArray_AnimatedWaves, WorldToUV_NextLod(wxz), wt_nextLod, worldPos);
 
 				// move to sea level
 				worldPos.y += _OceanCenterPosWorld.y;

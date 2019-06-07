@@ -15,9 +15,9 @@ namespace Crest
     {
         protected int _transformUpdateFrame = -1;
 
-        static int _paramsPosScaleThisFrame = Shader.PropertyToID("_LD_Pos_Scale_ThisFrame");
+        static int _paramsPosScaleThisFrame = Shader.PropertyToID("_LD_Pos_Scale");
         static int _paramsPosScalePrevFrame = Shader.PropertyToID("_LD_Pos_Scale_PrevFrame");
-        static int _paramsOceanThisFrame = Shader.PropertyToID("_LD_Params_ThisFrame");
+        static int _paramsOceanThisFrame = Shader.PropertyToID("_LD_Params");
         static int _paramsOceanPrevFrame = Shader.PropertyToID("_LD_Params_PrevFrame");
 
         public struct RenderData

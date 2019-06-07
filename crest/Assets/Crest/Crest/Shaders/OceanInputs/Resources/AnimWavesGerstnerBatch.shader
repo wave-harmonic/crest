@@ -68,7 +68,7 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Batch"
 				o.positionCS.y = -o.positionCS.y;
 #endif
 
-				float2 worldXZ = UVToWorld_ThisFrame(input.uv);
+				float2 worldXZ = UVToWorld(input.uv);
 
 				o.worldPos_wt.xy = worldXZ;
 				o.worldPos_wt.z = input.color.x;
@@ -83,7 +83,7 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Batch"
 				const half4 oneMinusAttenuation = (half4)1.0 - (half4)_AttenuationInShallows;
 
 				// sample ocean depth (this render target should 1:1 match depth texture, so UVs are trivial)
-				const half depth = _LD_TexArray_SeaFloorDepth_ThisFrame.Sample(LODData_linear_clamp_sampler, input.uv_slice).x;
+				const half depth = _LD_TexArray_SeaFloorDepth.Sample(LODData_linear_clamp_sampler, input.uv_slice).x;
 
 				// Preferred wave directions
 #if _DIRECT_TOWARDS_POINT

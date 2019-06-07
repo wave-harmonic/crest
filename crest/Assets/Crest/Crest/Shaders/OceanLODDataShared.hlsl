@@ -10,27 +10,30 @@
 
 // Samplers and data associated with a LOD.
 // _LD_Params: float4(world texel size, texture resolution, shape weight multiplier, 1 / texture resolution)
-#define LOD_DATA(FRAMENUM) \
-	Texture2DArray _LD_TexArray_AnimatedWaves_##FRAMENUM; \
-	Texture2DArray _LD_TexArray_WaveBuffer_##FRAMENUM; \
-	Texture2DArray _LD_TexArray_SeaFloorDepth_##FRAMENUM; \
-	Texture2DArray _LD_TexArray_Foam_##FRAMENUM; \
-	Texture2DArray _LD_TexArray_Flow_##FRAMENUM; \
-	Texture2DArray _LD_TexArray_DynamicWaves_##FRAMENUM; \
-	Texture2DArray _LD_TexArray_Shadow_##FRAMENUM; \
-	uniform float4 _LD_Params_##FRAMENUM[MAX_LOD_COUNT]; \
-	uniform float3 _LD_Pos_Scale_##FRAMENUM[MAX_LOD_COUNT];
+Texture2DArray _LD_TexArray_AnimatedWaves;
+Texture2DArray _LD_TexArray_WaveBuffer;
+Texture2DArray _LD_TexArray_SeaFloorDepth;
+Texture2DArray _LD_TexArray_Foam;
+Texture2DArray _LD_TexArray_Flow;
+Texture2DArray _LD_TexArray_DynamicWaves;
+Texture2DArray _LD_TexArray_Shadow;
+uniform float4 _LD_Params[MAX_LOD_COUNT];
+uniform float3 _LD_Pos_Scale[MAX_LOD_COUNT];
+
+Texture2DArray _LD_TexArray_AnimatedWaves_PrevFrame;
+Texture2DArray _LD_TexArray_WaveBuffer_PrevFrame;
+Texture2DArray _LD_TexArray_SeaFloorDepth_PrevFrame;
+Texture2DArray _LD_TexArray_Foam_PrevFrame;
+Texture2DArray _LD_TexArray_Flow_PrevFrame;
+Texture2DArray _LD_TexArray_DynamicWaves_PrevFrame;
+Texture2DArray _LD_TexArray_Shadow_PrevFrame;
+uniform float4 _LD_Params_PrevFrame[MAX_LOD_COUNT];
+uniform float3 _LD_Pos_Scale_PrevFrame[MAX_LOD_COUNT];
 
 uniform const float _LD_SLICE_Index_ThisLod;
 uniform const float _LD_SLICE_Index_ThisLod_PrevFrame;
 
 SamplerState LODData_linear_clamp_sampler;
-
-// Create two sets of LOD data, which have overloaded meaning depending on use:
-// * simulations (persistent lod data) read last frame's data from slot 0, and any current frame data from slot 1
-// * any other use that does not fall into the previous categories can use either slot and generally use slot 0
-LOD_DATA( PrevFrame )
-LOD_DATA( ThisFrame )
 
 // Bias ocean floor depth so that default (0) values in texture are not interpreted as shallow and generating foam everywhere
 #define CREST_OCEAN_DEPTH_BASELINE -1000.0
@@ -48,12 +51,12 @@ float3 ADD_SLICE_NEXT_LOD_TO_UV(in float2 i_uv)
 // TODO: Temp wrapper function to help speed port to MRT and GS along
 float4 _LD_Params_ThisLod()
 {
-	return _LD_Params_ThisFrame[_LD_SLICE_Index_ThisLod];
+	return _LD_Params[_LD_SLICE_Index_ThisLod];
 }
 
 float4 _LD_Params_NextLod()
 {
-	return _LD_Params_ThisFrame[_LD_SLICE_Index_ThisLod + 1];
+	return _LD_Params[_LD_SLICE_Index_ThisLod + 1];
 }
 
 // Conversions for world space from/to UV space. All these should *not* be clamped otherwise they'll break fullscreen triangles.
@@ -65,9 +68,9 @@ float2 LD_WorldToUV(in float2 i_samplePos, in float2 i_centerPos, in float i_res
 float3 WorldToUV_ThisLod(in float2 i_samplePos) {
 	const float2 result = LD_WorldToUV(
 		i_samplePos,
-		_LD_Pos_Scale_ThisFrame[_LD_SLICE_Index_ThisLod].xy,
-		_LD_Params_ThisFrame[_LD_SLICE_Index_ThisLod].y,
-		_LD_Params_ThisFrame[_LD_SLICE_Index_ThisLod].x
+		_LD_Pos_Scale[_LD_SLICE_Index_ThisLod].xy,
+		_LD_Params[_LD_SLICE_Index_ThisLod].y,
+		_LD_Params[_LD_SLICE_Index_ThisLod].x
 	);
 	return ADD_SLICE_THIS_LOD_TO_UV(result);
 }
@@ -75,19 +78,19 @@ float3 WorldToUV_ThisLod(in float2 i_samplePos) {
 float3 WorldToUV_NextLod(in float2 i_samplePos) {
 	const uint _LD_SLICE_Index_NextLod = _LD_SLICE_Index_ThisLod + 1;
 	const float2 result = LD_WorldToUV(
-		i_samplePos, _LD_Pos_Scale_ThisFrame[_LD_SLICE_Index_NextLod].xy,
-		_LD_Params_ThisFrame[_LD_SLICE_Index_NextLod].y,
-		_LD_Params_ThisFrame[_LD_SLICE_Index_NextLod].x
+		i_samplePos, _LD_Pos_Scale[_LD_SLICE_Index_NextLod].xy,
+		_LD_Params[_LD_SLICE_Index_NextLod].y,
+		_LD_Params[_LD_SLICE_Index_NextLod].x
 	);
 	return ADD_SLICE_NEXT_LOD_TO_UV(result);
 }
 
-float3 WorldToUV_ThisFrame(in float2 i_samplePos) {
+float3 WorldToUV(in float2 i_samplePos) {
 	const float2 result = LD_WorldToUV(
 		i_samplePos,
-		_LD_Pos_Scale_ThisFrame[_LD_SLICE_Index_ThisLod].xy,
-		_LD_Params_ThisFrame[_LD_SLICE_Index_ThisLod].y,
-		_LD_Params_ThisFrame[_LD_SLICE_Index_ThisLod].x
+		_LD_Pos_Scale[_LD_SLICE_Index_ThisLod].xy,
+		_LD_Params[_LD_SLICE_Index_ThisLod].y,
+		_LD_Params[_LD_SLICE_Index_ThisLod].x
 	);
 	return ADD_SLICE_THIS_LOD_TO_UV(result);
 }
@@ -110,7 +113,7 @@ float2 LD_UVToWorld(in float2 i_uv, in float2 i_centerPos, in float i_res, in fl
 	return i_texelSize * i_res * (i_uv - 0.5) + i_centerPos;
 }
 
-float2 UVToWorld_ThisFrame(in float2 i_uv) { return LD_UVToWorld(i_uv, _LD_Pos_Scale_ThisFrame[_LD_SLICE_Index_ThisLod].xy, _LD_Params_ThisFrame[_LD_SLICE_Index_ThisLod].y, _LD_Params_ThisFrame[_LD_SLICE_Index_ThisLod].x); }
+float2 UVToWorld(in float2 i_uv) { return LD_UVToWorld(i_uv, _LD_Pos_Scale[_LD_SLICE_Index_ThisLod].xy, _LD_Params[_LD_SLICE_Index_ThisLod].y, _LD_Params[_LD_SLICE_Index_ThisLod].x); }
 
 float2 IDtoUV(in float2 i_id)
 {
@@ -186,7 +189,7 @@ float ComputeLodAlpha(float3 i_worldPos, float i_meshScaleAlpha)
 	float taxicab_norm = max(offsetFromCenter.x, offsetFromCenter.y);
 
 	// interpolation factor to next lod (lower density / higher sampling period)
-	float lodAlpha = taxicab_norm / _LD_Pos_Scale_ThisFrame[_LD_SLICE_Index_ThisLod].z - 1.0;
+	float lodAlpha = taxicab_norm / _LD_Pos_Scale[_LD_SLICE_Index_ThisLod].z - 1.0;
 
 	// lod alpha is remapped to ensure patches weld together properly. patches can vary significantly in shape (with
 	// strips added and removed), and this variance depends on the base density of the mesh, as this defines the strip width.

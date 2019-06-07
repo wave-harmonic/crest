@@ -66,12 +66,12 @@ half3 ScatterColour(
 		// this used to sample LOD1 but that doesnt work in last LOD, the data will be missing.
 		const float3 uv_thisLod = WorldToUV_ThisLod(i_cameraPos.xz);
 		depth = CREST_OCEAN_DEPTH_BASELINE;
-		SampleSeaDepth(_LD_TexArray_SeaFloorDepth_ThisFrame, uv_thisLod, 1.0, depth);
+		SampleSeaDepth(_LD_TexArray_SeaFloorDepth, uv_thisLod, 1.0, depth);
 		waveHeight = 0.0;
 
 #if _SHADOWS_ON
 		half2 shadowSoftHard = 0.0;
-		SampleShadow(_LD_TexArray_Shadow_ThisFrame, uv_thisLod, 1.0, shadowSoftHard);
+		SampleShadow(_LD_TexArray_Shadow, uv_thisLod, 1.0, shadowSoftHard);
 		shadow = 1.0 - shadowSoftHard.x;
 #endif
 	}
@@ -141,7 +141,7 @@ void ApplyCaustics(in const half3 i_view, in const half3 i_lightDir, in const fl
 	half3 disp = 0.;
 	// this gives height at displaced position, not exactly at query position.. but it helps. i cant pass this from vert shader
 	// because i dont know it at scene pos.
-	SampleDisplacements(_LD_TexArray_AnimatedWaves_ThisFrame, scenePosUV, 1.0, disp);
+	SampleDisplacements(_LD_TexArray_AnimatedWaves, scenePosUV, 1.0, disp);
 	half waterHeight = _OceanCenterPosWorld.y + disp.y;
 	half sceneDepth = waterHeight - scenePos.y;
 	// Compute mip index manually, with bias based on sea floor depth. We compute it manually because if it is computed automatically it produces ugly patches
@@ -164,13 +164,13 @@ void ApplyCaustics(in const half3 i_view, in const half3 i_lightDir, in const fl
 		if(i_underwater)
 		{
 			const float3 uv_thisLod = WorldToUV_ThisLod(surfacePosXZ);
-			SampleShadow(_LD_TexArray_Shadow_ThisFrame, uv_thisLod, 1.0, causticShadow);
+			SampleShadow(_LD_TexArray_Shadow, uv_thisLod, 1.0, causticShadow);
 		}
 		else
 		{
 			// only sample the bigger lod. if pops are noticeable this could lerp the 2 lods smoothly, but i didnt notice issues.
 			float3 uv_nextLod = WorldToUV_NextLod(surfacePosXZ);
-			SampleShadow(_LD_TexArray_Shadow_ThisFrame, uv_nextLod, 1.0, causticShadow);
+			SampleShadow(_LD_TexArray_Shadow, uv_nextLod, 1.0, causticShadow);
 		}
 		causticsStrength *= 1.0 - causticShadow.y;
 	}

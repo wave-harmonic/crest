@@ -65,7 +65,7 @@ void ShapeCombineBase (uint3 id)
 {
 	const float2 input_uv = IDtoUV(id.xy);
 
-	const float2 worldPosXZ = UVToWorld_ThisFrame(input_uv);
+	const float2 worldPosXZ = UVToWorld(input_uv);
 
 	// sample the shape 1 texture at this world pos
 	const float3 uv_nextLod = WorldToUV_NextLod(worldPosXZ);
@@ -76,17 +76,17 @@ void ShapeCombineBase (uint3 id)
 	// this lods waves
 #if _FLOW_ON
 	float2 flow = 0.0;
-	SampleFlow(_LD_TexArray_Flow_ThisFrame, uv_thisLod, 1.0, flow);
+	SampleFlow(_LD_TexArray_Flow, uv_thisLod, 1.0, flow);
 
 	float2 offsets, weights;
 	Flow(offsets, weights);
 
 	float3 uv_thisLod_flow_0 = WorldToUV_ThisLod(worldPosXZ - offsets[0] * flow);
 	float3 uv_thisLod_flow_1 = WorldToUV_ThisLod(worldPosXZ - offsets[1] * flow);
-	SampleDisplacements(_LD_TexArray_WaveBuffer_ThisFrame, uv_thisLod_flow_0, weights[0], result);
-	SampleDisplacements(_LD_TexArray_WaveBuffer_ThisFrame, uv_thisLod_flow_1, weights[1], result);
+	SampleDisplacements(_LD_TexArray_WaveBuffer, uv_thisLod_flow_0, weights[0], result);
+	SampleDisplacements(_LD_TexArray_WaveBuffer, uv_thisLod_flow_1, weights[1], result);
 #else
-	SampleDisplacements(_LD_TexArray_WaveBuffer_ThisFrame, uv_thisLod, 1.0, result);
+	SampleDisplacements(_LD_TexArray_WaveBuffer, uv_thisLod, 1.0, result);
 #endif
 
 // C# Script determines whether this enabled or not by selecting appropriate
@@ -99,14 +99,14 @@ void ShapeCombineBase (uint3 id)
 	{
 		// convert dynamic wave sim to displacements
 
-		half waveSimY = SampleLod(_LD_TexArray_DynamicWaves_ThisFrame, uv_thisLod).x;
+		half waveSimY = SampleLod(_LD_TexArray_DynamicWaves, uv_thisLod).x;
 		result.y += waveSimY;
 
 		const float2 invRes = float2(_LD_Params_PrevFrame[_LD_SLICE_Index_ThisLod].w, 0.0);
-		const half waveSimY_px = SampleLod(_LD_TexArray_DynamicWaves_ThisFrame, uv_thisLod + float3(invRes.xy, 0)).x;
-		const half waveSimY_nx = SampleLod(_LD_TexArray_DynamicWaves_ThisFrame, uv_thisLod - float3(invRes.xy, 0)).x;
-		const half waveSimY_pz = SampleLod(_LD_TexArray_DynamicWaves_ThisFrame, uv_thisLod + float3(invRes.yx, 0)).x;
-		const half waveSimY_nz = SampleLod(_LD_TexArray_DynamicWaves_ThisFrame, uv_thisLod - float3(invRes.yx, 0)).x;
+		const half waveSimY_px = SampleLod(_LD_TexArray_DynamicWaves, uv_thisLod + float3(invRes.xy, 0)).x;
+		const half waveSimY_nx = SampleLod(_LD_TexArray_DynamicWaves, uv_thisLod - float3(invRes.xy, 0)).x;
+		const half waveSimY_pz = SampleLod(_LD_TexArray_DynamicWaves, uv_thisLod + float3(invRes.yx, 0)).x;
+		const half waveSimY_nz = SampleLod(_LD_TexArray_DynamicWaves, uv_thisLod - float3(invRes.yx, 0)).x;
 		// compute displacement from gradient of water surface - discussed in issue #18 and then in issue #47
 
 		// For gerstner waves, horiz displacement is proportional to derivative of vertical displacement multiplied by the wavelength

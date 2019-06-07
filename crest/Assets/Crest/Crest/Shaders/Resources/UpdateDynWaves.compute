@@ -22,19 +22,6 @@ float _TexelsPerWave;
 // Current resolution: (TODO(MRT): Why use this when LD params exists?)
 float _GridSize[MAX_LOD_COUNT];
 
-// TODO(MRT): Refactor OceanLODDataShared so that this code is actually shareable.
-float2 UVToWorld(in float2 i_uv, in float sliceIndex) { return LD_UVToWorld(i_uv, _LD_Pos_Scale[sliceIndex].xy, _LD_Params[sliceIndex].y, _LD_Params[sliceIndex].x); }
-
-float3 WorldToUV_PrevFrame(in float2 i_samplePos, in float sliceIndexPrevFrame) {
-	const float2 result = LD_WorldToUV(
-		i_samplePos,
-		_LD_Pos_Scale_PrevFrame[sliceIndexPrevFrame].xy,
-		_LD_Params_PrevFrame[sliceIndexPrevFrame].y,
-		_LD_Params_PrevFrame[sliceIndexPrevFrame].x
-	);
-	return float3(result, sliceIndexPrevFrame);
-}
-
 float ComputeWaveSpeed(float wavelength, float g)
 {
 	// wave speed of deep sea ocean waves: https://en.wikipedia.org/wiki/Wind_wave

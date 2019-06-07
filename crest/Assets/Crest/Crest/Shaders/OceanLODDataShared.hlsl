@@ -43,36 +43,33 @@ float2 LD_WorldToUV(in float2 i_samplePos, in float2 i_centerPos, in float i_res
 	return (i_samplePos - i_centerPos) / (i_texelSize * i_res) + 0.5;
 }
 
-float3 WorldToUV(in float2 i_samplePos) {
+float3 WorldToUV(in float2 i_samplePos, in float i_sliceIndex) {
 	const float2 result = LD_WorldToUV(
 		i_samplePos,
-		_LD_Pos_Scale[_LD_SliceIndex].xy,
-		_LD_Params[_LD_SliceIndex].y,
-		_LD_Params[_LD_SliceIndex].x
+		_LD_Pos_Scale[i_sliceIndex].xy,
+		_LD_Params[i_sliceIndex].y,
+		_LD_Params[i_sliceIndex].x
 	);
-	return float3(result, _LD_SliceIndex);
+	return float3(result, i_sliceIndex);
 }
 
-float3 WorldToUV_NextLod(in float2 i_samplePos) {
-	const uint sliceIndex_NextLod = _LD_SliceIndex + 1;
+float3 WorldToUV_NextLod(in float2 i_samplePos, in float i_sliceIndex_NextLod) {
 	const float2 result = LD_WorldToUV(
-		i_samplePos, _LD_Pos_Scale[sliceIndex_NextLod].xy,
-		_LD_Params[sliceIndex_NextLod].y,
-		_LD_Params[sliceIndex_NextLod].x
+		i_samplePos, _LD_Pos_Scale[i_sliceIndex_NextLod].xy,
+		_LD_Params[i_sliceIndex_NextLod].y,
+		_LD_Params[i_sliceIndex_NextLod].x
 	);
-	return float3(result, sliceIndex_NextLod);
+	return float3(result, i_sliceIndex_NextLod);
 }
 
-// TODO(MRT): make sure that every shader that calls this
-// actually sets _LD_SliceIndex_PrevFrame
-float3 WorldToUV_PrevFrame(in float2 i_samplePos) {
+float3 WorldToUV_PrevFrame(in float2 i_samplePos, in float i_sliceIndex_PrevFrame) {
 	const float2 result = LD_WorldToUV(
 		i_samplePos,
-		_LD_Pos_Scale_PrevFrame[_LD_SliceIndex_PrevFrame].xy,
-		_LD_Params_PrevFrame[_LD_SliceIndex_PrevFrame].y,
-		_LD_Params_PrevFrame[_LD_SliceIndex_PrevFrame].x
+		_LD_Pos_Scale_PrevFrame[i_sliceIndex_PrevFrame].xy,
+		_LD_Params_PrevFrame[i_sliceIndex_PrevFrame].y,
+		_LD_Params_PrevFrame[i_sliceIndex_PrevFrame].x
 	);
-	return float3(result, _LD_SliceIndex_PrevFrame);
+	return float3(result, i_sliceIndex_PrevFrame);
 }
 
 
@@ -81,19 +78,20 @@ float2 LD_UVToWorld(in float2 i_uv, in float2 i_centerPos, in float i_res, in fl
 	return i_texelSize * i_res * (i_uv - 0.5) + i_centerPos;
 }
 
-float2 UVToWorld(in float2 i_uv) { return LD_UVToWorld(i_uv, _LD_Pos_Scale[_LD_SliceIndex].xy, _LD_Params[_LD_SliceIndex].y, _LD_Params[_LD_SliceIndex].x); }
+float2 UVToWorld(in float2 i_uv, in float i_sliceIndex) { return LD_UVToWorld(i_uv, _LD_Pos_Scale[i_sliceIndex].xy, _LD_Params[i_sliceIndex].y, _LD_Params[i_sliceIndex].x); }
 
+float3 WorldToUV(in float2 i_samplePos) { return WorldToUV(i_samplePos, _LD_SliceIndex); }
+float3 WorldToUV_NextLod(in float2 i_samplePos) { return WorldToUV_NextLod(i_samplePos, _LD_SliceIndex + 1); }
+float3 WorldToUV_PrevFrame(in float2 i_samplePos) { return WorldToUV_PrevFrame(i_samplePos, _LD_SliceIndex_PrevFrame); }
+float2 UVToWorld(in float2 i_uv) { return UVToWorld(i_uv, _LD_SliceIndex); }
+
+// Convert compute shader id to uv texture coordinates
 float2 IDtoUV(in float2 i_id)
 {
-	// We only use 2D floats, as array index has the same value in UV coors and
-	// CS indeces
 	return float2(float2(i_id) / float2(256, 256) + 0.5 / float2(256, 256));
 }
-
 float2 UVToID(in float2 i_uv)
 {
-	// We only use 2D floats, as array index has the same value in UV coors and
-	// CS indeces
 	return float2((i_uv.xy * float2(256, 256)) - 0.5);
 }
 
@@ -149,28 +147,3 @@ void SampleShadow(in Texture2DArray i_oceanShadowSampler, in float3 i_uv_slice, 
 // zw: normalScrollSpeed0, normalScrollSpeed1
 uniform float4 _GeomData;
 uniform float3 _OceanCenterPosWorld;
-
-float ComputeLodAlpha(float3 i_worldPos, float i_meshScaleAlpha)
-{
-	// taxicab distance from ocean center drives LOD transitions
-	float2 offsetFromCenter = float2(abs(i_worldPos.x - _OceanCenterPosWorld.x), abs(i_worldPos.z - _OceanCenterPosWorld.z));
-	float taxicab_norm = max(offsetFromCenter.x, offsetFromCenter.y);
-
-	// interpolation factor to next lod (lower density / higher sampling period)
-	float lodAlpha = taxicab_norm / _LD_Pos_Scale[_LD_SliceIndex].z - 1.0;
-
-	// lod alpha is remapped to ensure patches weld together properly. patches can vary significantly in shape (with
-	// strips added and removed), and this variance depends on the base density of the mesh, as this defines the strip width.
-	// using .15 as black and .85 as white should work for base mesh density as low as 16.
-	const float BLACK_POINT = 0.15, WHITE_POINT = 0.85;
-	lodAlpha = max((lodAlpha - BLACK_POINT) / (WHITE_POINT - BLACK_POINT), 0.);
-
-	// blend out lod0 when viewpoint gains altitude
-	lodAlpha = min(lodAlpha + i_meshScaleAlpha, 1.);
-
-#if _DEBUGDISABLESMOOTHLOD_ON
-	lodAlpha = 0.;
-#endif
-
-	return lodAlpha;
-}

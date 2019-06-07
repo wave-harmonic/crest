@@ -6,6 +6,31 @@
 
 #include "OceanLodDataShared.hlsl"
 
+float ComputeLodAlpha(float3 i_worldPos, float i_meshScaleAlpha)
+{
+	// taxicab distance from ocean center drives LOD transitions
+	float2 offsetFromCenter = float2(abs(i_worldPos.x - _OceanCenterPosWorld.x), abs(i_worldPos.z - _OceanCenterPosWorld.z));
+	float taxicab_norm = max(offsetFromCenter.x, offsetFromCenter.y);
+
+	// interpolation factor to next lod (lower density / higher sampling period)
+	float lodAlpha = taxicab_norm / _LD_Pos_Scale[_LD_SliceIndex].z - 1.0;
+
+	// lod alpha is remapped to ensure patches weld together properly. patches can vary significantly in shape (with
+	// strips added and removed), and this variance depends on the base density of the mesh, as this defines the strip width.
+	// using .15 as black and .85 as white should work for base mesh density as low as 16.
+	const float BLACK_POINT = 0.15, WHITE_POINT = 0.85;
+	lodAlpha = max((lodAlpha - BLACK_POINT) / (WHITE_POINT - BLACK_POINT), 0.);
+
+	// blend out lod0 when viewpoint gains altitude
+	lodAlpha = min(lodAlpha + i_meshScaleAlpha, 1.);
+
+#if _DEBUGDISABLESMOOTHLOD_ON
+	lodAlpha = 0.;
+#endif
+
+	return lodAlpha;
+}
+
 void SnapAndTransitionVertLayout(float i_meshScaleAlpha, inout float3 io_worldPos, out float o_lodAlpha)
 {
 	// see comments above on _GeomData

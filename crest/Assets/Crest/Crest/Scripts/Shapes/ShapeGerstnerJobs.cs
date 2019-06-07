@@ -69,7 +69,6 @@ namespace Crest
 
 		static NativeArray<ushort> c_depthCaches;
 
-
 		#region Init
 
 		/// <summary>

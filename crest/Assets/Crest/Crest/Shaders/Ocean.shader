@@ -272,10 +272,12 @@ Shader "Crest/Ocean"
 				// Sample shape textures - always lerp between 2 LOD scales, so sample two textures
 
 				// Calculate sample weights. params.z allows shape to be faded out (used on last lod to support pop-less scale transitions)
-				float wt_thisLod = (1. - lodAlpha) * _LD_Params[_LD_SliceIndex].z;
-				float wt_nextLod = (1. - wt_thisLod) * _LD_Params[_LD_SliceIndex + 1].z;
-				const float2 positionWS_XZ_before = o.worldPos.xz;
+				const float wt_thisLod = (1. - lodAlpha) * _LD_Params[_LD_SliceIndex].z;
+				const float wt_nextLod = (1. - wt_thisLod) * _LD_Params[_LD_SliceIndex + 1].z;
 				// Sample displacement textures, add results to current world pos / normal / foam
+				const float2 positionWS_XZ_before = o.worldPos.xz;
+
+				// Data that needs to be sampled at the undisplaced position
 				if (wt_thisLod > 0.001)
 				{
 					const float3 uv_slice_thisLod = WorldToUV(positionWS_XZ_before);
@@ -290,16 +292,6 @@ Shader "Crest/Ocean"
 
 					#if _FLOW_ON
 					SampleFlow(_LD_TexArray_Flow, uv_slice_thisLod, wt_thisLod, o.flow_shadow.xy);
-					#endif
-
-					const float3 uv_slice_thisLodDisp = WorldToUV(o.worldPos.xz);
-
-					#if _SUBSURFACESHALLOWCOLOUR_ON
-					SampleSeaDepth(_LD_TexArray_SeaFloorDepth, uv_slice_thisLodDisp, wt_thisLod, o.lodAlpha_worldXZUndisplaced_oceanDepth.w);
-					#endif
-
-					#if _SHADOWS_ON
-					SampleShadow(_LD_TexArray_Shadow, uv_slice_thisLodDisp, wt_thisLod, o.flow_shadow.zw);
 					#endif
 				}
 				if (wt_nextLod > 0.001)
@@ -317,7 +309,23 @@ Shader "Crest/Ocean"
 					#if _FLOW_ON
 					SampleFlow(_LD_TexArray_Flow, uv_slice_nextLod, wt_nextLod, o.flow_shadow.xy);
 					#endif
+				}
 
+				// Data that needs to be sampled at the displaced position
+				if (wt_thisLod > 0.001)
+				{
+					const float3 uv_slice_thisLodDisp = WorldToUV(o.worldPos.xz);
+
+					#if _SUBSURFACESHALLOWCOLOUR_ON
+					SampleSeaDepth(_LD_TexArray_SeaFloorDepth, uv_slice_thisLodDisp, wt_thisLod, o.lodAlpha_worldXZUndisplaced_oceanDepth.w);
+					#endif
+
+					#if _SHADOWS_ON
+					SampleShadow(_LD_TexArray_Shadow, uv_slice_thisLodDisp, wt_thisLod, o.flow_shadow.zw);
+					#endif
+				}
+				if (wt_nextLod > 0.001)
+				{
 					const float3 uv_slice_nextLodDisp = WorldToUV_NextLod(o.worldPos.xz);
 
 					#if _SUBSURFACESHALLOWCOLOUR_ON

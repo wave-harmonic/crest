@@ -39,7 +39,7 @@ uniform const float _LD_SliceIndex_PrevFrame;
 SamplerState LODData_linear_clamp_sampler;
 
 // Bias ocean floor depth so that default (0) values in texture are not interpreted as shallow and generating foam everywhere
-#define CREST_OCEAN_DEPTH_BASELINE -1000.0
+#define CREST_OCEAN_DEPTH_BASELINE 1000.0
 
 // Conversions for world space from/to UV space. All these should *not* be clamped otherwise they'll break fullscreen triangles.
 float2 LD_WorldToUV(in float2 i_samplePos, in float2 i_centerPos, in float i_res, in float i_texelSize)

@@ -243,7 +243,7 @@ Shader "Crest/Ocean"
 				UNITY_FOG_COORDS(3)
 			};
 
-			#include "OceanLODData.hlsl"
+			#include "OceanHelpers.hlsl"
 
 			uniform float _CrestTime;
 

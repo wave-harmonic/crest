@@ -93,17 +93,10 @@ namespace Crest
             _scaleDifferencePow2 = Mathf.RoundToInt(ratio_l2);
         }
 
-        public void BindResultData(IPropertyWrapper properties, bool prevFrame = false)
+        public void BindResultData(IPropertyWrapper properties, bool blendOut = true)
         {
-            // TODO(MRT): Use prev frame renderdata sometimes? Check
-            BindData(properties, _targets, true, ref LodTransform._staticRenderData, prevFrame);
+            BindData(properties, _targets, blendOut, ref LodTransform._staticRenderData);
         }
-
-        public void BindResultData(IPropertyWrapper properties, bool blendOut, bool prevFrame = false)
-        {
-            BindData(properties, _targets, blendOut, ref LodTransform._staticRenderData, prevFrame);
-        }
-
 
         // TODO(MRT): This is a temporary hack to avoid a lot of array allocations which are then GCed.
         // this will need to be fixed by changing the BindData API to something more appropriate, and making

@@ -20,6 +20,8 @@ namespace Crest
         public override void UseSettings(SimSettingsBase settings) { }
 
         bool _targetsClear = false;
+        private static int sp_SliceViewProjMatrices = Shader.PropertyToID("_SliceViewProjMatrices");
+        private static int sp_CurrentLodCount = Shader.PropertyToID("_CurrentLodCount");
 
         public override void BuildCommandBuffer(OceanRenderer ocean, CommandBuffer buf)
         {
@@ -44,7 +46,7 @@ namespace Crest
                 lt._renderData[lodIdx].Validate(0, this);
 
                 Matrix4x4 worldToClipPos = lt.GetProjectionMatrix(lodIdx) * lt.GetWorldToCameraMatrix(lodIdx);
-                // TODO (TRC): for some reason, the projection matrix that is sent to the
+                // TODO(MRT): for some reason, the projection matrix that is sent to the
                 // shader by `SetViewProjectionMatrices` in the command buffer has
                 // it's middle two rows inverted, which then propagates to the
                 // worldToClipPos matrix. We need to find out why this is so
@@ -54,7 +56,10 @@ namespace Crest
                 matrixArray[lodIdx] = worldToClipPos;
             }
 
-            buf.SetGlobalMatrixArray("_SliceViewProjMatrices", matrixArray);
+            buf.SetGlobalMatrixArray(sp_SliceViewProjMatrices, matrixArray);
+            buf.SetGlobalInt(sp_CurrentLodCount, OceanRenderer.Instance.CurrentLodCount);
+
+
             foreach (var draw in _drawList)
             {
                 buf.DrawRenderer(draw.RendererComponent, draw.RendererComponent.sharedMaterial);

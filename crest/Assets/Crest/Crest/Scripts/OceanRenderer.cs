@@ -114,7 +114,7 @@ namespace Crest
         /// </summary>
         public float SeaLevel { get { return transform.position.y; } }
 
-        [HideInInspector] public LodTransform[] _lods;
+        [HideInInspector] public LodTransform _lodTransform;
         [HideInInspector] public LodDataMgrAnimWaves _lodDataAnimWaves;
         [HideInInspector] public LodDataMgrSeaFloorDepth _lodDataSeaDepths;
         [HideInInspector] public LodDataMgrDynWaves _lodDataDynWaves;
@@ -124,7 +124,7 @@ namespace Crest
         /// <summary>
         /// The number of LODs/scales that the ocean is currently using.
         /// </summary>
-        public int CurrentLodCount { get { return _lods.Length; } }
+        public int CurrentLodCount { get { return _lodTransform.LodCount; } }
 
         /// <summary>
         /// Vertical offset of viewer vs water surface
@@ -268,9 +268,9 @@ namespace Crest
         {
             // Do any per-frame update for each LOD type.
 
-            foreach (var lt in _lods)
+            for (int i = 0; i < CurrentLodCount; i++)
             {
-                lt.UpdateTransform();
+                _lodTransform.UpdateTransform(i);
             }
 
             if (_lodDataAnimWaves) _lodDataAnimWaves.UpdateLodData();

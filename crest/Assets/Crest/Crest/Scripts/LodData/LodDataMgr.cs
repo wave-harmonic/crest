@@ -95,7 +95,7 @@ namespace Crest
 
         public void BindResultData(IPropertyWrapper properties, bool blendOut = true)
         {
-            BindData(properties, _targets, blendOut, ref LodTransform._staticRenderData);
+            BindData(properties, _targets, blendOut, ref OceanRenderer.Instance._lodTransform._renderData);
         }
 
         // TODO(MRT): LodTransformSOA This is a temporary hack to avoid a lot of array allocations which are then GCed.
@@ -110,12 +110,11 @@ namespace Crest
                 properties.SetTexture(GetParamIdSampler(prevFrame), applyData);
             }
 
-            for(int lodIdx = 0; lodIdx < OceanRenderer.Instance.CurrentLodCount; lodIdx++)
+            var lt = OceanRenderer.Instance._lodTransform;
+            for (int lodIdx = 0; lodIdx < OceanRenderer.Instance.CurrentLodCount; lodIdx++)
             {
-                var lt = OceanRenderer.Instance._lods[lodIdx];
-
                 // NOTE: gets zeroed by unity, see https://www.alanzucconi.com/2016/10/24/arrays-shaders-unity-5-4/
-                _paramIdPosScales[lodIdx] = new Vector4(renderData[lodIdx]._posSnapped.x, renderData[lodIdx]._posSnapped.z, lt.transform.lossyScale.x, 0);
+                _paramIdPosScales[lodIdx] = new Vector4(renderData[lodIdx]._posSnapped.x, renderData[lodIdx]._posSnapped.z, lt.GetLodTransform(lodIdx).lossyScale.x, 0);
                 _paramIdOceans[lodIdx] = new Vector4(renderData[lodIdx]._texelWidth, renderData[lodIdx]._textureRes, 1f, 1f / renderData[lodIdx]._textureRes);
             }
             properties.SetVectorArray(LodTransform.ParamIdPosScale(prevFrame), _paramIdPosScales);
@@ -181,10 +180,10 @@ namespace Crest
         // these are run.
         protected void SubmitDraws(int lodIdx, CommandBuffer buf)
         {
-            var lt = OceanRenderer.Instance._lods[lodIdx];
-            lt._renderData.Validate(0, this);
+            var lt = OceanRenderer.Instance._lodTransform;
+            lt._renderData[lodIdx].Validate(0, this);
 
-            lt.SetViewProjectionMatrices(buf);
+            lt.SetViewProjectionMatrices(lodIdx, buf);
 
             foreach (var draw in _drawList)
             {
@@ -194,10 +193,10 @@ namespace Crest
 
         protected void SubmitDrawsFiltered(int lodIdx, CommandBuffer buf, IDrawFilter filter)
         {
-            var lt = OceanRenderer.Instance._lods[lodIdx];
-            lt._renderData.Validate(0, this);
+            var lt = OceanRenderer.Instance._lodTransform;
+            lt._renderData[lodIdx].Validate(0, this);
 
-            lt.SetViewProjectionMatrices(buf);
+            lt.SetViewProjectionMatrices(lodIdx, buf);
 
             foreach (var draw in _drawList)
             {

@@ -74,12 +74,11 @@ namespace Crest
             //     LodTransform._staticRenderDataPrevFrame.Validate(BuildCommandBufferBase._lastUpdateFrame - Time.frameCount, this)
             //     : LodTransform._staticRenderData.Validate(0, this);
 
-
             var renderData = usePrevTransform ?
-                LodTransform._staticRenderDataPrevFrame
-                : LodTransform._staticRenderData;
+                OceanRenderer.Instance._lodTransform._renderDataPrevFrame
+                : OceanRenderer.Instance._lodTransform._renderData;
 
-            BindData(properties, paramsOnly ? TextureArray.blackTextureArray : (Texture) _sources, true, ref renderData, prevFrame);
+            BindData(properties, paramsOnly ? TextureArray.blackTextureArray : (Texture)_sources, true, ref renderData, prevFrame);
         }
 
         public abstract void GetSimSubstepData(float frameDt, out int numSubsteps, out float substepDt);
@@ -92,11 +91,11 @@ namespace Crest
             float substepDt;
             int numSubsteps;
             GetSimSubstepData(Time.deltaTime, out numSubsteps, out substepDt);
-            if(!_sources.IsCreated())
+            if (!_sources.IsCreated())
             {
                 _sources.Create();
             }
-            if(!_targets.IsCreated())
+            if (!_targets.IsCreated())
             {
                 _targets.Create();
             }

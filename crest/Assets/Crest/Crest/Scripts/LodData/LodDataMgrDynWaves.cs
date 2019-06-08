@@ -64,7 +64,7 @@ namespace Crest
                 return false;
 
             // check if the sim should be running
-            float texelWidth = OceanRenderer.Instance._lods[lodIdx]._renderData.Validate(0, this)._texelWidth;
+            float texelWidth = OceanRenderer.Instance._lodTransform._renderData[lodIdx].Validate(0, this)._texelWidth;
             _active[lodIdx] = texelWidth >= Settings._minGridSize && (texelWidth <= Settings._maxGridSize || Settings._maxGridSize == 0f);
 
             return true;
@@ -89,7 +89,7 @@ namespace Crest
             simMaterial.SetFloat(sp_Gravity, OceanRenderer.Instance.Gravity);
             for(int lodIdx = 0; lodIdx < OceanRenderer.Instance.CurrentLodCount; lodIdx++)
             {
-                _texelWidths[lodIdx] = OceanRenderer.Instance._lods[lodIdx]._renderData._texelWidth;
+                _texelWidths[lodIdx] = OceanRenderer.Instance._lodTransform._renderData[lodIdx]._texelWidth;
             }
             simMaterial.SetFloatArray(sp_GridSize, _texelWidths);
 

@@ -129,8 +129,8 @@ namespace Crest
                 int lastUsableIndex = CanUseLastTwoLODs ? (lodCount - 1) : (lodCount - 3);
 
                 _perLodData.ValueArray[i]._activelyBeingRendered =
-                    _perLodData.KeyArray[i] >= ocean._lods[0]._renderData._texelWidth &&
-                    _perLodData.KeyArray[i] <= ocean._lods[lastUsableIndex]._renderData._texelWidth;
+                    _perLodData.KeyArray[i] >= ocean._lodTransform._renderData[0]._texelWidth &&
+                    _perLodData.KeyArray[i] <= ocean._lodTransform._renderData[lastUsableIndex]._texelWidth;
 
                 if (!_perLodData.ValueArray[i]._activelyBeingRendered)
                 {
@@ -141,17 +141,19 @@ namespace Crest
                 }
             }
 
-            foreach (var lt in ocean._lods)
+            var lt = ocean._lodTransform;
+
+            for (int lodIndex = 0; lodIndex < ocean.CurrentLodCount; lodIndex++)
             {
                 // Don't add uninitialised data
-                if (lt._renderData._texelWidth == 0f) continue;
+                if (lt._renderData[lodIndex]._texelWidth == 0f) continue;
 
-                if (lt._renderData._texelWidth >= _minGridSize && (lt._renderData._texelWidth <= _maxGridSize || _maxGridSize == 0f))
+                if (lt._renderData[lodIndex]._texelWidth >= _minGridSize && (lt._renderData[lodIndex]._texelWidth <= _maxGridSize || _maxGridSize == 0f))
                 {
                     var tex = _lodComponent.DataTexture;
                     if (tex == null) continue;
 
-                    if (!_perLodData.ContainsKey(lt._renderData._texelWidth))
+                    if (!_perLodData.ContainsKey(lt._renderData[lodIndex]._texelWidth))
                     {
                         var resultData = new PerLodData();
                         resultData._resultData = new ReadbackData();
@@ -166,10 +168,10 @@ namespace Crest
                             resultData._resultDataPrevFrame._data = new NativeArray<ushort>(num, Allocator.Persistent);
                         }
 
-                        _perLodData.Add(lt._renderData._texelWidth, resultData);
+                        _perLodData.Add(lt._renderData[lodIndex]._texelWidth, resultData);
                     }
 
-                    var lodData = _perLodData[lt._renderData._texelWidth];
+                    var lodData = _perLodData[lt._renderData[lodIndex]._texelWidth];
 
                     if (lodData._activelyBeingRendered)
                     {
@@ -177,7 +179,7 @@ namespace Crest
                         // ensure everything in the frame is done.
                         if (runningFromUpdate)
                         {
-                            EnqueueReadbackRequest(tex, lt.LodIndex, lt._renderData, _prevFrameTime);
+                            EnqueueReadbackRequest(tex, lodIndex, lt._renderData[lodIndex], _prevFrameTime);
                         }
 
                         ProcessArrivedRequests(lodData);

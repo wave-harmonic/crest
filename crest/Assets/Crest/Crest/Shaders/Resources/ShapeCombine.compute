@@ -31,7 +31,7 @@ void Flow(out float2 offsets, out float2 weights)
 
 void SampleDisplacementsCompute(
 	in RWTexture2DArray<float4> i_dispSampler,
-	in float width, in float height, in float3 i_uv_slice,
+	in float i_width, in float i_height, in float3 i_uv_slice,
 	in float i_wt, inout float3 io_worldPos
 ) {
 	// NOTE: We have to roll our own bilinear filter in Compute shaders when
@@ -39,28 +39,29 @@ void SampleDisplacementsCompute(
 	// and UAV mappings of the same texture cannot exist at the same time.
 	// https://docs.microsoft.com/en-us/windows/desktop/direct3dhlsl/sm5-object-rwtexture2d
 
-	// TODO(MRT): Give this code another pass to ensure it is as
-	// optimal and as accurate as possible.
-	float2 texCoordCenter = UVToID(i_uv_slice.xy, width, height);
-	// Calculate the locations of the 4 pixels from which we will be sampling
-	float2 bottomLeftPixelPosition = texCoordCenter + float2(-.5, -.5);
-	float2 topLeftPixelPosition = texCoordCenter + float2(-.5, .5);
-	float2 topRightPixelPosition = texCoordCenter + float2(.5, .5);
-	float2 bottomRightPixelPosition = texCoordCenter + float2(.5, -.5);
+	// Convert from UV to coordinates
+	const float2 pixelCoord = i_uv_slice.xy * float2(i_width, i_height);
 
-	// Calculate how much to weight the contribution of each pixel when we sample
-	// it.
-	float bottomLeftPixelPositionProportion = (1 - frac(topRightPixelPosition.x) + 1 - frac(topRightPixelPosition.y)) * .25;
-	float topLeftPixelPositionProportion = (1 - frac(topRightPixelPosition.x) + frac(topRightPixelPosition.y)) * .25;
-	float topRightPixelPositionProportion = (frac(topRightPixelPosition.x) + frac(topRightPixelPosition.y)) * .25;
-	float bottomRightPixelPositionProportion = (frac(topRightPixelPosition.x) + 1 - frac(topRightPixelPosition.y)) * .25;
+	// Make relative to pixel centers
+	float2 pixelCoordCenters = pixelCoord - 0.5;
 
-	// Sample each pixel and add to final result.
-	half3 disp = i_dispSampler[float3(bottomLeftPixelPosition, i_uv_slice.z)].xyz * bottomLeftPixelPositionProportion;
-	disp += i_dispSampler[float3(topLeftPixelPosition, i_uv_slice.z)].xyz * topLeftPixelPositionProportion;
-	disp += i_dispSampler[float3(topRightPixelPosition, i_uv_slice.z)].xyz * topRightPixelPositionProportion;
-	disp += i_dispSampler[float3(bottomRightPixelPosition, i_uv_slice.z)].xyz * bottomRightPixelPositionProportion;
-	io_worldPos += i_wt * disp;
+	// Clamp from below and above (desired?)
+	pixelCoordCenters = clamp(pixelCoordCenters, 0.0, float2(i_width, i_height) - 1.0);
+
+	// Compute integral and fractional parts
+	const float2 pixelCoordCentersBotLeft = floor(pixelCoordCenters);
+	const float2 pixelCoordCentersFrac = frac(pixelCoordCenters);
+
+	const float3 dispBotLeft = i_dispSampler[float3(pixelCoordCentersBotLeft, i_uv_slice.z)].xyz;
+	const float3 dispBotRight = i_dispSampler[float3(pixelCoordCentersBotLeft + float2(1.0, 0.0), i_uv_slice.z)].xyz;
+	const float3 dispTopLeft = i_dispSampler[float3(pixelCoordCentersBotLeft + float2(0.0, 1.0), i_uv_slice.z)].xyz;
+	const float3 dispTopRight = i_dispSampler[float3(pixelCoordCentersBotLeft + float2(1.0, 1.0), i_uv_slice.z)].xyz;
+
+	io_worldPos += i_wt * lerp(
+		lerp(dispBotLeft, dispBotRight, pixelCoordCentersFrac.x),
+		lerp(dispTopLeft, dispTopRight, pixelCoordCentersFrac.x),
+		pixelCoordCentersFrac.y
+	);
 }
 
 void ShapeCombineBase (uint3 id)

@@ -129,7 +129,7 @@ namespace Crest
                     _bufCopyShadowMap = null;
                     for(int lodIdx = 0; lodIdx < _targets.volumeDepth; lodIdx++)
                     {
-                        // TODO(MRT): is this the best way to do things within the new system?
+                        // TODO(MRT): Confirm this works. (Maybe look at custom blackTextureArray)?
                         Graphics.Blit(Texture2D.blackTexture, _sources, -1, lodIdx);
                         Graphics.Blit(Texture2D.blackTexture, _targets, -1, lodIdx);
                     }
@@ -206,7 +206,7 @@ namespace Crest
 
         public void BindSourceData(PropertyWrapperMaterial simMaterial, bool paramsOnly, bool prevFrame = false)
         {
-            // TODO(MRT): Validate this
+            // TODO(MRT): LodTransformSOA Validate this
             var rd = LodTransform._staticRenderDataPrevFrame; //.Validate(BuildCommandBufferBase._lastUpdateFrame - Time.frameCount, this);
             BindData(simMaterial, paramsOnly ? Texture2D.blackTexture : _sources as Texture, true, ref rd, prevFrame);
         }

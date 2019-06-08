@@ -10,7 +10,8 @@ namespace Crest
     /// <summary>
     /// This script is attached to the parent GameObject of each LOD. It provides helper functionality related to each LOD.
     /// </summary>
-    // TODO(MRT): See if we can make the is a struct of arrays or something similar.
+    // TODO(MRT): LodTransformSOA See if we can make the is a struct of arrays or something similar.
+    // (NOTE: This affects a lot of TODOs, these are start with "TODO(MRT): LodTransformSOA" (including this one!)
     public class LodTransform : MonoBehaviour, IFloatingOrigin
     {
         protected int _transformUpdateFrame = -1;
@@ -27,7 +28,7 @@ namespace Crest
             public Vector3 _posSnapped;
             public int _frame;
 
-            // TODO(MRT): Check this makes sense in the context of SOA
+            // TODO(MRT): LodTransformSOA Rewrite this function for SOA (a lot of places cannot use it atm)
             public RenderData Validate(int frameOffset, Object context)
             {
                 // ignore first frame - this patches errors when using edit & continue in editor
@@ -48,7 +49,7 @@ namespace Crest
             }
         }
 
-        // TODO(MRT): Make these not static singletons
+        // TODO(MRT): LodTransformSOA Make these not static singletons
         public static RenderData[] _staticRenderData = null;
         public static RenderData[] _staticRenderDataPrevFrame = null;
 

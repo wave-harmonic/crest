@@ -81,8 +81,6 @@ namespace Crest
             _combineProperties = new PropertyWrapperCompute();
 
             Debug.Assert(SystemInfo.SupportsRenderTextureFormat(TextureFormat), "The graphics device does not support the render texture format " + TextureFormat.ToString());
-            // TODO(MRT): Is this the best place to put these? Or should we put support querying inside some global init?
-            // Or a function the user can query themselves? Or even in an editor script? All three?
             Debug.Assert(SystemInfo.supports2DArrayTextures, "The graphics device does not support 2D array textures");
             Debug.Assert(SystemInfo.supportsComputeShaders, "The graphics device does not support comptue shaders");
 
@@ -134,8 +132,6 @@ namespace Crest
             // lod-dependent data
             _filterWavelength._lodCount = lodCount;
 
-            // TODO(MRT): Support doing this with shaders which can do everything
-            // in a single draw call with geometry shaders?
             for (int lodIdx = lodCount - 1; lodIdx >= 0; lodIdx--)
             {
                 buf.SetRenderTarget(_waveBuffers, 0, CubemapFace.Unknown, lodIdx);
@@ -179,9 +175,6 @@ namespace Crest
             // combine waves
             for (int lodIdx = lodCount - 1; lodIdx >= 0; lodIdx--)
             {
-                // TODO(MRT): See if we can find a programmatic solution to also
-                // select a kernel variant depending on if flow or dynamic waves
-                // are enabled.
                 int selectedShaderKernel;
                 if (lodIdx < lodCount - 1 && _shapeCombinePass)
                 {
@@ -194,11 +187,8 @@ namespace Crest
 
                 _combineProperties.Initialise(buf, _combineShader, selectedShaderKernel);
 
-
                 BindWaveBuffer(_combineProperties);
-                // combine data from next larger lod into this one
                 BindResultData(_combineProperties);
-
 
                 // dynamic waves
                 if (OceanRenderer.Instance._lodDataDynWaves)
@@ -253,7 +243,7 @@ namespace Crest
             BindData(properties, null, true, ref LodTransform._staticRenderData, prevFrame);
         }
 
-        // TODO(MRT): This is a temporary hack to avoid a lot of array allocations which are then GCed.
+        // TODO(MRT): LodTransformSOA This is a temporary hack to avoid a lot of array allocations which are then GCed.
         // this will need to be fixed by changing the BindData API to something more appropriate, and making
         // the LodTransform class SOA
         Vector4[] _paramIdOceans = new Vector4[MAX_LOD_COUNT];

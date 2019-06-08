@@ -142,6 +142,8 @@ void SampleShadow(in Texture2DArray i_oceanShadowSampler, in float3 i_uv_slice, 
 
 // TODO(MRT): replace these with something better in code that uses them.
 // Used #defines to account for different return types based on texture format.
+// Check if #defines are even that bad, I tend to not be a big fan of them, but
+// maybe this is the best solution.
 #define SampleLod(i_lodTextureArray, i_uv_slice) (i_lodTextureArray.SampleLevel(LODData_linear_clamp_sampler, i_uv_slice, 0))
 #define SampleLodLevel(i_lodTextureArray, i_uv_slice, mips) (i_lodTextureArray.SampleLevel(LODData_linear_clamp_sampler, i_uv_slice, mips))
 

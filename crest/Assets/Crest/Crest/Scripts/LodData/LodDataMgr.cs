@@ -98,7 +98,7 @@ namespace Crest
             BindData(properties, _targets, blendOut, ref LodTransform._staticRenderData);
         }
 
-        // TODO(MRT): This is a temporary hack to avoid a lot of array allocations which are then GCed.
+        // TODO(MRT): LodTransformSOA This is a temporary hack to avoid a lot of array allocations which are then GCed.
         // this will need to be fixed by changing the BindData API to something more appropriate, and making
         // the LodTransform class SOA
         Vector4[] _paramIdPosScales = new Vector4[MAX_LOD_COUNT];

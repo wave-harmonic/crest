@@ -69,7 +69,7 @@ namespace Crest
 
         public void BindSourceData(IPropertyWrapper properties, bool paramsOnly, bool usePrevTransform, bool prevFrame = false)
         {
-            //TODO(MRT): Call Validate to make sure things work here.
+            //TODO(MRT): LodTransformSOA Call Validate to make sure things work here (as it used to be done on a lod-by-lod basis)
             // var renderData = usePrevTransform ?
             //     LodTransform._staticRenderDataPrevFrame.Validate(BuildCommandBufferBase._lastUpdateFrame - Time.frameCount, this)
             //     : LodTransform._staticRenderData.Validate(0, this);
@@ -124,8 +124,7 @@ namespace Crest
 
                 SetAdditionalSimParams(_renderSimProperties);
 
-                //buf.SetGlobalFloat("_LD_SliceIndex", lodIdx);
-                // TODO(MRT): Set correct LOD for frame
+                // TODO(MRT): Move this out to a shader param id.
                 buf.SetGlobalFloat("_LODChange", srcDataIdxChange);
 
                 _renderSimProperties.SetTexture(

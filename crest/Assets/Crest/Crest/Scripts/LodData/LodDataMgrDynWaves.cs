@@ -77,6 +77,9 @@ namespace Crest
         }
 
 
+        // TODO(MRT): LodTransformSOA This is a temporary hack to avoid a lot of array allocations which are then GCed.
+        // this will need to be fixed by changing the BindData API to something more appropriate, and making
+        // the LodTransform class SOA
         float[] _texelWidths = new float[MAX_LOD_COUNT];
         protected override void SetAdditionalSimParams(IPropertyWrapper simMaterial)
         {
@@ -84,7 +87,6 @@ namespace Crest
 
             simMaterial.SetFloat(sp_Damping, Settings._damping);
             simMaterial.SetFloat(sp_Gravity, OceanRenderer.Instance.Gravity);
-            // TODO(MRT): Clean this up, so we aren't assigning to a whole array every time.
             for(int lodIdx = 0; lodIdx < OceanRenderer.Instance.CurrentLodCount; lodIdx++)
             {
                 _texelWidths[lodIdx] = OceanRenderer.Instance._lods[lodIdx]._renderData._texelWidth;

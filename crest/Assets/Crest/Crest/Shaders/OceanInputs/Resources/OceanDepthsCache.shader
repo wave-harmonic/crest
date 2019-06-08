@@ -70,6 +70,10 @@ Shader "Crest/Inputs/Depth/Cached Depths"
 			)
 			{
 				SlicedVaryings output;
+				// TODO(MRT): Use an input param instead of MAX_LOD_COUNT here?
+				// (we would lose loop unrolling if that is what we want.
+				// We could also dyamically get the Array depth as is done in
+				// UpdateDynWaves.compute
 				for(int sliceIndex = 0; sliceIndex  < MAX_LOD_COUNT; sliceIndex++)
 				{
 					output.sliceIndex = sliceIndex;

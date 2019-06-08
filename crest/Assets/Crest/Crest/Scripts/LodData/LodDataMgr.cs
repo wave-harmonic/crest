@@ -20,7 +20,7 @@ namespace Crest
 
         public abstract RenderTextureFormat TextureFormat { get; }
 
-        // NOTE: This MUST match the value in OceanLODDataShared.hlsl, as it
+        // NOTE: This MUST match the value in OceanLODData.hlsl, as it
         // determines the size of the texture arrays in the shaders.
         public const int MAX_LOD_COUNT = 16;
 

@@ -23,7 +23,11 @@ void UpdateFoam(uint3 id : SV_DispatchThreadID)
 	// lod data 1 is current frame, compute world pos from quad uv
 	const float sliceIndex = id.z;
 	const float sliceIndexPrevFrame = id.z + _LODChange;
-	const float2 input_uv = IDtoUV(id.xy);
+	float width; float height; float depth;
+	{
+		_LD_TexArray_Foam_PrevFrame.GetDimensions(width, height, depth);
+	}
+	const float2 input_uv = IDtoUV(id.xy, width, height);
 	const float2 worldPosXZ = UVToWorld(input_uv, sliceIndex);
 	const float3 uv_slice = float3(input_uv, id.z);
 	const float3 uv_slice_prevFrame = WorldToUV_PrevFrame(worldPosXZ, sliceIndexPrevFrame);
@@ -39,11 +43,6 @@ void UpdateFoam(uint3 id : SV_DispatchThreadID)
 
 	half2 r = abs(uv_slice_prevFrame.xy - 0.5);
 
-	float depth;
-	{
-		float width; float height;
-		_LD_TexArray_Foam_PrevFrame.GetDimensions(width, height, depth);
-	}
 	if (
 		(sliceIndexPrevFrame < 0) || (sliceIndexPrevFrame > depth) ||
 		(max(r.x, r.y) > 0.5 - _LD_Params_PrevFrame[sliceIndexPrevFrame].w)

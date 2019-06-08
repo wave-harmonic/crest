@@ -29,8 +29,11 @@ void Flow(out float2 offsets, out float2 weights)
 	weights.y = 1.0 - weights.x;
 }
 
-void SampleDisplacementsCompute(in RWTexture2DArray<float4> i_dispSampler, in float3 i_uv_slice, in float i_wt, inout float3 io_worldPos)
-{
+void SampleDisplacementsCompute(
+	in RWTexture2DArray<float4> i_dispSampler,
+	in float width, in float height, in float3 i_uv_slice,
+	in float i_wt, inout float3 io_worldPos
+) {
 	// NOTE: We have to roll our own bilinear filter in Compute shaders when
 	// reading from a RWTexture. The documentation below explains how SRV
 	// and UAV mappings of the same texture cannot exist at the same time.
@@ -38,7 +41,7 @@ void SampleDisplacementsCompute(in RWTexture2DArray<float4> i_dispSampler, in fl
 
 	// TODO(MRT): Give this code another pass to ensure it is as
 	// optimal and as accurate as possible.
-	float2 texCoordCenter = UVToID(i_uv_slice.xy);
+	float2 texCoordCenter = UVToID(i_uv_slice.xy, width, height);
 	// Calculate the locations of the 4 pixels from which we will be sampling
 	float2 bottomLeftPixelPosition = texCoordCenter + float2(-.5, -.5);
 	float2 topLeftPixelPosition = texCoordCenter + float2(-.5, .5);
@@ -62,7 +65,11 @@ void SampleDisplacementsCompute(in RWTexture2DArray<float4> i_dispSampler, in fl
 
 void ShapeCombineBase (uint3 id)
 {
-	const float2 input_uv = IDtoUV(id.xy);
+	float width; float height; float depth;
+	{
+		_LD_TexArray_AnimatedWaves_Compute.GetDimensions(width, height, depth);
+	}
+	const float2 input_uv = IDtoUV(id.xy, width, height);
 
 	const float2 worldPosXZ = UVToWorld(input_uv);
 
@@ -91,7 +98,7 @@ void ShapeCombineBase (uint3 id)
 // C# Script determines whether this enabled or not by selecting appropriate
 // kernel for each LOD.
 #if !_DISABLE_COMBINE
-	SampleDisplacementsCompute(_LD_TexArray_AnimatedWaves_Compute, uv_nextLod, 1.0, result);
+	SampleDisplacementsCompute(_LD_TexArray_AnimatedWaves_Compute, width, height, uv_nextLod, 1.0, result);
 #endif
 
 #if _DYNAMIC_WAVE_SIM_ON

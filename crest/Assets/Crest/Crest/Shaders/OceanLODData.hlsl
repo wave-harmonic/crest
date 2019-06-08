@@ -91,13 +91,13 @@ float3 WorldToUV_PrevFrame(in float2 i_samplePos) { return WorldToUV_PrevFrame(i
 float2 UVToWorld(in float2 i_uv) { return UVToWorld(i_uv, _LD_SliceIndex); }
 
 // Convert compute shader id to uv texture coordinates
-float2 IDtoUV(in float2 i_id)
+float2 IDtoUV(in float2 i_id, in float i_width, in float i_height)
 {
-	return float2(float2(i_id) / float2(256, 256) + 0.5 / float2(256, 256));
+	return float2(float2(i_id) / float2(i_width, i_height) + 0.5 / float2(256, 256));
 }
-float2 UVToID(in float2 i_uv)
+float2 UVToID(in float2 i_uv, in float i_width, in float i_height)
 {
-	return float2((i_uv.xy * float2(256, 256)) - 0.5);
+	return float2((i_uv.xy * float2(i_width, i_height)) - 0.5);
 }
 
 // Sampling functions

@@ -38,7 +38,11 @@ void UpdateDynWaves(uint3 id : SV_DispatchThreadID)
 {
 	const float sliceIndex = id.z;
 	const float sliceIndexPrevFrame = id.z + _LODChange;
-	const float2 input_uv = IDtoUV(id.xy);
+	float width; float height; float depth;
+	{
+		_LD_TexArray_DynamicWaves_PrevFrame.GetDimensions(width, height, depth);
+	}
+	const float2 input_uv = IDtoUV(id.xy, width, height);
 	const float2 worldPosXZ = UVToWorld(input_uv, sliceIndex);
 	const float dt = _SimDeltaTime;
 	const float dtp = _SimDeltaTimePrev;
@@ -57,11 +61,6 @@ void UpdateDynWaves(uint3 id : SV_DispatchThreadID)
 	float fxp = SampleLod(_LD_TexArray_DynamicWaves_PrevFrame, uv_prevFrame + e*X).x; // x plus
 	float fyp = SampleLod(_LD_TexArray_DynamicWaves_PrevFrame, uv_prevFrame + e*Y).x; // y plus
 	half2 ft_ftm = SampleLod(_LD_TexArray_DynamicWaves_PrevFrame, uv_prevFrame).xy;
-	float depth;
-	{
-		float width; float height;
-		_LD_TexArray_DynamicWaves_PrevFrame.GetDimensions(width, height, depth);
-	}
 	if(sliceIndexPrevFrame > depth || sliceIndexPrevFrame < 0)
 	{
 		// no border wrap mode for RTs in unity it seems,

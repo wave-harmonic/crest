@@ -258,10 +258,11 @@ namespace Crest
 
         
 
-        /// <summary>
-        /// Dispose storage
-        /// </summary>
-        public static void Cleanup()
+
+    /// <summary>
+    /// Dispose storage
+    /// </summary>
+    public static void Cleanup()
 		{
 			s_initialised = false;
 

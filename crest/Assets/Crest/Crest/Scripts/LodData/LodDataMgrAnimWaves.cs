@@ -38,7 +38,8 @@ namespace Crest
 
         RenderTexture[] _waveBuffers;
 
-        PropertyWrapperMaterial[] _combineProperties;
+        Material _combineMaterial;
+        PropertyWrapperMPB[] _combineProperties;
 
         public override void UseSettings(SimSettingsBase settings) { OceanRenderer.Instance._simSettingsAnimatedWaves = settings as SimSettingsAnimatedWaves; }
         public override SimSettingsBase CreateDefaultSettings()
@@ -64,12 +65,11 @@ namespace Crest
         {
             base.InitData();
 
-            _combineProperties = new PropertyWrapperMaterial[OceanRenderer.Instance.CurrentLodCount];
+            _combineMaterial = new Material(Shader.Find("Hidden/Crest/Simulation/Combine Animated Wave LODs"));
+            _combineProperties = new PropertyWrapperMPB[OceanRenderer.Instance.CurrentLodCount];
             for (int i = 0; i < _combineProperties.Length; i++)
             {
-                _combineProperties[i] = new PropertyWrapperMaterial(
-                    new Material(Shader.Find("Hidden/Crest/Simulation/Combine Animated Wave LODs"))
-                );
+                _combineProperties[i] = new PropertyWrapperMPB();
             }
 
             Debug.Assert(SystemInfo.SupportsRenderTextureFormat(TextureFormat), "The graphics device does not support the render texture format " + TextureFormat.ToString());
@@ -90,7 +90,7 @@ namespace Crest
             }
         }
 
-        // Filter object for assigning shapes to lods. This was much more elegant with a lambda but it generated garbage.
+        // Filter object for assigning shapes to LODs. This was much more elegant with a lambda but it generated garbage.
         public class FilterWavelength : IDrawFilter
         {
             public float _lodMinWavelength;
@@ -178,7 +178,8 @@ namespace Crest
                     LodDataMgrFlow.BindNull(0, _combineProperties[lodIdx]);
                 }
 
-                buf.Blit(null, DataTexture(lodIdx), _combineProperties[lodIdx].material);
+                buf.SetRenderTarget(DataTexture(lodIdx));
+                buf.DrawProcedural(Matrix4x4.identity, _combineMaterial, 0, MeshTopology.Triangles, 3, 1, _combineProperties[lodIdx].materialPropertyBlock);
             }
 
             // lod-independent data
@@ -192,32 +193,33 @@ namespace Crest
         }
 
 #if USE_JOBS
-		private void LateUpdate()
-		{
-			LateUpdateGerstnerJobs();
-		}
+        private void LateUpdate()
+        {
+          LateUpdateGerstnerJobs();
+        }
 
-		private void LateUpdateGerstnerJobs()
-		{
-			ShapeGerstnerJobs.StartSettingWaveData();
+        private void LateUpdateGerstnerJobs()
+        {
+          ShapeGerstnerJobs.StartSettingWaveData();
 
-			foreach(var gerstner in _gerstnerComponents)
-			{
-				// Run any Gerstner-related jobs
-				if(gerstner._weight > 0.0001f)
-				{
-					gerstner.AddGerstnerData();
-				}
-			}
-			
-			ShapeGerstnerJobs.FinishAddingWaveData();
+          foreach(var gerstner in _gerstnerComponents)
+          {
+            // Run any Gerstner-related jobs
+            if(gerstner._weight > 0.0001f)
+            {
+              gerstner.AddGerstnerData();
+            }
+          }
 
-			ShapeGerstnerJobs.ScheduleJobs();
-		}
+          ShapeGerstnerJobs.FinishAddingWaveData();
+
+          ShapeGerstnerJobs.ScheduleJobs();
+        }
 #endif
 			   		
-		public void BindWaveBuffer(int lodIdx, int shapeSlot, IPropertyWrapper properties, bool paramsOnly)
-		{
+        public void BindWaveBuffer(int lodIdx, int shapeSlot, IPropertyWrapper properties, bool paramsOnly)
+        {
+
             var rd = OceanRenderer.Instance._lods[lodIdx]._renderData.Validate(0, this);
             BindData(lodIdx, shapeSlot, properties, paramsOnly ? Texture2D.blackTexture : (Texture)_waveBuffers[lodIdx], true, ref rd);
         }

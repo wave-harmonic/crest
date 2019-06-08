@@ -90,7 +90,7 @@ namespace Crest
 
             if (_mpb == null)
             {
-                _mpb = new PropertyWrapperMPB(new MaterialPropertyBlock());
+                _mpb = new PropertyWrapperMPB();
             }
             _rend.GetPropertyBlock(_mpb.materialPropertyBlock);
 
@@ -115,7 +115,7 @@ namespace Crest
             var normalScrollSpeed1 = Mathf.Pow(Mathf.Log(1f + 4f * gridSizeLodData) * mul, pow);
             _mpb.SetVector(sp_GeomData, new Vector4(gridSizeLodData, gridSizeGeo, normalScrollSpeed0, normalScrollSpeed1));
 
-            // assign lod data to ocean shader
+            // Assign LOD data to ocean shader
             var ldaws = OceanRenderer.Instance._lodDataAnimWaves;
             var ldsds = OceanRenderer.Instance._lodDataSeaDepths;
             var ldfoam = OceanRenderer.Instance._lodDataFoam;
@@ -124,7 +124,7 @@ namespace Crest
 
             ldaws.BindResultData(_lodIndex, 0, _mpb);
             if (ldflow) ldflow.BindResultData(_lodIndex, 0, _mpb);
-            if (ldfoam) ldfoam.BindResultData(_lodIndex, 0, _mpb);
+            if (ldfoam) ldfoam.BindResultData(_lodIndex, 0, _mpb); else LodDataMgrFoam.BindNull(0, _mpb);
             if (ldsds) ldsds.BindResultData(_lodIndex, 0, _mpb);
             if (ldshadows) ldshadows.BindResultData(_lodIndex, 0, _mpb); else LodDataMgrShadow.BindNull(0, _mpb);
 
@@ -132,7 +132,7 @@ namespace Crest
             {
                 ldaws.BindResultData(_lodIndex + 1, 1, _mpb);
                 if (ldflow) ldflow.BindResultData(_lodIndex + 1, 1, _mpb);
-                if (ldfoam) ldfoam.BindResultData(_lodIndex + 1, 1, _mpb);
+                if (ldfoam) ldfoam.BindResultData(_lodIndex + 1, 1, _mpb); else LodDataMgrFoam.BindNull(1, _mpb);
                 if (ldsds) ldsds.BindResultData(_lodIndex + 1, 1, _mpb);
                 if (ldshadows) ldshadows.BindResultData(_lodIndex + 1, 1, _mpb); else LodDataMgrShadow.BindNull(1, _mpb);
             }
@@ -147,8 +147,8 @@ namespace Crest
                 _mpb.SetTexture(sp_ReflectionTex, Texture2D.blackTexture);
             }
 
-            // Hack - due to SV_IsFrontFace occasionally coming through as true for backfaces,
-            // add a param here that forces ocean to be in undrwater state. I think the root
+            // Hack - due to SV_IsFrontFace occasionally coming through as true for back faces,
+            // add a param here that forces ocean to be in underwater state. I think the root
             // cause here might be imprecision or numerical issues at ocean tile boundaries, although
             // i'm not sure why cracks are not visible in this case.
             var heightOffset = OceanRenderer.Instance.ViewerHeightAboveWater;

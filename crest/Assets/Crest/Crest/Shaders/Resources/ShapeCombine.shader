@@ -14,14 +14,17 @@ Shader "Hidden/Crest/Simulation/Combine Animated Wave LODs"
 		Pass
 		{
 			CGPROGRAM
+			// For SV_VertexID
+			#pragma target 3.5
 			#pragma vertex Vert
 			#pragma fragment Frag
-			
+
 			#pragma multi_compile __ _DYNAMIC_WAVE_SIM_ON
 			#pragma multi_compile __ _FLOW_ON
 
 			#include "UnityCG.cginc"
 			#include "../OceanLODData.hlsl"
+			#include "../FullScreenTriangle.hlsl"
 
 			float _HorizDisplace;
 			float _DisplaceClamp;
@@ -29,8 +32,7 @@ Shader "Hidden/Crest/Simulation/Combine Animated Wave LODs"
 
 			struct Attributes
 			{
-				float3 positionOS : POSITION;
-				float2 uv : TEXCOORD0;
+				uint vertexID : SV_VertexID;
 			};
 
 			struct Varyings
@@ -41,12 +43,12 @@ Shader "Hidden/Crest/Simulation/Combine Animated Wave LODs"
 
 			Varyings Vert(Attributes input)
 			{
-				Varyings o;
-				o.positionCS = UnityObjectToClipPos(input.positionOS);
-				o.uv = input.uv;
-				return o;
+				Varyings output;
+				output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID);
+				output.uv = GetFullScreenTriangleTexCoord(input.vertexID);
+				return output;
 			}
-			
+
 			void Flow(out float2 offsets, out float2 weights)
 			{
 				const float period = 3.0 * _LD_Params_0.x;

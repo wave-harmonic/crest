@@ -57,6 +57,8 @@ Shader "Crest/Ocean"
 
 		// Reflection properites
 		[Header(Reflection Environment)]
+		// Controls specular response of water surface
+		_Specular("Specular", Range(0.0, 1.0)) = 1.0
 		// Controls harshness of Fresnel behaviour
 		_FresnelPower("Fresnel Power", Range(1.0, 20.0)) = 5.0
 		// Refractive indices
@@ -271,10 +273,12 @@ Shader "Crest/Ocean"
 				// Sample shape textures - always lerp between 2 LOD scales, so sample two textures
 
 				// Calculate sample weights. params.z allows shape to be faded out (used on last lod to support pop-less scale transitions)
-				float wt_0 = (1. - lodAlpha) * _LD_Params_0.z;
-				float wt_1 = (1. - wt_0) * _LD_Params_1.z;
-				const float2 positionWS_XZ_before = o.worldPos.xz;
+				const float wt_0 = (1. - lodAlpha) * _LD_Params_0.z;
+				const float wt_1 = (1. - wt_0) * _LD_Params_1.z;
 				// Sample displacement textures, add results to current world pos / normal / foam
+				const float2 positionWS_XZ_before = o.worldPos.xz;
+
+				// Data that needs to be sampled at the undisplaced position
 				if (wt_0 > 0.001)
 				{
 					const float2 uv_0 = LD_0_WorldToUV(positionWS_XZ_before);
@@ -289,14 +293,6 @@ Shader "Crest/Ocean"
 
 					#if _FLOW_ON
 					SampleFlow(_LD_Sampler_Flow_0, uv_0, wt_0, o.flow_shadow.xy);
-					#endif
-
-					#if _SUBSURFACESHALLOWCOLOUR_ON
-					SampleSeaDepth(_LD_Sampler_SeaFloorDepth_0, uv_0, wt_0, o.lodAlpha_worldXZUndisplaced_oceanDepth.w);
-					#endif
-
-					#if _SHADOWS_ON
-					SampleShadow(_LD_Sampler_Shadow_0, uv_0, wt_0, o.flow_shadow.zw);
 					#endif
 				}
 				if (wt_1 > 0.001)
@@ -314,13 +310,31 @@ Shader "Crest/Ocean"
 					#if _FLOW_ON
 					SampleFlow(_LD_Sampler_Flow_1, uv_1, wt_1, o.flow_shadow.xy);
 					#endif
+				}
+
+				// Data that needs to be sampled at the displaced position
+				if (wt_0 > 0.001)
+				{
+					const float2 uv_0_disp = LD_0_WorldToUV(o.worldPos.xz);
 
 					#if _SUBSURFACESHALLOWCOLOUR_ON
-					SampleSeaDepth(_LD_Sampler_SeaFloorDepth_1, uv_1, wt_1, o.lodAlpha_worldXZUndisplaced_oceanDepth.w);
+					SampleSeaDepth(_LD_Sampler_SeaFloorDepth_0, uv_0_disp, wt_0, o.lodAlpha_worldXZUndisplaced_oceanDepth.w);
 					#endif
 
 					#if _SHADOWS_ON
-					SampleShadow(_LD_Sampler_Shadow_1, uv_1, wt_1, o.flow_shadow.zw);
+					SampleShadow(_LD_Sampler_Shadow_0, uv_0_disp, wt_0, o.flow_shadow.zw);
+					#endif
+				}
+				if (wt_1 > 0.001)
+				{
+					const float2 uv_1_disp = LD_1_WorldToUV(o.worldPos.xz);
+
+					#if _SUBSURFACESHALLOWCOLOUR_ON
+					SampleSeaDepth(_LD_Sampler_SeaFloorDepth_1, uv_1_disp, wt_1, o.lodAlpha_worldXZUndisplaced_oceanDepth.w);
+					#endif
+
+					#if _SHADOWS_ON
+					SampleShadow(_LD_Sampler_Shadow_1, uv_1_disp, wt_1, o.flow_shadow.zw);
 					#endif
 				}
 

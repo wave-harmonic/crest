@@ -87,7 +87,7 @@ public class BoatProbes : BoatBase
         }
 
         _localSamplingAABB = ComputeLocalSamplingAABB();
-        
+
         CalcTotalWeight();
 
 #if USE_JOBS
@@ -272,9 +272,9 @@ public class BoatProbes : BoatBase
 
         UpdateJobQueryPositions();
 
-		ShapeGerstnerJobs.UpdateQueryPoints(_guid, this.transform, _queryPositions);
-	}
-
+        ShapeGerstnerJobs.UpdateQueryPoints(_guid, this.transform, _queryPositions);
+	  }
+    
     void UpdateJobQueryPositions()
     {
         for (var i = 0; i < _forcePoints.Length; i++)
@@ -332,10 +332,13 @@ public class BoatProbes : BoatBase
         return Rect.MinMaxRect(b.min.x, b.min.z, b.max.x, b.max.z);
     }
 
+#if USE_JOBS
     private void OnDisable()
     {
         ShapeGerstnerJobs.RemoveQueryPoints(_guid);
     }
+
+#endif
 }
 
 [Serializable]

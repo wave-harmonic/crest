@@ -4,7 +4,12 @@
 
 // Ocean LOD data - data, samplers and functions associated with LODs
 
+
 #include "OceanLodDataShared.hlsl"
+
+// TODO(MRT): These functions had to be pulled out of OceanLODDataShared.hlsl as they
+// aren't compatible with compute shaders. However, we should rename this file
+// something more sensible, and rename OceanLODDataShared.hlsl back to OceanLODData.hlsl
 
 float ComputeLodAlpha(float3 i_worldPos, float i_meshScaleAlpha)
 {

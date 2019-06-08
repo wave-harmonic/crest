@@ -8,6 +8,10 @@
 // C# code to check if any parameters are within the MAX_LOD_COUNT limits
 #define MAX_LOD_COUNT 16
 
+// NOTE: these MUST match the values in PropertyWrapper.cs
+#define THREAD_GROUP_SIZE_X 8
+#define THREAD_GROUP_SIZE_Y 8
+
 // Samplers and data associated with a LOD.
 // _LD_Params: float4(world texel size, texture resolution, shape weight multiplier, 1 / texture resolution)
 Texture2DArray _LD_TexArray_AnimatedWaves;

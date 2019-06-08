@@ -336,28 +336,16 @@ namespace Crest
             _gerstnerComponents.Remove(gerstner);
         }
 
-        // TODO(MRT): Factor these out to be shared with other classes who have to do similar things
         public static string TextureArrayName = "_LD_TexArray_AnimatedWaves";
-        public static int ParamIDTextureArray = Shader.PropertyToID(TextureArrayName);
-        public static int ParamIDTextureArray_PrevFrame = Shader.PropertyToID(TextureArrayName + "_PrevFrame");
-        public static int ParamIdSampler(bool prevFrame = false)
-        {
-            if(prevFrame)
-            {
-                return ParamIDTextureArray_PrevFrame;
-            }
-            else
-            {
-                return ParamIDTextureArray;
-            }
-        }
+        private static TextureArrayParamIds textureArrayParamIds = new TextureArrayParamIds(TextureArrayName);
+        public static int ParamIdSampler(bool prevFrame = false) { return textureArrayParamIds.GetId(prevFrame); }
         protected override int GetParamIdSampler(bool prevFrame = false)
         {
             return ParamIdSampler(prevFrame);
         }
         public static void BindNull(IPropertyWrapper properties, bool prevFrame = false)
         {
-            properties.SetTexture(ParamIdSampler(prevFrame), TextureArray.Black);
+            properties.SetTexture(ParamIdSampler(prevFrame), TextureArray.blackTextureArray);
         }
 
         public void SetOrigin(Vector3 newOrigin)

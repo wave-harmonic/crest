@@ -214,5 +214,21 @@ namespace Crest
                 }
             }
         }
+
+        protected struct TextureArrayParamIds
+        {
+            private int _paramId;
+            private int _paramId_PrevFrame;
+            public TextureArrayParamIds(string textureArrayName)
+            {
+                _paramId = Shader.PropertyToID(textureArrayName);
+                // Note: string concatonation does generate a small amount of
+                // garbage. However, this is called on initialisation so should
+                // be ok for now? Something worth considering for the future if
+                // we want to go garbage-free.
+                _paramId_PrevFrame = Shader.PropertyToID(textureArrayName + "_PrevFrame");
+            }
+            public int GetId(bool prevFrame) { return prevFrame ? _paramId_PrevFrame : _paramId; }
+        }
     }
 }

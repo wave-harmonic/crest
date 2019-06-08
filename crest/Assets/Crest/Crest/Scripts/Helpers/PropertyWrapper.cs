@@ -74,14 +74,15 @@ namespace Crest
         public void SetVectorArray(int param, Vector4[] value) { _commandBuffer.SetComputeVectorArrayParam(_computeShader, param, value); }
         public void SetMatrix(int param, Matrix4x4 value) { _commandBuffer.SetComputeMatrixParam(_computeShader, param, value); }
 
+        // NOTE: these MUST match the values in OceanLODData.hlsl
+        const int THREAD_GROUP_SIZE_X = 8;
+        const int THREAD_GROUP_SIZE_Y = 8;
         public void DispatchShader()
         {
-            // TODO(MRT): enforce that this matches thread group size in shader
-            // somehow?
             _commandBuffer.DispatchCompute(
                 _computeShader, _computeKernel,
-                OceanRenderer.Instance.LodDataResolution / 8,
-                OceanRenderer.Instance.LodDataResolution / 8,
+                OceanRenderer.Instance.LodDataResolution / THREAD_GROUP_SIZE_X,
+                OceanRenderer.Instance.LodDataResolution / THREAD_GROUP_SIZE_Y,
                 1
             );
 
@@ -92,12 +93,10 @@ namespace Crest
 
         public void DispatchShaderMultiLOD()
         {
-            // TODO(MRT): enforce that this matches thread group size in shader
-            // somehow?
             _commandBuffer.DispatchCompute(
                 _computeShader, _computeKernel,
-                OceanRenderer.Instance.LodDataResolution / 8,
-                OceanRenderer.Instance.LodDataResolution / 8,
+                OceanRenderer.Instance.LodDataResolution / THREAD_GROUP_SIZE_X,
+                OceanRenderer.Instance.LodDataResolution / THREAD_GROUP_SIZE_Y,
                 OceanRenderer.Instance.CurrentLodCount
             );
 

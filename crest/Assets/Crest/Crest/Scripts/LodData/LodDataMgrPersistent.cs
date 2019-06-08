@@ -79,7 +79,7 @@ namespace Crest
                 LodTransform._staticRenderDataPrevFrame
                 : LodTransform._staticRenderData;
 
-            BindData(properties, paramsOnly ? TextureArray.Black : (Texture) _sources, true, ref renderData, prevFrame);
+            BindData(properties, paramsOnly ? TextureArray.blackTextureArray : (Texture) _sources, true, ref renderData, prevFrame);
         }
 
         public abstract void GetSimSubstepData(float frameDt, out int numSubsteps, out float substepDt);

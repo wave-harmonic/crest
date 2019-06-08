@@ -33,7 +33,7 @@ float ComputeWaveSpeed(float wavelength, float g)
 
 RWTexture2DArray<float2> _LD_TexArray_Target;
 
-[numthreads(8,8,1)]
+[numthreads(THREAD_GROUP_SIZE_X,THREAD_GROUP_SIZE_Y,1)]
 void UpdateDynWaves(uint3 id : SV_DispatchThreadID)
 {
 	const float sliceIndex = id.z;

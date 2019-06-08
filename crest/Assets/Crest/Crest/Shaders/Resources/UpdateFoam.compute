@@ -17,7 +17,7 @@ float _LODChange;
 
 RWTexture2DArray<float> _LD_TexArray_Target;
 
-[numthreads(8,8,1)]
+[numthreads(THREAD_GROUP_SIZE_X,THREAD_GROUP_SIZE_Y,1)]
 void UpdateFoam(uint3 id : SV_DispatchThreadID)
 {
 	// lod data 1 is current frame, compute world pos from quad uv

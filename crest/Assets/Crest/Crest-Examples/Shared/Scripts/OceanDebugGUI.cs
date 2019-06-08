@@ -194,7 +194,9 @@ public class OceanDebugGUI : MonoBehaviour
                 float y = idx * h;
                 if (offset == 1f) w += b;
 
-                // TODO(MRT): clean up this section, workout if we can use texture2d arrays directly.
+                // We cannot debug draw texture arrays directly
+                // (unless we write our own system for doing so).
+                // So for now, we just copy each texture and then draw that.
                 if(!shapes.ContainsKey(lodData.DataTexture.format))
                 {
                     shapes.Add(lodData.DataTexture.format, new RenderTexture(lodData.DataTexture));

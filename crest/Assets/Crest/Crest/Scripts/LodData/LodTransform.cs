@@ -49,7 +49,6 @@ namespace Crest
             }
         }
 
-        // TODO(MRT): LodTransformSOA Make these not static singletons
         public RenderData[] _renderData = null;
         public RenderData[] _renderDataPrevFrame = null;
 

@@ -177,17 +177,16 @@ namespace Crest
 
             _bufCopyShadowMap.Clear();
 
+            var lt = OceanRenderer.Instance._lodTransform;
             for (var lodIdx = OceanRenderer.Instance.CurrentLodCount - 1; lodIdx >= 0; lodIdx--)
             {
                 // clear the shadow collection. it will be overwritten with shadow values IF the shadows render,
                 // which only happens if there are (nontransparent) shadow receivers around
                 Graphics.Blit(Texture2D.blackTexture, _targets, -1, lodIdx);
 
-                var lt = OceanRenderer.Instance._lods[lodIdx];
-
-                lt._renderData.Validate(0, this);
-                _renderMaterial[lodIdx].SetVector(sp_CenterPos, lt._renderData._posSnapped);
-                _renderMaterial[lodIdx].SetVector(sp_Scale, lt.transform.lossyScale);
+                lt._renderData[lodIdx].Validate(0, this);
+                _renderMaterial[lodIdx].SetVector(sp_CenterPos, lt._renderData[lodIdx]._posSnapped);
+                _renderMaterial[lodIdx].SetVector(sp_Scale, lt.GetLodTransform(lodIdx).lossyScale);
                 _renderMaterial[lodIdx].SetVector(sp_CamPos, OceanRenderer.Instance.Viewpoint.position);
                 _renderMaterial[lodIdx].SetVector(sp_CamForward, OceanRenderer.Instance.Viewpoint.forward);
                 _renderMaterial[lodIdx].SetVector(sp_JitterDiameters_CurrentFrameWeights, new Vector4(Settings._jitterDiameterSoft, Settings._jitterDiameterHard, Settings._currentFrameWeightSoft, Settings._currentFrameWeightHard));
@@ -195,7 +194,7 @@ namespace Crest
                 _renderMaterial[lodIdx].SetFloat(sp_SimDeltaTime, Time.deltaTime);
 
                 // compute which lod data we are sampling previous frame shadows from. if a scale change has happened this can be any lod up or down the chain.
-                var srcDataIdx = lt.LodIndex + ScaleDifferencePow2;
+                var srcDataIdx = lodIdx + ScaleDifferencePow2;
                 srcDataIdx = Mathf.Clamp(srcDataIdx, 0, lt.LodCount - 1);
                 // bind data to slot 0 - previous frame data
                 _renderMaterial[lodIdx].SetFloat(OceanRenderer.sp_LD_SliceIndex, lodIdx);
@@ -207,7 +206,7 @@ namespace Crest
         public void BindSourceData(PropertyWrapperMaterial simMaterial, bool paramsOnly, bool prevFrame = false)
         {
             // TODO(MRT): LodTransformSOA Validate this
-            var rd = LodTransform._staticRenderDataPrevFrame; //.Validate(BuildCommandBufferBase._lastUpdateFrame - Time.frameCount, this);
+            var rd = OceanRenderer.Instance._lodTransform._renderDataPrevFrame; //.Validate(BuildCommandBufferBase._lastUpdateFrame - Time.frameCount, this);
             BindData(simMaterial, paramsOnly ? Texture2D.blackTexture : _sources as Texture, true, ref rd, prevFrame);
         }
 

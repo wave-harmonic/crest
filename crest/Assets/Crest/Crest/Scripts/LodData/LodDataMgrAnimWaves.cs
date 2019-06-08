@@ -144,7 +144,7 @@ namespace Crest
 
                 // draw any data with lod preference
                 _filterWavelength._lodIdx = lodIdx;
-                _filterWavelength._lodMaxWavelength = OceanRenderer.Instance._lods[lodIdx].MaxWavelength();
+                _filterWavelength._lodMaxWavelength = OceanRenderer.Instance._lodTransform.MaxWavelength(lodIdx);
                 _filterWavelength._lodMinWavelength = _filterWavelength._lodMaxWavelength / 2f;
                 SubmitDrawsFiltered(lodIdx, buf, _filterWavelength);
             }
@@ -235,12 +235,13 @@ namespace Crest
         {
             // TODO(MRT): See if there is a better way to validate all lods at
             // once.
+            var lt = OceanRenderer.Instance._lodTransform;
             for(int lodIdx = 0; lodIdx < OceanRenderer.Instance.CurrentLodCount; lodIdx++)
             {
-                LodTransform._staticRenderData[lodIdx].Validate(0, this);
+                lt._renderData[lodIdx].Validate(0, this);
             }
             properties.SetTexture(Shader.PropertyToID("_LD_TexArray_WaveBuffer"), _waveBuffers);
-            BindData(properties, null, true, ref LodTransform._staticRenderData, prevFrame);
+            BindData(properties, null, true, ref lt._renderData, prevFrame);
         }
 
         // TODO(MRT): LodTransformSOA This is a temporary hack to avoid a lot of array allocations which are then GCed.
@@ -251,17 +252,17 @@ namespace Crest
         {
             base.BindData(properties, applyData, blendOut, ref renderData, prevFrame);
 
-            for(int lodIdx = 0; lodIdx < OceanRenderer.Instance.CurrentLodCount; lodIdx++)
-            {
-                var lt = OceanRenderer.Instance._lods[lodIdx];
+            var lt = OceanRenderer.Instance._lodTransform;
 
+            for (int lodIdx = 0; lodIdx < OceanRenderer.Instance.CurrentLodCount; lodIdx++)
+            {
                 // need to blend out shape if this is the largest lod, and the ocean might get scaled down later (so the largest lod will disappear)
                 bool needToBlendOutShape = lodIdx == OceanRenderer.Instance.CurrentLodCount - 1 && OceanRenderer.Instance.ScaleCouldDecrease && blendOut;
                 float shapeWeight = needToBlendOutShape ? OceanRenderer.Instance.ViewerAltitudeLevelAlpha : 1f;
                 _paramIdOceans[lodIdx] = new Vector4(
-                    lt._renderData._texelWidth,
-                    lt._renderData._textureRes, shapeWeight,
-                    1f / lt._renderData._textureRes);
+                    lt._renderData[lodIdx]._texelWidth,
+                    lt._renderData[lodIdx]._textureRes, shapeWeight,
+                    1f / lt._renderData[lodIdx]._textureRes);
             }
             properties.SetVectorArray(LodTransform.ParamIdOcean(prevFrame), _paramIdOceans);
         }
@@ -278,21 +279,22 @@ namespace Crest
         public static int SuggestDataLOD(Rect sampleAreaXZ, float minSpatialLength)
         {
             var lodCount = OceanRenderer.Instance.CurrentLodCount;
+            var lt = OceanRenderer.Instance._lodTransform;
+
             for (int lod = 0; lod < lodCount; lod++)
             {
-                var lt = OceanRenderer.Instance._lods[lod];
 
                 // Shape texture needs to completely contain sample area
-                var lodRect = lt._renderData.RectXZ;
+                var lodRect = lt._renderData[lod].RectXZ;
                 // Shrink rect by 1 texel border - this is to make finite differences fit as well
-                lodRect.x += lt._renderData._texelWidth; lodRect.y += lt._renderData._texelWidth;
-                lodRect.width -= 2f * lt._renderData._texelWidth; lodRect.height -= 2f * lt._renderData._texelWidth;
+                lodRect.x += lt._renderData[lod]._texelWidth; lodRect.y += lt._renderData[lod]._texelWidth;
+                lodRect.width -= 2f * lt._renderData[lod]._texelWidth; lodRect.height -= 2f * lt._renderData[lod]._texelWidth;
                 if (!lodRect.Contains(sampleAreaXZ.min) || !lodRect.Contains(sampleAreaXZ.max))
                     continue;
 
                 // The smallest wavelengths should repeat no more than twice across the smaller spatial length. Unless we're
                 // in the last LOD - then this is the best we can do.
-                var minWL = OceanRenderer.Instance._lods[lod].MaxWavelength() / 2f;
+                var minWL = lt.MaxWavelength(lod) / 2f;
                 if (minWL < minSpatialLength / 2f && lod < lodCount - 1)
                     continue;
 

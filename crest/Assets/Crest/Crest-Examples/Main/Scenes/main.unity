@@ -422,7 +422,7 @@ MonoBehaviour:
   _uniformTiles: 0
   _disableSkirt: 0
   _followViewpoint: 1
-  _lods: []
+  _lodTransform: {fileID: 0}
   _lodDataAnimWaves: {fileID: 0}
   _lodDataSeaDepths: {fileID: 0}
   _lodDataDynWaves: {fileID: 0}

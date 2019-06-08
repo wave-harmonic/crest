@@ -239,8 +239,8 @@ namespace Crest
 
             float twopi = 2f * Mathf.PI;
             float one_over_2pi = 1f / twopi;
-            float minWavelengthThisBatch = OceanRenderer.Instance._lods[lodIdx].MaxWavelength() / 2f;
-            float maxWavelengthCurrentlyRendering = OceanRenderer.Instance._lods[OceanRenderer.Instance.CurrentLodCount - 1].MaxWavelength();
+            float minWavelengthThisBatch = OceanRenderer.Instance._lodTransform.MaxWavelength(lodIdx) / 2f;
+            float maxWavelengthCurrentlyRendering = OceanRenderer.Instance._lodTransform.MaxWavelength(OceanRenderer.Instance.CurrentLodCount - 1);
             float viewerAltitudeLevelAlpha = OceanRenderer.Instance.ViewerAltitudeLevelAlpha;
 
             // register any nonzero components
@@ -377,7 +377,7 @@ namespace Crest
             int componentIdx = 0;
 
             // seek forward to first wavelength that is big enough to render into current LODs
-            float minWl = OceanRenderer.Instance._lods[0].MaxWavelength() / 2f;
+            float minWl = OceanRenderer.Instance._lodTransform.MaxWavelength(0) / 2f;
             while (_wavelengths[componentIdx] < minWl && componentIdx < _wavelengths.Length)
             {
                 componentIdx++;

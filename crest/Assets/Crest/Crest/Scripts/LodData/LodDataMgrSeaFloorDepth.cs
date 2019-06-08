@@ -38,12 +38,12 @@ namespace Crest
 
             Matrix4x4[] matrixArray = new Matrix4x4[MAX_LOD_COUNT];
 
+            var lt = OceanRenderer.Instance._lodTransform;
             for (int lodIdx = OceanRenderer.Instance.CurrentLodCount - 1; lodIdx >= 0; lodIdx--)
             {
-                var lt = OceanRenderer.Instance._lods[lodIdx];
-                lt._renderData.Validate(0, this);
+                lt._renderData[lodIdx].Validate(0, this);
 
-                Matrix4x4 worldToClipPos = lt.ProjectionMatrix * lt.WorldToCameraMatrix;
+                Matrix4x4 worldToClipPos = lt.GetProjectionMatrix(lodIdx) * lt.GetWorldToCameraMatrix(lodIdx);
                 // TODO (TRC): for some reason, the projection matrix that is sent to the
                 // shader by `SetViewProjectionMatrices` in the command buffer has
                 // it's middle two rows inverted, which then propagates to the

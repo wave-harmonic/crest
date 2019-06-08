@@ -319,8 +319,8 @@ namespace Crest
 
         public static OceanRenderer Instance { get; private set; }
 
-        /// <summary>
         public static int sp_LD_SliceIndex = Shader.PropertyToID("_LD_SliceIndex");
+        public static int sp_LODChange = Shader.PropertyToID("_LODChange");
 
         /// <summary>
         /// Provides ocean shape to CPU.

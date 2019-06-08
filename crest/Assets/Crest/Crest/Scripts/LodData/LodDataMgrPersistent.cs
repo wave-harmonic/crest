@@ -125,7 +125,7 @@ namespace Crest
                 SetAdditionalSimParams(_renderSimProperties);
 
                 // TODO(MRT): Move this out to a shader param id.
-                buf.SetGlobalFloat("_LODChange", srcDataIdxChange);
+                buf.SetGlobalFloat(OceanRenderer.sp_LODChange, srcDataIdxChange);
 
                 _renderSimProperties.SetTexture(
                     sp_LD_TexArray_Target,

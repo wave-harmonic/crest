@@ -84,6 +84,7 @@ float2 LD_UVToWorld(in float2 i_uv, in float2 i_centerPos, in float i_res, in fl
 
 float2 UVToWorld(in float2 i_uv, in float i_sliceIndex) { return LD_UVToWorld(i_uv, _LD_Pos_Scale[i_sliceIndex].xy, _LD_Params[i_sliceIndex].y, _LD_Params[i_sliceIndex].x); }
 
+// Shortcuts if _LD_SliceIndex is set
 float3 WorldToUV(in float2 i_samplePos) { return WorldToUV(i_samplePos, _LD_SliceIndex); }
 float3 WorldToUV_NextLod(in float2 i_samplePos) { return WorldToUV_NextLod(i_samplePos, _LD_SliceIndex + 1); }
 float3 WorldToUV_PrevFrame(in float2 i_samplePos) { return WorldToUV_PrevFrame(i_samplePos, _LD_SliceIndex_PrevFrame); }

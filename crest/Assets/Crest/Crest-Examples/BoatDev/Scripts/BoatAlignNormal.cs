@@ -6,7 +6,7 @@ using UnityEngine;
 /// <summary>
 /// Simple type of buoyancy - takes one sample and matches boat height and orientation to water height and normal.
 /// </summary>
-public class BoatAlignNormal : BoatBase
+public class BoatAlignNormal : FloatingObjectBase
 {
     [Header("Buoyancy Force")]
     [Tooltip("Height offset from transform center to bottom of boat (if any)."), SerializeField]
@@ -25,7 +25,7 @@ public class BoatAlignNormal : BoatBase
     [Header("Wave Response")]
     [Tooltip("Width dimension of boat. The larger this value, the more filtered/smooth the wave response will be."), SerializeField]
     float _boatWidth = 3f;
-    public override float BoatWidth { get { return _boatWidth; } }
+    public override float ObjectWidth { get { return _boatWidth; } }
 
     [SerializeField, Tooltip("Computes a separate normal based on boat length to get more accurate orientations, at the cost of an extra collision sample.")]
     bool _useBoatLength = false;
@@ -57,7 +57,7 @@ public class BoatAlignNormal : BoatBase
     Vector3 _velocityRelativeToWater;
     public Vector3 VelocityRelativeToWater { get { return _velocityRelativeToWater; } }
 
-    public override Vector3 DisplacementToBoat { get; set; }
+    public override Vector3 DisplacementToObject { get; set; }
 
     public override Rigidbody RB { get; set; }
 
@@ -123,7 +123,7 @@ public class BoatAlignNormal : BoatBase
         Vector3 waterSurfaceVel, displacement;
         bool dispValid, velValid;
         collProvider.SampleDisplacementVel(ref undispPos, _samplingData, out displacement, out dispValid, out waterSurfaceVel, out velValid);
-        DisplacementToBoat = displacement;
+        DisplacementToObject = displacement;
 
         if (GPUReadbackFlow.Instance)
         {
@@ -150,7 +150,7 @@ public class BoatAlignNormal : BoatBase
 
         _velocityRelativeToWater = RB.velocity - waterSurfaceVel;
 
-        var dispPos = undispPos + DisplacementToBoat;
+        var dispPos = undispPos + DisplacementToObject;
         if (_debugDraw) DebugDrawCross(dispPos, 4f, Color.white);
 
         float height = dispPos.y;

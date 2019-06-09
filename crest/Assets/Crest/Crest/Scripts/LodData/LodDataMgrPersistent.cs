@@ -78,7 +78,7 @@ namespace Crest
                 OceanRenderer.Instance._lodTransform._renderDataPrevFrame
                 : OceanRenderer.Instance._lodTransform._renderData;
 
-            BindData(properties, paramsOnly ? TextureArray.blackTextureArray : (Texture)_sources, true, ref renderData, prevFrame);
+            BindData(properties, paramsOnly ? TextureArrayHelpers.BlackTextureArray : (Texture)_sources, true, ref renderData, prevFrame);
         }
 
         public abstract void GetSimSubstepData(float frameDt, out int numSubsteps, out float substepDt);

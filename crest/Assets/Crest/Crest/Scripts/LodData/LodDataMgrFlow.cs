@@ -85,7 +85,7 @@ namespace Crest
         }
         public static void BindNull(IPropertyWrapper properties, bool prevFrame = false)
         {
-            properties.SetTexture(ParamIdSampler(prevFrame), TextureArray.blackTextureArray);
+            properties.SetTexture(ParamIdSampler(prevFrame), TextureArrayHelpers.BlackTextureArray);
         }
     }
 }

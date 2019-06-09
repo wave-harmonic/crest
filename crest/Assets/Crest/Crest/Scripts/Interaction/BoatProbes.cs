@@ -28,7 +28,6 @@ namespace Crest
         float _turningHeel = 0.35f;
 
         [Header("Drag")]
-
         [SerializeField]
         float _dragInWaterUp = 3f;
         [SerializeField]
@@ -37,7 +36,6 @@ namespace Crest
         float _dragInWaterForward = 1f;
 
         [Header("Control")]
-
         [SerializeField, FormerlySerializedAs("EnginePower")]
         float _enginePower = 7;
         [SerializeField, FormerlySerializedAs("TurnPower")]
@@ -54,7 +52,9 @@ namespace Crest
 
         public override Rigidbody RB { get; set; }
 
-        public override Vector3 DisplacementToObject { get; set; }
+        Vector3 _displacementToObject = Vector3.zero;
+        public override Vector3 CalculateDisplacementToObject() { return _displacementToObject; }
+
         public override float ObjectWidth { get { return _minSpatialLength; } }
         public override bool InWater { get { return true; } }
 
@@ -125,7 +125,7 @@ namespace Crest
             collProvider.SampleDisplacementVel(ref undispPos, _samplingData, out displacement, out dispValid, out waterSurfaceVel, out velValid);
             if (dispValid)
             {
-                DisplacementToObject = displacement;
+                _displacementToObject = displacement;
             }
 
             if (GPUReadbackFlow.Instance)

@@ -89,7 +89,7 @@ public class FeedVelocityToExtrude : MonoBehaviour
         if (simsActive == 0)
             return;
 
-        var disp = _boat.DisplacementToObject;
+        var disp = _boat.CalculateDisplacementToObject();
         transform.position = transform.parent.TransformPoint(_localOffset) - disp + _velocityPositionOffset * _boat.RB.velocity;
 
         var rnd = 1f + _noiseAmp * (2f * Mathf.PerlinNoise(_noiseFreq * OceanRenderer.Instance.CurrentTime, 0.5f) - 1f);

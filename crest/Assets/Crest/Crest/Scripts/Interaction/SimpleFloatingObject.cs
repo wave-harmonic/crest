@@ -1,5 +1,7 @@
 ﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+// Thanks to @VizzzU for contributing this.
+
 using UnityEngine;
 
 namespace Crest
@@ -39,10 +41,8 @@ namespace Crest
         bool _inWater;
         public override bool InWater { get { return _inWater; } }
 
-        Vector3 _velocityRelativeToWater;
-        public Vector3 VelocityRelativeToWater { get { return _velocityRelativeToWater; } }
-
-        public override Vector3 DisplacementToObject { get; set; }
+        Vector3 _displacementToObject = Vector3.zero;
+        public override Vector3 CalculateDisplacementToObject() { return _displacementToObject; }
 
         public override Rigidbody RB { get; set; }
 
@@ -108,7 +108,10 @@ namespace Crest
             Vector3 waterSurfaceVel, displacement;
             bool dispValid, velValid;
             collProvider.SampleDisplacementVel(ref undispPos, _samplingData, out displacement, out dispValid, out waterSurfaceVel, out velValid);
-            DisplacementToObject = displacement;
+            if (dispValid)
+            {
+                _displacementToObject = displacement;
+            }
 
             if (GPUReadbackFlow.Instance)
             {
@@ -130,9 +133,9 @@ namespace Crest
                     new Color(1, 1, 1, 0.6f));
             }
 
-            _velocityRelativeToWater = RB.velocity - waterSurfaceVel;
+            var velocityRelativeToWater = RB.velocity - waterSurfaceVel;
 
-            var dispPos = undispPos + DisplacementToObject;
+            var dispPos = undispPos + _displacementToObject;
             if (_debugDraw) DebugDrawCross(dispPos, 4f, Color.white);
 
             float height = dispPos.y;
@@ -151,9 +154,9 @@ namespace Crest
 
             // apply drag relative to water
             var forcePosition = RB.position + _forceHeightOffset * Vector3.up;
-            RB.AddForceAtPosition(Vector3.up * Vector3.Dot(Vector3.up, -_velocityRelativeToWater) * _dragInWaterUp, forcePosition, ForceMode.Acceleration);
-            RB.AddForceAtPosition(transform.right * Vector3.Dot(transform.right, -_velocityRelativeToWater) * _dragInWaterRight, forcePosition, ForceMode.Acceleration);
-            RB.AddForceAtPosition(transform.forward * Vector3.Dot(transform.forward, -_velocityRelativeToWater) * _dragInWaterForward, forcePosition, ForceMode.Acceleration);
+            RB.AddForceAtPosition(Vector3.up * Vector3.Dot(Vector3.up, -velocityRelativeToWater) * _dragInWaterUp, forcePosition, ForceMode.Acceleration);
+            RB.AddForceAtPosition(transform.right * Vector3.Dot(transform.right, -velocityRelativeToWater) * _dragInWaterRight, forcePosition, ForceMode.Acceleration);
+            RB.AddForceAtPosition(transform.forward * Vector3.Dot(transform.forward, -velocityRelativeToWater) * _dragInWaterForward, forcePosition, ForceMode.Acceleration);
 
             FixedUpdateOrientation(collProvider, undispPos);
 

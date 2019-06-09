@@ -410,11 +410,6 @@ namespace Crest
             }
         }
 
-        public void AddGerstnerData()
-        {
-            ShapeGerstnerJobs.AddWaveData(_wavelengths, _amplitudes, _angleDegs, _phases, _spectrum._chopScales, _spectrum._gravityScales, _componentsPerOctave);
-        }
-
 		#if USE_JOBS
         public void AddGerstnerData()
         {

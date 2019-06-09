@@ -75,39 +75,41 @@ namespace Crest
             }
         }
 
-        public void UpdateTransform(int lodIdx)
+        public void UpdateTransforms()
         {
-            if (_transformUpdateFrame[lodIdx] == Time.frameCount)
-                return;
-
-            _transformUpdateFrame[lodIdx] = Time.frameCount;
-
-            _renderDataPrevFrame[lodIdx] = _renderData[lodIdx];
-
-            var lodTransform = GetLodTransform(lodIdx);
-
-            float camOrthSize = 2f * lodTransform.lossyScale.x;
-
-            // find snap period
-            _renderData[lodIdx]._textureRes = OceanRenderer.Instance.LodDataResolution;
-            _renderData[lodIdx]._texelWidth = 2f * camOrthSize / _renderData[lodIdx]._textureRes;
-            // snap so that shape texels are stationary
-            _renderData[lodIdx]._posSnapped = lodTransform.position
-                - new Vector3(Mathf.Repeat(lodTransform.position.x, _renderData[lodIdx]._texelWidth), 0f, Mathf.Repeat(lodTransform.position.z, _renderData[lodIdx]._texelWidth));
-
-            _renderData[lodIdx]._frame = Time.frameCount;
-
-            // detect first update and populate the render data if so - otherwise it can give divide by 0s and other nastiness
-            if (_renderDataPrevFrame[lodIdx]._textureRes == 0f)
+            for (int lodIdx = 0; lodIdx < LodCount; lodIdx++)
             {
-                _renderDataPrevFrame[lodIdx]._posSnapped = _renderData[lodIdx]._posSnapped;
-                _renderDataPrevFrame[lodIdx]._texelWidth = _renderData[lodIdx]._texelWidth;
-                _renderDataPrevFrame[lodIdx]._textureRes = _renderData[lodIdx]._textureRes;
+                if (_transformUpdateFrame[lodIdx] == Time.frameCount) continue;
+
+                _transformUpdateFrame[lodIdx] = Time.frameCount;
+
+                _renderDataPrevFrame[lodIdx] = _renderData[lodIdx];
+
+                var lodTransform = GetLodTransform(lodIdx);
+
+                float camOrthSize = 2f * lodTransform.lossyScale.x;
+
+                // find snap period
+                _renderData[lodIdx]._textureRes = OceanRenderer.Instance.LodDataResolution;
+                _renderData[lodIdx]._texelWidth = 2f * camOrthSize / _renderData[lodIdx]._textureRes;
+                // snap so that shape texels are stationary
+                _renderData[lodIdx]._posSnapped = lodTransform.position
+                    - new Vector3(Mathf.Repeat(lodTransform.position.x, _renderData[lodIdx]._texelWidth), 0f, Mathf.Repeat(lodTransform.position.z, _renderData[lodIdx]._texelWidth));
+
+                _renderData[lodIdx]._frame = Time.frameCount;
+
+                // detect first update and populate the render data if so - otherwise it can give divide by 0s and other nastiness
+                if (_renderDataPrevFrame[lodIdx]._textureRes == 0f)
+                {
+                    _renderDataPrevFrame[lodIdx]._posSnapped = _renderData[lodIdx]._posSnapped;
+                    _renderDataPrevFrame[lodIdx]._texelWidth = _renderData[lodIdx]._texelWidth;
+                    _renderDataPrevFrame[lodIdx]._textureRes = _renderData[lodIdx]._textureRes;
+                }
+
+                _worldToCameraMatrix[lodIdx] = CalculateWorldToCameraMatrixRHS(_renderData[lodIdx]._posSnapped + Vector3.up * 100f, Quaternion.AngleAxis(90f, Vector3.right));
+
+                _projectionMatrix[lodIdx] = Matrix4x4.Ortho(-2f * lodTransform.lossyScale.x, 2f * lodTransform.lossyScale.x, -2f * lodTransform.lossyScale.z, 2f * lodTransform.lossyScale.z, 1f, 500f);
             }
-
-            _worldToCameraMatrix[lodIdx] = CalculateWorldToCameraMatrixRHS(_renderData[lodIdx]._posSnapped + Vector3.up * 100f, Quaternion.AngleAxis(90f, Vector3.right));
-
-            _projectionMatrix[lodIdx] = Matrix4x4.Ortho(-2f * lodTransform.lossyScale.x, 2f * lodTransform.lossyScale.x, -2f * lodTransform.lossyScale.z, 2f * lodTransform.lossyScale.z, 1f, 500f);
         }
 
         // Borrowed from LWRP code: https://github.com/Unity-Technologies/ScriptableRenderPipeline/blob/2a68d8073c4eeef7af3be9e4811327a522434d5f/com.unity.render-pipelines.high-definition/Runtime/Core/Utilities/GeometryUtils.cs

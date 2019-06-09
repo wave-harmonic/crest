@@ -268,10 +268,7 @@ namespace Crest
         {
             // Do any per-frame update for each LOD type.
 
-            for (int i = 0; i < CurrentLodCount; i++)
-            {
-                _lodTransform.UpdateTransform(i);
-            }
+            _lodTransform.UpdateTransforms();
 
             if (_lodDataAnimWaves) _lodDataAnimWaves.UpdateLodData();
             if (_lodDataDynWaves) _lodDataDynWaves.UpdateLodData();

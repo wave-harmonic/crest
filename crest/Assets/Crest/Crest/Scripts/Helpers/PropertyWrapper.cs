@@ -4,7 +4,6 @@
 
 using UnityEngine;
 using UnityEngine.Rendering;
-using System.Collections.Generic;
 
 namespace Crest
 {
@@ -36,6 +35,7 @@ namespace Crest
 
         public Material material { get; private set; }
     }
+
     public class PropertyWrapperMPB : IPropertyWrapper
     {
         public PropertyWrapperMPB() { materialPropertyBlock = new MaterialPropertyBlock(); }

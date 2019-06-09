@@ -145,15 +145,17 @@ namespace Crest
 
             for (int lodIndex = 0; lodIndex < ocean.CurrentLodCount; lodIndex++)
             {
-                // Don't add uninitialised data
-                if (lt._renderData[lodIndex]._texelWidth == 0f) continue;
+                float lodTexelWidth = lt._renderData[lodIndex]._texelWidth;
 
-                if (lt._renderData[lodIndex]._texelWidth >= _minGridSize && (lt._renderData[lodIndex]._texelWidth <= _maxGridSize || _maxGridSize == 0f))
+                // Don't add uninitialised data
+                if (lodTexelWidth == 0f) continue;
+
+                if (lodTexelWidth >= _minGridSize && (lodTexelWidth <= _maxGridSize || _maxGridSize == 0f))
                 {
                     var tex = _lodComponent.DataTexture;
                     if (tex == null) continue;
 
-                    if (!_perLodData.ContainsKey(lt._renderData[lodIndex]._texelWidth))
+                    if (!_perLodData.ContainsKey(lodTexelWidth))
                     {
                         var resultData = new PerLodData();
                         resultData._resultData = new ReadbackData();
@@ -168,10 +170,10 @@ namespace Crest
                             resultData._resultDataPrevFrame._data = new NativeArray<ushort>(num, Allocator.Persistent);
                         }
 
-                        _perLodData.Add(lt._renderData[lodIndex]._texelWidth, resultData);
+                        _perLodData.Add(lodTexelWidth, resultData);
                     }
 
-                    var lodData = _perLodData[lt._renderData[lodIndex]._texelWidth];
+                    var lodData = _perLodData[lodTexelWidth];
 
                     if (lodData._activelyBeingRendered)
                     {

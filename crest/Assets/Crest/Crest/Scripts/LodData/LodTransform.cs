@@ -67,7 +67,12 @@ namespace Crest
             _renderDataPrevFrame = new RenderData[lodCount];
             _worldToCameraMatrix = new Matrix4x4[lodCount];
             _projectionMatrix = new Matrix4x4[lodCount];
+
             _transformUpdateFrame = new int[lodCount];
+            for (int i = 0; i < _transformUpdateFrame.Length; i++)
+            {
+                _transformUpdateFrame[i] = -1;
+            }
         }
 
         public void UpdateTransform(int lodIdx)

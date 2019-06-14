@@ -117,6 +117,7 @@ Shader "Hidden/Crest/Simulation/Update Shadow"
 				return shadow;
 			}
 
+			// TODO(MRT): Fix shadows not working properly.
 			fixed2 Frag(Varyings input) : SV_Target
 			{
 				fixed2 shadow = 0.0;

@@ -1,0 +1,13 @@
+root = true
+
+[*.{cs,shader,hlsl,compute}]
+insert_final_newline = true
+trim_trailing_whitespace = true
+curly_bracket_next_line = true
+
+[*.cs]
+indent_style = space
+indent_size = 4
+
+[*.{shader,hlsl,compute}]
+indent_style = tab

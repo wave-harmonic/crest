@@ -67,13 +67,20 @@ namespace Crest
 
         }
 
+        public void ValidateSourceData(bool usePrevTransform)
+        {
+            var renderDataToValidate = usePrevTransform ?
+                OceanRenderer.Instance._lodTransform._renderDataPrevFrame
+                : OceanRenderer.Instance._lodTransform._renderData;
+            int validationFrame = usePrevTransform ? BuildCommandBufferBase._lastUpdateFrame - Time.frameCount : 0;
+            foreach(var renderData in renderDataToValidate)
+            {
+                renderData.Validate(validationFrame, this);
+            }
+        }
+
         public void BindSourceData(IPropertyWrapper properties, bool paramsOnly, bool usePrevTransform, bool prevFrame = false)
         {
-            //TODO(MRT): LodTransformSOA Call Validate to make sure things work here (as it used to be done on a lod-by-lod basis)
-            // var renderData = usePrevTransform ?
-            //     LodTransform._staticRenderDataPrevFrame.Validate(BuildCommandBufferBase._lastUpdateFrame - Time.frameCount, this)
-            //     : LodTransform._staticRenderData.Validate(0, this);
-
             var renderData = usePrevTransform ?
                 OceanRenderer.Instance._lodTransform._renderDataPrevFrame
                 : OceanRenderer.Instance._lodTransform._renderData;
@@ -119,6 +126,7 @@ namespace Crest
                 var usePreviousFrameTransform = stepi == 0;
 
                 // bind data to slot 0 - previous frame data
+                ValidateSourceData(usePreviousFrameTransform);
                 BindSourceData(_renderSimProperties, false, usePreviousFrameTransform, true);
 
                 SetAdditionalSimParams(_renderSimProperties);

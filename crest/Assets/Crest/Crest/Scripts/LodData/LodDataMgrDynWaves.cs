@@ -38,7 +38,6 @@ namespace Crest
         static int sp_Damping = Shader.PropertyToID("_Damping");
         static int sp_Gravity = Shader.PropertyToID("_Gravity");
         static int sp_LaplacianAxisX = Shader.PropertyToID("_LaplacianAxisX");
-        static int sp_GridSize = Shader.PropertyToID("_GridSize");
 
         protected override void InitData()
         {
@@ -76,23 +75,12 @@ namespace Crest
             target.SetFloat(sp_DisplaceClamp, Settings._displaceClamp);
         }
 
-
-        // TODO(MRT): LodTransformSOA This is a temporary hack to avoid a lot of array allocations which are then GCed.
-        // this will need to be fixed by changing the BindData API to something more appropriate, and making
-        // the LodTransform class SOA
-        float[] _texelWidths = new float[MAX_LOD_COUNT];
         protected override void SetAdditionalSimParams(IPropertyWrapper simMaterial)
         {
             base.SetAdditionalSimParams(simMaterial);
 
             simMaterial.SetFloat(sp_Damping, Settings._damping);
             simMaterial.SetFloat(sp_Gravity, OceanRenderer.Instance.Gravity);
-            for(int lodIdx = 0; lodIdx < OceanRenderer.Instance.CurrentLodCount; lodIdx++)
-            {
-                _texelWidths[lodIdx] = OceanRenderer.Instance._lodTransform._renderData[lodIdx]._texelWidth;
-            }
-            simMaterial.SetFloatArray(sp_GridSize, _texelWidths);
-
 
             float laplacianKernelAngle = _rotateLaplacian ? Mathf.PI * 2f * Random.value : 0f;
             simMaterial.SetVector(sp_LaplacianAxisX, new Vector2(Mathf.Cos(laplacianKernelAngle), Mathf.Sin(laplacianKernelAngle)));

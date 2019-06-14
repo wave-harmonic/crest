@@ -233,8 +233,6 @@ namespace Crest
 
         public void BindWaveBuffer(IPropertyWrapper properties, bool prevFrame = false)
         {
-            // TODO(MRT): See if there is a better way to validate all lods at
-            // once.
             var lt = OceanRenderer.Instance._lodTransform;
             for(int lodIdx = 0; lodIdx < OceanRenderer.Instance.CurrentLodCount; lodIdx++)
             {
@@ -244,10 +242,6 @@ namespace Crest
             BindData(properties, null, true, ref lt._renderData, prevFrame);
         }
 
-        // TODO(MRT): LodTransformSOA This is a temporary hack to avoid a lot of array allocations which are then GCed.
-        // this will need to be fixed by changing the BindData API to something more appropriate, and making
-        // the LodTransform class SOA
-        Vector4[] _paramIdOceans = new Vector4[MAX_LOD_COUNT];
         protected override void BindData(IPropertyWrapper properties, Texture applyData, bool blendOut, ref LodTransform.RenderData[] renderData, bool prevFrame = false)
         {
             base.BindData(properties, applyData, blendOut, ref renderData, prevFrame);
@@ -259,12 +253,12 @@ namespace Crest
                 // need to blend out shape if this is the largest lod, and the ocean might get scaled down later (so the largest lod will disappear)
                 bool needToBlendOutShape = lodIdx == OceanRenderer.Instance.CurrentLodCount - 1 && OceanRenderer.Instance.ScaleCouldDecrease && blendOut;
                 float shapeWeight = needToBlendOutShape ? OceanRenderer.Instance.ViewerAltitudeLevelAlpha : 1f;
-                _paramIdOceans[lodIdx] = new Vector4(
+                _BindData_paramIdOceans[lodIdx] = new Vector4(
                     lt._renderData[lodIdx]._texelWidth,
                     lt._renderData[lodIdx]._textureRes, shapeWeight,
                     1f / lt._renderData[lodIdx]._textureRes);
             }
-            properties.SetVectorArray(LodTransform.ParamIdOcean(prevFrame), _paramIdOceans);
+            properties.SetVectorArray(LodTransform.ParamIdOcean(prevFrame), _BindData_paramIdOceans);
         }
 
         /// <summary>

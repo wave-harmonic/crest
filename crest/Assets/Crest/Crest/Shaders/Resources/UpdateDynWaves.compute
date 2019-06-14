@@ -19,8 +19,6 @@ float _LODChange;
 
 // How many samples we want in one wave. trade quality for perf.
 float _TexelsPerWave;
-// Current resolution: (TODO(MRT): Why use this when LD params exists?)
-float _GridSize[MAX_LOD_COUNT];
 
 float ComputeWaveSpeed(float wavelength, float g)
 {
@@ -75,7 +73,7 @@ void UpdateDynWaves(uint3 id : SV_DispatchThreadID)
 	float ft = ft_ftm.x; // t - current value before update
 	float ftm = ft_ftm.y; // t minus - previous value
 
-	const float gridSize = _GridSize[sliceIndex];
+	const float gridSize = _LD_Params[sliceIndex].x;
 
 	// average wavelength for this scale
 	float wavelength = 1.5 * _TexelsPerWave * gridSize;

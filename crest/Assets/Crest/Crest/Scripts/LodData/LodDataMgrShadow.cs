@@ -129,7 +129,6 @@ namespace Crest
                     _bufCopyShadowMap = null;
                     for(int lodIdx = 0; lodIdx < _targets.volumeDepth; lodIdx++)
                     {
-                        // TODO(MRT): Confirm this works. (Maybe look at custom blackTextureArray)?
                         Graphics.Blit(Texture2D.blackTexture, _sources, -1, lodIdx);
                         Graphics.Blit(Texture2D.blackTexture, _targets, -1, lodIdx);
                     }
@@ -178,6 +177,7 @@ namespace Crest
             _bufCopyShadowMap.Clear();
 
             var lt = OceanRenderer.Instance._lodTransform;
+            ValidateSourceData();
             for (var lodIdx = OceanRenderer.Instance.CurrentLodCount - 1; lodIdx >= 0; lodIdx--)
             {
                 // clear the shadow collection. it will be overwritten with shadow values IF the shadows render,
@@ -198,16 +198,23 @@ namespace Crest
                 srcDataIdx = Mathf.Clamp(srcDataIdx, 0, lt.LodCount - 1);
                 // bind data to slot 0 - previous frame data
                 _renderMaterial[lodIdx].SetFloat(OceanRenderer.sp_LD_SliceIndex, lodIdx);
-                BindSourceData(_renderMaterial[lodIdx], false, true);
+                BindSourceData(_renderMaterial[lodIdx], false);
                 _bufCopyShadowMap.Blit(Texture2D.blackTexture, _targets, _renderMaterial[lodIdx].material, -1, lodIdx);
             }
         }
 
-        public void BindSourceData(PropertyWrapperMaterial simMaterial, bool paramsOnly, bool prevFrame = false)
+        public void ValidateSourceData()
         {
-            // TODO(MRT): LodTransformSOA Validate this
-            var rd = OceanRenderer.Instance._lodTransform._renderDataPrevFrame; //.Validate(BuildCommandBufferBase._lastUpdateFrame - Time.frameCount, this);
-            BindData(simMaterial, paramsOnly ? Texture2D.blackTexture : _sources as Texture, true, ref rd, prevFrame);
+            foreach(var renderData in  OceanRenderer.Instance._lodTransform._renderDataPrevFrame)
+            {
+                renderData.Validate(BuildCommandBufferBase._lastUpdateFrame - Time.frameCount, this);
+            }
+        }
+
+        public void BindSourceData(PropertyWrapperMaterial simMaterial, bool paramsOnly)
+        {
+            var rd = OceanRenderer.Instance._lodTransform._renderDataPrevFrame;
+            BindData(simMaterial, paramsOnly ? Texture2D.blackTexture : _sources as Texture, true, ref rd, true);
         }
 
         void OnEnable()

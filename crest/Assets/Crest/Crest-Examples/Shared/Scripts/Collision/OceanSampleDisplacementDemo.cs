@@ -1,7 +1,7 @@
 ﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
-using UnityEngine;
 using Crest;
+using UnityEngine;
 
 /// <summary>
 /// Attach this script to any GameObject and it will create three collision probes in front of the camera
@@ -14,28 +14,6 @@ public class OceanSampleDisplacementDemo : MonoBehaviour
     Vector3 _markerPos, _markerPosX, _markerPosZ;
 
     SamplingData _samplingData = new SamplingData();
-
-    void PlaceMarkerCube(ref GameObject marker, Vector3 query)
-    {
-        if (marker == null)
-        {
-            marker = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            Destroy(marker.GetComponent<Collider>());
-        }
-
-        query.y = 0f;
-
-        Vector3 disp;
-        if (OceanRenderer.Instance.CollisionProvider.SampleDisplacement(ref query, _samplingData, out disp))
-        {
-            Debug.DrawLine(query, query + disp);
-            marker.transform.position = query + disp;
-        }
-        else
-        {
-            marker.transform.position = query;
-        }
-    }
 
     void Update()
     {
@@ -60,5 +38,27 @@ public class OceanSampleDisplacementDemo : MonoBehaviour
         PlaceMarkerCube(ref _markerZ, _markerPosZ);
 
         collProvider.ReturnSamplingData(_samplingData);
+    }
+
+    void PlaceMarkerCube(ref GameObject marker, Vector3 query)
+    {
+        if (marker == null)
+        {
+            marker = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            Destroy(marker.GetComponent<Collider>());
+        }
+
+        query.y = 0f;
+
+        Vector3 disp;
+        if (OceanRenderer.Instance.CollisionProvider.SampleDisplacement(ref query, _samplingData, out disp))
+        {
+            Debug.DrawLine(query, query + disp);
+            marker.transform.position = query + disp;
+        }
+        else
+        {
+            marker.transform.position = query;
+        }
     }
 }

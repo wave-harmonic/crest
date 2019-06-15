@@ -6,6 +6,7 @@ using UnityEngine;
 /// <summary>
 /// Drives object/water interaction - sets parameters each frame on material that renders into the dynamic wave sim.
 /// </summary>
+[System.Obsolete]
 public class FeedVelocityToExtrude : MonoBehaviour
 {
     [HideInInspector]

@@ -11,6 +11,7 @@ Shader "Hidden/Crest/Simulation/Update Shadow"
 			CGPROGRAM
 			#pragma vertex Vert
 			#pragma fragment Frag
+			#pragma enable_d3d11_debug_symbols
 
 			// this turns on all the shady stuff (literally - its all deprecated)
 			#define SHADOW_COLLECTOR_PASS
@@ -35,6 +36,7 @@ Shader "Hidden/Crest/Simulation/Update Shadow"
 				float4 MainCameraCoords : TEXCOORD9;
 			};
 
+			uniform float _LD_SliceIndex_PrevFrame;
 			uniform float3 _CenterPos;
 			uniform float3 _Scale;
 			uniform float3 _CamPos;
@@ -117,13 +119,12 @@ Shader "Hidden/Crest/Simulation/Update Shadow"
 				return shadow;
 			}
 
-			// TODO(MRT): Fix shadows not working properly.
 			fixed2 Frag(Varyings input) : SV_Target
 			{
 				fixed2 shadow = 0.0;
 
 				// Shadow from last frame - manually implement black border
-				float3 uv_prevFrame = WorldToUV_PrevFrame(input._WorldPosViewZ.xz);
+				float3 uv_prevFrame = WorldToUV_PrevFrame(input._WorldPosViewZ.xz, _LD_SliceIndex_PrevFrame);
 				half2 r = abs(uv_prevFrame.xy - 0.5);
 				if (max(r.x, r.y) < 0.49)
 				{

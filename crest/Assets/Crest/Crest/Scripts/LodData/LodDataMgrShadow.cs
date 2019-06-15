@@ -33,6 +33,7 @@ namespace Crest
         static int sp_JitterDiameters_CurrentFrameWeights = Shader.PropertyToID("_JitterDiameters_CurrentFrameWeights");
         static int sp_MainCameraProjectionMatrix = Shader.PropertyToID("_MainCameraProjectionMatrix");
         static int sp_SimDeltaTime = Shader.PropertyToID("_SimDeltaTime");
+        static int sp_LD_SliceIndex_PrevFrame = Shader.PropertyToID("_LD_SliceIndex_PrevFrame");
 
         SimSettingsShadow Settings { get { return OceanRenderer.Instance._simSettingsShadow; } }
         public override void UseSettings(SimSettingsBase settings) { OceanRenderer.Instance._simSettingsShadow = settings as SimSettingsShadow; }
@@ -196,8 +197,8 @@ namespace Crest
                 // compute which lod data we are sampling previous frame shadows from. if a scale change has happened this can be any lod up or down the chain.
                 var srcDataIdx = lodIdx + ScaleDifferencePow2;
                 srcDataIdx = Mathf.Clamp(srcDataIdx, 0, lt.LodCount - 1);
-                // bind data to slot 0 - previous frame data
                 _renderMaterial[lodIdx].SetFloat(OceanRenderer.sp_LD_SliceIndex, lodIdx);
+                _renderMaterial[lodIdx].SetFloat(sp_LD_SliceIndex_PrevFrame, srcDataIdx);
                 BindSourceData(_renderMaterial[lodIdx], false);
                 _bufCopyShadowMap.Blit(Texture2D.blackTexture, _targets, _renderMaterial[lodIdx].material, -1, lodIdx);
             }

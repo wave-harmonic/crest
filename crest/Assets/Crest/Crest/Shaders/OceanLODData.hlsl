@@ -34,7 +34,6 @@ Texture2DArray _LD_TexArray_DynamicWaves_PrevFrame;
 Texture2DArray _LD_TexArray_Shadow_PrevFrame;
 uniform float4 _LD_Params_PrevFrame[MAX_LOD_COUNT];
 uniform float3 _LD_Pos_Scale_PrevFrame[MAX_LOD_COUNT];
-uniform const float _LD_SliceIndex_PrevFrame;
 
 SamplerState LODData_linear_clamp_sampler;
 
@@ -87,7 +86,6 @@ float2 UVToWorld(in float2 i_uv, in float i_sliceIndex) { return LD_UVToWorld(i_
 // Shortcuts if _LD_SliceIndex is set
 float3 WorldToUV(in float2 i_samplePos) { return WorldToUV(i_samplePos, _LD_SliceIndex); }
 float3 WorldToUV_NextLod(in float2 i_samplePos) { return WorldToUV_NextLod(i_samplePos, _LD_SliceIndex + 1); }
-float3 WorldToUV_PrevFrame(in float2 i_samplePos) { return WorldToUV_PrevFrame(i_samplePos, _LD_SliceIndex_PrevFrame); }
 float2 UVToWorld(in float2 i_uv) { return UVToWorld(i_uv, _LD_SliceIndex); }
 
 // Convert compute shader id to uv texture coordinates

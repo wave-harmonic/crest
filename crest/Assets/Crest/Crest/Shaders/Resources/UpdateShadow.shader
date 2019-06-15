@@ -11,7 +11,6 @@ Shader "Hidden/Crest/Simulation/Update Shadow"
 			CGPROGRAM
 			#pragma vertex Vert
 			#pragma fragment Frag
-			#pragma enable_d3d11_debug_symbols
 
 			// this turns on all the shady stuff (literally - its all deprecated)
 			#define SHADOW_COLLECTOR_PASS

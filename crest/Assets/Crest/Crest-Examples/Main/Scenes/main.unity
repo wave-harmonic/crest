@@ -252,6 +252,63 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _gui: 1
+--- !u!1001 &551180696
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 1371779553471058, guid: a9de35a642561b7479e8ab40bb529e8c, type: 3}
+      propertyPath: m_Name
+      value: BoatProbes
+      objectReference: {fileID: 0}
+    - target: {fileID: 4872491186423460, guid: a9de35a642561b7479e8ab40bb529e8c, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 49.3
+      objectReference: {fileID: 0}
+    - target: {fileID: 4872491186423460, guid: a9de35a642561b7479e8ab40bb529e8c, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4872491186423460, guid: a9de35a642561b7479e8ab40bb529e8c, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 93.9
+      objectReference: {fileID: 0}
+    - target: {fileID: 4872491186423460, guid: a9de35a642561b7479e8ab40bb529e8c, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4872491186423460, guid: a9de35a642561b7479e8ab40bb529e8c, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4872491186423460, guid: a9de35a642561b7479e8ab40bb529e8c, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4872491186423460, guid: a9de35a642561b7479e8ab40bb529e8c, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4872491186423460, guid: a9de35a642561b7479e8ab40bb529e8c, type: 3}
+      propertyPath: m_RootOrder
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 4872491186423460, guid: a9de35a642561b7479e8ab40bb529e8c, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4872491186423460, guid: a9de35a642561b7479e8ab40bb529e8c, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4872491186423460, guid: a9de35a642561b7479e8ab40bb529e8c, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: a9de35a642561b7479e8ab40bb529e8c, type: 3}
 --- !u!4 &632841573 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 400000, guid: 386033b9b0ae11a40bbd970400b6d7c6,
@@ -412,11 +469,11 @@ MonoBehaviour:
   _createSeaFloorDepthData: 1
   _createFoamSim: 1
   _simSettingsFoam: {fileID: 0}
-  _createDynamicWaveSim: 0
+  _createDynamicWaveSim: 1
   _simSettingsDynamicWaves: {fileID: 0}
   _createFlowSim: 0
   _simSettingsFlow: {fileID: 0}
-  _createShadowData: 0
+  _createShadowData: 1
   _primaryLight: {fileID: 1589415980}
   _simSettingsShadow: {fileID: 0}
   _uniformTiles: 0
@@ -699,7 +756,7 @@ Light:
   m_InnerSpotAngle: 21.80208
   m_CookieSize: 10
   m_Shadows:
-    m_Type: 0
+    m_Type: 1
     m_Resolution: -1
     m_CustomResolution: -1
     m_Strength: 1

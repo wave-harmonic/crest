@@ -36,7 +36,7 @@ namespace Crest
             Debug.Assert(OceanRenderer.Instance.CurrentLodCount < MAX_LOD_COUNT);
 
             buf.SetRenderTarget(_targets, 0, CubemapFace.Unknown, -1);
-            buf.ClearRenderTarget(false, true,  Color.white * 1000f);
+            buf.ClearRenderTarget(false, true, Color.white * 1000f);
 
             Matrix4x4[] matrixArray = new Matrix4x4[MAX_LOD_COUNT];
 

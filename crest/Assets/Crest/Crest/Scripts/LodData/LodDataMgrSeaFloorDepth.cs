@@ -44,15 +44,8 @@ namespace Crest
             for (int lodIdx = OceanRenderer.Instance.CurrentLodCount - 1; lodIdx >= 0; lodIdx--)
             {
                 lt._renderData[lodIdx].Validate(0, this);
-
-                Matrix4x4 worldToClipPos = lt.GetProjectionMatrix(lodIdx) * lt.GetWorldToCameraMatrix(lodIdx);
-                // TODO(MRT): for some reason, the projection matrix that is sent to the
-                // shader by `SetViewProjectionMatrices` in the command buffer has
-                // it's middle two rows inverted, which then propagates to the
-                // worldToClipPos matrix. We need to find out why this is so
-                // this hacky stuff does not need to happen
-                worldToClipPos.SetRow(1, worldToClipPos.GetRow(1) * -1);
-                worldToClipPos.SetRow(2, worldToClipPos.GetRow(2) * -1);
+                Matrix4x4 platformProjectionMatrix = GL.GetGPUProjectionMatrix(lt.GetProjectionMatrix(lodIdx), true);
+                Matrix4x4 worldToClipPos = platformProjectionMatrix * lt.GetWorldToCameraMatrix(lodIdx);
                 matrixArray[lodIdx] = worldToClipPos;
             }
 

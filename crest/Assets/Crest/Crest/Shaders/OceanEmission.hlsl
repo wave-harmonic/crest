@@ -64,14 +64,14 @@ half3 ScatterColour(
 		// 2. for the underwater skirt geometry, we don't have the lod data sampled from the verts with lod transitions etc,
 		//    so just approximate by sampling at the camera position.
 		// this used to sample LOD1 but that doesnt work in last LOD, the data will be missing.
-		const float3 uv_thisLod = WorldToUV(i_cameraPos.xz);
+		const float3 uv_smallerLod = WorldToUV(i_cameraPos.xz);
 		depth = CREST_OCEAN_DEPTH_BASELINE;
-		SampleSeaDepth(_LD_TexArray_SeaFloorDepth, uv_thisLod, 1.0, depth);
+		SampleSeaDepth(_LD_TexArray_SeaFloorDepth, uv_smallerLod, 1.0, depth);
 		waveHeight = 0.0;
 
 #if _SHADOWS_ON
 		half2 shadowSoftHard = 0.0;
-		SampleShadow(_LD_TexArray_Shadow, uv_thisLod, 1.0, shadowSoftHard);
+		SampleShadow(_LD_TexArray_Shadow, uv_smallerLod, 1.0, shadowSoftHard);
 		shadow = 1.0 - shadowSoftHard.x;
 #endif
 	}
@@ -163,14 +163,14 @@ void ApplyCaustics(in const half3 i_view, in const half3 i_lightDir, in const fl
 		// LOD_1 data can be missing when underwater
 		if(i_underwater)
 		{
-			const float3 uv_thisLod = WorldToUV(surfacePosXZ);
-			SampleShadow(_LD_TexArray_Shadow, uv_thisLod, 1.0, causticShadow);
+			const float3 uv_smallerLod = WorldToUV(surfacePosXZ);
+			SampleShadow(_LD_TexArray_Shadow, uv_smallerLod, 1.0, causticShadow);
 		}
 		else
 		{
 			// only sample the bigger lod. if pops are noticeable this could lerp the 2 lods smoothly, but i didnt notice issues.
-			float3 uv_nextLod = WorldToUV_NextLod(surfacePosXZ);
-			SampleShadow(_LD_TexArray_Shadow, uv_nextLod, 1.0, causticShadow);
+			float3 uv_biggerLod = WorldToUV_NextLod(surfacePosXZ);
+			SampleShadow(_LD_TexArray_Shadow, uv_biggerLod, 1.0, causticShadow);
 		}
 		causticsStrength *= 1.0 - causticShadow.y;
 	}

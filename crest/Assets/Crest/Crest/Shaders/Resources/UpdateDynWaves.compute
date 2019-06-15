@@ -35,31 +35,31 @@ RWTexture2DArray<float2> _LD_TexArray_Target;
 void UpdateDynWaves(uint3 id : SV_DispatchThreadID)
 {
 	const float sliceIndex = id.z;
-	const float sliceIndexPrevFrame = id.z + _LODChange;
+	const float sliceIndexSource = id.z + _LODChange;
 	float width; float height; float depth;
 	{
-		_LD_TexArray_DynamicWaves_PrevFrame.GetDimensions(width, height, depth);
+		_LD_TexArray_DynamicWaves_Source.GetDimensions(width, height, depth);
 	}
 	const float2 input_uv = IDtoUV(id.xy, width, height);
 	const float2 worldPosXZ = UVToWorld(input_uv, sliceIndex);
 	const float dt = _SimDeltaTime;
 	const float dtp = _SimDeltaTimePrev;
 
-	float3 uv_thisFrame = float3(input_uv, sliceIndex);
+	float3 uv_slice = float3(input_uv, sliceIndex);
 
-	half2 velocity = SampleLod(_LD_TexArray_Flow, uv_thisFrame).xy;
-	float3 uv_prevFrame = WorldToUV_PrevFrame(worldPosXZ - (dt * velocity), sliceIndexPrevFrame);
+	half2 velocity = SampleLod(_LD_TexArray_Flow, uv_slice).xy;
+	float3 uv_source = WorldToUV_Source(worldPosXZ - (dt * velocity), sliceIndexSource);
 
 	// compute axes of laplacian kernel - rotated every frame
-	float e = _LD_Params_PrevFrame[sliceIndexPrevFrame].w; // assumes square RT
+	float e = _LD_Params_Source[sliceIndexSource].w; // assumes square RT
 	float3 X = float3(_LaplacianAxisX, 0.0);
 	float3 Y = float3(-X.y, X.x, 0.0);
-	float fxm = SampleLod(_LD_TexArray_DynamicWaves_PrevFrame, uv_prevFrame - e*X).x; // x minus
-	float fym = SampleLod(_LD_TexArray_DynamicWaves_PrevFrame, uv_prevFrame - e*Y).x; // y minus
-	float fxp = SampleLod(_LD_TexArray_DynamicWaves_PrevFrame, uv_prevFrame + e*X).x; // x plus
-	float fyp = SampleLod(_LD_TexArray_DynamicWaves_PrevFrame, uv_prevFrame + e*Y).x; // y plus
-	half2 ft_ftm = SampleLod(_LD_TexArray_DynamicWaves_PrevFrame, uv_prevFrame).xy;
-	if(sliceIndexPrevFrame > depth || sliceIndexPrevFrame < 0)
+	float fxm = SampleLod(_LD_TexArray_DynamicWaves_Source, uv_source - e*X).x; // x minus
+	float fym = SampleLod(_LD_TexArray_DynamicWaves_Source, uv_source - e*Y).x; // y minus
+	float fxp = SampleLod(_LD_TexArray_DynamicWaves_Source, uv_source + e*X).x; // x plus
+	float fyp = SampleLod(_LD_TexArray_DynamicWaves_Source, uv_source + e*Y).x; // y plus
+	half2 ft_ftm = SampleLod(_LD_TexArray_DynamicWaves_Source, uv_source).xy;
+	if(sliceIndexSource > depth || sliceIndexSource < 0)
 	{
 		// no border wrap mode for RTs in unity it seems,
 		// so make any off-array reads 0 manually
@@ -95,17 +95,17 @@ void UpdateDynWaves(uint3 id : SV_DispatchThreadID)
 	// this actually doesn't work perfectly well - there is some minor reflections of high frequencies.
 	// dudt + c*dudx = 0
 	// (ftp - ft)   +   c*(ft-fxm) = 0.
-	if (uv_prevFrame.x + e >= 1.0) ftp = -dt*c*(ft - fxm) + ft;
-	else if (uv_prevFrame.x - e <= 0.0) ftp = dt * c*(fxp - ft) + ft;
-	if (uv_prevFrame.y + e >= 1.0) ftp = -dt*c*(ft - fym) + ft;
-	else if (uv_prevFrame.y - e <= 0.0) ftp = dt*c*(fyp - ft) + ft;
+	if (uv_source.x + e >= 1.0) ftp = -dt*c*(ft - fxm) + ft;
+	else if (uv_source.x - e <= 0.0) ftp = dt * c*(fxp - ft) + ft;
+	if (uv_source.y + e >= 1.0) ftp = -dt*c*(ft - fym) + ft;
+	else if (uv_source.y - e <= 0.0) ftp = dt*c*(fyp - ft) + ft;
 
 	// attenuate waves based on ocean depth. if depth is greater than 0.5*wavelength, water is considered Deep and wave is
 	// unaffected. if depth is less than this, wave velocity decreases. waves will then bunch up and grow in amplitude and
 	// eventually break. i model "Deep" water, but then simply ramp down waves in non-deep water with a linear multiplier.
 	// http://hyperphysics.phy-astr.gsu.edu/hbase/Waves/watwav2.html
 	// http://hyperphysics.phy-astr.gsu.edu/hbase/watwav.html#c1
-	float waterDepth = SampleLod(_LD_TexArray_SeaFloorDepth, uv_thisFrame).x;
+	float waterDepth = SampleLod(_LD_TexArray_SeaFloorDepth, uv_slice).x;
 	float depthMul = 1.0 - (1.0 - saturate(2.0 * waterDepth / wavelength)) * dt * 2.0;
 
 	ftp *= depthMul;

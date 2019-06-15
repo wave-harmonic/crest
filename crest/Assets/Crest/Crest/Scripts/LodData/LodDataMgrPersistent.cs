@@ -70,7 +70,7 @@ namespace Crest
         public void ValidateSourceData(bool usePrevTransform)
         {
             var renderDataToValidate = usePrevTransform ?
-                OceanRenderer.Instance._lodTransform._renderDataPrevFrame
+                OceanRenderer.Instance._lodTransform._renderDataSource
                 : OceanRenderer.Instance._lodTransform._renderData;
             int validationFrame = usePrevTransform ? BuildCommandBufferBase._lastUpdateFrame - Time.frameCount : 0;
             foreach(var renderData in renderDataToValidate)
@@ -79,13 +79,13 @@ namespace Crest
             }
         }
 
-        public void BindSourceData(IPropertyWrapper properties, bool paramsOnly, bool usePrevTransform, bool prevFrame = false)
+        public void BindSourceData(IPropertyWrapper properties, bool paramsOnly, bool usePrevTransform, bool sourceLod = false)
         {
             var renderData = usePrevTransform ?
-                OceanRenderer.Instance._lodTransform._renderDataPrevFrame
+                OceanRenderer.Instance._lodTransform._renderDataSource
                 : OceanRenderer.Instance._lodTransform._renderData;
 
-            BindData(properties, paramsOnly ? TextureArrayHelpers.BlackTextureArray : (Texture)_sources, true, ref renderData, prevFrame);
+            BindData(properties, paramsOnly ? TextureArrayHelpers.BlackTextureArray : (Texture)_sources, true, ref renderData, sourceLod);
         }
 
         public abstract void GetSimSubstepData(float frameDt, out int numSubsteps, out float substepDt);

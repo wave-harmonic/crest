@@ -25,15 +25,18 @@ uniform float4 _LD_Params[MAX_LOD_COUNT];
 uniform float3 _LD_Pos_Scale[MAX_LOD_COUNT];
 uniform const float _LD_SliceIndex;
 
-Texture2DArray _LD_TexArray_AnimatedWaves_PrevFrame;
-Texture2DArray _LD_TexArray_WaveBuffer_PrevFrame;
-Texture2DArray _LD_TexArray_SeaFloorDepth_PrevFrame;
-Texture2DArray _LD_TexArray_Foam_PrevFrame;
-Texture2DArray _LD_TexArray_Flow_PrevFrame;
-Texture2DArray _LD_TexArray_DynamicWaves_PrevFrame;
-Texture2DArray _LD_TexArray_Shadow_PrevFrame;
-uniform float4 _LD_Params_PrevFrame[MAX_LOD_COUNT];
-uniform float3 _LD_Pos_Scale_PrevFrame[MAX_LOD_COUNT];
+// These are used in lods where we operate on data from
+// previously calculated lods. Used in simulations and
+// shadowing for example.
+Texture2DArray _LD_TexArray_AnimatedWaves_Source;
+Texture2DArray _LD_TexArray_WaveBuffer_Source;
+Texture2DArray _LD_TexArray_SeaFloorDepth_Source;
+Texture2DArray _LD_TexArray_Foam_Source;
+Texture2DArray _LD_TexArray_Flow_Source;
+Texture2DArray _LD_TexArray_DynamicWaves_Source;
+Texture2DArray _LD_TexArray_Shadow_Source;
+uniform float4 _LD_Params_Source[MAX_LOD_COUNT];
+uniform float3 _LD_Pos_Scale_Source[MAX_LOD_COUNT];
 
 SamplerState LODData_linear_clamp_sampler;
 
@@ -65,14 +68,14 @@ float3 WorldToUV_NextLod(in float2 i_samplePos, in float i_sliceIndex_NextLod) {
 	return float3(result, i_sliceIndex_NextLod);
 }
 
-float3 WorldToUV_PrevFrame(in float2 i_samplePos, in float i_sliceIndex_PrevFrame) {
+float3 WorldToUV_Source(in float2 i_samplePos, in float i_sliceIndex_Source) {
 	const float2 result = LD_WorldToUV(
 		i_samplePos,
-		_LD_Pos_Scale_PrevFrame[i_sliceIndex_PrevFrame].xy,
-		_LD_Params_PrevFrame[i_sliceIndex_PrevFrame].y,
-		_LD_Params_PrevFrame[i_sliceIndex_PrevFrame].x
+		_LD_Pos_Scale_Source[i_sliceIndex_Source].xy,
+		_LD_Params_Source[i_sliceIndex_Source].y,
+		_LD_Params_Source[i_sliceIndex_Source].x
 	);
-	return float3(result, i_sliceIndex_PrevFrame);
+	return float3(result, i_sliceIndex_Source);
 }
 
 

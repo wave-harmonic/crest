@@ -14,10 +14,10 @@ namespace Crest
     {
         protected int[] _transformUpdateFrame;
 
-        static int s_paramsPosScaleThisFrame = Shader.PropertyToID("_LD_Pos_Scale");
-        static int s_paramsPosScalePrevFrame = Shader.PropertyToID("_LD_Pos_Scale_PrevFrame");
-        static int s_paramsOceanThisFrame = Shader.PropertyToID("_LD_Params");
-        static int s_paramsOceanPrevFrame = Shader.PropertyToID("_LD_Params_PrevFrame");
+        static int s_paramsPosScale = Shader.PropertyToID("_LD_Pos_Scale");
+        static int s_paramsPosScaleSource = Shader.PropertyToID("_LD_Pos_Scale_Source");
+        static int s_paramsOcean = Shader.PropertyToID("_LD_Params");
+        static int s_paramsOceanSource = Shader.PropertyToID("_LD_Params_Source");
 
         public struct RenderData
         {
@@ -47,7 +47,7 @@ namespace Crest
         }
 
         public RenderData[] _renderData = null;
-        public RenderData[] _renderDataPrevFrame = null;
+        public RenderData[] _renderDataSource = null;
 
         public int LodCount { get; private set; }
 
@@ -61,7 +61,7 @@ namespace Crest
             LodCount = lodCount;
 
             _renderData = new RenderData[lodCount];
-            _renderDataPrevFrame = new RenderData[lodCount];
+            _renderDataSource = new RenderData[lodCount];
             _worldToCameraMatrix = new Matrix4x4[lodCount];
             _projectionMatrix = new Matrix4x4[lodCount];
 
@@ -80,7 +80,7 @@ namespace Crest
 
                 _transformUpdateFrame[lodIdx] = Time.frameCount;
 
-                _renderDataPrevFrame[lodIdx] = _renderData[lodIdx];
+                _renderDataSource[lodIdx] = _renderData[lodIdx];
 
                 var lodTransform = GetLodTransform(lodIdx);
 
@@ -96,11 +96,11 @@ namespace Crest
                 _renderData[lodIdx]._frame = Time.frameCount;
 
                 // detect first update and populate the render data if so - otherwise it can give divide by 0s and other nastiness
-                if (_renderDataPrevFrame[lodIdx]._textureRes == 0f)
+                if (_renderDataSource[lodIdx]._textureRes == 0f)
                 {
-                    _renderDataPrevFrame[lodIdx]._posSnapped = _renderData[lodIdx]._posSnapped;
-                    _renderDataPrevFrame[lodIdx]._texelWidth = _renderData[lodIdx]._texelWidth;
-                    _renderDataPrevFrame[lodIdx]._textureRes = _renderData[lodIdx]._textureRes;
+                    _renderDataSource[lodIdx]._posSnapped = _renderData[lodIdx]._posSnapped;
+                    _renderDataSource[lodIdx]._texelWidth = _renderData[lodIdx]._texelWidth;
+                    _renderDataSource[lodIdx]._textureRes = _renderData[lodIdx]._textureRes;
                 }
 
                 _worldToCameraMatrix[lodIdx] = CalculateWorldToCameraMatrixRHS(_renderData[lodIdx]._posSnapped + Vector3.up * 100f, Quaternion.AngleAxis(90f, Vector3.right));
@@ -128,27 +128,27 @@ namespace Crest
             return 2f * maxTexelSize * OceanRenderer.Instance._minTexelsPerWave;
         }
 
-        public static int ParamIdPosScale(bool prevFrame = false)
+        public static int ParamIdPosScale(bool sourceLod = false)
         {
-            if(prevFrame)
+            if(sourceLod)
             {
-                return s_paramsPosScalePrevFrame;
+                return s_paramsPosScaleSource;
             }
             else
             {
-                return s_paramsPosScaleThisFrame;
+                return s_paramsPosScale;
             }
         }
 
-        public static int ParamIdOcean(bool prevFrame = false)
+        public static int ParamIdOcean(bool sourceLod = false)
         {
-            if(prevFrame)
+            if(sourceLod)
             {
-                return s_paramsOceanPrevFrame;
+                return s_paramsOceanSource;
             }
             else
             {
-                return s_paramsOceanThisFrame;
+                return s_paramsOcean;
             }
         }
 
@@ -157,7 +157,7 @@ namespace Crest
             for(int lodIdx = 0; lodIdx < LodCount; lodIdx++)
             {
                 _renderData[lodIdx]._posSnapped -= newOrigin;
-                _renderDataPrevFrame[lodIdx]._posSnapped -= newOrigin;
+                _renderDataSource[lodIdx]._posSnapped -= newOrigin;
             }
         }
 

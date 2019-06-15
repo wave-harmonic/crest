@@ -231,7 +231,7 @@ namespace Crest
             }
         }
 
-        public void BindWaveBuffer(IPropertyWrapper properties, bool prevFrame = false)
+        public void BindWaveBuffer(IPropertyWrapper properties, bool sourceLod = false)
         {
             var lt = OceanRenderer.Instance._lodTransform;
             for(int lodIdx = 0; lodIdx < OceanRenderer.Instance.CurrentLodCount; lodIdx++)
@@ -239,12 +239,12 @@ namespace Crest
                 lt._renderData[lodIdx].Validate(0, this);
             }
             properties.SetTexture(Shader.PropertyToID("_LD_TexArray_WaveBuffer"), _waveBuffers);
-            BindData(properties, null, true, ref lt._renderData, prevFrame);
+            BindData(properties, null, true, ref lt._renderData, sourceLod);
         }
 
-        protected override void BindData(IPropertyWrapper properties, Texture applyData, bool blendOut, ref LodTransform.RenderData[] renderData, bool prevFrame = false)
+        protected override void BindData(IPropertyWrapper properties, Texture applyData, bool blendOut, ref LodTransform.RenderData[] renderData, bool sourceLod = false)
         {
-            base.BindData(properties, applyData, blendOut, ref renderData, prevFrame);
+            base.BindData(properties, applyData, blendOut, ref renderData, sourceLod);
 
             var lt = OceanRenderer.Instance._lodTransform;
 
@@ -258,7 +258,7 @@ namespace Crest
                     lt._renderData[lodIdx]._textureRes, shapeWeight,
                     1f / lt._renderData[lodIdx]._textureRes);
             }
-            properties.SetVectorArray(LodTransform.ParamIdOcean(prevFrame), _BindData_paramIdOceans);
+            properties.SetVectorArray(LodTransform.ParamIdOcean(sourceLod), _BindData_paramIdOceans);
         }
 
         /// <summary>
@@ -324,14 +324,14 @@ namespace Crest
 
         public static string TextureArrayName = "_LD_TexArray_AnimatedWaves";
         private static TextureArrayParamIds textureArrayParamIds = new TextureArrayParamIds(TextureArrayName);
-        public static int ParamIdSampler(bool prevFrame = false) { return textureArrayParamIds.GetId(prevFrame); }
-        protected override int GetParamIdSampler(bool prevFrame = false)
+        public static int ParamIdSampler(bool sourceLod = false) { return textureArrayParamIds.GetId(sourceLod); }
+        protected override int GetParamIdSampler(bool sourceLod = false)
         {
-            return ParamIdSampler(prevFrame);
+            return ParamIdSampler(sourceLod);
         }
-        public static void BindNull(IPropertyWrapper properties, bool prevFrame = false)
+        public static void BindNull(IPropertyWrapper properties, bool sourceLod = false)
         {
-            properties.SetTexture(ParamIdSampler(prevFrame), TextureArrayHelpers.BlackTextureArray);
+            properties.SetTexture(ParamIdSampler(sourceLod), TextureArrayHelpers.BlackTextureArray);
         }
 
         public void SetOrigin(Vector3 newOrigin)

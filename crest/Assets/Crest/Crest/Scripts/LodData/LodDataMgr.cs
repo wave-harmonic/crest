@@ -24,7 +24,7 @@ namespace Crest
         // determines the size of the texture arrays in the shaders.
         public const int MAX_LOD_COUNT = 16;
 
-        protected abstract int GetParamIdSampler(bool prevFrame = false);
+        protected abstract int GetParamIdSampler(bool sourceLod = false);
 
         protected abstract bool NeedToReadWriteTextureData { get; }
 
@@ -102,11 +102,11 @@ namespace Crest
         private Vector4[] _BindData_paramIdPosScales = new Vector4[MAX_LOD_COUNT];
         // Used in child
         protected Vector4[] _BindData_paramIdOceans = new Vector4[MAX_LOD_COUNT];
-        protected virtual void BindData(IPropertyWrapper properties, Texture applyData, bool blendOut, ref LodTransform.RenderData[] renderData, bool prevFrame = false)
+        protected virtual void BindData(IPropertyWrapper properties, Texture applyData, bool blendOut, ref LodTransform.RenderData[] renderData, bool sourceLod = false)
         {
             if (applyData)
             {
-                properties.SetTexture(GetParamIdSampler(prevFrame), applyData);
+                properties.SetTexture(GetParamIdSampler(sourceLod), applyData);
             }
 
             var lt = OceanRenderer.Instance._lodTransform;
@@ -116,8 +116,8 @@ namespace Crest
                 _BindData_paramIdPosScales[lodIdx] = new Vector4(renderData[lodIdx]._posSnapped.x, renderData[lodIdx]._posSnapped.z, lt.GetLodTransform(lodIdx).lossyScale.x, 0);
                 _BindData_paramIdOceans[lodIdx] = new Vector4(renderData[lodIdx]._texelWidth, renderData[lodIdx]._textureRes, 1f, 1f / renderData[lodIdx]._textureRes);
             }
-            properties.SetVectorArray(LodTransform.ParamIdPosScale(prevFrame), _BindData_paramIdPosScales);
-            properties.SetVectorArray(LodTransform.ParamIdOcean(prevFrame), _BindData_paramIdOceans);
+            properties.SetVectorArray(LodTransform.ParamIdPosScale(sourceLod), _BindData_paramIdPosScales);
+            properties.SetVectorArray(LodTransform.ParamIdOcean(sourceLod), _BindData_paramIdOceans);
         }
 
         public static LodDataType Create<LodDataType, LodDataSettings>(GameObject attachGO, ref LodDataSettings settings)
@@ -206,7 +206,7 @@ namespace Crest
         protected struct TextureArrayParamIds
         {
             private int _paramId;
-            private int _paramId_PrevFrame;
+            private int _paramId_Source;
             public TextureArrayParamIds(string textureArrayName)
             {
                 _paramId = Shader.PropertyToID(textureArrayName);
@@ -214,9 +214,9 @@ namespace Crest
                 // garbage. However, this is called on initialisation so should
                 // be ok for now? Something worth considering for the future if
                 // we want to go garbage-free.
-                _paramId_PrevFrame = Shader.PropertyToID(textureArrayName + "_PrevFrame");
+                _paramId_Source = Shader.PropertyToID(textureArrayName + "_Source");
             }
-            public int GetId(bool prevFrame) { return prevFrame ? _paramId_PrevFrame : _paramId; }
+            public int GetId(bool sourceLod) { return sourceLod ? _paramId_Source : _paramId; }
         }
     }
 }

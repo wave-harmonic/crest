@@ -35,7 +35,7 @@ Shader "Hidden/Crest/Simulation/Update Shadow"
 				float4 MainCameraCoords : TEXCOORD9;
 			};
 
-			uniform float _LD_SliceIndex_PrevFrame;
+			uniform float _LD_SliceIndex_Source;
 			uniform float3 _CenterPos;
 			uniform float3 _Scale;
 			uniform float3 _CamPos;
@@ -123,11 +123,11 @@ Shader "Hidden/Crest/Simulation/Update Shadow"
 				fixed2 shadow = 0.0;
 
 				// Shadow from last frame - manually implement black border
-				float3 uv_prevFrame = WorldToUV_PrevFrame(input._WorldPosViewZ.xz, _LD_SliceIndex_PrevFrame);
-				half2 r = abs(uv_prevFrame.xy - 0.5);
+				float3 uv_source = WorldToUV_Source(input._WorldPosViewZ.xz, _LD_SliceIndex_Source);
+				half2 r = abs(uv_source.xy - 0.5);
 				if (max(r.x, r.y) < 0.49)
 				{
-					SampleShadow(_LD_TexArray_Shadow_PrevFrame, uv_prevFrame, 1.0, shadow);
+					SampleShadow(_LD_TexArray_Shadow_Source, uv_source, 1.0, shadow);
 				}
 
 				// Check if the current sample is visible in the main camera (and therefore shadow map can be sampled)

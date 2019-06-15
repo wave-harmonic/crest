@@ -87,14 +87,14 @@ namespace Crest
 
         public static string TextureArrayName = "_LD_TexArray_Foam";
         private static TextureArrayParamIds textureArrayParamIds = new TextureArrayParamIds(TextureArrayName);
-        public static int ParamIdSampler(bool prevFrame = false) { return textureArrayParamIds.GetId(prevFrame); }
-        protected override int GetParamIdSampler(bool prevFrame = false)
+        public static int ParamIdSampler(bool sourceLod = false) { return textureArrayParamIds.GetId(sourceLod); }
+        protected override int GetParamIdSampler(bool sourceLod = false)
         {
-            return ParamIdSampler(prevFrame);
+            return ParamIdSampler(sourceLod);
         }
-        public static void BindNull(IPropertyWrapper properties, bool prevFrame = false)
+        public static void BindNull(IPropertyWrapper properties, bool sourceLod = false)
         {
-            properties.SetTexture(ParamIdSampler(prevFrame), TextureArrayHelpers.BlackTextureArray);
+            properties.SetTexture(ParamIdSampler(sourceLod), TextureArrayHelpers.BlackTextureArray);
         }
     }
 }

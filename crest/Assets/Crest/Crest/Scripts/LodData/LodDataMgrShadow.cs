@@ -24,8 +24,8 @@ namespace Crest
 
         CommandBuffer _bufCopyShadowMap = null;
         RenderTexture _sources;
-        PropertyWrapperCompute[] _renderProperties;
-        ComputeShader _shader;
+        PropertyWrapperCompute _renderProperties;
+        ComputeShader _updateShadowShader;
         private int krnl_UpdateShadow;
         public const string UpdateShadow = "UpdateShadow";
 
@@ -37,6 +37,7 @@ namespace Crest
         static int sp_MainCameraProjectionMatrix = Shader.PropertyToID("_MainCameraProjectionMatrix");
         static int sp_SimDeltaTime = Shader.PropertyToID("_SimDeltaTime");
         static int sp_LD_SliceIndex_Source = Shader.PropertyToID("_LD_SliceIndex_Source");
+        static int sp_LD_TexArray_Target = Shader.PropertyToID("_LD_TexArray_Target");
 
         SimSettingsShadow Settings { get { return OceanRenderer.Instance._simSettingsShadow; } }
         public override void UseSettings(SimSettingsBase settings) { OceanRenderer.Instance._simSettingsShadow = settings as SimSettingsShadow; }
@@ -51,15 +52,9 @@ namespace Crest
         {
             base.Start();
 
-            {
-                _renderProperties = new PropertyWrapperCompute[OceanRenderer.Instance.CurrentLodCount];
-                _shader = Resources.Load<ComputeShader>(UpdateShadow);
-                krnl_UpdateShadow = _shader.FindKernel(UpdateShadow);
-                for (int i = 0; i < _renderProperties.Length; i++)
-                {
-                    _renderProperties[i] = new PropertyWrapperCompute();
-                }
-            }
+            _renderProperties = new PropertyWrapperCompute();
+            _updateShadowShader = Resources.Load<ComputeShader>(UpdateShadow);
+            krnl_UpdateShadow = _updateShadowShader.FindKernel(UpdateShadow);
 
             _cameraMain = Camera.main;
             if (_cameraMain == null)
@@ -190,30 +185,28 @@ namespace Crest
                 // which only happens if there are (nontransparent) shadow receivers around
                 Graphics.Blit(Texture2D.blackTexture, _targets, -1, lodIdx);
 
-                _renderProperties[lodIdx].Initialise(_bufCopyShadowMap, _shader, krnl_UpdateShadow);
+                _renderProperties.Initialise(_bufCopyShadowMap, _updateShadowShader, krnl_UpdateShadow);
 
                 lt._renderData[lodIdx].Validate(0, this);
-                _renderProperties[lodIdx].SetVector(sp_CenterPos, lt._renderData[lodIdx]._posSnapped);
-                _renderProperties[lodIdx].SetVector(sp_Scale, lt.GetLodTransform(lodIdx).lossyScale);
-                _renderProperties[lodIdx].SetVector(sp_CamPos, OceanRenderer.Instance.Viewpoint.position);
-                _renderProperties[lodIdx].SetVector(sp_CamForward, OceanRenderer.Instance.Viewpoint.forward);
-                _renderProperties[lodIdx].SetVector(sp_JitterDiameters_CurrentFrameWeights, new Vector4(Settings._jitterDiameterSoft, Settings._jitterDiameterHard, Settings._currentFrameWeightSoft, Settings._currentFrameWeightHard));
-                _renderProperties[lodIdx].SetMatrix(sp_MainCameraProjectionMatrix, _cameraMain.projectionMatrix * _cameraMain.worldToCameraMatrix);
-                _renderProperties[lodIdx].SetFloat(sp_SimDeltaTime, Time.deltaTime);
+                _renderProperties.SetVector(sp_CenterPos, lt._renderData[lodIdx]._posSnapped);
+                _renderProperties.SetVector(sp_Scale, lt.GetLodTransform(lodIdx).lossyScale);
+                _renderProperties.SetVector(sp_CamPos, OceanRenderer.Instance.Viewpoint.position);
+                _renderProperties.SetVector(sp_CamForward, OceanRenderer.Instance.Viewpoint.forward);
+                _renderProperties.SetVector(sp_JitterDiameters_CurrentFrameWeights, new Vector4(Settings._jitterDiameterSoft, Settings._jitterDiameterHard, Settings._currentFrameWeightSoft, Settings._currentFrameWeightHard));
+                _renderProperties.SetMatrix(sp_MainCameraProjectionMatrix, _cameraMain.projectionMatrix * _cameraMain.worldToCameraMatrix);
+                _renderProperties.SetFloat(sp_SimDeltaTime, Time.deltaTime);
 
                 // compute which lod data we are sampling previous frame shadows from. if a scale change has happened this can be any lod up or down the chain.
                 var srcDataIdx = lodIdx + ScaleDifferencePow2;
                 srcDataIdx = Mathf.Clamp(srcDataIdx, 0, lt.LodCount - 1);
-                _renderProperties[lodIdx].SetFloat(OceanRenderer.sp_LD_SliceIndex, lodIdx);
-                _renderProperties[lodIdx].SetFloat(sp_LD_SliceIndex_Source, srcDataIdx);
-                BindSourceData(_renderProperties[lodIdx], false);
-                _renderProperties[lodIdx].SetTexture(
-                    Shader.PropertyToID("_LD_TexArray_Target"),
+                _renderProperties.SetFloat(OceanRenderer.sp_LD_SliceIndex, lodIdx);
+                _renderProperties.SetFloat(sp_LD_SliceIndex_Source, srcDataIdx);
+                BindSourceData(_renderProperties, false);
+                _renderProperties.SetTexture(
+                    sp_LD_TexArray_Target,
                     _targets
                 );
-                _renderProperties[lodIdx].DispatchShader();
-
-                //_bufCopyShadowMap.Blit(Texture2D.blackTexture, _targets, _renderProperties[lodIdx].material, -1, lodIdx);
+                _renderProperties.DispatchShader();
             }
         }
 

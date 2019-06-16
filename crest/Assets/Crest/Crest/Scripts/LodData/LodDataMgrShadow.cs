@@ -128,11 +128,8 @@ namespace Crest
                 {
                     _mainLight.RemoveCommandBuffer(LightEvent.BeforeScreenspaceMask, _bufCopyShadowMap);
                     _bufCopyShadowMap = null;
-                    for(int lodIdx = 0; lodIdx < _targets.volumeDepth; lodIdx++)
-                    {
-                        TextureArrayHelpers.ClearToBlack(_sources);
-                        TextureArrayHelpers.ClearToBlack(_targets);
-                    }
+                    TextureArrayHelpers.ClearToBlack(_sources);
+                    TextureArrayHelpers.ClearToBlack(_targets);
                 }
                 _mainLight = null;
             }
@@ -179,13 +176,14 @@ namespace Crest
 
             var lt = OceanRenderer.Instance._lodTransform;
             ValidateSourceData();
+            // clear the shadow collection. it will be overwritten with shadow values IF the shadows render,
+            // which only happens if there are (nontransparent) shadow receivers around
+            TextureArrayHelpers.ClearToBlack(_targets);
             for (var lodIdx = OceanRenderer.Instance.CurrentLodCount - 1; lodIdx >= 0; lodIdx--)
             {
-                // clear the shadow collection. it will be overwritten with shadow values IF the shadows render,
-                // which only happens if there are (nontransparent) shadow receivers around
-                TextureArrayHelpers.ClearToBlack(_targets);
 
                 _renderProperties.Initialise(_bufCopyShadowMap, _updateShadowShader, krnl_UpdateShadow);
+
 
                 lt._renderData[lodIdx].Validate(0, this);
                 _renderProperties.SetVector(sp_CenterPos, lt._renderData[lodIdx]._posSnapped);

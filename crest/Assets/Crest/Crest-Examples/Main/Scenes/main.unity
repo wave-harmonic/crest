@@ -463,7 +463,7 @@ MonoBehaviour:
   _createSeaFloorDepthData: 1
   _createFoamSim: 1
   _simSettingsFoam: {fileID: 0}
-  _createDynamicWaveSim: 1
+  _createDynamicWaveSim: 0
   _simSettingsDynamicWaves: {fileID: 0}
   _createFlowSim: 0
   _simSettingsFlow: {fileID: 0}

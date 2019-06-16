@@ -75,6 +75,7 @@ namespace Crest
         public void SetMatrix(int param, Matrix4x4 value) { _commandBuffer.SetComputeMatrixParam(_computeShader, param, value); }
 
         // NOTE: these MUST match the values in OceanLODData.hlsl
+        // 64 recommended as a good common minimum: https://www.reddit.com/r/GraphicsProgramming/comments/aeyfkh/for_compute_shaders_is_there_an_ideal_numthreads/
         public const int THREAD_GROUP_SIZE_X = 8;
         public const int THREAD_GROUP_SIZE_Y = 8;
         public void DispatchShader()

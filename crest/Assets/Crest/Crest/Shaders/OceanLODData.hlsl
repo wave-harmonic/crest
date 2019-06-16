@@ -94,17 +94,13 @@ float2 UVToWorld(in float2 i_uv) { return UVToWorld(i_uv, _LD_SliceIndex); }
 // Convert compute shader id to uv texture coordinates
 float2 IDtoUV(in float2 i_id, in float i_width, in float i_height)
 {
-	return float2(float2(i_id) / float2(i_width, i_height) + 0.5 / float2(256, 256));
-}
-float2 UVToID(in float2 i_uv, in float i_width, in float i_height)
-{
-	return float2((i_uv.xy * float2(i_width, i_height)) - 0.5);
+	return (i_id + 0.5) / float2(i_width, i_height);
 }
 
 // Sampling functions
 void SampleDisplacements(in Texture2DArray i_dispSampler, in float3 i_uv_slice, in float i_wt, inout float3 io_worldPos)
 {
-	const half3 disp = i_dispSampler.SampleLevel(LODData_linear_clamp_sampler, i_uv_slice, 0).xyz;
+	const half3 disp = i_dispSampler.SampleLevel(LODData_linear_clamp_sampler, i_uv_slice, 0.0).xyz;
 	io_worldPos += i_wt * disp;
 }
 
@@ -115,8 +111,8 @@ void SampleDisplacementsNormals(in Texture2DArray i_dispSampler, in float3 i_uv_
 
 	float3 n; {
 		float3 dd = float3(i_invRes, 0.0, i_texelSize);
-		half3 disp_x = dd.zyy + i_dispSampler.SampleLevel(LODData_linear_clamp_sampler, i_uv_slice + float3(dd.xy, 0), dd.y).xyz;
-		half3 disp_z = dd.yyz + i_dispSampler.SampleLevel(LODData_linear_clamp_sampler, i_uv_slice + float3(dd.yx, 0), dd.y).xyz;
+		half3 disp_x = dd.zyy + i_dispSampler.SampleLevel(LODData_linear_clamp_sampler, i_uv_slice + float3(dd.xy, 0.0), dd.y).xyz;
+		half3 disp_z = dd.yyz + i_dispSampler.SampleLevel(LODData_linear_clamp_sampler, i_uv_slice + float3(dd.yx, 0.0), dd.y).xyz;
 		n = normalize(cross(disp_z - disp, disp_x - disp));
 	}
 	io_nxz += i_wt * n.xz;
@@ -124,25 +120,25 @@ void SampleDisplacementsNormals(in Texture2DArray i_dispSampler, in float3 i_uv_
 
 void SampleFoam(in Texture2DArray i_oceanFoamSampler, in float3 i_uv_slice, in float i_wt, inout half io_foam)
 {
-	io_foam += i_wt * i_oceanFoamSampler.SampleLevel(LODData_linear_clamp_sampler, i_uv_slice, 0).x;
+	io_foam += i_wt * i_oceanFoamSampler.SampleLevel(LODData_linear_clamp_sampler, i_uv_slice, 0.0).x;
 }
 
 void SampleFlow(in Texture2DArray i_oceanFlowSampler, in float3 i_uv_slice, in float i_wt, inout half2 io_flow)
 {
-	io_flow += i_wt * i_oceanFlowSampler.SampleLevel(LODData_linear_clamp_sampler, i_uv_slice, 0).xy;
+	io_flow += i_wt * i_oceanFlowSampler.SampleLevel(LODData_linear_clamp_sampler, i_uv_slice, 0.0).xy;
 }
 
 void SampleSeaDepth(in Texture2DArray i_oceanDepthSampler, in float3 i_uv_slice, in float i_wt, inout half io_oceanDepth)
 {
-	io_oceanDepth += i_wt * (i_oceanDepthSampler.SampleLevel(LODData_linear_clamp_sampler, i_uv_slice, 0).x - CREST_OCEAN_DEPTH_BASELINE);
+	io_oceanDepth += i_wt * (i_oceanDepthSampler.SampleLevel(LODData_linear_clamp_sampler, i_uv_slice, 0.0).x - CREST_OCEAN_DEPTH_BASELINE);
 }
 
 void SampleShadow(in Texture2DArray i_oceanShadowSampler, in float3 i_uv_slice, in float i_wt, inout half2 io_shadow)
 {
-	io_shadow += i_wt * i_oceanShadowSampler.SampleLevel(LODData_linear_clamp_sampler, i_uv_slice, 0).xy;
+	io_shadow += i_wt * i_oceanShadowSampler.SampleLevel(LODData_linear_clamp_sampler, i_uv_slice, 0.0).xy;
 }
 
-#define SampleLod(i_lodTextureArray, i_uv_slice) (i_lodTextureArray.SampleLevel(LODData_linear_clamp_sampler, i_uv_slice, 0))
+#define SampleLod(i_lodTextureArray, i_uv_slice) (i_lodTextureArray.SampleLevel(LODData_linear_clamp_sampler, i_uv_slice, 0.0))
 #define SampleLodLevel(i_lodTextureArray, i_uv_slice, mips) (i_lodTextureArray.SampleLevel(LODData_linear_clamp_sampler, i_uv_slice, mips))
 
 // Geometry data

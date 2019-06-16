@@ -75,8 +75,8 @@ namespace Crest
         public void SetMatrix(int param, Matrix4x4 value) { _commandBuffer.SetComputeMatrixParam(_computeShader, param, value); }
 
         // NOTE: these MUST match the values in OceanLODData.hlsl
-        const int THREAD_GROUP_SIZE_X = 8;
-        const int THREAD_GROUP_SIZE_Y = 8;
+        public const int THREAD_GROUP_SIZE_X = 8;
+        public const int THREAD_GROUP_SIZE_Y = 8;
         public void DispatchShader()
         {
             _commandBuffer.DispatchCompute(

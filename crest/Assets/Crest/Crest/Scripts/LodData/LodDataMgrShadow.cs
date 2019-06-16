@@ -130,8 +130,8 @@ namespace Crest
                     _bufCopyShadowMap = null;
                     for(int lodIdx = 0; lodIdx < _targets.volumeDepth; lodIdx++)
                     {
-                        Graphics.Blit(Texture2D.blackTexture, _sources, -1, lodIdx);
-                        Graphics.Blit(Texture2D.blackTexture, _targets, -1, lodIdx);
+                        TextureArrayHelpers.ClearToBlack(_sources);
+                        TextureArrayHelpers.ClearToBlack(_targets);
                     }
                 }
                 _mainLight = null;
@@ -183,7 +183,7 @@ namespace Crest
             {
                 // clear the shadow collection. it will be overwritten with shadow values IF the shadows render,
                 // which only happens if there are (nontransparent) shadow receivers around
-                Graphics.Blit(Texture2D.blackTexture, _targets, -1, lodIdx);
+                TextureArrayHelpers.ClearToBlack(_targets);
 
                 _renderProperties.Initialise(_bufCopyShadowMap, _updateShadowShader, krnl_UpdateShadow);
 

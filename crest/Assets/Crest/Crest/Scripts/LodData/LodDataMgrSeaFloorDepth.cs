@@ -25,7 +25,18 @@ namespace Crest
         private const string ENABLE_GEOMETRY_SHADER_KEYWORD = "_ENABLE_GEOMETRY_SHADER";
 
         private static bool UseGeometryShader { get {
-            return SystemInfo.graphicsDeviceType != UnityEngine.Rendering.GraphicsDeviceType.Metal;
+            // Only use geometry shader if target device supports it.
+            // See https://docs.unity3d.com/2018.1/Documentation/Manual/SL-ShaderCompileTargets.html
+            // See https://docs.unity3d.com/ScriptReference/SystemInfo-graphicsShaderLevel.html
+            if (SystemInfo.graphicsDeviceType == UnityEngine.Rendering.GraphicsDeviceType.Metal)
+            {
+                return false;
+            }
+            if(SystemInfo.graphicsShaderLevel <= 35 || SystemInfo.graphicsShaderLevel == 45)
+            {
+                return false;
+            }
+            return true;
         }}
 
         public static string ShaderName { get {

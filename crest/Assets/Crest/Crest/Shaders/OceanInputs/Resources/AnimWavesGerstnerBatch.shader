@@ -97,7 +97,7 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Batch"
 					// The below is a few things collapsed together.
 					half4 depth_wt = saturate(depth * _TwoPiOverWavelengths[vi] / PI);
 					// keep some proportion of amplitude so that there is some waves remaining
-					half4 wt = 1;// _AttenuationInShallows * depth_wt + oneMinusAttenuation;
+					half4 wt = _AttenuationInShallows * depth_wt + oneMinusAttenuation;
 
 					// direction
 					half4 Dx = _WaveDirX[vi];
@@ -132,7 +132,7 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Batch"
 
 				result.y = 2.*sin(input.worldPos_wt.x / 10.);// *_ChopAmps[0].x;
 
-				return /*input.worldPos_wt.z **/ half4(0., abs(result.y), 0., 1.) * _BlendOutSampling;// mul*length(displacementNormalized));
+				return input.worldPos_wt.z * half4(0., abs(result.y), 0., 1.) * _BlendOutSampling;// mul*length(displacementNormalized));
 			}
 
 			ENDCG

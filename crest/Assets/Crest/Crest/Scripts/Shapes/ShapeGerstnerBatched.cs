@@ -160,7 +160,7 @@ namespace Crest
             ReportMaxDisplacement();
 
             // this is done every frame for flexibility/convenience, in case the lod count changes
-            if (_materials == null || _materials.Length != OceanRenderer.Instance.CurrentLodCount)
+            if (_materials == null /*|| _materials.Length != OceanRenderer.Instance.CurrentLodCount*/)
             {
                 InitMaterials();
             }
@@ -197,7 +197,7 @@ namespace Crest
             }
 
             // num octaves plus one, because there is an additional last bucket for large wavelengths
-            _materials = new PropertyWrapperMaterial[OceanRenderer.Instance.CurrentLodCount];
+            _materials = new PropertyWrapperMaterial[32];
             _drawLOD = new bool[_materials.Length];
 
             for (int i = 0; i < _materials.Length; i++)
@@ -365,7 +365,21 @@ namespace Crest
             }
 
             // batch together appropriate wavelengths for each lod, except the last lod, which are handled separately below
-            for (int lod = 0; lod < OceanRenderer.Instance.CurrentLodCount - 1; lod++, minWl *= 2f)
+            //for (int lod = 0; lod < OceanRenderer.Instance.CurrentLodCount - 1; lod++, minWl *= 2f)
+            //{
+            //    int startCompIdx = componentIdx;
+            //    while (componentIdx < _wavelengths.Length && _wavelengths[componentIdx] < 2f * minWl)
+            //    {
+            //        componentIdx++;
+            //    }
+
+            //    _drawLOD[lod] = UpdateBatch(lod, startCompIdx, componentIdx, _materials[lod]) > 0;
+            //}
+
+            int matCount = 0;
+            int lod = 0;
+            while(componentIdx < _wavelengths.Length)
+            //for (int lod = 0; lod < OceanRenderer.Instance.CurrentLodCount - 1; lod++, minWl *= 2f)
             {
                 int startCompIdx = componentIdx;
                 while (componentIdx < _wavelengths.Length && _wavelengths[componentIdx] < 2f * minWl)
@@ -373,13 +387,25 @@ namespace Crest
                     componentIdx++;
                 }
 
-                _drawLOD[lod] = UpdateBatch(lod, startCompIdx, componentIdx, _materials[lod]) > 0;
+                if (lod < OceanRenderer.Instance.CurrentLodCount)
+                {
+                    _drawLOD[lod] = UpdateBatch(lod, startCompIdx, componentIdx, _materials[matCount++]) > 0;
+                }
+                else
+                {
+                    _drawLOD[OceanRenderer.Instance.CurrentLodCount - 1] = UpdateBatch(OceanRenderer.Instance.CurrentLodCount - 1, startCompIdx, componentIdx, _materials[matCount++]) > 0 || _drawLOD[OceanRenderer.Instance.CurrentLodCount - 1];
+                    _drawLOD[OceanRenderer.Instance.CurrentLodCount - 2] = UpdateBatch(OceanRenderer.Instance.CurrentLodCount - 2, startCompIdx, componentIdx, _materials[matCount++]) > 0 || _drawLOD[OceanRenderer.Instance.CurrentLodCount - 2];
+                }
+
+                lod++;
+                minWl *= 2f;
             }
+
 
             // the last batch handles waves for the last lod, and waves that did not fit in the last lod
             _drawLOD[OceanRenderer.Instance.CurrentLodCount - 1] =
                 UpdateBatch(OceanRenderer.Instance.CurrentLodCount - 1, componentIdx, _wavelengths.Length, _materials[OceanRenderer.Instance.CurrentLodCount - 1]) > 0;
-            _materials[OceanRenderer.Instance.CurrentLodCount - 1].SetFloat(sp_BlendOutSampling, OceanRenderer.Instance.ViewerAltitudeLevelAlpha);
+            //_materials[OceanRenderer.Instance.CurrentLodCount - 1].SetFloat(sp_BlendOutSampling, OceanRenderer.Instance.ViewerAltitudeLevelAlpha);
             //_materials[OceanRenderer.Instance.CurrentLodCount-1].SetFloat(Shader.PropertyToID("_LerpyWeight"), )
             _drawLODTransitionWaves =
                 UpdateBatch(OceanRenderer.Instance.CurrentLodCount - 2, componentIdx, _wavelengths.Length, _materialBigWaveTransition) > 0;

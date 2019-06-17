@@ -22,6 +22,32 @@ namespace Crest
         bool _targetsClear = false;
         private static int sp_SliceViewProjMatrices = Shader.PropertyToID("_SliceViewProjMatrices");
         private static int sp_CurrentLodCount = Shader.PropertyToID("_CurrentLodCount");
+        private const string ENABLE_GEOMETRY_SHADER_KEYWORD = "_ENABLE_GEOMETRY_SHADER";
+
+        private static bool UseGeometryShader { get {
+            return SystemInfo.graphicsDeviceType != UnityEngine.Rendering.GraphicsDeviceType.Metal;
+        }}
+
+        public static string ShaderName { get {
+            if(UseGeometryShader)
+            {
+                return "Crest/Inputs/Depth/Cached Depths";
+            }
+            else
+            {
+                return "Crest/Inputs/Depth/Cached Depths Geometry";
+            }
+        }}
+
+        private void OnEnable()
+        {
+            if(UseGeometryShader) { Shader.EnableKeyword(ENABLE_GEOMETRY_SHADER_KEYWORD); }
+        }
+
+        private void OnDisable()
+        {
+            if(UseGeometryShader) { Shader.DisableKeyword(ENABLE_GEOMETRY_SHADER_KEYWORD); }
+        }
 
         public override void BuildCommandBuffer(OceanRenderer ocean, CommandBuffer buf)
         {
@@ -33,29 +59,39 @@ namespace Crest
                 return;
             }
 
-            Debug.Assert(OceanRenderer.Instance.CurrentLodCount < MAX_LOD_COUNT);
+            if(UseGeometryShader) {
+                buf.SetRenderTarget(_targets, 0, CubemapFace.Unknown, -1);
+                buf.ClearRenderTarget(false, true, Color.white * 1000f);
 
-            buf.SetRenderTarget(_targets, 0, CubemapFace.Unknown, -1);
-            buf.ClearRenderTarget(false, true, Color.white * 1000f);
+                Matrix4x4[] matrixArray = new Matrix4x4[MAX_LOD_COUNT];
 
-            Matrix4x4[] matrixArray = new Matrix4x4[MAX_LOD_COUNT];
+                var lt = OceanRenderer.Instance._lodTransform;
+                for (int lodIdx = OceanRenderer.Instance.CurrentLodCount - 1; lodIdx >= 0; lodIdx--)
+                {
+                    lt._renderData[lodIdx].Validate(0, this);
+                    Matrix4x4 platformProjectionMatrix = GL.GetGPUProjectionMatrix(lt.GetProjectionMatrix(lodIdx), true);
+                    Matrix4x4 worldToClipPos = platformProjectionMatrix * lt.GetWorldToCameraMatrix(lodIdx);
+                    matrixArray[lodIdx] = worldToClipPos;
+                }
 
-            var lt = OceanRenderer.Instance._lodTransform;
-            for (int lodIdx = OceanRenderer.Instance.CurrentLodCount - 1; lodIdx >= 0; lodIdx--)
-            {
-                lt._renderData[lodIdx].Validate(0, this);
-                Matrix4x4 platformProjectionMatrix = GL.GetGPUProjectionMatrix(lt.GetProjectionMatrix(lodIdx), true);
-                Matrix4x4 worldToClipPos = platformProjectionMatrix * lt.GetWorldToCameraMatrix(lodIdx);
-                matrixArray[lodIdx] = worldToClipPos;
+                buf.SetGlobalMatrixArray(sp_SliceViewProjMatrices, matrixArray);
+                buf.SetGlobalInt(sp_CurrentLodCount, OceanRenderer.Instance.CurrentLodCount);
+
+
+                foreach (var draw in _drawList)
+                {
+                    buf.DrawRenderer(draw.RendererComponent, draw.RendererComponent.sharedMaterial);
+                }
             }
-
-            buf.SetGlobalMatrixArray(sp_SliceViewProjMatrices, matrixArray);
-            buf.SetGlobalInt(sp_CurrentLodCount, OceanRenderer.Instance.CurrentLodCount);
-
-
-            foreach (var draw in _drawList)
+            else
             {
-                buf.DrawRenderer(draw.RendererComponent, draw.RendererComponent.sharedMaterial);
+                for (int lodIdx = OceanRenderer.Instance.CurrentLodCount - 1; lodIdx >= 0; lodIdx--)
+                {
+                    buf.SetRenderTarget(_targets, 0, CubemapFace.Unknown, lodIdx);
+                    buf.ClearRenderTarget(false, true, Color.white * 1000f);
+                    buf.SetGlobalFloat(OceanRenderer.sp_LD_SliceIndex, lodIdx);
+                    SubmitDraws(lodIdx, buf);
+                }
             }
 
             // targets have now been cleared, we can early out next time around

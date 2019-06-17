@@ -120,13 +120,15 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Batch"
 					result.y += dot(resulty, wt);
 					result.z += dot(resultz, wt);
 
-					// have no idea why this doesnt work :/. the weights for blending between the last two lods should be baked into _ChopAmps which
-					// therefore should follow into this through resultx & resultz.
-					displacementNormalized.x += dot(/*abs*/(resultx * _TwoPiOverWavelengths[vi]), wt);
-					displacementNormalized.y += dot(/*abs*/(resultz * _TwoPiOverWavelengths[vi]), wt);
+					displacementNormalized.x += dot(resultx * _TwoPiOverWavelengths[vi], wt);
+					displacementNormalized.y += dot(resultz * _TwoPiOverWavelengths[vi], wt);
 				}
 
-				return input.worldPos_wt.z * half4(result, length(displacementNormalized)); // *(1. - _BlendOutSampling);
+				// oh shit - multiple wavelengths combine into one batch????
+				// YES - when multiple wavelengths end up in the Big Wave batch, suddenly they join others..
+				// the solution could be to still draw big wavelengths as multiple batches, just send them to one lod. this might help the
+				// batch size getting exceeded issue.
+				return input.worldPos_wt.z * half4(result, length(displacementNormalized.xy)); // *(1. - _BlendOutSampling);
 
 				result.y = 2.*sin(input.worldPos_wt.x / 10.);// *_ChopAmps[0].x;
 

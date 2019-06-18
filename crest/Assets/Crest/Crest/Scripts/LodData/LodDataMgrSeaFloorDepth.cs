@@ -28,7 +28,13 @@ namespace Crest
             // Only use geometry shader if target device supports it.
             // See https://docs.unity3d.com/2018.1/Documentation/Manual/SL-ShaderCompileTargets.html
             // See https://docs.unity3d.com/ScriptReference/SystemInfo-graphicsShaderLevel.html
-            if (SystemInfo.graphicsDeviceType == UnityEngine.Rendering.GraphicsDeviceType.Metal)
+#if PLATFORM_ANDROID
+            if(SystemInfo.graphicsDeviceType == GraphicsDeviceType.Vulkan)
+            {
+                return false;
+            }
+#endif
+            if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal)
             {
                 return false;
             }

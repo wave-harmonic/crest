@@ -865,6 +865,9 @@ MonoBehaviour:
   _componentsPerOctave: 2
   _weight: 1
   _randomSeed: 0
+  _directTowardsPoint: 1
+  _pointPositionXZ: {x: 0, y: 0}
+  _pointRadii: {x: 100, y: 200}
 --- !u!1001 &1898459823
 PrefabInstance:
   m_ObjectHideFlags: 0

@@ -42,7 +42,7 @@ namespace Crest
 #endif
         }
 
-        protected override void SetAdditionalSimParams(int lodIdx, PropertyWrapperMaterial simMaterial)
+        protected override void SetAdditionalSimParams(int lodIdx, IPropertyWrapper simMaterial)
         {
             base.SetAdditionalSimParams(lodIdx, simMaterial);
 
@@ -94,11 +94,7 @@ namespace Crest
         {
             return ParamIdSampler(slot);
         }
-        public static void BindNull(int shapeSlot, Material properties)
-        {
-            properties.SetTexture(ParamIdSampler(shapeSlot), Texture2D.blackTexture);
-        }
-        public static void BindNull(int shapeSlot, MaterialPropertyBlock properties)
+        public static void BindNull(int shapeSlot, IPropertyWrapper properties)
         {
             properties.SetTexture(ParamIdSampler(shapeSlot), Texture2D.blackTexture);
         }

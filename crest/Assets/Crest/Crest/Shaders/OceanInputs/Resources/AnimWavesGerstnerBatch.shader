@@ -23,6 +23,8 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Batch"
 			CGPROGRAM
 			#pragma vertex Vert
 			#pragma fragment Frag
+			#pragma multi_compile __ _DIRECT_TOWARDS_POINT
+
 			#include "UnityCG.cginc"
 			#include "../../OceanLODData.hlsl"
 
@@ -41,6 +43,8 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Batch"
 			half4 _Phases[BATCH_SIZE / 4];
 			half4 _ChopAmps[BATCH_SIZE / 4];
 			float _BlendOutSampling;
+
+			float4 _TargetPointData;
 
 			struct Attributes
 			{
@@ -77,11 +81,22 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Batch"
 
 			half4 Frag(Varyings input) : SV_Target
 			{
+				half3 result = (half3)0.0;
+
 				const half4 oneMinusAttenuation = (half4)1.0 - (half4)_AttenuationInShallows;
 
 				// sample ocean depth (this render target should 1:1 match depth texture, so UVs are trivial)
 				const half depth = tex2D(_LD_Sampler_SeaFloorDepth_0, input.uv).x;
-				half3 result = (half3)0.0;
+
+				// Preferred wave directions
+#if _DIRECT_TOWARDS_POINT
+				float2 offset = input.worldPos_wt.xy - _TargetPointData.xy;
+				float preferDist = length(offset);
+				float preferWt = smoothstep(_TargetPointData.w, _TargetPointData.z, preferDist);
+				half2 preferredDir = preferWt * offset / preferDist;
+				half4 preferredDirX = preferredDir.x;
+				half4 preferredDirZ = preferredDir.y;
+#endif
 
 				float2 displacementNormalized = 0.0;
 
@@ -102,6 +117,12 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Batch"
 					// direction
 					half4 Dx = _WaveDirX[vi];
 					half4 Dz = _WaveDirZ[vi];
+
+					// Peferred wave direction
+#if _DIRECT_TOWARDS_POINT
+					wt *= max((1.0 + Dx * preferredDirX + Dz * preferredDirZ) / 2.0, 0.1);
+#endif
+					
 					// wave number
 					half4 k = _TwoPiOverWavelengths[vi];
 					// spatial location

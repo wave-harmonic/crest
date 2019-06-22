@@ -26,6 +26,15 @@ namespace Crest
 
         public int _randomSeed = 0;
 
+        [SerializeField, Tooltip("Make waves converge towards a point. Must be set at edit time only, applied on startup."), Header("Direct towards point")]
+        bool _directTowardsPoint = false;
+        [SerializeField, Tooltip("Target point XZ to converge to.")]
+        Vector2 _pointPositionXZ = Vector2.zero;
+        [SerializeField, Tooltip("Inner and outer radii. Influence at full strength at inner radius, fades off at outer radius.")]
+        Vector2 _pointRadii = new Vector2(100f, 200f);
+
+        const string DIRECT_TOWARDS_POINT_KEYWORD = "_DIRECT_TOWARDS_POINT";
+
         // data for all components
         float[] _wavelengths;
         float[] _amplitudes;
@@ -50,7 +59,7 @@ namespace Crest
         static int sp_NumInBatch = Shader.PropertyToID("_NumInBatch");
         static int sp_AttenuationInShallows = Shader.PropertyToID("_AttenuationInShallows");
         static int sp_NumWaveVecs = Shader.PropertyToID("_NumWaveVecs");
-        static int sp_BlendOutSampling = Shader.PropertyToID("_BlendOutSampling");
+        static int sp_TargetPointData = Shader.PropertyToID("_TargetPointData");
 
         // IMPORTANT - this mirrors the constant with the same name in ShapeGerstnerBatch.shader, both must be updated together!
         const int BATCH_SIZE = 32;
@@ -203,10 +212,18 @@ namespace Crest
             for (int i = 0; i < _materials.Length; i++)
             {
                 _materials[i] = new PropertyWrapperMaterial(new Material(_waveShader));
+                if (_directTowardsPoint)
+                {
+                    _materials[i].material.EnableKeyword(DIRECT_TOWARDS_POINT_KEYWORD);
+                }
                 _drawLOD[i] = false;
             }
 
             _materialBigWaveTransition = new PropertyWrapperMaterial(new Material(_waveShader));
+            if (_directTowardsPoint)
+            {
+                _materialBigWaveTransition.material.EnableKeyword(DIRECT_TOWARDS_POINT_KEYWORD);
+            }
             _drawLODTransitionWaves = false;
         }
 
@@ -409,7 +426,15 @@ namespace Crest
             //_materials[OceanRenderer.Instance.CurrentLodCount-1].SetFloat(Shader.PropertyToID("_LerpyWeight"), )
             _drawLODTransitionWaves =
                 UpdateBatch(OceanRenderer.Instance.CurrentLodCount - 2, componentIdx, _wavelengths.Length, _materialBigWaveTransition) > 0;
-            _materialBigWaveTransition.SetFloat(sp_BlendOutSampling, 1f - OceanRenderer.Instance.ViewerAltitudeLevelAlpha);
+
+            if (_directTowardsPoint)
+            {
+                for (int lodi = 0; lodi < OceanRenderer.Instance.CurrentLodCount; lodi++)
+                {
+                    _materials[lodi].SetVector(sp_TargetPointData, new Vector4(_pointPositionXZ.x, _pointPositionXZ.y, _pointRadii.x, _pointRadii.y));
+                }
+                _materialBigWaveTransition.SetVector(sp_TargetPointData, new Vector4(_pointPositionXZ.x, _pointPositionXZ.y, _pointRadii.x, _pointRadii.y));
+            }
         }
 
         /// <summary>
@@ -453,6 +478,17 @@ namespace Crest
             if (OceanRenderer.Instance != null && OceanRenderer.Instance._lodDataAnimWaves != null)
             {
                 OceanRenderer.Instance._lodDataAnimWaves.RemoveGerstnerComponent(this);
+            }
+        }
+
+        private void OnDrawGizmosSelected()
+        {
+            if (_directTowardsPoint)
+            {
+                Gizmos.color = Color.black;
+                Gizmos.DrawWireSphere(new Vector3(_pointPositionXZ.x, transform.position.y, _pointPositionXZ.y), _pointRadii.y);
+                Gizmos.color = Color.white;
+                Gizmos.DrawWireSphere(new Vector3(_pointPositionXZ.x, transform.position.y, _pointPositionXZ.y), _pointRadii.x);
             }
         }
 

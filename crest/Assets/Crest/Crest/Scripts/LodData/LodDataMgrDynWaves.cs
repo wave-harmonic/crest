@@ -67,13 +67,13 @@ namespace Crest
             return true;
         }
 
-        public void BindCopySettings(PropertyWrapperMaterial target)
+        public void BindCopySettings(IPropertyWrapper target)
         {
             target.SetFloat(sp_HorizDisplace, Settings._horizDisplace);
             target.SetFloat(sp_DisplaceClamp, Settings._displaceClamp);
         }
 
-        protected override void SetAdditionalSimParams(int lodIdx, PropertyWrapperMaterial simMaterial)
+        protected override void SetAdditionalSimParams(int lodIdx, IPropertyWrapper simMaterial)
         {
             base.SetAdditionalSimParams(lodIdx, simMaterial);
 

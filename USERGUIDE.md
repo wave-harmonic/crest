@@ -145,7 +145,7 @@ One use case for this is boat wakes. In the *boat.unity* scene, the geometry and
 
 After the simulation is advanced, the results are converted into displacements and copied into the displacement textures to affect the final ocean shape. The sim is added on top of the existing Gerstner waves.
 
-Similar to animated waves, user provided contributions can be rendered into this LOD data to create dynamic wave effects. An example can be found in the boat prefab. Each LOD sim runs independently and it is desirable to add interaction forces into all appropriate sims. The *FeedVelocityToExtrude* script takes into account the boat size and counts how many sims are appropriate, and then weights the interaction forces based on this number, so the force is spread evenly to all sims. As noted above, the sim results will be copied into the dynamic waves LODs and then accumulated up the LOD chain to reconstruct a single simulation.
+Similar to animated waves, user provided contributions can be rendered into this LOD data to create dynamic wave effects. An example can be found in the boat prefab. Each LOD sim runs independently and it is desirable to add interaction forces into all appropriate sims. The *ObjectWaterInteraction* script takes into account the boat size and counts how many sims are appropriate, and then weights the interaction forces based on this number, so the force is spread evenly to all sims. As noted above, the sim results will be copied into the dynamic waves LODs and then accumulated up the LOD chain to reconstruct a single simulation.
 
 The dynamic waves sim can be configured by assigning a Dynamic Wave Sim Settings asset to the OceanRenderer script in your scene (*Create/Crest/Dynamic Wave Sim Settings*).
 
@@ -252,11 +252,32 @@ By default the *FloatingOrigin* script will call *FindObjectsOfType()* for a few
 
 ## Buoyancy / Floating Physics
 
-*BoatAlignNormal* is a simple script that attempts to match the object position and rotation with the surface height and normal. This can work well enough for small water craft that don't need perfect floating behaviour, or floating objects such as buoys, barrels, etc.
+*SimpleFloatingObject* is a simple buoyancy script that attempts to match the object position and rotation with the surface height and normal. This can work well enough for small water craft that don't need perfect floating behaviour, or floating objects such as buoys, barrels, etc.
 
 *BoatProbes* is a more advanced implementation that computes buoyancy forces at a number of *ForcePoints* and uses these to apply force and torque to the object. This gives more accurate results at the cost of more queries.
 
-We've found issues caused by having multiple overlapping physics collision primitives (or multiple rigidbodies) within the floating object, or when the object pivot is not at the center of mass.
+*BoatAlignNormal* is a rudimentary boat physics emulator that attaches an engine and rudder to *SimpleFloatingObject*. It's not recommended for cases where high animation quality is required.
+
+### Adding boats
+
+Setting up a boat with physics can be a dark art. The authors recommend duplicating and modifying one of the existing boat prefabs, and proceeding slowly and carefully as follows:
+
+* Pick an existing boat to replace. Only use *BoatAlignNormal* if good floating behaviour is not important, as mentioned above. The best choice is usually boat probes.
+* Duplicate the prefab of the one you want to replace, such as *crest\Assets\Crest\Crest-Examples\BoatDev\Data\BoatProbes.prefab*
+* Remove the render meshes from the prefab, and add the render mesh for your boat. We recommend lining up the meshes roughly.
+* Switch out the collision shape as desired. Some people report issues if the are multiple overlapping physics collision primitives (or multiple rigidbodies which should never be the case). We recommend keeping things as simple as possible and using only one collider if possible.
+* We recommend placing the render mesh so its approximate center of mass matches the center of the collider and is at the center of the boat transform. Put differently, we usually try to eliminate complex hierarchies or having nested non-zero'd transforms whenever possible within the boat hierarchy, at least on or above physical parts.
+* If you have followed these steps you will have a new boat visual mesh and collider, with the old rigidbody and boat script. You can then modify the physics settings to move the behaviour towards how you want it to be.
+* The mass and drag settings on the boat scripts and rigdibody help to give a feeling of weight.
+* Set the boat dimension:
+  * BoatProbes: Set the *Min Spatial Length* param to the width of the boat.
+  * BoatAlignNormal: Set the boat Boat Width and Boat Length to the width and length of the boat.
+  * If, even after experimenting with the mass and drag, the boat is responding too much to small waves, increase these parameters (try doubling or quadrupling at first and then compensate). 
+* There are power settings for engine turning which also help to give a feeling of weight
+* The dynamic wave interaction is driven by the object in the boat hierarchy called *WaterObjectInteractionSphere*. It can be scaled to match the dimensions of the boat. The *Weight* param controls the strength of the interaction.
+
+The above steps should maintain a working boat throughout - we recommend testing after each step to catch issues early.
+
 
 # Q&A
 

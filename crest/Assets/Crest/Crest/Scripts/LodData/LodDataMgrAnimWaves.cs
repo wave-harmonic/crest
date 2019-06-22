@@ -2,7 +2,7 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
-using System.Collections.Generic;
+//using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -32,7 +32,7 @@ namespace Crest
         /// </summary>
         public static bool _shapeCombinePass = true;
 
-        List<ShapeGerstnerBatched> _gerstnerComponents = new List<ShapeGerstnerBatched>();
+        //List<ShapeGerstnerBatched> _gerstnerComponents = new List<ShapeGerstnerBatched>();
 
         RenderTexture[] _waveBuffers;
 
@@ -83,20 +83,53 @@ namespace Crest
             public float _lodMaxWavelength;
             public int _lodIdx;
             public int _lodCount;
+            public float _globalMaxWavelength;
 
-            public bool Filter(RegisterLodDataInputBase data)
+            public float Filter(ILodDataInput data)
             {
-                var drawOctaveWavelength = (data as RegisterAnimWavesInput).OctaveWavelength;
-                return (_lodMinWavelength <= drawOctaveWavelength) && (drawOctaveWavelength < _lodMaxWavelength || _lodIdx == _lodCount - 1);
+                var drawOctaveWavelength = data.Wavelength;
+
+                // No wavelength preference
+                if (drawOctaveWavelength == 0f)
+                {
+                    return 1f;
+                }
+
+                // Too small for this lod
+                if (drawOctaveWavelength < _lodMinWavelength)
+                {
+                    return 0f;
+                }
+
+                // If approaching end of lod chain, start smoothly transitioning any large wavelengths across last two lods
+                if (drawOctaveWavelength >= _globalMaxWavelength / 2f)
+                {
+                    if (_lodIdx == _lodCount - 2)
+                    {
+                        return 1f - OceanRenderer.Instance.ViewerAltitudeLevelAlpha;
+                    }
+
+                    if (_lodIdx == _lodCount - 1)
+                    {
+                        return OceanRenderer.Instance.ViewerAltitudeLevelAlpha;
+                    }
+                }
+                else if (drawOctaveWavelength < _lodMaxWavelength)
+                {
+                    // Fits in this lod
+                    return 1f;
+                }
+
+                return 0f;
             }
         }
         FilterWavelength _filterWavelength = new FilterWavelength();
 
         public class FilterNoLodPreference : IDrawFilter
         {
-            public bool Filter(RegisterLodDataInputBase data)
+            public float Filter(ILodDataInput data)
             {
-                return (data as RegisterAnimWavesInput).OctaveWavelength == 0f;
+                return data.Wavelength == 0f ? 1f : 0f;
             }
         }
         FilterNoLodPreference _filterNoLodPreference = new FilterNoLodPreference();
@@ -114,15 +147,16 @@ namespace Crest
                 buf.SetRenderTarget(_waveBuffers[lodIdx]);
                 buf.ClearRenderTarget(false, true, new Color(0f, 0f, 0f, 0f));
 
-                foreach (var gerstner in _gerstnerComponents)
-                {
-                    gerstner.BuildCommandBuffer(lodIdx, ocean, buf);
-                }
+                //foreach (var gerstner in _gerstnerComponents)
+                //{
+                //    gerstner.BuildCommandBuffer(lodIdx, ocean, buf);
+                //}
 
                 // draw any data with lod preference
                 _filterWavelength._lodIdx = lodIdx;
                 _filterWavelength._lodMaxWavelength = OceanRenderer.Instance._lods[lodIdx].MaxWavelength();
                 _filterWavelength._lodMinWavelength = _filterWavelength._lodMaxWavelength / 2f;
+                _filterWavelength._globalMaxWavelength = OceanRenderer.Instance._lods[OceanRenderer.Instance._lods.Length - 1].MaxWavelength();
                 SubmitDrawsFiltered(lodIdx, buf, _filterWavelength);
             }
 
@@ -235,29 +269,29 @@ namespace Crest
             return -1;
         }
 
-        public void AddGerstnerComponent(ShapeGerstnerBatched gerstner)
-        {
-            if (OceanRenderer.Instance == null)
-            {
-                // Ocean has unloaded, clear out
-                _gerstnerComponents.Clear();
-                return;
-            }
+        //public void AddGerstnerComponent(ShapeGerstnerBatched gerstner)
+        //{
+        //    if (OceanRenderer.Instance == null)
+        //    {
+        //        // Ocean has unloaded, clear out
+        //        _gerstnerComponents.Clear();
+        //        return;
+        //    }
 
-            _gerstnerComponents.Add(gerstner);
-        }
+        //    _gerstnerComponents.Add(gerstner);
+        //}
 
-        public void RemoveGerstnerComponent(ShapeGerstnerBatched gerstner)
-        {
-            if (OceanRenderer.Instance == null)
-            {
-                // Ocean has unloaded, clear out
-                _gerstnerComponents.Clear();
-                return;
-            }
+        //public void RemoveGerstnerComponent(ShapeGerstnerBatched gerstner)
+        //{
+        //    if (OceanRenderer.Instance == null)
+        //    {
+        //        // Ocean has unloaded, clear out
+        //        _gerstnerComponents.Clear();
+        //        return;
+        //    }
 
-            _gerstnerComponents.Remove(gerstner);
-        }
+        //    _gerstnerComponents.Remove(gerstner);
+        //}
 
         static int[] _paramsSampler;
         public static int ParamIdSampler(int slot)
@@ -277,10 +311,11 @@ namespace Crest
 
         public void SetOrigin(Vector3 newOrigin)
         {
-            foreach (var gerstner in _gerstnerComponents)
-            {
-                gerstner.SetOrigin(newOrigin);
-            }
+            // TODO - make gerstner waves batched inherit from floating origin?
+            //foreach (var gerstner in _gerstnerComponents)
+            //{
+            //    gerstner.SetOrigin(newOrigin);
+            //}
         }
     }
 }

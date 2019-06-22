@@ -13,7 +13,7 @@ namespace Crest
     {
         [SerializeField, Tooltip("Which octave to render into, for example set this to 2 to use render into the 2m-4m octave. These refer to the same octaves as the wave spectrum editor. Set this value to 0 to render into all LODs.")]
         float _octaveWavelength = 0f;
-        public float OctaveWavelength
+        public override float Wavelength
         {
             get
             {
@@ -31,8 +31,10 @@ namespace Crest
 
         Renderer _rend;
 
-        private void Start()
+        protected override void Start()
         {
+            base.Start();
+
             _rend = GetComponent<Renderer>();
         }
 

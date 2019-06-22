@@ -62,7 +62,7 @@ public class OceanDebugGUI : MonoBehaviour
             float x = 5f, y = 0f;
             float w = _leftPanelWidth - 2f * x, h = 25f;
 
-            GUI.color = Color.black * 1f;
+            GUI.color = Color.black * 0.7f;
             GUI.DrawTexture(new Rect(0, 0, w + 2f * x, Screen.height), Texture2D.whiteTexture);
             GUI.color = Color.white;
 
@@ -200,7 +200,7 @@ public class OceanDebugGUI : MonoBehaviour
                 GUI.color = Color.black * 1f;
                 GUI.DrawTexture(new Rect(x, y, w - b, h), Texture2D.whiteTexture);
                 GUI.color = Color.white;
-                GUI.DrawTexture(new Rect(x + b, y + b / 2f, h - b, h - b), shape, ScaleMode.ScaleAndCrop, true);
+                GUI.DrawTexture(new Rect(x + b, y + b / 2f, h - b, h - b), shape, ScaleMode.ScaleAndCrop, false);
             }
         }
 

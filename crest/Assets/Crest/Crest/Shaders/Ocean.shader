@@ -285,7 +285,7 @@ Shader "Crest/Ocean"
 					const float2 uv_0 = LD_0_WorldToUV(positionWS_XZ_before);
 
 					#if !_DEBUGDISABLESHAPETEXTURES_ON
-					//SampleDisplacements(_LD_Sampler_AnimatedWaves_0, uv_0, wt_0, o.worldPos);
+					SampleDisplacements(_LD_Sampler_AnimatedWaves_0, uv_0, wt_0, o.worldPos);
 					#endif
 
 					#if _FOAM_ON
@@ -301,7 +301,7 @@ Shader "Crest/Ocean"
 					const float2 uv_1 = LD_1_WorldToUV(positionWS_XZ_before);
 
 					#if !_DEBUGDISABLESHAPETEXTURES_ON
-					//SampleDisplacements(_LD_Sampler_AnimatedWaves_1, uv_1, wt_1, o.worldPos);
+					SampleDisplacements(_LD_Sampler_AnimatedWaves_1, uv_1, wt_1, o.worldPos);
 					#endif
 
 					#if _FOAM_ON
@@ -517,7 +517,7 @@ Shader "Crest/Ocean"
 				#endif
 				#endif
 
-				col = sss/2.;
+				//col = sss/2.;
 				
 				return half4(col, 1.);
 			}

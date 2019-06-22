@@ -9,5 +9,6 @@ namespace Crest
     /// </summary>
     public class RegisterDynWavesInput : RegisterLodDataInput<LodDataMgrDynWaves>
     {
+        public override float Wavelength => 0f;
     }
 }

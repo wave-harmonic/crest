@@ -9,5 +9,6 @@ namespace Crest
     /// </summary>
     public class RegisterFlowInput : RegisterLodDataInput<LodDataMgrFlow>
     {
+        public override float Wavelength => 0f;
     }
 }

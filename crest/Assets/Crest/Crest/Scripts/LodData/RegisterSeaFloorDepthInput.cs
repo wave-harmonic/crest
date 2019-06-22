@@ -14,6 +14,8 @@ namespace Crest
     {
         [SerializeField] bool _assignOceanDepthMaterial = true;
 
+        public override float Wavelength => 0f;
+
         protected override void OnEnable()
         {
             base.OnEnable();

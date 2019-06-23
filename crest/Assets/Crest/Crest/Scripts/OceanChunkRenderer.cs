@@ -122,20 +122,12 @@ namespace Crest
             var ldflow = OceanRenderer.Instance._lodDataFlow;
             var ldshadows = OceanRenderer.Instance._lodDataShadow;
 
-            ldaws.BindResultData(_lodIndex, 0, _mpb);
-            if (ldflow) ldflow.BindResultData(_lodIndex, 0, _mpb);
-            if (ldfoam) ldfoam.BindResultData(_lodIndex, 0, _mpb); else LodDataMgrFoam.BindNull(0, _mpb);
-            if (ldsds) ldsds.BindResultData(_lodIndex, 0, _mpb);
-            if (ldshadows) ldshadows.BindResultData(_lodIndex, 0, _mpb); else LodDataMgrShadow.BindNull(0, _mpb);
-
-            if (_lodIndex + 1 < OceanRenderer.Instance.CurrentLodCount)
-            {
-                ldaws.BindResultData(_lodIndex + 1, 1, _mpb);
-                if (ldflow) ldflow.BindResultData(_lodIndex + 1, 1, _mpb);
-                if (ldfoam) ldfoam.BindResultData(_lodIndex + 1, 1, _mpb); else LodDataMgrFoam.BindNull(1, _mpb);
-                if (ldsds) ldsds.BindResultData(_lodIndex + 1, 1, _mpb);
-                if (ldshadows) ldshadows.BindResultData(_lodIndex + 1, 1, _mpb); else LodDataMgrShadow.BindNull(1, _mpb);
-            }
+            _mpb.SetFloat(OceanRenderer.sp_LD_SliceIndex, _lodIndex);
+            ldaws.BindResultData(_mpb);
+            if (ldflow) ldflow.BindResultData(_mpb);
+            if (ldfoam) ldfoam.BindResultData(_mpb); else LodDataMgrFoam.BindNull(_mpb);
+            if (ldsds) ldsds.BindResultData(_mpb);
+            if (ldshadows) ldshadows.BindResultData(_mpb); else LodDataMgrShadow.BindNull( _mpb);
 
             var reflTex = PreparedReflections.GetRenderTexture(_currentCamera.GetInstanceID());
             if (reflTex)

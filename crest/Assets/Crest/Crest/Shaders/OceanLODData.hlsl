@@ -49,11 +49,14 @@ void SampleDisplacements(in sampler2D i_dispSampler, in float2 i_uv, in float i_
 	io_worldPos += i_wt * disp;
 }
 
-void SampleDisplacementsNormals(in sampler2D i_dispSampler, in float2 i_uv, in float i_wt, in float i_invRes, in float i_texelSize, inout float3 io_worldPos, inout half2 io_nxz)
+void SampleDisplacementsNormals(in sampler2D i_dispSampler, in float2 i_uv, in float i_wt, in float i_invRes, in float i_texelSize, inout float3 io_worldPos, inout half2 io_nxz, inout half io_sss)
 {
 	const float4 uv = float4(i_uv, 0., 0.);
 
-	const half3 disp = tex2Dlod(i_dispSampler, uv).xyz;
+	const half4 data = tex2Dlod(i_dispSampler, uv);
+	io_sss += i_wt * data.a;
+
+	const half3 disp = data.xyz;
 	io_worldPos += i_wt * disp;
 
 	float3 n; {

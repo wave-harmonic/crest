@@ -416,14 +416,14 @@ Shader "Crest/Ocean"
 				const float wt_1 = (1. - wt_0) * _LD_Params_1.z;
 				float3 dummy = 0.;
 				half3 n_geom = half3(0.0, 1.0, 0.0);
-				if (wt_0 > 0.001) SampleDisplacementsNormals(_LD_Sampler_AnimatedWaves_0, uv_0, wt_0, _LD_Params_0.w, _LD_Params_0.x, dummy, n_geom.xz);
-				if (wt_1 > 0.001) SampleDisplacementsNormals(_LD_Sampler_AnimatedWaves_1, uv_1, wt_1, _LD_Params_1.w, _LD_Params_1.x, dummy, n_geom.xz);
+				float sss = 0.;
+				if (wt_0 > 0.001) SampleDisplacementsNormals(_LD_Sampler_AnimatedWaves_0, uv_0, wt_0, _LD_Params_0.w, _LD_Params_0.x, dummy, n_geom.xz, sss);
+				if (wt_1 > 0.001) SampleDisplacementsNormals(_LD_Sampler_AnimatedWaves_1, uv_1, wt_1, _LD_Params_1.w, _LD_Params_1.x, dummy, n_geom.xz, sss);
 				n_geom = normalize(n_geom);
 
 				// Subsurface scattering
-				float sss = 0.;
-				sss += wt_0 * tex2Dlod(_LD_Sampler_AnimatedWaves_0, float4(uv_0, 0., 0.)).a;
-				sss += wt_1 * tex2Dlod(_LD_Sampler_AnimatedWaves_1, float4(uv_1, 0., 0.)).a;
+				//sss += wt_0 * tex2Dlod(_LD_Sampler_AnimatedWaves_0, float4(uv_0, 0., 0.)).a;
+				//sss += wt_1 * tex2Dlod(_LD_Sampler_AnimatedWaves_1, float4(uv_1, 0., 0.)).a;
 
 
 				if (underwater) n_geom = -n_geom;

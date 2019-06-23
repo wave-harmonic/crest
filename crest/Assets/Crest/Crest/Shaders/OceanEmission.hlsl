@@ -137,7 +137,7 @@ void ApplyCaustics(in const half3 i_view, in const half3 i_lightDir, in const fl
 	// underwater caustics - dedicated to P
 	float3 camForward = mul((float3x3)unity_CameraToWorld, float3(0., 0., 1.));
 	float3 scenePos = _WorldSpaceCameraPos - i_view * i_sceneZ / dot(camForward, -i_view);
-	const float3 scenePosUV = WorldToUV_NextLod(scenePos.xz);
+	const float3 scenePosUV = WorldToUV_BiggerLod(scenePos.xz);
 	half3 disp = 0.;
 	// this gives height at displaced position, not exactly at query position.. but it helps. i cant pass this from vert shader
 	// because i dont know it at scene pos.
@@ -169,7 +169,7 @@ void ApplyCaustics(in const half3 i_view, in const half3 i_lightDir, in const fl
 		else
 		{
 			// only sample the bigger lod. if pops are noticeable this could lerp the 2 lods smoothly, but i didnt notice issues.
-			float3 uv_biggerLod = WorldToUV_NextLod(surfacePosXZ);
+			float3 uv_biggerLod = WorldToUV_BiggerLod(surfacePosXZ);
 			SampleShadow(_LD_TexArray_Shadow, uv_biggerLod, 1.0, causticShadow);
 		}
 		causticsStrength *= 1.0 - causticShadow.y;

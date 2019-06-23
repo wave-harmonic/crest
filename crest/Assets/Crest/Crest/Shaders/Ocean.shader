@@ -296,7 +296,7 @@ Shader "Crest/Ocean"
 				}
 				if (wt_biggerLod > 0.001)
 				{
-					const float3 uv_slice_biggerLod = WorldToUV_NextLod(positionWS_XZ_before);
+					const float3 uv_slice_biggerLod = WorldToUV_BiggerLod(positionWS_XZ_before);
 
 					#if !_DEBUGDISABLESHAPETEXTURES_ON
 					SampleDisplacements(_LD_TexArray_AnimatedWaves, uv_slice_biggerLod, wt_biggerLod, o.worldPos);
@@ -326,7 +326,7 @@ Shader "Crest/Ocean"
 				}
 				if (wt_biggerLod > 0.001)
 				{
-					const float3 uv_slice_biggerLodDisp = WorldToUV_NextLod(o.worldPos.xz);
+					const float3 uv_slice_biggerLodDisp = WorldToUV_BiggerLod(o.worldPos.xz);
 
 					#if _SUBSURFACESHALLOWCOLOUR_ON
 					SampleSeaDepth(_LD_TexArray_SeaFloorDepth, uv_slice_biggerLodDisp, wt_biggerLod, o.lodAlpha_worldXZUndisplaced_oceanDepth.w);
@@ -424,7 +424,7 @@ Shader "Crest/Ocean"
 				//if(false)
 				{
 					const float3 uv_slice_smallerLod = WorldToUV(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz);
-					const float3 uv_slice_biggerLod = WorldToUV_NextLod(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz);
+					const float3 uv_slice_biggerLod = WorldToUV_BiggerLod(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz);
 					const float wt_smallerLod = (1. - lodAlpha) * _LD_Params[_LD_SliceIndex].z;
 					const float wt_biggerLod = (1. - wt_smallerLod) * _LD_Params[_LD_SliceIndex + 1].z;
 					float3 dummy = 0.;

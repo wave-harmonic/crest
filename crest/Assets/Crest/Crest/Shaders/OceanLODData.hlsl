@@ -59,13 +59,13 @@ float3 WorldToUV(in float2 i_samplePos, in float i_sliceIndex) {
 	return float3(result, i_sliceIndex);
 }
 
-float3 WorldToUV_NextLod(in float2 i_samplePos, in float i_sliceIndex_NextLod) {
+float3 WorldToUV_BiggerLod(in float2 i_samplePos, in float i_sliceIndex_BiggerLod) {
 	const float2 result = LD_WorldToUV(
-		i_samplePos, _LD_Pos_Scale[i_sliceIndex_NextLod].xy,
-		_LD_Params[i_sliceIndex_NextLod].y,
-		_LD_Params[i_sliceIndex_NextLod].x
+		i_samplePos, _LD_Pos_Scale[i_sliceIndex_BiggerLod].xy,
+		_LD_Params[i_sliceIndex_BiggerLod].y,
+		_LD_Params[i_sliceIndex_BiggerLod].x
 	);
-	return float3(result, i_sliceIndex_NextLod);
+	return float3(result, i_sliceIndex_BiggerLod);
 }
 
 float3 WorldToUV_Source(in float2 i_samplePos, in float i_sliceIndex_Source) {
@@ -88,7 +88,7 @@ float2 UVToWorld(in float2 i_uv, in float i_sliceIndex) { return LD_UVToWorld(i_
 
 // Shortcuts if _LD_SliceIndex is set
 float3 WorldToUV(in float2 i_samplePos) { return WorldToUV(i_samplePos, _LD_SliceIndex); }
-float3 WorldToUV_NextLod(in float2 i_samplePos) { return WorldToUV_NextLod(i_samplePos, _LD_SliceIndex + 1); }
+float3 WorldToUV_BiggerLod(in float2 i_samplePos) { return WorldToUV_BiggerLod(i_samplePos, _LD_SliceIndex + 1); }
 float2 UVToWorld(in float2 i_uv) { return UVToWorld(i_uv, _LD_SliceIndex); }
 
 // Convert compute shader id to uv texture coordinates

@@ -83,8 +83,8 @@ half3 ScatterColour(
 	}
 
 	// base colour
-	float v = saturate(i_view.y);
-	half3 col = lerp(_Diffuse, _DiffuseGrazing, 1. - pow(v, 0.4));
+	float v = abs(i_view.y);
+	half3 col = lerp(_Diffuse, _DiffuseGrazing, 1. - pow(v, 1.0));
 
 #if _SHADOWS_ON
 	col = lerp(_DiffuseShadow, col, shadow);
@@ -107,7 +107,10 @@ half3 ScatterColour(
 
 		// Approximate subsurface scattering - add light when surface faces viewer. Use geometry normal - don't need high freqs.
 		half towardsSun = pow(max(0., dot(i_lightDir, -i_view)), _SubSurfaceSunFallOff);
-		col += (1.0 - v * v) * sss * (_SubSurfaceBase + _SubSurfaceSun * towardsSun) * _SubSurfaceColour.rgb * _LightColor0 * shadow;
+		half3 subsurface = (_SubSurfaceBase + _SubSurfaceSun * towardsSun) * _SubSurfaceColour.rgb * _LightColor0 * shadow;
+		if (!i_underwater)
+			subsurface *= (1.0 - v * v) * sss;
+		col += subsurface;
 	}
 #endif // _SUBSURFACESCATTERING_ON
 

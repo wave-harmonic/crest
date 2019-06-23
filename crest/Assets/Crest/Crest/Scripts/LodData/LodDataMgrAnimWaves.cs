@@ -180,17 +180,17 @@ namespace Crest
                 bool isFlowOn = OceanRenderer.Instance._lodDataFlow != null;
                 bool isDynWavesOn = OceanRenderer.Instance._lodDataDynWaves != null;
                 // set the shader kernels that we will use.
-                if(isFlowOn && isDynWavesOn)
+                if (isFlowOn && isDynWavesOn)
                 {
                     combineShaderKernel = krnl_ShapeCombine_FLOW_ON_DYNAMIC_WAVE_SIM_ON;
                     combineShaderKernel_lastLOD = krnl_ShapeCombine_FLOW_ON_DYNAMIC_WAVE_SIM_ON_DISABLE_COMBINE;
                 }
-                else if(isFlowOn)
+                else if (isFlowOn)
                 {
                     combineShaderKernel = krnl_ShapeCombine_FLOW_ON;
                     combineShaderKernel_lastLOD = krnl_ShapeCombine_FLOW_ON_DISABLE_COMBINE;
                 }
-                else if(isDynWavesOn)
+                else if (isDynWavesOn)
                 {
                     combineShaderKernel = krnl_ShapeCombine_DYNAMIC_WAVE_SIM_ON;
                     combineShaderKernel_lastLOD = krnl_ShapeCombine_DYNAMIC_WAVE_SIM_ON_DISABLE_COMBINE;
@@ -259,7 +259,7 @@ namespace Crest
         public void BindWaveBuffer(IPropertyWrapper properties, bool sourceLod = false)
         {
             var lt = OceanRenderer.Instance._lodTransform;
-            for(int lodIdx = 0; lodIdx < OceanRenderer.Instance.CurrentLodCount; lodIdx++)
+            for (int lodIdx = 0; lodIdx < OceanRenderer.Instance.CurrentLodCount; lodIdx++)
             {
                 lt._renderData[lodIdx].Validate(0, this);
             }

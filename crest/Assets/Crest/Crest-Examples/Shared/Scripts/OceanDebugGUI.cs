@@ -197,7 +197,7 @@ public class OceanDebugGUI : MonoBehaviour
                 // We cannot debug draw texture arrays directly
                 // (unless we write our own system for doing so).
                 // So for now, we just copy each texture and then draw that.
-                if(!shapes.ContainsKey(lodData.DataTexture.format))
+                if (!shapes.ContainsKey(lodData.DataTexture.format))
                 {
                     shapes.Add(lodData.DataTexture.format, new RenderTexture(lodData.DataTexture));
                     shapes[lodData.DataTexture.format].dimension = UnityEngine.Rendering.TextureDimension.Tex2D;

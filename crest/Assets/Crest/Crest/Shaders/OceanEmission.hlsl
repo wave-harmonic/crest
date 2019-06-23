@@ -135,10 +135,9 @@ void ApplyCaustics(in const half3 i_view, in const half3 i_lightDir, in const fl
 {
 	// could sample from the screen space shadow texture to attenuate this..
 	// underwater caustics - dedicated to P
-	// TODO(caustics): make i_view negative?
 	float3 camForward = mul((float3x3)unity_CameraToWorld, float3(0., 0., 1.));
-	float3 scenePos = _WorldSpaceCameraPos - i_view * i_sceneZ / dot(camForward, i_view);
-	const float3 scenePosUV = WorldToUV_NextLod(scenePos.xz);
+	float3 scenePos = _WorldSpaceCameraPos - i_view * i_sceneZ / dot(camForward, -i_view);
+	const float3 scenePosUV = WorldToUV_BiggerLod(scenePos.xz);
 	half3 disp = 0.;
 	// this gives height at displaced position, not exactly at query position.. but it helps. i cant pass this from vert shader
 	// because i dont know it at scene pos.
@@ -170,7 +169,7 @@ void ApplyCaustics(in const half3 i_view, in const half3 i_lightDir, in const fl
 		else
 		{
 			// only sample the bigger lod. if pops are noticeable this could lerp the 2 lods smoothly, but i didnt notice issues.
-			float3 uv_biggerLod = WorldToUV_NextLod(surfacePosXZ);
+			float3 uv_biggerLod = WorldToUV_BiggerLod(surfacePosXZ);
 			SampleShadow(_LD_TexArray_Shadow, uv_biggerLod, 1.0, causticShadow);
 		}
 		causticsStrength *= 1.0 - causticShadow.y;
@@ -194,7 +193,7 @@ void ApplyGodRays(in const half3 i_view, in const half3 i_lightDir, in const flo
 	for(uint currentSample = 0; currentSample < numSamples; currentSample++)
 	{
 		float3 samplePos = _WorldSpaceCameraPos + (-i_view * totalSampleDistance);
-		const float3 samplePosUV = WorldToUV_NextLod(samplePos.xz);
+		const float3 samplePosUV = WorldToUV_BiggerLod(samplePos.xz);
 
 		half3 disp = 0.;
 		SampleDisplacements(_LD_TexArray_AnimatedWaves, samplePosUV, 1.0, disp);
@@ -202,7 +201,7 @@ void ApplyGodRays(in const half3 i_view, in const half3 i_lightDir, in const flo
 		if(samplePos.y < waterHeightAboveSample) {
 
 			const float2 surfacePosXZ = float2(samplePos.x, samplePos.z) - (i_lightDir * dot(i_lightDir, _OceanCenterPosWorld.y - samplePos.y)).xz;
-			const float3 surfacePosUV = WorldToUV_NextLod(samplePos.xz);
+			const float3 surfacePosUV = WorldToUV_BiggerLod(samplePos.xz);
 			SampleDisplacements(_LD_TexArray_AnimatedWaves, surfacePosUV, 1.0, disp);
 			const half waterHeightAtPointRayEntersOcean = _OceanCenterPosWorld.y + disp.y;
 
@@ -227,7 +226,7 @@ void ApplyGodRays(in const half3 i_view, in const half3 i_lightDir, in const flo
 				else
 				{
 					// only sample the bigger lod. if pops are noticeable this could lerp the 2 lods smoothly, but i didnt notice issues.
-					float3 uv_biggerLod = WorldToUV_NextLod(surfacePosXZ);
+					float3 uv_biggerLod = WorldToUV_BiggerLod(surfacePosXZ);
 					SampleShadow(_LD_TexArray_Shadow, uv_biggerLod, 1.0, causticShadow);
 				}
 				causticsStrength *= 1. - causticShadow.y;

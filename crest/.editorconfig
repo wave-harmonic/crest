@@ -8,6 +8,7 @@ curly_bracket_next_line = true ; not widely supported, but signals cleary what t
 [*.cs]
 indent_style = space
 indent_size = 4
+spaces_around_brackets = outside
 
 [*.{shader,hlsl,compute}]
 indent_style = tab

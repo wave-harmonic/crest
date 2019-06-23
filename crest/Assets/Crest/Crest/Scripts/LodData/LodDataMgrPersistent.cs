@@ -48,11 +48,8 @@ namespace Crest
         {
             base.InitData();
 
-            Debug.Assert(SystemInfo.SupportsRenderTextureFormat(TextureFormat), "The graphics device does not support the render texture format " + TextureFormat.ToString());
-
             int resolution = OceanRenderer.Instance.LodDataResolution;
             var desc = new RenderTextureDescriptor(resolution, resolution, TextureFormat, 0);
-
 
             _sources = new RenderTexture(desc);
             _sources.wrapMode = TextureWrapMode.Clamp;
@@ -64,7 +61,6 @@ namespace Crest
             _sources.dimension = TextureDimension.Tex2DArray;
             _sources.volumeDepth = OceanRenderer.Instance.CurrentLodCount;
             _sources.enableRandomWrite = NeedToReadWriteTextureData;
-
         }
 
         public void ValidateSourceData(bool usePrevTransform)

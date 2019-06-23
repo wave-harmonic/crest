@@ -135,9 +135,8 @@ namespace Crest
 
         void Awake()
         {
-            if (_material == null)
+            if(!VerifyRequirements())
             {
-                Debug.LogError("A material for the ocean must be assigned on the Material property of the OceanRenderer.", this);
                 enabled = false;
                 return;
             }
@@ -153,6 +152,27 @@ namespace Crest
 
             InitViewpoint();
             InitTimeProvider();
+        }
+
+        bool VerifyRequirements()
+        {
+            if (_material == null)
+            {
+                Debug.LogError("A material for the ocean must be assigned on the Material property of the OceanRenderer.", this);
+                return false;
+            }
+            if(!SystemInfo.supportsComputeShaders)
+            {
+                Debug.LogError("Crest requires graphics devices that support compute shaders.", this);
+                return false;
+            }
+            if (!SystemInfo.supports2DArrayTextures)
+            {
+                Debug.LogError("Crest requires graphics devices that support 2D array textures.", this);
+                return false;
+            }
+
+            return true;
         }
 
         void InitViewpoint()

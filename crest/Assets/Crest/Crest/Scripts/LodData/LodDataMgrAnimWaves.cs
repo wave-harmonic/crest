@@ -80,10 +80,6 @@ namespace Crest
             krnl_ShapeCombine_FLOW_ON_DYNAMIC_WAVE_SIM_ON_DISABLE_COMBINE = _combineShader.FindKernel("ShapeCombine_FLOW_ON_DYNAMIC_WAVE_SIM_ON_DISABLE_COMBINE");
             _combineProperties = new PropertyWrapperCompute();
 
-            Debug.Assert(SystemInfo.SupportsRenderTextureFormat(TextureFormat), "The graphics device does not support the render texture format " + TextureFormat.ToString());
-            Debug.Assert(SystemInfo.supports2DArrayTextures, "The graphics device does not support 2D array textures");
-            Debug.Assert(SystemInfo.supportsComputeShaders, "The graphics device does not support comptue shaders");
-
             int resolution = OceanRenderer.Instance.LodDataResolution;
             var desc = new RenderTextureDescriptor(resolution, resolution, TextureFormat, 0);
 

@@ -20,8 +20,6 @@ uniform half3 _SubSurfaceColour;
 uniform half _SubSurfaceBase;
 uniform half _SubSurfaceSun;
 uniform half _SubSurfaceSunFallOff;
-uniform half _SubSurfaceHeightMax;
-uniform half _SubSurfaceHeightPower;
 uniform half3 _SubSurfaceCrestColour;
 #endif // _SUBSURFACESCATTERING_ON
 
@@ -103,17 +101,13 @@ half3 ScatterColour(
 		col = lerp(col, shallowCol, shallowness);
 #endif
 
-//#if _SUBSURFACEHEIGHTLERP_ON
-//		col += pow(saturate(0.5 + 2.0 * waveHeight / _SubSurfaceHeightMax), _SubSurfaceHeightPower) * _SubSurfaceCrestColour.rgb;
-//#endif
-
 		// light
 		// use the constant term (0th order) of SH stuff - this is the average. it seems to give the right kind of colour
 		col *= half3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w);
 
 		// Approximate subsurface scattering - add light when surface faces viewer. Use geometry normal - don't need high freqs.
 		half towardsSun = pow(max(0., dot(i_lightDir, -i_view)), _SubSurfaceSunFallOff);
-		col += (_SubSurfaceBase*sss + _SubSurfaceSun * towardsSun) * _SubSurfaceColour.rgb * _LightColor0 * shadow;
+		col += sss * (_SubSurfaceBase + _SubSurfaceSun * towardsSun) * _SubSurfaceColour.rgb * _LightColor0 * shadow;
 	}
 #endif // _SUBSURFACESCATTERING_ON
 

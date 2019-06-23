@@ -37,6 +37,10 @@ Material:
         m_Texture: {fileID: 2800000, guid: 800e061692ff7a84e887f439d3364410, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _ReflectionCubemapOverride:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _Skybox:
         m_Texture: {fileID: 8900000, guid: f9a8c5bb065e21748a23f214a1f3a250, type: 3}
         m_Scale: {x: 1, y: 1}
@@ -113,6 +117,7 @@ Material:
     - _NormalsStrength: 0.36
     - _Offset: 0.00008
     - _OverrideReflectionCubemap: 0
+    - _PlanarReflectionNormalsStrength: 1
     - _PlanarReflections: 0
     - _ProceduralSky: 0
     - _RefractAmt: 0
@@ -126,7 +131,7 @@ Material:
     - _Specular: 1
     - _StartLevel: 0.157
     - _StencilFunction: 0
-    - _SubSurfaceBase: 0.24
+    - _SubSurfaceBase: 1.393
     - _SubSurfaceCrestColour: 1
     - _SubSurfaceDepthMax: 9.4
     - _SubSurfaceDepthPower: 2.57
@@ -135,7 +140,7 @@ Material:
     - _SubSurfaceHeightPower: 1.68
     - _SubSurfaceScattering: 1
     - _SubSurfaceShallowColour: 1
-    - _SubSurfaceSun: 4.85
+    - _SubSurfaceSun: 3.82
     - _SubSurfaceSunFallOff: 7.11
     - _TexelSize: 0.125
     - _TextureRes: 1024
@@ -158,6 +163,7 @@ Material:
     m_Colors:
     - _DepthFogDensity: {r: 0.33, g: 0.23, b: 0.27, a: 1}
     - _Diffuse: {r: 0, g: 0.0067332755, b: 0.35686275, a: 1}
+    - _DiffuseGrazing: {r: 0.19999996, g: 0.049999982, b: 0.049999982, a: 1}
     - _DiffuseShadow: {r: 0.21067381, g: 0.26255617, b: 0.294, a: 1}
     - _FoamBubbleColor: {r: 0.5482029, g: 0.71300006, b: 0.7062737, a: 1}
     - _FoamWhiteColor: {r: 1, g: 0.99634784, b: 0.97199994, a: 0.6862745}

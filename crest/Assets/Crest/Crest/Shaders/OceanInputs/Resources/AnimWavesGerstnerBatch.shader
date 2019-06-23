@@ -43,7 +43,6 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Batch"
 			half4 _WaveDirZ[BATCH_SIZE / 4];
 			half4 _Phases[BATCH_SIZE / 4];
 			half4 _ChopAmps[BATCH_SIZE / 4];
-			float _BlendOutSampling;
 
 			float4 _TargetPointData;
 
@@ -72,7 +71,6 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Batch"
 				float2 worldXZ = LD_0_UVToWorld(input.uv);
 
 				o.worldPos.xy = worldXZ;
-
 				o.uv = input.uv;
 
 				return o;
@@ -140,19 +138,11 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Batch"
 					result.y += dot(resulty, wt);
 					result.z += dot(resultz, wt);
 
-					displacementNormalized.x += dot(resultx * _TwoPiOverWavelengths[vi], wt);
-					displacementNormalized.y += dot(resultz * _TwoPiOverWavelengths[vi], wt);
+					displacementNormalized.x += dot(resultx * min(1.0, _TwoPiOverWavelengths[vi]), wt);
+					displacementNormalized.y += dot(resultz * min(1.0, _TwoPiOverWavelengths[vi]), wt);
 				}
 
-				// oh shit - multiple wavelengths combine into one batch????
-				// YES - when multiple wavelengths end up in the Big Wave batch, suddenly they join others..
-				// the solution could be to still draw big wavelengths as multiple batches, just send them to one lod. this might help the
-				// batch size getting exceeded issue.
-				return _Weight * half4(result, length(displacementNormalized.xy)); // *(1. - _BlendOutSampling);
-
-				result.y = 2.*sin(input.worldPos.x / 10.);// *_ChopAmps[0].x;
-
-				return _Weight * half4(0., abs(result.y), 0., 1.) * _BlendOutSampling;// mul*length(displacementNormalized));
+				return _Weight * half4(result, length(displacementNormalized));
 			}
 
 			ENDCG

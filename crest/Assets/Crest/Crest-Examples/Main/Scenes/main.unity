@@ -152,8 +152,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0f63235a3a133804593f4348e83f77ff, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  m_Name:
+  m_EditorClassIdentifier:
   _showSimTargets: 1
   _guiVisible: 1
 --- !u!20 &227134469
@@ -224,8 +224,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 59a818eaf96544c4994335870fdfe141, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  m_Name:
+  m_EditorClassIdentifier:
   linSpeed: 10
   rotSpeed: 70
   simForwardInput: 0
@@ -241,8 +241,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 948f4100a11a5c24981795d21301da5c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  m_Name:
+  m_EditorClassIdentifier:
   volumeTrigger: {fileID: 227134470}
   volumeLayer:
     serializedVersion: 2
@@ -300,8 +300,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7346d05b96ea5b245be811bb97ef812e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  m_Name:
+  m_EditorClassIdentifier:
   _gui: 1
 --- !u!4 &632841573 stripped
 Transform:
@@ -389,8 +389,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 26cbe8d1fc0a69249bc135d85739ad39, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  m_Name:
+  m_EditorClassIdentifier:
   _disableRenderer: 1
   _octaveWavelength: 11
   _maxDisplacementVertical: 0
@@ -445,8 +445,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: dde37eff0f7685f41902f400d1de0c6c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  m_Name:
+  m_EditorClassIdentifier:
   _viewpoint: {fileID: 0}
   _timeProvider: {fileID: 0}
   _material: {fileID: 2100000, guid: ef94c26e44a36e24a9dcbc5995a2bed1, type: 2}
@@ -467,13 +467,13 @@ MonoBehaviour:
   _simSettingsDynamicWaves: {fileID: 0}
   _createFlowSim: 0
   _simSettingsFlow: {fileID: 0}
-  _createShadowData: 0
+  _createShadowData: 1
   _primaryLight: {fileID: 1589415980}
   _simSettingsShadow: {fileID: 0}
   _uniformTiles: 0
   _disableSkirt: 0
   _followViewpoint: 1
-  _lods: []
+  _lodTransform: {fileID: 0}
   _lodDataAnimWaves: {fileID: 0}
   _lodDataSeaDepths: {fileID: 0}
   _lodDataDynWaves: {fileID: 0}
@@ -547,8 +547,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c6727809da6522a4a851af2b1e732088, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  m_Name:
+  m_EditorClassIdentifier:
   _drawBounds: 0
 --- !u!23 &1325202381
 MeshRenderer:
@@ -674,7 +674,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2300000, guid: 386033b9b0ae11a40bbd970400b6d7c6, type: 3}
       propertyPath: m_Materials.Array.data[0]
-      value: 
+      value:
       objectReference: {fileID: 2100000, guid: 76f4b78cccd43fd4280c9e3cc7a59650, type: 2}
     - target: {fileID: 2300000, guid: 386033b9b0ae11a40bbd970400b6d7c6, type: 3}
       propertyPath: m_DynamicOccludee
@@ -749,7 +749,7 @@ Light:
   m_SpotAngle: 30
   m_CookieSize: 10
   m_Shadows:
-    m_Type: 2
+    m_Type: 1
     m_Resolution: -1
     m_CustomResolution: -1
     m_Strength: 1
@@ -858,13 +858,16 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7581c8217e105de4b83ca0ce4f8fa8c2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _rasterMesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
+  m_Name:
+  m_EditorClassIdentifier:
+  _rasterMesh: {fileID: 0}
   _spectrum: {fileID: 11400000, guid: 454d1b08383f089479cf6794620926f4, type: 2}
   _componentsPerOctave: 5
   _weight: 1
   _randomSeed: 0
+  _directTowardsPoint: 1
+  _pointPositionXZ: {x: 0, y: 0}
+  _pointRadii: {x: 100, y: 200}
 --- !u!1001 &1898459823
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -939,8 +942,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5be4155a909a5ef47bdaaf1422602735, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  m_Name:
+  m_EditorClassIdentifier:
   _populateOnStartup: 1
   _geometryToRenderIntoCache: []
   _layerNames:
@@ -956,7 +959,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1899543705}
   m_LocalRotation: {x: -0, y: 0.27672777, z: -0, w: 0.96094835}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 5, z: 0}
   m_LocalScale: {x: 540, y: 540, z: 540}
   m_Children: []
   m_Father: {fileID: 1591410378}

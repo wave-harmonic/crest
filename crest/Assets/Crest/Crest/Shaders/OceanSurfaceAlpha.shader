@@ -32,9 +32,9 @@ Shader "Crest/Ocean Surface Alpha"
 			#pragma vertex Vert
 			#pragma fragment Frag
 			#pragma multi_compile_fog
-			
+
 			#include "UnityCG.cginc"
-			#include "OceanLODData.hlsl"
+			#include "OceanHelpers.hlsl"
 
 			sampler2D _MainTex;
 			float4 _MainTex_ST;
@@ -71,13 +71,13 @@ Shader "Crest/Ocean Surface Alpha"
 				// sample shape textures - always lerp between 2 scales, so sample two textures
 
 				// sample weights. params.z allows shape to be faded out (used on last lod to support pop-less scale transitions)
-				float wt_0 = (1.0 - lodAlpha) * _LD_Params_0.z;
-				float wt_1 = (1.0 - wt_0) * _LD_Params_1.z;
+				float wt_smallerLod = (1.0 - lodAlpha) * _LD_Params[_LD_SliceIndex].z;
+				float wt_biggerLod = (1.0 - wt_smallerLod) * _LD_Params[_LD_SliceIndex + 1].z;
 				// sample displacement textures, add results to current world pos / normal / foam
 				const float2 wxz = worldPos.xz;
 				half foam = 0.0;
-				SampleDisplacements(_LD_Sampler_AnimatedWaves_0, LD_0_WorldToUV(wxz), wt_0, worldPos);
-				SampleDisplacements(_LD_Sampler_AnimatedWaves_1, LD_1_WorldToUV(wxz), wt_1, worldPos);
+				SampleDisplacements(_LD_TexArray_AnimatedWaves, WorldToUV(wxz), wt_smallerLod, worldPos);
+				SampleDisplacements(_LD_TexArray_AnimatedWaves, WorldToUV_NextLod(wxz), wt_biggerLod, worldPos);
 
 				// move to sea level
 				worldPos.y += _OceanCenterPosWorld.y;
@@ -89,7 +89,7 @@ Shader "Crest/Ocean Surface Alpha"
 				UNITY_TRANSFER_FOG(o, o.positionCS);
 				return o;
 			}
-			
+
 			half4 Frag(Varyings input) : SV_Target
 			{
 				half4 col = tex2D(_MainTex, input.uv);

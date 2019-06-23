@@ -114,7 +114,7 @@ namespace Crest
         /// </summary>
         public float SeaLevel { get { return transform.position.y; } }
 
-        [HideInInspector] public LodTransform[] _lods;
+        [HideInInspector] public LodTransform _lodTransform;
         [HideInInspector] public LodDataMgrAnimWaves _lodDataAnimWaves;
         [HideInInspector] public LodDataMgrSeaFloorDepth _lodDataSeaDepths;
         [HideInInspector] public LodDataMgrDynWaves _lodDataDynWaves;
@@ -124,7 +124,7 @@ namespace Crest
         /// <summary>
         /// The number of LODs/scales that the ocean is currently using.
         /// </summary>
-        public int CurrentLodCount { get { return _lods.Length; } }
+        public int CurrentLodCount { get { return _lodTransform.LodCount; } }
 
         /// <summary>
         /// Vertical offset of viewer vs water surface
@@ -135,9 +135,8 @@ namespace Crest
 
         void Awake()
         {
-            if (_material == null)
+            if(!VerifyRequirements())
             {
-                Debug.LogError("A material for the ocean must be assigned on the Material property of the OceanRenderer.", this);
                 enabled = false;
                 return;
             }
@@ -153,6 +152,27 @@ namespace Crest
 
             InitViewpoint();
             InitTimeProvider();
+        }
+
+        bool VerifyRequirements()
+        {
+            if (_material == null)
+            {
+                Debug.LogError("A material for the ocean must be assigned on the Material property of the OceanRenderer.", this);
+                return false;
+            }
+            if(!SystemInfo.supportsComputeShaders)
+            {
+                Debug.LogError("Crest requires graphics devices that support compute shaders.", this);
+                return false;
+            }
+            if (!SystemInfo.supports2DArrayTextures)
+            {
+                Debug.LogError("Crest requires graphics devices that support 2D array textures.", this);
+                return false;
+            }
+
+            return true;
         }
 
         void InitViewpoint()
@@ -199,6 +219,11 @@ namespace Crest
             Shader.SetGlobalVector("_WindDirXZ", WindDir);
             Shader.SetGlobalFloat("_CrestTime", CurrentTime);
 
+            if (_viewpoint == null)
+            {
+                Debug.LogError("_viewpoint is null, ocean update will fail.", this);
+            }
+
             if (_followViewpoint)
             {
                 LateUpdatePosition();
@@ -228,7 +253,7 @@ namespace Crest
             // to water height but this does help with the problem of horizontal range getting limited at bad times.
             float maxDetailY = SeaLevel - _maxVertDispFromShape / 5f;
             // scale ocean mesh based on camera distance to sea level, to keep uniform detail.
-            float camY = Mathf.Max(Mathf.Abs(_viewpoint.position.y) - maxDetailY, 0f);
+            float camY = Mathf.Max(Mathf.Abs(_viewpoint.position.y - SeaLevel) - maxDetailY, 0f);
 
             const float HEIGHT_LOD_MUL = 2f;
             float level = camY * HEIGHT_LOD_MUL;
@@ -263,10 +288,7 @@ namespace Crest
         {
             // Do any per-frame update for each LOD type.
 
-            foreach (var lt in _lods)
-            {
-                lt.UpdateTransform();
-            }
+            _lodTransform.UpdateTransforms();
 
             if (_lodDataAnimWaves) _lodDataAnimWaves.UpdateLodData();
             if (_lodDataDynWaves) _lodDataDynWaves.UpdateLodData();
@@ -314,6 +336,9 @@ namespace Crest
 
         public static OceanRenderer Instance { get; private set; }
 
+        public static int sp_LD_SliceIndex = Shader.PropertyToID("_LD_SliceIndex");
+        public static int sp_LODChange = Shader.PropertyToID("_LODChange");
+
         /// <summary>
         /// Provides ocean shape to CPU.
         /// </summary>
@@ -348,6 +373,12 @@ namespace Crest
                 Debug.LogWarning("Adjusted Lod Data Resolution from " + _lodDataResolution + " to " + newLDR + " to ensure the Geometry Down Sample Factor is a factor (" + _geometryDownSampleFactor + ").", this);
                 _lodDataResolution = newLDR;
             }
+        }
+
+        [UnityEditor.Callbacks.DidReloadScripts]
+        private static void OnReLoadScripts()
+        {
+            Instance = FindObjectOfType<OceanRenderer>();
         }
 #endif
     }

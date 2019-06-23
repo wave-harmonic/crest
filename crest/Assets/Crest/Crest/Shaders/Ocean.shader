@@ -57,15 +57,21 @@ Shader "Crest/Ocean"
 
 		// Reflection properites
 		[Header(Reflection Environment)]
+		// Controls specular response of water surface
+		_Specular("Specular", Range(0.0, 1.0)) = 1.0
 		// Controls harshness of Fresnel behaviour
-		_FresnelPower("Fresnel Power", Range(0.0, 20.0)) = 3.0
+		_FresnelPower("Fresnel Power", Range(1.0, 20.0)) = 5.0
 		// Refractive indices
 		_RefractiveIndexOfAir("Refractive Index of Air", Range(1.0, 2.0)) = 1.0
 		_RefractiveIndexOfWater("Refractive Index of Water", Range(1.0, 2.0)) = 1.333
-		// Environment map to reflect
-		[NoScaleOffset] _Skybox ("Skybox", CUBE) = "" {}
 		// Dynamically rendered 'reflection plane' style reflections. Requires OceanPlanarReflection script added to main camera.
 		[Toggle] _PlanarReflections("Planar Reflections", Float) = 0
+		// How much the water normal affects the planar reflection
+		_PlanarReflectionNormalsStrength("Planar Reflections Distortion", Float) = 1
+		// Whether to use an overridden reflection cubemap (provided in the next property)
+		[Toggle] _OverrideReflectionCubemap("Override Reflection Cubemap", Float) = 0
+		// Custom environment map to reflect
+		[NoScaleOffset] _ReflectionCubemapOverride("Override Reflection Cubemap", CUBE) = "" {}
 
 		// A simple procedural skybox, not suitable for rendering on screen, but can be useful to give control over reflection colour
 		// especially in stylized/non realistic applications
@@ -94,7 +100,7 @@ Shader "Crest/Ocean"
 		// Colour tint bubble foam underneath water surface
 		_FoamBubbleColor("Bubble Foam Color", Color) = (0.64, 0.83, 0.82, 1.0)
 		// Parallax for underwater bubbles to give feeling of volume
-		_FoamBubbleParallax("Bubble Foam Parallax", Range(0.0, 0.25)) = 0.05
+		_FoamBubbleParallax("Bubble Foam Parallax", Range(0.0, 0.5)) = 0.05
 		// Proximity to sea floor where foam starts to get generated
 		_ShorelineFoamMinDepth("Shoreline Foam Min Depth", Range(0.01, 5.0)) = 0.27
 		// Controls how gradual the transition is from full foam to no foam
@@ -119,7 +125,7 @@ Shader "Crest/Ocean"
 		// Scattering coefficient within water volume, per channel
 		_DepthFogDensity("Fog Density", Vector) = (0.28, 0.16, 0.24, 1.0)
 		// How strongly light is refracted when passing through water surface
-		_RefractionStrength("Refraction Strength", Range(0.0, 1.0)) = 0.1
+		_RefractionStrength("Refraction Strength", Range(0.0, 2.0)) = 0.1
 
 		// Appoximate rays being focused/defocused on geometry under water
 		[Header(Caustics)]
@@ -196,6 +202,8 @@ Shader "Crest/Ocean"
 			#pragma shader_feature _FOAM_ON
 			#pragma shader_feature _FOAM3DLIGHTING_ON
 			#pragma shader_feature _PLANARREFLECTIONS_ON
+			#pragma shader_feature _OVERRIDEREFLECTIONCUBEMAP_ON
+
 			#pragma shader_feature _PROCEDURALSKY_ON
 			#pragma shader_feature _UNDERWATER_ON
 			#pragma shader_feature _FLOW_ON
@@ -235,7 +243,7 @@ Shader "Crest/Ocean"
 				UNITY_FOG_COORDS(3)
 			};
 
-			#include "OceanLODData.hlsl"
+			#include "OceanHelpers.hlsl"
 
 			uniform float _CrestTime;
 
@@ -260,66 +268,74 @@ Shader "Crest/Ocean"
 				o.flow_shadow = half4(0., 0., 0., 0.);
 				o.foam_screenPos.x = 0.;
 
-				o.lodAlpha_worldXZUndisplaced_oceanDepth.w = 0.;
-
+				o.lodAlpha_worldXZUndisplaced_oceanDepth.w = CREST_OCEAN_DEPTH_BASELINE;
 				// Sample shape textures - always lerp between 2 LOD scales, so sample two textures
 
 				// Calculate sample weights. params.z allows shape to be faded out (used on last lod to support pop-less scale transitions)
-				float wt_0 = (1. - lodAlpha) * _LD_Params_0.z;
-				float wt_1 = (1. - wt_0) * _LD_Params_1.z;
-				const float2 positionWS_XZ_before = o.worldPos.xz;
+				const float wt_smallerLod = (1. - lodAlpha) * _LD_Params[_LD_SliceIndex].z;
+				const float wt_biggerLod = (1. - wt_smallerLod) * _LD_Params[_LD_SliceIndex + 1].z;
 				// Sample displacement textures, add results to current world pos / normal / foam
-				if (wt_0 > 0.001)
+				const float2 positionWS_XZ_before = o.worldPos.xz;
+
+				// Data that needs to be sampled at the undisplaced position
+				if (wt_smallerLod > 0.001)
 				{
-					const float2 uv_0 = LD_0_WorldToUV(positionWS_XZ_before);
+					const float3 uv_slice_smallerLod = WorldToUV(positionWS_XZ_before);
 
 					#if !_DEBUGDISABLESHAPETEXTURES_ON
-					SampleDisplacements(_LD_Sampler_AnimatedWaves_0, uv_0, wt_0, o.worldPos);
+					SampleDisplacements(_LD_TexArray_AnimatedWaves, uv_slice_smallerLod, wt_smallerLod, o.worldPos);
 					#endif
 
 					#if _FOAM_ON
-					SampleFoam(_LD_Sampler_Foam_0, uv_0, wt_0, o.foam_screenPos.x);
+					SampleFoam(_LD_TexArray_Foam, uv_slice_smallerLod, wt_smallerLod, o.foam_screenPos.x);
 					#endif
 
 					#if _FLOW_ON
-					SampleFlow(_LD_Sampler_Flow_0, uv_0, wt_0, o.flow_shadow.xy);
-					#endif
-
-					#if _SUBSURFACESHALLOWCOLOUR_ON
-					SampleSeaFloorHeightAboveBaseline(_LD_Sampler_SeaFloorDepth_0, uv_0, wt_0, o.lodAlpha_worldXZUndisplaced_oceanDepth.w);
-					#endif
-
-					#if _SHADOWS_ON
-					SampleShadow(_LD_Sampler_Shadow_0, uv_0, wt_0, o.flow_shadow.zw);
+					SampleFlow(_LD_TexArray_Flow, uv_slice_smallerLod, wt_smallerLod, o.flow_shadow.xy);
 					#endif
 				}
-				if (wt_1 > 0.001)
+				if (wt_biggerLod > 0.001)
 				{
-					const float2 uv_1 = LD_1_WorldToUV(positionWS_XZ_before);
+					const float3 uv_slice_biggerLod = WorldToUV_NextLod(positionWS_XZ_before);
 
 					#if !_DEBUGDISABLESHAPETEXTURES_ON
-					SampleDisplacements(_LD_Sampler_AnimatedWaves_1, uv_1, wt_1, o.worldPos);
+					SampleDisplacements(_LD_TexArray_AnimatedWaves, uv_slice_biggerLod, wt_biggerLod, o.worldPos);
 					#endif
 
 					#if _FOAM_ON
-					SampleFoam(_LD_Sampler_Foam_1, uv_1, wt_1, o.foam_screenPos.x);
+					SampleFoam(_LD_TexArray_Foam, uv_slice_biggerLod, wt_biggerLod, o.foam_screenPos.x);
 					#endif
 
 					#if _FLOW_ON
-					SampleFlow(_LD_Sampler_Flow_1, uv_1, wt_1, o.flow_shadow.xy);
-					#endif
-
-					#if _SUBSURFACESHALLOWCOLOUR_ON
-					SampleSeaFloorHeightAboveBaseline(_LD_Sampler_SeaFloorDepth_1, uv_1, wt_1, o.lodAlpha_worldXZUndisplaced_oceanDepth.w);
-					#endif
-
-					#if _SHADOWS_ON
-					SampleShadow(_LD_Sampler_Shadow_1, uv_1, wt_1, o.flow_shadow.zw);
+					SampleFlow(_LD_TexArray_Flow, uv_slice_biggerLod, wt_biggerLod, o.flow_shadow.xy);
 					#endif
 				}
 
-				// Convert height above -1000m to depth below surface
-				o.lodAlpha_worldXZUndisplaced_oceanDepth.w = CREST_OCEAN_DEPTH_BASELINE - o.lodAlpha_worldXZUndisplaced_oceanDepth.w;
+				// Data that needs to be sampled at the displaced position
+				if (wt_smallerLod > 0.001)
+				{
+					const float3 uv_slice_smallerLodDisp = WorldToUV(o.worldPos.xz);
+
+					#if _SUBSURFACESHALLOWCOLOUR_ON
+					SampleSeaDepth(_LD_TexArray_SeaFloorDepth, uv_slice_smallerLodDisp, wt_smallerLod, o.lodAlpha_worldXZUndisplaced_oceanDepth.w);
+					#endif
+
+					#if _SHADOWS_ON
+					SampleShadow(_LD_TexArray_Shadow, uv_slice_smallerLodDisp, wt_smallerLod, o.flow_shadow.zw);
+					#endif
+				}
+				if (wt_biggerLod > 0.001)
+				{
+					const float3 uv_slice_biggerLodDisp = WorldToUV_NextLod(o.worldPos.xz);
+
+					#if _SUBSURFACESHALLOWCOLOUR_ON
+					SampleSeaDepth(_LD_TexArray_SeaFloorDepth, uv_slice_biggerLodDisp, wt_biggerLod, o.lodAlpha_worldXZUndisplaced_oceanDepth.w);
+					#endif
+
+					#if _SHADOWS_ON
+					SampleShadow(_LD_TexArray_Shadow, uv_slice_biggerLodDisp, wt_biggerLod, o.flow_shadow.zw);
+					#endif
+				}
 
 				// Foam can saturate
 				o.foam_screenPos.x = saturate(o.foam_screenPos.x);
@@ -328,7 +344,7 @@ Shader "Crest/Ocean"
 				#if _DEBUGVISUALISESHAPESAMPLE_ON
 				#define TINT_COUNT (uint)7
 				half3 tintCols[TINT_COUNT]; tintCols[0] = half3(1., 0., 0.); tintCols[1] = half3(1., 1., 0.); tintCols[2] = half3(1., 0., 1.); tintCols[3] = half3(0., 1., 1.); tintCols[4] = half3(0., 0., 1.); tintCols[5] = half3(1., 0., 1.); tintCols[6] = half3(.5, .5, 1.);
-				o.debugtint = wt_0 * tintCols[_LD_LodIdx_0 % TINT_COUNT] + wt_1 * tintCols[_LD_LodIdx_1 % TINT_COUNT];
+				o.debugtint = wt_smallerLod * tintCols[_LD_LodIdx_0 % TINT_COUNT] + wt_biggerLod * tintCols[_LD_LodIdx_1 % TINT_COUNT];
 				#endif
 
 				// view-projection
@@ -403,17 +419,17 @@ Shader "Crest/Ocean"
 
 				// Normal - geom + normal mapping
 				half3 n_geom = half3(0.0, 1.0, 0.0);
+				const float lodAlpha = input.lodAlpha_worldXZUndisplaced_oceanDepth.x;
 
 				//if(false)
 				{
-					const float lodAlpha = input.lodAlpha_worldXZUndisplaced_oceanDepth.x;
-					const float2 uv_0 = LD_0_WorldToUV(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz);
-					const float2 uv_1 = LD_1_WorldToUV(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz);
-					const float wt_0 = (1. - lodAlpha) * _LD_Params_0.z;
-					const float wt_1 = (1. - wt_0) * _LD_Params_1.z;
+					const float3 uv_slice_smallerLod = WorldToUV(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz);
+					const float3 uv_slice_biggerLod = WorldToUV_NextLod(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz);
+					const float wt_smallerLod = (1. - lodAlpha) * _LD_Params[_LD_SliceIndex].z;
+					const float wt_biggerLod = (1. - wt_smallerLod) * _LD_Params[_LD_SliceIndex + 1].z;
 					float3 dummy = 0.;
-					if (wt_0 > 0.001) SampleDisplacementsNormals(_LD_Sampler_AnimatedWaves_0, uv_0, wt_0, _LD_Params_0.w, _LD_Params_0.x, dummy, n_geom.xz);
-					if (wt_1 > 0.001) SampleDisplacementsNormals(_LD_Sampler_AnimatedWaves_1, uv_1, wt_1, _LD_Params_1.w, _LD_Params_1.x, dummy, n_geom.xz);
+					if (wt_smallerLod > 0.001) SampleDisplacementsNormals(_LD_TexArray_AnimatedWaves, uv_slice_smallerLod, wt_smallerLod, _LD_Params[_LD_SliceIndex].w, _LD_Params[_LD_SliceIndex].x, dummy, n_geom.xz);
+					if (wt_biggerLod > 0.001) SampleDisplacementsNormals(_LD_TexArray_AnimatedWaves, uv_slice_biggerLod, wt_biggerLod, _LD_Params[_LD_SliceIndex + 1].w, _LD_Params[_LD_SliceIndex + 1].x, dummy, n_geom.xz);
 					n_geom = normalize(n_geom);
 				}
 
@@ -433,9 +449,9 @@ Shader "Crest/Ocean"
 				#if _FOAM_ON
 				half4 whiteFoamCol;
 				#if !_FLOW_ON
-				ComputeFoam(input.foam_screenPos.x, input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, input.worldPos.xz, n_pixel, pixelZ, sceneZ, view, lightDir, shadow.y, bubbleCol, whiteFoamCol);
+				ComputeFoam(input.foam_screenPos.x, input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, input.worldPos.xz, n_pixel, pixelZ, sceneZ, view, lightDir, shadow.y, lodAlpha, bubbleCol, whiteFoamCol);
 				#else
-				ComputeFoamWithFlow(input.flow_shadow.xy, input.foam_screenPos.x, input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, input.worldPos.xz, n_pixel, pixelZ, sceneZ, view, lightDir, shadow.y, bubbleCol, whiteFoamCol);
+				ComputeFoamWithFlow(input.flow_shadow.xy, input.foam_screenPos.x, input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, input.worldPos.xz, n_pixel, pixelZ, sceneZ, view, lightDir, shadow.y, lodAlpha, bubbleCol, whiteFoamCol);
 				#endif // _FLOW_ON
 				#endif // _FOAM_ON
 
@@ -464,7 +480,7 @@ Shader "Crest/Ocean"
 				// Fog
 				if (!underwater)
 				{
-					// Above water - do atmospheric fog. If you are using Azure, replace this with their stuff!
+					// Above water - do atmospheric fog. If you are using a third party sky package such as Azure, replace this with their stuff!
 					UNITY_APPLY_FOG(input.fogCoord, col);
 				}
 				else

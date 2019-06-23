@@ -17,7 +17,7 @@ namespace Crest
         Bounds _boundsLocal;
         Mesh _mesh;
         Renderer _rend;
-        MaterialPropertyBlock _mpb;
+        PropertyWrapperMPB _mpb;
 
         // Cache these off to support regenerating ocean surface
         int _lodIndex = -1;
@@ -25,15 +25,16 @@ namespace Crest
         int _lodDataResolution = 256;
         int _geoDownSampleFactor = 1;
 
-        int _reflectionTexId = -1;
+        static int sp_ReflectionTex = Shader.PropertyToID("_ReflectionTex");
+        static int sp_InstanceData = Shader.PropertyToID("_InstanceData");
+        static int sp_GeomData = Shader.PropertyToID("_GeomData");
+        static int sp_ForceUnderwater = Shader.PropertyToID("_ForceUnderwater");
 
         void Start()
         {
             _rend = GetComponent<Renderer>();
             _mesh = GetComponent<MeshFilter>().mesh;
             _boundsLocal = _mesh.bounds;
-
-            _reflectionTexId = Shader.PropertyToID("_ReflectionTex");
 
             UpdateMeshBounds();
         }
@@ -89,9 +90,9 @@ namespace Crest
 
             if (_mpb == null)
             {
-                _mpb = new MaterialPropertyBlock();
+                _mpb = new PropertyWrapperMPB();
             }
-            _rend.GetPropertyBlock(_mpb);
+            _rend.GetPropertyBlock(_mpb.materialPropertyBlock);
 
             // blend LOD 0 shape in/out to avoid pop, if the ocean might scale up later (it is smaller than its maximum scale)
             var needToBlendOutShape = _lodIndex == 0 && OceanRenderer.Instance.ScaleCouldIncrease;
@@ -100,7 +101,7 @@ namespace Crest
             // blend furthest normals scale in/out to avoid pop, if scale could reduce
             var needToBlendOutNormals = _lodIndex == _totalLodCount - 1 && OceanRenderer.Instance.ScaleCouldDecrease;
             var farNormalsWeight = needToBlendOutNormals ? OceanRenderer.Instance.ViewerAltitudeLevelAlpha : 1f;
-            _mpb.SetVector("_InstanceData", new Vector4(meshScaleLerp, farNormalsWeight, _lodIndex));
+            _mpb.SetVector(sp_InstanceData, new Vector4(meshScaleLerp, farNormalsWeight, _lodIndex));
 
             // geometry data
             // compute grid size of geometry. take the long way to get there - make sure we land exactly on a power of two
@@ -112,48 +113,40 @@ namespace Crest
             var pow = 1.4f; // fudge 2
             var normalScrollSpeed0 = Mathf.Pow(Mathf.Log(1f + 2f * gridSizeLodData) * mul, pow);
             var normalScrollSpeed1 = Mathf.Pow(Mathf.Log(1f + 4f * gridSizeLodData) * mul, pow);
-            _mpb.SetVector("_GeomData", new Vector4(gridSizeLodData, gridSizeGeo, normalScrollSpeed0, normalScrollSpeed1));
+            _mpb.SetVector(sp_GeomData, new Vector4(gridSizeLodData, gridSizeGeo, normalScrollSpeed0, normalScrollSpeed1));
 
-            // assign lod data to ocean shader
+            // Assign LOD data to ocean shader
             var ldaws = OceanRenderer.Instance._lodDataAnimWaves;
             var ldsds = OceanRenderer.Instance._lodDataSeaDepths;
             var ldfoam = OceanRenderer.Instance._lodDataFoam;
             var ldflow = OceanRenderer.Instance._lodDataFlow;
             var ldshadows = OceanRenderer.Instance._lodDataShadow;
 
-            ldaws.BindResultData(_lodIndex, 0, _mpb);
-            if (ldflow) ldflow.BindResultData(_lodIndex, 0, _mpb);
-            if (ldfoam) ldfoam.BindResultData(_lodIndex, 0, _mpb);
-            if (ldsds) ldsds.BindResultData(_lodIndex, 0, _mpb);
-            if (ldshadows) ldshadows.BindResultData(_lodIndex, 0, _mpb); else LodDataMgrShadow.BindNull(0, _mpb);
+            _mpb.SetFloat(OceanRenderer.sp_LD_SliceIndex, _lodIndex);
+            ldaws.BindResultData(_mpb);
+            if (ldflow) ldflow.BindResultData(_mpb);
+            if (ldfoam) ldfoam.BindResultData(_mpb); else LodDataMgrFoam.BindNull(_mpb);
+            if (ldsds) ldsds.BindResultData(_mpb);
+            if (ldshadows) ldshadows.BindResultData(_mpb); else LodDataMgrShadow.BindNull( _mpb);
 
-            if (_lodIndex + 1 < OceanRenderer.Instance.CurrentLodCount)
-            {
-                ldaws.BindResultData(_lodIndex + 1, 1, _mpb);
-                if (ldflow) ldflow.BindResultData(_lodIndex + 1, 1, _mpb);
-                if (ldfoam) ldfoam.BindResultData(_lodIndex + 1, 1, _mpb);
-                if (ldsds) ldsds.BindResultData(_lodIndex + 1, 1, _mpb);
-                if (ldshadows) ldshadows.BindResultData(_lodIndex + 1, 1, _mpb); else LodDataMgrShadow.BindNull(1, _mpb);
-            }
-
-            var reflTex = OceanPlanarReflection.GetRenderTexture(_currentCamera.targetDisplay);
+            var reflTex = PreparedReflections.GetRenderTexture(_currentCamera.GetInstanceID());
             if (reflTex)
             {
-                _mpb.SetTexture(_reflectionTexId, reflTex);
+                _mpb.SetTexture(sp_ReflectionTex, reflTex);
             }
             else
             {
-                _mpb.SetTexture(_reflectionTexId, Texture2D.blackTexture);
+                _mpb.SetTexture(sp_ReflectionTex, Texture2D.blackTexture);
             }
 
-            // Hack - due to SV_IsFrontFace occasionally coming through as true for backfaces,
-            // add a param here that forces ocean to be in undrwater state. I think the root
+            // Hack - due to SV_IsFrontFace occasionally coming through as true for back faces,
+            // add a param here that forces ocean to be in underwater state. I think the root
             // cause here might be imprecision or numerical issues at ocean tile boundaries, although
             // i'm not sure why cracks are not visible in this case.
             var heightOffset = OceanRenderer.Instance.ViewerHeightAboveWater;
-            _mpb.SetFloat("_ForceUnderwater", heightOffset < -2f ? 1f : 0f);
+            _mpb.SetFloat(sp_ForceUnderwater, heightOffset < -2f ? 1f : 0f);
 
-            _rend.SetPropertyBlock(_mpb);
+            _rend.SetPropertyBlock(_mpb.materialPropertyBlock);
 
             if (_drawRenderBounds)
             {

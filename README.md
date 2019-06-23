@@ -6,7 +6,7 @@
 
 # Intro
 
-*Crest* is a technically advanced ocean renderer implemented in Unity3D 2018.3.
+*Crest* is a technically advanced ocean renderer implemented in Unity3D 2018.3 and later. This version targets the **built-in render pipeline**, a link to the LWRP version on the Asset Store is below.
 
 ![Teaser](https://raw.githubusercontent.com/huwb/crest-oceanrender/master/img/teaser5.png)
 
@@ -37,6 +37,7 @@ There is also a getting started video here: https://www.youtube.com/watch?v=qsge
 * *Crest* example content:
   * The content requires a layer named *Terrain* which should be added to your project.
   * The post processing package is used (for aesthetic reasons), if this is not present in your project you will see an unassigned script warning which you can fix by removing the offending script.
+* .NET 4.x runtime
 
 
 # Releases
@@ -57,3 +58,4 @@ There are a few issues worth calling out here:
 * *Crest* does not yet support *HDRP*. If you would find such support useful, please feel free to comment in issue #201.
 * Azure[Sky] requires some code to be added to the ocean shader for the fogging/scattering to work. This is a requirement of this product and apparently comes with instructions for what needs to be added. See issue #62.
 * Issue with LWRP and VR - refraction appears broken due to what seems to be a bug in LWRP. See issue #206.
+* Unity 2018.3 introduced significant changes to prefabs. We don't make extensive use of prefabs, but there are some for boats and others, and these may not work in earlier versions. These will need to be recreated manually.

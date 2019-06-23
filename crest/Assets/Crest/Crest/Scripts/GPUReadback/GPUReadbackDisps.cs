@@ -13,19 +13,7 @@ namespace Crest
     {
         PerLodData _areaData;
 
-        static GPUReadbackDisps _instance;
-        public static GPUReadbackDisps Instance
-        {
-            get
-            {
-#if !UNITY_EDITOR
-                return _instance;
-#else
-                // Allow hot code edit/recompile in editor - re-init singleton reference.
-                return _instance != null ? _instance : (_instance = FindObjectOfType<GPUReadbackDisps>());
-#endif
-            }
-        }
+        public static GPUReadbackDisps Instance { get; private set; }
 
         protected override bool CanUseLastTwoLODs
         {
@@ -46,20 +34,22 @@ namespace Crest
                 return;
             }
 
-            Debug.Assert(_instance == null);
-            _instance = this;
+            Instance = this;
 
             _settingsProvider = OceanRenderer.Instance._simSettingsAnimatedWaves;
         }
 
         private void OnDestroy()
         {
-            _instance = null;
+            Instance = null;
         }
 
         #region ICollProvider
         public bool ComputeUndisplacedPosition(ref Vector3 i_worldPos, SamplingData i_samplingData, out Vector3 undisplacedWorldPos)
         {
+            // Tag should not be null if the collision source is GPU readback.
+            Debug.Assert(i_samplingData._tag != null);
+
             var lodData = i_samplingData._tag as PerLodData;
 
             // FPI - guess should converge to location that displaces to the target position
@@ -210,5 +200,13 @@ namespace Crest
             return true;
         }
         #endregion
+
+#if UNITY_EDITOR
+        [UnityEditor.Callbacks.DidReloadScripts]
+        private static void OnReLoadScripts()
+        {
+            Instance = FindObjectOfType<GPUReadbackDisps>();
+        }
+#endif
     }
 }

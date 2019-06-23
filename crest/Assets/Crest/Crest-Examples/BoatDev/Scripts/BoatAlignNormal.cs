@@ -6,7 +6,7 @@ using UnityEngine;
 /// <summary>
 /// Simple type of buoyancy - takes one sample and matches boat height and orientation to water height and normal.
 /// </summary>
-public class BoatAlignNormal : MonoBehaviour, IBoat
+public class BoatAlignNormal : FloatingObjectBase
 {
     [Header("Buoyancy Force")]
     [Tooltip("Height offset from transform center to bottom of boat (if any)."), SerializeField]
@@ -25,7 +25,7 @@ public class BoatAlignNormal : MonoBehaviour, IBoat
     [Header("Wave Response")]
     [Tooltip("Width dimension of boat. The larger this value, the more filtered/smooth the wave response will be."), SerializeField]
     float _boatWidth = 3f;
-    public float BoatWidth { get { return _boatWidth; } }
+    public override float ObjectWidth { get { return _boatWidth; } }
 
     [SerializeField, Tooltip("Computes a separate normal based on boat length to get more accurate orientations, at the cost of an extra collision sample.")]
     bool _useBoatLength = false;
@@ -52,15 +52,12 @@ public class BoatAlignNormal : MonoBehaviour, IBoat
     [SerializeField] bool _debugValidateCollision = false;
 
     bool _inWater;
-    public bool InWater { get { return _inWater; } }
+    public override bool InWater { get { return _inWater; } }
 
-    Vector3 _velocityRelativeToWater;
-    public Vector3 VelocityRelativeToWater { get { return _velocityRelativeToWater; } }
+    Vector3 _displacementToObject = Vector3.zero;
+    public override Vector3 CalculateDisplacementToObject() { return _displacementToObject; }
 
-    Vector3 _displacementToBoat;
-    public Vector3 DisplacementToBoat { get { return _displacementToBoat; } }
-
-    public Rigidbody RB { get; private set; }
+    public override Rigidbody RB { get; set; }
 
     SamplingData _samplingData = new SamplingData();
     SamplingData _samplingDataLengthWise = new SamplingData();
@@ -121,9 +118,13 @@ public class BoatAlignNormal : MonoBehaviour, IBoat
         }
         if (_debugDraw) DebugDrawCross(undispPos, 1f, Color.red);
 
-        var waterSurfaceVel = Vector3.zero;
+        Vector3 waterSurfaceVel, displacement;
         bool dispValid, velValid;
-        collProvider.SampleDisplacementVel(ref undispPos, _samplingData, out _displacementToBoat, out dispValid, out waterSurfaceVel, out velValid);
+        collProvider.SampleDisplacementVel(ref undispPos, _samplingData, out displacement, out dispValid, out waterSurfaceVel, out velValid);
+        if(dispValid)
+        {
+            _displacementToObject = displacement;
+        }
 
         if (GPUReadbackFlow.Instance)
         {
@@ -148,9 +149,9 @@ public class BoatAlignNormal : MonoBehaviour, IBoat
                 new Color(1, 1, 1, 0.6f));
         }
 
-        _velocityRelativeToWater = RB.velocity - waterSurfaceVel;
+        var velocityRelativeToWater = RB.velocity - waterSurfaceVel;
 
-        var dispPos = undispPos + _displacementToBoat;
+        var dispPos = undispPos + _displacementToObject;
         if (_debugDraw) DebugDrawCross(dispPos, 4f, Color.white);
 
         float height = dispPos.y;
@@ -169,9 +170,9 @@ public class BoatAlignNormal : MonoBehaviour, IBoat
 
         // apply drag relative to water
         var forcePosition = RB.position + _forceHeightOffset * Vector3.up;
-        RB.AddForceAtPosition(Vector3.up * Vector3.Dot(Vector3.up, -_velocityRelativeToWater) * _dragInWaterUp, forcePosition, ForceMode.Acceleration);
-        RB.AddForceAtPosition(transform.right * Vector3.Dot(transform.right, -_velocityRelativeToWater) * _dragInWaterRight, forcePosition, ForceMode.Acceleration);
-        RB.AddForceAtPosition(transform.forward * Vector3.Dot(transform.forward, -_velocityRelativeToWater) * _dragInWaterForward, forcePosition, ForceMode.Acceleration);
+        RB.AddForceAtPosition(Vector3.up * Vector3.Dot(Vector3.up, -velocityRelativeToWater) * _dragInWaterUp, forcePosition, ForceMode.Acceleration);
+        RB.AddForceAtPosition(transform.right * Vector3.Dot(transform.right, -velocityRelativeToWater) * _dragInWaterRight, forcePosition, ForceMode.Acceleration);
+        RB.AddForceAtPosition(transform.forward * Vector3.Dot(transform.forward, -velocityRelativeToWater) * _dragInWaterForward, forcePosition, ForceMode.Acceleration);
 
         float forward = _throttleBias;
         float rawForward = Input.GetAxis("Vertical");

@@ -64,15 +64,14 @@ half3 ScatterColour(
 		// 2. for the underwater skirt geometry, we don't have the lod data sampled from the verts with lod transitions etc,
 		//    so just approximate by sampling at the camera position.
 		// this used to sample LOD1 but that doesnt work in last LOD, the data will be missing.
-		const float2 uv_0 = LD_0_WorldToUV(i_cameraPos.xz);
-		float seaFloorHeightAboveBaseline = 0.0;
-		SampleSeaFloorHeightAboveBaseline(_LD_Sampler_SeaFloorDepth_0, uv_0, 1.0, seaFloorHeightAboveBaseline);
-		depth = CREST_OCEAN_DEPTH_BASELINE - seaFloorHeightAboveBaseline;
+		const float3 uv_smallerLod = WorldToUV(i_cameraPos.xz);
+		depth = CREST_OCEAN_DEPTH_BASELINE;
+		SampleSeaDepth(_LD_TexArray_SeaFloorDepth, uv_smallerLod, 1.0, depth);
 		waveHeight = 0.0;
 
 #if _SHADOWS_ON
 		half2 shadowSoftHard = 0.0;
-		SampleShadow(_LD_Sampler_Shadow_0, uv_0, 1.0, shadowSoftHard);
+		SampleShadow(_LD_TexArray_Shadow, uv_smallerLod, 1.0, shadowSoftHard);
 		shadow = 1.0 - shadowSoftHard.x;
 #endif
 	}
@@ -136,13 +135,14 @@ void ApplyCaustics(in const half3 i_view, in const half3 i_lightDir, in const fl
 {
 	// could sample from the screen space shadow texture to attenuate this..
 	// underwater caustics - dedicated to P
+	// TODO(caustics): make i_view negative?
 	float3 camForward = mul((float3x3)unity_CameraToWorld, float3(0., 0., 1.));
-	float3 scenePos = _WorldSpaceCameraPos + (i_view * i_sceneZ / dot(camForward, i_view));
-	const float2 scenePosUV = LD_1_WorldToUV(scenePos.xz);
+	float3 scenePos = _WorldSpaceCameraPos - i_view * i_sceneZ / dot(camForward, i_view);
+	const float3 scenePosUV = WorldToUV_NextLod(scenePos.xz);
 	half3 disp = 0.;
 	// this gives height at displaced position, not exactly at query position.. but it helps. i cant pass this from vert shader
 	// because i dont know it at scene pos.
-	SampleDisplacements(_LD_Sampler_AnimatedWaves_1, scenePosUV, 1.0, disp);
+	SampleDisplacements(_LD_TexArray_AnimatedWaves, scenePosUV, 1.0, disp);
 	half waterHeight = _OceanCenterPosWorld.y + disp.y;
 	half sceneDepth = waterHeight - scenePos.y;
 	// Compute mip index manually, with bias based on sea floor depth. We compute it manually because if it is computed automatically it produces ugly patches
@@ -153,8 +153,8 @@ void ApplyCaustics(in const half3 i_view, in const half3 i_lightDir, in const fl
 	// caustics come from many directions and don't exhibit such a strong directonality
 	float2 surfacePosXZ = scenePos.xz + i_lightDir.xz * sceneDepth / (4.*i_lightDir.y);
 	half2 causticN = _CausticsDistortionStrength * UnpackNormal(tex2D(i_normals, surfacePosXZ / _CausticsDistortionScale)).xy;
-	half4 cuv1 = half4((surfacePosXZ / _CausticsTextureScale + 1.3 *causticN + half2(0.044*_CrestTime + 17.16, -0.169*_CrestTime)), 0., mipLod);
-	half4 cuv2 = half4((1.37*surfacePosXZ / _CausticsTextureScale + 1.77*causticN + half2(0.248*_CrestTime, 0.117*_CrestTime)), 0., mipLod);
+	float4 cuv1 = float4((surfacePosXZ / _CausticsTextureScale + 1.3 *causticN + float2(0.044*_CrestTime + 17.16, -0.169*_CrestTime)), 0., mipLod);
+	float4 cuv2 = float4((1.37*surfacePosXZ / _CausticsTextureScale + 1.77*causticN + float2(0.248*_CrestTime, 0.117*_CrestTime)), 0., mipLod);
 
 	half causticsStrength = _CausticsStrength;
 #if _SHADOWS_ON
@@ -164,14 +164,14 @@ void ApplyCaustics(in const half3 i_view, in const half3 i_lightDir, in const fl
 		// LOD_1 data can be missing when underwater
 		if(i_underwater)
 		{
-			const float2 uv_0 = LD_0_WorldToUV(surfacePosXZ);
-			SampleShadow(_LD_Sampler_Shadow_0, uv_0, 1.0, causticShadow);
+			const float3 uv_smallerLod = WorldToUV(surfacePosXZ);
+			SampleShadow(_LD_TexArray_Shadow, uv_smallerLod, 1.0, causticShadow);
 		}
 		else
 		{
 			// only sample the bigger lod. if pops are noticeable this could lerp the 2 lods smoothly, but i didnt notice issues.
-			float2 uv_1 = LD_1_WorldToUV(surfacePosXZ);
-			SampleShadow(_LD_Sampler_Shadow_1, uv_1, 1.0, causticShadow);
+			float3 uv_biggerLod = WorldToUV_NextLod(surfacePosXZ);
+			SampleShadow(_LD_TexArray_Shadow, uv_biggerLod, 1.0, causticShadow);
 		}
 		causticsStrength *= 1.0 - causticShadow.y;
 	}
@@ -194,16 +194,16 @@ void ApplyGodRays(in const half3 i_view, in const half3 i_lightDir, in const flo
 	for(uint currentSample = 0; currentSample < numSamples; currentSample++)
 	{
 		float3 samplePos = _WorldSpaceCameraPos + (-i_view * totalSampleDistance);
-		const float2 samplePosUV = LD_1_WorldToUV(samplePos.xz);
+		const float3 samplePosUV = WorldToUV_NextLod(samplePos.xz);
 
 		half3 disp = 0.;
-		SampleDisplacements(_LD_Sampler_AnimatedWaves_1, samplePosUV, 1.0, disp);
+		SampleDisplacements(_LD_TexArray_AnimatedWaves, samplePosUV, 1.0, disp);
 		const half waterHeightAboveSample = _OceanCenterPosWorld.y + disp.y;
 		if(samplePos.y < waterHeightAboveSample) {
 
 			const float2 surfacePosXZ = float2(samplePos.x, samplePos.z) - (i_lightDir * dot(i_lightDir, _OceanCenterPosWorld.y - samplePos.y)).xz;
-			const float2 surfacePosUV = LD_1_WorldToUV(samplePos.xz);
-			SampleDisplacements(_LD_Sampler_AnimatedWaves_1, surfacePosUV, 1.0, disp);
+			const float3 surfacePosUV = WorldToUV_NextLod(samplePos.xz);
+			SampleDisplacements(_LD_TexArray_AnimatedWaves, surfacePosUV, 1.0, disp);
 			const half waterHeightAtPointRayEntersOcean = _OceanCenterPosWorld.y + disp.y;
 
 			half rayTravelDistanceInWater = waterHeightAtPointRayEntersOcean - samplePos.y;
@@ -221,14 +221,14 @@ void ApplyGodRays(in const half3 i_view, in const half3 i_lightDir, in const flo
 				// LOD_1 data can be missing when underwater
 				if(i_underwater)
 				{
-					const float2 uv_0 = LD_0_WorldToUV(surfacePosXZ);
-					SampleShadow(_LD_Sampler_Shadow_0, uv_0, 1.0, causticShadow);
+					const float3 uv_smallerLod = WorldToUV(surfacePosXZ);
+					SampleShadow(_LD_TexArray_Shadow, uv_smallerLod, 1.0, causticShadow);
 				}
 				else
 				{
 					// only sample the bigger lod. if pops are noticeable this could lerp the 2 lods smoothly, but i didnt notice issues.
-					float2 uv_1 = LD_1_WorldToUV(surfacePosXZ);
-					SampleShadow(_LD_Sampler_Shadow_1, uv_1, 1.0, causticShadow);
+					float3 uv_biggerLod = WorldToUV_NextLod(surfacePosXZ);
+					SampleShadow(_LD_TexArray_Shadow, uv_biggerLod, 1.0, causticShadow);
 				}
 				causticsStrength *= 1. - causticShadow.y;
 
@@ -270,7 +270,6 @@ half3 OceanEmission(in const half3 i_view, in const half3 i_n_pixel, in const fl
 	// View ray intersects geometry surface either above or below ocean surface
 
 	const half2 uvBackground = i_grabPos.xy / i_grabPos.w;
-	half2 uvBackgroundRefract = uvBackground + _RefractionStrength * i_n_pixel.xz * min(1.0, 0.5*(i_sceneZ - i_pixelZ));
 	half3 sceneColour;
 	half3 alpha = 0.;
 	float depthFogDistance;
@@ -278,13 +277,15 @@ half3 OceanEmission(in const half3 i_view, in const half3 i_n_pixel, in const fl
 	// Depth fog & caustics - only if view ray starts from above water
 	if (!i_underwater)
 	{
-		const half2 uvDepthRefract = i_uvDepth + _RefractionStrength * i_n_pixel.xz;
-		const float sceneZRefract = LinearEyeDepth(tex2D(i_cameraDepths, uvDepthRefract).x);
+		const half2 refractOffset = _RefractionStrength * i_n_pixel.xz * min(1.0, 0.5*(i_sceneZ - i_pixelZ)) / i_sceneZ;
+		const float sceneZRefract = LinearEyeDepth(tex2D(i_cameraDepths, i_uvDepth + refractOffset).x);
+		half2 uvBackgroundRefract;
 
 		// Compute depth fog alpha based on refracted position if it landed on an underwater surface, or on unrefracted depth otherwise
 		if (sceneZRefract > i_pixelZ)
 		{
 			depthFogDistance = sceneZRefract - i_pixelZ;
+			uvBackgroundRefract = uvBackground + refractOffset;
 		}
 		else
 		{
@@ -303,7 +304,8 @@ half3 OceanEmission(in const half3 i_view, in const half3 i_n_pixel, in const fl
 	}
 	else
 	{
-		sceneColour = tex2D(_BackgroundTexture, uvBackgroundRefract).rgb;
+		half2 uvBackgroundRefractSky = uvBackground + _RefractionStrength * i_n_pixel.xz;
+		sceneColour = tex2D(_BackgroundTexture, uvBackgroundRefractSky).rgb;
 		depthFogDistance = i_pixelZ;
 		// keep alpha at 0 as UnderwaterReflection shader handles the blend
 		// appropriately when looking at water from below

@@ -5,10 +5,63 @@
 // This script originated from the unity standard assets. It has been modified heavily to be camera-centric (as opposed to
 // geometry-centric) and assumes a single main camera which simplifies the code.
 
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
+
 
 namespace Crest
 {
+    internal static class PreparedReflections
+    {
+        private static volatile RenderTexture _currentreflectiontexture;
+        private static volatile int _referenceCameraInstanceId = -1;
+        private static volatile KeyValuePair<int, RenderTexture>[] _collection = new KeyValuePair<int, RenderTexture>[0];
+        public static RenderTexture GetRenderTexture(int camerainstanceid)
+        {
+            if (camerainstanceid == _referenceCameraInstanceId)
+                return _currentreflectiontexture;
+
+            var currentcollection = _collection;    //prevent crash if somebody change collection now in over thread, useless in unity now
+            for (int i = 0; i < currentcollection.Length; i++)
+            {
+                if (currentcollection[i].Key == camerainstanceid)
+                {
+                    var texture = currentcollection[i].Value;
+                    _currentreflectiontexture = texture;
+                    _referenceCameraInstanceId = camerainstanceid;
+                    return texture;
+                }
+            }
+            return null;
+        }
+
+        public static void Remove(int camerainstanceid)  //remove element if exists
+        {
+            if (!GetRenderTexture(camerainstanceid)) return;
+            _collection = _collection.Where(e => e.Key != camerainstanceid).ToArray(); //rebuild array without element
+            _currentreflectiontexture = null;
+            _referenceCameraInstanceId = -1;
+        }
+
+        public static void Register(int instanceId, RenderTexture reflectionTexture)
+        {
+            var currentcollection = _collection;
+            for (var i = 0; i < currentcollection.Length; i++)
+            {
+                if (currentcollection[i].Key == instanceId)
+                {
+                    currentcollection[i] = new KeyValuePair<int, RenderTexture>(instanceId, reflectionTexture);
+                    return;
+                }
+            }
+            //rebuild with new element if not found
+            _collection = currentcollection
+                .Append(new KeyValuePair<int, RenderTexture>(instanceId, reflectionTexture)).ToArray();
+        }
+    }
+
     /// <summary>
     /// Attach to a camera to generate a reflection texture which can be sampled in the ocean shader.
     /// </summary>
@@ -21,25 +74,26 @@ namespace Crest
         [SerializeField] bool _hdr = true;
         [SerializeField] bool _stencil = false;
         [SerializeField] bool _hideCameraGameobject = true;
+        [SerializeField] bool _allowMSAA = false;           //allow MSAA on reflection camera
+        [SerializeField] float _farClipPlane = 1000;             //far clip plane for reflection camera on all layers
+        [SerializeField] bool _forceForwardRenderingPath = true;
+        [SerializeField] CameraClearFlags _clearFlags = CameraClearFlags.Color;
 
-        const int MAX_DISPLAY_COUNT = 8;
+        /// <summary>
+        /// Refresh reflection every x frames(1-every frame)
+        /// </summary>
+        [SerializeField] int RefreshPerFrames = 1;
+
+        /// <summary>
+        /// To relax OceanPlanarReflection refresh to different frames need to set different values for each script
+        /// </summary>
+        [SerializeField] int _frameRefreshOffset = 0;
 
         RenderTexture _reflectionTexture;
-
-        static RenderTexture[] _displayReflTextures;
-        public static RenderTexture GetRenderTexture(int displayIndex)
-        {
-            if (_displayReflTextures != null && _displayReflTextures.Length > displayIndex)
-            {
-                return _displayReflTextures[displayIndex];
-            }
-
-            return null;
-        }
-
         Camera _camViewpoint;
         Camera _camReflections;
-
+        private long _lastRefreshOnFrame = -1;
+        float[] _cullDistances;
         private void Start()
         {
             _camViewpoint = GetComponent<Camera>();
@@ -62,8 +116,22 @@ namespace Crest
 #endif
         }
 
+        bool RequestRefresh(long frame)
+        {
+            if (_lastRefreshOnFrame <= 0 || RefreshPerFrames < 2)
+                return true;    //not refreshed before or refresh every frame, not check frame counter
+            return Math.Abs(_frameRefreshOffset) % RefreshPerFrames == frame % RefreshPerFrames;
+        }
+
+        void Refreshed(long currentframe)
+        {
+            _lastRefreshOnFrame = currentframe;
+        }
         private void OnPreRender()
         {
+            if (!RequestRefresh(Time.renderedFrameCount))
+                return; //skip if not need to refresh on this frame
+
             CreateWaterObjects(_camViewpoint);
 
             if (!_camReflections)
@@ -106,11 +174,16 @@ namespace Crest
             // Invert culling because view is mirrored
             bool oldCulling = GL.invertCulling;
             GL.invertCulling = !oldCulling;
+
             _camReflections.transform.position = newpos;
             Vector3 euler = _camViewpoint.transform.eulerAngles;
             _camReflections.transform.eulerAngles = new Vector3(-euler.x, euler.y, euler.z);
             _camReflections.cullingMatrix = _camReflections.projectionMatrix * _camReflections.worldToCameraMatrix;
+
+            ForceDistanceCulling(_farClipPlane);
+            
             _camReflections.Render();
+
             GL.invertCulling = oldCulling;
 
             // Restore pixel light count
@@ -118,14 +191,34 @@ namespace Crest
             {
                 QualitySettings.pixelLightCount = oldPixelLightCount;
             }
+
+            Refreshed(Time.renderedFrameCount); //remember this frame as last refreshed
+        }
+
+
+        /// <summary>
+        /// Limit render distance for reflection camera for first 32 layers
+        /// </summary>
+        /// <param name="farClipPlane">reflection far clip distance</param>
+        private void ForceDistanceCulling(float farClipPlane)
+        {
+            if (_cullDistances == null)
+                _cullDistances = new float[32];
+            for (var i = 0; i < _cullDistances.Length; i++)
+            {
+                _cullDistances[i] = farClipPlane; //the culling distance
+            }
+            _camReflections.layerCullDistances = _cullDistances;
+            _camReflections.layerCullSpherical = true;
         }
 
         void UpdateCameraModes(Camera src, Camera dest)
         {
             // set water camera to clear the same way as current camera
-            dest.clearFlags = src.clearFlags;
-            dest.backgroundColor = src.backgroundColor;
-            if (src.clearFlags == CameraClearFlags.Skybox)
+            dest.renderingPath = _forceForwardRenderingPath ? RenderingPath.Forward : src.renderingPath;
+            dest.backgroundColor = new Color(0f, 0f, 0f, 0f);
+            dest.clearFlags = _clearFlags;
+            if (_clearFlags == CameraClearFlags.Skybox)
             {
                 Skybox sky = src.GetComponent<Skybox>();
                 Skybox mysky = dest.GetComponent<Skybox>();
@@ -143,12 +236,13 @@ namespace Crest
             // update other values to match current camera.
             // even if we are supplying custom camera&projection matrices,
             // some of values are used elsewhere (e.g. skybox uses far plane)
+
             dest.farClipPlane = src.farClipPlane;
             dest.nearClipPlane = src.nearClipPlane;
             dest.orthographic = src.orthographic;
             dest.fieldOfView = src.fieldOfView;
-            dest.aspect = src.aspect;
             dest.orthographicSize = src.orthographicSize;
+            dest.allowMSAA = _allowMSAA;
         }
 
         // On-demand create any objects we need for water
@@ -163,10 +257,14 @@ namespace Crest
                 }
 
                 var format = _hdr ? RenderTextureFormat.ARGBHalf : RenderTextureFormat.ARGB32;
-                _reflectionTexture = new RenderTexture(_textureSize, _textureSize, _stencil ? 24 : 16, format);
-                _reflectionTexture.name = "__WaterReflection" + GetInstanceID();
-                _reflectionTexture.isPowerOfTwo = true;
-                _reflectionTexture.hideFlags = HideFlags.DontSave;
+                Debug.Assert(SystemInfo.SupportsRenderTextureFormat(format), "The graphics device does not support the render texture format " + format.ToString());
+                _reflectionTexture = new RenderTexture(_textureSize, _textureSize, _stencil ? 24 : 16, format)
+                {
+                    name = "__WaterReflection" + GetInstanceID(),
+                    isPowerOfTwo = true,
+                    hideFlags = HideFlags.DontSave
+                };
+                PreparedReflections.Register(currentCamera.GetInstanceID(), _reflectionTexture);
             }
 
             // Camera for reflection
@@ -187,12 +285,6 @@ namespace Crest
                 }
             }
 
-            // Keep list of reflection textures fresh
-            if (_displayReflTextures == null || _displayReflTextures.Length != MAX_DISPLAY_COUNT)
-            {
-                _displayReflTextures = new RenderTexture[MAX_DISPLAY_COUNT];
-            }
-            _displayReflTextures[currentCamera.targetDisplay] = _reflectionTexture;
         }
 
         // Given position/normal of the plane, calculates plane in camera space.
@@ -231,12 +323,16 @@ namespace Crest
 
         private void OnDisable()
         {
+            if (_camViewpoint != null)
+            {
+                PreparedReflections.Remove(_camViewpoint.GetInstanceID());
+            }
+
             // Cleanup all the objects we possibly have created
             if (_reflectionTexture)
             {
                 Destroy(_reflectionTexture);
                 _reflectionTexture = null;
-                _displayReflTextures = null;
             }
             if (_camReflections)
             {

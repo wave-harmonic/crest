@@ -31,8 +31,10 @@ namespace Crest
         // how many vertical edges to add to curtain geometry
         const int GEOM_HORIZ_DIVISIONS = 64;
 
-        MaterialPropertyBlock _mpb;
+        PropertyWrapperMPB _mpb;
         Renderer _rend;
+
+        static int sp_HeightOffset = Shader.PropertyToID("_HeightOffset");
 
         private void Start()
         {
@@ -57,6 +59,8 @@ namespace Crest
 
         void ConfigureMaterial()
         {
+            if (OceanRenderer.Instance == null) return;
+
             var keywords = _rend.material.shaderKeywords;
             foreach (var keyword in keywords)
             {
@@ -99,34 +103,35 @@ namespace Crest
                 // Assign lod0 shape - trivial but bound every frame because lod transform comes from here
                 if (_mpb == null)
                 {
-                    _mpb = new MaterialPropertyBlock();
+                    _mpb = new PropertyWrapperMPB();
                 }
-                _rend.GetPropertyBlock(_mpb);
+                _rend.GetPropertyBlock(_mpb.materialPropertyBlock);
 
                 // Underwater rendering uses displacements for intersecting the waves with the near plane, and ocean depth/shadows for ScatterColour()
-                OceanRenderer.Instance._lodDataAnimWaves.BindResultData(0, 0, _mpb);
+                _mpb.SetFloat(OceanRenderer.sp_LD_SliceIndex, 0);
+                OceanRenderer.Instance._lodDataAnimWaves.BindResultData(_mpb);
 
                 if (OceanRenderer.Instance._lodDataSeaDepths)
                 {
-                    OceanRenderer.Instance._lodDataSeaDepths.BindResultData(0, 0, _mpb);
+                    OceanRenderer.Instance._lodDataSeaDepths.BindResultData(_mpb);
                 }
                 else
                 {
-                    LodDataMgrSeaFloorDepth.BindNull(0, _mpb);
+                    LodDataMgrSeaFloorDepth.BindNull(_mpb);
                 }
 
                 if (OceanRenderer.Instance._lodDataShadow)
                 {
-                    OceanRenderer.Instance._lodDataShadow.BindResultData(0, 0, _mpb);
+                    OceanRenderer.Instance._lodDataShadow.BindResultData(_mpb);
                 }
                 else
                 {
-                    LodDataMgrShadow.BindNull(0, _mpb);
+                    LodDataMgrShadow.BindNull(_mpb);
                 }
 
-                _mpb.SetFloat("_HeightOffset", heightOffset);
+                _mpb.SetFloat(sp_HeightOffset, heightOffset);
 
-                _rend.SetPropertyBlock(_mpb);
+                _rend.SetPropertyBlock(_mpb.materialPropertyBlock);
             }
         }
 

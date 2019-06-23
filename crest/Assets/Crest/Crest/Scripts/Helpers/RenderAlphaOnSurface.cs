@@ -14,10 +14,12 @@ namespace Crest
     {
         public bool _drawBounds = false;
 
-        MaterialPropertyBlock _mpb;
+        PropertyWrapperMPB _mpb;
         Renderer _rend;
         Mesh _mesh;
         Bounds _boundsLocal;
+
+        static int sp_InstanceData = Shader.PropertyToID("_InstanceData");
 
         private void Start()
         {
@@ -40,33 +42,32 @@ namespace Crest
 
             // find which lod this object is overlapping
             var rect = new Rect(transform.position.x, transform.position.z, 0f, 0f);
-            var idx = LodDataMgrAnimWaves.SuggestDataLOD(rect);
+            var lodIdx = LodDataMgrAnimWaves.SuggestDataLOD(rect);
 
-            if (idx > -1)
+            if (lodIdx > -1)
             {
                 if (_mpb == null)
                 {
-                    _mpb = new MaterialPropertyBlock();
+                    _mpb = new PropertyWrapperMPB();
                 }
 
-                _rend.GetPropertyBlock(_mpb);
+                _rend.GetPropertyBlock(_mpb.materialPropertyBlock);
 
                 var lodCount = OceanRenderer.Instance.CurrentLodCount;
-                var ldaw = OceanRenderer.Instance._lodDataAnimWaves;
-                ldaw.BindResultData(idx, 0, _mpb);
-                int idx1 = Mathf.Min(idx + 1, lodCount - 1);
-                ldaw.BindResultData(idx1, 1, _mpb);
+                var lodDataAnimWaves = OceanRenderer.Instance._lodDataAnimWaves;
+                _mpb.SetFloat(OceanRenderer.sp_LD_SliceIndex, lodIdx);
+                lodDataAnimWaves.BindResultData(_mpb);
 
                 // blend LOD 0 shape in/out to avoid pop, if the ocean might scale up later (it is smaller than its maximum scale)
-                bool needToBlendOutShape = idx == 0 && OceanRenderer.Instance.ScaleCouldIncrease;
+                bool needToBlendOutShape = lodIdx == 0 && OceanRenderer.Instance.ScaleCouldIncrease;
                 float meshScaleLerp = needToBlendOutShape ? OceanRenderer.Instance.ViewerAltitudeLevelAlpha : 0f;
 
                 // blend furthest normals scale in/out to avoid pop, if scale could reduce
-                bool needToBlendOutNormals = idx == lodCount - 1 && OceanRenderer.Instance.ScaleCouldDecrease;
+                bool needToBlendOutNormals = lodIdx == lodCount - 1 && OceanRenderer.Instance.ScaleCouldDecrease;
                 float farNormalsWeight = needToBlendOutNormals ? OceanRenderer.Instance.ViewerAltitudeLevelAlpha : 1f;
-                _mpb.SetVector("_InstanceData", new Vector4(meshScaleLerp, farNormalsWeight, idx));
+                _mpb.SetVector(sp_InstanceData, new Vector4(meshScaleLerp, farNormalsWeight, lodIdx));
 
-                _rend.SetPropertyBlock(_mpb);
+                _rend.SetPropertyBlock(_mpb.materialPropertyBlock);
             }
 
             LateUpdateBounds();

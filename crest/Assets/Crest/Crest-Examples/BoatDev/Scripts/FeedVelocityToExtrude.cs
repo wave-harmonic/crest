@@ -6,6 +6,7 @@ using UnityEngine;
 /// <summary>
 /// Drives object/water interaction - sets parameters each frame on material that renders into the dynamic wave sim.
 /// </summary>
+[System.Obsolete]
 public class FeedVelocityToExtrude : MonoBehaviour
 {
     [HideInInspector]
@@ -35,12 +36,14 @@ public class FeedVelocityToExtrude : MonoBehaviour
     float _velocityPositionOffset = 0.2f;
 
     Material _mat;
-    IBoat _boat;
+    FloatingObjectBase _boat;
     Vector3 _posLast;
     SamplingData _samplingDataFlow = new SamplingData();
 
     private void Start()
     {
+        Debug.LogWarning("FeedVelocityToExtrude is deprecated. Use ObjectWaterInteraction instead.", this);
+
         if (OceanRenderer.Instance == null || !OceanRenderer.Instance.CreateDynamicWaveSim)
         {
             enabled = false;
@@ -50,11 +53,11 @@ public class FeedVelocityToExtrude : MonoBehaviour
         _localOffset = transform.localPosition;
 
         _mat = GetComponent<Renderer>().material;
-        _boat = GetComponentInParent<IBoat>();
+        _boat = GetComponentInParent<FloatingObjectBase>();
 
         if (_boat == null)
         {
-            Debug.LogError("Boat script required. Disabling FeedVelocityToExtrude.", this);
+            Debug.LogError("FloatingObjectBase required. Disabling FeedVelocityToExtrude.", this);
             enabled = false;
             return;
         }
@@ -87,7 +90,7 @@ public class FeedVelocityToExtrude : MonoBehaviour
         if (simsActive == 0)
             return;
 
-        var disp = _boat.DisplacementToBoat;
+        var disp = _boat.CalculateDisplacementToObject();
         transform.position = transform.parent.TransformPoint(_localOffset) - disp + _velocityPositionOffset * _boat.RB.velocity;
 
         var rnd = 1f + _noiseAmp * (2f * Mathf.PerlinNoise(_noiseFreq * OceanRenderer.Instance.CurrentTime, 0.5f) - 1f);
@@ -100,7 +103,7 @@ public class FeedVelocityToExtrude : MonoBehaviour
         {
             var position = transform.position;
             var samplingArea = new Rect(position.x, position.z, 0f, 0f);
-            GPUReadbackFlow.Instance.GetSamplingData(ref samplingArea, _boat.BoatWidth, _samplingDataFlow);
+            GPUReadbackFlow.Instance.GetSamplingData(ref samplingArea, _boat.ObjectWidth, _samplingDataFlow);
 
             Vector2 surfaceFlow;
             GPUReadbackFlow.Instance.SampleFlow(ref position, _samplingDataFlow, out surfaceFlow);

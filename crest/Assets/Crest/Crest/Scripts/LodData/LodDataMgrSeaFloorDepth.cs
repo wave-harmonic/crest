@@ -8,17 +8,63 @@ using UnityEngine.Rendering;
 namespace Crest
 {
     /// <summary>
-    /// Renders relative depth of ocean floor, by rendering the relative height of tagged objects from top down.
+    /// Renders depth of the ocean (height of sea level above ocean floor), by rendering the relative height of tagged objects from top down.
     /// </summary>
     public class LodDataMgrSeaFloorDepth : LodDataMgr
     {
         public override string SimName { get { return "SeaFloorDepth"; } }
         public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RFloat; } }
+        protected override bool NeedToReadWriteTextureData { get { return false; } }
 
         public override SimSettingsBase CreateDefaultSettings() { return null; }
         public override void UseSettings(SimSettingsBase settings) { }
 
         bool _targetsClear = false;
+        private static int sp_SliceViewProjMatrices = Shader.PropertyToID("_SliceViewProjMatrices");
+        private static int sp_CurrentLodCount = Shader.PropertyToID("_CurrentLodCount");
+        private const string ENABLE_GEOMETRY_SHADER_KEYWORD = "_ENABLE_GEOMETRY_SHADER";
+
+        private static bool UseGeometryShader { get {
+            // Only use geometry shader if target device supports it.
+            // See https://docs.unity3d.com/2018.1/Documentation/Manual/SL-ShaderCompileTargets.html
+            // See https://docs.unity3d.com/ScriptReference/SystemInfo-graphicsShaderLevel.html
+#if PLATFORM_ANDROID
+            if(SystemInfo.graphicsDeviceType == GraphicsDeviceType.Vulkan)
+            {
+                return false;
+            }
+#endif
+            if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal)
+            {
+                return false;
+            }
+            if(SystemInfo.graphicsShaderLevel <= 35 || SystemInfo.graphicsShaderLevel == 45)
+            {
+                return false;
+            }
+            return true;
+        }}
+
+        public static string ShaderName { get {
+            if(UseGeometryShader)
+            {
+                return "Crest/Inputs/Depth/Cached Depths";
+            }
+            else
+            {
+                return "Crest/Inputs/Depth/Cached Depths Geometry";
+            }
+        }}
+
+        private void OnEnable()
+        {
+            if(UseGeometryShader) { Shader.EnableKeyword(ENABLE_GEOMETRY_SHADER_KEYWORD); }
+        }
+
+        private void OnDisable()
+        {
+            if(UseGeometryShader) { Shader.DisableKeyword(ENABLE_GEOMETRY_SHADER_KEYWORD); }
+        }
 
         public override void BuildCommandBuffer(OceanRenderer ocean, CommandBuffer buf)
         {
@@ -30,12 +76,39 @@ namespace Crest
                 return;
             }
 
-            for (int lodIdx = OceanRenderer.Instance.CurrentLodCount - 1; lodIdx >= 0; lodIdx--)
-            {
-                buf.SetRenderTarget(_targets[lodIdx]);
-                buf.ClearRenderTarget(false, true, Color.black);
+            if(UseGeometryShader) {
+                buf.SetRenderTarget(_targets, 0, CubemapFace.Unknown, -1);
+                buf.ClearRenderTarget(false, true, Color.white * 1000f);
 
-                SubmitDraws(lodIdx, buf);
+                Matrix4x4[] matrixArray = new Matrix4x4[MAX_LOD_COUNT];
+
+                var lt = OceanRenderer.Instance._lodTransform;
+                for (int lodIdx = OceanRenderer.Instance.CurrentLodCount - 1; lodIdx >= 0; lodIdx--)
+                {
+                    lt._renderData[lodIdx].Validate(0, this);
+                    Matrix4x4 platformProjectionMatrix = GL.GetGPUProjectionMatrix(lt.GetProjectionMatrix(lodIdx), true);
+                    Matrix4x4 worldToClipPos = platformProjectionMatrix * lt.GetWorldToCameraMatrix(lodIdx);
+                    matrixArray[lodIdx] = worldToClipPos;
+                }
+
+                buf.SetGlobalMatrixArray(sp_SliceViewProjMatrices, matrixArray);
+                buf.SetGlobalInt(sp_CurrentLodCount, OceanRenderer.Instance.CurrentLodCount);
+
+
+                foreach (var draw in _drawList)
+                {
+                    buf.DrawRenderer(draw.RendererComponent, draw.RendererComponent.sharedMaterial);
+                }
+            }
+            else
+            {
+                for (int lodIdx = OceanRenderer.Instance.CurrentLodCount - 1; lodIdx >= 0; lodIdx--)
+                {
+                    buf.SetRenderTarget(_targets, 0, CubemapFace.Unknown, lodIdx);
+                    buf.ClearRenderTarget(false, true, Color.white * 1000f);
+                    buf.SetGlobalFloat(OceanRenderer.sp_LD_SliceIndex, lodIdx);
+                    SubmitDraws(lodIdx, buf);
+                }
             }
 
             // targets have now been cleared, we can early out next time around
@@ -45,24 +118,16 @@ namespace Crest
             }
         }
 
-        static int[] _paramsSampler;
-        public static int ParamIdSampler(int slot)
+        public static string TextureArrayName = "_LD_TexArray_SeaFloorDepth";
+        private static TextureArrayParamIds textureArrayParamIds = new TextureArrayParamIds(TextureArrayName);
+        public static int ParamIdSampler(bool sourceLod = false) { return textureArrayParamIds.GetId(sourceLod); }
+        protected override int GetParamIdSampler(bool sourceLod = false)
         {
-            if (_paramsSampler == null)
-                LodTransform.CreateParamIDs(ref _paramsSampler, "_LD_Sampler_SeaFloorDepth_");
-            return _paramsSampler[slot];
+            return ParamIdSampler(sourceLod);
         }
-        protected override int GetParamIdSampler(int slot)
+        public static void BindNull(IPropertyWrapper properties, bool sourceLod = false)
         {
-            return ParamIdSampler(slot);
-        }
-        public static void BindNull(int shapeSlot, Material properties)
-        {
-            properties.SetTexture(ParamIdSampler(shapeSlot), Texture2D.blackTexture);
-        }
-        public static void BindNull(int shapeSlot, MaterialPropertyBlock properties)
-        {
-            properties.SetTexture(ParamIdSampler(shapeSlot), Texture2D.blackTexture);
+            properties.SetTexture(ParamIdSampler(sourceLod), TextureArrayHelpers.BlackTextureArray);
         }
     }
 }

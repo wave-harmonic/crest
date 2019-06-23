@@ -97,7 +97,9 @@ void ShapeCombineBase (uint3 id)
 	SampleDisplacements(_LD_TexArray_WaveBuffer, uv_thisLod_flow_0, weights[0], result, sss);
 	SampleDisplacements(_LD_TexArray_WaveBuffer, uv_thisLod_flow_1, weights[1], result, sss);
 #else
-	SampleDisplacements(_LD_TexArray_WaveBuffer, uv_thisLod, 1.0, result, sss);
+	float4 data =_LD_TexArray_WaveBuffer.SampleLevel(LODData_linear_clamp_sampler, uv_thisLod, 0.0);
+	result += data.xyz;
+	sss = data.a;
 #endif
 
 // C# Script determines whether this enabled or not by selecting appropriate

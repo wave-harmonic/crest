@@ -34,16 +34,6 @@ Shader "Crest/Ocean"
 		// Fall-off for primary light scattering to affect directionality
 		_SubSurfaceSunFallOff("Sun Fall-Off", Range(1.0, 16.0)) = 4.0
 
-		// Light scattering at wave peaks
-		//[Header(Height Based Scattering)]
-		//[Toggle] _SubSurfaceHeightLerp("Enable", Float) = 1
-		//// Height from sea level where scattering is at maximum
-		//_SubSurfaceHeightMax("Height Max", Range(0.0, 100.0)) = 3.0
-		//// Fall off of height scattering
-		//_SubSurfaceHeightPower("Height Power", Range(0.01, 10.0)) = 1.0
-		//// Tint for height scattering
-		//_SubSurfaceCrestColour("Crest Colour", Color) = (0.42, 0.69, 0.52)
-
 		// Light scattering in shallow water
 		[Header(Shallow Scattering)]
 		[Toggle] _SubSurfaceShallowColour("Enable", Float) = 1
@@ -196,7 +186,6 @@ Shader "Crest/Ocean"
 			#pragma shader_feature _APPLYNORMALMAPPING_ON
 			#pragma shader_feature _COMPUTEDIRECTIONALLIGHT_ON
 			#pragma shader_feature _SUBSURFACESCATTERING_ON
-			//#pragma shader_feature _SUBSURFACEHEIGHTLERP_ON
 			#pragma shader_feature _SUBSURFACESHALLOWCOLOUR_ON
 			#pragma shader_feature _TRANSPARENCY_ON
 			#pragma shader_feature _CAUSTICS_ON
@@ -401,6 +390,7 @@ Shader "Crest/Ocean"
 			half4 Frag(const Varyings input, const float facing : VFACE) : SV_Target
 			{
 				const bool underwater = IsUnderwater(facing);
+				const float lodAlpha = input.lodAlpha_worldXZUndisplaced_oceanDepth.x;
 
 				half3 view = normalize(_WorldSpaceCameraPos - input.worldPos);
 
@@ -420,45 +410,29 @@ Shader "Crest/Ocean"
 					;
 
 				// Normal - geom + normal mapping
+				const float2 uv_0 = LD_0_WorldToUV(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz);
+				const float2 uv_1 = LD_1_WorldToUV(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz);
+				const float wt_0 = (1. - lodAlpha) * _LD_Params_0.z;
+				const float wt_1 = (1. - wt_0) * _LD_Params_1.z;
+				float3 dummy = 0.;
 				half3 n_geom = half3(0.0, 1.0, 0.0);
-				const float lodAlpha = input.lodAlpha_worldXZUndisplaced_oceanDepth.x;
+				if (wt_0 > 0.001) SampleDisplacementsNormals(_LD_Sampler_AnimatedWaves_0, uv_0, wt_0, _LD_Params_0.w, _LD_Params_0.x, dummy, n_geom.xz);
+				if (wt_1 > 0.001) SampleDisplacementsNormals(_LD_Sampler_AnimatedWaves_1, uv_1, wt_1, _LD_Params_1.w, _LD_Params_1.x, dummy, n_geom.xz);
+				n_geom = normalize(n_geom);
+
+				// Subsurface scattering
 				float sss = 0.;
+				sss += wt_0 * tex2Dlod(_LD_Sampler_AnimatedWaves_0, float4(uv_0, 0., 0.)).a;
+				sss += wt_1 * tex2Dlod(_LD_Sampler_AnimatedWaves_1, float4(uv_1, 0., 0.)).a;
 
-				//if(false)
-				{
-					const float2 uv_0 = LD_0_WorldToUV(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz);
-					const float2 uv_1 = LD_1_WorldToUV(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz);
-					const float wt_0 = (1. - lodAlpha) * _LD_Params_0.z;
-					const float wt_1 = (1. - wt_0) * _LD_Params_1.z;
-					float3 dummy = 0.;
-					if (wt_0 > 0.001) SampleDisplacementsNormals(_LD_Sampler_AnimatedWaves_0, uv_0, wt_0, _LD_Params_0.w, _LD_Params_0.x, dummy, n_geom.xz);
-					if (wt_1 > 0.001) SampleDisplacementsNormals(_LD_Sampler_AnimatedWaves_1, uv_1, wt_1, _LD_Params_1.w, _LD_Params_1.x, dummy, n_geom.xz);
-					n_geom = normalize(n_geom);
-
-					sss += 
-						wt_0 * 
-						tex2Dlod(_LD_Sampler_AnimatedWaves_0, float4(uv_0, 0., 0.)).a;
-					sss += 
-						wt_1 * 
-						tex2Dlod(_LD_Sampler_AnimatedWaves_1, float4(uv_1, 0., 0.)).a;
-
-					//sss = length(input.worldPos.xz - input.lodAlpha_worldXZUndisplaced_oceanDepth.yz);
-					//void SampleDisplacements(in sampler2D i_dispSampler, in float2 i_uv, in float i_wt, inout float3 io_worldPos)
-					//{
-					//	const half3 disp = tex2Dlod(i_dispSampler, float4(i_uv, 0., 0.)).xyz;
-					//	io_worldPos += i_wt * disp;
-					//}
-
-				}
-				//sss = abs(input.lodAlpha_worldXZUndisplaced_oceanDepth.y - input.worldPos.x) * 0.1;
 
 				if (underwater) n_geom = -n_geom;
 				half3 n_pixel = n_geom;
 				#if _APPLYNORMALMAPPING_ON
 				#if _FLOW_ON
-				ApplyNormalMapsWithFlow(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, input.flow_shadow.xy, input.lodAlpha_worldXZUndisplaced_oceanDepth.x, n_pixel);
+				ApplyNormalMapsWithFlow(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, input.flow_shadow.xy, lodAlpha, n_pixel);
 				#else
-				n_pixel.xz += (underwater ? -1. : 1.) * SampleNormalMaps(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, input.lodAlpha_worldXZUndisplaced_oceanDepth.x);
+				n_pixel.xz += (underwater ? -1. : 1.) * SampleNormalMaps(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, lodAlpha);
 				n_pixel = normalize(n_pixel);
 				#endif
 				#endif
@@ -476,7 +450,6 @@ Shader "Crest/Ocean"
 
 				// Compute color of ocean - in-scattered light + refracted scene
 				half3 scatterCol = ScatterColour(input.worldPos, input.lodAlpha_worldXZUndisplaced_oceanDepth.w, _WorldSpaceCameraPos, lightDir, view, shadow.x, underwater, true, sss);
-				//scatterCol *= sss * sss;
 				half3 col = OceanEmission(view, n_pixel, lightDir, input.grabPos, pixelZ, uvDepth, sceneZ, sceneZ01, bubbleCol, _Normals, _CameraDepthTexture, underwater, scatterCol);
 
 				// Light that reflects off water surface

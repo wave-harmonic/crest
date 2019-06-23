@@ -79,6 +79,7 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Batch"
 			half4 Frag(Varyings input) : SV_Target
 			{
 				half3 result = (half3)0.0;
+				float2 displacementNormalized = 0.0;
 
 				const half4 oneMinusAttenuation = (half4)1.0 - (half4)_AttenuationInShallows;
 
@@ -94,8 +95,6 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Batch"
 				half4 preferredDirX = preferredDir.x;
 				half4 preferredDirZ = preferredDir.y;
 #endif
-
-				float2 displacementNormalized = 0.0;
 
 				// gerstner computation is vectorized - processes 4 wave components at once
 				for (uint vi = 0; vi < _NumWaveVecs; vi++)

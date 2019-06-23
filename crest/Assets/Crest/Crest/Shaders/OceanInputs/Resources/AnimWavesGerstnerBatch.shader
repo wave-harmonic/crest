@@ -76,7 +76,6 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Batch"
 
 			half4 Frag(Varyings input) : SV_Target
 			{
-				half3 result = (half3)0.0;
 				float2 displacementNormalized = 0.0;
 
 				const half4 oneMinusAttenuation = (half4)1.0 - (half4)_AttenuationInShallows;

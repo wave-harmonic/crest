@@ -11,7 +11,7 @@ namespace Crest
     /// Support script for Gerstner wave ocean shapes.
     /// Generates a number of batches of Gerstner waves.
     /// </summary>
-    public class ShapeGerstnerBatched : MonoBehaviour, ICollProvider
+    public class ShapeGerstnerBatched : MonoBehaviour, ICollProvider, IFloatingOrigin
     {
         [Tooltip("The spectrum that defines the ocean surface shape. Create asset of type Crest/Ocean Waves Spectrum.")]
         public OceanWaveSpectrum _spectrum;

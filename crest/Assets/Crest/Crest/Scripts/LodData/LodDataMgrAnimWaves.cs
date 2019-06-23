@@ -17,7 +17,7 @@ namespace Crest
     ///    pass and subsequent assignment to the ocean material (see OceanScheduler).
     ///  * The LodDataSeaFloorDepth sits on this same GameObject and borrows the camera. This could be a model for the other sim types..
     /// </summary>
-    public class LodDataMgrAnimWaves : LodDataMgr, IFloatingOrigin
+    public class LodDataMgrAnimWaves : LodDataMgr
     {
         public override string SimName { get { return "AnimatedWaves"; } }
         // shape format. i tried RGB111110Float but error becomes visible. one option would be to use a UNORM setup.
@@ -278,15 +278,6 @@ namespace Crest
         public static void BindNull(int shapeSlot, IPropertyWrapper properties)
         {
             properties.SetTexture(ParamIdSampler(shapeSlot), Texture2D.blackTexture);
-        }
-
-        public void SetOrigin(Vector3 newOrigin)
-        {
-            // TODO - make gerstner waves batched inherit from floating origin?
-            //foreach (var gerstner in _gerstnerComponents)
-            //{
-            //    gerstner.SetOrigin(newOrigin);
-            //}
         }
     }
 }

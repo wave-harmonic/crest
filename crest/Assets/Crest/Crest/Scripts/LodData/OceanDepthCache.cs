@@ -121,7 +121,7 @@ namespace Crest
                 _drawCacheQuad.transform.localEulerAngles = 90f * Vector3.right;
                 _drawCacheQuad.AddComponent<RegisterSeaFloorDepthInput>();
                 var qr = _drawCacheQuad.GetComponent<Renderer>();
-                qr.material = new Material(Shader.Find("Crest/Inputs/Depth/Cached Depths"));
+                qr.material = new Material(Shader.Find(LodDataMgrSeaFloorDepth.ShaderName));
                 qr.material.mainTexture = _cacheTexture;
                 qr.enabled = false;
             }

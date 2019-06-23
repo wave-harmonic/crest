@@ -19,7 +19,7 @@ float IntersectRayWithWaterSurface(const float3 pos, const float3 dir)
 	{
 		// Sample displacement textures, add results to current world pos / normal / foam
 		disp = float3(sampleXZ.x, _OceanCenterPosWorld.y, sampleXZ.y);
-		SampleDisplacements(_LD_Sampler_AnimatedWaves_0, LD_0_WorldToUV(sampleXZ), 1.0, disp);
+		SampleDisplacements(_LD_TexArray_AnimatedWaves, WorldToUV(sampleXZ), 1.0, disp);
 		float3 nearestPointOnRay = pos + dir * dot(disp - pos, dir);
 		const float2 error = disp.xz - nearestPointOnRay.xz;
 		sampleXZ -= error;

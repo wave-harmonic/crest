@@ -27,8 +27,8 @@ half3 AmbientLight()
 half WhiteFoamTexture(half i_foam, float2 i_worldXZUndisplaced, half lodVal)
 {
 	half ft = lerp(
-		tex2D(_FoamTexture, (1.25*i_worldXZUndisplaced + _CrestTime / 10.) / (4.*_LD_Params_0.x*_FoamScale)).r,
-		tex2D(_FoamTexture, (1.25*i_worldXZUndisplaced + _CrestTime / 10.) / (4.*_LD_Params_1.x*_FoamScale)).r,
+		tex2D(_FoamTexture, (1.25*i_worldXZUndisplaced + _CrestTime / 10.) / (4.*_LD_Params[_LD_SliceIndex].x*_FoamScale)).r,
+		tex2D(_FoamTexture, (1.25*i_worldXZUndisplaced + _CrestTime / 10.) / (4.*_LD_Params[_LD_SliceIndex + 1].x*_FoamScale)).r,
 		lodVal);
 
 	// black point fade

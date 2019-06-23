@@ -11,7 +11,9 @@ namespace Crest
     /// </summary>
     public class LodDataMgrDynWaves : LodDataMgrPersistent
     {
-        protected override string ShaderSim { get { return "Hidden/Crest/Simulation/Update Dynamic Waves"; } }
+        protected override string ShaderSim { get { return "UpdateDynWaves"; } }
+        protected override int krnl_ShaderSim { get { return _shader.FindKernel(ShaderSim); }}
+
         public override string SimName { get { return "DynamicWaves"; } }
         public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RGHalf; } }
 
@@ -26,7 +28,7 @@ namespace Crest
 
         public bool _rotateLaplacian = true;
 
-        const string DYNWAVES_KEYWORD = "_DYNAMIC_WAVE_SIM_ON";
+        public const string DYNWAVES_KEYWORD = "_DYNAMIC_WAVE_SIM_ON";
 
         bool[] _active;
         public bool SimActive(int lodIdx) { return _active[lodIdx]; }
@@ -61,7 +63,7 @@ namespace Crest
                 return false;
 
             // check if the sim should be running
-            float texelWidth = OceanRenderer.Instance._lods[lodIdx]._renderData.Validate(0, this)._texelWidth;
+            float texelWidth = OceanRenderer.Instance._lodTransform._renderData[lodIdx].Validate(0, this)._texelWidth;
             _active[lodIdx] = texelWidth >= Settings._minGridSize && (texelWidth <= Settings._maxGridSize || Settings._maxGridSize == 0f);
 
             return true;
@@ -73,9 +75,9 @@ namespace Crest
             target.SetFloat(sp_DisplaceClamp, Settings._displaceClamp);
         }
 
-        protected override void SetAdditionalSimParams(int lodIdx, IPropertyWrapper simMaterial)
+        protected override void SetAdditionalSimParams(IPropertyWrapper simMaterial)
         {
-            base.SetAdditionalSimParams(lodIdx, simMaterial);
+            base.SetAdditionalSimParams(simMaterial);
 
             simMaterial.SetFloat(sp_Damping, Settings._damping);
             simMaterial.SetFloat(sp_Gravity, OceanRenderer.Instance.Gravity);
@@ -87,20 +89,20 @@ namespace Crest
             // because the depth is scheduled to render just before the animated waves, and this sim happens before animated waves.
             if (OceanRenderer.Instance._lodDataSeaDepths)
             {
-                OceanRenderer.Instance._lodDataSeaDepths.BindResultData(lodIdx, 1, simMaterial);
+                OceanRenderer.Instance._lodDataSeaDepths.BindResultData(simMaterial);
             }
             else
             {
-                LodDataMgrSeaFloorDepth.BindNull(1, simMaterial);
+                LodDataMgrSeaFloorDepth.BindNull(simMaterial);
             }
 
             if (OceanRenderer.Instance._lodDataFlow)
             {
-                OceanRenderer.Instance._lodDataFlow.BindResultData(lodIdx, 1, simMaterial);
+                OceanRenderer.Instance._lodDataFlow.BindResultData(simMaterial);
             }
             else
             {
-                LodDataMgrFlow.BindNull(1, simMaterial);
+                LodDataMgrFlow.BindNull(simMaterial);
             }
 
         }
@@ -132,20 +134,16 @@ namespace Crest
             }
         }
 
-        static int[] _paramsSampler;
-        public static int ParamIdSampler(int slot)
+        public static string TextureArrayName = "_LD_TexArray_DynamicWaves";
+        private static TextureArrayParamIds textureArrayParamIds = new TextureArrayParamIds(TextureArrayName);
+        public static int ParamIdSampler(bool sourceLod = false) { return textureArrayParamIds.GetId(sourceLod); }
+        protected override int GetParamIdSampler(bool sourceLod = false)
         {
-            if (_paramsSampler == null)
-                LodTransform.CreateParamIDs(ref _paramsSampler, "_LD_Sampler_DynamicWaves_");
-            return _paramsSampler[slot];
+            return ParamIdSampler(sourceLod);
         }
-        protected override int GetParamIdSampler(int slot)
+        public static void BindNull(IPropertyWrapper properties, bool sourceLod = false)
         {
-            return ParamIdSampler(slot);
-        }
-        public static void BindNull(int shapeSlot, IPropertyWrapper properties)
-        {
-            properties.SetTexture(ParamIdSampler(shapeSlot), Texture2D.blackTexture);
+            properties.SetTexture(ParamIdSampler(sourceLod), TextureArrayHelpers.BlackTextureArray);
         }
     }
 }

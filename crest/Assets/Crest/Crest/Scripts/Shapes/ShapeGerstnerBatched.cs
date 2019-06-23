@@ -239,8 +239,8 @@ namespace Crest
 
             float twopi = 2f * Mathf.PI;
             float one_over_2pi = 1f / twopi;
-            float minWavelengthThisBatch = OceanRenderer.Instance._lods[lodIdx].MaxWavelength() / 2f;
-            float maxWavelengthCurrentlyRendering = OceanRenderer.Instance._lods[OceanRenderer.Instance.CurrentLodCount - 1].MaxWavelength();
+            float minWavelengthThisBatch = OceanRenderer.Instance._lodTransform.MaxWavelength(lodIdx) / 2f;
+            float maxWavelengthCurrentlyRendering = OceanRenderer.Instance._lodTransform.MaxWavelength(OceanRenderer.Instance.CurrentLodCount - 1);
             float viewerAltitudeLevelAlpha = OceanRenderer.Instance.ViewerAltitudeLevelAlpha;
 
             // register any nonzero components
@@ -349,11 +349,13 @@ namespace Crest
 
             int numVecs = (numInBatch + 3) / 4;
             property.SetInt(sp_NumWaveVecs, numVecs);
-            OceanRenderer.Instance._lodDataAnimWaves.BindResultData(lodIdx, 0, property);
+            property.SetFloat(OceanRenderer.sp_LD_SliceIndex, lodIdx);
+
+            OceanRenderer.Instance._lodDataAnimWaves.BindResultData(property);
 
             if (OceanRenderer.Instance._lodDataSeaDepths)
             {
-                OceanRenderer.Instance._lodDataSeaDepths.BindResultData(lodIdx, 0, property, false);
+                OceanRenderer.Instance._lodDataSeaDepths.BindResultData(property, false);
             }
 
             return numInBatch;
@@ -375,7 +377,7 @@ namespace Crest
             int componentIdx = 0;
 
             // seek forward to first wavelength that is big enough to render into current LODs
-            float minWl = OceanRenderer.Instance._lods[0].MaxWavelength() / 2f;
+            float minWl = OceanRenderer.Instance._lodTransform.MaxWavelength(0) / 2f;
             while (_wavelengths[componentIdx] < minWl && componentIdx < _wavelengths.Length)
             {
                 componentIdx++;
@@ -417,6 +419,7 @@ namespace Crest
         public void BuildCommandBuffer(int lodIdx, OceanRenderer ocean, CommandBuffer buf)
         {
             var lodCount = ocean.CurrentLodCount;
+            buf.SetGlobalFloat(OceanRenderer.sp_LD_SliceIndex, lodIdx);
 
             // LODs up to but not including the last lod get the normal sets of waves
             if (lodIdx < lodCount - 1 && _drawLOD[lodIdx])

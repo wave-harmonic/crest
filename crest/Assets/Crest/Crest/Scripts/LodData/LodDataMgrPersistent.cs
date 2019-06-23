@@ -12,69 +12,76 @@ namespace Crest
     /// </summary>
     public abstract class LodDataMgrPersistent : LodDataMgr
     {
+        protected override bool NeedToReadWriteTextureData { get { return true; } }
+
         protected readonly int MAX_SIM_STEPS = 4;
 
-        RenderTexture[] _sources;
-        Material _renderSimMaterial;
-        PropertyWrapperMPB[,] _renderSimProperties;
+        RenderTexture _sources;
+        PropertyWrapperCompute _renderSimProperties;
+
+        static int sp_LD_TexArray_Target = Shader.PropertyToID("_LD_TexArray_Target");
+
+        protected ComputeShader _shader;
 
         protected abstract string ShaderSim { get; }
+        protected abstract int krnl_ShaderSim { get; }
 
         float _substepDtPrevious = 1f / 60f;
 
         static int sp_SimDeltaTime = Shader.PropertyToID("_SimDeltaTime");
         static int sp_SimDeltaTimePrev = Shader.PropertyToID("_SimDeltaTimePrev");
-        static int sp_GridSize = Shader.PropertyToID("_GridSize");
 
         protected override void Start()
         {
             base.Start();
 
-            CreateMaterials(OceanRenderer.Instance.CurrentLodCount);
+            CreateProperties(OceanRenderer.Instance.CurrentLodCount);
         }
 
-        void CreateMaterials(int lodCount)
+        void CreateProperties(int lodCount)
         {
-            _renderSimMaterial = new Material(Shader.Find(ShaderSim));
-            _renderSimProperties = new PropertyWrapperMPB[MAX_SIM_STEPS, lodCount];
-            for (int stepi = 0; stepi < MAX_SIM_STEPS; stepi++)
-            {
-                for (int i = 0; i < lodCount; i++)
-                {
-                    _renderSimProperties[stepi, i] = new PropertyWrapperMPB();
-                }
-            }
+            _shader = Resources.Load<ComputeShader>(ShaderSim);
+            _renderSimProperties = new PropertyWrapperCompute();
         }
 
         protected override void InitData()
         {
             base.InitData();
 
-            Debug.Assert(SystemInfo.SupportsRenderTextureFormat(TextureFormat), "The graphics device does not support the render texture format " + TextureFormat.ToString());
-
             int resolution = OceanRenderer.Instance.LodDataResolution;
             var desc = new RenderTextureDescriptor(resolution, resolution, TextureFormat, 0);
 
-            _sources = new RenderTexture[OceanRenderer.Instance.CurrentLodCount];
-            for (int i = 0; i < _sources.Length; i++)
+            _sources = new RenderTexture(desc);
+            _sources.wrapMode = TextureWrapMode.Clamp;
+            _sources.antiAliasing = 1;
+            _sources.filterMode = FilterMode.Bilinear;
+            _sources.anisoLevel = 0;
+            _sources.useMipMap = false;
+            _sources.name = SimName;
+            _sources.dimension = TextureDimension.Tex2DArray;
+            _sources.volumeDepth = OceanRenderer.Instance.CurrentLodCount;
+            _sources.enableRandomWrite = NeedToReadWriteTextureData;
+        }
+
+        public void ValidateSourceData(bool usePrevTransform)
+        {
+            var renderDataToValidate = usePrevTransform ?
+                OceanRenderer.Instance._lodTransform._renderDataSource
+                : OceanRenderer.Instance._lodTransform._renderData;
+            int validationFrame = usePrevTransform ? BuildCommandBufferBase._lastUpdateFrame - Time.frameCount : 0;
+            foreach(var renderData in renderDataToValidate)
             {
-                _sources[i] = new RenderTexture(desc);
-                _sources[i].wrapMode = TextureWrapMode.Clamp;
-                _sources[i].antiAliasing = 1;
-                _sources[i].filterMode = FilterMode.Bilinear;
-                _sources[i].anisoLevel = 0;
-                _sources[i].useMipMap = false;
-                _sources[i].name = SimName + "_" + i + "_1";
+                renderData.Validate(validationFrame, this);
             }
         }
 
-        public void BindSourceData(int lodIdx, int shapeSlot, IPropertyWrapper properties, bool paramsOnly, bool usePrevTransform)
+        public void BindSourceData(IPropertyWrapper properties, bool paramsOnly, bool usePrevTransform, bool sourceLod = false)
         {
-            var rd = usePrevTransform ?
-                OceanRenderer.Instance._lods[lodIdx]._renderDataPrevFrame.Validate(BuildCommandBufferBase._lastUpdateFrame - Time.frameCount, this)
-                : OceanRenderer.Instance._lods[lodIdx]._renderData.Validate(0, this);
+            var renderData = usePrevTransform ?
+                OceanRenderer.Instance._lodTransform._renderDataSource
+                : OceanRenderer.Instance._lodTransform._renderData;
 
-            BindData(lodIdx, shapeSlot, properties, paramsOnly ? Texture2D.blackTexture : (Texture)_sources[lodIdx], true, ref rd);
+            BindData(properties, paramsOnly ? TextureArrayHelpers.BlackTextureArray : (Texture)_sources, true, ref renderData, sourceLod);
         }
 
         public abstract void GetSimSubstepData(float frameDt, out int numSubsteps, out float substepDt);
@@ -87,48 +94,51 @@ namespace Crest
             float substepDt;
             int numSubsteps;
             GetSimSubstepData(Time.deltaTime, out numSubsteps, out substepDt);
+            if (!_sources.IsCreated())
+            {
+                _sources.Create();
+            }
+            if (!_targets.IsCreated())
+            {
+                _targets.Create();
+            }
 
             for (int stepi = 0; stepi < numSubsteps; stepi++)
             {
-                for (var lodIdx = lodCount - 1; lodIdx >= 0; lodIdx--)
-                {
-                    SwapRTs(ref _sources[lodIdx], ref _targets[lodIdx]);
-                }
+
+                SwapRTs(ref _sources, ref _targets);
+
+
+                _renderSimProperties.Initialise(buf, _shader, krnl_ShaderSim);
+
+                _renderSimProperties.SetFloat(sp_SimDeltaTime, substepDt);
+                _renderSimProperties.SetFloat(sp_SimDeltaTimePrev, _substepDtPrevious);
+
+                // compute which lod data we are sampling source data from. if a scale change has happened this can be any lod up or down the chain.
+                // this is only valid on the first update step, after that the scale src/target data are in the right places.
+                var srcDataIdxChange = ((stepi == 0) ? ScaleDifferencePow2 : 0);
+
+                // only take transform from previous frame on first substep
+                var usePreviousFrameTransform = stepi == 0;
+
+                // bind data to slot 0 - previous frame data
+                ValidateSourceData(usePreviousFrameTransform);
+                BindSourceData(_renderSimProperties, false, usePreviousFrameTransform, true);
+
+                SetAdditionalSimParams(_renderSimProperties);
+
+                buf.SetGlobalFloat(OceanRenderer.sp_LODChange, srcDataIdxChange);
+
+                _renderSimProperties.SetTexture(
+                    sp_LD_TexArray_Target,
+                    DataTexture
+                );
+
+                _renderSimProperties.DispatchShaderMultiLOD();
 
                 for (var lodIdx = lodCount - 1; lodIdx >= 0; lodIdx--)
                 {
-                    _renderSimProperties[stepi, lodIdx].SetFloat(sp_SimDeltaTime, substepDt);
-                    _renderSimProperties[stepi, lodIdx].SetFloat(sp_SimDeltaTimePrev, _substepDtPrevious);
-
-                    _renderSimProperties[stepi, lodIdx].SetFloat(sp_GridSize, OceanRenderer.Instance._lods[lodIdx]._renderData._texelWidth);
-
-                    // compute which lod data we are sampling source data from. if a scale change has happened this can be any lod up or down the chain.
-                    // this is only valid on the first update step, after that the scale src/target data are in the right places.
-                    var srcDataIdx = lodIdx + ((stepi == 0) ? ScaleDifferencePow2 : 0);
-
-                    // only take transform from previous frame on first substep
-                    var usePreviousFrameTransform = stepi == 0;
-
-                    if (srcDataIdx >= 0 && srcDataIdx < lodCount)
-                    {
-                        // bind data to slot 0 - previous frame data
-                        BindSourceData(srcDataIdx, 0, _renderSimProperties[stepi, lodIdx], false, usePreviousFrameTransform);
-                    }
-                    else
-                    {
-                        // no source data - bind params only
-                        BindSourceData(lodIdx, 0, _renderSimProperties[stepi, lodIdx], true, usePreviousFrameTransform);
-                    }
-
-                    SetAdditionalSimParams(lodIdx, _renderSimProperties[stepi, lodIdx]);
-
-                    {
-                        var rt = DataTexture(lodIdx);
-                        buf.SetRenderTarget(rt, rt.depthBuffer);
-                    }
-
-                    buf.DrawProcedural(Matrix4x4.identity, _renderSimMaterial, 0, MeshTopology.Triangles, 3, 1, _renderSimProperties[stepi, lodIdx].materialPropertyBlock);
-
+                    buf.SetRenderTarget(_targets, _targets.depthBuffer, 0, CubemapFace.Unknown, lodIdx);
                     SubmitDraws(lodIdx, buf);
                 }
 
@@ -151,20 +161,20 @@ namespace Crest
         /// <summary>
         /// Set any sim-specific shader params.
         /// </summary>
-        protected virtual void SetAdditionalSimParams(int lodIdx, IPropertyWrapper simMaterial)
+        protected virtual void SetAdditionalSimParams(IPropertyWrapper simMaterial)
         {
         }
 
 #if UNITY_EDITOR
         [UnityEditor.Callbacks.DidReloadScripts]
-        private static void OnReLoadScripts()
+        protected static void OnReLoadScripts()
         {
             var ocean = FindObjectOfType<OceanRenderer>();
             if (ocean == null) return;
             foreach (var ldp in ocean.GetComponents<LodDataMgrPersistent>())
             {
                 // Unity does not serialize multidimensional arrays, or arrays of arrays. It does serialise arrays of objects containing arrays though.
-                ldp.CreateMaterials(ocean.CurrentLodCount);
+                ldp.CreateProperties(ocean.CurrentLodCount);
             }
         }
 #endif

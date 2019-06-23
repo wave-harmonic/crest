@@ -166,6 +166,8 @@ public class OceanDebugGUI : MonoBehaviour
         DrawSims<LodDataMgrSeaFloorDepth>(OceanRenderer.Instance._lodDataSeaDepths, false, ref column);
     }
 
+    static Dictionary<RenderTextureFormat, RenderTexture> shapes = new Dictionary<RenderTextureFormat, RenderTexture>();
+
     static void DrawSims<SimType>(LodDataMgr lodData, bool showByDefault, ref float offset) where SimType : LodDataMgr
     {
         if (lodData == null) return;
@@ -181,7 +183,7 @@ public class OceanDebugGUI : MonoBehaviour
         }
 
         float b = 7f;
-        float h = Screen.height / (float)OceanRenderer.Instance._lods.Length;
+        float h = Screen.height / (float)OceanRenderer.Instance.CurrentLodCount;
         float w = h + b;
         float x = Screen.width - w * offset + b * (offset - 1f);
 
@@ -192,10 +194,17 @@ public class OceanDebugGUI : MonoBehaviour
                 float y = idx * h;
                 if (offset == 1f) w += b;
 
-                RenderTexture shape;
+                // We cannot debug draw texture arrays directly
+                // (unless we write our own system for doing so).
+                // So for now, we just copy each texture and then draw that.
+                if(!shapes.ContainsKey(lodData.DataTexture.format))
+                {
+                    shapes.Add(lodData.DataTexture.format, new RenderTexture(lodData.DataTexture));
+                    shapes[lodData.DataTexture.format].dimension = UnityEngine.Rendering.TextureDimension.Tex2D;
+                }
 
-                shape = lodData.DataTexture(idx);
-                if (shape == null) continue;
+                RenderTexture shape = shapes[lodData.DataTexture.format];
+                Graphics.CopyTexture(lodData.DataTexture, idx, 0, shape, 0, 0);
 
                 GUI.color = Color.black * 0.7f;
                 GUI.DrawTexture(new Rect(x, y, w - b, h), Texture2D.whiteTexture);

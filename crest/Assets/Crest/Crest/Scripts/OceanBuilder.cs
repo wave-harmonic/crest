@@ -163,7 +163,8 @@ namespace Crest
                 meshInsts[i] = BuildOceanPatch((PatchType)i, tileResolution);
             }
 
-            ocean._lods = new LodTransform[lodCount];
+            ocean._lodTransform = ocean.gameObject.AddComponent<LodTransform>();
+            ocean._lodTransform.InitLODData(lodCount);
 
             // Create the LOD data managers
             ocean._lodDataAnimWaves = LodDataMgr.Create<LodDataMgrAnimWaves, SimSettingsAnimatedWaves>(ocean.gameObject, ref ocean._simSettingsAnimatedWaves);
@@ -379,9 +380,6 @@ namespace Crest
             parent.transform.parent = ocean.transform;
             parent.transform.localPosition = Vector3.zero;
             parent.transform.localRotation = Quaternion.identity;
-
-            ocean._lods[lodIndex] = parent.AddComponent<LodTransform>();
-            ocean._lods[lodIndex].InitLODData(lodIndex, lodCount);
 
             bool generateSkirt = biggestLOD && !ocean._disableSkirt;
 

@@ -23,6 +23,7 @@ namespace Crest
         public override string SimName { get { return "AnimatedWaves"; } }
         // shape format. i tried RGB111110Float but error becomes visible. one option would be to use a UNORM setup.
         public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.ARGBHalf; } }
+        protected override bool NeedToReadWriteTextureData { get { return true; } }
 
         [Tooltip("Read shape textures back to the CPU for collision purposes.")]
         public bool _readbackShapeForCollision = true;
@@ -34,10 +35,23 @@ namespace Crest
 
         List<ShapeGerstnerBatched> _gerstnerComponents = new List<ShapeGerstnerBatched>();
 
-        RenderTexture[] _waveBuffers;
+        RenderTexture _waveBuffers;
 
-        Material _combineMaterial;
-        PropertyWrapperMPB[] _combineProperties;
+        const string ShaderName = "ShapeCombine";
+
+        static int krnl_ShapeCombine = -1;
+        static int krnl_ShapeCombine_DISABLE_COMBINE = -1;
+        static int krnl_ShapeCombine_FLOW_ON = -1;
+        static int krnl_ShapeCombine_FLOW_ON_DISABLE_COMBINE = -1;
+        static int krnl_ShapeCombine_DYNAMIC_WAVE_SIM_ON = -1;
+        static int krnl_ShapeCombine_DYNAMIC_WAVE_SIM_ON_DISABLE_COMBINE = -1;
+        static int krnl_ShapeCombine_FLOW_ON_DYNAMIC_WAVE_SIM_ON = -1;
+        static int krnl_ShapeCombine_FLOW_ON_DYNAMIC_WAVE_SIM_ON_DISABLE_COMBINE = -1;
+
+        ComputeShader _combineShader;
+        PropertyWrapperCompute _combineProperties;
+
+        static int sp_LD_TexArray_AnimatedWaves_Compute = Shader.PropertyToID("_LD_TexArray_AnimatedWaves_Compute");
 
         public override void UseSettings(SimSettingsBase settings) { OceanRenderer.Instance._simSettingsAnimatedWaves = settings as SimSettingsAnimatedWaves; }
         public override SimSettingsBase CreateDefaultSettings()
@@ -51,29 +65,33 @@ namespace Crest
         {
             base.InitData();
 
-            _combineMaterial = new Material(Shader.Find("Hidden/Crest/Simulation/Combine Animated Wave LODs"));
-            _combineProperties = new PropertyWrapperMPB[OceanRenderer.Instance.CurrentLodCount];
-            for (int i = 0; i < _combineProperties.Length; i++)
-            {
-                _combineProperties[i] = new PropertyWrapperMPB();
-            }
-
-            Debug.Assert(SystemInfo.SupportsRenderTextureFormat(TextureFormat), "The graphics device does not support the render texture format " + TextureFormat.ToString());
+            // Setup the RenderTexture and compute shader for combining
+            // different animated wave LODs. As we use a single texture array
+            // for all LODs, we employ a compute shader as only they can
+            // read and write to the same texture.
+            _combineShader = Resources.Load<ComputeShader>(ShaderName);
+            krnl_ShapeCombine = _combineShader.FindKernel("ShapeCombine");
+            krnl_ShapeCombine_DISABLE_COMBINE = _combineShader.FindKernel("ShapeCombine_DISABLE_COMBINE");
+            krnl_ShapeCombine_FLOW_ON = _combineShader.FindKernel("ShapeCombine_FLOW_ON");
+            krnl_ShapeCombine_FLOW_ON_DISABLE_COMBINE = _combineShader.FindKernel("ShapeCombine_FLOW_ON_DISABLE_COMBINE");
+            krnl_ShapeCombine_DYNAMIC_WAVE_SIM_ON = _combineShader.FindKernel("ShapeCombine_DYNAMIC_WAVE_SIM_ON");
+            krnl_ShapeCombine_DYNAMIC_WAVE_SIM_ON_DISABLE_COMBINE = _combineShader.FindKernel("ShapeCombine_DYNAMIC_WAVE_SIM_ON_DISABLE_COMBINE");
+            krnl_ShapeCombine_FLOW_ON_DYNAMIC_WAVE_SIM_ON = _combineShader.FindKernel("ShapeCombine_FLOW_ON_DYNAMIC_WAVE_SIM_ON");
+            krnl_ShapeCombine_FLOW_ON_DYNAMIC_WAVE_SIM_ON_DISABLE_COMBINE = _combineShader.FindKernel("ShapeCombine_FLOW_ON_DYNAMIC_WAVE_SIM_ON_DISABLE_COMBINE");
+            _combineProperties = new PropertyWrapperCompute();
 
             int resolution = OceanRenderer.Instance.LodDataResolution;
             var desc = new RenderTextureDescriptor(resolution, resolution, TextureFormat, 0);
 
-            _waveBuffers = new RenderTexture[OceanRenderer.Instance.CurrentLodCount];
-            for (int i = 0; i < _waveBuffers.Length; i++)
-            {
-                _waveBuffers[i] = new RenderTexture(desc);
-                _waveBuffers[i].wrapMode = TextureWrapMode.Clamp;
-                _waveBuffers[i].antiAliasing = 1;
-                _waveBuffers[i].filterMode = FilterMode.Bilinear;
-                _waveBuffers[i].anisoLevel = 0;
-                _waveBuffers[i].useMipMap = false;
-                _waveBuffers[i].name = "WaveBuffer_" + i + "_1";
-            }
+            _waveBuffers = new RenderTexture(desc);
+            _waveBuffers.wrapMode = TextureWrapMode.Clamp;
+            _waveBuffers.antiAliasing = 1;
+            _waveBuffers.filterMode = FilterMode.Bilinear;
+            _waveBuffers.anisoLevel = 0;
+            _waveBuffers.useMipMap = false;
+            _waveBuffers.name = "WaveBuffer";
+            _waveBuffers.dimension = TextureDimension.Tex2DArray;
+            _waveBuffers.volumeDepth = OceanRenderer.Instance.CurrentLodCount;
         }
 
         // Filter object for assigning shapes to LODs. This was much more elegant with a lambda but it generated garbage.
@@ -109,9 +127,10 @@ namespace Crest
 
             // lod-dependent data
             _filterWavelength._lodCount = lodCount;
+
             for (int lodIdx = lodCount - 1; lodIdx >= 0; lodIdx--)
             {
-                buf.SetRenderTarget(_waveBuffers[lodIdx]);
+                buf.SetRenderTarget(_waveBuffers, 0, CubemapFace.Unknown, lodIdx);
                 buf.ClearRenderTarget(false, true, Color.black);
 
                 foreach (var gerstner in _gerstnerComponents)
@@ -121,82 +140,121 @@ namespace Crest
 
                 // draw any data with lod preference
                 _filterWavelength._lodIdx = lodIdx;
-                _filterWavelength._lodMaxWavelength = OceanRenderer.Instance._lods[lodIdx].MaxWavelength();
+                _filterWavelength._lodMaxWavelength = OceanRenderer.Instance._lodTransform.MaxWavelength(lodIdx);
                 _filterWavelength._lodMinWavelength = _filterWavelength._lodMaxWavelength / 2f;
                 SubmitDrawsFiltered(lodIdx, buf, _filterWavelength);
+            }
+
+            int combineShaderKernel = krnl_ShapeCombine;
+            int combineShaderKernel_lastLOD = krnl_ShapeCombine_DISABLE_COMBINE;
+            {
+                bool isFlowOn = OceanRenderer.Instance._lodDataFlow != null;
+                bool isDynWavesOn = OceanRenderer.Instance._lodDataDynWaves != null;
+                // set the shader kernels that we will use.
+                if(isFlowOn && isDynWavesOn)
+                {
+                    combineShaderKernel = krnl_ShapeCombine_FLOW_ON_DYNAMIC_WAVE_SIM_ON;
+                    combineShaderKernel_lastLOD = krnl_ShapeCombine_FLOW_ON_DYNAMIC_WAVE_SIM_ON_DISABLE_COMBINE;
+                }
+                else if(isFlowOn)
+                {
+                    combineShaderKernel = krnl_ShapeCombine_FLOW_ON;
+                    combineShaderKernel_lastLOD = krnl_ShapeCombine_FLOW_ON_DISABLE_COMBINE;
+                }
+                else if(isDynWavesOn)
+                {
+                    combineShaderKernel = krnl_ShapeCombine_DYNAMIC_WAVE_SIM_ON;
+                    combineShaderKernel_lastLOD = krnl_ShapeCombine_DYNAMIC_WAVE_SIM_ON_DISABLE_COMBINE;
+                }
             }
 
             // combine waves
             for (int lodIdx = lodCount - 1; lodIdx >= 0; lodIdx--)
             {
-                // this lod data
-                BindWaveBuffer(lodIdx, 0, _combineProperties[lodIdx], false);
-
-                // combine data from next larger lod into this one
+                int selectedShaderKernel;
                 if (lodIdx < lodCount - 1 && _shapeCombinePass)
                 {
-                    BindResultData(lodIdx + 1, 1, _combineProperties[lodIdx]);
+                    selectedShaderKernel = combineShaderKernel;
                 }
                 else
                 {
-                    // this binds black texture
-                    BindWaveBuffer(lodIdx, 1, _combineProperties[lodIdx], true);
+                    selectedShaderKernel = combineShaderKernel_lastLOD;
                 }
+
+                _combineProperties.Initialise(buf, _combineShader, selectedShaderKernel);
+
+                BindWaveBuffer(_combineProperties);
+                BindResultData(_combineProperties);
 
                 // dynamic waves
                 if (OceanRenderer.Instance._lodDataDynWaves)
                 {
-                    OceanRenderer.Instance._lodDataDynWaves.BindCopySettings(_combineProperties[lodIdx]);
-                    OceanRenderer.Instance._lodDataDynWaves.BindResultData(lodIdx, 0, _combineProperties[lodIdx]);
+                    OceanRenderer.Instance._lodDataDynWaves.BindCopySettings(_combineProperties);
+                    OceanRenderer.Instance._lodDataDynWaves.BindResultData(_combineProperties);
                 }
                 else
                 {
-                    LodDataMgrDynWaves.BindNull(0, _combineProperties[lodIdx]);
+                    LodDataMgrDynWaves.BindNull(_combineProperties);
                 }
 
                 // flow
                 if (OceanRenderer.Instance._lodDataFlow)
                 {
-                    OceanRenderer.Instance._lodDataFlow.BindResultData(lodIdx, 0, _combineProperties[lodIdx]);
+                    OceanRenderer.Instance._lodDataFlow.BindResultData(_combineProperties);
                 }
                 else
                 {
-                    LodDataMgrFlow.BindNull(0, _combineProperties[lodIdx]);
+                    LodDataMgrFlow.BindNull(_combineProperties);
                 }
 
-                buf.SetRenderTarget(DataTexture(lodIdx));
-                buf.DrawProcedural(Matrix4x4.identity, _combineMaterial, 0, MeshTopology.Triangles, 3, 1, _combineProperties[lodIdx].materialPropertyBlock);
+                // Set the animated waves texture where the results will be combined.
+                _combineProperties.SetTexture(
+                    sp_LD_TexArray_AnimatedWaves_Compute,
+                    DataTexture
+                );
+
+                _combineProperties.SetFloat(OceanRenderer.sp_LD_SliceIndex, lodIdx);
+                _combineProperties.DispatchShader();
             }
 
             // lod-independent data
             for (int lodIdx = lodCount - 1; lodIdx >= 0; lodIdx--)
             {
-                buf.SetRenderTarget(DataTexture(lodIdx));
+                buf.SetRenderTarget(_targets, 0, CubemapFace.Unknown, lodIdx);
 
                 // draw any data that did not express a preference for one lod or another
                 SubmitDrawsFiltered(lodIdx, buf, _filterNoLodPreference);
             }
         }
 
-        public void BindWaveBuffer(int lodIdx, int shapeSlot, IPropertyWrapper properties, bool paramsOnly)
+        public void BindWaveBuffer(IPropertyWrapper properties, bool sourceLod = false)
         {
-            var rd = OceanRenderer.Instance._lods[lodIdx]._renderData.Validate(0, this);
-            BindData(lodIdx, shapeSlot, properties, paramsOnly ? Texture2D.blackTexture : (Texture)_waveBuffers[lodIdx], true, ref rd);
+            var lt = OceanRenderer.Instance._lodTransform;
+            for(int lodIdx = 0; lodIdx < OceanRenderer.Instance.CurrentLodCount; lodIdx++)
+            {
+                lt._renderData[lodIdx].Validate(0, this);
+            }
+            properties.SetTexture(Shader.PropertyToID("_LD_TexArray_WaveBuffer"), _waveBuffers);
+            BindData(properties, null, true, ref lt._renderData, sourceLod);
         }
 
-        protected override void BindData(int lodIdx, int shapeSlot, IPropertyWrapper properties, Texture applyData, bool blendOut, ref LodTransform.RenderData renderData)
+        protected override void BindData(IPropertyWrapper properties, Texture applyData, bool blendOut, ref LodTransform.RenderData[] renderData, bool sourceLod = false)
         {
-            base.BindData(lodIdx, shapeSlot, properties, applyData, blendOut, ref renderData);
+            base.BindData(properties, applyData, blendOut, ref renderData, sourceLod);
 
-            var lt = OceanRenderer.Instance._lods[lodIdx];
+            var lt = OceanRenderer.Instance._lodTransform;
 
-            // need to blend out shape if this is the largest lod, and the ocean might get scaled down later (so the largest lod will disappear)
-            bool needToBlendOutShape = lodIdx == OceanRenderer.Instance.CurrentLodCount - 1 && OceanRenderer.Instance.ScaleCouldDecrease && blendOut;
-            float shapeWeight = needToBlendOutShape ? OceanRenderer.Instance.ViewerAltitudeLevelAlpha : 1f;
-            properties.SetVector(LodTransform.ParamIdOcean(shapeSlot), new Vector4(
-                lt._renderData._texelWidth,
-                lt._renderData._textureRes, shapeWeight,
-                1f / lt._renderData._textureRes));
+            for (int lodIdx = 0; lodIdx < OceanRenderer.Instance.CurrentLodCount; lodIdx++)
+            {
+                // need to blend out shape if this is the largest lod, and the ocean might get scaled down later (so the largest lod will disappear)
+                bool needToBlendOutShape = lodIdx == OceanRenderer.Instance.CurrentLodCount - 1 && OceanRenderer.Instance.ScaleCouldDecrease && blendOut;
+                float shapeWeight = needToBlendOutShape ? OceanRenderer.Instance.ViewerAltitudeLevelAlpha : 1f;
+                _BindData_paramIdOceans[lodIdx] = new Vector4(
+                    lt._renderData[lodIdx]._texelWidth,
+                    lt._renderData[lodIdx]._textureRes, shapeWeight,
+                    1f / lt._renderData[lodIdx]._textureRes);
+            }
+            properties.SetVectorArray(LodTransform.ParamIdOcean(sourceLod), _BindData_paramIdOceans);
         }
 
         /// <summary>
@@ -211,21 +269,22 @@ namespace Crest
         public static int SuggestDataLOD(Rect sampleAreaXZ, float minSpatialLength)
         {
             var lodCount = OceanRenderer.Instance.CurrentLodCount;
+            var lt = OceanRenderer.Instance._lodTransform;
+
             for (int lod = 0; lod < lodCount; lod++)
             {
-                var lt = OceanRenderer.Instance._lods[lod];
 
                 // Shape texture needs to completely contain sample area
-                var lodRect = lt._renderData.RectXZ;
+                var lodRect = lt._renderData[lod].RectXZ;
                 // Shrink rect by 1 texel border - this is to make finite differences fit as well
-                lodRect.x += lt._renderData._texelWidth; lodRect.y += lt._renderData._texelWidth;
-                lodRect.width -= 2f * lt._renderData._texelWidth; lodRect.height -= 2f * lt._renderData._texelWidth;
+                lodRect.x += lt._renderData[lod]._texelWidth; lodRect.y += lt._renderData[lod]._texelWidth;
+                lodRect.width -= 2f * lt._renderData[lod]._texelWidth; lodRect.height -= 2f * lt._renderData[lod]._texelWidth;
                 if (!lodRect.Contains(sampleAreaXZ.min) || !lodRect.Contains(sampleAreaXZ.max))
                     continue;
 
                 // The smallest wavelengths should repeat no more than twice across the smaller spatial length. Unless we're
                 // in the last LOD - then this is the best we can do.
-                var minWL = OceanRenderer.Instance._lods[lod].MaxWavelength() / 2f;
+                var minWL = lt.MaxWavelength(lod) / 2f;
                 if (minWL < minSpatialLength / 2f && lod < lodCount - 1)
                     continue;
 
@@ -259,20 +318,16 @@ namespace Crest
             _gerstnerComponents.Remove(gerstner);
         }
 
-        static int[] _paramsSampler;
-        public static int ParamIdSampler(int slot)
+        public static string TextureArrayName = "_LD_TexArray_AnimatedWaves";
+        private static TextureArrayParamIds textureArrayParamIds = new TextureArrayParamIds(TextureArrayName);
+        public static int ParamIdSampler(bool sourceLod = false) { return textureArrayParamIds.GetId(sourceLod); }
+        protected override int GetParamIdSampler(bool sourceLod = false)
         {
-            if (_paramsSampler == null)
-                LodTransform.CreateParamIDs(ref _paramsSampler, "_LD_Sampler_AnimatedWaves_");
-            return _paramsSampler[slot];
+            return ParamIdSampler(sourceLod);
         }
-        protected override int GetParamIdSampler(int slot)
+        public static void BindNull(IPropertyWrapper properties, bool sourceLod = false)
         {
-            return ParamIdSampler(slot);
-        }
-        public static void BindNull(int shapeSlot, IPropertyWrapper properties)
-        {
-            properties.SetTexture(ParamIdSampler(shapeSlot), Texture2D.blackTexture);
+            properties.SetTexture(ParamIdSampler(sourceLod), TextureArrayHelpers.BlackTextureArray);
         }
 
         public void SetOrigin(Vector3 newOrigin)

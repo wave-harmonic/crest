@@ -2,7 +2,6 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
-//using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -31,8 +30,6 @@ namespace Crest
         /// Turn shape combine pass on/off. Debug only - ifdef'd out in standalone
         /// </summary>
         public static bool _shapeCombinePass = true;
-
-        //List<ShapeGerstnerBatched> _gerstnerComponents = new List<ShapeGerstnerBatched>();
 
         RenderTexture[] _waveBuffers;
 
@@ -85,9 +82,10 @@ namespace Crest
             public int _lodCount;
             public float _globalMaxWavelength;
 
-            public float Filter(ILodDataInput data)
+            public float Filter(ILodDataInput data, out int isTransition)
             {
                 var drawOctaveWavelength = data.Wavelength;
+                isTransition = 0;
 
                 // No wavelength preference
                 if (drawOctaveWavelength == 0f)
@@ -106,6 +104,7 @@ namespace Crest
                 {
                     if (_lodIdx == _lodCount - 2)
                     {
+                        isTransition = 1;
                         return 1f - OceanRenderer.Instance.ViewerAltitudeLevelAlpha;
                     }
 
@@ -127,8 +126,9 @@ namespace Crest
 
         public class FilterNoLodPreference : IDrawFilter
         {
-            public float Filter(ILodDataInput data)
+            public float Filter(ILodDataInput data, out int isTransition)
             {
+                isTransition = 0;
                 return data.Wavelength == 0f ? 1f : 0f;
             }
         }
@@ -146,11 +146,6 @@ namespace Crest
             {
                 buf.SetRenderTarget(_waveBuffers[lodIdx]);
                 buf.ClearRenderTarget(false, true, new Color(0f, 0f, 0f, 0f));
-
-                //foreach (var gerstner in _gerstnerComponents)
-                //{
-                //    gerstner.BuildCommandBuffer(lodIdx, ocean, buf);
-                //}
 
                 // draw any data with lod preference
                 _filterWavelength._lodIdx = lodIdx;
@@ -268,30 +263,6 @@ namespace Crest
 
             return -1;
         }
-
-        //public void AddGerstnerComponent(ShapeGerstnerBatched gerstner)
-        //{
-        //    if (OceanRenderer.Instance == null)
-        //    {
-        //        // Ocean has unloaded, clear out
-        //        _gerstnerComponents.Clear();
-        //        return;
-        //    }
-
-        //    _gerstnerComponents.Add(gerstner);
-        //}
-
-        //public void RemoveGerstnerComponent(ShapeGerstnerBatched gerstner)
-        //{
-        //    if (OceanRenderer.Instance == null)
-        //    {
-        //        // Ocean has unloaded, clear out
-        //        _gerstnerComponents.Clear();
-        //        return;
-        //    }
-
-        //    _gerstnerComponents.Remove(gerstner);
-        //}
 
         static int[] _paramsSampler;
         public static int ParamIdSampler(int slot)

@@ -33,7 +33,7 @@ namespace Crest
                 }
             }
 
-            public PropertyWrapperMaterial GetMaterial(int lodIdx) => _materials[lodIdx % 2];
+            public PropertyWrapperMaterial GetMaterial(int isTransition) => _materials[isTransition];
 
             // Two materials because as batch may be rendered twice if it has large wavelengths that are being transitioned back
             // and forth across the last 2 lods.
@@ -42,11 +42,11 @@ namespace Crest
             public float Wavelength { get; set; }
             public bool Enabled { get; set; }
 
-            public void Draw(CommandBuffer buf, int lodIdx, float weight)
+            public void Draw(CommandBuffer buf, float weight, int isTransition)
             {
                 if (Enabled && weight > 0f)
                 {
-                    PropertyWrapperMaterial mat = GetMaterial(lodIdx);
+                    PropertyWrapperMaterial mat = GetMaterial(isTransition);
                     mat.SetFloat(RegisterLodDataInputBase.sp_Weight, weight);
                     buf.DrawMesh(RasterMesh(), Matrix4x4.identity, mat.material);
                 }
@@ -342,10 +342,7 @@ namespace Crest
             // apply the data to the shape property
             for (int i = 0; i < 2; i++)
             {
-                int idx = lodIdx + i;
-                if (idx == OceanRenderer.Instance.CurrentLodCount) idx = OceanRenderer.Instance.CurrentLodCount - 2;
-
-                var mat = batch.GetMaterial(idx);
+                var mat = batch.GetMaterial(i);
                 mat.SetVectorArray(sp_TwoPiOverWavelengths, ScratchData._twoPiOverWavelengthsBatch);
                 mat.SetVectorArray(sp_Amplitudes, ScratchData._ampsBatch);
                 mat.SetVectorArray(sp_WaveDirX, ScratchData._waveDirXBatch);

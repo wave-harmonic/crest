@@ -12,7 +12,6 @@ Shader "Crest/Underwater Curtain"
 		// builds they need to be preconfigured. This is a pitfall unfortunately - the settings need to be manually matched.
 		[Toggle] _Shadows("Shadowing", Float) = 0
 		[Toggle] _SubSurfaceScattering("Sub-Surface Scattering", Float) = 1
-		[Toggle] _SubSurfaceHeightLerp("Sub-Surface Scattering Height Lerp", Float) = 1
 		[Toggle] _SubSurfaceShallowColour("Sub-Surface Shallow Colour", Float) = 1
 		[Toggle] _Transparency("Transparency", Float) = 1
 		[Toggle] _Caustics("Caustics", Float) = 1
@@ -39,7 +38,6 @@ Shader "Crest/Underwater Curtain"
 			#pragma fragment Frag
 
 			#pragma shader_feature _SUBSURFACESCATTERING_ON
-			#pragma shader_feature _SUBSURFACEHEIGHTLERP_ON
 			#pragma shader_feature _SUBSURFACESHALLOWCOLOUR_ON
 			#pragma shader_feature _TRANSPARENCY_ON
 			#pragma shader_feature _CAUSTICS_ON
@@ -191,7 +189,6 @@ Shader "Crest/Underwater Curtain"
 				const float depth = 0.0;
 				const half shadow = 1.0;
 
-				// TODO - SSS
 				const half3 scatterCol = ScatterColour(surfaceAboveCamPosWorld, depth, _WorldSpaceCameraPos, lightDir, view, shadow, true, true, sss);
 
 				half3 sceneColour = tex2D(_BackgroundTexture, input.grabPos.xy / input.grabPos.w).rgb;

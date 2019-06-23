@@ -18,7 +18,27 @@ namespace Crest
 
         public class GerstnerBatch : ILodDataInput
         {
-            public PropertyWrapperMaterial[] _material;
+            public GerstnerBatch(Shader gerstnerShader, bool directTowardsPoint)
+            {
+                _materials = new PropertyWrapperMaterial[]
+                {
+                    new PropertyWrapperMaterial(new Material(gerstnerShader)),
+                    new PropertyWrapperMaterial(new Material(gerstnerShader))
+                };
+
+                if (directTowardsPoint)
+                {
+                    _materials[0].material.EnableKeyword(DIRECT_TOWARDS_POINT_KEYWORD);
+                    _materials[1].material.EnableKeyword(DIRECT_TOWARDS_POINT_KEYWORD);
+                }
+            }
+
+            public PropertyWrapperMaterial GetMaterial(int lodIdx) => _materials[lodIdx % 2];
+
+            // Two materials because as batch may be rendered twice if it has large wavelengths that are being transitioned back
+            // and forth across the last 2 lods.
+            PropertyWrapperMaterial[] _materials;
+
             public float Wavelength { get; set; }
             public bool Enabled { get; set; }
 
@@ -26,8 +46,9 @@ namespace Crest
             {
                 if (Enabled && weight > 0f)
                 {
-                    _material[lodIdx % 2].SetFloat(RegisterLodDataInputBase.sp_Weight, weight);
-                    buf.DrawMesh(RasterMesh(), Matrix4x4.identity, _material[lodIdx % 2].material);
+                    PropertyWrapperMaterial mat = GetMaterial(lodIdx);
+                    mat.SetFloat(RegisterLodDataInputBase.sp_Weight, weight);
+                    buf.DrawMesh(RasterMesh(), Matrix4x4.identity, mat.material);
                 }
             }
         }
@@ -178,7 +199,7 @@ namespace Crest
             ReportMaxDisplacement();
 
             // this is done every frame for flexibility/convenience, in case the lod count changes
-            if (_batches == null /*|| _materials.Length != OceanRenderer.Instance.CurrentLodCount*/)
+            if (_batches == null)
             {
                 InitBatches();
             }
@@ -222,19 +243,7 @@ namespace Crest
             _batches = new GerstnerBatch[LodDataMgr.MAX_LOD_COUNT];
             for (int i = 0; i < _batches.Length; i++)
             {
-                _batches[i] = new GerstnerBatch();
-
-                _batches[i]._material = new PropertyWrapperMaterial[]
-                {
-                    new PropertyWrapperMaterial(new Material(_waveShader)),
-                    new PropertyWrapperMaterial(new Material(_waveShader))
-                };
-
-                if (_directTowardsPoint)
-                {
-                    _batches[i]._material[0].material.EnableKeyword(DIRECT_TOWARDS_POINT_KEYWORD);
-                    _batches[i]._material[1].material.EnableKeyword(DIRECT_TOWARDS_POINT_KEYWORD);
-                }
+                _batches[i] = new GerstnerBatch(_waveShader, _directTowardsPoint);
             }
         }
 
@@ -333,29 +342,31 @@ namespace Crest
             // apply the data to the shape property
             for (int i = 0; i < 2; i++)
             {
-                int matIdx = (lodIdx + i) % 2;
-                batch._material[matIdx].SetVectorArray(sp_TwoPiOverWavelengths, ScratchData._twoPiOverWavelengthsBatch);
-                batch._material[matIdx].SetVectorArray(sp_Amplitudes, ScratchData._ampsBatch);
-                batch._material[matIdx].SetVectorArray(sp_WaveDirX, ScratchData._waveDirXBatch);
-                batch._material[matIdx].SetVectorArray(sp_WaveDirZ, ScratchData._waveDirZBatch);
-                batch._material[matIdx].SetVectorArray(sp_Phases, ScratchData._phasesBatch);
-                batch._material[matIdx].SetVectorArray(sp_ChopAmps, ScratchData._chopAmpsBatch);
-                batch._material[matIdx].SetFloat(sp_NumInBatch, numInBatch);
-                batch._material[matIdx].SetFloat(sp_AttenuationInShallows, OceanRenderer.Instance._simSettingsAnimatedWaves.AttenuationInShallows);
+                int idx = lodIdx + i;
+                if (idx == OceanRenderer.Instance.CurrentLodCount) idx = OceanRenderer.Instance.CurrentLodCount - 2;
+
+                var mat = batch.GetMaterial(idx);
+                mat.SetVectorArray(sp_TwoPiOverWavelengths, ScratchData._twoPiOverWavelengthsBatch);
+                mat.SetVectorArray(sp_Amplitudes, ScratchData._ampsBatch);
+                mat.SetVectorArray(sp_WaveDirX, ScratchData._waveDirXBatch);
+                mat.SetVectorArray(sp_WaveDirZ, ScratchData._waveDirZBatch);
+                mat.SetVectorArray(sp_Phases, ScratchData._phasesBatch);
+                mat.SetVectorArray(sp_ChopAmps, ScratchData._chopAmpsBatch);
+                mat.SetFloat(sp_NumInBatch, numInBatch);
+                mat.SetFloat(sp_AttenuationInShallows, OceanRenderer.Instance._simSettingsAnimatedWaves.AttenuationInShallows);
 
                 int numVecs = (numInBatch + 3) / 4;
-                batch._material[matIdx].SetInt(sp_NumWaveVecs, numVecs);
-                OceanRenderer.Instance._lodDataAnimWaves.BindResultData(Mathf.Max(0, lodIdx - i), 0, batch._material[matIdx]);
+                mat.SetInt(sp_NumWaveVecs, numVecs);
+                OceanRenderer.Instance._lodDataAnimWaves.BindResultData(Mathf.Max(0, lodIdx - i), 0, mat);
 
                 if (OceanRenderer.Instance._lodDataSeaDepths)
                 {
-                    OceanRenderer.Instance._lodDataSeaDepths.BindResultData(Mathf.Max(0, lodIdx - i), 0, batch._material[matIdx], false);
+                    OceanRenderer.Instance._lodDataSeaDepths.BindResultData(Mathf.Max(0, lodIdx - i), 0, mat, false);
                 }
 
                 if (_directTowardsPoint)
                 {
-                    batch._material[matIdx].SetVector(sp_TargetPointData,
-                        new Vector4(_pointPositionXZ.x, _pointPositionXZ.y, _pointRadii.x, _pointRadii.y));
+                    mat.SetVector(sp_TargetPointData, new Vector4(_pointPositionXZ.x, _pointPositionXZ.y, _pointRadii.x, _pointRadii.y));
                 }
             }
 

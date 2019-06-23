@@ -131,7 +131,7 @@ Material:
     - _Specular: 1
     - _StartLevel: 0.157
     - _StencilFunction: 0
-    - _SubSurfaceBase: 1.393
+    - _SubSurfaceBase: 0.697
     - _SubSurfaceCrestColour: 1
     - _SubSurfaceDepthMax: 9.4
     - _SubSurfaceDepthPower: 2.57

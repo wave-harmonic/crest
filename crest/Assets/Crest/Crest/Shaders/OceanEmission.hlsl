@@ -107,7 +107,7 @@ half3 ScatterColour(
 
 		// Approximate subsurface scattering - add light when surface faces viewer. Use geometry normal - don't need high freqs.
 		half towardsSun = pow(max(0., dot(i_lightDir, -i_view)), _SubSurfaceSunFallOff);
-		col += sss * (_SubSurfaceBase + _SubSurfaceSun * towardsSun) * _SubSurfaceColour.rgb * _LightColor0 * shadow;
+		col += (1.0 - v * v) * sss * (_SubSurfaceBase + _SubSurfaceSun * towardsSun) * _SubSurfaceColour.rgb * _LightColor0 * shadow;
 	}
 #endif // _SUBSURFACESCATTERING_ON
 

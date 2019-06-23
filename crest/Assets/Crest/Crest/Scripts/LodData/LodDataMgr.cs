@@ -67,6 +67,7 @@ namespace Crest
             _targets.dimension = TextureDimension.Tex2DArray;
             _targets.volumeDepth = OceanRenderer.Instance.CurrentLodCount;
             _targets.enableRandomWrite = NeedToReadWriteTextureData;
+            _targets.Create();
         }
 
         public virtual void UpdateLodData()

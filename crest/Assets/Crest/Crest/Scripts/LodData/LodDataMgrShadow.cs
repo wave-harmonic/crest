@@ -95,6 +95,7 @@ namespace Crest
             _sources.dimension = TextureDimension.Tex2DArray;
             _sources.volumeDepth = OceanRenderer.Instance.CurrentLodCount;
             _sources.enableRandomWrite = NeedToReadWriteTextureData;
+            _sources.Create();
         }
 
         bool StartInitLight()

@@ -43,10 +43,12 @@ float2 LD_1_UVToWorld(in float2 i_uv) { return LD_UVToWorld(i_uv, _LD_Pos_Scale_
 
 
 // Sampling functions
-void SampleDisplacements(in sampler2D i_dispSampler, in float2 i_uv, in float i_wt, inout float3 io_worldPos)
+void SampleDisplacements(in sampler2D i_dispSampler, in float2 i_uv, in float i_wt, inout float3 io_worldPos, inout float io_sss)
 {
-	const half3 disp = tex2Dlod(i_dispSampler, float4(i_uv, 0., 0.)).xyz;
-	io_worldPos += i_wt * disp;
+	const half4 data = tex2Dlod(i_dispSampler, float4(i_uv, 0., 0.));
+
+	io_worldPos += i_wt * data.xyz;
+	io_sss += i_wt * data.a;
 }
 
 void SampleDisplacementsNormals(in sampler2D i_dispSampler, in float2 i_uv, in float i_wt, in float i_invRes, in float i_texelSize, inout float3 io_worldPos, inout half2 io_nxz, inout half io_sss)

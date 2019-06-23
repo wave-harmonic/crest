@@ -24,6 +24,7 @@ Shader "Crest/Inputs/Animated Waves/Wave Particle"
 
 			float _Radius;
 			float _Amplitude;
+			// TODO add this for all ocean inputs?
 			float _Weight;
 
 			struct Attributes

@@ -105,7 +105,7 @@ namespace Crest
         }
 
         // scratch data used by batching code
-        struct ScratchData
+        struct UpdateBatchScratchData
         {
             public static Vector4[] _twoPiOverWavelengthsBatch = new Vector4[BATCH_SIZE / 4];
             public static Vector4[] _ampsBatch = new Vector4[BATCH_SIZE / 4];
@@ -277,15 +277,15 @@ namespace Crest
                         int vi = numInBatch / 4;
                         int ei = numInBatch - vi * 4;
 
-                        ScratchData._twoPiOverWavelengthsBatch[vi][ei] = 2f * Mathf.PI / wl;
-                        ScratchData._ampsBatch[vi][ei] = amp;
+                        UpdateBatchScratchData._twoPiOverWavelengthsBatch[vi][ei] = 2f * Mathf.PI / wl;
+                        UpdateBatchScratchData._ampsBatch[vi][ei] = amp;
 
                         float chopScale = _spectrum._chopScales[(firstComponent + i) / _componentsPerOctave];
-                        ScratchData._chopAmpsBatch[vi][ei] = -chopScale * _spectrum._chop * amp;
+                        UpdateBatchScratchData._chopAmpsBatch[vi][ei] = -chopScale * _spectrum._chop * amp;
 
                         float angle = Mathf.Deg2Rad * (OceanRenderer.Instance._windDirectionAngle + _angleDegs[firstComponent + i]);
-                        ScratchData._waveDirXBatch[vi][ei] = Mathf.Cos(angle);
-                        ScratchData._waveDirZBatch[vi][ei] = Mathf.Sin(angle);
+                        UpdateBatchScratchData._waveDirXBatch[vi][ei] = Mathf.Cos(angle);
+                        UpdateBatchScratchData._waveDirZBatch[vi][ei] = Mathf.Sin(angle);
 
                         // It used to be this, but I'm pushing all the stuff that doesn't depend on position into the phase.
                         //half4 angle = k * (C * _CrestTime + x) + _Phases[vi];
@@ -294,7 +294,7 @@ namespace Crest
                         float C = Mathf.Sqrt(wl * gravity * gravityScale * one_over_2pi);
                         float k = twopi / wl;
                         // Repeat every 2pi to keep angle bounded - helps precision on 16bit platforms
-                        ScratchData._phasesBatch[vi][ei] = Mathf.Repeat(_phases[firstComponent + i] + k * C * OceanRenderer.Instance.CurrentTime, Mathf.PI * 2f);
+                        UpdateBatchScratchData._phasesBatch[vi][ei] = Mathf.Repeat(_phases[firstComponent + i] + k * C * OceanRenderer.Instance.CurrentTime, Mathf.PI * 2f);
 
                         numInBatch++;
                     }
@@ -327,12 +327,12 @@ namespace Crest
                 {
                     for (int ei = ei_last; ei < 4; ei++)
                     {
-                        ScratchData._twoPiOverWavelengthsBatch[vi][ei] = 1f; // wary of NaNs
-                        ScratchData._ampsBatch[vi][ei] = 0f;
-                        ScratchData._waveDirXBatch[vi][ei] = 0f;
-                        ScratchData._waveDirZBatch[vi][ei] = 0f;
-                        ScratchData._phasesBatch[vi][ei] = 0f;
-                        ScratchData._chopAmpsBatch[vi][ei] = 0f;
+                        UpdateBatchScratchData._twoPiOverWavelengthsBatch[vi][ei] = 1f; // wary of NaNs
+                        UpdateBatchScratchData._ampsBatch[vi][ei] = 0f;
+                        UpdateBatchScratchData._waveDirXBatch[vi][ei] = 0f;
+                        UpdateBatchScratchData._waveDirZBatch[vi][ei] = 0f;
+                        UpdateBatchScratchData._phasesBatch[vi][ei] = 0f;
+                        UpdateBatchScratchData._chopAmpsBatch[vi][ei] = 0f;
                     }
 
                     ei_last = 0;
@@ -343,12 +343,12 @@ namespace Crest
             for (int i = 0; i < 2; i++)
             {
                 var mat = batch.GetMaterial(i);
-                mat.SetVectorArray(sp_TwoPiOverWavelengths, ScratchData._twoPiOverWavelengthsBatch);
-                mat.SetVectorArray(sp_Amplitudes, ScratchData._ampsBatch);
-                mat.SetVectorArray(sp_WaveDirX, ScratchData._waveDirXBatch);
-                mat.SetVectorArray(sp_WaveDirZ, ScratchData._waveDirZBatch);
-                mat.SetVectorArray(sp_Phases, ScratchData._phasesBatch);
-                mat.SetVectorArray(sp_ChopAmps, ScratchData._chopAmpsBatch);
+                mat.SetVectorArray(sp_TwoPiOverWavelengths, UpdateBatchScratchData._twoPiOverWavelengthsBatch);
+                mat.SetVectorArray(sp_Amplitudes, UpdateBatchScratchData._ampsBatch);
+                mat.SetVectorArray(sp_WaveDirX, UpdateBatchScratchData._waveDirXBatch);
+                mat.SetVectorArray(sp_WaveDirZ, UpdateBatchScratchData._waveDirZBatch);
+                mat.SetVectorArray(sp_Phases, UpdateBatchScratchData._phasesBatch);
+                mat.SetVectorArray(sp_ChopAmps, UpdateBatchScratchData._chopAmpsBatch);
                 mat.SetFloat(sp_NumInBatch, numInBatch);
                 mat.SetFloat(sp_AttenuationInShallows, OceanRenderer.Instance._simSettingsAnimatedWaves.AttenuationInShallows);
 

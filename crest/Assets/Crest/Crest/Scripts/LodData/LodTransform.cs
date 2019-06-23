@@ -74,9 +74,6 @@ namespace Crest
             // snap so that shape texels are stationary
             _renderData._posSnapped = transform.position
                 - new Vector3(Mathf.Repeat(transform.position.x, _renderData._texelWidth), 0f, Mathf.Repeat(transform.position.z, _renderData._texelWidth));
-            // This screws up the nice filtering
-            //_renderData._posSnapped.x -= _renderData._texelWidth / 2f;
-            //_renderData._posSnapped.z -= _renderData._texelWidth / 2f;
 
             _renderData._frame = Time.frameCount;
 

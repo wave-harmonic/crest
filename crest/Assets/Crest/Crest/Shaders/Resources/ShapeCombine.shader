@@ -72,6 +72,7 @@ Shader "Hidden/Crest/Simulation/Combine Animated Wave LODs"
 				SampleFlow(_LD_Sampler_Flow_0, input.uv, 1.0, flow);
 
 				float3 result = 0.0;
+				half sss = 0.;
 
 				// this lods waves
 #if _FLOW_ON
@@ -80,19 +81,16 @@ Shader "Hidden/Crest/Simulation/Combine Animated Wave LODs"
 
 				float2 uv_0_flow_0 = LD_0_WorldToUV(worldPosXZ - offsets[0] * flow);
 				float2 uv_0_flow_1 = LD_0_WorldToUV(worldPosXZ - offsets[1] * flow);
-				SampleDisplacements(_LD_Sampler_AnimatedWaves_0, uv_0_flow_0, weights[0], result);
-				SampleDisplacements(_LD_Sampler_AnimatedWaves_0, uv_0_flow_1, weights[1], result);
+				SampleDisplacements(_LD_Sampler_AnimatedWaves_0, uv_0_flow_0, weights[0], result, sss);
+				SampleDisplacements(_LD_Sampler_AnimatedWaves_0, uv_0_flow_1, weights[1], result, sss);
 #else
 				float4 data = tex2Dlod(_LD_Sampler_AnimatedWaves_0, float4(input.uv, 0., 0.));
 				result += data.xyz;
-				float stretch = (data.a); // length(result.xz) / _LD_Params_0.x;
-				//float stretch = _LD_Params_0.x < 8.0 ? length(result.xz) : 0.;// / _LD_Params_0.x;
+				sss = data.a;
 #endif
 
 				// waves to combine down from the next lod up the chain
-				SampleDisplacements(_LD_Sampler_AnimatedWaves_1, uv_1, 1.0, result);
-				stretch += tex2Dlod(_LD_Sampler_AnimatedWaves_1, float4(uv_1, 0., 0.)).a;
-				//stretch = abs(result.x);
+				SampleDisplacements(_LD_Sampler_AnimatedWaves_1, uv_1, 1.0, result, sss);
 
 				// TODO - uncomment this define once it works in standalone builds
 #if _DYNAMIC_WAVE_SIM_ON
@@ -122,7 +120,7 @@ Shader "Hidden/Crest/Simulation/Combine Animated Wave LODs"
 				}
 #endif // _DYNAMIC_WAVE_SIM_
 
-				return half4(result, stretch);
+				return half4(result, sss);
 			}
 			ENDCG
 		}

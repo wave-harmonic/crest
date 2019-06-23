@@ -50,7 +50,7 @@ uniform half3 _DiffuseShadow;
 half3 ScatterColour(
 	in const float3 i_surfaceWorldPos, in const half i_surfaceOceanDepth, in const float3 i_cameraPos,
 	in const half3 i_lightDir, in const half3 i_view, in const fixed i_shadow,
-	in const bool i_underwater, in const bool i_outscatterLight, float sss)
+	in const bool i_underwater, in const bool i_outscatterLight, half sss)
 {
 	half depth;
 	half waveHeight;
@@ -135,9 +135,10 @@ void ApplyCaustics(in const half3 i_view, in const half3 i_lightDir, in const fl
 	float3 scenePos = _WorldSpaceCameraPos - i_view * i_sceneZ / dot(camForward, -i_view);
 	const float2 scenePosUV = LD_1_WorldToUV(scenePos.xz);
 	half3 disp = 0.;
+	half sss = 0.;
 	// this gives height at displaced position, not exactly at query position.. but it helps. i cant pass this from vert shader
 	// because i dont know it at scene pos.
-	SampleDisplacements(_LD_Sampler_AnimatedWaves_1, scenePosUV, 1.0, disp);
+	SampleDisplacements(_LD_Sampler_AnimatedWaves_1, scenePosUV, 1.0, disp, sss);
 	half waterHeight = _OceanCenterPosWorld.y + disp.y;
 	half sceneDepth = waterHeight - scenePos.y;
 	// Compute mip index manually, with bias based on sea floor depth. We compute it manually because if it is computed automatically it produces ugly patches

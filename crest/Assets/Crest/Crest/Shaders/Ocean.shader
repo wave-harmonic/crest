@@ -16,6 +16,7 @@ Shader "Crest/Ocean"
 		[Header(Scattering)]
 		// Base colour
 		_Diffuse("Diffuse", Color) = (0.2, 0.05, 0.05, 1.0)
+		// TODO
 		_DiffuseGrazing("Diffuse Grazing", Color) = (0.2, 0.05, 0.05, 1.0)
 		// Changes colour in shadow. Requires 'Create Shadow Data' enabled on OceanRenderer script.
 		[Toggle] _Shadows("Shadowing", Float) = 0
@@ -274,7 +275,8 @@ Shader "Crest/Ocean"
 					const float2 uv_0 = LD_0_WorldToUV(positionWS_XZ_before);
 
 					#if !_DEBUGDISABLESHAPETEXTURES_ON
-					SampleDisplacements(_LD_Sampler_AnimatedWaves_0, uv_0, wt_0, o.worldPos);
+					half sss = 0.;
+					SampleDisplacements(_LD_Sampler_AnimatedWaves_0, uv_0, wt_0, o.worldPos, sss);
 					#endif
 
 					#if _FOAM_ON
@@ -290,7 +292,8 @@ Shader "Crest/Ocean"
 					const float2 uv_1 = LD_1_WorldToUV(positionWS_XZ_before);
 
 					#if !_DEBUGDISABLESHAPETEXTURES_ON
-					SampleDisplacements(_LD_Sampler_AnimatedWaves_1, uv_1, wt_1, o.worldPos);
+					half sss = 0.;
+					SampleDisplacements(_LD_Sampler_AnimatedWaves_1, uv_1, wt_1, o.worldPos, sss);
 					#endif
 
 					#if _FOAM_ON
@@ -409,22 +412,17 @@ Shader "Crest/Ocean"
 				#endif
 					;
 
-				// Normal - geom + normal mapping
+				// Normal - geom + normal mapping. Subsurface scattering.
 				const float2 uv_0 = LD_0_WorldToUV(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz);
 				const float2 uv_1 = LD_1_WorldToUV(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz);
 				const float wt_0 = (1. - lodAlpha) * _LD_Params_0.z;
 				const float wt_1 = (1. - wt_0) * _LD_Params_1.z;
 				float3 dummy = 0.;
 				half3 n_geom = half3(0.0, 1.0, 0.0);
-				float sss = 0.;
+				half sss = 0.;
 				if (wt_0 > 0.001) SampleDisplacementsNormals(_LD_Sampler_AnimatedWaves_0, uv_0, wt_0, _LD_Params_0.w, _LD_Params_0.x, dummy, n_geom.xz, sss);
 				if (wt_1 > 0.001) SampleDisplacementsNormals(_LD_Sampler_AnimatedWaves_1, uv_1, wt_1, _LD_Params_1.w, _LD_Params_1.x, dummy, n_geom.xz, sss);
 				n_geom = normalize(n_geom);
-
-				// Subsurface scattering
-				//sss += wt_0 * tex2Dlod(_LD_Sampler_AnimatedWaves_0, float4(uv_0, 0., 0.)).a;
-				//sss += wt_1 * tex2Dlod(_LD_Sampler_AnimatedWaves_1, float4(uv_1, 0., 0.)).a;
-
 
 				if (underwater) n_geom = -n_geom;
 				half3 n_pixel = n_geom;
@@ -490,8 +488,6 @@ Shader "Crest/Ocean"
 				#endif
 				#endif
 
-				//col = sss/2.;
-				
 				return half4(col, 1.);
 			}
 

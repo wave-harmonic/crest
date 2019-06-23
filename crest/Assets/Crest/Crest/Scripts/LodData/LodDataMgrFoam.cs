@@ -14,7 +14,7 @@ namespace Crest
         protected override string ShaderSim { get { return "UpdateFoam"; } }
         protected override int krnl_ShaderSim { get { return _shader.FindKernel(ShaderSim); }}
         public override string SimName { get { return "Foam"; } }
-        public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RHalf; } }
+        public override RenderTextureFormat TextureFormat { get { return Settings._renderTextureFormat; } }
 
         SimSettingsFoam Settings { get { return OceanRenderer.Instance._simSettingsFoam; } }
         public override void UseSettings(SimSettingsBase settings) { OceanRenderer.Instance._simSettingsFoam = settings as SimSettingsFoam; }

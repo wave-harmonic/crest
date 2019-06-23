@@ -351,6 +351,12 @@ namespace Crest
                 {
                     OceanRenderer.Instance._lodDataSeaDepths.BindResultData(Mathf.Max(0, lodIdx - i), 0, batch._material[matIdx], false);
                 }
+
+                if (_directTowardsPoint)
+                {
+                    batch._material[matIdx].SetVector(sp_TargetPointData,
+                        new Vector4(_pointPositionXZ.x, _pointPositionXZ.y, _pointRadii.x, _pointRadii.y));
+                }
             }
 
             batch.Enabled = true;
@@ -405,6 +411,7 @@ namespace Crest
                 if (componentIdx > startCompIdx)
                 {
                     UpdateBatch(lodIdx, startCompIdx, componentIdx, _batches[batch]);
+
                     _batches[batch].Wavelength = minWl;
                 }
 
@@ -412,15 +419,6 @@ namespace Crest
                 lodIdx = Mathf.Min(lodIdx + 1, OceanRenderer.Instance.CurrentLodCount - 1);
                 minWl *= 2f;
             }
-
-            //if (_directTowardsPoint)
-            //{
-            //    for (int lodi = 0; lodi < OceanRenderer.Instance.CurrentLodCount; lodi++)
-            //    {
-            //        _materials[lodi].SetVector(sp_TargetPointData, new Vector4(_pointPositionXZ.x, _pointPositionXZ.y, _pointRadii.x, _pointRadii.y));
-            //    }
-            //    _materialBigWaveTransition.SetVector(sp_TargetPointData, new Vector4(_pointPositionXZ.x, _pointPositionXZ.y, _pointRadii.x, _pointRadii.y));
-            //}
         }
 
         /// <summary>

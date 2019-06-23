@@ -197,7 +197,7 @@ public class OceanDebugGUI : MonoBehaviour
                 shape = lodData.DataTexture(idx);
                 if (shape == null) continue;
 
-                GUI.color = Color.black * 1f;
+                GUI.color = Color.black * 0.7f;
                 GUI.DrawTexture(new Rect(x, y, w - b, h), Texture2D.whiteTexture);
                 GUI.color = Color.white;
                 GUI.DrawTexture(new Rect(x + b, y + b / 2f, h - b, h - b), shape, ScaleMode.ScaleAndCrop, false);

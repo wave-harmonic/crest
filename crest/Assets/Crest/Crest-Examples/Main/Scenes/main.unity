@@ -226,7 +226,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 59a818eaf96544c4994335870fdfe141, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  linSpeed: 20
+  linSpeed: 10
   rotSpeed: 70
   simForwardInput: 0
   _requireLMBToMove: 0
@@ -453,7 +453,7 @@ MonoBehaviour:
   _layerName: Water
   _windDirectionAngle: 0
   _gravityMultiplier: 1
-  _minTexelsPerWave: 4
+  _minTexelsPerWave: 3
   _minScale: 8
   _maxScale: 256
   _lodDataResolution: 256
@@ -800,7 +800,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1591410378
 Transform:
   m_ObjectHideFlags: 0
@@ -860,11 +860,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7581c8217e105de4b83ca0ce4f8fa8c2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _rasterMesh: {fileID: 0}
   _spectrum: {fileID: 11400000, guid: 454d1b08383f089479cf6794620926f4, type: 2}
   _componentsPerOctave: 5
   _weight: 1
   _randomSeed: 0
-  _directTowardsPoint: 0
+  _directTowardsPoint: 1
   _pointPositionXZ: {x: 0, y: 0}
   _pointRadii: {x: 100, y: 200}
 --- !u!1001 &1898459823

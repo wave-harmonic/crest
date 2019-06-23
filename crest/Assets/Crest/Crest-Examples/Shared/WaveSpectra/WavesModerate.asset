@@ -12,22 +12,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 33068fc021dadc04dab6e00e4ff45c00, type: 3}
   m_Name: WavesModerate
   m_EditorClassIdentifier: 
-  _waveDirectionVariance: 46.4
+  _waveDirectionVariance: 180
   _gravityScale: 1
   _powerLog:
-  - -4.6633663
-  - -4.39442
-  - -3.8689733
-  - -3.2213879
-  - -2.2525725
-  - -1.2301822
-  - -0.53905386
-  - -0.07931979
-  - 0.53627354
-  - 0.9309425
-  - 1.4403292
+  - -4.4257426
+  - -4.2761765
+  - -3.370956
+  - -2.7461402
+  - -2.1249452
+  - -0.55460376
+  - 0.055005528
+  - 0.6012212
+  - 0.92241216
+  - 1.5629156
+  - 1.7670618
   - -6
-  _powerDisabled: 010000000000000000000001
+  _powerDisabled: 000000000000000000000000
   _chopScales:
   - 1
   - 1

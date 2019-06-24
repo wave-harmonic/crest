@@ -70,7 +70,7 @@ namespace Crest
                 OceanRenderer.Instance._lodTransform._renderDataSource
                 : OceanRenderer.Instance._lodTransform._renderData;
             int validationFrame = usePrevTransform ? BuildCommandBufferBase._lastUpdateFrame - Time.frameCount : 0;
-            foreach(var renderData in renderDataToValidate)
+            foreach (var renderData in renderDataToValidate)
             {
                 renderData.Validate(validationFrame, this);
             }
@@ -95,14 +95,6 @@ namespace Crest
             float substepDt;
             int numSubsteps;
             GetSimSubstepData(Time.deltaTime, out numSubsteps, out substepDt);
-            if (!_sources.IsCreated())
-            {
-                _sources.Create();
-            }
-            if (!_targets.IsCreated())
-            {
-                _targets.Create();
-            }
 
             for (int stepi = 0; stepi < numSubsteps; stepi++)
             {

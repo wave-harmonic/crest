@@ -89,6 +89,7 @@ namespace Crest
             _waveBuffers.name = "WaveBuffer";
             _waveBuffers.dimension = TextureDimension.Tex2DArray;
             _waveBuffers.volumeDepth = OceanRenderer.Instance.CurrentLodCount;
+            _waveBuffers.Create();
         }
 
         // Filter object for assigning shapes to LODs. This was much more elegant with a lambda but it generated garbage.

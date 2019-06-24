@@ -200,9 +200,9 @@ public class OceanDebugGUI : MonoBehaviour
                 if (!shapes.ContainsKey(lodData.DataTexture.format))
                 {
                     var rt = new RenderTexture(lodData.DataTexture);
+                    rt.dimension = UnityEngine.Rendering.TextureDimension.Tex2D;
                     rt.Create();
                     shapes.Add(lodData.DataTexture.format, rt);
-                    shapes[lodData.DataTexture.format].dimension = UnityEngine.Rendering.TextureDimension.Tex2D;
                 }
 
                 RenderTexture shape = shapes[lodData.DataTexture.format];

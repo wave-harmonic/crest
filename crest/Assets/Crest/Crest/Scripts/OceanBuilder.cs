@@ -211,7 +211,7 @@ namespace Crest
             for (int i = 0; i < ocean.transform.childCount; i++)
             {
                 var child = ocean.transform.GetChild(i);
-                if (child.name.StartsWith("LOD"))
+                if (child.name.StartsWith("Tile_L"))
                 {
                     child.parent = null;
                     Object.Destroy(child.gameObject);
@@ -219,16 +219,14 @@ namespace Crest
                 }
             }
 
-            int startLevel = 0;
-            for( int i = 0; i < lodCount; i++ )
+            for (int i = 0; i < lodCount; i++)
             {
                 bool biggestLOD = i == lodCount - 1;
-                GameObject nextLod = CreateLOD(ocean, i, lodCount, biggestLOD, meshInsts, lodDataResolution, geoDownSampleFactor, oceanLayer);
-                nextLod.transform.parent = ocean.transform;
+                //nextLod.transform.parent = ocean.transform;
 
                 // scale only horizontally, otherwise culling bounding box will be scaled up in y
-                float horizScale = Mathf.Pow( 2f, (float)(i + startLevel) );
-                nextLod.transform.localScale = new Vector3( horizScale, 1f, horizScale );
+                //nextLod.transform.localScale = new Vector3(horizScale, 1f, horizScale);
+                CreateLOD(ocean, i, lodCount, biggestLOD, meshInsts, lodDataResolution, geoDownSampleFactor, oceanLayer);
             }
 
 #if PROFILE_CONSTRUCTION
@@ -371,15 +369,9 @@ namespace Crest
             return mesh;
         }
 
-        static GameObject CreateLOD(OceanRenderer ocean, int lodIndex, int lodCount, bool biggestLOD, Mesh[] meshData, int lodDataResolution, int geoDownSampleFactor, int oceanLayer)
+        static void CreateLOD(OceanRenderer ocean, int lodIndex, int lodCount, bool biggestLOD, Mesh[] meshData, int lodDataResolution, int geoDownSampleFactor, int oceanLayer)
         {
-            // first create parent GameObject for the LOD level. the scale of this transform sets the size of the LOD.
-            GameObject parent = new GameObject();
-            parent.name = "LOD" + lodIndex;
-            parent.layer = oceanLayer;
-            parent.transform.parent = ocean.transform;
-            parent.transform.localPosition = Vector3.zero;
-            parent.transform.localRotation = Quaternion.identity;
+            float horizScale = Mathf.Pow(2f, lodIndex);
 
             bool generateSkirt = biggestLOD && !ocean._disableSkirt;
 
@@ -457,10 +449,10 @@ namespace Crest
                 // instantiate and place patch
                 var patch = new GameObject( string.Format( "Tile_L{0}", lodIndex ) );
                 patch.layer = oceanLayer;
-                patch.transform.parent = parent.transform;
+                patch.transform.parent = ocean.transform;
                 Vector2 pos = offsets[i];
-                patch.transform.localPosition = new Vector3( pos.x, 0f, pos.y );
-                patch.transform.localScale = Vector3.one;
+                patch.transform.localPosition = horizScale * new Vector3(pos.x, 0f, pos.y);
+                patch.transform.localScale = new Vector3(horizScale, 1f, horizScale);
 
                 patch.AddComponent<OceanChunkRenderer>().SetInstanceData(lodIndex, lodCount, lodDataResolution, geoDownSampleFactor);
                 patch.AddComponent<MeshFilter>().mesh = meshData[(int)patchTypes[i]];
@@ -511,8 +503,6 @@ namespace Crest
                         patch.transform.localRotation = Quaternion.FromToRotation( from, to );
                 }
             }
-
-            return parent;
         }
     }
 }

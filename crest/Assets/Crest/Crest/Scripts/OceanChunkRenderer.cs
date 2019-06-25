@@ -106,7 +106,7 @@ namespace Crest
             // geometry data
             // compute grid size of geometry. take the long way to get there - make sure we land exactly on a power of two
             // and not inherit any of the lossy-ness from lossyScale.
-            var scale_pow_2 = Mathf.Pow(2f, Mathf.Round(Mathf.Log(transform.lossyScale.x) / Mathf.Log(2f)));
+            var scale_pow_2 = OceanRenderer.Instance.CalcLodScale(_lodIndex);
             var gridSizeGeo = scale_pow_2 / (0.25f * _lodDataResolution / _geoDownSampleFactor);
             var gridSizeLodData = gridSizeGeo / _geoDownSampleFactor;
             var mul = 1.875f; // fudge 1

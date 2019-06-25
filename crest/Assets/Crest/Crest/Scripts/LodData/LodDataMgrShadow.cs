@@ -186,7 +186,8 @@ namespace Crest
 
                 lt._renderData[lodIdx].Validate(0, this);
                 _renderProperties.SetVector(sp_CenterPos, lt._renderData[lodIdx]._posSnapped);
-                _renderProperties.SetVector(sp_Scale, lt.GetLodTransform(lodIdx).lossyScale);
+                var scale = OceanRenderer.Instance.CalcLodScale(lodIdx);
+                _renderProperties.SetVector(sp_Scale, new Vector3(scale, 1f, scale));
                 _renderProperties.SetVector(sp_CamPos, OceanRenderer.Instance.Viewpoint.position);
                 _renderProperties.SetVector(sp_CamForward, OceanRenderer.Instance.Viewpoint.forward);
                 _renderProperties.SetVector(sp_JitterDiameters_CurrentFrameWeights, new Vector4(Settings._jitterDiameterSoft, Settings._jitterDiameterHard, Settings._currentFrameWeightSoft, Settings._currentFrameWeightHard));

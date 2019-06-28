@@ -24,7 +24,7 @@ namespace Crest
         [Range(0f, 1f)]
         public float _weight = 1f;
 
-        public int _randomSeed = 0;
+        public uint _randomSeed = 0;
 
         [SerializeField, Tooltip("Make waves converge towards a point. Must be set at edit time only, applied on startup."), Header("Direct towards point")]
         bool _directTowardsPoint = false;
@@ -49,6 +49,7 @@ namespace Crest
 
         // Shader to be used to render evaluate Gerstner waves for each LOD
         Shader _waveShader;
+        private WaveShapeCalculator.Random.MersenneTwister randomGenerator;
 
         static int sp_TwoPiOverWavelengths = Shader.PropertyToID("_TwoPiOverWavelengths");
         static int sp_Amplitudes = Shader.PropertyToID("_Amplitudes");
@@ -109,12 +110,9 @@ namespace Crest
             }
         }
 
-        void InitPhases()
+        void InitPhases(System.Random random)
         {
             // Set random seed to get repeatable results
-            Random.State randomStateBkp = Random.state;
-            Random.InitState(_randomSeed);
-
             var totalComps = _componentsPerOctave * OceanWaveSpectrum.NUM_OCTAVES;
             _phases = new float[totalComps];
             for (var octave = 0; octave < OceanWaveSpectrum.NUM_OCTAVES; octave++)
@@ -122,12 +120,10 @@ namespace Crest
                 for (var i = 0; i < _componentsPerOctave; i++)
                 {
                     var index = octave * _componentsPerOctave + i;
-                    var rnd = (i + Random.value) / _componentsPerOctave;
+                    var rnd = (i + (float)random.NextDouble()) / _componentsPerOctave;
                     _phases[index] = 2f * Mathf.PI * rnd;
                 }
             }
-
-            Random.state = randomStateBkp;
         }
 
         public void SetOrigin(Vector3 newOrigin)
@@ -150,19 +146,18 @@ namespace Crest
         void Update()
         {
             if (OceanRenderer.Instance == null) return;
-
+            //create or reseed
+            if (randomGenerator == null)
+                randomGenerator = new WaveShapeCalculator.Random.MersenneTwister(_randomSeed);
+            else
+                randomGenerator.Seed = _randomSeed;
             if (_phases == null || _phases.Length != _componentsPerOctave * OceanWaveSpectrum.NUM_OCTAVES)
             {
-                InitPhases();
+                InitPhases(randomGenerator);
+                randomGenerator.Seed = _randomSeed; //reseed again after phases init
             }
+            _spectrum.GenerateWaveData(randomGenerator,_componentsPerOctave, ref _wavelengths, ref _angleDegs);
 
-            // Set random seed to get repeatable results
-            Random.State randomStateBkp = Random.state;
-            Random.InitState(_randomSeed);
-
-            _spectrum.GenerateWaveData(_componentsPerOctave, ref _wavelengths, ref _angleDegs);
-
-            Random.state = randomStateBkp;
 
             UpdateAmplitudes();
 
@@ -305,7 +300,8 @@ namespace Crest
 
             if (dropped > 0)
             {
-                Debug.LogWarning(string.Format("Gerstner LOD{0}: Batch limit reached, dropped {1} wavelengths. To support bigger batch sizes, see the comment around the BATCH_SIZE declaration.", lodIdx, dropped), this);
+                //commented out to prevent too more warnings
+                //Debug.LogWarning($"Gerstner LOD{lodIdx}: Batch limit reached, dropped {dropped} wavelengths. To support bigger batch sizes, see the comment around the BATCH_SIZE declaration.", this);
                 numComponents = BATCH_SIZE;
             }
 

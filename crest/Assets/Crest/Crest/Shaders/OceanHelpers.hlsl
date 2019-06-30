@@ -5,7 +5,7 @@
 // Ocean LOD data - data, samplers and functions associated with LODs
 
 
-#include "OceanLodData.hlsl"
+#include "OceanLODData.hlsl"
 
 float ComputeLodAlpha(float3 i_worldPos, float i_meshScaleAlpha)
 {

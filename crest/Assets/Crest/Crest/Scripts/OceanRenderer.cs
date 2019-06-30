@@ -7,16 +7,16 @@ using UnityEngine;
 namespace Crest
 {
     /// <summary>
-    /// The main script for the ocean system. Attach this to a GameObject to create an ocean. This script initialises the various data types and systems
+    /// The main script for the ocean system. Attach this to a GameObject to create an ocean. This script initializes the various data types and systems
     /// and moves/scales the ocean based on the viewpoint. It also hosts a number of global settings that can be tweaked here.
     /// </summary>
     public class OceanRenderer : MonoBehaviour
     {
         [Tooltip("The viewpoint which drives the ocean detail. Defaults to main camera."), SerializeField]
         Transform _viewpoint;
-        public Transform Viewpoint { get { return _viewpoint; } }
+        public Transform Viewpoint { get { return _viewpoint; } set { _viewpoint = value; } }
 
-        [Tooltip("Optional provider for time, can be used to hardcode time for automation, or provide server time. Defaults to local Unity time."), SerializeField]
+        [Tooltip("Optional provider for time, can be used to hard-code time for automation, or provide server time. Defaults to local Unity time."), SerializeField]
         TimeProviderBase _timeProvider;
         public float CurrentTime { get { return _timeProvider.CurrentTime; } }
 
@@ -135,7 +135,7 @@ namespace Crest
 
         void Awake()
         {
-            if(!VerifyRequirements())
+            if (!VerifyRequirements())
             {
                 enabled = false;
                 return;
@@ -161,7 +161,7 @@ namespace Crest
                 Debug.LogError("A material for the ocean must be assigned on the Material property of the OceanRenderer.", this);
                 return false;
             }
-            if(!SystemInfo.supportsComputeShaders)
+            if (!SystemInfo.supportsComputeShaders)
             {
                 Debug.LogError("Crest requires graphics devices that support compute shaders.", this);
                 return false;

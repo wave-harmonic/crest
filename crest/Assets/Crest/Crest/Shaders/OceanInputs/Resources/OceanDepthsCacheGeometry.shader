@@ -33,7 +33,7 @@ Shader "Crest/Inputs/Depth/Cached Depths"
 			};
 			#include "OceanDepthsCacheCommon.hlsl"
 
-			float4x4 _SliceViewProjMatrices[MAX_LOD_COUNT];
+			StructuredBuffer<float4x4> _SliceViewProjMatrices;
 			float4 ObjectToPosition(float3 positionOS)
 			{
 				return mul(unity_ObjectToWorld, float4(positionOS, 1));

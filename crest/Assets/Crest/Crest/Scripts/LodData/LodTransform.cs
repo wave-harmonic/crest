@@ -70,15 +70,30 @@ namespace Crest
             {
                 _transformUpdateFrame[i] = -1;
             }
+
+            _BindData_paramIdPosScales = new Vector3[lodCount];
+            _BindData_paramIdOceans = new Vector4[lodCount];
+            _BindData_paramIdOceansAnimWaves = new Vector4[lodCount];
+
+            _Buffer_paramIdPosScales = new ComputeBuffer(lodCount, sizeof(float) * 3);
+            _Buffer_paramIdPosScalesSource = new ComputeBuffer(lodCount, sizeof(float) * 3);
+            _Buffer_paramIdOceans = new ComputeBuffer(lodCount, sizeof(float) * 4);
+            _Buffer_paramIdOceansSource = new ComputeBuffer(lodCount, sizeof(float) * 4);
+            _Buffer_paramIdOceansAnimWaves = new ComputeBuffer(lodCount, sizeof(float) * 4);
+            _Buffer_paramIdOceansAnimWavesSource = new ComputeBuffer(lodCount, sizeof(float) * 4);
         }
 
         // Cache data which we will pass as-is to the GPU multiple times.
-        private Vector4[] _BindData_paramIdPosScales = new Vector4[LodDataMgr.MAX_LOD_COUNT];
-        private Vector4[] _BindData_paramIdOceans = new Vector4[LodDataMgr.MAX_LOD_COUNT];
-        private Vector4[] _BindData_paramIdOceansAnimWaves = new Vector4[LodDataMgr.MAX_LOD_COUNT];
-        private Vector4[] _BindData_paramIdPosScalesSource = new Vector4[LodDataMgr.MAX_LOD_COUNT];
-        private Vector4[] _BindData_paramIdOceansSource = new Vector4[LodDataMgr.MAX_LOD_COUNT];
-        private Vector4[] _BindData_paramIdOceansAnimWavesSource = new Vector4[LodDataMgr.MAX_LOD_COUNT];
+        private Vector3[] _BindData_paramIdPosScales;
+        private Vector4[] _BindData_paramIdOceans;
+        private Vector4[] _BindData_paramIdOceansAnimWaves;
+
+        private ComputeBuffer _Buffer_paramIdPosScales;
+        private ComputeBuffer _Buffer_paramIdOceans;
+        private ComputeBuffer _Buffer_paramIdOceansAnimWaves;
+        private ComputeBuffer _Buffer_paramIdPosScalesSource;
+        private ComputeBuffer _Buffer_paramIdOceansSource;
+        private ComputeBuffer _Buffer_paramIdOceansAnimWavesSource;
 
         public void UpdateTransforms()
         {
@@ -115,18 +130,19 @@ namespace Crest
                 _projectionMatrix[lodIdx] = Matrix4x4.Ortho(-2f * lodScale, 2f * lodScale, -2f * lodScale, 2f * lodScale, 1f, 500f);
             }
 
-            // Build up _ldParams
             {
                 // We swap the reference to the arrays around to avoid having to allocate a new one.
-                var tmp_array = _BindData_paramIdPosScalesSource;
-                var tmp_array2 = _BindData_paramIdOceansSource;
-                var tmp_array3 = _BindData_paramIdOceansAnimWavesSource;
-                _BindData_paramIdPosScalesSource = _BindData_paramIdPosScales;
-                _BindData_paramIdOceansSource = _BindData_paramIdOceans;
-                _BindData_paramIdOceansAnimWavesSource = _BindData_paramIdOceansAnimWaves;
-                _BindData_paramIdPosScales = tmp_array;
-                _BindData_paramIdOceans = tmp_array2;
-                _BindData_paramIdOceansAnimWaves = tmp_array3;
+                var tmpParamIdPosScales = _Buffer_paramIdPosScalesSource;
+                _Buffer_paramIdPosScalesSource = _Buffer_paramIdPosScales;
+                _Buffer_paramIdPosScales = tmpParamIdPosScales;
+
+                var tmpParamIdOceanse = _Buffer_paramIdOceansSource;
+                _Buffer_paramIdOceansSource = _Buffer_paramIdOceans;
+                _Buffer_paramIdOceans = tmpParamIdOceanse;
+
+                var tmpParamIdPosOceansAnimWaves = _Buffer_paramIdOceansAnimWavesSource;
+                _Buffer_paramIdOceansAnimWavesSource = _Buffer_paramIdOceansAnimWaves;
+                _Buffer_paramIdOceansAnimWaves = tmpParamIdPosOceansAnimWaves;
             }
 
             for (int lodIdx = 0; lodIdx < OceanRenderer.Instance.CurrentLodCount; lodIdx++)
@@ -138,25 +154,31 @@ namespace Crest
                 _BindData_paramIdOceans[lodIdx] = new Vector4(_renderData[lodIdx]._texelWidth, _renderData[lodIdx]._textureRes, 1f, 1f / _renderData[lodIdx]._textureRes);
 
                 // need to blend out shape if this is the largest lod, and the ocean might get scaled down later (so the largest lod will disappear)
-                bool needToBlendOutShape = lodIdx == OceanRenderer.Instance.CurrentLodCount - 1 && OceanRenderer.Instance.ScaleCouldDecrease;
-                float shapeWeight = needToBlendOutShape ? OceanRenderer.Instance.ViewerAltitudeLevelAlpha : 1f;
-                _BindData_paramIdOceansAnimWaves[lodIdx] = new Vector4(
-                    _renderData[lodIdx]._texelWidth,
-                    _renderData[lodIdx]._textureRes, shapeWeight,
-                    1f / _renderData[lodIdx]._textureRes);
+                {
+                    bool needToBlendOutShape = lodIdx == OceanRenderer.Instance.CurrentLodCount - 1 && OceanRenderer.Instance.ScaleCouldDecrease;
+                    float shapeWeight = needToBlendOutShape ? OceanRenderer.Instance.ViewerAltitudeLevelAlpha : 1f;
+                    _BindData_paramIdOceansAnimWaves[lodIdx] = new Vector4(
+                        _renderData[lodIdx]._texelWidth,
+                        _renderData[lodIdx]._textureRes, shapeWeight,
+                        1f / _renderData[lodIdx]._textureRes);
+                }
             }
+
+            _Buffer_paramIdPosScales.SetData(_BindData_paramIdPosScales);
+            _Buffer_paramIdOceans.SetData(_BindData_paramIdOceans);
+            _Buffer_paramIdOceansAnimWaves.SetData(_BindData_paramIdOceansAnimWaves);
         }
 
         public void BindData(IPropertyWrapper properties, bool sourceLod)
         {
-            properties.SetVectorArray(ParamIdPosScale(sourceLod), sourceLod ? _BindData_paramIdPosScalesSource : _BindData_paramIdPosScales);
-            properties.SetVectorArray(ParamIdOcean(sourceLod), sourceLod ? _BindData_paramIdOceansSource : _BindData_paramIdOceans);
+            properties.SetBuffer(ParamIdPosScale(sourceLod), sourceLod ? _Buffer_paramIdPosScalesSource : _Buffer_paramIdPosScales);
+            properties.SetBuffer(ParamIdOcean(sourceLod), sourceLod ? _Buffer_paramIdOceansSource : _Buffer_paramIdOceans);
         }
 
         public void BindDataAnimWaves(IPropertyWrapper properties, bool sourceLod)
         {
-            properties.SetVectorArray(ParamIdPosScale(sourceLod), sourceLod ? _BindData_paramIdPosScalesSource : _BindData_paramIdPosScales);
-            properties.SetVectorArray(ParamIdOcean(sourceLod), sourceLod ? _BindData_paramIdOceansAnimWavesSource : _BindData_paramIdOceansAnimWaves);
+            properties.SetBuffer(ParamIdPosScale(sourceLod), sourceLod ? _Buffer_paramIdPosScalesSource : _Buffer_paramIdPosScales);
+            properties.SetBuffer(ParamIdOcean(sourceLod), sourceLod ? _Buffer_paramIdOceansAnimWavesSource : _Buffer_paramIdOceansAnimWaves);
         }
 
         // Borrowed from LWRP code: https://github.com/Unity-Technologies/ScriptableRenderPipeline/blob/2a68d8073c4eeef7af3be9e4811327a522434d5f/com.unity.render-pipelines.high-definition/Runtime/Core/Utilities/GeometryUtils.cs

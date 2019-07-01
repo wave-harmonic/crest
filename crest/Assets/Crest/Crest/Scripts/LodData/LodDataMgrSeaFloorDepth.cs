@@ -24,7 +24,11 @@ namespace Crest
         private static int sp_CurrentLodCount = Shader.PropertyToID("_CurrentLodCount");
         private const string ENABLE_GEOMETRY_SHADER_KEYWORD = "_ENABLE_GEOMETRY_SHADER";
 
-        private static bool UseGeometryShader { get {
+        private Matrix4x4[] _BindData_sliceViewProjMatrices;
+        private ComputeBuffer _Buffer_sliceViewProjMatrices;
+
+
+        public static bool UseGeometryShader { get {
             // Only use geometry shader if target device supports it.
             // See https://docs.unity3d.com/2018.1/Documentation/Manual/SL-ShaderCompileTargets.html
             // See https://docs.unity3d.com/ScriptReference/SystemInfo-graphicsShaderLevel.html
@@ -66,6 +70,13 @@ namespace Crest
             if(UseGeometryShader) { Shader.DisableKeyword(ENABLE_GEOMETRY_SHADER_KEYWORD); }
         }
 
+        protected override void InitData()
+        {
+            base.InitData();
+            _BindData_sliceViewProjMatrices = new Matrix4x4[OceanRenderer.Instance.CurrentLodCount];
+            _Buffer_sliceViewProjMatrices = new ComputeBuffer(OceanRenderer.Instance.CurrentLodCount, sizeof(float) * 4 * 4);
+        }
+
         public override void BuildCommandBuffer(OceanRenderer ocean, CommandBuffer buf)
         {
             base.BuildCommandBuffer(ocean, buf);
@@ -80,18 +91,17 @@ namespace Crest
                 buf.SetRenderTarget(_targets, 0, CubemapFace.Unknown, -1);
                 buf.ClearRenderTarget(false, true, Color.white * 1000f);
 
-                Matrix4x4[] matrixArray = new Matrix4x4[MAX_LOD_COUNT];
-
                 var lt = OceanRenderer.Instance._lodTransform;
                 for (int lodIdx = OceanRenderer.Instance.CurrentLodCount - 1; lodIdx >= 0; lodIdx--)
                 {
                     lt._renderData[lodIdx].Validate(0, this);
                     Matrix4x4 platformProjectionMatrix = GL.GetGPUProjectionMatrix(lt.GetProjectionMatrix(lodIdx), true);
                     Matrix4x4 worldToClipPos = platformProjectionMatrix * lt.GetWorldToCameraMatrix(lodIdx);
-                    matrixArray[lodIdx] = worldToClipPos;
+                    _BindData_sliceViewProjMatrices[lodIdx] = worldToClipPos;
                 }
+                _Buffer_sliceViewProjMatrices.SetData(_BindData_sliceViewProjMatrices);
 
-                buf.SetGlobalMatrixArray(sp_SliceViewProjMatrices, matrixArray);
+                buf.SetGlobalBuffer(sp_SliceViewProjMatrices, _Buffer_sliceViewProjMatrices);
                 buf.SetGlobalInt(sp_CurrentLodCount, OceanRenderer.Instance.CurrentLodCount);
 
 

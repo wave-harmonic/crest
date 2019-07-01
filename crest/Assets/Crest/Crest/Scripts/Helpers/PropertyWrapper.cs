@@ -16,6 +16,7 @@ namespace Crest
         void SetFloatArray(int param, float[] value);
         void SetVector(int param, Vector4 value);
         void SetVectorArray(int param, Vector4[] value);
+        void SetBuffer(int param, ComputeBuffer value);
         void SetTexture(int param, Texture value);
         void SetMatrix(int param, Matrix4x4 matrix);
         void SetInt(int param, int value);
@@ -30,6 +31,7 @@ namespace Crest
         public void SetTexture(int param, Texture value) { material.SetTexture(param, value); }
         public void SetVector(int param, Vector4 value) { material.SetVector(param, value); }
         public void SetVectorArray(int param, Vector4[] value) { material.SetVectorArray(param, value); }
+        public void SetBuffer(int param, ComputeBuffer value) { material.SetBuffer(param, value); }
         public void SetMatrix(int param, Matrix4x4 value) { material.SetMatrix(param, value); }
         public void SetInt(int param, int value) { material.SetInt(param, value); }
 
@@ -44,6 +46,7 @@ namespace Crest
         public void SetTexture(int param, Texture value) { materialPropertyBlock.SetTexture(param, value); }
         public void SetVector(int param, Vector4 value) { materialPropertyBlock.SetVector(param, value); }
         public void SetVectorArray(int param, Vector4[] value) { materialPropertyBlock.SetVectorArray(param, value); }
+        public void SetBuffer(int param, ComputeBuffer value) { materialPropertyBlock.SetBuffer(param, value); }
         public void SetMatrix(int param, Matrix4x4 value) { materialPropertyBlock.SetMatrix(param, value); }
         public void SetInt(int param, int value) { materialPropertyBlock.SetInt(param, value); }
 
@@ -72,6 +75,7 @@ namespace Crest
         public void SetTexture(int param, Texture value) { _commandBuffer.SetComputeTextureParam(_computeShader, _computeKernel, param, value); }
         public void SetVector(int param, Vector4 value) { _commandBuffer.SetComputeVectorParam(_computeShader, param, value); }
         public void SetVectorArray(int param, Vector4[] value) { _commandBuffer.SetComputeVectorArrayParam(_computeShader, param, value); }
+        public void SetBuffer(int param, ComputeBuffer value) { _commandBuffer.SetComputeBufferParam(_computeShader, _computeKernel, param, value); }
         public void SetMatrix(int param, Matrix4x4 value) { _commandBuffer.SetComputeMatrixParam(_computeShader, param, value); }
 
         // NOTE: these MUST match the values in OceanLODData.hlsl

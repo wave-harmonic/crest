@@ -21,8 +21,8 @@ Texture2DArray _LD_TexArray_Foam;
 Texture2DArray _LD_TexArray_Flow;
 Texture2DArray _LD_TexArray_DynamicWaves;
 Texture2DArray _LD_TexArray_Shadow;
-uniform float4 _LD_Params[MAX_LOD_COUNT];
-uniform float3 _LD_Pos_Scale[MAX_LOD_COUNT];
+StructuredBuffer<float4> _LD_Params;
+StructuredBuffer<float3> _LD_Pos_Scale;
 uniform const float _LD_SliceIndex;
 
 // These are used in lods where we operate on data from
@@ -35,8 +35,8 @@ Texture2DArray _LD_TexArray_Foam_Source;
 Texture2DArray _LD_TexArray_Flow_Source;
 Texture2DArray _LD_TexArray_DynamicWaves_Source;
 Texture2DArray _LD_TexArray_Shadow_Source;
-uniform float4 _LD_Params_Source[MAX_LOD_COUNT];
-uniform float3 _LD_Pos_Scale_Source[MAX_LOD_COUNT];
+StructuredBuffer<float4> _LD_Params_Source;
+StructuredBuffer<float3> _LD_Pos_Scale_Source;
 
 SamplerState LODData_linear_clamp_sampler;
 

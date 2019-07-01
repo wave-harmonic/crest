@@ -97,30 +97,12 @@ namespace Crest
 
         void OnDestroy()
         {
-            if (_Buffer_paramIdPosScales != null)
-            {
-                _Buffer_paramIdPosScales.Release();
-            }
-            if (_Buffer_paramIdPosScalesSource != null)
-            {
-                _Buffer_paramIdPosScalesSource.Release();
-            }
-            if (_Buffer_paramIdOceans != null)
-            {
-                _Buffer_paramIdOceans.Release();
-            }
-            if (_Buffer_paramIdOceansSource != null)
-            {
-                _Buffer_paramIdOceansSource.Release();
-            }
-            if (_Buffer_paramIdOceansAnimWaves != null)
-            {
-                _Buffer_paramIdOceansAnimWaves.Release();
-            }
-            if (_Buffer_paramIdOceansAnimWavesSource != null)
-            {
-                _Buffer_paramIdOceansAnimWavesSource.Release();
-            }
+            if (_Buffer_paramIdPosScales != null) _Buffer_paramIdPosScales.Release();
+            if (_Buffer_paramIdPosScalesSource != null) _Buffer_paramIdPosScalesSource.Release();
+            if (_Buffer_paramIdOceans != null) _Buffer_paramIdOceans.Release();
+            if (_Buffer_paramIdOceansSource != null) _Buffer_paramIdOceansSource.Release();
+            if (_Buffer_paramIdOceansAnimWaves != null) _Buffer_paramIdOceansAnimWaves.Release();
+            if (_Buffer_paramIdOceansAnimWavesSource != null) _Buffer_paramIdOceansAnimWavesSource.Release();
         }
 
         public void UpdateTransforms()

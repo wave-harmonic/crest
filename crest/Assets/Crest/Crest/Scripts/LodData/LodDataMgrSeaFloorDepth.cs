@@ -87,7 +87,7 @@ namespace Crest
 
         void OnDestroy()
         {
-            _Buffer_sliceViewProjMatrices.Release();
+            if (_Buffer_sliceViewProjMatrices != null) _Buffer_sliceViewProjMatrices.Release();
         }
 
         public override void BuildCommandBuffer(OceanRenderer ocean, CommandBuffer buf)

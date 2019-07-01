@@ -221,12 +221,7 @@ namespace Crest
 
             for (int i = 0; i < lodCount; i++)
             {
-                bool biggestLOD = i == lodCount - 1;
-                //nextLod.transform.parent = ocean.transform;
-
-                // scale only horizontally, otherwise culling bounding box will be scaled up in y
-                //nextLod.transform.localScale = new Vector3(horizScale, 1f, horizScale);
-                CreateLOD(ocean, i, lodCount, biggestLOD, meshInsts, lodDataResolution, geoDownSampleFactor, oceanLayer);
+                CreateLOD(ocean, i, lodCount, meshInsts, lodDataResolution, geoDownSampleFactor, oceanLayer);
             }
 
 #if PROFILE_CONSTRUCTION
@@ -369,11 +364,12 @@ namespace Crest
             return mesh;
         }
 
-        static void CreateLOD(OceanRenderer ocean, int lodIndex, int lodCount, bool biggestLOD, Mesh[] meshData, int lodDataResolution, int geoDownSampleFactor, int oceanLayer)
+        static void CreateLOD(OceanRenderer ocean, int lodIndex, int lodCount, Mesh[] meshData, int lodDataResolution, int geoDownSampleFactor, int oceanLayer)
         {
             float horizScale = Mathf.Pow(2f, lodIndex);
 
-            bool generateSkirt = biggestLOD && !ocean._disableSkirt;
+            bool isBiggestLOD = lodIndex == lodCount - 1;
+            bool generateSkirt = isBiggestLOD && !ocean._disableSkirt;
 
             Vector2[] offsets;
             PatchType[] patchTypes;
@@ -452,6 +448,7 @@ namespace Crest
                 patch.transform.parent = ocean.transform;
                 Vector2 pos = offsets[i];
                 patch.transform.localPosition = horizScale * new Vector3(pos.x, 0f, pos.y);
+                // scale only horizontally, otherwise culling bounding box will be scaled up in y
                 patch.transform.localScale = new Vector3(horizScale, 1f, horizScale);
 
                 patch.AddComponent<OceanChunkRenderer>().SetInstanceData(lodIndex, lodCount, lodDataResolution, geoDownSampleFactor);

@@ -72,6 +72,14 @@ namespace Crest
             }
         }
 
+        // Cache data which we will pass as-is to the GPU multiple times.
+        private Vector4[] _BindData_paramIdPosScales = new Vector4[LodDataMgr.MAX_LOD_COUNT];
+        private Vector4[] _BindData_paramIdOceans = new Vector4[LodDataMgr.MAX_LOD_COUNT];
+        private Vector4[] _BindData_paramIdOceansAnimWaves = new Vector4[LodDataMgr.MAX_LOD_COUNT];
+        private Vector4[] _BindData_paramIdPosScalesSource = new Vector4[LodDataMgr.MAX_LOD_COUNT];
+        private Vector4[] _BindData_paramIdOceansSource  = new Vector4[LodDataMgr.MAX_LOD_COUNT];
+        private Vector4[] _BindData_paramIdOceansAnimWavesSource = new Vector4[LodDataMgr.MAX_LOD_COUNT];
+
         public void UpdateTransforms()
         {
             for (int lodIdx = 0; lodIdx < LodCount; lodIdx++)
@@ -106,6 +114,49 @@ namespace Crest
 
                 _projectionMatrix[lodIdx] = Matrix4x4.Ortho(-2f * lodScale, 2f * lodScale, -2f * lodScale, 2f * lodScale, 1f, 500f);
             }
+
+            // Build up _ldParams
+            {
+                // We swap the reference to the arrays around to avoid having to allocate a new one.
+                var tmp_array = _BindData_paramIdPosScalesSource;
+                var tmp_array2 = _BindData_paramIdOceansSource;
+                var tmp_array3 = _BindData_paramIdOceansAnimWavesSource;
+                _BindData_paramIdPosScalesSource = _BindData_paramIdPosScales;
+                _BindData_paramIdOceansSource = _BindData_paramIdOceans;
+                _BindData_paramIdOceansAnimWavesSource = _BindData_paramIdOceansAnimWaves;
+                _BindData_paramIdPosScales = tmp_array;
+                _BindData_paramIdOceans = tmp_array2;
+                _BindData_paramIdOceansAnimWaves = tmp_array3;
+            }
+
+            for (int lodIdx = 0; lodIdx < OceanRenderer.Instance.CurrentLodCount; lodIdx++)
+            {
+                // NOTE: gets zeroed by unity, see https://www.alanzucconi.com/2016/10/24/arrays-shaders-unity-5-4/
+                _BindData_paramIdPosScales[lodIdx] = new Vector4(
+                    _renderData[lodIdx]._posSnapped.x, _renderData[lodIdx]._posSnapped.z,
+                    OceanRenderer.Instance.CalcLodScale(lodIdx), 0f);
+                _BindData_paramIdOceans[lodIdx] = new Vector4(_renderData[lodIdx]._texelWidth, _renderData[lodIdx]._textureRes, 1f, 1f / _renderData[lodIdx]._textureRes);
+
+                // need to blend out shape if this is the largest lod, and the ocean might get scaled down later (so the largest lod will disappear)
+                bool needToBlendOutShape = lodIdx == OceanRenderer.Instance.CurrentLodCount - 1 && OceanRenderer.Instance.ScaleCouldDecrease;
+                float shapeWeight = needToBlendOutShape ? OceanRenderer.Instance.ViewerAltitudeLevelAlpha : 1f;
+                _BindData_paramIdOceansAnimWaves[lodIdx] = new Vector4(
+                    _renderData[lodIdx]._texelWidth,
+                    _renderData[lodIdx]._textureRes, shapeWeight,
+                    1f / _renderData[lodIdx]._textureRes);
+            }
+        }
+
+        public void BindData(IPropertyWrapper properties, bool sourceLod)
+        {
+            properties.SetVectorArray(ParamIdPosScale(sourceLod), sourceLod ? _BindData_paramIdPosScalesSource : _BindData_paramIdPosScales);
+            properties.SetVectorArray(ParamIdOcean(sourceLod), sourceLod ? _BindData_paramIdOceansSource : _BindData_paramIdOceans);
+        }
+
+        public void BindDataAnimWaves(IPropertyWrapper properties, bool sourceLod)
+        {
+            properties.SetVectorArray(ParamIdPosScale(sourceLod), sourceLod ? _BindData_paramIdPosScalesSource : _BindData_paramIdPosScales);
+            properties.SetVectorArray(ParamIdOcean(sourceLod), sourceLod ? _BindData_paramIdOceansAnimWavesSource : _BindData_paramIdOceansAnimWaves);
         }
 
         // Borrowed from LWRP code: https://github.com/Unity-Technologies/ScriptableRenderPipeline/blob/2a68d8073c4eeef7af3be9e4811327a522434d5f/com.unity.render-pipelines.high-definition/Runtime/Core/Utilities/GeometryUtils.cs

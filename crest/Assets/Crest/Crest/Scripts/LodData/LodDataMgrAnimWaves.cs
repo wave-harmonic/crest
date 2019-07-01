@@ -236,26 +236,15 @@ namespace Crest
                 lt._renderData[lodIdx].Validate(0, this);
             }
             properties.SetTexture(Shader.PropertyToID("_LD_TexArray_WaveBuffer"), _waveBuffers);
-            BindData(properties, null, true, ref lt._renderData, sourceLod);
+            BindData(properties, null, ref lt._renderData, sourceLod);
         }
 
-        protected override void BindData(IPropertyWrapper properties, Texture applyData, bool blendOut, ref LodTransform.RenderData[] renderData, bool sourceLod = false)
+        protected override void BindData(IPropertyWrapper properties, Texture applyData, ref LodTransform.RenderData[] renderData, bool sourceLod = false)
         {
-            base.BindData(properties, applyData, blendOut, ref renderData, sourceLod);
+            base.BindData(properties, applyData, ref renderData, sourceLod);
 
             var lt = OceanRenderer.Instance._lodTransform;
-
-            for (int lodIdx = 0; lodIdx < OceanRenderer.Instance.CurrentLodCount; lodIdx++)
-            {
-                // need to blend out shape if this is the largest lod, and the ocean might get scaled down later (so the largest lod will disappear)
-                bool needToBlendOutShape = lodIdx == OceanRenderer.Instance.CurrentLodCount - 1 && OceanRenderer.Instance.ScaleCouldDecrease && blendOut;
-                float shapeWeight = needToBlendOutShape ? OceanRenderer.Instance.ViewerAltitudeLevelAlpha : 1f;
-                _BindData_paramIdOceans[lodIdx] = new Vector4(
-                    lt._renderData[lodIdx]._texelWidth,
-                    lt._renderData[lodIdx]._textureRes, shapeWeight,
-                    1f / lt._renderData[lodIdx]._textureRes);
-            }
-            properties.SetVectorArray(LodTransform.ParamIdOcean(sourceLod), _BindData_paramIdOceans);
+            lt.BindDataAnimWaves(properties, sourceLod);
         }
 
         /// <summary>

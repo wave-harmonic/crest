@@ -219,7 +219,7 @@ namespace Crest
         public void BindSourceData(IPropertyWrapper simMaterial, bool paramsOnly)
         {
             var rd = OceanRenderer.Instance._lodTransform._renderDataSource;
-            BindData(simMaterial, paramsOnly ? Texture2D.blackTexture : _sources as Texture, true, ref rd, true);
+            BindData(simMaterial, paramsOnly ? Texture2D.blackTexture : _sources as Texture, ref rd, true);
         }
 
         void OnEnable()

@@ -355,7 +355,7 @@ namespace Crest
 
             if (OceanRenderer.Instance._lodDataSeaDepths)
             {
-                OceanRenderer.Instance._lodDataSeaDepths.BindResultData(property, false);
+                OceanRenderer.Instance._lodDataSeaDepths.BindResultData(property);
             }
 
             return numInBatch;

@@ -77,6 +77,11 @@ namespace Crest
             _Buffer_sliceViewProjMatrices = new ComputeBuffer(OceanRenderer.Instance.CurrentLodCount, sizeof(float) * 4 * 4);
         }
 
+        void OnDestroy()
+        {
+            _Buffer_sliceViewProjMatrices.Release();
+        }
+
         public override void BuildCommandBuffer(OceanRenderer ocean, CommandBuffer buf)
         {
             base.BuildCommandBuffer(ocean, buf);

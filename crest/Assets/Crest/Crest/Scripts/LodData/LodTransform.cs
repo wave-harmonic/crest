@@ -88,12 +88,40 @@ namespace Crest
         private Vector4[] _BindData_paramIdOceans;
         private Vector4[] _BindData_paramIdOceansAnimWaves;
 
-        private ComputeBuffer _Buffer_paramIdPosScales;
-        private ComputeBuffer _Buffer_paramIdOceans;
-        private ComputeBuffer _Buffer_paramIdOceansAnimWaves;
-        private ComputeBuffer _Buffer_paramIdPosScalesSource;
-        private ComputeBuffer _Buffer_paramIdOceansSource;
-        private ComputeBuffer _Buffer_paramIdOceansAnimWavesSource;
+        private ComputeBuffer _Buffer_paramIdPosScales = null;
+        private ComputeBuffer _Buffer_paramIdOceans = null;
+        private ComputeBuffer _Buffer_paramIdOceansAnimWaves = null;
+        private ComputeBuffer _Buffer_paramIdPosScalesSource = null;
+        private ComputeBuffer _Buffer_paramIdOceansSource = null;
+        private ComputeBuffer _Buffer_paramIdOceansAnimWavesSource = null;
+
+        void OnDestroy()
+        {
+            if (_Buffer_paramIdPosScales != null)
+            {
+                _Buffer_paramIdPosScales.Release();
+            }
+            if (_Buffer_paramIdPosScalesSource != null)
+            {
+                _Buffer_paramIdPosScalesSource.Release();
+            }
+            if (_Buffer_paramIdOceans != null)
+            {
+                _Buffer_paramIdOceans.Release();
+            }
+            if (_Buffer_paramIdOceansSource != null)
+            {
+                _Buffer_paramIdOceansSource.Release();
+            }
+            if (_Buffer_paramIdOceansAnimWaves != null)
+            {
+                _Buffer_paramIdOceansAnimWaves.Release();
+            }
+            if (_Buffer_paramIdOceansAnimWavesSource != null)
+            {
+                _Buffer_paramIdOceansAnimWavesSource.Release();
+            }
+        }
 
         public void UpdateTransforms()
         {

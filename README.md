@@ -38,7 +38,7 @@ There is also a getting started video here: https://www.youtube.com/watch?v=qsge
   * The content requires a layer named *Terrain* which should be added to your project.
   * The post processing package is used (for aesthetic reasons), if this is not present in your project you will see an unassigned script warning which you can fix by removing the offending script.
 * .NET 4.x runtime
-* Support for [shader compilation target](https://docs.unity3d.com/Manual/SL-ShaderCompileTargets.html) 4.5 or above. This is needed for compute shader support.
+* Direct X11 or Vulkan, other platforms targeting [shader compilation target](https://docs.unity3d.com/Manual/SL-ShaderCompileTargets.html) 4.5 or above may work but we cannot provide support for, or test on, other APIs ourselves.
 
 
 # Releases

@@ -103,11 +103,16 @@ namespace Crest
         [Tooltip("Move ocean with viewpoint.")]
         public bool _followViewpoint = true;
 
-        float _viewerAltitudeLevelAlpha = 0f;
+        /// <summary>
+        /// Current ocean scale (changes with viewer altitude).
+        /// </summary>
+        public float Scale { get; private set; }
+        public float CalcLodScale(float lodIndex) { return Scale * Mathf.Pow(2f, lodIndex); }
+
         /// <summary>
         /// The ocean changes scale when viewer changes altitude, this gives the interpolation param between scales.
         /// </summary>
-        public float ViewerAltitudeLevelAlpha { get { return _viewerAltitudeLevelAlpha; } }
+        public float ViewerAltitudeLevelAlpha { get; private set; }
 
         /// <summary>
         /// Sea level is given by y coordinate of GameObject with OceanRenderer script.
@@ -142,6 +147,7 @@ namespace Crest
             }
 
             Instance = this;
+            Scale = Mathf.Clamp(Scale, _minScale, _maxScale);
 
             OceanBuilder.GenerateMesh(this, _lodDataResolution, _geometryDownSampleFactor, _lodCount);
 
@@ -263,10 +269,10 @@ namespace Crest
             float l2 = Mathf.Log(level) / Mathf.Log(2f);
             float l2f = Mathf.Floor(l2);
 
-            _viewerAltitudeLevelAlpha = l2 - l2f;
+            ViewerAltitudeLevelAlpha = l2 - l2f;
 
-            float newScale = Mathf.Pow(2f, l2f);
-            transform.localScale = new Vector3(newScale, 1f, newScale);
+            Scale = Mathf.Pow(2f, l2f);
+            transform.localScale = new Vector3(Scale, 1f, Scale);
         }
 
         void LateUpdateViewerHeight()

@@ -12,7 +12,7 @@
 
 **Discord for news/updates/discussions:** https://discord.gg/g7GpjDC
 
-**Twitter:** @crest_ocean
+**Twitter:** [@crest_ocean](https://twitter.com/@crest_ocean)
 
 **LWRP asset:** [Crest Ocean System LWRP](https://assetstore.unity.com/packages/tools/particles-effects/crest-ocean-system-lwrp-141674)
 

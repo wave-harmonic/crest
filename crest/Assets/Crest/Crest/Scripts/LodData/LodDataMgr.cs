@@ -114,7 +114,9 @@ namespace Crest
             for (int lodIdx = 0; lodIdx < OceanRenderer.Instance.CurrentLodCount; lodIdx++)
             {
                 // NOTE: gets zeroed by unity, see https://www.alanzucconi.com/2016/10/24/arrays-shaders-unity-5-4/
-                _BindData_paramIdPosScales[lodIdx] = new Vector4(renderData[lodIdx]._posSnapped.x, renderData[lodIdx]._posSnapped.z, lt.GetLodTransform(lodIdx).lossyScale.x, 0);
+                _BindData_paramIdPosScales[lodIdx] = new Vector4(
+                    renderData[lodIdx]._posSnapped.x, renderData[lodIdx]._posSnapped.z,
+                    OceanRenderer.Instance.CalcLodScale(lodIdx), 0f);
                 _BindData_paramIdOceans[lodIdx] = new Vector4(renderData[lodIdx]._texelWidth, renderData[lodIdx]._textureRes, 1f, 1f / renderData[lodIdx]._textureRes);
             }
             properties.SetVectorArray(LodTransform.ParamIdPosScale(sourceLod), _BindData_paramIdPosScales);

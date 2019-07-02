@@ -71,7 +71,7 @@ void ApplyReflectionSky(in const half3 i_view, in const half3 i_n_pixel, in cons
 
 #if _PROCEDURALSKY_ON
 	// procedural sky cubemap
-	skyColour = SkyProceduralDP(refl, lightDir);
+	skyColour = SkyProceduralDP(refl, i_lightDir);
 #else
 
 	// sample sky cubemap

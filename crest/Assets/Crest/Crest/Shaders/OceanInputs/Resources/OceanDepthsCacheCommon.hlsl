@@ -1,5 +1,5 @@
 #include "UnityCG.cginc"
-#include "../../OceanLodData.hlsl"
+#include "../../OceanLODData.hlsl"
 
 sampler2D _MainTex;
 float4 _MainTex_ST;

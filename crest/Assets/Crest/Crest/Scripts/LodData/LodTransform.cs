@@ -82,16 +82,15 @@ namespace Crest
 
                 _renderDataSource[lodIdx] = _renderData[lodIdx];
 
-                var lodTransform = GetLodTransform(lodIdx);
-
-                float camOrthSize = 2f * lodTransform.lossyScale.x;
+                var lodScale = OceanRenderer.Instance.CalcLodScale(lodIdx);
+                var camOrthSize = 2f * lodScale;
 
                 // find snap period
                 _renderData[lodIdx]._textureRes = OceanRenderer.Instance.LodDataResolution;
                 _renderData[lodIdx]._texelWidth = 2f * camOrthSize / _renderData[lodIdx]._textureRes;
                 // snap so that shape texels are stationary
-                _renderData[lodIdx]._posSnapped = lodTransform.position
-                    - new Vector3(Mathf.Repeat(lodTransform.position.x, _renderData[lodIdx]._texelWidth), 0f, Mathf.Repeat(lodTransform.position.z, _renderData[lodIdx]._texelWidth));
+                _renderData[lodIdx]._posSnapped = OceanRenderer.Instance.transform.position
+                    - new Vector3(Mathf.Repeat(OceanRenderer.Instance.transform.position.x, _renderData[lodIdx]._texelWidth), 0f, Mathf.Repeat(OceanRenderer.Instance.transform.position.z, _renderData[lodIdx]._texelWidth));
 
                 _renderData[lodIdx]._frame = Time.frameCount;
 
@@ -105,7 +104,7 @@ namespace Crest
 
                 _worldToCameraMatrix[lodIdx] = CalculateWorldToCameraMatrixRHS(_renderData[lodIdx]._posSnapped + Vector3.up * 100f, Quaternion.AngleAxis(90f, Vector3.right));
 
-                _projectionMatrix[lodIdx] = Matrix4x4.Ortho(-2f * lodTransform.lossyScale.x, 2f * lodTransform.lossyScale.x, -2f * lodTransform.lossyScale.z, 2f * lodTransform.lossyScale.z, 1f, 500f);
+                _projectionMatrix[lodIdx] = Matrix4x4.Ortho(-2f * lodScale, 2f * lodScale, -2f * lodScale, 2f * lodScale, 1f, 500f);
             }
         }
 
@@ -122,7 +121,7 @@ namespace Crest
 
         public float MaxWavelength(int lodIdx)
         {
-            float oceanBaseScale = OceanRenderer.Instance.transform.lossyScale.x;
+            float oceanBaseScale = OceanRenderer.Instance.Scale;
             float maxDiameter = 4f * oceanBaseScale * Mathf.Pow(2f, lodIdx);
             float maxTexelSize = maxDiameter / OceanRenderer.Instance.LodDataResolution;
             return 2f * maxTexelSize * OceanRenderer.Instance._minTexelsPerWave;
@@ -159,11 +158,6 @@ namespace Crest
                 _renderData[lodIdx]._posSnapped -= newOrigin;
                 _renderDataSource[lodIdx]._posSnapped -= newOrigin;
             }
-        }
-
-        public Transform GetLodTransform(int lodIdx)
-        {
-            return transform.GetChild(lodIdx);
         }
     }
 }

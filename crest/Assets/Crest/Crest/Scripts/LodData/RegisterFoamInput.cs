@@ -9,5 +9,6 @@ namespace Crest
     /// </summary>
     public class RegisterFoamInput : RegisterLodDataInput<LodDataMgrFoam>
     {
+        public override float Wavelength => 0f;
     }
 }

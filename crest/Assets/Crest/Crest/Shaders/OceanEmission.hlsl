@@ -3,6 +3,7 @@
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 uniform half3 _Diffuse;
+uniform half3 _DiffuseGrazing;
 
 // this is copied from the render target by unity
 uniform sampler2D _BackgroundTexture;
@@ -19,8 +20,6 @@ uniform half3 _SubSurfaceColour;
 uniform half _SubSurfaceBase;
 uniform half _SubSurfaceSun;
 uniform half _SubSurfaceSunFallOff;
-uniform half _SubSurfaceHeightMax;
-uniform half _SubSurfaceHeightPower;
 uniform half3 _SubSurfaceCrestColour;
 #endif // _SUBSURFACESCATTERING_ON
 
@@ -51,7 +50,7 @@ uniform half3 _DiffuseShadow;
 half3 ScatterColour(
 	in const float3 i_surfaceWorldPos, in const half i_surfaceOceanDepth, in const float3 i_cameraPos,
 	in const half3 i_lightDir, in const half3 i_view, in const fixed i_shadow,
-	in const bool i_underwater, in const bool i_outscatterLight)
+	in const bool i_underwater, in const bool i_outscatterLight, half sss)
 {
 	half depth;
 	half waveHeight;
@@ -69,11 +68,12 @@ half3 ScatterColour(
 		SampleSeaDepth(_LD_TexArray_SeaFloorDepth, uv_smallerLod, 1.0, depth);
 		waveHeight = 0.0;
 
-#if _SHADOWS_ON
-		half2 shadowSoftHard = 0.0;
-		SampleShadow(_LD_TexArray_Shadow, uv_smallerLod, 1.0, shadowSoftHard);
-		shadow = 1.0 - shadowSoftHard.x;
-#endif
+		// Huw: knocking this out for now as it seems to produce intense strobing when underwater.
+//#if _SHADOWS_ON
+//		half2 shadowSoftHard = 0.0;
+//		SampleShadow(_LD_TexArray_Shadow, uv_smallerLod, 1.0, shadowSoftHard);
+//		shadow = 1.0 - shadowSoftHard.x;
+//#endif
 	}
 	else
 	{
@@ -84,7 +84,8 @@ half3 ScatterColour(
 	}
 
 	// base colour
-	half3 col = _Diffuse;
+	float v = abs(i_view.y);
+	half3 col = lerp(_Diffuse, _DiffuseGrazing, 1. - pow(v, 1.0));
 
 #if _SHADOWS_ON
 	col = lerp(_DiffuseShadow, col, shadow);
@@ -101,17 +102,16 @@ half3 ScatterColour(
 		col = lerp(col, shallowCol, shallowness);
 #endif
 
-#if _SUBSURFACEHEIGHTLERP_ON
-		col += pow(saturate(0.5 + 2.0 * waveHeight / _SubSurfaceHeightMax), _SubSurfaceHeightPower) * _SubSurfaceCrestColour.rgb;
-#endif
-
 		// light
 		// use the constant term (0th order) of SH stuff - this is the average. it seems to give the right kind of colour
 		col *= half3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w);
 
 		// Approximate subsurface scattering - add light when surface faces viewer. Use geometry normal - don't need high freqs.
 		half towardsSun = pow(max(0., dot(i_lightDir, -i_view)), _SubSurfaceSunFallOff);
-		col += (_SubSurfaceBase + _SubSurfaceSun * towardsSun) * _SubSurfaceColour.rgb * _LightColor0 * shadow;
+		half3 subsurface = (_SubSurfaceBase + _SubSurfaceSun * towardsSun) * _SubSurfaceColour.rgb * _LightColor0 * shadow;
+		if (!i_underwater)
+			subsurface *= (1.0 - v * v) * sss;
+		col += subsurface;
 	}
 #endif // _SUBSURFACESCATTERING_ON
 
@@ -139,9 +139,10 @@ void ApplyCaustics(in const half3 i_view, in const half3 i_lightDir, in const fl
 	float3 scenePos = _WorldSpaceCameraPos - i_view * i_sceneZ / dot(camForward, -i_view);
 	const float3 scenePosUV = WorldToUV_BiggerLod(scenePos.xz);
 	half3 disp = 0.;
+	half sss = 0.;
 	// this gives height at displaced position, not exactly at query position.. but it helps. i cant pass this from vert shader
 	// because i dont know it at scene pos.
-	SampleDisplacements(_LD_TexArray_AnimatedWaves, scenePosUV, 1.0, disp);
+	SampleDisplacements(_LD_TexArray_AnimatedWaves, scenePosUV, 1.0, disp, sss);
 	half waterHeight = _OceanCenterPosWorld.y + disp.y;
 	half sceneDepth = waterHeight - scenePos.y;
 	// Compute mip index manually, with bias based on sea floor depth. We compute it manually because if it is computed automatically it produces ugly patches
@@ -161,7 +162,7 @@ void ApplyCaustics(in const half3 i_view, in const half3 i_lightDir, in const fl
 		half2 causticShadow = 0.0;
 		// As per the comment for the underwater code in ScatterColour,
 		// LOD_1 data can be missing when underwater
-		if(i_underwater)
+		if (i_underwater)
 		{
 			const float3 uv_smallerLod = WorldToUV(surfacePosXZ);
 			SampleShadow(_LD_TexArray_Shadow, uv_smallerLod, 1.0, causticShadow);

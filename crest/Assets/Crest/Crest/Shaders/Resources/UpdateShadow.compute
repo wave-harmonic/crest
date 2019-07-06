@@ -7,7 +7,24 @@
 // this turns on all the shady stuff (literally - its all deprecated)
 #define SHADOW_COLLECTOR_PASS
 
+
+// HACK INCOMING:
+// For some reason we get the following error on platforms which target Vulkan:
+//     Shader error in 'UpdateShadow.compute': Unknown parameter type (54) for
+//     _LightShadowData at kernel UpdateShadow
+// We skirt around this by defining our own _LightShadowData as a float4, and
+// then making sure that the *real* _LightShadowData variabel is knocked-out.
+#if SHADER_API_VULKAN
+uniform float4 _LightShadowData;
+#define _LightShadowData _LightShadowData_KNOCKED_OUT
+#endif
+
 #include "UnityCG.cginc"
+
+#if SHADER_API_VULKAN
+#undef _LightShadowData
+#endif
+
 #include "../OceanLODData.hlsl"
 
 struct ShadowCoords

@@ -3,6 +3,7 @@ crest/[Tt]emp/
 crest/[Oo]bj/
 crest/[Bb]uild/
 crest/[Bb]uilds/
+crest/[Ll]ogs/
 crest/Assets/AssetStoreTools*
 
 # Visual Studio 2015 cache directory

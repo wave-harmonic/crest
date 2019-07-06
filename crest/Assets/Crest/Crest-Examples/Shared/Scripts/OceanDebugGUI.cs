@@ -199,8 +199,10 @@ public class OceanDebugGUI : MonoBehaviour
                 // So for now, we just copy each texture and then draw that.
                 if (!shapes.ContainsKey(lodData.DataTexture.format))
                 {
-                    shapes.Add(lodData.DataTexture.format, new RenderTexture(lodData.DataTexture));
-                    shapes[lodData.DataTexture.format].dimension = UnityEngine.Rendering.TextureDimension.Tex2D;
+                    var rt = new RenderTexture(lodData.DataTexture);
+                    rt.dimension = UnityEngine.Rendering.TextureDimension.Tex2D;
+                    rt.Create();
+                    shapes.Add(lodData.DataTexture.format, rt);
                 }
 
                 RenderTexture shape = shapes[lodData.DataTexture.format];

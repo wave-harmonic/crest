@@ -264,6 +264,7 @@ namespace Crest
                     isPowerOfTwo = true,
                     hideFlags = HideFlags.DontSave
                 };
+                _reflectionTexture.Create();
                 PreparedReflections.Register(currentCamera.GetInstanceID(), _reflectionTexture);
             }
 

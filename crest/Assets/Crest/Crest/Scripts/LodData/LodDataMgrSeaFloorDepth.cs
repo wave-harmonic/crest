@@ -94,10 +94,9 @@ namespace Crest
                 buf.SetGlobalMatrixArray(sp_SliceViewProjMatrices, matrixArray);
                 buf.SetGlobalInt(sp_CurrentLodCount, OceanRenderer.Instance.CurrentLodCount);
 
-
                 foreach (var draw in _drawList)
                 {
-                    buf.DrawRenderer(draw.RendererComponent, draw.RendererComponent.sharedMaterial);
+                    draw.Draw(buf, 1f, 0);
                 }
             }
             else

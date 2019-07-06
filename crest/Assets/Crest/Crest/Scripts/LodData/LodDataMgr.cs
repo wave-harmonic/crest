@@ -41,7 +41,7 @@ namespace Crest
         int _scaleDifferencePow2 = 0;
         protected int ScaleDifferencePow2 { get { return _scaleDifferencePow2; } }
 
-        protected List<RegisterLodDataInputBase> _drawList = new List<RegisterLodDataInputBase>();
+        protected List<ILodDataInput> _drawList = new List<ILodDataInput>();
 
         protected virtual void Start()
         {
@@ -141,7 +141,7 @@ namespace Crest
         {
         }
 
-        public void AddDraw(RegisterLodDataInputBase data)
+        public void AddDraw(ILodDataInput data)
         {
             if (OceanRenderer.Instance == null)
             {
@@ -153,7 +153,7 @@ namespace Crest
             _drawList.Add(data);
         }
 
-        public void RemoveDraw(RegisterLodDataInputBase data)
+        public void RemoveDraw(ILodDataInput data)
         {
             if (OceanRenderer.Instance == null)
             {
@@ -174,7 +174,7 @@ namespace Crest
 
         public interface IDrawFilter
         {
-            bool Filter(RegisterLodDataInputBase data);
+            float Filter(ILodDataInput data, out int isTransition);
         }
 
         protected void SubmitDraws(int lodIdx, CommandBuffer buf)
@@ -186,7 +186,7 @@ namespace Crest
 
             foreach (var draw in _drawList)
             {
-                buf.DrawRenderer(draw.RendererComponent, draw.RendererComponent.sharedMaterial);
+                draw.Draw(buf, 1f, 0);
             }
         }
 
@@ -199,9 +199,16 @@ namespace Crest
 
             foreach (var draw in _drawList)
             {
-                if (filter.Filter(draw))
+                if (!draw.Enabled)
                 {
-                    buf.DrawRenderer(draw.RendererComponent, draw.RendererComponent.sharedMaterial);
+                    continue;
+                }
+
+                int isTransition;
+                float weight = filter.Filter(draw, out isTransition);
+                if (weight > 0f)
+                {
+                    draw.Draw(buf, weight, isTransition);
                 }
             }
         }

@@ -51,6 +51,8 @@ namespace Crest
         ParticleSystem[] _overrideParticleSystemList = null;
         [Tooltip("Optionally provide a list of rigidbodies to avoid doing a FindObjectsOfType() call."), SerializeField]
         Rigidbody[] _overrideRigidbodyList = null;
+        [Tooltip("Optionally provide a list of Gerstner components to avoid doing a FindObjectsOfType() call."), SerializeField]
+        ShapeGerstnerBatched[] _overrideGerstnerList = null;
 
         ParticleSystem.Particle[] _particleBuffer = null;
 
@@ -143,6 +145,13 @@ namespace Crest
                 foreach (var fo in fos)
                 {
                     fo.SetOrigin(newOrigin);
+                }
+
+                // Gerstner components
+                var gerstners = _overrideGerstnerList != null && _overrideGerstnerList.Length > 0 ? _overrideGerstnerList : FindObjectsOfType<ShapeGerstnerBatched>();
+                foreach (var gerstner in _overrideGerstnerList)
+                {
+                    gerstner.SetOrigin(newOrigin);
                 }
             }
         }

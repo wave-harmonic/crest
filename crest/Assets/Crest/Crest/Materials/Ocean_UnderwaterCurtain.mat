@@ -75,7 +75,7 @@ Material:
     - _SpecularHighlights: 1
     - _SrcBlend: 1
     - _SubSurfaceHeightLerp: 1
-    - _SubSurfaceScattering: 1
+    - _SubSurfaceScattering: 0
     - _SubSurfaceShallowColour: 1
     - _Transparency: 1
     - _UVSec: 0

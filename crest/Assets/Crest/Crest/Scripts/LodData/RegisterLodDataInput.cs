@@ -3,20 +3,49 @@
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace Crest
 {
+    public interface ILodDataInput
+    {
+        void Draw(CommandBuffer buf, float weight, int isTransition);
+        float Wavelength { get; }
+        bool Enabled { get; }
+    }
+
     /// <summary>
     /// Base class for scripts that register input to the various LOD data types.
     /// </summary>
-    public abstract class RegisterLodDataInputBase : MonoBehaviour
+    public abstract class RegisterLodDataInputBase : MonoBehaviour, ILodDataInput
     {
+        public abstract float Wavelength { get; }
+
+        public bool Enabled => true;
+
+        public static int sp_Weight = Shader.PropertyToID("_Weight");
+
         Renderer _renderer;
-        public Renderer RendererComponent
+        Material[] _materials = new Material[2];
+
+        protected virtual void Start()
         {
-            get
+            _renderer = GetComponent<Renderer>();
+
+            if(_renderer)
             {
-                return _renderer != null ? _renderer : (_renderer = GetComponent<Renderer>());
+                _materials[0] = _renderer.sharedMaterial;
+                _materials[1] = new Material(_renderer.sharedMaterial);
+            }
+        }
+
+        public void Draw(CommandBuffer buf, float weight, int isTransition)
+        {
+            if (_renderer && weight > 0f)
+            {
+                _materials[isTransition].SetFloat(sp_Weight, weight);
+                
+                buf.DrawRenderer(_renderer, _materials[isTransition]);
             }
         }
     }
@@ -24,7 +53,7 @@ namespace Crest
     /// <summary>
     /// Registers input to a particular LOD data.
     /// </summary>
-    public class RegisterLodDataInput<LodDataType> : RegisterLodDataInputBase
+    public abstract class RegisterLodDataInput<LodDataType> : RegisterLodDataInputBase
         where LodDataType : LodDataMgr
     {
         [SerializeField] bool _disableRenderer = true;

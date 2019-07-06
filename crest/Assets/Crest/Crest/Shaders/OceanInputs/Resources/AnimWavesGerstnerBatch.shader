@@ -15,7 +15,7 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Batch"
 	{
 		Pass
 		{
-			Blend SrcAlpha One
+			Blend One One
 			ZWrite Off
 			ZTest Always
 			Cull Off
@@ -33,6 +33,7 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Batch"
 
 			#define PI 3.141593
 
+			half _Weight;
 			half _AttenuationInShallows;
 			uint _NumWaveVecs;
 
@@ -49,13 +50,12 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Batch"
 			{
 				float4 positionOS : POSITION;
 				float2 uv : TEXCOORD0;
-				half4 color : COLOR0;
 			};
 
 			struct Varyings
 			{
 				float4 positionCS : SV_POSITION;
-				float3 worldPos_wt : TEXCOORD0;
+				float2 worldPos : TEXCOORD0;
 				float3 uv_slice : TEXCOORD1;
 			};
 
@@ -69,17 +69,15 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Batch"
 #endif
 
 				float2 worldXZ = UVToWorld(input.uv);
-
-				o.worldPos_wt.xy = worldXZ;
-				o.worldPos_wt.z = input.color.x;
-
+				o.worldPos.xy = worldXZ;
 				o.uv_slice = float3(input.uv, _LD_SliceIndex);
-
 				return o;
 			}
 
 			half4 Frag(Varyings input) : SV_Target
 			{
+				float2 displacementNormalized = 0.0;
+
 				const half4 oneMinusAttenuation = (half4)1.0 - (half4)_AttenuationInShallows;
 
 				// sample ocean depth (this render target should 1:1 match depth texture, so UVs are trivial)
@@ -87,7 +85,7 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Batch"
 
 				// Preferred wave directions
 #if _DIRECT_TOWARDS_POINT
-				float2 offset = input.worldPos_wt.xy - _TargetPointData.xy;
+				float2 offset = input.worldPos.xy - _TargetPointData.xy;
 				float preferDist = length(offset);
 				float preferWt = smoothstep(_TargetPointData.w, _TargetPointData.z, preferDist);
 				half2 preferredDir = preferWt * offset / preferDist;
@@ -122,7 +120,7 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Batch"
 					// wave number
 					half4 k = _TwoPiOverWavelengths[vi];
 					// spatial location
-					half4 x = Dx * input.worldPos_wt.x + Dz * input.worldPos_wt.y;
+					half4 x = Dx * input.worldPos.x + Dz * input.worldPos.y;
 					half4 angle = k * x + _Phases[vi];
 
 					// dx and dz could be baked into _ChopAmps
@@ -136,9 +134,12 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Batch"
 					result.x += dot(resultx, wt);
 					result.y += dot(resulty, wt);
 					result.z += dot(resultz, wt);
+
+					displacementNormalized.x += dot(resultx * min(1.0, _TwoPiOverWavelengths[vi]), wt);
+					displacementNormalized.y += dot(resultz * min(1.0, _TwoPiOverWavelengths[vi]), wt);
 				}
 
-				return half4(result, input.worldPos_wt.z);
+				return _Weight * half4(result, length(displacementNormalized));
 			}
 
 			ENDCG

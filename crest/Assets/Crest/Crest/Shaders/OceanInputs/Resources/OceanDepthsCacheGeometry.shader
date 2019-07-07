@@ -24,43 +24,28 @@ Shader "Crest/Inputs/Depth/Cached Depths"
  			#pragma geometry Geometry
 			#pragma fragment Frag
 
-			struct SlicedVaryings
-			{
-				float4 position : SV_POSITION;
-				float2 uv : TEXCOORD0;
-				uint sliceIndex : SV_RenderTargetArrayIndex;
-			};
+			#define CREST_OCEAN_DEPTHS_GEOM_SHADER_ON
 
 			#include "UnityCG.cginc"
 			#include "../../OceanLODData.hlsl"
-
 			#include "OceanDepthsCacheCommon.hlsl"
 
 			float4x4 _SliceViewProjMatrices[MAX_LOD_COUNT];
-			float4 ObjectToPosition(float3 positionOS)
-			{
-				return mul(unity_ObjectToWorld, float4(positionOS, 1));
-			}
-
-
-			float4 WorldToClipPos(float4 positionWS, uint sliceIndex)
-			{
-				return mul(_SliceViewProjMatrices[sliceIndex], positionWS);
-			}
 
 			[maxvertexcount(MAX_LOD_COUNT * 3)]
 			void Geometry(
 				triangle Varyings input[3],
-				inout TriangleStream<SlicedVaryings> outStream
+				inout TriangleStream<Varyings> outStream
 			)
 			{
-				SlicedVaryings output;
+				Varyings output;
 				for(int sliceIndex = 0; sliceIndex < _CurrentLodCount; sliceIndex++)
 				{
 					output.sliceIndex = sliceIndex;
 					for(int vertex = 0; vertex < 3; vertex++)
 					{
-						output.position = WorldToClipPos(input[vertex].position, sliceIndex);
+						// Project to each slice
+						output.position = mul(_SliceViewProjMatrices[sliceIndex], input[vertex].position);
 						output.uv = input[vertex].uv;
 						outStream.Append(output);
 					}

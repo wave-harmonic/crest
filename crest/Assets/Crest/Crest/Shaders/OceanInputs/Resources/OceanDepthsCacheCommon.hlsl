@@ -5,7 +5,6 @@
 sampler2D _MainTex;
 float4 _MainTex_ST;
 int _CurrentLodCount;
-float4 ObjectToPosition(float3 objectPosition);
 
 struct Attributes
 {
@@ -17,18 +16,28 @@ struct Varyings
 {
 	float4 position : SV_POSITION;
 	float2 uv : TEXCOORD0;
+	uint sliceIndex : SV_RenderTargetArrayIndex;
 };
-
 
 Varyings Vert(Attributes input)
 {
 	Varyings output;
-	output.position = ObjectToPosition(input.positionOS);
+
+#ifdef CREST_OCEAN_DEPTHS_GEOM_SHADER_ON
+	// Geometry shader version - go to world space
+	output.position = mul(unity_ObjectToWorld, float4(input.positionOS, 1.0));
+#else
+	// Normal (non-GS) - transform to clip space.
+	output.position = UnityObjectToClipPos(input.positionOS);
+#endif
+
 	output.uv = TRANSFORM_TEX(input.uv, _MainTex);
+	// May be overwritten by geometry shader
+	output.sliceIndex = 0;
 	return output;
 }
 
-half4 Frag(SlicedVaryings input) : SV_Target
+half4 Frag(Varyings input) : SV_Target
 {
 	return half4(tex2D(_MainTex, input.uv).x, 0.0, 0.0, 0.0);
 }

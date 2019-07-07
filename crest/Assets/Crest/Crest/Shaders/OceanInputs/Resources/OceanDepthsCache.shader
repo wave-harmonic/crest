@@ -21,7 +21,6 @@ Shader "Crest/Inputs/Depth/Cached Depths Geometry"
 			BlendOp Min
 
 			CGPROGRAM
-			#pragma multi_compile_local __ _ENABLE_GEOMETRY_SHADER
 			#pragma vertex Vert
 			#pragma fragment Frag
 

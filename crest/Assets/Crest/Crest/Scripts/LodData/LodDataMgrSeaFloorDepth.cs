@@ -49,22 +49,6 @@ namespace Crest
             }
         }
 
-        private void OnEnable()
-        {
-            if (UseGeometryShader)
-            {
-                Shader.EnableKeyword(ENABLE_GEOMETRY_SHADER_KEYWORD);
-            }
-        }
-
-        private void OnDisable()
-        {
-            if (UseGeometryShader)
-            {
-                Shader.DisableKeyword(ENABLE_GEOMETRY_SHADER_KEYWORD);
-            }
-        }
-
         public static string ShaderName
         {
             get

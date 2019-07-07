@@ -25,6 +25,9 @@ Shader "Crest/Inputs/Depth/Cached Depths Geometry"
 			#pragma vertex Vert
 			#pragma fragment Frag
 
+			#include "UnityCG.cginc"
+			#include "../../OceanLODData.hlsl"
+
 			#define SlicedVaryings Varyings
 			#include "OceanDepthsCacheCommon.hlsl"
 

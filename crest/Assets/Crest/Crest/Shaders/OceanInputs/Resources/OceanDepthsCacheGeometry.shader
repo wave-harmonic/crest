@@ -2,7 +2,6 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
-
 // Draw cached depths into current frame ocean depth data
 Shader "Crest/Inputs/Depth/Cached Depths"
 {
@@ -31,6 +30,10 @@ Shader "Crest/Inputs/Depth/Cached Depths"
 				float2 uv : TEXCOORD0;
 				uint sliceIndex : SV_RenderTargetArrayIndex;
 			};
+
+			#include "UnityCG.cginc"
+			#include "../../OceanLODData.hlsl"
+
 			#include "OceanDepthsCacheCommon.hlsl"
 
 			float4x4 _SliceViewProjMatrices[MAX_LOD_COUNT];

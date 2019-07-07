@@ -1,5 +1,6 @@
-#include "UnityCG.cginc"
-#include "../../OceanLODData.hlsl"
+// Crest Ocean System
+
+// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 sampler2D _MainTex;
 float4 _MainTex_ST;

@@ -23,6 +23,10 @@ Shader "Crest/Inputs/Depth/Cached Depths Geometry"
 			#pragma vertex Vert
 			#pragma fragment Frag
 
+			sampler2D _MainTex;
+			float4 _MainTex_ST;
+			int _CurrentLodCount;
+
 			#include "UnityCG.cginc"
 			#include "../../OceanLODData.hlsl"
 			#include "OceanDepthsCacheCommon.hlsl"

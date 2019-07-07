@@ -26,6 +26,10 @@ Shader "Crest/Inputs/Depth/Cached Depths"
 
 			#define CREST_OCEAN_DEPTHS_GEOM_SHADER_ON
 
+			sampler2D _MainTex;
+			float4 _MainTex_ST;
+			int _CurrentLodCount;
+
 			#include "UnityCG.cginc"
 			#include "../../OceanLODData.hlsl"
 			#include "OceanDepthsCacheCommon.hlsl"

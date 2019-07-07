@@ -2,6 +2,7 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+using System;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -54,7 +55,17 @@ namespace Crest
 
             _renderProperties = new PropertyWrapperCompute();
             _updateShadowShader = Resources.Load<ComputeShader>(UpdateShadow);
-            krnl_UpdateShadow = _updateShadowShader.FindKernel(UpdateShadow);
+
+            try
+            {
+                krnl_UpdateShadow = _updateShadowShader.FindKernel(UpdateShadow);
+            }
+            catch(Exception)
+            {
+                Debug.LogError("Could not load shadow update kernel. Disabling shadows.", this);
+                enabled = false;
+                return;
+            }
 
             _cameraMain = Camera.main;
             if (_cameraMain == null)
@@ -119,6 +130,11 @@ namespace Crest
 
         public override void UpdateLodData()
         {
+            if (!enabled)
+            {
+                return;
+            }
+
             base.UpdateLodData();
 
             if (_mainLight != OceanRenderer.Instance._primaryLight)

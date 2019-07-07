@@ -26,13 +26,14 @@ Shader "Crest/Inputs/Depth/Cached Depths"
 
 			#define CREST_OCEAN_DEPTHS_GEOM_SHADER_ON
 
+			#include "../../OceanLODData.hlsl"
+
 			sampler2D _MainTex;
 			float4 _MainTex_ST;
 			int _CurrentLodCount;
 			float4x4 _SliceViewProjMatrices[MAX_LOD_COUNT];
 
 			#include "UnityCG.cginc"
-			#include "../../OceanLODData.hlsl"
 			#include "OceanDepthsCacheCommon.hlsl"
 
 			[maxvertexcount(MAX_LOD_COUNT * 3)]

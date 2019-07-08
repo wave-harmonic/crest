@@ -160,6 +160,55 @@ namespace Crest
             Gizmos.color = new Color(1f, 1f, 1f, 0.2f);
             Gizmos.DrawCube(Vector3.up * _cameraMaxTerrainHeight / transform.lossyScale.y, new Vector3(1f, 0f, 1f));
         }
+
+        public void Validate(OceanRenderer ocean)
+        {
+            if ((_geometryToRenderIntoCache == null || _geometryToRenderIntoCache.Length == 0)
+                && (_layerNames == null || _layerNames.Length == 0))
+            {
+                Debug.LogError("Validation: No layers specified for rendering into depth cache, and no geometries manually provided. Click this message to highlight the cache in question.", this);
+            }
+
+            if (transform.lossyScale.magnitude < 5f)
+            {
+                Debug.LogWarning("Validation: Ocean depth cache transform scale is small and will capture a small area of the world. The scale sets the size of the area that will be cached, and this cache is set to render a very small area. Click this message to highlight the cache in question.", this);
+            }
+
+            if (_forceAlwaysUpdateDebug)
+            {
+                Debug.LogWarning("Validation: Force Always Update Debug option is enabled on depth cache " + gameObject.name + ", which means it will render every frame instead of running from the cache. Click this message to highlight the cache in question.", this);
+            }
+
+            var numObjectsFound = 0;
+            foreach (var layerName in _layerNames)
+            {
+                var layer = LayerMask.NameToLayer(layerName);
+                if (layer == -1)
+                {
+                    Debug.LogError("Invalid layer specified: \"" + layerName +
+                        "\". Please specify valid layers for objects/geometry that provide the ocean depth. Click this message to highlight the cache in question.", this);
+                }
+
+                var renderers = FindObjectsOfType<MeshRenderer>();
+                foreach (var renderer in renderers)
+                {
+                    if(renderer.gameObject.layer == layer)
+                    {
+                        numObjectsFound++;
+                    }
+                }
+            }
+
+            if(numObjectsFound == 0 && _geometryToRenderIntoCache.Length == 0)
+            {
+                Debug.LogWarning("No objects will render into depth cache as there are no geometries specified, and no objects match the layer names. Click this message to highlight the cache in question.", this);
+            }
+
+            if (_resolution < 4)
+            {
+                Debug.LogError("Cache resolution " + _resolution + " is very low. Is this intentional? Click this message to highlight the cache in question.", this);
+            }
+        }
 #endif
     }
 }

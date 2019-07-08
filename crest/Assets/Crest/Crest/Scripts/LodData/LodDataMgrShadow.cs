@@ -171,7 +171,7 @@ namespace Crest
             {
                 _bufCopyShadowMap = new CommandBuffer();
                 _bufCopyShadowMap.name = "Shadow data";
-                _mainLight.AddCommandBuffer(LightEvent.BeforeScreenspaceMask, _bufCopyShadowMap);
+                _mainLight.AddCommandBufferAsync(LightEvent.BeforeScreenspaceMask, _bufCopyShadowMap, ComputeQueueType.Background);
             }
             else if (!s_processData && _bufCopyShadowMap != null)
             {

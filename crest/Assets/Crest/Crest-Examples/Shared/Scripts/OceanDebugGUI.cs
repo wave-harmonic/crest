@@ -10,7 +10,7 @@ public class OceanDebugGUI : MonoBehaviour
     [SerializeField] bool _showSimTargets = false;
     [SerializeField] bool _guiVisible = true;
     static float _leftPanelWidth = 180f;
-    ShapeGerstnerBatched[] gerstners;
+    ShapeGerstnerBatched[] _gerstners;
 
     static Dictionary<System.Type, bool> _drawTargets = new Dictionary<System.Type, bool>();
     static Dictionary<System.Type, string> _simNames = new Dictionary<System.Type, string>();
@@ -20,22 +20,16 @@ public class OceanDebugGUI : MonoBehaviour
         return screenPosition.x < _leftPanelWidth;
     }
 
-    private void Start()
-    {
-        if (OceanRenderer.Instance == null)
-        {
-            enabled = false;
-            return;
-        }
-
-        gerstners = FindObjectsOfType<ShapeGerstnerBatched>();
-        // i am getting the array in the reverse order compared to the hierarchy which bugs me. sort them based on sibling index,
-        // which helps if the gerstners are on sibling GOs.
-        System.Array.Sort(gerstners, (a, b) => a.transform.GetSiblingIndex().CompareTo(b.transform.GetSiblingIndex()));
-    }
-
     private void Update()
     {
+        if (_gerstners == null)
+        {
+            _gerstners = FindObjectsOfType<ShapeGerstnerBatched>();
+            // i am getting the array in the reverse order compared to the hierarchy which bugs me. sort them based on sibling index,
+            // which helps if the gerstners are on sibling GOs.
+            System.Array.Sort(_gerstners, (a, b) => a.transform.GetSiblingIndex().CompareTo(b.transform.GetSiblingIndex()));
+        }
+
         if (Input.GetKeyDown(KeyCode.G))
         {
             ToggleGUI();
@@ -76,7 +70,7 @@ public class OceanDebugGUI : MonoBehaviour
             }
 
             GUI.Label(new Rect(x, y, w, h), "Gerstner weight(s)"); y += h;
-            foreach (var gerstner in gerstners)
+            foreach (var gerstner in _gerstners)
             {
                 var specW = 75f;
                 gerstner._weight = GUI.HorizontalSlider(new Rect(x, y, w - specW - 5f, h), gerstner._weight, 0f, 1f);
@@ -113,18 +107,31 @@ public class OceanDebugGUI : MonoBehaviour
                 GUI.Label(new Rect(x, y, w, h), string.Format("Coll Queue Lengths: [{0}, {1}]", min, max)); y += h;
             }
 
-            if (OceanRenderer.Instance._simSettingsAnimatedWaves.CachedHeightQueries)
+            if (OceanRenderer.Instance)
             {
-                var cache = OceanRenderer.Instance.CollisionProvider as CollProviderCache;
-                // generates garbage
-                GUI.Label(new Rect(x, y, w, h), string.Format("Cache hits: {0}/{1}", cache.CacheHits, cache.CacheChecks)); y += h;
-            }
+                if (OceanRenderer.Instance._simSettingsAnimatedWaves.CachedHeightQueries)
+                {
+                    var cache = OceanRenderer.Instance.CollisionProvider as CollProviderCache;
+                    // generates garbage
+                    GUI.Label(new Rect(x, y, w, h), string.Format("Cache hits: {0}/{1}", cache.CacheHits, cache.CacheChecks)); y += h;
+                }
 
-            if (OceanRenderer.Instance._lodDataDynWaves != null)
-            {
-                int steps; float dt;
-                OceanRenderer.Instance._lodDataDynWaves.GetSimSubstepData(Time.deltaTime, out steps, out dt);
-                GUI.Label(new Rect(x, y, w, h), string.Format("Sim steps: {0:0.00000} x {1}", dt, steps)); y += h;
+                if (OceanRenderer.Instance._lodDataDynWaves != null)
+                {
+                    int steps; float dt;
+                    OceanRenderer.Instance._lodDataDynWaves.GetSimSubstepData(Time.deltaTime, out steps, out dt);
+                    GUI.Label(new Rect(x, y, w, h), string.Format("Sim steps: {0:0.00000} x {1}", dt, steps)); y += h;
+                }
+
+#if UNITY_EDITOR
+                if (GUI.Button(new Rect(x, y, w, h), "Select Ocean Mat"))
+                {
+                    var path = UnityEditor.AssetDatabase.GetAssetPath(OceanRenderer.Instance.OceanMaterial);
+                    var asset = UnityEditor.AssetDatabase.LoadMainAssetAtPath(path);
+                    UnityEditor.Selection.activeObject = asset;
+                }
+                y += h;
+#endif
             }
 
             if (GUI.Button(new Rect(x, y, w, h), "Hide GUI (G)"))
@@ -132,16 +139,6 @@ public class OceanDebugGUI : MonoBehaviour
                 ToggleGUI();
             }
             y += h;
-
-#if UNITY_EDITOR
-            if (GUI.Button(new Rect(x, y, w, h), "Select Ocean Mat"))
-            {
-                var path = UnityEditor.AssetDatabase.GetAssetPath(OceanRenderer.Instance.OceanMaterial);
-                var asset = UnityEditor.AssetDatabase.LoadMainAssetAtPath(path);
-                UnityEditor.Selection.activeObject = asset;
-            }
-            y += h;
-#endif
         }
 
         // draw source textures to screen
@@ -155,6 +152,8 @@ public class OceanDebugGUI : MonoBehaviour
 
     void DrawShapeTargets()
     {
+        if (OceanRenderer.Instance == null) return;
+
         // draw sim data
         float column = 1f;
 

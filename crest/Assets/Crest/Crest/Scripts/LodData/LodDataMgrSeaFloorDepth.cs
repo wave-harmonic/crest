@@ -71,7 +71,8 @@ namespace Crest
             base.BuildCommandBuffer(ocean, buf);
 
             // if there is nothing in the scene tagged up for depth rendering, and we have cleared the RTs, then we can early out
-            if (_drawList.Count == 0 && _targetsClear)
+            var drawList = RegisterLodDataInputBase.GetRegistrar(GetType());
+            if (drawList.Count == 0 && _targetsClear)
             {
                 return;
             }
@@ -94,7 +95,7 @@ namespace Crest
                 buf.SetGlobalMatrixArray(sp_SliceViewProjMatrices, matrixArray);
                 buf.SetGlobalInt(sp_CurrentLodCount, OceanRenderer.Instance.CurrentLodCount);
 
-                foreach (var draw in _drawList)
+                foreach (var draw in drawList)
                 {
                     draw.Draw(buf, 1f, 0);
                 }
@@ -111,7 +112,7 @@ namespace Crest
             }
 
             // targets have now been cleared, we can early out next time around
-            if (_drawList.Count == 0)
+            if (drawList.Count == 0)
             {
                 _targetsClear = true;
             }

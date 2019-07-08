@@ -10,7 +10,7 @@ public class OceanDebugGUI : MonoBehaviour
     [SerializeField] bool _showSimTargets = false;
     [SerializeField] bool _guiVisible = true;
     static float _leftPanelWidth = 180f;
-    ShapeGerstnerBatched[] gerstners;
+    ShapeGerstnerBatched[] _gerstners;
 
     static Dictionary<System.Type, bool> _drawTargets = new Dictionary<System.Type, bool>();
     static Dictionary<System.Type, string> _simNames = new Dictionary<System.Type, string>();
@@ -27,15 +27,18 @@ public class OceanDebugGUI : MonoBehaviour
             enabled = false;
             return;
         }
-
-        gerstners = FindObjectsOfType<ShapeGerstnerBatched>();
-        // i am getting the array in the reverse order compared to the hierarchy which bugs me. sort them based on sibling index,
-        // which helps if the gerstners are on sibling GOs.
-        System.Array.Sort(gerstners, (a, b) => a.transform.GetSiblingIndex().CompareTo(b.transform.GetSiblingIndex()));
     }
 
     private void Update()
     {
+        if(_gerstners == null)
+        {
+            _gerstners = FindObjectsOfType<ShapeGerstnerBatched>();
+            // i am getting the array in the reverse order compared to the hierarchy which bugs me. sort them based on sibling index,
+            // which helps if the gerstners are on sibling GOs.
+            System.Array.Sort(_gerstners, (a, b) => a.transform.GetSiblingIndex().CompareTo(b.transform.GetSiblingIndex()));
+        }
+
         if (Input.GetKeyDown(KeyCode.G))
         {
             ToggleGUI();
@@ -76,7 +79,7 @@ public class OceanDebugGUI : MonoBehaviour
             }
 
             GUI.Label(new Rect(x, y, w, h), "Gerstner weight(s)"); y += h;
-            foreach (var gerstner in gerstners)
+            foreach (var gerstner in _gerstners)
             {
                 var specW = 75f;
                 gerstner._weight = GUI.HorizontalSlider(new Rect(x, y, w - specW - 5f, h), gerstner._weight, 0f, 1f);

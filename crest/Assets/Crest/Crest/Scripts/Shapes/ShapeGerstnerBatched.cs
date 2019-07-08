@@ -245,6 +245,16 @@ namespace Crest
             {
                 _batches[i] = new GerstnerBatch(_waveShader, _directTowardsPoint);
             }
+
+            // Submit draws to create the Gerstner waves. LODs from 0 to N-2 render the Gerstner waves from their lod. Additionally, any waves
+            // in the biggest lod, or too big for the biggest lod, are rendered into both of the last two LODs N-1 and N-2, as this allows us to
+            // move these waves between LODs without pops when the camera changes heights and the LODs need to change scale.
+
+            var registered = RegisterLodDataInputBase.GetRegistrar(typeof(LodDataMgrAnimWaves));
+            foreach (var batch in _batches)
+            {
+                registered.Add(batch);
+            }
         }
 
         /// <summary>
@@ -433,29 +443,17 @@ namespace Crest
             }
         }
 
-        /// <summary>
-        /// Submit draws to create the Gerstner waves. LODs from 0 to N-2 render the Gerstner waves from their lod. Additionally, any waves
-        /// in the biggest lod, or too big for the biggest lod, are rendered into both of the last two LODs N-1 and N-2, as this allows us to
-        /// move these waves between LODs without pops when the camera changes heights and the LODs need to change scale.
-        /// </summary>
-        void OnEnable()
-        {
-            if (_batches == null)
-            {
-                InitBatches();
-            }
-
-            foreach (var batch in _batches)
-            {
-                OceanRenderer.Instance._lodDataAnimWaves.AddDraw(batch);
-            }
-        }
-
         void OnDisable()
         {
-            foreach (var batch in _batches)
+            if (OceanRenderer.Instance != null && _batches != null)
             {
-                OceanRenderer.Instance._lodDataAnimWaves.RemoveDraw(batch);
+                var registered = RegisterLodDataInputBase.GetRegistrar(typeof(LodDataMgrAnimWaves));
+                foreach (var batch in _batches)
+                {
+                    registered.Remove(batch);
+                }
+
+                _batches = null;
             }
         }
 

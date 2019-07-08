@@ -48,12 +48,6 @@ namespace Crest
                 return;
             }
 
-            if (OceanRenderer.Instance == null)
-            {
-                enabled = false;
-                return;
-            }
-
             if (_populateOnStartup)
             {
                 PopulateCache();
@@ -146,8 +140,18 @@ namespace Crest
                 _camDepthCache.gameObject.SetActive(false);
             }
 
+            // Shader needs sea level to determine water depth
+            var centerPoint = Vector3.zero;
+            if (OceanRenderer.Instance != null)
+            {
+                centerPoint.y = OceanRenderer.Instance.transform.position.y;
+            }
+            else
+            {
+                centerPoint.y = transform.position.y;
+            }
             // Hackety-hack: this seems to be the only way to pass parameters to the shader when using RenderWithShader!
-            Shader.SetGlobalVector("_OceanCenterPosWorld", OceanRenderer.Instance.transform.position);
+            Shader.SetGlobalVector("_OceanCenterPosWorld", centerPoint);
             _camDepthCache.RenderWithShader(Shader.Find("Crest/Inputs/Depth/Ocean Depth From Geometry"), null);
         }
 

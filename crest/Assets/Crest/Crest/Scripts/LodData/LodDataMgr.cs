@@ -2,7 +2,6 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -40,8 +39,6 @@ namespace Crest
 
         int _scaleDifferencePow2 = 0;
         protected int ScaleDifferencePow2 { get { return _scaleDifferencePow2; } }
-
-        protected List<ILodDataInput> _drawList = new List<ILodDataInput>();
 
         protected virtual void Start()
         {
@@ -141,30 +138,6 @@ namespace Crest
         {
         }
 
-        public void AddDraw(ILodDataInput data)
-        {
-            if (OceanRenderer.Instance == null)
-            {
-                // Ocean has unloaded, clear out
-                _drawList.Clear();
-                return;
-            }
-
-            _drawList.Add(data);
-        }
-
-        public void RemoveDraw(ILodDataInput data)
-        {
-            if (OceanRenderer.Instance == null)
-            {
-                // Ocean has unloaded, clear out
-                _drawList.Clear();
-                return;
-            }
-
-            _drawList.Remove(data);
-        }
-
         protected void SwapRTs(ref RenderTexture o_a, ref RenderTexture o_b)
         {
             var temp = o_a;
@@ -184,7 +157,8 @@ namespace Crest
 
             lt.SetViewProjectionMatrices(lodIdx, buf);
 
-            foreach (var draw in _drawList)
+            var drawList = RegisterLodDataInputBase.GetRegistrar(GetType());
+            foreach (var draw in drawList)
             {
                 draw.Draw(buf, 1f, 0);
             }
@@ -197,7 +171,8 @@ namespace Crest
 
             lt.SetViewProjectionMatrices(lodIdx, buf);
 
-            foreach (var draw in _drawList)
+            var drawList = RegisterLodDataInputBase.GetRegistrar(GetType());
+            foreach (var draw in drawList)
             {
                 if (!draw.Enabled)
                 {

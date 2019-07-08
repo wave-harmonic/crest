@@ -22,7 +22,7 @@ public class OceanDebugGUI : MonoBehaviour
 
     private void Update()
     {
-        if(_gerstners == null)
+        if (_gerstners == null)
         {
             _gerstners = FindObjectsOfType<ShapeGerstnerBatched>();
             // i am getting the array in the reverse order compared to the hierarchy which bugs me. sort them based on sibling index,
@@ -107,7 +107,7 @@ public class OceanDebugGUI : MonoBehaviour
                 GUI.Label(new Rect(x, y, w, h), string.Format("Coll Queue Lengths: [{0}, {1}]", min, max)); y += h;
             }
 
-            if(OceanRenderer.Instance)
+            if (OceanRenderer.Instance)
             {
                 if (OceanRenderer.Instance._simSettingsAnimatedWaves.CachedHeightQueries)
                 {

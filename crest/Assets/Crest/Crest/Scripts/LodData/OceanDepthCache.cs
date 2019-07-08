@@ -179,6 +179,11 @@ namespace Crest
                 Debug.LogWarning("Validation: Force Always Update Debug option is enabled on depth cache " + gameObject.name + ", which means it will render every frame instead of running from the cache. Click this message to highlight the cache in question.", this);
             }
 
+            if (Mathf.Abs(transform.position.y - ocean.transform.position.y) > 0.00001f)
+            {
+                Debug.LogWarning("Validation: It is recommended that the cache is placed at the same height (y component of position) as the ocean, i.e. at the sea level. If the cache is created before the ocean is present, the cache height will inform the sea level. Click this message to highlight the cache in question.", this);
+            }
+
             var numObjectsFound = 0;
             foreach (var layerName in _layerNames)
             {
@@ -192,14 +197,14 @@ namespace Crest
                 var renderers = FindObjectsOfType<MeshRenderer>();
                 foreach (var renderer in renderers)
                 {
-                    if(renderer.gameObject.layer == layer)
+                    if (renderer.gameObject.layer == layer)
                     {
                         numObjectsFound++;
                     }
                 }
             }
 
-            if(numObjectsFound == 0 && _geometryToRenderIntoCache.Length == 0)
+            if (numObjectsFound == 0 && _geometryToRenderIntoCache.Length == 0)
             {
                 Debug.LogWarning("No objects will render into depth cache as there are no geometries specified, and no objects match the layer names. Click this message to highlight the cache in question.", this);
             }

@@ -53,6 +53,11 @@ namespace Crest
         {
             get
             {
+                // Although GS and CS version of this shader are *identical*
+                // besides having a #define enabled/disabled - Unity doesn't
+                // support using keywords to enable/disable shader pipeline
+                // stages (like `#pragma geometry`) so we have to split them
+                // out into separate files unfortunately.
                 if (UseGeometryShader)
                 {
                     return "Crest/Inputs/Depth/Cached Depths Geometry";

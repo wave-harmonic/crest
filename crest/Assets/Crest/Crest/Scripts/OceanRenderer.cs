@@ -199,8 +199,10 @@ namespace Crest
 
         void InitTimeProvider()
         {
-            if (_timeProvider == null)
+            // Used assigned time provider, or use one attached to this game object
+            if (_timeProvider == null && (_timeProvider = GetComponent<TimeProviderBase>()) == null)
             {
+                // None found - create
                 _timeProvider = gameObject.AddComponent<TimeProviderDefault>();
             }
         }

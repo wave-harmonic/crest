@@ -68,11 +68,12 @@ half3 ScatterColour(
 		SampleSeaDepth(_LD_TexArray_SeaFloorDepth, uv_smallerLod, 1.0, depth);
 		waveHeight = 0.0;
 
-#if _SHADOWS_ON
-		half2 shadowSoftHard = 0.0;
-		SampleShadow(_LD_TexArray_Shadow, uv_smallerLod, 1.0, shadowSoftHard);
-		shadow = 1.0 - shadowSoftHard.x;
-#endif
+		// Huw: knocking this out for now as it seems to produce intense strobing when underwater.
+//#if _SHADOWS_ON
+//		half2 shadowSoftHard = 0.0;
+//		SampleShadow(_LD_TexArray_Shadow, uv_smallerLod, 1.0, shadowSoftHard);
+//		shadow = 1.0 - shadowSoftHard.x;
+//#endif
 	}
 	else
 	{

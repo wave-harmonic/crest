@@ -20,15 +20,6 @@ public class OceanDebugGUI : MonoBehaviour
         return screenPosition.x < _leftPanelWidth;
     }
 
-    private void Start()
-    {
-        if (OceanRenderer.Instance == null)
-        {
-            enabled = false;
-            return;
-        }
-    }
-
     private void Update()
     {
         if(_gerstners == null)
@@ -116,18 +107,31 @@ public class OceanDebugGUI : MonoBehaviour
                 GUI.Label(new Rect(x, y, w, h), string.Format("Coll Queue Lengths: [{0}, {1}]", min, max)); y += h;
             }
 
-            if (OceanRenderer.Instance._simSettingsAnimatedWaves.CachedHeightQueries)
+            if(OceanRenderer.Instance)
             {
-                var cache = OceanRenderer.Instance.CollisionProvider as CollProviderCache;
-                // generates garbage
-                GUI.Label(new Rect(x, y, w, h), string.Format("Cache hits: {0}/{1}", cache.CacheHits, cache.CacheChecks)); y += h;
-            }
+                if (OceanRenderer.Instance._simSettingsAnimatedWaves.CachedHeightQueries)
+                {
+                    var cache = OceanRenderer.Instance.CollisionProvider as CollProviderCache;
+                    // generates garbage
+                    GUI.Label(new Rect(x, y, w, h), string.Format("Cache hits: {0}/{1}", cache.CacheHits, cache.CacheChecks)); y += h;
+                }
 
-            if (OceanRenderer.Instance._lodDataDynWaves != null)
-            {
-                int steps; float dt;
-                OceanRenderer.Instance._lodDataDynWaves.GetSimSubstepData(Time.deltaTime, out steps, out dt);
-                GUI.Label(new Rect(x, y, w, h), string.Format("Sim steps: {0:0.00000} x {1}", dt, steps)); y += h;
+                if (OceanRenderer.Instance._lodDataDynWaves != null)
+                {
+                    int steps; float dt;
+                    OceanRenderer.Instance._lodDataDynWaves.GetSimSubstepData(Time.deltaTime, out steps, out dt);
+                    GUI.Label(new Rect(x, y, w, h), string.Format("Sim steps: {0:0.00000} x {1}", dt, steps)); y += h;
+                }
+
+#if UNITY_EDITOR
+                if (GUI.Button(new Rect(x, y, w, h), "Select Ocean Mat"))
+                {
+                    var path = UnityEditor.AssetDatabase.GetAssetPath(OceanRenderer.Instance.OceanMaterial);
+                    var asset = UnityEditor.AssetDatabase.LoadMainAssetAtPath(path);
+                    UnityEditor.Selection.activeObject = asset;
+                }
+                y += h;
+#endif
             }
 
             if (GUI.Button(new Rect(x, y, w, h), "Hide GUI (G)"))
@@ -135,16 +139,6 @@ public class OceanDebugGUI : MonoBehaviour
                 ToggleGUI();
             }
             y += h;
-
-#if UNITY_EDITOR
-            if (GUI.Button(new Rect(x, y, w, h), "Select Ocean Mat"))
-            {
-                var path = UnityEditor.AssetDatabase.GetAssetPath(OceanRenderer.Instance.OceanMaterial);
-                var asset = UnityEditor.AssetDatabase.LoadMainAssetAtPath(path);
-                UnityEditor.Selection.activeObject = asset;
-            }
-            y += h;
-#endif
         }
 
         // draw source textures to screen
@@ -158,6 +152,8 @@ public class OceanDebugGUI : MonoBehaviour
 
     void DrawShapeTargets()
     {
+        if (OceanRenderer.Instance == null) return;
+
         // draw sim data
         float column = 1f;
 

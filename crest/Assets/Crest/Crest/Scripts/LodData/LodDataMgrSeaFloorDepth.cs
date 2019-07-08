@@ -55,11 +55,11 @@ namespace Crest
             {
                 if (UseGeometryShader)
                 {
-                    return "Crest/Inputs/Depth/Cached Depths";
+                    return "Crest/Inputs/Depth/Cached Depths Geometry";
                 }
                 else
                 {
-                    return "Crest/Inputs/Depth/Cached Depths Geometry";
+                    return "Crest/Inputs/Depth/Cached Depths";
                 }
             }
         }

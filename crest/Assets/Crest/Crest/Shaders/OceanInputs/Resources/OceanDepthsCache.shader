@@ -2,9 +2,8 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
-
 // Draw cached depths into current frame ocean depth data
-Shader "Crest/Inputs/Depth/Cached Depths Geometry"
+Shader "Crest/Inputs/Depth/Cached Depths"
 {
 	Properties
 	{
@@ -21,17 +20,19 @@ Shader "Crest/Inputs/Depth/Cached Depths Geometry"
 			BlendOp Min
 
 			CGPROGRAM
-			#pragma multi_compile_local __ _ENABLE_GEOMETRY_SHADER
 			#pragma vertex Vert
 			#pragma fragment Frag
 
-			#define SlicedVaryings Varyings
-			#include "OceanDepthsCacheCommon.hlsl"
+			#include "../../OceanLODData.hlsl"
 
-			float4 ObjectToPosition(float3 positionOS)
-			{
-				return UnityObjectToClipPos(positionOS);
-			}
+			sampler2D _MainTex;
+			float4 _MainTex_ST;
+			int _CurrentLodCount;
+			float4x4 _SliceViewProjMatrices[MAX_LOD_COUNT];
+
+			#include "UnityCG.cginc"
+
+			#include "OceanDepthsCacheCommon.hlsl"
 			ENDCG
 		}
 	}

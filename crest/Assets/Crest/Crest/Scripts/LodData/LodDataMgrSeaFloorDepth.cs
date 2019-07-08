@@ -24,46 +24,49 @@ namespace Crest
         private static int sp_CurrentLodCount = Shader.PropertyToID("_CurrentLodCount");
         private const string ENABLE_GEOMETRY_SHADER_KEYWORD = "_ENABLE_GEOMETRY_SHADER";
 
-        private static bool UseGeometryShader { get {
-            // Only use geometry shader if target device supports it.
-            // See https://docs.unity3d.com/2018.1/Documentation/Manual/SL-ShaderCompileTargets.html
-            // See https://docs.unity3d.com/ScriptReference/SystemInfo-graphicsShaderLevel.html
+        private static bool UseGeometryShader
+        {
+            get
+            {
+                // Only use geometry shader if target device supports it.
+                // See https://docs.unity3d.com/2018.1/Documentation/Manual/SL-ShaderCompileTargets.html
+                // See https://docs.unity3d.com/ScriptReference/SystemInfo-graphicsShaderLevel.html
 #if PLATFORM_ANDROID
             if(SystemInfo.graphicsDeviceType == GraphicsDeviceType.Vulkan)
             {
                 return false;
             }
 #endif
-            if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal)
-            {
-                return false;
+                if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal)
+                {
+                    return false;
+                }
+                if (SystemInfo.graphicsShaderLevel <= 35 || SystemInfo.graphicsShaderLevel == 45)
+                {
+                    return false;
+                }
+                return true;
             }
-            if(SystemInfo.graphicsShaderLevel <= 35 || SystemInfo.graphicsShaderLevel == 45)
-            {
-                return false;
-            }
-            return true;
-        }}
-
-        public static string ShaderName { get {
-            if(UseGeometryShader)
-            {
-                return "Crest/Inputs/Depth/Cached Depths";
-            }
-            else
-            {
-                return "Crest/Inputs/Depth/Cached Depths Geometry";
-            }
-        }}
-
-        private void OnEnable()
-        {
-            if(UseGeometryShader) { Shader.EnableKeyword(ENABLE_GEOMETRY_SHADER_KEYWORD); }
         }
 
-        private void OnDisable()
+        public static string ShaderName
         {
-            if(UseGeometryShader) { Shader.DisableKeyword(ENABLE_GEOMETRY_SHADER_KEYWORD); }
+            get
+            {
+                // Although GS and CS version of this shader are *identical*
+                // besides having a #define enabled/disabled - Unity doesn't
+                // support using keywords to enable/disable shader pipeline
+                // stages (like `#pragma geometry`) so we have to split them
+                // out into separate files unfortunately.
+                if (UseGeometryShader)
+                {
+                    return "Crest/Inputs/Depth/Cached Depths Geometry";
+                }
+                else
+                {
+                    return "Crest/Inputs/Depth/Cached Depths";
+                }
+            }
         }
 
         public override void BuildCommandBuffer(OceanRenderer ocean, CommandBuffer buf)
@@ -77,7 +80,8 @@ namespace Crest
                 return;
             }
 
-            if(UseGeometryShader) {
+            if (UseGeometryShader)
+            {
                 buf.SetRenderTarget(_targets, 0, CubemapFace.Unknown, -1);
                 buf.ClearRenderTarget(false, true, Color.white * 1000f);
 

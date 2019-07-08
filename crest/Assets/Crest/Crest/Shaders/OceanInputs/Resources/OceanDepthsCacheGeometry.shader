@@ -34,28 +34,8 @@ Shader "Crest/Inputs/Depth/Cached Depths Geometry"
 			float4x4 _SliceViewProjMatrices[MAX_LOD_COUNT];
 
 			#include "UnityCG.cginc"
-			#include "OceanDepthsCacheCommon.hlsl"
 
-			[maxvertexcount(MAX_LOD_COUNT * 3)]
-			void Geometry(
-				triangle Varyings input[3],
-				inout TriangleStream<Varyings> outStream
-			)
-			{
-				Varyings output;
-				for(int sliceIndex = 0; sliceIndex < _CurrentLodCount; sliceIndex++)
-				{
-					output.sliceIndex = sliceIndex;
-					for(int vertex = 0; vertex < 3; vertex++)
-					{
-						// Project to each slice
-						output.position = mul(_SliceViewProjMatrices[sliceIndex], input[vertex].position);
-						output.uv = input[vertex].uv;
-						outStream.Append(output);
-					}
-					outStream.RestartStrip();
-				}
-			}
+			#include "OceanDepthsCacheCommon.hlsl"
 			ENDCG
 		}
 	}

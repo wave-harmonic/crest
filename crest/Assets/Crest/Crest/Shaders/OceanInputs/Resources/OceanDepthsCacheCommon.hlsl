@@ -8,16 +8,22 @@ struct Attributes
 	float2 uv : TEXCOORD0;
 };
 
-struct Varyings
+struct VaryingsVS
+{
+	float4 position : SV_POSITION;
+	float2 uv : TEXCOORD0;
+};
+
+struct VaryingsGS
 {
 	float4 position : SV_POSITION;
 	float2 uv : TEXCOORD0;
 	uint sliceIndex : SV_RenderTargetArrayIndex;
 };
 
-Varyings Vert(Attributes input)
+VaryingsVS Vert(Attributes input)
 {
-	Varyings output;
+	VaryingsVS output;
 
 #ifdef CREST_OCEAN_DEPTHS_GEOM_SHADER_ON
 	// Geometry shader version - go to world space
@@ -28,12 +34,36 @@ Varyings Vert(Attributes input)
 #endif
 
 	output.uv = TRANSFORM_TEX(input.uv, _MainTex);
-	// May be overwritten by geometry shader
-	output.sliceIndex = 0;
+
 	return output;
 }
 
-half4 Frag(Varyings input) : SV_Target
+[maxvertexcount(MAX_LOD_COUNT * 3)]
+void Geometry(
+	triangle VaryingsVS input[3],
+	inout TriangleStream<VaryingsGS> outStream
+)
+{
+	VaryingsGS output;
+	for (int sliceIndex = 0; sliceIndex < _CurrentLodCount; sliceIndex++)
+	{
+		output.sliceIndex = sliceIndex;
+		for (int vertex = 0; vertex < 3; vertex++)
+		{
+			// Project to each slice
+			output.position = mul(_SliceViewProjMatrices[sliceIndex], input[vertex].position);
+			output.uv = input[vertex].uv;
+			outStream.Append(output);
+		}
+		outStream.RestartStrip();
+	}
+}
+
+#ifdef CREST_OCEAN_DEPTHS_GEOM_SHADER_ON
+half4 Frag(VaryingsGS input) : SV_Target
+#else
+half4 Frag(VaryingsVS input) : SV_Target
+#endif
 {
 	return half4(tex2D(_MainTex, input.uv).x, 0.0, 0.0, 0.0);
 }

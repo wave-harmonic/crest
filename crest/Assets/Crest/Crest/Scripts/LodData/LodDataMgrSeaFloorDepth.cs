@@ -30,7 +30,7 @@ namespace Crest
             {
                 // Only use geometry shader if target device supports it.
                 // Check for specific platforms which have poor/lacking geometry
-                // shader support first, before
+                // shader support first, before checking runtime platform info.
 #if UNITY_PS4 || UNITY_ANDROID || UNITY_IOS
                 // Mobile Devices don't support geometry shaders at all in a way
                 // that makes sense to support them:

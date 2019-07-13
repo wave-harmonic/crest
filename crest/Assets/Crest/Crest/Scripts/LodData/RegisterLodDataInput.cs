@@ -62,6 +62,9 @@ namespace Crest
                 buf.DrawRenderer(_renderer, _materials[isTransition]);
             }
         }
+
+        public int MaterialCount => _materials.Length;
+        public Material GetMaterial(int index) => _materials[index];
     }
 
     /// <summary>

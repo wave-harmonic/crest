@@ -102,6 +102,10 @@ namespace Crest
             var rnd = 1f + _noiseAmp * (2f * Mathf.PerlinNoise(_noiseFreq * ocean.CurrentTime, 0.5f) - 1f);
             // feed in water velocity
             var vel = (transform.position - _posLast) / ocean.DeltaTimeDynamics;
+            if (ocean.DeltaTimeDynamics < 0.0001f)
+            {
+                vel = Vector3.zero;
+            }
 
             if (ocean._simSettingsFlow != null &&
                 ocean._simSettingsFlow._readbackData &&

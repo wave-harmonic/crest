@@ -35,7 +35,7 @@ namespace Crest
         [SerializeField]
         float _velocityPositionOffset = 0.2f;
 
-        Material _mat;
+        RegisterDynWavesInput _dynWavesInput;
         FloatingObjectBase _boat;
         Vector3 _posLast;
         SamplingData _samplingDataFlow = new SamplingData();
@@ -50,9 +50,15 @@ namespace Crest
 
             _localOffset = transform.localPosition;
 
-            _mat = GetComponent<Renderer>().material;
-            _boat = GetComponentInParent<FloatingObjectBase>();
+            _dynWavesInput = GetComponent<RegisterDynWavesInput>();
+            if (_dynWavesInput == null)
+            {
+                Debug.LogError("ObjectWaterInteraction script requires RegisterDynWavesInput script to be present.", this);
+                enabled = false;
+                return;
+            }
 
+            _boat = GetComponentInParent<FloatingObjectBase>();
             if (_boat == null)
             {
                 Debug.LogError("FloatingObjectBase required. Disabling FeedVelocityToExtrude.", this);
@@ -134,14 +140,19 @@ namespace Crest
                 }
             }
 
-            _mat.SetVector("_Velocity", rnd * vel);
-            _posLast = transform.position;
-
-            _mat.SetFloat("_Weight", _boat.InWater ? _weight / simsActive : 0f);
-
             float dt; int steps;
             OceanRenderer.Instance._lodDataDynWaves.GetSimSubstepData(Time.deltaTime, out steps, out dt);
-            _mat.SetFloat("_SimDeltaTime", dt);
+            float weight = _boat.InWater ? _weight / simsActive : 0f;
+            for (int mati = 0; mati < _dynWavesInput.MaterialCount; mati++)
+            {
+                var mat = _dynWavesInput.GetMaterial(mati);
+
+                mat.SetVector("_Velocity", vel);
+                mat.SetFloat("_Weight", weight);
+                mat.SetFloat("_SimDeltaTime", dt);
+            }
+
+            _posLast = transform.position;
         }
     }
 }

@@ -48,7 +48,7 @@ namespace Crest
         public bool ComputeUndisplacedPosition(ref Vector3 i_worldPos, SamplingData i_samplingData, out Vector3 undisplacedWorldPos)
         {
             // Tag should not be null if the collision source is GPU readback.
-            Debug.Assert(i_samplingData._tag != null);
+            Debug.Assert(i_samplingData._tag != null, "Invalid sampling data - LOD to sample from was unspecified.");
 
             var lodData = i_samplingData._tag as PerLodData;
 

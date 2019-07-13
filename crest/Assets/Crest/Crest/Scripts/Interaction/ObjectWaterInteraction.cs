@@ -91,12 +91,14 @@ namespace Crest
             var disp = _boat.CalculateDisplacementToObject();
             transform.position = transform.parent.TransformPoint(_localOffset) - disp + _velocityPositionOffset * _boat.RB.velocity;
 
-            var rnd = 1f + _noiseAmp * (2f * Mathf.PerlinNoise(_noiseFreq * OceanRenderer.Instance.CurrentTime, 0.5f) - 1f);
-            // feed in water velocity
-            var vel = (transform.position - _posLast) / Time.deltaTime;
+            var ocean = OceanRenderer.Instance;
 
-            if (OceanRenderer.Instance._simSettingsFlow != null &&
-                OceanRenderer.Instance._simSettingsFlow._readbackData &&
+            var rnd = 1f + _noiseAmp * (2f * Mathf.PerlinNoise(_noiseFreq * ocean.CurrentTime, 0.5f) - 1f);
+            // feed in water velocity
+            var vel = (transform.position - _posLast) / ocean.DeltaTimeDynamics;
+
+            if (ocean._simSettingsFlow != null &&
+                ocean._simSettingsFlow._readbackData &&
                 GPUReadbackFlow.Instance)
             {
                 var position = transform.position;
@@ -140,7 +142,7 @@ namespace Crest
             _mat.SetFloat("_Weight", _boat.InWater ? _weight / simsActive : 0f);
 
             float dt; int steps;
-            OceanRenderer.Instance._lodDataDynWaves.GetSimSubstepData(Time.deltaTime, out steps, out dt);
+            ocean._lodDataDynWaves.GetSimSubstepData(ocean.DeltaTimeDynamics, out steps, out dt);
             _mat.SetFloat("_SimDeltaTime", dt);
         }
     }

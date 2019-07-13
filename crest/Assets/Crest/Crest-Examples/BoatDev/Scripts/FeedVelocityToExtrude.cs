@@ -95,7 +95,7 @@ public class FeedVelocityToExtrude : MonoBehaviour
 
         var rnd = 1f + _noiseAmp * (2f * Mathf.PerlinNoise(_noiseFreq * OceanRenderer.Instance.CurrentTime, 0.5f) - 1f);
         // feed in water velocity
-        var vel = (transform.position - _posLast) / Time.deltaTime;
+        var vel = (transform.position - _posLast) / OceanRenderer.Instance.DeltaTimeDynamics;
 
         if (OceanRenderer.Instance._simSettingsFlow != null &&
             OceanRenderer.Instance._simSettingsFlow._readbackData &&
@@ -142,7 +142,7 @@ public class FeedVelocityToExtrude : MonoBehaviour
         _mat.SetFloat("_Weight", _boat.InWater ? _weight / simsActive : 0f);
 
         float dt; int steps;
-        OceanRenderer.Instance._lodDataDynWaves.GetSimSubstepData(Time.deltaTime, out steps, out dt);
+        OceanRenderer.Instance._lodDataDynWaves.GetSimSubstepData(OceanRenderer.Instance.DeltaTimeDynamics, out steps, out dt);
         _mat.SetFloat("_SimDeltaTime", dt);
     }
 }

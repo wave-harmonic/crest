@@ -94,7 +94,7 @@ namespace Crest
             var lodCount = OceanRenderer.Instance.CurrentLodCount;
             float substepDt;
             int numSubsteps;
-            GetSimSubstepData(Time.deltaTime, out numSubsteps, out substepDt);
+            GetSimSubstepData(ocean.DeltaTime, out numSubsteps, out substepDt);
 
             for (int stepi = 0; stepi < numSubsteps; stepi++)
             {

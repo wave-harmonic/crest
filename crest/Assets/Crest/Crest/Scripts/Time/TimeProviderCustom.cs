@@ -10,13 +10,9 @@ namespace Crest
     public class TimeProviderCustom : TimeProviderBase
     {
         public float _time = 0f;
+        public float _deltaTime = 0f;
 
-        public override float CurrentTime
-        {
-            get
-            {
-                return _time;
-            }
-        }
+        public override float CurrentTime => _time;
+        public override float DeltaTime => _deltaTime;
     }
 }

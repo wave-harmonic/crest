@@ -18,8 +18,9 @@ namespace Crest
 
         [Tooltip("Optional provider for time, can be used to hard-code time for automation, or provide server time. Defaults to local Unity time."), SerializeField]
         TimeProviderBase _timeProvider;
-        public float CurrentTime { get { return _timeProvider.CurrentTime; } }
-
+        public float CurrentTime => _timeProvider.CurrentTime;
+        public float DeltaTime => _timeProvider.DeltaTime;
+        public float DeltaTimeDynamics => _timeProvider.DeltaTimeDynamics;
 
         [Header("Ocean Params")]
 

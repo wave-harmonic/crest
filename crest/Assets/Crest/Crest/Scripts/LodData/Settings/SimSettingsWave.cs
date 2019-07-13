@@ -15,10 +15,10 @@ namespace Crest
         [Range(0f, 32f), Tooltip("The wave sim will not run if the simulation grid is bigger in resolution than this size. Zero means no constraint/unlimited resolutions. Useful to limit sim range for performance.")]
         public float _maxGridSize = 0f;
         [Tooltip("Max dt used for simulation.")]
-        public float _maxSubstepDt = 1f / 60;
+        public float _maxSubstepDt = 0.018f;
 
         [Range(0f, 1f), Tooltip("How much energy is dissipated each frame.")]
-        public float _damping = 0.173f;
+        public float _damping = 0.05f;
 
         [Header("Displacement Generation")]
         [Range(0f, 20f), Tooltip("Induce horizontal displacements to sharpen simulated waves.")]

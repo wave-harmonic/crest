@@ -123,15 +123,9 @@ namespace Crest
         public override void GetSimSubstepData(float frameDt, out int numSubsteps, out float substepDt)
         {
             numSubsteps = Mathf.CeilToInt(frameDt / Settings._maxSubstepDt);
-            numSubsteps = Mathf.Min(MAX_SIM_STEPS, numSubsteps);
-            if (numSubsteps > 0)
-            {
-                substepDt = Mathf.Min(Settings._maxSubstepDt, frameDt / numSubsteps);
-            }
-            else
-            {
-                substepDt = 0f;
-            }
+            // Always do at least one step so that the sim moves around when time is frozen
+            numSubsteps = Mathf.Clamp(numSubsteps, 1, MAX_SIM_STEPS);
+            substepDt = Mathf.Min(Settings._maxSubstepDt, frameDt / numSubsteps);
         }
 
         public static string TextureArrayName = "_LD_TexArray_DynamicWaves";

@@ -17,7 +17,7 @@ namespace Crest
         Bounds _boundsLocal;
         Mesh _mesh;
         Renderer _rend;
-        public PropertyWrapperMPB _mpb;
+        PropertyWrapperMPB _mpb;
 
         // Cache these off to support regenerating ocean surface
         int _lodIndex = -1;

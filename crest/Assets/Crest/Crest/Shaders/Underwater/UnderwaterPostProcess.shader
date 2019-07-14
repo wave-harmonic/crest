@@ -44,10 +44,8 @@
 			{
 				fixed4 col = tex2D(_MainTex, i.uv);
 				int mask = tex2D(_MaskTex, i.uv);
-				// if(i.uv.y < _HorizonHeight)
-				// col.rgb += fixed3(0.5, 0.5, 0.5);
-				// if(mask > 0)
-				if(i.uv.y < _HorizonHeight)
+				bool isUnderwater = mask == 2 || (i.uv.y < _HorizonHeight && mask != 1);
+				if(isUnderwater)
 				{
 					col.rgb -= fixed3(0.5, 0.5, 0.5);
 				}

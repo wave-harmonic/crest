@@ -55,16 +55,17 @@ namespace Crest
             CommandBuffer commandBuffer = new CommandBuffer();
             commandBuffer.name = "Underwater Post Process";
             commandBuffer.SetRenderTarget(_textureMask.colorBuffer, _depthBuffer.depthBuffer);
+            commandBuffer.ClearRenderTarget(true, true, Color.black);
             OceanChunkRenderer[] chunkComponents = Object.FindObjectsOfType<OceanChunkRenderer>();
+            //_oceanMaskMat.EnableKeyword("_UNDERWATER_MASK_ON");
+            commandBuffer.SetViewProjectionMatrices(_mainCamera.worldToCameraMatrix, _mainCamera.projectionMatrix);
             foreach (OceanChunkRenderer chunkComponent in chunkComponents)
             {
-                MeshFilter meshFilter = chunkComponent.GetComponent<MeshFilter>();
-                Matrix4x4 cameraTransform = GL.GetGPUProjectionMatrix(_mainCamera.projectionMatrix, true) * _mainCamera.worldToCameraMatrix;
-                commandBuffer.DrawMesh(
-                    meshFilter.mesh,
-                   cameraTransform * chunkComponent.transform.localToWorldMatrix,
-                   _oceanMaskMat
-                );
+                Renderer renderer = chunkComponent.GetComponent<Renderer>();
+                if (chunkComponent._mpb != null)
+                {
+                    commandBuffer.DrawRenderer(renderer, _oceanMaskMat);
+                }
             }
 
             // TODO(UPP): handle Roll
@@ -83,6 +84,7 @@ namespace Crest
             commandBuffer.Blit(source, target, _underWaterPostProcMat);
 
             Graphics.ExecuteCommandBuffer(commandBuffer);
+            //_oceanMaskMat.DisableKeyword("_UNDERWATER_MASK_ON");
         }
     }
 

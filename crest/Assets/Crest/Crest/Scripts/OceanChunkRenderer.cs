@@ -17,7 +17,7 @@ namespace Crest
         Bounds _boundsLocal;
         Mesh _mesh;
         Renderer _rend;
-        PropertyWrapperMPB _mpb;
+        public PropertyWrapperMPB _mpb;
 
         // Cache these off to support regenerating ocean surface
         int _lodIndex = -1;
@@ -127,7 +127,7 @@ namespace Crest
             if (ldflow) ldflow.BindResultData(_mpb);
             if (ldfoam) ldfoam.BindResultData(_mpb); else LodDataMgrFoam.BindNull(_mpb);
             if (ldsds) ldsds.BindResultData(_mpb);
-            if (ldshadows) ldshadows.BindResultData(_mpb); else LodDataMgrShadow.BindNull( _mpb);
+            if (ldshadows) ldshadows.BindResultData(_mpb); else LodDataMgrShadow.BindNull(_mpb);
 
             var reflTex = PreparedReflections.GetRenderTexture(_currentCamera.GetInstanceID());
             if (reflTex)

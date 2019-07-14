@@ -41,7 +41,8 @@ namespace Crest
             {
                 _textureMask = new RenderTexture(source);
                 _textureMask.name = "Ocean Mask";
-                _textureMask.format = RenderTextureFormat.R8;
+                // TODO(UPP): See if we can make this an 8bit texture somehow
+                _textureMask.format = RenderTextureFormat.RFloat;
                 _textureMask.Create();
 
                 _depthBuffer = new RenderTexture(source);
@@ -57,7 +58,7 @@ namespace Crest
             commandBuffer.SetRenderTarget(_textureMask.colorBuffer, _depthBuffer.depthBuffer);
             commandBuffer.ClearRenderTarget(true, true, Color.black);
             OceanChunkRenderer[] chunkComponents = Object.FindObjectsOfType<OceanChunkRenderer>();
-            //_oceanMaskMat.EnableKeyword("_UNDERWATER_MASK_ON");
+            _oceanMaskMat.EnableKeyword("_UNDERWATER_MASK_ON");
             commandBuffer.SetViewProjectionMatrices(_mainCamera.worldToCameraMatrix, _mainCamera.projectionMatrix);
             foreach (OceanChunkRenderer chunkComponent in chunkComponents)
             {
@@ -84,7 +85,7 @@ namespace Crest
             commandBuffer.Blit(source, target, _underWaterPostProcMat);
 
             Graphics.ExecuteCommandBuffer(commandBuffer);
-            //_oceanMaskMat.DisableKeyword("_UNDERWATER_MASK_ON");
+            _oceanMaskMat.DisableKeyword("_UNDERWATER_MASK_ON");
         }
     }
 

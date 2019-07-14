@@ -205,6 +205,7 @@ Shader "Crest/Ocean"
 			#pragma shader_feature _DEBUGVISUALISEFLOW_ON
 			#pragma shader_feature _DEBUGDISABLESMOOTHLOD_ON
 			#pragma shader_feature _COMPILESHADERWITHDEBUGINFO_ON
+			#pragma multi_compile __ _UNDERWATER_MASK_ON
 
 			#if _COMPILESHADERWITHDEBUGINFO_ON
 			#pragma enable_d3d11_debug_symbols
@@ -389,6 +390,19 @@ Shader "Crest/Ocean"
 				return backface || _ForceUnderwater > 0.0;
 			}
 
+			#if _UNDERWATER_MASK_ON
+			half4 Frag(const Varyings input, const float facing : VFACE) : SV_Target
+			{
+				if(IsUnderwater(facing))
+				{
+					return half4(2.0, 2.0, 2.0, 1.0);
+				}
+				else
+				{
+					return half4(1.0, 1.0, 1.0, 1.0);
+				}
+			}
+			#else
 			half4 Frag(const Varyings input, const float facing : VFACE) : SV_Target
 			{
 				const bool underwater = IsUnderwater(facing);
@@ -489,6 +503,7 @@ Shader "Crest/Ocean"
 
 				return half4(col, 1.);
 			}
+			#endif
 
 			ENDCG
 		}

@@ -109,6 +109,7 @@ namespace Crest
         /// </summary>
         public float Scale { get; private set; }
         public float CalcLodScale(float lodIndex) { return Scale * Mathf.Pow(2f, lodIndex); }
+        public float CalcGridSize(int lodIndex) { return CalcLodScale(lodIndex) / LodDataResolution; }
 
         /// <summary>
         /// The ocean changes scale when viewer changes altitude, this gives the interpolation param between scales.

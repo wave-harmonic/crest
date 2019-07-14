@@ -41,7 +41,20 @@ void UpdateDynWaves(uint3 id : SV_DispatchThreadID)
 	}
 	const float2 input_uv = IDtoUV(id.xy, width, height);
 	const float2 worldPosXZ = UVToWorld(input_uv, sliceIndex);
-	const float dt = _SimDeltaTime;
+	const float gridSize = _LD_Params[sliceIndex].x;
+
+	// average wavelength for this scale
+	float wavelength = 1.0 * _TexelsPerWave * gridSize;
+	// could make velocity depend on waves
+	//float h = max(waterSignedDepth + ft, 0.);
+	float c = ComputeWaveSpeed(wavelength, _Gravity);
+
+	float dt = _SimDeltaTime;
+	//// Limit timestep based on Courant constant: https://www.uio.no/studier/emner/matnat/ifi/nedlagte-emner/INF2340/v05/foiler/sim04.pdf
+	//float Cmax = 0.4;// 0.7;
+	//float maxDt = 0.5 * Cmax * gridSize / c;
+	////if (dt > maxDt) dt = 0.0;
+	//dt = min(dt, maxDt);
 
 	float3 uv_slice = float3(input_uv, sliceIndex);
 
@@ -57,6 +70,7 @@ void UpdateDynWaves(uint3 id : SV_DispatchThreadID)
 
 	// compute axes of laplacian kernel - rotated every frame
 	float e = _LD_Params_Source[sliceIndexSource].w; // assumes square RT
+	//float3 X = float3(1.0, 0.0, 0.0);
 	float3 X = float3(_LaplacianAxisX, 0.0);
 	float3 Y = float3(-X.y, X.x, 0.0);
 	float fxm = SampleLod(_LD_TexArray_DynamicWaves_Source, uv_source - e*X).x; // x minus
@@ -77,26 +91,18 @@ void UpdateDynWaves(uint3 id : SV_DispatchThreadID)
 
 	float ft = ft_v.x; // t - current value before update
 
-	const float gridSize = _LD_Params[sliceIndex].x;
-
-	// average wavelength for this scale
-	float wavelength = 1.5 * _TexelsPerWave * gridSize;
-	// could make velocity depend on waves
-	//float h = max(waterSignedDepth + ft, 0.);
-	float c = ComputeWaveSpeed(wavelength, _Gravity);
-
 	// wave propagation
 	// velocity is implicit
 	float v = ft_v.y;
 
-	// damping
-	v *= 1.0 - min(1.0, _Damping * dt);
-
 
 
 	// wave equation
-	float coeff = min( dt*c*c / (gridSize*gridSize), 1.0);
+	float coeff = dt * c * c / (gridSize*gridSize);
 	v += coeff * (fxm + fxp + fym + fyp - 4.0 * ft);
+
+	// damping. works ok at low dts, doesnt damp well at high dts which counter intuitively leads to instabilities, i think.
+	v *= 1.0 - min(1.0, _Damping * dt);
 
 
 

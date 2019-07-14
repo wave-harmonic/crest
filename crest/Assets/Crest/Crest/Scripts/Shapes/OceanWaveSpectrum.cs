@@ -87,7 +87,7 @@ namespace Crest
             return a;
         }
 
-        float ComputeWaveSpeed(float wavelength)
+        public static float ComputeWaveSpeed(float wavelength)
         {
             // wave speed of deep sea ocean waves: https://en.wikipedia.org/wiki/Wind_wave
             // https://en.wikipedia.org/wiki/Dispersion_(water_waves)#Wave_propagation_and_dispersion

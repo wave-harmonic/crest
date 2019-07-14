@@ -127,6 +127,7 @@ GameObject:
   - component: {fileID: 227134473}
   - component: {fileID: 227134467}
   - component: {fileID: 227134472}
+  - component: {fileID: 227134468}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -156,6 +157,21 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _showSimTargets: 1
   _guiVisible: 1
+--- !u!114 &227134468
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 227134465}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1b0c0a69611596146aceb2f60532940c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _underWaterPostProcMat: {fileID: 2100000, guid: 95ea0c2815f0aa798beeb370980c6614,
+    type: 2}
+  _oceanMaskMat: {fileID: 0}
 --- !u!20 &227134469
 Camera:
   m_ObjectHideFlags: 0

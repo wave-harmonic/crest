@@ -72,11 +72,15 @@ namespace Crest
             // TODO(UPP): handle Roll
             float horizonRoll = 0.0f;
             float horizonHeight = 0.0f;
-            float halfFov = _mainCamera.fieldOfView * 0.5f;
-            Vector3 cameraForward = _mainCamera.transform.forward;
-            float cameraRotation = Mathf.Atan2(-1.0f * cameraForward.y, (new Vector2(cameraForward.x, cameraForward.z)).magnitude);
-            float halfProp = Mathf.Tan(cameraRotation * 0.5f) / Mathf.Tan(halfFov * Mathf.Deg2Rad);
-            horizonHeight = halfProp + 0.5f;
+            {
+                // Calculate the horizon height in screen space
+                // TODO(UPP): Get this to actually work
+                float halfFov = _mainCamera.fieldOfView * 0.5f;
+                Vector3 cameraForward = _mainCamera.transform.forward;
+                float cameraRotation = Mathf.Atan2(-1.0f * cameraForward.y, (new Vector2(cameraForward.x, cameraForward.z)).magnitude);
+                float halfProp = Mathf.Tan(cameraRotation * 0.5f) / Mathf.Tan(halfFov * Mathf.Deg2Rad);
+                horizonHeight = halfProp + 0.5f;
+            }
 
             _underWaterPostProcMat.SetFloat(sp_HorizonHeight, horizonHeight);
             _underWaterPostProcMat.SetFloat(sp_HorizonOrientation, horizonRoll);

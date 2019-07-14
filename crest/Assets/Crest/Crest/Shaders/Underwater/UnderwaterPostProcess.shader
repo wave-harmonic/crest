@@ -44,18 +44,32 @@
 
 			fixed3 ApplyUnderwaterEffect(fixed3 prevCol)
 			{
+				// TODO(UPP): apply some kind of decent underwater effect
 				return fixed3(prevCol.r, 0.0, 0.0);
 			}
 
 			fixed4 Frag (Varyings i) : SV_Target
 			{
 				fixed4 col = tex2D(_MainTex, i.uv);
-				int mask = tex2D(_MaskTex, i.uv);
-				bool isUnderwater = mask == 2 || (i.uv.y < _HorizonHeight && mask != 1);
+				bool isBelowHorizon;
+				{
+					// TODO(UPP): Create a cheap and accurate equation for
+					// determining if we are below the horizon that can work
+					// with any camera orientation
+					isBelowHorizon = i.uv.y < _HorizonHeight;
+				}
+
+				bool isUnderwater;
+				{
+					int mask = tex2D(_MaskTex, i.uv);
+					isUnderwater = mask == 2 || (isBelowHorizon && mask != 1);
+				}
+
 				if(isUnderwater)
 				{
 					col.rgb = ApplyUnderwaterEffect(col.rgb);
 				}
+
 				return col;
 			}
 			ENDCG

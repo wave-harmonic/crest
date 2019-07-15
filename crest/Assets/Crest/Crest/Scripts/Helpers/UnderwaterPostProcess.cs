@@ -18,6 +18,7 @@ namespace Crest
         static int sp_HorizonHeight = Shader.PropertyToID("_HorizonHeight");
         static int sp_HorizonOrientation = Shader.PropertyToID("_HorizonOrientation");
         static int sp_MaskTex = Shader.PropertyToID("_MaskTex");
+        static int sp_MaskDepthTex = Shader.PropertyToID("_MaskDepthTex");
 
         void Start()
         {
@@ -83,6 +84,7 @@ namespace Crest
             _underWaterPostProcMat.SetFloat(sp_HorizonHeight, horizonHeight);
             _underWaterPostProcMat.SetFloat(sp_HorizonOrientation, horizonRoll);
             _underWaterPostProcMat.SetTexture(sp_MaskTex, _textureMask);
+            _underWaterPostProcMat.SetTexture(sp_MaskDepthTex, _depthBuffer);
 
             _commandBuffer.Blit(source, target, _underWaterPostProcMat);
 

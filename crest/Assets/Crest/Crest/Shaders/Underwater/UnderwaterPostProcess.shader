@@ -41,6 +41,8 @@
 
 			sampler2D _MainTex;
 			sampler2D _MaskTex;
+			sampler2D _MaskDepthTex;
+			sampler2D _CameraDepthTexture;
 
 			fixed3 ApplyUnderwaterEffect(fixed3 prevCol)
 			{
@@ -59,15 +61,25 @@
 					isBelowHorizon = i.uv.y < _HorizonHeight;
 				}
 
+				const float sceneZ01 = tex2D(_CameraDepthTexture, i.uv).x;
+
+
 				bool isUnderwater;
+				bool isSurface;
 				{
 					int mask = tex2D(_MaskTex, i.uv);
+					const float maskDepth = tex2D(_MaskDepthTex, i.uv);
+					isSurface = mask != 0 && (sceneZ01 < maskDepth);
 					isUnderwater = mask == 2 || (isBelowHorizon && mask != 1);
 				}
 
 				if(isUnderwater)
 				{
-					col.rgb = ApplyUnderwaterEffect(col.rgb);
+					const float sceneZ = LinearEyeDepth(sceneZ01);
+					if(!isSurface)
+					{
+						col.rgb = sceneZ01; //ApplyUnderwaterEffect(col.rgb);
+					}
 				}
 
 				return col;

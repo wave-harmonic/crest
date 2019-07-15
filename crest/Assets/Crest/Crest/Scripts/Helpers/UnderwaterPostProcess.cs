@@ -15,6 +15,7 @@ namespace Crest
         private RenderTexture _textureMask;
         private RenderTexture _depthBuffer;
         private CommandBuffer _commandBuffer;
+        private PropertyWrapperMaterial _underWaterPostProcMatWrapper;
         static int sp_HorizonHeight = Shader.PropertyToID("_HorizonHeight");
         static int sp_HorizonOrientation = Shader.PropertyToID("_HorizonOrientation");
         static int sp_MaskTex = Shader.PropertyToID("_MaskTex");
@@ -33,6 +34,11 @@ namespace Crest
 
             _commandBuffer = new CommandBuffer();
             _commandBuffer.name = "Underwater Post Process";
+
+            if(_underWaterPostProcMat != null)
+            {
+                _underWaterPostProcMatWrapper = new PropertyWrapperMaterial(_underWaterPostProcMat);
+            }
         }
 
         void OnRenderImage(RenderTexture source, RenderTexture target)
@@ -79,6 +85,27 @@ namespace Crest
                 float cameraRotation = Mathf.Atan2(-1.0f * cameraForward.y, (new Vector2(cameraForward.x, cameraForward.z)).magnitude);
                 float halfProp = Mathf.Tan(cameraRotation * 0.5f) / Mathf.Tan(halfFov * Mathf.Deg2Rad);
                 horizonHeight = halfProp + 0.5f;
+            }
+
+            _underWaterPostProcMat.CopyPropertiesFromMaterial(OceanRenderer.Instance.OceanMaterial);
+            _underWaterPostProcMat.SetFloat(OceanRenderer.sp_LD_SliceIndex, 0);
+
+            OceanRenderer.Instance._lodDataAnimWaves.BindResultData(_underWaterPostProcMatWrapper);
+            if (OceanRenderer.Instance._lodDataSeaDepths)
+            {
+                OceanRenderer.Instance._lodDataSeaDepths.BindResultData(_underWaterPostProcMatWrapper);
+            }
+            else
+            {
+                LodDataMgrSeaFloorDepth.BindNull(_underWaterPostProcMatWrapper);
+            }
+            if (OceanRenderer.Instance._lodDataShadow)
+            {
+                OceanRenderer.Instance._lodDataShadow.BindResultData(_underWaterPostProcMatWrapper);
+            }
+            else
+            {
+                LodDataMgrShadow.BindNull(_underWaterPostProcMatWrapper);
             }
 
             _underWaterPostProcMat.SetFloat(sp_HorizonHeight, horizonHeight);

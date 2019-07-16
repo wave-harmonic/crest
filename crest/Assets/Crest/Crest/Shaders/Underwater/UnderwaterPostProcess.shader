@@ -18,6 +18,8 @@
 			#pragma shader_feature _SHADOWS_ON
 			#pragma shader_feature _COMPILESHADERWITHDEBUGINFO_ON
 
+			#pragma enable_d3d11_debug_symbols
+
 			#include "UnityCG.cginc"
 			#include "Lighting.cginc"
 			#include "../OceanLODData.hlsl"
@@ -28,6 +30,7 @@
 
 			float _HorizonHeight;
 			float _HorizonRoll;
+			float4x4 _InvViewProjection;
 
 			struct Attributes
 			{
@@ -39,8 +42,7 @@
 			{
 				float4 positionCS : SV_POSITION;
 				float2 uv : TEXCOORD0;
-				// The pixel position in world space
-				float3 positionWS : TEXCOORD1;
+				float3 viewWS : TEXCOORD1;
 			};
 
 			Varyings Vert (Attributes input)
@@ -49,20 +51,10 @@
 				output.positionCS = UnityObjectToClipPos(input.positionOS);
 				output.uv = input.uv;
 
-				// TODO(UPP): Properly calculate the output position of a pixel in
-				// worldspace
 				{
-					// view coordinate frame for camera
-					const float3 right   = unity_CameraToWorld._11_21_31;
-					const float3 up      = unity_CameraToWorld._12_22_32;
-					const float3 forward = unity_CameraToWorld._13_23_33;
-
-					const float3 nearPlaneCenter = _WorldSpaceCameraPos + forward * _ProjectionParams.y * 1.001;
-					// Spread verts across the near plane.
-					const float aspect = _ScreenParams.x / _ScreenParams.y;
-					output.positionWS = nearPlaneCenter
-						+ 2.6 * unity_CameraInvProjection._m11 * aspect * right * input.positionOS.x * _ProjectionParams.y
-						+ up * input.positionOS.z * _ProjectionParams.y;
+					const float2 pixelCS = input.uv * 2 - float2(1.0, 1.0);
+					const float4 pixelWS = mul(_InvViewProjection, float4(pixelCS, 1.0, 1.0));
+					output.viewWS = (pixelWS.xyz/pixelWS.w) - _WorldSpaceCameraPos;
 				}
 				return output;
 			}
@@ -75,10 +67,9 @@
 			sampler2D _CameraDepthTexture;
 			sampler2D _Normals;
 
-			half3 ApplyUnderwaterEffect(half3 sceneColour, const float sceneZ01, const float3 positionWS)
+			half3 ApplyUnderwaterEffect(half3 sceneColour, const float sceneZ01, const half3 view)
 			{
 				const float sceneZ = LinearEyeDepth(sceneZ01);
-				const half3 view = normalize(_WorldSpaceCameraPos - positionWS);
 				const float3 lightDir = _WorldSpaceLightPos0.xyz;
 
 				float3 surfaceAboveCamPosWorld = 0.0;
@@ -132,7 +123,8 @@
 				{
 					if(!isSurface)
 					{
-						sceneColour = ApplyUnderwaterEffect(sceneColour, sceneZ01, input.positionWS);
+						const half3 view = normalize(input.viewWS);
+						sceneColour = ApplyUnderwaterEffect(sceneColour, sceneZ01, view);
 					}
 				}
 

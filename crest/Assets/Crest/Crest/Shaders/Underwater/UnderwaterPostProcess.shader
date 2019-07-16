@@ -105,6 +105,12 @@
 					// TODO(UPP): Create a cheap and accurate equation for
 					// determining if we are below the horizon that can work
 					// with any camera orientation
+
+					// NOTE: I tried to do this by checking if the y component
+					// of the view vector was less than 0, but the assumption
+					// that the horizon extends-out to infinity was too grand.
+					// We need to workout exactly to which point the ocean
+					// horizon extends.
 					isBelowHorizon = input.uv.y < _HorizonHeight;
 				}
 

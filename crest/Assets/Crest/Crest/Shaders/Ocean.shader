@@ -137,7 +137,7 @@ Shader "Crest/Ocean"
 		// The scale of the distortion pattern used to distort the caustics
 		_CausticsDistortionScale("Distortion Scale", Range(0.01, 50.0)) = 10.0
 
-		// To use the underwater effect the UnderWaterCurtainGeom and UnderWaterMeniscus prefabs must be parented to the camera.
+		// To use the underwater effect the UnderWaterPostProcessor component must be attached to the camera.
 		[Header(Underwater)]
 		// Whether the underwater effect is being used. This enables code that shades the surface correctly from underneath.
 		[Toggle] _Underwater("Enable", Float) = 0

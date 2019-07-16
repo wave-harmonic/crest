@@ -101,7 +101,7 @@ namespace Crest
             // Get all ocean chunks and render them using cmd buffer, but with
             _commandBuffer.SetRenderTarget(_textureMask.colorBuffer, _depthBuffer.depthBuffer);
             _commandBuffer.ClearRenderTarget(true, true, Color.black);
-            _oceanMaskMat.EnableKeyword("_UNDERWATER_MASK_ON");
+            _oceanMaskMat.EnableKeyword("_RENDER_UNDERWATER_MASK");
             _commandBuffer.SetViewProjectionMatrices(_mainCamera.worldToCameraMatrix, _mainCamera.projectionMatrix);
             for(int oceanChunkIndex = 0; oceanChunkIndex < _oceanChunksToRenderCount; oceanChunkIndex++)
             {
@@ -155,7 +155,7 @@ namespace Crest
             _commandBuffer.Blit(source, target, _underWaterPostProcMat);
 
             Graphics.ExecuteCommandBuffer(_commandBuffer);
-            _oceanMaskMat.DisableKeyword("_UNDERWATER_MASK_ON");
+            _oceanMaskMat.DisableKeyword("_RENDER_UNDERWATER_MASK");
             _commandBuffer.Clear();
 
             // Need this to prevent Unity from giving the following warning.

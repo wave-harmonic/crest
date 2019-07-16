@@ -205,7 +205,12 @@ Shader "Crest/Ocean"
 			#pragma shader_feature _DEBUGVISUALISEFLOW_ON
 			#pragma shader_feature _DEBUGDISABLESMOOTHLOD_ON
 			#pragma shader_feature _COMPILESHADERWITHDEBUGINFO_ON
-			#pragma multi_compile __ _UNDERWATER_MASK_ON
+			// This is used to render a very simple mask of the underwater to
+			// allow the post-processing shader to know where the front and
+			// backfaces of the ocean have been rendered in screen-space.
+			// It is done as a seperate pass, but in order to keep all of the
+			// material params intact, we include this pass the same shader.
+			#pragma multi_compile __ _RENDER_UNDERWATER_MASK
 
 			#if _COMPILESHADERWITHDEBUGINFO_ON
 			#pragma enable_d3d11_debug_symbols
@@ -223,6 +228,7 @@ Shader "Crest/Ocean"
 			struct Varyings
 			{
 				float4 positionCS : SV_POSITION;
+				#if !_RENDER_UNDERWATER_MASK
 				half4 flow_shadow : TEXCOORD1;
 				half4 foam_screenPos : TEXCOORD4;
 				half4 lodAlpha_worldXZUndisplaced_oceanDepth : TEXCOORD5;
@@ -231,6 +237,7 @@ Shader "Crest/Ocean"
 				half3 debugtint : TEXCOORD8;
 				#endif
 				half4 grabPos : TEXCOORD9;
+				#endif
 
 				UNITY_FOG_COORDS(3)
 			};
@@ -242,6 +249,22 @@ Shader "Crest/Ocean"
 			// MeshScaleLerp, FarNormalsWeight, LODIndex (debug), unused
 			uniform float4 _InstanceData;
 
+			// Hack - due to SV_IsFrontFace occasionally coming through as true for backfaces,
+			// add a param here that forces ocean to be in undrwater state. I think the root
+			// cause here might be imprecision or numerical issues at ocean tile boundaries, although
+			// i'm not sure why cracks are not visible in this case.
+			uniform float _ForceUnderwater;
+
+			bool IsUnderwater(const float facing)
+			{
+				#if !_UNDERWATER_ON
+				return false;
+				#endif
+				const bool backface = facing < 0.0;
+				return backface || _ForceUnderwater > 0.0;
+			}
+
+#if !_RENDER_UNDERWATER_MASK
 			// Argument name is v because some macros like COMPUTE_EYEDEPTH require it.
 			Varyings Vert(Attributes v)
 			{
@@ -364,12 +387,6 @@ Shader "Crest/Ocean"
 
 			uniform sampler2D _CameraDepthTexture;
 
-			// Hack - due to SV_IsFrontFace occasionally coming through as true for backfaces,
-			// add a param here that forces ocean to be in undrwater state. I think the root
-			// cause here might be imprecision or numerical issues at ocean tile boundaries, although
-			// i'm not sure why cracks are not visible in this case.
-			uniform float _ForceUnderwater;
-
 			float3 WorldSpaceLightDir(float3 worldPos)
 			{
 				float3 lightDir = _WorldSpaceLightPos0.xyz;
@@ -381,28 +398,6 @@ Shader "Crest/Ocean"
 				return lightDir;
 			}
 
-			bool IsUnderwater(const float facing)
-			{
-#if !_UNDERWATER_ON
-				return false;
-#endif
-				const bool backface = facing < 0.0;
-				return backface || _ForceUnderwater > 0.0;
-			}
-
-			#if _UNDERWATER_MASK_ON
-			half4 Frag(const Varyings input, const float facing : VFACE) : SV_Target
-			{
-				if(IsUnderwater(facing))
-				{
-					return half4(2.0, 2.0, 2.0, 1.0);
-				}
-				else
-				{
-					return half4(1.0, 1.0, 1.0, 1.0);
-				}
-			}
-			#else
 			half4 Frag(const Varyings input, const float facing : VFACE) : SV_Target
 			{
 				const bool underwater = IsUnderwater(facing);
@@ -503,8 +498,64 @@ Shader "Crest/Ocean"
 
 				return half4(col, 1.);
 			}
-			#endif
+#else
+			// TODO(UPP): Look into sharing code with the full-fat vertex shader
+			// (to allow changes in both to be stable).
+			Varyings Vert(Attributes v)
+			{
+				Varyings output;
 
+				// Move to world space
+				float3 worldPos = mul(unity_ObjectToWorld, float4(v.vertex.xyz, 1.0));
+
+				// Vertex snapping and lod transition
+				float lodAlpha;
+				SnapAndTransitionVertLayout(_InstanceData.x, worldPos, lodAlpha);
+
+				// Calculate sample weights. params.z allows shape to be faded out (used on last lod to support pop-less scale transitions)
+				const float wt_smallerLod = (1. - lodAlpha) * _LD_Params[_LD_SliceIndex].z;
+				const float wt_biggerLod = (1. - wt_smallerLod) * _LD_Params[_LD_SliceIndex + 1].z;
+				// Sample displacement textures, add results to current world pos / normal / foam
+				const float2 positionWS_XZ_before = worldPos.xz;
+
+				// Data that needs to be sampled at the undisplaced position
+				if (wt_smallerLod > 0.001)
+				{
+					const float3 uv_slice_smallerLod = WorldToUV(positionWS_XZ_before);
+
+					#if !_DEBUGDISABLESHAPETEXTURES_ON
+					half sss = 0.;
+					SampleDisplacements(_LD_TexArray_AnimatedWaves, uv_slice_smallerLod, wt_smallerLod, worldPos, sss);
+					#endif
+				}
+				if (wt_biggerLod > 0.001)
+				{
+					const float3 uv_slice_biggerLod = WorldToUV_BiggerLod(positionWS_XZ_before);
+
+					#if !_DEBUGDISABLESHAPETEXTURES_ON
+					half sss = 0.;
+					SampleDisplacements(_LD_TexArray_AnimatedWaves, uv_slice_biggerLod, wt_biggerLod, worldPos, sss);
+					#endif
+				}
+
+				output.positionCS = mul(UNITY_MATRIX_VP, float4(worldPos, 1.));
+
+				UNITY_TRANSFER_FOG(output, output.positionCS);
+				return output;
+			}
+
+			half4 Frag(const Varyings input, const float facing : VFACE) : SV_Target
+			{
+				if(IsUnderwater(facing))
+				{
+					return half4(2.0, 2.0, 2.0, 1.0);
+				}
+				else
+				{
+					return half4(1.0, 1.0, 1.0, 1.0);
+				}
+			}
+#endif // _RENDER_UNDERWATER_MASK
 			ENDCG
 		}
 	}

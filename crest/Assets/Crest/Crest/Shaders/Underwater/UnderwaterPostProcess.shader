@@ -21,7 +21,6 @@
 			#include "UnityCG.cginc"
 			#include "Lighting.cginc"
 			#include "../OceanLODData.hlsl"
-			#include "UnderwaterShared.hlsl"
 
 			float _CrestTime;
 

@@ -70,7 +70,7 @@
 			half3 ApplyUnderwaterEffect(half3 sceneColour, const float sceneZ01, const half3 view)
 			{
 				const float sceneZ = LinearEyeDepth(sceneZ01);
-				const float3 lightDir = _WorldSpaceLightPos0.xyz;
+				const float3 lightDir = -1.0 * _WorldSpaceLightPos0.xyz;
 
 				float3 surfaceAboveCamPosWorld = 0.0;
 				half3 scatterCol = 0.0;

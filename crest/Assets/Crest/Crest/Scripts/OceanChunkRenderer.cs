@@ -152,6 +152,8 @@ namespace Crest
             {
                 _rend.bounds.DebugDraw();
             }
+
+            OceanRenderer.Instance.RegisterOceanChunkToRender(_rend);
         }
 
         // this is called every frame because the bounds are given in world space and depend on the transform scale, which

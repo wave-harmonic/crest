@@ -9,17 +9,39 @@ namespace Crest
     [RequireComponent(typeof(Camera))]
     public class UnderwaterPostProcess : MonoBehaviour
     {
+        static int sp_HorizonHeight = Shader.PropertyToID("_HorizonHeight");
+        static int sp_HorizonOrientation = Shader.PropertyToID("_HorizonOrientation");
+        static int sp_MaskTex = Shader.PropertyToID("_MaskTex");
+        static int sp_MaskDepthTex = Shader.PropertyToID("_MaskDepthTex");
+        private const int CHUNKS_PER_LOD = 12;
+
         public Material _underWaterPostProcMat;
         public Material _oceanMaskMat;
+
         private Camera _mainCamera;
         private RenderTexture _textureMask;
         private RenderTexture _depthBuffer;
         private CommandBuffer _commandBuffer;
         private PropertyWrapperMaterial _underWaterPostProcMatWrapper;
-        static int sp_HorizonHeight = Shader.PropertyToID("_HorizonHeight");
-        static int sp_HorizonOrientation = Shader.PropertyToID("_HorizonOrientation");
-        static int sp_MaskTex = Shader.PropertyToID("_MaskTex");
-        static int sp_MaskDepthTex = Shader.PropertyToID("_MaskDepthTex");
+
+        // NOTE: We keep a list of ocean chunks to render for a given frame
+        // (which ocean chunks add themselves to) and reset it each frame by
+        // setting the currentChunkCount to 0. However, this could potentially
+        // be a leak if the OceanChunks are ever deleted. We don't expect this
+        // to happen, so this approach should be fine for now.
+        private Renderer[] _oceanChunksToRender;
+        private int _oceanChunksToRenderCount;
+
+        public void RegisterOceanChunkToRender(Renderer _oceanChunk)
+        {
+            if(_oceanChunksToRenderCount >= _oceanChunksToRender.Length)
+            {
+                Debug.LogError("Attempting to render more ocean chunks than we have capacity for");
+                return;
+            }
+            _oceanChunksToRender[_oceanChunksToRenderCount] = _oceanChunk;
+            _oceanChunksToRenderCount = _oceanChunksToRenderCount + 1;
+        }
 
         void Start()
         {
@@ -39,6 +61,19 @@ namespace Crest
             {
                 _underWaterPostProcMatWrapper = new PropertyWrapperMaterial(_underWaterPostProcMat);
             }
+
+            _oceanChunksToRender = new Renderer[CHUNKS_PER_LOD * OceanRenderer.Instance.CurrentLodCount];
+            _oceanChunksToRenderCount = 0;
+        }
+
+        void OnEnable()
+        {
+            OceanRenderer.Instance.RegisterUnderwaterPostProcessor(this);
+        }
+
+        void OnDisable()
+        {
+            OceanRenderer.Instance.UnregisterUnderwaterPostProcessor(this);
         }
 
         void OnRenderImage(RenderTexture source, RenderTexture target)
@@ -65,14 +100,14 @@ namespace Crest
             // Get all ocean chunks and render them using cmd buffer, but with
             _commandBuffer.SetRenderTarget(_textureMask.colorBuffer, _depthBuffer.depthBuffer);
             _commandBuffer.ClearRenderTarget(true, true, Color.black);
-            OceanChunkRenderer[] chunkComponents = Object.FindObjectsOfType<OceanChunkRenderer>();
             _oceanMaskMat.EnableKeyword("_UNDERWATER_MASK_ON");
             _commandBuffer.SetViewProjectionMatrices(_mainCamera.worldToCameraMatrix, _mainCamera.projectionMatrix);
-            foreach (OceanChunkRenderer chunkComponent in chunkComponents)
+            for(int oceanChunkIndex = 0; oceanChunkIndex < _oceanChunksToRenderCount; oceanChunkIndex++)
             {
-                Renderer renderer = chunkComponent.GetComponent<Renderer>();
+                Renderer renderer = _oceanChunksToRender[oceanChunkIndex];
                 _commandBuffer.DrawRenderer(renderer, _oceanMaskMat);
             }
+            _oceanChunksToRenderCount = 0;
 
             // TODO(UPP): handle Roll
             float horizonRoll = 0.0f;

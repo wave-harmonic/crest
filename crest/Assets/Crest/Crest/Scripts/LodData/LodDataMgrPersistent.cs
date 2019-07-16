@@ -91,20 +91,6 @@ namespace Crest
 
             var lodCount = ocean.CurrentLodCount;
 
-            //var maxGridSize = MaxGridSize;
-            //if (maxGridSize > 0f)
-            //{
-            //    var largestLod = ocean.CurrentLodCount - 1;
-            //    while (largestLod > 0)
-            //    {
-            //        var nextGridSize = ocean.CalcGridSize(largestLod);
-            //        if (nextGridSize <= maxGridSize) break;
-            //        largestLod--;
-            //    }
-            //    numLods = largestLod + 1;
-            //}
-
-
             float substepDt;
             int numSubsteps;
             GetSimSubstepData(ocean.DeltaTime, out numSubsteps, out substepDt);

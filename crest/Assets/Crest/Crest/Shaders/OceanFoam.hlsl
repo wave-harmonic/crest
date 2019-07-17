@@ -26,13 +26,20 @@ half3 AmbientLight()
 
 half WhiteFoamTexture(half i_foam, float2 i_worldXZUndisplaced0, float2 i_worldXZUndisplaced1, float wt1, half lodVal)
 {
+	float t = _CrestTime / 10.;
+	float2 pos0 = i_worldXZUndisplaced0 + t;
+	float2 pos1 = i_worldXZUndisplaced1 + t;
+
+	float scale0 = _LD_Params[_LD_SliceIndex].x*_FoamScale;
+	float scale1 = _LD_Params[_LD_SliceIndex + 1].x*_FoamScale;
+
 	half ft0 = lerp(
-		tex2D(_FoamTexture, (1.25*i_worldXZUndisplaced0 + _CrestTime / 10.) / (4.*_LD_Params[_LD_SliceIndex].x*_FoamScale)).r,
-		tex2D(_FoamTexture, (1.25*i_worldXZUndisplaced0 + _CrestTime / 10.) / (4.*_LD_Params[_LD_SliceIndex + 1].x*_FoamScale)).r,
+		tex2D(_FoamTexture, pos0 / scale0).r,
+		tex2D(_FoamTexture, pos0 / scale1).r,
 		lodVal);
 	half ft1 = lerp(
-		tex2D(_FoamTexture, (1.25*i_worldXZUndisplaced1 + _CrestTime / 10.) / (4.*_LD_Params[_LD_SliceIndex].x*_FoamScale)).r,
-		tex2D(_FoamTexture, (1.25*i_worldXZUndisplaced1 + _CrestTime / 10.) / (4.*_LD_Params[_LD_SliceIndex + 1].x*_FoamScale)).r,
+		tex2D(_FoamTexture, pos1 / scale0).r,
+		tex2D(_FoamTexture, pos1 / scale1).r,
 		lodVal);
 	half ft = lerp(ft0, ft1, wt1);
 

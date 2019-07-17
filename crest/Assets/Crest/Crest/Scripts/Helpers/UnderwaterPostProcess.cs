@@ -14,7 +14,6 @@ namespace Crest
         static int sp_MaskTex = Shader.PropertyToID("_MaskTex");
         static int sp_MaskDepthTex = Shader.PropertyToID("_MaskDepthTex");
         static int sp_InvViewProjection = Shader.PropertyToID("_InvViewProjection");
-        private const int CHUNKS_PER_LOD = 12;
 
         public Material _underWaterPostProcMat;
         public Material _oceanMaskMat;
@@ -35,7 +34,7 @@ namespace Crest
 
         public void RegisterOceanChunkToRender(Renderer _oceanChunk)
         {
-            if(_oceanChunksToRenderCount >= _oceanChunksToRender.Length)
+            if (_oceanChunksToRenderCount >= _oceanChunksToRender.Length)
             {
                 Debug.LogError("Attempting to render more ocean chunks than we have capacity for");
                 return;
@@ -58,23 +57,13 @@ namespace Crest
             _commandBuffer = new CommandBuffer();
             _commandBuffer.name = "Underwater Post Process";
 
-            if(_underWaterPostProcMat != null)
+            if (_underWaterPostProcMat != null)
             {
                 _underWaterPostProcMatWrapper = new PropertyWrapperMaterial(_underWaterPostProcMat);
             }
 
-            _oceanChunksToRender = new Renderer[CHUNKS_PER_LOD * OceanRenderer.Instance.CurrentLodCount];
+            _oceanChunksToRender = new Renderer[OceanBuilder.GetChunkCount];
             _oceanChunksToRenderCount = 0;
-        }
-
-        void OnEnable()
-        {
-            OceanRenderer.Instance.RegisterUnderwaterPostProcessor(this);
-        }
-
-        void OnDisable()
-        {
-            OceanRenderer.Instance.UnregisterUnderwaterPostProcessor(this);
         }
 
         void OnRenderImage(RenderTexture source, RenderTexture target)
@@ -103,7 +92,7 @@ namespace Crest
             _commandBuffer.ClearRenderTarget(true, true, Color.black);
             _oceanMaskMat.EnableKeyword("_RENDER_UNDERWATER_MASK");
             _commandBuffer.SetViewProjectionMatrices(_mainCamera.worldToCameraMatrix, _mainCamera.projectionMatrix);
-            for(int oceanChunkIndex = 0; oceanChunkIndex < _oceanChunksToRenderCount; oceanChunkIndex++)
+            for (int oceanChunkIndex = 0; oceanChunkIndex < _oceanChunksToRenderCount; oceanChunkIndex++)
             {
                 Renderer renderer = _oceanChunksToRender[oceanChunkIndex];
                 _commandBuffer.DrawRenderer(renderer, _oceanMaskMat);

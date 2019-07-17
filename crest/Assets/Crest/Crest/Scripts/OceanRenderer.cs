@@ -353,32 +353,6 @@ namespace Crest
         ICollProvider _collProvider;
         public ICollProvider CollisionProvider { get { return _collProvider != null ? _collProvider : (_collProvider = _simSettingsAnimatedWaves.CreateCollisionProvider()); } }
 
-        private System.Collections.Generic.List<UnderwaterPostProcess> _underwaterPostProcessors = new System.Collections.Generic.List<UnderwaterPostProcess>();
-
-        /// <summary>
-        /// Ocean chunks register themselves here if they are going to be
-        /// rendered for a given frame. This is so they can be used for
-        /// post-processing effects like underwater.
-        /// <summary>
-        public void RegisterOceanChunkToRender(Renderer oceanChunk)
-        {
-            foreach(UnderwaterPostProcess postProcessor in _underwaterPostProcessors)
-            {
-                postProcessor.RegisterOceanChunkToRender(oceanChunk);
-            }
-        }
-
-        public void RegisterUnderwaterPostProcessor(UnderwaterPostProcess underwaterPostProcessor)
-        {
-            // TODO(UPP): Check for duplicates? Or assert if so?
-            _underwaterPostProcessors.Add(underwaterPostProcessor);
-        }
-
-        public void UnregisterUnderwaterPostProcessor(UnderwaterPostProcess underwaterPostProcessor)
-        {
-            _underwaterPostProcessors.Remove(underwaterPostProcessor);
-        }
-
 #if UNITY_EDITOR
         private void OnValidate()
         {

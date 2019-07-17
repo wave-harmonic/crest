@@ -153,7 +153,11 @@ namespace Crest
                 _rend.bounds.DebugDraw();
             }
 
-            OceanRenderer.Instance.RegisterOceanChunkToRender(_rend);
+            var underwaterPostProcessor = _currentCamera.GetComponent<UnderwaterPostProcess>();
+            if (underwaterPostProcessor != null && underwaterPostProcessor.enabled)
+            {
+                underwaterPostProcessor.RegisterOceanChunkToRender(_rend);
+            }
         }
 
         // this is called every frame because the bounds are given in world space and depend on the transform scale, which

@@ -364,6 +364,14 @@ namespace Crest
             return mesh;
         }
 
+        public static int GetChunkCount
+        {
+            get
+            {
+                return (12 * OceanRenderer.Instance.CurrentLodCount) + 4;
+            }
+        }
+
         static void CreateLOD(OceanRenderer ocean, int lodIndex, int lodCount, Mesh[] meshData, int lodDataResolution, int geoDownSampleFactor, int oceanLayer)
         {
             float horizScale = Mathf.Pow(2f, lodIndex);

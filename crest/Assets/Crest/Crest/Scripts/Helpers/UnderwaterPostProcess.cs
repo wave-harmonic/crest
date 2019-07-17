@@ -68,6 +68,12 @@ namespace Crest
 
         void OnRenderImage(RenderTexture source, RenderTexture target)
         {
+            if (GL.wireframe)
+            {
+                Graphics.Blit(source, target);
+                _oceanChunksToRenderCount = 0;
+                return;
+            }
             if (_oceanMaskMat == null)
             {
                 _oceanMaskMat = OceanRenderer.Instance.OceanMaterial;

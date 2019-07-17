@@ -87,7 +87,7 @@ void ShapeCombineBase (uint3 id)
 	// this lods waves
 #if _FLOW_ON
 	float2 flow = 0.0;
-	SampleFlow(_LD_TexArray_Flow, uv_thisLod, 1.0, flow);
+	//SampleFlow(_LD_TexArray_Flow, uv_thisLod, 1.0, flow);
 
 	float2 offsets, weights;
 	Flow(offsets, weights);

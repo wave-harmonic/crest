@@ -4,8 +4,9 @@
 Material:
   serializedVersion: 6
   m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_Name: ShapeObjectWaterInteraction0
   m_Shader: {fileID: 4800000, guid: 3553638dda3dbfc4faa6374b95d3690b, type: 3}
   m_ShaderKeywords: 
@@ -79,4 +80,4 @@ Material:
     m_Colors:
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
-    - _Velocity: {r: 0, g: 0, b: 0, a: 0}
+    - _Velocity: {r: 0.003169748, g: 0.005331969, b: -0.0036225691, a: 0}

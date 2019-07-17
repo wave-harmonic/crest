@@ -97,6 +97,8 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Batch"
 				// gerstner computation is vectorized - processes 4 wave components at once
 				for (uint vi = 0; vi < _NumWaveVecs; vi++)
 				{
+					_Phases[vi] = 0.;
+
 					// attenuate waves based on ocean depth. if depth is greater than 0.5*wavelength, water is considered Deep and wave is
 					// unaffected. if depth is less than this, wave velocity decreases. waves will then bunch up and grow in amplitude and
 					// eventually break. i model "Deep" water, but then simply ramp down waves in non-deep water with a linear multiplier.

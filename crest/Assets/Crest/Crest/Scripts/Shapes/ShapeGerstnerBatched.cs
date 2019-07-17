@@ -225,7 +225,7 @@ namespace Crest
             {
                 ampSum += _amplitudes[i] * _spectrum._chopScales[i / _componentsPerOctave];
             }
-            OceanRenderer.Instance.ReportMaxDisplacementFromShape(ampSum * _spectrum._chop, ampSum);
+            OceanRenderer.Instance.ReportMaxDisplacementFromShape(ampSum * _spectrum._chop, ampSum, ampSum);
         }
 
         void InitBatches()

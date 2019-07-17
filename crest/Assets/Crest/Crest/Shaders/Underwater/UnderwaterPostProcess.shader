@@ -28,8 +28,7 @@
 
 			#include "../OceanEmission.hlsl"
 
-			float _HorizonHeight;
-			float _HorizonRoll;
+			float _OceanHeight;
 			float4x4 _InvViewProjection;
 
 			struct Attributes
@@ -42,7 +41,7 @@
 			{
 				float4 positionCS : SV_POSITION;
 				float2 uv : TEXCOORD0;
-				float3 viewWS : TEXCOORD1;
+				float4 viewWS_farPlanePixelHeight : TEXCOORD1;
 			};
 
 			Varyings Vert (Attributes input)
@@ -54,7 +53,8 @@
 				{
 					const float2 pixelCS = input.uv * 2 - float2(1.0, 1.0);
 					const float4 pixelWS = mul(_InvViewProjection, float4(pixelCS, 1.0, 1.0));
-					output.viewWS = _WorldSpaceCameraPos - (pixelWS.xyz/pixelWS.w);
+					output.viewWS_farPlanePixelHeight = (pixelWS.xyzy/pixelWS.w);
+					output.viewWS_farPlanePixelHeight.xyz = _WorldSpaceCameraPos - output.viewWS_farPlanePixelHeight.xyz;
 				}
 				return output;
 			}
@@ -102,16 +102,7 @@
 				half3 sceneColour = tex2D(_MainTex, input.uv).rgb;
 				bool isBelowHorizon = false;
 				{
-					// TODO(UPP): Create a cheap and accurate equation for
-					// determining if we are below the horizon that can work
-					// with any camera orientation
-
-					// NOTE: I tried to do this by checking if the y component
-					// of the view vector was less than 0, but the assumption
-					// that the horizon extends-out to infinity was too grand.
-					// We need to workout exactly to which point the ocean
-					// horizon extends.
-					isBelowHorizon = input.uv.y < _HorizonHeight;
+					isBelowHorizon = input.viewWS_farPlanePixelHeight.w <= _OceanHeight;
 				}
 
 				const float sceneZ01 = tex2D(_CameraDepthTexture, input.uv).x;
@@ -129,7 +120,7 @@
 				{
 					if(!isSurface)
 					{
-						const half3 view = normalize(input.viewWS);
+						const half3 view = normalize(input.viewWS_farPlanePixelHeight.xyz);
 						sceneColour = ApplyUnderwaterEffect(sceneColour, sceneZ01, view);
 					}
 				}

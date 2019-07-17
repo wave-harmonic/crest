@@ -24,8 +24,8 @@ namespace Crest
                 return;
             }
 
-            _minGridSize = 0.5f * _lodComponent.Settings._minObjectWidth / OceanRenderer.Instance._minTexelsPerWave;
-            _maxGridSize = 0.5f * _lodComponent.Settings._maxObjectWidth / OceanRenderer.Instance._minTexelsPerWave;
+            _minGridSize = 0.5f * _lodComponent.Settings._minObjectWidth / OceanRenderer.Instance.MinTexelsPerWave;
+            _maxGridSize = 0.5f * _lodComponent.Settings._maxObjectWidth / OceanRenderer.Instance.MinTexelsPerWave;
             _maxGridSize = Mathf.Max(_maxGridSize, 2f * _minGridSize);
         }
 

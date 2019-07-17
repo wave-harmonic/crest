@@ -100,11 +100,8 @@
 			fixed4 Frag (Varyings input) : SV_Target
 			{
 				half3 sceneColour = tex2D(_MainTex, input.uv).rgb;
-				bool isBelowHorizon = false;
-				{
-					isBelowHorizon = input.viewWS_farPlanePixelHeight.w <= _OceanHeight;
-				}
 
+				const bool isBelowHorizon = input.viewWS_farPlanePixelHeight.w <= _OceanHeight;
 				const float sceneZ01 = tex2D(_CameraDepthTexture, input.uv).x;
 
 				bool isUnderwater = false;

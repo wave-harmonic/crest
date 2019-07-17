@@ -9,7 +9,7 @@ namespace Crest
     [RequireComponent(typeof(Camera))]
     public class UnderwaterPostProcess : MonoBehaviour
     {
-        static int sp_HorizonHeight = Shader.PropertyToID("_HorizonHeight");
+        static int sp_OceanHeight = Shader.PropertyToID("_OceanHeight");
         static int sp_HorizonOrientation = Shader.PropertyToID("_HorizonOrientation");
         static int sp_MaskTex = Shader.PropertyToID("_MaskTex");
         static int sp_MaskDepthTex = Shader.PropertyToID("_MaskDepthTex");
@@ -139,8 +139,7 @@ namespace Crest
                 LodDataMgrShadow.BindNull(_underWaterPostProcMatWrapper);
             }
 
-            _underWaterPostProcMat.SetFloat(sp_HorizonHeight, horizonHeight);
-            _underWaterPostProcMat.SetFloat(sp_HorizonOrientation, horizonRoll);
+            _underWaterPostProcMat.SetFloat(sp_OceanHeight, OceanRenderer.Instance.transform.position.y);
             _underWaterPostProcMat.SetTexture(sp_MaskTex, _textureMask);
             _underWaterPostProcMat.SetTexture(sp_MaskDepthTex, _depthBuffer);
 

@@ -32,6 +32,9 @@ namespace Crest
         private Renderer[] _oceanChunksToRender;
         private int _oceanChunksToRenderCount;
 
+        private const string _RENDER_UNDERWATER_MASK = "_RENDER_UNDERWATER_MASK";
+
+
         public void RegisterOceanChunkToRender(Renderer _oceanChunk)
         {
             if (_oceanChunksToRenderCount >= _oceanChunksToRender.Length)
@@ -96,7 +99,7 @@ namespace Crest
             // Get all ocean chunks and render them using cmd buffer, but with
             _commandBuffer.SetRenderTarget(_textureMask.colorBuffer, _depthBuffer.depthBuffer);
             _commandBuffer.ClearRenderTarget(true, true, Color.black);
-            _oceanMaskMat.EnableKeyword("_RENDER_UNDERWATER_MASK");
+            _oceanMaskMat.EnableKeyword(_RENDER_UNDERWATER_MASK);
             _commandBuffer.SetViewProjectionMatrices(_mainCamera.worldToCameraMatrix, _mainCamera.projectionMatrix);
             for (int oceanChunkIndex = 0; oceanChunkIndex < _oceanChunksToRenderCount; oceanChunkIndex++)
             {
@@ -104,19 +107,6 @@ namespace Crest
                 _commandBuffer.DrawRenderer(renderer, _oceanMaskMat);
             }
             _oceanChunksToRenderCount = 0;
-
-            // TODO(UPP): handle Roll
-            float horizonRoll = 0.0f;
-            float horizonHeight = 0.0f;
-            {
-                // Calculate the horizon height in screen space
-                // TODO(UPP): Get this to actually work
-                float halfFov = _mainCamera.fieldOfView * 0.5f;
-                Vector3 cameraForward = _mainCamera.transform.forward;
-                float cameraRotation = Mathf.Atan2(-1.0f * cameraForward.y, (new Vector2(cameraForward.x, cameraForward.z)).magnitude);
-                float halfProp = Mathf.Tan(cameraRotation * 0.5f) / Mathf.Tan(halfFov * Mathf.Deg2Rad);
-                horizonHeight = halfProp + 0.5f;
-            }
 
             _underWaterPostProcMat.CopyPropertiesFromMaterial(OceanRenderer.Instance.OceanMaterial);
             _underWaterPostProcMat.SetFloat(OceanRenderer.sp_LD_SliceIndex, 0);
@@ -149,7 +139,7 @@ namespace Crest
             _commandBuffer.Blit(source, target, _underWaterPostProcMat);
 
             Graphics.ExecuteCommandBuffer(_commandBuffer);
-            _oceanMaskMat.DisableKeyword("_RENDER_UNDERWATER_MASK");
+            _oceanMaskMat.DisableKeyword(_RENDER_UNDERWATER_MASK);
             _commandBuffer.Clear();
 
             // Need this to prevent Unity from giving the following warning.

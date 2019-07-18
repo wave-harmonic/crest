@@ -33,6 +33,7 @@ namespace Crest
         private int _oceanChunksToRenderCount;
 
         private const string _RENDER_UNDERWATER_MASK = "_RENDER_UNDERWATER_MASK";
+        private const string _FULL_SCREEN_EFFECT = "_FULL_SCREEN_EFFECT";
 
 
         public void RegisterOceanChunkToRender(Renderer _oceanChunk)
@@ -129,7 +130,21 @@ namespace Crest
                 LodDataMgrShadow.BindNull(_underWaterPostProcMatWrapper);
             }
 
-            _underWaterPostProcMat.SetFloat(sp_OceanHeight, OceanRenderer.Instance.transform.position.y);
+            {
+                float oceanHeight = OceanRenderer.Instance.transform.position.y;
+                float maxOceanVerticalDisplacement = OceanRenderer.Instance.MaxVertDisplacement * 0.5f;
+                float cameraHeight = _mainCamera.transform.position.y;
+                bool forceFullShader = (cameraHeight + maxOceanVerticalDisplacement) <= oceanHeight;
+                _underWaterPostProcMat.SetFloat(sp_OceanHeight, oceanHeight);
+                if(forceFullShader)
+                {
+                    _underWaterPostProcMat.EnableKeyword(_FULL_SCREEN_EFFECT);
+                }
+                else
+                {
+                    _underWaterPostProcMat.DisableKeyword(_FULL_SCREEN_EFFECT);
+                }
+            }
             _underWaterPostProcMat.SetTexture(sp_MaskTex, _textureMask);
             _underWaterPostProcMat.SetTexture(sp_MaskDepthTex, _depthBuffer);
 

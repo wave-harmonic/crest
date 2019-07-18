@@ -30,6 +30,7 @@
 
 			float _OceanHeight;
 			float4x4 _InvViewProjection;
+			#pragma multi_compile __ _FULL_SCREEN_EFFECT
 
 			struct Attributes
 			{
@@ -101,7 +102,11 @@
 			{
 				half3 sceneColour = tex2D(_MainTex, input.uv).rgb;
 
-				const bool isBelowHorizon = input.viewWS_farPlanePixelHeight.w <= _OceanHeight;
+				#if !_FULL_SCREEN_EFFECT
+				const bool isBelowHorizon = (input.viewWS_farPlanePixelHeight.w <= _OceanHeight);
+				#else
+				const bool isBelowHorizon = true;
+				#endif
 				const float sceneZ01 = tex2D(_CameraDepthTexture, input.uv).x;
 
 				bool isUnderwater = false;

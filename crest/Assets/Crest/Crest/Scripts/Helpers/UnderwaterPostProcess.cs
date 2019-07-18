@@ -72,7 +72,15 @@ namespace Crest
 
         void OnRenderImage(RenderTexture source, RenderTexture target)
         {
-            if (GL.wireframe)
+            bool definitelyAboveTheWater = false;
+            {
+                float oceanHeight = OceanRenderer.Instance.transform.position.y;
+                float maxOceanVerticalDisplacement = OceanRenderer.Instance.MaxVertDisplacement * 0.5f;
+                float cameraHeight = _mainCamera.transform.position.y;
+                definitelyAboveTheWater = (cameraHeight - maxOceanVerticalDisplacement) >= oceanHeight;
+            }
+
+            if (GL.wireframe || definitelyAboveTheWater)
             {
                 Graphics.Blit(source, target);
                 _oceanChunksToRenderCount = 0;

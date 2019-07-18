@@ -17,6 +17,7 @@ namespace Crest
 
         public Material _underWaterPostProcMat;
         public Material _oceanMaskMat;
+        public bool _viewOceanMaskDEBUG;
 
         private Camera _mainCamera;
         private RenderTexture _textureMask;
@@ -34,6 +35,7 @@ namespace Crest
 
         private const string _RENDER_UNDERWATER_MASK = "_RENDER_UNDERWATER_MASK";
         private const string _FULL_SCREEN_EFFECT = "_FULL_SCREEN_EFFECT";
+        private const string _DEBUG_VIEW_OCEAN_MASK = "_DEBUG_VIEW_OCEAN_MASK";
 
 
         public void RegisterOceanChunkToRender(Renderer _oceanChunk)
@@ -86,6 +88,8 @@ namespace Crest
                 _oceanChunksToRenderCount = 0;
                 return;
             }
+
+
             if (_oceanMaskMat == null)
             {
                 _oceanMaskMat = OceanRenderer.Instance.OceanMaterial;
@@ -118,6 +122,16 @@ namespace Crest
             _oceanChunksToRenderCount = 0;
 
             _underWaterPostProcMat.CopyPropertiesFromMaterial(OceanRenderer.Instance.OceanMaterial);
+
+            if(_viewOceanMaskDEBUG)
+            {
+                _underWaterPostProcMat.EnableKeyword(_DEBUG_VIEW_OCEAN_MASK);
+            }
+            else
+            {
+                _underWaterPostProcMat.DisableKeyword(_DEBUG_VIEW_OCEAN_MASK);
+            }
+
             _underWaterPostProcMat.SetFloat(OceanRenderer.sp_LD_SliceIndex, 0);
 
             OceanRenderer.Instance._lodDataAnimWaves.BindResultData(_underWaterPostProcMatWrapper);

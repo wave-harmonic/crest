@@ -18,7 +18,12 @@
 			#pragma shader_feature _SHADOWS_ON
 			#pragma shader_feature _COMPILESHADERWITHDEBUGINFO_ON
 
+			#pragma multi_compile __ _FULL_SCREEN_EFFECT
+			#pragma multi_compile __ _DEBUG_VIEW_OCEAN_MASK
+
+			#if _COMPILESHADERWITHDEBUGINFO_ON
 			#pragma enable_d3d11_debug_symbols
+			#endif
 
 			#include "UnityCG.cginc"
 			#include "Lighting.cginc"
@@ -30,7 +35,6 @@
 
 			float _OceanHeight;
 			float4x4 _InvViewProjection;
-			#pragma multi_compile __ _FULL_SCREEN_EFFECT
 
 			struct Attributes
 			{
@@ -100,13 +104,26 @@
 
 			fixed4 Frag (Varyings input) : SV_Target
 			{
-				half3 sceneColour = tex2D(_MainTex, input.uv).rgb;
 
 				#if !_FULL_SCREEN_EFFECT
 				const bool isBelowHorizon = (input.viewWS_farPlanePixelHeight.w <= _OceanHeight);
 				#else
 				const bool isBelowHorizon = true;
 				#endif
+
+				half3 sceneColour = tex2D(_MainTex, input.uv).rgb;
+
+#if _DEBUG_VIEW_OCEAN_MASK
+				int mask = tex2D(_MaskTex, input.uv);
+				if(mask == 0)
+				{
+					return float4(sceneColour * float3(isBelowHorizon * 0.5, (1.0 - isBelowHorizon) * 0.5, 1.0), 1.0);
+				}
+				else
+				{
+					return float4(sceneColour * float3(mask == 1, mask == 2, 0.0), 1.0);
+				}
+#else
 				const float sceneZ01 = tex2D(_CameraDepthTexture, input.uv).x;
 
 				bool isUnderwater = false;
@@ -128,6 +145,7 @@
 				}
 
 				return half4(sceneColour, 1.0);
+#endif // _DEBUG_VIEW_OCEAN_MASK
 			}
 			ENDCG
 		}

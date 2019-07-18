@@ -17,7 +17,10 @@ namespace Crest
 
         public Material _underWaterPostProcMat;
         public Material _oceanMaskMat;
-        public bool _viewOceanMaskDEBUG;
+
+        [Header("Debug Options")]
+        public bool _viewOceanMask;
+        // end public debug options
 
         private Camera _mainCamera;
         private RenderTexture _textureMask;
@@ -49,14 +52,32 @@ namespace Crest
             _oceanChunksToRenderCount = _oceanChunksToRenderCount + 1;
         }
 
-        void Start()
+        private bool InitialisedCorrectly()
         {
             _mainCamera = GetComponent<Camera>();
             if (_mainCamera == null)
             {
                 Debug.LogError("Underwater effects expect to be attached to a camera", this);
-                enabled = false;
+                return false;
+            }
+            if (_underWaterPostProcMat == null)
+            {
+                Debug.LogError("Underwater effect expects to have a post processing material attached", this);
+                return false;
+            }
+            if(_oceanMaskMat == null)
+            {
+                Debug.LogError("Underwater effect expects to have an ocean mask material attached", this);
+                return false;
+            }
+            return true;
+        }
 
+        void Start()
+        {
+            if(!InitialisedCorrectly())
+            {
+                enabled = false;
                 return;
             }
 
@@ -89,12 +110,6 @@ namespace Crest
                 return;
             }
 
-
-            if (_oceanMaskMat == null)
-            {
-                _oceanMaskMat = OceanRenderer.Instance.OceanMaterial;
-            }
-
             if (_textureMask == null)
             {
                 _textureMask = new RenderTexture(source);
@@ -112,7 +127,7 @@ namespace Crest
             // Get all ocean chunks and render them using cmd buffer, but with
             _commandBuffer.SetRenderTarget(_textureMask.colorBuffer, _depthBuffer.depthBuffer);
             _commandBuffer.ClearRenderTarget(true, true, Color.black);
-            _oceanMaskMat.EnableKeyword(_RENDER_UNDERWATER_MASK);
+            _oceanMaskMat.CopyPropertiesFromMaterial(OceanRenderer.Instance.OceanMaterial);
             _commandBuffer.SetViewProjectionMatrices(_mainCamera.worldToCameraMatrix, _mainCamera.projectionMatrix);
             for (int oceanChunkIndex = 0; oceanChunkIndex < _oceanChunksToRenderCount; oceanChunkIndex++)
             {
@@ -123,7 +138,7 @@ namespace Crest
 
             _underWaterPostProcMat.CopyPropertiesFromMaterial(OceanRenderer.Instance.OceanMaterial);
 
-            if(_viewOceanMaskDEBUG)
+            if(_viewOceanMask)
             {
                 _underWaterPostProcMat.EnableKeyword(_DEBUG_VIEW_OCEAN_MASK);
             }
@@ -176,7 +191,6 @@ namespace Crest
             _commandBuffer.Blit(source, target, _underWaterPostProcMat);
 
             Graphics.ExecuteCommandBuffer(_commandBuffer);
-            _oceanMaskMat.DisableKeyword(_RENDER_UNDERWATER_MASK);
             _commandBuffer.Clear();
 
             // Need this to prevent Unity from giving the following warning.

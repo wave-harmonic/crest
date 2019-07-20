@@ -34,6 +34,7 @@
 			#include "../OceanEmission.hlsl"
 
 			float _OceanHeight;
+			float4x4 _ViewProjection;
 			float4x4 _InvViewProjection;
 
 			struct Attributes
@@ -46,7 +47,7 @@
 			{
 				float4 positionCS : SV_POSITION;
 				float2 uv : TEXCOORD0;
-				float4 viewWS_farPlanePixelHeight : TEXCOORD1;
+				float4 viewWS_oceanDistance : TEXCOORD1;
 			};
 
 			Varyings Vert (Attributes input)
@@ -57,9 +58,21 @@
 
 				{
 					const float2 pixelCS = input.uv * 2 - float2(1.0, 1.0);
-					const float4 pixelWS = mul(_InvViewProjection, float4(pixelCS, 1.0, 1.0));
-					output.viewWS_farPlanePixelHeight = (pixelWS.xyzy/pixelWS.w);
-					output.viewWS_farPlanePixelHeight.xyz = _WorldSpaceCameraPos - output.viewWS_farPlanePixelHeight.xyz;
+					const float4 pixelWS_H = mul(_InvViewProjection, float4(pixelCS, 1.0, 1.0));
+					const float3 pixelWS = (pixelWS_H.xyz/pixelWS_H.w);
+					output.viewWS_oceanDistance.xyz = _WorldSpaceCameraPos - pixelWS;
+
+					// Due to floating point precision errors, comparing the
+					// height of the far plane pixel to the height of the ocean
+					// has to be done in clip space, which is unfortunate as we
+					// have to do two matrix multiplications to calculate the
+					// ocean height value.
+					//
+					// NOTE: This doesn't work if the camera is rotated.
+					const float3 oceanPosWS = float3(pixelWS.x, _OceanHeight, pixelWS.z);
+					float4 oceanPosCS = mul(_ViewProjection, float4(oceanPosWS, 1.0));
+					float oceanHeightCS = (oceanPosCS.y / oceanPosCS.w);
+					output.viewWS_oceanDistance.w = pixelCS.y - oceanHeightCS;
 				}
 				return output;
 			}
@@ -106,7 +119,7 @@
 			{
 
 				#if !_FULL_SCREEN_EFFECT
-				const bool isBelowHorizon = (input.viewWS_farPlanePixelHeight.w <= _OceanHeight);
+				const bool isBelowHorizon = (input.viewWS_oceanDistance.w <= 0.0);
 				#else
 				const bool isBelowHorizon = true;
 				#endif
@@ -139,7 +152,7 @@
 				{
 					if(!isSurface)
 					{
-						const half3 view = normalize(input.viewWS_farPlanePixelHeight.xyz);
+						const half3 view = normalize(input.viewWS_oceanDistance.xyz);
 						sceneColour = ApplyUnderwaterEffect(sceneColour, sceneZ01, view);
 					}
 				}

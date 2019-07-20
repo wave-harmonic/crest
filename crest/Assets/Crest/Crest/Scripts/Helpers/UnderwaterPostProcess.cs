@@ -13,6 +13,7 @@ namespace Crest
         static int sp_HorizonOrientation = Shader.PropertyToID("_HorizonOrientation");
         static int sp_MaskTex = Shader.PropertyToID("_MaskTex");
         static int sp_MaskDepthTex = Shader.PropertyToID("_MaskDepthTex");
+        static int sp_ViewProjection = Shader.PropertyToID("_ViewProjection");
         static int sp_InvViewProjection = Shader.PropertyToID("_InvViewProjection");
 
         public Material _underWaterPostProcMat;
@@ -185,8 +186,12 @@ namespace Crest
             _underWaterPostProcMat.SetTexture(sp_MaskTex, _textureMask);
             _underWaterPostProcMat.SetTexture(sp_MaskDepthTex, _depthBuffer);
 
-            // Have to set this explicitly as the built-in transforms aren't in world-space for the blit function
-            _underWaterPostProcMat.SetMatrix(sp_InvViewProjection, (_mainCamera.projectionMatrix * _mainCamera.worldToCameraMatrix).inverse);
+            // Have to set these explicitly as the built-in transforms aren't in world-space for the blit function
+            {
+                var viewProjectionMatrix = _mainCamera.projectionMatrix * _mainCamera.worldToCameraMatrix;
+                _underWaterPostProcMat.SetMatrix(sp_ViewProjection, viewProjectionMatrix);
+                _underWaterPostProcMat.SetMatrix(sp_InvViewProjection, viewProjectionMatrix.inverse);
+            }
 
             _commandBuffer.Blit(source, target, _underWaterPostProcMat);
 

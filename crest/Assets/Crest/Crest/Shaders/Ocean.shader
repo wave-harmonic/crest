@@ -474,11 +474,6 @@ Shader "Crest/Ocean"
 					// Above water - do atmospheric fog. If you are using a third party sky package such as Azure, replace this with their stuff!
 					UNITY_APPLY_FOG(input.fogCoord, col);
 				}
-				else
-				{
-					// underwater - do depth fog
-					col = lerp(col, scatterCol, 1. - exp(-_DepthFogDensity.xyz * pixelZ));
-				}
 
 				#if _DEBUGVISUALISESHAPESAMPLE_ON
 				col = lerp(col.rgb, input.debugtint, 0.5);

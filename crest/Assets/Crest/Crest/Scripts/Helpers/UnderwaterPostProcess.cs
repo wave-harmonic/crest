@@ -34,7 +34,7 @@ namespace Crest
         // setting the currentChunkCount to 0. However, this could potentially
         // be a leak if the OceanChunks are ever deleted. We don't expect this
         // to happen, so this approach should be fine for now.
-        private Renderer[] _oceanChunksToRender;
+        private List<Renderer> _oceanChunksToRender;
         private int _oceanChunksToRenderCount;
 
         private const string _RENDER_UNDERWATER_MASK = "_RENDER_UNDERWATER_MASK";
@@ -44,12 +44,14 @@ namespace Crest
 
         public void RegisterOceanChunkToRender(Renderer _oceanChunk)
         {
-            if (_oceanChunksToRenderCount >= _oceanChunksToRender.Length)
+            if (_oceanChunksToRenderCount >= _oceanChunksToRender.Count)
             {
-                Debug.LogError("Attempting to render more ocean chunks than we have capacity for");
-                return;
+                _oceanChunksToRender.Add(_oceanChunk);
             }
-            _oceanChunksToRender[_oceanChunksToRenderCount] = _oceanChunk;
+            else
+            {
+                _oceanChunksToRender[_oceanChunksToRenderCount] = _oceanChunk;
+            }
             _oceanChunksToRenderCount = _oceanChunksToRenderCount + 1;
         }
 
@@ -90,7 +92,7 @@ namespace Crest
                 _underWaterPostProcMatWrapper = new PropertyWrapperMaterial(_underWaterPostProcMat);
             }
 
-            _oceanChunksToRender = new Renderer[OceanBuilder.GetChunkCount];
+            _oceanChunksToRender = new List<Renderer>(OceanBuilder.GetChunkCount);
             _oceanChunksToRenderCount = 0;
         }
 

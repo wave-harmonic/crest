@@ -127,17 +127,6 @@
 
 				half3 sceneColour = tex2D(_MainTex, input.uv).rgb;
 
-#if _DEBUG_VIEW_OCEAN_MASK
-				int mask = tex2D(_MaskTex, input.uv);
-				if(mask == 0)
-				{
-					return float4(sceneColour * float3(isBelowHorizon * 0.5, (1.0 - isBelowHorizon) * 0.5, 1.0), 1.0);
-				}
-				else
-				{
-					return float4(sceneColour * float3(mask == 1, mask == 2, 0.0), 1.0);
-				}
-#else
 				const float sceneZ01 = tex2D(_CameraDepthTexture, input.uv).x;
 
 				bool isUnderwater = false;
@@ -148,7 +137,17 @@
 					isSurface = mask != 0 && (sceneZ01 < maskDepth);
 					isUnderwater = mask == 2 || (isBelowHorizon && mask != 1);
 				}
-
+#if _DEBUG_VIEW_OCEAN_MASK
+				int mask = tex2D(_MaskTex, input.uv);
+				if(!isSurface)
+				{
+					return float4(sceneColour * float3(isUnderwater * 0.5, (1.0 - isUnderwater) * 0.5, 1.0), 1.0);
+				}
+				else
+				{
+					return float4(sceneColour * float3(mask == 1, mask == 2, 0.0), 1.0);
+				}
+#else
 				if(isUnderwater)
 				{
 					if(!isSurface)

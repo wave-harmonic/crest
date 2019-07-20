@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 1589415980}
-  m_IndirectSpecularColor: {r: 0.40721107, g: 0.5921341, b: 0.94317394, a: 1}
+  m_IndirectSpecularColor: {r: 0.40711796, g: 0.5924692, b: 0.9424595, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &4
 LightmapSettings:
@@ -172,7 +172,7 @@ MonoBehaviour:
   _underWaterPostProcMat: {fileID: 2100000, guid: 95ea0c2815f0aa798beeb370980c6614,
     type: 2}
   _oceanMaskMat: {fileID: 2100000, guid: 2ddd9bab6a9ad7542a419bcaeff337a8, type: 2}
-  _viewOceanMaskDEBUG: 0
+  _viewOceanMask: 0
 --- !u!20 &227134469
 Camera:
   m_ObjectHideFlags: 0

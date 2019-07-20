@@ -21,7 +21,7 @@ uniform half2 _WindDirXZ;
 
 half3 AmbientLight()
 {
-	return half3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w);
+	return _AmbientLighting;
 }
 
 half WhiteFoamTexture(half i_foam, float2 i_worldXZUndisplaced, half lodVal)

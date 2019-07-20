@@ -241,6 +241,8 @@ Shader "Crest/Ocean"
 			// MeshScaleLerp, FarNormalsWeight, LODIndex (debug), unused
 			uniform float4 _InstanceData;
 
+			uniform half3 _AmbientLighting;
+
 			// Argument name is v because some macros like COMPUTE_EYEDEPTH require it.
 			Varyings Vert(Attributes v)
 			{

@@ -102,11 +102,7 @@ half3 ScatterColour(
 		col = lerp(col, shallowCol, shallowness);
 #endif
 
-		// light
-		// use the constant term (0th order) of SH stuff - this is the average. it seems to give the right kind of colour
-		// TODO: UPP, calculate these manually and use same ones for all patches.
-		// https://docs.unity3d.com/ScriptReference/LightProbes.GetInterpolatedProbe.html
-		// col *= half3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w);
+		col *= _AmbientLighting;
 
 		// Approximate subsurface scattering - add light when surface faces viewer. Use geometry normal - don't need high freqs.
 		half towardsSun = pow(max(0., dot(i_lightDir, -i_view)), _SubSurfaceSunFallOff);

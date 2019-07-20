@@ -30,6 +30,7 @@
 			#include "../OceanLODData.hlsl"
 
 			float _CrestTime;
+			half3 _AmbientLighting;
 
 			#include "../OceanEmission.hlsl"
 

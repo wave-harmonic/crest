@@ -19,6 +19,7 @@ namespace Crest
         static int s_paramsOcean = Shader.PropertyToID("_LD_Params");
         static int s_paramsOceanSource = Shader.PropertyToID("_LD_Params_Source");
 
+        [System.Serializable]
         public struct RenderData
         {
             public float _texelWidth;

@@ -50,6 +50,7 @@ namespace Crest
         public MaterialPropertyBlock materialPropertyBlock { get; private set; }
     }
 
+    [System.Serializable]
     public class PropertyWrapperCompute : IPropertyWrapper
     {
         private CommandBuffer _commandBuffer = null;

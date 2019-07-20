@@ -86,7 +86,7 @@
 			sampler2D _CameraDepthTexture;
 			sampler2D _Normals;
 
-			half3 ApplyUnderwaterEffect(half3 sceneColour, const float sceneZ01, const half3 view)
+			half3 ApplyUnderwaterEffect(half3 sceneColour, const float sceneZ01, const half3 view, bool isOceanSurface)
 			{
 				const float sceneZ = LinearEyeDepth(sceneZ01);
 				const float3 lightDir = _WorldSpaceLightPos0.xyz;
@@ -107,7 +107,7 @@
 				}
 
 #if _CAUSTICS_ON
-				if (sceneZ01 != 0.0)
+				if (sceneZ01 != 0.0 && !isOceanSurface)
 				{
 					ApplyCaustics(view, lightDir, sceneZ, _Normals, true, sceneColour);
 				}
@@ -151,7 +151,7 @@
 				if(isUnderwater)
 				{
 					const half3 view = normalize(input.viewWS_oceanDistance.xyz);
-					sceneColour = ApplyUnderwaterEffect(sceneColour, sceneZ01, view);
+					sceneColour = ApplyUnderwaterEffect(sceneColour, sceneZ01, view, isOceanSurface);
 				}
 
 				return half4(sceneColour, 1.0);

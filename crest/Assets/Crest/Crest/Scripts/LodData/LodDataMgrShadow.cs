@@ -60,7 +60,7 @@ namespace Crest
             {
                 krnl_UpdateShadow = _updateShadowShader.FindKernel(UpdateShadow);
             }
-            catch(Exception)
+            catch (Exception)
             {
                 Debug.LogError("Could not load shadow update kernel. Disabling shadows.", this);
                 enabled = false;
@@ -180,23 +180,23 @@ namespace Crest
             }
 
             if (!s_processData)
+            {
                 return;
-
-
-            var lodCount = OceanRenderer.Instance.CurrentLodCount;
+            }
 
             SwapRTs(ref _sources, ref _targets);
 
             _bufCopyShadowMap.Clear();
 
-            var lt = OceanRenderer.Instance._lodTransform;
             ValidateSourceData();
+
             // clear the shadow collection. it will be overwritten with shadow values IF the shadows render,
             // which only happens if there are (nontransparent) shadow receivers around
             TextureArrayHelpers.ClearToBlack(_targets);
-            for (var lodIdx = OceanRenderer.Instance.CurrentLodCount - 1; lodIdx >= 0; lodIdx--)
-            {
 
+            var lt = OceanRenderer.Instance._lodTransform;
+            for (var lodIdx = lt.LodCount - 1; lodIdx >= 0; lodIdx--)
+            {
                 _renderProperties.Initialise(_bufCopyShadowMap, _updateShadowShader, krnl_UpdateShadow);
 
                 lt._renderData[lodIdx].Validate(0, this);
@@ -215,18 +215,14 @@ namespace Crest
                 _renderProperties.SetFloat(OceanRenderer.sp_LD_SliceIndex, lodIdx);
                 _renderProperties.SetFloat(sp_LD_SliceIndex_Source, srcDataIdx);
                 BindSourceData(_renderProperties, false);
-                _renderProperties.SetTexture(
-                    sp_LD_TexArray_Target,
-                    _targets
-                );
-
+                _renderProperties.SetTexture(sp_LD_TexArray_Target, _targets);
                 _renderProperties.DispatchShader();
             }
         }
 
         public void ValidateSourceData()
         {
-            foreach(var renderData in  OceanRenderer.Instance._lodTransform._renderDataSource)
+            foreach (var renderData in OceanRenderer.Instance._lodTransform._renderDataSource)
             {
                 renderData.Validate(BuildCommandBufferBase._lastUpdateFrame - Time.frameCount, this);
             }

@@ -44,14 +44,15 @@ namespace Crest
         [Header("Detail Params")]
 
         [Range(0, 15)]
-        [Tooltip("Min number of verts / shape texels per wave.")]
-        public float _minTexelsPerWave = 3f;
+        [Tooltip("Min number of verts / shape texels per wave."), SerializeField]
+        float _minTexelsPerWave = 3f;
+        public float MinTexelsPerWave => _minTexelsPerWave;
 
-        [Delayed, Tooltip("The smallest scale the ocean can be.")]
-        public float _minScale = 8f;
+        [Delayed, Tooltip("The smallest scale the ocean can be."), SerializeField]
+        float _minScale = 8f;
 
-        [Delayed, Tooltip("The largest scale the ocean can be (-1 for unlimited).")]
-        public float _maxScale = 256f;
+        [Delayed, Tooltip("The largest scale the ocean can be (-1 for unlimited)."), SerializeField]
+        float _maxScale = 256f;
 
         [SerializeField, Delayed, Tooltip("Resolution of ocean LOD data. Use even numbers like 256 or 384. This is 4x the old 'Base Vert Density' param, so if you used 64 for this param, set this to 256.")]
         int _lodDataResolution = 256;
@@ -225,7 +226,7 @@ namespace Crest
         void LateUpdate()
         {
             // set global shader params
-            Shader.SetGlobalFloat("_TexelsPerWave", _minTexelsPerWave);
+            Shader.SetGlobalFloat("_TexelsPerWave", MinTexelsPerWave);
             Shader.SetGlobalVector("_WindDirXZ", WindDir);
             Shader.SetGlobalFloat("_CrestTime", CurrentTime);
 

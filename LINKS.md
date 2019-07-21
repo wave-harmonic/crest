@@ -21,6 +21,7 @@
 
 ### Wave Theory
 
+* Great text about water waves of all types: https://topex.ucsd.edu/ps/trujillo_waves.pdf
 * Nice chapter on water wave phenomena: http://www.dartmouth.edu/~cushman/books/EFM/chap4.pdf . Shows pressure profile of wind travelling over and obstacle.
 * Useful notes on dispersive and non-dispersive waves: http://www-eaps.mit.edu/~rap/courses/12333_notes/dispersion.pdf
 * More notes on waves: https://thayer.dartmouth.edu/~d30345d/books/EFM/chap4.pdf

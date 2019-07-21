@@ -36,14 +36,14 @@ namespace Crest
 
         const string ShaderName = "ShapeCombine";
 
-        static int krnl_ShapeCombine = -1;
-        static int krnl_ShapeCombine_DISABLE_COMBINE = -1;
-        static int krnl_ShapeCombine_FLOW_ON = -1;
-        static int krnl_ShapeCombine_FLOW_ON_DISABLE_COMBINE = -1;
-        static int krnl_ShapeCombine_DYNAMIC_WAVE_SIM_ON = -1;
-        static int krnl_ShapeCombine_DYNAMIC_WAVE_SIM_ON_DISABLE_COMBINE = -1;
-        static int krnl_ShapeCombine_FLOW_ON_DYNAMIC_WAVE_SIM_ON = -1;
-        static int krnl_ShapeCombine_FLOW_ON_DYNAMIC_WAVE_SIM_ON_DISABLE_COMBINE = -1;
+        int krnl_ShapeCombine = -1;
+        int krnl_ShapeCombine_DISABLE_COMBINE = -1;
+        int krnl_ShapeCombine_FLOW_ON = -1;
+        int krnl_ShapeCombine_FLOW_ON_DISABLE_COMBINE = -1;
+        int krnl_ShapeCombine_DYNAMIC_WAVE_SIM_ON = -1;
+        int krnl_ShapeCombine_DYNAMIC_WAVE_SIM_ON_DISABLE_COMBINE = -1;
+        int krnl_ShapeCombine_FLOW_ON_DYNAMIC_WAVE_SIM_ON = -1;
+        int krnl_ShapeCombine_FLOW_ON_DYNAMIC_WAVE_SIM_ON_DISABLE_COMBINE = -1;
 
         ComputeShader _combineShader;
         PropertyWrapperCompute _combineProperties;

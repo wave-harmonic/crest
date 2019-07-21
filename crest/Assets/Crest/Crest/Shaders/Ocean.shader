@@ -223,7 +223,7 @@ Shader "Crest/Ocean"
 			{
 				float4 positionCS : SV_POSITION;
 				half4 flow_shadow : TEXCOORD1;
-				half4 foam_screenPos : TEXCOORD4;
+				half4 foam_screenPosXYW : TEXCOORD4;
 				half4 lodAlpha_worldXZUndisplaced_oceanDepth : TEXCOORD5;
 				float3 worldPos : TEXCOORD7;
 				#if _DEBUGVISUALISESHAPESAMPLE_ON
@@ -257,7 +257,7 @@ Shader "Crest/Ocean"
 
 				// sample shape textures - always lerp between 2 LOD scales, so sample two textures
 				o.flow_shadow = half4(0., 0., 0., 0.);
-				o.foam_screenPos.x = 0.;
+				o.foam_screenPosXYW.x = 0.;
 
 				o.lodAlpha_worldXZUndisplaced_oceanDepth.w = CREST_OCEAN_DEPTH_BASELINE;
 				// Sample shape textures - always lerp between 2 LOD scales, so sample two textures
@@ -279,7 +279,7 @@ Shader "Crest/Ocean"
 					#endif
 
 					#if _FOAM_ON
-					SampleFoam(_LD_TexArray_Foam, uv_slice_smallerLod, wt_smallerLod, o.foam_screenPos.x);
+					SampleFoam(_LD_TexArray_Foam, uv_slice_smallerLod, wt_smallerLod, o.foam_screenPosXYW.x);
 					#endif
 
 					#if _FLOW_ON
@@ -296,7 +296,7 @@ Shader "Crest/Ocean"
 					#endif
 
 					#if _FOAM_ON
-					SampleFoam(_LD_TexArray_Foam, uv_slice_biggerLod, wt_biggerLod, o.foam_screenPos.x);
+					SampleFoam(_LD_TexArray_Foam, uv_slice_biggerLod, wt_biggerLod, o.foam_screenPosXYW.x);
 					#endif
 
 					#if _FLOW_ON
@@ -331,7 +331,7 @@ Shader "Crest/Ocean"
 				}
 
 				// Foam can saturate
-				o.foam_screenPos.x = saturate(o.foam_screenPos.x);
+				o.foam_screenPosXYW.x = saturate(o.foam_screenPosXYW.x);
 
 				// debug tinting to see which shape textures are used
 				#if _DEBUGVISUALISESHAPESAMPLE_ON
@@ -349,7 +349,7 @@ Shader "Crest/Ocean"
 				// colours may or may not come from the backbuffer, which means they may or may not be flipped in y. use these macros
 				// to get the right results, every time.
 				o.grabPos = ComputeGrabScreenPos(o.positionCS);
-				o.foam_screenPos.yzw = ComputeScreenPos(o.positionCS).xyw;
+				o.foam_screenPosXYW.yzw = ComputeScreenPos(o.positionCS).xyw;
 				return o;
 			}
 
@@ -398,7 +398,7 @@ Shader "Crest/Ocean"
 
 				// water surface depth, and underlying scene opaque surface depth
 				float pixelZ = LinearEyeDepth(input.positionCS.z);
-				half3 screenPos = input.foam_screenPos.yzw;
+				half3 screenPos = input.foam_screenPosXYW.yzw;
 				half2 uvDepth = screenPos.xy / screenPos.z;
 				float sceneZ01 = tex2D(_CameraDepthTexture, uvDepth).x;
 				float sceneZ = LinearEyeDepth(sceneZ01);
@@ -439,9 +439,9 @@ Shader "Crest/Ocean"
 				#if _FOAM_ON
 				half4 whiteFoamCol;
 				#if !_FLOW_ON
-				ComputeFoam(input.foam_screenPos.x, input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, input.worldPos.xz, n_pixel, pixelZ, sceneZ, view, lightDir, shadow.y, lodAlpha, bubbleCol, whiteFoamCol);
+				ComputeFoam(input.foam_screenPosXYW.x, input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, input.worldPos.xz, n_pixel, pixelZ, sceneZ, view, lightDir, shadow.y, lodAlpha, bubbleCol, whiteFoamCol);
 				#else
-				ComputeFoamWithFlow(input.flow_shadow.xy, input.foam_screenPos.x, input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, input.worldPos.xz, n_pixel, pixelZ, sceneZ, view, lightDir, shadow.y, lodAlpha, bubbleCol, whiteFoamCol);
+				ComputeFoamWithFlow(input.flow_shadow.xy, input.foam_screenPosXYW.x, input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, input.worldPos.xz, n_pixel, pixelZ, sceneZ, view, lightDir, shadow.y, lodAlpha, bubbleCol, whiteFoamCol);
 				#endif // _FLOW_ON
 				#endif // _FOAM_ON
 
@@ -453,12 +453,12 @@ Shader "Crest/Ocean"
 				#if _UNDERWATER_ON
 				if (underwater)
 				{
-					ApplyReflectionUnderwater(view, n_pixel, lightDir, shadow.y, input.foam_screenPos.yzzw, scatterCol, col);
+					ApplyReflectionUnderwater(view, n_pixel, lightDir, shadow.y, input.foam_screenPosXYW.yzzw, scatterCol, col);
 				}
 				else
 				#endif
 				{
-					ApplyReflectionSky(view, n_pixel, lightDir, shadow.y, input.foam_screenPos.yzzw, col);
+					ApplyReflectionSky(view, n_pixel, lightDir, shadow.y, input.foam_screenPosXYW.yzzw, col);
 				}
 
 				// Override final result with white foam - bubbles on surface

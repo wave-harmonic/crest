@@ -263,6 +263,9 @@ namespace Crest
             float maxDetailY = SeaLevel - _maxVertDispFromWaves / 5f;
             float camDistance = Mathf.Abs(_viewpoint.position.y - maxDetailY);
 
+            // offset level of detail to keep max detail in a band near the surface
+            camDistance = Mathf.Max(camDistance - 4f, 0f);
+
             // scale ocean mesh based on camera distance to sea level, to keep uniform detail.
             const float HEIGHT_LOD_MUL = 2f;
             float level = camDistance * HEIGHT_LOD_MUL;

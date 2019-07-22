@@ -19,6 +19,7 @@ namespace Crest
         static int s_paramsOcean = Shader.PropertyToID("_LD_Params");
         static int s_paramsOceanSource = Shader.PropertyToID("_LD_Params_Source");
 
+        [System.Serializable]
         public struct RenderData
         {
             public float _texelWidth;
@@ -124,7 +125,7 @@ namespace Crest
             float oceanBaseScale = OceanRenderer.Instance.Scale;
             float maxDiameter = 4f * oceanBaseScale * Mathf.Pow(2f, lodIdx);
             float maxTexelSize = maxDiameter / OceanRenderer.Instance.LodDataResolution;
-            return 2f * maxTexelSize * OceanRenderer.Instance._minTexelsPerWave;
+            return 2f * maxTexelSize * OceanRenderer.Instance.MinTexelsPerWave;
         }
 
         public static int ParamIdPosScale(bool sourceLod = false)

@@ -53,7 +53,6 @@ half3 ScatterColour(
 	in const bool i_underwater, in const bool i_outscatterLight, half sss)
 {
 	half depth;
-	half waveHeight;
 	half shadow = 1.0;
 	if (i_underwater)
 	{
@@ -66,7 +65,6 @@ half3 ScatterColour(
 		const float3 uv_smallerLod = WorldToUV(i_cameraPos.xz);
 		depth = CREST_OCEAN_DEPTH_BASELINE;
 		SampleSeaDepth(_LD_TexArray_SeaFloorDepth, uv_smallerLod, 1.0, depth);
-		waveHeight = 0.0;
 
 		// Huw: knocking this out for now as it seems to produce intense strobing when underwater.
 //#if _SHADOWS_ON
@@ -79,7 +77,6 @@ half3 ScatterColour(
 	{
 		// above water - take data from geometry
 		depth = i_surfaceOceanDepth;
-		waveHeight = i_surfaceWorldPos.y - _OceanCenterPosWorld.y;
 		shadow = i_shadow;
 	}
 

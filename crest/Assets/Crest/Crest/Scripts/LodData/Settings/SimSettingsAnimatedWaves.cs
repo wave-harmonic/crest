@@ -40,8 +40,8 @@ namespace Crest
         public void GetMinMaxGridSizes(out float minGridSize, out float maxGridSize)
         {
             // Wavelengths that repeat twice or more across the object are irrelevant and don't need to be read back.
-            minGridSize = 0.5f * _minObjectWidth / OceanRenderer.Instance._minTexelsPerWave;
-            maxGridSize = 0.5f * _maxObjectWidth / OceanRenderer.Instance._minTexelsPerWave;
+            minGridSize = 0.5f * _minObjectWidth / OceanRenderer.Instance.MinTexelsPerWave;
+            maxGridSize = 0.5f * _maxObjectWidth / OceanRenderer.Instance.MinTexelsPerWave;
         }
 
         /// <summary>

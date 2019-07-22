@@ -50,7 +50,8 @@ namespace Crest
         public MaterialPropertyBlock materialPropertyBlock { get; private set; }
     }
 
-     public class PropertyWrapperCompute : IPropertyWrapper
+    [System.Serializable]
+    public class PropertyWrapperCompute : IPropertyWrapper
     {
         private CommandBuffer _commandBuffer = null;
         ComputeShader _computeShader = null;

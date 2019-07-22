@@ -16,10 +16,12 @@
 
 **LWRP asset:** [Crest Ocean System LWRP](https://assetstore.unity.com/packages/tools/particles-effects/crest-ocean-system-lwrp-141674)
 
-# Gallery
+# Showcase Gallery
 
-*Your game here! I'm looking for projects to showcase - if you upload a video of your work to youtube and send me a link I'll put a thumbnail here and link to it.*
+*Your game here! We're looking for projects to showcase - if you upload a video of your work to youtube and send us a link (or create a pull request) we'll put a thumbnail here and link to it.*
 
+<a href="https://www.youtube.com/watch?feature=player_embedded&v=3i6VpdKw2Q0" target="_black"><img src="https://img.youtube.com/vi/3i6VpdKw2Q0/0.jpg" alt="Crest Ocean System - Pirate Cove Example Scene" width="240" height="180" /></a>
+<a href="https://www.youtube.com/watch?feature=player_embedded&v=m2ZojyD4PZc" target="_blank"><img src="https://img.youtube.com/vi/m2ZojyD4PZc/0.jpg" alt="Critter Cove & Crest Trailer" width="240" height="180" /></a>
 
 # Documentation
 

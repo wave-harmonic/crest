@@ -317,8 +317,8 @@ namespace Crest
         public bool ScaleCouldDecrease { get { return _minScale == -1f || transform.localScale.x > _minScale * 1.01f; } }
 
         /// <summary>
-        /// Shape scripts can report in how far they might displace the shape horizontally. The max value is saved here.
-        /// Later the bounding boxes for the ocean tiles will be expanded to account for this potential displacement.
+        /// User shape inputs can report in how far they might displace the shape horizontally and vertically. The max value is
+        /// saved here. Later the bounding boxes for the ocean tiles will be expanded to account for this potential displacement.
         /// </summary>
         public void ReportMaxDisplacementFromShape(float maxHorizDisp, float maxVertDisp, float maxVertDispFromWaves)
         {

@@ -260,12 +260,15 @@ namespace Crest
             // reach maximum detail at slightly below sea level. this should combat cases where visual range can be lost
             // when water height is low and camera is suspended in air. i tried a scheme where it was based on difference
             // to water height but this does help with the problem of horizontal range getting limited at bad times.
-            float maxDetailY = SeaLevel - _maxVertDispFromShape / 5f;
-            // scale ocean mesh based on camera distance to sea level, to keep uniform detail.
-            float camY = Mathf.Max(Mathf.Abs(_viewpoint.position.y - SeaLevel) - maxDetailY, 0f);
+            float maxDetailY = SeaLevel - _maxVertDispFromWaves / 5f;
+            float camDistance = Mathf.Abs(_viewpoint.position.y - maxDetailY);
 
+            // offset level of detail to keep max detail in a band near the surface
+            camDistance = Mathf.Max(camDistance - 4f, 0f);
+
+            // scale ocean mesh based on camera distance to sea level, to keep uniform detail.
             const float HEIGHT_LOD_MUL = 2f;
-            float level = camY * HEIGHT_LOD_MUL;
+            float level = camDistance * HEIGHT_LOD_MUL;
             level = Mathf.Max(level, _minScale);
             if (_maxScale != -1f) level = Mathf.Min(level, 1.99f * _maxScale);
 
@@ -317,22 +320,25 @@ namespace Crest
         public bool ScaleCouldDecrease { get { return _minScale == -1f || transform.localScale.x > _minScale * 1.01f; } }
 
         /// <summary>
-        /// Shape scripts can report in how far they might displace the shape horizontally. The max value is saved here.
-        /// Later the bounding boxes for the ocean tiles will be expanded to account for this potential displacement.
+        /// User shape inputs can report in how far they might displace the shape horizontally and vertically. The max value is
+        /// saved here. Later the bounding boxes for the ocean tiles will be expanded to account for this potential displacement.
         /// </summary>
-        public void ReportMaxDisplacementFromShape(float maxHorizDisp, float maxVertDisp)
+        public void ReportMaxDisplacementFromShape(float maxHorizDisp, float maxVertDisp, float maxVertDispFromWaves)
         {
             if (Time.frameCount != _maxDisplacementCachedTime)
             {
-                _maxHorizDispFromShape = _maxVertDispFromShape = 0f;
+                _maxHorizDispFromShape = _maxVertDispFromShape = _maxVertDispFromWaves = 0f;
             }
 
             _maxHorizDispFromShape += maxHorizDisp;
             _maxVertDispFromShape += maxVertDisp;
+            _maxVertDispFromWaves += maxVertDispFromWaves;
 
             _maxDisplacementCachedTime = Time.frameCount;
         }
-        float _maxHorizDispFromShape = 0f, _maxVertDispFromShape = 0f;
+        float _maxHorizDispFromShape = 0f;
+        float _maxVertDispFromShape = 0f;
+        float _maxVertDispFromWaves = 0f;
         int _maxDisplacementCachedTime = 0;
         /// <summary>
         /// The maximum horizontal distance that the shape scripts are displacing the shape.

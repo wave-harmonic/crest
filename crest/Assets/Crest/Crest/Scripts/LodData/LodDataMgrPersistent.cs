@@ -57,7 +57,7 @@ namespace Crest
             _sources.filterMode = FilterMode.Bilinear;
             _sources.anisoLevel = 0;
             _sources.useMipMap = false;
-            _sources.name = SimName;
+            _sources.name = SimName + "_1";
             _sources.dimension = TextureDimension.Tex2DArray;
             _sources.volumeDepth = OceanRenderer.Instance.CurrentLodCount;
             _sources.enableRandomWrite = NeedToReadWriteTextureData;

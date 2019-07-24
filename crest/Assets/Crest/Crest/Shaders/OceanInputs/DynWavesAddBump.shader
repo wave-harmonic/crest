@@ -74,7 +74,7 @@ Shader "Crest/Inputs/Dynamic Waves/Add Bump"
 					y /= _SimCount;
 
 				// treat as an acceleration - dt^2
-				return float4(_SimDeltaTime * _SimDeltaTime * y, 0.0, 0.0, 0.0);
+				return float4(0.0, _SimDeltaTime * _SimDeltaTime * y, 0.0, 0.0);
 			}
 
 			ENDCG

@@ -38,7 +38,7 @@ namespace Crest
         static int sp_Damping = Shader.PropertyToID("_Damping");
         static int sp_Gravity = Shader.PropertyToID("_Gravity");
         static int sp_LaplacianAxisX = Shader.PropertyToID("_LaplacianAxisX");
-
+        
         protected override void InitData()
         {
             base.InitData();
@@ -80,7 +80,7 @@ namespace Crest
             base.SetAdditionalSimParams(simMaterial);
 
             simMaterial.SetFloat(sp_Damping, Settings._damping);
-            simMaterial.SetFloat(sp_Gravity, OceanRenderer.Instance.Gravity);
+            simMaterial.SetFloat(sp_Gravity, OceanRenderer.Instance.Gravity * Settings._gravityMultiplier);
 
             float laplacianKernelAngle = _rotateLaplacian ? Mathf.PI * 2f * Random.value : 0f;
             simMaterial.SetVector(sp_LaplacianAxisX, new Vector2(Mathf.Cos(laplacianKernelAngle), Mathf.Sin(laplacianKernelAngle)));
@@ -127,7 +127,7 @@ namespace Crest
             // Limit timestep based on Courant constant: https://www.uio.no/studier/emner/matnat/ifi/nedlagte-emner/INF2340/v05/foiler/sim04.pdf
             var Cmax = Settings._courantNumber;
             var minWavelength = ocean._lodTransform.MaxWavelength(lodIdx) / 2f;
-            var waveSpeed = OceanWaveSpectrum.ComputeWaveSpeed(minWavelength);
+            var waveSpeed = OceanWaveSpectrum.ComputeWaveSpeed(minWavelength, Settings._gravityMultiplier);
             // 0.5f because its 2D
             var maxDt = 0.5f * Cmax * ocean.CalcGridSize(lodIdx) / waveSpeed;
             return maxDt;

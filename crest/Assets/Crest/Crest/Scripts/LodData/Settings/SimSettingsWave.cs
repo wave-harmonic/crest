@@ -28,5 +28,7 @@ namespace Crest
         public float _horizDisplace = 3f;
         [Range(0f, 1f), Tooltip("Clamp displacement to help prevent self-intersection in steep waves. Zero means unclamped.")]
         public float _displaceClamp = 0.3f;
+
+        public float _gravityMultiplier = 1f;
     }
 }

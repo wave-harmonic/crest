@@ -16,6 +16,7 @@ MonoBehaviour:
   _maxGridSize: 0
   _damping: 0.25
   _courantNumber: 1.5
-  _maxSimStepsPerFrame: 3
-  _horizDisplace: 3
+  _maxSimStepsPerFrame: 8
+  _horizDisplace: 6
   _displaceClamp: 0.3
+  _gravityMultiplier: 16

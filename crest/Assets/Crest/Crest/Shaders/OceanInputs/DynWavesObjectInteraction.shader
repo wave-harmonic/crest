@@ -8,7 +8,7 @@ Shader "Crest/Inputs/Dynamic Waves/Object Interaction"
 	{
 		_FactorParallel("FactorParallel", Range(0., 8.)) = 0.2
 		_FactorOrthogonal("FactorOrthogonal", Range(0., 4.)) = 0.2
-		_Strength("Strength", Range(0., 400.)) = 0.2
+		_Strength("Strength", Range(0., 200000.)) = 0.2
 		_Velocity("Velocity", Vector) = (0,0,0,0)
 	}
 
@@ -99,7 +99,7 @@ Shader "Crest/Inputs/Dynamic Waves/Object Interaction"
 				// write to both channels of sim. this has the affect of kinematically moving the water, instead of applying
 				// a force to accelerate it.
 				float dt2 = _SimDeltaTime * _SimDeltaTime;
-				return _Weight * half4(col.x*dt2, col.x*dt2, 0., 0.);
+				return _Weight * half4(0., col.x*dt2, 0., 0.);
 			}
 			ENDCG
 		}

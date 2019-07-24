@@ -61,10 +61,12 @@ namespace Crest
                 return 0f;
             }
 
-            float wl_pow2 = Mathf.Log(wavelength) / Mathf.Log(2f);
+            var wl_pow2 = Mathf.Log(wavelength) / Mathf.Log(2f);
             wl_pow2 = Mathf.Clamp(wl_pow2, SMALLEST_WL_POW_2, SMALLEST_WL_POW_2 + NUM_OCTAVES - 1f);
 
-            int index = (int)(wl_pow2 - SMALLEST_WL_POW_2);
+            var lower = Mathf.Pow(2f, Mathf.Floor(wl_pow2));
+
+            var index = (int)(wl_pow2 - SMALLEST_WL_POW_2);
 
             if (index >= _powerLog.Length)
             {
@@ -79,12 +81,13 @@ namespace Crest
 
             // The amplitude calculation follows this nice paper from Frechot:
             // https://hal.archives-ouvertes.fr/file/index/docid/307938/filename/frechot_realistic_simulation_of_ocean_surface_using_wave_spectra.pdf
-            float wl_lo = Mathf.Pow(2f, Mathf.Floor(wl_pow2));
-            float k_lo = 2f * Mathf.PI / wl_lo;
-            float omega_lo = k_lo * ComputeWaveSpeed(wl_lo);
-            float wl_hi = 2f * wl_lo;
-            float k_hi = 2f * Mathf.PI / wl_hi;
-            float omega_hi = k_hi * ComputeWaveSpeed(wl_hi);
+            var wl_lo = Mathf.Pow(2f, Mathf.Floor(wl_pow2));
+            var k_lo = 2f * Mathf.PI / wl_lo;
+            var omega_lo = k_lo * ComputeWaveSpeed(wl_lo);
+            var wl_hi = 2f * wl_lo;
+            var k_hi = 2f * Mathf.PI / wl_hi;
+            var omega_hi = k_hi * ComputeWaveSpeed(wl_hi);
+
             var domega = (omega_lo - omega_hi) / componentsPerOctave;
 
             // Alpha used to interpolate between power values
@@ -135,7 +138,7 @@ namespace Crest
                     // stratified random sampling - should give a better range of wavelengths, and also means i can generated the
                     // wavelengths in sorted order!
                     var minWavelengthi = minWavelength + invComponentsPerOctave * minWavelength * i;
-                    var  maxWavelengthi = Mathf.Min(minWavelengthi + invComponentsPerOctave * minWavelength, 2f * minWavelength);
+                    var maxWavelengthi = Mathf.Min(minWavelengthi + invComponentsPerOctave * minWavelength, 2f * minWavelength);
                     wavelengths[index] = Mathf.Lerp(minWavelengthi, maxWavelengthi, Random.value);
 
                     var rnd = (i + Random.value) * invComponentsPerOctave;

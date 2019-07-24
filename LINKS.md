@@ -110,3 +110,4 @@
 
 * Ocean transparency measurements: http://www.dtic.mil/dtic/tr/fulltext/u2/718333.pdf
 * Great slides on 2D FFT with applications http://www.robots.ox.ac.uk/~az/lectures/ia/lect2.pdf
+* A simple fluid solver based on the FFT: https://pdfs.semanticscholar.org/fdf2/e4054f4a85b4af67d0a49ac1ec33636c332b.pdf?_ga=2.103529344.1493036506.1563914559-834855682.1563914559

@@ -20,7 +20,7 @@ namespace Crest
         public float _fetch = 500000f;
 
         public static readonly float MIN_POWER_LOG = -6f;
-        public static readonly float MAX_POWER_LOG = 3f;
+        public static readonly float MAX_POWER_LOG = 5f;
 
         [Tooltip("Variance of flow direction, in degrees"), Range(0f, 180f)]
         public float _waveDirectionVariance = 90f;
@@ -343,7 +343,7 @@ namespace Crest
             EditorGUILayout.BeginHorizontal();
             float spd_kmh = spec._windSpeed * 3.6f;
             EditorGUILayout.LabelField("Wind speed (km/h)", GUILayout.Width(120f));
-            spd_kmh = EditorGUILayout.Slider(spd_kmh, 0f, 60f);
+            spd_kmh = EditorGUILayout.Slider(spd_kmh, 0f, 120f);
             spec._windSpeed = spd_kmh / 3.6f;
             EditorGUILayout.EndHorizontal();
 

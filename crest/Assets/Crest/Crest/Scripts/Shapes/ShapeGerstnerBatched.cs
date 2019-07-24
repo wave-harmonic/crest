@@ -192,9 +192,9 @@ namespace Crest
 
             _spectrum.GenerateWaveData(_componentsPerOctave, ref _wavelengths, ref _angleDegs);
 
-            Random.state = randomStateBkp;
-
             UpdateAmplitudes();
+
+            Random.state = randomStateBkp;
 
             ReportMaxDisplacement();
 

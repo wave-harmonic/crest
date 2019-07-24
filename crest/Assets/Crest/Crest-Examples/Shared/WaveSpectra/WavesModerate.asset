@@ -12,23 +12,29 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 33068fc021dadc04dab6e00e4ff45c00, type: 3}
   m_Name: WavesModerate
   m_EditorClassIdentifier: 
-  _waveDirectionVariance: 180
+  _windSpeed: 16.666668
+  _fetch: 1000000
+  _waveDirectionVariance: 91.1
   _gravityScale: 1
   _powerLog:
-  - -4.4257426
-  - -4.2761765
-  - -3.370956
-  - -2.7461402
-  - -2.1249452
-  - -0.55460376
-  - 0.055005528
-  - 0.6012212
-  - 0.92241216
-  - 1.5629156
-  - 1.7670618
+  - -5.5634165
+  - -5.245025
+  - -4.8234816
+  - -4.350367
+  - -3.6709666
+  - -2.7337558
+  - -1.7968227
+  - -1.1188806
+  - -0.93535525
+  - -0.35700414
+  - 0.61440367
+  - 1.4302447
+  - -0.54237056
   - -6
-  _powerDisabled: 000000000000000000000000
+  _powerDisabled: 0000000000000000000000000001
   _chopScales:
+  - 1
+  - 1
   - 1
   - 1
   - 1
@@ -54,5 +60,7 @@ MonoBehaviour:
   - 1
   - 1
   - 1
-  _chop: 1.5
+  - 1
+  - 1
+  _chop: 1.54
   _showAdvancedControls: 0

@@ -2,8 +2,8 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
-using UnityEngine;
 using UnityEditor;
+using UnityEngine;
 
 namespace Crest
 {
@@ -13,8 +13,11 @@ namespace Crest
     [CreateAssetMenu(fileName = "OceanWaves", menuName = "Crest/Ocean Wave Spectrum", order = 10000)]
     public class OceanWaveSpectrum : ScriptableObject
     {
-        public const int NUM_OCTAVES = 12;
-        public static readonly float SMALLEST_WL_POW_2 = -2f;
+        public const int NUM_OCTAVES = 14;
+        public static readonly float SMALLEST_WL_POW_2 = -4f;
+
+        public float _windSpeed = 10f;
+        public float _fetch = 500000f;
 
         public static readonly float MIN_POWER_LOG = -6f;
         public static readonly float MAX_POWER_LOG = 3f;
@@ -25,20 +28,20 @@ namespace Crest
         [Tooltip("More gravity means faster waves."), Range(0f, 25f)]
         public float _gravityScale = 1f;
 
-        [SerializeField, HideInInspector]
+        [SerializeField]
         float[] _powerLog = new float[NUM_OCTAVES]
-            { -6f, -4.0088496f, -3.4452133f, -2.6996124f, -2.615044f, -1.2080691f, -0.53905386f, 0.27448857f, 0.53627354f, 1.0282621f, 1.4403292f, -6f };
+            { -6f, -6f, -6f, -4.0088496f, -3.4452133f, -2.6996124f, -2.615044f, -1.2080691f, -0.53905386f, 0.27448857f, 0.53627354f, 1.0282621f, 1.4403292f, -6f };
 
-        [SerializeField, HideInInspector]
+        [SerializeField]
         bool[] _powerDisabled = new bool[NUM_OCTAVES];
 
-        [HideInInspector]
+        //[HideInInspector]
         public float[] _chopScales = new float[NUM_OCTAVES]
-            { 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f };
+            { 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f };
 
-        [HideInInspector]
+        //[HideInInspector]
         public float[] _gravityScales = new float[NUM_OCTAVES]
-            { 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f };
+            { 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f };
 
         [Tooltip("Scales horizontal displacement"), Range(0f, 2f)]
         public float _chop = 1f;
@@ -49,6 +52,9 @@ namespace Crest
 
         public float GetAmplitude(float wavelength, float componentsPerOctave)
         {
+            // Always take random value so that sequence remains deterministic even if this function early outs
+            var rand0 = Random.value;
+
             if (wavelength <= 0.001f)
             {
                 Debug.LogError("Wavelength must be >= 0f");
@@ -79,12 +85,20 @@ namespace Crest
             float wl_hi = 2f * wl_lo;
             float k_hi = 2f * Mathf.PI / wl_hi;
             float omega_hi = k_hi * ComputeWaveSpeed(wl_hi);
+            var domega = (omega_lo - omega_hi) / componentsPerOctave;
 
-            float domega = (omega_lo - omega_hi) / componentsPerOctave;
+            // Alpha used to interpolate between power values
+            var alpha = (wavelength - lower) / lower;
 
-            float a_2 = 2f * Mathf.Pow(10f, _powerLog[index]) * domega;
+            // Power
+            var pow = Mathf.Lerp(_powerLog[index], _powerLog[Mathf.Min(index + 1, _powerLog.Length - 1)], alpha);
+
+            var a_2 = 2f * Mathf.Pow(10f, pow) * domega;
+
+            // Amplitude
             var a = Mathf.Sqrt(a_2);
-            return a;
+
+            return a * rand0;
         }
 
         float ComputeWaveSpeed(float wavelength)
@@ -244,9 +258,6 @@ namespace Crest
         private static GUIStyle ToggleButtonStyleNormal = null;
         private static GUIStyle ToggleButtonStyleToggled = null;
 
-        static float _windSpeed = 10f;
-        static float _fetch = 500000f;
-
         static bool _applyPhillipsSpectrum = false;
         static bool _applyPiersonMoskowitzSpectrum = false;
         static bool _applyJONSWAPSpectrum = false;
@@ -327,10 +338,10 @@ namespace Crest
             EditorGUILayout.LabelField("Empirical Spectra", EditorStyles.boldLabel);
 
             EditorGUILayout.BeginHorizontal();
-            float spd_kmh = _windSpeed * 3.6f;
+            float spd_kmh = spec._windSpeed * 3.6f;
             EditorGUILayout.LabelField("Wind speed (km/h)", GUILayout.Width(120f));
             spd_kmh = EditorGUILayout.Slider(spd_kmh, 0f, 60f);
-            _windSpeed = spd_kmh / 3.6f;
+            spec._windSpeed = spd_kmh / 3.6f;
             EditorGUILayout.EndHorizontal();
 
 
@@ -346,7 +357,7 @@ namespace Crest
 
                 Undo.RecordObject(this, "Apply Phillips Spectrum");
 
-                spec.ApplyPhillipsSpectrum(_windSpeed);
+                spec.ApplyPhillipsSpectrum(spec._windSpeed);
             }
 
             if (GUILayout.Button(new GUIContent("Pierson-Moskowitz", "Fully developed sea with infinite fetch"), _applyPiersonMoskowitzSpectrum ? ToggleButtonStyleToggled : ToggleButtonStyleNormal))
@@ -359,10 +370,10 @@ namespace Crest
 
                 Undo.RecordObject(this, "Apply Pierson-Moskowitz Spectrum");
 
-                spec.ApplyPiersonMoskowitzSpectrum(_windSpeed);
+                spec.ApplyPiersonMoskowitzSpectrum(spec._windSpeed);
             }
 
-            _fetch = EditorGUILayout.Slider("Fetch", _fetch, 0f, 1000000f);
+            spec._fetch = EditorGUILayout.Slider("Fetch", spec._fetch, 0f, 1000000f);
 
 
             if (GUILayout.Button(new GUIContent("JONSWAP", "Fetch limited sea where waves continue to grow"), _applyJONSWAPSpectrum ? ToggleButtonStyleToggled : ToggleButtonStyleNormal))
@@ -375,7 +386,7 @@ namespace Crest
 
                 Undo.RecordObject(this, "Apply JONSWAP Spectrum");
 
-                spec.ApplyJONSWAPSpectrum(_windSpeed, _fetch);
+                spec.ApplyJONSWAPSpectrum(spec._windSpeed, spec._fetch);
             }
 
 

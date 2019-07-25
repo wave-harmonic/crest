@@ -13,7 +13,7 @@
 half _Damping;
 float2 _LaplacianAxisX;
 half _Gravity;
-float _SimDeltaTime;
+float _SimDeltaTime[MAX_LOD_COUNT];
 float _LODChange;
 
 // How many samples we want in one wave. trade quality for perf.
@@ -33,7 +33,7 @@ RWTexture2DArray<float2> _LD_TexArray_Target;
 [numthreads(THREAD_GROUP_SIZE_X,THREAD_GROUP_SIZE_Y,1)]
 void UpdateDynWaves(uint3 id : SV_DispatchThreadID)
 {
-	const float sliceIndex = id.z;
+	const uint sliceIndex = id.z;
 	const float sliceIndexSource = id.z + _LODChange;
 	float width; float height; float depth;
 	{
@@ -49,7 +49,7 @@ void UpdateDynWaves(uint3 id : SV_DispatchThreadID)
 	//float h = max(waterSignedDepth + ft, 0.);
 	const float c = ComputeWaveSpeed(wavelength, _Gravity);
 
-	const float dt = _SimDeltaTime;
+	const float dt = _SimDeltaTime[sliceIndex];
 
 	const float3 uv_slice = float3(input_uv, sliceIndex);
 

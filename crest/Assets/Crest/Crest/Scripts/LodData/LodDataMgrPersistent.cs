@@ -91,17 +91,23 @@ namespace Crest
 
             var lodCount = ocean.CurrentLodCount;
 
-            float substepDt;
-            int numSubsteps;
-            GetSimSubstepData(ocean.DeltaTime, out numSubsteps, out substepDt);
+            float[] substepDt = new float[lodCount];
+            int[] numSubsteps = new int[lodCount];
+            for (int i = 0; i < lodCount; i++)
+            {
+                GetSimSubstepData(ocean.DeltaTime, out numSubsteps[i], out substepDt[i]);
+            }
 
-            for (int stepi = 0; stepi < numSubsteps; stepi++)
+            int lastLod = lodCount - 1;
+
+            for (int stepi = 0; stepi < numSubsteps[lastLod]; stepi++)
             {
                 SwapRTs(ref _sources, ref _targets);
 
                 _renderSimProperties.Initialise(buf, _shader, krnl_ShaderSim);
 
-                _renderSimProperties.SetFloat(sp_SimDeltaTime, substepDt);
+                _renderSimProperties.SetFloatArray(sp_SimDeltaTime, substepDt);
+                //_renderSimProperties.SetFloat(sp_SimDeltaTime, substepDt);
                 _renderSimProperties.SetFloat(sp_SimDeltaTimePrev, _substepDtPrevious);
 
                 // compute which lod data we are sampling source data from. if a scale change has happened this can be any lod up or down the chain.

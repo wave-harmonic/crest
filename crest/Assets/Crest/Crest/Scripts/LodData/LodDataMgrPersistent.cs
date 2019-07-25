@@ -14,8 +14,6 @@ namespace Crest
     {
         protected override bool NeedToReadWriteTextureData { get { return true; } }
 
-        protected readonly int MAX_SIM_STEPS = 4;
-
         RenderTexture _sources;
         PropertyWrapperCompute _renderSimProperties;
 
@@ -91,10 +89,11 @@ namespace Crest
         {
             base.BuildCommandBuffer(ocean, buf);
 
-            var lodCount = OceanRenderer.Instance.CurrentLodCount;
+            var lodCount = ocean.CurrentLodCount;
+
             float substepDt;
             int numSubsteps;
-            GetSimSubstepData(Time.deltaTime, out numSubsteps, out substepDt);
+            GetSimSubstepData(ocean.DeltaTime, out numSubsteps, out substepDt);
 
             for (int stepi = 0; stepi < numSubsteps; stepi++)
             {

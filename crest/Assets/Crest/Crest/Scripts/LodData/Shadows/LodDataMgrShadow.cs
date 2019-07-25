@@ -209,7 +209,7 @@ namespace Crest
                 _renderProperties.SetVector(sp_CamForward, OceanRenderer.Instance.Viewpoint.forward);
                 _renderProperties.SetVector(sp_JitterDiameters_CurrentFrameWeights, new Vector4(Settings._jitterDiameterSoft, Settings._jitterDiameterHard, Settings._currentFrameWeightSoft, Settings._currentFrameWeightHard));
                 _renderProperties.SetMatrix(sp_MainCameraProjectionMatrix, _cameraMain.projectionMatrix * _cameraMain.worldToCameraMatrix);
-                _renderProperties.SetFloat(sp_SimDeltaTime, Time.deltaTime);
+                _renderProperties.SetFloat(sp_SimDeltaTime, OceanRenderer.Instance.DeltaTimeDynamics);
 
                 // compute which lod data we are sampling previous frame shadows from. if a scale change has happened this can be any lod up or down the chain.
                 var srcDataIdx = lodIdx + ScaleDifferencePow2;
@@ -218,7 +218,6 @@ namespace Crest
                 _renderProperties.SetFloat(sp_LD_SliceIndex_Source, srcDataIdx);
                 BindSourceData(_renderProperties, false);
                 _renderProperties.SetTexture(sp_LD_TexArray_Target, _targets);
-
                 _renderProperties.DispatchShader();
             }
         }

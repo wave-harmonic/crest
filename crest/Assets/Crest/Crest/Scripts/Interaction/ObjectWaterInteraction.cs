@@ -20,8 +20,8 @@ namespace Crest
         [Range(0f, 1f), SerializeField]
         float _noiseAmp = 0.5f;
 
-        [Range(0f, 20f), SerializeField]
-        float _weight = 6f;
+        [Range(-1f, 1f), SerializeField]
+        float _weight = 1f;
         [Range(0f, 2f), SerializeField]
         float _weightUpDownMul = 0.5f;
 
@@ -41,6 +41,9 @@ namespace Crest
         FloatingObjectBase _boat;
         Vector3 _posLast;
         SamplingData _samplingDataFlow = new SamplingData();
+
+        Renderer _renderer;
+        MaterialPropertyBlock _mpb;
 
         private void Start()
         {
@@ -67,6 +70,16 @@ namespace Crest
                 enabled = false;
                 return;
             }
+
+            _renderer = GetComponent<Renderer>();
+            if (_renderer == null)
+            {
+                Debug.Log("ObjectWaterInteraction script requires Renderer component.", this);
+                enabled = false;
+                return;
+            }
+
+            _mpb = new MaterialPropertyBlock();
         }
 
         void LateUpdate()
@@ -99,12 +112,18 @@ namespace Crest
             var disp = _boat.CalculateDisplacementToObject();
             transform.position = transform.parent.TransformPoint(_localOffset) - disp + _velocityPositionOffset * _boat.RB.velocity;
 
-            var rnd = 1f + _noiseAmp * (2f * Mathf.PerlinNoise(_noiseFreq * OceanRenderer.Instance.CurrentTime, 0.5f) - 1f);
-            // feed in water velocity
-            var vel = (transform.position - _posLast) / Time.deltaTime;
+            var ocean = OceanRenderer.Instance;
 
-            if (OceanRenderer.Instance._simSettingsFlow != null &&
-                OceanRenderer.Instance._simSettingsFlow._readbackData &&
+            var rnd = 1f + _noiseAmp * (2f * Mathf.PerlinNoise(_noiseFreq * ocean.CurrentTime, 0.5f) - 1f);
+            // feed in water velocity
+            var vel = (transform.position - _posLast) / ocean.DeltaTimeDynamics;
+            if (ocean.DeltaTimeDynamics < 0.0001f)
+            {
+                vel = Vector3.zero;
+            }
+
+            if (ocean._simSettingsFlow != null &&
+                ocean._simSettingsFlow._readbackData &&
                 GPUReadbackFlow.Instance)
             {
                 var position = transform.position;
@@ -143,16 +162,16 @@ namespace Crest
             }
 
             float dt; int steps;
-            OceanRenderer.Instance._lodDataDynWaves.GetSimSubstepData(Time.deltaTime, out steps, out dt);
+            ocean._lodDataDynWaves.GetSimSubstepData(ocean.DeltaTimeDynamics, out steps, out dt);
             float weight = _boat.InWater ? _weight / simsActive : 0f;
-            for (int mati = 0; mati < _dynWavesInput.MaterialCount; mati++)
-            {
-                var mat = _dynWavesInput.GetMaterial(mati);
 
-                mat.SetVector("_Velocity", vel);
-                mat.SetFloat("_Weight", weight);
-                mat.SetFloat("_SimDeltaTime", dt);
-            }
+            _renderer.GetPropertyBlock(_mpb);
+
+            _mpb.SetVector("_Velocity", vel);
+            _mpb.SetFloat("_Weight", weight);
+            _mpb.SetFloat("_SimDeltaTime", dt);
+
+            _renderer.SetPropertyBlock(_mpb);
 
             _posLast = transform.position;
         }

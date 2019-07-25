@@ -21,7 +21,7 @@ Shader "Crest/Inputs/Depth/Cached Depths Geometry"
 
 			CGPROGRAM
 			#pragma vertex Vert
- 			#pragma geometry Geometry
+			#pragma geometry Geometry
 			#pragma fragment Frag
 
 			#define CREST_OCEAN_DEPTHS_GEOM_SHADER_ON

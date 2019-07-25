@@ -12,5 +12,9 @@ namespace Crest
     public abstract class TimeProviderBase : MonoBehaviour
     {
         public abstract float CurrentTime { get; }
+        public abstract float DeltaTime { get; }
+
+        // Delta time used for dynamics such as the ripple sim
+        public virtual float DeltaTimeDynamics => DeltaTime;
     }
 }

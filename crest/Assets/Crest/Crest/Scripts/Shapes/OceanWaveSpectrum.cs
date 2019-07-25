@@ -104,11 +104,11 @@ namespace Crest
             return a * rand0;
         }
 
-        float ComputeWaveSpeed(float wavelength)
+        public static float ComputeWaveSpeed(float wavelength, float gravityMultiplier = 1f)
         {
             // wave speed of deep sea ocean waves: https://en.wikipedia.org/wiki/Wind_wave
             // https://en.wikipedia.org/wiki/Dispersion_(water_waves)#Wave_propagation_and_dispersion
-            float g = 9.81f;
+            float g = Mathf.Abs(Physics.gravity.y) * gravityMultiplier;
             float k = 2f * Mathf.PI / wavelength;
             //float h = max(depth, 0.01);
             //float cp = sqrt(abs(tanh_clamped(h * k)) * g / k);

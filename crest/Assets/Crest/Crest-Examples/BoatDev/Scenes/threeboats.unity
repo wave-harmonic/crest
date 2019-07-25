@@ -226,7 +226,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 227134465}
   m_LocalRotation: {x: 0.074201934, y: 0.7032027, z: -0.07420195, w: 0.7032027}
-  m_LocalPosition: {x: -22.6, y: 7.4, z: 15.2}
+  m_LocalPosition: {x: 235, y: 29, z: -119}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -535,7 +535,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4872491186423460, guid: a9de35a642561b7479e8ab40bb529e8c, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 52.9
+      value: 13.05
       objectReference: {fileID: 0}
     - target: {fileID: 4872491186423460, guid: a9de35a642561b7479e8ab40bb529e8c, type: 3}
       propertyPath: m_LocalPosition.y
@@ -543,7 +543,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4872491186423460, guid: a9de35a642561b7479e8ab40bb529e8c, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -42.9
+      value: -9.79
       objectReference: {fileID: 0}
     - target: {fileID: 4872491186423460, guid: a9de35a642561b7479e8ab40bb529e8c, type: 3}
       propertyPath: m_LocalRotation.x
@@ -637,7 +637,7 @@ MonoBehaviour:
   _minTexelsPerWave: 3
   _minScale: 8
   _maxScale: 256
-  _lodDataResolution: 256
+  _lodDataResolution: 384
   _geometryDownSampleFactor: 2
   _lodCount: 8
   _simSettingsAnimatedWaves: {fileID: 0}
@@ -655,7 +655,7 @@ MonoBehaviour:
   _uniformTiles: 0
   _disableSkirt: 0
   _followViewpoint: 1
-  _lods: []
+  _lodTransform: {fileID: 0}
   _lodDataAnimWaves: {fileID: 0}
   _lodDataSeaDepths: {fileID: 0}
   _lodDataDynWaves: {fileID: 0}
@@ -1080,8 +1080,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7581c8217e105de4b83ca0ce4f8fa8c2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _spectrum: {fileID: 11400000, guid: b066d8398541b1844a63a9c12919e528, type: 2}
-  _componentsPerOctave: 5
+  _spectrum: {fileID: 11400000, guid: 691aad324f2d2be4abf8123c36963da5, type: 2}
+  _componentsPerOctave: 8
   _weight: 0.2
   _randomSeed: 0
   _directTowardsPoint: 0

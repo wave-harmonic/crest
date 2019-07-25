@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: WaterInteractionOceanLiner
+  m_Name: WaterInteractionOceanLinerFront
   m_Shader: {fileID: 4800000, guid: 3553638dda3dbfc4faa6374b95d3690b, type: 3}
   m_ShaderKeywords: 
   m_LightmapFlags: 4
@@ -74,7 +74,7 @@ Material:
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 1
-    - _Strength: 100
+    - _Strength: 50000
     - _UVSec: 0
     - _ZWrite: 1
     m_Colors:

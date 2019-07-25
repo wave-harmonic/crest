@@ -21,7 +21,7 @@ namespace Crest
         float _noiseAmp = 0.5f;
 
         [Range(-1f, 1f), SerializeField]
-        float _weight = 6f;
+        float _weight = 1f;
         [Range(0f, 2f), SerializeField]
         float _weightUpDownMul = 0.5f;
 

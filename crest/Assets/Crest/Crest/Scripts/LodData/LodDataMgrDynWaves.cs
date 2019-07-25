@@ -12,7 +12,7 @@ namespace Crest
     public class LodDataMgrDynWaves : LodDataMgrPersistent
     {
         protected override string ShaderSim { get { return "UpdateDynWaves"; } }
-        protected override int krnl_ShaderSim { get { return _shader.FindKernel(ShaderSim); }}
+        protected override int krnl_ShaderSim { get { return _shader.FindKernel(ShaderSim); } }
 
         public override string SimName { get { return "DynamicWaves"; } }
         public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RGHalf; } }
@@ -38,7 +38,7 @@ namespace Crest
         static int sp_Damping = Shader.PropertyToID("_Damping");
         static int sp_Gravity = Shader.PropertyToID("_Gravity");
         static int sp_LaplacianAxisX = Shader.PropertyToID("_LaplacianAxisX");
-        
+
         protected override void InitData()
         {
             base.InitData();

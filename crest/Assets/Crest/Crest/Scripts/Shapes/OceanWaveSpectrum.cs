@@ -2,8 +2,8 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
-using UnityEngine;
 using UnityEditor;
+using UnityEngine;
 
 namespace Crest
 {
@@ -91,7 +91,7 @@ namespace Crest
         {
             // wave speed of deep sea ocean waves: https://en.wikipedia.org/wiki/Wind_wave
             // https://en.wikipedia.org/wiki/Dispersion_(water_waves)#Wave_propagation_and_dispersion
-            float g = 9.81f * gravityMultiplier;
+            float g = Mathf.Abs(Physics.gravity.y) * gravityMultiplier;
             float k = 2f * Mathf.PI / wavelength;
             //float h = max(depth, 0.01);
             //float cp = sqrt(abs(tanh_clamped(h * k)) * g / k);
@@ -121,7 +121,7 @@ namespace Crest
                     // stratified random sampling - should give a better range of wavelengths, and also means i can generated the
                     // wavelengths in sorted order!
                     var minWavelengthi = minWavelength + invComponentsPerOctave * minWavelength * i;
-                    var  maxWavelengthi = Mathf.Min(minWavelengthi + invComponentsPerOctave * minWavelength, 2f * minWavelength);
+                    var maxWavelengthi = Mathf.Min(minWavelengthi + invComponentsPerOctave * minWavelength, 2f * minWavelength);
                     wavelengths[index] = Mathf.Lerp(minWavelengthi, maxWavelengthi, Random.value);
 
                     var rnd = (i + Random.value) * invComponentsPerOctave;

@@ -10,7 +10,7 @@ namespace Crest
     public class SimSettingsWave : SimSettingsBase
     {
         [Header("Range")]
-        [Range(0f,32f), Tooltip("NOT CURRENTLY WORKING. The wave sim will not run if the simulation grid is smaller in resolution than this size. Useful to limit sim range for performance.")]
+        [Range(0f, 32f), Tooltip("NOT CURRENTLY WORKING. The wave sim will not run if the simulation grid is smaller in resolution than this size. Useful to limit sim range for performance.")]
         public float _minGridSize = 0f;
         [Range(0f, 32f), Tooltip("NOT CURRENTLY WORKING. The wave sim will not run if the simulation grid is bigger in resolution than this size. Zero means no constraint/unlimited resolutions. Useful to limit sim range for performance.")]
         public float _maxGridSize = 0f;
@@ -29,6 +29,7 @@ namespace Crest
         [Range(0f, 1f), Tooltip("Clamp displacement to help prevent self-intersection in steep waves. Zero means unclamped.")]
         public float _displaceClamp = 0.3f;
 
+        [Range(0f, 64f), Tooltip("Multiplier for gravity. More gravity means dynamic waves will travel faster.")]
         public float _gravityMultiplier = 1f;
     }
 }

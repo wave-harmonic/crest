@@ -84,6 +84,12 @@
 ### Meshing
 
 * Real-time Optimally-Adapting Meshes - http://www.cognigraph.com/ROAM_homepage/
+* Scrawk/Ceto - Projected grid, unity3d - https://github.com/Scrawk/Ceto
+
+### FFT
+
+* Wave spectrums, FFT - https://github.com/blackencino/EncinoWaves
+* Scrawk/Ceto - unity3d ocean renderer, has CPU and GPU FFTs - https://github.com/Scrawk/Ceto
 
 ### Ref
 

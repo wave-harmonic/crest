@@ -175,7 +175,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _showSimTargets: 1
-  _guiVisible: 1
+  _guiVisible: 0
 --- !u!20 &227134469
 Camera:
   m_ObjectHideFlags: 0
@@ -225,8 +225,8 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 227134465}
-  m_LocalRotation: {x: 0.07355089, y: 0.7093125, z: -0.0748459, w: 0.6970396}
-  m_LocalPosition: {x: -29.4, y: 16.8, z: 1}
+  m_LocalRotation: {x: 0.051176507, y: 0.67428064, z: -0.04693577, w: 0.7352032}
+  m_LocalPosition: {x: -37.1, y: 9.94, z: 1}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -545,7 +545,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4872491186423460, guid: a9de35a642561b7479e8ab40bb529e8c, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 13.05
+      value: 22.6
       objectReference: {fileID: 0}
     - target: {fileID: 4872491186423460, guid: a9de35a642561b7479e8ab40bb529e8c, type: 3}
       propertyPath: m_LocalPosition.y
@@ -553,7 +553,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4872491186423460, guid: a9de35a642561b7479e8ab40bb529e8c, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -9.79
+      value: -50.5
       objectReference: {fileID: 0}
     - target: {fileID: 4872491186423460, guid: a9de35a642561b7479e8ab40bb529e8c, type: 3}
       propertyPath: m_LocalRotation.x
@@ -1030,7 +1030,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _spectrum: {fileID: 11400000, guid: 691aad324f2d2be4abf8123c36963da5, type: 2}
   _componentsPerOctave: 8
-  _weight: 0.2
+  _weight: 1
   _randomSeed: 0
   _directTowardsPoint: 0
   _pointPositionXZ: {x: 0, y: 0}

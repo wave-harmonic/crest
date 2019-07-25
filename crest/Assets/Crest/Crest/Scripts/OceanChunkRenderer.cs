@@ -158,9 +158,9 @@ namespace Crest
         // can change depending on view altitude
         public static void ExpandBoundsForDisplacements(Transform transform, ref Bounds bounds)
         {
-            float boundsPadding = OceanRenderer.Instance.MaxHorizDisplacement;
-            float expandXZ = boundsPadding / transform.lossyScale.x;
-            float boundsY = OceanRenderer.Instance.MaxVertDisplacement;
+            var boundsPadding = OceanRenderer.Instance.MaxHorizDisplacement;
+            var expandXZ = boundsPadding / transform.lossyScale.x;
+            var boundsY = OceanRenderer.Instance.MaxVertDisplacement;
             // extend the kinematic bounds slightly to give room for dynamic sim stuff
             boundsY += 5f;
             bounds.extents = new Vector3(bounds.extents.x + expandXZ, boundsY / transform.lossyScale.y, bounds.extents.z + expandXZ);

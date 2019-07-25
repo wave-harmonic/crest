@@ -23,7 +23,9 @@ namespace Crest
         Light _mainLight;
         Camera _cameraMain;
 
-        CommandBuffer _bufCopyShadowMap = null;
+        // LWRP version needs access to this externally, hence public get
+        public CommandBuffer BufCopyShadowMap { get; private set; }
+
         RenderTexture _sources;
         PropertyWrapperCompute _renderProperties;
         ComputeShader _updateShadowShader;
@@ -102,7 +104,7 @@ namespace Crest
             _sources.filterMode = FilterMode.Bilinear;
             _sources.anisoLevel = 0;
             _sources.useMipMap = false;
-            _sources.name = SimName;
+            _sources.name = SimName + "_1";
             _sources.dimension = TextureDimension.Tex2DArray;
             _sources.volumeDepth = OceanRenderer.Instance.CurrentLodCount;
             _sources.enableRandomWrite = NeedToReadWriteTextureData;
@@ -141,8 +143,8 @@ namespace Crest
             {
                 if (_mainLight)
                 {
-                    _mainLight.RemoveCommandBuffer(LightEvent.BeforeScreenspaceMask, _bufCopyShadowMap);
-                    _bufCopyShadowMap = null;
+                    _mainLight.RemoveCommandBuffer(LightEvent.BeforeScreenspaceMask, BufCopyShadowMap);
+                    BufCopyShadowMap = null;
                     TextureArrayHelpers.ClearToBlack(_sources);
                     TextureArrayHelpers.ClearToBlack(_targets);
                 }
@@ -167,16 +169,16 @@ namespace Crest
                 }
             }
 
-            if (_bufCopyShadowMap == null && s_processData)
+            if (BufCopyShadowMap == null && s_processData)
             {
-                _bufCopyShadowMap = new CommandBuffer();
-                _bufCopyShadowMap.name = "Shadow data";
-                _mainLight.AddCommandBuffer(LightEvent.BeforeScreenspaceMask, _bufCopyShadowMap);
+                BufCopyShadowMap = new CommandBuffer();
+                BufCopyShadowMap.name = "Shadow data";
+                _mainLight.AddCommandBuffer(LightEvent.BeforeScreenspaceMask, BufCopyShadowMap);
             }
-            else if (!s_processData && _bufCopyShadowMap != null)
+            else if (!s_processData && BufCopyShadowMap != null)
             {
-                _mainLight.RemoveCommandBuffer(LightEvent.BeforeScreenspaceMask, _bufCopyShadowMap);
-                _bufCopyShadowMap = null;
+                _mainLight.RemoveCommandBuffer(LightEvent.BeforeScreenspaceMask, BufCopyShadowMap);
+                BufCopyShadowMap = null;
             }
 
             if (!s_processData)
@@ -186,7 +188,7 @@ namespace Crest
 
             SwapRTs(ref _sources, ref _targets);
 
-            _bufCopyShadowMap.Clear();
+            BufCopyShadowMap.Clear();
 
             ValidateSourceData();
 
@@ -197,7 +199,7 @@ namespace Crest
             var lt = OceanRenderer.Instance._lodTransform;
             for (var lodIdx = lt.LodCount - 1; lodIdx >= 0; lodIdx--)
             {
-                _renderProperties.Initialise(_bufCopyShadowMap, _updateShadowShader, krnl_UpdateShadow);
+                _renderProperties.Initialise(BufCopyShadowMap, _updateShadowShader, krnl_UpdateShadow);
 
                 lt._renderData[lodIdx].Validate(0, this);
                 _renderProperties.SetVector(sp_CenterPos, lt._renderData[lodIdx]._posSnapped);
@@ -246,13 +248,13 @@ namespace Crest
 
         void RemoveCommandBuffers()
         {
-            if (_bufCopyShadowMap != null)
+            if (BufCopyShadowMap != null)
             {
                 if (_mainLight)
                 {
-                    _mainLight.RemoveCommandBuffer(LightEvent.BeforeScreenspaceMask, _bufCopyShadowMap);
+                    _mainLight.RemoveCommandBuffer(LightEvent.BeforeScreenspaceMask, BufCopyShadowMap);
                 }
-                _bufCopyShadowMap = null;
+                BufCopyShadowMap = null;
             }
         }
 

@@ -38,7 +38,7 @@ namespace Crest
         static int sp_Damping = Shader.PropertyToID("_Damping");
         static int sp_Gravity = Shader.PropertyToID("_Gravity");
         static int sp_LaplacianAxisX = Shader.PropertyToID("_LaplacianAxisX");
-
+        
         protected override void InitData()
         {
             base.InitData();
@@ -80,7 +80,7 @@ namespace Crest
             base.SetAdditionalSimParams(simMaterial);
 
             simMaterial.SetFloat(sp_Damping, Settings._damping);
-            simMaterial.SetFloat(sp_Gravity, OceanRenderer.Instance.Gravity);
+            simMaterial.SetFloat(sp_Gravity, OceanRenderer.Instance.Gravity * Settings._gravityMultiplier);
 
             float laplacianKernelAngle = _rotateLaplacian ? Mathf.PI * 2f * Random.value : 0f;
             simMaterial.SetVector(sp_LaplacianAxisX, new Vector2(Mathf.Cos(laplacianKernelAngle), Mathf.Sin(laplacianKernelAngle)));
@@ -120,18 +120,31 @@ namespace Crest
             }
         }
 
+        float MaxSimDt(int lodIdx)
+        {
+            var ocean = OceanRenderer.Instance;
+
+            // Limit timestep based on Courant constant: https://www.uio.no/studier/emner/matnat/ifi/nedlagte-emner/INF2340/v05/foiler/sim04.pdf
+            var Cmax = Settings._courantNumber;
+            var minWavelength = ocean._lodTransform.MaxWavelength(lodIdx) / 2f;
+            var waveSpeed = OceanWaveSpectrum.ComputeWaveSpeed(minWavelength, Settings._gravityMultiplier);
+            // 0.5f because its 2D
+            var maxDt = 0.5f * Cmax * ocean.CalcGridSize(lodIdx) / waveSpeed;
+            return maxDt;
+        }
+
         public override void GetSimSubstepData(float frameDt, out int numSubsteps, out float substepDt)
         {
-            numSubsteps = Mathf.CeilToInt(frameDt / Settings._maxSubstepDt);
-            numSubsteps = Mathf.Min(MAX_SIM_STEPS, numSubsteps);
-            if (numSubsteps > 0)
-            {
-                substepDt = Mathf.Min(Settings._maxSubstepDt, frameDt / numSubsteps);
-            }
-            else
-            {
-                substepDt = 0f;
-            }
+            var ocean = OceanRenderer.Instance;
+
+            // lod 0 will always be most demanding - wave speed is square root of wavelength, so waves will be fast relative to stability in
+            // lowest lod, and slow relative to stability in largest lod.
+            float maxDt = MaxSimDt(0);
+
+            numSubsteps = Mathf.CeilToInt(frameDt / maxDt);
+            // Always do at least one step so that the sim moves around when time is frozen
+            numSubsteps = Mathf.Clamp(numSubsteps, 1, Settings._maxSimStepsPerFrame);
+            substepDt = Mathf.Min(maxDt, frameDt / numSubsteps);
         }
 
         public static string TextureArrayName = "_LD_TexArray_DynamicWaves";

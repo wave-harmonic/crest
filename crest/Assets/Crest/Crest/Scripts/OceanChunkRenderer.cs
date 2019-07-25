@@ -160,10 +160,10 @@ namespace Crest
         {
             var boundsPadding = OceanRenderer.Instance.MaxHorizDisplacement;
             var expandXZ = boundsPadding / transform.lossyScale.x;
-            var boundsY = OceanRenderer.Instance.MaxVertDisplacement / transform.lossyScale.y;
+            var boundsY = OceanRenderer.Instance.MaxVertDisplacement;
             // extend the kinematic bounds slightly to give room for dynamic sim stuff
-            boundsY = Mathf.Max(boundsY, 1f);
-            bounds.extents = new Vector3(bounds.extents.x + expandXZ, boundsY, bounds.extents.z + expandXZ);
+            boundsY += 5f;
+            bounds.extents = new Vector3(bounds.extents.x + expandXZ, boundsY / transform.lossyScale.y, bounds.extents.z + expandXZ);
         }
 
         public void SetInstanceData(int lodIndex, int totalLodCount, int lodDataResolution, int geoDownSampleFactor)

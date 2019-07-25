@@ -11,12 +11,7 @@ namespace Crest
     /// </summary>
     public class TimeProviderDefault : TimeProviderBase
     {
-        public override float CurrentTime
-        {
-            get
-            {
-                return Time.time;
-            }
-        }
+        public override float CurrentTime => Time.time;
+        public override float DeltaTime => Time.deltaTime;
     }
 }

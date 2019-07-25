@@ -119,7 +119,7 @@ public class OceanDebugGUI : MonoBehaviour
                 if (OceanRenderer.Instance._lodDataDynWaves != null)
                 {
                     int steps; float dt;
-                    OceanRenderer.Instance._lodDataDynWaves.GetSimSubstepData(Time.deltaTime, out steps, out dt);
+                    OceanRenderer.Instance._lodDataDynWaves.GetSimSubstepData(OceanRenderer.Instance.DeltaTimeDynamics, out steps, out dt);
                     GUI.Label(new Rect(x, y, w, h), string.Format("Sim steps: {0:0.00000} x {1}", dt, steps)); y += h;
                 }
 

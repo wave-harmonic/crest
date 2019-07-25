@@ -14,7 +14,6 @@ half _Damping;
 float2 _LaplacianAxisX;
 half _Gravity;
 float _SimDeltaTime;
-float _SimDeltaTimePrev;
 float _LODChange;
 
 // How many samples we want in one wave. trade quality for perf.
@@ -42,63 +41,69 @@ void UpdateDynWaves(uint3 id : SV_DispatchThreadID)
 	}
 	const float2 input_uv = IDtoUV(id.xy, width, height);
 	const float2 worldPosXZ = UVToWorld(input_uv, sliceIndex);
-	const float dt = _SimDeltaTime;
-	const float dtp = _SimDeltaTimePrev;
-
-	float3 uv_slice = float3(input_uv, sliceIndex);
-
-	half2 velocity = SampleLod(_LD_TexArray_Flow, uv_slice).xy;
-	float3 uv_source = WorldToUV_Source(worldPosXZ - (dt * velocity), sliceIndexSource);
-
-	// compute axes of laplacian kernel - rotated every frame
-	float e = _LD_Params_Source[sliceIndexSource].w; // assumes square RT
-	float3 X = float3(_LaplacianAxisX, 0.0);
-	float3 Y = float3(-X.y, X.x, 0.0);
-	float fxm = SampleLod(_LD_TexArray_DynamicWaves_Source, uv_source - e*X).x; // x minus
-	float fym = SampleLod(_LD_TexArray_DynamicWaves_Source, uv_source - e*Y).x; // y minus
-	float fxp = SampleLod(_LD_TexArray_DynamicWaves_Source, uv_source + e*X).x; // x plus
-	float fyp = SampleLod(_LD_TexArray_DynamicWaves_Source, uv_source + e*Y).x; // y plus
-	half2 ft_ftm = SampleLod(_LD_TexArray_DynamicWaves_Source, uv_source).xy;
-	if(sliceIndexSource > depth || sliceIndexSource < 0)
-	{
-		// no border wrap mode for RTs in unity it seems,
-		// so make any off-array reads 0 manually
-		fxm = 0;
-		fym = 0;
-		fxp = 0;
-		fyp = 0;
-		ft_ftm = half2(0, 0);
-	}
-
-	float ft = ft_ftm.x; // t - current value before update
-	float ftm = ft_ftm.y; // t minus - previous value
-
 	const float gridSize = _LD_Params[sliceIndex].x;
 
 	// average wavelength for this scale
-	float wavelength = 1.5 * _TexelsPerWave * gridSize;
+	const float wavelength = 1.0 * _TexelsPerWave * gridSize;
 	// could make velocity depend on waves
 	//float h = max(waterSignedDepth + ft, 0.);
-	float c = ComputeWaveSpeed(wavelength, _Gravity);
+	const float c = ComputeWaveSpeed(wavelength, _Gravity);
+
+	const float dt = _SimDeltaTime;
+
+	const float3 uv_slice = float3(input_uv, sliceIndex);
+
+	const half2 velocity = SampleLod(_LD_TexArray_Flow, uv_slice).xy;
+	const float3 uv_source = WorldToUV_Source(worldPosXZ - (dt * velocity), sliceIndexSource);
+
+	// weighting for source position - weight 0 for off texture accesses to stop streaky artifacts
+	float2 distToEdge = min(uv_source.xy, 1.0 - uv_source.xy);
+	// soft, wide feather at boundary to balance reflections vs streaking under motion
+	const float edgeFeather = 0.1;
+	float weightEdge = saturate(min(distToEdge.x, distToEdge.y) / edgeFeather);
+	weightEdge = lerp(0.95, 1.0, weightEdge);
+
+	// compute axes of laplacian kernel - rotated every frame
+	const float e = _LD_Params_Source[sliceIndexSource].w; // assumes square RT
+	//float3 X = float3(1.0, 0.0, 0.0);
+	const float3 X = float3(_LaplacianAxisX, 0.0);
+	const float3 Y = float3(-X.y, X.x, 0.0);
+
+	// no border wrap mode for RTs in unity it seems,
+	// so make any off-array reads 0 manually
+	const bool insideTarget = sliceIndexSource <= depth && sliceIndexSource >= 0;
+
+	float fxm, fym, fxp, fyp; float2 ft_v;
+	ft_v = fxm = fym = fxp = fyp = 0.0;
+
+	if (insideTarget)
+	{
+		fxm = SampleLod(_LD_TexArray_DynamicWaves_Source, uv_source - e * X).x; // x minus
+		fym = SampleLod(_LD_TexArray_DynamicWaves_Source, uv_source - e * Y).x; // y minus
+		fxp = SampleLod(_LD_TexArray_DynamicWaves_Source, uv_source + e * X).x; // x plus
+		fyp = SampleLod(_LD_TexArray_DynamicWaves_Source, uv_source + e * Y).x; // y plus
+		ft_v = SampleLod(_LD_TexArray_DynamicWaves_Source, uv_source).xy;
+	}
 
 	// wave propagation
-	// velocity is implicit
-	float v = dtp > MIN_DT ? (ft - ftm) / dtp : 0.0;
 
-	// damping
-	v *= 1.0 - min(1.0, _Damping * dt);
+	// t - current value before update
+	const float ft = ft_v.x;
+	const float vt = ft_v.y;
 
 	// wave equation
-	float ftp = ft + dt*v + dt*dt*c*c*(fxm + fxp + fym + fyp - 4.0*ft) / (gridSize*gridSize);
+	float coeff = dt * c * c / (gridSize*gridSize);
+	float vtp = vt + coeff * (fxm + fxp + fym + fyp - 4.0 * ft);
 
-	// open boundary condition, from: http://hplgit.github.io/wavebc/doc/pub/._wavebc_cyborg002.html .
-	// this actually doesn't work perfectly well - there is some minor reflections of high frequencies.
-	// dudt + c*dudx = 0
-	// (ftp - ft)   +   c*(ft-fxm) = 0.
-	if (uv_source.x + e >= 1.0) ftp = -dt*c*(ft - fxm) + ft;
-	else if (uv_source.x - e <= 0.0) ftp = dt * c*(fxp - ft) + ft;
-	if (uv_source.y + e >= 1.0) ftp = -dt*c*(ft - fym) + ft;
-	else if (uv_source.y - e <= 0.0) ftp = dt*c*(fyp - ft) + ft;
+	// damping. works ok at low dts, doesnt damp well at high dts which counter intuitively leads to instabilities, i think.
+	vtp *= 1.0 - min(1.0, _Damping * dt);
+
+	// dampen towards boundaries smoothly to eliminate reflections and streaking
+	vtp *= weightEdge;
+
+	// integrate velocity onto position
+	float ftp = ft + dt * vtp;
+	ftp *= weightEdge;
 
 	// attenuate waves based on ocean depth. if depth is greater than 0.5*wavelength, water is considered Deep and wave is
 	// unaffected. if depth is less than this, wave velocity decreases. waves will then bunch up and grow in amplitude and
@@ -107,9 +112,7 @@ void UpdateDynWaves(uint3 id : SV_DispatchThreadID)
 	// http://hyperphysics.phy-astr.gsu.edu/hbase/watwav.html#c1
 	float waterDepth = SampleLod(_LD_TexArray_SeaFloorDepth, uv_slice).x;
 	float depthMul = 1.0 - (1.0 - saturate(2.0 * waterDepth / wavelength)) * dt * 2.0;
-
 	ftp *= depthMul;
-	ft *= depthMul;
 
-	_LD_TexArray_Target[id] = half2(ftp, ft);
+	_LD_TexArray_Target[id] = float2(ftp, vtp);
 }

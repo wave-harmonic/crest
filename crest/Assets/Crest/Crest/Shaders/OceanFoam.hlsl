@@ -10,7 +10,6 @@ uniform float4 _FoamTexture_TexelSize;
 uniform half4 _FoamWhiteColor;
 uniform half4 _FoamBubbleColor;
 uniform half _FoamBubbleParallax;
-uniform half _ShorelineFoamMinDepth;
 uniform half _WaveFoamFeather;
 uniform half _WaveFoamBubblesCoverage;
 uniform half _WaveFoamNormalStrength;

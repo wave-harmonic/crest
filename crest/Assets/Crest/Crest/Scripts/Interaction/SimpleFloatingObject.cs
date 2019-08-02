@@ -44,7 +44,9 @@ namespace Crest
         Vector3 _displacementToObject = Vector3.zero;
         public override Vector3 CalculateDisplacementToObject() { return _displacementToObject; }
 
-        public override Rigidbody RB { get; set; }
+        public override Vector3 Velocity => _rb.velocity;
+
+        Rigidbody _rb;
 
         SamplingData _samplingData = new SamplingData();
         SamplingData _samplingDataLengthWise = new SamplingData();
@@ -52,7 +54,7 @@ namespace Crest
 
         void Start()
         {
-            RB = GetComponent<Rigidbody>();
+            _rb = GetComponent<Rigidbody>();
 
             if (OceanRenderer.Instance == null)
             {
@@ -133,7 +135,7 @@ namespace Crest
                     new Color(1, 1, 1, 0.6f));
             }
 
-            var velocityRelativeToWater = RB.velocity - waterSurfaceVel;
+            var velocityRelativeToWater = _rb.velocity - waterSurfaceVel;
 
             var dispPos = undispPos + _displacementToObject;
             if (_debugDraw) DebugDrawCross(dispPos, 4f, Color.white);
@@ -149,14 +151,14 @@ namespace Crest
             }
 
             var buoyancy = -Physics.gravity.normalized * _buoyancyCoeff * bottomDepth * bottomDepth * bottomDepth;
-            RB.AddForce(buoyancy, ForceMode.Acceleration);
+            _rb.AddForce(buoyancy, ForceMode.Acceleration);
 
 
             // apply drag relative to water
-            var forcePosition = RB.position + _forceHeightOffset * Vector3.up;
-            RB.AddForceAtPosition(Vector3.up * Vector3.Dot(Vector3.up, -velocityRelativeToWater) * _dragInWaterUp, forcePosition, ForceMode.Acceleration);
-            RB.AddForceAtPosition(transform.right * Vector3.Dot(transform.right, -velocityRelativeToWater) * _dragInWaterRight, forcePosition, ForceMode.Acceleration);
-            RB.AddForceAtPosition(transform.forward * Vector3.Dot(transform.forward, -velocityRelativeToWater) * _dragInWaterForward, forcePosition, ForceMode.Acceleration);
+            var forcePosition = _rb.position + _forceHeightOffset * Vector3.up;
+            _rb.AddForceAtPosition(Vector3.up * Vector3.Dot(Vector3.up, -velocityRelativeToWater) * _dragInWaterUp, forcePosition, ForceMode.Acceleration);
+            _rb.AddForceAtPosition(transform.right * Vector3.Dot(transform.right, -velocityRelativeToWater) * _dragInWaterRight, forcePosition, ForceMode.Acceleration);
+            _rb.AddForceAtPosition(transform.forward * Vector3.Dot(transform.forward, -velocityRelativeToWater) * _dragInWaterForward, forcePosition, ForceMode.Acceleration);
 
             FixedUpdateOrientation(collProvider, undispPos);
 
@@ -180,8 +182,8 @@ namespace Crest
             if (_debugDraw) Debug.DrawLine(transform.position, transform.position + 5f * normal, Color.green);
 
             var torqueWidth = Vector3.Cross(transform.up, normal);
-            RB.AddTorque(torqueWidth * _boyancyTorque, ForceMode.Acceleration);
-            RB.AddTorque(-_dragInWaterRotational * RB.angularVelocity);
+            _rb.AddTorque(torqueWidth * _boyancyTorque, ForceMode.Acceleration);
+            _rb.AddTorque(-_dragInWaterRotational * _rb.angularVelocity);
         }
 
 #if UNITY_EDITOR

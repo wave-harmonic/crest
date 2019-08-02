@@ -43,7 +43,7 @@ namespace Crest
 
         [Header("Detail Params")]
 
-        [Range(0, 15)]
+        [Range(2, 16)]
         [Tooltip("Min number of verts / shape texels per wave."), SerializeField]
         float _minTexelsPerWave = 3f;
         public float MinTexelsPerWave => _minTexelsPerWave;

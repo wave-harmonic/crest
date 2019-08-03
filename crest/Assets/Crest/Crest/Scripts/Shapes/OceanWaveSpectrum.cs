@@ -16,7 +16,10 @@ namespace Crest
         public const int NUM_OCTAVES = 14;
         public static readonly float SMALLEST_WL_POW_2 = -4f;
 
+        [HideInInspector]
         public float _windSpeed = 10f;
+
+        [HideInInspector]
         public float _fetch = 500000f;
 
         public static readonly float MIN_POWER_LOG = -6f;
@@ -271,6 +274,10 @@ namespace Crest
         static bool _applyPiersonMoskowitzSpectrum = false;
         static bool _applyJONSWAPSpectrum = false;
 
+        static GUIContent s_labelPhillips = new GUIContent("Phillips", "Base of modern parametric wave spectra");
+        static GUIContent s_labelPiersonMoskowitz = new GUIContent("Pierson-Moskowitz", "Fully developed sea with infinite fetch");
+        static GUIContent s_labelJONSWAP = new GUIContent("JONSWAP", "Fetch limited sea where waves continue to grow");
+
         public override void OnInspectorGUI()
         {
             base.OnInspectorGUI();
@@ -356,7 +363,7 @@ namespace Crest
 
             // descriptions from this very useful paper: https://hal.archives-ouvertes.fr/file/index/docid/307938/filename/frechot_realistic_simulation_of_ocean_surface_using_wave_spectra.pdf
 
-            if (GUILayout.Button(new GUIContent("Phillips", "Base of modern parametric wave spectra"), _applyPhillipsSpectrum ? ToggleButtonStyleToggled : ToggleButtonStyleNormal))
+            if (GUILayout.Button(s_labelPhillips, _applyPhillipsSpectrum ? ToggleButtonStyleToggled : ToggleButtonStyleNormal))
             {
                 _applyPhillipsSpectrum = !_applyPhillipsSpectrum;
             }
@@ -369,7 +376,7 @@ namespace Crest
                 spec.ApplyPhillipsSpectrum(spec._windSpeed);
             }
 
-            if (GUILayout.Button(new GUIContent("Pierson-Moskowitz", "Fully developed sea with infinite fetch"), _applyPiersonMoskowitzSpectrum ? ToggleButtonStyleToggled : ToggleButtonStyleNormal))
+            if (GUILayout.Button(s_labelPiersonMoskowitz, _applyPiersonMoskowitzSpectrum ? ToggleButtonStyleToggled : ToggleButtonStyleNormal))
             {
                 _applyPiersonMoskowitzSpectrum = !_applyPiersonMoskowitzSpectrum;
             }
@@ -385,7 +392,7 @@ namespace Crest
             spec._fetch = EditorGUILayout.Slider("Fetch", spec._fetch, 0f, 1000000f);
 
 
-            if (GUILayout.Button(new GUIContent("JONSWAP", "Fetch limited sea where waves continue to grow"), _applyJONSWAPSpectrum ? ToggleButtonStyleToggled : ToggleButtonStyleNormal))
+            if (GUILayout.Button(s_labelJONSWAP, _applyJONSWAPSpectrum ? ToggleButtonStyleToggled : ToggleButtonStyleNormal))
             {
                 _applyJONSWAPSpectrum = !_applyJONSWAPSpectrum;
             }

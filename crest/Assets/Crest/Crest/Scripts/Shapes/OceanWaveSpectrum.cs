@@ -31,6 +31,9 @@ namespace Crest
         [Tooltip("More gravity means faster waves."), Range(0f, 25f)]
         public float _gravityScale = 1f;
 
+        [HideInInspector]
+        public float _smallWavelengthMultiplier = 1f;
+
         [Tooltip("Multiplier"), Range(0f, 10f), SerializeField]
         float _multiplier = 1f;
 
@@ -155,14 +158,16 @@ namespace Crest
             }
         }
 
-        public void ApplyPhillipsSpectrum(float windSpeed)
+        public void ApplyPhillipsSpectrum(float windSpeed, float smallWavelengthMultiplier)
         {
             // Angles should usually be relative to wind direction, so setting wind direction to angle=0 should be ok.
             var windDir = Vector2.right;
 
             for (int octave = 0; octave < NUM_OCTAVES; octave++)
             {
-                float wl = SmallWavelength(octave) * 1.5f;
+                // 1.44 is a magic number of this spectrum which seems to give small waves
+                var wl = SmallWavelength(octave) * smallWavelengthMultiplier * 1.44f;
+
                 var pow = PhillipsSpectrum(windSpeed, windDir, Mathf.Abs(Physics.gravity.y), Mathf.Pow(2f, SMALLEST_WL_POW_2), wl, 0f);
                 // we store power on logarithmic scale. this does not include 0, we represent 0 as min value
                 pow = Mathf.Max(pow, Mathf.Pow(10f, MIN_POWER_LOG));
@@ -170,11 +175,14 @@ namespace Crest
             }
         }
 
-        public void ApplyPiersonMoskowitzSpectrum(float windSpeed)
+        public void ApplyPiersonMoskowitzSpectrum(float windSpeed, float smallWavelengthMultiplier)
         {
             for (int octave = 0; octave < NUM_OCTAVES; octave++)
             {
-                float wl = SmallWavelength(octave) * 1.5f;
+                // 5 is a magic number of this spectrum which seems to give small waves. Not the smallest octave
+                // though - couldn't get spectrum to cooperate here.
+                var wl = SmallWavelength(octave) * smallWavelengthMultiplier * 5f;
+
                 var pow = PiersonMoskowitzSpectrum(Mathf.Abs(Physics.gravity.y), windSpeed, wl);
                 // we store power on logarithmic scale. this does not include 0, we represent 0 as min value
                 pow = Mathf.Max(pow, Mathf.Pow(10f, MIN_POWER_LOG));
@@ -182,11 +190,14 @@ namespace Crest
             }
         }
 
-        public void ApplyJONSWAPSpectrum(float windSpeed, float fetch)
+        public void ApplyJONSWAPSpectrum(float windSpeed, float fetch, float smallWavelengthMultiplier)
         {
             for (int octave = 0; octave < NUM_OCTAVES; octave++)
             {
-                float wl = SmallWavelength(octave) * 1.5f;
+                // 5 is a magic number of this spectrum which seems to give small waves. Not the smallest octave
+                // though - couldn't get spectrum to cooperate here.
+                var wl = SmallWavelength(octave) * smallWavelengthMultiplier * 5f;
+
                 var pow = JONSWAPSpectrum(Mathf.Abs(Physics.gravity.y), windSpeed, wl, fetch);
                 // we store power on logarithmic scale. this does not include 0, we represent 0 as min value
                 pow = Mathf.Max(pow, Mathf.Pow(10f, MIN_POWER_LOG));
@@ -277,6 +288,7 @@ namespace Crest
         static GUIContent s_labelPhillips = new GUIContent("Phillips", "Base of modern parametric wave spectra");
         static GUIContent s_labelPiersonMoskowitz = new GUIContent("Pierson-Moskowitz", "Fully developed sea with infinite fetch");
         static GUIContent s_labelJONSWAP = new GUIContent("JONSWAP", "Fetch limited sea where waves continue to grow");
+        static GUIContent s_labelSWM = new GUIContent("Small wavelength multiplier", "Modifies parameters for the empirical spectra, tends to boost smaller wavelengths");
 
         public override void OnInspectorGUI()
         {
@@ -353,13 +365,18 @@ namespace Crest
             EditorGUILayout.Space();
             EditorGUILayout.LabelField("Empirical Spectra", EditorStyles.boldLabel);
 
+            var labelWidth = 170f;
             EditorGUILayout.BeginHorizontal();
             float spd_kmh = spec._windSpeed * 3.6f;
-            EditorGUILayout.LabelField("Wind speed (km/h)", GUILayout.Width(120f));
+            EditorGUILayout.LabelField("Wind speed (km/h)", GUILayout.Width(labelWidth));
             spd_kmh = EditorGUILayout.Slider(spd_kmh, 0f, 120f);
             spec._windSpeed = spd_kmh / 3.6f;
             EditorGUILayout.EndHorizontal();
 
+            EditorGUILayout.BeginHorizontal();
+            EditorGUILayout.LabelField(s_labelSWM, GUILayout.Width(labelWidth));
+            spec._smallWavelengthMultiplier = EditorGUILayout.Slider(spec._smallWavelengthMultiplier, 0f, 10f);
+            EditorGUILayout.EndHorizontal();
 
             // descriptions from this very useful paper: https://hal.archives-ouvertes.fr/file/index/docid/307938/filename/frechot_realistic_simulation_of_ocean_surface_using_wave_spectra.pdf
 
@@ -373,7 +390,7 @@ namespace Crest
 
                 Undo.RecordObject(this, "Apply Phillips Spectrum");
 
-                spec.ApplyPhillipsSpectrum(spec._windSpeed);
+                spec.ApplyPhillipsSpectrum(spec._windSpeed, spec._smallWavelengthMultiplier);
             }
 
             if (GUILayout.Button(s_labelPiersonMoskowitz, _applyPiersonMoskowitzSpectrum ? ToggleButtonStyleToggled : ToggleButtonStyleNormal))
@@ -386,7 +403,7 @@ namespace Crest
 
                 Undo.RecordObject(this, "Apply Pierson-Moskowitz Spectrum");
 
-                spec.ApplyPiersonMoskowitzSpectrum(spec._windSpeed);
+                spec.ApplyPiersonMoskowitzSpectrum(spec._windSpeed, spec._smallWavelengthMultiplier);
             }
 
             spec._fetch = EditorGUILayout.Slider("Fetch", spec._fetch, 0f, 1000000f);
@@ -402,7 +419,7 @@ namespace Crest
 
                 Undo.RecordObject(this, "Apply JONSWAP Spectrum");
 
-                spec.ApplyJONSWAPSpectrum(spec._windSpeed, spec._fetch);
+                spec.ApplyJONSWAPSpectrum(spec._windSpeed, spec._fetch, spec._smallWavelengthMultiplier);
             }
 
 

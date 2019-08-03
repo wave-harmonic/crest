@@ -2,6 +2,7 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -67,6 +68,14 @@ namespace Crest
 
         public int _randomSeed = 0;
 
+        // Data for all components
+        [Header("Wave data (usually populated at runtime)")]
+        public bool _evaluateSpectrumAtRuntime = true;
+        public float[] _wavelengths;
+        public float[] _amplitudes;
+        public float[] _angleDegs;
+        public float[] _phases;
+
         [SerializeField, Tooltip("Make waves converge towards a point. Must be set at edit time only, applied on startup."), Header("Direct towards point")]
         bool _directTowardsPoint = false;
         [SerializeField, Tooltip("Target point XZ to converge to.")]
@@ -77,12 +86,6 @@ namespace Crest
         const string DIRECT_TOWARDS_POINT_KEYWORD = "_DIRECT_TOWARDS_POINT";
 
         static Mesh _rasterMesh = null;
-
-        // data for all components
-        float[] _wavelengths;
-        float[] _amplitudes;
-        float[] _angleDegs;
-        float[] _phases;
 
         // Shader to be used to render evaluate Gerstner waves for each LOD
         Shader _waveShader;
@@ -673,4 +676,31 @@ namespace Crest
             o_velValid = GetSurfaceVelocity(ref i_worldPos, i_samplingData, out o_displacementVel);
         }
     }
+
+#if UNITY_EDITOR
+    [CustomEditor(typeof(ShapeGerstnerBatched))]
+    public class ShapeGerstnerBatchedEditor : Editor
+    {
+        public override void OnInspectorGUI()
+        {
+            base.OnInspectorGUI();
+
+            var gerstner = target as ShapeGerstnerBatched;
+
+            GUI.enabled = !EditorApplication.isPlaying || !gerstner._evaluateSpectrumAtRuntime;
+            if (GUILayout.Button("Generate wave data from spectrum"))
+            {
+                if (gerstner._spectrum != null)
+                {
+                    Debug.LogError("A wave spectrum must be assigned in order to generate wave data.", gerstner);
+                }
+                else
+                {
+                    gerstner.UpdateWaveData();
+                }
+            }
+            GUI.enabled = true;
+        }
+    }
+#endif
 }

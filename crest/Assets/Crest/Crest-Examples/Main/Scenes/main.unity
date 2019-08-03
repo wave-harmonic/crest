@@ -864,6 +864,11 @@ MonoBehaviour:
   _componentsPerOctave: 8
   _weight: 1
   _randomSeed: 0
+  _evaluateSpectrumAtRuntime: 1
+  _wavelengths: []
+  _amplitudes: []
+  _angleDegs: []
+  _phases: []
   _directTowardsPoint: 0
   _pointPositionXZ: {x: 0, y: 0}
   _pointRadii: {x: 100, y: 200}

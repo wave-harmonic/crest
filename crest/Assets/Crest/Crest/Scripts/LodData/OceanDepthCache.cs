@@ -188,6 +188,12 @@ namespace Crest
                 Debug.LogWarning("Validation: It is recommended that the cache is placed at the same height (y component of position) as the ocean, i.e. at the sea level. If the cache is created before the ocean is present, the cache height will inform the sea level. Click this message to highlight the cache in question.", this);
             }
 
+            var rend = GetComponentInChildren<Renderer>();
+            if (rend != null)
+            {
+                Debug.LogWarning("Validation: It is not expected that a depth cache object has a renderer component in its hierarchy. The cache is typically attached to an empty GameObject. Please refer to the example content.", rend);
+            }
+
             var numObjectsFound = 0;
             foreach (var layerName in _layerNames)
             {

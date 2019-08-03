@@ -451,7 +451,6 @@ MonoBehaviour:
   _timeProvider: {fileID: 0}
   _material: {fileID: 2100000, guid: ef94c26e44a36e24a9dcbc5995a2bed1, type: 2}
   _layerName: Water
-  _windDirectionAngle: 0
   _gravityMultiplier: 1
   _minTexelsPerWave: 3
   _minScale: 4
@@ -861,6 +860,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _spectrum: {fileID: 11400000, guid: 454d1b08383f089479cf6794620926f4, type: 2}
+  _windDirectionAngle: 0
   _componentsPerOctave: 8
   _weight: 1
   _randomSeed: 0

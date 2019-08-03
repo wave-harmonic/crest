@@ -16,6 +16,10 @@ namespace Crest
         [Tooltip("The spectrum that defines the ocean surface shape. Create asset of type Crest/Ocean Waves Spectrum.")]
         public OceanWaveSpectrum _spectrum;
 
+        [Tooltip("Wind direction (angle from x axis in degrees)"), Range(-180, 180)]
+        public float _windDirectionAngle = 0f;
+        public Vector2 WindDir => new Vector2(Mathf.Cos(Mathf.PI * _windDirectionAngle / 180f), Mathf.Sin(Mathf.PI * _windDirectionAngle / 180f));
+
         public class GerstnerBatch : ILodDataInput
         {
             public GerstnerBatch(Shader gerstnerShader, bool directTowardsPoint)
@@ -164,7 +168,7 @@ namespace Crest
         {
             if (_phases == null) return;
 
-            var windAngle = OceanRenderer.Instance._windDirectionAngle;
+            var windAngle = _windDirectionAngle;
             for (int i = 0; i < _phases.Length; i++)
             {
                 var direction = new Vector3(Mathf.Cos((windAngle + _angleDegs[i]) * Mathf.Deg2Rad), 0f, Mathf.Sin((windAngle + _angleDegs[i]) * Mathf.Deg2Rad));
@@ -296,7 +300,7 @@ namespace Crest
                         float chopScale = _spectrum._chopScales[(firstComponent + i) / _componentsPerOctave];
                         UpdateBatchScratchData._chopAmpsBatch[vi][ei] = -chopScale * _spectrum._chop * amp;
 
-                        float angle = Mathf.Deg2Rad * (OceanRenderer.Instance._windDirectionAngle + _angleDegs[firstComponent + i]);
+                        float angle = Mathf.Deg2Rad * (_windDirectionAngle + _angleDegs[firstComponent + i]);
                         UpdateBatchScratchData._waveDirXBatch[vi][ei] = Mathf.Cos(angle);
                         UpdateBatchScratchData._waveDirZBatch[vi][ei] = Mathf.Sin(angle);
 
@@ -488,7 +492,7 @@ namespace Crest
 
             Vector2 pos = new Vector2(i_worldPos.x, i_worldPos.z);
             float mytime = OceanRenderer.Instance.CurrentTime;
-            float windAngle = OceanRenderer.Instance._windDirectionAngle;
+            float windAngle = _windDirectionAngle;
             float minWaveLength = i_samplingData._minSpatialLength / 2f;
 
             for (int j = 0; j < _amplitudes.Length; j++)
@@ -584,7 +588,7 @@ namespace Crest
 
             var pos = new Vector2(i_undisplacedWorldPos.x, i_undisplacedWorldPos.z);
             float mytime = OceanRenderer.Instance.CurrentTime;
-            float windAngle = OceanRenderer.Instance._windDirectionAngle;
+            float windAngle = _windDirectionAngle;
             float minWaveLength = i_samplingData._minSpatialLength / 2f;
 
             // base rate of change of our displacement function in x and z is unit
@@ -630,7 +634,7 @@ namespace Crest
 
             Vector2 pos = new Vector2(i_worldPos.x, i_worldPos.z);
             float mytime = OceanRenderer.Instance.CurrentTime;
-            float windAngle = OceanRenderer.Instance._windDirectionAngle;
+            float windAngle = _windDirectionAngle;
             float minWavelength = i_samplingData._minSpatialLength / 2f;
 
             for (int j = 0; j < _amplitudes.Length; j++)

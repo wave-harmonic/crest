@@ -22,7 +22,7 @@ namespace Crest
         public static readonly float MIN_POWER_LOG = -6f;
         public static readonly float MAX_POWER_LOG = 5f;
 
-        [Tooltip("Variance of flow direction, in degrees"), Range(0f, 180f)]
+        [Tooltip("Variance of wave directions, in degrees"), Range(0f, 180f)]
         public float _waveDirectionVariance = 90f;
 
         [Tooltip("More gravity means faster waves."), Range(0f, 25f)]
@@ -151,10 +151,13 @@ namespace Crest
 
         public void ApplyPhillipsSpectrum(float windSpeed)
         {
+            // Angles should usually be relative to wind direction, so setting wind direction to angle=0 should be ok.
+            var windDir = Vector2.right;
+
             for (int octave = 0; octave < NUM_OCTAVES; octave++)
             {
                 float wl = SmallWavelength(octave) * 1.5f;
-                var pow = PhillipsSpectrum(windSpeed, OceanRenderer.Instance.WindDir, Mathf.Abs(Physics.gravity.y), Mathf.Pow(2f, SMALLEST_WL_POW_2), wl, 0f);
+                var pow = PhillipsSpectrum(windSpeed, windDir, Mathf.Abs(Physics.gravity.y), Mathf.Pow(2f, SMALLEST_WL_POW_2), wl, 0f);
                 // we store power on logarithmic scale. this does not include 0, we represent 0 as min value
                 pow = Mathf.Max(pow, Mathf.Pow(10f, MIN_POWER_LOG));
                 _powerLog[octave] = Mathf.Log10(pow);

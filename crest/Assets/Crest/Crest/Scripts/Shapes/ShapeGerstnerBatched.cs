@@ -126,6 +126,8 @@ namespace Crest
                 _spectrum = ScriptableObject.CreateInstance<OceanWaveSpectrum>();
                 _spectrum.name = "Default Waves (auto)";
             }
+
+            InitBatches();
         }
 
         static Mesh RasterMesh()
@@ -185,11 +187,16 @@ namespace Crest
         {
             if (OceanRenderer.Instance == null) return;
 
-            if (_phases == null || _phases.Length != _componentsPerOctave * OceanWaveSpectrum.NUM_OCTAVES)
+            if (_evaluateSpectrumAtRuntime)
             {
-                InitPhases();
+                UpdateWaveData();
             }
 
+            ReportMaxDisplacement();
+        }
+
+        public void UpdateWaveData()
+        {
             // Set random seed to get repeatable results
             Random.State randomStateBkp = Random.state;
             Random.InitState(_randomSeed);
@@ -198,15 +205,13 @@ namespace Crest
 
             UpdateAmplitudes();
 
-            Random.state = randomStateBkp;
-
-            ReportMaxDisplacement();
-
-            // this is done every frame for flexibility/convenience, in case the lod count changes
-            if (_batches == null)
+            // Won't run every time so put last in the random sequence
+            if (_phases == null || _phases.Length != _wavelengths.Length)
             {
-                InitBatches();
+                InitPhases();
             }
+
+            Random.state = randomStateBkp;
         }
 
         void UpdateAmplitudes()

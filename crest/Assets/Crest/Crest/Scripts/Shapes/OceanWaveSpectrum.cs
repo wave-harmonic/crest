@@ -205,7 +205,6 @@ namespace Crest
             }
         }
 
-
         static float PhillipsSpectrum(float windSpeed, Vector2 windDir, float gravity, float smallestWavelength, float wavelength, float angle)
         {
             float wavenumber = 2f * Mathf.PI / wavelength;
@@ -289,6 +288,7 @@ namespace Crest
         static GUIContent s_labelPiersonMoskowitz = new GUIContent("Pierson-Moskowitz", "Fully developed sea with infinite fetch");
         static GUIContent s_labelJONSWAP = new GUIContent("JONSWAP", "Fetch limited sea where waves continue to grow");
         static GUIContent s_labelSWM = new GUIContent("Small wavelength multiplier", "Modifies parameters for the empirical spectra, tends to boost smaller wavelengths");
+        static GUIContent s_labelFetch = new GUIContent("Fetch", "Length of area that wind excites waves. Applies only to JONSWAP");
 
         public override void OnInspectorGUI()
         {
@@ -406,8 +406,7 @@ namespace Crest
                 spec.ApplyPiersonMoskowitzSpectrum(spec._windSpeed, spec._smallWavelengthMultiplier);
             }
 
-            spec._fetch = EditorGUILayout.Slider("Fetch", spec._fetch, 0f, 1000000f);
-
+            spec._fetch = EditorGUILayout.Slider(s_labelFetch, spec._fetch, 0f, 1000000f);
 
             if (GUILayout.Button(s_labelJONSWAP, _applyJONSWAPSpectrum ? ToggleButtonStyleToggled : ToggleButtonStyleNormal))
             {
@@ -421,7 +420,6 @@ namespace Crest
 
                 spec.ApplyJONSWAPSpectrum(spec._windSpeed, spec._fetch, spec._smallWavelengthMultiplier);
             }
-
 
             serializedObject.ApplyModifiedProperties();
         }

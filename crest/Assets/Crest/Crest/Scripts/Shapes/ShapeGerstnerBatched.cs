@@ -60,7 +60,7 @@ namespace Crest
         GerstnerBatch[] _batches = null;
 
         [Delayed, Tooltip("How many wave components to generate in each octave.")]
-        public int _componentsPerOctave = 5;
+        public int _componentsPerOctave = 8;
 
         [Range(0f, 1f)]
         public float _weight = 1f;

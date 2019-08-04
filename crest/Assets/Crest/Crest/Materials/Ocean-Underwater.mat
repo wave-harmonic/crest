@@ -102,7 +102,8 @@ Material:
     - _DebugVisualiseFlow: 0
     - _DebugVisualiseShapeSample: 0
     - _DirectionalLightBoost: 7
-    - _DirectionalLightFallOff: 275
+    - _DirectionalLightFallOff: 1949
+    - _DirectionalLightWiden: 0.008
     - _Flow: 0
     - _Foam: 1
     - _Foam3DLighting: 1
@@ -128,7 +129,7 @@ Material:
     - _Shadows: 1
     - _ShorelineFoamMinDepth: 0.27
     - _SkyDirectionality: 0.875
-    - _Specular: 1
+    - _Specular: 0.902
     - _StartLevel: 0.157
     - _StencilFunction: 0
     - _SubSurfaceBase: 1.04

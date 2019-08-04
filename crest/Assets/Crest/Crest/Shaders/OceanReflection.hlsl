@@ -45,8 +45,9 @@ uniform float  _RefractiveIndexOfWater;
 
 
 #if _COMPUTEDIRECTIONALLIGHT_ON
-uniform half _DirectionalLightFallOff;
-uniform half _DirectionalLightBoost;
+half _DirectionalLightFallOff;
+half _DirectionalLightBoost;
+half _DirectionalLightWiden;
 #endif
 
 float CalculateFresnelReflectionCoefficient(float cosTheta)
@@ -94,7 +95,7 @@ void ApplyReflectionSky(in const half3 i_view, in const half3 i_n_pixel, in cons
 
 	// Add primary light
 #if _COMPUTEDIRECTIONALLIGHT_ON
-	skyColour += pow(max(0., dot(refl, i_lightDir)), _DirectionalLightFallOff) * _DirectionalLightBoost * _LightColor0 * i_shadow;
+	skyColour += pow(saturate(_DirectionalLightWiden + dot(refl, i_lightDir)), _DirectionalLightFallOff) * _DirectionalLightBoost * _LightColor0 * i_shadow;
 #endif
 
 	// Fresnel

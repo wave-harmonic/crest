@@ -82,6 +82,7 @@ Shader "Crest/Ocean"
 		[Toggle] _ComputeDirectionalLight("Enable", Float) = 1
 		_DirectionalLightFallOff("Fall-Off", Range(1.0, 4096.0)) = 128.0
 		_DirectionalLightBoost("Boost", Range(0.0, 512.0)) = 5.0
+		_DirectionalLightWiden("Widen", Range(0.0, 0.2)) = 0.0
 
 		[Header(Foam)]
 		[Toggle] _Foam("Enable", Float) = 1

@@ -165,8 +165,8 @@ namespace Crest
 
             for (int octave = 0; octave < NUM_OCTAVES; octave++)
             {
-                // 1.44 is a magic number of this spectrum which seems to give small waves
-                var wl = SmallWavelength(octave) * smallWavelengthMultiplier * 4f;
+                // Shift wavelengths based on a magic number of this spectrum which seems to give small waves.
+                var wl = SmallWavelength(octave) * smallWavelengthMultiplier * 1.5f;
 
                 var pow = PhillipsSpectrum(windSpeed, windDir, Mathf.Abs(Physics.gravity.y), wl, 0f);
                 // we store power on logarithmic scale. this does not include 0, we represent 0 as min value
@@ -179,8 +179,7 @@ namespace Crest
         {
             for (int octave = 0; octave < NUM_OCTAVES; octave++)
             {
-                // 5 is a magic number of this spectrum which seems to give small waves. Not the smallest octave
-                // though - couldn't get spectrum to cooperate here.
+                // Shift wavelengths based on a magic number of this spectrum which seems to give small waves.
                 var wl = SmallWavelength(octave) * smallWavelengthMultiplier * 9f;
 
                 var pow = PiersonMoskowitzSpectrum(Mathf.Abs(Physics.gravity.y), windSpeed, wl);
@@ -194,8 +193,7 @@ namespace Crest
         {
             for (int octave = 0; octave < NUM_OCTAVES; octave++)
             {
-                // 5 is a magic number of this spectrum which seems to give small waves. Not the smallest octave
-                // though - couldn't get spectrum to cooperate here.
+                // Shift wavelengths based on a magic number of this spectrum which seems to give small waves.
                 var wl = SmallWavelength(octave) * smallWavelengthMultiplier * 9f;
 
                 var pow = JONSWAPSpectrum(Mathf.Abs(Physics.gravity.y), windSpeed, wl, fetch);

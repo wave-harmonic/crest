@@ -168,7 +168,7 @@ namespace Crest
                 // 1.44 is a magic number of this spectrum which seems to give small waves
                 var wl = SmallWavelength(octave) * smallWavelengthMultiplier * 1.44f;
 
-                var pow = PhillipsSpectrum(windSpeed, windDir, Mathf.Abs(Physics.gravity.y), Mathf.Pow(2f, SMALLEST_WL_POW_2), wl, 0f);
+                var pow = PhillipsSpectrum(windSpeed, windDir, Mathf.Abs(Physics.gravity.y), wl, 0f);
                 // we store power on logarithmic scale. this does not include 0, we represent 0 as min value
                 pow = Mathf.Max(pow, Mathf.Pow(10f, MIN_POWER_LOG));
                 _powerLog[octave] = Mathf.Log10(pow);
@@ -205,7 +205,7 @@ namespace Crest
             }
         }
 
-        static float PhillipsSpectrum(float windSpeed, Vector2 windDir, float gravity, float smallestWavelength, float wavelength, float angle)
+        static float PhillipsSpectrum(float windSpeed, Vector2 windDir, float gravity, float wavelength, float angle)
         {
             float wavenumber = 2f * Mathf.PI / wavelength;
             float angle_radians = Mathf.PI * angle / 180f;

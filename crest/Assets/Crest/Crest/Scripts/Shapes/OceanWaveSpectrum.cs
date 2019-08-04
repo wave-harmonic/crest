@@ -269,6 +269,16 @@ namespace Crest
 
             return PiersonMoskowitzSpectrum(gravity, windspeed, frequency_peak, alpha, wavelength) * Mathf.Pow(gamma, r);
         }
+
+#if UNITY_EDITOR
+        public void Upgrade()
+        {
+            OceanWaveSpectrumEditor.UpgradeSpectrum(ref _chopScales, 1f);
+            OceanWaveSpectrumEditor.UpgradeSpectrum(ref _gravityScales, 1f);
+            OceanWaveSpectrumEditor.UpgradeSpectrum(ref _powerDisabled, false);
+            OceanWaveSpectrumEditor.UpgradeSpectrum(ref _powerLog, MIN_POWER_LOG);
+        }
+#endif
     }
 
 #if UNITY_EDITOR
@@ -288,6 +298,39 @@ namespace Crest
         static GUIContent s_labelSWM = new GUIContent("Small wavelength multiplier", "Modifies parameters for the empirical spectra, tends to boost smaller wavelengths");
         static GUIContent s_labelFetch = new GUIContent("Fetch", "Length of area that wind excites waves. Applies only to JONSWAP");
 
+        public static void UpgradeSpectrum(SerializedProperty prop, float defaultValue)
+        {
+            while (prop.arraySize < OceanWaveSpectrum.NUM_OCTAVES)
+            {
+                prop.InsertArrayElementAtIndex(0);
+                prop.GetArrayElementAtIndex(0).floatValue = defaultValue;
+            }
+        }
+        public static void UpgradeSpectrum(SerializedProperty prop, bool defaultValue)
+        {
+            while (prop.arraySize < OceanWaveSpectrum.NUM_OCTAVES)
+            {
+                prop.InsertArrayElementAtIndex(0);
+                prop.GetArrayElementAtIndex(0).boolValue = defaultValue;
+            }
+        }
+        public static void UpgradeSpectrum(ref float[] values, float defaultValue)
+        {
+            while (values.Length < OceanWaveSpectrum.NUM_OCTAVES)
+            {
+                Debug.Log("added");
+                ArrayUtility.Insert(ref values, 0, defaultValue);
+            }
+        }
+        public static void UpgradeSpectrum(ref bool[] values, bool defaultValue)
+        {
+            while (values.Length < OceanWaveSpectrum.NUM_OCTAVES)
+            {
+                Debug.Log("added");
+                ArrayUtility.Insert(ref values, 0, defaultValue);
+            }
+        }
+
         public override void OnInspectorGUI()
         {
             base.OnInspectorGUI();
@@ -306,6 +349,7 @@ namespace Crest
             EditorGUILayout.Space();
 
             var spDisabled = serializedObject.FindProperty("_powerDisabled");
+            UpgradeSpectrum(spDisabled, false);
             EditorGUILayout.BeginHorizontal();
             bool allEnabled = true;
             for (int i = 0; i < spDisabled.arraySize; i++)
@@ -326,8 +370,11 @@ namespace Crest
             var spec = target as OceanWaveSpectrum;
 
             var spPower = serializedObject.FindProperty("_powerLog");
+            UpgradeSpectrum(spPower, OceanWaveSpectrum.MIN_POWER_LOG);
             var spChopScales = serializedObject.FindProperty("_chopScales");
+            UpgradeSpectrum(spChopScales, 1f);
             var spGravScales = serializedObject.FindProperty("_gravityScales");
+            UpgradeSpectrum(spGravScales, 1f);
 
             for (int i = 0; i < spPower.arraySize; i++)
             {

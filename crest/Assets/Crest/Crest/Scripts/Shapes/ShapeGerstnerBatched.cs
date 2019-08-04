@@ -130,6 +130,10 @@ namespace Crest
                 _spectrum.name = "Default Waves (auto)";
             }
 
+#if UNITY_EDITOR
+            _spectrum.Upgrade();
+#endif
+
             InitBatches();
         }
 

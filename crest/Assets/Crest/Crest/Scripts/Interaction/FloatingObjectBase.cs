@@ -11,7 +11,7 @@ namespace Crest
     {
         public abstract float ObjectWidth { get; }
         public abstract bool InWater { get; }
-        public abstract Rigidbody RB { get; set; }
+        public abstract Vector3 Velocity { get; }
 
         SamplingData _samplingData = new SamplingData();
 

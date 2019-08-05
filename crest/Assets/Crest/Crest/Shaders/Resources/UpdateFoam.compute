@@ -30,25 +30,33 @@ void UpdateFoam(uint3 id : SV_DispatchThreadID)
 	const float2 input_uv = IDtoUV(id.xy, width, height);
 	const float2 worldPosXZ = UVToWorld(input_uv, sliceIndex);
 	const float3 uv_slice = float3(input_uv, id.z);
-	const float3 uv_slice_source = WorldToUV_Source(worldPosXZ, sliceIndexSource);
-	// #if _FLOW_ON
-	half3 velocity = half3(_LD_TexArray_Flow.SampleLevel(LODData_linear_clamp_sampler, uv_slice, 0).xy, 0.0);
-	half foam = _LD_TexArray_Foam_Source.SampleLevel(LODData_linear_clamp_sampler, uv_slice_source
-		- ((_SimDeltaTime * _LD_Params_Source[sliceIndexSource].w) * velocity), 0
-		).x;
-	// #else
-	// // sampler will clamp the uv_slice currently
-	// half foam = tex2Dlod(_LD_TexArray_Foam_Source, uv_slice_source).x;
-	// #endif
 
+	half2 velocity = _LD_TexArray_Flow.SampleLevel(LODData_linear_clamp_sampler, uv_slice, 0).xy;
+	const float2 worldPosXZ_flowed = worldPosXZ - _SimDeltaTime * velocity;
+
+	half foam = 0.0;
+	const half r_max = 0.5 - _LD_Params_Source[sliceIndexSource].w;
+
+	const float3 uv_slice_source = WorldToUV_Source(worldPosXZ_flowed, sliceIndexSource);
 	half2 r = abs(uv_slice_source.xy - 0.5);
 
-	if (
-		(sliceIndexSource < 0) || (sliceIndexSource > depth) ||
-		(max(r.x, r.y) > 0.5 - _LD_Params_Source[sliceIndexSource].w)
-	) {
-		// no border wrap mode for RTs in unity it seems, so make any off-texture reads 0 manually
-		foam = 0.0;
+	if (sliceIndexSource < 0 || sliceIndexSource >= depth)
+	{
+		// Leave foam at 0 if going off the array
+	}
+	else if (max(r.x, r.y) <= r_max)
+	{
+		foam = _LD_TexArray_Foam_Source.SampleLevel(LODData_linear_clamp_sampler, uv_slice_source, 0).x;
+	}
+	else
+	{
+		// Try again from larger cascade
+		float3 uv_slice_source_nextlod = WorldToUV_Source(worldPosXZ_flowed, sliceIndexSource + 1.0);
+		half2 r2 = abs(uv_slice_source_nextlod.xy - 0.5);
+		if (max(r2.x, r2.y) <= r_max)
+		{
+			foam = _LD_TexArray_Foam_Source.SampleLevel(LODData_linear_clamp_sampler, uv_slice_source_nextlod, 0.0).x;
+		}
 	}
 
 	// fade

@@ -48,7 +48,7 @@ void UpdateFoam(uint3 id : SV_DispatchThreadID)
 	{
 		foam = _LD_TexArray_Foam_Source.SampleLevel(LODData_linear_clamp_sampler, uv_slice_source, 0).x;
 	}
-	else
+	else if (sliceIndexSource + 1.0 < depth)
 	{
 		// Try again from larger cascade
 		float3 uv_slice_source_nextlod = WorldToUV_Source(worldPosXZ_flowed, sliceIndexSource + 1.0);

@@ -45,6 +45,22 @@ namespace Crest
             InitData();
         }
 
+        public static RenderTexture CreateLodDataTextures(RenderTextureDescriptor desc, string name, bool needToReadWriteTextureData)
+        {
+            RenderTexture result = new RenderTexture(desc);
+            result.wrapMode = TextureWrapMode.Clamp;
+            result.antiAliasing = 1;
+            result.filterMode = FilterMode.Bilinear;
+            result.anisoLevel = 0;
+            result.useMipMap = false;
+            result.name = name;
+            result.dimension = TextureDimension.Tex2DArray;
+            result.volumeDepth = OceanRenderer.Instance.CurrentLodCount;
+            result.enableRandomWrite = needToReadWriteTextureData;
+            result.Create();
+            return result;
+        }
+
         protected virtual void InitData()
         {
             Debug.Assert(SystemInfo.SupportsRenderTextureFormat(TextureFormat), "The graphics device does not support the render texture format " + TextureFormat.ToString());
@@ -53,18 +69,7 @@ namespace Crest
 
             int resolution = OceanRenderer.Instance.LodDataResolution;
             var desc = new RenderTextureDescriptor(resolution, resolution, TextureFormat, 0);
-
-            _targets = new RenderTexture(desc);
-            _targets.wrapMode = TextureWrapMode.Clamp;
-            _targets.antiAliasing = 1;
-            _targets.filterMode = FilterMode.Bilinear;
-            _targets.anisoLevel = 0;
-            _targets.useMipMap = false;
-            _targets.name = SimName;
-            _targets.dimension = TextureDimension.Tex2DArray;
-            _targets.volumeDepth = OceanRenderer.Instance.CurrentLodCount;
-            _targets.enableRandomWrite = NeedToReadWriteTextureData;
-            _targets.Create();
+            _targets = CreateLodDataTextures(desc, SimName, NeedToReadWriteTextureData);
         }
 
         public virtual void UpdateLodData()

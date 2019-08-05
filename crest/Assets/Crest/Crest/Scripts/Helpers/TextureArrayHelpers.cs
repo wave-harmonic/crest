@@ -6,12 +6,13 @@ using UnityEngine;
 
 namespace Crest
 {
+    // TODO(SRT): Make this a general LodDataTexture helper specifically, and extract some LodDataMgr functionality to here
     public static class TextureArrayHelpers
     {
         private const string ClearToBlackShaderName = "ClearToBlack";
         private static int krnl_ClearToBlack = -1;
         private static ComputeShader ClearToBlackShader;
-        private static int sp_LD_TexArray_Target = Shader.PropertyToID("_LD_TexArray_Target");
+        private static int sp_LD_Texture_Target = Shader.PropertyToID("_LD_Texture_Target");
 
         static TextureArrayHelpers()
         {
@@ -41,17 +42,24 @@ namespace Crest
         // is not possible in some shaders.
         public static Texture2DArray BlackTextureArray { get; private set; }
 
+        // NOTE: This was originally needed as
         // Unity 2018.* does not support blitting to texture arrays, so have
-        // implemented a custom version to clear to black
-        public static void ClearToBlack(RenderTexture dst)
+        // implemented a custom version to clear to black. As we no longer
+        // use texture arrays this isn't really needed. But we might bring
+        // them back to leaving cleanup task for later depending on how things
+        // settle down.
+        public static void ClearToBlack(RenderTexture[] targetTextures)
         {
-            ClearToBlackShader.SetTexture(krnl_ClearToBlack, sp_LD_TexArray_Target, dst);
-            ClearToBlackShader.Dispatch(
-                krnl_ClearToBlack,
-                OceanRenderer.Instance.LodDataResolution / PropertyWrapperCompute.THREAD_GROUP_SIZE_X,
-                OceanRenderer.Instance.LodDataResolution / PropertyWrapperCompute.THREAD_GROUP_SIZE_Y,
-                dst.volumeDepth
-            );
+            for (int lodIndex = 0; lodIndex < targetTextures.Length; lodIndex++)
+            {
+                ClearToBlackShader.SetTexture(krnl_ClearToBlack, sp_LD_Texture_Target, targetTextures[lodIndex]);
+                ClearToBlackShader.Dispatch(
+                    krnl_ClearToBlack,
+                    OceanRenderer.Instance.LodDataResolution / PropertyWrapperCompute.THREAD_GROUP_SIZE_X,
+                    OceanRenderer.Instance.LodDataResolution / PropertyWrapperCompute.THREAD_GROUP_SIZE_Y,
+                    1
+                );
+            }
         }
     }
 

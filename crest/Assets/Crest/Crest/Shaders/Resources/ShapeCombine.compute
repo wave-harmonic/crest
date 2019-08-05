@@ -17,7 +17,9 @@ float _HorizDisplace;
 float _DisplaceClamp;
 float _CrestTime;
 
-RWTexture2DArray<float4> _LD_TexArray_AnimatedWaves_Compute;
+RWTexture2D<float4> _LD_Texture_AnimatedWaves_Compute;
+// TODO(SRT): Ensure that this is set
+RWTexture2D<float4> _LD_Texture_AnimatedWaves_Compute_BiggerLod;
 
 void Flow(out float2 offsets, out float2 weights)
 {
@@ -30,8 +32,8 @@ void Flow(out float2 offsets, out float2 weights)
 }
 
 void SampleDisplacementsCompute(
-	in RWTexture2DArray<float4> i_dispSampler,
-	in float i_width, in float i_height, in float3 i_uv_slice,
+	in RWTexture2D<float4> i_dispBiggerLod,
+	in float i_width, in float i_height, in float2 i_uv,
 	in float i_wt, inout float3 io_worldPos, inout float io_sss
 ) {
 	// NOTE: We have to roll our own bilinear filter in Compute shaders when
@@ -40,7 +42,7 @@ void SampleDisplacementsCompute(
 	// https://docs.microsoft.com/en-us/windows/desktop/direct3dhlsl/sm5-object-rwtexture2d
 
 	// Convert from UV to coordinates
-	const float2 pixelCoord = i_uv_slice.xy * float2(i_width, i_height);
+	const float2 pixelCoord = i_uv * float2(i_width, i_height);
 
 	// Make relative to pixel centers
 	float2 pixelCoordCenters = pixelCoord - 0.5;
@@ -52,10 +54,10 @@ void SampleDisplacementsCompute(
 	const float2 pixelCoordCentersBotLeft = floor(pixelCoordCenters);
 	const float2 pixelCoordCentersFrac = frac(pixelCoordCenters);
 
-	const float4 dataBotLeft = i_dispSampler[float3(pixelCoordCentersBotLeft, i_uv_slice.z)];
-	const float4 dataBotRight = i_dispSampler[float3(pixelCoordCentersBotLeft + float2(1.0, 0.0), i_uv_slice.z)];
-	const float4 dataTopLeft = i_dispSampler[float3(pixelCoordCentersBotLeft + float2(0.0, 1.0), i_uv_slice.z)];
-	const float4 dataTopRight = i_dispSampler[float3(pixelCoordCentersBotLeft + float2(1.0, 1.0), i_uv_slice.z)];
+	const float4 dataBotLeft = i_dispBiggerLod[pixelCoordCentersBotLeft];
+	const float4 dataBotRight = i_dispBiggerLod[pixelCoordCentersBotLeft + float2(1.0, 0.0)];
+	const float4 dataTopLeft = i_dispBiggerLod[pixelCoordCentersBotLeft + float2(0.0, 1.0)];
+	const float4 dataTopRight = i_dispBiggerLod[pixelCoordCentersBotLeft + float2(1.0, 1.0)];
 
 	const float4 dataLerped = lerp(
 		lerp(dataBotLeft, dataBotRight, pixelCoordCentersFrac.x),
@@ -69,35 +71,33 @@ void SampleDisplacementsCompute(
 
 void ShapeCombineBase (uint3 id)
 {
-	float width; float height; float depth;
+	float width; float height;
 	{
-		_LD_TexArray_AnimatedWaves_Compute.GetDimensions(width, height, depth);
+		_LD_Texture_AnimatedWaves_Compute.GetDimensions(width, height);
 	}
-	const float2 input_uv = IDtoUV(id.xy, width, height);
+	const float2 uv_thisLod = IDtoUV(id.xy, width, height);
 
-	const float2 worldPosXZ = UVToWorld(input_uv);
+	const float2 worldPosXZ = UVToWorld(uv_thisLod);
 
 	// sample the shape 1 texture at this world pos
-	const float3 uv_nextLod = WorldToUV_BiggerLod(worldPosXZ);
-
-	float3 uv_thisLod = float3(input_uv, _LD_SliceIndex);
+	const float2 uv_biggerLod = WorldToUV_BiggerLod(worldPosXZ);
 
 	float3 result = 0.0;
 	half sss = 0.;
 	// this lods waves
 #if _FLOW_ON
 	float2 flow = 0.0;
-	SampleFlow(_LD_TexArray_Flow, uv_thisLod, 1.0, flow);
+	SampleFlow(_LD_Texture_Flow, uv_thisLod, 1.0, flow);
 
 	float2 offsets, weights;
 	Flow(offsets, weights);
 
-	float3 uv_thisLod_flow_0 = WorldToUV(worldPosXZ - offsets[0] * flow);
-	float3 uv_thisLod_flow_1 = WorldToUV(worldPosXZ - offsets[1] * flow);
-	SampleDisplacements(_LD_TexArray_WaveBuffer, uv_thisLod_flow_0, weights[0], result, sss);
-	SampleDisplacements(_LD_TexArray_WaveBuffer, uv_thisLod_flow_1, weights[1], result, sss);
+	float2 uv_thisLod_flow_0 = WorldToUV(worldPosXZ - offsets[0] * flow);
+	float2 uv_thisLod_flow_1 = WorldToUV(worldPosXZ - offsets[1] * flow);
+	SampleDisplacements(_LD_Texture_WaveBuffer, uv_thisLod_flow_0, weights[0], result, sss);
+	SampleDisplacements(_LD_Texture_WaveBuffer, uv_thisLod_flow_1, weights[1], result, sss);
 #else
-	float4 data =_LD_TexArray_WaveBuffer.SampleLevel(LODData_linear_clamp_sampler, uv_thisLod, 0.0);
+	float4 data =_LD_Texture_WaveBuffer.SampleLevel(LODData_linear_clamp_sampler, uv_thisLod, 0.0);
 	result += data.xyz;
 	sss = data.a;
 #endif
@@ -105,21 +105,21 @@ void ShapeCombineBase (uint3 id)
 // C# Script determines whether this enabled or not by selecting appropriate
 // kernel for each LOD.
 #if !_DISABLE_COMBINE
-	SampleDisplacementsCompute(_LD_TexArray_AnimatedWaves_Compute, width, height, uv_nextLod, 1.0, result, sss);
+	SampleDisplacementsCompute(_LD_Texture_AnimatedWaves_Compute_BiggerLod, width, height, uv_biggerLod, 1.0, result, sss);
 #endif
 
 #if _DYNAMIC_WAVE_SIM_ON
 	{
 		// convert dynamic wave sim to displacements
 
-		half waveSimY = SampleLod(_LD_TexArray_DynamicWaves, uv_thisLod).x;
+		half waveSimY = SampleLod(_LD_Texture_DynamicWaves, uv_thisLod).x;
 		result.y += waveSimY;
 
 		const float2 invRes = float2(_LD_Params[_LD_SliceIndex].w, 0.0);
-		const half waveSimY_px = SampleLod(_LD_TexArray_DynamicWaves, uv_thisLod + float3(invRes.xy, 0)).x;
-		const half waveSimY_nx = SampleLod(_LD_TexArray_DynamicWaves, uv_thisLod - float3(invRes.xy, 0)).x;
-		const half waveSimY_pz = SampleLod(_LD_TexArray_DynamicWaves, uv_thisLod + float3(invRes.yx, 0)).x;
-		const half waveSimY_nz = SampleLod(_LD_TexArray_DynamicWaves, uv_thisLod - float3(invRes.yx, 0)).x;
+		const half waveSimY_px = SampleLod(_LD_Texture_DynamicWaves, uv_thisLod + invRes.xy).x;
+		const half waveSimY_nx = SampleLod(_LD_Texture_DynamicWaves, uv_thisLod - invRes.xy).x;
+		const half waveSimY_pz = SampleLod(_LD_Texture_DynamicWaves, uv_thisLod + invRes.yx).x;
+		const half waveSimY_nz = SampleLod(_LD_Texture_DynamicWaves, uv_thisLod - invRes.yx).x;
 		// compute displacement from gradient of water surface - discussed in issue #18 and then in issue #47
 
 		// For gerstner waves, horiz displacement is proportional to derivative of vertical displacement multiplied by the wavelength
@@ -135,7 +135,7 @@ void ShapeCombineBase (uint3 id)
 	}
 #endif // _DYNAMIC_WAVE_SIM_
 
-	_LD_TexArray_AnimatedWaves_Compute[uint3(id.xy, _LD_SliceIndex)] = half4(result, sss);
+	_LD_Texture_AnimatedWaves_Compute[id.xy] = half4(result, sss);
 }
 
 

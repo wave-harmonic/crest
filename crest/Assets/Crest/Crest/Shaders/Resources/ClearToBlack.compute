@@ -6,10 +6,10 @@
 
 #include "../OceanLODData.hlsl"
 
-RWTexture2DArray<float> _LD_TexArray_Target;
+RWTexture2D<float> _LD_Texture_Target;
 
 [numthreads(THREAD_GROUP_SIZE_X,THREAD_GROUP_SIZE_Y,1)]
 void ClearToBlack(uint3 id : SV_DispatchThreadID)
 {
-	_LD_TexArray_Target[id] = 0.0;
+	_LD_Texture_Target[id.xy] = 0.0;
 }

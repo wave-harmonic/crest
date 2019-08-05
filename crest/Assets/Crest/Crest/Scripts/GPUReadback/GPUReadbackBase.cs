@@ -141,18 +141,17 @@ namespace Crest
                 }
             }
 
-            var lt = ocean._lodTransform;
-
+            LodTransform lodTransform = ocean._lodTransform;
             for (int lodIndex = 0; lodIndex < ocean.CurrentLodCount; lodIndex++)
             {
-                float lodTexelWidth = lt._renderData[lodIndex]._texelWidth;
+                float lodTexelWidth = lodTransform._renderData[lodIndex]._texelWidth;
 
                 // Don't add uninitialised data
                 if (lodTexelWidth == 0f) continue;
 
                 if (lodTexelWidth >= _minGridSize && (lodTexelWidth <= _maxGridSize || _maxGridSize == 0f))
                 {
-                    var tex = _lodComponent.DataTexture;
+                    var tex = _lodComponent.DataTexture(lodIndex);
                     if (tex == null) continue;
 
                     if (!_perLodData.ContainsKey(lodTexelWidth))
@@ -181,7 +180,7 @@ namespace Crest
                         // ensure everything in the frame is done.
                         if (runningFromUpdate)
                         {
-                            EnqueueReadbackRequest(tex, lodIndex, lt._renderData[lodIndex], _prevFrameTime);
+                            EnqueueReadbackRequest(tex, lodTransform._renderData[lodIndex], _prevFrameTime);
                         }
 
                         ProcessArrivedRequests(lodData);
@@ -193,7 +192,7 @@ namespace Crest
         /// <summary>
         /// Request current contents of cameras shape texture. queue pattern inspired by: https://github.com/keijiro/AsyncCaptureTest
         /// </summary>
-        void EnqueueReadbackRequest(RenderTexture target, int lodIndex, LodTransform.RenderData renderData, float previousFrameTime)
+        void EnqueueReadbackRequest(RenderTexture target, LodTransform.RenderData renderData, float previousFrameTime)
         {
             if (!_doReadback)
             {
@@ -213,7 +212,7 @@ namespace Crest
                 lodData._requests.Enqueue(
                     new ReadbackRequest
                     {
-                        _request = AsyncGPUReadback.Request(target, 0, 0, target.width, 0, target.height, lodIndex, 1),
+                        _request = AsyncGPUReadback.Request(target),
                         _renderData = renderData,
                         _time = previousFrameTime,
                     }

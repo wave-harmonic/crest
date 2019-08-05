@@ -55,7 +55,7 @@ float4x4 _MainCameraProjectionMatrix;
 float _SimDeltaTime;
 float _SimDeltaTimePrev;
 
-RWTexture2DArray<float2> _LD_TexArray_Target;
+RWTexture2D<float2> _LD_Texture_Target;
 
 fixed ComputeShadow(in ShadowCoords shadowCoords, in float jitterDiameter, in float4 cascadeWeights)
 {
@@ -91,9 +91,9 @@ void UpdateShadow(uint3 id : SV_DispatchThreadID)
 	// of rendering real geometry from a worldspace camera.
 	ShadowCoords shadowCoords;
 	{
-		float width; float height; float depth;
+		float width; float height;
 		{
-			_LD_TexArray_Shadow_Source.GetDimensions(width, height, depth);
+			_LD_Texture_Shadow_Source.GetDimensions(width, height);
 		}
 
 		// world pos from [0,1] texture
@@ -127,11 +127,11 @@ void UpdateShadow(uint3 id : SV_DispatchThreadID)
 	fixed2 shadow = 0.0;
 
 	// Shadow from last frame - manually implement black border
-	float3 uv_source = WorldToUV_Source(shadowCoords._WorldPosViewZ.xz, _LD_SliceIndex_Source);
+	float2 uv_source = WorldToUV_Source(shadowCoords._WorldPosViewZ.xz, _LD_SliceIndex);
 	half2 r = abs(uv_source.xy - 0.5);
 	if (max(r.x, r.y) < 0.49)
 	{
-		SampleShadow(_LD_TexArray_Shadow_Source, uv_source, 1.0, shadow);
+		SampleShadow(_LD_Texture_Shadow_Source, uv_source, 1.0, shadow);
 	}
 
 	// Check if the current sample is visible in the main camera (and therefore shadow map can be sampled)
@@ -157,5 +157,5 @@ void UpdateShadow(uint3 id : SV_DispatchThreadID)
 		shadow = lerp(shadow, shadowThisFrame, _JitterDiameters_CurrentFrameWeights.zw * _SimDeltaTime * 60.0);
 	}
 
-	_LD_TexArray_Target[uint3(id.xy, _LD_SliceIndex)] = shadow;
+	_LD_Texture_Target[id.xy] = shadow;
 }

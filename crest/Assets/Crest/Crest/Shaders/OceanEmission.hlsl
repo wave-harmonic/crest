@@ -62,14 +62,14 @@ half3 ScatterColour(
 		// 2. for the underwater skirt geometry, we don't have the lod data sampled from the verts with lod transitions etc,
 		//    so just approximate by sampling at the camera position.
 		// this used to sample LOD1 but that doesnt work in last LOD, the data will be missing.
-		const float3 uv_smallerLod = WorldToUV(i_cameraPos.xz);
+		const float2 uv_smallerLod = WorldToUV(i_cameraPos.xz);
 		depth = CREST_OCEAN_DEPTH_BASELINE;
-		SampleSeaDepth(_LD_TexArray_SeaFloorDepth, uv_smallerLod, 1.0, depth);
+		SampleSeaDepth(_LD_Texture_SeaFloorDepth, uv_smallerLod, 1.0, depth);
 
 		// Huw: knocking this out for now as it seems to produce intense strobing when underwater.
 //#if _SHADOWS_ON
 //		half2 shadowSoftHard = 0.0;
-//		SampleShadow(_LD_TexArray_Shadow, uv_smallerLod, 1.0, shadowSoftHard);
+//		SampleShadow(_LD_Texture_Shadow, uv_smallerLod, 1.0, shadowSoftHard);
 //		shadow = 1.0 - shadowSoftHard.x;
 //#endif
 	}
@@ -134,12 +134,12 @@ void ApplyCaustics(in const half3 i_view, in const half3 i_lightDir, in const fl
 	// underwater caustics - dedicated to P
 	float3 camForward = mul((float3x3)unity_CameraToWorld, float3(0., 0., 1.));
 	float3 scenePos = _WorldSpaceCameraPos - i_view * i_sceneZ / dot(camForward, -i_view);
-	const float3 scenePosUV = WorldToUV_BiggerLod(scenePos.xz);
+	const float2 scenePosUV = WorldToUV_BiggerLod(scenePos.xz);
 	half3 disp = 0.;
 	half sss = 0.;
 	// this gives height at displaced position, not exactly at query position.. but it helps. i cant pass this from vert shader
 	// because i dont know it at scene pos.
-	SampleDisplacements(_LD_TexArray_AnimatedWaves, scenePosUV, 1.0, disp, sss);
+	SampleDisplacements(_LD_Texture_AnimatedWaves, scenePosUV, 1.0, disp, sss);
 	half waterHeight = _OceanCenterPosWorld.y + disp.y;
 	half sceneDepth = waterHeight - scenePos.y;
 	// Compute mip index manually, with bias based on sea floor depth. We compute it manually because if it is computed automatically it produces ugly patches
@@ -161,14 +161,14 @@ void ApplyCaustics(in const half3 i_view, in const half3 i_lightDir, in const fl
 		// LOD_1 data can be missing when underwater
 		if (i_underwater)
 		{
-			const float3 uv_smallerLod = WorldToUV(surfacePosXZ);
-			SampleShadow(_LD_TexArray_Shadow, uv_smallerLod, 1.0, causticShadow);
+			const float2 uv_smallerLod = WorldToUV(surfacePosXZ);
+			SampleShadow(_LD_Texture_Shadow, uv_smallerLod, 1.0, causticShadow);
 		}
 		else
 		{
 			// only sample the bigger lod. if pops are noticeable this could lerp the 2 lods smoothly, but i didnt notice issues.
-			float3 uv_biggerLod = WorldToUV_BiggerLod(surfacePosXZ);
-			SampleShadow(_LD_TexArray_Shadow, uv_biggerLod, 1.0, causticShadow);
+			float2 uv_biggerLod = WorldToUV_BiggerLod(surfacePosXZ);
+			SampleShadow(_LD_Texture_Shadow_BiggerLod, uv_biggerLod, 1.0, causticShadow);
 		}
 		causticsStrength *= 1.0 - causticShadow.y;
 	}

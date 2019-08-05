@@ -123,11 +123,12 @@ namespace Crest
             var ldshadows = OceanRenderer.Instance._lodDataShadow;
 
             _mpb.SetFloat(OceanRenderer.sp_LD_SliceIndex, _lodIndex);
-            ldaws.BindResultData(_mpb);
-            if (ldflow) ldflow.BindResultData(_mpb);
-            if (ldfoam) ldfoam.BindResultData(_mpb); else LodDataMgrFoam.BindNull(_mpb);
-            if (ldsds) ldsds.BindResultData(_mpb);
-            if (ldshadows) ldshadows.BindResultData(_mpb); else LodDataMgrShadow.BindNull(_mpb);
+            ldaws.BindOceanParams(_mpb);
+            ldaws.BindResultTexture(_mpb, _lodIndex);
+            if (ldflow) ldflow.BindResultTexture(_mpb, _lodIndex);
+            if (ldfoam) ldfoam.BindResultTexture(_mpb, _lodIndex); else LodDataMgrFoam.BindNull(_mpb);
+            if (ldsds) ldsds.BindResultTexture(_mpb, _lodIndex);
+            if (ldshadows) ldshadows.BindResultTexture(_mpb, _lodIndex); else LodDataMgrShadow.BindNull(_mpb);
 
             var reflTex = PreparedReflections.GetRenderTexture(_currentCamera.GetInstanceID());
             if (reflTex)

@@ -14,10 +14,10 @@ namespace Crest
     {
         protected override bool NeedToReadWriteTextureData { get { return true; } }
 
-        RenderTexture _sources;
+        RenderTexture[] _sources;
         PropertyWrapperCompute _renderSimProperties;
 
-        static int sp_LD_TexArray_Target = Shader.PropertyToID("_LD_TexArray_Target");
+        static int sp_LD_Texture_Target = Shader.PropertyToID("_LD_Texture_Target");
 
         protected ComputeShader _shader;
 
@@ -63,13 +63,17 @@ namespace Crest
             }
         }
 
-        public void BindSourceData(IPropertyWrapper properties, bool paramsOnly, bool usePrevTransform, bool sourceLod = false)
+        public void BindSourceOceanParams(IPropertyWrapper properties, bool usePreviousTransform)
         {
-            var renderData = usePrevTransform ?
+            var renderData = usePreviousTransform ?
                 OceanRenderer.Instance._lodTransform._renderDataSource
                 : OceanRenderer.Instance._lodTransform._renderData;
+            BindData(properties, ref renderData, true, true);
+        }
 
-            BindData(properties, paramsOnly ? TextureArrayHelpers.BlackTextureArray : (Texture)_sources, true, ref renderData, sourceLod);
+        public void BindSourceTexture(IPropertyWrapper properties, int lodIndex)
+        {
+            BindLodTexture(properties, lodIndex < _sources.Length && lodIndex >= 0 ? (Texture) _sources[lodIndex] : Texture2D.blackTexture, LodIdType.SourceLod);
         }
 
         public abstract void GetSimSubstepData(float frameDt, out int numSubsteps, out float substepDt);
@@ -102,22 +106,26 @@ namespace Crest
 
                 // bind data to slot 0 - previous frame data
                 ValidateSourceData(usePreviousFrameTransform);
-                BindSourceData(_renderSimProperties, false, usePreviousFrameTransform, true);
-
-                SetAdditionalSimParams(_renderSimProperties);
 
                 buf.SetGlobalFloat(OceanRenderer.sp_LODChange, srcDataIdxChange);
 
-                _renderSimProperties.SetTexture(
-                    sp_LD_TexArray_Target,
-                    DataTexture
-                );
-
-                _renderSimProperties.DispatchShaderMultiLOD();
-
-                for (var lodIdx = lodCount - 1; lodIdx >= 0; lodIdx--)
+                for(int lodIdx = lodCount - 1; lodIdx >= 0; lodIdx--)
                 {
-                    buf.SetRenderTarget(_targets, _targets.depthBuffer, 0, CubemapFace.Unknown, lodIdx);
+                    BindSourceOceanParams(_renderSimProperties, usePreviousFrameTransform);
+                    BindSourceTexture(_renderSimProperties, lodIdx);
+                    SetAdditionalSimParams(_renderSimProperties, lodIdx);
+
+                    _renderSimProperties.SetTexture(
+                        sp_LD_Texture_Target,
+                        DataTexture(lodIdx)
+                    );
+                    _renderSimProperties.SetFloat(OceanRenderer.sp_LD_SliceIndex, lodIdx);
+                    _renderSimProperties.DispatchShader();
+                }
+
+                for (int lodIdx = lodCount - 1; lodIdx >= 0; lodIdx--)
+                {
+                    buf.SetRenderTarget(_targets[lodIdx], _targets[lodIdx].depthBuffer, 0);
                     SubmitDraws(lodIdx, buf);
                 }
 
@@ -140,7 +148,7 @@ namespace Crest
         /// <summary>
         /// Set any sim-specific shader params.
         /// </summary>
-        protected virtual void SetAdditionalSimParams(IPropertyWrapper simMaterial)
+        protected virtual void SetAdditionalSimParams(IPropertyWrapper simMaterial, int lodIndex)
         {
         }
 

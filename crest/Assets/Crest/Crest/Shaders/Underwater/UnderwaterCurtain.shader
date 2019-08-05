@@ -181,8 +181,8 @@ Shader "Crest/Underwater Curtain"
 
 				float3 surfaceAboveCamPosWorld = 0.0;
 				half sss = 0.;
-				const float3 uv_slice = WorldToUV(_WorldSpaceCameraPos.xz);
-				SampleDisplacements(_LD_TexArray_AnimatedWaves, uv_slice, 1.0, surfaceAboveCamPosWorld, sss);
+				const float2 uv = WorldToUV(_WorldSpaceCameraPos.xz);
+				SampleDisplacements(_LD_Texture_AnimatedWaves, uv, 1.0, surfaceAboveCamPosWorld, sss);
 				surfaceAboveCamPosWorld.y += _OceanCenterPosWorld.y;
 
 				// depth and shadow are computed in ScatterColour when underwater==true, using the LOD1 texture.

@@ -64,7 +64,7 @@ namespace Crest
 
             for (int lodIdx = OceanRenderer.Instance.CurrentLodCount - 1; lodIdx >= 0; lodIdx--)
             {
-                buf.SetRenderTarget(_targets, 0, CubemapFace.Unknown, lodIdx);
+                buf.SetRenderTarget(_targets[lodIdx], 0);
                 buf.ClearRenderTarget(false, true, Color.black);
                 buf.SetGlobalFloat(OceanRenderer.sp_LD_SliceIndex, lodIdx);
                 SubmitDraws(lodIdx, buf);
@@ -77,16 +77,16 @@ namespace Crest
             }
         }
 
-        public static string TextureArrayName = "_LD_TexArray_Flow";
+        public static string TextureArrayName = "_LD_Texture_Flow";
         private static TextureArrayParamIds textureArrayParamIds = new TextureArrayParamIds(TextureArrayName);
-        public static int ParamIdSampler(bool sourceLod = false) { return textureArrayParamIds.GetId(sourceLod); }
-        protected override int GetParamIdSampler(bool sourceLod = false)
+        public static int ParamIdSampler(LodIdType lodIdType = LodIdType.SmallerLod) { return textureArrayParamIds.GetId(lodIdType); }
+        protected override int GetParamIdSampler(LodIdType lodIdType = LodIdType.SmallerLod)
         {
-            return ParamIdSampler(sourceLod);
+            return ParamIdSampler(lodIdType);
         }
-        public static void BindNull(IPropertyWrapper properties, bool sourceLod = false)
+        public static void BindNull(IPropertyWrapper properties, LodIdType lodIdType = LodIdType.SmallerLod)
         {
-            properties.SetTexture(ParamIdSampler(sourceLod), TextureArrayHelpers.BlackTextureArray);
+            properties.SetTexture(ParamIdSampler(lodIdType), Texture2D.blackTexture);
         }
     }
 }

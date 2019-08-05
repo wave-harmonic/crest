@@ -44,9 +44,9 @@ namespace Crest
 #endif
         }
 
-        protected override void SetAdditionalSimParams(IPropertyWrapper simMaterial)
+        protected override void SetAdditionalSimParams(IPropertyWrapper simMaterial, int lodIndex)
         {
-            base.SetAdditionalSimParams(simMaterial);
+            base.SetAdditionalSimParams(simMaterial, lodIndex);
 
             simMaterial.SetFloat(sp_FoamFadeRate, Settings._foamFadeRate);
             simMaterial.SetFloat(sp_WaveFoamStrength, Settings._waveFoamStrength);
@@ -55,12 +55,12 @@ namespace Crest
             simMaterial.SetFloat(sp_ShorelineFoamStrength, Settings._shorelineFoamStrength);
 
             // assign animated waves - to slot 1 current frame data
-            OceanRenderer.Instance._lodDataAnimWaves.BindResultData(simMaterial);
+            OceanRenderer.Instance._lodDataAnimWaves.BindResultTexture(simMaterial, lodIndex);
 
             // assign sea floor depth - to slot 1 current frame data
             if (OceanRenderer.Instance._lodDataSeaDepths)
             {
-                OceanRenderer.Instance._lodDataSeaDepths.BindResultData(simMaterial);
+                OceanRenderer.Instance._lodDataSeaDepths.BindResultTexture(simMaterial, lodIndex);
             }
             else
             {
@@ -70,7 +70,7 @@ namespace Crest
             // assign flow - to slot 1 current frame data
             if (OceanRenderer.Instance._lodDataFlow)
             {
-                OceanRenderer.Instance._lodDataFlow.BindResultData(simMaterial);
+                OceanRenderer.Instance._lodDataFlow.BindResultTexture(simMaterial, lodIndex);
             }
             else
             {
@@ -85,16 +85,16 @@ namespace Crest
             numSubsteps = 1;
         }
 
-        public static string TextureArrayName = "_LD_TexArray_Foam";
+        public static string TextureArrayName = "_LD_Texture_Foam";
         private static TextureArrayParamIds textureArrayParamIds = new TextureArrayParamIds(TextureArrayName);
-        public static int ParamIdSampler(bool sourceLod = false) { return textureArrayParamIds.GetId(sourceLod); }
-        protected override int GetParamIdSampler(bool sourceLod = false)
+        public static int ParamIdSampler(LodIdType lodIdType = LodIdType.SmallerLod) { return textureArrayParamIds.GetId(lodIdType); }
+        protected override int GetParamIdSampler(LodIdType lodIdType = LodIdType.SmallerLod)
         {
-            return ParamIdSampler(sourceLod);
+            return ParamIdSampler(lodIdType);
         }
-        public static void BindNull(IPropertyWrapper properties, bool sourceLod = false)
+        public static void BindNull(IPropertyWrapper properties, LodIdType lodIdType = LodIdType.SmallerLod)
         {
-            properties.SetTexture(ParamIdSampler(sourceLod), TextureArrayHelpers.BlackTextureArray);
+            properties.SetTexture(ParamIdSampler(lodIdType), Texture2D.blackTexture);
         }
     }
 }

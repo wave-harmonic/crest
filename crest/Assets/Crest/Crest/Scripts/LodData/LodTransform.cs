@@ -128,9 +128,9 @@ namespace Crest
             return 2f * maxTexelSize * OceanRenderer.Instance.MinTexelsPerWave;
         }
 
-        public static int ParamIdPosScale(bool sourceLod = false)
+        public static int ParamIdPosScale(bool source = false)
         {
-            if(sourceLod)
+            if(source)
             {
                 return s_paramsPosScaleSource;
             }
@@ -140,9 +140,9 @@ namespace Crest
             }
         }
 
-        public static int ParamIdOcean(bool sourceLod = false)
+        public static int ParamIdOcean(bool source = false)
         {
-            if(sourceLod)
+            if(source)
             {
                 return s_paramsOceanSource;
             }

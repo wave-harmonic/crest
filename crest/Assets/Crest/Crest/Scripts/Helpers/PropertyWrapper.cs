@@ -87,24 +87,6 @@ namespace Crest
                 OceanRenderer.Instance.LodDataResolution / THREAD_GROUP_SIZE_Y,
                 1
             );
-
-            _commandBuffer = null;
-            _computeShader = null;
-            _computeKernel = -1;
-        }
-
-        public void DispatchShaderMultiLOD()
-        {
-            _commandBuffer.DispatchCompute(
-                _computeShader, _computeKernel,
-                OceanRenderer.Instance.LodDataResolution / THREAD_GROUP_SIZE_X,
-                OceanRenderer.Instance.LodDataResolution / THREAD_GROUP_SIZE_Y,
-                OceanRenderer.Instance.CurrentLodCount
-            );
-
-            _commandBuffer = null;
-            _computeShader = null;
-            _computeKernel = -1;
         }
     }
 }

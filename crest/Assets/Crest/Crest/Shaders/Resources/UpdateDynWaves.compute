@@ -28,19 +28,19 @@ float ComputeWaveSpeed(float wavelength, float g)
 	return sqrt(wavelength*g*one_over_2pi);
 }
 
-RWTexture2DArray<float2> _LD_TexArray_Target;
+RWTexture2D<float2> _LD_Texture_Target;
 
 [numthreads(THREAD_GROUP_SIZE_X,THREAD_GROUP_SIZE_Y,1)]
 void UpdateDynWaves(uint3 id : SV_DispatchThreadID)
 {
 	const float sliceIndex = id.z;
 	const float sliceIndexSource = id.z + _LODChange;
-	float width; float height; float depth;
+	float width; float height;
 	{
-		_LD_TexArray_DynamicWaves_Source.GetDimensions(width, height, depth);
+		_LD_Texture_DynamicWaves_Source.GetDimensions(width, height);
 	}
-	const float2 input_uv = IDtoUV(id.xy, width, height);
-	const float2 worldPosXZ = UVToWorld(input_uv, sliceIndex);
+	const float2 uv_target = IDtoUV(id.xy, width, height);
+	const float2 worldPosXZ = UVToWorld(uv_target, sliceIndex);
 	const float gridSize = _LD_Params[sliceIndex].x;
 
 	// average wavelength for this scale
@@ -51,10 +51,8 @@ void UpdateDynWaves(uint3 id : SV_DispatchThreadID)
 
 	const float dt = _SimDeltaTime;
 
-	const float3 uv_slice = float3(input_uv, sliceIndex);
-
-	const half2 velocity = SampleLod(_LD_TexArray_Flow, uv_slice).xy;
-	const float3 uv_source = WorldToUV_Source(worldPosXZ - (dt * velocity), sliceIndexSource);
+	const half2 velocity = SampleLod(_LD_Texture_Flow, uv_target).xy;
+	const float2 uv_source = WorldToUV_Source(worldPosXZ - (dt * velocity), sliceIndexSource);
 
 	// weighting for source position - weight 0 for off texture accesses to stop streaky artifacts
 	float2 distToEdge = min(uv_source.xy, 1.0 - uv_source.xy);
@@ -66,23 +64,23 @@ void UpdateDynWaves(uint3 id : SV_DispatchThreadID)
 	// compute axes of laplacian kernel - rotated every frame
 	const float e = _LD_Params_Source[sliceIndexSource].w; // assumes square RT
 	//float3 X = float3(1.0, 0.0, 0.0);
-	const float3 X = float3(_LaplacianAxisX, 0.0);
-	const float3 Y = float3(-X.y, X.x, 0.0);
+	const float2 X = float2(_LaplacianAxisX);
+	const float2 Y = float2(-X.y, X.x);
 
 	// no border wrap mode for RTs in unity it seems,
 	// so make any off-array reads 0 manually
-	const bool insideTarget = sliceIndexSource <= depth && sliceIndexSource >= 0;
+	const bool insideTarget = /* sliceIndexSource <= depth && TODO(SRT): ensure this works */ sliceIndexSource >= 0;
 
 	float fxm, fym, fxp, fyp; float2 ft_v;
 	ft_v = fxm = fym = fxp = fyp = 0.0;
 
 	if (insideTarget)
 	{
-		fxm = SampleLod(_LD_TexArray_DynamicWaves_Source, uv_source - e * X).x; // x minus
-		fym = SampleLod(_LD_TexArray_DynamicWaves_Source, uv_source - e * Y).x; // y minus
-		fxp = SampleLod(_LD_TexArray_DynamicWaves_Source, uv_source + e * X).x; // x plus
-		fyp = SampleLod(_LD_TexArray_DynamicWaves_Source, uv_source + e * Y).x; // y plus
-		ft_v = SampleLod(_LD_TexArray_DynamicWaves_Source, uv_source).xy;
+		fxm = SampleLod(_LD_Texture_DynamicWaves_Source, uv_source - e * X).x; // x minus
+		fym = SampleLod(_LD_Texture_DynamicWaves_Source, uv_source - e * Y).x; // y minus
+		fxp = SampleLod(_LD_Texture_DynamicWaves_Source, uv_source + e * X).x; // x plus
+		fyp = SampleLod(_LD_Texture_DynamicWaves_Source, uv_source + e * Y).x; // y plus
+		ft_v = SampleLod(_LD_Texture_DynamicWaves_Source, uv_source).xy;
 	}
 
 	// wave propagation
@@ -110,9 +108,9 @@ void UpdateDynWaves(uint3 id : SV_DispatchThreadID)
 	// eventually break. i model "Deep" water, but then simply ramp down waves in non-deep water with a linear multiplier.
 	// http://hyperphysics.phy-astr.gsu.edu/hbase/Waves/watwav2.html
 	// http://hyperphysics.phy-astr.gsu.edu/hbase/watwav.html#c1
-	float waterDepth = SampleLod(_LD_TexArray_SeaFloorDepth, uv_slice).x;
+	float waterDepth = SampleLod(_LD_Texture_SeaFloorDepth, uv_target).x;
 	float depthMul = 1.0 - (1.0 - saturate(2.0 * waterDepth / wavelength)) * dt * 2.0;
 	ftp *= depthMul;
 
-	_LD_TexArray_Target[id] = float2(ftp, vtp);
+	_LD_Texture_Target[id.xy] = float2(ftp, vtp);
 }

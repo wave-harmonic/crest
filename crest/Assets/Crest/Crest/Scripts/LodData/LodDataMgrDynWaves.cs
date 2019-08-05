@@ -75,9 +75,9 @@ namespace Crest
             target.SetFloat(sp_DisplaceClamp, Settings._displaceClamp);
         }
 
-        protected override void SetAdditionalSimParams(IPropertyWrapper simMaterial)
+        protected override void SetAdditionalSimParams(IPropertyWrapper simMaterial, int lodIndex)
         {
-            base.SetAdditionalSimParams(simMaterial);
+            base.SetAdditionalSimParams(simMaterial, lodIndex);
 
             simMaterial.SetFloat(sp_Damping, Settings._damping);
             simMaterial.SetFloat(sp_Gravity, OceanRenderer.Instance.Gravity * Settings._gravityMultiplier);
@@ -89,7 +89,7 @@ namespace Crest
             // because the depth is scheduled to render just before the animated waves, and this sim happens before animated waves.
             if (OceanRenderer.Instance._lodDataSeaDepths)
             {
-                OceanRenderer.Instance._lodDataSeaDepths.BindResultData(simMaterial);
+                OceanRenderer.Instance._lodDataSeaDepths.BindResultTexture(simMaterial, lodIndex);
             }
             else
             {
@@ -98,7 +98,7 @@ namespace Crest
 
             if (OceanRenderer.Instance._lodDataFlow)
             {
-                OceanRenderer.Instance._lodDataFlow.BindResultData(simMaterial);
+                OceanRenderer.Instance._lodDataFlow.BindResultTexture(simMaterial, lodIndex);
             }
             else
             {
@@ -147,16 +147,16 @@ namespace Crest
             substepDt = Mathf.Min(maxDt, frameDt / numSubsteps);
         }
 
-        public static string TextureArrayName = "_LD_TexArray_DynamicWaves";
+        public static string TextureArrayName = "_LD_Texture_DynamicWaves";
         private static TextureArrayParamIds textureArrayParamIds = new TextureArrayParamIds(TextureArrayName);
-        public static int ParamIdSampler(bool sourceLod = false) { return textureArrayParamIds.GetId(sourceLod); }
-        protected override int GetParamIdSampler(bool sourceLod = false)
+        public static int ParamIdSampler(LodIdType lodIdType = LodIdType.SmallerLod) { return textureArrayParamIds.GetId(lodIdType); }
+        protected override int GetParamIdSampler(LodIdType lodIdType = LodIdType.SmallerLod)
         {
-            return ParamIdSampler(sourceLod);
+            return ParamIdSampler(lodIdType);
         }
-        public static void BindNull(IPropertyWrapper properties, bool sourceLod = false)
+        public static void BindNull(IPropertyWrapper properties, LodIdType lodIdType = LodIdType.SmallerLod)
         {
-            properties.SetTexture(ParamIdSampler(sourceLod), TextureArrayHelpers.BlackTextureArray);
+            properties.SetTexture(ParamIdSampler(lodIdType), Texture2D.blackTexture);
         }
     }
 }

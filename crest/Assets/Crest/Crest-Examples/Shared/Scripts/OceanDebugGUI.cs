@@ -193,19 +193,21 @@ public class OceanDebugGUI : MonoBehaviour
                 float y = idx * h;
                 if (offset == 1f) w += b;
 
+                // TODO(SRT): Simplify this code back to how it was
+
                 // We cannot debug draw texture arrays directly
                 // (unless we write our own system for doing so).
                 // So for now, we just copy each texture and then draw that.
-                if (!shapes.ContainsKey(lodData.DataTexture.format))
+                if (!shapes.ContainsKey(lodData.DataTexture(idx).format))
                 {
-                    var rt = new RenderTexture(lodData.DataTexture);
+                    var rt = new RenderTexture(lodData.DataTexture(idx));
                     rt.dimension = UnityEngine.Rendering.TextureDimension.Tex2D;
                     rt.Create();
-                    shapes.Add(lodData.DataTexture.format, rt);
+                    shapes.Add(lodData.DataTexture(idx).format, rt);
                 }
 
-                RenderTexture shape = shapes[lodData.DataTexture.format];
-                Graphics.CopyTexture(lodData.DataTexture, idx, 0, shape, 0, 0);
+                RenderTexture shape = shapes[lodData.DataTexture(idx).format];
+                Graphics.CopyTexture(lodData.DataTexture(idx), shape);
 
                 GUI.color = Color.black * 0.7f;
                 GUI.DrawTexture(new Rect(x, y, w - b, h), Texture2D.whiteTexture);

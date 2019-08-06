@@ -94,9 +94,14 @@ namespace Crest
                 }
             }
 
-            if (layerMask == 0 && !errorShown)
+            if (layerMask == 0)
             {
-                Debug.LogError("No valid layers for populating depth cache, aborting. Click this message to highlight the cache in question.", this);
+                if (!errorShown)
+                {
+                    Debug.LogError("No valid layers for populating depth cache, aborting. Click this message to highlight the cache in question.", this);
+                }
+
+                return;
             }
 
             if (_cacheTexture == null)

@@ -19,7 +19,10 @@ namespace Crest
         public override SimSettingsBase CreateDefaultSettings() { return null; }
         public override void UseSettings(SimSettingsBase settings) { }
 
-        bool _targetsClear = false;
+        // Depth render targets need to be cleared to a high value (so we can
+        // store ocean depth directly). So we need to clear them at least once,
+        // even if nothing is registered to render depth.
+        bool _targetsHaveBeenCleared = false;
 
         private static int sp_SliceViewProjMatrices = Shader.PropertyToID("_SliceViewProjMatrices");
         private static int sp_CurrentLodCount = Shader.PropertyToID("_CurrentLodCount");
@@ -31,12 +34,13 @@ namespace Crest
             var gsDrawList = RegisterLodDataInputBase.GetRegistrar(GetType(), LodDataInputType.Geometry);
             var drawList = RegisterLodDataInputBase.GetRegistrar(GetType(), LodDataInputType.Conventional);
 
-            if(!_targetsClear || gsDrawList.Count != 0 || drawList.Count != 0)
+            if(_targetsHaveBeenCleared && gsDrawList.Count == 0 && drawList.Count == 0)
             {
-                buf.SetRenderTarget(_targets, 0, CubemapFace.Unknown, -1);
-                buf.ClearRenderTarget(false, true, Color.white * 1000f);
+                return;
             }
 
+            buf.SetRenderTarget(_targets, 0, CubemapFace.Unknown, -1);
+            buf.ClearRenderTarget(false, true, Color.white * 1000f);
             if (gsDrawList.Count != 0)
             {
 
@@ -73,7 +77,7 @@ namespace Crest
             // targets have now been cleared, we can early out next time around
             if (drawList.Count == 0 && gsDrawList.Count == 0)
             {
-                _targetsClear = true;
+                _targetsHaveBeenCleared = true;
             }
         }
 

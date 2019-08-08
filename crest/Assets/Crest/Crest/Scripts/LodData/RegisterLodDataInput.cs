@@ -17,9 +17,7 @@ namespace Crest
 
     public enum LodDataInputType
     {
-        [Tooltip("This LodDataInput uses a conventional shader")]
         Conventional,
-        [Tooltip("This LodDataInput uses a geometry shader to dispatch to multiple LODs at once")]
         Geometry
     }
 

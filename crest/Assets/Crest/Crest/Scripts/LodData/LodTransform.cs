@@ -18,6 +18,7 @@ namespace Crest
         static int s_paramsPosScaleSource = Shader.PropertyToID("_LD_Pos_Scale_Source");
         static int s_paramsOcean = Shader.PropertyToID("_LD_Params");
         static int s_paramsOceanSource = Shader.PropertyToID("_LD_Params_Source");
+        static int sp_SliceViewProjMatrices = Shader.PropertyToID("_SliceViewProjMatrices");
 
         [System.Serializable]
         public struct RenderData

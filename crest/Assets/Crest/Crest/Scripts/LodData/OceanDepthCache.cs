@@ -5,6 +5,7 @@
 // This is the original version that uses an auxillary camera and works with Unity's GPU terrain - issue 152.
 
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace Crest
 {
@@ -38,6 +39,58 @@ namespace Crest
         RenderTexture _cacheTexture;
         GameObject _drawCacheQuad;
         Camera _camDepthCache;
+
+        public static bool UseGeometryShader
+        {
+            get
+            {
+                // Only use geometry shader if target device supports it.
+                // Check for specific platforms which have poor/lacking geometry
+                // shader support first, before checking runtime platform info.
+#if UNITY_PS4 || UNITY_ANDROID || UNITY_IOS
+                // Mobile Devices don't support geometry shaders at all in a way
+                // that makes sense to support them:
+                // https://www.reddit.com/r/vulkan/comments/91q0qx/do_geometry_shaders_still_suck/
+
+                // Note: Whilst the PS4 supports geometry shaders, we get weird
+                // stippling artifacts which need to be investigated:
+                // https://github.com/crest-ocean/crest/issues/290
+                return false;
+#else
+                // Check runtime platform info for geometry shader support just
+                // in case.
+                // See https://docs.unity3d.com/2018.1/Documentation/Manual/SL-ShaderCompileTargets.html
+                // See https://docs.unity3d.com/ScriptReference/SystemInfo-graphicsShaderLevel.html
+                if (SystemInfo.graphicsShaderLevel <= 35 ||
+                    SystemInfo.graphicsShaderLevel == 45 ||
+                    SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal)
+                {
+                    return false;
+                }
+                return true;
+#endif
+            }
+        }
+
+        public static string ShaderName
+        {
+            get
+            {
+                // Although GS and CS version of this shader are *identical*
+                // besides having a #define enabled/disabled - Unity doesn't
+                // support using keywords to enable/disable shader pipeline
+                // stages (like `#pragma geometry`) so we have to split them
+                // out into separate files unfortunately.
+                if (UseGeometryShader)
+                {
+                    return "Crest/Inputs/Depth/Cached Depths Geometry";
+                }
+                else
+                {
+                    return "Crest/Inputs/Depth/Cached Depths";
+                }
+            }
+        }
 
         void Start()
         {
@@ -123,9 +176,16 @@ namespace Crest
                 _drawCacheQuad.name = "Draw_" + _cacheTexture.name;
                 _drawCacheQuad.transform.SetParent(transform, false);
                 _drawCacheQuad.transform.localEulerAngles = 90f * Vector3.right;
-                _drawCacheQuad.AddComponent<RegisterSeaFloorDepthInput>();
+                if(UseGeometryShader)
+                {
+                    _drawCacheQuad.AddComponent<RegisterSeaFloorDepthInputGeometry>();
+                }
+                else
+                {
+                    _drawCacheQuad.AddComponent<RegisterSeaFloorDepthInput>();
+                }
                 var qr = _drawCacheQuad.GetComponent<Renderer>();
-                qr.material = new Material(Shader.Find(LodDataMgrSeaFloorDepth.ShaderName));
+                qr.material = new Material(Shader.Find(ShaderName));
                 qr.material.mainTexture = _cacheTexture;
                 qr.enabled = false;
             }

@@ -15,26 +15,35 @@ namespace Crest
         bool Enabled { get; }
     }
 
+    public enum LodDataInputType
+    {
+        [Tooltip("This LodDataInput uses a conventional shader")]
+        Conventional,
+        [Tooltip("This LodDataInput uses a geometry shader to dispatch to multiple LODs at once")]
+        Geometry
+    }
+
     /// <summary>
     /// Base class for scripts that register input to the various LOD data types.
     /// </summary>
     public abstract class RegisterLodDataInputBase : MonoBehaviour, ILodDataInput
     {
         public abstract float Wavelength { get; }
+        public virtual LodDataInputType LodDataInputType => LodDataInputType.Conventional;
 
         public bool Enabled => true;
 
         public static int sp_Weight = Shader.PropertyToID("_Weight");
 
-        static Dictionary<System.Type, List<ILodDataInput>> _registrar = new Dictionary<System.Type, List<ILodDataInput>>();
+        static Dictionary<(System.Type, LodDataInputType), List<ILodDataInput>> _registrar = new Dictionary<(System.Type, LodDataInputType), List<ILodDataInput>>();
 
-        public static List<ILodDataInput> GetRegistrar(System.Type lodDataMgrType)
+        public static List<ILodDataInput> GetRegistrar(System.Type lodDataMgrType, LodDataInputType lodDataInputType = LodDataInputType.Conventional)
         {
             List<ILodDataInput> registered;
-            if (!_registrar.TryGetValue(lodDataMgrType, out registered))
+            if (!_registrar.TryGetValue((lodDataMgrType, lodDataInputType), out registered))
             {
                 registered = new List<ILodDataInput>();
-                _registrar.Add(lodDataMgrType, registered);
+                _registrar.Add((lodDataMgrType, lodDataInputType), registered);
             }
             return registered;
         }
@@ -86,13 +95,13 @@ namespace Crest
                 }
             }
 
-            var registrar = GetRegistrar(typeof(LodDataType));
+            var registrar = GetRegistrar(typeof(LodDataType), LodDataInputType);
             registrar.Add(this);
         }
 
         protected virtual void OnDisable()
         {
-            var registered = GetRegistrar(typeof(LodDataType));
+            var registered = GetRegistrar(typeof(LodDataType), LodDataInputType);
             if (registered != null)
             {
                 registered.Remove(this);

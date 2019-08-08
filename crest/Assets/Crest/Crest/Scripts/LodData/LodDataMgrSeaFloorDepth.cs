@@ -20,77 +20,25 @@ namespace Crest
         public override void UseSettings(SimSettingsBase settings) { }
 
         bool _targetsClear = false;
+
         private static int sp_SliceViewProjMatrices = Shader.PropertyToID("_SliceViewProjMatrices");
         private static int sp_CurrentLodCount = Shader.PropertyToID("_CurrentLodCount");
-        private const string ENABLE_GEOMETRY_SHADER_KEYWORD = "_ENABLE_GEOMETRY_SHADER";
-
-        private static bool UseGeometryShader
-        {
-            get
-            {
-                // Only use geometry shader if target device supports it.
-                // Check for specific platforms which have poor/lacking geometry
-                // shader support first, before checking runtime platform info.
-#if UNITY_PS4 || UNITY_ANDROID || UNITY_IOS
-                // Mobile Devices don't support geometry shaders at all in a way
-                // that makes sense to support them:
-                // https://www.reddit.com/r/vulkan/comments/91q0qx/do_geometry_shaders_still_suck/
-
-                // Note: Whilst the PS4 supports geometry shaders, we get weird
-                // stippling artifacts which need to be investigated:
-                // https://github.com/crest-ocean/crest/issues/290
-                return false;
-#else
-                // Check runtime platform info for geometry shader support just
-                // in case.
-                // See https://docs.unity3d.com/2018.1/Documentation/Manual/SL-ShaderCompileTargets.html
-                // See https://docs.unity3d.com/ScriptReference/SystemInfo-graphicsShaderLevel.html
-                if (SystemInfo.graphicsShaderLevel <= 35 ||
-                    SystemInfo.graphicsShaderLevel == 45 ||
-                    SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal)
-                {
-                    return false;
-                }
-                return true;
-#endif
-            }
-        }
-
-        public static string ShaderName
-        {
-            get
-            {
-                // Although GS and CS version of this shader are *identical*
-                // besides having a #define enabled/disabled - Unity doesn't
-                // support using keywords to enable/disable shader pipeline
-                // stages (like `#pragma geometry`) so we have to split them
-                // out into separate files unfortunately.
-                if (UseGeometryShader)
-                {
-                    return "Crest/Inputs/Depth/Cached Depths Geometry";
-                }
-                else
-                {
-                    return "Crest/Inputs/Depth/Cached Depths";
-                }
-            }
-        }
 
         public override void BuildCommandBuffer(OceanRenderer ocean, CommandBuffer buf)
         {
             base.BuildCommandBuffer(ocean, buf);
 
-            // if there is nothing in the scene tagged up for depth rendering, and we have cleared the RTs, then we can early out
-            var drawList = RegisterLodDataInputBase.GetRegistrar(GetType());
-            if (drawList.Count == 0 && _targetsClear)
-            {
-                return;
-            }
+            var gsDrawList = RegisterLodDataInputBase.GetRegistrar(GetType(), LodDataInputType.Geometry);
+            var drawList = RegisterLodDataInputBase.GetRegistrar(GetType(), LodDataInputType.Conventional);
 
-            if (UseGeometryShader)
+            if(!_targetsClear || gsDrawList.Count != 0 || drawList.Count != 0)
             {
                 buf.SetRenderTarget(_targets, 0, CubemapFace.Unknown, -1);
                 buf.ClearRenderTarget(false, true, Color.white * 1000f);
+            }
+
+            if (gsDrawList.Count != 0)
+            {
 
                 Matrix4x4[] matrixArray = new Matrix4x4[MAX_LOD_COUNT];
 
@@ -103,27 +51,27 @@ namespace Crest
                     matrixArray[lodIdx] = worldToClipPos;
                 }
 
+                // TODO: We might want to make these more globally available for other LodData types
                 buf.SetGlobalMatrixArray(sp_SliceViewProjMatrices, matrixArray);
                 buf.SetGlobalInt(sp_CurrentLodCount, OceanRenderer.Instance.CurrentLodCount);
 
-                foreach (var draw in drawList)
+                foreach (var draw in gsDrawList)
                 {
                     draw.Draw(buf, 1f, 0);
                 }
             }
-            else
+
+            if(drawList.Count != 0)
             {
                 for (int lodIdx = OceanRenderer.Instance.CurrentLodCount - 1; lodIdx >= 0; lodIdx--)
                 {
-                    buf.SetRenderTarget(_targets, 0, CubemapFace.Unknown, lodIdx);
-                    buf.ClearRenderTarget(false, true, Color.white * 1000f);
                     buf.SetGlobalFloat(OceanRenderer.sp_LD_SliceIndex, lodIdx);
                     SubmitDraws(lodIdx, buf);
                 }
             }
 
             // targets have now been cleared, we can early out next time around
-            if (drawList.Count == 0)
+            if (drawList.Count == 0 && gsDrawList.Count == 0)
             {
                 _targetsClear = true;
             }

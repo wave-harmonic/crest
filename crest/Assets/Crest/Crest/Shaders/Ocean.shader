@@ -9,19 +9,19 @@ Shader "Crest/Ocean"
 		[Header(Normal Mapping)]
 		[Toggle] _ApplyNormalMapping("Enable", Float) = 1
 		[NoScaleOffset] _Normals("Normal Map", 2D) = "bump" {}
-		_NormalsStrength("Strength", Range(0.01, 2.0)) = 0.3
-		_NormalsScale("Scale", Range(0.01, 50.0)) = 1.0
+		_NormalsStrength("Strength", Range(0.01, 2.0)) = 0.36
+		_NormalsScale("Scale", Range(0.01, 200.0)) = 40.0
 
 		// Base light scattering settings which give water colour
 		[Header(Scattering)]
-		// Base colour
-		_Diffuse("Diffuse", Color) = (0.2, 0.05, 0.05, 1.0)
-		// TODO
-		_DiffuseGrazing("Diffuse Grazing", Color) = (0.2, 0.05, 0.05, 1.0)
+		// Base colour when looking straight down into water
+		_Diffuse("Diffuse", Color) = (0.0, 0.0124, 0.566, 1.0)
+		// Base colour when looking into water at shallow/grazing angle
+		_DiffuseGrazing("Diffuse Grazing", Color) = (0.0635, 0.107, 0.585, 1.0)
 		// Changes colour in shadow. Requires 'Create Shadow Data' enabled on OceanRenderer script.
 		[Toggle] _Shadows("Shadowing", Float) = 0
 		// Base colour in shadow
-		_DiffuseShadow("Diffuse (Shadow)", Color) = (0.2, 0.05, 0.05, 1.0)
+		_DiffuseShadow("Diffuse (Shadow)", Color) = (0.0, 0.356, 0.565, 1.0)
 
 		// Light scattering contribution from primary light
 		[Header(Subsurface Scattering)]
@@ -29,23 +29,23 @@ Shader "Crest/Ocean"
 		// Colour tint for primary light contribution
 		_SubSurfaceColour("Colour", Color) = (0.0, 0.48, 0.36)
 		// Amount of primary light contribution that always comes in
-		_SubSurfaceBase("Base Mul", Range(0.0, 2.0)) = 0.6
+		_SubSurfaceBase("Base Mul", Range(0.0, 4.0)) = 1.0
 		// Primary light contribution in direction of light to emulate light passing through waves
-		_SubSurfaceSun("Sun Mul", Range(0.0, 10.0)) = 0.8
+		_SubSurfaceSun("Sun Mul", Range(0.0, 10.0)) = 4.5
 		// Fall-off for primary light scattering to affect directionality
-		_SubSurfaceSunFallOff("Sun Fall-Off", Range(1.0, 16.0)) = 4.0
+		_SubSurfaceSunFallOff("Sun Fall-Off", Range(1.0, 16.0)) = 5.0
 
 		// Light scattering in shallow water
 		[Header(Shallow Scattering)]
 		[Toggle] _SubSurfaceShallowColour("Enable", Float) = 1
 		// Max depth that is considered 'shallow'
-		_SubSurfaceDepthMax("Depth Max", Range(0.01, 50.0)) = 3.0
+		_SubSurfaceDepthMax("Depth Max", Range(0.01, 50.0)) = 10.0
 		// Fall off of shallow scattering
-		_SubSurfaceDepthPower("Depth Power", Range(0.01, 10.0)) = 1.0
+		_SubSurfaceDepthPower("Depth Power", Range(0.01, 10.0)) = 2.5
 		// Colour in shallow water
-		_SubSurfaceShallowCol("Shallow Colour", Color) = (0.42, 0.75, 0.69)
+		_SubSurfaceShallowCol("Shallow Colour", Color) = (0.552, 1.0, 1.0, 1.0)
 		// Shallow water colour in shadow (see comment on Shadowing param above)
-		_SubSurfaceShallowColShadow("Shallow Colour (Shadow)", Color) = (0.42, 0.75, 0.69)
+		_SubSurfaceShallowColShadow("Shallow Colour (Shadow)", Color) = (0.14417942, 0.2264151, 0.21173015, 1)
 
 		// Reflection properites
 		[Header(Reflection Environment)]
@@ -80,8 +80,8 @@ Shader "Crest/Ocean"
 
 		[Header(Add Directional Light)]
 		[Toggle] _ComputeDirectionalLight("Enable", Float) = 1
-		_DirectionalLightFallOff("Fall-Off", Range(1.0, 4096.0)) = 128.0
-		_DirectionalLightBoost("Boost", Range(0.0, 512.0)) = 5.0
+		_DirectionalLightFallOff("Fall-Off", Range(1.0, 4096.0)) = 275.0
+		_DirectionalLightBoost("Boost", Range(0.0, 512.0)) = 7.0
 
 		[Header(Foam)]
 		[Toggle] _Foam("Enable", Float) = 1
@@ -92,30 +92,30 @@ Shader "Crest/Ocean"
 		// Colour tint bubble foam underneath water surface
 		_FoamBubbleColor("Bubble Foam Color", Color) = (0.64, 0.83, 0.82, 1.0)
 		// Parallax for underwater bubbles to give feeling of volume
-		_FoamBubbleParallax("Bubble Foam Parallax", Range(0.0, 0.5)) = 0.05
+		_FoamBubbleParallax("Bubble Foam Parallax", Range(0.0, 0.5)) = 0.14
 		// Proximity to sea floor where foam starts to get generated
 		_ShorelineFoamMinDepth("Shoreline Foam Min Depth", Range(0.01, 5.0)) = 0.27
 		// Controls how gradual the transition is from full foam to no foam
-		_WaveFoamFeather("Wave Foam Feather", Range(0.001, 1.0)) = 0.32
+		_WaveFoamFeather("Wave Foam Feather", Range(0.001, 1.0)) = 0.4
 		// How much underwater bubble foam is generated
-		_WaveFoamBubblesCoverage("Wave Foam Bubbles Coverage", Range(0.0, 5.0)) = 0.95
+		_WaveFoamBubblesCoverage("Wave Foam Bubbles Coverage", Range(0.0, 5.0)) = 1.68
 
 		// Generates normals for the foam based on foam values/texture and use it for foam lighting
 		[Header(Foam 3D Lighting)]
 		[Toggle] _Foam3DLighting("Enable", Float) = 1
-		_WaveFoamLightScale("Light Scale", Range(0.0, 2.0)) = 0.7
+		_WaveFoamLightScale("Light Scale", Range(0.0, 2.0)) = 1.35
 		// Strength of the generated normals
 		_WaveFoamNormalStrength("Normals Strength", Range(0.0, 30.0)) = 3.5
 		// Acts like a gloss parameter for specular response
-		_WaveFoamSpecularFallOff("Specular Fall-Off", Range(1.0, 512.0)) = 275.0
+		_WaveFoamSpecularFallOff("Specular Fall-Off", Range(1.0, 512.0)) = 293.0
 		// Strength of specular response
-		_WaveFoamSpecularBoost("Specular Boost", Range(0.0, 16.0)) = 4.0
+		_WaveFoamSpecularBoost("Specular Boost", Range(0.0, 16.0)) = 0.15
 
 		[Header(Transparency)]
 		// Whether light can pass through the water surface
 		[Toggle] _Transparency("Enable", Float) = 1
 		// Scattering coefficient within water volume, per channel
-		_DepthFogDensity("Fog Density", Vector) = (0.28, 0.16, 0.24, 1.0)
+		_DepthFogDensity("Fog Density", Vector) = (0.33, 0.23, 0.37, 1.0)
 		// How strongly light is refracted when passing through water surface
 		_RefractionStrength("Refraction Strength", Range(0.0, 2.0)) = 0.1
 
@@ -133,9 +133,9 @@ Shader "Crest/Ocean"
 		// The range of depths over which the caustics are in focus
 		_CausticsDepthOfField("Depth Of Field", Range(0.01, 10.0)) = 0.33
 		// How much the caustics texture is distorted
-		_CausticsDistortionStrength("Distortion Strength", Range(0.0, 0.25)) = 0.075
+		_CausticsDistortionStrength("Distortion Strength", Range(0.0, 0.25)) = 0.16
 		// The scale of the distortion pattern used to distort the caustics
-		_CausticsDistortionScale("Distortion Scale", Range(0.01, 50.0)) = 10.0
+		_CausticsDistortionScale("Distortion Scale", Range(0.01, 50.0)) = 25.0
 
 		// To use the underwater effect the UnderWaterCurtainGeom and UnderWaterMeniscus prefabs must be parented to the camera.
 		[Header(Underwater)]

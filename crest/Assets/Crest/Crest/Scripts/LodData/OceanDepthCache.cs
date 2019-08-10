@@ -77,22 +77,31 @@ namespace Crest
         public void PopulateCache()
         {
             var layerMask = 0;
+            var errorShown = false;
             foreach (var layer in _layerNames)
             {
                 int layerIdx = LayerMask.NameToLayer(layer);
                 if (string.IsNullOrEmpty(layer) || layerIdx == -1)
                 {
                     Debug.LogError("OceanDepthCache: Invalid layer specified: \"" + layer +
-                        "\". Please specify valid layers for objects/geometry that provide the ocean depth.", this);
+                        "\". Does this layer need to be added to the project (Edit/Project Settings/Tags and Layers)? Click this message to highlight the cache in question.", this);
+
+                    errorShown = true;
                 }
                 else
                 {
                     layerMask = layerMask | (1 << layerIdx);
                 }
             }
+
             if (layerMask == 0)
             {
-                Debug.LogError("No valid layers for populating depth cache, aborting.", this);
+                if (!errorShown)
+                {
+                    Debug.LogError("No valid layers for populating depth cache, aborting. Click this message to highlight the cache in question.", this);
+                }
+
+                return;
             }
 
             if (_cacheTexture == null)
@@ -200,8 +209,8 @@ namespace Crest
                 var layer = LayerMask.NameToLayer(layerName);
                 if (layer == -1)
                 {
-                    Debug.LogError("Invalid layer specified: \"" + layerName +
-                        "\". Please specify valid layers for objects/geometry that provide the ocean depth. Click this message to highlight the cache in question.", this);
+                    Debug.LogError("Invalid layer specified for objects/geometry providing the ocean depth: \"" + layerName +
+                        "\". Does this layer need to be added to the project (Edit/Project Settings/Tags and Layers)? Click this message to highlight the cache in question.", this);
                 }
 
                 var renderers = FindObjectsOfType<MeshRenderer>();

@@ -318,7 +318,6 @@ namespace Crest
         {
             while (values.Length < OceanWaveSpectrum.NUM_OCTAVES)
             {
-                Debug.Log("added");
                 ArrayUtility.Insert(ref values, 0, defaultValue);
             }
         }
@@ -326,7 +325,6 @@ namespace Crest
         {
             while (values.Length < OceanWaveSpectrum.NUM_OCTAVES)
             {
-                Debug.Log("added");
                 ArrayUtility.Insert(ref values, 0, defaultValue);
             }
         }

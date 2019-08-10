@@ -455,7 +455,7 @@ MonoBehaviour:
   _minTexelsPerWave: 3
   _minScale: 4
   _maxScale: 256
-  _lodDataResolution: 512
+  _lodDataResolution: 384
   _geometryDownSampleFactor: 4
   _lodCount: 7
   _simSettingsAnimatedWaves: {fileID: 0}

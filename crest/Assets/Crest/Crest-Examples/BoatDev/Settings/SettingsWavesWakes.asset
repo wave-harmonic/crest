@@ -19,4 +19,4 @@ MonoBehaviour:
   _maxSimStepsPerFrame: 8
   _horizDisplace: 6
   _displaceClamp: 0.3
-  _gravityMultiplier: 16
+  _gravityMultiplier: 12

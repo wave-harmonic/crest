@@ -7,9 +7,13 @@ Shader "Crest/Ocean"
 	Properties
 	{
 		[Header(Normal Mapping)]
+		// Whether to add normal detail from a texture. Can be used to add visual detail to the water surface
 		[Toggle] _ApplyNormalMapping("Enable", Float) = 1
+		// Normal map texture (should be set to Normals type in the properties)
 		[NoScaleOffset] _Normals("Normal Map", 2D) = "bump" {}
+		// Strength of normal map influence
 		_NormalsStrength("Strength", Range(0.01, 2.0)) = 0.36
+		// Scale of normal map texture
 		_NormalsScale("Scale", Range(0.01, 200.0)) = 40.0
 
 		// Base light scattering settings which give water colour
@@ -23,8 +27,8 @@ Shader "Crest/Ocean"
 		// Base colour in shadow
 		_DiffuseShadow("Diffuse (Shadow)", Color) = (0.0, 0.356, 0.565, 1.0)
 
-		// Light scattering contribution from primary light
 		[Header(Subsurface Scattering)]
+		// Whether to to emulate light scattering through the water volume
 		[Toggle] _SubSurfaceScattering("Enable", Float) = 1
 		// Colour tint for primary light contribution
 		_SubSurfaceColour("Colour", Color) = (0.0, 0.48, 0.36)
@@ -35,8 +39,8 @@ Shader "Crest/Ocean"
 		// Fall-off for primary light scattering to affect directionality
 		_SubSurfaceSunFallOff("Sun Fall-Off", Range(1.0, 16.0)) = 5.0
 
-		// Light scattering in shallow water
 		[Header(Shallow Scattering)]
+		// Enable light scattering in shallow water
 		[Toggle] _SubSurfaceShallowColour("Enable", Float) = 1
 		// Max depth that is considered 'shallow'
 		_SubSurfaceDepthMax("Depth Max", Range(0.01, 50.0)) = 10.0
@@ -49,12 +53,13 @@ Shader "Crest/Ocean"
 
 		// Reflection properites
 		[Header(Reflection Environment)]
-		// Controls specular response of water surface
+		// Strength of specular lighting response
 		_Specular("Specular", Range(0.0, 1.0)) = 1.0
 		// Controls harshness of Fresnel behaviour
 		_FresnelPower("Fresnel Power", Range(1.0, 20.0)) = 5.0
-		// Refractive indices
+		// Index of refraction of air. Can be increased to almost 1.333 to increase visibility up through water surface.
 		_RefractiveIndexOfAir("Refractive Index of Air", Range(1.0, 2.0)) = 1.0
+		// Index of refraction of water. Typically left at 1.333.
 		_RefractiveIndexOfWater("Refractive Index of Water", Range(1.0, 2.0)) = 1.333
 		// Dynamically rendered 'reflection plane' style reflections. Requires OceanPlanarReflection script added to main camera.
 		[Toggle] _PlanarReflections("Planar Reflections", Float) = 0
@@ -65,9 +70,9 @@ Shader "Crest/Ocean"
 		// Custom environment map to reflect
 		[NoScaleOffset] _ReflectionCubemapOverride("Override Reflection Cubemap", CUBE) = "" {}
 
-		// A simple procedural skybox, not suitable for rendering on screen, but can be useful to give control over reflection colour
-		// especially in stylized/non realistic applications
 		[Header(Procedural Skybox)]
+		// Enable a simple procedural skybox, not suitable for realistic reflections, but can be useful to give control over reflection colour
+		// especially in stylized/non realistic applications
 		[Toggle] _ProceduralSky("Enable", Float) = 0
 		// Base sky colour
 		[HDR] _SkyBase("Base", Color) = (1.0, 1.0, 1.0, 1.0)
@@ -84,8 +89,11 @@ Shader "Crest/Ocean"
 		_DirectionalLightBoost("Boost", Range(0.0, 512.0)) = 7.0
 
 		[Header(Foam)]
+		// Enable foam layer on ocean surface
 		[Toggle] _Foam("Enable", Float) = 1
+		// Foam texture
 		[NoScaleOffset] _FoamTexture("Texture", 2D) = "white" {}
+		// Foam texture scale
 		_FoamScale("Scale", Range(0.01, 50.0)) = 10.0
 		// Colour tint for whitecaps / foam on water surface
 		_FoamWhiteColor("White Foam Color", Color) = (1.0, 1.0, 1.0, 1.0)
@@ -100,9 +108,10 @@ Shader "Crest/Ocean"
 		// How much underwater bubble foam is generated
 		_WaveFoamBubblesCoverage("Wave Foam Bubbles Coverage", Range(0.0, 5.0)) = 1.68
 
-		// Generates normals for the foam based on foam values/texture and use it for foam lighting
 		[Header(Foam 3D Lighting)]
+		// Generates normals for the foam based on foam values/texture and use it for foam lighting
 		[Toggle] _Foam3DLighting("Enable", Float) = 1
+		// Scale intensity of lighting
 		_WaveFoamLightScale("Light Scale", Range(0.0, 2.0)) = 1.35
 		// Strength of the generated normals
 		_WaveFoamNormalStrength("Normals Strength", Range(0.0, 30.0)) = 3.5
@@ -119,10 +128,12 @@ Shader "Crest/Ocean"
 		// How strongly light is refracted when passing through water surface
 		_RefractionStrength("Refraction Strength", Range(0.0, 2.0)) = 0.1
 
-		// Appoximate rays being focused/defocused on geometry under water
 		[Header(Caustics)]
+		// Approximate rays being focused/defocused on underwater surfaces
 		[Toggle] _Caustics("Enable", Float) = 1
+		// Caustics texture
 		[NoScaleOffset] _CausticsTexture("Caustics", 2D) = "black" {}
+		// Caustics texture scale
 		_CausticsTextureScale("Scale", Range(0.0, 25.0)) = 5.0
 		// The 'mid' value of the caustics texture, around which the caustic texture values are scaled
 		_CausticsTextureAverage("Texture Average Value", Range(0.0, 1.0)) = 0.07
@@ -145,9 +156,9 @@ Shader "Crest/Ocean"
 		// underwater effect is being used.
 		[Enum(CullMode)] _CullMode("Cull Mode", Int) = 2
 
+		[Header(Flow)]
 		// Flow is horizontal motion in water as demonstrated in the 'whirlpool' example scene. 'Create Flow Sim' must be
 		// enabled on the OceanRenderer to generate flow data.
-		[Header(Flow)]
 		[Toggle] _Flow("Enable", Float) = 0
 
 		[Header(Debug Options)]

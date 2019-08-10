@@ -86,16 +86,16 @@ fixed ComputeShadow(in ShadowCoords shadowCoords, in float jitterDiameter, in fl
 [numthreads(THREAD_GROUP_SIZE_X,THREAD_GROUP_SIZE_Y,1)]
 void UpdateShadow(uint3 id : SV_DispatchThreadID)
 {
+	float width; float height; float depth;
+	{
+		_LD_TexArray_Shadow_Source.GetDimensions(width, height, depth);
+	}
+
 	// The code below is baked out and specialised from C:\Program Files\Unity\Editor\Data\CGIncludes\UnityCG.cginc
 	// TRANSFER_SHADOW_COLLECTOR . it needs to be specialised because its a compute shader, instead
 	// of rendering real geometry from a worldspace camera.
 	ShadowCoords shadowCoords;
 	{
-		float width; float height; float depth;
-		{
-			_LD_TexArray_Shadow_Source.GetDimensions(width, height, depth);
-		}
-
 		// world pos from [0,1] texture
 		float4 wpos = float4(float3(((id.x + 0.5)/width) - 0.5, 0.0, ((id.y + 0.5)/height) -0.5) * _Scale * 4.0 + _CenterPos, 1.0);
 

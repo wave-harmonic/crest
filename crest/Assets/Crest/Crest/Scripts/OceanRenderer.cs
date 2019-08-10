@@ -32,10 +32,6 @@ namespace Crest
         string _layerName = "Water";
         public string LayerName { get { return _layerName; } }
 
-        [Tooltip("Wind direction (angle from x axis in degrees)"), Range(-180, 180)]
-        public float _windDirectionAngle = 0f;
-        public Vector2 WindDir { get { return new Vector2(Mathf.Cos(Mathf.PI * _windDirectionAngle / 180f), Mathf.Sin(Mathf.PI * _windDirectionAngle / 180f)); } }
-
         [SerializeField, Delayed, Tooltip("Multiplier for physics gravity."), Range(0f, 10f)]
         float _gravityMultiplier = 1f;
         public float Gravity { get { return _gravityMultiplier * Physics.gravity.magnitude; } }
@@ -227,7 +223,6 @@ namespace Crest
         {
             // set global shader params
             Shader.SetGlobalFloat("_TexelsPerWave", MinTexelsPerWave);
-            Shader.SetGlobalVector("_WindDirXZ", WindDir);
             Shader.SetGlobalFloat("_CrestTime", CurrentTime);
 
             if (_viewpoint == null)
@@ -263,13 +258,13 @@ namespace Crest
             // when water height is low and camera is suspended in air. i tried a scheme where it was based on difference
             // to water height but this does help with the problem of horizontal range getting limited at bad times.
             float maxDetailY = SeaLevel - _maxVertDispFromWaves / 5f;
-            float camDistance = Mathf.Abs(_viewpoint.position.y - maxDetailY);
+            float camDistance = Mathf.Abs(_viewpoint.position.y /*- maxDetailY*/);
 
             // offset level of detail to keep max detail in a band near the surface
             camDistance = Mathf.Max(camDistance - 4f, 0f);
 
             // scale ocean mesh based on camera distance to sea level, to keep uniform detail.
-            const float HEIGHT_LOD_MUL = 2f;
+            const float HEIGHT_LOD_MUL = 1f;
             float level = camDistance * HEIGHT_LOD_MUL;
             level = Mathf.Max(level, _minScale);
             if (_maxScale != -1f) level = Mathf.Min(level, 1.99f * _maxScale);

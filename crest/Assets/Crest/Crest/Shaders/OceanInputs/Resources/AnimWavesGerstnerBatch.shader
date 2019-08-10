@@ -94,20 +94,20 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Batch"
 #endif
 
 				half3 result = (half3)0.0;
+
+				// attenuate waves based on ocean depth. if depth is greater than 0.5*wavelength, water is considered Deep and wave is
+				// unaffected. if depth is less than this, wave velocity decreases. waves will then bunch up and grow in amplitude and
+				// eventually break. i model "Deep" water, but then simply ramp down waves in non-deep water with a linear multiplier.
+				// http://hyperphysics.phy-astr.gsu.edu/hbase/Waves/watwav2.html
+				// http://hyperphysics.phy-astr.gsu.edu/hbase/watwav.html#c1
+				// optimisation - do this outside the loop below - take the median wavelength for depth weighting, intead of computing
+				// per component. computing per component makes little difference to the end result
+				half depth_wt = saturate(depth * _TwoPiOverWavelengths[_NumWaveVecs / 2].x / PI);
+				half wt = _AttenuationInShallows * depth_wt + oneMinusAttenuation;
+
 				// gerstner computation is vectorized - processes 4 wave components at once
 				for (uint vi = 0; vi < _NumWaveVecs; vi++)
 				{
-					// attenuate waves based on ocean depth. if depth is greater than 0.5*wavelength, water is considered Deep and wave is
-					// unaffected. if depth is less than this, wave velocity decreases. waves will then bunch up and grow in amplitude and
-					// eventually break. i model "Deep" water, but then simply ramp down waves in non-deep water with a linear multiplier.
-					// http://hyperphysics.phy-astr.gsu.edu/hbase/Waves/watwav2.html
-					// http://hyperphysics.phy-astr.gsu.edu/hbase/watwav.html#c1
-					//half depth_wt = saturate(depth / (0.5 * _MinWavelength)); // slightly different result - do per wavelength for now
-					// The below is a few things collapsed together.
-					half4 depth_wt = saturate(depth * _TwoPiOverWavelengths[vi] / PI);
-					// keep some proportion of amplitude so that there is some waves remaining
-					half4 wt = _AttenuationInShallows * depth_wt + oneMinusAttenuation;
-
 					// direction
 					half4 Dx = _WaveDirX[vi];
 					half4 Dz = _WaveDirZ[vi];
@@ -135,11 +135,14 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Batch"
 					result.y += dot(resulty, wt);
 					result.z += dot(resultz, wt);
 
-					displacementNormalized.x += dot(resultx * min(1.0, _TwoPiOverWavelengths[vi]), wt);
-					displacementNormalized.y += dot(resultz * min(1.0, _TwoPiOverWavelengths[vi]), wt);
+					half4 sssFactor = min(1.0, _TwoPiOverWavelengths[vi]);
+					displacementNormalized.x += dot(resultx * sssFactor, wt);
+					displacementNormalized.y += dot(resultz * sssFactor, wt);
 				}
 
-				return _Weight * half4(result, length(displacementNormalized));
+				half sss = length(displacementNormalized);
+
+				return _Weight * half4(result, sss);
 			}
 
 			ENDCG

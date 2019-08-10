@@ -861,7 +861,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _spectrum: {fileID: 11400000, guid: 454d1b08383f089479cf6794620926f4, type: 2}
-  _componentsPerOctave: 5
+  _componentsPerOctave: 8
   _weight: 1
   _randomSeed: 0
   _directTowardsPoint: 1

@@ -29,7 +29,7 @@ Shader "Crest/Ocean"
 		// Colour tint for primary light contribution
 		_SubSurfaceColour("Colour", Color) = (0.0, 0.48, 0.36)
 		// Amount of primary light contribution that always comes in
-		_SubSurfaceBase("Base Mul", Range(0.0, 2.0)) = 1.0
+		_SubSurfaceBase("Base Mul", Range(0.0, 4.0)) = 1.0
 		// Primary light contribution in direction of light to emulate light passing through waves
 		_SubSurfaceSun("Sun Mul", Range(0.0, 10.0)) = 4.5
 		// Fall-off for primary light scattering to affect directionality

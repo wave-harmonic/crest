@@ -701,7 +701,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _spectrum: {fileID: 11400000, guid: 186227a27f77efc40a71bc440ee55a05, type: 2}
   _windDirectionAngle: 0
-  _componentsPerOctave: 5
+  _componentsPerOctave: 8
   _weight: 1
   _randomSeed: 0
   _evaluateSpectrumAtRuntime: 1

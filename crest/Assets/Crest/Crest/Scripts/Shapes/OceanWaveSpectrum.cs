@@ -44,11 +44,11 @@ namespace Crest
         [SerializeField]
         bool[] _powerDisabled = new bool[NUM_OCTAVES];
 
-        //[HideInInspector]
+        [HideInInspector]
         public float[] _chopScales = new float[NUM_OCTAVES]
             { 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f };
 
-        //[HideInInspector]
+        [HideInInspector]
         public float[] _gravityScales = new float[NUM_OCTAVES]
             { 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f };
 
@@ -117,11 +117,11 @@ namespace Crest
         {
             // wave speed of deep sea ocean waves: https://en.wikipedia.org/wiki/Wind_wave
             // https://en.wikipedia.org/wiki/Dispersion_(water_waves)#Wave_propagation_and_dispersion
-            float g = Mathf.Abs(Physics.gravity.y) * gravityMultiplier;
-            float k = 2f * Mathf.PI / wavelength;
+            var g = Mathf.Abs(Physics.gravity.y) * gravityMultiplier;
+            var k = 2f * Mathf.PI / wavelength;
             //float h = max(depth, 0.01);
             //float cp = sqrt(abs(tanh_clamped(h * k)) * g / k);
-            float cp = Mathf.Sqrt(g / k);
+            var cp = Mathf.Sqrt(g / k);
             return cp;
         }
 
@@ -205,21 +205,21 @@ namespace Crest
 
         static float PhillipsSpectrum(float windSpeed, Vector2 windDir, float gravity, float wavelength, float angle)
         {
-            float wavenumber = 2f * Mathf.PI / wavelength;
-            float angle_radians = Mathf.PI * angle / 180f;
-            float kx = Mathf.Cos(angle_radians) * wavenumber;
-            float kz = Mathf.Sin(angle_radians) * wavenumber;
-
-            float k2 = kx * kx + kz * kz;
-
-            float windSpeed2 = windSpeed * windSpeed;
-            float wx = windDir.x;
-            float wz = windDir.y;
-
-            float kdotw = (wx * kx + wz * kz);
-
-            float a = 0.0081f; // phillips constant ( https://hal.archives-ouvertes.fr/file/index/docid/307938/filename/frechot_realistic_simulation_of_ocean_surface_using_wave_spectra.pdf )
-            float L = windSpeed2 / gravity;
+            var wavenumber = 2f * Mathf.PI / wavelength;
+            var angle_radians = Mathf.PI * angle / 180f;
+            var kx = Mathf.Cos(angle_radians) * wavenumber;
+            var kz = Mathf.Sin(angle_radians) * wavenumber;
+            
+            var k2 = kx * kx + kz * kz;
+            
+            var windSpeed2 = windSpeed * windSpeed;
+            var wx = windDir.x;
+            var wz = windDir.y;
+            
+            var kdotw = (wx * kx + wz * kz);
+            
+            var a = 0.0081f; // phillips constant ( https://hal.archives-ouvertes.fr/file/index/docid/307938/filename/frechot_realistic_simulation_of_ocean_surface_using_wave_spectra.pdf )
+            var L = windSpeed2 / gravity;
 
             // http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.161.9102&rep=rep1&type=pdf
             return a * kdotw * kdotw * Mathf.Exp(-1f / (k2 * L * L)) / (k2 * k2);
@@ -228,23 +228,23 @@ namespace Crest
         // base of modern parametric wave spectrum
         static float PhilSpectrum(float gravity, float wavelength)
         {
-            float alpha = 0.0081f; // phillips constant ( https://hal.archives-ouvertes.fr/file/index/docid/307938/filename/frechot_realistic_simulation_of_ocean_surface_using_wave_spectra.pdf )
+            var alpha = 0.0081f; // phillips constant ( https://hal.archives-ouvertes.fr/file/index/docid/307938/filename/frechot_realistic_simulation_of_ocean_surface_using_wave_spectra.pdf )
             return PhilSpectrum(gravity, alpha, wavelength);
         }
         // base of modern parametric wave spectrum
         static float PhilSpectrum(float gravity, float alpha, float wavelength)
         {
             //float alpha = 0.0081f; // phillips constant ( https://hal.archives-ouvertes.fr/file/index/docid/307938/filename/frechot_realistic_simulation_of_ocean_surface_using_wave_spectra.pdf )
-            float wavenumber = 2f * Mathf.PI / wavelength;
-            float frequency = Mathf.Sqrt(gravity * wavenumber); // deep water - depth > wavelength/2
+            var wavenumber = 2f * Mathf.PI / wavelength;
+            var frequency = Mathf.Sqrt(gravity * wavenumber); // deep water - depth > wavelength/2
             return alpha * gravity * gravity / Mathf.Pow(frequency, 5f);
         }
 
         static float PiersonMoskowitzSpectrum(float gravity, float windspeed, float wavelength)
         {
-            float wavenumber = 2f * Mathf.PI / wavelength;
-            float frequency = Mathf.Sqrt(gravity * wavenumber); // deep water - depth > wavelength/2
-            float frequency_peak = 0.855f * gravity / windspeed;
+            var wavenumber = 2f * Mathf.PI / wavelength;
+            var frequency = Mathf.Sqrt(gravity * wavenumber); // deep water - depth > wavelength/2
+            var frequency_peak = 0.855f * gravity / windspeed;
             return PhilSpectrum(gravity, wavelength) * Mathf.Exp(-Mathf.Pow(frequency_peak / frequency, 4f) * 5f / 4f);
         }
         static float PiersonMoskowitzSpectrum(float gravity, float windspeed, float frequency_peak, float alpha, float wavelength)
@@ -257,15 +257,15 @@ namespace Crest
         static float JONSWAPSpectrum(float gravity, float windspeed, float wavelength, float fetch)
         {
             // fetch distance
-            float F = fetch;
-            float alpha = 0.076f * Mathf.Pow(windspeed * windspeed / (F * gravity), 0.22f);
+            var F = fetch;
+            var alpha = 0.076f * Mathf.Pow(windspeed * windspeed / (F * gravity), 0.22f);
 
-            float wavenumber = 2f * Mathf.PI / wavelength;
-            float frequency = Mathf.Sqrt(gravity * wavenumber); // deep water - depth > wavelength/2
-            float frequency_peak = 22f * Mathf.Pow(gravity * gravity / (windspeed * F), 1f / 3f);
-            float sigma = frequency <= frequency_peak ? 0.07f : 0.09f;
-            float r = Mathf.Exp(-Mathf.Pow(frequency - frequency_peak, 2f) / (2f * sigma * sigma * frequency_peak * frequency_peak));
-            float gamma = 3.3f;
+            var wavenumber = 2f * Mathf.PI / wavelength;
+            var frequency = Mathf.Sqrt(gravity * wavenumber); // deep water - depth > wavelength/2
+            var frequency_peak = 22f * Mathf.Pow(gravity * gravity / (windspeed * F), 1f / 3f);
+            var sigma = frequency <= frequency_peak ? 0.07f : 0.09f;
+            var r = Mathf.Exp(-Mathf.Pow(frequency - frequency_peak, 2f) / (2f * sigma * sigma * frequency_peak * frequency_peak));
+            var gamma = 3.3f;
 
             return PiersonMoskowitzSpectrum(gravity, windspeed, frequency_peak, alpha, wavelength) * Mathf.Pow(gamma, r);
         }

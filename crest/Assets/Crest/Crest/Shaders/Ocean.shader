@@ -10,7 +10,7 @@ Shader "Crest/Ocean"
 		[Toggle] _ApplyNormalMapping("Enable", Float) = 1
 		[NoScaleOffset] _Normals("Normal Map", 2D) = "bump" {}
 		_NormalsStrength("Strength", Range(0.01, 2.0)) = 0.36
-		_NormalsScale("Scale", Range(0.01, 50.0)) = 40.0
+		_NormalsScale("Scale", Range(0.01, 200.0)) = 40.0
 
 		// Base light scattering settings which give water colour
 		[Header(Scattering)]

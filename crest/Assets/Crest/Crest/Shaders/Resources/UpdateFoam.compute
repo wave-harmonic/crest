@@ -20,19 +20,13 @@ RWTexture2DArray<float> _LD_TexArray_Target;
 [numthreads(THREAD_GROUP_SIZE_X,THREAD_GROUP_SIZE_Y,1)]
 void UpdateFoam(uint3 id : SV_DispatchThreadID)
 {
-	// Lod data 1 is current frame, compute world pos from quad uv
+	// lod data 1 is current frame, compute world pos from quad uv
 	const float sliceIndex = id.z;
-
+	const float sliceIndexSource = id.z + _LODChange;
 	float width; float height; float depth;
 	{
 		_LD_TexArray_Foam_Source.GetDimensions(width, height, depth);
 	}
-
-	// Index of slice in previous frames data to sample from. just clamp it to a valid number, which will
-	// means we always get foam from *somewhere*. This avoids objectionable empty/missing data from the top/bottom
-	// of the lod chain when viewer changes altitude.
-	const float sliceIndexSource = clamp(id.z + _LODChange, 0.0, depth - 1.0);
-
 	const float2 input_uv = IDtoUV(id.xy, width, height);
 	const float2 worldPosXZ = UVToWorld(input_uv, sliceIndex);
 	const float3 uv_slice = float3(input_uv, id.z);
@@ -46,7 +40,11 @@ void UpdateFoam(uint3 id : SV_DispatchThreadID)
 	const float3 uv_slice_source = WorldToUV_Source(worldPosXZ_flowed, sliceIndexSource);
 	half2 r = abs(uv_slice_source.xy - 0.5);
 
-	if (max(r.x, r.y) <= r_max)
+	if (sliceIndexSource < 0 || sliceIndexSource >= depth)
+	{
+		// Leave foam at 0 if going off the array
+	}
+	else if (max(r.x, r.y) <= r_max)
 	{
 		foam = _LD_TexArray_Foam_Source.SampleLevel(LODData_linear_clamp_sampler, uv_slice_source, 0).x;
 	}

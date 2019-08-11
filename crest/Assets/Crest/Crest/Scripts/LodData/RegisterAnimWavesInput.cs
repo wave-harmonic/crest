@@ -55,7 +55,7 @@ namespace Crest
 
             if (_maxDisplacementHorizontal > 0f || _maxDisplacementVertical > 0f)
             {
-                OceanRenderer.Instance.ReportMaxDisplacementFromShape(_maxDisplacementHorizontal, maxDispVert);
+                OceanRenderer.Instance.ReportMaxDisplacementFromShape(_maxDisplacementHorizontal, maxDispVert, 0f);
             }
         }
     }

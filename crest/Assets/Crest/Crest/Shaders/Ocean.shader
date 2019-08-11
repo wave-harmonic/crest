@@ -21,7 +21,7 @@ Shader "Crest/Ocean"
 		// Base colour when looking straight down into water
 		_Diffuse("Diffuse", Color) = (0.0, 0.0124, 0.566, 1.0)
 		// Base colour when looking into water at shallow/grazing angle
-		_DiffuseGrazing("Diffuse Grazing", Color) = (0.0635, 0.107, 0.585, 1.0)
+		_DiffuseGrazing("Diffuse Grazing", Color) = (0.184, 0.393, 0.519, 1)
 		// Changes colour in shadow. Requires 'Create Shadow Data' enabled on OceanRenderer script.
 		[Toggle] _Shadows("Shadowing", Float) = 0
 		// Base colour in shadow
@@ -49,7 +49,7 @@ Shader "Crest/Ocean"
 		// Colour in shallow water
 		_SubSurfaceShallowCol("Shallow Colour", Color) = (0.552, 1.0, 1.0, 1.0)
 		// Shallow water colour in shadow (see comment on Shadowing param above)
-		_SubSurfaceShallowColShadow("Shallow Colour (Shadow)", Color) = (0.14417942, 0.2264151, 0.21173015, 1)
+		_SubSurfaceShallowColShadow("Shallow Colour (Shadow)", Color) = (0.144, 0.226, 0.212, 1)
 
 		// Reflection properites
 		[Header(Reflection Environment)]

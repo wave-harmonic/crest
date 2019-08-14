@@ -4,6 +4,7 @@
 
 // This is the original version that uses an auxillary camera and works with Unity's GPU terrain - issue 152.
 
+using UnityEditor;
 using UnityEngine;
 
 namespace Crest
@@ -35,7 +36,11 @@ namespace Crest
         bool _forceAlwaysUpdateDebug = false;
 #pragma warning restore 414
 
+        public Texture2D _savedCache;
+
         RenderTexture _cacheTexture;
+        public RenderTexture CacheTexture => _cacheTexture;
+
         GameObject _drawCacheQuad;
         Camera _camDepthCache;
 
@@ -126,7 +131,16 @@ namespace Crest
                 _drawCacheQuad.AddComponent<RegisterSeaFloorDepthInput>();
                 var qr = _drawCacheQuad.GetComponent<Renderer>();
                 qr.material = new Material(Shader.Find(LodDataMgrSeaFloorDepth.ShaderName));
-                qr.material.mainTexture = _cacheTexture;
+
+                if (_savedCache)
+                {
+                    qr.material.mainTexture = _savedCache;
+                }
+                else
+                {
+                    qr.material.mainTexture = _cacheTexture;
+                }
+
                 qr.enabled = false;
             }
 
@@ -223,4 +237,33 @@ namespace Crest
         }
 #endif
     }
+
+#if UNITY_EDITOR
+    [CustomEditor(typeof(OceanDepthCache))]
+    public class OceanDepthCacheEditor : Editor
+    {
+        public override void OnInspectorGUI()
+        {
+            base.OnInspectorGUI();
+
+            if (GUILayout.Button("Save cache to file"))
+            {
+                var rt = (target as OceanDepthCache).CacheTexture;
+
+                RenderTexture.active = rt;
+                Texture2D tex = new Texture2D(rt.width, rt.height, TextureFormat.RGBAHalf, false);
+                tex.ReadPixels(new Rect(0, 0, rt.width, rt.height), 0, 0);
+                RenderTexture.active = null;
+
+                byte[] bytes;
+                bytes = tex.EncodeToEXR(Texture2D.EXRFlags.OutputAsFloat);
+
+                string path = "Assets/PCCache" + ".exr";
+                System.IO.File.WriteAllBytes(path, bytes);
+                AssetDatabase.ImportAsset(path);
+                Debug.Log("Saved to " + path);
+            }
+        }
+    }
+#endif
 }

@@ -97,18 +97,7 @@ namespace Crest
 
             int resolution = OceanRenderer.Instance.LodDataResolution;
             var desc = new RenderTextureDescriptor(resolution, resolution, TextureFormat, 0);
-
-            _sources = new RenderTexture(desc);
-            _sources.wrapMode = TextureWrapMode.Clamp;
-            _sources.antiAliasing = 1;
-            _sources.filterMode = FilterMode.Bilinear;
-            _sources.anisoLevel = 0;
-            _sources.useMipMap = false;
-            _sources.name = SimName + "_1";
-            _sources.dimension = TextureDimension.Tex2DArray;
-            _sources.volumeDepth = OceanRenderer.Instance.CurrentLodCount;
-            _sources.enableRandomWrite = NeedToReadWriteTextureData;
-            _sources.Create();
+            _sources = CreateLodDataTextures(desc, SimName + "_1", NeedToReadWriteTextureData);
         }
 
         bool StartInitLight()

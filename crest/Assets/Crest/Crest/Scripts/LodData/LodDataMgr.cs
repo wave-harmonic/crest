@@ -111,6 +111,12 @@ namespace Crest
             BindLodTexture(properties, lodIndex < _targets.Length && lodIndex >= 0 ? (Texture) _targets[lodIndex] : Texture2D.blackTexture, lodIdType);
         }
 
+        public void BindResultTexturesToBothLods(IPropertyWrapper properties, int lodIndex)
+        {
+            BindResultTexture(properties, lodIndex);
+            BindResultTexture(properties, lodIndex + 1, LodIdType.BiggerLod);
+        }
+
         public void BindOceanParams(IPropertyWrapper properties, bool blendOut = true, bool source = false)
         {
             BindData(properties, ref OceanRenderer.Instance._lodTransform._renderData, blendOut, source);
@@ -228,7 +234,7 @@ namespace Crest
                 // garbage. However, this is called on initialisation so should
                 // be ok for now? Something worth considering for the future if
                 // we want to go garbage-free.
-                _paramId_Bigger = Shader.PropertyToID(textureArrayName + "_Bigger");
+                _paramId_Bigger = Shader.PropertyToID(textureArrayName + "_BiggerLod");
                 _paramId_Source = Shader.PropertyToID(textureArrayName + "_Source");
             }
             public int GetId(LodIdType lodIdType) {

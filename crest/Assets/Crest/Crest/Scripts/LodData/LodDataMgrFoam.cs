@@ -96,5 +96,11 @@ namespace Crest
         {
             properties.SetTexture(ParamIdSampler(lodIdType), Texture2D.blackTexture);
         }
+
+        public static void BindNullToBothLods(IPropertyWrapper properties)
+        {
+            BindNull(properties);
+            BindNull(properties, LodIdType.BiggerLod);
+        }
     }
 }

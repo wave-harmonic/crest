@@ -77,22 +77,31 @@ namespace Crest
         public void PopulateCache()
         {
             var layerMask = 0;
+            var errorShown = false;
             foreach (var layer in _layerNames)
             {
                 int layerIdx = LayerMask.NameToLayer(layer);
                 if (string.IsNullOrEmpty(layer) || layerIdx == -1)
                 {
                     Debug.LogError("OceanDepthCache: Invalid layer specified: \"" + layer +
-                        "\". Please specify valid layers for objects/geometry that provide the ocean depth.", this);
+                        "\". Does this layer need to be added to the project (Edit/Project Settings/Tags and Layers)? Click this message to highlight the cache in question.", this);
+
+                    errorShown = true;
                 }
                 else
                 {
                     layerMask = layerMask | (1 << layerIdx);
                 }
             }
+
             if (layerMask == 0)
             {
-                Debug.LogError("No valid layers for populating depth cache, aborting.", this);
+                if (!errorShown)
+                {
+                    Debug.LogError("No valid layers for populating depth cache, aborting. Click this message to highlight the cache in question.", this);
+                }
+
+                return;
             }
 
             if (_cacheTexture == null)
@@ -188,30 +197,24 @@ namespace Crest
                 Debug.LogWarning("Validation: It is recommended that the cache is placed at the same height (y component of position) as the ocean, i.e. at the sea level. If the cache is created before the ocean is present, the cache height will inform the sea level. Click this message to highlight the cache in question.", this);
             }
 
-            var numObjectsFound = 0;
+            var rend = GetComponentInChildren<Renderer>();
+            if (rend != null)
+            {
+                Debug.LogWarning("Validation: It is not expected that a depth cache object has a renderer component in its hierarchy. The cache is typically attached to an empty GameObject. Please refer to the example content.", rend);
+            }
+
             foreach (var layerName in _layerNames)
             {
                 var layer = LayerMask.NameToLayer(layerName);
                 if (layer == -1)
                 {
-                    Debug.LogError("Invalid layer specified: \"" + layerName +
-                        "\". Please specify valid layers for objects/geometry that provide the ocean depth. Click this message to highlight the cache in question.", this);
-                }
-
-                var renderers = FindObjectsOfType<MeshRenderer>();
-                foreach (var renderer in renderers)
-                {
-                    if (renderer.gameObject.layer == layer)
-                    {
-                        numObjectsFound++;
-                    }
+                    Debug.LogError("Invalid layer specified for objects/geometry providing the ocean depth: \"" + layerName +
+                        "\". Does this layer need to be added to the project (Edit/Project Settings/Tags and Layers)? Click this message to highlight the cache in question.", this);
                 }
             }
 
-            if (numObjectsFound == 0 && _geometryToRenderIntoCache.Length == 0)
-            {
-                Debug.LogWarning("No objects will render into depth cache as there are no geometries specified, and no objects match the layer names. Click this message to highlight the cache in question.", this);
-            }
+            // We used to test if nothing is present that would render into the cache, but these could probably come from other scenes, and AssignLayer means
+            // objects can be tagged up at run-time.
 
             if (_resolution < 4)
             {

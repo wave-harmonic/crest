@@ -21,7 +21,10 @@ Shader "Crest/Inputs/Depth/Cached Depths"
 
 			CGPROGRAM
 			#pragma vertex Vert
+
 			#pragma fragment Frag
+
+
 
 			#include "../../OceanLODData.hlsl"
 

@@ -46,6 +46,7 @@
 * Boat interaction: https://www.youtube.com/watch?v=YK_Za2MY2a0 , paper: http://www.hilkocords.de/publications/open_water.pdf
 * Setting up boat interactioin in maya: https://www.youtube.com/watch?v=O-8ow82gQw8 . Touches on issues related to combining heightfield with displacement texture, and the wake lagging behind the object.
 * Water Surface Wavelets - Jeschke et al. SIGGRAPH 2018 - http://visualcomputing.ist.ac.at/publications/2018/WSW/ - Interesting rederivation of water motion into a more computationally friendly form. The LOD system in Crest is very competitive with this technique.
+* Lecture notes on numerical wave sim, makes use of Courant number directly - https://www.uio.no/studier/emner/matnat/ifi/nedlagte-emner/INF2340/v05/foiler/sim04.pdf
 
 ### 3D Simulation
 
@@ -83,6 +84,12 @@
 ### Meshing
 
 * Real-time Optimally-Adapting Meshes - http://www.cognigraph.com/ROAM_homepage/
+* Scrawk/Ceto - Projected grid, unity3d - https://github.com/Scrawk/Ceto
+
+### FFT
+
+* Wave spectrums, FFT - https://github.com/blackencino/EncinoWaves
+* Scrawk/Ceto - unity3d ocean renderer, has CPU and GPU FFTs - https://github.com/Scrawk/Ceto
 
 ### Ref
 
@@ -110,3 +117,4 @@
 
 * Ocean transparency measurements: http://www.dtic.mil/dtic/tr/fulltext/u2/718333.pdf
 * Great slides on 2D FFT with applications http://www.robots.ox.ac.uk/~az/lectures/ia/lect2.pdf
+* A simple fluid solver based on the FFT: https://pdfs.semanticscholar.org/fdf2/e4054f4a85b4af67d0a49ac1ec33636c332b.pdf?_ga=2.103529344.1493036506.1563914559-834855682.1563914559

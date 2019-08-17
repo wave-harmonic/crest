@@ -50,7 +50,9 @@ namespace Crest
 
         private const float WATER_DENSITY = 1000;
 
-        public override Rigidbody RB { get; set; }
+        public override Vector3 Velocity => _rb.velocity;
+
+        Rigidbody _rb;
 
         Vector3 _displacementToObject = Vector3.zero;
         public override Vector3 CalculateDisplacementToObject() { return _displacementToObject; }
@@ -66,8 +68,8 @@ namespace Crest
 
         private void Start()
         {
-            RB = GetComponent<Rigidbody>();
-            RB.centerOfMass = _centerOfMass;
+            _rb = GetComponent<Rigidbody>();
+            _rb.centerOfMass = _centerOfMass;
 
             if (OceanRenderer.Instance == null)
             {
@@ -152,16 +154,16 @@ namespace Crest
 
         void FixedUpdateEngine()
         {
-            var forcePosition = RB.position;
+            var forcePosition = _rb.position;
 
             var forward = _engineBias;
             if (_playerControlled) forward += Input.GetAxis("Vertical");
-            RB.AddForceAtPosition(transform.forward * _enginePower * forward, forcePosition, ForceMode.Acceleration);
+            _rb.AddForceAtPosition(transform.forward * _enginePower * forward, forcePosition, ForceMode.Acceleration);
 
             var sideways = _turnBias;
             if (_playerControlled) sideways += (Input.GetKey(KeyCode.A) ? -1f : 0f) + (Input.GetKey(KeyCode.D) ? 1f : 0f);
             var rotVec = transform.up + _turningHeel * transform.forward;
-            RB.AddTorque(rotVec * _turnPower * sideways, ForceMode.Acceleration);
+            _rb.AddTorque(rotVec * _turnPower * sideways, ForceMode.Acceleration);
         }
 
         void FixedUpdateBuoyancy(ICollProvider collProvider)
@@ -188,7 +190,7 @@ namespace Crest
                 var heightDiff = dispPos.y - transformedPoint.y;
                 if (heightDiff > 0)
                 {
-                    RB.AddForceAtPosition(archimedesForceMagnitude * heightDiff * Vector3.up * point._weight * _forceMultiplier / _totalWeight, transformedPoint);
+                    _rb.AddForceAtPosition(archimedesForceMagnitude * heightDiff * Vector3.up * point._weight * _forceMultiplier / _totalWeight, transformedPoint);
                 }
             }
         }
@@ -196,7 +198,7 @@ namespace Crest
         void FixedUpdateDrag(ICollProvider collProvider, Vector3 waterSurfaceVel)
         {
             // Apply drag relative to water
-            var pos = RB.position;
+            var pos = _rb.position;
             Vector3 undispPos;
             if (!collProvider.ComputeUndisplacedPosition(ref pos, _samplingData, out undispPos))
             {
@@ -205,12 +207,12 @@ namespace Crest
                 undispPos.y = OceanRenderer.Instance.SeaLevel;
             }
 
-            var _velocityRelativeToWater = RB.velocity - waterSurfaceVel;
+            var _velocityRelativeToWater = _rb.velocity - waterSurfaceVel;
 
-            var forcePosition = RB.position + _forceHeightOffset * Vector3.up;
-            RB.AddForceAtPosition(Vector3.up * Vector3.Dot(Vector3.up, -_velocityRelativeToWater) * _dragInWaterUp, forcePosition, ForceMode.Acceleration);
-            RB.AddForceAtPosition(transform.right * Vector3.Dot(transform.right, -_velocityRelativeToWater) * _dragInWaterRight, forcePosition, ForceMode.Acceleration);
-            RB.AddForceAtPosition(transform.forward * Vector3.Dot(transform.forward, -_velocityRelativeToWater) * _dragInWaterForward, forcePosition, ForceMode.Acceleration);
+            var forcePosition = _rb.position + _forceHeightOffset * Vector3.up;
+            _rb.AddForceAtPosition(Vector3.up * Vector3.Dot(Vector3.up, -_velocityRelativeToWater) * _dragInWaterUp, forcePosition, ForceMode.Acceleration);
+            _rb.AddForceAtPosition(transform.right * Vector3.Dot(transform.right, -_velocityRelativeToWater) * _dragInWaterRight, forcePosition, ForceMode.Acceleration);
+            _rb.AddForceAtPosition(transform.forward * Vector3.Dot(transform.forward, -_velocityRelativeToWater) * _dragInWaterForward, forcePosition, ForceMode.Acceleration);
         }
 
         private void OnDrawGizmosSelected()

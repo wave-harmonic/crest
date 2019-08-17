@@ -55,7 +55,7 @@ namespace Crest
             result.useMipMap = false;
             result.name = name;
             result.dimension = TextureDimension.Tex2DArray;
-            result.volumeDepth = OceanRenderer.Instance.CurrentLodCount;
+            result.volumeDepth = OceanRenderer.Instance.CurrentLodCount + 1;
             result.enableRandomWrite = needToReadWriteTextureData;
             result.Create();
             return result;

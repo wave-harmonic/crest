@@ -49,7 +49,6 @@ namespace Crest
         PropertyWrapperCompute _combineProperties;
 
         static int sp_LD_Texture_AnimatedWaves_Compute = Shader.PropertyToID("_LD_Texture_AnimatedWaves_Compute");
-        static int sp_LD_Texture_AnimatedWaves_Compute_BiggerLod = Shader.PropertyToID("_LD_Texture_AnimatedWaves_Compute_BiggerLod");
 
         public override void UseSettings(SimSettingsBase settings) { OceanRenderer.Instance._simSettingsAnimatedWaves = settings as SimSettingsAnimatedWaves; }
         public override SimSettingsBase CreateDefaultSettings()
@@ -246,10 +245,7 @@ namespace Crest
 
                 if(selectedShaderKernel == combineShaderKernel)
                 {
-                    _combineProperties.SetTexture(
-                        sp_LD_Texture_AnimatedWaves_Compute_BiggerLod,
-                        DataTexture(lodIdx + 1)
-                    );
+                    BindResultTexture(_combineProperties, lodIdx + 1, LodIdType.BiggerLod);
                 }
 
 

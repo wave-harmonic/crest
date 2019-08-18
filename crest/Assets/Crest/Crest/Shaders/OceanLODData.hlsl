@@ -21,6 +21,7 @@ Texture2DArray _LD_TexArray_Foam;
 Texture2DArray _LD_TexArray_Flow;
 Texture2DArray _LD_TexArray_DynamicWaves;
 Texture2DArray _LD_TexArray_Shadow;
+// _LD_Params: float4(world texel size, texture resolution, shape weight multiplier, 1 / texture resolution)
 uniform float4 _LD_Params[MAX_LOD_COUNT];
 uniform float3 _LD_Pos_Scale[MAX_LOD_COUNT];
 uniform const float _LD_SliceIndex;

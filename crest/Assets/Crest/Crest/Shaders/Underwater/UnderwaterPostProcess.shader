@@ -59,6 +59,7 @@
 
 				{
 					const float2 pixelCS = input.uv * 2 - float2(1.0, 1.0);
+#if 0
 					const float4 pixelWS_H = mul(_InvViewProjection, float4(pixelCS, 1.0, 1.0));
 					const float3 pixelWS = (pixelWS_H.xyz/pixelWS_H.w);
 					output.viewWS_oceanDistance.xyz = _WorldSpaceCameraPos - pixelWS;
@@ -74,7 +75,17 @@
 					float4 oceanPosCS = mul(_ViewProjection, float4(oceanPosWS, 1.0));
 					float oceanHeightCS = (oceanPosCS.y / oceanPosCS.w);
 					output.viewWS_oceanDistance.w = pixelCS.y - oceanHeightCS;
+#else
+
+					const float4 pixelWS = mul(_InvViewProjection, float4(pixelCS, 1.0, 1.0));
+					output.viewWS_oceanDistance = pixelWS.xyzy / pixelWS.w;
+					output.viewWS_oceanDistance.w -= _OceanHeight;
+					output.viewWS_oceanDistance.w /= 100.0;
+					output.viewWS_oceanDistance.xyz = _WorldSpaceCameraPos - output.viewWS_oceanDistance.xyz;
+#endif
+
 				}
+
 				return output;
 			}
 
@@ -118,6 +129,15 @@
 
 			fixed4 Frag (Varyings input) : SV_Target
 			{
+				// test - override our interpolated value with a freshly computed value here
+				{
+					const float2 pixelCS = input.uv * 2 - float2(1.0, 1.0);
+					const float4 pixelWS = mul(_InvViewProjection, float4(pixelCS, 1.0, 1.0));
+					input.viewWS_oceanDistance = pixelWS.xyzy / pixelWS.w;
+					input.viewWS_oceanDistance.w -= _OceanHeight;
+					input.viewWS_oceanDistance.xyz = _WorldSpaceCameraPos - input.viewWS_oceanDistance.xyz;
+				}
+
 
 				#if !_FULL_SCREEN_EFFECT
 				const bool isBelowHorizon = (input.viewWS_oceanDistance.w <= 0.0);

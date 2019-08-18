@@ -21,21 +21,40 @@ Shader "Crest/Inputs/Depth/Cached Depths"
 
 			CGPROGRAM
 			#pragma vertex Vert
-
 			#pragma fragment Frag
-
-
 
 			#include "../../OceanLODData.hlsl"
 
 			sampler2D _MainTex;
 			float4 _MainTex_ST;
-			int _CurrentLodCount;
-			float4x4 _SliceViewProjMatrices[MAX_LOD_COUNT];
 
 			#include "UnityCG.cginc"
 
-			#include "OceanDepthsCacheCommon.hlsl"
+			struct Attributes
+			{
+				float3 positionOS : POSITION;
+				float2 uv : TEXCOORD0;
+			};
+
+			struct Varyings
+			{
+				float4 position : SV_POSITION;
+				float2 uv : TEXCOORD0;
+			};
+
+			Varyings Vert(Attributes input)
+			{
+				Varyings output;
+				output.position = UnityObjectToClipPos(input.positionOS);
+				output.uv = TRANSFORM_TEX(input.uv, _MainTex);
+				return output;
+			}
+
+			half4 Frag(Varyings input) : SV_Target
+			{
+				return half4(tex2D(_MainTex, input.uv).x, 0.0, 0.0, 0.0);
+			}
+
 			ENDCG
 		}
 	}

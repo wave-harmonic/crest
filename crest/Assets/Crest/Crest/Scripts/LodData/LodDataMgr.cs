@@ -21,7 +21,7 @@ namespace Crest
 
         // NOTE: This MUST match the value in OceanLODData.hlsl, as it
         // determines the size of the texture arrays in the shaders.
-        public const int MAX_LOD_COUNT = 16;
+        public const int MAX_LOD_COUNT = 15;
 
         protected abstract int GetParamIdSampler(bool sourceLod = false);
 
@@ -55,7 +55,7 @@ namespace Crest
             result.useMipMap = false;
             result.name = name;
             result.dimension = TextureDimension.Tex2DArray;
-            result.volumeDepth = OceanRenderer.Instance.CurrentLodCount + 1;
+            result.volumeDepth = OceanRenderer.Instance.CurrentLodCount;
             result.enableRandomWrite = needToReadWriteTextureData;
             result.Create();
             return result;
@@ -121,6 +121,12 @@ namespace Crest
                     OceanRenderer.Instance.CalcLodScale(lodIdx), 0f);
                 _BindData_paramIdOceans[lodIdx] = new Vector4(renderData[lodIdx]._texelWidth, renderData[lodIdx]._textureRes, 1f, 1f / renderData[lodIdx]._textureRes);
             }
+
+            // Duplicate the last element as the shader accesses element {slice index + 1] in a few situations. This way going
+            // off the end of this parameter is the same as going off the end of the texture array with our clamped sampler.
+            _BindData_paramIdPosScales[OceanRenderer.Instance.CurrentLodCount] = _BindData_paramIdPosScales[OceanRenderer.Instance.CurrentLodCount - 1];
+            _BindData_paramIdOceans[OceanRenderer.Instance.CurrentLodCount] = _BindData_paramIdOceans[OceanRenderer.Instance.CurrentLodCount - 1];
+
             properties.SetVectorArray(LodTransform.ParamIdPosScale(sourceLod), _BindData_paramIdPosScales);
             properties.SetVectorArray(LodTransform.ParamIdOcean(sourceLod), _BindData_paramIdOceans);
         }

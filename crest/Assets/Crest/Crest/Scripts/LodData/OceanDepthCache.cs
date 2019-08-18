@@ -230,7 +230,6 @@ namespace Crest
                 Debug.LogWarning("Validation: It is not expected that a depth cache object has a renderer component in its hierarchy. The cache is typically attached to an empty GameObject. Please refer to the example content.", rend);
             }
 
-            var numObjectsFound = 0;
             foreach (var layerName in _layerNames)
             {
                 var layer = LayerMask.NameToLayer(layerName);
@@ -239,21 +238,10 @@ namespace Crest
                     Debug.LogError("Invalid layer specified for objects/geometry providing the ocean depth: \"" + layerName +
                         "\". Does this layer need to be added to the project (Edit/Project Settings/Tags and Layers)? Click this message to highlight the cache in question.", this);
                 }
-
-                var renderers = FindObjectsOfType<MeshRenderer>();
-                foreach (var renderer in renderers)
-                {
-                    if (renderer.gameObject.layer == layer)
-                    {
-                        numObjectsFound++;
-                    }
-                }
             }
 
-            if (numObjectsFound == 0 && _geometryToRenderIntoCache.Length == 0)
-            {
-                Debug.LogWarning("No objects will render into depth cache as there are no geometries specified, and no objects match the layer names. Click this message to highlight the cache in question.", this);
-            }
+            // We used to test if nothing is present that would render into the cache, but these could probably come from other scenes, and AssignLayer means
+            // objects can be tagged up at run-time.
 
             if (_resolution < 4)
             {

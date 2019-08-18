@@ -78,12 +78,12 @@ public class BoatAlignNormal : FloatingObjectBase
 
     void FixedUpdate()
     {
-        UnityEngine.Profiling.Profiler.BeginSample("BoatAlignNormal.FixedUpdate");
-
         if (OceanRenderer.Instance == null)
         {
             return;
         }
+
+        UnityEngine.Profiling.Profiler.BeginSample("BoatAlignNormal.FixedUpdate");
 
         // Trigger processing of displacement textures that have come back this frame. This will be processed
         // anyway in Update(), but FixedUpdate() is earlier so make sure it's up to date now.
@@ -163,6 +163,7 @@ public class BoatAlignNormal : FloatingObjectBase
         _inWater = bottomDepth > 0f;
         if (!_inWater)
         {
+            UnityEngine.Profiling.Profiler.EndSample();
             return;
         }
 

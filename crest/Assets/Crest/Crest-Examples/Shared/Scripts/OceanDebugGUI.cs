@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
+
 public class OceanDebugGUI : MonoBehaviour
 {
     [SerializeField] bool _showSimTargets = false;
@@ -22,14 +23,6 @@ public class OceanDebugGUI : MonoBehaviour
 
     private void Update()
     {
-        if (_gerstners == null)
-        {
-            _gerstners = FindObjectsOfType<ShapeGerstnerBatched>();
-            // i am getting the array in the reverse order compared to the hierarchy which bugs me. sort them based on sibling index,
-            // which helps if the gerstners are on sibling GOs.
-            System.Array.Sort(_gerstners, (a, b) => a.transform.GetSiblingIndex().CompareTo(b.transform.GetSiblingIndex()));
-        }
-
         if (Input.GetKeyDown(KeyCode.G))
         {
             ToggleGUI();
@@ -70,6 +63,13 @@ public class OceanDebugGUI : MonoBehaviour
             }
 
             GUI.Label(new Rect(x, y, w, h), "Gerstner weight(s)"); y += h;
+            if (_gerstners == null)
+            {
+                _gerstners = FindObjectsOfType<ShapeGerstnerBatched>();
+                // i am getting the array in the reverse order compared to the hierarchy which bugs me. sort them based on sibling index,
+                // which helps if the gerstners are on sibling GOs.
+                System.Array.Sort(_gerstners, (a, b) => a.transform.GetSiblingIndex().CompareTo(b.transform.GetSiblingIndex()));
+            }
             foreach (var gerstner in _gerstners)
             {
                 var specW = 75f;
@@ -182,13 +182,13 @@ public class OceanDebugGUI : MonoBehaviour
         }
 
         float b = 7f;
-        float h = Screen.height / (float)OceanRenderer.Instance.CurrentLodCount;
+        float h = Screen.height / (float)lodData.DataTexture.volumeDepth;
         float w = h + b;
         float x = Screen.width - w * offset + b * (offset - 1f);
 
         if (_drawTargets[type])
         {
-            for (int idx = 0; idx < OceanRenderer.Instance.CurrentLodCount; idx++)
+            for (int idx = 0; idx < lodData.DataTexture.volumeDepth; idx++)
             {
                 float y = idx * h;
                 if (offset == 1f) w += b;

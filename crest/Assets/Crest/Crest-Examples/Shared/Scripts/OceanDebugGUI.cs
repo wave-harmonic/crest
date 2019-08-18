@@ -178,7 +178,7 @@ public class OceanDebugGUI : MonoBehaviour
         }
 
         float b = 7f;
-        float h = Screen.height / (float) lodData.DataTexture.volumeDepth;
+        float h = Screen.height / (float)lodData.DataTexture.volumeDepth;
         float w = h + b;
         float x = Screen.width - w * offset + b * (offset - 1f);
 

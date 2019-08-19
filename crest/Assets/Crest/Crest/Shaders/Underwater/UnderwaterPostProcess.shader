@@ -48,7 +48,6 @@
 			{
 				float4 positionCS : SV_POSITION;
 				float2 uv : TEXCOORD0;
-				float4 viewWS_oceanDistance : TEXCOORD1;
 			};
 
 			Varyings Vert (Attributes input)
@@ -56,36 +55,6 @@
 				Varyings output;
 				output.positionCS = UnityObjectToClipPos(input.positionOS);
 				output.uv = input.uv;
-
-				{
-					const float2 pixelCS = input.uv * 2 - float2(1.0, 1.0);
-#if 0
-					const float4 pixelWS_H = mul(_InvViewProjection, float4(pixelCS, 1.0, 1.0));
-					const float3 pixelWS = (pixelWS_H.xyz/pixelWS_H.w);
-					output.viewWS_oceanDistance.xyz = _WorldSpaceCameraPos - pixelWS;
-
-					// Due to floating point precision errors, comparing the
-					// height of the far plane pixel to the height of the ocean
-					// has to be done in clip space, which is unfortunate as we
-					// have to do two matrix multiplications to calculate the
-					// ocean height value.
-					//
-					// NOTE: This doesn't work if the camera is rotated.
-					const float3 oceanPosWS = float3(pixelWS.x, _OceanHeight, pixelWS.z);
-					float4 oceanPosCS = mul(_ViewProjection, float4(oceanPosWS, 1.0));
-					float oceanHeightCS = (oceanPosCS.y / oceanPosCS.w);
-					output.viewWS_oceanDistance.w = pixelCS.y - oceanHeightCS;
-#else
-
-					const float4 pixelWS = mul(_InvViewProjection, float4(pixelCS, 1.0, 1.0));
-					output.viewWS_oceanDistance = pixelWS.xyzy / pixelWS.w;
-					output.viewWS_oceanDistance.w -= _OceanHeight;
-					output.viewWS_oceanDistance.w /= 100.0;
-					output.viewWS_oceanDistance.xyz = _WorldSpaceCameraPos - output.viewWS_oceanDistance.xyz;
-#endif
-
-				}
-
 				return output;
 			}
 
@@ -129,18 +98,21 @@
 
 			fixed4 Frag (Varyings input) : SV_Target
 			{
-				// test - override our interpolated value with a freshly computed value here
+				float3 viewWS;
+				float farPlanePixelHeight;
 				{
+					// We calculate these values in the pixel shader as
+					// calculating them in the vertex shader results in
+					// precision errors.
 					const float2 pixelCS = input.uv * 2 - float2(1.0, 1.0);
-					const float4 pixelWS = mul(_InvViewProjection, float4(pixelCS, 1.0, 1.0));
-					input.viewWS_oceanDistance = pixelWS.xyzy / pixelWS.w;
-					input.viewWS_oceanDistance.w -= _OceanHeight;
-					input.viewWS_oceanDistance.xyz = _WorldSpaceCameraPos - input.viewWS_oceanDistance.xyz;
+					const float4 pixelWS_H = mul(_InvViewProjection, float4(pixelCS, 1.0, 1.0));
+					const float3 pixelWS = pixelWS_H.xyz / pixelWS_H.w;
+					viewWS = _WorldSpaceCameraPos - pixelWS;
+					farPlanePixelHeight = pixelWS.y;
 				}
 
-
 				#if !_FULL_SCREEN_EFFECT
-				const bool isBelowHorizon = (input.viewWS_oceanDistance.w <= 0.0);
+				const bool isBelowHorizon = (farPlanePixelHeight <= _OceanHeight);
 				#else
 				const bool isBelowHorizon = true;
 				#endif
@@ -170,7 +142,7 @@
 #else
 				if(isUnderwater)
 				{
-					const half3 view = normalize(input.viewWS_oceanDistance.xyz);
+					const half3 view = normalize(viewWS);
 					sceneColour = ApplyUnderwaterEffect(sceneColour, sceneZ01, view, isOceanSurface);
 				}
 

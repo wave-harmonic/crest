@@ -58,6 +58,9 @@
 			}
 
 			sampler2D _MainTex;
+			// 0 - unset
+			// 1 - above water
+			// 2 - under water
 			sampler2D _MaskTex;
 			sampler2D _MaskDepthTex;
 
@@ -110,26 +113,6 @@
 					farPlanePixelHeight = pixelWS.y;
 				}
 
-				float wt = 1.0;
-				{
-					//
-					const float2 pixelCS = input.uv * 2 - float2(1.0, 1.0);
-					const float4 pixelWS_H = mul(_InvViewProjection, float4(pixelCS, -1.0, 1.0));
-					const float3 pixelWS = pixelWS_H.xyz / pixelWS_H.w;
-
-					half sss = 0.;
-					float3 x = pixelWS;
-					float3 disp = 0.0;
-					for (int i = 0; i < 3; i++)
-					{
-						disp = 0.0;
-						SampleDisplacements(_LD_TexArray_AnimatedWaves, WorldToUV_BiggerLod(x.xz), 1.0, disp, sss);
-						x.xz -= (x.xz + disp.xz) - pixelWS.xz;
-					}
-
-					wt = clamp(abs(pixelWS.y - (_OceanCenterPosWorld.y+disp.y))*100.0 + 0.5, 0.0, 1.0);
-				}
-
 				#if !_FULL_SCREEN_EFFECT
 				const bool isBelowHorizon = (farPlanePixelHeight <= _OceanHeight);
 				#else
@@ -141,15 +124,34 @@
 				float sceneZ01 = tex2D(_CameraDepthTexture, input.uv).x;
 				bool isUnderwater = false;
 				bool isOceanSurface = false;
+				int mask;
 				{
-					int mask = tex2D(_MaskTex, input.uv);
+					mask = (int)tex2D(_MaskTex, input.uv).x;
 					const float oceanDepth01 = tex2D(_MaskDepthTex, input.uv);
 					isOceanSurface = mask != 0 && (sceneZ01 < oceanDepth01);
 					isUnderwater = mask == 2 || (isBelowHorizon && mask != 1);
 					sceneZ01 = isOceanSurface ? oceanDepth01 : sceneZ01;
 				}
+
+				float wt = 1.0;
+				float wt1 = 0.8, wt2 = 0.6, wt3 = 0.8;
+				if (mask == 0)
+				{
+					float dy = 1.0 / _ScreenParams.y;
+					/**/ if ((int)tex2D(_MaskTex, input.uv - float2(0.0, 1.0*dy)).x == 2) wt *= wt1;
+					else if ((int)tex2D(_MaskTex, input.uv - float2(0.0, 2.0*dy)).x == 2) wt *= wt2;
+					else if ((int)tex2D(_MaskTex, input.uv - float2(0.0, 3.0*dy)).x == 2) wt *= wt3;
+				}
+				else if (mask == 1)
+				{
+					float dy = 1.0 / _ScreenParams.y;
+					/**/ if ((int)tex2D(_MaskTex, input.uv - float2(0.0, 1.0*dy)).x != mask) wt *= wt1;
+					else if ((int)tex2D(_MaskTex, input.uv - float2(0.0, 2.0*dy)).x != mask) wt *= wt2;
+					else if ((int)tex2D(_MaskTex, input.uv - float2(0.0, 3.0*dy)).x != mask) wt *= wt3;
+				}
+
 #if _DEBUG_VIEW_OCEAN_MASK
-				int mask = tex2D(_MaskTex, input.uv);
+				int mask = (int)tex2D(_MaskTex, input.uv).x;
 				if(!isOceanSurface)
 				{
 					return float4(sceneColour * float3(isUnderwater * 0.5, (1.0 - isUnderwater) * 0.5, 1.0), 1.0);

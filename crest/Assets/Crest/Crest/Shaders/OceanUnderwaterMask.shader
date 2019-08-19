@@ -201,12 +201,6 @@ Shader "Crest/Ocean Underwater Mask"
 			#pragma shader_feature _DEBUGVISUALISEFLOW_ON
 			#pragma shader_feature _DEBUGDISABLESMOOTHLOD_ON
 			#pragma shader_feature _COMPILESHADERWITHDEBUGINFO_ON
-			// This is used to render a very simple mask of the underwater to
-			// allow the post-processing shader to know where the front and
-			// backfaces of the ocean have been rendered in screen-space.
-			// It is done as a seperate pass, but in order to keep all of the
-			// material params intact, we include this pass the same shader.
-			#pragma multi_compile __ _RENDER_UNDERWATER_MASK
 
 			#if _COMPILESHADERWITHDEBUGINFO_ON
 			#pragma enable_d3d11_debug_symbols

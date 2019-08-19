@@ -35,7 +35,6 @@ namespace Crest
         private List<Renderer> _oceanChunksToRender;
         private int _oceanChunksToRenderCount;
 
-        private const string _RENDER_UNDERWATER_MASK = "_RENDER_UNDERWATER_MASK";
         private const string _FULL_SCREEN_EFFECT = "_FULL_SCREEN_EFFECT";
         private const string _DEBUG_VIEW_OCEAN_MASK = "_DEBUG_VIEW_OCEAN_MASK";
 

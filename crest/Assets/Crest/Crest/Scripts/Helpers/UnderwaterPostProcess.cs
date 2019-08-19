@@ -114,8 +114,9 @@ namespace Crest
             {
                 _textureMask = new RenderTexture(source);
                 _textureMask.name = "Ocean Mask";
-                // TODO(UPP): See if we can make this an 8bit texture somehow
-                _textureMask.format = RenderTextureFormat.RFloat;
+                // @Memory: We could investigate making this an 8-bit texture
+                // instead to reduce GPU memory usage.
+                _textureMask.format = RenderTextureFormat.RHalf;
                 _textureMask.Create();
 
                 _depthBuffer = new RenderTexture(source);

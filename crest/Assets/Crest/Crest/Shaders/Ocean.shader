@@ -393,18 +393,14 @@ Shader "Crest/Ocean"
 				return lightDir;
 			}
 
-			bool IsUnderwater(const float facing)
-			{
-#if !_UNDERWATER_ON
-				return false;
-#endif
-				const bool backface = facing < 0.0;
-				return backface || _ForceUnderwater > 0.0;
-			}
-
 			half4 Frag(const Varyings input, const float facing : VFACE) : SV_Target
 			{
-				const bool underwater = IsUnderwater(facing);
+				#if _UNDERWATER_ON
+				const bool underwater = IsUnderwater(facing, _ForceUnderwater);
+				#else
+				const bool underwater = false;
+				#endif
+
 				const float lodAlpha = input.lodAlpha_worldXZUndisplaced_oceanDepth.x;
 
 				half3 view = normalize(_WorldSpaceCameraPos - input.worldPos);

@@ -35,7 +35,6 @@
 			#include "../OceanEmission.hlsl"
 
 			float _OceanHeight;
-			float4x4 _ViewProjection;
 			float4x4 _InvViewProjection;
 
 			struct Attributes

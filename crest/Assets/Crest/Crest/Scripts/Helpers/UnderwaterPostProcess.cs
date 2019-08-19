@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -13,7 +12,6 @@ namespace Crest
         static int sp_HorizonOrientation = Shader.PropertyToID("_HorizonOrientation");
         static int sp_MaskTex = Shader.PropertyToID("_MaskTex");
         static int sp_MaskDepthTex = Shader.PropertyToID("_MaskDepthTex");
-        static int sp_ViewProjection = Shader.PropertyToID("_ViewProjection");
         static int sp_InvViewProjection = Shader.PropertyToID("_InvViewProjection");
 
         public Material _underWaterPostProcMat;
@@ -68,7 +66,7 @@ namespace Crest
                 Debug.LogError("Underwater effect expects to have a post processing material attached", this);
                 return false;
             }
-            if(_oceanMaskMat == null)
+            if (_oceanMaskMat == null)
             {
                 Debug.LogError("Underwater effect expects to have an ocean mask material attached", this);
                 return false;
@@ -78,7 +76,7 @@ namespace Crest
 
         void Start()
         {
-            if(!InitialisedCorrectly())
+            if (!InitialisedCorrectly())
             {
                 enabled = false;
                 return;
@@ -141,7 +139,7 @@ namespace Crest
 
             _underWaterPostProcMat.CopyPropertiesFromMaterial(OceanRenderer.Instance.OceanMaterial);
 
-            if(_viewOceanMask)
+            if (_viewOceanMask)
             {
                 _underWaterPostProcMat.EnableKeyword(_DEBUG_VIEW_OCEAN_MASK);
             }
@@ -176,7 +174,7 @@ namespace Crest
                 float cameraHeight = _mainCamera.transform.position.y;
                 bool forceFullShader = (cameraHeight + maxOceanVerticalDisplacement) <= oceanHeight;
                 _underWaterPostProcMat.SetFloat(sp_OceanHeight, oceanHeight);
-                if(forceFullShader)
+                if (forceFullShader)
                 {
                     _underWaterPostProcMat.EnableKeyword(_FULL_SCREEN_EFFECT);
                 }
@@ -191,7 +189,6 @@ namespace Crest
             // Have to set these explicitly as the built-in transforms aren't in world-space for the blit function
             {
                 var viewProjectionMatrix = _mainCamera.projectionMatrix * _mainCamera.worldToCameraMatrix;
-                _underWaterPostProcMat.SetMatrix(sp_ViewProjection, viewProjectionMatrix);
                 _underWaterPostProcMat.SetMatrix(sp_InvViewProjection, viewProjectionMatrix.inverse);
             }
 

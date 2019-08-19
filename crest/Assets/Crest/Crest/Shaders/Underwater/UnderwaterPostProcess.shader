@@ -137,17 +137,17 @@
 				float wt1 = 0.8, wt2 = 0.6, wt3 = 0.8;
 				if (mask == 0)
 				{
-					float dy = 1.0 / _ScreenParams.y;
-					/**/ if ((int)tex2D(_MaskTex, input.uv - float2(0.0, 1.0*dy)).x == 2) wt *= wt1;
-					else if ((int)tex2D(_MaskTex, input.uv - float2(0.0, 2.0*dy)).x == 2) wt *= wt2;
-					else if ((int)tex2D(_MaskTex, input.uv - float2(0.0, 3.0*dy)).x == 2) wt *= wt3;
+					float4 dy = float4(0.0, 1.0, 2.0, 3.0) / _ScreenParams.y;
+					/**/ if ((int)tex2D(_MaskTex, input.uv - dy.xy).x == 2) wt *= wt1;
+					else if ((int)tex2D(_MaskTex, input.uv - dy.xz).x == 2) wt *= wt2;
+					else if ((int)tex2D(_MaskTex, input.uv - dy.xw).x == 2) wt *= wt3;
 				}
 				else if (mask == 1)
 				{
-					float dy = 1.0 / _ScreenParams.y;
-					/**/ if ((int)tex2D(_MaskTex, input.uv - float2(0.0, 1.0*dy)).x != mask) wt *= wt1;
-					else if ((int)tex2D(_MaskTex, input.uv - float2(0.0, 2.0*dy)).x != mask) wt *= wt2;
-					else if ((int)tex2D(_MaskTex, input.uv - float2(0.0, 3.0*dy)).x != mask) wt *= wt3;
+					float4 dy = float4(0.0, 1.0, 2.0, 3.0) / _ScreenParams.y;
+					/**/ if ((int)tex2D(_MaskTex, input.uv - dy.xy).x != mask) wt *= wt1;
+					else if ((int)tex2D(_MaskTex, input.uv - dy.xz).x != mask) wt *= wt2;
+					else if ((int)tex2D(_MaskTex, input.uv - dy.xw).x != mask) wt *= wt3;
 				}
 
 #if _DEBUG_VIEW_OCEAN_MASK

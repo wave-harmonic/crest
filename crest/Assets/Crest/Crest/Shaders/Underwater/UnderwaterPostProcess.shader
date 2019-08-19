@@ -110,6 +110,26 @@
 					farPlanePixelHeight = pixelWS.y;
 				}
 
+				float wt = 1.0;
+				{
+					//
+					const float2 pixelCS = input.uv * 2 - float2(1.0, 1.0);
+					const float4 pixelWS_H = mul(_InvViewProjection, float4(pixelCS, -1.0, 1.0));
+					const float3 pixelWS = pixelWS_H.xyz / pixelWS_H.w;
+
+					half sss = 0.;
+					float3 x = pixelWS;
+					float3 disp = 0.0;
+					for (int i = 0; i < 3; i++)
+					{
+						disp = 0.0;
+						SampleDisplacements(_LD_TexArray_AnimatedWaves, WorldToUV_BiggerLod(x.xz), 1.0, disp, sss);
+						x.xz -= (x.xz + disp.xz) - pixelWS.xz;
+					}
+
+					wt = clamp(abs(pixelWS.y - (_OceanCenterPosWorld.y+disp.y))*100.0 + 0.5, 0.0, 1.0);
+				}
+
 				#if !_FULL_SCREEN_EFFECT
 				const bool isBelowHorizon = (farPlanePixelHeight <= _OceanHeight);
 				#else
@@ -145,7 +165,7 @@
 					sceneColour = ApplyUnderwaterEffect(sceneColour, sceneZ01, view, isOceanSurface);
 				}
 
-				return half4(sceneColour, 1.0);
+				return half4(wt * sceneColour, 1.0);
 #endif // _DEBUG_VIEW_OCEAN_MASK
 			}
 			ENDCG

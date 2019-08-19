@@ -81,9 +81,6 @@ namespace Crest
                 return;
             }
 
-            _commandBuffer = new CommandBuffer();
-            _commandBuffer.name = "Underwater Post Process";
-
             if (_underWaterPostProcMat != null)
             {
                 _underWaterPostProcMatWrapper = new PropertyWrapperMaterial(_underWaterPostProcMat);
@@ -95,6 +92,12 @@ namespace Crest
 
         void OnRenderImage(RenderTexture source, RenderTexture target)
         {
+            if (_commandBuffer == null)
+            {
+                _commandBuffer = new CommandBuffer();
+                _commandBuffer.name = "Underwater Post Process";
+            }
+
             bool definitelyAboveTheWater = false;
             {
                 float oceanHeight = OceanRenderer.Instance.transform.position.y;

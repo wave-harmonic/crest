@@ -49,8 +49,6 @@ Shader "Crest/Ocean Underwater Mask"
 			// i'm not sure why cracks are not visible in this case.
 			uniform float _ForceUnderwater;
 
-			// TODO(UPP): Look into sharing code with the full-fat vertex shader
-			// (to allow changes in both to be stable).
 			Varyings Vert(Attributes v)
 			{
 				Varyings output;

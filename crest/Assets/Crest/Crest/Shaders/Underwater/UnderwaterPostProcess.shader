@@ -135,30 +135,31 @@
 
 				float wt = 1.0;
 				float wt1 = 0.8, wt2 = 0.6, wt3 = 0.8;
-				if (mask == 0)
+				// We want to show a meniscus on the following transitions:
+				// ? -> 2 : Transitioning to underwater mask from above water
+				// 1 -> ? : Transitioning from water mask to below water
+				if (mask <= 1)
 				{
 					float4 dy = float4(0.0, 1.0, 2.0, 3.0) / _ScreenParams.y;
-					/**/ if ((int)tex2D(_MaskTex, input.uv - dy.xy).x == 2) wt *= wt1;
-					else if ((int)tex2D(_MaskTex, input.uv - dy.xz).x == 2) wt *= wt2;
-					else if ((int)tex2D(_MaskTex, input.uv - dy.xw).x == 2) wt *= wt3;
-				}
-				else if (mask == 1)
-				{
-					float4 dy = float4(0.0, 1.0, 2.0, 3.0) / _ScreenParams.y;
-					/**/ if ((int)tex2D(_MaskTex, input.uv - dy.xy).x != mask) wt *= wt1;
-					else if ((int)tex2D(_MaskTex, input.uv - dy.xz).x != mask) wt *= wt2;
-					else if ((int)tex2D(_MaskTex, input.uv - dy.xw).x != mask) wt *= wt3;
+					int mask1 = (int)tex2D(_MaskTex, input.uv - dy.xy).x;
+					int mask2 = (int)tex2D(_MaskTex, input.uv - dy.xz).x;
+					int mask3 = (int)tex2D(_MaskTex, input.uv - dy.xw).x;
+					/**/ if ((mask1 != mask) && ((mask1 == 2) || (mask == 1))) wt *= wt1;
+					else if ((mask2 != mask) && ((mask2 == 2) || (mask == 1))) wt *= wt2;
+					else if ((mask3 != mask) && ((mask3 == 2) || (mask == 1))) wt *= wt3;
 				}
 
 #if _DEBUG_VIEW_OCEAN_MASK
-				int mask = (int)tex2D(_MaskTex, input.uv).x;
-				if(!isOceanSurface)
 				{
-					return float4(sceneColour * float3(isUnderwater * 0.5, (1.0 - isUnderwater) * 0.5, 1.0), 1.0);
-				}
-				else
-				{
-					return float4(sceneColour * float3(mask == 1, mask == 2, 0.0), 1.0);
+					int mask = (int)tex2D(_MaskTex, input.uv).x;
+					if(!isOceanSurface)
+					{
+						return float4(sceneColour * float3(isUnderwater * 0.5, (1.0 - isUnderwater) * 0.5, 1.0), 1.0);
+					}
+					else
+					{
+						return float4(sceneColour * float3(mask == 1, mask == 2, 0.0), 1.0);
+					}
 				}
 #else
 				if(isUnderwater)

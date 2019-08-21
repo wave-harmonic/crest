@@ -234,7 +234,7 @@ namespace Crest
                     DataTexture
                 );
 
-                _combineProperties.SetFloat(OceanRenderer.sp_LD_SliceIndex, lodIdx);
+                _combineProperties.SetFloat(sp_LD_SliceIndex, lodIdx);
                 _combineProperties.DispatchShader();
             }
 

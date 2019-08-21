@@ -26,7 +26,7 @@ namespace Crest
 
         float _substepDtPrevious = 1f / 60f;
 
-        static int sp_SimDeltaTime = Shader.PropertyToID("_SimDeltaTime");
+        public static int sp_SimDeltaTime = Shader.PropertyToID("_SimDeltaTime");
         static int sp_SimDeltaTimePrev = Shader.PropertyToID("_SimDeltaTimePrev");
 
         protected override void Start()

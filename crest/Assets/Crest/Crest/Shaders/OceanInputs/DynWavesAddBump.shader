@@ -7,7 +7,7 @@ Shader "Crest/Inputs/Dynamic Waves/Add Bump"
 	Properties
 	{
 		_Amplitude( "Amplitude", float ) = 1
-		_Radius( "Radius", float) = 3
+		_Radius("Radius", float) = 3
 	}
 
 	SubShader

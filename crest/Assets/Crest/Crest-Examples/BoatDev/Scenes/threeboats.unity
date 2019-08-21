@@ -642,11 +642,11 @@ MonoBehaviour:
   _timeProvider: {fileID: 0}
   _material: {fileID: 2100000, guid: 9def92ac79181fe41b238e91663f0fad, type: 2}
   _layerName: Water
-  _windDirectionAngle: 0
   _gravityMultiplier: 1
   _minTexelsPerWave: 3
   _minScale: 8
   _maxScale: 256
+  _dropDetailHeightBasedOnWaves: 0.2
   _lodDataResolution: 256
   _geometryDownSampleFactor: 2
   _lodCount: 8
@@ -861,7 +861,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1680820176
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1029,9 +1029,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _spectrum: {fileID: 11400000, guid: 691aad324f2d2be4abf8123c36963da5, type: 2}
+  _windDirectionAngle: 0
   _componentsPerOctave: 8
   _weight: 1
   _randomSeed: 0
+  _evaluateSpectrumAtRuntime: 1
+  _wavelengths: []
+  _amplitudes: []
+  _angleDegs: []
+  _phases: []
   _directTowardsPoint: 0
   _pointPositionXZ: {x: 0, y: 0}
   _pointRadii: {x: 100, y: 200}

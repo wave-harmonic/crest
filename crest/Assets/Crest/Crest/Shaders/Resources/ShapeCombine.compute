@@ -31,7 +31,7 @@ void Flow(out float2 offsets, out float2 weights)
 
 void SampleDisplacementsCompute(
 	in RWTexture2DArray<float4> i_dispSampler,
-	in float i_width, in float i_height, in float3 i_uv_slice,
+	in float i_width, in float i_height, in float i_depth, in float3 i_uv_slice,
 	in float i_wt, inout float3 io_worldPos, inout float io_sss
 ) {
 	// NOTE: We have to roll our own bilinear filter in Compute shaders when
@@ -49,13 +49,16 @@ void SampleDisplacementsCompute(
 	pixelCoordCenters = clamp(pixelCoordCenters, 0.0, float2(i_width, i_height) - 1.0);
 
 	// Compute integral and fractional parts
-	const float2 pixelCoordCentersBotLeft = floor(pixelCoordCenters);
+	const uint2 pixelCoordCentersBotLeft = (uint2)pixelCoordCenters;
 	const float2 pixelCoordCentersFrac = frac(pixelCoordCenters);
 
-	const float4 dataBotLeft = i_dispSampler[float3(pixelCoordCentersBotLeft, i_uv_slice.z)];
-	const float4 dataBotRight = i_dispSampler[float3(pixelCoordCentersBotLeft + float2(1.0, 0.0), i_uv_slice.z)];
-	const float4 dataTopLeft = i_dispSampler[float3(pixelCoordCentersBotLeft + float2(0.0, 1.0), i_uv_slice.z)];
-	const float4 dataTopRight = i_dispSampler[float3(pixelCoordCentersBotLeft + float2(1.0, 1.0), i_uv_slice.z)];
+	uint2 d = uint2(0, 1);
+	uint slice = (uint)clamp(i_uv_slice.z, 0.0, i_depth - 1.0);
+
+	const float4 dataBotLeft  = i_dispSampler[uint3(pixelCoordCentersBotLeft + d.xx, slice)];
+	const float4 dataBotRight = i_dispSampler[uint3(pixelCoordCentersBotLeft + d.yx, slice)];
+	const float4 dataTopLeft  = i_dispSampler[uint3(pixelCoordCentersBotLeft + d.xy, slice)];
+	const float4 dataTopRight = i_dispSampler[uint3(pixelCoordCentersBotLeft + d.yy, slice)];
 
 	const float4 dataLerped = lerp(
 		lerp(dataBotLeft, dataBotRight, pixelCoordCentersFrac.x),
@@ -105,7 +108,7 @@ void ShapeCombineBase (uint3 id)
 // C# Script determines whether this enabled or not by selecting appropriate
 // kernel for each LOD.
 #if !_DISABLE_COMBINE
-	SampleDisplacementsCompute(_LD_TexArray_AnimatedWaves_Compute, width, height, uv_nextLod, 1.0, result, sss);
+	SampleDisplacementsCompute(_LD_TexArray_AnimatedWaves_Compute, width, height, depth, uv_nextLod, 1.0, result, sss);
 #endif
 
 #if _DYNAMIC_WAVE_SIM_ON

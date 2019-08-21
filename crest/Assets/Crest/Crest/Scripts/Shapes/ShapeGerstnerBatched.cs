@@ -236,6 +236,8 @@ namespace Crest
 
         private void ReportMaxDisplacement()
         {
+            Debug.Assert(_spectrum._chopScales.Length == OceanWaveSpectrum.NUM_OCTAVES, $"OceanWaveSpectrum {_spectrum.name} is out of date, please open this asset and resave in editor.", _spectrum);
+
             float ampSum = 0f;
             for (int i = 0; i < _wavelengths.Length; i++)
             {

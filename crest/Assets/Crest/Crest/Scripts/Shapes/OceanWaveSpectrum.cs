@@ -64,11 +64,7 @@ namespace Crest
             // Always take random value so that sequence remains deterministic even if this function early outs
             var rand0 = Random.value;
 
-            if (wavelength <= 0.001f)
-            {
-                Debug.LogError("Wavelength must be >= 0f");
-                return 0f;
-            }
+            Debug.Assert(wavelength > 0f, "OceanWaveSpectrum: Wavelength must be >= 0f", this);
 
             var wl_pow2 = Mathf.Log(wavelength) / Mathf.Log(2f);
             wl_pow2 = Mathf.Clamp(wl_pow2, SMALLEST_WL_POW_2, SMALLEST_WL_POW_2 + NUM_OCTAVES - 1f);
@@ -77,9 +73,14 @@ namespace Crest
 
             var index = (int)(wl_pow2 - SMALLEST_WL_POW_2);
 
+            if(_powerLog.Length < NUM_OCTAVES)
+            {
+                Debug.LogWarning($"Wave spectrum {name} is out of date, please open this asset and resave in editor.", this);
+            }
+
             if (index >= _powerLog.Length)
             {
-                Debug.LogError("Out of bounds index");
+                Debug.Assert(index < _powerLog.Length, $"OceanWaveSpectrum: index {index} is out of range.", this);
                 return 0f;
             }
 

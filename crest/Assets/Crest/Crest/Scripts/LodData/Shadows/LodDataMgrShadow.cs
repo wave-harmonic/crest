@@ -98,6 +98,9 @@ namespace Crest
             int resolution = OceanRenderer.Instance.LodDataResolution;
             var desc = new RenderTextureDescriptor(resolution, resolution, TextureFormat, 0);
             _sources = CreateLodDataTextures(desc, SimName + "_1", NeedToReadWriteTextureData);
+
+            TextureArrayHelpers.ClearToBlack(_sources);
+            TextureArrayHelpers.ClearToBlack(_targets);
         }
 
         bool StartInitLight()

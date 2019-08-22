@@ -2,7 +2,7 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
-Shader "Crest/Ocean Underwater Mask"
+Shader "Crest/Underwater/Ocean Mask"
 {
 	SubShader
 	{
@@ -36,7 +36,7 @@ Shader "Crest/Ocean Underwater Mask"
 				float4 positionCS : SV_POSITION;
 			};
 
-			#include "OceanHelpers.hlsl"
+			#include "../OceanHelpers.hlsl"
 
 			uniform float _CrestTime;
 

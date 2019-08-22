@@ -1,4 +1,4 @@
-﻿Shader "Crest/Underwater Post Processor"
+﻿Shader "Crest/Underwater/Post Processor"
 {
 	SubShader
 	{

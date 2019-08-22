@@ -153,7 +153,7 @@ namespace Crest
                 _rend.bounds.DebugDraw();
             }
 
-            var underwaterPostProcessor = _currentCamera.GetComponent<UnderwaterPostProcess>();
+            var underwaterPostProcessor = _currentCamera.GetComponent<UnderwaterCamera>();
             if (underwaterPostProcessor != null && underwaterPostProcessor.enabled)
             {
                 underwaterPostProcessor.RegisterOceanChunkToRender(_rend);

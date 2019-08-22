@@ -6,7 +6,7 @@ namespace Crest
 {
 
     [RequireComponent(typeof(Camera))]
-    public class UnderwaterPostProcess : MonoBehaviour
+    public class UnderwaterCamera : MonoBehaviour
     {
         static int sp_OceanHeight = Shader.PropertyToID("_OceanHeight");
         static int sp_HorizonOrientation = Shader.PropertyToID("_HorizonOrientation");
@@ -57,17 +57,22 @@ namespace Crest
             _mainCamera = GetComponent<Camera>();
             if (_mainCamera == null)
             {
-                Debug.LogError("Underwater effects expect to be attached to a camera", this);
+                Debug.LogError("UnderwaterCameras expect to be attached to a camera", this);
                 return false;
             }
             if (_underWaterPostProcMat == null)
             {
-                Debug.LogError("Underwater effect expects to have a post processing material attached", this);
+                Debug.LogError("UnderwaterCamera expects to have a post processing material attached", this);
                 return false;
             }
             if (_oceanMaskMat == null)
             {
-                Debug.LogError("Underwater effect expects to have an ocean mask material attached", this);
+                Debug.LogError("UnderwaterCamera expects to have an ocean mask material attached", this);
+                return false;
+            }
+            if(!OceanRenderer.Instance.OceanMaterial.IsKeywordEnabled("_UNDERWATER_ON"))
+            {
+                Debug.LogError("Underwater must be enabled on the ocean material for UnderWaterCamera to work", this);
                 return false;
             }
             return true;

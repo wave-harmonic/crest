@@ -1,4 +1,8 @@
-﻿Shader "Crest/Underwater Post Process"
+﻿// Crest Ocean System
+
+// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
+
+Shader "Crest/Underwater/Post Processor"
 {
 	SubShader
 	{
@@ -33,6 +37,7 @@
 			half3 _AmbientLighting;
 
 			#include "../OceanEmission.hlsl"
+			#include "UnderwaterMaskValues.hlsl"
 
 			float _OceanHeight;
 			float4x4 _InvViewProjection;
@@ -58,9 +63,6 @@
 			}
 
 			sampler2D _MainTex;
-			// 0 - unset
-			// 1 - above water
-			// 2 - under water
 			sampler2D _MaskTex;
 			sampler2D _MaskDepthTex;
 
@@ -128,8 +130,8 @@
 				{
 					mask = (int)tex2D(_MaskTex, input.uv).x;
 					const float oceanDepth01 = tex2D(_MaskDepthTex, input.uv);
-					isOceanSurface = mask != 0 && (sceneZ01 < oceanDepth01);
-					isUnderwater = mask == 2 || (isBelowHorizon && mask != 1);
+					isOceanSurface = mask != UNDERWATER_MASK_NO_MASK && (sceneZ01 < oceanDepth01);
+					isUnderwater = mask == UNDERWATER_MASK_WATER_SURFACE_BELOW || (isBelowHorizon && mask != UNDERWATER_MASK_WATER_SURFACE_ABOVE);
 					sceneZ01 = isOceanSurface ? oceanDepth01 : sceneZ01;
 				}
 
@@ -144,22 +146,19 @@
 					int mask1 = (int)tex2D(_MaskTex, input.uv - dy.xy).x;
 					int mask2 = (int)tex2D(_MaskTex, input.uv - dy.xz).x;
 					int mask3 = (int)tex2D(_MaskTex, input.uv - dy.xw).x;
-					/**/ if ((mask1 != mask) && ((mask1 == 2) || (mask == 1))) wt *= wt1;
-					else if ((mask2 != mask) && ((mask2 == 2) || (mask == 1))) wt *= wt2;
-					else if ((mask3 != mask) && ((mask3 == 2) || (mask == 1))) wt *= wt3;
+					/**/ if ((mask1 != mask) && ((mask1 == UNDERWATER_MASK_WATER_SURFACE_BELOW) || (mask == UNDERWATER_MASK_WATER_SURFACE_ABOVE))) wt *= wt1;
+					else if ((mask2 != mask) && ((mask2 == UNDERWATER_MASK_WATER_SURFACE_BELOW) || (mask == UNDERWATER_MASK_WATER_SURFACE_ABOVE))) wt *= wt2;
+					else if ((mask3 != mask) && ((mask3 == UNDERWATER_MASK_WATER_SURFACE_BELOW) || (mask == UNDERWATER_MASK_WATER_SURFACE_ABOVE))) wt *= wt3;
 				}
 
 #if _DEBUG_VIEW_OCEAN_MASK
+				if(!isOceanSurface)
 				{
-					int mask = (int)tex2D(_MaskTex, input.uv).x;
-					if(!isOceanSurface)
-					{
-						return float4(sceneColour * float3(isUnderwater * 0.5, (1.0 - isUnderwater) * 0.5, 1.0), 1.0);
-					}
-					else
-					{
-						return float4(sceneColour * float3(mask == 1, mask == 2, 0.0), 1.0);
-					}
+					return float4(sceneColour * float3(isUnderwater * 0.5, (1.0 - isUnderwater) * 0.5, 1.0), 1.0);
+				}
+				else
+				{
+					return float4(sceneColour * float3(mask == UNDERWATER_MASK_WATER_SURFACE_ABOVE, mask == UNDERWATER_MASK_WATER_SURFACE_BELOW, 0.0), 1.0);
 				}
 #else
 				if(isUnderwater)

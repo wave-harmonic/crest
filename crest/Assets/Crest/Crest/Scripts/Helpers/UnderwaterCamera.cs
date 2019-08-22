@@ -6,7 +6,7 @@ namespace Crest
 {
 
     [RequireComponent(typeof(Camera))]
-    public class UnderwaterPostProcess : MonoBehaviour
+    public class UnderwaterCamera : MonoBehaviour
     {
         static int sp_OceanHeight = Shader.PropertyToID("_OceanHeight");
         static int sp_HorizonOrientation = Shader.PropertyToID("_HorizonOrientation");
@@ -14,8 +14,11 @@ namespace Crest
         static int sp_MaskDepthTex = Shader.PropertyToID("_MaskDepthTex");
         static int sp_InvViewProjection = Shader.PropertyToID("_InvViewProjection");
 
-        public Material _underWaterPostProcMat;
-        public Material _oceanMaskMat;
+        [Header("Underwater Camera Materials")]
+        [Tooltip("Material used to render underwater fog in post-process.")]
+        public Material _underwaterPostProcessorMaterial;
+        [Tooltip("Material used to re-render ocean to create a mask for underwater rendering.")]
+        public Material _oceanMaskMaterial;
 
         [Header("Debug Options")]
         public bool _viewOceanMask;
@@ -25,7 +28,7 @@ namespace Crest
         private RenderTexture _textureMask;
         private RenderTexture _depthBuffer;
         private CommandBuffer _commandBuffer;
-        private PropertyWrapperMaterial _underWaterPostProcMatWrapper;
+        private PropertyWrapperMaterial _underwaterPostProcessorMaterialWrapper;
 
         // NOTE: We keep a list of ocean chunks to render for a given frame
         // (which ocean chunks add themselves to) and reset it each frame by
@@ -35,7 +38,6 @@ namespace Crest
         private List<Renderer> _oceanChunksToRender;
         private int _oceanChunksToRenderCount;
 
-        private const string _RENDER_UNDERWATER_MASK = "_RENDER_UNDERWATER_MASK";
         private const string _FULL_SCREEN_EFFECT = "_FULL_SCREEN_EFFECT";
         private const string _DEBUG_VIEW_OCEAN_MASK = "_DEBUG_VIEW_OCEAN_MASK";
 
@@ -58,17 +60,22 @@ namespace Crest
             _mainCamera = GetComponent<Camera>();
             if (_mainCamera == null)
             {
-                Debug.LogError("Underwater effects expect to be attached to a camera", this);
+                Debug.LogError("UnderwaterCameras expect to be attached to a camera", this);
                 return false;
             }
-            if (_underWaterPostProcMat == null)
+            if (_underwaterPostProcessorMaterial == null)
             {
-                Debug.LogError("Underwater effect expects to have a post processing material attached", this);
+                Debug.LogError("UnderwaterCamera expects to have a post processing material attached", this);
                 return false;
             }
-            if (_oceanMaskMat == null)
+            if (_oceanMaskMaterial == null)
             {
-                Debug.LogError("Underwater effect expects to have an ocean mask material attached", this);
+                Debug.LogError("UnderwaterCamera expects to have an ocean mask material attached", this);
+                return false;
+            }
+            if (!OceanRenderer.Instance.OceanMaterial.IsKeywordEnabled("_UNDERWATER_ON"))
+            {
+                Debug.LogError("Underwater must be enabled on the ocean material for UnderWaterCamera to work", this);
                 return false;
             }
             return true;
@@ -82,13 +89,9 @@ namespace Crest
                 return;
             }
 
-            _commandBuffer = new CommandBuffer();
-            _commandBuffer.name = "Underwater Post Process";
-
-            if (_underWaterPostProcMat != null)
-            {
-                _underWaterPostProcMatWrapper = new PropertyWrapperMaterial(_underWaterPostProcMat);
-            }
+            // Stop the material from being saved on-edits at runtime
+            _underwaterPostProcessorMaterial = new Material(_underwaterPostProcessorMaterial);
+            _underwaterPostProcessorMaterialWrapper = new PropertyWrapperMaterial(_underwaterPostProcessorMaterial);
 
             _oceanChunksToRender = new List<Renderer>(OceanBuilder.GetChunkCount);
             _oceanChunksToRenderCount = 0;
@@ -96,6 +99,12 @@ namespace Crest
 
         void OnRenderImage(RenderTexture source, RenderTexture target)
         {
+            if (_commandBuffer == null)
+            {
+                _commandBuffer = new CommandBuffer();
+                _commandBuffer.name = "Underwater Post Process";
+            }
+
             bool definitelyAboveTheWater = false;
             {
                 float oceanHeight = OceanRenderer.Instance.transform.position.y;
@@ -115,8 +124,9 @@ namespace Crest
             {
                 _textureMask = new RenderTexture(source);
                 _textureMask.name = "Ocean Mask";
-                // TODO(UPP): See if we can make this an 8bit texture somehow
-                _textureMask.format = RenderTextureFormat.RFloat;
+                // @Memory: We could investigate making this an 8-bit texture
+                // instead to reduce GPU memory usage.
+                _textureMask.format = RenderTextureFormat.RHalf;
                 _textureMask.Create();
 
                 _depthBuffer = new RenderTexture(source);
@@ -128,44 +138,43 @@ namespace Crest
             // Get all ocean chunks and render them using cmd buffer, but with
             _commandBuffer.SetRenderTarget(_textureMask.colorBuffer, _depthBuffer.depthBuffer);
             _commandBuffer.ClearRenderTarget(true, true, Color.black);
-            _oceanMaskMat.CopyPropertiesFromMaterial(OceanRenderer.Instance.OceanMaterial);
             _commandBuffer.SetViewProjectionMatrices(_mainCamera.worldToCameraMatrix, _mainCamera.projectionMatrix);
             for (int oceanChunkIndex = 0; oceanChunkIndex < _oceanChunksToRenderCount; oceanChunkIndex++)
             {
                 Renderer renderer = _oceanChunksToRender[oceanChunkIndex];
-                _commandBuffer.DrawRenderer(renderer, _oceanMaskMat);
+                _commandBuffer.DrawRenderer(renderer, _oceanMaskMaterial);
             }
             _oceanChunksToRenderCount = 0;
 
-            _underWaterPostProcMat.CopyPropertiesFromMaterial(OceanRenderer.Instance.OceanMaterial);
+            _underwaterPostProcessorMaterial.CopyPropertiesFromMaterial(OceanRenderer.Instance.OceanMaterial);
 
             if (_viewOceanMask)
             {
-                _underWaterPostProcMat.EnableKeyword(_DEBUG_VIEW_OCEAN_MASK);
+                _underwaterPostProcessorMaterial.EnableKeyword(_DEBUG_VIEW_OCEAN_MASK);
             }
             else
             {
-                _underWaterPostProcMat.DisableKeyword(_DEBUG_VIEW_OCEAN_MASK);
+                _underwaterPostProcessorMaterial.DisableKeyword(_DEBUG_VIEW_OCEAN_MASK);
             }
 
-            _underWaterPostProcMat.SetFloat(OceanRenderer.sp_LD_SliceIndex, 0);
+            _underwaterPostProcessorMaterial.SetFloat(OceanRenderer.sp_LD_SliceIndex, 0);
 
-            OceanRenderer.Instance._lodDataAnimWaves.BindResultData(_underWaterPostProcMatWrapper);
+            OceanRenderer.Instance._lodDataAnimWaves.BindResultData(_underwaterPostProcessorMaterialWrapper);
             if (OceanRenderer.Instance._lodDataSeaDepths)
             {
-                OceanRenderer.Instance._lodDataSeaDepths.BindResultData(_underWaterPostProcMatWrapper);
+                OceanRenderer.Instance._lodDataSeaDepths.BindResultData(_underwaterPostProcessorMaterialWrapper);
             }
             else
             {
-                LodDataMgrSeaFloorDepth.BindNull(_underWaterPostProcMatWrapper);
+                LodDataMgrSeaFloorDepth.BindNull(_underwaterPostProcessorMaterialWrapper);
             }
             if (OceanRenderer.Instance._lodDataShadow)
             {
-                OceanRenderer.Instance._lodDataShadow.BindResultData(_underWaterPostProcMatWrapper);
+                OceanRenderer.Instance._lodDataShadow.BindResultData(_underwaterPostProcessorMaterialWrapper);
             }
             else
             {
-                LodDataMgrShadow.BindNull(_underWaterPostProcMatWrapper);
+                LodDataMgrShadow.BindNull(_underwaterPostProcessorMaterialWrapper);
             }
 
             {
@@ -173,26 +182,26 @@ namespace Crest
                 float maxOceanVerticalDisplacement = OceanRenderer.Instance.MaxVertDisplacement * 0.5f;
                 float cameraHeight = _mainCamera.transform.position.y;
                 bool forceFullShader = (cameraHeight + maxOceanVerticalDisplacement) <= oceanHeight;
-                _underWaterPostProcMat.SetFloat(sp_OceanHeight, oceanHeight);
+                _underwaterPostProcessorMaterial.SetFloat(sp_OceanHeight, oceanHeight);
                 if (forceFullShader)
                 {
-                    _underWaterPostProcMat.EnableKeyword(_FULL_SCREEN_EFFECT);
+                    _underwaterPostProcessorMaterial.EnableKeyword(_FULL_SCREEN_EFFECT);
                 }
                 else
                 {
-                    _underWaterPostProcMat.DisableKeyword(_FULL_SCREEN_EFFECT);
+                    _underwaterPostProcessorMaterial.DisableKeyword(_FULL_SCREEN_EFFECT);
                 }
             }
-            _underWaterPostProcMat.SetTexture(sp_MaskTex, _textureMask);
-            _underWaterPostProcMat.SetTexture(sp_MaskDepthTex, _depthBuffer);
+            _underwaterPostProcessorMaterial.SetTexture(sp_MaskTex, _textureMask);
+            _underwaterPostProcessorMaterial.SetTexture(sp_MaskDepthTex, _depthBuffer);
 
             // Have to set these explicitly as the built-in transforms aren't in world-space for the blit function
             {
                 var viewProjectionMatrix = _mainCamera.projectionMatrix * _mainCamera.worldToCameraMatrix;
-                _underWaterPostProcMat.SetMatrix(sp_InvViewProjection, viewProjectionMatrix.inverse);
+                _underwaterPostProcessorMaterial.SetMatrix(sp_InvViewProjection, viewProjectionMatrix.inverse);
             }
 
-            _commandBuffer.Blit(source, target, _underWaterPostProcMat);
+            _commandBuffer.Blit(source, target, _underwaterPostProcessorMaterial);
 
             Graphics.ExecuteCommandBuffer(_commandBuffer);
             _commandBuffer.Clear();

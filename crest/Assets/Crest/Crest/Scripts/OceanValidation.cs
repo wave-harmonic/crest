@@ -53,7 +53,7 @@ namespace Crest
             }
 
             // UnderwaterPostProcessor
-            var underwaters = FindObjectsOfType<UnderwaterPostProcess>();
+            var underwaters = FindObjectsOfType<UnderwaterCamera>();
             foreach (var underwater in underwaters)
             {
                 if (underwater.GetComponent<Camera>() == null)

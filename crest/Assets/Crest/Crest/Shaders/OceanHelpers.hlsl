@@ -52,3 +52,9 @@ void SnapAndTransitionVertLayout(float i_meshScaleAlpha, inout float3 io_worldPo
 	if (abs(offset.x) < minRadius) io_worldPos.x += offset.x * o_lodAlpha * GRID_SIZE_4;
 	if (abs(offset.y) < minRadius) io_worldPos.z += offset.y * o_lodAlpha * GRID_SIZE_4;
 }
+
+bool IsUnderwater(const float facing, const float forceUnderwater)
+{
+	const bool backface = facing < 0.0;
+	return backface || forceUnderwater > 0.0;
+}

@@ -55,7 +55,7 @@ All settings can be live authored. When tweaking ocean shape it can be useful to
 
 ### Reflections
 
-Reflections contribute hugely to the appearance of the ocean. The Index of Refraction settings control how much reflection contributes for different view angles. 
+Reflections contribute hugely to the appearance of the ocean. The Index of Refraction settings control how much reflection contributes for different view angles.
 
 The base reflection comes from a one of these sources:
 
@@ -230,7 +230,7 @@ The system does not support cross blending of multiple scripts.
 
 ## Underwater
 
-*Crest* supports seamless transitions above/below water. This is demonstrated in the *main.unity* scene in the example content. The ocean in this scene uses the material *Ocean-Underwater.mat* which enables rendering the underside of the surface, and has the prefab *UnderWaterCurtainGeom* parented to the camera which renders the underwater effect. It also has the prefab *UnderWaterMeniscus* parented which renders a subtle line at the intersection between the camera lens and the water to visually help the transition.
+*Crest* supports seamless transitions above/below water. This is demonstrated in the *main.unity* scene in the example content. The ocean in this scene uses the material *Ocean-Underwater.mat* which enables rendering the underside of the surface, and has the script *Underwater Camera* attached the camera which renders the underwater effect. This script has the *Ocean_Underwater_PostProcess* and *Ocean_Underwater_Mask* materials attached to it as well.
 
 ## Masking out surface
 
@@ -249,7 +249,7 @@ It is tricky to get pop free results for world space texturing. To make it work 
 * Set the size/scale of any world space textures to be a smaller power of 2. This way the texture tiles an integral number of times across the threshold, and when the origin moves no change in appearance is noticeable. This includes the following textures:
   * Normals - set the Normal Mapping Scale on the ocean material
   * Foam texture - set the Foam Scale on the ocean material
-  * Caustics - also should be a power of 2 scale, if caustics are visible when origin shifts happen 
+  * Caustics - also should be a power of 2 scale, if caustics are visible when origin shifts happen
 
 By default the *FloatingOrigin* script will call *FindObjectsOfType()* for a few different component types, which is a notoriously expensive operation. It is possible to provide custom lists of components to the 'override' fields, either by hand or programmatically, to avoid searching the entire scene(s) for the components. Managing these lists at run-time is left to the user.
 
@@ -275,7 +275,7 @@ Setting up a boat with physics can be a dark art. The authors recommend duplicat
 * Set the boat dimension:
   * BoatProbes: Set the *Min Spatial Length* param to the width of the boat.
   * BoatAlignNormal: Set the boat Boat Width and Boat Length to the width and length of the boat.
-  * If, even after experimenting with the mass and drag, the boat is responding too much to small waves, increase these parameters (try doubling or quadrupling at first and then compensate). 
+  * If, even after experimenting with the mass and drag, the boat is responding too much to small waves, increase these parameters (try doubling or quadrupling at first and then compensate).
 * There are power settings for engine turning which also help to give a feeling of weight
 * The dynamic wave interaction is driven by the object in the boat hierarchy called *WaterObjectInteractionSphere*. It can be scaled to match the dimensions of the boat. The *Weight* param controls the strength of the interaction.
 

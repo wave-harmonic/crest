@@ -37,6 +37,7 @@ Shader "Crest/Underwater/Ocean Mask"
 			};
 
 			#include "../OceanHelpers.hlsl"
+			#include "MaskValues.hlsl"
 
 			uniform float _CrestTime;
 
@@ -87,11 +88,11 @@ Shader "Crest/Underwater/Ocean Mask"
 			{
 				if(IsUnderwater(facing, _ForceUnderwater))
 				{
-					return half4(2.0, 2.0, 2.0, 1.0);
+					return half4(UNDERWATER_MASK_WATER_SURFACE_BELOW, UNDERWATER_MASK_WATER_SURFACE_BELOW, UNDERWATER_MASK_WATER_SURFACE_BELOW, 1.0);
 				}
 				else
 				{
-					return half4(1.0, 1.0, 1.0, 1.0);
+					return half4(UNDERWATER_MASK_WATER_SURFACE_ABOVE, UNDERWATER_MASK_WATER_SURFACE_ABOVE, UNDERWATER_MASK_WATER_SURFACE_ABOVE, 1.0);
 				}
 			}
 			ENDCG

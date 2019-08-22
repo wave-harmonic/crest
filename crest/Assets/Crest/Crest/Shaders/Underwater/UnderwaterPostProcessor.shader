@@ -1,4 +1,8 @@
-﻿Shader "Crest/Underwater/Post Processor"
+﻿// Crest Ocean System
+
+// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
+
+Shader "Crest/Underwater/Post Processor"
 {
 	SubShader
 	{
@@ -33,6 +37,7 @@
 			half3 _AmbientLighting;
 
 			#include "../OceanEmission.hlsl"
+			#include "MaskValues.hlsl"
 
 			float _OceanHeight;
 			float4x4 _InvViewProjection;
@@ -124,8 +129,8 @@
 				{
 					int mask = tex2D(_MaskTex, input.uv);
 					const float oceanDepth01 = tex2D(_MaskDepthTex, input.uv);
-					isOceanSurface = mask != 0 && (sceneZ01 < oceanDepth01);
-					isUnderwater = mask == 2 || (isBelowHorizon && mask != 1);
+					isOceanSurface = mask != UNDERWATER_MASK_NO_MASK && (sceneZ01 < oceanDepth01);
+					isUnderwater = mask == UNDERWATER_MASK_WATER_SURFACE_BELOW || (isBelowHorizon && mask != UNDERWATER_MASK_WATER_SURFACE_ABOVE);
 					sceneZ01 = isOceanSurface ? oceanDepth01 : sceneZ01;
 				}
 #if _DEBUG_VIEW_OCEAN_MASK
@@ -136,7 +141,7 @@
 				}
 				else
 				{
-					return float4(sceneColour * float3(mask == 1, mask == 2, 0.0), 1.0);
+					return float4(sceneColour * float3(mask == UNDERWATER_MASK_WATER_SURFACE_ABOVE, mask == UNDERWATER_MASK_WATER_SURFACE_BELOW, 0.0), 1.0);
 				}
 #else
 				if(isUnderwater)

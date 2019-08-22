@@ -37,7 +37,7 @@ Shader "Crest/Underwater/Ocean Mask"
 			};
 
 			#include "../OceanHelpers.hlsl"
-			#include "MaskValues.hlsl"
+			#include "UnderwaterMaskValues.hlsl"
 
 			uniform float _CrestTime;
 

@@ -37,7 +37,7 @@ Shader "Crest/Underwater/Post Processor"
 			half3 _AmbientLighting;
 
 			#include "../OceanEmission.hlsl"
-			#include "MaskValues.hlsl"
+			#include "UnderwaterMaskValues.hlsl"
 
 			float _OceanHeight;
 			float4x4 _InvViewProjection;

@@ -89,10 +89,9 @@ namespace Crest
                 return;
             }
 
-            if (_underwaterPostProcessorMaterial != null)
-            {
-                _underwaterPostProcessorMaterialWrapper = new PropertyWrapperMaterial(_underwaterPostProcessorMaterial);
-            }
+            // Stop the material from being saved on-edits at runtime
+            _underwaterPostProcessorMaterial = new Material(_underwaterPostProcessorMaterial);
+            _underwaterPostProcessorMaterialWrapper = new PropertyWrapperMaterial(_underwaterPostProcessorMaterial);
 
             _oceanChunksToRender = new List<Renderer>(OceanBuilder.GetChunkCount);
             _oceanChunksToRenderCount = 0;
@@ -139,7 +138,6 @@ namespace Crest
             // Get all ocean chunks and render them using cmd buffer, but with
             _commandBuffer.SetRenderTarget(_textureMask.colorBuffer, _depthBuffer.depthBuffer);
             _commandBuffer.ClearRenderTarget(true, true, Color.black);
-            _oceanMaskMaterial.CopyPropertiesFromMaterial(OceanRenderer.Instance.OceanMaterial);
             _commandBuffer.SetViewProjectionMatrices(_mainCamera.worldToCameraMatrix, _mainCamera.projectionMatrix);
             for (int oceanChunkIndex = 0; oceanChunkIndex < _oceanChunksToRenderCount; oceanChunkIndex++)
             {

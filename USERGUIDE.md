@@ -230,7 +230,7 @@ The system does not support cross blending of multiple scripts.
 
 ## Underwater
 
-*Crest* supports seamless transitions above/below water. This is demonstrated in the *main.unity* scene in the example content. The ocean in this scene uses the material *Ocean-Underwater.mat* which enables rendering the underside of the surface, and has the script *Underwater Camera* attached the camera which renders the underwater effect. This script has the *Ocean_Underwater_PostProcess* and *Ocean_Underwater_Mask* materials attached to it as well.
+*Crest* supports seamless transitions above/below water. This is demonstrated in the *main.unity* scene in the example content. The ocean in this scene uses the material *Ocean-Underwater.mat* which enables rendering the underside of the surface, and has the script *Underwater Camera* attached the camera which renders the underwater effect. This script has the *Ocean_Underwater_PostProcess* and *Ocean_Underwater_Mask* materials automatically attached to it as well.
 
 ## Masking out surface
 

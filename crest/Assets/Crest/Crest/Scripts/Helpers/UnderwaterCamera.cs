@@ -135,9 +135,9 @@ namespace Crest
                 _depthBuffer.Create();
             }
 
-            // Get all ocean chunks and render them using cmd buffer, but with
+            // Get all ocean chunks and render them using cmd buffer, but with mask shader
             _commandBuffer.SetRenderTarget(_textureMask.colorBuffer, _depthBuffer.depthBuffer);
-            _commandBuffer.ClearRenderTarget(true, true, Color.black);
+            _commandBuffer.ClearRenderTarget(true, true, Color.white);
             _commandBuffer.SetViewProjectionMatrices(_mainCamera.worldToCameraMatrix, _mainCamera.projectionMatrix);
             for (int oceanChunkIndex = 0; oceanChunkIndex < _oceanChunksToRenderCount; oceanChunkIndex++)
             {

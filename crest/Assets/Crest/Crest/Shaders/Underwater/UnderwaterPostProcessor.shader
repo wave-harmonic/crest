@@ -126,9 +126,10 @@ Shader "Crest/Underwater/Post Processor"
 				float sceneZ01 = tex2D(_CameraDepthTexture, input.uv).x;
 				bool isUnderwater = false;
 				bool isOceanSurface = false;
-				int mask;
+				int mask; float maskf;
 				{
-					mask = (int)tex2D(_MaskTex, input.uv).x;
+					maskf = tex2D(_MaskTex, input.uv).x;
+					mask = (int)maskf;
 					const float oceanDepth01 = tex2D(_MaskDepthTex, input.uv);
 					isOceanSurface = mask != UNDERWATER_MASK_NO_MASK && (sceneZ01 < oceanDepth01);
 					isUnderwater = mask == UNDERWATER_MASK_WATER_SURFACE_BELOW || (isBelowHorizon && mask != UNDERWATER_MASK_WATER_SURFACE_ABOVE);
@@ -137,19 +138,77 @@ Shader "Crest/Underwater/Post Processor"
 
 				float wt = 1.0;
 				float wt1 = 0.8, wt2 = 0.6, wt3 = 0.8;
-				// We want to show a meniscus on the following transitions:
-				// ? -> 2 : Transitioning to underwater mask from above water
-				// 1 -> ? : Transitioning from water mask to below water
-				if (mask <= 1)
+				//// We want to show a meniscus on the following transitions:
+				//// ? -> 2 : Transitioning to underwater mask from above water
+				//// 1 -> ? : Transitioning from water mask to below water
+				//if (mask <= 1)
+				//{
+				//	float4 dy = float4(0.0, 1.0, 2.0, 3.0) / _ScreenParams.y;
+				//	int mask1 = (int)tex2D(_MaskTex, input.uv - dy.xy).x;
+				//	int mask2 = (int)tex2D(_MaskTex, input.uv - dy.xz).x;
+				//	int mask3 = (int)tex2D(_MaskTex, input.uv - dy.xw).x;
+				//	/**/ if ((mask1 != mask) && ((mask1 == UNDERWATER_MASK_WATER_SURFACE_BELOW) || (mask == UNDERWATER_MASK_WATER_SURFACE_ABOVE))) wt *= wt1;
+				//	else if ((mask2 != mask) && ((mask2 == UNDERWATER_MASK_WATER_SURFACE_BELOW) || (mask == UNDERWATER_MASK_WATER_SURFACE_ABOVE))) wt *= wt2;
+				//	else if ((mask3 != mask) && ((mask3 == UNDERWATER_MASK_WATER_SURFACE_BELOW) || (mask == UNDERWATER_MASK_WATER_SURFACE_ABOVE))) wt *= wt3;
+				//}
+
+
+				//// 0 remapped to 1
+				//// 1 remapped to 0
+				//if (mask == 1)
+				//{
+				//	float4 dy = float4(0.0, 1.0, 2.0, 3.0) / _ScreenParams.y;
+				//	/**/ if ((int)tex2D(_MaskTex, input.uv - dy.xy).x == 2) wt *= wt1;
+				//	else if ((int)tex2D(_MaskTex, input.uv - dy.xz).x == 2) wt *= wt2;
+				//	else if ((int)tex2D(_MaskTex, input.uv - dy.xw).x == 2) wt *= wt3;
+				//}
+				//else if (mask == 0)
+				//{
+				//	float4 dy = float4(0.0, 1.0, 2.0, 3.0) / _ScreenParams.y;
+				//	/**/ if ((int)tex2D(_MaskTex, input.uv - dy.xy).x != mask) wt *= wt1;
+				//	else if ((int)tex2D(_MaskTex, input.uv - dy.xz).x != mask) wt *= wt2;
+				//	else if ((int)tex2D(_MaskTex, input.uv - dy.xw).x != mask) wt *= wt3;
+				//}
+
+				// check if maskA + 2 - maskB <= 1
+				// check if maskA + 2 - maskB <= 1 // could move across!
+/*
+				if (maskf <= 1.0)
 				{
+					float maskA2 = maskf + 2.0;
+
 					float4 dy = float4(0.0, 1.0, 2.0, 3.0) / _ScreenParams.y;
-					int mask1 = (int)tex2D(_MaskTex, input.uv - dy.xy).x;
-					int mask2 = (int)tex2D(_MaskTex, input.uv - dy.xz).x;
-					int mask3 = (int)tex2D(_MaskTex, input.uv - dy.xw).x;
-					/**/ if ((mask1 != mask) && ((mask1 == UNDERWATER_MASK_WATER_SURFACE_BELOW) || (mask == UNDERWATER_MASK_WATER_SURFACE_ABOVE))) wt *= wt1;
-					else if ((mask2 != mask) && ((mask2 == UNDERWATER_MASK_WATER_SURFACE_BELOW) || (mask == UNDERWATER_MASK_WATER_SURFACE_ABOVE))) wt *= wt2;
-					else if ((mask3 != mask) && ((mask3 == UNDERWATER_MASK_WATER_SURFACE_BELOW) || (mask == UNDERWATER_MASK_WATER_SURFACE_ABOVE))) wt *= wt3;
+					wt *= (maskA2 - tex2D(_MaskTex, input.uv - dy.xy).x <= 1.0) ? wt1 : 1.0;
+					wt *= (maskA2 - tex2D(_MaskTex, input.uv - dy.xz).x <= 1.0) ? wt2 : 1.0;
+					wt *= (maskA2 - tex2D(_MaskTex, input.uv - dy.xw).x <= 1.0) ? wt3 : 1.0;
 				}
+*/
+
+				//if (maskf <= 1.0)
+				{
+					float4 dy = float4(0.0, -1.0, -2.0, -3.0) / _ScreenParams.y;
+					wt *= (tex2D(_MaskTex, input.uv + dy.xy).x > maskf) ? wt1 : 1.0;
+					wt *= (tex2D(_MaskTex, input.uv + dy.xz).x > maskf) ? wt2 : 1.0;
+					wt *= (tex2D(_MaskTex, input.uv + dy.xw).x > maskf) ? wt3 : 1.0;
+				}
+
+				//// 0 remapped to 1
+				//// 1 remapped to 0
+				//if (mask == 1)
+				//{
+				//	float4 dy = float4(0.0, 1.0, 2.0, 3.0) / _ScreenParams.y;
+				//	/**/ if ((int)tex2D(_MaskTex, input.uv - dy.xy).x == 2) wt *= wt1;
+				//	else if ((int)tex2D(_MaskTex, input.uv - dy.xz).x == 2) wt *= wt2;
+				//	else if ((int)tex2D(_MaskTex, input.uv - dy.xw).x == 2) wt *= wt3;
+				//}
+				//else if (mask == 0)
+				//{
+				//	float4 dy = float4(0.0, 1.0, 2.0, 3.0) / _ScreenParams.y;
+				//	/**/ if ((int)tex2D(_MaskTex, input.uv - dy.xy).x != mask) wt *= wt1;
+				//	else if ((int)tex2D(_MaskTex, input.uv - dy.xz).x != mask) wt *= wt2;
+				//	else if ((int)tex2D(_MaskTex, input.uv - dy.xw).x != mask) wt *= wt3;
+				//}
+
 
 #if _DEBUG_VIEW_OCEAN_MASK
 				if(!isOceanSurface)

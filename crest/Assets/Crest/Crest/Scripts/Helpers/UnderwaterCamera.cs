@@ -139,10 +139,10 @@ namespace Crest
             _commandBuffer.SetRenderTarget(_textureMask.colorBuffer, _depthBuffer.depthBuffer);
             _commandBuffer.ClearRenderTarget(true, true, Color.white);
             _commandBuffer.SetViewProjectionMatrices(_mainCamera.worldToCameraMatrix, _mainCamera.projectionMatrix);
+
             for (int oceanChunkIndex = 0; oceanChunkIndex < _oceanChunksToRenderCount; oceanChunkIndex++)
             {
-                Renderer renderer = _oceanChunksToRender[oceanChunkIndex];
-                _commandBuffer.DrawRenderer(renderer, _oceanMaskMaterial);
+                _commandBuffer.DrawRenderer(_oceanChunksToRender[oceanChunkIndex], _oceanMaskMaterial);
             }
             _oceanChunksToRenderCount = 0;
 
@@ -192,6 +192,7 @@ namespace Crest
                     _underwaterPostProcessorMaterial.DisableKeyword(_FULL_SCREEN_EFFECT);
                 }
             }
+
             _underwaterPostProcessorMaterial.SetTexture(sp_MaskTex, _textureMask);
             _underwaterPostProcessorMaterial.SetTexture(sp_MaskDepthTex, _depthBuffer);
 
@@ -211,5 +212,4 @@ namespace Crest
             Graphics.SetRenderTarget(target);
         }
     }
-
 }

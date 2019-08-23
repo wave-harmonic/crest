@@ -6,6 +6,7 @@ Shader "Crest/Underwater/Ocean Mask"
 {
 	SubShader
 	{
+		// TODO - I think this should go
 		// Always - Tell Unity not to apply any lighting
 		Tags { "LightMode"="Always" "IgnoreProjector"="True" "RenderType"="Opaque" }
 
@@ -20,6 +21,7 @@ Shader "Crest/Underwater/Ocean Mask"
 			#pragma fragment Frag
 			// for VFACE
 			#pragma target 3.0
+			// TODO i think this should go
 			#pragma multi_compile_fog
 
 			#include "UnityCG.cginc"
@@ -61,26 +63,26 @@ Shader "Crest/Underwater/Ocean Mask"
 				SnapAndTransitionVertLayout(_InstanceData.x, worldPos, lodAlpha);
 
 				// Calculate sample weights. params.z allows shape to be faded out (used on last lod to support pop-less scale transitions)
-				const float wt_smallerLod = (1. - lodAlpha) * _LD_Params[_LD_SliceIndex].z;
-				const float wt_biggerLod = (1. - wt_smallerLod) * _LD_Params[_LD_SliceIndex + 1].z;
+				const float wt_smallerLod = (1.0 - lodAlpha) * _LD_Params[_LD_SliceIndex].z;
+				const float wt_biggerLod = (1.0 - wt_smallerLod) * _LD_Params[_LD_SliceIndex + 1].z;
 				// Sample displacement textures, add results to current world pos / normal / foam
 				const float2 positionWS_XZ_before = worldPos.xz;
 
 				// Data that needs to be sampled at the undisplaced position
 				if (wt_smallerLod > 0.001)
 				{
-					half sss = 0.;
+					half sss = 0.0;
 					const float3 uv_slice_smallerLod = WorldToUV(positionWS_XZ_before);
 					SampleDisplacements(_LD_TexArray_AnimatedWaves, uv_slice_smallerLod, wt_smallerLod, worldPos, sss);
 				}
 				if (wt_biggerLod > 0.001)
 				{
-					half sss = 0.;
+					half sss = 0.0;
 					const float3 uv_slice_biggerLod = WorldToUV_BiggerLod(positionWS_XZ_before);
 					SampleDisplacements(_LD_TexArray_AnimatedWaves, uv_slice_biggerLod, wt_biggerLod, worldPos, sss);
 				}
 
-				output.positionCS = mul(UNITY_MATRIX_VP, float4(worldPos, 1.));
+				output.positionCS = mul(UNITY_MATRIX_VP, float4(worldPos, 1.0));
 				return output;
 			}
 

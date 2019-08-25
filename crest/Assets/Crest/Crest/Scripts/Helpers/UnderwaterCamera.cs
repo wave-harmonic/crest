@@ -38,8 +38,10 @@ namespace Crest
         private List<Renderer> _oceanChunksToRender;
         private int _oceanChunksToRenderCount;
 
-        private const string _FULL_SCREEN_EFFECT = "_FULL_SCREEN_EFFECT";
-        private const string _DEBUG_VIEW_OCEAN_MASK = "_DEBUG_VIEW_OCEAN_MASK";
+        // This matches const on shader side
+        private const float UNDERWATER_MASK_NO_MASK = 1.0f;
+        private const string FULL_SCREEN_EFFECT = "_FULL_SCREEN_EFFECT";
+        private const string DEBUG_VIEW_OCEAN_MASK = "_DEBUG_VIEW_OCEAN_MASK";
 
 
         public void RegisterOceanChunkToRender(Renderer _oceanChunk)
@@ -137,7 +139,7 @@ namespace Crest
 
             // Get all ocean chunks and render them using cmd buffer, but with mask shader
             _commandBuffer.SetRenderTarget(_textureMask.colorBuffer, _depthBuffer.depthBuffer);
-            _commandBuffer.ClearRenderTarget(true, true, Color.white);
+            _commandBuffer.ClearRenderTarget(true, true, Color.white * UNDERWATER_MASK_NO_MASK);
             _commandBuffer.SetViewProjectionMatrices(_mainCamera.worldToCameraMatrix, _mainCamera.projectionMatrix);
 
             for (int oceanChunkIndex = 0; oceanChunkIndex < _oceanChunksToRenderCount; oceanChunkIndex++)
@@ -150,11 +152,11 @@ namespace Crest
 
             if (_viewOceanMask)
             {
-                _underwaterPostProcessorMaterial.EnableKeyword(_DEBUG_VIEW_OCEAN_MASK);
+                _underwaterPostProcessorMaterial.EnableKeyword(DEBUG_VIEW_OCEAN_MASK);
             }
             else
             {
-                _underwaterPostProcessorMaterial.DisableKeyword(_DEBUG_VIEW_OCEAN_MASK);
+                _underwaterPostProcessorMaterial.DisableKeyword(DEBUG_VIEW_OCEAN_MASK);
             }
 
             _underwaterPostProcessorMaterial.SetFloat(OceanRenderer.sp_LD_SliceIndex, 0);
@@ -185,11 +187,11 @@ namespace Crest
                 _underwaterPostProcessorMaterial.SetFloat(sp_OceanHeight, oceanHeight);
                 if (forceFullShader)
                 {
-                    _underwaterPostProcessorMaterial.EnableKeyword(_FULL_SCREEN_EFFECT);
+                    _underwaterPostProcessorMaterial.EnableKeyword(FULL_SCREEN_EFFECT);
                 }
                 else
                 {
-                    _underwaterPostProcessorMaterial.DisableKeyword(_FULL_SCREEN_EFFECT);
+                    _underwaterPostProcessorMaterial.DisableKeyword(FULL_SCREEN_EFFECT);
                 }
             }
 

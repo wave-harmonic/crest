@@ -4,6 +4,7 @@
 
 #pragma kernel ClearToBlack
 
+#include "../OceanConstants.hlsl"
 #include "../OceanLODData.hlsl"
 
 RWTexture2DArray<float> _LD_TexArray_Target;

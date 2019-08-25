@@ -31,13 +31,14 @@ Shader "Crest/Underwater/Post Processor"
 
 			#include "UnityCG.cginc"
 			#include "Lighting.cginc"
+
+			#include "../OceanConstants.hlsl"
 			#include "../OceanLODData.hlsl"
 
 			float _CrestTime;
 			half3 _AmbientLighting;
 
 			#include "../OceanEmission.hlsl"
-			#include "UnderwaterMaskValues.hlsl"
 
 			float _OceanHeight;
 			float4x4 _InvViewProjection;

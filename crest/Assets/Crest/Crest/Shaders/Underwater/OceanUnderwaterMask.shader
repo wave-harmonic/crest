@@ -38,8 +38,8 @@ Shader "Crest/Underwater/Ocean Mask"
 				float4 positionCS : SV_POSITION;
 			};
 
+			#include "../OceanConstants.hlsl"
 			#include "../OceanHelpers.hlsl"
-			#include "UnderwaterMaskValues.hlsl"
 
 			uniform float _CrestTime;
 

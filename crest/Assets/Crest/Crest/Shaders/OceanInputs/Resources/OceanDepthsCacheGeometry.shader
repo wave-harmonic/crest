@@ -26,6 +26,7 @@ Shader "Crest/Inputs/Depth/Cached Depths Geometry"
 
 			#define CREST_OCEAN_DEPTHS_GEOM_SHADER_ON
 
+			#include "../../OceanConstants.hlsl"
 			#include "../../OceanLODData.hlsl"
 
 			sampler2D _MainTex;

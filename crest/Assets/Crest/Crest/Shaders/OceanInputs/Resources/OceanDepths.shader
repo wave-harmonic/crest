@@ -16,6 +16,8 @@ Shader "Crest/Inputs/Depth/Ocean Depth From Geometry"
 			#pragma fragment Frag
 
 			#include "UnityCG.cginc"
+
+			#include "../../OceanConstants.hlsl"
 			#include "../../OceanLODData.hlsl"
 
 			struct Attributes

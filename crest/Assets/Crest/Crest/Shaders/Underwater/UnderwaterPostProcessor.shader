@@ -79,7 +79,7 @@ Shader "Crest/Underwater/Post Processor"
 				float3 surfaceAboveCamPosWorld = 0.0;
 				half3 scatterCol = 0.0;
 				{
-					half sss = 0.;
+					half sss = 0.0;
 					const float3 uv_slice = WorldToUV(_WorldSpaceCameraPos.xz);
 					SampleDisplacements(_LD_TexArray_AnimatedWaves, uv_slice, 1.0, surfaceAboveCamPosWorld, sss);
 					surfaceAboveCamPosWorld.y += _OceanCenterPosWorld.y;

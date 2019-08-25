@@ -2,7 +2,7 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
-Shader "Crest/Underwater/Post Processor"
+Shader "Crest/Underwater/Post Process"
 {
 	SubShader
 	{

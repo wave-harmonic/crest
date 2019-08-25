@@ -4,7 +4,7 @@ MonoImporter:
   externalObjects: {}
   serializedVersion: 2
   defaultReferences:
-  - _underwaterPostProcessorMaterial: {fileID: 2100000, guid: 95ea0c2815f0aa798beeb370980c6614,
+  - _underwaterPostProcessMaterial: {fileID: 2100000, guid: 95ea0c2815f0aa798beeb370980c6614,
       type: 2}
   - _oceanMaskMaterial: {fileID: 2100000, guid: 2ddd9bab6a9ad7542a419bcaeff337a8,
       type: 2}

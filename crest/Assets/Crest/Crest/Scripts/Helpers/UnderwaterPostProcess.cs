@@ -4,6 +4,10 @@ using UnityEngine.Rendering;
 
 namespace Crest
 {
+    /// <summary>
+    /// Underwater Post Process. If a camera needs to go underwater it needs to have this script attached. This adds fullscreen passes and should
+    /// only be used if necessary. This effect disables itself when camera is not close to the water volume.
+    /// </summary>
     [RequireComponent(typeof(Camera))]
     public class UnderwaterPostProcess : MonoBehaviour
     {

@@ -13,22 +13,18 @@ namespace Crest
         static int sp_MaskDepthTex = Shader.PropertyToID("_MaskDepthTex");
         static int sp_InvViewProjection = Shader.PropertyToID("_InvViewProjection");
 
-        // TODO these should only be exposed as materials if the user is expected to want to tweak them? otherwise
-        // this script should just create materials by loading the shaders, as in animgerstnerwavebatched.cs
-        [Header("Materials")]
-        [Tooltip("Material used to render underwater fog in post-process."), SerializeField]
-        Material _underwaterPostProcessMaterial = null;
-        [Tooltip("Material used to re-render ocean to create a mask for underwater rendering."), SerializeField]
-        Material _oceanMaskMaterial = null;
-
-        [Header("Debug Options")]
-        public bool _viewOceanMask;
+        [Header("Debug Options"), SerializeField]
+        bool _viewOceanMask = false;
         // end public debug options
 
         private Camera _mainCamera;
         private RenderTexture _textureMask;
         private RenderTexture _depthBuffer;
         private CommandBuffer _commandBuffer;
+
+        private Material _oceanMaskMaterial = null;
+
+        private Material _underwaterPostProcessMaterial = null;
         private PropertyWrapperMaterial _underwaterPostProcessMaterialWrapper;
 
         // NOTE: We keep a list of ocean chunks to render for a given frame
@@ -42,6 +38,9 @@ namespace Crest
         private const float UNDERWATER_MASK_NO_MASK = 1.0f;
         private const string FULL_SCREEN_EFFECT = "_FULL_SCREEN_EFFECT";
         private const string DEBUG_VIEW_OCEAN_MASK = "_DEBUG_VIEW_OCEAN_MASK";
+
+        private const string SHADER_UNDERWATER = "Crest/Underwater/Post Process";
+        private const string SHADER_OCEAN_MASK = "Crest/Underwater/Ocean Mask";
 
 
         public void RegisterOceanChunkToRender(Renderer _oceanChunk)
@@ -57,21 +56,27 @@ namespace Crest
                 Debug.LogError("UnderwaterPostProcess must be attached to a camera", this);
                 return false;
             }
+
+            _underwaterPostProcessMaterial = new Material(Shader.Find(SHADER_UNDERWATER));
             if (_underwaterPostProcessMaterial == null)
             {
                 Debug.LogError("UnderwaterPostProcess expects to have a post processing material attached", this);
                 return false;
             }
+
+            _oceanMaskMaterial = new Material(Shader.Find(SHADER_OCEAN_MASK));
             if (_oceanMaskMaterial == null)
             {
                 Debug.LogError("UnderwaterPostProcess expects to have an ocean mask material attached", this);
                 return false;
             }
+
             if (!OceanRenderer.Instance.OceanMaterial.IsKeywordEnabled("_UNDERWATER_ON"))
             {
                 Debug.LogError("Underwater must be enabled on the ocean material for UnderwaterPostProcess to work", this);
                 return false;
             }
+
             return true;
         }
 
@@ -133,7 +138,7 @@ namespace Crest
             _commandBuffer.ClearRenderTarget(true, true, Color.white * UNDERWATER_MASK_NO_MASK);
             _commandBuffer.SetViewProjectionMatrices(_mainCamera.worldToCameraMatrix, _mainCamera.projectionMatrix);
 
-            foreach(var chunk in _oceanChunksToRender)
+            foreach (var chunk in _oceanChunksToRender)
             {
                 _commandBuffer.DrawRenderer(chunk, _oceanMaskMaterial);
             }

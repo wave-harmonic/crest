@@ -37,7 +37,6 @@ namespace Crest
         // be a leak if the OceanChunks are ever deleted. We don't expect this
         // to happen, so this approach should be fine for now.
         private List<Renderer> _oceanChunksToRender;
-        private int _oceanChunksToRenderCount;
 
         // This matches const on shader side
         private const float UNDERWATER_MASK_NO_MASK = 1.0f;
@@ -47,15 +46,7 @@ namespace Crest
 
         public void RegisterOceanChunkToRender(Renderer _oceanChunk)
         {
-            if (_oceanChunksToRenderCount >= _oceanChunksToRender.Count)
-            {
-                _oceanChunksToRender.Add(_oceanChunk);
-            }
-            else
-            {
-                _oceanChunksToRender[_oceanChunksToRenderCount] = _oceanChunk;
-            }
-            _oceanChunksToRenderCount = _oceanChunksToRenderCount + 1;
+            _oceanChunksToRender.Add(_oceanChunk);
         }
 
         private bool InitialisedCorrectly()
@@ -97,7 +88,6 @@ namespace Crest
             _underwaterPostProcessMaterialWrapper = new PropertyWrapperMaterial(_underwaterPostProcessMaterial);
 
             _oceanChunksToRender = new List<Renderer>(OceanBuilder.GetChunkCount);
-            _oceanChunksToRenderCount = 0;
         }
 
         void OnRenderImage(RenderTexture source, RenderTexture target)
@@ -119,7 +109,7 @@ namespace Crest
             if (GL.wireframe || definitelyAboveTheWater)
             {
                 Graphics.Blit(source, target);
-                _oceanChunksToRenderCount = 0;
+                _oceanChunksToRender.Clear();
                 return;
             }
 
@@ -143,11 +133,11 @@ namespace Crest
             _commandBuffer.ClearRenderTarget(true, true, Color.white * UNDERWATER_MASK_NO_MASK);
             _commandBuffer.SetViewProjectionMatrices(_mainCamera.worldToCameraMatrix, _mainCamera.projectionMatrix);
 
-            for (int oceanChunkIndex = 0; oceanChunkIndex < _oceanChunksToRenderCount; oceanChunkIndex++)
+            foreach(var chunk in _oceanChunksToRender)
             {
-                _commandBuffer.DrawRenderer(_oceanChunksToRender[oceanChunkIndex], _oceanMaskMaterial);
+                _commandBuffer.DrawRenderer(chunk, _oceanMaskMaterial);
             }
-            _oceanChunksToRenderCount = 0;
+            _oceanChunksToRender.Clear();
 
             _underwaterPostProcessMaterial.CopyPropertiesFromMaterial(OceanRenderer.Instance.OceanMaterial);
 

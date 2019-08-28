@@ -34,10 +34,21 @@ namespace Crest
 
         RenderTexture[] _waveBuffers;
 
-        const string ShaderName = "Hidden/Crest/Simulation/Combine Animated Wave LODs";
+        const string ShaderName = "ShapeCombine";
 
-        Material _combineMaterial;
-        PropertyWrapperMPB[] _combineProperties;
+        int krnl_ShapeCombine = -1;
+        int krnl_ShapeCombine_DISABLE_COMBINE = -1;
+        int krnl_ShapeCombine_FLOW_ON = -1;
+        int krnl_ShapeCombine_FLOW_ON_DISABLE_COMBINE = -1;
+        int krnl_ShapeCombine_DYNAMIC_WAVE_SIM_ON = -1;
+        int krnl_ShapeCombine_DYNAMIC_WAVE_SIM_ON_DISABLE_COMBINE = -1;
+        int krnl_ShapeCombine_FLOW_ON_DYNAMIC_WAVE_SIM_ON = -1;
+        int krnl_ShapeCombine_FLOW_ON_DYNAMIC_WAVE_SIM_ON_DISABLE_COMBINE = -1;
+
+        ComputeShader _combineShader;
+        PropertyWrapperCompute _combineProperties;
+
+        static int sp_LD_Texture_AnimatedWaves_Compute = Shader.PropertyToID("_LD_Texture_AnimatedWaves_Compute");
 
         public override void UseSettings(SimSettingsBase settings) { OceanRenderer.Instance._simSettingsAnimatedWaves = settings as SimSettingsAnimatedWaves; }
         public override SimSettingsBase CreateDefaultSettings()
@@ -50,12 +61,21 @@ namespace Crest
         protected override void InitData()
         {
             base.InitData();
-            _combineMaterial = new Material(Shader.Find(ShaderName));
-            _combineProperties = new PropertyWrapperMPB[OceanRenderer.Instance.CurrentLodCount];
-            for(int i = 0; i < _combineProperties.Length; i++)
-            {
-                _combineProperties[i] = new PropertyWrapperMPB();
-            }
+
+            // Setup the RenderTexture and compute shader for combining
+            // different animated wave LODs. As we use a single texture array
+            // for all LODs, we employ a compute shader as only they can
+            // read and write to the same texture.
+            _combineShader = Resources.Load<ComputeShader>(ShaderName);
+            krnl_ShapeCombine = _combineShader.FindKernel("ShapeCombine");
+            krnl_ShapeCombine_DISABLE_COMBINE = _combineShader.FindKernel("ShapeCombine_DISABLE_COMBINE");
+            krnl_ShapeCombine_FLOW_ON = _combineShader.FindKernel("ShapeCombine_FLOW_ON");
+            krnl_ShapeCombine_FLOW_ON_DISABLE_COMBINE = _combineShader.FindKernel("ShapeCombine_FLOW_ON_DISABLE_COMBINE");
+            krnl_ShapeCombine_DYNAMIC_WAVE_SIM_ON = _combineShader.FindKernel("ShapeCombine_DYNAMIC_WAVE_SIM_ON");
+            krnl_ShapeCombine_DYNAMIC_WAVE_SIM_ON_DISABLE_COMBINE = _combineShader.FindKernel("ShapeCombine_DYNAMIC_WAVE_SIM_ON_DISABLE_COMBINE");
+            krnl_ShapeCombine_FLOW_ON_DYNAMIC_WAVE_SIM_ON = _combineShader.FindKernel("ShapeCombine_FLOW_ON_DYNAMIC_WAVE_SIM_ON");
+            krnl_ShapeCombine_FLOW_ON_DYNAMIC_WAVE_SIM_ON_DISABLE_COMBINE = _combineShader.FindKernel("ShapeCombine_FLOW_ON_DYNAMIC_WAVE_SIM_ON_DISABLE_COMBINE");
+            _combineProperties = new PropertyWrapperCompute();
 
             int resolution = OceanRenderer.Instance.LodDataResolution;
             var desc = new RenderTextureDescriptor(resolution, resolution, TextureFormat, 0);
@@ -146,10 +166,28 @@ namespace Crest
                 SubmitDrawsFiltered(lodIdx, buf, _filterWavelength);
             }
 
-
-
-            bool isFlowOn = OceanRenderer.Instance._lodDataFlow != null;
-            bool isDynWavesOn = OceanRenderer.Instance._lodDataDynWaves != null;
+            int combineShaderKernel = krnl_ShapeCombine;
+            int combineShaderKernel_lastLOD = krnl_ShapeCombine_DISABLE_COMBINE;
+            {
+                bool isFlowOn = OceanRenderer.Instance._lodDataFlow != null;
+                bool isDynWavesOn = OceanRenderer.Instance._lodDataDynWaves != null;
+                // set the shader kernels that we will use.
+                if (isFlowOn && isDynWavesOn)
+                {
+                    combineShaderKernel = krnl_ShapeCombine_FLOW_ON_DYNAMIC_WAVE_SIM_ON;
+                    combineShaderKernel_lastLOD = krnl_ShapeCombine_FLOW_ON_DYNAMIC_WAVE_SIM_ON_DISABLE_COMBINE;
+                }
+                else if (isFlowOn)
+                {
+                    combineShaderKernel = krnl_ShapeCombine_FLOW_ON;
+                    combineShaderKernel_lastLOD = krnl_ShapeCombine_FLOW_ON_DISABLE_COMBINE;
+                }
+                else if (isDynWavesOn)
+                {
+                    combineShaderKernel = krnl_ShapeCombine_DYNAMIC_WAVE_SIM_ON;
+                    combineShaderKernel_lastLOD = krnl_ShapeCombine_DYNAMIC_WAVE_SIM_ON_DISABLE_COMBINE;
+                }
+            }
 
             {
                 var lt = OceanRenderer.Instance._lodTransform;
@@ -162,42 +200,57 @@ namespace Crest
             // combine waves
             for (int lodIdx = lodCount - 1; lodIdx >= 0; lodIdx--)
             {
-                BindWaveBuffer(_combineProperties[lodIdx], lodIdx);
-                BindOceanParams(_combineProperties[lodIdx]);
-                BindResultTexture(_combineProperties[lodIdx], lodIdx);
+                int selectedShaderKernel;
+                if (lodIdx < lodCount - 1 && _shapeCombinePass)
+                {
+                    selectedShaderKernel = combineShaderKernel;
+                }
+                else
+                {
+                    selectedShaderKernel = combineShaderKernel_lastLOD;
+                }
+
+                _combineProperties.Initialise(buf, _combineShader, selectedShaderKernel);
+
+                BindWaveBuffer(_combineProperties, lodIdx);
+                BindOceanParams(_combineProperties);
+                BindResultTexture(_combineProperties, lodIdx);
 
                 // dynamic waves
                 if (OceanRenderer.Instance._lodDataDynWaves)
                 {
-                    OceanRenderer.Instance._lodDataDynWaves.BindCopySettings(_combineProperties[lodIdx]);
-                    OceanRenderer.Instance._lodDataDynWaves.BindResultTexture(_combineProperties[lodIdx], lodIdx);
+                    OceanRenderer.Instance._lodDataDynWaves.BindCopySettings(_combineProperties);
+                    OceanRenderer.Instance._lodDataDynWaves.BindResultTexture(_combineProperties, lodIdx);
                 }
                 else
                 {
-                    LodDataMgrDynWaves.BindNull(_combineProperties[lodIdx]);
+                    LodDataMgrDynWaves.BindNull(_combineProperties);
                 }
 
                 // flow
                 if (OceanRenderer.Instance._lodDataFlow)
                 {
-                    OceanRenderer.Instance._lodDataFlow.BindResultTexture(_combineProperties[lodIdx], lodIdx);
+                    OceanRenderer.Instance._lodDataFlow.BindResultTexture(_combineProperties, lodIdx);
                 }
                 else
                 {
-                    LodDataMgrFlow.BindNull(_combineProperties[lodIdx]);
+                    LodDataMgrFlow.BindNull(_combineProperties);
                 }
 
+                // Set the animated waves texture where the results will be combined.
+                _combineProperties.SetTexture(
+                    sp_LD_Texture_AnimatedWaves_Compute,
+                    DataTexture(lodIdx)
+                );
 
-                if (lodIdx < lodCount - 1 && _shapeCombinePass)
+                if(selectedShaderKernel == combineShaderKernel)
                 {
-                    BindResultTexture(_combineProperties[lodIdx], lodIdx + 1, LodIdType.BiggerLod);
+                    BindResultTexture(_combineProperties, lodIdx + 1, LodIdType.BiggerLod);
                 }
 
-                _combineProperties[lodIdx].SetFloat(OceanRenderer.sp_LD_SliceIndex, lodIdx);
 
-
-                buf.SetRenderTarget(DataTexture(lodIdx));
-                buf.DrawProcedural(Matrix4x4.identity, _combineMaterial, 0, MeshTopology.Triangles, 3, 1, _combineProperties[lodIdx].materialPropertyBlock);
+                _combineProperties.SetFloat(OceanRenderer.sp_LD_SliceIndex, lodIdx);
+                _combineProperties.DispatchShader();
             }
 
             // lod-independent data

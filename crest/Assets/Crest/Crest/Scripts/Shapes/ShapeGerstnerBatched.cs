@@ -51,33 +51,33 @@ namespace Crest
             {
                 if (Enabled && weight > 0f)
                 {
-                    PropertyWrapperMaterial mat = GetMaterial(isTransition);
-                    mat.SetVectorArray(sp_TwoPiOverWavelengths, _twoPiOverWavelengthsBatch);
-                    mat.SetVectorArray(sp_Amplitudes, _ampsBatch);
-                    mat.SetVectorArray(sp_WaveDirX, _waveDirXBatch);
-                    mat.SetVectorArray(sp_WaveDirZ, _waveDirZBatch);
-                    mat.SetVectorArray(sp_Phases, _phasesBatch);
-                    mat.SetVectorArray(sp_ChopAmps, _chopAmpsBatch);
-                    mat.SetFloat(sp_NumInBatch, _numInBatch);
-                    mat.SetFloat(sp_AttenuationInShallows, OceanRenderer.Instance._simSettingsAnimatedWaves.AttenuationInShallows);
+                    PropertyWrapperMaterial properties = GetMaterial(isTransition);
+                    properties.SetVectorArray(sp_TwoPiOverWavelengths, _twoPiOverWavelengthsBatch);
+                    properties.SetVectorArray(sp_Amplitudes, _ampsBatch);
+                    properties.SetVectorArray(sp_WaveDirX, _waveDirXBatch);
+                    properties.SetVectorArray(sp_WaveDirZ, _waveDirZBatch);
+                    properties.SetVectorArray(sp_Phases, _phasesBatch);
+                    properties.SetVectorArray(sp_ChopAmps, _chopAmpsBatch);
+                    properties.SetFloat(sp_NumInBatch, _numInBatch);
+                    properties.SetFloat(sp_AttenuationInShallows, OceanRenderer.Instance._simSettingsAnimatedWaves.AttenuationInShallows);
 
                     int numVecs = (_numInBatch + 3) / 4;
-                    mat.SetInt(sp_NumWaveVecs, numVecs);
-                    mat.SetFloat(OceanRenderer.sp_LD_SliceIndex, _lodIdx - isTransition);
-                    OceanRenderer.Instance._lodDataAnimWaves.BindResultData(mat);
+                    properties.SetInt(sp_NumWaveVecs, numVecs);
+                    properties.SetFloat(OceanRenderer.sp_LD_SliceIndex, _lodIdx - isTransition);
+                    OceanRenderer.Instance._lodDataAnimWaves.BindResultData(properties);
 
                     if (OceanRenderer.Instance._lodDataSeaDepths)
                     {
-                        OceanRenderer.Instance._lodDataSeaDepths.BindResultData(mat, false);
+                        OceanRenderer.Instance._lodDataSeaDepths.BindResultData(properties, false);
                     }
 
                     // TODO(TRC): Work out how to handle direct towards point shenanigans
                     // if (_directTowardsPoint)
                     // {
-                    //     mat.SetVector(sp_TargetPointData, new Vector4(_pointPositionXZ.x, _pointPositionXZ.y, _pointRadii.x, _pointRadii.y));
+                    //     properties.SetVector(sp_TargetPointData, new Vector4(_pointPositionXZ.x, _pointPositionXZ.y, _pointRadii.x, _pointRadii.y));
                     // }
-                    mat.SetFloat(RegisterLodDataInputBase.sp_Weight, weight);
-                    buf.DrawMesh(RasterMesh(), Matrix4x4.identity, mat.material);
+                    properties.SetFloat(RegisterLodDataInputBase.sp_Weight, weight);
+                    buf.DrawMesh(RasterMesh(), Matrix4x4.identity, properties.material);
                 }
             }
 

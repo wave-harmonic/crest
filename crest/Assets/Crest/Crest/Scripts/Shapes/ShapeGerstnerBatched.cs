@@ -56,6 +56,16 @@ namespace Crest
                     buf.DrawMesh(RasterMesh(), Matrix4x4.identity, mat.material);
                 }
             }
+
+            // TODO(TRC): Cleanup allocation and initialisation
+            public int _lodIdx;
+            public int _numInBatch;
+            public Vector4[] _twoPiOverWavelengthsBatch = new Vector4[BATCH_SIZE / 4];
+            public Vector4[] _ampsBatch = new Vector4[BATCH_SIZE / 4];
+            public Vector4[] _waveDirXBatch = new Vector4[BATCH_SIZE / 4];
+            public Vector4[] _waveDirZBatch = new Vector4[BATCH_SIZE / 4];
+            public Vector4[] _phasesBatch = new Vector4[BATCH_SIZE / 4];
+            public Vector4[] _chopAmpsBatch = new Vector4[BATCH_SIZE / 4];
         }
 
         GerstnerBatch[] _batches = null;
@@ -109,17 +119,6 @@ namespace Crest
             NoStatus,
             NotAttached,
             Attached
-        }
-
-        // scratch data used by batching code
-        struct UpdateBatchScratchData
-        {
-            public static Vector4[] _twoPiOverWavelengthsBatch = new Vector4[BATCH_SIZE / 4];
-            public static Vector4[] _ampsBatch = new Vector4[BATCH_SIZE / 4];
-            public static Vector4[] _waveDirXBatch = new Vector4[BATCH_SIZE / 4];
-            public static Vector4[] _waveDirZBatch = new Vector4[BATCH_SIZE / 4];
-            public static Vector4[] _phasesBatch = new Vector4[BATCH_SIZE / 4];
-            public static Vector4[] _chopAmpsBatch = new Vector4[BATCH_SIZE / 4];
         }
 
         void Start()
@@ -282,9 +281,10 @@ namespace Crest
         void UpdateBatch(int lodIdx, int firstComponent, int lastComponentNonInc, GerstnerBatch batch)
         {
             batch.Enabled = false;
+            batch._lodIdx = lodIdx;
 
             int numComponents = lastComponentNonInc - firstComponent;
-            int numInBatch = 0;
+            batch._numInBatch = 0;
             int dropped = 0;
 
             float twopi = 2f * Mathf.PI;
@@ -303,20 +303,20 @@ namespace Crest
 
                 if (amp >= 0.001f)
                 {
-                    if (numInBatch < BATCH_SIZE)
+                    if (batch._numInBatch < BATCH_SIZE)
                     {
-                        int vi = numInBatch / 4;
-                        int ei = numInBatch - vi * 4;
+                        int vi = batch._numInBatch / 4;
+                        int ei = batch._numInBatch - vi * 4;
 
-                        UpdateBatchScratchData._twoPiOverWavelengthsBatch[vi][ei] = 2f * Mathf.PI / wl;
-                        UpdateBatchScratchData._ampsBatch[vi][ei] = amp;
+                        batch._twoPiOverWavelengthsBatch[vi][ei] = 2f * Mathf.PI / wl;
+                        batch._ampsBatch[vi][ei] = amp;
 
                         float chopScale = _spectrum._chopScales[(firstComponent + i) / _componentsPerOctave];
-                        UpdateBatchScratchData._chopAmpsBatch[vi][ei] = -chopScale * _spectrum._chop * amp;
+                        batch._chopAmpsBatch[vi][ei] = -chopScale * _spectrum._chop * amp;
 
                         float angle = Mathf.Deg2Rad * (_windDirectionAngle + _angleDegs[firstComponent + i]);
-                        UpdateBatchScratchData._waveDirXBatch[vi][ei] = Mathf.Cos(angle);
-                        UpdateBatchScratchData._waveDirZBatch[vi][ei] = Mathf.Sin(angle);
+                        batch._waveDirXBatch[vi][ei] = Mathf.Cos(angle);
+                        batch._waveDirZBatch[vi][ei] = Mathf.Sin(angle);
 
                         // It used to be this, but I'm pushing all the stuff that doesn't depend on position into the phase.
                         //half4 angle = k * (C * _CrestTime + x) + _Phases[vi];
@@ -325,9 +325,9 @@ namespace Crest
                         float C = Mathf.Sqrt(wl * gravity * gravityScale * one_over_2pi);
                         float k = twopi / wl;
                         // Repeat every 2pi to keep angle bounded - helps precision on 16bit platforms
-                        UpdateBatchScratchData._phasesBatch[vi][ei] = Mathf.Repeat(_phases[firstComponent + i] + k * C * OceanRenderer.Instance.CurrentTime, Mathf.PI * 2f);
+                        batch._phasesBatch[vi][ei] = Mathf.Repeat(_phases[firstComponent + i] + k * C * OceanRenderer.Instance.CurrentTime, Mathf.PI * 2f);
 
-                        numInBatch++;
+                        batch._numInBatch++;
                     }
                     else
                     {
@@ -342,28 +342,28 @@ namespace Crest
                 numComponents = BATCH_SIZE;
             }
 
-            if (numInBatch == 0)
+            if (batch._numInBatch == 0)
             {
                 // no waves to draw - abort
                 return;
             }
 
             // if we did not fill the batch, put a terminator signal after the last position
-            if (numInBatch < BATCH_SIZE)
+            if (batch._numInBatch < BATCH_SIZE)
             {
-                int vi_last = numInBatch / 4;
-                int ei_last = numInBatch - vi_last * 4;
+                int vi_last = batch._numInBatch / 4;
+                int ei_last = batch._numInBatch - vi_last * 4;
 
                 for (int vi = vi_last; vi < BATCH_SIZE / 4; vi++)
                 {
                     for (int ei = ei_last; ei < 4; ei++)
                     {
-                        UpdateBatchScratchData._twoPiOverWavelengthsBatch[vi][ei] = 1f; // wary of NaNs
-                        UpdateBatchScratchData._ampsBatch[vi][ei] = 0f;
-                        UpdateBatchScratchData._waveDirXBatch[vi][ei] = 0f;
-                        UpdateBatchScratchData._waveDirZBatch[vi][ei] = 0f;
-                        UpdateBatchScratchData._phasesBatch[vi][ei] = 0f;
-                        UpdateBatchScratchData._chopAmpsBatch[vi][ei] = 0f;
+                        batch._twoPiOverWavelengthsBatch[vi][ei] = 1f; // wary of NaNs
+                        batch._ampsBatch[vi][ei] = 0f;
+                        batch._waveDirXBatch[vi][ei] = 0f;
+                        batch._waveDirZBatch[vi][ei] = 0f;
+                        batch._phasesBatch[vi][ei] = 0f;
+                        batch._chopAmpsBatch[vi][ei] = 0f;
                     }
 
                     ei_last = 0;
@@ -374,16 +374,16 @@ namespace Crest
             for (int i = 0; i < 2; i++)
             {
                 var mat = batch.GetMaterial(i);
-                mat.SetVectorArray(sp_TwoPiOverWavelengths, UpdateBatchScratchData._twoPiOverWavelengthsBatch);
-                mat.SetVectorArray(sp_Amplitudes, UpdateBatchScratchData._ampsBatch);
-                mat.SetVectorArray(sp_WaveDirX, UpdateBatchScratchData._waveDirXBatch);
-                mat.SetVectorArray(sp_WaveDirZ, UpdateBatchScratchData._waveDirZBatch);
-                mat.SetVectorArray(sp_Phases, UpdateBatchScratchData._phasesBatch);
-                mat.SetVectorArray(sp_ChopAmps, UpdateBatchScratchData._chopAmpsBatch);
-                mat.SetFloat(sp_NumInBatch, numInBatch);
+                mat.SetVectorArray(sp_TwoPiOverWavelengths, batch._twoPiOverWavelengthsBatch);
+                mat.SetVectorArray(sp_Amplitudes, batch._ampsBatch);
+                mat.SetVectorArray(sp_WaveDirX, batch._waveDirXBatch);
+                mat.SetVectorArray(sp_WaveDirZ, batch._waveDirZBatch);
+                mat.SetVectorArray(sp_Phases, batch._phasesBatch);
+                mat.SetVectorArray(sp_ChopAmps, batch._chopAmpsBatch);
+                mat.SetFloat(sp_NumInBatch, batch._numInBatch);
                 mat.SetFloat(sp_AttenuationInShallows, OceanRenderer.Instance._simSettingsAnimatedWaves.AttenuationInShallows);
 
-                int numVecs = (numInBatch + 3) / 4;
+                int numVecs = (batch._numInBatch + 3) / 4;
                 mat.SetInt(sp_NumWaveVecs, numVecs);
                 mat.SetFloat(OceanRenderer.sp_LD_SliceIndex, lodIdx - i);
                 OceanRenderer.Instance._lodDataAnimWaves.BindResultData(mat);

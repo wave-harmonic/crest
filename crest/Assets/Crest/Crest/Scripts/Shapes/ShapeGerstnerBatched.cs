@@ -52,6 +52,30 @@ namespace Crest
                 if (Enabled && weight > 0f)
                 {
                     PropertyWrapperMaterial mat = GetMaterial(isTransition);
+                    mat.SetVectorArray(sp_TwoPiOverWavelengths, _twoPiOverWavelengthsBatch);
+                    mat.SetVectorArray(sp_Amplitudes, _ampsBatch);
+                    mat.SetVectorArray(sp_WaveDirX, _waveDirXBatch);
+                    mat.SetVectorArray(sp_WaveDirZ, _waveDirZBatch);
+                    mat.SetVectorArray(sp_Phases, _phasesBatch);
+                    mat.SetVectorArray(sp_ChopAmps, _chopAmpsBatch);
+                    mat.SetFloat(sp_NumInBatch, _numInBatch);
+                    mat.SetFloat(sp_AttenuationInShallows, OceanRenderer.Instance._simSettingsAnimatedWaves.AttenuationInShallows);
+
+                    int numVecs = (_numInBatch + 3) / 4;
+                    mat.SetInt(sp_NumWaveVecs, numVecs);
+                    mat.SetFloat(OceanRenderer.sp_LD_SliceIndex, _lodIdx - isTransition);
+                    OceanRenderer.Instance._lodDataAnimWaves.BindResultData(mat);
+
+                    if (OceanRenderer.Instance._lodDataSeaDepths)
+                    {
+                        OceanRenderer.Instance._lodDataSeaDepths.BindResultData(mat, false);
+                    }
+
+                    // TODO(TRC): Work out how to handle direct towards point shenanigans
+                    // if (_directTowardsPoint)
+                    // {
+                    //     mat.SetVector(sp_TargetPointData, new Vector4(_pointPositionXZ.x, _pointPositionXZ.y, _pointRadii.x, _pointRadii.y));
+                    // }
                     mat.SetFloat(RegisterLodDataInputBase.sp_Weight, weight);
                     buf.DrawMesh(RasterMesh(), Matrix4x4.identity, mat.material);
                 }
@@ -60,6 +84,7 @@ namespace Crest
             // TODO(TRC): Cleanup allocation and initialisation
             public int _lodIdx;
             public int _numInBatch;
+            public bool _directTowardsPoint;
             public Vector4[] _twoPiOverWavelengthsBatch = new Vector4[BATCH_SIZE / 4];
             public Vector4[] _ampsBatch = new Vector4[BATCH_SIZE / 4];
             public Vector4[] _waveDirXBatch = new Vector4[BATCH_SIZE / 4];
@@ -282,6 +307,7 @@ namespace Crest
         {
             batch.Enabled = false;
             batch._lodIdx = lodIdx;
+            batch._directTowardsPoint = _directTowardsPoint;
 
             int numComponents = lastComponentNonInc - firstComponent;
             batch._numInBatch = 0;
@@ -367,35 +393,6 @@ namespace Crest
                     }
 
                     ei_last = 0;
-                }
-            }
-
-            // apply the data to the shape property
-            for (int i = 0; i < 2; i++)
-            {
-                var mat = batch.GetMaterial(i);
-                mat.SetVectorArray(sp_TwoPiOverWavelengths, batch._twoPiOverWavelengthsBatch);
-                mat.SetVectorArray(sp_Amplitudes, batch._ampsBatch);
-                mat.SetVectorArray(sp_WaveDirX, batch._waveDirXBatch);
-                mat.SetVectorArray(sp_WaveDirZ, batch._waveDirZBatch);
-                mat.SetVectorArray(sp_Phases, batch._phasesBatch);
-                mat.SetVectorArray(sp_ChopAmps, batch._chopAmpsBatch);
-                mat.SetFloat(sp_NumInBatch, batch._numInBatch);
-                mat.SetFloat(sp_AttenuationInShallows, OceanRenderer.Instance._simSettingsAnimatedWaves.AttenuationInShallows);
-
-                int numVecs = (batch._numInBatch + 3) / 4;
-                mat.SetInt(sp_NumWaveVecs, numVecs);
-                mat.SetFloat(OceanRenderer.sp_LD_SliceIndex, lodIdx - i);
-                OceanRenderer.Instance._lodDataAnimWaves.BindResultData(mat);
-
-                if (OceanRenderer.Instance._lodDataSeaDepths)
-                {
-                    OceanRenderer.Instance._lodDataSeaDepths.BindResultData(mat, false);
-                }
-
-                if (_directTowardsPoint)
-                {
-                    mat.SetVector(sp_TargetPointData, new Vector4(_pointPositionXZ.x, _pointPositionXZ.y, _pointRadii.x, _pointRadii.y));
                 }
             }
 

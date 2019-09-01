@@ -32,7 +32,8 @@ namespace Crest
         /// </summary>
         public static bool _shapeCombinePass = true;
 
-        RenderTexture _waveBuffers;
+        // TODO(TRC): Fix this massive hack (variable being public)
+        public RenderTexture _waveBuffers;
 
         const string ShaderName = "ShapeCombine";
 
@@ -80,7 +81,7 @@ namespace Crest
             int resolution = OceanRenderer.Instance.LodDataResolution;
             var desc = new RenderTextureDescriptor(resolution, resolution, TextureFormat, 0);
 
-            _waveBuffers = CreateLodDataTextures(desc, "WaveBuffer", false);
+            _waveBuffers = CreateLodDataTextures(desc, "WaveBuffer", true);
         }
 
         // Filter object for assigning shapes to LODs. This was much more elegant with a lambda but it generated garbage.
@@ -163,6 +164,7 @@ namespace Crest
                 _filterWavelength._lodMaxWavelength = OceanRenderer.Instance._lodTransform.MaxWavelength(lodIdx);
                 _filterWavelength._lodMinWavelength = _filterWavelength._lodMaxWavelength / 2f;
                 _filterWavelength._globalMaxWavelength = OceanRenderer.Instance._lodTransform.MaxWavelength(OceanRenderer.Instance.CurrentLodCount - 1);
+                buf.SetGlobalInt(Shader.PropertyToID("_LD_SliceIndex_Target"), lodIdx);
                 SubmitDrawsFiltered(lodIdx, buf, _filterWavelength);
             }
 

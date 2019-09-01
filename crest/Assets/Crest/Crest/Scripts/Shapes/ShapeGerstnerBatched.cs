@@ -1,10 +1,19 @@
 ﻿// Crest Ocean System
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
+#define COMPUTE_SHADER
 
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
+
+#if COMPUTE_SHADER
+using PropertyWrapper = Crest.PropertyWrapperCompute;
+using ShaderConcrete = UnityEngine.ComputeShader;
+#else
+using PropertyWrapper = Crest.PropertyWrapperMaterial;
+using ShaderConcrete = UnityEngine.Shader;
+#endif
 
 namespace Crest
 {
@@ -23,26 +32,39 @@ namespace Crest
 
         public class GerstnerBatch : ILodDataInput
         {
-            public GerstnerBatch(Shader gerstnerShader, bool directTowardsPoint)
+            // TODO(TRC): Cleanup this function
+            ShaderConcrete _waveShader;
+            int krnl_AnimWavesGerstnerBatch;
+            public GerstnerBatch(ShaderConcrete gerstnerShader, bool directTowardsPoint)
             {
-                _materials = new PropertyWrapperMaterial[]
+                _materials = new PropertyWrapper[]
                 {
-                    new PropertyWrapperMaterial(new Material(gerstnerShader)),
-                    new PropertyWrapperMaterial(new Material(gerstnerShader))
+#if COMPUTE_SHADER
+                    new PropertyWrapper(),
+                    new PropertyWrapper()
+#else
+                    new PropertyWrapper(new Material(gerstnerShader)),
+                    new PropertyWrapper(new Material(gerstnerShader))
+#endif
                 };
 
-                if (directTowardsPoint)
-                {
-                    _materials[0].material.EnableKeyword(DIRECT_TOWARDS_POINT_KEYWORD);
-                    _materials[1].material.EnableKeyword(DIRECT_TOWARDS_POINT_KEYWORD);
-                }
+                _waveShader = gerstnerShader;
+#if COMPUTE_SHADER
+                krnl_AnimWavesGerstnerBatch = _waveShader.FindKernel("AnimWavesGerstnerBatch");
+#endif
+
+                // if (directTowardsPoint)
+                // {
+                //     _materials[0].material.EnableKeyword(DIRECT_TOWARDS_POINT_KEYWORD);
+                //     _materials[1].material.EnableKeyword(DIRECT_TOWARDS_POINT_KEYWORD);
+                // }
             }
 
-            public PropertyWrapperMaterial GetMaterial(int isTransition) => _materials[isTransition];
+            public PropertyWrapper GetProperty(int isTransition) => _materials[isTransition];
 
             // Two materials because as batch may be rendered twice if it has large wavelengths that are being transitioned back
             // and forth across the last 2 lods.
-            PropertyWrapperMaterial[] _materials;
+            PropertyWrapper[] _materials;
 
             public float Wavelength { get; set; }
             public bool Enabled { get; set; }
@@ -51,7 +73,10 @@ namespace Crest
             {
                 if (Enabled && weight > 0f)
                 {
-                    PropertyWrapperMaterial properties = GetMaterial(isTransition);
+                    PropertyWrapper properties = GetProperty(isTransition);
+#if COMPUTE_SHADER
+                    properties.Initialise(buf, _waveShader, krnl_AnimWavesGerstnerBatch);
+#endif
                     properties.SetVectorArray(sp_TwoPiOverWavelengths, _twoPiOverWavelengthsBatch);
                     properties.SetVectorArray(sp_Amplitudes, _ampsBatch);
                     properties.SetVectorArray(sp_WaveDirX, _waveDirXBatch);
@@ -64,6 +89,7 @@ namespace Crest
                     int numVecs = (_numInBatch + 3) / 4;
                     properties.SetInt(sp_NumWaveVecs, numVecs);
                     properties.SetFloat(OceanRenderer.sp_LD_SliceIndex, _lodIdx - isTransition);
+                    // properties.SetInt(Shader.PropertyToID("_LD_SliceIndex_Target"), _lodIdx);
                     OceanRenderer.Instance._lodDataAnimWaves.BindResultData(properties);
 
                     if (OceanRenderer.Instance._lodDataSeaDepths)
@@ -77,7 +103,13 @@ namespace Crest
                     //     properties.SetVector(sp_TargetPointData, new Vector4(_pointPositionXZ.x, _pointPositionXZ.y, _pointRadii.x, _pointRadii.y));
                     // }
                     properties.SetFloat(RegisterLodDataInputBase.sp_Weight, weight);
+#if COMPUTE_SHADER
+                    // TODO(TRC): Fix this massive hack
+                    properties.SetTexture(Shader.PropertyToID("_LD_TexArray_Target"), OceanRenderer.Instance._lodDataAnimWaves._waveBuffers);
+                    properties.DispatchShader();
+#else
                     buf.DrawMesh(RasterMesh(), Matrix4x4.identity, properties.material);
+#endif
                 }
             }
 
@@ -123,7 +155,7 @@ namespace Crest
         static Mesh _rasterMesh = null;
 
         // Shader to be used to render evaluate Gerstner waves for each LOD
-        Shader _waveShader;
+        ShaderConcrete _waveShader;
 
         static int sp_TwoPiOverWavelengths = Shader.PropertyToID("_TwoPiOverWavelengths");
         static int sp_Amplitudes = Shader.PropertyToID("_Amplitudes");
@@ -274,7 +306,12 @@ namespace Crest
         {
             if (_waveShader == null)
             {
+#if COMPUTE_SHADER
+                // TODO(FIXUP Load By String).
+                _waveShader = Resources.Load<ShaderConcrete>("AnimWavesGerstnerBatch");
+#else
                 _waveShader = Shader.Find("Crest/Inputs/Animated Waves/Gerstner Batch");
+#endif
                 Debug.Assert(_waveShader, "Could not load Gerstner wave shader, make sure it is packaged in the build.");
                 if (_waveShader == null)
                 {

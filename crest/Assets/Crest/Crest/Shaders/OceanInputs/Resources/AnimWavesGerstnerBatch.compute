@@ -28,6 +28,7 @@ half4 _ChopAmps[BATCH_SIZE / 4];
 float4 _TargetPointData;
 
 RWTexture2DArray<half4> _LD_TexArray_Target;
+uint _LD_SliceIndex_Target;
 
 [numthreads(THREAD_GROUP_SIZE_X,THREAD_GROUP_SIZE_Y,1)]
 void AnimWavesGerstnerBatch(uint3 id : SV_DispatchThreadID)
@@ -106,5 +107,5 @@ void AnimWavesGerstnerBatch(uint3 id : SV_DispatchThreadID)
 
 	half sss = length(displacementNormalized);
 
-	_LD_TexArray_Target[uint3(id.xy, _LD_SliceIndex)] = _Weight * half4(result, sss);
+	_LD_TexArray_Target[uint3(id.xy, _LD_SliceIndex_Target)] += _Weight * half4(result, sss);
 }

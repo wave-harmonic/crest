@@ -21,6 +21,8 @@ namespace Crest
         public float _windDirectionAngle = 0f;
         public Vector2 WindDir => new Vector2(Mathf.Cos(Mathf.PI * _windDirectionAngle / 180f), Mathf.Sin(Mathf.PI * _windDirectionAngle / 180f));
 
+        public const string ShaderSim = "AnimWavesGerstnerBatch";
+
         public class GerstnerBatch : ILodDataInput
         {
             // TODO(TRC): Cleanup this function
@@ -35,7 +37,7 @@ namespace Crest
                 };
 
                 _waveShader = gerstnerShader;
-                krnl_AnimWavesGerstnerBatch = _waveShader.FindKernel("AnimWavesGerstnerBatch");
+                krnl_AnimWavesGerstnerBatch = _waveShader.FindKernel(ShaderSim);
 
                 // TODO(TRC):DirectTowardsPoint Work out how to handle direct towards point shenanigans
                 // if (directTowardsPoint)
@@ -287,8 +289,7 @@ namespace Crest
         {
             if (_waveShader == null)
             {
-                // TODO(TRC): FIXUP Load By String).
-                _waveShader = Resources.Load<ComputeShader>("AnimWavesGerstnerBatch");
+                _waveShader = Resources.Load<ComputeShader>(ShaderSim);
                 Debug.Assert(_waveShader, "Could not load Gerstner wave shader, make sure it is packaged in the build.");
                 if (_waveShader == null)
                 {

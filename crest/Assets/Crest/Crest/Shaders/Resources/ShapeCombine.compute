@@ -29,8 +29,7 @@ void Flow(out float2 offsets, out float2 weights)
 	weights.y = 1.0 - weights.x;
 }
 
-void SampleDisplacementsCompute(
-	in RWTexture2DArray<float4> i_dispSampler,
+void SampleDisplacementAnimatedWavesCompute(
 	in float i_width, in float i_height, in float3 i_uv_slice,
 	in float i_wt, inout float3 io_worldPos, inout float io_sss
 ) {
@@ -52,10 +51,10 @@ void SampleDisplacementsCompute(
 	const float2 pixelCoordCentersBotLeft = floor(pixelCoordCenters);
 	const float2 pixelCoordCentersFrac = frac(pixelCoordCenters);
 
-	const float4 dataBotLeft = i_dispSampler[float3(pixelCoordCentersBotLeft, i_uv_slice.z)];
-	const float4 dataBotRight = i_dispSampler[float3(pixelCoordCentersBotLeft + float2(1.0, 0.0), i_uv_slice.z)];
-	const float4 dataTopLeft = i_dispSampler[float3(pixelCoordCentersBotLeft + float2(0.0, 1.0), i_uv_slice.z)];
-	const float4 dataTopRight = i_dispSampler[float3(pixelCoordCentersBotLeft + float2(1.0, 1.0), i_uv_slice.z)];
+	const float4 dataBotLeft = _LD_TexArray_AnimatedWaves_Compute[float3(pixelCoordCentersBotLeft, i_uv_slice.z)];
+	const float4 dataBotRight = _LD_TexArray_AnimatedWaves_Compute[float3(pixelCoordCentersBotLeft + float2(1.0, 0.0), i_uv_slice.z)];
+	const float4 dataTopLeft = _LD_TexArray_AnimatedWaves_Compute[float3(pixelCoordCentersBotLeft + float2(0.0, 1.0), i_uv_slice.z)];
+	const float4 dataTopRight = _LD_TexArray_AnimatedWaves_Compute[float3(pixelCoordCentersBotLeft + float2(1.0, 1.0), i_uv_slice.z)];
 
 	const float4 dataLerped = lerp(
 		lerp(dataBotLeft, dataBotRight, pixelCoordCentersFrac.x),
@@ -105,7 +104,7 @@ void ShapeCombineBase (uint3 id)
 // C# Script determines whether this enabled or not by selecting appropriate
 // kernel for each LOD.
 #if !_DISABLE_COMBINE
-	SampleDisplacementsCompute(_LD_TexArray_AnimatedWaves_Compute, width, height, uv_nextLod, 1.0, result, sss);
+	SampleDisplacementAnimatedWavesCompute(width, height, uv_nextLod, 1.0, result, sss);
 #endif
 
 #if _DYNAMIC_WAVE_SIM_ON

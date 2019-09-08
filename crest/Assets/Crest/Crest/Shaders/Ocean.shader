@@ -286,7 +286,7 @@ Shader "Crest/Ocean"
 
 					#if !_DEBUGDISABLESHAPETEXTURES_ON
 					half sss = 0.;
-					SampleDisplacements(_LD_TexArray_AnimatedWaves, uv_slice_smallerLod, wt_smallerLod, o.worldPos, sss);
+					SampleDisplacementAnimatedWaves(uv_slice_smallerLod, wt_smallerLod, o.worldPos, sss);
 					#endif
 
 					#if _FOAM_ON
@@ -303,7 +303,7 @@ Shader "Crest/Ocean"
 
 					#if !_DEBUGDISABLESHAPETEXTURES_ON
 					half sss = 0.;
-					SampleDisplacements(_LD_TexArray_AnimatedWaves, uv_slice_biggerLod, wt_biggerLod, o.worldPos, sss);
+					SampleDisplacementAnimatedWaves(uv_slice_biggerLod, wt_biggerLod, o.worldPos, sss);
 					#endif
 
 					#if _FOAM_ON
@@ -430,8 +430,8 @@ Shader "Crest/Ocean"
 				float3 dummy = 0.;
 				half3 n_geom = half3(0.0, 1.0, 0.0);
 				half sss = 0.;
-				if (wt_smallerLod > 0.001) SampleDisplacementsNormals(_LD_TexArray_AnimatedWaves, uv_slice_smallerLod, wt_smallerLod, _LD_Params[_LD_SliceIndex].w, _LD_Params[_LD_SliceIndex].x, dummy, n_geom.xz, sss);
-				if (wt_biggerLod > 0.001) SampleDisplacementsNormals(_LD_TexArray_AnimatedWaves, uv_slice_biggerLod, wt_biggerLod, _LD_Params[_LD_SliceIndex + 1].w, _LD_Params[_LD_SliceIndex + 1].x, dummy, n_geom.xz, sss);
+				if (wt_smallerLod > 0.001) SampleNormalsAnimatedWaves(uv_slice_smallerLod, wt_smallerLod, _LD_Params[_LD_SliceIndex].w, _LD_Params[_LD_SliceIndex].x, dummy, n_geom.xz, sss);
+				if (wt_biggerLod > 0.001) SampleNormalsAnimatedWaves(uv_slice_biggerLod, wt_biggerLod, _LD_Params[_LD_SliceIndex + 1].w, _LD_Params[_LD_SliceIndex + 1].x, dummy, n_geom.xz, sss);
 				n_geom = normalize(n_geom);
 
 				if (underwater) n_geom = -n_geom;

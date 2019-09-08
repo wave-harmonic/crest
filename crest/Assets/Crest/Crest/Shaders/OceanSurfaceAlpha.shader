@@ -77,8 +77,8 @@ Shader "Crest/Ocean Surface Alpha"
 				const float2 wxz = worldPos.xz;
 				half foam = 0.0;
 				half sss = 0.;
-				SampleDisplacements(_LD_TexArray_AnimatedWaves, WorldToUV(wxz), wt_smallerLod, worldPos, sss);
-				SampleDisplacements(_LD_TexArray_AnimatedWaves, WorldToUV_BiggerLod(wxz), wt_biggerLod, worldPos, sss);
+				SampleDisplacementAnimatedWaves(WorldToUV(wxz), wt_smallerLod, worldPos, sss);
+				SampleDisplacementAnimatedWaves(WorldToUV_BiggerLod(wxz), wt_biggerLod, worldPos, sss);
 
 				// move to sea level
 				worldPos.y += _OceanCenterPosWorld.y;

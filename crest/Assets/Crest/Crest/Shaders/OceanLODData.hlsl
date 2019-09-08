@@ -31,7 +31,6 @@ const float3 _LD_Pos_Scale[MAX_LOD_COUNT + 1];
 // These are used in lods where we operate on data from
 // previously calculated lods. Used in simulations and
 // shadowing for example.
-Texture2DArray _LD_TexArray_AnimatedWaves_Source;
 Texture2DArray _LD_TexArray_WaveBuffer_Source;
 Texture2DArray _LD_TexArray_SeaFloorDepth_Source;
 Texture2DArray _LD_TexArray_Foam_Source;
@@ -108,17 +107,33 @@ void SampleDisplacements(in Texture2DArray i_dispSampler, in float3 i_uv_slice, 
 	io_sss += i_wt * data.a;
 }
 
-void SampleDisplacementsNormals(in Texture2DArray i_dispSampler, in float3 i_uv_slice, in float i_wt, in float i_invRes, in float i_texelSize, inout float3 io_worldPos, inout half2 io_nxz, inout half io_sss)
+half4 SampleLodAnimatedWaves(in float3 uv_slice)
 {
-	const half4 data = i_dispSampler.SampleLevel(LODData_linear_clamp_sampler, i_uv_slice, 0.0);
+	return _LD_TexArray_AnimatedWaves.SampleLevel(LODData_linear_clamp_sampler, uv_slice, 0.0);
+}
+
+half4 SampleLodLevelAnimatedWaves(in float3 uv_slice, in float mips)
+{
+	return _LD_TexArray_AnimatedWaves.SampleLevel(LODData_linear_clamp_sampler, uv_slice, mips);
+}
+
+// Sampling functions
+void SampleDisplacementAnimatedWaves(in float3 i_uv_slice, in float i_wt, inout float3 io_worldPos, inout float io_sss)
+{
+	SampleDisplacements(_LD_TexArray_AnimatedWaves, i_uv_slice, i_wt, io_worldPos, io_sss);
+}
+
+void SampleNormalsAnimatedWaves(in float3 i_uv_slice, in float i_wt, in float i_invRes, in float i_texelSize, inout float3 io_worldPos, inout half2 io_nxz, inout half io_sss)
+{
+	const half4 data = _LD_TexArray_AnimatedWaves.SampleLevel(LODData_linear_clamp_sampler, i_uv_slice, 0.0);
 	io_sss += i_wt * data.a;
 	const half3 disp = data.xyz;
 	io_worldPos += i_wt * disp;
 
 	float3 n; {
 		float3 dd = float3(i_invRes, 0.0, i_texelSize);
-		half3 disp_x = dd.zyy + i_dispSampler.SampleLevel(LODData_linear_clamp_sampler, i_uv_slice + float3(dd.xy, 0.0), dd.y).xyz;
-		half3 disp_z = dd.yyz + i_dispSampler.SampleLevel(LODData_linear_clamp_sampler, i_uv_slice + float3(dd.yx, 0.0), dd.y).xyz;
+		half3 disp_x = dd.zyy + _LD_TexArray_AnimatedWaves.SampleLevel(LODData_linear_clamp_sampler, i_uv_slice + float3(dd.xy, 0.0), dd.y).xyz;
+		half3 disp_z = dd.yyz + _LD_TexArray_AnimatedWaves.SampleLevel(LODData_linear_clamp_sampler, i_uv_slice + float3(dd.yx, 0.0), dd.y).xyz;
 		n = normalize(cross(disp_z - disp, disp_x - disp));
 	}
 	io_nxz += i_wt * n.xz;

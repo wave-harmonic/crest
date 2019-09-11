@@ -17,6 +17,8 @@ float _HorizDisplace;
 float _DisplaceClamp;
 float _CrestTime;
 
+
+Texture2DArray _LD_TexArray_WaveBuffer;
 RWTexture2DArray<float4> _LD_TexArray_AnimatedWaves_Compute;
 
 void Flow(out float2 offsets, out float2 weights)
@@ -27,6 +29,14 @@ void Flow(out float2 offsets, out float2 weights)
 	weights.x = offsets.x / half_period;
 	if (weights.x > 1.0) weights.x = 2.0 - weights.x;
 	weights.y = 1.0 - weights.x;
+}
+
+// Sampling functions
+void SampleDisplacementWaveBuffer(in float3 i_uv_slice, in float i_wt, inout float3 io_worldPos, inout float io_sss)
+{
+	const half4 data = _LD_TexArray_WaveBuffer.SampleLevel(LODData_linear_clamp_sampler, i_uv_slice, 0.0);
+	io_worldPos += i_wt * data.xyz;
+	io_sss += i_wt * data.a;
 }
 
 void SampleDisplacementAnimatedWavesCompute(
@@ -93,8 +103,8 @@ void ShapeCombineBase (uint3 id)
 
 	float3 uv_thisLod_flow_0 = WorldToUV(worldPosXZ - offsets[0] * flow);
 	float3 uv_thisLod_flow_1 = WorldToUV(worldPosXZ - offsets[1] * flow);
-	SampleDisplacements(_LD_TexArray_WaveBuffer, uv_thisLod_flow_0, weights[0], result, sss);
-	SampleDisplacements(_LD_TexArray_WaveBuffer, uv_thisLod_flow_1, weights[1], result, sss);
+	SampleDisplacementWaveBuffer(uv_thisLod_flow_0, weights[0], result, sss);
+	SampleDisplacementWaveBuffer(uv_thisLod_flow_1, weights[1], result, sss);
 #else
 	float4 data =_LD_TexArray_WaveBuffer.SampleLevel(LODData_linear_clamp_sampler, uv_thisLod, 0.0);
 	result += data.xyz;

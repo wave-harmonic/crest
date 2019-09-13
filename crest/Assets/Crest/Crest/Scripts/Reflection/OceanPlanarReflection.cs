@@ -243,6 +243,7 @@ namespace Crest
             dest.fieldOfView = src.fieldOfView;
             dest.orthographicSize = src.orthographicSize;
             dest.allowMSAA = _allowMSAA;
+            dest.aspect = src.aspect;
         }
 
         // On-demand create any objects we need for water

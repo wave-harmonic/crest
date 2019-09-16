@@ -103,6 +103,25 @@ The ocean pixel shader samples normal maps at 2 different scales, both proportio
 Some of these components are described in more technical detail at SIGGRAPH 2017 in the *Advances in Real-Time Rendering* course (course page [link](http://advances.realtimerendering.com/s2017/index.html)).
 
 
+# Render order
+
+A typical render order for a frame is the following:
+
+* Opaque geometry is rendered, writes to opaque depth buffer (queue <= 2500)
+* Sky is rendered, probably at zfar with depth test enabled so it only renders outside the opaque surfaces
+* Frame colours and depth are copied out for use later in postprocessing
+* Ocean 'curtain' renders, draws underwater effect from bottom of screen up to water line (queue = 2510)
+  * It is set to render before ocean in UnderwaterEffect.cs
+  * Sky is at zfar and will be fully fogged/obscured by the water volume
+* Ocean renders early in the transparent queue (queue = 2510)
+  * It samples the postprocessing colours and depths, to do refraction
+  * It reads and writes from the frame depth buffer, to ensure waves are sorted correctly
+  * It stomps over the underwater curtain to make a correct final result
+  * It stopms over sky - sky is at zfar and will be fully fogged/obscured by the water volume
+* Particles and alpha render. If they have depth test enabled, they will clip against the surface
+* Postprocessing runs with the postprocessing depth and colours
+
+
 # Ocean LOD data types
 
 The backbone of *Crest* is an efficient Level Of Detail (LOD) representation for data that drives the rendering, such as surface shape/displacements, foam values, shadowing data, water depth, and others. This data is stored in a multi-resolution format, namely cascaded textures that are centered at the viewer. This data is generated and then sampled when the ocean surface geometry is rendered. This is all done on the GPU using a command buffer constructed each frame by *BuildCommandBuffer*.

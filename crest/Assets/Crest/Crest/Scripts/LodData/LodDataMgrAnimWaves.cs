@@ -21,17 +21,17 @@ namespace Crest
     {
         /// <summary>
         /// Pre DX11.3 hardware cannot RW textures that are not 32 bit float, uint, int. This means we can't read write ARGB16. To
-        /// work around this, we store the displacements as R32's with 4x the slice count. The x component is stored in the first N slices.
+        /// work around this, we store the displacements as R32's with 2x the slice count. The x component is stored in the first N slices.
         /// https://docs.microsoft.com/en-us/windows/win32/direct3d12/typed-unordered-access-view-loads
         /// </summary>
         static readonly bool s_WorkaroundUAVLimitation = true;
-        public override int ArrayCountMultiplier => s_WorkaroundUAVLimitation ? 4 : 1;
+        public override int ArrayCountMultiplier => s_WorkaroundUAVLimitation ? 2 : 1;
 
         public override string SimName { get { return "AnimatedWaves"; } }
 
         // Shape texture format. I tried RGB111110Float but error becomes visible. One option would be to use a UNORM setup.
         // For UAV issue, 32 bit single channel.
-        public override RenderTextureFormat TextureFormat => s_WorkaroundUAVLimitation ? RenderTextureFormat.RFloat : RenderTextureFormat.ARGBHalf;
+        public override RenderTextureFormat TextureFormat => s_WorkaroundUAVLimitation ? RenderTextureFormat.RGHalf : RenderTextureFormat.ARGBHalf;
 
         protected override bool NeedToReadWriteTextureData { get { return true; } }
 

@@ -108,12 +108,10 @@ half4 SampleLodLevelAnimatedWaves(in float3 uv_slice, in float mips)
 	float w, h, d;
 	_LD_TexArray_AnimatedWaves.GetDimensions(w, h, d);
 
-	float3 numLods = float3(0.0, 0.0, d / 4.0);
+	float3 numLods = float3(0.0, 0.0, d / 2.0);
 	half4 data;
-	data.x = _LD_TexArray_AnimatedWaves.SampleLevel(LODData_linear_clamp_sampler, uv_slice, mips).x;
-	data.y = _LD_TexArray_AnimatedWaves.SampleLevel(LODData_linear_clamp_sampler, uv_slice + numLods, mips).x;
-	data.z = _LD_TexArray_AnimatedWaves.SampleLevel(LODData_linear_clamp_sampler, uv_slice + (numLods * 2.0), mips).x;
-	data.w = _LD_TexArray_AnimatedWaves.SampleLevel(LODData_linear_clamp_sampler, uv_slice + (numLods * 3.0), mips).x;
+	data.xy = _LD_TexArray_AnimatedWaves.SampleLevel(LODData_linear_clamp_sampler, uv_slice, mips).xy;
+	data.zw = _LD_TexArray_AnimatedWaves.SampleLevel(LODData_linear_clamp_sampler, uv_slice + numLods, mips).xy;
 	return data;
 #else
 	return _LD_TexArray_AnimatedWaves.SampleLevel(LODData_linear_clamp_sampler, uv_slice, mips);

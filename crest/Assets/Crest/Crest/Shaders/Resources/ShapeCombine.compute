@@ -17,11 +17,13 @@ float _HorizDisplace;
 float _DisplaceClamp;
 float _CrestTime;
 
+#pragma enable_d3d11_debug_symbols
+
 
 Texture2DArray _LD_TexArray_WaveBuffer;
 
 #if WORKAROUND_UAV_LIMITATION
-RWTexture2DArray<float> _LD_TexArray_AnimatedWaves_Compute;
+RWTexture2DArray<uint> _LD_TexArray_AnimatedWaves_Compute;
 #else
 RWTexture2DArray<float4> _LD_TexArray_AnimatedWaves_Compute;
 #endif
@@ -44,18 +46,28 @@ void SampleDisplacementWaveBuffer(in float3 i_uv_slice, in float i_wt, inout flo
 	io_sss += i_wt * data.a;
 }
 
+// f.x in lower bits, f.y in upper bits
+half2 uintToHalf2(uint i)
+{
+	return half2(f16tof32(i), f16tof32(i >> 16));
+}
+
+uint half2ToUint(half2 f)
+{
+	return (f32tof16(f.y) << 16) + f32tof16(f.x);
+}
+
+
 half4 SampleAnimatedWavesCompute(in uint3 coords)
 {
 #if WORKAROUND_UAV_LIMITATION
 	uint w, h, d;
 	_LD_TexArray_AnimatedWaves_Compute.GetDimensions(w, h, d);
 
-	uint3 numLods = uint3(0, 0, d / 4);
+	uint3 numLods = uint3(0, 0, d / 2);
 	half4 data;
-	data.x = _LD_TexArray_AnimatedWaves_Compute[coords];
-	data.y = _LD_TexArray_AnimatedWaves_Compute[coords + numLods];
-	data.z = _LD_TexArray_AnimatedWaves_Compute[coords + (numLods * 2)];
-	data.w = _LD_TexArray_AnimatedWaves_Compute[coords + (numLods * 3)];
+	data.xy = uintToHalf2(_LD_TexArray_AnimatedWaves_Compute[coords]);
+	data.zw = uintToHalf2(_LD_TexArray_AnimatedWaves_Compute[coords + numLods]);
 	return data;
 #else
 	return _LD_TexArray_AnimatedWaves_Compute[coords];
@@ -68,11 +80,9 @@ void SetValueAnimatedWavesCompute(in uint3 coords, in half4 value)
 	uint w, h, d;
 	_LD_TexArray_AnimatedWaves_Compute.GetDimensions(w, h, d);
 
-	uint3 numLods = uint3(0, 0, d / 4);
-	_LD_TexArray_AnimatedWaves_Compute[coords] = value.x;
-	_LD_TexArray_AnimatedWaves_Compute[coords + numLods] = value.y;
-	_LD_TexArray_AnimatedWaves_Compute[coords + (numLods * 2)] = value.z;
-	_LD_TexArray_AnimatedWaves_Compute[coords + (numLods * 3)] = value.w;
+	uint3 numLods = uint3(0, 0, d / 2);
+	_LD_TexArray_AnimatedWaves_Compute[coords] = half2ToUint(value.xy);
+	_LD_TexArray_AnimatedWaves_Compute[coords + numLods] = half2ToUint(value.zw);
 #else
 	_LD_TexArray_AnimatedWaves_Compute[coords] = value;
 #endif
@@ -132,8 +142,8 @@ void ShapeCombineBase(uint3 id)
 	float3 uv_thisLod = float3(input_uv, _LD_SliceIndex);
 
 	float3 result = 0.0;
-	half sss = 0.;
-	// this lods waves
+	half sss = 0.0;
+	
 #if _FLOW_ON
 	float2 flow = 0.0;
 	SampleFlow(_LD_TexArray_Flow, uv_thisLod, 1.0, flow);

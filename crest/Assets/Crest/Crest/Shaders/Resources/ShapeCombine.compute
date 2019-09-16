@@ -19,7 +19,12 @@ float _CrestTime;
 
 
 Texture2DArray _LD_TexArray_WaveBuffer;
+
+#if UAV_WEIRDNESS
+RWTexture2DArray<float> _LD_TexArray_AnimatedWaves_Compute;
+#else
 RWTexture2DArray<float4> _LD_TexArray_AnimatedWaves_Compute;
+#endif
 
 void Flow(out float2 offsets, out float2 weights)
 {
@@ -38,6 +43,37 @@ void SampleDisplacementWaveBuffer(in float3 i_uv_slice, in float i_wt, inout flo
 	io_worldPos += i_wt * data.xyz;
 	io_sss += i_wt * data.a;
 }
+
+half4 SampleAnimatedWavesCompute(in uint3 coords)
+{
+#if UAV_WEIRDNESS
+	// TODO(TRC): Make this not hardcoded.
+	uint3 numLods = uint3(0, 0, 7);
+	half4 data;
+	data.r = _LD_TexArray_AnimatedWaves_Compute[coords];
+	data.g = _LD_TexArray_AnimatedWaves_Compute[coords + numLods];
+	data.b = _LD_TexArray_AnimatedWaves_Compute[coords + (numLods * 2)];
+	data.a = _LD_TexArray_AnimatedWaves_Compute[coords + (numLods * 3)];
+	return data;
+#else
+	return _LD_TexArray_AnimatedWaves_Compute[coords];
+#endif
+}
+
+void SetValueAnimatedWavesCompute(in uint3 coords, in half4 value)
+{
+#if UAV_WEIRDNESS
+// TODO(TRC): Make this not hardcoded.
+	uint3 numLods = uint3(0, 0, 7);
+	_LD_TexArray_AnimatedWaves_Compute[coords] = value.r;
+	_LD_TexArray_AnimatedWaves_Compute[coords + numLods] = value.g;
+	_LD_TexArray_AnimatedWaves_Compute[coords + (numLods * 2)] = value.b;
+	_LD_TexArray_AnimatedWaves_Compute[coords + (numLods * 3)] = value.a;
+#else
+	_LD_TexArray_AnimatedWaves_Compute[coords] = value;
+#endif
+}
+
 
 void SampleDisplacementAnimatedWavesCompute(
 	in float i_width, in float i_height, in float3 i_uv_slice,
@@ -61,10 +97,10 @@ void SampleDisplacementAnimatedWavesCompute(
 	const float2 pixelCoordCentersBotLeft = floor(pixelCoordCenters);
 	const float2 pixelCoordCentersFrac = frac(pixelCoordCenters);
 
-	const float4 dataBotLeft = _LD_TexArray_AnimatedWaves_Compute[float3(pixelCoordCentersBotLeft, i_uv_slice.z)];
-	const float4 dataBotRight = _LD_TexArray_AnimatedWaves_Compute[float3(pixelCoordCentersBotLeft + float2(1.0, 0.0), i_uv_slice.z)];
-	const float4 dataTopLeft = _LD_TexArray_AnimatedWaves_Compute[float3(pixelCoordCentersBotLeft + float2(0.0, 1.0), i_uv_slice.z)];
-	const float4 dataTopRight = _LD_TexArray_AnimatedWaves_Compute[float3(pixelCoordCentersBotLeft + float2(1.0, 1.0), i_uv_slice.z)];
+	const float4 dataBotLeft = SampleAnimatedWavesCompute(float3(pixelCoordCentersBotLeft, i_uv_slice.z));
+	const float4 dataBotRight = SampleAnimatedWavesCompute(float3(pixelCoordCentersBotLeft + float2(1.0, 0.0), i_uv_slice.z));
+	const float4 dataTopLeft = SampleAnimatedWavesCompute(float3(pixelCoordCentersBotLeft + float2(0.0, 1.0), i_uv_slice.z));
+	const float4 dataTopRight = SampleAnimatedWavesCompute(float3(pixelCoordCentersBotLeft + float2(1.0, 1.0), i_uv_slice.z));
 
 	const float4 dataLerped = lerp(
 		lerp(dataBotLeft, dataBotRight, pixelCoordCentersFrac.x),
@@ -144,7 +180,7 @@ void ShapeCombineBase (uint3 id)
 	}
 #endif // _DYNAMIC_WAVE_SIM_
 
-	_LD_TexArray_AnimatedWaves_Compute[uint3(id.xy, _LD_SliceIndex)] = half4(result, sss);
+	SetValueAnimatedWavesCompute(uint3(id.xy, _LD_SliceIndex), half4(result, sss));
 }
 
 

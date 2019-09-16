@@ -21,8 +21,20 @@ namespace Crest
     {
         public override string SimName { get { return "AnimatedWaves"; } }
         // shape format. i tried RGB111110Float but error becomes visible. one option would be to use a UNORM setup.
-        public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.ARGBHalf; } }
+        public override RenderTextureFormat TextureFormat { get {
+            if(_UAVWeirdness)
+            {
+                return RenderTextureFormat.RHalf;
+            }
+            else
+            {
+                return RenderTextureFormat.ARGBHalf;
+            }
+        } }
         protected override bool NeedToReadWriteTextureData { get { return true; } }
+
+        // TODO(TRC): Find a better name for this variable and add a comment explaining what it is and what it does.
+        bool _UAVWeirdness = true;
 
         [Tooltip("Read shape textures back to the CPU for collision purposes.")]
         public bool _readbackShapeForCollision = true;

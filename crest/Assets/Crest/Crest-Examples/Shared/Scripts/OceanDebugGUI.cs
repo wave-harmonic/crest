@@ -182,13 +182,13 @@ public class OceanDebugGUI : MonoBehaviour
         }
 
         float b = 7f;
-        float h = Screen.height / (float) (lodData.DataTexture.volumeDepth / lodData.DepthMultiplier);
+        float h = Screen.height / (float) (lodData.DataTexture.volumeDepth / lodData.ArrayCountMultiplier);
         float w = h + b;
         float x = Screen.width - w * offset + b * (offset - 1f);
 
         if (_drawTargets[type])
         {
-            for (int idx = 0; idx < lodData.DataTexture.volumeDepth / lodData.DepthMultiplier; idx++)
+            for (int idx = 0; idx < lodData.DataTexture.volumeDepth / lodData.ArrayCountMultiplier; idx++)
             {
                 float y = idx * h;
                 if (offset == 1f) w += b;

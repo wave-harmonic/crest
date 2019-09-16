@@ -19,6 +19,13 @@ namespace Crest
     /// </summary>
     public class LodDataMgrAnimWaves : LodDataMgr
     {
+        /// <summary>
+        /// Pre DX11.3 hardware cannot RW textures that are not 32 bit float, uint, int. This means we can't read write ARGB16. To
+        /// work around this, we store the displacements as R32's with 4x the slice count. The x component is stored in the first N slices.
+        /// https://docs.microsoft.com/en-us/windows/win32/direct3d12/typed-unordered-access-view-loads
+        /// </summary>
+        static readonly bool s_WorkaroundUAVLimitation = true;
+        public override int ArrayCountMultiplier => s_WorkaroundUAVLimitation ? 4 : 1;
         public override string SimName { get { return "AnimatedWaves"; } }
         // shape format. i tried RGB111110Float but error becomes visible. one option would be to use a UNORM setup.
         public override RenderTextureFormat TextureFormat { get {
@@ -33,10 +40,6 @@ namespace Crest
         } }
         protected override bool NeedToReadWriteTextureData { get { return true; } }
 
-        // TODO(TRC): Find a better name for this variable and add a comment explaining what it is and what it does.
-        // the why: https://docs.microsoft.com/en-us/windows/win32/direct3d12/typed-unordered-access-view-loads
-        bool _UAVWeirdness = true;
-        public override int DepthMultiplier { get { if(_UAVWeirdness) { return 4; } else { return 1; }}}
 
         [Tooltip("Read shape textures back to the CPU for collision purposes.")]
         public bool _readbackShapeForCollision = true;
@@ -92,9 +95,9 @@ namespace Crest
             _combineProperties = new PropertyWrapperCompute();
 
             int resolution = OceanRenderer.Instance.LodDataResolution;
-            var desc = new RenderTextureDescriptor(resolution, resolution, TextureFormat, 0);
+            var desc = new RenderTextureDescriptor(resolution, resolution, RenderTextureFormat.ARGBHalf, 0);
 
-            _waveBuffers = CreateLodDataTextures(desc, "WaveBuffer", false);
+            _waveBuffers = CreateLodDataTextures(desc, "WaveBuffer", false, false);
         }
 
         // Filter object for assigning shapes to LODs. This was much more elegant with a lambda but it generated garbage.

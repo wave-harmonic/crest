@@ -27,6 +27,8 @@ namespace Crest
 
         protected abstract bool NeedToReadWriteTextureData { get; }
 
+        protected virtual int DepthMultiplier { get { return 1; }}
+
         protected RenderTexture _targets;
 
         public RenderTexture DataTexture { get { return _targets; } }
@@ -45,7 +47,7 @@ namespace Crest
             InitData();
         }
 
-        public static RenderTexture CreateLodDataTextures(RenderTextureDescriptor desc, string name, bool needToReadWriteTextureData)
+        protected RenderTexture CreateLodDataTextures(RenderTextureDescriptor desc, string name, bool needToReadWriteTextureData)
         {
             RenderTexture result = new RenderTexture(desc);
             result.wrapMode = TextureWrapMode.Clamp;
@@ -56,7 +58,7 @@ namespace Crest
             result.name = name;
             result.dimension = TextureDimension.Tex2DArray;
             // TODO(TRC): Fix this hack!
-            result.volumeDepth = OceanRenderer.Instance.CurrentLodCount * 4;
+            result.volumeDepth = OceanRenderer.Instance.CurrentLodCount * DepthMultiplier;
             result.enableRandomWrite = needToReadWriteTextureData;
             result.Create();
             return result;

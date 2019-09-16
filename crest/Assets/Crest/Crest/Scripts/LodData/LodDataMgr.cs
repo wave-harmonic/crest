@@ -27,7 +27,7 @@ namespace Crest
 
         protected abstract bool NeedToReadWriteTextureData { get; }
 
-        protected virtual int DepthMultiplier { get { return 1; }}
+        public virtual int DepthMultiplier { get { return 1; }}
 
         protected RenderTexture _targets;
 
@@ -57,7 +57,6 @@ namespace Crest
             result.useMipMap = false;
             result.name = name;
             result.dimension = TextureDimension.Tex2DArray;
-            // TODO(TRC): Fix this hack!
             result.volumeDepth = OceanRenderer.Instance.CurrentLodCount * DepthMultiplier;
             result.enableRandomWrite = needToReadWriteTextureData;
             result.Create();

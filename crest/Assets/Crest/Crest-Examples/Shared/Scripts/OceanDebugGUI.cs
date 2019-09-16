@@ -182,13 +182,13 @@ public class OceanDebugGUI : MonoBehaviour
         }
 
         float b = 7f;
-        float h = Screen.height / (float)lodData.DataTexture.volumeDepth;
+        float h = Screen.height / (float) (lodData.DataTexture.volumeDepth / lodData.DepthMultiplier);
         float w = h + b;
         float x = Screen.width - w * offset + b * (offset - 1f);
 
         if (_drawTargets[type])
         {
-            for (int idx = 0; idx < lodData.DataTexture.volumeDepth; idx++)
+            for (int idx = 0; idx < lodData.DataTexture.volumeDepth / lodData.DepthMultiplier; idx++)
             {
                 float y = idx * h;
                 if (offset == 1f) w += b;
@@ -204,6 +204,8 @@ public class OceanDebugGUI : MonoBehaviour
                     shapes.Add(lodData.DataTexture.format, rt);
                 }
 
+                // TODO(TRC): Find a way to superimpose depth multiplied textures?
+                // (There is probably a better name for that variable as well).
                 RenderTexture shape = shapes[lodData.DataTexture.format];
                 Graphics.CopyTexture(lodData.DataTexture, idx, 0, shape, 0, 0);
 

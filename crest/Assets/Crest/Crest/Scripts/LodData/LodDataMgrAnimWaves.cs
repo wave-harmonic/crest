@@ -24,7 +24,7 @@ namespace Crest
         public override RenderTextureFormat TextureFormat { get {
             if(_UAVWeirdness)
             {
-                return RenderTextureFormat.RHalf;
+                return RenderTextureFormat.RFloat;
             }
             else
             {
@@ -34,6 +34,7 @@ namespace Crest
         protected override bool NeedToReadWriteTextureData { get { return true; } }
 
         // TODO(TRC): Find a better name for this variable and add a comment explaining what it is and what it does.
+        // the why: https://docs.microsoft.com/en-us/windows/win32/direct3d12/typed-unordered-access-view-loads
         bool _UAVWeirdness = true;
 
         [Tooltip("Read shape textures back to the CPU for collision purposes.")]

@@ -26,20 +26,14 @@ namespace Crest
         /// </summary>
         static readonly bool s_WorkaroundUAVLimitation = true;
         public override int ArrayCountMultiplier => s_WorkaroundUAVLimitation ? 4 : 1;
-        public override string SimName { get { return "AnimatedWaves"; } }
-        // shape format. i tried RGB111110Float but error becomes visible. one option would be to use a UNORM setup.
-        public override RenderTextureFormat TextureFormat { get {
-            if(_UAVWeirdness)
-            {
-                return RenderTextureFormat.RFloat;
-            }
-            else
-            {
-                return RenderTextureFormat.ARGBHalf;
-            }
-        } }
-        protected override bool NeedToReadWriteTextureData { get { return true; } }
 
+        public override string SimName { get { return "AnimatedWaves"; } }
+
+        // Shape texture format. I tried RGB111110Float but error becomes visible. One option would be to use a UNORM setup.
+        // For UAV issue, 32 bit single channel.
+        public override RenderTextureFormat TextureFormat => s_WorkaroundUAVLimitation ? RenderTextureFormat.RFloat : RenderTextureFormat.ARGBHalf;
+
+        protected override bool NeedToReadWriteTextureData { get { return true; } }
 
         [Tooltip("Read shape textures back to the CPU for collision purposes.")]
         public bool _readbackShapeForCollision = true;

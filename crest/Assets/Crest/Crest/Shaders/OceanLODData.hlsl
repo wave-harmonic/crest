@@ -14,7 +14,7 @@
 
 // TODO(TRC): Come up with a better name for this and find a way to make it
 // toggleable at runtime in a better way
-#define UAV_WEIRDNESS 1
+#define WORKAROUND_UAV_LIMITATION 1
 
 // 'Current' target/source slice index
 const float _LD_SliceIndex;
@@ -104,14 +104,16 @@ float2 IDtoUV(in float2 i_id, in float i_width, in float i_height)
 
 half4 SampleLodLevelAnimatedWaves(in float3 uv_slice, in float mips)
 {
-#if UAV_WEIRDNESS
-	// TODO(TRC): Make this not hardcoded.
-	float3 numLods = float3(0.0, 0.0, 7.0);
+#if WORKAROUND_UAV_LIMITATION
+	float w, h, d;
+	_LD_TexArray_AnimatedWaves.GetDimensions(w, h, d);
+
+	float3 numLods = float3(0.0, 0.0, d / 4.0);
 	half4 data;
-	data.r = _LD_TexArray_AnimatedWaves.SampleLevel(LODData_linear_clamp_sampler, uv_slice, mips);
-	data.g = _LD_TexArray_AnimatedWaves.SampleLevel(LODData_linear_clamp_sampler, uv_slice + numLods, mips);
-	data.b = _LD_TexArray_AnimatedWaves.SampleLevel(LODData_linear_clamp_sampler, uv_slice + (numLods * 2.0), mips);
-	data.a = _LD_TexArray_AnimatedWaves.SampleLevel(LODData_linear_clamp_sampler, uv_slice + (numLods * 3.0), mips);
+	data.x = _LD_TexArray_AnimatedWaves.SampleLevel(LODData_linear_clamp_sampler, uv_slice, mips).x;
+	data.y = _LD_TexArray_AnimatedWaves.SampleLevel(LODData_linear_clamp_sampler, uv_slice + numLods, mips).x;
+	data.z = _LD_TexArray_AnimatedWaves.SampleLevel(LODData_linear_clamp_sampler, uv_slice + (numLods * 2.0), mips).x;
+	data.w = _LD_TexArray_AnimatedWaves.SampleLevel(LODData_linear_clamp_sampler, uv_slice + (numLods * 3.0), mips).x;
 	return data;
 #else
 	return _LD_TexArray_AnimatedWaves.SampleLevel(LODData_linear_clamp_sampler, uv_slice, mips);

@@ -204,8 +204,6 @@ public class OceanDebugGUI : MonoBehaviour
                     shapes.Add(lodData.DataTexture.format, rt);
                 }
 
-                // TODO(TRC): Find a way to superimpose depth multiplied textures?
-                // (There is probably a better name for that variable as well).
                 RenderTexture shape = shapes[lodData.DataTexture.format];
                 Graphics.CopyTexture(lodData.DataTexture, idx, 0, shape, 0, 0);
 

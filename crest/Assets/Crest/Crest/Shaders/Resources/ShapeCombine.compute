@@ -2,6 +2,10 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+// Compute shader to perform combine of displacements. Reads and writes to texture array which saves
+// needing to do ping pong of render targets. Unfortunately reading/writing float4s is not supported
+// on pre-DX11.3 hardware (aka typed UAV loads), so this path is not the default, for now..
+
 #pragma kernel ShapeCombine
 #pragma kernel ShapeCombine_DISABLE_COMBINE _DISABLE_COMBINE
 #pragma kernel ShapeCombine_FLOW_ON _FLOW_ON

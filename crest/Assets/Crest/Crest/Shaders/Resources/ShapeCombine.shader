@@ -2,6 +2,9 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+// Shaders to perform combine as a ping pong process - combine happens into an auxiliary buffer, which is then copied
+// back into the texture array.
+
 Shader "Hidden/Crest/Simulation/Combine Animated Wave LODs"
 {
 	SubShader

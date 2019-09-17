@@ -23,6 +23,7 @@ Shader "Hidden/Crest/Simulation/Combine Animated Wave LODs"
 
 			#include "UnityCG.cginc"
 			#include "../OceanLODData.hlsl"
+			#include "../FullScreenTriangle.hlsl"
 
 			float _HorizDisplace;
 			float _DisplaceClamp;
@@ -30,8 +31,7 @@ Shader "Hidden/Crest/Simulation/Combine Animated Wave LODs"
 
 			struct Attributes
 			{
-				float3 positionOS : POSITION;
-				float2 uv : TEXCOORD0;
+				uint VertexID : SV_VertexID;
 			};
 
 			struct Varyings
@@ -43,11 +43,11 @@ Shader "Hidden/Crest/Simulation/Combine Animated Wave LODs"
 			Varyings Vert(Attributes input)
 			{
 				Varyings o;
-				o.positionCS = UnityObjectToClipPos(input.positionOS);
-				o.uv = input.uv;
+				o.positionCS = GetFullScreenTriangleVertexPosition(input.VertexID);
+				o.uv = GetFullScreenTriangleTexCoord(input.VertexID);
 				return o;
 			}
-			
+
 			void Flow(out float2 offsets, out float2 weights)
 			{
 				const float period = 3.0 * _LD_Params[_LD_SliceIndex].x;

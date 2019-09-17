@@ -228,6 +228,7 @@ namespace Crest
         void CombinePassPingPong(CommandBuffer buf)
         {
             var lodCount = OceanRenderer.Instance.CurrentLodCount;
+            const int shaderPassCombineIntoAux = 0, shaderPassCopyResultBack = 1;
 
             // combine waves
             for (int lodIdx = lodCount - 1; lodIdx >= 0; lodIdx--)
@@ -268,14 +269,14 @@ namespace Crest
 
                 _combineMaterial[lodIdx].SetFloat(OceanRenderer.sp_LD_SliceIndex, lodIdx);
 
-                // Combine into aux buffer
-                // TODO - do this with drawprocedural like below?
-                buf.Blit(null, _combineBuffer, _combineMaterial[lodIdx].material, 0);
+                // Combine this LOD's waves with waves from the LODs above into auxiliary combine buffer
+                buf.SetRenderTarget(_combineBuffer);
+                buf.DrawProcedural(Matrix4x4.identity, _combineMaterial[lodIdx].material, shaderPassCombineIntoAux, MeshTopology.Triangles, 3);
 
-                // Copy back to lod texture array
+                // Copy combine buffer back to lod texture array
                 buf.SetRenderTarget(_targets, 0, CubemapFace.Unknown, lodIdx);
                 _combineMaterial[lodIdx].SetTexture(Shader.PropertyToID("_CombineBuffer"), _combineBuffer);
-                buf.DrawProcedural(Matrix4x4.identity, _combineMaterial[lodIdx].material, 1, MeshTopology.Triangles, 3);
+                buf.DrawProcedural(Matrix4x4.identity, _combineMaterial[lodIdx].material, shaderPassCopyResultBack, MeshTopology.Triangles, 3);
             }
         }
 

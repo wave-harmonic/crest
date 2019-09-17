@@ -254,15 +254,15 @@ namespace Crest
                     LodDataMgrDynWaves.BindNull(_combineMaterial[lodIdx]);
                 }
 
-                //// flow
-                //if (OceanRenderer.Instance._lodDataFlow)
-                //{
-                //    OceanRenderer.Instance._lodDataFlow.BindResultData(lodIdx, 0, _combineMaterial[lodIdx]);
-                //}
-                //else
-                //{
-                //    LodDataMgrFlow.BindNull(0, _combineMaterial[lodIdx]);
-                //}
+                // flow
+                if (OceanRenderer.Instance._lodDataFlow)
+                {
+                    OceanRenderer.Instance._lodDataFlow.BindResultData(_combineMaterial[lodIdx]);
+                }
+                else
+                {
+                    LodDataMgrFlow.BindNull(_combineMaterial[lodIdx]);
+                }
 
                 _combineMaterial[lodIdx].SetFloat(OceanRenderer.sp_LD_SliceIndex, lodIdx);
 

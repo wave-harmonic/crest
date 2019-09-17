@@ -69,17 +69,23 @@ Shader "Hidden/Crest/Simulation/Combine Animated Wave LODs"
 				const float3 uv_nextLod = WorldToUV_BiggerLod(worldPosXZ);
 
 				float3 result = 0.0;
+				float sss = 0.0;
 
-				// TODO(huw) - get flow and dynamic waves turned on, by fixing up the below and also binding them in LodDataMgrAnimWaves.cs
-				// NOTE the below
-
-				// this lods waves
 #if _FLOW_ON
-				// TODO
+				float2 flow = 0.0;
+				SampleFlow(_LD_TexArray_Flow, uv_thisLod, 1.0, flow);
+
+				float2 offsets, weights;
+				Flow(offsets, weights);
+
+				float3 uv_thisLod_flow_0 = WorldToUV(worldPosXZ - offsets[0] * flow);
+				float3 uv_thisLod_flow_1 = WorldToUV(worldPosXZ - offsets[1] * flow);
+				SampleDisplacements(_LD_TexArray_WaveBuffer, uv_thisLod_flow_0, weights[0], result, sss);
+				SampleDisplacements(_LD_TexArray_WaveBuffer, uv_thisLod_flow_1, weights[1], result, sss);
 #else
 				float4 data = _LD_TexArray_WaveBuffer.SampleLevel(LODData_linear_clamp_sampler, uv_thisLod, 0.0);
 				result += data.xyz;
-				float sss = data.w;
+				sss = data.w;
 #endif
 
 				float w, h, d;

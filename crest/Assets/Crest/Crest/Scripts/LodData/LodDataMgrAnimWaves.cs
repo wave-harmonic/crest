@@ -90,21 +90,7 @@ namespace Crest
 
             _waveBuffers = CreateLodDataTextures(desc, "WaveBuffer", false);
 
-
-
-            {
-                _combineBuffer = new RenderTexture(desc);
-                _combineBuffer.wrapMode = TextureWrapMode.Clamp;
-                _combineBuffer.antiAliasing = 1;
-                _combineBuffer.filterMode = FilterMode.Bilinear;
-                _combineBuffer.anisoLevel = 0;
-                _combineBuffer.useMipMap = false;
-                _combineBuffer.name = "CombineBuffer";
-                _combineBuffer.dimension = TextureDimension.Tex2D;
-                _combineBuffer.volumeDepth = 1;
-                _combineBuffer.enableRandomWrite = false;
-                _combineBuffer.Create();
-            }
+            _combineBuffer = CreateCombineBuffer(desc);
 
             var combineShader = Shader.Find("Hidden/Crest/Simulation/Combine Animated Wave LODs");
             _combineMaterial = new PropertyWrapperMaterial[OceanRenderer.Instance.CurrentLodCount];
@@ -113,6 +99,22 @@ namespace Crest
                 var mat = new Material(combineShader);
                 _combineMaterial[i] = new PropertyWrapperMaterial(mat);
             }
+        }
+
+        RenderTexture CreateCombineBuffer(RenderTextureDescriptor desc)
+        {
+            RenderTexture result = new RenderTexture(desc);
+            result.wrapMode = TextureWrapMode.Clamp;
+            result.antiAliasing = 1;
+            result.filterMode = FilterMode.Bilinear;
+            result.anisoLevel = 0;
+            result.useMipMap = false;
+            result.name = "CombineBuffer";
+            result.dimension = TextureDimension.Tex2D;
+            result.volumeDepth = 1;
+            result.enableRandomWrite = false;
+            result.Create();
+            return result;
         }
 
         // Filter object for assigning shapes to LODs. This was much more elegant with a lambda but it generated garbage.
@@ -230,9 +232,10 @@ namespace Crest
             // combine waves
             for (int lodIdx = lodCount - 1; lodIdx >= 0; lodIdx--)
             {
-                // this lod data
+                // The per-octave wave buffers
                 BindWaveBuffer(_combineMaterial[lodIdx], false);
 
+                // Bind this LOD data (displacements). Option to disable the combine pass - very useful debugging feature.
                 if (_shapeCombinePass)
                 {
                     BindResultData(_combineMaterial[lodIdx]);
@@ -242,8 +245,7 @@ namespace Crest
                     BindNull(_combineMaterial[lodIdx]);
                 }
 
-                // TODO - uncomment these..
-                // dynamic waves
+                // Dynamic waves
                 if (OceanRenderer.Instance._lodDataDynWaves)
                 {
                     OceanRenderer.Instance._lodDataDynWaves.BindCopySettings(_combineMaterial[lodIdx]);
@@ -254,7 +256,7 @@ namespace Crest
                     LodDataMgrDynWaves.BindNull(_combineMaterial[lodIdx]);
                 }
 
-                // flow
+                // Flow
                 if (OceanRenderer.Instance._lodDataFlow)
                 {
                     OceanRenderer.Instance._lodDataFlow.BindResultData(_combineMaterial[lodIdx]);
@@ -319,10 +321,12 @@ namespace Crest
 
                 _combineProperties.Initialise(buf, _combineShader, selectedShaderKernel);
 
+                // The per-octave wave buffers
                 BindWaveBuffer(_combineProperties);
+                // Bind this LOD data (displacements)
                 BindResultData(_combineProperties);
 
-                // dynamic waves
+                // Dynamic waves
                 if (OceanRenderer.Instance._lodDataDynWaves)
                 {
                     OceanRenderer.Instance._lodDataDynWaves.BindCopySettings(_combineProperties);
@@ -333,7 +337,7 @@ namespace Crest
                     LodDataMgrDynWaves.BindNull(_combineProperties);
                 }
 
-                // flow
+                // Flow
                 if (OceanRenderer.Instance._lodDataFlow)
                 {
                     OceanRenderer.Instance._lodDataFlow.BindResultData(_combineProperties);

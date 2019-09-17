@@ -42,7 +42,6 @@ const float4 _LD_Params_Source[MAX_LOD_COUNT + 1];
 const float3 _LD_Pos_Scale_Source[MAX_LOD_COUNT + 1];
 
 SamplerState LODData_linear_clamp_sampler;
-SamplerState LODData_point_clamp_sampler;
 
 // Bias ocean floor depth so that default (0) values in texture are not interpreted as shallow and generating foam everywhere
 #define CREST_OCEAN_DEPTH_BASELINE 1000.0

@@ -77,7 +77,7 @@ Shader "Hidden/Crest/Simulation/Combine Animated Wave LODs"
 #if _FLOW_ON
 				// TODO
 #else
-				float4 data = _LD_TexArray_WaveBuffer.SampleLevel(LODData_linear_clamp_sampler, uv_thisLod, 0.0);
+				float4 data = _LD_TexArray_WaveBuffer.SampleLevel(LODData_point_clamp_sampler, uv_thisLod, 0.0);
 				result += data.xyz;
 				float sss = data.w;
 #endif
@@ -88,7 +88,7 @@ Shader "Hidden/Crest/Simulation/Combine Animated Wave LODs"
 				// waves to combine down from the next lod up the chain
 				if (_LD_SliceIndex < d - 1.0)
 				{
-					float4 dataNextLod = _LD_TexArray_AnimatedWaves.SampleLevel(LODData_linear_clamp_sampler, uv_nextLod, 0.0);
+					float4 dataNextLod = _LD_TexArray_AnimatedWaves.SampleLevel(LODData_point_clamp_sampler, uv_nextLod, 0.0);
 					result += dataNextLod.xyz;
 					sss += dataNextLod.w;
 				}

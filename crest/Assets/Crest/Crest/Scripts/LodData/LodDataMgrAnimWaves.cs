@@ -243,16 +243,16 @@ namespace Crest
                 }
 
                 // TODO - uncomment these..
-                //// dynamic waves
-                //if (OceanRenderer.Instance._lodDataDynWaves)
-                //{
-                //    OceanRenderer.Instance._lodDataDynWaves.BindCopySettings(_combineMaterial[lodIdx]);
-                //    OceanRenderer.Instance._lodDataDynWaves.BindResultData(lodIdx, 0, _combineMaterial[lodIdx]);
-                //}
-                //else
-                //{
-                //    LodDataMgrDynWaves.BindNull(0, _combineMaterial[lodIdx]);
-                //}
+                // dynamic waves
+                if (OceanRenderer.Instance._lodDataDynWaves)
+                {
+                    OceanRenderer.Instance._lodDataDynWaves.BindCopySettings(_combineMaterial[lodIdx]);
+                    OceanRenderer.Instance._lodDataDynWaves.BindResultData(_combineMaterial[lodIdx]);
+                }
+                else
+                {
+                    LodDataMgrDynWaves.BindNull(_combineMaterial[lodIdx]);
+                }
 
                 //// flow
                 //if (OceanRenderer.Instance._lodDataFlow)

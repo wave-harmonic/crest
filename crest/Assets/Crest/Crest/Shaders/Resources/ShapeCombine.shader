@@ -167,7 +167,7 @@ Shader "Hidden/Crest/Simulation/Combine Animated Wave LODs"
 			
 			half4 Frag(Varyings input) : SV_Target
 			{
-				return _CombineBuffer.SampleLevel(LODData_linear_clamp_sampler, input.uv, 0.0);
+				return _CombineBuffer.SampleLevel(LODData_point_clamp_sampler, input.uv, 0.0);
 			}
 			ENDCG
 		}

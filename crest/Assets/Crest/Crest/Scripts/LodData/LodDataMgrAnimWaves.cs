@@ -32,6 +32,12 @@ namespace Crest
         /// </summary>
         public static bool _shapeCombinePass = true;
 
+        /// <summary>
+        /// Ping pong between render targets to do the combine. Disabling this uses a compute shader instead which doesn't need
+        /// to copy back and forth between targets, but has dodgy historical support as pre-DX11.3 hardware may not support typed UAV loads.
+        /// </summary>
+        public static bool _shapeCombinePassPingPong = true;
+
         RenderTexture _waveBuffers;
         RenderTexture _combineBuffer;
 
@@ -49,7 +55,7 @@ namespace Crest
         ComputeShader _combineShader;
         PropertyWrapperCompute _combineProperties;
         PropertyWrapperMaterial[] _combineMaterial;
-        
+
         static int sp_LD_TexArray_AnimatedWaves_Compute = Shader.PropertyToID("_LD_TexArray_AnimatedWaves_Compute");
 
         public override void UseSettings(SimSettingsBase settings) { OceanRenderer.Instance._simSettingsAnimatedWaves = settings as SimSettingsAnimatedWaves; }
@@ -81,7 +87,7 @@ namespace Crest
 
             int resolution = OceanRenderer.Instance.LodDataResolution;
             var desc = new RenderTextureDescriptor(resolution, resolution, TextureFormat, 0);
-            
+
             _waveBuffers = CreateLodDataTextures(desc, "WaveBuffer", false);
 
 
@@ -182,10 +188,8 @@ namespace Crest
                 OceanRenderer.Instance._lodTransform._renderData[lodIdx].Validate(0, this);
             }
 
-
             // lod-dependent data
             _filterWavelength._lodCount = lodCount;
-
             for (int lodIdx = lodCount - 1; lodIdx >= 0; lodIdx--)
             {
                 buf.SetRenderTarget(_waveBuffers, 0, CubemapFace.Unknown, lodIdx);
@@ -199,7 +203,84 @@ namespace Crest
                 SubmitDrawsFiltered(lodIdx, buf, _filterWavelength);
             }
 
-#if false
+            // Combine the LODs - copy results from biggest LOD down to LOD 0
+            if (_shapeCombinePassPingPong)
+            {
+                CombinePassPingPong(buf);
+            }
+            else
+            {
+                CombinePassCompute(buf);
+            }
+
+            // lod-independent data
+            for (int lodIdx = lodCount - 1; lodIdx >= 0; lodIdx--)
+            {
+                buf.SetRenderTarget(_targets, 0, CubemapFace.Unknown, lodIdx);
+
+                // draw any data that did not express a preference for one lod or another
+                SubmitDrawsFiltered(lodIdx, buf, _filterNoLodPreference);
+            }
+        }
+
+        void CombinePassPingPong(CommandBuffer buf)
+        {
+            var lodCount = OceanRenderer.Instance.CurrentLodCount;
+
+            // combine waves
+            for (int lodIdx = lodCount - 1; lodIdx >= 0; lodIdx--)
+            {
+                // this lod data
+                BindWaveBuffer(_combineMaterial[lodIdx], false);
+
+                if (_shapeCombinePass)
+                {
+                    BindResultData(_combineMaterial[lodIdx]);
+                }
+                else
+                {
+                    BindNull(_combineMaterial[lodIdx]);
+                }
+
+                // TODO - uncomment these..
+                //// dynamic waves
+                //if (OceanRenderer.Instance._lodDataDynWaves)
+                //{
+                //    OceanRenderer.Instance._lodDataDynWaves.BindCopySettings(_combineMaterial[lodIdx]);
+                //    OceanRenderer.Instance._lodDataDynWaves.BindResultData(lodIdx, 0, _combineMaterial[lodIdx]);
+                //}
+                //else
+                //{
+                //    LodDataMgrDynWaves.BindNull(0, _combineMaterial[lodIdx]);
+                //}
+
+                //// flow
+                //if (OceanRenderer.Instance._lodDataFlow)
+                //{
+                //    OceanRenderer.Instance._lodDataFlow.BindResultData(lodIdx, 0, _combineMaterial[lodIdx]);
+                //}
+                //else
+                //{
+                //    LodDataMgrFlow.BindNull(0, _combineMaterial[lodIdx]);
+                //}
+
+                _combineMaterial[lodIdx].SetFloat(OceanRenderer.sp_LD_SliceIndex, lodIdx);
+
+                // Combine into aux buffer
+                // TODO - do this with drawprocedural like below?
+                buf.Blit(null, _combineBuffer, _combineMaterial[lodIdx].material, 0);
+
+                // Copy back to lod texture array
+                buf.SetRenderTarget(_targets, 0, CubemapFace.Unknown, lodIdx);
+                _combineMaterial[lodIdx].SetTexture(Shader.PropertyToID("_CombineBuffer"), _combineBuffer);
+                buf.DrawProcedural(Matrix4x4.identity, _combineMaterial[lodIdx].material, 1, MeshTopology.Triangles, 3);
+            }
+        }
+
+        void CombinePassCompute(CommandBuffer buf)
+        {
+            var lodCount = OceanRenderer.Instance.CurrentLodCount;
+
             int combineShaderKernel = krnl_ShapeCombine;
             int combineShaderKernel_lastLOD = krnl_ShapeCombine_DISABLE_COMBINE;
             {
@@ -222,7 +303,7 @@ namespace Crest
                     combineShaderKernel_lastLOD = krnl_ShapeCombine_DYNAMIC_WAVE_SIM_ON_DISABLE_COMBINE;
                 }
             }
-            
+
             // combine waves
             for (int lodIdx = lodCount - 1; lodIdx >= 0; lodIdx--)
             {
@@ -270,60 +351,6 @@ namespace Crest
 
                 _combineProperties.SetFloat(OceanRenderer.sp_LD_SliceIndex, lodIdx);
                 _combineProperties.DispatchShader();
-            }
-
-#else
-
-            // combine waves
-            for (int lodIdx = lodCount - 1; lodIdx >= 0; lodIdx--)
-            {
-                // this lod data
-                BindWaveBuffer(_combineMaterial[lodIdx], false);
-                BindResultData(_combineMaterial[lodIdx]);
-
-                // TODO - uncomment these..
-                //// dynamic waves
-                //if (OceanRenderer.Instance._lodDataDynWaves)
-                //{
-                //    OceanRenderer.Instance._lodDataDynWaves.BindCopySettings(_combineMaterial[lodIdx]);
-                //    OceanRenderer.Instance._lodDataDynWaves.BindResultData(lodIdx, 0, _combineMaterial[lodIdx]);
-                //}
-                //else
-                //{
-                //    LodDataMgrDynWaves.BindNull(0, _combineMaterial[lodIdx]);
-                //}
-
-                //// flow
-                //if (OceanRenderer.Instance._lodDataFlow)
-                //{
-                //    OceanRenderer.Instance._lodDataFlow.BindResultData(lodIdx, 0, _combineMaterial[lodIdx]);
-                //}
-                //else
-                //{
-                //    LodDataMgrFlow.BindNull(0, _combineMaterial[lodIdx]);
-                //}
-
-                _combineMaterial[lodIdx].SetFloat(OceanRenderer.sp_LD_SliceIndex, lodIdx);
-
-                // Combine into aux buffer
-                // TODO - do this with drawprocedural like below?
-                buf.Blit(null, _combineBuffer, _combineMaterial[lodIdx].material, 0);
-
-                // Copy back to lod texture array
-                buf.SetRenderTarget(_targets, 0, CubemapFace.Unknown, lodIdx);
-                _combineMaterial[lodIdx].SetTexture(Shader.PropertyToID("_CombineBuffer"), _combineBuffer);
-                buf.DrawProcedural(Matrix4x4.identity, _combineMaterial[lodIdx].material, 1, MeshTopology.Triangles, 3);
-            }
-#endif
-
-
-            // lod-independent data
-            for (int lodIdx = lodCount - 1; lodIdx >= 0; lodIdx--)
-            {
-                buf.SetRenderTarget(_targets, 0, CubemapFace.Unknown, lodIdx);
-
-                // draw any data that did not express a preference for one lod or another
-                SubmitDrawsFiltered(lodIdx, buf, _filterNoLodPreference);
             }
         }
 

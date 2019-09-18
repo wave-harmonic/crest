@@ -9,8 +9,6 @@ using UnityEngine;
 public class BoatAlignNormal : FloatingObjectBase
 {
     [Header("Buoyancy Force")]
-    [Tooltip("Height offset from transform center to bottom of boat (if any)."), SerializeField]
-    float _bottomH = 0f;
     [Tooltip("Strength of buoyancy force per meter of submersion in water."), SerializeField]
     float _buoyancyCoeff = 1.5f;
     [Tooltip("Strength of torque applied to match boat orientation to water normal."), SerializeField]

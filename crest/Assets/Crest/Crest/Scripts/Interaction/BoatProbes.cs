@@ -57,14 +57,15 @@ namespace Crest
         Vector3 _displacementToObject = Vector3.zero;
         public override Vector3 CalculateDisplacementToObject() { return _displacementToObject; }
 
-        public override float ObjectWidth { get { return _minSpatialLength; } }
-        public override bool InWater { get { return true; } }
+        public override float ObjectWidth => _minSpatialLength;
+        public override bool InWater => _inWater;
 
         SamplingData _samplingData = new SamplingData();
         SamplingData _samplingDataFlow = new SamplingData();
 
         Rect _localSamplingAABB;
         float _totalWeight;
+        bool _inWater;
 
         private void Start()
         {
@@ -130,24 +131,31 @@ namespace Crest
                 _displacementToObject = displacement;
             }
 
-            if (GPUReadbackFlow.Instance)
+            float waterHeight = (undispPos + displacement).y;
+            float bottomDepth = waterHeight - transform.position.y - _bottomH;
+            _inWater = bottomDepth > 0f;
+
+            if (_inWater)
             {
-                GPUReadbackFlow.Instance.ProcessRequests();
-
-                var flowRect = new Rect(position.x, position.z, 0f, 0f);
-                if (GPUReadbackFlow.Instance.GetSamplingData(ref flowRect, _minSpatialLength, _samplingDataFlow))
+                if (GPUReadbackFlow.Instance)
                 {
-                    Vector2 surfaceFlow;
-                    GPUReadbackFlow.Instance.SampleFlow(ref position, _samplingDataFlow, out surfaceFlow);
-                    waterSurfaceVel += new Vector3(surfaceFlow.x, 0, surfaceFlow.y);
+                    GPUReadbackFlow.Instance.ProcessRequests();
 
-                    GPUReadbackFlow.Instance.ReturnSamplingData(_samplingDataFlow);
+                    var flowRect = new Rect(position.x, position.z, 0f, 0f);
+                    if (GPUReadbackFlow.Instance.GetSamplingData(ref flowRect, _minSpatialLength, _samplingDataFlow))
+                    {
+                        Vector2 surfaceFlow;
+                        GPUReadbackFlow.Instance.SampleFlow(ref position, _samplingDataFlow, out surfaceFlow);
+                        waterSurfaceVel += new Vector3(surfaceFlow.x, 0, surfaceFlow.y);
+
+                        GPUReadbackFlow.Instance.ReturnSamplingData(_samplingDataFlow);
+                    }
                 }
-            }
 
-            FixedUpdateBuoyancy(collProvider);
-            FixedUpdateDrag(collProvider, waterSurfaceVel);
-            FixedUpdateEngine();
+                FixedUpdateBuoyancy(collProvider);
+                FixedUpdateDrag(collProvider, waterSurfaceVel);
+                FixedUpdateEngine();
+            }
 
             collProvider.ReturnSamplingData(_samplingData);
         }

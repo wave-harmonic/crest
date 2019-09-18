@@ -1036,6 +1036,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ebb499a376b0c094f92b8f70c0966934, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _bottomH: -18
   _centerOfMass: {x: 0, y: -8, z: 0}
   _forcePoints:
   - _weight: 1

@@ -9,6 +9,9 @@ namespace Crest
     /// </summary>
     public abstract class FloatingObjectBase : MonoBehaviour
     {
+        [Tooltip("Height offset from transform center to bottom of boat (if any). If the transform center is 1m above the bottom of the boat, set this to -1. Used in buoyancy calculation and to determine whether object is in water."), SerializeField]
+        protected float _bottomH = 0f;
+
         public abstract float ObjectWidth { get; }
         public abstract bool InWater { get; }
         public abstract Vector3 Velocity { get; }

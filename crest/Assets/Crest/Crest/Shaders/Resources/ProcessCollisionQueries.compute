@@ -10,8 +10,15 @@
 StructuredBuffer<float3> _QueryPositions;
 RWStructuredBuffer<float3> _ResultDisplacements;
 
+#include "../OceanLODData.hlsl"
+
 [numthreads(GROUP_SIZE, 1, 1)]
 void CSMain(uint3 id : SV_DispatchThreadID)
 {
-	_ResultDisplacements[id.x] = 2.0 * _QueryPositions[id.x] + (float3)0.5;
+	const float3 queryPos = _QueryPositions[id.x];
+
+	float3 uv = WorldToUV(queryPos.xz, 0.0);
+
+	_ResultDisplacements[id.x] = _LD_TexArray_AnimatedWaves.SampleLevel(LODData_linear_clamp_sampler, uv, 0).xyz;
+	//2.0 * _QueryPositions[id.x] + (float3)0.5;
 }

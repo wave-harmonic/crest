@@ -107,4 +107,27 @@ namespace Crest
             _computeKernel = -1;
         }
     }
+
+    [System.Serializable]
+    public class PropertyWrapperComputeStandalone : IPropertyWrapper
+    {
+        ComputeShader _computeShader = null;
+        int _computeKernel = -1;
+
+        public PropertyWrapperComputeStandalone(
+            ComputeShader computeShader, int computeKernel
+        )
+        {
+            _computeShader = computeShader;
+            _computeKernel = computeKernel;
+        }
+
+        public void SetFloat(int param, float value) { _computeShader.SetFloat(param, value); }
+        public void SetFloatArray(int param, float[] value) { _computeShader.SetFloats(param, value); }
+        public void SetInt(int param, int value) { _computeShader.SetInt(param, value); }
+        public void SetTexture(int param, Texture value) { _computeShader.SetTexture(_computeKernel, param, value); }
+        public void SetVector(int param, Vector4 value) { _computeShader.SetVector(param, value); }
+        public void SetVectorArray(int param, Vector4[] value) { _computeShader.SetVectorArray(param, value); }
+        public void SetMatrix(int param, Matrix4x4 value) { _computeShader.SetMatrix(param, value); }
+    }
 }

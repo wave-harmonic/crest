@@ -10,6 +10,7 @@ using UnityEngine.Rendering;
 public class CollProviderCompute : MonoBehaviour
 {
     public ComputeShader _shader;
+    Crest.PropertyWrapperComputeStandalone _wrapper;
 
     readonly static int s_maxQueryCount = 4096;
     // Must match value in compute shader
@@ -93,6 +94,10 @@ public class CollProviderCompute : MonoBehaviour
             _shader.SetBuffer(s_kernelHandle, "_QueryPositions", _computeBufQueries);
             _shader.SetBuffer(s_kernelHandle, "_ResultDisplacements", _computeBufResults);
 
+            Crest.OceanRenderer.Instance._lodDataAnimWaves.BindResultData(_wrapper);
+
+            _shader.SetTexture(s_kernelHandle, "_LD_TexArray_AnimatedWaves", Crest.OceanRenderer.Instance._lodDataAnimWaves.DataTexture);
+
             var numGroups = (int)Mathf.Ceil((float)_numQueries / (float)s_computeGroupSize) * s_computeGroupSize;
             _shader.Dispatch(s_kernelHandle, numGroups, 1, 1);
 
@@ -116,6 +121,7 @@ public class CollProviderCompute : MonoBehaviour
     private void OnEnable()
     {
         s_kernelHandle = _shader.FindKernel("CSMain");
+        _wrapper = new Crest.PropertyWrapperComputeStandalone(_shader, s_kernelHandle);
 
         _computeBufQueries = new ComputeBuffer(s_maxQueryCount, 12, ComputeBufferType.Default);
         _computeBufResults = new ComputeBuffer(s_maxQueryCount, 12, ComputeBufferType.Default);

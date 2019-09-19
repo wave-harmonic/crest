@@ -12,63 +12,105 @@ public class CollProviderCompute : MonoBehaviour
     public ComputeShader _shader;
 
     readonly static int s_maxQueryCount = 4096;
+    // Must match value in compute shader
+    readonly static int s_computeGroupSize = 64;
+
     static int s_kernelHandle;
 
     ComputeBuffer _computeBufQueries;
     ComputeBuffer _computeBufResults;
 
-    Dictionary<int, List<Vector3>> _queries = new Dictionary<int, List<Vector3>>();
+    Vector3[] _queryPositions = new Vector3[s_maxQueryCount];
+
+    Dictionary<int, Vector2Int> _segments = new Dictionary<int, Vector2Int>();
 
     NativeArray<Vector3> _queryResults;
 
-    bool _doQuery = true;
+    int _numQueries = 0;
 
-    public void Query(int guid, Vector3 queryPosition)
+    public bool UpdateQueryPoints(int guid, Vector3[] queryPoints)
     {
-        List<Vector3> queries;
-        if (!_queries.TryGetValue(guid, out queries))
+        var segmentRetrieved = false;
+        Vector2Int segment;
+
+        if (_segments.TryGetValue(guid, out segment))
         {
-            _queries.Add(guid, queries = new List<Vector3>());
+            var segmentSize = segment.y - segment.x + 1;
+            if (segmentSize == queryPoints.Length)
+            {
+                segmentRetrieved = true;
+            }
+            else
+            {
+                _segments.Remove(guid);
+            }
         }
 
-        queries.Add(queryPosition);
+        if (!segmentRetrieved)
+        {
+            segment.x = _numQueries;
+            segment.y = segment.x + queryPoints.Length - 1;
+            _segments.Add(guid, segment);
+
+            _numQueries += queryPoints.Length;
+        }
+
+
+        for (int i = segment.x; i <= segment.y; i++)
+        {
+            _queryPositions[i] = queryPoints[i - segment.x];
+        }
+
+        return true;
+    }
+
+    public void RemoveQueryPoints(int guid)
+    {
+        if (_segments.ContainsKey(guid))
+        {
+            _segments.Remove(guid);
+        }
+    }
+
+    public void CompactQueryStorage()
+    {
+        // Extreme approach - flush all segments, which will force them to recreate
+        _segments.Clear();
+        _numQueries = 0;
+    }
+
+    private void Update()
+    {
+        UpdateQueryPoints(GetInstanceID(), new Vector3[] { Vector3.zero, Vector3.forward });
     }
 
     void LateUpdate()
     {
-        if (_doQuery)
+        if (_numQueries > 0)
         {
-            Debug.Log("LateUpdate");
-
-            var queries = new Vector3[s_maxQueryCount];
-            for (int i = 0; i < s_maxQueryCount; i++)
-            {
-                queries[i] = new Vector3(i, i + 1, 2 * i);
-            }
-
-            _computeBufQueries.SetData(queries);
+            _computeBufQueries.SetData(_queryPositions, 0, 0, _numQueries);
 
             _shader.SetBuffer(s_kernelHandle, "_QueryPositions", _computeBufQueries);
             _shader.SetBuffer(s_kernelHandle, "_ResultDisplacements", _computeBufResults);
-            _shader.Dispatch(s_kernelHandle, s_maxQueryCount / 64, 1, 1);
+
+            var numGroups = (int)Mathf.Ceil((float)_numQueries / (float)s_computeGroupSize) * s_computeGroupSize;
+            _shader.Dispatch(s_kernelHandle, numGroups, 1, 1);
 
             AsyncGPUReadback.Request(_computeBufResults, DataArrived);
 
-            Debug.Log(Time.frameCount + ": request created");
-
-            _doQuery = false;
+            Debug.Log(Time.frameCount + ": request created for " + _numQueries + " queries.");
         }
     }
 
     void DataArrived(AsyncGPUReadbackRequest req)
     {
-        if (req.done)
+        if (req.done && _queryResults.IsCreated)
         {
             var data = req.GetData<Vector3>();
             data.CopyTo(_queryResults);
-        }
 
-        Debug.Log(Time.frameCount + ": queryResult: " + _queryResults[0]);
+            Debug.Log(Time.frameCount + ": queryResult: " + _queryResults[0]);
+        }
     }
 
     private void OnEnable()

@@ -4,10 +4,13 @@
 
 #pragma kernel CSMain
 
+// Must match value in script
+#define GROUP_SIZE 64
+
 StructuredBuffer<float3> _QueryPositions;
 RWStructuredBuffer<float3> _ResultDisplacements;
 
-[numthreads(64, 1, 1)]
+[numthreads(GROUP_SIZE, 1, 1)]
 void CSMain(uint3 id : SV_DispatchThreadID)
 {
 	_ResultDisplacements[id.x] = 2.0 * _QueryPositions[id.x] + (float3)0.5;

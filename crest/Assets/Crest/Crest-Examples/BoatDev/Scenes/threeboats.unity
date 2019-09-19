@@ -642,11 +642,11 @@ MonoBehaviour:
   _timeProvider: {fileID: 0}
   _material: {fileID: 2100000, guid: 9def92ac79181fe41b238e91663f0fad, type: 2}
   _layerName: Water
-  _windDirectionAngle: 0
   _gravityMultiplier: 1
   _minTexelsPerWave: 3
   _minScale: 8
   _maxScale: 256
+  _dropDetailHeightBasedOnWaves: 0.2
   _lodDataResolution: 256
   _geometryDownSampleFactor: 2
   _lodCount: 8
@@ -985,6 +985,50 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1855652032
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1855652034}
+  - component: {fileID: 1855652033}
+  m_Layer: 0
+  m_Name: ComputeTest
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1855652033
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1855652032}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 771675eb0f815044e8c195f6a3224e9a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _shader: {fileID: 7200000, guid: fa1d3009293d5d44ea0b951b2764d036, type: 3}
+--- !u!4 &1855652034
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1855652032}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 320, y: 3.649047, z: -319}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 5
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1866213577
 GameObject:
   m_ObjectHideFlags: 0
@@ -1029,9 +1073,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _spectrum: {fileID: 11400000, guid: 691aad324f2d2be4abf8123c36963da5, type: 2}
+  _windDirectionAngle: 0
   _componentsPerOctave: 8
   _weight: 1
   _randomSeed: 0
+  _evaluateSpectrumAtRuntime: 1
+  _wavelengths: []
+  _amplitudes: []
+  _angleDegs: []
+  _phases: []
   _directTowardsPoint: 0
   _pointPositionXZ: {x: 0, y: 0}
   _pointRadii: {x: 100, y: 200}

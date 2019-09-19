@@ -1,0 +1,14 @@
+﻿// Crest Ocean System
+
+// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
+
+#pragma kernel CSMain
+
+StructuredBuffer<float3> _QueryPositions;
+RWStructuredBuffer<float3> _ResultDisplacements;
+
+[numthreads(64, 1, 1)]
+void CSMain(uint3 id : SV_DispatchThreadID)
+{
+	_ResultDisplacements[id.x] = 2.0 * _QueryPositions[id.x] + (float3)0.5;
+}

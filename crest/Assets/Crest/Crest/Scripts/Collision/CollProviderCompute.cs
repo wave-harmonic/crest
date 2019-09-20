@@ -11,6 +11,9 @@ using UnityEngine.Rendering;
 
 public class CollProviderCompute : MonoBehaviour
 {
+    readonly static int s_maxRequests = 4;
+    readonly static int s_maxGuids = 64;
+
     public ComputeShader _shader;
     Crest.PropertyWrapperComputeStandalone _wrapper;
 
@@ -26,14 +29,24 @@ public class CollProviderCompute : MonoBehaviour
 
     Vector2[] _queryPositionsXZ = new Vector2[s_maxQueryCount];
 
-    Dictionary<int, Vector2Int> _segments = new Dictionary<int, Vector2Int>();
+    class SegmentRegistrar
+    {
+        public Dictionary<int, Vector2Int> _segments = new Dictionary<int, Vector2Int>();
+        public int _numQueries = 0;
+    }
+    
+    SegmentRegistrar[] _segments = new SegmentRegistrar[s_maxRequests + 2 + 4];
+
+    int _segment0 = 0;
+    int _segment1 = 0;
 
     NativeArray<Vector3> _queryResults;
     float _queryResultsTime = -1f;
+    Dictionary<int, Vector2Int> _resultSegments;
+
     NativeArray<Vector3> _queryResultsLast;
     float _queryResultsTimeLast = -1f;
-
-    int _numQueries = 0;
+    Dictionary<int, Vector2Int> _resultSegmentsLast;
 
     public static CollProviderCompute Instance { get; private set; }
 
@@ -41,7 +54,7 @@ public class CollProviderCompute : MonoBehaviour
     {
         public AsyncGPUReadbackRequest _request;
         public float _dataTimestamp;
-        //public List<int> _guids;
+        public Dictionary<int, Vector2Int> _segments;
     }
 
     List<ReadbackRequest> _requests = new List<ReadbackRequest>();
@@ -55,7 +68,7 @@ public class CollProviderCompute : MonoBehaviour
         var segmentRetrieved = false;
         Vector2Int segment;
 
-        if (_segments.TryGetValue(guid, out segment))
+        if (_segments[_segment1]._segments.TryGetValue(guid, out segment))
         {
             var segmentSize = segment.y - segment.x + 1;
             if (segmentSize == queryPoints.Length)
@@ -64,17 +77,23 @@ public class CollProviderCompute : MonoBehaviour
             }
             else
             {
-                _segments.Remove(guid);
+                _segments[_segment1]._segments.Remove(guid);
             }
         }
 
         if (!segmentRetrieved)
         {
-            segment.x = _numQueries;
-            segment.y = segment.x + queryPoints.Length - 1;
-            _segments.Add(guid, segment);
+            if (_segments[_segment1]._segments.Count >= s_maxGuids)
+            {
+                Debug.LogError("Too many guids registered with CollProviderCompute. Increase s_maxGuids.", this);
+                return false;
+            }
 
-            _numQueries += queryPoints.Length;
+            segment.x = _segments[_segment1]._numQueries;
+            segment.y = segment.x + queryPoints.Length - 1;
+            _segments[_segment1]._segments.Add(guid, segment);
+
+            _segments[_segment1]._numQueries += queryPoints.Length;
         }
 
         for (int i = segment.x; i <= segment.y; i++)
@@ -91,9 +110,22 @@ public class CollProviderCompute : MonoBehaviour
     /// </summary>
     public void RemoveQueryPoints(int guid)
     {
-        if (_segments.ContainsKey(guid))
+        // Remove the guid for all of the next spare segment registrars. However, don't touch the ones that are being
+        // used for active requests.
+        int i = _segment1;
+        while (true)
         {
-            _segments.Remove(guid);
+            if (_segments[i]._segments.ContainsKey(guid))
+            {
+                _segments[i]._segments.Remove(guid);
+            }
+
+            i = (i + 1) % _segments.Length;
+
+            if (i == _segment0)
+            {
+                break;
+            }
         }
     }
 
@@ -103,9 +135,20 @@ public class CollProviderCompute : MonoBehaviour
     /// </summary>
     public void CompactQueryStorage()
     {
-        // Extreme approach - flush all segments, which will force them to recreate
-        _segments.Clear();
-        _numQueries = 0;
+        // Extreme approach - flush all segments for next spare registrars (but don't touch ones being used for active requests)
+        int i = _segment1;
+        while (true)
+        {
+            _segments[i]._segments.Clear();
+            _segments[i]._numQueries = 0;
+
+            i = (i + 1) % _segments.Length;
+
+            if (i == _segment0)
+            {
+                break;
+            }
+        }
     }
 
     /// <summary>
@@ -113,9 +156,16 @@ public class CollProviderCompute : MonoBehaviour
     /// </summary>
     public bool RetrieveResults(int guid, ref Vector3[] results)
     {
-        Vector2Int segment;
-        if (!_segments.TryGetValue(guid, out segment))
+        if (_resultSegments == null)
         {
+            return false;
+        }
+
+        // Check if there are results that came back for this guid
+        Vector2Int segment;
+        if (!_resultSegments.TryGetValue(guid, out segment))
+        {
+            // Guid not found - no result
             return false;
         }
 
@@ -125,8 +175,8 @@ public class CollProviderCompute : MonoBehaviour
     }
 
     /// <summary>
-    /// Compute time derivative of the displacements by calculating difference from last query. TODO - how to know
-    /// if the guid had queries in the last round of results? Need to record list of GUIDs in each request?
+    /// Compute time derivative of the displacements by calculating difference from last query. More complicated than it would seem - results
+    /// may not be available in one or both of the results, or the query locations in the array may change.
     /// </summary>
     public bool ComputeVelocities(int guid, ref Vector3[] results)
     {
@@ -135,10 +185,22 @@ public class CollProviderCompute : MonoBehaviour
         {
             return false;
         }
-        
+
         Vector2Int segment;
-        if (!_segments.TryGetValue(guid, out segment))
+        if (!_resultSegments.TryGetValue(guid, out segment))
         {
+            return false;
+        }
+
+        Vector2Int segmentLast;
+        if (!_resultSegmentsLast.TryGetValue(guid, out segmentLast))
+        {
+            return false;
+        }
+
+        if ((segment.y - segment.x) != (segmentLast.y - segmentLast.x))
+        {
+            // Number of queries changed - can't handle that
             return false;
         }
 
@@ -148,9 +210,10 @@ public class CollProviderCompute : MonoBehaviour
             return false;
         }
 
-        for (var i = segment.x; i <= segment.y; i++)
+        var count = segment.y - segment.x + 1;
+        for (var i = 0; i < count; i++)
         {
-            results[i - segment.x] = (_queryResults[i] - _queryResultsLast[i]) / dt;
+            results[i] = (_queryResults[i + segment.x] - _queryResultsLast[i + segmentLast.x]) / dt;
         }
 
         return true;
@@ -160,9 +223,9 @@ public class CollProviderCompute : MonoBehaviour
     // the last frames displacements.
     void Update()
     {
-        if (_numQueries > 0)
+        if (_segments[_segment1]._numQueries > 0)
         {
-            _computeBufQueries.SetData(_queryPositionsXZ, 0, 0, _numQueries);
+            _computeBufQueries.SetData(_queryPositionsXZ, 0, 0, _segments[_segment1]._numQueries);
 
             _shader.SetBuffer(s_kernelHandle, "_QueryPositions", _computeBufQueries);
             _shader.SetBuffer(s_kernelHandle, "_ResultDisplacements", _computeBufResults);
@@ -176,19 +239,31 @@ public class CollProviderCompute : MonoBehaviour
             var meshScaleLerp = needToBlendOutShape ? Crest.OceanRenderer.Instance.ViewerAltitudeLevelAlpha : 0f;
             _shader.SetFloat("_MeshScaleLerp", meshScaleLerp);
 
-            var numGroups = (int)Mathf.Ceil((float)_numQueries / (float)s_computeGroupSize) * s_computeGroupSize;
+            var numGroups = (int)Mathf.Ceil((float)_segments[_segment1]._numQueries / (float)s_computeGroupSize) * s_computeGroupSize;
             _shader.Dispatch(s_kernelHandle, numGroups, 1, 1);
+
+            // Remove oldest requests if we have hit the limit
+            while (_requests.Count >= s_maxQueryCount)
+            {
+                _requests.RemoveAt(0);
+            }
 
             ReadbackRequest request;
             request._dataTimestamp = Time.time - Time.deltaTime;
             request._request = AsyncGPUReadback.Request(_computeBufResults, DataArrived);
-            //request._guids = new List<int>(); // TODO - garbage..
-            //foreach (var guid in _segments.Keys)
-            //{
-            //    request._guids.Add(guid);
-            //}
+            request._segments = _segments[_segment1]._segments;
+
             _requests.Add(request);
             //Debug.Log(Time.frameCount + ": request created for " + _numQueries + " queries.");
+
+            _segment1 = (_segment1 + 1) % _segments.Length;
+
+            // The last index should never increment and land on the first index - it should only happen the other way around.
+            Debug.Assert(_segment1 != _segment0, "Segment registrar scratch exhausted.");
+
+            _segments[_segment1]._numQueries = 0;
+            // TODO - is this clear necessary? Its likely causing allocations.
+            _segments[_segment1]._segments.Clear();
         }
     }
 
@@ -197,7 +272,7 @@ public class CollProviderCompute : MonoBehaviour
     /// </summary>
     void DataArrived(AsyncGPUReadbackRequest req)
     {
-        // Can get callbacks after disable
+        // Can get callbacks after disable, so detect this.
         if (!_queryResults.IsCreated)
         {
             _requests.Clear();
@@ -210,6 +285,7 @@ public class CollProviderCompute : MonoBehaviour
             if (_requests[i]._request.hasError)
             {
                 _requests.RemoveAt(i);
+                AdvanceLastSegment();
             }
         }
 
@@ -225,24 +301,35 @@ public class CollProviderCompute : MonoBehaviour
             // Update "last" results
             Swap(ref _queryResults, ref _queryResultsLast);
             _queryResultsTimeLast = _queryResultsTime;
+            _resultSegmentsLast = _resultSegments;
 
             var data = _requests[lastDoneIndex]._request.GetData<Vector3>();
             data.CopyTo(_queryResults);
             _queryResultsTime = _requests[lastDoneIndex]._dataTimestamp;
+            _resultSegments = _requests[lastDoneIndex]._segments;
         }
 
         // Remove all the requests up to the last completed one
         for (int i = lastDoneIndex; i >= 0; --i)
         {
             _requests.RemoveAt(i);
+            AdvanceLastSegment();
         }
     }
 
-    void Swap<T>(ref NativeArray<T> arr1, ref NativeArray<T> arr2) where T : struct
+    void AdvanceLastSegment()
     {
-        var temp = arr2;
-        arr2 = arr1;
-        arr1 = temp;
+        // Don't do this - these are being references by _queryResults
+        //_segments[_segment0]._segments.Clear();
+        //_segments[_segment0]._numQueries = 0;
+        _segment0 = (_segment0 + 1) % _segments.Length;
+    }
+
+    void Swap<T>(ref T a, ref T b)
+    {
+        var temp = b;
+        b = a;
+        a = temp;
     }
 
     private void OnEnable()
@@ -258,6 +345,11 @@ public class CollProviderCompute : MonoBehaviour
 
         _queryResults = new NativeArray<Vector3>(s_maxQueryCount, Allocator.Persistent, NativeArrayOptions.ClearMemory);
         _queryResultsLast = new NativeArray<Vector3>(s_maxQueryCount, Allocator.Persistent, NativeArrayOptions.ClearMemory);
+
+        for (int i = 0; i < _segments.Length; i++)
+        {
+            _segments[i] = new SegmentRegistrar();
+        }
     }
 
     private void OnDisable()
@@ -269,6 +361,12 @@ public class CollProviderCompute : MonoBehaviour
 
         _queryResults.Dispose();
         _queryResultsLast.Dispose();
+
+        for (int i = 0; i < _segments.Length; i++)
+        {
+            _segments[i]._numQueries = 0;
+            _segments[i]._segments.Clear();
+        }
     }
 
     void PlaceMarkerCube(ref GameObject marker, Vector3 query, Vector3 disp)

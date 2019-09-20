@@ -129,7 +129,7 @@ public class CollProviderCompute : MonoBehaviour
 
     void DataArrived(AsyncGPUReadbackRequest req)
     {
-        if (req.done && _queryResults.IsCreated)
+        if (req.done && !req.hasError && _queryResults.IsCreated)
         {
             var data = req.GetData<Vector3>();
             data.CopyTo(_queryResults);

@@ -138,6 +138,8 @@ public class OceanDebugGUI : MonoBehaviour
                 ToggleGUI();
             }
             y += h;
+
+            CollProviderCompute.s_useComputeCollQueries = GUI.Toggle(new Rect(x, y, w, h), CollProviderCompute.s_useComputeCollQueries, "Compute shader queries"); y += h;
         }
 
         // draw source textures to screen

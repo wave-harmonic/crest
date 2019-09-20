@@ -17,6 +17,7 @@ public class CollProviderCompute : MonoBehaviour
     readonly static int s_maxQueryCount = 4096;
     // Must match value in compute shader
     readonly static int s_computeGroupSize = 64;
+    public static bool s_useComputeCollQueries = true;
 
     static int s_kernelHandle;
 

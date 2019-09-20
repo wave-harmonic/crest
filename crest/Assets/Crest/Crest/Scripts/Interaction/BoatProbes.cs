@@ -66,6 +66,9 @@ namespace Crest
         Rect _localSamplingAABB;
         float _totalWeight;
 
+        Vector3[] _queryPoints;
+        Vector3[] _queryResults;
+
         private void Start()
         {
             _rb = GetComponent<Rigidbody>();
@@ -80,6 +83,9 @@ namespace Crest
             _localSamplingAABB = ComputeLocalSamplingAABB();
 
             CalcTotalWeight();
+
+            _queryPoints = new Vector3[_forcePoints.Length];
+            _queryResults = new Vector3[_forcePoints.Length];
         }
 
         void CalcTotalWeight()
@@ -145,7 +151,16 @@ namespace Crest
                 }
             }
 
-            FixedUpdateBuoyancy(collProvider);
+            // Buoyancy
+            if(!CollProviderCompute.s_useComputeCollQueries)
+            {
+                FixedUpdateBuoyancy(collProvider);
+            }
+            else
+            {
+                FixedUpdateBuoyancyCompute(collProvider);
+            }
+
             FixedUpdateDrag(collProvider, waterSurfaceVel);
             FixedUpdateEngine();
 
@@ -193,6 +208,34 @@ namespace Crest
                     _rb.AddForceAtPosition(archimedesForceMagnitude * heightDiff * Vector3.up * point._weight * _forceMultiplier / _totalWeight, transformedPoint);
                 }
             }
+        }
+
+        void FixedUpdateBuoyancyCompute(ICollProvider collProvider)
+        {
+            var archimedesForceMagnitude = WATER_DENSITY * Mathf.Abs(Physics.gravity.y);
+
+            // Retrieve results and compare to last query points to compute forces
+            if (CollProviderCompute.Instance.RetrieveResults(GetInstanceID(), ref _queryResults))
+            {
+                for (int i = 0; i < _forcePoints.Length; i++)
+                {
+                    var waterHeight = OceanRenderer.Instance.SeaLevel + _queryResults[i].y;
+                    var heightDiff = waterHeight - _queryPoints[i].y;
+                    if (heightDiff > 0)
+                    {
+                        _rb.AddForceAtPosition(archimedesForceMagnitude * heightDiff * Vector3.up * _forcePoints[i]._weight * _forceMultiplier / _totalWeight, _queryPoints[i]);
+                    }
+                }
+            }
+
+            // Update query points
+            for (int i = 0; i < _forcePoints.Length; i++)
+            {
+                _queryPoints[i] = transform.TransformPoint(_forcePoints[i]._offsetPosition + new Vector3(0, _centerOfMass.y, 0));
+            }
+
+            // Send off new query points
+            CollProviderCompute.Instance.UpdateQueryPoints(GetInstanceID(), _queryPoints);
         }
 
         void FixedUpdateDrag(ICollProvider collProvider, Vector3 waterSurfaceVel)
@@ -259,6 +302,14 @@ namespace Crest
             b.Encapsulate(transform.TransformPoint(new Vector3(_localSamplingAABB.xMax, 0f, _localSamplingAABB.yMin)));
             b.Encapsulate(transform.TransformPoint(new Vector3(_localSamplingAABB.xMax, 0f, _localSamplingAABB.yMax)));
             return Rect.MinMaxRect(b.min.x, b.min.z, b.max.x, b.max.z);
+        }
+
+        private void OnDisable()
+        {
+            if(CollProviderCompute.Instance)
+            {
+                CollProviderCompute.Instance.RemoveQueryPoints(GetInstanceID());
+            }
         }
     }
 

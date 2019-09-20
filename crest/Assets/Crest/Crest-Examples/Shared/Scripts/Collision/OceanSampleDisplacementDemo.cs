@@ -13,6 +13,7 @@ public class OceanSampleDisplacementDemo : MonoBehaviour
     GameObject[] _markerObjects = new GameObject[3];
     Vector3[] _markerPos = new Vector3[3];
     Vector3[] _resultDisps = new Vector3[3];
+    Vector3[] _resultVels = new Vector3[3];
 
     SamplingData _samplingData = new SamplingData();
 
@@ -57,6 +58,14 @@ public class OceanSampleDisplacementDemo : MonoBehaviour
 
             Debug.DrawLine(query, query + disp);
             _markerObjects[i].transform.position = query + disp;
+        }
+
+        if (CollProviderCompute.Instance.ComputeVelocities(GetInstanceID(), ref _resultVels))
+        {
+            for(var i = 0; i < _resultVels.Length;i++)
+            {
+                Debug.DrawLine(_markerObjects[i].transform.position, _markerObjects[i].transform.position + _resultVels[i], Color.green);
+            }
         }
     }
 }

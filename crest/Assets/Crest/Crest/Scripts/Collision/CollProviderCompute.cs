@@ -31,8 +31,6 @@ public class CollProviderCompute : MonoBehaviour
 
     int _numQueries = 0;
 
-    float _meshScaleLerpLastFrame = 0f;
-
     public static CollProviderCompute Instance { get; private set; }
 
     public bool UpdateQueryPoints(int guid, Vector3[] queryPoints)
@@ -99,7 +97,9 @@ public class CollProviderCompute : MonoBehaviour
         return true;
     }
 
-    void LateUpdate()
+    // This needs to run before OceanRenderer.LateUpdate, because the latter will change the LOD positions/scales, while we will read
+    // the last frames displacements.
+    void Update()
     {
         if (_numQueries > 0)
         {
@@ -112,11 +112,10 @@ public class CollProviderCompute : MonoBehaviour
 
             _shader.SetTexture(s_kernelHandle, "_LD_TexArray_AnimatedWaves", Crest.OceanRenderer.Instance._lodDataAnimWaves.DataTexture);
 
-            // This doesnt work - is it because its using last frames, even though I'm deferring it by a frame. Why?
+            // LOD 0 is blended in/out when scale changes, to eliminate pops
             var needToBlendOutShape = Crest.OceanRenderer.Instance.ScaleCouldIncrease;
             var meshScaleLerp = needToBlendOutShape ? Crest.OceanRenderer.Instance.ViewerAltitudeLevelAlpha : 0f;
-            _shader.SetFloat("_MeshScaleLerp", _meshScaleLerpLastFrame);
-            _meshScaleLerpLastFrame = meshScaleLerp;
+            _shader.SetFloat("_MeshScaleLerp", meshScaleLerp);
 
             var numGroups = (int)Mathf.Ceil((float)_numQueries / (float)s_computeGroupSize) * s_computeGroupSize;
             _shader.Dispatch(s_kernelHandle, numGroups, 1, 1);

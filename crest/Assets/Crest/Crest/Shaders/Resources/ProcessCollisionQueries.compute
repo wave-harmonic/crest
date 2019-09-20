@@ -7,8 +7,7 @@
 // Must match value in script
 #define GROUP_SIZE 64
 
-// Could be float2?
-StructuredBuffer<float3> _QueryPositions;
+StructuredBuffer<float2> _QueryPositions;
 RWStructuredBuffer<float3> _ResultDisplacements;
 
 float _MeshScaleLerp;
@@ -57,15 +56,15 @@ float3 ComputeDisplacement(float2 undispPos)
 [numthreads(GROUP_SIZE, 1, 1)]
 void CSMain(uint3 id : SV_DispatchThreadID)
 {
-	const float3 queryPos = _QueryPositions[id.x];
+	const float2 queryPosXZ = _QueryPositions[id.x];
 
-	float2 undispPos = queryPos.xz;
+	float2 undispPos = queryPosXZ;
 	float3 displacement;
 	for (int i = 0; i < 4; i++)
 	{
 		displacement = ComputeDisplacement(undispPos);
 
-		float2 error = (undispPos + displacement.xz) - queryPos.xz;
+		float2 error = (undispPos + displacement.xz) - queryPosXZ;
 
 		undispPos -= error;
 	}

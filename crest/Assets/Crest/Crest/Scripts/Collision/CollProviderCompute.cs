@@ -24,7 +24,7 @@ public class CollProviderCompute : MonoBehaviour
     ComputeBuffer _computeBufQueries;
     ComputeBuffer _computeBufResults;
 
-    Vector3[] _queryPositions = new Vector3[s_maxQueryCount];
+    Vector2[] _queryPositionsXZ = new Vector2[s_maxQueryCount];
 
     Dictionary<int, Vector2Int> _segments = new Dictionary<int, Vector2Int>();
 
@@ -61,10 +61,10 @@ public class CollProviderCompute : MonoBehaviour
             _numQueries += queryPoints.Length;
         }
 
-
         for (int i = segment.x; i <= segment.y; i++)
         {
-            _queryPositions[i] = queryPoints[i - segment.x];
+            _queryPositionsXZ[i].x = queryPoints[i - segment.x].x;
+            _queryPositionsXZ[i].y = queryPoints[i - segment.x].z;
         }
 
         return true;
@@ -104,7 +104,7 @@ public class CollProviderCompute : MonoBehaviour
     {
         if (_numQueries > 0)
         {
-            _computeBufQueries.SetData(_queryPositions, 0, 0, _numQueries);
+            _computeBufQueries.SetData(_queryPositionsXZ, 0, 0, _numQueries);
 
             _shader.SetBuffer(s_kernelHandle, "_QueryPositions", _computeBufQueries);
             _shader.SetBuffer(s_kernelHandle, "_ResultDisplacements", _computeBufResults);
@@ -146,7 +146,7 @@ public class CollProviderCompute : MonoBehaviour
         s_kernelHandle = _shader.FindKernel("CSMain");
         _wrapper = new Crest.PropertyWrapperComputeStandalone(_shader, s_kernelHandle);
 
-        _computeBufQueries = new ComputeBuffer(s_maxQueryCount, 12, ComputeBufferType.Default);
+        _computeBufQueries = new ComputeBuffer(s_maxQueryCount, 8, ComputeBufferType.Default);
         _computeBufResults = new ComputeBuffer(s_maxQueryCount, 12, ComputeBufferType.Default);
 
         _queryResults = new NativeArray<Vector3>(s_maxQueryCount, Allocator.Persistent, NativeArrayOptions.ClearMemory);

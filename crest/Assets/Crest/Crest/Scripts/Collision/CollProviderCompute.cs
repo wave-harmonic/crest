@@ -2,6 +2,8 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+// TODO min shape length
+
 using System.Collections.Generic;
 using Unity.Collections;
 using UnityEngine;
@@ -28,6 +30,8 @@ public class CollProviderCompute : MonoBehaviour
     NativeArray<Vector3> _queryResults;
 
     int _numQueries = 0;
+
+    public static CollProviderCompute Instance { get; private set; }
 
     public bool UpdateQueryPoints(int guid, Vector3[] queryPoints)
     {
@@ -80,9 +84,17 @@ public class CollProviderCompute : MonoBehaviour
         _numQueries = 0;
     }
 
-    private void Update()
+    public bool RetrieveResults(int guid, ref Vector3[] results)
     {
-        UpdateQueryPoints(GetInstanceID(), new Vector3[] { Vector3.zero, Vector3.forward });
+        Vector2Int segment;
+        if (!_segments.TryGetValue(guid, out segment))
+        {
+            return false;
+        }
+
+        _queryResults.Slice(segment.x, segment.y - segment.x + 1).CopyTo(results);
+
+        return true;
     }
 
     void LateUpdate()
@@ -120,6 +132,9 @@ public class CollProviderCompute : MonoBehaviour
 
     private void OnEnable()
     {
+        Debug.Assert(Instance == null);
+        Instance = this;
+
         s_kernelHandle = _shader.FindKernel("CSMain");
         _wrapper = new Crest.PropertyWrapperComputeStandalone(_shader, s_kernelHandle);
 
@@ -131,9 +146,25 @@ public class CollProviderCompute : MonoBehaviour
 
     private void OnDisable()
     {
+        Instance = null;
+
         _computeBufQueries.Dispose();
         _computeBufResults.Dispose();
 
         _queryResults.Dispose();
+    }
+
+    void PlaceMarkerCube(ref GameObject marker, Vector3 query, Vector3 disp)
+    {
+        if (marker == null)
+        {
+            marker = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            Destroy(marker.GetComponent<Collider>());
+        }
+
+        query.y = 0f;
+
+        Debug.DrawLine(query, query + disp);
+        marker.transform.position = query + disp;
     }
 }

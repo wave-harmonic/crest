@@ -10,55 +10,53 @@ public class OceanSampleDisplacementDemo : MonoBehaviour
 {
     public bool _trackCamera = true;
 
-    GameObject _marker, _markerX, _markerZ;
-    Vector3 _markerPos, _markerPosX, _markerPosZ;
+    GameObject[] _markerObjects = new GameObject[3];
+    Vector3[] _markerPos = new Vector3[3];
+    Vector3[] _resultDisps = new Vector3[3];
 
     SamplingData _samplingData = new SamplingData();
 
     void Update()
     {
         float r = 5f;
-        if (_trackCamera) _markerPos = Camera.main.transform.position + Camera.main.transform.forward * 10f;
-        if (_trackCamera) _markerPosX = Camera.main.transform.position + Camera.main.transform.forward * 10f + r * Vector3.right;
-        if (_trackCamera) _markerPosZ = Camera.main.transform.position + Camera.main.transform.forward * 10f + r * Vector3.forward;
+        if (_trackCamera)
+        {
+            var height = Mathf.Abs(Camera.main.transform.position.y - OceanRenderer.Instance.SeaLevel);
+            var lookAngle = Mathf.Max(Mathf.Abs(Camera.main.transform.forward.y), 0.001f);
+            var offset = height / lookAngle;
+            _markerPos[0] = Camera.main.transform.position + Camera.main.transform.forward * offset;
+            _markerPos[1] = Camera.main.transform.position + Camera.main.transform.forward * offset + r * Vector3.right;
+            _markerPos[2] = Camera.main.transform.position + Camera.main.transform.forward * offset + r * Vector3.forward;
+        }
 
-        // Assume a primitive like a sphere or box, providing this side length means high frequency waves
-        // much shorter than the object will be ignored.
-        float shapeLength = 2f * transform.lossyScale.magnitude;
-
-        var collProvider = OceanRenderer.Instance.CollisionProvider;
-        var thisRect = new Rect(transform.position.x, transform.position.z, r, r);
-        if (!collProvider.GetSamplingData(ref thisRect, shapeLength, _samplingData))
+        if (CollProviderCompute.Instance == null || OceanRenderer.Instance == null)
+        {
+            return;
+        }
+        if (!CollProviderCompute.Instance.UpdateQueryPoints(GetInstanceID(), _markerPos))
+        {
+            return;
+        }
+        if (!CollProviderCompute.Instance.RetrieveResults(GetInstanceID(), ref _resultDisps))
         {
             return;
         }
 
-        PlaceMarkerCube(ref _marker, _markerPos);
-        PlaceMarkerCube(ref _markerX, _markerPosX);
-        PlaceMarkerCube(ref _markerZ, _markerPosZ);
-
-        collProvider.ReturnSamplingData(_samplingData);
-    }
-
-    void PlaceMarkerCube(ref GameObject marker, Vector3 query)
-    {
-        if (marker == null)
+        for (int i = 0; i < _resultDisps.Length; i++)
         {
-            marker = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            Destroy(marker.GetComponent<Collider>());
-        }
+            if (_markerObjects[i] == null)
+            {
+                _markerObjects[i] = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                Destroy(_markerObjects[i].GetComponent<Collider>());
+            }
 
-        query.y = 0f;
+            var query = _markerPos[i];
+            query.y = OceanRenderer.Instance.SeaLevel;
 
-        Vector3 disp;
-        if (OceanRenderer.Instance.CollisionProvider.SampleDisplacement(ref query, _samplingData, out disp))
-        {
+            var disp = _resultDisps[i];
+
             Debug.DrawLine(query, query + disp);
-            marker.transform.position = query + disp;
-        }
-        else
-        {
-            marker.transform.position = query;
+            _markerObjects[i].transform.position = query + disp;
         }
     }
 }

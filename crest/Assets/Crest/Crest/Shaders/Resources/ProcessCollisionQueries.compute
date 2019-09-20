@@ -7,18 +7,54 @@
 // Must match value in script
 #define GROUP_SIZE 64
 
+// Could be float2?
 StructuredBuffer<float3> _QueryPositions;
 RWStructuredBuffer<float3> _ResultDisplacements;
 
 #include "../OceanLODData.hlsl"
+
+void PosToSliceIndices(const float2 worldXZ, out uint slice0, out uint slice1, out float lodAlpha)
+{
+	const float2 offsetFromCenter = abs(worldXZ - _OceanCenterPosWorld.xz);
+	const float taxicab = max(offsetFromCenter.x, offsetFromCenter.y);
+	const float radius0 = _LD_Pos_Scale[0].z / 2.0;
+	const float sliceNumber = max(log2(taxicab / radius0), 0.0);
+
+	lodAlpha = frac(sliceNumber);
+	slice0 = (uint)sliceNumber;
+	slice1 = slice0 + 1;
+}
+
+float3 ComputeDisplacement(float2 undispPos)
+{
+	uint slice0, slice1;
+	float lodAlpha;
+	PosToSliceIndices(undispPos, slice0, slice1, lodAlpha);
+
+	float3 uv0 = WorldToUV(undispPos, slice0);
+	float3 uv1 = WorldToUV(undispPos, slice1);
+
+	return lerp(
+		_LD_TexArray_AnimatedWaves.SampleLevel(LODData_linear_clamp_sampler, uv0, 0).xyz,
+		_LD_TexArray_AnimatedWaves.SampleLevel(LODData_linear_clamp_sampler, uv1, 0).xyz,
+		lodAlpha);
+}
 
 [numthreads(GROUP_SIZE, 1, 1)]
 void CSMain(uint3 id : SV_DispatchThreadID)
 {
 	const float3 queryPos = _QueryPositions[id.x];
 
-	float3 uv = WorldToUV(queryPos.xz, 0.0);
+	float2 undispPos = queryPos.xz;
+	float3 displacement;
+	for (int i = 0; i < 4; i++)
+	{
+		displacement = ComputeDisplacement(undispPos);
 
-	_ResultDisplacements[id.x] = _LD_TexArray_AnimatedWaves.SampleLevel(LODData_linear_clamp_sampler, uv, 0).xyz;
-	//2.0 * _QueryPositions[id.x] + (float3)0.5;
+		float2 error = (undispPos + displacement.xz) - queryPos.xz;
+
+		undispPos -= error;
+	}
+
+	_ResultDisplacements[id.x] = ComputeDisplacement(undispPos);
 }

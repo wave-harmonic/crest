@@ -31,6 +31,8 @@ public class CollProviderCompute : MonoBehaviour
 
     int _numQueries = 0;
 
+    float _meshScaleLerpLastFrame = 0f;
+
     public static CollProviderCompute Instance { get; private set; }
 
     public bool UpdateQueryPoints(int guid, Vector3[] queryPoints)
@@ -110,12 +112,18 @@ public class CollProviderCompute : MonoBehaviour
 
             _shader.SetTexture(s_kernelHandle, "_LD_TexArray_AnimatedWaves", Crest.OceanRenderer.Instance._lodDataAnimWaves.DataTexture);
 
+            // This doesnt work - is it because its using last frames, even though I'm deferring it by a frame. Why?
+            var needToBlendOutShape = Crest.OceanRenderer.Instance.ScaleCouldIncrease;
+            var meshScaleLerp = needToBlendOutShape ? Crest.OceanRenderer.Instance.ViewerAltitudeLevelAlpha : 0f;
+            _shader.SetFloat("_MeshScaleLerp", _meshScaleLerpLastFrame);
+            _meshScaleLerpLastFrame = meshScaleLerp;
+
             var numGroups = (int)Mathf.Ceil((float)_numQueries / (float)s_computeGroupSize) * s_computeGroupSize;
             _shader.Dispatch(s_kernelHandle, numGroups, 1, 1);
 
             AsyncGPUReadback.Request(_computeBufResults, DataArrived);
 
-            Debug.Log(Time.frameCount + ": request created for " + _numQueries + " queries.");
+            //Debug.Log(Time.frameCount + ": request created for " + _numQueries + " queries.");
         }
     }
 
@@ -126,7 +134,7 @@ public class CollProviderCompute : MonoBehaviour
             var data = req.GetData<Vector3>();
             data.CopyTo(_queryResults);
 
-            Debug.Log(Time.frameCount + ": queryResult: " + _queryResults[0]);
+            //Debug.Log(Time.frameCount + ": queryResult: " + _queryResults[0]);
         }
     }
 

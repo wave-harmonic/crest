@@ -11,6 +11,8 @@
 StructuredBuffer<float3> _QueryPositions;
 RWStructuredBuffer<float3> _ResultDisplacements;
 
+float _MeshScaleLerp;
+
 #include "../OceanLODData.hlsl"
 
 void PosToSliceIndices(const float2 worldXZ, out uint slice0, out uint slice1, out float lodAlpha)
@@ -23,6 +25,18 @@ void PosToSliceIndices(const float2 worldXZ, out uint slice0, out uint slice1, o
 	lodAlpha = frac(sliceNumber);
 	slice0 = (uint)sliceNumber;
 	slice1 = slice0 + 1;
+
+	// lod alpha is remapped to ensure patches weld together properly. patches can vary significantly in shape (with
+	// strips added and removed), and this variance depends on the base density of the mesh, as this defines the strip width.
+	// using .15 as black and .85 as white should work for base mesh density as low as 16.
+	const float BLACK_POINT = 0.15, WHITE_POINT = 0.85;
+	lodAlpha = saturate((lodAlpha - BLACK_POINT) / (WHITE_POINT - BLACK_POINT));
+
+	if (slice0 == 0)
+	{
+		// blend out lod0 when viewpoint gains altitude
+		lodAlpha = min(lodAlpha + _MeshScaleLerp, 1.0);
+	}
 }
 
 float3 ComputeDisplacement(float2 undispPos)

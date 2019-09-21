@@ -67,7 +67,7 @@ namespace Crest
         float _totalWeight;
 
         Vector3[] _queryPoints;
-        Vector3[] _queryResults;
+        float[] _queryResults;
 
         private void Start()
         {
@@ -85,7 +85,7 @@ namespace Crest
             CalcTotalWeight();
 
             _queryPoints = new Vector3[_forcePoints.Length];
-            _queryResults = new Vector3[_forcePoints.Length];
+            _queryResults = new float[_forcePoints.Length];
         }
 
         void CalcTotalWeight()
@@ -152,7 +152,7 @@ namespace Crest
             }
 
             // Buoyancy
-            if(!CollProviderCompute.s_useComputeCollQueries)
+            if (!CollProviderCompute.s_useComputeCollQueries)
             {
                 FixedUpdateBuoyancy(collProvider);
             }
@@ -214,19 +214,7 @@ namespace Crest
         {
             var archimedesForceMagnitude = WATER_DENSITY * Mathf.Abs(Physics.gravity.y);
 
-            // Retrieve results and compare to last query points to compute forces
-            if (CollProviderCompute.Instance.RetrieveResults(GetInstanceID(), _queryResults, null))
-            {
-                for (int i = 0; i < _forcePoints.Length; i++)
-                {
-                    var waterHeight = OceanRenderer.Instance.SeaLevel + _queryResults[i].y;
-                    var heightDiff = waterHeight - _queryPoints[i].y;
-                    if (heightDiff > 0)
-                    {
-                        _rb.AddForceAtPosition(archimedesForceMagnitude * heightDiff * Vector3.up * _forcePoints[i]._weight * _forceMultiplier / _totalWeight, _queryPoints[i]);
-                    }
-                }
-            }
+            // Do queries
 
             // Update query points
             for (int i = 0; i < _forcePoints.Length; i++)
@@ -234,8 +222,21 @@ namespace Crest
                 _queryPoints[i] = transform.TransformPoint(_forcePoints[i]._offsetPosition + new Vector3(0, _centerOfMass.y, 0));
             }
 
-            // Send off new query points
-            CollProviderCompute.Instance.UpdateQueryPoints(GetInstanceID(), _queryPoints, null);
+            var status = CollProviderCompute.Instance.Query(GetInstanceID(), _queryPoints, null, _queryResults, null);
+
+            // Retrieve results and compare to last query points to compute forces
+            if (CollProviderCompute.RetrieveSucceeded(status))
+            {
+                for (int i = 0; i < _forcePoints.Length; i++)
+                {
+                    var waterHeight = OceanRenderer.Instance.SeaLevel + _queryResults[i];
+                    var heightDiff = waterHeight - _queryPoints[i].y;
+                    if (heightDiff > 0)
+                    {
+                        _rb.AddForceAtPosition(archimedesForceMagnitude * heightDiff * Vector3.up * _forcePoints[i]._weight * _forceMultiplier / _totalWeight, _queryPoints[i]);
+                    }
+                }
+            }
         }
 
         void FixedUpdateDrag(ICollProvider collProvider, Vector3 waterSurfaceVel)
@@ -306,7 +307,7 @@ namespace Crest
 
         private void OnDisable()
         {
-            if(CollProviderCompute.Instance)
+            if (CollProviderCompute.Instance)
             {
                 CollProviderCompute.Instance.RemoveQueryPoints(GetInstanceID());
             }

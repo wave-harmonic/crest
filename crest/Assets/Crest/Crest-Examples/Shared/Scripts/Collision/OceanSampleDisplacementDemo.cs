@@ -35,38 +35,35 @@ public class OceanSampleDisplacementDemo : MonoBehaviour
         {
             return;
         }
-        if (!CollProviderCompute.Instance.UpdateQueryPoints(GetInstanceID(), _markerPos, _markerPos))
-        {
-            return;
-        }
-        if (!CollProviderCompute.Instance.RetrieveResults(GetInstanceID(), _resultDisps, _resultNorms))
-        {
-            return;
-        }
 
-        for (int i = 0; i < _resultDisps.Length; i++)
+        var status = CollProviderCompute.Instance.Query(GetInstanceID(), _markerPos, _markerPos, _resultDisps, _resultNorms);
+
+        if (CollProviderCompute.RetrieveSucceeded(status))
         {
-            if (_markerObjects[i] == null)
+            for (int i = 0; i < _resultDisps.Length; i++)
             {
-                _markerObjects[i] = GameObject.CreatePrimitive(PrimitiveType.Cube);
-                Destroy(_markerObjects[i].GetComponent<Collider>());
-                _markerObjects[i].transform.localScale = Vector3.one * 0.5f;
+                if (_markerObjects[i] == null)
+                {
+                    _markerObjects[i] = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                    Destroy(_markerObjects[i].GetComponent<Collider>());
+                    _markerObjects[i].transform.localScale = Vector3.one * 0.5f;
+                }
+
+                var query = _markerPos[i];
+                query.y = OceanRenderer.Instance.SeaLevel;
+
+                var disp = _resultDisps[i];
+
+                var pos = query;
+                pos.y = disp.y;
+                Debug.DrawLine(pos, pos - disp);
+                _markerObjects[i].transform.position = pos;
             }
 
-            var query = _markerPos[i];
-            query.y = OceanRenderer.Instance.SeaLevel;
-
-            var disp = _resultDisps[i];
-
-            var pos = query;
-            pos.y = disp.y;
-            Debug.DrawLine(pos, pos - disp);
-            _markerObjects[i].transform.position = pos;
-        }
-
-        for (var i = 0; i < _resultNorms.Length; i++)
-        {
-            Debug.DrawLine(_markerObjects[i].transform.position, _markerObjects[i].transform.position + _resultNorms[i], Color.blue);
+            for (var i = 0; i < _resultNorms.Length; i++)
+            {
+                Debug.DrawLine(_markerObjects[i].transform.position, _markerObjects[i].transform.position + _resultNorms[i], Color.blue);
+            }
         }
 
         if (CollProviderCompute.Instance.ComputeVelocities(GetInstanceID(), ref _resultVels))

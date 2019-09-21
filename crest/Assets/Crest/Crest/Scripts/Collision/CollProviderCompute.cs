@@ -31,7 +31,7 @@ public class CollProviderCompute : MonoBehaviour
     readonly static int sp_LD_TexArray_AnimatedWaves = Shader.PropertyToID("_LD_TexArray_AnimatedWaves");
     readonly static int sp_MeshScaleLerp = Shader.PropertyToID("_MeshScaleLerp");
     readonly static int sp_SliceCount = Shader.PropertyToID("_SliceCount");
-    
+
     readonly static float s_finiteDiffDx = 0.1f;
 
     static int s_kernelHandle;
@@ -151,6 +151,53 @@ public class CollProviderCompute : MonoBehaviour
 
     List<ReadbackRequest> _requests = new List<ReadbackRequest>();
 
+    public enum QueryStatus
+    {
+        OK = 0,
+        RetrieveFailed = 1,
+        PostFailed = 2,
+
+    }
+
+    public static bool RetrieveSucceeded(int status)
+    {
+        return (status & (int)QueryStatus.RetrieveFailed) == 0;
+    }
+
+    public int Query(int guid, Vector3[] queryDisplacementToPoints, Vector3[] queryNormalAtPoint, Vector3[] resultDisps, Vector3[] resultNorms)
+    {
+        var result = (int)QueryStatus.OK;
+
+        if (!UpdateQueryPoints(guid, queryDisplacementToPoints, queryNormalAtPoint))
+        {
+            result |= (int)QueryStatus.PostFailed;
+        }
+
+        if (!RetrieveResults(guid, resultDisps, resultNorms))
+        {
+            result |= (int)QueryStatus.RetrieveFailed;
+        }
+
+        return result;
+    }
+
+    public int Query(int guid, Vector3[] queryDisplacementToPoints, Vector3[] queryNormalAtPoint, float[] resultHeights, Vector3[] resultNorms)
+    {
+        var result = (int)QueryStatus.OK;
+
+        if (!UpdateQueryPoints(guid, queryDisplacementToPoints, queryNormalAtPoint))
+        {
+            result |= (int)QueryStatus.PostFailed;
+        }
+
+        if (!RetrieveResultHeights(guid, resultHeights, resultNorms))
+        {
+            result |= (int)QueryStatus.RetrieveFailed;
+        }
+
+        return result;
+    }
+
     /// <summary>
     /// Takes a unique request ID and some world space XZ positions, and computes the displacement vector that lands at this position,
     /// to a good approximation. The world space height of the water at that position is then SeaLevel + displacement.y.
@@ -243,7 +290,7 @@ public class CollProviderCompute : MonoBehaviour
     /// <summary>
     /// Copy out the result displacements and normals, if queried.
     /// </summary>
-    public bool RetrieveResults(int guid, Vector3[] disps, Vector3[] normals)
+    bool RetrieveResults(int guid, Vector3[] disps, Vector3[] normals)
     {
         if (_resultSegments == null)
         {
@@ -288,9 +335,9 @@ public class CollProviderCompute : MonoBehaviour
     }
 
     /// <summary>
-    /// Copy out just water heights
+    /// Retrieve water heights and/or normals
     /// </summary>
-    public bool RetrieveResultHeights(int guid, ref float[] heights)
+    bool RetrieveResultHeights(int guid, float[] heights, Vector3[] normals)
     {
         if (_resultSegments == null)
         {
@@ -305,10 +352,34 @@ public class CollProviderCompute : MonoBehaviour
             return false;
         }
 
-        var seaLevel = Crest.OceanRenderer.Instance.SeaLevel;
-        for (int i = segment.x; i <= segment.y; i++)
+        var countPts = (heights != null ? heights.Length : 0);
+        var countNorms = (normals != null ? normals.Length : 0);
+        var countTotal = countPts + countNorms * 3;
+
+        if (countPts > 0)
         {
-            heights[i - segment.x] = seaLevel + _queryResults[i].y;
+            var seaLevel = Crest.OceanRenderer.Instance.SeaLevel;
+            for (int i = segment.x; i <= segment.y; i++)
+            {
+                heights[i - segment.x] = seaLevel + _queryResults[i].y;
+            }
+        }
+
+        if (countNorms > 0)
+        {
+            int firstNorm = segment.x + countPts;
+
+            var dx = -Vector3.right * s_finiteDiffDx;
+            var dz = -Vector3.forward * s_finiteDiffDx;
+            for (int i = 0; i < countNorms; i++)
+            {
+                var p = _queryResults[firstNorm + 3 * i + 0];
+                var px = dx + _queryResults[firstNorm + 3 * i + 1];
+                var pz = dz + _queryResults[firstNorm + 3 * i + 2];
+
+                normals[i] = Vector3.Cross(p - px, p - pz).normalized;
+                normals[i].y *= -1f;
+            }
         }
 
         return true;

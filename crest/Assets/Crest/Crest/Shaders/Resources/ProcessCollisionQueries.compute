@@ -11,6 +11,7 @@ StructuredBuffer<float2> _QueryPositions;
 RWStructuredBuffer<float3> _ResultDisplacements;
 
 float _MeshScaleLerp;
+float _SliceCount;
 
 #include "../OceanLODData.hlsl"
 
@@ -19,7 +20,7 @@ void PosToSliceIndices(const float2 worldXZ, out uint slice0, out uint slice1, o
 	const float2 offsetFromCenter = abs(worldXZ - _OceanCenterPosWorld.xz);
 	const float taxicab = max(offsetFromCenter.x, offsetFromCenter.y);
 	const float radius0 = _LD_Pos_Scale[0].z / 2.0;
-	const float sliceNumber = max(log2(taxicab / radius0), 0.0);
+	const float sliceNumber = clamp(log2(taxicab / radius0), 0.0, _SliceCount - 1.0);
 
 	lodAlpha = frac(sliceNumber);
 	slice0 = (uint)sliceNumber;
@@ -47,10 +48,12 @@ float3 ComputeDisplacement(float2 undispPos)
 	float3 uv0 = WorldToUV(undispPos, slice0);
 	float3 uv1 = WorldToUV(undispPos, slice1);
 
-	return lerp(
-		_LD_TexArray_AnimatedWaves.SampleLevel(LODData_linear_clamp_sampler, uv0, 0).xyz,
-		_LD_TexArray_AnimatedWaves.SampleLevel(LODData_linear_clamp_sampler, uv1, 0).xyz,
-		lodAlpha);
+	const float wt_0 = (1. - lodAlpha) * _LD_Params[slice0].z;
+	const float wt_1 = (1. - wt_0) * _LD_Params[slice1].z;
+
+	return
+		wt_0 * _LD_TexArray_AnimatedWaves.SampleLevel(LODData_linear_clamp_sampler, uv0, 0).xyz +
+		wt_1 * _LD_TexArray_AnimatedWaves.SampleLevel(LODData_linear_clamp_sampler, uv1, 0).xyz;
 }
 
 [numthreads(GROUP_SIZE, 1, 1)]
@@ -59,10 +62,9 @@ void CSMain(uint3 id : SV_DispatchThreadID)
 	const float2 queryPosXZ = _QueryPositions[id.x];
 
 	float2 undispPos = queryPosXZ;
-	float3 displacement;
 	for (int i = 0; i < 4; i++)
 	{
-		displacement = ComputeDisplacement(undispPos);
+		float3 displacement = ComputeDisplacement(undispPos);
 
 		float2 error = (undispPos + displacement.xz) - queryPosXZ;
 

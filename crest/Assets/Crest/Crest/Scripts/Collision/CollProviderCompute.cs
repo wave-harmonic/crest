@@ -2,7 +2,9 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
-// TODO min shape length
+// Potential improvements
+// - Min shape length
+// - Half return values
 
 using System.Collections.Generic;
 using Unity.Collections;
@@ -118,7 +120,7 @@ public class CollProviderCompute : MonoBehaviour
     }
 
     SegmentRegistrarQueue _srq = new SegmentRegistrarQueue();
-    
+
 
     NativeArray<Vector3> _queryResults;
     float _queryResultsTime = -1f;
@@ -318,6 +320,8 @@ public class CollProviderCompute : MonoBehaviour
             var needToBlendOutShape = Crest.OceanRenderer.Instance.ScaleCouldIncrease;
             var meshScaleLerp = needToBlendOutShape ? Crest.OceanRenderer.Instance.ViewerAltitudeLevelAlpha : 0f;
             _shader.SetFloat("_MeshScaleLerp", meshScaleLerp);
+
+            _shader.SetFloat("_SliceCount", Crest.OceanRenderer.Instance.CurrentLodCount);
 
             var numGroups = (int)Mathf.Ceil((float)_srq.Current._numQueries / (float)s_computeGroupSize) * s_computeGroupSize;
             _shader.Dispatch(s_kernelHandle, numGroups, 1, 1);

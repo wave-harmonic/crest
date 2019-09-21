@@ -117,8 +117,8 @@ public class BoatAlignNormal : FloatingObjectBase
         }
 
         // Perform the queries
-        collProvider.Query(GetInstanceID(), _samplingData, _queryPos, _queryPos, _resultHeights, _resultNormals);
-        collProvider.QueryVelocities(GetInstanceID(), _samplingData, _queryPos, _resultVels);
+        collProvider.Query(GetHashCode(), _samplingData, _queryPos, _queryPos, _resultHeights, _resultNormals);
+        collProvider.QueryVelocities(GetHashCode(), _samplingData, _queryPos, _resultVels);
 
         var waterSurfaceVel = _resultVels[0];
 
@@ -200,6 +200,8 @@ public class BoatAlignNormal : FloatingObjectBase
         //}
 
         // TODO can i support sampling with multiple spatial lengths?
+        // Close now - need to use SampleHeightHelper with normal, and will probably need to extend it to return vel as well
+
         //if (_useBoatLength)
         //{
         //    // Compute a new sampling data that takes into account the boat length (as opposed to boat width)

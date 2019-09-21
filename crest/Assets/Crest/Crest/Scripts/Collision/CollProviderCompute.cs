@@ -168,16 +168,16 @@ namespace Crest
             return (queryStatus & (int)QueryStatus.RetrieveFailed) == 0;
         }
 
-        public int Query(int i_guid, SamplingData i_samplingData, Vector3[] i_queryDisplacementToPoints, Vector3[] i_queryNormalAtPoint, Vector3[] o_resultDisps, Vector3[] o_resultNorms)
+        public int Query(int i_ownerHash, SamplingData i_samplingData, Vector3[] i_queryDisplacementToPoints, Vector3[] i_queryNormalAtPoint, Vector3[] o_resultDisps, Vector3[] o_resultNorms)
         {
             var result = (int)QueryStatus.OK;
 
-            if (!UpdateQueryPoints(i_guid, i_queryDisplacementToPoints, i_queryNormalAtPoint))
+            if (!UpdateQueryPoints(i_ownerHash, i_queryDisplacementToPoints, i_queryNormalAtPoint))
             {
                 result |= (int)QueryStatus.PostFailed;
             }
 
-            if (!RetrieveResults(i_guid, o_resultDisps, o_resultNorms))
+            if (!RetrieveResults(i_ownerHash, o_resultDisps, o_resultNorms))
             {
                 result |= (int)QueryStatus.RetrieveFailed;
             }
@@ -185,16 +185,16 @@ namespace Crest
             return result;
         }
 
-        public int Query(int i_guid, SamplingData i_samplingData, Vector3[] i_queryDisplacementToPoints, Vector3[] i_queryNormalAtPoint, float[] o_resultHeights, Vector3[] o_resultNorms)
+        public int Query(int i_ownerHash, SamplingData i_samplingData, Vector3[] i_queryDisplacementToPoints, Vector3[] i_queryNormalAtPoint, float[] o_resultHeights, Vector3[] o_resultNorms)
         {
             var result = (int)QueryStatus.OK;
 
-            if (!UpdateQueryPoints(i_guid, i_queryDisplacementToPoints, i_queryNormalAtPoint))
+            if (!UpdateQueryPoints(i_ownerHash, i_queryDisplacementToPoints, i_queryNormalAtPoint))
             {
                 result |= (int)QueryStatus.PostFailed;
             }
 
-            if (!RetrieveResultHeights(i_guid, o_resultHeights, o_resultNorms))
+            if (!RetrieveResultHeights(i_ownerHash, o_resultHeights, o_resultNorms))
             {
                 result |= (int)QueryStatus.RetrieveFailed;
             }
@@ -393,7 +393,7 @@ namespace Crest
         /// Compute time derivative of the displacements by calculating difference from last query. More complicated than it would seem - results
         /// may not be available in one or both of the results, or the query locations in the array may change.
         /// </summary>
-        public int QueryVelocities(int i_guid, SamplingData i_samplingData, Vector3[] i_queryPositions, Vector3[] results)
+        public int QueryVelocities(int i_ownerHash, SamplingData i_samplingData, Vector3[] i_queryPositions, Vector3[] results)
         {
             // Need at least 2 returned results to do finite difference
             if (_queryResultsTime < 0f || _queryResultsTimeLast < 0f)
@@ -402,13 +402,13 @@ namespace Crest
             }
 
             Vector2Int segment;
-            if (!_resultSegments.TryGetValue(i_guid, out segment))
+            if (!_resultSegments.TryGetValue(i_ownerHash, out segment))
             {
                 return (int)QueryStatus.RetrieveFailed;
             }
 
             Vector2Int segmentLast;
-            if (!_resultSegmentsLast.TryGetValue(i_guid, out segmentLast))
+            if (!_resultSegmentsLast.TryGetValue(i_ownerHash, out segmentLast))
             {
                 return (int)QueryStatus.NotEnoughDataForVels;
             }

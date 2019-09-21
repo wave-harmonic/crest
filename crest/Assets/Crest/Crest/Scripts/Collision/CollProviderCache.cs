@@ -112,14 +112,14 @@ namespace Crest
             return _collProvider.SampleDisplacement(ref i_worldPos, i_samplingData, out o_displacement);
         }
 
-        public int Query(int i_guid, SamplingData i_samplingData, Vector3[] i_queryDisplacementToPoints, Vector3[] i_queryNormalAtPoint, Vector3[] o_resultDisps, Vector3[] o_resultNorms)
+        public int Query(int i_ownerHash, SamplingData i_samplingData, Vector3[] i_queryDisplacementToPoints, Vector3[] i_queryNormalAtPoint, Vector3[] o_resultDisps, Vector3[] o_resultNorms)
         {
             // Displacements and normals not cached
-            return _collProvider.Query(i_guid, i_samplingData, i_queryDisplacementToPoints, i_queryNormalAtPoint, o_resultDisps, o_resultNorms);
+            return _collProvider.Query(i_ownerHash, i_samplingData, i_queryDisplacementToPoints, i_queryNormalAtPoint, o_resultDisps, o_resultNorms);
         }
 
         [Obsolete("This API is deprecated. Use the 'Query' APIs instead.")]
-        public int Query(int i_guid, SamplingData i_samplingData, Vector3[] i_queryHeightAtPoints, Vector3[] i_queryNormalAtPoint, float[] o_resultHeights, Vector3[] o_resultNorms)
+        public int Query(int i_ownerHash, SamplingData i_samplingData, Vector3[] i_queryHeightAtPoints, Vector3[] i_queryNormalAtPoint, float[] o_resultHeights, Vector3[] o_resultNorms)
         {
             var status = 0;
 
@@ -135,15 +135,15 @@ namespace Crest
             {
                 // No caching for normals - go straight to source for these
                 float[] disambiguate = null;
-                status = status | _collProvider.Query(i_guid, i_samplingData, null, i_queryNormalAtPoint, disambiguate, o_resultNorms);
+                status = status | _collProvider.Query(i_ownerHash, i_samplingData, null, i_queryNormalAtPoint, disambiguate, o_resultNorms);
             }
 
             return status;
         }
 
-        public int QueryVelocities(int i_guid, SamplingData i_samplingData, Vector3[] i_queryPositions, Vector3[] o_resultVels)
+        public int QueryVelocities(int i_ownerHash, SamplingData i_samplingData, Vector3[] i_queryPositions, Vector3[] o_resultVels)
         {
-            return _collProvider.QueryVelocities(i_guid, i_samplingData, i_queryPositions, o_resultVels);
+            return _collProvider.QueryVelocities(i_ownerHash, i_samplingData, i_queryPositions, o_resultVels);
         }
 
         public bool RetrieveSucceeded(int queryStatus)

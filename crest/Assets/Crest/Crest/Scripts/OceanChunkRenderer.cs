@@ -129,7 +129,7 @@ namespace Crest
             if (ldsds) ldsds.BindResultData(_mpb);
             if (ldshadows) ldshadows.BindResultData(_mpb); else LodDataMgrShadow.BindNull(_mpb);
 
-            var reflTex = PreparedReflections.GetRenderTexture(_currentCamera.GetInstanceID());
+            var reflTex = PreparedReflections.GetRenderTexture(_currentCamera.GetHashCode());
             if (reflTex)
             {
                 _mpb.SetTexture(sp_ReflectionTex, reflTex);

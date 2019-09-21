@@ -283,7 +283,7 @@ namespace Crest
 
         void LateUpdateViewerHeight()
         {
-            _sampleHeightHelper.Init(GetInstanceID(), Viewpoint.position, 0f);
+            _sampleHeightHelper.Init(Viewpoint.position, 0f);
 
             float waterHeight = 0f;
             _sampleHeightHelper.Sample(ref waterHeight);

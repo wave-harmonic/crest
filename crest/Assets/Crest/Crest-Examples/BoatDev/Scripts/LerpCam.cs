@@ -17,7 +17,7 @@ public class LerpCam : MonoBehaviour
     {
         if (OceanRenderer.Instance == null) return;
 
-        _sampleHeightHelper.Init(GetInstanceID(), transform.position, 0f);
+        _sampleHeightHelper.Init(transform.position, 0f);
         float h = 0f;
         _sampleHeightHelper.Sample(ref h);
 

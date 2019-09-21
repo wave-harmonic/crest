@@ -138,10 +138,7 @@ namespace Crest
         /// </summary>
         public float ViewerHeightAboveWater { get; private set; }
 
-        SamplingData _samplingData = new SamplingData();
-
-        Vector3[] _heightQueryIn = new Vector3[1];
-        float[] _heightQueryOut = new float[1];
+        SampleHeightHelper _sampleHeightHelper = new SampleHeightHelper();
 
         void Awake()
         {
@@ -286,18 +283,12 @@ namespace Crest
 
         void LateUpdateViewerHeight()
         {
-            _heightQueryIn[0] = Viewpoint.position;
-            var rect = new Rect(_heightQueryIn[0].x, _heightQueryIn[0].z, 0f, 0f);
+            _sampleHeightHelper.Init(GetInstanceID(), Viewpoint.position, 0f);
 
-            if (CollisionProvider.GetSamplingData(ref rect, 0f, _samplingData))
-            {
-                CollisionProvider.Query(GetInstanceID(), _samplingData, _heightQueryIn, null, _heightQueryOut, null);
+            float waterHeight = 0f;
+            _sampleHeightHelper.Sample(ref waterHeight);
 
-                var waterHeight = _heightQueryOut[0];
-                ViewerHeightAboveWater = _heightQueryIn[0].y - waterHeight;
-            }
-
-            CollisionProvider.ReturnSamplingData(_samplingData);
+            ViewerHeightAboveWater = Viewpoint.position.y - waterHeight;
         }
 
         void LateUpdateLods()

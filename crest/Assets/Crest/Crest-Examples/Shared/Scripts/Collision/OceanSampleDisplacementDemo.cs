@@ -49,6 +49,7 @@ public class OceanSampleDisplacementDemo : MonoBehaviour
             {
                 _markerObjects[i] = GameObject.CreatePrimitive(PrimitiveType.Cube);
                 Destroy(_markerObjects[i].GetComponent<Collider>());
+                _markerObjects[i].transform.localScale = Vector3.one * 0.5f;
             }
 
             var query = _markerPos[i];
@@ -56,13 +57,15 @@ public class OceanSampleDisplacementDemo : MonoBehaviour
 
             var disp = _resultDisps[i];
 
-            Debug.DrawLine(query, query + disp);
-            _markerObjects[i].transform.position = query + disp;
+            var pos = query;
+            pos.y = disp.y;
+            Debug.DrawLine(pos, pos - disp);
+            _markerObjects[i].transform.position = pos;
         }
 
         if (CollProviderCompute.Instance.ComputeVelocities(GetInstanceID(), ref _resultVels))
         {
-            for(var i = 0; i < _resultVels.Length;i++)
+            for (var i = 0; i < _resultVels.Length; i++)
             {
                 Debug.DrawLine(_markerObjects[i].transform.position, _markerObjects[i].transform.position + _resultVels[i], Color.green);
             }

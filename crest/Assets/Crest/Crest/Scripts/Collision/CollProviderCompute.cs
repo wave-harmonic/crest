@@ -58,18 +58,10 @@ public class CollProviderCompute : MonoBehaviour
 
             // The last index should never increment and land on the first index - it should only happen the other way around.
             Debug.Assert(_segmentAcquire != _segmentRelease, "Segment registrar scratch exhausted.");
-
-            // TODO - is this clear necessary? Its likely causing allocations. no - remove both..
-            _segments[_segmentAcquire]._numQueries = 0;
-            _segments[_segmentAcquire]._segments.Clear();
         }
 
         public void ReleaseLast()
         {
-            // Don't do this - these are being references by _queryResults
-            //_segments[_segment0]._segments.Clear();
-            //_segments[_segment0]._numQueries = 0;
-
             _segmentRelease = (_segmentRelease + 1) % _segments.Length;
         }
 
@@ -179,6 +171,8 @@ public class CollProviderCompute : MonoBehaviour
             _srq.Current._segments.Add(guid, segment);
 
             _srq.Current._numQueries += queryPoints.Length;
+
+            //Debug.Log("Added points for " + guid);
         }
 
         for (int i = segment.x; i <= segment.y; i++)

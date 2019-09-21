@@ -31,14 +31,20 @@ public class OceanSampleDisplacementDemo : MonoBehaviour
             _markerPos[2] = Camera.main.transform.position + Camera.main.transform.forward * offset + r * Vector3.forward;
         }
 
-        if (CollProviderCompute.Instance == null || OceanRenderer.Instance == null)
+        if (OceanRenderer.Instance == null)
         {
             return;
         }
 
-        var status = CollProviderCompute.Instance.Query(GetInstanceID(), _markerPos, _markerPos, _resultDisps, _resultNorms);
+        var collProvider = OceanRenderer.Instance.CollisionProvider;
 
-        if (CollProviderCompute.RetrieveSucceeded(status))
+        Rect dummy = Rect.zero;
+        if (!collProvider.GetSamplingData(ref dummy, 1f, _samplingData))
+            return;
+
+        var status = collProvider.Query(GetInstanceID(), _samplingData, _markerPos, _markerPos, _resultDisps, _resultNorms);
+
+        if (collProvider.RetrieveSucceeded(status))
         {
             for (int i = 0; i < _resultDisps.Length; i++)
             {
@@ -66,7 +72,7 @@ public class OceanSampleDisplacementDemo : MonoBehaviour
             }
         }
 
-        if (CollProviderCompute.Instance.ComputeVelocities(GetInstanceID(), ref _resultVels))
+        if (collProvider.QueryVelocities(GetInstanceID(), _samplingData, _markerPos, _resultVels) == 0)
         {
             for (var i = 0; i < _resultVels.Length; i++)
             {

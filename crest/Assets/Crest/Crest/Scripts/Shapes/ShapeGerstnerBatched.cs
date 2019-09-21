@@ -681,6 +681,84 @@ namespace Crest
             o_displacementValid = SampleDisplacement(ref i_worldPos, i_samplingData, out o_displacement);
             o_velValid = GetSurfaceVelocity(ref i_worldPos, i_samplingData, out o_displacementVel);
         }
+
+        public int Query(int i_guid, SamplingData i_samplingData, Vector3[] i_queryDisplacementToPoints, Vector3[] i_queryNormalAtPoint, Vector3[] o_resultDisps, Vector3[] o_resultNorms)
+        {
+            if (o_resultDisps != null)
+            {
+                for (int i = 0; i < o_resultDisps.Length; i++)
+                {
+                    SampleDisplacement(ref i_queryDisplacementToPoints[i], i_samplingData, out o_resultDisps[i]);
+                }
+            }
+
+            if (o_resultNorms != null)
+            {
+                for (int i = 0; i < o_resultNorms.Length; i++)
+                {
+                    Vector3 undispPos;
+                    if (ComputeUndisplacedPosition(ref i_queryNormalAtPoint[i], i_samplingData, out undispPos))
+                    {
+                        SampleNormal(ref undispPos, i_samplingData, out o_resultNorms[i]);
+                    }
+                    else
+                    {
+                        o_resultNorms[i] = Vector3.up;
+                    }
+                }
+            }
+
+            return 0;
+        }
+
+        public int Query(int i_guid, SamplingData i_samplingData, Vector3[] i_queryHeightAtPoints, Vector3[] i_queryNormalAtPoint, float[] o_resultHeights, Vector3[] o_resultNorms)
+        {
+            if (o_resultHeights != null)
+            {
+                for (int i = 0; i < o_resultHeights.Length; i++)
+                {
+                    SampleHeight(ref i_queryHeightAtPoints[i], i_samplingData, out o_resultHeights[i]);
+                }
+            }
+
+            if (o_resultNorms != null)
+            {
+                for (int i = 0; i < o_resultNorms.Length; i++)
+                {
+                    Vector3 undispPos;
+                    if (ComputeUndisplacedPosition(ref i_queryNormalAtPoint[i], i_samplingData, out undispPos))
+                    {
+                        SampleNormal(ref undispPos, i_samplingData, out o_resultNorms[i]);
+                    }
+                    else
+                    {
+                        o_resultNorms[i] = Vector3.up;
+                    }
+                }
+            }
+
+            return 0;
+        }
+
+        public int QueryVelocities(int i_guid, SamplingData i_samplingData, Vector3[] i_queryPositions, Vector3[] o_resultVels)
+        {
+            var status = 0;
+
+            for (int i = 0; i < o_resultVels.Length; i++)
+            {
+                if (!GetSurfaceVelocity(ref i_queryPositions[i], i_samplingData, out o_resultVels[i]))
+                {
+                    status = 1 | status;
+                }
+            }
+
+            return status;
+        }
+
+        public bool RetrieveSucceeded(int queryStatus)
+        {
+            return queryStatus == 0;
+        }
     }
 
 #if UNITY_EDITOR

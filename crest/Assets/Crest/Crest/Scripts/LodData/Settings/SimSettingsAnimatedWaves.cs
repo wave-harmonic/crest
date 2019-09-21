@@ -18,6 +18,7 @@ namespace Crest
             None,
             OceanDisplacementTexturesGPU,
             GerstnerWavesCPU,
+            ComputeShaderQueries,
         }
         [Header("Readback to CPU")]
         [Tooltip("Where to obtain ocean shape on CPU for physics / gameplay."), SerializeField]
@@ -62,6 +63,9 @@ namespace Crest
                     break;
                 case CollisionSources.GerstnerWavesCPU:
                     result = FindObjectOfType<ShapeGerstnerBatched>();
+                    break;
+                case CollisionSources.ComputeShaderQueries:
+                    result = CollProviderCompute.Instance;
                     break;
             }
 

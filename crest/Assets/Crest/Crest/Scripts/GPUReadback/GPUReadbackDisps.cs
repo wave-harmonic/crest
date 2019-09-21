@@ -199,6 +199,96 @@ namespace Crest
 
             return true;
         }
+
+        public int Query(int i_guid, SamplingData i_samplingData, Vector3[] i_queryDisplacementToPoints, Vector3[] i_queryNormalAtPoint, Vector3[] o_resultDisps, Vector3[] o_resultNorms)
+        {
+            var status = 0;
+
+            if (o_resultDisps != null)
+            {
+                for (int i = 0; i < o_resultDisps.Length; i++)
+                {
+                    if(!SampleDisplacement(ref i_queryDisplacementToPoints[i], i_samplingData, out o_resultDisps[i]))
+                    {
+                        status = 1 | status;
+                    }
+                }
+            }
+
+            if (o_resultNorms != null)
+            {
+                for (int i = 0; i < o_resultNorms.Length; i++)
+                {
+                    Vector3 undispPos;
+                    if (ComputeUndisplacedPosition(ref i_queryNormalAtPoint[i], i_samplingData, out undispPos))
+                    {
+                        SampleNormal(ref undispPos, i_samplingData, out o_resultNorms[i]);
+                    }
+                    else
+                    {
+                        o_resultNorms[i] = Vector3.up;
+                        status = 1 | status;
+                    }
+                }
+            }
+
+            return status;
+        }
+
+        public int Query(int i_guid, SamplingData i_samplingData, Vector3[] i_queryHeightAtPoints, Vector3[] i_queryNormalAtPoint, float[] o_resultHeights, Vector3[] o_resultNorms)
+        {
+            var status = 0;
+
+            if (o_resultHeights != null)
+            {
+                for (int i = 0; i < o_resultHeights.Length; i++)
+                {
+                    if (!SampleHeight(ref i_queryHeightAtPoints[i], i_samplingData, out o_resultHeights[i]))
+                    {
+                        status = 1 | status;
+                    }
+                }
+            }
+
+            if (o_resultNorms != null)
+            {
+                for (int i = 0; i < o_resultNorms.Length; i++)
+                {
+                    Vector3 undispPos;
+                    if (ComputeUndisplacedPosition(ref i_queryNormalAtPoint[i], i_samplingData, out undispPos))
+                    {
+                        SampleNormal(ref undispPos, i_samplingData, out o_resultNorms[i]);
+                    }
+                    else
+                    {
+                        o_resultNorms[i] = Vector3.up;
+                        status = 1 | status;
+                    }
+                }
+            }
+
+            return status;
+        }
+
+        public int QueryVelocities(int i_guid, SamplingData i_samplingData, Vector3[] i_queryPositions, Vector3[] o_resultVels)
+        {
+            var status = 0;
+
+            for (int i = 0; i < o_resultVels.Length; i++)
+            {
+                Vector3 dispDummy;
+                bool dispValid, velValid;
+                SampleDisplacementVel(ref i_queryPositions[i], i_samplingData, out dispDummy, out dispValid, out o_resultVels[i], out velValid);
+                status = 1 | status;
+            }
+
+            return status;
+        }
+
+        public bool RetrieveSucceeded(int queryStatus)
+        {
+            return queryStatus == 0;
+        }
         #endregion
 
 #if UNITY_EDITOR

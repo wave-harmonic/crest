@@ -106,6 +106,44 @@ namespace Crest
             return _collProvider.SampleDisplacement(ref i_worldPos, i_samplingData, out o_displacement);
         }
 
+        public int Query(int i_guid, SamplingData i_samplingData, Vector3[] i_queryDisplacementToPoints, Vector3[] i_queryNormalAtPoint, Vector3[] o_resultDisps, Vector3[] o_resultNorms)
+        {
+            // Displacements and normals not cached
+            return _collProvider.Query(i_guid, i_samplingData, i_queryDisplacementToPoints, i_queryNormalAtPoint, o_resultDisps, o_resultNorms);
+        }
+
+        public int Query(int i_guid, SamplingData i_samplingData, Vector3[] i_queryHeightAtPoints, Vector3[] i_queryNormalAtPoint, float[] o_resultHeights, Vector3[] o_resultNorms)
+        {
+            var status = 0;
+
+            if (o_resultHeights != null)
+            {
+                for (int i = 0; i < i_queryHeightAtPoints.Length; i++)
+                {
+                    status = status | (SampleHeight(ref i_queryHeightAtPoints[i], i_samplingData, out o_resultHeights[i]) ? 0 : 1);
+                }
+            }
+
+            if (o_resultNorms != null)
+            {
+                // No caching for normals - go straight to source for these
+                float[] disambiguate = null;
+                status = status | _collProvider.Query(i_guid, i_samplingData, null, i_queryNormalAtPoint, disambiguate, o_resultNorms);
+            }
+
+            return status;
+        }
+
+        public int QueryVelocities(int i_guid, SamplingData i_samplingData, Vector3[] i_queryPositions, Vector3[] o_resultVels)
+        {
+            return _collProvider.QueryVelocities(i_guid, i_samplingData, i_queryPositions, o_resultVels);
+        }
+
+        public bool RetrieveSucceeded(int queryStatus)
+        {
+            return _collProvider.RetrieveSucceeded(queryStatus);
+        }
+
         public int CacheChecks { get { return _cacheChecksLastFrame; } }
         public int CacheHits { get { return _cacheHitsLastFrame; } }
     }

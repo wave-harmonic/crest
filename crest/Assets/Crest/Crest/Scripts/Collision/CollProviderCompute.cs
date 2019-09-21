@@ -13,7 +13,7 @@ using UnityEngine.Rendering;
 
 namespace Crest
 {
-    public class CollProviderCompute : MonoBehaviour
+    public class CollProviderCompute : MonoBehaviour, ICollProvider
     {
         readonly static string s_shaderName = "ProcessCollisionQueries";
         readonly static string s_kernelName = "CSMain";
@@ -158,24 +158,26 @@ namespace Crest
             OK = 0,
             RetrieveFailed = 1,
             PostFailed = 2,
-
+            NotEnoughDataForVels = 4,
+            VelocityDataInvalidated = 8,
+            InvalidDtForVelocity = 16,
         }
 
-        public static bool RetrieveSucceeded(int status)
+        public bool RetrieveSucceeded(int queryStatus)
         {
-            return (status & (int)QueryStatus.RetrieveFailed) == 0;
+            return (queryStatus & (int)QueryStatus.RetrieveFailed) == 0;
         }
 
-        public int Query(int guid, Vector3[] queryDisplacementToPoints, Vector3[] queryNormalAtPoint, Vector3[] resultDisps, Vector3[] resultNorms)
+        public int Query(int i_guid, SamplingData i_samplingData, Vector3[] i_queryDisplacementToPoints, Vector3[] i_queryNormalAtPoint, Vector3[] o_resultDisps, Vector3[] o_resultNorms)
         {
             var result = (int)QueryStatus.OK;
 
-            if (!UpdateQueryPoints(guid, queryDisplacementToPoints, queryNormalAtPoint))
+            if (!UpdateQueryPoints(i_guid, i_queryDisplacementToPoints, i_queryNormalAtPoint))
             {
                 result |= (int)QueryStatus.PostFailed;
             }
 
-            if (!RetrieveResults(guid, resultDisps, resultNorms))
+            if (!RetrieveResults(i_guid, o_resultDisps, o_resultNorms))
             {
                 result |= (int)QueryStatus.RetrieveFailed;
             }
@@ -183,16 +185,16 @@ namespace Crest
             return result;
         }
 
-        public int Query(int guid, Vector3[] queryDisplacementToPoints, Vector3[] queryNormalAtPoint, float[] resultHeights, Vector3[] resultNorms)
+        public int Query(int i_guid, SamplingData i_samplingData, Vector3[] i_queryDisplacementToPoints, Vector3[] i_queryNormalAtPoint, float[] o_resultHeights, Vector3[] o_resultNorms)
         {
             var result = (int)QueryStatus.OK;
 
-            if (!UpdateQueryPoints(guid, queryDisplacementToPoints, queryNormalAtPoint))
+            if (!UpdateQueryPoints(i_guid, i_queryDisplacementToPoints, i_queryNormalAtPoint))
             {
                 result |= (int)QueryStatus.PostFailed;
             }
 
-            if (!RetrieveResultHeights(guid, resultHeights, resultNorms))
+            if (!RetrieveResultHeights(i_guid, o_resultHeights, o_resultNorms))
             {
                 result |= (int)QueryStatus.RetrieveFailed;
             }
@@ -391,36 +393,36 @@ namespace Crest
         /// Compute time derivative of the displacements by calculating difference from last query. More complicated than it would seem - results
         /// may not be available in one or both of the results, or the query locations in the array may change.
         /// </summary>
-        public bool ComputeVelocities(int guid, ref Vector3[] results)
+        public int QueryVelocities(int i_guid, SamplingData i_samplingData, Vector3[] i_queryPositions, Vector3[] results)
         {
             // Need at least 2 returned results to do finite difference
             if (_queryResultsTime < 0f || _queryResultsTimeLast < 0f)
             {
-                return false;
+                return 1;
             }
 
             Vector2Int segment;
-            if (!_resultSegments.TryGetValue(guid, out segment))
+            if (!_resultSegments.TryGetValue(i_guid, out segment))
             {
-                return false;
+                return (int)QueryStatus.RetrieveFailed;
             }
 
             Vector2Int segmentLast;
-            if (!_resultSegmentsLast.TryGetValue(guid, out segmentLast))
+            if (!_resultSegmentsLast.TryGetValue(i_guid, out segmentLast))
             {
-                return false;
+                return (int)QueryStatus.NotEnoughDataForVels;
             }
 
             if ((segment.y - segment.x) != (segmentLast.y - segmentLast.x))
             {
                 // Number of queries changed - can't handle that
-                return false;
+                return (int)QueryStatus.VelocityDataInvalidated;
             }
 
             var dt = _queryResultsTime - _queryResultsTimeLast;
             if (dt < 0.0001f)
             {
-                return false;
+                return (int)QueryStatus.InvalidDtForVelocity;
             }
 
             var count = results.Length;
@@ -429,7 +431,7 @@ namespace Crest
                 results[i] = (_queryResults[i + segment.x] - _queryResultsLast[i + segmentLast.x]) / dt;
             }
 
-            return true;
+            return 0;
         }
 
         // This needs to run before OceanRenderer.LateUpdate, because the latter will change the LOD positions/scales, while we will read
@@ -578,6 +580,49 @@ namespace Crest
 
             Debug.DrawLine(query, query + disp);
             marker.transform.position = query + disp;
+        }
+
+        public bool GetSamplingData(ref Rect i_displacedSamplingArea, float i_minSpatialLength, SamplingData o_samplingData)
+        {
+            // Trivial. Will likely remove this in the future if we can deprecate the displacement texture readback stuff.
+            o_samplingData._minSpatialLength = i_minSpatialLength;
+            return true;
+        }
+
+        public void ReturnSamplingData(SamplingData i_data)
+        {
+            // Mark invalid
+            i_data._minSpatialLength = -1f;
+        }
+
+        public bool SampleDisplacement(ref Vector3 i_worldPos, SamplingData i_samplingData, out Vector3 o_displacement)
+        {
+            throw new System.NotImplementedException("Not implemented for the Compute collision provider - use the 'Query' functions.");
+        }
+
+        public void SampleDisplacementVel(ref Vector3 i_worldPos, SamplingData i_samplingData, out Vector3 o_displacement, out bool o_displacementValid, out Vector3 o_displacementVel, out bool o_velValid)
+        {
+            throw new System.NotImplementedException("Not implemented for the Compute collision provider - use the 'Query' functions.");
+        }
+
+        public bool SampleHeight(ref Vector3 i_worldPos, SamplingData i_samplingData, out float o_height)
+        {
+            throw new System.NotImplementedException("Not implemented for the Compute collision provider - use the 'Query' functions.");
+        }
+
+        public bool SampleNormal(ref Vector3 i_undisplacedWorldPos, SamplingData i_samplingData, out Vector3 o_normal)
+        {
+            throw new System.NotImplementedException("Not implemented for the Compute collision provider - use the 'Query' functions.");
+        }
+
+        public bool ComputeUndisplacedPosition(ref Vector3 i_worldPos, SamplingData i_samplingData, out Vector3 undisplacedWorldPos)
+        {
+            throw new System.NotImplementedException("Not implemented for the Compute collision provider - use the 'Query' functions.");
+        }
+
+        public AvailabilityResult CheckAvailability(ref Vector3 i_worldPos, SamplingData i_samplingData)
+        {
+            throw new System.NotImplementedException("Not implemented for the Compute collision provider - use the 'Query' functions.");
         }
     }
 }

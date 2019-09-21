@@ -67,7 +67,8 @@ namespace Crest
         float _totalWeight;
 
         Vector3[] _queryPoints;
-        float[] _queryResults;
+        Vector3[] _queryResultDisps;
+        Vector3[] _queryResultVels;
 
         private void Start()
         {
@@ -84,8 +85,9 @@ namespace Crest
 
             CalcTotalWeight();
 
-            _queryPoints = new Vector3[_forcePoints.Length];
-            _queryResults = new float[_forcePoints.Length];
+            _queryPoints = new Vector3[_forcePoints.Length + 1];
+            _queryResultDisps = new Vector3[_forcePoints.Length + 1];
+            _queryResultVels = new Vector3[_forcePoints.Length + 1];
         }
 
         void CalcTotalWeight()
@@ -119,27 +121,21 @@ namespace Crest
                 collProvider = CollProviderNull.Instance;
             }
 
-            var position = transform.position;
-            Vector3 undispPos;
-            if (!collProvider.ComputeUndisplacedPosition(ref position, _samplingData, out undispPos))
-            {
-                // If we couldn't get wave shape, assume flat water at sea level
-                undispPos = position;
-                undispPos.y = OceanRenderer.Instance.SeaLevel;
-            }
+            // Do queries
+            UpdateWaterQueries(collProvider);
 
-            Vector3 displacement, waterSurfaceVel;
-            bool dispValid, velValid;
-            collProvider.SampleDisplacementVel(ref undispPos, _samplingData, out displacement, out dispValid, out waterSurfaceVel, out velValid);
-            if (dispValid)
-            {
-                _displacementToObject = displacement;
-            }
+            _displacementToObject = _queryResultDisps[_forcePoints.Length];
+            var undispPos = transform.position - _queryResultDisps[_forcePoints.Length];
+            undispPos.y = OceanRenderer.Instance.SeaLevel;
+
+            collProvider.QueryVelocities(GetInstanceID(), _samplingData, _queryPoints, _queryResultVels);
+            var waterSurfaceVel = _queryResultVels[_forcePoints.Length];
 
             if (GPUReadbackFlow.Instance)
             {
                 GPUReadbackFlow.Instance.ProcessRequests();
 
+                var position = transform.position;
                 var flowRect = new Rect(position.x, position.z, 0f, 0f);
                 if (GPUReadbackFlow.Instance.GetSamplingData(ref flowRect, _minSpatialLength, _samplingDataFlow))
                 {
@@ -152,19 +148,23 @@ namespace Crest
             }
 
             // Buoyancy
-            if (!CollProviderCompute.s_useComputeCollQueries)
-            {
-                FixedUpdateBuoyancy(collProvider);
-            }
-            else
-            {
-                FixedUpdateBuoyancyCompute(collProvider);
-            }
-
+            FixedUpdateBuoyancy(collProvider);
             FixedUpdateDrag(collProvider, waterSurfaceVel);
             FixedUpdateEngine();
 
             collProvider.ReturnSamplingData(_samplingData);
+        }
+
+        void UpdateWaterQueries(ICollProvider collProvider)
+        {
+            // Update query points
+            for (int i = 0; i < _forcePoints.Length; i++)
+            {
+                _queryPoints[i] = transform.TransformPoint(_forcePoints[i]._offsetPosition + new Vector3(0, _centerOfMass.y, 0));
+            }
+            _queryPoints[_forcePoints.Length] = transform.position;
+
+            collProvider.Query(GetInstanceID(), _samplingData, _queryPoints, null, _queryResultDisps, null);
         }
 
         void FixedUpdateEngine()
@@ -183,58 +183,15 @@ namespace Crest
 
         void FixedUpdateBuoyancy(ICollProvider collProvider)
         {
-            float archimedesForceMagnitude = WATER_DENSITY * Mathf.Abs(Physics.gravity.y);
-
-            for (int i = 0; i < _forcePoints.Length; i++)
-            {
-                FloaterForcePoints point = _forcePoints[i];
-                var transformedPoint = transform.TransformPoint(point._offsetPosition + new Vector3(0, _centerOfMass.y, 0));
-
-                Vector3 undispPos;
-                if (!collProvider.ComputeUndisplacedPosition(ref transformedPoint, _samplingData, out undispPos))
-                {
-                    // If we couldn't get wave shape, assume flat water at sea level
-                    undispPos = transformedPoint;
-                    undispPos.y = OceanRenderer.Instance.SeaLevel;
-                }
-
-                Vector3 displaced;
-                collProvider.SampleDisplacement(ref undispPos, _samplingData, out displaced);
-
-                var dispPos = undispPos + displaced;
-                var heightDiff = dispPos.y - transformedPoint.y;
-                if (heightDiff > 0)
-                {
-                    _rb.AddForceAtPosition(archimedesForceMagnitude * heightDiff * Vector3.up * point._weight * _forceMultiplier / _totalWeight, transformedPoint);
-                }
-            }
-        }
-
-        void FixedUpdateBuoyancyCompute(ICollProvider collProvider)
-        {
             var archimedesForceMagnitude = WATER_DENSITY * Mathf.Abs(Physics.gravity.y);
 
-            // Do queries
-
-            // Update query points
             for (int i = 0; i < _forcePoints.Length; i++)
             {
-                _queryPoints[i] = transform.TransformPoint(_forcePoints[i]._offsetPosition + new Vector3(0, _centerOfMass.y, 0));
-            }
-
-            var status = CollProviderCompute.Instance.Query(GetInstanceID(), _queryPoints, null, _queryResults, null);
-
-            // Retrieve results and compare to last query points to compute forces
-            if (CollProviderCompute.RetrieveSucceeded(status))
-            {
-                for (int i = 0; i < _forcePoints.Length; i++)
+                var waterHeight = OceanRenderer.Instance.SeaLevel + _queryResultDisps[i].y;
+                var heightDiff = waterHeight - _queryPoints[i].y;
+                if (heightDiff > 0)
                 {
-                    var waterHeight = OceanRenderer.Instance.SeaLevel + _queryResults[i];
-                    var heightDiff = waterHeight - _queryPoints[i].y;
-                    if (heightDiff > 0)
-                    {
-                        _rb.AddForceAtPosition(archimedesForceMagnitude * heightDiff * Vector3.up * _forcePoints[i]._weight * _forceMultiplier / _totalWeight, _queryPoints[i]);
-                    }
+                    _rb.AddForceAtPosition(archimedesForceMagnitude * heightDiff * Vector3.up * _forcePoints[i]._weight * _forceMultiplier / _totalWeight, _queryPoints[i]);
                 }
             }
         }
@@ -242,15 +199,6 @@ namespace Crest
         void FixedUpdateDrag(ICollProvider collProvider, Vector3 waterSurfaceVel)
         {
             // Apply drag relative to water
-            var pos = _rb.position;
-            Vector3 undispPos;
-            if (!collProvider.ComputeUndisplacedPosition(ref pos, _samplingData, out undispPos))
-            {
-                // If we couldn't get wave shape, assume flat water at sea level
-                undispPos = pos;
-                undispPos.y = OceanRenderer.Instance.SeaLevel;
-            }
-
             var _velocityRelativeToWater = _rb.velocity - waterSurfaceVel;
 
             var forcePosition = _rb.position + _forceHeightOffset * Vector3.up;

@@ -363,9 +363,9 @@ namespace Crest
             if (countPts > 0)
             {
                 var seaLevel = OceanRenderer.Instance.SeaLevel;
-                for (int i = segment.x; i <= segment.y; i++)
+                for (int i = 0; i < countPts; i++)
                 {
-                    heights[i - segment.x] = seaLevel + _queryResults[i].y;
+                    heights[i] = seaLevel + _queryResults[i + segment.x].y;
                 }
             }
 

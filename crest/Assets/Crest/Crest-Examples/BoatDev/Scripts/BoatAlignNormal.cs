@@ -65,6 +65,11 @@ public class BoatAlignNormal : FloatingObjectBase
     SamplingData _samplingDataLengthWise = new SamplingData();
     SamplingData _samplingDataFlow = new SamplingData();
 
+    Vector3[] _queryPos = new Vector3[1];
+    float[] _resultHeights = new float[1];
+    Vector3[] _resultNormals = new Vector3[1];
+    Vector3[] _resultVels = new Vector3[1];
+
     void Start()
     {
         _rb = GetComponent<Rigidbody>();
@@ -111,22 +116,11 @@ public class BoatAlignNormal : FloatingObjectBase
             }
         }
 
-        Vector3 undispPos;
-        if (!collProvider.ComputeUndisplacedPosition(ref position, _samplingData, out undispPos))
-        {
-            // If we couldn't get wave shape, assume flat water at sea level
-            undispPos = position;
-            undispPos.y = OceanRenderer.Instance.SeaLevel;
-        }
-        if (_debugDraw) DebugDrawCross(undispPos, 1f, Color.red);
+        // Perform the queries
+        collProvider.Query(GetInstanceID(), _samplingData, _queryPos, _queryPos, _resultHeights, _resultNormals);
+        collProvider.QueryVelocities(GetInstanceID(), _samplingData, _queryPos, _resultVels);
 
-        Vector3 waterSurfaceVel, displacement;
-        bool dispValid, velValid;
-        collProvider.SampleDisplacementVel(ref undispPos, _samplingData, out displacement, out dispValid, out waterSurfaceVel, out velValid);
-        if (dispValid)
-        {
-            _displacementToObject = displacement;
-        }
+        var waterSurfaceVel = _resultVels[0];
 
         if (GPUReadbackFlow.Instance)
         {
@@ -153,10 +147,7 @@ public class BoatAlignNormal : FloatingObjectBase
 
         var velocityRelativeToWater = _rb.velocity - waterSurfaceVel;
 
-        var dispPos = undispPos + _displacementToObject;
-        if (_debugDraw) DebugDrawCross(dispPos, 4f, Color.white);
-
-        float height = dispPos.y;
+        float height = _resultHeights[0];
 
         float bottomDepth = height - transform.position.y - _bottomH;
 
@@ -189,7 +180,7 @@ public class BoatAlignNormal : FloatingObjectBase
                 (Input.GetKey(KeyCode.D) ? reverseMultiplier * 1f : 0f);
         _rb.AddTorque(transform.up * _turnPower * sideways, ForceMode.Acceleration);
 
-        FixedUpdateOrientation(collProvider, undispPos);
+        FixedUpdateOrientation(collProvider, _resultNormals[0]);
 
         collProvider.ReturnSamplingData(_samplingData);
 
@@ -200,35 +191,36 @@ public class BoatAlignNormal : FloatingObjectBase
     /// Align to water normal. One normal by default, but can use a separate normal based on boat length vs width. This gives
     /// varying rotations based on boat dimensions.
     /// </summary>
-    void FixedUpdateOrientation(ICollProvider collProvider, Vector3 undisplacedPos)
+    void FixedUpdateOrientation(ICollProvider collProvider, Vector3 normalSideways)
     {
-        Vector3 normal, normalLongitudinal = Vector3.up;
-        if (!collProvider.SampleNormal(ref undisplacedPos, _samplingData, out normal))
-        {
-            normal = Vector3.up;
-        }
+        Vector3 normal = normalSideways, normalLongitudinal = Vector3.up;
+        //if (!collProvider.SampleNormal(ref undisplacedPos, _samplingData, out normal))
+        //{
+        //    normal = Vector3.up;
+        //}
 
-        if (_useBoatLength)
-        {
-            // Compute a new sampling data that takes into account the boat length (as opposed to boat width)
-            var thisRect = new Rect(transform.position.x, transform.position.z, 0f, 0f);
-            collProvider.GetSamplingData(ref thisRect, _boatLength, _samplingDataLengthWise);
+        // TODO can i support sampling with multiple spatial lengths?
+        //if (_useBoatLength)
+        //{
+        //    // Compute a new sampling data that takes into account the boat length (as opposed to boat width)
+        //    var thisRect = new Rect(transform.position.x, transform.position.z, 0f, 0f);
+        //    collProvider.GetSamplingData(ref thisRect, _boatLength, _samplingDataLengthWise);
 
-            if (collProvider.SampleNormal(ref undisplacedPos, _samplingDataLengthWise, out normalLongitudinal))
-            {
-                var F = transform.forward;
-                F.y = 0f;
-                F.Normalize();
-                normal -= Vector3.Dot(F, normal) * F;
+        //    if (collProvider.SampleNormal(ref undisplacedPos, _samplingDataLengthWise, out normalLongitudinal))
+        //    {
+        //        var F = transform.forward;
+        //        F.y = 0f;
+        //        F.Normalize();
+        //        normal -= Vector3.Dot(F, normal) * F;
 
-                var R = transform.right;
-                R.y = 0f;
-                R.Normalize();
-                normalLongitudinal -= Vector3.Dot(R, normalLongitudinal) * R;
-            }
+        //        var R = transform.right;
+        //        R.y = 0f;
+        //        R.Normalize();
+        //        normalLongitudinal -= Vector3.Dot(R, normalLongitudinal) * R;
+        //    }
 
-            collProvider.ReturnSamplingData(_samplingDataLengthWise);
-        }
+        //    collProvider.ReturnSamplingData(_samplingDataLengthWise);
+        //}
 
         if (_debugDraw) Debug.DrawLine(transform.position, transform.position + 5f * normal, Color.green);
         if (_debugDraw && _useBoatLength) Debug.DrawLine(transform.position, transform.position + 5f * normalLongitudinal, Color.green);
@@ -241,48 +233,6 @@ public class BoatAlignNormal : FloatingObjectBase
             _rb.AddTorque(torqueLength * _boyancyTorque, ForceMode.Acceleration);
         }
     }
-
-#if UNITY_EDITOR
-    //private void Update()
-    //{
-    //    UpdateDebugDrawSurroundingColl();
-    //}
-
-    private void UpdateDebugDrawSurroundingColl()
-    {
-        var r = 5f;
-        var steps = 10;
-
-        var collProvider = OceanRenderer.Instance.CollisionProvider;
-        var thisRect = new Rect(transform.position.x - r * steps / 2f, transform.position.z - r * steps / 2f, r * steps / 2f, r * steps / 2f);
-        if (!collProvider.GetSamplingData(ref thisRect, _boatWidth, _samplingData))
-        {
-            return;
-        }
-
-        for (float i = 0; i < steps; i++)
-        {
-            for (float j = 0; j < steps; j++)
-            {
-                Vector3 pos = new Vector3(((i + 0.5f) - steps / 2f) * r, 0f, ((j + 0.5f) - steps / 2f) * r);
-                pos.x += transform.position.x;
-                pos.z += transform.position.z;
-
-                Vector3 disp;
-                if (collProvider.SampleDisplacement(ref pos, _samplingData, out disp))
-                {
-                    DebugDrawCross(pos + disp, 1f, Color.green);
-                }
-                else
-                {
-                    DebugDrawCross(pos, 0.25f, Color.red);
-                }
-            }
-        }
-
-        collProvider.ReturnSamplingData(_samplingData);
-    }
-#endif
 
     void DebugDrawCross(Vector3 pos, float r, Color col)
     {

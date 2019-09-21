@@ -14,6 +14,8 @@ namespace Crest
         public abstract Vector3 Velocity { get; }
 
         SamplingData _samplingData = new SamplingData();
+        Vector3[] _queryPos = new Vector3[1];
+        Vector3[] _resultDisp = new Vector3[1];
 
         /// <summary>
         /// The ocean data has horizontal displacements. This represents the displacement that lands at this object position.
@@ -25,27 +27,12 @@ namespace Crest
 
             collProvider.GetSamplingData(ref samplingRect, ObjectWidth, _samplingData);
 
-            // Invert the displacement - find position that displaces to current position
-            Vector3 position = transform.position, undispPos;
-            if (!collProvider.ComputeUndisplacedPosition(ref position, _samplingData, out undispPos))
-            {
-                // If we couldn't get wave shape, assume flat water at sea level
-                undispPos = position;
-                undispPos.y = OceanRenderer.Instance.SeaLevel;
-            }
-
-            // Compute the displacement at that position
-            Vector3 waterSurfaceVel, displacement, result = Vector3.zero;
-            bool dispValid, velValid;
-            collProvider.SampleDisplacementVel(ref undispPos, _samplingData, out displacement, out dispValid, out waterSurfaceVel, out velValid);
-            if (dispValid)
-            {
-                result = displacement;
-            }
+            _queryPos[0] = transform.position;
+            collProvider.Query(GetInstanceID(), _samplingData, _queryPos, null, _resultDisp, null);
 
             collProvider.ReturnSamplingData(_samplingData);
 
-            return result;
+            return _resultDisp[0];
         }
     }
 }

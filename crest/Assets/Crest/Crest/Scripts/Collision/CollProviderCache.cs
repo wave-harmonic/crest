@@ -2,6 +2,7 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -50,6 +51,7 @@ namespace Crest
         /// <summary>
         /// Height is the only thing that is cached right now. We could cache disps and normals too, but the height queries are heaviest.
         /// </summary>
+        [Obsolete("This API is deprecated. Use the 'Query' APIs instead.")]
         public bool SampleHeight(ref Vector3 i_worldPos, SamplingData i_samplingData, out float o_height)
         {
             var hash = CalcHash(ref i_worldPos);
@@ -86,21 +88,25 @@ namespace Crest
             _collProvider.ReturnSamplingData(i_data);
         }
 
+        [Obsolete("This API is deprecated. Use the 'Query' APIs instead.")]
         public bool ComputeUndisplacedPosition(ref Vector3 i_worldPos, SamplingData i_samplingData, out Vector3 undisplacedWorldPos)
         {
             return _collProvider.ComputeUndisplacedPosition(ref i_worldPos, i_samplingData, out undisplacedWorldPos);
         }
 
+        [Obsolete("This API is deprecated. Use the 'Query' APIs instead.")]
         public void SampleDisplacementVel(ref Vector3 i_worldPos, SamplingData i_samplingData, out Vector3 o_displacement, out bool o_displacementValid, out Vector3 o_displacementVel, out bool o_velValid)
         {
             _collProvider.SampleDisplacementVel(ref i_worldPos, i_samplingData, out o_displacement, out o_displacementValid, out o_displacementVel, out o_velValid);
         }
 
+        [Obsolete("This API is deprecated. Use the 'Query' APIs instead.")]
         public bool SampleNormal(ref Vector3 i_undisplacedWorldPos, SamplingData i_samplingData, out Vector3 o_normal)
         {
             return _collProvider.SampleNormal(ref i_undisplacedWorldPos, i_samplingData, out o_normal);
         }
 
+        [Obsolete("This API is deprecated. Use the 'Query' APIs instead.")]
         public bool SampleDisplacement(ref Vector3 i_worldPos, SamplingData i_samplingData, out Vector3 o_displacement)
         {
             return _collProvider.SampleDisplacement(ref i_worldPos, i_samplingData, out o_displacement);
@@ -112,6 +118,7 @@ namespace Crest
             return _collProvider.Query(i_guid, i_samplingData, i_queryDisplacementToPoints, i_queryNormalAtPoint, o_resultDisps, o_resultNorms);
         }
 
+        [Obsolete("This API is deprecated. Use the 'Query' APIs instead.")]
         public int Query(int i_guid, SamplingData i_samplingData, Vector3[] i_queryHeightAtPoints, Vector3[] i_queryNormalAtPoint, float[] o_resultHeights, Vector3[] o_resultNorms)
         {
             var status = 0;
@@ -148,3 +155,4 @@ namespace Crest
         public int CacheHits { get { return _cacheHitsLastFrame; } }
     }
 }
+

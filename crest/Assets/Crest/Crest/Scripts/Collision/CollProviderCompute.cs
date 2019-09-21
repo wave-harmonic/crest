@@ -365,24 +365,7 @@ public class CollProviderCompute : MonoBehaviour
     {
         if (_srq.Current._numQueries > 0)
         {
-            _computeBufQueries.SetData(_queryPositionsXZ, 0, 0, _srq.Current._numQueries);
-
-            _shaderProcessQueries.SetBuffer(s_kernelHandle, sp_queryPositions, _computeBufQueries);
-            _shaderProcessQueries.SetBuffer(s_kernelHandle, sp_ResultDisplacements, _computeBufResults);
-
-            Crest.OceanRenderer.Instance._lodDataAnimWaves.BindResultData(_wrapper);
-
-            _shaderProcessQueries.SetTexture(s_kernelHandle, sp_LD_TexArray_AnimatedWaves, Crest.OceanRenderer.Instance._lodDataAnimWaves.DataTexture);
-
-            // LOD 0 is blended in/out when scale changes, to eliminate pops
-            var needToBlendOutShape = Crest.OceanRenderer.Instance.ScaleCouldIncrease;
-            var meshScaleLerp = needToBlendOutShape ? Crest.OceanRenderer.Instance.ViewerAltitudeLevelAlpha : 0f;
-            _shaderProcessQueries.SetFloat(sp_MeshScaleLerp, meshScaleLerp);
-
-            _shaderProcessQueries.SetFloat(sp_SliceCount, Crest.OceanRenderer.Instance.CurrentLodCount);
-
-            var numGroups = (int)Mathf.Ceil((float)_srq.Current._numQueries / (float)s_computeGroupSize) * s_computeGroupSize;
-            _shaderProcessQueries.Dispatch(s_kernelHandle, numGroups, 1, 1);
+            ExecuteQueries();
 
             // Remove oldest requests if we have hit the limit
             while (_requests.Count >= s_maxQueryCount)
@@ -400,6 +383,28 @@ public class CollProviderCompute : MonoBehaviour
 
             _srq.AcquireNew();
         }
+    }
+
+    void ExecuteQueries()
+    {
+        _computeBufQueries.SetData(_queryPositionsXZ, 0, 0, _srq.Current._numQueries);
+
+        _shaderProcessQueries.SetBuffer(s_kernelHandle, sp_queryPositions, _computeBufQueries);
+        _shaderProcessQueries.SetBuffer(s_kernelHandle, sp_ResultDisplacements, _computeBufResults);
+
+        Crest.OceanRenderer.Instance._lodDataAnimWaves.BindResultData(_wrapper);
+
+        _shaderProcessQueries.SetTexture(s_kernelHandle, sp_LD_TexArray_AnimatedWaves, Crest.OceanRenderer.Instance._lodDataAnimWaves.DataTexture);
+
+        // LOD 0 is blended in/out when scale changes, to eliminate pops
+        var needToBlendOutShape = Crest.OceanRenderer.Instance.ScaleCouldIncrease;
+        var meshScaleLerp = needToBlendOutShape ? Crest.OceanRenderer.Instance.ViewerAltitudeLevelAlpha : 0f;
+        _shaderProcessQueries.SetFloat(sp_MeshScaleLerp, meshScaleLerp);
+
+        _shaderProcessQueries.SetFloat(sp_SliceCount, Crest.OceanRenderer.Instance.CurrentLodCount);
+
+        var numGroups = (int)Mathf.Ceil((float)_srq.Current._numQueries / (float)s_computeGroupSize) * s_computeGroupSize;
+        _shaderProcessQueries.Dispatch(s_kernelHandle, numGroups, 1, 1);
     }
 
     /// <summary>

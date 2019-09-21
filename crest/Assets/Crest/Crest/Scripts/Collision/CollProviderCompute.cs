@@ -13,10 +13,12 @@ using UnityEngine.Rendering;
 
 public class CollProviderCompute : MonoBehaviour
 {
+    readonly static string s_shaderName = "ProcessCollisionQueries";
+    readonly static string s_kernelName = "CSMain";
     readonly static int s_maxRequests = 4;
     readonly static int s_maxGuids = 64;
 
-    public ComputeShader _shader;
+    ComputeShader _shaderProcessQueries;
     Crest.PropertyWrapperComputeStandalone _wrapper;
 
     readonly static int s_maxQueryCount = 4096;
@@ -24,6 +26,12 @@ public class CollProviderCompute : MonoBehaviour
     readonly static int s_computeGroupSize = 64;
     public static bool s_useComputeCollQueries = true;
 
+    readonly static int sp_queryPositions = Shader.PropertyToID("_QueryPositions");
+    readonly static int sp_ResultDisplacements = Shader.PropertyToID("_ResultDisplacements");
+    readonly static int sp_LD_TexArray_AnimatedWaves = Shader.PropertyToID("_LD_TexArray_AnimatedWaves");
+    readonly static int sp_MeshScaleLerp = Shader.PropertyToID("_MeshScaleLerp");
+    readonly static int sp_SliceCount = Shader.PropertyToID("_SliceCount");
+    
     readonly static float s_finiteDiffDx = 0.1f;
 
     static int s_kernelHandle;
@@ -359,22 +367,22 @@ public class CollProviderCompute : MonoBehaviour
         {
             _computeBufQueries.SetData(_queryPositionsXZ, 0, 0, _srq.Current._numQueries);
 
-            _shader.SetBuffer(s_kernelHandle, "_QueryPositions", _computeBufQueries);
-            _shader.SetBuffer(s_kernelHandle, "_ResultDisplacements", _computeBufResults);
+            _shaderProcessQueries.SetBuffer(s_kernelHandle, sp_queryPositions, _computeBufQueries);
+            _shaderProcessQueries.SetBuffer(s_kernelHandle, sp_ResultDisplacements, _computeBufResults);
 
             Crest.OceanRenderer.Instance._lodDataAnimWaves.BindResultData(_wrapper);
 
-            _shader.SetTexture(s_kernelHandle, "_LD_TexArray_AnimatedWaves", Crest.OceanRenderer.Instance._lodDataAnimWaves.DataTexture);
+            _shaderProcessQueries.SetTexture(s_kernelHandle, sp_LD_TexArray_AnimatedWaves, Crest.OceanRenderer.Instance._lodDataAnimWaves.DataTexture);
 
             // LOD 0 is blended in/out when scale changes, to eliminate pops
             var needToBlendOutShape = Crest.OceanRenderer.Instance.ScaleCouldIncrease;
             var meshScaleLerp = needToBlendOutShape ? Crest.OceanRenderer.Instance.ViewerAltitudeLevelAlpha : 0f;
-            _shader.SetFloat("_MeshScaleLerp", meshScaleLerp);
+            _shaderProcessQueries.SetFloat(sp_MeshScaleLerp, meshScaleLerp);
 
-            _shader.SetFloat("_SliceCount", Crest.OceanRenderer.Instance.CurrentLodCount);
+            _shaderProcessQueries.SetFloat(sp_SliceCount, Crest.OceanRenderer.Instance.CurrentLodCount);
 
             var numGroups = (int)Mathf.Ceil((float)_srq.Current._numQueries / (float)s_computeGroupSize) * s_computeGroupSize;
-            _shader.Dispatch(s_kernelHandle, numGroups, 1, 1);
+            _shaderProcessQueries.Dispatch(s_kernelHandle, numGroups, 1, 1);
 
             // Remove oldest requests if we have hit the limit
             while (_requests.Count >= s_maxQueryCount)
@@ -456,8 +464,9 @@ public class CollProviderCompute : MonoBehaviour
         Debug.Assert(Instance == null);
         Instance = this;
 
-        s_kernelHandle = _shader.FindKernel("CSMain");
-        _wrapper = new Crest.PropertyWrapperComputeStandalone(_shader, s_kernelHandle);
+        _shaderProcessQueries = Resources.Load<ComputeShader>(s_shaderName);
+        s_kernelHandle = _shaderProcessQueries.FindKernel(s_kernelName);
+        _wrapper = new Crest.PropertyWrapperComputeStandalone(_shaderProcessQueries, s_kernelHandle);
 
         _computeBufQueries = new ComputeBuffer(s_maxQueryCount, 8, ComputeBufferType.Default);
         _computeBufResults = new ComputeBuffer(s_maxQueryCount, 12, ComputeBufferType.Default);

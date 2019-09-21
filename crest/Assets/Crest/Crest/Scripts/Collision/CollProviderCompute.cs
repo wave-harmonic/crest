@@ -34,11 +34,96 @@ public class CollProviderCompute : MonoBehaviour
         public Dictionary<int, Vector2Int> _segments = new Dictionary<int, Vector2Int>();
         public int _numQueries = 0;
     }
-    
-    SegmentRegistrar[] _segments = new SegmentRegistrar[s_maxRequests + 2 + 4];
 
-    int _segment0 = 0;
-    int _segment1 = 0;
+    class SegmentRegistrarQueue
+    {
+        SegmentRegistrar[] _segments = new SegmentRegistrar[s_maxRequests + 2 + 4];
+
+        public int _segmentRelease = 0;
+        public int _segmentAcquire = 0;
+
+        public SegmentRegistrar Current => _segments[_segmentAcquire];
+
+        public SegmentRegistrarQueue()
+        {
+            for (int i = 0; i < _segments.Length; i++)
+            {
+                _segments[i] = new SegmentRegistrar();
+            }
+        }
+
+        public void AcquireNew()
+        {
+            _segmentAcquire = (_segmentAcquire + 1) % _segments.Length;
+
+            // The last index should never increment and land on the first index - it should only happen the other way around.
+            Debug.Assert(_segmentAcquire != _segmentRelease, "Segment registrar scratch exhausted.");
+
+            // TODO - is this clear necessary? Its likely causing allocations. no - remove both..
+            _segments[_segmentAcquire]._numQueries = 0;
+            _segments[_segmentAcquire]._segments.Clear();
+        }
+
+        public void ReleaseLast()
+        {
+            // Don't do this - these are being references by _queryResults
+            //_segments[_segment0]._segments.Clear();
+            //_segments[_segment0]._numQueries = 0;
+
+            _segmentRelease = (_segmentRelease + 1) % _segments.Length;
+        }
+
+        public void RemoveRegistrations(int key)
+        {
+            // Remove the guid for all of the next spare segment registrars. However, don't touch the ones that are being
+            // used for active requests.
+            int i = _segmentAcquire;
+            while (true)
+            {
+                if (_segments[i]._segments.ContainsKey(key))
+                {
+                    _segments[i]._segments.Remove(key);
+                }
+
+                i = (i + 1) % _segments.Length;
+
+                if (i == _segmentRelease)
+                {
+                    break;
+                }
+            }
+        }
+
+        public void ClearAvailable()
+        {
+            // Extreme approach - flush all segments for next spare registrars (but don't touch ones being used for active requests)
+            int i = _segmentAcquire;
+            while (true)
+            {
+                _segments[i]._segments.Clear();
+                _segments[i]._numQueries = 0;
+
+                i = (i + 1) % _segments.Length;
+
+                if (i == _segmentRelease)
+                {
+                    break;
+                }
+            }
+        }
+
+        public void ClearAll()
+        {
+            for (int i = 0; i < _segments.Length; i++)
+            {
+                _segments[i]._numQueries = 0;
+                _segments[i]._segments.Clear();
+            }
+        }
+    }
+
+    SegmentRegistrarQueue _srq = new SegmentRegistrarQueue();
+    
 
     NativeArray<Vector3> _queryResults;
     float _queryResultsTime = -1f;
@@ -68,7 +153,7 @@ public class CollProviderCompute : MonoBehaviour
         var segmentRetrieved = false;
         Vector2Int segment;
 
-        if (_segments[_segment1]._segments.TryGetValue(guid, out segment))
+        if (_srq.Current._segments.TryGetValue(guid, out segment))
         {
             var segmentSize = segment.y - segment.x + 1;
             if (segmentSize == queryPoints.Length)
@@ -77,23 +162,23 @@ public class CollProviderCompute : MonoBehaviour
             }
             else
             {
-                _segments[_segment1]._segments.Remove(guid);
+                _srq.Current._segments.Remove(guid);
             }
         }
 
         if (!segmentRetrieved)
         {
-            if (_segments[_segment1]._segments.Count >= s_maxGuids)
+            if (_srq.Current._segments.Count >= s_maxGuids)
             {
                 Debug.LogError("Too many guids registered with CollProviderCompute. Increase s_maxGuids.", this);
                 return false;
             }
 
-            segment.x = _segments[_segment1]._numQueries;
+            segment.x = _srq.Current._numQueries;
             segment.y = segment.x + queryPoints.Length - 1;
-            _segments[_segment1]._segments.Add(guid, segment);
+            _srq.Current._segments.Add(guid, segment);
 
-            _segments[_segment1]._numQueries += queryPoints.Length;
+            _srq.Current._numQueries += queryPoints.Length;
         }
 
         for (int i = segment.x; i <= segment.y; i++)
@@ -110,23 +195,7 @@ public class CollProviderCompute : MonoBehaviour
     /// </summary>
     public void RemoveQueryPoints(int guid)
     {
-        // Remove the guid for all of the next spare segment registrars. However, don't touch the ones that are being
-        // used for active requests.
-        int i = _segment1;
-        while (true)
-        {
-            if (_segments[i]._segments.ContainsKey(guid))
-            {
-                _segments[i]._segments.Remove(guid);
-            }
-
-            i = (i + 1) % _segments.Length;
-
-            if (i == _segment0)
-            {
-                break;
-            }
-        }
+        _srq.RemoveRegistrations(guid);
     }
 
     /// <summary>
@@ -135,20 +204,7 @@ public class CollProviderCompute : MonoBehaviour
     /// </summary>
     public void CompactQueryStorage()
     {
-        // Extreme approach - flush all segments for next spare registrars (but don't touch ones being used for active requests)
-        int i = _segment1;
-        while (true)
-        {
-            _segments[i]._segments.Clear();
-            _segments[i]._numQueries = 0;
-
-            i = (i + 1) % _segments.Length;
-
-            if (i == _segment0)
-            {
-                break;
-            }
-        }
+        _srq.ClearAvailable();
     }
 
     /// <summary>
@@ -250,9 +306,9 @@ public class CollProviderCompute : MonoBehaviour
     // the last frames displacements.
     void Update()
     {
-        if (_segments[_segment1]._numQueries > 0)
+        if (_srq.Current._numQueries > 0)
         {
-            _computeBufQueries.SetData(_queryPositionsXZ, 0, 0, _segments[_segment1]._numQueries);
+            _computeBufQueries.SetData(_queryPositionsXZ, 0, 0, _srq.Current._numQueries);
 
             _shader.SetBuffer(s_kernelHandle, "_QueryPositions", _computeBufQueries);
             _shader.SetBuffer(s_kernelHandle, "_ResultDisplacements", _computeBufResults);
@@ -266,7 +322,7 @@ public class CollProviderCompute : MonoBehaviour
             var meshScaleLerp = needToBlendOutShape ? Crest.OceanRenderer.Instance.ViewerAltitudeLevelAlpha : 0f;
             _shader.SetFloat("_MeshScaleLerp", meshScaleLerp);
 
-            var numGroups = (int)Mathf.Ceil((float)_segments[_segment1]._numQueries / (float)s_computeGroupSize) * s_computeGroupSize;
+            var numGroups = (int)Mathf.Ceil((float)_srq.Current._numQueries / (float)s_computeGroupSize) * s_computeGroupSize;
             _shader.Dispatch(s_kernelHandle, numGroups, 1, 1);
 
             // Remove oldest requests if we have hit the limit
@@ -278,19 +334,12 @@ public class CollProviderCompute : MonoBehaviour
             ReadbackRequest request;
             request._dataTimestamp = Time.time - Time.deltaTime;
             request._request = AsyncGPUReadback.Request(_computeBufResults, DataArrived);
-            request._segments = _segments[_segment1]._segments;
+            request._segments = _srq.Current._segments;
 
             _requests.Add(request);
             //Debug.Log(Time.frameCount + ": request created for " + _numQueries + " queries.");
 
-            _segment1 = (_segment1 + 1) % _segments.Length;
-
-            // The last index should never increment and land on the first index - it should only happen the other way around.
-            Debug.Assert(_segment1 != _segment0, "Segment registrar scratch exhausted.");
-
-            _segments[_segment1]._numQueries = 0;
-            // TODO - is this clear necessary? Its likely causing allocations.
-            _segments[_segment1]._segments.Clear();
+            _srq.AcquireNew();
         }
     }
 
@@ -312,7 +361,7 @@ public class CollProviderCompute : MonoBehaviour
             if (_requests[i]._request.hasError)
             {
                 _requests.RemoveAt(i);
-                AdvanceLastSegment();
+                _srq.ReleaseLast();
             }
         }
 
@@ -340,16 +389,8 @@ public class CollProviderCompute : MonoBehaviour
         for (int i = lastDoneIndex; i >= 0; --i)
         {
             _requests.RemoveAt(i);
-            AdvanceLastSegment();
+            _srq.ReleaseLast();
         }
-    }
-
-    void AdvanceLastSegment()
-    {
-        // Don't do this - these are being references by _queryResults
-        //_segments[_segment0]._segments.Clear();
-        //_segments[_segment0]._numQueries = 0;
-        _segment0 = (_segment0 + 1) % _segments.Length;
     }
 
     void Swap<T>(ref T a, ref T b)
@@ -372,11 +413,6 @@ public class CollProviderCompute : MonoBehaviour
 
         _queryResults = new NativeArray<Vector3>(s_maxQueryCount, Allocator.Persistent, NativeArrayOptions.ClearMemory);
         _queryResultsLast = new NativeArray<Vector3>(s_maxQueryCount, Allocator.Persistent, NativeArrayOptions.ClearMemory);
-
-        for (int i = 0; i < _segments.Length; i++)
-        {
-            _segments[i] = new SegmentRegistrar();
-        }
     }
 
     private void OnDisable()
@@ -389,11 +425,7 @@ public class CollProviderCompute : MonoBehaviour
         _queryResults.Dispose();
         _queryResultsLast.Dispose();
 
-        for (int i = 0; i < _segments.Length; i++)
-        {
-            _segments[i]._numQueries = 0;
-            _segments[i]._segments.Clear();
-        }
+        _srq.ClearAll();
     }
 
     void PlaceMarkerCube(ref GameObject marker, Vector3 query, Vector3 disp)

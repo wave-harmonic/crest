@@ -21,7 +21,7 @@ namespace Crest
         readonly static int s_maxGuids = 64;
 
         ComputeShader _shaderProcessQueries;
-        Crest.PropertyWrapperComputeStandalone _wrapper;
+        PropertyWrapperComputeStandalone _wrapper;
 
         readonly static int s_maxQueryCount = 4096;
         // Must match value in compute shader
@@ -360,7 +360,7 @@ namespace Crest
 
             if (countPts > 0)
             {
-                var seaLevel = Crest.OceanRenderer.Instance.SeaLevel;
+                var seaLevel = OceanRenderer.Instance.SeaLevel;
                 for (int i = segment.x; i <= segment.y; i++)
                 {
                     heights[i - segment.x] = seaLevel + _queryResults[i].y;
@@ -465,16 +465,16 @@ namespace Crest
             _shaderProcessQueries.SetBuffer(s_kernelHandle, sp_queryPositions, _computeBufQueries);
             _shaderProcessQueries.SetBuffer(s_kernelHandle, sp_ResultDisplacements, _computeBufResults);
 
-            Crest.OceanRenderer.Instance._lodDataAnimWaves.BindResultData(_wrapper);
+            OceanRenderer.Instance._lodDataAnimWaves.BindResultData(_wrapper);
 
-            _shaderProcessQueries.SetTexture(s_kernelHandle, sp_LD_TexArray_AnimatedWaves, Crest.OceanRenderer.Instance._lodDataAnimWaves.DataTexture);
+            _shaderProcessQueries.SetTexture(s_kernelHandle, sp_LD_TexArray_AnimatedWaves, OceanRenderer.Instance._lodDataAnimWaves.DataTexture);
 
             // LOD 0 is blended in/out when scale changes, to eliminate pops
-            var needToBlendOutShape = Crest.OceanRenderer.Instance.ScaleCouldIncrease;
-            var meshScaleLerp = needToBlendOutShape ? Crest.OceanRenderer.Instance.ViewerAltitudeLevelAlpha : 0f;
+            var needToBlendOutShape = OceanRenderer.Instance.ScaleCouldIncrease;
+            var meshScaleLerp = needToBlendOutShape ? OceanRenderer.Instance.ViewerAltitudeLevelAlpha : 0f;
             _shaderProcessQueries.SetFloat(sp_MeshScaleLerp, meshScaleLerp);
 
-            _shaderProcessQueries.SetFloat(sp_SliceCount, Crest.OceanRenderer.Instance.CurrentLodCount);
+            _shaderProcessQueries.SetFloat(sp_SliceCount, OceanRenderer.Instance.CurrentLodCount);
 
             var numGroups = (int)Mathf.Ceil((float)_srq.Current._numQueries / (float)s_computeGroupSize) * s_computeGroupSize;
             _shaderProcessQueries.Dispatch(s_kernelHandle, numGroups, 1, 1);
@@ -544,7 +544,7 @@ namespace Crest
 
             _shaderProcessQueries = Resources.Load<ComputeShader>(s_shaderName);
             s_kernelHandle = _shaderProcessQueries.FindKernel(s_kernelName);
-            _wrapper = new Crest.PropertyWrapperComputeStandalone(_shaderProcessQueries, s_kernelHandle);
+            _wrapper = new PropertyWrapperComputeStandalone(_shaderProcessQueries, s_kernelHandle);
 
             _computeBufQueries = new ComputeBuffer(s_maxQueryCount, 8, ComputeBufferType.Default);
             _computeBufResults = new ComputeBuffer(s_maxQueryCount, 12, ComputeBufferType.Default);

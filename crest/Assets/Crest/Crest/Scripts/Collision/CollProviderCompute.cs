@@ -37,7 +37,10 @@ public class CollProviderCompute : MonoBehaviour
 
     class SegmentRegistrarQueue
     {
-        SegmentRegistrar[] _segments = new SegmentRegistrar[s_maxRequests + 2 + 4];
+        // Requests in flight plus 2 held values, plus one current
+        readonly static int s_poolSize = s_maxRequests + 2 + 1;
+
+        SegmentRegistrar[] _segments = new SegmentRegistrar[s_poolSize];
 
         public int _segmentRelease = 0;
         public int _segmentAcquire = 0;

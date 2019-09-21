@@ -175,6 +175,33 @@ public class CollProviderCompute : MonoBehaviour
     }
 
     /// <summary>
+    /// Copy out just water heights
+    /// </summary>
+    public bool RetrieveResultHeights(int guid, ref float[] heights)
+    {
+        if (_resultSegments == null)
+        {
+            return false;
+        }
+
+        // Check if there are results that came back for this guid
+        Vector2Int segment;
+        if (!_resultSegments.TryGetValue(guid, out segment))
+        {
+            // Guid not found - no result
+            return false;
+        }
+
+        var seaLevel = Crest.OceanRenderer.Instance.SeaLevel;
+        for(int i = segment.x; i <= segment.y; i++)
+        {
+            heights[i - segment.x] = seaLevel + _queryResults[i].y;
+        }
+
+        return true;
+    }
+
+    /// <summary>
     /// Compute time derivative of the displacements by calculating difference from last query. More complicated than it would seem - results
     /// may not be available in one or both of the results, or the query locations in the array may change.
     /// </summary>

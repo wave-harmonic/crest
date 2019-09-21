@@ -215,7 +215,7 @@ namespace Crest
             var archimedesForceMagnitude = WATER_DENSITY * Mathf.Abs(Physics.gravity.y);
 
             // Retrieve results and compare to last query points to compute forces
-            if (CollProviderCompute.Instance.RetrieveResults(GetInstanceID(), ref _queryResults))
+            if (CollProviderCompute.Instance.RetrieveResults(GetInstanceID(), _queryResults, null))
             {
                 for (int i = 0; i < _forcePoints.Length; i++)
                 {
@@ -235,7 +235,7 @@ namespace Crest
             }
 
             // Send off new query points
-            CollProviderCompute.Instance.UpdateQueryPoints(GetInstanceID(), _queryPoints);
+            CollProviderCompute.Instance.UpdateQueryPoints(GetInstanceID(), _queryPoints, null);
         }
 
         void FixedUpdateDrag(ICollProvider collProvider, Vector3 waterSurfaceVel)

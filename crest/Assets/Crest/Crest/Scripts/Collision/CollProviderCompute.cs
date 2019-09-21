@@ -24,6 +24,8 @@ public class CollProviderCompute : MonoBehaviour
     readonly static int s_computeGroupSize = 64;
     public static bool s_useComputeCollQueries = true;
 
+    readonly static float s_finiteDiffDx = 0.1f;
+
     static int s_kernelHandle;
 
     ComputeBuffer _computeBufQueries;
@@ -145,15 +147,20 @@ public class CollProviderCompute : MonoBehaviour
     /// Takes a unique request ID and some world space XZ positions, and computes the displacement vector that lands at this position,
     /// to a good approximation. The world space height of the water at that position is then SeaLevel + displacement.y.
     /// </summary>
-    public bool UpdateQueryPoints(int guid, Vector3[] queryPoints)
+    public bool UpdateQueryPoints(int guid, Vector3[] queryPoints, Vector3[] queryNormals)
     {
         var segmentRetrieved = false;
         Vector2Int segment;
 
+        // We'll send in 3 points to get normals
+        var countPts = (queryPoints != null ? queryPoints.Length : 0);
+        var countNorms = (queryNormals != null ? queryNormals.Length : 0);
+        var countTotal = countPts + countNorms * 3;
+
         if (_srq.Current._segments.TryGetValue(guid, out segment))
         {
             var segmentSize = segment.y - segment.x + 1;
-            if (segmentSize == queryPoints.Length)
+            if (segmentSize == countTotal)
             {
                 segmentRetrieved = true;
             }
@@ -161,6 +168,12 @@ public class CollProviderCompute : MonoBehaviour
             {
                 _srq.Current._segments.Remove(guid);
             }
+        }
+
+        if (countTotal == 0)
+        {
+            // No query data
+            return false;
         }
 
         if (!segmentRetrieved)
@@ -172,18 +185,31 @@ public class CollProviderCompute : MonoBehaviour
             }
 
             segment.x = _srq.Current._numQueries;
-            segment.y = segment.x + queryPoints.Length - 1;
+            segment.y = segment.x + countTotal - 1;
             _srq.Current._segments.Add(guid, segment);
 
-            _srq.Current._numQueries += queryPoints.Length;
+            _srq.Current._numQueries += countTotal;
 
             //Debug.Log("Added points for " + guid);
         }
 
-        for (int i = segment.x; i <= segment.y; i++)
+        for (int pointi = 0; pointi < countPts; pointi++)
         {
-            _queryPositionsXZ[i].x = queryPoints[i - segment.x].x;
-            _queryPositionsXZ[i].y = queryPoints[i - segment.x].z;
+            _queryPositionsXZ[pointi + segment.x].x = queryPoints[pointi].x;
+            _queryPositionsXZ[pointi + segment.x].y = queryPoints[pointi].z;
+        }
+
+        // To compute each normal, post 3 query points
+        for (int normi = 0; normi < countNorms; normi++)
+        {
+            var arrIdx = segment.x + countPts + 3 * normi;
+
+            _queryPositionsXZ[arrIdx + 0].x = queryNormals[normi].x;
+            _queryPositionsXZ[arrIdx + 0].y = queryNormals[normi].z;
+            _queryPositionsXZ[arrIdx + 1].x = queryNormals[normi].x + s_finiteDiffDx;
+            _queryPositionsXZ[arrIdx + 1].y = queryNormals[normi].z;
+            _queryPositionsXZ[arrIdx + 2].x = queryNormals[normi].x;
+            _queryPositionsXZ[arrIdx + 2].y = queryNormals[normi].z + s_finiteDiffDx;
         }
 
         return true;
@@ -207,9 +233,9 @@ public class CollProviderCompute : MonoBehaviour
     }
 
     /// <summary>
-    /// Copy out the result displacements.
+    /// Copy out the result displacements and normals, if queried.
     /// </summary>
-    public bool RetrieveResults(int guid, ref Vector3[] results)
+    public bool RetrieveResults(int guid, Vector3[] disps, Vector3[] normals)
     {
         if (_resultSegments == null)
         {
@@ -224,7 +250,31 @@ public class CollProviderCompute : MonoBehaviour
             return false;
         }
 
-        _queryResults.Slice(segment.x, segment.y - segment.x + 1).CopyTo(results);
+        var countPts = (disps != null ? disps.Length : 0);
+        var countNorms = (normals != null ? normals.Length : 0);
+        var countTotal = countPts + countNorms * 3;
+
+        if (countPts > 0)
+        {
+            _queryResults.Slice(segment.x, countPts).CopyTo(disps);
+        }
+
+        if (countNorms > 0)
+        {
+            int firstNorm = segment.x + countPts;
+
+            var dx = -Vector3.right * s_finiteDiffDx;
+            var dz = -Vector3.forward * s_finiteDiffDx;
+            for (int i = 0; i < countNorms; i++)
+            {
+                var p = _queryResults[firstNorm + 3 * i + 0];
+                var px = dx + _queryResults[firstNorm + 3 * i + 1];
+                var pz = dz + _queryResults[firstNorm + 3 * i + 2];
+
+                normals[i] = Vector3.Cross(p - px, p - pz).normalized;
+                normals[i].y *= -1f;
+            }
+        }
 
         return true;
     }
@@ -248,7 +298,7 @@ public class CollProviderCompute : MonoBehaviour
         }
 
         var seaLevel = Crest.OceanRenderer.Instance.SeaLevel;
-        for(int i = segment.x; i <= segment.y; i++)
+        for (int i = segment.x; i <= segment.y; i++)
         {
             heights[i - segment.x] = seaLevel + _queryResults[i].y;
         }
@@ -292,7 +342,7 @@ public class CollProviderCompute : MonoBehaviour
             return false;
         }
 
-        var count = segment.y - segment.x + 1;
+        var count = results.Length;
         for (var i = 0; i < count; i++)
         {
             results[i] = (_queryResults[i + segment.x] - _queryResultsLast[i + segmentLast.x]) / dt;

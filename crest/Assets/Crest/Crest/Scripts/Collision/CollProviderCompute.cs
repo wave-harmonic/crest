@@ -3,8 +3,8 @@
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 // Potential improvements
-// - Min shape length
 // - Half return values
+// - Half minGridSize
 
 using System.Collections.Generic;
 using Unity.Collections;
@@ -28,7 +28,7 @@ namespace Crest
         readonly static int s_computeGroupSize = 64;
         public static bool s_useComputeCollQueries = true;
 
-        readonly static int sp_queryPositions = Shader.PropertyToID("_QueryPositions");
+        readonly static int sp_queryPositions_minGridSizes = Shader.PropertyToID("_QueryPositions_MinGridSizes");
         readonly static int sp_ResultDisplacements = Shader.PropertyToID("_ResultDisplacements");
         readonly static int sp_LD_TexArray_AnimatedWaves = Shader.PropertyToID("_LD_TexArray_AnimatedWaves");
         readonly static int sp_MeshScaleLerp = Shader.PropertyToID("_MeshScaleLerp");
@@ -41,7 +41,7 @@ namespace Crest
         ComputeBuffer _computeBufQueries;
         ComputeBuffer _computeBufResults;
 
-        Vector2[] _queryPositionsXZ = new Vector2[s_maxQueryCount];
+        Vector3[] _queryPosXZ_minGridSize = new Vector3[s_maxQueryCount];
 
         class SegmentRegistrar
         {
@@ -171,7 +171,7 @@ namespace Crest
         /// Takes a unique request ID and some world space XZ positions, and computes the displacement vector that lands at this position,
         /// to a good approximation. The world space height of the water at that position is then SeaLevel + displacement.y.
         /// </summary>
-        public bool UpdateQueryPoints(int guid, Vector3[] queryPoints, Vector3[] queryNormals)
+        bool UpdateQueryPoints(int i_ownerHash, SamplingData i_samplingData, Vector3[] queryPoints, Vector3[] queryNormals)
         {
             var segmentRetrieved = false;
             Vector2Int segment;
@@ -181,7 +181,7 @@ namespace Crest
             var countNorms = (queryNormals != null ? queryNormals.Length : 0);
             var countTotal = countPts + countNorms * 3;
 
-            if (_srq.Current._segments.TryGetValue(guid, out segment))
+            if (_srq.Current._segments.TryGetValue(i_ownerHash, out segment))
             {
                 var segmentSize = segment.y - segment.x + 1;
                 if (segmentSize == countTotal)
@@ -190,7 +190,7 @@ namespace Crest
                 }
                 else
                 {
-                    _srq.Current._segments.Remove(guid);
+                    _srq.Current._segments.Remove(i_ownerHash);
                 }
             }
 
@@ -210,17 +210,24 @@ namespace Crest
 
                 segment.x = _srq.Current._numQueries;
                 segment.y = segment.x + countTotal - 1;
-                _srq.Current._segments.Add(guid, segment);
+                _srq.Current._segments.Add(i_ownerHash, segment);
 
                 _srq.Current._numQueries += countTotal;
 
                 //Debug.Log("Added points for " + guid);
             }
 
+            // The smallest wavelengths should repeat no more than twice across the smaller spatial length. Unless we're
+            // in the last LOD - then this is the best we can do.
+            // i_samplingData._minSpatialLength
+            float minWavelength = i_samplingData._minSpatialLength / 2f;
+            float minGridSize = minWavelength / OceanRenderer.Instance.MinTexelsPerWave;
+
             for (int pointi = 0; pointi < countPts; pointi++)
             {
-                _queryPositionsXZ[pointi + segment.x].x = queryPoints[pointi].x;
-                _queryPositionsXZ[pointi + segment.x].y = queryPoints[pointi].z;
+                _queryPosXZ_minGridSize[pointi + segment.x].x = queryPoints[pointi].x;
+                _queryPosXZ_minGridSize[pointi + segment.x].y = queryPoints[pointi].z;
+                _queryPosXZ_minGridSize[pointi + segment.x].z = minGridSize;
             }
 
             // To compute each normal, post 3 query points
@@ -228,12 +235,17 @@ namespace Crest
             {
                 var arrIdx = segment.x + countPts + 3 * normi;
 
-                _queryPositionsXZ[arrIdx + 0].x = queryNormals[normi].x;
-                _queryPositionsXZ[arrIdx + 0].y = queryNormals[normi].z;
-                _queryPositionsXZ[arrIdx + 1].x = queryNormals[normi].x + s_finiteDiffDx;
-                _queryPositionsXZ[arrIdx + 1].y = queryNormals[normi].z;
-                _queryPositionsXZ[arrIdx + 2].x = queryNormals[normi].x;
-                _queryPositionsXZ[arrIdx + 2].y = queryNormals[normi].z + s_finiteDiffDx;
+                _queryPosXZ_minGridSize[arrIdx + 0].x = queryNormals[normi].x;
+                _queryPosXZ_minGridSize[arrIdx + 0].y = queryNormals[normi].z;
+                _queryPosXZ_minGridSize[arrIdx + 0].z = minGridSize;
+
+                _queryPosXZ_minGridSize[arrIdx + 1].x = queryNormals[normi].x + s_finiteDiffDx;
+                _queryPosXZ_minGridSize[arrIdx + 1].y = queryNormals[normi].z;
+                _queryPosXZ_minGridSize[arrIdx + 1].z = minGridSize;
+
+                _queryPosXZ_minGridSize[arrIdx + 2].x = queryNormals[normi].x;
+                _queryPosXZ_minGridSize[arrIdx + 2].y = queryNormals[normi].z + s_finiteDiffDx;
+                _queryPosXZ_minGridSize[arrIdx + 2].z = minGridSize;
             }
 
             return true;
@@ -427,9 +439,9 @@ namespace Crest
 
         void ExecuteQueries()
         {
-            _computeBufQueries.SetData(_queryPositionsXZ, 0, 0, _srq.Current._numQueries);
+            _computeBufQueries.SetData(_queryPosXZ_minGridSize, 0, 0, _srq.Current._numQueries);
 
-            _shaderProcessQueries.SetBuffer(s_kernelHandle, sp_queryPositions, _computeBufQueries);
+            _shaderProcessQueries.SetBuffer(s_kernelHandle, sp_queryPositions_minGridSizes, _computeBufQueries);
             _shaderProcessQueries.SetBuffer(s_kernelHandle, sp_ResultDisplacements, _computeBufResults);
 
             OceanRenderer.Instance._lodDataAnimWaves.BindResultData(_wrapper);
@@ -513,7 +525,7 @@ namespace Crest
             s_kernelHandle = _shaderProcessQueries.FindKernel(s_kernelName);
             _wrapper = new PropertyWrapperComputeStandalone(_shaderProcessQueries, s_kernelHandle);
 
-            _computeBufQueries = new ComputeBuffer(s_maxQueryCount, 8, ComputeBufferType.Default);
+            _computeBufQueries = new ComputeBuffer(s_maxQueryCount, 12, ComputeBufferType.Default);
             _computeBufResults = new ComputeBuffer(s_maxQueryCount, 12, ComputeBufferType.Default);
 
             _queryResults = new NativeArray<Vector3>(s_maxQueryCount, Allocator.Persistent, NativeArrayOptions.ClearMemory);
@@ -564,7 +576,7 @@ namespace Crest
         {
             var result = (int)QueryStatus.OK;
 
-            if (!UpdateQueryPoints(i_ownerHash, i_queryPoints, i_queryPoints))
+            if (!UpdateQueryPoints(i_ownerHash, i_samplingData, i_queryPoints, i_queryPoints))
             {
                 result |= (int)QueryStatus.PostFailed;
             }
@@ -586,7 +598,7 @@ namespace Crest
         {
             var result = (int)QueryStatus.OK;
 
-            if (!UpdateQueryPoints(i_ownerHash, i_queryPoints, i_queryPoints))
+            if (!UpdateQueryPoints(i_ownerHash, i_samplingData, i_queryPoints, i_queryPoints))
             {
                 result |= (int)QueryStatus.PostFailed;
             }

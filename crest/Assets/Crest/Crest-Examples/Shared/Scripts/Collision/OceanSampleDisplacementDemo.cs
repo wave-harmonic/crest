@@ -42,7 +42,7 @@ public class OceanSampleDisplacementDemo : MonoBehaviour
         if (!collProvider.GetSamplingData(ref dummy, 1f, _samplingData))
             return;
 
-        var status = collProvider.Query(GetHashCode(), _samplingData, _markerPos, _markerPos, _resultDisps, _resultNorms);
+        var status = collProvider.Query(GetHashCode(), _samplingData, _markerPos, _markerPos, _resultDisps, _resultNorms, _resultVels);
 
         if (collProvider.RetrieveSucceeded(status))
         {
@@ -70,10 +70,7 @@ public class OceanSampleDisplacementDemo : MonoBehaviour
             {
                 Debug.DrawLine(_markerObjects[i].transform.position, _markerObjects[i].transform.position + _resultNorms[i], Color.blue);
             }
-        }
 
-        if (collProvider.QueryVelocities(GetHashCode(), _samplingData, _markerPos, _resultVels) == 0)
-        {
             for (var i = 0; i < _resultVels.Length; i++)
             {
                 Debug.DrawLine(_markerObjects[i].transform.position, _markerObjects[i].transform.position + _resultVels[i], Color.green);

@@ -270,18 +270,39 @@ namespace Crest
             return status;
         }
 
-        public int QueryVelocities(int i_ownerHash, SamplingData i_samplingData, Vector3[] i_queryPositions, Vector3[] o_resultVels)
+        public int Query(int i_ownerHash, SamplingData i_samplingData, Vector3[] i_queryDisplacementToPoints, Vector3[] i_queryNormalAtPoint, Vector3[] o_resultDisps, Vector3[] o_resultNorms, Vector3[] o_resultVels)
         {
             var status = 0;
 
-            for (int i = 0; i < o_resultVels.Length; i++)
+            if (o_resultDisps != null)
             {
-                Vector3 dispDummy;
-                bool dispValid, velValid;
-                SampleDisplacementVel(ref i_queryPositions[i], i_samplingData, out dispDummy, out dispValid, out o_resultVels[i], out velValid);
-                if (!velValid)
+                for (int i = 0; i < o_resultDisps.Length; i++)
                 {
-                    status = 1 | status;
+                    var dispValid = false;
+                    var velValid = false;
+                    SampleDisplacementVel(ref i_queryDisplacementToPoints[i], i_samplingData, out o_resultDisps[i], out dispValid, out o_resultVels[i], out velValid);
+
+                    if (!dispValid || !velValid)
+                    {
+                        status = 1 | status;
+                    }
+                }
+            }
+
+            if (o_resultNorms != null)
+            {
+                for (int i = 0; i < o_resultNorms.Length; i++)
+                {
+                    Vector3 undispPos;
+                    if (ComputeUndisplacedPosition(ref i_queryNormalAtPoint[i], i_samplingData, out undispPos))
+                    {
+                        SampleNormal(ref undispPos, i_samplingData, out o_resultNorms[i]);
+                    }
+                    else
+                    {
+                        o_resultNorms[i] = Vector3.up;
+                        status = 1 | status;
+                    }
                 }
             }
 

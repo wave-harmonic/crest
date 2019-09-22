@@ -10,7 +10,7 @@ namespace Crest
     {
         SamplingData _samplingData = new SamplingData();
         Vector3[] _queryPos = new Vector3[1];
-        float[] _queryResult = new float[1];
+        Vector3[] _queryResult = new Vector3[1];
         Vector3[] _queryResultNormal = new Vector3[1];
         Vector3[] _queryResultVel = new Vector3[1];
 
@@ -45,7 +45,7 @@ namespace Crest
                 return false;
             }
 
-            height = _queryResult[0];
+            height = _queryResult[0].y + OceanRenderer.Instance.SeaLevel;
 
             return true;
         }
@@ -66,7 +66,7 @@ namespace Crest
                 return false;
             }
 
-            height = _queryResult[0];
+            height = _queryResult[0].y + OceanRenderer.Instance.SeaLevel;
             normal = _queryResultNormal[0];
 
             return true;
@@ -79,9 +79,7 @@ namespace Crest
                 return false;
             }
 
-            var status = OceanRenderer.Instance.CollisionProvider.Query(GetHashCode(), _samplingData, _queryPos, _queryPos, _queryResult, _queryResultNormal);
-
-            status |= OceanRenderer.Instance.CollisionProvider.QueryVelocities(GetHashCode(), _samplingData, _queryPos, _queryResultVel);
+            var status = OceanRenderer.Instance.CollisionProvider.Query(GetHashCode(), _samplingData, _queryPos, _queryPos, _queryResult, _queryResultNormal, _queryResultVel);
 
             OceanRenderer.Instance.CollisionProvider.ReturnSamplingData(_samplingData);
 
@@ -90,7 +88,7 @@ namespace Crest
                 return false;
             }
 
-            height = _queryResult[0];
+            height = _queryResult[0].y + OceanRenderer.Instance.SeaLevel;
             normal = _queryResultNormal[0];
             surfaceVel = _queryResultVel[0];
 

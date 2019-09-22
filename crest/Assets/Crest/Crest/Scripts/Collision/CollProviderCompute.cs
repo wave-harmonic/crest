@@ -389,11 +389,25 @@ namespace Crest
             return true;
         }
 
+        public int Query(int i_ownerHash, SamplingData i_samplingData, Vector3[] i_queryDisplacementToPoints, Vector3[] i_queryNormalAtPoint, Vector3[] o_resultDisps, Vector3[] o_resultNorms, Vector3[] o_resultVels)
+        {
+            var status = (int)QueryStatus.OK;
+
+            status |= RetrieveResults(i_ownerHash, o_resultDisps, o_resultNorms) ? (int)QueryStatus.OK : (int)QueryStatus.RetrieveFailed;
+
+            if (o_resultVels != null)
+            {
+                status |= QueryVelocities(i_ownerHash, i_samplingData, i_queryDisplacementToPoints, o_resultVels);
+            }
+
+            return status;
+        }
+
         /// <summary>
         /// Compute time derivative of the displacements by calculating difference from last query. More complicated than it would seem - results
         /// may not be available in one or both of the results, or the query locations in the array may change.
         /// </summary>
-        public int QueryVelocities(int i_ownerHash, SamplingData i_samplingData, Vector3[] i_queryPositions, Vector3[] results)
+        int QueryVelocities(int i_ownerHash, SamplingData i_samplingData, Vector3[] i_queryPositions, Vector3[] results)
         {
             // Need at least 2 returned results to do finite difference
             if (_queryResultsTime < 0f || _queryResultsTimeLast < 0f)

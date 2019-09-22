@@ -107,14 +107,21 @@ namespace Crest
             return 0;
         }
 
-        public int QueryVelocities(int i_ownerHash, SamplingData i_samplingData, Vector3[] i_queryPositions, Vector3[] o_resultVels)
+        public int Query(int i_ownerHash, SamplingData i_samplingData, Vector3[] i_queryDisplacementToPoints, Vector3[] i_queryNormalAtPoint, Vector3[] o_resultDisps, Vector3[] o_resultNorms, Vector3[] o_resultVels)
         {
-            for (int i = 0; i < o_resultVels.Length; i++)
+            var result = 0;
+
+            result |= Query(i_ownerHash, i_samplingData, i_queryDisplacementToPoints, i_queryNormalAtPoint, o_resultDisps, o_resultNorms);
+
+            if (o_resultVels != null)
             {
-                o_resultVels[i] = Vector3.zero;
+                for (int i = 0; i < o_resultVels.Length; i++)
+                {
+                    o_resultVels[i] = Vector3.zero;
+                }
             }
 
-            return 0;
+            return result;
         }
 
         public bool RetrieveSucceeded(int queryStatus)

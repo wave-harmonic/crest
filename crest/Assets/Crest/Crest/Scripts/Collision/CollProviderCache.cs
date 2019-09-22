@@ -141,9 +141,9 @@ namespace Crest
             return status;
         }
 
-        public int QueryVelocities(int i_ownerHash, SamplingData i_samplingData, Vector3[] i_queryPositions, Vector3[] o_resultVels)
+        public int Query(int i_ownerHash, SamplingData i_samplingData, Vector3[] i_queryDisplacementToPoints, Vector3[] i_queryNormalAtPoint, Vector3[] o_resultDisps, Vector3[] o_resultNorms, Vector3[] o_resultVels)
         {
-            return _collProvider.QueryVelocities(i_ownerHash, i_samplingData, i_queryPositions, o_resultVels);
+            return _collProvider.Query(i_ownerHash, i_samplingData, i_queryDisplacementToPoints, i_queryNormalAtPoint, o_resultDisps, o_resultNorms, o_resultVels);
         }
 
         public bool RetrieveSucceeded(int queryStatus)

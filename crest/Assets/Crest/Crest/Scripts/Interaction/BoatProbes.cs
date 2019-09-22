@@ -128,7 +128,6 @@ namespace Crest
             var undispPos = transform.position - _queryResultDisps[_forcePoints.Length];
             undispPos.y = OceanRenderer.Instance.SeaLevel;
 
-            collProvider.QueryVelocities(GetHashCode(), _samplingData, _queryPoints, _queryResultVels);
             var waterSurfaceVel = _queryResultVels[_forcePoints.Length];
 
             if (GPUReadbackFlow.Instance)
@@ -164,7 +163,7 @@ namespace Crest
             }
             _queryPoints[_forcePoints.Length] = transform.position;
 
-            collProvider.Query(GetHashCode(), _samplingData, _queryPoints, null, _queryResultDisps, null);
+            collProvider.Query(GetHashCode(), _samplingData, _queryPoints, null, _queryResultDisps, null, _queryResultVels);
         }
 
         void FixedUpdateEngine()

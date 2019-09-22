@@ -49,7 +49,6 @@ public class BoatAlignNormal : FloatingObjectBase
     [Header("Debug")]
     [SerializeField]
     bool _debugDraw = false;
-    [SerializeField] bool _debugValidateCollision = false;
 
     bool _inWater;
     public override bool InWater { get { return _inWater; } }
@@ -61,14 +60,10 @@ public class BoatAlignNormal : FloatingObjectBase
 
     Rigidbody _rb;
 
-    SamplingData _samplingData = new SamplingData();
-    SamplingData _samplingDataLengthWise = new SamplingData();
     SamplingData _samplingDataFlow = new SamplingData();
 
-    Vector3[] _queryPos = new Vector3[1];
-    float[] _resultHeights = new float[1];
-    Vector3[] _resultNormals = new Vector3[1];
-    Vector3[] _resultVels = new Vector3[1];
+    SampleHeightHelper _sampleHeightHelper = new SampleHeightHelper();
+    SampleHeightHelper _sampleHeightHelperLengthwise = new SampleHeightHelper();
 
     void Start()
     {
@@ -100,27 +95,13 @@ public class BoatAlignNormal : FloatingObjectBase
         var collProvider = OceanRenderer.Instance.CollisionProvider;
         var position = transform.position;
 
-        var thisRect = new Rect(transform.position.x, transform.position.z, 0f, 0f);
-        if (!collProvider.GetSamplingData(ref thisRect, _boatWidth, _samplingData))
-        {
-            // No collision coverage for the sample area, in this case use the null provider.
-            collProvider = CollProviderNull.Instance;
-        }
+        _sampleHeightHelper.Init(transform.position, _boatWidth);
+        var height = OceanRenderer.Instance.SeaLevel;
+        var normal = Vector3.up;
+        var waterSurfaceVel = Vector3.zero;
 
-        if (_debugValidateCollision)
-        {
-            var result = collProvider.CheckAvailability(ref position, _samplingData);
-            if (result != AvailabilityResult.DataAvailable)
-            {
-                Debug.LogWarning("Validation failed: " + result.ToString() + ". See comments on the AvailabilityResult enum.", this);
-            }
-        }
+        _sampleHeightHelper.Sample(ref height, ref normal, ref waterSurfaceVel);
 
-        // Perform the queries
-        collProvider.Query(GetHashCode(), _samplingData, _queryPos, _queryPos, _resultHeights, _resultNormals);
-        collProvider.QueryVelocities(GetHashCode(), _samplingData, _queryPos, _resultVels);
-
-        var waterSurfaceVel = _resultVels[0];
 
         if (GPUReadbackFlow.Instance)
         {
@@ -146,8 +127,6 @@ public class BoatAlignNormal : FloatingObjectBase
         }
 
         var velocityRelativeToWater = _rb.velocity - waterSurfaceVel;
-
-        float height = _resultHeights[0];
 
         float bottomDepth = height - transform.position.y - _bottomH;
 
@@ -180,9 +159,7 @@ public class BoatAlignNormal : FloatingObjectBase
                 (Input.GetKey(KeyCode.D) ? reverseMultiplier * 1f : 0f);
         _rb.AddTorque(transform.up * _turnPower * sideways, ForceMode.Acceleration);
 
-        FixedUpdateOrientation(collProvider, _resultNormals[0]);
-
-        collProvider.ReturnSamplingData(_samplingData);
+        FixedUpdateOrientation(collProvider, normal);
 
         UnityEngine.Profiling.Profiler.EndSample();
     }
@@ -194,35 +171,24 @@ public class BoatAlignNormal : FloatingObjectBase
     void FixedUpdateOrientation(ICollProvider collProvider, Vector3 normalSideways)
     {
         Vector3 normal = normalSideways, normalLongitudinal = Vector3.up;
-        //if (!collProvider.SampleNormal(ref undisplacedPos, _samplingData, out normal))
-        //{
-        //    normal = Vector3.up;
-        //}
 
-        // TODO can i support sampling with multiple spatial lengths?
-        // Close now - need to use SampleHeightHelper with normal, and will probably need to extend it to return vel as well
+        if(_useBoatLength)
+        {
+            _sampleHeightHelperLengthwise.Init(transform.position, _boatLength);
+            var dummy = 0f;
+            if(_sampleHeightHelperLengthwise.Sample(ref dummy, ref normalLongitudinal))
+            {
+                var F = transform.forward;
+                F.y = 0f;
+                F.Normalize();
+                normal -= Vector3.Dot(F, normal) * F;
 
-        //if (_useBoatLength)
-        //{
-        //    // Compute a new sampling data that takes into account the boat length (as opposed to boat width)
-        //    var thisRect = new Rect(transform.position.x, transform.position.z, 0f, 0f);
-        //    collProvider.GetSamplingData(ref thisRect, _boatLength, _samplingDataLengthWise);
-
-        //    if (collProvider.SampleNormal(ref undisplacedPos, _samplingDataLengthWise, out normalLongitudinal))
-        //    {
-        //        var F = transform.forward;
-        //        F.y = 0f;
-        //        F.Normalize();
-        //        normal -= Vector3.Dot(F, normal) * F;
-
-        //        var R = transform.right;
-        //        R.y = 0f;
-        //        R.Normalize();
-        //        normalLongitudinal -= Vector3.Dot(R, normalLongitudinal) * R;
-        //    }
-
-        //    collProvider.ReturnSamplingData(_samplingDataLengthWise);
-        //}
+                var R = transform.right;
+                R.y = 0f;
+                R.Normalize();
+                normalLongitudinal -= Vector3.Dot(R, normalLongitudinal) * R;
+            }
+        }
 
         if (_debugDraw) Debug.DrawLine(transform.position, transform.position + 5f * normal, Color.green);
         if (_debugDraw && _useBoatLength) Debug.DrawLine(transform.position, transform.position + 5f * normalLongitudinal, Color.green);

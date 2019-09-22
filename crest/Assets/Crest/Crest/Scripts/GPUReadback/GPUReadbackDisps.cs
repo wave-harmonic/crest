@@ -208,7 +208,7 @@ namespace Crest
             {
                 for (int i = 0; i < o_resultDisps.Length; i++)
                 {
-                    if(!SampleDisplacement(ref i_queryDisplacementToPoints[i], i_samplingData, out o_resultDisps[i]))
+                    if (!SampleDisplacement(ref i_queryDisplacementToPoints[i], i_samplingData, out o_resultDisps[i]))
                     {
                         status = 1 | status;
                     }
@@ -279,7 +279,10 @@ namespace Crest
                 Vector3 dispDummy;
                 bool dispValid, velValid;
                 SampleDisplacementVel(ref i_queryPositions[i], i_samplingData, out dispDummy, out dispValid, out o_resultVels[i], out velValid);
-                status = 1 | status;
+                if (!velValid)
+                {
+                    status = 1 | status;
+                }
             }
 
             return status;

@@ -90,9 +90,8 @@ namespace Crest
         [Obsolete("This API is deprecated. Use the 'Query' APIs instead.")]
         bool ComputeUndisplacedPosition(ref Vector3 i_worldPos, SamplingData i_samplingData, out Vector3 undisplacedWorldPos);
 
-        int Query(int i_ownerHash, SamplingData i_samplingData, Vector3[] i_queryDisplacementToPoints, Vector3[] i_queryNormalAtPoint, Vector3[] o_resultDisps, Vector3[] o_resultNorms);
-        int Query(int i_ownerHash, SamplingData i_samplingData, Vector3[] i_queryHeightAtPoints, Vector3[] i_queryNormalAtPoint, float[] o_resultHeights, Vector3[] o_resultNorms);
-        int Query(int i_ownerHash, SamplingData i_samplingData, Vector3[] i_queryDisplacementToPoints, Vector3[] i_queryNormalAtPoint, Vector3[] o_resultDisps, Vector3[] o_resultNorms, Vector3[] o_resultVels);
+        int Query(int i_ownerHash, SamplingData i_samplingData, Vector3[] i_queryPoints, float[] o_resultHeights, Vector3[] o_resultNorms, Vector3[] o_resultVels);
+        int Query(int i_ownerHash, SamplingData i_samplingData, Vector3[] i_queryPoints, Vector3[] o_resultDisps, Vector3[] o_resultNorms, Vector3[] o_resultVels);
 
         bool RetrieveSucceeded(int queryStatus);
 

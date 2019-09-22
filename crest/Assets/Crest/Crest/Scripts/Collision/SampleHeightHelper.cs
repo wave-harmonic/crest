@@ -36,7 +36,7 @@ namespace Crest
                 return false;
             }
 
-            var status = OceanRenderer.Instance.CollisionProvider.Query(GetHashCode(), _samplingData, _queryPos, null, _queryResult, null);
+            var status = OceanRenderer.Instance.CollisionProvider.Query(GetHashCode(), _samplingData, _queryPos, _queryResult, null, null);
 
             OceanRenderer.Instance.CollisionProvider.ReturnSamplingData(_samplingData);
 
@@ -79,7 +79,7 @@ namespace Crest
                 return false;
             }
 
-            var status = OceanRenderer.Instance.CollisionProvider.Query(GetHashCode(), _samplingData, _queryPos, _queryPos, _queryResult, _queryResultNormal, _queryResultVel);
+            var status = OceanRenderer.Instance.CollisionProvider.Query(GetHashCode(), _samplingData, _queryPos, _queryResult, _queryResultNormal, _queryResultVel);
 
             OceanRenderer.Instance.CollisionProvider.ReturnSamplingData(_samplingData);
 

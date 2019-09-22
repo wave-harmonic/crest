@@ -118,33 +118,28 @@ namespace Crest
             return _collProvider.Query(i_ownerHash, i_samplingData, i_queryDisplacementToPoints, i_queryNormalAtPoint, o_resultDisps, o_resultNorms);
         }
 
-        [Obsolete("This API is deprecated. Use the 'Query' APIs instead.")]
-        public int Query(int i_ownerHash, SamplingData i_samplingData, Vector3[] i_queryHeightAtPoints, Vector3[] i_queryNormalAtPoint, float[] o_resultHeights, Vector3[] o_resultNorms)
+        [Obsolete("The collision cache is obsolete.")]
+        public int Query(int i_ownerHash, SamplingData i_samplingData, Vector3[] i_queryPoints, float[] o_resultHeights, Vector3[] o_resultNorms, Vector3[] o_resultVels)
         {
             var status = 0;
 
             if (o_resultHeights != null)
             {
-                for (int i = 0; i < i_queryHeightAtPoints.Length; i++)
+                for (int i = 0; i < i_queryPoints.Length; i++)
                 {
-                    status = status | (SampleHeight(ref i_queryHeightAtPoints[i], i_samplingData, out o_resultHeights[i]) ? 0 : 1);
+                    status = status | (SampleHeight(ref i_queryPoints[i], i_samplingData, out o_resultHeights[i]) ? 0 : 1);
                 }
             }
 
             if (o_resultNorms != null)
             {
                 // No caching for normals - go straight to source for these
-                float[] disambiguate = null;
-                status = status | _collProvider.Query(i_ownerHash, i_samplingData, null, i_queryNormalAtPoint, disambiguate, o_resultNorms);
+                status = status | _collProvider.Query(i_ownerHash, i_samplingData, i_queryPoints, (float[])null, o_resultNorms, null);
             }
 
             return status;
         }
 
-        public int Query(int i_ownerHash, SamplingData i_samplingData, Vector3[] i_queryDisplacementToPoints, Vector3[] i_queryNormalAtPoint, Vector3[] o_resultDisps, Vector3[] o_resultNorms, Vector3[] o_resultVels)
-        {
-            return _collProvider.Query(i_ownerHash, i_samplingData, i_queryDisplacementToPoints, i_queryNormalAtPoint, o_resultDisps, o_resultNorms, o_resultVels);
-        }
 
         public bool RetrieveSucceeded(int queryStatus)
         {

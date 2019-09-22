@@ -163,7 +163,7 @@ namespace Crest
             }
             _queryPoints[_forcePoints.Length] = transform.position;
 
-            collProvider.Query(GetHashCode(), _samplingData, _queryPoints, null, _queryResultDisps, null, _queryResultVels);
+            collProvider.Query(GetHashCode(), _samplingData, _queryPoints, _queryResultDisps, null, _queryResultVels);
         }
 
         void FixedUpdateEngine()

@@ -65,7 +65,7 @@ namespace Crest
             return true;
         }
 
-        public int Query(int i_ownerHash, SamplingData i_samplingData, Vector3[] i_queryDisplacementToPoints, Vector3[] i_queryNormalAtPoint, Vector3[] o_resultDisps, Vector3[] o_resultNorms)
+        public int Query(int i_ownerHash, SamplingData i_samplingData, Vector3[] i_queryPoints, Vector3[] o_resultDisps, Vector3[] o_resultNorms, Vector3[] o_resultVels)
         {
             if (o_resultDisps != null)
             {
@@ -83,10 +83,18 @@ namespace Crest
                 }
             }
 
+            if (o_resultVels != null)
+            {
+                for (int i = 0; i < o_resultVels.Length; i++)
+                {
+                    o_resultVels[i] = Vector3.zero;
+                }
+            }
+
             return 0;
         }
 
-        public int Query(int i_ownerHash, SamplingData i_samplingData, Vector3[] i_queryHeightAtPoints, Vector3[] i_queryNormalAtPoint, float[] o_resultHeights, Vector3[] o_resultNorms)
+        public int Query(int i_ownerHash, SamplingData i_samplingData, Vector3[] i_queryPoints, float[] o_resultHeights, Vector3[] o_resultNorms, Vector3[] o_resultVels)
         {
             if (o_resultHeights != null)
             {
@@ -104,15 +112,6 @@ namespace Crest
                 }
             }
 
-            return 0;
-        }
-
-        public int Query(int i_ownerHash, SamplingData i_samplingData, Vector3[] i_queryDisplacementToPoints, Vector3[] i_queryNormalAtPoint, Vector3[] o_resultDisps, Vector3[] o_resultNorms, Vector3[] o_resultVels)
-        {
-            var result = 0;
-
-            result |= Query(i_ownerHash, i_samplingData, i_queryDisplacementToPoints, i_queryNormalAtPoint, o_resultDisps, o_resultNorms);
-
             if (o_resultVels != null)
             {
                 for (int i = 0; i < o_resultVels.Length; i++)
@@ -121,7 +120,7 @@ namespace Crest
                 }
             }
 
-            return result;
+            return 0;
         }
 
         public bool RetrieveSucceeded(int queryStatus)

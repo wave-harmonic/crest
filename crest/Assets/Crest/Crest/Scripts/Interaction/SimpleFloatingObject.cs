@@ -52,6 +52,8 @@ namespace Crest
         SamplingData _samplingDataLengthWise = new SamplingData();
         SamplingData _samplingDataFlow = new SamplingData();
 
+        SampleHeightHelper _sampleHeightHelper = new SampleHeightHelper();
+
         void Start()
         {
             _rb = GetComponent<Rigidbody>();
@@ -98,22 +100,14 @@ namespace Crest
                 }
             }
 
-            Vector3 undispPos;
-            if (!collProvider.ComputeUndisplacedPosition(ref position, _samplingData, out undispPos))
-            {
-                // If we couldn't get wave shape, assume flat water at sea level
-                undispPos = position;
-                undispPos.y = OceanRenderer.Instance.SeaLevel;
-            }
-            if (_debugDraw) DebugDrawCross(undispPos, 1f, Color.red);
+            var normal = Vector3.up; var waterSurfaceVel = Vector3.zero;
+            _sampleHeightHelper.Init(transform.position, _objectWidth);
+            _sampleHeightHelper.Sample(ref _displacementToObject, ref normal, ref waterSurfaceVel);
 
-            Vector3 waterSurfaceVel, displacement;
-            bool dispValid, velValid;
-            collProvider.SampleDisplacementVel(ref undispPos, _samplingData, out displacement, out dispValid, out waterSurfaceVel, out velValid);
-            if (dispValid)
-            {
-                _displacementToObject = displacement;
-            }
+            var undispPos = transform.position - _displacementToObject;
+            undispPos.y = OceanRenderer.Instance.SeaLevel;
+
+            if (_debugDraw) VisualiseCollisionArea.DebugDrawCross(undispPos, 1f, Color.red);
 
             if (GPUReadbackFlow.Instance)
             {
@@ -138,7 +132,7 @@ namespace Crest
             var velocityRelativeToWater = _rb.velocity - waterSurfaceVel;
 
             var dispPos = undispPos + _displacementToObject;
-            if (_debugDraw) DebugDrawCross(dispPos, 4f, Color.white);
+            if (_debugDraw) VisualiseCollisionArea.DebugDrawCross(dispPos, 4f, Color.white);
 
             float height = dispPos.y;
 
@@ -160,9 +154,7 @@ namespace Crest
             _rb.AddForceAtPosition(transform.right * Vector3.Dot(transform.right, -velocityRelativeToWater) * _dragInWaterRight, forcePosition, ForceMode.Acceleration);
             _rb.AddForceAtPosition(transform.forward * Vector3.Dot(transform.forward, -velocityRelativeToWater) * _dragInWaterForward, forcePosition, ForceMode.Acceleration);
 
-            FixedUpdateOrientation(collProvider, undispPos);
-
-            collProvider.ReturnSamplingData(_samplingData);
+            FixedUpdateOrientation(normal);
 
             UnityEngine.Profiling.Profiler.EndSample();
         }
@@ -171,68 +163,15 @@ namespace Crest
         /// Align to water normal. One normal by default, but can use a separate normal based on boat length vs width. This gives
         /// varying rotations based on boat dimensions.
         /// </summary>
-        void FixedUpdateOrientation(ICollProvider collProvider, Vector3 undisplacedPos)
+        void FixedUpdateOrientation(Vector3 normal)
         {
-            Vector3 normal, normalLongitudinal = Vector3.up;
-            if (!collProvider.SampleNormal(ref undisplacedPos, _samplingData, out normal))
-            {
-                normal = Vector3.up;
-            }
+            Vector3 normalLongitudinal = Vector3.up;
 
             if (_debugDraw) Debug.DrawLine(transform.position, transform.position + 5f * normal, Color.green);
 
             var torqueWidth = Vector3.Cross(transform.up, normal);
             _rb.AddTorque(torqueWidth * _boyancyTorque, ForceMode.Acceleration);
             _rb.AddTorque(-_dragInWaterRotational * _rb.angularVelocity);
-        }
-
-#if UNITY_EDITOR
-        //private void Update()
-        //{
-        //    UpdateDebugDrawSurroundingColl();
-        //}
-
-        private void UpdateDebugDrawSurroundingColl()
-        {
-            var r = 5f;
-            var steps = 10;
-
-            var collProvider = OceanRenderer.Instance.CollisionProvider;
-            var thisRect = new Rect(transform.position.x - r * steps / 2f, transform.position.z - r * steps / 2f, r * steps / 2f, r * steps / 2f);
-            if (!collProvider.GetSamplingData(ref thisRect, _objectWidth, _samplingData))
-            {
-                return;
-            }
-
-            for (float i = 0; i < steps; i++)
-            {
-                for (float j = 0; j < steps; j++)
-                {
-                    Vector3 pos = new Vector3(((i + 0.5f) - steps / 2f) * r, 0f, ((j + 0.5f) - steps / 2f) * r);
-                    pos.x += transform.position.x;
-                    pos.z += transform.position.z;
-
-                    Vector3 disp;
-                    if (collProvider.SampleDisplacement(ref pos, _samplingData, out disp))
-                    {
-                        DebugDrawCross(pos + disp, 1f, Color.green);
-                    }
-                    else
-                    {
-                        DebugDrawCross(pos, 0.25f, Color.red);
-                    }
-                }
-            }
-
-            collProvider.ReturnSamplingData(_samplingData);
-        }
-#endif
-
-        void DebugDrawCross(Vector3 pos, float r, Color col)
-        {
-            Debug.DrawLine(pos - Vector3.up * r, pos + Vector3.up * r, col);
-            Debug.DrawLine(pos - Vector3.right * r, pos + Vector3.right * r, col);
-            Debug.DrawLine(pos - Vector3.forward * r, pos + Vector3.forward * r, col);
         }
     }
 }

@@ -201,11 +201,4 @@ public class BoatAlignNormal : FloatingObjectBase
             _rb.AddTorque(torqueLength * _boyancyTorque, ForceMode.Acceleration);
         }
     }
-
-    void DebugDrawCross(Vector3 pos, float r, Color col)
-    {
-        Debug.DrawLine(pos - Vector3.up * r, pos + Vector3.up * r, col);
-        Debug.DrawLine(pos - Vector3.right * r, pos + Vector3.right * r, col);
-        Debug.DrawLine(pos - Vector3.forward * r, pos + Vector3.forward * r, col);
-    }
 }

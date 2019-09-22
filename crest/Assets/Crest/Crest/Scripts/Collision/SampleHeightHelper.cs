@@ -94,5 +94,28 @@ namespace Crest
 
             return true;
         }
+
+        public bool Sample(ref Vector3 o_displacementToPoint, ref Vector3 o_normal, ref Vector3 o_surfaceVel)
+        {
+            if (!_valid)
+            {
+                return false;
+            }
+
+            var status = OceanRenderer.Instance.CollisionProvider.Query(GetHashCode(), _samplingData, _queryPos, _queryResult, _queryResultNormal, _queryResultVel);
+
+            OceanRenderer.Instance.CollisionProvider.ReturnSamplingData(_samplingData);
+
+            if (!OceanRenderer.Instance.CollisionProvider.RetrieveSucceeded(status))
+            {
+                return false;
+            }
+
+            o_displacementToPoint = _queryResult[0];
+            o_normal = _queryResultNormal[0];
+            o_surfaceVel = _queryResultVel[0];
+
+            return true;
+        }
     }
 }

@@ -19,17 +19,17 @@ namespace Crest
         /// <summary>
         /// Call this to prime the sampling. Should be called once per frame.
         /// </summary>
-        public void Init(Vector3 queryPos, float minLength)
+        public void Init(Vector3 i_queryPos, float i_minLength)
         {
-            _queryPos[0] = queryPos;
-            var rect = new Rect(queryPos.x, queryPos.z, 0f, 0f);
-            _valid = OceanRenderer.Instance.CollisionProvider.GetSamplingData(ref rect, minLength, _samplingData);
+            _queryPos[0] = i_queryPos;
+            var rect = new Rect(i_queryPos.x, i_queryPos.z, 0f, 0f);
+            _valid = OceanRenderer.Instance.CollisionProvider.GetSamplingData(ref rect, i_minLength, _samplingData);
         }
 
         /// <summary>
         /// Call this to do the query. Can be called only once after Init().
         /// </summary>
-        public bool Sample(ref float height)
+        public bool Sample(ref float o_height)
         {
             if (!_valid)
             {
@@ -45,12 +45,12 @@ namespace Crest
                 return false;
             }
 
-            height = _queryResult[0].y + OceanRenderer.Instance.SeaLevel;
+            o_height = _queryResult[0].y + OceanRenderer.Instance.SeaLevel;
 
             return true;
         }
 
-        public bool Sample(ref float height, ref Vector3 normal)
+        public bool Sample(ref float o_height, ref Vector3 o_normal)
         {
             if (!_valid)
             {
@@ -66,13 +66,13 @@ namespace Crest
                 return false;
             }
 
-            height = _queryResult[0].y + OceanRenderer.Instance.SeaLevel;
-            normal = _queryResultNormal[0];
+            o_height = _queryResult[0].y + OceanRenderer.Instance.SeaLevel;
+            o_normal = _queryResultNormal[0];
 
             return true;
         }
 
-        public bool Sample(ref float height, ref Vector3 normal, ref Vector3 surfaceVel)
+        public bool Sample(ref float o_height, ref Vector3 o_normal, ref Vector3 o_surfaceVel)
         {
             if (!_valid)
             {
@@ -88,9 +88,9 @@ namespace Crest
                 return false;
             }
 
-            height = _queryResult[0].y + OceanRenderer.Instance.SeaLevel;
-            normal = _queryResultNormal[0];
-            surfaceVel = _queryResultVel[0];
+            o_height = _queryResult[0].y + OceanRenderer.Instance.SeaLevel;
+            o_normal = _queryResultNormal[0];
+            o_surfaceVel = _queryResultVel[0];
 
             return true;
         }

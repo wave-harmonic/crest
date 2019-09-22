@@ -133,7 +133,6 @@ namespace Crest
 
         SegmentRegistrarQueue _srq = new SegmentRegistrarQueue();
 
-
         NativeArray<Vector3> _queryResults;
         float _queryResultsTime = -1f;
         Dictionary<int, Vector2Int> _resultSegments;
@@ -166,50 +165,6 @@ namespace Crest
         public bool RetrieveSucceeded(int queryStatus)
         {
             return (queryStatus & (int)QueryStatus.RetrieveFailed) == 0;
-        }
-
-        public int Query(int i_ownerHash, SamplingData i_samplingData, Vector3[] i_queryPoints, Vector3[] o_resultDisps, Vector3[] o_resultNorms, Vector3[] o_resultVels)
-        {
-            var result = (int)QueryStatus.OK;
-
-            if (!UpdateQueryPoints(i_ownerHash, i_queryPoints, i_queryPoints))
-            {
-                result |= (int)QueryStatus.PostFailed;
-            }
-
-            if (!RetrieveResults(i_ownerHash, o_resultDisps, o_resultNorms))
-            {
-                result |= (int)QueryStatus.RetrieveFailed;
-            }
-
-            if (o_resultVels != null)
-            {
-                result |= CalculateVelocities(i_ownerHash, i_samplingData, i_queryPoints, o_resultVels);
-            }
-
-            return result;
-        }
-
-        public int Query(int i_ownerHash, SamplingData i_samplingData, Vector3[] i_queryPoints, float[] o_resultHeights, Vector3[] o_resultNorms, Vector3[] o_resultVels)
-        {
-            var result = (int)QueryStatus.OK;
-
-            if (!UpdateQueryPoints(i_ownerHash, i_queryPoints, i_queryPoints))
-            {
-                result |= (int)QueryStatus.PostFailed;
-            }
-
-            if (!RetrieveResultHeights(i_ownerHash, o_resultHeights, o_resultNorms))
-            {
-                result |= (int)QueryStatus.RetrieveFailed;
-            }
-
-            if(o_resultVels != null)
-            {
-                result |= CalculateVelocities(i_ownerHash, i_samplingData, i_queryPoints, o_resultVels);
-            }
-
-            return result;
         }
 
         /// <summary>
@@ -603,6 +558,50 @@ namespace Crest
         {
             // Mark invalid
             i_data._minSpatialLength = -1f;
+        }
+
+        public int Query(int i_ownerHash, SamplingData i_samplingData, Vector3[] i_queryPoints, Vector3[] o_resultDisps, Vector3[] o_resultNorms, Vector3[] o_resultVels)
+        {
+            var result = (int)QueryStatus.OK;
+
+            if (!UpdateQueryPoints(i_ownerHash, i_queryPoints, i_queryPoints))
+            {
+                result |= (int)QueryStatus.PostFailed;
+            }
+
+            if (!RetrieveResults(i_ownerHash, o_resultDisps, o_resultNorms))
+            {
+                result |= (int)QueryStatus.RetrieveFailed;
+            }
+
+            if (o_resultVels != null)
+            {
+                result |= CalculateVelocities(i_ownerHash, i_samplingData, i_queryPoints, o_resultVels);
+            }
+
+            return result;
+        }
+
+        public int Query(int i_ownerHash, SamplingData i_samplingData, Vector3[] i_queryPoints, float[] o_resultHeights, Vector3[] o_resultNorms, Vector3[] o_resultVels)
+        {
+            var result = (int)QueryStatus.OK;
+
+            if (!UpdateQueryPoints(i_ownerHash, i_queryPoints, i_queryPoints))
+            {
+                result |= (int)QueryStatus.PostFailed;
+            }
+
+            if (!RetrieveResultHeights(i_ownerHash, o_resultHeights, o_resultNorms))
+            {
+                result |= (int)QueryStatus.RetrieveFailed;
+            }
+
+            if (o_resultVels != null)
+            {
+                result |= CalculateVelocities(i_ownerHash, i_samplingData, i_queryPoints, o_resultVels);
+            }
+
+            return result;
         }
 
         public bool SampleDisplacement(ref Vector3 i_worldPos, SamplingData i_samplingData, out Vector3 o_displacement)

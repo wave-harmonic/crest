@@ -105,7 +105,7 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Batch"
 				// optimisation - do this outside the loop below - take the median wavelength for depth weighting, intead of computing
 				// per component. computing per component makes little difference to the end result
 				half depth_wt = saturate(depth * _TwoPiOverWavelengths[_NumWaveVecs / 2].x / PI);
-				half wt = _AttenuationInShallows * depth_wt + oneMinusAttenuation;
+				half4 wt = _AttenuationInShallows * depth_wt + oneMinusAttenuation;
 
 				// gerstner computation is vectorized - processes 4 wave components at once
 				for (uint vi = 0; vi < _NumWaveVecs; vi++)

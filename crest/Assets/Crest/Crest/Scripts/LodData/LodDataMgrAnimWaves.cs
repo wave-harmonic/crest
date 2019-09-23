@@ -80,16 +80,7 @@ namespace Crest
             int resolution = OceanRenderer.Instance.LodDataResolution;
             var desc = new RenderTextureDescriptor(resolution, resolution, TextureFormat, 0);
 
-            _waveBuffers = new RenderTexture(desc);
-            _waveBuffers.wrapMode = TextureWrapMode.Clamp;
-            _waveBuffers.antiAliasing = 1;
-            _waveBuffers.filterMode = FilterMode.Bilinear;
-            _waveBuffers.anisoLevel = 0;
-            _waveBuffers.useMipMap = false;
-            _waveBuffers.name = "WaveBuffer";
-            _waveBuffers.dimension = TextureDimension.Tex2DArray;
-            _waveBuffers.volumeDepth = OceanRenderer.Instance.CurrentLodCount;
-            _waveBuffers.Create();
+            _waveBuffers = CreateLodDataTextures(desc, "WaveBuffer", false);
         }
 
         // Filter object for assigning shapes to LODs. This was much more elegant with a lambda but it generated garbage.

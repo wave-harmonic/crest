@@ -4,6 +4,17 @@
 
 // Ocean LOD data - data, samplers and functions associated with LODs
 
+// NOTE: This must match the value in LodDataMgr.cs, as it is used to allow the
+// C# code to check if any parameters are within the MAX_LOD_COUNT limits
+#define MAX_LOD_COUNT 15
+
+// NOTE: these MUST match the values in PropertyWrapper.cs
+#define THREAD_GROUP_SIZE_X 8
+#define THREAD_GROUP_SIZE_Y 8
+
+// 'Current' target/source slice index
+const float _LD_SliceIndex;
+
 // Samplers and data associated with a LOD.
 // _LD_Params: float4(world texel size, texture resolution, shape weight multiplier, 1 / texture resolution)
 Texture2DArray _LD_TexArray_AnimatedWaves;
@@ -13,9 +24,9 @@ Texture2DArray _LD_TexArray_Foam;
 Texture2DArray _LD_TexArray_Flow;
 Texture2DArray _LD_TexArray_DynamicWaves;
 Texture2DArray _LD_TexArray_Shadow;
-uniform float4 _LD_Params[MAX_LOD_COUNT];
-uniform float3 _LD_Pos_Scale[MAX_LOD_COUNT];
-uniform const float _LD_SliceIndex;
+// _LD_Params: float4(world texel size, texture resolution, shape weight multiplier, 1 / texture resolution)
+const float4 _LD_Params[MAX_LOD_COUNT + 1];
+const float3 _LD_Pos_Scale[MAX_LOD_COUNT + 1];
 
 // These are used in lods where we operate on data from
 // previously calculated lods. Used in simulations and
@@ -27,8 +38,8 @@ Texture2DArray _LD_TexArray_Foam_Source;
 Texture2DArray _LD_TexArray_Flow_Source;
 Texture2DArray _LD_TexArray_DynamicWaves_Source;
 Texture2DArray _LD_TexArray_Shadow_Source;
-uniform float4 _LD_Params_Source[MAX_LOD_COUNT];
-uniform float3 _LD_Pos_Scale_Source[MAX_LOD_COUNT];
+const float4 _LD_Params_Source[MAX_LOD_COUNT + 1];
+const float3 _LD_Pos_Scale_Source[MAX_LOD_COUNT + 1];
 
 SamplerState LODData_linear_clamp_sampler;
 

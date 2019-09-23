@@ -58,6 +58,7 @@ namespace Crest
                     break;
                 case CollisionSources.OceanDisplacementTexturesGPU:
                     result = GPUReadbackDisps.Instance;
+                    Debug.Assert(result != null, "Sampling collision too early, collision system has not been initialised.");
                     break;
                 case CollisionSources.GerstnerWavesCPU:
                     result = FindObjectOfType<ShapeGerstnerBatched>();

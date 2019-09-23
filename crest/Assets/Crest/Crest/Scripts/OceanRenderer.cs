@@ -50,6 +50,9 @@ namespace Crest
         [Delayed, Tooltip("The largest scale the ocean can be (-1 for unlimited)."), SerializeField]
         float _maxScale = 256f;
 
+        [Tooltip("Drops the height for maximum ocean detail based on waves. This means if there are big waves, max detail level is reached at a lower height, which can help visual range when there are very large waves and camera is at sea level."), SerializeField, Range(0f, 1f)]
+        float _dropDetailHeightBasedOnWaves = 0.2f;
+
         [SerializeField, Delayed, Tooltip("Resolution of ocean LOD data. Use even numbers like 256 or 384. This is 4x the old 'Base Vert Density' param, so if you used 64 for this param, set this to 256.")]
         int _lodDataResolution = 256;
         public int LodDataResolution { get { return _lodDataResolution; } }
@@ -264,8 +267,8 @@ namespace Crest
             // reach maximum detail at slightly below sea level. this should combat cases where visual range can be lost
             // when water height is low and camera is suspended in air. i tried a scheme where it was based on difference
             // to water height but this does help with the problem of horizontal range getting limited at bad times.
-            float maxDetailY = SeaLevel - _maxVertDispFromWaves / 5f;
-            float camDistance = Mathf.Abs(_viewpoint.position.y /*- maxDetailY*/);
+            float maxDetailY = SeaLevel - _maxVertDispFromWaves * _dropDetailHeightBasedOnWaves;
+            float camDistance = Mathf.Abs(_viewpoint.position.y - maxDetailY);
 
             // offset level of detail to keep max detail in a band near the surface
             camDistance = Mathf.Max(camDistance - 4f, 0f);

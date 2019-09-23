@@ -111,6 +111,7 @@ Material:
     - _ForceUnderwater: 0
     - _FresnelPower: 5
     - _Invert: 1
+    - _Meniscus: 0
     - _MipBias: 0
     - _Moving: 0.17
     - _NormalsScale: 40

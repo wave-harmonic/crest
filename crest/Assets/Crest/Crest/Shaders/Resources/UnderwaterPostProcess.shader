@@ -21,6 +21,7 @@ Shader "Crest/Underwater/Post Process"
 			#pragma shader_feature _CAUSTICS_ON
 			#pragma shader_feature _SHADOWS_ON
 			#pragma shader_feature _COMPILESHADERWITHDEBUGINFO_ON
+			#pragma shader_feature _MENISCUS_ON
 
 			#pragma multi_compile __ _FULL_SCREEN_EFFECT
 			#pragma multi_compile __ _DEBUG_VIEW_OCEAN_MASK
@@ -133,6 +134,8 @@ Shader "Crest/Underwater/Post Process"
 				sceneZ01 = isOceanSurface ? oceanDepth01 : sceneZ01;
 
 				float wt = 1.0;
+
+#if _MENISCUS_ON
 				float wt1 = 0.8, wt2 = 0.6, wt3 = 0.8;
 
 				// Detect water to no water transitions which happen if mask values on below pixels are less than this mask
@@ -143,7 +146,7 @@ Shader "Crest/Underwater/Post Process"
 					wt *= (tex2D(_MaskTex, input.uv + dy.xz).x > mask) ? wt2 : 1.0;
 					wt *= (tex2D(_MaskTex, input.uv + dy.xw).x > mask) ? wt3 : 1.0;
 				}
-
+#endif // _MENISCUS_ON
 
 #if _DEBUG_VIEW_OCEAN_MASK
 				if(!isOceanSurface)

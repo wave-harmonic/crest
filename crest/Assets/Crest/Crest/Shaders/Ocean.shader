@@ -161,6 +161,9 @@ Shader "Crest/Ocean"
 		// enabled on the OceanRenderer to generate flow data.
 		[Toggle] _Flow("Enable", Float) = 0
 
+		[Header(Underwater)]
+		[Toggle] _Meniscus("Meniscus", float) = 0
+
 		[Header(Debug Options)]
 		// Build shader with debug info which allows stepping through the code in a GPU debugger. I typically use RenderDoc or
 		// PIX for Windows (requires DX12 API to be selected).

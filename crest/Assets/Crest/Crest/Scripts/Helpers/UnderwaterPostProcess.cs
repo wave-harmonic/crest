@@ -7,6 +7,9 @@ namespace Crest
     /// <summary>
     /// Underwater Post Process. If a camera needs to go underwater it needs to have this script attached. This adds fullscreen passes and should
     /// only be used if necessary. This effect disables itself when camera is not close to the water volume.
+    ///
+    /// For convenience, all shader material settings are copied from the main ocean shader. This includes underwater
+    /// specific features such as enabling the meniscus.
     /// </summary>
     [RequireComponent(typeof(Camera))]
     public class UnderwaterPostProcess : MonoBehaviour
@@ -209,8 +212,8 @@ namespace Crest
             Graphics.ExecuteCommandBuffer(_commandBuffer);
             _commandBuffer.Clear();
 
-            // Need this to prevent Unity from giving the following warning.
-            // - OnRenderImage() possibly didn't write anything to the destination texture!
+            // Need this to prevent Unity from giving the following warning:
+            // - "OnRenderImage() possibly didn't write anything to the destination texture!"
             Graphics.SetRenderTarget(target);
         }
     }

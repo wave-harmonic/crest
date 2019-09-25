@@ -53,13 +53,14 @@ void SampleDisplacementsCompute(
 	pixelCoordCenters = clamp(pixelCoordCenters, 0.0, float2(i_width, i_height) - 1.0);
 
 	// Compute integral and fractional parts
-	const float2 pixelCoordCentersBotLeft = floor(pixelCoordCenters);
+	const uint2 pixelCoordCentersBotLeft = floor(pixelCoordCenters);
+	const uint sliceIndex = i_uv_slice.z;
 	const float2 pixelCoordCentersFrac = frac(pixelCoordCenters);
 
-	const half4 dataBotLeft = i_dispSampler[float3(pixelCoordCentersBotLeft, i_uv_slice.z)];
-	const half4 dataBotRight = i_dispSampler[float3(pixelCoordCentersBotLeft + float2(1.0, 0.0), i_uv_slice.z)];
-	const half4 dataTopLeft = i_dispSampler[float3(pixelCoordCentersBotLeft + float2(0.0, 1.0), i_uv_slice.z)];
-	const half4 dataTopRight = i_dispSampler[float3(pixelCoordCentersBotLeft + float2(1.0, 1.0), i_uv_slice.z)];
+	const half4 dataBotLeft = i_dispSampler[float3(pixelCoordCentersBotLeft, sliceIndex)];
+	const half4 dataBotRight = i_dispSampler[float3(pixelCoordCentersBotLeft + uint2(1, 0), sliceIndex)];
+	const half4 dataTopLeft = i_dispSampler[float3(pixelCoordCentersBotLeft + uint2(0, 1), sliceIndex)];
+	const half4 dataTopRight = i_dispSampler[float3(pixelCoordCentersBotLeft + uint2(1, 1), sliceIndex)];
 
 	const float4 dataLerped = lerp(
 		lerp(dataBotLeft, dataBotRight, pixelCoordCentersFrac.x),

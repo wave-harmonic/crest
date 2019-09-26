@@ -60,7 +60,7 @@ Shader "Crest/Underwater/Post Process"
 			{
 				Varyings output;
 				output.positionCS = UnityObjectToClipPos(input.positionOS);
-				output.uv = UnityStereoTransformScreenSpaceTex(input.uv);
+				output.uv = input.uv;
 				return output;
 			}
 
@@ -123,12 +123,13 @@ Shader "Crest/Underwater/Post Process"
 				const bool isBelowHorizon = true;
 				#endif
 
-				half3 sceneColour = tex2D(_MainTex, input.uv).rgb;
+				const float2 uvScreenSpace = UnityStereoTransformScreenSpaceTex(input.uv);
+				half3 sceneColour = tex2D(_MainTex, uvScreenSpace).rgb;
 
-				float sceneZ01 = tex2D(_CameraDepthTexture, input.uv).x;
+				float sceneZ01 = tex2D(_CameraDepthTexture, uvScreenSpace).x;
 
-				float mask = tex2D(_MaskTex, input.uv).x;
-				const float oceanDepth01 = tex2D(_MaskDepthTex, input.uv);
+				float mask = tex2D(_MaskTex, uvScreenSpace).x;
+				const float oceanDepth01 = tex2D(_MaskDepthTex, uvScreenSpace);
 				bool isOceanSurface = mask != UNDERWATER_MASK_NO_MASK && (sceneZ01 < oceanDepth01);
 				bool isUnderwater = mask == UNDERWATER_MASK_WATER_SURFACE_BELOW || (isBelowHorizon && mask != UNDERWATER_MASK_WATER_SURFACE_ABOVE);
 				sceneZ01 = isOceanSurface ? oceanDepth01 : sceneZ01;
@@ -142,9 +143,9 @@ Shader "Crest/Underwater/Post Process"
 				//if (mask <= 1.0)
 				{
 					float4 dy = float4(0.0, -1.0, -2.0, -3.0) / _ScreenParams.y;
-					wt *= (tex2D(_MaskTex, input.uv + dy.xy).x > mask) ? wt1 : 1.0;
-					wt *= (tex2D(_MaskTex, input.uv + dy.xz).x > mask) ? wt2 : 1.0;
-					wt *= (tex2D(_MaskTex, input.uv + dy.xw).x > mask) ? wt3 : 1.0;
+					wt *= (tex2D(_MaskTex, uvScreenSpace + dy.xy).x > mask) ? wt1 : 1.0;
+					wt *= (tex2D(_MaskTex, uvScreenSpace + dy.xz).x > mask) ? wt2 : 1.0;
+					wt *= (tex2D(_MaskTex, uvScreenSpace + dy.xw).x > mask) ? wt3 : 1.0;
 				}
 #endif // _MENISCUS_ON
 

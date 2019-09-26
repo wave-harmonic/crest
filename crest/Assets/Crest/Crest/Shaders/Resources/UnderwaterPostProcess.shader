@@ -43,6 +43,7 @@ Shader "Crest/Underwater/Post Process"
 
 			float _OceanHeight;
 			float4x4 _InvViewProjection;
+			float4x4 _InvViewProjectionRight;
 
 			struct Attributes
 			{
@@ -111,7 +112,12 @@ Shader "Crest/Underwater/Post Process"
 					// calculating them in the vertex shader results in
 					// precision errors.
 					const float2 pixelCS = input.uv * 2 - float2(1.0, 1.0);
-					const float4 pixelWS_H = mul(_InvViewProjection, float4(pixelCS, 1.0, 1.0));
+#if UNITY_SINGLE_PASS_STEREO || UNITY_STEREO_INSTANCING_ENABLED || UNITY_STEREO_MULTIVIEW_ENABLED
+					const float4x4 InvViewProjection = unity_StereoEyeIndex == 0 ? _InvViewProjection : _InvViewProjectionRight;
+#else
+					const float4x4 InvViewProjection = _InvViewProjection;
+#endif
+					const float4 pixelWS_H = mul(InvViewProjection, float4(pixelCS, 1.0, 1.0));
 					const float3 pixelWS = pixelWS_H.xyz / pixelWS_H.w;
 					viewWS = _WorldSpaceCameraPos - pixelWS;
 					farPlanePixelHeight = pixelWS.y;

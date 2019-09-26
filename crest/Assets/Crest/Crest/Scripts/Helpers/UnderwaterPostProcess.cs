@@ -20,6 +20,7 @@ namespace Crest
         static int sp_MaskTex = Shader.PropertyToID("_MaskTex");
         static int sp_MaskDepthTex = Shader.PropertyToID("_MaskDepthTex");
         static int sp_InvViewProjection = Shader.PropertyToID("_InvViewProjection");
+        static int sp_InvViewProjectionRight = Shader.PropertyToID("_InvViewProjectionRight");
 
         [Header("Debug Options"), SerializeField]
         bool _viewOceanMask = false;
@@ -216,9 +217,18 @@ namespace Crest
             _underwaterPostProcessMaterial.SetTexture(sp_MaskDepthTex, _depthBuffer);
 
             // Have to set these explicitly as the built-in transforms aren't in world-space for the blit function
+            if(!XRSettings.enabled || XRSettings.stereoRenderingMode == XRSettings.StereoRenderingMode.MultiPass)
             {
+
                 var viewProjectionMatrix = _mainCamera.projectionMatrix * _mainCamera.worldToCameraMatrix;
                 _underwaterPostProcessMaterial.SetMatrix(sp_InvViewProjection, viewProjectionMatrix.inverse);
+            }
+            else
+            {
+                var viewProjectionMatrix = _mainCamera.GetStereoProjectionMatrix(Camera.StereoscopicEye.Left) * _mainCamera.worldToCameraMatrix;
+                _underwaterPostProcessMaterial.SetMatrix(sp_InvViewProjection, viewProjectionMatrix.inverse);
+                var viewProjectionMatrixRightEye = _mainCamera.GetStereoProjectionMatrix(Camera.StereoscopicEye.Right) * _mainCamera.worldToCameraMatrix;
+                _underwaterPostProcessMaterial.SetMatrix(sp_InvViewProjectionRight, viewProjectionMatrixRightEye.inverse);
             }
 
             _commandBuffer.Blit(source, target, _underwaterPostProcessMaterial);

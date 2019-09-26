@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.XR;
 
 namespace Crest
 {
@@ -149,7 +150,19 @@ namespace Crest
             {
                 _commandBuffer.DrawRenderer(chunk, _oceanMaskMaterial);
             }
-            _oceanChunksToRender.Clear();
+
+            {
+                // The same camera has to perform post-processing when performing
+                // VR multipass rendering so don't clear chunks until we have
+                // renderered the right eye.
+                // This was the approach recommended by Unity's post-processing
+                // lead Thomas Hourdel.
+                bool saveChunksToRender =
+                    XRSettings.stereoRenderingMode == XRSettings.StereoRenderingMode.MultiPass &&
+                    _mainCamera.stereoTargetEye != StereoTargetEyeMask.Right;
+
+                if (!saveChunksToRender) _oceanChunksToRender.Clear();
+            }
 
             _underwaterPostProcessMaterial.CopyPropertiesFromMaterial(OceanRenderer.Instance.OceanMaterial);
 

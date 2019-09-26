@@ -60,7 +60,7 @@ Shader "Crest/Underwater/Post Process"
 			{
 				Varyings output;
 				output.positionCS = UnityObjectToClipPos(input.positionOS);
-				output.uv = input.uv;
+				output.uv = UnityStereoTransformScreenSpaceTex(input.uv);
 				return output;
 			}
 

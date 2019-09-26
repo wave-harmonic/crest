@@ -158,8 +158,9 @@ namespace Crest
                 // This was the approach recommended by Unity's post-processing
                 // lead Thomas Hourdel.
                 bool saveChunksToRender =
+                    XRSettings.enabled &&
                     XRSettings.stereoRenderingMode == XRSettings.StereoRenderingMode.MultiPass &&
-                    _mainCamera.stereoTargetEye != StereoTargetEyeMask.Right;
+                    _mainCamera.stereoActiveEye != Camera.MonoOrStereoscopicEye.Right;
 
                 if (!saveChunksToRender) _oceanChunksToRender.Clear();
             }

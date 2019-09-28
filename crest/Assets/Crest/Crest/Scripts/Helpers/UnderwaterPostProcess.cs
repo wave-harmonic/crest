@@ -17,6 +17,7 @@ namespace Crest
     {
         static int sp_OceanHeight = Shader.PropertyToID("_OceanHeight");
         static int sp_HorizonOrientation = Shader.PropertyToID("_HorizonOrientation");
+        static int sp_MainTex = Shader.PropertyToID("_MainTex");
         static int sp_MaskTex = Shader.PropertyToID("_MaskTex");
         static int sp_MaskDepthTex = Shader.PropertyToID("_MaskDepthTex");
         static int sp_InvViewProjection = Shader.PropertyToID("_InvViewProjection");
@@ -230,6 +231,9 @@ namespace Crest
                 var viewProjectionMatrixRightEye = _mainCamera.GetStereoProjectionMatrix(Camera.StereoscopicEye.Right) * _mainCamera.worldToCameraMatrix;
                 _underwaterPostProcessMaterial.SetMatrix(sp_InvViewProjectionRight, viewProjectionMatrixRightEye.inverse);
             }
+
+            // TODO - why do we need to do this - blit should set it?
+            _underwaterPostProcessMaterial.SetTexture(sp_MainTex, source);
 
             _commandBuffer.Blit(source, target, _underwaterPostProcessMaterial);
 

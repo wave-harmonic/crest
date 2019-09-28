@@ -148,10 +148,15 @@ Shader "Crest/Underwater/Post Process"
 				// Detect water to no water transitions which happen if mask values on below pixels are less than this mask
 				//if (mask <= 1.0)
 				{
+					// Looks at pixels below this pixel and if there is a transition from above to below, darken the pixel
+					// to emulate a meniscus effect. It does a few to get a thicker line than 1 pixel. The line it produces is
+					// smooth on the top side and sharp at the bottom. It might be possible to detect where the edge is and do
+					// a calculation to get it smooth both above and below, but might be more complex.
+					float wt_mul = 0.9;
 					float4 dy = float4(0.0, -1.0, -2.0, -3.0) / _ScreenParams.y;
-					wt *= (tex2D(_MaskTex, uvScreenSpace + dy.xy).x > mask) ? wt1 : 1.0;
-					wt *= (tex2D(_MaskTex, uvScreenSpace + dy.xz).x > mask) ? wt2 : 1.0;
-					wt *= (tex2D(_MaskTex, uvScreenSpace + dy.xw).x > mask) ? wt3 : 1.0;
+					wt *= (tex2D(_MaskTex, uvScreenSpace + dy.xy).x > mask) ? wt_mul : 1.0;
+					wt *= (tex2D(_MaskTex, uvScreenSpace + dy.xz).x > mask) ? wt_mul : 1.0;
+					wt *= (tex2D(_MaskTex, uvScreenSpace + dy.xw).x > mask) ? wt_mul : 1.0;
 				}
 #endif // _MENISCUS_ON
 

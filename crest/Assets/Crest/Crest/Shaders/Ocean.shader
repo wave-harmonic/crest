@@ -155,14 +155,13 @@ Shader "Crest/Ocean"
 		// Ordinarily set this to Back to cull back faces, but set to Off to make sure both sides of the surface draw if the
 		// underwater effect is being used.
 		[Enum(CullMode)] _CullMode("Cull Mode", Int) = 2
+		// Add a meniscus to the boundary between water and air
+		[Toggle] _Meniscus("Meniscus", float) = 1
 
 		[Header(Flow)]
 		// Flow is horizontal motion in water as demonstrated in the 'whirlpool' example scene. 'Create Flow Sim' must be
 		// enabled on the OceanRenderer to generate flow data.
 		[Toggle] _Flow("Enable", Float) = 0
-
-		[Header(Underwater)]
-		[Toggle] _Meniscus("Meniscus", float) = 1
 
 		[Header(Debug Options)]
 		// Build shader with debug info which allows stepping through the code in a GPU debugger. I typically use RenderDoc or

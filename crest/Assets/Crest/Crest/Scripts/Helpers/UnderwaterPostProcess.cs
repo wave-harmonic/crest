@@ -122,7 +122,7 @@ namespace Crest
 
             if (GL.wireframe || definitelyAboveTheWater)
             {
-                Graphics.SetRenderTarget(target);
+                Graphics.Blit(source, target);
                 _oceanChunksToRender.Clear();
                 return;
             }

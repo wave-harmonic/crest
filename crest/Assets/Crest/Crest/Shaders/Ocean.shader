@@ -162,7 +162,7 @@ Shader "Crest/Ocean"
 		[Toggle] _Flow("Enable", Float) = 0
 
 		[Header(Underwater)]
-		[Toggle] _Meniscus("Meniscus", float) = 0
+		[Toggle] _Meniscus("Meniscus", float) = 1
 
 		[Header(Debug Options)]
 		// Build shader with debug info which allows stepping through the code in a GPU debugger. I typically use RenderDoc or

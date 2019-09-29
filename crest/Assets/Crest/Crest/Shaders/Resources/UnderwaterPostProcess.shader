@@ -143,8 +143,6 @@ Shader "Crest/Underwater/Post Process"
 				float wt = 1.0;
 
 #if _MENISCUS_ON
-				float wt1 = 0.8, wt2 = 0.6, wt3 = 0.8;
-
 				// Detect water to no water transitions which happen if mask values on below pixels are less than this mask
 				//if (mask <= 1.0)
 				{

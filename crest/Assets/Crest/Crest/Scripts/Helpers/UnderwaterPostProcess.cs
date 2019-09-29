@@ -25,6 +25,8 @@ namespace Crest
 
         [Header("Debug Options"), SerializeField]
         bool _viewOceanMask = false;
+        [SerializeField]
+        bool _viewMask2 = false;
         // end public debug options
 
         private Camera _mainCamera;
@@ -48,10 +50,12 @@ namespace Crest
         private const float UNDERWATER_MASK_NO_MASK = 1.0f;
         private const string FULL_SCREEN_EFFECT = "_FULL_SCREEN_EFFECT";
         private const string DEBUG_VIEW_OCEAN_MASK = "_DEBUG_VIEW_OCEAN_MASK";
+        private const string DEBUG_VIEW_OCEAN_MASK2 = "_DEBUG_VIEW_OCEAN_MASK2";
 
         private const string SHADER_UNDERWATER = "Crest/Underwater/Post Process";
         private const string SHADER_OCEAN_MASK = "Crest/Underwater/Ocean Mask";
 
+        public RenderTexture _maskTest;
 
         public void RegisterOceanChunkToRender(Renderer _oceanChunk)
         {
@@ -107,6 +111,15 @@ namespace Crest
 
         void OnRenderImage(RenderTexture source, RenderTexture target)
         {
+            if (_maskTest == null)
+            {
+                _maskTest = new RenderTexture(source);
+                _maskTest.name = "MaskTest";
+                _maskTest.format = RenderTextureFormat.RFloat;
+                _maskTest.enableRandomWrite = true;
+                _maskTest.Create();
+            }
+
             if (_commandBuffer == null)
             {
                 _commandBuffer = new CommandBuffer();
@@ -178,6 +191,15 @@ namespace Crest
                 _underwaterPostProcessMaterial.DisableKeyword(DEBUG_VIEW_OCEAN_MASK);
             }
 
+            if(_viewMask2)
+            {
+                _underwaterPostProcessMaterial.EnableKeyword(DEBUG_VIEW_OCEAN_MASK2);
+            }
+            else
+            {
+                _underwaterPostProcessMaterial.DisableKeyword(DEBUG_VIEW_OCEAN_MASK2);
+            }
+
             _underwaterPostProcessMaterial.SetFloat(OceanRenderer.sp_LD_SliceIndex, 0);
 
             OceanRenderer.Instance._lodDataAnimWaves.BindResultData(_underwaterPostProcessMaterialWrapper);
@@ -215,6 +237,7 @@ namespace Crest
             }
 
             _underwaterPostProcessMaterial.SetTexture(sp_MaskTex, _textureMask);
+            _underwaterPostProcessMaterial.SetTexture("_MaskTex2", _maskTest);
             _underwaterPostProcessMaterial.SetTexture(sp_MaskDepthTex, _depthBuffer);
 
             // Have to set these explicitly as the built-in transforms aren't in world-space for the blit function

@@ -194,7 +194,7 @@ Shader "Crest/Ocean"
 			#pragma vertex Vert
 			#pragma fragment Frag
 			// for VFACE
-			#pragma target 3.0
+			#pragma target 5.0
 			#pragma multi_compile_fog
 
 			#pragma shader_feature _APPLYNORMALMAPPING_ON
@@ -396,6 +396,8 @@ Shader "Crest/Ocean"
 				return lightDir;
 			}
 
+			RWTexture2D<float> _MaskTex2;
+
 			half4 Frag(const Varyings input, const float facing : VFACE) : SV_Target
 			{
 				#if _UNDERWATER_ON
@@ -414,6 +416,19 @@ Shader "Crest/Ocean"
 				half2 uvDepth = screenPos.xy / screenPos.z;
 				float sceneZ01 = tex2D(_CameraDepthTexture, uvDepth).x;
 				float sceneZ = LinearEyeDepth(sceneZ01);
+
+				
+#if _UNDERWATER_ON
+				uint2 coords = uvDepth *_ScreenParams.xy;
+				if (!underwater)
+				{
+					_MaskTex2[coords] = 1.0;
+				}
+				else
+				{
+					_MaskTex2[coords] = 0.5;
+				}
+#endif
 
 				float3 lightDir = WorldSpaceLightDir(input.worldPos);
 				// Soft shadow, hard shadow

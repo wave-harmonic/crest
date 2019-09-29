@@ -25,6 +25,7 @@ Shader "Crest/Underwater/Post Process"
 
 			#pragma multi_compile __ _FULL_SCREEN_EFFECT
 			#pragma multi_compile __ _DEBUG_VIEW_OCEAN_MASK
+			#pragma multi_compile __ _DEBUG_VIEW_OCEAN_MASK2
 
 			#if _COMPILESHADERWITHDEBUGINFO_ON
 			#pragma enable_d3d11_debug_symbols
@@ -67,6 +68,7 @@ Shader "Crest/Underwater/Post Process"
 
 			sampler2D _MainTex;
 			sampler2D _MaskTex;
+			sampler2D _MaskTex2;
 			sampler2D _MaskDepthTex;
 
 			// In-built Unity textures
@@ -158,6 +160,7 @@ Shader "Crest/Underwater/Post Process"
 				}
 #endif // _MENISCUS_ON
 
+
 #if _DEBUG_VIEW_OCEAN_MASK
 				if(!isOceanSurface)
 				{
@@ -167,7 +170,14 @@ Shader "Crest/Underwater/Post Process"
 				{
 					return float4(sceneColour * float3(mask == UNDERWATER_MASK_WATER_SURFACE_ABOVE, mask == UNDERWATER_MASK_WATER_SURFACE_BELOW, 0.0), 1.0);
 				}
-#else
+#endif // _DEBUG_VIEW_OCEAN_MASK
+#if _DEBUG_VIEW_OCEAN_MASK2
+				{
+					return tex2D(_MaskTex2, uvScreenSpace).x;
+				}
+#endif // _DEBUG_VIEW_OCEAN_MASK2
+
+
 				if(isUnderwater)
 				{
 					const half3 view = normalize(viewWS);
@@ -175,7 +185,6 @@ Shader "Crest/Underwater/Post Process"
 				}
 
 				return half4(wt * sceneColour, 1.0);
-#endif // _DEBUG_VIEW_OCEAN_MASK
 			}
 			ENDCG
 		}

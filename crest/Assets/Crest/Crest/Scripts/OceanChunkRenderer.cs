@@ -146,8 +146,6 @@ namespace Crest
             var heightOffset = OceanRenderer.Instance.ViewerHeightAboveWater;
             _mpb.SetFloat(sp_ForceUnderwater, heightOffset < -2f ? 1f : 0f);
 
-            _rend.SetPropertyBlock(_mpb.materialPropertyBlock);
-
             if (_drawRenderBounds)
             {
                 _rend.bounds.DebugDraw();
@@ -157,7 +155,14 @@ namespace Crest
             if (underwater != null && underwater.enabled)
             {
                 underwater.RegisterOceanChunkToRender(_rend);
+
+                if (underwater._maskTest != null)
+                {
+                    _mpb.SetTexture(Shader.PropertyToID("_MaskTex2"), underwater._maskTest);
+                }
             }
+
+            _rend.SetPropertyBlock(_mpb.materialPropertyBlock);
         }
 
         // this is called every frame because the bounds are given in world space and depend on the transform scale, which

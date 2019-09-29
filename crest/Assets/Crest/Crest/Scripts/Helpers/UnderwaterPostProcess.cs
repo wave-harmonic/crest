@@ -218,7 +218,7 @@ namespace Crest
             _underwaterPostProcessMaterial.SetTexture(sp_MaskDepthTex, _depthBuffer);
 
             // Have to set these explicitly as the built-in transforms aren't in world-space for the blit function
-            if(!XRSettings.enabled || XRSettings.stereoRenderingMode == XRSettings.StereoRenderingMode.MultiPass)
+            if (!XRSettings.enabled || XRSettings.stereoRenderingMode == XRSettings.StereoRenderingMode.MultiPass)
             {
 
                 var viewProjectionMatrix = _mainCamera.projectionMatrix * _mainCamera.worldToCameraMatrix;

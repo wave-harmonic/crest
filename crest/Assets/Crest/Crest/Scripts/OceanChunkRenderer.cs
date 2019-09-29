@@ -158,7 +158,7 @@ namespace Crest
 
                 if (underwater._maskTest != null)
                 {
-                    _mpb.SetTexture(Shader.PropertyToID("_MaskTex2"), underwater._maskTest);
+                    Graphics.SetRandomWriteTarget(2, underwater._maskTest);
                 }
             }
 

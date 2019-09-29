@@ -188,10 +188,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1b0c0a69611596146aceb2f60532940c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _underwaterPostProcessMaterial: {fileID: 2100000, guid: 95ea0c2815f0aa798beeb370980c6614,
-    type: 2}
-  _oceanMaskMaterial: {fileID: 2100000, guid: 2ddd9bab6a9ad7542a419bcaeff337a8, type: 2}
   _viewOceanMask: 0
+  _viewMask2: 0
+  _maskTest: {fileID: 0}
 --- !u!20 &227134469
 Camera:
   m_ObjectHideFlags: 0
@@ -242,7 +241,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 227134465}
   m_LocalRotation: {x: 0.008222009, y: 0.6862176, z: -0.007757488, w: 0.7273085}
-  m_LocalPosition: {x: 42, y: 12.5, z: 39}
+  m_LocalPosition: {x: 42, y: 5, z: 39}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -489,6 +488,7 @@ MonoBehaviour:
   _minTexelsPerWave: 3
   _minScale: 4
   _maxScale: 256
+  _dropDetailHeightBasedOnWaves: 0.2
   _lodDataResolution: 384
   _geometryDownSampleFactor: 4
   _lodCount: 7

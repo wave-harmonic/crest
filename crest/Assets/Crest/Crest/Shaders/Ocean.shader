@@ -396,8 +396,7 @@ Shader "Crest/Ocean"
 				return lightDir;
 			}
 
-			RWTexture2D<float> _MaskTex2;
-
+			RWTexture2D<float> _MaskTex2  : register(u2);
 			half4 Frag(const Varyings input, const float facing : VFACE) : SV_Target
 			{
 				#if _UNDERWATER_ON

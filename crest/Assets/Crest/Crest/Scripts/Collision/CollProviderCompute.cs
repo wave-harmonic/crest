@@ -17,17 +17,17 @@ namespace Crest
     // TODO(CQ): Give overview of how this class works.
     public class CollProviderCompute : MonoBehaviour, ICollProvider
     {
-        readonly static string s_shaderName = "ProcessCollisionQueries";
-        readonly static string s_kernelName = "CSMain";
-        readonly static int s_maxRequests = 4;
-        readonly static int s_maxGuids = 64;
+        const string s_shaderName = "ProcessCollisionQueries";
+        const string s_kernelName = "CSMain";
+        const int s_maxRequests = 4;
+        const int s_maxGuids = 64;
 
         ComputeShader _shaderProcessQueries;
         PropertyWrapperComputeStandalone _wrapper;
 
-        readonly static int s_maxQueryCount = 4096;
+        const int s_maxQueryCount = 4096;
         // Must match value in compute shader
-        readonly static int s_computeGroupSize = 64;
+        const int s_computeGroupSize = 64;
         public static bool s_useComputeCollQueries = true;
 
         readonly static int sp_queryPositions_minGridSizes = Shader.PropertyToID("_QueryPositions_MinGridSizes");
@@ -36,7 +36,7 @@ namespace Crest
         readonly static int sp_MeshScaleLerp = Shader.PropertyToID("_MeshScaleLerp");
         readonly static int sp_SliceCount = Shader.PropertyToID("_SliceCount");
 
-        readonly static float s_finiteDiffDx = 0.1f;
+        const float s_finiteDiffDx = 0.1f;
 
         static int s_kernelHandle;
 

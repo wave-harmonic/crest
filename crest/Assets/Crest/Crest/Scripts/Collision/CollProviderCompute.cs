@@ -2,6 +2,7 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+// TODO(CQ): Move these to trello
 // Potential improvements
 // - Half return values
 // - Half minGridSize
@@ -13,6 +14,7 @@ using UnityEngine.Rendering;
 
 namespace Crest
 {
+    // TODO(CQ): Give overview of how this class works.
     public class CollProviderCompute : MonoBehaviour, ICollProvider
     {
         readonly static string s_shaderName = "ProcessCollisionQueries";
@@ -131,7 +133,7 @@ namespace Crest
             }
         }
 
-        SegmentRegistrarQueue _srq = new SegmentRegistrarQueue();
+        SegmentRegistrarQueue _segmentRegistrarQueue = new SegmentRegistrarQueue();
 
         NativeArray<Vector3> _queryResults;
         float _queryResultsTime = -1f;
@@ -181,7 +183,7 @@ namespace Crest
             var countNorms = (queryNormals != null ? queryNormals.Length : 0);
             var countTotal = countPts + countNorms * 3;
 
-            if (_srq.Current._segments.TryGetValue(i_ownerHash, out segment))
+            if (_segmentRegistrarQueue.Current._segments.TryGetValue(i_ownerHash, out segment))
             {
                 var segmentSize = segment.y - segment.x + 1;
                 if (segmentSize == countTotal)
@@ -190,7 +192,7 @@ namespace Crest
                 }
                 else
                 {
-                    _srq.Current._segments.Remove(i_ownerHash);
+                    _segmentRegistrarQueue.Current._segments.Remove(i_ownerHash);
                 }
             }
 
@@ -202,17 +204,17 @@ namespace Crest
 
             if (!segmentRetrieved)
             {
-                if (_srq.Current._segments.Count >= s_maxGuids)
+                if (_segmentRegistrarQueue.Current._segments.Count >= s_maxGuids)
                 {
                     Debug.LogError("Too many guids registered with CollProviderCompute. Increase s_maxGuids.", this);
                     return false;
                 }
 
-                segment.x = _srq.Current._numQueries;
+                segment.x = _segmentRegistrarQueue.Current._numQueries;
                 segment.y = segment.x + countTotal - 1;
-                _srq.Current._segments.Add(i_ownerHash, segment);
+                _segmentRegistrarQueue.Current._segments.Add(i_ownerHash, segment);
 
-                _srq.Current._numQueries += countTotal;
+                _segmentRegistrarQueue.Current._numQueries += countTotal;
 
                 //Debug.Log("Added points for " + guid);
             }
@@ -256,7 +258,7 @@ namespace Crest
         /// </summary>
         public void RemoveQueryPoints(int guid)
         {
-            _srq.RemoveRegistrations(guid);
+            _segmentRegistrarQueue.RemoveRegistrations(guid);
         }
 
         /// <summary>
@@ -265,13 +267,10 @@ namespace Crest
         /// </summary>
         public void CompactQueryStorage()
         {
-            _srq.ClearAvailable();
+            _segmentRegistrarQueue.ClearAvailable();
         }
 
-        /// <summary>
-        /// Copy out the result displacements and normals, if queried.
-        /// </summary>
-        bool RetrieveResults(int guid, Vector3[] disps, Vector3[] normals)
+        private bool RetrieveResults(int guid, Vector3[] displacements, float[] heights, Vector3[] normals)
         {
             if (_resultSegments == null)
             {
@@ -286,18 +285,32 @@ namespace Crest
                 return false;
             }
 
-            var countPts = (disps != null ? disps.Length : 0);
+            var countPoints = 0;
+            if (displacements != null) countPoints = displacements.Length;
+            if (heights != null) countPoints = heights.Length;
+            if (displacements != null && heights != null) Debug.Assert(displacements.Length == heights.Length);
             var countNorms = (normals != null ? normals.Length : 0);
-            var countTotal = countPts + countNorms * 3;
+            var countTotal = countPoints + countNorms * 3;
 
-            if (countPts > 0)
+            if (countPoints > 0)
             {
-                _queryResults.Slice(segment.x, countPts).CopyTo(disps);
+                // Retrieve Results
+                if(displacements != null) _queryResults.Slice(segment.x, countPoints).CopyTo(displacements);
+
+                // Retrieve Result heights
+                if(heights != null)
+                {
+                    var seaLevel = OceanRenderer.Instance.SeaLevel;
+                    for (int i = 0; i < countPoints; i++)
+                    {
+                        heights[i] = seaLevel + _queryResults[i + segment.x].y;
+                    }
+                }
             }
 
             if (countNorms > 0)
             {
-                int firstNorm = segment.x + countPts;
+                int firstNorm = segment.x + countPoints;
 
                 var dx = -Vector3.right * s_finiteDiffDx;
                 var dz = -Vector3.forward * s_finiteDiffDx;
@@ -313,6 +326,14 @@ namespace Crest
             }
 
             return true;
+        }
+
+        /// <summary>
+        /// Copy out the result displacements and normals, if queried.
+        /// </summary>
+        bool RetrieveResultDisplacements(int guid, Vector3[] displacements, Vector3[] normals)
+        {
+            return RetrieveResults(guid, displacements, null, normals);
         }
 
         /// <summary>
@@ -320,50 +341,7 @@ namespace Crest
         /// </summary>
         bool RetrieveResultHeights(int guid, float[] heights, Vector3[] normals)
         {
-            if (_resultSegments == null)
-            {
-                return false;
-            }
-
-            // Check if there are results that came back for this guid
-            Vector2Int segment;
-            if (!_resultSegments.TryGetValue(guid, out segment))
-            {
-                // Guid not found - no result
-                return false;
-            }
-
-            var countPts = (heights != null ? heights.Length : 0);
-            var countNorms = (normals != null ? normals.Length : 0);
-            var countTotal = countPts + countNorms * 3;
-
-            if (countPts > 0)
-            {
-                var seaLevel = OceanRenderer.Instance.SeaLevel;
-                for (int i = 0; i < countPts; i++)
-                {
-                    heights[i] = seaLevel + _queryResults[i + segment.x].y;
-                }
-            }
-
-            if (countNorms > 0)
-            {
-                int firstNorm = segment.x + countPts;
-
-                var dx = -Vector3.right * s_finiteDiffDx;
-                var dz = -Vector3.forward * s_finiteDiffDx;
-                for (int i = 0; i < countNorms; i++)
-                {
-                    var p = _queryResults[firstNorm + 3 * i + 0];
-                    var px = dx + _queryResults[firstNorm + 3 * i + 1];
-                    var pz = dz + _queryResults[firstNorm + 3 * i + 2];
-
-                    normals[i] = Vector3.Cross(p - px, p - pz).normalized;
-                    normals[i].y *= -1f;
-                }
-            }
-
-            return true;
+            return RetrieveResults(guid, null, heights, normals);
         }
 
         /// <summary>
@@ -415,7 +393,7 @@ namespace Crest
         // the last frames displacements.
         void Update()
         {
-            if (_srq.Current._numQueries > 0)
+            if (_segmentRegistrarQueue.Current._numQueries > 0)
             {
                 ExecuteQueries();
 
@@ -428,18 +406,17 @@ namespace Crest
                 ReadbackRequest request;
                 request._dataTimestamp = Time.time - Time.deltaTime;
                 request._request = AsyncGPUReadback.Request(_computeBufResults, DataArrived);
-                request._segments = _srq.Current._segments;
+                request._segments = _segmentRegistrarQueue.Current._segments;
 
                 _requests.Add(request);
-                //Debug.Log(Time.frameCount + ": request created for " + _numQueries + " queries.");
 
-                _srq.AcquireNew();
+                _segmentRegistrarQueue.AcquireNew();
             }
         }
 
         void ExecuteQueries()
         {
-            _computeBufQueries.SetData(_queryPosXZ_minGridSize, 0, 0, _srq.Current._numQueries);
+            _computeBufQueries.SetData(_queryPosXZ_minGridSize, 0, 0, _segmentRegistrarQueue.Current._numQueries);
 
             _shaderProcessQueries.SetBuffer(s_kernelHandle, sp_queryPositions_minGridSizes, _computeBufQueries);
             _shaderProcessQueries.SetBuffer(s_kernelHandle, sp_ResultDisplacements, _computeBufResults);
@@ -455,7 +432,7 @@ namespace Crest
 
             _shaderProcessQueries.SetFloat(sp_SliceCount, OceanRenderer.Instance.CurrentLodCount);
 
-            var numGroups = (int)Mathf.Ceil((float)_srq.Current._numQueries / (float)s_computeGroupSize) * s_computeGroupSize;
+            var numGroups = (int)Mathf.Ceil((float)_segmentRegistrarQueue.Current._numQueries / (float)s_computeGroupSize) * s_computeGroupSize;
             _shaderProcessQueries.Dispatch(s_kernelHandle, numGroups, 1, 1);
         }
 
@@ -477,14 +454,15 @@ namespace Crest
                 if (_requests[i]._request.hasError)
                 {
                     _requests.RemoveAt(i);
-                    _srq.ReleaseLast();
+                    _segmentRegistrarQueue.ReleaseLast();
                 }
             }
 
             // Find the last request that was completed
             var lastDoneIndex = _requests.Count - 1;
-            for (; lastDoneIndex >= 0 && !_requests[lastDoneIndex]._request.done; --lastDoneIndex)
+            while(lastDoneIndex >= 0 && !_requests[lastDoneIndex]._request.done)
             {
+                --lastDoneIndex;
             }
 
             // If there is a completed request, process it
@@ -505,10 +483,12 @@ namespace Crest
             for (int i = lastDoneIndex; i >= 0; --i)
             {
                 _requests.RemoveAt(i);
-                _srq.ReleaseLast();
+                _segmentRegistrarQueue.ReleaseLast();
             }
         }
 
+        // TODO(CQ): We want to do this in a lot of places, should we pull this
+        // out as a util function and just call this in those places?
         void Swap<T>(ref T a, ref T b)
         {
             var temp = b;
@@ -542,7 +522,7 @@ namespace Crest
             _queryResults.Dispose();
             _queryResultsLast.Dispose();
 
-            _srq.ClearAll();
+            _segmentRegistrarQueue.ClearAll();
         }
 
         void PlaceMarkerCube(ref GameObject marker, Vector3 query, Vector3 disp)
@@ -581,7 +561,7 @@ namespace Crest
                 result |= (int)QueryStatus.PostFailed;
             }
 
-            if (!RetrieveResults(i_ownerHash, o_resultDisps, o_resultNorms))
+            if (!RetrieveResultDisplacements(i_ownerHash, o_resultDisps, o_resultNorms))
             {
                 result |= (int)QueryStatus.RetrieveFailed;
             }

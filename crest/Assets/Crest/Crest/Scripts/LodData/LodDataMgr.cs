@@ -31,6 +31,9 @@ namespace Crest
 
         public RenderTexture DataTexture { get { return _targets; } }
 
+        public static int sp_LD_SliceIndex = Shader.PropertyToID("_LD_SliceIndex");
+        protected static int sp_LODChange = Shader.PropertyToID("_LODChange");
+
         // shape texture resolution
         int _shapeRes = -1;
 

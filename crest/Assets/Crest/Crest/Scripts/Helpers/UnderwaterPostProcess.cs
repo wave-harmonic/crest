@@ -28,10 +28,6 @@ namespace Crest
         // end public debug options
 
         private Camera _mainCamera;
-        private RenderTexture _textureMask;
-        private RenderTexture _depthBuffer;
-        private CommandBuffer _commandBuffer;
-
         private Material _oceanMaskMaterial = null;
 
         private Material _underwaterPostProcessMaterial = null;
@@ -103,16 +99,15 @@ namespace Crest
             _underwaterPostProcessMaterialWrapper = new PropertyWrapperMaterial(_underwaterPostProcessMaterial);
 
             _oceanChunksToRender = new List<Renderer>(OceanBuilder.GetChunkCount);
+
+            _postProcessProxy = gameObject.AddComponent<PostProcessProxy>();
+            _postProcessProxy._owner = this;
+            _postProcessProxy.hideFlags = HideFlags.HideInInspector;
         }
 
-        void OnRenderImage(RenderTexture source, RenderTexture target)
+        private PostProcessProxy _postProcessProxy;
+        void Update()
         {
-            if (_commandBuffer == null)
-            {
-                _commandBuffer = new CommandBuffer();
-                _commandBuffer.name = "Underwater Post Process";
-            }
-
             bool definitelyAboveTheWater = false;
             {
                 float oceanHeight = OceanRenderer.Instance.transform.position.y;
@@ -123,126 +118,147 @@ namespace Crest
 
             if (GL.wireframe || definitelyAboveTheWater)
             {
-                Graphics.Blit(source, target);
                 _oceanChunksToRender.Clear();
+                _postProcessProxy.enabled = false;
                 return;
             }
-
-            if (_textureMask == null)
-            {
-                _textureMask = new RenderTexture(source);
-                _textureMask.name = "Ocean Mask";
-                // @Memory: We could investigate making this an 8-bit texture
-                // instead to reduce GPU memory usage.
-                _textureMask.format = RenderTextureFormat.RHalf;
-                _textureMask.Create();
-
-                _depthBuffer = new RenderTexture(source);
-                _depthBuffer.name = "Ocean Mask Depth";
-                _depthBuffer.format = RenderTextureFormat.Depth;
-                _depthBuffer.Create();
-            }
-
-            // Get all ocean chunks and render them using cmd buffer, but with mask shader
-            _commandBuffer.SetRenderTarget(_textureMask.colorBuffer, _depthBuffer.depthBuffer);
-            _commandBuffer.ClearRenderTarget(true, true, Color.white * UNDERWATER_MASK_NO_MASK);
-            _commandBuffer.SetViewProjectionMatrices(_mainCamera.worldToCameraMatrix, _mainCamera.projectionMatrix);
-
-            foreach (var chunk in _oceanChunksToRender)
-            {
-                _commandBuffer.DrawRenderer(chunk, _oceanMaskMaterial);
-            }
-
-            {
-                // The same camera has to perform post-processing when performing
-                // VR multipass rendering so don't clear chunks until we have
-                // renderered the right eye.
-                // This was the approach recommended by Unity's post-processing
-                // lead Thomas Hourdel.
-                bool saveChunksToRender =
-                    XRSettings.enabled &&
-                    XRSettings.stereoRenderingMode == XRSettings.StereoRenderingMode.MultiPass &&
-                    _mainCamera.stereoActiveEye != Camera.MonoOrStereoscopicEye.Right;
-
-                if (!saveChunksToRender) _oceanChunksToRender.Clear();
-            }
-
-            _underwaterPostProcessMaterial.CopyPropertiesFromMaterial(OceanRenderer.Instance.OceanMaterial);
-
-            if (_viewOceanMask)
-            {
-                _underwaterPostProcessMaterial.EnableKeyword(DEBUG_VIEW_OCEAN_MASK);
-            }
             else
             {
-                _underwaterPostProcessMaterial.DisableKeyword(DEBUG_VIEW_OCEAN_MASK);
+                _postProcessProxy.enabled = true;
             }
+        }
 
-            _underwaterPostProcessMaterial.SetFloat(OceanRenderer.sp_LD_SliceIndex, 0);
+        internal class PostProcessProxy : MonoBehaviour
+        {
+            public UnderwaterPostProcess _owner;
+            private CommandBuffer _commandBuffer;
+            private RenderTexture _textureMask;
+            private RenderTexture _depthBuffer;
 
-            OceanRenderer.Instance._lodDataAnimWaves.BindResultData(_underwaterPostProcessMaterialWrapper);
-            if (OceanRenderer.Instance._lodDataSeaDepths)
+            void OnRenderImage(RenderTexture source, RenderTexture target)
             {
-                OceanRenderer.Instance._lodDataSeaDepths.BindResultData(_underwaterPostProcessMaterialWrapper);
-            }
-            else
-            {
-                LodDataMgrSeaFloorDepth.BindNull(_underwaterPostProcessMaterialWrapper);
-            }
-            if (OceanRenderer.Instance._lodDataShadow)
-            {
-                OceanRenderer.Instance._lodDataShadow.BindResultData(_underwaterPostProcessMaterialWrapper);
-            }
-            else
-            {
-                LodDataMgrShadow.BindNull(_underwaterPostProcessMaterialWrapper);
-            }
-
-            {
-                float oceanHeight = OceanRenderer.Instance.transform.position.y;
-                float maxOceanVerticalDisplacement = OceanRenderer.Instance.MaxVertDisplacement * 0.5f;
-                float cameraHeight = _mainCamera.transform.position.y;
-                bool forceFullShader = (cameraHeight + maxOceanVerticalDisplacement) <= oceanHeight;
-                _underwaterPostProcessMaterial.SetFloat(sp_OceanHeight, oceanHeight);
-                if (forceFullShader)
+                if (_commandBuffer == null)
                 {
-                    _underwaterPostProcessMaterial.EnableKeyword(FULL_SCREEN_EFFECT);
+                    _commandBuffer = new CommandBuffer();
+                    _commandBuffer.name = "Underwater Post Process";
+                }
+
+                if (_textureMask == null)
+                {
+                    _textureMask = new RenderTexture(source);
+                    _textureMask.name = "Ocean Mask";
+                    // @Memory: We could investigate making this an 8-bit texture
+                    // instead to reduce GPU memory usage.
+                    _textureMask.format = RenderTextureFormat.RHalf;
+                    _textureMask.Create();
+
+                    _depthBuffer = new RenderTexture(source);
+                    _depthBuffer.name = "Ocean Mask Depth";
+                    _depthBuffer.format = RenderTextureFormat.Depth;
+                    _depthBuffer.Create();
+                }
+
+                // Get all ocean chunks and render them using cmd buffer, but with mask shader
+                _commandBuffer.SetRenderTarget(_textureMask.colorBuffer, _depthBuffer.depthBuffer);
+                _commandBuffer.ClearRenderTarget(true, true, Color.white * UNDERWATER_MASK_NO_MASK);
+                _commandBuffer.SetViewProjectionMatrices(_owner._mainCamera.worldToCameraMatrix, _owner._mainCamera.projectionMatrix);
+
+                foreach (var chunk in _owner._oceanChunksToRender)
+                {
+                    _commandBuffer.DrawRenderer(chunk, _owner._oceanMaskMaterial);
+                }
+
+                {
+                    // The same camera has to perform post-processing when performing
+                    // VR multipass rendering so don't clear chunks until we have
+                    // renderered the right eye.
+                    // This was the approach recommended by Unity's post-processing
+                    // lead Thomas Hourdel.
+                    bool saveChunksToRender =
+                        XRSettings.enabled &&
+                        XRSettings.stereoRenderingMode == XRSettings.StereoRenderingMode.MultiPass &&
+                       _owner._mainCamera.stereoActiveEye != Camera.MonoOrStereoscopicEye.Right;
+
+                    if (!saveChunksToRender) _owner._oceanChunksToRender.Clear();
+                }
+
+                _owner._underwaterPostProcessMaterial.CopyPropertiesFromMaterial(OceanRenderer.Instance.OceanMaterial);
+
+                if (_owner._viewOceanMask)
+                {
+                    _owner._underwaterPostProcessMaterial.EnableKeyword(DEBUG_VIEW_OCEAN_MASK);
                 }
                 else
                 {
-                    _underwaterPostProcessMaterial.DisableKeyword(FULL_SCREEN_EFFECT);
+                    _owner._underwaterPostProcessMaterial.DisableKeyword(DEBUG_VIEW_OCEAN_MASK);
                 }
+
+                _owner._underwaterPostProcessMaterial.SetFloat(OceanRenderer.sp_LD_SliceIndex, 0);
+
+                OceanRenderer.Instance._lodDataAnimWaves.BindResultData(_owner._underwaterPostProcessMaterialWrapper);
+                if (OceanRenderer.Instance._lodDataSeaDepths)
+                {
+                    OceanRenderer.Instance._lodDataSeaDepths.BindResultData(_owner._underwaterPostProcessMaterialWrapper);
+                }
+                else
+                {
+                    LodDataMgrSeaFloorDepth.BindNull(_owner._underwaterPostProcessMaterialWrapper);
+                }
+                if (OceanRenderer.Instance._lodDataShadow)
+                {
+                    OceanRenderer.Instance._lodDataShadow.BindResultData(_owner._underwaterPostProcessMaterialWrapper);
+                }
+                else
+                {
+                    LodDataMgrShadow.BindNull(_owner._underwaterPostProcessMaterialWrapper);
+                }
+
+                {
+                    float oceanHeight = OceanRenderer.Instance.transform.position.y;
+                    float maxOceanVerticalDisplacement = OceanRenderer.Instance.MaxVertDisplacement * 0.5f;
+                    float cameraHeight = _owner._mainCamera.transform.position.y;
+                    bool forceFullShader = (cameraHeight + maxOceanVerticalDisplacement) <= oceanHeight;
+                    _owner._underwaterPostProcessMaterial.SetFloat(sp_OceanHeight, oceanHeight);
+                    if (forceFullShader)
+                    {
+                        _owner._underwaterPostProcessMaterial.EnableKeyword(FULL_SCREEN_EFFECT);
+                    }
+                    else
+                    {
+                        _owner._underwaterPostProcessMaterial.DisableKeyword(FULL_SCREEN_EFFECT);
+                    }
+                }
+
+                _owner._underwaterPostProcessMaterial.SetTexture(sp_MaskTex, _textureMask);
+                _owner._underwaterPostProcessMaterial.SetTexture(sp_MaskDepthTex, _depthBuffer);
+
+                // Have to set these explicitly as the built-in transforms aren't in world-space for the blit function
+                if (!XRSettings.enabled || XRSettings.stereoRenderingMode == XRSettings.StereoRenderingMode.MultiPass)
+                {
+
+                    var viewProjectionMatrix = _owner._mainCamera.projectionMatrix * _owner._mainCamera.worldToCameraMatrix;
+                    _owner._underwaterPostProcessMaterial.SetMatrix(sp_InvViewProjection, viewProjectionMatrix.inverse);
+                }
+                else
+                {
+                    var viewProjectionMatrix = _owner._mainCamera.GetStereoProjectionMatrix(Camera.StereoscopicEye.Left) * _owner._mainCamera.worldToCameraMatrix;
+                    _owner._underwaterPostProcessMaterial.SetMatrix(sp_InvViewProjection, viewProjectionMatrix.inverse);
+                    var viewProjectionMatrixRightEye = _owner._mainCamera.GetStereoProjectionMatrix(Camera.StereoscopicEye.Right) * _owner._mainCamera.worldToCameraMatrix;
+                    _owner._underwaterPostProcessMaterial.SetMatrix(sp_InvViewProjectionRight, viewProjectionMatrixRightEye.inverse);
+                }
+
+                // TODO - why do we need to do this - blit should set it?
+                _owner._underwaterPostProcessMaterial.SetTexture(sp_MainTex, source);
+
+                _commandBuffer.Blit(source, target, _owner._underwaterPostProcessMaterial);
+
+                Graphics.ExecuteCommandBuffer(_commandBuffer);
+                _commandBuffer.Clear();
+
+                // Need this to prevent Unity from giving the following warning:
+                // - "OnRenderImage() possibly didn't write anything to the destination texture!"
+                Graphics.SetRenderTarget(target);
             }
-
-            _underwaterPostProcessMaterial.SetTexture(sp_MaskTex, _textureMask);
-            _underwaterPostProcessMaterial.SetTexture(sp_MaskDepthTex, _depthBuffer);
-
-            // Have to set these explicitly as the built-in transforms aren't in world-space for the blit function
-            if(!XRSettings.enabled || XRSettings.stereoRenderingMode == XRSettings.StereoRenderingMode.MultiPass)
-            {
-
-                var viewProjectionMatrix = _mainCamera.projectionMatrix * _mainCamera.worldToCameraMatrix;
-                _underwaterPostProcessMaterial.SetMatrix(sp_InvViewProjection, viewProjectionMatrix.inverse);
-            }
-            else
-            {
-                var viewProjectionMatrix = _mainCamera.GetStereoProjectionMatrix(Camera.StereoscopicEye.Left) * _mainCamera.worldToCameraMatrix;
-                _underwaterPostProcessMaterial.SetMatrix(sp_InvViewProjection, viewProjectionMatrix.inverse);
-                var viewProjectionMatrixRightEye = _mainCamera.GetStereoProjectionMatrix(Camera.StereoscopicEye.Right) * _mainCamera.worldToCameraMatrix;
-                _underwaterPostProcessMaterial.SetMatrix(sp_InvViewProjectionRight, viewProjectionMatrixRightEye.inverse);
-            }
-
-            // TODO - why do we need to do this - blit should set it?
-            _underwaterPostProcessMaterial.SetTexture(sp_MainTex, source);
-
-            _commandBuffer.Blit(source, target, _underwaterPostProcessMaterial);
-
-            Graphics.ExecuteCommandBuffer(_commandBuffer);
-            _commandBuffer.Clear();
-
-            // Need this to prevent Unity from giving the following warning:
-            // - "OnRenderImage() possibly didn't write anything to the destination texture!"
-            Graphics.SetRenderTarget(target);
         }
     }
 }

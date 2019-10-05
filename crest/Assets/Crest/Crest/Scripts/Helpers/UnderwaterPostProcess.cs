@@ -53,6 +53,7 @@ namespace Crest
         private const string SHADER_OCEAN_MASK = "Crest/Underwater/Ocean Mask";
 
         bool _eventsRegistered = false;
+        bool _firstRender = true;
 
         public void RegisterOceanChunkToRender(Renderer _oceanChunk)
         {
@@ -176,6 +177,7 @@ namespace Crest
             _commandBuffer.ClearRenderTarget(true, true, Color.white * UNDERWATER_MASK_NO_MASK);
             _commandBuffer.SetViewProjectionMatrices(_mainCamera.worldToCameraMatrix, _mainCamera.projectionMatrix);
 
+            // Spends approx 0.2-0.3ms here on dell laptop
             foreach (var chunk in _oceanChunksToRender)
             {
                 _commandBuffer.DrawRenderer(chunk, _oceanMaskMaterial);
@@ -195,8 +197,28 @@ namespace Crest
                 if (!saveChunksToRender) _oceanChunksToRender.Clear();
             }
 
-            _underwaterPostProcessMaterial.CopyPropertiesFromMaterial(OceanRenderer.Instance.OceanMaterial);
+            OnRenderImageUpdateMaterial(source);
 
+            _commandBuffer.Blit(source, target, _underwaterPostProcessMaterial);
+
+            Graphics.ExecuteCommandBuffer(_commandBuffer);
+            _commandBuffer.Clear();
+
+            // Need this to prevent Unity from giving the following warning:
+            // - "OnRenderImage() possibly didn't write anything to the destination texture!"
+            Graphics.SetRenderTarget(target);
+
+            _firstRender = false;
+        }
+
+        void OnRenderImageUpdateMaterial(RenderTexture source)
+        {
+            if (_firstRender)
+            {
+                _underwaterPostProcessMaterial.CopyPropertiesFromMaterial(OceanRenderer.Instance.OceanMaterial);
+            }
+
+            // Enabling/disabling keywords each frame don't seem to have large measurable overhead
             if (_viewOceanMask)
             {
                 _underwaterPostProcessMaterial.EnableKeyword(DEBUG_VIEW_OCEAN_MASK);
@@ -217,6 +239,7 @@ namespace Crest
             {
                 LodDataMgrSeaFloorDepth.BindNull(_underwaterPostProcessMaterialWrapper);
             }
+
             if (OceanRenderer.Instance._lodDataShadow)
             {
                 OceanRenderer.Instance._lodDataShadow.BindResultData(_underwaterPostProcessMaterialWrapper);
@@ -260,17 +283,8 @@ namespace Crest
                 _underwaterPostProcessMaterial.SetMatrix(sp_InvViewProjectionRight, viewProjectionMatrixRightEye.inverse);
             }
 
-            // TODO - why do we need to do this - blit should set it?
+            // Not sure why we need to do this - blit should set it...?
             _underwaterPostProcessMaterial.SetTexture(sp_MainTex, source);
-
-            _commandBuffer.Blit(source, target, _underwaterPostProcessMaterial);
-
-            Graphics.ExecuteCommandBuffer(_commandBuffer);
-            _commandBuffer.Clear();
-
-            // Need this to prevent Unity from giving the following warning:
-            // - "OnRenderImage() possibly didn't write anything to the destination texture!"
-            Graphics.SetRenderTarget(target);
         }
     }
 }

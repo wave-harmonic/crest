@@ -178,7 +178,7 @@ namespace Crest
                 _underwaterPostProcessMaterial.DisableKeyword(DEBUG_VIEW_OCEAN_MASK);
             }
 
-            _underwaterPostProcessMaterial.SetFloat(OceanRenderer.sp_LD_SliceIndex, 0);
+            _underwaterPostProcessMaterial.SetFloat(LodDataMgr.sp_LD_SliceIndex, 0);
 
             OceanRenderer.Instance._lodDataAnimWaves.BindResultData(_underwaterPostProcessMaterialWrapper);
             if (OceanRenderer.Instance._lodDataSeaDepths)

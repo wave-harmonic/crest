@@ -23,6 +23,9 @@ namespace Crest
         static int sp_InvViewProjection = Shader.PropertyToID("_InvViewProjection");
         static int sp_InvViewProjectionRight = Shader.PropertyToID("_InvViewProjectionRight");
 
+        [Header("Settings"), SerializeField, Tooltip("If true, underwater effect copies ocean material params each frame. Setting to false will make it cheaper but risks the underwater appearance looking wrong if the ocean material is changed.")]
+        bool _copyOceanMaterialParamsEachFrame = true;
+
         [Header("Debug Options"), SerializeField]
         bool _viewOceanMask = false;
         // end public debug options
@@ -213,8 +216,9 @@ namespace Crest
 
         void OnRenderImageUpdateMaterial(RenderTexture source)
         {
-            if (_firstRender)
+            if (_firstRender || _copyOceanMaterialParamsEachFrame)
             {
+                // Measured this at approx 0.05ms on dell laptop
                 _underwaterPostProcessMaterial.CopyPropertiesFromMaterial(OceanRenderer.Instance.OceanMaterial);
             }
 

@@ -103,6 +103,31 @@ namespace Crest
             _underwaterPostProcessMaterialWrapper = new PropertyWrapperMaterial(_underwaterPostProcessMaterial);
 
             _oceanChunksToRender = new List<Renderer>(OceanBuilder.GetChunkCount);
+
+            if (OceanRenderer.Instance)
+            {
+                OceanRenderer.Instance.ViewerLessThan2mAboveWater += ViewerLessThan2mAboveWater;
+                OceanRenderer.Instance.ViewerMoreThan2mAboveWater += ViewerMoreThan2mAboveWater;
+            }
+        }
+
+        private void OnDestroy()
+        {
+            if (OceanRenderer.Instance)
+            {
+                OceanRenderer.Instance.ViewerLessThan2mAboveWater -= ViewerLessThan2mAboveWater;
+                OceanRenderer.Instance.ViewerMoreThan2mAboveWater -= ViewerMoreThan2mAboveWater;
+            }
+        }
+
+        private void ViewerMoreThan2mAboveWater(OceanRenderer ocean)
+        {
+            enabled = false;
+        }
+
+        private void ViewerLessThan2mAboveWater(OceanRenderer ocean)
+        {
+            enabled = true;
         }
 
         void OnRenderImage(RenderTexture source, RenderTexture target)
@@ -113,15 +138,7 @@ namespace Crest
                 _commandBuffer.name = "Underwater Post Process";
             }
 
-            bool definitelyAboveTheWater = false;
-            {
-                float oceanHeight = OceanRenderer.Instance.transform.position.y;
-                float maxOceanVerticalDisplacement = OceanRenderer.Instance.MaxVertDisplacement * 0.5f;
-                float cameraHeight = _mainCamera.transform.position.y;
-                definitelyAboveTheWater = (cameraHeight - maxOceanVerticalDisplacement) >= oceanHeight;
-            }
-
-            if (GL.wireframe || definitelyAboveTheWater)
+            if (GL.wireframe)
             {
                 Graphics.Blit(source, target);
                 _oceanChunksToRender.Clear();

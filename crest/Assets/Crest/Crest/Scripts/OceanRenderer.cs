@@ -138,10 +138,16 @@ namespace Crest
         /// </summary>
         public float ViewerHeightAboveWater { get; private set; }
 
+        public delegate void EventHandler(OceanRenderer ocean);
+        public event EventHandler ViewerLessThan2mAboveWater;
+        public event EventHandler ViewerMoreThan2mAboveWater;
+
         static int sp_crestTime = Shader.PropertyToID("_CrestTime");
         static int sp_texelsPerWave = Shader.PropertyToID("_TexelsPerWave");
 
         SamplingData _samplingData = new SamplingData();
+
+        bool _firstViewerHeightUpdate = true;
 
         void Awake()
         {
@@ -227,7 +233,8 @@ namespace Crest
 
         private Color[] _AmbientLighting = new Color[1];
         private UnityEngine.Rendering.SphericalHarmonicsL2 _sphericalHarmonicsL2;
-        private Vector3[] _shDirections = new Vector3[]{ new Vector3(0.0f, 0.0f, 0.0f) };
+        private Vector3[] _shDirections = new Vector3[] { new Vector3(0.0f, 0.0f, 0.0f) };
+
         void LateUpdate()
         {
             // set global shader params
@@ -241,7 +248,7 @@ namespace Crest
 
             LightProbes.GetInterpolatedProbe(_viewpoint.position, null, out _sphericalHarmonicsL2);
             _sphericalHarmonicsL2.Evaluate(_shDirections, _AmbientLighting);
-            OceanRenderer.Instance.OceanMaterial.SetVector("_AmbientLighting", _AmbientLighting[0]);
+            Instance.OceanMaterial.SetVector("_AmbientLighting", _AmbientLighting[0]);
 
             if (_followViewpoint)
             {
@@ -300,7 +307,21 @@ namespace Crest
             if (CollisionProvider.GetSamplingData(ref rect, 0f, _samplingData)
                 && CollisionProvider.SampleHeight(ref pos, _samplingData, out waterHeight))
             {
+                var oldHeight = ViewerHeightAboveWater;
+
                 ViewerHeightAboveWater = pos.y - waterHeight;
+
+                // _firstViewerHeightUpdate is tracked to always broadcast initial state
+                if ((oldHeight >= 2f || _firstViewerHeightUpdate) && ViewerHeightAboveWater < 2f)
+                {
+                    ViewerLessThan2mAboveWater(this);
+                }
+                else if ((oldHeight < 2f || _firstViewerHeightUpdate) && ViewerHeightAboveWater >= 2f)
+                {
+                    ViewerMoreThan2mAboveWater(this);
+                }
+
+                _firstViewerHeightUpdate = false;
             }
 
             CollisionProvider.ReturnSamplingData(_samplingData);
@@ -366,6 +387,15 @@ namespace Crest
         /// </summary>
         ICollProvider _collProvider;
         public ICollProvider CollisionProvider { get { return _collProvider != null ? _collProvider : (_collProvider = _simSettingsAnimatedWaves.CreateCollisionProvider()); } }
+
+        private void OnEnable()
+        {
+            _firstViewerHeightUpdate = true;
+        }
+        private void OnDisable()
+        {
+            _firstViewerHeightUpdate = true;
+        }
 
 #if UNITY_EDITOR
         private void OnValidate()

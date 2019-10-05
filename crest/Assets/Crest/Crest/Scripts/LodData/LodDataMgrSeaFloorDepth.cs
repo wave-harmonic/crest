@@ -20,8 +20,6 @@ namespace Crest
         public override void UseSettings(SimSettingsBase settings) { }
 
         bool _targetsClear = false;
-        private static int sp_SliceViewProjMatrices = Shader.PropertyToID("_SliceViewProjMatrices");
-        private static int sp_CurrentLodCount = Shader.PropertyToID("_CurrentLodCount");
 
         public const string ShaderName = "Crest/Inputs/Depth/Cached Depths";
 
@@ -40,7 +38,7 @@ namespace Crest
             {
                 buf.SetRenderTarget(_targets, 0, CubemapFace.Unknown, lodIdx);
                 buf.ClearRenderTarget(false, true, Color.white * 1000f);
-                buf.SetGlobalFloat(OceanRenderer.sp_LD_SliceIndex, lodIdx);
+                buf.SetGlobalFloat(sp_LD_SliceIndex, lodIdx);
                 SubmitDraws(lodIdx, buf);
             }
 

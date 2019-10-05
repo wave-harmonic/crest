@@ -88,9 +88,8 @@ public class OceanDebugGUI : MonoBehaviour
 
             _showSimTargets = GUI.Toggle(new Rect(x, y, w, h), _showSimTargets, "Show sim data"); y += h;
 
-#if UNITY_EDITOR
             LodDataMgrAnimWaves._shapeCombinePass = GUI.Toggle(new Rect(x, y, w, h), LodDataMgrAnimWaves._shapeCombinePass, "Shape combine pass"); y += h;
-#endif
+            LodDataMgrAnimWaves._shapeCombinePassPingPong = GUI.Toggle(new Rect(x, y, w, h), LodDataMgrAnimWaves._shapeCombinePassPingPong, "Combine pass ping pong"); y += h;
 
             LodDataMgrShadow.s_processData = GUI.Toggle(new Rect(x, y, w, h), LodDataMgrShadow.s_processData, "Process Shadows"); y += h;
 

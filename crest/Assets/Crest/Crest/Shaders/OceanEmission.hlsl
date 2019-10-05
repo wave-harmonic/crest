@@ -67,11 +67,20 @@ half3 ScatterColour(
 		SampleSeaDepth(_LD_TexArray_SeaFloorDepth, uv_smallerLod, 1.0, depth);
 
 		// Huw: knocking this out for now as it seems to produce intense strobing when underwater.
-//#if _SHADOWS_ON
-//		half2 shadowSoftHard = 0.0;
-//		SampleShadow(_LD_TexArray_Shadow, uv_smallerLod, 1.0, shadowSoftHard);
-//		shadow = 1.0 - shadowSoftHard.x;
-//#endif
+#if _SHADOWS_ON
+		const float2 samplePoint = i_cameraPos.xz;
+
+		const float sliceCount = 7.0; // TODO
+		uint slice0, slice1; float lodAlpha;
+		PosToSliceIndices(samplePoint, sliceCount, _InstanceData.x, 0.0, slice0, slice1, lodAlpha);
+
+		float2 shadowSoftHard = 0.0;
+		// TODO - fix data type of slice index in WorldToUV - #343
+		SampleShadow(_LD_TexArray_Shadow, WorldToUV(samplePoint, slice0), 1.0 - lodAlpha, shadowSoftHard);
+		SampleShadow(_LD_TexArray_Shadow, WorldToUV(samplePoint, slice1), lodAlpha, shadowSoftHard);
+
+		shadow = saturate(1.0 - shadowSoftHard.x);
+#endif
 	}
 	else
 	{

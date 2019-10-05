@@ -157,12 +157,12 @@ namespace Crest
                 return;
             }
 
-            if (_textureMask == null)
+            if (_textureMask == null || _textureMask.width != source.width || _textureMask.height != source.height)
             {
                 _textureMask = new RenderTexture(source);
                 _textureMask.name = "Ocean Mask";
-                // @Memory: We could investigate making this an 8-bit texture
-                // instead to reduce GPU memory usage.
+                // @Memory: We could investigate making this an 8-bit texture instead to reduce GPU memory usage.
+                // We could also potentially try a half res mask as the mensicus could mask res issues.
                 _textureMask.format = RenderTextureFormat.RHalf;
                 _textureMask.Create();
 

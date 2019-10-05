@@ -368,7 +368,7 @@ namespace Crest
         {
             get
             {
-                return (12 * OceanRenderer.Instance.CurrentLodCount) + 4;
+                return OceanRenderer.Instance != null ? ((12 * OceanRenderer.Instance.CurrentLodCount) + 4) : 0;
             }
         }
 

@@ -52,6 +52,7 @@ namespace Crest
         private const string SHADER_UNDERWATER = "Crest/Underwater/Post Process";
         private const string SHADER_OCEAN_MASK = "Crest/Underwater/Ocean Mask";
 
+        bool _eventsRegistered = false;
 
         public void RegisterOceanChunkToRender(Renderer _oceanChunk)
         {
@@ -81,7 +82,7 @@ namespace Crest
                 return false;
             }
 
-            if (!OceanRenderer.Instance.OceanMaterial.IsKeywordEnabled("_UNDERWATER_ON"))
+            if (OceanRenderer.Instance && !OceanRenderer.Instance.OceanMaterial.IsKeywordEnabled("_UNDERWATER_ON"))
             {
                 Debug.LogError("Underwater must be enabled on the ocean material for UnderwaterPostProcess to work", this);
                 return false;
@@ -103,21 +104,17 @@ namespace Crest
             _underwaterPostProcessMaterialWrapper = new PropertyWrapperMaterial(_underwaterPostProcessMaterial);
 
             _oceanChunksToRender = new List<Renderer>(OceanBuilder.GetChunkCount);
-
-            if (OceanRenderer.Instance)
-            {
-                OceanRenderer.Instance.ViewerLessThan2mAboveWater += ViewerLessThan2mAboveWater;
-                OceanRenderer.Instance.ViewerMoreThan2mAboveWater += ViewerMoreThan2mAboveWater;
-            }
         }
 
         private void OnDestroy()
         {
-            if (OceanRenderer.Instance)
+            if (OceanRenderer.Instance && _eventsRegistered)
             {
                 OceanRenderer.Instance.ViewerLessThan2mAboveWater -= ViewerLessThan2mAboveWater;
                 OceanRenderer.Instance.ViewerMoreThan2mAboveWater -= ViewerMoreThan2mAboveWater;
             }
+
+            _eventsRegistered = false;
         }
 
         private void ViewerMoreThan2mAboveWater(OceanRenderer ocean)
@@ -132,6 +129,20 @@ namespace Crest
 
         void OnRenderImage(RenderTexture source, RenderTexture target)
         {
+            if (OceanRenderer.Instance == null)
+            {
+                Graphics.Blit(source, target);
+                _eventsRegistered = false;
+                return;
+            }
+
+            if (!_eventsRegistered)
+            {
+                OceanRenderer.Instance.ViewerLessThan2mAboveWater += ViewerLessThan2mAboveWater;
+                OceanRenderer.Instance.ViewerMoreThan2mAboveWater += ViewerMoreThan2mAboveWater;
+                enabled = OceanRenderer.Instance.ViewerHeightAboveWater < 2f;
+            }
+
             if (_commandBuffer == null)
             {
                 _commandBuffer = new CommandBuffer();

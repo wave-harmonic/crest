@@ -314,11 +314,11 @@ namespace Crest
                 // _firstViewerHeightUpdate is tracked to always broadcast initial state
                 if ((oldHeight >= 2f || _firstViewerHeightUpdate) && ViewerHeightAboveWater < 2f)
                 {
-                    ViewerLessThan2mAboveWater(this);
+                    ViewerLessThan2mAboveWater?.Invoke(this);
                 }
                 else if ((oldHeight < 2f || _firstViewerHeightUpdate) && ViewerHeightAboveWater >= 2f)
                 {
-                    ViewerMoreThan2mAboveWater(this);
+                    ViewerMoreThan2mAboveWater?.Invoke(this);
                 }
 
                 _firstViewerHeightUpdate = false;

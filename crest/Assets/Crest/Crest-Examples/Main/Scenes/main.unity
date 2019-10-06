@@ -188,6 +188,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1b0c0a69611596146aceb2f60532940c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _copyOceanMaterialParamsEachFrame: 1
   _viewOceanMask: 0
 --- !u!20 &227134469
 Camera:

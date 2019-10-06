@@ -176,6 +176,8 @@ namespace Crest
             _firstRender = false;
         }
 
+        // Populates a screen space mask which will inform the underwater postprocess. As a future optimisation we may
+        // be able to avoid this pass completely if we can reuse the camera depth after transparents are rendered.
         private void OnRenderImagePopulateMask(RenderTexture source)
         {
             if (_textureMask == null || _textureMask.width != source.width || _textureMask.height != source.height)

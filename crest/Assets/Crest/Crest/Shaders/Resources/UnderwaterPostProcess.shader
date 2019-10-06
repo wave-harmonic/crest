@@ -92,7 +92,7 @@ Shader "Crest/Underwater/Post Process"
 					const float depth = 0.0;
 					const half shadow = 1.0;
 
-					scatterCol = ScatterColour(depth, _WorldSpaceCameraPos, lightDir, view, shadow, true, true, sss);
+					scatterCol = ScatterColour(_AmbientLighting, depth, _WorldSpaceCameraPos, lightDir, view, shadow, true, true, sss);
 				}
 
 #if _CAUSTICS_ON

@@ -231,10 +231,6 @@ namespace Crest
             }
         }
 
-        private Color[] _AmbientLighting = new Color[1];
-        private UnityEngine.Rendering.SphericalHarmonicsL2 _sphericalHarmonicsL2;
-        private Vector3[] _shDirections = new Vector3[] { new Vector3(0.0f, 0.0f, 0.0f) };
-
         void LateUpdate()
         {
             // set global shader params
@@ -245,10 +241,6 @@ namespace Crest
             {
                 Debug.LogError("_viewpoint is null, ocean update will fail.", this);
             }
-
-            LightProbes.GetInterpolatedProbe(_viewpoint.position, null, out _sphericalHarmonicsL2);
-            _sphericalHarmonicsL2.Evaluate(_shDirections, _AmbientLighting);
-            Instance.OceanMaterial.SetVector("_AmbientLighting", _AmbientLighting[0]);
 
             if (_followViewpoint)
             {

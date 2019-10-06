@@ -23,6 +23,7 @@ namespace Crest
         static readonly int sp_InvViewProjection = Shader.PropertyToID("_InvViewProjection");
         static readonly int sp_InvViewProjectionRight = Shader.PropertyToID("_InvViewProjectionRight");
         static readonly int sp_InstanceData = Shader.PropertyToID("_InstanceData");
+        static readonly int sp_AmbientLighting = Shader.PropertyToID("_AmbientLighting");
 
         [Header("Settings"), SerializeField, Tooltip("If true, underwater effect copies ocean material params each frame. Setting to false will make it cheaper but risks the underwater appearance looking wrong if the ocean material is changed.")]
         bool _copyOceanMaterialParamsEachFrame = true;
@@ -55,6 +56,10 @@ namespace Crest
 
         private const string SHADER_UNDERWATER = "Crest/Underwater/Post Process";
         private const string SHADER_OCEAN_MASK = "Crest/Underwater/Ocean Mask";
+
+        Color[] _ambientLighting = new Color[1];
+        SphericalHarmonicsL2 _sphericalHarmonicsL2;
+        Vector3[] _shDirections = new Vector3[] { new Vector3(0.0f, 0.0f, 0.0f) };
 
         bool _eventsRegistered = false;
         bool _firstRender = true;
@@ -298,6 +303,13 @@ namespace Crest
 
             // Not sure why we need to do this - blit should set it...?
             _underwaterPostProcessMaterial.SetTexture(sp_MainTex, source);
+
+            // Compute ambient lighting SH
+            {
+                LightProbes.GetInterpolatedProbe(OceanRenderer.Instance.Viewpoint.position, null, out _sphericalHarmonicsL2);
+                _sphericalHarmonicsL2.Evaluate(_shDirections, _ambientLighting);
+                _underwaterPostProcessMaterial.SetVector(sp_AmbientLighting, _ambientLighting[0]);
+            }
         }
     }
 }

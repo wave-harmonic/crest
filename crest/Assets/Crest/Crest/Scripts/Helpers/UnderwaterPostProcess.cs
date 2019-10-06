@@ -28,6 +28,9 @@ namespace Crest
         [Header("Settings"), SerializeField, Tooltip("If true, underwater effect copies ocean material params each frame. Setting to false will make it cheaper but risks the underwater appearance looking wrong if the ocean material is changed.")]
         bool _copyOceanMaterialParamsEachFrame = true;
 
+        [SerializeField, Tooltip("Assign this to a material that uses shader `Crest/Underwater/Post Process`, with the same features enabled as the ocean surface material(s).")]
+        Material _underwaterPostProcessMaterial;
+
         [Header("Debug Options"), SerializeField]
         bool _viewOceanMask = false;
         // end public debug options
@@ -39,7 +42,6 @@ namespace Crest
 
         private Material _oceanMaskMaterial = null;
 
-        private Material _underwaterPostProcessMaterial = null;
         private PropertyWrapperMaterial _underwaterPostProcessMaterialWrapper;
 
         // NOTE: We keep a list of ocean chunks to render for a given frame
@@ -54,7 +56,6 @@ namespace Crest
         private const string FULL_SCREEN_EFFECT = "_FULL_SCREEN_EFFECT";
         private const string DEBUG_VIEW_OCEAN_MASK = "_DEBUG_VIEW_OCEAN_MASK";
 
-        private const string SHADER_UNDERWATER = "Crest/Underwater/Post Process";
         private const string SHADER_OCEAN_MASK = "Crest/Underwater/Ocean Mask";
 
         Color[] _ambientLighting = new Color[1];
@@ -78,17 +79,17 @@ namespace Crest
                 return false;
             }
 
-            _underwaterPostProcessMaterial = new Material(Shader.Find(SHADER_UNDERWATER));
             if (_underwaterPostProcessMaterial == null)
             {
-                Debug.LogError("UnderwaterPostProcess expects to have a post processing material attached", this);
+                Debug.LogError("UnderwaterPostProcess must have a post processing material assigned", this);
                 return false;
             }
 
-            _oceanMaskMaterial = new Material(Shader.Find(SHADER_OCEAN_MASK));
+            var maskShader = Shader.Find(SHADER_OCEAN_MASK);
+            _oceanMaskMaterial = maskShader ? new Material(maskShader) : null;
             if (_oceanMaskMaterial == null)
             {
-                Debug.LogError("UnderwaterPostProcess expects to have an ocean mask material attached", this);
+                Debug.LogError($"Could not create a material with shader {SHADER_OCEAN_MASK}", this);
                 return false;
             }
 
@@ -98,7 +99,27 @@ namespace Crest
                 return false;
             }
 
-            return true;
+            return CheckMaterial();
+        }
+
+        bool CheckMaterial()
+        {
+            var success = true;
+
+            var keywords = _underwaterPostProcessMaterial.shaderKeywords;
+            foreach (var keyword in keywords)
+            {
+                if (keyword == "_COMPILESHADERWITHDEBUGINFO_ON") continue;
+
+                if (!OceanRenderer.Instance.OceanMaterial.IsKeywordEnabled(keyword))
+                {
+                    Debug.LogWarning($"Keyword {keyword} was enabled on the underwater material {_underwaterPostProcessMaterial.name} but not on the ocean material {OceanRenderer.Instance.OceanMaterial.name}, underwater appearance may not match ocean surface in standalone builds.", this);
+
+                    success = false;
+                }
+            }
+
+            return success;
         }
 
         void Start()

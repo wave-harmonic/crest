@@ -189,6 +189,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _copyOceanMaterialParamsEachFrame: 1
+  _underwaterPostProcessMaterial: {fileID: 2100000, guid: 3d0a87cd084e4a64d9e1eae417fc80a3,
+    type: 2}
   _viewOceanMask: 0
 --- !u!20 &227134469
 Camera:

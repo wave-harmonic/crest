@@ -4,6 +4,32 @@
 
 Shader "Crest/Underwater/Post Process"
 {
+	Properties
+	{
+		// These mirror the same toggles on the ocean material
+
+		[Header(Scattering)]
+		[Toggle] _Shadows("Shadowing", Float) = 0
+
+		[Header(Subsurface Scattering)]
+		[Toggle] _SubSurfaceScattering("Enable", Float) = 1
+
+		[Header(Shallow Scattering)]
+		[Toggle] _SubSurfaceShallowColour("Enable", Float) = 1
+
+		[Header(Transparency)]
+		[Toggle] _Transparency("Enable", Float) = 1
+
+		[Header(Caustics)]
+		[Toggle] _Caustics("Enable", Float) = 1
+
+		[Header(Underwater)]
+		// Add a meniscus to the boundary between water and air
+		[Toggle] _Meniscus("Meniscus", float) = 1
+
+		[Header(Debug Options)]
+		[Toggle] _CompileShaderWithDebugInfo("Compile Shader With Debug Info (D3D11)", Float) = 0
+	}
 	SubShader
 	{
 		// No culling or depth

@@ -15,13 +15,14 @@ namespace Crest
     [RequireComponent(typeof(Camera))]
     public class UnderwaterPostProcess : MonoBehaviour
     {
-        static int sp_OceanHeight = Shader.PropertyToID("_OceanHeight");
-        static int sp_HorizonOrientation = Shader.PropertyToID("_HorizonOrientation");
-        static int sp_MainTex = Shader.PropertyToID("_MainTex");
-        static int sp_MaskTex = Shader.PropertyToID("_MaskTex");
-        static int sp_MaskDepthTex = Shader.PropertyToID("_MaskDepthTex");
-        static int sp_InvViewProjection = Shader.PropertyToID("_InvViewProjection");
-        static int sp_InvViewProjectionRight = Shader.PropertyToID("_InvViewProjectionRight");
+        static readonly int sp_OceanHeight = Shader.PropertyToID("_OceanHeight");
+        static readonly int sp_HorizonOrientation = Shader.PropertyToID("_HorizonOrientation");
+        static readonly int sp_MainTex = Shader.PropertyToID("_MainTex");
+        static readonly int sp_MaskTex = Shader.PropertyToID("_MaskTex");
+        static readonly int sp_MaskDepthTex = Shader.PropertyToID("_MaskDepthTex");
+        static readonly int sp_InvViewProjection = Shader.PropertyToID("_InvViewProjection");
+        static readonly int sp_InvViewProjectionRight = Shader.PropertyToID("_InvViewProjectionRight");
+        static readonly int sp_InstanceData = Shader.PropertyToID("_InstanceData");
 
         [Header("Settings"), SerializeField, Tooltip("If true, underwater effect copies ocean material params each frame. Setting to false will make it cheaper but risks the underwater appearance looking wrong if the ocean material is changed.")]
         bool _copyOceanMaterialParamsEachFrame = true;
@@ -240,6 +241,7 @@ namespace Crest
             }
 
             _underwaterPostProcessMaterial.SetFloat(LodDataMgr.sp_LD_SliceIndex, 0);
+            _underwaterPostProcessMaterial.SetVector(sp_InstanceData, new Vector4(OceanRenderer.Instance.ViewerAltitudeLevelAlpha, 0f, 0f, OceanRenderer.Instance.CurrentLodCount));
 
             OceanRenderer.Instance._lodDataAnimWaves.BindResultData(_underwaterPostProcessMaterialWrapper);
             if (OceanRenderer.Instance._lodDataSeaDepths)

@@ -154,3 +154,27 @@ void SampleShadow(in Texture2DArray i_oceanShadowSampler, in float3 i_uv_slice, 
 // zw: normalScrollSpeed0, normalScrollSpeed1
 uniform float4 _GeomData;
 uniform float3 _OceanCenterPosWorld;
+
+void PosToSliceIndices(const float2 worldXZ, const float sliceCount, const float meshScaleLerp, const float minSlice, out uint slice0, out uint slice1, out float lodAlpha)
+{
+	const float2 offsetFromCenter = abs(worldXZ - _OceanCenterPosWorld.xz);
+	const float taxicab = max(offsetFromCenter.x, offsetFromCenter.y);
+	const float radius0 = _LD_Pos_Scale[0].z / 2.0;
+	const float sliceNumber = clamp(log2(taxicab / radius0), minSlice, sliceCount - 1.0);
+
+	lodAlpha = frac(sliceNumber);
+	slice0 = (uint)sliceNumber;
+	slice1 = slice0 + 1;
+
+	// lod alpha is remapped to ensure patches weld together properly. patches can vary significantly in shape (with
+	// strips added and removed), and this variance depends on the base density of the mesh, as this defines the strip width.
+	// using .15 as black and .85 as white should work for base mesh density as low as 16.
+	const float BLACK_POINT = 0.15, WHITE_POINT = 0.85;
+	lodAlpha = saturate((lodAlpha - BLACK_POINT) / (WHITE_POINT - BLACK_POINT));
+
+	if (slice0 == 0)
+	{
+		// blend out lod0 when viewpoint gains altitude
+		lodAlpha = min(lodAlpha + meshScaleLerp, 1.0);
+	}
+}

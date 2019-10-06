@@ -39,6 +39,9 @@ Shader "Crest/Underwater/Post Process"
 			float _CrestTime;
 			half3 _AmbientLighting;
 
+			// MeshScaleLerp, FarNormalsWeight, LODIndex (debug), lod count
+			float4 _InstanceData;
+
 			#include "../OceanEmission.hlsl"
 
 			float _OceanHeight;
@@ -78,19 +81,18 @@ Shader "Crest/Underwater/Post Process"
 				const float sceneZ = LinearEyeDepth(sceneZ01);
 				const float3 lightDir = _WorldSpaceLightPos0.xyz;
 
-				float3 surfaceAboveCamPosWorld = 0.0;
 				half3 scatterCol = 0.0;
 				{
+					float3 dummy;
 					half sss = 0.0;
 					const float3 uv_slice = WorldToUV(_WorldSpaceCameraPos.xz);
-					SampleDisplacements(_LD_TexArray_AnimatedWaves, uv_slice, 1.0, surfaceAboveCamPosWorld, sss);
-					surfaceAboveCamPosWorld.y += _OceanCenterPosWorld.y;
+					SampleDisplacements(_LD_TexArray_AnimatedWaves, uv_slice, 1.0, dummy, sss);
 
 					// depth and shadow are computed in ScatterColour when underwater==true, using the LOD1 texture.
 					const float depth = 0.0;
 					const half shadow = 1.0;
 
-					scatterCol = ScatterColour(surfaceAboveCamPosWorld, depth, _WorldSpaceCameraPos, lightDir, view, shadow, true, true, sss);
+					scatterCol = ScatterColour(depth, _WorldSpaceCameraPos, lightDir, view, shadow, true, true, sss);
 				}
 
 #if _CAUSTICS_ON

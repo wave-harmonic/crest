@@ -306,9 +306,18 @@ namespace Crest
 
             // Compute ambient lighting SH
             {
+                // We could pass in a renderer which would prime this lookup. However it doesnt make sense to use an existing render
+                // at different position, as this would then thrash it and negate the priming functionality. We could create a dummy invis GO
+                // with a dummy Renderer which might be enoguh, but this is hacky enough that we'll wait for it to become a problem
+                // rather than add a pre-emptive hack.
+
+                UnityEngine.Profiling.Profiler.BeginSample("Underwater sample spherical harmonics");
+
                 LightProbes.GetInterpolatedProbe(OceanRenderer.Instance.Viewpoint.position, null, out _sphericalHarmonicsL2);
                 _sphericalHarmonicsL2.Evaluate(_shDirections, _ambientLighting);
                 _underwaterPostProcessMaterial.SetVector(sp_AmbientLighting, _ambientLighting[0]);
+
+                UnityEngine.Profiling.Profiler.EndSample();
             }
         }
     }

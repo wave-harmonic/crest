@@ -110,16 +110,13 @@ A typical render order for a frame is the following:
 * Opaque geometry is rendered, writes to opaque depth buffer (queue <= 2500)
 * Sky is rendered, probably at zfar with depth test enabled so it only renders outside the opaque surfaces
 * Frame colours and depth are copied out for use later in postprocessing
-* Ocean 'curtain' renders, draws underwater effect from bottom of screen up to water line (queue = 2510)
-  * It is set to render before ocean in UnderwaterEffect.cs
-  * Sky is at zfar and will be fully fogged/obscured by the water volume
 * Ocean renders early in the transparent queue (queue = 2510)
   * It samples the postprocessing colours and depths, to do refraction
   * It reads and writes from the frame depth buffer, to ensure waves are sorted correctly
-  * It stomps over the underwater curtain to make a correct final result
   * It stopms over sky - sky is at zfar and will be fully fogged/obscured by the water volume
 * Particles and alpha render. If they have depth test enabled, they will clip against the surface
 * Postprocessing runs with the postprocessing depth and colours
+  * If enabled, underwater postprocess constructs a screenspace mask for the ocean and uses it to draw the underwater effect over the screen
 
 
 # Ocean LOD data types
@@ -280,7 +277,7 @@ The system does not support cross blending of multiple scripts.
 This is demonstrated in the *main.unity* scene in the example content.
 The ocean in this scene uses the material *Ocean-Underwater.mat* which enables rendering the underside of the surface, and has the script *Underwater Post Process* attached to the camera which renders the underwater effect.
 Any camera which needs to go underwater needs to have this script attached.
-This effect adds full screen passes and should only be used if necessary.
+This effect adds full screen passes and only be used if camera needs to be submerged.
 
 ## Masking out surface
 

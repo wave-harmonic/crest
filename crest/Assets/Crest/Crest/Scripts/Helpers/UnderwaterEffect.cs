@@ -34,8 +34,8 @@ namespace Crest
         PropertyWrapperMPB _mpb;
         Renderer _rend;
 
-        static int sp_HeightOffset = Shader.PropertyToID("_HeightOffset");
-        static int sp_InstanceData = Shader.PropertyToID("_InstanceData");
+        static readonly int sp_HeightOffset = Shader.PropertyToID("_HeightOffset");
+        static readonly int sp_InstanceData = Shader.PropertyToID("_InstanceData");
 
         private void Start()
         {

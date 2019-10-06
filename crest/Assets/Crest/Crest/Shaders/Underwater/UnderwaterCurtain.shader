@@ -56,7 +56,7 @@ Shader "Crest/Underwater Curtain"
 			float _CrestTime;
 			float _HeightOffset;
 
-			// MeshScaleLerp, FarNormalsWeight, LODIndex (debug), unused
+			// MeshScaleLerp, FarNormalsWeight, LODIndex (debug), lod count
 			float4 _InstanceData;
 
 			#include "../OceanEmission.hlsl"

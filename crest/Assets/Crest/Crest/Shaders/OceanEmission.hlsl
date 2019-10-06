@@ -70,7 +70,7 @@ half3 ScatterColour(
 #if _SHADOWS_ON
 		const float2 samplePoint = i_cameraPos.xz;
 
-		const float sliceCount = 7.0; // TODO
+		const float sliceCount = _InstanceData.w;
 		uint slice0, slice1; float lodAlpha;
 		PosToSliceIndices(samplePoint, sliceCount, _InstanceData.x, 0.0, slice0, slice1, lodAlpha);
 

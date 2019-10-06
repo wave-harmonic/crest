@@ -65,7 +65,7 @@ namespace Crest
                 // blend furthest normals scale in/out to avoid pop, if scale could reduce
                 bool needToBlendOutNormals = lodIdx == lodCount - 1 && OceanRenderer.Instance.ScaleCouldDecrease;
                 float farNormalsWeight = needToBlendOutNormals ? OceanRenderer.Instance.ViewerAltitudeLevelAlpha : 1f;
-                _mpb.SetVector(sp_InstanceData, new Vector4(meshScaleLerp, farNormalsWeight, lodIdx));
+                _mpb.SetVector(sp_InstanceData, new Vector4(meshScaleLerp, farNormalsWeight, lodIdx, OceanRenderer.Instance.CurrentLodCount));
 
                 _rend.SetPropertyBlock(_mpb.materialPropertyBlock);
             }

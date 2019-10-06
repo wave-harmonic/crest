@@ -160,6 +160,24 @@ namespace Crest
                 return;
             }
 
+            OnRenderImagePopulateMask(source);
+
+            OnRenderImageUpdateMaterial(source);
+
+            _commandBuffer.Blit(source, target, _underwaterPostProcessMaterial);
+
+            Graphics.ExecuteCommandBuffer(_commandBuffer);
+            _commandBuffer.Clear();
+
+            // Need this to prevent Unity from giving the following warning:
+            // - "OnRenderImage() possibly didn't write anything to the destination texture!"
+            Graphics.SetRenderTarget(target);
+
+            _firstRender = false;
+        }
+
+        private void OnRenderImagePopulateMask(RenderTexture source)
+        {
             if (_textureMask == null || _textureMask.width != source.width || _textureMask.height != source.height)
             {
                 _textureMask = new RenderTexture(source);
@@ -199,19 +217,6 @@ namespace Crest
 
                 if (!saveChunksToRender) _oceanChunksToRender.Clear();
             }
-
-            OnRenderImageUpdateMaterial(source);
-
-            _commandBuffer.Blit(source, target, _underwaterPostProcessMaterial);
-
-            Graphics.ExecuteCommandBuffer(_commandBuffer);
-            _commandBuffer.Clear();
-
-            // Need this to prevent Unity from giving the following warning:
-            // - "OnRenderImage() possibly didn't write anything to the destination texture!"
-            Graphics.SetRenderTarget(target);
-
-            _firstRender = false;
         }
 
         void OnRenderImageUpdateMaterial(RenderTexture source)

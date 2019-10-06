@@ -48,7 +48,7 @@ uniform half3 _DiffuseShadow;
 #endif
 
 half3 ScatterColour(
-	in const float3 i_surfaceWorldPos, in const half i_surfaceOceanDepth, in const float3 i_cameraPos,
+	in const half i_surfaceOceanDepth, in const float3 i_cameraPos,
 	in const half3 i_lightDir, in const half3 i_view, in const fixed i_shadow,
 	in const bool i_underwater, in const bool i_outscatterLight, half sss)
 {

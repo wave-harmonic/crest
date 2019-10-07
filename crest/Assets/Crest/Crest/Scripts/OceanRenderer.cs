@@ -139,6 +139,10 @@ namespace Crest
         public float ViewerHeightAboveWater { get; private set; }
 
         SampleHeightHelper _sampleHeightHelper = new SampleHeightHelper();
+        
+        static int sp_crestTime = Shader.PropertyToID("_CrestTime");
+        static int sp_texelsPerWave = Shader.PropertyToID("_TexelsPerWave");
+
 
         void Awake()
         {
@@ -225,8 +229,8 @@ namespace Crest
         void LateUpdate()
         {
             // set global shader params
-            Shader.SetGlobalFloat("_TexelsPerWave", MinTexelsPerWave);
-            Shader.SetGlobalFloat("_CrestTime", CurrentTime);
+            Shader.SetGlobalFloat(sp_texelsPerWave, MinTexelsPerWave);
+            Shader.SetGlobalFloat(sp_crestTime, CurrentTime);
 
             if (_viewpoint == null)
             {
@@ -345,9 +349,6 @@ namespace Crest
         public float MaxVertDisplacement { get { return _maxVertDispFromShape; } }
 
         public static OceanRenderer Instance { get; private set; }
-
-        public static int sp_LD_SliceIndex = Shader.PropertyToID("_LD_SliceIndex");
-        public static int sp_LODChange = Shader.PropertyToID("_LODChange");
 
         /// <summary>
         /// Provides ocean shape to CPU.

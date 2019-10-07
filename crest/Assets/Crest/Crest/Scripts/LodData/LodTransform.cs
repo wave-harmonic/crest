@@ -130,7 +130,7 @@ namespace Crest
 
         public static int ParamIdPosScale(bool sourceLod = false)
         {
-            if(sourceLod)
+            if (sourceLod)
             {
                 return s_paramsPosScaleSource;
             }
@@ -142,7 +142,7 @@ namespace Crest
 
         public static int ParamIdOcean(bool sourceLod = false)
         {
-            if(sourceLod)
+            if (sourceLod)
             {
                 return s_paramsOceanSource;
             }
@@ -154,7 +154,7 @@ namespace Crest
 
         public void SetOrigin(Vector3 newOrigin)
         {
-            for(int lodIdx = 0; lodIdx < LodCount; lodIdx++)
+            for (int lodIdx = 0; lodIdx < LodCount; lodIdx++)
             {
                 _renderData[lodIdx]._posSnapped -= newOrigin;
                 _renderDataSource[lodIdx]._posSnapped -= newOrigin;

@@ -122,7 +122,7 @@ namespace Crest
             var ldflow = OceanRenderer.Instance._lodDataFlow;
             var ldshadows = OceanRenderer.Instance._lodDataShadow;
 
-            _mpb.SetFloat(OceanRenderer.sp_LD_SliceIndex, _lodIndex);
+            _mpb.SetFloat(LodDataMgr.sp_LD_SliceIndex, _lodIndex);
             ldaws.BindResultData(_mpb);
             if (ldflow) ldflow.BindResultData(_mpb);
             if (ldfoam) ldfoam.BindResultData(_mpb); else LodDataMgrFoam.BindNull(_mpb);

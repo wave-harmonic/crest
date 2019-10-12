@@ -22,11 +22,11 @@ namespace Crest
         }
         [Header("Readback to CPU")]
         [Tooltip("Where to obtain ocean shape on CPU for physics / gameplay."), SerializeField]
-        CollisionSources _collisionSource = CollisionSources.OceanDisplacementTexturesGPU;
+        CollisionSources _collisionSource = CollisionSources.ComputeShaderQueries;
         public CollisionSources CollisionSource { get { return _collisionSource; } }
 
         [SerializeField, Tooltip("Cache CPU requests for ocean height. Requires restart.")]
-        bool _cachedHeightQueries = true;
+        bool _cachedHeightQueries = false;
         public bool CachedHeightQueries { get { return _cachedHeightQueries; } }
 
         [Header("GPU Readback Settings")]

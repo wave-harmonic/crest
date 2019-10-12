@@ -273,6 +273,9 @@ namespace Crest
             _segmentRegistrarQueue.ClearAvailable();
         }
 
+        /// <summary>
+        /// Copy out displacements, heights, normals. Pass null if info is not required.
+        /// </summary>
         private bool RetrieveResults(int guid, Vector3[] displacements, float[] heights, Vector3[] normals)
         {
             if (_resultSegments == null)
@@ -298,10 +301,10 @@ namespace Crest
             if (countPoints > 0)
             {
                 // Retrieve Results
-                if(displacements != null) _queryResults.Slice(segment.x, countPoints).CopyTo(displacements);
+                if (displacements != null) _queryResults.Slice(segment.x, countPoints).CopyTo(displacements);
 
                 // Retrieve Result heights
-                if(heights != null)
+                if (heights != null)
                 {
                     var seaLevel = OceanRenderer.Instance.SeaLevel;
                     for (int i = 0; i < countPoints; i++)
@@ -329,22 +332,6 @@ namespace Crest
             }
 
             return true;
-        }
-
-        /// <summary>
-        /// Copy out the result displacements and normals, if queried.
-        /// </summary>
-        bool RetrieveResultDisplacements(int guid, Vector3[] displacements, Vector3[] normals)
-        {
-            return RetrieveResults(guid, displacements, null, normals);
-        }
-
-        /// <summary>
-        /// Retrieve water heights and/or normals
-        /// </summary>
-        bool RetrieveResultHeights(int guid, float[] heights, Vector3[] normals)
-        {
-            return RetrieveResults(guid, null, heights, normals);
         }
 
         /// <summary>
@@ -463,7 +450,7 @@ namespace Crest
 
             // Find the last request that was completed
             var lastDoneIndex = _requests.Count - 1;
-            while(lastDoneIndex >= 0 && !_requests[lastDoneIndex]._request.done)
+            while (lastDoneIndex >= 0 && !_requests[lastDoneIndex]._request.done)
             {
                 --lastDoneIndex;
             }
@@ -562,7 +549,7 @@ namespace Crest
                 result |= (int)QueryStatus.PostFailed;
             }
 
-            if (!RetrieveResultDisplacements(i_ownerHash, o_resultDisps, o_resultNorms))
+            if (!RetrieveResults(i_ownerHash, o_resultDisps, null, o_resultNorms))
             {
                 result |= (int)QueryStatus.RetrieveFailed;
             }
@@ -584,7 +571,7 @@ namespace Crest
                 result |= (int)QueryStatus.PostFailed;
             }
 
-            if (!RetrieveResultHeights(i_ownerHash, o_resultHeights, o_resultNorms))
+            if (!RetrieveResults(i_ownerHash, null, o_resultHeights, o_resultNorms))
             {
                 result |= (int)QueryStatus.RetrieveFailed;
             }

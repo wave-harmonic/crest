@@ -28,6 +28,8 @@ namespace Crest
         ComputeShader _shaderProcessQueries;
         PropertyWrapperComputeStandalone _wrapper;
 
+        System.Action<AsyncGPUReadbackRequest> _dataArrivedAction;
+
         const int s_maxQueryCount = 4096;
         // Must match value in compute shader
         const int s_computeGroupSize = 64;
@@ -408,9 +410,8 @@ namespace Crest
 
                 ReadbackRequest request;
                 request._dataTimestamp = Time.time - Time.deltaTime;
-                request._request = AsyncGPUReadback.Request(_computeBufResults, DataArrived);
+                request._request = AsyncGPUReadback.Request(_computeBufResults, _dataArrivedAction);
                 request._segments = _segmentRegistrarQueue.Current._segments;
-
                 _requests.Add(request);
 
                 _segmentRegistrarQueue.AcquireNew();
@@ -501,6 +502,8 @@ namespace Crest
         {
             Debug.Assert(Instance == null);
             Instance = this;
+
+            _dataArrivedAction = new System.Action<AsyncGPUReadbackRequest>(DataArrived);
 
             _shaderProcessQueries = Resources.Load<ComputeShader>(s_shaderName);
             s_kernelHandle = _shaderProcessQueries.FindKernel(s_kernelName);

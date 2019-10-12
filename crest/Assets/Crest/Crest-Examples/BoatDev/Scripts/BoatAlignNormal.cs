@@ -33,8 +33,7 @@ public class BoatAlignNormal : FloatingObjectBase
     float _boatLength = 3f;
 
     [Header("Drag")]
-    [SerializeField]
-    float _dragInWaterUp = 3f;
+    [SerializeField] float _dragInWaterUp = 3f;
     [SerializeField] float _dragInWaterRight = 2f;
     [SerializeField] float _dragInWaterForward = 1f;
 
@@ -102,6 +101,8 @@ public class BoatAlignNormal : FloatingObjectBase
 
         _sampleHeightHelper.Sample(ref height, ref normal, ref waterSurfaceVel);
 
+        // Ignore vertical component of vel - this can be noisy (depending on collision source), which can make boats ping into air.
+        waterSurfaceVel.y = 0f;
 
         if (GPUReadbackFlow.Instance)
         {
@@ -176,7 +177,7 @@ public class BoatAlignNormal : FloatingObjectBase
         {
             _sampleHeightHelperLengthwise.Init(transform.position, _boatLength);
             var dummy = 0f;
-            if(_sampleHeightHelperLengthwise.Sample(ref dummy, ref normalLongitudinal))
+            if (_sampleHeightHelperLengthwise.Sample(ref dummy, ref normalLongitudinal))
             {
                 var F = transform.forward;
                 F.y = 0f;
@@ -191,7 +192,7 @@ public class BoatAlignNormal : FloatingObjectBase
         }
 
         if (_debugDraw) Debug.DrawLine(transform.position, transform.position + 5f * normal, Color.green);
-        if (_debugDraw && _useBoatLength) Debug.DrawLine(transform.position, transform.position + 5f * normalLongitudinal, Color.green);
+        if (_debugDraw && _useBoatLength) Debug.DrawLine(transform.position, transform.position + 5f * normalLongitudinal, Color.yellow);
 
         var torqueWidth = Vector3.Cross(transform.up, normal);
         _rb.AddTorque(torqueWidth * _boyancyTorque, ForceMode.Acceleration);

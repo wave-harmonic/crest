@@ -2,7 +2,6 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
-// TODO(CQ): Move these to trello
 // Potential improvements
 // - Half return values
 // - Half minGridSize
@@ -14,7 +13,11 @@ using UnityEngine.Rendering;
 
 namespace Crest
 {
-    // TODO(CQ): Give overview of how this class works.
+    /// <summary>
+    /// Provides heights and other physical data about the water surface. Works by uploading query positions to GPU and computing
+    /// the data and then transferring back the results asynchronously. An exception to this is water surface velocities - these can
+    /// not be computed on the GPU and are instead computed on the CPU by retaining last frames' query results and computing finite diffs.
+    /// </summary>
     public class CollProviderCompute : MonoBehaviour, ICollProvider
     {
         const string s_shaderName = "ProcessCollisionQueries";
@@ -487,8 +490,6 @@ namespace Crest
             }
         }
 
-        // TODO(CQ): We want to do this in a lot of places, should we pull this
-        // out as a util function and just call this in those places?
         void Swap<T>(ref T a, ref T b)
         {
             var temp = b;

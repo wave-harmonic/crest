@@ -65,10 +65,11 @@ namespace Crest
 
         void FixedUpdate()
         {
-            UnityEngine.Profiling.Profiler.BeginSample("BoatAlignNormal.FixedUpdate");
+            UnityEngine.Profiling.Profiler.BeginSample("SimpleFloatingObject.FixedUpdate");
 
             if (OceanRenderer.Instance == null)
             {
+                UnityEngine.Profiling.Profiler.EndSample();
                 return;
             }
 
@@ -147,6 +148,7 @@ namespace Crest
             _inWater = bottomDepth > 0f;
             if (!_inWater)
             {
+                UnityEngine.Profiling.Profiler.EndSample();
                 return;
             }
 

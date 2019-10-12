@@ -76,10 +76,20 @@ namespace Crest
 
             public void AcquireNew()
             {
+                var lastIndex = _segmentAcquire;
+
                 _segmentAcquire = (_segmentAcquire + 1) % _segments.Length;
 
                 // The last index should never increment and land on the first index - it should only happen the other way around.
                 Debug.Assert(_segmentAcquire != _segmentRelease, "Segment registrar scratch exhausted.");
+
+                _segments[_segmentAcquire]._numQueries = _segments[lastIndex]._numQueries;
+
+                _segments[_segmentAcquire]._segments.Clear();
+                foreach (var segment in _segments[lastIndex]._segments)
+                {
+                    _segments[_segmentAcquire]._segments.Add(segment.Key, segment.Value);
+                }
             }
 
             public void ReleaseLast()
@@ -379,8 +389,11 @@ namespace Crest
             return 0;
         }
 
-        // This needs to run before OceanRenderer.LateUpdate, because the latter will change the LOD positions/scales, while we will read
+        // This needs to run in Update()
+        // - It needs to run before OceanRenderer.LateUpdate, because the latter will change the LOD positions/scales, while we will read
         // the last frames displacements.
+        // - It should run after FixedUpdate, as physics objects will update query points there. Also it computes the displacement timestamps
+        // using Time.time and Time.deltaTime, which would be incorrect if it were in FixedUpdate.
         void Update()
         {
             if (_segmentRegistrarQueue.Current._numQueries > 0)

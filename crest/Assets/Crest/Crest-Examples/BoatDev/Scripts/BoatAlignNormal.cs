@@ -101,8 +101,6 @@ public class BoatAlignNormal : FloatingObjectBase
 
         _sampleHeightHelper.Sample(ref height, ref normal, ref waterSurfaceVel);
 
-        // Ignore vertical component of vel - this can be noisy (depending on collision source), which can make boats ping into air.
-        waterSurfaceVel.y = 0f;
 
         if (GPUReadbackFlow.Instance)
         {
@@ -173,7 +171,7 @@ public class BoatAlignNormal : FloatingObjectBase
     {
         Vector3 normal = normalSideways, normalLongitudinal = Vector3.up;
 
-        if(_useBoatLength)
+        if (_useBoatLength)
         {
             _sampleHeightHelperLengthwise.Init(transform.position, _boatLength);
             var dummy = 0f;

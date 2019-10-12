@@ -17,13 +17,13 @@ namespace Crest
         bool _valid = false;
 
         /// <summary>
-        /// Call this to prime the sampling. Should be called once per frame.
+        /// Call this to prime the sampling.
         /// </summary>
-        public void Init(Vector3 i_queryPos, float i_minLength)
+        public bool Init(Vector3 i_queryPos, float i_minLength)
         {
             _queryPos[0] = i_queryPos;
             var rect = new Rect(i_queryPos.x, i_queryPos.z, 0f, 0f);
-            _valid = OceanRenderer.Instance.CollisionProvider.GetSamplingData(ref rect, i_minLength, _samplingData);
+            return _valid = OceanRenderer.Instance.CollisionProvider.GetSamplingData(ref rect, i_minLength, _samplingData);
         }
 
         /// <summary>
@@ -42,6 +42,7 @@ namespace Crest
 
             if (!OceanRenderer.Instance.CollisionProvider.RetrieveSucceeded(status))
             {
+                _valid = false;
                 return false;
             }
 
@@ -63,6 +64,7 @@ namespace Crest
 
             if (!OceanRenderer.Instance.CollisionProvider.RetrieveSucceeded(status))
             {
+                _valid = false;
                 return false;
             }
 

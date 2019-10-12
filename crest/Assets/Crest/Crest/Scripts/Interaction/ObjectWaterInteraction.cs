@@ -122,21 +122,21 @@ namespace Crest
                 vel = Vector3.zero;
             }
 
-            if (ocean._simSettingsFlow != null &&
-                ocean._simSettingsFlow._readbackData &&
-                GPUReadbackFlow.Instance)
-            {
-                var position = transform.position;
-                var samplingArea = new Rect(position.x, position.z, 0f, 0f);
-                GPUReadbackFlow.Instance.GetSamplingData(ref samplingArea, _boat.ObjectWidth, _samplingDataFlow);
+            //if (ocean._simSettingsFlow != null &&
+            //    ocean._simSettingsFlow._readbackData &&
+            //    GPUReadbackFlow.Instance)
+            //{
+            //    var position = transform.position;
+            //    var samplingArea = new Rect(position.x, position.z, 0f, 0f);
+            //    GPUReadbackFlow.Instance.GetSamplingData(ref samplingArea, _boat.ObjectWidth, _samplingDataFlow);
 
-                Vector2 surfaceFlow;
-                GPUReadbackFlow.Instance.SampleFlow(ref position, _samplingDataFlow, out surfaceFlow);
+            //    Vector2 surfaceFlow;
+            //    GPUReadbackFlow.Instance.SampleFlow(ref position, _samplingDataFlow, out surfaceFlow);
 
-                vel -= new Vector3(surfaceFlow.x, 0, surfaceFlow.y);
+            //    vel -= new Vector3(surfaceFlow.x, 0, surfaceFlow.y);
 
-                GPUReadbackFlow.Instance.ReturnSamplingData(_samplingDataFlow);
-            }
+            //    GPUReadbackFlow.Instance.ReturnSamplingData(_samplingDataFlow);
+            //}
             vel.y *= _weightUpDownMul;
 
             var speedKmh = vel.magnitude * 3.6f;

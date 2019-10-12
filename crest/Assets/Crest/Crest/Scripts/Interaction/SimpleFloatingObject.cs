@@ -74,13 +74,6 @@ namespace Crest
                 return;
             }
 
-            // Trigger processing of displacement textures that have come back this frame. This will be processed
-            // anyway in Update(), but FixedUpdate() is earlier so make sure it's up to date now.
-            if (OceanRenderer.Instance._simSettingsAnimatedWaves.CollisionSource == SimSettingsAnimatedWaves.CollisionSources.OceanDisplacementTexturesGPU && GPUReadbackDisps.Instance)
-            {
-                GPUReadbackDisps.Instance.ProcessRequests();
-            }
-
             var collProvider = OceanRenderer.Instance.CollisionProvider;
             var position = transform.position;
 
@@ -109,19 +102,19 @@ namespace Crest
 
             if (_debugDraw) VisualiseCollisionArea.DebugDrawCross(undispPos, 1f, Color.red);
 
-            if (GPUReadbackFlow.Instance)
-            {
-                GPUReadbackFlow.Instance.ProcessRequests();
+            //if (GPUReadbackFlow.Instance)
+            //{
+            //    GPUReadbackFlow.Instance.ProcessRequests();
 
-                var flowRect = new Rect(position.x, position.z, 0f, 0f);
-                GPUReadbackFlow.Instance.GetSamplingData(ref flowRect, _objectWidth, _samplingDataFlow);
+            //    var flowRect = new Rect(position.x, position.z, 0f, 0f);
+            //    GPUReadbackFlow.Instance.GetSamplingData(ref flowRect, _objectWidth, _samplingDataFlow);
 
-                Vector2 surfaceFlow;
-                GPUReadbackFlow.Instance.SampleFlow(ref position, _samplingDataFlow, out surfaceFlow);
-                waterSurfaceVel += new Vector3(surfaceFlow.x, 0, surfaceFlow.y);
+            //    Vector2 surfaceFlow;
+            //    GPUReadbackFlow.Instance.SampleFlow(ref position, _samplingDataFlow, out surfaceFlow);
+            //    waterSurfaceVel += new Vector3(surfaceFlow.x, 0, surfaceFlow.y);
 
-                GPUReadbackFlow.Instance.ReturnSamplingData(_samplingDataFlow);
-            }
+            //    GPUReadbackFlow.Instance.ReturnSamplingData(_samplingDataFlow);
+            //}
 
             if (_debugDraw)
             {

@@ -106,13 +106,6 @@ namespace Crest
             CalcTotalWeight();
 #endif
 
-            // Trigger processing of displacement textures that have come back this frame. This will be processed
-            // anyway in Update(), but FixedUpdate() is earlier so make sure it's up to date now.
-            if (OceanRenderer.Instance._simSettingsAnimatedWaves.CollisionSource == SimSettingsAnimatedWaves.CollisionSources.OceanDisplacementTexturesGPU && GPUReadbackDisps.Instance)
-            {
-                GPUReadbackDisps.Instance.ProcessRequests();
-            }
-
             var collProvider = OceanRenderer.Instance.CollisionProvider;
             var thisRect = GetWorldAABB();
             if (!collProvider.GetSamplingData(ref thisRect, _minSpatialLength, _samplingData))
@@ -130,21 +123,21 @@ namespace Crest
 
             var waterSurfaceVel = _queryResultVels[_forcePoints.Length];
 
-            if (GPUReadbackFlow.Instance)
-            {
-                GPUReadbackFlow.Instance.ProcessRequests();
+            //if (GPUReadbackFlow.Instance)
+            //{
+            //    GPUReadbackFlow.Instance.ProcessRequests();
 
-                var position = transform.position;
-                var flowRect = new Rect(position.x, position.z, 0f, 0f);
-                if (GPUReadbackFlow.Instance.GetSamplingData(ref flowRect, _minSpatialLength, _samplingDataFlow))
-                {
-                    Vector2 surfaceFlow;
-                    GPUReadbackFlow.Instance.SampleFlow(ref position, _samplingDataFlow, out surfaceFlow);
-                    waterSurfaceVel += new Vector3(surfaceFlow.x, 0, surfaceFlow.y);
+            //    var position = transform.position;
+            //    var flowRect = new Rect(position.x, position.z, 0f, 0f);
+            //    if (GPUReadbackFlow.Instance.GetSamplingData(ref flowRect, _minSpatialLength, _samplingDataFlow))
+            //    {
+            //        Vector2 surfaceFlow;
+            //        GPUReadbackFlow.Instance.SampleFlow(ref position, _samplingDataFlow, out surfaceFlow);
+            //        waterSurfaceVel += new Vector3(surfaceFlow.x, 0, surfaceFlow.y);
 
-                    GPUReadbackFlow.Instance.ReturnSamplingData(_samplingDataFlow);
-                }
-            }
+            //        GPUReadbackFlow.Instance.ReturnSamplingData(_samplingDataFlow);
+            //    }
+            //}
 
             // Buoyancy
             FixedUpdateBuoyancy(collProvider);

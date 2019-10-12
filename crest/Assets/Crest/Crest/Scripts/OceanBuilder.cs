@@ -192,22 +192,9 @@ namespace Crest
             // Add any required GPU readbacks
             {
                 var ssaw = ocean._simSettingsAnimatedWaves;
-                if (ssaw && ssaw.CollisionSource == SimSettingsAnimatedWaves.CollisionSources.OceanDisplacementTexturesGPU)
-                {
-                    ocean.gameObject.AddComponent<GPUReadbackDisps>();
-                }
                 if (ssaw && ssaw.CollisionSource == SimSettingsAnimatedWaves.CollisionSources.ComputeShaderQueries)
                 {
                     ocean.gameObject.AddComponent<CollProviderCompute>();
-                }
-
-                if (ocean.CreateFlowSim)
-                {
-                    var ssf = ocean._simSettingsFlow;
-                    if (ssf && ssf._readbackData)
-                    {
-                        ocean.gameObject.AddComponent<GPUReadbackFlow>();
-                    }
                 }
             }
 

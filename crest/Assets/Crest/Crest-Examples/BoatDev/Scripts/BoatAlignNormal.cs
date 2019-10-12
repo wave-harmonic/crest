@@ -84,13 +84,6 @@ public class BoatAlignNormal : FloatingObjectBase
 
         UnityEngine.Profiling.Profiler.BeginSample("BoatAlignNormal.FixedUpdate");
 
-        // Trigger processing of displacement textures that have come back this frame. This will be processed
-        // anyway in Update(), but FixedUpdate() is earlier so make sure it's up to date now.
-        if (OceanRenderer.Instance._simSettingsAnimatedWaves.CollisionSource == SimSettingsAnimatedWaves.CollisionSources.OceanDisplacementTexturesGPU && GPUReadbackDisps.Instance)
-        {
-            GPUReadbackDisps.Instance.ProcessRequests();
-        }
-
         var collProvider = OceanRenderer.Instance.CollisionProvider;
         var position = transform.position;
 
@@ -102,19 +95,19 @@ public class BoatAlignNormal : FloatingObjectBase
         _sampleHeightHelper.Sample(ref height, ref normal, ref waterSurfaceVel);
 
 
-        if (GPUReadbackFlow.Instance)
-        {
-            GPUReadbackFlow.Instance.ProcessRequests();
+        //if (GPUReadbackFlow.Instance)
+        //{
+        //    GPUReadbackFlow.Instance.ProcessRequests();
 
-            var flowRect = new Rect(position.x, position.z, 0f, 0f);
-            GPUReadbackFlow.Instance.GetSamplingData(ref flowRect, _boatWidth, _samplingDataFlow);
+        //    var flowRect = new Rect(position.x, position.z, 0f, 0f);
+        //    GPUReadbackFlow.Instance.GetSamplingData(ref flowRect, _boatWidth, _samplingDataFlow);
 
-            Vector2 surfaceFlow;
-            GPUReadbackFlow.Instance.SampleFlow(ref position, _samplingDataFlow, out surfaceFlow);
-            waterSurfaceVel += new Vector3(surfaceFlow.x, 0, surfaceFlow.y);
+        //    Vector2 surfaceFlow;
+        //    GPUReadbackFlow.Instance.SampleFlow(ref position, _samplingDataFlow, out surfaceFlow);
+        //    waterSurfaceVel += new Vector3(surfaceFlow.x, 0, surfaceFlow.y);
 
-            GPUReadbackFlow.Instance.ReturnSamplingData(_samplingDataFlow);
-        }
+        //    GPUReadbackFlow.Instance.ReturnSamplingData(_samplingDataFlow);
+        //}
 
         // I could filter the surface vel as the min of the last 2 frames. theres a hard case where a wavelength is turned on/off
         // which generates single frame vel spikes - because the surface legitimately moves very fast.

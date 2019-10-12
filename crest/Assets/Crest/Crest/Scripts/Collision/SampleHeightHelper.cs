@@ -57,7 +57,7 @@ namespace Crest
                 return false;
             }
 
-            var status = OceanRenderer.Instance.CollisionProvider.Query(GetHashCode(), _samplingData, _queryPos, _queryPos, _queryResult, _queryResultNormal);
+            var status = OceanRenderer.Instance.CollisionProvider.Query(GetHashCode(), _samplingData, _queryPos, _queryResult, _queryResultNormal, null);
 
             OceanRenderer.Instance.CollisionProvider.ReturnSamplingData(_samplingData);
 

@@ -86,6 +86,9 @@ Shader "Crest/Ocean"
 		[Header(Add Directional Light)]
 		[Toggle] _ComputeDirectionalLight("Enable", Float) = 1
 		_DirectionalLightFallOff("Fall-Off", Range(1.0, 4096.0)) = 275.0
+		[Toggle] _DirectionalLightVaryRoughness("Vary Fall-Off Over Distance", Float) = 0
+		_DirectionalLightFarDistance("Far Distance", Float) = 137.0
+		_DirectionalLightFallOffFar("Fall-Off At Far Distance", Range(1.0, 4096.0)) = 42.0
 		_DirectionalLightBoost("Boost", Range(0.0, 512.0)) = 7.0
 
 		[Header(Foam)]
@@ -197,6 +200,7 @@ Shader "Crest/Ocean"
 
 			#pragma shader_feature _APPLYNORMALMAPPING_ON
 			#pragma shader_feature _COMPUTEDIRECTIONALLIGHT_ON
+			#pragma shader_feature _DIRECTIONALLIGHTVARYROUGHNESS_ON
 			#pragma shader_feature _SUBSURFACESCATTERING_ON
 			#pragma shader_feature _SUBSURFACESHALLOWCOLOUR_ON
 			#pragma shader_feature _TRANSPARENCY_ON
@@ -470,7 +474,7 @@ Shader "Crest/Ocean"
 				else
 				#endif
 				{
-					ApplyReflectionSky(view, n_pixel, lightDir, shadow.y, input.foam_screenPosXYW.yzzw, reflAlpha, col);
+					ApplyReflectionSky(view, n_pixel, lightDir, shadow.y, input.foam_screenPosXYW.yzzw, pixelZ, reflAlpha, col);
 				}
 
 				// Override final result with white foam - bubbles on surface

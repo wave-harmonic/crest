@@ -158,7 +158,7 @@ namespace Crest
             // Hack - due to SV_IsFrontFace occasionally coming through as true for back faces,
             // add a param here that forces ocean to be in underwater state. I think the root
             // cause here might be imprecision or numerical issues at ocean tile boundaries, although
-            // i'm not sure why cracks are not visible in this case.
+            // I'm not sure why cracks are not visible in this case.
             var heightOffset = OceanRenderer.Instance.ViewerHeightAboveWater;
             _mpb.SetFloat(sp_ForceUnderwater, heightOffset < -2f ? 1f : 0f);
 
@@ -167,12 +167,6 @@ namespace Crest
             if (_drawRenderBounds)
             {
                 _rend.bounds.DebugDraw();
-            }
-
-            var underwater = _currentCamera.GetComponent<UnderwaterPostProcess>();
-            if (underwater != null && underwater.enabled)
-            {
-                underwater.RegisterOceanChunkToRender(_rend);
             }
         }
 

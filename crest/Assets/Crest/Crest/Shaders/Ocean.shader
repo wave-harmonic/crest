@@ -366,8 +366,6 @@ Shader "Crest/Ocean"
 
 			// frag shader uniforms
 
-			half _ShorelineFoamMinDepth;
-
 			#include "OceanFoam.hlsl"
 			#include "OceanEmission.hlsl"
 			#include "OceanReflection.hlsl"
@@ -463,19 +461,17 @@ Shader "Crest/Ocean"
 				half3 col = OceanEmission(view, n_pixel, lightDir, input.grabPos, pixelZ, uvDepth, sceneZ, sceneZ01, bubbleCol, _Normals, _CameraDepthTexture, underwater, scatterCol);
 
 				// Light that reflects off water surface
-				float reflAlpha = saturate((sceneZ - pixelZ) / _ShorelineFoamMinDepth);
-				half3 oldCol = col;
+				float reflAlpha = saturate((sceneZ - pixelZ) / 0.2);
 				#if _UNDERWATER_ON
 				if (underwater)
 				{
-					ApplyReflectionUnderwater(view, n_pixel, lightDir, shadow.y, input.foam_screenPosXYW.yzzw, scatterCol, col);
+					ApplyReflectionUnderwater(view, n_pixel, lightDir, shadow.y, input.foam_screenPosXYW.yzzw, scatterCol, reflAlpha, col);
 				}
 				else
 				#endif
 				{
-					ApplyReflectionSky(view, n_pixel, lightDir, shadow.y, input.foam_screenPosXYW.yzzw, col);
+					ApplyReflectionSky(view, n_pixel, lightDir, shadow.y, input.foam_screenPosXYW.yzzw, reflAlpha, col);
 				}
-				col = lerp(oldCol, col, reflAlpha);
 
 				// Override final result with white foam - bubbles on surface
 				#if _FOAM_ON

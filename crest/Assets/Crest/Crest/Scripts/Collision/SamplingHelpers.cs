@@ -17,8 +17,12 @@ namespace Crest
         bool _valid = false;
 
         /// <summary>
-        /// Call this to prime the sampling.
+        /// Call this to prime the sampling
         /// </summary>
+        /// <param name="i_queryPos">World space position to sample</param>
+        /// <param name="i_minLength">The smallest length scale you are interested in. If you are sampling data for boat physics,
+        /// pass in the boats width. Larger objects will ignore small wavelengths.</param>
+        /// <returns></returns>
         public bool Init(Vector3 i_queryPos, float i_minLength)
         {
             _queryPos[0] = i_queryPos;
@@ -134,8 +138,12 @@ namespace Crest
         bool _valid = false;
 
         /// <summary>
-        /// Call this to prime the sampling.
+        /// Call this to prime the sampling
         /// </summary>
+        /// <param name="i_queryPos">World space position to sample</param>
+        /// <param name="i_minLength">The smallest length scale you are interested in. If you are sampling data for boat physics,
+        /// pass in the boats width. Larger objects will filter out detailed flow information.</param>
+        /// <returns></returns>
         public bool Init(Vector3 i_queryPos, float i_minLength)
         {
             _queryPos[0] = i_queryPos;

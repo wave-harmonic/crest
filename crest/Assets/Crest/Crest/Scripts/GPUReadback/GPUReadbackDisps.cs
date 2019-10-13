@@ -199,6 +199,154 @@ namespace Crest
 
             return true;
         }
+
+        public int Query(int i_ownerHash, SamplingData i_samplingData, Vector3[] i_queryPoints, Vector3[] o_resultDisps, Vector3[] o_resultNorms, Vector3[] o_resultVels)
+        {
+            var status = 0;
+
+            if (o_resultDisps != null)
+            {
+                for (int i = 0; i < o_resultDisps.Length; i++)
+                {
+                    if (o_resultVels == null)
+                    {
+                        if (!SampleDisplacement(ref i_queryPoints[i], i_samplingData, out o_resultDisps[i]))
+                        {
+                            status = 1 | status;
+                        }
+                    }
+                    else
+                    {
+                        bool dispValid, velValid;
+                        SampleDisplacementVel(ref i_queryPoints[i], i_samplingData, out o_resultDisps[i], out dispValid, out o_resultVels[i], out velValid);
+                        if (!dispValid || !velValid)
+                        {
+                            status = 1 | status;
+                        }
+                    }
+                }
+            }
+
+            if (o_resultNorms != null)
+            {
+                for (int i = 0; i < o_resultNorms.Length; i++)
+                {
+                    Vector3 undispPos;
+                    if (ComputeUndisplacedPosition(ref i_queryPoints[i], i_samplingData, out undispPos))
+                    {
+                        SampleNormal(ref undispPos, i_samplingData, out o_resultNorms[i]);
+                    }
+                    else
+                    {
+                        o_resultNorms[i] = Vector3.up;
+                        status = 1 | status;
+                    }
+                }
+            }
+
+            return status;
+        }
+
+        public int Query(int i_ownerHash, SamplingData i_samplingData, Vector3[] i_queryPoints, float[] o_resultHeights, Vector3[] o_resultNorms, Vector3[] o_resultVels)
+        {
+            var status = 0;
+
+            if (o_resultHeights != null)
+            {
+                for (int i = 0; i < o_resultHeights.Length; i++)
+                {
+                    if (o_resultVels == null)
+                    {
+                        Vector3 disp;
+                        if (SampleDisplacement(ref i_queryPoints[i], i_samplingData, out disp))
+                        {
+                            o_resultHeights[i] = OceanRenderer.Instance.SeaLevel + disp.y;
+                        }
+                        else
+                        {
+                            status = 1 | status;
+                        }
+                    }
+                    else
+                    {
+                        Vector3 disp;
+                        bool dispValid, velValid;
+                        SampleDisplacementVel(ref i_queryPoints[i], i_samplingData, out disp, out dispValid, out o_resultVels[i], out velValid);
+                        if (dispValid && velValid)
+                        {
+                            o_resultHeights[i] = OceanRenderer.Instance.SeaLevel + disp.y;
+                        }
+                        else
+                        {
+                            status = 1 | status;
+                        }
+                    }
+                }
+            }
+
+            if (o_resultNorms != null)
+            {
+                for (int i = 0; i < o_resultNorms.Length; i++)
+                {
+                    Vector3 undispPos;
+                    if (ComputeUndisplacedPosition(ref i_queryPoints[i], i_samplingData, out undispPos))
+                    {
+                        SampleNormal(ref undispPos, i_samplingData, out o_resultNorms[i]);
+                    }
+                    else
+                    {
+                        o_resultNorms[i] = Vector3.up;
+                        status = 1 | status;
+                    }
+                }
+            }
+
+            return status;
+        }
+
+        public int Query(int i_ownerHash, SamplingData i_samplingData, Vector3[] i_queryDisplacementToPoints, Vector3[] i_queryNormalAtPoint, Vector3[] o_resultDisps, Vector3[] o_resultNorms, Vector3[] o_resultVels)
+        {
+            var status = 0;
+
+            if (o_resultDisps != null)
+            {
+                for (int i = 0; i < o_resultDisps.Length; i++)
+                {
+                    var dispValid = false;
+                    var velValid = false;
+                    SampleDisplacementVel(ref i_queryDisplacementToPoints[i], i_samplingData, out o_resultDisps[i], out dispValid, out o_resultVels[i], out velValid);
+
+                    if (!dispValid || !velValid)
+                    {
+                        status = 1 | status;
+                    }
+                }
+            }
+
+            if (o_resultNorms != null)
+            {
+                for (int i = 0; i < o_resultNorms.Length; i++)
+                {
+                    Vector3 undispPos;
+                    if (ComputeUndisplacedPosition(ref i_queryNormalAtPoint[i], i_samplingData, out undispPos))
+                    {
+                        SampleNormal(ref undispPos, i_samplingData, out o_resultNorms[i]);
+                    }
+                    else
+                    {
+                        o_resultNorms[i] = Vector3.up;
+                        status = 1 | status;
+                    }
+                }
+            }
+
+            return status;
+        }
+
+        public bool RetrieveSucceeded(int queryStatus)
+        {
+            return queryStatus == 0;
+        }
         #endregion
 
 #if UNITY_EDITOR

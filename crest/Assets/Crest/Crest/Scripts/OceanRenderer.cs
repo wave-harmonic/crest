@@ -138,6 +138,8 @@ namespace Crest
         /// </summary>
         public float ViewerHeightAboveWater { get; private set; }
 
+        SampleHeightHelper _sampleHeightHelper = new SampleHeightHelper();
+
         public delegate void EventHandler(OceanRenderer ocean);
         public event EventHandler ViewerLessThan2mAboveWater;
         public event EventHandler ViewerMoreThan2mAboveWater;
@@ -145,7 +147,6 @@ namespace Crest
         static int sp_crestTime = Shader.PropertyToID("_CrestTime");
         static int sp_texelsPerWave = Shader.PropertyToID("_TexelsPerWave");
 
-        SamplingData _samplingData = new SamplingData();
 
         bool _firstViewerHeightUpdate = true;
 
@@ -292,31 +293,24 @@ namespace Crest
 
         void LateUpdateViewerHeight()
         {
-            var pos = Viewpoint.position;
-            var rect = new Rect(pos.x, pos.z, 0f, 0f);
+            var oldViewerHeight = ViewerHeightAboveWater;
 
-            float waterHeight;
-            if (CollisionProvider.GetSamplingData(ref rect, 0f, _samplingData)
-                && CollisionProvider.SampleHeight(ref pos, _samplingData, out waterHeight))
+            var waterHeight = 0f;
+            _sampleHeightHelper.Init(Viewpoint.position, 0f);
+            _sampleHeightHelper.Sample(ref waterHeight);
+            ViewerHeightAboveWater = Viewpoint.position.y - waterHeight;
+
+            // _firstViewerHeightUpdate is tracked to always broadcast initial state
+            if ((oldViewerHeight >= 2f || _firstViewerHeightUpdate) && ViewerHeightAboveWater < 2f)
             {
-                var oldHeight = ViewerHeightAboveWater;
-
-                ViewerHeightAboveWater = pos.y - waterHeight;
-
-                // _firstViewerHeightUpdate is tracked to always broadcast initial state
-                if ((oldHeight >= 2f || _firstViewerHeightUpdate) && ViewerHeightAboveWater < 2f)
-                {
-                    ViewerLessThan2mAboveWater?.Invoke(this);
-                }
-                else if ((oldHeight < 2f || _firstViewerHeightUpdate) && ViewerHeightAboveWater >= 2f)
-                {
-                    ViewerMoreThan2mAboveWater?.Invoke(this);
-                }
-
-                _firstViewerHeightUpdate = false;
+                ViewerLessThan2mAboveWater?.Invoke(this);
+            }
+            else if ((oldViewerHeight < 2f || _firstViewerHeightUpdate) && ViewerHeightAboveWater >= 2f)
+            {
+                ViewerMoreThan2mAboveWater?.Invoke(this);
             }
 
-            CollisionProvider.ReturnSamplingData(_samplingData);
+            _firstViewerHeightUpdate = false;
         }
 
         void LateUpdateLods()

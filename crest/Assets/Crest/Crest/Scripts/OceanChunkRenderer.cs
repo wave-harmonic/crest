@@ -3,7 +3,11 @@
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 using UnityEngine;
+#if UNITY_2018
 using UnityEngine.Experimental.Rendering;
+#else
+using UnityEngine.Rendering;
+#endif
 
 namespace Crest
 {
@@ -55,18 +59,30 @@ namespace Crest
 
         private void OnEnable()
         {
+#if UNITY_2018
             RenderPipeline.beginCameraRendering += BeginCameraRendering;
+#else
+            RenderPipelineManager.beginCameraRendering += BeginCameraRendering;
+#endif
         }
         private void OnDisable()
         {
+#if UNITY_2018
             RenderPipeline.beginCameraRendering -= BeginCameraRendering;
+#else
+            RenderPipelineManager.beginCameraRendering -= BeginCameraRendering;
+#endif
         }
 
         static Camera _currentCamera = null;
 
-        private void BeginCameraRendering(Camera cam)
+#if UNITY_2018
+        private void BeginCameraRendering(Camera camera)
+#else
+        private void BeginCameraRendering(ScriptableRenderContext context, Camera camera)
+#endif
         {
-            _currentCamera = cam;
+            _currentCamera = camera;
         }
 
         // Called when visible to a camera
@@ -129,7 +145,7 @@ namespace Crest
             if (ldsds) ldsds.BindResultData(_mpb);
             if (ldshadows) ldshadows.BindResultData(_mpb); else LodDataMgrShadow.BindNull(_mpb);
 
-            var reflTex = PreparedReflections.GetRenderTexture(_currentCamera.GetInstanceID());
+            var reflTex = PreparedReflections.GetRenderTexture(_currentCamera.GetHashCode());
             if (reflTex)
             {
                 _mpb.SetTexture(sp_ReflectionTex, reflTex);

@@ -27,5 +27,8 @@ Please include steps to reproduce the behaviour, with the example content ideall
  - Editor or standalone?
  - Platform (win/mac/...)
 
+**Hardware**
+What hardware are you seeing the issue on? GPU model is particularly useful.
+
 **Additional context**
 Add any other context about the problem here.

@@ -16,7 +16,6 @@ uniform half _WaveFoamNormalStrength;
 uniform half _WaveFoamSpecularFallOff;
 uniform half _WaveFoamSpecularBoost;
 uniform half _WaveFoamLightScale;
-uniform half2 _WindDirXZ;
 
 half3 AmbientLight()
 {
@@ -37,7 +36,8 @@ half WhiteFoamTexture(half i_foam, float2 i_worldXZUndisplaced, half lodVal)
 
 half BubbleFoamTexture(float2 i_worldXZ, float2 i_worldXZUndisplaced, half3 i_n, half3 i_view, half lodVal)
 {
-	float2 foamUVBubbles = (lerp(i_worldXZUndisplaced, i_worldXZ, 0.7) + 0.5 * _CrestTime * _WindDirXZ) / _FoamScale + 0.125 * i_n.xz;
+	float2 windDir = float2(0.866, 0.5);
+	float2 foamUVBubbles = (lerp(i_worldXZUndisplaced, i_worldXZ, 0.7) + 0.5 * _CrestTime * windDir) / _FoamScale + 0.125 * i_n.xz;
 	float2 parallaxOffset = -_FoamBubbleParallax * i_view.xz / dot(i_n, i_view);
 	half ft = lerp(
 		tex2Dlod(_FoamTexture, float4((0.74 * foamUVBubbles + parallaxOffset) / (4.0*_LD_Params[_LD_SliceIndex].x), 0., 3.)).r,

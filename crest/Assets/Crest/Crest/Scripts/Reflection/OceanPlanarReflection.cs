@@ -243,6 +243,7 @@ namespace Crest
             dest.fieldOfView = src.fieldOfView;
             dest.orthographicSize = src.orthographicSize;
             dest.allowMSAA = _allowMSAA;
+            dest.aspect = src.aspect;
         }
 
         // On-demand create any objects we need for water
@@ -260,12 +261,12 @@ namespace Crest
                 Debug.Assert(SystemInfo.SupportsRenderTextureFormat(format), "The graphics device does not support the render texture format " + format.ToString());
                 _reflectionTexture = new RenderTexture(_textureSize, _textureSize, _stencil ? 24 : 16, format)
                 {
-                    name = "__WaterReflection" + GetInstanceID(),
+                    name = "__WaterReflection" + GetHashCode(),
                     isPowerOfTwo = true,
                     hideFlags = HideFlags.DontSave
                 };
                 _reflectionTexture.Create();
-                PreparedReflections.Register(currentCamera.GetInstanceID(), _reflectionTexture);
+                PreparedReflections.Register(currentCamera.GetHashCode(), _reflectionTexture);
             }
 
             // Camera for reflection
@@ -326,7 +327,7 @@ namespace Crest
         {
             if (_camViewpoint != null)
             {
-                PreparedReflections.Remove(_camViewpoint.GetInstanceID());
+                PreparedReflections.Remove(_camViewpoint.GetHashCode());
             }
 
             // Cleanup all the objects we possibly have created

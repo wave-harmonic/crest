@@ -196,14 +196,14 @@ namespace Crest
                 {
                     ocean.gameObject.AddComponent<GPUReadbackDisps>();
                 }
+                if (ssaw && ssaw.CollisionSource == SimSettingsAnimatedWaves.CollisionSources.ComputeShaderQueries)
+                {
+                    ocean.gameObject.AddComponent<QueryDisplacements>();
+                }
 
                 if (ocean.CreateFlowSim)
                 {
-                    var ssf = ocean._simSettingsFlow;
-                    if (ssf && ssf._readbackData)
-                    {
-                        ocean.gameObject.AddComponent<GPUReadbackFlow>();
-                    }
+                    ocean.gameObject.AddComponent<QueryFlow>();
                 }
             }
 

@@ -34,9 +34,7 @@ namespace Crest
         [SerializeField] float _dragInWaterRotational = 0.2f;
 
         [Header("Debug")]
-        [SerializeField]
-        bool _debugDraw = false;
-        [SerializeField] bool _debugValidateCollision = false;
+        [SerializeField] bool _debugDraw = false;
 
         bool _inWater;
         public override bool InWater { get { return _inWater; } }
@@ -48,11 +46,8 @@ namespace Crest
 
         Rigidbody _rb;
 
-        SamplingData _samplingData = new SamplingData();
-        SamplingData _samplingDataLengthWise = new SamplingData();
-        SamplingData _samplingDataFlow = new SamplingData();
-
         SampleHeightHelper _sampleHeightHelper = new SampleHeightHelper();
+        SampleFlowHelper _sampleFlowHelper = new SampleFlowHelper();
 
         void Start()
         {
@@ -85,22 +80,6 @@ namespace Crest
             var collProvider = OceanRenderer.Instance.CollisionProvider;
             var position = transform.position;
 
-            var thisRect = new Rect(transform.position.x, transform.position.z, 0f, 0f);
-            if (!collProvider.GetSamplingData(ref thisRect, _objectWidth, _samplingData))
-            {
-                // No collision coverage for the sample area, in this case use the null provider.
-                collProvider = CollProviderNull.Instance;
-            }
-
-            if (_debugValidateCollision)
-            {
-                var result = collProvider.CheckAvailability(ref position, _samplingData);
-                if (result != AvailabilityResult.DataAvailable)
-                {
-                    Debug.LogWarning("Validation failed: " + result.ToString() + ". See comments on the AvailabilityResult enum.", this);
-                }
-            }
-
             var normal = Vector3.up; var waterSurfaceVel = Vector3.zero;
             _sampleHeightHelper.Init(transform.position, _objectWidth);
             _sampleHeightHelper.Sample(ref _displacementToObject, ref normal, ref waterSurfaceVel);
@@ -110,18 +89,13 @@ namespace Crest
 
             if (_debugDraw) VisualiseCollisionArea.DebugDrawCross(undispPos, 1f, Color.red);
 
-            if (GPUReadbackFlow.Instance)
+            if (QueryFlow.Instance)
             {
-                GPUReadbackFlow.Instance.ProcessRequests();
+                _sampleFlowHelper.Init(transform.position, ObjectWidth);
 
-                var flowRect = new Rect(position.x, position.z, 0f, 0f);
-                GPUReadbackFlow.Instance.GetSamplingData(ref flowRect, _objectWidth, _samplingDataFlow);
-
-                Vector2 surfaceFlow;
-                GPUReadbackFlow.Instance.SampleFlow(ref position, _samplingDataFlow, out surfaceFlow);
+                Vector2 surfaceFlow = Vector2.zero;
+                _sampleFlowHelper.Sample(ref surfaceFlow);
                 waterSurfaceVel += new Vector3(surfaceFlow.x, 0, surfaceFlow.y);
-
-                GPUReadbackFlow.Instance.ReturnSamplingData(_samplingDataFlow);
             }
 
             if (_debugDraw)

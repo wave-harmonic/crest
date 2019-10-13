@@ -40,7 +40,8 @@ namespace Crest
         RegisterDynWavesInput _dynWavesInput;
         FloatingObjectBase _boat;
         Vector3 _posLast;
-        SamplingData _samplingDataFlow = new SamplingData();
+
+        SampleFlowHelper _sampleFlowHelper = new SampleFlowHelper();
 
         Renderer _renderer;
         MaterialPropertyBlock _mpb;
@@ -122,20 +123,12 @@ namespace Crest
                 vel = Vector3.zero;
             }
 
-            if (ocean._simSettingsFlow != null &&
-                ocean._simSettingsFlow._readbackData &&
-                GPUReadbackFlow.Instance)
+            if (QueryFlow.Instance)
             {
-                var position = transform.position;
-                var samplingArea = new Rect(position.x, position.z, 0f, 0f);
-                GPUReadbackFlow.Instance.GetSamplingData(ref samplingArea, _boat.ObjectWidth, _samplingDataFlow);
-
-                Vector2 surfaceFlow;
-                GPUReadbackFlow.Instance.SampleFlow(ref position, _samplingDataFlow, out surfaceFlow);
-
+                _sampleFlowHelper.Init(transform.position, _boat.ObjectWidth);
+                Vector2 surfaceFlow = Vector2.zero;
+                _sampleFlowHelper.Sample(ref surfaceFlow);
                 vel -= new Vector3(surfaceFlow.x, 0, surfaceFlow.y);
-
-                GPUReadbackFlow.Instance.ReturnSamplingData(_samplingDataFlow);
             }
             vel.y *= _weightUpDownMul;
 

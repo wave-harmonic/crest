@@ -120,4 +120,52 @@ namespace Crest
             return true;
         }
     }
+
+    /// <summary>
+    /// Helper to obtain the ocean surface height at a single location. This is not particularly efficient to sample a single height,
+    /// but is a fairly common case.
+    /// </summary>
+    class SampleFlowHelper
+    {
+        SamplingData _samplingData = new SamplingData();
+        Vector3[] _queryPos = new Vector3[1];
+        Vector3[] _queryResult = new Vector3[1];
+
+        bool _valid = false;
+
+        /// <summary>
+        /// Call this to prime the sampling.
+        /// </summary>
+        public bool Init(Vector3 i_queryPos, float i_minLength)
+        {
+            _queryPos[0] = i_queryPos;
+            var rect = new Rect(i_queryPos.x, i_queryPos.z, 0f, 0f);
+            return _valid = OceanRenderer.Instance.CollisionProvider.GetSamplingData(ref rect, i_minLength, _samplingData);
+        }
+
+        /// <summary>
+        /// Call this to do the query. Can be called only once after Init().
+        /// </summary>
+        public bool Sample(ref Vector2 o_flow)
+        {
+            if (!_valid)
+            {
+                return false;
+            }
+
+            var status = QueryFlow.Instance.Query(GetHashCode(), _samplingData, _queryPos, _queryResult);
+
+            if (!QueryFlow.Instance.RetrieveSucceeded(status))
+            {
+                _valid = false;
+                return false;
+            }
+
+            // We don't support float2 queries unfortunately, so unpack from float3
+            o_flow.x = _queryResult[0].x;
+            o_flow.y = _queryResult[0].z;
+
+            return true;
+        }
+    }
 }

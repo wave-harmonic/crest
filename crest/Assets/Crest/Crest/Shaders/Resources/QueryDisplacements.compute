@@ -66,6 +66,9 @@ void CSMain(uint3 id : SV_DispatchThreadID)
 	const float gridSizeSlice0 = _LD_Params[0].x;
 	const float minSlice = clamp(floor(log2(minGridSize / gridSizeSlice0)), 0.0, _SliceCount - 1.0);
 
+	// Perform iteration to invert the displacement vector field - find position that displaces to query position,
+	// and return displacement at that point.
+
 	float2 undispPos = queryPosXZ;
 	for (int i = 0; i < 4; i++)
 	{

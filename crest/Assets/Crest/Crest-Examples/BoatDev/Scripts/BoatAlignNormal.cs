@@ -63,6 +63,7 @@ public class BoatAlignNormal : FloatingObjectBase
 
     SampleHeightHelper _sampleHeightHelper = new SampleHeightHelper();
     SampleHeightHelper _sampleHeightHelperLengthwise = new SampleHeightHelper();
+    SampleFlowHelper _sampleFlowHelper = new SampleFlowHelper();
 
     void Start()
     {
@@ -104,18 +105,13 @@ public class BoatAlignNormal : FloatingObjectBase
         // height = base sea level + surface displacement y
         height += _displacementToObject.y;
 
-        if (GPUReadbackFlow.Instance)
+        if (QueryFlow.Instance)
         {
-            GPUReadbackFlow.Instance.ProcessRequests();
+            _sampleFlowHelper.Init(transform.position, _boatWidth);
 
-            var flowRect = new Rect(position.x, position.z, 0f, 0f);
-            GPUReadbackFlow.Instance.GetSamplingData(ref flowRect, _boatWidth, _samplingDataFlow);
-
-            Vector2 surfaceFlow;
-            GPUReadbackFlow.Instance.SampleFlow(ref position, _samplingDataFlow, out surfaceFlow);
+            Vector2 surfaceFlow = Vector2.zero;
+            _sampleFlowHelper.Sample(ref surfaceFlow);
             waterSurfaceVel += new Vector3(surfaceFlow.x, 0, surfaceFlow.y);
-
-            GPUReadbackFlow.Instance.ReturnSamplingData(_samplingDataFlow);
         }
 
         // I could filter the surface vel as the min of the last 2 frames. theres a hard case where a wavelength is turned on/off

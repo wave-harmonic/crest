@@ -18,13 +18,17 @@ namespace Crest
     /// the data and then transferring back the results asynchronously. An exception to this is water surface velocities - these can
     /// not be computed on the GPU and are instead computed on the CPU by retaining last frames' query results and computing finite diffs.
     /// </summary>
-    public class CollProviderCompute : MonoBehaviour, ICollProvider
+    public abstract class QueryBase : MonoBehaviour
     {
-        const string s_shaderName = "ProcessCollisionQueries";
-        const string s_kernelName = "CSMain";
+        protected int _kernelHandle;
+
+        protected abstract string QueryShaderName { get; }
+        protected abstract string QueryKernelName { get; }
+
         const int s_maxRequests = 4;
         const int s_maxGuids = 64;
 
+        protected virtual ComputeShader ShaderProcessQueries => _shaderProcessQueries;
         ComputeShader _shaderProcessQueries;
         PropertyWrapperComputeStandalone _wrapper;
 
@@ -36,14 +40,10 @@ namespace Crest
         public static bool s_useComputeCollQueries = true;
 
         readonly static int sp_queryPositions_minGridSizes = Shader.PropertyToID("_QueryPositions_MinGridSizes");
-        readonly static int sp_ResultDisplacements = Shader.PropertyToID("_ResultDisplacements");
-        readonly static int sp_LD_TexArray_AnimatedWaves = Shader.PropertyToID("_LD_TexArray_AnimatedWaves");
         readonly static int sp_MeshScaleLerp = Shader.PropertyToID("_MeshScaleLerp");
         readonly static int sp_SliceCount = Shader.PropertyToID("_SliceCount");
 
         const float s_finiteDiffDx = 0.1f;
-
-        static int s_kernelHandle;
 
         ComputeBuffer _computeBufQueries;
         ComputeBuffer _computeBufResults;
@@ -165,8 +165,6 @@ namespace Crest
         float _queryResultsTimeLast = -1f;
         Dictionary<int, Vector2Int> _resultSegmentsLast;
 
-        public static CollProviderCompute Instance { get; private set; }
-
         struct ReadbackRequest
         {
             public AsyncGPUReadbackRequest _request;
@@ -186,11 +184,13 @@ namespace Crest
             InvalidDtForVelocity = 16,
         }
 
+        protected abstract void BindInputsAndOutputs(PropertyWrapperComputeStandalone wrapper, ComputeBuffer resultsBuffer);
+
         /// <summary>
         /// Takes a unique request ID and some world space XZ positions, and computes the displacement vector that lands at this position,
         /// to a good approximation. The world space height of the water at that position is then SeaLevel + displacement.y.
         /// </summary>
-        bool UpdateQueryPoints(int i_ownerHash, SamplingData i_samplingData, Vector3[] queryPoints, Vector3[] queryNormals)
+        protected bool UpdateQueryPoints(int i_ownerHash, SamplingData i_samplingData, Vector3[] queryPoints, Vector3[] queryNormals)
         {
             var segmentRetrieved = false;
             Vector2Int segment;
@@ -290,7 +290,7 @@ namespace Crest
         /// <summary>
         /// Copy out displacements, heights, normals. Pass null if info is not required.
         /// </summary>
-        private bool RetrieveResults(int guid, Vector3[] displacements, float[] heights, Vector3[] normals)
+        protected bool RetrieveResults(int guid, Vector3[] displacements, float[] heights, Vector3[] normals)
         {
             if (_resultSegments == null)
             {
@@ -352,7 +352,7 @@ namespace Crest
         /// Compute time derivative of the displacements by calculating difference from last query. More complicated than it would seem - results
         /// may not be available in one or both of the results, or the query locations in the array may change.
         /// </summary>
-        int CalculateVelocities(int i_ownerHash, SamplingData i_samplingData, Vector3[] i_queryPositions, Vector3[] results)
+        protected int CalculateVelocities(int i_ownerHash, SamplingData i_samplingData, Vector3[] i_queryPositions, Vector3[] results)
         {
             // Need at least 2 returned results to do finite difference
             if (_queryResultsTime < 0f || _queryResultsTimeLast < 0f)
@@ -423,13 +423,8 @@ namespace Crest
         void ExecuteQueries()
         {
             _computeBufQueries.SetData(_queryPosXZ_minGridSize, 0, 0, _segmentRegistrarRingBuffer.Current._numQueries);
-
-            _shaderProcessQueries.SetBuffer(s_kernelHandle, sp_queryPositions_minGridSizes, _computeBufQueries);
-            _shaderProcessQueries.SetBuffer(s_kernelHandle, sp_ResultDisplacements, _computeBufResults);
-
-            OceanRenderer.Instance._lodDataAnimWaves.BindResultData(_wrapper);
-
-            _shaderProcessQueries.SetTexture(s_kernelHandle, sp_LD_TexArray_AnimatedWaves, OceanRenderer.Instance._lodDataAnimWaves.DataTexture);
+            _shaderProcessQueries.SetBuffer(_kernelHandle, sp_queryPositions_minGridSizes, _computeBufQueries);
+            BindInputsAndOutputs(_wrapper, _computeBufResults);
 
             // LOD 0 is blended in/out when scale changes, to eliminate pops
             var needToBlendOutShape = OceanRenderer.Instance.ScaleCouldIncrease;
@@ -439,7 +434,7 @@ namespace Crest
             _shaderProcessQueries.SetFloat(sp_SliceCount, OceanRenderer.Instance.CurrentLodCount);
 
             var numGroups = (int)Mathf.Ceil((float)_segmentRegistrarRingBuffer.Current._numQueries / (float)s_computeGroupSize) * s_computeGroupSize;
-            _shaderProcessQueries.Dispatch(s_kernelHandle, numGroups, 1, 1);
+            _shaderProcessQueries.Dispatch(_kernelHandle, numGroups, 1, 1);
         }
 
         /// <summary>
@@ -500,16 +495,13 @@ namespace Crest
             a = temp;
         }
 
-        private void OnEnable()
+        protected virtual void OnEnable()
         {
-            Debug.Assert(Instance == null);
-            Instance = this;
-
             _dataArrivedAction = new System.Action<AsyncGPUReadbackRequest>(DataArrived);
 
-            _shaderProcessQueries = Resources.Load<ComputeShader>(s_shaderName);
-            s_kernelHandle = _shaderProcessQueries.FindKernel(s_kernelName);
-            _wrapper = new PropertyWrapperComputeStandalone(_shaderProcessQueries, s_kernelHandle);
+            _shaderProcessQueries = Resources.Load<ComputeShader>(QueryShaderName);
+            _kernelHandle = _shaderProcessQueries.FindKernel(QueryKernelName);
+            _wrapper = new PropertyWrapperComputeStandalone(_shaderProcessQueries, _kernelHandle);
 
             _computeBufQueries = new ComputeBuffer(s_maxQueryCount, 12, ComputeBufferType.Default);
             _computeBufResults = new ComputeBuffer(s_maxQueryCount, 12, ComputeBufferType.Default);
@@ -518,10 +510,8 @@ namespace Crest
             _queryResultsLast = new NativeArray<Vector3>(s_maxQueryCount, Allocator.Persistent, NativeArrayOptions.ClearMemory);
         }
 
-        private void OnDisable()
+        protected virtual void OnDisable()
         {
-            Instance = null;
-
             _computeBufQueries.Dispose();
             _computeBufResults.Dispose();
 
@@ -529,19 +519,6 @@ namespace Crest
             _queryResultsLast.Dispose();
 
             _segmentRegistrarRingBuffer.ClearAll();
-        }
-
-        public bool GetSamplingData(ref Rect i_displacedSamplingArea, float i_minSpatialLength, SamplingData o_samplingData)
-        {
-            // Trivial. Will likely remove this in the future if we can deprecate the displacement texture readback stuff.
-            o_samplingData._minSpatialLength = i_minSpatialLength;
-            return true;
-        }
-
-        public void ReturnSamplingData(SamplingData i_data)
-        {
-            // Mark invalid
-            i_data._minSpatialLength = -1f;
         }
 
         public int Query(int i_ownerHash, SamplingData i_samplingData, Vector3[] i_queryPoints, Vector3[] o_resultDisps, Vector3[] o_resultNorms, Vector3[] o_resultVels)
@@ -570,7 +547,7 @@ namespace Crest
         {
             var result = (int)QueryStatus.OK;
 
-            if (!UpdateQueryPoints(i_ownerHash, i_samplingData, i_queryPoints, i_queryPoints))
+            if (!UpdateQueryPoints(i_ownerHash, i_samplingData, o_resultNorms != null ? i_queryPoints : null, i_queryPoints))
             {
                 result |= (int)QueryStatus.PostFailed;
             }
@@ -591,36 +568,6 @@ namespace Crest
         public bool RetrieveSucceeded(int queryStatus)
         {
             return (queryStatus & (int)QueryStatus.RetrieveFailed) == 0;
-        }
-
-        public bool SampleDisplacement(ref Vector3 i_worldPos, SamplingData i_samplingData, out Vector3 o_displacement)
-        {
-            throw new System.NotImplementedException("Not implemented for the Compute collision provider - use the 'Query' functions.");
-        }
-
-        public void SampleDisplacementVel(ref Vector3 i_worldPos, SamplingData i_samplingData, out Vector3 o_displacement, out bool o_displacementValid, out Vector3 o_displacementVel, out bool o_velValid)
-        {
-            throw new System.NotImplementedException("Not implemented for the Compute collision provider - use the 'Query' functions.");
-        }
-
-        public bool SampleHeight(ref Vector3 i_worldPos, SamplingData i_samplingData, out float o_height)
-        {
-            throw new System.NotImplementedException("Not implemented for the Compute collision provider - use the 'Query' functions.");
-        }
-
-        public bool SampleNormal(ref Vector3 i_undisplacedWorldPos, SamplingData i_samplingData, out Vector3 o_normal)
-        {
-            throw new System.NotImplementedException("Not implemented for the Compute collision provider - use the 'Query' functions.");
-        }
-
-        public bool ComputeUndisplacedPosition(ref Vector3 i_worldPos, SamplingData i_samplingData, out Vector3 undisplacedWorldPos)
-        {
-            throw new System.NotImplementedException("Not implemented for the Compute collision provider - use the 'Query' functions.");
-        }
-
-        public AvailabilityResult CheckAvailability(ref Vector3 i_worldPos, SamplingData i_samplingData)
-        {
-            throw new System.NotImplementedException("Not implemented for the Compute collision provider - use the 'Query' functions.");
         }
     }
 }

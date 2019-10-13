@@ -65,7 +65,7 @@ namespace Crest
                     result = FindObjectOfType<ShapeGerstnerBatched>();
                     break;
                 case CollisionSources.ComputeShaderQueries:
-                    result = CollProviderCompute.Instance;
+                    result = QueryDisplacements.Instance;
                     break;
             }
 

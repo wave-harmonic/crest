@@ -101,6 +101,7 @@ float2 IDtoUV(in float2 i_id, in float i_width, in float i_height)
 	return (i_id + 0.5) / float2(i_width, i_height);
 }
 
+
 // Sampling functions
 void SampleDisplacements(in Texture2DArray i_dispSampler, in float3 i_uv_slice, in float i_wt, inout float3 io_worldPos, inout float io_sss)
 {

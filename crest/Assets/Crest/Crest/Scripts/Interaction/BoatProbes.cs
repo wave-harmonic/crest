@@ -70,6 +70,8 @@ namespace Crest
         Vector3[] _queryResultDisps;
         Vector3[] _queryResultVels;
 
+        SampleFlowHelper _sampleFlowHelper = new SampleFlowHelper();
+
         private void Start()
         {
             _rb = GetComponent<Rigidbody>();
@@ -130,20 +132,12 @@ namespace Crest
 
             var waterSurfaceVel = _queryResultVels[_forcePoints.Length];
 
-            if (GPUReadbackFlow.Instance)
+            if(QueryFlow.Instance)
             {
-                GPUReadbackFlow.Instance.ProcessRequests();
-
-                var position = transform.position;
-                var flowRect = new Rect(position.x, position.z, 0f, 0f);
-                if (GPUReadbackFlow.Instance.GetSamplingData(ref flowRect, _minSpatialLength, _samplingDataFlow))
-                {
-                    Vector2 surfaceFlow;
-                    GPUReadbackFlow.Instance.SampleFlow(ref position, _samplingDataFlow, out surfaceFlow);
-                    waterSurfaceVel += new Vector3(surfaceFlow.x, 0, surfaceFlow.y);
-
-                    GPUReadbackFlow.Instance.ReturnSamplingData(_samplingDataFlow);
-                }
+                _sampleFlowHelper.Init(transform.position, _minSpatialLength);
+                Vector2 surfaceFlow = Vector2.zero;
+                _sampleFlowHelper.Sample(ref surfaceFlow);
+                waterSurfaceVel += new Vector3(surfaceFlow.x, 0, surfaceFlow.y);
             }
 
             // Buoyancy
@@ -254,9 +248,9 @@ namespace Crest
 
         private void OnDisable()
         {
-            if (CollProviderCompute.Instance)
+            if (QueryDisplacements.Instance)
             {
-                CollProviderCompute.Instance.RemoveQueryPoints(GetHashCode());
+                QueryDisplacements.Instance.RemoveQueryPoints(GetHashCode());
             }
         }
     }

@@ -50,13 +50,20 @@ namespace Crest
 
         Vector3[] _queryPosXZ_minGridSize = new Vector3[s_maxQueryCount];
 
+        /// <summary>
+        /// Holds information about all query points. Maps from unique hash code to position in point array.
+        /// </summary>
         class SegmentRegistrar
         {
             public Dictionary<int, Vector2Int> _segments = new Dictionary<int, Vector2Int>();
             public int _numQueries = 0;
         }
 
-        class SegmentRegistrarQueue
+        /// <summary>
+        /// Since query results return asynchronously and may not return at all (in theory), we keep a ringbuffer
+        /// of the registrars of the last frames so that when data does come back it can be interpreted correctly.
+        /// </summary>
+        class SegmentRegistrarRingBuffer
         {
             // Requests in flight plus 2 held values, plus one current
             readonly static int s_poolSize = s_maxRequests + 2 + 1;
@@ -68,7 +75,7 @@ namespace Crest
 
             public SegmentRegistrar Current => _segments[_segmentAcquire];
 
-            public SegmentRegistrarQueue()
+            public SegmentRegistrarRingBuffer()
             {
                 for (int i = 0; i < _segments.Length; i++)
                 {
@@ -148,7 +155,7 @@ namespace Crest
             }
         }
 
-        SegmentRegistrarQueue _segmentRegistrarQueue = new SegmentRegistrarQueue();
+        SegmentRegistrarRingBuffer _segmentRegistrarRingBuffer = new SegmentRegistrarRingBuffer();
 
         NativeArray<Vector3> _queryResults;
         float _queryResultsTime = -1f;
@@ -179,11 +186,6 @@ namespace Crest
             InvalidDtForVelocity = 16,
         }
 
-        public bool RetrieveSucceeded(int queryStatus)
-        {
-            return (queryStatus & (int)QueryStatus.RetrieveFailed) == 0;
-        }
-
         /// <summary>
         /// Takes a unique request ID and some world space XZ positions, and computes the displacement vector that lands at this position,
         /// to a good approximation. The world space height of the water at that position is then SeaLevel + displacement.y.
@@ -198,7 +200,7 @@ namespace Crest
             var countNorms = (queryNormals != null ? queryNormals.Length : 0);
             var countTotal = countPts + countNorms * 3;
 
-            if (_segmentRegistrarQueue.Current._segments.TryGetValue(i_ownerHash, out segment))
+            if (_segmentRegistrarRingBuffer.Current._segments.TryGetValue(i_ownerHash, out segment))
             {
                 var segmentSize = segment.y - segment.x + 1;
                 if (segmentSize == countTotal)
@@ -207,7 +209,7 @@ namespace Crest
                 }
                 else
                 {
-                    _segmentRegistrarQueue.Current._segments.Remove(i_ownerHash);
+                    _segmentRegistrarRingBuffer.Current._segments.Remove(i_ownerHash);
                 }
             }
 
@@ -219,17 +221,17 @@ namespace Crest
 
             if (!segmentRetrieved)
             {
-                if (_segmentRegistrarQueue.Current._segments.Count >= s_maxGuids)
+                if (_segmentRegistrarRingBuffer.Current._segments.Count >= s_maxGuids)
                 {
                     Debug.LogError("Too many guids registered with CollProviderCompute. Increase s_maxGuids.", this);
                     return false;
                 }
 
-                segment.x = _segmentRegistrarQueue.Current._numQueries;
+                segment.x = _segmentRegistrarRingBuffer.Current._numQueries;
                 segment.y = segment.x + countTotal - 1;
-                _segmentRegistrarQueue.Current._segments.Add(i_ownerHash, segment);
+                _segmentRegistrarRingBuffer.Current._segments.Add(i_ownerHash, segment);
 
-                _segmentRegistrarQueue.Current._numQueries += countTotal;
+                _segmentRegistrarRingBuffer.Current._numQueries += countTotal;
 
                 //Debug.Log("Added points for " + guid);
             }
@@ -273,7 +275,7 @@ namespace Crest
         /// </summary>
         public void RemoveQueryPoints(int guid)
         {
-            _segmentRegistrarQueue.RemoveRegistrations(guid);
+            _segmentRegistrarRingBuffer.RemoveRegistrations(guid);
         }
 
         /// <summary>
@@ -282,7 +284,7 @@ namespace Crest
         /// </summary>
         public void CompactQueryStorage()
         {
-            _segmentRegistrarQueue.ClearAvailable();
+            _segmentRegistrarRingBuffer.ClearAvailable();
         }
 
         /// <summary>
@@ -398,7 +400,7 @@ namespace Crest
         // using Time.time and Time.deltaTime, which would be incorrect if it were in FixedUpdate.
         void Update()
         {
-            if (_segmentRegistrarQueue.Current._numQueries > 0)
+            if (_segmentRegistrarRingBuffer.Current._numQueries > 0)
             {
                 ExecuteQueries();
 
@@ -411,16 +413,16 @@ namespace Crest
                 ReadbackRequest request;
                 request._dataTimestamp = Time.time - Time.deltaTime;
                 request._request = AsyncGPUReadback.Request(_computeBufResults, _dataArrivedAction);
-                request._segments = _segmentRegistrarQueue.Current._segments;
+                request._segments = _segmentRegistrarRingBuffer.Current._segments;
                 _requests.Add(request);
 
-                _segmentRegistrarQueue.AcquireNew();
+                _segmentRegistrarRingBuffer.AcquireNew();
             }
         }
 
         void ExecuteQueries()
         {
-            _computeBufQueries.SetData(_queryPosXZ_minGridSize, 0, 0, _segmentRegistrarQueue.Current._numQueries);
+            _computeBufQueries.SetData(_queryPosXZ_minGridSize, 0, 0, _segmentRegistrarRingBuffer.Current._numQueries);
 
             _shaderProcessQueries.SetBuffer(s_kernelHandle, sp_queryPositions_minGridSizes, _computeBufQueries);
             _shaderProcessQueries.SetBuffer(s_kernelHandle, sp_ResultDisplacements, _computeBufResults);
@@ -436,7 +438,7 @@ namespace Crest
 
             _shaderProcessQueries.SetFloat(sp_SliceCount, OceanRenderer.Instance.CurrentLodCount);
 
-            var numGroups = (int)Mathf.Ceil((float)_segmentRegistrarQueue.Current._numQueries / (float)s_computeGroupSize) * s_computeGroupSize;
+            var numGroups = (int)Mathf.Ceil((float)_segmentRegistrarRingBuffer.Current._numQueries / (float)s_computeGroupSize) * s_computeGroupSize;
             _shaderProcessQueries.Dispatch(s_kernelHandle, numGroups, 1, 1);
         }
 
@@ -458,7 +460,7 @@ namespace Crest
                 if (_requests[i]._request.hasError)
                 {
                     _requests.RemoveAt(i);
-                    _segmentRegistrarQueue.ReleaseLast();
+                    _segmentRegistrarRingBuffer.ReleaseLast();
                 }
             }
 
@@ -487,7 +489,7 @@ namespace Crest
             for (int i = lastDoneIndex; i >= 0; --i)
             {
                 _requests.RemoveAt(i);
-                _segmentRegistrarQueue.ReleaseLast();
+                _segmentRegistrarRingBuffer.ReleaseLast();
             }
         }
 
@@ -526,21 +528,7 @@ namespace Crest
             _queryResults.Dispose();
             _queryResultsLast.Dispose();
 
-            _segmentRegistrarQueue.ClearAll();
-        }
-
-        void PlaceMarkerCube(ref GameObject marker, Vector3 query, Vector3 disp)
-        {
-            if (marker == null)
-            {
-                marker = GameObject.CreatePrimitive(PrimitiveType.Cube);
-                Destroy(marker.GetComponent<Collider>());
-            }
-
-            query.y = 0f;
-
-            Debug.DrawLine(query, query + disp);
-            marker.transform.position = query + disp;
+            _segmentRegistrarRingBuffer.ClearAll();
         }
 
         public bool GetSamplingData(ref Rect i_displacedSamplingArea, float i_minSpatialLength, SamplingData o_samplingData)
@@ -598,6 +586,11 @@ namespace Crest
             }
 
             return result;
+        }
+
+        public bool RetrieveSucceeded(int queryStatus)
+        {
+            return (queryStatus & (int)QueryStatus.RetrieveFailed) == 0;
         }
 
         public bool SampleDisplacement(ref Vector3 i_worldPos, SamplingData i_samplingData, out Vector3 o_displacement)

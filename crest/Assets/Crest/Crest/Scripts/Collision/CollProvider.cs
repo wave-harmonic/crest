@@ -114,6 +114,9 @@ namespace Crest
         /// <param name="o_resultVels">Water surface velocities at the query positions. Pass null if this information is not required.</param>
         int Query(int i_ownerHash, SamplingData i_samplingData, Vector3[] i_queryPoints, Vector3[] o_resultDisps, Vector3[] o_resultNorms, Vector3[] o_resultVels);
 
+        /// <summary>
+        /// Check if query results could be retrieved successfully using return code from Query() function
+        /// </summary>
         bool RetrieveSucceeded(int queryStatus);
 
         /// <summary>

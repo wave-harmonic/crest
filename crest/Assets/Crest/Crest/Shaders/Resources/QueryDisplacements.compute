@@ -1,0 +1,83 @@
+﻿// Crest Ocean System
+
+// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
+
+#pragma kernel CSMain
+
+// Must match value in script
+#define GROUP_SIZE 64
+
+StructuredBuffer<float3> _QueryPositions_MinGridSizes;
+RWStructuredBuffer<float3> _ResultDisplacements;
+
+float _MeshScaleLerp;
+float _SliceCount;
+
+#include "../OceanLODData.hlsl"
+
+void PosToSliceIndices(const float2 worldXZ, const float minSlice, out uint slice0, out uint slice1, out float lodAlpha)
+{
+	const float2 offsetFromCenter = abs(worldXZ - _OceanCenterPosWorld.xz);
+	const float taxicab = max(offsetFromCenter.x, offsetFromCenter.y);
+	const float radius0 = _LD_Pos_Scale[0].z / 2.0;
+	const float sliceNumber = clamp(log2(taxicab / radius0), minSlice, _SliceCount - 1.0);
+
+	lodAlpha = frac(sliceNumber);
+	slice0 = (uint)sliceNumber;
+	slice1 = slice0 + 1;
+
+	// lod alpha is remapped to ensure patches weld together properly. patches can vary significantly in shape (with
+	// strips added and removed), and this variance depends on the base density of the mesh, as this defines the strip width.
+	// using .15 as black and .85 as white should work for base mesh density as low as 16.
+	const float BLACK_POINT = 0.15, WHITE_POINT = 0.85;
+	lodAlpha = saturate((lodAlpha - BLACK_POINT) / (WHITE_POINT - BLACK_POINT));
+
+	if (slice0 == 0)
+	{
+		// blend out lod0 when viewpoint gains altitude
+		lodAlpha = min(lodAlpha + _MeshScaleLerp, 1.0);
+	}
+}
+
+float3 ComputeDisplacement(float2 undispPos, float minSlice)
+{
+	uint slice0, slice1;
+	float lodAlpha;
+	PosToSliceIndices(undispPos, minSlice, slice0, slice1, lodAlpha);
+
+	float3 uv0 = WorldToUV(undispPos, slice0);
+	float3 uv1 = WorldToUV(undispPos, slice1);
+
+	const float wt_0 = (1. - lodAlpha) * _LD_Params[slice0].z;
+	const float wt_1 = (1. - wt_0) * _LD_Params[slice1].z;
+
+	return
+		wt_0 * _LD_TexArray_AnimatedWaves.SampleLevel(LODData_linear_clamp_sampler, uv0, 0).xyz +
+		wt_1 * _LD_TexArray_AnimatedWaves.SampleLevel(LODData_linear_clamp_sampler, uv1, 0).xyz;
+}
+
+[numthreads(GROUP_SIZE, 1, 1)]
+void CSMain(uint3 id : SV_DispatchThreadID)
+{
+	float3 data = _QueryPositions_MinGridSizes[id.x];
+	const float2 queryPosXZ = data.xy;
+	const float minGridSize = data.z;
+
+	const float gridSizeSlice0 = _LD_Params[0].x;
+	const float minSlice = clamp(floor(log2(minGridSize / gridSizeSlice0)), 0.0, _SliceCount - 1.0);
+
+	// Perform iteration to invert the displacement vector field - find position that displaces to query position,
+	// and return displacement at that point.
+
+	float2 undispPos = queryPosXZ;
+	for (int i = 0; i < 4; i++)
+	{
+		float3 displacement = ComputeDisplacement(undispPos, minSlice);
+
+		float2 error = (undispPos + displacement.xz) - queryPosXZ;
+
+		undispPos -= error;
+	}
+
+	_ResultDisplacements[id.x] = ComputeDisplacement(undispPos, minSlice);
+}

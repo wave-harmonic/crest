@@ -10,55 +10,79 @@ public class OceanSampleDisplacementDemo : MonoBehaviour
 {
     public bool _trackCamera = true;
 
-    GameObject _marker, _markerX, _markerZ;
-    Vector3 _markerPos, _markerPosX, _markerPosZ;
+    [Range(0f, 32f)]
+    public float _minGridSize = 0f;
+
+    GameObject[] _markerObjects = new GameObject[3];
+    Vector3[] _markerPos = new Vector3[3];
+    Vector3[] _resultDisps = new Vector3[3];
+    Vector3[] _resultNorms = new Vector3[3];
+    Vector3[] _resultVels = new Vector3[3];
 
     SamplingData _samplingData = new SamplingData();
 
+    float _samplesRadius = 5f;
+
     void Update()
     {
-        float r = 5f;
-        if (_trackCamera) _markerPos = Camera.main.transform.position + Camera.main.transform.forward * 10f;
-        if (_trackCamera) _markerPosX = Camera.main.transform.position + Camera.main.transform.forward * 10f + r * Vector3.right;
-        if (_trackCamera) _markerPosZ = Camera.main.transform.position + Camera.main.transform.forward * 10f + r * Vector3.forward;
+        if (_trackCamera)
+        {
+            var height = Mathf.Abs(Camera.main.transform.position.y - OceanRenderer.Instance.SeaLevel);
+            var lookAngle = Mathf.Max(Mathf.Abs(Camera.main.transform.forward.y), 0.001f);
+            var offset = height / lookAngle;
+            _markerPos[0] = Camera.main.transform.position + Camera.main.transform.forward * offset;
+            _markerPos[1] = Camera.main.transform.position + Camera.main.transform.forward * offset + _samplesRadius * Vector3.right;
+            _markerPos[2] = Camera.main.transform.position + Camera.main.transform.forward * offset + _samplesRadius * Vector3.forward;
+        }
 
-        // Assume a primitive like a sphere or box, providing this side length means high frequency waves
-        // much shorter than the object will be ignored.
-        float shapeLength = 2f * transform.lossyScale.magnitude;
-
-        var collProvider = OceanRenderer.Instance.CollisionProvider;
-        var thisRect = new Rect(transform.position.x, transform.position.z, r, r);
-        if (!collProvider.GetSamplingData(ref thisRect, shapeLength, _samplingData))
+        if (OceanRenderer.Instance == null)
         {
             return;
         }
 
-        PlaceMarkerCube(ref _marker, _markerPos);
-        PlaceMarkerCube(ref _markerX, _markerPosX);
-        PlaceMarkerCube(ref _markerZ, _markerPosZ);
+        var collProvider = OceanRenderer.Instance.CollisionProvider;
 
-        collProvider.ReturnSamplingData(_samplingData);
-    }
-
-    void PlaceMarkerCube(ref GameObject marker, Vector3 query)
-    {
-        if (marker == null)
+        var rect = new Rect(_markerPos[0].x - _samplesRadius, _markerPos[0].z + _samplesRadius, 2f * _samplesRadius, 2f * _samplesRadius);
+        if (!collProvider.GetSamplingData(ref rect, _minGridSize, _samplingData))
         {
-            marker = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            Destroy(marker.GetComponent<Collider>());
+            return;
         }
 
-        query.y = 0f;
+        var status = collProvider.Query(GetHashCode(), _samplingData, _markerPos, _resultDisps, _resultNorms, _resultVels);
 
-        Vector3 disp;
-        if (OceanRenderer.Instance.CollisionProvider.SampleDisplacement(ref query, _samplingData, out disp))
+        if (collProvider.RetrieveSucceeded(status))
         {
-            Debug.DrawLine(query, query + disp);
-            marker.transform.position = query + disp;
-        }
-        else
-        {
-            marker.transform.position = query;
+            for (int i = 0; i < _resultDisps.Length; i++)
+            {
+                if (_markerObjects[i] == null)
+                {
+                    _markerObjects[i] = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                    Destroy(_markerObjects[i].GetComponent<Collider>());
+                    _markerObjects[i].transform.localScale = Vector3.one * 0.5f;
+                }
+
+                var query = _markerPos[i];
+                query.y = OceanRenderer.Instance.SeaLevel;
+
+                var disp = _resultDisps[i];
+
+                var pos = query;
+                pos.y = disp.y;
+                Debug.DrawLine(pos, pos - disp);
+                _markerObjects[i].transform.position = pos;
+
+                _markerObjects[i].transform.rotation = Quaternion.FromToRotation(Vector3.up, _resultNorms[i]);
+            }
+
+            for (var i = 0; i < _resultNorms.Length; i++)
+            {
+                Debug.DrawLine(_markerObjects[i].transform.position, _markerObjects[i].transform.position + _resultNorms[i], Color.blue);
+            }
+
+            for (var i = 0; i < _resultVels.Length; i++)
+            {
+                Debug.DrawLine(_markerObjects[i].transform.position, _markerObjects[i].transform.position + _resultVels[i], Color.green);
+            }
         }
     }
 }

@@ -95,6 +95,8 @@ Shader "Crest/Ocean"
 		[NoScaleOffset] _FoamTexture("Texture", 2D) = "white" {}
 		// Foam texture scale
 		_FoamScale("Scale", Range(0.01, 50.0)) = 10.0
+		// Scale intensity of lighting
+		_WaveFoamLightScale("Light Scale", Range(0.0, 2.0)) = 1.35
 		// Colour tint for whitecaps / foam on water surface
 		_FoamWhiteColor("White Foam Color", Color) = (1.0, 1.0, 1.0, 1.0)
 		// Colour tint bubble foam underneath water surface
@@ -111,8 +113,6 @@ Shader "Crest/Ocean"
 		[Header(Foam 3D Lighting)]
 		// Generates normals for the foam based on foam values/texture and use it for foam lighting
 		[Toggle] _Foam3DLighting("Enable", Float) = 1
-		// Scale intensity of lighting
-		_WaveFoamLightScale("Light Scale", Range(0.0, 2.0)) = 1.35
 		// Strength of the generated normals
 		_WaveFoamNormalStrength("Normals Strength", Range(0.0, 30.0)) = 3.5
 		// Acts like a gloss parameter for specular response

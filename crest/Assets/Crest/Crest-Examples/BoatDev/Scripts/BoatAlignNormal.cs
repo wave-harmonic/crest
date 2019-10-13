@@ -99,8 +99,10 @@ public class BoatAlignNormal : FloatingObjectBase
         var normal = Vector3.up;
         var waterSurfaceVel = Vector3.zero;
 
-        _sampleHeightHelper.Sample(ref height, ref normal, ref waterSurfaceVel);
+        _sampleHeightHelper.Sample(ref _displacementToObject, ref normal, ref waterSurfaceVel);
 
+        // height = base sea level + surface displacement y
+        height += _displacementToObject.y;
 
         if (GPUReadbackFlow.Instance)
         {

@@ -6,6 +6,9 @@ using UnityEngine;
 
 namespace Crest
 {
+    /// <summary>
+    /// Samples water surface shape - displacement, height, normal, velocity.
+    /// </summary>
     public class QueryDisplacements : QueryBase, ICollProvider
     {
         readonly static int sp_LD_TexArray_AnimatedWaves = Shader.PropertyToID("_LD_TexArray_AnimatedWaves");
@@ -49,6 +52,28 @@ namespace Crest
         {
             // Mark invalid
             i_data._minSpatialLength = -1f;
+        }
+
+        public int Query(int i_ownerHash, SamplingData i_samplingData, Vector3[] i_queryPoints, float[] o_resultHeights, Vector3[] o_resultNorms, Vector3[] o_resultVels)
+        {
+            var result = (int)QueryStatus.OK;
+
+            if (!UpdateQueryPoints(i_ownerHash, i_samplingData, o_resultNorms != null ? i_queryPoints : null, i_queryPoints))
+            {
+                result |= (int)QueryStatus.PostFailed;
+            }
+
+            if (!RetrieveResults(i_ownerHash, null, o_resultHeights, o_resultNorms))
+            {
+                result |= (int)QueryStatus.RetrieveFailed;
+            }
+
+            if (o_resultVels != null)
+            {
+                result |= CalculateVelocities(i_ownerHash, i_samplingData, i_queryPoints, o_resultVels);
+            }
+
+            return result;
         }
 
         public bool SampleDisplacement(ref Vector3 i_worldPos, SamplingData i_samplingData, out Vector3 o_displacement)

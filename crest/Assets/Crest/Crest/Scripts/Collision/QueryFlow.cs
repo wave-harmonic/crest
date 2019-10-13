@@ -6,6 +6,9 @@ using UnityEngine;
 
 namespace Crest
 {
+    /// <summary>
+    /// Samples horizontal motion of water volume
+    /// </summary>
     public class QueryFlow : QueryBase
     {
         readonly static int sp_LD_TexArray_Flow = Shader.PropertyToID("_LD_TexArray_Flow");
@@ -41,11 +44,6 @@ namespace Crest
         public int Query(int i_ownerHash, SamplingData i_samplingData, Vector3[] i_queryPoints, Vector3[] o_resultFlows)
         {
             return Query(i_ownerHash, i_samplingData, i_queryPoints, o_resultFlows, null, null);
-        }
-
-        public new int Query(int i_ownerHash, SamplingData i_samplingData, Vector3[] i_queryPoints, float[] o_resultHeights, Vector3[] o_resultNorms, Vector3[] o_resultVels)
-        {
-            throw new System.InvalidOperationException("Heights variant not supported for flow queries. Use the other Query() API.");
         }
     }
 }

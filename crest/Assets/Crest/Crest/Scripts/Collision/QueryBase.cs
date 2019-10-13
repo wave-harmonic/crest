@@ -543,28 +543,6 @@ namespace Crest
             return result;
         }
 
-        public int Query(int i_ownerHash, SamplingData i_samplingData, Vector3[] i_queryPoints, float[] o_resultHeights, Vector3[] o_resultNorms, Vector3[] o_resultVels)
-        {
-            var result = (int)QueryStatus.OK;
-
-            if (!UpdateQueryPoints(i_ownerHash, i_samplingData, o_resultNorms != null ? i_queryPoints : null, i_queryPoints))
-            {
-                result |= (int)QueryStatus.PostFailed;
-            }
-
-            if (!RetrieveResults(i_ownerHash, null, o_resultHeights, o_resultNorms))
-            {
-                result |= (int)QueryStatus.RetrieveFailed;
-            }
-
-            if (o_resultVels != null)
-            {
-                result |= CalculateVelocities(i_ownerHash, i_samplingData, i_queryPoints, o_resultVels);
-            }
-
-            return result;
-        }
-
         public bool RetrieveSucceeded(int queryStatus)
         {
             return (queryStatus & (int)QueryStatus.RetrieveFailed) == 0;

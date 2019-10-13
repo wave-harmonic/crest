@@ -199,7 +199,7 @@ namespace Crest
 
             Graphics.ExecuteCommandBuffer(_commandBuffer);
             _commandBuffer.Clear();
-
+            
             // Need this to prevent Unity from giving the following warning:
             // - "OnRenderImage() possibly didn't write anything to the destination texture!"
             Graphics.SetRenderTarget(target);

@@ -137,15 +137,25 @@ namespace Crest
             //_commandBuffer.ClearRenderTarget(true, true, Color.white * UNDERWATER_MASK_NO_MASK);
             cmd.SetViewProjectionMatrices(context.camera.worldToCameraMatrix, context.camera.projectionMatrix);
 
-            // Can't get list of tiles from OceanChunkRenderer.OnWillRenderObject, because this is called from PreCull which
-            // happens before it..!
-            // TODO - what should we do?? culling group is asynchrnous
+            // This gets tiles from previous frame, because this code executes on PreCull, before OnWillRenderObject.. eek
+            if (OceanChunkRenderer._visibleTiles.TryGetValue(context.camera, out var tiles))
             {
-                foreach (var rend in OceanRenderer.Instance.GetComponentsInChildren<Renderer>())
+                foreach (var rend in tiles)
                 {
                     cmd.DrawRenderer(rend, _materialMask);
                 }
+                tiles.Clear();
             }
+
+            //var camera = context.camera;
+            //if (!camera.TryGetCullingParameters(IsStereoEnabled(camera), out var cullingParameters))
+            //    return;
+            //UniversalAdditionalCameraData additionalCameraData = null;
+            //if (camera.cameraType == CameraType.Game || camera.cameraType == CameraType.VR)
+            //    camera.gameObject.TryGetComponent(out additionalCameraData);
+            //ScriptableRenderer renderer = additionalCameraData.scriptableRenderer;
+            //renderer.SetupCullingParameters(ref cullingParameters, ref cameraData);
+            //var cullResults = context.Cull(ref cullingParameters);
 
             // TODO
             //{

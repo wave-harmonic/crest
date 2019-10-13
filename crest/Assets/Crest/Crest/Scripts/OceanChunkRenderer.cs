@@ -2,6 +2,7 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+using System.Collections.Generic;
 using UnityEngine;
 #if UNITY_2018
 using UnityEngine.Experimental.Rendering;
@@ -17,6 +18,7 @@ namespace Crest
     public class OceanChunkRenderer : MonoBehaviour
     {
         public bool _drawRenderBounds = false;
+        public static Dictionary<Camera, List<Renderer>> _visibleTiles = new Dictionary<Camera, List<Renderer>>();
 
         Bounds _boundsLocal;
         Mesh _mesh;
@@ -168,6 +170,12 @@ namespace Crest
             {
                 _rend.bounds.DebugDraw();
             }
+
+            if(!_visibleTiles.TryGetValue(_currentCamera, out var tiles))
+            {
+                _visibleTiles.Add(_currentCamera, tiles = new List<Renderer>());
+            }
+            tiles.Add(_rend);
         }
 
         // this is called every frame because the bounds are given in world space and depend on the transform scale, which

@@ -174,8 +174,8 @@ void ApplyCaustics(in const half3 i_view, in const half3 i_lightDir, in const fl
 	}
 #endif // _SHADOWS_ON
 
-	io_sceneColour *= 1.0 + causticsStrength *
-		(0.5*tex2Dlod(_CausticsTexture, cuv1).x + 0.5*tex2Dlod(_CausticsTexture, cuv2).x - _CausticsTextureAverage);
+	io_sceneColour.xyz *= 1.0 + causticsStrength *
+		(0.5*tex2Dlod(_CausticsTexture, cuv1).xyz + 0.5*tex2Dlod(_CausticsTexture, cuv2).xyz - _CausticsTextureAverage);
 }
 #endif // _CAUSTICS_ON
 

@@ -84,10 +84,8 @@ namespace Crest
                 return 0f;
             }
 
-            if (_powerDisabled[index])
-            {
-                return 0f;
-            }
+            // Get the first power for interpolation if available
+            var thisPower = !_powerDisabled[index] ? _powerLog[index] : MIN_POWER_LOG;
 
             // Get the next power for interpolation if available
             var nextIndex = index + 1;
@@ -109,7 +107,7 @@ namespace Crest
             var alpha = (wavelength - lower) / lower;
 
             // Power
-            var pow = hasNextIndex ? Mathf.Lerp(_powerLog[index], nextPower, alpha) : _powerLog[index];
+            var pow = hasNextIndex ? Mathf.Lerp(thisPower, nextPower, alpha) : _powerLog[index];
 
             var a_2 = 2f * Mathf.Pow(10f, pow) * domega;
 

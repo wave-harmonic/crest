@@ -84,10 +84,13 @@ namespace Crest
                 return 0f;
             }
 
-            if (_powerDisabled[index])
-            {
-                return 0f;
-            }
+            // Get the first power for interpolation if available
+            var thisPower = !_powerDisabled[index] ? _powerLog[index] : MIN_POWER_LOG;
+
+            // Get the next power for interpolation if available
+            var nextIndex = index + 1;
+            var hasNextIndex = nextIndex < _powerLog.Length;
+            var nextPower = hasNextIndex && !_powerDisabled[nextIndex] ? _powerLog[nextIndex] : MIN_POWER_LOG;
 
             // The amplitude calculation follows this nice paper from Frechot:
             // https://hal.archives-ouvertes.fr/file/index/docid/307938/filename/frechot_realistic_simulation_of_ocean_surface_using_wave_spectra.pdf
@@ -104,7 +107,7 @@ namespace Crest
             var alpha = (wavelength - lower) / lower;
 
             // Power
-            var pow = Mathf.Lerp(_powerLog[index], _powerLog[Mathf.Min(index + 1, _powerLog.Length - 1)], alpha);
+            var pow = hasNextIndex ? Mathf.Lerp(thisPower, nextPower, alpha) : _powerLog[index];
 
             var a_2 = 2f * Mathf.Pow(10f, pow) * domega;
 

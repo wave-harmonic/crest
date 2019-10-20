@@ -57,10 +57,10 @@ void SampleDisplacementsCompute(
 	const uint sliceIndex = i_uv_slice.z;
 	const float2 pixelCoordCentersFrac = frac(pixelCoordCenters);
 
-	const half4 dataBotLeft = i_dispSampler[float3(pixelCoordCentersBotLeft, sliceIndex)];
-	const half4 dataBotRight = i_dispSampler[float3(pixelCoordCentersBotLeft + uint2(1, 0), sliceIndex)];
-	const half4 dataTopLeft = i_dispSampler[float3(pixelCoordCentersBotLeft + uint2(0, 1), sliceIndex)];
-	const half4 dataTopRight = i_dispSampler[float3(pixelCoordCentersBotLeft + uint2(1, 1), sliceIndex)];
+	const half4 dataBotLeft = i_dispSampler[uint3(pixelCoordCentersBotLeft, sliceIndex)];
+	const half4 dataBotRight = i_dispSampler[uint3(pixelCoordCentersBotLeft + uint2(1, 0), sliceIndex)];
+	const half4 dataTopLeft = i_dispSampler[uint3(pixelCoordCentersBotLeft + uint2(0, 1), sliceIndex)];
+	const half4 dataTopRight = i_dispSampler[uint3(pixelCoordCentersBotLeft + uint2(1, 1), sliceIndex)];
 
 	const float4 dataLerped = lerp(
 		lerp(dataBotLeft, dataBotRight, pixelCoordCentersFrac.x),

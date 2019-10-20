@@ -20,8 +20,10 @@
 float _HorizDisplace;
 float _DisplaceClamp;
 float _CrestTime;
+float _DispTexWidth;
+float _DispTexHeight;
 
-RWTexture2DArray<half4> _LD_TexArray_AnimatedWaves_Compute;
+RWStructuredBuffer<half4> _LD_TexArray_AnimatedWaves_Compute;
 
 void Flow(out float2 offsets, out float2 weights)
 {
@@ -33,8 +35,10 @@ void Flow(out float2 offsets, out float2 weights)
 	weights.y = 1.0 - weights.x;
 }
 
+uint TACoord(uint3 coords3D) { return coords3D.x + coords3D.y * uint(_DispTexWidth) + coords3D.z * uint(_DispTexWidth * _DispTexHeight); }
+
 void SampleDisplacementsCompute(
-	in RWTexture2DArray<half4> i_dispSampler,
+	in RWStructuredBuffer<half4> i_dispSampler,
 	in float i_width, in float i_height, in float3 i_uv_slice,
 	in float i_wt, inout float3 io_worldPos, inout float io_sss
 ) {
@@ -57,10 +61,10 @@ void SampleDisplacementsCompute(
 	const uint sliceIndex = i_uv_slice.z;
 	const float2 pixelCoordCentersFrac = frac(pixelCoordCenters);
 
-	const half4 dataBotLeft = i_dispSampler[uint3(pixelCoordCentersBotLeft, sliceIndex)];
-	const half4 dataBotRight = i_dispSampler[uint3(pixelCoordCentersBotLeft + uint2(1, 0), sliceIndex)];
-	const half4 dataTopLeft = i_dispSampler[uint3(pixelCoordCentersBotLeft + uint2(0, 1), sliceIndex)];
-	const half4 dataTopRight = i_dispSampler[uint3(pixelCoordCentersBotLeft + uint2(1, 1), sliceIndex)];
+	const half4 dataBotLeft = i_dispSampler[TACoord(uint3(pixelCoordCentersBotLeft, sliceIndex))];
+	const half4 dataBotRight = i_dispSampler[TACoord(uint3(pixelCoordCentersBotLeft + uint2(1, 0), sliceIndex))];
+	const half4 dataTopLeft = i_dispSampler[TACoord(uint3(pixelCoordCentersBotLeft + uint2(0, 1), sliceIndex))];
+	const half4 dataTopRight = i_dispSampler[TACoord(uint3(pixelCoordCentersBotLeft + uint2(1, 1), sliceIndex))];
 
 	const float4 dataLerped = lerp(
 		lerp(dataBotLeft, dataBotRight, pixelCoordCentersFrac.x),
@@ -74,11 +78,11 @@ void SampleDisplacementsCompute(
 
 void ShapeCombineBase (uint3 id)
 {
-	float width; float height; float depth;
-	{
-		_LD_TexArray_AnimatedWaves_Compute.GetDimensions(width, height, depth);
-	}
-	const float2 input_uv = IDtoUV(id.xy, width, height);
+	//float width; float height; float depth;
+	//{
+	//	_LD_TexArray_AnimatedWaves_Compute.GetDimensions(width, height, depth);
+	//}
+	const float2 input_uv = IDtoUV(id.xy, _DispTexWidth, _DispTexHeight);
 
 	const float2 worldPosXZ = UVToWorld(input_uv);
 
@@ -110,7 +114,7 @@ void ShapeCombineBase (uint3 id)
 // C# Script determines whether this enabled or not by selecting appropriate
 // kernel for each LOD.
 #if !_DISABLE_COMBINE
-	SampleDisplacementsCompute(_LD_TexArray_AnimatedWaves_Compute, width, height, uv_nextLod, 1.0, result, sss);
+	SampleDisplacementsCompute(_LD_TexArray_AnimatedWaves_Compute, _DispTexWidth, _DispTexHeight, uv_nextLod, 1.0, result, sss);
 #endif
 
 #if _DYNAMIC_WAVE_SIM_ON
@@ -140,7 +144,7 @@ void ShapeCombineBase (uint3 id)
 	}
 #endif // _DYNAMIC_WAVE_SIM_
 
-	_LD_TexArray_AnimatedWaves_Compute[uint3(id.xy, _LD_SliceIndex)] = half4(result, sss);
+	_LD_TexArray_AnimatedWaves_Compute[TACoord(uint3(id.xy, _LD_SliceIndex))] = half4(result, sss);
 }
 
 

@@ -36,7 +36,7 @@ namespace Crest
         /// Ping pong between render targets to do the combine. Disabling this uses a compute shader instead which doesn't need
         /// to copy back and forth between targets, but has dodgy historical support as pre-DX11.3 hardware may not support typed UAV loads.
         /// </summary>
-        public static bool _shapeCombinePassPingPong = true;
+        public static bool _shapeCombinePassPingPong = false;
 
         RenderTexture _waveBuffers;
         RenderTexture _combineBuffer;
@@ -57,6 +57,8 @@ namespace Crest
         PropertyWrapperMaterial[] _combineMaterial;
 
         static int sp_LD_TexArray_AnimatedWaves_Compute = Shader.PropertyToID("_LD_TexArray_AnimatedWaves_Compute");
+        static int sp_DispTexWidth = Shader.PropertyToID("_DispTexWidth");
+        static int sp_DispTexHeight = Shader.PropertyToID("_DispTexHeight");
 
         public override void UseSettings(SimSettingsBase settings) { OceanRenderer.Instance._simSettingsAnimatedWaves = settings as SimSettingsAnimatedWaves; }
         public override SimSettingsBase CreateDefaultSettings()
@@ -355,6 +357,9 @@ namespace Crest
                 );
 
                 _combineProperties.SetInt(sp_LD_SliceIndex, lodIdx);
+                _combineProperties.SetFloat(sp_DispTexWidth, OceanRenderer.Instance._lodDataAnimWaves._targets.width);
+                _combineProperties.SetFloat(sp_DispTexHeight, OceanRenderer.Instance._lodDataAnimWaves._targets.height);
+
                 _combineProperties.DispatchShader();
             }
         }

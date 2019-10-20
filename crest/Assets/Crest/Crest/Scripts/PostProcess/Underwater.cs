@@ -2,6 +2,9 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+// TODO
+// create and render to depth buffer
+
 using System;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -30,16 +33,26 @@ namespace Crest
         static readonly int sp_InvViewProjectionRight = Shader.PropertyToID("_InvViewProjectionRight");
         static readonly int sp_InstanceData = Shader.PropertyToID("_InstanceData");
         static readonly int sp_AmbientLighting = Shader.PropertyToID("_AmbientLighting");
+        static readonly int sp_maskID = Shader.PropertyToID("_Mask");
 
         private const float UNDERWATER_MASK_NO_MASK = 1.0f;
+
+        private const string FULL_SCREEN_EFFECT = "_FULL_SCREEN_EFFECT";
+        private const string DEBUG_VIEW_OCEAN_MASK = "_DEBUG_VIEW_OCEAN_MASK";
 
         private const string SHADER_UNDERWATER = "Crest/Underwater/Post Process New";
         private const string SHADER_OCEAN_MASK = "Crest/Underwater/Ocean Mask";
 
         Shader _shader;
-        Shader _shaderMask;
+        Material _material;
+        PropertyWrapperMaterial _materialWrapper;
 
+        Shader _shaderMask;
         Material _materialMask;
+
+        Color[] _ambientLighting = new Color[1];
+        SphericalHarmonicsL2 _sphericalHarmonicsL2;
+        Vector3[] _shDirections = new Vector3[] { new Vector3(0.0f, 0.0f, 0.0f) };
 
         public override void Init()
         {
@@ -51,6 +64,8 @@ namespace Crest
         private bool InitialisedCorrectly()
         {
             _shader = Shader.Find(SHADER_UNDERWATER);
+            _material = new Material(_shader);
+            _materialWrapper = new PropertyWrapperMaterial(_material);
             //if (_underwaterPostProcessMaterial == null)
             //{
             //    Debug.LogError("UnderwaterPostProcess must have a post processing material assigned", this);
@@ -86,6 +101,9 @@ namespace Crest
             {
                 RenderPopulateMask(cmd, context);
 
+                RenderUpdateMaterial(context.source, context.camera);
+
+                // blit with sheet associated with the shader
                 cmd.BlitFullscreenTriangle(context.source, context.destination, sheet, 0);
             }
             else
@@ -104,11 +122,10 @@ namespace Crest
 
             int tw = Mathf.FloorToInt(context.screenWidth / 2f);
             int th = Mathf.FloorToInt(context.screenHeight / 2f);
-            bool singlePassDoubleWide = (context.stereoActive && (context.stereoRenderingMode == PostProcessRenderContext.StereoRenderingMode.SinglePass) && (context.camera.stereoTargetEye == StereoTargetEyeMask.Both));
+            bool singlePassDoubleWide = false; // (context.stereoActive && (context.stereoRenderingMode == PostProcessRenderContext.StereoRenderingMode.SinglePass) && (context.camera.stereoTargetEye == StereoTargetEyeMask.Both));
             int tw_stereo = singlePassDoubleWide ? tw * 2 : tw;
 
-            var maskID = Shader.PropertyToID("_Mask");
-            context.GetScreenSpaceTemporaryRT(cmd, maskID, 0, RenderTextureFormat.RHalf, RenderTextureReadWrite.Default, FilterMode.Bilinear, tw_stereo, th);
+            context.GetScreenSpaceTemporaryRT(cmd, sp_maskID, 0, RenderTextureFormat.RHalf, RenderTextureReadWrite.Default, FilterMode.Bilinear, tw_stereo, th);
 
             //if (_textureMask == null || _textureMask.width != source.width || _textureMask.height != source.height)
             //{
@@ -127,7 +144,7 @@ namespace Crest
 
             var sheet = context.propertySheets.Get(_shaderMask);
 
-            cmd.SetRenderTarget(maskID);
+            cmd.SetRenderTarget(sp_maskID);
             cmd.ClearRenderTarget(false, true, Color.white * UNDERWATER_MASK_NO_MASK);
 
             //cmd.BlitFullscreenTriangle(lastDown, mipDown, sheet, pass);
@@ -173,6 +190,102 @@ namespace Crest
             //}
 
             cmd.EndSample("Populate mask");
+        }
+
+        void RenderUpdateMaterial(RenderTargetIdentifier source, Camera camera)
+        {
+            //if (_firstRender || _copyOceanMaterialParamsEachFrame)
+            {
+                // Measured this at approx 0.05ms on dell laptop
+                _material.CopyPropertiesFromMaterial(OceanRenderer.Instance.OceanMaterial);
+            }
+
+            // Enabling/disabling keywords each frame don't seem to have large measurable overhead
+            //if (_viewOceanMask)
+            //{
+            //    _underwaterPostProcessMaterial.EnableKeyword(DEBUG_VIEW_OCEAN_MASK);
+            //}
+            //else
+            {
+                _material.DisableKeyword(DEBUG_VIEW_OCEAN_MASK);
+            }
+
+            _material.SetFloat(LodDataMgr.sp_LD_SliceIndex, 0);
+            _material.SetVector(sp_InstanceData, new Vector4(OceanRenderer.Instance.ViewerAltitudeLevelAlpha, 0f, 0f, OceanRenderer.Instance.CurrentLodCount));
+
+            OceanRenderer.Instance._lodDataAnimWaves.BindResultData(_materialWrapper);
+            if (OceanRenderer.Instance._lodDataSeaDepths)
+            {
+                OceanRenderer.Instance._lodDataSeaDepths.BindResultData(_materialWrapper);
+            }
+            else
+            {
+                LodDataMgrSeaFloorDepth.BindNull(_materialWrapper);
+            }
+
+            if (OceanRenderer.Instance._lodDataShadow)
+            {
+                OceanRenderer.Instance._lodDataShadow.BindResultData(_materialWrapper);
+            }
+            else
+            {
+                LodDataMgrShadow.BindNull(_materialWrapper);
+            }
+
+            {
+                float oceanHeight = OceanRenderer.Instance.transform.position.y;
+                float maxOceanVerticalDisplacement = OceanRenderer.Instance.MaxVertDisplacement * 0.5f;
+                float cameraHeight = camera.transform.position.y;
+                bool forceFullShader = (cameraHeight + maxOceanVerticalDisplacement) <= oceanHeight;
+                _material.SetFloat(sp_OceanHeight, oceanHeight);
+                if (forceFullShader)
+                {
+                    _material.EnableKeyword(FULL_SCREEN_EFFECT);
+                }
+                else
+                {
+                    _material.DisableKeyword(FULL_SCREEN_EFFECT);
+                }
+            }
+
+            // happens automatically due to sp_maskID ?
+            //_material.SetTexture(sp_MaskTex, _textureMask);
+            // TODO
+            //_material.SetTexture(sp_MaskDepthTex, _depthBuffer);
+
+            // Have to set these explicitly as the built-in transforms aren't in world-space for the blit function
+            //if (!XRSettings.enabled || XRSettings.stereoRenderingMode == XRSettings.StereoRenderingMode.MultiPass)
+            {
+
+                var viewProjectionMatrix = camera.projectionMatrix * camera.worldToCameraMatrix;
+                _material.SetMatrix(sp_InvViewProjection, viewProjectionMatrix.inverse);
+            }
+            //else
+            //{
+            //    var viewProjectionMatrix = camera.GetStereoProjectionMatrix(Camera.StereoscopicEye.Left) * camera.worldToCameraMatrix;
+            //    _material.SetMatrix(sp_InvViewProjection, viewProjectionMatrix.inverse);
+            //    var viewProjectionMatrixRightEye = camera.GetStereoProjectionMatrix(Camera.StereoscopicEye.Right) * camera.worldToCameraMatrix;
+            //    _material.SetMatrix(sp_InvViewProjectionRight, viewProjectionMatrixRightEye.inverse);
+            //}
+
+            // Not sure why we need to do this - blit should set it...?
+            //_material.SetTexture(sp_MainTex, source);
+
+            // Compute ambient lighting SH
+            {
+                // We could pass in a renderer which would prime this lookup. However it doesnt make sense to use an existing render
+                // at different position, as this would then thrash it and negate the priming functionality. We could create a dummy invis GO
+                // with a dummy Renderer which might be enoguh, but this is hacky enough that we'll wait for it to become a problem
+                // rather than add a pre-emptive hack.
+
+                UnityEngine.Profiling.Profiler.BeginSample("Underwater sample spherical harmonics");
+
+                LightProbes.GetInterpolatedProbe(OceanRenderer.Instance.Viewpoint.position, null, out _sphericalHarmonicsL2);
+                _sphericalHarmonicsL2.Evaluate(_shDirections, _ambientLighting);
+                _material.SetVector(sp_AmbientLighting, _ambientLighting[0]);
+
+                UnityEngine.Profiling.Profiler.EndSample();
+            }
         }
     }
 }

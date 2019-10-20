@@ -39,7 +39,7 @@ struct ShadowCoords
 	float4 MainCameraCoords;
 };
 
-uniform float _LD_SliceIndex_Source;
+uniform uint _LD_SliceIndex_Source;
 uniform float3 _CenterPos;
 uniform float3 _Scale;
 uniform float3 _CamPos;
@@ -136,7 +136,7 @@ void UpdateShadow(uint3 id : SV_DispatchThreadID)
 	}
 	else if (_LD_SliceIndex_Source + 1.0 < depth)
 	{
-		float3 uv_source_nextlod = WorldToUV_Source(shadowCoords._WorldPosViewZ.xz, _LD_SliceIndex_Source + 1.0);
+		float3 uv_source_nextlod = WorldToUV_Source(shadowCoords._WorldPosViewZ.xz, _LD_SliceIndex_Source + 1);
 		half2 r2 = abs(uv_source_nextlod.xy - 0.5);
 		if (max(r2.x, r2.y) < r_max)
 		{

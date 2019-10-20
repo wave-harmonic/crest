@@ -138,10 +138,11 @@ namespace Crest
         /// </summary>
         public float ViewerHeightAboveWater { get; private set; }
 
+        SampleHeightHelper _sampleHeightHelper = new SampleHeightHelper();
+        
         static int sp_crestTime = Shader.PropertyToID("_CrestTime");
         static int sp_texelsPerWave = Shader.PropertyToID("_TexelsPerWave");
 
-        SamplingData _samplingData = new SamplingData();
 
         void Awake()
         {
@@ -286,17 +287,12 @@ namespace Crest
 
         void LateUpdateViewerHeight()
         {
-            var pos = Viewpoint.position;
-            var rect = new Rect(pos.x, pos.z, 0f, 0f);
+            _sampleHeightHelper.Init(Viewpoint.position, 0f);
 
-            float waterHeight;
-            if (CollisionProvider.GetSamplingData(ref rect, 0f, _samplingData)
-                && CollisionProvider.SampleHeight(ref pos, _samplingData, out waterHeight))
-            {
-                ViewerHeightAboveWater = pos.y - waterHeight;
-            }
+            float waterHeight = 0f;
+            _sampleHeightHelper.Sample(ref waterHeight);
 
-            CollisionProvider.ReturnSamplingData(_samplingData);
+            ViewerHeightAboveWater = Viewpoint.position.y - waterHeight;
         }
 
         void LateUpdateLods()

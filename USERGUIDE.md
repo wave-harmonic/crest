@@ -233,33 +233,20 @@ At runtime, a child object underneath the cache will be created with the prefix 
 
 # Collision Shape for Physics
 
-There are two options to access the ocean shape on the CPU (from script) in order to compute buoyancy physics or perform camera collision, etc.
-These options are configured on the *Animated Waves Sim Settings*, assigned to the OceanRenderer script, using the Collision Source dropdown.
-These options are described in the following sections.
+The system has a few paths for computing information about the water surface such as height, displacement, flow and surface velocity.
+These paths are covered in the following subsections, and are configured on the *Animated Waves Sim Settings*, assigned to the OceanRenderer script, using the Collision Source dropdown.
 
 The system supports sampling collision at different resolutions.
 The query functions have a parameter *Min Spatial Length* which is used to indicate how much detail is desired.
 Wavelengths smaller than half of this min spatial length will be excluded from consideration.
 
-Sampling the height of a displacement texture is in general non-trivial.
-A displacement can define a concave surface with overhanging elements such as a wave that has begun to break.
-At such locations the surface has multiple heights, so we need some mechanism to search for a height.
-Luckily there is a powerful tool to do this search known as Fixed Point Iteration (FPI).
-For an introduction to FPI and a discussion of this scenario see this GDC talk: [link](http://www.huwbowles.com/fpi-gdc-2016/).
-Computing this height is relatively expensive as each search step samples the displacement.
-To help reduce cost a height cache can be enabled in the *Animated Waves Sim Settings* which will cache the water height at a 2D position so that any subsequent samples in the same frame will quickly return the height.
+## Compute Shader Queries
 
-## Ocean Displacement Textures GPU
+This is the default and recommended choice.
+Query positions are uploaded to a compute shader which then samples the ocean data and returns the desired results.
+The result of the query accurately tracks the height of the surface, including all shape deformations and waves.
 
-This collision source copies the displacement textures from the GPU to the CPU. It does so asynchronously and the data typically takes 2-3 frames to arrive.
- This is the default collision source and gives the final ocean shape, including any bespoke shape rendering, attenuation from water depth, and any other effects.
-
-It uses memory bandwidth to transfer this data and CPU time to take a copy of it once it arrives, so it is best to limit the number of textures copied.
-If you know in advance the limits of the minimum spatial lengths you will be requesting, set these on the *Animated Waves Sim Settings* using the *Min Object Width* and *Max Object Width* fields.
-
-As described above the displacements are arranged as cascaded textures which shift based on the elevation of the viewpoint.
-This complicates matters significantly as the requested resolutions may or may not exist at different times.
-Call *ICollProvider.CheckAvailability()* at run-time to check for issues and perform validation.
+This system does not require detailed configuration and has the best performance characteristics.
 
 ## Gerstner Waves CPU
 
@@ -270,6 +257,29 @@ This avoids some of the complexity of using the displacement textures described 
 It also does not include wave attenuation from water depth or any custom rendered shape.
 A final limitation is the current system finds the first GerstnerWavesBatched component in the scene which may or may not be the correct one.
 The system does not support cross blending of multiple scripts.
+
+## Ocean Displacement Textures GPU (DEPRECATED)
+
+This collision source copies the displacement textures from the GPU to the CPU.
+It does so asynchronously and the data typically takes 2-3 frames to arrive.
+This is the default collision source and gives the final ocean shape, including any bespoke shape rendering, attenuation from water depth, and any other effects.
+
+It uses memory bandwidth to transfer this data and CPU time to take a copy of it once it arrives, so it is best to limit the number of textures copied.
+If you know in advance the limits of the minimum spatial lengths you will be requesting, set these on the *Animated Waves Sim Settings* using the *Min Object Width* and *Max Object Width* fields.
+
+As described above the displacements are arranged as cascaded textures which shift based on the elevation of the viewpoint.
+This complicates matters significantly as the requested resolutions may or may not exist at different times.
+Call *ICollProvider.CheckAvailability()* at run-time to check for issues and perform validation.
+
+## Technical Notes
+
+Sampling the height of a displacement texture is in general non-trivial.
+A displacement can define a concave surface with overhanging elements such as a wave that has begun to break.
+At such locations the surface has multiple heights, so we need some mechanism to search for a height.
+Luckily there is a powerful tool to do this search known as Fixed Point Iteration (FPI).
+For an introduction to FPI and a discussion of this scenario see this GDC talk: [link](http://www.huwbowles.com/fpi-gdc-2016/).
+Computing this height is relatively expensive as each search step samples the displacement.
+To help reduce cost a height cache can be enabled in the *Animated Waves Sim Settings* which will cache the water height at a 2D position so that any subsequent samples in the same frame will quickly return the height.
 
 
 # Other features
@@ -329,6 +339,9 @@ The above steps should maintain a working boat throughout - we recommend testing
 
 
 # Q&A
+
+**Can I sample the water height at a position from C#?**
+Yes, see *SampleHeightHelper*. *OceanRenderer* uses this helper to get the height of the viewer above the water, and makes this viewer height available via the *ViewerHeightAboveWater* property.
 
 **Is Crest well suited for medium-to-low powered mobile devices?**
 Crest is built to be performant by design and has numerous quality/performance levers.

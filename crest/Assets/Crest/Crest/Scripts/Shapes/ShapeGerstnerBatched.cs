@@ -385,7 +385,7 @@ namespace Crest
 
                 int numVecs = (numInBatch + 3) / 4;
                 mat.SetInt(sp_NumWaveVecs, numVecs);
-                mat.SetFloat(LodDataMgr.sp_LD_SliceIndex, lodIdx - i);
+                mat.SetInt(LodDataMgr.sp_LD_SliceIndex, lodIdx - i);
                 OceanRenderer.Instance._lodDataAnimWaves.BindResultData(mat);
 
                 if (OceanRenderer.Instance._lodDataSeaDepths)
@@ -680,6 +680,77 @@ namespace Crest
         {
             o_displacementValid = SampleDisplacement(ref i_worldPos, i_samplingData, out o_displacement);
             o_velValid = GetSurfaceVelocity(ref i_worldPos, i_samplingData, out o_displacementVel);
+        }
+
+        public int Query(int i_ownerHash, SamplingData i_samplingData, Vector3[] i_queryPoints, Vector3[] o_resultDisps, Vector3[] o_resultNorms, Vector3[] o_resultVels)
+        {
+            if (o_resultDisps != null)
+            {
+                for (int i = 0; i < o_resultDisps.Length; i++)
+                {
+                    SampleDisplacement(ref i_queryPoints[i], i_samplingData, out o_resultDisps[i]);
+                }
+            }
+
+            if (o_resultNorms != null)
+            {
+                for (int i = 0; i < o_resultNorms.Length; i++)
+                {
+                    Vector3 undispPos;
+                    if (ComputeUndisplacedPosition(ref i_queryPoints[i], i_samplingData, out undispPos))
+                    {
+                        SampleNormal(ref undispPos, i_samplingData, out o_resultNorms[i]);
+                    }
+                    else
+                    {
+                        o_resultNorms[i] = Vector3.up;
+                    }
+                }
+            }
+
+            return 0;
+        }
+
+        public int Query(int i_ownerHash, SamplingData i_samplingData, Vector3[] i_queryPoints, float[] o_resultHeights, Vector3[] o_resultNorms, Vector3[] o_resultVels)
+        {
+            if (o_resultHeights != null)
+            {
+                for (int i = 0; i < o_resultHeights.Length; i++)
+                {
+                    SampleHeight(ref i_queryPoints[i], i_samplingData, out o_resultHeights[i]);
+                }
+            }
+
+            if (o_resultNorms != null)
+            {
+                for (int i = 0; i < o_resultNorms.Length; i++)
+                {
+                    Vector3 undispPos;
+                    if (ComputeUndisplacedPosition(ref i_queryPoints[i], i_samplingData, out undispPos))
+                    {
+                        SampleNormal(ref undispPos, i_samplingData, out o_resultNorms[i]);
+                    }
+                    else
+                    {
+                        o_resultNorms[i] = Vector3.up;
+                    }
+                }
+            }
+
+            if (o_resultVels != null)
+            {
+                for (int i = 0; i < o_resultVels.Length; i++)
+                {
+                    GetSurfaceVelocity(ref i_queryPoints[i], i_samplingData, out o_resultVels[i]);
+                }
+            }
+
+            return 0;
+        }
+
+        public bool RetrieveSucceeded(int queryStatus)
+        {
+            return queryStatus == 0;
         }
     }
 

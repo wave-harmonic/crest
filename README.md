@@ -6,7 +6,7 @@
 
 # Intro
 
-*Crest* is a technically advanced ocean renderer implemented in Unity3D 2018.3 and later. This version targets the **built-in render pipeline**, a link to the LWRP version on the Asset Store is below.
+*Crest* is a technically advanced ocean renderer implemented in Unity3D 2018.3 and later. The version hosted here targets the **built-in render pipeline**, a link to the LWRP version on the Asset Store is below.
 
 ![Teaser](https://raw.githubusercontent.com/huwb/crest-oceanrender/master/img/teaser5.png)
 
@@ -15,6 +15,10 @@
 **Twitter:** [@crest_ocean](https://twitter.com/@crest_ocean)
 
 **LWRP asset:** [Crest Ocean System LWRP](https://assetstore.unity.com/packages/tools/particles-effects/crest-ocean-system-lwrp-141674)
+
+**URP asset:** Coming soon.
+
+**HDRP asset:** Coming soon.
 
 # Showcase Gallery
 
@@ -36,10 +40,8 @@ There is also a getting started video here: https://www.youtube.com/watch?v=qsge
 # Prerequisites
 
 * Unity version:
-  * Releases specify which version of Unity they were developed on.
-  * The master branch generally moves forward with Unity releases to take advantage of improvements. It's rare that we take a hard dependency on a new feature in the core *Crest* code, so it is usually possible to stand *Crest* up in earlier versions of Unity.
-  * One exception to the previous point is the async readback API used to read collisions and flow data back to the CPU. This code will need to be manually disabled on pre-2018 versions.
-  * Another exception is prefabs which are used sparingly in *Crest* and generally do not change much between releases, but are moved forward with Unity versions and are have limited backwards compatibility.
+  * The SRP assets on the Asset Store specify the minimum version required.
+  * Releases on this GitHub target the built-in render pipeline, and each release specifies which version of Unity it was developed on. Currently Unity 2018.3 or later is the minimum version.
 * *Crest* example content:
   * The content requires a layer named *Terrain* which should be added to your project.
   * The post processing package is used (for aesthetic reasons), if this is not present in your project you will see an unassigned script warning which you can fix by removing the offending script.
@@ -49,11 +51,9 @@ There is also a getting started video here: https://www.youtube.com/watch?v=qsge
 
 # Releases
 
-Releases are published semi-regularly and posted on the [Releases page](https://github.com/huwb/crest-oceanrender/releases). Unity packages are uploaded with each release.
-Since development stability has historically been good, an option would be to grab the latest version from the master branch instead of waiting for releases.
-Be aware though that we actively refactor/cleanup/change the code to pay technical debt and fight complexity so integrations may require some fixup.
+The best way to obtain *Crest* is take the latest version in the master branch by forking/cloning this repository or by using the green download button above. We rely heavily on the community to help us test new features before creating releases. Once features are settled they are integrated into the SRP assets (linked above).
 
-*Crest* exercises [semantic versioning](https://semver.org/) and follows the branching strategy outlined [here](https://gist.github.com/stuartsaunders/448036/5ae4e961f02e441e98528927d071f51bf082662f), although there is no develop branch used yet - development occurs on feature branches that are merged directly into master.
+Releases are published irregularly and posted on the [Releases page](https://github.com/huwb/crest-oceanrender/releases). Unity packages are uploaded with each release. The lastest release version is 8.0.0.
 
 
 # Issues

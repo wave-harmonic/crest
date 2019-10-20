@@ -267,7 +267,7 @@ namespace Crest
                     LodDataMgrFlow.BindNull(_combineMaterial[lodIdx]);
                 }
 
-                _combineMaterial[lodIdx].SetFloat(LodDataMgr.sp_LD_SliceIndex, lodIdx);
+                _combineMaterial[lodIdx].SetInt(sp_LD_SliceIndex, lodIdx);
 
                 // Combine this LOD's waves with waves from the LODs above into auxiliary combine buffer
                 buf.SetRenderTarget(_combineBuffer);
@@ -354,7 +354,7 @@ namespace Crest
                     DataTexture
                 );
 
-                _combineProperties.SetFloat(sp_LD_SliceIndex, lodIdx);
+                _combineProperties.SetInt(sp_LD_SliceIndex, lodIdx);
                 _combineProperties.DispatchShader();
             }
         }

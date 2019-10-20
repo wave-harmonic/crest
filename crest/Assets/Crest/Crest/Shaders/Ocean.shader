@@ -251,10 +251,10 @@ Shader "Crest/Ocean"
 
 			#include "OceanHelpers.hlsl"
 
-			uniform float _CrestTime;
+			float _CrestTime;
 
-			// MeshScaleLerp, FarNormalsWeight, LODIndex (debug), unused
-			uniform float4 _InstanceData;
+			// MeshScaleLerp, FarNormalsWeight, LODIndex (debug), lod count
+			float4 _InstanceData;
 
 			// Argument name is v because some macros like COMPUTE_EYEDEPTH require it.
 			Varyings Vert(Attributes v)
@@ -461,7 +461,7 @@ Shader "Crest/Ocean"
 				#endif // _FOAM_ON
 
 				// Compute color of ocean - in-scattered light + refracted scene
-				half3 scatterCol = ScatterColour(input.worldPos, input.lodAlpha_worldXZUndisplaced_oceanDepth.w, _WorldSpaceCameraPos, lightDir, view, shadow.x, underwater, true, sss);
+				half3 scatterCol = ScatterColour(input.lodAlpha_worldXZUndisplaced_oceanDepth.w, _WorldSpaceCameraPos, lightDir, view, shadow.x, underwater, true, sss);
 				half3 col = OceanEmission(view, n_pixel, lightDir, input.grabPos, pixelZ, uvDepth, sceneZ, sceneZ01, bubbleCol, _Normals, _CameraDepthTexture, underwater, scatterCol);
 
 				// Light that reflects off water surface

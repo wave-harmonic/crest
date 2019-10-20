@@ -117,7 +117,7 @@ namespace Crest
             // blend furthest normals scale in/out to avoid pop, if scale could reduce
             var needToBlendOutNormals = _lodIndex == _totalLodCount - 1 && OceanRenderer.Instance.ScaleCouldDecrease;
             var farNormalsWeight = needToBlendOutNormals ? OceanRenderer.Instance.ViewerAltitudeLevelAlpha : 1f;
-            _mpb.SetVector(sp_InstanceData, new Vector4(meshScaleLerp, farNormalsWeight, _lodIndex));
+            _mpb.SetVector(sp_InstanceData, new Vector4(meshScaleLerp, farNormalsWeight, _lodIndex, _totalLodCount));
 
             // geometry data
             // compute grid size of geometry. take the long way to get there - make sure we land exactly on a power of two

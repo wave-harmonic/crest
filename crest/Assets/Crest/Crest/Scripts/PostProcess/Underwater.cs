@@ -50,6 +50,8 @@ namespace Crest
         Shader _shaderMask;
         Material _materialMask;
 
+        //private RenderTexture _depthBuffer;
+
         Color[] _ambientLighting = new Color[1];
         SphericalHarmonicsL2 _sphericalHarmonicsL2;
         Vector3[] _shDirections = new Vector3[] { new Vector3(0.0f, 0.0f, 0.0f) };
@@ -125,18 +127,12 @@ namespace Crest
             bool singlePassDoubleWide = false; // (context.stereoActive && (context.stereoRenderingMode == PostProcessRenderContext.StereoRenderingMode.SinglePass) && (context.camera.stereoTargetEye == StereoTargetEyeMask.Both));
             int tw_stereo = singlePassDoubleWide ? tw * 2 : tw;
 
-            context.GetScreenSpaceTemporaryRT(cmd, sp_maskID, 0, RenderTextureFormat.RHalf, RenderTextureReadWrite.Default, FilterMode.Bilinear, tw_stereo, th);
+            context.GetScreenSpaceTemporaryRT(cmd, sp_maskID, 24, RenderTextureFormat.RHalf, RenderTextureReadWrite.Default, FilterMode.Bilinear, tw_stereo, th);
+            //context.GetScreenSpaceTemporaryRT(cmd, sp_MaskDepthTex, 24, RenderTextureFormat.Depth);
 
-            //if (_textureMask == null || _textureMask.width != source.width || _textureMask.height != source.height)
+            //if (_depthBuffer == null || _depthBuffer.width != tw_stereo || _depthBuffer.height != th)
             //{
-            //    _textureMask = new RenderTexture(source);
-            //    _textureMask.name = "Ocean Mask";
-            //    // @Memory: We could investigate making this an 8-bit texture instead to reduce GPU memory usage.
-            //    // We could also potentially try a half res mask as the meniscus could mask res issues.
-            //    _textureMask.format = RenderTextureFormat.RHalf;
-            //    _textureMask.Create();
-
-            //    _depthBuffer = new RenderTexture(source);
+            //    _depthBuffer = new RenderTexture(tw_stereo, th, 1);
             //    _depthBuffer.name = "Ocean Mask Depth";
             //    _depthBuffer.format = RenderTextureFormat.Depth;
             //    _depthBuffer.Create();
@@ -145,7 +141,7 @@ namespace Crest
             var sheet = context.propertySheets.Get(_shaderMask);
 
             cmd.SetRenderTarget(sp_maskID);
-            cmd.ClearRenderTarget(false, true, Color.white * UNDERWATER_MASK_NO_MASK);
+            cmd.ClearRenderTarget(true, true, Color.white * UNDERWATER_MASK_NO_MASK);
 
             //cmd.BlitFullscreenTriangle(lastDown, mipDown, sheet, pass);
 

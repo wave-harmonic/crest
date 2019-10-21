@@ -194,6 +194,9 @@ namespace Crest
                 sheet.DisableKeyword(DEBUG_VIEW_OCEAN_MASK);
             }
 
+            // TODO - copy over all shader params that matter
+            sheet.properties.SetVector("_DepthFogDensity", Vector3.one * 0.1f);
+
             sheet.properties.SetFloat(LodDataMgr.sp_LD_SliceIndex, 0);
             sheet.properties.SetVector(sp_InstanceData, new Vector4(OceanRenderer.Instance.ViewerAltitudeLevelAlpha, 0f, 0f, OceanRenderer.Instance.CurrentLodCount));
 

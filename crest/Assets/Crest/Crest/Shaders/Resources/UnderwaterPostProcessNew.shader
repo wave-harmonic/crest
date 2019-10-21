@@ -8,6 +8,8 @@ Shader "Crest/Underwater/Post Process New"
 		#include "Packages/com.unity.postprocessing/PostProcessing/Shaders/StdLib.hlsl"
 
 		#include "../OceanConstants.hlsl"
+		#include "../OceanLODData.hlsl"
+		#include "../OceanEmission.hlsl"
 
 		TEXTURE2D_SAMPLER2D(_MainTex, sampler_MainTex);
 		TEXTURE2D_SAMPLER2D(_CameraDepthTexture, sampler_CameraDepthTexture);
@@ -19,6 +21,37 @@ Shader "Crest/Underwater/Post Process New"
 		float _OceanHeight;
 		float4x4 _InvViewProjection;
 		float4x4 _InvViewProjectionRight;
+		float4 _WorldSpaceLightPos0;
+		half3 _AmbientLighting;
+
+		half3 ApplyUnderwaterEffect(half3 sceneColour, const float sceneZ01, const half3 view, bool isOceanSurface)
+		{
+			const float sceneZ = LinearEyeDepth(sceneZ01);
+			const float3 lightDir = _WorldSpaceLightPos0.xyz;
+
+			half3 scatterCol = 0.0;
+			{
+				float3 dummy;
+				half sss = 0.0;
+				const float3 uv_slice = WorldToUV(_WorldSpaceCameraPos.xz);
+				SampleDisplacements(_LD_TexArray_AnimatedWaves, uv_slice, 1.0, dummy, sss);
+
+				// depth and shadow are computed in ScatterColour when underwater==true, using the LOD1 texture.
+				const float depth = 0.0;
+				const half shadow = 1.0;
+
+				scatterCol = ScatterColour(_AmbientLighting, depth, _WorldSpaceCameraPos, lightDir, view, shadow, true, true, sss);
+			}
+
+#if _CAUSTICS_ON
+			if (sceneZ01 != 0.0 && !isOceanSurface)
+			{
+				ApplyCaustics(view, lightDir, sceneZ, _Normals, true, sceneColour);
+			}
+#endif
+
+			return lerp(sceneColour, scatterCol, 1.0 - exp(-_DepthFogDensity.xyz * sceneZ));
+		}
 	ENDHLSL
 
 	SubShader
@@ -84,8 +117,11 @@ Shader "Crest/Underwater/Post Process New"
 
 					bool isOceanSurface = mask != UNDERWATER_MASK_NO_MASK && (sceneZ01 < oceanDepth01);
 					bool isUnderwater = mask == UNDERWATER_MASK_WATER_SURFACE_BELOW || (isBelowHorizon && mask != UNDERWATER_MASK_WATER_SURFACE_ABOVE);
+					sceneZ01 = isOceanSurface ? oceanDepth01 : sceneZ01;
 
-//#if _DEBUG_VIEW_OCEAN_MASK
+					float wt = 1.0;
+
+#if _DEBUG_VIEW_OCEAN_MASK
 					if (!isOceanSurface)
 					{
 						return float4(sceneColour * float3(isUnderwater * 0.5, (1.0 - isUnderwater) * 0.5, 1.0), 1.0);
@@ -94,7 +130,15 @@ Shader "Crest/Underwater/Post Process New"
 					{
 						return float4(sceneColour * float3(mask == UNDERWATER_MASK_WATER_SURFACE_ABOVE, mask == UNDERWATER_MASK_WATER_SURFACE_BELOW, 0.0), 1.0);
 					}
-//#endif
+#endif
+
+					if (isUnderwater)
+					{
+						const half3 view = normalize(viewWS);
+						sceneColour = ApplyUnderwaterEffect(sceneColour, sceneZ01, view, isOceanSurface);
+					}
+
+					return half4(wt * sceneColour, 1.0);
 				}
 			ENDHLSL
 		}

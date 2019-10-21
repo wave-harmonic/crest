@@ -158,12 +158,13 @@ Shader "Crest/Underwater/Post Process"
 				#endif
 
 				const float2 uvScreenSpace = UnityStereoTransformScreenSpaceTex(input.uv);
-				half3 sceneColour = tex2D(_MainTex, uvScreenSpace).rgb;
 
+				half3 sceneColour = tex2D(_MainTex, uvScreenSpace).rgb;
 				float sceneZ01 = tex2D(_CameraDepthTexture, uvScreenSpace).x;
 
-				float mask = tex2D(_MaskTex, uvScreenSpace).x;
+				const float mask = tex2D(_MaskTex, uvScreenSpace).x;
 				const float oceanDepth01 = tex2D(_MaskDepthTex, uvScreenSpace);
+
 				bool isOceanSurface = mask != UNDERWATER_MASK_NO_MASK && (sceneZ01 < oceanDepth01);
 				bool isUnderwater = mask == UNDERWATER_MASK_WATER_SURFACE_BELOW || (isBelowHorizon && mask != UNDERWATER_MASK_WATER_SURFACE_ABOVE);
 				sceneZ01 = isOceanSurface ? oceanDepth01 : sceneZ01;

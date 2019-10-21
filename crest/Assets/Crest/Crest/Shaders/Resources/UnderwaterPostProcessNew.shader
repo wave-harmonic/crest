@@ -10,13 +10,11 @@ Shader "Crest/Underwater/Post Process New"
 		#include "../OceanConstants.hlsl"
 
 		TEXTURE2D_SAMPLER2D(_MainTex, sampler_MainTex);
-		float4 _MainTex_TexelSize;
+		TEXTURE2D_SAMPLER2D(_CameraDepthTexture, sampler_CameraDepthTexture);
 
 		TEXTURE2D_SAMPLER2D(_Mask, sampler_Mask);
-		float4 _Mask_TexelSize;
 
 		TEXTURE2D_SAMPLER2D(_MaskDepthTex, sampler_MaskDepthTex);
-		float4 _MaskDepthTex_TexelSize;
 
 		float _OceanHeight;
 		float4x4 _InvViewProjection;
@@ -77,14 +75,14 @@ Shader "Crest/Underwater/Post Process New"
 #endif
 
 					const float2 uvScreenSpace = input.texcoordStereo; // TransformStereoScreenSpaceTex(input.uv, 1.0);
+
 					half3 sceneColour = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uvScreenSpace).xyz;
+					float sceneZ01 = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, uvScreenSpace);
 
-					float sceneZ01 = SAMPLE_TEXTURE2D(_MaskDepthTex, sampler_MaskDepthTex, uvScreenSpace).x;
+					const float mask = SAMPLE_TEXTURE2D(_Mask, sampler_Mask, input.texcoordStereo).x;
+					const float oceanDepth01 = SAMPLE_TEXTURE2D(_MaskDepthTex, sampler_MaskDepthTex, uvScreenSpace).x;
 
-					float mask = SAMPLE_TEXTURE2D(_Mask, sampler_Mask, input.texcoordStereo).x;
-
-					//const bool isBelowHorizon = (farPlanePixelHeight <= _OceanHeight);
-					bool isOceanSurface = mask != UNDERWATER_MASK_NO_MASK; // && (sceneZ01 < oceanDepth01);
+					bool isOceanSurface = mask != UNDERWATER_MASK_NO_MASK && (sceneZ01 < oceanDepth01);
 					bool isUnderwater = mask == UNDERWATER_MASK_WATER_SURFACE_BELOW || (isBelowHorizon && mask != UNDERWATER_MASK_WATER_SURFACE_ABOVE);
 
 //#if _DEBUG_VIEW_OCEAN_MASK

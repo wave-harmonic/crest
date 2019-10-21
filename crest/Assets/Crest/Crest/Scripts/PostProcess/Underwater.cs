@@ -135,11 +135,7 @@ namespace Crest
             cmd.SetRenderTarget(sp_maskID, _depthBuffer);
             cmd.ClearRenderTarget(true, true, Color.white * UNDERWATER_MASK_NO_MASK);
 
-            //cmd.BlitFullscreenTriangle(lastDown, mipDown, sheet, pass);
-
             // Get all ocean chunks and render them using cmd buffer, but with mask shader
-            //_commandBuffer.SetRenderTarget(_textureMask.colorBuffer, _depthBuffer.depthBuffer);
-            //_commandBuffer.ClearRenderTarget(true, true, Color.white * UNDERWATER_MASK_NO_MASK);
             cmd.SetViewProjectionMatrices(context.camera.worldToCameraMatrix, context.camera.projectionMatrix);
 
             // This gets tiles from previous frame, because this code executes on PreCull, before OnWillRenderObject.. eek

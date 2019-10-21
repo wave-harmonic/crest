@@ -44,8 +44,7 @@ namespace Crest
         private const string SHADER_OCEAN_MASK = "Crest/Underwater/Ocean Mask";
 
         Shader _shader;
-        Material _material;
-        PropertyWrapperMaterial _materialWrapper;
+        PropertyWrapperMPB _propertyWrapper = new PropertyWrapperMPB();
 
         Shader _shaderMask;
         Material _materialMask;
@@ -66,13 +65,6 @@ namespace Crest
         private bool InitialisedCorrectly()
         {
             _shader = Shader.Find(SHADER_UNDERWATER);
-            _material = new Material(_shader);
-            _materialWrapper = new PropertyWrapperMaterial(_material);
-            //if (_underwaterPostProcessMaterial == null)
-            //{
-            //    Debug.LogError("UnderwaterPostProcess must have a post processing material assigned", this);
-            //    return false;
-            //}
 
             _shaderMask = Shader.Find(SHADER_OCEAN_MASK);
             _materialMask = _shaderMask ? new Material(_shaderMask) : null;
@@ -103,7 +95,7 @@ namespace Crest
             {
                 RenderPopulateMask(cmd, context);
 
-                RenderUpdateMaterial(context.source, context.camera);
+                RenderUpdateMaterial(context.source, context.camera, sheet);
 
                 // blit with sheet associated with the shader
                 cmd.BlitFullscreenTriangle(context.source, context.destination, sheet, 0);
@@ -188,12 +180,12 @@ namespace Crest
             cmd.EndSample("Populate mask");
         }
 
-        void RenderUpdateMaterial(RenderTargetIdentifier source, Camera camera)
+        void RenderUpdateMaterial(RenderTargetIdentifier source, Camera camera, PropertySheet sheet)
         {
             //if (_firstRender || _copyOceanMaterialParamsEachFrame)
             {
                 // Measured this at approx 0.05ms on dell laptop
-                _material.CopyPropertiesFromMaterial(OceanRenderer.Instance.OceanMaterial);
+                //_material.CopyPropertiesFromMaterial(OceanRenderer.Instance.OceanMaterial);
             }
 
             // Enabling/disabling keywords each frame don't seem to have large measurable overhead
@@ -203,29 +195,31 @@ namespace Crest
             //}
             //else
             {
-                _material.DisableKeyword(DEBUG_VIEW_OCEAN_MASK);
+                sheet.DisableKeyword(DEBUG_VIEW_OCEAN_MASK);
             }
 
-            _material.SetFloat(LodDataMgr.sp_LD_SliceIndex, 0);
-            _material.SetVector(sp_InstanceData, new Vector4(OceanRenderer.Instance.ViewerAltitudeLevelAlpha, 0f, 0f, OceanRenderer.Instance.CurrentLodCount));
+            sheet.properties.SetFloat(LodDataMgr.sp_LD_SliceIndex, 0);
+            sheet.properties.SetVector(sp_InstanceData, new Vector4(OceanRenderer.Instance.ViewerAltitudeLevelAlpha, 0f, 0f, OceanRenderer.Instance.CurrentLodCount));
 
-            OceanRenderer.Instance._lodDataAnimWaves.BindResultData(_materialWrapper);
+            _propertyWrapper.materialPropertyBlock = sheet.properties;
+
+            OceanRenderer.Instance._lodDataAnimWaves.BindResultData(_propertyWrapper);
             if (OceanRenderer.Instance._lodDataSeaDepths)
             {
-                OceanRenderer.Instance._lodDataSeaDepths.BindResultData(_materialWrapper);
+                OceanRenderer.Instance._lodDataSeaDepths.BindResultData(_propertyWrapper);
             }
             else
             {
-                LodDataMgrSeaFloorDepth.BindNull(_materialWrapper);
+                LodDataMgrSeaFloorDepth.BindNull(_propertyWrapper);
             }
 
             if (OceanRenderer.Instance._lodDataShadow)
             {
-                OceanRenderer.Instance._lodDataShadow.BindResultData(_materialWrapper);
+                OceanRenderer.Instance._lodDataShadow.BindResultData(_propertyWrapper);
             }
             else
             {
-                LodDataMgrShadow.BindNull(_materialWrapper);
+                LodDataMgrShadow.BindNull(_propertyWrapper);
             }
 
             {
@@ -233,14 +227,14 @@ namespace Crest
                 float maxOceanVerticalDisplacement = OceanRenderer.Instance.MaxVertDisplacement * 0.5f;
                 float cameraHeight = camera.transform.position.y;
                 bool forceFullShader = (cameraHeight + maxOceanVerticalDisplacement) <= oceanHeight;
-                _material.SetFloat(sp_OceanHeight, oceanHeight);
+                sheet.properties.SetFloat(sp_OceanHeight, oceanHeight);
                 if (forceFullShader)
                 {
-                    _material.EnableKeyword(FULL_SCREEN_EFFECT);
+                    sheet.EnableKeyword(FULL_SCREEN_EFFECT);
                 }
                 else
                 {
-                    _material.DisableKeyword(FULL_SCREEN_EFFECT);
+                    sheet.DisableKeyword(FULL_SCREEN_EFFECT);
                 }
             }
 
@@ -254,7 +248,8 @@ namespace Crest
             {
 
                 var viewProjectionMatrix = camera.projectionMatrix * camera.worldToCameraMatrix;
-                _material.SetMatrix(sp_InvViewProjection, viewProjectionMatrix.inverse);
+                var invViewProjectionMatrix = viewProjectionMatrix.inverse;
+                sheet.properties.SetMatrix(sp_InvViewProjection, invViewProjectionMatrix);
             }
             //else
             //{
@@ -278,7 +273,7 @@ namespace Crest
 
                 LightProbes.GetInterpolatedProbe(OceanRenderer.Instance.Viewpoint.position, null, out _sphericalHarmonicsL2);
                 _sphericalHarmonicsL2.Evaluate(_shDirections, _ambientLighting);
-                _material.SetVector(sp_AmbientLighting, _ambientLighting[0]);
+                sheet.properties.SetVector(sp_AmbientLighting, _ambientLighting[0]);
 
                 UnityEngine.Profiling.Profiler.EndSample();
             }

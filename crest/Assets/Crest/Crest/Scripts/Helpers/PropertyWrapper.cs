@@ -47,7 +47,7 @@ namespace Crest
         public void SetMatrix(int param, Matrix4x4 value) { materialPropertyBlock.SetMatrix(param, value); }
         public void SetInt(int param, int value) { materialPropertyBlock.SetInt(param, value); }
 
-        public MaterialPropertyBlock materialPropertyBlock { get; private set; }
+        public MaterialPropertyBlock materialPropertyBlock { get; set; }
     }
 
     [System.Serializable]

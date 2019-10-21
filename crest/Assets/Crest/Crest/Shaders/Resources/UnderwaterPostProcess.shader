@@ -188,7 +188,7 @@ Shader "Crest/Underwater/Post Process"
 #endif // _MENISCUS_ON
 
 #if _DEBUG_VIEW_OCEAN_MASK
-				if(!isOceanSurface)
+				if (!isOceanSurface)
 				{
 					return float4(sceneColour * float3(isUnderwater * 0.5, (1.0 - isUnderwater) * 0.5, 1.0), 1.0);
 				}
@@ -196,15 +196,15 @@ Shader "Crest/Underwater/Post Process"
 				{
 					return float4(sceneColour * float3(mask == UNDERWATER_MASK_WATER_SURFACE_ABOVE, mask == UNDERWATER_MASK_WATER_SURFACE_BELOW, 0.0), 1.0);
 				}
-#else
-				if(isUnderwater)
+#endif
+
+				if (isUnderwater)
 				{
 					const half3 view = normalize(viewWS);
 					sceneColour = ApplyUnderwaterEffect(sceneColour, sceneZ01, view, isOceanSurface);
 				}
 
 				return half4(wt * sceneColour, 1.0);
-#endif // _DEBUG_VIEW_OCEAN_MASK
 			}
 			ENDCG
 		}

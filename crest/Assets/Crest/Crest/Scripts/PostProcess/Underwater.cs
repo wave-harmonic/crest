@@ -49,7 +49,7 @@ namespace Crest
         Shader _shaderMask;
         Material _materialMask;
 
-        //private RenderTexture _depthBuffer;
+        RenderTexture _depthBuffer;
 
         Color[] _ambientLighting = new Color[1];
         SphericalHarmonicsL2 _sphericalHarmonicsL2;
@@ -119,20 +119,20 @@ namespace Crest
             bool singlePassDoubleWide = false; // (context.stereoActive && (context.stereoRenderingMode == PostProcessRenderContext.StereoRenderingMode.SinglePass) && (context.camera.stereoTargetEye == StereoTargetEyeMask.Both));
             int tw_stereo = singlePassDoubleWide ? tw * 2 : tw;
 
-            context.GetScreenSpaceTemporaryRT(cmd, sp_maskID, 24, RenderTextureFormat.RHalf, RenderTextureReadWrite.Default, FilterMode.Bilinear, tw_stereo, th);
-            //context.GetScreenSpaceTemporaryRT(cmd, sp_MaskDepthTex, 24, RenderTextureFormat.Depth);
+            context.GetScreenSpaceTemporaryRT(cmd, sp_maskID, 0, RenderTextureFormat.RHalf, RenderTextureReadWrite.Default, FilterMode.Bilinear, tw_stereo, th);
 
-            //if (_depthBuffer == null || _depthBuffer.width != tw_stereo || _depthBuffer.height != th)
-            //{
-            //    _depthBuffer = new RenderTexture(tw_stereo, th, 1);
-            //    _depthBuffer.name = "Ocean Mask Depth";
-            //    _depthBuffer.format = RenderTextureFormat.Depth;
-            //    _depthBuffer.Create();
-            //}
+            if (_depthBuffer == null || _depthBuffer.width != tw_stereo || _depthBuffer.height != th)
+            {
+                _depthBuffer = new RenderTexture(tw_stereo, th, 1);
+                _depthBuffer.name = "Ocean Mask Depth";
+                _depthBuffer.format = RenderTextureFormat.Depth;
+                _depthBuffer.depth = 24;
+                _depthBuffer.Create();
+            }
 
             var sheet = context.propertySheets.Get(_shaderMask);
 
-            cmd.SetRenderTarget(sp_maskID);
+            cmd.SetRenderTarget(sp_maskID, _depthBuffer);
             cmd.ClearRenderTarget(true, true, Color.white * UNDERWATER_MASK_NO_MASK);
 
             //cmd.BlitFullscreenTriangle(lastDown, mipDown, sheet, pass);
@@ -238,11 +238,8 @@ namespace Crest
                 }
             }
 
-            // happens automatically due to sp_maskID ?
-            //_material.SetTexture(sp_MaskTex, _textureMask);
-            // TODO
-            //_material.SetTexture(sp_MaskDepthTex, _depthBuffer);
-
+            sheet.properties.SetTexture(sp_MaskDepthTex, _depthBuffer);
+            
             // Have to set these explicitly as the built-in transforms aren't in world-space for the blit function
             //if (!XRSettings.enabled || XRSettings.stereoRenderingMode == XRSettings.StereoRenderingMode.MultiPass)
             {

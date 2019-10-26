@@ -66,7 +66,6 @@ half3 ScatterColour(
 		depth = CREST_OCEAN_DEPTH_BASELINE;
 		SampleSeaDepth(_LD_TexArray_SeaFloorDepth, uv_smallerLod, 1.0, depth);
 
-		// Huw: knocking this out for now as it seems to produce intense strobing when underwater.
 #if _SHADOWS_ON
 		const float2 samplePoint = i_cameraPos.xz;
 

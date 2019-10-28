@@ -206,8 +206,8 @@ namespace Crest
                 // compute which lod data we are sampling previous frame shadows from. if a scale change has happened this can be any lod up or down the chain.
                 var srcDataIdx = lodIdx + ScaleDifferencePow2;
                 srcDataIdx = Mathf.Clamp(srcDataIdx, 0, lt.LodCount - 1);
-                _renderProperties.SetFloat(sp_LD_SliceIndex, lodIdx);
-                _renderProperties.SetFloat(sp_LD_SliceIndex_Source, srcDataIdx);
+                _renderProperties.SetInt(sp_LD_SliceIndex, lodIdx);
+                _renderProperties.SetInt(sp_LD_SliceIndex_Source, srcDataIdx);
                 BindSourceData(_renderProperties, false);
                 _renderProperties.SetTexture(sp_LD_TexArray_Target, _targets);
                 _renderProperties.DispatchShader();

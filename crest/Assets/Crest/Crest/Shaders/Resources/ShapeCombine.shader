@@ -91,11 +91,14 @@ Shader "Hidden/Crest/Simulation/Combine Animated Wave LODs"
 				sss = data.w;
 #endif
 
-				float w, h, d;
-				_LD_TexArray_AnimatedWaves.GetDimensions(w, h, d);
+				uint arrayDepth;
+				{
+					uint w, h;
+					_LD_TexArray_AnimatedWaves.GetDimensions(w, h, arrayDepth);
+				}
 
 				// waves to combine down from the next lod up the chain
-				if (_LD_SliceIndex < d - 1.0)
+				if (_LD_SliceIndex < arrayDepth - 1)
 				{
 					float4 dataNextLod = _LD_TexArray_AnimatedWaves.SampleLevel(LODData_linear_clamp_sampler, uv_nextLod, 0.0);
 					result += dataNextLod.xyz;

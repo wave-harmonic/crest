@@ -13,7 +13,7 @@
 #define THREAD_GROUP_SIZE_Y 8
 
 // 'Current' target/source slice index
-const float _LD_SliceIndex;
+const uint _LD_SliceIndex;
 
 // Samplers and data associated with a LOD.
 // _LD_Params: float4(world texel size, texture resolution, shape weight multiplier, 1 / texture resolution)

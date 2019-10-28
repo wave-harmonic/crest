@@ -38,7 +38,7 @@ namespace Crest
             {
                 buf.SetRenderTarget(_targets, 0, CubemapFace.Unknown, lodIdx);
                 buf.ClearRenderTarget(false, true, Color.white * 1000f);
-                buf.SetGlobalFloat(sp_LD_SliceIndex, lodIdx);
+                buf.SetGlobalInt(sp_LD_SliceIndex, lodIdx);
                 SubmitDraws(lodIdx, buf);
             }
 

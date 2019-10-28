@@ -46,6 +46,8 @@ uniform float  _RefractiveIndexOfWater;
 
 #if _COMPUTEDIRECTIONALLIGHT_ON
 uniform half _DirectionalLightFallOff;
+uniform half _DirectionalLightFarDistance;
+uniform half _DirectionalLightFallOffFar;
 uniform half _DirectionalLightBoost;
 #endif
 
@@ -59,7 +61,7 @@ float CalculateFresnelReflectionCoefficient(float cosTheta)
 	return R_theta;
 }
 
-void ApplyReflectionSky(in const half3 i_view, in const half3 i_n_pixel, in const half3 i_lightDir, in const half i_shadow, in const half4 i_screenPos, in const half i_weight, inout half3 io_col)
+void ApplyReflectionSky(in const half3 i_view, in const half3 i_n_pixel, in const half3 i_lightDir, in const half i_shadow, in const half4 i_screenPos, in const float i_pixelZ, in const half i_weight, inout half3 io_col)
 {
 	// Reflection
 	half3 refl = reflect(-i_view, i_n_pixel);
@@ -94,7 +96,15 @@ void ApplyReflectionSky(in const half3 i_view, in const half3 i_n_pixel, in cons
 
 	// Add primary light
 #if _COMPUTEDIRECTIONALLIGHT_ON
-	skyColour += pow(max(0., dot(refl, i_lightDir)), _DirectionalLightFallOff) * _DirectionalLightBoost * _LightColor0 * i_shadow;
+#if _DIRECTIONALLIGHTVARYROUGHNESS_ON
+	half fallOffAlpha = saturate(i_pixelZ / _DirectionalLightFarDistance);
+	fallOffAlpha = sqrt(fallOffAlpha);
+	half fallOff = lerp(_DirectionalLightFallOff, _DirectionalLightFallOffFar, fallOffAlpha);
+#else
+	half fallOff = _DirectionalLightFallOff;
+#endif
+
+	skyColour += pow(max(0., dot(refl, i_lightDir)), fallOff) * _DirectionalLightBoost * _LightColor0 * i_shadow;
 #endif
 
 	// Fresnel

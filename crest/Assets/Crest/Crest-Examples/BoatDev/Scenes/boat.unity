@@ -160,11 +160,11 @@ MonoBehaviour:
   _timeProvider: {fileID: 0}
   _material: {fileID: 2100000, guid: 9def92ac79181fe41b238e91663f0fad, type: 2}
   _layerName: Water
-  _windDirectionAngle: 0
   _gravityMultiplier: 1
   _minTexelsPerWave: 3
   _minScale: 8
   _maxScale: 256
+  _dropDetailHeightBasedOnWaves: 0.2
   _lodDataResolution: 256
   _geometryDownSampleFactor: 2
   _lodCount: 7
@@ -569,6 +569,7 @@ Transform:
   - {fileID: 1866213578}
   - {fileID: 1989479267}
   - {fileID: 1680820179}
+  - {fileID: 1229753685}
   m_Father: {fileID: 0}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -629,6 +630,96 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 71ede3c2ab0b7cb43b7dad6ae3b6190b, type: 3}
+--- !u!1001 &1229753684
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    m_TransformParent: {fileID: 995304123}
+    m_Modifications:
+    - target: {fileID: 6370312182862802037, guid: 0dde4b778082b1241ba64e4ad3e46fa1,
+        type: 3}
+      propertyPath: m_Name
+      value: AddBumpsToWater
+      objectReference: {fileID: 0}
+    - target: {fileID: 6370312182862802033, guid: 0dde4b778082b1241ba64e4ad3e46fa1,
+        type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 154
+      objectReference: {fileID: 0}
+    - target: {fileID: 6370312182862802033, guid: 0dde4b778082b1241ba64e4ad3e46fa1,
+        type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 6370312182862802033, guid: 0dde4b778082b1241ba64e4ad3e46fa1,
+        type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 163.3
+      objectReference: {fileID: 0}
+    - target: {fileID: 6370312182862802033, guid: 0dde4b778082b1241ba64e4ad3e46fa1,
+        type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: 6370312182862802033, guid: 0dde4b778082b1241ba64e4ad3e46fa1,
+        type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6370312182862802033, guid: 0dde4b778082b1241ba64e4ad3e46fa1,
+        type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6370312182862802033, guid: 0dde4b778082b1241ba64e4ad3e46fa1,
+        type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: 6370312182862802033, guid: 0dde4b778082b1241ba64e4ad3e46fa1,
+        type: 3}
+      propertyPath: m_RootOrder
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 6370312182862802033, guid: 0dde4b778082b1241ba64e4ad3e46fa1,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 90
+      objectReference: {fileID: 0}
+    - target: {fileID: 6370312182862802033, guid: 0dde4b778082b1241ba64e4ad3e46fa1,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6370312182862802033, guid: 0dde4b778082b1241ba64e4ad3e46fa1,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6370312182862802033, guid: 0dde4b778082b1241ba64e4ad3e46fa1,
+        type: 3}
+      propertyPath: m_LocalScale.x
+      value: 258.85278
+      objectReference: {fileID: 0}
+    - target: {fileID: 6370312182862802033, guid: 0dde4b778082b1241ba64e4ad3e46fa1,
+        type: 3}
+      propertyPath: m_LocalScale.y
+      value: 258.85278
+      objectReference: {fileID: 0}
+    - target: {fileID: 6370312182862802033, guid: 0dde4b778082b1241ba64e4ad3e46fa1,
+        type: 3}
+      propertyPath: m_LocalScale.z
+      value: 258.85278
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 0dde4b778082b1241ba64e4ad3e46fa1, type: 3}
+--- !u!4 &1229753685 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 6370312182862802033, guid: 0dde4b778082b1241ba64e4ad3e46fa1,
+    type: 3}
+  m_PrefabInstance: {fileID: 1229753684}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &1374597314
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -636,11 +727,6 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 1499281654}
     m_Modifications:
-    - target: {fileID: 1975918466055060318, guid: 71ede3c2ab0b7cb43b7dad6ae3b6190b,
-        type: 3}
-      propertyPath: _velocityPositionOffset
-      value: 0.05
-      objectReference: {fileID: 0}
     - target: {fileID: 1935509346245718, guid: 71ede3c2ab0b7cb43b7dad6ae3b6190b, type: 3}
       propertyPath: m_Name
       value: BoatAlignNormalAI
@@ -695,6 +781,11 @@ PrefabInstance:
         type: 3}
       propertyPath: _steerBias
       value: 0.8
+      objectReference: {fileID: 0}
+    - target: {fileID: 1975918466055060318, guid: 71ede3c2ab0b7cb43b7dad6ae3b6190b,
+        type: 3}
+      propertyPath: _velocityPositionOffset
+      value: 0.05
       objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 0}
@@ -997,9 +1088,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _spectrum: {fileID: 11400000, guid: b066d8398541b1844a63a9c12919e528, type: 2}
+  _windDirectionAngle: 0
   _componentsPerOctave: 8
   _weight: 0.6
   _randomSeed: 0
+  _evaluateSpectrumAtRuntime: 1
+  _wavelengths: []
+  _amplitudes: []
+  _angleDegs: []
+  _phases: []
   _directTowardsPoint: 0
   _pointPositionXZ: {x: 0, y: 0}
   _pointRadii: {x: 100, y: 200}
@@ -1083,7 +1180,6 @@ MonoBehaviour:
   _dragInWaterForward: 1
   _dragInWaterRotational: 0.2
   _debugDraw: 0
-  _debugValidateCollision: 0
 --- !u!54 &2143407615
 Rigidbody:
   m_ObjectHideFlags: 0

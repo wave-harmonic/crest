@@ -465,7 +465,16 @@ Shader "Crest/Ocean"
 				half3 col = OceanEmission(view, n_pixel, lightDir, input.grabPos, pixelZ, uvDepth, sceneZ, sceneZ01, bubbleCol, _Normals, _CameraDepthTexture, underwater, scatterCol);
 
 				// Light that reflects off water surface
+
+				// Soften reflection at intersections with objects/surfaces
+				#if _TRANSPARENCY_ON
 				float reflAlpha = saturate((sceneZ - pixelZ) / 0.2);
+				#else
+				// This addresses the problem where screenspace depth doesnt work in VR, and so neither will this. In VR people currently
+				// disable transparency, so this will always be 1.0.
+				float reflAlpha = 1.0;
+				#endif
+				
 				#if _UNDERWATER_ON
 				if (underwater)
 				{

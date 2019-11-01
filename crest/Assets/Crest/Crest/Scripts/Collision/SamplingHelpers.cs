@@ -6,7 +6,7 @@ namespace Crest
     /// Helper to obtain the ocean surface height at a single location. This is not particularly efficient to sample a single height,
     /// but is a fairly common case.
     /// </summary>
-    class SampleHeightHelper
+    public class SampleHeightHelper
     {
         SamplingData _samplingData = new SamplingData();
         Vector3[] _queryPos = new Vector3[1];
@@ -129,7 +129,7 @@ namespace Crest
     /// Helper to obtain the ocean surface height at a single location. This is not particularly efficient to sample a single height,
     /// but is a fairly common case.
     /// </summary>
-    class SampleFlowHelper
+    public class SampleFlowHelper
     {
         SamplingData _samplingData = new SamplingData();
         Vector3[] _queryPos = new Vector3[1];

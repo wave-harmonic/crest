@@ -1,0 +1,14 @@
+{
+    "name": "Crest.Examples.Shared",
+    "references": [
+        "Crest"
+    ],
+    "optionalUnityReferences": [],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": []
+}

@@ -1,0 +1,7 @@
+{
+    "name": "com.crest.crest",
+    "version": "7.0.0",
+    "displayName": "Crest Ocean Renderer (Builtin Renderer)",
+    "description": "We make oceans",
+    "unity": "2018.4"
+}

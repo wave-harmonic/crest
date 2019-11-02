@@ -1,5 +1,5 @@
 {
-    "name": "Crest.Examples.Shared",
+    "name": "Crest.Examples",
     "references": [
         "Crest"
     ],

@@ -125,7 +125,7 @@ GameObject:
   - component: {fileID: 89089574}
   - component: {fileID: 89089573}
   m_Layer: 0
-  m_Name: Cube
+  m_Name: SetWaterLevel
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -165,7 +165,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: cda6e77f3737e9b43a6954e6a9e4ecd5, type: 2}
+  - {fileID: 2100000, guid: 8773ac1262a40c5429cb92fc1a1a7c67, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -200,12 +200,12 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 89089572}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 163.5, y: -3.5, z: 387.3}
-  m_LocalScale: {x: 26.367, y: 26.367, z: 34.978462}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 159.4, y: 11, z: 387.3}
+  m_LocalScale: {x: 38.10032, y: 0, z: 42.093082}
   m_Children: []
-  m_Father: {fileID: 0}
-  m_RootOrder: 8
+  m_Father: {fileID: 1372565699}
+  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &227134465
 GameObject:
@@ -777,6 +777,39 @@ Transform:
   m_Father: {fileID: 1566317005}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: -89.57, z: 0}
+--- !u!1 &1372565698
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1372565699}
+  m_Layer: 0
+  m_Name: Lake
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1372565699
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1372565698}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children:
+  - {fileID: 1899543707}
+  - {fileID: 89089576}
+  - {fileID: 1517615445}
+  m_Father: {fileID: 0}
+  m_RootOrder: 6
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1443921936
 GameObject:
   m_ObjectHideFlags: 0
@@ -880,7 +913,7 @@ GameObject:
   - component: {fileID: 1517615445}
   - component: {fileID: 1517615444}
   m_Layer: 0
-  m_Name: WaterBody0
+  m_Name: WaterBodyTileInclude
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -908,12 +941,12 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1517615443}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
-  m_Father: {fileID: 0}
-  m_RootOrder: 7
+  m_Father: {fileID: 1372565699}
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1566317004
 GameObject:
@@ -1134,7 +1167,7 @@ GameObject:
   - component: {fileID: 1899543707}
   - component: {fileID: 1899543706}
   m_Layer: 0
-  m_Name: TerrainDepthCache
+  m_Name: LakeDepthCache
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1156,8 +1189,8 @@ MonoBehaviour:
   _geometryToRenderIntoCache: []
   _layerNames:
   - Terrain
-  _resolution: 384
-  _cameraMaxTerrainHeight: 50
+  _resolution: 128
+  _cameraMaxTerrainHeight: 25
   _forceAlwaysUpdateDebug: 0
 --- !u!4 &1899543707
 Transform:
@@ -1170,8 +1203,8 @@ Transform:
   m_LocalPosition: {x: 160.2, y: 11, z: 387.3}
   m_LocalScale: {x: 40.28, y: 40, z: 40.28}
   m_Children: []
-  m_Father: {fileID: 0}
-  m_RootOrder: 6
+  m_Father: {fileID: 1372565699}
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1939695970
 PrefabInstance:

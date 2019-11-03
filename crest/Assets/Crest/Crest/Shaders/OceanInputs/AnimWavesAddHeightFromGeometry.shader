@@ -53,7 +53,8 @@ Shader "Crest/Inputs/Animated Waves/Add Water Height From Geometry"
 			{
 				// Write displacement to get from sea level of ocean to the y value of this geometry
 				float addHeight = input.worldPos.y - _OceanCenterPosWorld.y;
-				return half4(0.0, addHeight, 0.0, 1.0);
+				// TODO alpha should be 0 in the master branch i guess because thats the SSS channel
+				return half4(0.0, addHeight, 0.0, 0.0);
 			}
 			ENDCG
 		}

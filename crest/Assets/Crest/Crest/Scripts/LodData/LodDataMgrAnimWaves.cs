@@ -134,7 +134,10 @@ namespace Crest
                 // No wavelength preference
                 if (drawOctaveWavelength == 0f)
                 {
-                    return 1f;
+                    // TODO - this should be 0 in the master branch right? a draw that doesnt care about wavelength
+                    // should NOT be drawn in this wavelength specific pass, otherwise it will be drawn twice (once
+                    // here and once in the subsequent wavelength-agnostic draws)!
+                    return 0f;
                 }
 
                 // Too small for this lod

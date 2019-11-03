@@ -2,6 +2,7 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Crest
@@ -139,7 +140,7 @@ namespace Crest
         public float ViewerHeightAboveWater { get; private set; }
 
         SampleHeightHelper _sampleHeightHelper = new SampleHeightHelper();
-        
+
         static int sp_crestTime = Shader.PropertyToID("_CrestTime");
         static int sp_texelsPerWave = Shader.PropertyToID("_TexelsPerWave");
         static int sp_oceanCenterPosWorld = Shader.PropertyToID("_OceanCenterPosWorld");
@@ -246,6 +247,8 @@ namespace Crest
             }
 
             LateUpdateLods();
+
+            LateUpdateBodies();
         }
 
         void LateUpdatePosition()
@@ -393,5 +396,51 @@ namespace Crest
             Instance = FindObjectOfType<OceanRenderer>();
         }
 #endif
+
+        List<WaterBody> _waterBodies = new List<WaterBody>();
+
+        public void RegisterWaterBody(WaterBody body)
+        {
+            _waterBodies.Add(body);
+        }
+        public void UnregisterWaterBody(WaterBody body)
+        {
+            _waterBodies.Remove(body);
+        }
+
+        void LateUpdateBodies()
+        {
+            if (_waterBodies.Count == 0) return;
+
+            var chunks = GetComponentsInChildren<OceanChunkRenderer>();
+            foreach (OceanChunkRenderer chunk in chunks)
+            {
+                var chunkBounds = chunk.Rend.bounds;
+
+                var overlappingOne = false;
+                var overlappingY = 0f;
+                foreach (var body in _waterBodies)
+                {
+                    bool overlapping =
+                        body._bounds.max.x > chunkBounds.min.x && body._bounds.min.x < chunkBounds.max.x &&
+                        body._bounds.max.z > chunkBounds.min.z && body._bounds.min.z < chunkBounds.max.z;
+                    if (overlapping)
+                    {
+                        overlappingY = body._bounds.center.y;
+                        overlappingOne = true;
+                        break;
+                    }
+                }
+
+                chunk.Rend.enabled = overlappingOne;
+
+                if (overlappingOne)
+                {
+                    var pos = chunk.transform.localPosition;
+                    pos.y = overlappingY - SeaLevel;
+                    chunk.transform.localPosition = pos;
+                }
+            }
+        }
     }
 }

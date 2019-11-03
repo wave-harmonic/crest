@@ -21,6 +21,8 @@ namespace Crest
         public float _windDirectionAngle = 0f;
         public Vector2 WindDir => new Vector2(Mathf.Cos(Mathf.PI * _windDirectionAngle / 180f), Mathf.Sin(Mathf.PI * _windDirectionAngle / 180f));
 
+        public Bounds _bounds;
+
         public class GerstnerBatch : ILodDataInput
         {
             public GerstnerBatch(Shader gerstnerShader, bool directTowardsPoint)
@@ -46,6 +48,7 @@ namespace Crest
 
             public float Wavelength { get; set; }
             public bool Enabled { get; set; }
+            public Bounds _bounds;
 
             public void Draw(CommandBuffer buf, float weight, int isTransition)
             {
@@ -53,7 +56,11 @@ namespace Crest
                 {
                     PropertyWrapperMaterial mat = GetMaterial(isTransition);
                     mat.SetFloat(RegisterLodDataInputBase.sp_Weight, weight);
-                    buf.DrawMesh(RasterMesh(), Matrix4x4.identity, mat.material);
+
+                    // TODO - currently gerstner shader does not use view projection and instead forces a full screen quad.
+                    // we should set the matrix that will scale up the raster mesh to the desired location
+                    var matrix = Matrix4x4.TRS(new Vector3(_bounds.center.x, 0f, _bounds.center.z), Quaternion.AngleAxis(90f, Vector3.right), _bounds.extents);
+                    buf.DrawMesh(RasterMesh(), matrix, mat.material);
                 }
             }
         }
@@ -262,6 +269,7 @@ namespace Crest
             for (int i = 0; i < _batches.Length; i++)
             {
                 _batches[i] = new GerstnerBatch(_waveShader, _directTowardsPoint);
+                _batches[i]._bounds = _bounds;
             }
 
             // Submit draws to create the Gerstner waves. LODs from 0 to N-2 render the Gerstner waves from their lod. Additionally, any waves

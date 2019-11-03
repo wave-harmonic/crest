@@ -20,7 +20,7 @@ namespace Crest
 
         Bounds _boundsLocal;
         Mesh _mesh;
-        Renderer _rend;
+        public Renderer Rend { get; private set; }
         PropertyWrapperMPB _mpb;
 
         // Cache these off to support regenerating ocean surface
@@ -36,7 +36,7 @@ namespace Crest
 
         void Start()
         {
-            _rend = GetComponent<Renderer>();
+            Rend = GetComponent<Renderer>();
             _mesh = GetComponent<MeshFilter>().mesh;
             _boundsLocal = _mesh.bounds;
 
@@ -97,9 +97,9 @@ namespace Crest
             // Depth texture is used by ocean shader for transparency/depth fog, and for fading out foam at shoreline.
             _currentCamera.depthTextureMode |= DepthTextureMode.Depth;
 
-            if (_rend.sharedMaterial != OceanRenderer.Instance.OceanMaterial)
+            if (Rend.sharedMaterial != OceanRenderer.Instance.OceanMaterial)
             {
-                _rend.sharedMaterial = OceanRenderer.Instance.OceanMaterial;
+                Rend.sharedMaterial = OceanRenderer.Instance.OceanMaterial;
             }
 
             // per instance data
@@ -108,7 +108,7 @@ namespace Crest
             {
                 _mpb = new PropertyWrapperMPB();
             }
-            _rend.GetPropertyBlock(_mpb.materialPropertyBlock);
+            Rend.GetPropertyBlock(_mpb.materialPropertyBlock);
 
             // blend LOD 0 shape in/out to avoid pop, if the ocean might scale up later (it is smaller than its maximum scale)
             var needToBlendOutShape = _lodIndex == 0 && OceanRenderer.Instance.ScaleCouldIncrease;
@@ -162,11 +162,11 @@ namespace Crest
             var heightOffset = OceanRenderer.Instance.ViewerHeightAboveWater;
             _mpb.SetFloat(sp_ForceUnderwater, heightOffset < -2f ? 1f : 0f);
 
-            _rend.SetPropertyBlock(_mpb.materialPropertyBlock);
+            Rend.SetPropertyBlock(_mpb.materialPropertyBlock);
 
             if (_drawRenderBounds)
             {
-                _rend.bounds.DebugDraw();
+                Rend.bounds.DebugDraw();
             }
         }
 

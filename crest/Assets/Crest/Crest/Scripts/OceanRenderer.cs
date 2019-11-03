@@ -268,6 +268,8 @@ namespace Crest
             // reach maximum detail at slightly below sea level. this should combat cases where visual range can be lost
             // when water height is low and camera is suspended in air. i tried a scheme where it was based on difference
             // to water height but this does help with the problem of horizontal range getting limited at bad times.
+            // TODO - SeaLevel is no longer a global const. How to drive this? Raycast down to ground and water? Get sea level
+            // directly from cache scripts?
             float maxDetailY = SeaLevel - _maxVertDispFromWaves * _dropDetailHeightBasedOnWaves;
             float camDistance = Mathf.Abs(_viewpoint.position.y - maxDetailY);
 

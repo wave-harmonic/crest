@@ -434,12 +434,12 @@ namespace Crest
 
                 chunk.Rend.enabled = overlappingOne;
 
-                if (overlappingOne)
-                {
-                    var pos = chunk.transform.localPosition;
-                    pos.y = overlappingY - SeaLevel;
-                    chunk.transform.localPosition = pos;
-                }
+                //if (overlappingOne)
+                //{
+                //    var pos = chunk.transform.localPosition;
+                //    pos.y = overlappingY - SeaLevel;
+                //    chunk.transform.localPosition = pos;
+                //}
             }
         }
     }

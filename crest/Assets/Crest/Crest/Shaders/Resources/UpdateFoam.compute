@@ -80,9 +80,7 @@ void UpdateFoam(uint3 id : SV_DispatchThreadID)
 
 	// add foam in shallow water. use the displaced position to ensure we add foam where world objects are.
 	float3 uv_slice_displaced = WorldToUV(worldPosXZ + disp.xz, sliceIndex);
-	float signedOceanDepth = SampleLod(_LD_TexArray_SeaFloorDepth, uv_slice_displaced).x
-		// + disp.y // TODO - this would need to incorporate water level, to separate out displacement y from overall water level
-		;
+	float signedOceanDepth = SampleLod(_LD_TexArray_SeaFloorDepth, uv_slice_displaced).x + disp.y;
 	foam += _ShorelineFoamStrength * _SimDeltaTime * saturate(1.0 - signedOceanDepth / _ShorelineFoamMaxDepth);
 
 	_LD_TexArray_Target[id] = foam;

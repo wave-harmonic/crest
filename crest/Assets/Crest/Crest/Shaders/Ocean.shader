@@ -320,13 +320,14 @@ Shader "Crest/Ocean"
 				}
 
 				// Data that needs to be sampled at the displaced position
+				half seaLevelOffset = 0.0;
 				if (wt_smallerLod > 0.001)
 				{
 					const float3 uv_slice_smallerLodDisp = WorldToUV(o.worldPos.xz);
 
-					#if _SUBSURFACESHALLOWCOLOUR_ON
-					SampleSeaDepth(_LD_TexArray_SeaFloorDepth, uv_slice_smallerLodDisp, wt_smallerLod, o.lodAlpha_worldXZUndisplaced_oceanDepth.w);
-					#endif
+					//#if _SUBSURFACESHALLOWCOLOUR_ON
+					SampleSeaDepth(_LD_TexArray_SeaFloorDepth, uv_slice_smallerLodDisp, wt_smallerLod, o.lodAlpha_worldXZUndisplaced_oceanDepth.w, seaLevelOffset);
+					//#endif
 
 					#if _SHADOWS_ON
 					SampleShadow(_LD_TexArray_Shadow, uv_slice_smallerLodDisp, wt_smallerLod, o.flow_shadow.zw);
@@ -336,14 +337,16 @@ Shader "Crest/Ocean"
 				{
 					const float3 uv_slice_biggerLodDisp = WorldToUV_BiggerLod(o.worldPos.xz);
 
-					#if _SUBSURFACESHALLOWCOLOUR_ON
-					SampleSeaDepth(_LD_TexArray_SeaFloorDepth, uv_slice_biggerLodDisp, wt_biggerLod, o.lodAlpha_worldXZUndisplaced_oceanDepth.w);
-					#endif
+					//#if _SUBSURFACESHALLOWCOLOUR_ON
+					SampleSeaDepth(_LD_TexArray_SeaFloorDepth, uv_slice_biggerLodDisp, wt_biggerLod, o.lodAlpha_worldXZUndisplaced_oceanDepth.w, seaLevelOffset);
+					//#endif
 
 					#if _SHADOWS_ON
 					SampleShadow(_LD_TexArray_Shadow, uv_slice_biggerLodDisp, wt_biggerLod, o.flow_shadow.zw);
 					#endif
 				}
+
+				o.worldPos.y += seaLevelOffset;
 
 				// Foam can saturate
 				o.foam_screenPosXYW.x = saturate(o.foam_screenPosXYW.x);

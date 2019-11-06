@@ -26,7 +26,6 @@ namespace Crest
         protected abstract string QueryKernelName { get; }
 
         const int s_maxRequests = 4;
-        const int s_maxGuids = 64;
 
         protected virtual ComputeShader ShaderProcessQueries => _shaderProcessQueries;
         ComputeShader _shaderProcessQueries;
@@ -221,12 +220,6 @@ namespace Crest
 
             if (!segmentRetrieved)
             {
-                if (_segmentRegistrarRingBuffer.Current._segments.Count >= s_maxGuids)
-                {
-                    Debug.LogError("Too many guids registered with CollProviderCompute. Increase s_maxGuids.", this);
-                    return false;
-                }
-
                 segment.x = _segmentRegistrarRingBuffer.Current._numQueries;
                 segment.y = segment.x + countTotal - 1;
                 _segmentRegistrarRingBuffer.Current._segments.Add(i_ownerHash, segment);

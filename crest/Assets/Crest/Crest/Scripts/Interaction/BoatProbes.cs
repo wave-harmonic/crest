@@ -18,11 +18,12 @@ namespace Crest
         Vector3 _centerOfMass = Vector3.zero;
         [SerializeField, FormerlySerializedAs("ForcePoints")]
         FloaterForcePoints[] _forcePoints = new FloaterForcePoints[] { };
-        [SerializeField]
+
+        [Tooltip("Vertical offset for where engine force should be applied."), SerializeField]
         float _forceHeightOffset = 0f;
         [SerializeField]
         float _forceMultiplier = 10f;
-        [SerializeField]
+        [Tooltip("Width dimension of boat. The larger this value, the more filtered/smooth the wave response will be."), SerializeField]
         float _minSpatialLength = 12f;
         [SerializeField, Range(0, 1)]
         float _turningHeel = 0.35f;
@@ -42,9 +43,9 @@ namespace Crest
         float _turnPower = 0.5f;
         [SerializeField]
         bool _playerControlled = true;
-        [SerializeField]
+        [Tooltip("Used to automatically add throttle input"), SerializeField]
         float _engineBias = 0f;
-        [SerializeField]
+        [Tooltip("Used to automatically add turning input"), SerializeField]
         float _turnBias = 0f;
 
 

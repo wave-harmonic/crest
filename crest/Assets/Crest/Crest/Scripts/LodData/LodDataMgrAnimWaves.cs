@@ -131,10 +131,10 @@ namespace Crest
                 var drawOctaveWavelength = data.Wavelength;
                 isTransition = 0;
 
-                // No wavelength preference
+                // No wavelength preference - don't draw per-lod
                 if (drawOctaveWavelength == 0f)
                 {
-                    return 1f;
+                    return 0f;
                 }
 
                 // Too small for this lod

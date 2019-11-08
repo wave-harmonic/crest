@@ -107,7 +107,7 @@ namespace Crest
             var alpha = (wavelength - lower) / lower;
 
             // Power
-            var pow = hasNextIndex ? Mathf.Lerp(thisPower, nextPower, alpha) : _powerLog[index];
+            var pow = hasNextIndex ? Mathf.Lerp(thisPower, nextPower, alpha) : thisPower;
 
             var a_2 = 2f * Mathf.Pow(10f, pow) * domega;
 

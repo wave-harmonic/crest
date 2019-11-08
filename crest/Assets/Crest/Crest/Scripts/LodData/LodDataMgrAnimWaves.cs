@@ -131,12 +131,9 @@ namespace Crest
                 var drawOctaveWavelength = data.Wavelength;
                 isTransition = 0;
 
-                // No wavelength preference
+                // No wavelength preference - don't draw per-lod
                 if (drawOctaveWavelength == 0f)
                 {
-                    // TODO - this should be 0 in the master branch right? a draw that doesnt care about wavelength
-                    // should NOT be drawn in this wavelength specific pass, otherwise it will be drawn twice (once
-                    // here and once in the subsequent wavelength-agnostic draws)!
                     return 0f;
                 }
 

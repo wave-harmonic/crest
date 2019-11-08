@@ -69,11 +69,11 @@ Material:
     - _OcclusionStrength: 1
     - _Parallax: 0.02
     - _SSSFromAlpha: 1
-    - _SSSStrength: 0.4
+    - _SSSStrength: 0.6
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 1
-    - _Strength: 2
+    - _Strength: 8
     - _UVSec: 0
     - _ZWrite: 1
     m_Colors:

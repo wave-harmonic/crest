@@ -146,6 +146,7 @@ namespace Crest
 
         static int sp_crestTime = Shader.PropertyToID("_CrestTime");
         static int sp_texelsPerWave = Shader.PropertyToID("_TexelsPerWave");
+        static int sp_oceanCenterPosWorld = Shader.PropertyToID("_OceanCenterPosWorld");
 
 
         bool _firstViewerHeightUpdate = true;
@@ -262,7 +263,7 @@ namespace Crest
 
             transform.position = pos;
 
-            Shader.SetGlobalVector("_OceanCenterPosWorld", transform.position);
+            Shader.SetGlobalVector(sp_oceanCenterPosWorld, transform.position);
         }
 
         void LateUpdateScale()

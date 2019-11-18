@@ -23,7 +23,8 @@ namespace Crest
             if (camerainstanceid == _referenceCameraInstanceId)
                 return _currentreflectiontexture;
 
-            var currentcollection = _collection;    //prevent crash if somebody change collection now in over thread, useless in unity now
+            // Prevent crash if somebody change collection now in over thread, useless in unity now
+            var currentcollection = _collection;
             for (int i = 0; i < currentcollection.Length; i++)
             {
                 if (currentcollection[i].Key == camerainstanceid)
@@ -37,7 +38,8 @@ namespace Crest
             return null;
         }
 
-        public static void Remove(int camerainstanceid)  //remove element if exists
+        // Remove element if exists
+        public static void Remove(int camerainstanceid)
         {
             if (!GetRenderTexture(camerainstanceid)) return;
             _collection = _collection.Where(e => e.Key != camerainstanceid).ToArray(); //rebuild array without element
@@ -56,7 +58,7 @@ namespace Crest
                     return;
                 }
             }
-            //rebuild with new element if not found
+            // Rebuild with new element if not found
             _collection = currentcollection
                 .Append(new KeyValuePair<int, RenderTexture>(instanceId, reflectionTexture)).ToArray();
         }
@@ -90,10 +92,13 @@ namespace Crest
         [SerializeField] int _frameRefreshOffset = 0;
 
         RenderTexture _reflectionTexture;
+
         Camera _camViewpoint;
         Camera _camReflections;
+
         private long _lastRefreshOnFrame = -1;
         float[] _cullDistances;
+
         private void Start()
         {
             _camViewpoint = GetComponent<Camera>();
@@ -119,7 +124,7 @@ namespace Crest
         bool RequestRefresh(long frame)
         {
             if (_lastRefreshOnFrame <= 0 || RefreshPerFrames < 2)
-                return true;    //not refreshed before or refresh every frame, not check frame counter
+                return true; // Not refreshed before or refresh every frame, not check frame counter
             return Math.Abs(_frameRefreshOffset) % RefreshPerFrames == frame % RefreshPerFrames;
         }
 
@@ -127,10 +132,11 @@ namespace Crest
         {
             _lastRefreshOnFrame = currentframe;
         }
+
         private void OnPreRender()
         {
             if (!RequestRefresh(Time.renderedFrameCount))
-                return; //skip if not need to refresh on this frame
+                return; // Skip if not need to refresh on this frame
 
             CreateWaterObjects(_camViewpoint);
 
@@ -139,7 +145,7 @@ namespace Crest
                 return;
             }
 
-            // find out the reflection plane: position and normal in world space
+            // Find out the reflection plane: position and normal in world space
             Vector3 planePos = OceanRenderer.Instance.transform.position;
             Vector3 planeNormal = Vector3.up;
 
@@ -181,7 +187,7 @@ namespace Crest
             _camReflections.cullingMatrix = _camReflections.projectionMatrix * _camReflections.worldToCameraMatrix;
 
             ForceDistanceCulling(_farClipPlane);
-            
+
             _camReflections.Render();
 
             GL.invertCulling = oldCulling;
@@ -206,7 +212,8 @@ namespace Crest
                 _cullDistances = new float[32];
             for (var i = 0; i < _cullDistances.Length; i++)
             {
-                _cullDistances[i] = farClipPlane; //the culling distance
+                // The culling distance
+                _cullDistances[i] = farClipPlane;
             }
             _camReflections.layerCullDistances = _cullDistances;
             _camReflections.layerCullSpherical = true;
@@ -286,7 +293,6 @@ namespace Crest
                     go.hideFlags = HideFlags.HideAndDontSave;
                 }
             }
-
         }
 
         // Given position/normal of the plane, calculates plane in camera space.

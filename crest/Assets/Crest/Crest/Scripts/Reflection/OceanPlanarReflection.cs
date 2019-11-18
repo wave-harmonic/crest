@@ -94,7 +94,9 @@ namespace Crest
         RenderTexture _reflectionTexture;
 
         Camera _camViewpoint;
+        Skybox _camViewpointSkybox;
         Camera _camReflections;
+        Skybox _camReflectionsSkybox;
 
         private long _lastRefreshOnFrame = -1;
         float[] _cullDistances;
@@ -108,6 +110,7 @@ namespace Crest
                 enabled = false;
                 return;
             }
+            _camViewpointSkybox = _camViewpoint?.GetComponent<Skybox>();
 
             // This is anyway called in OnPreRender, but was required here as there was a black reflection
             // for a frame without this earlier setup call.
@@ -156,7 +159,7 @@ namespace Crest
                 QualitySettings.pixelLightCount = 0;
             }
 
-            UpdateCameraModes(_camViewpoint, _camReflections);
+            UpdateCameraModes();
 
             // Reflect camera around reflection plane
             float d = -Vector3.Dot(planeNormal, planePos) - _clipPlaneOffset;
@@ -219,38 +222,37 @@ namespace Crest
             _camReflections.layerCullSpherical = true;
         }
 
-        void UpdateCameraModes(Camera src, Camera dest)
+        void UpdateCameraModes()
         {
-            // set water camera to clear the same way as current camera
-            dest.renderingPath = _forceForwardRenderingPath ? RenderingPath.Forward : src.renderingPath;
-            dest.backgroundColor = new Color(0f, 0f, 0f, 0f);
-            dest.clearFlags = _clearFlags;
+            // Set water camera to clear the same way as current camera
+            _camReflections.renderingPath = _forceForwardRenderingPath ? RenderingPath.Forward : _camViewpoint.renderingPath;
+            _camReflections.backgroundColor = new Color(0f, 0f, 0f, 0f);
+            _camReflections.clearFlags = _clearFlags;
+
             if (_clearFlags == CameraClearFlags.Skybox)
             {
-                Skybox sky = src.GetComponent<Skybox>();
-                Skybox mysky = dest.GetComponent<Skybox>();
-                if (!sky || !sky.material)
+                if (!_camViewpointSkybox || !_camViewpointSkybox.material)
                 {
-                    mysky.enabled = false;
+                    _camReflectionsSkybox.enabled = false;
                 }
                 else
                 {
-                    mysky.enabled = true;
-                    mysky.material = sky.material;
+                    _camReflectionsSkybox.enabled = true;
+                    _camReflectionsSkybox.material = _camViewpointSkybox.material;
                 }
             }
 
-            // update other values to match current camera.
-            // even if we are supplying custom camera&projection matrices,
-            // some of values are used elsewhere (e.g. skybox uses far plane)
+            // Update other values to match current camera.
+            // Even if we are supplying custom camera&projection matrices,
+            // some of values are used elsewhere (e.g. skybox uses far plane).
 
-            dest.farClipPlane = src.farClipPlane;
-            dest.nearClipPlane = src.nearClipPlane;
-            dest.orthographic = src.orthographic;
-            dest.fieldOfView = src.fieldOfView;
-            dest.orthographicSize = src.orthographicSize;
-            dest.allowMSAA = _allowMSAA;
-            dest.aspect = src.aspect;
+            _camReflections.farClipPlane = _camViewpoint.farClipPlane;
+            _camReflections.nearClipPlane = _camViewpoint.nearClipPlane;
+            _camReflections.orthographic = _camViewpoint.orthographic;
+            _camReflections.fieldOfView = _camViewpoint.fieldOfView;
+            _camReflections.orthographicSize = _camViewpoint.orthographicSize;
+            _camReflections.allowMSAA = _allowMSAA;
+            _camReflections.aspect = _camViewpoint.aspect;
         }
 
         // On-demand create any objects we need for water
@@ -285,7 +287,7 @@ namespace Crest
                 _camReflections.transform.position = transform.position;
                 _camReflections.transform.rotation = transform.rotation;
                 _camReflections.cullingMask = _reflectionLayers;
-                _camReflections.gameObject.AddComponent<Skybox>();
+                _camReflectionsSkybox = _camReflections.gameObject.AddComponent<Skybox>();
                 _camReflections.gameObject.AddComponent<FlareLayer>();
 
                 if (_hideCameraGameobject)

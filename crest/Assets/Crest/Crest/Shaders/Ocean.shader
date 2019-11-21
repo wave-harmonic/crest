@@ -239,7 +239,7 @@ Shader "Crest/Ocean"
 				float4 positionCS : SV_POSITION;
 				half4 flow_shadow : TEXCOORD1;
 				half4 foam_screenPosXYW : TEXCOORD4;
-				half4 lodAlpha_worldXZUndisplaced_oceanDepth : TEXCOORD5;
+				float4 lodAlpha_worldXZUndisplaced_oceanDepth : TEXCOORD5;
 				float3 worldPos : TEXCOORD7;
 				#if _DEBUGVISUALISESHAPESAMPLE_ON
 				half3 debugtint : TEXCOORD8;

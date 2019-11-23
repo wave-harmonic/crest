@@ -26,7 +26,7 @@ namespace Crest
         // LWRP version needs access to this externally, hence public get
         public CommandBuffer BufCopyShadowMap { get; private set; }
 
-        RenderTexture _sources;
+        RenderTextureBuffered _sources;
         PropertyWrapperCompute _renderProperties;
         ComputeShader _updateShadowShader;
         private int krnl_UpdateShadow;
@@ -49,6 +49,13 @@ namespace Crest
             var settings = ScriptableObject.CreateInstance<SimSettingsShadow>();
             settings.name = SimName + " Auto-generated Settings";
             return settings;
+        }
+
+        public override void FlipBuffers()
+        {
+            base.FlipBuffers();
+
+            _sources.Flip();
         }
 
         protected override void Start()
@@ -97,10 +104,10 @@ namespace Crest
 
             int resolution = OceanRenderer.Instance.LodDataResolution;
             var desc = new RenderTextureDescriptor(resolution, resolution, TextureFormat, 0);
-            _sources = CreateLodDataTextures(desc, SimName + "_1", NeedToReadWriteTextureData);
+            _sources = new RenderTextureBuffered(BufferCount, () => CreateLodDataTextures(desc, SimName + "_1", NeedToReadWriteTextureData));
 
-            TextureArrayHelpers.ClearToBlack(_sources);
-            TextureArrayHelpers.ClearToBlack(_targets);
+            _targets.ClearToBlack();
+            _sources.ClearToBlack();
         }
 
         bool StartInitLight()
@@ -137,8 +144,8 @@ namespace Crest
                 {
                     _mainLight.RemoveCommandBuffer(LightEvent.BeforeScreenspaceMask, BufCopyShadowMap);
                     BufCopyShadowMap = null;
-                    TextureArrayHelpers.ClearToBlack(_sources);
-                    TextureArrayHelpers.ClearToBlack(_targets);
+                    _sources.ClearToBlack();
+                    _targets.ClearToBlack();
                 }
                 _mainLight = null;
             }
@@ -186,7 +193,7 @@ namespace Crest
 
             // clear the shadow collection. it will be overwritten with shadow values IF the shadows render,
             // which only happens if there are (nontransparent) shadow receivers around
-            TextureArrayHelpers.ClearToBlack(_targets);
+            _targets.ClearToBlack();
 
             var lt = OceanRenderer.Instance._lodTransform;
             for (var lodIdx = lt.LodCount - 1; lodIdx >= 0; lodIdx--)
@@ -209,7 +216,7 @@ namespace Crest
                 _renderProperties.SetInt(sp_LD_SliceIndex, lodIdx);
                 _renderProperties.SetInt(sp_LD_SliceIndex_Source, srcDataIdx);
                 BindSourceData(_renderProperties, false);
-                _renderProperties.SetTexture(sp_LD_TexArray_Target, _targets);
+                _renderProperties.SetTexture(sp_LD_TexArray_Target, _targets.CurrentFrameTarget);
                 _renderProperties.DispatchShader();
             }
         }
@@ -225,7 +232,7 @@ namespace Crest
         public void BindSourceData(IPropertyWrapper simMaterial, bool paramsOnly)
         {
             var rd = OceanRenderer.Instance._lodTransform._renderDataSource;
-            BindData(simMaterial, paramsOnly ? Texture2D.blackTexture : _sources as Texture, true, ref rd, true);
+            BindData(simMaterial, paramsOnly ? Texture2D.blackTexture : _sources.CurrentFrameTarget as Texture, true, ref rd, true);
         }
 
         void OnEnable()

@@ -14,7 +14,7 @@ namespace Crest
     {
         protected override bool NeedToReadWriteTextureData { get { return true; } }
 
-        RenderTexture _sources;
+        RenderTextureBuffered _sources;
         PropertyWrapperCompute _renderSimProperties;
 
         static int sp_LD_TexArray_Target = Shader.PropertyToID("_LD_TexArray_Target");
@@ -28,6 +28,13 @@ namespace Crest
 
         public static int sp_SimDeltaTime = Shader.PropertyToID("_SimDeltaTime");
         static int sp_SimDeltaTimePrev = Shader.PropertyToID("_SimDeltaTimePrev");
+
+        public override void FlipBuffers()
+        {
+            base.FlipBuffers();
+
+            _sources.Flip();
+        }
 
         protected override void Start()
         {
@@ -48,10 +55,10 @@ namespace Crest
 
             int resolution = OceanRenderer.Instance.LodDataResolution;
             var desc = new RenderTextureDescriptor(resolution, resolution, TextureFormat, 0);
-            _sources = CreateLodDataTextures(desc, SimName + "_1", NeedToReadWriteTextureData);
+            _sources = new RenderTextureBuffered(BufferCount, () => CreateLodDataTextures(desc, SimName + "_1", NeedToReadWriteTextureData));
 
-            TextureArrayHelpers.ClearToBlack(_targets);
-            TextureArrayHelpers.ClearToBlack(_sources);
+            _targets.ClearToBlack();
+            _sources.ClearToBlack();
         }
 
         public void ValidateSourceData(bool usePrevTransform)
@@ -72,7 +79,7 @@ namespace Crest
                 OceanRenderer.Instance._lodTransform._renderDataSource
                 : OceanRenderer.Instance._lodTransform._renderData;
 
-            BindData(properties, paramsOnly ? TextureArrayHelpers.BlackTextureArray : (Texture)_sources, true, ref renderData, sourceLod);
+            BindData(properties, paramsOnly ? TextureArrayHelpers.BlackTextureArray : (Texture)_sources.CurrentFrameTarget, true, ref renderData, sourceLod);
         }
 
         public abstract void GetSimSubstepData(float frameDt, out int numSubsteps, out float substepDt);
@@ -120,7 +127,7 @@ namespace Crest
 
                 for (var lodIdx = lodCount - 1; lodIdx >= 0; lodIdx--)
                 {
-                    buf.SetRenderTarget(_targets, _targets.depthBuffer, 0, CubemapFace.Unknown, lodIdx);
+                    buf.SetRenderTarget(_targets.CurrentFrameTarget, _targets.CurrentFrameTarget.depthBuffer, 0, CubemapFace.Unknown, lodIdx);
                     SubmitDraws(lodIdx, buf);
                 }
 

@@ -23,6 +23,7 @@ namespace Crest
         // shape format. i tried RGB111110Float but error becomes visible. one option would be to use a UNORM setup.
         public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.ARGBHalf; } }
         protected override bool NeedToReadWriteTextureData { get { return true; } }
+        public override int BufferCount => 3;
 
         [Tooltip("Read shape textures back to the CPU for collision purposes.")]
         public bool _readbackShapeForCollision = true;
@@ -220,7 +221,7 @@ namespace Crest
             // lod-independent data
             for (int lodIdx = lodCount - 1; lodIdx >= 0; lodIdx--)
             {
-                buf.SetRenderTarget(_targets, 0, CubemapFace.Unknown, lodIdx);
+                buf.SetRenderTarget(_targets.CurrentFrameTarget, 0, CubemapFace.Unknown, lodIdx);
 
                 // draw any data that did not express a preference for one lod or another
                 SubmitDrawsFiltered(lodIdx, buf, _filterNoLodPreference);
@@ -276,7 +277,7 @@ namespace Crest
                 buf.DrawProcedural(Matrix4x4.identity, _combineMaterial[lodIdx].material, shaderPassCombineIntoAux, MeshTopology.Triangles, 3);
 
                 // Copy combine buffer back to lod texture array
-                buf.SetRenderTarget(_targets, 0, CubemapFace.Unknown, lodIdx);
+                buf.SetRenderTarget(_targets.CurrentFrameTarget, 0, CubemapFace.Unknown, lodIdx);
                 _combineMaterial[lodIdx].SetTexture(Shader.PropertyToID("_CombineBuffer"), _combineBuffer);
                 buf.DrawProcedural(Matrix4x4.identity, _combineMaterial[lodIdx].material, shaderPassCopyResultBack, MeshTopology.Triangles, 3);
             }

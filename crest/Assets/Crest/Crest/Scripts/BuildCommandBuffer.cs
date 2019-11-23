@@ -67,6 +67,44 @@ namespace Crest
             }
         }
 
+        void PostBuild(OceanRenderer ocean)
+        {
+            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            // --- Ocean depths
+            if (ocean._lodDataSeaDepths)
+            {
+                ocean._lodDataSeaDepths.FlipBuffers();
+            }
+
+            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            // --- Flow data
+            if (ocean._lodDataFlow)
+            {
+                ocean._lodDataFlow.FlipBuffers();
+            }
+
+            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            // --- Dynamic wave simulations
+            if (ocean._lodDataDynWaves)
+            {
+                ocean._lodDataDynWaves.FlipBuffers();
+            }
+
+            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            // --- Animated waves next
+            if (ocean._lodDataAnimWaves)
+            {
+                ocean._lodDataAnimWaves.FlipBuffers();
+            }
+
+            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            // --- Foam simulation
+            if (ocean._lodDataFoam)
+            {
+                ocean._lodDataFoam.FlipBuffers();
+            }
+        }
+
         /// <summary>
         /// Construct the command buffer and attach it to the camera so that it will be executed in the render.
         /// </summary>
@@ -83,6 +121,8 @@ namespace Crest
             _buf.Clear();
 
             Build(OceanRenderer.Instance, _buf);
+
+            PostBuild(OceanRenderer.Instance);
 
             // This will execute at the beginning of the frame before the graphics queue
             Graphics.ExecuteCommandBuffer(_buf);

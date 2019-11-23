@@ -7,6 +7,56 @@ using UnityEngine.Rendering;
 
 namespace Crest
 {
+    public class RenderTextureBuffered
+    {
+        public RenderTextureBuffered(int bufferSize, System.Func<RenderTexture> initFunc)
+        {
+            _buffers = new RenderTexture[bufferSize];
+
+            for (int i = 0; i < bufferSize; i++)
+            {
+                _buffers[i] = initFunc();
+            }
+        }
+
+        public RenderTexture CurrentFrameTarget => _buffers[_currentFrameIndex];
+
+        public RenderTexture PreviousTarget(int framesBack)
+        {
+            Debug.Assert(framesBack >= 0 && framesBack < _buffers.Length);
+
+            int index = (_currentFrameIndex - framesBack + _buffers.Length) % _buffers.Length;
+
+            return _buffers[index];
+        }
+
+        public void Flip()
+        {
+            _currentFrameIndex = (_currentFrameIndex + 1) % _buffers.Length;
+        }
+
+        public void Resize(int newRes)
+        {
+            foreach(var buffer in _buffers)
+            {
+                buffer.Release();
+                buffer.width = buffer.height = newRes;
+                buffer.Create();
+            }
+        }
+
+        public void ClearToBlack()
+        {
+            foreach (var buffer in _buffers)
+            {
+                TextureArrayHelpers.ClearToBlack(buffer);
+            }
+        }
+
+        RenderTexture[] _buffers = null;
+        int _currentFrameIndex = 0;
+    }
+
     /// <summary>
     /// Base class for data/behaviours created on each LOD.
     /// </summary>
@@ -27,9 +77,13 @@ namespace Crest
 
         protected abstract bool NeedToReadWriteTextureData { get; }
 
-        protected RenderTexture _targets;
+        protected RenderTextureBuffered _targets;
 
-        public RenderTexture DataTexture { get { return _targets; } }
+        public RenderTexture DataTexture => _targets.CurrentFrameTarget;
+        public RenderTexture GetDataTexture(int frameDelta) => _targets.PreviousTarget(frameDelta);
+
+        public virtual int BufferCount => 1;
+        public virtual void FlipBuffers() => _targets.Flip();
 
         public static int sp_LD_SliceIndex = Shader.PropertyToID("_LD_SliceIndex");
         protected static int sp_LODChange = Shader.PropertyToID("_LODChange");
@@ -72,7 +126,7 @@ namespace Crest
 
             var resolution = OceanRenderer.Instance.LodDataResolution;
             var desc = new RenderTextureDescriptor(resolution, resolution, TextureFormat, 0);
-            _targets = CreateLodDataTextures(desc, SimName, NeedToReadWriteTextureData);
+            _targets = new RenderTextureBuffered(BufferCount, () => CreateLodDataTextures(desc, SimName, NeedToReadWriteTextureData));
         }
 
         public virtual void UpdateLodData()
@@ -85,9 +139,7 @@ namespace Crest
             }
             else if (width != _shapeRes)
             {
-                _targets.Release();
-                _targets.width = _targets.height = _shapeRes;
-                _targets.Create();
+                _targets.Resize(_shapeRes);
 
                 _shapeRes = width;
             }
@@ -101,9 +153,9 @@ namespace Crest
             _scaleDifferencePow2 = Mathf.RoundToInt(ratio_l2);
         }
 
-        public void BindResultData(IPropertyWrapper properties, bool blendOut = true)
+        public void BindResultData(IPropertyWrapper properties, bool blendOut = true, int framesBack = 0)
         {
-            BindData(properties, _targets, blendOut, ref OceanRenderer.Instance._lodTransform._renderData);
+            BindData(properties, _targets.PreviousTarget(framesBack), blendOut, ref OceanRenderer.Instance._lodTransform._renderData);
         }
 
         // Avoid heap allocations instead BindData

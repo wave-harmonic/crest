@@ -20,12 +20,13 @@ namespace Crest
         static int s_paramsOceanSource = Shader.PropertyToID("_LD_Params_Source");
 
         [System.Serializable]
-        public struct RenderData
+        public class RenderData
         {
             public float _texelWidth;
             public float _textureRes;
             public Vector3 _posSnapped;
             public int _frame;
+            public float _oceanScale;
 
             public RenderData Validate(int frameOffset, Object context)
             {
@@ -47,8 +48,7 @@ namespace Crest
             }
         }
 
-        public RenderData[] _renderData = null;
-        public RenderData[] _renderDataSource = null;
+        public BufferedData<RenderData>[] _renderData;
 
         public int LodCount { get; private set; }
 
@@ -61,8 +61,12 @@ namespace Crest
         {
             LodCount = lodCount;
 
-            _renderData = new RenderData[lodCount];
-            _renderDataSource = new RenderData[lodCount];
+            _renderData = new BufferedData<RenderData>[lodCount];
+            for (var i = 0; i < lodCount; i++)
+            {
+                _renderData[i] = new BufferedData<RenderData>(3, () => new RenderData());
+            }
+
             _worldToCameraMatrix = new Matrix4x4[lodCount];
             _projectionMatrix = new Matrix4x4[lodCount];
 
@@ -81,29 +85,30 @@ namespace Crest
 
                 _transformUpdateFrame[lodIdx] = Time.frameCount;
 
-                _renderDataSource[lodIdx] = _renderData[lodIdx];
-
                 var lodScale = OceanRenderer.Instance.CalcLodScale(lodIdx);
                 var camOrthSize = 2f * lodScale;
 
                 // find snap period
-                _renderData[lodIdx]._textureRes = OceanRenderer.Instance.LodDataResolution;
-                _renderData[lodIdx]._texelWidth = 2f * camOrthSize / _renderData[lodIdx]._textureRes;
+                _renderData[lodIdx].Current._textureRes = OceanRenderer.Instance.LodDataResolution;
+                _renderData[lodIdx].Current._texelWidth = 2f * camOrthSize / _renderData[lodIdx].Current._textureRes;
                 // snap so that shape texels are stationary
-                _renderData[lodIdx]._posSnapped = OceanRenderer.Instance.transform.position
-                    - new Vector3(Mathf.Repeat(OceanRenderer.Instance.transform.position.x, _renderData[lodIdx]._texelWidth), 0f, Mathf.Repeat(OceanRenderer.Instance.transform.position.z, _renderData[lodIdx]._texelWidth));
+                _renderData[lodIdx].Current._posSnapped = OceanRenderer.Instance.transform.position
+                    - new Vector3(Mathf.Repeat(OceanRenderer.Instance.transform.position.x, _renderData[lodIdx].Current._texelWidth), 0f, Mathf.Repeat(OceanRenderer.Instance.transform.position.z, _renderData[lodIdx].Current._texelWidth));
 
-                _renderData[lodIdx]._frame = Time.frameCount;
+                _renderData[lodIdx].Current._frame = Time.frameCount;
 
-                // detect first update and populate the render data if so - otherwise it can give divide by 0s and other nastiness
-                if (_renderDataSource[lodIdx]._textureRes == 0f)
-                {
-                    _renderDataSource[lodIdx]._posSnapped = _renderData[lodIdx]._posSnapped;
-                    _renderDataSource[lodIdx]._texelWidth = _renderData[lodIdx]._texelWidth;
-                    _renderDataSource[lodIdx]._textureRes = _renderData[lodIdx]._textureRes;
-                }
+                _renderData[lodIdx].Current._oceanScale = OceanRenderer.Instance.Scale;
 
-                _worldToCameraMatrix[lodIdx] = CalculateWorldToCameraMatrixRHS(_renderData[lodIdx]._posSnapped + Vector3.up * 100f, Quaternion.AngleAxis(90f, Vector3.right));
+                // TODO?
+                //// detect first update and populate the render data if so - otherwise it can give divide by 0s and other nastiness
+                //if (_renderDataSource[lodIdx].Current._textureRes == 0f)
+                //{
+                //    _renderDataSource[lodIdx].Current._posSnapped = _renderData[lodIdx].Current._posSnapped;
+                //    _renderDataSource[lodIdx].Current._texelWidth = _renderData[lodIdx].Current._texelWidth;
+                //    _renderDataSource[lodIdx].Current._textureRes = _renderData[lodIdx].Current._textureRes;
+                //}
+
+                _worldToCameraMatrix[lodIdx] = CalculateWorldToCameraMatrixRHS(_renderData[lodIdx].Current._posSnapped + Vector3.up * 100f, Quaternion.AngleAxis(90f, Vector3.right));
 
                 _projectionMatrix[lodIdx] = Matrix4x4.Ortho(-2f * lodScale, 2f * lodScale, -2f * lodScale, 2f * lodScale, 1f, 500f);
             }
@@ -154,10 +159,9 @@ namespace Crest
 
         public void SetOrigin(Vector3 newOrigin)
         {
-            for (int lodIdx = 0; lodIdx < LodCount; lodIdx++)
+            for (var lodIdx = 0; lodIdx < LodCount; lodIdx++)
             {
-                _renderData[lodIdx]._posSnapped -= newOrigin;
-                _renderDataSource[lodIdx]._posSnapped -= newOrigin;
+                _renderData[lodIdx].RunLambda(renderData => renderData._posSnapped -= newOrigin);
             }
         }
     }

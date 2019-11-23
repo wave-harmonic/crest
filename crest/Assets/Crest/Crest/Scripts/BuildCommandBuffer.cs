@@ -29,7 +29,7 @@ namespace Crest
     {
         CommandBuffer _buf;
 
-        void Build(OceanRenderer ocean, CommandBuffer buf)
+        static void Build(OceanRenderer ocean, CommandBuffer buf)
         {
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // --- Ocean depths
@@ -67,7 +67,7 @@ namespace Crest
             }
         }
 
-        void PostBuild(OceanRenderer ocean)
+        public static void FlipDataBuffers(OceanRenderer ocean)
         {
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // --- Ocean depths
@@ -103,6 +103,11 @@ namespace Crest
             {
                 ocean._lodDataFoam.FlipBuffers();
             }
+
+            foreach (var rd in ocean._lodTransform._renderData)
+            {
+                rd.Flip();
+            }
         }
 
         /// <summary>
@@ -121,8 +126,6 @@ namespace Crest
             _buf.Clear();
 
             Build(OceanRenderer.Instance, _buf);
-
-            PostBuild(OceanRenderer.Instance);
 
             // This will execute at the beginning of the frame before the graphics queue
             Graphics.ExecuteCommandBuffer(_buf);

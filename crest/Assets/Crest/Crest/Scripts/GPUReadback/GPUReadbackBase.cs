@@ -129,8 +129,8 @@ namespace Crest
                 int lastUsableIndex = CanUseLastTwoLODs ? (lodCount - 1) : (lodCount - 3);
 
                 _perLodData.ValueArray[i]._activelyBeingRendered =
-                    _perLodData.KeyArray[i] >= ocean._lodTransform._renderData[0]._texelWidth &&
-                    _perLodData.KeyArray[i] <= ocean._lodTransform._renderData[lastUsableIndex]._texelWidth;
+                    _perLodData.KeyArray[i] >= ocean._lodTransform._renderData[0].Current._texelWidth &&
+                    _perLodData.KeyArray[i] <= ocean._lodTransform._renderData[lastUsableIndex].Current._texelWidth;
 
                 if (!_perLodData.ValueArray[i]._activelyBeingRendered)
                 {
@@ -145,7 +145,7 @@ namespace Crest
 
             for (int lodIndex = 0; lodIndex < ocean.CurrentLodCount; lodIndex++)
             {
-                float lodTexelWidth = lt._renderData[lodIndex]._texelWidth;
+                float lodTexelWidth = lt._renderData[lodIndex].Current._texelWidth;
 
                 // Don't add uninitialised data
                 if (lodTexelWidth == 0f) continue;
@@ -181,7 +181,7 @@ namespace Crest
                         // ensure everything in the frame is done.
                         if (runningFromUpdate)
                         {
-                            EnqueueReadbackRequest(tex, lodIndex, lt._renderData[lodIndex], _prevFrameTime);
+                            EnqueueReadbackRequest(tex, lodIndex, lt._renderData[lodIndex].Current, _prevFrameTime);
                         }
 
                         ProcessArrivedRequests(lodData);

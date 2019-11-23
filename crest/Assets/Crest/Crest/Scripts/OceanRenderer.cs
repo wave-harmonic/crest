@@ -216,6 +216,8 @@ namespace Crest
 
         void Update()
         {
+            BuildCommandBuffer.FlipDataBuffers(this);
+
             UpdateCollision();
         }
 

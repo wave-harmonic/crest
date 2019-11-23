@@ -26,7 +26,7 @@ namespace Crest
         // LWRP version needs access to this externally, hence public get
         public CommandBuffer BufCopyShadowMap { get; private set; }
 
-        RenderTextureBuffered _sources;
+        BufferedData<RenderTexture> _sources;
         PropertyWrapperCompute _renderProperties;
         ComputeShader _updateShadowShader;
         private int krnl_UpdateShadow;
@@ -104,10 +104,10 @@ namespace Crest
 
             int resolution = OceanRenderer.Instance.LodDataResolution;
             var desc = new RenderTextureDescriptor(resolution, resolution, TextureFormat, 0);
-            _sources = new RenderTextureBuffered(BufferCount, () => CreateLodDataTextures(desc, SimName + "_1", NeedToReadWriteTextureData));
+            _sources = new BufferedData<RenderTexture>(BufferCount, () => CreateLodDataTextures(desc, SimName + "_1", NeedToReadWriteTextureData));
 
-            _targets.ClearToBlack();
-            _sources.ClearToBlack();
+            _targets.RunLambda(buffer => TextureArrayHelpers.ClearToBlack(buffer));
+            _sources.RunLambda(buffer => TextureArrayHelpers.ClearToBlack(buffer));
         }
 
         bool StartInitLight()
@@ -144,8 +144,9 @@ namespace Crest
                 {
                     _mainLight.RemoveCommandBuffer(LightEvent.BeforeScreenspaceMask, BufCopyShadowMap);
                     BufCopyShadowMap = null;
-                    _sources.ClearToBlack();
-                    _targets.ClearToBlack();
+
+                    _targets.RunLambda(buffer => TextureArrayHelpers.ClearToBlack(buffer));
+                    _sources.RunLambda(buffer => TextureArrayHelpers.ClearToBlack(buffer));
                 }
                 _mainLight = null;
             }
@@ -193,15 +194,15 @@ namespace Crest
 
             // clear the shadow collection. it will be overwritten with shadow values IF the shadows render,
             // which only happens if there are (nontransparent) shadow receivers around
-            _targets.ClearToBlack();
+            _targets.RunLambda(buffer => TextureArrayHelpers.ClearToBlack(buffer));
 
             var lt = OceanRenderer.Instance._lodTransform;
             for (var lodIdx = lt.LodCount - 1; lodIdx >= 0; lodIdx--)
             {
                 _renderProperties.Initialise(BufCopyShadowMap, _updateShadowShader, krnl_UpdateShadow);
 
-                lt._renderData[lodIdx].Validate(0, this);
-                _renderProperties.SetVector(sp_CenterPos, lt._renderData[lodIdx]._posSnapped);
+                lt._renderData[lodIdx].Current.Validate(0, this);
+                _renderProperties.SetVector(sp_CenterPos, lt._renderData[lodIdx].Current._posSnapped);
                 var scale = OceanRenderer.Instance.CalcLodScale(lodIdx);
                 _renderProperties.SetVector(sp_Scale, new Vector3(scale, 1f, scale));
                 _renderProperties.SetVector(sp_CamPos, OceanRenderer.Instance.Viewpoint.position);
@@ -216,23 +217,22 @@ namespace Crest
                 _renderProperties.SetInt(sp_LD_SliceIndex, lodIdx);
                 _renderProperties.SetInt(sp_LD_SliceIndex_Source, srcDataIdx);
                 BindSourceData(_renderProperties, false);
-                _renderProperties.SetTexture(sp_LD_TexArray_Target, _targets.CurrentFrameTarget);
+                _renderProperties.SetTexture(sp_LD_TexArray_Target, _targets.Current);
                 _renderProperties.DispatchShader();
             }
         }
 
         public void ValidateSourceData()
         {
-            foreach (var renderData in OceanRenderer.Instance._lodTransform._renderDataSource)
+            foreach (var renderData in OceanRenderer.Instance._lodTransform._renderData)
             {
-                renderData.Validate(BuildCommandBufferBase._lastUpdateFrame - Time.frameCount, this);
+                renderData.Previous(1).Validate(BuildCommandBufferBase._lastUpdateFrame - Time.frameCount, this);
             }
         }
 
         public void BindSourceData(IPropertyWrapper simMaterial, bool paramsOnly)
         {
-            var rd = OceanRenderer.Instance._lodTransform._renderDataSource;
-            BindData(simMaterial, paramsOnly ? Texture2D.blackTexture : _sources.CurrentFrameTarget as Texture, true, ref rd, true);
+            BindData(simMaterial, paramsOnly ? Texture2D.blackTexture : _sources.Current as Texture, true, OceanRenderer.Instance._lodTransform._renderData, 1, true);
         }
 
         void OnEnable()

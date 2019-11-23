@@ -190,7 +190,7 @@ namespace Crest
             // Validation
             for (int lodIdx = 0; lodIdx < OceanRenderer.Instance.CurrentLodCount; lodIdx++)
             {
-                OceanRenderer.Instance._lodTransform._renderData[lodIdx].Validate(0, this);
+                OceanRenderer.Instance._lodTransform._renderData[lodIdx].Current.Validate(0, this);
             }
 
             // lod-dependent data
@@ -221,7 +221,7 @@ namespace Crest
             // lod-independent data
             for (int lodIdx = lodCount - 1; lodIdx >= 0; lodIdx--)
             {
-                buf.SetRenderTarget(_targets.CurrentFrameTarget, 0, CubemapFace.Unknown, lodIdx);
+                buf.SetRenderTarget(_targets.Current, 0, CubemapFace.Unknown, lodIdx);
 
                 // draw any data that did not express a preference for one lod or another
                 SubmitDrawsFiltered(lodIdx, buf, _filterNoLodPreference);
@@ -277,7 +277,7 @@ namespace Crest
                 buf.DrawProcedural(Matrix4x4.identity, _combineMaterial[lodIdx].material, shaderPassCombineIntoAux, MeshTopology.Triangles, 3);
 
                 // Copy combine buffer back to lod texture array
-                buf.SetRenderTarget(_targets.CurrentFrameTarget, 0, CubemapFace.Unknown, lodIdx);
+                buf.SetRenderTarget(_targets.Current, 0, CubemapFace.Unknown, lodIdx);
                 _combineMaterial[lodIdx].SetTexture(Shader.PropertyToID("_CombineBuffer"), _combineBuffer);
                 buf.DrawProcedural(Matrix4x4.identity, _combineMaterial[lodIdx].material, shaderPassCopyResultBack, MeshTopology.Triangles, 3);
             }
@@ -365,12 +365,12 @@ namespace Crest
         public void BindWaveBuffer(IPropertyWrapper properties, bool sourceLod = false)
         {
             properties.SetTexture(sp_LD_TexArray_WaveBuffer, _waveBuffers);
-            BindData(properties, null, true, ref OceanRenderer.Instance._lodTransform._renderData, sourceLod);
+            BindData(properties, null, true, OceanRenderer.Instance._lodTransform._renderData, 0, sourceLod);
         }
 
-        protected override void BindData(IPropertyWrapper properties, Texture applyData, bool blendOut, ref LodTransform.RenderData[] renderData, bool sourceLod = false)
+        protected override void BindData(IPropertyWrapper properties, Texture applyData, bool blendOut, BufferedData<LodTransform.RenderData>[] renderData, int framesBack = 0, bool sourceLod = false)
         {
-            base.BindData(properties, applyData, blendOut, ref renderData, sourceLod);
+            base.BindData(properties, applyData, blendOut, renderData, framesBack, sourceLod);
 
             var lt = OceanRenderer.Instance._lodTransform;
 
@@ -380,9 +380,9 @@ namespace Crest
                 bool needToBlendOutShape = lodIdx == OceanRenderer.Instance.CurrentLodCount - 1 && OceanRenderer.Instance.ScaleCouldDecrease && blendOut;
                 float shapeWeight = needToBlendOutShape ? OceanRenderer.Instance.ViewerAltitudeLevelAlpha : 1f;
                 _BindData_paramIdOceans[lodIdx] = new Vector4(
-                    lt._renderData[lodIdx]._texelWidth,
-                    lt._renderData[lodIdx]._textureRes, shapeWeight,
-                    1f / lt._renderData[lodIdx]._textureRes);
+                    lt._renderData[lodIdx].Previous(framesBack)._texelWidth,
+                    lt._renderData[lodIdx].Previous(framesBack)._textureRes, shapeWeight,
+                    1f / lt._renderData[lodIdx].Previous(framesBack)._textureRes);
             }
             properties.SetVectorArray(LodTransform.ParamIdOcean(sourceLod), _BindData_paramIdOceans);
         }
@@ -405,10 +405,10 @@ namespace Crest
             {
 
                 // Shape texture needs to completely contain sample area
-                var lodRect = lt._renderData[lod].RectXZ;
+                var lodRect = lt._renderData[lod].Current.RectXZ;
                 // Shrink rect by 1 texel border - this is to make finite differences fit as well
-                lodRect.x += lt._renderData[lod]._texelWidth; lodRect.y += lt._renderData[lod]._texelWidth;
-                lodRect.width -= 2f * lt._renderData[lod]._texelWidth; lodRect.height -= 2f * lt._renderData[lod]._texelWidth;
+                lodRect.x += lt._renderData[lod].Current._texelWidth; lodRect.y += lt._renderData[lod].Current._texelWidth;
+                lodRect.width -= 2f * lt._renderData[lod].Current._texelWidth; lodRect.height -= 2f * lt._renderData[lod].Current._texelWidth;
                 if (!lodRect.Contains(sampleAreaXZ.min) || !lodRect.Contains(sampleAreaXZ.max))
                     continue;
 

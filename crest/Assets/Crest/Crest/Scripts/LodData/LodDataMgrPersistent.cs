@@ -14,7 +14,7 @@ namespace Crest
     {
         protected override bool NeedToReadWriteTextureData { get { return true; } }
 
-        RenderTextureBuffered _sources;
+        BufferedData<RenderTexture> _sources;
         PropertyWrapperCompute _renderSimProperties;
 
         static int sp_LD_TexArray_Target = Shader.PropertyToID("_LD_TexArray_Target");
@@ -55,31 +55,24 @@ namespace Crest
 
             int resolution = OceanRenderer.Instance.LodDataResolution;
             var desc = new RenderTextureDescriptor(resolution, resolution, TextureFormat, 0);
-            _sources = new RenderTextureBuffered(BufferCount, () => CreateLodDataTextures(desc, SimName + "_1", NeedToReadWriteTextureData));
+            _sources = new BufferedData<RenderTexture>(BufferCount, () => CreateLodDataTextures(desc, SimName + "_1", NeedToReadWriteTextureData));
 
-            _targets.ClearToBlack();
-            _sources.ClearToBlack();
+            _targets.RunLambda(buffer => TextureArrayHelpers.ClearToBlack(buffer));
+            _sources.RunLambda(buffer => TextureArrayHelpers.ClearToBlack(buffer));
         }
 
         public void ValidateSourceData(bool usePrevTransform)
         {
-            var renderDataToValidate = usePrevTransform ?
-                OceanRenderer.Instance._lodTransform._renderDataSource
-                : OceanRenderer.Instance._lodTransform._renderData;
-            int validationFrame = usePrevTransform ? BuildCommandBufferBase._lastUpdateFrame - Time.frameCount : 0;
-            foreach (var renderData in renderDataToValidate)
+            var validationFrame = usePrevTransform ? BuildCommandBufferBase._lastUpdateFrame - Time.frameCount : 0;
+            foreach (var renderData in OceanRenderer.Instance._lodTransform._renderData)
             {
-                renderData.Validate(validationFrame, this);
+                renderData.Previous(usePrevTransform ? 1 : 0).Validate(validationFrame, this);
             }
         }
 
         public void BindSourceData(IPropertyWrapper properties, bool paramsOnly, bool usePrevTransform, bool sourceLod = false)
         {
-            var renderData = usePrevTransform ?
-                OceanRenderer.Instance._lodTransform._renderDataSource
-                : OceanRenderer.Instance._lodTransform._renderData;
-
-            BindData(properties, paramsOnly ? TextureArrayHelpers.BlackTextureArray : (Texture)_sources.CurrentFrameTarget, true, ref renderData, sourceLod);
+            BindData(properties, paramsOnly ? TextureArrayHelpers.BlackTextureArray : (Texture)_sources.Current, true, OceanRenderer.Instance._lodTransform._renderData, usePrevTransform ? 1 : 0, sourceLod);
         }
 
         public abstract void GetSimSubstepData(float frameDt, out int numSubsteps, out float substepDt);
@@ -127,7 +120,7 @@ namespace Crest
 
                 for (var lodIdx = lodCount - 1; lodIdx >= 0; lodIdx--)
                 {
-                    buf.SetRenderTarget(_targets.CurrentFrameTarget, _targets.CurrentFrameTarget.depthBuffer, 0, CubemapFace.Unknown, lodIdx);
+                    buf.SetRenderTarget(_targets.Current, _targets.Current.depthBuffer, 0, CubemapFace.Unknown, lodIdx);
                     SubmitDraws(lodIdx, buf);
                 }
 

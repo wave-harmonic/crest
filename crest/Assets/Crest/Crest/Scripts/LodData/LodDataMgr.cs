@@ -2,16 +2,20 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+using System;
 using UnityEngine;
 using UnityEngine.Rendering;
 
 namespace Crest
 {
-    public class RenderTextureBuffered
+    /// <summary>
+    /// Circular buffer to store a multiple sets of data
+    /// </summary>
+    public class BufferedData<T>
     {
-        public RenderTextureBuffered(int bufferSize, System.Func<RenderTexture> initFunc)
+        public BufferedData(int bufferSize, Func<T> initFunc)
         {
-            _buffers = new RenderTexture[bufferSize];
+            _buffers = new T[bufferSize];
 
             for (int i = 0; i < bufferSize; i++)
             {
@@ -19,9 +23,9 @@ namespace Crest
             }
         }
 
-        public RenderTexture CurrentFrameTarget => _buffers[_currentFrameIndex];
+        public T Current => _buffers[_currentFrameIndex];
 
-        public RenderTexture PreviousTarget(int framesBack)
+        public T Previous(int framesBack)
         {
             Debug.Assert(framesBack >= 0 && framesBack < _buffers.Length);
 
@@ -35,25 +39,15 @@ namespace Crest
             _currentFrameIndex = (_currentFrameIndex + 1) % _buffers.Length;
         }
 
-        public void Resize(int newRes)
-        {
-            foreach(var buffer in _buffers)
-            {
-                buffer.Release();
-                buffer.width = buffer.height = newRes;
-                buffer.Create();
-            }
-        }
-
-        public void ClearToBlack()
+        public void RunLambda(Action<T> lambda)
         {
             foreach (var buffer in _buffers)
             {
-                TextureArrayHelpers.ClearToBlack(buffer);
+                lambda(buffer);
             }
         }
 
-        RenderTexture[] _buffers = null;
+        T[] _buffers = null;
         int _currentFrameIndex = 0;
     }
 
@@ -77,10 +71,10 @@ namespace Crest
 
         protected abstract bool NeedToReadWriteTextureData { get; }
 
-        protected RenderTextureBuffered _targets;
+        protected BufferedData<RenderTexture> _targets;
 
-        public RenderTexture DataTexture => _targets.CurrentFrameTarget;
-        public RenderTexture GetDataTexture(int frameDelta) => _targets.PreviousTarget(frameDelta);
+        public RenderTexture DataTexture => _targets.Current;
+        public RenderTexture GetDataTexture(int frameDelta) => _targets.Previous(frameDelta);
 
         public virtual int BufferCount => 1;
         public virtual void FlipBuffers() => _targets.Flip();
@@ -126,7 +120,7 @@ namespace Crest
 
             var resolution = OceanRenderer.Instance.LodDataResolution;
             var desc = new RenderTextureDescriptor(resolution, resolution, TextureFormat, 0);
-            _targets = new RenderTextureBuffered(BufferCount, () => CreateLodDataTextures(desc, SimName, NeedToReadWriteTextureData));
+            _targets = new BufferedData<RenderTexture>(BufferCount, () => CreateLodDataTextures(desc, SimName, NeedToReadWriteTextureData));
         }
 
         public virtual void UpdateLodData()
@@ -139,9 +133,14 @@ namespace Crest
             }
             else if (width != _shapeRes)
             {
-                _targets.Resize(_shapeRes);
-
                 _shapeRes = width;
+
+                _targets.RunLambda(buffer =>
+                {
+                    buffer.Release();
+                    buffer.width = buffer.height = _shapeRes;
+                    buffer.Create();
+                });
             }
 
             // determine if this LOD has changed scale and by how much (in exponent of 2)
@@ -155,14 +154,14 @@ namespace Crest
 
         public void BindResultData(IPropertyWrapper properties, bool blendOut = true, int framesBack = 0)
         {
-            BindData(properties, _targets.PreviousTarget(framesBack), blendOut, ref OceanRenderer.Instance._lodTransform._renderData);
+            BindData(properties, _targets.Previous(framesBack), blendOut, OceanRenderer.Instance._lodTransform._renderData, framesBack);
         }
 
         // Avoid heap allocations instead BindData
         private Vector4[] _BindData_paramIdPosScales = new Vector4[MAX_LOD_COUNT];
         // Used in child
         protected Vector4[] _BindData_paramIdOceans = new Vector4[MAX_LOD_COUNT];
-        protected virtual void BindData(IPropertyWrapper properties, Texture applyData, bool blendOut, ref LodTransform.RenderData[] renderData, bool sourceLod = false)
+        protected virtual void BindData(IPropertyWrapper properties, Texture applyData, bool blendOut, BufferedData<LodTransform.RenderData>[] renderData, int framesBack = 0, bool sourceLod = false)
         {
             if (applyData)
             {
@@ -174,9 +173,9 @@ namespace Crest
             {
                 // NOTE: gets zeroed by unity, see https://www.alanzucconi.com/2016/10/24/arrays-shaders-unity-5-4/
                 _BindData_paramIdPosScales[lodIdx] = new Vector4(
-                    renderData[lodIdx]._posSnapped.x, renderData[lodIdx]._posSnapped.z,
+                    renderData[lodIdx].Previous(framesBack)._posSnapped.x, renderData[lodIdx].Previous(framesBack)._posSnapped.z,
                     OceanRenderer.Instance.CalcLodScale(lodIdx), 0f);
-                _BindData_paramIdOceans[lodIdx] = new Vector4(renderData[lodIdx]._texelWidth, renderData[lodIdx]._textureRes, 1f, 1f / renderData[lodIdx]._textureRes);
+                _BindData_paramIdOceans[lodIdx] = new Vector4(renderData[lodIdx].Previous(framesBack)._texelWidth, renderData[lodIdx].Previous(framesBack)._textureRes, 1f, 1f / renderData[lodIdx].Previous(framesBack)._textureRes);
             }
 
             // Duplicate the last element as the shader accesses element {slice index + 1] in a few situations. This way going
@@ -221,7 +220,7 @@ namespace Crest
         protected void SubmitDraws(int lodIdx, CommandBuffer buf)
         {
             var lt = OceanRenderer.Instance._lodTransform;
-            lt._renderData[lodIdx].Validate(0, this);
+            lt._renderData[lodIdx].Current.Validate(0, this);
 
             lt.SetViewProjectionMatrices(lodIdx, buf);
 
@@ -235,7 +234,7 @@ namespace Crest
         protected void SubmitDrawsFiltered(int lodIdx, CommandBuffer buf, IDrawFilter filter)
         {
             var lt = OceanRenderer.Instance._lodTransform;
-            lt._renderData[lodIdx].Validate(0, this);
+            lt._renderData[lodIdx].Current.Validate(0, this);
 
             lt.SetViewProjectionMatrices(lodIdx, buf);
 
@@ -263,7 +262,7 @@ namespace Crest
             public TextureArrayParamIds(string textureArrayName)
             {
                 _paramId = Shader.PropertyToID(textureArrayName);
-                // Note: string concatonation does generate a small amount of
+                // Note: string concatenation does generate a small amount of
                 // garbage. However, this is called on initialisation so should
                 // be ok for now? Something worth considering for the future if
                 // we want to go garbage-free.

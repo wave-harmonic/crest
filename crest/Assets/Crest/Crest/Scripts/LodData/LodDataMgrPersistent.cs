@@ -89,7 +89,7 @@ namespace Crest
 
             for (int stepi = 0; stepi < numSubsteps; stepi++)
             {
-                SwapRTs(ref _sources, ref _targets);
+                Swap(ref _sources, ref _targets);
 
                 _renderSimProperties.Initialise(buf, _shader, krnl_ShaderSim);
 

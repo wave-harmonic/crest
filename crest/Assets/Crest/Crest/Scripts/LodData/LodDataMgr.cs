@@ -70,7 +70,7 @@ namespace Crest
 
             Debug.Assert(OceanRenderer.Instance.CurrentLodCount <= MAX_LOD_COUNT);
 
-            int resolution = OceanRenderer.Instance.LodDataResolution;
+            var resolution = OceanRenderer.Instance.LodDataResolution;
             var desc = new RenderTextureDescriptor(resolution, resolution, TextureFormat, 0);
             _targets = CreateLodDataTextures(desc, SimName, NeedToReadWriteTextureData);
         }
@@ -154,11 +154,11 @@ namespace Crest
         {
         }
 
-        protected void SwapRTs(ref RenderTexture o_a, ref RenderTexture o_b)
+        public static void Swap<T>(ref T a, ref T b)
         {
-            var temp = o_a;
-            o_a = o_b;
-            o_b = temp;
+            var temp = b;
+            b = a;
+            a = temp;
         }
 
         public interface IDrawFilter

@@ -470,7 +470,7 @@ namespace Crest
             if (lastDoneIndex >= 0)
             {
                 // Update "last" results
-                Swap(ref _queryResults, ref _queryResultsLast);
+                LodDataMgr.Swap(ref _queryResults, ref _queryResultsLast);
                 _queryResultsTimeLast = _queryResultsTime;
                 _resultSegmentsLast = _resultSegments;
 
@@ -486,13 +486,6 @@ namespace Crest
                 _requests.RemoveAt(i);
                 _segmentRegistrarRingBuffer.ReleaseLast();
             }
-        }
-
-        void Swap<T>(ref T a, ref T b)
-        {
-            var temp = b;
-            b = a;
-            a = temp;
         }
 
         protected virtual void OnEnable()

@@ -37,6 +37,8 @@ namespace Crest
         static readonly int sp_HeightOffset = Shader.PropertyToID("_HeightOffset");
         static readonly int sp_InstanceData = Shader.PropertyToID("_InstanceData");
 
+        SampleHeightHelper _sampleWaterHeight = new SampleHeightHelper();
+
         private void Start()
         {
             _rend = GetComponent<Renderer>();
@@ -87,7 +89,11 @@ namespace Crest
                 return;
             }
 
-            float heightOffset = OceanRenderer.Instance.ViewerHeightAboveWater;
+            float waterHeight = OceanRenderer.Instance.SeaLevel;
+            _sampleWaterHeight.Init(transform.position, 0f);
+            _sampleWaterHeight.Sample(ref waterHeight);
+
+            float heightOffset = transform.position.y - waterHeight;
 
             // Disable skirt when camera not close to water. In the first few frames collision may not be avail, in that case no choice
             // but to assume enabled. In the future this could detect if camera is far enough under water, render a simple quad to avoid

@@ -88,6 +88,8 @@ namespace Crest
                 _targets.Release();
                 _targets.width = _targets.height = _shapeRes;
                 _targets.Create();
+
+                _shapeRes = width;
             }
 
             // determine if this LOD has changed scale and by how much (in exponent of 2)

@@ -140,6 +140,9 @@ namespace Crest
 
             _mpb.SetInt(LodDataMgr.sp_LD_SliceIndex, _lodIndex);
             ldaws.BindResultData(_mpb);
+            // Does not work because ocean gameobject transform is directly set for the current frame, so its transform
+            // won't match the lod scales / indices / transforms
+            //ldaws.BindResultData(_mpb, true, 2);
             if (ldflow) ldflow.BindResultData(_mpb);
             if (ldfoam) ldfoam.BindResultData(_mpb); else LodDataMgrFoam.BindNull(_mpb);
             if (ldsds) ldsds.BindResultData(_mpb);

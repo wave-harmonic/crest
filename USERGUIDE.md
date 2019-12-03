@@ -212,6 +212,8 @@ Currently in the built-in render pipeline, shadows only work when the primary ca
 
 # Shorelines and shallow water
 
+For this information in video format, see here: https://www.youtube.com/watch?v=jcmqUlboTUk
+
 *Crest* requires water depth information to attenuate large waves in shallow water, to generate foam near shorelines, and to provide shallow water shading. It is calculated by rendering the render geometry in the scene for each LOD from a top down perspective and recording the Y value of the surface.
 
 When the ocean is e.g. 250m deep, this will start to dampen 500m wavelengths, so it is recommended that the sea floor drop down to around this depth away from islands so that there is a smooth transition between shallow and deep water without a 'step' in the sea floor which appears as a discontinuity in the surface waves and/or a line of foam.

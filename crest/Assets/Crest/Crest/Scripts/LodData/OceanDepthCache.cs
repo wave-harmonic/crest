@@ -145,6 +145,9 @@ namespace Crest
                 _camDepthCache.backgroundColor = Color.white * 1000f;
                 _camDepthCache.enabled = false;
                 _camDepthCache.allowMSAA = false;
+                // Stops behaviour from changing in VR. I tried disabling XR before/after camera render but it makes the editor
+                // go bonkers with split windows.
+                _camDepthCache.cameraType = CameraType.Reflection;
                 // I'd prefer to destroy the cam object, but I found sometimes (on first start of editor) it will fail to render.
                 _camDepthCache.gameObject.SetActive(false);
             }

@@ -290,6 +290,8 @@ To help reduce cost a height cache can be enabled in the *Animated Waves Sim Set
 
 *Crest* supports seamless transitions above/below water. This is demonstrated in the *main.unity* scene in the example content. The ocean in this scene uses the material *Ocean-Underwater.mat* which enables rendering the underside of the surface, and has the prefab *UnderWaterCurtainGeom* parented to the camera which renders the underwater effect. It also has the prefab *UnderWaterMeniscus* parented which renders a subtle line at the intersection between the camera lens and the water to visually help the transition.
 
+The density of the fog underwater can be controlled using the *Fog Density* parameter on the ocean material. This applies to both above water and underwater.
+
 ## Masking out surface
 
 There are times when it is useful to mask out the ocean surface which prevents it drawing on some part of the screen.
@@ -370,3 +372,6 @@ Currently it only works in Play mode. Some work has been done to make it work in
 Yes the animated waves are deterministic and easily synchronized.
 See discussion in https://github.com/huwb/crest-oceanrender/issues/75.
 However, the dynamic wave sim is not fully deterministic and can not currently be relied upon networked situations.
+
+**Can the density of the fog in the water be reduced?**
+The density of the fog underwater can be controlled using the *Fog Density* parameter on the ocean material. This applies to both above water and underwater.

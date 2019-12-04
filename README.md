@@ -14,9 +14,7 @@
 
 **Twitter:** [@crest_ocean](https://twitter.com/@crest_ocean)
 
-**LWRP asset:** [Crest Ocean System LWRP](https://assetstore.unity.com/packages/tools/particles-effects/crest-ocean-system-lwrp-141674)
-
-**URP asset:** Coming soon.
+**URP asset:** [Crest Ocean System URP](https://assetstore.unity.com/detail/tools/particles-effects/crest-ocean-system-lwrp-urp-141674)
 
 **HDRP asset:** Coming soon.
 

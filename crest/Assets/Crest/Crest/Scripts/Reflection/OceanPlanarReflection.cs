@@ -289,6 +289,7 @@ namespace Crest
                 _camReflections.cullingMask = _reflectionLayers;
                 _camReflectionsSkybox = _camReflections.gameObject.AddComponent<Skybox>();
                 _camReflections.gameObject.AddComponent<FlareLayer>();
+                _camReflections.cameraType = CameraType.Reflection;
 
                 if (_hideCameraGameobject)
                 {

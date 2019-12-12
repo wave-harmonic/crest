@@ -87,20 +87,20 @@ void ApplyReflectionSky(in const half3 i_view, in const half3 i_n_pixel, in cons
 	envData.reflUVW = refl;
 	float3 probe0 = Unity_GlossyEnvironment(UNITY_PASS_TEXCUBE(unity_SpecCube0), unity_SpecCube0_HDR, envData);
 	#if UNITY_SPECCUBE_BLENDING
-		float interpolator = unity_SpecCube0_BoxMin.w;
-		// Branch optimization recommended by: https://catlikecoding.com/unity/tutorials/rendering/part-8/
-		UNITY_BRANCH
-		if (interpolator < 0.99999) 
-		{
-			float3 probe1 = Unity_GlossyEnvironment(UNITY_PASS_TEXCUBE_SAMPLER(unity_SpecCube1, unity_SpecCube0), unity_SpecCube0_HDR, envData);
-			skyColour = lerp(probe1, probe0, interpolator);
-		}
-		else 
-		{
-			skyColour = probe0;
-		}
-	#else
+	float interpolator = unity_SpecCube0_BoxMin.w;
+	// Branch optimization recommended by: https://catlikecoding.com/unity/tutorials/rendering/part-8/
+	UNITY_BRANCH
+	if (interpolator < 0.99999) 
+	{
+		float3 probe1 = Unity_GlossyEnvironment(UNITY_PASS_TEXCUBE_SAMPLER(unity_SpecCube1, unity_SpecCube0), unity_SpecCube0_HDR, envData);
+		skyColour = lerp(probe1, probe0, interpolator);
+	}
+	else 
+	{
 		skyColour = probe0;
+	}
+	#else
+	skyColour = probe0;
 	#endif
 #endif
 

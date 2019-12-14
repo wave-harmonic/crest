@@ -35,6 +35,11 @@ namespace Crest
         bool _forceAlwaysUpdateDebug = false;
 #pragma warning restore 414
 
+        [Tooltip("Check for any terrains that have the 'Draw Instanced' option enabled. Such instanced terrains will not populate into the depth cache and therefore will not contribute to shorelines and shallow water. This option must be disabled on the terrain when the depth cache is populated (but can be enabled afterwards)."), SerializeField]
+#pragma warning disable 414
+        bool _checkTerrainDrawInstancedOption = true;
+#pragma warning restore 414
+
         RenderTexture _cacheTexture;
         GameObject _drawCacheQuad;
         Camera _camDepthCache;
@@ -103,6 +108,26 @@ namespace Crest
 
                 return;
             }
+
+#if UNITY_EDITOR
+            if (_checkTerrainDrawInstancedOption)
+            {
+                // This issue only affects the built-in render pipeline. Issue 158: https://github.com/crest-ocean/crest/issues/158
+
+                var terrains = FindObjectsOfType<Terrain>();
+                foreach (var terrain in terrains)
+                {
+                    var mask = (int)Mathf.Pow(2f, terrain.gameObject.layer);
+
+                    if ((mask & layerMask) == 0) continue;
+
+                    if (terrain.drawInstanced)
+                    {
+                        Debug.LogError($"Terrain {terrain.gameObject.name} has 'Draw Instanced' enabled. This terrain will not populate into the depth cache and therefore will not contribute to shorelines and shallow water. This option must be disabled on the terrain when the depth cache is populated (but can be enabled afterwards).", terrain);
+                    }
+                }
+            }
+#endif
 
             if (_cacheTexture == null)
             {

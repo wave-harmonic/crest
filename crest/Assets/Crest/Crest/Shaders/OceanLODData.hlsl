@@ -153,15 +153,16 @@ void SampleShadow(in Texture2DArray i_oceanShadowSampler, in float3 i_uv_slice, 
 // x: Grid size of lod data - size of lod data texel in world space.
 // y: Grid size of geometry - distance between verts in mesh.
 // zw: normalScrollSpeed0, normalScrollSpeed1
-uniform float4 _GeomData;
-uniform float3 _OceanCenterPosWorld;
+float4 _GeomData;
+float3 _OceanCenterPosWorld;
+float _SliceCount;
 
-void PosToSliceIndices(const float2 worldXZ, const float sliceCount, const float meshScaleLerp, const float minSlice, out uint slice0, out uint slice1, out float lodAlpha)
+void PosToSliceIndices(const float2 worldXZ, const float meshScaleLerp, const float minSlice, out uint slice0, out uint slice1, out float lodAlpha)
 {
 	const float2 offsetFromCenter = abs(worldXZ - _OceanCenterPosWorld.xz);
 	const float taxicab = max(offsetFromCenter.x, offsetFromCenter.y);
 	const float radius0 = _LD_Pos_Scale[0].z / 2.0;
-	const float sliceNumber = clamp(log2(taxicab / radius0), minSlice, sliceCount - 1.0);
+	const float sliceNumber = clamp(log2(taxicab / radius0), minSlice, _SliceCount - 1.0);
 
 	lodAlpha = frac(sliceNumber);
 	slice0 = (uint)sliceNumber;

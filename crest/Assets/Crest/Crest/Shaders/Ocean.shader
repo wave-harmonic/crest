@@ -253,8 +253,8 @@ Shader "Crest/Ocean"
 
 			float _CrestTime;
 
-			// MeshScaleLerp, FarNormalsWeight, LODIndex (debug), lod count
-			float4 _InstanceData;
+			// MeshScaleLerp, FarNormalsWeight, LODIndex (debug)
+			float3 _InstanceData;
 
 			// Argument name is v because some macros like COMPUTE_EYEDEPTH require it.
 			Varyings Vert(Attributes v)

@@ -139,10 +139,11 @@ namespace Crest
         public float ViewerHeightAboveWater { get; private set; }
 
         SampleHeightHelper _sampleHeightHelper = new SampleHeightHelper();
-        
-        static int sp_crestTime = Shader.PropertyToID("_CrestTime");
-        static int sp_texelsPerWave = Shader.PropertyToID("_TexelsPerWave");
-        static int sp_oceanCenterPosWorld = Shader.PropertyToID("_OceanCenterPosWorld");
+
+        readonly static int sp_crestTime = Shader.PropertyToID("_CrestTime");
+        readonly static int sp_texelsPerWave = Shader.PropertyToID("_TexelsPerWave");
+        readonly static int sp_oceanCenterPosWorld = Shader.PropertyToID("_OceanCenterPosWorld");
+        readonly static int sp_sliceCount = Shader.PropertyToID("_SliceCount");
 
 
         void Awake()
@@ -232,6 +233,7 @@ namespace Crest
             // set global shader params
             Shader.SetGlobalFloat(sp_texelsPerWave, MinTexelsPerWave);
             Shader.SetGlobalFloat(sp_crestTime, CurrentTime);
+            Shader.SetGlobalFloat(sp_sliceCount, CurrentLodCount);
 
             if (_viewpoint == null)
             {

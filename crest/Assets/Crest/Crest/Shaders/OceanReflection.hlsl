@@ -39,6 +39,7 @@ samplerCUBE _ReflectionCubemapOverride;
 #endif // _OVERRIDEREFLECTIONCUBEMAP_ON
 
 uniform half _Specular;
+uniform half _Roughness;
 uniform half _FresnelPower;
 uniform float  _RefractiveIndexOfAir;
 uniform float  _RefractiveIndexOfWater;
@@ -83,7 +84,7 @@ void ApplyReflectionSky(in const half3 i_view, in const half3 i_n_pixel, in cons
 	skyColour = val.rgb;
 #else
 	Unity_GlossyEnvironmentData envData;
-	envData.roughness = 1.0f - _Specular;
+	envData.roughness = _Roughness;
 	envData.reflUVW = refl;
 	float3 probe0 = Unity_GlossyEnvironment(UNITY_PASS_TEXCUBE(unity_SpecCube0), unity_SpecCube0_HDR, envData);
 	#if UNITY_SPECCUBE_BLENDING

@@ -161,7 +161,7 @@ void PosToSliceIndices(const float2 worldXZ, const float meshScaleLerp, const fl
 {
 	const float2 offsetFromCenter = abs(worldXZ - _OceanCenterPosWorld.xz);
 	const float taxicab = max(offsetFromCenter.x, offsetFromCenter.y);
-	const float radius0 = _LD_Pos_Scale[0].z / 2.0;
+	const float radius0 = _LD_Pos_Scale[0].z;
 	const float sliceNumber = clamp(log2(taxicab / radius0), minSlice, _SliceCount - 1.0);
 
 	lodAlpha = frac(sliceNumber);

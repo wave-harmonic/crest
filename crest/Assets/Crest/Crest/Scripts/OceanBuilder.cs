@@ -226,7 +226,7 @@ namespace Crest
 
 #if PROFILE_CONSTRUCTION
             sw.Stop();
-            Debug.Log( "Finished generating " + parms._lodCount.ToString() + " LODs, time: " + (1000.0*sw.Elapsed.TotalSeconds).ToString(".000") + "ms" );
+            Debug.Log( "Finished generating " + lodCount.ToString() + " LODs, time: " + (1000.0*sw.Elapsed.TotalSeconds).ToString(".000") + "ms" );
 #endif
         }
 

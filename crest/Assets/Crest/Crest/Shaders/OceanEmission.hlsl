@@ -20,7 +20,6 @@ uniform half3 _SubSurfaceColour;
 uniform half _SubSurfaceBase;
 uniform half _SubSurfaceSun;
 uniform half _SubSurfaceSunFallOff;
-uniform half3 _SubSurfaceCrestColour;
 #endif // _SUBSURFACESCATTERING_ON
 
 #if _SUBSURFACESHALLOWCOLOUR_ON

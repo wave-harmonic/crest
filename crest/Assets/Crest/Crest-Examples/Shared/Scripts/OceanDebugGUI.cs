@@ -16,6 +16,16 @@ public class OceanDebugGUI : MonoBehaviour
     static Dictionary<System.Type, bool> _drawTargets = new Dictionary<System.Type, bool>();
     static Dictionary<System.Type, string> _simNames = new Dictionary<System.Type, string>();
 
+    static Material textureArrayMaterial;
+
+    void Awake()
+    {
+        if (textureArrayMaterial == null)
+        {
+            textureArrayMaterial = new Material(Shader.Find("Hidden/Crest/Debug/TextureArray"));
+        }
+    }
+
     public static bool OverGUI(Vector2 screenPosition)
     {
         return screenPosition.x < _leftPanelWidth;
@@ -164,8 +174,6 @@ public class OceanDebugGUI : MonoBehaviour
         DrawSims<LodDataMgrSeaFloorDepth>(OceanRenderer.Instance._lodDataSeaDepths, false, ref column);
     }
 
-    static Dictionary<RenderTextureFormat, RenderTexture> shapes = new Dictionary<RenderTextureFormat, RenderTexture>();
-
     static void DrawSims<SimType>(LodDataMgr lodData, bool showByDefault, ref float offset) where SimType : LodDataMgr
     {
         if (lodData == null) return;
@@ -185,31 +193,21 @@ public class OceanDebugGUI : MonoBehaviour
         float w = h + b;
         float x = Screen.width - w * offset + b * (offset - 1f);
 
-        if (_drawTargets[type])
+        // Only use Graphics.DrawTexture in EventType.Repaint events if called in OnGUI
+        if (_drawTargets[type] && Event.current.type.Equals(EventType.Repaint))
         {
             for (int idx = 0; idx < lodData.DataTexture.volumeDepth; idx++)
             {
                 float y = idx * h;
                 if (offset == 1f) w += b;
 
-                // We cannot debug draw texture arrays directly
-                // (unless we write our own system for doing so).
-                // So for now, we just copy each texture and then draw that.
-                if (!shapes.ContainsKey(lodData.DataTexture.format))
-                {
-                    var rt = new RenderTexture(lodData.DataTexture);
-                    rt.dimension = UnityEngine.Rendering.TextureDimension.Tex2D;
-                    rt.Create();
-                    shapes.Add(lodData.DataTexture.format, rt);
-                }
-
-                RenderTexture shape = shapes[lodData.DataTexture.format];
-                Graphics.CopyTexture(lodData.DataTexture, idx, 0, shape, 0, 0);
-
                 GUI.color = Color.black * 0.7f;
                 GUI.DrawTexture(new Rect(x, y, w - b, h), Texture2D.whiteTexture);
                 GUI.color = Color.white;
-                GUI.DrawTexture(new Rect(x + b, y + b / 2f, h - b, h - b), shape, ScaleMode.ScaleAndCrop, false);
+
+                // Render specific slice of 2D texture array
+                textureArrayMaterial.SetInt("_Depth", idx);
+                Graphics.DrawTexture(new Rect(x + b, y + b / 2f, h - b, h - b), lodData.DataTexture, textureArrayMaterial);
             }
         }
 

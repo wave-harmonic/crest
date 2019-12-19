@@ -10,13 +10,13 @@ public class OceanDebugGUI : MonoBehaviour
 {
     [SerializeField] bool _showSimTargets = false;
     [SerializeField] bool _guiVisible = true;
-    static float _leftPanelWidth = 180f;
-    static float _bottomPanelHeight = 25f;
-    static Color _guiColor = Color.black * 0.7f;
+    readonly static float _leftPanelWidth = 180f;
+    readonly static float _bottomPanelHeight = 25f;
+    readonly static Color _guiColor = Color.black * 0.7f;
     ShapeGerstnerBatched[] _gerstners;
 
-    static Dictionary<System.Type, bool> _drawTargets = new Dictionary<System.Type, bool>();
-    static Dictionary<System.Type, string> _simNames = new Dictionary<System.Type, string>();
+    readonly static Dictionary<System.Type, bool> _drawTargets = new Dictionary<System.Type, bool>();
+    readonly static Dictionary<System.Type, string> _simNames = new Dictionary<System.Type, string>();
 
     static Material textureArrayMaterial;
 

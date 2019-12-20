@@ -38,6 +38,11 @@ namespace Crest
 
         public Texture2D _savedCache;
 
+        [Tooltip("Check for any terrains that have the 'Draw Instanced' option enabled. Such instanced terrains will not populate into the depth cache and therefore will not contribute to shorelines and shallow water. This option must be disabled on the terrain when the depth cache is populated (but can be enabled afterwards)."), SerializeField]
+#pragma warning disable 414
+        bool _checkTerrainDrawInstancedOption = true;
+#pragma warning restore 414
+
         RenderTexture _cacheTexture;
         public RenderTexture CacheTexture => _cacheTexture;
 
@@ -109,6 +114,26 @@ namespace Crest
                 return;
             }
 
+#if UNITY_EDITOR
+            if (_checkTerrainDrawInstancedOption)
+            {
+                // This issue only affects the built-in render pipeline. Issue 158: https://github.com/crest-ocean/crest/issues/158
+
+                var terrains = FindObjectsOfType<Terrain>();
+                foreach (var terrain in terrains)
+                {
+                    var mask = (int)Mathf.Pow(2f, terrain.gameObject.layer);
+
+                    if ((mask & layerMask) == 0) continue;
+
+                    if (terrain.drawInstanced)
+                    {
+                        Debug.LogError($"Terrain {terrain.gameObject.name} has 'Draw Instanced' enabled. This terrain will not populate into the depth cache and therefore will not contribute to shorelines and shallow water. This option must be disabled on the terrain when the depth cache is populated (but can be enabled afterwards).", terrain);
+                    }
+                }
+            }
+#endif
+
             if (_cacheTexture == null)
             {
                 var fmt = RenderTextureFormat.RHalf;
@@ -159,6 +184,9 @@ namespace Crest
                 _camDepthCache.backgroundColor = Color.white * 1000f;
                 _camDepthCache.enabled = false;
                 _camDepthCache.allowMSAA = false;
+                // Stops behaviour from changing in VR. I tried disabling XR before/after camera render but it makes the editor
+                // go bonkers with split windows.
+                _camDepthCache.cameraType = CameraType.Reflection;
                 // I'd prefer to destroy the cam object, but I found sometimes (on first start of editor) it will fail to render.
                 _camDepthCache.gameObject.SetActive(false);
             }

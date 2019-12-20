@@ -50,6 +50,9 @@ namespace Crest
         [Delayed, Tooltip("The largest scale the ocean can be (-1 for unlimited)."), SerializeField]
         float _maxScale = 256f;
 
+        [Tooltip("Drops the height for maximum ocean detail based on waves. This means if there are big waves, max detail level is reached at a lower height, which can help visual range when there are very large waves and camera is at sea level."), SerializeField, Range(0f, 1f)]
+        float _dropDetailHeightBasedOnWaves = 0.2f;
+
         [SerializeField, Delayed, Tooltip("Resolution of ocean LOD data. Use even numbers like 256 or 384. This is 4x the old 'Base Vert Density' param, so if you used 64 for this param, set this to 256.")]
         int _lodDataResolution = 256;
         public int LodDataResolution { get { return _lodDataResolution; } }
@@ -135,7 +138,13 @@ namespace Crest
         /// </summary>
         public float ViewerHeightAboveWater { get; private set; }
 
-        SamplingData _samplingData = new SamplingData();
+        SampleHeightHelper _sampleHeightHelper = new SampleHeightHelper();
+
+        readonly static int sp_crestTime = Shader.PropertyToID("_CrestTime");
+        readonly static int sp_texelsPerWave = Shader.PropertyToID("_TexelsPerWave");
+        readonly static int sp_oceanCenterPosWorld = Shader.PropertyToID("_OceanCenterPosWorld");
+        readonly static int sp_sliceCount = Shader.PropertyToID("_SliceCount");
+
 
         void Awake()
         {
@@ -222,8 +231,9 @@ namespace Crest
         void LateUpdate()
         {
             // set global shader params
-            Shader.SetGlobalFloat("_TexelsPerWave", MinTexelsPerWave);
-            Shader.SetGlobalFloat("_CrestTime", CurrentTime);
+            Shader.SetGlobalFloat(sp_texelsPerWave, MinTexelsPerWave);
+            Shader.SetGlobalFloat(sp_crestTime, CurrentTime);
+            Shader.SetGlobalFloat(sp_sliceCount, CurrentLodCount);
 
             if (_viewpoint == null)
             {
@@ -249,7 +259,7 @@ namespace Crest
 
             transform.position = pos;
 
-            Shader.SetGlobalVector("_OceanCenterPosWorld", transform.position);
+            Shader.SetGlobalVector(sp_oceanCenterPosWorld, transform.position);
         }
 
         void LateUpdateScale()
@@ -257,8 +267,8 @@ namespace Crest
             // reach maximum detail at slightly below sea level. this should combat cases where visual range can be lost
             // when water height is low and camera is suspended in air. i tried a scheme where it was based on difference
             // to water height but this does help with the problem of horizontal range getting limited at bad times.
-            float maxDetailY = SeaLevel - _maxVertDispFromWaves / 5f;
-            float camDistance = Mathf.Abs(_viewpoint.position.y /*- maxDetailY*/);
+            float maxDetailY = SeaLevel - _maxVertDispFromWaves * _dropDetailHeightBasedOnWaves;
+            float camDistance = Mathf.Abs(_viewpoint.position.y - maxDetailY);
 
             // offset level of detail to keep max detail in a band near the surface
             camDistance = Mathf.Max(camDistance - 4f, 0f);
@@ -280,17 +290,12 @@ namespace Crest
 
         void LateUpdateViewerHeight()
         {
-            var pos = Viewpoint.position;
-            var rect = new Rect(pos.x, pos.z, 0f, 0f);
+            _sampleHeightHelper.Init(Viewpoint.position, 0f);
 
-            float waterHeight;
-            if (CollisionProvider.GetSamplingData(ref rect, 0f, _samplingData)
-                && CollisionProvider.SampleHeight(ref pos, _samplingData, out waterHeight))
-            {
-                ViewerHeightAboveWater = pos.y - waterHeight;
-            }
+            float waterHeight = 0f;
+            _sampleHeightHelper.Sample(ref waterHeight);
 
-            CollisionProvider.ReturnSamplingData(_samplingData);
+            ViewerHeightAboveWater = Viewpoint.position.y - waterHeight;
         }
 
         void LateUpdateLods()
@@ -347,9 +352,6 @@ namespace Crest
         public float MaxVertDisplacement { get { return _maxVertDispFromShape; } }
 
         public static OceanRenderer Instance { get; private set; }
-
-        public static int sp_LD_SliceIndex = Shader.PropertyToID("_LD_SliceIndex");
-        public static int sp_LODChange = Shader.PropertyToID("_LODChange");
 
         /// <summary>
         /// Provides ocean shape to CPU.

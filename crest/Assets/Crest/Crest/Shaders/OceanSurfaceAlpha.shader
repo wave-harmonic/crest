@@ -40,8 +40,8 @@ Shader "Crest/Ocean Surface Alpha"
 			float4 _MainTex_ST;
 			half _Alpha;
 
-			// MeshScaleLerp, FarNormalsWeight, LODIndex (debug), unused
-			float4 _InstanceData;
+			// MeshScaleLerp, FarNormalsWeight, LODIndex (debug)
+			float3 _InstanceData;
 
 			struct Attributes
 			{

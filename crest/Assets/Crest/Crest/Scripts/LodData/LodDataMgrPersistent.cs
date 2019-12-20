@@ -26,7 +26,7 @@ namespace Crest
 
         float _substepDtPrevious = 1f / 60f;
 
-        static int sp_SimDeltaTime = Shader.PropertyToID("_SimDeltaTime");
+        public static int sp_SimDeltaTime = Shader.PropertyToID("_SimDeltaTime");
         static int sp_SimDeltaTimePrev = Shader.PropertyToID("_SimDeltaTimePrev");
 
         protected override void Start()
@@ -48,18 +48,10 @@ namespace Crest
 
             int resolution = OceanRenderer.Instance.LodDataResolution;
             var desc = new RenderTextureDescriptor(resolution, resolution, TextureFormat, 0);
+            _sources = CreateLodDataTextures(desc, SimName + "_1", NeedToReadWriteTextureData);
 
-            _sources = new RenderTexture(desc);
-            _sources.wrapMode = TextureWrapMode.Clamp;
-            _sources.antiAliasing = 1;
-            _sources.filterMode = FilterMode.Bilinear;
-            _sources.anisoLevel = 0;
-            _sources.useMipMap = false;
-            _sources.name = SimName + "_1";
-            _sources.dimension = TextureDimension.Tex2DArray;
-            _sources.volumeDepth = OceanRenderer.Instance.CurrentLodCount;
-            _sources.enableRandomWrite = NeedToReadWriteTextureData;
-            _sources.Create();
+            TextureArrayHelpers.ClearToBlack(_targets);
+            TextureArrayHelpers.ClearToBlack(_sources);
         }
 
         public void ValidateSourceData(bool usePrevTransform)
@@ -97,7 +89,7 @@ namespace Crest
 
             for (int stepi = 0; stepi < numSubsteps; stepi++)
             {
-                SwapRTs(ref _sources, ref _targets);
+                Swap(ref _sources, ref _targets);
 
                 _renderSimProperties.Initialise(buf, _shader, krnl_ShaderSim);
 
@@ -117,7 +109,7 @@ namespace Crest
 
                 SetAdditionalSimParams(_renderSimProperties);
 
-                buf.SetGlobalFloat(OceanRenderer.sp_LODChange, srcDataIdxChange);
+                buf.SetGlobalFloat(sp_LODChange, srcDataIdxChange);
 
                 _renderSimProperties.SetTexture(
                     sp_LD_TexArray_Target,

@@ -20,7 +20,6 @@ uniform half3 _SubSurfaceColour;
 uniform half _SubSurfaceBase;
 uniform half _SubSurfaceSun;
 uniform half _SubSurfaceSunFallOff;
-uniform half3 _SubSurfaceCrestColour;
 #endif // _SUBSURFACESCATTERING_ON
 
 #if _SUBSURFACESHALLOWCOLOUR_ON
@@ -48,7 +47,7 @@ uniform half3 _DiffuseShadow;
 #endif
 
 half3 ScatterColour(
-	in const float3 i_surfaceWorldPos, in const half i_surfaceOceanDepth, in const float3 i_cameraPos,
+	in const half i_surfaceOceanDepth, in const float3 i_cameraPos,
 	in const half3 i_lightDir, in const half3 i_view, in const fixed i_shadow,
 	in const bool i_underwater, in const bool i_outscatterLight, half sss)
 {
@@ -66,12 +65,21 @@ half3 ScatterColour(
 		depth = CREST_OCEAN_DEPTH_BASELINE;
 		SampleSeaDepth(_LD_TexArray_SeaFloorDepth, uv_smallerLod, 1.0, depth);
 
-		// Huw: knocking this out for now as it seems to produce intense strobing when underwater.
-//#if _SHADOWS_ON
-//		half2 shadowSoftHard = 0.0;
-//		SampleShadow(_LD_TexArray_Shadow, uv_smallerLod, 1.0, shadowSoftHard);
-//		shadow = 1.0 - shadowSoftHard.x;
-//#endif
+#if _SHADOWS_ON
+		const float2 samplePoint = i_cameraPos.xz;
+
+		// Pick lower res data for shadowing, helps to smooth out artifacts slightly
+		const float minSliceIndex = 4.0;
+		uint slice0, slice1; float lodAlpha;
+		PosToSliceIndices(samplePoint, _InstanceData.x, minSliceIndex, slice0, slice1, lodAlpha);
+
+		float2 shadowSoftHard = 0.0;
+		// TODO - fix data type of slice index in WorldToUV - #343
+		SampleShadow(_LD_TexArray_Shadow, WorldToUV(samplePoint, slice0), 1.0 - lodAlpha, shadowSoftHard);
+		SampleShadow(_LD_TexArray_Shadow, WorldToUV(samplePoint, slice1), lodAlpha, shadowSoftHard);
+
+		shadow = saturate(1.0 - shadowSoftHard.x);
+#endif
 	}
 	else
 	{
@@ -174,8 +182,8 @@ void ApplyCaustics(in const half3 i_view, in const half3 i_lightDir, in const fl
 	}
 #endif // _SHADOWS_ON
 
-	io_sceneColour *= 1.0 + causticsStrength *
-		(0.5*tex2Dlod(_CausticsTexture, cuv1).x + 0.5*tex2Dlod(_CausticsTexture, cuv2).x - _CausticsTextureAverage);
+	io_sceneColour.xyz *= 1.0 + causticsStrength *
+		(0.5*tex2Dlod(_CausticsTexture, cuv1).xyz + 0.5*tex2Dlod(_CausticsTexture, cuv2).xyz - _CausticsTextureAverage);
 }
 #endif // _CAUSTICS_ON
 

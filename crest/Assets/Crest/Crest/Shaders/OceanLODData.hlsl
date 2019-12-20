@@ -6,11 +6,14 @@
 
 // NOTE: This must match the value in LodDataMgr.cs, as it is used to allow the
 // C# code to check if any parameters are within the MAX_LOD_COUNT limits
-#define MAX_LOD_COUNT 16
+#define MAX_LOD_COUNT 15
 
 // NOTE: these MUST match the values in PropertyWrapper.cs
 #define THREAD_GROUP_SIZE_X 8
 #define THREAD_GROUP_SIZE_Y 8
+
+// 'Current' target/source slice index
+const uint _LD_SliceIndex;
 
 // Samplers and data associated with a LOD.
 // _LD_Params: float4(world texel size, texture resolution, shape weight multiplier, 1 / texture resolution)
@@ -21,9 +24,9 @@ Texture2DArray _LD_TexArray_Foam;
 Texture2DArray _LD_TexArray_Flow;
 Texture2DArray _LD_TexArray_DynamicWaves;
 Texture2DArray _LD_TexArray_Shadow;
-uniform float4 _LD_Params[MAX_LOD_COUNT];
-uniform float3 _LD_Pos_Scale[MAX_LOD_COUNT];
-uniform const float _LD_SliceIndex;
+// _LD_Params: float4(world texel size, texture resolution, shape weight multiplier, 1 / texture resolution)
+const float4 _LD_Params[MAX_LOD_COUNT + 1];
+const float3 _LD_Pos_Scale[MAX_LOD_COUNT + 1];
 
 // These are used in lods where we operate on data from
 // previously calculated lods. Used in simulations and
@@ -35,10 +38,11 @@ Texture2DArray _LD_TexArray_Foam_Source;
 Texture2DArray _LD_TexArray_Flow_Source;
 Texture2DArray _LD_TexArray_DynamicWaves_Source;
 Texture2DArray _LD_TexArray_Shadow_Source;
-uniform float4 _LD_Params_Source[MAX_LOD_COUNT];
-uniform float3 _LD_Pos_Scale_Source[MAX_LOD_COUNT];
+const float4 _LD_Params_Source[MAX_LOD_COUNT + 1];
+const float3 _LD_Pos_Scale_Source[MAX_LOD_COUNT + 1];
 
 SamplerState LODData_linear_clamp_sampler;
+SamplerState LODData_point_clamp_sampler;
 
 // Bias ocean floor depth so that default (0) values in texture are not interpreted as shallow and generating foam everywhere
 #define CREST_OCEAN_DEPTH_BASELINE 1000.0
@@ -49,7 +53,7 @@ float2 LD_WorldToUV(in float2 i_samplePos, in float2 i_centerPos, in float i_res
 	return (i_samplePos - i_centerPos) / (i_texelSize * i_res) + 0.5;
 }
 
-float3 WorldToUV(in float2 i_samplePos, in float i_sliceIndex) {
+float3 WorldToUV(in float2 i_samplePos, in uint i_sliceIndex) {
 	const float2 result = LD_WorldToUV(
 		i_samplePos,
 		_LD_Pos_Scale[i_sliceIndex].xy,
@@ -59,7 +63,7 @@ float3 WorldToUV(in float2 i_samplePos, in float i_sliceIndex) {
 	return float3(result, i_sliceIndex);
 }
 
-float3 WorldToUV_BiggerLod(in float2 i_samplePos, in float i_sliceIndex_BiggerLod) {
+float3 WorldToUV_BiggerLod(in float2 i_samplePos, in uint i_sliceIndex_BiggerLod) {
 	const float2 result = LD_WorldToUV(
 		i_samplePos, _LD_Pos_Scale[i_sliceIndex_BiggerLod].xy,
 		_LD_Params[i_sliceIndex_BiggerLod].y,
@@ -68,7 +72,7 @@ float3 WorldToUV_BiggerLod(in float2 i_samplePos, in float i_sliceIndex_BiggerLo
 	return float3(result, i_sliceIndex_BiggerLod);
 }
 
-float3 WorldToUV_Source(in float2 i_samplePos, in float i_sliceIndex_Source) {
+float3 WorldToUV_Source(in float2 i_samplePos, in uint i_sliceIndex_Source) {
 	const float2 result = LD_WorldToUV(
 		i_samplePos,
 		_LD_Pos_Scale_Source[i_sliceIndex_Source].xy,
@@ -96,6 +100,7 @@ float2 IDtoUV(in float2 i_id, in float i_width, in float i_height)
 {
 	return (i_id + 0.5) / float2(i_width, i_height);
 }
+
 
 // Sampling functions
 void SampleDisplacements(in Texture2DArray i_dispSampler, in float3 i_uv_slice, in float i_wt, inout float3 io_worldPos, inout float io_sss)
@@ -148,5 +153,30 @@ void SampleShadow(in Texture2DArray i_oceanShadowSampler, in float3 i_uv_slice, 
 // x: Grid size of lod data - size of lod data texel in world space.
 // y: Grid size of geometry - distance between verts in mesh.
 // zw: normalScrollSpeed0, normalScrollSpeed1
-uniform float4 _GeomData;
-uniform float3 _OceanCenterPosWorld;
+float4 _GeomData;
+float3 _OceanCenterPosWorld;
+float _SliceCount;
+
+void PosToSliceIndices(const float2 worldXZ, const float meshScaleLerp, const float minSlice, out uint slice0, out uint slice1, out float lodAlpha)
+{
+	const float2 offsetFromCenter = abs(worldXZ - _OceanCenterPosWorld.xz);
+	const float taxicab = max(offsetFromCenter.x, offsetFromCenter.y);
+	const float radius0 = _LD_Pos_Scale[0].z;
+	const float sliceNumber = clamp(log2(taxicab / radius0), minSlice, _SliceCount - 1.0);
+
+	lodAlpha = frac(sliceNumber);
+	slice0 = (uint)sliceNumber;
+	slice1 = slice0 + 1;
+
+	// lod alpha is remapped to ensure patches weld together properly. patches can vary significantly in shape (with
+	// strips added and removed), and this variance depends on the base density of the mesh, as this defines the strip width.
+	// using .15 as black and .85 as white should work for base mesh density as low as 16.
+	const float BLACK_POINT = 0.15, WHITE_POINT = 0.85;
+	lodAlpha = saturate((lodAlpha - BLACK_POINT) / (WHITE_POINT - BLACK_POINT));
+
+	if (slice0 == 0)
+	{
+		// blend out lod0 when viewpoint gains altitude
+		lodAlpha = min(lodAlpha + meshScaleLerp, 1.0);
+	}
+}

@@ -5,15 +5,28 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
+
 public class OceanDebugGUI : MonoBehaviour
 {
     [SerializeField] bool _showSimTargets = false;
     [SerializeField] bool _guiVisible = true;
-    static float _leftPanelWidth = 180f;
+    readonly static float _leftPanelWidth = 180f;
+    readonly static float _bottomPanelHeight = 25f;
+    readonly static Color _guiColor = Color.black * 0.7f;
     ShapeGerstnerBatched[] _gerstners;
 
-    static Dictionary<System.Type, bool> _drawTargets = new Dictionary<System.Type, bool>();
-    static Dictionary<System.Type, string> _simNames = new Dictionary<System.Type, string>();
+    readonly static Dictionary<System.Type, bool> _drawTargets = new Dictionary<System.Type, bool>();
+    readonly static Dictionary<System.Type, string> _simNames = new Dictionary<System.Type, string>();
+
+    static Material textureArrayMaterial;
+
+    void Awake()
+    {
+        if (textureArrayMaterial == null)
+        {
+            textureArrayMaterial = new Material(Shader.Find("Hidden/Crest/Debug/TextureArray"));
+        }
+    }
 
     public static bool OverGUI(Vector2 screenPosition)
     {
@@ -22,14 +35,6 @@ public class OceanDebugGUI : MonoBehaviour
 
     private void Update()
     {
-        if (_gerstners == null)
-        {
-            _gerstners = FindObjectsOfType<ShapeGerstnerBatched>();
-            // i am getting the array in the reverse order compared to the hierarchy which bugs me. sort them based on sibling index,
-            // which helps if the gerstners are on sibling GOs.
-            System.Array.Sort(_gerstners, (a, b) => a.transform.GetSiblingIndex().CompareTo(b.transform.GetSiblingIndex()));
-        }
-
         if (Input.GetKeyDown(KeyCode.G))
         {
             ToggleGUI();
@@ -56,7 +61,7 @@ public class OceanDebugGUI : MonoBehaviour
             float x = 5f, y = 0f;
             float w = _leftPanelWidth - 2f * x, h = 25f;
 
-            GUI.color = Color.black * 0.7f;
+            GUI.color = _guiColor;
             GUI.DrawTexture(new Rect(0, 0, w + 2f * x, Screen.height), Texture2D.whiteTexture);
             GUI.color = Color.white;
 
@@ -70,6 +75,13 @@ public class OceanDebugGUI : MonoBehaviour
             }
 
             GUI.Label(new Rect(x, y, w, h), "Gerstner weight(s)"); y += h;
+            if (_gerstners == null)
+            {
+                _gerstners = FindObjectsOfType<ShapeGerstnerBatched>();
+                // i am getting the array in the reverse order compared to the hierarchy which bugs me. sort them based on sibling index,
+                // which helps if the gerstners are on sibling GOs.
+                System.Array.Sort(_gerstners, (a, b) => a.transform.GetSiblingIndex().CompareTo(b.transform.GetSiblingIndex()));
+            }
             foreach (var gerstner in _gerstners)
             {
                 var specW = 75f;
@@ -88,9 +100,8 @@ public class OceanDebugGUI : MonoBehaviour
 
             _showSimTargets = GUI.Toggle(new Rect(x, y, w, h), _showSimTargets, "Show sim data"); y += h;
 
-#if UNITY_EDITOR
             LodDataMgrAnimWaves._shapeCombinePass = GUI.Toggle(new Rect(x, y, w, h), LodDataMgrAnimWaves._shapeCombinePass, "Shape combine pass"); y += h;
-#endif
+            LodDataMgrAnimWaves._shapeCombinePassPingPong = GUI.Toggle(new Rect(x, y, w, h), LodDataMgrAnimWaves._shapeCombinePassPingPong, "Combine pass ping pong"); y += h;
 
             LodDataMgrShadow.s_processData = GUI.Toggle(new Rect(x, y, w, h), LodDataMgrShadow.s_processData, "Process Shadows"); y += h;
 
@@ -154,6 +165,11 @@ public class OceanDebugGUI : MonoBehaviour
     {
         if (OceanRenderer.Instance == null) return;
 
+        // Draw bottom panel for toggles
+        GUI.color = _guiColor;
+        GUI.DrawTexture(new Rect(_leftPanelWidth, Screen.height - _bottomPanelHeight, Screen.width, _bottomPanelHeight), Texture2D.whiteTexture);
+        GUI.color = Color.white;
+
         // draw sim data
         float column = 1f;
 
@@ -164,8 +180,6 @@ public class OceanDebugGUI : MonoBehaviour
         DrawSims<LodDataMgrShadow>(OceanRenderer.Instance._lodDataShadow, false, ref column);
         DrawSims<LodDataMgrSeaFloorDepth>(OceanRenderer.Instance._lodDataSeaDepths, false, ref column);
     }
-
-    static Dictionary<RenderTextureFormat, RenderTexture> shapes = new Dictionary<RenderTextureFormat, RenderTexture>();
 
     static void DrawSims<SimType>(LodDataMgr lodData, bool showByDefault, ref float offset) where SimType : LodDataMgr
     {
@@ -181,40 +195,35 @@ public class OceanDebugGUI : MonoBehaviour
             _simNames.Add(type, type.Name.Substring(10));
         }
 
+        float togglesBegin = Screen.height - _bottomPanelHeight;
         float b = 7f;
-        float h = Screen.height / (float)OceanRenderer.Instance.CurrentLodCount;
+        float h = togglesBegin / (float)lodData.DataTexture.volumeDepth;
         float w = h + b;
         float x = Screen.width - w * offset + b * (offset - 1f);
 
         if (_drawTargets[type])
         {
-            for (int idx = 0; idx < OceanRenderer.Instance.CurrentLodCount; idx++)
+            GUI.color = _guiColor;
+            GUI.DrawTexture(new Rect(x, 0, offset == 1f ? w : w - b, Screen.height - _bottomPanelHeight), Texture2D.whiteTexture);
+            GUI.color = Color.white;
+
+            // Only use Graphics.DrawTexture in EventType.Repaint events if called in OnGUI
+            if (Event.current.type.Equals(EventType.Repaint))
             {
-                float y = idx * h;
-                if (offset == 1f) w += b;
-
-                // We cannot debug draw texture arrays directly
-                // (unless we write our own system for doing so).
-                // So for now, we just copy each texture and then draw that.
-                if (!shapes.ContainsKey(lodData.DataTexture.format))
+                for (int idx = 0; idx < lodData.DataTexture.volumeDepth; idx++)
                 {
-                    var rt = new RenderTexture(lodData.DataTexture);
-                    rt.dimension = UnityEngine.Rendering.TextureDimension.Tex2D;
-                    rt.Create();
-                    shapes.Add(lodData.DataTexture.format, rt);
+                    float y = idx * h;
+                    if (offset == 1f) w += b;
+
+                    // Render specific slice of 2D texture array
+                    textureArrayMaterial.SetInt("_Depth", idx);
+                    Graphics.DrawTexture(new Rect(x + b, y + b / 2f, h - b, h - b), lodData.DataTexture, textureArrayMaterial);
                 }
-
-                RenderTexture shape = shapes[lodData.DataTexture.format];
-                Graphics.CopyTexture(lodData.DataTexture, idx, 0, shape, 0, 0);
-
-                GUI.color = Color.black * 0.7f;
-                GUI.DrawTexture(new Rect(x, y, w - b, h), Texture2D.whiteTexture);
-                GUI.color = Color.white;
-                GUI.DrawTexture(new Rect(x + b, y + b / 2f, h - b, h - b), shape, ScaleMode.ScaleAndCrop, false);
             }
         }
 
-        _drawTargets[type] = GUI.Toggle(new Rect(x + b, Screen.height - 25f, w - 2f * b, 25f), _drawTargets[type], _simNames[type]);
+
+        _drawTargets[type] = GUI.Toggle(new Rect(x + b, togglesBegin, w - 2f * b, _bottomPanelHeight), _drawTargets[type], _simNames[type]);
 
         offset++;
     }

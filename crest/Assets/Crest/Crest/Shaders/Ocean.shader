@@ -86,6 +86,9 @@ Shader "Crest/Ocean"
 		[Header(Add Directional Light)]
 		[Toggle] _ComputeDirectionalLight("Enable", Float) = 1
 		_DirectionalLightFallOff("Fall-Off", Range(1.0, 4096.0)) = 275.0
+		[Toggle] _DirectionalLightVaryRoughness("Vary Fall-Off Over Distance", Float) = 0
+		_DirectionalLightFarDistance("Far Distance", Float) = 137.0
+		_DirectionalLightFallOffFar("Fall-Off At Far Distance", Range(1.0, 4096.0)) = 42.0
 		_DirectionalLightBoost("Boost", Range(0.0, 512.0)) = 7.0
 
 		[Header(Foam)]
@@ -95,6 +98,8 @@ Shader "Crest/Ocean"
 		[NoScaleOffset] _FoamTexture("Texture", 2D) = "white" {}
 		// Foam texture scale
 		_FoamScale("Scale", Range(0.01, 50.0)) = 10.0
+		// Scale intensity of lighting
+		_WaveFoamLightScale("Light Scale", Range(0.0, 2.0)) = 1.35
 		// Colour tint for whitecaps / foam on water surface
 		_FoamWhiteColor("White Foam Color", Color) = (1.0, 1.0, 1.0, 1.0)
 		// Colour tint bubble foam underneath water surface
@@ -111,8 +116,6 @@ Shader "Crest/Ocean"
 		[Header(Foam 3D Lighting)]
 		// Generates normals for the foam based on foam values/texture and use it for foam lighting
 		[Toggle] _Foam3DLighting("Enable", Float) = 1
-		// Scale intensity of lighting
-		_WaveFoamLightScale("Light Scale", Range(0.0, 2.0)) = 1.35
 		// Strength of the generated normals
 		_WaveFoamNormalStrength("Normals Strength", Range(0.0, 30.0)) = 3.5
 		// Acts like a gloss parameter for specular response
@@ -197,6 +200,7 @@ Shader "Crest/Ocean"
 
 			#pragma shader_feature _APPLYNORMALMAPPING_ON
 			#pragma shader_feature _COMPUTEDIRECTIONALLIGHT_ON
+			#pragma shader_feature _DIRECTIONALLIGHTVARYROUGHNESS_ON
 			#pragma shader_feature _SUBSURFACESCATTERING_ON
 			#pragma shader_feature _SUBSURFACESHALLOWCOLOUR_ON
 			#pragma shader_feature _TRANSPARENCY_ON
@@ -235,7 +239,7 @@ Shader "Crest/Ocean"
 				float4 positionCS : SV_POSITION;
 				half4 flow_shadow : TEXCOORD1;
 				half4 foam_screenPosXYW : TEXCOORD4;
-				half4 lodAlpha_worldXZUndisplaced_oceanDepth : TEXCOORD5;
+				float4 lodAlpha_worldXZUndisplaced_oceanDepth : TEXCOORD5;
 				float3 worldPos : TEXCOORD7;
 				#if _DEBUGVISUALISESHAPESAMPLE_ON
 				half3 debugtint : TEXCOORD8;
@@ -247,10 +251,10 @@ Shader "Crest/Ocean"
 
 			#include "OceanHelpers.hlsl"
 
-			uniform float _CrestTime;
+			float _CrestTime;
 
-			// MeshScaleLerp, FarNormalsWeight, LODIndex (debug), unused
-			uniform float4 _InstanceData;
+			// MeshScaleLerp, FarNormalsWeight, LODIndex (debug)
+			float3 _InstanceData;
 
 			// Argument name is v because some macros like COMPUTE_EYEDEPTH require it.
 			Varyings Vert(Attributes v)
@@ -457,19 +461,29 @@ Shader "Crest/Ocean"
 				#endif // _FOAM_ON
 
 				// Compute color of ocean - in-scattered light + refracted scene
-				half3 scatterCol = ScatterColour(input.worldPos, input.lodAlpha_worldXZUndisplaced_oceanDepth.w, _WorldSpaceCameraPos, lightDir, view, shadow.x, underwater, true, sss);
+				half3 scatterCol = ScatterColour(input.lodAlpha_worldXZUndisplaced_oceanDepth.w, _WorldSpaceCameraPos, lightDir, view, shadow.x, underwater, true, sss);
 				half3 col = OceanEmission(view, n_pixel, lightDir, input.grabPos, pixelZ, uvDepth, sceneZ, sceneZ01, bubbleCol, _Normals, _CameraDepthTexture, underwater, scatterCol);
 
 				// Light that reflects off water surface
+
+				// Soften reflection at intersections with objects/surfaces
+				#if _TRANSPARENCY_ON
+				float reflAlpha = saturate((sceneZ - pixelZ) / 0.2);
+				#else
+				// This addresses the problem where screenspace depth doesnt work in VR, and so neither will this. In VR people currently
+				// disable transparency, so this will always be 1.0.
+				float reflAlpha = 1.0;
+				#endif
+				
 				#if _UNDERWATER_ON
 				if (underwater)
 				{
-					ApplyReflectionUnderwater(view, n_pixel, lightDir, shadow.y, input.foam_screenPosXYW.yzzw, scatterCol, col);
+					ApplyReflectionUnderwater(view, n_pixel, lightDir, shadow.y, input.foam_screenPosXYW.yzzw, scatterCol, reflAlpha, col);
 				}
 				else
 				#endif
 				{
-					ApplyReflectionSky(view, n_pixel, lightDir, shadow.y, input.foam_screenPosXYW.yzzw, col);
+					ApplyReflectionSky(view, n_pixel, lightDir, shadow.y, input.foam_screenPosXYW.yzzw, pixelZ, reflAlpha, col);
 				}
 
 				// Override final result with white foam - bubbles on surface
@@ -486,7 +500,7 @@ Shader "Crest/Ocean"
 				else
 				{
 					// underwater - do depth fog
-					col = lerp(col, scatterCol, 1. - exp(-_DepthFogDensity.xyz * pixelZ));
+					col = lerp(col, scatterCol, saturate(1. - exp(-_DepthFogDensity.xyz * pixelZ)));
 				}
 
 				#if _DEBUGVISUALISESHAPESAMPLE_ON

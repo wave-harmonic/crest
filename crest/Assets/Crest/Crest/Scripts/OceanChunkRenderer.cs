@@ -3,7 +3,11 @@
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 using UnityEngine;
+#if UNITY_2018
 using UnityEngine.Experimental.Rendering;
+#else
+using UnityEngine.Rendering;
+#endif
 
 namespace Crest
 {
@@ -25,10 +29,11 @@ namespace Crest
         int _lodDataResolution = 256;
         int _geoDownSampleFactor = 1;
 
-        static int sp_ReflectionTex = Shader.PropertyToID("_ReflectionTex");
-        static int sp_InstanceData = Shader.PropertyToID("_InstanceData");
-        static int sp_GeomData = Shader.PropertyToID("_GeomData");
-        static int sp_ForceUnderwater = Shader.PropertyToID("_ForceUnderwater");
+        static readonly int sp_ReflectionTex = Shader.PropertyToID("_ReflectionTex");
+        static readonly int sp_GeomData = Shader.PropertyToID("_GeomData");
+        static readonly int sp_ForceUnderwater = Shader.PropertyToID("_ForceUnderwater");
+        // MeshScaleLerp, FarNormalsWeight, LODIndex (debug)
+        public static readonly int sp_InstanceData = Shader.PropertyToID("_InstanceData");
 
         void Start()
         {
@@ -55,18 +60,30 @@ namespace Crest
 
         private void OnEnable()
         {
+#if UNITY_2018
             RenderPipeline.beginCameraRendering += BeginCameraRendering;
+#else
+            RenderPipelineManager.beginCameraRendering += BeginCameraRendering;
+#endif
         }
         private void OnDisable()
         {
+#if UNITY_2018
             RenderPipeline.beginCameraRendering -= BeginCameraRendering;
+#else
+            RenderPipelineManager.beginCameraRendering -= BeginCameraRendering;
+#endif
         }
 
         static Camera _currentCamera = null;
 
-        private void BeginCameraRendering(Camera cam)
+#if UNITY_2018
+        private void BeginCameraRendering(Camera camera)
+#else
+        private void BeginCameraRendering(ScriptableRenderContext context, Camera camera)
+#endif
         {
-            _currentCamera = cam;
+            _currentCamera = camera;
         }
 
         // Called when visible to a camera
@@ -101,7 +118,7 @@ namespace Crest
             // blend furthest normals scale in/out to avoid pop, if scale could reduce
             var needToBlendOutNormals = _lodIndex == _totalLodCount - 1 && OceanRenderer.Instance.ScaleCouldDecrease;
             var farNormalsWeight = needToBlendOutNormals ? OceanRenderer.Instance.ViewerAltitudeLevelAlpha : 1f;
-            _mpb.SetVector(sp_InstanceData, new Vector4(meshScaleLerp, farNormalsWeight, _lodIndex));
+            _mpb.SetVector(sp_InstanceData, new Vector3(meshScaleLerp, farNormalsWeight, _lodIndex));
 
             // geometry data
             // compute grid size of geometry. take the long way to get there - make sure we land exactly on a power of two
@@ -122,14 +139,14 @@ namespace Crest
             var ldflow = OceanRenderer.Instance._lodDataFlow;
             var ldshadows = OceanRenderer.Instance._lodDataShadow;
 
-            _mpb.SetFloat(OceanRenderer.sp_LD_SliceIndex, _lodIndex);
+            _mpb.SetInt(LodDataMgr.sp_LD_SliceIndex, _lodIndex);
             ldaws.BindResultData(_mpb);
             if (ldflow) ldflow.BindResultData(_mpb);
             if (ldfoam) ldfoam.BindResultData(_mpb); else LodDataMgrFoam.BindNull(_mpb);
             if (ldsds) ldsds.BindResultData(_mpb);
             if (ldshadows) ldshadows.BindResultData(_mpb); else LodDataMgrShadow.BindNull(_mpb);
 
-            var reflTex = PreparedReflections.GetRenderTexture(_currentCamera.GetInstanceID());
+            var reflTex = PreparedReflections.GetRenderTexture(_currentCamera.GetHashCode());
             if (reflTex)
             {
                 _mpb.SetTexture(sp_ReflectionTex, reflTex);

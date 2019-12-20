@@ -196,14 +196,14 @@ namespace Crest
                 {
                     ocean.gameObject.AddComponent<GPUReadbackDisps>();
                 }
+                if (ssaw && ssaw.CollisionSource == SimSettingsAnimatedWaves.CollisionSources.ComputeShaderQueries)
+                {
+                    ocean.gameObject.AddComponent<QueryDisplacements>();
+                }
 
                 if (ocean.CreateFlowSim)
                 {
-                    var ssf = ocean._simSettingsFlow;
-                    if (ssf && ssf._readbackData)
-                    {
-                        ocean.gameObject.AddComponent<GPUReadbackFlow>();
-                    }
+                    ocean.gameObject.AddComponent<QueryFlow>();
                 }
             }
 
@@ -226,7 +226,7 @@ namespace Crest
 
 #if PROFILE_CONSTRUCTION
             sw.Stop();
-            Debug.Log( "Finished generating " + parms._lodCount.ToString() + " LODs, time: " + (1000.0*sw.Elapsed.TotalSeconds).ToString(".000") + "ms" );
+            Debug.Log( "Finished generating " + lodCount.ToString() + " LODs, time: " + (1000.0*sw.Elapsed.TotalSeconds).ToString(".000") + "ms" );
 #endif
         }
 

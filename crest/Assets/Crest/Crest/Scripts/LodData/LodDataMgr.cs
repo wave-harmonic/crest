@@ -21,7 +21,7 @@ namespace Crest
 
         // NOTE: This MUST match the value in OceanLODData.hlsl, as it
         // determines the size of the texture arrays in the shaders.
-        public const int MAX_LOD_COUNT = 16;
+        public const int MAX_LOD_COUNT = 15;
 
         protected abstract int GetParamIdSampler(bool sourceLod = false);
 
@@ -30,6 +30,9 @@ namespace Crest
         protected RenderTexture _targets;
 
         public RenderTexture DataTexture { get { return _targets; } }
+
+        public static int sp_LD_SliceIndex = Shader.PropertyToID("_LD_SliceIndex");
+        protected static int sp_LODChange = Shader.PropertyToID("_LODChange");
 
         // shape texture resolution
         int _shapeRes = -1;
@@ -45,26 +48,31 @@ namespace Crest
             InitData();
         }
 
+        public static RenderTexture CreateLodDataTextures(RenderTextureDescriptor desc, string name, bool needToReadWriteTextureData)
+        {
+            RenderTexture result = new RenderTexture(desc);
+            result.wrapMode = TextureWrapMode.Clamp;
+            result.antiAliasing = 1;
+            result.filterMode = FilterMode.Bilinear;
+            result.anisoLevel = 0;
+            result.useMipMap = false;
+            result.name = name;
+            result.dimension = TextureDimension.Tex2DArray;
+            result.volumeDepth = OceanRenderer.Instance.CurrentLodCount;
+            result.enableRandomWrite = needToReadWriteTextureData;
+            result.Create();
+            return result;
+        }
+
         protected virtual void InitData()
         {
             Debug.Assert(SystemInfo.SupportsRenderTextureFormat(TextureFormat), "The graphics device does not support the render texture format " + TextureFormat.ToString());
 
             Debug.Assert(OceanRenderer.Instance.CurrentLodCount <= MAX_LOD_COUNT);
 
-            int resolution = OceanRenderer.Instance.LodDataResolution;
+            var resolution = OceanRenderer.Instance.LodDataResolution;
             var desc = new RenderTextureDescriptor(resolution, resolution, TextureFormat, 0);
-
-            _targets = new RenderTexture(desc);
-            _targets.wrapMode = TextureWrapMode.Clamp;
-            _targets.antiAliasing = 1;
-            _targets.filterMode = FilterMode.Bilinear;
-            _targets.anisoLevel = 0;
-            _targets.useMipMap = false;
-            _targets.name = SimName;
-            _targets.dimension = TextureDimension.Tex2DArray;
-            _targets.volumeDepth = OceanRenderer.Instance.CurrentLodCount;
-            _targets.enableRandomWrite = NeedToReadWriteTextureData;
-            _targets.Create();
+            _targets = CreateLodDataTextures(desc, SimName, NeedToReadWriteTextureData);
         }
 
         public virtual void UpdateLodData()
@@ -80,6 +88,8 @@ namespace Crest
                 _targets.Release();
                 _targets.width = _targets.height = _shapeRes;
                 _targets.Create();
+
+                _shapeRes = width;
             }
 
             // determine if this LOD has changed scale and by how much (in exponent of 2)
@@ -97,9 +107,9 @@ namespace Crest
         }
 
         // Avoid heap allocations instead BindData
-        private Vector4[] _BindData_paramIdPosScales = new Vector4[MAX_LOD_COUNT];
+        private Vector4[] _BindData_paramIdPosScales = new Vector4[MAX_LOD_COUNT + 1];
         // Used in child
-        protected Vector4[] _BindData_paramIdOceans = new Vector4[MAX_LOD_COUNT];
+        protected Vector4[] _BindData_paramIdOceans = new Vector4[MAX_LOD_COUNT + 1];
         protected virtual void BindData(IPropertyWrapper properties, Texture applyData, bool blendOut, ref LodTransform.RenderData[] renderData, bool sourceLod = false)
         {
             if (applyData)
@@ -116,6 +126,12 @@ namespace Crest
                     OceanRenderer.Instance.CalcLodScale(lodIdx), 0f);
                 _BindData_paramIdOceans[lodIdx] = new Vector4(renderData[lodIdx]._texelWidth, renderData[lodIdx]._textureRes, 1f, 1f / renderData[lodIdx]._textureRes);
             }
+
+            // Duplicate the last element as the shader accesses element {slice index + 1] in a few situations. This way going
+            // off the end of this parameter is the same as going off the end of the texture array with our clamped sampler.
+            _BindData_paramIdPosScales[OceanRenderer.Instance.CurrentLodCount] = _BindData_paramIdPosScales[OceanRenderer.Instance.CurrentLodCount - 1];
+            _BindData_paramIdOceans[OceanRenderer.Instance.CurrentLodCount] = _BindData_paramIdOceans[OceanRenderer.Instance.CurrentLodCount - 1];
+
             properties.SetVectorArray(LodTransform.ParamIdPosScale(sourceLod), _BindData_paramIdPosScales);
             properties.SetVectorArray(LodTransform.ParamIdOcean(sourceLod), _BindData_paramIdOceans);
         }
@@ -138,11 +154,11 @@ namespace Crest
         {
         }
 
-        protected void SwapRTs(ref RenderTexture o_a, ref RenderTexture o_b)
+        public static void Swap<T>(ref T a, ref T b)
         {
-            var temp = o_a;
-            o_a = o_b;
-            o_b = temp;
+            var temp = b;
+            b = a;
+            a = temp;
         }
 
         public interface IDrawFilter

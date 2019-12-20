@@ -471,6 +471,8 @@ namespace Crest
         protected PerLodData GetData(Rect sampleAreaXZ, float minSpatialLength)
         {
             PerLodData lastCandidate = null;
+            // This data will be returned if lastCandidate is null at the end
+            PerLodData lastPossibleCandidate = null;
 
             for (int i = 0; i < _perLodData.KeyArray.Length; i++)
             {
@@ -479,6 +481,9 @@ namespace Crest
                 {
                     continue;
                 }
+
+                // Store the last lodData with valid rectangle coverage;
+                lastPossibleCandidate = lodData;
 
                 // Check that the region of interest is covered by this data
                 var wdcRect = lodData._resultData._renderData.RectXZ;
@@ -507,7 +512,10 @@ namespace Crest
             }
 
             // We didnt get a perfect match, but pick the next best candidate
-            return lastCandidate;
+            if (lastCandidate != null)
+                return lastCandidate;
+            else
+                return lastPossibleCandidate;
         }
 
         public AvailabilityResult CheckAvailability(ref Vector3 i_worldPos, SamplingData i_samplingData)

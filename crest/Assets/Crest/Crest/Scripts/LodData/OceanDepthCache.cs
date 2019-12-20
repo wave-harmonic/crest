@@ -58,7 +58,7 @@ namespace Crest
                 return;
             }
 
-            if (_populateOnStartup)
+            if (_populateOnStartup && !_savedCache)
             {
                 PopulateCache();
             }
@@ -274,7 +274,9 @@ namespace Crest
         {
             base.OnInspectorGUI();
 
-            if (GUILayout.Button("Save cache to file"))
+            var playing = UnityEditor.EditorApplication.isPlaying;
+
+            if (playing && GUILayout.Button("Save cache to file"))
             {
                 var rt = (target as OceanDepthCache).CacheTexture;
 

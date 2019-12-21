@@ -143,6 +143,7 @@ namespace Crest
         readonly static int sp_crestTime = Shader.PropertyToID("_CrestTime");
         readonly static int sp_texelsPerWave = Shader.PropertyToID("_TexelsPerWave");
         readonly static int sp_oceanCenterPosWorld = Shader.PropertyToID("_OceanCenterPosWorld");
+        readonly static int sp_meshScaleLerp = Shader.PropertyToID("_MeshScaleLerp");
         readonly static int sp_sliceCount = Shader.PropertyToID("_SliceCount");
 
 
@@ -234,6 +235,12 @@ namespace Crest
             Shader.SetGlobalFloat(sp_texelsPerWave, MinTexelsPerWave);
             Shader.SetGlobalFloat(sp_crestTime, CurrentTime);
             Shader.SetGlobalFloat(sp_sliceCount, CurrentLodCount);
+
+            // LOD 0 is blended in/out when scale changes, to eliminate pops. Here we set it as a global, whereas in OceanChunkRenderer it
+            // is applied to LOD0 tiles only through _InstanceData. This global can be used in compute, where we only apply this factor for slice 0.
+            var needToBlendOutShape = ScaleCouldIncrease;
+            var meshScaleLerp = needToBlendOutShape ? ViewerAltitudeLevelAlpha : 0f;
+            Shader.SetGlobalFloat(sp_meshScaleLerp, meshScaleLerp);
 
             if (_viewpoint == null)
             {

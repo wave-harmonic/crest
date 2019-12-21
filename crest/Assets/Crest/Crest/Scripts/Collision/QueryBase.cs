@@ -40,7 +40,6 @@ namespace Crest
         public static bool s_useComputeCollQueries = true;
 
         readonly static int sp_queryPositions_minGridSizes = Shader.PropertyToID("_QueryPositions_MinGridSizes");
-        readonly static int sp_meshScaleLerp = Shader.PropertyToID("_MeshScaleLerp");
 
         const float s_finiteDiffDx = 0.1f;
 
@@ -424,11 +423,6 @@ namespace Crest
             _computeBufQueries.SetData(_queryPosXZ_minGridSize, 0, 0, _segmentRegistrarRingBuffer.Current._numQueries);
             _shaderProcessQueries.SetBuffer(_kernelHandle, sp_queryPositions_minGridSizes, _computeBufQueries);
             BindInputsAndOutputs(_wrapper, _computeBufResults);
-
-            // LOD 0 is blended in/out when scale changes, to eliminate pops
-            var needToBlendOutShape = OceanRenderer.Instance.ScaleCouldIncrease;
-            var meshScaleLerp = needToBlendOutShape ? OceanRenderer.Instance.ViewerAltitudeLevelAlpha : 0f;
-            _shaderProcessQueries.SetFloat(sp_meshScaleLerp, meshScaleLerp);
 
             var numGroups = (int)Mathf.Ceil((float)_segmentRegistrarRingBuffer.Current._numQueries / (float)s_computeGroupSize) * s_computeGroupSize;
             _shaderProcessQueries.Dispatch(_kernelHandle, numGroups, 1, 1);

@@ -27,6 +27,7 @@ namespace Crest
         {
             _queryPos[0] = i_queryPos;
             var rect = new Rect(i_queryPos.x, i_queryPos.z, 0f, 0f);
+            if (OceanRenderer.Instance.CollisionProvider == null) return _valid = false;
             return _valid = OceanRenderer.Instance.CollisionProvider.GetSamplingData(ref rect, i_minLength, _samplingData);
         }
 

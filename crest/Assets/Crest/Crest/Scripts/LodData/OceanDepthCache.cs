@@ -58,7 +58,30 @@ namespace Crest
                 return;
             }
 
-            if (_populateOnStartup && !_savedCache)
+            if (_drawCacheQuad == null)
+            {
+                _drawCacheQuad = GameObject.CreatePrimitive(PrimitiveType.Quad);
+                Destroy(_drawCacheQuad.GetComponent<Collider>());
+                _drawCacheQuad.name = "DepthCache_" + gameObject.name;
+                _drawCacheQuad.transform.SetParent(transform, false);
+                _drawCacheQuad.transform.localEulerAngles = 90f * Vector3.right;
+                _drawCacheQuad.AddComponent<RegisterSeaFloorDepthInput>();
+                var qr = _drawCacheQuad.GetComponent<Renderer>();
+                qr.material = new Material(Shader.Find(LodDataMgrSeaFloorDepth.ShaderName));
+
+                if (_savedCache)
+                {
+                    qr.material.mainTexture = _savedCache;
+                }
+                else
+                {
+                    qr.material.mainTexture = _cacheTexture;
+                }
+
+                qr.enabled = false;
+            }
+
+            if (_populateOnStartup)
             {
                 PopulateCache();
             }
@@ -86,6 +109,9 @@ namespace Crest
 
         public void PopulateCache()
         {
+            if (_savedCache)
+                return;
+
             var layerMask = 0;
             var errorShown = false;
             foreach (var layer in _layerNames)
@@ -146,29 +172,6 @@ namespace Crest
                 _cacheTexture.Create();
             }
 
-            if (_drawCacheQuad == null)
-            {
-                _drawCacheQuad = GameObject.CreatePrimitive(PrimitiveType.Quad);
-                Destroy(_drawCacheQuad.GetComponent<Collider>());
-                _drawCacheQuad.name = "Draw_" + _cacheTexture.name;
-                _drawCacheQuad.transform.SetParent(transform, false);
-                _drawCacheQuad.transform.localEulerAngles = 90f * Vector3.right;
-                _drawCacheQuad.AddComponent<RegisterSeaFloorDepthInput>();
-                var qr = _drawCacheQuad.GetComponent<Renderer>();
-                qr.material = new Material(Shader.Find(LodDataMgrSeaFloorDepth.ShaderName));
-
-                if (_savedCache)
-                {
-                    qr.material.mainTexture = _savedCache;
-                }
-                else
-                {
-                    qr.material.mainTexture = _cacheTexture;
-                }
-
-                qr.enabled = false;
-            }
-
             if (_camDepthCache == null)
             {
                 _camDepthCache = new GameObject("DepthCacheCam").AddComponent<Camera>();
@@ -201,9 +204,19 @@ namespace Crest
             {
                 centerPoint.y = transform.position.y;
             }
-            // Hackety-hack: this seems to be the only way to pass parameters to the shader when using RenderWithShader!
+            // Make sure this global is set - I found this was necessary to set it here
             Shader.SetGlobalVector("_OceanCenterPosWorld", centerPoint);
             _camDepthCache.RenderWithShader(Shader.Find("Crest/Inputs/Depth/Ocean Depth From Geometry"), null);
+
+            var qr = _drawCacheQuad.GetComponent<Renderer>();
+            if (_savedCache)
+            {
+                qr.material.mainTexture = _savedCache;
+            }
+            else
+            {
+                qr.material.mainTexture = _cacheTexture;
+            }
         }
 
 #if UNITY_EDITOR

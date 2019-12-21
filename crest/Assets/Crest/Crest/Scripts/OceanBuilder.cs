@@ -451,6 +451,7 @@ namespace Crest
             {
                 // instantiate and place patch
                 var patch = new GameObject( string.Format( "Tile_L{0}", lodIndex ) );
+                patch.hideFlags = HideFlags.DontSave;
                 patch.layer = oceanLayer;
                 patch.transform.parent = parent.transform;
                 Vector2 pos = offsets[i];

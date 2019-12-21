@@ -46,7 +46,7 @@ namespace Crest
                 return;
             }
 
-            Debug.Assert(_instance == null);
+            //Debug.Assert(_instance == null); // TODO - reenable
             _instance = this;
 
             _settingsProvider = OceanRenderer.Instance._simSettingsAnimatedWaves;

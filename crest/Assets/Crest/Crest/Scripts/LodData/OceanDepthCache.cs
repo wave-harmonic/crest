@@ -102,18 +102,23 @@ namespace Crest
                 _cacheTexture.anisoLevel = 0;
             }
 
+
             if (_drawCacheQuad == null)
             {
                 _drawCacheQuad = GameObject.CreatePrimitive(PrimitiveType.Quad);
                 _drawCacheQuad.hideFlags = HideFlags.DontSave;
+#if UNITY_EDITOR
+                DestroyImmediate(_drawCacheQuad.GetComponent<Collider>());
+#else
                 Destroy(_drawCacheQuad.GetComponent<Collider>());
+#endif
                 _drawCacheQuad.name = "Draw_" + _cacheTexture.name;
                 _drawCacheQuad.transform.SetParent(transform, false);
                 _drawCacheQuad.transform.localEulerAngles = 90f * Vector3.right;
                 _drawCacheQuad.AddComponent<RegisterSeaFloorDepthInput>();
                 var qr = _drawCacheQuad.GetComponent<Renderer>();
                 qr.material = new Material(Shader.Find("Crest/Inputs/Depth/Cached Depths"));
-                qr.material.mainTexture = _cacheTexture;
+                qr.sharedMaterial.mainTexture = _cacheTexture;
                 qr.enabled = false;
             }
 

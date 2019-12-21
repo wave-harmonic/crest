@@ -76,6 +76,12 @@ namespace Crest
         {
             base.BuildCommandBuffer(ocean, buf);
 
+            if (_renderSimMaterial == null)
+            {
+                return;
+            }
+
+
             var lodCount = OceanRenderer.Instance.CurrentLodCount;
             float substepDt;
             int numSubsteps;

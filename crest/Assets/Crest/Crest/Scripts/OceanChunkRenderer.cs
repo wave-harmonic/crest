@@ -72,6 +72,11 @@ namespace Crest
         // Called when visible to a camera
         void OnWillRenderObject()
         {
+            if (OceanRenderer.Instance == null || _rend == null)
+            {
+                return;
+            }
+
             // check if built-in pipeline being used
             if (Camera.current != null)
             {

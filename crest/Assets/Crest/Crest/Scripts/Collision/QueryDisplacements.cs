@@ -21,7 +21,6 @@ namespace Crest
 
         protected override void OnEnable()
         {
-            Debug.Assert(Instance == null);
             Instance = this;
 
             base.OnEnable();
@@ -29,7 +28,8 @@ namespace Crest
 
         protected override void OnDisable()
         {
-            Instance = null;
+            // If we set this to null, it breaks exiting play mode, as OnDisable is called but no matching call to OnEnable :/
+            //Instance = null;
 
             base.OnDisable();
         }

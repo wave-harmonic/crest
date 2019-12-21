@@ -3,7 +3,7 @@
 namespace Crest
 {
     /// <summary>
-    /// Draw crosses in an area around the GameObject on the water surface
+    /// Debug draw crosses in an area around the GameObject on the water surface.
     /// </summary>
     public class VisualiseCollisionArea : MonoBehaviour
     {

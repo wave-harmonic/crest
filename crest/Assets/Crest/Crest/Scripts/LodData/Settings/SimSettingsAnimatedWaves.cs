@@ -77,8 +77,7 @@ namespace Crest
 
             if (result == null)
             {
-                // this should not be hit - return null to create null ref exceptions
-                Debug.Assert(false, "Could not create collision provider. Collision source = " + _collisionSource.ToString());
+                // Usually should not happen but seems this can be called before singletons are initialised in edit mode.
                 return null;
             }
 

@@ -12,7 +12,9 @@ namespace Crest
     [ExecuteInEditMode]
     public class LodDataMgrDynWaves : LodDataMgrPersistent
     {
-        protected override string ShaderSim { get { return "Hidden/Crest/Simulation/Update Dynamic Waves"; } }
+        protected override string ShaderSim { get { return "UpdateDynWaves"; } }
+        protected override int krnl_ShaderSim { get { return _shader.FindKernel(ShaderSim); } }
+
         public override string SimName { get { return "DynamicWaves"; } }
         public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RGHalf; } }
 
@@ -27,10 +29,16 @@ namespace Crest
 
         public bool _rotateLaplacian = true;
 
-        const string DYNWAVES_KEYWORD = "_DYNAMIC_WAVE_SIM_ON";
+        public const string DYNWAVES_KEYWORD = "_DYNAMIC_WAVE_SIM_ON";
 
         bool[] _active;
         public bool SimActive(int lodIdx) { return _active[lodIdx]; }
+
+        static int sp_HorizDisplace = Shader.PropertyToID("_HorizDisplace");
+        static int sp_DisplaceClamp = Shader.PropertyToID("_DisplaceClamp");
+        static int sp_Damping = Shader.PropertyToID("_Damping");
+        static int sp_Gravity = Shader.PropertyToID("_Gravity");
+        static int sp_LaplacianAxisX = Shader.PropertyToID("_LaplacianAxisX");
 
         protected override void InitData()
         {
@@ -56,46 +64,46 @@ namespace Crest
                 return false;
 
             // check if the sim should be running
-            float texelWidth = OceanRenderer.Instance._lods[lodIdx]._renderData.Validate(0, this)._texelWidth;
+            float texelWidth = OceanRenderer.Instance._lodTransform._renderData[lodIdx].Validate(0, this)._texelWidth;
             _active[lodIdx] = texelWidth >= Settings._minGridSize && (texelWidth <= Settings._maxGridSize || Settings._maxGridSize == 0f);
 
             return true;
         }
 
-        public void BindCopySettings(Material target)
+        public void BindCopySettings(IPropertyWrapper target)
         {
-            target.SetFloat("_HorizDisplace", Settings._horizDisplace);
-            target.SetFloat("_DisplaceClamp", Settings._displaceClamp);
+            target.SetFloat(sp_HorizDisplace, Settings._horizDisplace);
+            target.SetFloat(sp_DisplaceClamp, Settings._displaceClamp);
         }
 
-        protected override void SetAdditionalSimParams(int lodIdx, Material simMaterial)
+        protected override void SetAdditionalSimParams(IPropertyWrapper simMaterial)
         {
-            base.SetAdditionalSimParams(lodIdx, simMaterial);
+            base.SetAdditionalSimParams(simMaterial);
 
-            simMaterial.SetFloat("_Damping", Settings._damping);
-            simMaterial.SetFloat("_Gravity", OceanRenderer.Instance.Gravity);
+            simMaterial.SetFloat(sp_Damping, Settings._damping);
+            simMaterial.SetFloat(sp_Gravity, OceanRenderer.Instance.Gravity * Settings._gravityMultiplier);
 
             float laplacianKernelAngle = _rotateLaplacian ? Mathf.PI * 2f * Random.value : 0f;
-            simMaterial.SetVector("_LaplacianAxisX", new Vector2(Mathf.Cos(laplacianKernelAngle), Mathf.Sin(laplacianKernelAngle)));
+            simMaterial.SetVector(sp_LaplacianAxisX, new Vector2(Mathf.Cos(laplacianKernelAngle), Mathf.Sin(laplacianKernelAngle)));
 
             // assign sea floor depth - to slot 1 current frame data. minor bug here - this depth will actually be from the previous frame,
             // because the depth is scheduled to render just before the animated waves, and this sim happens before animated waves.
             if (OceanRenderer.Instance._lodDataSeaDepths)
             {
-                OceanRenderer.Instance._lodDataSeaDepths.BindResultData(lodIdx, 1, simMaterial);
+                OceanRenderer.Instance._lodDataSeaDepths.BindResultData(simMaterial);
             }
             else
             {
-                LodDataMgrSeaFloorDepth.BindNull(1, simMaterial);
+                LodDataMgrSeaFloorDepth.BindNull(simMaterial);
             }
 
             if (OceanRenderer.Instance._lodDataFlow)
             {
-                OceanRenderer.Instance._lodDataFlow.BindResultData(lodIdx, 1, simMaterial);
+                OceanRenderer.Instance._lodDataFlow.BindResultData(simMaterial);
             }
             else
             {
-                LodDataMgrFlow.BindNull(1, simMaterial);
+                LodDataMgrFlow.BindNull(simMaterial);
             }
 
         }
@@ -113,38 +121,43 @@ namespace Crest
             }
         }
 
-        public override void GetSimSubstepData(float frameDt, out int numSubsteps, out float substepDt)
+        float MaxSimDt(int lodIdx)
         {
-            numSubsteps = Mathf.CeilToInt(frameDt / Settings._maxSubstepDt);
-            numSubsteps = Mathf.Min(MAX_SIM_STEPS, numSubsteps);
-            if (numSubsteps > 0)
-            {
-                substepDt = Mathf.Min(Settings._maxSubstepDt, frameDt / numSubsteps);
-            }
-            else
-            {
-                substepDt = 0f;
-            }
+            var ocean = OceanRenderer.Instance;
+
+            // Limit timestep based on Courant constant: https://www.uio.no/studier/emner/matnat/ifi/nedlagte-emner/INF2340/v05/foiler/sim04.pdf
+            var Cmax = Settings._courantNumber;
+            var minWavelength = ocean._lodTransform.MaxWavelength(lodIdx) / 2f;
+            var waveSpeed = OceanWaveSpectrum.ComputeWaveSpeed(minWavelength, Settings._gravityMultiplier);
+            // 0.5f because its 2D
+            var maxDt = 0.5f * Cmax * ocean.CalcGridSize(lodIdx) / waveSpeed;
+            return maxDt;
         }
 
-        static int[] _paramsSampler;
-        public static int ParamIdSampler(int slot)
+        public override void GetSimSubstepData(float frameDt, out int numSubsteps, out float substepDt)
         {
-            if (_paramsSampler == null)
-                LodTransform.CreateParamIDs(ref _paramsSampler, "_LD_Sampler_DynamicWaves_");
-            return _paramsSampler[slot];
+            var ocean = OceanRenderer.Instance;
+
+            // lod 0 will always be most demanding - wave speed is square root of wavelength, so waves will be fast relative to stability in
+            // lowest lod, and slow relative to stability in largest lod.
+            float maxDt = MaxSimDt(0);
+
+            numSubsteps = Mathf.CeilToInt(frameDt / maxDt);
+            // Always do at least one step so that the sim moves around when time is frozen
+            numSubsteps = Mathf.Clamp(numSubsteps, 1, Settings._maxSimStepsPerFrame);
+            substepDt = Mathf.Min(maxDt, frameDt / numSubsteps);
         }
-        protected override int GetParamIdSampler(int slot)
+
+        public static string TextureArrayName = "_LD_TexArray_DynamicWaves";
+        private static TextureArrayParamIds textureArrayParamIds = new TextureArrayParamIds(TextureArrayName);
+        public static int ParamIdSampler(bool sourceLod = false) { return textureArrayParamIds.GetId(sourceLod); }
+        protected override int GetParamIdSampler(bool sourceLod = false)
         {
-            return ParamIdSampler(slot);
+            return ParamIdSampler(sourceLod);
         }
-        public static void BindNull(int shapeSlot, Material properties)
+        public static void BindNull(IPropertyWrapper properties, bool sourceLod = false)
         {
-            properties.SetTexture(ParamIdSampler(shapeSlot), Texture2D.blackTexture);
-        }
-        public static void BindNull(int shapeSlot, MaterialPropertyBlock properties)
-        {
-            properties.SetTexture(ParamIdSampler(shapeSlot), Texture2D.blackTexture);
+            properties.SetTexture(ParamIdSampler(sourceLod), TextureArrayHelpers.BlackTextureArray);
         }
     }
 }

@@ -16,10 +16,15 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Batch"
 		Pass
 		{
 			Blend One One
-		
+			ZWrite Off
+			ZTest Always
+			Cull Off
+
 			CGPROGRAM
 			#pragma vertex Vert
 			#pragma fragment Frag
+			#pragma multi_compile __ _DIRECT_TOWARDS_POINT
+
 			#include "UnityCG.cginc"
 			#include "../../OceanLODData.hlsl"
 
@@ -28,6 +33,7 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Batch"
 
 			#define PI 3.141593
 
+			half _Weight;
 			half _AttenuationInShallows;
 			uint _NumWaveVecs;
 
@@ -38,64 +44,83 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Batch"
 			half4 _Phases[BATCH_SIZE / 4];
 			half4 _ChopAmps[BATCH_SIZE / 4];
 
+			float4 _TargetPointData;
+
 			struct Attributes
 			{
 				float4 positionOS : POSITION;
 				float2 uv : TEXCOORD0;
-				half4 color : COLOR0;
 			};
 
 			struct Varyings
 			{
 				float4 positionCS : SV_POSITION;
-				float3 worldPos_wt : TEXCOORD0;
-				float2 uv : TEXCOORD1;
+				float2 worldPos : TEXCOORD0;
+				float3 uv_slice : TEXCOORD1;
 			};
 
 			Varyings Vert(Attributes input)
 			{
 				Varyings o;
-				o.positionCS = float4(input.positionOS.x, -input.positionOS.y, 0.0, 0.5);
+				o.positionCS = float4(input.positionOS.xy, 0.0, 0.5);
 
-				float2 worldXZ = LD_0_UVToWorld(input.uv);
+#if UNITY_UV_STARTS_AT_TOP // https://docs.unity3d.com/Manual/SL-PlatformDifferences.html
+				o.positionCS.y = -o.positionCS.y;
+#endif
 
-				o.worldPos_wt.xy = worldXZ;
-				o.worldPos_wt.z = input.color.x;
-
-				o.uv = input.uv;
-
+				float2 worldXZ = UVToWorld(input.uv);
+				o.worldPos.xy = worldXZ;
+				o.uv_slice = float3(input.uv, _LD_SliceIndex);
 				return o;
 			}
 
 			half4 Frag(Varyings input) : SV_Target
 			{
+				float2 displacementNormalized = 0.0;
+
 				const half4 oneMinusAttenuation = (half4)1.0 - (half4)_AttenuationInShallows;
 
 				// sample ocean depth (this render target should 1:1 match depth texture, so UVs are trivial)
-				const half depth = CREST_OCEAN_DEPTH_BASELINE - tex2D(_LD_Sampler_SeaFloorDepth_0, input.uv).x;
+				const half depth = _LD_TexArray_SeaFloorDepth.Sample(LODData_linear_clamp_sampler, input.uv_slice).x;
+
+				// Preferred wave directions
+#if _DIRECT_TOWARDS_POINT
+				float2 offset = input.worldPos.xy - _TargetPointData.xy;
+				float preferDist = length(offset);
+				float preferWt = smoothstep(_TargetPointData.w, _TargetPointData.z, preferDist);
+				half2 preferredDir = preferWt * offset / preferDist;
+				half4 preferredDirX = preferredDir.x;
+				half4 preferredDirZ = preferredDir.y;
+#endif
+
 				half3 result = (half3)0.0;
+
+				// attenuate waves based on ocean depth. if depth is greater than 0.5*wavelength, water is considered Deep and wave is
+				// unaffected. if depth is less than this, wave velocity decreases. waves will then bunch up and grow in amplitude and
+				// eventually break. i model "Deep" water, but then simply ramp down waves in non-deep water with a linear multiplier.
+				// http://hyperphysics.phy-astr.gsu.edu/hbase/Waves/watwav2.html
+				// http://hyperphysics.phy-astr.gsu.edu/hbase/watwav.html#c1
+				// optimisation - do this outside the loop below - take the median wavelength for depth weighting, intead of computing
+				// per component. computing per component makes little difference to the end result
+				half depth_wt = saturate(depth * _TwoPiOverWavelengths[_NumWaveVecs / 2].x / PI);
+				half4 wt = _AttenuationInShallows * depth_wt + oneMinusAttenuation;
 
 				// gerstner computation is vectorized - processes 4 wave components at once
 				for (uint vi = 0; vi < _NumWaveVecs; vi++)
 				{
-					// attenuate waves based on ocean depth. if depth is greater than 0.5*wavelength, water is considered Deep and wave is
-					// unaffected. if depth is less than this, wave velocity decreases. waves will then bunch up and grow in amplitude and
-					// eventually break. i model "Deep" water, but then simply ramp down waves in non-deep water with a linear multiplier.
-					// http://hyperphysics.phy-astr.gsu.edu/hbase/Waves/watwav2.html
-					// http://hyperphysics.phy-astr.gsu.edu/hbase/watwav.html#c1
-					//half depth_wt = saturate(depth / (0.5 * _MinWavelength)); // slightly different result - do per wavelength for now
-					// The below is a few things collapsed together.
-					half4 depth_wt = saturate(depth * _TwoPiOverWavelengths[vi] / PI);
-					// keep some proportion of amplitude so that there is some waves remaining
-					half4 wt = _AttenuationInShallows * depth_wt + oneMinusAttenuation;
-
 					// direction
 					half4 Dx = _WaveDirX[vi];
 					half4 Dz = _WaveDirZ[vi];
+
+					// Peferred wave direction
+#if _DIRECT_TOWARDS_POINT
+					wt *= max((1.0 + Dx * preferredDirX + Dz * preferredDirZ) / 2.0, 0.1);
+#endif
+
 					// wave number
 					half4 k = _TwoPiOverWavelengths[vi];
 					// spatial location
-					half4 x = Dx * input.worldPos_wt.x + Dz * input.worldPos_wt.y;
+					half4 x = Dx * input.worldPos.x + Dz * input.worldPos.y;
 					half4 angle = k * x + _Phases[vi];
 
 					// dx and dz could be baked into _ChopAmps
@@ -109,9 +134,15 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Batch"
 					result.x += dot(resultx, wt);
 					result.y += dot(resulty, wt);
 					result.z += dot(resultz, wt);
+
+					half4 sssFactor = min(1.0, _TwoPiOverWavelengths[vi]);
+					displacementNormalized.x += dot(resultx * sssFactor, wt);
+					displacementNormalized.y += dot(resultz * sssFactor, wt);
 				}
 
-				return half4(input.worldPos_wt.z * result, 0.0);
+				half sss = length(displacementNormalized);
+
+				return _Weight * half4(result, sss);
 			}
 
 			ENDCG

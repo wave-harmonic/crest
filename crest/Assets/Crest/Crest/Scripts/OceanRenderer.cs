@@ -7,7 +7,7 @@ using UnityEngine;
 namespace Crest
 {
     /// <summary>
-    /// The main script for the ocean system. Attach this to a GameObject to create an ocean. This script initialises the various data types and systems
+    /// The main script for the ocean system. Attach this to a GameObject to create an ocean. This script initializes the various data types and systems
     /// and moves/scales the ocean based on the viewpoint. It also hosts a number of global settings that can be tweaked here.
     /// </summary>
     [ExecuteInEditMode]
@@ -15,12 +15,13 @@ namespace Crest
     {
         [Tooltip("The viewpoint which drives the ocean detail. Defaults to main camera."), SerializeField]
         Transform _viewpoint;
-        public Transform Viewpoint { get { return _viewpoint; } }
+        public Transform Viewpoint { get { return _viewpoint; } set { _viewpoint = value; } }
 
-        [Tooltip("Optional provider for time, can be used to hardcode time for automation, or provide server time. Defaults to local Unity time."), SerializeField]
+        [Tooltip("Optional provider for time, can be used to hard-code time for automation, or provide server time. Defaults to local Unity time."), SerializeField]
         TimeProviderBase _timeProvider;
-        public float CurrentTime { get { return _timeProvider.CurrentTime; } }
-
+        public float CurrentTime => _timeProvider.CurrentTime;
+        public float DeltaTime => _timeProvider.DeltaTime;
+        public float DeltaTimeDynamics => _timeProvider.DeltaTimeDynamics;
 
         [Header("Ocean Params")]
 
@@ -32,10 +33,6 @@ namespace Crest
         string _layerName = "Water";
         public string LayerName { get { return _layerName; } }
 
-        [Tooltip("Wind direction (angle from x axis in degrees)"), Range(-180, 180)]
-        public float _windDirectionAngle = 0f;
-        public Vector2 WindDir { get { return new Vector2(Mathf.Cos(Mathf.PI * _windDirectionAngle / 180f), Mathf.Sin(Mathf.PI * _windDirectionAngle / 180f)); } }
-
         [SerializeField, Delayed, Tooltip("Multiplier for physics gravity."), Range(0f, 10f)]
         float _gravityMultiplier = 1f;
         public float Gravity { get { return _gravityMultiplier * Physics.gravity.magnitude; } }
@@ -43,15 +40,19 @@ namespace Crest
 
         [Header("Detail Params")]
 
-        [Range(0, 15)]
-        [Tooltip("Min number of verts / shape texels per wave.")]
-        public float _minTexelsPerWave = 3f;
+        [Range(2, 16)]
+        [Tooltip("Min number of verts / shape texels per wave."), SerializeField]
+        float _minTexelsPerWave = 3f;
+        public float MinTexelsPerWave => _minTexelsPerWave;
 
-        [Delayed, Tooltip("The smallest scale the ocean can be.")]
-        public float _minScale = 8f;
+        [Delayed, Tooltip("The smallest scale the ocean can be."), SerializeField]
+        float _minScale = 8f;
 
-        [Delayed, Tooltip("The largest scale the ocean can be (-1 for unlimited).")]
-        public float _maxScale = 256f;
+        [Delayed, Tooltip("The largest scale the ocean can be (-1 for unlimited)."), SerializeField]
+        float _maxScale = 256f;
+
+        [Tooltip("Drops the height for maximum ocean detail based on waves. This means if there are big waves, max detail level is reached at a lower height, which can help visual range when there are very large waves and camera is at sea level."), SerializeField, Range(0f, 1f)]
+        float _dropDetailHeightBasedOnWaves = 0.2f;
 
         [SerializeField, Delayed, Tooltip("Resolution of ocean LOD data. Use even numbers like 256 or 384. This is 4x the old 'Base Vert Density' param, so if you used 64 for this param, set this to 256.")]
         int _lodDataResolution = 256;
@@ -104,18 +105,24 @@ namespace Crest
         [Tooltip("Move ocean with viewpoint.")]
         public bool _followViewpoint = true;
 
-        float _viewerAltitudeLevelAlpha = 0f;
+        /// <summary>
+        /// Current ocean scale (changes with viewer altitude).
+        /// </summary>
+        public float Scale { get; private set; }
+        public float CalcLodScale(float lodIndex) { return Scale * Mathf.Pow(2f, lodIndex); }
+        public float CalcGridSize(int lodIndex) { return CalcLodScale(lodIndex) / LodDataResolution; }
+
         /// <summary>
         /// The ocean changes scale when viewer changes altitude, this gives the interpolation param between scales.
         /// </summary>
-        public float ViewerAltitudeLevelAlpha { get { return _viewerAltitudeLevelAlpha; } }
+        public float ViewerAltitudeLevelAlpha { get; private set; }
 
         /// <summary>
         /// Sea level is given by y coordinate of GameObject with OceanRenderer script.
         /// </summary>
         public float SeaLevel { get { return transform.position.y; } }
 
-        [HideInInspector] public LodTransform[] _lods;
+        [HideInInspector] public LodTransform _lodTransform;
         [HideInInspector] public LodDataMgrAnimWaves _lodDataAnimWaves;
         [HideInInspector] public LodDataMgrSeaFloorDepth _lodDataSeaDepths;
         [HideInInspector] public LodDataMgrDynWaves _lodDataDynWaves;
@@ -125,25 +132,32 @@ namespace Crest
         /// <summary>
         /// The number of LODs/scales that the ocean is currently using.
         /// </summary>
-        public int CurrentLodCount { get { return _lods.Length; } }
+        public int CurrentLodCount { get { return _lodTransform.LodCount; } }
 
         /// <summary>
         /// Vertical offset of viewer vs water surface
         /// </summary>
         public float ViewerHeightAboveWater { get; private set; }
 
-        SamplingData _samplingData = new SamplingData();
+        SampleHeightHelper _sampleHeightHelper = new SampleHeightHelper();
+
+        readonly static int sp_crestTime = Shader.PropertyToID("_CrestTime");
+        readonly static int sp_texelsPerWave = Shader.PropertyToID("_TexelsPerWave");
+        readonly static int sp_oceanCenterPosWorld = Shader.PropertyToID("_OceanCenterPosWorld");
+        readonly static int sp_meshScaleLerp = Shader.PropertyToID("_MeshScaleLerp");
+        readonly static int sp_sliceCount = Shader.PropertyToID("_SliceCount");
+
 
         void Awake()
         {
-            if (_material == null)
+            if (!VerifyRequirements())
             {
-                Debug.LogError("A material for the ocean must be assigned on the Material property of the OceanRenderer.", this);
                 enabled = false;
                 return;
             }
 
             Instance = this;
+            Scale = Mathf.Clamp(Scale, _minScale, _maxScale);
 
             OceanBuilder.GenerateMesh(this, _lodDataResolution, _geometryDownSampleFactor, _lodCount);
 
@@ -156,10 +170,25 @@ namespace Crest
             InitTimeProvider();
         }
 
-        [UnityEditor.Callbacks.DidReloadScripts]
-        private static void OnReLoadScripts()
+        bool VerifyRequirements()
         {
-            Instance = FindObjectOfType<OceanRenderer>();
+            if (_material == null)
+            {
+                Debug.LogError("A material for the ocean must be assigned on the Material property of the OceanRenderer.", this);
+                return false;
+            }
+            if (!SystemInfo.supportsComputeShaders)
+            {
+                Debug.LogError("Crest requires graphics devices that support compute shaders.", this);
+                return false;
+            }
+            if (!SystemInfo.supports2DArrayTextures)
+            {
+                Debug.LogError("Crest requires graphics devices that support 2D array textures.", this);
+                return false;
+            }
+
+            return true;
         }
 
         void InitViewpoint()
@@ -180,8 +209,10 @@ namespace Crest
 
         void InitTimeProvider()
         {
-            if (_timeProvider == null)
+            // Used assigned time provider, or use one attached to this game object
+            if (_timeProvider == null && (_timeProvider = GetComponent<TimeProviderBase>()) == null)
             {
+                // None found - create
                 _timeProvider = gameObject.AddComponent<TimeProviderDefault>();
             }
         }
@@ -202,9 +233,20 @@ namespace Crest
         void LateUpdate()
         {
             // set global shader params
-            Shader.SetGlobalFloat("_TexelsPerWave", _minTexelsPerWave);
-            Shader.SetGlobalVector("_WindDirXZ", WindDir);
-            Shader.SetGlobalFloat("_CrestTime", CurrentTime);
+            Shader.SetGlobalFloat(sp_texelsPerWave, MinTexelsPerWave);
+            Shader.SetGlobalFloat(sp_crestTime, CurrentTime);
+            Shader.SetGlobalFloat(sp_sliceCount, CurrentLodCount);
+
+            // LOD 0 is blended in/out when scale changes, to eliminate pops. Here we set it as a global, whereas in OceanChunkRenderer it
+            // is applied to LOD0 tiles only through _InstanceData. This global can be used in compute, where we only apply this factor for slice 0.
+            var needToBlendOutShape = ScaleCouldIncrease;
+            var meshScaleLerp = needToBlendOutShape ? ViewerAltitudeLevelAlpha : 0f;
+            Shader.SetGlobalFloat(sp_meshScaleLerp, meshScaleLerp);
+
+            if (_viewpoint == null)
+            {
+                Debug.LogError("_viewpoint is null, ocean update will fail.", this);
+            }
 
             if (_followViewpoint)
             {
@@ -225,7 +267,7 @@ namespace Crest
 
             transform.position = pos;
 
-            Shader.SetGlobalVector("_OceanCenterPosWorld", transform.position);
+            Shader.SetGlobalVector(sp_oceanCenterPosWorld, transform.position);
         }
 
         void LateUpdateScale()
@@ -233,47 +275,42 @@ namespace Crest
             // reach maximum detail at slightly below sea level. this should combat cases where visual range can be lost
             // when water height is low and camera is suspended in air. i tried a scheme where it was based on difference
             // to water height but this does help with the problem of horizontal range getting limited at bad times.
-            float maxDetailY = SeaLevel - _maxVertDispFromShape / 5f;
-            // scale ocean mesh based on camera distance to sea level, to keep uniform detail.
-            float camY = Mathf.Max(Mathf.Abs(_viewpoint.position.y) - maxDetailY, 0f);
+            float maxDetailY = SeaLevel - _maxVertDispFromWaves * _dropDetailHeightBasedOnWaves;
+            float camDistance = Mathf.Abs(_viewpoint.position.y - maxDetailY);
 
-            const float HEIGHT_LOD_MUL = 2f;
-            float level = camY * HEIGHT_LOD_MUL;
+            // offset level of detail to keep max detail in a band near the surface
+            camDistance = Mathf.Max(camDistance - 4f, 0f);
+
+            // scale ocean mesh based on camera distance to sea level, to keep uniform detail.
+            const float HEIGHT_LOD_MUL = 1f;
+            float level = camDistance * HEIGHT_LOD_MUL;
             level = Mathf.Max(level, _minScale);
             if (_maxScale != -1f) level = Mathf.Min(level, 1.99f * _maxScale);
 
             float l2 = Mathf.Log(level) / Mathf.Log(2f);
             float l2f = Mathf.Floor(l2);
 
-            _viewerAltitudeLevelAlpha = l2 - l2f;
+            ViewerAltitudeLevelAlpha = l2 - l2f;
 
-            float newScale = Mathf.Pow(2f, l2f);
-            transform.localScale = new Vector3(newScale, 1f, newScale);
+            Scale = Mathf.Pow(2f, l2f);
+            transform.localScale = new Vector3(Scale, 1f, Scale);
         }
 
         void LateUpdateViewerHeight()
         {
-            var pos = Viewpoint.position;
-            var rect = new Rect(pos.x, pos.z, 0f, 0f);
+            _sampleHeightHelper.Init(Viewpoint.position, 0f);
 
-            float waterHeight;
-            if (CollisionProvider.GetSamplingData(ref rect, 0f, _samplingData)
-                && CollisionProvider.SampleHeight(ref pos, _samplingData, out waterHeight))
-            {
-                ViewerHeightAboveWater = pos.y - waterHeight;
-            }
+            float waterHeight = 0f;
+            _sampleHeightHelper.Sample(ref waterHeight);
 
-            CollisionProvider.ReturnSamplingData(_samplingData);
+            ViewerHeightAboveWater = Viewpoint.position.y - waterHeight;
         }
 
         void LateUpdateLods()
         {
             // Do any per-frame update for each LOD type.
 
-            foreach (var lt in _lods)
-            {
-                lt.UpdateTransform();
-            }
+            _lodTransform.UpdateTransforms();
 
             if (_lodDataAnimWaves) _lodDataAnimWaves.UpdateLodData();
             if (_lodDataDynWaves) _lodDataDynWaves.UpdateLodData();
@@ -293,22 +330,25 @@ namespace Crest
         public bool ScaleCouldDecrease { get { return _minScale == -1f || transform.localScale.x > _minScale * 1.01f; } }
 
         /// <summary>
-        /// Shape scripts can report in how far they might displace the shape horizontally. The max value is saved here.
-        /// Later the bounding boxes for the ocean tiles will be expanded to account for this potential displacement.
+        /// User shape inputs can report in how far they might displace the shape horizontally and vertically. The max value is
+        /// saved here. Later the bounding boxes for the ocean tiles will be expanded to account for this potential displacement.
         /// </summary>
-        public void ReportMaxDisplacementFromShape(float maxHorizDisp, float maxVertDisp)
+        public void ReportMaxDisplacementFromShape(float maxHorizDisp, float maxVertDisp, float maxVertDispFromWaves)
         {
             if (Time.frameCount != _maxDisplacementCachedTime)
             {
-                _maxHorizDispFromShape = _maxVertDispFromShape = 0f;
+                _maxHorizDispFromShape = _maxVertDispFromShape = _maxVertDispFromWaves = 0f;
             }
 
             _maxHorizDispFromShape += maxHorizDisp;
             _maxVertDispFromShape += maxVertDisp;
+            _maxVertDispFromWaves += maxVertDispFromWaves;
 
             _maxDisplacementCachedTime = Time.frameCount;
         }
-        float _maxHorizDispFromShape = 0f, _maxVertDispFromShape = 0f;
+        float _maxHorizDispFromShape = 0f;
+        float _maxVertDispFromShape = 0f;
+        float _maxVertDispFromWaves = 0f;
         int _maxDisplacementCachedTime = 0;
         /// <summary>
         /// The maximum horizontal distance that the shape scripts are displacing the shape.
@@ -355,6 +395,12 @@ namespace Crest
                 Debug.LogWarning("Adjusted Lod Data Resolution from " + _lodDataResolution + " to " + newLDR + " to ensure the Geometry Down Sample Factor is a factor (" + _geometryDownSampleFactor + ").", this);
                 _lodDataResolution = newLDR;
             }
+        }
+
+        [UnityEditor.Callbacks.DidReloadScripts]
+        private static void OnReLoadScripts()
+        {
+            Instance = FindObjectOfType<OceanRenderer>();
         }
 #endif
     }

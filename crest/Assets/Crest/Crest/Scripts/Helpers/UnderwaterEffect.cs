@@ -32,8 +32,12 @@ namespace Crest
         // how many vertical edges to add to curtain geometry
         const int GEOM_HORIZ_DIVISIONS = 64;
 
-        MaterialPropertyBlock _mpb;
+        PropertyWrapperMPB _mpb;
         Renderer _rend;
+
+        static readonly int sp_HeightOffset = Shader.PropertyToID("_HeightOffset");
+
+        SampleHeightHelper _sampleWaterHeight = new SampleHeightHelper();
 
         private void Start()
         {
@@ -58,7 +62,10 @@ namespace Crest
 
         void ConfigureMaterial()
         {
+            if (OceanRenderer.Instance == null) return;
+            
             var keywords = _rend.sharedMaterial.shaderKeywords;
+
             foreach (var keyword in keywords)
             {
                 if (keyword == "_COMPILESHADERWITHDEBUGINFO_ON") continue;
@@ -83,7 +90,11 @@ namespace Crest
                 return;
             }
 
-            float heightOffset = OceanRenderer.Instance.ViewerHeightAboveWater;
+            float waterHeight = OceanRenderer.Instance.SeaLevel;
+            _sampleWaterHeight.Init(transform.position, 0f);
+            _sampleWaterHeight.Sample(ref waterHeight);
+
+            float heightOffset = transform.position.y - waterHeight;
 
             // Disable skirt when camera not close to water. In the first few frames collision may not be avail, in that case no choice
             // but to assume enabled. In the future this could detect if camera is far enough under water, render a simple quad to avoid
@@ -100,34 +111,37 @@ namespace Crest
                 // Assign lod0 shape - trivial but bound every frame because lod transform comes from here
                 if (_mpb == null)
                 {
-                    _mpb = new MaterialPropertyBlock();
+                    _mpb = new PropertyWrapperMPB();
                 }
-                _rend.GetPropertyBlock(_mpb);
+                _rend.GetPropertyBlock(_mpb.materialPropertyBlock);
 
                 // Underwater rendering uses displacements for intersecting the waves with the near plane, and ocean depth/shadows for ScatterColour()
-                OceanRenderer.Instance._lodDataAnimWaves.BindResultData(0, 0, _mpb);
+                _mpb.SetInt(LodDataMgr.sp_LD_SliceIndex, 0);
+                OceanRenderer.Instance._lodDataAnimWaves.BindResultData(_mpb);
 
                 if (OceanRenderer.Instance._lodDataSeaDepths)
                 {
-                    OceanRenderer.Instance._lodDataSeaDepths.BindResultData(0, 0, _mpb);
+                    OceanRenderer.Instance._lodDataSeaDepths.BindResultData(_mpb);
                 }
                 else
                 {
-                    LodDataMgrSeaFloorDepth.BindNull(0, _mpb);
+                    LodDataMgrSeaFloorDepth.BindNull(_mpb);
                 }
 
                 if (OceanRenderer.Instance._lodDataShadow)
                 {
-                    OceanRenderer.Instance._lodDataShadow.BindResultData(0, 0, _mpb);
+                    OceanRenderer.Instance._lodDataShadow.BindResultData(_mpb);
                 }
                 else
                 {
-                    LodDataMgrShadow.BindNull(0, _mpb);
+                    LodDataMgrShadow.BindNull(_mpb);
                 }
 
-                _mpb.SetFloat("_HeightOffset", heightOffset);
+                _mpb.SetFloat(sp_HeightOffset, heightOffset);
 
-                _rend.SetPropertyBlock(_mpb);
+                _mpb.SetVector(OceanChunkRenderer.sp_InstanceData, new Vector3(OceanRenderer.Instance.ViewerAltitudeLevelAlpha, 0f, 0f));
+
+                _rend.SetPropertyBlock(_mpb.materialPropertyBlock);
             }
         }
 

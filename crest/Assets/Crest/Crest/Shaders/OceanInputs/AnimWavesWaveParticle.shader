@@ -24,6 +24,8 @@ Shader "Crest/Inputs/Animated Waves/Wave Particle"
 
 			float _Radius;
 			float _Amplitude;
+			// TODO add this for all ocean inputs?
+			float _Weight;
 
 			struct Attributes
 			{
@@ -66,7 +68,7 @@ Shader "Crest/Inputs/Animated Waves/Wave Particle"
 
 				float y = r2 * r2 * _Amplitude;
 
-				return float4(0.0, y, 0.0, 0.0);
+				return float4(0.0, y * _Weight, 0.0, 0.0);
 			}
 			
 			ENDCG

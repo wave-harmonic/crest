@@ -12,7 +12,6 @@ Shader "Crest/Underwater Curtain"
 		// builds they need to be preconfigured. This is a pitfall unfortunately - the settings need to be manually matched.
 		[Toggle] _Shadows("Shadowing", Float) = 0
 		[Toggle] _SubSurfaceScattering("Sub-Surface Scattering", Float) = 1
-		[Toggle] _SubSurfaceHeightLerp("Sub-Surface Scattering Height Lerp", Float) = 1
 		[Toggle] _SubSurfaceShallowColour("Sub-Surface Shallow Colour", Float) = 1
 		[Toggle] _Transparency("Transparency", Float) = 1
 		[Toggle] _Caustics("Caustics", Float) = 1
@@ -39,7 +38,6 @@ Shader "Crest/Underwater Curtain"
 			#pragma fragment Frag
 
 			#pragma shader_feature _SUBSURFACESCATTERING_ON
-			#pragma shader_feature _SUBSURFACEHEIGHTLERP_ON
 			#pragma shader_feature _SUBSURFACESHALLOWCOLOUR_ON
 			#pragma shader_feature _TRANSPARENCY_ON
 			#pragma shader_feature _CAUSTICS_ON
@@ -57,6 +55,9 @@ Shader "Crest/Underwater Curtain"
 
 			float _CrestTime;
 			float _HeightOffset;
+
+			// MeshScaleLerp, FarNormalsWeight, LODIndex (debug)
+			float3 _InstanceData;
 
 			#include "../OceanEmission.hlsl"
 
@@ -104,7 +105,7 @@ Shader "Crest/Underwater Curtain"
 				// Spread verts across the near plane.
 				const float aspect = _ScreenParams.x / _ScreenParams.y;
 				o.positionWS = nearPlaneCenter
-					+ 2.1 * unity_CameraInvProjection._m11 * aspect * right * input.positionOS.x * _ProjectionParams.y
+					+ 2.6 * unity_CameraInvProjection._m11 * aspect * right * input.positionOS.x * _ProjectionParams.y
 					+ up * input.positionOS.z * _ProjectionParams.y;
 
 				// Isolate topmost edge
@@ -181,16 +182,16 @@ Shader "Crest/Underwater Curtain"
 				const half3 n_pixel = 0.0;
 				const half3 bubbleCol = 0.0;
 
-				float3 surfaceAboveCamPosWorld = 0.0;
-				const float2 uv_0 = LD_0_WorldToUV(_WorldSpaceCameraPos.xz);
-				SampleDisplacements(_LD_Sampler_AnimatedWaves_0, uv_0, 1.0, surfaceAboveCamPosWorld);
-				surfaceAboveCamPosWorld.y += _OceanCenterPosWorld.y;
+				float3 dummy = 0.0;
+				half sss = 0.;
+				const float3 uv_slice = WorldToUV(_WorldSpaceCameraPos.xz);
+				SampleDisplacements(_LD_TexArray_AnimatedWaves, uv_slice, 1.0, dummy, sss);
 
 				// depth and shadow are computed in ScatterColour when underwater==true, using the LOD1 texture.
 				const float depth = 0.0;
 				const half shadow = 1.0;
 
-				const half3 scatterCol = ScatterColour(surfaceAboveCamPosWorld, depth, _WorldSpaceCameraPos, lightDir, view, shadow, true, true);
+				const half3 scatterCol = ScatterColour(depth, _WorldSpaceCameraPos, lightDir, view, shadow, true, true, sss);
 
 				half3 sceneColour = tex2D(_BackgroundTexture, input.grabPos.xy / input.grabPos.w).rgb;
 

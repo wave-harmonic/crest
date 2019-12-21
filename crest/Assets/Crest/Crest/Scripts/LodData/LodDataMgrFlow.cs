@@ -15,6 +15,7 @@ namespace Crest
     {
         public override string SimName { get { return "Flow"; } }
         public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RGHalf; } }
+        protected override bool NeedToReadWriteTextureData { get { return false; } }
 
         public SimSettingsFlow Settings { get { return OceanRenderer.Instance._simSettingsFlow; } }
         public override void UseSettings(SimSettingsBase settings) { OceanRenderer.Instance._simSettingsFlow = settings as SimSettingsFlow; }
@@ -27,7 +28,7 @@ namespace Crest
 
         bool _targetsClear = false;
 
-        const string FLOW_KEYWORD = "_FLOW_ON";
+        public const string FLOW_KEYWORD = "_FLOW_ON";
 
         protected override void Start()
         {
@@ -56,44 +57,37 @@ namespace Crest
             base.BuildCommandBuffer(ocean, buf);
 
             // if there is nothing in the scene tagged up for depth rendering, and we have cleared the RTs, then we can early out
-            if (_drawList.Count == 0 && _targetsClear)
+            var drawList = RegisterLodDataInputBase.GetRegistrar(GetType());
+            if (drawList.Count == 0 && _targetsClear)
             {
                 return;
             }
 
             for (int lodIdx = OceanRenderer.Instance.CurrentLodCount - 1; lodIdx >= 0; lodIdx--)
             {
-                buf.SetRenderTarget(DataTexture(lodIdx));
+                buf.SetRenderTarget(_targets, 0, CubemapFace.Unknown, lodIdx);
                 buf.ClearRenderTarget(false, true, Color.black);
-
+                buf.SetGlobalInt(sp_LD_SliceIndex, lodIdx);
                 SubmitDraws(lodIdx, buf);
             }
 
             // targets have now been cleared, we can early out next time around
-            if (_drawList.Count == 0)
+            if (drawList.Count == 0)
             {
                 _targetsClear = true;
             }
         }
 
-        static int[] _paramsSampler;
-        public static int ParamIdSampler(int slot)
+        public static string TextureArrayName = "_LD_TexArray_Flow";
+        private static TextureArrayParamIds textureArrayParamIds = new TextureArrayParamIds(TextureArrayName);
+        public static int ParamIdSampler(bool sourceLod = false) { return textureArrayParamIds.GetId(sourceLod); }
+        protected override int GetParamIdSampler(bool sourceLod = false)
         {
-            if (_paramsSampler == null)
-                LodTransform.CreateParamIDs(ref _paramsSampler, "_LD_Sampler_Flow_");
-            return _paramsSampler[slot];
+            return ParamIdSampler(sourceLod);
         }
-        protected override int GetParamIdSampler(int slot)
+        public static void BindNull(IPropertyWrapper properties, bool sourceLod = false)
         {
-            return ParamIdSampler(slot);
-        }
-        public static void BindNull(int shapeSlot, Material properties)
-        {
-            properties.SetTexture(ParamIdSampler(shapeSlot), Texture2D.blackTexture);
-        }
-        public static void BindNull(int shapeSlot, MaterialPropertyBlock properties)
-        {
-            properties.SetTexture(ParamIdSampler(shapeSlot), Texture2D.blackTexture);
+            properties.SetTexture(ParamIdSampler(sourceLod), TextureArrayHelpers.BlackTextureArray);
         }
     }
 }

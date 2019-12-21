@@ -10,15 +10,18 @@
 
 # Initial setup
 
+A video walkthrough of the setup steps below is available on youtube: https://www.youtube.com/watch?v=qsgeG4sSLFw .
+
+Note: Frequently when changing Unity versions the project can appear to break (no ocean rendering, materials appear pink, other issues). Usually restarting the Editor fixes it. In one case the scripts became unassigned in the example content scene, but closing Unity, removing the Library folder, and restarting resolved it.
+
 ## Importing Crest files into project
 
 The steps to set up *Crest* in a new or existing project currently look as follows:
 
-* Switch your project to Linear space rendering under *Edit > Project Settings > Player > Other Settings*. If your platform(s) require Gamma space, the material settings will need to be adjusted to compensate.
+* Switch to Linear space rendering under *Edit/Project Settings/Player/Other Settings*. If your platform(s) require Gamma space, the material settings will need to be adjusted to compensate.
 * Import *Crest* assets by either:
   * Picking a release from the [Releases page](https://github.com/huwb/crest-oceanrender/releases) and importing the desired packages
-  * Getting latest by either cloning this repos or downloading it as a zip, and copying the *Crest* folder and the desired content from the *Crest-Examples* folders into your project. Be sure to always copy the .meta files.
-  * Note that the *Crest* files are separated into the core files to import in any project, and example content. The core is intentionally kept small and general. If you are getting started for the first time you may want to import both and then remove what you don't need from the example content.
+  * Getting latest by either cloning this repos or downloading it as a zip, and copying the *Crest/Assets/Crest/Crest* folder and the desired content from the nearby *Crest-Examples* folders into your project. Be sure to always copy the .meta files.
 
 ## Adding the ocean to a scene
 
@@ -28,7 +31,7 @@ The steps to set up the ocean:
   * Assign the *OceanRenderer* component to it. On startup this component will generate the ocean geometry and do all required initialisation.
   * Assign the desired ocean material to the *OceanRenderer* script - this is a material using the *Crest/Ocean* shader.
   * Set the Y coordinate of the position to the desired sea level.
-* Tag a primary camera as *MainCamera* if one is not tagged already, or provide the viewpoint transform to the *OceanRenderer* script.
+* Tag a primary camera as *MainCamera* if one is not tagged already, or provide the *Viewpoint* transform to the *OceanRenderer* script. If you need to switch between multiple cameras, update the *Viewpoint* field to ensure the ocean follows the correct view.
 * To add waves, create a new GameObject and add the *Shape Gerster Batched* component.
   * On startup this script creates a default ocean shape. To edit the shape, create an asset of type *Crest/Ocean Wave Spectrum* and provide it to this script.
   * Smooth blending of ocean shapes can be achieved by adding multiple *Shape Gerstner Batched* scripts and crossfading them using the *Weight* parameter.
@@ -43,12 +46,30 @@ The steps to set up the ocean:
 ## Ocean look and behaviour
 
 * Ocean material / shading: The default ocean materials contain many tweakable variables to control appearance. Turn off unnecessary features to maximize performance.
-* Animated waves / ocean shape: Configured on the *ShapeGerstnerBatched* script by providing an *Ocean Wave Spectrum* asset. This asset has an equalizer-style interface for tweaking different scales of waves, and also has some parametric wave spectra from the literature for comparison.
+* Animated waves / ocean shape: Configured on the *ShapeGerstnerBatched* script by providing an *Ocean Wave Spectrum* asset.
+This asset has an equalizer-style interface for tweaking different scales of waves, and also has some parametric wave spectra from the literature for comparison.
 * Ocean foam: Configured on the *OceanRenderer* script by providing a *Sim Settings Foam* asset.
 * Dynamic wave simulation: Configured on the *OceanRenderer* script by providing a *Sim Settings Wave* asset.
-* A big strength of *Crest* is that you can add whatever contributions you like into the system. You could add your own shape or deposit foam onto the surface where desired. Inputs are generally tagged with the *Register* scripts and examples can be found in the example content scenes.
+For more information see the *Dynamic Waves* section below.
+* A big strength of *Crest* is that you can add whatever contributions you like into the system. You could add your own shape or deposit foam onto the surface where desired.
+Inputs are generally tagged with the *Register* scripts and examples can be found in the example content scenes.
 
 All settings can be live authored. When tweaking ocean shape it can be useful to freeze time (set *Time.timeScale* to 0) to clearly see the effect of each octave of waves.
+
+### Reflections
+
+Reflections contribute hugely to the appearance of the ocean. The Index of Refraction settings control how much reflection contributes for different view angles. 
+
+The base reflection comes from a one of these sources:
+
+* Unity's specular cubemap. This is the default and is the same as what is applied to glossy objects in the scene. It will support reflection probes, as long as the probe extents cover the ocean tiles, which enables real-time update of the reflection environment (see Unity documentation for more details).
+* Override reflection cubemap. If desired a cubemap can be provided to use for the reflections. For best results supply a HDR cubemap.
+* Procedural skybox - developed for stylized games, this is a simple approximation of sky colours that will give soft results.
+
+This base reflection can then be overridden by dynamic planar reflections. This can be used to augment the reflection with 3D objects such as boat or terrain. This can be enabled by applying the *Ocean Planar Reflections* script to the active camera and configuring which layers get reflected (don't include water). This renders every frame by default but can be configured to render less frequently. This only renders one view but also only captures a limited field of view of reflections, and the reflection directions are scaled down to help keep them in this limited view, which can give a different appearance. Furthermore 'planar' means the surface is approximated by a plane which is not the case for wavey ocean, so the effect can break down. This method is good for capturing local objects like boats etc.
+
+A good strategy for debugging the use of Unity's specular cubemap is to put another reflective/glossy object in the scene near the surface, and verify that it is lit and reflects the scene properly. Crest tries to use the same inputs for lighting/reflections, so if it works for a test object it should work for the water surface as well.
+
 
 ## Ocean construction parameters
 
@@ -80,6 +101,25 @@ The ocean geometry is rendered by Unity as part of the graphics queue, and uses 
 The ocean pixel shader samples normal maps at 2 different scales, both proportional to the current and next LOD scales, and then interpolates the result using *lodAlpha* for a smooth transition. Two layers of foam are added based on different thresholds of the foam value, with black point fading used to blend them.
 
 Some of these components are described in more technical detail at SIGGRAPH 2017 in the *Advances in Real-Time Rendering* course (course page [link](http://advances.realtimerendering.com/s2017/index.html)).
+
+
+# Render order
+
+A typical render order for a frame is the following:
+
+* Opaque geometry is rendered, writes to opaque depth buffer (queue <= 2500)
+* Sky is rendered, probably at zfar with depth test enabled so it only renders outside the opaque surfaces
+* Frame colours and depth are copied out for use later in postprocessing
+* Ocean 'curtain' renders, draws underwater effect from bottom of screen up to water line (queue = 2510)
+  * It is set to render before ocean in UnderwaterEffect.cs
+  * Sky is at zfar and will be fully fogged/obscured by the water volume
+* Ocean renders early in the transparent queue (queue = 2510)
+  * It samples the postprocessing colours and depths, to do refraction
+  * It reads and writes from the frame depth buffer, to ensure waves are sorted correctly
+  * It stomps over the underwater curtain to make a correct final result
+  * It stopms over sky - sky is at zfar and will be fully fogged/obscured by the water volume
+* Particles and alpha render. If they have depth test enabled, they will clip against the surface
+* Postprocessing runs with the postprocessing depth and colours
 
 
 # Ocean LOD data types
@@ -130,10 +170,20 @@ One use case for this is boat wakes. In the *boat.unity* scene, the geometry and
 
 After the simulation is advanced, the results are converted into displacements and copied into the displacement textures to affect the final ocean shape. The sim is added on top of the existing Gerstner waves.
 
-Similar to animated waves, user provided contributions can be rendered into this LOD data to create dynamic wave effects. An example can be found in the boat prefab. Each LOD sim runs independently and it is desirable to add interaction forces into all appropriate sims. The *FeedVelocityToExtrude* script takes into account the boat size and counts how many sims are appropriate, and then weights the interaction forces based on this number, so the force is spread evenly to all sims. As noted above, the sim results will be copied into the dynamic waves LODs and then accumulated up the LOD chain to reconstruct a single simulation.
+Similar to animated waves, user provided contributions can be rendered into this LOD data to create dynamic wave effects. An example can be found in the boat prefab. Each LOD sim runs independently and it is desirable to add interaction forces into all appropriate sims. The *ObjectWaterInteraction* script takes into account the boat size and counts how many sims are appropriate, and then weights the interaction forces based on this number, so the force is spread evenly to all sims. As noted above, the sim results will be copied into the dynamic waves LODs and then accumulated up the LOD chain to reconstruct a single simulation.
 
 The dynamic waves sim can be configured by assigning a Dynamic Wave Sim Settings asset to the OceanRenderer script in your scene (*Create/Crest/Dynamic Wave Sim Settings*).
 
+## Simulation setup
+
+This is the recommended workflow for configuring the dynamic wave simulation. All of the settings below refer to the *Dynamic Wave Sim Settings*.
+
+1. Set the *Gravity Multiplier* to the lowest value that is satisfactory. Higher values will make the simulated waves travel faster, but make the simulation more unstable and require more update steps / expense.
+2. Increase *Damping* as high as possible. Higher values make the sim easier to solve, but makes the waves fade faster and limits their range.
+3. Set the *Courant Number* to the highest value which still yields a stable sim. Higher values reduce cost but reduce stability. Put the camera low down near the water while testing as the most detailed waves are the most unstable.
+4. Reduce *Max Sim Steps Per Frame* as much as possible to reduce the simulation cost. This may slow down waves in the lower LOD levels, which are the most detailed waves. Hopefully this slight slow down in just the smallest wavelengths is not noticeable/objectionable for the player. If waves are visible travelling too slow, increase it.
+
+The *OceanDebugGUI* script gives the debug overlay in the example content scenes and reports the number of sim steps taken and sim step dt at each frame.
 
 ## Foam
 
@@ -146,12 +196,7 @@ The foam sim can be configured by assigning a Foam Sim Settings asset to the Oce
 
 ## Sea Floor Depth
 
-This LOD data provides a sense of water depth. This is useful information for the system; it is used to attenuate large waves in shallow water, to generate foam near shorelines, and to provide shallow water shading. It is calculated by rendering the render geometry in the scene for each LOD from a top down perspective and recording the Y value of the surface.
-
-The following will contribute to ocean depth:
-
-* Objects that have the *RegisterSeaFloorDepthInput* component attached. These objects will render every frame. This is useful for any dynamically moving surfaces that need to generate shoreline foam, etc.
-* It is also possible to place world space depth caches. The scene objects will be rendered into this cache once, and the results saved. Once the cache is populated it is then copied into the Sea Floor Depth LOD Data.
+This LOD data provides a sense of water depth. More information about how this is used is in the **Shorelines and shallow water** section below.
 
 
 ## Shadow
@@ -160,38 +205,50 @@ To enable shadowing of the ocean surface, data is captured from the shadow maps 
 
 It stores two channels - one channel is normal shadowing, and the other jitters the lookup and accumulates across many frames to blur and soften the shadow data. The latter channel is used to affect scattered light within the water volume.
 
-The shadow sim can be configured by assigning a Shadow Sim Settings asset to the OceanRenderer script in your scene (*Create/Crest/Shadow Sim Settings*).
+The shadow sim can be configured by assigning a Shadow Sim Settings asset to the OceanRenderer script in your scene (*Create/Crest/Shadow Sim Settings*). In particular, the soft shadows are very soft by default, and may not appear for small/thin shadow casters. This can be configured using the *Jitter Diameter Soft* setting.
+
+Currently in the built-in render pipeline, shadows only work when the primary camera is set to Forward rendering.
+
+
+# Shorelines and shallow water
+
+For this information in video format, see here: https://www.youtube.com/watch?v=jcmqUlboTUk
+
+*Crest* requires water depth information to attenuate large waves in shallow water, to generate foam near shorelines, and to provide shallow water shading. It is calculated by rendering the render geometry in the scene for each LOD from a top down perspective and recording the Y value of the surface.
+
+When the ocean is e.g. 250m deep, this will start to dampen 500m wavelengths, so it is recommended that the sea floor drop down to around this depth away from islands so that there is a smooth transition between shallow and deep water without a 'step' in the sea floor which appears as a discontinuity in the surface waves and/or a line of foam.
+
+One way to inform *Crest* of the seabed is to attach the *RegisterSeaFloorDepthInput* component. *Crest* will record the height of these objects every frame, so they can be dynamic.
+
+This dynamic update comes at a cost. For parts for of the seabed which are static, *Crest* has a mechanism for recording their heights just once, instead of updating every frame, using an ocean depth cache. The *main.unity* example scene has an example of a cache set up around the island. The cache GameObject is called *IslandDepthCache* and has a *OceanDepthCache* component attached. The following are the key points of its configuration:
+
+* The transform position X and Z are centered over the island
+* The transform position Y value is set to the sea level
+* The transform scale is set to 540 which sets the size of the cache. If gizmos are visible and the cache is selected, the area is demarcated with a white rectangle.
+* The *Camera Max Terrain Height* is the max height of any surfaces above the sea level that will render into the cache. If gizmos are visible and the cache is selected, this cut-off height is visualised as a translucent gray rectangle.
+* The *Layer Names* field contains the layer that the island is assigned to: *Terrain*. Only objects in these layer(s) will render into the cache.
+
+On startup, validation is done on the cache (and on various other components of the *Crest* setup). Be sure to check the log for warnings and errors.
+
+At runtime, a child object underneath the cache will be created with the prefix *Draw_* it will have a material with a *Texture* property. By double clicking the icon to the right of this field, one can inspect the contents of the cache.
 
 
 # Collision Shape for Physics
 
-There are two options to access the ocean shape on the CPU (from script) in order to compute buoyancy physics or perform camera collision, etc.
-These options are configured on the *Animated Waves Sim Settings*, assigned to the OceanRenderer script, using the Collision Source dropdown.
-These options are described in the following sections.
+The system has a few paths for computing information about the water surface such as height, displacement, flow and surface velocity.
+These paths are covered in the following subsections, and are configured on the *Animated Waves Sim Settings*, assigned to the OceanRenderer script, using the Collision Source dropdown.
 
 The system supports sampling collision at different resolutions.
 The query functions have a parameter *Min Spatial Length* which is used to indicate how much detail is desired.
 Wavelengths smaller than half of this min spatial length will be excluded from consideration.
 
-Sampling the height of a displacement texture is in general non-trivial.
-A displacement can define a concave surface with overhanging elements such as a wave that has begun to break.
-At such locations the surface has multiple heights, so we need some mechanism to search for a height.
-Luckily there is a powerful tool to do this search known as Fixed Point Iteration (FPI).
-For an introduction to FPI and a discussion of this scenario see this GDC talk: [link](http://www.huwbowles.com/fpi-gdc-2016/).
-Computing this height is relatively expensive as each search step samples the displacement.
-To help reduce cost a height cache can be enabled in the *Animated Waves Sim Settings* which will cache the water height at a 2D position so that any subsequent samples in the same frame will quickly return the height.
+## Compute Shader Queries
 
-## Ocean Displacement Textures GPU
+This is the default and recommended choice.
+Query positions are uploaded to a compute shader which then samples the ocean data and returns the desired results.
+The result of the query accurately tracks the height of the surface, including all shape deformations and waves.
 
-This collision source copies the displacement textures from the GPU to the CPU. It does so asynchronously and the data typically takes 2-3 frames to arrive.
- This is the default collision source and gives the final ocean shape, including any bespoke shape rendering, attenuation from water depth, and any other effects.
-
-It uses memory bandwidth to transfer this data and CPU time to take a copy of it once it arrives, so it is best to limit the number of textures copied.
-If you know in advance the limits of the minimum spatial lengths you will be requesting, set these on the *Animated Waves Sim Settings* using the *Min Object Width* and *Max Object Width* fields.
-
-As described above the displacements are arranged as cascaded textures which shift based on the elevation of the viewpoint.
-This complicates matters significantly as the requested resolutions may or may not exist at different times.
-Call *ICollProvider.CheckAvailability()* at run-time to check for issues and perform validation.
+This system does not require detailed configuration and has the best performance characteristics.
 
 ## Gerstner Waves CPU
 
@@ -203,12 +260,37 @@ It also does not include wave attenuation from water depth or any custom rendere
 A final limitation is the current system finds the first GerstnerWavesBatched component in the scene which may or may not be the correct one.
 The system does not support cross blending of multiple scripts.
 
+## Ocean Displacement Textures GPU (DEPRECATED)
+
+This collision source copies the displacement textures from the GPU to the CPU.
+It does so asynchronously and the data typically takes 2-3 frames to arrive.
+This is the default collision source and gives the final ocean shape, including any bespoke shape rendering, attenuation from water depth, and any other effects.
+
+It uses memory bandwidth to transfer this data and CPU time to take a copy of it once it arrives, so it is best to limit the number of textures copied.
+If you know in advance the limits of the minimum spatial lengths you will be requesting, set these on the *Animated Waves Sim Settings* using the *Min Object Width* and *Max Object Width* fields.
+
+As described above the displacements are arranged as cascaded textures which shift based on the elevation of the viewpoint.
+This complicates matters significantly as the requested resolutions may or may not exist at different times.
+Call *ICollProvider.CheckAvailability()* at run-time to check for issues and perform validation.
+
+## Technical Notes
+
+Sampling the height of a displacement texture is in general non-trivial.
+A displacement can define a concave surface with overhanging elements such as a wave that has begun to break.
+At such locations the surface has multiple heights, so we need some mechanism to search for a height.
+Luckily there is a powerful tool to do this search known as Fixed Point Iteration (FPI).
+For an introduction to FPI and a discussion of this scenario see this GDC talk: [link](http://www.huwbowles.com/fpi-gdc-2016/).
+Computing this height is relatively expensive as each search step samples the displacement.
+To help reduce cost a height cache can be enabled in the *Animated Waves Sim Settings* which will cache the water height at a 2D position so that any subsequent samples in the same frame will quickly return the height.
+
 
 # Other features
 
 ## Underwater
 
 *Crest* supports seamless transitions above/below water. This is demonstrated in the *main.unity* scene in the example content. The ocean in this scene uses the material *Ocean-Underwater.mat* which enables rendering the underside of the surface, and has the prefab *UnderWaterCurtainGeom* parented to the camera which renders the underwater effect. It also has the prefab *UnderWaterMeniscus* parented which renders a subtle line at the intersection between the camera lens and the water to visually help the transition.
+
+The density of the fog underwater can be controlled using the *Fog Density* parameter on the ocean material. This applies to both above water and underwater.
 
 ## Masking out surface
 
@@ -230,3 +312,66 @@ It is tricky to get pop free results for world space texturing. To make it work 
   * Caustics - also should be a power of 2 scale, if caustics are visible when origin shifts happen 
 
 By default the *FloatingOrigin* script will call *FindObjectsOfType()* for a few different component types, which is a notoriously expensive operation. It is possible to provide custom lists of components to the 'override' fields, either by hand or programmatically, to avoid searching the entire scene(s) for the components. Managing these lists at run-time is left to the user.
+
+## Buoyancy / Floating Physics
+
+*SimpleFloatingObject* is a simple buoyancy script that attempts to match the object position and rotation with the surface height and normal. This can work well enough for small water craft that don't need perfect floating behaviour, or floating objects such as buoys, barrels, etc.
+
+*BoatProbes* is a more advanced implementation that computes buoyancy forces at a number of *ForcePoints* and uses these to apply force and torque to the object. This gives more accurate results at the cost of more queries.
+
+*BoatAlignNormal* is a rudimentary boat physics emulator that attaches an engine and rudder to *SimpleFloatingObject*. It's not recommended for cases where high animation quality is required.
+
+### Adding boats
+
+Setting up a boat with physics can be a dark art. The authors recommend duplicating and modifying one of the existing boat prefabs, and proceeding slowly and carefully as follows:
+
+* Pick an existing boat to replace. Only use *BoatAlignNormal* if good floating behaviour is not important, as mentioned above. The best choice is usually boat probes.
+* Duplicate the prefab of the one you want to replace, such as *crest\Assets\Crest\Crest-Examples\BoatDev\Data\BoatProbes.prefab*
+* Remove the render meshes from the prefab, and add the render mesh for your boat. We recommend lining up the meshes roughly.
+* Switch out the collision shape as desired. Some people report issues if the are multiple overlapping physics collision primitives (or multiple rigidbodies which should never be the case). We recommend keeping things as simple as possible and using only one collider if possible.
+* We recommend placing the render mesh so its approximate center of mass matches the center of the collider and is at the center of the boat transform. Put differently, we usually try to eliminate complex hierarchies or having nested non-zero'd transforms whenever possible within the boat hierarchy, at least on or above physical parts.
+* If you have followed these steps you will have a new boat visual mesh and collider, with the old rigidbody and boat script. You can then modify the physics settings to move the behaviour towards how you want it to be.
+* The mass and drag settings on the boat scripts and rigdibody help to give a feeling of weight.
+* Set the boat dimension:
+  * BoatProbes: Set the *Min Spatial Length* param to the width of the boat.
+  * BoatAlignNormal: Set the boat Boat Width and Boat Length to the width and length of the boat.
+  * If, even after experimenting with the mass and drag, the boat is responding too much to small waves, increase these parameters (try doubling or quadrupling at first and then compensate). 
+* There are power settings for engine turning which also help to give a feeling of weight
+* The dynamic wave interaction is driven by the object in the boat hierarchy called *WaterObjectInteractionSphere*. It can be scaled to match the dimensions of the boat. The *Weight* param controls the strength of the interaction.
+
+The above steps should maintain a working boat throughout - we recommend testing after each step to catch issues early.
+
+
+# Q&A
+
+**Can I sample the water height at a position from C#?**
+Yes, see *SampleHeightHelper*. *OceanRenderer* uses this helper to get the height of the viewer above the water, and makes this viewer height available via the *ViewerHeightAboveWater* property.
+
+**Is Crest well suited for medium-to-low powered mobile devices?**
+Crest is built to be performant by design and has numerous quality/performance levers.
+However it is also built to be very flexible and powerful and as such can not compete with a minimal, mobile-centric ocean renderer such as the one in the *BoatAttack* project.
+Therefore we target Crest at PC/console platforms.
+
+**Which platforms does Crest support?**
+Testing occurs primarily on Windows.
+We have users targeting Windows, Mac, Linux, PS4, XboxOne, Switch and iOS/Android.
+Performance is a challenge on Switch and mobile platforms - see the previous question.
+
+**Is Crest well suited for localised bodies of water such as lakes?**
+Currently Crest is currrently targeted towards large bodies of water.
+The water could be pushed down where it's not wanted which would allow it to achieve rivers and lakes to some extent.
+
+**Does Crest support third party sky assets?**
+We have heard of Crest users using TrueSky, AzureSky.
+These may require some code to be inserted into the ocean shader - there is a comment referring to this, search *Ocean.shader* for 'Azure'.
+
+**Can Crest work in Edit mode in the Unity Editor, or only in Play mode?**
+Currently it only works in Play mode. Some work has been done to make it work in Edit mode but more work/fixes/testing is needed. https://github.com/huwb/crest-oceanrender/issues/208
+
+**Can Crest work with multiplayer?**
+Yes the animated waves are deterministic and easily synchronized.
+See discussion in https://github.com/huwb/crest-oceanrender/issues/75.
+However, the dynamic wave sim is not fully deterministic and can not currently be relied upon networked situations.
+
+**Can the density of the fog in the water be reduced?**
+The density of the fog underwater can be controlled using the *Fog Density* parameter on the ocean material. This applies to both above water and underwater.

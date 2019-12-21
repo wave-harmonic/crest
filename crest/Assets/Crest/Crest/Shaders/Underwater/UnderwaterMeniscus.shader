@@ -62,7 +62,7 @@ Shader "Crest/Underwater Meniscus"
 				// Spread verts across the near plane.
 				const float aspect = _ScreenParams.x / _ScreenParams.y;
 				o.worldPos = nearPlaneCenter
-					+ 2.01 * unity_CameraInvProjection._m11 * aspect * right * input.positionOS.x * _ProjectionParams.y
+					+ 2.6 * unity_CameraInvProjection._m11 * aspect * right * input.positionOS.x * _ProjectionParams.y
 					+ up * input.positionOS.z * _ProjectionParams.y;
 
 				if (abs(forward.y) < CREST_MAX_UPDOWN_AMOUNT)
@@ -102,7 +102,7 @@ Shader "Crest/Underwater Meniscus"
 				const half3 col = 1.3*half3(0.37, 0.4, 0.5);
 				float alpha = abs(input.uv.y - 0.5);
 				alpha = pow(smoothstep(0.5, 0.0, alpha), 0.5);
-				return half4(lerp(1.0, col, alpha), alpha);
+				return half4(lerp((half3)1.0, col, alpha), alpha);
 			}
 			ENDCG
 		}

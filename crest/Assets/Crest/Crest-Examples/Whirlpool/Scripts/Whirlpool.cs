@@ -70,16 +70,17 @@ namespace Crest
             Destroy(input.GetComponent<Collider>());
             input.name = typeof(RegisterInputType).Name;
             input.transform.parent = transform;
-            input.transform.position = new Vector3(0f, -100f, 0f);
+            input.transform.localPosition = new Vector3(0f, 0f, 0f);
             input.transform.localEulerAngles = new Vector3(90f, 0f, 0f);
-            input.transform.localScale = new Vector3(radius * 2f, radius * 2f, 1f);
+            input.transform.localScale = new Vector3(radius, radius, 1f);
             input.GetComponent<Renderer>().material = material;
             input.AddComponent<RegisterInputType>();
         }
 
         void Update()
         {
-            OceanRenderer.Instance.ReportMaxDisplacementFromShape(0, _amplitude);
+            OceanRenderer.Instance.ReportMaxDisplacementFromShape(0f, _amplitude, 0f);
+
             UpdateMaterials();
         }
     }

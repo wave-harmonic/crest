@@ -4,138 +4,179 @@
 
 // Ocean LOD data - data, samplers and functions associated with LODs
 
+// NOTE: This must match the value in LodDataMgr.cs, as it is used to allow the
+// C# code to check if any parameters are within the MAX_LOD_COUNT limits
+#define MAX_LOD_COUNT 15
+
+// NOTE: these MUST match the values in PropertyWrapper.cs
+#define THREAD_GROUP_SIZE_X 8
+#define THREAD_GROUP_SIZE_Y 8
+
+// 'Current' target/source slice index
+const uint _LD_SliceIndex;
 
 // Samplers and data associated with a LOD.
 // _LD_Params: float4(world texel size, texture resolution, shape weight multiplier, 1 / texture resolution)
-#define LOD_DATA(LODNUM) \
-	uniform sampler2D _LD_Sampler_AnimatedWaves_##LODNUM; \
-	uniform sampler2D _LD_Sampler_SeaFloorDepth_##LODNUM; \
-	uniform sampler2D _LD_Sampler_Foam_##LODNUM; \
-	uniform sampler2D _LD_Sampler_Flow_##LODNUM; \
-	uniform sampler2D _LD_Sampler_DynamicWaves_##LODNUM; \
-	uniform sampler2D _LD_Sampler_Shadow_##LODNUM; \
-	uniform float4 _LD_Params_##LODNUM; \
-	uniform float3 _LD_Pos_Scale_##LODNUM;
+Texture2DArray _LD_TexArray_AnimatedWaves;
+Texture2DArray _LD_TexArray_WaveBuffer;
+Texture2DArray _LD_TexArray_SeaFloorDepth;
+Texture2DArray _LD_TexArray_Foam;
+Texture2DArray _LD_TexArray_Flow;
+Texture2DArray _LD_TexArray_DynamicWaves;
+Texture2DArray _LD_TexArray_Shadow;
+// _LD_Params: float4(world texel size, texture resolution, shape weight multiplier, 1 / texture resolution)
+const float4 _LD_Params[MAX_LOD_COUNT + 1];
+const float3 _LD_Pos_Scale[MAX_LOD_COUNT + 1];
 
-// Create two sets of LOD data, which have overloaded meaning depending on use:
-// * the ocean surface geometry always lerps from a more detailed LOD (0) to a less detailed LOD (1)
-// * simulations (persistent lod data) read last frame's data from slot 0, and any current frame data from slot 1
-// * any other use that does not fall into the previous categories can use either slot and generally use slot 0
-LOD_DATA( 0 )
-LOD_DATA( 1 )
+// These are used in lods where we operate on data from
+// previously calculated lods. Used in simulations and
+// shadowing for example.
+Texture2DArray _LD_TexArray_AnimatedWaves_Source;
+Texture2DArray _LD_TexArray_WaveBuffer_Source;
+Texture2DArray _LD_TexArray_SeaFloorDepth_Source;
+Texture2DArray _LD_TexArray_Foam_Source;
+Texture2DArray _LD_TexArray_Flow_Source;
+Texture2DArray _LD_TexArray_DynamicWaves_Source;
+Texture2DArray _LD_TexArray_Shadow_Source;
+const float4 _LD_Params_Source[MAX_LOD_COUNT + 1];
+const float3 _LD_Pos_Scale_Source[MAX_LOD_COUNT + 1];
+
+SamplerState LODData_linear_clamp_sampler;
+SamplerState LODData_point_clamp_sampler;
 
 // Bias ocean floor depth so that default (0) values in texture are not interpreted as shallow and generating foam everywhere
-#define CREST_OCEAN_DEPTH_BASELINE 1000.
+#define CREST_OCEAN_DEPTH_BASELINE 1000.0
 
-// Conversions for world space from/to UV space
+// Conversions for world space from/to UV space. All these should *not* be clamped otherwise they'll break fullscreen triangles.
 float2 LD_WorldToUV(in float2 i_samplePos, in float2 i_centerPos, in float i_res, in float i_texelSize)
 {
 	return (i_samplePos - i_centerPos) / (i_texelSize * i_res) + 0.5;
 }
-float2 LD_0_WorldToUV(in float2 i_samplePos) { return LD_WorldToUV(i_samplePos, _LD_Pos_Scale_0.xy, _LD_Params_0.y, _LD_Params_0.x); }
-float2 LD_1_WorldToUV(in float2 i_samplePos) { return LD_WorldToUV(i_samplePos, _LD_Pos_Scale_1.xy, _LD_Params_1.y, _LD_Params_1.x); }
+
+float3 WorldToUV(in float2 i_samplePos, in uint i_sliceIndex) {
+	const float2 result = LD_WorldToUV(
+		i_samplePos,
+		_LD_Pos_Scale[i_sliceIndex].xy,
+		_LD_Params[i_sliceIndex].y,
+		_LD_Params[i_sliceIndex].x
+	);
+	return float3(result, i_sliceIndex);
+}
+
+float3 WorldToUV_BiggerLod(in float2 i_samplePos, in uint i_sliceIndex_BiggerLod) {
+	const float2 result = LD_WorldToUV(
+		i_samplePos, _LD_Pos_Scale[i_sliceIndex_BiggerLod].xy,
+		_LD_Params[i_sliceIndex_BiggerLod].y,
+		_LD_Params[i_sliceIndex_BiggerLod].x
+	);
+	return float3(result, i_sliceIndex_BiggerLod);
+}
+
+float3 WorldToUV_Source(in float2 i_samplePos, in uint i_sliceIndex_Source) {
+	const float2 result = LD_WorldToUV(
+		i_samplePos,
+		_LD_Pos_Scale_Source[i_sliceIndex_Source].xy,
+		_LD_Params_Source[i_sliceIndex_Source].y,
+		_LD_Params_Source[i_sliceIndex_Source].x
+	);
+	return float3(result, i_sliceIndex_Source);
+}
+
 
 float2 LD_UVToWorld(in float2 i_uv, in float2 i_centerPos, in float i_res, in float i_texelSize)
 {
 	return i_texelSize * i_res * (i_uv - 0.5) + i_centerPos;
 }
-float2 LD_0_UVToWorld(in float2 i_uv) { return LD_UVToWorld(i_uv, _LD_Pos_Scale_0.xy, _LD_Params_0.y, _LD_Params_0.x); }
-float2 LD_1_UVToWorld(in float2 i_uv) { return LD_UVToWorld(i_uv, _LD_Pos_Scale_1.xy, _LD_Params_1.y, _LD_Params_1.x); }
+
+float2 UVToWorld(in float2 i_uv, in float i_sliceIndex) { return LD_UVToWorld(i_uv, _LD_Pos_Scale[i_sliceIndex].xy, _LD_Params[i_sliceIndex].y, _LD_Params[i_sliceIndex].x); }
+
+// Shortcuts if _LD_SliceIndex is set
+float3 WorldToUV(in float2 i_samplePos) { return WorldToUV(i_samplePos, _LD_SliceIndex); }
+float3 WorldToUV_BiggerLod(in float2 i_samplePos) { return WorldToUV_BiggerLod(i_samplePos, _LD_SliceIndex + 1); }
+float2 UVToWorld(in float2 i_uv) { return UVToWorld(i_uv, _LD_SliceIndex); }
+
+// Convert compute shader id to uv texture coordinates
+float2 IDtoUV(in float2 i_id, in float i_width, in float i_height)
+{
+	return (i_id + 0.5) / float2(i_width, i_height);
+}
 
 
 // Sampling functions
-void SampleDisplacements(in sampler2D i_dispSampler, in float2 i_uv, in float i_wt, inout float3 io_worldPos)
+void SampleDisplacements(in Texture2DArray i_dispSampler, in float3 i_uv_slice, in float i_wt, inout float3 io_worldPos, inout float io_sss)
 {
-	const half3 disp = tex2Dlod(i_dispSampler, float4(i_uv, 0., 0.)).xyz;
-	io_worldPos += i_wt * disp;
+	const half4 data = i_dispSampler.SampleLevel(LODData_linear_clamp_sampler, i_uv_slice, 0.0);
+	io_worldPos += i_wt * data.xyz;
+	io_sss += i_wt * data.a;
 }
 
-void SampleDisplacementsNormals(in sampler2D i_dispSampler, in float2 i_uv, in float i_wt, in float i_invRes, in float i_texelSize, inout float3 io_worldPos, inout half2 io_nxz)
+void SampleDisplacementsNormals(in Texture2DArray i_dispSampler, in float3 i_uv_slice, in float i_wt, in float i_invRes, in float i_texelSize, inout float3 io_worldPos, inout half2 io_nxz, inout half io_sss)
 {
-	const float4 uv = float4(i_uv, 0., 0.);
-
-	const half3 disp = tex2Dlod(i_dispSampler, uv).xyz;
+	const half4 data = i_dispSampler.SampleLevel(LODData_linear_clamp_sampler, i_uv_slice, 0.0);
+	io_sss += i_wt * data.a;
+	const half3 disp = data.xyz;
 	io_worldPos += i_wt * disp;
 
 	float3 n; {
 		float3 dd = float3(i_invRes, 0.0, i_texelSize);
-		half3 disp_x = dd.zyy + tex2Dlod(i_dispSampler, uv + dd.xyyy).xyz;
-		half3 disp_z = dd.yyz + tex2Dlod(i_dispSampler, uv + dd.yxyy).xyz;
+		half3 disp_x = dd.zyy + i_dispSampler.SampleLevel(LODData_linear_clamp_sampler, i_uv_slice + float3(dd.xy, 0.0), dd.y).xyz;
+		half3 disp_z = dd.yyz + i_dispSampler.SampleLevel(LODData_linear_clamp_sampler, i_uv_slice + float3(dd.yx, 0.0), dd.y).xyz;
 		n = normalize(cross(disp_z - disp, disp_x - disp));
 	}
 	io_nxz += i_wt * n.xz;
 }
 
-void SampleFoam(in sampler2D i_oceanFoamSampler, float2 i_uv, in float i_wt, inout half io_foam)
+void SampleFoam(in Texture2DArray i_oceanFoamSampler, in float3 i_uv_slice, in float i_wt, inout half io_foam)
 {
-	io_foam += i_wt * tex2Dlod(i_oceanFoamSampler, float4(i_uv, 0., 0.)).x;
+	io_foam += i_wt * i_oceanFoamSampler.SampleLevel(LODData_linear_clamp_sampler, i_uv_slice, 0.0).x;
 }
 
-void SampleFlow(in sampler2D i_oceanFlowSampler, float2 i_uv, in float i_wt, inout half2 io_flow)
+void SampleFlow(in Texture2DArray i_oceanFlowSampler, in float3 i_uv_slice, in float i_wt, inout half2 io_flow)
 {
-	const float4 uv = float4(i_uv, 0., 0.);
-	io_flow += i_wt * tex2Dlod(i_oceanFlowSampler, uv).xy;
+	io_flow += i_wt * i_oceanFlowSampler.SampleLevel(LODData_linear_clamp_sampler, i_uv_slice, 0.0).xy;
 }
 
-void SampleSeaFloorHeightAboveBaseline(in sampler2D i_oceanDepthSampler, float2 i_uv, in float i_wt, inout half io_oceanDepth)
+void SampleSeaDepth(in Texture2DArray i_oceanDepthSampler, in float3 i_uv_slice, in float i_wt, inout half io_oceanDepth)
 {
-	io_oceanDepth += i_wt * (tex2Dlod(i_oceanDepthSampler, float4(i_uv, 0., 0.)).x);
+	io_oceanDepth += i_wt * (i_oceanDepthSampler.SampleLevel(LODData_linear_clamp_sampler, i_uv_slice, 0.0).x - CREST_OCEAN_DEPTH_BASELINE);
 }
 
-void SampleShadow(in sampler2D i_oceanShadowSampler, float2 i_uv, in float i_wt, inout half2 io_shadow)
+void SampleShadow(in Texture2DArray i_oceanShadowSampler, in float3 i_uv_slice, in float i_wt, inout half2 io_shadow)
 {
-	io_shadow += i_wt * tex2Dlod(i_oceanShadowSampler, float4(i_uv, 0., 0.)).xy;
+	io_shadow += i_wt * i_oceanShadowSampler.SampleLevel(LODData_linear_clamp_sampler, i_uv_slice, 0.0).xy;
 }
+
+#define SampleLod(i_lodTextureArray, i_uv_slice) (i_lodTextureArray.SampleLevel(LODData_linear_clamp_sampler, i_uv_slice, 0.0))
+#define SampleLodLevel(i_lodTextureArray, i_uv_slice, mips) (i_lodTextureArray.SampleLevel(LODData_linear_clamp_sampler, i_uv_slice, mips))
 
 // Geometry data
 // x: Grid size of lod data - size of lod data texel in world space.
 // y: Grid size of geometry - distance between verts in mesh.
 // zw: normalScrollSpeed0, normalScrollSpeed1
-uniform float4 _GeomData;
-uniform float3 _OceanCenterPosWorld;
+float4 _GeomData;
+float3 _OceanCenterPosWorld;
+float _SliceCount;
 
-float ComputeLodAlpha(float3 i_worldPos, float i_meshScaleAlpha)
+void PosToSliceIndices(const float2 worldXZ, const float meshScaleLerp, const float minSlice, out uint slice0, out uint slice1, out float lodAlpha)
 {
-	// taxicab distance from ocean center drives LOD transitions
-	float2 offsetFromCenter = float2(abs(i_worldPos.x - _OceanCenterPosWorld.x), abs(i_worldPos.z - _OceanCenterPosWorld.z));
-	float taxicab_norm = max(offsetFromCenter.x, offsetFromCenter.y);
+	const float2 offsetFromCenter = abs(worldXZ - _OceanCenterPosWorld.xz);
+	const float taxicab = max(offsetFromCenter.x, offsetFromCenter.y);
+	const float radius0 = _LD_Pos_Scale[0].z;
+	const float sliceNumber = clamp(log2(taxicab / radius0), minSlice, _SliceCount - 1.0);
 
-	// interpolation factor to next lod (lower density / higher sampling period)
-	float lodAlpha = taxicab_norm / _LD_Pos_Scale_0.z - 1.0;
+	lodAlpha = frac(sliceNumber);
+	slice0 = (uint)sliceNumber;
+	slice1 = slice0 + 1;
 
 	// lod alpha is remapped to ensure patches weld together properly. patches can vary significantly in shape (with
 	// strips added and removed), and this variance depends on the base density of the mesh, as this defines the strip width.
 	// using .15 as black and .85 as white should work for base mesh density as low as 16.
 	const float BLACK_POINT = 0.15, WHITE_POINT = 0.85;
-	lodAlpha = max((lodAlpha - BLACK_POINT) / (WHITE_POINT - BLACK_POINT), 0.);
+	lodAlpha = saturate((lodAlpha - BLACK_POINT) / (WHITE_POINT - BLACK_POINT));
 
-	// blend out lod0 when viewpoint gains altitude
-	lodAlpha = min(lodAlpha + i_meshScaleAlpha, 1.);
-
-#if _DEBUGDISABLESMOOTHLOD_ON
-	lodAlpha = 0.;
-#endif
-
-	return lodAlpha;
-}
-
-void SnapAndTransitionVertLayout(float i_meshScaleAlpha, inout float3 io_worldPos, out float o_lodAlpha)
-{
-	// see comments above on _GeomData
-	const float GRID_SIZE_2 = 2.0*_GeomData.y, GRID_SIZE_4 = 4.0*_GeomData.y;
-
-	// snap the verts to the grid
-	// The snap size should be twice the original size to keep the shape of the eight triangles (otherwise the edge layout changes).
-	io_worldPos.xz -= frac(unity_ObjectToWorld._m03_m23 / GRID_SIZE_2) * GRID_SIZE_2; // caution - sign of frac might change in non-hlsl shaders
-
-	// compute lod transition alpha
-	o_lodAlpha = ComputeLodAlpha(io_worldPos, i_meshScaleAlpha);
-
-	// now smoothly transition vert layouts between lod levels - move interior verts inwards towards center
-	float2 m = frac(io_worldPos.xz / GRID_SIZE_4); // this always returns positive
-	float2 offset = m - 0.5;
-	// check if vert is within one square from the center point which the verts move towards
-	const float minRadius = 0.26; //0.26 is 0.25 plus a small "epsilon" - should solve numerical issues
-	if (abs(offset.x) < minRadius) io_worldPos.x += offset.x * o_lodAlpha * GRID_SIZE_4;
-	if (abs(offset.y) < minRadius) io_worldPos.z += offset.y * o_lodAlpha * GRID_SIZE_4;
+	if (slice0 == 0)
+	{
+		// blend out lod0 when viewpoint gains altitude
+		lodAlpha = min(lodAlpha + meshScaleLerp, 1.0);
+	}
 }

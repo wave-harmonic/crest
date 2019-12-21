@@ -1,0 +1,17 @@
+root = true
+
+[*.{cs,shader,hlsl,compute}]
+insert_final_newline = true
+trim_trailing_whitespace = true
+curly_bracket_next_line = true ; not widely supported, but signals cleary what the standard is
+
+[*.cs]
+indent_style = space
+indent_size = 4
+spaces_around_brackets = outside
+
+[*.{shader,hlsl,compute}]
+indent_style = tab
+
+[*.{md,markdown}]
+trim_trailing_whitespace = false ; affects markdown formatting

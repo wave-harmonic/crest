@@ -162,7 +162,11 @@ namespace Crest
 
             if (_cacheTexture == null)
             {
+#if UNITY_EDITOR_WIN
+                var fmt = RenderTextureFormat.DefaultHDR;
+#else
                 var fmt = RenderTextureFormat.RHalf;
+#endif
                 Debug.Assert(SystemInfo.SupportsRenderTextureFormat(fmt), "The graphics device does not support the render texture format " + fmt.ToString());
                 _cacheTexture = new RenderTexture(_resolution, _resolution, 0);
                 _cacheTexture.name = gameObject.name + "_oceanDepth";
@@ -287,12 +291,13 @@ namespace Crest
         {
             base.OnInspectorGUI();
 
-            var playing = UnityEditor.EditorApplication.isPlaying;
+            var playing = EditorApplication.isPlaying;
 
-            if (playing && GUILayout.Button("Save cache to file"))
+            var dc = target as OceanDepthCache;
+
+            if (playing && !dc._savedCache && GUILayout.Button("Save cache to file"))
             {
-                var rt = (target as OceanDepthCache).CacheTexture;
-
+                var rt = dc.CacheTexture;
                 RenderTexture.active = rt;
                 Texture2D tex = new Texture2D(rt.width, rt.height, TextureFormat.RGBAHalf, false);
                 tex.ReadPixels(new Rect(0, 0, rt.width, rt.height), 0, 0);
@@ -301,9 +306,17 @@ namespace Crest
                 byte[] bytes;
                 bytes = tex.EncodeToEXR(Texture2D.EXRFlags.OutputAsFloat);
 
-                string path = "Assets/PCCache" + ".exr";
+                string path = $"Assets/{target.name}.exr";
                 System.IO.File.WriteAllBytes(path, bytes);
                 AssetDatabase.ImportAsset(path);
+
+                TextureImporter ti = AssetImporter.GetAtPath(path) as TextureImporter;
+                ti.textureType = TextureImporterType.SingleChannel;
+                ti.sRGBTexture = false;
+                ti.alphaSource = TextureImporterAlphaSource.None;
+                ti.alphaIsTransparency = false;
+                ti.SaveAndReimport();
+
                 Debug.Log("Saved to " + path);
             }
         }

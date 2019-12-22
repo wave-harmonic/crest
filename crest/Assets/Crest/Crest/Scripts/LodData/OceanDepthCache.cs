@@ -17,6 +17,7 @@ namespace Crest
     {
         [Tooltip("Can be disabled to delay population of the cache."), SerializeField]
         bool _populateOnStartup = true;
+        public bool PopulateOnStartup => _populateOnStartup;
 
         [Tooltip("Renderers in scene to render into this depth cache. When provided this saves the code from doing an expensive FindObjectsOfType() call. If one or more renderers are specified, the layer setting is ignored."), SerializeField]
         Renderer[] _geometryToRenderIntoCache = new Renderer[0];
@@ -109,9 +110,6 @@ namespace Crest
 
         public void PopulateCache()
         {
-            if (_savedCache)
-                return;
-
             var layerMask = 0;
             var errorShown = false;
             foreach (var layer in _layerNames)
@@ -262,6 +260,12 @@ namespace Crest
                 Debug.LogWarning("Validation: It is not expected that a depth cache object has a renderer component in its hierarchy. The cache is typically attached to an empty GameObject. Please refer to the example content.", rend);
             }
 
+            if (_savedCache && _populateOnStartup)
+            {
+                Debug.LogWarning("Validation: A saved depth cached file is being used but the \"Populate on Startup\""
+                    + " option is enabled leading to redundant work. Is this intentional?");
+            }
+
             foreach (var layerName in _layerNames)
             {
                 var layer = LayerMask.NameToLayer(layerName);
@@ -295,7 +299,7 @@ namespace Crest
 
             var dc = target as OceanDepthCache;
 
-            if (playing && !dc._savedCache && GUILayout.Button("Save cache to file"))
+            if (playing && dc.PopulateOnStartup && GUILayout.Button("Save cache to file"))
             {
                 var rt = dc.CacheTexture;
                 RenderTexture.active = rt;
@@ -306,7 +310,7 @@ namespace Crest
                 byte[] bytes;
                 bytes = tex.EncodeToEXR(Texture2D.EXRFlags.OutputAsFloat);
 
-                string path = $"Assets/{target.name}.exr";
+                string path = dc._savedCache ? AssetDatabase.GetAssetPath(dc._savedCache) : $"Assets/{target.name}.exr";
                 System.IO.File.WriteAllBytes(path, bytes);
                 AssetDatabase.ImportAsset(path);
 

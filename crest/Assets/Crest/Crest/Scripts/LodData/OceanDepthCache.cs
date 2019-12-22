@@ -4,6 +4,7 @@
 
 // This is the original version that uses an auxillary camera and works with Unity's GPU terrain - issue 152.
 
+using System;
 using UnityEditor;
 using UnityEngine;
 
@@ -310,7 +311,8 @@ namespace Crest
                 byte[] bytes;
                 bytes = tex.EncodeToEXR(Texture2D.EXRFlags.OutputAsFloat);
 
-                string path = dc._savedCache ? AssetDatabase.GetAssetPath(dc._savedCache) : $"Assets/{target.name}.exr";
+                string path = dc._savedCache ? 
+                    AssetDatabase.GetAssetPath(dc._savedCache) : $"Assets/OceanDepthCache_{Guid.NewGuid()}.exr";
                 System.IO.File.WriteAllBytes(path, bytes);
                 AssetDatabase.ImportAsset(path);
 

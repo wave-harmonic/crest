@@ -38,7 +38,11 @@ namespace Crest
         bool _forceAlwaysUpdateDebug = false;
 #pragma warning restore 414
 
-        public Texture2D _savedCache;
+        [Tooltip("Baked depth cache. Baking button available in play mode."), SerializeField]
+#pragma warning disable 649
+        Texture2D _savedCache;
+#pragma warning restore 649
+        public Texture2D SavedCache => _savedCache;
 
         [Tooltip("Check for any terrains that have the 'Draw Instanced' option enabled. Such instanced terrains will not populate into the depth cache and therefore will not contribute to shorelines and shallow water. This option must be disabled on the terrain when the depth cache is populated (but can be enabled afterwards)."), SerializeField]
 #pragma warning disable 414
@@ -311,8 +315,8 @@ namespace Crest
                 byte[] bytes;
                 bytes = tex.EncodeToEXR(Texture2D.EXRFlags.OutputAsFloat);
 
-                string path = dc._savedCache ? 
-                    AssetDatabase.GetAssetPath(dc._savedCache) : $"Assets/OceanDepthCache_{Guid.NewGuid()}.exr";
+                string path = dc.SavedCache ? 
+                    AssetDatabase.GetAssetPath(dc.SavedCache) : $"Assets/OceanDepthCache_{Guid.NewGuid()}.exr";
                 System.IO.File.WriteAllBytes(path, bytes);
                 AssetDatabase.ImportAsset(path);
 

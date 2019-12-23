@@ -21,6 +21,7 @@ namespace Crest
         void SetInt(int param, int value);
     }
 
+    [System.Serializable]
     public class PropertyWrapperMaterial : IPropertyWrapper
     {
         public PropertyWrapperMaterial(Material target) { material = target; }

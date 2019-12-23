@@ -159,7 +159,7 @@ namespace Crest
             }
 
 #if UNITY_EDITOR
-            if (_checkTerrainDrawInstancedOption)
+            if (_type == OceanDepthCacheType.Realtime && _checkTerrainDrawInstancedOption)
             {
                 // This issue only affects the built-in render pipeline. Issue 158: https://github.com/crest-ocean/crest/issues/158
 

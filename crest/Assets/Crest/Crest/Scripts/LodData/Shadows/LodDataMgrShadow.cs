@@ -216,6 +216,14 @@ namespace Crest
 
         public void ValidateSourceData()
         {
+#if UNITY_EDITOR
+            if (!UnityEditor.EditorApplication.isPlaying)
+            {
+                // Don't validate when not in play mode in editor as shadows won't be updating.
+                return;
+            }
+#endif
+
             foreach (var renderData in OceanRenderer.Instance._lodTransform._renderDataSource)
             {
                 renderData.Validate(BuildCommandBufferBase._lastUpdateFrame - Time.frameCount, this);

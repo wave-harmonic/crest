@@ -164,6 +164,7 @@ namespace Crest
             if (_camDepthCache == null)
             {
                 _camDepthCache = new GameObject("DepthCacheCam").AddComponent<Camera>();
+                _camDepthCache.hideFlags = HideFlags.DontSave;
                 _camDepthCache.transform.position = transform.position + Vector3.up * _cameraMaxTerrainHeight;
                 _camDepthCache.transform.parent = transform;
                 _camDepthCache.transform.localEulerAngles = 90f * Vector3.right;

@@ -240,8 +240,12 @@ namespace Crest
             Gizmos.matrix = transform.localToWorldMatrix;
             Gizmos.color = Color.white;
             Gizmos.DrawWireCube(Vector3.zero, new Vector3(1f, 0f, 1f));
-            Gizmos.color = new Color(1f, 1f, 1f, 0.2f);
-            Gizmos.DrawCube(Vector3.up * _cameraMaxTerrainHeight / transform.lossyScale.y, new Vector3(1f, 0f, 1f));
+
+            if (_type == OceanDepthCacheType.Realtime)
+            {
+                Gizmos.color = new Color(1f, 1f, 1f, 0.2f);
+                Gizmos.DrawCube(Vector3.up * _cameraMaxTerrainHeight / transform.lossyScale.y, new Vector3(1f, 0f, 1f));
+            }
         }
 
         public void Validate(OceanRenderer ocean)
@@ -298,14 +302,44 @@ namespace Crest
     [CustomEditor(typeof(OceanDepthCache))]
     public class OceanDepthCacheEditor : Editor
     {
+        readonly string[] _propertiesToExclude = new string[] { "m_Script", "_type", "_refreshMode", "_savedCache", "_geometryToRenderIntoCache", "_layerNames", "_resolution", "_cameraMaxTerrainHeight", "_forceAlwaysUpdateDebug", "_checkTerrainDrawInstancedOption" };
+
         public override void OnInspectorGUI()
         {
-            base.OnInspectorGUI();
+            // First expose cache type and refresh mode
+
+            var typeProp = serializedObject.FindProperty("_type");
+            EditorGUILayout.PropertyField(typeProp);
+
+            var cacheType = (OceanDepthCache.OceanDepthCacheType)typeProp.intValue;
+
+            if (cacheType == OceanDepthCache.OceanDepthCacheType.Realtime)
+            {
+                // Only expose the following if real-time cache type
+                EditorGUILayout.PropertyField(serializedObject.FindProperty("_refreshMode"));
+                EditorGUILayout.PropertyField(serializedObject.FindProperty("_geometryToRenderIntoCache"));
+                EditorGUILayout.PropertyField(serializedObject.FindProperty("_layerNames"));
+                EditorGUILayout.PropertyField(serializedObject.FindProperty("_resolution"));
+                EditorGUILayout.PropertyField(serializedObject.FindProperty("_cameraMaxTerrainHeight"));
+                EditorGUILayout.PropertyField(serializedObject.FindProperty("_forceAlwaysUpdateDebug"));
+                EditorGUILayout.PropertyField(serializedObject.FindProperty("_checkTerrainDrawInstancedOption"));
+            }
+            else
+            {
+                // Only expose saved cache if non-real-time
+                EditorGUILayout.PropertyField(serializedObject.FindProperty("_savedCache"));
+            }
+
+            // Draw rest of inspector fields
+            DrawPropertiesExcluding(serializedObject, _propertiesToExclude);
+
+            // Apply inspector changes
+            serializedObject.ApplyModifiedProperties();
 
             var playing = EditorApplication.isPlaying;
 
             var dc = target as OceanDepthCache;
-            var isBakeable = dc.Type == OceanDepthCache.OceanDepthCacheType.Realtime;
+            var isBakeable = cacheType == OceanDepthCache.OceanDepthCacheType.Realtime;
 
             if (playing && isBakeable && GUILayout.Button("Save cache to file"))
             {
@@ -318,7 +352,7 @@ namespace Crest
                 byte[] bytes;
                 bytes = tex.EncodeToEXR(Texture2D.EXRFlags.OutputAsFloat);
 
-                string path = dc.SavedCache ? 
+                string path = dc.SavedCache ?
                     AssetDatabase.GetAssetPath(dc.SavedCache) : $"Assets/OceanDepthCache_{Guid.NewGuid()}.exr";
                 System.IO.File.WriteAllBytes(path, bytes);
                 AssetDatabase.ImportAsset(path);

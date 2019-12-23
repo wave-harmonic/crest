@@ -411,7 +411,7 @@ namespace Crest
         /// </summary>
         void LateUpdate()
         {
-            if (OceanRenderer.Instance == null)
+            if (OceanRenderer.Instance == null || _batches == null)
             {
                 return;
             }

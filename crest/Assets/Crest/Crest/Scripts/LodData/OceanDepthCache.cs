@@ -16,9 +16,25 @@ namespace Crest
     /// </summary>
     public class OceanDepthCache : MonoBehaviour
     {
-        [Tooltip("Can be disabled to delay population of the cache."), SerializeField]
-        bool _populateOnStartup = true;
-        public bool PopulateOnStartup => _populateOnStartup;
+        public enum OceanDepthCacheType
+        {
+            Realtime,
+            Baked,
+        }
+
+        public enum OceanDepthCacheRefreshMode
+        {
+            OnStart,
+            OnDemand,
+        }
+
+        [Tooltip("Realtime = cache will be dynamic in accordance to refresh mode, Baked = cache will use the provided texture."), SerializeField]
+        OceanDepthCacheType _type = OceanDepthCacheType.Realtime;
+        public OceanDepthCacheType Type => _type;
+
+        [Tooltip("Ignored if baked. On Start = cache will populate in Start(), On Demand = call PopulateCache() manually via scripting."), SerializeField]
+        OceanDepthCacheRefreshMode _refreshMode = OceanDepthCacheRefreshMode.OnStart;
+        public OceanDepthCacheRefreshMode RefreshMode => _refreshMode;
 
         [Tooltip("Renderers in scene to render into this depth cache. When provided this saves the code from doing an expensive FindObjectsOfType() call. If one or more renderers are specified, the layer setting is ignored."), SerializeField]
         Renderer[] _geometryToRenderIntoCache = new Renderer[0];
@@ -75,19 +91,15 @@ namespace Crest
                 var qr = _drawCacheQuad.GetComponent<Renderer>();
                 qr.material = new Material(Shader.Find(LodDataMgrSeaFloorDepth.ShaderName));
 
-                if (_savedCache)
+                if (_type == OceanDepthCacheType.Baked)
                 {
                     qr.material.mainTexture = _savedCache;
-                }
-                else
-                {
-                    qr.material.mainTexture = _cacheTexture;
                 }
 
                 qr.enabled = false;
             }
 
-            if (_populateOnStartup)
+            if (_type == OceanDepthCacheType.Realtime && _refreshMode == OceanDepthCacheRefreshMode.OnStart)
             {
                 PopulateCache();
             }
@@ -115,6 +127,9 @@ namespace Crest
 
         public void PopulateCache()
         {
+            if (_type == OceanDepthCacheType.Baked)
+                return;
+
             var layerMask = 0;
             var errorShown = false;
             foreach (var layer in _layerNames)
@@ -216,14 +231,7 @@ namespace Crest
             _camDepthCache.RenderWithShader(Shader.Find("Crest/Inputs/Depth/Ocean Depth From Geometry"), null);
 
             var qr = _drawCacheQuad.GetComponent<Renderer>();
-            if (_savedCache)
-            {
-                qr.material.mainTexture = _savedCache;
-            }
-            else
-            {
-                qr.material.mainTexture = _cacheTexture;
-            }
+            qr.material.mainTexture = _cacheTexture;
         }
 
 #if UNITY_EDITOR
@@ -265,12 +273,6 @@ namespace Crest
                 Debug.LogWarning("Validation: It is not expected that a depth cache object has a renderer component in its hierarchy. The cache is typically attached to an empty GameObject. Please refer to the example content.", rend);
             }
 
-            if (_savedCache && _populateOnStartup)
-            {
-                Debug.LogWarning("Validation: A saved depth cached file is being used but the \"Populate on Startup\""
-                    + " option is enabled leading to redundant work. Is this intentional?");
-            }
-
             foreach (var layerName in _layerNames)
             {
                 var layer = LayerMask.NameToLayer(layerName);
@@ -303,8 +305,9 @@ namespace Crest
             var playing = EditorApplication.isPlaying;
 
             var dc = target as OceanDepthCache;
+            var isBakeable = dc.Type == OceanDepthCache.OceanDepthCacheType.Realtime;
 
-            if (playing && dc.PopulateOnStartup && GUILayout.Button("Save cache to file"))
+            if (playing && isBakeable && GUILayout.Button("Save cache to file"))
             {
                 var rt = dc.CacheTexture;
                 RenderTexture.active = rt;

@@ -80,26 +80,11 @@ namespace Crest
                 return;
             }
 
-            if (_drawCacheQuad == null)
+            if (_type == OceanDepthCacheType.Baked && _drawCacheQuad == null)
             {
-                _drawCacheQuad = GameObject.CreatePrimitive(PrimitiveType.Quad);
-                Destroy(_drawCacheQuad.GetComponent<Collider>());
-                _drawCacheQuad.name = "DepthCache_" + gameObject.name;
-                _drawCacheQuad.transform.SetParent(transform, false);
-                _drawCacheQuad.transform.localEulerAngles = 90f * Vector3.right;
-                _drawCacheQuad.AddComponent<RegisterSeaFloorDepthInput>();
-                var qr = _drawCacheQuad.GetComponent<Renderer>();
-                qr.material = new Material(Shader.Find(LodDataMgrSeaFloorDepth.ShaderName));
-
-                if (_type == OceanDepthCacheType.Baked)
-                {
-                    qr.material.mainTexture = _savedCache;
-                }
-
-                qr.enabled = false;
+                DrawCacheQuad();
             }
-
-            if (_type == OceanDepthCacheType.Realtime && _refreshMode == OceanDepthCacheRefreshMode.OnStart)
+            else if (_type == OceanDepthCacheType.Realtime && _refreshMode == OceanDepthCacheRefreshMode.OnStart)
             {
                 PopulateCache();
             }
@@ -230,8 +215,30 @@ namespace Crest
             Shader.SetGlobalVector("_OceanCenterPosWorld", centerPoint);
             _camDepthCache.RenderWithShader(Shader.Find("Crest/Inputs/Depth/Ocean Depth From Geometry"), null);
 
+            DrawCacheQuad();
+        }
+
+        void DrawCacheQuad()
+        {
+            _drawCacheQuad = GameObject.CreatePrimitive(PrimitiveType.Quad);
+            Destroy(_drawCacheQuad.GetComponent<Collider>());
+            _drawCacheQuad.name = "DepthCache_" + gameObject.name;
+            _drawCacheQuad.transform.SetParent(transform, false);
+            _drawCacheQuad.transform.localEulerAngles = 90f * Vector3.right;
+            _drawCacheQuad.AddComponent<RegisterSeaFloorDepthInput>();
             var qr = _drawCacheQuad.GetComponent<Renderer>();
-            qr.material.mainTexture = _cacheTexture;
+            qr.material = new Material(Shader.Find(LodDataMgrSeaFloorDepth.ShaderName));
+
+            if (_type == OceanDepthCacheType.Baked)
+            {
+                qr.material.mainTexture = _savedCache;
+            }
+            else
+            {
+                qr.material.mainTexture = _cacheTexture;
+            }
+
+            qr.enabled = false;
         }
 
 #if UNITY_EDITOR

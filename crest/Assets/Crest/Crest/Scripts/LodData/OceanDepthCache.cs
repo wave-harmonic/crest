@@ -276,7 +276,7 @@ namespace Crest
                 {
                     Debug.LogWarning("Validation: Force Always Update Debug option is enabled on depth cache " + gameObject.name + ", which means it will render every frame instead of running from the cache. Click this message to highlight the cache in question.", this);
                 }
-                
+
                 foreach (var layerName in _layerNames)
                 {
                     var layer = LayerMask.NameToLayer(layerName);

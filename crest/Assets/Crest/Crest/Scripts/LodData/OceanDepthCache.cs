@@ -386,7 +386,7 @@ namespace Crest
                 ti.alphaIsTransparency = false;
                 ti.SaveAndReimport();
 
-                Debug.Log("Saved to " + path);
+                Debug.Log("Cache saved to " + path, AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(path));
             }
         }
     }

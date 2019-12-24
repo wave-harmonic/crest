@@ -346,7 +346,15 @@ namespace Crest
             var playing = EditorApplication.isPlaying;
 
             var dc = target as OceanDepthCache;
-            var isBakeable = cacheType == OceanDepthCache.OceanDepthCacheType.Realtime;
+            var isOnDemand = cacheType == OceanDepthCache.OceanDepthCacheType.Realtime &&
+                dc.RefreshMode == OceanDepthCache.OceanDepthCacheRefreshMode.OnDemand;
+            var isBakeable = cacheType == OceanDepthCache.OceanDepthCacheType.Realtime &&
+                (!isOnDemand || dc.CacheTexture != null);
+
+            if (playing && isOnDemand && GUILayout.Button("Populate cache"))
+            {
+                dc.PopulateCache();
+            }
 
             if (playing && isBakeable && GUILayout.Button("Save cache to file"))
             {

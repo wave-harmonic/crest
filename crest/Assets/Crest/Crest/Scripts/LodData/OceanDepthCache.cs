@@ -313,7 +313,14 @@ namespace Crest
 
         public override void OnInspectorGUI()
         {
-            // First expose cache type and refresh mode
+            // We won't just use default inspector because we want to show some of the params conditionally based on cache type
+
+            // First show standard 'Script' field
+            GUI.enabled = false;
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("m_Script"));
+            GUI.enabled = true;
+
+            // Next expose cache type and refresh mode
 
             var typeProp = serializedObject.FindProperty("_type");
             EditorGUILayout.PropertyField(typeProp);

@@ -257,20 +257,48 @@ namespace Crest
 
         public void Validate(OceanRenderer ocean)
         {
-            if ((_geometryToRenderIntoCache == null || _geometryToRenderIntoCache.Length == 0)
-                && (_layerNames == null || _layerNames.Length == 0))
+            if (_type == OceanDepthCacheType.Baked)
             {
-                Debug.LogError("Validation: No layers specified for rendering into depth cache, and no geometries manually provided. Click this message to highlight the cache in question.", this);
+                if (_savedCache == null)
+                {
+                    Debug.LogError("Validation: Depth cache type is 'Saved Cache' but no saved cache data is provided. Click this message to highlight the cache in question.", this);
+                }
+            }
+            else
+            {
+                if ((_geometryToRenderIntoCache == null || _geometryToRenderIntoCache.Length == 0)
+                    && (_layerNames == null || _layerNames.Length == 0))
+                {
+                    Debug.LogError("Validation: No layers specified for rendering into depth cache, and no geometries manually provided. Click this message to highlight the cache in question.", this);
+                }
+
+                if (_forceAlwaysUpdateDebug)
+                {
+                    Debug.LogWarning("Validation: Force Always Update Debug option is enabled on depth cache " + gameObject.name + ", which means it will render every frame instead of running from the cache. Click this message to highlight the cache in question.", this);
+                }
+                
+                foreach (var layerName in _layerNames)
+                {
+                    var layer = LayerMask.NameToLayer(layerName);
+                    if (layer == -1)
+                    {
+                        Debug.LogError("Invalid layer specified for objects/geometry providing the ocean depth: \"" + layerName +
+                            "\". Does this layer need to be added to the project (Edit/Project Settings/Tags and Layers)? Click this message to highlight the cache in question.", this);
+                    }
+                }
+
+                if (_resolution < 4)
+                {
+                    Debug.LogError("Cache resolution " + _resolution + " is very low. Is this intentional? Click this message to highlight the cache in question.", this);
+                }
+
+                // We used to test if nothing is present that would render into the cache, but these could probably come from other scenes, and AssignLayer means
+                // objects can be tagged up at run-time.
             }
 
             if (transform.lossyScale.magnitude < 5f)
             {
                 Debug.LogWarning("Validation: Ocean depth cache transform scale is small and will capture a small area of the world. The scale sets the size of the area that will be cached, and this cache is set to render a very small area. Click this message to highlight the cache in question.", this);
-            }
-
-            if (_forceAlwaysUpdateDebug)
-            {
-                Debug.LogWarning("Validation: Force Always Update Debug option is enabled on depth cache " + gameObject.name + ", which means it will render every frame instead of running from the cache. Click this message to highlight the cache in question.", this);
             }
 
             if (Mathf.Abs(transform.position.y - ocean.transform.position.y) > 0.00001f)
@@ -282,24 +310,6 @@ namespace Crest
             if (rend != null)
             {
                 Debug.LogWarning("Validation: It is not expected that a depth cache object has a renderer component in its hierarchy. The cache is typically attached to an empty GameObject. Please refer to the example content.", rend);
-            }
-
-            foreach (var layerName in _layerNames)
-            {
-                var layer = LayerMask.NameToLayer(layerName);
-                if (layer == -1)
-                {
-                    Debug.LogError("Invalid layer specified for objects/geometry providing the ocean depth: \"" + layerName +
-                        "\". Does this layer need to be added to the project (Edit/Project Settings/Tags and Layers)? Click this message to highlight the cache in question.", this);
-                }
-            }
-
-            // We used to test if nothing is present that would render into the cache, but these could probably come from other scenes, and AssignLayer means
-            // objects can be tagged up at run-time.
-
-            if (_resolution < 4)
-            {
-                Debug.LogError("Cache resolution " + _resolution + " is very low. Is this intentional? Click this message to highlight the cache in question.", this);
             }
         }
 #endif

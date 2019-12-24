@@ -4,6 +4,7 @@
 
 // This is the original version that uses an auxillary camera and works with Unity's GPU terrain - issue 152.
 
+using System;
 using UnityEditor;
 using UnityEngine;
 
@@ -15,8 +16,25 @@ namespace Crest
     /// </summary>
     public class OceanDepthCache : MonoBehaviour
     {
-        [Tooltip("Can be disabled to delay population of the cache."), SerializeField]
-        bool _populateOnStartup = true;
+        public enum OceanDepthCacheType
+        {
+            Realtime,
+            Baked,
+        }
+
+        public enum OceanDepthCacheRefreshMode
+        {
+            OnStart,
+            OnDemand,
+        }
+
+        [Tooltip("Realtime = cache will be dynamic in accordance to refresh mode, Baked = cache will use the provided texture."), SerializeField]
+        OceanDepthCacheType _type = OceanDepthCacheType.Realtime;
+        public OceanDepthCacheType Type => _type;
+
+        [Tooltip("Ignored if baked. On Start = cache will populate in Start(), On Demand = call PopulateCache() manually via scripting."), SerializeField]
+        OceanDepthCacheRefreshMode _refreshMode = OceanDepthCacheRefreshMode.OnStart;
+        public OceanDepthCacheRefreshMode RefreshMode => _refreshMode;
 
         [Tooltip("Renderers in scene to render into this depth cache. When provided this saves the code from doing an expensive FindObjectsOfType() call. If one or more renderers are specified, the layer setting is ignored."), SerializeField]
         Renderer[] _geometryToRenderIntoCache = new Renderer[0];
@@ -36,7 +54,11 @@ namespace Crest
         bool _forceAlwaysUpdateDebug = false;
 #pragma warning restore 414
 
-        public Texture2D _savedCache;
+        [Tooltip("Baked depth cache. Baking button available in play mode."), SerializeField]
+#pragma warning disable 649
+        Texture2D _savedCache;
+#pragma warning restore 649
+        public Texture2D SavedCache => _savedCache;
 
         [Tooltip("Check for any terrains that have the 'Draw Instanced' option enabled. Such instanced terrains will not populate into the depth cache and therefore will not contribute to shorelines and shallow water. This option must be disabled on the terrain when the depth cache is populated (but can be enabled afterwards)."), SerializeField]
 #pragma warning disable 414
@@ -58,30 +80,11 @@ namespace Crest
                 return;
             }
 
-            if (_drawCacheQuad == null)
+            if (_type == OceanDepthCacheType.Baked && _drawCacheQuad == null)
             {
-                _drawCacheQuad = GameObject.CreatePrimitive(PrimitiveType.Quad);
-                Destroy(_drawCacheQuad.GetComponent<Collider>());
-                _drawCacheQuad.name = "DepthCache_" + gameObject.name;
-                _drawCacheQuad.transform.SetParent(transform, false);
-                _drawCacheQuad.transform.localEulerAngles = 90f * Vector3.right;
-                _drawCacheQuad.AddComponent<RegisterSeaFloorDepthInput>();
-                var qr = _drawCacheQuad.GetComponent<Renderer>();
-                qr.material = new Material(Shader.Find(LodDataMgrSeaFloorDepth.ShaderName));
-
-                if (_savedCache)
-                {
-                    qr.material.mainTexture = _savedCache;
-                }
-                else
-                {
-                    qr.material.mainTexture = _cacheTexture;
-                }
-
-                qr.enabled = false;
+                DrawCacheQuad();
             }
-
-            if (_populateOnStartup)
+            else if (_type == OceanDepthCacheType.Realtime && _refreshMode == OceanDepthCacheRefreshMode.OnStart)
             {
                 PopulateCache();
             }
@@ -109,7 +112,7 @@ namespace Crest
 
         public void PopulateCache()
         {
-            if (_savedCache)
+            if (_type == OceanDepthCacheType.Baked)
                 return;
 
             var layerMask = 0;
@@ -141,7 +144,7 @@ namespace Crest
             }
 
 #if UNITY_EDITOR
-            if (_checkTerrainDrawInstancedOption)
+            if (_type == OceanDepthCacheType.Realtime && _checkTerrainDrawInstancedOption)
             {
                 // This issue only affects the built-in render pipeline. Issue 158: https://github.com/crest-ocean/crest/issues/158
 
@@ -212,8 +215,21 @@ namespace Crest
             Shader.SetGlobalVector("_OceanCenterPosWorld", centerPoint);
             _camDepthCache.RenderWithShader(Shader.Find("Crest/Inputs/Depth/Ocean Depth From Geometry"), null);
 
+            DrawCacheQuad();
+        }
+
+        void DrawCacheQuad()
+        {
+            _drawCacheQuad = GameObject.CreatePrimitive(PrimitiveType.Quad);
+            Destroy(_drawCacheQuad.GetComponent<Collider>());
+            _drawCacheQuad.name = "DepthCache_" + gameObject.name;
+            _drawCacheQuad.transform.SetParent(transform, false);
+            _drawCacheQuad.transform.localEulerAngles = 90f * Vector3.right;
+            _drawCacheQuad.AddComponent<RegisterSeaFloorDepthInput>();
             var qr = _drawCacheQuad.GetComponent<Renderer>();
-            if (_savedCache)
+            qr.material = new Material(Shader.Find(LodDataMgrSeaFloorDepth.ShaderName));
+
+            if (_type == OceanDepthCacheType.Baked)
             {
                 qr.material.mainTexture = _savedCache;
             }
@@ -221,6 +237,8 @@ namespace Crest
             {
                 qr.material.mainTexture = _cacheTexture;
             }
+
+            qr.enabled = false;
         }
 
 #if UNITY_EDITOR
@@ -229,8 +247,12 @@ namespace Crest
             Gizmos.matrix = transform.localToWorldMatrix;
             Gizmos.color = Color.white;
             Gizmos.DrawWireCube(Vector3.zero, new Vector3(1f, 0f, 1f));
-            Gizmos.color = new Color(1f, 1f, 1f, 0.2f);
-            Gizmos.DrawCube(Vector3.up * _cameraMaxTerrainHeight / transform.lossyScale.y, new Vector3(1f, 0f, 1f));
+
+            if (_type == OceanDepthCacheType.Realtime)
+            {
+                Gizmos.color = new Color(1f, 1f, 1f, 0.2f);
+                Gizmos.DrawCube(Vector3.up * _cameraMaxTerrainHeight / transform.lossyScale.y, new Vector3(1f, 0f, 1f));
+            }
         }
 
         public void Validate(OceanRenderer ocean)
@@ -287,15 +309,61 @@ namespace Crest
     [CustomEditor(typeof(OceanDepthCache))]
     public class OceanDepthCacheEditor : Editor
     {
+        readonly string[] _propertiesToExclude = new string[] { "m_Script", "_type", "_refreshMode", "_savedCache", "_geometryToRenderIntoCache", "_layerNames", "_resolution", "_cameraMaxTerrainHeight", "_forceAlwaysUpdateDebug", "_checkTerrainDrawInstancedOption" };
+
         public override void OnInspectorGUI()
         {
-            base.OnInspectorGUI();
+            // We won't just use default inspector because we want to show some of the params conditionally based on cache type
+
+            // First show standard 'Script' field
+            GUI.enabled = false;
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("m_Script"));
+            GUI.enabled = true;
+
+            // Next expose cache type and refresh mode
+
+            var typeProp = serializedObject.FindProperty("_type");
+            EditorGUILayout.PropertyField(typeProp);
+
+            var cacheType = (OceanDepthCache.OceanDepthCacheType)typeProp.intValue;
+
+            if (cacheType == OceanDepthCache.OceanDepthCacheType.Realtime)
+            {
+                // Only expose the following if real-time cache type
+                EditorGUILayout.PropertyField(serializedObject.FindProperty("_refreshMode"));
+                EditorGUILayout.PropertyField(serializedObject.FindProperty("_geometryToRenderIntoCache"));
+                EditorGUILayout.PropertyField(serializedObject.FindProperty("_layerNames"));
+                EditorGUILayout.PropertyField(serializedObject.FindProperty("_resolution"));
+                EditorGUILayout.PropertyField(serializedObject.FindProperty("_cameraMaxTerrainHeight"));
+                EditorGUILayout.PropertyField(serializedObject.FindProperty("_forceAlwaysUpdateDebug"));
+                EditorGUILayout.PropertyField(serializedObject.FindProperty("_checkTerrainDrawInstancedOption"));
+            }
+            else
+            {
+                // Only expose saved cache if non-real-time
+                EditorGUILayout.PropertyField(serializedObject.FindProperty("_savedCache"));
+            }
+
+            // Draw rest of inspector fields
+            DrawPropertiesExcluding(serializedObject, _propertiesToExclude);
+
+            // Apply inspector changes
+            serializedObject.ApplyModifiedProperties();
 
             var playing = EditorApplication.isPlaying;
 
             var dc = target as OceanDepthCache;
+            var isOnDemand = cacheType == OceanDepthCache.OceanDepthCacheType.Realtime &&
+                dc.RefreshMode == OceanDepthCache.OceanDepthCacheRefreshMode.OnDemand;
+            var isBakeable = cacheType == OceanDepthCache.OceanDepthCacheType.Realtime &&
+                (!isOnDemand || dc.CacheTexture != null);
 
-            if (playing && !dc._savedCache && GUILayout.Button("Save cache to file"))
+            if (playing && isOnDemand && GUILayout.Button("Populate cache"))
+            {
+                dc.PopulateCache();
+            }
+
+            if (playing && isBakeable && GUILayout.Button("Save cache to file"))
             {
                 var rt = dc.CacheTexture;
                 RenderTexture.active = rt;
@@ -306,7 +374,8 @@ namespace Crest
                 byte[] bytes;
                 bytes = tex.EncodeToEXR(Texture2D.EXRFlags.OutputAsFloat);
 
-                string path = $"Assets/{target.name}.exr";
+                string path = dc.SavedCache ?
+                    AssetDatabase.GetAssetPath(dc.SavedCache) : $"Assets/OceanDepthCache_{Guid.NewGuid()}.exr";
                 System.IO.File.WriteAllBytes(path, bytes);
                 AssetDatabase.ImportAsset(path);
 
@@ -317,7 +386,7 @@ namespace Crest
                 ti.alphaIsTransparency = false;
                 ti.SaveAndReimport();
 
-                Debug.Log("Saved to " + path);
+                Debug.Log("Cache saved to " + path, AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(path));
             }
         }
     }

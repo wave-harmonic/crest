@@ -167,7 +167,8 @@ public class OceanDebugGUI : MonoBehaviour
 
         // Draw bottom panel for toggles
         GUI.color = _guiColor;
-        GUI.DrawTexture(new Rect(_leftPanelWidth, Screen.height - _bottomPanelHeight, Screen.width, _bottomPanelHeight), Texture2D.whiteTexture);
+        GUI.DrawTexture(new Rect(_guiVisible ? _leftPanelWidth : 0, Screen.height - _bottomPanelHeight, Screen.width,
+            _bottomPanelHeight), Texture2D.whiteTexture);
         GUI.color = Color.white;
 
         // draw sim data

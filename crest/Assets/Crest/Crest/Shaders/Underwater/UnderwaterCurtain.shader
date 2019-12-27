@@ -37,6 +37,8 @@ Shader "Crest/Underwater Curtain"
 			#pragma vertex Vert
 			#pragma fragment Frag
 
+			#pragma multi_compile _ VERTEXLIGHT_ON
+
 			#pragma shader_feature _SUBSURFACESCATTERING_ON
 			#pragma shader_feature _SUBSURFACESHALLOWCOLOUR_ON
 			#pragma shader_feature _TRANSPARENCY_ON
@@ -60,11 +62,16 @@ Shader "Crest/Underwater Curtain"
 			float3 _InstanceData;
 
 			#include "../OceanEmission.hlsl"
+			#include "../OceanLightingHelpers.hlsl"
 
 			#define MAX_OFFSET 5.0
 
 			sampler2D _CameraDepthTexture;
 			sampler2D _Normals;
+
+#if defined(VERTEXLIGHT_ON)
+			uniform sampler2D _LightTextureB0;
+#endif // VERTEXLIGHT_ON
 
 			struct Attributes
 			{
@@ -79,6 +86,9 @@ Shader "Crest/Underwater Curtain"
 				half4 foam_screenPos : TEXCOORD1;
 				half4 grabPos : TEXCOORD2;
 				float3 positionWS : TEXCOORD3;
+#if defined(VERTEXLIGHT_ON)
+				half4 uvLightsAtten : TEXCOORD10;
+#endif // VERTEXLIGHT_ON
 			};
 
 			Varyings Vert(Attributes input)
@@ -165,6 +175,11 @@ Shader "Crest/Underwater Curtain"
 
 				o.uv = input.uv;
 
+				// Calculate vertex light attenuation here to save on performance
+#if defined(VERTEXLIGHT_ON)
+				CalculateVertexLightsAttenuation(o.uvLightsAtten, o.positionWS);
+#endif // VERTEXLIGHT_ON
+
 				return o;
 			}
 
@@ -191,7 +206,16 @@ Shader "Crest/Underwater Curtain"
 				const float depth = 0.0;
 				const half shadow = 1.0;
 
-				const half3 scatterCol = ScatterColour(depth, _WorldSpaceCameraPos, lightDir, view, shadow, true, true, sss);
+				half3 lightsCol = 0;
+
+				// Calculate vertex lights colour
+#if defined(VERTEXLIGHT_ON)
+				lightsCol = CalculateVertexLightsColor(input.uvLightsAtten, input.positionWS, _LightTextureB0);
+				// Decrease intensity so it isn't overwhelming
+				lightsCol *= 0.5;
+#endif // VERTEXLIGHT_ON
+
+				const half3 scatterCol = ScatterColour(depth, _WorldSpaceCameraPos, lightDir, view, shadow, true, true, sss, lightsCol);
 
 				half3 sceneColour = tex2D(_BackgroundTexture, input.grabPos.xy / input.grabPos.w).rgb;
 

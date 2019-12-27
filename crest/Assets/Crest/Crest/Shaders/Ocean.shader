@@ -164,6 +164,15 @@ Shader "Crest/Ocean"
 		// enabled on the OceanRenderer to generate flow data.
 		[Toggle] _Flow("Enable", Float) = 0
 
+		[Header(Lights)]
+		// How much the light will fill its sphere of influence
+		_LightsSubSurfaceBase("Sub Surface Base Mul", Range(0.0, 4.0)) = 1.0
+		// Strength of specular lighting response
+		_LightsSpecular("Specular", Range(0.0, 1000.0)) = 31.0
+		// Light strength on foam
+		_LightsScaleWaveFoam("Foam Lights Scale", Range(0.0, 1000.0)) = 5.0
+		_LightsFresnelPower("Fresnel Power", Range(1.0, 20.0)) = 10.0
+
 		[Header(Debug Options)]
 		// Build shader with debug info which allows stepping through the code in a GPU debugger. I typically use RenderDoc or
 		// PIX for Windows (requires DX12 API to be selected).
@@ -197,6 +206,7 @@ Shader "Crest/Ocean"
 			// for VFACE
 			#pragma target 3.0
 			#pragma multi_compile_fog
+			#pragma multi_compile _ VERTEXLIGHT_ON
 
 			#pragma shader_feature _APPLYNORMALMAPPING_ON
 			#pragma shader_feature _COMPUTEDIRECTIONALLIGHT_ON
@@ -245,11 +255,15 @@ Shader "Crest/Ocean"
 				half3 debugtint : TEXCOORD8;
 				#endif
 				half4 grabPos : TEXCOORD9;
+				#if defined(VERTEXLIGHT_ON)
+				half4 uvLightsAtten : TEXCOORD10;
+				#endif // VERTEXLIGHT_ON
 
 				UNITY_FOG_COORDS(3)
 			};
 
 			#include "OceanHelpers.hlsl"
+			#include "OceanLightingHelpers.hlsl"
 
 			float _CrestTime;
 
@@ -365,6 +379,12 @@ Shader "Crest/Ocean"
 				// to get the right results, every time.
 				o.grabPos = ComputeGrabScreenPos(o.positionCS);
 				o.foam_screenPosXYW.yzw = ComputeScreenPos(o.positionCS).xyw;
+
+				// Calculate vertex light attenuation here to save on performance
+				#if defined(VERTEXLIGHT_ON)
+				CalculateVertexLightsAttenuation(o.uvLightsAtten, o.worldPos);
+				#endif // VERTEXLIGHT_ON
+
 				return o;
 			}
 
@@ -377,6 +397,9 @@ Shader "Crest/Ocean"
 			#include "OceanNormalMapping.hlsl"
 
 			uniform sampler2D _CameraDepthTexture;
+			#if defined(VERTEXLIGHT_ON)
+			uniform sampler2D _LightTextureB0;
+			#endif // VERTEXLIGHT_ON
 
 			// Hack - due to SV_IsFrontFace occasionally coming through as true for backfaces,
 			// add a param here that forces ocean to be in undrwater state. I think the root
@@ -419,6 +442,13 @@ Shader "Crest/Ocean"
 				float sceneZ = LinearEyeDepth(sceneZ01);
 
 				float3 lightDir = WorldSpaceLightDir(input.worldPos);
+				half3 lightsCol = 0;
+
+				// Calculate
+				#if defined(VERTEXLIGHT_ON)
+				lightsCol = CalculateVertexLightsColor(input.uvLightsAtten, input.worldPos, _LightTextureB0);
+				#endif // VERTEXLIGHT_ON
+
 				// Soft shadow, hard shadow
 				fixed2 shadow = (fixed2)1.0
 				#if _SHADOWS_ON
@@ -454,14 +484,14 @@ Shader "Crest/Ocean"
 				#if _FOAM_ON
 				half4 whiteFoamCol;
 				#if !_FLOW_ON
-				ComputeFoam(input.foam_screenPosXYW.x, input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, input.worldPos.xz, n_pixel, pixelZ, sceneZ, view, lightDir, shadow.y, lodAlpha, bubbleCol, whiteFoamCol);
+				ComputeFoam(input.foam_screenPosXYW.x, input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, input.worldPos.xz, n_pixel, pixelZ, sceneZ, view, lightDir, shadow.y, lodAlpha, bubbleCol, whiteFoamCol, lightsCol);
 				#else
-				ComputeFoamWithFlow(input.flow_shadow.xy, input.foam_screenPosXYW.x, input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, input.worldPos.xz, n_pixel, pixelZ, sceneZ, view, lightDir, shadow.y, lodAlpha, bubbleCol, whiteFoamCol);
+				ComputeFoamWithFlow(input.flow_shadow.xy, input.foam_screenPosXYW.x, input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, input.worldPos.xz, n_pixel, pixelZ, sceneZ, view, lightDir, shadow.y, lodAlpha, bubbleCol, whiteFoamCol, lightsCol);
 				#endif // _FLOW_ON
 				#endif // _FOAM_ON
 
 				// Compute color of ocean - in-scattered light + refracted scene
-				half3 scatterCol = ScatterColour(input.lodAlpha_worldXZUndisplaced_oceanDepth.w, _WorldSpaceCameraPos, lightDir, view, shadow.x, underwater, true, sss);
+				half3 scatterCol = ScatterColour(input.lodAlpha_worldXZUndisplaced_oceanDepth.w, _WorldSpaceCameraPos, lightDir, view, shadow.x, underwater, true, sss, lightsCol);
 				half3 col = OceanEmission(view, n_pixel, lightDir, input.grabPos, pixelZ, uvDepth, sceneZ, sceneZ01, bubbleCol, _Normals, _CameraDepthTexture, underwater, scatterCol);
 
 				// Light that reflects off water surface
@@ -474,7 +504,7 @@ Shader "Crest/Ocean"
 				// disable transparency, so this will always be 1.0.
 				float reflAlpha = 1.0;
 				#endif
-				
+
 				#if _UNDERWATER_ON
 				if (underwater)
 				{
@@ -483,7 +513,7 @@ Shader "Crest/Ocean"
 				else
 				#endif
 				{
-					ApplyReflectionSky(view, n_pixel, lightDir, shadow.y, input.foam_screenPosXYW.yzzw, pixelZ, reflAlpha, col);
+					ApplyReflectionSky(view, n_pixel, lightDir, shadow.y, input.foam_screenPosXYW.yzzw, pixelZ, reflAlpha, col, lightsCol);
 				}
 
 				// Override final result with white foam - bubbles on surface

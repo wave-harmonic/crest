@@ -17,6 +17,9 @@ uniform half _WaveFoamNormalStrength;
 uniform half _WaveFoamSpecularFallOff;
 uniform half _WaveFoamSpecularBoost;
 uniform half _WaveFoamLightScale;
+#if defined(VERTEXLIGHT_ON)
+uniform half _LightsScaleWaveFoam;
+#endif // VERTEXLIGHT_ON
 
 half3 AmbientLight()
 {
@@ -48,7 +51,7 @@ half BubbleFoamTexture(float2 i_worldXZ, float2 i_worldXZUndisplaced, half3 i_n,
 	return ft;
 }
 
-void ComputeFoam(half i_foam, float2 i_worldXZUndisplaced, float2 i_worldXZ, half3 i_n, float i_pixelZ, float i_sceneZ, half3 i_view, float3 i_lightDir, half i_shadow, half lodVal, out half3 o_bubbleCol, out half4 o_whiteFoamCol)
+void ComputeFoam(half i_foam, float2 i_worldXZUndisplaced, float2 i_worldXZ, half3 i_n, float i_pixelZ, float i_sceneZ, half3 i_view, float3 i_lightDir, half i_shadow, half lodVal, out half3 o_bubbleCol, out half4 o_whiteFoamCol, half3 lightsCol)
 {
 	half foamAmount = i_foam;
 
@@ -58,6 +61,9 @@ void ComputeFoam(half i_foam, float2 i_worldXZUndisplaced, float2 i_worldXZ, hal
 	// Additive underwater foam - use same foam texture but add mip bias to blur for free
 	half bubbleFoamTexValue = BubbleFoamTexture(i_worldXZ, i_worldXZUndisplaced, i_n, i_view, lodVal);
 	o_bubbleCol = (half3)bubbleFoamTexValue * _FoamBubbleColor.rgb * saturate(i_foam * _WaveFoamBubblesCoverage) * AmbientLight();
+#if defined(VERTEXLIGHT_ON)
+	o_bubbleCol += lightsCol;
+#endif // VERTEXLIGHT_ON
 
 	// White foam on top, with black-point fading
 	half whiteFoam = WhiteFoamTexture(foamAmount, i_worldXZUndisplaced, lodVal);
@@ -74,16 +80,22 @@ void ComputeFoam(half i_foam, float2 i_worldXZUndisplaced, float2 i_worldXZ, hal
 	// do simple NdL and phong lighting
 	half foamNdL = max(0., dot(fN, i_lightDir));
 	o_whiteFoamCol.rgb = _FoamWhiteColor.rgb * (AmbientLight() + _WaveFoamLightScale * _LightColor0 * foamNdL * i_shadow);
+#if defined(VERTEXLIGHT_ON)
+	o_whiteFoamCol.rgb += lightsCol * _WaveFoamLightScale * _LightsScaleWaveFoam;
+#endif // VERTEXLIGHT_ON
 	half3 refl = reflect(-i_view, fN);
 	o_whiteFoamCol.rgb += pow(max(0., dot(refl, i_lightDir)), _WaveFoamSpecularFallOff) * _WaveFoamSpecularBoost * _LightColor0 * i_shadow;
 #else // _FOAM3DLIGHTING_ON
 	o_whiteFoamCol.rgb = _FoamWhiteColor.rgb * (AmbientLight() + _WaveFoamLightScale * _LightColor0 * i_shadow);
+#if defined(VERTEXLIGHT_ON)
+	o_whiteFoamCol.rgb += lightsCol * _WaveFoamLightScale * _LightsScaleWaveFoam;
+#endif // VERTEXLIGHT_ON
 #endif // _FOAM3DLIGHTING_ON
 
 	o_whiteFoamCol.a = _FoamWhiteColor.a * whiteFoam;
 }
 
-void ComputeFoamWithFlow(half2 flow, half i_foam, float2 i_worldXZUndisplaced, float2 i_worldXZ, half3 i_n, float i_pixelZ, float i_sceneZ, half3 i_view, float3 i_lightDir, half i_shadow, half lodVal, out half3 o_bubbleCol, out half4 o_whiteFoamCol)
+void ComputeFoamWithFlow(half2 flow, half i_foam, float2 i_worldXZUndisplaced, float2 i_worldXZ, half3 i_n, float i_pixelZ, float i_sceneZ, half3 i_view, float3 i_lightDir, half i_shadow, half lodVal, out half3 o_bubbleCol, out half4 o_whiteFoamCol, half3 lightsCol)
 {
 	const float half_period = 1;
 	const float period = half_period * 2;
@@ -101,8 +113,8 @@ void ComputeFoamWithFlow(half2 flow, half i_foam, float2 i_worldXZUndisplaced, f
 	half3 o_bubbleCol2 = half3(0, 0, 0);
 	half4 o_whiteFoamCol2 = half4(0, 0, 0, 0);
 
-	ComputeFoam(i_foam, i_worldXZUndisplaced - (flow * sample1_offset), i_worldXZ, i_n, i_pixelZ, i_sceneZ, i_view, i_lightDir, i_shadow, lodVal, o_bubbleCol1, o_whiteFoamCol1);
-	ComputeFoam(i_foam, i_worldXZUndisplaced - (flow * sample2_offset), i_worldXZ, i_n, i_pixelZ, i_sceneZ, i_view, i_lightDir, i_shadow, lodVal, o_bubbleCol2, o_whiteFoamCol2);
+	ComputeFoam(i_foam, i_worldXZUndisplaced - (flow * sample1_offset), i_worldXZ, i_n, i_pixelZ, i_sceneZ, i_view, i_lightDir, i_shadow, lodVal, o_bubbleCol1, o_whiteFoamCol1, lightsCol);
+	ComputeFoam(i_foam, i_worldXZUndisplaced - (flow * sample2_offset), i_worldXZ, i_n, i_pixelZ, i_sceneZ, i_view, i_lightDir, i_shadow, lodVal, o_bubbleCol2, o_whiteFoamCol2, lightsCol);
 	o_bubbleCol = (sample1_weight * o_bubbleCol1) + (sample2_weight * o_bubbleCol2);
 	o_whiteFoamCol = (sample1_weight * o_whiteFoamCol1) + (sample2_weight * o_whiteFoamCol2);
 }

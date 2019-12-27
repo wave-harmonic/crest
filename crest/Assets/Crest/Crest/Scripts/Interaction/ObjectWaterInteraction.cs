@@ -173,5 +173,10 @@ namespace Crest
 
             _posLast = transform.position;
         }
+
+        private void OnDrawGizmosSelected()
+        {
+            Gizmos.DrawWireMesh(GetComponent<MeshFilter>().sharedMesh, transform.position, transform.rotation, transform.lossyScale);
+        }
     }
 }

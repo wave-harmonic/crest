@@ -49,7 +49,7 @@ uniform half3 _DiffuseShadow;
 half3 ScatterColour(
 	in const half i_surfaceOceanDepth, in const float3 i_cameraPos,
 	in const half3 i_lightDir, in const half3 i_view, in const fixed i_shadow,
-	in const bool i_underwater, in const bool i_outscatterLight, half sss)
+	in const bool i_underwater, in const bool i_outscatterLight, half sss, half4 lightCol)
 {
 	half depth;
 	half shadow = 1.0;
@@ -113,7 +113,7 @@ half3 ScatterColour(
 
 		// Approximate subsurface scattering - add light when surface faces viewer. Use geometry normal - don't need high freqs.
 		half towardsSun = pow(max(0., dot(i_lightDir, -i_view)), _SubSurfaceSunFallOff);
-		half3 subsurface = (_SubSurfaceBase + _SubSurfaceSun * towardsSun) * _SubSurfaceColour.rgb * _LightColor0 * shadow;
+		half3 subsurface = (_SubSurfaceBase + _SubSurfaceSun * towardsSun) * _SubSurfaceColour.rgb * lightCol * shadow;
 		if (!i_underwater)
 			subsurface *= (1.0 - v * v) * sss;
 		col += subsurface;

@@ -176,6 +176,9 @@ Shader "Crest/Ocean"
 
 	SubShader
 	{
+		// Geometry+510 - unity treats anything after Geometry+500 as transparent, and will render it in a forward manner and copy out the gbuffer data
+		//     and do post processing before running it. Discussion of this in issue #53.
+		Tags { "Queue"="Geometry+510" "IgnoreProjector"="True" "RenderType"="Opaque" }
 		GrabPass
 		{
 			"_BackgroundTexture"
@@ -184,9 +187,7 @@ Shader "Crest/Ocean"
 		Pass
 		{
 			// ForwardBase - tell unity we're going to render water in forward manner and we're going to do lighting and it will set the appropriate uniforms
-			// Geometry+510 - unity treats anything after Geometry+500 as transparent, and will render it in a forward manner and copy out the gbuffer data
-			//     and do post processing before running it. Discussion of this in issue #53.
-			Tags { "LightMode"="ForwardBase" "Queue"="Geometry+510" "IgnoreProjector"="True" "RenderType"="Opaque" }
+			Tags { "LightMode"="ForwardBase" }
 			// Culling user defined - can be inverted for under water
 			Cull [_CullMode]
 
@@ -196,6 +197,7 @@ Shader "Crest/Ocean"
 			// for VFACE
 			#pragma target 3.0
 			#pragma multi_compile_fog
+			#pragma multi_compile_fwdbase
 
 			#pragma shader_feature _APPLYNORMALMAPPING_ON
 			#pragma shader_feature _COMPUTEDIRECTIONALLIGHT_ON
@@ -453,14 +455,14 @@ Shader "Crest/Ocean"
 				#if _FOAM_ON
 				half4 whiteFoamCol;
 				#if !_FLOW_ON
-				ComputeFoam(input.foam_screenPosXYW.x, input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, input.worldPos.xz, n_pixel, pixelZ, sceneZ, view, lightDir, shadow.y, lodAlpha, bubbleCol, whiteFoamCol);
+				ComputeFoam(input.foam_screenPosXYW.x, input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, input.worldPos.xz, n_pixel, pixelZ, sceneZ, view, lightDir, shadow.y, lodAlpha, bubbleCol, whiteFoamCol, _LightColor0);
 				#else
-				ComputeFoamWithFlow(input.flow_shadow.xy, input.foam_screenPosXYW.x, input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, input.worldPos.xz, n_pixel, pixelZ, sceneZ, view, lightDir, shadow.y, lodAlpha, bubbleCol, whiteFoamCol);
+				ComputeFoamWithFlow(input.flow_shadow.xy, input.foam_screenPosXYW.x, input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, input.worldPos.xz, n_pixel, pixelZ, sceneZ, view, lightDir, shadow.y, lodAlpha, bubbleCol, whiteFoamCol, _LightColor0);
 				#endif // _FLOW_ON
 				#endif // _FOAM_ON
 
 				// Compute color of ocean - in-scattered light + refracted scene
-				half3 scatterCol = ScatterColour(input.lodAlpha_worldXZUndisplaced_oceanDepth.w, _WorldSpaceCameraPos, lightDir, view, shadow.x, underwater, true, sss);
+				half3 scatterCol = ScatterColour(input.lodAlpha_worldXZUndisplaced_oceanDepth.w, _WorldSpaceCameraPos, lightDir, view, shadow.x, underwater, true, sss, _LightColor0);
 				half3 col = OceanEmission(view, n_pixel, lightDir, input.grabPos, pixelZ, uvDepth, sceneZ, sceneZ01, bubbleCol, _Normals, _CameraDepthTexture, underwater, scatterCol);
 
 				// Light that reflects off water surface
@@ -473,7 +475,7 @@ Shader "Crest/Ocean"
 				// disable transparency, so this will always be 1.0.
 				float reflAlpha = 1.0;
 				#endif
-				
+
 				#if _UNDERWATER_ON
 				if (underwater)
 				{
@@ -482,7 +484,7 @@ Shader "Crest/Ocean"
 				else
 				#endif
 				{
-					ApplyReflectionSky(view, n_pixel, lightDir, shadow.y, input.foam_screenPosXYW.yzzw, pixelZ, reflAlpha, col);
+					ApplyReflectionSky(view, n_pixel, lightDir, shadow.y, input.foam_screenPosXYW.yzzw, pixelZ, reflAlpha, col, _LightColor0);
 				}
 
 				// Override final result with white foam - bubbles on surface
@@ -519,12 +521,14 @@ Shader "Crest/Ocean"
 
 		Pass
 		{
-			// ForwardBase - tell unity we're going to render water in forward manner and we're going to do lighting and it will set the appropriate uniforms
-			// Geometry+510 - unity treats anything after Geometry+500 as transparent, and will render it in a forward manner and copy out the gbuffer data
-			//     and do post processing before running it. Discussion of this in issue #53.
-			Tags { "LightMode"="ForwardBase" "Queue"="Geometry+510" "IgnoreProjector"="True" "RenderType"="Opaque" }
+			Tags { "LightMode"="ForwardAdd" }
+			// Temporary. Prevents doubling of some effects leading to artefacts.
+			// But this pass should be distilled so that only the light is applied instead.
+			// Doesn't work very well with foam lighting
+			BlendOp Max
 			// Culling user defined - can be inverted for under water
 			Cull [_CullMode]
+			ZWrite Off
 
 			CGPROGRAM
 			#pragma vertex Vert
@@ -532,6 +536,7 @@ Shader "Crest/Ocean"
 			// for VFACE
 			#pragma target 3.0
 			#pragma multi_compile_fog
+			#pragma multi_compile_fwdadd
 
 			#pragma shader_feature _APPLYNORMALMAPPING_ON
 			#pragma shader_feature _COMPUTEDIRECTIONALLIGHT_ON
@@ -562,6 +567,7 @@ Shader "Crest/Ocean"
 
 			#include "UnityCG.cginc"
 			#include "Lighting.cginc"
+			#include "AutoLight.cginc"
 
 			struct Attributes
 			{
@@ -754,8 +760,12 @@ Shader "Crest/Ocean"
 				float sceneZ = LinearEyeDepth(sceneZ01);
 
 				float3 lightDir = WorldSpaceLightDir(input.worldPos);
-				// Soft shadow, hard shadow
-				fixed2 shadow = (fixed2)1.0
+
+				UNITY_LIGHT_ATTENUATION(atten, input, input.worldPos);
+				half4 lightCol = _LightColor0 * atten;
+
+				// Soft shadow, hard shadow. UNITY_LIGHT_ATTENUATION already defines shadow
+				fixed2 shadow2 = (fixed2)1.0
 				#if _SHADOWS_ON
 					- input.flow_shadow.zw
 				#endif
@@ -789,14 +799,14 @@ Shader "Crest/Ocean"
 				#if _FOAM_ON
 				half4 whiteFoamCol;
 				#if !_FLOW_ON
-				ComputeFoam(input.foam_screenPosXYW.x, input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, input.worldPos.xz, n_pixel, pixelZ, sceneZ, view, lightDir, shadow.y, lodAlpha, bubbleCol, whiteFoamCol);
+				ComputeFoam(input.foam_screenPosXYW.x, input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, input.worldPos.xz, n_pixel, pixelZ, sceneZ, view, lightDir, shadow2.y, lodAlpha, bubbleCol, whiteFoamCol, lightCol);
 				#else
-				ComputeFoamWithFlow(input.flow_shadow.xy, input.foam_screenPosXYW.x, input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, input.worldPos.xz, n_pixel, pixelZ, sceneZ, view, lightDir, shadow.y, lodAlpha, bubbleCol, whiteFoamCol);
+				ComputeFoamWithFlow(input.flow_shadow.xy, input.foam_screenPosXYW.x, input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, input.worldPos.xz, n_pixel, pixelZ, sceneZ, view, lightDir, shadow.y, lodAlpha, bubbleCol, whiteFoamCol, lightCol);
 				#endif // _FLOW_ON
 				#endif // _FOAM_ON
 
 				// Compute color of ocean - in-scattered light + refracted scene
-				half3 scatterCol = ScatterColour(input.lodAlpha_worldXZUndisplaced_oceanDepth.w, _WorldSpaceCameraPos, lightDir, view, shadow.x, underwater, true, sss);
+				half3 scatterCol = ScatterColour(input.lodAlpha_worldXZUndisplaced_oceanDepth.w, _WorldSpaceCameraPos, lightDir, view, shadow2.x, underwater, true, sss, lightCol);
 				half3 col = OceanEmission(view, n_pixel, lightDir, input.grabPos, pixelZ, uvDepth, sceneZ, sceneZ01, bubbleCol, _Normals, _CameraDepthTexture, underwater, scatterCol);
 
 				// Light that reflects off water surface
@@ -809,16 +819,16 @@ Shader "Crest/Ocean"
 				// disable transparency, so this will always be 1.0.
 				float reflAlpha = 1.0;
 				#endif
-				
+
 				#if _UNDERWATER_ON
 				if (underwater)
 				{
-					ApplyReflectionUnderwater(view, n_pixel, lightDir, shadow.y, input.foam_screenPosXYW.yzzw, scatterCol, reflAlpha, col);
+					ApplyReflectionUnderwater(view, n_pixel, lightDir, shadow2.y, input.foam_screenPosXYW.yzzw, scatterCol, reflAlpha, col);
 				}
 				else
 				#endif
 				{
-					ApplyReflectionSky(view, n_pixel, lightDir, shadow.y, input.foam_screenPosXYW.yzzw, pixelZ, reflAlpha, col);
+					ApplyReflectionSky(view, n_pixel, lightDir, shadow2.y, input.foam_screenPosXYW.yzzw, pixelZ, reflAlpha, col, lightCol);
 				}
 
 				// Override final result with white foam - bubbles on surface

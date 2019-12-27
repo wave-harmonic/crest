@@ -191,7 +191,7 @@ Shader "Crest/Underwater Curtain"
 				const float depth = 0.0;
 				const half shadow = 1.0;
 
-				const half3 scatterCol = ScatterColour(depth, _WorldSpaceCameraPos, lightDir, view, shadow, true, true, sss);
+				const half3 scatterCol = ScatterColour(depth, _WorldSpaceCameraPos, lightDir, view, shadow, true, true, sss, _LightColor0);
 
 				half3 sceneColour = tex2D(_BackgroundTexture, input.grabPos.xy / input.grabPos.w).rgb;
 

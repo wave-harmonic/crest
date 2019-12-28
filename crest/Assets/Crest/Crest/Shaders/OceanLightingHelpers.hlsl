@@ -3,6 +3,7 @@
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 // Improved attenuation for vertex lights. Call this routine in the vertex shader to save on performance.
+// Shade4PointLights produces tiling even though it applies attenuation.
 // https://forum.unity.com/threads/point-light-in-v-f-shader.499717/#post-3250481
 void CalculateVertexLightsAttenuation(out half4 uv, in const float3 positionWS)
 {

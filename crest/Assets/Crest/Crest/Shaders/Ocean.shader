@@ -761,15 +761,9 @@ Shader "Crest/Ocean"
 
 				float3 lightDir = WorldSpaceLightDir(input.worldPos);
 
+				// Defines fixed shadow, but not useable. Might need to be written to shadow texture array?
 				UNITY_LIGHT_ATTENUATION(atten, input, input.worldPos);
 				half4 lightCol = _LightColor0 * atten;
-
-				// Soft shadow, hard shadow. UNITY_LIGHT_ATTENUATION already defines shadow
-				fixed2 shadow2 = (fixed2)1.0
-				#if _SHADOWS_ON
-					- input.flow_shadow.zw
-				#endif
-					;
 
 				// Normal - geom + normal mapping. Subsurface scattering.
 				const float3 uv_slice_smallerLod = WorldToUV(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz);
@@ -799,14 +793,14 @@ Shader "Crest/Ocean"
 				#if _FOAM_ON
 				half4 whiteFoamCol;
 				#if !_FLOW_ON
-				ComputeFoam(input.foam_screenPosXYW.x, input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, input.worldPos.xz, n_pixel, pixelZ, sceneZ, view, lightDir, shadow2.y, lodAlpha, bubbleCol, whiteFoamCol, lightCol);
+				ComputeFoam(input.foam_screenPosXYW.x, input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, input.worldPos.xz, n_pixel, pixelZ, sceneZ, view, lightDir, shadow, lodAlpha, bubbleCol, whiteFoamCol, lightCol);
 				#else
-				ComputeFoamWithFlow(input.flow_shadow.xy, input.foam_screenPosXYW.x, input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, input.worldPos.xz, n_pixel, pixelZ, sceneZ, view, lightDir, shadow.y, lodAlpha, bubbleCol, whiteFoamCol, lightCol);
+				ComputeFoamWithFlow(input.flow_shadow.xy, input.foam_screenPosXYW.x, input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, input.worldPos.xz, n_pixel, pixelZ, sceneZ, view, lightDir, shadow, lodAlpha, bubbleCol, whiteFoamCol, lightCol);
 				#endif // _FLOW_ON
 				#endif // _FOAM_ON
 
 				// Compute color of ocean - in-scattered light + refracted scene
-				half3 scatterCol = ScatterColour(input.lodAlpha_worldXZUndisplaced_oceanDepth.w, _WorldSpaceCameraPos, lightDir, view, shadow2.x, underwater, true, sss, lightCol);
+				half3 scatterCol = ScatterColour(input.lodAlpha_worldXZUndisplaced_oceanDepth.w, _WorldSpaceCameraPos, lightDir, view, shadow, underwater, true, sss, lightCol);
 				half3 col = OceanEmission(view, n_pixel, lightDir, input.grabPos, pixelZ, uvDepth, sceneZ, sceneZ01, bubbleCol, _Normals, _CameraDepthTexture, underwater, scatterCol);
 
 				// Light that reflects off water surface
@@ -823,12 +817,12 @@ Shader "Crest/Ocean"
 				#if _UNDERWATER_ON
 				if (underwater)
 				{
-					ApplyReflectionUnderwater(view, n_pixel, lightDir, shadow2.y, input.foam_screenPosXYW.yzzw, scatterCol, reflAlpha, col);
+					ApplyReflectionUnderwater(view, n_pixel, lightDir, shadow, input.foam_screenPosXYW.yzzw, scatterCol, reflAlpha, col);
 				}
 				else
 				#endif
 				{
-					ApplyReflectionSky(view, n_pixel, lightDir, shadow2.y, input.foam_screenPosXYW.yzzw, pixelZ, reflAlpha, col, lightCol);
+					ApplyReflectionSky(view, n_pixel, lightDir, shadow, input.foam_screenPosXYW.yzzw, pixelZ, reflAlpha, col, lightCol);
 				}
 
 				// Override final result with white foam - bubbles on surface

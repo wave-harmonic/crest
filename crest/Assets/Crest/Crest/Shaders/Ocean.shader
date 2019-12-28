@@ -169,8 +169,9 @@ Shader "Crest/Ocean"
 		_LightsSubSurfaceBase("Sub Surface Base Mul", Range(0.0, 4.0)) = 1.0
 		// Strength of specular lighting response
 		_LightsSpecular("Specular", Range(0.0, 1000.0)) = 31.0
-		// Light strength on foam
+		// Light strength on foam. Also depends on _WaveFoamLightScale.
 		_LightsScaleWaveFoam("Foam Lights Scale", Range(0.0, 1000.0)) = 5.0
+		// Controls harshness of Fresnel behaviour for lights.
 		_LightsFresnelPower("Fresnel Power", Range(1.0, 20.0)) = 10.0
 
 		[Header(Debug Options)]

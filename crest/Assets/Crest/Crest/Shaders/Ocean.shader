@@ -525,6 +525,7 @@ Shader "Crest/Ocean"
 			// Temporary. Prevents doubling of some effects leading to artefacts.
 			// But this pass should be distilled so that only the light is applied instead.
 			// Doesn't work very well with foam lighting
+			// Blend SrcAlpha One
 			BlendOp Max
 			// Culling user defined - can be inverted for under water
 			Cull [_CullMode]
@@ -851,6 +852,7 @@ Shader "Crest/Ocean"
 				#endif
 				#endif
 
+				// return half4(col, lightCol.a);
 				return half4(col, 1.);
 			}
 

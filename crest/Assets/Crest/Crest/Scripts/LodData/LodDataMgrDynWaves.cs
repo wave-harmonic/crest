@@ -105,6 +105,14 @@ namespace Crest
                 LodDataMgrFlow.BindNull(simMaterial);
             }
 
+            if (OceanRenderer.Instance._lodDataAnimWaves)
+            {
+                OceanRenderer.Instance._lodDataAnimWaves.BindResultData(simMaterial);
+            }
+            else
+            {
+                LodDataMgrAnimWaves.BindNull(simMaterial);
+            }
         }
 
         public static void CountWaveSims(int countFrom, out int o_present, out int o_active)

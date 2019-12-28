@@ -53,6 +53,14 @@ void UpdateDynWaves(uint3 id : SV_DispatchThreadID)
 
 	const float3 uv_slice = float3(input_uv, sliceIndex);
 
+	float waterDepth = SampleLod(_LD_TexArray_SeaFloorDepth, uv_slice).x;
+
+	if (waterDepth <= 0.0)
+	{
+		_LD_TexArray_Target[id] = float2(0.0, 0.0);
+		return;
+	}
+
 	const half2 velocity = SampleLod(_LD_TexArray_Flow, uv_slice).xy;
 	const float3 uv_source = WorldToUV_Source(worldPosXZ - (dt * velocity), sliceIndexSource);
 
@@ -82,6 +90,11 @@ void UpdateDynWaves(uint3 id : SV_DispatchThreadID)
 		fym = SampleLod(_LD_TexArray_DynamicWaves_Source, uv_source - e * Y).x; // y minus
 		fxp = SampleLod(_LD_TexArray_DynamicWaves_Source, uv_source + e * X).x; // x plus
 		fyp = SampleLod(_LD_TexArray_DynamicWaves_Source, uv_source + e * Y).x; // y plus
+		if (SampleLod(_LD_TexArray_SeaFloorDepth, uv_slice - e * X).x <= 0.0) fxm = -SampleLod(_LD_TexArray_AnimatedWaves, uv_slice - e * X).y;
+		if (SampleLod(_LD_TexArray_SeaFloorDepth, uv_slice - e * Y).x <= 0.0) fym = -SampleLod(_LD_TexArray_AnimatedWaves, uv_slice - e * Y).y;
+		if (SampleLod(_LD_TexArray_SeaFloorDepth, uv_slice + e * X).x <= 0.0) fxp = -SampleLod(_LD_TexArray_AnimatedWaves, uv_slice + e * X).y;
+		if (SampleLod(_LD_TexArray_SeaFloorDepth, uv_slice + e * Y).x <= 0.0) fyp = -SampleLod(_LD_TexArray_AnimatedWaves, uv_slice + e * Y).y;
+
 		ft_v = SampleLod(_LD_TexArray_DynamicWaves_Source, uv_source).xy;
 	}
 
@@ -110,9 +123,8 @@ void UpdateDynWaves(uint3 id : SV_DispatchThreadID)
 	// eventually break. i model "Deep" water, but then simply ramp down waves in non-deep water with a linear multiplier.
 	// http://hyperphysics.phy-astr.gsu.edu/hbase/Waves/watwav2.html
 	// http://hyperphysics.phy-astr.gsu.edu/hbase/watwav.html#c1
-	float waterDepth = SampleLod(_LD_TexArray_SeaFloorDepth, uv_slice).x;
 	float depthMul = 1.0 - (1.0 - saturate(2.0 * waterDepth / wavelength)) * dt * 2.0;
-	ftp *= depthMul;
+	//ftp *= depthMul;
 
 	_LD_TexArray_Target[id] = float2(ftp, vtp);
 }

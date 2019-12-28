@@ -62,7 +62,7 @@ void ComputeFoam(half i_foam, float2 i_worldXZUndisplaced, float2 i_worldXZ, hal
 	half bubbleFoamTexValue = BubbleFoamTexture(i_worldXZ, i_worldXZUndisplaced, i_n, i_view, lodVal);
 	o_bubbleCol = (half3)bubbleFoamTexValue * _FoamBubbleColor.rgb * saturate(i_foam * _WaveFoamBubblesCoverage) * AmbientLight();
 #if defined(VERTEXLIGHT_ON)
-	o_bubbleCol += lightsCol;
+	o_bubbleCol *= lightsCol;
 #endif // VERTEXLIGHT_ON
 
 	// White foam on top, with black-point fading

@@ -342,7 +342,7 @@ namespace Crest
                 // Only expose the following if real-time cache type
                 EditorGUILayout.PropertyField(serializedObject.FindProperty("_refreshMode"));
                 EditorGUILayout.PropertyField(serializedObject.FindProperty("_geometryToRenderIntoCache"));
-                EditorGUILayout.PropertyField(serializedObject.FindProperty("_layerNames"));
+                EditorGUILayout.PropertyField(serializedObject.FindProperty("_layerNames"), true);
                 EditorGUILayout.PropertyField(serializedObject.FindProperty("_resolution"));
                 EditorGUILayout.PropertyField(serializedObject.FindProperty("_cameraMaxTerrainHeight"));
                 EditorGUILayout.PropertyField(serializedObject.FindProperty("_forceAlwaysUpdateDebug"));

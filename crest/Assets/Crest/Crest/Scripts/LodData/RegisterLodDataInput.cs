@@ -75,6 +75,8 @@ namespace Crest
     {
         [SerializeField] bool _disableRenderer = true;
 
+        protected abstract Color GizmoColor { get; }
+
         protected virtual void OnEnable()
         {
             if (_disableRenderer)
@@ -96,6 +98,16 @@ namespace Crest
             if (registered != null)
             {
                 registered.Remove(this);
+            }
+        }
+
+        private void OnDrawGizmosSelected()
+        {
+            var mf = GetComponent<MeshFilter>();
+            if (mf)
+            {
+                Gizmos.color = GizmoColor;
+                Gizmos.DrawWireMesh(mf.sharedMesh, transform.position, transform.rotation, transform.lossyScale);
             }
         }
     }

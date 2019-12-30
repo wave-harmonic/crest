@@ -245,7 +245,7 @@ namespace Crest
         void OnDrawGizmosSelected()
         {
             Gizmos.matrix = transform.localToWorldMatrix;
-            Gizmos.color = Color.white;
+            Gizmos.color = new Color(1f, 0f, 0f, 0.5f);
             Gizmos.DrawWireCube(Vector3.zero, new Vector3(1f, 0f, 1f));
 
             if (_type == OceanDepthCacheType.Realtime)

@@ -4,8 +4,7 @@ namespace Crest
 {
     public class ProceduralSphereInteraction : MonoBehaviour
     {
-        [SerializeField]
-        float _radius = 2f;
+        float Radius => 0.5f * transform.lossyScale.x;
 
         Vector3 _localPositionRest;
 
@@ -80,8 +79,6 @@ namespace Crest
                 enabled = false;
                 return;
             }
-
-            transform.localScale = _radius * Vector3.one * 4f;
 
             _mpb = new MaterialPropertyBlock();
         }
@@ -169,11 +166,16 @@ namespace Crest
             _mpb.SetVector("_Velocity", vel);
             _mpb.SetFloat("_Weight", weight);
             _mpb.SetFloat("_SimDeltaTime", dt);
-            _mpb.SetFloat("_Radius", _radius);
+            _mpb.SetFloat("_Radius", Radius);
 
             _renderer.SetPropertyBlock(_mpb);
 
             _posLast = transform.position;
+        }
+
+        private void OnDrawGizmosSelected()
+        {
+            Gizmos.DrawWireSphere(transform.position, Radius);
         }
     }
 }

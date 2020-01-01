@@ -50,15 +50,14 @@ Shader "Crest/Inputs/Dynamic Waves/Procedural Object Interaction"
 			{
 				Varyings o;
 
-				float3 vertexWorldPos = mul(unity_ObjectToWorld, float4(input.positionOS, 1.0));
+				const float quadExpand = 4.0;
+
+				float3 vertexWorldPos = mul(unity_ObjectToWorld, float4(input.positionOS * quadExpand, 1.0));
 				float3 centerPos = unity_ObjectToWorld._m03_m13_m23;
 
 				o.offsetXZ = vertexWorldPos.xz - centerPos.xz;
 
 				o.positionCS = mul(UNITY_MATRIX_VP, float4(vertexWorldPos, 1.0));
-
-				//float2 posXZ = input.positionOS.xy;
-				//o.force = length(posXZ) < 0.5 ? 1.0 : 0.0;
 
 				return o;
 			}

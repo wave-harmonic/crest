@@ -106,17 +106,20 @@ namespace Crest
                 return;
             }
 
-            // no sims running - abort. don't bother switching off renderer - camera wont be active
+            // No sims running - abort. don't bother switching off renderer - camera wont be active
             if (simsActive == 0)
                 return;
 
             var disp = _boat.CalculateDisplacementToObject();
 
-            var dispFlatLand = disp;
-            dispFlatLand.y = 0f;
-            var velBoat = _boat.Velocity;
-            velBoat.y = 0f;
-            transform.position = transform.parent.TransformPoint(_localPositionRest) - dispFlatLand + _velocityPositionOffset * velBoat;
+            // Set position of interaction
+            {
+                var dispFlatLand = disp;
+                dispFlatLand.y = 0f;
+                var velBoat = _boat.Velocity;
+                velBoat.y = 0f;
+                transform.position = transform.parent.TransformPoint(_localPositionRest) - dispFlatLand + _velocityPositionOffset * velBoat;
+            }
 
             var ocean = OceanRenderer.Instance;
 

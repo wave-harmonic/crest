@@ -114,7 +114,10 @@ namespace Crest
                 return;
 
             var disp = _boat.CalculateDisplacementToObject();
-            transform.position = transform.parent.TransformPoint(_localPositionRest) - disp + _velocityPositionOffset * _boat.Velocity;
+            disp.y = 0f;
+            var velBoat = _boat.Velocity;
+            velBoat.y = 0f;
+            transform.position = transform.parent.TransformPoint(_localPositionRest) - disp + _velocityPositionOffset * velBoat;
 
             var ocean = OceanRenderer.Instance;
 

@@ -32,7 +32,9 @@ Shader "Crest/Inputs/Dynamic Waves/Procedural Object Interaction"
 			float _SimDeltaTime;
 			float _Strength;
 			float _Weight;
-			
+
+			float _Radius;
+
 			struct Attributes
 			{
 				float3 positionOS : POSITION;
@@ -41,7 +43,7 @@ Shader "Crest/Inputs/Dynamic Waves/Procedural Object Interaction"
 			struct Varyings
 			{
 				float4 positionCS : SV_POSITION;
-				float force : TEXCOORD0;
+				float2 offsetXZ : TEXCOORD0;
 			};
 
 			Varyings Vert(Attributes input)
@@ -49,17 +51,33 @@ Shader "Crest/Inputs/Dynamic Waves/Procedural Object Interaction"
 				Varyings o;
 
 				float3 vertexWorldPos = mul(unity_ObjectToWorld, float4(input.positionOS, 1.0));
+				float3 centerPos = unity_ObjectToWorld._m03_m13_m23;
+
+				o.offsetXZ = vertexWorldPos.xz - centerPos.xz;
+
 				o.positionCS = mul(UNITY_MATRIX_VP, float4(vertexWorldPos, 1.0));
 
-				float2 posXZ = input.positionOS.xy;
-				o.force = length(posXZ) < 0.5 ? 1.0 : 0.0;
+				//float2 posXZ = input.positionOS.xy;
+				//o.force = length(posXZ) < 0.5 ? 1.0 : 0.0;
 
 				return o;
 			}
 
 			half4 Frag(Varyings input) : SV_Target
 			{
-				return _Weight * half4(0., input.force*_SimDeltaTime, 0., 0.);
+				float dist = length(input.offsetXZ);
+				float signedDist = dist - _Radius;
+				float2 sdfNormal = input.offsetXZ / dist;
+
+				float force = 1.0;
+				if (signedDist > 0.0)
+				{
+					force = -exp(-signedDist * signedDist);
+				}
+
+				force *= _Velocity.y;
+
+				return _Weight * half4(0., force * _SimDeltaTime * _Strength, 0., 0.);
 			}
 			ENDCG
 		}

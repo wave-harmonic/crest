@@ -81,7 +81,7 @@ namespace Crest
                 return;
             }
 
-            transform.localScale = _radius * Vector3.one;
+            transform.localScale = _radius * Vector3.one * 4f;
 
             _mpb = new MaterialPropertyBlock();
         }
@@ -166,6 +166,7 @@ namespace Crest
             _mpb.SetVector("_Velocity", vel);
             _mpb.SetFloat("_Weight", weight);
             _mpb.SetFloat("_SimDeltaTime", dt);
+            _mpb.SetFloat("_Radius", _radius);
 
             _renderer.SetPropertyBlock(_mpb);
 

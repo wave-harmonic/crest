@@ -6,10 +6,7 @@ Shader "Crest/Inputs/Dynamic Waves/Procedural Object Interaction"
 {
 	Properties
 	{
-		_FactorParallel("FactorParallel", Range(0., 8.)) = 0.2
-		_FactorOrthogonal("FactorOrthogonal", Range(0., 4.)) = 0.2
 		_Strength("Strength", Range(0., 1000.)) = 0.2
-		_Velocity("Velocity", Vector) = (0,0,0,0)
 	}
 
 	SubShader
@@ -26,8 +23,6 @@ Shader "Crest/Inputs/Dynamic Waves/Procedural Object Interaction"
 
 			#include "UnityCG.cginc"
 
-			float _FactorParallel;
-			float _FactorOrthogonal;
 			float3 _Velocity;
 			float _SimDeltaTime;
 			float _Strength;
@@ -68,15 +63,19 @@ Shader "Crest/Inputs/Dynamic Waves/Procedural Object Interaction"
 				float signedDist = dist - _Radius;
 				float2 sdfNormal = input.offsetXZ / dist;
 
-				float force = 1.0;
+				float forceUpDown = _Velocity.y;
 				if (signedDist > 0.0)
 				{
-					force = -exp(-signedDist * signedDist);
+					forceUpDown *= -exp(-signedDist * signedDist);
 				}
 
-				force *= _Velocity.y;
+				float forceHoriz = -0.75 * dot(sdfNormal, _Velocity.xz);
+				if (signedDist > 0.0)
+				{
+					forceHoriz *= -exp(-signedDist * signedDist);
+				}
 
-				return _Weight * half4(0., force * _SimDeltaTime * _Strength, 0., 0.);
+				return _Weight * half4(0., (forceUpDown + forceHoriz) * _SimDeltaTime * _Strength, 0., 0.);
 			}
 			ENDCG
 		}

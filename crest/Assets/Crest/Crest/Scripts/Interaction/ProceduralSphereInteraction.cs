@@ -111,10 +111,12 @@ namespace Crest
                 return;
 
             var disp = _boat.CalculateDisplacementToObject();
-            disp.y = 0f;
+
+            var dispFlatLand = disp;
+            dispFlatLand.y = 0f;
             var velBoat = _boat.Velocity;
             velBoat.y = 0f;
-            transform.position = transform.parent.TransformPoint(_localPositionRest) - disp + _velocityPositionOffset * velBoat;
+            transform.position = transform.parent.TransformPoint(_localPositionRest) - dispFlatLand + _velocityPositionOffset * velBoat;
 
             var ocean = OceanRenderer.Instance;
 
@@ -159,7 +161,29 @@ namespace Crest
 
             float dt; int steps;
             ocean._lodDataDynWaves.GetSimSubstepData(ocean.DeltaTimeDynamics, out steps, out dt);
-            float weight = _boat.InWater ? _weight / simsActive : 0f;
+
+            float weight = _weight / simsActive;
+
+            // Weight based on submerged-amount of object
+            {
+                var waterHeight = disp.y + OceanRenderer.Instance.SeaLevel;
+                var centerDepthInWater = waterHeight - transform.position.y;
+
+                if (centerDepthInWater >= 0f)
+                {
+                    // Center in water
+                    var prop = centerDepthInWater / Radius;
+                    prop *= 0.5f;
+                    weight *= Mathf.Exp(-prop * prop);
+                }
+                else
+                {
+                    // Center out of water
+                    var height = -centerDepthInWater;
+                    var heightProp = 1f - Mathf.Clamp01(height / Radius);
+                    weight *= Mathf.Sqrt(heightProp);
+                }
+            }
 
             _renderer.GetPropertyBlock(_mpb);
 
@@ -175,6 +199,7 @@ namespace Crest
 
         private void OnDrawGizmosSelected()
         {
+            Gizmos.color = new Color(0f, 1f, 0f, 0.5f);
             Gizmos.DrawWireSphere(transform.position, Radius);
         }
     }

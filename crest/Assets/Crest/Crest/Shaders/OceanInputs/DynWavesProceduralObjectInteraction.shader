@@ -66,7 +66,7 @@ Shader "Crest/Inputs/Dynamic Waves/Procedural Object Interaction"
 				float forceUpDown = _Velocity.y;
 				if (signedDist > 0.0)
 				{
-					forceUpDown *= -exp(-signedDist * signedDist);
+					forceUpDown *= -exp(-signedDist * signedDist * 4.0);
 				}
 
 				float forceHoriz = -0.75 * dot(sdfNormal, _Velocity.xz);

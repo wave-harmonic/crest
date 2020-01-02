@@ -2,7 +2,7 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
-Shader "Crest/Inputs/Dynamic Waves/Procedural Object Interaction"
+Shader "Crest/Inputs/Dynamic Waves/Sphere-Water Interaction"
 {
 	Properties
 	{
@@ -57,11 +57,18 @@ Shader "Crest/Inputs/Dynamic Waves/Procedural Object Interaction"
 				return o;
 			}
 
+			void ShapeSDF(float2 offsetXZ, out float signedDist, out float2 normal)
+			{
+				float dist = length(offsetXZ);
+				signedDist = dist - _Radius;
+				normal = dist > 0.0001 ? offsetXZ / dist : float2(1.0, 0.0);
+			}
+
 			half4 Frag(Varyings input) : SV_Target
 			{
-				float dist = length(input.offsetXZ);
-				float signedDist = dist - _Radius;
-				float2 sdfNormal = dist > 0.0001 ? input.offsetXZ / dist : float2(1.0, 0.0);
+				float signedDist;
+				float2 sdfNormal;
+				ShapeSDF(input.offsetXZ, signedDist, sdfNormal);
 
 				float forceUpDown = _Velocity.y;
 				if (signedDist > 0.0)

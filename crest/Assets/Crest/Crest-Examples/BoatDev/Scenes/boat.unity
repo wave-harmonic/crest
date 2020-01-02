@@ -333,11 +333,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cb6894b93c9cf014c92b311d89cd410b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _noiseFreq: 6
-  _noiseAmp: 0
   _weight: 1
   _weightUpDownMul: 0.5
-  _velocityPositionOffset: 0.2
+  _noiseAmp: 0
+  _noiseFreq: 6
   _teleportSpeed: 500
   _warnOnTeleport: 0
   _maxSpeed: 100
@@ -477,11 +476,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cb6894b93c9cf014c92b311d89cd410b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _noiseFreq: 6
-  _noiseAmp: 0
   _weight: 1
   _weightUpDownMul: 0.5
-  _velocityPositionOffset: 0.2
+  _noiseAmp: 0
+  _noiseFreq: 6
   _teleportSpeed: 500
   _warnOnTeleport: 0
   _maxSpeed: 100
@@ -590,11 +588,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cb6894b93c9cf014c92b311d89cd410b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _noiseFreq: 6
-  _noiseAmp: 0
   _weight: 1
   _weightUpDownMul: 0.5
-  _velocityPositionOffset: 0.2
+  _noiseAmp: 0
+  _noiseFreq: 6
   _teleportSpeed: 500
   _warnOnTeleport: 0
   _maxSpeed: 100
@@ -934,11 +931,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cb6894b93c9cf014c92b311d89cd410b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _noiseFreq: 6
-  _noiseAmp: 0
   _weight: 1
   _weightUpDownMul: 0.5
-  _velocityPositionOffset: 0.2
+  _noiseAmp: 0
+  _noiseFreq: 6
   _teleportSpeed: 500
   _warnOnTeleport: 0
   _maxSpeed: 100
@@ -1168,11 +1164,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cb6894b93c9cf014c92b311d89cd410b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _noiseFreq: 6
-  _noiseAmp: 0
   _weight: 1
   _weightUpDownMul: 0.5
-  _velocityPositionOffset: 0.2
+  _noiseAmp: 0
+  _noiseFreq: 6
   _teleportSpeed: 500
   _warnOnTeleport: 0
   _maxSpeed: 100
@@ -1281,11 +1276,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cb6894b93c9cf014c92b311d89cd410b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _noiseFreq: 6
-  _noiseAmp: 0
   _weight: 1
   _weightUpDownMul: 0.5
-  _velocityPositionOffset: 0.2
+  _noiseAmp: 0
+  _noiseFreq: 6
   _teleportSpeed: 500
   _warnOnTeleport: 0
   _maxSpeed: 100
@@ -1631,11 +1625,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cb6894b93c9cf014c92b311d89cd410b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _noiseFreq: 6
-  _noiseAmp: 0
   _weight: 1
   _weightUpDownMul: 0.5
-  _velocityPositionOffset: 0.2
+  _noiseAmp: 0
+  _noiseFreq: 6
   _teleportSpeed: 500
   _warnOnTeleport: 0
   _maxSpeed: 100
@@ -1744,11 +1737,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cb6894b93c9cf014c92b311d89cd410b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _noiseFreq: 6
-  _noiseAmp: 0
   _weight: 1
   _weightUpDownMul: 0.5
-  _velocityPositionOffset: 0.2
+  _noiseAmp: 0
+  _noiseFreq: 6
   _teleportSpeed: 500
   _warnOnTeleport: 0
   _maxSpeed: 100
@@ -1909,11 +1901,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cb6894b93c9cf014c92b311d89cd410b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _noiseFreq: 6
-  _noiseAmp: 0
   _weight: 1
   _weightUpDownMul: 0.5
-  _velocityPositionOffset: 0.2
+  _noiseAmp: 0
+  _noiseFreq: 6
   _teleportSpeed: 500
   _warnOnTeleport: 0
   _maxSpeed: 100
@@ -2220,11 +2211,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cb6894b93c9cf014c92b311d89cd410b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _noiseFreq: 6
-  _noiseAmp: 0
   _weight: 1
   _weightUpDownMul: 0.5
-  _velocityPositionOffset: 0.2
+  _noiseAmp: 0
+  _noiseFreq: 6
   _teleportSpeed: 500
   _warnOnTeleport: 0
   _maxSpeed: 100
@@ -2523,11 +2513,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cb6894b93c9cf014c92b311d89cd410b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _noiseFreq: 6
-  _noiseAmp: 0
   _weight: 1
   _weightUpDownMul: 0.5
-  _velocityPositionOffset: 0.2
+  _noiseAmp: 0
+  _noiseFreq: 6
   _teleportSpeed: 500
   _warnOnTeleport: 0
   _maxSpeed: 100
@@ -2636,11 +2625,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cb6894b93c9cf014c92b311d89cd410b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _noiseFreq: 6
-  _noiseAmp: 0
   _weight: 1
   _weightUpDownMul: 0.5
-  _velocityPositionOffset: 0.2
+  _noiseAmp: 0
+  _noiseFreq: 6
   _teleportSpeed: 500
   _warnOnTeleport: 0
   _maxSpeed: 100
@@ -3023,11 +3011,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cb6894b93c9cf014c92b311d89cd410b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _noiseFreq: 6
-  _noiseAmp: 0
   _weight: 1
   _weightUpDownMul: 0.5
-  _velocityPositionOffset: 0.2
+  _noiseAmp: 0
+  _noiseFreq: 6
   _teleportSpeed: 500
   _warnOnTeleport: 0
   _maxSpeed: 100
@@ -3204,7 +3191,7 @@ GameObject:
   - component: {fileID: 1256472203}
   - component: {fileID: 1256472202}
   m_Layer: 0
-  m_Name: Sphere
+  m_Name: SphereInteraction
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3462,11 +3449,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cb6894b93c9cf014c92b311d89cd410b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _noiseFreq: 6
-  _noiseAmp: 0
   _weight: 1
   _weightUpDownMul: 0.5
-  _velocityPositionOffset: 0.2
+  _noiseAmp: 0
+  _noiseFreq: 6
   _teleportSpeed: 500
   _warnOnTeleport: 0
   _maxSpeed: 100
@@ -3575,11 +3561,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cb6894b93c9cf014c92b311d89cd410b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _noiseFreq: 6
-  _noiseAmp: 0
   _weight: 1
   _weightUpDownMul: 0.5
-  _velocityPositionOffset: 0.2
+  _noiseAmp: 0
+  _noiseFreq: 6
   _teleportSpeed: 500
   _warnOnTeleport: 0
   _maxSpeed: 100
@@ -3725,11 +3710,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cb6894b93c9cf014c92b311d89cd410b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _noiseFreq: 6
-  _noiseAmp: 0
   _weight: 1
   _weightUpDownMul: 0.5
-  _velocityPositionOffset: 0.2
+  _noiseAmp: 0
+  _noiseFreq: 6
   _teleportSpeed: 500
   _warnOnTeleport: 0
   _maxSpeed: 100
@@ -4218,11 +4202,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cb6894b93c9cf014c92b311d89cd410b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _noiseFreq: 6
-  _noiseAmp: 0
   _weight: 1
   _weightUpDownMul: 0.5
-  _velocityPositionOffset: 0.2
+  _noiseAmp: 0
+  _noiseFreq: 6
   _teleportSpeed: 500
   _warnOnTeleport: 0
   _maxSpeed: 100
@@ -4331,11 +4314,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cb6894b93c9cf014c92b311d89cd410b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _noiseFreq: 6
-  _noiseAmp: 0
   _weight: 1
   _weightUpDownMul: 0.5
-  _velocityPositionOffset: 0.2
+  _noiseAmp: 0
+  _noiseFreq: 6
   _teleportSpeed: 500
   _warnOnTeleport: 0
   _maxSpeed: 100
@@ -4568,11 +4550,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cb6894b93c9cf014c92b311d89cd410b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _noiseFreq: 6
-  _noiseAmp: 0
   _weight: 1
   _weightUpDownMul: 0.5
-  _velocityPositionOffset: 0.2
+  _noiseAmp: 0
+  _noiseFreq: 6
   _teleportSpeed: 500
   _warnOnTeleport: 0
   _maxSpeed: 100

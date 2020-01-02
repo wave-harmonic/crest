@@ -61,7 +61,7 @@ Shader "Crest/Inputs/Dynamic Waves/Procedural Object Interaction"
 			{
 				float dist = length(input.offsetXZ);
 				float signedDist = dist - _Radius;
-				float2 sdfNormal = input.offsetXZ / dist;
+				float2 sdfNormal = dist > 0.0001 ? input.offsetXZ / dist : float2(1.0, 0.0);
 
 				float forceUpDown = _Velocity.y;
 				if (signedDist > 0.0)

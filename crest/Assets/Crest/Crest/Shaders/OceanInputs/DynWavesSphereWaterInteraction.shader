@@ -57,7 +57,8 @@ Shader "Crest/Inputs/Dynamic Waves/Sphere-Water Interaction"
 				return o;
 			}
 
-			void ShapeSDF(float2 offsetXZ, out float signedDist, out float2 normal)
+			// Signed distance field for sphere.
+			void SphereSDF(float2 offsetXZ, out float signedDist, out float2 normal)
 			{
 				float dist = length(offsetXZ);
 				signedDist = dist - _Radius;
@@ -66,23 +67,27 @@ Shader "Crest/Inputs/Dynamic Waves/Sphere-Water Interaction"
 
 			half4 Frag(Varyings input) : SV_Target
 			{
+				// Compute signed distance to sphere (sign gives inside/outside), and outwards normal to sphere surface
 				float signedDist;
 				float2 sdfNormal;
-				ShapeSDF(input.offsetXZ, signedDist, sdfNormal);
+				SphereSDF(input.offsetXZ, signedDist, sdfNormal);
 
+				// Forces from up/down motion. Push in same direction as vel inside sphere, and opposite dir outside.
 				float forceUpDown = _Velocity.y;
 				if (signedDist > 0.0)
 				{
 					forceUpDown *= -exp(-signedDist * signedDist * 4.0);
 				}
 
+				// Forces from horizontal motion - push water up in direction of motion, pull down behind.
 				float forceHoriz = -0.75 * dot(sdfNormal, _Velocity.xz);
 				if (signedDist > 0.0)
 				{
 					forceHoriz *= -exp(-signedDist * signedDist);
 				}
 
-				return _Weight * half4(0., (forceUpDown + forceHoriz) * _SimDeltaTime * _Strength, 0., 0.);
+				// Add to velocity (y-channel) to accelerate water.
+				return _Weight * half4(0.0, (forceUpDown + forceHoriz) * _SimDeltaTime * _Strength, 0.0, 0.0);
 			}
 			ENDCG
 		}

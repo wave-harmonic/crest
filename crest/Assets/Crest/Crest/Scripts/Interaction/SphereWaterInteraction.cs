@@ -101,7 +101,7 @@ namespace Crest
 
             // Which lod is this object in (roughly)?
             int simsActive;
-            if (!LateUpdateComputeOverlappingSimCount(out simsActive, out int simsPresent))
+            if (!LateUpdateCountOverlappingSims(out simsActive, out int simsPresent))
             {
                 if (simsPresent == 0)
                 {
@@ -150,7 +150,7 @@ namespace Crest
 
         // Multiple sims run at different scales in the world. Count how many sims this interaction will overlap, so that
         // we can normalize the interaction force for the number of sims.
-        bool LateUpdateComputeOverlappingSimCount(out int simsActive, out int simsPresent)
+        bool LateUpdateCountOverlappingSims(out int simsActive, out int simsPresent)
         {
             simsActive = 0;
             simsPresent = 0;

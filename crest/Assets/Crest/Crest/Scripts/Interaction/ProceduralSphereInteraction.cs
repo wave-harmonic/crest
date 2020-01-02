@@ -6,8 +6,6 @@ namespace Crest
     {
         float Radius => 0.5f * transform.lossyScale.x;
 
-        Vector3 _localPositionRest;
-
         [Range(0f, 10f), SerializeField]
         float _noiseFreq = 6f;
 
@@ -34,6 +32,8 @@ namespace Crest
 
         RegisterDynWavesInput _dynWavesInput;
         FloatingObjectBase _boat;
+
+        Vector3 _localPositionRest;
         Vector3 _posLast;
 
         SampleFlowHelper _sampleFlowHelper = new SampleFlowHelper();
@@ -119,6 +119,7 @@ namespace Crest
                 var velBoat = _boat.Velocity;
                 velBoat.y = 0f;
                 transform.position = transform.parent.TransformPoint(_localPositionRest) - dispFlatLand + _velocityPositionOffset * velBoat;
+                transform.rotation = Quaternion.Euler(90f, 0f, 0f);
             }
 
             var ocean = OceanRenderer.Instance;

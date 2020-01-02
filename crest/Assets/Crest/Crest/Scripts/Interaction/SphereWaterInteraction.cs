@@ -37,7 +37,7 @@ namespace Crest
         bool _warnOnSpeedClamp = false;
 
         RegisterDynWavesInput _dynWavesInput;
-        FloatingObjectBase _boat;
+        FloatingObjectBase _object;
 
         Vector3 _localPositionRest;
         Vector3 _posLast;
@@ -77,10 +77,10 @@ namespace Crest
                 return;
             }
 
-            _boat = GetComponentInParent<FloatingObjectBase>();
-            if (_boat == null)
+            _object = GetComponentInParent<FloatingObjectBase>();
+            if (_object == null)
             {
-                _boat = transform.parent.gameObject.AddComponent<ObjectWaterInteractionAdaptor>();
+                _object = transform.parent.gameObject.AddComponent<ObjectWaterInteractionAdaptor>();
             }
 
             _renderer = GetComponent<Renderer>();
@@ -113,13 +113,13 @@ namespace Crest
                 return;
             }
 
-            var disp = _boat.CalculateDisplacementToObject();
+            var disp = _object.CalculateDisplacementToObject();
 
             // Set position of interaction
             {
                 var dispFlatLand = disp;
                 dispFlatLand.y = 0f;
-                var velBoat = _boat.Velocity;
+                var velBoat = _object.Velocity;
                 velBoat.y = 0f;
                 transform.position = transform.parent.TransformPoint(_localPositionRest) - dispFlatLand;
                 transform.rotation = Quaternion.Euler(90f, 0f, 0f);
@@ -191,7 +191,7 @@ namespace Crest
 
             if (QueryFlow.Instance)
             {
-                _sampleFlowHelper.Init(transform.position, _boat.ObjectWidth);
+                _sampleFlowHelper.Init(transform.position, _object.ObjectWidth);
                 Vector2 surfaceFlow = Vector2.zero;
                 _sampleFlowHelper.Sample(ref surfaceFlow);
                 vel -= new Vector3(surfaceFlow.x, 0, surfaceFlow.y);

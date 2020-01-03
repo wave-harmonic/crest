@@ -296,6 +296,11 @@ namespace Crest
                 Debug.LogWarning("Validation: Ocean depth cache transform scale is small and will capture a small area of the world. The scale sets the size of the area that will be cached, and this cache is set to render a very small area. Click this message to highlight the cache in question.", this);
             }
 
+            if (transform.lossyScale.y < 0.001 || transform.localScale.y < 0.01)
+            {
+                Debug.LogError($"Validation: Ocean depth cache scale Y should be set to 1.0. Its current scale in the hierarchy is {transform.lossyScale.y}.", this);
+            }
+
             if (Mathf.Abs(transform.position.y - ocean.transform.position.y) > 0.00001f)
             {
                 Debug.LogWarning("Validation: It is recommended that the cache is placed at the same height (y component of position) as the ocean, i.e. at the sea level. If the cache is created before the ocean is present, the cache height will inform the sea level. Click this message to highlight the cache in question.", this);

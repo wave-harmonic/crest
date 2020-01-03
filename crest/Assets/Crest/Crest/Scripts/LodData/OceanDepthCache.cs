@@ -65,6 +65,11 @@ namespace Crest
         bool _checkTerrainDrawInstancedOption = true;
 #pragma warning restore 414
 
+#pragma warning disable 414
+        [Tooltip("Editor only: run validation checks on Start() to check for issues."), SerializeField]
+        bool _runValidationOnStart = true;
+#pragma warning restore 414
+
         RenderTexture _cacheTexture;
         public RenderTexture CacheTexture => _cacheTexture;
 
@@ -73,12 +78,12 @@ namespace Crest
 
         void Start()
         {
-            if (_layerNames == null || _layerNames.Length < 1)
+#if UNITY_EDITOR
+            if (_runValidationOnStart)
             {
-                Debug.LogError("At least one layer name to render into the cache must be provided.", this);
-                enabled = false;
-                return;
+                Validate(OceanRenderer.Instance);
             }
+#endif
 
             if (_type == OceanDepthCacheType.Baked && _drawCacheQuad == null)
             {
@@ -87,16 +92,6 @@ namespace Crest
             else if (_type == OceanDepthCacheType.Realtime && _refreshMode == OceanDepthCacheRefreshMode.OnStart)
             {
                 PopulateCache();
-            }
-
-            if (transform.lossyScale.magnitude < 5f)
-            {
-                Debug.LogWarning("Ocean depth cache transform scale is small and will capture a small area of the world. Is this intended?", this);
-            }
-
-            if (_forceAlwaysUpdateDebug)
-            {
-                Debug.LogWarning("Note: Force Always Update Debug option is enabled on depth cache " + gameObject.name, this);
             }
         }
 
@@ -309,7 +304,12 @@ namespace Crest
             var rend = GetComponentInChildren<Renderer>();
             if (rend != null)
             {
-                Debug.LogWarning("Validation: It is not expected that a depth cache object has a renderer component in its hierarchy. The cache is typically attached to an empty GameObject. Please refer to the example content.", rend);
+                Debug.LogWarning("Validation: It is not expected that a depth cache object has a Renderer component in its hierarchy. The cache is typically attached to an empty GameObject. Click this message to highlight the Renderer. Please refer to the example content.", rend);
+            }
+
+            if (_forceAlwaysUpdateDebug)
+            {
+                Debug.LogWarning($"Validation: Note that the 'Force Always Update Debug' option is enabled on depth cache {gameObject.name} which will trigger the depth cache to populate every frame.", this);
             }
         }
 #endif

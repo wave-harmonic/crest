@@ -6,7 +6,7 @@ Shader "Crest/Inputs/Flow/Whirlpool"
 	{
 		Pass
 		{
-			Tags { "LightMode" = "Always" }
+			Tags { "DisableBatching" = "True" }
 			Blend One One
 
 			CGPROGRAM

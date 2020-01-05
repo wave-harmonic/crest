@@ -2,6 +2,14 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+// Experiment - store clip values on water, instead of using depth mask which doesnt work in HDRP, and is awkward to use. Notes:
+// - The clip values only really need 8bits. Should they be stored in a different texture? I guess this would mean a different LOD
+//   data. The clip values are sampled from the fragment shader unlike the depths, so it makes sense from a perf perspective. Also
+//   it's pretty awkward attaching a 'Register Ocean Depth Input' to the clipping shader, so a new LOD data would probably be good
+//   for that.
+// - Does this clipping work on both URP and HDRP, using the alpha cutoff feature?
+// - I've set precision to be half, from float. Was it float because depth used to be 'height' (inverted)?
+
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -13,7 +21,7 @@ namespace Crest
     public class LodDataMgrSeaFloorDepth : LodDataMgr
     {
         public override string SimName { get { return "SeaFloorDepth"; } }
-        public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RFloat; } }
+        public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RGHalf; } }
         protected override bool NeedToReadWriteTextureData { get { return false; } }
 
         public override SimSettingsBase CreateDefaultSettings() { return null; }
@@ -37,7 +45,7 @@ namespace Crest
             for (int lodIdx = OceanRenderer.Instance.CurrentLodCount - 1; lodIdx >= 0; lodIdx--)
             {
                 buf.SetRenderTarget(_targets, 0, CubemapFace.Unknown, lodIdx);
-                buf.ClearRenderTarget(false, true, Color.white * 1000f);
+                buf.ClearRenderTarget(false, true, Color.red * 1000f);
                 buf.SetGlobalInt(sp_LD_SliceIndex, lodIdx);
                 SubmitDraws(lodIdx, buf);
             }

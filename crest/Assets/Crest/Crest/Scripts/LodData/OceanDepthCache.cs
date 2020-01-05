@@ -296,7 +296,7 @@ namespace Crest
                 Debug.LogWarning("Validation: Ocean depth cache transform scale is small and will capture a small area of the world. The scale sets the size of the area that will be cached, and this cache is set to render a very small area. Click this message to highlight the cache in question.", this);
             }
 
-            if (transform.lossyScale.y < 0.001 || transform.localScale.y < 0.01)
+            if (transform.lossyScale.y < 0.001f || transform.localScale.y < 0.01f)
             {
                 Debug.LogError($"Validation: Ocean depth cache scale Y should be set to 1.0. Its current scale in the hierarchy is {transform.lossyScale.y}.", this);
             }
@@ -310,11 +310,6 @@ namespace Crest
             if (rend != null)
             {
                 Debug.LogWarning("Validation: It is not expected that a depth cache object has a Renderer component in its hierarchy. The cache is typically attached to an empty GameObject. Click this message to highlight the Renderer. Please refer to the example content.", rend);
-            }
-
-            if (_forceAlwaysUpdateDebug)
-            {
-                Debug.LogWarning($"Validation: Note that the 'Force Always Update Debug' option is enabled on depth cache {gameObject.name} which will trigger the depth cache to populate every frame.", this);
             }
         }
 #endif
@@ -346,7 +341,7 @@ namespace Crest
             {
                 // Only expose the following if real-time cache type
                 EditorGUILayout.PropertyField(serializedObject.FindProperty("_refreshMode"));
-                EditorGUILayout.PropertyField(serializedObject.FindProperty("_geometryToRenderIntoCache"));
+                EditorGUILayout.PropertyField(serializedObject.FindProperty("_geometryToRenderIntoCache"), true);
                 EditorGUILayout.PropertyField(serializedObject.FindProperty("_layerNames"), true);
                 EditorGUILayout.PropertyField(serializedObject.FindProperty("_resolution"));
                 EditorGUILayout.PropertyField(serializedObject.FindProperty("_cameraMaxTerrainHeight"));

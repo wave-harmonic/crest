@@ -65,6 +65,11 @@ namespace Crest
         bool _checkTerrainDrawInstancedOption = true;
 #pragma warning restore 414
 
+#pragma warning disable 414
+        [Tooltip("Editor only: run validation checks on Start() to check for issues."), SerializeField]
+        bool _runValidationOnStart = true;
+#pragma warning restore 414
+
         RenderTexture _cacheTexture;
         public RenderTexture CacheTexture => _cacheTexture;
 
@@ -73,12 +78,12 @@ namespace Crest
 
         void Start()
         {
-            if (_layerNames == null || _layerNames.Length < 1)
+#if UNITY_EDITOR
+            if (_runValidationOnStart)
             {
-                Debug.LogError("At least one layer name to render into the cache must be provided.", this);
-                enabled = false;
-                return;
+                Validate(OceanRenderer.Instance);
             }
+#endif
 
             if (_type == OceanDepthCacheType.Baked && _drawCacheQuad == null)
             {
@@ -87,16 +92,6 @@ namespace Crest
             else if (_type == OceanDepthCacheType.Realtime && _refreshMode == OceanDepthCacheRefreshMode.OnStart)
             {
                 PopulateCache();
-            }
-
-            if (transform.lossyScale.magnitude < 5f)
-            {
-                Debug.LogWarning("Ocean depth cache transform scale is small and will capture a small area of the world. Is this intended?", this);
-            }
-
-            if (_forceAlwaysUpdateDebug)
-            {
-                Debug.LogWarning("Note: Force Always Update Debug option is enabled on depth cache " + gameObject.name, this);
             }
         }
 
@@ -301,6 +296,11 @@ namespace Crest
                 Debug.LogWarning("Validation: Ocean depth cache transform scale is small and will capture a small area of the world. The scale sets the size of the area that will be cached, and this cache is set to render a very small area. Click this message to highlight the cache in question.", this);
             }
 
+            if (transform.lossyScale.y < 0.001f || transform.localScale.y < 0.01f)
+            {
+                Debug.LogError($"Validation: Ocean depth cache scale Y should be set to 1.0. Its current scale in the hierarchy is {transform.lossyScale.y}.", this);
+            }
+
             if (Mathf.Abs(transform.position.y - ocean.transform.position.y) > 0.00001f)
             {
                 Debug.LogWarning("Validation: It is recommended that the cache is placed at the same height (y component of position) as the ocean, i.e. at the sea level. If the cache is created before the ocean is present, the cache height will inform the sea level. Click this message to highlight the cache in question.", this);
@@ -309,7 +309,7 @@ namespace Crest
             var rend = GetComponentInChildren<Renderer>();
             if (rend != null)
             {
-                Debug.LogWarning("Validation: It is not expected that a depth cache object has a renderer component in its hierarchy. The cache is typically attached to an empty GameObject. Please refer to the example content.", rend);
+                Debug.LogWarning("Validation: It is not expected that a depth cache object has a Renderer component in its hierarchy. The cache is typically attached to an empty GameObject. Click this message to highlight the Renderer. Please refer to the example content.", rend);
             }
         }
 #endif
@@ -341,7 +341,7 @@ namespace Crest
             {
                 // Only expose the following if real-time cache type
                 EditorGUILayout.PropertyField(serializedObject.FindProperty("_refreshMode"));
-                EditorGUILayout.PropertyField(serializedObject.FindProperty("_geometryToRenderIntoCache"));
+                EditorGUILayout.PropertyField(serializedObject.FindProperty("_geometryToRenderIntoCache"), true);
                 EditorGUILayout.PropertyField(serializedObject.FindProperty("_layerNames"), true);
                 EditorGUILayout.PropertyField(serializedObject.FindProperty("_resolution"));
                 EditorGUILayout.PropertyField(serializedObject.FindProperty("_cameraMaxTerrainHeight"));

@@ -276,6 +276,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _sleepMs: 0
   _jitter: 0
+  _sleepStride: 1
 --- !u!114 &227134475
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -477,11 +478,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 1151389396211683319, guid: fab3f04ce74996c4c806ab300d4abf45,
-        type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 136.02
-      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: fab3f04ce74996c4c806ab300d4abf45, type: 3}
 --- !u!4 &994278301 stripped
@@ -642,11 +638,11 @@ MonoBehaviour:
   _timeProvider: {fileID: 0}
   _material: {fileID: 2100000, guid: 9def92ac79181fe41b238e91663f0fad, type: 2}
   _layerName: Water
-  _windDirectionAngle: 0
   _gravityMultiplier: 1
   _minTexelsPerWave: 3
   _minScale: 8
   _maxScale: 256
+  _dropDetailHeightBasedOnWaves: 0.2
   _lodDataResolution: 256
   _geometryDownSampleFactor: 2
   _lodCount: 8
@@ -1029,9 +1025,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _spectrum: {fileID: 11400000, guid: 691aad324f2d2be4abf8123c36963da5, type: 2}
+  _windDirectionAngle: 0
   _componentsPerOctave: 8
   _weight: 1
   _randomSeed: 0
+  _evaluateSpectrumAtRuntime: 1
+  _wavelengths: []
+  _amplitudes: []
+  _angleDegs: []
+  _phases: []
   _directTowardsPoint: 0
   _pointPositionXZ: {x: 0, y: 0}
   _pointRadii: {x: 100, y: 200}

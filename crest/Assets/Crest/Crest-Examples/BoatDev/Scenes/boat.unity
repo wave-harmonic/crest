@@ -674,7 +674,7 @@ MonoBehaviour:
   _createFlowSim: 0
   _simSettingsFlow: {fileID: 0}
   _createShadowData: 0
-  _primaryLight: {fileID: 0}
+  _primaryLight: {fileID: 1589415980}
   _simSettingsShadow: {fileID: 0}
   _uniformTiles: 0
   _disableSkirt: 0
@@ -2144,11 +2144,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 859114834902481744, guid: 283bcd90f3bd73c4aa8afa66703b72c8,
-        type: 3}
-      propertyPath: _guiVisible
-      value: 1
-      objectReference: {fileID: 0}
     - target: {fileID: 859114834902481751, guid: 283bcd90f3bd73c4aa8afa66703b72c8,
         type: 3}
       propertyPath: _lerpAlpha
@@ -2169,6 +2164,11 @@ PrefabInstance:
       propertyPath: _targetLookatPos
       value: 
       objectReference: {fileID: 220162146}
+    - target: {fileID: 859114834902481744, guid: 283bcd90f3bd73c4aa8afa66703b72c8,
+        type: 3}
+      propertyPath: _guiVisible
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 859114834902481747, guid: 283bcd90f3bd73c4aa8afa66703b72c8,
         type: 3}
       propertyPath: m_Enabled

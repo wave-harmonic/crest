@@ -451,9 +451,9 @@ Shader "Crest/Ocean"
 
 				// Clip surface
 				float clipVal = 0.0;
-				if (wt_smallerLod > 0.001) SampleClip(_LD_TexArray_SeaFloorDepth, uv_slice_smallerLod, wt_smallerLod, clipVal);
-				if (wt_biggerLod > 0.001)  SampleClip(_LD_TexArray_SeaFloorDepth, uv_slice_biggerLod, wt_biggerLod, clipVal);
-				clip(-clipVal + 0.5);
+				if (wt_smallerLod > 0.001) SampleClip(_LD_TexArray_ClipSurface, uv_slice_smallerLod, wt_smallerLod, clipVal);
+				if (wt_biggerLod > 0.001)  SampleClip(_LD_TexArray_ClipSurface, uv_slice_biggerLod, wt_biggerLod, clipVal);
+				clip(-clipVal);
 				
 				// Foam - underwater bubbles and whitefoam
 				half3 bubbleCol = (half3)0.;

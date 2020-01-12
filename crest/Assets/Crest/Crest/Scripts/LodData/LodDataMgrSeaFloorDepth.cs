@@ -13,9 +13,7 @@ namespace Crest
     public class LodDataMgrSeaFloorDepth : LodDataMgr
     {
         public override string SimName { get { return "SeaFloorDepth"; } }
-
-        // I've set precision to be half, from float. Was it float because depth used to be 'height' (inverted)?
-        public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RHalf; } }
+        public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RFloat; } }
         protected override bool NeedToReadWriteTextureData { get { return false; } }
 
         public override SimSettingsBase CreateDefaultSettings() { return null; }
@@ -39,7 +37,7 @@ namespace Crest
             for (int lodIdx = OceanRenderer.Instance.CurrentLodCount - 1; lodIdx >= 0; lodIdx--)
             {
                 buf.SetRenderTarget(_targets, 0, CubemapFace.Unknown, lodIdx);
-                buf.ClearRenderTarget(false, true, Color.red * 1000f);
+                buf.ClearRenderTarget(false, true, Color.white * 1000f);
                 buf.SetGlobalInt(sp_LD_SliceIndex, lodIdx);
                 SubmitDraws(lodIdx, buf);
             }

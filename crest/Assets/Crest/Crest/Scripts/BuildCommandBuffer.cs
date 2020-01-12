@@ -39,6 +39,13 @@ namespace Crest
             }
 
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            // --- Clip surface
+            if (ocean._lodDataClipSurface)
+            {
+                ocean._lodDataClipSurface.BuildCommandBuffer(ocean, buf);
+            }
+
+            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // --- Flow data
             if (ocean._lodDataFlow)
             {

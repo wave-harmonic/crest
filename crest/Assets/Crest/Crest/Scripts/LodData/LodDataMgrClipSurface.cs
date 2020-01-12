@@ -8,7 +8,7 @@ using UnityEngine.Rendering;
 namespace Crest
 {
     /// <summary>
-    /// Renders clip surface from geometry
+    /// Drives ocean surface clipping (carving holes). 0-1 values, surface clipped when > 0.5.
     /// </summary>
     public class LodDataMgrClipSurface : LodDataMgr
     {

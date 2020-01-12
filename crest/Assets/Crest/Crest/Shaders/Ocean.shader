@@ -65,6 +65,8 @@ Shader "Crest/Ocean"
 		[Toggle] _PlanarReflections("Planar Reflections", Float) = 0
 		// How much the water normal affects the planar reflection
 		_PlanarReflectionNormalsStrength("Planar Reflections Distortion", Float) = 1
+		// Multiplier to adjust how intense the reflection is
+		_PlanarReflectionIntensity("Planar Reflection Intensity", Range(0.0, 1.0)) = 1.0
 		// Whether to use an overridden reflection cubemap (provided in the next property)
 		[Toggle] _OverrideReflectionCubemap("Override Reflection Cubemap", Float) = 0
 		// Custom environment map to reflect

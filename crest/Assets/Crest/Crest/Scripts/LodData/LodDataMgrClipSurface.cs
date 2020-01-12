@@ -23,6 +23,18 @@ namespace Crest
 
         bool _targetsClear = false;
 
+        protected override void Start()
+        {
+            base.Start();
+
+#if UNITY_EDITOR
+            if (!OceanRenderer.Instance.OceanMaterial.IsKeywordEnabled("_CLIPSURFACE_ON"))
+            {
+                Debug.LogWarning("Clip Surface is not enabled on the current ocean material, so the surface clipping will not work. Please enable it on the material.", this);
+            }
+#endif
+        }
+
         public override void BuildCommandBuffer(OceanRenderer ocean, CommandBuffer buf)
         {
             base.BuildCommandBuffer(ocean, buf);

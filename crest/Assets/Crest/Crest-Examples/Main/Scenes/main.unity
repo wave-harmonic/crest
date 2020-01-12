@@ -489,12 +489,14 @@ MonoBehaviour:
   _createShadowData: 1
   _primaryLight: {fileID: 1589415980}
   _simSettingsShadow: {fileID: 0}
+  _createClipSurfaceData: 1
   _uniformTiles: 0
   _disableSkirt: 0
   _followViewpoint: 1
   _lodTransform: {fileID: 0}
   _lodDataAnimWaves: {fileID: 0}
   _lodDataSeaDepths: {fileID: 0}
+  _lodDataClipSurface: {fileID: 0}
   _lodDataDynWaves: {fileID: 0}
   _lodDataFlow: {fileID: 0}
   _lodDataFoam: {fileID: 0}
@@ -1031,6 +1033,10 @@ PrefabInstance:
     - target: {fileID: 4317204734693030, guid: d954bade270d6474e8d7b513f76b114c, type: 3}
       propertyPath: m_RootOrder
       value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 1503911228227206, guid: d954bade270d6474e8d7b513f76b114c, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: d954bade270d6474e8d7b513f76b114c, type: 3}

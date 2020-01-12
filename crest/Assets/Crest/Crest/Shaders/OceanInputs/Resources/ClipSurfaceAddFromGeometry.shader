@@ -2,7 +2,9 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
-Shader "Crest/Inputs/Clip Surface"
+// Renders the geometry to the clip surface texture.
+
+Shader "Crest/Inputs/Clip Surface/Add From Geometry"
 {
 	SubShader
 	{

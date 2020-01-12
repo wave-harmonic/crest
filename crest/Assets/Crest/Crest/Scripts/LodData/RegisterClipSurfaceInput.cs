@@ -12,6 +12,7 @@ namespace Crest
     /// </summary>
     public class RegisterClipSurfaceInput : RegisterLodDataInput<LodDataMgrClipSurface>
     {
+        [Tooltip("Uses the 'clip from geometry' shader. There are other clip shaders available.")]
         [SerializeField] bool _assignClipSurfaceMaterial = true;
 
         public override float Wavelength => 0f;
@@ -25,7 +26,7 @@ namespace Crest
             if (_assignClipSurfaceMaterial)
             {
                 var rend = GetComponent<Renderer>();
-                rend.material = new Material(Shader.Find("Crest/Inputs/Clip Surface"));
+                rend.material = new Material(Shader.Find("Crest/Inputs/Clip Surface/Add From Geometry"));
             }
         }
     }

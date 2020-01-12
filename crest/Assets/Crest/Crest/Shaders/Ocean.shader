@@ -453,7 +453,8 @@ Shader "Crest/Ocean"
 				float clipVal = 0.0;
 				if (wt_smallerLod > 0.001) SampleClip(_LD_TexArray_ClipSurface, uv_slice_smallerLod, wt_smallerLod, clipVal);
 				if (wt_biggerLod > 0.001)  SampleClip(_LD_TexArray_ClipSurface, uv_slice_biggerLod, wt_biggerLod, clipVal);
-				clip(-clipVal);
+				// Add 0.5 bias for LOD blending and texel resolution correction. This will help to tighten and smooth clipped edges
+				clip(-clipVal + 0.5);
 				
 				// Foam - underwater bubbles and whitefoam
 				half3 bubbleCol = (half3)0.;

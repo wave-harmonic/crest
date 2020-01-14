@@ -94,6 +94,9 @@ namespace Crest
         public Light _primaryLight;
         public SimSettingsShadow _simSettingsShadow;
 
+        [Tooltip("Clip surface information for clipping the ocean surface."), SerializeField]
+        bool _createClipSurfaceData = false;
+        public bool CreateClipSurfaceData { get { return _createClipSurfaceData; } }
 
         [Header("Debug Params")]
 
@@ -124,6 +127,7 @@ namespace Crest
         [HideInInspector] public LodTransform _lodTransform;
         [HideInInspector] public LodDataMgrAnimWaves _lodDataAnimWaves;
         [HideInInspector] public LodDataMgrSeaFloorDepth _lodDataSeaDepths;
+        [HideInInspector] public LodDataMgrClipSurface _lodDataClipSurface;
         [HideInInspector] public LodDataMgrDynWaves _lodDataDynWaves;
         [HideInInspector] public LodDataMgrFlow _lodDataFlow;
         [HideInInspector] public LodDataMgrFoam _lodDataFoam;
@@ -316,6 +320,7 @@ namespace Crest
             if (_lodDataFlow) _lodDataFlow.UpdateLodData();
             if (_lodDataFoam) _lodDataFoam.UpdateLodData();
             if (_lodDataSeaDepths) _lodDataSeaDepths.UpdateLodData();
+            if (_lodDataClipSurface) _lodDataClipSurface.UpdateLodData();
             if (_lodDataShadow) _lodDataShadow.UpdateLodData();
         }
 

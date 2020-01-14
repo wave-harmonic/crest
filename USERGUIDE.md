@@ -198,6 +198,13 @@ The foam sim can be configured by assigning a Foam Sim Settings asset to the Oce
 
 This LOD data provides a sense of water depth. More information about how this is used is in the **Shorelines and shallow water** section below.
 
+## Clip Surface
+
+This data drives clipping of the ocean surface, as in carving out holes. This can be useful for hollow vessels or low terrain that goes below sea level.
+
+The data contains 0-1 values. Holes are carved into the surface when the values is greater than 0.5.
+
+User provided foam contributions can be added similar to the Animated Waves. In this case the *RegisterClipSurfaceInput* script should be applied to any inputs. See the *FloatingOpenContainer* object in the *boat.unity* scene for an example.
 
 ## Shadow
 
@@ -235,6 +242,8 @@ At runtime, a child object underneath the cache will be created with the prefix 
 By default the cache is populated in the `Start()` function. It can instead be configured to populate from script by setting the *Refresh Mode* to *On Demand* and calling the `PopulateCache()` method on the component from script.
 
 Once populated the cache contents can be saved to disk by clicking the *Save cache to file* button that will appear in the Inspector in play mode. Once saved, the *Type* can be set to *Baked* and the saved data can be assigned to the *Saved Cache* field.
+
+**Note:** This built-in render pipeline version of crest requires the *Draw Instanced* option on terrains to be disabled at start time. It can be re-enabled subsequently after the depth cache is populated. See issue #158.
 
 
 # Collision Shape for Physics
@@ -296,7 +305,9 @@ To help reduce cost a height cache can be enabled in the *Animated Waves Sim Set
 
 The density of the fog underwater can be controlled using the *Fog Density* parameter on the ocean material. This applies to both above water and underwater.
 
-## Masking out surface
+## Masking out surface (DEPRECATED)
+
+**Note:** We are deprecating this approach in favour of the more flexible *Clip Surface Data* described above.
 
 There are times when it is useful to mask out the ocean surface which prevents it drawing on some part of the screen.
 The scene *main.unity* in the example content has a rowboat which, without masking, would appear to be full of water.
@@ -379,3 +390,6 @@ However, the dynamic wave sim is not fully deterministic and can not currently b
 
 **Can the density of the fog in the water be reduced?**
 The density of the fog underwater can be controlled using the *Fog Density* parameter on the ocean material. This applies to both above water and underwater.
+
+**My terrain does not appear to affect the water - no shorelines or shallow water waves.**
+This built-in render pipeline version of crest requires the *Draw Instanced* option on terrains to be disabled at start time. It can be re-enabled subsequently after the depth cache is populated. See issue #158.

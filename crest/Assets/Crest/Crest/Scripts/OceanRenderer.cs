@@ -100,6 +100,9 @@ namespace Crest
 
         [Header("Debug Params")]
 
+        [Tooltip("Attach debug gui that adds some controls and allows to visualise the ocean data."), SerializeField]
+        bool _attachDebugGUI = false;
+
         [Tooltip("Move ocean with viewpoint.")]
         public bool _followViewpoint = true;
         [HideInInspector, Tooltip("Whether to generate ocean geometry tiles uniformly (with overlaps).")]
@@ -171,6 +174,11 @@ namespace Crest
 
             InitViewpoint();
             InitTimeProvider();
+
+            if(_attachDebugGUI && GetComponent<OceanDebugGUI>() == null)
+            {
+                gameObject.AddComponent<OceanDebugGUI>();
+            }
         }
 
         bool VerifyRequirements()

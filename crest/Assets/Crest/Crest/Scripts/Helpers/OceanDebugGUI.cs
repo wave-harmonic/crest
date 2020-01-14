@@ -79,7 +79,7 @@ namespace Crest
                 {
                     _gerstners = FindObjectsOfType<ShapeGerstnerBatched>();
                     // i am getting the array in the reverse order compared to the hierarchy which bugs me. sort them based on sibling index,
-                    // which helps if the gerstners are on sibling GOs.
+                    // which helps if the Gerstners are on sibling GOs.
                     System.Array.Sort(_gerstners, (a, b) => a.transform.GetSiblingIndex().CompareTo(b.transform.GetSiblingIndex()));
                 }
                 foreach (var gerstner in _gerstners)

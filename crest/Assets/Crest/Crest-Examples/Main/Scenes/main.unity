@@ -204,8 +204,7 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 859114834902481744, guid: 283bcd90f3bd73c4aa8afa66703b72c8,
-        type: 3}
+    - target: {fileID: 0}
       propertyPath: _guiVisible
       value: 1
       objectReference: {fileID: 0}
@@ -513,6 +512,7 @@ MonoBehaviour:
   _primaryLight: {fileID: 1589415980}
   _simSettingsShadow: {fileID: 0}
   _createClipSurfaceData: 1
+  _attachDebugGUI: 1
   _followViewpoint: 1
   _uniformTiles: 0
   _disableSkirt: 0

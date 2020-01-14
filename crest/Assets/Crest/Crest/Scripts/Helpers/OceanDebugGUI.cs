@@ -8,7 +8,7 @@ namespace Crest
 {
     public class OceanDebugGUI : MonoBehaviour
     {
-        [SerializeField] bool _showSimTargets = false;
+        [SerializeField] bool _showOceanData = true;
         [SerializeField] bool _guiVisible = true;
         readonly static float _leftPanelWidth = 180f;
         readonly static float _bottomPanelHeight = 25f;
@@ -98,7 +98,7 @@ namespace Crest
                     y += h;
                 }
 
-                _showSimTargets = GUI.Toggle(new Rect(x, y, w, h), _showSimTargets, "Show sim data"); y += h;
+                _showOceanData = GUI.Toggle(new Rect(x, y, w, h), _showOceanData, "Show sim data"); y += h;
 
                 LodDataMgrAnimWaves._shapeCombinePass = GUI.Toggle(new Rect(x, y, w, h), LodDataMgrAnimWaves._shapeCombinePass, "Shape combine pass"); y += h;
                 LodDataMgrAnimWaves._shapeCombinePassPingPong = GUI.Toggle(new Rect(x, y, w, h), LodDataMgrAnimWaves._shapeCombinePassPingPong, "Combine pass ping pong"); y += h;
@@ -153,7 +153,7 @@ namespace Crest
             }
 
             // draw source textures to screen
-            if (_showSimTargets)
+            if (_showOceanData)
             {
                 DrawShapeTargets();
             }

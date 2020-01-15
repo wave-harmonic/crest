@@ -11,9 +11,9 @@
 #include "../OceanConstants.hlsl"
 #include "../OceanLODData.hlsl"
 
-half _Damping;
+float _Damping;
 float2 _LaplacianAxisX;
-half _Gravity;
+float _Gravity;
 float _SimDeltaTime;
 float _LODChange;
 

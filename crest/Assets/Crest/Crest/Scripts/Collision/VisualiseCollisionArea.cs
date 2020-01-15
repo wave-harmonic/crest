@@ -3,7 +3,7 @@
 namespace Crest
 {
     /// <summary>
-    /// Draw crosses in an area around the GameObject on the water surface
+    /// Debug draw crosses in an area around the GameObject on the water surface.
     /// </summary>
     public class VisualiseCollisionArea : MonoBehaviour
     {
@@ -16,6 +16,8 @@ namespace Crest
 
         static float s_radius = 5f;
         static readonly int s_steps = 10;
+
+        Vector3[] _samplePositions = new Vector3[s_steps * s_steps];
 
         void Update()
         {
@@ -31,24 +33,23 @@ namespace Crest
                 return;
             }
 
-            var samplePositions = new Vector3[s_steps * s_steps];
             for (int i = 0; i < s_steps; i++)
             {
                 for (int j = 0; j < s_steps; j++)
                 {
-                    samplePositions[j * s_steps + i] = new Vector3(((i + 0.5f) - s_steps / 2f) * s_radius, 0f, ((j + 0.5f) - s_steps / 2f) * s_radius);
-                    samplePositions[j * s_steps + i].x += transform.position.x;
-                    samplePositions[j * s_steps + i].z += transform.position.z;
+                    _samplePositions[j * s_steps + i] = new Vector3(((i + 0.5f) - s_steps / 2f) * s_radius, 0f, ((j + 0.5f) - s_steps / 2f) * s_radius);
+                    _samplePositions[j * s_steps + i].x += transform.position.x;
+                    _samplePositions[j * s_steps + i].z += transform.position.z;
                 }
             }
 
-            if (collProvider.RetrieveSucceeded(collProvider.Query(GetHashCode(), _samplingData, samplePositions, _resultHeights, null, null)))
+            if (collProvider.RetrieveSucceeded(collProvider.Query(GetHashCode(), _samplingData, _samplePositions, _resultHeights, null, null)))
             {
                 for (int i = 0; i < s_steps; i++)
                 {
                     for (int j = 0; j < s_steps; j++)
                     {
-                        var result = samplePositions[j * s_steps + i];
+                        var result = _samplePositions[j * s_steps + i];
                         result.y = _resultHeights[j * s_steps + i];
 
                         DebugDrawCross(result, 1f, Color.green);

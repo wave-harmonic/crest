@@ -40,8 +40,6 @@ namespace Crest
         public static bool s_useComputeCollQueries = true;
 
         readonly static int sp_queryPositions_minGridSizes = Shader.PropertyToID("_QueryPositions_MinGridSizes");
-        readonly static int sp_MeshScaleLerp = Shader.PropertyToID("_MeshScaleLerp");
-        readonly static int sp_SliceCount = Shader.PropertyToID("_SliceCount");
 
         const float s_finiteDiffDx = 0.1f;
 
@@ -426,13 +424,6 @@ namespace Crest
             _shaderProcessQueries.SetBuffer(_kernelHandle, sp_queryPositions_minGridSizes, _computeBufQueries);
             BindInputsAndOutputs(_wrapper, _computeBufResults);
 
-            // LOD 0 is blended in/out when scale changes, to eliminate pops
-            var needToBlendOutShape = OceanRenderer.Instance.ScaleCouldIncrease;
-            var meshScaleLerp = needToBlendOutShape ? OceanRenderer.Instance.ViewerAltitudeLevelAlpha : 0f;
-            _shaderProcessQueries.SetFloat(sp_MeshScaleLerp, meshScaleLerp);
-
-            _shaderProcessQueries.SetFloat(sp_SliceCount, OceanRenderer.Instance.CurrentLodCount);
-
             var numGroups = (int)Mathf.Ceil((float)_segmentRegistrarRingBuffer.Current._numQueries / (float)s_computeGroupSize) * s_computeGroupSize;
             _shaderProcessQueries.Dispatch(_kernelHandle, numGroups, 1, 1);
         }
@@ -470,7 +461,7 @@ namespace Crest
             if (lastDoneIndex >= 0)
             {
                 // Update "last" results
-                Swap(ref _queryResults, ref _queryResultsLast);
+                LodDataMgr.Swap(ref _queryResults, ref _queryResultsLast);
                 _queryResultsTimeLast = _queryResultsTime;
                 _resultSegmentsLast = _resultSegments;
 
@@ -486,13 +477,6 @@ namespace Crest
                 _requests.RemoveAt(i);
                 _segmentRegistrarRingBuffer.ReleaseLast();
             }
-        }
-
-        void Swap<T>(ref T a, ref T b)
-        {
-            var temp = b;
-            b = a;
-            a = temp;
         }
 
         protected virtual void OnEnable()

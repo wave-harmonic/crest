@@ -239,7 +239,7 @@ Shader "Crest/Ocean"
 				float4 positionCS : SV_POSITION;
 				half4 flow_shadow : TEXCOORD1;
 				half4 foam_screenPosXYW : TEXCOORD4;
-				half4 lodAlpha_worldXZUndisplaced_oceanDepth : TEXCOORD5;
+				float4 lodAlpha_worldXZUndisplaced_oceanDepth : TEXCOORD5;
 				float3 worldPos : TEXCOORD7;
 				#if _DEBUGVISUALISESHAPESAMPLE_ON
 				half3 debugtint : TEXCOORD8;
@@ -254,8 +254,8 @@ Shader "Crest/Ocean"
 
 			float _CrestTime;
 
-			// MeshScaleLerp, FarNormalsWeight, LODIndex (debug), lod count
-			float4 _InstanceData;
+			// MeshScaleLerp, FarNormalsWeight, LODIndex (debug)
+			float3 _InstanceData;
 
 			// Argument name is v because some macros like COMPUTE_EYEDEPTH require it.
 			Varyings Vert(Attributes v)
@@ -477,7 +477,7 @@ Shader "Crest/Ocean"
 				// disable transparency, so this will always be 1.0.
 				float reflAlpha = 1.0;
 				#endif
-				
+
 				#if _UNDERWATER_ON
 				if (underwater)
 				{
@@ -500,7 +500,6 @@ Shader "Crest/Ocean"
 					// Above water - do atmospheric fog. If you are using a third party sky package such as Azure, replace this with their stuff!
 					UNITY_APPLY_FOG(input.fogCoord, col);
 				}
-
 				#if _DEBUGVISUALISESHAPESAMPLE_ON
 				col = lerp(col.rgb, input.debugtint, 0.5);
 				#endif

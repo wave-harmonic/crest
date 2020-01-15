@@ -209,6 +209,8 @@ Currently in the built-in render pipeline, shadows only work when the primary ca
 
 # Shorelines and shallow water
 
+For this information in video format, see here: https://www.youtube.com/watch?v=jcmqUlboTUk
+
 *Crest* requires water depth information to attenuate large waves in shallow water, to generate foam near shorelines, and to provide shallow water shading. It is calculated by rendering the render geometry in the scene for each LOD from a top down perspective and recording the Y value of the surface.
 
 When the ocean is e.g. 250m deep, this will start to dampen 500m wavelengths, so it is recommended that the sea floor drop down to around this depth away from islands so that there is a smooth transition between shallow and deep water without a 'step' in the sea floor which appears as a discontinuity in the surface waves and/or a line of foam.
@@ -226,6 +228,10 @@ This dynamic update comes at a cost. For parts for of the seabed which are stati
 On startup, validation is done on the cache (and on various other components of the *Crest* setup). Be sure to check the log for warnings and errors.
 
 At runtime, a child object underneath the cache will be created with the prefix *Draw_* it will have a material with a *Texture* property. By double clicking the icon to the right of this field, one can inspect the contents of the cache.
+
+By default the cache is populated in the `Start()` function. It can instead be configured to populate from script by setting the *Refresh Mode* to *On Demand* and calling the `PopulateCache()` method on the component from script.
+
+Once populated the cache contents can be saved to disk by clicking the *Save cache to file* button that will appear in the Inspector in play mode. Once saved, the *Type* can be set to *Baked* and the saved data can be assigned to the *Saved Cache* field.
 
 
 # Collision Shape for Physics
@@ -288,6 +294,8 @@ This is demonstrated in the *main.unity* scene in the example content.
 The ocean in this scene uses the material *Ocean-Underwater.mat* which enables rendering the underside of the surface, and has the script *Underwater Post Process* attached to the camera which renders the underwater effect.
 Any camera which needs to go underwater needs to have this script attached.
 This effect adds full screen passes and only be used if camera needs to be submerged.
+
+The density of the fog underwater can be controlled using the *Fog Density* parameter on the ocean material. This applies to both above water and underwater.
 
 ## Masking out surface
 
@@ -369,3 +377,6 @@ Currently it only works in Play mode. Some work has been done to make it work in
 Yes the animated waves are deterministic and easily synchronized.
 See discussion in https://github.com/huwb/crest-oceanrender/issues/75.
 However, the dynamic wave sim is not fully deterministic and can not currently be relied upon networked situations.
+
+**Can the density of the fog in the water be reduced?**
+The density of the fog underwater can be controlled using the *Fog Density* parameter on the ocean material. This applies to both above water and underwater.

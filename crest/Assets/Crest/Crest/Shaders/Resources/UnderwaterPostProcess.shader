@@ -128,7 +128,7 @@ Shader "Crest/Underwater/Post Process"
 				}
 #endif // _CAUSTICS_ON
 
-				return lerp(sceneColour, scatterCol, 1.0 - exp(-_DepthFogDensity.xyz * sceneZ));
+				return lerp(sceneColour, scatterCol, saturate(1.0 - exp(-_DepthFogDensity.xyz * sceneZ)));
 			}
 
 			fixed4 Frag (Varyings input) : SV_Target

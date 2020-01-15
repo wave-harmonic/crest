@@ -54,6 +54,13 @@ namespace Crest
                 return;
             }
 
+            if (transform.parent == null)
+            {
+                Debug.LogError("ObjectWaterInteraction script requires a parent GameObject.", this);
+                enabled = false;
+                return;
+            }
+
             _localOffset = transform.localPosition;
 
             _dynWavesInput = GetComponent<RegisterDynWavesInput>();
@@ -67,15 +74,13 @@ namespace Crest
             _boat = GetComponentInParent<FloatingObjectBase>();
             if (_boat == null)
             {
-                Debug.LogError("FloatingObjectBase required. Disabling FeedVelocityToExtrude.", this);
-                enabled = false;
-                return;
+                _boat = transform.parent.gameObject.AddComponent<ObjectWaterInteractionAdaptor>();
             }
 
             _renderer = GetComponent<Renderer>();
             if (_renderer == null)
             {
-                Debug.Log("ObjectWaterInteraction script requires Renderer component.", this);
+                Debug.LogError("ObjectWaterInteraction script requires Renderer component.", this);
                 enabled = false;
                 return;
             }
@@ -167,6 +172,11 @@ namespace Crest
             _renderer.SetPropertyBlock(_mpb);
 
             _posLast = transform.position;
+        }
+
+        private void OnDrawGizmosSelected()
+        {
+            Gizmos.DrawWireMesh(GetComponent<MeshFilter>().sharedMesh, transform.position, transform.rotation, transform.lossyScale);
         }
     }
 }

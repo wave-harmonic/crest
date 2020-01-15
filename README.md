@@ -14,9 +14,7 @@
 
 **Twitter:** [@crest_ocean](https://twitter.com/@crest_ocean)
 
-**LWRP asset:** [Crest Ocean System LWRP](https://assetstore.unity.com/packages/tools/particles-effects/crest-ocean-system-lwrp-141674)
-
-**URP asset:** Coming soon.
+**URP asset:** [Crest Ocean System URP](https://assetstore.unity.com/detail/tools/particles-effects/crest-ocean-system-lwrp-urp-141674)
 
 **HDRP asset:** Coming soon.
 
@@ -54,7 +52,7 @@ There is also a getting started video here: https://www.youtube.com/watch?v=qsge
 
 The best way to obtain *Crest* is take the latest version in the master branch by forking/cloning this repository or by using the green download button above. We rely heavily on the community to help us test new features before creating releases. Once features are settled they are integrated into the SRP assets (linked above).
 
-Releases are published irregularly and posted on the [Releases page](https://github.com/huwb/crest-oceanrender/releases). Unity packages are uploaded with each release. The lastest release version is 8.0.0.
+Releases are published irregularly and posted on the [Releases page](https://github.com/huwb/crest-oceanrender/releases). Unity packages are uploaded with each release. The lastest release version is 9.0.0.
 
 
 # Issues

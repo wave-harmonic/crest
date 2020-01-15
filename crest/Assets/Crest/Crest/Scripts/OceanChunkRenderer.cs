@@ -29,10 +29,11 @@ namespace Crest
         int _lodDataResolution = 256;
         int _geoDownSampleFactor = 1;
 
-        static int sp_ReflectionTex = Shader.PropertyToID("_ReflectionTex");
-        static int sp_InstanceData = Shader.PropertyToID("_InstanceData");
-        static int sp_GeomData = Shader.PropertyToID("_GeomData");
-        static int sp_ForceUnderwater = Shader.PropertyToID("_ForceUnderwater");
+        static readonly int sp_ReflectionTex = Shader.PropertyToID("_ReflectionTex");
+        static readonly int sp_GeomData = Shader.PropertyToID("_GeomData");
+        static readonly int sp_ForceUnderwater = Shader.PropertyToID("_ForceUnderwater");
+        // MeshScaleLerp, FarNormalsWeight, LODIndex (debug)
+        public static readonly int sp_InstanceData = Shader.PropertyToID("_InstanceData");
 
         void Start()
         {
@@ -117,7 +118,7 @@ namespace Crest
             // blend furthest normals scale in/out to avoid pop, if scale could reduce
             var needToBlendOutNormals = _lodIndex == _totalLodCount - 1 && OceanRenderer.Instance.ScaleCouldDecrease;
             var farNormalsWeight = needToBlendOutNormals ? OceanRenderer.Instance.ViewerAltitudeLevelAlpha : 1f;
-            _mpb.SetVector(sp_InstanceData, new Vector4(meshScaleLerp, farNormalsWeight, _lodIndex, _totalLodCount));
+            _mpb.SetVector(sp_InstanceData, new Vector3(meshScaleLerp, farNormalsWeight, _lodIndex));
 
             // geometry data
             // compute grid size of geometry. take the long way to get there - make sure we land exactly on a power of two

@@ -69,24 +69,30 @@ Shader "Crest/Inputs/Animated Waves/Add From Texture"
 				half4 texSample = tex2D(_MainTex, input.uv);
 
 #if _HEIGHTSONLY_ON
+				// Texture represents heights, not 3D displacements
 				displacement.y = texSample.x;
 
 #if _GENERATEDISPLACEMENTSFROMHEIGHTS_ON
+				// Generate horizontal displacement from derivatives of height
+
+				// These derivatives aren't strictly correct - they assume there is a roughly 1:1 correspondance between
+				// texture sampling density (via _MainTex_TexelSize.x) and output sampling density (via ddx(input.positionWS.x)).
+				// I couldn't find a nice/cheap way to compute texel density (i.e. maintex texel size in world), so i'll leave
+				// it to a scale factor.
 				float height_x = tex2D(_MainTex, input.uv + float2(_MainTex_TexelSize.x, 0.0));
 				float height_z = tex2D(_MainTex, input.uv + float2(0.0, _MainTex_TexelSize.y));
 				displacement.x = _GenerateDisplacementStrength * (height_x - displacement.y) / ddx(input.positionWS.x);
 				displacement.z = _GenerateDisplacementStrength * (height_z - displacement.y) / ddy(input.positionWS.z);
 #endif
-				displacement *= _Strength;
 #else
-				displacement.xyz = texSample.xyz * _Strength;
+				displacement.xyz = texSample.xyz;
 #endif
 
 #if _SSSFROMALPHA_ON
 				sss = texSample.x * _SSSStrength;
 #endif
 
-				return _Weight * half4(displacement, sss);
+				return _Weight * half4(_Strength * displacement, sss);
 			}
 
 			ENDCG

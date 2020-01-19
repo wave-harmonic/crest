@@ -831,9 +831,10 @@ MonoBehaviour:
   _primaryLight: {fileID: 1589415980}
   _simSettingsShadow: {fileID: 0}
   _createClipSurfaceData: 1
+  _attachDebugGUI: 1
+  _followViewpoint: 1
   _uniformTiles: 0
   _disableSkirt: 0
-  _followViewpoint: 1
   _lodTransform: {fileID: 0}
   _lodDataAnimWaves: {fileID: 0}
   _lodDataSeaDepths: {fileID: 0}
@@ -2656,11 +2657,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 859114834902481744, guid: 283bcd90f3bd73c4aa8afa66703b72c8,
-        type: 3}
-      propertyPath: _guiVisible
-      value: 1
-      objectReference: {fileID: 0}
     - target: {fileID: 859114834902481751, guid: 283bcd90f3bd73c4aa8afa66703b72c8,
         type: 3}
       propertyPath: _lerpAlpha
@@ -2690,6 +2686,11 @@ PrefabInstance:
         type: 3}
       propertyPath: linSpeed
       value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 859114834902481744, guid: 283bcd90f3bd73c4aa8afa66703b72c8,
+        type: 3}
+      propertyPath: _guiVisible
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 283bcd90f3bd73c4aa8afa66703b72c8, type: 3}

@@ -13,7 +13,6 @@ GameObject:
   - component: {fileID: 859114834902481750}
   - component: {fileID: 859114834902481757}
   - component: {fileID: 859114834902481751}
-  - component: {fileID: 859114834902481744}
   - component: {fileID: 859114834902481747}
   - component: {fileID: 859114834902481759}
   m_Layer: 0
@@ -117,20 +116,6 @@ MonoBehaviour:
   _targetLookatPos: {fileID: 0}
   _lookatOffset: 5
   _minHeightAboveWater: 0.5
---- !u!114 &859114834902481744
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 859114834902481749}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0f63235a3a133804593f4348e83f77ff, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _showSimTargets: 1
-  _guiVisible: 0
 --- !u!114 &859114834902481747
 MonoBehaviour:
   m_ObjectHideFlags: 0

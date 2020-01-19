@@ -100,12 +100,15 @@ namespace Crest
 
         [Header("Debug Params")]
 
-        [Tooltip("Whether to generate ocean geometry tiles uniformly (with overlaps).")]
-        public bool _uniformTiles = false;
-        [Tooltip("Disable generating a wide strip of triangles at the outer edge to extend ocean to edge of view frustum.")]
-        public bool _disableSkirt = false;
+        [Tooltip("Attach debug gui that adds some controls and allows to visualise the ocean data."), SerializeField]
+        bool _attachDebugGUI = false;
+
         [Tooltip("Move ocean with viewpoint.")]
         public bool _followViewpoint = true;
+        [HideInInspector, Tooltip("Whether to generate ocean geometry tiles uniformly (with overlaps).")]
+        public bool _uniformTiles = false;
+        [HideInInspector, Tooltip("Disable generating a wide strip of triangles at the outer edge to extend ocean to edge of view frustum.")]
+        public bool _disableSkirt = false;
 
         /// <summary>
         /// Current ocean scale (changes with viewer altitude).
@@ -171,6 +174,11 @@ namespace Crest
 
             InitViewpoint();
             InitTimeProvider();
+
+            if(_attachDebugGUI && GetComponent<OceanDebugGUI>() == null)
+            {
+                gameObject.AddComponent<OceanDebugGUI>();
+            }
         }
 
         bool VerifyRequirements()

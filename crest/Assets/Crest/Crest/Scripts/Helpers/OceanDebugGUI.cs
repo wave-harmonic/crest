@@ -10,8 +10,8 @@ namespace Crest
 {
     public class OceanDebugGUI : MonoBehaviour
     {
-        [SerializeField] bool _showOceanData = true;
-        [SerializeField] bool _guiVisible = true;
+        public bool _showOceanData = true;
+        public bool _guiVisible = true;
         readonly static float _leftPanelWidth = 180f;
         readonly static float _bottomPanelHeight = 25f;
         readonly static Color _guiColor = Color.black * 0.7f;

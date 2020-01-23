@@ -19,7 +19,7 @@ Shader "Crest/Inputs/Clip Surface/Add From Geometry"
 			#pragma fragment Frag
 
 			#include "UnityCG.cginc"
-			#include "../../OceanLODData.hlsl"
+			#include "../../OceanHelpers.hlsl"
 
 			struct Attributes
 			{
@@ -29,8 +29,10 @@ Shader "Crest/Inputs/Clip Surface/Add From Geometry"
 			struct Varyings
 			{
 				float4 positionCS : SV_POSITION;
-				float2 depth : TEXCOORD0;
+				float2 clip : TEXCOORD0;
 			};
+
+			float3 _InstanceData;
 
 			Varyings Vert(Attributes input)
 			{
@@ -38,18 +40,42 @@ Shader "Crest/Inputs/Clip Surface/Add From Geometry"
 				o.positionCS = UnityObjectToClipPos(input.positionOS);
 				float heightWS = mul(unity_ObjectToWorld, float4(input.positionOS, 1.0)).y;
 
-				// It would be better if we had the surface height.
-				float difference = heightWS - _OceanCenterPosWorld.y;
+				// move to world
+				float3 surfacePos;
+				surfacePos.xz = mul(unity_ObjectToWorld, float4(input.positionOS, 1.0)).xz;
+				surfacePos.y = 0.0;
 
-				// We are bookending values since waves can only be so high. 5 is temporary.
-				if (heightWS > _OceanCenterPosWorld.y)
+				// vertex snapping and lod transition
+				float lodAlpha = ComputeLodAlpha(surfacePos, _InstanceData.x);
+
+				// sample shape textures - always lerp between 2 scales, so sample two textures
+
+				// sample weights. params.z allows shape to be faded out (used on last lod to support pop-less scale transitions)
+				float wt_smallerLod = (1.0 - lodAlpha) * _LD_Params[_LD_SliceIndex].z;
+				float wt_biggerLod = (1.0 - wt_smallerLod) * _LD_Params[_LD_SliceIndex + 1].z;
+				// sample displacement textures, add results to current world pos / normal / foam
+				const float2 worldXZ = surfacePos.xz;
+				half foam = 0.0;
+				half sss = 0.;
+				if (wt_smallerLod > 0.001)
 				{
-					o.depth = float2(min(difference, 5) / 5, 0);
+					SampleDisplacements(_LD_TexArray_AnimatedWaves, WorldToUV(worldXZ), wt_smallerLod, surfacePos, sss);
 				}
-				else if (heightWS < _OceanCenterPosWorld.y)
+				if (wt_biggerLod > 0.001)
 				{
-					difference = -difference;
-					o.depth = float2(0, min(difference, 5) / 5);
+					SampleDisplacements(_LD_TexArray_AnimatedWaves, WorldToUV_BiggerLod(worldXZ), wt_biggerLod, surfacePos, sss);
+				}
+
+				// move to sea level
+				surfacePos.y += _OceanCenterPosWorld.y;
+
+				if (heightWS >= surfacePos.y)
+				{
+					o.clip = float2(1, 0);
+				}
+				else if (heightWS < surfacePos.y)
+				{
+					o.clip = float2(0, 1);
 				}
 
 				return o;
@@ -57,7 +83,7 @@ Shader "Crest/Inputs/Clip Surface/Add From Geometry"
 
 			float4 Frag(Varyings input) : SV_Target
 			{
-				return float4(input.depth.x, input.depth.y, 0, 1);
+				return float4(input.clip.x, input.clip.y, 0, 1);
 			}
 			ENDCG
 		}

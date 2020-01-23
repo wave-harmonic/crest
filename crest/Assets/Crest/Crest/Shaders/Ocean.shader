@@ -459,7 +459,6 @@ Shader "Crest/Ocean"
 				#if _CLIPSURFACE_ON
 				// Clip surface
 				float2 clipVal = 0.0;
-				float surfaceHeight = input.worldPos.y - _OceanCenterPosWorld.y;
 				if (wt_smallerLod > 0.001)
 				{
 					SampleClip(_LD_TexArray_ClipSurface, WorldToUV(input.worldPos.xz), wt_smallerLod, clipVal);
@@ -469,12 +468,10 @@ Shader "Crest/Ocean"
 					SampleClip(_LD_TexArray_ClipSurface, WorldToUV_BiggerLod(input.worldPos.xz), wt_biggerLod, clipVal);
 				}
 				// We only consider yellow values to account for convex hulls.
-				// Surface must be within clip bounds. 5 is the bookend value.
-				if (clipVal.x > 0 && clipVal.y > 0 && 
-					surfaceHeight < (clipVal.x * 5) && surfaceHeight > (-clipVal.y * 5))
+				if (clipVal.x > 0 && clipVal.y > 0)
 				{
 					// Add 0.5 bias for LOD blending and texel resolution correction. This will help to tighten and smooth clipped edges
-					clip(-(clipVal.x) + 0.5);
+					clip(-clipVal.x + 0.5);
 				}
 				#endif
 				

@@ -41,24 +41,11 @@ namespace Crest
             ShaderProcessQueries.SetBuffer(_kernelHandle, sp_ResultDisplacements, resultsBuffer);
         }
 
-        public bool GetSamplingData(ref Rect i_displacedSamplingArea, float i_minSpatialLength, SamplingData o_samplingData)
-        {
-            // Trivial. Will likely remove this in the future if we can deprecate the displacement texture readback stuff.
-            o_samplingData._minSpatialLength = i_minSpatialLength;
-            return true;
-        }
-
-        public void ReturnSamplingData(SamplingData i_data)
-        {
-            // Mark invalid
-            i_data._minSpatialLength = -1f;
-        }
-
-        public int Query(int i_ownerHash, SamplingData i_samplingData, Vector3[] i_queryPoints, float[] o_resultHeights, Vector3[] o_resultNorms, Vector3[] o_resultVels)
+        public int Query(int i_ownerHash, float i_minSpatialLength, Vector3[] i_queryPoints, float[] o_resultHeights, Vector3[] o_resultNorms, Vector3[] o_resultVels)
         {
             var result = (int)QueryStatus.OK;
 
-            if (!UpdateQueryPoints(i_ownerHash, i_samplingData, i_queryPoints, o_resultNorms != null ? i_queryPoints : null))
+            if (!UpdateQueryPoints(i_ownerHash, i_minSpatialLength, i_queryPoints, o_resultNorms != null ? i_queryPoints : null))
             {
                 result |= (int)QueryStatus.PostFailed;
             }
@@ -70,38 +57,38 @@ namespace Crest
 
             if (o_resultVels != null)
             {
-                result |= CalculateVelocities(i_ownerHash, i_samplingData, i_queryPoints, o_resultVels);
+                result |= CalculateVelocities(i_ownerHash, i_minSpatialLength, i_queryPoints, o_resultVels);
             }
 
             return result;
         }
 
-        public bool SampleDisplacement(ref Vector3 i_worldPos, SamplingData i_samplingData, out Vector3 o_displacement)
+        public bool SampleDisplacement(ref Vector3 i_worldPos, float i_minSpatialLength, out Vector3 o_displacement)
         {
             throw new System.NotImplementedException("Not implemented for the Compute collision provider - use the 'Query' functions.");
         }
 
-        public void SampleDisplacementVel(ref Vector3 i_worldPos, SamplingData i_samplingData, out Vector3 o_displacement, out bool o_displacementValid, out Vector3 o_displacementVel, out bool o_velValid)
+        public void SampleDisplacementVel(ref Vector3 i_worldPos, float i_minSpatialLength, out Vector3 o_displacement, out bool o_displacementValid, out Vector3 o_displacementVel, out bool o_velValid)
         {
             throw new System.NotImplementedException("Not implemented for the Compute collision provider - use the 'Query' functions.");
         }
 
-        public bool SampleHeight(ref Vector3 i_worldPos, SamplingData i_samplingData, out float o_height)
+        public bool SampleHeight(ref Vector3 i_worldPos, float i_minSpatialLength, out float o_height)
         {
             throw new System.NotImplementedException("Not implemented for the Compute collision provider - use the 'Query' functions.");
         }
 
-        public bool SampleNormal(ref Vector3 i_undisplacedWorldPos, SamplingData i_samplingData, out Vector3 o_normal)
+        public bool SampleNormal(ref Vector3 i_undisplacedWorldPos, float i_minSpatialLength, out Vector3 o_normal)
         {
             throw new System.NotImplementedException("Not implemented for the Compute collision provider - use the 'Query' functions.");
         }
 
-        public bool ComputeUndisplacedPosition(ref Vector3 i_worldPos, SamplingData i_samplingData, out Vector3 undisplacedWorldPos)
+        public bool ComputeUndisplacedPosition(ref Vector3 i_worldPos, float i_minSpatialLength, out Vector3 undisplacedWorldPos)
         {
             throw new System.NotImplementedException("Not implemented for the Compute collision provider - use the 'Query' functions.");
         }
 
-        public AvailabilityResult CheckAvailability(ref Vector3 i_worldPos, SamplingData i_samplingData)
+        public AvailabilityResult CheckAvailability(ref Vector3 i_worldPos, float i_minSpatialLength)
         {
             throw new System.NotImplementedException("Not implemented for the Compute collision provider - use the 'Query' functions.");
         }

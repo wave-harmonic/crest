@@ -10,8 +10,6 @@ namespace Crest
         [SerializeField]
         float _objectWidth = 0f;
 
-        SamplingData _samplingData = new SamplingData();
-
         float[] _resultHeights = new float[s_steps * s_steps];
 
         static float s_radius = 5f;
@@ -27,11 +25,6 @@ namespace Crest
             }
 
             var collProvider = OceanRenderer.Instance.CollisionProvider;
-            var thisRect = new Rect(transform.position.x - s_radius * s_steps / 2f, transform.position.z - s_radius * s_steps / 2f, s_radius * s_steps / 2f, s_radius * s_steps / 2f);
-            if (!collProvider.GetSamplingData(ref thisRect, _objectWidth, _samplingData))
-            {
-                return;
-            }
 
             for (int i = 0; i < s_steps; i++)
             {
@@ -43,7 +36,7 @@ namespace Crest
                 }
             }
 
-            if (collProvider.RetrieveSucceeded(collProvider.Query(GetHashCode(), _samplingData, _samplePositions, _resultHeights, null, null)))
+            if (collProvider.RetrieveSucceeded(collProvider.Query(GetHashCode(), _objectWidth, _samplePositions, _resultHeights, null, null)))
             {
                 for (int i = 0; i < s_steps; i++)
                 {
@@ -56,8 +49,6 @@ namespace Crest
                     }
                 }
             }
-
-            collProvider.ReturnSamplingData(_samplingData);
         }
 
         public static void DebugDrawCross(Vector3 pos, float r, Color col, float duration = 0f)

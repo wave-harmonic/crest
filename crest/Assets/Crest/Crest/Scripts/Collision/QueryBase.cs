@@ -188,7 +188,7 @@ namespace Crest
         /// Takes a unique request ID and some world space XZ positions, and computes the displacement vector that lands at this position,
         /// to a good approximation. The world space height of the water at that position is then SeaLevel + displacement.y.
         /// </summary>
-        protected bool UpdateQueryPoints(int i_ownerHash, SamplingData i_samplingData, Vector3[] queryPoints, Vector3[] queryNormals)
+        protected bool UpdateQueryPoints(int i_ownerHash, float i_minSpatialLength, Vector3[] queryPoints, Vector3[] queryNormals)
         {
             var segmentRetrieved = false;
             Vector2Int segment;
@@ -236,8 +236,7 @@ namespace Crest
 
             // The smallest wavelengths should repeat no more than twice across the smaller spatial length. Unless we're
             // in the last LOD - then this is the best we can do.
-            // i_samplingData._minSpatialLength
-            float minWavelength = i_samplingData._minSpatialLength / 2f;
+            float minWavelength = i_minSpatialLength / 2f;
             float minGridSize = minWavelength / OceanRenderer.Instance.MinTexelsPerWave;
 
             for (int pointi = 0; pointi < countPts; pointi++)
@@ -350,7 +349,7 @@ namespace Crest
         /// Compute time derivative of the displacements by calculating difference from last query. More complicated than it would seem - results
         /// may not be available in one or both of the results, or the query locations in the array may change.
         /// </summary>
-        protected int CalculateVelocities(int i_ownerHash, SamplingData i_samplingData, Vector3[] i_queryPositions, Vector3[] results)
+        protected int CalculateVelocities(int i_ownerHash, float i_minSpatialLength, Vector3[] i_queryPositions, Vector3[] results)
         {
             // Need at least 2 returned results to do finite difference
             if (_queryResultsTime < 0f || _queryResultsTimeLast < 0f)
@@ -505,11 +504,11 @@ namespace Crest
             _segmentRegistrarRingBuffer.ClearAll();
         }
 
-        public int Query(int i_ownerHash, SamplingData i_samplingData, Vector3[] i_queryPoints, Vector3[] o_resultDisps, Vector3[] o_resultNorms, Vector3[] o_resultVels)
+        public int Query(int i_ownerHash, float i_minSpatialLength, Vector3[] i_queryPoints, Vector3[] o_resultDisps, Vector3[] o_resultNorms, Vector3[] o_resultVels)
         {
             var result = (int)QueryStatus.OK;
 
-            if (!UpdateQueryPoints(i_ownerHash, i_samplingData, i_queryPoints, o_resultNorms != null ? i_queryPoints : null))
+            if (!UpdateQueryPoints(i_ownerHash, i_minSpatialLength, i_queryPoints, o_resultNorms != null ? i_queryPoints : null))
             {
                 result |= (int)QueryStatus.PostFailed;
             }
@@ -521,7 +520,7 @@ namespace Crest
 
             if (o_resultVels != null)
             {
-                result |= CalculateVelocities(i_ownerHash, i_samplingData, i_queryPoints, o_resultVels);
+                result |= CalculateVelocities(i_ownerHash, i_minSpatialLength, i_queryPoints, o_resultVels);
             }
 
             return result;

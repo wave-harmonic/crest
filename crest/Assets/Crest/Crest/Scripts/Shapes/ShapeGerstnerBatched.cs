@@ -664,12 +664,6 @@ namespace Crest
             return true;
         }
 
-        public void SampleDisplacementVel(ref Vector3 i_worldPos, float i_minSpatialLength, out Vector3 o_displacement, out bool o_displacementValid, out Vector3 o_displacementVel, out bool o_velValid)
-        {
-            o_displacementValid = SampleDisplacement(ref i_worldPos, i_minSpatialLength, out o_displacement);
-            o_velValid = GetSurfaceVelocity(ref i_worldPos, i_minSpatialLength, out o_displacementVel);
-        }
-
         public int Query(int i_ownerHash, float i_minSpatialLength, Vector3[] i_queryPoints, Vector3[] o_resultDisps, Vector3[] o_resultNorms, Vector3[] o_resultVels)
         {
             if (o_resultDisps != null)

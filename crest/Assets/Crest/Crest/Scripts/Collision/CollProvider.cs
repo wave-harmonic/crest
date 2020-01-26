@@ -2,7 +2,6 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
-using System;
 using UnityEngine;
 
 namespace Crest
@@ -42,32 +41,6 @@ namespace Crest
     /// </summary>
     public interface ICollProvider
     {
-        /// <summary>
-        /// Samples displacement of ocean surface from the given world position.
-        /// </summary>
-        [Obsolete("This API is deprecated. Use the 'Query' APIs instead.")]
-        bool SampleDisplacement(ref Vector3 i_worldPos, float i_minSpatialLength, out Vector3 o_displacement);
-        [Obsolete("This API is deprecated. Use the 'Query' APIs instead.")]
-        void SampleDisplacementVel(ref Vector3 i_worldPos, float i_minSpatialLength, out Vector3 o_displacement, out bool o_displacementValid, out Vector3 o_displacementVel, out bool o_velValid);
-
-        /// <summary>
-        /// Samples ocean surface height at given world position.
-        /// </summary>
-        [Obsolete("This API is deprecated. Use the 'Query' APIs instead.")]
-        bool SampleHeight(ref Vector3 i_worldPos, float i_minSpatialLength, out float o_height);
-
-        /// <summary>
-        /// Sample ocean normal at an undisplaced world position.
-        /// </summary>
-        [Obsolete("This API is deprecated. Use the 'Query' APIs instead.")]
-        bool SampleNormal(ref Vector3 i_undisplacedWorldPos, float i_minSpatialLength, out Vector3 o_normal);
-
-        /// <summary>
-        /// Computes the position which will be displaced to the given world position.
-        /// </summary>
-        [Obsolete("This API is deprecated. Use the 'Query' APIs instead.")]
-        bool ComputeUndisplacedPosition(ref Vector3 i_worldPos, float i_minSpatialLength, out Vector3 undisplacedWorldPos);
-
         /// <summary>
         /// Query water physical data at a set of points. Pass in null to any out parameters that are not required.
         /// </summary>

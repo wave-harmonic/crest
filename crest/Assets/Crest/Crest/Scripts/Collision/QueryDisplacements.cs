@@ -63,31 +63,6 @@ namespace Crest
             return result;
         }
 
-        public bool SampleDisplacement(ref Vector3 i_worldPos, float i_minSpatialLength, out Vector3 o_displacement)
-        {
-            throw new System.NotImplementedException("Not implemented for the Compute collision provider - use the 'Query' functions.");
-        }
-
-        public void SampleDisplacementVel(ref Vector3 i_worldPos, float i_minSpatialLength, out Vector3 o_displacement, out bool o_displacementValid, out Vector3 o_displacementVel, out bool o_velValid)
-        {
-            throw new System.NotImplementedException("Not implemented for the Compute collision provider - use the 'Query' functions.");
-        }
-
-        public bool SampleHeight(ref Vector3 i_worldPos, float i_minSpatialLength, out float o_height)
-        {
-            throw new System.NotImplementedException("Not implemented for the Compute collision provider - use the 'Query' functions.");
-        }
-
-        public bool SampleNormal(ref Vector3 i_undisplacedWorldPos, float i_minSpatialLength, out Vector3 o_normal)
-        {
-            throw new System.NotImplementedException("Not implemented for the Compute collision provider - use the 'Query' functions.");
-        }
-
-        public bool ComputeUndisplacedPosition(ref Vector3 i_worldPos, float i_minSpatialLength, out Vector3 undisplacedWorldPos)
-        {
-            throw new System.NotImplementedException("Not implemented for the Compute collision provider - use the 'Query' functions.");
-        }
-
         public AvailabilityResult CheckAvailability(ref Vector3 i_worldPos, float i_minSpatialLength)
         {
             throw new System.NotImplementedException("Not implemented for the Compute collision provider - use the 'Query' functions.");

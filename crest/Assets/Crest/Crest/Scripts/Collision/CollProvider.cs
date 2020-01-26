@@ -7,36 +7,6 @@ using UnityEngine;
 namespace Crest
 {
     /// <summary>
-    /// Collision diagnostics result.
-    /// </summary>
-    public enum AvailabilityResult
-    {
-        /// <summary>
-        /// Collision data available, good to go
-        /// </summary>
-        DataAvailable,
-        /// <summary>
-        /// Collision provider is not fully initialised.
-        /// </summary>
-        NotInitialisedYet,
-        /// <summary>
-        /// There is no data available (yet) that covers the query position. This might be because the query was made
-        /// before async data started flowing back to the CPU, or the query position may be outside the largest LOD.
-        /// </summary>
-        NoDataAtThisPosition,
-        /// <summary>
-        /// A min spatial width was specified with the expectation that wavelengths much smaller than this width would
-        /// be filtered out. There is currently no LOD big enough that filters out these wavelengths. Data will still
-        /// be return but it will contain wavelengths smaller than expected.
-        /// </summary>
-        NoLODsBigEnoughToFilterOutWavelengths,
-        /// <summary>
-        /// This should never be hit, and indicates that the validation logic is broken.
-        /// </summary>
-        ValidationFailed,
-    }
-
-    /// <summary>
     /// Interface for an object that returns ocean surface displacement and height.
     /// </summary>
     public interface ICollProvider
@@ -67,10 +37,5 @@ namespace Crest
         /// Check if query results could be retrieved successfully using return code from Query() function
         /// </summary>
         bool RetrieveSucceeded(int queryStatus);
-
-        /// <summary>
-        /// Run diagnostics at a position.
-        /// </summary>
-        AvailabilityResult CheckAvailability(ref Vector3 i_worldPos, float i_minSpatialLength);
     }
 }

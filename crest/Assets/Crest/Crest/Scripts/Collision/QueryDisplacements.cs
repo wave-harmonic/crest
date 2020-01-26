@@ -62,10 +62,5 @@ namespace Crest
 
             return result;
         }
-
-        public AvailabilityResult CheckAvailability(ref Vector3 i_worldPos, float i_minSpatialLength)
-        {
-            throw new System.NotImplementedException("Not implemented for the Compute collision provider - use the 'Query' functions.");
-        }
     }
 }

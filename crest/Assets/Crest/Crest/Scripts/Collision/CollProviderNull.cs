@@ -11,11 +11,6 @@ namespace Crest
     /// </summary>
     public class CollProviderNull : ICollProvider
     {
-        public AvailabilityResult CheckAvailability(ref Vector3 i_worldPos, float i_minSpatialLength)
-        {
-            return AvailabilityResult.DataAvailable;
-        }
-
         public int Query(int i_ownerHash, float i_minSpatialLength, Vector3[] i_queryPoints, Vector3[] o_resultDisps, Vector3[] o_resultNorms, Vector3[] o_resultVels)
         {
             if (o_resultDisps != null)

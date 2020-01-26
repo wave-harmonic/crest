@@ -576,11 +576,6 @@ namespace Crest
             return true;
         }
 
-        public AvailabilityResult CheckAvailability(ref Vector3 i_worldPos, float i_minSpatialLength)
-        {
-            return _amplitudes == null ? AvailabilityResult.NotInitialisedYet : AvailabilityResult.DataAvailable;
-        }
-
         // Compute normal to a surface with a parameterization - equation 14 here: http://mathworld.wolfram.com/NormalVector.html
         public bool SampleNormal(ref Vector3 i_undisplacedWorldPos, float i_minSpatialLength, out Vector3 o_normal)
         {

@@ -24,10 +24,6 @@ namespace Crest
         CollisionSources _collisionSource = CollisionSources.ComputeShaderQueries;
         public CollisionSources CollisionSource { get { return _collisionSource; } }
 
-        [SerializeField, Tooltip("Cache CPU requests for ocean height. Requires restart.")]
-        bool _cachedHeightQueries = false;
-        public bool CachedHeightQueries { get { return _cachedHeightQueries; } }
-
         /// <summary>
         /// Provides ocean shape to CPU.
         /// </summary>
@@ -53,11 +49,6 @@ namespace Crest
                 // this should not be hit - return null to create null ref exceptions
                 Debug.Assert(false, "Could not create collision provider. Collision source = " + _collisionSource.ToString());
                 return null;
-            }
-
-            if (_cachedHeightQueries)
-            {
-                result = new CollProviderCache(result);
             }
 
             return result;

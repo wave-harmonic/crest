@@ -228,6 +228,19 @@ namespace Crest
             }
         }
 
+        void Update()
+        {
+            UpdateCollision();
+        }
+
+        void UpdateCollision()
+        {
+            if (_simSettingsAnimatedWaves.CachedHeightQueries)
+            {
+                (CollisionProvider as CollProviderCache).ClearCache();
+            }
+        }
+
         void LateUpdate()
         {
             // set global shader params

@@ -109,6 +109,13 @@ namespace Crest
 
                 if (OceanRenderer.Instance)
                 {
+                    if (OceanRenderer.Instance._simSettingsAnimatedWaves.CachedHeightQueries)
+                    {
+                        var cache = OceanRenderer.Instance.CollisionProvider as CollProviderCache;
+                        // generates garbage
+                        GUI.Label(new Rect(x, y, w, h), string.Format("Cache hits: {0}/{1}", cache.CacheHits, cache.CacheChecks)); y += h;
+                    }
+
                     if (OceanRenderer.Instance._lodDataDynWaves != null)
                     {
                         int steps; float dt;

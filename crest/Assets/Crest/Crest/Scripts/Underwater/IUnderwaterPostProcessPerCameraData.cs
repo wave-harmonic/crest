@@ -12,8 +12,6 @@ public interface IUnderwaterPostProcessPerCameraData
 {
     // NOTE: We keep a list of ocean chunks to render for a given frame
     // (which ocean chunks add themselves to) and reset it each frame by
-    // setting the currentChunkCount to 0. However, this could potentially
-    // be a leak if the OceanChunks are ever deleted. We don't expect this
-    // to happen, so this approach should be fine for now.
+    // setting the currentChunkCount to 0.
     List<Renderer> OceanChunksToRender { get; }
 }

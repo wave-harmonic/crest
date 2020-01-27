@@ -58,6 +58,7 @@ namespace Crest
             if (_renderer && weight > 0f)
             {
                 _materials[isTransition].SetFloat(sp_Weight, weight);
+                _materials[isTransition].SetFloat(LodDataMgrPersistent.sp_SimDeltaTime, OceanRenderer.Instance.DeltaTimeDynamics);
 
                 buf.DrawRenderer(_renderer, _materials[isTransition]);
             }

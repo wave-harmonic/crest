@@ -662,7 +662,7 @@ namespace Crest
 
         public int Query(int i_ownerHash, float i_minSpatialLength, NativeSlice<Vector3> i_queryPoints, NativeSlice<Vector3> o_resultDisps, NativeSlice<Vector3> o_resultNorms, NativeSlice<Vector3> o_resultVels)
         {
-            if (o_resultDisps != null)
+            if (o_resultDisps.Length != 0)
             {
                 for (int i = 0; i < o_resultDisps.Length; i++)
                 {
@@ -672,7 +672,7 @@ namespace Crest
                 }
             }
 
-            if (o_resultNorms != null)
+            if (o_resultNorms.Length != 0)
             {
                 for (int i = 0; i < o_resultNorms.Length; i++)
                 {
@@ -694,7 +694,7 @@ namespace Crest
 
         public int Query(int i_ownerHash, float i_minSpatialLength, NativeSlice<Vector3> i_queryPoints, NativeSlice<float> o_resultHeights, NativeSlice<Vector3> o_resultNorms, NativeSlice<Vector3> o_resultVels)
         {
-            if (o_resultHeights != null)
+            if (o_resultHeights.Length != 0)
             {
                 for (int i = 0; i < o_resultHeights.Length; i++)
                 {
@@ -706,7 +706,7 @@ namespace Crest
                 }
             }
 
-            if (o_resultNorms != null)
+            if (o_resultNorms.Length != 0)
             {
                 for (int i = 0; i < o_resultNorms.Length; i++)
                 {
@@ -724,7 +724,7 @@ namespace Crest
                 }
             }
 
-            if (o_resultVels != null)
+            if (o_resultVels.Length != 0)
             {
                 for (int i = 0; i < o_resultVels.Length; i++)
                 {

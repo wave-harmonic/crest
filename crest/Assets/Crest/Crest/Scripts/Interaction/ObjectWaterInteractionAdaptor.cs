@@ -2,6 +2,7 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+using Unity.Collections;
 using UnityEngine;
 
 namespace Crest
@@ -16,29 +17,36 @@ namespace Crest
 
         public override Vector3 CalculateDisplacementToObject()
         {
-            return _hasWaterData ? _resultDisps[0] : Vector3.zero;
+            return _hasWaterData ? _resultDisp : Vector3.zero;
         }
-
-        Vector3[] _queryPoints = new Vector3[1];
-        Vector3[] _resultDisps = new Vector3[1];
 
         float _height = -float.MaxValue;
 
         Vector3 _velocity;
         Vector3 _lastPos;
+        Vector3 _resultDisp;
 
         bool _hasWaterData = false;
         bool _hasVelocity = false;
 
         private void Update()
         {
-            _queryPoints[0] = transform.position;
-            var result = OceanRenderer.Instance.CollisionProvider.Query(GetHashCode(), ObjectWidth, _queryPoints, _resultDisps, null, null);
+            int result;
+            {
+                NativeArray<Vector3> queryPoints = new NativeArray<Vector3>(1, Allocator.Temp);
+                NativeArray<Vector3> resultDisps = new NativeArray<Vector3>(1, Allocator.Temp);
+                queryPoints[0] = transform.position;
+                result = OceanRenderer.Instance.CollisionProvider.Query(GetHashCode(), ObjectWidth, queryPoints, resultDisps, default, default);
+                _resultDisp = resultDisps[0];
+                resultDisps.Dispose();
+                queryPoints.Dispose();
+            }
+
             if (OceanRenderer.Instance.CollisionProvider.RetrieveSucceeded(result))
             {
                 _hasWaterData = true;
 
-                _height = OceanRenderer.Instance.SeaLevel + _resultDisps[0].y;
+                _height = OceanRenderer.Instance.SeaLevel + _resultDisp.y;
             }
 
             if (Time.deltaTime > 0.00001f)

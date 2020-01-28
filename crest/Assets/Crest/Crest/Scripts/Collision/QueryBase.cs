@@ -172,7 +172,7 @@ namespace Crest
 
         List<ReadbackRequest> _requests = new List<ReadbackRequest>();
 
-        public enum QueryStatus
+        public enum QueryStatus : int
         {
             OK = 0,
             RetrieveFailed = 1,
@@ -188,14 +188,14 @@ namespace Crest
         /// Takes a unique request ID and some world space XZ positions, and computes the displacement vector that lands at this position,
         /// to a good approximation. The world space height of the water at that position is then SeaLevel + displacement.y.
         /// </summary>
-        protected bool UpdateQueryPoints(int i_ownerHash, float i_minSpatialLength, Vector3[] queryPoints, Vector3[] queryNormals)
+        protected bool UpdateQueryPoints(int i_ownerHash, float i_minSpatialLength, NativeSlice<Vector3> queryPoints, NativeSlice<Vector3> queryNormals)
         {
             var segmentRetrieved = false;
             Vector2Int segment;
 
             // We'll send in 3 points to get normals
-            var countPts = (queryPoints != null ? queryPoints.Length : 0);
-            var countNorms = (queryNormals != null ? queryNormals.Length : 0);
+            var countPts = (queryPoints.Length != 0 ? queryPoints.Length : 0);
+            var countNorms = (queryNormals.Length != 0 ? queryNormals.Length : 0);
             var countTotal = countPts + countNorms * 3;
 
             if (_segmentRegistrarRingBuffer.Current._segments.TryGetValue(i_ownerHash, out segment))
@@ -241,9 +241,11 @@ namespace Crest
 
             for (int pointi = 0; pointi < countPts; pointi++)
             {
-                _queryPosXZ_minGridSize[pointi + segment.x].x = queryPoints[pointi].x;
-                _queryPosXZ_minGridSize[pointi + segment.x].y = queryPoints[pointi].z;
-                _queryPosXZ_minGridSize[pointi + segment.x].z = minGridSize;
+                Vector3 queryPosXZ_minGridSizVal = _queryPosXZ_minGridSize[pointi + segment.x];
+                queryPosXZ_minGridSizVal.x = queryPoints[pointi].x;
+                queryPosXZ_minGridSizVal.y = queryPoints[pointi].z;
+                queryPosXZ_minGridSizVal.z = minGridSize;
+                _queryPosXZ_minGridSize[pointi + segment.x] = queryPosXZ_minGridSizVal;
             }
 
             // To compute each normal, post 3 query points
@@ -251,17 +253,28 @@ namespace Crest
             {
                 var arrIdx = segment.x + countPts + 3 * normi;
 
-                _queryPosXZ_minGridSize[arrIdx + 0].x = queryNormals[normi].x;
-                _queryPosXZ_minGridSize[arrIdx + 0].y = queryNormals[normi].z;
-                _queryPosXZ_minGridSize[arrIdx + 0].z = minGridSize;
+                {
+                    Vector3 queryPosXZ_minGridSizVal = _queryPosXZ_minGridSize[arrIdx + 0];
+                    queryPosXZ_minGridSizVal.x = queryNormals[normi].x;
+                    queryPosXZ_minGridSizVal.y = queryNormals[normi].z;
+                    queryPosXZ_minGridSizVal.z = minGridSize;
+                    _queryPosXZ_minGridSize[arrIdx + 0] = queryPosXZ_minGridSizVal;
+                }
 
-                _queryPosXZ_minGridSize[arrIdx + 1].x = queryNormals[normi].x + s_finiteDiffDx;
-                _queryPosXZ_minGridSize[arrIdx + 1].y = queryNormals[normi].z;
-                _queryPosXZ_minGridSize[arrIdx + 1].z = minGridSize;
-
-                _queryPosXZ_minGridSize[arrIdx + 2].x = queryNormals[normi].x;
-                _queryPosXZ_minGridSize[arrIdx + 2].y = queryNormals[normi].z + s_finiteDiffDx;
-                _queryPosXZ_minGridSize[arrIdx + 2].z = minGridSize;
+                {
+                    Vector3 queryPosXZ_minGridSizVal = _queryPosXZ_minGridSize[arrIdx + 1];
+                    queryPosXZ_minGridSizVal.x = queryNormals[normi].x + s_finiteDiffDx;
+                    queryPosXZ_minGridSizVal.y = queryNormals[normi].z;
+                    queryPosXZ_minGridSizVal.z = minGridSize;
+                    _queryPosXZ_minGridSize[arrIdx + 1] = queryPosXZ_minGridSizVal;
+                }
+                {
+                    Vector3 queryPosXZ_minGridSizVal = _queryPosXZ_minGridSize[arrIdx + 2];
+                    queryPosXZ_minGridSizVal.x = queryNormals[normi].x;
+                    queryPosXZ_minGridSizVal.y = queryNormals[normi].z + s_finiteDiffDx;
+                    queryPosXZ_minGridSizVal.z = minGridSize;
+                    _queryPosXZ_minGridSize[arrIdx + 2] = queryPosXZ_minGridSizVal;
+                }
             }
 
             return true;
@@ -287,7 +300,7 @@ namespace Crest
         /// <summary>
         /// Copy out displacements, heights, normals. Pass null if info is not required.
         /// </summary>
-        protected bool RetrieveResults(int guid, Vector3[] displacements, float[] heights, Vector3[] normals)
+        protected bool RetrieveResults(int guid, NativeSlice<Vector3> displacements, NativeSlice<float> heights, NativeSlice<Vector3> normals)
         {
             if (_resultSegments == null)
             {
@@ -303,19 +316,19 @@ namespace Crest
             }
 
             var countPoints = 0;
-            if (displacements != null) countPoints = displacements.Length;
-            if (heights != null) countPoints = heights.Length;
-            if (displacements != null && heights != null) Debug.Assert(displacements.Length == heights.Length);
-            var countNorms = (normals != null ? normals.Length : 0);
+            if (displacements.Length != 0) countPoints = displacements.Length;
+            if (heights.Length != 0) countPoints = heights.Length;
+            if (displacements.Length != 0 && heights.Length != 0) Debug.Assert(displacements.Length == heights.Length);
+            var countNorms = (normals.Length != 0 ? normals.Length : 0);
             var countTotal = countPoints + countNorms * 3;
 
             if (countPoints > 0)
             {
                 // Retrieve Results
-                if (displacements != null) _queryResults.Slice(segment.x, countPoints).CopyTo(displacements);
+                if (displacements.Length != 0) displacements.CopyFrom(_queryResults.Slice(segment.x, countPoints));
 
                 // Retrieve Result heights
-                if (heights != null)
+                if (heights.Length != 0)
                 {
                     var seaLevel = OceanRenderer.Instance.SeaLevel;
                     for (int i = 0; i < countPoints; i++)
@@ -337,8 +350,9 @@ namespace Crest
                     var px = dx + _queryResults[firstNorm + 3 * i + 1];
                     var pz = dz + _queryResults[firstNorm + 3 * i + 2];
 
-                    normals[i] = Vector3.Cross(p - px, p - pz).normalized;
-                    normals[i].y *= -1f;
+                    Vector3 normal = Vector3.Cross(p - px, p - pz).normalized;
+                    normal.y *= -1f;
+                    normals[i] = normal;
                 }
             }
 
@@ -349,7 +363,7 @@ namespace Crest
         /// Compute time derivative of the displacements by calculating difference from last query. More complicated than it would seem - results
         /// may not be available in one or both of the results, or the query locations in the array may change.
         /// </summary>
-        protected int CalculateVelocities(int i_ownerHash, float i_minSpatialLength, Vector3[] i_queryPositions, Vector3[] results)
+        protected int CalculateVelocities(int i_ownerHash, float i_minSpatialLength, NativeSlice<Vector3> i_queryPositions, NativeSlice<Vector3> results)
         {
             // Need at least 2 returned results to do finite difference
             if (_queryResultsTime < 0f || _queryResultsTimeLast < 0f)
@@ -504,21 +518,21 @@ namespace Crest
             _segmentRegistrarRingBuffer.ClearAll();
         }
 
-        public int Query(int i_ownerHash, float i_minSpatialLength, Vector3[] i_queryPoints, Vector3[] o_resultDisps, Vector3[] o_resultNorms, Vector3[] o_resultVels)
+        public int Query(int i_ownerHash, float i_minSpatialLength, NativeSlice<Vector3> i_queryPoints, NativeSlice<Vector3> o_resultDisps, NativeSlice<Vector3> o_resultNorms, NativeSlice<Vector3> o_resultVels)
         {
             var result = (int)QueryStatus.OK;
 
-            if (!UpdateQueryPoints(i_ownerHash, i_minSpatialLength, i_queryPoints, o_resultNorms != null ? i_queryPoints : null))
+            if (!UpdateQueryPoints(i_ownerHash, i_minSpatialLength, i_queryPoints, o_resultNorms.Length != 0 ? i_queryPoints : default))
             {
                 result |= (int)QueryStatus.PostFailed;
             }
 
-            if (!RetrieveResults(i_ownerHash, o_resultDisps, null, o_resultNorms))
+            if (!RetrieveResults(i_ownerHash, o_resultDisps, default, o_resultNorms))
             {
                 result |= (int)QueryStatus.RetrieveFailed;
             }
 
-            if (o_resultVels != null)
+            if (o_resultVels.Length != 0)
             {
                 result |= CalculateVelocities(i_ownerHash, i_minSpatialLength, i_queryPoints, o_resultVels);
             }

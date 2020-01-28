@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using Unity.Collections;
+using UnityEngine;
 
 namespace Crest
 {
@@ -8,10 +9,7 @@ namespace Crest
     /// </summary>
     public class SampleHeightHelper
     {
-        Vector3[] _queryPos = new Vector3[1];
-        Vector3[] _queryResult = new Vector3[1];
-        Vector3[] _queryResultNormal = new Vector3[1];
-        Vector3[] _queryResultVel = new Vector3[1];
+        Vector3 _queryPosition;
 
         float _minLength = 0f;
 
@@ -23,7 +21,7 @@ namespace Crest
         /// pass in the boats width. Larger objects will ignore small wavelengths.</param>
         public void Init(Vector3 i_queryPos, float i_minLength)
         {
-            _queryPos[0] = i_queryPos;
+            _queryPosition = i_queryPos;
             _minLength = i_minLength;
         }
 
@@ -32,63 +30,95 @@ namespace Crest
         /// </summary>
         public bool Sample(ref float o_height)
         {
-            var status = OceanRenderer.Instance.CollisionProvider.Query(GetHashCode(), _minLength, _queryPos, _queryResult, null, null);
+            NativeArray<Vector3> queryPositions = new NativeArray<Vector3>(1, Allocator.Temp);
+            queryPositions[0] = _queryPosition;
+            NativeArray<float> queryResults = new NativeArray<float>(1, Allocator.Temp);
+            var status = OceanRenderer.Instance.CollisionProvider.Query(GetHashCode(), _minLength, queryPositions, queryResults, default, default);
 
-            if (!OceanRenderer.Instance.CollisionProvider.RetrieveSucceeded(status))
+            if (OceanRenderer.Instance.CollisionProvider.RetrieveSucceeded(status))
             {
-                return false;
+                o_height = queryResults[0] + OceanRenderer.Instance.SeaLevel;
             }
 
-            o_height = _queryResult[0].y + OceanRenderer.Instance.SeaLevel;
+            queryResults.Dispose();
+            queryPositions.Dispose();
 
-            return true;
+            return OceanRenderer.Instance.CollisionProvider.RetrieveSucceeded(status);
         }
 
         public bool Sample(ref float o_height, ref Vector3 o_normal)
         {
-            var status = OceanRenderer.Instance.CollisionProvider.Query(GetHashCode(), _minLength, _queryPos, _queryResult, _queryResultNormal, null);
+            NativeArray<Vector3> queryPositions = new NativeArray<Vector3>(1, Allocator.Temp);
+            queryPositions[0] = _queryPosition;
+            NativeArray<float> queryResults = new NativeArray<float>(1, Allocator.Temp);
+            NativeArray<Vector3> queryResultNormals = new NativeArray<Vector3>(1, Allocator.Temp);
 
-            if (!OceanRenderer.Instance.CollisionProvider.RetrieveSucceeded(status))
+            var status = OceanRenderer.Instance.CollisionProvider.Query(GetHashCode(), _minLength, queryPositions, queryResults, queryResultNormals, default);
+
+            if (OceanRenderer.Instance.CollisionProvider.RetrieveSucceeded(status))
             {
-                return false;
+                o_height = queryResults[0] + OceanRenderer.Instance.SeaLevel;
+                o_normal = queryResultNormals[0];
             }
 
-            o_height = _queryResult[0].y + OceanRenderer.Instance.SeaLevel;
-            o_normal = _queryResultNormal[0];
 
-            return true;
+            queryResultNormals.Dispose();
+            queryResults.Dispose();
+            queryPositions.Dispose();
+
+            return OceanRenderer.Instance.CollisionProvider.RetrieveSucceeded(status);
         }
 
         public bool Sample(ref float o_height, ref Vector3 o_normal, ref Vector3 o_surfaceVel)
         {
-            var status = OceanRenderer.Instance.CollisionProvider.Query(GetHashCode(), _minLength, _queryPos, _queryResult, _queryResultNormal, _queryResultVel);
+            NativeArray<Vector3> queryPositions = new NativeArray<Vector3>(1, Allocator.Temp);
+            queryPositions[0] = _queryPosition;
 
-            if (!OceanRenderer.Instance.CollisionProvider.RetrieveSucceeded(status))
+            NativeArray<float> queryResults = new NativeArray<float>(1, Allocator.Temp);
+            NativeArray<Vector3> queryResultNormals = new NativeArray<Vector3>(1, Allocator.Temp);
+            NativeArray<Vector3> queryResultVels = new NativeArray<Vector3>(1, Allocator.Temp);
+            var status = OceanRenderer.Instance.CollisionProvider.Query(GetHashCode(), _minLength, queryPositions, queryResults, queryResultNormals, queryResultVels);
+
+            if (OceanRenderer.Instance.CollisionProvider.RetrieveSucceeded(status))
             {
-                return false;
+                o_height = queryResults[0] + OceanRenderer.Instance.SeaLevel;
+                o_normal = queryResultNormals[0];
+                o_surfaceVel = queryResultVels[0];
             }
 
-            o_height = _queryResult[0].y + OceanRenderer.Instance.SeaLevel;
-            o_normal = _queryResultNormal[0];
-            o_surfaceVel = _queryResultVel[0];
 
-            return true;
+            queryResultVels.Dispose();
+            queryResultNormals.Dispose();
+            queryResults.Dispose();
+            queryPositions.Dispose();
+
+            return OceanRenderer.Instance.CollisionProvider.RetrieveSucceeded(status);
         }
 
         public bool Sample(ref Vector3 o_displacementToPoint, ref Vector3 o_normal, ref Vector3 o_surfaceVel)
         {
-            var status = OceanRenderer.Instance.CollisionProvider.Query(GetHashCode(), _minLength, _queryPos, _queryResult, _queryResultNormal, _queryResultVel);
+            NativeArray<Vector3> queryPositions = new NativeArray<Vector3>(1, Allocator.Temp);
+            queryPositions[0] = _queryPosition;
 
-            if (!OceanRenderer.Instance.CollisionProvider.RetrieveSucceeded(status))
+            NativeArray<Vector3> queryResults = new NativeArray<Vector3>(1, Allocator.Temp);
+            NativeArray<Vector3> queryResultNormals = new NativeArray<Vector3>(1, Allocator.Temp);
+            NativeArray<Vector3> queryResultVels = new NativeArray<Vector3>(1, Allocator.Temp);
+            var status = OceanRenderer.Instance.CollisionProvider.Query(GetHashCode(), _minLength, queryPositions, queryResults, queryResultNormals, queryResultVels);
+
+            if (OceanRenderer.Instance.CollisionProvider.RetrieveSucceeded(status))
             {
-                return false;
+                o_displacementToPoint = queryResults[0];
+                o_normal = queryResultNormals[0];
+                o_surfaceVel = queryResultVels[0];
             }
 
-            o_displacementToPoint = _queryResult[0];
-            o_normal = _queryResultNormal[0];
-            o_surfaceVel = _queryResultVel[0];
 
-            return true;
+            queryResultVels.Dispose();
+            queryResultNormals.Dispose();
+            queryResults.Dispose();
+            queryPositions.Dispose();
+
+            return OceanRenderer.Instance.CollisionProvider.RetrieveSucceeded(status);
         }
     }
 
@@ -98,8 +128,7 @@ namespace Crest
     /// </summary>
     public class SampleFlowHelper
     {
-        Vector3[] _queryPos = new Vector3[1];
-        Vector3[] _queryResult = new Vector3[1];
+        Vector3 _queryPosition;
 
         float _minLength = 0f;
 
@@ -111,7 +140,7 @@ namespace Crest
         /// pass in the boats width. Larger objects will filter out detailed flow information.</param>
         public void Init(Vector3 i_queryPos, float i_minLength)
         {
-            _queryPos[0] = i_queryPos;
+            _queryPosition = i_queryPos;
             _minLength = i_minLength;
         }
 
@@ -120,18 +149,24 @@ namespace Crest
         /// </summary>
         public bool Sample(ref Vector2 o_flow)
         {
-            var status = QueryFlow.Instance.Query(GetHashCode(), _minLength, _queryPos, _queryResult);
 
-            if (!QueryFlow.Instance.RetrieveSucceeded(status))
+            NativeArray<Vector3> queryPositions = new NativeArray<Vector3>(1, Allocator.Temp);
+            queryPositions[0] = _queryPosition;
+            NativeArray<Vector3> queryResults = new NativeArray<Vector3>(1, Allocator.Temp);
+            var status = QueryFlow.Instance.Query(GetHashCode(), _minLength, queryPositions, queryResults);
+
+            if (QueryFlow.Instance.RetrieveSucceeded(status))
             {
-                return false;
+                // We don't support float2 queries unfortunately, so unpack from float3
+                o_flow.x = queryResults[0].x;
+                o_flow.y = queryResults[0].z;
             }
 
-            // We don't support float2 queries unfortunately, so unpack from float3
-            o_flow.x = _queryResult[0].x;
-            o_flow.y = _queryResult[0].z;
+            queryResults.Dispose();
+            queryPositions.Dispose();
 
-            return true;
+
+            return QueryFlow.Instance.RetrieveSucceeded(status);
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using Unity.Collections;
+using UnityEngine;
 
 namespace Crest
 {
@@ -10,12 +11,24 @@ namespace Crest
         [SerializeField]
         float _objectWidth = 0f;
 
-        float[] _resultHeights = new float[s_steps * s_steps];
+        NativeArray<float> _resultHeights;
 
         static float s_radius = 5f;
         static readonly int s_steps = 10;
 
-        Vector3[] _samplePositions = new Vector3[s_steps * s_steps];
+        NativeArray<Vector3> _samplePositions;
+
+        void Awake()
+        {
+            _resultHeights = new NativeArray<float>(s_steps * s_steps, Allocator.Persistent);
+            _samplePositions = new NativeArray<Vector3>(s_steps * s_steps, Allocator.Persistent);
+        }
+
+        void OnDestroy()
+        {
+            _resultHeights.Dispose();
+            _samplePositions.Dispose();
+        }
 
         void Update()
         {
@@ -30,13 +43,14 @@ namespace Crest
             {
                 for (int j = 0; j < s_steps; j++)
                 {
-                    _samplePositions[j * s_steps + i] = new Vector3(((i + 0.5f) - s_steps / 2f) * s_radius, 0f, ((j + 0.5f) - s_steps / 2f) * s_radius);
-                    _samplePositions[j * s_steps + i].x += transform.position.x;
-                    _samplePositions[j * s_steps + i].z += transform.position.z;
+                    Vector3 samplePosition = new Vector3(((i + 0.5f) - s_steps / 2f) * s_radius, 0f, ((j + 0.5f) - s_steps / 2f) * s_radius);
+                    samplePosition.x += transform.position.x;
+                    samplePosition.z += transform.position.z;
+                    _samplePositions[j * s_steps + i] = samplePosition;
                 }
             }
 
-            if (collProvider.RetrieveSucceeded(collProvider.Query(GetHashCode(), _objectWidth, _samplePositions, _resultHeights, null, null)))
+            if (collProvider.RetrieveSucceeded(collProvider.Query(GetHashCode(), _objectWidth, _samplePositions, _resultHeights, default, default)))
             {
                 for (int i = 0; i < s_steps; i++)
                 {

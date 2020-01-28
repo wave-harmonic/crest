@@ -2,6 +2,7 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+using Unity.Collections;
 using UnityEngine;
 
 namespace Crest
@@ -41,9 +42,9 @@ namespace Crest
             ShaderProcessQueries.SetBuffer(_kernelHandle, sp_ResultFlows, resultsBuffer);
         }
 
-        public int Query(int i_ownerHash, float i_minSpatialLength, Vector3[] i_queryPoints, Vector3[] o_resultFlows)
+        public int Query(int i_ownerHash, float i_minSpatialLength, NativeSlice<Vector3> i_queryPoints, NativeSlice<Vector3> o_resultFlows)
         {
-            return Query(i_ownerHash, i_minSpatialLength, i_queryPoints, o_resultFlows, null, null);
+            return Query(i_ownerHash, i_minSpatialLength, i_queryPoints, o_resultFlows, default, default);
         }
     }
 }

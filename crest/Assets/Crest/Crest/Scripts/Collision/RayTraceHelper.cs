@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿using System;
+using Unity.Collections;
+using UnityEngine;
 
 namespace Crest
 {
@@ -6,10 +8,10 @@ namespace Crest
     /// Helper to trace a ray against the ocean surface, by sampling at a set of points along the ray and interpolating the
     /// intersection location.
     /// </summary>
-    public class RayTraceHelper
+    public class RayTraceHelper : IDisposable
     {
-        Vector3[] _queryPos;
-        Vector3[] _queryResult;
+        NativeArray<Vector3> _queryPos;
+        NativeArray<Vector3> _queryResult;
 
         float _rayLength;
         float _rayStepSize;
@@ -38,8 +40,14 @@ namespace Crest
                 Debug.LogWarning($"RayTraceHelper: ray steps exceed maximum ({maxStepCount}), step size increased to {_rayStepSize} to reduce step count.");
             }
 
-            _queryPos = new Vector3[stepCount];
-            _queryResult = new Vector3[stepCount];
+            _queryPos = new NativeArray<Vector3>(stepCount, Allocator.Persistent);
+            _queryResult = new NativeArray<Vector3>(stepCount, Allocator.Persistent);
+        }
+
+        public void Dispose()
+        {
+            _queryPos.Dispose();
+            _queryResult.Dispose();
         }
 
         /// <summary>
@@ -78,7 +86,7 @@ namespace Crest
                 return false;
             }
 
-            var status = OceanRenderer.Instance.CollisionProvider.Query(GetHashCode(), _minLength, _queryPos, _queryResult, null, null);
+            var status = OceanRenderer.Instance.CollisionProvider.Query(GetHashCode(), _minLength, _queryPos, _queryResult, default, default);
 
             if (!OceanRenderer.Instance.CollisionProvider.RetrieveSucceeded(status))
             {

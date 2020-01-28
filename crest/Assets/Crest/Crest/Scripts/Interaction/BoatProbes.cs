@@ -3,6 +3,7 @@
 // Shout out to @holdingjason who posted a first version of this script here: https://github.com/huwb/crest-oceanrender/pull/100
 
 using System;
+using Unity.Collections;
 using UnityEngine;
 using UnityEngine.Serialization;
 
@@ -63,9 +64,9 @@ namespace Crest
 
         float _totalWeight;
 
-        Vector3[] _queryPoints;
-        Vector3[] _queryResultDisps;
-        Vector3[] _queryResultVels;
+        NativeArray<Vector3> _queryPoints;
+        NativeArray<Vector3> _queryResultDisps;
+        NativeArray<Vector3> _queryResultVels;
 
         SampleFlowHelper _sampleFlowHelper = new SampleFlowHelper();
 
@@ -82,9 +83,16 @@ namespace Crest
 
             CalcTotalWeight();
 
-            _queryPoints = new Vector3[_forcePoints.Length + 1];
-            _queryResultDisps = new Vector3[_forcePoints.Length + 1];
-            _queryResultVels = new Vector3[_forcePoints.Length + 1];
+            _queryPoints = new NativeArray<Vector3>(_forcePoints.Length + 1, Allocator.Persistent);
+            _queryResultDisps = new NativeArray<Vector3>(_forcePoints.Length + 1, Allocator.Persistent);
+            _queryResultVels = new NativeArray<Vector3>(_forcePoints.Length + 1, Allocator.Persistent);
+        }
+
+        private void OnDestroy()
+        {
+            _queryPoints.Dispose();
+            _queryResultDisps.Dispose();
+            _queryResultVels.Dispose();
         }
 
         void CalcTotalWeight()
@@ -114,7 +122,7 @@ namespace Crest
 
             var waterSurfaceVel = _queryResultVels[_forcePoints.Length];
 
-            if(QueryFlow.Instance)
+            if (QueryFlow.Instance)
             {
                 _sampleFlowHelper.Init(transform.position, _minSpatialLength);
                 Vector2 surfaceFlow = Vector2.zero;
@@ -137,7 +145,7 @@ namespace Crest
             }
             _queryPoints[_forcePoints.Length] = transform.position;
 
-            collProvider.Query(GetHashCode(), ObjectWidth, _queryPoints, _queryResultDisps, null, _queryResultVels);
+            collProvider.Query(GetHashCode(), ObjectWidth, _queryPoints, _queryResultDisps, default, _queryResultVels);
         }
 
         void FixedUpdateEngine()

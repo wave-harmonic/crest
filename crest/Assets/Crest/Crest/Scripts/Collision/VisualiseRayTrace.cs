@@ -7,7 +7,17 @@ namespace Crest
     /// </summary>
     public class VisualiseRayTrace : MonoBehaviour
     {
-        RayTraceHelper _rayTrace = new RayTraceHelper(50f, 2f);
+        RayTraceHelper _rayTrace;
+
+        void Awake()
+        {
+            _rayTrace = new RayTraceHelper(50f, 2f);
+        }
+
+        void OnDestroy()
+        {
+            _rayTrace.Dispose();
+        }
 
         void Update()
         {
@@ -29,5 +39,7 @@ namespace Crest
                 Debug.DrawLine(transform.position, transform.position + transform.forward * 50f, Color.red);
             }
         }
+
+
     }
 }

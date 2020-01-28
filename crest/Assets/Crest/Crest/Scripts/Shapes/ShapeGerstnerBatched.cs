@@ -2,6 +2,7 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+using Unity.Collections;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -659,24 +660,27 @@ namespace Crest
             return true;
         }
 
-        public int Query(int i_ownerHash, float i_minSpatialLength, Vector3[] i_queryPoints, Vector3[] o_resultDisps, Vector3[] o_resultNorms, Vector3[] o_resultVels)
+        public int Query(int i_ownerHash, float i_minSpatialLength, NativeSlice<Vector3> i_queryPoints, NativeSlice<Vector3> o_resultDisps, NativeSlice<Vector3> o_resultNorms, NativeSlice<Vector3> o_resultVels)
         {
-            if (o_resultDisps != null)
+            if (o_resultDisps.Length != 0)
             {
                 for (int i = 0; i < o_resultDisps.Length; i++)
                 {
-                    SampleDisplacement(ref i_queryPoints[i], i_minSpatialLength, out o_resultDisps[i]);
+                    Vector3 queryPoint = i_queryPoints[i];
+                    SampleDisplacement(ref queryPoint, i_minSpatialLength, out Vector3 resultDisplacement);
+                    o_resultDisps[i] = resultDisplacement;
                 }
             }
 
-            if (o_resultNorms != null)
+            if (o_resultNorms.Length != 0)
             {
                 for (int i = 0; i < o_resultNorms.Length; i++)
                 {
-                    Vector3 undispPos;
-                    if (ComputeUndisplacedPosition(ref i_queryPoints[i], i_minSpatialLength, out undispPos))
+                    Vector3 queryPoint = i_queryPoints[i];
+                    if (ComputeUndisplacedPosition(ref queryPoint, i_minSpatialLength, out Vector3 undispPos))
                     {
-                        SampleNormal(ref undispPos, i_minSpatialLength, out o_resultNorms[i]);
+                        SampleNormal(ref undispPos, i_minSpatialLength, out Vector3 resultNorm);
+                        o_resultNorms[i] = resultNorm;
                     }
                     else
                     {
@@ -688,37 +692,46 @@ namespace Crest
             return 0;
         }
 
-        public int Query(int i_ownerHash, float i_minSpatialLength, Vector3[] i_queryPoints, float[] o_resultHeights, Vector3[] o_resultNorms, Vector3[] o_resultVels)
+        public int Query(int i_ownerHash, float i_minSpatialLength, NativeSlice<Vector3> i_queryPoints, NativeSlice<float> o_resultHeights, NativeSlice<Vector3> o_resultNorms, NativeSlice<Vector3> o_resultVels)
         {
-            if (o_resultHeights != null)
+            if (o_resultHeights.Length != 0)
             {
                 for (int i = 0; i < o_resultHeights.Length; i++)
                 {
-                    SampleHeight(ref i_queryPoints[i], i_minSpatialLength, out o_resultHeights[i]);
+                    Vector3 queryPoint = i_queryPoints[i];
+                    SampleHeight(ref queryPoint, i_minSpatialLength, out float resultHeight);
+                    i_queryPoints[i] = queryPoint;
+                    o_resultHeights[i] = resultHeight;
+
                 }
             }
 
-            if (o_resultNorms != null)
+            if (o_resultNorms.Length != 0)
             {
                 for (int i = 0; i < o_resultNorms.Length; i++)
                 {
-                    Vector3 undispPos;
-                    if (ComputeUndisplacedPosition(ref i_queryPoints[i], i_minSpatialLength, out undispPos))
+                    Vector3 queryPoint = i_queryPoints[i];
+                    if (ComputeUndisplacedPosition(ref queryPoint, i_minSpatialLength, out Vector3 undispPos))
                     {
-                        SampleNormal(ref undispPos, i_minSpatialLength, out o_resultNorms[i]);
+                        SampleNormal(ref undispPos, i_minSpatialLength, out Vector3 normal);
+                        o_resultNorms[i] = normal;
                     }
                     else
                     {
                         o_resultNorms[i] = Vector3.up;
                     }
+                    i_queryPoints[i] = queryPoint;
                 }
             }
 
-            if (o_resultVels != null)
+            if (o_resultVels.Length != 0)
             {
                 for (int i = 0; i < o_resultVels.Length; i++)
                 {
-                    GetSurfaceVelocity(ref i_queryPoints[i], i_minSpatialLength, out o_resultVels[i]);
+                    Vector3 queryPoint = i_queryPoints[i];
+                    GetSurfaceVelocity(ref queryPoint, i_minSpatialLength, out Vector3 resultVel);
+                    i_queryPoints[i] = queryPoint;
+                    o_resultVels[i] = resultVel;
                 }
             }
 

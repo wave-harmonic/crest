@@ -157,8 +157,6 @@ Crest supports rendering any shape into these textures. To add some shape, add s
 
 There is an example in the *boat.unity* scene, gameobject *wp0*, where a smoothstep bump is added to the water shape. This is an efficient way to generate dynamic shape. This renders with additive blend, but other blending modes are possible such as alpha blend, multiplicative blending, and min or max blending, which give powerful control over the shape.
 
-The final shape textures are copied back to the CPU to provide collision information for physics etc, using the *ReadbackLodData* script.
-
 The animated waves sim can be configured by assigning an Animated Waves Sim Settings asset to the OceanRenderer script in your scene (*Create/Crest/Animated Wave Sim Settings*). The waves will be dampened/attenuated in shallow water if a *Sea Floor Depth* LOD data is used (see below). The amount that waves are attenuated is configurable using the *Attenuation In Shallows* setting.
 
 
@@ -278,19 +276,6 @@ This avoids some of the complexity of using the displacement textures described 
 It also does not include wave attenuation from water depth or any custom rendered shape.
 A final limitation is the current system finds the first GerstnerWavesBatched component in the scene which may or may not be the correct one.
 The system does not support cross blending of multiple scripts.
-
-## Ocean Displacement Textures GPU (DEPRECATED)
-
-This collision source copies the displacement textures from the GPU to the CPU.
-It does so asynchronously and the data typically takes 2-3 frames to arrive.
-This is the default collision source and gives the final ocean shape, including any bespoke shape rendering, attenuation from water depth, and any other effects.
-
-It uses memory bandwidth to transfer this data and CPU time to take a copy of it once it arrives, so it is best to limit the number of textures copied.
-If you know in advance the limits of the minimum spatial lengths you will be requesting, set these on the *Animated Waves Sim Settings* using the *Min Object Width* and *Max Object Width* fields.
-
-As described above the displacements are arranged as cascaded textures which shift based on the elevation of the viewpoint.
-This complicates matters significantly as the requested resolutions may or may not exist at different times.
-Call *ICollProvider.CheckAvailability()* at run-time to check for issues and perform validation.
 
 ## Technical Notes
 

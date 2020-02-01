@@ -284,7 +284,7 @@ The helper classes always submit a fixed number of points this frame, so satisfy
 This collision option is serviced directly by the *GerstnerWavesBatched* component which implements the *ICollProvider* interface, check this interface to see functionality.
 This sums over all waves to compute displacements, normals, velocities, etc. In contrast to the displacement textures the horizontal range of this collision source is unlimited.
 
-This avoids some of the complexity of using the displacement textures described above, but comes at a CPU cost.
+A drawback of this approach is the CPU performance cost of evaluating the waves.
 It also does not include wave attenuation from water depth or any custom rendered shape.
 A final limitation is the current system finds the first GerstnerWavesBatched component in the scene which may or may not be the correct one.
 The system does not support cross blending of multiple scripts.

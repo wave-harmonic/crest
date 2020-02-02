@@ -65,6 +65,8 @@ Shader "Crest/Ocean"
 		[Toggle] _PlanarReflections("Planar Reflections", Float) = 0
 		// How much the water normal affects the planar reflection
 		_PlanarReflectionNormalsStrength("Planar Reflections Distortion", Float) = 1
+		// Multiplier to adjust how intense the reflection is
+		_PlanarReflectionIntensity("Planar Reflection Intensity", Range(0.0, 1.0)) = 1.0
 		// Whether to use an overridden reflection cubemap (provided in the next property)
 		[Toggle] _OverrideReflectionCubemap("Override Reflection Cubemap", Float) = 0
 		// Custom environment map to reflect
@@ -164,6 +166,10 @@ Shader "Crest/Ocean"
 		// enabled on the OceanRenderer to generate flow data.
 		[Toggle] _Flow("Enable", Float) = 0
 
+		[Header(Clip Surface)]
+		// Discards ocean surface pixels. Requires 'Create Clip Surface Data' enabled on OceanRenderer script.
+		[Toggle] _ClipSurface("Enable", Float) = 0
+
 		[Header(Debug Options)]
 		// Build shader with debug info which allows stepping through the code in a GPU debugger. I typically use RenderDoc or
 		// PIX for Windows (requires DX12 API to be selected).
@@ -214,6 +220,7 @@ Shader "Crest/Ocean"
 			#pragma shader_feature _UNDERWATER_ON
 			#pragma shader_feature _FLOW_ON
 			#pragma shader_feature _SHADOWS_ON
+			#pragma shader_feature _CLIPSURFACE_ON
 
 			#pragma shader_feature _DEBUGDISABLESHAPETEXTURES_ON
 			#pragma shader_feature _DEBUGVISUALISESHAPESAMPLE_ON
@@ -449,6 +456,21 @@ Shader "Crest/Ocean"
 				#endif
 				#endif
 
+				#if _CLIPSURFACE_ON
+				// Clip surface
+				float clipVal = 0.0;
+				if (wt_smallerLod > 0.001)
+				{
+					SampleClip(_LD_TexArray_ClipSurface, WorldToUV(input.worldPos.xz), wt_smallerLod, clipVal);
+				}
+				if (wt_biggerLod > 0.001)
+				{
+					SampleClip(_LD_TexArray_ClipSurface, WorldToUV_BiggerLod(input.worldPos.xz), wt_biggerLod, clipVal);
+				}
+				// Add 0.5 bias for LOD blending and texel resolution correction. This will help to tighten and smooth clipped edges
+				clip(-clipVal + 0.5);
+				#endif
+				
 				// Foam - underwater bubbles and whitefoam
 				half3 bubbleCol = (half3)0.;
 				#if _FOAM_ON

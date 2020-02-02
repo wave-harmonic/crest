@@ -8,20 +8,32 @@ using UnityEngine.Rendering;
 namespace Crest
 {
     /// <summary>
-    /// Renders depth of the ocean (height of sea level above ocean floor), by rendering the relative height of tagged objects from top down.
+    /// Drives ocean surface clipping (carving holes). 0-1 values, surface clipped when > 0.5.
     /// </summary>
-    public class LodDataMgrSeaFloorDepth : LodDataMgr
+    public class LodDataMgrClipSurface : LodDataMgr
     {
-        public override string SimName { get { return "SeaFloorDepth"; } }
-        public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RHalf; } }
-        protected override bool NeedToReadWriteTextureData { get { return false; } }
+        public override string SimName { get { return "ClipSurface"; } }
+
+        // The clip values only really need 8bits
+        public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.R8; } }
+        protected override bool NeedToReadWriteTextureData { get { return true; } }
 
         public override SimSettingsBase CreateDefaultSettings() { return null; }
         public override void UseSettings(SimSettingsBase settings) { }
 
         bool _targetsClear = false;
 
-        public const string ShaderName = "Crest/Inputs/Depth/Cached Depths";
+        protected override void Start()
+        {
+            base.Start();
+
+#if UNITY_EDITOR
+            if (!OceanRenderer.Instance.OceanMaterial.IsKeywordEnabled("_CLIPSURFACE_ON"))
+            {
+                Debug.LogWarning("Clip Surface is not enabled on the current ocean material, so the surface clipping will not work. Please enable it on the material.", this);
+            }
+#endif
+        }
 
         public override void BuildCommandBuffer(OceanRenderer ocean, CommandBuffer buf)
         {
@@ -37,7 +49,7 @@ namespace Crest
             for (int lodIdx = OceanRenderer.Instance.CurrentLodCount - 1; lodIdx >= 0; lodIdx--)
             {
                 buf.SetRenderTarget(_targets, 0, CubemapFace.Unknown, lodIdx);
-                buf.ClearRenderTarget(false, true, Color.red * 1000f);
+                buf.ClearRenderTarget(false, true, Color.black);
                 buf.SetGlobalInt(sp_LD_SliceIndex, lodIdx);
                 SubmitDraws(lodIdx, buf);
             }
@@ -46,7 +58,7 @@ namespace Crest
             _targetsClear = drawList.Count == 0;
         }
 
-        public static string TextureArrayName = "_LD_TexArray_SeaFloorDepth";
+        public static string TextureArrayName = "_LD_TexArray_ClipSurface";
         private static TextureArrayParamIds textureArrayParamIds = new TextureArrayParamIds(TextureArrayName);
         public static int ParamIdSampler(bool sourceLod = false) { return textureArrayParamIds.GetId(sourceLod); }
         protected override int GetParamIdSampler(bool sourceLod = false)

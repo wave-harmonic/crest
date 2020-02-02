@@ -71,6 +71,7 @@ namespace Crest
     {
         [SerializeField] LayerMask _reflectionLayers = 1;
         [SerializeField] bool _disablePixelLights = true;
+        [SerializeField] bool _disableShadows = false;
         [SerializeField] int _textureSize = 256;
         [SerializeField] float _clipPlaneOffset = 0.07f;
         [SerializeField] bool _hdr = true;
@@ -159,6 +160,13 @@ namespace Crest
                 QualitySettings.pixelLightCount = 0;
             }
 
+            // Optionally disable shadows for reflection/refraction
+            ShadowQuality oldShadowQuality = QualitySettings.shadows;
+            if (_disableShadows)
+            {
+                QualitySettings.shadows = ShadowQuality.Disable;
+            }
+
             UpdateCameraModes();
 
             // Reflect camera around reflection plane
@@ -194,6 +202,12 @@ namespace Crest
             _camReflections.Render();
 
             GL.invertCulling = oldCulling;
+
+            // Restore shadows
+            if (_disableShadows)
+            {
+                QualitySettings.shadows = oldShadowQuality;
+            }
 
             // Restore pixel light count
             if (_disablePixelLights)

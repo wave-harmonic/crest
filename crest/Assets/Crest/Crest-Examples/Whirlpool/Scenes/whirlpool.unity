@@ -684,12 +684,15 @@ MonoBehaviour:
   _createShadowData: 0
   _primaryLight: {fileID: 1589415980}
   _simSettingsShadow: {fileID: 0}
+  _createClipSurfaceData: 0
+  _attachDebugGUI: 1
+  _followViewpoint: 1
   _uniformTiles: 0
   _disableSkirt: 0
-  _followViewpoint: 1
   _lodTransform: {fileID: 0}
   _lodDataAnimWaves: {fileID: 0}
   _lodDataSeaDepths: {fileID: 0}
+  _lodDataClipSurface: {fileID: 0}
   _lodDataDynWaves: {fileID: 0}
   _lodDataFlow: {fileID: 0}
   _lodDataFoam: {fileID: 0}

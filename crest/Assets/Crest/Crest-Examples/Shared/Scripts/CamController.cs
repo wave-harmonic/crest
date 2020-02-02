@@ -65,7 +65,7 @@ public class CamController : MonoBehaviour
         mousePos.x = Input.mousePosition.x;
         mousePos.y = Input.mousePosition.y;
 
-        if( !_dragging && Input.GetMouseButtonDown( 0 ) && !OceanDebugGUI.OverGUI( mousePos ) )
+        if( !_dragging && Input.GetMouseButtonDown( 0 ) && !Crest.OceanDebugGUI.OverGUI( mousePos ) )
         {
             _dragging = true;
             _lastMousePos = mousePos;

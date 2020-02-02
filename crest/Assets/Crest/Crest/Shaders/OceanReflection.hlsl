@@ -24,13 +24,14 @@ half3 SkyProceduralDP(in const half3 i_refl, in const half3 i_lightDir)
 #if _PLANARREFLECTIONS_ON
 uniform sampler2D _ReflectionTex;
 half _PlanarReflectionNormalsStrength;
+half _PlanarReflectionIntensity;
 
 void PlanarReflection(in const half4 i_screenPos, in const half3 i_n_pixel, inout half3 io_colour)
 {
 	half4 screenPos = i_screenPos;
 	screenPos.xy += _PlanarReflectionNormalsStrength * i_n_pixel.xz;
 	half4 refl = tex2Dproj(_ReflectionTex, UNITY_PROJ_COORD(screenPos));
-	io_colour = lerp(io_colour, refl.rgb, refl.a);
+	io_colour = lerp(io_colour, refl.rgb, _PlanarReflectionIntensity * refl.a);
 }
 #endif // _PLANARREFLECTIONS_ON
 

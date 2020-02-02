@@ -188,14 +188,14 @@ namespace Crest
             {
                 ocean._lodDataSeaDepths = ocean.gameObject.AddComponent<LodDataMgrSeaFloorDepth>();
             }
+            if (ocean.CreateClipSurfaceData)
+            {
+                ocean._lodDataClipSurface = ocean.gameObject.AddComponent<LodDataMgrClipSurface>();
+            }
 
             // Add any required GPU readbacks
             {
                 var ssaw = ocean._simSettingsAnimatedWaves;
-                if (ssaw && ssaw.CollisionSource == SimSettingsAnimatedWaves.CollisionSources.OceanDisplacementTexturesGPU)
-                {
-                    ocean.gameObject.AddComponent<GPUReadbackDisps>();
-                }
                 if (ssaw && ssaw.CollisionSource == SimSettingsAnimatedWaves.CollisionSources.ComputeShaderQueries)
                 {
                     ocean.gameObject.AddComponent<QueryDisplacements>();

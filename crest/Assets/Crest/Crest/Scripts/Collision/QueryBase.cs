@@ -45,8 +45,10 @@ namespace Crest
         ComputeBuffer _computeBufQueries;
         ComputeBuffer _computeBufResults;
 
-        int _maxQueryCount = 4096;
-        Vector3[] _queryPosXZ_minGridSize = new Vector3[4096];
+        public const int MAX_QUERY_COUNT_DEFAULT = 4096;
+
+        int _maxQueryCount = MAX_QUERY_COUNT_DEFAULT;
+        Vector3[] _queryPosXZ_minGridSize = new Vector3[MAX_QUERY_COUNT_DEFAULT];
 
         /// <summary>
         /// Holds information about all query points. Maps from unique hash code to position in point array.

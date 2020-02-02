@@ -26,7 +26,7 @@ namespace Crest
         protected abstract string QueryKernelName { get; }
 
         const int s_maxRequests = 4;
-        const int s_maxGuids = 64;
+        const int s_maxGuids = 1024;
 
         protected virtual ComputeShader ShaderProcessQueries => _shaderProcessQueries;
         ComputeShader _shaderProcessQueries;
@@ -34,7 +34,6 @@ namespace Crest
 
         System.Action<AsyncGPUReadbackRequest> _dataArrivedAction;
 
-        const int s_maxQueryCount = 4096;
         // Must match value in compute shader
         const int s_computeGroupSize = 64;
         public static bool s_useComputeCollQueries = true;
@@ -46,7 +45,10 @@ namespace Crest
         ComputeBuffer _computeBufQueries;
         ComputeBuffer _computeBufResults;
 
-        Vector3[] _queryPosXZ_minGridSize = new Vector3[s_maxQueryCount];
+        public const int MAX_QUERY_COUNT_DEFAULT = 4096;
+
+        int _maxQueryCount = MAX_QUERY_COUNT_DEFAULT;
+        Vector3[] _queryPosXZ_minGridSize = new Vector3[MAX_QUERY_COUNT_DEFAULT];
 
         /// <summary>
         /// Holds information about all query points. Maps from unique hash code to position in point array.
@@ -239,6 +241,12 @@ namespace Crest
             float minWavelength = i_minSpatialLength / 2f;
             float minGridSize = minWavelength / OceanRenderer.Instance.MinTexelsPerWave;
 
+            if (countPts + segment.x > _queryPosXZ_minGridSize.Length)
+            {
+                Debug.LogError("Too many wave height queries. Increase Max Query Count in the Animated Waves Settings.", this);
+                return false;
+            }
+
             for (int pointi = 0; pointi < countPts; pointi++)
             {
                 _queryPosXZ_minGridSize[pointi + segment.x].x = queryPoints[pointi].x;
@@ -402,7 +410,7 @@ namespace Crest
                 ExecuteQueries();
 
                 // Remove oldest requests if we have hit the limit
-                while (_requests.Count >= s_maxQueryCount)
+                while (_requests.Count >= _maxQueryCount)
                 {
                     _requests.RemoveAt(0);
                 }
@@ -486,11 +494,17 @@ namespace Crest
             _kernelHandle = _shaderProcessQueries.FindKernel(QueryKernelName);
             _wrapper = new PropertyWrapperComputeStandalone(_shaderProcessQueries, _kernelHandle);
 
-            _computeBufQueries = new ComputeBuffer(s_maxQueryCount, 12, ComputeBufferType.Default);
-            _computeBufResults = new ComputeBuffer(s_maxQueryCount, 12, ComputeBufferType.Default);
+            if (_maxQueryCount != OceanRenderer.Instance._simSettingsAnimatedWaves.MaxQueryCount)
+            {
+                _maxQueryCount = OceanRenderer.Instance._simSettingsAnimatedWaves.MaxQueryCount;
+                _queryPosXZ_minGridSize = new Vector3[_maxQueryCount];
+            }
 
-            _queryResults = new NativeArray<Vector3>(s_maxQueryCount, Allocator.Persistent, NativeArrayOptions.ClearMemory);
-            _queryResultsLast = new NativeArray<Vector3>(s_maxQueryCount, Allocator.Persistent, NativeArrayOptions.ClearMemory);
+            _computeBufQueries = new ComputeBuffer(_maxQueryCount, 12, ComputeBufferType.Default);
+            _computeBufResults = new ComputeBuffer(_maxQueryCount, 12, ComputeBufferType.Default);
+
+            _queryResults = new NativeArray<Vector3>(_maxQueryCount, Allocator.Persistent, NativeArrayOptions.ClearMemory);
+            _queryResultsLast = new NativeArray<Vector3>(_maxQueryCount, Allocator.Persistent, NativeArrayOptions.ClearMemory);
         }
 
         protected virtual void OnDisable()

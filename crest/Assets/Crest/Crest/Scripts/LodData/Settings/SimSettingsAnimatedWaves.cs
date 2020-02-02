@@ -24,6 +24,10 @@ namespace Crest
         CollisionSources _collisionSource = CollisionSources.ComputeShaderQueries;
         public CollisionSources CollisionSource { get { return _collisionSource; } }
 
+        [Tooltip("Maximum number of wave queries that can be performed when using ComputeShaderQueries."), SerializeField]
+        int _maxQueryCount = QueryBase.MAX_QUERY_COUNT_DEFAULT;
+        public int MaxQueryCount { get { return _maxQueryCount; } }
+
         /// <summary>
         /// Provides ocean shape to CPU.
         /// </summary>

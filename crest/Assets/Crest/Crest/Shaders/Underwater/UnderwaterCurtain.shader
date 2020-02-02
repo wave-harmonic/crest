@@ -52,10 +52,10 @@ Shader "Crest/Underwater Curtain"
 			#include "Lighting.cginc"
 
 			#include "../OceanConstants.hlsl"
+			#include "../OceanGlobals.hlsl"
 			#include "../OceanLODData.hlsl"
 			#include "UnderwaterShared.hlsl"
 
-			float _CrestTime;
 			float _HeightOffset;
 
 			// MeshScaleLerp, FarNormalsWeight, LODIndex (debug)

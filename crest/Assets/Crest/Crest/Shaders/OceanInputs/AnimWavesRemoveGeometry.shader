@@ -18,6 +18,9 @@ Shader "Crest/Inputs/Animated Waves/Push Water Under Convex Hull"
 			#pragma fragment Frag
 
 			#include "UnityCG.cginc"
+
+			#include "../OceanConstants.hlsl"
+			#include "../OceanGlobals.hlsl"
 			#include "../OceanLODData.hlsl"
 
 			float _Weight;

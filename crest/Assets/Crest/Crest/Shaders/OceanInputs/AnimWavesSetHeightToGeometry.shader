@@ -23,6 +23,9 @@ Shader "Crest/Inputs/Animated Waves/Set Water Height To Geometry"
 			#pragma fragment Frag
 
  			#include "UnityCG.cginc"
+
+			#include "../OceanConstants.hlsl"
+			#include "../OceanGlobals.hlsl"
 			#include "../OceanLODData.hlsl"
 
 			float _Weight;

@@ -26,6 +26,7 @@ uniform float4 _LightShadowData;
 #endif
 
 #include "../OceanConstants.hlsl"
+#include "../OceanGlobals.hlsl"
 #include "../OceanLODData.hlsl"
 
 struct ShadowCoords

@@ -257,9 +257,8 @@ Shader "Crest/Ocean"
 			};
 
 			#include "OceanConstants.hlsl"
+			#include "OceanGlobals.hlsl"
 			#include "OceanHelpers.hlsl"
-
-			float _CrestTime;
 
 			// MeshScaleLerp, FarNormalsWeight, LODIndex (debug)
 			float3 _InstanceData;

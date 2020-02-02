@@ -35,9 +35,6 @@ Texture2DArray _LD_TexArray_Shadow_Source;
 const float4 _LD_Params_Source[MAX_LOD_COUNT + 1];
 const float3 _LD_Pos_Scale_Source[MAX_LOD_COUNT + 1];
 
-SamplerState LODData_linear_clamp_sampler;
-SamplerState LODData_point_clamp_sampler;
-
 // Conversions for world space from/to UV space. All these should *not* be clamped otherwise they'll break fullscreen triangles.
 float2 LD_WorldToUV(in float2 i_samplePos, in float2 i_centerPos, in float i_res, in float i_texelSize)
 {
@@ -150,8 +147,6 @@ void SampleShadow(in Texture2DArray i_oceanShadowSampler, in float3 i_uv_slice, 
 // y: Grid size of geometry - distance between verts in mesh.
 // zw: normalScrollSpeed0, normalScrollSpeed1
 float4 _GeomData;
-float3 _OceanCenterPosWorld;
-float _SliceCount;
 
 void PosToSliceIndices(const float2 worldXZ, const float meshScaleLerp, const float minSlice, out uint slice0, out uint slice1, out float lodAlpha)
 {

@@ -36,6 +36,7 @@ Shader "Crest/Ocean Surface Alpha"
 			#include "UnityCG.cginc"
 
 			#include "OceanConstants.hlsl"
+			#include "OceanGlobals.hlsl"
 			#include "OceanHelpers.hlsl"
 
 			sampler2D _MainTex;

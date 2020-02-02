@@ -9,6 +9,7 @@
 #define MIN_DT 0.00001
 
 #include "../OceanConstants.hlsl"
+#include "../OceanGlobals.hlsl"
 #include "../OceanLODData.hlsl"
 
 float _Damping;
@@ -16,9 +17,6 @@ float2 _LaplacianAxisX;
 float _Gravity;
 float _SimDeltaTime;
 float _LODChange;
-
-// How many samples we want in one wave. trade quality for perf.
-float _TexelsPerWave;
 
 float ComputeWaveSpeed(float wavelength, float g)
 {

@@ -27,12 +27,12 @@ Shader "Hidden/Crest/Simulation/Combine Animated Wave LODs"
 			#include "UnityCG.cginc"
 
 			#include "../OceanConstants.hlsl"
+			#include "../OceanGlobals.hlsl"
 			#include "../OceanLODData.hlsl"
 			#include "../FullScreenTriangle.hlsl"
 
 			float _HorizDisplace;
 			float _DisplaceClamp;
-			float _CrestTime;
 
 			struct Attributes
 			{
@@ -151,6 +151,7 @@ Shader "Hidden/Crest/Simulation/Combine Animated Wave LODs"
 			#include "UnityCG.cginc"
 
 			#include "../OceanConstants.hlsl"
+			#include "../OceanGlobals.hlsl"
 			#include "../OceanLODData.hlsl"
 			#include "../FullScreenTriangle.hlsl"
 
@@ -181,6 +182,5 @@ Shader "Hidden/Crest/Simulation/Combine Animated Wave LODs"
 			}
 			ENDCG
 		}
-
 	}
 }

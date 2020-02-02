@@ -25,6 +25,7 @@ Shader "Crest/Inputs/Depth/Cached Depths"
 			#pragma fragment Frag
 
 			#include "../../OceanConstants.hlsl"
+			#include "../../OceanGlobals.hlsl"
 			#include "../../OceanLODData.hlsl"
 
 			sampler2D _MainTex;

@@ -27,7 +27,6 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Batch"
 
 			#include "UnityCG.cginc"
 
-			#include "../../OceanConstants.hlsl"
 			#include "../../OceanGlobals.hlsl"
 			#include "../../OceanInputsDriven.hlsl"
 			#include "../../OceanLODData.hlsl"

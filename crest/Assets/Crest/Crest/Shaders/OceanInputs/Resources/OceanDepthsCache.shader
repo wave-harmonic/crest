@@ -23,12 +23,7 @@ Shader "Crest/Inputs/Depth/Cached Depths"
 			CGPROGRAM
 			#pragma vertex Vert
 			#pragma fragment Frag
-
-			#include "../../OceanConstants.hlsl"
-			#include "../../OceanGlobals.hlsl"
-			#include "../../OceanInputsDriven.hlsl"
-			#include "../../OceanLODData.hlsl"
-
+		
 			sampler2D _MainTex;
 			float4 _MainTex_ST;
 

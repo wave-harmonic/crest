@@ -26,7 +26,6 @@ Shader "Hidden/Crest/Simulation/Combine Animated Wave LODs"
 
 			#include "UnityCG.cginc"
 
-			#include "../OceanConstants.hlsl"
 			#include "../OceanGlobals.hlsl"
 			#include "../OceanInputsDriven.hlsl"
 			#include "../OceanLODData.hlsl"
@@ -151,10 +150,7 @@ Shader "Hidden/Crest/Simulation/Combine Animated Wave LODs"
 
 			#include "UnityCG.cginc"
 
-			#include "../OceanConstants.hlsl"
 			#include "../OceanGlobals.hlsl"
-			#include "../OceanInputsDriven.hlsl"
-			#include "../OceanLODData.hlsl"
 			#include "../FullScreenTriangle.hlsl"
 
 			Texture2D _CombineBuffer;

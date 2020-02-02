@@ -25,7 +25,6 @@ uniform float4 _LightShadowData;
 #undef _LightShadowData
 #endif
 
-#include "../OceanConstants.hlsl"
 #include "../OceanGlobals.hlsl"
 #include "../OceanInputsDriven.hlsl"
 #include "../OceanLODData.hlsl"

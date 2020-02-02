@@ -51,7 +51,6 @@ Shader "Crest/Underwater Curtain"
 			#include "UnityCG.cginc"
 			#include "Lighting.cginc"
 
-			#include "../OceanConstants.hlsl"
 			#include "../OceanGlobals.hlsl"
 			#include "../OceanInputsDriven.hlsl"
 			#include "../OceanLODData.hlsl"

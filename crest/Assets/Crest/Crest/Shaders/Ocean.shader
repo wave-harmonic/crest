@@ -55,6 +55,8 @@ Shader "Crest/Ocean"
 		[Header(Reflection Environment)]
 		// Strength of specular lighting response
 		_Specular("Specular", Range(0.0, 1.0)) = 1.0
+		// Controls blurriness of reflection
+		_Roughness("Roughness", Range(0.0, 1.0)) = 0.0
 		// Controls harshness of Fresnel behaviour
 		_FresnelPower("Fresnel Power", Range(1.0, 20.0)) = 5.0
 		// Index of refraction of air. Can be increased to almost 1.333 to increase visibility up through water surface.

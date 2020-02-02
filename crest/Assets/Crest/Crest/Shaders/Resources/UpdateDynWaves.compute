@@ -10,6 +10,7 @@
 
 #include "../OceanConstants.hlsl"
 #include "../OceanGlobals.hlsl"
+#include "../OceanInputsDriven.hlsl"
 #include "../OceanLODData.hlsl"
 
 float _Damping;

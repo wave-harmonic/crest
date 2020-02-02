@@ -258,10 +258,8 @@ Shader "Crest/Ocean"
 
 			#include "OceanConstants.hlsl"
 			#include "OceanGlobals.hlsl"
+			#include "OceanInputsDriven.hlsl"
 			#include "OceanHelpers.hlsl"
-
-			// MeshScaleLerp, FarNormalsWeight, LODIndex (debug)
-			float3 _InstanceData;
 
 			// Argument name is v because some macros like COMPUTE_EYEDEPTH require it.
 			Varyings Vert(Attributes v)

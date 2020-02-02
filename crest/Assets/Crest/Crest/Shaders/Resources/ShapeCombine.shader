@@ -28,6 +28,7 @@ Shader "Hidden/Crest/Simulation/Combine Animated Wave LODs"
 
 			#include "../OceanConstants.hlsl"
 			#include "../OceanGlobals.hlsl"
+			#include "../OceanInputsDriven.hlsl"
 			#include "../OceanLODData.hlsl"
 			#include "../FullScreenTriangle.hlsl"
 
@@ -93,14 +94,14 @@ Shader "Hidden/Crest/Simulation/Combine Animated Wave LODs"
 				sss = data.w;
 #endif
 
-				uint arrayDepth;
+				float arrayDepth;
 				{
-					uint w, h;
+					float w, h;
 					_LD_TexArray_AnimatedWaves.GetDimensions(w, h, arrayDepth);
 				}
 
 				// waves to combine down from the next lod up the chain
-				if (_LD_SliceIndex < arrayDepth - 1)
+				if (_LD_SliceIndex < arrayDepth - 1.0)
 				{
 					float4 dataNextLod = _LD_TexArray_AnimatedWaves.SampleLevel(LODData_linear_clamp_sampler, uv_nextLod, 0.0);
 					result += dataNextLod.xyz;
@@ -152,6 +153,7 @@ Shader "Hidden/Crest/Simulation/Combine Animated Wave LODs"
 
 			#include "../OceanConstants.hlsl"
 			#include "../OceanGlobals.hlsl"
+			#include "../OceanInputsDriven.hlsl"
 			#include "../OceanLODData.hlsl"
 			#include "../FullScreenTriangle.hlsl"
 

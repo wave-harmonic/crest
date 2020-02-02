@@ -53,13 +53,11 @@ Shader "Crest/Underwater Curtain"
 
 			#include "../OceanConstants.hlsl"
 			#include "../OceanGlobals.hlsl"
+			#include "../OceanInputsDriven.hlsl"
 			#include "../OceanLODData.hlsl"
 			#include "UnderwaterShared.hlsl"
 
 			float _HeightOffset;
-
-			// MeshScaleLerp, FarNormalsWeight, LODIndex (debug)
-			float3 _InstanceData;
 
 			#include "../OceanEmission.hlsl"
 

@@ -29,6 +29,7 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Batch"
 
 			#include "../../OceanConstants.hlsl"
 			#include "../../OceanGlobals.hlsl"
+			#include "../../OceanInputsDriven.hlsl"
 			#include "../../OceanLODData.hlsl"
 
 			// IMPORTANT - this mirrors the constant with the same name in ShapeGerstnerBatched.cs, both must be updated together!

@@ -21,6 +21,7 @@ Shader "Crest/Inputs/Animated Waves/Push Water Under Convex Hull"
 
 			#include "../OceanConstants.hlsl"
 			#include "../OceanGlobals.hlsl"
+			#include "../OceanInputsDriven.hlsl"
 			#include "../OceanLODData.hlsl"
 
 			float _Weight;

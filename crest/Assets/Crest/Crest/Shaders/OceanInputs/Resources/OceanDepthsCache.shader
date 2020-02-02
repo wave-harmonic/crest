@@ -26,6 +26,7 @@ Shader "Crest/Inputs/Depth/Cached Depths"
 
 			#include "../../OceanConstants.hlsl"
 			#include "../../OceanGlobals.hlsl"
+			#include "../../OceanInputsDriven.hlsl"
 			#include "../../OceanLODData.hlsl"
 
 			sampler2D _MainTex;

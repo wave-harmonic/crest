@@ -29,6 +29,7 @@ Shader "Crest/Underwater Meniscus"
 
 			#include "../OceanConstants.hlsl"
 			#include "../OceanGlobals.hlsl"
+			#include "../OceanInputsDriven.hlsl"
 			#include "../OceanLODData.hlsl"
 			#include "UnderwaterShared.hlsl"
 

@@ -243,7 +243,7 @@ namespace Crest
 
             if (countPts + segment.x > _queryPosXZ_minGridSize.Length)
             {
-                Debug.LogError("Too many wave queries. Increase Max Query Count in SimSettingsAnimatedWaves.", this);
+                Debug.LogError("Too many wave height queries. Increase Max Query Count in the Animated Waves Settings.", this);
                 return false;
             }
 

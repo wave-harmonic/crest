@@ -4,14 +4,6 @@
 
 // Ocean LOD data - data, samplers and functions associated with LODs
 
-// NOTE: This must match the value in LodDataMgr.cs, as it is used to allow the
-// C# code to check if any parameters are within the MAX_LOD_COUNT limits
-#define MAX_LOD_COUNT 15
-
-// NOTE: these MUST match the values in PropertyWrapper.cs
-#define THREAD_GROUP_SIZE_X 8
-#define THREAD_GROUP_SIZE_Y 8
-
 // 'Current' target/source slice index
 const uint _LD_SliceIndex;
 
@@ -45,9 +37,6 @@ const float3 _LD_Pos_Scale_Source[MAX_LOD_COUNT + 1];
 
 SamplerState LODData_linear_clamp_sampler;
 SamplerState LODData_point_clamp_sampler;
-
-// Bias ocean floor depth so that default (0) values in texture are not interpreted as shallow and generating foam everywhere
-#define CREST_OCEAN_DEPTH_BASELINE 1000.0
 
 // Conversions for world space from/to UV space. All these should *not* be clamped otherwise they'll break fullscreen triangles.
 float2 LD_WorldToUV(in float2 i_samplePos, in float2 i_centerPos, in float i_res, in float i_texelSize)

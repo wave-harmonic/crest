@@ -10,6 +10,7 @@
 StructuredBuffer<float3> _QueryPositions_MinGridSizes;
 RWStructuredBuffer<float3> _ResultDisplacements;
 
+#include "../OceanConstants.hlsl"
 #include "../OceanLODData.hlsl"
 
 // This can vary per-lod (we don't need to blend out lods in some situations), so is not centralised as a global float.

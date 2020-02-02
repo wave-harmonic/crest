@@ -26,6 +26,8 @@ Shader "Crest/Underwater Meniscus"
 
 			#include "UnityCG.cginc"
 			#include "Lighting.cginc"
+
+			#include "../OceanConstants.hlsl"
 			#include "../OceanLODData.hlsl"
 			#include "UnderwaterShared.hlsl"
 

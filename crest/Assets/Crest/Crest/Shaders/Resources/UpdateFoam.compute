@@ -4,6 +4,7 @@
 
 #pragma kernel UpdateFoam
 
+#include "../OceanConstants.hlsl"
 #include "../OceanLODData.hlsl"
 
 float _FoamFadeRate;

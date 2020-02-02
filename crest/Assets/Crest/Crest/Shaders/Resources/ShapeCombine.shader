@@ -25,6 +25,8 @@ Shader "Hidden/Crest/Simulation/Combine Animated Wave LODs"
 			#pragma multi_compile __ _FLOW_ON
 
 			#include "UnityCG.cginc"
+
+			#include "../OceanConstants.hlsl"
 			#include "../OceanLODData.hlsl"
 			#include "../FullScreenTriangle.hlsl"
 
@@ -147,6 +149,8 @@ Shader "Hidden/Crest/Simulation/Combine Animated Wave LODs"
 			#pragma fragment Frag
 
 			#include "UnityCG.cginc"
+
+			#include "../OceanConstants.hlsl"
 			#include "../OceanLODData.hlsl"
 			#include "../FullScreenTriangle.hlsl"
 

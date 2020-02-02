@@ -26,6 +26,8 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Batch"
 			#pragma multi_compile __ _DIRECT_TOWARDS_POINT
 
 			#include "UnityCG.cginc"
+
+			#include "../../OceanConstants.hlsl"
 			#include "../../OceanLODData.hlsl"
 
 			// IMPORTANT - this mirrors the constant with the same name in ShapeGerstnerBatched.cs, both must be updated together!

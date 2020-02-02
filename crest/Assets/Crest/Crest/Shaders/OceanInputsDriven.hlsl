@@ -1,6 +1,6 @@
 // Crest Ocean System
 
-// Copyright 2020 Wave Harmonic Ltd
+// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 #ifndef CREST_INPUTS_DRIVEN_H
 #define CREST_INPUTS_DRIVEN_H

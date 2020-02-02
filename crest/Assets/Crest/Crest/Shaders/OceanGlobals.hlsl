@@ -1,6 +1,6 @@
 // Crest Ocean System
 
-// Copyright 2020 Wave Harmonic Ltd
+// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 // GLOBALs - we're allowed to use these anywhere. TODO should all be prefixed by "Crest"!
 

@@ -153,7 +153,7 @@ The following sections describe the LOD data types in more detail.
 
 The Gerstner waves are split by octave - each Gerstner wave component is only rendered once into the most suitable LOD (i.e. a long wavelength will render only into one of the large LODs), and then a combine pass is done to copy results from the resolution LODs down to the high resolution ones.
 
-Crest supports rendering any shape into these textures. To add some shape, add some geometry into the world which when rendered from a top down perspective will draw the desired displacements. Then assign the *RegisterAnimWavesInput* script which will tag it for rendering into the shape. This is demonstrated in this tutorial video: https://www.youtube.com/watch?v=sQIakAjSq4Y.
+Crest supports adding custom shape to the water surface. To add some shape, add some geometry into the world which when rendered from a top down perspective will draw the desired displacements. Then assign the *RegisterAnimWavesInput* script which will tag it for rendering into the shape, and apply a material with a shader of type *Crest/Inputs/Animated Waves/...*. This is demonstrated in this tutorial video: https://www.youtube.com/watch?v=sQIakAjSq4Y.
 
 There is an example in the *boat.unity* scene, gameobject *wp0*, where a smoothstep bump is added to the water shape. This is an efficient way to generate dynamic shape. This renders with additive blend, but other blending modes are possible such as alpha blend, multiplicative blending, and min or max blending, which give powerful control over the shape.
 
@@ -168,7 +168,9 @@ One use case for this is boat wakes. In the *boat.unity* scene, the geometry and
 
 After the simulation is advanced, the results are converted into displacements and copied into the displacement textures to affect the final ocean shape. The sim is added on top of the existing Gerstner waves.
 
-Similar to animated waves, user provided contributions can be rendered into this LOD data to create dynamic wave effects. An example can be found in the boat prefab. Each LOD sim runs independently and it is desirable to add interaction forces into all appropriate sims. The *ObjectWaterInteraction* script takes into account the boat size and counts how many sims are appropriate, and then weights the interaction forces based on this number, so the force is spread evenly to all sims. As noted above, the sim results will be copied into the dynamic waves LODs and then accumulated up the LOD chain to reconstruct a single simulation.
+Crest supports adding forces into the sim to perturb the waves. To add a force, add some geometry into the world which when rendered from a top down perspective will draw the desired forces. Then assign the *RegisterDynamicWavesInput* script which will tag it for rendering into the shape, and apply a material with a shader of type *Crest/Inputs/Dynamic Waves/...*. The process for adding inputs is demonstrated in this tutorial video: https://www.youtube.com/watch?v=sQIakAjSq4Y.
+
+An example can be found in the boat prefab. Each LOD sim runs independently and it is desirable to add interaction forces into all appropriate sims. The *ObjectWaterInteraction* script takes into account the boat size and counts how many sims are appropriate, and then weights the interaction forces based on this number, so the force is spread evenly to all sims. As noted above, the sim results will be copied into the dynamic waves LODs and then accumulated up the LOD chain to reconstruct a single simulation.
 
 The dynamic waves sim can be configured by assigning a Dynamic Wave Sim Settings asset to the OceanRenderer script in your scene (*Create/Crest/Dynamic Wave Sim Settings*).
 
@@ -189,7 +191,7 @@ The Foam LOD Data is simple type of simulation for foam on the surface. Foam is 
 
 To turn on this feature, enable the *Create Foam Sim* option on the *OceanRenderer* script, and ensure the *Enable* option is ticked in the *Foam* group on the ocean material.
 
-User provided foam contributions can be added similar to the Animated Waves. In this case the *RegisterFoamInput* script should be applied to any inputs. There is no combine pass for foam so this does not have to be taken into consideration - one must simply render 0-1 values for foam as desired. See the *DepositFoamTex* object in the *whirlpool.unity* scene for an example. This is demonstrated in this video: https://www.youtube.com/watch?v=sQIakAjSq4Y.
+Crest supports inputing any foam into the system. To add some shape, add some geometry into the world which when rendered from a top down perspective will generate the desired foam values. Then assign the *RegisterFoamInput* script which will tag it for rendering into the shape, and apply a material with a shader of type *Crest/Inputs/Foam/...*. The process for adding inputs is demonstrated in this tutorial video: https://www.youtube.com/watch?v=sQIakAjSq4Y.
 
 The foam sim can be configured by assigning a Foam Sim Settings asset to the OceanRenderer script in your scene (*Create/Crest/Foam Sim Settings*). There are also parameters on the material which control the appearance of the foam.
 
@@ -206,7 +208,7 @@ To turn on this feature, enable the *Create Clip Surface Data* option on the *Oc
 
 The data contains 0-1 values. Holes are carved into the surface when the values is greater than 0.5.
 
-User provided foam contributions can be added similar to the Animated Waves. In this case the *RegisterClipSurfaceInput* script should be applied to any inputs. See the *FloatingOpenContainer* object in the *boat.unity* scene for an example.
+Clip areas can be added by contributions can be added by adding geometry that covers the desired hole area (from a top down perspective) to the scene (faces pointing upwards), assign the the *RegisterClipSurfaceInput* script, and apply a material of type *Crest/Inputs/Clip Surface*. See the *FloatingOpenContainer* object in the *boat.unity* scene for an example usage.
 
 ## Shadow
 
@@ -219,6 +221,12 @@ It stores two channels - one channel is normal shadowing, and the other jitters 
 The shadow sim can be configured by assigning a Shadow Sim Settings asset to the OceanRenderer script in your scene (*Create/Crest/Shadow Sim Settings*). In particular, the soft shadows are very soft by default, and may not appear for small/thin shadow casters. This can be configured using the *Jitter Diameter Soft* setting.
 
 Currently in the built-in render pipeline, shadows only work when the primary camera is set to Forward rendering.
+
+## Flow
+
+Flow is the horizontal motion of the water volumes. It is used in the *whirlpool.unity* scene to rotate the waves and foam around the vortex. It does not affect wave directions, but transports the waves horizontally. This horizontal motion also affects physics.
+
+Crest supports adding any flow velocities to the system. To add flow, add some geometry into the world which when rendered from a top down perspective will draw the desired displacements. Then assign the *RegisterFlowInput* script which will tag it for rendering into the flow, and apply a material with a shader of type *Crest/Inputs/Flow/...*. The *Crest/Inputs/Flow/Add Flow Map* shader writes a flow texture into the system. It assumes the x component of the flow velocity is packed into 0-1 range in the red channel, and the z component of the velocity is packed into 0-1 range in the green channel. The shader reads the values, subtract 0.5, and multiply them by the provided scale value on the shader. The process of adding ocean inputs is demonstrated in the following video: https://www.youtube.com/watch?v=sQIakAjSq4Y.
 
 
 # Shorelines and shallow water

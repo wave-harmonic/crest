@@ -29,7 +29,8 @@ Shader "Crest/Inputs/Clip Surface/Add From Geometry"
 			struct Varyings
 			{
 				float4 positionCS : SV_POSITION;
-				float2 clip : TEXCOORD0;
+				float3 surfacePos : TEXCOORD0;
+				float heightWS : TEXCOORD1;
 			};
 
 			float3 _InstanceData;
@@ -38,7 +39,7 @@ Shader "Crest/Inputs/Clip Surface/Add From Geometry"
 			{
 				Varyings o;
 				o.positionCS = UnityObjectToClipPos(input.positionOS);
-				float heightWS = mul(unity_ObjectToWorld, float4(input.positionOS, 1.0)).y;
+				o.heightWS = mul(unity_ObjectToWorld, float4(input.positionOS, 1.0)).y;
 
 				// move to world
 				float3 surfacePos;
@@ -69,21 +70,24 @@ Shader "Crest/Inputs/Clip Surface/Add From Geometry"
 				// move to sea level
 				surfacePos.y += _OceanCenterPosWorld.y;
 
-				if (heightWS >= surfacePos.y)
-				{
-					o.clip = float2(1, 0);
-				}
-				else if (heightWS < surfacePos.y)
-				{
-					o.clip = float2(0, 1);
-				}
+				o.surfacePos = surfacePos;
 
 				return o;
 			}
 
 			float4 Frag(Varyings input) : SV_Target
 			{
-				return float4(input.clip.x, input.clip.y, 0, 1);
+				float2 clip = 0;
+
+				if (input.heightWS >= input.surfacePos.y)
+				{
+					clip = float2(1, 0);
+				}
+				else if (input.heightWS < input.surfacePos.y)
+				{
+					clip = float2(0, 1);
+				}
+				return float4(clip.x, clip.y, 0, 1);
 			}
 			ENDCG
 		}

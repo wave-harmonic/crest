@@ -29,8 +29,7 @@ Shader "Crest/Inputs/Clip Surface/Add From Geometry"
 			struct Varyings
 			{
 				float4 positionCS : SV_POSITION;
-				float3 surfacePos : TEXCOORD0;
-				float heightWS : TEXCOORD1;
+				float3 positionOS : TEXCOORD0;
 			};
 
 			float3 _InstanceData;
@@ -39,12 +38,17 @@ Shader "Crest/Inputs/Clip Surface/Add From Geometry"
 			{
 				Varyings o;
 				o.positionCS = UnityObjectToClipPos(input.positionOS);
-				o.heightWS = mul(unity_ObjectToWorld, float4(input.positionOS, 1.0)).y;
+				o.positionOS = input.positionOS;
+				return o;
+			}
 
+			float4 Frag(Varyings input) : SV_Target
+			{
 				// move to world
 				float3 surfacePos;
 				surfacePos.xz = mul(unity_ObjectToWorld, float4(input.positionOS, 1.0)).xz;
 				surfacePos.y = 0.0;
+				float heightWS = mul(unity_ObjectToWorld, float4(input.positionOS, 1.0)).y;
 
 				// vertex snapping and lod transition
 				float lodAlpha = ComputeLodAlpha(surfacePos, _InstanceData.x);
@@ -70,20 +74,12 @@ Shader "Crest/Inputs/Clip Surface/Add From Geometry"
 				// move to sea level
 				surfacePos.y += _OceanCenterPosWorld.y;
 
-				o.surfacePos = surfacePos;
-
-				return o;
-			}
-
-			float4 Frag(Varyings input) : SV_Target
-			{
 				float2 clip = 0;
-
-				if (input.heightWS >= input.surfacePos.y)
+				if (heightWS >= surfacePos.y)
 				{
 					clip = float2(1, 0);
 				}
-				else if (input.heightWS < input.surfacePos.y)
+				else if (heightWS < surfacePos.y)
 				{
 					clip = float2(0, 1);
 				}

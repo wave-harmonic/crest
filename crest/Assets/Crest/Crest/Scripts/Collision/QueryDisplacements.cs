@@ -11,8 +11,8 @@ namespace Crest
     /// </summary>
     public class QueryDisplacements : QueryBase, ICollProvider
     {
-        readonly static int sp_LD_TexArray_AnimatedWaves = Shader.PropertyToID("_LD_TexArray_AnimatedWaves");
-        readonly static int sp_ResultDisplacements = Shader.PropertyToID("_ResultDisplacements");
+        int sp_LD_TexArray_AnimatedWaves = Shader.PropertyToID("_LD_TexArray_AnimatedWaves");
+        int sp_ResultDisplacements = Shader.PropertyToID("_ResultDisplacements");
 
         protected override string QueryShaderName => "QueryDisplacements";
         protected override string QueryKernelName => "CSMain";
@@ -61,6 +61,15 @@ namespace Crest
             }
 
             return result;
+        }
+
+#if UNITY_2019_3_OR_NEWER
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+#endif
+        static void InitStatics()
+        {
+            // Init here from 2019.3 onwards
+            Instance = null;
         }
     }
 }

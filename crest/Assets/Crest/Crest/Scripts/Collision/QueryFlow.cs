@@ -11,8 +11,8 @@ namespace Crest
     /// </summary>
     public class QueryFlow : QueryBase
     {
-        readonly static int sp_LD_TexArray_Flow = Shader.PropertyToID("_LD_TexArray_Flow");
-        readonly static int sp_ResultFlows = Shader.PropertyToID("_ResultFlows");
+        int sp_LD_TexArray_Flow = Shader.PropertyToID("_LD_TexArray_Flow");
+        int sp_ResultFlows = Shader.PropertyToID("_ResultFlows");
 
         protected override string QueryShaderName => "QueryFlow";
         protected override string QueryKernelName => "CSMain";
@@ -44,6 +44,15 @@ namespace Crest
         public int Query(int i_ownerHash, float i_minSpatialLength, Vector3[] i_queryPoints, Vector3[] o_resultFlows)
         {
             return Query(i_ownerHash, i_minSpatialLength, i_queryPoints, o_resultFlows, null, null);
+        }
+
+#if UNITY_2019_3_OR_NEWER
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+#endif
+        static void InitStatics()
+        {
+            // Init here from 2019.3 onwards
+            Instance = null;
         }
     }
 }

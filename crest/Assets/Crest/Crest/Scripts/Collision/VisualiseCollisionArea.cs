@@ -12,7 +12,7 @@ namespace Crest
 
         float[] _resultHeights = new float[s_steps * s_steps];
 
-        static float s_radius = 5f;
+        readonly float s_radius = 5f;
         static readonly int s_steps = 10;
 
         Vector3[] _samplePositions = new Vector3[s_steps * s_steps];

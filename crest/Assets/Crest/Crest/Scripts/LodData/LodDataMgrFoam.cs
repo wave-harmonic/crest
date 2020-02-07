@@ -25,11 +25,11 @@ namespace Crest
             return settings;
         }
 
-        int sp_FoamFadeRate = Shader.PropertyToID("_FoamFadeRate");
-        int sp_WaveFoamStrength = Shader.PropertyToID("_WaveFoamStrength");
-        int sp_WaveFoamCoverage = Shader.PropertyToID("_WaveFoamCoverage");
-        int sp_ShorelineFoamMaxDepth = Shader.PropertyToID("_ShorelineFoamMaxDepth");
-        int sp_ShorelineFoamStrength = Shader.PropertyToID("_ShorelineFoamStrength");
+        readonly int sp_FoamFadeRate = Shader.PropertyToID("_FoamFadeRate");
+        readonly int sp_WaveFoamStrength = Shader.PropertyToID("_WaveFoamStrength");
+        readonly int sp_WaveFoamCoverage = Shader.PropertyToID("_WaveFoamCoverage");
+        readonly int sp_ShorelineFoamMaxDepth = Shader.PropertyToID("_ShorelineFoamMaxDepth");
+        readonly int sp_ShorelineFoamStrength = Shader.PropertyToID("_ShorelineFoamStrength");
 
 
         protected override void Start()

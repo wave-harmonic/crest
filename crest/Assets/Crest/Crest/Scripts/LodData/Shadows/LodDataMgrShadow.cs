@@ -32,15 +32,15 @@ namespace Crest
         private int krnl_UpdateShadow;
         public const string UpdateShadow = "UpdateShadow";
 
-        int sp_CenterPos = Shader.PropertyToID("_CenterPos");
-        int sp_Scale = Shader.PropertyToID("_Scale");
-        int sp_CamPos = Shader.PropertyToID("_CamPos");
-        int sp_CamForward = Shader.PropertyToID("_CamForward");
-        int sp_JitterDiameters_CurrentFrameWeights = Shader.PropertyToID("_JitterDiameters_CurrentFrameWeights");
-        int sp_MainCameraProjectionMatrix = Shader.PropertyToID("_MainCameraProjectionMatrix");
-        int sp_SimDeltaTime = Shader.PropertyToID("_SimDeltaTime");
-        int sp_LD_SliceIndex_Source = Shader.PropertyToID("_LD_SliceIndex_Source");
-        int sp_LD_TexArray_Target = Shader.PropertyToID("_LD_TexArray_Target");
+        readonly int sp_CenterPos = Shader.PropertyToID("_CenterPos");
+        readonly int sp_Scale = Shader.PropertyToID("_Scale");
+        readonly int sp_CamPos = Shader.PropertyToID("_CamPos");
+        readonly int sp_CamForward = Shader.PropertyToID("_CamForward");
+        readonly int sp_JitterDiameters_CurrentFrameWeights = Shader.PropertyToID("_JitterDiameters_CurrentFrameWeights");
+        readonly int sp_MainCameraProjectionMatrix = Shader.PropertyToID("_MainCameraProjectionMatrix");
+        readonly int sp_SimDeltaTime = Shader.PropertyToID("_SimDeltaTime");
+        readonly int sp_LD_SliceIndex_Source = Shader.PropertyToID("_LD_SliceIndex_Source");
+        readonly int sp_LD_TexArray_Target = Shader.PropertyToID("_LD_TexArray_Target");
 
         SimSettingsShadow Settings { get { return OceanRenderer.Instance._simSettingsShadow; } }
         public override void UseSettings(SimSettingsBase settings) { OceanRenderer.Instance._simSettingsShadow = settings as SimSettingsShadow; }

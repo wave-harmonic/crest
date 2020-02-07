@@ -90,16 +90,16 @@ namespace Crest
         // Shader to be used to render evaluate Gerstner waves for each LOD
         Shader _waveShader;
 
-        int sp_TwoPiOverWavelengths = Shader.PropertyToID("_TwoPiOverWavelengths");
-        int sp_Amplitudes = Shader.PropertyToID("_Amplitudes");
-        int sp_WaveDirX = Shader.PropertyToID("_WaveDirX");
-        int sp_WaveDirZ = Shader.PropertyToID("_WaveDirZ");
-        int sp_Phases = Shader.PropertyToID("_Phases");
-        int sp_ChopAmps = Shader.PropertyToID("_ChopAmps");
-        int sp_NumInBatch = Shader.PropertyToID("_NumInBatch");
-        int sp_AttenuationInShallows = Shader.PropertyToID("_AttenuationInShallows");
-        int sp_NumWaveVecs = Shader.PropertyToID("_NumWaveVecs");
-        int sp_TargetPointData = Shader.PropertyToID("_TargetPointData");
+        readonly int sp_TwoPiOverWavelengths = Shader.PropertyToID("_TwoPiOverWavelengths");
+        readonly int sp_Amplitudes = Shader.PropertyToID("_Amplitudes");
+        readonly int sp_WaveDirX = Shader.PropertyToID("_WaveDirX");
+        readonly int sp_WaveDirZ = Shader.PropertyToID("_WaveDirZ");
+        readonly int sp_Phases = Shader.PropertyToID("_Phases");
+        readonly int sp_ChopAmps = Shader.PropertyToID("_ChopAmps");
+        readonly int sp_NumInBatch = Shader.PropertyToID("_NumInBatch");
+        readonly int sp_AttenuationInShallows = Shader.PropertyToID("_AttenuationInShallows");
+        readonly int sp_NumWaveVecs = Shader.PropertyToID("_NumWaveVecs");
+        readonly int sp_TargetPointData = Shader.PropertyToID("_TargetPointData");
 
         // IMPORTANT - this mirrors the constant with the same name in ShapeGerstnerBatch.shader, both must be updated together!
         const int BATCH_SIZE = 32;

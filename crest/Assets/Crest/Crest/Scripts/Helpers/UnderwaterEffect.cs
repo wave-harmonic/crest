@@ -34,7 +34,7 @@ namespace Crest
         PropertyWrapperMPB _mpb;
         Renderer _rend;
 
-        int sp_HeightOffset = Shader.PropertyToID("_HeightOffset");
+        readonly int sp_HeightOffset = Shader.PropertyToID("_HeightOffset");
 
         SampleHeightHelper _sampleWaterHeight = new SampleHeightHelper();
 

@@ -11,8 +11,8 @@ namespace Crest
     /// </summary>
     public class QueryFlow : QueryBase
     {
-        int sp_LD_TexArray_Flow = Shader.PropertyToID("_LD_TexArray_Flow");
-        int sp_ResultFlows = Shader.PropertyToID("_ResultFlows");
+        readonly int sp_LD_TexArray_Flow = Shader.PropertyToID("_LD_TexArray_Flow");
+        readonly int sp_ResultFlows = Shader.PropertyToID("_ResultFlows");
 
         protected override string QueryShaderName => "QueryFlow";
         protected override string QueryKernelName => "CSMain";

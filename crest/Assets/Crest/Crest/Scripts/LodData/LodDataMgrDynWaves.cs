@@ -33,11 +33,11 @@ namespace Crest
         bool[] _active;
         public bool SimActive(int lodIdx) { return _active[lodIdx]; }
 
-        int sp_HorizDisplace = Shader.PropertyToID("_HorizDisplace");
-        int sp_DisplaceClamp = Shader.PropertyToID("_DisplaceClamp");
-        int sp_Damping = Shader.PropertyToID("_Damping");
-        int sp_Gravity = Shader.PropertyToID("_Gravity");
-        int sp_LaplacianAxisX = Shader.PropertyToID("_LaplacianAxisX");
+        readonly int sp_HorizDisplace = Shader.PropertyToID("_HorizDisplace");
+        readonly int sp_DisplaceClamp = Shader.PropertyToID("_DisplaceClamp");
+        readonly int sp_Damping = Shader.PropertyToID("_Damping");
+        readonly int sp_Gravity = Shader.PropertyToID("_Gravity");
+        readonly int sp_LaplacianAxisX = Shader.PropertyToID("_LaplacianAxisX");
 
         protected override void InitData()
         {

@@ -11,8 +11,8 @@ namespace Crest
     /// </summary>
     public class QueryDisplacements : QueryBase, ICollProvider
     {
-        int sp_LD_TexArray_AnimatedWaves = Shader.PropertyToID("_LD_TexArray_AnimatedWaves");
-        int sp_ResultDisplacements = Shader.PropertyToID("_ResultDisplacements");
+        readonly int sp_LD_TexArray_AnimatedWaves = Shader.PropertyToID("_LD_TexArray_AnimatedWaves");
+        readonly int sp_ResultDisplacements = Shader.PropertyToID("_ResultDisplacements");
 
         protected override string QueryShaderName => "QueryDisplacements";
         protected override string QueryKernelName => "CSMain";

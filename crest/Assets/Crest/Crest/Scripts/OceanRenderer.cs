@@ -150,11 +150,11 @@ namespace Crest
 
         public static OceanRenderer Instance { get; private set; }
 
-        int sp_crestTime = Shader.PropertyToID("_CrestTime");
-        int sp_texelsPerWave = Shader.PropertyToID("_TexelsPerWave");
-        int sp_oceanCenterPosWorld = Shader.PropertyToID("_OceanCenterPosWorld");
-        int sp_meshScaleLerp = Shader.PropertyToID("_MeshScaleLerp");
-        int sp_sliceCount = Shader.PropertyToID("_SliceCount");
+        readonly int sp_crestTime = Shader.PropertyToID("_CrestTime");
+        readonly int sp_texelsPerWave = Shader.PropertyToID("_TexelsPerWave");
+        readonly int sp_oceanCenterPosWorld = Shader.PropertyToID("_OceanCenterPosWorld");
+        readonly int sp_meshScaleLerp = Shader.PropertyToID("_MeshScaleLerp");
+        readonly int sp_sliceCount = Shader.PropertyToID("_SliceCount");
 
         void Awake()
         {

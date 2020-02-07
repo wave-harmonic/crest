@@ -17,8 +17,8 @@ namespace Crest
         readonly static Color _guiColor = Color.black * 0.7f;
         ShapeGerstnerBatched[] _gerstners;
 
-        static Dictionary<System.Type, bool> s_drawTargets = new Dictionary<System.Type, bool>();
-        static Dictionary<System.Type, string> s_simNames = new Dictionary<System.Type, string>();
+        static readonly Dictionary<System.Type, bool> s_drawTargets = new Dictionary<System.Type, bool>();
+        static readonly Dictionary<System.Type, string> s_simNames = new Dictionary<System.Type, string>();
 
         static Material s_textureArrayMaterial = null;
 
@@ -223,8 +223,8 @@ namespace Crest
         static void InitStatics()
         {
             // Init here from 2019.3 onwards
-            s_drawTargets = new Dictionary<System.Type, bool>();
-            s_simNames = new Dictionary<System.Type, string>();
+            s_drawTargets.Clear();
+            s_simNames.Clear();
             s_textureArrayMaterial = null;
         }
     }

@@ -38,7 +38,7 @@ namespace Crest
         const int s_computeGroupSize = 64;
         public static bool s_useComputeCollQueries = true;
 
-        readonly static int sp_queryPositions_minGridSizes = Shader.PropertyToID("_QueryPositions_MinGridSizes");
+        readonly int sp_queryPositions_minGridSizes = Shader.PropertyToID("_QueryPositions_MinGridSizes");
 
         const float s_finiteDiffDx = 0.1f;
 

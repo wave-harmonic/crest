@@ -90,16 +90,16 @@ namespace Crest
         // Shader to be used to render evaluate Gerstner waves for each LOD
         Shader _waveShader;
 
-        static int sp_TwoPiOverWavelengths = Shader.PropertyToID("_TwoPiOverWavelengths");
-        static int sp_Amplitudes = Shader.PropertyToID("_Amplitudes");
-        static int sp_WaveDirX = Shader.PropertyToID("_WaveDirX");
-        static int sp_WaveDirZ = Shader.PropertyToID("_WaveDirZ");
-        static int sp_Phases = Shader.PropertyToID("_Phases");
-        static int sp_ChopAmps = Shader.PropertyToID("_ChopAmps");
-        static int sp_NumInBatch = Shader.PropertyToID("_NumInBatch");
-        static int sp_AttenuationInShallows = Shader.PropertyToID("_AttenuationInShallows");
-        static int sp_NumWaveVecs = Shader.PropertyToID("_NumWaveVecs");
-        static int sp_TargetPointData = Shader.PropertyToID("_TargetPointData");
+        readonly int sp_TwoPiOverWavelengths = Shader.PropertyToID("_TwoPiOverWavelengths");
+        readonly int sp_Amplitudes = Shader.PropertyToID("_Amplitudes");
+        readonly int sp_WaveDirX = Shader.PropertyToID("_WaveDirX");
+        readonly int sp_WaveDirZ = Shader.PropertyToID("_WaveDirZ");
+        readonly int sp_Phases = Shader.PropertyToID("_Phases");
+        readonly int sp_ChopAmps = Shader.PropertyToID("_ChopAmps");
+        readonly int sp_NumInBatch = Shader.PropertyToID("_NumInBatch");
+        readonly int sp_AttenuationInShallows = Shader.PropertyToID("_AttenuationInShallows");
+        readonly int sp_NumWaveVecs = Shader.PropertyToID("_NumWaveVecs");
+        readonly int sp_TargetPointData = Shader.PropertyToID("_TargetPointData");
 
         // IMPORTANT - this mirrors the constant with the same name in ShapeGerstnerBatch.shader, both must be updated together!
         const int BATCH_SIZE = 32;
@@ -114,12 +114,12 @@ namespace Crest
         // scratch data used by batching code
         struct UpdateBatchScratchData
         {
-            public static Vector4[] _twoPiOverWavelengthsBatch = new Vector4[BATCH_SIZE / 4];
-            public static Vector4[] _ampsBatch = new Vector4[BATCH_SIZE / 4];
-            public static Vector4[] _waveDirXBatch = new Vector4[BATCH_SIZE / 4];
-            public static Vector4[] _waveDirZBatch = new Vector4[BATCH_SIZE / 4];
-            public static Vector4[] _phasesBatch = new Vector4[BATCH_SIZE / 4];
-            public static Vector4[] _chopAmpsBatch = new Vector4[BATCH_SIZE / 4];
+            public readonly static Vector4[] _twoPiOverWavelengthsBatch = new Vector4[BATCH_SIZE / 4];
+            public readonly static Vector4[] _ampsBatch = new Vector4[BATCH_SIZE / 4];
+            public readonly static Vector4[] _waveDirXBatch = new Vector4[BATCH_SIZE / 4];
+            public readonly static Vector4[] _waveDirZBatch = new Vector4[BATCH_SIZE / 4];
+            public readonly static Vector4[] _phasesBatch = new Vector4[BATCH_SIZE / 4];
+            public readonly static Vector4[] _chopAmpsBatch = new Vector4[BATCH_SIZE / 4];
         }
 
         void Start()
@@ -498,7 +498,7 @@ namespace Crest
             return cp;
         }
 
-        public bool GetSurfaceVelocity(ref Vector3 i_worldPos, SamplingData i_samplingData, out Vector3 o_surfaceVel)
+        public bool GetSurfaceVelocity(ref Vector3 i_worldPos, float i_minSpatialLength, out Vector3 o_surfaceVel)
         {
             o_surfaceVel = Vector3.zero;
 
@@ -507,7 +507,7 @@ namespace Crest
             Vector2 pos = new Vector2(i_worldPos.x, i_worldPos.z);
             float mytime = OceanRenderer.Instance.CurrentTime;
             float windAngle = _windDirectionAngle;
-            float minWaveLength = i_samplingData._minSpatialLength / 2f;
+            float minWaveLength = i_minSpatialLength / 2f;
 
             for (int j = 0; j < _amplitudes.Length; j++)
             {
@@ -534,7 +534,7 @@ namespace Crest
             return true;
         }
 
-        public bool SampleHeight(ref Vector3 i_worldPos, SamplingData i_samplingData, out float o_height)
+        public bool SampleHeight(ref Vector3 i_worldPos, float i_minSpatialLength, out float o_height)
         {
             o_height = 0f;
 
@@ -542,11 +542,11 @@ namespace Crest
             posFlatland.y = OceanRenderer.Instance.transform.position.y;
 
             Vector3 undisplacedPos;
-            if (!ComputeUndisplacedPosition(ref posFlatland, i_samplingData, out undisplacedPos))
+            if (!ComputeUndisplacedPosition(ref posFlatland, i_minSpatialLength, out undisplacedPos))
                 return false;
 
             Vector3 disp;
-            if (!SampleDisplacement(ref undisplacedPos, i_samplingData, out disp))
+            if (!SampleDisplacement(ref undisplacedPos, i_minSpatialLength, out disp))
                 return false;
 
             o_height = posFlatland.y + disp.y;
@@ -554,19 +554,7 @@ namespace Crest
             return true;
         }
 
-        public bool GetSamplingData(ref Rect i_displacedSamplingArea, float i_minSpatialLength, SamplingData o_samplingData)
-        {
-            // We're not bothered with areas as the waves are infinite, so just store the min wavelength.
-            o_samplingData._minSpatialLength = i_minSpatialLength;
-            return true;
-        }
-
-        public void ReturnSamplingData(SamplingData i_data)
-        {
-            i_data._minSpatialLength = -1f;
-        }
-
-        public bool ComputeUndisplacedPosition(ref Vector3 i_worldPos, SamplingData i_samplingData, out Vector3 o_undisplacedWorldPos)
+        public bool ComputeUndisplacedPosition(ref Vector3 i_worldPos, float i_minSpatialLength, out Vector3 o_undisplacedWorldPos)
         {
             // FPI - guess should converge to location that displaces to the target position
             Vector3 guess = i_worldPos;
@@ -575,7 +563,7 @@ namespace Crest
             // be some error here. one could also terminate iteration based on the size of the error, this is
             // worth trying but is left as future work for now.
             Vector3 disp;
-            for (int i = 0; i < 4 && SampleDisplacement(ref guess, i_samplingData, out disp); i++)
+            for (int i = 0; i < 4 && SampleDisplacement(ref guess, i_minSpatialLength, out disp); i++)
             {
                 Vector3 error = guess + disp - i_worldPos;
                 guess.x -= error.x;
@@ -588,13 +576,8 @@ namespace Crest
             return true;
         }
 
-        public AvailabilityResult CheckAvailability(ref Vector3 i_worldPos, SamplingData i_samplingData)
-        {
-            return _amplitudes == null ? AvailabilityResult.NotInitialisedYet : AvailabilityResult.DataAvailable;
-        }
-
         // Compute normal to a surface with a parameterization - equation 14 here: http://mathworld.wolfram.com/NormalVector.html
-        public bool SampleNormal(ref Vector3 i_undisplacedWorldPos, SamplingData i_samplingData, out Vector3 o_normal)
+        public bool SampleNormal(ref Vector3 i_undisplacedWorldPos, float i_minSpatialLength, out Vector3 o_normal)
         {
             o_normal = Vector3.zero;
 
@@ -603,7 +586,7 @@ namespace Crest
             var pos = new Vector2(i_undisplacedWorldPos.x, i_undisplacedWorldPos.z);
             float mytime = OceanRenderer.Instance.CurrentTime;
             float windAngle = _windDirectionAngle;
-            float minWaveLength = i_samplingData._minSpatialLength / 2f;
+            float minWaveLength = i_minSpatialLength / 2f;
 
             // base rate of change of our displacement function in x and z is unit
             var delfdelx = Vector3.right;
@@ -637,7 +620,7 @@ namespace Crest
             return true;
         }
 
-        public bool SampleDisplacement(ref Vector3 i_worldPos, SamplingData i_samplingData, out Vector3 o_displacement)
+        public bool SampleDisplacement(ref Vector3 i_worldPos, float i_minSpatialLength, out Vector3 o_displacement)
         {
             o_displacement = Vector3.zero;
 
@@ -649,7 +632,7 @@ namespace Crest
             Vector2 pos = new Vector2(i_worldPos.x, i_worldPos.z);
             float mytime = OceanRenderer.Instance.CurrentTime;
             float windAngle = _windDirectionAngle;
-            float minWavelength = i_samplingData._minSpatialLength / 2f;
+            float minWavelength = i_minSpatialLength / 2f;
 
             for (int j = 0; j < _amplitudes.Length; j++)
             {
@@ -676,19 +659,13 @@ namespace Crest
             return true;
         }
 
-        public void SampleDisplacementVel(ref Vector3 i_worldPos, SamplingData i_samplingData, out Vector3 o_displacement, out bool o_displacementValid, out Vector3 o_displacementVel, out bool o_velValid)
-        {
-            o_displacementValid = SampleDisplacement(ref i_worldPos, i_samplingData, out o_displacement);
-            o_velValid = GetSurfaceVelocity(ref i_worldPos, i_samplingData, out o_displacementVel);
-        }
-
-        public int Query(int i_ownerHash, SamplingData i_samplingData, Vector3[] i_queryPoints, Vector3[] o_resultDisps, Vector3[] o_resultNorms, Vector3[] o_resultVels)
+        public int Query(int i_ownerHash, float i_minSpatialLength, Vector3[] i_queryPoints, Vector3[] o_resultDisps, Vector3[] o_resultNorms, Vector3[] o_resultVels)
         {
             if (o_resultDisps != null)
             {
                 for (int i = 0; i < o_resultDisps.Length; i++)
                 {
-                    SampleDisplacement(ref i_queryPoints[i], i_samplingData, out o_resultDisps[i]);
+                    SampleDisplacement(ref i_queryPoints[i], i_minSpatialLength, out o_resultDisps[i]);
                 }
             }
 
@@ -697,9 +674,9 @@ namespace Crest
                 for (int i = 0; i < o_resultNorms.Length; i++)
                 {
                     Vector3 undispPos;
-                    if (ComputeUndisplacedPosition(ref i_queryPoints[i], i_samplingData, out undispPos))
+                    if (ComputeUndisplacedPosition(ref i_queryPoints[i], i_minSpatialLength, out undispPos))
                     {
-                        SampleNormal(ref undispPos, i_samplingData, out o_resultNorms[i]);
+                        SampleNormal(ref undispPos, i_minSpatialLength, out o_resultNorms[i]);
                     }
                     else
                     {
@@ -711,13 +688,13 @@ namespace Crest
             return 0;
         }
 
-        public int Query(int i_ownerHash, SamplingData i_samplingData, Vector3[] i_queryPoints, float[] o_resultHeights, Vector3[] o_resultNorms, Vector3[] o_resultVels)
+        public int Query(int i_ownerHash, float i_minSpatialLength, Vector3[] i_queryPoints, float[] o_resultHeights, Vector3[] o_resultNorms, Vector3[] o_resultVels)
         {
             if (o_resultHeights != null)
             {
                 for (int i = 0; i < o_resultHeights.Length; i++)
                 {
-                    SampleHeight(ref i_queryPoints[i], i_samplingData, out o_resultHeights[i]);
+                    SampleHeight(ref i_queryPoints[i], i_minSpatialLength, out o_resultHeights[i]);
                 }
             }
 
@@ -726,9 +703,9 @@ namespace Crest
                 for (int i = 0; i < o_resultNorms.Length; i++)
                 {
                     Vector3 undispPos;
-                    if (ComputeUndisplacedPosition(ref i_queryPoints[i], i_samplingData, out undispPos))
+                    if (ComputeUndisplacedPosition(ref i_queryPoints[i], i_minSpatialLength, out undispPos))
                     {
-                        SampleNormal(ref undispPos, i_samplingData, out o_resultNorms[i]);
+                        SampleNormal(ref undispPos, i_minSpatialLength, out o_resultNorms[i]);
                     }
                     else
                     {
@@ -741,7 +718,7 @@ namespace Crest
             {
                 for (int i = 0; i < o_resultVels.Length; i++)
                 {
-                    GetSurfaceVelocity(ref i_queryPoints[i], i_samplingData, out o_resultVels[i]);
+                    GetSurfaceVelocity(ref i_queryPoints[i], i_minSpatialLength, out o_resultVels[i]);
                 }
             }
 
@@ -751,6 +728,15 @@ namespace Crest
         public bool RetrieveSucceeded(int queryStatus)
         {
             return queryStatus == 0;
+        }
+
+#if UNITY_2019_3_OR_NEWER
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+#endif
+        static void InitStatics()
+        {
+            // Init here from 2019.3 onwards
+            _rasterMesh = null;
         }
     }
 
@@ -767,7 +753,7 @@ namespace Crest
             GUI.enabled = !EditorApplication.isPlaying || !gerstner._evaluateSpectrumAtRuntime;
             if (GUILayout.Button("Generate wave data from spectrum"))
             {
-                if (gerstner._spectrum != null)
+                if (gerstner._spectrum == null)
                 {
                     Debug.LogError("A wave spectrum must be assigned in order to generate wave data.", gerstner);
                 }

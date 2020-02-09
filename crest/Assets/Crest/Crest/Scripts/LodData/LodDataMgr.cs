@@ -131,6 +131,8 @@ namespace Crest
             // off the end of this parameter is the same as going off the end of the texture array with our clamped sampler.
             _BindData_paramIdPosScales[OceanRenderer.Instance.CurrentLodCount] = _BindData_paramIdPosScales[OceanRenderer.Instance.CurrentLodCount - 1];
             _BindData_paramIdOceans[OceanRenderer.Instance.CurrentLodCount] = _BindData_paramIdOceans[OceanRenderer.Instance.CurrentLodCount - 1];
+            // Never use this last lod - it exists to give 'something' but should not be used
+            _BindData_paramIdOceans[OceanRenderer.Instance.CurrentLodCount].z = 0f;
 
             properties.SetVectorArray(LodTransform.ParamIdPosScale(sourceLod), _BindData_paramIdPosScales);
             properties.SetVectorArray(LodTransform.ParamIdOcean(sourceLod), _BindData_paramIdOceans);
@@ -218,6 +220,16 @@ namespace Crest
                 _paramId_Source = Shader.PropertyToID(textureArrayName + "_Source");
             }
             public int GetId(bool sourceLod) { return sourceLod ? _paramId_Source : _paramId; }
+        }
+
+#if UNITY_2019_3_OR_NEWER
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+#endif
+        static void InitStatics()
+        {
+            // Init here from 2019.3 onwards
+            sp_LD_SliceIndex = Shader.PropertyToID("_LD_SliceIndex");
+            sp_LODChange = Shader.PropertyToID("_LODChange");
         }
     }
 }

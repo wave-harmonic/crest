@@ -8,54 +8,38 @@ using UnityEngine.Rendering;
 namespace Crest
 {
     /// <summary>
-    /// A persistent flow simulation that moves around with a displacement LOD. The input is fully combined water surface shape.
+    /// Drives ocean surface clipping (carving holes). 0-1 values, surface clipped when > 0.5.
     /// </summary>
-    public class LodDataMgrFlow : LodDataMgr
+    public class LodDataMgrClipSurface : LodDataMgr
     {
-        public override string SimName { get { return "Flow"; } }
-        public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RGHalf; } }
-        protected override bool NeedToReadWriteTextureData { get { return false; } }
+        public override string SimName { get { return "ClipSurface"; } }
 
-        public SimSettingsFlow Settings { get { return OceanRenderer.Instance._simSettingsFlow; } }
-        public override void UseSettings(SimSettingsBase settings) { OceanRenderer.Instance._simSettingsFlow = settings as SimSettingsFlow; }
-        public override SimSettingsBase CreateDefaultSettings()
-        {
-            var settings = ScriptableObject.CreateInstance<SimSettingsFlow>();
-            settings.name = SimName + " Auto-generated Settings";
-            return settings;
-        }
+        // The clip values only really need 8bits
+        public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.R8; } }
+        protected override bool NeedToReadWriteTextureData { get { return true; } }
+
+        public override SimSettingsBase CreateDefaultSettings() { return null; }
+        public override void UseSettings(SimSettingsBase settings) { }
 
         bool _targetsClear = false;
-
-        public const string FLOW_KEYWORD = "_FLOW_ON";
 
         protected override void Start()
         {
             base.Start();
 
 #if UNITY_EDITOR
-            if (!OceanRenderer.Instance.OceanMaterial.IsKeywordEnabled(FLOW_KEYWORD))
+            if (!OceanRenderer.Instance.OceanMaterial.IsKeywordEnabled("_CLIPSURFACE_ON"))
             {
-                Debug.LogWarning("Flow is not enabled on the current ocean material and will not be visible.", this);
+                Debug.LogWarning("Clip Surface is not enabled on the current ocean material, so the surface clipping will not work. Please enable it on the material.", this);
             }
 #endif
-        }
-
-        private void OnEnable()
-        {
-            Shader.EnableKeyword(FLOW_KEYWORD);
-        }
-
-        private void OnDisable()
-        {
-            Shader.DisableKeyword(FLOW_KEYWORD);
         }
 
         public override void BuildCommandBuffer(OceanRenderer ocean, CommandBuffer buf)
         {
             base.BuildCommandBuffer(ocean, buf);
 
-            // if there is nothing in the scene tagged up for depth rendering, and we have cleared the RTs, then we can early out
+            // If there is nothing in the scene tagged up for depth rendering, and we have cleared the RTs, then we can early out
             var drawList = RegisterLodDataInputBase.GetRegistrar(GetType());
             if (drawList.Count == 0 && _targetsClear)
             {
@@ -70,14 +54,11 @@ namespace Crest
                 SubmitDraws(lodIdx, buf);
             }
 
-            // targets have now been cleared, we can early out next time around
-            if (drawList.Count == 0)
-            {
-                _targetsClear = true;
-            }
+            // Targets are only clear if nothing was drawn
+            _targetsClear = drawList.Count == 0;
         }
 
-        readonly static string s_textureArrayName = "_LD_TexArray_Flow";
+        readonly static string s_textureArrayName = "_LD_TexArray_ClipSurface";
         private static TextureArrayParamIds s_textureArrayParamIds = new TextureArrayParamIds(s_textureArrayName);
         public static int ParamIdSampler(bool sourceLod = false) { return s_textureArrayParamIds.GetId(sourceLod); }
         protected override int GetParamIdSampler(bool sourceLod = false)

@@ -21,6 +21,8 @@ namespace Crest
             }
         }
 
+        protected override Color GizmoColor => new Color(1f, 1f, 0f, 0.5f);
+
         [SerializeField, Tooltip("Inform ocean how much this input will displace the ocean surface vertically. This is used to set bounding box heights for the ocean tiles.")]
         float _maxDisplacementVertical = 0f;
         [SerializeField, Tooltip("Inform ocean how much this input will displace the ocean surface horizontally. This is used to set bounding box widths for the ocean tiles.")]

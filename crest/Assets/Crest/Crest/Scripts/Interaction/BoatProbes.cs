@@ -61,10 +61,6 @@ namespace Crest
         public override float ObjectWidth { get { return _minSpatialLength; } }
         public override bool InWater { get { return true; } }
 
-        SamplingData _samplingData = new SamplingData();
-        SamplingData _samplingDataFlow = new SamplingData();
-
-        Rect _localSamplingAABB;
         float _totalWeight;
 
         Vector3[] _queryPoints;
@@ -83,8 +79,6 @@ namespace Crest
                 enabled = false;
                 return;
             }
-
-            _localSamplingAABB = ComputeLocalSamplingAABB();
 
             CalcTotalWeight();
 
@@ -109,20 +103,7 @@ namespace Crest
             CalcTotalWeight();
 #endif
 
-            // Trigger processing of displacement textures that have come back this frame. This will be processed
-            // anyway in Update(), but FixedUpdate() is earlier so make sure it's up to date now.
-            if (OceanRenderer.Instance._simSettingsAnimatedWaves.CollisionSource == SimSettingsAnimatedWaves.CollisionSources.OceanDisplacementTexturesGPU && GPUReadbackDisps.Instance)
-            {
-                GPUReadbackDisps.Instance.ProcessRequests();
-            }
-
             var collProvider = OceanRenderer.Instance.CollisionProvider;
-            var thisRect = GetWorldAABB();
-            if (!collProvider.GetSamplingData(ref thisRect, _minSpatialLength, _samplingData))
-            {
-                // No collision coverage for the sample area, in this case use the null provider.
-                collProvider = CollProviderNull.Instance;
-            }
 
             // Do queries
             UpdateWaterQueries(collProvider);
@@ -145,8 +126,6 @@ namespace Crest
             FixedUpdateBuoyancy(collProvider);
             FixedUpdateDrag(collProvider, waterSurfaceVel);
             FixedUpdateEngine();
-
-            collProvider.ReturnSamplingData(_samplingData);
         }
 
         void UpdateWaterQueries(ICollProvider collProvider)
@@ -158,7 +137,7 @@ namespace Crest
             }
             _queryPoints[_forcePoints.Length] = transform.position;
 
-            collProvider.Query(GetHashCode(), _samplingData, _queryPoints, _queryResultDisps, null, _queryResultVels);
+            collProvider.Query(GetHashCode(), ObjectWidth, _queryPoints, _queryResultDisps, null, _queryResultVels);
         }
 
         void FixedUpdateEngine()
@@ -215,36 +194,6 @@ namespace Crest
                 Gizmos.color = Color.red;
                 Gizmos.DrawCube(transformedPoint, Vector3.one * 0.5f);
             }
-
-            var worldAABB = GetWorldAABB();
-            new Bounds(new Vector3(worldAABB.center.x, 0f, worldAABB.center.y), Vector3.right * worldAABB.width + Vector3.forward * worldAABB.height).DebugDraw();
-        }
-
-        Rect ComputeLocalSamplingAABB()
-        {
-            if (_forcePoints.Length == 0) return new Rect();
-
-            float xmin = _forcePoints[0]._offsetPosition.x;
-            float zmin = _forcePoints[0]._offsetPosition.z;
-            float xmax = xmin, zmax = zmin;
-            for (int i = 1; i < _forcePoints.Length; i++)
-            {
-                float x = _forcePoints[i]._offsetPosition.x, z = _forcePoints[i]._offsetPosition.z;
-                xmin = Mathf.Min(xmin, x); xmax = Mathf.Max(xmax, x);
-                zmin = Mathf.Min(zmin, z); zmax = Mathf.Max(zmax, z);
-            }
-
-            return Rect.MinMaxRect(xmin, zmin, xmax, zmax);
-        }
-
-        Rect GetWorldAABB()
-        {
-            Bounds b = new Bounds(transform.position, Vector3.one);
-            b.Encapsulate(transform.TransformPoint(new Vector3(_localSamplingAABB.xMin, 0f, _localSamplingAABB.yMin)));
-            b.Encapsulate(transform.TransformPoint(new Vector3(_localSamplingAABB.xMin, 0f, _localSamplingAABB.yMax)));
-            b.Encapsulate(transform.TransformPoint(new Vector3(_localSamplingAABB.xMax, 0f, _localSamplingAABB.yMin)));
-            b.Encapsulate(transform.TransformPoint(new Vector3(_localSamplingAABB.xMax, 0f, _localSamplingAABB.yMax)));
-            return Rect.MinMaxRect(b.min.x, b.min.z, b.max.x, b.max.z);
         }
 
         private void OnDisable()

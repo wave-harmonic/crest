@@ -65,6 +65,16 @@ namespace Crest
 
         public int MaterialCount => _materials.Length;
         public Material GetMaterial(int index) => _materials[index];
+
+#if UNITY_2019_3_OR_NEWER
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+#endif
+        static void InitStatics()
+        {
+            // Init here from 2019.3 onwards
+            _registrar = new Dictionary<System.Type, List<ILodDataInput>>();
+            sp_Weight = Shader.PropertyToID("_Weight");
+        }
     }
 
     /// <summary>
@@ -74,6 +84,8 @@ namespace Crest
         where LodDataType : LodDataMgr
     {
         [SerializeField] bool _disableRenderer = true;
+
+        protected abstract Color GizmoColor { get; }
 
         protected virtual void OnEnable()
         {
@@ -96,6 +108,16 @@ namespace Crest
             if (registered != null)
             {
                 registered.Remove(this);
+            }
+        }
+
+        private void OnDrawGizmosSelected()
+        {
+            var mf = GetComponent<MeshFilter>();
+            if (mf)
+            {
+                Gizmos.color = GizmoColor;
+                Gizmos.DrawWireMesh(mf.sharedMesh, transform.position, transform.rotation, transform.lossyScale);
             }
         }
     }

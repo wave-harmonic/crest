@@ -37,6 +37,8 @@ Shader "Crest/Inputs/Animated Waves/Add From Texture"
 			float _Strength;
 			float _SSSStrength;
 
+			float _Weight;
+
 			struct Attributes
 			{
 				float3 positionOS : POSITION;
@@ -74,7 +76,7 @@ Shader "Crest/Inputs/Animated Waves/Add From Texture"
 				sss = texSample.x * _SSSStrength;
 #endif
 
-				return half4(displacement, sss);
+				return _Weight * half4(displacement, sss);
 			}
 
 			ENDCG

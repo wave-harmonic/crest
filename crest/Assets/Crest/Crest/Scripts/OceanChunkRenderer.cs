@@ -58,31 +58,6 @@ namespace Crest
             _mesh.bounds = newBounds;
         }
 
-        private void OnEnable()
-        {
-#if UNITY_2018
-            DeregisterBeginCameraRenderingEvent();
-            RenderPipeline.beginCameraRendering += BeginCameraRendering;
-#else
-            DeregisterBeginCameraRenderingEvent();
-            RenderPipelineManager.beginCameraRendering += BeginCameraRendering;
-#endif
-        }
-
-        private void OnDisable()
-        {
-            DeregisterBeginCameraRenderingEvent();
-        }
-
-        private static void DeregisterBeginCameraRenderingEvent()
-        {
-#if UNITY_2018
-            RenderPipeline.beginCameraRendering -= BeginCameraRendering;
-#else
-            RenderPipelineManager.beginCameraRendering -= BeginCameraRendering;
-#endif
-        }
-
         static Camera _currentCamera = null;
 
 #if UNITY_2018
@@ -214,7 +189,13 @@ namespace Crest
         [RuntimeInitializeOnLoadMethod]
         static void RunOnStart()
         {
-            DeregisterBeginCameraRenderingEvent();
+#if UNITY_2018
+            RenderPipeline.beginCameraRendering -= BeginCameraRendering;
+            RenderPipeline.beginCameraRendering += BeginCameraRendering;
+#else
+            RenderPipelineManager.beginCameraRendering -= BeginCameraRendering;
+            RenderPipelineManager.beginCameraRendering += BeginCameraRendering;
+#endif
         }
     }
 

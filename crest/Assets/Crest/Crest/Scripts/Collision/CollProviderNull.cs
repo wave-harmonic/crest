@@ -74,6 +74,6 @@ namespace Crest
             return true;
         }
 
-        public static readonly CollProviderNull Instance = new CollProviderNull();
+        public readonly static CollProviderNull Instance = new CollProviderNull();
     }
 }

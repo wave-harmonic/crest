@@ -17,16 +17,16 @@ namespace Crest
         readonly static Color _guiColor = Color.black * 0.7f;
         ShapeGerstnerBatched[] _gerstners;
 
-        readonly static Dictionary<System.Type, bool> _drawTargets = new Dictionary<System.Type, bool>();
-        readonly static Dictionary<System.Type, string> _simNames = new Dictionary<System.Type, string>();
+        static readonly Dictionary<System.Type, bool> s_drawTargets = new Dictionary<System.Type, bool>();
+        static readonly Dictionary<System.Type, string> s_simNames = new Dictionary<System.Type, string>();
 
-        static Material textureArrayMaterial;
+        static Material s_textureArrayMaterial = null;
 
         void Awake()
         {
-            if (textureArrayMaterial == null)
+            if (s_textureArrayMaterial == null)
             {
-                textureArrayMaterial = new Material(Shader.Find("Hidden/Crest/Debug/TextureArray"));
+                s_textureArrayMaterial = new Material(Shader.Find("Hidden/Crest/Debug/TextureArray"));
             }
         }
 
@@ -170,13 +170,13 @@ namespace Crest
             if (lodData == null) return;
 
             var type = typeof(SimType);
-            if (!_drawTargets.ContainsKey(type))
+            if (!s_drawTargets.ContainsKey(type))
             {
-                _drawTargets.Add(type, showByDefault);
+                s_drawTargets.Add(type, showByDefault);
             }
-            if (!_simNames.ContainsKey(type))
+            if (!s_simNames.ContainsKey(type))
             {
-                _simNames.Add(type, type.Name.Substring(10));
+                s_simNames.Add(type, type.Name.Substring(10));
             }
 
             float togglesBegin = Screen.height - _bottomPanelHeight;
@@ -185,7 +185,7 @@ namespace Crest
             float w = h + b;
             float x = Screen.width - w * offset + b * (offset - 1f);
 
-            if (_drawTargets[type])
+            if (s_drawTargets[type])
             {
                 GUI.color = _guiColor;
                 GUI.DrawTexture(new Rect(x, 0, offset == 1f ? w : w - b, Screen.height - _bottomPanelHeight), Texture2D.whiteTexture);
@@ -200,14 +200,14 @@ namespace Crest
                         if (offset == 1f) w += b;
 
                         // Render specific slice of 2D texture array
-                        textureArrayMaterial.SetInt("_Depth", idx);
-                        Graphics.DrawTexture(new Rect(x + b, y + b / 2f, h - b, h - b), lodData.DataTexture, textureArrayMaterial);
+                        s_textureArrayMaterial.SetInt("_Depth", idx);
+                        Graphics.DrawTexture(new Rect(x + b, y + b / 2f, h - b, h - b), lodData.DataTexture, s_textureArrayMaterial);
                     }
                 }
             }
 
 
-            _drawTargets[type] = GUI.Toggle(new Rect(x + b, togglesBegin, w - 2f * b, _bottomPanelHeight), _drawTargets[type], _simNames[type]);
+            s_drawTargets[type] = GUI.Toggle(new Rect(x + b, togglesBegin, w - 2f * b, _bottomPanelHeight), s_drawTargets[type], s_simNames[type]);
 
             offset++;
         }
@@ -215,6 +215,17 @@ namespace Crest
         void ToggleGUI()
         {
             _guiVisible = !_guiVisible;
+        }
+
+#if UNITY_2019_3_OR_NEWER
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+#endif
+        static void InitStatics()
+        {
+            // Init here from 2019.3 onwards
+            s_drawTargets.Clear();
+            s_simNames.Clear();
+            s_textureArrayMaterial = null;
         }
     }
 }

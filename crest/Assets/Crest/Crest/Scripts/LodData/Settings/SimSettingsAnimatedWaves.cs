@@ -19,10 +19,14 @@ namespace Crest
             GerstnerWavesCPU,
             ComputeShaderQueries,
         }
-        [Header("Readback to CPU")]
+        
         [Tooltip("Where to obtain ocean shape on CPU for physics / gameplay."), SerializeField]
         CollisionSources _collisionSource = CollisionSources.ComputeShaderQueries;
         public CollisionSources CollisionSource { get { return _collisionSource; } }
+
+        [Tooltip("Maximum number of wave queries that can be performed when using ComputeShaderQueries."), SerializeField]
+        int _maxQueryCount = QueryBase.MAX_QUERY_COUNT_DEFAULT;
+        public int MaxQueryCount { get { return _maxQueryCount; } }
 
         /// <summary>
         /// Provides ocean shape to CPU.
@@ -47,7 +51,7 @@ namespace Crest
             if (result == null)
             {
                 // this should not be hit - return null to create null ref exceptions
-                Debug.Assert(false, "Could not create collision provider. Collision source = " + _collisionSource.ToString());
+                Debug.Assert(false, "Could not create collision provider. Collision source = " + _collisionSource.ToString(), this);
                 return null;
             }
 

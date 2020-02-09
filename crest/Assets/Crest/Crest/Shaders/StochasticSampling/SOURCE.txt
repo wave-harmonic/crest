@@ -1,0 +1,8 @@
+Source:
+https://www.reddit.com/r/Unity3D/comments/dhr5g2/i_made_a_stochastic_texture_sampling_shader/
+https://pastebin.com/sDrnzYxB
+
+Header and copyright notice from the shader:
+
+//CC0 Creative Commons License
+//"Yes by all means use it how you wish. I'm sharing it as CC0."

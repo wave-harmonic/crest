@@ -4,6 +4,13 @@
 
 #if _APPLYNORMALMAPPING_ON
 
+#if _APPLYSTOCHASTICSAMPLING_ON
+#include "StochasticSampling/StochasticSampling.hlsl"
+#define TEX2D tex2DStochastic
+#else
+#define TEX2D tex2D
+#endif
+
 uniform half _NormalsStrength;
 uniform half _NormalsScale;
 
@@ -14,8 +21,8 @@ half2 SampleNormalMaps(float2 worldXZUndisplaced, float lodAlpha)
 	float nstretch = _NormalsScale * lodDataGridSize; // normals scaled with geometry
 	const float spdmulL = _GeomData.z;
 	half2 norm =
-		UnpackNormal(tex2D(_Normals, (v0*_CrestTime*spdmulL + worldXZUndisplaced) / nstretch)).xy +
-		UnpackNormal(tex2D(_Normals, (v1*_CrestTime*spdmulL + worldXZUndisplaced) / nstretch)).xy;
+		UnpackNormal(TEX2D(_Normals, (v0*_CrestTime*spdmulL + worldXZUndisplaced) / nstretch)).xy +
+		UnpackNormal(TEX2D(_Normals, (v1*_CrestTime*spdmulL + worldXZUndisplaced) / nstretch)).xy;
 
 	// blend in next higher scale of normals to obtain continuity
 	const float farNormalsWeight = _InstanceData.y;
@@ -26,8 +33,8 @@ half2 SampleNormalMaps(float2 worldXZUndisplaced, float lodAlpha)
 		nstretch *= 2.;
 		const float spdmulH = _GeomData.w;
 		norm = lerp(norm,
-			UnpackNormal(tex2D(_Normals, (v0*_CrestTime*spdmulH + worldXZUndisplaced) / nstretch)).xy +
-			UnpackNormal(tex2D(_Normals, (v1*_CrestTime*spdmulH + worldXZUndisplaced) / nstretch)).xy,
+			UnpackNormal(TEX2D(_Normals, (v0*_CrestTime*spdmulH + worldXZUndisplaced) / nstretch)).xy +
+			UnpackNormal(TEX2D(_Normals, (v1*_CrestTime*spdmulH + worldXZUndisplaced) / nstretch)).xy,
 			nblend);
 	}
 

@@ -4,6 +4,13 @@
 
 #if _FOAM_ON
 
+#if _APPLYSTOCHASTICSAMPLING_ON
+#include "StochasticSampling/StochasticSampling.hlsl"
+#define TEX2D tex2DStochastic
+#else
+#define TEX2D tex2D
+#endif
+
 uniform sampler2D _FoamTexture;
 uniform half _FoamScale;
 uniform float4 _FoamTexture_TexelSize;
@@ -26,8 +33,8 @@ half3 AmbientLight()
 half WhiteFoamTexture(half i_foam, float2 i_worldXZUndisplaced, half lodVal)
 {
 	half ft = lerp(
-		tex2D(_FoamTexture, (1.25*i_worldXZUndisplaced + _CrestTime / 10.) / (4.*_LD_Params[_LD_SliceIndex].x*_FoamScale)).r,
-		tex2D(_FoamTexture, (1.25*i_worldXZUndisplaced + _CrestTime / 10.) / (4.*_LD_Params[_LD_SliceIndex + 1].x*_FoamScale)).r,
+		TEX2D(_FoamTexture, (1.25*i_worldXZUndisplaced + _CrestTime / 10.) / (4.*_LD_Params[_LD_SliceIndex].x*_FoamScale)).r,
+		TEX2D(_FoamTexture, (1.25*i_worldXZUndisplaced + _CrestTime / 10.) / (4.*_LD_Params[_LD_SliceIndex + 1].x*_FoamScale)).r,
 		lodVal);
 
 	// black point fade

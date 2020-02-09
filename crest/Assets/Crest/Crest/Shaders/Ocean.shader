@@ -16,6 +16,10 @@ Shader "Crest/Ocean"
 		// Scale of normal map texture
 		_NormalsScale("Scale", Range(0.01, 200.0)) = 40.0
 
+		[Header(Stochastic Sampling)]
+		// Whether to use stochastic sampling for normal and foam textures.
+		[Toggle] _ApplyStochasticSampling("Enable", Float) = 0
+
 		// Base light scattering settings which give water colour
 		[Header(Scattering)]
 		// Base colour when looking straight down into water
@@ -207,6 +211,7 @@ Shader "Crest/Ocean"
 			#pragma multi_compile_fog
 
 			#pragma shader_feature _APPLYNORMALMAPPING_ON
+			#pragma shader_feature _APPLYSTOCHASTICSAMPLING_ON
 			#pragma shader_feature _COMPUTEDIRECTIONALLIGHT_ON
 			#pragma shader_feature _DIRECTIONALLIGHTVARYROUGHNESS_ON
 			#pragma shader_feature _SUBSURFACESCATTERING_ON
@@ -472,7 +477,7 @@ Shader "Crest/Ocean"
 				// Add 0.5 bias for LOD blending and texel resolution correction. This will help to tighten and smooth clipped edges
 				clip(-clipVal + 0.5);
 				#endif
-				
+
 				// Foam - underwater bubbles and whitefoam
 				half3 bubbleCol = (half3)0.;
 				#if _FOAM_ON
@@ -498,7 +503,7 @@ Shader "Crest/Ocean"
 				// disable transparency, so this will always be 1.0.
 				float reflAlpha = 1.0;
 				#endif
-				
+
 				#if _UNDERWATER_ON
 				if (underwater)
 				{

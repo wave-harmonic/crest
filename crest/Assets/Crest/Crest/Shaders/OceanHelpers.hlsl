@@ -77,3 +77,25 @@ void ComputePositionDisplacement(inout float3 io_positionWS, in const float i_me
 		SampleDisplacements(_LD_TexArray_AnimatedWaves, WorldToUV_BiggerLod(worldXZ), wt_biggerLod, io_positionWS, dummy);
 	}
 }
+
+// Clips using ocean surface clip data
+void ApplyOceanClipSurface(in const float3 io_positionWS, in const float i_lodAlpha)
+{
+	const float2 worldXZ = io_positionWS.xz;
+	float wt_smallerLod = (1. - i_lodAlpha) * _LD_Params[_LD_SliceIndex].z;
+	float wt_biggerLod = (1. - wt_smallerLod) * _LD_Params[_LD_SliceIndex + 1].z;
+
+	// Sample clip surface data
+	half clipValue = 0.0;
+	if (wt_smallerLod > 0.001)
+	{
+		SampleClip(_LD_TexArray_ClipSurface, WorldToUV(worldXZ), wt_smallerLod, clipValue);
+	}
+	if (wt_biggerLod > 0.001)
+	{
+		SampleClip(_LD_TexArray_ClipSurface, WorldToUV_BiggerLod(worldXZ), wt_biggerLod, clipValue);
+	}
+
+	// Add 0.5 bias for LOD blending and texel resolution correction. This will help to tighten and smooth clipped edges
+	clip(-clipValue + 0.5);
+}

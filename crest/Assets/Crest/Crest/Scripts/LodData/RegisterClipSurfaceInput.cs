@@ -12,8 +12,14 @@ namespace Crest
     /// </summary>
     public class RegisterClipSurfaceInput : RegisterLodDataInput<LodDataMgrClipSurface>
     {
+        bool _enabled = true;
+        public override bool Enabled => _enabled;
+
         [Tooltip("Uses the 'clip from geometry' shader. There are other clip shaders available.")]
         [SerializeField] bool _assignClipSurfaceMaterial = true;
+
+        [Tooltip("Prevents inputs from cancelling each other out when aligned vertically. It is imperfect so custom logic might be needed for your use case.")]
+        [SerializeField] bool _disableClipSurfaceWhenTooFarFromSurface = true;
 
         public override float Wavelength => 0f;
 
@@ -21,6 +27,7 @@ namespace Crest
 
         PropertyWrapperMPB _mpb;
         Renderer _rend;
+        SampleHeightHelper _sampleHeightHelper = new SampleHeightHelper();
 
         protected override void OnEnable()
         {
@@ -37,6 +44,27 @@ namespace Crest
         {
             base.Start();
             _rend = GetComponent<Renderer>();
+        }
+
+        void Update()
+        {
+            if (_disableClipSurfaceWhenTooFarFromSurface)
+            {
+                var position = transform.position;
+
+                _sampleHeightHelper.Init(position, 0f);
+                float waterHeight = 0f;
+
+                if (_sampleHeightHelper.Sample(ref waterHeight))
+                {
+                    position.y = waterHeight;
+                    _enabled = Mathf.Abs(_rend.bounds.ClosestPoint(position).y - waterHeight) < 1;
+                }
+            }
+            else
+            {
+                _enabled = true;
+            }
         }
 
         private void LateUpdate()

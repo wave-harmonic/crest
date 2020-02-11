@@ -49,7 +49,8 @@ Shader "Crest/Inputs/Clip Surface/Add From Geometry"
 				float3 surfacePosition;
 				surfacePosition.xz = input.positionWS.xz;
 				surfacePosition.y = 0.0;
-				ComputePositionDisplacement(surfacePosition, _InstanceData.x);
+				float lodAlpha = ComputeLodAlpha(surfacePosition, _InstanceData.x);
+				ComputePositionDisplacement(surfacePosition, lodAlpha);
 
 				// Move to sea level
 				surfacePosition.y += _OceanCenterPosWorld.y;
@@ -102,7 +103,8 @@ Shader "Crest/Inputs/Clip Surface/Add From Geometry"
 				float3 surfacePosition;
 				surfacePosition.xz = input.positionWS.xz;
 				surfacePosition.y = 0.0;
-				ComputePositionDisplacement(surfacePosition, _InstanceData.x);
+				float lodAlpha = ComputeLodAlpha(surfacePosition, _InstanceData.x);
+				ComputePositionDisplacement(surfacePosition, lodAlpha);
 
 				// Move to sea level
 				surfacePosition.y += _OceanCenterPosWorld.y;

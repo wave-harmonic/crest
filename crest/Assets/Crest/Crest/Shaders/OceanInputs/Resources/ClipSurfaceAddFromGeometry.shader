@@ -8,11 +8,12 @@ Shader "Crest/Inputs/Clip Surface/Add From Geometry"
 {
 	SubShader
 	{
+		ZWrite Off
+		ColorMask R
+
 		Pass
 		{
-			Blend One One
-			Cull Off
-			ColorMask RG
+			Cull Front
 
 			CGPROGRAM
 			#pragma vertex Vert
@@ -29,7 +30,7 @@ Shader "Crest/Inputs/Clip Surface/Add From Geometry"
 			struct Varyings
 			{
 				float4 positionCS : SV_POSITION;
-				float3 positionOS : TEXCOORD0;
+				float3 positionWS : TEXCOORD0;
 			};
 
 			float3 _InstanceData;
@@ -38,52 +39,80 @@ Shader "Crest/Inputs/Clip Surface/Add From Geometry"
 			{
 				Varyings o;
 				o.positionCS = UnityObjectToClipPos(input.positionOS);
-				o.positionOS = input.positionOS;
+				o.positionWS = mul(unity_ObjectToWorld, float4(input.positionOS, 1.0));
 				return o;
 			}
 
 			float4 Frag(Varyings input) : SV_Target
 			{
-				// move to world
-				float3 surfacePos;
-				surfacePos.xz = mul(unity_ObjectToWorld, float4(input.positionOS, 1.0)).xz;
-				surfacePos.y = 0.0;
-				float heightWS = mul(unity_ObjectToWorld, float4(input.positionOS, 1.0)).y;
+				// Get ocean surface world position
+				float3 surfacePosition;
+				surfacePosition.xz = input.positionWS.xz;
+				surfacePosition.y = 0.0;
+				ComputePositionDisplacement(surfacePosition, _InstanceData.x);
 
-				// vertex snapping and lod transition
-				float lodAlpha = ComputeLodAlpha(surfacePos, _InstanceData.x);
+				// Move to sea level
+				surfacePosition.y += _OceanCenterPosWorld.y;
 
-				// sample shape textures - always lerp between 2 scales, so sample two textures
-
-				// sample weights. params.z allows shape to be faded out (used on last lod to support pop-less scale transitions)
-				float wt_smallerLod = (1.0 - lodAlpha) * _LD_Params[_LD_SliceIndex].z;
-				float wt_biggerLod = (1.0 - wt_smallerLod) * _LD_Params[_LD_SliceIndex + 1].z;
-				// sample displacement textures, add results to current world pos / normal / foam
-				const float2 worldXZ = surfacePos.xz;
-				half foam = 0.0;
-				half sss = 0.;
-				if (wt_smallerLod > 0.001)
+				// Write red if underwater
+				if (input.positionWS.y >= surfacePosition.y)
 				{
-					SampleDisplacements(_LD_TexArray_AnimatedWaves, WorldToUV(worldXZ), wt_smallerLod, surfacePos, sss);
+					clip(-1);
 				}
-				if (wt_biggerLod > 0.001)
-				{
-					SampleDisplacements(_LD_TexArray_AnimatedWaves, WorldToUV_BiggerLod(worldXZ), wt_biggerLod, surfacePos, sss);
-				}
+				return float4(1, 0, 0, 1);
+			}
+			ENDCG
+		}
 
-				// move to sea level
-				surfacePos.y += _OceanCenterPosWorld.y;
+		Pass
+		{
+			Cull Back
 
-				float2 clip = 0;
-				if (heightWS >= surfacePos.y)
+			CGPROGRAM
+			#pragma vertex Vert
+			#pragma fragment Frag
+
+			#include "UnityCG.cginc"
+			#include "../../OceanHelpers.hlsl"
+
+			struct Attributes
+			{
+				float3 positionOS : POSITION;
+			};
+
+			struct Varyings
+			{
+				float4 positionCS : SV_POSITION;
+				float3 positionWS : TEXCOORD0;
+			};
+
+			float3 _InstanceData;
+
+			Varyings Vert(Attributes input)
+			{
+				Varyings o;
+				o.positionCS = UnityObjectToClipPos(input.positionOS);
+				o.positionWS = mul(unity_ObjectToWorld, float4(input.positionOS, 1.0));
+				return o;
+			}
+
+			float4 Frag(Varyings input) : SV_Target
+			{
+				// Get ocean surface world position
+				float3 surfacePosition;
+				surfacePosition.xz = input.positionWS.xz;
+				surfacePosition.y = 0.0;
+				ComputePositionDisplacement(surfacePosition, _InstanceData.x);
+
+				// Move to sea level
+				surfacePosition.y += _OceanCenterPosWorld.y;
+
+				// Write black if underwater
+				if (input.positionWS.y >= surfacePosition.y)
 				{
-					clip = float2(1, 0);
+					clip(-1);
 				}
-				else if (heightWS < surfacePos.y)
-				{
-					clip = float2(0, 1);
-				}
-				return float4(clip.x, clip.y, 0, 1);
+				return float4(0, 0, 0, 1);
 			}
 			ENDCG
 		}

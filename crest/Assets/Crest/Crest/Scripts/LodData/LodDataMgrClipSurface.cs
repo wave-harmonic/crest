@@ -15,7 +15,7 @@ namespace Crest
         public override string SimName { get { return "ClipSurface"; } }
 
         // The clip values only really need 8bits
-        public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RG16; } }
+        public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.R8; } }
         protected override bool NeedToReadWriteTextureData { get { return true; } }
 
         public override SimSettingsBase CreateDefaultSettings() { return null; }

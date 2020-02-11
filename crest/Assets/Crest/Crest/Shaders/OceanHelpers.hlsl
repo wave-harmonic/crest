@@ -52,3 +52,28 @@ void SnapAndTransitionVertLayout(float i_meshScaleAlpha, inout float3 io_worldPo
 	if (abs(offset.x) < minRadius) io_worldPos.x += offset.x * o_lodAlpha * GRID_SIZE_4;
 	if (abs(offset.y) < minRadius) io_worldPos.z += offset.y * o_lodAlpha * GRID_SIZE_4;
 }
+
+// Used to get the world position of the ocean surface from the world position
+void ComputePositionDisplacement(inout float3 io_positionWS, in const float i_meshScaleAlpha)
+{
+	// Vertex snapping and lod transition
+	float lodAlpha = ComputeLodAlpha(io_positionWS, i_meshScaleAlpha);
+	const float2 worldXZ = io_positionWS.xz;
+
+	// Sample shape textures - always lerp between 2 scales, so sample two textures
+
+	// Sample weights. params.z allows shape to be faded out (used on last lod to support pop-less scale transitions)
+	float wt_smallerLod = (1.0 - lodAlpha) * _LD_Params[_LD_SliceIndex].z;
+	float wt_biggerLod = (1.0 - wt_smallerLod) * _LD_Params[_LD_SliceIndex + 1].z;
+	
+	// Sample displacement textures and add results to current world position
+	half dummy = 0.0;
+	if (wt_smallerLod > 0.001)
+	{
+		SampleDisplacements(_LD_TexArray_AnimatedWaves, WorldToUV(worldXZ), wt_smallerLod, io_positionWS, dummy);
+	}
+	if (wt_biggerLod > 0.001)
+	{
+		SampleDisplacements(_LD_TexArray_AnimatedWaves, WorldToUV_BiggerLod(worldXZ), wt_biggerLod, io_positionWS, dummy);
+	}
+}

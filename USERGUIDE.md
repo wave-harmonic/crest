@@ -202,13 +202,15 @@ This LOD data provides a sense of water depth. More information about how this i
 
 ## Clip Surface
 
-This data drives clipping of the ocean surface, as in carving out holes. This can be useful for hollow vessels or low terrain that goes below sea level.
+This data drives clipping of the ocean surface, as in carving out holes. This can be useful for hollow vessels or low terrain that goes below sea level. Data can come from geometry (convex hulls) or a texture.
 
 To turn on this feature, enable the *Create Clip Surface Data* option on the *OceanRenderer* script, and ensure the *Enable* option is ticked in the *Clip Surface* group on the ocean material.
 
 The data contains 0-1 values. Holes are carved into the surface when the values is greater than 0.5.
 
-User provided foam contributions can be added similar to the Animated Waves. In this case the *RegisterClipSurfaceInput* script should be applied to any inputs. See the *FloatingOpenContainer* object in the *boat.unity* scene for an example.
+Overlapping meshes will not work correctly in all cases. There will be cases where one mesh will overwrite another resulting in ocean surface appearing where it should not. Overlapping boxes aligned on the axes will work well whilst spheres may have issues.
+
+User provided clip surface contributions can be added similar to the Animated Waves. In this case the *RegisterClipSurfaceInput* script should be applied to any inputs. See the *FloatingOpenContainer* object in the *boat.unity* scene for an example.
 
 ## Shadow
 

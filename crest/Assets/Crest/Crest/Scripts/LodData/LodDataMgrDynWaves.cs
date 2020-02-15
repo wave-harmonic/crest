@@ -33,11 +33,11 @@ namespace Crest
         bool[] _active;
         public bool SimActive(int lodIdx) { return _active[lodIdx]; }
 
-        static int sp_HorizDisplace = Shader.PropertyToID("_HorizDisplace");
-        static int sp_DisplaceClamp = Shader.PropertyToID("_DisplaceClamp");
-        static int sp_Damping = Shader.PropertyToID("_Damping");
-        static int sp_Gravity = Shader.PropertyToID("_Gravity");
-        static int sp_LaplacianAxisX = Shader.PropertyToID("_LaplacianAxisX");
+        readonly int sp_HorizDisplace = Shader.PropertyToID("_HorizDisplace");
+        readonly int sp_DisplaceClamp = Shader.PropertyToID("_DisplaceClamp");
+        readonly int sp_Damping = Shader.PropertyToID("_Damping");
+        readonly int sp_Gravity = Shader.PropertyToID("_Gravity");
+        readonly int sp_LaplacianAxisX = Shader.PropertyToID("_LaplacianAxisX");
 
         protected override void InitData()
         {
@@ -147,9 +147,9 @@ namespace Crest
             substepDt = Mathf.Min(maxDt, frameDt / numSubsteps);
         }
 
-        public static string TextureArrayName = "_LD_TexArray_DynamicWaves";
-        private static TextureArrayParamIds textureArrayParamIds = new TextureArrayParamIds(TextureArrayName);
-        public static int ParamIdSampler(bool sourceLod = false) { return textureArrayParamIds.GetId(sourceLod); }
+        readonly static string s_textureArrayName = "_LD_TexArray_DynamicWaves";
+        private static TextureArrayParamIds s_textureArrayParamIds = new TextureArrayParamIds(s_textureArrayName);
+        public static int ParamIdSampler(bool sourceLod = false) { return s_textureArrayParamIds.GetId(sourceLod); }
         protected override int GetParamIdSampler(bool sourceLod = false)
         {
             return ParamIdSampler(sourceLod);
@@ -157,6 +157,15 @@ namespace Crest
         public static void BindNull(IPropertyWrapper properties, bool sourceLod = false)
         {
             properties.SetTexture(ParamIdSampler(sourceLod), TextureArrayHelpers.BlackTextureArray);
+        }
+
+#if UNITY_2019_3_OR_NEWER
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+#endif
+        static void InitStatics()
+        {
+            // Init here from 2019.3 onwards
+            s_textureArrayParamIds = new TextureArrayParamIds(s_textureArrayName);
         }
     }
 }

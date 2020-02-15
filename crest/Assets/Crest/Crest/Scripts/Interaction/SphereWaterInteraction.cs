@@ -47,10 +47,10 @@ namespace Crest
         Renderer _renderer;
         MaterialPropertyBlock _mpb;
 
-        readonly static int sp_velocity = Shader.PropertyToID("_Velocity");
-        readonly static int sp_weight = Shader.PropertyToID("_Weight");
-        readonly static int sp_simDeltaTime = Shader.PropertyToID("_SimDeltaTime");
-        readonly static int sp_radius = Shader.PropertyToID("_Radius");
+        static int sp_velocity = Shader.PropertyToID("_Velocity");
+        static int sp_weight = Shader.PropertyToID("_Weight");
+        static int sp_simDeltaTime = Shader.PropertyToID("_SimDeltaTime");
+        static int sp_radius = Shader.PropertyToID("_Radius");
 
         private void Start()
         {
@@ -248,6 +248,18 @@ namespace Crest
         {
             Gizmos.color = new Color(0f, 1f, 0f, 0.5f);
             Gizmos.DrawWireSphere(transform.position, Radius);
+        }
+
+#if UNITY_2019_3_OR_NEWER
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+#endif
+        static void InitStatics()
+        {
+            // Init here from 2019.3 onwards
+            sp_velocity = Shader.PropertyToID("_Velocity");
+            sp_weight = Shader.PropertyToID("_Weight");
+            sp_simDeltaTime = Shader.PropertyToID("_SimDeltaTime");
+            sp_radius = Shader.PropertyToID("_Radius");
         }
     }
 }

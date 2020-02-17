@@ -226,5 +226,15 @@ namespace Crest
             }
             public int GetId(bool sourceLod) { return sourceLod ? _paramId_Source : _paramId; }
         }
+
+#if UNITY_2019_3_OR_NEWER
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+#endif
+        static void InitStatics()
+        {
+            // Init here from 2019.3 onwards
+            sp_LD_SliceIndex = Shader.PropertyToID("_LD_SliceIndex");
+            sp_LODChange = Shader.PropertyToID("_LODChange");
+        }
     }
 }

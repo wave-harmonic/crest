@@ -65,6 +65,16 @@ namespace Crest
 
         public int MaterialCount => _materials.Length;
         public Material GetMaterial(int index) => _materials[index];
+
+#if UNITY_2019_3_OR_NEWER
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+#endif
+        static void InitStatics()
+        {
+            // Init here from 2019.3 onwards
+            _registrar = new Dictionary<System.Type, List<ILodDataInput>>();
+            sp_Weight = Shader.PropertyToID("_Weight");
+        }
     }
 
     /// <summary>

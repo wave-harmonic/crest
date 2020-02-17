@@ -15,9 +15,10 @@ namespace Crest
 {
     internal static class PreparedReflections
     {
-        private static volatile RenderTexture _currentreflectiontexture;
+        private static volatile RenderTexture _currentreflectiontexture = null;
         private static volatile int _referenceCameraInstanceId = -1;
         private static volatile KeyValuePair<int, RenderTexture>[] _collection = new KeyValuePair<int, RenderTexture>[0];
+
         public static RenderTexture GetRenderTexture(int camerainstanceid)
         {
             if (camerainstanceid == _referenceCameraInstanceId)
@@ -61,6 +62,17 @@ namespace Crest
             // Rebuild with new element if not found
             _collection = currentcollection
                 .Append(new KeyValuePair<int, RenderTexture>(instanceId, reflectionTexture)).ToArray();
+        }
+
+#if UNITY_2019_3_OR_NEWER
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+#endif
+        static void InitStatics()
+        {
+            // Init here from 2019.3 onwards
+            _currentreflectiontexture = null;
+            _referenceCameraInstanceId = -1;
+            _collection = new KeyValuePair<int, RenderTexture>[0];
         }
     }
 

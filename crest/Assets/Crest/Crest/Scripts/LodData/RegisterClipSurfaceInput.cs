@@ -15,7 +15,7 @@ namespace Crest
         bool _enabled = true;
         public override bool Enabled => _enabled;
 
-        [Tooltip("Uses the 'clip from geometry' shader. There are other clip shaders available.")]
+        [Tooltip("Uses the 'clip from convex hull' shader. There are other clip shaders available.")]
         [SerializeField] bool _assignClipSurfaceMaterial = true;
 
         [Tooltip("Prevents inputs from cancelling each other out when aligned vertically. It is imperfect so custom logic might be needed for your use case.")]
@@ -36,7 +36,7 @@ namespace Crest
             if (_assignClipSurfaceMaterial)
             {
                 var rend = GetComponent<Renderer>();
-                rend.material = new Material(Shader.Find("Crest/Inputs/Clip Surface/Add From Geometry"));
+                rend.material = new Material(Shader.Find("Crest/Inputs/Clip Surface/Convex Hull"));
             }
         }
 

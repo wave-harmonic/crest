@@ -2,9 +2,9 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
-// Renders the geometry to the clip surface texture.
+// Renders convex hull to the clip surface texture.
 
-Shader "Crest/Inputs/Clip Surface/Add From Geometry"
+Shader "Crest/Inputs/Clip Surface/Convex Hull"
 {
 	SubShader
 	{

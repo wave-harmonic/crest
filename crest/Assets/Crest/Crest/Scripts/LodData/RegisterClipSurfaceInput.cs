@@ -46,12 +46,17 @@ namespace Crest
             _rend = GetComponent<Renderer>();
         }
 
-        void Update()
+        private void LateUpdate()
         {
+            if (OceanRenderer.Instance == null)
+            {
+                return;
+            }
+
+            // Prevents possible conflicts since overlapping doesn't work for every case.
             if (_disableClipSurfaceWhenTooFarFromSurface)
             {
                 var position = transform.position;
-
                 _sampleHeightHelper.Init(position, 0f);
                 float waterHeight = 0f;
 
@@ -64,14 +69,6 @@ namespace Crest
             else
             {
                 _enabled = true;
-            }
-        }
-
-        private void LateUpdate()
-        {
-            if (OceanRenderer.Instance == null)
-            {
-                return;
             }
 
             // find which lod this object is overlapping

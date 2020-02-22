@@ -20,7 +20,7 @@ Shader "Hidden/Crest/Simulation/Combine Animated Wave LODs"
 			CGPROGRAM
 			#pragma vertex Vert
 			#pragma fragment Frag
-			
+
 			#pragma multi_compile __ _DYNAMIC_WAVE_SIM_ON
 			#pragma multi_compile __ _FLOW_ON
 
@@ -75,7 +75,7 @@ Shader "Hidden/Crest/Simulation/Combine Animated Wave LODs"
 				float sss = 0.0;
 
 #if _FLOW_ON
-				float2 flow = 0.0;
+				half2 flow = 0.0;
 				SampleFlow(_LD_TexArray_Flow, uv_thisLod, 1.0, flow);
 
 				float2 offsets, weights;
@@ -170,7 +170,7 @@ Shader "Hidden/Crest/Simulation/Combine Animated Wave LODs"
 				o.uv = GetFullScreenTriangleTexCoord(input.VertexID);
 				return o;
 			}
-			
+
 			half4 Frag(Varyings input) : SV_Target
 			{
 				return _CombineBuffer.SampleLevel(LODData_point_clamp_sampler, input.uv, 0.0);

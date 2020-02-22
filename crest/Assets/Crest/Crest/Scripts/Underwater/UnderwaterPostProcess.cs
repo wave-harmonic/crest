@@ -172,7 +172,7 @@ namespace Crest
                 return;
             }
 
-            InitialiseMaskTextures(source, ref _textureMask, ref _depthBuffer);
+            InitialiseMaskTextures(source, ref _textureMask, ref _depthBuffer, new Vector2Int(source.width, source.height));
             PopulateOceanMask(
                 _commandBuffer, _mainCamera, this,
                 _textureMask.colorBuffer, _depthBuffer.depthBuffer,

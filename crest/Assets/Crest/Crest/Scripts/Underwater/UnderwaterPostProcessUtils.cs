@@ -30,15 +30,18 @@ namespace Crest
         internal const string FULL_SCREEN_EFFECT = "_FULL_SCREEN_EFFECT";
         internal const string DEBUG_VIEW_OCEAN_MASK = "_DEBUG_VIEW_OCEAN_MASK";
 
-        internal static void InitialiseMaskTextures(RenderTexture source, ref RenderTexture textureMask, ref RenderTexture depthBuffer)
+        internal static void InitialiseMaskTextures(RenderTexture source, ref RenderTexture textureMask, ref RenderTexture depthBuffer, Vector2Int pixelDimensions)
         {
-            if (textureMask == null || textureMask.width != source.width || textureMask.height != source.height)
+            // Note: we pass-through pixel dimensions explicitly as we have to handle this slightly differently in HDRP
+            if (textureMask == null || textureMask.width != pixelDimensions.x || textureMask.height != pixelDimensions.y)
             {
                 textureMask = new RenderTexture(source);
                 textureMask.name = "Ocean Mask";
                 // @Memory: We could investigate making this an 8-bit texture instead to reduce GPU memory usage.
                 // We could also potentially try a half res mask as the mensicus could mask res issues.
                 textureMask.format = RenderTextureFormat.RHalf;
+                textureMask.width = pixelDimensions.x;
+                textureMask.height = pixelDimensions.y;
                 textureMask.Create();
 
                 depthBuffer = new RenderTexture(source);
@@ -46,6 +49,8 @@ namespace Crest
                 depthBuffer.enableRandomWrite = false;
                 depthBuffer.name = "Ocean Mask Depth";
                 depthBuffer.format = RenderTextureFormat.Depth;
+                depthBuffer.width = pixelDimensions.x;
+                depthBuffer.height = pixelDimensions.y;
                 depthBuffer.Create();
             }
         }

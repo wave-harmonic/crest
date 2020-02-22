@@ -278,7 +278,7 @@ MonoBehaviour:
   _createFlowSim: 1
   _simSettingsFlow: {fileID: 0}
   _createShadowData: 0
-  _primaryLight: {fileID: 0}
+  _primaryLight: {fileID: 4144245363858776826}
   _simSettingsShadow: {fileID: 0}
   _createClipSurfaceData: 0
   _attachDebugGUI: 1
@@ -635,6 +635,12 @@ PrefabInstance:
 --- !u!4 &9210927433410214749 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 1399345652565587599, guid: 37bbe23c17398419cbc8674f5c5dbccb,
+    type: 3}
+  m_PrefabInstance: {fileID: 7834205916319206866}
+  m_PrefabAsset: {fileID: 0}
+--- !u!108 &4144245363858776826 stripped
+Light:
+  m_CorrespondingSourceObject: {fileID: 6141750961475219240, guid: 37bbe23c17398419cbc8674f5c5dbccb,
     type: 3}
   m_PrefabInstance: {fileID: 7834205916319206866}
   m_PrefabAsset: {fileID: 0}

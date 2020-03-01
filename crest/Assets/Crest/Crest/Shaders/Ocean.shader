@@ -298,7 +298,7 @@ Shader "Crest/Ocean"
 					const float3 uv_slice_smallerLod = WorldToUV(positionWS_XZ_before);
 
 					#if !_DEBUGDISABLESHAPETEXTURES_ON
-					half sss = 0.;
+					float sss = 0.;
 					SampleDisplacements(_LD_TexArray_AnimatedWaves, uv_slice_smallerLod, wt_smallerLod, o.worldPos, sss);
 					#endif
 
@@ -315,7 +315,7 @@ Shader "Crest/Ocean"
 					const float3 uv_slice_biggerLod = WorldToUV_BiggerLod(positionWS_XZ_before);
 
 					#if !_DEBUGDISABLESHAPETEXTURES_ON
-					half sss = 0.;
+					float sss = 0.;
 					SampleDisplacements(_LD_TexArray_AnimatedWaves, uv_slice_biggerLod, wt_biggerLod, o.worldPos, sss);
 					#endif
 
@@ -472,7 +472,7 @@ Shader "Crest/Ocean"
 				// Add 0.5 bias for LOD blending and texel resolution correction. This will help to tighten and smooth clipped edges
 				clip(-clipVal + 0.5);
 				#endif
-				
+
 				// Foam - underwater bubbles and whitefoam
 				half3 bubbleCol = (half3)0.;
 				#if _FOAM_ON
@@ -498,7 +498,7 @@ Shader "Crest/Ocean"
 				// disable transparency, so this will always be 1.0.
 				float reflAlpha = 1.0;
 				#endif
-				
+
 				#if _UNDERWATER_ON
 				if (underwater)
 				{

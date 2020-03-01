@@ -51,7 +51,7 @@ half3 ScatterColour(
 	in const half3 i_lightDir, in const half3 i_view, in const fixed i_shadow,
 	in const bool i_underwater, in const bool i_outscatterLight, half sss)
 {
-	half depth;
+	float depth;
 	half shadow = 1.0;
 	if (i_underwater)
 	{
@@ -73,7 +73,7 @@ half3 ScatterColour(
 		uint slice0, slice1; float lodAlpha;
 		PosToSliceIndices(samplePoint, _InstanceData.x, minSliceIndex, slice0, slice1, lodAlpha);
 
-		float2 shadowSoftHard = 0.0;
+		half2 shadowSoftHard = 0.0;
 		// TODO - fix data type of slice index in WorldToUV - #343
 		SampleShadow(_LD_TexArray_Shadow, WorldToUV(samplePoint, slice0), 1.0 - lodAlpha, shadowSoftHard);
 		SampleShadow(_LD_TexArray_Shadow, WorldToUV(samplePoint, slice1), lodAlpha, shadowSoftHard);
@@ -143,8 +143,8 @@ void ApplyCaustics(in const half3 i_view, in const half3 i_lightDir, in const fl
 	float3 camForward = mul((float3x3)unity_CameraToWorld, float3(0., 0., 1.));
 	float3 scenePos = _WorldSpaceCameraPos - i_view * i_sceneZ / dot(camForward, -i_view);
 	const float3 scenePosUV = WorldToUV_BiggerLod(scenePos.xz);
-	half3 disp = 0.;
-	half sss = 0.;
+	float3 disp = 0.;
+	float sss = 0.;
 	// this gives height at displaced position, not exactly at query position.. but it helps. i cant pass this from vert shader
 	// because i dont know it at scene pos.
 	SampleDisplacements(_LD_TexArray_AnimatedWaves, scenePosUV, 1.0, disp, sss);

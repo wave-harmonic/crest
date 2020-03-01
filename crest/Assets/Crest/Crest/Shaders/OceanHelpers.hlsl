@@ -61,9 +61,9 @@ void ComputePositionDisplacement(inout float3 io_positionWS, in const float i_lo
 	const float2 worldXZ = io_positionWS.xz;
 	float wt_smallerLod = (1.0 - i_lodAlpha) * _LD_Params[_LD_SliceIndex].z;
 	float wt_biggerLod = (1.0 - wt_smallerLod) * _LD_Params[_LD_SliceIndex + 1].z;
-	
+
 	// Sample displacement textures and add results to current world position
-	half dummy = 0.0;
+	float dummy = 0.0;
 	if (wt_smallerLod > 0.001)
 	{
 		SampleDisplacements(_LD_TexArray_AnimatedWaves, WorldToUV(worldXZ), wt_smallerLod, io_positionWS, dummy);

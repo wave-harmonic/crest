@@ -4,7 +4,7 @@
 
 // Renders the R channel from the provided texture to the clip surface texture.
 
-Shader "Crest/Inputs/Clip Surface/Add From Texture"
+Shader "Crest/Inputs/Clip Surface/Remove Area Texture"
 {
 	Properties
 	{

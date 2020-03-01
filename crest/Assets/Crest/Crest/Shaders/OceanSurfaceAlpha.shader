@@ -55,7 +55,9 @@ Shader "Crest/Ocean Surface Alpha"
 			{
 				float4 positionCS : SV_POSITION;
 				float2 uv : TEXCOORD0;
-				UNITY_FOG_COORDS(1)
+				float3 worldPos : TEXCOORD1;
+				float lodAlpha : TEXCOORD2;
+				UNITY_FOG_COORDS(3)
 			};
 
 			Varyings Vert(Attributes input)
@@ -88,6 +90,10 @@ Shader "Crest/Ocean Surface Alpha"
 				// view-projection
 				o.positionCS = mul(UNITY_MATRIX_VP, float4(worldPos, 1.0));
 
+				// For clip surface sampling
+				o.worldPos = worldPos;
+				o.lodAlpha = lodAlpha;
+
 				o.uv = TRANSFORM_TEX(input.uv, _MainTex);
 				UNITY_TRANSFER_FOG(o, o.positionCS);
 				return o;
@@ -95,6 +101,9 @@ Shader "Crest/Ocean Surface Alpha"
 
 			half4 Frag(Varyings input) : SV_Target
 			{
+				// We don't want decals etc floating on nothing
+				ApplyOceanClipSurface(input.worldPos, input.lodAlpha);
+
 				half4 col = tex2D(_MainTex, input.uv);
 
 				UNITY_APPLY_FOG(input.fogCoord, col);

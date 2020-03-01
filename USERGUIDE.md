@@ -277,15 +277,6 @@ To help reduce cost a height cache can be enabled in the *Animated Waves Sim Set
 
 The density of the fog underwater can be controlled using the *Fog Density* parameter on the ocean material. This applies to both above water and underwater.
 
-## Masking out surface (DEPRECATED)
-
-**Note:** We are deprecating this approach in favour of the more flexible *Clip Surface Data* described above.
-
-There are times when it is useful to mask out the ocean surface which prevents it drawing on some part of the screen.
-The scene *main.unity* in the example content has a rowboat which, without masking, would appear to be full of water.
-To prevent water appearing inside the boat, the *WaterMask* gameobject writes depth into the GPU's depth buffer which can occlude any water behind it, and therefore prevent drawing water inside the boat.
-The *RegisterMaskInput* component is required to ensure this depth draws early before the ocean surface.
-
 ## Floating origin
 
 *Crest* has support for 'floating origin' functionality, based on code from the Unity community wiki. See the original wiki page for an overview and original code: [link](http://wiki.unity3d.com/index.php/Floating_Origin).

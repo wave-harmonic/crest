@@ -202,10 +202,6 @@ Shader "Crest/Underwater Curtain"
 				}
 #endif // _CAUSTICS_ON
 
-				// Darken the background to model light outscattered as it passes from sun/env through water to the background surface
-				half camDepth = max(_OceanCenterPosWorld.y - _WorldSpaceCameraPos.y, 0.0);
-				sceneColour *= exp(-_DepthFogDensity.xyz * camDepth * DEPTH_OUTSCATTER_CONSTANT);
-
 				half3 col = lerp(sceneColour, scatterCol, 1.0 - exp(-_DepthFogDensity.xyz * sceneZ));
 
 				return half4(col, 1.0);

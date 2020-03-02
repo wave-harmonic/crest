@@ -2,6 +2,9 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+#ifndef CREST_CONSTANTS_H
+#define CREST_CONSTANTS_H
+
 // NOTE: these MUST match the values in PropertyWrapper.cs
 #define THREAD_GROUP_SIZE_X 8
 #define THREAD_GROUP_SIZE_Y 8
@@ -22,3 +25,5 @@
 #define UNDERWATER_MASK_WATER_SURFACE_ABOVE 0.0
 // Water rendered from below
 #define UNDERWATER_MASK_WATER_SURFACE_BELOW 2.0
+
+#endif // CREST_CONSTANTS_H

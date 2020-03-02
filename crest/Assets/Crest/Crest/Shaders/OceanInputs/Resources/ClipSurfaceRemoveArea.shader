@@ -4,7 +4,7 @@
 
 // Renders the geometry to the clip surface texture.
 
-Shader "Crest/Inputs/Clip Surface/Add From Geometry"
+Shader "Crest/Inputs/Clip Surface/Remove Area"
 {
 	SubShader
 	{

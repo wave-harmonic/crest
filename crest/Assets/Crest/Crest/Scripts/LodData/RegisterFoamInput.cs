@@ -11,6 +11,8 @@ namespace Crest
     /// </summary>
     public class RegisterFoamInput : RegisterLodDataInput<LodDataMgrFoam>
     {
+        public override bool Enabled => true;
+
         public override float Wavelength => 0f;
 
         protected override Color GizmoColor => new Color(1f, 1f, 1f, 0.5f);

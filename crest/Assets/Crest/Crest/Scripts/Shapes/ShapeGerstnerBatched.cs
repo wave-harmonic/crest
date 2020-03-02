@@ -90,16 +90,16 @@ namespace Crest
         // Shader to be used to render evaluate Gerstner waves for each LOD
         Shader _waveShader;
 
-        static int sp_TwoPiOverWavelengths = Shader.PropertyToID("_TwoPiOverWavelengths");
-        static int sp_Amplitudes = Shader.PropertyToID("_Amplitudes");
-        static int sp_WaveDirX = Shader.PropertyToID("_WaveDirX");
-        static int sp_WaveDirZ = Shader.PropertyToID("_WaveDirZ");
-        static int sp_Phases = Shader.PropertyToID("_Phases");
-        static int sp_ChopAmps = Shader.PropertyToID("_ChopAmps");
-        static int sp_NumInBatch = Shader.PropertyToID("_NumInBatch");
-        static int sp_AttenuationInShallows = Shader.PropertyToID("_AttenuationInShallows");
-        static int sp_NumWaveVecs = Shader.PropertyToID("_NumWaveVecs");
-        static int sp_TargetPointData = Shader.PropertyToID("_TargetPointData");
+        readonly int sp_TwoPiOverWavelengths = Shader.PropertyToID("_TwoPiOverWavelengths");
+        readonly int sp_Amplitudes = Shader.PropertyToID("_Amplitudes");
+        readonly int sp_WaveDirX = Shader.PropertyToID("_WaveDirX");
+        readonly int sp_WaveDirZ = Shader.PropertyToID("_WaveDirZ");
+        readonly int sp_Phases = Shader.PropertyToID("_Phases");
+        readonly int sp_ChopAmps = Shader.PropertyToID("_ChopAmps");
+        readonly int sp_NumInBatch = Shader.PropertyToID("_NumInBatch");
+        readonly int sp_AttenuationInShallows = Shader.PropertyToID("_AttenuationInShallows");
+        readonly int sp_NumWaveVecs = Shader.PropertyToID("_NumWaveVecs");
+        readonly int sp_TargetPointData = Shader.PropertyToID("_TargetPointData");
 
         // IMPORTANT - this mirrors the constant with the same name in ShapeGerstnerBatch.shader, both must be updated together!
         const int BATCH_SIZE = 32;
@@ -114,12 +114,12 @@ namespace Crest
         // scratch data used by batching code
         struct UpdateBatchScratchData
         {
-            public static Vector4[] _twoPiOverWavelengthsBatch = new Vector4[BATCH_SIZE / 4];
-            public static Vector4[] _ampsBatch = new Vector4[BATCH_SIZE / 4];
-            public static Vector4[] _waveDirXBatch = new Vector4[BATCH_SIZE / 4];
-            public static Vector4[] _waveDirZBatch = new Vector4[BATCH_SIZE / 4];
-            public static Vector4[] _phasesBatch = new Vector4[BATCH_SIZE / 4];
-            public static Vector4[] _chopAmpsBatch = new Vector4[BATCH_SIZE / 4];
+            public readonly static Vector4[] _twoPiOverWavelengthsBatch = new Vector4[BATCH_SIZE / 4];
+            public readonly static Vector4[] _ampsBatch = new Vector4[BATCH_SIZE / 4];
+            public readonly static Vector4[] _waveDirXBatch = new Vector4[BATCH_SIZE / 4];
+            public readonly static Vector4[] _waveDirZBatch = new Vector4[BATCH_SIZE / 4];
+            public readonly static Vector4[] _phasesBatch = new Vector4[BATCH_SIZE / 4];
+            public readonly static Vector4[] _chopAmpsBatch = new Vector4[BATCH_SIZE / 4];
         }
 
         void Start()
@@ -463,7 +463,7 @@ namespace Crest
 
         void OnDisable()
         {
-            if (OceanRenderer.Instance != null && _batches != null)
+            if (_batches != null)
             {
                 var registered = RegisterLodDataInputBase.GetRegistrar(typeof(LodDataMgrAnimWaves));
                 foreach (var batch in _batches)
@@ -728,6 +728,15 @@ namespace Crest
         public bool RetrieveSucceeded(int queryStatus)
         {
             return queryStatus == 0;
+        }
+
+#if UNITY_2019_3_OR_NEWER
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+#endif
+        static void InitStatics()
+        {
+            // Init here from 2019.3 onwards
+            _rasterMesh = null;
         }
     }
 

@@ -20,6 +20,8 @@ Shader "Crest/Inputs/Clip Surface/Convex Hull"
 			#pragma fragment Frag
 
 			#include "UnityCG.cginc"
+			#include "../../OceanGlobals.hlsl"
+			#include "../../OceanInputsDriven.hlsl"
 			#include "../../OceanHelpers.hlsl"
 
 			struct Attributes
@@ -32,8 +34,6 @@ Shader "Crest/Inputs/Clip Surface/Convex Hull"
 				float4 positionCS : SV_POSITION;
 				float3 positionWS : TEXCOORD0;
 			};
-
-			float3 _InstanceData;
 
 			Varyings Vert(Attributes input)
 			{
@@ -74,6 +74,8 @@ Shader "Crest/Inputs/Clip Surface/Convex Hull"
 			#pragma fragment Frag
 
 			#include "UnityCG.cginc"
+			#include "../../OceanGlobals.hlsl"
+			#include "../../OceanInputsDriven.hlsl"
 			#include "../../OceanHelpers.hlsl"
 
 			struct Attributes
@@ -86,8 +88,6 @@ Shader "Crest/Inputs/Clip Surface/Convex Hull"
 				float4 positionCS : SV_POSITION;
 				float3 positionWS : TEXCOORD0;
 			};
-
-			float3 _InstanceData;
 
 			Varyings Vert(Attributes input)
 			{

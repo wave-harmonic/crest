@@ -88,10 +88,10 @@ void ShapeCombineBase (uint3 id)
 	float3 uv_thisLod = float3(input_uv, _LD_SliceIndex);
 
 	float3 result = 0.0;
-	half sss = 0.;
+	float sss = 0.;
 	// this lods waves
 #if _FLOW_ON
-	float2 flow = 0.0;
+	half2 flow = 0.0;
 	SampleFlow(_LD_TexArray_Flow, uv_thisLod, 1.0, flow);
 
 	float2 offsets, weights;

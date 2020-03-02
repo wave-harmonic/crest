@@ -55,6 +55,15 @@ namespace Crest
                 var lodDataAnimWaves = OceanRenderer.Instance._lodDataAnimWaves;
                 _mpb.SetInt(LodDataMgr.sp_LD_SliceIndex, lodIdx);
                 lodDataAnimWaves.BindResultData(_mpb);
+                var lodDataClipSurface = OceanRenderer.Instance._lodDataClipSurface;
+                if (lodDataClipSurface != null)
+                {
+                    lodDataClipSurface.BindResultData(_mpb);
+                }
+                else
+                {
+                    LodDataMgrClipSurface.BindNull(_mpb);
+                }
 
                 // blend LOD 0 shape in/out to avoid pop, if the ocean might scale up later (it is smaller than its maximum scale)
                 bool needToBlendOutShape = lodIdx == 0 && OceanRenderer.Instance.ScaleCouldIncrease;

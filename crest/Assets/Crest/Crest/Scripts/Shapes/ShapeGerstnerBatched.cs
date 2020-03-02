@@ -463,7 +463,7 @@ namespace Crest
 
         void OnDisable()
         {
-            if (OceanRenderer.Instance != null && _batches != null)
+            if (_batches != null)
             {
                 var registered = RegisterLodDataInputBase.GetRegistrar(typeof(LodDataMgrAnimWaves));
                 foreach (var batch in _batches)

@@ -22,7 +22,7 @@ namespace Crest
     {
         public abstract float Wavelength { get; }
 
-        public bool Enabled => true;
+        public abstract bool Enabled { get; }
 
         public static int sp_Weight = Shader.PropertyToID("_Weight");
 

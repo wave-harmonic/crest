@@ -277,6 +277,13 @@ To help reduce cost a height cache can be enabled in the *Animated Waves Sim Set
 
 The density of the fog underwater can be controlled using the *Fog Density* parameter on the ocean material. This applies to both above water and underwater.
 
+Checklist for using underwater:
+
+* Configure the ocean material for underwater rendering - in the **Underwater** section of the material params, ensure *Enabled* is turned on and *Cull Mode* is set to *Off* so that the underside of the ocean surface renders. See *Ocean-Underwater.mat* for an example.
+* Place *UnderWaterCurtainGeom* and *UnderWaterMeniscus* prefabs under the camera (with cleared transform).
+* Use opaque or alpha test materials for underwater surfaces. Transparents materials will not render correctly underwater.
+* For performance reasons, the underwater effect is disabled if the viewpoint is not underwater. If there are multiple cameras, the *Viewpoint* property of the *OceanRenderer* component must be set to the current active camera.
+
 ## Masking out surface (DEPRECATED)
 
 **Note:** We are deprecating this approach in favour of the more flexible *Clip Surface Data* described above.

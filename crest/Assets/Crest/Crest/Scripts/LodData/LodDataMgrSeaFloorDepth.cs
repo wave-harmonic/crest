@@ -55,7 +55,7 @@ namespace Crest
         }
         public static void BindNull(IPropertyWrapper properties, bool sourceLod = false)
         {
-            properties.SetTexture(ParamIdSampler(sourceLod), TextureArrayHelpers.BlackTextureArray);
+            properties.SetTexture(ParamIdSampler(sourceLod), TextureArrayHelpers.WhiteTextureArray);
         }
 
 #if UNITY_2019_3_OR_NEWER

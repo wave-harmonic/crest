@@ -20,8 +20,10 @@ Shader "Crest/Inputs/Flow/Fixed Direction"
 
 			#include "UnityCG.cginc"
 
+			CBUFFER_START(CrestPerOceanInput)
 			float _Speed;
 			float _Direction;
+			CBUFFER_END
 
 			struct Attributes
 			{

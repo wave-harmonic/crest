@@ -25,7 +25,10 @@ Shader "Crest/Inputs/Depth/Cached Depths"
 			#pragma fragment Frag
 		
 			sampler2D _MainTex;
+
+			CBUFFER_START(CrestPerOceanInput)
 			float4 _MainTex_ST;
+			CBUFFER_END
 
 			#include "UnityCG.cginc"
 

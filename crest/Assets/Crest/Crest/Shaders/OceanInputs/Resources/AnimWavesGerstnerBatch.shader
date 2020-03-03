@@ -36,6 +36,8 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Batch"
 
 			#define PI 3.141593
 
+			// Caution - this exploded on vulkan due to a collision with 'CrestPerObject' cbuffer in OceanInput
+			CBUFFER_START(GerstnerUniforms)
 			half _Weight;
 			half _AttenuationInShallows;
 			uint _NumWaveVecs;
@@ -48,6 +50,7 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Batch"
 			half4 _ChopAmps[BATCH_SIZE / 4];
 
 			float4 _TargetPointData;
+			CBUFFER_END
 
 			struct Attributes
 			{

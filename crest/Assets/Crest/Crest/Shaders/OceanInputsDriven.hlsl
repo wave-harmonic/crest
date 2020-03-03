@@ -7,7 +7,7 @@
 
 #include "OceanConstants.hlsl"
 
-//CBUFFER_START(CrestOceanSurfaceDrivenValues)
+CBUFFER_START(CrestOceanSurfaceDrivenValues)
 // MeshScaleLerp, FarNormalsWeight, LODIndex (debug)
 float3 _InstanceData;
 
@@ -28,7 +28,7 @@ float3 _LD_Pos_Scale[MAX_LOD_COUNT + 1];
 float _LD_SliceIndex;
 float4 _LD_Params_Source[MAX_LOD_COUNT + 1];
 float3 _LD_Pos_Scale_Source[MAX_LOD_COUNT + 1];
-//CBUFFER_END
+CBUFFER_END
 
 Texture2DArray _LD_TexArray_AnimatedWaves;
 Texture2DArray _LD_TexArray_WaveBuffer;

@@ -4,6 +4,7 @@
 
 #pragma kernel UpdateFoam
 
+#include "../Macros.hlsl"
 #include "../OceanGlobals.hlsl"
 #include "../OceanInputsDriven.hlsl"
 #include "../OceanLODData.hlsl"

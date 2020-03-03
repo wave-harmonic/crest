@@ -28,12 +28,14 @@ Shader "Crest/Inputs/Dynamic Waves/Object Interaction"
 
 			#include "UnityCG.cginc"
 
+			CBUFFER_START(CrestPerOceanInput)
 			float _FactorParallel;
 			float _FactorOrthogonal;
 			float3 _Velocity;
 			float _SimDeltaTime;
 			float _Strength;
 			float _Weight;
+			CBUFFER_END
 			
 			struct Attributes
 			{

@@ -21,7 +21,9 @@ Shader "Crest/Inputs/Animated Waves/Push Water Under Convex Hull"
 
 			#include "../OceanGlobals.hlsl"
 
+			CBUFFER_START(CrestPerOceanInput)
 			float _Weight;
+			CBUFFER_END
 
  			struct Attributes
 			{

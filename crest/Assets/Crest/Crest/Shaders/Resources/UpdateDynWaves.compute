@@ -13,11 +13,13 @@
 #include "../OceanInputsDriven.hlsl"
 #include "../OceanLODData.hlsl"
 
+CBUFFER_START(CrestPerMaterial)
 float _Damping;
 float2 _LaplacianAxisX;
 float _Gravity;
 float _SimDeltaTime;
 float _LODChange;
+CBUFFER_END
 
 float ComputeWaveSpeed(float wavelength, float g)
 {

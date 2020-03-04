@@ -34,7 +34,9 @@ Shader "Crest/Underwater Meniscus"
 
 			#define MAX_OFFSET 5.0
 
+			CBUFFER_START(UnderwaterAdditional)
 			float _MeniscusWidth;
+			CBUFFER_END
 
 			struct Attributes
 			{

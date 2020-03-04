@@ -2,6 +2,8 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+// Ocean LOD data - data, samplers and functions associated with LODs
+
 // Conversions for world space from/to UV space. All these should *not* be clamped otherwise they'll break fullscreen triangles.
 float2 LD_WorldToUV(in float2 i_samplePos, in float2 i_centerPos, in float i_res, in float i_texelSize)
 {

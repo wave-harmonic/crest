@@ -22,9 +22,11 @@ Shader "Crest/Inputs/Animated Waves/Wave Particle"
 			#pragma vertex Vert
 			#pragma fragment Frag
 
+			CBUFFER_START(CrestPerOceanInput)
 			float _Radius;
 			float _Amplitude;
 			float _Weight;
+			CBUFFER_END
 
 			struct Attributes
 			{

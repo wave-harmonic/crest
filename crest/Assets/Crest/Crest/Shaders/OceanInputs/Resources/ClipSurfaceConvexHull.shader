@@ -20,7 +20,10 @@ Shader "Crest/Inputs/Clip Surface/Convex Hull"
 			#pragma fragment Frag
 
 			#include "UnityCG.cginc"
-			#include "../../OceanHelpers.hlsl"
+			#include "../../OceanGlobals.hlsl"
+			#include "../../OceanInputsDriven.hlsl"
+			#include "../../OceanHelpersNew.hlsl"
+			#include "../../OceanHelpersDriven.hlsl"
 
 			struct Attributes
 			{
@@ -33,8 +36,6 @@ Shader "Crest/Inputs/Clip Surface/Convex Hull"
 				float3 positionWS : TEXCOORD0;
 			};
 
-			float3 _InstanceData;
-
 			Varyings Vert(Attributes input)
 			{
 				Varyings o;
@@ -45,18 +46,12 @@ Shader "Crest/Inputs/Clip Surface/Convex Hull"
 
 			float4 Frag(Varyings input) : SV_Target
 			{
-				// Get ocean surface world position
-				float3 surfacePosition;
-				surfacePosition.xz = input.positionWS.xz;
-				surfacePosition.y = 0.0;
-				float lodAlpha = ComputeLodAlpha(surfacePosition, _InstanceData.x);
-				ComputePositionDisplacement(surfacePosition, lodAlpha);
-
+				float3 surfacePositionWS = SampleOceanDataAtWorldPosition(_LD_TexArray_AnimatedWaves, input.positionWS).xyz;
 				// Move to sea level
-				surfacePosition.y += _OceanCenterPosWorld.y;
+				surfacePositionWS.y += _OceanCenterPosWorld.y;
 
 				// Write red if underwater
-				if (input.positionWS.y >= surfacePosition.y)
+				if (input.positionWS.y >= surfacePositionWS.y)
 				{
 					clip(-1);
 				}
@@ -74,7 +69,10 @@ Shader "Crest/Inputs/Clip Surface/Convex Hull"
 			#pragma fragment Frag
 
 			#include "UnityCG.cginc"
-			#include "../../OceanHelpers.hlsl"
+			#include "../../OceanGlobals.hlsl"
+			#include "../../OceanInputsDriven.hlsl"
+			#include "../../OceanHelpersNew.hlsl"
+			#include "../../OceanHelpersDriven.hlsl"
 
 			struct Attributes
 			{
@@ -87,8 +85,6 @@ Shader "Crest/Inputs/Clip Surface/Convex Hull"
 				float3 positionWS : TEXCOORD0;
 			};
 
-			float3 _InstanceData;
-
 			Varyings Vert(Attributes input)
 			{
 				Varyings o;
@@ -99,18 +95,12 @@ Shader "Crest/Inputs/Clip Surface/Convex Hull"
 
 			float4 Frag(Varyings input) : SV_Target
 			{
-				// Get ocean surface world position
-				float3 surfacePosition;
-				surfacePosition.xz = input.positionWS.xz;
-				surfacePosition.y = 0.0;
-				float lodAlpha = ComputeLodAlpha(surfacePosition, _InstanceData.x);
-				ComputePositionDisplacement(surfacePosition, lodAlpha);
-
+				float3 surfacePositionWS = SampleOceanDataAtWorldPosition(_LD_TexArray_AnimatedWaves, input.positionWS).xyz;
 				// Move to sea level
-				surfacePosition.y += _OceanCenterPosWorld.y;
+				surfacePositionWS.y += _OceanCenterPosWorld.y;
 
 				// Write black if underwater
-				if (input.positionWS.y >= surfacePosition.y)
+				if (input.positionWS.y >= surfacePositionWS.y)
 				{
 					clip(-1);
 				}

@@ -23,13 +23,14 @@ Shader "Crest/Inputs/Depth/Cached Depths"
 			CGPROGRAM
 			#pragma vertex Vert
 			#pragma fragment Frag
-
-			#include "../../OceanLODData.hlsl"
+		
+			#include "UnityCG.cginc"
 
 			sampler2D _MainTex;
-			float4 _MainTex_ST;
 
-			#include "UnityCG.cginc"
+			CBUFFER_START(CrestPerOceanInput)
+			float4 _MainTex_ST;
+			CBUFFER_END
 
 			struct Attributes
 			{

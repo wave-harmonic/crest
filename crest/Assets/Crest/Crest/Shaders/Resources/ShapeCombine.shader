@@ -100,7 +100,7 @@ Shader "Hidden/Crest/Simulation/Combine Animated Wave LODs"
 				}
 
 				// waves to combine down from the next lod up the chain
-				if (_LD_SliceIndex < arrayDepth - 1.0)
+				if ((float)_LD_SliceIndex < arrayDepth - 1.0)
 				{
 					float4 dataNextLod = _LD_TexArray_AnimatedWaves.SampleLevel(LODData_linear_clamp_sampler, uv_nextLod, 0.0);
 					result += dataNextLod.xyz;

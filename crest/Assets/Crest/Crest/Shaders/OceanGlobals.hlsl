@@ -13,7 +13,7 @@ SamplerState sampler_Crest_linear_repeat;
 
 CBUFFER_START(CrestPerFrame)
 float _CrestTime;
-half _TexelsPerWave;
+float _TexelsPerWave;
 float3 _OceanCenterPosWorld;
 float _SliceCount;
 float _MeshScaleLerp;

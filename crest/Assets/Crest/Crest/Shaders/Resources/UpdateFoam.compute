@@ -4,11 +4,12 @@
 
 #pragma kernel UpdateFoam
 
-#include "../Macros.hlsl"
+#include "HLSLSupport.cginc"
 #include "../OceanGlobals.hlsl"
 #include "../OceanInputsDriven.hlsl"
 #include "../OceanLODData.hlsl"
 
+CBUFFER_START(CrestPerMaterial)
 float _FoamFadeRate;
 float _WaveFoamStrength;
 float _WaveFoamCoverage;
@@ -17,6 +18,7 @@ float _ShorelineFoamStrength;
 float _SimDeltaTime;
 float _SimDeltaTimePrev;
 float _LODChange;
+CBUFFER_END
 
 RWTexture2DArray<float> _LD_TexArray_Target;
 

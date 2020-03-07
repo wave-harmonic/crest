@@ -21,6 +21,9 @@ namespace Crest
         [Tooltip("Prevents inputs from cancelling each other out when aligned vertically. It is imperfect so custom logic might be needed for your use case.")]
         [SerializeField] bool _disableClipSurfaceWhenTooFarFromSurface = true;
 
+        [Tooltip("Large and choppy waves require higher iterations to have accurate holes.")]
+        [SerializeField] int _animatedWavesDisplacementSamplingIterations = 4;
+
         public override float Wavelength => 0f;
 
         protected override Color GizmoColor => new Color(0f, 1f, 1f, 0.5f);
@@ -28,6 +31,8 @@ namespace Crest
         PropertyWrapperMPB _mpb;
         Renderer _rend;
         SampleHeightHelper _sampleHeightHelper = new SampleHeightHelper();
+
+        static int sp_DisplacementSamplingIterations = Shader.PropertyToID("_DisplacementSamplingIterations");
 
         protected override void OnEnable()
         {
@@ -87,6 +92,7 @@ namespace Crest
                 var lodCount = OceanRenderer.Instance.CurrentLodCount;
                 var lodDataAnimWaves = OceanRenderer.Instance._lodDataAnimWaves;
                 _mpb.SetInt(LodDataMgr.sp_LD_SliceIndex, lodIdx);
+                _mpb.SetInt(sp_DisplacementSamplingIterations, _animatedWavesDisplacementSamplingIterations);
                 lodDataAnimWaves.BindResultData(_mpb);
 
                 // blend LOD 0 shape in/out to avoid pop, if the ocean might scale up later (it is smaller than its maximum scale)

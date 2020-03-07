@@ -25,6 +25,10 @@ Shader "Crest/Inputs/Clip Surface/Convex Hull"
 			#include "../../OceanHelpersNew.hlsl"
 			#include "../../OceanHelpersDriven.hlsl"
 
+			CBUFFER_START(CrestPerOceanInput)
+			int _DisplacementSamplingIterations;
+			CBUFFER_END
+
 			struct Attributes
 			{
 				float3 positionOS : POSITION;
@@ -44,15 +48,13 @@ Shader "Crest/Inputs/Clip Surface/Convex Hull"
 				return o;
 			}
 
-			#define ITERATIONS 4
-
 			float4 Frag(Varyings input) : SV_Target
 			{
 				float3 surfacePositionWS = SampleOceanDataAtWorldPosition
 				(
 					_LD_TexArray_AnimatedWaves,
 					input.positionWS,
-					ITERATIONS
+					_DisplacementSamplingIterations
 				);
 
 				// Move to sea level
@@ -82,6 +84,10 @@ Shader "Crest/Inputs/Clip Surface/Convex Hull"
 			#include "../../OceanHelpersNew.hlsl"
 			#include "../../OceanHelpersDriven.hlsl"
 
+			CBUFFER_START(CrestPerOceanInput)
+			int _DisplacementSamplingIterations;
+			CBUFFER_END
+
 			struct Attributes
 			{
 				float3 positionOS : POSITION;
@@ -101,15 +107,13 @@ Shader "Crest/Inputs/Clip Surface/Convex Hull"
 				return o;
 			}
 
-			#define ITERATIONS 4
-
 			float4 Frag(Varyings input) : SV_Target
 			{
 				float3 surfacePositionWS = SampleOceanDataAtWorldPosition
 				(
 					_LD_TexArray_AnimatedWaves,
 					input.positionWS,
-					ITERATIONS
+					_DisplacementSamplingIterations
 				);
 
 				// Move to sea level

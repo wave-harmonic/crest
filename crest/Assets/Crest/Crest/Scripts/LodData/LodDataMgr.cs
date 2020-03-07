@@ -183,7 +183,7 @@ namespace Crest
                     continue;
                 }
 
-                draw.Draw(buf, 1f, 0);
+                draw.Draw(buf, 1f, 0, lodIdx);
             }
         }
 
@@ -206,7 +206,7 @@ namespace Crest
                 float weight = filter.Filter(draw, out isTransition);
                 if (weight > 0f)
                 {
-                    draw.Draw(buf, weight, isTransition);
+                    draw.Draw(buf, weight, isTransition, lodIdx);
                 }
             }
         }

@@ -44,7 +44,6 @@ Shader "Crest/Inputs/Clip Surface/Convex Hull"
 				return o;
 			}
 
-			#define MIN_SLICE 2.0
 			#define ITERATIONS 4
 
 			float4 Frag(Varyings input) : SV_Target
@@ -53,7 +52,6 @@ Shader "Crest/Inputs/Clip Surface/Convex Hull"
 				(
 					_LD_TexArray_AnimatedWaves,
 					input.positionWS,
-					MIN_SLICE,
 					ITERATIONS
 				);
 
@@ -103,7 +101,6 @@ Shader "Crest/Inputs/Clip Surface/Convex Hull"
 				return o;
 			}
 
-			#define MIN_SLICE 2.0
 			#define ITERATIONS 4
 
 			float4 Frag(Varyings input) : SV_Target
@@ -112,7 +109,6 @@ Shader "Crest/Inputs/Clip Surface/Convex Hull"
 				(
 					_LD_TexArray_AnimatedWaves,
 					input.positionWS,
-					MIN_SLICE,
 					ITERATIONS
 				);
 

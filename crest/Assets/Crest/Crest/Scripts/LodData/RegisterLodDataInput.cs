@@ -58,9 +58,7 @@ namespace Crest
             if (_renderer && weight > 0f)
             {
                 _materials[isTransition].SetFloat(sp_Weight, weight);
-
-                _materials[0].SetInt(LodDataMgr.sp_LD_SliceIndex, lodIdx);
-                _materials[1].SetInt(LodDataMgr.sp_LD_SliceIndex, lodIdx);
+                _materials[isTransition].SetInt(LodDataMgr.sp_LD_SliceIndex, lodIdx);
 
                 buf.DrawRenderer(_renderer, _materials[isTransition]);
             }

@@ -470,7 +470,7 @@ Shader "Crest/Ocean"
 				// Add 0.5 bias for LOD blending and texel resolution correction. This will help to tighten and smooth clipped edges
 				clip(-clipVal + 0.5);
 				#endif
-				
+
 				// Foam - underwater bubbles and whitefoam
 				half3 bubbleCol = (half3)0.;
 				#if _FOAM_ON
@@ -496,7 +496,7 @@ Shader "Crest/Ocean"
 				// disable transparency, so this will always be 1.0.
 				float reflAlpha = 1.0;
 				#endif
-				
+
 				#if _UNDERWATER_ON
 				if (underwater)
 				{

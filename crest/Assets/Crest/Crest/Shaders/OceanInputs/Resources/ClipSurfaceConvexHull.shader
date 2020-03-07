@@ -44,14 +44,24 @@ Shader "Crest/Inputs/Clip Surface/Convex Hull"
 				return o;
 			}
 
+			#define MIN_SLICE 2.0
+			#define ITERATIONS 4
+
 			float4 Frag(Varyings input) : SV_Target
 			{
-				float3 surfacePositionWS = SampleOceanDataAtWorldPosition(_LD_TexArray_AnimatedWaves, input.positionWS).xyz;
+				float3 surfacePositionWS = SampleOceanDataAtWorldPosition
+				(
+					_LD_TexArray_AnimatedWaves,
+					input.positionWS,
+					MIN_SLICE,
+					ITERATIONS
+				);
+
 				// Move to sea level
 				surfacePositionWS.y += _OceanCenterPosWorld.y;
 
 				// Write red if underwater
-				if (input.positionWS.y >= surfacePositionWS.y)
+				if (input.positionWS.y > surfacePositionWS.y)
 				{
 					clip(-1);
 				}
@@ -93,14 +103,24 @@ Shader "Crest/Inputs/Clip Surface/Convex Hull"
 				return o;
 			}
 
+			#define MIN_SLICE 2.0
+			#define ITERATIONS 4
+
 			float4 Frag(Varyings input) : SV_Target
 			{
-				float3 surfacePositionWS = SampleOceanDataAtWorldPosition(_LD_TexArray_AnimatedWaves, input.positionWS).xyz;
+				float3 surfacePositionWS = SampleOceanDataAtWorldPosition
+				(
+					_LD_TexArray_AnimatedWaves,
+					input.positionWS,
+					MIN_SLICE,
+					ITERATIONS
+				);
+
 				// Move to sea level
 				surfacePositionWS.y += _OceanCenterPosWorld.y;
 
 				// Write black if underwater
-				if (input.positionWS.y >= surfacePositionWS.y)
+				if (input.positionWS.y > surfacePositionWS.y)
 				{
 					clip(-1);
 				}

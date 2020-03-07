@@ -25,12 +25,14 @@ Shader "Hidden/Crest/Simulation/Combine Animated Wave LODs"
 			#pragma multi_compile __ _FLOW_ON
 
 			#include "UnityCG.cginc"
+
+			#include "../OceanGlobals.hlsl"
+			#include "../OceanInputsDriven.hlsl"
 			#include "../OceanLODData.hlsl"
 			#include "../FullScreenTriangle.hlsl"
 
 			float _HorizDisplace;
 			float _DisplaceClamp;
-			float _CrestTime;
 
 			struct Attributes
 			{
@@ -91,14 +93,14 @@ Shader "Hidden/Crest/Simulation/Combine Animated Wave LODs"
 				sss = data.w;
 #endif
 
-				uint arrayDepth;
+				float arrayDepth;
 				{
-					uint w, h;
+					float w, h;
 					_LD_TexArray_AnimatedWaves.GetDimensions(w, h, arrayDepth);
 				}
 
 				// waves to combine down from the next lod up the chain
-				if (_LD_SliceIndex < arrayDepth - 1)
+				if ((float)_LD_SliceIndex < arrayDepth - 1.0)
 				{
 					float4 dataNextLod = _LD_TexArray_AnimatedWaves.SampleLevel(LODData_linear_clamp_sampler, uv_nextLod, 0.0);
 					result += dataNextLod.xyz;
@@ -147,7 +149,8 @@ Shader "Hidden/Crest/Simulation/Combine Animated Wave LODs"
 			#pragma fragment Frag
 
 			#include "UnityCG.cginc"
-			#include "../OceanLODData.hlsl"
+
+			#include "../OceanGlobals.hlsl"
 			#include "../FullScreenTriangle.hlsl"
 
 			Texture2D _CombineBuffer;
@@ -177,6 +180,5 @@ Shader "Hidden/Crest/Simulation/Combine Animated Wave LODs"
 			}
 			ENDCG
 		}
-
 	}
 }

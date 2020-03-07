@@ -21,10 +21,12 @@ Shader "Crest/Inputs/Dynamic Waves/Add Bump"
 			#pragma fragment Frag
 			#include "UnityCG.cginc"
 			
+			CBUFFER_START(CrestPerOceanInput)
 			float _Radius;
 			float _SimCount;
 			float _SimDeltaTime;
 			float _Amplitude;
+			CBUFFER_END
 
 			struct Attributes
 			{

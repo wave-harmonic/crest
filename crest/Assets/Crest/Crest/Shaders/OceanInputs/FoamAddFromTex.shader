@@ -27,9 +27,11 @@ Shader "Crest/Inputs/Foam/Add From Texture"
 
 			sampler2D _MainTex;
 			
+			CBUFFER_START(CrestPerOceanInput)
 			float4 _MainTex_ST;
 			float _Radius;
 			float _Amplitude;
+			CBUFFER_END
 
 			struct Attributes
 			{

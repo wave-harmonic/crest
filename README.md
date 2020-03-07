@@ -45,8 +45,8 @@ There is also a getting started video here: https://www.youtube.com/watch?v=qsge
   * The content requires a layer named *Terrain* which should be added to your project.
   * The post processing package is used (for aesthetic reasons), if this is not present in your project you will see an unassigned script warning which you can fix by removing the offending script.
 * .NET 4.x runtime
-* Direct X11 or Vulkan, other platforms targeting [shader compilation target](https://docs.unity3d.com/Manual/SL-ShaderCompileTargets.html) 4.5 or above may work but we cannot provide support for, or test on, other APIs ourselves.
-* Due to the previous point, *Crest* unfortunately does not support WebGL
+* [Shader compilation target](https://docs.unity3d.com/Manual/SL-ShaderCompileTargets.html) 4.5 or above
+  * *Crest* unfortunately does not support OpenGL or WebGL backends
 
 # Releases
 
@@ -65,4 +65,4 @@ There are a few issues worth calling out here:
 * Sky solutions such as Azure[Sky] requires some code to be added to the ocean shader for the fogging/scattering to work. This is a requirement of these products which typically come with instructions for what needs to be added. See issue #62 for an example.
 * Issue with LWRP and VR - refraction appears broken due to what seems to be a bug in LWRP. See issue #206.
 * This built-in render pipeline version of crest requires the *Draw Instanced* option on terrains to be disabled at start time. It can be re-enabled subsequently after the depth cache is populated. See issue #158.
-* *Crest* requires compute and does not support WebGL
+* *Crest* does not support OpenGL or WebGL backends

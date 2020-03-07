@@ -2,6 +2,9 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+#ifndef CREST_OCEAN_EMISSION_INCLUDED
+#define CREST_OCEAN_EMISSION_INCLUDED
+
 uniform half3 _Diffuse;
 uniform half3 _DiffuseGrazing;
 
@@ -250,3 +253,5 @@ half3 OceanEmission(in const half3 i_view, in const half3 i_n_pixel, in const fl
 
 	return col;
 }
+
+#endif // CREST_OCEAN_EMISSION_INCLUDED

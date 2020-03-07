@@ -35,6 +35,7 @@ half4 SampleOceanDataAtWorldPosition(in Texture2DArray i_oceanData, in const flo
 	return result;
 }
 
+// Used to get the world position of the ocean surface from the world position by using fixed-point iteration
 float3 SampleOceanDataAtWorldPosition(in const Texture2DArray i_oceanData, in const float3 i_positionWS, in const uint i_iterations)
 {
 	const float3 queryPositionXZ = i_positionWS.xyz;

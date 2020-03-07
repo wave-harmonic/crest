@@ -22,7 +22,7 @@ namespace Crest
         [SerializeField] bool _disableClipSurfaceWhenTooFarFromSurface = true;
 
         [Tooltip("Large and choppy waves require higher iterations to have accurate holes.")]
-        [SerializeField] int _animatedWavesDisplacementSamplingIterations = 4;
+        [SerializeField] uint _animatedWavesDisplacementSamplingIterations = 4;
 
         public override float Wavelength => 0f;
 
@@ -92,7 +92,7 @@ namespace Crest
                 var lodCount = OceanRenderer.Instance.CurrentLodCount;
                 var lodDataAnimWaves = OceanRenderer.Instance._lodDataAnimWaves;
                 _mpb.SetInt(LodDataMgr.sp_LD_SliceIndex, lodIdx);
-                _mpb.SetInt(sp_DisplacementSamplingIterations, _animatedWavesDisplacementSamplingIterations);
+                _mpb.SetInt(sp_DisplacementSamplingIterations, (int)_animatedWavesDisplacementSamplingIterations);
                 lodDataAnimWaves.BindResultData(_mpb);
 
                 // blend LOD 0 shape in/out to avoid pop, if the ocean might scale up later (it is smaller than its maximum scale)

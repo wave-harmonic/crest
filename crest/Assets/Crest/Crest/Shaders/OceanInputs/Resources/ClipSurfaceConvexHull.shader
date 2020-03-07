@@ -26,7 +26,7 @@ Shader "Crest/Inputs/Clip Surface/Convex Hull"
 			#include "../../OceanHelpersDriven.hlsl"
 
 			CBUFFER_START(CrestPerOceanInput)
-			int _DisplacementSamplingIterations;
+			uint _DisplacementSamplingIterations;
 			CBUFFER_END
 
 			struct Attributes
@@ -85,7 +85,7 @@ Shader "Crest/Inputs/Clip Surface/Convex Hull"
 			#include "../../OceanHelpersDriven.hlsl"
 
 			CBUFFER_START(CrestPerOceanInput)
-			int _DisplacementSamplingIterations;
+			uint _DisplacementSamplingIterations;
 			CBUFFER_END
 
 			struct Attributes

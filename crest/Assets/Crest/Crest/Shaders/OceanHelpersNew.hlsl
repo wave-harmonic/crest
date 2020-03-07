@@ -66,7 +66,7 @@ float3 WorldToUV(in float2 i_samplePos, in float3 i_oceanPosScale, in float4 i_o
 }
 
 // Sampling functions
-void SampleDisplacements(in Texture2DArray i_dispSampler, in float3 i_uv_slice, in float i_wt, inout float3 io_worldPos, inout float io_sss)
+void SampleDisplacements(in Texture2DArray i_dispSampler, in float3 i_uv_slice, in float i_wt, inout float3 io_worldPos, inout half io_sss)
 {
 	const half4 data = i_dispSampler.SampleLevel(LODData_linear_clamp_sampler, i_uv_slice, 0.0);
 	io_worldPos += i_wt * data.xyz;

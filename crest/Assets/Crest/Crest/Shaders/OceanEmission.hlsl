@@ -147,7 +147,7 @@ void ApplyCaustics(in const half3 i_view, in const half3 i_lightDir, in const fl
 	float3 scenePos = _WorldSpaceCameraPos - i_view * i_sceneZ / dot(camForward, -i_view);
 	const float3 scenePosUV = WorldToUV_BiggerLod(scenePos.xz);
 	float3 disp = 0.;
-	float sss = 0.;
+	half sss = 0.;
 	// this gives height at displaced position, not exactly at query position.. but it helps. i cant pass this from vert shader
 	// because i dont know it at scene pos.
 	SampleDisplacements(_LD_TexArray_AnimatedWaves, scenePosUV, 1.0, disp, sss);

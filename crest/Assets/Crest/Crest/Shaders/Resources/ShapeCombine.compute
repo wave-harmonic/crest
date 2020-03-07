@@ -38,7 +38,7 @@ void Flow(out float2 offsets, out float2 weights)
 void SampleDisplacementsCompute(
 	in RWTexture2DArray<half4> i_dispSampler,
 	in float i_width, in float i_height, in float3 i_uv_slice,
-	in float i_wt, inout float3 io_worldPos, inout float io_sss
+	in float i_wt, inout float3 io_worldPos, inout half io_sss
 ) {
 	// NOTE: We have to roll our own bilinear filter in Compute shaders when
 	// reading from a RWTexture. The documentation below explains how SRV
@@ -90,7 +90,7 @@ void ShapeCombineBase (uint3 id)
 	float3 uv_thisLod = float3(input_uv, _LD_SliceIndex);
 
 	float3 result = 0.0;
-	float sss = 0.;
+	half sss = 0.;
 	// this lods waves
 #if _FLOW_ON
 	half2 flow = 0.0;

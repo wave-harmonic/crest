@@ -182,7 +182,7 @@ Shader "Crest/Underwater Curtain"
 				const half3 bubbleCol = 0.0;
 
 				float3 dummy = 0.0;
-				float sss = 0.;
+				half sss = 0.;
 				const float3 uv_slice = WorldToUV(_WorldSpaceCameraPos.xz);
 				SampleDisplacements(_LD_TexArray_AnimatedWaves, uv_slice, 1.0, dummy, sss);
 

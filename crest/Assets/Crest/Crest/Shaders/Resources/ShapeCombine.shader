@@ -74,7 +74,7 @@ Shader "Hidden/Crest/Simulation/Combine Animated Wave LODs"
 				const float3 uv_nextLod = WorldToUV_BiggerLod(worldPosXZ);
 
 				float3 result = 0.0;
-				float sss = 0.0;
+				half sss = 0.0;
 
 #if _FLOW_ON
 				half2 flow = 0.0;

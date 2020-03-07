@@ -54,7 +54,7 @@ half3 ScatterColour(
 	in const half3 i_lightDir, in const half3 i_view, in const fixed i_shadow,
 	in const bool i_underwater, in const bool i_outscatterLight, half sss)
 {
-	float depth;
+	half depth;
 	half shadow = 1.0;
 	if (i_underwater)
 	{
@@ -146,7 +146,7 @@ void ApplyCaustics(in const half3 i_view, in const half3 i_lightDir, in const fl
 	float3 camForward = mul((float3x3)unity_CameraToWorld, float3(0., 0., 1.));
 	float3 scenePos = _WorldSpaceCameraPos - i_view * i_sceneZ / dot(camForward, -i_view);
 	const float3 scenePosUV = WorldToUV_BiggerLod(scenePos.xz);
-	float3 disp = 0.;
+	half3 disp = 0.;
 	half sss = 0.;
 	// this gives height at displaced position, not exactly at query position.. but it helps. i cant pass this from vert shader
 	// because i dont know it at scene pos.

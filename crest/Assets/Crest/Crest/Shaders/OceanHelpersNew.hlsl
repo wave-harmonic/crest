@@ -161,7 +161,7 @@ float3 InvertDisplacement
 	for (uint i = 0; i < i_iterations; i++)
 	{
 		const float3 uv_slice = WorldToUV(invertedDisplacedPosition.xz, i_oceanPosScale, i_oceanParams, i_sliceIndex);
-		const float3 displacement = i_oceanData.SampleLevel(LODData_linear_clamp_sampler, uv_slice, 0.0);
+		const float3 displacement = i_oceanData.SampleLevel(LODData_linear_clamp_sampler, uv_slice, 0.0).xyz;
 		const float3 error = (invertedDisplacedPosition + displacement) - i_positionWS;
 		invertedDisplacedPosition -= error;
 	}

@@ -50,7 +50,7 @@ Shader "Crest/Inputs/Clip Surface/Convex Hull"
 
 			float4 Frag(Varyings input) : SV_Target
 			{
-				float3 surfacePositionWS = SampleOceanDataAtWorldPosition
+				float3 surfacePositionWS = SampleOceanDataDisplacedToWorldPosition
 				(
 					_LD_TexArray_AnimatedWaves,
 					input.positionWS,
@@ -109,7 +109,7 @@ Shader "Crest/Inputs/Clip Surface/Convex Hull"
 
 			float4 Frag(Varyings input) : SV_Target
 			{
-				float3 surfacePositionWS = SampleOceanDataAtWorldPosition
+				float3 surfacePositionWS = SampleOceanDataDisplacedToWorldPosition
 				(
 					_LD_TexArray_AnimatedWaves,
 					input.positionWS,

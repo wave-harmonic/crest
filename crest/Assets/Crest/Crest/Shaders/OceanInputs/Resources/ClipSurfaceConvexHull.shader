@@ -25,6 +25,10 @@ Shader "Crest/Inputs/Clip Surface/Convex Hull"
 			#include "../../OceanHelpersNew.hlsl"
 			#include "../../OceanHelpersDriven.hlsl"
 
+			CBUFFER_START(CrestPerOceanInput)
+			uint _DisplacementSamplingIterations;
+			CBUFFER_END
+
 			struct Attributes
 			{
 				float3 positionOS : POSITION;
@@ -46,12 +50,18 @@ Shader "Crest/Inputs/Clip Surface/Convex Hull"
 
 			float4 Frag(Varyings input) : SV_Target
 			{
-				float3 surfacePositionWS = SampleOceanDataAtWorldPosition(_LD_TexArray_AnimatedWaves, input.positionWS).xyz;
+				float3 surfacePositionWS = SampleOceanDataDisplacedToWorldPosition
+				(
+					_LD_TexArray_AnimatedWaves,
+					input.positionWS,
+					_DisplacementSamplingIterations
+				);
+
 				// Move to sea level
 				surfacePositionWS.y += _OceanCenterPosWorld.y;
 
 				// Write red if underwater
-				if (input.positionWS.y >= surfacePositionWS.y)
+				if (input.positionWS.y > surfacePositionWS.y)
 				{
 					clip(-1);
 				}
@@ -74,6 +84,10 @@ Shader "Crest/Inputs/Clip Surface/Convex Hull"
 			#include "../../OceanHelpersNew.hlsl"
 			#include "../../OceanHelpersDriven.hlsl"
 
+			CBUFFER_START(CrestPerOceanInput)
+			uint _DisplacementSamplingIterations;
+			CBUFFER_END
+
 			struct Attributes
 			{
 				float3 positionOS : POSITION;
@@ -95,12 +109,18 @@ Shader "Crest/Inputs/Clip Surface/Convex Hull"
 
 			float4 Frag(Varyings input) : SV_Target
 			{
-				float3 surfacePositionWS = SampleOceanDataAtWorldPosition(_LD_TexArray_AnimatedWaves, input.positionWS).xyz;
+				float3 surfacePositionWS = SampleOceanDataDisplacedToWorldPosition
+				(
+					_LD_TexArray_AnimatedWaves,
+					input.positionWS,
+					_DisplacementSamplingIterations
+				);
+
 				// Move to sea level
 				surfacePositionWS.y += _OceanCenterPosWorld.y;
 
 				// Write black if underwater
-				if (input.positionWS.y >= surfacePositionWS.y)
+				if (input.positionWS.y > surfacePositionWS.y)
 				{
 					clip(-1);
 				}

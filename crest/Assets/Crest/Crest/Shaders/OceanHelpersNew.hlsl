@@ -146,4 +146,27 @@ void PosToSliceIndices
 	}
 }
 
+// Perform iteration to invert the displacement vector field - find position that displaces to query position.
+float3 InvertDisplacement
+(
+	in const Texture2DArray i_oceanData,
+	in float3 i_oceanPosScale,
+	in float4 i_oceanParams,
+	in uint i_sliceIndex,
+	in const float3 i_positionWS,
+	in const uint i_iterations
+)
+{
+	float3 invertedDisplacedPosition = i_positionWS;
+	for (uint i = 0; i < i_iterations; i++)
+	{
+		const float3 uv_slice = WorldToUV(invertedDisplacedPosition.xz, i_oceanPosScale, i_oceanParams, i_sliceIndex);
+		const float3 displacement = i_oceanData.SampleLevel(LODData_linear_clamp_sampler, uv_slice, 0.0);
+		const float3 error = (invertedDisplacedPosition + displacement) - i_positionWS;
+		invertedDisplacedPosition -= error;
+	}
+
+	return invertedDisplacedPosition;
+}
+
 #endif // CREST_OCEAN_HELPERS_H

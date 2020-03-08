@@ -178,6 +178,11 @@ namespace Crest
             var drawList = RegisterLodDataInputBase.GetRegistrar(GetType());
             foreach (var draw in drawList)
             {
+                if (!draw.Enabled)
+                {
+                    continue;
+                }
+
                 draw.Draw(buf, 1f, 0);
             }
         }

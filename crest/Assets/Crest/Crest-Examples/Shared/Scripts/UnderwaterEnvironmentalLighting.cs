@@ -11,6 +11,7 @@ namespace Crest
         float lightIntensity;
         float ambientIntensity;
         float reflectionIntensity;
+        float fogDensity;
 
         void OnEnable()
         {
@@ -18,6 +19,7 @@ namespace Crest
             lightIntensity = OceanRenderer.Instance._primaryLight.intensity;
             ambientIntensity = RenderSettings.ambientIntensity;
             reflectionIntensity = RenderSettings.reflectionIntensity;
+            fogDensity = RenderSettings.fogDensity;
         }
 
         void OnDisable()
@@ -26,6 +28,7 @@ namespace Crest
             OceanRenderer.Instance._primaryLight.intensity = lightIntensity;
             RenderSettings.ambientIntensity = ambientIntensity;
             RenderSettings.reflectionIntensity = reflectionIntensity;
+            RenderSettings.fogDensity = fogDensity;
         }
 
         void LateUpdate()
@@ -34,6 +37,7 @@ namespace Crest
             OceanRenderer.Instance._primaryLight.intensity = Mathf.Lerp(0, lightIntensity, OceanRenderer.Instance.DepthMultiplier);
             RenderSettings.ambientIntensity = Mathf.Lerp(0, ambientIntensity, OceanRenderer.Instance.DepthMultiplier);
             RenderSettings.reflectionIntensity = Mathf.Lerp(0, reflectionIntensity, OceanRenderer.Instance.DepthMultiplier);
+            RenderSettings.fogDensity = Mathf.Lerp(0, fogDensity, OceanRenderer.Instance.DepthMultiplier);
         }
     }
 }

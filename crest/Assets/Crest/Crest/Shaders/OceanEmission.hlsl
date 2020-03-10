@@ -8,8 +8,6 @@ uniform half3 _DiffuseGrazing;
 // this is copied from the render target by unity
 uniform sampler2D _BackgroundTexture;
 
-#define DEPTH_OUTSCATTER_CONSTANT 0.25
-
 #if _TRANSPARENCY_ON
 uniform half _RefractionStrength;
 #endif // _TRANSPARENCY_ON

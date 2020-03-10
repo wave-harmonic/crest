@@ -20,6 +20,8 @@ namespace Crest
 
         float _averageDensity = 0f;
 
+        public const float DEPTH_OUTSCATTER_CONSTANT = 0.25f;
+
         void Start()
         {
             Color density = OceanRenderer.Instance.OceanMaterial.GetColor("_DepthFogDensity");
@@ -44,7 +46,7 @@ namespace Crest
         void LateUpdate()
         {
             float depthMultiplier = Mathf.Exp(_averageDensity * 
-                Mathf.Min(OceanRenderer.Instance.ViewerHeightAboveWater, 0f));
+                Mathf.Min(OceanRenderer.Instance.ViewerHeightAboveWater * DEPTH_OUTSCATTER_CONSTANT, 0f));
 
             // Darken environmental lighting when viewer underwater
             OceanRenderer.Instance._primaryLight.intensity = Mathf.Lerp(0, _lightIntensity, depthMultiplier);

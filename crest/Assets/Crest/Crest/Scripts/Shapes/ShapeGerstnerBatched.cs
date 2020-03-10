@@ -41,7 +41,7 @@ namespace Crest
             public PropertyWrapperMaterial GetMaterial(int isTransition) => _materials[isTransition];
 
             // Two materials because as batch may be rendered twice if it has large wavelengths that are being transitioned back
-            // and forth across the last 2 lods.
+            // and forth across the last 2 LODs.
             PropertyWrapperMaterial[] _materials;
 
             public float Wavelength { get; set; }
@@ -101,13 +101,6 @@ namespace Crest
 
         // IMPORTANT - this mirrors the constant with the same name in ShapeGerstnerBatch.shader, both must be updated together!
         const int BATCH_SIZE = 32;
-
-        enum CmdBufStatus
-        {
-            NoStatus,
-            NotAttached,
-            Attached
-        }
 
         // scratch data used by batching code
         struct UpdateBatchScratchData

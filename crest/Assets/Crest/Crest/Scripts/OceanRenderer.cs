@@ -324,6 +324,7 @@ namespace Crest
             float depthMultiplier = Mathf.Exp(_averageDensity * Mathf.Min(ViewerHeightAboveWater, 0f));
             _primaryLight.intensity = depthMultiplier;
             RenderSettings.ambientIntensity = depthMultiplier;
+            RenderSettings.reflectionIntensity = depthMultiplier;
         }
 
         void LateUpdateLods()

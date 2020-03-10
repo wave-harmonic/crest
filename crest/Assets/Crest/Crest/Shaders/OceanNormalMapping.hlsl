@@ -2,6 +2,9 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+#ifndef CREST_OCEAN_NORMAL_MAPPING_INCLUDED
+#define CREST_OCEAN_NORMAL_MAPPING_INCLUDED
+
 #if _APPLYNORMALMAPPING_ON
 
 uniform half _NormalsStrength;
@@ -56,3 +59,5 @@ void ApplyNormalMapsWithFlow(float2 worldXZUndisplaced, float2 flow, float lodAl
 }
 
 #endif // _APPLYNORMALMAPPING_ON
+
+#endif // CREST_OCEAN_NORMAL_MAPPING_INCLUDED

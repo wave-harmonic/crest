@@ -60,13 +60,11 @@ Shader "Crest/Underwater/Post Process"
 			#include "Lighting.cginc"
 
 			#include "../OceanConstants.hlsl"
+			#include "../OceanInputsDriven.hlsl"
+			#include "../OceanGlobals.hlsl"
 			#include "../OceanLODData.hlsl"
 
-			float _CrestTime;
 			half3 _AmbientLighting;
-
-			// MeshScaleLerp, FarNormalsWeight, LODIndex (debug), lod count
-			float4 _InstanceData;
 
 			#include "../OceanEmission.hlsl"
 

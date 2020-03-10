@@ -32,13 +32,11 @@ Shader "Crest/Underwater/Ocean Mask"
 				float4 positionCS : SV_POSITION;
 			};
 
+
 			#include "../OceanConstants.hlsl"
+			#include "../OceanInputsDriven.hlsl"
+			#include "../OceanGlobals.hlsl"
 			#include "../OceanHelpers.hlsl"
-
-			float _CrestTime;
-
-			// MeshScaleLerp, FarNormalsWeight, LODIndex (debug), unused
-			float4 _InstanceData;
 
 			// Hack - due to SV_IsFrontFace occasionally coming through as true for backfaces,
 			// add a param here that forces ocean to be in undrwater state. I think the root

@@ -259,12 +259,9 @@ Shader "Crest/Ocean"
 			};
 
 			#include "OceanConstants.hlsl"
+			#include "OceanGlobals.hlsl"
+			#include "OceanInputsDriven.hlsl"
 			#include "OceanHelpers.hlsl"
-
-			float _CrestTime;
-
-			// MeshScaleLerp, FarNormalsWeight, LODIndex (debug)
-			float3 _InstanceData;
 
 			// Argument name is v because some macros like COMPUTE_EYEDEPTH require it.
 			Varyings Vert(Attributes v)
@@ -475,7 +472,7 @@ Shader "Crest/Ocean"
 				// Add 0.5 bias for LOD blending and texel resolution correction. This will help to tighten and smooth clipped edges
 				clip(-clipVal + 0.5);
 				#endif
-				
+
 				// Foam - underwater bubbles and whitefoam
 				half3 bubbleCol = (half3)0.;
 				#if _FOAM_ON

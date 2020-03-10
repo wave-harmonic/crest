@@ -2,6 +2,9 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+#ifndef CREST_OCEAN_EMISSION_INCLUDED
+#define CREST_OCEAN_EMISSION_INCLUDED
+
 uniform half3 _Diffuse;
 uniform half3 _DiffuseGrazing;
 
@@ -71,7 +74,7 @@ half3 ScatterColour(
 		uint slice0, slice1; float lodAlpha;
 		PosToSliceIndices(samplePoint, _InstanceData.x, minSliceIndex, slice0, slice1, lodAlpha);
 
-		float2 shadowSoftHard = 0.0;
+		half2 shadowSoftHard = 0.0;
 		// TODO - fix data type of slice index in WorldToUV - #343
 		SampleShadow(_LD_TexArray_Shadow, WorldToUV(samplePoint, slice0), 1.0 - lodAlpha, shadowSoftHard);
 		SampleShadow(_LD_TexArray_Shadow, WorldToUV(samplePoint, slice1), lodAlpha, shadowSoftHard);
@@ -115,17 +118,6 @@ half3 ScatterColour(
 		col += subsurface;
 	}
 #endif // _SUBSURFACESCATTERING_ON
-
-	// outscatter light - attenuate the final colour by the camera depth under the water, to approximate less
-	// throughput due to light scatter as the camera gets further under water.
-	if (i_outscatterLight)
-	{
-		half camDepth = max(_OceanCenterPosWorld.y - _WorldSpaceCameraPos.y, 0.0);
-		if (i_underwater)
-		{
-			col *= exp(-_DepthFogDensity.xyz * camDepth * DEPTH_OUTSCATTER_CONSTANT);
-		}
-	}
 
 	return col;
 }
@@ -246,3 +238,5 @@ half3 OceanEmission(in const half3 i_view, in const half3 i_n_pixel, in const fl
 
 	return col;
 }
+
+#endif // CREST_OCEAN_EMISSION_INCLUDED

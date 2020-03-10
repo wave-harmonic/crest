@@ -10,7 +10,7 @@ namespace Crest
 {
     public interface ILodDataInput
     {
-        void Draw(CommandBuffer buf, float weight, int isTransition);
+        void Draw(CommandBuffer buf, float weight, int isTransition, int lodIdx);
         float Wavelength { get; }
         bool Enabled { get; }
     }
@@ -53,11 +53,12 @@ namespace Crest
             }
         }
 
-        public void Draw(CommandBuffer buf, float weight, int isTransition)
+        public void Draw(CommandBuffer buf, float weight, int isTransition, int lodIdx)
         {
             if (_renderer && weight > 0f)
             {
                 _materials[isTransition].SetFloat(sp_Weight, weight);
+                _materials[isTransition].SetInt(LodDataMgr.sp_LD_SliceIndex, lodIdx);
 
                 buf.DrawRenderer(_renderer, _materials[isTransition]);
             }

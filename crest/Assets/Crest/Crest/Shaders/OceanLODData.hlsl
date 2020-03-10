@@ -4,52 +4,8 @@
 
 // Ocean LOD data - data, samplers and functions associated with LODs
 
-// NOTE: This must match the value in LodDataMgr.cs, as it is used to allow the
-// C# code to check if any parameters are within the MAX_LOD_COUNT limits
-#define MAX_LOD_COUNT 15
-
-// NOTE: these MUST match the values in PropertyWrapper.cs
-#define THREAD_GROUP_SIZE_X 8
-#define THREAD_GROUP_SIZE_Y 8
-
-// 'Current' target/source slice index
-const uint _LD_SliceIndex;
-
-// Samplers and data associated with a LOD.
-// _LD_Params: float4(world texel size, texture resolution, shape weight multiplier, 1 / texture resolution)
-Texture2DArray _LD_TexArray_AnimatedWaves;
-Texture2DArray _LD_TexArray_WaveBuffer;
-Texture2DArray _LD_TexArray_SeaFloorDepth;
-Texture2DArray _LD_TexArray_ClipSurface;
-Texture2DArray _LD_TexArray_Foam;
-Texture2DArray _LD_TexArray_Flow;
-Texture2DArray _LD_TexArray_DynamicWaves;
-Texture2DArray _LD_TexArray_Shadow;
-// _LD_Params: float4(world texel size, texture resolution, shape weight multiplier, 1 / texture resolution)
-const float4 _LD_Params[MAX_LOD_COUNT + 1];
-const float3 _LD_Pos_Scale[MAX_LOD_COUNT + 1];
-
-// These are used in lods where we operate on data from
-// previously calculated lods. Used in simulations and
-// shadowing for example.
-Texture2DArray _LD_TexArray_AnimatedWaves_Source;
-Texture2DArray _LD_TexArray_WaveBuffer_Source;
-Texture2DArray _LD_TexArray_SeaFloorDepth_Source;
-Texture2DArray _LD_TexArray_ClipSurface_Source;
-Texture2DArray _LD_TexArray_Foam_Source;
-Texture2DArray _LD_TexArray_Flow_Source;
-Texture2DArray _LD_TexArray_DynamicWaves_Source;
-Texture2DArray _LD_TexArray_Shadow_Source;
-const float4 _LD_Params_Source[MAX_LOD_COUNT + 1];
-const float3 _LD_Pos_Scale_Source[MAX_LOD_COUNT + 1];
-
-SamplerState LODData_linear_clamp_sampler;
-SamplerState LODData_point_clamp_sampler;
-
-// Bias ocean floor depth so that default (0) values in texture are not interpreted as shallow and generating foam everywhere
-#define CREST_OCEAN_DEPTH_BASELINE 1000.0
-
 // Conversions for world space from/to UV space. All these should *not* be clamped otherwise they'll break fullscreen triangles.
+
 float2 LD_WorldToUV(in float2 i_samplePos, in float2 i_centerPos, in float i_res, in float i_texelSize)
 {
 	return (i_samplePos - i_centerPos) / (i_texelSize * i_res) + 0.5;
@@ -105,7 +61,7 @@ float2 IDtoUV(in float2 i_id, in float i_width, in float i_height)
 
 
 // Sampling functions
-void SampleDisplacements(in Texture2DArray i_dispSampler, in float3 i_uv_slice, in float i_wt, inout float3 io_worldPos, inout float io_sss)
+void SampleDisplacements(in Texture2DArray i_dispSampler, in float3 i_uv_slice, in float i_wt, inout float3 io_worldPos, inout half io_sss)
 {
 	const half4 data = i_dispSampler.SampleLevel(LODData_linear_clamp_sampler, i_uv_slice, 0.0);
 	io_worldPos += i_wt * data.xyz;
@@ -155,14 +111,6 @@ void SampleShadow(in Texture2DArray i_oceanShadowSampler, in float3 i_uv_slice, 
 
 #define SampleLod(i_lodTextureArray, i_uv_slice) (i_lodTextureArray.SampleLevel(LODData_linear_clamp_sampler, i_uv_slice, 0.0))
 #define SampleLodLevel(i_lodTextureArray, i_uv_slice, mips) (i_lodTextureArray.SampleLevel(LODData_linear_clamp_sampler, i_uv_slice, mips))
-
-// Geometry data
-// x: Grid size of lod data - size of lod data texel in world space.
-// y: Grid size of geometry - distance between verts in mesh.
-// zw: normalScrollSpeed0, normalScrollSpeed1
-float4 _GeomData;
-float3 _OceanCenterPosWorld;
-float _SliceCount;
 
 void PosToSliceIndices(const float2 worldXZ, const float meshScaleLerp, const float minSlice, out uint slice0, out uint slice1, out float lodAlpha)
 {

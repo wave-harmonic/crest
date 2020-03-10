@@ -24,9 +24,11 @@ Shader "Crest/Inputs/Flow/Add Flow Map"
 			#include "UnityCG.cginc"
 
 			sampler2D _FlowMap;
-			float4 _FlowMap_ST;
 
+			CBUFFER_START(CrestPerOceanInput)
+			float4 _FlowMap_ST;
 			float _Strength;
+			CBUFFER_END
 
 			struct Attributes
 			{

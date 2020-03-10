@@ -36,14 +36,13 @@ Shader "Crest/Ocean Surface Alpha"
 			#include "UnityCG.cginc"
 
 			#include "OceanConstants.hlsl"
+			#include "OceanGlobals.hlsl"
+			#include "OceanInputsDriven.hlsl"
 			#include "OceanHelpers.hlsl"
 
 			sampler2D _MainTex;
 			float4 _MainTex_ST;
 			half _Alpha;
-
-			// MeshScaleLerp, FarNormalsWeight, LODIndex (debug)
-			float3 _InstanceData;
 
 			struct Attributes
 			{

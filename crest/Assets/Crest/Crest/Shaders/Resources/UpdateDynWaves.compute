@@ -9,16 +9,18 @@
 #define MIN_DT 0.00001
 
 #include "../OceanConstants.hlsl"
+#include "HLSLSupport.cginc"
+#include "../OceanGlobals.hlsl"
+#include "../OceanInputsDriven.hlsl"
 #include "../OceanLODData.hlsl"
 
+CBUFFER_START(CrestPerMaterial)
 float _Damping;
 float2 _LaplacianAxisX;
 float _Gravity;
 float _SimDeltaTime;
 float _LODChange;
-
-// How many samples we want in one wave. trade quality for perf.
-float _TexelsPerWave;
+CBUFFER_END
 
 float ComputeWaveSpeed(float wavelength, float g)
 {

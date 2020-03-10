@@ -14,6 +14,13 @@ namespace Crest
     /// </summary>
     public class ShapeGerstnerBatched : MonoBehaviour, ICollProvider, IFloatingOrigin
     {
+        public enum GerstnerMode
+        {
+            Global,
+            Geometry,
+        }
+        public GerstnerMode _mode = GerstnerMode.Global;
+
         [Tooltip("The spectrum that defines the ocean surface shape. Create asset of type Crest/Ocean Waves Spectrum.")]
         public OceanWaveSpectrum _spectrum;
 
@@ -23,7 +30,7 @@ namespace Crest
 
         public class GerstnerBatch : ILodDataInput
         {
-            public GerstnerBatch(Shader gerstnerShader, bool directTowardsPoint)
+            public GerstnerBatch(Shader gerstnerShader, bool directTowardsPoint, MeshRenderer rend)
             {
                 _materials = new PropertyWrapperMaterial[]
                 {
@@ -36,6 +43,8 @@ namespace Crest
                     _materials[0].material.EnableKeyword(DIRECT_TOWARDS_POINT_KEYWORD);
                     _materials[1].material.EnableKeyword(DIRECT_TOWARDS_POINT_KEYWORD);
                 }
+
+                _rend = rend;
             }
 
             public PropertyWrapperMaterial GetMaterial(int isTransition) => _materials[isTransition];
@@ -43,6 +52,8 @@ namespace Crest
             // Two materials because as batch may be rendered twice if it has large wavelengths that are being transitioned back
             // and forth across the last 2 LODs.
             PropertyWrapperMaterial[] _materials;
+
+            MeshRenderer _rend;
 
             public float Wavelength { get; set; }
             public bool Enabled { get; set; }
@@ -53,7 +64,14 @@ namespace Crest
                 {
                     PropertyWrapperMaterial mat = GetMaterial(isTransition);
                     mat.SetFloat(RegisterLodDataInputBase.sp_Weight, weight);
-                    buf.DrawMesh(FullQuad.RasterMesh(), Matrix4x4.identity, mat.material);
+                    if (_rend)
+                    {
+                        buf.DrawRenderer(_rend, mat.material);
+                    }
+                    else
+                    {
+                        buf.DrawMesh(FullQuad.RasterMesh(), Matrix4x4.identity, mat.material);
+                    }
                 }
             }
         }
@@ -226,7 +244,15 @@ namespace Crest
         {
             if (_waveShader == null)
             {
-                _waveShader = Shader.Find("Crest/Inputs/Animated Waves/Gerstner Batch");
+                if (_mode == GerstnerMode.Global)
+                {
+                    _waveShader = Shader.Find("Crest/Inputs/Animated Waves/Gerstner Batch Global");
+                }
+                else
+                {
+                    _waveShader = Shader.Find("Crest/Inputs/Animated Waves/Gerstner Batch Geometry");
+                }
+
                 Debug.Assert(_waveShader, "Could not load Gerstner wave shader, make sure it is packaged in the build.");
                 if (_waveShader == null)
                 {
@@ -234,10 +260,21 @@ namespace Crest
                 }
             }
 
+            MeshRenderer rend = null;
+            if (_mode == GerstnerMode.Geometry)
+            {
+                rend = GetComponent<MeshRenderer>();
+
+                if (rend)
+                {
+                    rend.enabled = false;
+                }
+            }
+
             _batches = new GerstnerBatch[LodDataMgr.MAX_LOD_COUNT];
             for (int i = 0; i < _batches.Length; i++)
             {
-                _batches[i] = new GerstnerBatch(_waveShader, _directTowardsPoint);
+                _batches[i] = new GerstnerBatch(_waveShader, _directTowardsPoint, rend);
             }
 
             // Submit draws to create the Gerstner waves. LODs from 0 to N-2 render the Gerstner waves from their lod. Additionally, any waves

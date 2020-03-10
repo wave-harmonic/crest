@@ -53,7 +53,7 @@ namespace Crest
                 {
                     PropertyWrapperMaterial mat = GetMaterial(isTransition);
                     mat.SetFloat(RegisterLodDataInputBase.sp_Weight, weight);
-                    buf.DrawMesh(RasterMesh(), Matrix4x4.identity, mat.material);
+                    buf.DrawMesh(FullQuad.RasterMesh(), Matrix4x4.identity, mat.material);
                 }
             }
         }
@@ -84,8 +84,6 @@ namespace Crest
         Vector2 _pointRadii = new Vector2(100f, 200f);
 
         const string DIRECT_TOWARDS_POINT_KEYWORD = "_DIRECT_TOWARDS_POINT";
-
-        static Mesh _rasterMesh = null;
 
         // Shader to be used to render evaluate Gerstner waves for each LOD
         Shader _waveShader;
@@ -135,21 +133,6 @@ namespace Crest
 #endif
 
             InitBatches();
-        }
-
-        static Mesh RasterMesh()
-        {
-            if (_rasterMesh == null)
-            {
-                // If not provided, use a quad which will render waves everywhere
-                _rasterMesh = new Mesh();
-                _rasterMesh.vertices = new Vector3[] { new Vector3(-0.5f, -0.5f, 0f), new Vector3(0.5f, 0.5f, 0f), new Vector3(0.5f, -0.5f, 0f), new Vector3(-0.5f, 0.5f, 0f) };
-                _rasterMesh.uv = new Vector2[] { Vector2.zero, Vector2.one, Vector2.right, Vector2.up };
-                _rasterMesh.normals = new Vector3[] { -Vector3.forward, -Vector3.forward, -Vector3.forward, -Vector3.forward };
-                _rasterMesh.SetIndices(new int[] { 0, 1, 2, 1, 0, 3 }, MeshTopology.Triangles, 0);
-            }
-
-            return _rasterMesh;
         }
 
         void InitPhases()
@@ -728,6 +711,30 @@ namespace Crest
         public bool RetrieveSucceeded(int queryStatus)
         {
             return queryStatus == 0;
+        }
+
+    }
+
+    /// <summary>
+    /// Helper provides geo for filling displacement textures with waves.
+    /// </summary>
+    static class FullQuad
+    {
+        static Mesh _rasterMesh = null;
+
+        public static Mesh RasterMesh()
+        {
+            if (_rasterMesh == null)
+            {
+                // If not provided, use a quad which will render waves everywhere
+                _rasterMesh = new Mesh();
+                _rasterMesh.vertices = new Vector3[] { new Vector3(-0.5f, -0.5f, 0f), new Vector3(0.5f, 0.5f, 0f), new Vector3(0.5f, -0.5f, 0f), new Vector3(-0.5f, 0.5f, 0f) };
+                _rasterMesh.uv = new Vector2[] { Vector2.zero, Vector2.one, Vector2.right, Vector2.up };
+                _rasterMesh.normals = new Vector3[] { -Vector3.forward, -Vector3.forward, -Vector3.forward, -Vector3.forward };
+                _rasterMesh.SetIndices(new int[] { 0, 1, 2, 1, 0, 3 }, MeshTopology.Triangles, 0);
+            }
+
+            return _rasterMesh;
         }
 
 #if UNITY_2019_3_OR_NEWER

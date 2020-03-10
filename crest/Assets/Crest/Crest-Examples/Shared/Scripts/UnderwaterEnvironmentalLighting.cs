@@ -13,36 +13,44 @@ namespace Crest
     /// </summary>
     public class UnderwaterEnvironmentalLighting : MonoBehaviour
     {
-        float lightIntensity;
-        float ambientIntensity;
-        float reflectionIntensity;
-        float fogDensity;
+        float _lightIntensity;
+        float _ambientIntensity;
+        float _reflectionIntensity;
+        float _fogDensity;
 
-        void OnEnable()
+        float _averageDensity = 0f;
+
+        void Start()
         {
+            Color density = OceanRenderer.Instance.OceanMaterial.GetColor("_DepthFogDensity");
+            _averageDensity = (density.r + density.g + density.b) / 3f;
+
             // Store lighting settings
-            lightIntensity = OceanRenderer.Instance._primaryLight.intensity;
-            ambientIntensity = RenderSettings.ambientIntensity;
-            reflectionIntensity = RenderSettings.reflectionIntensity;
-            fogDensity = RenderSettings.fogDensity;
+            _lightIntensity = OceanRenderer.Instance._primaryLight.intensity;
+            _ambientIntensity = RenderSettings.ambientIntensity;
+            _reflectionIntensity = RenderSettings.reflectionIntensity;
+            _fogDensity = RenderSettings.fogDensity;
         }
 
         void OnDisable()
         {
             // Restore lighting settings
-            OceanRenderer.Instance._primaryLight.intensity = lightIntensity;
-            RenderSettings.ambientIntensity = ambientIntensity;
-            RenderSettings.reflectionIntensity = reflectionIntensity;
-            RenderSettings.fogDensity = fogDensity;
+            OceanRenderer.Instance._primaryLight.intensity = _lightIntensity;
+            RenderSettings.ambientIntensity = _ambientIntensity;
+            RenderSettings.reflectionIntensity = _reflectionIntensity;
+            RenderSettings.fogDensity = _fogDensity;
         }
 
         void LateUpdate()
         {
-            // Darken light when viewer underwater
-            OceanRenderer.Instance._primaryLight.intensity = Mathf.Lerp(0, lightIntensity, OceanRenderer.Instance.DepthMultiplier);
-            RenderSettings.ambientIntensity = Mathf.Lerp(0, ambientIntensity, OceanRenderer.Instance.DepthMultiplier);
-            RenderSettings.reflectionIntensity = Mathf.Lerp(0, reflectionIntensity, OceanRenderer.Instance.DepthMultiplier);
-            RenderSettings.fogDensity = Mathf.Lerp(0, fogDensity, OceanRenderer.Instance.DepthMultiplier);
+            float depthMultiplier = Mathf.Exp(_averageDensity * 
+                Mathf.Min(OceanRenderer.Instance.ViewerHeightAboveWater, 0f));
+
+            // Darken environmental lighting when viewer underwater
+            OceanRenderer.Instance._primaryLight.intensity = Mathf.Lerp(0, _lightIntensity, depthMultiplier);
+            RenderSettings.ambientIntensity = Mathf.Lerp(0, _ambientIntensity, depthMultiplier);
+            RenderSettings.reflectionIntensity = Mathf.Lerp(0, _reflectionIntensity, depthMultiplier);
+            RenderSettings.fogDensity = Mathf.Lerp(0, _fogDensity, depthMultiplier);
         }
     }
 }

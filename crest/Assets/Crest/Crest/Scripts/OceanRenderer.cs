@@ -156,9 +156,6 @@ namespace Crest
         readonly int sp_meshScaleLerp = Shader.PropertyToID("_MeshScaleLerp");
         readonly int sp_sliceCount = Shader.PropertyToID("_SliceCount");
 
-        float _averageDensity = 0f;
-        public float DepthMultiplier { get; private set; }
-
         void Awake()
         {
             if (!VerifyRequirements())
@@ -184,10 +181,6 @@ namespace Crest
             {
                 gameObject.AddComponent<OceanDebugGUI>();
             }
-
-            // Darken light when viewer underwater
-            Color density = _material.GetColor("_DepthFogDensity");
-            _averageDensity = (density.r + density.g + density.b) / 3f;
         }
 
         bool VerifyRequirements()
@@ -320,10 +313,6 @@ namespace Crest
             _sampleHeightHelper.Sample(ref waterHeight);
 
             ViewerHeightAboveWater = Viewpoint.position.y - waterHeight;
-
-            // Store depth as a multiplier so it can be applied to environmental lighting. Others can use this value to
-            // apply to their custom lighting needs.
-            DepthMultiplier = Mathf.Exp(_averageDensity * Mathf.Min(ViewerHeightAboveWater, 0f));
         }
 
         void LateUpdateLods()

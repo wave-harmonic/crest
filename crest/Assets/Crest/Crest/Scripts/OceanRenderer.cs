@@ -157,6 +157,7 @@ namespace Crest
         readonly int sp_sliceCount = Shader.PropertyToID("_SliceCount");
 
         float _averageDensity = 0f;
+        public float DepthMultiplier { get; private set; }
 
         void Awake()
         {
@@ -320,11 +321,9 @@ namespace Crest
 
             ViewerHeightAboveWater = Viewpoint.position.y - waterHeight;
 
-            // Darken light when viewer underwater
-            float depthMultiplier = Mathf.Exp(_averageDensity * Mathf.Min(ViewerHeightAboveWater, 0f));
-            _primaryLight.intensity = depthMultiplier;
-            RenderSettings.ambientIntensity = depthMultiplier;
-            RenderSettings.reflectionIntensity = depthMultiplier;
+            // Store depth as a multiplier so it can be applied to environmental lighting. Others can use this value to
+            // apply to their custom lighting needs.
+            DepthMultiplier = Mathf.Exp(_averageDensity * Mathf.Min(ViewerHeightAboveWater, 0f));
         }
 
         void LateUpdateLods()

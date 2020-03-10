@@ -26,6 +26,9 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Batch"
 			#pragma multi_compile __ _DIRECT_TOWARDS_POINT
 
 			#include "UnityCG.cginc"
+
+			#include "../../OceanGlobals.hlsl"
+			#include "../../OceanInputsDriven.hlsl"
 			#include "../../OceanLODData.hlsl"
 
 			// IMPORTANT - this mirrors the constant with the same name in ShapeGerstnerBatched.cs, both must be updated together!
@@ -33,6 +36,8 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Batch"
 
 			#define PI 3.141593
 
+			// Caution - this exploded on vulkan due to a collision with 'CrestPerObject' cbuffer in OceanInput
+			CBUFFER_START(GerstnerUniforms)
 			half _Weight;
 			half _AttenuationInShallows;
 			uint _NumWaveVecs;
@@ -45,6 +50,7 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Batch"
 			half4 _ChopAmps[BATCH_SIZE / 4];
 
 			float4 _TargetPointData;
+			CBUFFER_END
 
 			struct Attributes
 			{
@@ -78,7 +84,6 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Batch"
 			{
 				float2 displacementNormalized = 0.0;
 
-				const half4 oneMinusAttenuation = (half4)1.0 - (half4)_AttenuationInShallows;
 
 				// sample ocean depth (this render target should 1:1 match depth texture, so UVs are trivial)
 				const half depth = _LD_TexArray_SeaFloorDepth.Sample(LODData_linear_clamp_sampler, input.uv_slice).x;
@@ -103,7 +108,7 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Batch"
 				// optimisation - do this outside the loop below - take the median wavelength for depth weighting, intead of computing
 				// per component. computing per component makes little difference to the end result
 				half depth_wt = saturate(depth * _TwoPiOverWavelengths[_NumWaveVecs / 2].x / PI);
-				half4 wt = _AttenuationInShallows * depth_wt + oneMinusAttenuation;
+				half4 wt = _AttenuationInShallows * depth_wt + (1.0 - _AttenuationInShallows);
 
 				// gerstner computation is vectorized - processes 4 wave components at once
 				for (uint vi = 0; vi < _NumWaveVecs; vi++)

@@ -53,7 +53,7 @@ namespace Crest
             { 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f };
 
         [Tooltip("Scales horizontal displacement"), Range(0f, 2f)]
-        public float _chop = 1f;
+        public float _chop = 1.6f;
 
         public bool _showAdvancedControls = false;
 

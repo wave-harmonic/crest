@@ -23,12 +23,14 @@ Shader "Crest/Inputs/Dynamic Waves/Sphere-Water Interaction"
 
 			#include "UnityCG.cginc"
 
+			CBUFFER_START(CrestPerOceanInput)
 			float3 _Velocity;
 			float _SimDeltaTime;
 			float _Strength;
 			float _Weight;
 
 			float _Radius;
+			CBUFFER_END
 
 			struct Attributes
 			{

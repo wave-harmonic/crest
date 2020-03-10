@@ -6,6 +6,11 @@ using UnityEngine;
 
 namespace Crest
 {
+    /// <summary>
+    /// Provides outer scattering based on the camera's underwater depth. It scales down environmental lighting
+    /// (directional light, reflections, ambient etc) with the underwater depth. This works with vanilla lighting, but 
+    /// uncommon or custom lighting will require a custom solution (use this for reference).
+    /// </summary>
     public class UnderwaterEnvironmentalLighting : MonoBehaviour
     {
         float lightIntensity;

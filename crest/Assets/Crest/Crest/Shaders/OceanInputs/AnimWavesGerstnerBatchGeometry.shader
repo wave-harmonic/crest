@@ -8,7 +8,7 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Batch Geometry"
 	Properties
 	{
 		[Toggle] _FeatherAtUVExtents("Feather at UV extents", Float) = 0
-		_FeatherWidth("Feather width", Float) = 0.1
+		_FeatherWidth("Feather width", Range(0.001, 0.5)) = 0.1
 	}
 
 	SubShader
@@ -66,11 +66,11 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Batch Geometry"
 
 			half4 Frag(Varyings input) : SV_Target
 			{
+				float wt = 1.0;
+
+#if _FEATHERATUVEXTENTS_ON
 				float2 offset = abs(input.worldPosXZ_uv.zw - 0.5);
 				float r_l1 = max(offset.x, offset.y);
-
-				float wt = 1.0;
-#if _FEATHERATUVEXTENTS_ON
 				wt = saturate(1.0 - (r_l1 - (0.5 - _FeatherWidth)) / _FeatherWidth);
 #endif
 

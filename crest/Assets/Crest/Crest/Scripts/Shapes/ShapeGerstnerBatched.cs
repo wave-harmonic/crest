@@ -495,8 +495,16 @@ namespace Crest
             }
         }
 
+#if UNITY_EDITOR
         private void OnDrawGizmosSelected()
         {
+            var mf = GetComponent<MeshFilter>();
+            if (mf)
+            {
+                Gizmos.color = RegisterAnimWavesInput.s_gizmoColor;
+                Gizmos.DrawWireMesh(mf.sharedMesh, transform.position, transform.rotation, transform.lossyScale);
+            }
+
             if (_directTowardsPoint)
             {
                 Gizmos.color = Color.black;
@@ -505,6 +513,7 @@ namespace Crest
                 Gizmos.DrawWireSphere(new Vector3(_pointPositionXZ.x, transform.position.y, _pointPositionXZ.y), _pointRadii.x);
             }
         }
+#endif
 
         float ComputeWaveSpeed(float wavelength/*, float depth*/)
         {
@@ -749,7 +758,6 @@ namespace Crest
         {
             return queryStatus == 0;
         }
-
     }
 
 #if UNITY_EDITOR

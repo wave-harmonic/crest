@@ -2,13 +2,11 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
-// A batch of Gerstner components
+// Renders gerstner waves from geometry. Allows localised wave areas. Can fade waves based on UVs.
 Shader "Crest/Inputs/Animated Waves/Gerstner Batch Geometry"
 {
 	Properties
 	{
-		// This is purely for convenience - it makes the value appear in material section of the inspector and is useful for debugging.
-		_NumInBatch("_NumInBatch", float) = 0
 	}
 
 	SubShader
@@ -27,9 +25,9 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Batch Geometry"
 
 			#include "UnityCG.cginc"
 
-			#include "../../OceanGlobals.hlsl"
-			#include "../../OceanInputsDriven.hlsl"
-			#include "../../OceanLODData.hlsl"
+			#include "../OceanGlobals.hlsl"
+			#include "../OceanInputsDriven.hlsl"
+			#include "../OceanLODData.hlsl"
 
 			#include "GerstnerShared.hlsl"
 

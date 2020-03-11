@@ -7,8 +7,6 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Batch Global"
 {
 	Properties
 	{
-		// This is purely for convenience - it makes the value appear in material section of the inspector and is useful for debugging.
-		_NumInBatch("_NumInBatch", float) = 0
 	}
 
 	SubShader
@@ -31,7 +29,7 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Batch Global"
 			#include "../../OceanInputsDriven.hlsl"
 			#include "../../OceanLODData.hlsl"
 
-			#include "GerstnerShared.hlsl"
+			#include "../GerstnerShared.hlsl"
 
 			struct Attributes
 			{

@@ -14,6 +14,15 @@ namespace Crest
     /// </summary>
     public class ShapeGerstnerBatched : MonoBehaviour, ICollProvider, IFloatingOrigin
     {
+        public enum GerstnerMode
+        {
+            Global,
+            Geometry,
+        }
+
+        [Tooltip("If set to 'Global', waves will render everywhere. If set to 'Geometry', the geometry on this GameObject will be rendered from a top down perspective to generate the waves. This allows having local wave conditions by placing Quad geometry where desired. The geometry must have one of the Gerstner shaders on it such as 'Crest/Inputs/Animated Waves/Gerstner Batch Geometry'.")]
+        public GerstnerMode _mode = GerstnerMode.Global;
+
         [Tooltip("The spectrum that defines the ocean surface shape. Create asset of type Crest/Ocean Waves Spectrum.")]
         public OceanWaveSpectrum _spectrum;
 
@@ -25,12 +34,12 @@ namespace Crest
 
         public class GerstnerBatch : ILodDataInput
         {
-            public GerstnerBatch(Shader gerstnerShader, bool directTowardsPoint)
+            public GerstnerBatch(bool directTowardsPoint, MeshRenderer rend)
             {
                 _materials = new PropertyWrapperMaterial[]
                 {
-                    new PropertyWrapperMaterial(new Material(gerstnerShader)),
-                    new PropertyWrapperMaterial(new Material(gerstnerShader))
+                    new PropertyWrapperMaterial(new Material(rend.sharedMaterial ?? rend.material)),
+                    new PropertyWrapperMaterial(new Material(rend.sharedMaterial ?? rend.material))
                 };
 
                 if (directTowardsPoint)
@@ -38,13 +47,17 @@ namespace Crest
                     _materials[0].material.EnableKeyword(DIRECT_TOWARDS_POINT_KEYWORD);
                     _materials[1].material.EnableKeyword(DIRECT_TOWARDS_POINT_KEYWORD);
                 }
+
+                _rend = rend;
             }
 
             public PropertyWrapperMaterial GetMaterial(int isTransition) => _materials[isTransition];
 
             // Two materials because as batch may be rendered twice if it has large wavelengths that are being transitioned back
-            // and forth across the last 2 lods.
+            // and forth across the last 2 LODs.
             PropertyWrapperMaterial[] _materials;
+
+            MeshRenderer _rend;
 
             public float Wavelength { get; set; }
             public bool Enabled { get; set; }
@@ -56,11 +69,7 @@ namespace Crest
                 {
                     PropertyWrapperMaterial mat = GetMaterial(isTransition);
                     mat.SetFloat(RegisterLodDataInputBase.sp_Weight, weight);
-
-                    // TODO - currently gerstner shader does not use view projection and instead forces a full screen quad.
-                    // we should set the matrix that will scale up the raster mesh to the desired location
-                    var matrix = Matrix4x4.TRS(new Vector3(_bounds.center.x, 0f, _bounds.center.z), Quaternion.AngleAxis(90f, Vector3.right), _bounds.extents);
-                    buf.DrawMesh(RasterMesh(), matrix, mat.material);
+                    buf.DrawRenderer(_rend, mat.material);
                 }
             }
         }
@@ -92,11 +101,6 @@ namespace Crest
 
         const string DIRECT_TOWARDS_POINT_KEYWORD = "_DIRECT_TOWARDS_POINT";
 
-        static Mesh _rasterMesh = null;
-
-        // Shader to be used to render evaluate Gerstner waves for each LOD
-        Shader _waveShader;
-
         readonly int sp_TwoPiOverWavelengths = Shader.PropertyToID("_TwoPiOverWavelengths");
         readonly int sp_Amplitudes = Shader.PropertyToID("_Amplitudes");
         readonly int sp_WaveDirX = Shader.PropertyToID("_WaveDirX");
@@ -110,13 +114,6 @@ namespace Crest
 
         // IMPORTANT - this mirrors the constant with the same name in ShapeGerstnerBatch.shader, both must be updated together!
         const int BATCH_SIZE = 32;
-
-        enum CmdBufStatus
-        {
-            NoStatus,
-            NotAttached,
-            Attached
-        }
 
         // scratch data used by batching code
         struct UpdateBatchScratchData
@@ -142,21 +139,6 @@ namespace Crest
 #endif
 
             InitBatches();
-        }
-
-        static Mesh RasterMesh()
-        {
-            if (_rasterMesh == null)
-            {
-                // If not provided, use a quad which will render waves everywhere
-                _rasterMesh = new Mesh();
-                _rasterMesh.vertices = new Vector3[] { new Vector3(-0.5f, -0.5f, 0f), new Vector3(0.5f, 0.5f, 0f), new Vector3(0.5f, -0.5f, 0f), new Vector3(-0.5f, 0.5f, 0f) };
-                _rasterMesh.uv = new Vector2[] { Vector2.zero, Vector2.one, Vector2.right, Vector2.up };
-                _rasterMesh.normals = new Vector3[] { -Vector3.forward, -Vector3.forward, -Vector3.forward, -Vector3.forward };
-                _rasterMesh.SetIndices(new int[] { 0, 1, 2, 1, 0, 3 }, MeshTopology.Triangles, 0);
-            }
-
-            return _rasterMesh;
         }
 
         void InitPhases()
@@ -255,20 +237,56 @@ namespace Crest
 
         void InitBatches()
         {
-            if (_waveShader == null)
+            // Get the wave
+            MeshRenderer rend = null;
+            if (_mode == GerstnerMode.Geometry)
             {
-                _waveShader = Shader.Find("Crest/Inputs/Animated Waves/Gerstner Batch");
-                Debug.Assert(_waveShader, "Could not load Gerstner wave shader, make sure it is packaged in the build.");
-                if (_waveShader == null)
+                rend = GetComponent<MeshRenderer>();
+
+                if (!rend)
                 {
+                    Debug.LogError($"Gerstner input '{gameObject.name}' has Mode set to Geometry, but no MeshRenderer component is attached. Please attach a MeshRenderer to provide the geometry for rendering the Gerstner waves.", this);
+                    enabled = false;
                     return;
                 }
+                if (!rend.sharedMaterial)
+                {
+                    Debug.LogError($"Gerstner input '{gameObject.name}' has Mode set to Geometry, but the geometry has no material assigned. Please assign a material that uses one of the Gerstner input shaders.", this);
+                    enabled = false;
+                    return;
+                }
+
+                rend.enabled = false;
+            }
+            else if (_mode == GerstnerMode.Global)
+            {
+                if (GetComponent<MeshRenderer>() != null)
+                {
+                    Debug.LogWarning($"Gerstner input '{gameObject.name}' has MeshRenderer component that will be ignored because the Mode is set to Global.", this);
+                }
+
+                // Create a proxy MeshRenderer to feed the rendering
+                var renderProxy = GameObject.CreatePrimitive(PrimitiveType.Quad);
+                renderProxy.hideFlags = HideFlags.HideAndDontSave;
+                renderProxy.transform.parent = transform;
+                rend = renderProxy.GetComponent<MeshRenderer>();
+                rend.enabled = false;
+
+                var waveShader = Shader.Find("Crest/Inputs/Animated Waves/Gerstner Batch Global");
+                Debug.Assert(waveShader, "Could not load Gerstner wave shader, make sure it is packaged in the build.");
+                if (waveShader == null)
+                {
+                    enabled = false;
+                    return;
+                }
+
+                rend.material = new Material(waveShader);
             }
 
             _batches = new GerstnerBatch[LodDataMgr.MAX_LOD_COUNT];
             for (int i = 0; i < _batches.Length; i++)
             {
-                _batches[i] = new GerstnerBatch(_waveShader, _directTowardsPoint);
+                _batches[i] = new GerstnerBatch(_directTowardsPoint, rend);
                 _batches[i]._bounds = _bounds;
             }
 
@@ -483,8 +501,16 @@ namespace Crest
             }
         }
 
+#if UNITY_EDITOR
         private void OnDrawGizmosSelected()
         {
+            var mf = GetComponent<MeshFilter>();
+            if (mf)
+            {
+                Gizmos.color = RegisterAnimWavesInput.s_gizmoColor;
+                Gizmos.DrawWireMesh(mf.sharedMesh, transform.position, transform.rotation, transform.lossyScale);
+            }
+
             if (_directTowardsPoint)
             {
                 Gizmos.color = Color.black;
@@ -493,6 +519,7 @@ namespace Crest
                 Gizmos.DrawWireSphere(new Vector3(_pointPositionXZ.x, transform.position.y, _pointPositionXZ.y), _pointRadii.x);
             }
         }
+#endif
 
         float ComputeWaveSpeed(float wavelength/*, float depth*/)
         {
@@ -736,15 +763,6 @@ namespace Crest
         public bool RetrieveSucceeded(int queryStatus)
         {
             return queryStatus == 0;
-        }
-
-#if UNITY_2019_3_OR_NEWER
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-#endif
-        static void InitStatics()
-        {
-            // Init here from 2019.3 onwards
-            _rasterMesh = null;
         }
     }
 

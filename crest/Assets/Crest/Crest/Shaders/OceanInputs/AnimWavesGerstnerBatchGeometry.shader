@@ -2,7 +2,8 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
-// Renders gerstner waves from geometry. Allows localised wave areas. Can fade waves based on UVs.
+// Renders gerstner waves from geometry. Allows localised wave areas. Can fade waves based on UVs - fades to 0
+// as U or V approach 0 or 1, with configurable feather width.
 Shader "Crest/Inputs/Animated Waves/Gerstner Batch Geometry"
 {
 	Properties

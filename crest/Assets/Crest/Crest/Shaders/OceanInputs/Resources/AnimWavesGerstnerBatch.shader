@@ -2,7 +2,7 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
-// A batch of Gerstner components
+// Adds Gerstner waves everywhere. Must be given batch prepared by ShapeGerstnerBatched.cs.
 Shader "Crest/Inputs/Animated Waves/Gerstner Batch Global"
 {
 	Properties

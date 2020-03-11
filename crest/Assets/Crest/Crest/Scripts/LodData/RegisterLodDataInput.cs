@@ -10,7 +10,7 @@ namespace Crest
 {
     public interface ILodDataInput
     {
-        void Draw(CommandBuffer buf, float weight, int isTransition);
+        void Draw(CommandBuffer buf, float weight, int isTransition, int lodIdx);
         float Wavelength { get; }
         bool Enabled { get; }
     }
@@ -22,7 +22,7 @@ namespace Crest
     {
         public abstract float Wavelength { get; }
 
-        public bool Enabled => true;
+        public abstract bool Enabled { get; }
 
         public static int sp_Weight = Shader.PropertyToID("_Weight");
 
@@ -53,11 +53,12 @@ namespace Crest
             }
         }
 
-        public void Draw(CommandBuffer buf, float weight, int isTransition)
+        public void Draw(CommandBuffer buf, float weight, int isTransition, int lodIdx)
         {
             if (_renderer && weight > 0f)
             {
                 _materials[isTransition].SetFloat(sp_Weight, weight);
+                _materials[isTransition].SetInt(LodDataMgr.sp_LD_SliceIndex, lodIdx);
 
                 buf.DrawRenderer(_renderer, _materials[isTransition]);
             }
@@ -65,6 +66,16 @@ namespace Crest
 
         public int MaterialCount => _materials.Length;
         public Material GetMaterial(int index) => _materials[index];
+
+#if UNITY_2019_3_OR_NEWER
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+#endif
+        static void InitStatics()
+        {
+            // Init here from 2019.3 onwards
+            _registrar = new Dictionary<System.Type, List<ILodDataInput>>();
+            sp_Weight = Shader.PropertyToID("_Weight");
+        }
     }
 
     /// <summary>
@@ -74,6 +85,8 @@ namespace Crest
         where LodDataType : LodDataMgr
     {
         [SerializeField] bool _disableRenderer = true;
+
+        protected abstract Color GizmoColor { get; }
 
         protected virtual void OnEnable()
         {
@@ -96,6 +109,16 @@ namespace Crest
             if (registered != null)
             {
                 registered.Remove(this);
+            }
+        }
+
+        private void OnDrawGizmosSelected()
+        {
+            var mf = GetComponent<MeshFilter>();
+            if (mf)
+            {
+                Gizmos.color = GizmoColor;
+                Gizmos.DrawWireMesh(mf.sharedMesh, transform.position, transform.rotation, transform.lossyScale);
             }
         }
     }

@@ -12,9 +12,13 @@ namespace Crest
     /// </summary>
     public class RegisterSeaFloorDepthInput : RegisterLodDataInput<LodDataMgrSeaFloorDepth>
     {
+        public override bool Enabled => true;
+
         [SerializeField] bool _assignOceanDepthMaterial = true;
 
         public override float Wavelength => 0f;
+
+        protected override Color GizmoColor => new Color(1f, 0f, 0f, 0.5f);
 
         protected override void OnEnable()
         {

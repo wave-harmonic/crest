@@ -28,9 +28,13 @@ Shader "Crest/Inputs/Animated Waves/Add Water Height From Geometry"
 			#pragma fragment Frag
 
  			#include "UnityCG.cginc"
-			#include "../OceanLODData.hlsl"
+			#include "../OceanGlobals.hlsl"
 
- 			struct Attributes
+			CBUFFER_START(CrestPerOceanInput)
+			float _Weight;
+			CBUFFER_END
+
+			struct Attributes
 			{
 				float3 positionOS : POSITION;
 			};
@@ -54,7 +58,7 @@ Shader "Crest/Inputs/Animated Waves/Add Water Height From Geometry"
 				// Write displacement to get from sea level of ocean to the y value of this geometry
 				float addHeight = input.worldPos.y - _OceanCenterPosWorld.y;
 				// TODO alpha should be 0 in the master branch i guess because thats the SSS channel
-				return half4(0.0, addHeight, 0.0, 0.0);
+				return _Weight * half4(0.0, addHeight, 0.0, 1.0);
 			}
 			ENDCG
 		}

@@ -34,8 +34,9 @@ namespace Crest
         PropertyWrapperMPB _mpb;
         Renderer _rend;
 
-        static readonly int sp_HeightOffset = Shader.PropertyToID("_HeightOffset");
-        static readonly int sp_InstanceData = Shader.PropertyToID("_InstanceData");
+        readonly int sp_HeightOffset = Shader.PropertyToID("_HeightOffset");
+
+        SampleHeightHelper _sampleWaterHeight = new SampleHeightHelper();
 
         private void Start()
         {
@@ -87,7 +88,11 @@ namespace Crest
                 return;
             }
 
-            float heightOffset = OceanRenderer.Instance.ViewerHeightAboveWater;
+            float waterHeight = OceanRenderer.Instance.SeaLevel;
+            _sampleWaterHeight.Init(transform.position, 0f);
+            _sampleWaterHeight.Sample(ref waterHeight);
+
+            float heightOffset = transform.position.y - waterHeight;
 
             // Disable skirt when camera not close to water. In the first few frames collision may not be avail, in that case no choice
             // but to assume enabled. In the future this could detect if camera is far enough under water, render a simple quad to avoid
@@ -132,7 +137,7 @@ namespace Crest
 
                 _mpb.SetFloat(sp_HeightOffset, heightOffset);
 
-                _mpb.SetVector(sp_InstanceData, new Vector4(OceanRenderer.Instance.ViewerAltitudeLevelAlpha, 0f, 0f, OceanRenderer.Instance.CurrentLodCount));
+                _mpb.SetVector(OceanChunkRenderer.sp_InstanceData, new Vector3(OceanRenderer.Instance.ViewerAltitudeLevelAlpha, 0f, 0f));
 
                 _rend.SetPropertyBlock(_mpb.materialPropertyBlock);
             }

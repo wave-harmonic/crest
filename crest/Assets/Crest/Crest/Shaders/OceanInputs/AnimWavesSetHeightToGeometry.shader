@@ -23,7 +23,12 @@ Shader "Crest/Inputs/Animated Waves/Set Water Height To Geometry"
 			#pragma fragment Frag
 
  			#include "UnityCG.cginc"
-			#include "../OceanLODData.hlsl"
+
+			#include "../OceanGlobals.hlsl"
+
+			CBUFFER_START(CrestPerOceanInput)
+			float _Weight;
+			CBUFFER_END
 
  			struct Attributes
 			{
@@ -48,7 +53,7 @@ Shader "Crest/Inputs/Animated Waves/Set Water Height To Geometry"
 			{
 				// Write displacement to get from sea level of ocean to the y value of this geometry
 				float height = input.worldPos.y - _OceanCenterPosWorld.y;
-				return half4(0.0, height, 0.0, 0.0);
+				return half4(0.0, _Weight * height, 0.0, 0.0);
 			}
 			ENDCG
 		}

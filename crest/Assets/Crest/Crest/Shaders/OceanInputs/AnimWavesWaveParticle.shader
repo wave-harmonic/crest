@@ -22,10 +22,13 @@ Shader "Crest/Inputs/Animated Waves/Wave Particle"
 			#pragma vertex Vert
 			#pragma fragment Frag
 
+			#include "UnityCG.cginc"
+
+			CBUFFER_START(CrestPerOceanInput)
 			float _Radius;
 			float _Amplitude;
-			// TODO add this for all ocean inputs?
 			float _Weight;
+			CBUFFER_END
 
 			struct Attributes
 			{

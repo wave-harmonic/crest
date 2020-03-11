@@ -50,14 +50,13 @@ Shader "Crest/Underwater Curtain"
 
 			#include "UnityCG.cginc"
 			#include "Lighting.cginc"
+
+			#include "../OceanGlobals.hlsl"
+			#include "../OceanInputsDriven.hlsl"
 			#include "../OceanLODData.hlsl"
 			#include "UnderwaterShared.hlsl"
 
-			float _CrestTime;
 			float _HeightOffset;
-
-			// MeshScaleLerp, FarNormalsWeight, LODIndex (debug), lod count
-			float4 _InstanceData;
 
 			#include "../OceanEmission.hlsl"
 

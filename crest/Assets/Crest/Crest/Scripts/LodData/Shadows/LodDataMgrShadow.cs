@@ -32,15 +32,15 @@ namespace Crest
         private int krnl_UpdateShadow;
         public const string UpdateShadow = "UpdateShadow";
 
-        static int sp_CenterPos = Shader.PropertyToID("_CenterPos");
-        static int sp_Scale = Shader.PropertyToID("_Scale");
-        static int sp_CamPos = Shader.PropertyToID("_CamPos");
-        static int sp_CamForward = Shader.PropertyToID("_CamForward");
-        static int sp_JitterDiameters_CurrentFrameWeights = Shader.PropertyToID("_JitterDiameters_CurrentFrameWeights");
-        static int sp_MainCameraProjectionMatrix = Shader.PropertyToID("_MainCameraProjectionMatrix");
-        static int sp_SimDeltaTime = Shader.PropertyToID("_SimDeltaTime");
-        static int sp_LD_SliceIndex_Source = Shader.PropertyToID("_LD_SliceIndex_Source");
-        static int sp_LD_TexArray_Target = Shader.PropertyToID("_LD_TexArray_Target");
+        readonly int sp_CenterPos = Shader.PropertyToID("_CenterPos");
+        readonly int sp_Scale = Shader.PropertyToID("_Scale");
+        readonly int sp_CamPos = Shader.PropertyToID("_CamPos");
+        readonly int sp_CamForward = Shader.PropertyToID("_CamForward");
+        readonly int sp_JitterDiameters_CurrentFrameWeights = Shader.PropertyToID("_JitterDiameters_CurrentFrameWeights");
+        readonly int sp_MainCameraProjectionMatrix = Shader.PropertyToID("_MainCameraProjectionMatrix");
+        readonly int sp_SimDeltaTime = Shader.PropertyToID("_SimDeltaTime");
+        readonly int sp_LD_SliceIndex_Source = Shader.PropertyToID("_LD_SliceIndex_Source");
+        readonly int sp_LD_TexArray_Target = Shader.PropertyToID("_LD_TexArray_Target");
 
         SimSettingsShadow Settings { get { return OceanRenderer.Instance._simSettingsShadow; } }
         public override void UseSettings(SimSettingsBase settings) { OceanRenderer.Instance._simSettingsShadow = settings as SimSettingsShadow; }
@@ -178,7 +178,7 @@ namespace Crest
                 return;
             }
 
-            SwapRTs(ref _sources, ref _targets);
+            Swap(ref _sources, ref _targets);
 
             BufCopyShadowMap.Clear();
 
@@ -250,9 +250,9 @@ namespace Crest
             }
         }
 
-        public static string TextureArrayName = "_LD_TexArray_Shadow";
-        private static TextureArrayParamIds textureArrayParamIds = new TextureArrayParamIds(TextureArrayName);
-        public static int ParamIdSampler(bool sourceLod = false) { return textureArrayParamIds.GetId(sourceLod); }
+        readonly static string s_textureArrayName = "_LD_TexArray_Shadow";
+        private static TextureArrayParamIds s_textureArrayParamIds = new TextureArrayParamIds(s_textureArrayName);
+        public static int ParamIdSampler(bool sourceLod = false) { return s_textureArrayParamIds.GetId(sourceLod); }
         protected override int GetParamIdSampler(bool sourceLod = false)
         {
             return ParamIdSampler(sourceLod);
@@ -260,6 +260,15 @@ namespace Crest
         public static void BindNull(IPropertyWrapper properties, bool sourceLod = false)
         {
             properties.SetTexture(ParamIdSampler(sourceLod), TextureArrayHelpers.BlackTextureArray);
+        }
+
+#if UNITY_2019_3_OR_NEWER
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+#endif
+        static void InitStatics()
+        {
+            // Init here from 2019.3 onwards
+            s_textureArrayParamIds = new TextureArrayParamIds(s_textureArrayName);
         }
     }
 }

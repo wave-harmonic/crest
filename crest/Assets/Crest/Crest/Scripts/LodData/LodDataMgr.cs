@@ -70,7 +70,7 @@ namespace Crest
 
             Debug.Assert(OceanRenderer.Instance.CurrentLodCount <= MAX_LOD_COUNT);
 
-            int resolution = OceanRenderer.Instance.LodDataResolution;
+            var resolution = OceanRenderer.Instance.LodDataResolution;
             var desc = new RenderTextureDescriptor(resolution, resolution, TextureFormat, 0);
             _targets = CreateLodDataTextures(desc, SimName, NeedToReadWriteTextureData);
         }
@@ -88,6 +88,8 @@ namespace Crest
                 _targets.Release();
                 _targets.width = _targets.height = _shapeRes;
                 _targets.Create();
+
+                _shapeRes = width;
             }
 
             // determine if this LOD has changed scale and by how much (in exponent of 2)
@@ -105,9 +107,9 @@ namespace Crest
         }
 
         // Avoid heap allocations instead BindData
-        private Vector4[] _BindData_paramIdPosScales = new Vector4[MAX_LOD_COUNT];
+        private Vector4[] _BindData_paramIdPosScales = new Vector4[MAX_LOD_COUNT + 1];
         // Used in child
-        protected Vector4[] _BindData_paramIdOceans = new Vector4[MAX_LOD_COUNT];
+        protected Vector4[] _BindData_paramIdOceans = new Vector4[MAX_LOD_COUNT + 1];
         protected virtual void BindData(IPropertyWrapper properties, Texture applyData, bool blendOut, ref LodTransform.RenderData[] renderData, bool sourceLod = false)
         {
             if (applyData)
@@ -129,6 +131,8 @@ namespace Crest
             // off the end of this parameter is the same as going off the end of the texture array with our clamped sampler.
             _BindData_paramIdPosScales[OceanRenderer.Instance.CurrentLodCount] = _BindData_paramIdPosScales[OceanRenderer.Instance.CurrentLodCount - 1];
             _BindData_paramIdOceans[OceanRenderer.Instance.CurrentLodCount] = _BindData_paramIdOceans[OceanRenderer.Instance.CurrentLodCount - 1];
+            // Never use this last lod - it exists to give 'something' but should not be used
+            _BindData_paramIdOceans[OceanRenderer.Instance.CurrentLodCount].z = 0f;
 
             properties.SetVectorArray(LodTransform.ParamIdPosScale(sourceLod), _BindData_paramIdPosScales);
             properties.SetVectorArray(LodTransform.ParamIdOcean(sourceLod), _BindData_paramIdOceans);
@@ -152,11 +156,11 @@ namespace Crest
         {
         }
 
-        protected void SwapRTs(ref RenderTexture o_a, ref RenderTexture o_b)
+        public static void Swap<T>(ref T a, ref T b)
         {
-            var temp = o_a;
-            o_a = o_b;
-            o_b = temp;
+            var temp = b;
+            b = a;
+            a = temp;
         }
 
         public interface IDrawFilter
@@ -174,7 +178,12 @@ namespace Crest
             var drawList = RegisterLodDataInputBase.GetRegistrar(GetType());
             foreach (var draw in drawList)
             {
-                draw.Draw(buf, 1f, 0);
+                if (!draw.Enabled)
+                {
+                    continue;
+                }
+
+                draw.Draw(buf, 1f, 0, lodIdx);
             }
         }
 
@@ -197,7 +206,7 @@ namespace Crest
                 float weight = filter.Filter(draw, out isTransition);
                 if (weight > 0f)
                 {
-                    draw.Draw(buf, weight, isTransition);
+                    draw.Draw(buf, weight, isTransition, lodIdx);
                 }
             }
         }
@@ -216,6 +225,16 @@ namespace Crest
                 _paramId_Source = Shader.PropertyToID(textureArrayName + "_Source");
             }
             public int GetId(bool sourceLod) { return sourceLod ? _paramId_Source : _paramId; }
+        }
+
+#if UNITY_2019_3_OR_NEWER
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+#endif
+        static void InitStatics()
+        {
+            // Init here from 2019.3 onwards
+            sp_LD_SliceIndex = Shader.PropertyToID("_LD_SliceIndex");
+            sp_LODChange = Shader.PropertyToID("_LODChange");
         }
     }
 }

@@ -6,19 +6,24 @@
 
 Shader "Crest/Inputs/Animated Waves/Push Water Under Convex Hull"
 {
- 	SubShader
+	SubShader
 	{
- 		Pass
+		Pass
 		{
 			BlendOp Min
 			Cull Front
 
- 			CGPROGRAM
+			CGPROGRAM
 			#pragma vertex Vert
 			#pragma fragment Frag
 
- 			#include "UnityCG.cginc"
-			#include "../OceanLODData.hlsl"
+			#include "UnityCG.cginc"
+
+			#include "../OceanGlobals.hlsl"
+
+			CBUFFER_START(CrestPerOceanInput)
+			float _Weight;
+			CBUFFER_END
 
  			struct Attributes
 			{
@@ -45,7 +50,7 @@ Shader "Crest/Inputs/Animated Waves/Push Water Under Convex Hull"
 
 				// Write large XZ components - using min blending so this should not affect them.
 				
-				return half4(10000.0, input.worldPos.y - _OceanCenterPosWorld.y, 10000.0, 1.0);
+				return half4(10000.0, _Weight * (input.worldPos.y - _OceanCenterPosWorld.y), 10000.0, 1.0);
 			}
 			ENDCG
 		}

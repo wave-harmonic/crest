@@ -662,7 +662,6 @@ MonoBehaviour:
   _localOffset: {x: 0, y: 0, z: 0}
   _noiseFreq: 6
   _noiseAmp: 0
-  _weight: 8
   _weightUpDownMul: 0.3
   _teleportSpeed: 500
   _warnOnTeleport: 0
@@ -776,7 +775,6 @@ MonoBehaviour:
   _localOffset: {x: 0, y: 0, z: 0}
   _noiseFreq: 6
   _noiseAmp: 0
-  _weight: 8
   _weightUpDownMul: 0.3
   _teleportSpeed: 500
   _warnOnTeleport: 0

@@ -7,6 +7,8 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Batch Geometry"
 {
 	Properties
 	{
+		[Toggle] _FeatherAtUVExtents("Feather at UV extents", Float) = 0
+		_FeatherWidth("Feather width", Float) = 0.1
 	}
 
 	SubShader
@@ -22,6 +24,7 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Batch Geometry"
 			#pragma vertex Vert
 			#pragma fragment Frag
 			#pragma multi_compile __ _DIRECT_TOWARDS_POINT
+			#pragma shader_feature _FEATHERATUVEXTENTS_ON
 
 			#include "UnityCG.cginc"
 
@@ -30,6 +33,10 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Batch Geometry"
 			#include "../OceanLODData.hlsl"
 
 			#include "GerstnerShared.hlsl"
+
+			CBUFFER_START(GerstnerPerMaterial)
+			half _FeatherWidth;
+			CBUFFER_END
 
 			struct Attributes
 			{
@@ -61,7 +68,12 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Batch Geometry"
 			{
 				float2 offset = abs(input.worldPosXZ_uv.zw - 0.5);
 				float r_l1 = max(offset.x, offset.y);
-				float wt = saturate(1.0 - (r_l1 - 0.4) / 0.1);
+
+				float wt = 1.0;
+#if _FEATHERATUVEXTENTS_ON
+				wt = saturate(1.0 - (r_l1 - (0.5 - _FeatherWidth)) / _FeatherWidth);
+#endif
+
 				return wt * ComputeGerstner(input.worldPosXZ_uv.xy, input.uv_slice_wt.xyz);
 			}
 			ENDCG

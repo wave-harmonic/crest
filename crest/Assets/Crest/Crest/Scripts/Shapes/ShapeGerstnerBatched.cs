@@ -30,12 +30,12 @@ namespace Crest
 
         public class GerstnerBatch : ILodDataInput
         {
-            public GerstnerBatch(Shader gerstnerShader, bool directTowardsPoint, MeshRenderer rend)
+            public GerstnerBatch(bool directTowardsPoint, MeshRenderer rend)
             {
                 _materials = new PropertyWrapperMaterial[]
                 {
-                    new PropertyWrapperMaterial(new Material(gerstnerShader)),
-                    new PropertyWrapperMaterial(new Material(gerstnerShader))
+                    new PropertyWrapperMaterial(new Material(rend.sharedMaterial ?? rend.material)),
+                    new PropertyWrapperMaterial(new Material(rend.sharedMaterial ?? rend.material))
                 };
 
                 if (directTowardsPoint)
@@ -64,14 +64,7 @@ namespace Crest
                 {
                     PropertyWrapperMaterial mat = GetMaterial(isTransition);
                     mat.SetFloat(RegisterLodDataInputBase.sp_Weight, weight);
-                    if (_rend)
-                    {
-                        buf.DrawRenderer(_rend, mat.material);
-                    }
-                    else
-                    {
-                        buf.DrawMesh(FullQuad.RasterMesh(), Matrix4x4.identity, mat.material);
-                    }
+                    buf.DrawRenderer(_rend, mat.material);
                 }
             }
         }
@@ -102,9 +95,6 @@ namespace Crest
         Vector2 _pointRadii = new Vector2(100f, 200f);
 
         const string DIRECT_TOWARDS_POINT_KEYWORD = "_DIRECT_TOWARDS_POINT";
-
-        // Shader to be used to render evaluate Gerstner waves for each LOD
-        Shader _waveShader;
 
         readonly int sp_TwoPiOverWavelengths = Shader.PropertyToID("_TwoPiOverWavelengths");
         readonly int sp_Amplitudes = Shader.PropertyToID("_Amplitudes");
@@ -242,39 +232,56 @@ namespace Crest
 
         void InitBatches()
         {
-            if (_waveShader == null)
-            {
-                if (_mode == GerstnerMode.Global)
-                {
-                    _waveShader = Shader.Find("Crest/Inputs/Animated Waves/Gerstner Batch Global");
-                }
-                else
-                {
-                    _waveShader = Shader.Find("Crest/Inputs/Animated Waves/Gerstner Batch Geometry");
-                }
-
-                Debug.Assert(_waveShader, "Could not load Gerstner wave shader, make sure it is packaged in the build.");
-                if (_waveShader == null)
-                {
-                    return;
-                }
-            }
-
+            // Get the wave
             MeshRenderer rend = null;
             if (_mode == GerstnerMode.Geometry)
             {
                 rend = GetComponent<MeshRenderer>();
 
-                if (rend)
+                if (!rend)
                 {
-                    rend.enabled = false;
+                    Debug.LogError($"Gerstner input '{gameObject.name}' has Mode set to Geometry, but no MeshRenderer component is attached. Please attach a MeshRenderer to provide the geometry for rendering the Gerstner waves.", this);
+                    enabled = false;
+                    return;
                 }
+                if (!rend.sharedMaterial)
+                {
+                    Debug.LogError($"Gerstner input '{gameObject.name}' has Mode set to Geometry, but the geometry has no material assigned. Please assign a material that uses one of the Gerstner input shaders.", this);
+                    enabled = false;
+                    return;
+                }
+
+                rend.enabled = false;
+            }
+            else if (_mode == GerstnerMode.Global)
+            {
+                if (GetComponent<MeshRenderer>() != null)
+                {
+                    Debug.LogWarning($"Gerstner input '{gameObject.name}' has MeshRenderer component that will be ignored because the Mode is set to Global.", this);
+                }
+
+                // Create a proxy MeshRenderer to feed the rendering
+                var renderProxy = GameObject.CreatePrimitive(PrimitiveType.Quad);
+                renderProxy.hideFlags = HideFlags.HideAndDontSave;
+                renderProxy.transform.parent = transform;
+                rend = renderProxy.GetComponent<MeshRenderer>();
+                rend.enabled = false;
+
+                var waveShader = Shader.Find("Crest/Inputs/Animated Waves/Gerstner Batch Global");
+                Debug.Assert(waveShader, "Could not load Gerstner wave shader, make sure it is packaged in the build.");
+                if (waveShader == null)
+                {
+                    enabled = false;
+                    return;
+                }
+
+                rend.material = new Material(waveShader);
             }
 
             _batches = new GerstnerBatch[LodDataMgr.MAX_LOD_COUNT];
             for (int i = 0; i < _batches.Length; i++)
             {
-                _batches[i] = new GerstnerBatch(_waveShader, _directTowardsPoint, rend);
+                _batches[i] = new GerstnerBatch(_directTowardsPoint, rend);
             }
 
             // Submit draws to create the Gerstner waves. LODs from 0 to N-2 render the Gerstner waves from their lod. Additionally, any waves
@@ -743,38 +750,6 @@ namespace Crest
             return queryStatus == 0;
         }
 
-    }
-
-    /// <summary>
-    /// Helper provides geo for filling displacement textures with waves.
-    /// </summary>
-    static class FullQuad
-    {
-        static Mesh _rasterMesh = null;
-
-        public static Mesh RasterMesh()
-        {
-            if (_rasterMesh == null)
-            {
-                // If not provided, use a quad which will render waves everywhere
-                _rasterMesh = new Mesh();
-                _rasterMesh.vertices = new Vector3[] { new Vector3(-0.5f, -0.5f, 0f), new Vector3(0.5f, 0.5f, 0f), new Vector3(0.5f, -0.5f, 0f), new Vector3(-0.5f, 0.5f, 0f) };
-                _rasterMesh.uv = new Vector2[] { Vector2.zero, Vector2.one, Vector2.right, Vector2.up };
-                _rasterMesh.normals = new Vector3[] { -Vector3.forward, -Vector3.forward, -Vector3.forward, -Vector3.forward };
-                _rasterMesh.SetIndices(new int[] { 0, 1, 2, 1, 0, 3 }, MeshTopology.Triangles, 0);
-            }
-
-            return _rasterMesh;
-        }
-
-#if UNITY_2019_3_OR_NEWER
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-#endif
-        static void InitStatics()
-        {
-            // Init here from 2019.3 onwards
-            _rasterMesh = null;
-        }
     }
 
 #if UNITY_EDITOR

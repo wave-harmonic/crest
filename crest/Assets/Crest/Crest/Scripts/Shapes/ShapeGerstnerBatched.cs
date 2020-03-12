@@ -30,8 +30,6 @@ namespace Crest
         public float _windDirectionAngle = 0f;
         public Vector2 WindDir => new Vector2(Mathf.Cos(Mathf.PI * _windDirectionAngle / 180f), Mathf.Sin(Mathf.PI * _windDirectionAngle / 180f));
 
-        public Bounds _bounds;
-
         public class GerstnerBatch : ILodDataInput
         {
             public GerstnerBatch(bool directTowardsPoint, MeshRenderer rend)
@@ -61,7 +59,6 @@ namespace Crest
 
             public float Wavelength { get; set; }
             public bool Enabled { get; set; }
-            public Bounds _bounds;
 
             public void Draw(CommandBuffer buf, float weight, int isTransition, int lodIdx)
             {
@@ -287,7 +284,6 @@ namespace Crest
             for (int i = 0; i < _batches.Length; i++)
             {
                 _batches[i] = new GerstnerBatch(_directTowardsPoint, rend);
-                _batches[i]._bounds = _bounds;
             }
 
             // Submit draws to create the Gerstner waves. LODs from 0 to N-2 render the Gerstner waves from their lod. Additionally, any waves

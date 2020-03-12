@@ -62,6 +62,8 @@ namespace Crest
                 SceneView.RepaintAll();
             }
 
+            EditorGUILayout.Space();
+
             if (GUILayout.Button("Create"))
             {
                 CreateWaterBody();

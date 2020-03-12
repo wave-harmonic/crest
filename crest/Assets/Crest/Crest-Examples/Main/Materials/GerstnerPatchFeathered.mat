@@ -7,9 +7,9 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: GerstnerPatch
+  m_Name: GerstnerPatchFeathered
   m_Shader: {fileID: 4800000, guid: 575237b882fa60e4a9215a6d46e8abe5, type: 3}
-  m_ShaderKeywords: 
+  m_ShaderKeywords: _FEATHERATUVEXTENTS_ON
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -60,7 +60,7 @@ Material:
     - _Cutoff: 0.5
     - _DetailNormalMapScale: 1
     - _DstBlend: 0
-    - _FeatherAtUVExtents: 0
+    - _FeatherAtUVExtents: 1
     - _FeatherWidth: 0.1
     - _GlossMapScale: 1
     - _Glossiness: 0.5

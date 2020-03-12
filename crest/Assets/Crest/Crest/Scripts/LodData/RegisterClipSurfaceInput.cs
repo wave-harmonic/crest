@@ -16,10 +16,10 @@ namespace Crest
         public override bool Enabled => _enabled;
 
         [Tooltip("Uses the 'clip from convex hull' shader. There are other clip shaders available.")]
-        [SerializeField] bool _assignClipSurfaceMaterial = true;
+        public bool _assignClipSurfaceMaterial = true;
 
         [Tooltip("Prevents inputs from cancelling each other out when aligned vertically. It is imperfect so custom logic might be needed for your use case.")]
-        [SerializeField] bool _disableClipSurfaceWhenTooFarFromSurface = true;
+        public bool _disableClipSurfaceWhenTooFarFromSurface = true;
 
         [Tooltip("Large, choppy waves require higher iterations to have accurate holes.")]
         [SerializeField] uint _animatedWavesDisplacementSamplingIterations = 4;

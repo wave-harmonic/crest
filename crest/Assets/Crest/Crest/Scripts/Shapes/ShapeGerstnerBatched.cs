@@ -32,7 +32,7 @@ namespace Crest
 
         public class GerstnerBatch : ILodDataInput
         {
-            public GerstnerBatch(bool directTowardsPoint, MeshRenderer rend)
+            public GerstnerBatch(MeshRenderer rend, bool directTowardsPoint)
             {
                 _materials = new PropertyWrapperMaterial[]
                 {
@@ -283,7 +283,7 @@ namespace Crest
             _batches = new GerstnerBatch[LodDataMgr.MAX_LOD_COUNT];
             for (int i = 0; i < _batches.Length; i++)
             {
-                _batches[i] = new GerstnerBatch(_directTowardsPoint, rend);
+                _batches[i] = new GerstnerBatch(rend, _directTowardsPoint);
             }
 
             // Submit draws to create the Gerstner waves. LODs from 0 to N-2 render the Gerstner waves from their lod. Additionally, any waves

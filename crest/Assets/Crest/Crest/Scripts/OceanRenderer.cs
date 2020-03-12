@@ -441,12 +441,14 @@ namespace Crest
                 var overlappingY = 0f;
                 foreach (var body in _waterBodies)
                 {
+                    var bounds = body.Bounds;
+
                     bool overlapping =
-                        body._bounds.max.x > chunkBounds.min.x && body._bounds.min.x < chunkBounds.max.x &&
-                        body._bounds.max.z > chunkBounds.min.z && body._bounds.min.z < chunkBounds.max.z;
+                        bounds.max.x > chunkBounds.min.x && bounds.min.x < chunkBounds.max.x &&
+                        bounds.max.z > chunkBounds.min.z && bounds.min.z < chunkBounds.max.z;
                     if (overlapping)
                     {
-                        overlappingY = body._bounds.center.y;
+                        overlappingY = bounds.center.y;
                         overlappingOne = true;
                         break;
                     }

@@ -140,8 +140,7 @@ namespace Crest
             waterBodyGO.transform.localScale = new Vector3(_sizeX, 1f, _sizeZ);
 
             var waterBody = waterBodyGO.AddComponent<WaterBody>();
-            waterBody._bounds.center = waterBodyGO.transform.position;
-            waterBody._bounds.extents = Vector3.one * Mathf.Max(_sizeX, _sizeZ); // TODO
+            waterBody._radius = Mathf.Max(_sizeX, _sizeZ); // TODO
 
             if (_createDepthCache)
             {

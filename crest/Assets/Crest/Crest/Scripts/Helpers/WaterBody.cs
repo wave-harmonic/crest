@@ -4,7 +4,7 @@ namespace Crest
 {
     public class WaterBody : MonoBehaviour
     {
-        public Bounds _bounds;
+        public float _radius = 50f;
 
         private void OnEnable()
         {
@@ -20,9 +20,6 @@ namespace Crest
             OceanRenderer.Instance.UnregisterWaterBody(this);
         }
 
-        private void OnDrawGizmosSelected()
-        {
-            _bounds.DebugDraw();
-        }
+        public Bounds Bounds => new Bounds(transform.position, _radius * Vector3.one);
     }
 }

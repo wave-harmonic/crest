@@ -21,6 +21,8 @@ namespace Crest
         public override SimSettingsBase CreateDefaultSettings() { return null; }
         public override void UseSettings(SimSettingsBase settings) { }
 
+        public static bool s_defaultToClip = false;
+
         bool _targetsClear = false;
 
         protected override void Start()
@@ -49,7 +51,7 @@ namespace Crest
             for (int lodIdx = OceanRenderer.Instance.CurrentLodCount - 1; lodIdx >= 0; lodIdx--)
             {
                 buf.SetRenderTarget(_targets, 0, CubemapFace.Unknown, lodIdx);
-                buf.ClearRenderTarget(false, true, Color.black);
+                buf.ClearRenderTarget(false, true, s_defaultToClip ? Color.white : Color.black);
                 buf.SetGlobalInt(sp_LD_SliceIndex, lodIdx);
                 SubmitDraws(lodIdx, buf);
             }

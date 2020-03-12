@@ -269,7 +269,7 @@ namespace Crest
                 rend = renderProxy.GetComponent<MeshRenderer>();
                 rend.enabled = false;
 
-                var waveShader = Shader.Find("Crest/Inputs/Animated Waves/Gerstner Batch Global");
+                var waveShader = Shader.Find("Hidden/Crest/Inputs/Animated Waves/Gerstner Batch Global");
                 Debug.Assert(waveShader, "Could not load Gerstner wave shader, make sure it is packaged in the build.");
                 if (waveShader == null)
                 {

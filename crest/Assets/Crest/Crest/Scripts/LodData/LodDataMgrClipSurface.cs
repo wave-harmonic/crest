@@ -21,7 +21,7 @@ namespace Crest
         public override SimSettingsBase CreateDefaultSettings() { return null; }
         public override void UseSettings(SimSettingsBase settings) { }
 
-        public static bool s_defaultToClip = false;
+        public static bool s_defaultToClip = true;
 
         bool _targetsClear = false;
 

@@ -25,8 +25,10 @@ namespace Crest
         bool _createGerstnerWaves = false;
         float _gerstnerWindDirection = 0f;
         OceanWaveSpectrum _gerstnerWaveSpectrum = null;
+        Material _gerstnerMaterial = null;
 
         bool _createClipArea = false;
+        Material _clipMaterial = null;
 
         private void OnGUI()
         {
@@ -50,11 +52,14 @@ namespace Crest
             _createGerstnerWaves = EditorGUILayout.BeginToggleGroup("Create Gerstner Waves", _createGerstnerWaves);
             _gerstnerWindDirection = EditorGUILayout.FloatField("Wind direction angle", _gerstnerWindDirection);
             _gerstnerWaveSpectrum = EditorGUILayout.ObjectField("Wave spectrum", _gerstnerWaveSpectrum, typeof(OceanWaveSpectrum), false) as OceanWaveSpectrum;
+            _gerstnerMaterial = EditorGUILayout.ObjectField("Gerstner material", _gerstnerMaterial, typeof(Material), false) as Material;
             EditorGUILayout.EndToggleGroup();
 
             EditorGUILayout.Space();
 
-            _createClipArea = EditorGUILayout.Toggle("Create Clip Area", _createClipArea);
+            _createClipArea = EditorGUILayout.BeginToggleGroup("Create Clip Area", _createClipArea);
+            _clipMaterial = EditorGUILayout.ObjectField("Clip material", _clipMaterial, typeof(Material), false) as Material;
+            EditorGUILayout.EndToggleGroup();
 
             if (EditorGUI.EndChangeCheck())
             {
@@ -170,7 +175,7 @@ namespace Crest
                 gerstner._spectrum = _gerstnerWaveSpectrum;
 
                 var rend = gerstnerGO.GetComponent<Renderer>();
-                rend.material = new Material(Shader.Find("Crest/Inputs/Animated Waves/Gerstner Batch Geometry"));
+                rend.sharedMaterial = _gerstnerMaterial;
             }
 
             if (_createClipArea)
@@ -188,7 +193,7 @@ namespace Crest
                 clip._disableClipSurfaceWhenTooFarFromSurface = false;
 
                 var rend = clipGO.GetComponent<Renderer>();
-                rend.material = new Material(Shader.Find("Crest/Inputs/Clip Surface/Remove Area"));
+                rend.sharedMaterial = _clipMaterial;
             }
         }
     }

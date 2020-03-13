@@ -196,25 +196,41 @@ Crest supports adding any flow velocities to the system. To add flow, add some g
 
 To add waves, add the *ShapeGerstnerBatched* component to a GameObject.
 
-The appearance and shape of the waves is determined by a *wave spectrum*. A default wave spectrum will be created if none is specified. To change the waves, right click in the Project view and select *Create/Crest/Ocean Wave Spectrum*, and assign the new asset to the *Spectrum* property of the *ShapeGerstnerBatched* script.
+The appearance and shape of the waves is determined by a *wave spectrum*.
+A default wave spectrum will be created if none is specified.
+To change the waves, right click in the Project view and select *Create/Crest/Ocean Wave Spectrum*, and assign the new asset to the *Spectrum* property of the *ShapeGerstnerBatched* script.
 
-The spectrum has sliders for each wavelength to control contribution of different scales of waves. To control the contribution of ~2m wavelengths, use the slider labelled '2'.
+The spectrum has sliders for each wavelength to control contribution of different scales of waves.
+To control the contribution of ~2m wavelengths, use the slider labelled '2'.
 
-The *Wave Direction Variance* controls the spread of wave directions. This controls how aligned the waves are to the wind direction.
+The *Wave Direction Variance* controls the spread of wave directions.
+This controls how aligned the waves are to the wind direction.
 
-The *Chop* parameter scales the horizontal displacement. Higher chop gives crisper wave crests but can result in self-intersections or 'inversions' if set too high, so it needs to be balanced.
+The *Chop* parameter scales the horizontal displacement.
+Higher chop gives crisper wave crests but can result in self-intersections or 'inversions' if set too high, so it needs to be balanced.
 
-To aid in tweaking the spectrum values we provide implementations of common wave spectra from the literature. Select one of the spectra by toggling the button, and then tweak the spectra inputs, and the spectrum values will be set according to the selected model. When done, toggle the button off.
+To aid in tweaking the spectrum values we provide implementations of common wave spectra from the literature.
+Select one of the spectra by toggling the button, and then tweak the spectra inputs, and the spectrum values will be set according to the selected model.
+When done, toggle the button off to stop overriding the spectrum.
 
-All of the above can be tweaked in play mode. Together these controls give the flexibility to express the great variation one can observe in real world seascapes. 
+All of the above can be tweaked in play mode.
+Together these controls give the flexibility to express the great variation one can observe in real world seascapes. 
 
 ## Local waves
 
-By default the Gerstner waves will apply everywhere throughout the world, so 'globally'. They can also be applied 'locally' - in a limited area of the world.
+By default the Gerstner waves will apply everywhere throughout the world, so 'globally'.
+They can also be applied 'locally' - in a limited area of the world.
 
-This is done by setting the *Mode* to *Geometry*. In this case the system will look for a *MeshFilter*/*MeshRenderer* on the same GameObject and it will generate waves over the area of the geometry. The geometry must be 'face up' - it must be visible from a top-down perspective in order to generate the waves. It must also have a material using the *Crest/Inputs/Animated Waves/Gerstner Batch Geometry* shader applied.
+This is done by setting the *Mode* to *Geometry*.
+In this case the system will look for a *MeshFilter*/*MeshRenderer* on the same GameObject and it will generate waves over the area of the geometry.
+The geometry must be 'face up' - it must be visible from a top-down perspective in order to generate the waves.
+It must also have a material using the *Crest/Inputs/Animated Waves/Gerstner Batch Geometry* shader applied.
 
-For a concrete example, see the *GerstnerPatch* object in *boat.unity*. It has a *MeshFilter* component with the *Quad* mesh applied, and is rotated so the quad is face up. It has a *MeshRenderer* component with a material assigned with a Gerstner material. Additionally, the material has the *Feather at UV Extents* option enabled, which will fade down the waves where the UVs go to 0 or 1 (at the edges of the quad). The end result is a local patch of waves that are smoothly blended over the area of the quad.
+For a concrete example, see the *GerstnerPatch* object in *boat.unity*.
+It has a *MeshFilter* component with the *Quad* mesh applied, and is rotated so the quad is face up.
+It has a *MeshRenderer* component with a material assigned with a Gerstner material.
+Additionally, the material has the *Feather at UV Extents* option enabled, which will fade down the waves where the UVs go to 0 or 1 (at the edges of the quad).
+The end result is a local patch of waves that are smoothly blended over the area of the quad.
 
 
 # Shorelines and shallow water

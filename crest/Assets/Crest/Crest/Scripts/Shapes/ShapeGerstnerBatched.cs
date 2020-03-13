@@ -32,7 +32,7 @@ namespace Crest
 
         public class GerstnerBatch : ILodDataInput
         {
-            public GerstnerBatch(bool directTowardsPoint, MeshRenderer rend)
+            public GerstnerBatch(MeshRenderer rend, bool directTowardsPoint)
             {
                 _materials = new PropertyWrapperMaterial[]
                 {
@@ -222,7 +222,10 @@ namespace Crest
 
         private void ReportMaxDisplacement()
         {
-            Debug.Assert(_spectrum._chopScales.Length == OceanWaveSpectrum.NUM_OCTAVES, $"OceanWaveSpectrum {_spectrum.name} is out of date, please open this asset and resave in editor.", _spectrum);
+            if(_spectrum._chopScales.Length != OceanWaveSpectrum.NUM_OCTAVES)
+            {
+                Debug.LogError($"OceanWaveSpectrum {_spectrum.name} is out of date, please open this asset and resave in editor.", _spectrum);
+            }
 
             float ampSum = 0f;
             for (int i = 0; i < _wavelengths.Length; i++)
@@ -269,7 +272,7 @@ namespace Crest
                 rend = renderProxy.GetComponent<MeshRenderer>();
                 rend.enabled = false;
 
-                var waveShader = Shader.Find("Crest/Inputs/Animated Waves/Gerstner Batch Global");
+                var waveShader = Shader.Find("Hidden/Crest/Inputs/Animated Waves/Gerstner Batch Global");
                 Debug.Assert(waveShader, "Could not load Gerstner wave shader, make sure it is packaged in the build.");
                 if (waveShader == null)
                 {
@@ -283,7 +286,7 @@ namespace Crest
             _batches = new GerstnerBatch[LodDataMgr.MAX_LOD_COUNT];
             for (int i = 0; i < _batches.Length; i++)
             {
-                _batches[i] = new GerstnerBatch(_directTowardsPoint, rend);
+                _batches[i] = new GerstnerBatch(rend, _directTowardsPoint);
             }
 
             // Submit draws to create the Gerstner waves. LODs from 0 to N-2 render the Gerstner waves from their lod. Additionally, any waves

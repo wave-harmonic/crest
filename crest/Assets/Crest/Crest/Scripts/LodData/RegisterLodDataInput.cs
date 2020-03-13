@@ -2,12 +2,29 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 
 namespace Crest
 {
+    using OceanInput = SortedList<int, ILodDataInput>;
+
+    /// <summary>
+    /// Comparer that always returns less or greater, never equal, to get work around unique key constraint
+    /// </summary>
+    public class DuplicateKeyComparer<TKey> : IComparer<TKey> where TKey : IComparable
+    {
+        public int Compare(TKey x, TKey y)
+        {
+            int result = x.CompareTo(y);
+
+            // If non-zero, use result, otherwise return greater (never equal)
+            return result != 0 ? result : 1;
+        }
+    }
+
     public interface ILodDataInput
     {
         void Draw(CommandBuffer buf, float weight, int isTransition, int lodIdx);
@@ -26,14 +43,15 @@ namespace Crest
 
         public static int sp_Weight = Shader.PropertyToID("_Weight");
 
-        static Dictionary<System.Type, List<ILodDataInput>> _registrar = new Dictionary<System.Type, List<ILodDataInput>>();
+        static DuplicateKeyComparer<int> s_comparer = new DuplicateKeyComparer<int>();
+        static Dictionary<Type, OceanInput> _registrar = new Dictionary<Type, OceanInput>();
 
-        public static List<ILodDataInput> GetRegistrar(System.Type lodDataMgrType)
+        public static OceanInput GetRegistrar(Type lodDataMgrType)
         {
-            List<ILodDataInput> registered;
+            OceanInput registered;
             if (!_registrar.TryGetValue(lodDataMgrType, out registered))
             {
-                registered = new List<ILodDataInput>();
+                registered = new OceanInput(s_comparer);
                 _registrar.Add(lodDataMgrType, registered);
             }
             return registered;
@@ -73,7 +91,7 @@ namespace Crest
         static void InitStatics()
         {
             // Init here from 2019.3 onwards
-            _registrar = new Dictionary<System.Type, List<ILodDataInput>>();
+            _registrar = new Dictionary<System.Type, OceanInput>();
             sp_Weight = Shader.PropertyToID("_Weight");
         }
     }
@@ -90,17 +108,20 @@ namespace Crest
 
         protected virtual void OnEnable()
         {
-            if (_disableRenderer)
+            var queue = 0;
+            var rend = GetComponent<Renderer>();
+            if (rend)
             {
-                var rend = GetComponent<Renderer>();
-                if (rend)
+                if (_disableRenderer)
                 {
                     rend.enabled = false;
                 }
+                
+                queue = (rend.sharedMaterial ?? rend.material).renderQueue;
             }
 
             var registrar = GetRegistrar(typeof(LodDataType));
-            registrar.Add(this);
+            registrar.Add(queue, this);
         }
 
         protected virtual void OnDisable()
@@ -108,7 +129,7 @@ namespace Crest
             var registered = GetRegistrar(typeof(LodDataType));
             if (registered != null)
             {
-                registered.Remove(this);
+                registered.RemoveAt(registered.IndexOfValue(this));
             }
         }
 

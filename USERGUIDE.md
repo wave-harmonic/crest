@@ -108,13 +108,13 @@ A typical render order for a frame is the following:
 
 ## Animated Waves
 
-The Gerstner waves are split by octave - each Gerstner wave component is only rendered once into the most suitable LOD (i.e. a long wavelength will render only into one of the large LODs), and then a combine pass is done to copy results from the resolution LODs down to the high resolution ones.
+The Animated Waves simulation contains the animated surface shape. This typically contains the ocean waves, but can be modified as required. For example parts of the water can be pushed down below geometry if required.
+
+The animated waves sim can be configured by assigning an Animated Waves Sim Settings asset to the OceanRenderer script in your scene (*Create/Crest/Animated Wave Sim Settings*). The waves will be dampened/attenuated in shallow water if a *Sea Floor Depth* LOD data is used (see below). The amount that waves are attenuated is configurable using the *Attenuation In Shallows* setting.
 
 Crest supports adding custom shape to the water surface. To add some shape, add some geometry into the world which when rendered from a top down perspective will draw the desired displacements. Then assign the *RegisterAnimWavesInput* script which will tag it for rendering into the shape, and apply a material with a shader of type *Crest/Inputs/Animated Waves/...*. This is demonstrated in this tutorial video: https://www.youtube.com/watch?v=sQIakAjSq4Y.
 
 There is an example in the *boat.unity* scene, gameobject *wp0*, where a smoothstep bump is added to the water shape. This is an efficient way to generate dynamic shape. This renders with additive blend, but other blending modes are possible such as alpha blend, multiplicative blending, and min or max blending, which give powerful control over the shape.
-
-The animated waves sim can be configured by assigning an Animated Waves Sim Settings asset to the OceanRenderer script in your scene (*Create/Crest/Animated Wave Sim Settings*). The waves will be dampened/attenuated in shallow water if a *Sea Floor Depth* LOD data is used (see below). The amount that waves are attenuated is configurable using the *Attenuation In Shallows* setting.
 
 
 ## Dynamic Waves
@@ -189,6 +189,26 @@ Flow is the horizontal motion of the water volumes. It is used in the *whirlpool
 
 Crest supports adding any flow velocities to the system. To add flow, add some geometry into the world which when rendered from a top down perspective will draw the desired displacements. Then assign the *RegisterFlowInput* script which will tag it for rendering into the flow, and apply a material with a shader of type *Crest/Inputs/Flow/...*. The *Crest/Inputs/Flow/Add Flow Map* shader writes a flow texture into the system. It assumes the x component of the flow velocity is packed into 0-1 range in the red channel, and the z component of the velocity is packed into 0-1 range in the green channel. The shader reads the values, subtracts 0.5, and multiplies them by the provided scale value on the shader. The process of adding ocean inputs is demonstrated in the following video: https://www.youtube.com/watch?v=sQIakAjSq4Y.
 
+
+# Wave conditions
+
+## Authoring
+
+To add waves, add the *ShapeGerstnerBatched* component to a GameObject.
+
+The appearance and shape of the waves is determined by a *wave spectrum*. A default wave spectrum will be created if none is specified. To change the waves, right click in the Project view and select *Create/Crest/Ocean Wave Spectrum*, and assign the new asset to the *Spectrum* property of the *ShapeGerstnerBatched* script.
+
+The spectrum has sliders for each wavelength to control contribution of different scales of waves. To control the contribution of ~2m wavelengths, use the slider labelled '2'.
+
+The *Wave Direction Variance* controls the spread of wave directions. This controls how aligned the waves are to the wind direction.
+
+The *Chop* parameter scales the horizontal displacement. Higher chop gives crisper wave crests but can result in self-intersections or 'inversions' if set too high, so it needs to be balanced.
+
+To aid in tweaking the spectrum values we provide implementations of common wave spectra from the literature. Select one of the spectra by toggling the button, and then tweak the spectra inputs, and the spectrum values will be set according to the selected model. When done, toggle the button off.
+
+All of the above can be tweaked in play mode. Together these controls give the flexibility to express the great variation one can observe in real world seascapes. 
+
+## Local waves
 
 # Shorelines and shallow water
 

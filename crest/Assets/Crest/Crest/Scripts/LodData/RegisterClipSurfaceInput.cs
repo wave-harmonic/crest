@@ -12,11 +12,18 @@ namespace Crest
     /// </summary>
     public class RegisterClipSurfaceInput : RegisterLodDataInput<LodDataMgrClipSurface>
     {
+        public enum ClipSurfaceShaders
+        {
+            None,
+            ConvexHull,
+            RemoveArea,
+        }
+
         bool _enabled = true;
         public override bool Enabled => _enabled;
 
-        [Tooltip("Uses the 'clip from convex hull' shader. There are other clip shaders available.")]
-        [SerializeField] bool _assignClipSurfaceMaterial = true;
+        [Tooltip("Use 'None' if you want to use your own material.")]
+        public ClipSurfaceShaders runtimeAssignMaterial;
 
         [Tooltip("Prevents inputs from cancelling each other out when aligned vertically. It is imperfect so custom logic might be needed for your use case.")]
         [SerializeField] bool _disableClipSurfaceWhenTooFarFromSurface;
@@ -38,10 +45,24 @@ namespace Crest
         {
             base.OnEnable();
 
-            if (_assignClipSurfaceMaterial)
+            if (runtimeAssignMaterial != ClipSurfaceShaders.None)
             {
                 var rend = GetComponent<Renderer>();
-                rend.material = new Material(Shader.Find("Crest/Inputs/Clip Surface/Convex Hull"));
+
+                string shader;
+                switch (runtimeAssignMaterial)
+                {
+                    case ClipSurfaceShaders.RemoveArea:
+                        shader = "Crest/Inputs/Clip Surface/Remove Area";
+                        break;
+                    case ClipSurfaceShaders.ConvexHull:
+                        shader = "Crest/Inputs/Clip Surface/Convex Hull";
+                        break;
+                    default:
+                        throw new System.Exception("No shader assigned for ClipSurfaceShaders value.");
+                }
+
+                rend.material = new Material(Shader.Find(shader));
             }
         }
 

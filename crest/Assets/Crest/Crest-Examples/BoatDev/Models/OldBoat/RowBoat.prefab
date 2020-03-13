@@ -292,5 +292,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _disableRenderer: 1
-  _assignClipSurfaceMaterial: 1
-  _disableClipSurfaceWhenTooFarFromSurface: 1
+  runtimeAssignMaterial: 1
+  _disableClipSurfaceWhenTooFarFromSurface: 0
+  _animatedWavesDisplacementSamplingIterations: 4

@@ -210,6 +210,13 @@ All of the above can be tweaked in play mode. Together these controls give the f
 
 ## Local waves
 
+By default the Gerstner waves will apply everywhere throughout the world, so 'globally'. They can also be applied 'locally' - in a limited area of the world.
+
+This is done by setting the *Mode* to *Geometry*. In this case the system will look for a *MeshFilter*/*MeshRenderer* on the same GameObject and it will generate waves over the area of the geometry. The geometry must be 'face up' - it must be visible from a top-down perspective in order to generate the waves. It must also have a material using the *Crest/Inputs/Animated Waves/Gerstner Batch Geometry* shader applied.
+
+For a concrete example, see the *GerstnerPatch* object in *boat.unity*. It has a *MeshFilter* component with the *Quad* mesh applied, and is rotated so the quad is face up. It has a *MeshRenderer* component with a material assigned with a Gerstner material. Additionally, the material has the *Feather at UV Extents* option enabled, which will fade down the waves where the UVs go to 0 or 1 (at the edges of the quad). The end result is a local patch of waves that are smoothly blended over the area of the quad.
+
+
 # Shorelines and shallow water
 
 For this information in video format, see here: https://www.youtube.com/watch?v=jcmqUlboTUk

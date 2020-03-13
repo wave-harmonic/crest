@@ -1464,6 +1464,7 @@ MonoBehaviour:
   _primaryLight: {fileID: 1589415980}
   _simSettingsShadow: {fileID: 0}
   _createClipSurfaceData: 1
+  _defaultClippingState: 1
   _attachDebugGUI: 0
   _followViewpoint: 1
   _uniformTiles: 0

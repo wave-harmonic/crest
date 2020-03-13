@@ -467,7 +467,7 @@ Shader "Crest/Ocean"
 
 				#if _CLIPSURFACE_ON
 				// Clip surface
-				half clipVal = _ClipByDefault;
+				half clipVal = 0.0;
 				if (wt_smallerLod > 0.001)
 				{
 					SampleClip(_LD_TexArray_ClipSurface, WorldToUV(input.worldPos.xz), wt_smallerLod, clipVal);
@@ -476,6 +476,7 @@ Shader "Crest/Ocean"
 				{
 					SampleClip(_LD_TexArray_ClipSurface, WorldToUV_BiggerLod(input.worldPos.xz), wt_biggerLod, clipVal);
 				}
+				clipVal = lerp(_ClipByDefault, clipVal, wt_smallerLod + wt_biggerLod);
 				// Add 0.5 bias for LOD blending and texel resolution correction. This will help to tighten and smooth clipped edges
 				clip(-clipVal + 0.5);
 				#endif

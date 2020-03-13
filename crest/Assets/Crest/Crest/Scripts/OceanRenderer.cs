@@ -98,6 +98,12 @@ namespace Crest
         [Tooltip("Clip surface information for clipping the ocean surface."), SerializeField]
         bool _createClipSurfaceData = false;
         public bool CreateClipSurfaceData { get { return _createClipSurfaceData; } }
+        public enum DefaultClippingState
+        {
+            NothingClipped,
+            EverythingClipped,
+        }
+        public DefaultClippingState _defaultClippingState = DefaultClippingState.NothingClipped;
 
         [Header("Debug Params")]
 

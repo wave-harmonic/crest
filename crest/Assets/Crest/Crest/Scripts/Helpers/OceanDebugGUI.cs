@@ -107,8 +107,6 @@ namespace Crest
 
                 LodDataMgrShadow.s_processData = GUI.Toggle(new Rect(x, y, w, h), LodDataMgrShadow.s_processData, "Process Shadows"); y += h;
 
-                LodDataMgrClipSurface.s_defaultToClip = GUI.Toggle(new Rect(x, y, w, h), LodDataMgrClipSurface.s_defaultToClip, "Clip by default"); y += h;
-
                 if (OceanRenderer.Instance)
                 {
                     if (OceanRenderer.Instance._lodDataDynWaves != null)

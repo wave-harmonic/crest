@@ -26,11 +26,6 @@ namespace Crest
 
         static Texture2DArray s_nullTexture2DArray;
 
-        static LodDataMgrSeaFloorDepth()
-        {
-            InitStatics();
-        }
-
         public override void BuildCommandBuffer(OceanRenderer ocean, CommandBuffer buf)
         {
             base.BuildCommandBuffer(ocean, buf);
@@ -63,18 +58,8 @@ namespace Crest
         }
         public static void BindNull(IPropertyWrapper properties, bool sourceLod = false)
         {
-            properties.SetTexture(ParamIdSampler(sourceLod), s_nullTexture2DArray);
-        }
-
-#if UNITY_2019_3_OR_NEWER
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-#endif
-        static void InitStatics()
-        {
-            // Init here from 2019.3 onwards
-            s_textureArrayParamIds = new TextureArrayParamIds(s_textureArrayName);
-
-            // Null texture needs to be white with a 1000 intensity.
+            // Null texture needs to be white with a 1000 intensity. Texture2D.whiteTexture prevents us from 
+            // initialising this in a static constructor. Seemed appropriate to do it here.
             if (s_nullTexture2DArray == null)
             {
                 var texture = Texture2D.whiteTexture;
@@ -85,6 +70,17 @@ namespace Crest
                 s_nullTexture2DArray = TextureArrayHelpers.CreateTexture2DArray(texture, Texture2D.whiteTexture.format);
                 s_nullTexture2DArray.name = "Sea Floor Depth Null Texture";
             }
+
+            properties.SetTexture(ParamIdSampler(sourceLod), s_nullTexture2DArray);
+        }
+
+#if UNITY_2019_3_OR_NEWER
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+#endif
+        static void InitStatics()
+        {
+            // Init here from 2019.3 onwards
+            s_textureArrayParamIds = new TextureArrayParamIds(s_textureArrayName);
         }
     }
 }

@@ -162,6 +162,7 @@ namespace Crest
         readonly int sp_oceanCenterPosWorld = Shader.PropertyToID("_OceanCenterPosWorld");
         readonly int sp_meshScaleLerp = Shader.PropertyToID("_MeshScaleLerp");
         readonly int sp_sliceCount = Shader.PropertyToID("_SliceCount");
+        readonly int sp_clipByDefault = Shader.PropertyToID("_ClipByDefault");
 
         void Awake()
         {
@@ -184,7 +185,7 @@ namespace Crest
             InitViewpoint();
             InitTimeProvider();
 
-            if(_attachDebugGUI && GetComponent<OceanDebugGUI>() == null)
+            if (_attachDebugGUI && GetComponent<OceanDebugGUI>() == null)
             {
                 gameObject.AddComponent<OceanDebugGUI>();
             }
@@ -252,6 +253,7 @@ namespace Crest
             Shader.SetGlobalFloat(sp_texelsPerWave, MinTexelsPerWave);
             Shader.SetGlobalFloat(sp_crestTime, CurrentTime);
             Shader.SetGlobalFloat(sp_sliceCount, CurrentLodCount);
+            Shader.SetGlobalFloat(sp_clipByDefault, _defaultClippingState == DefaultClippingState.EverythingClipped ? 1f : 0f);
 
             // LOD 0 is blended in/out when scale changes, to eliminate pops. Here we set it as a global, whereas in OceanChunkRenderer it
             // is applied to LOD0 tiles only through _InstanceData. This global can be used in compute, where we only apply this factor for slice 0.

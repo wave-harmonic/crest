@@ -467,7 +467,7 @@ Shader "Crest/Ocean"
 
 				#if _CLIPSURFACE_ON
 				// Clip surface
-				half clipVal = 0.0;
+				half clipVal = _ClipByDefault;
 				if (wt_smallerLod > 0.001)
 				{
 					SampleClip(_LD_TexArray_ClipSurface, WorldToUV(input.worldPos.xz), wt_smallerLod, clipVal);

@@ -19,7 +19,7 @@ namespace Crest
         [SerializeField] bool _assignClipSurfaceMaterial = true;
 
         [Tooltip("Prevents inputs from cancelling each other out when aligned vertically. It is imperfect so custom logic might be needed for your use case.")]
-        [SerializeField] bool _disableClipSurfaceWhenTooFarFromSurface = true;
+        [SerializeField] bool _disableClipSurfaceWhenTooFarFromSurface;
 
         [Tooltip("Large, choppy waves require higher iterations to have accurate holes.")]
         [SerializeField] uint _animatedWavesDisplacementSamplingIterations = 4;

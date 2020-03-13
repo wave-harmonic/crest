@@ -332,9 +332,7 @@ Shader "Crest/Ocean"
 				{
 					const float3 uv_slice_smallerLodDisp = WorldToUV(o.worldPos.xz);
 
-					//#if _SUBSURFACESHALLOWCOLOUR_ON
 					SampleSeaDepth(_LD_TexArray_SeaFloorDepth, uv_slice_smallerLodDisp, wt_smallerLod, o.lodAlpha_worldXZUndisplaced_oceanDepth.w, seaLevelOffset);
-					//#endif
 
 					#if _SHADOWS_ON
 					SampleShadow(_LD_TexArray_Shadow, uv_slice_smallerLodDisp, wt_smallerLod, o.flow_shadow.zw);
@@ -344,9 +342,7 @@ Shader "Crest/Ocean"
 				{
 					const float3 uv_slice_biggerLodDisp = WorldToUV_BiggerLod(o.worldPos.xz);
 
-					//#if _SUBSURFACESHALLOWCOLOUR_ON
 					SampleSeaDepth(_LD_TexArray_SeaFloorDepth, uv_slice_biggerLodDisp, wt_biggerLod, o.lodAlpha_worldXZUndisplaced_oceanDepth.w, seaLevelOffset);
-					//#endif
 
 					#if _SHADOWS_ON
 					SampleShadow(_LD_TexArray_Shadow, uv_slice_biggerLodDisp, wt_biggerLod, o.flow_shadow.zw);

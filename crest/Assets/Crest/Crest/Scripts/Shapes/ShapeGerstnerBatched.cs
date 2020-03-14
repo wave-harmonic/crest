@@ -296,7 +296,7 @@ namespace Crest
             var registered = RegisterLodDataInputBase.GetRegistrar(typeof(LodDataMgrAnimWaves));
             foreach (var batch in _batches)
             {
-                registered.Add(batch);
+                registered.Add(0, batch);
             }
         }
 
@@ -493,7 +493,7 @@ namespace Crest
                 var registered = RegisterLodDataInputBase.GetRegistrar(typeof(LodDataMgrAnimWaves));
                 foreach (var batch in _batches)
                 {
-                    registered.Remove(batch);
+                    registered.RemoveAt(registered.IndexOfValue(batch));
                 }
 
                 _batches = null;

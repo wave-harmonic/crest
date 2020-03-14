@@ -8,7 +8,7 @@ namespace Crest
 {
     public class WaterBody : MonoBehaviour
     {
-        Bounds _bounds;
+        public Bounds AABB { get; private set; }
 
         private void OnEnable()
         {
@@ -28,14 +28,14 @@ namespace Crest
 
         private void CalculateBounds()
         {
-            _bounds = new Bounds();
-            _bounds.center = transform.position;
-            _bounds.Encapsulate(transform.TransformPoint(Vector3.right / 2f + Vector3.forward / 2f));
-            _bounds.Encapsulate(transform.TransformPoint(Vector3.right / 2f - Vector3.forward / 2f));
-            _bounds.Encapsulate(transform.TransformPoint(-Vector3.right / 2f + Vector3.forward / 2f));
-            _bounds.Encapsulate(transform.TransformPoint(-Vector3.right / 2f - Vector3.forward / 2f));
-        }
+            var bounds = new Bounds();
+            bounds.center = transform.position;
+            bounds.Encapsulate(transform.TransformPoint(Vector3.right / 2f + Vector3.forward / 2f));
+            bounds.Encapsulate(transform.TransformPoint(Vector3.right / 2f - Vector3.forward / 2f));
+            bounds.Encapsulate(transform.TransformPoint(-Vector3.right / 2f + Vector3.forward / 2f));
+            bounds.Encapsulate(transform.TransformPoint(-Vector3.right / 2f - Vector3.forward / 2f));
 
-        public Bounds AABB { get; private set; }
+            AABB = bounds;
+        }
     }
 }

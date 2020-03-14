@@ -58,20 +58,26 @@ namespace Crest
         }
         public static void BindNull(IPropertyWrapper properties, bool sourceLod = false)
         {
-            // Null texture needs to be white with a 1000 intensity. Texture2D.whiteTexture prevents us from 
-            // initialising this in a static constructor. Seemed appropriate to do it here.
+            // Texture2D.whiteTexture prevents us from initialising this in a static constructor. Seemed appropriate to
+            // do it here.
             if (s_nullTexture2DArray == null)
             {
-                var texture = Texture2D.whiteTexture;
-                var color = new Color(1000, 1000, 1000, 1);
-                Color[] pixels = Enumerable.Repeat(color, texture.height * texture.width).ToArray();
-                texture.SetPixels(pixels);
-                texture.Apply();
-                s_nullTexture2DArray = TextureArrayHelpers.CreateTexture2DArray(texture, Texture2D.whiteTexture.format);
-                s_nullTexture2DArray.name = "Sea Floor Depth Null Texture";
+                InitNullTexture();
             }
 
             properties.SetTexture(ParamIdSampler(sourceLod), s_nullTexture2DArray);
+        }
+
+        static void InitNullTexture()
+        {
+            var texture = Texture2D.whiteTexture;
+            // Null texture needs to be white with a 1000 intensity. 
+            var color = new Color(1000, 1000, 1000, 1);
+            Color[] pixels = Enumerable.Repeat(color, texture.height * texture.width).ToArray();
+            texture.SetPixels(pixels);
+            texture.Apply();
+            s_nullTexture2DArray = TextureArrayHelpers.CreateTexture2DArray(texture, Texture2D.whiteTexture.format);
+            s_nullTexture2DArray.name = "Sea Floor Depth Null Texture";
         }
 
 #if UNITY_2019_3_OR_NEWER

@@ -70,8 +70,8 @@ namespace Crest
 
         static void InitNullTexture()
         {
-            var texture = Texture2D.whiteTexture;
-            // Null texture needs to be white with a 1000 intensity. 
+            var texture = Instantiate<Texture2D>(Texture2D.whiteTexture);
+            // Null texture needs to be white (uses R channel) with a 1000 intensity. 
             var color = new Color(1000, 1000, 1000, 1);
             Color[] pixels = Enumerable.Repeat(color, texture.height * texture.width).ToArray();
             texture.SetPixels(pixels);

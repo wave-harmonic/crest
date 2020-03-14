@@ -139,8 +139,7 @@ namespace Crest
             waterBodyGO.transform.rotation = Quaternion.AngleAxis(_rotation, Vector3.up);
             waterBodyGO.transform.localScale = new Vector3(_sizeX, 1f, _sizeZ);
 
-            var waterBody = waterBodyGO.AddComponent<WaterBody>();
-            waterBody._radius = Mathf.Max(_sizeX, _sizeZ); // TODO
+            waterBodyGO.AddComponent<WaterBody>();
 
             if (_createDepthCache)
             {

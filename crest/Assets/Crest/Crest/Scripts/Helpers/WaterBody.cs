@@ -8,11 +8,13 @@ namespace Crest
 {
     public class WaterBody : MonoBehaviour
     {
-        public float _radius = 50f;
+        Bounds _bounds;
 
         private void OnEnable()
         {
             if (OceanRenderer.Instance == null) return;
+
+            CalculateBounds();
 
             OceanRenderer.Instance.RegisterWaterBody(this);
         }
@@ -24,6 +26,16 @@ namespace Crest
             OceanRenderer.Instance.UnregisterWaterBody(this);
         }
 
-        public Bounds Bounds => new Bounds(transform.position, _radius * Vector3.one);
+        private void CalculateBounds()
+        {
+            _bounds = new Bounds();
+            _bounds.center = transform.position;
+            _bounds.Encapsulate(transform.TransformPoint(Vector3.right / 2f + Vector3.forward / 2f));
+            _bounds.Encapsulate(transform.TransformPoint(Vector3.right / 2f - Vector3.forward / 2f));
+            _bounds.Encapsulate(transform.TransformPoint(-Vector3.right / 2f + Vector3.forward / 2f));
+            _bounds.Encapsulate(transform.TransformPoint(-Vector3.right / 2f - Vector3.forward / 2f));
+        }
+
+        public Bounds AABB { get; private set; }
     }
 }

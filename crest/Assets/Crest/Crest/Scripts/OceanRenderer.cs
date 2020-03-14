@@ -460,7 +460,7 @@ namespace Crest
                 var overlappingY = 0f;
                 foreach (var body in _waterBodies)
                 {
-                    var bounds = body.Bounds;
+                    var bounds = body.AABB;
 
                     bool overlapping =
                         bounds.max.x > chunkBounds.min.x && bounds.min.x < chunkBounds.max.x &&

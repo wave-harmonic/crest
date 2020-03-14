@@ -9,7 +9,7 @@ using UnityEngine.Rendering;
 
 namespace Crest
 {
-    using OceanInput = SortedListCachedArrays<int, ILodDataInput>;
+    using OceanInput = CrestSortedList<int, ILodDataInput>;
 
     /// <summary>
     /// Comparer that always returns less or greater, never equal, to get work around unique key constraint
@@ -54,7 +54,7 @@ namespace Crest
                 registered = new OceanInput(s_comparer);
                 s_registrar.Add(lodDataMgrType, registered);
             }
-            registered.RefreshArrays();
+            registered.ResortArrays();
             return registered;
         }
 
@@ -130,7 +130,7 @@ namespace Crest
             var registered = GetRegistrar(typeof(LodDataType));
             if (registered != null)
             {
-                registered.RemoveAt(registered.IndexOfValue(this));
+                registered.Remove(this);
             }
         }
 

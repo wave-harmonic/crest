@@ -79,6 +79,7 @@ namespace Crest
 
         public List<KeyValuePair<TKey, TValue>>.Enumerator GetEnumerator()
         {
+            ResortArrays();
             return _backingList.GetEnumerator();
         }
 

@@ -76,7 +76,7 @@ namespace Crest
             Color[] pixels = Enumerable.Repeat(color, texture.height * texture.width).ToArray();
             texture.SetPixels(pixels);
             texture.Apply();
-            s_nullTexture2DArray = TextureArrayHelpers.CreateTexture2DArray(texture, Texture2D.whiteTexture.format);
+            s_nullTexture2DArray = TextureArrayHelpers.CreateTexture2DArray(texture);
             s_nullTexture2DArray.name = "Sea Floor Depth Null Texture";
         }
 

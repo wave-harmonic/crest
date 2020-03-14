@@ -37,12 +37,12 @@ namespace Crest
             );
         }
 
-        public static Texture2DArray CreateTexture2DArray(Texture2D texture, TextureFormat format)
+        public static Texture2DArray CreateTexture2DArray(Texture2D texture)
         {
             var array = new Texture2DArray(
                 SMALL_TEXTURE_DIM, SMALL_TEXTURE_DIM,
                 LodDataMgr.MAX_LOD_COUNT,
-                format,
+                texture.format,
                 false,
                 false
             );
@@ -65,7 +65,7 @@ namespace Crest
 
             if (BlackTextureArray == null)
             {
-                BlackTextureArray = CreateTexture2DArray(Texture2D.blackTexture, Texture2D.blackTexture.format);
+                BlackTextureArray = CreateTexture2DArray(Texture2D.blackTexture);
                 BlackTextureArray.name = "Black Texture2DArray";
             }
 

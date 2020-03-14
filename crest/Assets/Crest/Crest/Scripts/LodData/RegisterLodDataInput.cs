@@ -91,7 +91,7 @@ namespace Crest
         static void InitStatics()
         {
             // Init here from 2019.3 onwards
-            _registrar = new Dictionary<System.Type, OceanInput>();
+            s_registrar.Clear();
             sp_Weight = Shader.PropertyToID("_Weight");
         }
     }

@@ -37,5 +37,13 @@ namespace Crest
 
             AABB = bounds;
         }
+
+        public void Validate(OceanRenderer ocean)
+        {
+            if (transform.lossyScale.magnitude < 2f)
+            {
+                Debug.LogWarning($"Water body {gameObject.name} has a very small size (the size is set by the scale of its transform). This will be a very small body of water. Is this intentional?", this);
+            }
+        }
     }
 }

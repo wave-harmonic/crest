@@ -62,6 +62,13 @@ namespace Crest
                 }
             }
 
+            // WaterBody
+            var waterBodies = FindObjectsOfType<WaterBody>();
+            foreach (var body in waterBodies)
+            {
+                body.Validate(ocean);
+            }
+
             // OceanDepthCache
             var depthCaches = FindObjectsOfType<OceanDepthCache>();
             foreach (var depthCache in depthCaches)

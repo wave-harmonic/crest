@@ -39,7 +39,7 @@ Shader "Crest/Inputs/Clip Surface/Remove Area"
 				return o;
 			}
 
-			half Frag(Varyings input) : SV_Target
+			half4 Frag(Varyings input) : SV_Target
 			{
 				return 1.0;
 			}

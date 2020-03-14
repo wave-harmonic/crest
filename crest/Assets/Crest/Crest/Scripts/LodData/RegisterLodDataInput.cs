@@ -44,15 +44,15 @@ namespace Crest
         public static int sp_Weight = Shader.PropertyToID("_Weight");
 
         static DuplicateKeyComparer<int> s_comparer = new DuplicateKeyComparer<int>();
-        static Dictionary<Type, OceanInput> _registrar = new Dictionary<Type, OceanInput>();
+        static Dictionary<Type, OceanInput> s_registrar = new Dictionary<Type, OceanInput>();
 
         public static OceanInput GetRegistrar(Type lodDataMgrType)
         {
             OceanInput registered;
-            if (!_registrar.TryGetValue(lodDataMgrType, out registered))
+            if (!s_registrar.TryGetValue(lodDataMgrType, out registered))
             {
                 registered = new OceanInput(s_comparer);
-                _registrar.Add(lodDataMgrType, registered);
+                s_registrar.Add(lodDataMgrType, registered);
             }
             return registered;
         }
@@ -91,7 +91,7 @@ namespace Crest
         static void InitStatics()
         {
             // Init here from 2019.3 onwards
-            _registrar = new Dictionary<System.Type, OceanInput>();
+            s_registrar.Clear();
             sp_Weight = Shader.PropertyToID("_Weight");
         }
     }

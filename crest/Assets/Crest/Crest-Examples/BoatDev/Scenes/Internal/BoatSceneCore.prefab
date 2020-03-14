@@ -5007,7 +5007,8 @@ MeshRenderer:
   m_ReflectionProbeUsage: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
-  m_Materials: []
+  m_Materials:
+  - {fileID: 2100000, guid: 53ebdf534c08f483096dbd37ba1c2253, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -5040,7 +5041,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _disableRenderer: 1
-  runtimeAssignMaterial: 1
   _disableClipSurfaceWhenTooFarFromSurface: 0
   _animatedWavesDisplacementSamplingIterations: 4
 --- !u!1001 &1709276512690350552
@@ -5454,6 +5454,11 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 1709276513029972002}
     m_Modifications:
+    - target: {fileID: 2452750316707852747, guid: cada5253abff1481b98c0880eb065d8e,
+        type: 3}
+      propertyPath: m_Name
+      value: DemoCamera
+      objectReference: {fileID: 0}
     - target: {fileID: 2452750316707852748, guid: cada5253abff1481b98c0880eb065d8e,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -5509,10 +5514,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 2452750316707852747, guid: cada5253abff1481b98c0880eb065d8e,
+    - target: {fileID: 2452750316707852749, guid: cada5253abff1481b98c0880eb065d8e,
         type: 3}
-      propertyPath: m_Name
-      value: DemoCamera
+      propertyPath: m_Enabled
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2452750316707852745, guid: cada5253abff1481b98c0880eb065d8e,
         type: 3}
@@ -5534,11 +5539,6 @@ PrefabInstance:
       propertyPath: _targetLookatPos
       value: 
       objectReference: {fileID: 1709113576438740099}
-    - target: {fileID: 2452750316707852749, guid: cada5253abff1481b98c0880eb065d8e,
-        type: 3}
-      propertyPath: m_Enabled
-      value: 0
-      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: cada5253abff1481b98c0880eb065d8e, type: 3}
 --- !u!4 &1741912049970687794 stripped

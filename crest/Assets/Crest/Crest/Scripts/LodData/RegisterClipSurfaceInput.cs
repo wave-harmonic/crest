@@ -12,18 +12,8 @@ namespace Crest
     /// </summary>
     public class RegisterClipSurfaceInput : RegisterLodDataInput<LodDataMgrClipSurface>
     {
-        public enum ClipSurfaceShaders
-        {
-            None,
-            ConvexHull,
-            RemoveArea,
-        }
-
         bool _enabled = true;
         public override bool Enabled => _enabled;
-
-        [Tooltip("Use 'None' if you want to use your own material.")]
-        public ClipSurfaceShaders runtimeAssignMaterial;
 
         [Header("Convex Hull Options")]
 
@@ -42,31 +32,6 @@ namespace Crest
         SampleHeightHelper _sampleHeightHelper = new SampleHeightHelper();
 
         static int sp_DisplacementSamplingIterations = Shader.PropertyToID("_DisplacementSamplingIterations");
-
-        protected override void OnEnable()
-        {
-            base.OnEnable();
-
-            if (runtimeAssignMaterial != ClipSurfaceShaders.None)
-            {
-                var rend = GetComponent<Renderer>();
-
-                string shader;
-                switch (runtimeAssignMaterial)
-                {
-                    case ClipSurfaceShaders.RemoveArea:
-                        shader = "Crest/Inputs/Clip Surface/Remove Area";
-                        break;
-                    case ClipSurfaceShaders.ConvexHull:
-                        shader = "Crest/Inputs/Clip Surface/Convex Hull";
-                        break;
-                    default:
-                        throw new System.Exception("No shader assigned for ClipSurfaceShaders value.");
-                }
-
-                rend.material = new Material(Shader.Find(shader));
-            }
-        }
 
         protected override void Start()
         {

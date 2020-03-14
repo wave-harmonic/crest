@@ -128,7 +128,8 @@ namespace Crest
         {
             _proxyObject.transform.position = _position;
             _proxyObject.transform.rotation = Quaternion.AngleAxis(_rotation, Vector3.up);
-            _proxyObject.transform.localScale = new Vector3(_sizeX / 10f, 1f, _sizeZ / 10f);
+            var planeScaleFactor = 10f;
+            _proxyObject.transform.localScale = new Vector3(_sizeX / planeScaleFactor, 1f, _sizeZ / planeScaleFactor);
             _proxyObject.SetActive(_showProxy);
         }
 

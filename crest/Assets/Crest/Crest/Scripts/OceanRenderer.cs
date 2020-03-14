@@ -153,6 +153,12 @@ namespace Crest
         /// </summary>
         public float ViewerHeightAboveWater { get; private set; }
 
+        /// <summary>
+        /// Smoothly varying version of viewer height to combat sudden changes in water level that are possible
+        /// when there are local bodies of water
+        /// </summary>
+        float _viewerHeightAboveWaterSmooth = 0f;
+
         SampleHeightHelper _sampleHeightHelper = new SampleHeightHelper();
 
         public static OceanRenderer Instance { get; private set; }
@@ -269,8 +275,8 @@ namespace Crest
             if (_followViewpoint)
             {
                 LateUpdatePosition();
-                LateUpdateScale();
                 LateUpdateViewerHeight();
+                LateUpdateScale();
             }
 
             LateUpdateLods();
@@ -292,13 +298,14 @@ namespace Crest
 
         void LateUpdateScale()
         {
-            // reach maximum detail at slightly below sea level. this should combat cases where visual range can be lost
+            var viewerHeight = _viewerHeightAboveWaterSmooth;
+
+            // Reach maximum detail at slightly below sea level. this should combat cases where visual range can be lost
             // when water height is low and camera is suspended in air. i tried a scheme where it was based on difference
             // to water height but this does help with the problem of horizontal range getting limited at bad times.
-            // TODO - SeaLevel is no longer a global const. How to drive this? Raycast down to ground and water? Get sea level
-            // directly from cache scripts?
-            float maxDetailY = SeaLevel - _maxVertDispFromWaves * _dropDetailHeightBasedOnWaves;
-            float camDistance = Mathf.Abs(_viewpoint.position.y - maxDetailY);
+            viewerHeight += _maxVertDispFromWaves * _dropDetailHeightBasedOnWaves;
+
+            var camDistance = Mathf.Abs(viewerHeight);
 
             // offset level of detail to keep max detail in a band near the surface
             camDistance = Mathf.Max(camDistance - 4f, 0f);
@@ -322,10 +329,14 @@ namespace Crest
         {
             _sampleHeightHelper.Init(Viewpoint.position, 0f);
 
-            float waterHeight = 0f;
+            var waterHeight = SeaLevel;
             _sampleHeightHelper.Sample(ref waterHeight);
 
             ViewerHeightAboveWater = Viewpoint.position.y - waterHeight;
+
+            // Smoothly varying version of viewer height to combat sudden changes in water level that are possible
+            // when there are local bodies of water
+            _viewerHeightAboveWaterSmooth = Mathf.Lerp(_viewerHeightAboveWaterSmooth, ViewerHeightAboveWater, 0.05f);
         }
 
         void LateUpdateLods()

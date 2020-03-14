@@ -187,9 +187,7 @@ namespace Crest
                 clipGO.transform.localScale = Vector3.one;
                 clipGO.transform.localPosition = Vector3.zero;
 
-                var clip = clipGO.AddComponent<RegisterClipSurfaceInput>();
-                clip._assignClipSurfaceMaterial = false;
-                clip._disableClipSurfaceWhenTooFarFromSurface = false;
+                clipGO.AddComponent<RegisterClipSurfaceInput>();
 
                 var rend = clipGO.GetComponent<Renderer>();
                 rend.sharedMaterial = _clipMaterial;

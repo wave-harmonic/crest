@@ -60,7 +60,7 @@ namespace Crest
             }
         }
 
-        private void OnDrawGizmosSelected()
+        private void OnDrawGizmos()
         {
             Gizmos.color = Color.blue;
             // Required as we're not normally executing in edit mode

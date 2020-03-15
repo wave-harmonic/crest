@@ -210,6 +210,16 @@ namespace Crest
                 _renderProperties.SetInt(sp_LD_SliceIndex_Source, srcDataIdx);
                 BindSourceData(_renderProperties, false);
                 _renderProperties.SetTexture(sp_LD_TexArray_Target, _targets);
+
+                if (OceanRenderer.Instance._lodDataSeaDepths != null)
+                {
+                    OceanRenderer.Instance._lodDataSeaDepths.BindResultData(_renderProperties);
+                }
+                else
+                {
+                    LodDataMgrSeaFloorDepth.BindNull(_renderProperties);
+                }
+
                 _renderProperties.DispatchShader();
             }
         }

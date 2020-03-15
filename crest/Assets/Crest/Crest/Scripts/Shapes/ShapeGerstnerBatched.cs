@@ -493,7 +493,7 @@ namespace Crest
                 var registered = RegisterLodDataInputBase.GetRegistrar(typeof(LodDataMgrAnimWaves));
                 foreach (var batch in _batches)
                 {
-                    registered.RemoveAt(registered.IndexOfValue(batch));
+                    registered.Remove(batch);
                 }
 
                 _batches = null;

@@ -54,7 +54,6 @@ namespace Crest
                 registered = new OceanInput(s_comparer);
                 s_registrar.Add(lodDataMgrType, registered);
             }
-            registered.ResortArrays();
             return registered;
         }
 

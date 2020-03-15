@@ -9,14 +9,16 @@ using System.Collections.Generic;
 namespace Crest
 {
     /// <summary>
-    /// I reallllly wanted to use a sorted list, but was getting garbage when doing foreach loop, so this
-    /// implements a "dumb" sorted list that has to be explicitly resorted.
+    /// This is a list that will maintain the same order a similar C# sorted list
+    /// would, but is designed not to allocate when used in a foreach loop.
     /// </summary>
     public class CrestSortedList<TKey, TValue> : IEnumerable<KeyValuePair<TKey, TValue>>, IEnumerable
     {
         IComparer<KeyValuePair<TKey, TValue>> _comparer;
         public List<KeyValuePair<TKey, TValue>> _backingList = new List<KeyValuePair<TKey, TValue>>();
 
+        // we only resort the arrays when the enumerator is accessed, as this is the only option available for getting
+        // to elements of the array, and it means we don't have to do a sort every time an element is added.
         private bool _needsSorting = false;
 
         public int Count => _backingList.Count;
@@ -45,8 +47,6 @@ namespace Crest
             _needsSorting = true;
         }
 
-
-
         public bool Remove(TValue value)
         {
             KeyValuePair<TKey, TValue> itemToRemove = default;
@@ -63,12 +63,11 @@ namespace Crest
             if (removed)
             {
                 _backingList.Remove(itemToRemove);
-                _needsSorting = true;
             }
             return removed;
         }
 
-        public void ResortArrays()
+        private void ResortArrays()
         {
             if (_needsSorting)
             {

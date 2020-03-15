@@ -160,6 +160,7 @@ namespace Crest
         float _viewerHeightAboveWaterSmooth = 0f;
 
         SampleHeightHelper _sampleHeightHelper = new SampleHeightHelper();
+        List<WaterBody> _waterBodies = new List<WaterBody>();
 
         public static OceanRenderer Instance { get; private set; }
 
@@ -436,8 +437,6 @@ namespace Crest
         }
 #endif
 
-        List<WaterBody> _waterBodies = new List<WaterBody>();
-
         public void RegisterWaterBody(WaterBody body)
         {
             _waterBodies.Add(body);
@@ -447,6 +446,10 @@ namespace Crest
             _waterBodies.Remove(body);
         }
 
+        /// <summary>
+        /// If there are local bodies of water, this will do overlap tests between the ocean tiles
+        /// and the water bodies and turn off any that don't overlap.
+        /// </summary>
         void LateUpdateBodies()
         {
             if (_waterBodies.Count == 0) return;

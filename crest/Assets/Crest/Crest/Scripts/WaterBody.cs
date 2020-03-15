@@ -6,6 +6,10 @@ using UnityEngine;
 
 namespace Crest
 {
+    /// <summary>
+    /// Demarcates an area where water is present in the world. If present, ocean tiles will be
+    /// culled if they don't overlap any WaterBody.
+    /// </summary>
     public class WaterBody : MonoBehaviour
     {
 #pragma warning disable 414

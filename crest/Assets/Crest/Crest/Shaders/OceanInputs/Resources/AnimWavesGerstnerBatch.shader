@@ -23,9 +23,6 @@ Shader "Hidden/Crest/Inputs/Animated Waves/Gerstner Batch Global"
 			#pragma fragment Frag
 			#pragma multi_compile __ _DIRECT_TOWARDS_POINT
 
-			// TODO - remove this later
-			#pragma enable_d3d11_debug_symbols
-
 			#include "UnityCG.cginc"
 
 			#include "../../OceanGlobals.hlsl"
@@ -51,17 +48,12 @@ Shader "Hidden/Crest/Inputs/Animated Waves/Gerstner Batch Global"
 			{
 				Varyings o;
 
-				// TODO - the below is hardcoded to do a fullscreen quad. i think something like this
-				// would draw it properly.
-				//o.positionCS = UnityObjectToClipPos(input.positionOS);
-				//o.worldPos = mul(unity_ObjectToWorld, float4(input.positionOS, 1.0)).xz;
-				//o.uv_slice = WorldToUV(o.worldPos);
-
 				o.positionCS = float4(input.positionOS.xy, 0.0, 0.5);
 
 #if UNITY_UV_STARTS_AT_TOP // https://docs.unity3d.com/Manual/SL-PlatformDifferences.html
 				o.positionCS.y = -o.positionCS.y;
 #endif
+
 				float2 worldXZ = UVToWorld(input.uv);
 				o.worldPosXZ = worldXZ;
 				o.uv_slice = float3(input.uv, _LD_SliceIndex);

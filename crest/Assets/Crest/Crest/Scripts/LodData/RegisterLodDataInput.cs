@@ -120,8 +120,6 @@ namespace Crest
                 queue = (rend.sharedMaterial ?? rend.material).renderQueue;
             }
 
-            //Debug.Log($"[{typeof(LodDataType).ToString()}] Queue = {queue}");
-
             var registrar = GetRegistrar(typeof(LodDataType));
             registrar.Add(queue, this);
         }

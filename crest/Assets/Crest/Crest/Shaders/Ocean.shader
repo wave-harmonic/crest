@@ -354,12 +354,6 @@ Shader "Crest/Ocean"
 				// Foam can saturate
 				o.foam_screenPosXYW.x = saturate(o.foam_screenPosXYW.x);
 
-				//// Hack. I think sea level should be renderable to a target
-				//if (o.lodAlpha_worldXZUndisplaced_oceanDepth.w > 999.0)
-				//{
-				//	o.worldPos.y -= 100.0;
-				//}
-
 				// debug tinting to see which shape textures are used
 				#if _DEBUGVISUALISESHAPESAMPLE_ON
 				#define TINT_COUNT (uint)7

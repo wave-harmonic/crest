@@ -18,7 +18,7 @@ namespace Crest
         [Header("Convex Hull Options")]
 
         [Tooltip("Prevents inputs from cancelling each other out when aligned vertically. It is imperfect so custom logic might be needed for your use case.")]
-        public bool _disableClipSurfaceWhenTooFarFromSurface;
+        [SerializeField] bool _disableClipSurfaceWhenTooFarFromSurface;
 
         [Tooltip("Large, choppy waves require higher iterations to have accurate holes.")]
         [SerializeField] uint _animatedWavesDisplacementSamplingIterations = 4;

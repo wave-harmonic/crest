@@ -30,16 +30,6 @@ half4 ComputeGerstner(float2 worldPosXZ, float3 uv_slice)
 	// sample ocean depth (this render target should 1:1 match depth texture, so UVs are trivial)
 	const half depth = _LD_TexArray_SeaFloorDepth.Sample(LODData_linear_clamp_sampler, uv_slice).x;
 
-	// Preferred wave directions
-#if _DIRECT_TOWARDS_POINT
-	float2 offset = worldPosXZ - _TargetPointData.xy;
-	float preferDist = length(offset);
-	float preferWt = smoothstep(_TargetPointData.w, _TargetPointData.z, preferDist);
-	half2 preferredDir = preferWt * offset / preferDist;
-	half4 preferredDirX = preferredDir.x;
-	half4 preferredDirZ = preferredDir.y;
-#endif
-
 	half3 result = (half3)0.0;
 
 	// attenuate waves based on ocean depth. if depth is greater than 0.5*wavelength, water is considered Deep and wave is
@@ -58,11 +48,6 @@ half4 ComputeGerstner(float2 worldPosXZ, float3 uv_slice)
 		// direction
 		half4 Dx = _WaveDirX[vi];
 		half4 Dz = _WaveDirZ[vi];
-
-		// Peferred wave direction
-#if _DIRECT_TOWARDS_POINT
-		wt *= max((1.0 + Dx * preferredDirX + Dz * preferredDirZ) / 2.0, 0.1);
-#endif
 
 		// wave number
 		half4 k = _TwoPiOverWavelengths[vi];

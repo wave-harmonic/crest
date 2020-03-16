@@ -21,7 +21,6 @@ Shader "Hidden/Crest/Inputs/Animated Waves/Gerstner Batch Global"
 			CGPROGRAM
 			#pragma vertex Vert
 			#pragma fragment Frag
-			#pragma multi_compile __ _DIRECT_TOWARDS_POINT
 
 			#include "UnityCG.cginc"
 

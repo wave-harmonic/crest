@@ -348,6 +348,7 @@ namespace Crest
                         float gravityScale = _spectrum._gravityScales[(firstComponent + i) / _componentsPerOctave];
                         float gravity = OceanRenderer.Instance.Gravity * _spectrum._gravityScale;
                         float C = Mathf.Sqrt(wl * gravity * gravityScale * one_over_2pi);
+                        Debug.Assert(wl > 0.001f, "Wavelength should not be less than 0.001f!", this);
                         float k = twopi / wl;
                         // Repeat every 2pi to keep angle bounded - helps precision on 16bit platforms
                         UpdateBatchScratchData._phasesBatch[vi][ei] = Mathf.Repeat(_phases[firstComponent + i] + k * C * OceanRenderer.Instance.CurrentTime, Mathf.PI * 2f);

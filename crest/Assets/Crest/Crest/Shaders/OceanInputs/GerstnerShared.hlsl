@@ -50,7 +50,7 @@ half4 ComputeGerstner(float2 worldPosXZ, float3 uv_slice)
 		half4 Dz = _WaveDirZ[vi];
 
 		// wave number
-		half4 k = _TwoPiOverWavelengths[vi];
+		half4 k = 0.5; // _TwoPiOverWavelengths[vi];
 		// spatial location
 		half4 x = Dx * worldPosXZ.x + Dz * worldPosXZ.y;
 		half4 angle = k * x + _Phases[vi];
@@ -67,7 +67,7 @@ half4 ComputeGerstner(float2 worldPosXZ, float3 uv_slice)
 		result.y += dot(resulty, wt);
 		result.z += dot(resultz, wt);
 
-		half4 sssFactor = min(1.0, _TwoPiOverWavelengths[vi]);
+		half4 sssFactor = 1.0; // min(1.0, _TwoPiOverWavelengths[vi]);
 		displacementNormalized.x += dot(resultx * sssFactor, wt);
 		displacementNormalized.y += dot(resultz * sssFactor, wt);
 	}

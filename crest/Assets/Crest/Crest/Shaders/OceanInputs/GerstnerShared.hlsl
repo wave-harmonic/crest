@@ -43,7 +43,7 @@ half4 ComputeGerstner(float2 worldPosXZ, float3 uv_slice)
 	half4 wt = 1.0; // _AttenuationInShallows * depth_wt + (1.0 - _AttenuationInShallows);
 
 	// gerstner computation is vectorized - processes 4 wave components at once
-	for (uint vi = 0; vi < _NumWaveVecs; vi++)
+	for (uint vi = 0; vi < 1; vi++)
 	{
 		// direction
 		half4 Dx = 1.0; // _WaveDirX[vi];

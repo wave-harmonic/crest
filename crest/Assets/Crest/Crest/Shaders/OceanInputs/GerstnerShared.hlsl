@@ -9,16 +9,16 @@
 
 // Caution - this exploded on vulkan due to a collision with 'CrestPerObject' cbuffer in OceanInput
 CBUFFER_START(GerstnerUniforms)
-half _Weight;
-half _AttenuationInShallows;
+float _Weight;
+float _AttenuationInShallows;
 uint _NumWaveVecs;
 
-half4 _TwoPiOverWavelengths[BATCH_SIZE / 4];
-half4 _Amplitudes[BATCH_SIZE / 4];
-half4 _WaveDirX[BATCH_SIZE / 4];
-half4 _WaveDirZ[BATCH_SIZE / 4];
-half4 _Phases[BATCH_SIZE / 4];
-half4 _ChopAmps[BATCH_SIZE / 4];
+float4 _TwoPiOverWavelengths[BATCH_SIZE / 4];
+float4 _Amplitudes[BATCH_SIZE / 4];
+float4 _WaveDirX[BATCH_SIZE / 4];
+float4 _WaveDirZ[BATCH_SIZE / 4];
+float4 _Phases[BATCH_SIZE / 4];
+float4 _ChopAmps[BATCH_SIZE / 4];
 
 float4 _TargetPointData;
 CBUFFER_END

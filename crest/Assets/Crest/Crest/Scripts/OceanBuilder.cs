@@ -186,7 +186,7 @@ namespace Crest
             }
             if (ocean.CreateSeaFloorDepthData)
             {
-                ocean._lodDataSeaDepths = ocean.gameObject.AddComponent<LodDataMgrSeaFloorDepth>();
+                ocean._lodDataSeaDepths = LodDataMgr.Create<LodDataMgrSeaFloorDepth, SimSettingsSeaFloorDepth>(ocean.gameObject, ref ocean._simSettingsSeaFloorDepth);
             }
             if (ocean.CreateClipSurfaceData)
             {

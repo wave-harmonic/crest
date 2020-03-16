@@ -9,16 +9,23 @@ namespace Crest
 {
     /// <summary>
     /// Renders depth of the ocean (height of sea level above ocean floor), by rendering the relative height of tagged objects from top down.
-    /// Y channel is exactly: offset from global sea level
+    /// Y channel is negative of the height offset from global sea level. So if water level should be 50m above the base sea level, sea floor
+    /// offset value will be -50. Currently only above/upwards offsets are supported - meaning every water body is at the base sea level or higher.
     /// </summary>
     public class LodDataMgrSeaFloorDepth : LodDataMgr
     {
         public override string SimName { get { return "SeaFloorDepth"; } }
-        public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RGHalf; } }
+        public override RenderTextureFormat TextureFormat { get { return Settings._allowMultipleSeaLevels ? RenderTextureFormat.RGHalf : RenderTextureFormat.RHalf; } }
         protected override bool NeedToReadWriteTextureData { get { return false; } }
 
-        public override SimSettingsBase CreateDefaultSettings() { return null; }
-        public override void UseSettings(SimSettingsBase settings) { }
+        SimSettingsSeaFloorDepth Settings { get { return OceanRenderer.Instance._simSettingsSeaFloorDepth; } }
+        public override void UseSettings(SimSettingsBase settings) { OceanRenderer.Instance._simSettingsSeaFloorDepth = settings as SimSettingsSeaFloorDepth; }
+        public override SimSettingsBase CreateDefaultSettings()
+        {
+            var settings = ScriptableObject.CreateInstance<SimSettingsSeaFloorDepth>();
+            settings.name = SimName + " Auto-generated Settings";
+            return settings;
+        }
 
         bool _targetsClear = false;
 

@@ -67,12 +67,12 @@ half4 ComputeGerstner(float2 worldPosXZ, float3 uv_slice)
 		result.y += dot(resulty, wt);
 		result.z += dot(resultz, wt);
 
-		half4 sssFactor = 1.0; // min(1.0, _TwoPiOverWavelengths[vi]);
-		displacementNormalized.x += dot(resultx * sssFactor, wt);
-		displacementNormalized.y += dot(resultz * sssFactor, wt);
+		//half4 sssFactor = 1.0; // min(1.0, _TwoPiOverWavelengths[vi]);
+		//displacementNormalized.x += dot(resultx * sssFactor, wt);
+		//displacementNormalized.y += dot(resultz * sssFactor, wt);
 	}
 
-	half sss = length(displacementNormalized);
+	//half sss = length(displacementNormalized);
 
-	return _Weight * half4(result, sss);
+	return _Weight * half4(result, 0.1);
 }

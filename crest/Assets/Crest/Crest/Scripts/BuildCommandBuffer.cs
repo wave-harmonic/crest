@@ -38,8 +38,21 @@ namespace Crest
     {
         CommandBuffer _buf;
 
+        public static bool s_pretendWorkload = false;
+
         void Build(OceanRenderer ocean, CommandBuffer buf)
         {
+            if(s_pretendWorkload)
+            {
+                for (int i = 0; i < OceanRenderer.Instance._pretendWorkloadClears; i++)
+                {
+                    buf.SetRenderTarget(OceanRenderer.Instance._lodDataAnimWaves.DataTexture, 0, CubemapFace.Unknown, 2);
+                    buf.ClearRenderTarget(false, true, new Color(Random.value, Random.value, Random.value, 0f));
+                }
+
+                return;
+            }
+
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // --- Ocean depths
             if (ocean._lodDataSeaDepths)

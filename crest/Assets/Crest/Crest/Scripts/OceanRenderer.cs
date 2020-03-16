@@ -12,6 +12,8 @@ namespace Crest
     /// </summary>
     public class OceanRenderer : MonoBehaviour
     {
+        public int _pretendWorkloadClears = 50;
+
         [Tooltip("The viewpoint which drives the ocean detail. Defaults to main camera."), SerializeField]
         Transform _viewpoint;
         public Transform Viewpoint { get { return _viewpoint; } set { _viewpoint = value; } }

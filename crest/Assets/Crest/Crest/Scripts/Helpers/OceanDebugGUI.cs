@@ -107,6 +107,8 @@ namespace Crest
 
                 LodDataMgrShadow.s_processData = GUI.Toggle(new Rect(x, y, w, h), LodDataMgrShadow.s_processData, "Process Shadows"); y += h;
 
+                BuildCommandBuffer.s_pretendWorkload = GUI.Toggle(new Rect(x, y, w, h), BuildCommandBuffer.s_pretendWorkload, "Pretend workload"); y += h;
+
                 if (OceanRenderer.Instance)
                 {
                     if (OceanRenderer.Instance._lodDataDynWaves != null)

@@ -53,14 +53,14 @@ half4 ComputeGerstner(float2 worldPosXZ, float3 uv_slice)
 		half4 k = 0.5; // _TwoPiOverWavelengths[vi];
 		// spatial location
 		half4 x = Dx * worldPosXZ.x + Dz * worldPosXZ.y;
-		half4 angle = k * x + _Phases[vi];
+		half4 angle = k * x + vi; // +_Phases[vi];
 
 		// dx and dz could be baked into _ChopAmps
-		half4 disp = 0.25 * sin(angle);
+		half4 disp = 0.125 * sin(angle);
 		half4 resultx = disp * Dx;
 		half4 resultz = disp * Dz;
 
-		half4 resulty = 0.25 * cos(angle);
+		half4 resulty = 0.125 * cos(angle);
 
 		// sum the vector results
 		result.x += dot(resultx, wt);

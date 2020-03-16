@@ -46,8 +46,8 @@ half4 ComputeGerstner(float2 worldPosXZ, float3 uv_slice)
 	for (uint vi = 0; vi < _NumWaveVecs; vi++)
 	{
 		// direction
-		half4 Dx = _WaveDirX[vi];
-		half4 Dz = _WaveDirZ[vi];
+		half4 Dx = 1.0; // _WaveDirX[vi];
+		half4 Dz = 0.0; // _WaveDirZ[vi];
 
 		// wave number
 		half4 k = 0.5; // _TwoPiOverWavelengths[vi];

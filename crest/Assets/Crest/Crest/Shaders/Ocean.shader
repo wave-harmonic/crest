@@ -431,6 +431,7 @@ Shader "Crest/Ocean"
 
 				// water surface depth, and underlying scene opaque surface depth
 				float pixelZ = LinearEyeDepth(input.positionCS.z);
+				clip(_VolumeExtinctionLength - pixelZ);
 				half3 screenPos = input.foam_screenPosXYW.yzw;
 				half2 uvDepth = screenPos.xy / screenPos.z;
 				float sceneZ01 = tex2D(_CameraDepthTexture, uvDepth).x;

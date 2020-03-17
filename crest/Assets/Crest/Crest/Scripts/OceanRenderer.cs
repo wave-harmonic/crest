@@ -162,6 +162,7 @@ namespace Crest
         readonly int sp_texelsPerWave = Shader.PropertyToID("_TexelsPerWave");
         readonly int sp_oceanCenterPosWorld = Shader.PropertyToID("_OceanCenterPosWorld");
         readonly int sp_meshScaleLerp = Shader.PropertyToID("_MeshScaleLerp");
+        readonly int sp_volumeExtinctionLength = Shader.PropertyToID("_VolumeExtinctionLength");
         readonly int sp_sliceCount = Shader.PropertyToID("_SliceCount");
 
         void Awake()
@@ -278,7 +279,11 @@ namespace Crest
             }
 
             LateUpdateLods();
+
+            LateUpdateTiles();
         }
+
+        float VolumeExtinctionLength { get; set; }
 
         void LateUpdatePosition()
         {
@@ -290,6 +295,12 @@ namespace Crest
             transform.position = pos;
 
             Shader.SetGlobalVector(sp_oceanCenterPosWorld, transform.position);
+
+            var density = _material.GetVector("_DepthFogDensity");
+            var min = Mathf.Min(Mathf.Min(density.x, density.y), density.z);
+            // transmittance = exp(-density * distance);
+            VolumeExtinctionLength = -Mathf.Log(0.01f) / min;
+            Shader.SetGlobalFloat(sp_volumeExtinctionLength, VolumeExtinctionLength);
         }
 
         void LateUpdateScale()
@@ -353,6 +364,18 @@ namespace Crest
             if (_lodDataSeaDepths) _lodDataSeaDepths.UpdateLodData();
             if (_lodDataClipSurface) _lodDataClipSurface.UpdateLodData();
             if (_lodDataShadow) _lodDataShadow.UpdateLodData();
+        }
+
+        void LateUpdateTiles()
+        {
+            var definitelyUnderwater = ViewerHeightAboveWater < -5f;
+
+            // TODO - dont call this every frame!! save off list from oceanbuilder?
+            var tiles = GetComponentsInChildren<Renderer>();
+            foreach (var tile in tiles)
+            {
+                tile.GetComponent<Renderer>().enabled = (!definitelyUnderwater) || (_viewpoint.position - tile.bounds.ClosestPoint(_viewpoint.position)).magnitude < VolumeExtinctionLength;
+            }
         }
 
         /// <summary>

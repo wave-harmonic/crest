@@ -76,7 +76,12 @@ namespace Crest
             // different animated wave LODs. As we use a single texture array
             // for all LODs, we employ a compute shader as only they can
             // read and write to the same texture.
-            _combineShader = Resources.Load<ComputeShader>(ShaderName);
+            _combineShader = ComputeShaderHelpers.LoadShader(ShaderName);
+            if(_combineShader == null)
+            {
+                enabled = false;
+                return;
+            }
             krnl_ShapeCombine = _combineShader.FindKernel("ShapeCombine");
             krnl_ShapeCombine_DISABLE_COMBINE = _combineShader.FindKernel("ShapeCombine_DISABLE_COMBINE");
             krnl_ShapeCombine_FLOW_ON = _combineShader.FindKernel("ShapeCombine_FLOW_ON");

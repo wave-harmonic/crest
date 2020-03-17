@@ -490,10 +490,6 @@ namespace Crest
         {
             _dataArrivedAction = new System.Action<AsyncGPUReadbackRequest>(DataArrived);
 
-            _shaderProcessQueries = Resources.Load<ComputeShader>(QueryShaderName);
-            _kernelHandle = _shaderProcessQueries.FindKernel(QueryKernelName);
-            _wrapper = new PropertyWrapperComputeStandalone(_shaderProcessQueries, _kernelHandle);
-
             if (_maxQueryCount != OceanRenderer.Instance._simSettingsAnimatedWaves.MaxQueryCount)
             {
                 _maxQueryCount = OceanRenderer.Instance._simSettingsAnimatedWaves.MaxQueryCount;
@@ -505,6 +501,15 @@ namespace Crest
 
             _queryResults = new NativeArray<Vector3>(_maxQueryCount, Allocator.Persistent, NativeArrayOptions.ClearMemory);
             _queryResultsLast = new NativeArray<Vector3>(_maxQueryCount, Allocator.Persistent, NativeArrayOptions.ClearMemory);
+
+            _shaderProcessQueries = ComputeShaderHelpers.LoadShader(QueryShaderName);
+            if (_shaderProcessQueries == null)
+            {
+                enabled = false;
+                return;
+            }
+            _kernelHandle = _shaderProcessQueries.FindKernel(QueryKernelName);
+            _wrapper = new PropertyWrapperComputeStandalone(_shaderProcessQueries, _kernelHandle);
         }
 
         protected virtual void OnDisable()

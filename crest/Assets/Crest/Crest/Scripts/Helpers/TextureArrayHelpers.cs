@@ -28,6 +28,10 @@ namespace Crest
         // implemented a custom version to clear to black
         public static void ClearToBlack(RenderTexture dst)
         {
+            if(s_clearToBlackShader == null)
+            {
+                return;
+            }
             s_clearToBlackShader.SetTexture(krnl_ClearToBlack, sp_LD_TexArray_Target, dst);
             s_clearToBlackShader.Dispatch(
                 krnl_ClearToBlack,
@@ -69,8 +73,11 @@ namespace Crest
                 BlackTextureArray.name = "Black Texture2DArray";
             }
 
-            s_clearToBlackShader = Resources.Load<ComputeShader>(CLEAR_TO_BLACK_SHADER_NAME);
-            krnl_ClearToBlack = s_clearToBlackShader.FindKernel(CLEAR_TO_BLACK_SHADER_NAME);
+            s_clearToBlackShader = ComputeShaderHelpers.LoadShader(CLEAR_TO_BLACK_SHADER_NAME);
+            if(s_clearToBlackShader != null)
+            {
+                krnl_ClearToBlack = s_clearToBlackShader.FindKernel(CLEAR_TO_BLACK_SHADER_NAME);
+            }
         }
     }
 }

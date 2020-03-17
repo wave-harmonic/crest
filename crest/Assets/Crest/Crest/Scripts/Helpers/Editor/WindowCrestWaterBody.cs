@@ -83,6 +83,11 @@ namespace Crest
             GetWindow<WindowCrestWaterBody>("Crest Create Water Body");
         }
 
+        private void OnEnable()
+        {
+            PopulateResources();
+        }
+
         private void OnFocus()
         {
             // Remove delegate listener if it has previously
@@ -133,6 +138,23 @@ namespace Crest
             var planeScaleFactor = 10f;
             _proxyObject.transform.localScale = new Vector3(_sizeX / planeScaleFactor, 1f, _sizeZ / planeScaleFactor);
             _proxyObject.SetActive(_showProxy);
+        }
+
+        bool PopulateResources()
+        {
+            if (_clipMaterial == null)
+            {
+                _clipMaterial = AssetDatabase.LoadAssetAtPath<Material>("Assets/Crest/Crest/Materials/OceanInputs/WaterBodyClipIncludeArea.mat");
+                if (_clipMaterial == null) return false;
+            }
+
+            if (_gerstnerMaterial == null)
+            {
+                _gerstnerMaterial = AssetDatabase.LoadAssetAtPath<Material>("Assets/Crest/Crest/Materials/OceanInputs/WaterBodyGerstnerPatch.mat");
+                if (_gerstnerMaterial == null) return false;
+            }
+
+            return true;
         }
 
         void CreateWaterBody()
@@ -194,6 +216,23 @@ namespace Crest
                 var rend = clipGO.GetComponent<Renderer>();
                 rend.sharedMaterial = _clipMaterial;
             }
+        }
+
+        bool CheckResources()
+        {
+            if (_createClipArea && _clipMaterial == null)
+            {
+                Debug.LogError("A material for the clip shader must be provided. This is typically a material using shader 'Crest/Inputs/Clip Surface/Include Area'");
+                return false;
+            }
+
+            if (_createGerstnerWaves && _gerstnerMaterial == null)
+            {
+                Debug.LogError("A material for the Gerstner waves must be specified in the Create Water Body window. This is typically a material using shader 'Crest/Inputs/Animated Waves/Gerstner Batch Geometry'");
+                return false;
+            }
+
+            return true;
         }
     }
 }

@@ -19,7 +19,7 @@ namespace Crest
             GerstnerWavesCPU,
             ComputeShaderQueries,
         }
-        
+
         [Tooltip("Where to obtain ocean shape on CPU for physics / gameplay."), SerializeField]
         CollisionSources _collisionSource = CollisionSources.ComputeShaderQueries;
         public CollisionSources CollisionSource { get { return _collisionSource; } }
@@ -50,9 +50,11 @@ namespace Crest
 
             if (result == null)
             {
-                // this should not be hit - return null to create null ref exceptions
-                Debug.Assert(false, "Could not create collision provider. Collision source = " + _collisionSource.ToString(), this);
-                return null;
+                // this should not be hit, but can be if compute shaders aren't loaded correctly.
+                // they will print out appropriate errors, so we don't want to return just null and have null reference
+                // exceptions spamming the logs.
+                Debug.LogError($"Could not create collision provider. Collision source = {_collisionSource.ToString()}", this);
+                return new CollProviderNull();
             }
 
             return result;

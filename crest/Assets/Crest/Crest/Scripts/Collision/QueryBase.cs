@@ -350,7 +350,21 @@ namespace Crest
                 }
             }
 
+            foreach (var disp in displacements)
+            {
+                if (AnyNaN(disp))
+                {
+                    Debug.LogError("NaN in retrieved results, time to panic!");
+                    break;
+                }
+            }
+
             return true;
+        }
+
+        bool AnyNaN(Vector3 x)
+        {
+            return float.IsNaN(x.x) || float.IsNaN(x.y) || float.IsNaN(x.z);
         }
 
         /// <summary>

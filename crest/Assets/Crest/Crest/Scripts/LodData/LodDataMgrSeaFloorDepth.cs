@@ -2,7 +2,6 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
-using System.Linq;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -71,9 +70,13 @@ namespace Crest
         static void InitNullTexture()
         {
             var texture = Instantiate<Texture2D>(Texture2D.whiteTexture);
-            // Null texture needs to be white (uses R channel) with a 1000 intensity. 
+            // Null texture needs to be white (uses R channel) with a 1000 intensity.
             var color = new Color(1000, 1000, 1000, 1);
-            Color[] pixels = Enumerable.Repeat(color, texture.height * texture.width).ToArray();
+            Color[] pixels = new Color[texture.height * texture.width];
+            for(int i = 0; i < pixels.Length; i++)
+            {
+                pixels[i] = color;
+            }
             texture.SetPixels(pixels);
             texture.Apply();
             s_nullTexture2DArray = TextureArrayHelpers.CreateTexture2DArray(texture);

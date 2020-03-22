@@ -114,12 +114,34 @@ namespace Crest
                 return;
 
             var disp = _boat.CalculateDisplacementToObject();
-            transform.position = transform.parent.TransformPoint(_localOffset) - disp + _velocityPositionOffset * _boat.Velocity;
+            if (AnyNaN(disp))
+            {
+                Debug.LogError("disp nan");
+                return;
+            }
+            var transformed = transform.parent.TransformPoint(_localOffset);
+            if (AnyNaN(transformed))
+            {
+                Debug.LogError("transformed nan");
+                return;
+            }
+            var boatVel = _boat.Velocity;
+            if (AnyNaN(boatVel))
+            {
+                Debug.LogError("boatVel nan");
+                return;
+            }
+            transform.position = transformed - disp + _velocityPositionOffset * boatVel;
 
             var ocean = OceanRenderer.Instance;
 
             var rnd = 1f + _noiseAmp * (2f * Mathf.PerlinNoise(_noiseFreq * ocean.CurrentTime, 0.5f) - 1f);
             // feed in water velocity
+            if (ocean.DeltaTimeDynamics < 0.000001f)
+            {
+                Debug.LogError("ocean.DeltaTimeDynamics very small, nan risk.");
+                return;
+            }
             var vel = (transform.position - _posLast) / ocean.DeltaTimeDynamics;
             if (ocean.DeltaTimeDynamics < 0.0001f)
             {
@@ -157,6 +179,12 @@ namespace Crest
                 }
             }
 
+            if(simsActive <= 0)
+            {
+                Debug.LogError($"simsActive {simsActive}, nan");
+                return;
+            }
+
             float dt; int steps;
             ocean._lodDataDynWaves.GetSimSubstepData(ocean.DeltaTimeDynamics, out steps, out dt);
             float weight = _boat.InWater ? 1f / simsActive : 0f;
@@ -170,6 +198,11 @@ namespace Crest
             _renderer.SetPropertyBlock(_mpb);
 
             _posLast = transform.position;
+        }
+
+        bool AnyNaN(Vector3 x)
+        {
+            return float.IsNaN(x.x) || float.IsNaN(x.y) || float.IsNaN(x.z);
         }
     }
 }

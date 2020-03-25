@@ -20,8 +20,6 @@ namespace Crest
         [Range(0f, 1f), SerializeField]
         float _noiseAmp = 0.5f;
 
-        [Range(-1f, 1f), SerializeField]
-        float _weight = 1f;
         [Range(0f, 2f), SerializeField]
         float _weightUpDownMul = 0.5f;
 
@@ -161,7 +159,7 @@ namespace Crest
 
             float dt; int steps;
             ocean._lodDataDynWaves.GetSimSubstepData(ocean.DeltaTimeDynamics, out steps, out dt);
-            float weight = _boat.InWater ? _weight / simsActive : 0f;
+            float weight = _boat.InWater ? 1f / simsActive : 0f;
 
             _renderer.GetPropertyBlock(_mpb);
 

@@ -22,8 +22,10 @@ Shader "Crest/Inputs/Dynamic Waves/Dampen Circle"
 
 			#include "UnityCG.cginc"
 
+			CBUFFER_START(CrestPerOceanInput)
 			float _Radius;
 			float _DampenStrength;
+			CBUFFER_END
 
 			struct Attributes
 			{

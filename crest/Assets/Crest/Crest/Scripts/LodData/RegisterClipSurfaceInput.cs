@@ -15,11 +15,13 @@ namespace Crest
         bool _enabled = true;
         public override bool Enabled => _enabled;
 
-        [Tooltip("Uses the 'clip from convex hull' shader. There are other clip shaders available.")]
-        [SerializeField] bool _assignClipSurfaceMaterial = true;
+        [Header("Convex Hull Options")]
 
         [Tooltip("Prevents inputs from cancelling each other out when aligned vertically. It is imperfect so custom logic might be needed for your use case.")]
-        [SerializeField] bool _disableClipSurfaceWhenTooFarFromSurface = true;
+        [SerializeField] bool _disableClipSurfaceWhenTooFarFromSurface = false;
+
+        [Tooltip("Large, choppy waves require higher iterations to have accurate holes.")]
+        [SerializeField] uint _animatedWavesDisplacementSamplingIterations = 4;
 
         public override float Wavelength => 0f;
 
@@ -29,16 +31,7 @@ namespace Crest
         Renderer _rend;
         SampleHeightHelper _sampleHeightHelper = new SampleHeightHelper();
 
-        protected override void OnEnable()
-        {
-            base.OnEnable();
-
-            if (_assignClipSurfaceMaterial)
-            {
-                var rend = GetComponent<Renderer>();
-                rend.material = new Material(Shader.Find("Crest/Inputs/Clip Surface/Convex Hull"));
-            }
-        }
+        static int sp_DisplacementSamplingIterations = Shader.PropertyToID("_DisplacementSamplingIterations");
 
         protected override void Start()
         {
@@ -87,6 +80,7 @@ namespace Crest
                 var lodCount = OceanRenderer.Instance.CurrentLodCount;
                 var lodDataAnimWaves = OceanRenderer.Instance._lodDataAnimWaves;
                 _mpb.SetInt(LodDataMgr.sp_LD_SliceIndex, lodIdx);
+                _mpb.SetInt(sp_DisplacementSamplingIterations, (int)_animatedWavesDisplacementSamplingIterations);
                 lodDataAnimWaves.BindResultData(_mpb);
 
                 // blend LOD 0 shape in/out to avoid pop, if the ocean might scale up later (it is smaller than its maximum scale)

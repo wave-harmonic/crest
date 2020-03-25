@@ -28,6 +28,10 @@ namespace Crest
         // implemented a custom version to clear to black
         public static void ClearToBlack(RenderTexture dst)
         {
+            if(s_clearToBlackShader == null)
+            {
+                return;
+            }
             s_clearToBlackShader.SetTexture(krnl_ClearToBlack, sp_LD_TexArray_Target, dst);
             s_clearToBlackShader.Dispatch(
                 krnl_ClearToBlack,
@@ -35,6 +39,24 @@ namespace Crest
                 OceanRenderer.Instance.LodDataResolution / PropertyWrapperCompute.THREAD_GROUP_SIZE_Y,
                 dst.volumeDepth
             );
+        }
+
+        public static Texture2DArray CreateTexture2DArray(Texture2D texture)
+        {
+            var array = new Texture2DArray(
+                SMALL_TEXTURE_DIM, SMALL_TEXTURE_DIM,
+                LodDataMgr.MAX_LOD_COUNT,
+                texture.format,
+                false,
+                false
+            );
+
+            for (int textureArrayIndex = 0; textureArrayIndex < LodDataMgr.MAX_LOD_COUNT; textureArrayIndex++)
+            {
+                Graphics.CopyTexture(texture, 0, 0, array, textureArrayIndex, 0);
+            }
+
+            return array;
         }
 
 #if UNITY_2019_3_OR_NEWER
@@ -47,24 +69,15 @@ namespace Crest
 
             if (BlackTextureArray == null)
             {
-                BlackTextureArray = new Texture2DArray(
-                    SMALL_TEXTURE_DIM, SMALL_TEXTURE_DIM,
-                    LodDataMgr.MAX_LOD_COUNT,
-                    Texture2D.blackTexture.format,
-                    false,
-                    false
-                );
-
-                for (int textureArrayIndex = 0; textureArrayIndex < LodDataMgr.MAX_LOD_COUNT; textureArrayIndex++)
-                {
-                    Graphics.CopyTexture(Texture2D.blackTexture, 0, 0, BlackTextureArray, textureArrayIndex, 0);
-                }
-
+                BlackTextureArray = CreateTexture2DArray(Texture2D.blackTexture);
                 BlackTextureArray.name = "Black Texture2DArray";
             }
 
-            s_clearToBlackShader = Resources.Load<ComputeShader>(CLEAR_TO_BLACK_SHADER_NAME);
-            krnl_ClearToBlack = s_clearToBlackShader.FindKernel(CLEAR_TO_BLACK_SHADER_NAME);
+            s_clearToBlackShader = ComputeShaderHelpers.LoadShader(CLEAR_TO_BLACK_SHADER_NAME);
+            if(s_clearToBlackShader != null)
+            {
+                krnl_ClearToBlack = s_clearToBlackShader.FindKernel(CLEAR_TO_BLACK_SHADER_NAME);
+            }
         }
     }
 }

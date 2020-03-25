@@ -56,7 +56,12 @@ namespace Crest
             base.Start();
 
             _renderProperties = new PropertyWrapperCompute();
-            _updateShadowShader = Resources.Load<ComputeShader>(UpdateShadow);
+            _updateShadowShader = ComputeShaderHelpers.LoadShader(UpdateShadow);
+            if(_updateShadowShader == null)
+            {
+                enabled = false;
+                return;
+            }
 
             try
             {

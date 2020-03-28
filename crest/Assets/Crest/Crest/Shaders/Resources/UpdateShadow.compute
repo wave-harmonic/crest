@@ -14,14 +14,14 @@
 //     _LightShadowData at kernel UpdateShadow
 // We skirt around this by defining our own _LightShadowData as a float4, and
 // then making sure that the *real* _LightShadowData variabel is knocked-out.
-#if SHADER_API_VULKAN
+#if SHADER_API_VULKAN || SHADER_API_METAL
 uniform float4 _LightShadowData;
 #define _LightShadowData _LightShadowData_KNOCKED_OUT
 #endif
 
 #include "UnityCG.cginc"
 
-#if SHADER_API_VULKAN
+#if SHADER_API_VULKAN || SHADER_API_METAL
 #undef _LightShadowData
 #endif
 

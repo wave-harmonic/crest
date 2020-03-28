@@ -105,13 +105,13 @@ A typical render order for a frame is the following:
 
 ## Animated Waves
 
-The Gerstner waves are split by octave - each Gerstner wave component is only rendered once into the most suitable LOD (i.e. a long wavelength will render only into one of the large LODs), and then a combine pass is done to copy results from the resolution LODs down to the high resolution ones.
+The Animated Waves simulation contains the animated surface shape. This typically contains the ocean waves, but can be modified as required. For example parts of the water can be pushed down below geometry if required.
+
+The animated waves sim can be configured by assigning an Animated Waves Sim Settings asset to the OceanRenderer script in your scene (*Create/Crest/Animated Wave Sim Settings*). The waves will be dampened/attenuated in shallow water if a *Sea Floor Depth* LOD data is used (see below). The amount that waves are attenuated is configurable using the *Attenuation In Shallows* setting.
 
 Crest supports adding custom shape to the water surface. To add some shape, add some geometry into the world which when rendered from a top down perspective will draw the desired displacements. Then assign the *RegisterAnimWavesInput* script which will tag it for rendering into the shape, and apply a material with a shader of type *Crest/Inputs/Animated Waves/...*. This is demonstrated in this tutorial video: https://www.youtube.com/watch?v=sQIakAjSq4Y.
 
 There is an example in the *boat.unity* scene, gameobject *wp0*, where a smoothstep bump is added to the water shape. This is an efficient way to generate dynamic shape. This renders with additive blend, but other blending modes are possible such as alpha blend, multiplicative blending, and min or max blending, which give powerful control over the shape.
-
-The animated waves sim can be configured by assigning an Animated Waves Sim Settings asset to the OceanRenderer script in your scene (*Create/Crest/Animated Wave Sim Settings*). The waves will be dampened/attenuated in shallow water if a *Sea Floor Depth* LOD data is used (see below). The amount that waves are attenuated is configurable using the *Attenuation In Shallows* setting.
 
 
 ## Dynamic Waves
@@ -185,6 +185,49 @@ Currently in the built-in render pipeline, shadows only work when the primary ca
 Flow is the horizontal motion of the water volumes. It is used in the *whirlpool.unity* scene to rotate the waves and foam around the vortex. It does not affect wave directions, but transports the waves horizontally. This horizontal motion also affects physics.
 
 Crest supports adding any flow velocities to the system. To add flow, add some geometry into the world which when rendered from a top down perspective will draw the desired displacements. Then assign the *RegisterFlowInput* script which will tag it for rendering into the flow, and apply a material with a shader of type *Crest/Inputs/Flow/...*. The *Crest/Inputs/Flow/Add Flow Map* shader writes a flow texture into the system. It assumes the x component of the flow velocity is packed into 0-1 range in the red channel, and the z component of the velocity is packed into 0-1 range in the green channel. The shader reads the values, subtracts 0.5, and multiplies them by the provided scale value on the shader. The process of adding ocean inputs is demonstrated in the following video: https://www.youtube.com/watch?v=sQIakAjSq4Y.
+
+
+# Wave conditions
+
+## Authoring
+
+To add waves, add the *ShapeGerstnerBatched* component to a GameObject.
+
+The appearance and shape of the waves is determined by a *wave spectrum*.
+A default wave spectrum will be created if none is specified.
+To change the waves, right click in the Project view and select *Create/Crest/Ocean Wave Spectrum*, and assign the new asset to the *Spectrum* property of the *ShapeGerstnerBatched* script.
+
+The spectrum has sliders for each wavelength to control contribution of different scales of waves.
+To control the contribution of ~2m wavelengths, use the slider labelled '2'.
+
+The *Wave Direction Variance* controls the spread of wave directions.
+This controls how aligned the waves are to the wind direction.
+
+The *Chop* parameter scales the horizontal displacement.
+Higher chop gives crisper wave crests but can result in self-intersections or 'inversions' if set too high, so it needs to be balanced.
+
+To aid in tweaking the spectrum values we provide implementations of common wave spectra from the literature.
+Select one of the spectra by toggling the button, and then tweak the spectra inputs, and the spectrum values will be set according to the selected model.
+When done, toggle the button off to stop overriding the spectrum.
+
+All of the above can be tweaked in play mode.
+Together these controls give the flexibility to express the great variation one can observe in real world seascapes. 
+
+## Local waves
+
+By default the Gerstner waves will apply everywhere throughout the world, so 'globally'.
+They can also be applied 'locally' - in a limited area of the world.
+
+This is done by setting the *Mode* to *Geometry*.
+In this case the system will look for a *MeshFilter*/*MeshRenderer* on the same GameObject and it will generate waves over the area of the geometry.
+The geometry must be 'face up' - it must be visible from a top-down perspective in order to generate the waves.
+It must also have a material using the *Crest/Inputs/Animated Waves/Gerstner Batch Geometry* shader applied.
+
+For a concrete example, see the *GerstnerPatch* object in *boat.unity*.
+It has a *MeshFilter* component with the *Quad* mesh applied, and is rotated so the quad is face up.
+It has a *MeshRenderer* component with a material assigned with a Gerstner material.
+Additionally, the material has the *Feather at UV Extents* option enabled, which will fade down the waves where the UVs go to 0 or 1 (at the edges of the quad).
+The end result is a local patch of waves that are smoothly blended over the area of the quad.
 
 
 # Shorelines and shallow water
@@ -284,15 +327,6 @@ Checklist for using underwater:
 * Place *UnderWaterCurtainGeom* and *UnderWaterMeniscus* prefabs under the camera (with cleared transform).
 * Use opaque or alpha test materials for underwater surfaces. Transparents materials will not render correctly underwater.
 * For performance reasons, the underwater effect is disabled if the viewpoint is not underwater. If there are multiple cameras, the *Viewpoint* property of the *OceanRenderer* component must be set to the current active camera.
-
-## Masking out surface (DEPRECATED)
-
-**Note:** We are deprecating this approach in favour of the more flexible *Clip Surface Data* described above.
-
-There are times when it is useful to mask out the ocean surface which prevents it drawing on some part of the screen.
-The scene *main.unity* in the example content has a rowboat which, without masking, would appear to be full of water.
-To prevent water appearing inside the boat, the *WaterMask* gameobject writes depth into the GPU's depth buffer which can occlude any water behind it, and therefore prevent drawing water inside the boat.
-The *RegisterMaskInput* component is required to ensure this depth draws early before the ocean surface.
 
 ## Floating origin
 

@@ -157,6 +157,7 @@ namespace Crest
                 OceanRenderer.Instance.ViewerLessThan2mAboveWater += ViewerLessThan2mAboveWater;
                 OceanRenderer.Instance.ViewerMoreThan2mAboveWater += ViewerMoreThan2mAboveWater;
                 enabled = OceanRenderer.Instance.ViewerHeightAboveWater < 2f;
+                _eventsRegistered = true;
             }
 
             if (_commandBuffer == null)

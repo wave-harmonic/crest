@@ -76,14 +76,17 @@ namespace Crest
         [Tooltip("The resolution of the cached signed distance field - lower will be more efficient."), SerializeField]
         int _signedDistanceFieldForShorelinesResolution = 512;
 
-        RenderTexture _cacheTexture;
-        public RenderTexture CacheTexture => _cacheTexture;
+        RenderTexture _depthCacheTexture;
+        public RenderTexture CacheTexture => _depthCacheTexture;
 
-        RenderTexture _signedDistanceFieldCacheTexture;
-        public RenderTexture SignedDistanceFieldCacheTexture => _signedDistanceFieldCacheTexture;
+        RenderTexture _sdfCacheTexture;
+        public RenderTexture SignedDistanceFieldCacheTexture => _sdfCacheTexture;
 
         GameObject _drawCacheQuad;
-        Camera _camDepthCache;
+        Camera _depthCacheCamera;
+
+        GameObject _drawSdfCacheQuad;
+        Camera _sdfCacheCamera;
 
         void Start()
         {
@@ -167,7 +170,7 @@ namespace Crest
             }
 #endif
 
-            if (_cacheTexture == null)
+            if (_depthCacheTexture == null)
             {
 #if UNITY_EDITOR_WIN
                 var fmt = RenderTextureFormat.DefaultHDR;
@@ -176,35 +179,46 @@ namespace Crest
 #endif
                 // TODO(TRC):Now this garbage generation that would be generated each time this is called
                 Debug.Assert(SystemInfo.SupportsRenderTextureFormat(fmt), "The graphics device does not support the render texture format " + fmt.ToString());
-                _cacheTexture = new RenderTexture(_resolution, _resolution, 0);
-                _cacheTexture.name = gameObject.name + "_oceanDepth";
-                _cacheTexture.format = fmt;
-                _cacheTexture.useMipMap = false;
-                _cacheTexture.anisoLevel = 0;
-                _cacheTexture.Create();
+                _depthCacheTexture = new RenderTexture(_resolution, _resolution, 0);
+                _depthCacheTexture.name = gameObject.name + "_oceanDepth";
+                _depthCacheTexture.format = fmt;
+                _depthCacheTexture.useMipMap = false;
+                _depthCacheTexture.anisoLevel = 0;
+                _depthCacheTexture.Create();
             }
 
-            if(_generateSignedDistanceFieldForShorelines && _signedDistanceFieldCacheTexture == null)
+            if (_generateSignedDistanceFieldForShorelines && _sdfCacheTexture == null)
             {
                 RenderTextureFormat fmt = RenderTextureFormat.ARGBHalf;
                 // TODO(TRC):Now this garbage generation that would be generated each time this is called
                 Debug.Assert(SystemInfo.SupportsRenderTextureFormat(fmt), "The graphics device does not support the render texture format " + fmt.ToString());
-                _signedDistanceFieldCacheTexture = new RenderTexture(_signedDistanceFieldForShorelinesResolution, _signedDistanceFieldForShorelinesResolution, 0);
-                _signedDistanceFieldCacheTexture.name = gameObject.name + "_signedDistanceField";
-                _signedDistanceFieldCacheTexture.format = fmt;
-                _signedDistanceFieldCacheTexture.useMipMap = false;
-                _signedDistanceFieldCacheTexture.anisoLevel = 0;
-                _signedDistanceFieldCacheTexture.Create();
+                _sdfCacheTexture = new RenderTexture(_signedDistanceFieldForShorelinesResolution, _signedDistanceFieldForShorelinesResolution, 0);
+                _sdfCacheTexture.name = gameObject.name + "_signedDistanceField";
+                _sdfCacheTexture.format = fmt;
+                _sdfCacheTexture.useMipMap = false;
+                _sdfCacheTexture.anisoLevel = 0;
+                _sdfCacheTexture.Create();
             }
 
-            if (_camDepthCache == null)
+            if (_depthCacheCamera == null)
             {
-                _camDepthCache = GenerateCacheCamera(
+                _depthCacheCamera = GenerateCacheCamera(
                     layerMask,
                     "DepthCacheCam",
                     _cameraMaxTerrainHeight,
                     transform,
-                    _cacheTexture
+                    _depthCacheTexture
+                );
+            }
+
+            if (_generateSignedDistanceFieldForShorelines && _sdfCacheCamera == null)
+            {
+                _sdfCacheCamera = GenerateCacheCamera(
+                    layerMask,
+                    "DepthSdfCam",
+                    _cameraMaxTerrainHeight,
+                    transform,
+                    _sdfCacheTexture
                 );
             }
 
@@ -218,9 +232,14 @@ namespace Crest
             {
                 centerPoint.y = transform.position.y;
             }
+
             // Make sure this global is set - I found this was necessary to set it here
             Shader.SetGlobalVector("_OceanCenterPosWorld", centerPoint);
-            _camDepthCache.RenderWithShader(Shader.Find("Crest/Inputs/Depth/Ocean Depth From Geometry"), null);
+            _depthCacheCamera.RenderWithShader(Shader.Find("Crest/Inputs/Depth/Ocean Depth From Geometry"), null);
+            if(_generateSignedDistanceFieldForShorelines)
+            {
+                _sdfCacheCamera.RenderWithShader(Shader.Find("Crest/Inputs/Depth/Signed Distance Field From Geometry"), null);
+            }
 
             DrawCacheQuad();
         }
@@ -231,7 +250,8 @@ namespace Crest
             float cameraMaxTerrainHeight,
             Transform transform,
             RenderTexture cacheTexture
-        ) {
+        )
+        {
             Camera camDepthCache = new GameObject(cameraName).AddComponent<Camera>();
             camDepthCache.transform.position = transform.position + Vector3.up * cameraMaxTerrainHeight;
             camDepthCache.transform.parent = transform;
@@ -270,7 +290,7 @@ namespace Crest
             }
             else
             {
-                qr.material.mainTexture = _cacheTexture;
+                qr.material.mainTexture = _depthCacheTexture;
             }
 
             qr.enabled = false;

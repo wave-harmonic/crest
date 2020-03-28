@@ -70,8 +70,17 @@ namespace Crest
         bool _runValidationOnStart = true;
 #pragma warning restore 414
 
+        [Tooltip("Generate a signed distance field for shorelines"), SerializeField]
+        bool _generateSignedDistanceFieldForShorelines = true;
+
+        [Tooltip("The resolution of the cached signed distance field - lower will be more efficient."), SerializeField]
+        int _signedDistanceFieldForShorelinesResolution = 512;
+
         RenderTexture _cacheTexture;
         public RenderTexture CacheTexture => _cacheTexture;
+
+        RenderTexture _signedDistanceFieldCacheTexture;
+        public RenderTexture SignedDistanceFieldCacheTexture => _signedDistanceFieldCacheTexture;
 
         GameObject _drawCacheQuad;
         Camera _camDepthCache;
@@ -165,6 +174,7 @@ namespace Crest
 #else
                 var fmt = RenderTextureFormat.RHalf;
 #endif
+                // TODO(TRC):Now this garbage generation that would be generated each time this is called
                 Debug.Assert(SystemInfo.SupportsRenderTextureFormat(fmt), "The graphics device does not support the render texture format " + fmt.ToString());
                 _cacheTexture = new RenderTexture(_resolution, _resolution, 0);
                 _cacheTexture.name = gameObject.name + "_oceanDepth";
@@ -174,26 +184,28 @@ namespace Crest
                 _cacheTexture.Create();
             }
 
+            if(_generateSignedDistanceFieldForShorelines && _signedDistanceFieldCacheTexture == null)
+            {
+                RenderTextureFormat fmt = RenderTextureFormat.ARGBHalf;
+                // TODO(TRC):Now this garbage generation that would be generated each time this is called
+                Debug.Assert(SystemInfo.SupportsRenderTextureFormat(fmt), "The graphics device does not support the render texture format " + fmt.ToString());
+                _signedDistanceFieldCacheTexture = new RenderTexture(_signedDistanceFieldForShorelinesResolution, _signedDistanceFieldForShorelinesResolution, 0);
+                _signedDistanceFieldCacheTexture.name = gameObject.name + "_signedDistanceField";
+                _signedDistanceFieldCacheTexture.format = fmt;
+                _signedDistanceFieldCacheTexture.useMipMap = false;
+                _signedDistanceFieldCacheTexture.anisoLevel = 0;
+                _signedDistanceFieldCacheTexture.Create();
+            }
+
             if (_camDepthCache == null)
             {
-                _camDepthCache = new GameObject("DepthCacheCam").AddComponent<Camera>();
-                _camDepthCache.transform.position = transform.position + Vector3.up * _cameraMaxTerrainHeight;
-                _camDepthCache.transform.parent = transform;
-                _camDepthCache.transform.localEulerAngles = 90f * Vector3.right;
-                _camDepthCache.orthographic = true;
-                _camDepthCache.orthographicSize = Mathf.Max(transform.lossyScale.x / 2f, transform.lossyScale.z / 2f);
-                _camDepthCache.targetTexture = _cacheTexture;
-                _camDepthCache.cullingMask = layerMask;
-                _camDepthCache.clearFlags = CameraClearFlags.SolidColor;
-                // Clear to 'very deep'
-                _camDepthCache.backgroundColor = Color.white * 1000f;
-                _camDepthCache.enabled = false;
-                _camDepthCache.allowMSAA = false;
-                // Stops behaviour from changing in VR. I tried disabling XR before/after camera render but it makes the editor
-                // go bonkers with split windows.
-                _camDepthCache.cameraType = CameraType.Reflection;
-                // I'd prefer to destroy the cam object, but I found sometimes (on first start of editor) it will fail to render.
-                _camDepthCache.gameObject.SetActive(false);
+                _camDepthCache = GenerateCacheCamera(
+                    layerMask,
+                    "DepthCacheCam",
+                    _cameraMaxTerrainHeight,
+                    transform,
+                    _cacheTexture
+                );
             }
 
             // Shader needs sea level to determine water depth
@@ -211,6 +223,34 @@ namespace Crest
             _camDepthCache.RenderWithShader(Shader.Find("Crest/Inputs/Depth/Ocean Depth From Geometry"), null);
 
             DrawCacheQuad();
+        }
+
+        private static Camera GenerateCacheCamera(
+            int layerMask,
+            string cameraName,
+            float cameraMaxTerrainHeight,
+            Transform transform,
+            RenderTexture cacheTexture
+        ) {
+            Camera camDepthCache = new GameObject(cameraName).AddComponent<Camera>();
+            camDepthCache.transform.position = transform.position + Vector3.up * cameraMaxTerrainHeight;
+            camDepthCache.transform.parent = transform;
+            camDepthCache.transform.localEulerAngles = 90f * Vector3.right;
+            camDepthCache.orthographic = true;
+            camDepthCache.orthographicSize = Mathf.Max(transform.lossyScale.x / 2f, transform.lossyScale.z / 2f);
+            camDepthCache.targetTexture = cacheTexture;
+            camDepthCache.cullingMask = layerMask;
+            camDepthCache.clearFlags = CameraClearFlags.SolidColor;
+            // Clear to 'very deep'
+            camDepthCache.backgroundColor = Color.white * 1000f;
+            camDepthCache.enabled = false;
+            camDepthCache.allowMSAA = false;
+            // Stops behaviour from changing in VR. I tried disabling XR before/after camera render but it makes the editor
+            // go bonkers with split windows.
+            camDepthCache.cameraType = CameraType.Reflection;
+            // I'd prefer to destroy the cam object, but I found sometimes (on first start of editor) it will fail to render.
+            camDepthCache.gameObject.SetActive(false);
+            return camDepthCache;
         }
 
         void DrawCacheQuad()

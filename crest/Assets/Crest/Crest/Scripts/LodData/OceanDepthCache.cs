@@ -7,6 +7,7 @@
 using System;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace Crest
 {
@@ -80,6 +81,7 @@ namespace Crest
         public RenderTexture CacheTexture => _depthCacheTexture;
 
         RenderTexture _sdfCacheTexture;
+        RenderTexture _sdfCachePingPong;
         public RenderTexture SignedDistanceFieldCacheTexture => _sdfCacheTexture;
 
         GameObject _drawDepthCacheQuad;
@@ -197,7 +199,16 @@ namespace Crest
                 _sdfCacheTexture.format = fmt;
                 _sdfCacheTexture.useMipMap = false;
                 _sdfCacheTexture.anisoLevel = 0;
+                _sdfCacheTexture.enableRandomWrite = true;
                 _sdfCacheTexture.Create();
+
+                _sdfCachePingPong = new RenderTexture(_signedDistanceFieldForShorelinesResolution, _signedDistanceFieldForShorelinesResolution, 0);
+                _sdfCachePingPong.name = gameObject.name + "_signedDistanceField";
+                _sdfCachePingPong.format = fmt;
+                _sdfCachePingPong.useMipMap = false;
+                _sdfCachePingPong.anisoLevel = 0;
+                _sdfCachePingPong.enableRandomWrite = true;
+                _sdfCachePingPong.Create();
             }
 
             if (_depthCacheCamera == null)
@@ -240,7 +251,35 @@ namespace Crest
 
             if (_generateSignedDistanceFieldForShorelines)
             {
-                _sdfCacheCamera.RenderWithShader(Shader.Find("Crest/Inputs/Depth/Signed Distance Field From Geometry"), null);
+                _sdfCacheCamera.RenderWithShader(Shader.Find("Crest/Inputs/Depth/Initialise Signed Distance Field From Geometry"), null);
+                using (CommandBuffer buffer = new CommandBuffer())
+                {
+                    ComputeShader jumpFloodShader = ComputeShaderHelpers.LoadShader("JumpFlood");
+                    int kernel = jumpFloodShader.FindKernel("JumpFlood");
+                    buffer.name = "Jump Flood";
+
+                    int sp_jumpSize = Shader.PropertyToID("jumpSize");
+                    int sp_jumpLength = Shader.PropertyToID("jumpLength");
+                    int sp_Prev = Shader.PropertyToID("Prev");
+                    int sp_Current = Shader.PropertyToID("Current");
+
+                    for (uint jumpSize = 1; jumpSize < _sdfCacheTexture.width; jumpSize *= 2)
+                    {
+                        LodDataMgr.Swap(ref _sdfCachePingPong, ref _sdfCacheTexture);
+                        buffer.SetComputeIntParam(jumpFloodShader, sp_jumpSize, (int)jumpSize);
+                        buffer.SetComputeFloatParam(jumpFloodShader, sp_jumpLength, jumpSize * 2.0f);
+                        buffer.SetComputeTextureParam(jumpFloodShader, kernel, sp_Prev, _sdfCachePingPong);
+                        buffer.SetComputeTextureParam(jumpFloodShader, kernel, sp_Current, _sdfCacheTexture);
+                        buffer.DispatchCompute(
+                            jumpFloodShader,
+                            kernel,
+                            _sdfCacheTexture.width / 8,
+                            _sdfCacheTexture.height / 8,
+                            1
+                        );
+                    }
+                    Graphics.ExecuteCommandBuffer(buffer);
+                }
                 DrawCacheQuad(ref _drawSdfCacheQuad, "SDFCache_", _sdfCacheTexture);
             }
         }

@@ -3,7 +3,7 @@
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 // Renders ocean depth - signed distance from sea level to sea floor
-Shader "Crest/Inputs/Depth/Signed Distance Field From Geometry"
+Shader "Crest/Inputs/Depth/Initialise Signed Distance Field From Geometry"
 {
 	SubShader
 	{
@@ -42,9 +42,11 @@ Shader "Crest/Inputs/Depth/Signed Distance Field From Geometry"
 				return o;
 			}
 
-			float Frag(Varyings input) : SV_Target
+			float4 Frag(Varyings input) : SV_Target
 			{
-				return input.depth;
+				float depth = input.depth;
+				float signedDistance = depth <= 0.0f ? 0.0f : 1000.0f;
+				return float4(depth, signedDistance, 0.0f, 0.0f);
 			}
 			ENDCG
 		}

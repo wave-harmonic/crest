@@ -1,0 +1,33 @@
+﻿// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel JumpFlood
+
+// Create a RenderTexture with enableRandomWrite flag and set it
+// with cs.SetTexture
+uint jumpSize;
+float jumpLength;
+Texture2D<float4> Prev;
+RWTexture2D<float4> Current;
+
+[numthreads(8,8,1)]
+void JumpFlood(uint3 id : SV_DispatchThreadID)
+{
+	float4 result = Prev[id.xy];
+	float resultRight = 512 - jumpSize > id.x ? Prev[id.xy + uint2(jumpSize, 0)].y + jumpLength : result.y;
+	float resultUp    = 512 - jumpSize > id.y ? Prev[id.xy + uint2(0, jumpSize)].y + jumpLength : result.y;
+	float resultDown  = id.x >= jumpSize      ? Prev[id.xy - uint2(jumpSize, 0)].y + jumpLength : result.y;
+	float resultLeft  = id.y >= jumpSize      ? Prev[id.xy - uint2(0, jumpSize)].y + jumpLength : result.y;
+	result.y = min(
+		min(
+			min(
+				resultRight,
+				resultUp
+			),
+			min(
+				resultDown,
+				resultLeft
+			)
+		),
+		result.y
+	);
+	Current[id.xy] = result;
+}

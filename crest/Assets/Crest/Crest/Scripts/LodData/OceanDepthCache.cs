@@ -82,7 +82,7 @@ namespace Crest
         RenderTexture _sdfCacheTexture;
         public RenderTexture SignedDistanceFieldCacheTexture => _sdfCacheTexture;
 
-        GameObject _drawCacheQuad;
+        GameObject _drawDepthCacheQuad;
         Camera _depthCacheCamera;
 
         GameObject _drawSdfCacheQuad;
@@ -97,9 +97,9 @@ namespace Crest
             }
 #endif
 
-            if (_type == OceanDepthCacheType.Baked && _drawCacheQuad == null)
+            if (_type == OceanDepthCacheType.Baked && _drawDepthCacheQuad == null)
             {
-                DrawCacheQuad();
+                DrawCacheQuad(ref _drawDepthCacheQuad, "DepthCache_", _savedCache);
             }
             else if (_type == OceanDepthCacheType.Realtime && _refreshMode == OceanDepthCacheRefreshMode.OnStart)
             {
@@ -236,12 +236,13 @@ namespace Crest
             // Make sure this global is set - I found this was necessary to set it here
             Shader.SetGlobalVector("_OceanCenterPosWorld", centerPoint);
             _depthCacheCamera.RenderWithShader(Shader.Find("Crest/Inputs/Depth/Ocean Depth From Geometry"), null);
-            if(_generateSignedDistanceFieldForShorelines)
+            DrawCacheQuad(ref _drawDepthCacheQuad, "DepthCache_", _type == OceanDepthCacheType.Baked ? (Texture)_savedCache : _depthCacheTexture);
+
+            if (_generateSignedDistanceFieldForShorelines)
             {
                 _sdfCacheCamera.RenderWithShader(Shader.Find("Crest/Inputs/Depth/Signed Distance Field From Geometry"), null);
+                DrawCacheQuad(ref _drawSdfCacheQuad, "SDFCache_", _sdfCacheTexture);
             }
-
-            DrawCacheQuad();
         }
 
         private static Camera GenerateCacheCamera(
@@ -273,26 +274,17 @@ namespace Crest
             return camDepthCache;
         }
 
-        void DrawCacheQuad()
+        void DrawCacheQuad(ref GameObject drawCacheQuad, string name, Texture texture)
         {
-            _drawCacheQuad = GameObject.CreatePrimitive(PrimitiveType.Quad);
-            Destroy(_drawCacheQuad.GetComponent<Collider>());
-            _drawCacheQuad.name = "DepthCache_" + gameObject.name;
-            _drawCacheQuad.transform.SetParent(transform, false);
-            _drawCacheQuad.transform.localEulerAngles = 90f * Vector3.right;
-            _drawCacheQuad.AddComponent<RegisterSeaFloorDepthInput>();
-            var qr = _drawCacheQuad.GetComponent<Renderer>();
+            drawCacheQuad = GameObject.CreatePrimitive(PrimitiveType.Quad);
+            Destroy(drawCacheQuad.GetComponent<Collider>());
+            drawCacheQuad.name = "DepthCache_" + gameObject.name;
+            drawCacheQuad.transform.SetParent(transform, false);
+            drawCacheQuad.transform.localEulerAngles = 90f * Vector3.right;
+            drawCacheQuad.AddComponent<RegisterSeaFloorDepthInput>();
+            var qr = drawCacheQuad.GetComponent<Renderer>();
             qr.material = new Material(Shader.Find(LodDataMgrSeaFloorDepth.ShaderName));
-
-            if (_type == OceanDepthCacheType.Baked)
-            {
-                qr.material.mainTexture = _savedCache;
-            }
-            else
-            {
-                qr.material.mainTexture = _depthCacheTexture;
-            }
-
+            qr.material.mainTexture = texture;
             qr.enabled = false;
         }
 

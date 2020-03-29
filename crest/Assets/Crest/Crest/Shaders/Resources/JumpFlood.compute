@@ -1,8 +1,12 @@
-﻿// Each #kernel tells which function to compile; you can have many kernels
+﻿// Crest Ocean System
+
+// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
+
+// An implementation of the Jump Flood algorithm by Rong and Tan
+// Source: https://www.comp.nus.edu.sg/~tants/jfa.html
+
 #pragma kernel JumpFlood
 
-// Create a RenderTexture with enableRandomWrite flag and set it
-// with cs.SetTexture
 uint jumpSize;
 float jumpLength;
 Texture2D<float4> Prev;

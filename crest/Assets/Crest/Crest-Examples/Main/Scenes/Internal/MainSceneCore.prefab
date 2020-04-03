@@ -464,6 +464,8 @@ MonoBehaviour:
   _savedCache: {fileID: 0}
   _checkTerrainDrawInstancedOption: 1
   _runValidationOnStart: 1
+  _generateSignedDistanceFieldForShorelines: 1
+  _signedDistanceFieldForShorelinesResolution: 512
 --- !u!114 &8887844017883251668
 MonoBehaviour:
   m_ObjectHideFlags: 0

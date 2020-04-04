@@ -14,4 +14,5 @@ public interface IUnderwaterPostProcessPerCameraData
     // (which ocean chunks add themselves to) and reset it each frame by
     // setting the currentChunkCount to 0.
     List<Renderer> OceanChunksToRender { get; }
+    List<Renderer> GeneralUnderwaterMasksToRender { get; }
 }

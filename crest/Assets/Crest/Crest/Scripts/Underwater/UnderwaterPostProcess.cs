@@ -36,13 +36,18 @@ namespace Crest
         private CommandBuffer _commandBuffer;
 
         private Material _oceanMaskMaterial = null;
+        private Material _generalMaskMaterial = null;
 
         private PropertyWrapperMaterial _underwaterPostProcessMaterialWrapper;
 
         private List<Renderer> _oceanChunksToRender;
         public List<Renderer> OceanChunksToRender => _oceanChunksToRender;
 
+        private List<Renderer> _generalUnderwaterMasksToRender;
+        public List<Renderer> GeneralUnderwaterMasksToRender => _generalUnderwaterMasksToRender;
+
         private const string SHADER_OCEAN_MASK = "Crest/Underwater/Ocean Mask";
+        private const string SHADER_GENERAL_MASK = "Crest/Underwater/General Underwater Mask";
 
         UnderwaterSphericalHarmonicsData _sphericalHarmonicsData = new UnderwaterSphericalHarmonicsData();
 
@@ -53,6 +58,11 @@ namespace Crest
         public void RegisterOceanChunkToRender(Renderer _oceanChunk)
         {
             _oceanChunksToRender.Add(_oceanChunk);
+        }
+
+        public void RegisterGeneralUnderwaterMaskToRender(Renderer _renderer)
+        {
+            _generalUnderwaterMasksToRender.Add(_renderer);
         }
 
         private bool InitialisedCorrectly()
@@ -70,12 +80,24 @@ namespace Crest
                 return false;
             }
 
-            var maskShader = Shader.Find(SHADER_OCEAN_MASK);
-            _oceanMaskMaterial = maskShader ? new Material(maskShader) : null;
-            if (_oceanMaskMaterial == null)
             {
-                Debug.LogError($"Could not create a material with shader {SHADER_OCEAN_MASK}", this);
-                return false;
+                var maskShader = Shader.Find(SHADER_OCEAN_MASK);
+                _oceanMaskMaterial = maskShader ? new Material(maskShader) : null;
+                if (_oceanMaskMaterial == null)
+                {
+                    Debug.LogError($"Could not create a material with shader {SHADER_OCEAN_MASK}", this);
+                    return false;
+                }
+            }
+
+            {
+                var generalMaskShader = Shader.Find(SHADER_GENERAL_MASK);
+                _generalMaskMaterial = generalMaskShader ? new Material(generalMaskShader) : null;
+                if (_generalMaskMaterial == null)
+                {
+                    Debug.LogError($"Could not create a material with shader {SHADER_GENERAL_MASK}", this);
+                    return false;
+                }
             }
 
             if (OceanRenderer.Instance && !OceanRenderer.Instance.OceanMaterial.IsKeywordEnabled("_UNDERWATER_ON"))
@@ -120,6 +142,7 @@ namespace Crest
             _underwaterPostProcessMaterialWrapper = new PropertyWrapperMaterial(_underwaterPostProcessMaterial);
 
             _oceanChunksToRender = new List<Renderer>(OceanBuilder.GetChunkCount);
+            _generalUnderwaterMasksToRender = new List<Renderer>();
         }
 
         private void OnDestroy()
@@ -135,7 +158,8 @@ namespace Crest
 
         private void ViewerMoreThan2mAboveWater(OceanRenderer ocean)
         {
-            enabled = false;
+            // TODO(TRC):Now sort this out
+            // enabled = false;
         }
 
         private void ViewerLessThan2mAboveWater(OceanRenderer ocean)
@@ -156,7 +180,8 @@ namespace Crest
             {
                 OceanRenderer.Instance.ViewerLessThan2mAboveWater += ViewerLessThan2mAboveWater;
                 OceanRenderer.Instance.ViewerMoreThan2mAboveWater += ViewerMoreThan2mAboveWater;
-                enabled = OceanRenderer.Instance.ViewerHeightAboveWater < 2f;
+                // TODO(TRC):Now sort this out
+                // enabled = OceanRenderer.Instance.ViewerHeightAboveWater < 2f;
                 _eventsRegistered = true;
             }
 
@@ -170,15 +195,17 @@ namespace Crest
             {
                 Graphics.Blit(source, target);
                 _oceanChunksToRender.Clear();
+                _generalUnderwaterMasksToRender.Clear();
                 return;
             }
 
             InitialiseMaskTextures(source, ref _textureMask, ref _depthBuffer, new Vector2Int(source.width, source.height));
-            PopulateOceanMask(
+            PopulateUnderwaterMasks(
                 _commandBuffer, _mainCamera, this,
                 _textureMask.colorBuffer, _depthBuffer.depthBuffer,
-                _oceanMaskMaterial
+                _oceanMaskMaterial, _generalMaskMaterial
             );
+
             UpdatePostProcessMaterial(
                 source,
                 _mainCamera,

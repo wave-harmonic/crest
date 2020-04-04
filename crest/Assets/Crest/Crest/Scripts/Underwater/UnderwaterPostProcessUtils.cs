@@ -57,10 +57,10 @@ namespace Crest
 
         // Populates a screen space mask which will inform the underwater postprocess. As a future optimisation we may
         // be able to avoid this pass completely if we can reuse the camera depth after transparents are rendered.
-        internal static void PopulateOceanMask(
+        internal static void PopulateUnderwaterMasks(
             CommandBuffer commandBuffer, Camera camera, IUnderwaterPostProcessPerCameraData perCameraData,
             RenderBuffer colorBuffer, RenderBuffer depthBuffer,
-            Material oceanMaskMaterial
+            Material oceanMaskMaterial, Material generalMaskMaterial
         )
         {
             // Get all ocean chunks and render them using cmd buffer, but with mask shader
@@ -72,6 +72,11 @@ namespace Crest
             foreach (var chunk in perCameraData.OceanChunksToRender)
             {
                 commandBuffer.DrawRenderer(chunk, oceanMaskMaterial);
+            }
+
+            foreach (var chunk in perCameraData.GeneralUnderwaterMasksToRender)
+            {
+                commandBuffer.DrawRenderer(chunk, generalMaskMaterial);
             }
 
             {
@@ -86,6 +91,7 @@ namespace Crest
                     camera.stereoActiveEye != Camera.MonoOrStereoscopicEye.Right;
 
                 if (!saveChunksToRender) perCameraData.OceanChunksToRender.Clear();
+                if (!saveChunksToRender) perCameraData.GeneralUnderwaterMasksToRender.Clear();
             }
         }
 

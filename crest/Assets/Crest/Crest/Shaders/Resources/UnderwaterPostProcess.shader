@@ -162,7 +162,15 @@ Shader "Crest/Underwater/Post Process"
 
 				float mask = tex2D(_MaskTex, uvScreenSpace).x;
 				const float oceanDepth01 = tex2D(_MaskDepthTex, uvScreenSpace);
-				bool isOceanSurface = mask != UNDERWATER_MASK_NO_MASK && (sceneZ01 < oceanDepth01);
+
+				// We need to have a small amount of depth tolerance to handle the
+				// fact that we can have general mask filter which will be rendered in the scene
+				// and have their depth in the regular depth buffer.
+				const float oceanDepthTolerance = 0.000045;
+
+				// Ocean surface check is used avoid drawing caustics on the water surface.
+				bool isOceanSurface = mask != UNDERWATER_MASK_NO_MASK && (sceneZ01 <= (oceanDepth01 + oceanDepthTolerance));
+
 				bool isUnderwater = mask == UNDERWATER_MASK_WATER_SURFACE_BELOW || (isBelowHorizon && mask != UNDERWATER_MASK_WATER_SURFACE_ABOVE);
 				sceneZ01 = isOceanSurface ? oceanDepth01 : sceneZ01;
 

@@ -44,7 +44,7 @@ void UpdateFoam(uint3 id : SV_DispatchThreadID)
 	half foam = 0.0;
 	const half r_max = 0.5 - _LD_Params_Source[sliceIndexSource].w;
 
-	// Try to sample the source slice, if it the sample position lies within its footprint?
+	// Try to sample the source slice, if it the sample position lies within its footprint
 	const float3 uv_slice_source = WorldToUV_Source(worldPosXZ_flowed, sliceIndexSource);
 	half2 r = abs(uv_slice_source.xy - 0.5);
 	if (max(r.x, r.y) <= r_max)

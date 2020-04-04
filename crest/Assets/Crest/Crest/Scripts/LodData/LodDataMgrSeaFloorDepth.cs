@@ -59,8 +59,7 @@ namespace Crest
         }
         public static void BindNull(IPropertyWrapper properties, bool sourceLod = false)
         {
-            // Texture2D.whiteTexture prevents us from initialising this in a static constructor. Seemed appropriate to
-            // do it here.
+            // TextureArrayHelpers prevents use from using this in a static constructor due to blackTexture usage
             if (s_nullTexture2DArray == null)
             {
                 InitNullTexture();

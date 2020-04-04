@@ -43,8 +43,8 @@ namespace Crest
         private List<Renderer> _oceanChunksToRender;
         public List<Renderer> OceanChunksToRender => _oceanChunksToRender;
 
-        private List<Renderer> _generalUnderwaterMasksToRender;
-        public List<Renderer> GeneralUnderwaterMasksToRender => _generalUnderwaterMasksToRender;
+        private List<UnderwaterEffectFilter> _generalUnderwaterMasksToRender;
+        public List<UnderwaterEffectFilter> GeneralUnderwaterMasksToRender => _generalUnderwaterMasksToRender;
 
         private const string SHADER_OCEAN_MASK = "Crest/Underwater/Ocean Mask";
         private const string SHADER_GENERAL_MASK = "Crest/Underwater/General Underwater Mask";
@@ -60,9 +60,9 @@ namespace Crest
             _oceanChunksToRender.Add(_oceanChunk);
         }
 
-        public void RegisterGeneralUnderwaterMaskToRender(Renderer _renderer)
+        public void RegisterGeneralUnderwaterMaskToRender(UnderwaterEffectFilter _underwaterEffectFilter)
         {
-            _generalUnderwaterMasksToRender.Add(_renderer);
+            _generalUnderwaterMasksToRender.Add(_underwaterEffectFilter);
         }
 
         private bool InitialisedCorrectly()
@@ -142,7 +142,7 @@ namespace Crest
             _underwaterPostProcessMaterialWrapper = new PropertyWrapperMaterial(_underwaterPostProcessMaterial);
 
             _oceanChunksToRender = new List<Renderer>(OceanBuilder.GetChunkCount);
-            _generalUnderwaterMasksToRender = new List<Renderer>();
+            _generalUnderwaterMasksToRender = new List<UnderwaterEffectFilter>();
         }
 
         private void OnDestroy()

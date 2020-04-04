@@ -17,10 +17,17 @@ namespace Crest
         private static Camera _currentCamera;
         private Renderer _rend;
 
+        public static readonly int sp_FrontFaceMask = Shader.PropertyToID("_FrontFaceMask");
+        public static readonly int sp_BackFaceMask = Shader.PropertyToID("_BackFaceMask");
+
+        public UnderwaterMaskValues FrontFaceBehaviour = UnderwaterMaskValues.UNDERWATER_MASK_WATER_SURFACE_ABOVE;
+        public UnderwaterMaskValues BackFaceBehavior = UnderwaterMaskValues.UNDERWATER_MASK_WATER_SURFACE_BELOW;
+        public Renderer Renderer => _rend;
+
         void Start()
         {
             _rend = GetComponent<Renderer>();
-            if(_rend == null)
+            if (_rend == null)
             {
                 Debug.LogError($"UnderwaterEffectFilter can only be added to Game Objects with a Renderer attached!", this);
                 enabled = false;
@@ -31,8 +38,8 @@ namespace Crest
         static void RunOnStart()
         {
 #if UNITY_2018
-        RenderPipeline.beginCameraRendering -= BeginCameraRendering;
-        RenderPipeline.beginCameraRendering += BeginCameraRendering;
+            RenderPipeline.beginCameraRendering -= BeginCameraRendering;
+            RenderPipeline.beginCameraRendering += BeginCameraRendering;
 #else
         RenderPipelineManager.beginCameraRendering -= BeginCameraRendering;
         RenderPipelineManager.beginCameraRendering += BeginCameraRendering;
@@ -61,7 +68,7 @@ namespace Crest
             var underwater = _currentCamera.GetComponent<UnderwaterPostProcess>();
             if (underwater != null && underwater.enabled)
             {
-                underwater.RegisterGeneralUnderwaterMaskToRender(_rend);
+                underwater.RegisterGeneralUnderwaterMaskToRender(this);
             }
         }
     }

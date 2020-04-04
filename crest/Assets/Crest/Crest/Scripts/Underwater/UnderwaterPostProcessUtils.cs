@@ -8,6 +8,14 @@ using UnityEngine.XR;
 
 namespace Crest
 {
+    // @volatile:UnderwaterMaskValues These MUST match the values in OceanConstants.hlsl
+    public enum UnderwaterMaskValues
+    {
+        UNDERWATER_MASK_NO_MASK = 1,
+        UNDERWATER_MASK_WATER_SURFACE_ABOVE = 0,
+        UNDERWATER_MASK_WATER_SURFACE_BELOW = 2,
+    }
+
     internal static class UnderwaterPostProcessUtils
     {
         static readonly int sp_OceanHeight = Shader.PropertyToID("_OceanHeight");
@@ -74,9 +82,11 @@ namespace Crest
                 commandBuffer.DrawRenderer(chunk, oceanMaskMaterial);
             }
 
-            foreach (var chunk in perCameraData.GeneralUnderwaterMasksToRender)
+            foreach (UnderwaterEffectFilter underwaterEffectFilter in perCameraData.GeneralUnderwaterMasksToRender)
             {
-                commandBuffer.DrawRenderer(chunk, generalMaskMaterial);
+                commandBuffer.SetGlobalFloat(UnderwaterEffectFilter.sp_BackFaceMask, (float)underwaterEffectFilter.BackFaceBehavior);
+                commandBuffer.SetGlobalFloat(UnderwaterEffectFilter.sp_FrontFaceMask, (float)underwaterEffectFilter.FrontFaceBehaviour);
+                commandBuffer.DrawRenderer(underwaterEffectFilter.Renderer, generalMaskMaterial);
             }
 
             {

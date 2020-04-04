@@ -2,7 +2,6 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
-
 Shader "Crest/Underwater/General Underwater Mask"
 {
 	SubShader
@@ -11,6 +10,7 @@ Shader "Crest/Underwater/General Underwater Mask"
 		{
 			// We always disable culling when rendering ocean mask, as we only
 			// use it for underwater rendering features.
+			// TODO(TRC):Now (can we make this toggleable?)
 			Cull Off
 			CGPROGRAM
 
@@ -32,6 +32,9 @@ Shader "Crest/Underwater/General Underwater Mask"
 				float4 vertex : SV_POSITION;
 			};
 
+			float _FrontFaceMask;
+			float _BackFaceMask;
+
 			Varyings Vert (Attributes input)
 			{
 				Varyings output;
@@ -43,11 +46,11 @@ Shader "Crest/Underwater/General Underwater Mask"
 			{
 				if(facing < 0.0)
 				{
-					return (half4)UNDERWATER_MASK_WATER_SURFACE_BELOW;
+					return (half4)_BackFaceMask;
 				}
 				else
 				{
-					return (half4)UNDERWATER_MASK_WATER_SURFACE_ABOVE;
+					return (half4)_FrontFaceMask;
 				}
 			}
 			ENDCG

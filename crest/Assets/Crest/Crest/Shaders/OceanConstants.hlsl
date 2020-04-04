@@ -19,6 +19,8 @@
 // Bias ocean floor depth so that default (0) values in texture are not interpreted as shallow and generating foam everywhere
 #define CREST_OCEAN_DEPTH_BASELINE 1000.0
 
+
+// @volatie:UnderwaterMaskValues These MUST match the values in UnderwaterPostProcessUtils.cs
 // Background
 #define UNDERWATER_MASK_NO_MASK 1.0
 // Water rendered from above

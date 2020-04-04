@@ -148,10 +148,15 @@ namespace Crest
             if (OceanRenderer.Instance == null) return;
 
             // Draw bottom panel for toggles
+            var bottomBar = new Rect(_guiVisible ? _leftPanelWidth : 0,
+                Screen.height - _bottomPanelHeight, Screen.width, _bottomPanelHeight);
             GUI.color = _guiColor;
-            GUI.DrawTexture(new Rect(_guiVisible ? _leftPanelWidth : 0, Screen.height - _bottomPanelHeight, Screen.width,
-                _bottomPanelHeight), Texture2D.whiteTexture);
+            GUI.DrawTexture(bottomBar, Texture2D.whiteTexture);
             GUI.color = Color.white;
+
+            // Show viewer height above water in bottom panel
+            bottomBar.x += 10;
+            GUI.Label(bottomBar, "Viewer Height Above Water: " + OceanRenderer.Instance.ViewerHeightAboveWater);
 
             // draw sim data
             float column = 1f;

@@ -23,6 +23,8 @@ namespace Crest
 
         public const string ShaderName = "Crest/Inputs/Depth/Cached Depths";
 
+        // We want the null colour to be the depth where wave attenuation begins (1000 metres)
+        readonly static Color s_nullColor = Color.red * 1000f;
         static Texture2DArray s_nullTexture2DArray;
 
         public override void BuildCommandBuffer(OceanRenderer ocean, CommandBuffer buf)
@@ -39,7 +41,7 @@ namespace Crest
             for (int lodIdx = OceanRenderer.Instance.CurrentLodCount - 1; lodIdx >= 0; lodIdx--)
             {
                 buf.SetRenderTarget(_targets, 0, CubemapFace.Unknown, lodIdx);
-                buf.ClearRenderTarget(false, true, Color.red * 1000f);
+                buf.ClearRenderTarget(false, true, s_nullColor);
                 buf.SetGlobalInt(sp_LD_SliceIndex, lodIdx);
                 SubmitDraws(lodIdx, buf);
             }
@@ -69,9 +71,8 @@ namespace Crest
 
         static void InitNullTexture()
         {
-            // We want the null texture to be the depth attenuation begins (1000 metres)
             // Depth textures use HDR values
-            var texture = TextureArrayHelpers.CreateTexture2D(Color.red * 1000f, UnityEngine.TextureFormat.RGB9e5Float);
+            var texture = TextureArrayHelpers.CreateTexture2D(s_nullColor, UnityEngine.TextureFormat.RGB9e5Float);
             s_nullTexture2DArray = TextureArrayHelpers.CreateTexture2DArray(texture);
             s_nullTexture2DArray.name = "Sea Floor Depth Null Texture";
         }

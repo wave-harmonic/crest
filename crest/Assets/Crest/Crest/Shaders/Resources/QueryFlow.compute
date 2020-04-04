@@ -43,7 +43,7 @@ void CSMain(uint3 id : SV_DispatchThreadID)
 	const float minGridSize = data.z;
 
 	const float gridSizeSlice0 = _LD_Params[0].x;
-	const float minSlice = clamp(floor(log2(minGridSize / gridSizeSlice0)), 0.0, _SliceCount - 1.0);
+	const float minSlice = clamp(floor(log2(max(minGridSize / gridSizeSlice0, 1.0))), 0.0, _SliceCount - 1.0);
 
 	_ResultFlows[id.x] = ComputeFlow(queryPosXZ, minSlice);
 }

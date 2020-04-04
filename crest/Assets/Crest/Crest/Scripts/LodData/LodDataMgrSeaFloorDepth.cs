@@ -2,6 +2,7 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -22,6 +23,8 @@ namespace Crest
         bool _targetsClear = false;
 
         public const string ShaderName = "Crest/Inputs/Depth/Cached Depths";
+
+        static Texture2DArray s_nullTexture2DArray;
 
         public override void BuildCommandBuffer(OceanRenderer ocean, CommandBuffer buf)
         {
@@ -46,16 +49,44 @@ namespace Crest
             _targetsClear = drawList.Count == 0;
         }
 
-        public static string TextureArrayName = "_LD_TexArray_SeaFloorDepth";
-        private static TextureArrayParamIds textureArrayParamIds = new TextureArrayParamIds(TextureArrayName);
-        public static int ParamIdSampler(bool sourceLod = false) { return textureArrayParamIds.GetId(sourceLod); }
+        readonly static string s_textureArrayName = "_LD_TexArray_SeaFloorDepth";
+        private static TextureArrayParamIds s_textureArrayParamIds = new TextureArrayParamIds(s_textureArrayName);
+        public static int ParamIdSampler(bool sourceLod = false) { return s_textureArrayParamIds.GetId(sourceLod); }
         protected override int GetParamIdSampler(bool sourceLod = false)
         {
             return ParamIdSampler(sourceLod);
         }
         public static void BindNull(IPropertyWrapper properties, bool sourceLod = false)
         {
-            properties.SetTexture(ParamIdSampler(sourceLod), TextureArrayHelpers.BlackTextureArray);
+            // Texture2D.whiteTexture prevents us from initialising this in a static constructor. Seemed appropriate to
+            // do it here.
+            if (s_nullTexture2DArray == null)
+            {
+                InitNullTexture();
+            }
+
+            properties.SetTexture(ParamIdSampler(sourceLod), s_nullTexture2DArray);
+        }
+
+        static void InitNullTexture()
+        {
+            var texture = Instantiate<Texture2D>(Texture2D.whiteTexture);
+            // Null texture needs to be white (uses R channel) with a 1000 intensity. 
+            var color = new Color(1000, 1000, 1000, 1);
+            Color[] pixels = Enumerable.Repeat(color, texture.height * texture.width).ToArray();
+            texture.SetPixels(pixels);
+            texture.Apply();
+            s_nullTexture2DArray = TextureArrayHelpers.CreateTexture2DArray(texture);
+            s_nullTexture2DArray.name = "Sea Floor Depth Null Texture";
+        }
+
+#if UNITY_2019_3_OR_NEWER
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+#endif
+        static void InitStatics()
+        {
+            // Init here from 2019.3 onwards
+            s_textureArrayParamIds = new TextureArrayParamIds(s_textureArrayName);
         }
     }
 }

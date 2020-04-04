@@ -55,6 +55,8 @@ Shader "Crest/Ocean"
 		[Header(Reflection Environment)]
 		// Strength of specular lighting response
 		_Specular("Specular", Range(0.0, 1.0)) = 1.0
+		// Controls blurriness of reflection
+		_Roughness("Roughness", Range(0.0, 1.0)) = 0.0
 		// Controls harshness of Fresnel behaviour
 		_FresnelPower("Fresnel Power", Range(1.0, 20.0)) = 5.0
 		// Index of refraction of air. Can be increased to almost 1.333 to increase visibility up through water surface.
@@ -256,12 +258,10 @@ Shader "Crest/Ocean"
 				UNITY_FOG_COORDS(3)
 			};
 
+			#include "OceanConstants.hlsl"
+			#include "OceanGlobals.hlsl"
+			#include "OceanInputsDriven.hlsl"
 			#include "OceanHelpers.hlsl"
-
-			float _CrestTime;
-
-			// MeshScaleLerp, FarNormalsWeight, LODIndex (debug)
-			float3 _InstanceData;
 
 			// Argument name is v because some macros like COMPUTE_EYEDEPTH require it.
 			Varyings Vert(Attributes v)
@@ -458,7 +458,7 @@ Shader "Crest/Ocean"
 
 				#if _CLIPSURFACE_ON
 				// Clip surface
-				float clipVal = 0.0;
+				half clipVal = 0.0;
 				if (wt_smallerLod > 0.001)
 				{
 					SampleClip(_LD_TexArray_ClipSurface, WorldToUV(input.worldPos.xz), wt_smallerLod, clipVal);
@@ -470,7 +470,7 @@ Shader "Crest/Ocean"
 				// Add 0.5 bias for LOD blending and texel resolution correction. This will help to tighten and smooth clipped edges
 				clip(-clipVal + 0.5);
 				#endif
-				
+
 				// Foam - underwater bubbles and whitefoam
 				half3 bubbleCol = (half3)0.;
 				#if _FOAM_ON
@@ -496,7 +496,7 @@ Shader "Crest/Ocean"
 				// disable transparency, so this will always be 1.0.
 				float reflAlpha = 1.0;
 				#endif
-				
+
 				#if _UNDERWATER_ON
 				if (underwater)
 				{

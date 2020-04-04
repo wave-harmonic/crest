@@ -21,7 +21,9 @@ Shader "Crest/Inputs/Foam/Add From Vert Colours"
 
 			#include "UnityCG.cginc"
 
+			CBUFFER_START(CrestPerOceanInput)
 			float _Strength;
+			CBUFFER_END
 
 			struct Attributes
 			{

@@ -17,7 +17,7 @@ namespace Crest
         RenderTexture _sources;
         PropertyWrapperCompute _renderSimProperties;
 
-        static int sp_LD_TexArray_Target = Shader.PropertyToID("_LD_TexArray_Target");
+        readonly int sp_LD_TexArray_Target = Shader.PropertyToID("_LD_TexArray_Target");
 
         protected ComputeShader _shader;
 
@@ -26,8 +26,8 @@ namespace Crest
 
         float _substepDtPrevious = 1f / 60f;
 
-        public static int sp_SimDeltaTime = Shader.PropertyToID("_SimDeltaTime");
-        static int sp_SimDeltaTimePrev = Shader.PropertyToID("_SimDeltaTimePrev");
+        readonly int sp_SimDeltaTime = Shader.PropertyToID("_SimDeltaTime");
+        readonly int sp_SimDeltaTimePrev = Shader.PropertyToID("_SimDeltaTimePrev");
 
         protected override void Start()
         {

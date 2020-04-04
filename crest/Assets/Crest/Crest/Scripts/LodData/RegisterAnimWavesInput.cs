@@ -11,6 +11,8 @@ namespace Crest
     /// </summary>
     public class RegisterAnimWavesInput : RegisterLodDataInput<LodDataMgrAnimWaves>
     {
+        public override bool Enabled => true;
+
         [SerializeField, Tooltip("Which octave to render into, for example set this to 2 to use render into the 2m-4m octave. These refer to the same octaves as the wave spectrum editor. Set this value to 0 to render into all LODs.")]
         float _octaveWavelength = 0f;
         public override float Wavelength
@@ -21,7 +23,8 @@ namespace Crest
             }
         }
 
-        protected override Color GizmoColor => new Color(1f, 1f, 0f, 0.5f);
+        public readonly static Color s_gizmoColor = new Color(0f, 1f, 0f, 0.5f);
+        protected override Color GizmoColor => s_gizmoColor;
 
         [SerializeField, Tooltip("Inform ocean how much this input will displace the ocean surface vertically. This is used to set bounding box heights for the ocean tiles.")]
         float _maxDisplacementVertical = 0f;

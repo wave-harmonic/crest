@@ -69,16 +69,9 @@ namespace Crest
 
         static void InitNullTexture()
         {
-            var texture = Instantiate<Texture2D>(Texture2D.whiteTexture);
-            // Null texture needs to be white (uses R channel) with a 1000 intensity.
-            var color = new Color(1000, 1000, 1000, 1);
-            Color[] pixels = new Color[texture.height * texture.width];
-            for(int i = 0; i < pixels.Length; i++)
-            {
-                pixels[i] = color;
-            }
-            texture.SetPixels(pixels);
-            texture.Apply();
+            // We want the null texture to be the depth attenuation begins (1000 metres)
+            // Depth textures use HDR values
+            var texture = TextureArrayHelpers.CreateTexture2D(Color.red * 1000f, UnityEngine.TextureFormat.RGB9e5Float);
             s_nullTexture2DArray = TextureArrayHelpers.CreateTexture2DArray(texture);
             s_nullTexture2DArray.name = "Sea Floor Depth Null Texture";
         }

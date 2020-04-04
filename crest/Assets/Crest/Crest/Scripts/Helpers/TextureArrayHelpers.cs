@@ -41,6 +41,19 @@ namespace Crest
             );
         }
 
+        public static Texture2D CreateTexture2D(Color color, TextureFormat format)
+        {
+            var texture = new Texture2D(SMALL_TEXTURE_DIM, SMALL_TEXTURE_DIM, format, false, false);
+            Color[] pixels = new Color[texture.height * texture.width];
+            for (int i = 0; i < pixels.Length; i++)
+            {
+                pixels[i] = color;
+            }
+            texture.SetPixels(pixels);
+            texture.Apply();
+            return texture;
+        }
+
         public static Texture2DArray CreateTexture2DArray(Texture2D texture)
         {
             var array = new Texture2DArray(

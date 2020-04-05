@@ -35,10 +35,8 @@ Shader "Crest/Inputs/Animated Waves/Add From Texture"
 
 			CBUFFER_START(CrestPerOceanInput)
 			float4 _MainTex_ST;
-
 			float _Strength;
 			float _SSSStrength;
-
 			float _Weight;
 			CBUFFER_END
 

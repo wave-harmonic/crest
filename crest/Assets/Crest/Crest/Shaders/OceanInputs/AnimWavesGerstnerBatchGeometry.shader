@@ -24,7 +24,7 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Batch Geometry"
 			CGPROGRAM
 			#pragma vertex Vert
 			#pragma fragment Frag
-			#pragma multi_compile __ _DIRECT_TOWARDS_POINT
+			#pragma multi_compile __ CREST_DIRECT_TOWARDS_POINT_INTERNAL
 			#pragma shader_feature _FEATHERATUVEXTENTS_ON
 
 			#include "UnityCG.cginc"

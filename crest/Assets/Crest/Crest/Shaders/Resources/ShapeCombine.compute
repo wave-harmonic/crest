@@ -108,7 +108,7 @@ void ShapeCombineBase(uint3 id)
 	float4 data =_LD_TexArray_WaveBuffer.SampleLevel(LODData_linear_clamp_sampler, uv_thisLod, 0.0);
 	result += data.xyz;
 	sss = data.a;
-#endif
+#endif // _FLOW_ON
 
 	// C# Script determines whether this enabled or not by selecting appropriate
 	// kernel for each LOD.
@@ -141,7 +141,7 @@ void ShapeCombineBase(uint3 id)
 
 		result.xz += dispXZ;
 	}
-#endif // _DYNAMIC_WAVE_SIM_
+#endif // _DYNAMIC_WAVE_SIM_ON
 
 	_LD_TexArray_AnimatedWaves_Compute[uint3(id.xy, _LD_SliceIndex)] = half4(result, sss);
 }

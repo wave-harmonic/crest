@@ -29,6 +29,7 @@ Shader "Hidden/Crest/Simulation/Combine Animated Wave LODs"
 			#include "../OceanGlobals.hlsl"
 			#include "../OceanInputsDriven.hlsl"
 			#include "../OceanLODData.hlsl"
+			#include "../OceanHelpersNew.hlsl"
 			#include "../FullScreenTriangle.hlsl"
 
 			float _HorizDisplace;

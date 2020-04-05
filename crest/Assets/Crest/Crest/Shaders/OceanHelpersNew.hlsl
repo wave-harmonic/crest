@@ -65,6 +65,19 @@ float3 WorldToUV(in float2 i_samplePos, in float3 i_oceanPosScale, in float4 i_o
 	return float3(uv, i_sliceIndex);
 }
 
+float2 UVToWorld(in float2 i_uv, in float i_sliceIndex, in float3 i_oceanPosScale, in float4 i_oceanParams)
+{
+	const float texelSize = i_oceanParams.x;
+	const float res = i_oceanParams.y;
+	return texelSize * res * (i_uv - 0.5) + i_oceanPosScale.xy;
+}
+
+// Convert compute shader id to uv texture coordinates
+float2 IDtoUV(in float2 i_id, in float i_width, in float i_height)
+{
+	return (i_id + 0.5) / float2(i_width, i_height);
+}
+
 // Sampling functions
 void SampleDisplacements(in Texture2DArray i_dispSampler, in float3 i_uv_slice, in float i_wt, inout float3 io_worldPos, inout half io_sss)
 {
@@ -119,6 +132,7 @@ void PosToSliceIndices
 	const float2 worldXZ,
 	const float minSlice,
 	const float minScale,
+	const float oceanScale0,
 	out float slice0,
 	out float slice1,
 	out float lodAlpha
@@ -126,7 +140,7 @@ void PosToSliceIndices
 {
 	const float2 offsetFromCenter = abs(worldXZ - _OceanCenterPosWorld.xz);
 	const float taxicab = max(offsetFromCenter.x, offsetFromCenter.y);
-	const float radius0 = minScale;
+	const float radius0 = oceanScale0;
 	const float sliceNumber = clamp(log2(max(taxicab / radius0, 1.0)), minSlice, _SliceCount - 1.0);
 
 	lodAlpha = frac(sliceNumber);
@@ -145,6 +159,9 @@ void PosToSliceIndices
 		lodAlpha = min(lodAlpha + _MeshScaleLerp, 1.0);
 	}
 }
+
+#define SampleLod(i_lodTextureArray, i_uv_slice) (i_lodTextureArray.SampleLevel(LODData_linear_clamp_sampler, i_uv_slice, 0.0))
+#define SampleLodLevel(i_lodTextureArray, i_uv_slice, mips) (i_lodTextureArray.SampleLevel(LODData_linear_clamp_sampler, i_uv_slice, mips))
 
 // Perform iteration to invert the displacement vector field - find position that displaces to query position.
 float3 InvertDisplacement

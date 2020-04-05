@@ -72,7 +72,7 @@ half3 ScatterColour(
 		// Pick lower res data for shadowing, helps to smooth out artifacts slightly
 		const float minSliceIndex = 4.0;
 		uint slice0, slice1; float lodAlpha;
-		PosToSliceIndices(samplePoint, _InstanceData.x, minSliceIndex, slice0, slice1, lodAlpha);
+		PosToSliceIndices(samplePoint, minSliceIndex, _InstanceData.x, _LD_Pos_Scale[0].z, slice0, slice1, lodAlpha);
 
 		half2 shadowSoftHard = 0.0;
 		// TODO - fix data type of slice index in WorldToUV - #343

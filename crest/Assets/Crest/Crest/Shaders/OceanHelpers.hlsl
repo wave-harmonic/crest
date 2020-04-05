@@ -4,9 +4,6 @@
 
 // Ocean LOD data - data, samplers and functions associated with LODs
 
-
-#include "OceanLODData.hlsl"
-
 float ComputeLodAlpha(float3 i_worldPos, float i_meshScaleAlpha)
 {
 	// taxicab distance from ocean center drives LOD transitions

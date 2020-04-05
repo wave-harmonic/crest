@@ -10,16 +10,17 @@
 StructuredBuffer<float3> _QueryPositions_MinGridSizes;
 RWStructuredBuffer<float3> _ResultDisplacements;
 
-#include "HLSLSupport.cginc"
+#include "UnityCG.cginc"
 #include "../OceanGlobals.hlsl"
 #include "../OceanInputsDriven.hlsl"
 #include "../OceanLODData.hlsl"
+#include "../OceanHelpersNew.hlsl"
 
 float3 ComputeDisplacement(float2 undispPos, float minSlice)
 {
 	uint slice0, slice1;
 	float lodAlpha;
-	PosToSliceIndices(undispPos, _MeshScaleLerp, minSlice, slice0, slice1, lodAlpha);
+	PosToSliceIndices(undispPos, minSlice, _MeshScaleLerp, _LD_Pos_Scale[0].z, slice0, slice1, lodAlpha);
 
 	float3 uv0 = WorldToUV(undispPos, slice0);
 	float3 uv1 = WorldToUV(undispPos, slice1);

@@ -100,34 +100,7 @@ Shader "Crest/Underwater/Post Process"
 			sampler2D _CameraDepthTexture;
 			sampler2D _Normals;
 
-			half3 ApplyUnderwaterEffect(half3 sceneColour, const float sceneZ01, const half3 view, bool isOceanSurface)
-			{
-				const float sceneZ = LinearEyeDepth(sceneZ01);
-				const float3 lightDir = _WorldSpaceLightPos0.xyz;
-
-				half3 scatterCol = 0.0;
-				{
-					float3 dummy;
-					half sss = 0.0;
-					const float3 uv_slice = WorldToUV(_WorldSpaceCameraPos.xz);
-					SampleDisplacements(_LD_TexArray_AnimatedWaves, uv_slice, 1.0, dummy, sss);
-
-					// depth and shadow are computed in ScatterColour when underwater==true, using the LOD1 texture.
-					const float depth = 0.0;
-					const half shadow = 1.0;
-
-					scatterCol = ScatterColour(_AmbientLighting, depth, _WorldSpaceCameraPos, lightDir, view, shadow, true, true, sss);
-				}
-
-#if _CAUSTICS_ON
-				if (sceneZ01 != 0.0 && !isOceanSurface)
-				{
-					ApplyCaustics(view, lightDir, sceneZ, _Normals, true, sceneColour);
-				}
-#endif // _CAUSTICS_ON
-
-				return lerp(sceneColour, scatterCol, saturate(1.0 - exp(-_DepthFogDensity.xyz * sceneZ)));
-			}
+			#include "../ApplyUnderwaterEffect.hlsl"
 
 			fixed4 Frag (Varyings input) : SV_Target
 			{
@@ -205,7 +178,17 @@ Shader "Crest/Underwater/Post Process"
 				if(isUnderwater)
 				{
 					const half3 view = normalize(viewWS);
-					sceneColour = ApplyUnderwaterEffect(sceneColour, sceneZ01, view, isOceanSurface);
+					sceneColour = ApplyUnderwaterEffect(
+						_LD_TexArray_AnimatedWaves,
+						_Normals,
+						_WorldSpaceCameraPos,
+						_AmbientLighting,
+						sceneColour,
+						sceneZ01,
+						view,
+						_DepthFogDensity,
+						isOceanSurface
+					);
 				}
 
 				return half4(wt * sceneColour, 1.0);

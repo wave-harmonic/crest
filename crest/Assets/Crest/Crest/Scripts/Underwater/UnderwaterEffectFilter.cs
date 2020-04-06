@@ -17,11 +17,9 @@ namespace Crest
         private static Camera _currentCamera;
         private Renderer _rend;
 
-        public static readonly int sp_FrontFaceMask = Shader.PropertyToID("_FrontFaceMask");
-        public static readonly int sp_BackFaceMask = Shader.PropertyToID("_BackFaceMask");
+        public static readonly int sp_Mask = Shader.PropertyToID("_Mask");
 
-        public UnderwaterMaskValues FrontFaceBehaviour = UnderwaterMaskValues.UNDERWATER_MASK_WATER_SURFACE_ABOVE;
-        public UnderwaterMaskValues BackFaceBehavior = UnderwaterMaskValues.UNDERWATER_MASK_WATER_SURFACE_BELOW;
+        public UnderwaterMaskValues MaskType = UnderwaterMaskValues.UNDERWATER_MASK_WATER_SURFACE_ABOVE;
         public Renderer Renderer => _rend;
 
         void Start()

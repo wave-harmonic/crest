@@ -14,6 +14,7 @@ namespace Crest
         UNDERWATER_MASK_NO_MASK = 1,
         UNDERWATER_MASK_WATER_SURFACE_ABOVE = 0,
         UNDERWATER_MASK_WATER_SURFACE_BELOW = 2,
+        UNDERWATER_WINDOW = 3,
     }
 
     internal static class UnderwaterPostProcessUtils
@@ -84,8 +85,7 @@ namespace Crest
 
             foreach (UnderwaterEffectFilter underwaterEffectFilter in perCameraData.GeneralUnderwaterMasksToRender)
             {
-                commandBuffer.SetGlobalFloat(UnderwaterEffectFilter.sp_BackFaceMask, (float)underwaterEffectFilter.BackFaceBehavior);
-                commandBuffer.SetGlobalFloat(UnderwaterEffectFilter.sp_FrontFaceMask, (float)underwaterEffectFilter.FrontFaceBehaviour);
+                commandBuffer.SetGlobalFloat(UnderwaterEffectFilter.sp_Mask, (float)underwaterEffectFilter.MaskType);
                 commandBuffer.DrawRenderer(underwaterEffectFilter.Renderer, generalMaskMaterial);
             }
 

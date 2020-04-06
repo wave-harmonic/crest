@@ -32,8 +32,7 @@ Shader "Crest/Underwater/General Underwater Mask"
 				float4 vertex : SV_POSITION;
 			};
 
-			float _FrontFaceMask;
-			float _BackFaceMask;
+			float _Mask;
 
 			Varyings Vert (Attributes input)
 			{
@@ -42,16 +41,9 @@ Shader "Crest/Underwater/General Underwater Mask"
 				return output;
 			}
 
-			fixed4 Frag (const Varyings input, const float facing : VFACE) : SV_Target
+			fixed4 Frag (const Varyings input) : SV_Target
 			{
-				if(facing < 0.0)
-				{
-					return (half4)_BackFaceMask;
-				}
-				else
-				{
-					return (half4)_FrontFaceMask;
-				}
+				return (half4) _Mask;
 			}
 			ENDCG
 		}

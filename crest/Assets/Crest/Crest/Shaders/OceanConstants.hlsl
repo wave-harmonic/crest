@@ -27,5 +27,7 @@
 #define UNDERWATER_MASK_WATER_SURFACE_ABOVE 0.0
 // Water rendered from below
 #define UNDERWATER_MASK_WATER_SURFACE_BELOW 2.0
+// Underwater effect applied from a distance (Only works for geometry not in the depth buffer)
+#define UNDERWATER_MASK_WINDOW 3.0
 
 #endif // CREST_CONSTANTS_H

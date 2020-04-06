@@ -134,8 +134,8 @@ Shader "Crest/Underwater/Post Process"
 				half3 sceneColour = tex2D(_MainTex, uvScreenSpace).rgb;
 
 				float sceneZ01 = tex2D(_CameraDepthTexture, uvScreenSpace).x;
-
 				float oceanMask = tex2D(_OceanMaskTex, uvScreenSpace).x;
+
 				const float oceanDepth01 = tex2D(_OceanMaskDepthTex, uvScreenSpace);
 
 				// We need to have a small amount of depth tolerance to handle the
@@ -148,7 +148,8 @@ Shader "Crest/Underwater/Post Process"
 				if(isUnderwater)
 				{
 					// Apply overrides
-					oceanMask = tex2D(_GeneralMaskTex, uvScreenSpace).x;
+					float overrideMask = tex2D(_GeneralMaskTex, uvScreenSpace).x;
+					oceanMask = overrideMask != UNDERWATER_MASK_NO_MASK ? overrideMask : oceanMask;
 					isUnderwater = oceanMask != UNDERWATER_MASK_WATER_SURFACE_ABOVE;
 				}
 

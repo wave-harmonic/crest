@@ -38,13 +38,13 @@ namespace Crest
         internal const string FULL_SCREEN_EFFECT = "_FULL_SCREEN_EFFECT";
         internal const string DEBUG_VIEW_OCEAN_MASK = "_DEBUG_VIEW_OCEAN_MASK";
 
-        internal static void InitialiseMaskTextures(RenderTexture source, ref RenderTexture textureMask, ref RenderTexture depthBuffer, Vector2Int pixelDimensions)
+        internal static void InitialiseMaskTextures(RenderTexture source, bool isOcean, ref RenderTexture textureMask, ref RenderTexture depthBuffer, Vector2Int pixelDimensions)
         {
             // Note: we pass-through pixel dimensions explicitly as we have to handle this slightly differently in HDRP
             if (textureMask == null || textureMask.width != pixelDimensions.x || textureMask.height != pixelDimensions.y)
             {
                 textureMask = new RenderTexture(source);
-                textureMask.name = "Ocean Mask";
+                textureMask.name = isOcean ? "Ocean Mask" : "General Mask Depth";
                 // @Memory: We could investigate making this an 8-bit texture instead to reduce GPU memory usage.
                 // We could also potentially try a half res mask as the mensicus could mask res issues.
                 textureMask.format = RenderTextureFormat.RHalf;
@@ -55,7 +55,7 @@ namespace Crest
                 depthBuffer = new RenderTexture(source);
                 depthBuffer.depth = 24;
                 depthBuffer.enableRandomWrite = false;
-                depthBuffer.name = "Ocean Mask Depth";
+                depthBuffer.name = isOcean ? "Ocean Mask Depth" : "General Mask Depth";
                 depthBuffer.format = RenderTextureFormat.Depth;
                 depthBuffer.width = pixelDimensions.x;
                 depthBuffer.height = pixelDimensions.y;
@@ -113,9 +113,9 @@ namespace Crest
             RenderTexture source,
             Camera camera,
             PropertyWrapperMaterial underwaterPostProcessMaterialWrapper,
-            RenderTexture textureMaskOcean,
-            RenderTexture depthBufferOcean,
-            RenderTexture textureMaskGeneral,
+            RenderTexture oceanTextureMask,
+            RenderTexture oceanDepthBuffer,
+            RenderTexture generalTextureMask,
             UnderwaterSphericalHarmonicsData sphericalHarmonicsData,
             bool copyParamsFromOceanMaterial,
             bool debugViewOceanMask
@@ -176,9 +176,9 @@ namespace Crest
                 }
             }
 
-            underwaterPostProcessMaterial.SetTexture(sp_MaskTex, textureMaskOcean);
-            underwaterPostProcessMaterial.SetTexture(sp_MaskDepthTex, depthBufferOcean);
-            underwaterPostProcessMaterial.SetTexture(sp_GeneralMaskTex, textureMaskGeneral);
+            underwaterPostProcessMaterial.SetTexture(sp_MaskTex, oceanTextureMask);
+            underwaterPostProcessMaterial.SetTexture(sp_MaskDepthTex, oceanDepthBuffer);
+            underwaterPostProcessMaterial.SetTexture(sp_GeneralMaskTex, generalTextureMask);
 
             // Have to set these explicitly as the built-in transforms aren't in world-space for the blit function
             if (!XRSettings.enabled || XRSettings.stereoRenderingMode == XRSettings.StereoRenderingMode.MultiPass)

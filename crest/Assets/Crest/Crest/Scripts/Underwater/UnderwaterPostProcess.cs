@@ -201,8 +201,8 @@ namespace Crest
                 return;
             }
 
-            InitialiseMaskTextures(source, ref _oceanTextureMask, ref _oceanDepthBuffer, new Vector2Int(source.width, source.height));
-            InitialiseMaskTextures(source, ref _generalTextureMask, ref _generalDepthBuffer, new Vector2Int(source.width, source.height));
+            InitialiseMaskTextures(source, true, ref _oceanTextureMask, ref _oceanDepthBuffer, new Vector2Int(source.width, source.height));
+            InitialiseMaskTextures(source, false, ref _generalTextureMask, ref _generalDepthBuffer, new Vector2Int(source.width, source.height));
             PopulateUnderwaterMasks(
                 _commandBuffer, _mainCamera, this,
                 _oceanTextureMask.colorBuffer, _oceanDepthBuffer.depthBuffer,

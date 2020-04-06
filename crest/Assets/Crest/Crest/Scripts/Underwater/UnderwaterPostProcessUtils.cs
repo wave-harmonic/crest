@@ -11,18 +11,17 @@ namespace Crest
     // @volatile:UnderwaterMaskValues These MUST match the values in OceanConstants.hlsl
     public enum UnderwaterMaskValues
     {
-        UNDERWATER_MASK_NO_MASK = 1,
-        UNDERWATER_MASK_WATER_SURFACE_ABOVE = 0,
-        UNDERWATER_MASK_WATER_SURFACE_BELOW = 2,
-        UNDERWATER_WINDOW = 3,
+        UnderwaterDisable = 0,
+        UnderwaterEnable = 1,
     }
 
     internal static class UnderwaterPostProcessUtils
     {
         static readonly int sp_OceanHeight = Shader.PropertyToID("_OceanHeight");
         static readonly int sp_MainTex = Shader.PropertyToID("_MainTex");
-        static readonly int sp_MaskTex = Shader.PropertyToID("_MaskTex");
-        static readonly int sp_MaskDepthTex = Shader.PropertyToID("_MaskDepthTex");
+        static readonly int sp_MaskTex = Shader.PropertyToID("_OceanMaskTex");
+        static readonly int sp_MaskDepthTex = Shader.PropertyToID("_OceanMaskDepthTex");
+        static readonly int sp_GeneralMaskTex = Shader.PropertyToID("_GeneralMaskTex");
         static readonly int sp_InvViewProjection = Shader.PropertyToID("_InvViewProjection");
         static readonly int sp_InvViewProjectionRight = Shader.PropertyToID("_InvViewProjectionRight");
         static readonly int sp_InstanceData = Shader.PropertyToID("_InstanceData");
@@ -68,12 +67,13 @@ namespace Crest
         // be able to avoid this pass completely if we can reuse the camera depth after transparents are rendered.
         internal static void PopulateUnderwaterMasks(
             CommandBuffer commandBuffer, Camera camera, IUnderwaterPostProcessPerCameraData perCameraData,
-            RenderBuffer colorBuffer, RenderBuffer depthBuffer,
+            RenderBuffer oceanColorBuffer, RenderBuffer oceanDepthBuffer,
+            RenderBuffer generalColorBuffer, RenderBuffer generalDepthBuffer,
             Material oceanMaskMaterial, Material generalMaskMaterial
         )
         {
             // Get all ocean chunks and render them using cmd buffer, but with mask shader
-            commandBuffer.SetRenderTarget(colorBuffer, depthBuffer);
+            commandBuffer.SetRenderTarget(oceanColorBuffer, oceanDepthBuffer);
             commandBuffer.ClearRenderTarget(true, true, Color.white * UNDERWATER_MASK_NO_MASK);
             commandBuffer.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
 
@@ -82,6 +82,10 @@ namespace Crest
             {
                 commandBuffer.DrawRenderer(chunk, oceanMaskMaterial);
             }
+
+            commandBuffer.SetRenderTarget(generalColorBuffer, generalDepthBuffer);
+            commandBuffer.ClearRenderTarget(true, true, Color.white * UNDERWATER_MASK_NO_MASK);
+            commandBuffer.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
 
             foreach (UnderwaterEffectFilter underwaterEffectFilter in perCameraData.GeneralUnderwaterMasksToRender)
             {
@@ -109,8 +113,9 @@ namespace Crest
             RenderTexture source,
             Camera camera,
             PropertyWrapperMaterial underwaterPostProcessMaterialWrapper,
-            RenderTexture textureMask,
-            RenderTexture depthBuffer,
+            RenderTexture textureMaskOcean,
+            RenderTexture depthBufferOcean,
+            RenderTexture textureMaskGeneral,
             UnderwaterSphericalHarmonicsData sphericalHarmonicsData,
             bool copyParamsFromOceanMaterial,
             bool debugViewOceanMask
@@ -171,8 +176,9 @@ namespace Crest
                 }
             }
 
-            underwaterPostProcessMaterial.SetTexture(sp_MaskTex, textureMask);
-            underwaterPostProcessMaterial.SetTexture(sp_MaskDepthTex, depthBuffer);
+            underwaterPostProcessMaterial.SetTexture(sp_MaskTex, textureMaskOcean);
+            underwaterPostProcessMaterial.SetTexture(sp_MaskDepthTex, depthBufferOcean);
+            underwaterPostProcessMaterial.SetTexture(sp_GeneralMaskTex, textureMaskGeneral);
 
             // Have to set these explicitly as the built-in transforms aren't in world-space for the blit function
             if (!XRSettings.enabled || XRSettings.stereoRenderingMode == XRSettings.StereoRenderingMode.MultiPass)

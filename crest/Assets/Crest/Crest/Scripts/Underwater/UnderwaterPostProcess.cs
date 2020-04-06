@@ -31,8 +31,10 @@ namespace Crest
         // end public debug options
 
         private Camera _mainCamera;
-        private RenderTexture _textureMask;
-        private RenderTexture _depthBuffer;
+        private RenderTexture _oceanTextureMask;
+        private RenderTexture _oceanDepthBuffer;
+        private RenderTexture _generalTextureMask;
+        private RenderTexture _generalDepthBuffer;
         private CommandBuffer _commandBuffer;
 
         private Material _oceanMaskMaterial = null;
@@ -199,10 +201,12 @@ namespace Crest
                 return;
             }
 
-            InitialiseMaskTextures(source, ref _textureMask, ref _depthBuffer, new Vector2Int(source.width, source.height));
+            InitialiseMaskTextures(source, ref _oceanTextureMask, ref _oceanDepthBuffer, new Vector2Int(source.width, source.height));
+            InitialiseMaskTextures(source, ref _generalTextureMask, ref _generalDepthBuffer, new Vector2Int(source.width, source.height));
             PopulateUnderwaterMasks(
                 _commandBuffer, _mainCamera, this,
-                _textureMask.colorBuffer, _depthBuffer.depthBuffer,
+                _oceanTextureMask.colorBuffer, _oceanDepthBuffer.depthBuffer,
+                _generalTextureMask.colorBuffer, _generalDepthBuffer.depthBuffer,
                 _oceanMaskMaterial, _generalMaskMaterial
             );
 
@@ -210,8 +214,9 @@ namespace Crest
                 source,
                 _mainCamera,
                 _underwaterPostProcessMaterialWrapper,
-                _textureMask,
-                _depthBuffer,
+                _oceanTextureMask,
+                _oceanDepthBuffer,
+                _generalTextureMask,
                 _sphericalHarmonicsData,
                 _firstRender || _copyOceanMaterialParamsEachFrame,
                 _viewOceanMask

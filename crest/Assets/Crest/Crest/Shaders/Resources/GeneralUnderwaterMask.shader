@@ -11,7 +11,7 @@ Shader "Crest/Underwater/General Underwater Mask"
 			// We always disable culling when rendering ocean mask, as we only
 			// use it for underwater rendering features.
 			// TODO(TRC):Now (can we make this toggleable?)
-			Cull Off
+			Cull Back
 			CGPROGRAM
 
 			#pragma vertex Vert
@@ -30,19 +30,23 @@ Shader "Crest/Underwater/General Underwater Mask"
 			struct Varyings
 			{
 				float4 vertex : SV_POSITION;
+				float4 grabPos : TEXCOORD0;
 			};
 
 			float _Mask;
+			sampler2D _UnderwaterMaskTex;
 
 			Varyings Vert (Attributes input)
 			{
 				Varyings output;
 				output.vertex = UnityObjectToClipPos(input.vertex);
+				output.grabPos = ComputeGrabScreenPos(output.vertex);
 				return output;
 			}
 
 			fixed4 Frag (const Varyings input) : SV_Target
 			{
+
 				return (half4) _Mask;
 			}
 			ENDCG

@@ -93,8 +93,10 @@ Shader "Crest/Underwater/Post Process"
 			}
 
 			sampler2D _MainTex;
-			sampler2D _MaskTex;
-			sampler2D _MaskDepthTex;
+			sampler2D _OceanMaskTex;
+			sampler2D _OceanMaskDepthTex;
+
+			sampler2D _GeneralMaskTex;
 
 			// In-built Unity textures
 			sampler2D _CameraDepthTexture;
@@ -133,25 +135,33 @@ Shader "Crest/Underwater/Post Process"
 
 				float sceneZ01 = tex2D(_CameraDepthTexture, uvScreenSpace).x;
 
-				float mask = tex2D(_MaskTex, uvScreenSpace).x;
-				const float oceanDepth01 = tex2D(_MaskDepthTex, uvScreenSpace);
+				float oceanMask = tex2D(_OceanMaskTex, uvScreenSpace).x;
+				const float oceanDepth01 = tex2D(_OceanMaskDepthTex, uvScreenSpace);
 
 				// We need to have a small amount of depth tolerance to handle the
-				// fact that we can have general mask filter which will be rendered in the scene
+				// fact that we can have general oceanMask filter which will be rendered in the scene
 				// and have their depth in the regular depth buffer.
 				const float oceanDepthTolerance = 0.000045;
 
-				// Ocean surface check is used avoid drawing caustics on the water surface.
-				bool isOceanSurface = mask != UNDERWATER_MASK_NO_MASK && (sceneZ01 <= (oceanDepth01 + oceanDepthTolerance));
 
-				bool isUnderwater = mask == UNDERWATER_MASK_WATER_SURFACE_BELOW || (isBelowHorizon && mask != UNDERWATER_MASK_WATER_SURFACE_ABOVE);
+				bool isUnderwater = oceanMask == UNDERWATER_MASK_WATER_SURFACE_BELOW || (isBelowHorizon && oceanMask != UNDERWATER_MASK_WATER_SURFACE_ABOVE);
+				if(isUnderwater)
+				{
+					// Apply overrides
+					oceanMask = tex2D(_GeneralMaskTex, uvScreenSpace).x;
+					isUnderwater = oceanMask != UNDERWATER_MASK_WATER_SURFACE_ABOVE;
+				}
+
+				// Ocean surface check is used avoid drawing caustics on the water surface.
+				bool isOceanSurface = oceanMask != UNDERWATER_MASK_NO_MASK && (sceneZ01 <= (oceanDepth01 + oceanDepthTolerance));
 				sceneZ01 = isOceanSurface ? oceanDepth01 : sceneZ01;
 
 				float wt = 1.0;
 
+
 #if _MENISCUS_ON
-				// Detect water to no water transitions which happen if mask values on below pixels are less than this mask
-				//if (mask <= 1.0)
+				// Detect water to no water transitions which happen if oceanMask values on below pixels are less than this oceanMask
+				//if (oceanMask <= 1.0)
 				{
 					// Looks at pixels below this pixel and if there is a transition from above to below, darken the pixel
 					// to emulate a meniscus effect. It does a few to get a thicker line than 1 pixel. The line it produces is
@@ -159,9 +169,9 @@ Shader "Crest/Underwater/Post Process"
 					// a calculation to get it smooth both above and below, but might be more complex.
 					float wt_mul = 0.9;
 					float4 dy = float4(0.0, -1.0, -2.0, -3.0) / _ScreenParams.y;
-					wt *= (tex2D(_MaskTex, uvScreenSpace + dy.xy).x > mask) ? wt_mul : 1.0;
-					wt *= (tex2D(_MaskTex, uvScreenSpace + dy.xz).x > mask) ? wt_mul : 1.0;
-					wt *= (tex2D(_MaskTex, uvScreenSpace + dy.xw).x > mask) ? wt_mul : 1.0;
+					wt *= (tex2D(_OceanMaskTex, uvScreenSpace + dy.xy).x > oceanMask) ? wt_mul : 1.0;
+					wt *= (tex2D(_OceanMaskTex, uvScreenSpace + dy.xz).x > oceanMask) ? wt_mul : 1.0;
+					wt *= (tex2D(_OceanMaskTex, uvScreenSpace + dy.xw).x > oceanMask) ? wt_mul : 1.0;
 				}
 #endif // _MENISCUS_ON
 
@@ -172,7 +182,7 @@ Shader "Crest/Underwater/Post Process"
 				}
 				else
 				{
-					return float4(sceneColour * float3(mask == UNDERWATER_MASK_WATER_SURFACE_ABOVE, mask == UNDERWATER_MASK_WATER_SURFACE_BELOW, 0.0), 1.0);
+					return float4(sceneColour * float3(oceanMask == UNDERWATER_MASK_WATER_SURFACE_ABOVE, oceanMask == UNDERWATER_MASK_WATER_SURFACE_BELOW, 0.0), 1.0);
 				}
 #else
 				if(isUnderwater)

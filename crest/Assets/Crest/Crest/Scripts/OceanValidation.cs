@@ -91,6 +91,13 @@ namespace Crest
                 }
             }
 
+            // Inputs
+            var inputs = FindObjectsOfType<RegisterLodDataInputBase>();
+            foreach (var input in inputs)
+            {
+                input.Validate(ocean);
+            }
+
             Debug.Log("Validation complete!", ocean);
         }
     }

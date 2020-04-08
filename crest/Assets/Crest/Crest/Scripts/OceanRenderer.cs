@@ -215,7 +215,7 @@ namespace Crest
                 }
                 else
                 {
-                    Debug.LogError("Please provide the viewpoint transform, or tag the primary camera as MainCamera.", this);
+                    Debug.LogError("Crest needs to know where to focus the ocean detail. Please set the Viewpoint property of the OceanRenderer component to the transform of the viewpoint/camera that the ocean should follow, or tag the primary camera as MainCamera.", this);
                 }
             }
         }

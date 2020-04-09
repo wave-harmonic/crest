@@ -4,7 +4,7 @@
 
 #pragma kernel UpdateFoam
 
-#include "UnityCG.cginc"
+#include "HLSLSupport.cginc"
 #include "../OceanGlobals.hlsl"
 #include "../OceanInputsDriven.hlsl"
 #include "../OceanLODData.hlsl"

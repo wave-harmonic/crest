@@ -20,8 +20,8 @@ void JumpFlood(uint3 id : SV_DispatchThreadID)
 	float4 result = _FromTexture[id.xy];
 	float resultRight = _textureDimension  - _jumpSize > id.x ? _FromTexture[id.xy + uint2(_jumpSize, 0)].y + _jumpSize : result.y;
 	float resultUp    = _textureDimension  - _jumpSize > id.y ? _FromTexture[id.xy + uint2(0, _jumpSize)].y + _jumpSize : result.y;
-	float resultLeft  = id.y >= _jumpSize                     ? _FromTexture[id.xy - uint2(0, _jumpSize)].y + _jumpSize : result.y;
-	float resultDown  = id.x >= _jumpSize                     ? _FromTexture[id.xy - uint2(_jumpSize, 0)].y + _jumpSize : result.y;
+	float resultLeft  = id.x >= _jumpSize                     ? _FromTexture[id.xy - uint2(_jumpSize, 0)].y + _jumpSize : result.y;
+	float resultDown  = id.y >= _jumpSize                     ? _FromTexture[id.xy - uint2(0, _jumpSize)].y + _jumpSize : result.y;
 
 	result.y = min(
 		min(

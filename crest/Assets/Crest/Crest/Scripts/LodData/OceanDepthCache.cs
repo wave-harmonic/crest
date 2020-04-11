@@ -74,8 +74,10 @@ namespace Crest
         [Tooltip("Generate a signed distance field for shorelines"), SerializeField]
         bool _generateSignedDistanceFieldForShorelines = true;
 
-        [Tooltip("The resolution of the cached signed distance field - lower will be more efficient."), SerializeField]
-        int _signedDistanceFieldForShorelinesResolution = 512;
+        [Tooltip("The resolution of the cached signed distance field - lower will be more efficient. Must be a power of two."), SerializeField]
+        int _signedDistanceFieldForShorelinesResolution = 512; // TODO(TRC):Now enforce this being a power of two
+        [Tooltip("How many additional Jump Flood Algorithm rounds to use"), SerializeField]
+        int _numberOfAdditionalJumpFloodRounds = 7; // TODO(TRC):Now Max this as log(_signedDistanceFieldForShorelinesResolution)
 
         RenderTexture _depthCacheTexture;
         public RenderTexture CacheTexture => _depthCacheTexture;
@@ -89,6 +91,11 @@ namespace Crest
 
         GameObject _drawSdfCacheQuad;
         Camera _sdfCacheCamera;
+
+        private readonly int sp_jumpSize = Shader.PropertyToID("_jumpSize");
+        private readonly int sp_textureDimension = Shader.PropertyToID("_textureDimension");
+        private readonly int sp_FromTexture = Shader.PropertyToID("_FromTexture");
+        private readonly int sp_ToTexture = Shader.PropertyToID("_ToTexture");
 
         void Start()
         {
@@ -195,7 +202,7 @@ namespace Crest
                 // TODO(TRC):Now this garbage generation that would be generated each time this is called
                 Debug.Assert(SystemInfo.SupportsRenderTextureFormat(fmt), "The graphics device does not support the render texture format " + fmt.ToString());
                 _sdfCacheTexture = new RenderTexture(_signedDistanceFieldForShorelinesResolution, _signedDistanceFieldForShorelinesResolution, 0);
-                _sdfCacheTexture.name = gameObject.name + "_signedDistanceField";
+                _sdfCacheTexture.name = gameObject.name + "_signedDistanceField_0";
                 _sdfCacheTexture.format = fmt;
                 _sdfCacheTexture.useMipMap = false;
                 _sdfCacheTexture.anisoLevel = 0;
@@ -203,7 +210,7 @@ namespace Crest
                 _sdfCacheTexture.Create();
 
                 _sdfCachePingPong = new RenderTexture(_signedDistanceFieldForShorelinesResolution, _signedDistanceFieldForShorelinesResolution, 0);
-                _sdfCachePingPong.name = gameObject.name + "_signedDistanceField";
+                _sdfCachePingPong.name = gameObject.name + "_signedDistanceField_1";
                 _sdfCachePingPong.format = fmt;
                 _sdfCachePingPong.useMipMap = false;
                 _sdfCachePingPong.anisoLevel = 0;
@@ -232,6 +239,10 @@ namespace Crest
                     _sdfCacheTexture
                 );
             }
+            else
+            {
+                _sdfCacheCamera.targetTexture = _sdfCacheTexture;
+            }
 
             // Shader needs sea level to determine water depth
             var centerPoint = Vector3.zero;
@@ -252,36 +263,65 @@ namespace Crest
             if (_generateSignedDistanceFieldForShorelines)
             {
                 _sdfCacheCamera.RenderWithShader(Shader.Find("Crest/Inputs/Depth/Initialise Signed Distance Field From Geometry"), null);
-                using (CommandBuffer buffer = new CommandBuffer())
+                using (CommandBuffer jumpFloodCommandBuffer = new CommandBuffer())
                 {
+
                     ComputeShader jumpFloodShader = ComputeShaderHelpers.LoadShader("JumpFlood");
                     int kernel = jumpFloodShader.FindKernel("JumpFlood");
-                    buffer.name = "Jump Flood";
-
-                    int sp_jumpSize = Shader.PropertyToID("jumpSize");
-                    int sp_jumpLength = Shader.PropertyToID("jumpLength");
-                    int sp_Prev = Shader.PropertyToID("Prev");
-                    int sp_Current = Shader.PropertyToID("Current");
-
-                    for (uint jumpSize = 1; jumpSize < _sdfCacheTexture.width; jumpSize *= 2)
+                    jumpFloodCommandBuffer.name = "Jump Flood";
+                    uint textureDimension = (uint)_sdfCacheTexture.width;
+                    for (uint jumpSize = (uint)textureDimension / 2; jumpSize > 0; jumpSize /= 2)
                     {
-                        LodDataMgr.Swap(ref _sdfCachePingPong, ref _sdfCacheTexture);
-                        buffer.SetComputeIntParam(jumpFloodShader, sp_jumpSize, (int)jumpSize);
-                        buffer.SetComputeFloatParam(jumpFloodShader, sp_jumpLength, jumpSize * 2.0f);
-                        buffer.SetComputeTextureParam(jumpFloodShader, kernel, sp_Prev, _sdfCachePingPong);
-                        buffer.SetComputeTextureParam(jumpFloodShader, kernel, sp_Current, _sdfCacheTexture);
-                        buffer.DispatchCompute(
-                            jumpFloodShader,
-                            kernel,
-                            _sdfCacheTexture.width / 8,
-                            _sdfCacheTexture.height / 8,
-                            1
+                        ApplyJumpFlood(
+                            jumpFloodCommandBuffer, jumpFloodShader, kernel,
+                            sp_jumpSize, jumpSize,
+                            sp_textureDimension, textureDimension,
+                            sp_FromTexture, _sdfCacheTexture,
+                            sp_ToTexture, _sdfCachePingPong
                         );
+                        LodDataMgr.Swap(ref _sdfCachePingPong, ref _sdfCacheTexture);
                     }
-                    Graphics.ExecuteCommandBuffer(buffer);
+
+                    for (uint roundNum = 0; roundNum < _numberOfAdditionalJumpFloodRounds; roundNum++)
+                    {
+                        uint jumpSize = (uint) 1 << (int) roundNum;
+                        ApplyJumpFlood(
+                            jumpFloodCommandBuffer, jumpFloodShader, kernel,
+                            sp_jumpSize, jumpSize,
+                            sp_textureDimension, textureDimension,
+                            sp_FromTexture, _sdfCacheTexture,
+                            sp_ToTexture, _sdfCachePingPong
+                        );
+                        LodDataMgr.Swap(ref _sdfCachePingPong, ref _sdfCacheTexture);
+                    }
+
+                    Graphics.ExecuteCommandBuffer(jumpFloodCommandBuffer);
                 }
                 DrawCacheQuad(ref _drawSdfCacheQuad, "SDFCache_", _sdfCacheTexture);
             }
+        }
+
+        private static void ApplyJumpFlood(
+            CommandBuffer jumpFloodCommandBuffer,
+            ComputeShader jumpFloodShader,
+            int kernel,
+            int sp_jumpSize, uint jumpSize,
+            int sp_textureDimension, uint textureDimension,
+            int sp_FromTexture, RenderTexture fromTexture,
+            int sp_ToTexture, RenderTexture toTexture
+        )
+        {
+            jumpFloodCommandBuffer.SetComputeIntParam(jumpFloodShader, sp_jumpSize, (int)jumpSize);
+            jumpFloodCommandBuffer.SetComputeIntParam(jumpFloodShader, sp_textureDimension, (int)textureDimension);
+            jumpFloodCommandBuffer.SetComputeTextureParam(jumpFloodShader, kernel, sp_FromTexture, fromTexture);
+            jumpFloodCommandBuffer.SetComputeTextureParam(jumpFloodShader, kernel, sp_ToTexture, toTexture);
+            jumpFloodCommandBuffer.DispatchCompute(
+                jumpFloodShader,
+                kernel,
+                fromTexture.width / 8,
+                fromTexture.height / 8,
+                1
+            );
         }
 
         private static Camera GenerateCacheCamera(

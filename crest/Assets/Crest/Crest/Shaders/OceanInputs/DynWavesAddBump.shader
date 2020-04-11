@@ -15,12 +15,12 @@ Shader "Crest/Inputs/Dynamic Waves/Add Bump"
 		Pass
 		{
 			Blend One One
-			
+
 			CGPROGRAM
 			#pragma vertex Vert
 			#pragma fragment Frag
 			#include "UnityCG.cginc"
-			
+
 			CBUFFER_START(CrestPerOceanInput)
 			float _Radius;
 			float _SimCount;

@@ -31,7 +31,7 @@ half4 ComputeGerstner(float2 worldPosXZ, float3 uv_slice)
 	const half depth = _LD_TexArray_SeaFloorDepth.Sample(LODData_linear_clamp_sampler, uv_slice).x;
 
 	// Preferred wave directions
-#if _DIRECT_TOWARDS_POINT
+#if CREST_DIRECT_TOWARDS_POINT_INTERNAL
 	float2 offset = worldPosXZ - _TargetPointData.xy;
 	float preferDist = length(offset);
 	float preferWt = smoothstep(_TargetPointData.w, _TargetPointData.z, preferDist);
@@ -60,7 +60,7 @@ half4 ComputeGerstner(float2 worldPosXZ, float3 uv_slice)
 		half4 Dz = _WaveDirZ[vi];
 
 		// Peferred wave direction
-#if _DIRECT_TOWARDS_POINT
+#if CREST_DIRECT_TOWARDS_POINT_INTERNAL
 		wt *= max((1.0 + Dx * preferredDirX + Dz * preferredDirZ) / 2.0, 0.1);
 #endif
 

@@ -21,14 +21,15 @@ Shader "Hidden/Crest/Simulation/Combine Animated Wave LODs"
 			#pragma vertex Vert
 			#pragma fragment Frag
 
-			#pragma multi_compile __ _DYNAMIC_WAVE_SIM_ON
-			#pragma multi_compile __ _FLOW_ON
+			#pragma multi_compile __ CREST_DYNAMIC_WAVE_SIM_ON_INTERNAL
+			#pragma multi_compile __ CREST_FLOW_ON_INTERNAL
 
 			#include "UnityCG.cginc"
 
 			#include "../OceanGlobals.hlsl"
 			#include "../OceanInputsDriven.hlsl"
 			#include "../OceanLODData.hlsl"
+			#include "../OceanHelpersNew.hlsl"
 			#include "../FullScreenTriangle.hlsl"
 
 			float _HorizDisplace;
@@ -76,7 +77,7 @@ Shader "Hidden/Crest/Simulation/Combine Animated Wave LODs"
 				float3 result = 0.0;
 				half sss = 0.0;
 
-#if _FLOW_ON
+#if CREST_FLOW_ON_INTERNAL
 				half2 flow = 0.0;
 				SampleFlow(_LD_TexArray_Flow, uv_thisLod, 1.0, flow);
 
@@ -91,7 +92,7 @@ Shader "Hidden/Crest/Simulation/Combine Animated Wave LODs"
 				float4 data = _LD_TexArray_WaveBuffer.SampleLevel(LODData_linear_clamp_sampler, uv_thisLod, 0.0);
 				result += data.xyz;
 				sss = data.w;
-#endif
+#endif // CREST_FLOW_ON_INTERNAL
 
 				float arrayDepth;
 				{
@@ -107,7 +108,7 @@ Shader "Hidden/Crest/Simulation/Combine Animated Wave LODs"
 					sss += dataNextLod.w;
 				}
 
-#if _DYNAMIC_WAVE_SIM_ON
+#if CREST_DYNAMIC_WAVE_SIM_ON_INTERNAL
 				{
 					// convert dynamic wave sim to displacements
 
@@ -132,7 +133,7 @@ Shader "Hidden/Crest/Simulation/Combine Animated Wave LODs"
 
 					result.xz += dispXZ;
 				}
-#endif // _DYNAMIC_WAVE_SIM_ON
+#endif // CREST_DYNAMIC_WAVE_SIM_ON_INTERNAL
 
 				return half4(result, sss);
 			}

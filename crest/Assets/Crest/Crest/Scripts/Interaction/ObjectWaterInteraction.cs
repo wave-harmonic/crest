@@ -20,8 +20,6 @@ namespace Crest
         [Range(0f, 1f), SerializeField]
         float _noiseAmp = 0.5f;
 
-        [Range(-1f, 1f), SerializeField]
-        float _weight = 1f;
         [Range(0f, 2f), SerializeField]
         float _weightUpDownMul = 0.5f;
 
@@ -54,6 +52,13 @@ namespace Crest
                 return;
             }
 
+            if (transform.parent == null)
+            {
+                Debug.LogError("ObjectWaterInteraction script requires a parent GameObject.", this);
+                enabled = false;
+                return;
+            }
+
             _localOffset = transform.localPosition;
 
             _dynWavesInput = GetComponent<RegisterDynWavesInput>();
@@ -67,15 +72,13 @@ namespace Crest
             _boat = GetComponentInParent<FloatingObjectBase>();
             if (_boat == null)
             {
-                Debug.LogError("FloatingObjectBase required. Disabling FeedVelocityToExtrude.", this);
-                enabled = false;
-                return;
+                _boat = transform.parent.gameObject.AddComponent<ObjectWaterInteractionAdaptor>();
             }
 
             _renderer = GetComponent<Renderer>();
             if (_renderer == null)
             {
-                Debug.Log("ObjectWaterInteraction script requires Renderer component.", this);
+                Debug.LogError("ObjectWaterInteraction script requires Renderer component.", this);
                 enabled = false;
                 return;
             }
@@ -156,7 +159,7 @@ namespace Crest
 
             float dt; int steps;
             ocean._lodDataDynWaves.GetSimSubstepData(ocean.DeltaTimeDynamics, out steps, out dt);
-            float weight = _boat.InWater ? _weight / simsActive : 0f;
+            float weight = _boat.InWater ? 1f / simsActive : 0f;
 
             _renderer.GetPropertyBlock(_mpb);
 

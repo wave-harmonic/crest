@@ -55,6 +55,8 @@ Shader "Crest/Ocean"
 		[Header(Reflection Environment)]
 		// Strength of specular lighting response
 		_Specular("Specular", Range(0.0, 1.0)) = 1.0
+		// Controls blurriness of reflection
+		_Roughness("Roughness", Range(0.0, 1.0)) = 0.0
 		// Controls harshness of Fresnel behaviour
 		_FresnelPower("Fresnel Power", Range(1.0, 20.0)) = 5.0
 		// Index of refraction of air. Can be increased to almost 1.333 to increase visibility up through water surface.
@@ -65,6 +67,8 @@ Shader "Crest/Ocean"
 		[Toggle] _PlanarReflections("Planar Reflections", Float) = 0
 		// How much the water normal affects the planar reflection
 		_PlanarReflectionNormalsStrength("Planar Reflections Distortion", Float) = 1
+		// Multiplier to adjust how intense the reflection is
+		_PlanarReflectionIntensity("Planar Reflection Intensity", Range(0.0, 1.0)) = 1.0
 		// Whether to use an overridden reflection cubemap (provided in the next property)
 		[Toggle] _OverrideReflectionCubemap("Override Reflection Cubemap", Float) = 0
 		// Custom environment map to reflect
@@ -164,6 +168,10 @@ Shader "Crest/Ocean"
 		// enabled on the OceanRenderer to generate flow data.
 		[Toggle] _Flow("Enable", Float) = 0
 
+		[Header(Clip Surface)]
+		// Discards ocean surface pixels. Requires 'Create Clip Surface Data' enabled on OceanRenderer script.
+		[Toggle] _ClipSurface("Enable", Float) = 0
+
 		[Header(Debug Options)]
 		// Build shader with debug info which allows stepping through the code in a GPU debugger. I typically use RenderDoc or
 		// PIX for Windows (requires DX12 API to be selected).
@@ -214,6 +222,7 @@ Shader "Crest/Ocean"
 			#pragma shader_feature _UNDERWATER_ON
 			#pragma shader_feature _FLOW_ON
 			#pragma shader_feature _SHADOWS_ON
+			#pragma shader_feature _CLIPSURFACE_ON
 
 			#pragma shader_feature _DEBUGDISABLESHAPETEXTURES_ON
 			#pragma shader_feature _DEBUGVISUALISESHAPESAMPLE_ON
@@ -249,12 +258,12 @@ Shader "Crest/Ocean"
 				UNITY_FOG_COORDS(3)
 			};
 
+			#include "OceanConstants.hlsl"
+			#include "OceanGlobals.hlsl"
+			#include "OceanInputsDriven.hlsl"
+			#include "OceanLODData.hlsl"
+			#include "OceanHelpersNew.hlsl"
 			#include "OceanHelpers.hlsl"
-
-			float _CrestTime;
-
-			// MeshScaleLerp, FarNormalsWeight, LODIndex (debug), lod count
-			float4 _InstanceData;
 
 			// Argument name is v because some macros like COMPUTE_EYEDEPTH require it.
 			Varyings Vert(Attributes v)
@@ -449,6 +458,21 @@ Shader "Crest/Ocean"
 				#endif
 				#endif
 
+				#if _CLIPSURFACE_ON
+				// Clip surface
+				half clipVal = 0.0;
+				if (wt_smallerLod > 0.001)
+				{
+					SampleClip(_LD_TexArray_ClipSurface, WorldToUV(input.worldPos.xz), wt_smallerLod, clipVal);
+				}
+				if (wt_biggerLod > 0.001)
+				{
+					SampleClip(_LD_TexArray_ClipSurface, WorldToUV_BiggerLod(input.worldPos.xz), wt_biggerLod, clipVal);
+				}
+				// Add 0.5 bias for LOD blending and texel resolution correction. This will help to tighten and smooth clipped edges
+				clip(-clipVal + 0.5);
+				#endif
+
 				// Foam - underwater bubbles and whitefoam
 				half3 bubbleCol = (half3)0.;
 				#if _FOAM_ON
@@ -474,7 +498,7 @@ Shader "Crest/Ocean"
 				// disable transparency, so this will always be 1.0.
 				float reflAlpha = 1.0;
 				#endif
-				
+
 				#if _UNDERWATER_ON
 				if (underwater)
 				{
@@ -500,7 +524,7 @@ Shader "Crest/Ocean"
 				else
 				{
 					// underwater - do depth fog
-					col = lerp(col, scatterCol, 1. - exp(-_DepthFogDensity.xyz * pixelZ));
+					col = lerp(col, scatterCol, saturate(1. - exp(-_DepthFogDensity.xyz * pixelZ)));
 				}
 
 				#if _DEBUGVISUALISESHAPESAMPLE_ON

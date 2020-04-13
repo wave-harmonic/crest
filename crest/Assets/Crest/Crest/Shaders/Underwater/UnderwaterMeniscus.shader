@@ -26,13 +26,18 @@ Shader "Crest/Underwater Meniscus"
 
 			#include "UnityCG.cginc"
 			#include "Lighting.cginc"
+
+			#include "../OceanGlobals.hlsl"
+			#include "../OceanInputsDriven.hlsl"
 			#include "../OceanLODData.hlsl"
+			#include "../OceanHelpersNew.hlsl"
 			#include "UnderwaterShared.hlsl"
 
 			#define MAX_OFFSET 5.0
 
-			float _CrestTime;
+			CBUFFER_START(UnderwaterAdditional)
 			float _MeniscusWidth;
+			CBUFFER_END
 
 			struct Attributes
 			{

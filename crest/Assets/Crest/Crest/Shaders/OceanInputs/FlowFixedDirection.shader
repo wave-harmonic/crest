@@ -20,8 +20,10 @@ Shader "Crest/Inputs/Flow/Fixed Direction"
 
 			#include "UnityCG.cginc"
 
+			CBUFFER_START(CrestPerOceanInput)
 			float _Speed;
 			float _Direction;
+			CBUFFER_END
 
 			struct Attributes
 			{
@@ -41,7 +43,7 @@ Shader "Crest/Inputs/Flow/Fixed Direction"
 				o.vel = _Speed * float2(cos(_Direction * 6.283185), sin(_Direction * 6.283185));
 				return o;
 			}
-			
+
 			float2 Frag(Varyings input) : SV_Target
 			{
 				return input.vel;

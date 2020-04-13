@@ -15,7 +15,52 @@ float IntersectRayWithWaterSurface(const float3 pos, const float3 dir)
 	// get point at sea level
 	float2 sampleXZ = pos.xz - dir.xz * (pos.y - _OceanCenterPosWorld.y) / dir.y;
 	float3 disp;
-	for (int i = 0; i < 6; i++)
+	//for (int i = 0; i < 6; i++)
+	{
+		// Sample displacement textures, add results to current world pos / normal / foam
+		disp = float3(sampleXZ.x, _OceanCenterPosWorld.y, sampleXZ.y);
+		half sss = 0.;
+		SampleDisplacements(_LD_TexArray_AnimatedWaves, WorldToUV(sampleXZ), 1.0, disp, sss);
+		float3 nearestPointOnRay = pos + dir * dot(disp - pos, dir);
+		const float2 error = disp.xz - nearestPointOnRay.xz;
+		sampleXZ -= error;
+	}
+	{
+		// Sample displacement textures, add results to current world pos / normal / foam
+		disp = float3(sampleXZ.x, _OceanCenterPosWorld.y, sampleXZ.y);
+		half sss = 0.;
+		SampleDisplacements(_LD_TexArray_AnimatedWaves, WorldToUV(sampleXZ), 1.0, disp, sss);
+		float3 nearestPointOnRay = pos + dir * dot(disp - pos, dir);
+		const float2 error = disp.xz - nearestPointOnRay.xz;
+		sampleXZ -= error;
+	}
+	{
+		// Sample displacement textures, add results to current world pos / normal / foam
+		disp = float3(sampleXZ.x, _OceanCenterPosWorld.y, sampleXZ.y);
+		half sss = 0.;
+		SampleDisplacements(_LD_TexArray_AnimatedWaves, WorldToUV(sampleXZ), 1.0, disp, sss);
+		float3 nearestPointOnRay = pos + dir * dot(disp - pos, dir);
+		const float2 error = disp.xz - nearestPointOnRay.xz;
+		sampleXZ -= error;
+	}
+	{
+		// Sample displacement textures, add results to current world pos / normal / foam
+		disp = float3(sampleXZ.x, _OceanCenterPosWorld.y, sampleXZ.y);
+		half sss = 0.;
+		SampleDisplacements(_LD_TexArray_AnimatedWaves, WorldToUV(sampleXZ), 1.0, disp, sss);
+		float3 nearestPointOnRay = pos + dir * dot(disp - pos, dir);
+		const float2 error = disp.xz - nearestPointOnRay.xz;
+		sampleXZ -= error;
+	}
+	{
+		// Sample displacement textures, add results to current world pos / normal / foam
+		disp = float3(sampleXZ.x, _OceanCenterPosWorld.y, sampleXZ.y);
+		half sss = 0.;
+		SampleDisplacements(_LD_TexArray_AnimatedWaves, WorldToUV(sampleXZ), 1.0, disp, sss);
+		float3 nearestPointOnRay = pos + dir * dot(disp - pos, dir);
+		const float2 error = disp.xz - nearestPointOnRay.xz;
+		sampleXZ -= error;
+	}
 	{
 		// Sample displacement textures, add results to current world pos / normal / foam
 		disp = float3(sampleXZ.x, _OceanCenterPosWorld.y, sampleXZ.y);

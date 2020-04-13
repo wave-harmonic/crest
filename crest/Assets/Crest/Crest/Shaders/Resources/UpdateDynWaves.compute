@@ -2,22 +2,25 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
-// solve 2D wave equation
+// Solves 2D wave equation
 
 #pragma kernel UpdateDynWaves
 
 #define MIN_DT 0.00001
 
+#include "HLSLSupport.cginc"
+#include "../OceanGlobals.hlsl"
+#include "../OceanInputsDriven.hlsl"
 #include "../OceanLODData.hlsl"
+#include "../OceanHelpersNew.hlsl"
 
-half _Damping;
+CBUFFER_START(CrestPerMaterial)
+float _Damping;
 float2 _LaplacianAxisX;
-half _Gravity;
+float _Gravity;
 float _SimDeltaTime;
 float _LODChange;
-
-// How many samples we want in one wave. trade quality for perf.
-float _TexelsPerWave;
+CBUFFER_END
 
 float ComputeWaveSpeed(float wavelength, float g)
 {
@@ -30,7 +33,7 @@ float ComputeWaveSpeed(float wavelength, float g)
 
 RWTexture2DArray<float2> _LD_TexArray_Target;
 
-[numthreads(THREAD_GROUP_SIZE_X,THREAD_GROUP_SIZE_Y,1)]
+[numthreads(THREAD_GROUP_SIZE_X, THREAD_GROUP_SIZE_Y, 1)]
 void UpdateDynWaves(uint3 id : SV_DispatchThreadID)
 {
 	const float sliceIndex = id.z;

@@ -26,7 +26,7 @@ namespace Crest
         protected abstract string QueryKernelName { get; }
 
         const int s_maxRequests = 4;
-        const int s_maxGuids = 64;
+        const int s_maxGuids = 1024;
 
         protected virtual ComputeShader ShaderProcessQueries => _shaderProcessQueries;
         ComputeShader _shaderProcessQueries;
@@ -34,21 +34,21 @@ namespace Crest
 
         System.Action<AsyncGPUReadbackRequest> _dataArrivedAction;
 
-        const int s_maxQueryCount = 4096;
         // Must match value in compute shader
         const int s_computeGroupSize = 64;
         public static bool s_useComputeCollQueries = true;
 
-        readonly static int sp_queryPositions_minGridSizes = Shader.PropertyToID("_QueryPositions_MinGridSizes");
-        readonly static int sp_MeshScaleLerp = Shader.PropertyToID("_MeshScaleLerp");
-        readonly static int sp_SliceCount = Shader.PropertyToID("_SliceCount");
+        readonly int sp_queryPositions_minGridSizes = Shader.PropertyToID("_QueryPositions_MinGridSizes");
 
         const float s_finiteDiffDx = 0.1f;
 
         ComputeBuffer _computeBufQueries;
         ComputeBuffer _computeBufResults;
 
-        Vector3[] _queryPosXZ_minGridSize = new Vector3[s_maxQueryCount];
+        public const int MAX_QUERY_COUNT_DEFAULT = 4096;
+
+        int _maxQueryCount = MAX_QUERY_COUNT_DEFAULT;
+        Vector3[] _queryPosXZ_minGridSize = new Vector3[MAX_QUERY_COUNT_DEFAULT];
 
         /// <summary>
         /// Holds information about all query points. Maps from unique hash code to position in point array.
@@ -190,7 +190,7 @@ namespace Crest
         /// Takes a unique request ID and some world space XZ positions, and computes the displacement vector that lands at this position,
         /// to a good approximation. The world space height of the water at that position is then SeaLevel + displacement.y.
         /// </summary>
-        protected bool UpdateQueryPoints(int i_ownerHash, SamplingData i_samplingData, Vector3[] queryPoints, Vector3[] queryNormals)
+        protected bool UpdateQueryPoints(int i_ownerHash, float i_minSpatialLength, Vector3[] queryPoints, Vector3[] queryNormals)
         {
             var segmentRetrieved = false;
             Vector2Int segment;
@@ -238,9 +238,14 @@ namespace Crest
 
             // The smallest wavelengths should repeat no more than twice across the smaller spatial length. Unless we're
             // in the last LOD - then this is the best we can do.
-            // i_samplingData._minSpatialLength
-            float minWavelength = i_samplingData._minSpatialLength / 2f;
+            float minWavelength = i_minSpatialLength / 2f;
             float minGridSize = minWavelength / OceanRenderer.Instance.MinTexelsPerWave;
+
+            if (countPts + segment.x > _queryPosXZ_minGridSize.Length)
+            {
+                Debug.LogError("Too many wave height queries. Increase Max Query Count in the Animated Waves Settings.", this);
+                return false;
+            }
 
             for (int pointi = 0; pointi < countPts; pointi++)
             {
@@ -352,7 +357,7 @@ namespace Crest
         /// Compute time derivative of the displacements by calculating difference from last query. More complicated than it would seem - results
         /// may not be available in one or both of the results, or the query locations in the array may change.
         /// </summary>
-        protected int CalculateVelocities(int i_ownerHash, SamplingData i_samplingData, Vector3[] i_queryPositions, Vector3[] results)
+        protected int CalculateVelocities(int i_ownerHash, float i_minSpatialLength, Vector3[] i_queryPositions, Vector3[] results)
         {
             // Need at least 2 returned results to do finite difference
             if (_queryResultsTime < 0f || _queryResultsTimeLast < 0f)
@@ -405,7 +410,7 @@ namespace Crest
                 ExecuteQueries();
 
                 // Remove oldest requests if we have hit the limit
-                while (_requests.Count >= s_maxQueryCount)
+                while (_requests.Count >= _maxQueryCount)
                 {
                     _requests.RemoveAt(0);
                 }
@@ -425,13 +430,6 @@ namespace Crest
             _computeBufQueries.SetData(_queryPosXZ_minGridSize, 0, 0, _segmentRegistrarRingBuffer.Current._numQueries);
             _shaderProcessQueries.SetBuffer(_kernelHandle, sp_queryPositions_minGridSizes, _computeBufQueries);
             BindInputsAndOutputs(_wrapper, _computeBufResults);
-
-            // LOD 0 is blended in/out when scale changes, to eliminate pops
-            var needToBlendOutShape = OceanRenderer.Instance.ScaleCouldIncrease;
-            var meshScaleLerp = needToBlendOutShape ? OceanRenderer.Instance.ViewerAltitudeLevelAlpha : 0f;
-            _shaderProcessQueries.SetFloat(sp_MeshScaleLerp, meshScaleLerp);
-
-            _shaderProcessQueries.SetFloat(sp_SliceCount, OceanRenderer.Instance.CurrentLodCount);
 
             var numGroups = (int)Mathf.Ceil((float)_segmentRegistrarRingBuffer.Current._numQueries / (float)s_computeGroupSize) * s_computeGroupSize;
             _shaderProcessQueries.Dispatch(_kernelHandle, numGroups, 1, 1);
@@ -492,15 +490,26 @@ namespace Crest
         {
             _dataArrivedAction = new System.Action<AsyncGPUReadbackRequest>(DataArrived);
 
-            _shaderProcessQueries = Resources.Load<ComputeShader>(QueryShaderName);
+            if (_maxQueryCount != OceanRenderer.Instance._simSettingsAnimatedWaves.MaxQueryCount)
+            {
+                _maxQueryCount = OceanRenderer.Instance._simSettingsAnimatedWaves.MaxQueryCount;
+                _queryPosXZ_minGridSize = new Vector3[_maxQueryCount];
+            }
+
+            _computeBufQueries = new ComputeBuffer(_maxQueryCount, 12, ComputeBufferType.Default);
+            _computeBufResults = new ComputeBuffer(_maxQueryCount, 12, ComputeBufferType.Default);
+
+            _queryResults = new NativeArray<Vector3>(_maxQueryCount, Allocator.Persistent, NativeArrayOptions.ClearMemory);
+            _queryResultsLast = new NativeArray<Vector3>(_maxQueryCount, Allocator.Persistent, NativeArrayOptions.ClearMemory);
+
+            _shaderProcessQueries = ComputeShaderHelpers.LoadShader(QueryShaderName);
+            if (_shaderProcessQueries == null)
+            {
+                enabled = false;
+                return;
+            }
             _kernelHandle = _shaderProcessQueries.FindKernel(QueryKernelName);
             _wrapper = new PropertyWrapperComputeStandalone(_shaderProcessQueries, _kernelHandle);
-
-            _computeBufQueries = new ComputeBuffer(s_maxQueryCount, 12, ComputeBufferType.Default);
-            _computeBufResults = new ComputeBuffer(s_maxQueryCount, 12, ComputeBufferType.Default);
-
-            _queryResults = new NativeArray<Vector3>(s_maxQueryCount, Allocator.Persistent, NativeArrayOptions.ClearMemory);
-            _queryResultsLast = new NativeArray<Vector3>(s_maxQueryCount, Allocator.Persistent, NativeArrayOptions.ClearMemory);
         }
 
         protected virtual void OnDisable()
@@ -514,11 +523,11 @@ namespace Crest
             _segmentRegistrarRingBuffer.ClearAll();
         }
 
-        public int Query(int i_ownerHash, SamplingData i_samplingData, Vector3[] i_queryPoints, Vector3[] o_resultDisps, Vector3[] o_resultNorms, Vector3[] o_resultVels)
+        public int Query(int i_ownerHash, float i_minSpatialLength, Vector3[] i_queryPoints, Vector3[] o_resultDisps, Vector3[] o_resultNorms, Vector3[] o_resultVels)
         {
             var result = (int)QueryStatus.OK;
 
-            if (!UpdateQueryPoints(i_ownerHash, i_samplingData, i_queryPoints, o_resultNorms != null ? i_queryPoints : null))
+            if (!UpdateQueryPoints(i_ownerHash, i_minSpatialLength, i_queryPoints, o_resultNorms != null ? i_queryPoints : null))
             {
                 result |= (int)QueryStatus.PostFailed;
             }
@@ -530,7 +539,7 @@ namespace Crest
 
             if (o_resultVels != null)
             {
-                result |= CalculateVelocities(i_ownerHash, i_samplingData, i_queryPoints, o_resultVels);
+                result |= CalculateVelocities(i_ownerHash, i_minSpatialLength, i_queryPoints, o_resultVels);
             }
 
             return result;

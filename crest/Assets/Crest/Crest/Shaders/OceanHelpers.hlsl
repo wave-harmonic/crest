@@ -4,9 +4,6 @@
 
 // Ocean LOD data - data, samplers and functions associated with LODs
 
-
-#include "OceanLODData.hlsl"
-
 float ComputeLodAlpha(float3 i_worldPos, float i_meshScaleAlpha)
 {
 	// taxicab distance from ocean center drives LOD transitions
@@ -51,4 +48,28 @@ void SnapAndTransitionVertLayout(float i_meshScaleAlpha, inout float3 io_worldPo
 	const float minRadius = 0.26; //0.26 is 0.25 plus a small "epsilon" - should solve numerical issues
 	if (abs(offset.x) < minRadius) io_worldPos.x += offset.x * o_lodAlpha * GRID_SIZE_4;
 	if (abs(offset.y) < minRadius) io_worldPos.z += offset.y * o_lodAlpha * GRID_SIZE_4;
+}
+
+// Clips using ocean surface clip data
+void ApplyOceanClipSurface(in const float3 io_positionWS, in const float i_lodAlpha)
+{
+	// Sample shape textures - always lerp between 2 scales, so sample two textures
+	// Sample weights. params.z allows shape to be faded out (used on last lod to support pop-less scale transitions)
+	const float2 worldXZ = io_positionWS.xz;
+	float wt_smallerLod = (1. - i_lodAlpha) * _LD_Params[_LD_SliceIndex].z;
+	float wt_biggerLod = (1. - wt_smallerLod) * _LD_Params[_LD_SliceIndex + 1].z;
+
+	// Sample clip surface data
+	half clipValue = 0.0;
+	if (wt_smallerLod > 0.001)
+	{
+		SampleClip(_LD_TexArray_ClipSurface, WorldToUV(worldXZ), wt_smallerLod, clipValue);
+	}
+	if (wt_biggerLod > 0.001)
+	{
+		SampleClip(_LD_TexArray_ClipSurface, WorldToUV_BiggerLod(worldXZ), wt_biggerLod, clipValue);
+	}
+
+	// Add 0.5 bias for LOD blending and texel resolution correction. This will help to tighten and smooth clipped edges
+	clip(-clipValue + 0.5);
 }

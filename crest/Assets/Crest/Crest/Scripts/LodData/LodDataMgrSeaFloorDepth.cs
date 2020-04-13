@@ -13,7 +13,7 @@ namespace Crest
     public class LodDataMgrSeaFloorDepth : LodDataMgr
     {
         public override string SimName { get { return "SeaFloorDepth"; } }
-        public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RFloat; } }
+        public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RHalf; } }
         protected override bool NeedToReadWriteTextureData { get { return false; } }
 
         public override SimSettingsBase CreateDefaultSettings() { return null; }
@@ -22,6 +22,8 @@ namespace Crest
         bool _targetsClear = false;
 
         public const string ShaderName = "Crest/Inputs/Depth/Cached Depths";
+
+        static Texture2DArray s_nullTexture2DArray;
 
         public override void BuildCommandBuffer(OceanRenderer ocean, CommandBuffer buf)
         {
@@ -37,7 +39,7 @@ namespace Crest
             for (int lodIdx = OceanRenderer.Instance.CurrentLodCount - 1; lodIdx >= 0; lodIdx--)
             {
                 buf.SetRenderTarget(_targets.Current, 0, CubemapFace.Unknown, lodIdx);
-                buf.ClearRenderTarget(false, true, Color.white * 1000f);
+                buf.ClearRenderTarget(false, true, Color.red * 1000f);
                 buf.SetGlobalInt(sp_LD_SliceIndex, lodIdx);
                 SubmitDraws(lodIdx, buf);
             }
@@ -46,16 +48,48 @@ namespace Crest
             _targetsClear = drawList.Count == 0;
         }
 
-        public static string TextureArrayName = "_LD_TexArray_SeaFloorDepth";
-        private static TextureArrayParamIds textureArrayParamIds = new TextureArrayParamIds(TextureArrayName);
-        public static int ParamIdSampler(bool sourceLod = false) { return textureArrayParamIds.GetId(sourceLod); }
+        readonly static string s_textureArrayName = "_LD_TexArray_SeaFloorDepth";
+        private static TextureArrayParamIds s_textureArrayParamIds = new TextureArrayParamIds(s_textureArrayName);
+        public static int ParamIdSampler(bool sourceLod = false) { return s_textureArrayParamIds.GetId(sourceLod); }
         protected override int GetParamIdSampler(bool sourceLod = false)
         {
             return ParamIdSampler(sourceLod);
         }
         public static void BindNull(IPropertyWrapper properties, bool sourceLod = false)
         {
-            properties.SetTexture(ParamIdSampler(sourceLod), TextureArrayHelpers.BlackTextureArray);
+            // Texture2D.whiteTexture prevents us from initialising this in a static constructor. Seemed appropriate to
+            // do it here.
+            if (s_nullTexture2DArray == null)
+            {
+                InitNullTexture();
+            }
+
+            properties.SetTexture(ParamIdSampler(sourceLod), s_nullTexture2DArray);
+        }
+
+        static void InitNullTexture()
+        {
+            var texture = Instantiate<Texture2D>(Texture2D.whiteTexture);
+            // Null texture needs to be white (uses R channel) with a 1000 intensity.
+            var color = new Color(1000, 1000, 1000, 1);
+            Color[] pixels = new Color[texture.height * texture.width];
+            for(int i = 0; i < pixels.Length; i++)
+            {
+                pixels[i] = color;
+            }
+            texture.SetPixels(pixels);
+            texture.Apply();
+            s_nullTexture2DArray = TextureArrayHelpers.CreateTexture2DArray(texture);
+            s_nullTexture2DArray.name = "Sea Floor Depth Null Texture";
+        }
+
+#if UNITY_2019_3_OR_NEWER
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+#endif
+        static void InitStatics()
+        {
+            // Init here from 2019.3 onwards
+            s_textureArrayParamIds = new TextureArrayParamIds(s_textureArrayName);
         }
     }
 }

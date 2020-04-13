@@ -6,32 +6,37 @@
 
 Shader "Crest/Inputs/Animated Waves/Push Water Under Convex Hull"
 {
- 	SubShader
+	SubShader
 	{
- 		Pass
+		Pass
 		{
 			BlendOp Min
 			Cull Front
 
- 			CGPROGRAM
+			CGPROGRAM
 			#pragma vertex Vert
 			#pragma fragment Frag
 
- 			#include "UnityCG.cginc"
-			#include "../OceanLODData.hlsl"
+			#include "UnityCG.cginc"
 
- 			struct Attributes
+			#include "../OceanGlobals.hlsl"
+
+			CBUFFER_START(CrestPerOceanInput)
+			float _Weight;
+			CBUFFER_END
+
+			struct Attributes
 			{
 				float3 positionOS : POSITION;
 			};
 
- 			struct Varyings
+			struct Varyings
 			{
 				float4 positionCS : SV_POSITION;
 				float3 worldPos : TEXCOORD0;
 			};
 
- 			Varyings Vert(Attributes input)
+			Varyings Vert(Attributes input)
 			{
 				Varyings o;
 				o.positionCS = UnityObjectToClipPos(input.positionOS);
@@ -39,13 +44,13 @@ Shader "Crest/Inputs/Animated Waves/Push Water Under Convex Hull"
 				return o;
 			}
 
- 			half4 Frag(Varyings input) : SV_Target
+			half4 Frag(Varyings input) : SV_Target
 			{
 				// Write displacement to get from sea level of ocean to the y value of this geometry.
 
 				// Write large XZ components - using min blending so this should not affect them.
-				
-				return half4(10000.0, input.worldPos.y - _OceanCenterPosWorld.y, 10000.0, 1.0);
+
+				return half4(10000.0, _Weight * (input.worldPos.y - _OceanCenterPosWorld.y), 10000.0, 1.0);
 			}
 			ENDCG
 		}

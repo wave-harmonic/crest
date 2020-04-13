@@ -34,8 +34,7 @@ namespace Crest
         PropertyWrapperMPB _mpb;
         Renderer _rend;
 
-        static readonly int sp_HeightOffset = Shader.PropertyToID("_HeightOffset");
-        static readonly int sp_InstanceData = Shader.PropertyToID("_InstanceData");
+        readonly int sp_HeightOffset = Shader.PropertyToID("_HeightOffset");
 
         SampleHeightHelper _sampleWaterHeight = new SampleHeightHelper();
 
@@ -138,7 +137,7 @@ namespace Crest
 
                 _mpb.SetFloat(sp_HeightOffset, heightOffset);
 
-                _mpb.SetVector(sp_InstanceData, new Vector4(OceanRenderer.Instance.ViewerAltitudeLevelAlpha, 0f, 0f, OceanRenderer.Instance.CurrentLodCount));
+                _mpb.SetVector(OceanChunkRenderer.sp_InstanceData, new Vector3(OceanRenderer.Instance.ViewerAltitudeLevelAlpha, 0f, 0f));
 
                 _rend.SetPropertyBlock(_mpb.materialPropertyBlock);
             }

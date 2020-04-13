@@ -19,8 +19,6 @@ namespace Crest
         Mesh _mesh;
         Bounds _boundsLocal;
 
-        static int sp_InstanceData = Shader.PropertyToID("_InstanceData");
-
         private void Start()
         {
             _rend = GetComponent<Renderer>();
@@ -57,6 +55,15 @@ namespace Crest
                 var lodDataAnimWaves = OceanRenderer.Instance._lodDataAnimWaves;
                 _mpb.SetInt(LodDataMgr.sp_LD_SliceIndex, lodIdx);
                 lodDataAnimWaves.BindResultData(_mpb);
+                var lodDataClipSurface = OceanRenderer.Instance._lodDataClipSurface;
+                if (lodDataClipSurface != null)
+                {
+                    lodDataClipSurface.BindResultData(_mpb);
+                }
+                else
+                {
+                    LodDataMgrClipSurface.BindNull(_mpb);
+                }
 
                 // blend LOD 0 shape in/out to avoid pop, if the ocean might scale up later (it is smaller than its maximum scale)
                 bool needToBlendOutShape = lodIdx == 0 && OceanRenderer.Instance.ScaleCouldIncrease;
@@ -65,7 +72,7 @@ namespace Crest
                 // blend furthest normals scale in/out to avoid pop, if scale could reduce
                 bool needToBlendOutNormals = lodIdx == lodCount - 1 && OceanRenderer.Instance.ScaleCouldDecrease;
                 float farNormalsWeight = needToBlendOutNormals ? OceanRenderer.Instance.ViewerAltitudeLevelAlpha : 1f;
-                _mpb.SetVector(sp_InstanceData, new Vector4(meshScaleLerp, farNormalsWeight, lodIdx, OceanRenderer.Instance.CurrentLodCount));
+                _mpb.SetVector(OceanChunkRenderer.sp_InstanceData, new Vector3(meshScaleLerp, farNormalsWeight, lodIdx));
 
                 _rend.SetPropertyBlock(_mpb.materialPropertyBlock);
             }

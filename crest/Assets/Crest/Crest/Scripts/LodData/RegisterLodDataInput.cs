@@ -2,15 +2,32 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 
 namespace Crest
 {
+    using OceanInput = CrestSortedList<int, ILodDataInput>;
+
+    /// <summary>
+    /// Comparer that always returns less or greater, never equal, to get work around unique key constraint
+    /// </summary>
+    public class DuplicateKeyComparer<TKey> : IComparer<TKey> where TKey : IComparable
+    {
+        public int Compare(TKey x, TKey y)
+        {
+            int result = x.CompareTo(y);
+
+            // If non-zero, use result, otherwise return greater (never equal)
+            return result != 0 ? result : 1;
+        }
+    }
+
     public interface ILodDataInput
     {
-        void Draw(CommandBuffer buf, float weight, int isTransition);
+        void Draw(CommandBuffer buf, float weight, int isTransition, int lodIdx);
         float Wavelength { get; }
         bool Enabled { get; }
     }
@@ -22,19 +39,20 @@ namespace Crest
     {
         public abstract float Wavelength { get; }
 
-        public bool Enabled => true;
+        public abstract bool Enabled { get; }
 
         public static int sp_Weight = Shader.PropertyToID("_Weight");
 
-        static Dictionary<System.Type, List<ILodDataInput>> _registrar = new Dictionary<System.Type, List<ILodDataInput>>();
+        static DuplicateKeyComparer<int> s_comparer = new DuplicateKeyComparer<int>();
+        static Dictionary<Type, OceanInput> s_registrar = new Dictionary<Type, OceanInput>();
 
-        public static List<ILodDataInput> GetRegistrar(System.Type lodDataMgrType)
+        public static OceanInput GetRegistrar(Type lodDataMgrType)
         {
-            List<ILodDataInput> registered;
-            if (!_registrar.TryGetValue(lodDataMgrType, out registered))
+            OceanInput registered;
+            if (!s_registrar.TryGetValue(lodDataMgrType, out registered))
             {
-                registered = new List<ILodDataInput>();
-                _registrar.Add(lodDataMgrType, registered);
+                registered = new OceanInput(s_comparer);
+                s_registrar.Add(lodDataMgrType, registered);
             }
             return registered;
         }
@@ -53,11 +71,12 @@ namespace Crest
             }
         }
 
-        public void Draw(CommandBuffer buf, float weight, int isTransition)
+        public void Draw(CommandBuffer buf, float weight, int isTransition, int lodIdx)
         {
             if (_renderer && weight > 0f)
             {
                 _materials[isTransition].SetFloat(sp_Weight, weight);
+                _materials[isTransition].SetInt(LodDataMgr.sp_LD_SliceIndex, lodIdx);
 
                 buf.DrawRenderer(_renderer, _materials[isTransition]);
             }
@@ -65,6 +84,16 @@ namespace Crest
 
         public int MaterialCount => _materials.Length;
         public Material GetMaterial(int index) => _materials[index];
+
+#if UNITY_2019_3_OR_NEWER
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+#endif
+        static void InitStatics()
+        {
+            // Init here from 2019.3 onwards
+            s_registrar.Clear();
+            sp_Weight = Shader.PropertyToID("_Weight");
+        }
     }
 
     /// <summary>
@@ -75,19 +104,24 @@ namespace Crest
     {
         [SerializeField] bool _disableRenderer = true;
 
+        protected abstract Color GizmoColor { get; }
+
         protected virtual void OnEnable()
         {
-            if (_disableRenderer)
+            var queue = 0;
+            var rend = GetComponent<Renderer>();
+            if (rend)
             {
-                var rend = GetComponent<Renderer>();
-                if (rend)
+                if (_disableRenderer)
                 {
                     rend.enabled = false;
                 }
+
+                queue = (rend.sharedMaterial ?? rend.material).renderQueue;
             }
 
             var registrar = GetRegistrar(typeof(LodDataType));
-            registrar.Add(this);
+            registrar.Add(queue, this);
         }
 
         protected virtual void OnDisable()
@@ -96,6 +130,16 @@ namespace Crest
             if (registered != null)
             {
                 registered.Remove(this);
+            }
+        }
+
+        private void OnDrawGizmosSelected()
+        {
+            var mf = GetComponent<MeshFilter>();
+            if (mf)
+            {
+                Gizmos.color = GizmoColor;
+                Gizmos.DrawWireMesh(mf.sharedMesh, transform.position, transform.rotation, transform.lossyScale);
             }
         }
     }

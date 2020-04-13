@@ -188,14 +188,14 @@ namespace Crest
             {
                 ocean._lodDataSeaDepths = ocean.gameObject.AddComponent<LodDataMgrSeaFloorDepth>();
             }
+            if (ocean.CreateClipSurfaceData)
+            {
+                ocean._lodDataClipSurface = ocean.gameObject.AddComponent<LodDataMgrClipSurface>();
+            }
 
             // Add any required GPU readbacks
             {
                 var ssaw = ocean._simSettingsAnimatedWaves;
-                if (ssaw && ssaw.CollisionSource == SimSettingsAnimatedWaves.CollisionSources.OceanDisplacementTexturesGPU)
-                {
-                    ocean.gameObject.AddComponent<GPUReadbackDisps>();
-                }
                 if (ssaw && ssaw.CollisionSource == SimSettingsAnimatedWaves.CollisionSources.ComputeShaderQueries)
                 {
                     ocean.gameObject.AddComponent<QueryDisplacements>();
@@ -226,7 +226,7 @@ namespace Crest
 
 #if PROFILE_CONSTRUCTION
             sw.Stop();
-            Debug.Log( "Finished generating " + parms._lodCount.ToString() + " LODs, time: " + (1000.0*sw.Elapsed.TotalSeconds).ToString(".000") + "ms" );
+            Debug.Log( "Finished generating " + lodCount.ToString() + " LODs, time: " + (1000.0*sw.Elapsed.TotalSeconds).ToString(".000") + "ms" );
 #endif
         }
 

@@ -22,6 +22,11 @@ namespace Crest
         public float DeltaTime => _timeProvider.DeltaTime;
         public float DeltaTimeDynamics => _timeProvider.DeltaTimeDynamics;
 
+        [Tooltip("The primary directional light. Required if shadowing is enabled.")]
+        public Light _primaryLight;
+        [SerializeField, Tooltip("If Primary Light is not set, search the scene for all directional lights and pick the brightest to use as the sun light.")]
+        bool _searchForPrimaryLightOnStartup = true;
+
         [Header("Ocean Params")]
 
         [SerializeField, Tooltip("Material to use for the ocean surface")]
@@ -90,19 +95,23 @@ namespace Crest
         [Tooltip("Shadow information used for lighting water."), SerializeField]
         bool _createShadowData = false;
         public bool CreateShadowData { get { return _createShadowData; } }
-        [Tooltip("The primary directional light. Required if shadowing is enabled.")]
-        public Light _primaryLight;
         public SimSettingsShadow _simSettingsShadow;
 
+        [Tooltip("Clip surface information for clipping the ocean surface."), SerializeField]
+        bool _createClipSurfaceData = false;
+        public bool CreateClipSurfaceData { get { return _createClipSurfaceData; } }
 
         [Header("Debug Params")]
 
-        [Tooltip("Whether to generate ocean geometry tiles uniformly (with overlaps).")]
-        public bool _uniformTiles = false;
-        [Tooltip("Disable generating a wide strip of triangles at the outer edge to extend ocean to edge of view frustum.")]
-        public bool _disableSkirt = false;
+        [Tooltip("Attach debug gui that adds some controls and allows to visualise the ocean data."), SerializeField]
+        bool _attachDebugGUI = false;
+
         [Tooltip("Move ocean with viewpoint.")]
         public bool _followViewpoint = true;
+        [HideInInspector, Tooltip("Whether to generate ocean geometry tiles uniformly (with overlaps).")]
+        public bool _uniformTiles = false;
+        [HideInInspector, Tooltip("Disable generating a wide strip of triangles at the outer edge to extend ocean to edge of view frustum.")]
+        public bool _disableSkirt = false;
 
         /// <summary>
         /// Current ocean scale (changes with viewer altitude).
@@ -124,10 +133,12 @@ namespace Crest
         [HideInInspector] public LodTransform _lodTransform;
         [HideInInspector] public LodDataMgrAnimWaves _lodDataAnimWaves;
         [HideInInspector] public LodDataMgrSeaFloorDepth _lodDataSeaDepths;
+        [HideInInspector] public LodDataMgrClipSurface _lodDataClipSurface;
         [HideInInspector] public LodDataMgrDynWaves _lodDataDynWaves;
         [HideInInspector] public LodDataMgrFlow _lodDataFlow;
         [HideInInspector] public LodDataMgrFoam _lodDataFoam;
         [HideInInspector] public LodDataMgrShadow _lodDataShadow;
+
         /// <summary>
         /// The number of LODs/scales that the ocean is currently using.
         /// </summary>
@@ -139,14 +150,22 @@ namespace Crest
         public float ViewerHeightAboveWater { get; private set; }
 
         SampleHeightHelper _sampleHeightHelper = new SampleHeightHelper();
-        
-        static int sp_crestTime = Shader.PropertyToID("_CrestTime");
-        static int sp_texelsPerWave = Shader.PropertyToID("_TexelsPerWave");
-        static int sp_oceanCenterPosWorld = Shader.PropertyToID("_OceanCenterPosWorld");
 
+        public static OceanRenderer Instance { get; private set; }
+
+        readonly int sp_crestTime = Shader.PropertyToID("_CrestTime");
+        readonly int sp_texelsPerWave = Shader.PropertyToID("_TexelsPerWave");
+        readonly int sp_oceanCenterPosWorld = Shader.PropertyToID("_OceanCenterPosWorld");
+        readonly int sp_meshScaleLerp = Shader.PropertyToID("_MeshScaleLerp");
+        readonly int sp_sliceCount = Shader.PropertyToID("_SliceCount");
 
         void Awake()
         {
+            if (!_primaryLight && _searchForPrimaryLightOnStartup)
+            {
+                _primaryLight = RenderSettings.sun;
+            }
+
             if (!VerifyRequirements())
             {
                 enabled = false;
@@ -165,6 +184,11 @@ namespace Crest
 
             InitViewpoint();
             InitTimeProvider();
+
+            if(_attachDebugGUI && GetComponent<OceanDebugGUI>() == null)
+            {
+                gameObject.AddComponent<OceanDebugGUI>();
+            }
         }
 
         bool VerifyRequirements()
@@ -199,7 +223,7 @@ namespace Crest
                 }
                 else
                 {
-                    Debug.LogError("Please provide the viewpoint transform, or tag the primary camera as MainCamera.", this);
+                    Debug.LogError("Crest needs to know where to focus the ocean detail. Please set the Viewpoint property of the OceanRenderer component to the transform of the viewpoint/camera that the ocean should follow, or tag the primary camera as MainCamera.", this);
                 }
             }
         }
@@ -217,16 +241,15 @@ namespace Crest
         void Update()
         {
             BuildCommandBuffer.FlipDataBuffers(this);
-
-            UpdateCollision();
         }
 
-        void UpdateCollision()
+#if UNITY_2019_3_OR_NEWER
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+#endif
+        static void InitStatics()
         {
-            if (_simSettingsAnimatedWaves.CachedHeightQueries)
-            {
-                (CollisionProvider as CollProviderCache).ClearCache();
-            }
+            // Init here from 2019.3 onwards
+            Instance = null;
         }
 
         void LateUpdate()
@@ -234,6 +257,13 @@ namespace Crest
             // set global shader params
             Shader.SetGlobalFloat(sp_texelsPerWave, MinTexelsPerWave);
             Shader.SetGlobalFloat(sp_crestTime, CurrentTime);
+            Shader.SetGlobalFloat(sp_sliceCount, CurrentLodCount);
+
+            // LOD 0 is blended in/out when scale changes, to eliminate pops. Here we set it as a global, whereas in OceanChunkRenderer it
+            // is applied to LOD0 tiles only through _InstanceData. This global can be used in compute, where we only apply this factor for slice 0.
+            var needToBlendOutShape = ScaleCouldIncrease;
+            var meshScaleLerp = needToBlendOutShape ? ViewerAltitudeLevelAlpha : 0f;
+            Shader.SetGlobalFloat(sp_meshScaleLerp, meshScaleLerp);
 
             if (_viewpoint == null)
             {
@@ -309,6 +339,7 @@ namespace Crest
             if (_lodDataFlow) _lodDataFlow.UpdateLodData();
             if (_lodDataFoam) _lodDataFoam.UpdateLodData();
             if (_lodDataSeaDepths) _lodDataSeaDepths.UpdateLodData();
+            if (_lodDataClipSurface) _lodDataClipSurface.UpdateLodData();
             if (_lodDataShadow) _lodDataShadow.UpdateLodData();
         }
 
@@ -350,8 +381,6 @@ namespace Crest
         /// The maximum height that the shape scripts are displacing the shape.
         /// </summary>
         public float MaxVertDisplacement { get { return _maxVertDispFromShape; } }
-
-        public static OceanRenderer Instance { get; private set; }
 
         /// <summary>
         /// Provides ocean shape to CPU.

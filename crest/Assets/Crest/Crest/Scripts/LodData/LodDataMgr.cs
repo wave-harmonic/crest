@@ -158,9 +158,9 @@ namespace Crest
         }
 
         // Avoid heap allocations instead BindData
-        private Vector4[] _BindData_paramIdPosScales = new Vector4[MAX_LOD_COUNT];
+        private Vector4[] _BindData_paramIdPosScales = new Vector4[MAX_LOD_COUNT + 1];
         // Used in child
-        protected Vector4[] _BindData_paramIdOceans = new Vector4[MAX_LOD_COUNT];
+        protected Vector4[] _BindData_paramIdOceans = new Vector4[MAX_LOD_COUNT + 1];
         protected virtual void BindData(IPropertyWrapper properties, Texture applyData, bool blendOut, BufferedData<LodTransform.RenderData>[] renderData, int framesBack = 0, bool sourceLod = false)
         {
             if (applyData)
@@ -182,6 +182,8 @@ namespace Crest
             // off the end of this parameter is the same as going off the end of the texture array with our clamped sampler.
             _BindData_paramIdPosScales[OceanRenderer.Instance.CurrentLodCount] = _BindData_paramIdPosScales[OceanRenderer.Instance.CurrentLodCount - 1];
             _BindData_paramIdOceans[OceanRenderer.Instance.CurrentLodCount] = _BindData_paramIdOceans[OceanRenderer.Instance.CurrentLodCount - 1];
+            // Never use this last lod - it exists to give 'something' but should not be used
+            _BindData_paramIdOceans[OceanRenderer.Instance.CurrentLodCount].z = 0f;
 
             properties.SetVectorArray(LodTransform.ParamIdPosScale(sourceLod), _BindData_paramIdPosScales);
             properties.SetVectorArray(LodTransform.ParamIdOcean(sourceLod), _BindData_paramIdOceans);
@@ -227,7 +229,12 @@ namespace Crest
             var drawList = RegisterLodDataInputBase.GetRegistrar(GetType());
             foreach (var draw in drawList)
             {
-                draw.Draw(buf, 1f, 0);
+                if (!draw.Value.Enabled)
+                {
+                    continue;
+                }
+
+                draw.Value.Draw(buf, 1f, 0, lodIdx);
             }
         }
 
@@ -241,16 +248,16 @@ namespace Crest
             var drawList = RegisterLodDataInputBase.GetRegistrar(GetType());
             foreach (var draw in drawList)
             {
-                if (!draw.Enabled)
+                if (!draw.Value.Enabled)
                 {
                     continue;
                 }
 
                 int isTransition;
-                float weight = filter.Filter(draw, out isTransition);
+                float weight = filter.Filter(draw.Value, out isTransition);
                 if (weight > 0f)
                 {
-                    draw.Draw(buf, weight, isTransition);
+                    draw.Value.Draw(buf, weight, isTransition, lodIdx);
                 }
             }
         }
@@ -269,6 +276,16 @@ namespace Crest
                 _paramId_Source = Shader.PropertyToID(textureArrayName + "_Source");
             }
             public int GetId(bool sourceLod) { return sourceLod ? _paramId_Source : _paramId; }
+        }
+
+#if UNITY_2019_3_OR_NEWER
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+#endif
+        static void InitStatics()
+        {
+            // Init here from 2019.3 onwards
+            sp_LD_SliceIndex = Shader.PropertyToID("_LD_SliceIndex");
+            sp_LODChange = Shader.PropertyToID("_LODChange");
         }
     }
 }

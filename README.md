@@ -15,7 +15,7 @@ The version hosted here targets the **built-in render pipeline**, a link to the 
 
 **Twitter:** [@crest_ocean](https://twitter.com/@crest_ocean)
 
-**URP asset:** [Crest Ocean System URP](https://assetstore.unity.com/detail/tools/particles-effects/crest-ocean-system-lwrp-urp-141674)
+**URP asset:** [Crest Ocean System URP](https://assetstore.unity.com/packages/tools/particles-effects/crest-ocean-system-urp-141674)
 
 **HDRP asset:** [Crest Ocean System HDRP](https://assetstore.unity.com/packages/tools/particles-effects/crest-ocean-system-hdrp-164158)
 

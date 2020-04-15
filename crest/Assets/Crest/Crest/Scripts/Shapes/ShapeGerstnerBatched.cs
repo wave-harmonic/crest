@@ -267,6 +267,7 @@ namespace Crest
 
                 // Create a proxy MeshRenderer to feed the rendering
                 var renderProxy = GameObject.CreatePrimitive(PrimitiveType.Quad);
+                Destroy(renderProxy.GetComponent<Collider>());
                 renderProxy.hideFlags = HideFlags.HideAndDontSave;
                 renderProxy.transform.parent = transform;
                 rend = renderProxy.GetComponent<MeshRenderer>();

@@ -1,0 +1,121 @@
+﻿// Crest Ocean System
+
+// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
+
+// Solves 2D wave equation
+
+#pragma kernel UpdateDynWaves
+
+#define MIN_DT 0.00001
+
+#include "HLSLSupport.cginc"
+#include "../OceanGlobals.hlsl"
+#include "../OceanInputsDriven.hlsl"
+#include "../OceanLODData.hlsl"
+#include "../OceanHelpersNew.hlsl"
+
+CBUFFER_START(CrestPerMaterial)
+float _Damping;
+float2 _LaplacianAxisX;
+float _Gravity;
+float _SimDeltaTime;
+float _LODChange;
+CBUFFER_END
+
+float ComputeWaveSpeed(float wavelength, float g)
+{
+	// wave speed of deep sea ocean waves: https://en.wikipedia.org/wiki/Wind_wave
+	// https://en.wikipedia.org/wiki/Dispersion_(water_waves)#Wave_propagation_and_dispersion
+	//float g = 9.81; float k = 2. * 3.141593 / wavelength; float cp = sqrt(g / k); return cp;
+	const float one_over_2pi = 0.15915494;
+	return sqrt(wavelength*g*one_over_2pi);
+}
+
+RWTexture2DArray<float2> _LD_TexArray_Target;
+
+[numthreads(THREAD_GROUP_SIZE_X, THREAD_GROUP_SIZE_Y, 1)]
+void UpdateDynWaves(uint3 id : SV_DispatchThreadID)
+{
+	const float sliceIndex = id.z;
+	const float sliceIndexSource = id.z + _LODChange;
+	float width; float height; float depth;
+	{
+		_LD_TexArray_DynamicWaves_Source.GetDimensions(width, height, depth);
+	}
+	const float2 input_uv = IDtoUV(id.xy, width, height);
+	const float2 worldPosXZ = UVToWorld(input_uv, sliceIndex);
+	const float gridSize = _LD_Params[sliceIndex].x;
+
+	// average wavelength for this scale
+	const float wavelength = 1.0 * _TexelsPerWave * gridSize;
+	// could make velocity depend on waves
+	//float h = max(waterSignedDepth + ft, 0.);
+	const float c = ComputeWaveSpeed(wavelength, _Gravity);
+
+	const float dt = _SimDeltaTime;
+
+	const float3 uv_slice = float3(input_uv, sliceIndex);
+
+	const half2 velocity = SampleLod(_LD_TexArray_Flow, uv_slice).xy;
+	const float3 uv_source = WorldToUV_Source(worldPosXZ - (dt * velocity), sliceIndexSource);
+
+	// weighting for source position - weight 0 for off texture accesses to stop streaky artifacts
+	float2 distToEdge = min(uv_source.xy, 1.0 - uv_source.xy);
+	// soft, wide feather at boundary to balance reflections vs streaking under motion
+	const float edgeFeather = 0.1;
+	float weightEdge = saturate(min(distToEdge.x, distToEdge.y) / edgeFeather);
+	weightEdge = lerp(0.95, 1.0, weightEdge);
+
+	// compute axes of laplacian kernel - rotated every frame
+	const float e = _LD_Params_Source[sliceIndexSource].w; // assumes square RT
+	//float3 X = float3(1.0, 0.0, 0.0);
+	const float3 X = float3(_LaplacianAxisX, 0.0);
+	const float3 Y = float3(-X.y, X.x, 0.0);
+
+	// no border wrap mode for RTs in unity it seems,
+	// so make any off-array reads 0 manually
+	const bool insideTarget = sliceIndexSource <= depth && sliceIndexSource >= 0;
+
+	float fxm, fym, fxp, fyp; float2 ft_v;
+	ft_v = fxm = fym = fxp = fyp = 0.0;
+
+	if (insideTarget)
+	{
+		fxm = SampleLod(_LD_TexArray_DynamicWaves_Source, uv_source - e * X).x; // x minus
+		fym = SampleLod(_LD_TexArray_DynamicWaves_Source, uv_source - e * Y).x; // y minus
+		fxp = SampleLod(_LD_TexArray_DynamicWaves_Source, uv_source + e * X).x; // x plus
+		fyp = SampleLod(_LD_TexArray_DynamicWaves_Source, uv_source + e * Y).x; // y plus
+		ft_v = SampleLod(_LD_TexArray_DynamicWaves_Source, uv_source).xy;
+	}
+
+	// wave propagation
+
+	// t - current value before update
+	const float ft = ft_v.x;
+	const float vt = ft_v.y;
+
+	// wave equation
+	float coeff = dt * c * c / (gridSize*gridSize);
+	float vtp = vt + coeff * (fxm + fxp + fym + fyp - 4.0 * ft);
+
+	// damping. works ok at low dts, doesnt damp well at high dts which counter intuitively leads to instabilities, i think.
+	vtp *= 1.0 - min(1.0, _Damping * dt);
+
+	// dampen towards boundaries smoothly to eliminate reflections and streaking
+	vtp *= weightEdge;
+
+	// integrate velocity onto position
+	float ftp = ft + dt * vtp;
+	ftp *= weightEdge;
+
+	// attenuate waves based on ocean depth. if depth is greater than 0.5*wavelength, water is considered Deep and wave is
+	// unaffected. if depth is less than this, wave velocity decreases. waves will then bunch up and grow in amplitude and
+	// eventually break. i model "Deep" water, but then simply ramp down waves in non-deep water with a linear multiplier.
+	// http://hyperphysics.phy-astr.gsu.edu/hbase/Waves/watwav2.html
+	// http://hyperphysics.phy-astr.gsu.edu/hbase/watwav.html#c1
+	float waterDepth = SampleLod(_LD_TexArray_SeaFloorDepth, uv_slice).x;
+	float depthMul = 1.0 - (1.0 - saturate(2.0 * waterDepth / wavelength)) * dt * 2.0;
+	ftp *= depthMul;
+
+	_LD_TexArray_Target[id] = float2(ftp, vtp);
+}

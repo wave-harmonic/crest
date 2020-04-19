@@ -16,9 +16,13 @@
 * Hydrax - open source ocean plug-in for OGRE - https://github.com/imperative/CommunityHydrax
 * Survey ocean simulation techniques - 2011 - https://arxiv.org/pdf/1109.6494.pdf
 * Weta - Synthesizing waves from animated heightfields - 2012 - deals with optimizing a physical ocean surface to match an artist authored shape, numerical issues with tanh(), eliminating overlaps, computing a 3D velocity field: http://cs.au.dk/~bang/publications/NielsenSoderstromBridsonTOG2012.pdf
+* Hitman Ocean Technology - they mix a few systems together (thanks for link @ajweeks) https://www.eidosmontreal.com/en/news/hitman-ocean-technology
+* Kass - derive / justify wave equation: http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.89.1204&rep=rep1&type=pdf
 
 ### Wave Theory
 
+* Great text about water waves of all types: https://topex.ucsd.edu/ps/trujillo_waves.pdf
+* Nice chapter on water wave phenomena: http://www.dartmouth.edu/~cushman/books/EFM/chap4.pdf . Shows pressure profile of wind travelling over and obstacle.
 * Useful notes on dispersive and non-dispersive waves: http://www-eaps.mit.edu/~rap/courses/12333_notes/dispersion.pdf
 * More notes on waves: https://thayer.dartmouth.edu/~d30345d/books/EFM/chap4.pdf
 * Dispersive wave equation: https://ccrma.stanford.edu/~jos/pasp/Dispersive_1D_Wave_Equation.html
@@ -33,6 +37,8 @@
 * Realistic simulation of waves using wave spectra: https://hal.archives-ouvertes.fr/file/index/docid/307938/filename/frechot_realistic_simulation_of_ocean_surface_using_wave_spectra.pdf
 * Nice practical demo about testing different wave breakers: https://youtu.be/3yNoy4H2Z-o
 * Useful notes/diagrams on waves: http://hyperphysics.phy-astr.gsu.edu/hbase/Waves/watwav2.html, http://hyperphysics.phy-astr.gsu.edu/hbase/watwav.html#c1
+* Nice slides on natural wave phenomena http://www2.ess.ucla.edu/~schauble/EPSS15_Oceanography/LEC13S17_Waves_6perpage.pdf
+* Demonstration that Gerstner wave motion is physically possible https://www.tandfonline.com/doi/abs/10.2991/jnmp.2008.15.S2.7
 
 ### Wave Simulation
 
@@ -40,6 +46,7 @@
 * Boat interaction: https://www.youtube.com/watch?v=YK_Za2MY2a0 , paper: http://www.hilkocords.de/publications/open_water.pdf
 * Setting up boat interactioin in maya: https://www.youtube.com/watch?v=O-8ow82gQw8 . Touches on issues related to combining heightfield with displacement texture, and the wake lagging behind the object.
 * Water Surface Wavelets - Jeschke et al. SIGGRAPH 2018 - http://visualcomputing.ist.ac.at/publications/2018/WSW/ - Interesting rederivation of water motion into a more computationally friendly form. The LOD system in Crest is very competitive with this technique.
+* Lecture notes on numerical wave sim, makes use of Courant number directly - https://www.uio.no/studier/emner/matnat/ifi/nedlagte-emner/INF2340/v05/foiler/sim04.pdf
 
 ### 3D Simulation
 
@@ -77,6 +84,12 @@
 ### Meshing
 
 * Real-time Optimally-Adapting Meshes - http://www.cognigraph.com/ROAM_homepage/
+* Scrawk/Ceto - Projected grid, unity3d - https://github.com/Scrawk/Ceto
+
+### FFT
+
+* Wave spectrums, FFT - https://github.com/blackencino/EncinoWaves
+* Scrawk/Ceto - unity3d ocean renderer, has CPU and GPU FFTs - https://github.com/Scrawk/Ceto
 
 ### Ref
 
@@ -84,6 +97,7 @@
 * Shallow water: https://imgcs.artprintimages.com/img/print/print/louise-murray-aerial-photography-of-coral-reef-formations-of-the-great-barrier-reef_a-l-13832306-4990827.jpg?w=550&h=550
 * Crazy shallow water colour: https://www.researchgate.net/profile/Ruy_Kikuchi/publication/306096339/figure/fig2/AS:401490431758337@1472734186304/Aerial-photograph-of-Porto-de-Galinhas-coral-reef-on-the-coast-of-the-State-of.png
 * SideFX Moana reel https://www.sidefx.com/community/walt-disney-animation-studios-moana/
+# Choppy ocean stock footage https://www.videoblocks.com/video/caribbean-ocean-choppy-sea-waves-hd-1856-rmqu7wr
 
 ### Ref - wave videos
 
@@ -102,3 +116,5 @@
 ### Other
 
 * Ocean transparency measurements: http://www.dtic.mil/dtic/tr/fulltext/u2/718333.pdf
+* Great slides on 2D FFT with applications http://www.robots.ox.ac.uk/~az/lectures/ia/lect2.pdf
+* A simple fluid solver based on the FFT: https://pdfs.semanticscholar.org/fdf2/e4054f4a85b4af67d0a49ac1ec33636c332b.pdf?_ga=2.103529344.1493036506.1563914559-834855682.1563914559

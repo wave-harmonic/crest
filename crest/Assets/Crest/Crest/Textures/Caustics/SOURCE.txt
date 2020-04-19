@@ -1,0 +1,6 @@
+
+http://i2.photobucket.com/albums/y43/8thMan/Caustics_tex_zpsc0xyvivw.png
+
+linked from: https://forums.unrealengine.com/community/community-content-tools-and-tutorials/38745-water-caustics
+
+Modified in Crest to add separation in colour channels.

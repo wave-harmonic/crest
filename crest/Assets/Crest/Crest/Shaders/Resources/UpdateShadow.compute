@@ -1,0 +1,175 @@
+﻿// Crest Ocean System
+
+// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
+
+#pragma kernel UpdateShadow
+
+// this turns on all the shady stuff (literally - its all deprecated)
+#define SHADOW_COLLECTOR_PASS
+
+
+// HACK INCOMING:
+// For some reason we get the following error on platforms which target Vulkan:
+//     Shader error in 'UpdateShadow.compute': Unknown parameter type (54) for
+//     _LightShadowData at kernel UpdateShadow
+// We skirt around this by defining our own _LightShadowData as a float4, and
+// then making sure that the *real* _LightShadowData variabel is knocked-out.
+#if SHADER_API_VULKAN || SHADER_API_METAL
+uniform float4 _LightShadowData;
+#define _LightShadowData _LightShadowData_KNOCKED_OUT
+#endif
+
+#include "UnityCG.cginc"
+
+#if SHADER_API_VULKAN || SHADER_API_METAL
+#undef _LightShadowData
+#endif
+
+#include "../OceanGlobals.hlsl"
+#include "../OceanInputsDriven.hlsl"
+#include "../OceanLODData.hlsl"
+#include "../OceanHelpersNew.hlsl"
+#include "../OceanHelpers.hlsl"
+
+struct ShadowCoords
+{
+	V2F_SHADOW_COLLECTOR;
+
+	half4 ShadowCoord0_dxdz;
+	half4 ShadowCoord1_dxdz;
+	half4 ShadowCoord2_dxdz;
+	half4 ShadowCoord3_dxdz;
+
+	float4 MainCameraCoords;
+};
+
+uniform uint _LD_SliceIndex_Source;
+uniform float3 _CenterPos;
+uniform float3 _Scale;
+uniform float3 _CamPos;
+uniform float3 _CamForward;
+// Settings._jitterDiameterSoft, Settings._jitterDiameterHard, Settings._currentFrameWeightSoft, Settings._currentFrameWeightHard
+uniform float4 _JitterDiameters_CurrentFrameWeights;
+float4x4 _MainCameraProjectionMatrix;
+
+// noise functions used for jitter
+#include "../GPUNoise/GPUNoise.hlsl"
+
+// Provides _SimDeltaTime (see comment at this definition)
+float _SimDeltaTime;
+float _SimDeltaTimePrev;
+
+RWTexture2DArray<float2> _LD_TexArray_Target;
+
+fixed ComputeShadow(in ShadowCoords shadowCoords, in float jitterDiameter, in float4 cascadeWeights)
+{
+	// Sadface - copy paste all this deprecated code in from Unity.cginc, because the
+	// macro has a hardcoded return statement and i need the fade param for blending, and
+	// i also added jitter
+
+	if (jitterDiameter > 0.0)
+	{
+		half2 jitter = jitterDiameter * (hash33(uint3(abs(shadowCoords._WorldPosViewZ.xz*10.0), _Time.y*120.0)) - 0.5).xy;
+		shadowCoords._ShadowCoord0.xz += shadowCoords.ShadowCoord0_dxdz.xy * jitter.x + shadowCoords.ShadowCoord0_dxdz.zw * jitter.y;
+		shadowCoords._ShadowCoord1.xz += shadowCoords.ShadowCoord1_dxdz.xy * jitter.x + shadowCoords.ShadowCoord1_dxdz.zw * jitter.y;
+		shadowCoords._ShadowCoord2.xz += shadowCoords.ShadowCoord2_dxdz.xy * jitter.x + shadowCoords.ShadowCoord2_dxdz.zw * jitter.y;
+		shadowCoords._ShadowCoord3.xz += shadowCoords.ShadowCoord3_dxdz.xy * jitter.x + shadowCoords.ShadowCoord3_dxdz.zw * jitter.y;
+	}
+
+	float4 coord = float4(
+		shadowCoords._ShadowCoord0 * cascadeWeights[0] +
+		shadowCoords._ShadowCoord1 * cascadeWeights[1] +
+		shadowCoords._ShadowCoord2 * cascadeWeights[2] +
+		shadowCoords._ShadowCoord3 * cascadeWeights[3], 1);
+
+	SAMPLE_SHADOW_COLLECTOR_SHADOW(coord)
+
+	return shadow;
+}
+
+[numthreads(THREAD_GROUP_SIZE_X, THREAD_GROUP_SIZE_Y, 1)]
+void UpdateShadow(uint3 id : SV_DispatchThreadID)
+{
+	float width; float height; float depth;
+	{
+		_LD_TexArray_Shadow_Source.GetDimensions(width, height, depth);
+	}
+
+	// The code below is baked out and specialised from C:\Program Files\Unity\Editor\Data\CGIncludes\UnityCG.cginc
+	// TRANSFER_SHADOW_COLLECTOR . it needs to be specialised because its a compute shader, instead
+	// of rendering real geometry from a worldspace camera.
+	ShadowCoords shadowCoords;
+	{
+		// world pos from [0,1] texture
+		float4 wpos = float4(float3(((id.x + 0.5)/width) - 0.5, 0.0, ((id.y + 0.5)/height) -0.5) * _Scale * 4.0 + _CenterPos, 1.0);
+
+		// this could add wave height/disp??
+		wpos.y = _OceanCenterPosWorld.y;
+
+		shadowCoords._WorldPosViewZ.xyz = wpos.xyz;
+		shadowCoords._WorldPosViewZ.w = dot(wpos.xyz - _CamPos, _CamForward);
+
+		shadowCoords._ShadowCoord0 = mul(unity_WorldToShadow[0], wpos).xyz;
+		shadowCoords._ShadowCoord1 = mul(unity_WorldToShadow[1], wpos).xyz;
+		shadowCoords._ShadowCoord2 = mul(unity_WorldToShadow[2], wpos).xyz;
+		shadowCoords._ShadowCoord3 = mul(unity_WorldToShadow[3], wpos).xyz;
+
+		// working hard to get derivatives for shadow uvs, so that i can jitter the world position in the fragment shader. this
+		// enables per-fragment noise (required to avoid wobble), and is required because each cascade has a different scale etc.
+		shadowCoords.ShadowCoord0_dxdz.xy = mul(unity_WorldToShadow[0], wpos + float4(1.0, 0.0, 0.0, 0.0)).xz - shadowCoords._ShadowCoord0.xz;
+		shadowCoords.ShadowCoord0_dxdz.zw = mul(unity_WorldToShadow[0], wpos + float4(0.0, 0.0, 1.0, 0.0)).xz - shadowCoords._ShadowCoord0.xz;
+		shadowCoords.ShadowCoord1_dxdz.xy = mul(unity_WorldToShadow[1], wpos + float4(1.0, 0.0, 0.0, 0.0)).xz - shadowCoords._ShadowCoord1.xz;
+		shadowCoords.ShadowCoord1_dxdz.zw = mul(unity_WorldToShadow[1], wpos + float4(0.0, 0.0, 1.0, 0.0)).xz - shadowCoords._ShadowCoord1.xz;
+		shadowCoords.ShadowCoord2_dxdz.xy = mul(unity_WorldToShadow[2], wpos + float4(1.0, 0.0, 0.0, 0.0)).xz - shadowCoords._ShadowCoord2.xz;
+		shadowCoords.ShadowCoord2_dxdz.zw = mul(unity_WorldToShadow[2], wpos + float4(0.0, 0.0, 1.0, 0.0)).xz - shadowCoords._ShadowCoord2.xz;
+		shadowCoords.ShadowCoord3_dxdz.xy = mul(unity_WorldToShadow[3], wpos + float4(1.0, 0.0, 0.0, 0.0)).xz - shadowCoords._ShadowCoord3.xz;
+		shadowCoords.ShadowCoord3_dxdz.zw = mul(unity_WorldToShadow[3], wpos + float4(0.0, 0.0, 1.0, 0.0)).xz - shadowCoords._ShadowCoord3.xz;
+
+		shadowCoords.MainCameraCoords = mul(_MainCameraProjectionMatrix, wpos);
+	}
+
+	half2 shadow = 0.0;
+	const half r_max = 0.5 - _LD_Params_Source[_LD_SliceIndex_Source].w;
+
+	// Shadow from last frame - manually implement black border
+	float3 uv_source = WorldToUV_Source(shadowCoords._WorldPosViewZ.xz, _LD_SliceIndex_Source);
+	half2 r = abs(uv_source.xy - 0.5);
+	if (max(r.x, r.y) <= r_max)
+	{
+		SampleShadow(_LD_TexArray_Shadow_Source, uv_source, 1.0, shadow);
+	}
+	else if (_LD_SliceIndex_Source + 1.0 < depth)
+	{
+		float3 uv_source_nextlod = WorldToUV_Source(shadowCoords._WorldPosViewZ.xz, _LD_SliceIndex_Source + 1);
+		half2 r2 = abs(uv_source_nextlod.xy - 0.5);
+		if (max(r2.x, r2.y) < r_max)
+		{
+			SampleShadow(_LD_TexArray_Shadow_Source, uv_source_nextlod, 1.0, shadow);
+		}
+	}
+
+	// Check if the current sample is visible in the main camera (and therefore shadow map can be sampled)
+	float3 projected = shadowCoords.MainCameraCoords.xyz / shadowCoords.MainCameraCoords.w;
+	if (projected.z < 1.0 && abs(projected.x) < 1.0 && abs(projected.z) < 1.0)
+	{
+		// Sadface - copy paste all this deprecated code in from Unity.cginc, see similar comment above
+		float3 fromCenter0 = shadowCoords._WorldPosViewZ.xyz - unity_ShadowSplitSpheres[0].xyz;
+		float3 fromCenter1 = shadowCoords._WorldPosViewZ.xyz - unity_ShadowSplitSpheres[1].xyz;
+		float3 fromCenter2 = shadowCoords._WorldPosViewZ.xyz - unity_ShadowSplitSpheres[2].xyz;
+		float3 fromCenter3 = shadowCoords._WorldPosViewZ.xyz - unity_ShadowSplitSpheres[3].xyz;
+		float4 distances2 = float4(dot(fromCenter0, fromCenter0), dot(fromCenter1, fromCenter1), dot(fromCenter2, fromCenter2), dot(fromCenter3, fromCenter3));
+		float4 cascadeWeights = float4(distances2 < unity_ShadowSplitSqRadii);
+		cascadeWeights.yzw = saturate(cascadeWeights.yzw - cascadeWeights.xyz);
+		float sphereDist = distance(shadowCoords._WorldPosViewZ.xyz, unity_ShadowFadeCenterAndType.xyz);
+		half shadowFade = saturate(sphereDist * _LightShadowData.z + _LightShadowData.w);
+
+		fixed2 shadowThisFrame;
+		shadowThisFrame.x = ComputeShadow(shadowCoords, _JitterDiameters_CurrentFrameWeights.x, cascadeWeights);
+		shadowThisFrame.y = ComputeShadow(shadowCoords, _JitterDiameters_CurrentFrameWeights.y, cascadeWeights);
+		shadowThisFrame = (fixed2)1.0 - saturate(shadowThisFrame + shadowFade);
+
+		shadow = lerp(shadow, shadowThisFrame, _JitterDiameters_CurrentFrameWeights.zw * _SimDeltaTime * 60.0);
+	}
+
+	_LD_TexArray_Target[uint3(id.xy, _LD_SliceIndex)] = shadow;
+}

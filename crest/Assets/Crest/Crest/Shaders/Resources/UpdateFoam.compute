@@ -1,0 +1,92 @@
+﻿// Crest Ocean System
+
+// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
+
+#pragma kernel UpdateFoam
+
+#include "HLSLSupport.cginc"
+#include "../OceanGlobals.hlsl"
+#include "../OceanInputsDriven.hlsl"
+#include "../OceanLODData.hlsl"
+#include "../OceanHelpersNew.hlsl"
+
+CBUFFER_START(CrestPerMaterial)
+float _FoamFadeRate;
+float _WaveFoamStrength;
+float _WaveFoamCoverage;
+float _ShorelineFoamMaxDepth;
+float _ShorelineFoamStrength;
+float _SimDeltaTime;
+float _SimDeltaTimePrev;
+float _LODChange;
+CBUFFER_END
+
+RWTexture2DArray<float> _LD_TexArray_Target;
+
+[numthreads(THREAD_GROUP_SIZE_X, THREAD_GROUP_SIZE_Y, 1)]
+void UpdateFoam(uint3 id : SV_DispatchThreadID)
+{
+	// lod data 1 is current frame, compute world pos from quad uv
+	const float sliceIndex = id.z;
+	float width; float height; float depth;
+	{
+		_LD_TexArray_Foam_Source.GetDimensions(width, height, depth);
+	}
+	// Slice to sample previous frames data from. LOD change takes into account shifting of the cascades in scale.
+	const float sliceIndexSource = clamp(id.z + _LODChange, 0.0, depth - 1.0);
+
+	const float2 input_uv = IDtoUV(id.xy, width, height);
+	const float2 worldPosXZ = UVToWorld(input_uv, sliceIndex);
+	const float3 uv_slice = float3(input_uv, id.z);
+
+	half2 velocity = _LD_TexArray_Flow.SampleLevel(LODData_linear_clamp_sampler, uv_slice, 0).xy;
+	const float2 worldPosXZ_flowed = worldPosXZ - _SimDeltaTime * velocity;
+
+	half foam = 0.0;
+	const half r_max = 0.5 - _LD_Params_Source[sliceIndexSource].w;
+
+	// Try to sample the source slice, if it the sample position lies within its footprint
+	const float3 uv_slice_source = WorldToUV_Source(worldPosXZ_flowed, sliceIndexSource);
+	half2 r = abs(uv_slice_source.xy - 0.5);
+	if (max(r.x, r.y) <= r_max)
+	{
+		foam = _LD_TexArray_Foam_Source.SampleLevel(LODData_linear_clamp_sampler, uv_slice_source, 0).x;
+	}
+	else if (sliceIndexSource + 1.0 < depth)
+	{
+		// Sample lies outside this cascade. Try to use the next cascade in the chain - better to get something rather lower res
+		// than nothing.
+		float3 uv_slice_source_nextlod = WorldToUV_Source(worldPosXZ_flowed, sliceIndexSource + 1.0);
+		half2 r2 = abs(uv_slice_source_nextlod.xy - 0.5);
+		if (max(r2.x, r2.y) <= r_max)
+		{
+			foam = _LD_TexArray_Foam_Source.SampleLevel(LODData_linear_clamp_sampler, uv_slice_source_nextlod, 0.0).x;
+		}
+	}
+
+	// fade
+	foam *= max(0.0, 1.0 - _FoamFadeRate * _SimDeltaTime);
+
+	// sample displacement texture and generate foam from it
+	const float3 dd = float3(_LD_Params[sliceIndex].w, 0.0, _LD_Params[sliceIndex].x);
+	half3 s = SampleLod(_LD_TexArray_AnimatedWaves, uv_slice).xyz;
+	half3 sx = SampleLodLevel(_LD_TexArray_AnimatedWaves, uv_slice + float3(dd.xy, 0), dd.y).xyz;
+	half3 sz = SampleLodLevel(_LD_TexArray_AnimatedWaves, uv_slice + float3(dd.yx, 0), dd.y).xyz;
+	float3 disp = s.xyz;
+	float3 disp_x = dd.zyy + sx.xyz;
+	float3 disp_z = dd.yyz + sz.xyz;
+	// The determinant of the displacement Jacobian is a good measure for turbulence:
+	// > 1: Stretch
+	// < 1: Squash
+	// < 0: Overlap
+	float4 du = float4(disp_x.xz, disp_z.xz) - disp.xzxz;
+	float det = (du.x * du.w - du.y * du.z) / (_LD_Params[sliceIndex].x * _LD_Params[sliceIndex].x);
+	foam += 5.0 * _SimDeltaTime * _WaveFoamStrength * saturate(_WaveFoamCoverage - det);
+
+	// add foam in shallow water. use the displaced position to ensure we add foam where world objects are.
+	float3 uv_slice_displaced = WorldToUV(worldPosXZ + disp.xz, sliceIndex);
+	float signedOceanDepth = SampleLodLevel(_LD_TexArray_SeaFloorDepth, uv_slice_displaced, 1).x + disp.y;
+	foam += _ShorelineFoamStrength * _SimDeltaTime * saturate(1.0 - signedOceanDepth / _ShorelineFoamMaxDepth);
+
+	_LD_TexArray_Target[id] = foam;
+}

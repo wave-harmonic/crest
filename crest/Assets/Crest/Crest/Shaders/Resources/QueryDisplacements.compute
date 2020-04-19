@@ -1,0 +1,60 @@
+﻿// Crest Ocean System
+
+// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
+
+#pragma kernel CSMain
+
+// Must match value in script
+#define GROUP_SIZE 64
+
+StructuredBuffer<float3> _QueryPositions_MinGridSizes;
+RWStructuredBuffer<float3> _ResultDisplacements;
+
+#include "HLSLSupport.cginc"
+#include "../OceanGlobals.hlsl"
+#include "../OceanInputsDriven.hlsl"
+#include "../OceanLODData.hlsl"
+#include "../OceanHelpersNew.hlsl"
+
+float3 ComputeDisplacement(float2 undispPos, float minSlice)
+{
+	uint slice0, slice1;
+	float lodAlpha;
+	PosToSliceIndices(undispPos, minSlice, _MeshScaleLerp, _LD_Pos_Scale[0].z, slice0, slice1, lodAlpha);
+
+	float3 uv0 = WorldToUV(undispPos, slice0);
+	float3 uv1 = WorldToUV(undispPos, slice1);
+
+	const float wt_0 = (1. - lodAlpha) * _LD_Params[slice0].z;
+	const float wt_1 = (1. - wt_0) * _LD_Params[slice1].z;
+
+	return
+		wt_0 * _LD_TexArray_AnimatedWaves.SampleLevel(LODData_linear_clamp_sampler, uv0, 0).xyz +
+		wt_1 * _LD_TexArray_AnimatedWaves.SampleLevel(LODData_linear_clamp_sampler, uv1, 0).xyz;
+}
+
+[numthreads(GROUP_SIZE, 1, 1)]
+void CSMain(uint3 id : SV_DispatchThreadID)
+{
+	float3 data = _QueryPositions_MinGridSizes[id.x];
+	const float2 queryPosXZ = data.xy;
+	const float minGridSize = data.z;
+
+	const float gridSizeSlice0 = _LD_Params[0].x;
+	const float minSlice = clamp(floor(log2(max(minGridSize / gridSizeSlice0, 1.0))), 0.0, _SliceCount - 1.0);
+
+	// Perform iteration to invert the displacement vector field - find position that displaces to query position,
+	// and return displacement at that point.
+
+	float2 undispPos = queryPosXZ;
+	for (int i = 0; i < 4; i++)
+	{
+		float3 displacement = ComputeDisplacement(undispPos, minSlice);
+
+		float2 error = (undispPos + displacement.xz) - queryPosXZ;
+
+		undispPos -= error;
+	}
+
+	_ResultDisplacements[id.x] = ComputeDisplacement(undispPos, minSlice);
+}

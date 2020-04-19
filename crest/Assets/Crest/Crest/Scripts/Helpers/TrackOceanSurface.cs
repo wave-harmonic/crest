@@ -23,9 +23,14 @@ namespace Crest
 
         void Place()
         {
-            Vector3 disp;
-            OceanRenderer.Instance.CollisionProvider.SampleDisplacement(ref _basePosition, out disp, 0f);
-            transform.position = _basePosition + disp;
+            // Todo - garbage
+            Vector3[] queryPoints = new Vector3[] { _basePosition };
+            Vector3[] results = new Vector3[1];
+
+            if (OceanRenderer.Instance.CollisionProvider.RetrieveSucceeded(OceanRenderer.Instance.CollisionProvider.Query(GetHashCode(), 0f, queryPoints, results, null, null)))
+            {
+                transform.position = _basePosition + results[0];
+            }
         }
     }
 }

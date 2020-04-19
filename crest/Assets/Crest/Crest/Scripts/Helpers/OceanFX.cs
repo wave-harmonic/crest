@@ -13,11 +13,15 @@ namespace Crest
         public float _minYVel = 1f;
         public bool _showPoints = false;
 
+        SampleHeightHelper _sampleHelper = new SampleHeightHelper();
+        SampleHeightHelper _sampleHelper_x = new SampleHeightHelper();
+        SampleHeightHelper _sampleHelper_z = new SampleHeightHelper();
+
         Camera _cam;
 
         private void Start()
         {
-            if(OceanRenderer.Instance.Viewpoint != null)
+            if (OceanRenderer.Instance.Viewpoint != null)
             {
                 _cam = OceanRenderer.Instance.Viewpoint.GetComponent<Camera>();
             }
@@ -42,10 +46,12 @@ namespace Crest
                     continue;
 
                 var queryPos = ray.origin + ray.direction * (seaLevel - ray.origin.y) / ray.direction.y;
-                Vector3 disp, vel;
+                Vector3 disp = Vector3.zero, normal = Vector3.zero, vel = Vector3.zero;
                 //_gerstner.SampleDisplacement(ref queryPos, out disp, 0f);
-                bool dispValid, velValid;
-                OceanRenderer.Instance.CollisionProvider.SampleDisplacementVel(ref queryPos, out disp, out dispValid, out vel, out velValid, 0f);
+                _sampleHelper.Init(queryPos, 0f);
+                if (!_sampleHelper.Sample(ref disp, ref normal, ref vel))
+                    return;
+
                 if (_showPoints)
                 {
                     Debug.DrawLine(queryPos, queryPos + disp);
@@ -53,13 +59,17 @@ namespace Crest
 
                 float ss = 0.5f;
 
+                Vector3 dummy = Vector3.zero;
+
                 var queryPos_x = queryPos + Vector3.right * ss;
-                Vector3 disp_x;
-                OceanRenderer.Instance.CollisionProvider.SampleDisplacement(ref queryPos_x, out disp_x);
+                Vector3 disp_x = Vector3.zero;
+                _sampleHelper_x.Init(queryPos_x, 0f);
+                if (!_sampleHelper_x.Sample(ref disp_x, ref dummy, ref dummy)) return;
 
                 var queryPos_z = queryPos + Vector3.forward * ss;
-                Vector3 disp_z;
-                OceanRenderer.Instance.CollisionProvider.SampleDisplacement(ref queryPos_z, out disp_z);
+                Vector3 disp_z = Vector3.zero;
+                _sampleHelper_z.Init(queryPos_z, 0f);
+                if (!_sampleHelper_z.Sample(ref disp_z, ref dummy, ref dummy)) return;
 
                 disp_x += Vector3.right * ss;
                 disp_z += Vector3.forward * ss;

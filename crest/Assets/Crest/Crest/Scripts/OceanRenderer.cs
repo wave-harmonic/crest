@@ -2,6 +2,7 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+using UnityEditor;
 using UnityEngine;
 
 namespace Crest
@@ -103,6 +104,9 @@ namespace Crest
 
         [Header("Debug Params")]
 
+        [SerializeField]
+        bool _showProxyPlane = true;
+
         [Tooltip("Attach debug gui that adds some controls and allows to visualise the ocean data."), SerializeField]
         bool _attachDebugGUI = false;
 
@@ -185,7 +189,7 @@ namespace Crest
             InitViewpoint();
             InitTimeProvider();
 
-            if(_attachDebugGUI && GetComponent<OceanDebugGUI>() == null)
+            if (_attachDebugGUI && GetComponent<OceanDebugGUI>() == null)
             {
                 gameObject.AddComponent<OceanDebugGUI>();
             }
@@ -417,6 +421,34 @@ namespace Crest
         private static void OnReLoadScripts()
         {
             Instance = FindObjectOfType<OceanRenderer>();
+        }
+
+        GameObject _proxyPlane;
+
+        private void OnDrawGizmos()
+        {
+            if (_proxyPlane == null)
+            {
+                _proxyPlane = GameObject.CreatePrimitive(PrimitiveType.Plane);
+                DestroyImmediate(_proxyPlane.GetComponent<Collider>());
+                _proxyPlane.hideFlags = HideFlags.HideAndDontSave;
+                _proxyPlane.transform.parent = transform;
+                _proxyPlane.transform.localPosition = Vector3.zero;
+                _proxyPlane.transform.localRotation = Quaternion.identity;
+                _proxyPlane.transform.localScale = 4000f * Vector3.one;
+
+                var mat = new Material(Shader.Find("Hidden/Crest/OceanProxy"));
+                _proxyPlane.GetComponent<Renderer>().sharedMaterial = mat;
+            }
+
+            if (_proxyPlane.activeSelf != _showProxyPlane)
+            {
+                _proxyPlane.SetActive(_showProxyPlane);
+
+                // Scene view doesnt automatically refresh which makes the option confusing, so force it
+                EditorWindow view = EditorWindow.GetWindow<SceneView>();
+                view.Repaint();
+            }
         }
 #endif
     }

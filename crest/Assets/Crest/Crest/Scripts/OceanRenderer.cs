@@ -158,6 +158,10 @@ namespace Crest
         readonly int sp_oceanCenterPosWorld = Shader.PropertyToID("_OceanCenterPosWorld");
         readonly int sp_meshScaleLerp = Shader.PropertyToID("_MeshScaleLerp");
         readonly int sp_sliceCount = Shader.PropertyToID("_SliceCount");
+        readonly int sp_blackPointFade = Shader.PropertyToID("_CrestBlackPointFade");
+
+        float _baseMeshDensity;
+        float _blackPointFade;
 
         void Awake()
         {
@@ -174,6 +178,12 @@ namespace Crest
 
             Instance = this;
             Scale = Mathf.Clamp(Scale, _minScale, _maxScale);
+
+            // Resolution is over 4 tiles across
+            _baseMeshDensity = _lodDataResolution * 0.25f / _geometryDownSampleFactor;
+            // 0.4f is the "best" value when base mesh density is 8. Scaling down from there produces results similar to
+            // hand crafted values which looked good when the ocean is flat
+            _blackPointFade = 0.4f / (_baseMeshDensity / 8f);
 
             OceanBuilder.GenerateMesh(this, _lodDataResolution, _geometryDownSampleFactor, _lodCount);
 
@@ -253,6 +263,7 @@ namespace Crest
             Shader.SetGlobalFloat(sp_texelsPerWave, MinTexelsPerWave);
             Shader.SetGlobalFloat(sp_crestTime, CurrentTime);
             Shader.SetGlobalFloat(sp_sliceCount, CurrentLodCount);
+            Shader.SetGlobalFloat(sp_blackPointFade, _blackPointFade);
 
             // LOD 0 is blended in/out when scale changes, to eliminate pops. Here we set it as a global, whereas in OceanChunkRenderer it
             // is applied to LOD0 tiles only through _InstanceData. This global can be used in compute, where we only apply this factor for slice 0.

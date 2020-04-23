@@ -16,7 +16,7 @@ float ComputeLodAlpha(float3 i_worldPos, float i_meshScaleAlpha)
 	// lod alpha is remapped to ensure patches weld together properly. patches can vary significantly in shape (with
 	// strips added and removed), and this variance depends on the base density of the mesh, as this defines the strip width.
 	// using .15 as black and .85 as white should work for base mesh density as low as 16.
-	const float BLACK_POINT = 0.15, WHITE_POINT = 0.85;
+	const float BLACK_POINT = _CrestBlackPointFade, WHITE_POINT = 1 - _CrestBlackPointFade;
 	lodAlpha = max((lodAlpha - BLACK_POINT) / (WHITE_POINT - BLACK_POINT), 0.);
 
 	// blend out lod0 when viewpoint gains altitude

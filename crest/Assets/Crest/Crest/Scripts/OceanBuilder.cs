@@ -180,6 +180,10 @@ namespace Crest
             {
                 ocean._lodDataSeaDepths = ocean.gameObject.AddComponent<LodDataMgrSeaFloorDepth>();
             }
+            if (ocean.CreateClipSurfaceData)
+            {
+                ocean._lodDataClipSurface = ocean.gameObject.AddComponent<LodDataMgrClipSurface>();
+            }
 
             // Add any required GPU readbacks
             {

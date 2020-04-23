@@ -167,7 +167,8 @@ public class OceanDebugGUI : MonoBehaviour
 
         // Draw bottom panel for toggles
         GUI.color = _guiColor;
-        GUI.DrawTexture(new Rect(_leftPanelWidth, Screen.height - _bottomPanelHeight, Screen.width, _bottomPanelHeight), Texture2D.whiteTexture);
+        GUI.DrawTexture(new Rect(_guiVisible ? _leftPanelWidth : 0, Screen.height - _bottomPanelHeight, Screen.width,
+            _bottomPanelHeight), Texture2D.whiteTexture);
         GUI.color = Color.white;
 
         // draw sim data
@@ -179,6 +180,7 @@ public class OceanDebugGUI : MonoBehaviour
         DrawSims<LodDataMgrFlow>(OceanRenderer.Instance._lodDataFlow, false, ref column);
         DrawSims<LodDataMgrShadow>(OceanRenderer.Instance._lodDataShadow, false, ref column);
         DrawSims<LodDataMgrSeaFloorDepth>(OceanRenderer.Instance._lodDataSeaDepths, false, ref column);
+        DrawSims<LodDataMgrClipSurface>(OceanRenderer.Instance._lodDataClipSurface, false, ref column);
     }
 
     static void DrawSims<SimType>(LodDataMgr lodData, bool showByDefault, ref float offset) where SimType : LodDataMgr

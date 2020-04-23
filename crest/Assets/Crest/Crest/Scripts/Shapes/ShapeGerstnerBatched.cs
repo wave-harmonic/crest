@@ -768,7 +768,7 @@ namespace Crest
             GUI.enabled = !EditorApplication.isPlaying || !gerstner._evaluateSpectrumAtRuntime;
             if (GUILayout.Button("Generate wave data from spectrum"))
             {
-                if (gerstner._spectrum != null)
+                if (gerstner._spectrum == null)
                 {
                     Debug.LogError("A wave spectrum must be assigned in order to generate wave data.", gerstner);
                 }

@@ -141,6 +141,7 @@ namespace Crest
             // Assign LOD data to ocean shader
             var ldaws = OceanRenderer.Instance._lodDataAnimWaves;
             var ldsds = OceanRenderer.Instance._lodDataSeaDepths;
+            var ldclip = OceanRenderer.Instance._lodDataClipSurface;
             var ldfoam = OceanRenderer.Instance._lodDataFoam;
             var ldflow = OceanRenderer.Instance._lodDataFlow;
             var ldshadows = OceanRenderer.Instance._lodDataShadow;
@@ -150,6 +151,7 @@ namespace Crest
             if (ldflow) ldflow.BindResultData(_mpb);
             if (ldfoam) ldfoam.BindResultData(_mpb); else LodDataMgrFoam.BindNull(_mpb);
             if (ldsds) ldsds.BindResultData(_mpb);
+            if (ldclip) ldclip.BindResultData(_mpb);
             if (ldshadows) ldshadows.BindResultData(_mpb); else LodDataMgrShadow.BindNull(_mpb);
 
             var reflTex = PreparedReflections.GetRenderTexture(_currentCamera.GetHashCode());
@@ -199,38 +201,27 @@ namespace Crest
     {
         public static void DebugDraw(this Bounds b)
         {
-            // source: https://github.com/UnityCommunity/UnityLibrary
-            // license: mit - https://github.com/UnityCommunity/UnityLibrary/blob/master/LICENSE.md
+            var xmin = b.min.x;
+            var ymin = b.min.y;
+            var zmin = b.min.z;
+            var xmax = b.max.x;
+            var ymax = b.max.y;
+            var zmax = b.max.z;
 
-            // bounding box using Debug.Drawline
+            Debug.DrawLine(new Vector3(xmin, ymin, zmin), new Vector3(xmin, ymin, zmax));
+            Debug.DrawLine(new Vector3(xmin, ymin, zmin), new Vector3(xmax, ymin, zmin));
+            Debug.DrawLine(new Vector3(xmax, ymin, zmax), new Vector3(xmin, ymin, zmax));
+            Debug.DrawLine(new Vector3(xmax, ymin, zmax), new Vector3(xmax, ymin, zmin));
 
-            // bottom
-            var p1 = new Vector3(b.min.x, b.min.y, b.min.z);
-            var p2 = new Vector3(b.max.x, b.min.y, b.min.z);
-            var p3 = new Vector3(b.max.x, b.min.y, b.max.z);
-            var p4 = new Vector3(b.min.x, b.min.y, b.max.z);
+            Debug.DrawLine(new Vector3(xmin, ymax, zmin), new Vector3(xmin, ymax, zmax));
+            Debug.DrawLine(new Vector3(xmin, ymax, zmin), new Vector3(xmax, ymax, zmin));
+            Debug.DrawLine(new Vector3(xmax, ymax, zmax), new Vector3(xmin, ymax, zmax));
+            Debug.DrawLine(new Vector3(xmax, ymax, zmax), new Vector3(xmax, ymax, zmin));
 
-            Debug.DrawLine(p1, p2, Color.blue);
-            Debug.DrawLine(p2, p3, Color.red);
-            Debug.DrawLine(p3, p4, Color.yellow);
-            Debug.DrawLine(p4, p1, Color.magenta);
-
-            // top
-            var p5 = new Vector3(b.min.x, b.max.y, b.min.z);
-            var p6 = new Vector3(b.max.x, b.max.y, b.min.z);
-            var p7 = new Vector3(b.max.x, b.max.y, b.max.z);
-            var p8 = new Vector3(b.min.x, b.max.y, b.max.z);
-
-            Debug.DrawLine(p5, p6, Color.blue);
-            Debug.DrawLine(p6, p7, Color.red);
-            Debug.DrawLine(p7, p8, Color.yellow);
-            Debug.DrawLine(p8, p5, Color.magenta);
-
-            // sides
-            Debug.DrawLine(p1, p5, Color.white);
-            Debug.DrawLine(p2, p6, Color.gray);
-            Debug.DrawLine(p3, p7, Color.green);
-            Debug.DrawLine(p4, p8, Color.cyan);
+            Debug.DrawLine(new Vector3(xmax, ymax, zmax), new Vector3(xmax, ymin, zmax));
+            Debug.DrawLine(new Vector3(xmin, ymin, zmin), new Vector3(xmin, ymax, zmin));
+            Debug.DrawLine(new Vector3(xmax, ymin, zmin), new Vector3(xmax, ymax, zmin));
+            Debug.DrawLine(new Vector3(xmin, ymax, zmax), new Vector3(xmin, ymin, zmax));
         }
     }
 }

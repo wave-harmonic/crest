@@ -13,5 +13,7 @@ namespace Crest
     public class RegisterDynWavesInput : RegisterLodDataInput<LodDataMgrDynWaves>
     {
         public override float Wavelength => 0f;
+
+        protected override Color GizmoColor => new Color(0f, 1f, 0f, 0.5f);
     }
 }

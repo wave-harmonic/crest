@@ -2,52 +2,57 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
-// Renders a specific slice of a 2D Texture Array
-// https://docs.unity3d.com/Manual/SL-TextureArrays.html
-Shader "Hidden/Crest/Debug/TextureArray"
+// Renders the R channel from the provided texture to the clip surface texture.
+
+Shader "Crest/Inputs/Clip Surface/Add From Texture"
 {
+	Properties
+	{
+		_MainTex("Texture", 2D) = "white" {}
+	}
+
 	SubShader
 	{
-		Tags { "RenderType"="Opaque" }
-		Cull Off
-		ZWrite Off
-
 		Pass
 		{
+			Blend One One
+			ZWrite Off
+			ColorMask R
+
 			CGPROGRAM
 			#pragma vertex Vert
 			#pragma fragment Frag
-			#pragma require 2darray
 
 			#include "UnityCG.cginc"
 
+			sampler2D _MainTex;
+			float4 _MainTex_ST;
+
 			struct Attributes
 			{
-				float4 positionOS : POSITION;
+				float3 positionOS : POSITION;
 				float2 uv : TEXCOORD0;
 			};
 
 			struct Varyings
 			{
 				float4 positionCS : SV_POSITION;
-				float3 uv : TEXCOORD0;
+				float2 uv : TEXCOORD0;
 			};
-
-			UNITY_DECLARE_TEX2DARRAY(_MainTex);
-			uint _Depth;
 
 			Varyings Vert(Attributes input)
 			{
 				Varyings o;
 				o.positionCS = UnityObjectToClipPos(input.positionOS);
-				o.uv = float3(input.uv.xy, _Depth);
+				o.uv = TRANSFORM_TEX(input.uv, _MainTex);
 				return o;
 			}
 
-			half4 Frag(Varyings input) : SV_TARGET
+			float4 Frag(Varyings input) : SV_Target
 			{
-				return UNITY_SAMPLE_TEX2DARRAY(_MainTex, input.uv);
+				return tex2D(_MainTex, input.uv);
 			}
+
 			ENDCG
 		}
 	}

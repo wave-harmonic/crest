@@ -106,6 +106,10 @@ namespace Crest
 
         [SerializeField]
         bool _showProxyPlane = true;
+#if UNITY_EDITOR
+        GameObject _proxyPlane;
+        const string kProxyShader = "Hidden/Crest/OceanProxy";
+#endif
 
         [Tooltip("Attach debug gui that adds some controls and allows to visualise the ocean data."), SerializeField]
         bool _attachDebugGUI = false;
@@ -423,11 +427,16 @@ namespace Crest
             Instance = FindObjectOfType<OceanRenderer>();
         }
 
-        GameObject _proxyPlane;
-
         private void OnDrawGizmos()
         {
-            if (_proxyPlane == null)
+            // Don't need proxy if in play mode
+            if (EditorApplication.isPlaying)
+            {
+                return;
+            }
+
+            // Create proxy if not present already, and proxy enabled
+            if (_proxyPlane == null && _showProxyPlane)
             {
                 _proxyPlane = GameObject.CreatePrimitive(PrimitiveType.Plane);
                 DestroyImmediate(_proxyPlane.GetComponent<Collider>());
@@ -436,12 +445,12 @@ namespace Crest
                 _proxyPlane.transform.localPosition = Vector3.zero;
                 _proxyPlane.transform.localRotation = Quaternion.identity;
                 _proxyPlane.transform.localScale = 4000f * Vector3.one;
-
-                var mat = new Material(Shader.Find("Hidden/Crest/OceanProxy"));
-                _proxyPlane.GetComponent<Renderer>().sharedMaterial = mat;
+                
+                _proxyPlane.GetComponent<Renderer>().sharedMaterial = new Material(Shader.Find(kProxyShader));
             }
 
-            if (_proxyPlane.activeSelf != _showProxyPlane)
+            // Change active state of proxy if necessary
+            if (_proxyPlane != null && _proxyPlane.activeSelf != _showProxyPlane)
             {
                 _proxyPlane.SetActive(_showProxyPlane);
 

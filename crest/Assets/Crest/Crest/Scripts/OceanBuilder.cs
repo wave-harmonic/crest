@@ -155,8 +155,16 @@ namespace Crest
                 meshInsts[i] = BuildOceanPatch((PatchType)i, tileResolution);
             }
 
-            ocean._lodTransform = ocean.gameObject.AddComponent<LodTransform>();
-            ocean._lodTransform.InitLODData(lodCount);
+            {
+                var existing = ocean.gameObject.GetComponent<LodTransform>();
+                if (existing == null)
+                {
+                    existing = ocean.gameObject.AddComponent<LodTransform>();
+                    existing.hideFlags = HideFlags.DontSave | HideFlags.NotEditable;
+                }
+                ocean._lodTransform = existing;
+                ocean._lodTransform.InitLODData(lodCount);
+            }
 
             // Create the LOD data managers
             ocean._lodDataAnimWaves = LodDataMgr.Create<LodDataMgrAnimWaves, SimSettingsAnimatedWaves>(ocean.gameObject, ref ocean._simSettingsAnimatedWaves);
@@ -178,11 +186,23 @@ namespace Crest
             }
             if (ocean.CreateSeaFloorDepthData)
             {
-                ocean._lodDataSeaDepths = ocean.gameObject.AddComponent<LodDataMgrSeaFloorDepth>();
+                var existing = ocean.gameObject.GetComponent<LodDataMgrSeaFloorDepth>();
+                if (existing == null)
+                {
+                    existing = ocean.gameObject.AddComponent<LodDataMgrSeaFloorDepth>();
+                    existing.hideFlags = HideFlags.DontSave | HideFlags.NotEditable;
+                }
+                ocean._lodDataSeaDepths = existing;
             }
             if (ocean.CreateClipSurfaceData)
             {
-                ocean._lodDataClipSurface = ocean.gameObject.AddComponent<LodDataMgrClipSurface>();
+                var existing = ocean.gameObject.GetComponent<LodDataMgrClipSurface>();
+                if (existing == null)
+                {
+                    existing = ocean.gameObject.AddComponent<LodDataMgrClipSurface>();
+                    existing.hideFlags = HideFlags.DontSave | HideFlags.NotEditable;
+                }
+                ocean._lodDataClipSurface = existing;
             }
 
             // Add any required GPU readbacks

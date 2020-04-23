@@ -142,8 +142,14 @@ namespace Crest
         public static LodDataType Create<LodDataType, LodDataSettings>(GameObject attachGO, ref LodDataSettings settings)
             where LodDataType : LodDataMgr where LodDataSettings : SimSettingsBase
         {
+            var existingData = attachGO.GetComponent<LodDataType>();
+            if (existingData != null)
+            {
+                return existingData;
+            }
+
             var sim = attachGO.AddComponent<LodDataType>();
-            sim.hideFlags = HideFlags.DontSave;
+            sim.hideFlags = HideFlags.DontSave | HideFlags.NotEditable;
             if (settings == null)
             {
                 settings = sim.CreateDefaultSettings() as LodDataSettings;

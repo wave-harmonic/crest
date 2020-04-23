@@ -105,7 +105,9 @@ namespace Crest
         [Header("Debug Params")]
 
         [SerializeField]
+#pragma warning disable 414
         bool _showProxyPlane = true;
+#pragma warning restore 414
 #if UNITY_EDITOR
         GameObject _proxyPlane;
         const string kProxyShader = "Hidden/Crest/OceanProxy";

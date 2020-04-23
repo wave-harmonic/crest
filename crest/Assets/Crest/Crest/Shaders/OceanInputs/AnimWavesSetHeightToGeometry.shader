@@ -25,6 +25,8 @@ Shader "Crest/Inputs/Animated Waves/Set Water Height To Geometry"
  			#include "UnityCG.cginc"
 			#include "../OceanLODData.hlsl"
 
+			float _Weight;
+
  			struct Attributes
 			{
 				float3 positionOS : POSITION;
@@ -48,7 +50,7 @@ Shader "Crest/Inputs/Animated Waves/Set Water Height To Geometry"
 			{
 				// Write displacement to get from sea level of ocean to the y value of this geometry
 				float height = input.worldPos.y - _OceanCenterPosWorld.y;
-				return half4(0.0, height, 0.0, 0.0);
+				return half4(0.0, _Weight * height, 0.0, 0.0);
 			}
 			ENDCG
 		}

@@ -30,11 +30,11 @@ namespace Crest
         int _lodDataResolution = 256;
         int _geoDownSampleFactor = 1;
 
-        static readonly int sp_ReflectionTex = Shader.PropertyToID("_ReflectionTex");
-        static readonly int sp_GeomData = Shader.PropertyToID("_GeomData");
-        static readonly int sp_ForceUnderwater = Shader.PropertyToID("_ForceUnderwater");
+        static int sp_ReflectionTex = Shader.PropertyToID("_ReflectionTex");
+        static int sp_GeomData = Shader.PropertyToID("_GeomData");
+        static int sp_ForceUnderwater = Shader.PropertyToID("_ForceUnderwater");
         // MeshScaleLerp, FarNormalsWeight, LODIndex (debug)
-        public static readonly int sp_InstanceData = Shader.PropertyToID("_InstanceData");
+        public static int sp_InstanceData = Shader.PropertyToID("_InstanceData");
 
         void Start()
         {
@@ -59,29 +59,12 @@ namespace Crest
             _mesh.bounds = newBounds;
         }
 
-        private void OnEnable()
-        {
-#if UNITY_2018
-            RenderPipeline.beginCameraRendering += BeginCameraRendering;
-#else
-            RenderPipelineManager.beginCameraRendering += BeginCameraRendering;
-#endif
-        }
-        private void OnDisable()
-        {
-#if UNITY_2018
-            RenderPipeline.beginCameraRendering -= BeginCameraRendering;
-#else
-            RenderPipelineManager.beginCameraRendering -= BeginCameraRendering;
-#endif
-        }
-
         static Camera _currentCamera = null;
 
 #if UNITY_2018
-        private void BeginCameraRendering(Camera camera)
+        private static void BeginCameraRendering(Camera camera)
 #else
-        private void BeginCameraRendering(ScriptableRenderContext context, Camera camera)
+        private static void BeginCameraRendering(ScriptableRenderContext context, Camera camera)
 #endif
         {
             _currentCamera = camera;
@@ -194,6 +177,31 @@ namespace Crest
         public void SetInstanceData(int lodIndex, int totalLodCount, int lodDataResolution, int geoDownSampleFactor)
         {
             _lodIndex = lodIndex; _totalLodCount = totalLodCount; _lodDataResolution = lodDataResolution; _geoDownSampleFactor = geoDownSampleFactor;
+        }
+
+#if UNITY_2019_3_OR_NEWER
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+#endif
+        static void InitStatics()
+        {
+            // Init here from 2019.3 onwards
+            sp_ReflectionTex = Shader.PropertyToID("_ReflectionTex");
+            sp_GeomData = Shader.PropertyToID("_GeomData");
+            sp_ForceUnderwater = Shader.PropertyToID("_ForceUnderwater");
+            sp_InstanceData = Shader.PropertyToID("_InstanceData");
+            _currentCamera = null;
+        }
+
+        [RuntimeInitializeOnLoadMethod]
+        static void RunOnStart()
+        {
+#if UNITY_2018
+            RenderPipeline.beginCameraRendering -= BeginCameraRendering;
+            RenderPipeline.beginCameraRendering += BeginCameraRendering;
+#else
+            RenderPipelineManager.beginCameraRendering -= BeginCameraRendering;
+            RenderPipelineManager.beginCameraRendering += BeginCameraRendering;
+#endif
         }
     }
 

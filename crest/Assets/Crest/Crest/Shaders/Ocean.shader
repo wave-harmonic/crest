@@ -55,6 +55,8 @@ Shader "Crest/Ocean"
 		[Header(Reflection Environment)]
 		// Strength of specular lighting response
 		_Specular("Specular", Range(0.0, 1.0)) = 1.0
+		// Controls blurriness of reflection
+		_Roughness("Roughness", Range(0.0, 1.0)) = 0.0
 		// Controls harshness of Fresnel behaviour
 		_FresnelPower("Fresnel Power", Range(1.0, 20.0)) = 5.0
 		// Index of refraction of air. Can be increased to almost 1.333 to increase visibility up through water surface.
@@ -65,6 +67,8 @@ Shader "Crest/Ocean"
 		[Toggle] _PlanarReflections("Planar Reflections", Float) = 0
 		// How much the water normal affects the planar reflection
 		_PlanarReflectionNormalsStrength("Planar Reflections Distortion", Float) = 1
+		// Multiplier to adjust how intense the reflection is
+		_PlanarReflectionIntensity("Planar Reflection Intensity", Range(0.0, 1.0)) = 1.0
 		// Whether to use an overridden reflection cubemap (provided in the next property)
 		[Toggle] _OverrideReflectionCubemap("Override Reflection Cubemap", Float) = 0
 		// Custom environment map to reflect
@@ -456,7 +460,7 @@ Shader "Crest/Ocean"
 
 				#if _CLIPSURFACE_ON
 				// Clip surface
-				float clipVal = 0.0;
+				half clipVal = 0.0;
 				if (wt_smallerLod > 0.001)
 				{
 					SampleClip(_LD_TexArray_ClipSurface, WorldToUV(input.worldPos.xz), wt_smallerLod, clipVal);

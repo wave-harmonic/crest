@@ -57,8 +57,8 @@ namespace Crest
         PropertyWrapperCompute _combineProperties;
         PropertyWrapperMaterial[] _combineMaterial;
 
-        readonly static int sp_LD_TexArray_AnimatedWaves_Compute = Shader.PropertyToID("_LD_TexArray_AnimatedWaves_Compute");
-        readonly static int sp_LD_TexArray_WaveBuffer = Shader.PropertyToID("_LD_TexArray_WaveBuffer");
+        readonly int sp_LD_TexArray_AnimatedWaves_Compute = Shader.PropertyToID("_LD_TexArray_AnimatedWaves_Compute");
+        readonly int sp_LD_TexArray_WaveBuffer = Shader.PropertyToID("_LD_TexArray_WaveBuffer");
         const string s_textureArrayName = "_LD_TexArray_AnimatedWaves";
 
         public override void UseSettings(SimSettingsBase settings) { OceanRenderer.Instance._simSettingsAnimatedWaves = settings as SimSettingsAnimatedWaves; }
@@ -424,8 +424,8 @@ namespace Crest
             return -1;
         }
 
-        private static TextureArrayParamIds textureArrayParamIds = new TextureArrayParamIds(s_textureArrayName);
-        public static int ParamIdSampler(bool sourceLod = false) { return textureArrayParamIds.GetId(sourceLod); }
+        private static TextureArrayParamIds s_textureArrayParamIds = new TextureArrayParamIds(s_textureArrayName);
+        public static int ParamIdSampler(bool sourceLod = false) { return s_textureArrayParamIds.GetId(sourceLod); }
         protected override int GetParamIdSampler(bool sourceLod = false)
         {
             return ParamIdSampler(sourceLod);
@@ -433,6 +433,17 @@ namespace Crest
         public static void BindNull(IPropertyWrapper properties, bool sourceLod = false)
         {
             properties.SetTexture(ParamIdSampler(sourceLod), TextureArrayHelpers.BlackTextureArray);
+        }
+
+#if UNITY_2019_3_OR_NEWER
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+#endif
+        static void InitStatics()
+        {
+            // Init here from 2019.3 onwards
+            sp_LD_SliceIndex = Shader.PropertyToID("_LD_SliceIndex");
+            sp_LODChange = Shader.PropertyToID("_LODChange");
+            s_textureArrayParamIds = new TextureArrayParamIds(s_textureArrayName);
         }
     }
 }

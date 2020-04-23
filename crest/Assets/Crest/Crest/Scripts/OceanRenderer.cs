@@ -101,12 +101,15 @@ namespace Crest
 
         [Header("Debug Params")]
 
-        [Tooltip("Whether to generate ocean geometry tiles uniformly (with overlaps).")]
-        public bool _uniformTiles = false;
-        [Tooltip("Disable generating a wide strip of triangles at the outer edge to extend ocean to edge of view frustum.")]
-        public bool _disableSkirt = false;
+        [Tooltip("Attach debug gui that adds some controls and allows to visualise the ocean data."), SerializeField]
+        bool _attachDebugGUI = false;
+
         [Tooltip("Move ocean with viewpoint.")]
         public bool _followViewpoint = true;
+        [HideInInspector, Tooltip("Whether to generate ocean geometry tiles uniformly (with overlaps).")]
+        public bool _uniformTiles = false;
+        [HideInInspector, Tooltip("Disable generating a wide strip of triangles at the outer edge to extend ocean to edge of view frustum.")]
+        public bool _disableSkirt = false;
 
         /// <summary>
         /// Current ocean scale (changes with viewer altitude).
@@ -133,6 +136,7 @@ namespace Crest
         [HideInInspector] public LodDataMgrFlow _lodDataFlow;
         [HideInInspector] public LodDataMgrFoam _lodDataFoam;
         [HideInInspector] public LodDataMgrShadow _lodDataShadow;
+
         /// <summary>
         /// The number of LODs/scales that the ocean is currently using.
         /// </summary>
@@ -145,12 +149,13 @@ namespace Crest
 
         SampleHeightHelper _sampleHeightHelper = new SampleHeightHelper();
 
-        readonly static int sp_crestTime = Shader.PropertyToID("_CrestTime");
-        readonly static int sp_texelsPerWave = Shader.PropertyToID("_TexelsPerWave");
-        readonly static int sp_oceanCenterPosWorld = Shader.PropertyToID("_OceanCenterPosWorld");
-        readonly static int sp_meshScaleLerp = Shader.PropertyToID("_MeshScaleLerp");
-        readonly static int sp_sliceCount = Shader.PropertyToID("_SliceCount");
+        public static OceanRenderer Instance { get; private set; }
 
+        readonly int sp_crestTime = Shader.PropertyToID("_CrestTime");
+        readonly int sp_texelsPerWave = Shader.PropertyToID("_TexelsPerWave");
+        readonly int sp_oceanCenterPosWorld = Shader.PropertyToID("_OceanCenterPosWorld");
+        readonly int sp_meshScaleLerp = Shader.PropertyToID("_MeshScaleLerp");
+        readonly int sp_sliceCount = Shader.PropertyToID("_SliceCount");
 
         void Awake()
         {
@@ -172,6 +177,11 @@ namespace Crest
 
             InitViewpoint();
             InitTimeProvider();
+
+            if(_attachDebugGUI && GetComponent<OceanDebugGUI>() == null)
+            {
+                gameObject.AddComponent<OceanDebugGUI>();
+            }
         }
 
         bool VerifyRequirements()
@@ -221,17 +231,13 @@ namespace Crest
             }
         }
 
-        void Update()
+#if UNITY_2019_3_OR_NEWER
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+#endif
+        static void InitStatics()
         {
-            UpdateCollision();
-        }
-
-        void UpdateCollision()
-        {
-            if (_simSettingsAnimatedWaves.CachedHeightQueries)
-            {
-                (CollisionProvider as CollProviderCache).ClearCache();
-            }
+            // Init here from 2019.3 onwards
+            Instance = null;
         }
 
         void LateUpdate()
@@ -363,8 +369,6 @@ namespace Crest
         /// The maximum height that the shape scripts are displacing the shape.
         /// </summary>
         public float MaxVertDisplacement { get { return _maxVertDispFromShape; } }
-
-        public static OceanRenderer Instance { get; private set; }
 
         /// <summary>
         /// Provides ocean shape to CPU.

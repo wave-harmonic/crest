@@ -28,9 +28,11 @@ Shader "Crest/Inputs/Animated Waves/Add Water Height From Geometry"
 			#pragma fragment Frag
 
  			#include "UnityCG.cginc"
-			#include "../OceanLODData.hlsl"
+			#include "../OceanGlobals.hlsl"
 
+			CBUFFER_START(CrestPerOceanInput)
 			float _Weight;
+			CBUFFER_END
 
 			struct Attributes
 			{

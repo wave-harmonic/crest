@@ -48,7 +48,7 @@ namespace Crest
             public float Wavelength { get; set; }
             public bool Enabled { get; set; }
 
-            public void Draw(CommandBuffer buf, float weight, int isTransition)
+            public void Draw(CommandBuffer buf, float weight, int isTransition, int lodIdx)
             {
                 if (Enabled && weight > 0f)
                 {

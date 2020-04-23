@@ -2,6 +2,9 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+#ifndef CREST_OCEAN_FOAM_INCLUDED
+#define CREST_OCEAN_FOAM_INCLUDED
+
 #if _FOAM_ON
 
 uniform sampler2D _FoamTexture;
@@ -108,3 +111,5 @@ void ComputeFoamWithFlow(half2 flow, half i_foam, float2 i_worldXZUndisplaced, f
 }
 
 #endif // _FOAM_ON
+
+#endif // CREST_OCEAN_FOAM_INCLUDED

@@ -60,6 +60,10 @@ namespace Crest
                 {
                     lodDataClipSurface.BindResultData(_mpb);
                 }
+                else
+                {
+                    LodDataMgrClipSurface.BindNull(_mpb);
+                }
 
                 // blend LOD 0 shape in/out to avoid pop, if the ocean might scale up later (it is smaller than its maximum scale)
                 bool needToBlendOutShape = lodIdx == 0 && OceanRenderer.Instance.ScaleCouldIncrease;

@@ -50,13 +50,6 @@ namespace Crest
             }
 
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            // --- Clip surface
-            if (ocean._lodDataClipSurface)
-            {
-                ocean._lodDataClipSurface.BuildCommandBuffer(ocean, buf);
-            }
-
-            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // --- Flow data
             if (ocean._lodDataFlow)
             {
@@ -82,6 +75,13 @@ namespace Crest
             if (ocean._lodDataFoam)
             {
                 ocean._lodDataFoam.BuildCommandBuffer(ocean, buf);
+            }
+
+            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            // --- Clip surface
+            if (ocean._lodDataClipSurface)
+            {
+                ocean._lodDataClipSurface.BuildCommandBuffer(ocean, buf);
             }
         }
 

@@ -23,6 +23,11 @@ namespace Crest
         public float DeltaTime => _timeProvider.DeltaTime;
         public float DeltaTimeDynamics => _timeProvider.DeltaTimeDynamics;
 
+        [Tooltip("The primary directional light. Required if shadowing is enabled.")]
+        public Light _primaryLight;
+        [SerializeField, Tooltip("If Primary Light is not set, search the scene for all directional lights and pick the brightest to use as the sun light.")]
+        bool _searchForPrimaryLightOnStartup = true;
+
         [Header("Ocean Params")]
 
         [SerializeField, Tooltip("Material to use for the ocean surface")]
@@ -91,8 +96,6 @@ namespace Crest
         [Tooltip("Shadow information used for lighting water."), SerializeField]
         bool _createShadowData = false;
         public bool CreateShadowData { get { return _createShadowData; } }
-        [Tooltip("The primary directional light. Required if shadowing is enabled.")]
-        public Light _primaryLight;
         public SimSettingsShadow _simSettingsShadow;
 
         [Tooltip("Clip surface information for clipping the ocean surface."), SerializeField]
@@ -159,6 +162,11 @@ namespace Crest
 
         void Awake()
         {
+            if (!_primaryLight && _searchForPrimaryLightOnStartup)
+            {
+                _primaryLight = RenderSettings.sun;
+            }
+
             if (!VerifyRequirements())
             {
                 enabled = false;
@@ -216,7 +224,7 @@ namespace Crest
                 }
                 else
                 {
-                    Debug.LogError("Please provide the viewpoint transform, or tag the primary camera as MainCamera.", this);
+                    Debug.LogError("Crest needs to know where to focus the ocean detail. Please set the Viewpoint property of the OceanRenderer component to the transform of the viewpoint/camera that the ocean should follow, or tag the primary camera as MainCamera.", this);
                 }
             }
         }

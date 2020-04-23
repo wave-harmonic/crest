@@ -44,42 +44,42 @@ namespace Crest
         {
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // --- Ocean depths
-            if (ocean._lodDataSeaDepths)
+            if (ocean._lodDataSeaDepths && ocean._lodDataSeaDepths.enabled)
             {
                 ocean._lodDataSeaDepths.BuildCommandBuffer(ocean, buf);
             }
 
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // --- Flow data
-            if (ocean._lodDataFlow)
+            if (ocean._lodDataFlow && ocean._lodDataFlow.enabled)
             {
                 ocean._lodDataFlow.BuildCommandBuffer(ocean, buf);
             }
 
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // --- Dynamic wave simulations
-            if (ocean._lodDataDynWaves)
+            if (ocean._lodDataDynWaves && ocean._lodDataDynWaves.enabled)
             {
                 ocean._lodDataDynWaves.BuildCommandBuffer(ocean, buf);
             }
 
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // --- Animated waves next
-            if (ocean._lodDataAnimWaves)
+            if (ocean._lodDataAnimWaves && ocean._lodDataAnimWaves.enabled)
             {
                 ocean._lodDataAnimWaves.BuildCommandBuffer(ocean, buf);
             }
 
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // --- Foam simulation
-            if (ocean._lodDataFoam)
+            if (ocean._lodDataFoam && ocean._lodDataFoam.enabled)
             {
                 ocean._lodDataFoam.BuildCommandBuffer(ocean, buf);
             }
 
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // --- Clip surface
-            if (ocean._lodDataClipSurface)
+            if (ocean._lodDataClipSurface && ocean._lodDataClipSurface.enabled)
             {
                 ocean._lodDataClipSurface.BuildCommandBuffer(ocean, buf);
             }

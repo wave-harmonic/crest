@@ -15,11 +15,10 @@ namespace Crest
         bool _enabled = true;
         public override bool Enabled => _enabled;
 
-        [Tooltip("Uses the 'clip from convex hull' shader. There are other clip shaders available.")]
-        [SerializeField] bool _assignClipSurfaceMaterial = true;
+        [Header("Convex Hull Options")]
 
         [Tooltip("Prevents inputs from cancelling each other out when aligned vertically. It is imperfect so custom logic might be needed for your use case.")]
-        [SerializeField] bool _disableClipSurfaceWhenTooFarFromSurface = true;
+        [SerializeField] bool _disableClipSurfaceWhenTooFarFromSurface = false;
 
         [Tooltip("Large, choppy waves require higher iterations to have accurate holes.")]
         [SerializeField] uint _animatedWavesDisplacementSamplingIterations = 4;
@@ -33,17 +32,6 @@ namespace Crest
         SampleHeightHelper _sampleHeightHelper = new SampleHeightHelper();
 
         static int sp_DisplacementSamplingIterations = Shader.PropertyToID("_DisplacementSamplingIterations");
-
-        protected override void OnEnable()
-        {
-            base.OnEnable();
-
-            if (_assignClipSurfaceMaterial)
-            {
-                var rend = GetComponent<Renderer>();
-                rend.material = new Material(Shader.Find("Crest/Inputs/Clip Surface/Convex Hull"));
-            }
-        }
 
         protected override void Start()
         {

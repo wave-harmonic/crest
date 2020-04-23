@@ -15,14 +15,16 @@ The version hosted here targets the **built-in render pipeline**, a link to the 
 
 **Twitter:** [@crest_ocean](https://twitter.com/@crest_ocean)
 
-**URP asset:** [Crest Ocean System URP](https://assetstore.unity.com/detail/tools/particles-effects/crest-ocean-system-lwrp-urp-141674)
+**URP asset:** [Crest Ocean System URP](https://assetstore.unity.com/packages/tools/particles-effects/crest-ocean-system-urp-141674)
 
-**HDRP asset:** Coming soon.
+**HDRP asset:** [Crest Ocean System HDRP](https://assetstore.unity.com/packages/tools/particles-effects/crest-ocean-system-hdrp-164158)
 
 # Showcase Gallery
 
 *Your game here! We're looking for projects to showcase - if you upload a video of your work to youtube and send us a link (or create a pull request) we'll put a thumbnail here and link to it.*
 
+
+<a href="https://www.youtube.com/watch?feature=player_embedded&v=70voKq6cdKQ" target="_blank"><img src="https://img.youtube.com/vi/70voKq6cdKQ/0.jpg" alt="Windbound - Brave the Storm Announce Trailer [Official]" width="240" height="180" /></a>
 <a href="https://www.youtube.com/watch?feature=player_embedded&v=nsQJ5IJVHVw" target="_blank"><img src="https://img.youtube.com/vi/nsQJ5IJVHVw/0.jpg" alt="Hope Adrift Gameplay & Release Trailer" width="240" height="180" /></a>
 <a href="https://www.youtube.com/watch?feature=player_embedded&v=Qfy5P4Zygvs" target="_blank"><img src="https://img.youtube.com/vi/Qfy5P4Zygvs/0.jpg" alt="Morild Navigator" width="240" height="180" /></a>
 <a href="https://www.youtube.com/watch?feature=player_embedded&v=LNIQ6RF5lrw" target="_blank"><img src="https://img.youtube.com/vi/LNIQ6RF5lrw/0.jpg" alt="Blue Water Dev Diary - CIWS Expo" width="240" height="180" /></a>
@@ -65,7 +67,6 @@ If you encounter an issue, please search the [Issues page](https://github.com/hu
 
 There are a few issues worth calling out here:
 
-* *Crest* does not yet support *HDRP*. If you would find such support useful, please feel free to comment in issue #201.
 * Sky solutions such as Azure[Sky] requires some code to be added to the ocean shader for the fogging/scattering to work. This is a requirement of these products which typically come with instructions for what needs to be added. See issue #62 for an example.
 * Issue with LWRP and VR - refraction appears broken due to what seems to be a bug in LWRP. See issue #206.
 * This built-in render pipeline version of crest requires the *Draw Instanced* option on terrains to be disabled at start time. It can be re-enabled subsequently after the depth cache is populated. See issue #158.

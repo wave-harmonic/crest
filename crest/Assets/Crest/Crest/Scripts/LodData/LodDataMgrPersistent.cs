@@ -39,7 +39,12 @@ namespace Crest
 
         void CreateProperties(int lodCount)
         {
-            _shader = Resources.Load<ComputeShader>(ShaderSim);
+            _shader = ComputeShaderHelpers.LoadShader(ShaderSim);
+            if(_shader == null)
+            {
+                enabled = false;
+                return;
+            }
             _renderSimProperties = new PropertyWrapperCompute();
         }
 

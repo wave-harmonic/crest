@@ -71,6 +71,7 @@ Shader "Crest/Underwater/Post Process"
 			float _OceanHeight;
 			float4x4 _InvViewProjection;
 			float4x4 _InvViewProjectionRight;
+			float4 _HorizonPosNormal;
 
 			struct Attributes
 			{
@@ -82,6 +83,7 @@ Shader "Crest/Underwater/Post Process"
 			{
 				float4 positionCS : SV_POSITION;
 				float2 uv : TEXCOORD0;
+				float3 viewWS : TEXCOORD1;
 			};
 
 			Varyings Vert (Attributes input)
@@ -89,6 +91,20 @@ Shader "Crest/Underwater/Post Process"
 				Varyings output;
 				output.positionCS = UnityObjectToClipPos(input.positionOS);
 				output.uv = input.uv;
+
+				// Compute world space view vector
+				{
+					const float2 pixelCS = input.uv * 2 - float2(1.0, 1.0);
+#if UNITY_SINGLE_PASS_STEREO || UNITY_STEREO_INSTANCING_ENABLED || UNITY_STEREO_MULTIVIEW_ENABLED
+					const float4x4 InvViewProjection = unity_StereoEyeIndex == 0 ? _InvViewProjection : _InvViewProjectionRight;
+#else
+					const float4x4 InvViewProjection = _InvViewProjection;
+#endif
+					const float4 pixelWS_H = mul(InvViewProjection, float4(pixelCS, 1.0, 1.0));
+					const float3 pixelWS = pixelWS_H.xyz / pixelWS_H.w;
+					output.viewWS = _WorldSpaceCameraPos - pixelWS;
+				}
+
 				return output;
 			}
 
@@ -133,24 +149,11 @@ Shader "Crest/Underwater/Post Process"
 			{
 				float3 viewWS;
 				float farPlanePixelHeight;
-				{
-					// We calculate these values in the pixel shader as
-					// calculating them in the vertex shader results in
-					// precision errors.
-					const float2 pixelCS = input.uv * 2 - float2(1.0, 1.0);
-#if UNITY_SINGLE_PASS_STEREO || UNITY_STEREO_INSTANCING_ENABLED || UNITY_STEREO_MULTIVIEW_ENABLED
-					const float4x4 InvViewProjection = unity_StereoEyeIndex == 0 ? _InvViewProjection : _InvViewProjectionRight;
-#else
-					const float4x4 InvViewProjection = _InvViewProjection;
-#endif
-					const float4 pixelWS_H = mul(InvViewProjection, float4(pixelCS, 1.0, 1.0));
-					const float3 pixelWS = pixelWS_H.xyz / pixelWS_H.w;
-					viewWS = _WorldSpaceCameraPos - pixelWS;
-					farPlanePixelHeight = pixelWS.y;
-				}
 
 				#if !_FULL_SCREEN_EFFECT
-				const bool isBelowHorizon = (farPlanePixelHeight <= _OceanHeight);
+				// The horizon line is the intersection between the far plane and the ocean plane. The pos and normal of this
+				// intersection line is passed in.
+				const bool isBelowHorizon = dot(input.uv - _HorizonPosNormal.xy, _HorizonPosNormal.zw) > 0.0;
 				#else
 				const bool isBelowHorizon = true;
 				#endif
@@ -196,7 +199,7 @@ Shader "Crest/Underwater/Post Process"
 #else
 				if(isUnderwater)
 				{
-					const half3 view = normalize(viewWS);
+					const half3 view = normalize(input.viewWS);
 					sceneColour = ApplyUnderwaterEffect(sceneColour, sceneZ01, view, isOceanSurface);
 				}
 

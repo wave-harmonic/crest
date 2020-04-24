@@ -36,6 +36,8 @@ Shader "Crest/Underwater/Ocean Mask"
 			#include "../OceanConstants.hlsl"
 			#include "../OceanInputsDriven.hlsl"
 			#include "../OceanGlobals.hlsl"
+			#include "../OceanLODData.hlsl"
+			#include "../OceanHelpersNew.hlsl"
 			#include "../OceanHelpers.hlsl"
 
 			// Hack - due to SV_IsFrontFace occasionally coming through as true for backfaces,

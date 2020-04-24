@@ -63,6 +63,7 @@ Shader "Crest/Underwater/Post Process"
 			#include "../OceanInputsDriven.hlsl"
 			#include "../OceanGlobals.hlsl"
 			#include "../OceanLODData.hlsl"
+			#include "../OceanHelpersNew.hlsl"
 
 			half3 _AmbientLighting;
 

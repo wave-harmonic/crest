@@ -20,6 +20,7 @@ namespace Crest
         static readonly int sp_InstanceData = Shader.PropertyToID("_InstanceData");
         static readonly int sp_AmbientLighting = Shader.PropertyToID("_AmbientLighting");
         static readonly int sp_HorizonPosNormal = Shader.PropertyToID("_HorizonPosNormal");
+        static readonly int sp_HorizonPosNormalRight = Shader.PropertyToID("_HorizonPosNormalRight");
 
         internal class UnderwaterSphericalHarmonicsData
         {
@@ -141,8 +142,8 @@ namespace Crest
                 LodDataMgrShadow.BindNull(underwaterPostProcessMaterialWrapper);
             }
 
+            float oceanHeight = OceanRenderer.Instance.SeaLevel;
             {
-                float oceanHeight = OceanRenderer.Instance.SeaLevel;
                 underwaterPostProcessMaterial.SetFloat(sp_OceanHeight, oceanHeight);
 
                 float maxOceanVerticalDisplacement = OceanRenderer.Instance.MaxVertDisplacement * 0.5f;
@@ -158,8 +159,6 @@ namespace Crest
                     underwaterPostProcessMaterial.DisableKeyword(FULL_SCREEN_EFFECT);
                 }
 
-                GetHorizonPosNormal(camera, oceanHeight, out Vector2 pos, out Vector2 normal);
-                underwaterPostProcessMaterial.SetVector(sp_HorizonPosNormal, new Vector4(pos.x, pos.y, normal.x, normal.y));
             }
 
             underwaterPostProcessMaterial.SetTexture(sp_MaskTex, textureMask);
@@ -169,15 +168,31 @@ namespace Crest
             if (!XRSettings.enabled || XRSettings.stereoRenderingMode == XRSettings.StereoRenderingMode.MultiPass)
             {
 
-                var viewProjectionMatrix = camera.projectionMatrix * camera.worldToCameraMatrix;
-                underwaterPostProcessMaterial.SetMatrix(sp_InvViewProjection, viewProjectionMatrix.inverse);
+                var inverseViewProjectionMatrix = (camera.projectionMatrix * camera.worldToCameraMatrix).inverse;
+                underwaterPostProcessMaterial.SetMatrix(sp_InvViewProjection, inverseViewProjectionMatrix);
+
+                {
+                    GetHorizonPosNormal(camera, Camera.MonoOrStereoscopicEye.Mono, oceanHeight, out Vector2 pos, out Vector2 normal);
+                    underwaterPostProcessMaterial.SetVector(sp_HorizonPosNormal, new Vector4(pos.x, pos.y, normal.x, normal.y));
+                }
             }
             else
             {
-                var viewProjectionMatrix = camera.GetStereoProjectionMatrix(Camera.StereoscopicEye.Left) * camera.worldToCameraMatrix;
-                underwaterPostProcessMaterial.SetMatrix(sp_InvViewProjection, viewProjectionMatrix.inverse);
-                var viewProjectionMatrixRightEye = camera.GetStereoProjectionMatrix(Camera.StereoscopicEye.Right) * camera.worldToCameraMatrix;
-                underwaterPostProcessMaterial.SetMatrix(sp_InvViewProjectionRight, viewProjectionMatrixRightEye.inverse);
+                var inverseViewProjectionMatrix = (camera.GetStereoProjectionMatrix(Camera.StereoscopicEye.Left) * camera.worldToCameraMatrix).inverse;
+                underwaterPostProcessMaterial.SetMatrix(sp_InvViewProjection, inverseViewProjectionMatrix);
+
+                {
+                    GetHorizonPosNormal(camera, Camera.MonoOrStereoscopicEye.Left, oceanHeight, out Vector2 pos, out Vector2 normal);
+                    underwaterPostProcessMaterial.SetVector(sp_HorizonPosNormal, new Vector4(pos.x, pos.y, normal.x, normal.y));
+                }
+
+                var inverseViewProjectionMatrixRightEye = (camera.GetStereoProjectionMatrix(Camera.StereoscopicEye.Right) * camera.worldToCameraMatrix).inverse;
+                underwaterPostProcessMaterial.SetMatrix(sp_InvViewProjectionRight, inverseViewProjectionMatrixRightEye);
+
+                {
+                    GetHorizonPosNormal(camera, Camera.MonoOrStereoscopicEye.Right, oceanHeight, out Vector2 pos, out Vector2 normal);
+                    underwaterPostProcessMaterial.SetVector(sp_HorizonPosNormalRight, new Vector4(pos.x, pos.y, normal.x, normal.y));
+                }
             }
 
             // Not sure why we need to do this - blit should set it...?
@@ -203,7 +218,7 @@ namespace Crest
         /// <summary>
         /// Compute intersection between the frustum far plane and the ocean plane, and return screen space pos and normal for this horizon line
         /// </summary>
-        static void GetHorizonPosNormal(Camera cam, float seaLevel, out Vector2 resultPos, out Vector2 resultNormal)
+        static void GetHorizonPosNormal(Camera camera, Camera.MonoOrStereoscopicEye eye, float seaLevel, out Vector2 resultPos, out Vector2 resultNormal)
         {
             // Set up back points of frustum
             NativeArray<Vector3> v_screenXY_viewZ = new NativeArray<Vector3>(4, Allocator.Temp);
@@ -211,15 +226,15 @@ namespace Crest
             try
             {
 
-                v_screenXY_viewZ[0] = new Vector3(0f, 0f, cam.farClipPlane);
-                v_screenXY_viewZ[1] = new Vector3(0f, 1f, cam.farClipPlane);
-                v_screenXY_viewZ[2] = new Vector3(1f, 1f, cam.farClipPlane);
-                v_screenXY_viewZ[3] = new Vector3(1f, 0f, cam.farClipPlane);
+                v_screenXY_viewZ[0] = new Vector3(0f, 0f, camera.farClipPlane);
+                v_screenXY_viewZ[1] = new Vector3(0f, 1f, camera.farClipPlane);
+                v_screenXY_viewZ[2] = new Vector3(1f, 1f, camera.farClipPlane);
+                v_screenXY_viewZ[3] = new Vector3(1f, 0f, camera.farClipPlane);
 
                 // Project out to world
                 for (int i = 0; i < v_world.Length; i++)
                 {
-                    v_world[i] = cam.ViewportToWorldPoint(v_screenXY_viewZ[i]);
+                    v_world[i] = camera.ViewportToWorldPoint(v_screenXY_viewZ[i], eye);
                 }
 
                 NativeArray<Vector2> intersectionsScreen = new NativeArray<Vector2>(2, Allocator.Temp);
@@ -256,7 +271,7 @@ namespace Crest
                         resultNormal.x = -tangent.y;
                         resultNormal.y = tangent.x;
 
-                        if (Vector3.Dot(intersectionsWorld[0] - intersectionsWorld[1], cam.transform.right) > 0f)
+                        if (Vector3.Dot(intersectionsWorld[0] - intersectionsWorld[1], camera.transform.right) > 0f)
                         {
                             resultNormal = -resultNormal;
                         }

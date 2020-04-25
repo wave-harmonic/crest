@@ -72,6 +72,9 @@ Shader "Crest/Underwater/Post Process"
 			float4x4 _InvViewProjection;
 			float4x4 _InvViewProjectionRight;
 			float4 _HorizonPosNormal;
+			float4 _HorizonPosNormalRight;
+
+			#define CREST_HANDLE_XR UNITY_SINGLE_PASS_STEREO || UNITY_STEREO_INSTANCING_ENABLED || UNITY_STEREO_MULTIVIEW_ENABLED
 
 			struct Attributes
 			{
@@ -95,7 +98,7 @@ Shader "Crest/Underwater/Post Process"
 				// Compute world space view vector
 				{
 					const float2 pixelCS = input.uv * 2 - float2(1.0, 1.0);
-#if UNITY_SINGLE_PASS_STEREO || UNITY_STEREO_INSTANCING_ENABLED || UNITY_STEREO_MULTIVIEW_ENABLED
+#if CREST_HANDLE_XR
 					const float4x4 InvViewProjection = unity_StereoEyeIndex == 0 ? _InvViewProjection : _InvViewProjectionRight;
 #else
 					const float4x4 InvViewProjection = _InvViewProjection;
@@ -150,13 +153,19 @@ Shader "Crest/Underwater/Post Process"
 				float3 viewWS;
 				float farPlanePixelHeight;
 
-				#if !_FULL_SCREEN_EFFECT
+#if !_FULL_SCREEN_EFFECT
 				// The horizon line is the intersection between the far plane and the ocean plane. The pos and normal of this
 				// intersection line is passed in.
+#if CREST_HANDLE_XR
+				const bool isBelowHorizon = unity_StereoEyeIndex == 0 ?
+					dot(input.uv - _HorizonPosNormal.xy, _HorizonPosNormal.zw) > 0.0 :
+					dot(input.uv - _HorizonPosNormalRight.xy, _HorizonPosNormalRight.zw) > 0.0;
+#else // CREST_HANDLE_XR
 				const bool isBelowHorizon = dot(input.uv - _HorizonPosNormal.xy, _HorizonPosNormal.zw) > 0.0;
-				#else
+#endif // CREST_HANDLE_XR
+#else // !_FULL_SCREEN_EFFECT
 				const bool isBelowHorizon = true;
-				#endif
+#endif // !_FULL_SCREEN_EFFECT
 
 				const float2 uvScreenSpace = UnityStereoTransformScreenSpaceTex(input.uv);
 				half3 sceneColour = tex2D(_MainTex, uvScreenSpace).rgb;

@@ -207,6 +207,7 @@ namespace Crest
         {
             // Set up back points of frustum
             NativeArray<Vector3> v_screenXY_viewZ = new NativeArray<Vector3>(4, Allocator.Temp);
+            NativeArray<Vector3> v_world = new NativeArray<Vector3>(4, Allocator.Temp);
             try
             {
 
@@ -216,75 +217,83 @@ namespace Crest
                 v_screenXY_viewZ[3] = new Vector3(1f, 0f, cam.farClipPlane);
 
                 // Project out to world
-                var v_world = new Vector3[4];
-                for (int i = 0; i < 4; i++)
+                for (int i = 0; i < v_world.Length; i++)
                 {
                     v_world[i] = cam.ViewportToWorldPoint(v_screenXY_viewZ[i]);
                 }
 
-                var intersectionsScreen = new Vector2[2];
+                NativeArray<Vector2> intersectionsScreen = new NativeArray<Vector2>(2, Allocator.Temp);
                 // This is only used to disambiguate the normal later. Could be removed if we were more careful with point order/indices below.
-                var intersectionsWorld = new Vector3[2];
-                var resultCount = 0;
-
-                // Iterate over each back point
-                for (int i = 0; i < 4; i++)
+                NativeArray<Vector3> intersectionsWorld = new NativeArray<Vector3>(2, Allocator.Temp);
+                try
                 {
-                    // Get next back point, to obtain line segment between them
-                    var inext = (i + 1) % 4;
+                    var resultCount = 0;
 
-                    // See if one point is above and one point is below sea level - then sign of the two differences
-                    // will be different, and multiplying them will give a negative
-                    if ((v_world[i].y - seaLevel) * (v_world[inext].y - seaLevel) < 0f)
-                    {
-                        // Proportion along line segment where intersection occurs
-                        var prop = (seaLevel - v_world[i].y) / (v_world[inext].y - v_world[i].y);
-                        intersectionsScreen[resultCount] = Vector2.Lerp(v_screenXY_viewZ[i], v_screenXY_viewZ[inext], prop);
-                        intersectionsWorld[resultCount] = Vector3.Lerp(v_world[i], v_world[inext], prop);
-
-                        resultCount++;
-                    }
-                }
-
-                // Two distinct results - far plane intersects water
-                if (resultCount == 2 /*&& (props[1] - props[0]).sqrMagnitude > 0.000001f*/)
-                {
-                    resultPos = intersectionsScreen[0];
-                    var tangent = intersectionsScreen[0] - intersectionsScreen[1];
-                    resultNormal.x = -tangent.y;
-                    resultNormal.y = tangent.x;
-
-                    if (Vector3.Dot(intersectionsWorld[0] - intersectionsWorld[1], cam.transform.right) > 0f)
-                    {
-                        resultNormal = -resultNormal;
-                    }
-                }
-                else
-                {
-                    // 1 or 0 results - far plane either touches ocean plane or is completely above/below
-                    resultNormal = Vector2.up;
+                    // Iterate over each back point
                     for (int i = 0; i < 4; i++)
                     {
-                        if (v_world[i].y < seaLevel)
+                        // Get next back point, to obtain line segment between them
+                        var inext = (i + 1) % 4;
+
+                        // See if one point is above and one point is below sea level - then sign of the two differences
+                        // will be different, and multiplying them will give a negative
+                        if ((v_world[i].y - seaLevel) * (v_world[inext].y - seaLevel) < 0f)
                         {
-                            // Underwater
-                            resultPos = Vector2.zero;
-                            return;
-                        }
-                        else if (v_world[i].y > seaLevel)
-                        {
-                            // Underwater
-                            resultPos = Vector2.up;
-                            return;
+                            // Proportion along line segment where intersection occurs
+                            var prop = (seaLevel - v_world[i].y) / (v_world[inext].y - v_world[i].y);
+                            intersectionsScreen[resultCount] = Vector2.Lerp(v_screenXY_viewZ[i], v_screenXY_viewZ[inext], prop);
+                            intersectionsWorld[resultCount] = Vector3.Lerp(v_world[i], v_world[inext], prop);
+
+                            resultCount++;
                         }
                     }
 
-                    throw new System.Exception("GetHorizonPosNormal: Could not determine if far plane is above or below water.");
+                    // Two distinct results - far plane intersects water
+                    if (resultCount == 2 /*&& (props[1] - props[0]).sqrMagnitude > 0.000001f*/)
+                    {
+                        resultPos = intersectionsScreen[0];
+                        var tangent = intersectionsScreen[0] - intersectionsScreen[1];
+                        resultNormal.x = -tangent.y;
+                        resultNormal.y = tangent.x;
+
+                        if (Vector3.Dot(intersectionsWorld[0] - intersectionsWorld[1], cam.transform.right) > 0f)
+                        {
+                            resultNormal = -resultNormal;
+                        }
+                    }
+                    else
+                    {
+                        // 1 or 0 results - far plane either touches ocean plane or is completely above/below
+                        resultNormal = Vector2.up;
+                        for (int i = 0; i < 4; i++)
+                        {
+                            if (v_world[i].y < seaLevel)
+                            {
+                                // Underwater
+                                resultPos = Vector2.zero;
+                                return;
+                            }
+                            else if (v_world[i].y > seaLevel)
+                            {
+                                // Underwater
+                                resultPos = Vector2.up;
+                                return;
+                            }
+                        }
+
+                        throw new System.Exception("GetHorizonPosNormal: Could not determine if far plane is above or below water.");
+                    }
+                }
+                finally
+                {
+                    intersectionsScreen.Dispose();
+                    intersectionsWorld.Dispose();
                 }
             }
             finally
             {
                 v_screenXY_viewZ.Dispose();
+                v_world.Dispose();
             }
         }
     }

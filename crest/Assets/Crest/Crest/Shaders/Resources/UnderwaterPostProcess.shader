@@ -74,8 +74,6 @@ Shader "Crest/Underwater/Post Process"
 			float4 _HorizonPosNormal;
 			float4 _HorizonPosNormalRight;
 
-			#define CREST_HANDLE_XR UNITY_SINGLE_PASS_STEREO || UNITY_STEREO_INSTANCING_ENABLED || UNITY_STEREO_MULTIVIEW_ENABLED
-
 			struct Attributes
 			{
 				float4 positionOS : POSITION;
@@ -168,6 +166,7 @@ Shader "Crest/Underwater/Post Process"
 #endif // !_FULL_SCREEN_EFFECT
 
 				const float2 uvScreenSpace = UnityStereoTransformScreenSpaceTex(input.uv);
+
 				half3 sceneColour = tex2D(_MainTex, uvScreenSpace).rgb;
 
 				float sceneZ01 = tex2D(_CameraDepthTexture, uvScreenSpace).x;

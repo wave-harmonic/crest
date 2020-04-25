@@ -275,6 +275,11 @@ namespace Crest
                         {
                             resultNormal = -resultNormal;
                         }
+
+                        if (camera.transform.up.y <= 0f)
+                        {
+                            resultNormal = -resultNormal;
+                        }
                     }
                     else
                     {

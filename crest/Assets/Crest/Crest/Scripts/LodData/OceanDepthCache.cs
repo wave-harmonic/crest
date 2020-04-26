@@ -99,7 +99,7 @@ namespace Crest
 #if UNITY_EDITOR
         void Update()
         {
-            if (_forceAlwaysUpdateDebug)
+            if (_forceAlwaysUpdateDebug || !EditorApplication.isPlaying)
             {
                 PopulateCache();
             }

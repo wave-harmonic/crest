@@ -2,6 +2,7 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+using UnityEditor;
 using UnityEngine;
 
 namespace Crest
@@ -104,6 +105,9 @@ namespace Crest
 
         [Header("Debug Params")]
 
+        [SerializeField]
+        public bool _runInEditMode = true;
+
         [Tooltip("Attach debug gui that adds some controls and allows to visualise the ocean data."), SerializeField]
         bool _attachDebugGUI = false;
 
@@ -160,6 +164,8 @@ namespace Crest
         readonly int sp_meshScaleLerp = Shader.PropertyToID("_MeshScaleLerp");
         readonly int sp_sliceCount = Shader.PropertyToID("_SliceCount");
 
+        BuildCommandBuffer _commandbufferBuilder;
+
         void Awake()
         {
             if (!_primaryLight && _searchForPrimaryLightOnStartup)
@@ -180,10 +186,7 @@ namespace Crest
 
             InitLodData();
 
-            if (null == GetComponent<BuildCommandBufferBase>())
-            {
-                gameObject.AddComponent<BuildCommandBuffer>();
-            }
+            _commandbufferBuilder = new BuildCommandBuffer();
 
             InitViewpoint();
             InitTimeProvider();
@@ -191,6 +194,30 @@ namespace Crest
             if (_attachDebugGUI && GetComponent<OceanDebugGUI>() == null)
             {
                 gameObject.AddComponent<OceanDebugGUI>();
+            }
+
+#if UNITY_EDITOR
+            EditorApplication.update -= EditorUpdate;
+            EditorApplication.update += EditorUpdate;
+#endif
+        }
+
+        float _lastUpdateTime = -1f;
+        static void EditorUpdate()
+        {
+            if (Instance == null) return;
+
+            if (!EditorApplication.isPlaying && Instance._runInEditMode)
+            {
+                if (EditorApplication.timeSinceStartup - Instance._lastUpdateTime > 0.05f)
+                {
+                    Instance._lastUpdateTime = (float)EditorApplication.timeSinceStartup;
+
+                    Instance.LateUpdate();
+
+                    EditorWindow view = EditorWindow.GetWindow<SceneView>();
+                    view.Repaint();
+                }
             }
         }
 
@@ -326,6 +353,8 @@ namespace Crest
             }
 
             LateUpdateLods();
+
+            _commandbufferBuilder.BuildAndExecute();
         }
 
         void LateUpdatePosition()

@@ -2,7 +2,6 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -13,8 +12,7 @@ namespace Crest
     /// own update logic, you can create a new component that inherits from this class and attach it to the same GameObject as the
     /// OceanRenderer script. The new component should be set to update after the Default bucket, similar to BuildCommandBuffer.
     /// </summary>
-    [ExecuteAlways]
-    public abstract class BuildCommandBufferBase : MonoBehaviour
+    public abstract class BuildCommandBufferBase
     {
         /// <summary>
         /// Used to validate update order
@@ -36,18 +34,11 @@ namespace Crest
     /// example rendering animated waves and advancing sims. This runs in LateUpdate after the Default bucket, after the ocean
     /// system been moved to an up to date position and frame processing is done.
     /// </summary>
-    [ExecuteAlways]
     public class BuildCommandBuffer : BuildCommandBufferBase
     {
         CommandBuffer _buf;
 
-        private void Start()
-        {
-            EditorApplication.update -= EditorUpdate;
-            EditorApplication.update += EditorUpdate;
-        }
-
-        void Build(OceanRenderer ocean, CommandBuffer buf)
+        void BuildLodData(OceanRenderer ocean, CommandBuffer buf)
         {
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // --- Ocean depths
@@ -92,27 +83,10 @@ namespace Crest
             }
         }
 
-        float _lastUpdateTime = -1f;
-        void EditorUpdate()
-        {
-            if (!EditorApplication.isPlaying)
-            {
-                if (EditorApplication.timeSinceStartup - _lastUpdateTime  > 0.05f)
-                {
-                    _lastUpdateTime = (float)EditorApplication.timeSinceStartup;
-
-                    LateUpdate();
-
-                    EditorWindow view = EditorWindow.GetWindow<SceneView>();
-                    view.Repaint();
-                }
-            }
-        }
-
         /// <summary>
         /// Construct the command buffer and attach it to the camera so that it will be executed in the render.
         /// </summary>
-        public void LateUpdate()
+        public void BuildAndExecute()
         {
             if (OceanRenderer.Instance == null) return;
 
@@ -124,7 +98,7 @@ namespace Crest
 
             _buf.Clear();
 
-            Build(OceanRenderer.Instance, _buf);
+            BuildLodData(OceanRenderer.Instance, _buf);
 
             // This will execute at the beginning of the frame before the graphics queue
             Graphics.ExecuteCommandBuffer(_buf);

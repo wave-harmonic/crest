@@ -79,7 +79,7 @@ namespace Crest
             var floatingObjects = FindObjectsOfType<FloatingObjectBase>();
             foreach (var floatingObject in floatingObjects)
             {
-                if (ocean._simSettingsAnimatedWaves != null && ocean._simSettingsAnimatedWaves.CollisionSource == SimSettingsAnimatedWaves.CollisionSources.None)
+                if (ocean._lodDataAnimWaves != null && ocean._lodDataAnimWaves.Settings.CollisionSource == SimSettingsAnimatedWaves.CollisionSources.None)
                 {
                     Debug.LogWarning("Collision Source in Animated Waves Settings is set to None. The floating objects in the scene will use a flat horizontal plane.", ocean);
                 }

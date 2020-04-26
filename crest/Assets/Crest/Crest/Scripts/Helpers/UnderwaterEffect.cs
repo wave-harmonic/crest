@@ -119,7 +119,7 @@ namespace Crest
                 _mpb.SetInt(LodDataMgr.sp_LD_SliceIndex, 0);
                 OceanRenderer.Instance._lodDataAnimWaves.BindResultData(_mpb);
 
-                if (OceanRenderer.Instance._lodDataSeaDepths)
+                if (OceanRenderer.Instance._lodDataSeaDepths != null)
                 {
                     OceanRenderer.Instance._lodDataSeaDepths.BindResultData(_mpb);
                 }
@@ -128,7 +128,7 @@ namespace Crest
                     LodDataMgrSeaFloorDepth.BindNull(_mpb);
                 }
 
-                if (OceanRenderer.Instance._lodDataShadow)
+                if (OceanRenderer.Instance._lodDataShadow != null)
                 {
                     OceanRenderer.Instance._lodDataShadow.BindResultData(_mpb);
                 }

@@ -166,59 +166,6 @@ namespace Crest
                 ocean._lodTransform.InitLODData(lodCount);
             }
 
-            // Create the LOD data managers
-            ocean._lodDataAnimWaves = LodDataMgr.Create<LodDataMgrAnimWaves, SimSettingsAnimatedWaves>(ocean.gameObject, ref ocean._simSettingsAnimatedWaves);
-            if (ocean.CreateDynamicWaveSim)
-            {
-                ocean._lodDataDynWaves = LodDataMgr.Create<LodDataMgrDynWaves, SimSettingsWave>(ocean.gameObject, ref ocean._simSettingsDynamicWaves);
-            }
-            if (ocean.CreateFlowSim)
-            {
-                ocean._lodDataFlow = LodDataMgr.Create<LodDataMgrFlow, SimSettingsFlow>(ocean.gameObject, ref ocean._simSettingsFlow);
-            }
-            if (ocean.CreateFoamSim)
-            {
-                ocean._lodDataFoam = LodDataMgr.Create<LodDataMgrFoam, SimSettingsFoam>(ocean.gameObject, ref ocean._simSettingsFoam);
-            }
-            if (ocean.CreateShadowData)
-            {
-                ocean._lodDataShadow = LodDataMgr.Create<LodDataMgrShadow, SimSettingsShadow>(ocean.gameObject, ref ocean._simSettingsShadow);
-            }
-            if (ocean.CreateSeaFloorDepthData)
-            {
-                var existing = ocean.gameObject.GetComponent<LodDataMgrSeaFloorDepth>();
-                if (existing == null)
-                {
-                    existing = ocean.gameObject.AddComponent<LodDataMgrSeaFloorDepth>();
-                    existing.hideFlags = HideFlags.DontSave | HideFlags.NotEditable;
-                }
-                ocean._lodDataSeaDepths = existing;
-            }
-            if (ocean.CreateClipSurfaceData)
-            {
-                var existing = ocean.gameObject.GetComponent<LodDataMgrClipSurface>();
-                if (existing == null)
-                {
-                    existing = ocean.gameObject.AddComponent<LodDataMgrClipSurface>();
-                    existing.hideFlags = HideFlags.DontSave | HideFlags.NotEditable;
-                }
-                ocean._lodDataClipSurface = existing;
-            }
-
-            // Add any required GPU readbacks
-            {
-                var ssaw = ocean._simSettingsAnimatedWaves;
-                if (ssaw && ssaw.CollisionSource == SimSettingsAnimatedWaves.CollisionSources.ComputeShaderQueries)
-                {
-                    ocean.gameObject.AddComponent<QueryDisplacements>().hideFlags = HideFlags.DontSave;
-                }
-
-                if (ocean.CreateFlowSim)
-                {
-                    ocean.gameObject.AddComponent<QueryFlow>().hideFlags = HideFlags.DontSave;
-                }
-            }
-
             // Remove existing LODs
             for (int i = 0; i < ocean.transform.childCount; i++)
             {

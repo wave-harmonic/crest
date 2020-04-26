@@ -17,14 +17,15 @@ namespace Crest
         public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RHalf; } }
         protected override bool NeedToReadWriteTextureData { get { return false; } }
 
-        public override SimSettingsBase CreateDefaultSettings() { return null; }
-        public override void UseSettings(SimSettingsBase settings) { }
-
         bool _targetsClear = false;
 
         public const string ShaderName = "Crest/Inputs/Depth/Cached Depths";
 
         static Texture2DArray s_nullTexture2DArray;
+
+        public LodDataMgrSeaFloorDepth(OceanRenderer ocean) : base(ocean)
+        {
+        }
 
         public override void BuildCommandBuffer(OceanRenderer ocean, CommandBuffer buf)
         {
@@ -70,7 +71,7 @@ namespace Crest
 
         static void InitNullTexture()
         {
-            var texture = Instantiate<Texture2D>(Texture2D.whiteTexture);
+            var texture = Object.Instantiate(Texture2D.whiteTexture);
             // Null texture needs to be white (uses R channel) with a 1000 intensity.
             var color = new Color(1000, 1000, 1000, 1);
             Color[] pixels = new Color[texture.height * texture.width];

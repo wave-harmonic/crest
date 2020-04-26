@@ -30,7 +30,11 @@ namespace Crest
         readonly int sp_SimDeltaTime = Shader.PropertyToID("_SimDeltaTime");
         readonly int sp_SimDeltaTimePrev = Shader.PropertyToID("_SimDeltaTimePrev");
 
-        protected override void Start()
+        public LodDataMgrPersistent(OceanRenderer ocean) : base(ocean)
+        {
+        }
+
+        public override void Start()
         {
             base.Start();
 
@@ -68,7 +72,7 @@ namespace Crest
             int validationFrame = usePrevTransform ? BuildCommandBufferBase._lastUpdateFrame - Time.frameCount : 0;
             foreach (var renderData in renderDataToValidate)
             {
-                renderData.Validate(validationFrame, this);
+                renderData.Validate(validationFrame, null); // todo context
             }
         }
 
@@ -157,7 +161,7 @@ namespace Crest
         [UnityEditor.Callbacks.DidReloadScripts]
         protected static void OnReLoadScripts()
         {
-            var ocean = FindObjectOfType<OceanRenderer>();
+            var ocean = Object.FindObjectOfType<OceanRenderer>();
             if (ocean == null) return;
             foreach (var ldp in ocean.GetComponents<LodDataMgrPersistent>())
             {

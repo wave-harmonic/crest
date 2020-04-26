@@ -18,19 +18,20 @@ namespace Crest
         public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.R8; } }
         protected override bool NeedToReadWriteTextureData { get { return true; } }
 
-        public override SimSettingsBase CreateDefaultSettings() { return null; }
-        public override void UseSettings(SimSettingsBase settings) { }
-
         bool _targetsClear = false;
 
-        protected override void Start()
+        public LodDataMgrClipSurface(OceanRenderer ocean) : base(ocean)
+        {
+        }
+
+        public override void Start()
         {
             base.Start();
 
 #if UNITY_EDITOR
             if (!OceanRenderer.Instance.OceanMaterial.IsKeywordEnabled("_CLIPSURFACE_ON"))
             {
-                Debug.LogWarning("Clip Surface is not enabled on the current ocean material, so the surface clipping will not work. Please enable it on the material.", this);
+                Debug.LogWarning("Clip Surface is not enabled on the current ocean material, so the surface clipping will not work. Please enable it on the material.", _ocean);
             }
 #endif
         }

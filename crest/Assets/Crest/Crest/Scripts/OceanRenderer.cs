@@ -178,6 +178,8 @@ namespace Crest
 
             OceanBuilder.GenerateMesh(this, _lodDataResolution, _geometryDownSampleFactor, _lodCount);
 
+            InitLodData();
+
             if (null == GetComponent<BuildCommandBufferBase>())
             {
                 gameObject.AddComponent<BuildCommandBuffer>();
@@ -186,9 +188,59 @@ namespace Crest
             InitViewpoint();
             InitTimeProvider();
 
-            if(_attachDebugGUI && GetComponent<OceanDebugGUI>() == null)
+            if (_attachDebugGUI && GetComponent<OceanDebugGUI>() == null)
             {
                 gameObject.AddComponent<OceanDebugGUI>();
+            }
+        }
+
+        void InitLodData()
+        {
+            // Create the LOD data managers
+            _lodDataAnimWaves = new LodDataMgrAnimWaves(this);
+            _lodDataAnimWaves.Start();
+            if (CreateDynamicWaveSim)
+            {
+                _lodDataDynWaves = new LodDataMgrDynWaves(this);
+                _lodDataDynWaves.Start();
+            }
+            if (CreateFlowSim)
+            {
+                _lodDataFlow = new LodDataMgrFlow(this);
+                _lodDataFlow.Start();
+            }
+            if (CreateFoamSim)
+            {
+                _lodDataFoam = new LodDataMgrFoam(this);
+                _lodDataFoam.Start();
+            }
+            if (CreateShadowData)
+            {
+                _lodDataShadow = new LodDataMgrShadow(this);
+                _lodDataShadow.Start();
+            }
+            if (CreateSeaFloorDepthData)
+            {
+                _lodDataSeaDepths = new LodDataMgrSeaFloorDepth(this);
+                _lodDataSeaDepths.Start();
+            }
+            if (CreateClipSurfaceData)
+            {
+                _lodDataClipSurface = new LodDataMgrClipSurface(this);
+                _lodDataClipSurface.Start();
+            }
+
+            // Add any required GPU readbacks
+            {
+                if (_lodDataAnimWaves.Settings.CollisionSource == SimSettingsAnimatedWaves.CollisionSources.ComputeShaderQueries)
+                {
+                    gameObject.AddComponent<QueryDisplacements>().hideFlags = HideFlags.DontSave;
+                }
+
+                if (CreateFlowSim)
+                {
+                    gameObject.AddComponent<QueryFlow>().hideFlags = HideFlags.DontSave;
+                }
             }
         }
 
@@ -330,13 +382,13 @@ namespace Crest
 
             _lodTransform.UpdateTransforms();
 
-            if (_lodDataAnimWaves) _lodDataAnimWaves.UpdateLodData();
-            if (_lodDataDynWaves) _lodDataDynWaves.UpdateLodData();
-            if (_lodDataFlow) _lodDataFlow.UpdateLodData();
-            if (_lodDataFoam) _lodDataFoam.UpdateLodData();
-            if (_lodDataSeaDepths) _lodDataSeaDepths.UpdateLodData();
-            if (_lodDataClipSurface) _lodDataClipSurface.UpdateLodData();
-            if (_lodDataShadow) _lodDataShadow.UpdateLodData();
+            if (_lodDataAnimWaves != null) _lodDataAnimWaves.UpdateLodData();
+            if (_lodDataDynWaves != null) _lodDataDynWaves.UpdateLodData();
+            if (_lodDataFlow != null) _lodDataFlow.UpdateLodData();
+            if (_lodDataFoam != null) _lodDataFoam.UpdateLodData();
+            if (_lodDataSeaDepths != null) _lodDataSeaDepths.UpdateLodData();
+            if (_lodDataClipSurface != null) _lodDataClipSurface.UpdateLodData();
+            if (_lodDataShadow != null) _lodDataShadow.UpdateLodData();
         }
 
         /// <summary>
@@ -382,7 +434,7 @@ namespace Crest
         /// Provides ocean shape to CPU.
         /// </summary>
         ICollProvider _collProvider;
-        public ICollProvider CollisionProvider { get { return _collProvider != null ? _collProvider : (_collProvider = _simSettingsAnimatedWaves.CreateCollisionProvider()); } }
+        public ICollProvider CollisionProvider { get { return _collProvider != null ? _collProvider : (_collProvider = _lodDataAnimWaves.Settings.CreateCollisionProvider()); } }
 
 #if UNITY_EDITOR
         private void OnValidate()

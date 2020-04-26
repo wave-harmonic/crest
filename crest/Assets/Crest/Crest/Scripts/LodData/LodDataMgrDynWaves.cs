@@ -6,6 +6,8 @@ using UnityEngine;
 
 namespace Crest
 {
+    using SettingsType = SimSettingsWave;
+
     /// <summary>
     /// A dynamic shape simulation that moves around with a displacement LOD.
     /// </summary>
@@ -17,15 +19,6 @@ namespace Crest
 
         public override string SimName { get { return "DynamicWaves"; } }
         public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RGHalf; } }
-
-        SimSettingsWave Settings { get { return OceanRenderer.Instance._simSettingsDynamicWaves; } }
-        public override void UseSettings(SimSettingsBase settings) { OceanRenderer.Instance._simSettingsDynamicWaves = settings as SimSettingsWave; }
-        public override SimSettingsBase CreateDefaultSettings()
-        {
-            var settings = ScriptableObject.CreateInstance<SimSettingsWave>();
-            settings.name = SimName + " Auto-generated Settings";
-            return settings;
-        }
 
         public bool _rotateLaplacian = true;
 
@@ -39,6 +32,26 @@ namespace Crest
         readonly int sp_Damping = Shader.PropertyToID("_Damping");
         readonly int sp_Gravity = Shader.PropertyToID("_Gravity");
         readonly int sp_LaplacianAxisX = Shader.PropertyToID("_LaplacianAxisX");
+
+        SettingsType _defaultSettings;
+        public SettingsType Settings
+        {
+            get
+            {
+                if (_ocean._simSettingsDynamicWaves != null) return _ocean._simSettingsDynamicWaves;
+
+                if (_defaultSettings == null)
+                {
+                    _defaultSettings = ScriptableObject.CreateInstance<SettingsType>();
+                    _defaultSettings.name = SimName + " Auto-generated Settings";
+                }
+                return _defaultSettings;
+            }
+        }
+
+        public LodDataMgrDynWaves(OceanRenderer ocean) : base(ocean)
+        {
+        }
 
         protected override void InitData()
         {
@@ -64,7 +77,7 @@ namespace Crest
                 return false;
 
             // check if the sim should be running
-            float texelWidth = OceanRenderer.Instance._lodTransform._renderData[lodIdx].Validate(0, this)._texelWidth;
+            float texelWidth = OceanRenderer.Instance._lodTransform._renderData[lodIdx].Validate(0, null)._texelWidth; // todo context
             _active[lodIdx] = texelWidth >= Settings._minGridSize && (texelWidth <= Settings._maxGridSize || Settings._maxGridSize == 0f);
 
             return true;
@@ -88,7 +101,7 @@ namespace Crest
 
             // assign sea floor depth - to slot 1 current frame data. minor bug here - this depth will actually be from the previous frame,
             // because the depth is scheduled to render just before the animated waves, and this sim happens before animated waves.
-            if (OceanRenderer.Instance._lodDataSeaDepths)
+            if (OceanRenderer.Instance._lodDataSeaDepths != null)
             {
                 OceanRenderer.Instance._lodDataSeaDepths.BindResultData(simMaterial);
             }
@@ -97,7 +110,7 @@ namespace Crest
                 LodDataMgrSeaFloorDepth.BindNull(simMaterial);
             }
 
-            if (OceanRenderer.Instance._lodDataFlow)
+            if (OceanRenderer.Instance._lodDataFlow != null)
             {
                 OceanRenderer.Instance._lodDataFlow.BindResultData(simMaterial);
             }

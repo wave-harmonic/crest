@@ -10,13 +10,9 @@ namespace Crest
     /// <summary>
     /// Base class for data/behaviours created on each LOD.
     /// </summary>
-    [ExecuteInEditMode]
-    public abstract class LodDataMgr : MonoBehaviour
+    public abstract class LodDataMgr
     {
         public abstract string SimName { get; }
-
-        public abstract SimSettingsBase CreateDefaultSettings();
-        public abstract void UseSettings(SimSettingsBase settings);
 
         public abstract RenderTextureFormat TextureFormat { get; }
 
@@ -44,9 +40,19 @@ namespace Crest
         int _scaleDifferencePow2 = 0;
         protected int ScaleDifferencePow2 { get { return _scaleDifferencePow2; } }
 
-        protected virtual void Start()
+        public bool enabled { get; protected set; }
+
+        protected OceanRenderer _ocean;
+
+        public LodDataMgr(OceanRenderer ocean)
+        {
+            _ocean = ocean;
+        }
+
+        public virtual void Start()
         {
             InitData();
+            enabled = true;
         }
 
         public static RenderTexture CreateLodDataTextures(RenderTextureDescriptor desc, string name, bool needToReadWriteTextureData)
@@ -139,26 +145,6 @@ namespace Crest
             properties.SetVectorArray(LodTransform.ParamIdOcean(sourceLod), _BindData_paramIdOceans);
         }
 
-        public static LodDataType Create<LodDataType, LodDataSettings>(GameObject attachGO, ref LodDataSettings settings)
-            where LodDataType : LodDataMgr where LodDataSettings : SimSettingsBase
-        {
-            var existingData = attachGO.GetComponent<LodDataType>();
-            if (existingData != null)
-            {
-                return existingData;
-            }
-
-            var sim = attachGO.AddComponent<LodDataType>();
-            sim.hideFlags = HideFlags.DontSave | HideFlags.NotEditable;
-            if (settings == null)
-            {
-                settings = sim.CreateDefaultSettings() as LodDataSettings;
-            }
-            sim.UseSettings(settings);
-
-            return sim;
-        }
-
         public virtual void BuildCommandBuffer(OceanRenderer ocean, CommandBuffer buf)
         {
         }
@@ -178,7 +164,7 @@ namespace Crest
         protected void SubmitDraws(int lodIdx, CommandBuffer buf)
         {
             var lt = OceanRenderer.Instance._lodTransform;
-            lt._renderData[lodIdx].Validate(0, this);
+            lt._renderData[lodIdx].Validate(0, null); // TODO - bring back context?
 
             lt.SetViewProjectionMatrices(lodIdx, buf);
 
@@ -197,7 +183,7 @@ namespace Crest
         protected void SubmitDrawsFiltered(int lodIdx, CommandBuffer buf, IDrawFilter filter)
         {
             var lt = OceanRenderer.Instance._lodTransform;
-            lt._renderData[lodIdx].Validate(0, this);
+            lt._renderData[lodIdx].Validate(0, null);
 
             lt.SetViewProjectionMatrices(lodIdx, buf);
 

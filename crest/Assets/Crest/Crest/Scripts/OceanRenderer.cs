@@ -182,6 +182,9 @@ namespace Crest
             Instance = this;
             Scale = Mathf.Clamp(Scale, _minScale, _maxScale);
 
+            _lodTransform = new LodTransform();
+            _lodTransform.InitLODData(_lodCount);
+
             OceanBuilder.GenerateMesh(this, _lodDataResolution, _geometryDownSampleFactor, _lodCount);
 
             InitLodData();

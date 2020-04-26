@@ -155,17 +155,6 @@ namespace Crest
                 meshInsts[i] = BuildOceanPatch((PatchType)i, tileResolution);
             }
 
-            {
-                var existing = ocean.gameObject.GetComponent<LodTransform>();
-                if (existing == null)
-                {
-                    existing = ocean.gameObject.AddComponent<LodTransform>();
-                    existing.hideFlags = HideFlags.DontSave | HideFlags.NotEditable;
-                }
-                ocean._lodTransform = existing;
-                ocean._lodTransform.InitLODData(lodCount);
-            }
-
             // Remove existing LODs
             for (int i = 0; i < ocean.transform.childCount; i++)
             {

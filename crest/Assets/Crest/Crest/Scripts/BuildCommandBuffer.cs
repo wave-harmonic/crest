@@ -2,6 +2,7 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -39,6 +40,12 @@ namespace Crest
     public class BuildCommandBuffer : BuildCommandBufferBase
     {
         CommandBuffer _buf;
+
+        private void Start()
+        {
+            EditorApplication.update -= EditorUpdate;
+            EditorApplication.update += EditorUpdate;
+        }
 
         void Build(OceanRenderer ocean, CommandBuffer buf)
         {
@@ -82,6 +89,23 @@ namespace Crest
             if (ocean._lodDataClipSurface != null && ocean._lodDataClipSurface.enabled)
             {
                 ocean._lodDataClipSurface.BuildCommandBuffer(ocean, buf);
+            }
+        }
+
+        float _lastUpdateTime = -1f;
+        void EditorUpdate()
+        {
+            if (!EditorApplication.isPlaying)
+            {
+                if (EditorApplication.timeSinceStartup - _lastUpdateTime  > 0.05f)
+                {
+                    _lastUpdateTime = (float)EditorApplication.timeSinceStartup;
+
+                    LateUpdate();
+
+                    EditorWindow view = EditorWindow.GetWindow<SceneView>();
+                    view.Repaint();
+                }
             }
         }
 

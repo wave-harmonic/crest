@@ -33,8 +33,11 @@ namespace Crest
 
         public class GerstnerBatch : ILodDataInput
         {
-            public GerstnerBatch(MeshRenderer rend, bool directTowardsPoint)
+            public GerstnerBatch(ShapeGerstnerBatched gerstner, int batchIndex, MeshRenderer rend, bool directTowardsPoint)
             {
+                _gerstner = gerstner;
+                _batchIndex = batchIndex;
+
                 _materials = new PropertyWrapperMaterial[]
                 {
                     new PropertyWrapperMaterial(new Material(rend.sharedMaterial ?? rend.material)),
@@ -48,6 +51,8 @@ namespace Crest
                 }
 
                 _rend = rend;
+
+                Enabled = true;
             }
 
             public PropertyWrapperMaterial GetMaterial(int isTransition) => _materials[isTransition];
@@ -58,12 +63,20 @@ namespace Crest
 
             MeshRenderer _rend;
 
+            ShapeGerstnerBatched _gerstner;
+            int _batchIndex = -1;
+
             public float Wavelength { get; set; }
             public bool Enabled { get; set; }
 
+            public bool HasWaves { get; set; }
+
             public void Draw(CommandBuffer buf, float weight, int isTransition, int lodIdx)
             {
-                if (Enabled && weight > 0f)
+                HasWaves = false;
+                _gerstner.UpdateBatch(this, _batchIndex);
+
+                if (HasWaves && weight > 0f)
                 {
                     PropertyWrapperMaterial mat = GetMaterial(isTransition);
                     mat.SetFloat(RegisterLodDataInputBase.sp_Weight, weight);
@@ -177,9 +190,14 @@ namespace Crest
             }
         }
 
-        void Update()
+        float _lastUpdateTime = -1f;
+
+        void UpdateData()
         {
             if (OceanRenderer.Instance == null) return;
+
+            if (_lastUpdateTime >= OceanRenderer.Instance.CurrentTime) return;
+            _lastUpdateTime = OceanRenderer.Instance.CurrentTime;
 
             if (_evaluateSpectrumAtRuntime)
             {
@@ -292,7 +310,7 @@ namespace Crest
             _batches = new GerstnerBatch[LodDataMgr.MAX_LOD_COUNT];
             for (int i = 0; i < _batches.Length; i++)
             {
-                _batches[i] = new GerstnerBatch(rend, _directTowardsPoint);
+                _batches[i] = new GerstnerBatch(this, i, rend, _directTowardsPoint);
             }
 
             // Submit draws to create the Gerstner waves. LODs from 0 to N-2 render the Gerstner waves from their lod. Additionally, any waves
@@ -312,7 +330,8 @@ namespace Crest
         /// </summary>
         void UpdateBatch(int lodIdx, int firstComponent, int lastComponentNonInc, GerstnerBatch batch)
         {
-            batch.Enabled = false;
+            batch.HasWaves = false;
+            //batch.Enabled = false;
 
             int numComponents = lastComponentNonInc - firstComponent;
             int numInBatch = 0;
@@ -430,7 +449,53 @@ namespace Crest
                 }
             }
 
-            batch.Enabled = true;
+            batch.HasWaves = true;
+            //batch.Enabled = true;
+        }
+
+        void UpdateBatch(GerstnerBatch batch, int batchIdx)
+        {
+            // Default to disabling all batches
+            batch.HasWaves = false;
+
+            if (OceanRenderer.Instance == null)
+            {
+                return;
+            }
+
+            UpdateData();
+
+            if (_wavelengths.Length == 0)
+            {
+                return;
+            }
+
+            int lodIdx = Mathf.Min(batchIdx, OceanRenderer.Instance.CurrentLodCount - 1);
+
+            int componentIdx = 0;
+
+            // seek forward to first wavelength that is big enough to render into current LODs
+            float minWl = OceanRenderer.Instance._lodTransform.MaxWavelength(batchIdx) / 2f;
+            while (componentIdx < _wavelengths.Length && _wavelengths[componentIdx] < minWl)
+            {
+                componentIdx++;
+            }
+
+            // Assemble wavelengths into current batch
+            int startCompIdx = componentIdx;
+            while (componentIdx < _wavelengths.Length && _wavelengths[componentIdx] < 2f * minWl)
+            {
+                componentIdx++;
+            }
+
+            // One or more wavelengths - update the batch
+            if (componentIdx > startCompIdx)
+            {
+                //Debug.Log($"Batch {batch}, lodIdx {lodIdx}, range: {minWl} -> {2f * minWl}, indices: {startCompIdx} -> {componentIdx}");
+                UpdateBatch(lodIdx, startCompIdx, componentIdx, batch);
+
+                batch.Wavelength = minWl;
+            }
         }
 
         /// <summary>
@@ -439,58 +504,58 @@ namespace Crest
         /// 2, unfortunately), so i cant easily just loop over octaves. also any WLs that either go to the last WDC, or don't fit in the last
         /// WDC, are rendered into both the last and second-to-last WDCs, in order to transition them smoothly without pops in all scenarios.
         /// </summary>
-        void LateUpdate()
-        {
-            if (OceanRenderer.Instance == null || _batches == null)
-            {
-                return;
-            }
+        //void LateUpdate()
+        //{
+        //    if (OceanRenderer.Instance == null || _batches == null)
+        //    {
+        //        return;
+        //    }
 
-            int componentIdx = 0;
+        //    int componentIdx = 0;
 
-            // seek forward to first wavelength that is big enough to render into current LODs
-            float minWl = OceanRenderer.Instance._lodTransform.MaxWavelength(0) / 2f;
-            while (_wavelengths[componentIdx] < minWl && componentIdx < _wavelengths.Length)
-            {
-                componentIdx++;
-            }
+        //    // seek forward to first wavelength that is big enough to render into current LODs
+        //    float minWl = OceanRenderer.Instance._lodTransform.MaxWavelength(0) / 2f;
+        //    while (_wavelengths[componentIdx] < minWl && componentIdx < _wavelengths.Length)
+        //    {
+        //        componentIdx++;
+        //    }
 
-            for (int i = 0; i < _batches.Length; i++)
-            {
-                // Default to disabling all batches
-                _batches[i].Enabled = false;
-            }
+        //    for (int i = 0; i < _batches.Length; i++)
+        //    {
+        //        // Default to disabling all batches
+        //        _batches[i].Enabled = false;
+        //    }
 
-            int batch = 0;
-            int lodIdx = 0;
-            while (componentIdx < _wavelengths.Length)
-            {
-                if (batch >= _batches.Length)
-                {
-                    Debug.LogWarning("Out of Gerstner batches.", this);
-                    break;
-                }
+        //    int batch = 0;
+        //    int lodIdx = 0;
+        //    while (componentIdx < _wavelengths.Length)
+        //    {
+        //        if (batch >= _batches.Length)
+        //        {
+        //            Debug.LogWarning("Out of Gerstner batches.", this);
+        //            break;
+        //        }
 
-                // Assemble wavelengths into current batch
-                int startCompIdx = componentIdx;
-                while (componentIdx < _wavelengths.Length && _wavelengths[componentIdx] < 2f * minWl)
-                {
-                    componentIdx++;
-                }
+        //        // Assemble wavelengths into current batch
+        //        int startCompIdx = componentIdx;
+        //        while (componentIdx < _wavelengths.Length && _wavelengths[componentIdx] < 2f * minWl)
+        //        {
+        //            componentIdx++;
+        //        }
 
-                // One or more wavelengths - update the batch
-                if (componentIdx > startCompIdx)
-                {
-                    UpdateBatch(lodIdx, startCompIdx, componentIdx, _batches[batch]);
+        //        // One or more wavelengths - update the batch
+        //        if (componentIdx > startCompIdx)
+        //        {
+        //            UpdateBatch(lodIdx, startCompIdx, componentIdx, _batches[batch]);
 
-                    _batches[batch].Wavelength = minWl;
-                }
+        //            _batches[batch].Wavelength = minWl;
+        //        }
 
-                batch++;
-                lodIdx = Mathf.Min(lodIdx + 1, OceanRenderer.Instance.CurrentLodCount - 1);
-                minWl *= 2f;
-            }
-        }
+        //        batch++;
+        //        lodIdx = Mathf.Min(lodIdx + 1, OceanRenderer.Instance.CurrentLodCount - 1);
+        //        minWl *= 2f;
+        //    }
+        //}
 
         void OnDisable()
         {

@@ -254,11 +254,13 @@ namespace Crest
             BindData(simMaterial, paramsOnly ? Texture2D.blackTexture : _sources as Texture, true, ref rd, true);
         }
 
+        // TODO - not called anymore
         void OnEnable()
         {
             RemoveCommandBuffers();
         }
 
+        // TODO - not called anymore
         void OnDisable()
         {
             RemoveCommandBuffers();

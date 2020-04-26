@@ -61,11 +61,13 @@ namespace Crest
             for (int i = 0; i < _active.Length; i++) _active[i] = true;
         }
 
+        // TODO - not called anymore
         private void OnEnable()
         {
             Shader.EnableKeyword(DYNWAVES_KEYWORD);
         }
 
+        // TODO - not called anymore
         private void OnDisable()
         {
             Shader.DisableKeyword(DYNWAVES_KEYWORD);

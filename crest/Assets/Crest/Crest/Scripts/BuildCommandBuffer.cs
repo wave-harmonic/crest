@@ -12,7 +12,7 @@ namespace Crest
     /// own update logic, you can create a new component that inherits from this class and attach it to the same GameObject as the
     /// OceanRenderer script. The new component should be set to update after the Default bucket, similar to BuildCommandBuffer.
     /// </summary>
-    [ExecuteInEditMode]
+    [ExecuteAlways]
     public abstract class BuildCommandBufferBase : MonoBehaviour
     {
         /// <summary>
@@ -35,7 +35,7 @@ namespace Crest
     /// example rendering animated waves and advancing sims. This runs in LateUpdate after the Default bucket, after the ocean
     /// system been moved to an up to date position and frame processing is done.
     /// </summary>
-    [ExecuteInEditMode]
+    [ExecuteAlways]
     public class BuildCommandBuffer : BuildCommandBufferBase
     {
         CommandBuffer _buf;

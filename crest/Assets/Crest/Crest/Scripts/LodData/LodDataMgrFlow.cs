@@ -55,11 +55,13 @@ namespace Crest
 #endif
         }
 
+        // TODO - not called anymore
         private void OnEnable()
         {
             Shader.EnableKeyword(FLOW_KEYWORD);
         }
 
+        // TODO - not called anymore
         private void OnDisable()
         {
             Shader.DisableKeyword(FLOW_KEYWORD);

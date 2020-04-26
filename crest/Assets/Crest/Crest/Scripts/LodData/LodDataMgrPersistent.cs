@@ -155,7 +155,6 @@ namespace Crest
         /// </summary>
         protected virtual void SetAdditionalSimParams(IPropertyWrapper simMaterial)
         {
-
         }
 
         // No longer works as it relies on GetComponent, and not sure if persistent is equivalent to compute shaders, so pushed this code into

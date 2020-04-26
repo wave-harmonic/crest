@@ -155,21 +155,23 @@ namespace Crest
         /// </summary>
         protected virtual void SetAdditionalSimParams(IPropertyWrapper simMaterial)
         {
+
         }
 
-#if UNITY_EDITOR
-        [UnityEditor.Callbacks.DidReloadScripts]
-        protected static void OnReLoadScripts()
-        {
-            var ocean = Object.FindObjectOfType<OceanRenderer>();
-            if (ocean == null) return;
-            foreach (var ldp in ocean.GetComponents<LodDataMgrPersistent>())
-            {
-                // Unity does not serialize multidimensional arrays, or arrays of arrays. It does serialise arrays of objects containing arrays though.
-                ldp.CreateProperties(ocean.CurrentLodCount);
-            }
-        }
-#endif
-
+        // No longer works as it relies on GetComponent, and not sure if persistent is equivalent to compute shaders, so pushed this code into
+        // the specific loddatas
+//#if UNITY_EDITOR
+//        [UnityEditor.Callbacks.DidReloadScripts]
+//        protected static void OnReLoadScripts()
+//        {
+//            var ocean = Object.FindObjectOfType<OceanRenderer>();
+//            if (ocean == null) return;
+//            foreach (var ldp in ocean.GetComponents<LodDataMgrPersistent>())
+//            {
+//                // Unity does not serialize multidimensional arrays, or arrays of arrays. It does serialise arrays of objects containing arrays though.
+//                ldp.CreateProperties(ocean.CurrentLodCount);
+//            }
+//        }
+//#endif
     }
 }

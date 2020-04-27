@@ -86,7 +86,7 @@ public class BoatAlignNormal : FloatingObjectBase
         var collProvider = OceanRenderer.Instance.CollisionProvider;
         var position = transform.position;
 
-        _sampleHeightHelper.Init(transform.position, _boatWidth);
+        _sampleHeightHelper.Init(transform.position, _boatWidth, true);
         var height = OceanRenderer.Instance.SeaLevel;
         var normal = Vector3.up;
         var waterSurfaceVel = Vector3.zero;
@@ -162,7 +162,7 @@ public class BoatAlignNormal : FloatingObjectBase
 
         if (_useBoatLength)
         {
-            _sampleHeightHelperLengthwise.Init(transform.position, _boatLength);
+            _sampleHeightHelperLengthwise.Init(transform.position, _boatLength, true);
             var dummy = 0f;
             if (_sampleHeightHelperLengthwise.Sample(ref dummy, ref normalLongitudinal))
             {

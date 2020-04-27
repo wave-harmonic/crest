@@ -54,9 +54,12 @@ public class CamController : MonoBehaviour
 
         UpdateMovement(dt);
 
-        UpdateDragging(dt);
-
-        UpdateKillRoll();
+        // These aren't useful and can break for XR hardware.
+        if (!XRSettings.enabled || XRSettings.loadedDeviceName == "MockHMD")
+        {
+            UpdateDragging(dt);
+            UpdateKillRoll();
+        }
     }
 
     void UpdateMovement(float dt)

@@ -32,9 +32,12 @@ namespace Crest
         /// </summary>
         public bool Sample(ref float o_height)
         {
-            var status = OceanRenderer.Instance.CollisionProvider.Query(GetHashCode(), _minLength, _queryPos, _queryResult, null, null);
+            var collProvider = OceanRenderer.Instance?.CollisionProvider;
+            if (collProvider == null) return false;
 
-            if (!OceanRenderer.Instance.CollisionProvider.RetrieveSucceeded(status))
+            var status = collProvider.Query(GetHashCode(), _minLength, _queryPos, _queryResult, null, null);
+
+            if (!collProvider.RetrieveSucceeded(status))
             {
                 return false;
             }
@@ -46,9 +49,12 @@ namespace Crest
 
         public bool Sample(ref float o_height, ref Vector3 o_normal)
         {
-            var status = OceanRenderer.Instance.CollisionProvider.Query(GetHashCode(), _minLength, _queryPos, _queryResult, _queryResultNormal, null);
+            var collProvider = OceanRenderer.Instance?.CollisionProvider;
+            if (collProvider == null) return false;
 
-            if (!OceanRenderer.Instance.CollisionProvider.RetrieveSucceeded(status))
+            var status = collProvider.Query(GetHashCode(), _minLength, _queryPos, _queryResult, _queryResultNormal, null);
+
+            if (!collProvider.RetrieveSucceeded(status))
             {
                 return false;
             }
@@ -61,9 +67,12 @@ namespace Crest
 
         public bool Sample(ref float o_height, ref Vector3 o_normal, ref Vector3 o_surfaceVel)
         {
-            var status = OceanRenderer.Instance.CollisionProvider.Query(GetHashCode(), _minLength, _queryPos, _queryResult, _queryResultNormal, _queryResultVel);
+            var collProvider = OceanRenderer.Instance?.CollisionProvider;
+            if (collProvider == null) return false;
 
-            if (!OceanRenderer.Instance.CollisionProvider.RetrieveSucceeded(status))
+            var status = collProvider.Query(GetHashCode(), _minLength, _queryPos, _queryResult, _queryResultNormal, _queryResultVel);
+
+            if (!collProvider.RetrieveSucceeded(status))
             {
                 return false;
             }
@@ -77,9 +86,11 @@ namespace Crest
 
         public bool Sample(ref Vector3 o_displacementToPoint, ref Vector3 o_normal, ref Vector3 o_surfaceVel)
         {
-            var status = OceanRenderer.Instance.CollisionProvider.Query(GetHashCode(), _minLength, _queryPos, _queryResult, _queryResultNormal, _queryResultVel);
+            var collProvider = OceanRenderer.Instance?.CollisionProvider;
+            if (collProvider == null) return false;
+            var status = collProvider.Query(GetHashCode(), _minLength, _queryPos, _queryResult, _queryResultNormal, _queryResultVel);
 
-            if (!OceanRenderer.Instance.CollisionProvider.RetrieveSucceeded(status))
+            if (!collProvider.RetrieveSucceeded(status))
             {
                 return false;
             }
@@ -120,6 +131,8 @@ namespace Crest
         /// </summary>
         public bool Sample(ref Vector2 o_flow)
         {
+            if (QueryFlow.Instance == null) return false;
+
             var status = QueryFlow.Instance.Query(GetHashCode(), _minLength, _queryPos, _queryResult);
 
             if (!QueryFlow.Instance.RetrieveSucceeded(status))

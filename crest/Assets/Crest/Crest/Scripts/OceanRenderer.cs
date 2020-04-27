@@ -150,7 +150,7 @@ namespace Crest
         /// <summary>
         /// The number of LODs/scales that the ocean is currently using.
         /// </summary>
-        public int CurrentLodCount { get { return _lodTransform.LodCount; } }
+        public int CurrentLodCount { get { return _lodTransform != null ? _lodTransform.LodCount : 0; } }
 
         /// <summary>
         /// Vertical offset of viewer vs water surface
@@ -508,7 +508,16 @@ namespace Crest
         /// Provides ocean shape to CPU.
         /// </summary>
         ICollProvider _collProvider;
-        public ICollProvider CollisionProvider { get { return _collProvider != null ? _collProvider : (_collProvider = _lodDataAnimWaves.Settings.CreateCollisionProvider()); } }
+
+        public ICollProvider CollisionProvider
+        {
+            get
+            {
+                if (_collProvider != null) return _collProvider;
+                _collProvider = _lodDataAnimWaves?.Settings?.CreateCollisionProvider();
+                return _collProvider;
+            }
+        }
 
         private void OnEnable()
         {

@@ -258,36 +258,6 @@ namespace Crest
             // Create the LOD data managers
             _lodDataAnimWaves = new LodDataMgrAnimWaves(this);
             _lodDatas.Add(_lodDataAnimWaves);
-            if (CreateDynamicWaveSim)
-            {
-                _lodDataDynWaves = new LodDataMgrDynWaves(this);
-                _lodDatas.Add(_lodDataDynWaves);
-            }
-            if (CreateFlowSim)
-            {
-                _lodDataFlow = new LodDataMgrFlow(this);
-                _lodDatas.Add(_lodDataFlow);
-            }
-            if (CreateFoamSim)
-            {
-                _lodDataFoam = new LodDataMgrFoam(this);
-                _lodDatas.Add(_lodDataFoam);
-            }
-            if (CreateShadowData)
-            {
-                _lodDataShadow = new LodDataMgrShadow(this);
-                _lodDatas.Add(_lodDataShadow);
-            }
-            if (CreateSeaFloorDepthData)
-            {
-                _lodDataSeaDepths = new LodDataMgrSeaFloorDepth(this);
-                _lodDatas.Add(_lodDataSeaDepths);
-            }
-            if (CreateClipSurfaceData)
-            {
-                _lodDataClipSurface = new LodDataMgrClipSurface(this);
-                _lodDatas.Add(_lodDataClipSurface);
-            }
 
             // Add any required GPU readbacks
             {
@@ -456,13 +426,130 @@ namespace Crest
 
             _lodTransform.UpdateTransforms();
 
-            if (_lodDataAnimWaves != null) _lodDataAnimWaves.UpdateLodData();
-            if (_lodDataDynWaves != null) _lodDataDynWaves.UpdateLodData();
-            if (_lodDataFlow != null) _lodDataFlow.UpdateLodData();
-            if (_lodDataFoam != null) _lodDataFoam.UpdateLodData();
-            if (_lodDataSeaDepths != null) _lodDataSeaDepths.UpdateLodData();
-            if (_lodDataClipSurface != null) _lodDataClipSurface.UpdateLodData();
-            if (_lodDataShadow != null) _lodDataShadow.UpdateLodData();
+            {
+                if (_lodDataAnimWaves == null)
+                {
+                    _lodDataAnimWaves = new LodDataMgrAnimWaves(this);
+                    _lodDatas.Add(_lodDataAnimWaves);
+                }
+                _lodDataAnimWaves.UpdateLodData();
+            }
+
+            if (CreateClipSurfaceData)
+            {
+                if (_lodDataClipSurface == null)
+                {
+                    Debug.Log("BUILD UP");
+                    _lodDataClipSurface = new LodDataMgrClipSurface(this);
+                    _lodDatas.Add(_lodDataClipSurface);
+                }
+                _lodDataClipSurface.UpdateLodData();
+            }
+            else
+            {
+                if (_lodDataClipSurface != null)
+                {
+                    Debug.Log("TEAR DOWN");
+                    _lodDataClipSurface.OnDisable();
+                    _lodDatas.Remove(_lodDataClipSurface);
+                    _lodDataClipSurface = null;
+                }
+            }
+
+            if (CreateDynamicWaveSim)
+            {
+                if (_lodDataDynWaves == null)
+                {
+                    _lodDataDynWaves = new LodDataMgrDynWaves(this);
+                    _lodDatas.Add(_lodDataDynWaves);
+                }
+                _lodDataDynWaves.UpdateLodData();
+            }
+            else
+            {
+                if (_lodDataDynWaves != null)
+                {
+                    _lodDataDynWaves.OnDisable();
+                    _lodDatas.Remove(_lodDataDynWaves);
+                    _lodDataDynWaves = null;
+                }
+            }
+
+            if (CreateFlowSim)
+            {
+                if (_lodDataFlow == null)
+                {
+                    _lodDataFlow = new LodDataMgrFlow(this);
+                    _lodDatas.Add(_lodDataFlow);
+                }
+                _lodDataFlow.UpdateLodData();
+            }
+            else
+            {
+                if (_lodDataFlow != null)
+                {
+                    _lodDataFlow.OnDisable();
+                    _lodDatas.Remove(_lodDataFlow);
+                    _lodDataFlow = null;
+                }
+            }
+
+            if (CreateFoamSim)
+            {
+                if (_lodDataFoam == null)
+                {
+                    _lodDataFoam = new LodDataMgrFoam(this);
+                    _lodDatas.Add(_lodDataFoam);
+                }
+                _lodDataFoam.UpdateLodData();
+            }
+            else
+            {
+                if (_lodDataFoam != null)
+                {
+                    _lodDataFoam.OnDisable();
+                    _lodDatas.Remove(_lodDataFoam);
+                    _lodDataFoam = null;
+                }
+            }
+
+            if (CreateSeaFloorDepthData)
+            {
+                if (_lodDataSeaDepths == null)
+                {
+                    _lodDataSeaDepths = new LodDataMgrSeaFloorDepth(this);
+                    _lodDatas.Add(_lodDataSeaDepths);
+                }
+                _lodDataSeaDepths.UpdateLodData();
+            }
+            else
+            {
+                if (_lodDataSeaDepths != null)
+                {
+                    _lodDataSeaDepths.OnDisable();
+                    _lodDatas.Remove(_lodDataSeaDepths);
+                    _lodDataSeaDepths = null;
+                }
+            }
+
+            if (CreateShadowData)
+            {
+                if (_lodDataShadow == null)
+                {
+                    _lodDataShadow = new LodDataMgrShadow(this);
+                    _lodDatas.Add(_lodDataShadow);
+                }
+                _lodDataShadow.UpdateLodData();
+            }
+            else
+            {
+                if (_lodDataShadow != null)
+                {
+                    _lodDataShadow.OnDisable();
+                    _lodDatas.Remove(_lodDataShadow);
+                    _lodDataShadow = null;
+                }
+            }
         }
 
         /// <summary>

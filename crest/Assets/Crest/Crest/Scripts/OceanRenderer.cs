@@ -21,9 +21,23 @@ namespace Crest
 
         [Tooltip("Optional provider for time, can be used to hard-code time for automation, or provide server time. Defaults to local Unity time."), SerializeField]
         TimeProviderBase _timeProvider;
-        public float CurrentTime => _timeProvider.CurrentTime;
-        public float DeltaTime => _timeProvider.DeltaTime;
-        public float DeltaTimeDynamics => _timeProvider.DeltaTimeDynamics;
+        TimeProviderDefault _timeProviderDefault = new TimeProviderDefault();
+        public ITimeProvider TimeProvider
+        {
+            get
+            {
+                if (_timeProvider != null)
+                {
+                    return _timeProvider;
+                }
+
+                return _timeProviderDefault ?? (_timeProviderDefault = new TimeProviderDefault());
+            }
+        }
+
+        public float CurrentTime => TimeProvider.CurrentTime;
+        public float DeltaTime => TimeProvider.DeltaTime;
+        public float DeltaTimeDynamics => TimeProvider.DeltaTimeDynamics;
 
         [Tooltip("The primary directional light. Required if shadowing is enabled.")]
         public Light _primaryLight;
@@ -200,7 +214,6 @@ namespace Crest
             _commandbufferBuilder = new BuildCommandBuffer();
 
             InitViewpoint();
-            InitTimeProvider();
 
             if (_attachDebugGUI && GetComponent<OceanDebugGUI>() == null)
             {
@@ -307,16 +320,6 @@ namespace Crest
                 {
                     Debug.LogError("Crest needs to know where to focus the ocean detail. Please set the Viewpoint property of the OceanRenderer component to the transform of the viewpoint/camera that the ocean should follow, or tag the primary camera as MainCamera.", this);
                 }
-            }
-        }
-
-        void InitTimeProvider()
-        {
-            // Used assigned time provider, or use one attached to this game object
-            if (_timeProvider == null && (_timeProvider = GetComponent<TimeProviderBase>()) == null)
-            {
-                // None found - create
-                _timeProvider = gameObject.AddComponent<TimeProviderDefault>();
             }
         }
 

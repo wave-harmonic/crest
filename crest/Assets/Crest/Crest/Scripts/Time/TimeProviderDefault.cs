@@ -9,9 +9,9 @@ namespace Crest
     /// <summary>
     /// Default time provider - sets the ocean time to Unity's game time.
     /// </summary>
-    public class TimeProviderDefault : TimeProviderBase
+    public class TimeProviderDefault : ITimeProvider
     {
-        public override float CurrentTime
+        public float CurrentTime
         {
             get
             {
@@ -30,7 +30,7 @@ namespace Crest
             }
         }
 
-        public override float DeltaTime
+        public float DeltaTime
         {
             get
             {
@@ -51,5 +51,6 @@ namespace Crest
 
         }
 
+        public float DeltaTimeDynamics => DeltaTime;
     }
 }

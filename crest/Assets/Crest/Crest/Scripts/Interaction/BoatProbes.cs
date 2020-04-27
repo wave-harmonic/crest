@@ -36,18 +36,15 @@ namespace Crest
         [SerializeField]
         float _dragInWaterForward = 1f;
 
-        [Header("Control")]
+        [Header("Engine Power")]
         [SerializeField, FormerlySerializedAs("EnginePower")]
         float _enginePower = 7;
         [SerializeField, FormerlySerializedAs("TurnPower")]
         float _turnPower = 0.5f;
-        [SerializeField]
-        bool _playerControlled = true;
-        [Tooltip("Used to automatically add throttle input"), SerializeField]
-        float _engineBias = 0f;
-        [Tooltip("Used to automatically add turning input"), SerializeField]
-        float _turnBias = 0f;
 
+        [Header("Controls")]
+        [SerializeField]
+        BoatControl _boatControl;
 
         private const float WATER_DENSITY = 1000;
 
@@ -78,6 +75,11 @@ namespace Crest
             {
                 enabled = false;
                 return;
+            }
+
+            if (!_boatControl)
+            {
+                _boatControl = GetComponent<BoatControl>();
             }
 
             CalcTotalWeight();
@@ -144,14 +146,13 @@ namespace Crest
         {
             var forcePosition = _rb.position;
 
-            var forward = _engineBias;
-            if (_playerControlled) forward += Input.GetAxis("Vertical");
-            _rb.AddForceAtPosition(transform.forward * _enginePower * forward, forcePosition, ForceMode.Acceleration);
+            // Get input. X is steer and Z is throttle. Ignore Y.
+            var input = _boatControl ? _boatControl.Input : Vector3.zero;
 
-            var sideways = _turnBias;
-            if (_playerControlled) sideways += (Input.GetKey(KeyCode.A) ? -1f : 0f) + (Input.GetKey(KeyCode.D) ? 1f : 0f);
+            _rb.AddForceAtPosition(transform.forward * _enginePower * input.z, forcePosition, ForceMode.Acceleration);
+
             var rotVec = transform.up + _turningHeel * transform.forward;
-            _rb.AddTorque(rotVec * _turnPower * sideways, ForceMode.Acceleration);
+            _rb.AddTorque(rotVec * _turnPower * input.x, ForceMode.Acceleration);
         }
 
         void FixedUpdateBuoyancy(ICollProvider collProvider)

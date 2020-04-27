@@ -39,11 +39,7 @@ public class BoatAlignNormal : FloatingObjectBase
 
     [Header("Controls")]
     [SerializeField]
-    bool _playerControlled = true;
-    [Tooltip("Used to automatically add throttle input"), SerializeField]
-    float _throttleBias = 0f;
-    [Tooltip("Used to automatically add turning input"), SerializeField]
-    float _steerBias = 0f;
+    BoatControl _boatControl;
 
     [Header("Debug")]
     [SerializeField]
@@ -71,6 +67,11 @@ public class BoatAlignNormal : FloatingObjectBase
         {
             enabled = false;
             return;
+        }
+
+        if (!_boatControl)
+        {
+            _boatControl = GetComponent<BoatControl>();
         }
     }
 
@@ -135,17 +136,11 @@ public class BoatAlignNormal : FloatingObjectBase
         _rb.AddForceAtPosition(transform.right * Vector3.Dot(transform.right, -velocityRelativeToWater) * _dragInWaterRight, forcePosition, ForceMode.Acceleration);
         _rb.AddForceAtPosition(transform.forward * Vector3.Dot(transform.forward, -velocityRelativeToWater) * _dragInWaterForward, forcePosition, ForceMode.Acceleration);
 
-        float forward = _throttleBias;
-        float rawForward = Input.GetAxis("Vertical");
-        if (_playerControlled) forward += rawForward;
-        _rb.AddForceAtPosition(transform.forward * _enginePower * forward, forcePosition, ForceMode.Acceleration);
+        // Get input. X is steer and Z is throttle. Ignore Y.
+        var input = _boatControl ? _boatControl.Input : Vector3.zero;
 
-        float reverseMultiplier = (rawForward < 0f ? -1f : 1f);
-        float sideways = _steerBias;
-        if (_playerControlled) sideways +=
-                (Input.GetKey(KeyCode.A) ? reverseMultiplier * -1f : 0f) +
-                (Input.GetKey(KeyCode.D) ? reverseMultiplier * 1f : 0f);
-        _rb.AddTorque(transform.up * _turnPower * sideways, ForceMode.Acceleration);
+        _rb.AddForceAtPosition(transform.forward * _enginePower * input.z, forcePosition, ForceMode.Acceleration);
+        _rb.AddTorque(transform.up * _turnPower * input.x, ForceMode.Acceleration);
 
         FixedUpdateOrientation(collProvider, normal);
 

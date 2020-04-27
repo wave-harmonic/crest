@@ -16,7 +16,7 @@ namespace Crest
             get
             {
 #if UNITY_EDITOR
-                if(UnityEditor.EditorApplication.isPlaying)
+                if (UnityEditor.EditorApplication.isPlaying)
                 {
                     return Time.time;
                 }
@@ -29,6 +29,27 @@ namespace Crest
 #endif
             }
         }
-        public override float DeltaTime => Time.deltaTime;
+
+        public override float DeltaTime
+        {
+            get
+            {
+#if UNITY_EDITOR
+                if (UnityEditor.EditorApplication.isPlaying)
+                {
+                    return Time.deltaTime;
+                }
+                else
+                {
+                    return 1f / 20f;
+                }
+#else
+                return Time.deltaTime;
+#endif
+                ;
+            }
+
+        }
+
     }
 }

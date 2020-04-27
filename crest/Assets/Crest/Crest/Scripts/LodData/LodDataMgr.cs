@@ -184,7 +184,7 @@ namespace Crest
         protected void SubmitDrawsFiltered(int lodIdx, CommandBuffer buf, IDrawFilter filter)
         {
             var lt = OceanRenderer.Instance._lodTransform;
-            lt._renderData[lodIdx].Validate(0, null);
+            lt._renderData[lodIdx].Validate(0, SimName);
 
             lt.SetViewProjectionMatrices(lodIdx, buf);
 

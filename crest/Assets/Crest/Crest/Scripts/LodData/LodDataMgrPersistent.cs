@@ -72,7 +72,7 @@ namespace Crest
             int validationFrame = usePrevTransform ? BuildCommandBufferBase._lastUpdateFrame - Time.frameCount : 0;
             foreach (var renderData in renderDataToValidate)
             {
-                renderData.Validate(validationFrame, null); // todo context
+                renderData.Validate(validationFrame, SimName);
             }
         }
 

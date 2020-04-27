@@ -212,7 +212,7 @@ namespace Crest
             {
                 _renderProperties.Initialise(BufCopyShadowMap, _updateShadowShader, krnl_UpdateShadow);
 
-                lt._renderData[lodIdx].Validate(0, null); // todo context
+                lt._renderData[lodIdx].Validate(0, SimName);
                 _renderProperties.SetVector(sp_CenterPos, lt._renderData[lodIdx]._posSnapped);
                 var scale = OceanRenderer.Instance.CalcLodScale(lodIdx);
                 _renderProperties.SetVector(sp_Scale, new Vector3(scale, 1f, scale));
@@ -245,7 +245,7 @@ namespace Crest
 
             foreach (var renderData in OceanRenderer.Instance._lodTransform._renderDataSource)
             {
-                renderData.Validate(BuildCommandBufferBase._lastUpdateFrame - Time.frameCount, null); // todo context
+                renderData.Validate(BuildCommandBufferBase._lastUpdateFrame - Time.frameCount, SimName);
             }
         }
 

@@ -27,12 +27,12 @@ namespace Crest
             public Vector3 _posSnapped;
             public int _frame;
 
-            public RenderData Validate(int frameOffset, Object context)
+            public RenderData Validate(int frameOffset, string context)
             {
                 // ignore first frame - this patches errors when using edit & continue in editor
                 if (_frame > 0 && _frame != Time.frameCount + frameOffset)
                 {
-                    Debug.LogWarning(string.Format("RenderData validation failed: _frame of data ({0}) != expected ({1}), which may indicate some update functions are being called out of order, or script execution order is broken.", _frame, Time.frameCount + frameOffset), context);
+                    Debug.LogWarning($"RenderData validation failed - {context} - _frame of data ({_frame}) != expected ({Time.frameCount + frameOffset}), which may indicate some update functions are being called out of order, or script execution order is broken.", OceanRenderer.Instance);
                 }
                 return this;
             }

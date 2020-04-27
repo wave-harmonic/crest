@@ -210,7 +210,7 @@ namespace Crest
             // Validation
             for (int lodIdx = 0; lodIdx < OceanRenderer.Instance.CurrentLodCount; lodIdx++)
             {
-                OceanRenderer.Instance._lodTransform._renderData[lodIdx].Validate(0, null); // todo context
+                OceanRenderer.Instance._lodTransform._renderData[lodIdx].Validate(0, SimName);
             }
 
             // lod-dependent data

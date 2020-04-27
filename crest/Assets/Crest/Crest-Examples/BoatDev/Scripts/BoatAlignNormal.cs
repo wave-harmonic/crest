@@ -16,12 +16,6 @@ public class BoatAlignNormal : FloatingObjectBase
     [Tooltip("Strength of torque applied to match boat orientation to water normal."), SerializeField]
     float _boyancyTorque = 8f;
 
-    [Header("Engine Power")]
-    [Tooltip("Vertical offset for where engine force should be applied."), SerializeField]
-    float _forceHeightOffset = -0.3f;
-    [SerializeField] float _enginePower = 11f;
-    [SerializeField] float _turnPower = 1.3f;
-
     [Header("Wave Response")]
     [Tooltip("Width dimension of boat. The larger this value, the more filtered/smooth the wave response will be."), SerializeField]
     float _boatWidth = 3f;
@@ -36,6 +30,12 @@ public class BoatAlignNormal : FloatingObjectBase
     [SerializeField] float _dragInWaterUp = 3f;
     [SerializeField] float _dragInWaterRight = 2f;
     [SerializeField] float _dragInWaterForward = 1f;
+
+    [Header("Engine Power")]
+    [Tooltip("Vertical offset for where engine force should be applied."), SerializeField]
+    float _forceHeightOffset = -0.3f;
+    [SerializeField] float _enginePower = 11f;
+    [SerializeField] float _turnPower = 1.3f;
 
     [Header("Controls")]
     [SerializeField]

@@ -69,7 +69,7 @@ namespace Crest
             var renderDataToValidate = usePrevTransform ?
                 OceanRenderer.Instance._lodTransform._renderDataSource
                 : OceanRenderer.Instance._lodTransform._renderData;
-            int validationFrame = usePrevTransform ? BuildCommandBufferBase._lastUpdateFrame - Time.frameCount : 0;
+            int validationFrame = usePrevTransform ? BuildCommandBufferBase._lastUpdateFrame - OceanRenderer.FrameCount : 0;
             foreach (var renderData in renderDataToValidate)
             {
                 renderData.Validate(validationFrame, SimName);

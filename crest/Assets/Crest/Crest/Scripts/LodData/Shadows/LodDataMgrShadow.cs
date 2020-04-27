@@ -245,7 +245,7 @@ namespace Crest
 
             foreach (var renderData in OceanRenderer.Instance._lodTransform._renderDataSource)
             {
-                renderData.Validate(BuildCommandBufferBase._lastUpdateFrame - Time.frameCount, SimName);
+                renderData.Validate(BuildCommandBufferBase._lastUpdateFrame - OceanRenderer.FrameCount, SimName);
             }
         }
 

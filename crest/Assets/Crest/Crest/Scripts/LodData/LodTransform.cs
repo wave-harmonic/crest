@@ -30,9 +30,9 @@ namespace Crest
             public RenderData Validate(int frameOffset, string context)
             {
                 // ignore first frame - this patches errors when using edit & continue in editor
-                if (_frame > 0 && _frame != Time.frameCount + frameOffset)
+                if (_frame > 0 && _frame != OceanRenderer.FrameCount + frameOffset)
                 {
-                    Debug.LogWarning($"RenderData validation failed - {context} - _frame of data ({_frame}) != expected ({Time.frameCount + frameOffset}), which may indicate some update functions are being called out of order, or script execution order is broken.", OceanRenderer.Instance);
+                    Debug.LogWarning($"RenderData validation failed - {context} - _frame of data ({_frame}) != expected ({OceanRenderer.FrameCount + frameOffset}), which may indicate some update functions are being called out of order, or script execution order is broken.", OceanRenderer.Instance);
                 }
                 return this;
             }
@@ -77,9 +77,9 @@ namespace Crest
         {
             for (int lodIdx = 0; lodIdx < LodCount; lodIdx++)
             {
-                if (_transformUpdateFrame[lodIdx] == Time.frameCount) continue;
+                if (_transformUpdateFrame[lodIdx] == OceanRenderer.FrameCount) continue;
 
-                _transformUpdateFrame[lodIdx] = Time.frameCount;
+                _transformUpdateFrame[lodIdx] = OceanRenderer.FrameCount;
 
                 _renderDataSource[lodIdx] = _renderData[lodIdx];
 
@@ -93,7 +93,7 @@ namespace Crest
                 _renderData[lodIdx]._posSnapped = OceanRenderer.Instance.transform.position
                     - new Vector3(Mathf.Repeat(OceanRenderer.Instance.transform.position.x, _renderData[lodIdx]._texelWidth), 0f, Mathf.Repeat(OceanRenderer.Instance.transform.position.z, _renderData[lodIdx]._texelWidth));
 
-                _renderData[lodIdx]._frame = Time.frameCount;
+                _renderData[lodIdx]._frame = OceanRenderer.FrameCount;
 
                 // detect first update and populate the render data if so - otherwise it can give divide by 0s and other nastiness
                 if (_renderDataSource[lodIdx]._textureRes == 0f)

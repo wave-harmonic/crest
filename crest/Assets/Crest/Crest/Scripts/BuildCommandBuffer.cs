@@ -103,7 +103,7 @@ namespace Crest
             // This will execute at the beginning of the frame before the graphics queue
             Graphics.ExecuteCommandBuffer(_buf);
 
-            _lastUpdateFrame = Time.frameCount;
+            _lastUpdateFrame = OceanRenderer.FrameCount;
         }
     }
 }

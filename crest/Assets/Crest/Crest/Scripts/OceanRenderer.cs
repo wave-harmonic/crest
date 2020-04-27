@@ -12,7 +12,7 @@ namespace Crest
     /// The main script for the ocean system. Attach this to a GameObject to create an ocean. This script initializes the various data types and systems
     /// and moves/scales the ocean based on the viewpoint. It also hosts a number of global settings that can be tweaked here.
     /// </summary>
-    [ExecuteInEditMode]
+    [ExecuteAlways]
     public class OceanRenderer : MonoBehaviour
     {
         [Tooltip("The viewpoint which drives the ocean detail. Defaults to main camera."), SerializeField]
@@ -106,8 +106,8 @@ namespace Crest
 
         [Header("Debug Params")]
 
-        [SerializeField]
-        public bool _runInEditMode = true;
+        [Range(0.1f, 60f), SerializeField]
+        public float _editModeFPS = 30f;
 
         [Tooltip("Attach debug gui that adds some controls and allows to visualise the ocean data."), SerializeField]
         bool _attachDebugGUI = false;
@@ -167,6 +167,11 @@ namespace Crest
         readonly int sp_meshScaleLerp = Shader.PropertyToID("_MeshScaleLerp");
         readonly int sp_sliceCount = Shader.PropertyToID("_SliceCount");
 
+#if UNITY_EDITOR
+        static float _lastUpdateTime = -1f;
+        static int _editorFrames = 0;
+#endif
+
         BuildCommandBuffer _commandbufferBuilder;
 
         void Awake()
@@ -208,22 +213,43 @@ namespace Crest
 #endif
         }
 
-        float _lastUpdateTime = -1f;
+#if UNITY_EDITOR
         static void EditorUpdate()
         {
             if (Instance == null) return;
 
-            if (!EditorApplication.isPlaying && Instance._runInEditMode)
+            if (!EditorApplication.isPlaying)
             {
-                if (EditorApplication.timeSinceStartup - Instance._lastUpdateTime > 0.05f)
+                if (EditorApplication.timeSinceStartup - _lastUpdateTime > 1f / Mathf.Clamp(Instance._editModeFPS, 0.1f, 60f))
                 {
-                    Instance._lastUpdateTime = (float)EditorApplication.timeSinceStartup;
+                    _editorFrames++;
 
-                    Instance.LateUpdate();
+                    _lastUpdateTime = (float)EditorApplication.timeSinceStartup;
 
-                    EditorWindow view = EditorWindow.GetWindow<SceneView>();
-                    view.Repaint();
+                    Instance.RunUpdate();
                 }
+            }
+        }
+#endif
+
+        public static int FrameCount
+        {
+            get
+            {
+#if UNITY_EDITOR
+                if (!EditorApplication.isPlaying)
+                {
+                    return _editorFrames;
+                }
+                else
+                {
+                    return Time.frameCount;
+                }
+#else
+                {
+                    return Time.frameCount;
+                }
+#endif
             }
         }
 
@@ -335,6 +361,19 @@ namespace Crest
 
         void LateUpdate()
         {
+#if UNITY_EDITOR
+            // Don't run immediately if in edit mode - need to count editor frames so this is run through EditorUpdate()
+            if (!EditorApplication.isPlaying)
+            {
+                return;
+            }
+#endif
+
+            RunUpdate();
+        }
+
+        void RunUpdate()
+        {
             // set global shader params
             Shader.SetGlobalFloat(sp_texelsPerWave, MinTexelsPerWave);
             Shader.SetGlobalFloat(sp_crestTime, CurrentTime);
@@ -441,7 +480,7 @@ namespace Crest
         /// </summary>
         public void ReportMaxDisplacementFromShape(float maxHorizDisp, float maxVertDisp, float maxVertDispFromWaves)
         {
-            if (Time.frameCount != _maxDisplacementCachedTime)
+            if (OceanRenderer.FrameCount != _maxDisplacementCachedTime)
             {
                 _maxHorizDispFromShape = _maxVertDispFromShape = _maxVertDispFromWaves = 0f;
             }
@@ -450,7 +489,7 @@ namespace Crest
             _maxVertDispFromShape += maxVertDisp;
             _maxVertDispFromWaves += maxVertDispFromWaves;
 
-            _maxDisplacementCachedTime = Time.frameCount;
+            _maxDisplacementCachedTime = OceanRenderer.FrameCount;
         }
         float _maxHorizDispFromShape = 0f;
         float _maxVertDispFromShape = 0f;

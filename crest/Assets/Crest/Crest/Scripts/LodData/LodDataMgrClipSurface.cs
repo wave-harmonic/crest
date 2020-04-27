@@ -22,6 +22,7 @@ namespace Crest
 
         public LodDataMgrClipSurface(OceanRenderer ocean) : base(ocean)
         {
+            Start();
         }
 
         public override void Start()

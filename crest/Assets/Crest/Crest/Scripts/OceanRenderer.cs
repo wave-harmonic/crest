@@ -2,6 +2,7 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
@@ -144,6 +145,8 @@ namespace Crest
         [HideInInspector] public LodDataMgrFoam _lodDataFoam;
         [HideInInspector] public LodDataMgrShadow _lodDataShadow;
 
+        List<LodDataMgr> _lodDatas = new List<LodDataMgr>();
+
         /// <summary>
         /// The number of LODs/scales that the ocean is currently using.
         /// </summary>
@@ -228,36 +231,36 @@ namespace Crest
         {
             // Create the LOD data managers
             _lodDataAnimWaves = new LodDataMgrAnimWaves(this);
-            _lodDataAnimWaves.Start();
+            _lodDatas.Add(_lodDataAnimWaves);
             if (CreateDynamicWaveSim)
             {
                 _lodDataDynWaves = new LodDataMgrDynWaves(this);
-                _lodDataDynWaves.Start();
+                _lodDatas.Add(_lodDataDynWaves);
             }
             if (CreateFlowSim)
             {
                 _lodDataFlow = new LodDataMgrFlow(this);
-                _lodDataFlow.Start();
+                _lodDatas.Add(_lodDataFlow);
             }
             if (CreateFoamSim)
             {
                 _lodDataFoam = new LodDataMgrFoam(this);
-                _lodDataFoam.Start();
+                _lodDatas.Add(_lodDataFoam);
             }
             if (CreateShadowData)
             {
                 _lodDataShadow = new LodDataMgrShadow(this);
-                _lodDataShadow.Start();
+                _lodDatas.Add(_lodDataShadow);
             }
             if (CreateSeaFloorDepthData)
             {
                 _lodDataSeaDepths = new LodDataMgrSeaFloorDepth(this);
-                _lodDataSeaDepths.Start();
+                _lodDatas.Add(_lodDataSeaDepths);
             }
             if (CreateClipSurfaceData)
             {
                 _lodDataClipSurface = new LodDataMgrClipSurface(this);
-                _lodDataClipSurface.Start();
+                _lodDatas.Add(_lodDataClipSurface);
             }
 
             // Add any required GPU readbacks
@@ -467,6 +470,22 @@ namespace Crest
         /// </summary>
         ICollProvider _collProvider;
         public ICollProvider CollisionProvider { get { return _collProvider != null ? _collProvider : (_collProvider = _lodDataAnimWaves.Settings.CreateCollisionProvider()); } }
+
+        private void OnEnable()
+        {
+            foreach (var lodData in _lodDatas)
+            {
+                lodData.OnEnable();
+            }
+        }
+
+        private void OnDisable()
+        {
+            foreach (var lodData in _lodDatas)
+            {
+                lodData.OnDisable();
+            }
+        }
 
 #if UNITY_EDITOR
         private void OnValidate()

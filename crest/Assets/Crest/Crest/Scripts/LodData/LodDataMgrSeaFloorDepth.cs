@@ -10,7 +10,6 @@ namespace Crest
     /// <summary>
     /// Renders depth of the ocean (height of sea level above ocean floor), by rendering the relative height of tagged objects from top down.
     /// </summary>
-    [ExecuteInEditMode]
     public class LodDataMgrSeaFloorDepth : LodDataMgr
     {
         public override string SimName { get { return "SeaFloorDepth"; } }
@@ -25,6 +24,7 @@ namespace Crest
 
         public LodDataMgrSeaFloorDepth(OceanRenderer ocean) : base(ocean)
         {
+            Start();
         }
 
         public override void BuildCommandBuffer(OceanRenderer ocean, CommandBuffer buf)

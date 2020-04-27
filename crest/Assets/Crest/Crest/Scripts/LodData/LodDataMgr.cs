@@ -2,6 +2,7 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+using System;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -218,6 +219,13 @@ namespace Crest
                 _paramId_Source = Shader.PropertyToID(textureArrayName + "_Source");
             }
             public int GetId(bool sourceLod) { return sourceLod ? _paramId_Source : _paramId; }
+        }
+
+        internal virtual void OnEnable()
+        {
+        }
+        internal virtual void OnDisable()
+        {
         }
 
 #if UNITY_2019_3_OR_NEWER

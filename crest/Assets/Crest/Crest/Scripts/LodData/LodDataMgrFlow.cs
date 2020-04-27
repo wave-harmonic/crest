@@ -41,6 +41,7 @@ namespace Crest
 
         public LodDataMgrFlow(OceanRenderer ocean) : base(ocean)
         {
+            Start();
         }
 
         public override void Start()
@@ -55,15 +56,17 @@ namespace Crest
 #endif
         }
 
-        // TODO - not called anymore
-        private void OnEnable()
+        internal override void OnEnable()
         {
+            base.OnEnable();
+
             Shader.EnableKeyword(FLOW_KEYWORD);
         }
 
-        // TODO - not called anymore
-        private void OnDisable()
+        internal override void OnDisable()
         {
+            base.OnDisable();
+
             Shader.DisableKeyword(FLOW_KEYWORD);
         }
 

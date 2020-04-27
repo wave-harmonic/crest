@@ -62,6 +62,7 @@ namespace Crest
 
         public LodDataMgrShadow(OceanRenderer ocean) : base(ocean)
         {
+            Start();
         }
 
         public override void Start()
@@ -254,15 +255,17 @@ namespace Crest
             BindData(simMaterial, paramsOnly ? Texture2D.blackTexture : _sources as Texture, true, ref rd, true);
         }
 
-        // TODO - not called anymore
-        void OnEnable()
+        internal override void OnEnable()
         {
+            base.OnEnable();
+
             RemoveCommandBuffers();
         }
 
-        // TODO - not called anymore
-        void OnDisable()
+        internal override void OnDisable()
         {
+            base.OnDisable();
+
             RemoveCommandBuffers();
         }
 

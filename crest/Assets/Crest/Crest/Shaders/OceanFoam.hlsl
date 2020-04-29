@@ -51,7 +51,7 @@ half BubbleFoamTexture(float2 i_worldXZ, float2 i_worldXZUndisplaced, half3 i_n,
 	return ft;
 }
 
-void ComputeFoam(half i_foam, float2 i_worldXZUndisplaced, float2 i_worldXZ, half3 i_n, float i_pixelZ, float i_sceneZ, half3 i_view, float3 i_lightDir, half i_shadow, half lodVal, out half3 o_bubbleCol, out half4 o_whiteFoamCol)
+void ComputeFoam(half i_foam, float2 i_worldXZUndisplaced, float2 i_worldXZ, half3 i_n, float i_pixelZ, float i_sceneZ, half3 i_view, float3 i_lightDir, half i_shadow, half lodVal, out half3 o_bubbleCol, out half4 o_whiteFoamCol, half4 lightCol)
 {
 	half foamAmount = i_foam;
 
@@ -76,17 +76,17 @@ void ComputeFoam(half i_foam, float2 i_worldXZUndisplaced, float2 i_worldXZ, hal
 	half3 fN = normalize(i_n + _WaveFoamNormalStrength * half3(-dfdx, 0., -dfdz));
 	// do simple NdL and phong lighting
 	half foamNdL = max(0., dot(fN, i_lightDir));
-	o_whiteFoamCol.rgb = _FoamWhiteColor.rgb * (AmbientLight() + _WaveFoamLightScale * _LightColor0 * foamNdL * i_shadow);
+	o_whiteFoamCol.rgb = _FoamWhiteColor.rgb * (AmbientLight() + _WaveFoamLightScale * lightCol * foamNdL * i_shadow);
 	half3 refl = reflect(-i_view, fN);
-	o_whiteFoamCol.rgb += pow(max(0., dot(refl, i_lightDir)), _WaveFoamSpecularFallOff) * _WaveFoamSpecularBoost * _LightColor0 * i_shadow;
+	o_whiteFoamCol.rgb += pow(max(0., dot(refl, i_lightDir)), _WaveFoamSpecularFallOff) * _WaveFoamSpecularBoost * lightCol * i_shadow;
 #else // _FOAM3DLIGHTING_ON
-	o_whiteFoamCol.rgb = _FoamWhiteColor.rgb * (AmbientLight() + _WaveFoamLightScale * _LightColor0 * i_shadow);
+	o_whiteFoamCol.rgb = _FoamWhiteColor.rgb * (AmbientLight() + _WaveFoamLightScale * lightCol * i_shadow);
 #endif // _FOAM3DLIGHTING_ON
 
 	o_whiteFoamCol.a = _FoamWhiteColor.a * whiteFoam;
 }
 
-void ComputeFoamWithFlow(half2 flow, half i_foam, float2 i_worldXZUndisplaced, float2 i_worldXZ, half3 i_n, float i_pixelZ, float i_sceneZ, half3 i_view, float3 i_lightDir, half i_shadow, half lodVal, out half3 o_bubbleCol, out half4 o_whiteFoamCol)
+void ComputeFoamWithFlow(half2 flow, half i_foam, float2 i_worldXZUndisplaced, float2 i_worldXZ, half3 i_n, float i_pixelZ, float i_sceneZ, half3 i_view, float3 i_lightDir, half i_shadow, half lodVal, out half3 o_bubbleCol, out half4 o_whiteFoamCol, half4 lightCol)
 {
 	const float half_period = 1;
 	const float period = half_period * 2;
@@ -104,8 +104,8 @@ void ComputeFoamWithFlow(half2 flow, half i_foam, float2 i_worldXZUndisplaced, f
 	half3 o_bubbleCol2 = half3(0, 0, 0);
 	half4 o_whiteFoamCol2 = half4(0, 0, 0, 0);
 
-	ComputeFoam(i_foam, i_worldXZUndisplaced - (flow * sample1_offset), i_worldXZ, i_n, i_pixelZ, i_sceneZ, i_view, i_lightDir, i_shadow, lodVal, o_bubbleCol1, o_whiteFoamCol1);
-	ComputeFoam(i_foam, i_worldXZUndisplaced - (flow * sample2_offset), i_worldXZ, i_n, i_pixelZ, i_sceneZ, i_view, i_lightDir, i_shadow, lodVal, o_bubbleCol2, o_whiteFoamCol2);
+	ComputeFoam(i_foam, i_worldXZUndisplaced - (flow * sample1_offset), i_worldXZ, i_n, i_pixelZ, i_sceneZ, i_view, i_lightDir, i_shadow, lodVal, o_bubbleCol1, o_whiteFoamCol1, lightCol);
+	ComputeFoam(i_foam, i_worldXZUndisplaced - (flow * sample2_offset), i_worldXZ, i_n, i_pixelZ, i_sceneZ, i_view, i_lightDir, i_shadow, lodVal, o_bubbleCol2, o_whiteFoamCol2, lightCol);
 	o_bubbleCol = (sample1_weight * o_bubbleCol1) + (sample2_weight * o_bubbleCol2);
 	o_whiteFoamCol = (sample1_weight * o_whiteFoamCol1) + (sample2_weight * o_whiteFoamCol2);
 }

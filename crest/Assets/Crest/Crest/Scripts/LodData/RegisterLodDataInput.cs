@@ -37,7 +37,7 @@ namespace Crest
     /// </summary>
     public abstract class RegisterLodDataInputBase : MonoBehaviour, ILodDataInput, IValidated
     {
-        [SerializeField, Tooltip("Check that the shader applied to this object matches the input type (so e.g. an Animated Waves input object has an Animated Waves input shader.")
+        [SerializeField, Tooltip("Check that the shader applied to this object matches the input type (so e.g. an Animated Waves input object has an Animated Waves input shader.")]
         bool _checkShaderName = true;
 
         public abstract float Wavelength { get; }
@@ -83,9 +83,9 @@ namespace Crest
 
         bool CheckShaderName(Renderer renderer)
         {
-            if (!renderer.sharedMaterial.shader.name.StartsWith(ShaderPrefix))
+            if (renderer.sharedMaterial && renderer.sharedMaterial.shader && !renderer.sharedMaterial.shader.name.StartsWith(ShaderPrefix))
             {
-                Debug.LogError($"Shader assigned to ocean input expected to be of type {ShaderPrefix}. Click this error to highlight the input.", this);
+                Debug.LogError($"Shader assigned to ocean input expected to be of type <i>{ShaderPrefix}</i>. Click this error to highlight the input.", this);
                 return false;
             }
             return true;

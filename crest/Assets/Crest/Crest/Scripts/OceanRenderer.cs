@@ -175,11 +175,17 @@ namespace Crest
 
         public static OceanRenderer Instance { get; private set; }
 
+        // We are computing these values to be optimal based on the base mesh vertice density.
+        float _lodAlphaBlackPointFade;
+        float _lodAlphaBlackPointWhitePointFade;
+
         readonly int sp_crestTime = Shader.PropertyToID("_CrestTime");
         readonly int sp_texelsPerWave = Shader.PropertyToID("_TexelsPerWave");
         readonly int sp_oceanCenterPosWorld = Shader.PropertyToID("_OceanCenterPosWorld");
         readonly int sp_meshScaleLerp = Shader.PropertyToID("_MeshScaleLerp");
         readonly int sp_sliceCount = Shader.PropertyToID("_SliceCount");
+        readonly int sp_lodAlphaBlackPointFade = Shader.PropertyToID("_CrestLodAlphaBlackPointFade");
+        readonly int sp_lodAlphaBlackPointWhitePointFade = Shader.PropertyToID("_CrestLodAlphaBlackPointWhitePointFade");
 
 #if UNITY_EDITOR
         static float _lastUpdateTime = -1f;
@@ -206,6 +212,14 @@ namespace Crest
 
             _lodTransform = new LodTransform();
             _lodTransform.InitLODData(_lodCount);
+
+            // Resolution is 4 tiles across.
+            var baseMeshDensity = _lodDataResolution * 0.25f / _geometryDownSampleFactor;
+            // 0.4f is the "best" value when base mesh density is 8. Scaling down from there produces results similar to
+            // hand crafted values which looked good when the ocean is flat.
+            _lodAlphaBlackPointFade = 0.4f / (baseMeshDensity / 8f);
+            // We could calculate this in the shader, but we can save two subtractions this way.
+            _lodAlphaBlackPointWhitePointFade = 1f - _lodAlphaBlackPointFade - _lodAlphaBlackPointFade;
 
             OceanBuilder.GenerateMesh(this, _lodDataResolution, _geometryDownSampleFactor, _lodCount);
 
@@ -351,6 +365,8 @@ namespace Crest
             Shader.SetGlobalFloat(sp_texelsPerWave, MinTexelsPerWave);
             Shader.SetGlobalFloat(sp_crestTime, CurrentTime);
             Shader.SetGlobalFloat(sp_sliceCount, CurrentLodCount);
+            Shader.SetGlobalFloat(sp_lodAlphaBlackPointFade, _lodAlphaBlackPointFade);
+            Shader.SetGlobalFloat(sp_lodAlphaBlackPointWhitePointFade, _lodAlphaBlackPointWhitePointFade);
 
             // LOD 0 is blended in/out when scale changes, to eliminate pops. Here we set it as a global, whereas in OceanChunkRenderer it
             // is applied to LOD0 tiles only through _InstanceData. This global can be used in compute, where we only apply this factor for slice 0.

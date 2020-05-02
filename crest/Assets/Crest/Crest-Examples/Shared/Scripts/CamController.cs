@@ -3,6 +3,7 @@
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 using UnityEngine;
+using UnityEngine.XR;
 
 public class CamController : MonoBehaviour
 {
@@ -17,6 +18,34 @@ public class CamController : MonoBehaviour
 
     public float _fixedDt = 1 / 60f;
 
+    Transform _targetTransform;
+
+    void Awake()
+    {
+        _targetTransform = transform;
+
+        // We cannot change the Camera's transform when XR is enabled.
+        if (XRSettings.enabled)
+        {
+            // Disable XR temporarily so we can change the transform of the camera.
+            XRSettings.enabled = false;
+            // The VR camera is moved in local space, so we can move the camera if we move its parent we create instead.
+            var parent = new GameObject("VRCameraOffset");
+            parent.transform.parent = _targetTransform.parent;
+            // Copy the transform over to the parent.
+            parent.transform.position = _targetTransform.position;
+            parent.transform.rotation = _targetTransform.rotation;
+            // Parent camera to offset and reset transform. Scale changes slightly in editor so we will reset that too.
+            _targetTransform.parent = parent.transform;
+            _targetTransform.localPosition = Vector3.zero;
+            _targetTransform.localRotation = Quaternion.identity;
+            _targetTransform.localScale = Vector3.one;
+            // We want to manipulate this transform.
+            _targetTransform = parent.transform;
+            XRSettings.enabled = true;
+        }
+    }
+
     void Update()
     {
         float dt = Time.deltaTime;
@@ -25,9 +54,12 @@ public class CamController : MonoBehaviour
 
         UpdateMovement(dt);
 
-        UpdateDragging(dt);
-
-        UpdateKillRoll();
+        // These aren't useful and can break for XR hardware.
+        if (!XRSettings.enabled || XRSettings.loadedDeviceName == "MockHMD")
+        {
+            UpdateDragging(dt);
+            UpdateKillRoll();
+        }
     }
 
     void UpdateMovement(float dt)
@@ -40,23 +72,23 @@ public class CamController : MonoBehaviour
             forward = 1f;
         }
 
-        transform.position += linSpeed * transform.forward * forward * dt;
+        _targetTransform.position += linSpeed * _targetTransform.forward * forward * dt;
         var speed = linSpeed;
         if (Input.GetKey(KeyCode.LeftShift))
         {
             speed *= 3f;
         }
 
-        transform.position += speed * transform.forward * forward * dt;
-        //transform.position += linSpeed * transform.right * Input.GetAxis( "Horizontal" ) * dt;
-        transform.position += linSpeed * transform.up * (Input.GetKey(KeyCode.E) ? 1 : 0) * dt;
-        transform.position -= linSpeed * transform.up * (Input.GetKey(KeyCode.Q) ? 1 : 0) * dt;
-        transform.position -= linSpeed * transform.right * (Input.GetKey(KeyCode.A) ? 1 : 0) * dt;
-        transform.position += linSpeed * transform.right * (Input.GetKey(KeyCode.D) ? 1 : 0) * dt;
-        transform.position += speed * transform.up * (Input.GetKey(KeyCode.E) ? 1 : 0) * dt;
-        transform.position -= speed * transform.up * (Input.GetKey(KeyCode.Q) ? 1 : 0) * dt;
-        transform.position -= speed * transform.right * (Input.GetKey(KeyCode.A) ? 1 : 0) * dt;
-        transform.position += speed * transform.right * (Input.GetKey(KeyCode.D) ? 1 : 0) * dt;
+        _targetTransform.position += speed * _targetTransform.forward * forward * dt;
+        //_transform.position += linSpeed * _transform.right * Input.GetAxis( "Horizontal" ) * dt;
+        _targetTransform.position += linSpeed * _targetTransform.up * (Input.GetKey(KeyCode.E) ? 1 : 0) * dt;
+        _targetTransform.position -= linSpeed * _targetTransform.up * (Input.GetKey(KeyCode.Q) ? 1 : 0) * dt;
+        _targetTransform.position -= linSpeed * _targetTransform.right * (Input.GetKey(KeyCode.A) ? 1 : 0) * dt;
+        _targetTransform.position += linSpeed * _targetTransform.right * (Input.GetKey(KeyCode.D) ? 1 : 0) * dt;
+        _targetTransform.position += speed * _targetTransform.up * (Input.GetKey(KeyCode.E) ? 1 : 0) * dt;
+        _targetTransform.position -= speed * _targetTransform.up * (Input.GetKey(KeyCode.Q) ? 1 : 0) * dt;
+        _targetTransform.position -= speed * _targetTransform.right * (Input.GetKey(KeyCode.A) ? 1 : 0) * dt;
+        _targetTransform.position += speed * _targetTransform.right * (Input.GetKey(KeyCode.D) ? 1 : 0) * dt;
     }
 
     void UpdateDragging(float dt)
@@ -80,10 +112,10 @@ public class CamController : MonoBehaviour
         {
             Vector2 delta = mousePos - _lastMousePos;
 
-            Vector3 ea = transform.eulerAngles;
+            Vector3 ea = _targetTransform.eulerAngles;
             ea.x += -0.1f * rotSpeed * delta.y * dt;
             ea.y += 0.1f * rotSpeed * delta.x * dt;
-            transform.eulerAngles = ea;
+            _targetTransform.eulerAngles = ea;
 
             _lastMousePos = mousePos;
         }
@@ -91,7 +123,7 @@ public class CamController : MonoBehaviour
 
     void UpdateKillRoll()
     {
-        Vector3 ea = transform.eulerAngles;
+        Vector3 ea = _targetTransform.eulerAngles;
         ea.z = 0f;
         transform.eulerAngles = ea;
     }

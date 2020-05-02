@@ -16,11 +16,10 @@ float ComputeLodAlpha(float3 i_worldPos, float i_meshScaleAlpha, in const float3
 	// TODO - pass this in, and then make a node to provide it automatically
 	float lodAlpha = taxicab_norm / i_oceanPosScale0.z - 1.0;
 
-	// lod alpha is remapped to ensure patches weld together properly. patches can vary significantly in shape (with
-	// strips added and removed), and this variance depends on the base density of the mesh, as this defines the strip width.
-	// using .15 as black and .85 as white should work for base mesh density as low as 16.
-	const float BLACK_POINT = 0.15, WHITE_POINT = 0.85;
-	lodAlpha = max((lodAlpha - BLACK_POINT) / (WHITE_POINT - BLACK_POINT), 0.);
+	// LOD alpha is remapped to ensure patches weld together properly. Patches can vary significantly in shape (with
+	// strips added and removed), and this variance depends on the base vertex density of the mesh, as this defines the 
+	// strip width.
+	lodAlpha = max((lodAlpha - _CrestLodAlphaBlackPointFade) / _CrestLodAlphaBlackPointWhitePointFade, 0.);
 
 	// blend out lod0 when viewpoint gains altitude
 	lodAlpha = min(lodAlpha + i_meshScaleAlpha, 1.);

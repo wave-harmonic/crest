@@ -78,6 +78,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7581c8217e105de4b83ca0ce4f8fa8c2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _mode: 0
   _spectrum: {fileID: 11400000, guid: 691aad324f2d2be4abf8123c36963da5, type: 2}
   _windDirectionAngle: 0
   _componentsPerOctave: 8
@@ -244,6 +245,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _viewpoint: {fileID: 0}
   _timeProvider: {fileID: 0}
+  _primaryLight: {fileID: 0}
+  _searchForPrimaryLightOnStartup: 1
   _material: {fileID: 2100000, guid: 9def92ac79181fe41b238e91663f0fad, type: 2}
   _layerName: Water
   _gravityMultiplier: 1
@@ -264,7 +267,6 @@ MonoBehaviour:
   _createFlowSim: 0
   _simSettingsFlow: {fileID: 0}
   _createShadowData: 0
-  _primaryLight: {fileID: 6335068685541798300}
   _simSettingsShadow: {fileID: 0}
   _createClipSurfaceData: 0
   _attachDebugGUI: 1
@@ -479,12 +481,6 @@ PrefabInstance:
 --- !u!4 &1277394908984322107 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 1399345652565587599, guid: 37bbe23c17398419cbc8674f5c5dbccb,
-    type: 3}
-  m_PrefabInstance: {fileID: 203029847731052212}
-  m_PrefabAsset: {fileID: 0}
---- !u!108 &6335068685541798300 stripped
-Light:
-  m_CorrespondingSourceObject: {fileID: 6141750961475219240, guid: 37bbe23c17398419cbc8674f5c5dbccb,
     type: 3}
   m_PrefabInstance: {fileID: 203029847731052212}
   m_PrefabAsset: {fileID: 0}

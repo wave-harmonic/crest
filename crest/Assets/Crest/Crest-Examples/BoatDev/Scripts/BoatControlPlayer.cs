@@ -11,6 +11,7 @@ public sealed class BoatControlPlayer : BoatControl
 
     void Update()
     {
+        // The boat will read this input the next frame in FixedUpdate (one frame latency).
         var throttle = UnityEngine.Input.GetAxis(_throttleInputAxisName);
         var steer = UnityEngine.Input.GetAxis(_steerInputAxisName);
         if (throttle < 0f) steer *= -1f;

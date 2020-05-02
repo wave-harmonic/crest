@@ -66,7 +66,9 @@ namespace Crest
             ShapeGerstnerBatched _gerstner;
             int _batchIndex = -1;
 
-            public float Wavelength { get; set; }
+            // The ocean input system uses this to decide which lod this batch belongs in
+            public float Wavelength => OceanRenderer.Instance._lodTransform.MaxWavelength(_batchIndex) / 2f;
+
             public bool Enabled { get; set; }
 
             public bool HasWaves { get; set; }
@@ -493,8 +495,6 @@ namespace Crest
             {
                 //Debug.Log($"Batch {batch}, lodIdx {lodIdx}, range: {minWl} -> {2f * minWl}, indices: {startCompIdx} -> {componentIdx}");
                 UpdateBatch(lodIdx, startCompIdx, componentIdx, batch);
-
-                batch.Wavelength = minWl;
             }
         }
 

@@ -20,7 +20,7 @@ namespace Crest
         public Transform Viewpoint { get { return _viewpoint; } set { _viewpoint = value; } }
 
         [Tooltip("Optional provider for time, can be used to hard-code time for automation, or provide server time. Defaults to local Unity time."), SerializeField]
-        TimeProviderBase _timeProvider;
+        TimeProviderBase _timeProvider = null;
         TimeProviderDefault _timeProviderDefault = new TimeProviderDefault();
         public ITimeProvider TimeProvider
         {

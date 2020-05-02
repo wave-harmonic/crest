@@ -28,6 +28,7 @@ Shader "Crest/Inputs/Animated Waves/Wave Particle"
 			float _Radius;
 			float _Amplitude;
 			float _Weight;
+			float3 _DisplacementAtInputPosition;
 			CBUFFER_END
 
 			struct Attributes
@@ -44,7 +45,6 @@ Shader "Crest/Inputs/Animated Waves/Wave Particle"
 			Varyings Vert(Attributes input)
 			{
 				Varyings o;
-				o.positionCS = UnityObjectToClipPos(input.positionOS);
 
 				float3 worldPos = mul(unity_ObjectToWorld, float4(input.positionOS, 1.0));
 				float3 centerPos = unity_ObjectToWorld._m03_m13_m23;
@@ -54,6 +54,10 @@ Shader "Crest/Inputs/Animated Waves/Wave Particle"
 				o.worldOffsetScaledXZ = sign(o.worldOffsetScaledXZ);
 				float4 newWorldPos = float4(centerPos, 1.);
 				newWorldPos.xz += o.worldOffsetScaledXZ * _Radius;
+
+				// Correct for displacement
+				newWorldPos.xyz -= _DisplacementAtInputPosition;
+
 				o.positionCS = mul(UNITY_MATRIX_VP, newWorldPos);
 
 				return o;

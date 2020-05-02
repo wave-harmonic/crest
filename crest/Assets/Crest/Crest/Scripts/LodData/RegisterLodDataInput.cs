@@ -42,6 +42,10 @@ namespace Crest
         public abstract bool Enabled { get; }
 
         public static int sp_Weight = Shader.PropertyToID("_Weight");
+        public static int sp_DisplacementAtInputPosition = Shader.PropertyToID("_DisplacementAtInputPosition");
+
+        [SerializeField]
+        bool _applyDisplacementCorrection = false;
 
         static DuplicateKeyComparer<int> s_comparer = new DuplicateKeyComparer<int>();
         static Dictionary<Type, OceanInput> s_registrar = new Dictionary<Type, OceanInput>();
@@ -59,6 +63,7 @@ namespace Crest
 
         Renderer _renderer;
         Material[] _materials = new Material[2];
+        SampleHeightHelper _sampleHelper = new SampleHeightHelper();
 
         protected virtual void Start()
         {
@@ -77,6 +82,14 @@ namespace Crest
             {
                 _materials[isTransition].SetFloat(sp_Weight, weight);
                 _materials[isTransition].SetInt(LodDataMgr.sp_LD_SliceIndex, lodIdx);
+
+                if (_applyDisplacementCorrection)
+                {
+                    _sampleHelper.Init(transform.position, 0f);
+                    Vector3 displacement = Vector3.zero, dummy = Vector3.zero;
+                    _sampleHelper.Sample(ref displacement, ref dummy, ref dummy);
+                    _materials[isTransition].SetVector(sp_DisplacementAtInputPosition, displacement);
+                }
 
                 buf.DrawRenderer(_renderer, _materials[isTransition]);
             }

@@ -188,7 +188,8 @@ namespace Crest
         readonly int sp_lodAlphaBlackPointWhitePointFade = Shader.PropertyToID("_CrestLodAlphaBlackPointWhitePointFade");
 
 #if UNITY_EDITOR
-        static float _lastUpdateTime = -1f;
+        static float _lastUpdateEditorTime = -1f;
+        public static float LastUpdateEditorTime => _lastUpdateEditorTime;
         static int _editorFrames = 0;
 #endif
 
@@ -247,11 +248,11 @@ namespace Crest
 
             if (!EditorApplication.isPlaying)
             {
-                if (EditorApplication.timeSinceStartup - _lastUpdateTime > 1f / Mathf.Clamp(Instance._editModeFPS, 0.1f, 60f))
+                if (EditorApplication.timeSinceStartup - _lastUpdateEditorTime > 1f / Mathf.Clamp(Instance._editModeFPS, 0.1f, 60f))
                 {
                     _editorFrames++;
 
-                    _lastUpdateTime = (float)EditorApplication.timeSinceStartup;
+                    _lastUpdateEditorTime = (float)EditorApplication.timeSinceStartup;
 
                     Instance.RunUpdate();
                 }
@@ -586,7 +587,7 @@ namespace Crest
         /// </summary>
         public void ReportMaxDisplacementFromShape(float maxHorizDisp, float maxVertDisp, float maxVertDispFromWaves)
         {
-            if (OceanRenderer.FrameCount != _maxDisplacementCachedTime)
+            if (FrameCount != _maxDisplacementCachedTime)
             {
                 _maxHorizDispFromShape = _maxVertDispFromShape = _maxVertDispFromWaves = 0f;
             }
@@ -595,7 +596,7 @@ namespace Crest
             _maxVertDispFromShape += maxVertDisp;
             _maxVertDispFromWaves += maxVertDispFromWaves;
 
-            _maxDisplacementCachedTime = OceanRenderer.FrameCount;
+            _maxDisplacementCachedTime = FrameCount;
         }
         float _maxHorizDispFromShape = 0f;
         float _maxVertDispFromShape = 0f;

@@ -22,7 +22,7 @@ namespace Crest
                 }
                 else
                 {
-                    return (float)UnityEditor.EditorApplication.timeSinceStartup;
+                    return (float)OceanRenderer.LastUpdateEditorTime;
                 }
 #else
                 return Time.time;

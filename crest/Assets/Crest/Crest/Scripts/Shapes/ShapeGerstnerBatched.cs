@@ -12,7 +12,7 @@ namespace Crest
     /// Support script for Gerstner wave ocean shapes.
     /// Generates a number of batches of Gerstner waves.
     /// </summary>
-    [ExecuteInEditMode]
+    [ExecuteAlways]
     public class ShapeGerstnerBatched : MonoBehaviour, ICollProvider, IFloatingOrigin
     {
         public enum GerstnerMode

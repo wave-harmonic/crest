@@ -14,7 +14,7 @@ namespace Crest
     /// <summary>
     /// Sets shader parameters for each geometry tile/chunk.
     /// </summary>
-    [ExecuteInEditMode]
+    [ExecuteAlways]
     public class OceanChunkRenderer : MonoBehaviour
     {
         public bool _drawRenderBounds = false;

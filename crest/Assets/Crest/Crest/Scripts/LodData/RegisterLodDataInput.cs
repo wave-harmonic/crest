@@ -35,7 +35,7 @@ namespace Crest
     /// <summary>
     /// Base class for scripts that register input to the various LOD data types.
     /// </summary>
-    [ExecuteInEditMode]
+    [ExecuteAlways]
     public abstract class RegisterLodDataInputBase : MonoBehaviour, ILodDataInput
     {
         public abstract float Wavelength { get; }
@@ -100,7 +100,7 @@ namespace Crest
     /// <summary>
     /// Registers input to a particular LOD data.
     /// </summary>
-    [ExecuteInEditMode]
+    [ExecuteAlways]
     public abstract class RegisterLodDataInput<LodDataType> : RegisterLodDataInputBase
         where LodDataType : LodDataMgr
     {

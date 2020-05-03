@@ -14,7 +14,7 @@ namespace Crest
     /// Renders terrain height / ocean depth once into a render target to cache this off and avoid rendering it every frame.
     /// This should be used for static geometry, dynamic objects should be tagged with the Render Ocean Depth component.
     /// </summary>
-    [ExecuteInEditMode]
+    [ExecuteAlways]
     public class OceanDepthCache : MonoBehaviour
     {
         public enum OceanDepthCacheType

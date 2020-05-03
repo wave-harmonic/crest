@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using Crest;
 
-public sealed class BoatControlBiased : BoatControl
+public sealed class BoatControlFixed : BoatControl
 {
     [Tooltip("Used to automatically add throttle input"), SerializeField]
     float _throttle = 0;

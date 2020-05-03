@@ -59,7 +59,7 @@ namespace Crest
         }
 
         Renderer _renderer;
-        Material[] _materials = new Material[2];
+        protected Material _material;
 
         protected virtual void Start()
         {
@@ -67,8 +67,7 @@ namespace Crest
 
             if (_renderer)
             {
-                _materials[0] = _renderer.sharedMaterial;
-                _materials[1] = new Material(_renderer.sharedMaterial);
+                _material = _renderer.sharedMaterial;
             }
         }
 
@@ -76,15 +75,11 @@ namespace Crest
         {
             if (_renderer && weight > 0f)
             {
-                _materials[isTransition].SetFloat(sp_Weight, weight);
-                _materials[isTransition].SetInt(LodDataMgr.sp_LD_SliceIndex, lodIdx);
-
-                buf.DrawRenderer(_renderer, _materials[isTransition]);
+                buf.SetGlobalFloat(sp_Weight, weight);
+                buf.SetGlobalFloat(LodDataMgr.sp_LD_SliceIndex, lodIdx);
+                buf.DrawRenderer(_renderer, _material);
             }
         }
-
-        public int MaterialCount => _materials.Length;
-        public Material GetMaterial(int index) => _materials[index];
 
 #if UNITY_2019_3_OR_NEWER
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]

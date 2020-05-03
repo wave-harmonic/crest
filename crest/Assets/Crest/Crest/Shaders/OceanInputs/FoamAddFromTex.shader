@@ -50,10 +50,10 @@ Shader "Crest/Inputs/Foam/Add From Texture"
 			{
 				Varyings o;
 				
-				float3 worldPos = mul(unity_ObjectToWorld, float4(input.positionOS, 1.0));
+				float3 worldPos = mul(unity_ObjectToWorld, float4(input.positionOS, 1.0)).xyz;
 				// Correct for displacement
 				worldPos.xyz -= _DisplacementAtInputPosition;
-				o.positionCS = mul(UNITY_MATRIX_VP, worldPos);
+				o.positionCS = mul(UNITY_MATRIX_VP, float4(worldPos, 1.0));
 
 				o.uv = TRANSFORM_TEX(input.uv, _MainTex);
 				return o;

@@ -139,7 +139,7 @@ namespace Crest
             public readonly static Vector4[] _chopAmpsBatch = new Vector4[BATCH_SIZE / 4];
         }
 
-        void Start()
+        private void OnEnable()
         {
             if (_spectrum == null)
             {

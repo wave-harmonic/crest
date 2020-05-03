@@ -195,6 +195,7 @@ namespace Crest
 
         BuildCommandBuffer _commandbufferBuilder;
 
+        // Drive state from OnEnable and OnDisable? OnEnable on RegisterLodDataInput seems to get called on script reload
         void Awake()
         {
             if (!_primaryLight && _searchForPrimaryLightOnStartup)
@@ -675,6 +676,25 @@ namespace Crest
         private static void OnReLoadScripts()
         {
             Instance = FindObjectOfType<OceanRenderer>();
+
+            if (Instance != null)
+            {
+                // TODO - i guess we should move to OnEnable which would get called on reloads
+
+                if (Instance._commandbufferBuilder == null)
+                {
+                    Instance._commandbufferBuilder = new BuildCommandBuffer();
+                }
+
+                if (Instance._lodTransform == null)
+                {
+                    Instance._lodTransform = new LodTransform();
+                    Instance._lodTransform.InitLODData(Instance._lodCount);
+                }
+
+                EditorApplication.update -= EditorUpdate;
+                EditorApplication.update += EditorUpdate;
+            }
         }
 #endif
     }

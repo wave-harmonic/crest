@@ -74,7 +74,7 @@ namespace Crest
             var position = transform.position;
 
             var normal = Vector3.up; var waterSurfaceVel = Vector3.zero;
-            _sampleHeightHelper.Init(transform.position, _objectWidth);
+            _sampleHeightHelper.Init(transform.position, _objectWidth, true);
             _sampleHeightHelper.Sample(ref _displacementToObject, ref normal, ref waterSurfaceVel);
 
             var undispPos = transform.position - _displacementToObject;

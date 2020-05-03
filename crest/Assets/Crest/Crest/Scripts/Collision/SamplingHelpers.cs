@@ -33,7 +33,7 @@ namespace Crest
             _minLength = i_minLength;
 
 #if UNITY_EDITOR
-            if (_lastFrame >= Time.frameCount && !fromFixedUpdate)
+            if (!fromFixedUpdate && _lastFrame >= Time.frameCount)
             {
                 Debug.LogWarning("Each SampleHeightHelper object services a single height query per frame. To perform multiple queries, create multiple SampleHeightHelper objects or use the CollProvider.Query() API directly.");
             }

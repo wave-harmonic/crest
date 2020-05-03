@@ -27,6 +27,8 @@ namespace Crest
 
         protected override Color GizmoColor => new Color(0f, 1f, 1f, 0.5f);
 
+        protected override string ShaderPrefix => "Crest/Inputs/Clip Surface";
+
         PropertyWrapperMPB _mpb;
         Renderer _rend;
         SampleHeightHelper _sampleHeightHelper = new SampleHeightHelper();

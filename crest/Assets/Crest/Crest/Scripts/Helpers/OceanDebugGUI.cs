@@ -8,6 +8,7 @@ using UnityEngine.SceneManagement;
 
 namespace Crest
 {
+    [ExecuteAlways]
     public class OceanDebugGUI : MonoBehaviour
     {
         public bool _showOceanData = true;

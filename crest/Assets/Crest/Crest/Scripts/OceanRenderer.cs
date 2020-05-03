@@ -459,7 +459,6 @@ namespace Crest
             {
                 if (_lodDataClipSurface == null)
                 {
-                    Debug.Log("BUILD UP");
                     _lodDataClipSurface = new LodDataMgrClipSurface(this);
                     _lodDatas.Add(_lodDataClipSurface);
                 }

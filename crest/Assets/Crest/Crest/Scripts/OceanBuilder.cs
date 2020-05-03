@@ -155,17 +155,7 @@ namespace Crest
                 meshInsts[i] = BuildOceanPatch((PatchType)i, tileResolution);
             }
 
-            // Remove existing LODs
-            for (int i = 0; i < ocean.transform.childCount; i++)
-            {
-                var child = ocean.transform.GetChild(i);
-                if (child.name.StartsWith("Tile_L"))
-                {
-                    child.parent = null;
-                    Object.Destroy(child.gameObject);
-                    i--;
-                }
-            }
+            ClearOutTiles(ocean);
 
             for (int i = 0; i < lodCount; i++)
             {
@@ -176,6 +166,32 @@ namespace Crest
             sw.Stop();
             Debug.Log( "Finished generating " + lodCount.ToString() + " LODs, time: " + (1000.0*sw.Elapsed.TotalSeconds).ToString(".000") + "ms" );
 #endif
+        }
+
+        public static void ClearOutTiles(OceanRenderer ocean)
+        {
+            // Remove existing LODs
+            for (int i = 0; i < ocean.transform.childCount; i++)
+            {
+                var child = ocean.transform.GetChild(i);
+                if (child.name.StartsWith("Tile_L"))
+                {
+                    child.parent = null;
+#if UNITY_EDITOR
+                    if (UnityEditor.EditorApplication.isPlaying)
+                    {
+                        Object.Destroy(child.gameObject);
+                    }
+                    else
+                    {
+                        Object.DestroyImmediate(child.gameObject);
+                    }
+#else
+                    Object.Destroy(child.gameObject);
+#endif
+                    i--;
+                }
+            }
         }
 
         static Mesh BuildOceanPatch(PatchType pt, float vertDensity)

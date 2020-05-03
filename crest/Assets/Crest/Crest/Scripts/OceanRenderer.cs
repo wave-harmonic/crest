@@ -196,7 +196,7 @@ namespace Crest
         BuildCommandBuffer _commandbufferBuilder;
 
         // Drive state from OnEnable and OnDisable? OnEnable on RegisterLodDataInput seems to get called on script reload
-        void Awake()
+        void OnEnable()
         {
             if (!_primaryLight && _searchForPrimaryLightOnStartup)
             {
@@ -240,6 +240,10 @@ namespace Crest
             EditorApplication.update -= EditorUpdate;
             EditorApplication.update += EditorUpdate;
 #endif
+            foreach (var lodData in _lodDatas)
+            {
+                lodData.OnEnable();
+            }
         }
 
 #if UNITY_EDITOR
@@ -469,7 +473,6 @@ namespace Crest
             {
                 if (_lodDataClipSurface != null)
                 {
-                    Debug.Log("TEAR DOWN");
                     _lodDataClipSurface.OnDisable();
                     _lodDatas.Remove(_lodDataClipSurface);
                     _lodDataClipSurface = null;
@@ -626,16 +629,11 @@ namespace Crest
             }
         }
 
-        private void OnEnable()
-        {
-            foreach (var lodData in _lodDatas)
-            {
-                lodData.OnEnable();
-            }
-        }
-
         private void OnDisable()
         {
+            // This does bad things - maybe creates a deactivation loop?
+            //OceanBuilder.ClearOutTiles(this);
+
             foreach (var lodData in _lodDatas)
             {
                 lodData.OnDisable();
@@ -676,25 +674,6 @@ namespace Crest
         private static void OnReLoadScripts()
         {
             Instance = FindObjectOfType<OceanRenderer>();
-
-            if (Instance != null)
-            {
-                // TODO - i guess we should move to OnEnable which would get called on reloads
-
-                if (Instance._commandbufferBuilder == null)
-                {
-                    Instance._commandbufferBuilder = new BuildCommandBuffer();
-                }
-
-                if (Instance._lodTransform == null)
-                {
-                    Instance._lodTransform = new LodTransform();
-                    Instance._lodTransform.InitLODData(Instance._lodCount);
-                }
-
-                EditorApplication.update -= EditorUpdate;
-                EditorApplication.update += EditorUpdate;
-            }
         }
 #endif
     }

@@ -107,7 +107,7 @@ namespace Crest
     }
 
     /// <summary>
-    /// Helper to obtain the ocean surface height at a single location. This is not particularly efficient to sample a single height,
+    /// Helper to obtain the flow data (horizontal water motion) at a single location. This is not particularly efficient to sample a single height,
     /// but is a fairly common case.
     /// </summary>
     public class SampleFlowHelper

@@ -41,8 +41,10 @@ namespace Crest
     /// </summary>
     public abstract partial class RegisterLodDataInputBase : MonoBehaviour, ILodDataInput
     {
+#if UNITY_EDITOR
         [SerializeField, Tooltip("Check that the shader applied to this object matches the input type (so e.g. an Animated Waves input object has an Animated Waves input shader.")]
         bool _checkShaderName = true;
+#endif
 
         public abstract float Wavelength { get; }
 

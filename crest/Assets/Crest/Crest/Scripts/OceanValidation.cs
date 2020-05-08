@@ -29,15 +29,13 @@ namespace Crest
         }
 
         // This is a shared resource. It will be cleared before use. It is only used by the HelpBox delegate since we 
-        // want to group them by severity (MessageType).
+        // want to group them by severity (MessageType). Make sure length matches MessageType length.
         public static readonly List<string>[] messages = new []
         {
             new List<string>(),
             new List<string>(),
             new List<string>(),
         };
-
-        public static readonly int messageTypesLength = System.Enum.GetValues(typeof(MessageType)).Length;
 
         public delegate void ShowMessage(string message, MessageType type, Object @object = null);
 
@@ -84,7 +82,7 @@ namespace Crest
             var needsSpaceBelow = false;
 
             // We loop through in reverse order so errors appears at the top.
-            for (var messageTypeIndex = 0; messageTypeIndex < ValidatedHelper.messageTypesLength; messageTypeIndex++)
+            for (var messageTypeIndex = 0; messageTypeIndex < ValidatedHelper.messages.Length; messageTypeIndex++)
             {
                 var messages = ValidatedHelper.messages[messageTypeIndex];
 
@@ -111,7 +109,7 @@ namespace Crest
                     }
 
                     // Map Validated.MessageType to HelpBox.MessageType.
-                    var messageType = (MessageType)ValidatedHelper.messageTypesLength - messageTypeIndex;
+                    var messageType = (MessageType)ValidatedHelper.messages.Length - messageTypeIndex;
                     EditorGUILayout.HelpBox(joinedMessage, messageType);
                 }
             }

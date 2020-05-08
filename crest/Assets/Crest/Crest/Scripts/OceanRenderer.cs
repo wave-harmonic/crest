@@ -11,7 +11,7 @@ namespace Crest
     /// The main script for the ocean system. Attach this to a GameObject to create an ocean. This script initializes the various data types and systems
     /// and moves/scales the ocean based on the viewpoint. It also hosts a number of global settings that can be tweaked here.
     /// </summary>
-    public class OceanRenderer : MonoBehaviour
+    public partial class OceanRenderer : MonoBehaviour
     {
         [Tooltip("The viewpoint which drives the ocean detail. Defaults to main camera."), SerializeField]
         Transform _viewpoint;
@@ -188,6 +188,14 @@ namespace Crest
                 return;
             }
 
+#if UNITY_EDITOR
+            if (!Validate(this, ValidatedHelper.DebugLog))
+            {
+                enabled = false;
+                return;
+            }
+#endif
+
             Instance = this;
             Scale = Mathf.Clamp(Scale, _minScale, _maxScale);
 
@@ -217,11 +225,6 @@ namespace Crest
 
         bool VerifyRequirements()
         {
-            if (_material == null)
-            {
-                Debug.LogError("A material for the ocean must be assigned on the Material property of the OceanRenderer.", this);
-                return false;
-            }
             if (!SystemInfo.supportsComputeShaders)
             {
                 Debug.LogError("Crest requires graphics devices that support compute shaders.", this);
@@ -410,35 +413,6 @@ namespace Crest
         public ICollProvider CollisionProvider { get { return _collProvider != null ? _collProvider : (_collProvider = _simSettingsAnimatedWaves.CreateCollisionProvider()); } }
 
 #if UNITY_EDITOR
-        private void OnValidate()
-        {
-            // Must be at least 0.25, and must be on a power of 2
-            _minScale = Mathf.Pow(2f, Mathf.Round(Mathf.Log(Mathf.Max(_minScale, 0.25f), 2f)));
-
-            // Max can be -1 which means no maximum
-            if (_maxScale != -1f)
-            {
-                // otherwise must be at least 0.25, and must be on a power of 2
-                _maxScale = Mathf.Pow(2f, Mathf.Round(Mathf.Log(Mathf.Max(_maxScale, _minScale), 2f)));
-            }
-
-            // Gravity 0 makes waves freeze which is weird but doesn't seem to break anything so allowing this for now
-            _gravityMultiplier = Mathf.Max(_gravityMultiplier, 0f);
-
-            // LOD data resolution multiple of 2 for general GPU texture reasons (like pixel quads)
-            _lodDataResolution -= _lodDataResolution % 2;
-
-            _geometryDownSampleFactor = Mathf.ClosestPowerOfTwo(Mathf.Max(_geometryDownSampleFactor, 1));
-
-            var remGeo = _lodDataResolution % _geometryDownSampleFactor;
-            if (remGeo > 0)
-            {
-                var newLDR = _lodDataResolution - (_lodDataResolution % _geometryDownSampleFactor);
-                Debug.LogWarning("Adjusted Lod Data Resolution from " + _lodDataResolution + " to " + newLDR + " to ensure the Geometry Down Sample Factor is a factor (" + _geometryDownSampleFactor + ").", this);
-                _lodDataResolution = newLDR;
-            }
-        }
-
         [UnityEditor.Callbacks.DidReloadScripts]
         private static void OnReLoadScripts()
         {
@@ -479,4 +453,172 @@ namespace Crest
         }
 #endif
     }
+
+#if UNITY_EDITOR
+    public partial class OceanRenderer : IValidated
+    {
+        public static void RunValidation(OceanRenderer ocean)
+        {
+            ocean.Validate(ocean, ValidatedHelper.DebugLog);
+
+            // ShapeGerstnerBatched
+            var gerstners = FindObjectsOfType<ShapeGerstnerBatched>();
+            foreach (var gerstner in gerstners)
+            {
+                gerstner.Validate(ocean, ValidatedHelper.DebugLog);
+            }
+
+            // UnderwaterEffect
+            var underwaters = FindObjectsOfType<UnderwaterEffect>();
+            foreach (var underwater in underwaters)
+            {
+                underwater.Validate(ocean, ValidatedHelper.DebugLog);
+            }
+
+            // OceanDepthCache
+            var depthCaches = FindObjectsOfType<OceanDepthCache>();
+            foreach (var depthCache in depthCaches)
+            {
+                depthCache.Validate(ocean, ValidatedHelper.DebugLog);
+            }
+
+            // AssignLayer
+            var assignLayers = FindObjectsOfType<AssignLayer>();
+            foreach (var assign in assignLayers)
+            {
+                assign.Validate(ocean, ValidatedHelper.DebugLog);
+            }
+
+            // FloatingObjectBase
+            var floatingObjects = FindObjectsOfType<FloatingObjectBase>();
+            foreach (var floatingObject in floatingObjects)
+            {
+                floatingObject.Validate(ocean, ValidatedHelper.DebugLog);
+            }
+
+            // Inputs
+            var inputs = FindObjectsOfType<RegisterLodDataInputBase>();
+            foreach (var input in inputs)
+            {
+                input.Validate(ocean, ValidatedHelper.DebugLog);
+            }
+
+            Debug.Log("Validation complete!", ocean);
+        }
+
+        public bool Validate(OceanRenderer ocean, ValidatedHelper.ShowMessage showMessage)
+        {
+            var isValid = true;
+
+            if (_material == null)
+            {
+                showMessage
+                (
+                    "A material for the ocean must be assigned on the Material property of the OceanRenderer.",
+                    MessageType.Error, ocean
+                );
+
+                isValid =  false;
+            }
+
+            // We would have to take the tiles into account for this to work in play mode.
+            if (!EditorApplication.isPlaying)
+            {
+                var childCount = ocean.transform.childCount;
+                if (ocean._showProxyPlane)
+                {
+                    childCount -= 1;
+                }
+
+                if (childCount > 0)
+                {
+                    showMessage
+                    (
+                        "The ocean changes scale at runtime so may not be a good idea to store objects underneath it, especially if they are sensitive to scale.",
+                        MessageType.Warning, ocean
+                    );
+                }
+            }
+
+            if (FindObjectsOfType<OceanRenderer>().Length > 1)
+            {
+                showMessage
+                (
+                    "Multiple OceanRenderer scripts detected in open scenes, this is not typical - usually only one OceanRenderer is expected to be present.",
+                    MessageType.Warning, ocean
+                );
+            }
+
+            // ShapeGerstnerBatched
+            var gerstners = FindObjectsOfType<ShapeGerstnerBatched>();
+            if (gerstners.Length == 0)
+            {
+                showMessage
+                (
+                    "No ShapeGerstnerBatched script found, so ocean will appear flat (no waves).",
+                    MessageType.Info, ocean
+                );
+            }
+
+            return isValid;
+        }
+
+        // NOTE: This was OnValidate and wasn't being called anywhere. Handling this with min/max ranged inputs, and 
+        // stepped ranged inputs in addition with validation might be a better solution.
+        public void ValidateAndRepairDetailParams()
+        {
+            // Must be at least 0.25, and must be on a power of 2
+            _minScale = Mathf.Pow(2f, Mathf.Round(Mathf.Log(Mathf.Max(_minScale, 0.25f), 2f)));
+
+            // Max can be -1 which means no maximum
+            if (_maxScale != -1f)
+            {
+                // otherwise must be at least 0.25, and must be on a power of 2
+                _maxScale = Mathf.Pow(2f, Mathf.Round(Mathf.Log(Mathf.Max(_maxScale, _minScale), 2f)));
+            }
+
+            // Gravity 0 makes waves freeze which is weird but doesn't seem to break anything so allowing this for now
+            _gravityMultiplier = Mathf.Max(_gravityMultiplier, 0f);
+
+            // LOD data resolution multiple of 2 for general GPU texture reasons (like pixel quads)
+            _lodDataResolution -= _lodDataResolution % 2;
+
+            _geometryDownSampleFactor = Mathf.ClosestPowerOfTwo(Mathf.Max(_geometryDownSampleFactor, 1));
+
+            var remGeo = _lodDataResolution % _geometryDownSampleFactor;
+            if (remGeo > 0)
+            {
+                var newLDR = _lodDataResolution - (_lodDataResolution % _geometryDownSampleFactor);
+                Debug.LogWarning
+                (
+                    "Adjusted Lod Data Resolution from " + _lodDataResolution + " to " + newLDR + " to ensure the Geometry Down Sample Factor is a factor (" + _geometryDownSampleFactor + ").",
+                    this
+                );
+
+                _lodDataResolution = newLDR;
+            }
+        }
+    }
+
+    [CustomEditor(typeof(OceanRenderer))]
+    public class OceanRendererEditor : ValidatedEditor
+    {
+        public override void OnInspectorGUI()
+        {
+            base.OnInspectorGUI();
+
+            var target = this.target as OceanRenderer;
+
+            if (GUILayout.Button("Validate Setup"))
+            {
+                OceanRenderer.RunValidation(target);
+            }
+
+            if (GUILayout.Button("Validate and Repair Detail Params"))
+            {
+                target.ValidateAndRepairDetailParams();
+            }
+        }
+    }
+#endif
 }

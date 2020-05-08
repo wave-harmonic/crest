@@ -2,6 +2,12 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+// How to use:
+// Create a custom editor that inherits from ValidatedEditor. Then implement IValidated on the component.
+
+#if UNITY_EDITOR
+
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
@@ -9,97 +15,111 @@ namespace Crest
 {
     public interface IValidated
     {
-        bool Validate(OceanRenderer ocean);
+        bool Validate(OceanRenderer ocean, ValidatedHelper.ShowMessage showMessage);
     }
 
-#if UNITY_EDITOR
-    [CustomEditor(typeof(OceanRenderer))]
-    public class OceanRendererEditor : Editor
+    // Only used with help boxes since we want to group messages together.
+    public struct ValidatedMessage
     {
+        public string message;
+        public MessageType type;
+    }
+
+    // Holds the shared list for messages
+    public static class ValidatedHelper
+    {
+        // This is a shared list. It will be cleared before use. It is only used by the HelpBox delegate since we want
+        // to group them by severity (MessageType).
+        public static readonly List<ValidatedMessage> messages = new List<ValidatedMessage>();
+
+        public delegate void ShowMessage(string message, MessageType type, Object @object = null);
+
+        public static void DebugLog(string message, MessageType type, Object @object = null)
+        {
+            message = $"Validation: {message} Click this message to highlight the problem object.";
+
+            switch (type)
+            {
+                case MessageType.Error: Debug.LogError(message, @object); break;
+                case MessageType.Warning: Debug.LogWarning(message, @object); break;
+                default: Debug.Log(message, @object); break;
+            }
+        }
+
+        public static void HelpBox(string message, MessageType type, Object @object = null)
+        {
+            messages.Add(new ValidatedMessage { message = message, type = type });
+        }
+    }
+
+    public abstract class ValidatedEditor : Editor
+    {
+        public void ShowValidationMessages()
+        {
+            IValidated target = (IValidated)this.target;
+
+            // Enable rich text in help boxes.
+            GUI.skin.GetStyle("HelpBox").richText = true;
+
+            var messageTypes = System.Enum.GetValues(typeof(MessageType));
+
+            // This is a static list so we need to clear it before use. Not sure if this will ever be a threaded
+            // operation which would be an issue.
+            ValidatedHelper.messages.Clear();
+
+            // OceanRenderer isn't a hard requirement for validation to work. Null needs to be handled in each
+            // component.
+            target.Validate(FindObjectOfType<OceanRenderer>(), ValidatedHelper.HelpBox);
+
+            // We only want space before and after the list of help boxes. We don't want space between.
+            var needsSpaceAbove = true;
+            var needsSpaceBelow = false;
+
+            // We loop through in reverse order so errors appears at the top.
+            for (var messageTypeIndex = messageTypes.Length - 1; messageTypeIndex >= 0; messageTypeIndex--)
+            {
+                var filtered = ValidatedHelper.messages.FindAll(x => (int) x.type == messageTypeIndex);
+                if (filtered.Count > 0)
+                {
+                    if (needsSpaceAbove)
+                    {
+                        // Double space looks good at top.
+                        EditorGUILayout.Space();
+                        EditorGUILayout.Space();
+                        needsSpaceAbove = false;
+                    }
+
+                    needsSpaceBelow = true;
+
+                    // We join the messages together to reduce vertical space since HelpBox has padding, borders etc.
+                    var joinedMessage = filtered[0].message;
+                    // Format as list if we have more than one message.
+                    if (filtered.Count > 1) joinedMessage = $"- {joinedMessage}";
+
+                    for (var messageIndex = 1; messageIndex < filtered.Count; messageIndex++)
+                    {
+                        joinedMessage += $"\n- {filtered[messageIndex].message}";
+                    }
+
+                    EditorGUILayout.HelpBox(joinedMessage, (MessageType)messageTypeIndex);
+                }
+            }
+
+            if (needsSpaceBelow)
+            {
+                EditorGUILayout.Space();
+            }
+
+        }
+
         public override void OnInspectorGUI()
         {
+            ShowValidationMessages();
+
+            // Draw the normal inspector after validation messages.
             base.OnInspectorGUI();
-
-            if (GUILayout.Button("Validate Setup"))
-            {
-                RunValidation(target as OceanRenderer);
-            }
-        }
-
-        public static void RunValidation(OceanRenderer ocean)
-        {
-            // OceanRenderer
-            if (ocean.transform.childCount > 0)
-            {
-                Debug.LogWarning("Validation: The ocean changes scale at runtime so may not be a good idea to store objects underneath it, especially if they are sensitive to scale.", ocean);
-            }
-            if (FindObjectsOfType<OceanRenderer>().Length > 1)
-            {
-                Debug.LogWarning("Validation: Multiple OceanRenderer scripts detected in open scenes, this is not typical - usually only one OceanRenderer is expected to be present.", ocean);
-            }
-
-            // ShapeGerstnerBatched
-            var gerstners = FindObjectsOfType<ShapeGerstnerBatched>();
-            if (gerstners.Length == 0)
-            {
-                Debug.Log("Validation: No ShapeGerstnerBatched script found, so ocean will appear flat (no waves).", ocean);
-            }
-            foreach (var gerstner in gerstners)
-            {
-                if (gerstner._componentsPerOctave == 0)
-                {
-                    Debug.LogWarning("Validation: Components Per Octave set to 0 meaning this Gerstner component won't generate any waves. Click this message to see the component in question.", gerstner);
-                }
-            }
-
-            // UnderwaterEffect
-            var underwaters = FindObjectsOfType<UnderwaterEffect>();
-            foreach (var underwater in underwaters)
-            {
-                if (underwater.transform.parent.GetComponent<Camera>() == null)
-                {
-                    Debug.LogError("Validation: UnderwaterEffect script expected to be parented to a GameObject with a Camera. Click this message to see the script in question.", underwater);
-                }
-            }
-
-            // OceanDepthCache
-            var depthCaches = FindObjectsOfType<OceanDepthCache>();
-            foreach (var depthCache in depthCaches)
-            {
-                depthCache.Validate(ocean);
-            }
-
-            var assignLayers = FindObjectsOfType<AssignLayer>();
-            foreach (var assign in assignLayers)
-            {
-                assign.Validate(ocean);
-            }
-
-            // FloatingObjectBase
-            var floatingObjects = FindObjectsOfType<FloatingObjectBase>();
-            foreach (var floatingObject in floatingObjects)
-            {
-                if (ocean._simSettingsAnimatedWaves != null && ocean._simSettingsAnimatedWaves.CollisionSource == SimSettingsAnimatedWaves.CollisionSources.None)
-                {
-                    Debug.LogWarning("Collision Source in Animated Waves Settings is set to None. The floating objects in the scene will use a flat horizontal plane.", ocean);
-                }
-
-                var rbs = floatingObject.GetComponentsInChildren<Rigidbody>();
-                if (rbs.Length != 1)
-                {
-                    Debug.LogError("Expected to have one rigidbody on floating object, currently has " + rbs.Length + " object(s). Click this message to see the script in question.", floatingObject);
-                }
-            }
-
-            // Inputs
-            var inputs = FindObjectsOfType<RegisterLodDataInputBase>();
-            foreach (var input in inputs)
-            {
-                input.Validate(ocean);
-            }
-
-            Debug.Log("Validation complete!", ocean);
         }
     }
-#endif
 }
+
+#endif

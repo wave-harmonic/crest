@@ -45,7 +45,7 @@ namespace Crest
         public static int sp_DisplacementAtInputPosition = Shader.PropertyToID("_DisplacementAtInputPosition");
 
         [SerializeField]
-        bool _applyDisplacementCorrection = false;
+        bool _applyDisplacementCorrection2 = true;
 
         static DuplicateKeyComparer<int> s_comparer = new DuplicateKeyComparer<int>();
         static Dictionary<Type, OceanInput> s_registrar = new Dictionary<Type, OceanInput>();
@@ -83,7 +83,7 @@ namespace Crest
                 _materials[isTransition].SetFloat(sp_Weight, weight);
                 _materials[isTransition].SetInt(LodDataMgr.sp_LD_SliceIndex, lodIdx);
 
-                if (_applyDisplacementCorrection)
+                if (_applyDisplacementCorrection2)
                 {
                     _sampleHelper.Init(transform.position, 0f);
                     Vector3 displacement = Vector3.zero, dummy = Vector3.zero;

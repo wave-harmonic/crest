@@ -32,6 +32,8 @@ namespace Crest
         // to group them by severity (MessageType).
         public static readonly List<ValidatedMessage> messages = new List<ValidatedMessage>();
 
+        public static readonly int messageTypesLength = System.Enum.GetValues(typeof(MessageType)).Length;
+
         public delegate void ShowMessage(string message, MessageType type, Object @object = null);
 
         public static void DebugLog(string message, MessageType type, Object @object = null)
@@ -61,8 +63,6 @@ namespace Crest
             // Enable rich text in help boxes.
             GUI.skin.GetStyle("HelpBox").richText = true;
 
-            var messageTypes = System.Enum.GetValues(typeof(MessageType));
-
             // This is a static list so we need to clear it before use. Not sure if this will ever be a threaded
             // operation which would be an issue.
             ValidatedHelper.messages.Clear();
@@ -76,7 +76,7 @@ namespace Crest
             var needsSpaceBelow = false;
 
             // We loop through in reverse order so errors appears at the top.
-            for (var messageTypeIndex = messageTypes.Length - 1; messageTypeIndex >= 0; messageTypeIndex--)
+            for (var messageTypeIndex = ValidatedHelper.messageTypesLength - 1; messageTypeIndex >= 0; messageTypeIndex--)
             {
                 var filtered = ValidatedHelper.messages.FindAll(x => (int) x.type == messageTypeIndex);
                 if (filtered.Count > 0)

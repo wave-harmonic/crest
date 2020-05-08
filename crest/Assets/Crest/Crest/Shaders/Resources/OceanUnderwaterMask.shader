@@ -25,11 +25,15 @@ Shader "Crest/Underwater/Ocean Mask"
 			{
 				// The old unity macros require this name and type.
 				float4 vertex : POSITION;
+
+				UNITY_VERTEX_INPUT_INSTANCE_ID
 			};
 
 			struct Varyings
 			{
 				float4 positionCS : SV_POSITION;
+
+				UNITY_VERTEX_OUTPUT_STEREO
 			};
 
 
@@ -49,6 +53,11 @@ Shader "Crest/Underwater/Ocean Mask"
 			Varyings Vert(Attributes v)
 			{
 				Varyings output;
+
+
+				UNITY_SETUP_INSTANCE_ID(v);
+				UNITY_INITIALIZE_OUTPUT(Varyings, output);
+				UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
 				float3 worldPos = mul(unity_ObjectToWorld, float4(v.vertex.xyz, 1.0));
 

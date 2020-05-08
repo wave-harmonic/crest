@@ -111,8 +111,8 @@ Shader "Crest/Underwater/Post Process"
 			}
 
 			sampler2D _MainTex;
-			sampler2D _MaskTex;
-			sampler2D _MaskDepthTex;
+			sampler2D _CrestOceanMaskTexture;
+			sampler2D _CrestOceanMaskDepthTexture;
 
 			// In-built Unity textures
 			sampler2D _CameraDepthTexture;
@@ -172,8 +172,8 @@ Shader "Crest/Underwater/Post Process"
 
 				float sceneZ01 = tex2D(_CameraDepthTexture, uvScreenSpace).x;
 
-				float mask = tex2D(_MaskTex, uvScreenSpace).x;
-				const float oceanDepth01 = tex2D(_MaskDepthTex, uvScreenSpace);
+				float mask = tex2D(_CrestOceanMaskTexture, uvScreenSpace).x;
+				const float oceanDepth01 = tex2D(_CrestOceanMaskDepthTexture, uvScreenSpace);
 				bool isOceanSurface = mask != UNDERWATER_MASK_NO_MASK && (sceneZ01 < oceanDepth01);
 				bool isUnderwater = mask == UNDERWATER_MASK_WATER_SURFACE_BELOW || (isBelowHorizon && mask != UNDERWATER_MASK_WATER_SURFACE_ABOVE);
 				sceneZ01 = isOceanSurface ? oceanDepth01 : sceneZ01;
@@ -190,9 +190,9 @@ Shader "Crest/Underwater/Post Process"
 					// a calculation to get it smooth both above and below, but might be more complex.
 					float wt_mul = 0.9;
 					float4 dy = float4(0.0, -1.0, -2.0, -3.0) / _ScreenParams.y;
-					wt *= (tex2D(_MaskTex, uvScreenSpace + dy.xy).x > mask) ? wt_mul : 1.0;
-					wt *= (tex2D(_MaskTex, uvScreenSpace + dy.xz).x > mask) ? wt_mul : 1.0;
-					wt *= (tex2D(_MaskTex, uvScreenSpace + dy.xw).x > mask) ? wt_mul : 1.0;
+					wt *= (tex2D(_CrestOceanMaskTexture, uvScreenSpace + dy.xy).x > mask) ? wt_mul : 1.0;
+					wt *= (tex2D(_CrestOceanMaskTexture, uvScreenSpace + dy.xz).x > mask) ? wt_mul : 1.0;
+					wt *= (tex2D(_CrestOceanMaskTexture, uvScreenSpace + dy.xw).x > mask) ? wt_mul : 1.0;
 				}
 #endif // _MENISCUS_ON
 

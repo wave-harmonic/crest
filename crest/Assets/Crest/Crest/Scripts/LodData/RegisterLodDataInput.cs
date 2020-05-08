@@ -170,6 +170,17 @@ namespace Crest
 
         bool CheckShaderName(Renderer renderer, ValidatedHelper.ShowMessage showMessage)
         {
+            if (!_renderer)
+            {
+                showMessage
+                (
+                    "No renderer has been attached to ocean input. A renderer is required.",
+                    MessageType.Error, this
+                );
+
+                return false;
+            }
+
             if (renderer.sharedMaterial && renderer.sharedMaterial.shader && !renderer.sharedMaterial.shader.name.StartsWith(ShaderPrefix))
             {
                 showMessage

@@ -233,7 +233,7 @@ namespace Crest
 
                 isValid = false;
             }
-            else if (renderer.sharedMaterial.shader.name == "Crest/Underwater Curtain")
+            else if (renderer.sharedMaterial.shader.name == "Crest/Underwater Curtain" && ocean.OceanMaterial)
             {
                 // Check that enabled underwater material keywords are enabled on the ocean material.
                 var keywords = renderer.sharedMaterial.shaderKeywords;

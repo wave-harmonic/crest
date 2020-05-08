@@ -18,19 +18,18 @@ namespace Crest
         bool Validate(OceanRenderer ocean, ValidatedHelper.ShowMessage showMessage);
     }
 
-    // Only used with help boxes since we want to group messages together.
-    public struct ValidatedMessage
-    {
-        public string message;
-        public MessageType type;
-    }
-
     // Holds the shared list for messages
     public static class ValidatedHelper
     {
-        // This is a shared list. It will be cleared before use. It is only used by the HelpBox delegate since we want
-        // to group them by severity (MessageType).
-        public static readonly List<ValidatedMessage> messages = new List<ValidatedMessage>();
+        // This is a shared resource. It will be cleared before use. It is only used by the HelpBox delegate since we 
+        // want to group them by severity (MessageType).
+        public static readonly List<string>[] messages = new []
+        {
+            new List<string>(),
+            new List<string>(),
+            new List<string>(),
+            new List<string>(),
+        };
 
         public static readonly int messageTypesLength = System.Enum.GetValues(typeof(MessageType)).Length;
 
@@ -50,7 +49,7 @@ namespace Crest
 
         public static void HelpBox(string message, MessageType type, Object @object = null)
         {
-            messages.Add(new ValidatedMessage { message = message, type = type });
+            messages[(int) type].Add(message);
         }
     }
 
@@ -65,7 +64,10 @@ namespace Crest
 
             // This is a static list so we need to clear it before use. Not sure if this will ever be a threaded
             // operation which would be an issue.
-            ValidatedHelper.messages.Clear();
+            for (var messageTypeIndex = 0; messageTypeIndex < ValidatedHelper.messages.Length; messageTypeIndex++)
+            {
+                ValidatedHelper.messages[messageTypeIndex].Clear();
+            }
 
             // OceanRenderer isn't a hard requirement for validation to work. Null needs to be handled in each
             // component.
@@ -78,8 +80,8 @@ namespace Crest
             // We loop through in reverse order so errors appears at the top.
             for (var messageTypeIndex = ValidatedHelper.messageTypesLength - 1; messageTypeIndex >= 0; messageTypeIndex--)
             {
-                var filtered = ValidatedHelper.messages.FindAll(x => (int) x.type == messageTypeIndex);
-                if (filtered.Count > 0)
+                var messages = ValidatedHelper.messages[messageTypeIndex];
+                if (messages.Count > 0)
                 {
                     if (needsSpaceAbove)
                     {
@@ -92,13 +94,13 @@ namespace Crest
                     needsSpaceBelow = true;
 
                     // We join the messages together to reduce vertical space since HelpBox has padding, borders etc.
-                    var joinedMessage = filtered[0].message;
+                    var joinedMessage = messages[0];
                     // Format as list if we have more than one message.
-                    if (filtered.Count > 1) joinedMessage = $"- {joinedMessage}";
+                    if (messages.Count > 1) joinedMessage = $"- {joinedMessage}";
 
-                    for (var messageIndex = 1; messageIndex < filtered.Count; messageIndex++)
+                    for (var messageIndex = 1; messageIndex < messages.Count; messageIndex++)
                     {
-                        joinedMessage += $"\n- {filtered[messageIndex].message}";
+                        joinedMessage += $"\n- {messages[messageIndex]}";
                     }
 
                     EditorGUILayout.HelpBox(joinedMessage, (MessageType)messageTypeIndex);

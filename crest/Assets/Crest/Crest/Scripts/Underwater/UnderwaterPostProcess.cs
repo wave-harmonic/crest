@@ -196,6 +196,8 @@ namespace Crest
                 _generalTextureMask, _generalDepthBuffer,
                 _oceanMaskMaterial, _generalMaskMaterial
             );
+
+            _generalUnderwaterMasksToRender.Clear();
         }
 
         void OnRenderImage(RenderTexture source, RenderTexture target)

@@ -269,6 +269,8 @@ Shader "Crest/Ocean"
 			#include "OceanHelpersNew.hlsl"
 			#include "OceanHelpers.hlsl"
 
+			sampler2D _CrestGeneralMaskTexture;
+
 			// Argument name is v because some macros like COMPUTE_EYEDEPTH require it.
 			Varyings Vert(Attributes v)
 			{
@@ -433,6 +435,13 @@ Shader "Crest/Ocean"
 				float pixelZ = LinearEyeDepth(input.positionCS.z);
 				half3 screenPos = input.foam_screenPosXYW.yzw;
 				half2 uvDepth = screenPos.xy / screenPos.z;
+				{
+					float overrideMask = tex2D(_CrestGeneralMaskTexture, uvDepth).x;
+					if(overrideMask != UNDERWATER_MASK_NO_MASK)
+					{
+						return tex2D(_BackgroundTexture, uvDepth);
+					}
+				}
 				float sceneZ01 = tex2D(_CameraDepthTexture, uvDepth).x;
 				float sceneZ = LinearEyeDepth(sceneZ01);
 

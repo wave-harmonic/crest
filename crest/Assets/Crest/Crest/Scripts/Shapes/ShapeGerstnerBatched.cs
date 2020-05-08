@@ -807,7 +807,7 @@ namespace Crest
                 showMessage
                 (
                     "Components Per Octave set to 0 meaning this Gerstner component won't generate any waves.",
-                    MessageType.Warning, this
+                    ValidatedHelper.MessageType.Warning, this
                 );
 
                 isValid = false;

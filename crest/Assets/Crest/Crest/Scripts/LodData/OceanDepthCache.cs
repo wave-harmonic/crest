@@ -353,7 +353,7 @@ namespace Crest
                     showMessage
                     (
                         "Depth cache type is 'Saved Cache' but no saved cache data is provided.",
-                        MessageType.Error, this
+                        ValidatedHelper.MessageType.Error, this
                     );
 
                     isValid = false;
@@ -367,7 +367,7 @@ namespace Crest
                     showMessage
                     (
                         "No layers specified for rendering into depth cache, and no geometries manually provided.",
-                        MessageType.Error, this
+                        ValidatedHelper.MessageType.Error, this
                     );
 
                     isValid = false;
@@ -378,7 +378,7 @@ namespace Crest
                     showMessage
                     (
                         $"<i>Force Always Update Debug</i> option is enabled on depth cache <i>{gameObject.name}</i>, which means it will render every frame instead of running from the cache.",
-                        MessageType.Warning, this
+                        ValidatedHelper.MessageType.Warning, this
                     );
 
                     isValid = false;
@@ -392,7 +392,7 @@ namespace Crest
                         showMessage
                         (
                             $"Invalid layer specified for objects/geometry providing the ocean depth: <i>{layerName}</i>. Does this layer need to be added to the project <i>Edit/Project Settings/Tags and Layers</i>?",
-                            MessageType.Error, this
+                            ValidatedHelper.MessageType.Error, this
                         );
 
                         isValid = false;
@@ -404,7 +404,7 @@ namespace Crest
                     showMessage
                     (
                         $"Cache resolution {_resolution} is very low. Is this intentional?",
-                        MessageType.Error, this
+                        ValidatedHelper.MessageType.Error, this
                     );
 
                     isValid = false;
@@ -419,7 +419,7 @@ namespace Crest
                 showMessage
                 (
                     "Ocean depth cache transform scale is small and will capture a small area of the world. The scale sets the size of the area that will be cached, and this cache is set to render a very small area.",
-                    MessageType.Warning, this
+                    ValidatedHelper.MessageType.Warning, this
                 );
 
                 isValid = false;
@@ -430,7 +430,7 @@ namespace Crest
                 showMessage
                 (
                     $"Ocean depth cache scale Y should be set to 1.0. Its current scale in the hierarchy is {transform.lossyScale.y}.",
-                    MessageType.Error, this
+                    ValidatedHelper.MessageType.Error, this
                 );
 
                 isValid = false;
@@ -441,7 +441,7 @@ namespace Crest
                 showMessage
                 (
                     "It is recommended that the cache is placed at the same height (y component of position) as the ocean, i.e. at the sea level. If the cache is created before the ocean is present, the cache height will inform the sea level.",
-                    MessageType.Warning, this
+                    ValidatedHelper.MessageType.Warning, this
                 );
 
                 isValid = false;
@@ -453,7 +453,7 @@ namespace Crest
                 showMessage
                 (
                     "It is not expected that a depth cache object has a Renderer component in its hierarchy. The cache is typically attached to an empty GameObject. Please refer to the example content.",
-                    MessageType.Warning, rend
+                    ValidatedHelper.MessageType.Warning, rend
                 );
 
                 isValid = false;

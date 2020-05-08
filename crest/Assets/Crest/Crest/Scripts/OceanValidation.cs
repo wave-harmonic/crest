@@ -21,11 +21,17 @@ namespace Crest
     // Holds the shared list for messages
     public static class ValidatedHelper
     {
+        public enum MessageType
+        {
+            Error,
+            Warning,
+            Info,
+        }
+
         // This is a shared resource. It will be cleared before use. It is only used by the HelpBox delegate since we 
         // want to group them by severity (MessageType).
         public static readonly List<string>[] messages = new []
         {
-            new List<string>(),
             new List<string>(),
             new List<string>(),
             new List<string>(),
@@ -78,9 +84,10 @@ namespace Crest
             var needsSpaceBelow = false;
 
             // We loop through in reverse order so errors appears at the top.
-            for (var messageTypeIndex = ValidatedHelper.messageTypesLength - 1; messageTypeIndex >= 0; messageTypeIndex--)
+            for (var messageTypeIndex = 0; messageTypeIndex < ValidatedHelper.messageTypesLength; messageTypeIndex++)
             {
                 var messages = ValidatedHelper.messages[messageTypeIndex];
+
                 if (messages.Count > 0)
                 {
                     if (needsSpaceAbove)
@@ -103,7 +110,9 @@ namespace Crest
                         joinedMessage += $"\n- {messages[messageIndex]}";
                     }
 
-                    EditorGUILayout.HelpBox(joinedMessage, (MessageType)messageTypeIndex);
+                    // Map Validated.MessageType to HelpBox.MessageType.
+                    var messageType = (MessageType)ValidatedHelper.messageTypesLength - messageTypeIndex;
+                    EditorGUILayout.HelpBox(joinedMessage, messageType);
                 }
             }
 

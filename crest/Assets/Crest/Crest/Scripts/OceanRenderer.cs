@@ -515,7 +515,7 @@ namespace Crest
                 showMessage
                 (
                     "A material for the ocean must be assigned on the Material property of the OceanRenderer.",
-                    MessageType.Error, ocean
+                    ValidatedHelper.MessageType.Error, ocean
                 );
 
                 isValid =  false;
@@ -535,7 +535,7 @@ namespace Crest
                     showMessage
                     (
                         "The ocean changes scale at runtime so may not be a good idea to store objects underneath it, especially if they are sensitive to scale.",
-                        MessageType.Warning, ocean
+                        ValidatedHelper.MessageType.Warning, ocean
                     );
                 }
             }
@@ -545,7 +545,7 @@ namespace Crest
                 showMessage
                 (
                     "Multiple OceanRenderer scripts detected in open scenes, this is not typical - usually only one OceanRenderer is expected to be present.",
-                    MessageType.Warning, ocean
+                    ValidatedHelper.MessageType.Warning, ocean
                 );
             }
 
@@ -556,7 +556,7 @@ namespace Crest
                 showMessage
                 (
                     "No ShapeGerstnerBatched script found, so ocean will appear flat (no waves).",
-                    MessageType.Info, ocean
+                    ValidatedHelper.MessageType.Info, ocean
                 );
             }
 

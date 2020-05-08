@@ -175,7 +175,7 @@ namespace Crest
                 showMessage
                 (
                     "No renderer has been attached to ocean input. A renderer is required.",
-                    MessageType.Error, this
+                    ValidatedHelper.MessageType.Error, this
                 );
 
                 return false;
@@ -186,7 +186,7 @@ namespace Crest
                 showMessage
                 (
                     $"Shader assigned to ocean input expected to be of type <i>{ShaderPrefix}</i>.",
-                    MessageType.Error, this
+                    ValidatedHelper.MessageType.Error, this
                 );
 
                 return false;

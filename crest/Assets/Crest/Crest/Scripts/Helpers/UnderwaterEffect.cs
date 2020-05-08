@@ -214,7 +214,7 @@ namespace Crest
                 showMessage
                 (
                     "Underwater effects expect to be parented to a camera.",
-                    MessageType.Error, this
+                    ValidatedHelper.MessageType.Error, this
                 );
 
                 isValid = false;
@@ -228,7 +228,7 @@ namespace Crest
                 showMessage
                 (
                     $"Shader assigned to underwater effect expected to be of type <i>{shaderPrefix}</i>.",
-                    MessageType.Error, this
+                    ValidatedHelper.MessageType.Error, this
                 );
 
                 isValid = false;
@@ -248,7 +248,7 @@ namespace Crest
                             $"Keyword {keyword} was enabled on the underwater material <i>{renderer.sharedMaterial.name}</i>"
                             + $"but not on the ocean material <i>{ocean.OceanMaterial.name}</i>, underwater appearance "
                             + "may not match ocean surface in standalone builds.",
-                            MessageType.Warning, this
+                            ValidatedHelper.MessageType.Warning, this
                         );
                     }
                 }
@@ -267,7 +267,7 @@ namespace Crest
                             $"Keyword {keyword} is enabled on the ocean material <i>{ocean.OceanMaterial.name}</i> but "
                             + $"not on the underwater material <i>{renderer.sharedMaterial.name}</i>, underwater "
                             + "appearance may not match ocean surface in standalone builds.",
-                            MessageType.Warning, this
+                            ValidatedHelper.MessageType.Warning, this
                         );
                     }
                 }

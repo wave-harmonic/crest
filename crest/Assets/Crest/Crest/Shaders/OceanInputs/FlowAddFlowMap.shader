@@ -50,9 +50,9 @@ Shader "Crest/Inputs/Flow/Add Flow Map"
 				return o;
 			}
 
-			float2 Frag(Varyings input) : SV_Target
+			float4 Frag(Varyings input) : SV_Target
 			{
-				return (tex2D(_FlowMap, input.uv).xy - 0.5) * _Strength;
+				return float4((tex2D(_FlowMap, input.uv).xy - 0.5) * _Strength, 0.0, 0.0);
 			}
 
 			ENDCG

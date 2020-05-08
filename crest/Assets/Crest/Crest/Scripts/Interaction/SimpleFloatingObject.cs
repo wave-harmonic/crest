@@ -71,7 +71,7 @@ namespace Crest
             var position = transform.position;
 
             var normal = Vector3.up; var waterSurfaceVel = Vector3.zero; var disp = Vector3.zero;
-            _sampleHeightHelper.Init(transform.position, _objectWidth);
+            _sampleHeightHelper.Init(transform.position, _objectWidth, true);
             _sampleHeightHelper.Sample(ref disp, ref normal, ref waterSurfaceVel);
 
             if (QueryFlow.Instance)

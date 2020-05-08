@@ -35,19 +35,29 @@ namespace Crest
         internal const string FULL_SCREEN_EFFECT = "_FULL_SCREEN_EFFECT";
         internal const string DEBUG_VIEW_OCEAN_MASK = "_DEBUG_VIEW_OCEAN_MASK";
 
-        internal static void InitialiseMaskTextures(ref RenderTexture textureMask, ref RenderTexture depthBuffer, Vector2Int pixelDimensions)
+        internal static void InitialiseMaskTextures(RenderTextureDescriptor desc, ref RenderTexture textureMask, ref RenderTexture depthBuffer)
         {
             // Note: we pass-through pixel dimensions explicitly as we have to handle this slightly differently in HDRP
-            if (textureMask == null || textureMask.width != pixelDimensions.x || textureMask.height != pixelDimensions.y)
+            if (textureMask == null || textureMask.width != desc.width || textureMask.height != desc.height)
             {
-                textureMask = new RenderTexture(pixelDimensions.x, pixelDimensions.y, 0);
+                // @Performance: We should consider either a temporary RT or use an RTHandle if appropriate
+                // RenderTexture is a "native engine object". We have to release it to avoid memory leaks.
+                if (textureMask != null)
+                {
+                    textureMask.Release();
+                    depthBuffer.Release();
+                }
+
+                textureMask = new RenderTexture(desc);
+                textureMask.depth = 0;
                 textureMask.name = "Ocean Mask";
                 // @Memory: We could investigate making this an 8-bit texture instead to reduce GPU memory usage.
                 // We could also potentially try a half res mask as the mensicus could mask res issues.
                 textureMask.format = RenderTextureFormat.RHalf;
                 textureMask.Create();
 
-                depthBuffer = new RenderTexture(pixelDimensions.x, pixelDimensions.y, 24);
+                depthBuffer = new RenderTexture(desc);
+                depthBuffer.depth = 24;
                 depthBuffer.enableRandomWrite = false;
                 depthBuffer.name = "Ocean Mask Depth";
                 depthBuffer.format = RenderTextureFormat.Depth;

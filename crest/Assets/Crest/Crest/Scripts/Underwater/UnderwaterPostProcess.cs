@@ -143,7 +143,6 @@ namespace Crest
                 _cameraFrustumPlanes = GeometryUtility.CalculateFrustumPlanes(_mainCamera);
                 _maskCommandBuffer = new CommandBuffer();
                 _maskCommandBuffer.name = "Ocean Mask Command Buffer";
-                InitialiseMaskTextures(ref _textureMask, ref _depthBuffer, new Vector2Int(_mainCamera.pixelWidth, _mainCamera.pixelHeight));
                 _mainCamera.AddCommandBuffer(
                     CameraEvent.BeforeForwardAlpha,
                     _maskCommandBuffer
@@ -153,6 +152,11 @@ namespace Crest
             {
                 GeometryUtility.CalculateFrustumPlanes(_mainCamera, _cameraFrustumPlanes);
                 _maskCommandBuffer.Clear();
+            }
+
+            {
+                RenderTextureDescriptor descriptor = new RenderTextureDescriptor(_mainCamera.pixelWidth, _mainCamera.pixelHeight);
+                InitialiseMaskTextures(descriptor, ref _textureMask, ref _depthBuffer);
             }
 
             PopulateOceanMask(

@@ -105,7 +105,7 @@ namespace Crest
             {
                 if (_copyParamsEachFrame)
                 {
-                    _rend.material.CopyPropertiesFromMaterial(OceanRenderer.Instance.OceanMaterial);
+                    _rend.sharedMaterial.CopyPropertiesFromMaterial(OceanRenderer.Instance.OceanMaterial);
                 }
 
                 // Assign lod0 shape - trivial but bound every frame because lod transform comes from here

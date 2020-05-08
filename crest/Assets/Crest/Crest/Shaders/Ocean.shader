@@ -241,6 +241,8 @@ Shader "Crest/Ocean"
 			{
 				// The old unity macros require this name and type.
 				float4 vertex : POSITION;
+
+				UNITY_VERTEX_INPUT_INSTANCE_ID
 			};
 
 			struct Varyings
@@ -256,17 +258,25 @@ Shader "Crest/Ocean"
 				half4 grabPos : TEXCOORD9;
 
 				UNITY_FOG_COORDS(3)
+
+				UNITY_VERTEX_OUTPUT_STEREO
 			};
 
 			#include "OceanConstants.hlsl"
 			#include "OceanGlobals.hlsl"
 			#include "OceanInputsDriven.hlsl"
+			#include "OceanLODData.hlsl"
+			#include "OceanHelpersNew.hlsl"
 			#include "OceanHelpers.hlsl"
 
 			// Argument name is v because some macros like COMPUTE_EYEDEPTH require it.
 			Varyings Vert(Attributes v)
 			{
 				Varyings o;
+
+				UNITY_SETUP_INSTANCE_ID(v);
+				UNITY_INITIALIZE_OUTPUT(Varyings, o);
+				UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
 
 				// Move to world space
 				o.worldPos = mul(unity_ObjectToWorld, float4(v.vertex.xyz, 1.0));

@@ -12,10 +12,6 @@ namespace Crest
     // of underwater post-processing, but done using different classes.
     public interface IUnderwaterPostProcessPerCameraData
     {
-        // NOTE: We keep a list of ocean chunks to render for a given frame
-        // (which ocean chunks add themselves to) and reset it each frame by
-        // setting the currentChunkCount to 0.
-        List<Renderer> OceanChunksToRender { get; }
         List<UnderwaterEffectFilter> GeneralUnderwaterMasksToRender { get; }
     }
 }

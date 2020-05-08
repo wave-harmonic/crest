@@ -13,6 +13,7 @@ namespace Crest
     /// </summary>
     public class UnderwaterEnvironmentalLighting : MonoBehaviour
     {
+        Light _primaryLight;
         float _lightIntensity;
         float _ambientIntensity;
         float _reflectionIntensity;
@@ -27,8 +28,13 @@ namespace Crest
             Color density = OceanRenderer.Instance.OceanMaterial.GetColor("_DepthFogDensity");
             _averageDensity = (density.r + density.g + density.b) / 3f;
 
+            _primaryLight = OceanRenderer.Instance._primaryLight;
+
             // Store lighting settings
-            _lightIntensity = OceanRenderer.Instance._primaryLight.intensity;
+            if (_primaryLight)
+            {
+                _lightIntensity = _primaryLight.intensity;
+            }
             _ambientIntensity = RenderSettings.ambientIntensity;
             _reflectionIntensity = RenderSettings.reflectionIntensity;
             _fogDensity = RenderSettings.fogDensity;
@@ -37,7 +43,10 @@ namespace Crest
         void OnDisable()
         {
             // Restore lighting settings
-            OceanRenderer.Instance._primaryLight.intensity = _lightIntensity;
+            if (_primaryLight)
+            {
+                _primaryLight.intensity = _lightIntensity;
+            }
             RenderSettings.ambientIntensity = _ambientIntensity;
             RenderSettings.reflectionIntensity = _reflectionIntensity;
             RenderSettings.fogDensity = _fogDensity;
@@ -49,7 +58,10 @@ namespace Crest
                 Mathf.Min(OceanRenderer.Instance.ViewerHeightAboveWater * DEPTH_OUTSCATTER_CONSTANT, 0f));
 
             // Darken environmental lighting when viewer underwater
-            OceanRenderer.Instance._primaryLight.intensity = Mathf.Lerp(0, _lightIntensity, depthMultiplier);
+            if (_primaryLight)
+            {
+                _primaryLight.intensity = Mathf.Lerp(0, _lightIntensity, depthMultiplier);
+            }
             RenderSettings.ambientIntensity = Mathf.Lerp(0, _ambientIntensity, depthMultiplier);
             RenderSettings.reflectionIntensity = Mathf.Lerp(0, _reflectionIntensity, depthMultiplier);
             RenderSettings.fogDensity = Mathf.Lerp(0, _fogDensity, depthMultiplier);

@@ -321,6 +321,8 @@ This effect adds full screen passes and only be used if camera needs to be subme
 
 The density of the fog underwater can be controlled using the *Fog Density* parameter on the ocean material. This applies to both above water and underwater.
 
+Out-scattering is provided as an example script which reduces environmental lighting with depth underwater. See *UnderwaterEnvironmentalLighting*.
+
 Checklist for using underwater:
 
 * Configure the ocean material for underwater rendering - in the **Underwater** section of the material params, ensure *Enabled* is turned on and *Cull Mode* is set to *Off* so that the underside of the ocean surface renders. See *Ocean-Underwater.mat* for an example.

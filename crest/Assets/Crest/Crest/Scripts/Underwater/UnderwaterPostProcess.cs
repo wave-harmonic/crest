@@ -18,7 +18,7 @@ namespace Crest
     /// specific features such as enabling the meniscus.
     /// </summary>
     [RequireComponent(typeof(Camera))]
-    public class UnderwaterPostProcess : MonoBehaviour, IUnderwaterPostProcessPerCameraData
+    public class UnderwaterPostProcess : MonoBehaviour
     {
         [Header("Settings"), SerializeField, Tooltip("If true, underwater effect copies ocean material params each frame. Setting to false will make it cheaper but risks the underwater appearance looking wrong if the ocean material is changed.")]
         bool _copyOceanMaterialParamsEachFrame = true;
@@ -35,15 +35,15 @@ namespace Crest
         private RenderTexture _oceanDepthBuffer;
         private RenderTexture _generalTextureMask;
         private RenderTexture _generalDepthBuffer;
-        private CommandBuffer _commandBuffer;
+        private CommandBuffer _maskCommandBuffer;
+        private CommandBuffer _postProcessCommandBuffer;
+
+        private Plane[] _cameraFrustumPlanes;
 
         private Material _oceanMaskMaterial = null;
         private Material _generalMaskMaterial = null;
 
         private PropertyWrapperMaterial _underwaterPostProcessMaterialWrapper;
-
-        private List<Renderer> _oceanChunksToRender;
-        public List<Renderer> OceanChunksToRender => _oceanChunksToRender;
 
         private List<UnderwaterEffectFilter> _generalUnderwaterMasksToRender;
         public List<UnderwaterEffectFilter> GeneralUnderwaterMasksToRender => _generalUnderwaterMasksToRender;
@@ -55,12 +55,6 @@ namespace Crest
 
         bool _eventsRegistered = false;
         bool _firstRender = true;
-
-
-        public void RegisterOceanChunkToRender(Renderer _oceanChunk)
-        {
-            _oceanChunksToRender.Add(_oceanChunk);
-        }
 
         public void RegisterGeneralUnderwaterMaskToRender(UnderwaterEffectFilter _underwaterEffectFilter)
         {
@@ -143,7 +137,6 @@ namespace Crest
             _underwaterPostProcessMaterial = new Material(_underwaterPostProcessMaterial);
             _underwaterPostProcessMaterialWrapper = new PropertyWrapperMaterial(_underwaterPostProcessMaterial);
 
-            _oceanChunksToRender = new List<Renderer>(OceanBuilder.GetChunkCount);
             _generalUnderwaterMasksToRender = new List<UnderwaterEffectFilter>();
         }
 
@@ -169,6 +162,42 @@ namespace Crest
             enabled = true;
         }
 
+        void OnPreRender()
+        {
+            // Allocate planes only once
+            if (_cameraFrustumPlanes == null)
+            {
+                _cameraFrustumPlanes = GeometryUtility.CalculateFrustumPlanes(_mainCamera);
+                _maskCommandBuffer = new CommandBuffer();
+                _maskCommandBuffer.name = "Ocean Mask Command Buffer";
+                _mainCamera.AddCommandBuffer(
+                    CameraEvent.BeforeForwardAlpha,
+                    _maskCommandBuffer
+                );
+            }
+            else
+            {
+                GeometryUtility.CalculateFrustumPlanes(_mainCamera, _cameraFrustumPlanes);
+                _maskCommandBuffer.Clear();
+            }
+
+            {
+                RenderTextureDescriptor descriptor = new RenderTextureDescriptor(_mainCamera.pixelWidth, _mainCamera.pixelHeight);
+                InitialiseMaskTextures(descriptor, true, ref _oceanTextureMask, ref _oceanDepthBuffer);
+                InitialiseMaskTextures(descriptor, false, ref _generalTextureMask, ref _generalDepthBuffer);
+            }
+
+            PopulateOceanMask(
+                _maskCommandBuffer, _mainCamera,
+                OceanBuilder.OceanChunkRenderers,
+                _generalUnderwaterMasksToRender,
+                _cameraFrustumPlanes,
+                _oceanTextureMask, _oceanDepthBuffer,
+                _generalTextureMask, _generalDepthBuffer,
+                _oceanMaskMaterial, _generalMaskMaterial
+            );
+        }
+
         void OnRenderImage(RenderTexture source, RenderTexture target)
         {
             if (OceanRenderer.Instance == null)
@@ -187,45 +216,31 @@ namespace Crest
                 _eventsRegistered = true;
             }
 
-            if (_commandBuffer == null)
+            if (_postProcessCommandBuffer == null)
             {
-                _commandBuffer = new CommandBuffer();
-                _commandBuffer.name = "Underwater Post Process";
+                _postProcessCommandBuffer = new CommandBuffer();
+                _postProcessCommandBuffer.name = "Underwater Post Process";
             }
 
             if (GL.wireframe)
             {
                 Graphics.Blit(source, target);
-                _oceanChunksToRender.Clear();
-                _generalUnderwaterMasksToRender.Clear();
                 return;
             }
-
-            InitialiseMaskTextures(source, true, ref _oceanTextureMask, ref _oceanDepthBuffer, new Vector2Int(source.width, source.height));
-            InitialiseMaskTextures(source, false, ref _generalTextureMask, ref _generalDepthBuffer, new Vector2Int(source.width, source.height));
-            PopulateUnderwaterMasks(
-                _commandBuffer, _mainCamera, this,
-                _oceanTextureMask.colorBuffer, _oceanDepthBuffer.depthBuffer,
-                _generalTextureMask.colorBuffer, _generalDepthBuffer.depthBuffer,
-                _oceanMaskMaterial, _generalMaskMaterial
-            );
 
             UpdatePostProcessMaterial(
                 source,
                 _mainCamera,
                 _underwaterPostProcessMaterialWrapper,
-                _oceanTextureMask,
-                _oceanDepthBuffer,
-                _generalTextureMask,
                 _sphericalHarmonicsData,
                 _firstRender || _copyOceanMaterialParamsEachFrame,
                 _viewOceanMask
             );
 
-            _commandBuffer.Blit(source, target, _underwaterPostProcessMaterial);
+            _postProcessCommandBuffer.Blit(source, target, _underwaterPostProcessMaterial);
 
-            Graphics.ExecuteCommandBuffer(_commandBuffer);
-            _commandBuffer.Clear();
+            Graphics.ExecuteCommandBuffer(_postProcessCommandBuffer);
+            _postProcessCommandBuffer.Clear();
 
             // Need this to prevent Unity from giving the following warning:
             // - "OnRenderImage() possibly didn't write anything to the destination texture!"

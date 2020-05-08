@@ -5,6 +5,7 @@
 //#define PROFILE_CONSTRUCTION
 
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Crest
@@ -219,9 +220,10 @@ namespace Crest
                 }
             }
 
-            for (int i = 0; i < lodCount; i++)
+            _oceanChunkRenderers.Clear();
+            for (int lodIndex = 0; lodIndex < lodCount; lodIndex++)
             {
-                CreateLOD(ocean, i, lodCount, meshInsts, lodDataResolution, geoDownSampleFactor, oceanLayer);
+                CreateLOD(ocean, lodIndex, lodCount, meshInsts, lodDataResolution, geoDownSampleFactor, oceanLayer);
             }
 
 #if PROFILE_CONSTRUCTION
@@ -364,13 +366,9 @@ namespace Crest
             return mesh;
         }
 
-        public static int GetChunkCount
-        {
-            get
-            {
-                return OceanRenderer.Instance != null ? ((12 * OceanRenderer.Instance.CurrentLodCount) + 4) : 0;
-            }
-        }
+        public static int GetChunkCount => OceanChunkRenderers.Count;
+        public static List<OceanChunkRenderer> OceanChunkRenderers => _oceanChunkRenderers;
+        private static List<OceanChunkRenderer> _oceanChunkRenderers = new List<OceanChunkRenderer>();
 
         static void CreateLOD(OceanRenderer ocean, int lodIndex, int lodCount, Mesh[] meshData, int lodDataResolution, int geoDownSampleFactor, int oceanLayer)
         {
@@ -459,8 +457,13 @@ namespace Crest
                 // scale only horizontally, otherwise culling bounding box will be scaled up in y
                 patch.transform.localScale = new Vector3(horizScale, 1f, horizScale);
 
-                patch.AddComponent<OceanChunkRenderer>().SetInstanceData(lodIndex, lodCount, lodDataResolution, geoDownSampleFactor);
+                {
+                    OceanChunkRenderer oceanChunkRenderer = patch.AddComponent<OceanChunkRenderer>();
+                    oceanChunkRenderer.SetInstanceData(lodIndex, lodCount, lodDataResolution, geoDownSampleFactor);
+                    _oceanChunkRenderers.Add(oceanChunkRenderer);
+                }
                 patch.AddComponent<MeshFilter>().mesh = meshData[(int)patchTypes[i]];
+
 
                 var mr = patch.AddComponent<MeshRenderer>();
 

@@ -96,7 +96,7 @@ namespace Crest
         [SerializeField, Tooltip("Inner and outer radii. Influence at full strength at inner radius, fades off at outer radius.")]
         Vector2 _pointRadii = new Vector2(100f, 200f);
 
-        const string DIRECT_TOWARDS_POINT_KEYWORD = "_DIRECT_TOWARDS_POINT";
+        const string DIRECT_TOWARDS_POINT_KEYWORD = "CREST_DIRECT_TOWARDS_POINT_INTERNAL";
 
         readonly int sp_TwoPiOverWavelengths = Shader.PropertyToID("_TwoPiOverWavelengths");
         readonly int sp_Amplitudes = Shader.PropertyToID("_Amplitudes");
@@ -267,6 +267,7 @@ namespace Crest
 
                 // Create a proxy MeshRenderer to feed the rendering
                 var renderProxy = GameObject.CreatePrimitive(PrimitiveType.Quad);
+                Destroy(renderProxy.GetComponent<Collider>());
                 renderProxy.hideFlags = HideFlags.HideAndDontSave;
                 renderProxy.transform.parent = transform;
                 rend = renderProxy.GetComponent<MeshRenderer>();

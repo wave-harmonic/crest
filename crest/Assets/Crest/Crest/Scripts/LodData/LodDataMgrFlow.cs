@@ -27,14 +27,14 @@ namespace Crest
 
         bool _targetsClear = false;
 
-        public const string FLOW_KEYWORD = "_FLOW_ON";
+        public const string FLOW_KEYWORD = "CREST_FLOW_ON_INTERNAL";
 
         protected override void Start()
         {
             base.Start();
 
 #if UNITY_EDITOR
-            if (!OceanRenderer.Instance.OceanMaterial.IsKeywordEnabled(FLOW_KEYWORD))
+            if (!OceanRenderer.Instance.OceanMaterial.IsKeywordEnabled("_FLOW_ON"))
             {
                 Debug.LogWarning("Flow is not enabled on the current ocean material and will not be visible.", this);
             }

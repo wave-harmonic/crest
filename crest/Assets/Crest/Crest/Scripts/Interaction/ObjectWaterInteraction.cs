@@ -11,9 +11,6 @@ namespace Crest
     /// </summary>
     public class ObjectWaterInteraction : MonoBehaviour
     {
-        [HideInInspector]
-        public Vector3 _localOffset;
-
         [Range(0f, 10f), SerializeField]
         float _noiseFreq = 6f;
 
@@ -38,6 +35,7 @@ namespace Crest
         RegisterDynWavesInput _dynWavesInput;
         FloatingObjectBase _boat;
         Vector3 _posLast;
+        Vector3 _localOffset;
 
         SampleFlowHelper _sampleFlowHelper = new SampleFlowHelper();
 
@@ -113,8 +111,7 @@ namespace Crest
             if (simsActive == 0)
                 return;
 
-            var disp = _boat.CalculateDisplacementToObject();
-            transform.position = transform.parent.TransformPoint(_localOffset) - disp + _velocityPositionOffset * _boat.Velocity;
+            transform.position = transform.parent.TransformPoint(_localOffset) + _velocityPositionOffset * _boat.Velocity;
 
             var ocean = OceanRenderer.Instance;
 

@@ -14,11 +14,6 @@ namespace Crest
 
         public override Vector3 Velocity => _hasVelocity ? _velocity : Vector3.zero;
 
-        public override Vector3 CalculateDisplacementToObject()
-        {
-            return _hasWaterData ? _resultDisps[0] : Vector3.zero;
-        }
-
         Vector3[] _queryPoints = new Vector3[1];
         Vector3[] _resultDisps = new Vector3[1];
 

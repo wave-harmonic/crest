@@ -39,9 +39,6 @@ namespace Crest
         bool _inWater;
         public override bool InWater { get { return _inWater; } }
 
-        Vector3 _displacementToObject = Vector3.zero;
-        public override Vector3 CalculateDisplacementToObject() { return _displacementToObject; }
-
         public override Vector3 Velocity => _rb.velocity;
 
         Rigidbody _rb;
@@ -73,14 +70,9 @@ namespace Crest
             var collProvider = OceanRenderer.Instance.CollisionProvider;
             var position = transform.position;
 
-            var normal = Vector3.up; var waterSurfaceVel = Vector3.zero;
+            var normal = Vector3.up; var waterSurfaceVel = Vector3.zero; var disp = Vector3.zero;
             _sampleHeightHelper.Init(transform.position, _objectWidth);
-            _sampleHeightHelper.Sample(ref _displacementToObject, ref normal, ref waterSurfaceVel);
-
-            var undispPos = transform.position - _displacementToObject;
-            undispPos.y = OceanRenderer.Instance.SeaLevel;
-
-            if (_debugDraw) VisualiseCollisionArea.DebugDrawCross(undispPos, 1f, Color.red);
+            _sampleHeightHelper.Sample(ref disp, ref normal, ref waterSurfaceVel);
 
             if (QueryFlow.Instance)
             {
@@ -99,10 +91,7 @@ namespace Crest
 
             var velocityRelativeToWater = _rb.velocity - waterSurfaceVel;
 
-            var dispPos = undispPos + _displacementToObject;
-            if (_debugDraw) VisualiseCollisionArea.DebugDrawCross(dispPos, 4f, Color.white);
-
-            float height = dispPos.y;
+            float height = disp.y + OceanRenderer.Instance.SeaLevel;
 
             float bottomDepth = height - transform.position.y + _raiseObject;
 

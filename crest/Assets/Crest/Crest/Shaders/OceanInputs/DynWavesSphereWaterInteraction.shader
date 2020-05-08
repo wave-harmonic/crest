@@ -28,8 +28,8 @@ Shader "Crest/Inputs/Dynamic Waves/Sphere-Water Interaction"
 			float _SimDeltaTime;
 			float _Strength;
 			float _Weight;
-
 			float _Radius;
+			float3 _DisplacementAtInputPosition;
 			CBUFFER_END
 
 			struct Attributes
@@ -53,6 +53,9 @@ Shader "Crest/Inputs/Dynamic Waves/Sphere-Water Interaction"
 				float3 centerPos = unity_ObjectToWorld._m03_m13_m23;
 
 				o.offsetXZ = vertexWorldPos.xz - centerPos.xz;
+
+				// Correct for displacement
+				vertexWorldPos -= _DisplacementAtInputPosition;
 
 				o.positionCS = mul(UNITY_MATRIX_VP, float4(vertexWorldPos, 1.0));
 

@@ -35,6 +35,7 @@ Shader "Crest/Inputs/Dynamic Waves/Object Interaction"
 			float _SimDeltaTime;
 			float _Strength;
 			float _Weight;
+			float3 _DisplacementAtInputPosition;
 			CBUFFER_END
 			
 			struct Attributes
@@ -56,6 +57,8 @@ Shader "Crest/Inputs/Dynamic Waves/Object Interaction"
 				Varyings o;
 
 				float3 vertexWorldPos = mul(unity_ObjectToWorld, float4(input.positionOS, 1.0));
+				// Correct for displacement
+				vertexWorldPos -= _DisplacementAtInputPosition;
 
 				o.normal = normalize(mul(unity_ObjectToWorld, float4(input.normal, 0.)).xyz);
 

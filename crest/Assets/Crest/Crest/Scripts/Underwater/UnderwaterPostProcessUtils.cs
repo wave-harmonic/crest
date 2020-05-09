@@ -22,6 +22,7 @@ namespace Crest
         public static readonly int sp_CrestOceanMaskTexture = Shader.PropertyToID("_CrestOceanMaskTexture");
         public static readonly int sp_CrestOceanMaskDepthTexture = Shader.PropertyToID("_CrestOceanMaskDepthTexture");
         public static readonly int sp_CrestGeneralMaskTexture = Shader.PropertyToID("_CrestGeneralMaskTexture");
+        public static readonly int sp_CrestGeneralMaskDepthTexture = Shader.PropertyToID("_CrestGeneralMaskDepthTexture");
 
         static readonly int sp_OceanHeight = Shader.PropertyToID("_OceanHeight");
         static readonly int sp_MainTex = Shader.PropertyToID("_MainTex");
@@ -29,8 +30,8 @@ namespace Crest
         static readonly int sp_InvViewProjectionRight = Shader.PropertyToID("_InvViewProjectionRight");
         static readonly int sp_InstanceData = Shader.PropertyToID("_InstanceData");
         static readonly int sp_AmbientLighting = Shader.PropertyToID("_AmbientLighting");
-        static readonly int sp_HorizonPosNormal = Shader.PropertyToID("_HorizonPosNormal");
-        static readonly int sp_HorizonPosNormalRight = Shader.PropertyToID("_HorizonPosNormalRight");
+        static readonly int sp_CrestHorizonPosNormal = Shader.PropertyToID("_CrestHorizonPosNormal");
+        static readonly int sp_CrestHorizonPosNormalRight = Shader.PropertyToID("_CrestHorizonPosNormalRight");
 
         internal class UnderwaterSphericalHarmonicsData
         {
@@ -113,8 +114,17 @@ namespace Crest
             }
 
             commandBuffer.SetGlobalTexture(sp_CrestGeneralMaskTexture, generalColorBuffer);
+            commandBuffer.SetGlobalTexture(sp_CrestGeneralMaskDepthTexture, generalDepthBuffer);
             commandBuffer.SetGlobalTexture(sp_CrestOceanMaskTexture, oceanColorBuffer);
             commandBuffer.SetGlobalTexture(sp_CrestOceanMaskDepthTexture, oceanDepthBuffer);
+
+            // TODO(TRC):Now verify this as part of the flow.
+            float oceanHeight = OceanRenderer.Instance.SeaLevel;
+            var inverseViewProjectionMatrix = (camera.projectionMatrix * camera.worldToCameraMatrix).inverse;
+            {
+                GetHorizonPosNormal(camera, Camera.MonoOrStereoscopicEye.Mono, oceanHeight, out Vector2 pos, out Vector2 normal);
+                commandBuffer.SetGlobalVector(sp_CrestHorizonPosNormal, new Vector4(pos.x, pos.y, normal.x, normal.y));
+            }
         }
 
         internal static void UpdatePostProcessMaterial(
@@ -192,7 +202,7 @@ namespace Crest
 
                 {
                     GetHorizonPosNormal(camera, Camera.MonoOrStereoscopicEye.Mono, oceanHeight, out Vector2 pos, out Vector2 normal);
-                    underwaterPostProcessMaterial.SetVector(sp_HorizonPosNormal, new Vector4(pos.x, pos.y, normal.x, normal.y));
+                    underwaterPostProcessMaterial.SetVector(sp_CrestHorizonPosNormal, new Vector4(pos.x, pos.y, normal.x, normal.y));
                 }
             }
             else
@@ -202,7 +212,7 @@ namespace Crest
 
                 {
                     GetHorizonPosNormal(camera, Camera.MonoOrStereoscopicEye.Left, oceanHeight, out Vector2 pos, out Vector2 normal);
-                    underwaterPostProcessMaterial.SetVector(sp_HorizonPosNormal, new Vector4(pos.x, pos.y, normal.x, normal.y));
+                    underwaterPostProcessMaterial.SetVector(sp_CrestHorizonPosNormal, new Vector4(pos.x, pos.y, normal.x, normal.y));
                 }
 
                 var inverseViewProjectionMatrixRightEye = (camera.GetStereoProjectionMatrix(Camera.StereoscopicEye.Right) * camera.worldToCameraMatrix).inverse;
@@ -210,7 +220,7 @@ namespace Crest
 
                 {
                     GetHorizonPosNormal(camera, Camera.MonoOrStereoscopicEye.Right, oceanHeight, out Vector2 pos, out Vector2 normal);
-                    underwaterPostProcessMaterial.SetVector(sp_HorizonPosNormalRight, new Vector4(pos.x, pos.y, normal.x, normal.y));
+                    underwaterPostProcessMaterial.SetVector(sp_CrestHorizonPosNormalRight, new Vector4(pos.x, pos.y, normal.x, normal.y));
                 }
             }
 

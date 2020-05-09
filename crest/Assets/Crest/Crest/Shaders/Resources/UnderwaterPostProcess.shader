@@ -72,8 +72,8 @@ Shader "Crest/Underwater/Post Process"
 			float _OceanHeight;
 			float4x4 _InvViewProjection;
 			float4x4 _InvViewProjectionRight;
-			float4 _HorizonPosNormal;
-			float4 _HorizonPosNormalRight;
+			float4 _CrestHorizonPosNormal;
+			float4 _CrestHorizonPosNormalRight;
 
 			struct Attributes
 			{
@@ -131,10 +131,10 @@ Shader "Crest/Underwater/Post Process"
 				// intersection line is passed in.
 #if CREST_HANDLE_XR
 				const bool isBelowHorizon = unity_StereoEyeIndex == 0 ?
-					dot(input.uv - _HorizonPosNormal.xy, _HorizonPosNormal.zw) > 0.0 :
-					dot(input.uv - _HorizonPosNormalRight.xy, _HorizonPosNormalRight.zw) > 0.0;
+					dot(input.uv - _CrestHorizonPosNormal.xy, _CrestHorizonPosNormal.zw) > 0.0 :
+					dot(input.uv - _CrestHorizonPosNormalRight.xy, _CrestHorizonPosNormalRight.zw) > 0.0;
 #else // CREST_HANDLE_XR
-				const bool isBelowHorizon = dot(input.uv - _HorizonPosNormal.xy, _HorizonPosNormal.zw) > 0.0;
+				const bool isBelowHorizon = dot(input.uv - _CrestHorizonPosNormal.xy, _CrestHorizonPosNormal.zw) > 0.0;
 #endif // CREST_HANDLE_XR
 #else // !_FULL_SCREEN_EFFECT
 				const bool isBelowHorizon = true;

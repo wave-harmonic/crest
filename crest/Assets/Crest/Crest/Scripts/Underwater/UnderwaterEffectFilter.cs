@@ -19,7 +19,7 @@ namespace Crest
 
         public static readonly int sp_Mask = Shader.PropertyToID("_Mask");
 
-        public UnderwaterMaskValues MaskType = UnderwaterMaskValues.UnderwaterDisable;
+        public UnderwaterMaskValues MaskType = UnderwaterMaskValues.UnderwaterDisableFront;
         public Renderer Renderer => _rend;
 
         void Start()

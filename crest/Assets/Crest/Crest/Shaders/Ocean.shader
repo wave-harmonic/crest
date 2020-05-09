@@ -439,7 +439,12 @@ Shader "Crest/Ocean"
 				{
 					float overrideMask = tex2D(_CrestGeneralMaskTexture, uvDepth).x;
 					float overrideDepth = tex2D(_CrestGeneralMaskDepthTexture, uvDepth).x;
-					if(overrideMask != UNDERWATER_MASK_NO_MASK && overrideDepth < input.positionCS.z)
+					if(overrideMask == OVERRIDE_MASK_UNDERWATER_DISABLE_FRONT && overrideDepth < input.positionCS.z)
+					{
+						discard;
+					}
+
+					if(overrideMask == OVERRIDE_MASK_UNDERWATER_DISABLE_BACK && overrideDepth >= input.positionCS.z)
 					{
 						discard;
 					}

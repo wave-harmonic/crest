@@ -114,6 +114,7 @@ Shader "Crest/Underwater/Post Process"
 			sampler2D _CrestOceanMaskTexture;
 			sampler2D _CrestOceanMaskDepthTexture;
 			sampler2D _CrestGeneralMaskTexture;
+			sampler2D _CrestGeneralMaskDepthTexture;
 
 			// In-built Unity textures
 			sampler2D _CameraDepthTexture;
@@ -152,14 +153,19 @@ Shader "Crest/Underwater/Post Process"
 				const float oceanDepthTolerance = 0.000045;
 
 				float oceanMask = tex2D(_CrestOceanMaskTexture, uvScreenSpace).x;
-				const float oceanDepth01 = tex2D(_CrestOceanMaskDepthTexture, uvScreenSpace);
-				bool isUnderwater = oceanMask == UNDERWATER_MASK_WATER_SURFACE_BELOW || (isBelowHorizon && oceanMask != UNDERWATER_MASK_WATER_SURFACE_ABOVE);
-				if(isUnderwater)
+				float oceanDepth01 = tex2D(_CrestOceanMaskDepthTexture, uvScreenSpace).x;
+				bool isUnderwater = oceanMask == UNDERWATER_MASK_WATER_SURFACE_BELOW || (isBelowHorizon  && oceanMask != UNDERWATER_MASK_WATER_SURFACE_ABOVE);
 				{
-					// Apply overrides
-					float overrideMask = tex2D(_CrestGeneralMaskTexture, uvScreenSpace).x;
-					oceanMask = overrideMask != UNDERWATER_MASK_NO_MASK ? overrideMask : oceanMask;
-					isUnderwater = oceanMask != UNDERWATER_MASK_WATER_SURFACE_ABOVE;
+					if(isUnderwater)
+					{
+						const float overrideMask = tex2D(_CrestGeneralMaskTexture, uvScreenSpace).x;
+						const float overrideDepth01 = tex2D(_CrestGeneralMaskDepthTexture, uvScreenSpace).x;
+						const bool disableWaterBehindOverrideMask = (overrideMask == OVERRIDE_MASK_UNDERWATER_DISABLE_BACK && (oceanDepth01 < overrideDepth01));
+						// Apply overrides
+						oceanMask = overrideMask != OVERRIDE_MASK_UNDERWATER_ENABLE ? overrideMask : oceanMask;
+						oceanDepth01 = disableWaterBehindOverrideMask ? overrideDepth01 : oceanDepth01;
+						isUnderwater = oceanMask != UNDERWATER_MASK_WATER_SURFACE_ABOVE;
+					}
 				}
 				// Ocean surface check is used avoid drawing caustics on the water surface.
 				bool isOceanSurface = oceanMask != UNDERWATER_MASK_NO_MASK && (sceneZ01 <= (oceanDepth01 + oceanDepthTolerance));

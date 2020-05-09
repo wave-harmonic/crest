@@ -13,8 +13,9 @@ namespace Crest
     // @volatile:UnderwaterMaskValues These MUST match the values in OceanConstants.hlsl
     public enum UnderwaterMaskValues
     {
-        UnderwaterDisable = 0,
+        UnderwaterDisableFront = 0,
         UnderwaterEnable = 1,
+        UnderwaterDisableBack = 2,
     }
 
     internal static class UnderwaterPostProcessUtils

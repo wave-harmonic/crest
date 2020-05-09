@@ -33,7 +33,6 @@
 
 		float4 _CrestHorizonPosNormal;
 		sampler2D _CrestOceanMaskTexture;
-		sampler2D _CrestOceanMaskDepthTexture;
 
 		// TODO(TRC):Now use ocean constants values directly
 		// @volatie:UnderwaterMaskValues These MUST match the values in UnderwaterPostProcessUtils.cs
@@ -63,10 +62,9 @@
 			// also compute fog
 			float oceanMask = tex2D(_CrestOceanMaskTexture, uvScreenSpace).x;
 			float z = IN.screenPos.z / IN.screenPos.w;
-			const float oceanDepth01 = tex2D(_CrestOceanMaskDepthTexture, uvScreenSpace);
 			const bool isBelowHorizon = dot(uvScreenSpace - _CrestHorizonPosNormal.xy, _CrestHorizonPosNormal.zw) > 0.0;
 			bool isUnderwater = oceanMask == UNDERWATER_MASK_WATER_SURFACE_BELOW || (isBelowHorizon && oceanMask != UNDERWATER_MASK_WATER_SURFACE_ABOVE);
-			if(isUnderwater && oceanDepth01 < z)
+			if(isUnderwater)
 			{
 				c.a = 0.8;
 				c.r = 1.0;

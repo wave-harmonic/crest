@@ -32,6 +32,7 @@ Shader "Crest/Underwater/Ocean Mask"
 			struct Varyings
 			{
 				float4 positionCS : SV_POSITION;
+				float4 screenPos : TEXCOORD1;
 
 				UNITY_VERTEX_OUTPUT_STEREO
 			};
@@ -49,6 +50,8 @@ Shader "Crest/Underwater/Ocean Mask"
 			// cause here might be imprecision or numerical issues at ocean tile boundaries, although
 			// i'm not sure why cracks are not visible in this case.
 			float _ForceUnderwater;
+			sampler2D _CrestGeneralMaskTexture;
+			sampler2D _CrestGeneralMaskDepthTexture;
 
 			Varyings Vert(Attributes v)
 			{
@@ -86,11 +89,22 @@ Shader "Crest/Underwater/Ocean Mask"
 				}
 
 				output.positionCS = mul(UNITY_MATRIX_VP, float4(worldPos, 1.0));
+				output.screenPos =  ComputeScreenPos(output.positionCS);
 				return output;
 			}
 
 			half4 Frag(const Varyings input, const float facing : VFACE) : SV_Target
 			{
+				half3 uv_z = input.screenPos.xyz/input.screenPos.w;
+				{
+					float overrideMask = tex2D(_CrestGeneralMaskTexture, uv_z.xy).x;
+					float overrideDepth = tex2D(_CrestGeneralMaskDepthTexture, uv_z.xy).x;
+					if(overrideMask != UNDERWATER_MASK_NO_MASK && overrideDepth < uv_z.z)
+					{
+						discard;
+					}
+				}
+
 				if(IsUnderwater(facing, _ForceUnderwater))
 				{
 					return (half4)UNDERWATER_MASK_WATER_SURFACE_BELOW;

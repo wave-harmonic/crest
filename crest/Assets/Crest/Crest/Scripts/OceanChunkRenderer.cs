@@ -23,6 +23,8 @@ namespace Crest
         Renderer _rend;
         PropertyWrapperMPB _mpb;
 
+        public Renderer Renderer => _rend;
+
         // Cache these off to support regenerating ocean surface
         int _lodIndex = -1;
         int _totalLodCount = -1;
@@ -153,12 +155,6 @@ namespace Crest
             if (_drawRenderBounds)
             {
                 _rend.bounds.DebugDraw();
-            }
-
-            var underwater = _currentCamera.GetComponent<UnderwaterPostProcess>();
-            if (underwater != null && underwater.enabled)
-            {
-                underwater.RegisterOceanChunkToRender(_rend);
             }
         }
 

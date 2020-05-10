@@ -155,22 +155,41 @@ Shader "Crest/Underwater/Post Process"
 				float oceanMask = tex2D(_CrestOceanMaskTexture, uvScreenSpace).x;
 				float oceanDepth01 = tex2D(_CrestOceanMaskDepthTexture, uvScreenSpace).x;
 				bool isUnderwater = oceanMask == UNDERWATER_MASK_WATER_SURFACE_BELOW || (isBelowHorizon  && oceanMask != UNDERWATER_MASK_WATER_SURFACE_ABOVE);
+
+				// If we have a view into underwater through a window, we need to make sure to only apply fog for the distance starting from behind it
+				float distanceToWindow = 0.0;
 				{
 					if(isUnderwater)
 					{
 						const float overrideMask = tex2D(_CrestGeneralMaskTexture, uvScreenSpace).x;
 						const float overrideDepth01 = tex2D(_CrestGeneralMaskDepthTexture, uvScreenSpace).x;
-						const bool disableWaterBehindOverrideMask = (overrideMask == OVERRIDE_MASK_UNDERWATER_DISABLE_BACK && (oceanDepth01 < overrideDepth01));
-						// Apply overrides
-						oceanMask = overrideMask != OVERRIDE_MASK_UNDERWATER_ENABLE ? overrideMask : oceanMask;
-						oceanDepth01 = disableWaterBehindOverrideMask ? overrideDepth01 : oceanDepth01;
+						{
+							const bool disableWaterBehindOverrideMask = (overrideMask == OVERRIDE_MASK_UNDERWATER_DISABLE_BACK && (oceanDepth01 < overrideDepth01));
+							oceanDepth01 = disableWaterBehindOverrideMask ? overrideDepth01 : oceanDepth01;
+						}
+
+						if(overrideMask == OVERRIDE_MASK_UNDERWATER_DISABLE)
+						{
+							oceanMask = UNDERWATER_MASK_WATER_SURFACE_ABOVE;
+						}
+						else if(overrideMask == OVERRIDE_MASK_UNDERWATER_DISABLE_BACK)
+						{
+							// We want to disable underwater behind the override surface,
+							// but therefore if we are already underwater, we need to ensure that we apply for to the appropriate pixels.
+							oceanMask = UNDERWATER_MASK_WATER_SURFACE_BELOW;
+						}
+						else if(overrideMask == OVERRIDE_MASK_UNDERWATER_DISABLE_FRONT)
+						{
+							distanceToWindow = LinearEyeDepth(overrideDepth01);
+						}
 						isUnderwater = oceanMask != UNDERWATER_MASK_WATER_SURFACE_ABOVE;
 					}
 				}
-				// Ocean surface check is used avoid drawing caustics on the water surface.
-				bool isOceanSurface = oceanMask != UNDERWATER_MASK_NO_MASK && (sceneZ01 <= (oceanDepth01 + oceanDepthTolerance));
+				// Ocean surface check is used avoid drawing caustics on the water or masked surface
+				bool disableCaustics = oceanMask != UNDERWATER_MASK_NO_MASK && (sceneZ01 <= (oceanDepth01 + oceanDepthTolerance));
 
-				sceneZ01 = isOceanSurface ? oceanDepth01 : sceneZ01;
+				sceneZ01 = disableCaustics ? oceanDepth01 : sceneZ01;
+				const float sceneZ = LinearEyeDepth(sceneZ01) - distanceToWindow;
 
 				float wt = 1.0;
 
@@ -192,7 +211,7 @@ Shader "Crest/Underwater/Post Process"
 #endif // _MENISCUS_ON
 
 #if _DEBUG_VIEW_OCEAN_MASK
-				if(!isOceanSurface)
+				if(!disableCaustics)
 				{
 					return float4(sceneColour * float3(isUnderwater * 0.5, (1.0 - isUnderwater) * 0.5, 1.0), 1.0);
 				}
@@ -210,10 +229,10 @@ Shader "Crest/Underwater/Post Process"
 						_WorldSpaceCameraPos,
 						_AmbientLighting,
 						sceneColour,
-						sceneZ01,
+						sceneZ,
 						view,
 						_DepthFogDensity,
-						isOceanSurface
+						disableCaustics
 					);
 				}
 

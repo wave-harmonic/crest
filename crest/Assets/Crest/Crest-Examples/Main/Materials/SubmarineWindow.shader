@@ -44,7 +44,7 @@
 		{
 			// Albedo comes from a texture tinted by color
 			//fixed4 c = tex2D (_MainTex, IN.uv_MainTex) * _Color;
-			fixed4 color = fixed4(.3, .25, .2, .3);
+			fixed4 color = fixed4(.3, .25, .2, 0.0);
 
 			// TODO(TRC):Now compute fog
 			surfaceOutput.Albedo = color.rgb;
@@ -79,29 +79,30 @@
 
 		void CrestApplyUnderwaterFog (Input input, SurfaceOutputStandard surfaceOutput, inout fixed4 color)
 		{
-			float2 uvScreenSpace = input.screenPos.xy / input.screenPos.w;
-			float surfaceZ = input.screenPos.z / input.screenPos.w;
+			color.a = 0.0;
+			// float2 uvScreenSpace = input.screenPos.xy / input.screenPos.w;
+			// float surfaceZ = input.screenPos.z / input.screenPos.w;
 
-			// TODO(TRC):Now, break this all out into a helpfer function that will
-			// also compute fog
-			float oceanMask = tex2D(_CrestOceanMaskTexture, uvScreenSpace).x;
-			float sceneZ01 =  tex2D(_CameraDepthTexture, uvScreenSpace).x;
-			float oceanSceneZ01 =  tex2D(_CrestOceanMaskDepthTexture, uvScreenSpace).x;
-			if(oceanSceneZ01 > sceneZ01)
-			{
-				sceneZ01 = oceanSceneZ01;
-			}
-			const bool isBelowHorizon = dot(uvScreenSpace - _CrestHorizonPosNormal.xy, _CrestHorizonPosNormal.zw) > 0.0;
-			bool isUnderwater = oceanMask == UNDERWATER_MASK_WATER_SURFACE_BELOW || (isBelowHorizon && oceanMask != UNDERWATER_MASK_WATER_SURFACE_ABOVE);
+			// // TODO(TRC):Now, break this all out into a helpfer function that will
+			// // also compute fog
+			// float oceanMask = tex2D(_CrestOceanMaskTexture, uvScreenSpace).x;
+			// float sceneZ01 =  tex2D(_CameraDepthTexture, uvScreenSpace).x;
+			// float oceanSceneZ01 =  tex2D(_CrestOceanMaskDepthTexture, uvScreenSpace).x;
+			// if(oceanSceneZ01 > sceneZ01)
+			// {
+			// 	sceneZ01 = oceanSceneZ01;
+			// }
+			// const bool isBelowHorizon = dot(uvScreenSpace - _CrestHorizonPosNormal.xy, _CrestHorizonPosNormal.zw) > 0.0;
+			// bool isUnderwater = oceanMask == UNDERWATER_MASK_WATER_SURFACE_BELOW || (isBelowHorizon && oceanMask != UNDERWATER_MASK_WATER_SURFACE_ABOVE);
 
-			float sceneDepth = LinearEyeDepth(sceneZ01) - surfaceZ;
-			float fog = saturate(1.0 - exp(-_DepthFogDensity.xyz * sceneDepth));
+			// float sceneDepth = LinearEyeDepth(sceneZ01) - surfaceZ;
+			// float fog = saturate(1.0 - exp(-_DepthFogDensity.xyz * sceneDepth));
 
-			if(isUnderwater)
-			{
-				color.a += (sceneDepth) * 0.008;
-				color.r = 1.0;
-			}
+			// if(isUnderwater)
+			// {
+			// 	color.a += (sceneDepth) * 0.008;
+			// 	color.r = 1.0;
+			// }
 
 			// sceneColour = ApplyUnderwaterEffect(
 			// 	_LD_TexArray_AnimatedWaves,

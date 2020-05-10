@@ -13,9 +13,10 @@ namespace Crest
     // @volatile:UnderwaterMaskValues These MUST match the values in OceanConstants.hlsl
     public enum UnderwaterMaskValues
     {
-        UnderwaterDisableFront = 0,
+        UnderwaterDisable = 0,
         UnderwaterEnable = 1,
         UnderwaterDisableBack = 2,
+        UnderwaterDisableFront = 3,
     }
 
     internal static class UnderwaterPostProcessUtils
@@ -184,7 +185,12 @@ namespace Crest
 
                 float maxOceanVerticalDisplacement = OceanRenderer.Instance.MaxVertDisplacement * 0.5f;
                 float cameraHeight = camera.transform.position.y;
-                bool forceFullShader = (cameraHeight + maxOceanVerticalDisplacement) <= oceanHeight;
+                // TODO(TRC):Now figure-out how to handle this (we probably want to avoid rendering the mask in this
+                // case as well) - being able to be inside surfaces with underwater disabled means that this can't be
+                // turned on/off as gung-ho as we would like.
+                // - I think the right solution here is to make underwater windows a feature that if enabled, will only
+                // enable the code in the given case.
+                bool forceFullShader = false; // (cameraHeight + maxOceanVerticalDisplacement) <= oceanHeight;
                 underwaterPostProcessMaterial.SetFloat(sp_OceanHeight, oceanHeight);
                 if (forceFullShader)
                 {

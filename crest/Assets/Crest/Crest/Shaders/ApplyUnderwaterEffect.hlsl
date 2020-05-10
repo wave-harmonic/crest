@@ -9,12 +9,11 @@ half3 ApplyUnderwaterEffect(
 	in const float3 i_cameraPos,
 	in const half3 i_ambientLighting,
 	half3 i_sceneColour,
-	in const float i_sceneZ01,
+	in const float i_sceneZ,
 	in const half3 i_view,
 	in const half4 i_depthFogDensity,
 	in const bool i_isOceanSurface
 ) {
-	const float sceneZ = LinearEyeDepth(i_sceneZ01);
 	const float3 lightDir = _WorldSpaceLightPos0.xyz;
 
 	half3 scatterCol = 0.0;
@@ -32,11 +31,11 @@ half3 ApplyUnderwaterEffect(
 	}
 
 #if _CAUSTICS_ON
-	if (i_sceneZ01 != 0.0 && !i_isOceanSurface)
+	if (i_sceneZ != 0.0 && !i_isOceanSurface)
 	{
-		ApplyCaustics(i_view, lightDir, sceneZ, i_normalsSampler, true, i_sceneColour);
+		ApplyCaustics(i_view, lightDir, i_sceneZ, i_normalsSampler, true, i_sceneColour);
 	}
 #endif // _CAUSTICS_ON
 
-	return lerp(i_sceneColour, scatterCol, saturate(1.0 - exp(-i_depthFogDensity.xyz * sceneZ)));
+	return lerp(i_sceneColour, scatterCol, saturate(1.0 - exp(-i_depthFogDensity.xyz * i_sceneZ)));
 }

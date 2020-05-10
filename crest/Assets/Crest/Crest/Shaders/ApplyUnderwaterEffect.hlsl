@@ -11,7 +11,7 @@ half3 ApplyUnderwaterEffect(
 	half3 i_sceneColour,
 	in const float i_sceneZ01,
 	in const half3 i_view,
-	in const half4 i_depthForDensity,
+	in const half4 i_depthFogDensity,
 	in const bool i_isOceanSurface
 ) {
 	const float sceneZ = LinearEyeDepth(i_sceneZ01);
@@ -38,5 +38,5 @@ half3 ApplyUnderwaterEffect(
 	}
 #endif // _CAUSTICS_ON
 
-	return lerp(i_sceneColour, scatterCol, saturate(1.0 - exp(-i_depthForDensity.xyz * sceneZ)));
+	return lerp(i_sceneColour, scatterCol, saturate(1.0 - exp(-i_depthFogDensity.xyz * sceneZ)));
 }

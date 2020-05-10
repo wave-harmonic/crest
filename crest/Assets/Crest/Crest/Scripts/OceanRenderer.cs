@@ -563,9 +563,7 @@ namespace Crest
             return isValid;
         }
 
-        // NOTE: This was OnValidate and wasn't being called anywhere. Handling this with min/max ranged inputs, and 
-        // stepped ranged inputs in addition with validation might be a better solution.
-        public void ValidateAndRepairDetailParams()
+        void OnValidate()
         {
             // Must be at least 0.25, and must be on a power of 2
             _minScale = Mathf.Pow(2f, Mathf.Round(Mathf.Log(Mathf.Max(_minScale, 0.25f), 2f)));
@@ -612,11 +610,6 @@ namespace Crest
             if (GUILayout.Button("Validate Setup"))
             {
                 OceanRenderer.RunValidation(target);
-            }
-
-            if (GUILayout.Button("Validate and Repair Detail Params"))
-            {
-                target.ValidateAndRepairDetailParams();
             }
         }
     }

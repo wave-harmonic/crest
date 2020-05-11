@@ -12,7 +12,8 @@ namespace Crest
     public class LodDataMgrDynWaves : LodDataMgrPersistent
     {
         protected override string ShaderSim { get { return "UpdateDynWaves"; } }
-        protected override int krnl_ShaderSim { get { return _shader.FindKernel(ShaderSim); } }
+        protected override int krnl_ShaderSim { get { return _shader.FindKernel("UpdateDynWavesX"); } }
+        protected override int krnl_ShaderSim2 { get { return _shader.FindKernel("UpdateDynWavesV"); } }
 
         public override string SimName { get { return "DynamicWaves"; } }
         public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RGHalf; } }
@@ -135,16 +136,18 @@ namespace Crest
 
         public override void GetSimSubstepData(float frameDt, out int numSubsteps, out float substepDt)
         {
-            var ocean = OceanRenderer.Instance;
+            numSubsteps = 3;
+            substepDt = 0.005f;
+            //var ocean = OceanRenderer.Instance;
 
-            // lod 0 will always be most demanding - wave speed is square root of wavelength, so waves will be fast relative to stability in
-            // lowest lod, and slow relative to stability in largest lod.
-            float maxDt = MaxSimDt(0);
+            //// lod 0 will always be most demanding - wave speed is square root of wavelength, so waves will be fast relative to stability in
+            //// lowest lod, and slow relative to stability in largest lod.
+            //float maxDt = MaxSimDt(0);
 
-            numSubsteps = Mathf.CeilToInt(frameDt / maxDt);
-            // Always do at least one step so that the sim moves around when time is frozen
-            numSubsteps = Mathf.Clamp(numSubsteps, 1, Settings._maxSimStepsPerFrame);
-            substepDt = Mathf.Min(maxDt, frameDt / numSubsteps);
+            //numSubsteps = Mathf.CeilToInt(frameDt / maxDt);
+            //// Always do at least one step so that the sim moves around when time is frozen
+            //numSubsteps = Mathf.Clamp(numSubsteps, 1, Settings._maxSimStepsPerFrame);
+            //substepDt = Mathf.Min(maxDt, frameDt / numSubsteps);
         }
 
         readonly static string s_textureArrayName = "_LD_TexArray_DynamicWaves";

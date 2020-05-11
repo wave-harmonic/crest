@@ -23,6 +23,7 @@ namespace Crest
 
         protected abstract string ShaderSim { get; }
         protected abstract int krnl_ShaderSim { get; }
+        protected abstract int krnl_ShaderSim2 { get; }
 
         float _substepDtPrevious = 1f / 60f;
 
@@ -94,34 +95,68 @@ namespace Crest
 
             for (int stepi = 0; stepi < numSubsteps; stepi++)
             {
-                Swap(ref _sources, ref _targets);
+                {
+                    Swap(ref _sources, ref _targets);
 
-                _renderSimProperties.Initialise(buf, _shader, krnl_ShaderSim);
+                    _renderSimProperties.Initialise(buf, _shader, krnl_ShaderSim);
 
-                _renderSimProperties.SetFloat(sp_SimDeltaTime, substepDt);
-                _renderSimProperties.SetFloat(sp_SimDeltaTimePrev, _substepDtPrevious);
+                    _renderSimProperties.SetFloat(sp_SimDeltaTime, substepDt);
+                    _renderSimProperties.SetFloat(sp_SimDeltaTimePrev, _substepDtPrevious);
 
-                // compute which lod data we are sampling source data from. if a scale change has happened this can be any lod up or down the chain.
-                // this is only valid on the first update step, after that the scale src/target data are in the right places.
-                var srcDataIdxChange = ((stepi == 0) ? ScaleDifferencePow2 : 0);
+                    // compute which lod data we are sampling source data from. if a scale change has happened this can be any lod up or down the chain.
+                    // this is only valid on the first update step, after that the scale src/target data are in the right places.
+                    var srcDataIdxChange = ((stepi == 0) ? ScaleDifferencePow2 : 0);
 
-                // only take transform from previous frame on first substep
-                var usePreviousFrameTransform = stepi == 0;
+                    // only take transform from previous frame on first substep
+                    var usePreviousFrameTransform = stepi == 0;
 
-                // bind data to slot 0 - previous frame data
-                ValidateSourceData(usePreviousFrameTransform);
-                BindSourceData(_renderSimProperties, false, usePreviousFrameTransform, true);
+                    // bind data to slot 0 - previous frame data
+                    ValidateSourceData(usePreviousFrameTransform);
+                    BindSourceData(_renderSimProperties, false, usePreviousFrameTransform, true);
 
-                SetAdditionalSimParams(_renderSimProperties);
+                    SetAdditionalSimParams(_renderSimProperties);
 
-                buf.SetGlobalFloat(sp_LODChange, srcDataIdxChange);
+                    buf.SetGlobalFloat(sp_LODChange, srcDataIdxChange);
 
-                _renderSimProperties.SetTexture(
-                    sp_LD_TexArray_Target,
-                    DataTexture
-                );
+                    _renderSimProperties.SetTexture(
+                        sp_LD_TexArray_Target,
+                        DataTexture
+                    );
 
-                _renderSimProperties.DispatchShaderMultiLOD();
+                    _renderSimProperties.DispatchShaderMultiLOD();
+                }
+
+                if (krnl_ShaderSim2 != -1)
+                {
+                    Swap(ref _sources, ref _targets);
+
+                    _renderSimProperties.Initialise(buf, _shader, krnl_ShaderSim2);
+
+                    _renderSimProperties.SetFloat(sp_SimDeltaTime, substepDt);
+                    _renderSimProperties.SetFloat(sp_SimDeltaTimePrev, _substepDtPrevious);
+
+                    // compute which lod data we are sampling source data from. if a scale change has happened this can be any lod up or down the chain.
+                    // this is only valid on the first update step, after that the scale src/target data are in the right places.
+                    var srcDataIdxChange = ((stepi == 0) ? ScaleDifferencePow2 : 0);
+
+                    // only take transform from previous frame on first substep
+                    var usePreviousFrameTransform = stepi == 0;
+
+                    // bind data to slot 0 - previous frame data
+                    ValidateSourceData(usePreviousFrameTransform);
+                    BindSourceData(_renderSimProperties, false, usePreviousFrameTransform, true);
+
+                    SetAdditionalSimParams(_renderSimProperties);
+
+                    buf.SetGlobalFloat(sp_LODChange, srcDataIdxChange);
+
+                    _renderSimProperties.SetTexture(
+                        sp_LD_TexArray_Target,
+                        DataTexture
+                    );
+
+                    _renderSimProperties.DispatchShaderMultiLOD();
+                }
 
                 for (var lodIdx = lodCount - 1; lodIdx >= 0; lodIdx--)
                 {

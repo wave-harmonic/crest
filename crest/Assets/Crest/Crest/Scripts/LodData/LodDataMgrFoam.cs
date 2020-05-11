@@ -12,7 +12,8 @@ namespace Crest
     public class LodDataMgrFoam : LodDataMgrPersistent
     {
         protected override string ShaderSim { get { return "UpdateFoam"; } }
-        protected override int krnl_ShaderSim { get { return _shader.FindKernel(ShaderSim); }}
+        protected override int krnl_ShaderSim { get { return _shader.FindKernel(ShaderSim); } }
+        protected override int krnl_ShaderSim2 => -1;
         public override string SimName { get { return "Foam"; } }
         public override RenderTextureFormat TextureFormat { get { return Settings._renderTextureFormat; } }
 

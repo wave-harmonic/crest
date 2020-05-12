@@ -54,6 +54,8 @@ namespace Crest
         }
 
 
+        bool _hasCopied = false;
+
         // Called when visible to a camera
         void OnWillRenderObject()
         {
@@ -63,9 +65,11 @@ namespace Crest
                 _currentCamera = Camera.current;
             }
             // TODO(TRC):Now Remove this hack!
-            if(MaskType == UnderwaterMaskValues.UnderwaterDisableFront)
+            if(MaskType == UnderwaterMaskValues.UnderwaterDisableFront && !_hasCopied)
             {
-                GetComponent<MeshRenderer>().material.CopyPropertiesFromMaterial(OceanRenderer.Instance.OceanMaterial);
+                Material material = GetComponent<MeshRenderer>().material;
+                material.CopyPropertiesFromMaterial(OceanRenderer.Instance.OceanMaterial);
+                material.SetTexture("_SurfaceNormal", OceanRenderer.Instance.OceanMaterial.GetTexture("_Normals"));
             }
 
             var underwater = _currentCamera.GetComponent<UnderwaterPostProcess>();

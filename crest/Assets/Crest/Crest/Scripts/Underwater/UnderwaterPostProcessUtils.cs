@@ -25,11 +25,11 @@ namespace Crest
         public static readonly int sp_CrestOceanMaskDepthTexture = Shader.PropertyToID("_CrestOceanMaskDepthTexture");
         public static readonly int sp_CrestGeneralMaskTexture = Shader.PropertyToID("_CrestGeneralMaskTexture");
         public static readonly int sp_CrestGeneralMaskDepthTexture = Shader.PropertyToID("_CrestGeneralMaskDepthTexture");
+        public static readonly int sp_CrestInvViewProjection = Shader.PropertyToID("_CrestInvViewProjection");
+        public static readonly int sp_CrestInvViewProjectionRight = Shader.PropertyToID("_CrestInvViewProjectionRight");
 
         static readonly int sp_OceanHeight = Shader.PropertyToID("_OceanHeight");
         static readonly int sp_MainTex = Shader.PropertyToID("_MainTex");
-        static readonly int sp_InvViewProjection = Shader.PropertyToID("_InvViewProjection");
-        static readonly int sp_InvViewProjectionRight = Shader.PropertyToID("_InvViewProjectionRight");
         static readonly int sp_InstanceData = Shader.PropertyToID("_InstanceData");
         static readonly int sp_CrestAmbientLighting = Shader.PropertyToID("_CrestAmbientLighting");
         static readonly int sp_CrestHorizonPosNormal = Shader.PropertyToID("_CrestHorizonPosNormal");
@@ -123,12 +123,36 @@ namespace Crest
             commandBuffer.SetGlobalTexture(sp_CrestOceanMaskTexture, oceanColorBuffer);
             commandBuffer.SetGlobalTexture(sp_CrestOceanMaskDepthTexture, oceanDepthBuffer);
 
-            // TODO(TRC):Now verify this as part of the flow (and normalize where this takes place)
             float oceanHeight = OceanRenderer.Instance.SeaLevel;
-            var inverseViewProjectionMatrix = (camera.projectionMatrix * camera.worldToCameraMatrix).inverse;
+            // Have to set these explicitly as the built-in transforms aren't in world-space for the blit function
+            if (!XRSettings.enabled || XRSettings.stereoRenderingMode == XRSettings.StereoRenderingMode.MultiPass)
             {
-                GetHorizonPosNormal(camera, Camera.MonoOrStereoscopicEye.Mono, oceanHeight, out Vector2 pos, out Vector2 normal);
-                commandBuffer.SetGlobalVector(sp_CrestHorizonPosNormal, new Vector4(pos.x, pos.y, normal.x, normal.y));
+
+                var inverseViewProjectionMatrix = (camera.projectionMatrix * camera.worldToCameraMatrix).inverse;
+                commandBuffer.SetGlobalMatrix(sp_CrestInvViewProjection, inverseViewProjectionMatrix);
+
+                {
+                    GetHorizonPosNormal(camera, Camera.MonoOrStereoscopicEye.Mono, oceanHeight, out Vector2 pos, out Vector2 normal);
+                    commandBuffer.SetGlobalVector(sp_CrestHorizonPosNormal, new Vector4(pos.x, pos.y, normal.x, normal.y));
+                }
+            }
+            else
+            {
+                var inverseViewProjectionMatrix = (camera.GetStereoProjectionMatrix(Camera.StereoscopicEye.Left) * camera.worldToCameraMatrix).inverse;
+                commandBuffer.SetGlobalMatrix(sp_CrestInvViewProjection, inverseViewProjectionMatrix);
+
+                {
+                    GetHorizonPosNormal(camera, Camera.MonoOrStereoscopicEye.Left, oceanHeight, out Vector2 pos, out Vector2 normal);
+                    commandBuffer.SetGlobalVector(sp_CrestHorizonPosNormal, new Vector4(pos.x, pos.y, normal.x, normal.y));
+                }
+
+                var inverseViewProjectionMatrixRightEye = (camera.GetStereoProjectionMatrix(Camera.StereoscopicEye.Right) * camera.worldToCameraMatrix).inverse;
+                commandBuffer.SetGlobalMatrix(sp_CrestInvViewProjectionRight, inverseViewProjectionMatrixRightEye);
+
+                {
+                    GetHorizonPosNormal(camera, Camera.MonoOrStereoscopicEye.Right, oceanHeight, out Vector2 pos, out Vector2 normal);
+                    commandBuffer.SetGlobalVector(sp_CrestHorizonPosNormalRight, new Vector4(pos.x, pos.y, normal.x, normal.y));
+                }
             }
 
             // Compute ambient lighting SH
@@ -215,37 +239,6 @@ namespace Crest
                 else
                 {
                     underwaterPostProcessMaterial.DisableKeyword(FULL_SCREEN_EFFECT);
-                }
-            }
-
-            // Have to set these explicitly as the built-in transforms aren't in world-space for the blit function
-            if (!XRSettings.enabled || XRSettings.stereoRenderingMode == XRSettings.StereoRenderingMode.MultiPass)
-            {
-
-                var inverseViewProjectionMatrix = (camera.projectionMatrix * camera.worldToCameraMatrix).inverse;
-                underwaterPostProcessMaterial.SetMatrix(sp_InvViewProjection, inverseViewProjectionMatrix);
-
-                {
-                    GetHorizonPosNormal(camera, Camera.MonoOrStereoscopicEye.Mono, oceanHeight, out Vector2 pos, out Vector2 normal);
-                    underwaterPostProcessMaterial.SetVector(sp_CrestHorizonPosNormal, new Vector4(pos.x, pos.y, normal.x, normal.y));
-                }
-            }
-            else
-            {
-                var inverseViewProjectionMatrix = (camera.GetStereoProjectionMatrix(Camera.StereoscopicEye.Left) * camera.worldToCameraMatrix).inverse;
-                underwaterPostProcessMaterial.SetMatrix(sp_InvViewProjection, inverseViewProjectionMatrix);
-
-                {
-                    GetHorizonPosNormal(camera, Camera.MonoOrStereoscopicEye.Left, oceanHeight, out Vector2 pos, out Vector2 normal);
-                    underwaterPostProcessMaterial.SetVector(sp_CrestHorizonPosNormal, new Vector4(pos.x, pos.y, normal.x, normal.y));
-                }
-
-                var inverseViewProjectionMatrixRightEye = (camera.GetStereoProjectionMatrix(Camera.StereoscopicEye.Right) * camera.worldToCameraMatrix).inverse;
-                underwaterPostProcessMaterial.SetMatrix(sp_InvViewProjectionRight, inverseViewProjectionMatrixRightEye);
-
-                {
-                    GetHorizonPosNormal(camera, Camera.MonoOrStereoscopicEye.Right, oceanHeight, out Vector2 pos, out Vector2 normal);
-                    underwaterPostProcessMaterial.SetVector(sp_CrestHorizonPosNormalRight, new Vector4(pos.x, pos.y, normal.x, normal.y));
                 }
             }
 

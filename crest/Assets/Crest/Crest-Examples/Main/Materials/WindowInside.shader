@@ -3,25 +3,28 @@
 	Properties
 	{
 		_Albedo ("Albedo", Color) = (1,1,1,1)
-		_Normal ("Normal", 2D) = "white" {}
+		_SurfaceNormal ("Normal", 2D) = "white" {}
 		_Glossiness ("Smoothness", Range(0,1)) = 0.5
 		_Metallic ("Metallic", Range(0,1)) = 0.0
 	}
 	SubShader
 	{
 		Tags { "Queue" = "Geometry+511" "RenderType"="Transparent" }
+
 		GrabPass {
-			Name "OceanGrab"
+			Name "CrestOceanGrabPass"
 		}
 
 		Pass
 		{
-			Name "ApplyFog"
+			Name "CrestApplyFog"
 			Blend Off
-			HLSLPROGRAM
+			CGPROGRAM
 				#pragma vertex Vert
 				#pragma fragment Frag
 				#include "UnityCG.cginc"
+				#include "Lighting.cginc"
+
 
 				struct Attributes
 				{
@@ -32,7 +35,7 @@
 				struct Varyings {
 					float4 positionCS : POSITION;
 					float4 screenPos  : TEXCOORD0;
-					float3 viewWS     : TEXCOORD1;
+					float3 worldPos     : TEXCOORD1;
 				};
 
 				Varyings Vert (Attributes input)
@@ -40,9 +43,27 @@
 					Varyings output;
 					output.positionCS = UnityObjectToClipPos(input.positionOS);
 					output.screenPos = ComputeScreenPos(output.positionCS);
-					output.viewWS = _WorldSpaceCameraPos -  mul(unity_ObjectToWorld, float4(input.positionOS.xyz, 1.0));
+					output.worldPos = mul(unity_ObjectToWorld, input.positionOS);
 					return output;
 				}
+
+				#pragma shader_feature _SUBSURFACESCATTERING_ON
+				#pragma shader_feature _SUBSURFACESHALLOWCOLOUR_ON
+				#pragma shader_feature _TRANSPARENCY_ON
+				#pragma shader_feature _CAUSTICS_ON
+				#pragma shader_feature _SHADOWS_ON
+				#pragma shader_feature _COMPILESHADERWITHDEBUGINFO_ON
+				#pragma shader_feature _MENISCUS_ON
+
+				#pragma multi_compile __ _FULL_SCREEN_EFFECT
+				#pragma multi_compile __ _DEBUG_VIEW_OCEAN_MASK
+
+				#if _COMPILESHADERWITHDEBUGINFO_ON
+				#pragma enable_d3d11_debug_symbols
+				#endif
+
+				#pragma enable_d3d11_debug_symbols
+
 
 				half3 _CrestAmbientLighting;
 				#include "../../../Crest/Shaders/OceanConstants.hlsl"
@@ -61,11 +82,8 @@
 				sampler2D _Normals;
 				sampler2D _CameraDepthTexture;
 
-				void CrestApplyUnderwaterFog (in float4 screenPos, in float3 viewWS, inout fixed4 sceneColour)
+				void CrestApplyUnderwaterFog (in float2 uvScreenSpace, in float3 viewWS, in float surfaceZ01, inout fixed4 sceneColour)
 				{
-					float2 uvScreenSpace = screenPos.xy / screenPos.w;
-					float surfaceZ = screenPos.z / screenPos.w;
-
 					// TODO(TRC):Now, break this all out into a helpfer function that will
 					// also compute fog
 					float oceanMask = tex2D(_CrestOceanMaskTexture, uvScreenSpace).x;
@@ -80,11 +98,12 @@
 					const bool isBelowHorizon = dot(uvScreenSpace - _CrestHorizonPosNormal.xy, _CrestHorizonPosNormal.zw) > 0.0;
 					bool isUnderwater = oceanMask == UNDERWATER_MASK_WATER_SURFACE_BELOW || (isBelowHorizon && oceanMask != UNDERWATER_MASK_WATER_SURFACE_ABOVE);
 
-					float sceneDepth = LinearEyeDepth(sceneZ01) - surfaceZ;
+					float sceneDepth = LinearEyeDepth(sceneZ01);
+					float fogDistance = sceneDepth - LinearEyeDepth(surfaceZ01);
 
+					// TODO(TRC):Now Figure out how to get the to the right value if this is occluded by another transparency.
 					if(isUnderwater)
 					{
-						// TODO(TRC):Now
 						half3 view = normalize(viewWS);
 						sceneColour.xyz = ApplyUnderwaterEffect(
 							_LD_TexArray_AnimatedWaves,
@@ -93,6 +112,7 @@
 							_CrestAmbientLighting,
 							sceneColour.xyz,
 							sceneDepth,
+							fogDistance,
 							view,
 							_DepthFogDensity,
 							isOceanSurface
@@ -106,13 +126,14 @@
 
 				half4 Frag( Varyings input ) : COLOR
 				{
-					half4 color = tex2D(_GrabTexture, input.screenPos.xy / input.screenPos.w);
-					CrestApplyUnderwaterFog(input.screenPos, input.viewWS, color);
+					float2 uvScreenSpace = input.screenPos.xy / input.screenPos.w;
+					half4 color = tex2D(_GrabTexture, uvScreenSpace);
+					CrestApplyUnderwaterFog(uvScreenSpace, _WorldSpaceCameraPos - input.worldPos, input.positionCS.z, color);
 					return color;
 				}
 
 
-			ENDHLSL
+			ENDCG
 		}
 
 		CGPROGRAM
@@ -122,16 +143,17 @@
 		// Use shader model 3.0 target, to get nicer looking lighting
 		#pragma target 3.0
 
-		sampler2D _Normal;
+		sampler2D _SurfaceNormal;
 
 		struct Input
 		{
-			float2 uv_MainTex;
+			float2 uv_SurfaceNormal;
 		};
 
 		half _Glossiness;
 		half _Metallic;
 		fixed4 _Albedo;
+		#pragma enable_d3d11_debug_symbols
 
 		// Add instancing support for this shader. You need to check 'Enable Instancing' on materials that use the shader.
 		// See https://docs.unity3d.com/Manual/GPUInstancing.html for more information about instancing.
@@ -143,13 +165,13 @@
 		void surf (Input IN, inout SurfaceOutputStandard o)
 		{
 			// Albedo comes from a texture tinted by color
-			fixed4 c = _Albedo;
+			fixed4 c = fixed4(0.7607843, 0.7607843, 0.7607843, 0.2745098);//_Albedo;
 			o.Albedo = c.rgb;
 			// Metallic and smoothness come from slider variables
-			o.Metallic = _Metallic;
-			o.Smoothness = _Glossiness;
-			o.Normal = UnpackNormal(tex2D (_Normal, IN.uv_MainTex));
-			o.Alpha = 0;//c.a;
+			o.Metallic = .7519999;
+			o.Smoothness = 1;
+			o.Normal = tex2D (_SurfaceNormal, IN.uv_SurfaceNormal * 3);
+			o.Alpha = c.a;
 		}
 		ENDCG
 	}

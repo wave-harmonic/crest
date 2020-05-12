@@ -10,6 +10,7 @@ half3 ApplyUnderwaterEffect(
 	in const half3 i_ambientLighting,
 	half3 i_sceneColour,
 	in const float i_sceneZ,
+	in const float i_fogDistance,
 	in const half3 i_view,
 	in const half4 i_depthFogDensity,
 	in const bool i_isOceanSurface
@@ -37,5 +38,5 @@ half3 ApplyUnderwaterEffect(
 	}
 #endif // _CAUSTICS_ON
 
-	return lerp(i_sceneColour, scatterCol, saturate(1.0 - exp(-i_depthFogDensity.xyz * i_sceneZ)));
+	return lerp(i_sceneColour, scatterCol, saturate(1.0 - exp(-i_depthFogDensity.xyz * i_fogDistance)));
 }

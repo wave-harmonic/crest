@@ -70,8 +70,8 @@ Shader "Crest/Underwater/Post Process"
 			#include "../OceanEmission.hlsl"
 
 			float _OceanHeight;
-			float4x4 _InvViewProjection;
-			float4x4 _InvViewProjectionRight;
+			float4x4 _CrestInvViewProjection;
+			float4x4 _CrestInvViewProjectionRight;
 			float4 _CrestHorizonPosNormal;
 			float4 _CrestHorizonPosNormalRight;
 
@@ -98,9 +98,9 @@ Shader "Crest/Underwater/Post Process"
 				{
 					const float2 pixelCS = input.uv * 2 - float2(1.0, 1.0);
 #if CREST_HANDLE_XR
-					const float4x4 InvViewProjection = unity_StereoEyeIndex == 0 ? _InvViewProjection : _InvViewProjectionRight;
+					const float4x4 InvViewProjection = unity_StereoEyeIndex == 0 ? _CrestInvViewProjection : _CrestInvViewProjectionRight;
 #else
-					const float4x4 InvViewProjection = _InvViewProjection;
+					const float4x4 InvViewProjection = _CrestInvViewProjection;
 #endif
 					const float4 pixelWS_H = mul(InvViewProjection, float4(pixelCS, 1.0, 1.0));
 					const float3 pixelWS = pixelWS_H.xyz / pixelWS_H.w;
@@ -230,6 +230,7 @@ Shader "Crest/Underwater/Post Process"
 						_WorldSpaceCameraPos,
 						_CrestAmbientLighting,
 						sceneColour,
+						sceneZ,
 						sceneZ,
 						view,
 						_DepthFogDensity,

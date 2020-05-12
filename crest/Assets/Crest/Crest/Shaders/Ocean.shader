@@ -6,6 +6,8 @@ Shader "Crest/Ocean"
 {
 	Properties
 	{
+		[Toggle] _UseReflectedDirScatterCol("_UseReflectedDirScatterCol", Float) = 1
+
 		[Header(Normal Mapping)]
 		// Whether to add normal detail from a texture. Can be used to add visual detail to the water surface
 		[Toggle] _ApplyNormalMapping("Enable", Float) = 1
@@ -206,6 +208,7 @@ Shader "Crest/Ocean"
 			#pragma target 3.0
 			#pragma multi_compile_fog
 
+			#pragma shader_feature _USEREFLECTEDDIRSCATTERCOL_ON
 			#pragma shader_feature _APPLYNORMALMAPPING_ON
 			#pragma shader_feature _COMPUTEDIRECTIONALLIGHT_ON
 			#pragma shader_feature _DIRECTIONALLIGHTVARYROUGHNESS_ON
@@ -502,7 +505,12 @@ Shader "Crest/Ocean"
 				#if _UNDERWATER_ON
 				if (underwater)
 				{
-					ApplyReflectionUnderwater(view, n_pixel, lightDir, shadow.y, input.foam_screenPosXYW.yzzw, scatterCol, reflAlpha, col);
+					half3 refl = reflect(-view, n_pixel);
+					half3 scatterColUnderwater = scatterCol;
+					#if _USEREFLECTEDDIRSCATTERCOL_ON
+					scatterColUnderwater = ScatterColour(input.lodAlpha_worldXZUndisplaced_oceanDepth.w, _WorldSpaceCameraPos, lightDir, refl, shadow.x, underwater, true, sss);
+					#endif
+					ApplyReflectionUnderwater(view, n_pixel, lightDir, shadow.y, input.foam_screenPosXYW.yzzw, scatterColUnderwater, reflAlpha, col);
 				}
 				else
 				#endif

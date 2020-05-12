@@ -31,7 +31,7 @@ namespace Crest
         static readonly int sp_InvViewProjection = Shader.PropertyToID("_InvViewProjection");
         static readonly int sp_InvViewProjectionRight = Shader.PropertyToID("_InvViewProjectionRight");
         static readonly int sp_InstanceData = Shader.PropertyToID("_InstanceData");
-        static readonly int sp_AmbientLighting = Shader.PropertyToID("_AmbientLighting");
+        static readonly int sp_CrestAmbientLighting = Shader.PropertyToID("_CrestAmbientLighting");
         static readonly int sp_CrestHorizonPosNormal = Shader.PropertyToID("_CrestHorizonPosNormal");
         static readonly int sp_CrestHorizonPosNormalRight = Shader.PropertyToID("_CrestHorizonPosNormalRight");
 
@@ -86,7 +86,8 @@ namespace Crest
             Plane[] frustumPlanes,
             RenderTexture oceanColorBuffer, RenderTexture oceanDepthBuffer,
             RenderTexture generalColorBuffer, RenderTexture generalDepthBuffer,
-            Material oceanMaskMaterial, Material generalMaskMaterial
+            Material oceanMaskMaterial, Material generalMaskMaterial,
+            UnderwaterSphericalHarmonicsData sphericalHarmonicsData
         )
         {
 
@@ -122,12 +123,28 @@ namespace Crest
             commandBuffer.SetGlobalTexture(sp_CrestOceanMaskTexture, oceanColorBuffer);
             commandBuffer.SetGlobalTexture(sp_CrestOceanMaskDepthTexture, oceanDepthBuffer);
 
-            // TODO(TRC):Now verify this as part of the flow.
+            // TODO(TRC):Now verify this as part of the flow (and normalize where this takes place)
             float oceanHeight = OceanRenderer.Instance.SeaLevel;
             var inverseViewProjectionMatrix = (camera.projectionMatrix * camera.worldToCameraMatrix).inverse;
             {
                 GetHorizonPosNormal(camera, Camera.MonoOrStereoscopicEye.Mono, oceanHeight, out Vector2 pos, out Vector2 normal);
                 commandBuffer.SetGlobalVector(sp_CrestHorizonPosNormal, new Vector4(pos.x, pos.y, normal.x, normal.y));
+            }
+
+            // Compute ambient lighting SH
+            {
+                // We could pass in a renderer which would prime this lookup. However it doesnt make sense to use an existing render
+                // at different position, as this would then thrash it and negate the priming functionality. We could create a dummy invis GO
+                // with a dummy Renderer which might be enoguh, but this is hacky enough that we'll wait for it to become a problem
+                // rather than add a pre-emptive hack.
+
+                UnityEngine.Profiling.Profiler.BeginSample("Underwater sample spherical harmonics");
+
+                LightProbes.GetInterpolatedProbe(OceanRenderer.Instance.Viewpoint.position, null, out SphericalHarmonicsL2 sphericalHarmonicsL2);
+                sphericalHarmonicsL2.Evaluate(sphericalHarmonicsData._shDirections, sphericalHarmonicsData._ambientLighting);
+                commandBuffer.SetGlobalVector(sp_CrestAmbientLighting, sphericalHarmonicsData._ambientLighting[0]);
+
+                UnityEngine.Profiling.Profiler.EndSample();
             }
         }
 
@@ -135,7 +152,6 @@ namespace Crest
             RenderTexture source,
             Camera camera,
             PropertyWrapperMaterial underwaterPostProcessMaterialWrapper,
-            UnderwaterSphericalHarmonicsData sphericalHarmonicsData,
             bool copyParamsFromOceanMaterial,
             bool debugViewOceanMask
         )
@@ -235,22 +251,6 @@ namespace Crest
 
             // Not sure why we need to do this - blit should set it...?
             underwaterPostProcessMaterial.SetTexture(sp_MainTex, source);
-
-            // Compute ambient lighting SH
-            {
-                // We could pass in a renderer which would prime this lookup. However it doesnt make sense to use an existing render
-                // at different position, as this would then thrash it and negate the priming functionality. We could create a dummy invis GO
-                // with a dummy Renderer which might be enoguh, but this is hacky enough that we'll wait for it to become a problem
-                // rather than add a pre-emptive hack.
-
-                UnityEngine.Profiling.Profiler.BeginSample("Underwater sample spherical harmonics");
-
-                LightProbes.GetInterpolatedProbe(OceanRenderer.Instance.Viewpoint.position, null, out SphericalHarmonicsL2 sphericalHarmonicsL2);
-                sphericalHarmonicsL2.Evaluate(sphericalHarmonicsData._shDirections, sphericalHarmonicsData._ambientLighting);
-                underwaterPostProcessMaterial.SetVector(sp_AmbientLighting, sphericalHarmonicsData._ambientLighting[0]);
-
-                UnityEngine.Profiling.Profiler.EndSample();
-            }
         }
 
         /// <summary>

@@ -62,6 +62,11 @@ namespace Crest
             {
                 _currentCamera = Camera.current;
             }
+            // TODO(TRC):Now Remove this hack!
+            if(MaskType == UnderwaterMaskValues.UnderwaterDisableFront)
+            {
+                GetComponent<MeshRenderer>().material.CopyPropertiesFromMaterial(OceanRenderer.Instance.OceanMaterial);
+            }
 
             var underwater = _currentCamera.GetComponent<UnderwaterPostProcess>();
             if (underwater != null && underwater.enabled)

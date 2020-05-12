@@ -65,7 +65,7 @@ Shader "Crest/Underwater/Post Process"
 			#include "../OceanLODData.hlsl"
 			#include "../OceanHelpersNew.hlsl"
 
-			half3 _AmbientLighting;
+			half3 _CrestAmbientLighting;
 
 			#include "../OceanEmission.hlsl"
 
@@ -180,7 +180,8 @@ Shader "Crest/Underwater/Post Process"
 						}
 						else if(overrideMask == OVERRIDE_MASK_UNDERWATER_DISABLE_FRONT)
 						{
-							distanceToWindow = LinearEyeDepth(overrideDepth01);
+							oceanMask = UNDERWATER_MASK_WATER_SURFACE_ABOVE;
+							// distanceToWindow = LinearEyeDepth(overrideDepth01);
 						}
 						isUnderwater = oceanMask != UNDERWATER_MASK_WATER_SURFACE_ABOVE;
 					}
@@ -227,7 +228,7 @@ Shader "Crest/Underwater/Post Process"
 						_LD_TexArray_AnimatedWaves,
 						_Normals,
 						_WorldSpaceCameraPos,
-						_AmbientLighting,
+						_CrestAmbientLighting,
 						sceneColour,
 						sceneZ,
 						view,

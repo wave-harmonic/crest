@@ -194,7 +194,8 @@ namespace Crest
                 _cameraFrustumPlanes,
                 _oceanTextureMask, _oceanDepthBuffer,
                 _generalTextureMask, _generalDepthBuffer,
-                _oceanMaskMaterial, _generalMaskMaterial
+                _oceanMaskMaterial, _generalMaskMaterial,
+                _sphericalHarmonicsData
             );
 
             _generalUnderwaterMasksToRender.Clear();
@@ -234,7 +235,6 @@ namespace Crest
                 source,
                 _mainCamera,
                 _underwaterPostProcessMaterialWrapper,
-                _sphericalHarmonicsData,
                 _firstRender || _copyOceanMaterialParamsEachFrame,
                 _viewOceanMask
             );

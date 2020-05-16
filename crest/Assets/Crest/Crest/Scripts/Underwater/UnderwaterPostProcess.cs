@@ -30,7 +30,7 @@ namespace Crest
         [SerializeField] bool _viewPostProcessMask = false;
         [SerializeField] bool _disableOceanMask = false;
         [SerializeField, Tooltip("A safety margin multiplier to adjust horizon line based on camera position to avoid minor artifacts caused by floating point precision issues, the default value has been chosen based on careful experimentation."), Range(0f, 1f)]
-        float _safetyMarginMultiplier = UnderwaterPostProcessUtils.DefaultSafetyMarginMultiplier;
+        float _horizonSafetyMarginMultiplier = UnderwaterPostProcessUtils.DefaultHorizonSafetyMarginMultiplier;
         // end public debug options
 
         private Camera _mainCamera;
@@ -207,7 +207,7 @@ namespace Crest
                 _sphericalHarmonicsData,
                 _firstRender || _copyOceanMaterialParamsEachFrame,
                 _viewPostProcessMask,
-                _safetyMarginMultiplier
+                _horizonSafetyMarginMultiplier
             );
 
             _postProcessCommandBuffer.Blit(source, target, _underwaterPostProcessMaterial);

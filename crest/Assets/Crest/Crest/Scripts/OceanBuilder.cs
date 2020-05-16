@@ -127,6 +127,8 @@ namespace Crest
             Count,
         }
 
+        public static readonly List<OceanChunkRenderer> OceanChunkRenderers = new List<OceanChunkRenderer>();
+
         public static void GenerateMesh(OceanRenderer ocean, int lodDataResolution, int geoDownSampleFactor, int lodCount)
         {
             if (lodCount < 1)
@@ -365,8 +367,6 @@ namespace Crest
             }
             return mesh;
         }
-
-        public static readonly List<OceanChunkRenderer> OceanChunkRenderers = new List<OceanChunkRenderer>();
 
         static void CreateLOD(OceanRenderer ocean, int lodIndex, int lodCount, Mesh[] meshData, int lodDataResolution, int geoDownSampleFactor, int oceanLayer)
         {

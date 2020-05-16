@@ -419,8 +419,13 @@ Shader "Crest/Ocean"
 
 			half4 Frag(const Varyings input, const float facing : VFACE) : SV_Target
 			{
+				float pixelZ = LinearEyeDepth(input.positionCS.z);
 				#if _UNDERWATER_ON
 				const bool underwater = IsUnderwater(facing, _ForceUnderwater);
+				if(underwater)
+				{
+					clip(_CrestVolumeExtinctionLength - pixelZ);
+				}
 				#else
 				const bool underwater = false;
 				#endif
@@ -430,8 +435,6 @@ Shader "Crest/Ocean"
 				half3 view = normalize(_WorldSpaceCameraPos - input.worldPos);
 
 				// water surface depth, and underlying scene opaque surface depth
-				float pixelZ = LinearEyeDepth(input.positionCS.z);
-				clip(_VolumeExtinctionLength - pixelZ);
 				half3 screenPos = input.foam_screenPosXYW.yzw;
 				half2 uvDepth = screenPos.xy / screenPos.z;
 				float sceneZ01 = tex2D(_CameraDepthTexture, uvDepth).x;

@@ -162,7 +162,7 @@ namespace Crest
         readonly int sp_texelsPerWave = Shader.PropertyToID("_TexelsPerWave");
         readonly int sp_oceanCenterPosWorld = Shader.PropertyToID("_OceanCenterPosWorld");
         readonly int sp_meshScaleLerp = Shader.PropertyToID("_MeshScaleLerp");
-        readonly int sp_volumeExtinctionLength = Shader.PropertyToID("_VolumeExtinctionLength");
+        readonly int sp_crestVolumeExtinctionLength = Shader.PropertyToID("_CrestVolumeExtinctionLength");
         readonly int sp_sliceCount = Shader.PropertyToID("_SliceCount");
 
         void Awake()
@@ -283,7 +283,7 @@ namespace Crest
             LateUpdateTiles();
         }
 
-        float VolumeExtinctionLength { get; set; }
+        private float VolumeExtinctionLength;
 
         void LateUpdatePosition()
         {
@@ -300,7 +300,7 @@ namespace Crest
             var min = Mathf.Min(Mathf.Min(density.x, density.y), density.z);
             // transmittance = exp(-density * distance);
             VolumeExtinctionLength = -Mathf.Log(0.01f) / min;
-            Shader.SetGlobalFloat(sp_volumeExtinctionLength, VolumeExtinctionLength);
+            Shader.SetGlobalFloat(sp_crestVolumeExtinctionLength, VolumeExtinctionLength);
         }
 
         void LateUpdateScale()

@@ -71,18 +71,10 @@ namespace Crest
             _currentCamera = camera;
         }
 
-        // Called when visible to a camera
-        void OnWillRenderObject()
+        // Used by the ocean mask system if we need to render the ocean mask in situations
+        // where the ocean itself doesn't need to be rendered or has otherwise been disabled
+        internal void BindOceanData(Camera camera)
         {
-            // check if built-in pipeline being used
-            if (Camera.current != null)
-            {
-                _currentCamera = Camera.current;
-            }
-
-            // Depth texture is used by ocean shader for transparency/depth fog, and for fading out foam at shoreline.
-            _currentCamera.depthTextureMode |= DepthTextureMode.Depth;
-
             if (_rend.sharedMaterial != OceanRenderer.Instance.OceanMaterial)
             {
                 _rend.sharedMaterial = OceanRenderer.Instance.OceanMaterial;
@@ -133,7 +125,7 @@ namespace Crest
             if (ldclip) ldclip.BindResultData(_mpb); else LodDataMgrClipSurface.BindNull(_mpb);
             if (ldshadows) ldshadows.BindResultData(_mpb); else LodDataMgrShadow.BindNull(_mpb);
 
-            var reflTex = PreparedReflections.GetRenderTexture(_currentCamera.GetHashCode());
+            var reflTex = PreparedReflections.GetRenderTexture(camera.GetHashCode());
             if (reflTex)
             {
                 _mpb.SetTexture(sp_ReflectionTex, reflTex);
@@ -151,6 +143,21 @@ namespace Crest
             _mpb.SetFloat(sp_ForceUnderwater, heightOffset < -2f ? 1f : 0f);
 
             _rend.SetPropertyBlock(_mpb.materialPropertyBlock);
+        }
+
+        // Called when visible to a camera
+        void OnWillRenderObject()
+        {
+            // check if built-in pipeline being used
+            if (Camera.current != null)
+            {
+                _currentCamera = Camera.current;
+            }
+
+            // Depth texture is used by ocean shader for transparency/depth fog, and for fading out foam at shoreline.
+            _currentCamera.depthTextureMode |= DepthTextureMode.Depth;
+
+            BindOceanData(_currentCamera);
 
             if (_drawRenderBounds)
             {

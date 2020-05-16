@@ -97,7 +97,7 @@ namespace Crest
                     {
                         if((!chunk.gameObject.activeInHierarchy || !renderer.enabled) && chunk.enabled)
                         {
-                            chunk.OnWillRenderObject();
+                            chunk.BindOceanData(camera);
                         }
                         commandBuffer.DrawRenderer(renderer, oceanMaskMaterial);
                     }

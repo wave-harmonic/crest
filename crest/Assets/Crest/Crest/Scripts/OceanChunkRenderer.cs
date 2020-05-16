@@ -71,8 +71,16 @@ namespace Crest
             _currentCamera = camera;
         }
 
+        // Used by the ocean mask system if we need to render the ocean mask in situations
+        // where the ocean itself doesn't need to be rendered or has otherwise been disabled
+        internal void BindOceanData(Camera camera)
+        {
+            _currentCamera = camera;
+            OnWillRenderObject();
+        }
+
         // Called when visible to a camera
-        internal void OnWillRenderObject()
+        void OnWillRenderObject()
         {
             // check if built-in pipeline being used
             if (Camera.current != null)

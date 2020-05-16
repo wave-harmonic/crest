@@ -24,10 +24,12 @@ namespace Crest
         static readonly int sp_HorizonPosNormal = Shader.PropertyToID("_HorizonPosNormal");
         static readonly int sp_HorizonPosNormalRight = Shader.PropertyToID("_HorizonPosNormalRight");
 
+        internal const string tooltipHorizonSafetyMarginMultiplier = "A safety margin multiplier to adjust horizon line based on camera position to avoid minor artifacts caused by floating point precision issues, the default value has been chosen based on careful experimentation.";
+
         // A magic number found after a small-amount of iteration that is used to deal with horizon-line floating-point
         // issues. It allows us to give it a small *nudge* in the right direction based on whether the camera is above
         // or below the horizon line itself already.
-        public const float DefaultHorizonSafetyMarginMultiplier = 0.01f;
+        internal const float DefaultHorizonSafetyMarginMultiplier = 0.01f;
 
         internal class UnderwaterSphericalHarmonicsData
         {

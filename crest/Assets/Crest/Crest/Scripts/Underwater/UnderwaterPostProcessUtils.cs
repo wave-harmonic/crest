@@ -24,6 +24,11 @@ namespace Crest
         static readonly int sp_HorizonPosNormal = Shader.PropertyToID("_HorizonPosNormal");
         static readonly int sp_HorizonPosNormalRight = Shader.PropertyToID("_HorizonPosNormalRight");
 
+        // A magic number found after a small-amount of iteration that is used to deal with horizon-line floating-point
+        // issues. It allows us to give it a small *nudge* in the right direction based on whether the camera is above
+        // or below the horizon line itself already.
+        public const float DefaultHorizonSafetyMarginMultiplier = 0.01f;
+
         internal class UnderwaterSphericalHarmonicsData
         {
             internal Color[] _ambientLighting = new Color[1];
@@ -70,7 +75,8 @@ namespace Crest
         internal static void PopulateOceanMask(
             CommandBuffer commandBuffer, Camera camera, List<OceanChunkRenderer> chunksToRender, Plane[] frustumPlanes,
             RenderTexture colorBuffer, RenderTexture depthBuffer,
-            Material oceanMaskMaterial
+            Material oceanMaskMaterial,
+            bool debugDisableOceanMask
         )
         {
             // Get all ocean chunks and render them using cmd buffer, but with mask shader
@@ -78,14 +84,17 @@ namespace Crest
             commandBuffer.ClearRenderTarget(true, true, Color.white * UNDERWATER_MASK_NO_MASK);
             commandBuffer.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
 
-            // Spends approx 0.2-0.3ms here on dell laptop
-            foreach (OceanChunkRenderer chunk in chunksToRender)
+            if (!debugDisableOceanMask)
             {
-                Renderer renderer = chunk.Renderer;
-                Bounds bounds = renderer.bounds;
-                if (GeometryUtility.TestPlanesAABB(frustumPlanes, bounds))
+                // Spends approx 0.2-0.3ms here on dell laptop
+                foreach (OceanChunkRenderer chunk in chunksToRender)
                 {
-                    commandBuffer.DrawRenderer(renderer, oceanMaskMaterial);
+                    Renderer renderer = chunk.Renderer;
+                    Bounds bounds = renderer.bounds;
+                    if (GeometryUtility.TestPlanesAABB(frustumPlanes, bounds))
+                    {
+                        commandBuffer.DrawRenderer(renderer, oceanMaskMaterial);
+                    }
                 }
             }
 
@@ -100,7 +109,8 @@ namespace Crest
             PropertyWrapperMaterial underwaterPostProcessMaterialWrapper,
             UnderwaterSphericalHarmonicsData sphericalHarmonicsData,
             bool copyParamsFromOceanMaterial,
-            bool debugViewOceanMask
+            bool debugViewPostProcessMask,
+            float horizonSafetyMarginMultiplier
         )
         {
             Material underwaterPostProcessMaterial = underwaterPostProcessMaterialWrapper.material;
@@ -111,7 +121,7 @@ namespace Crest
             }
 
             // Enabling/disabling keywords each frame don't seem to have large measurable overhead
-            if (debugViewOceanMask)
+            if (debugViewPostProcessMask)
             {
                 underwaterPostProcessMaterial.EnableKeyword(DEBUG_VIEW_OCEAN_MASK);
             }
@@ -142,14 +152,36 @@ namespace Crest
                 LodDataMgrShadow.BindNull(underwaterPostProcessMaterialWrapper);
             }
 
-            float oceanHeight = OceanRenderer.Instance.SeaLevel;
+            float seaLevel = OceanRenderer.Instance.SeaLevel;
             {
-                underwaterPostProcessMaterial.SetFloat(sp_OceanHeight, oceanHeight);
+                underwaterPostProcessMaterial.SetFloat(sp_OceanHeight, seaLevel);
 
                 float maxOceanVerticalDisplacement = OceanRenderer.Instance.MaxVertDisplacement * 0.5f;
-                float cameraHeight = camera.transform.position.y;
-                bool forceFullShader = (cameraHeight + maxOceanVerticalDisplacement) <= oceanHeight;
-                underwaterPostProcessMaterial.SetFloat(sp_OceanHeight, oceanHeight);
+                float cameraYPosition = camera.transform.position.y;
+                float nearPlaneFrustumWorldHeight;
+                {
+
+                    float current = camera.ViewportToWorldPoint(new Vector3(0f, 0f, camera.nearClipPlane)).y;
+                    float maxY = current, minY = current;
+
+                    current = camera.ViewportToWorldPoint(new Vector3(0f, 1f, camera.nearClipPlane)).y;
+                    maxY = Mathf.Max(maxY, current);
+                    minY = Mathf.Min(minY, current);
+
+                    current = camera.ViewportToWorldPoint(new Vector3(1f, 0f, camera.nearClipPlane)).y;
+                    maxY = Mathf.Max(maxY, current);
+                    minY = Mathf.Min(minY, current);
+
+                    current = camera.ViewportToWorldPoint(new Vector3(0f, 1f, camera.nearClipPlane)).y;
+                    maxY = Mathf.Max(maxY, current);
+                    minY = Mathf.Min(minY, current);
+
+                    nearPlaneFrustumWorldHeight = maxY - minY;
+                }
+                // We don't both setting the horizon value if we know we are going to be having to apply the post-processing
+                // effect full-screen anyway.
+                bool forceFullShader = (cameraYPosition + nearPlaneFrustumWorldHeight + maxOceanVerticalDisplacement) <= seaLevel;
+                underwaterPostProcessMaterial.SetFloat(sp_OceanHeight, seaLevel);
                 if (forceFullShader)
                 {
                     underwaterPostProcessMaterial.EnableKeyword(FULL_SCREEN_EFFECT);
@@ -169,7 +201,7 @@ namespace Crest
                 underwaterPostProcessMaterial.SetMatrix(sp_InvViewProjection, inverseViewProjectionMatrix);
 
                 {
-                    GetHorizonPosNormal(camera, Camera.MonoOrStereoscopicEye.Mono, oceanHeight, out Vector2 pos, out Vector2 normal);
+                    GetHorizonPosNormal(camera, Camera.MonoOrStereoscopicEye.Mono, seaLevel, horizonSafetyMarginMultiplier, out Vector2 pos, out Vector2 normal);
                     underwaterPostProcessMaterial.SetVector(sp_HorizonPosNormal, new Vector4(pos.x, pos.y, normal.x, normal.y));
                 }
             }
@@ -179,7 +211,7 @@ namespace Crest
                 underwaterPostProcessMaterial.SetMatrix(sp_InvViewProjection, inverseViewProjectionMatrix);
 
                 {
-                    GetHorizonPosNormal(camera, Camera.MonoOrStereoscopicEye.Left, oceanHeight, out Vector2 pos, out Vector2 normal);
+                    GetHorizonPosNormal(camera, Camera.MonoOrStereoscopicEye.Left, seaLevel, horizonSafetyMarginMultiplier, out Vector2 pos, out Vector2 normal);
                     underwaterPostProcessMaterial.SetVector(sp_HorizonPosNormal, new Vector4(pos.x, pos.y, normal.x, normal.y));
                 }
 
@@ -187,7 +219,7 @@ namespace Crest
                 underwaterPostProcessMaterial.SetMatrix(sp_InvViewProjectionRight, inverseViewProjectionMatrixRightEye);
 
                 {
-                    GetHorizonPosNormal(camera, Camera.MonoOrStereoscopicEye.Right, oceanHeight, out Vector2 pos, out Vector2 normal);
+                    GetHorizonPosNormal(camera, Camera.MonoOrStereoscopicEye.Right, seaLevel, horizonSafetyMarginMultiplier, out Vector2 pos, out Vector2 normal);
                     underwaterPostProcessMaterial.SetVector(sp_HorizonPosNormalRight, new Vector4(pos.x, pos.y, normal.x, normal.y));
                 }
             }
@@ -215,7 +247,7 @@ namespace Crest
         /// <summary>
         /// Compute intersection between the frustum far plane and the ocean plane, and return screen space pos and normal for this horizon line
         /// </summary>
-        static void GetHorizonPosNormal(Camera camera, Camera.MonoOrStereoscopicEye eye, float seaLevel, out Vector2 resultPos, out Vector2 resultNormal)
+        static void GetHorizonPosNormal(Camera camera, Camera.MonoOrStereoscopicEye eye, float seaLevel, float horizonSafetyMarginMultiplier, out Vector2 resultPos, out Vector2 resultNormal)
         {
             // Set up back points of frustum
             NativeArray<Vector3> v_screenXY_viewZ = new NativeArray<Vector3>(4, Allocator.Temp);
@@ -252,7 +284,7 @@ namespace Crest
                         if ((v_world[i].y - seaLevel) * (v_world[inext].y - seaLevel) < 0f)
                         {
                             // Proportion along line segment where intersection occurs
-                            var prop = (seaLevel - v_world[i].y) / (v_world[inext].y - v_world[i].y);
+                            float prop = Mathf.Abs((seaLevel - v_world[i].y) / (v_world[inext].y - v_world[i].y));
                             intersectionsScreen[resultCount] = Vector2.Lerp(v_screenXY_viewZ[i], v_screenXY_viewZ[inext], prop);
                             intersectionsWorld[resultCount] = Vector3.Lerp(v_world[i], v_world[inext], prop);
 
@@ -282,24 +314,33 @@ namespace Crest
                     {
                         // 1 or 0 results - far plane either touches ocean plane or is completely above/below
                         resultNormal = Vector2.up;
+                        bool found = false;
+                        resultPos = default;
                         for (int i = 0; i < 4; i++)
                         {
                             if (v_world[i].y < seaLevel)
                             {
                                 // Underwater
                                 resultPos = Vector2.zero;
-                                return;
+                                found = true;
+                                break;
                             }
                             else if (v_world[i].y > seaLevel)
                             {
                                 // Underwater
                                 resultPos = Vector2.up;
-                                return;
+                                found = true;
+                                break;
                             }
                         }
 
-                        throw new System.Exception("GetHorizonPosNormal: Could not determine if far plane is above or below water.");
+                        if (!found)
+                        {
+                            throw new System.Exception("GetHorizonPosNormal: Could not determine if far plane is above or below water.");
+                        }
                     }
+
+                    resultPos.y += (seaLevel - camera.transform.position.y) * horizonSafetyMarginMultiplier;
                 }
                 finally
                 {

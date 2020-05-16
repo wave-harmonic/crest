@@ -220,7 +220,7 @@ namespace Crest
                 }
             }
 
-            _oceanChunkRenderers.Clear();
+            OceanChunkRenderers.Clear();
             for (int lodIndex = 0; lodIndex < lodCount; lodIndex++)
             {
                 CreateLOD(ocean, lodIndex, lodCount, meshInsts, lodDataResolution, geoDownSampleFactor, oceanLayer);
@@ -366,9 +366,7 @@ namespace Crest
             return mesh;
         }
 
-        public static int GetChunkCount => OceanChunkRenderers.Count;
-        public static List<OceanChunkRenderer> OceanChunkRenderers => _oceanChunkRenderers;
-        private static List<OceanChunkRenderer> _oceanChunkRenderers = new List<OceanChunkRenderer>();
+        public static readonly List<OceanChunkRenderer> OceanChunkRenderers = new List<OceanChunkRenderer>();
 
         static void CreateLOD(OceanRenderer ocean, int lodIndex, int lodCount, Mesh[] meshData, int lodDataResolution, int geoDownSampleFactor, int oceanLayer)
         {
@@ -460,7 +458,7 @@ namespace Crest
                 {
                     OceanChunkRenderer oceanChunkRenderer = patch.AddComponent<OceanChunkRenderer>();
                     oceanChunkRenderer.SetInstanceData(lodIndex, lodCount, lodDataResolution, geoDownSampleFactor);
-                    _oceanChunkRenderers.Add(oceanChunkRenderer);
+                    OceanChunkRenderers.Add(oceanChunkRenderer);
                 }
                 patch.AddComponent<MeshFilter>().mesh = meshData[(int)patchTypes[i]];
 

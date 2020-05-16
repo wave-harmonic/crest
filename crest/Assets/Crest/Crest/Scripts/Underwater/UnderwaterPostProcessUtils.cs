@@ -75,7 +75,8 @@ namespace Crest
         internal static void PopulateOceanMask(
             CommandBuffer commandBuffer, Camera camera, List<OceanChunkRenderer> chunksToRender, Plane[] frustumPlanes,
             RenderTexture colorBuffer, RenderTexture depthBuffer,
-            Material oceanMaskMaterial
+            Material oceanMaskMaterial,
+            bool debugDisableOceanMask
         )
         {
             // Get all ocean chunks and render them using cmd buffer, but with mask shader
@@ -83,14 +84,17 @@ namespace Crest
             commandBuffer.ClearRenderTarget(true, true, Color.white * UNDERWATER_MASK_NO_MASK);
             commandBuffer.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
 
-            // Spends approx 0.2-0.3ms here on dell laptop
-            foreach (OceanChunkRenderer chunk in chunksToRender)
+            if (!debugDisableOceanMask)
             {
-                Renderer renderer = chunk.Renderer;
-                Bounds bounds = renderer.bounds;
-                if (GeometryUtility.TestPlanesAABB(frustumPlanes, bounds))
+                // Spends approx 0.2-0.3ms here on dell laptop
+                foreach (OceanChunkRenderer chunk in chunksToRender)
                 {
-                    commandBuffer.DrawRenderer(renderer, oceanMaskMaterial);
+                    Renderer renderer = chunk.Renderer;
+                    Bounds bounds = renderer.bounds;
+                    if (GeometryUtility.TestPlanesAABB(frustumPlanes, bounds))
+                    {
+                        commandBuffer.DrawRenderer(renderer, oceanMaskMaterial);
+                    }
                 }
             }
 

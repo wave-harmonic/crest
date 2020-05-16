@@ -26,8 +26,9 @@ namespace Crest
         [SerializeField, Tooltip("Assign this to a material that uses shader `Crest/Underwater/Post Process`, with the same features enabled as the ocean surface material(s).")]
         Material _underwaterPostProcessMaterial;
 
-        [Header("Debug Options"), SerializeField]
-        bool _viewOceanMask = false;
+        [Header("Debug Options")]
+        [SerializeField] bool _viewOceanMask = false;
+        [SerializeField] bool _disableOceanMask = false;
         // end public debug options
 
         private Camera _mainCamera;
@@ -162,8 +163,10 @@ namespace Crest
             PopulateOceanMask(
                 _maskCommandBuffer, _mainCamera, OceanBuilder.OceanChunkRenderers, _cameraFrustumPlanes,
                 _textureMask, _depthBuffer,
-                _oceanMaskMaterial
+                _oceanMaskMaterial,
+                _disableOceanMask
             );
+
         }
 
         void OnRenderImage(RenderTexture source, RenderTexture target)

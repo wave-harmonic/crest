@@ -165,7 +165,6 @@ namespace Crest
         readonly int sp_texelsPerWave = Shader.PropertyToID("_TexelsPerWave");
         readonly int sp_oceanCenterPosWorld = Shader.PropertyToID("_OceanCenterPosWorld");
         readonly int sp_meshScaleLerp = Shader.PropertyToID("_MeshScaleLerp");
-        readonly int sp_crestVolumeExtinctionLength = Shader.PropertyToID("_CrestVolumeExtinctionLength");
         readonly int sp_sliceCount = Shader.PropertyToID("_SliceCount");
 
         void Awake()
@@ -286,8 +285,6 @@ namespace Crest
             LateUpdateTiles();
         }
 
-        private float VolumeExtinctionLength;
-
         void LateUpdatePosition()
         {
             Vector3 pos = _viewpoint.position;
@@ -298,11 +295,6 @@ namespace Crest
             transform.position = pos;
 
             Shader.SetGlobalVector(sp_oceanCenterPosWorld, transform.position);
-
-            var density = _material.GetVector("_DepthFogDensity");
-            float minimumFogDensity = Mathf.Min(Mathf.Min(density.x, density.y), density.z);
-            VolumeExtinctionLength = -Mathf.Log(_underwaterCullLimit) / minimumFogDensity;
-            Shader.SetGlobalFloat(sp_crestVolumeExtinctionLength, VolumeExtinctionLength);
         }
 
         void LateUpdateScale()
@@ -372,12 +364,15 @@ namespace Crest
         {
             var definitelyUnderwater = ViewerHeightAboveWater < -5f;
 
-            // TODO - dont call this every frame!! save off list from oceanbuilder?
+            var density = _material.GetVector("_DepthFogDensity");
+            var minimumFogDensity = Mathf.Min(Mathf.Min(density.x, density.y), density.z);
+            var volumeExtinctionLength = -Mathf.Log(_underwaterCullLimit) / minimumFogDensity;
+
             var tiles = OceanBuilder.OceanChunkRenderers;
             foreach (var tile in tiles)
             {
                 Renderer tileRenderer = tile.Renderer;
-                tileRenderer.enabled = (!definitelyUnderwater) || (_viewpoint.position - tileRenderer.bounds.ClosestPoint(_viewpoint.position)).magnitude < VolumeExtinctionLength;
+                tileRenderer.enabled = (!definitelyUnderwater) || (_viewpoint.position - tileRenderer.bounds.ClosestPoint(_viewpoint.position)).magnitude < volumeExtinctionLength;
             }
         }
 

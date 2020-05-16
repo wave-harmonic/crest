@@ -95,6 +95,10 @@ namespace Crest
                     Bounds bounds = renderer.bounds;
                     if (GeometryUtility.TestPlanesAABB(frustumPlanes, bounds))
                     {
+                        if(!chunk.gameObject.activeInHierarchy && chunk.enabled)
+                        {
+                            chunk.OnWillRenderObject();
+                        }
                         commandBuffer.DrawRenderer(renderer, oceanMaskMaterial);
                     }
                 }

@@ -72,7 +72,7 @@ namespace Crest
         }
 
         // Called when visible to a camera
-        void OnWillRenderObject()
+        internal void OnWillRenderObject()
         {
             // check if built-in pipeline being used
             if (Camera.current != null)

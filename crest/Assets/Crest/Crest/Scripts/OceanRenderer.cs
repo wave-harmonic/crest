@@ -68,6 +68,9 @@ namespace Crest
         [SerializeField, Tooltip("Number of ocean tile scales/LODs to generate."), Range(2, LodDataMgr.MAX_LOD_COUNT)]
         int _lodCount = 7;
 
+        [Tooltip("Proportion of visibility below which ocean will be culled underwater. The larger the number, the closer to the camera the ocean tiles will be culled."), SerializeField, Range(0.000001f, 0.01f)]
+        public float _underwaterCullLimit = 0.001f;
+
 
         [Header("Simulation Params")]
 
@@ -100,9 +103,6 @@ namespace Crest
         [Tooltip("Clip surface information for clipping the ocean surface."), SerializeField]
         bool _createClipSurfaceData = false;
         public bool CreateClipSurfaceData { get { return _createClipSurfaceData; } }
-
-        [Tooltip("Proportion of visibility below which ocean will be culled underwater."), SerializeField, Range(0.000001f, 0.01f)]
-        public float _underwaterCullLimit = 0.001f;
 
         [Header("Debug Params")]
 
@@ -373,10 +373,11 @@ namespace Crest
             var definitelyUnderwater = ViewerHeightAboveWater < -5f;
 
             // TODO - dont call this every frame!! save off list from oceanbuilder?
-            var tiles = GetComponentsInChildren<Renderer>();
+            var tiles = OceanBuilder.OceanChunkRenderers;
             foreach (var tile in tiles)
             {
-                tile.GetComponent<Renderer>().enabled = (!definitelyUnderwater) || (_viewpoint.position - tile.bounds.ClosestPoint(_viewpoint.position)).magnitude < VolumeExtinctionLength;
+                Renderer tileRenderer = tile.Renderer;
+                tileRenderer.enabled = (!definitelyUnderwater) || (_viewpoint.position - tileRenderer.bounds.ClosestPoint(_viewpoint.position)).magnitude < VolumeExtinctionLength;
             }
         }
 

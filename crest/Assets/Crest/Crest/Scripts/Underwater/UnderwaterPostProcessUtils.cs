@@ -27,7 +27,7 @@ namespace Crest
         // A magic number found after a small-amount of iteration that is used to deal with horizon-line floating-point
         // issues. It allows us to give it a small *nudge* in the right direction based on whether the camera is above
         // or below the horizon line itself already.
-        private const float HorizonFudgeMultiplier = 0.01f;
+        public const float DefaultSafetyMarginMultiplier = 0.01f;
 
         internal class UnderwaterSphericalHarmonicsData
         {
@@ -109,7 +109,8 @@ namespace Crest
             PropertyWrapperMaterial underwaterPostProcessMaterialWrapper,
             UnderwaterSphericalHarmonicsData sphericalHarmonicsData,
             bool copyParamsFromOceanMaterial,
-            bool debugViewOceanMask
+            bool debugViewPostProcessMask,
+            float safetyMarginMultiplier
         )
         {
             Material underwaterPostProcessMaterial = underwaterPostProcessMaterialWrapper.material;
@@ -120,7 +121,7 @@ namespace Crest
             }
 
             // Enabling/disabling keywords each frame don't seem to have large measurable overhead
-            if (debugViewOceanMask)
+            if (debugViewPostProcessMask)
             {
                 underwaterPostProcessMaterial.EnableKeyword(DEBUG_VIEW_OCEAN_MASK);
             }
@@ -200,7 +201,7 @@ namespace Crest
                 underwaterPostProcessMaterial.SetMatrix(sp_InvViewProjection, inverseViewProjectionMatrix);
 
                 {
-                    GetHorizonPosNormal(camera, Camera.MonoOrStereoscopicEye.Mono, seaLevel, out Vector2 pos, out Vector2 normal);
+                    GetHorizonPosNormal(camera, Camera.MonoOrStereoscopicEye.Mono, seaLevel, safetyMarginMultiplier, out Vector2 pos, out Vector2 normal);
                     underwaterPostProcessMaterial.SetVector(sp_HorizonPosNormal, new Vector4(pos.x, pos.y, normal.x, normal.y));
                 }
             }
@@ -210,7 +211,7 @@ namespace Crest
                 underwaterPostProcessMaterial.SetMatrix(sp_InvViewProjection, inverseViewProjectionMatrix);
 
                 {
-                    GetHorizonPosNormal(camera, Camera.MonoOrStereoscopicEye.Left, seaLevel, out Vector2 pos, out Vector2 normal);
+                    GetHorizonPosNormal(camera, Camera.MonoOrStereoscopicEye.Left, seaLevel, safetyMarginMultiplier, out Vector2 pos, out Vector2 normal);
                     underwaterPostProcessMaterial.SetVector(sp_HorizonPosNormal, new Vector4(pos.x, pos.y, normal.x, normal.y));
                 }
 
@@ -218,7 +219,7 @@ namespace Crest
                 underwaterPostProcessMaterial.SetMatrix(sp_InvViewProjectionRight, inverseViewProjectionMatrixRightEye);
 
                 {
-                    GetHorizonPosNormal(camera, Camera.MonoOrStereoscopicEye.Right, seaLevel, out Vector2 pos, out Vector2 normal);
+                    GetHorizonPosNormal(camera, Camera.MonoOrStereoscopicEye.Right, seaLevel, safetyMarginMultiplier, out Vector2 pos, out Vector2 normal);
                     underwaterPostProcessMaterial.SetVector(sp_HorizonPosNormalRight, new Vector4(pos.x, pos.y, normal.x, normal.y));
                 }
             }
@@ -246,7 +247,7 @@ namespace Crest
         /// <summary>
         /// Compute intersection between the frustum far plane and the ocean plane, and return screen space pos and normal for this horizon line
         /// </summary>
-        static void GetHorizonPosNormal(Camera camera, Camera.MonoOrStereoscopicEye eye, float seaLevel, out Vector2 resultPos, out Vector2 resultNormal)
+        static void GetHorizonPosNormal(Camera camera, Camera.MonoOrStereoscopicEye eye, float seaLevel, float safetyMarginMultiplier, out Vector2 resultPos, out Vector2 resultNormal)
         {
             // Set up back points of frustum
             NativeArray<Vector3> v_screenXY_viewZ = new NativeArray<Vector3>(4, Allocator.Temp);
@@ -339,7 +340,7 @@ namespace Crest
                         }
                     }
 
-                    resultPos.y += (seaLevel - camera.transform.position.y) * HorizonFudgeMultiplier;
+                    resultPos.y += (seaLevel - camera.transform.position.y) * safetyMarginMultiplier;
                 }
                 finally
                 {

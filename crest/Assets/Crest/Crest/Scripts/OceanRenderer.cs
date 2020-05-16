@@ -101,6 +101,9 @@ namespace Crest
         bool _createClipSurfaceData = false;
         public bool CreateClipSurfaceData { get { return _createClipSurfaceData; } }
 
+        [Tooltip("Proportion of visibility below which ocean will be culled underwater."), SerializeField, Range(0.000001f, 0.01f)]
+        public float _underwaterCullLimit = 0.001f;
+
         [Header("Debug Params")]
 
         [Tooltip("Attach debug gui that adds some controls and allows to visualise the ocean data."), SerializeField]
@@ -297,9 +300,8 @@ namespace Crest
             Shader.SetGlobalVector(sp_oceanCenterPosWorld, transform.position);
 
             var density = _material.GetVector("_DepthFogDensity");
-            var min = Mathf.Min(Mathf.Min(density.x, density.y), density.z);
-            // transmittance = exp(-density * distance);
-            VolumeExtinctionLength = -Mathf.Log(0.01f) / min;
+            float minimumFogDensity = Mathf.Min(Mathf.Min(density.x, density.y), density.z);
+            VolumeExtinctionLength = -Mathf.Log(_underwaterCullLimit) / minimumFogDensity;
             Shader.SetGlobalFloat(sp_crestVolumeExtinctionLength, VolumeExtinctionLength);
         }
 

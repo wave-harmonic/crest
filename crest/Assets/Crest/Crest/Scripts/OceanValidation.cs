@@ -63,7 +63,8 @@ namespace Crest
         {
             IValidated target = (IValidated)this.target;
 
-            // Enable rich text in help boxes.
+            // Enable rich text in help boxes. Store original so we can revert since this might be a "hack".
+            var styleRichText = GUI.skin.GetStyle("HelpBox").richText;
             GUI.skin.GetStyle("HelpBox").richText = true;
 
             // This is a static list so we need to clear it before use. Not sure if this will ever be a threaded
@@ -118,6 +119,9 @@ namespace Crest
             {
                 EditorGUILayout.Space();
             }
+
+            // Revert skin since it persists.
+            GUI.skin.GetStyle("HelpBox").richText = styleRichText;
         }
 
         public override void OnInspectorGUI()

@@ -15,7 +15,7 @@ namespace Crest
     {
         [Tooltip("The viewpoint which drives the ocean detail. Defaults to main camera."), SerializeField]
         Transform _viewpoint;
-        public Transform Viewpoint { get { return _viewpoint; } set { _viewpoint = value; } }
+        public Transform Viewpoint { get { return _viewpoint; } }
 
         [Tooltip("Optional provider for time, can be used to hard-code time for automation, or provide server time. Defaults to local Unity time."), SerializeField]
         TimeProviderBase _timeProvider;
@@ -286,11 +286,6 @@ namespace Crest
             var meshScaleLerp = needToBlendOutShape ? ViewerAltitudeLevelAlpha : 0f;
             Shader.SetGlobalFloat(sp_meshScaleLerp, meshScaleLerp);
 
-            if (_viewpoint == null)
-            {
-                Debug.LogError("_viewpoint is null, ocean update will fail.", this);
-            }
-
             if (_followViewpoint)
             {
                 LateUpdatePosition();
@@ -303,7 +298,7 @@ namespace Crest
 
         void LateUpdatePosition()
         {
-            Vector3 pos = _viewpoint.position;
+            Vector3 pos = Viewpoint.position;
 
             // maintain y coordinate - sea level
             pos.y = transform.position.y;
@@ -319,7 +314,7 @@ namespace Crest
             // when water height is low and camera is suspended in air. i tried a scheme where it was based on difference
             // to water height but this does help with the problem of horizontal range getting limited at bad times.
             float maxDetailY = SeaLevel - _maxVertDispFromWaves * _dropDetailHeightBasedOnWaves;
-            float camDistance = Mathf.Abs(_viewpoint.position.y - maxDetailY);
+            float camDistance = Mathf.Abs(Viewpoint.position.y - maxDetailY);
 
             // offset level of detail to keep max detail in a band near the surface
             camDistance = Mathf.Max(camDistance - 4f, 0f);

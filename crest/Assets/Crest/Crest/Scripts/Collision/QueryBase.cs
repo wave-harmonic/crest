@@ -92,13 +92,8 @@ namespace Crest
                 // The last index should never increment and land on the first index - it should only happen the other way around.
                 Debug.Assert(_segmentAcquire != _segmentRelease, "Segment registrar scratch exhausted.");
 
-                _segments[_segmentAcquire]._numQueries = _segments[lastIndex]._numQueries;
-
+                _segments[_segmentAcquire]._numQueries = 0;
                 _segments[_segmentAcquire]._segments.Clear();
-                foreach (var segment in _segments[lastIndex]._segments)
-                {
-                    _segments[_segmentAcquire]._segments.Add(segment.Key, segment.Value);
-                }
             }
 
             public void ReleaseLast()
@@ -549,5 +544,7 @@ namespace Crest
         {
             return (queryStatus & (int)QueryStatus.RetrieveFailed) == 0;
         }
+
+        public int ResultGuidCount => _resultSegments != null ? _resultSegments.Count : 0;
     }
 }

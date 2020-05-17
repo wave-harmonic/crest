@@ -25,9 +25,6 @@ namespace Crest
 
         void Start()
         {
-            Color density = OceanRenderer.Instance.OceanMaterial.GetColor("_DepthFogDensity");
-            _averageDensity = (density.r + density.g + density.b) / 3f;
-
             _primaryLight = OceanRenderer.Instance._primaryLight;
 
             // Store lighting settings
@@ -38,6 +35,16 @@ namespace Crest
             _ambientIntensity = RenderSettings.ambientIntensity;
             _reflectionIntensity = RenderSettings.reflectionIntensity;
             _fogDensity = RenderSettings.fogDensity;
+
+            // Check to make sure the property exists. We might be using a test material.
+            if (!OceanRenderer.Instance.OceanMaterial.HasProperty("_DepthFogDensity"))
+            {
+                enabled = false;
+                return;
+            }
+
+            Color density = OceanRenderer.Instance.OceanMaterial.GetColor("_DepthFogDensity");
+            _averageDensity = (density.r + density.g + density.b) / 3f;
         }
 
         void OnDisable()

@@ -36,13 +36,18 @@ namespace Crest
     /// Base class for scripts that register input to the various LOD data types.
     /// </summary>
     [ExecuteAlways]
-    public abstract class RegisterLodDataInputBase : MonoBehaviour, ILodDataInput
+    public abstract class RegisterLodDataInputBase : MonoBehaviour, ILodDataInput, IValidated
     {
+        [SerializeField, Tooltip("Check that the shader applied to this object matches the input type (so e.g. an Animated Waves input object has an Animated Waves input shader.")]
+        bool _checkShaderName = true;
+
         public abstract float Wavelength { get; }
 
         public abstract bool Enabled { get; }
 
         public static int sp_Weight = Shader.PropertyToID("_Weight");
+
+        protected abstract string ShaderPrefix { get; }
 
         static DuplicateKeyComparer<int> s_comparer = new DuplicateKeyComparer<int>();
         static Dictionary<Type, OceanInput> s_registrar = new Dictionary<Type, OceanInput>();
@@ -67,8 +72,24 @@ namespace Crest
 
             if (_renderer)
             {
+                if (_checkShaderName)
+                {
+                    CheckShaderName(_renderer);
+                }
+                
                 _material = _renderer.sharedMaterial;
+
             }
+        }
+
+        bool CheckShaderName(Renderer renderer)
+        {
+            if (renderer.sharedMaterial && renderer.sharedMaterial.shader && !renderer.sharedMaterial.shader.name.StartsWith(ShaderPrefix))
+            {
+                Debug.LogError($"Shader assigned to ocean input expected to be of type <i>{ShaderPrefix}</i>. Click this error to highlight the input.", this);
+                return false;
+            }
+            return true;
         }
 
         public void Draw(CommandBuffer buf, float weight, int isTransition, int lodIdx)
@@ -89,6 +110,11 @@ namespace Crest
             // Init here from 2019.3 onwards
             s_registrar.Clear();
             sp_Weight = Shader.PropertyToID("_Weight");
+        }
+
+        public bool Validate(OceanRenderer ocean)
+        {
+            return CheckShaderName(GetComponent<Renderer>());
         }
     }
 

@@ -444,6 +444,10 @@ namespace Crest
                 {
                     OceanRenderer.Instance._lodDataSeaDepths.BindResultData(mat, false);
                 }
+                else
+                {
+                    LodDataMgrSeaFloorDepth.BindNull(mat, false);
+                }
 
                 if (_directTowardsPoint)
                 {

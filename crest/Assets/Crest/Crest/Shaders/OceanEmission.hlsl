@@ -151,7 +151,9 @@ void ApplyCaustics(in const half3 i_view, in const half3 i_lightDir, in const fl
 	float4 cuv1 = float4((surfacePosXZ / _CausticsTextureScale + 1.3 *causticN + float2(0.044*_CrestTime + 17.16, -0.169*_CrestTime)), 0., mipLod);
 	float4 cuv2 = float4((1.37*surfacePosXZ / _CausticsTextureScale + 1.77*causticN + float2(0.248*_CrestTime, 0.117*_CrestTime)), 0., mipLod);
 
-	half causticsStrength = _CausticsStrength;
+	// Scale caustics strength by primary light, depth fog density and scene depth.
+	half3 causticsStrength = lerp(_CausticsStrength * _LightColor0, 0.0, saturate(1.0 - exp(-_DepthFogDensity.xyz * sceneDepth)));
+
 #if _SHADOWS_ON
 	{
 		half2 causticShadow = 0.0;

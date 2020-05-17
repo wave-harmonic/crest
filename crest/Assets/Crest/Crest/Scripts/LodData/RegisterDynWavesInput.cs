@@ -17,5 +17,7 @@ namespace Crest
         public override bool Enabled => true;
 
         protected override Color GizmoColor => new Color(0f, 1f, 0f, 0.5f);
+
+        protected override string ShaderPrefix => "Crest/Inputs/Dynamic Waves";
     }
 }

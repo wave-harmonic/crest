@@ -429,7 +429,7 @@ Therefore we target Crest at PC/console platforms.
 **Which platforms does Crest support?**
 Testing occurs primarily on Windows.
 We have users targeting Windows, Mac, Linux, PS4, XboxOne, Switch and iOS/Android.
-Performance is a challenge on Switch and mobile platforms - see the previous question.
+Performance is a challenge on Switch and mobile platforms - see the previous question. For additional platform notes, see [Platform Support](https://github.com/crest-ocean/crest/wiki/Platform-Support).
 
 **Is Crest well suited for localised bodies of water such as lakes?**
 Currently Crest is currrently targeted towards large bodies of water.

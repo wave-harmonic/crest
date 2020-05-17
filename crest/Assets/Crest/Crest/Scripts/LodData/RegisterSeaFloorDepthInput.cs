@@ -21,6 +21,8 @@ namespace Crest
 
         protected override Color GizmoColor => new Color(1f, 0f, 0f, 0.5f);
 
+        protected override string ShaderPrefix => "Crest/Inputs/Depth";
+
         protected override void OnEnable()
         {
             base.OnEnable();

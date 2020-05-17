@@ -68,6 +68,9 @@ namespace Crest
         [SerializeField, Tooltip("Number of ocean tile scales/LODs to generate."), Range(2, LodDataMgr.MAX_LOD_COUNT)]
         int _lodCount = 7;
 
+        [Tooltip("Proportion of visibility below which ocean will be culled underwater. The larger the number, the closer to the camera the ocean tiles will be culled."), SerializeField, Range(0.000001f, 0.01f)]
+        public float _underwaterCullLimit = 0.001f;
+
 
         [Header("Simulation Params")]
 
@@ -278,6 +281,8 @@ namespace Crest
             }
 
             LateUpdateLods();
+
+            LateUpdateTiles();
         }
 
         void LateUpdatePosition()
@@ -353,6 +358,22 @@ namespace Crest
             if (_lodDataSeaDepths) _lodDataSeaDepths.UpdateLodData();
             if (_lodDataClipSurface) _lodDataClipSurface.UpdateLodData();
             if (_lodDataShadow) _lodDataShadow.UpdateLodData();
+        }
+
+        void LateUpdateTiles()
+        {
+            var definitelyUnderwater = ViewerHeightAboveWater < -5f;
+
+            var density = _material.GetVector("_DepthFogDensity");
+            var minimumFogDensity = Mathf.Min(Mathf.Min(density.x, density.y), density.z);
+            var volumeExtinctionLength = -Mathf.Log(_underwaterCullLimit) / minimumFogDensity;
+
+            var tiles = OceanBuilder.OceanChunkRenderers;
+            foreach (var tile in tiles)
+            {
+                Renderer tileRenderer = tile.Renderer;
+                tileRenderer.enabled = (!definitelyUnderwater) || (_viewpoint.position - tileRenderer.bounds.ClosestPoint(_viewpoint.position)).magnitude < volumeExtinctionLength;
+            }
         }
 
         /// <summary>

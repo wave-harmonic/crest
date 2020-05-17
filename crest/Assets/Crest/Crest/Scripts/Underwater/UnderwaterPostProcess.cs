@@ -26,8 +26,11 @@ namespace Crest
         [SerializeField, Tooltip("Assign this to a material that uses shader `Crest/Underwater/Post Process`, with the same features enabled as the ocean surface material(s).")]
         Material _underwaterPostProcessMaterial;
 
-        [Header("Debug Options"), SerializeField]
-        bool _viewOceanMask = false;
+        [Header("Debug Options")]
+        [SerializeField] bool _viewPostProcessMask = false;
+        [SerializeField] bool _disableOceanMask = false;
+        [SerializeField, Tooltip(UnderwaterPostProcessUtils.tooltipHorizonSafetyMarginMultiplier), Range(0f, 1f)]
+        float _horizonSafetyMarginMultiplier = UnderwaterPostProcessUtils.DefaultHorizonSafetyMarginMultiplier;
         // end public debug options
 
         private Camera _mainCamera;
@@ -195,7 +198,9 @@ namespace Crest
                 _oceanTextureMask, _oceanDepthBuffer,
                 _generalTextureMask, _generalDepthBuffer,
                 _oceanMaskMaterial, _generalMaskMaterial,
-                _sphericalHarmonicsData
+                _sphericalHarmonicsData,
+                _horizonSafetyMarginMultiplier,
+                _disableOceanMask
             );
 
             _generalUnderwaterMasksToRender.Clear();
@@ -236,7 +241,7 @@ namespace Crest
                 _mainCamera,
                 _underwaterPostProcessMaterialWrapper,
                 _firstRender || _copyOceanMaterialParamsEachFrame,
-                _viewOceanMask
+                _viewPostProcessMask
             );
 
             _postProcessCommandBuffer.Blit(source, target, _underwaterPostProcessMaterial);

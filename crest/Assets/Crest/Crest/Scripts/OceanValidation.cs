@@ -118,7 +118,6 @@ namespace Crest
             {
                 EditorGUILayout.Space();
             }
-
         }
 
         public override void OnInspectorGUI()

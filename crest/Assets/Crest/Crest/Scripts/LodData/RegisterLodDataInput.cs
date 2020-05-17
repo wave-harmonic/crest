@@ -172,7 +172,7 @@ namespace Crest
 
         bool CheckShaderName(Renderer renderer, ValidatedHelper.ShowMessage showMessage)
         {
-            if (!_renderer)
+            if (!renderer)
             {
                 showMessage
                 (

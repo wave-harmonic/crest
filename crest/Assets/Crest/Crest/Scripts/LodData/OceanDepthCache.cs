@@ -447,14 +447,30 @@ namespace Crest
                 isValid = false;
             }
 
-            var rend = GetComponentInChildren<Renderer>();
-            if (rend != null)
+            // Check that there are no renderers in descendants.
+            var renderers = GetComponentsInChildren<Renderer>();
+            if (renderers.Length > (Application.isPlaying ? 1 : 0))
             {
-                showMessage
-                (
-                    "It is not expected that a depth cache object has a Renderer component in its hierarchy. The cache is typically attached to an empty GameObject. Please refer to the example content.",
-                    ValidatedHelper.MessageType.Warning, rend
-                );
+                Renderer quadRenderer = null;
+                if (Application.isPlaying && _drawCacheQuad)
+                {
+                    quadRenderer = _drawCacheQuad.GetComponent<Renderer>();
+                }
+
+                foreach (var renderer in renderers)
+                {
+                    if (ReferenceEquals(renderer, quadRenderer)) continue;
+
+                    showMessage
+                    (
+                        "It is not expected that a depth cache object has a Renderer component in its hierarchy." +
+                        "The cache is typically attached to an empty GameObject. Please refer to the example content.",
+                        ValidatedHelper.MessageType.Warning, renderer
+                    );
+
+                    // Reporting only one renderer at a time will be enough to avoid overwhelming user and UI.
+                    break;
+                }
 
                 isValid = false;
             }

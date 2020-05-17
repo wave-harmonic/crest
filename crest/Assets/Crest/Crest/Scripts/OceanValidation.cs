@@ -68,9 +68,9 @@ namespace Crest
 
             // This is a static list so we need to clear it before use. Not sure if this will ever be a threaded
             // operation which would be an issue.
-            for (var messageTypeIndex = 0; messageTypeIndex < ValidatedHelper.messages.Length; messageTypeIndex++)
+            foreach (var messages in ValidatedHelper.messages)
             {
-                ValidatedHelper.messages[messageTypeIndex].Clear();
+                messages.Clear();
             }
 
             // OceanRenderer isn't a hard requirement for validation to work. Null needs to be handled in each

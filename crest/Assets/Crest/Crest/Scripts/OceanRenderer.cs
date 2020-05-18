@@ -2,6 +2,7 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+using Cinemachine;
 using UnityEditor;
 using UnityEngine;
 
@@ -15,7 +16,9 @@ namespace Crest
     {
         [Tooltip("The viewpoint which drives the ocean detail. Defaults to main camera."), SerializeField]
         Transform _viewpoint;
-        public Transform Viewpoint { get { return _viewpoint; } }
+        public Vector3 Viewpoint { get { return _useCinemachine != null ? _useCinemachine.CurrentCameraState.FinalPosition : _viewpoint.position; } }
+        [Tooltip("If Cinemachine virtual cameras are being used, assign the Cinemachine to this field so that the ocean detail will follow the active camera."), SerializeField]
+        CinemachineBrain _useCinemachine;
 
         [Tooltip("Optional provider for time, can be used to hard-code time for automation, or provide server time. Defaults to local Unity time."), SerializeField]
         TimeProviderBase _timeProvider;
@@ -298,7 +301,7 @@ namespace Crest
 
         void LateUpdatePosition()
         {
-            Vector3 pos = Viewpoint.position;
+            Vector3 pos = Viewpoint;
 
             // maintain y coordinate - sea level
             pos.y = transform.position.y;
@@ -314,7 +317,7 @@ namespace Crest
             // when water height is low and camera is suspended in air. i tried a scheme where it was based on difference
             // to water height but this does help with the problem of horizontal range getting limited at bad times.
             float maxDetailY = SeaLevel - _maxVertDispFromWaves * _dropDetailHeightBasedOnWaves;
-            float camDistance = Mathf.Abs(Viewpoint.position.y - maxDetailY);
+            float camDistance = Mathf.Abs(Viewpoint.y - maxDetailY);
 
             // offset level of detail to keep max detail in a band near the surface
             camDistance = Mathf.Max(camDistance - 4f, 0f);
@@ -336,12 +339,12 @@ namespace Crest
 
         void LateUpdateViewerHeight()
         {
-            _sampleHeightHelper.Init(Viewpoint.position, 0f);
+            _sampleHeightHelper.Init(Viewpoint, 0f);
 
             float waterHeight = 0f;
             _sampleHeightHelper.Sample(ref waterHeight);
 
-            ViewerHeightAboveWater = Viewpoint.position.y - waterHeight;
+            ViewerHeightAboveWater = Viewpoint.y - waterHeight;
         }
 
         void LateUpdateLods()

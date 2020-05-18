@@ -20,11 +20,20 @@ public class CamController : MonoBehaviour
 
     Transform _targetTransform;
 
+    [System.Serializable]
+    class Debug
+    {
+        [Tooltip("Disables the XR occlusion mesh for debugging purposes. Only works with legacy XR.")]
+        public bool disableOcclusionMesh = false;
+    }
+
+    [SerializeField] Debug _debug = new Debug();
+
     void Awake()
     {
         _targetTransform = transform;
 
-        // We cannot change the Camera's transform when XR is enabled.
+        // We cannot change the Camera's transform when XR is enabled. This is not an issue with the new XR plugin.
         if (XRSettings.enabled)
         {
             // Disable XR temporarily so we can change the transform of the camera.
@@ -43,6 +52,9 @@ public class CamController : MonoBehaviour
             // We want to manipulate this transform.
             _targetTransform = parent.transform;
             XRSettings.enabled = true;
+
+            // Seems like the best place to put this for now. Most XR debugging happens using this component.
+            XRSettings.useOcclusionMesh = !_debug.disableOcclusionMesh;
         }
     }
 

@@ -21,8 +21,11 @@ half4 _Phases[BATCH_SIZE / 4];
 half4 _ChopAmps[BATCH_SIZE / 4];
 CBUFFER_END
 
-half4 ComputeGerstner(float2 worldPosXZ, float3 uv_slice)
+half4 ComputeGerstner(float windAngle, float2 worldPosXZ, float3 uv_slice)
 {
+	float2 zaxis = -float2(cos(windAngle), sin(windAngle));
+	float2 xaxis; xaxis.x = -zaxis.y; xaxis.y = zaxis.x;
+
 	float2 displacementNormalized = 0.0;
 
 	// sample ocean depth (this render target should 1:1 match depth texture, so UVs are trivial)
@@ -44,8 +47,8 @@ half4 ComputeGerstner(float2 worldPosXZ, float3 uv_slice)
 	for (uint vi = 0; vi < _NumWaveVecs; vi++)
 	{
 		// direction
-		half4 Dx = _WaveDirX[vi];
-		half4 Dz = _WaveDirZ[vi];
+		half4 Dx = _WaveDirX[vi] * zaxis.x + _WaveDirZ[vi] * xaxis.x;
+		half4 Dz = _WaveDirX[vi] * zaxis.y + _WaveDirZ[vi] * xaxis.y;
 
 		// wave number
 		half4 k = _TwoPiOverWavelengths[vi];

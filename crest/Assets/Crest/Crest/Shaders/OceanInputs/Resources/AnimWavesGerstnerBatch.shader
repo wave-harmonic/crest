@@ -54,9 +54,32 @@ Shader "Hidden/Crest/Inputs/Animated Waves/Gerstner Batch Global"
 				return o;
 			}
 
+			void Quantize(float x, float dx, out float x0, out float alpha)
+			{
+				alpha = frac(x / dx);
+				x0 = x - alpha * dx;
+			}
+
 			half4 Frag(Varyings input) : SV_Target
 			{
-				return ComputeGerstner(input.worldPosXZ, input.uv_slice);
+				// Compute an average wave direction and angle
+				//float headingAngle = 0.05*length(float2(100.1834, 100.348734) - input.worldPosXZ);
+				//float2 headingvec = float2(cos(headingAngle), sin(headingAngle));
+				float2 headingvec = float2(24.0 + 10.*sin(input.worldPosXZ.x / 10.), 3.0 + 15.*cos(input.worldPosXZ.y / 7.)) - input.worldPosXZ;
+
+				float inangle = atan2(headingvec.y, headingvec.x);
+
+				// Quantize the direction
+				float angle = inangle;
+				float dangle = PI / 32.0;
+				float angleAlpha = 1.0;
+				Quantize(inangle, dangle, angle, angleAlpha);
+
+				// Compute the waves for nearest quantized directions, blend
+				half4 waves0 = ComputeGerstner(angle, input.worldPosXZ, input.uv_slice);
+				half4 waves1 = ComputeGerstner(angle + dangle, input.worldPosXZ, input.uv_slice);
+
+				return lerp(waves0, waves1, angleAlpha);
 			}
 			ENDCG
 		}

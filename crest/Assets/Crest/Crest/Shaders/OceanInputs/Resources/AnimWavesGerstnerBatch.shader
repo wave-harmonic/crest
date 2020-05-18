@@ -5,10 +5,6 @@
 // Adds Gerstner waves everywhere. Must be given batch prepared by ShapeGerstnerBatched.cs.
 Shader "Hidden/Crest/Inputs/Animated Waves/Gerstner Batch Global"
 {
-	Properties
-	{
-	}
-
 	SubShader
 	{
 		Pass
@@ -21,7 +17,6 @@ Shader "Hidden/Crest/Inputs/Animated Waves/Gerstner Batch Global"
 			CGPROGRAM
 			#pragma vertex Vert
 			#pragma fragment Frag
-			#pragma multi_compile __ CREST_DIRECT_TOWARDS_POINT_INTERNAL
 
 			#include "UnityCG.cginc"
 

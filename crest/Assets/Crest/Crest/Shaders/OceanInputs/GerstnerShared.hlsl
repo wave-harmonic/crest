@@ -19,8 +19,6 @@ half4 _WaveDirX[BATCH_SIZE / 4];
 half4 _WaveDirZ[BATCH_SIZE / 4];
 half4 _Phases[BATCH_SIZE / 4];
 half4 _ChopAmps[BATCH_SIZE / 4];
-
-float4 _TargetPointData;
 CBUFFER_END
 
 half4 ComputeGerstner(float2 worldPosXZ, float3 uv_slice)
@@ -29,16 +27,6 @@ half4 ComputeGerstner(float2 worldPosXZ, float3 uv_slice)
 
 	// sample ocean depth (this render target should 1:1 match depth texture, so UVs are trivial)
 	const half depth = _LD_TexArray_SeaFloorDepth.Sample(LODData_linear_clamp_sampler, uv_slice).x;
-
-	// Preferred wave directions
-#if CREST_DIRECT_TOWARDS_POINT_INTERNAL
-	float2 offset = worldPosXZ - _TargetPointData.xy;
-	float preferDist = length(offset);
-	float preferWt = smoothstep(_TargetPointData.w, _TargetPointData.z, preferDist);
-	half2 preferredDir = preferWt * offset / preferDist;
-	half4 preferredDirX = preferredDir.x;
-	half4 preferredDirZ = preferredDir.y;
-#endif
 
 	half3 result = (half3)0.0;
 
@@ -58,11 +46,6 @@ half4 ComputeGerstner(float2 worldPosXZ, float3 uv_slice)
 		// direction
 		half4 Dx = _WaveDirX[vi];
 		half4 Dz = _WaveDirZ[vi];
-
-		// Peferred wave direction
-#if CREST_DIRECT_TOWARDS_POINT_INTERNAL
-		wt *= max((1.0 + Dx * preferredDirX + Dz * preferredDirZ) / 2.0, 0.1);
-#endif
 
 		// wave number
 		half4 k = _TwoPiOverWavelengths[vi];

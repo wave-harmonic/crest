@@ -32,19 +32,13 @@ namespace Crest
 
         public class GerstnerBatch : ILodDataInput
         {
-            public GerstnerBatch(MeshRenderer rend, bool directTowardsPoint)
+            public GerstnerBatch(MeshRenderer rend)
             {
                 _materials = new PropertyWrapperMaterial[]
                 {
                     new PropertyWrapperMaterial(new Material(rend.sharedMaterial ?? rend.material)),
                     new PropertyWrapperMaterial(new Material(rend.sharedMaterial ?? rend.material))
                 };
-
-                if (directTowardsPoint)
-                {
-                    _materials[0].material.EnableKeyword(DIRECT_TOWARDS_POINT_KEYWORD);
-                    _materials[1].material.EnableKeyword(DIRECT_TOWARDS_POINT_KEYWORD);
-                }
 
                 _rend = rend;
             }
@@ -89,15 +83,6 @@ namespace Crest
         public float[] _angleDegs;
         public float[] _phases;
 
-        [SerializeField, Tooltip("Make waves converge towards a point. Must be set at edit time only, applied on startup."), Header("Direct towards point")]
-        bool _directTowardsPoint = false;
-        [SerializeField, Tooltip("Target point XZ to converge to.")]
-        Vector2 _pointPositionXZ = Vector2.zero;
-        [SerializeField, Tooltip("Inner and outer radii. Influence at full strength at inner radius, fades off at outer radius.")]
-        Vector2 _pointRadii = new Vector2(100f, 200f);
-
-        const string DIRECT_TOWARDS_POINT_KEYWORD = "CREST_DIRECT_TOWARDS_POINT_INTERNAL";
-
         readonly int sp_TwoPiOverWavelengths = Shader.PropertyToID("_TwoPiOverWavelengths");
         readonly int sp_Amplitudes = Shader.PropertyToID("_Amplitudes");
         readonly int sp_WaveDirX = Shader.PropertyToID("_WaveDirX");
@@ -107,7 +92,6 @@ namespace Crest
         readonly int sp_NumInBatch = Shader.PropertyToID("_NumInBatch");
         readonly int sp_AttenuationInShallows = Shader.PropertyToID("_AttenuationInShallows");
         readonly int sp_NumWaveVecs = Shader.PropertyToID("_NumWaveVecs");
-        readonly int sp_TargetPointData = Shader.PropertyToID("_TargetPointData");
 
         // IMPORTANT - this mirrors the constant with the same name in ShapeGerstnerBatch.shader, both must be updated together!
         const int BATCH_SIZE = 32;
@@ -287,7 +271,7 @@ namespace Crest
             _batches = new GerstnerBatch[LodDataMgr.MAX_LOD_COUNT];
             for (int i = 0; i < _batches.Length; i++)
             {
-                _batches[i] = new GerstnerBatch(rend, _directTowardsPoint);
+                _batches[i] = new GerstnerBatch(rend);
             }
 
             // Submit draws to create the Gerstner waves. LODs from 0 to N-2 render the Gerstner waves from their lod. Additionally, any waves
@@ -422,11 +406,6 @@ namespace Crest
                 {
                     LodDataMgrSeaFloorDepth.BindNull(mat, false);
                 }
-
-                if (_directTowardsPoint)
-                {
-                    mat.SetVector(sp_TargetPointData, new Vector4(_pointPositionXZ.x, _pointPositionXZ.y, _pointRadii.x, _pointRadii.y));
-                }
             }
 
             batch.Enabled = true;
@@ -513,14 +492,6 @@ namespace Crest
             {
                 Gizmos.color = RegisterAnimWavesInput.s_gizmoColor;
                 Gizmos.DrawWireMesh(mf.sharedMesh, transform.position, transform.rotation, transform.lossyScale);
-            }
-
-            if (_directTowardsPoint)
-            {
-                Gizmos.color = Color.black;
-                Gizmos.DrawWireSphere(new Vector3(_pointPositionXZ.x, transform.position.y, _pointPositionXZ.y), _pointRadii.y);
-                Gizmos.color = Color.white;
-                Gizmos.DrawWireSphere(new Vector3(_pointPositionXZ.x, transform.position.y, _pointPositionXZ.y), _pointRadii.x);
             }
         }
 #endif

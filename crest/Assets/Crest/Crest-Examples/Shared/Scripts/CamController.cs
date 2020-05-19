@@ -72,6 +72,15 @@ public class CamController : MonoBehaviour
             UpdateDragging(dt);
             UpdateKillRoll();
         }
+
+        if (XRSettings.enabled)
+        {
+            // Check if property has changed.
+            if (XRSettings.useOcclusionMesh == _debug.disableOcclusionMesh)
+            {
+                XRSettings.useOcclusionMesh = !_debug.disableOcclusionMesh;
+            }
+        }
     }
 
     void UpdateMovement(float dt)

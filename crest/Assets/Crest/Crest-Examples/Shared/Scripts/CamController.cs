@@ -25,6 +25,9 @@ public class CamController : MonoBehaviour
     {
         [Tooltip("Disables the XR occlusion mesh for debugging purposes. Only works with legacy XR.")]
         public bool disableOcclusionMesh = false;
+
+        [Tooltip("Sets the XR occlusion mesh scale. Useful for debugging refractions. Only works with legacy XR."), Range(1f, 2f)]
+        public float occlusionMeshScale = 1f;
     }
 
     [SerializeField] DebugFields _debug = new DebugFields();
@@ -55,6 +58,7 @@ public class CamController : MonoBehaviour
 
             // Seems like the best place to put this for now. Most XR debugging happens using this component.
             XRSettings.useOcclusionMesh = !_debug.disableOcclusionMesh;
+            XRSettings.occlusionMaskScale = _debug.occlusionMeshScale;
         }
     }
 
@@ -80,6 +84,8 @@ public class CamController : MonoBehaviour
             {
                 XRSettings.useOcclusionMesh = !_debug.disableOcclusionMesh;
             }
+
+            XRSettings.occlusionMaskScale = _debug.occlusionMeshScale;
         }
     }
 

@@ -59,6 +59,8 @@ namespace Crest
 
     public abstract class ValidatedEditor : Editor
     {
+        static readonly bool _groupMessages = false;
+
         public void ShowValidationMessages()
         {
             IValidated target = (IValidated)this.target;
@@ -99,19 +101,30 @@ namespace Crest
 
                     needsSpaceBelow = true;
 
-                    // We join the messages together to reduce vertical space since HelpBox has padding, borders etc.
-                    var joinedMessage = messages[0];
-                    // Format as list if we have more than one message.
-                    if (messages.Count > 1) joinedMessage = $"- {joinedMessage}";
-
-                    for (var messageIndex = 1; messageIndex < messages.Count; messageIndex++)
-                    {
-                        joinedMessage += $"\n- {messages[messageIndex]}";
-                    }
-
                     // Map Validated.MessageType to HelpBox.MessageType.
                     var messageType = (MessageType)ValidatedHelper.messages.Length - messageTypeIndex;
-                    EditorGUILayout.HelpBox(joinedMessage, messageType);
+
+                    if (_groupMessages)
+                    {
+                        // We join the messages together to reduce vertical space since HelpBox has padding, borders etc.
+                        var joinedMessage = messages[0];
+                        // Format as list if we have more than one message.
+                        if (messages.Count > 1) joinedMessage = $"- {joinedMessage}";
+
+                        for (var messageIndex = 1; messageIndex < messages.Count; messageIndex++)
+                        {
+                            joinedMessage += $"\n- {messages[messageIndex]}";
+                        }
+
+                        EditorGUILayout.HelpBox(joinedMessage, messageType);
+                    }
+                    else
+                    {
+                        foreach (var message in messages)
+                        {
+                            EditorGUILayout.HelpBox(message, messageType);
+                        }
+                    }
                 }
             }
 

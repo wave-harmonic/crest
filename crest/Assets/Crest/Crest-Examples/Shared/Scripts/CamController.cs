@@ -21,13 +21,13 @@ public class CamController : MonoBehaviour
     Transform _targetTransform;
 
     [System.Serializable]
-    class Debug
+    class DebugFields
     {
         [Tooltip("Disables the XR occlusion mesh for debugging purposes. Only works with legacy XR.")]
         public bool disableOcclusionMesh = false;
     }
 
-    [SerializeField] Debug _debug = new Debug();
+    [SerializeField] DebugFields _debug = new DebugFields();
 
     void Awake()
     {

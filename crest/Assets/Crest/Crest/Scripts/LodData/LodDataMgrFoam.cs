@@ -118,16 +118,5 @@ namespace Crest
             // Init here from 2019.3 onwards
             s_textureArrayParamIds = new TextureArrayParamIds(s_textureArrayName);
         }
-
-        // To discuss - this throws a null ref. Maybe the loddatas are recreated so not sure if this is needed
-//#if UNITY_EDITOR
-//        [UnityEditor.Callbacks.DidReloadScripts]
-//        protected static void OnReLoadScripts()
-//        {
-//            var ocean = Object.FindObjectOfType<OceanRenderer>();
-//            if (ocean == null) return;
-//            ocean._lodDataFoam.CreateProperties(ocean.CurrentLodCount);
-//        }
-//#endif
     }
 }

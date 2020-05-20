@@ -280,7 +280,7 @@ namespace Crest
 
         /// <summary>
         /// Remove air bubbles from the query array. Currently this lazily just nukes all the registered
-        /// query IDs so they'll be recreated next time (generating garbage). TODO..
+        /// query IDs so they'll be recreated next time (generating garbage).
         /// </summary>
         public void CompactQueryStorage()
         {

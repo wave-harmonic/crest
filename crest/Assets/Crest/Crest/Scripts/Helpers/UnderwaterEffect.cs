@@ -63,7 +63,7 @@ namespace Crest
         void ConfigureMaterial()
         {
             if (OceanRenderer.Instance == null) return;
-            
+
             var keywords = _rend.sharedMaterial.shaderKeywords;
 
             foreach (var keyword in keywords)
@@ -91,7 +91,9 @@ namespace Crest
             }
 
             float waterHeight = OceanRenderer.Instance.SeaLevel;
-            _sampleWaterHeight.Init(transform.position, 0f);
+            // Pass true in last arg for a crap reason - in edit mode LateUpdate can be called very frequently, and the height sampler mistakenly thinks
+            // this is erroneous and complains.
+            _sampleWaterHeight.Init(transform.position, 0f, true);
             _sampleWaterHeight.Sample(ref waterHeight);
 
             float heightOffset = transform.position.y - waterHeight;

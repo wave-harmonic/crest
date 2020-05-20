@@ -22,6 +22,8 @@ namespace Crest
             get
             {
 //#if UNITY_EDITOR
+//                // This does an ok job of grabbing the scene view camera, but the ocean does not render correctly. Seems that maybe the detail center is in the
+//                // wrong place. Not sure..
 //                var sv = SceneView.lastActiveSceneView;
 //                if (sv != null && !EditorApplication.isPlaying && sv.camera != null)
 //                {

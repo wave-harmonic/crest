@@ -71,7 +71,7 @@ namespace Crest
 
             _renderProperties = new PropertyWrapperCompute();
             _updateShadowShader = ComputeShaderHelpers.LoadShader(UpdateShadow);
-            if(_updateShadowShader == null)
+            if (_updateShadowShader == null)
             {
                 enabled = false;
                 return;
@@ -204,8 +204,14 @@ namespace Crest
             ValidateSourceData();
 
             // clear the shadow collection. it will be overwritten with shadow values IF the shadows render,
-            // which only happens if there are (nontransparent) shadow receivers around
-            TextureArrayHelpers.ClearToBlack(_targets);
+            // which only happens if there are (nontransparent) shadow receivers around. this is only reliable
+            // in play mode, so don't do it in edit mode.
+#if UNITY_EDITOR
+            if (UnityEditor.EditorApplication.isPlaying)
+#endif
+            {
+                TextureArrayHelpers.ClearToBlack(_targets);
+            }
 
             var lt = OceanRenderer.Instance._lodTransform;
             for (var lodIdx = lt.LodCount - 1; lodIdx >= 0; lodIdx--)

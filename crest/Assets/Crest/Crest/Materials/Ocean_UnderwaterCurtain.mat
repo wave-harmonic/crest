@@ -68,6 +68,7 @@ Material:
     - _GlossyReflections: 1
     - _Metallic: 0
     - _Mode: 0
+    - _OcclusionClamp: 0.431
     - _OcclusionStrength: 1
     - _Parallax: 0.02
     - _Shadows: 1
@@ -77,6 +78,7 @@ Material:
     - _SubSurfaceHeightLerp: 1
     - _SubSurfaceScattering: 1
     - _SubSurfaceShallowColour: 1
+    - _Test: 1
     - _Transparency: 1
     - _UVSec: 0
     - _ZWrite: 1

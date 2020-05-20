@@ -5,11 +5,18 @@
 #ifndef CREST_OCEAN_EMISSION_INCLUDED
 #define CREST_OCEAN_EMISSION_INCLUDED
 
+uniform half _ClampRefractionsXA;
+uniform half _ClampRefractionsXB;
+uniform half _ClampRefractionsYA;
+uniform half _ClampRefractionsYB;
+
 uniform half3 _Diffuse;
 uniform half3 _DiffuseGrazing;
 
 // this is copied from the render target by unity
 uniform sampler2D _BackgroundTexture;
+uniform half4 _BackgroundTexture_ST;
+uniform half4 _BackgroundTexture_TexelSize;
 
 #if _TRANSPARENCY_ON
 uniform half _RefractionStrength;
@@ -46,6 +53,25 @@ uniform half _CausticsDistortionStrength;
 #if _SHADOWS_ON
 uniform half3 _DiffuseShadow;
 #endif
+
+
+void ClampOcclusionMask(inout half2 uv)
+{
+#ifndef UNITY_SINGLE_PASS_STEREO
+	return;
+#endif
+	if (unity_StereoEyeIndex == 0)
+	{
+		uv.x = clamp(uv.x, _ClampRefractionsXA, 1.0 - _ClampRefractionsXB);
+	}
+	else
+	{
+		uv.x = clamp(uv.x, _ClampRefractionsXB, 1.0 - _ClampRefractionsXA);
+	}
+
+	uv.y = clamp(uv.y, _ClampRefractionsYA, 1.0 - _ClampRefractionsYB);
+}
+
 
 half3 ScatterColour(
 	in const half i_surfaceOceanDepth, in const float3 i_cameraPos,
@@ -229,7 +255,23 @@ half3 OceanEmission(in const half3 i_view, in const half3 i_n_pixel, in const fl
 	else
 	{
 		half2 uvBackgroundRefractSky = uvBackground + _RefractionStrength * i_n_pixel.xz;
+
+#if _CLAMPREFRACTIONS_ON
+	ClampOcclusionMask(uvBackgroundRefractSky);
+#endif
+
+#if _RESAMPLEREFRACTIONS_ON
+		half4 tempSceneColour = tex2D(_BackgroundTexture, uvBackgroundRefractSky);
+		// Occlusion mask returns alpha zero.
+		if (tempSceneColour.a == 0)
+		{
+			tempSceneColour = tex2D(_BackgroundTexture, uvBackground + 0.1 * i_n_pixel.xz);
+		}
+		sceneColour = tempSceneColour.rgb;
+#else
 		sceneColour = tex2D(_BackgroundTexture, uvBackgroundRefractSky).rgb;
+#endif
+
 		depthFogDistance = i_pixelZ;
 		// keep alpha at 0 as UnderwaterReflection shader handles the blend
 		// appropriately when looking at water from below

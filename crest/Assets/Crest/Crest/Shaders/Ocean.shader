@@ -6,6 +6,13 @@ Shader "Crest/Ocean"
 {
 	Properties
 	{
+		[Toggle] _ResampleRefractions("Resample Refractions", Float) = 1.0
+		[Toggle] _ClampRefractions("Clamp Refractions", Float) = 1.0
+		_ClampRefractionsXA("Clamp Refractions XA", Range(0.0, 1.0)) = 0.0
+		_ClampRefractionsXB("Clamp Refractions XB", Range(0.0, 1.0)) = 0.0
+		_ClampRefractionsYA("Clamp Refractions YA", Range(0.0, 1.0)) = 0.0
+		_ClampRefractionsYB("Clamp Refractions YB", Range(0.0, 1.0)) = 0.0
+
 		[Header(Normal Mapping)]
 		// Whether to add normal detail from a texture. Can be used to add visual detail to the water surface
 		[Toggle] _ApplyNormalMapping("Enable", Float) = 1
@@ -223,6 +230,9 @@ Shader "Crest/Ocean"
 			#pragma shader_feature _FLOW_ON
 			#pragma shader_feature _SHADOWS_ON
 			#pragma shader_feature _CLIPSURFACE_ON
+
+			#pragma shader_feature _RESAMPLEREFRACTIONS_ON
+			#pragma shader_feature _CLAMPREFRACTIONS_ON
 
 			#pragma shader_feature _DEBUGDISABLESHAPETEXTURES_ON
 			#pragma shader_feature _DEBUGVISUALISESHAPESAMPLE_ON

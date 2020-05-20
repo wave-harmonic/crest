@@ -7,7 +7,8 @@ Shader "Crest/Underwater Curtain"
 	Properties
 	{
 		// Most properties are copied over from the main ocean material on startup
-
+		[Toggle] _Test("Test Enable", Float) = 1
+		_OcclusionClamp("OcclusionClamp", Range(0.0, 1.0)) = 0.05
 		// Shader features need to be statically configured - it works to dynamically configure them in editor, but in standalone
 		// builds they need to be preconfigured. This is a pitfall unfortunately - the settings need to be manually matched.
 		[Toggle] _Shadows("Shadowing", Float) = 0

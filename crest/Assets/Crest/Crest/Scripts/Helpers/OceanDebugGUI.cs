@@ -32,14 +32,6 @@ namespace Crest
 
         static Material s_textureArrayMaterial = null;
 
-        void Awake()
-        {
-            if (s_textureArrayMaterial == null)
-            {
-                s_textureArrayMaterial = new Material(Shader.Find("Hidden/Crest/Debug/TextureArray"));
-            }
-        }
-
         public static bool OverGUI(Vector2 screenPosition)
         {
             return screenPosition.x < _leftPanelWidth;
@@ -220,6 +212,11 @@ namespace Crest
                     {
                         float y = idx * h;
                         if (offset == 1f) w += b;
+
+                        if (s_textureArrayMaterial == null)
+                        {
+                            s_textureArrayMaterial = new Material(Shader.Find("Hidden/Crest/Debug/TextureArray"));
+                        }
 
                         // Render specific slice of 2D texture array
                         s_textureArrayMaterial.SetInt("_Depth", idx);

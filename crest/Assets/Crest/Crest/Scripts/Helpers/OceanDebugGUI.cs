@@ -126,10 +126,9 @@ namespace Crest
                         GUI.Label(new Rect(x, y, w, h), string.Format("Sim steps: {0:0.00000} x {1}", dt, steps)); y += h;
                     }
 
-                    if (OceanRenderer.Instance.CollisionProvider != null && OceanRenderer.Instance.CollisionProvider is QueryBase)
+                    var querySystem = OceanRenderer.Instance.CollisionProvider as QueryBase;
+                    if (OceanRenderer.Instance.CollisionProvider != null && querySystem != null)
                     {
-                        var querySystem = OceanRenderer.Instance.CollisionProvider as QueryBase;
-                        Debug.Assert(querySystem != null);
                         GUI.Label(new Rect(x, y, w, h), string.Format("Query result GUIDs: {0}", querySystem.ResultGuidCount)); y += h;
                     }
 

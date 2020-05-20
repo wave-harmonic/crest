@@ -22,7 +22,19 @@ namespace Crest
 
         // This is used as alternative to Texture2D.blackTexture, as using that
         // is not possible in some shaders.
-        public static Texture2DArray BlackTextureArray { get; private set; }
+        static Texture2DArray _blackTextureArray = null;
+        public static Texture2DArray BlackTextureArray
+        {
+            get
+            {
+                if (_blackTextureArray == null)
+                {
+                    _blackTextureArray = CreateTexture2DArray(Texture2D.blackTexture);
+                    _blackTextureArray.name = "Black Texture2DArray";
+                }
+                return _blackTextureArray;
+            }
+        }
 
         // Unity 2018.* does not support blitting to texture arrays, so have
         // implemented a custom version to clear to black
@@ -75,15 +87,15 @@ namespace Crest
 #if UNITY_2019_3_OR_NEWER
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
 #endif
-        public static void InitStatics()
+        static void InitStatics()
         {
             // Init here from 2019.3 onwards
             sp_LD_TexArray_Target = Shader.PropertyToID("_LD_TexArray_Target");
 
-            if (BlackTextureArray == null)
+            if (_blackTextureArray == null)
             {
-                BlackTextureArray = CreateTexture2DArray(Texture2D.blackTexture);
-                BlackTextureArray.name = "Black Texture2DArray";
+                _blackTextureArray = CreateTexture2DArray(Texture2D.blackTexture);
+                _blackTextureArray.name = "Black Texture2DArray";
             }
 
             if (s_clearToBlackShader == null)

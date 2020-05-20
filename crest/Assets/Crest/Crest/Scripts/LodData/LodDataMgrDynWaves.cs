@@ -174,13 +174,6 @@ namespace Crest
         }
         public static void BindNull(IPropertyWrapper properties, bool sourceLod = false)
         {
-#if UNITY_EDITOR
-            // Hack - make sure BlackTextureArray is initialised
-            if (TextureArrayHelpers.BlackTextureArray == null)
-            {
-                TextureArrayHelpers.InitStatics();
-            }
-#endif
             properties.SetTexture(ParamIdSampler(sourceLod), TextureArrayHelpers.BlackTextureArray);
         }
 

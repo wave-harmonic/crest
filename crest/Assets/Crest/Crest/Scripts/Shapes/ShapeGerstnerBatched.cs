@@ -333,7 +333,6 @@ namespace Crest
         void UpdateBatch(int lodIdx, int firstComponent, int lastComponentNonInc, GerstnerBatch batch)
         {
             batch.HasWaves = false;
-            //batch.Enabled = false;
 
             int numComponents = lastComponentNonInc - firstComponent;
             int numInBatch = 0;
@@ -456,7 +455,6 @@ namespace Crest
             }
 
             batch.HasWaves = true;
-            //batch.Enabled = true;
         }
 
         void UpdateBatch(GerstnerBatch batch, int batchIdx)
@@ -501,65 +499,6 @@ namespace Crest
                 UpdateBatch(lodIdx, startCompIdx, componentIdx, batch);
             }
         }
-
-        /// <summary>
-        /// More complicated than one would hope - loops over each component and assigns to a Gerstner batch which will render to a LOD.
-        /// the camera WL range does not always match the octave WL range (because the vertices per wave is not constrained to powers of
-        /// 2, unfortunately), so i cant easily just loop over octaves. also any WLs that either go to the last WDC, or don't fit in the last
-        /// WDC, are rendered into both the last and second-to-last WDCs, in order to transition them smoothly without pops in all scenarios.
-        /// </summary>
-        //void LateUpdate()
-        //{
-        //    if (OceanRenderer.Instance == null || _batches == null)
-        //    {
-        //        return;
-        //    }
-
-        //    int componentIdx = 0;
-
-        //    // seek forward to first wavelength that is big enough to render into current LODs
-        //    float minWl = OceanRenderer.Instance._lodTransform.MaxWavelength(0) / 2f;
-        //    while (_wavelengths[componentIdx] < minWl && componentIdx < _wavelengths.Length)
-        //    {
-        //        componentIdx++;
-        //    }
-
-        //    for (int i = 0; i < _batches.Length; i++)
-        //    {
-        //        // Default to disabling all batches
-        //        _batches[i].Enabled = false;
-        //    }
-
-        //    int batch = 0;
-        //    int lodIdx = 0;
-        //    while (componentIdx < _wavelengths.Length)
-        //    {
-        //        if (batch >= _batches.Length)
-        //        {
-        //            Debug.LogWarning("Out of Gerstner batches.", this);
-        //            break;
-        //        }
-
-        //        // Assemble wavelengths into current batch
-        //        int startCompIdx = componentIdx;
-        //        while (componentIdx < _wavelengths.Length && _wavelengths[componentIdx] < 2f * minWl)
-        //        {
-        //            componentIdx++;
-        //        }
-
-        //        // One or more wavelengths - update the batch
-        //        if (componentIdx > startCompIdx)
-        //        {
-        //            UpdateBatch(lodIdx, startCompIdx, componentIdx, _batches[batch]);
-
-        //            _batches[batch].Wavelength = minWl;
-        //        }
-
-        //        batch++;
-        //        lodIdx = Mathf.Min(lodIdx + 1, OceanRenderer.Instance.CurrentLodCount - 1);
-        //        minWl *= 2f;
-        //    }
-        //}
 
         void OnDisable()
         {

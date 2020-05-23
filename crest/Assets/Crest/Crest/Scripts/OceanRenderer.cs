@@ -294,6 +294,13 @@ namespace Crest
             }
         }
 
+        private void OnDisable()
+        {
+            CleanUp();
+
+            Instance = null;
+        }
+
 #if UNITY_EDITOR
         static void EditorUpdate()
         {
@@ -683,15 +690,35 @@ namespace Crest
             }
         }
 
-        private void OnDisable()
+        private void CleanUp()
         {
-            // This does bad things - maybe creates a deactivation loop?
-            //OceanBuilder.ClearOutTiles(this);
-
             foreach (var lodData in _lodDatas)
             {
                 lodData.OnDisable();
             }
+            _lodDatas.Clear();
+
+#if UNITY_EDITOR
+            if (!EditorApplication.isPlaying)
+            {
+                DestroyImmediate(Root.gameObject);
+            }
+            else
+#endif
+            {
+                Destroy(Root.gameObject);
+            }
+
+            Root = null;
+
+            _lodTransform = null;
+            _lodDataAnimWaves = null;
+            _lodDataClipSurface = null;
+            _lodDataDynWaves = null;
+            _lodDataFlow = null;
+            _lodDataFoam = null;
+            _lodDataSeaDepths = null;
+            _lodDataShadow = null;
         }
 
 #if UNITY_EDITOR

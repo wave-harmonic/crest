@@ -126,12 +126,12 @@ namespace Crest
             Count,
         }
 
-        public static void GenerateMesh(OceanRenderer ocean, int lodDataResolution, int geoDownSampleFactor, int lodCount)
+        public static Transform GenerateMesh(OceanRenderer ocean, int lodDataResolution, int geoDownSampleFactor, int lodCount)
         {
             if (lodCount < 1)
             {
                 Debug.LogError("Invalid LOD count: " + lodCount.ToString(), ocean);
-                return;
+                return null;
             }
 
             int oceanLayer = LayerMask.NameToLayer(ocean.LayerName);
@@ -157,41 +157,64 @@ namespace Crest
 
             ClearOutTiles(ocean);
 
+            var root = new GameObject("Root");
+            root.hideFlags = HideFlags.DontSave;
+            root.transform.parent = ocean.transform;
+            root.transform.localPosition = Vector3.zero;
+            root.transform.localRotation = Quaternion.identity;
+            root.transform.localScale = Vector3.one;
+
             for (int i = 0; i < lodCount; i++)
             {
-                CreateLOD(ocean, i, lodCount, meshInsts, lodDataResolution, geoDownSampleFactor, oceanLayer);
+                CreateLOD(ocean, root.transform, i, lodCount, meshInsts, lodDataResolution, geoDownSampleFactor, oceanLayer);
             }
 
 #if PROFILE_CONSTRUCTION
             sw.Stop();
             Debug.Log( "Finished generating " + lodCount.ToString() + " LODs, time: " + (1000.0*sw.Elapsed.TotalSeconds).ToString(".000") + "ms" );
 #endif
+
+            return root.transform;
         }
 
         public static void ClearOutTiles(OceanRenderer ocean)
         {
-            // Remove existing LODs
-            for (int i = 0; i < ocean.transform.childCount; i++)
+            if (ocean.Root == null)
             {
-                var child = ocean.transform.GetChild(i);
+                return;
+            }
+
+            // Remove existing LODs
+            for (int i = 0; i < ocean.Root.childCount; i++)
+            {
+                var child = ocean.Root.GetChild(i);
                 if (child.name.StartsWith("Tile_L"))
                 {
-                    child.parent = null;
-#if UNITY_EDITOR
-                    if (UnityEditor.EditorApplication.isPlaying)
-                    {
-                        Object.Destroy(child.gameObject);
-                    }
-                    else
-                    {
-                        Object.DestroyImmediate(child.gameObject);
-                    }
-#else
-                    Object.Destroy(child.gameObject);
-#endif
+                    DestroyGO(child);
+
                     i--;
                 }
             }
+
+            DestroyGO(ocean.Root);
+        }
+
+        static void DestroyGO(Transform go)
+        {
+            go.parent = null;
+
+#if UNITY_EDITOR
+            if (UnityEditor.EditorApplication.isPlaying)
+            {
+                Object.Destroy(go.gameObject);
+            }
+            else
+            {
+                Object.DestroyImmediate(go.gameObject);
+            }
+#else
+            Object.Destroy(go.gameObject);
+#endif
         }
 
         static Mesh BuildOceanPatch(PatchType pt, float vertDensity)
@@ -329,7 +352,7 @@ namespace Crest
             return mesh;
         }
 
-        static void CreateLOD(OceanRenderer ocean, int lodIndex, int lodCount, Mesh[] meshData, int lodDataResolution, int geoDownSampleFactor, int oceanLayer)
+        static void CreateLOD(OceanRenderer ocean, Transform parent, int lodIndex, int lodCount, Mesh[] meshData, int lodDataResolution, int geoDownSampleFactor, int oceanLayer)
         {
             float horizScale = Mathf.Pow(2f, lodIndex);
 
@@ -411,7 +434,7 @@ namespace Crest
                 var patch = new GameObject(string.Format("Tile_L{0}", lodIndex));
                 patch.hideFlags = HideFlags.DontSave;
                 patch.layer = oceanLayer;
-                patch.transform.parent = ocean.transform;
+                patch.transform.parent = parent;
                 Vector2 pos = offsets[i];
                 patch.transform.localPosition = horizScale * new Vector3(pos.x, 0f, pos.y);
                 // scale only horizontally, otherwise culling bounding box will be scaled up in y

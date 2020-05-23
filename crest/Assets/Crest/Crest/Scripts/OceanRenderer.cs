@@ -50,6 +50,8 @@ namespace Crest
             }
         }
 
+        public Transform Root { get; private set; }
+
 #if UNITY_EDITOR
         static EditorWindow _lastGameOrSceneEditorWindow = null;
 #endif
@@ -185,7 +187,7 @@ namespace Crest
         /// <summary>
         /// Sea level is given by y coordinate of GameObject with OceanRenderer script.
         /// </summary>
-        public float SeaLevel { get { return transform.position.y; } }
+        public float SeaLevel { get { return Root.position.y; } }
 
         [HideInInspector] public LodTransform _lodTransform;
         [HideInInspector] public LodDataMgrAnimWaves _lodDataAnimWaves;
@@ -260,7 +262,7 @@ namespace Crest
             // We could calculate this in the shader, but we can save two subtractions this way.
             _lodAlphaBlackPointWhitePointFade = 1f - _lodAlphaBlackPointFade - _lodAlphaBlackPointFade;
 
-            OceanBuilder.GenerateMesh(this, _lodDataResolution, _geometryDownSampleFactor, _lodCount);
+            Root = OceanBuilder.GenerateMesh(this, _lodDataResolution, _geometryDownSampleFactor, _lodCount);
 
             InitLodData();
 
@@ -439,11 +441,11 @@ namespace Crest
             Vector3 pos = Viewpoint.position;
 
             // maintain y coordinate - sea level
-            pos.y = transform.position.y;
+            pos.y = Root.position.y;
 
-            transform.position = pos;
+            Root.position = pos;
 
-            Shader.SetGlobalVector(sp_oceanCenterPosWorld, transform.position);
+            Shader.SetGlobalVector(sp_oceanCenterPosWorld, Root.position);
         }
 
         void LateUpdateScale()
@@ -469,7 +471,7 @@ namespace Crest
             ViewerAltitudeLevelAlpha = l2 - l2f;
 
             Scale = Mathf.Pow(2f, l2f);
-            transform.localScale = new Vector3(Scale, 1f, Scale);
+            Root.localScale = new Vector3(Scale, 1f, Scale);
         }
 
         void LateUpdateViewerHeight()
@@ -615,11 +617,11 @@ namespace Crest
         /// <summary>
         /// Could the ocean horizontal scale increase (for e.g. if the viewpoint gains altitude). Will be false if ocean already at maximum scale.
         /// </summary>
-        public bool ScaleCouldIncrease { get { return _maxScale == -1f || transform.localScale.x < _maxScale * 0.99f; } }
+        public bool ScaleCouldIncrease { get { return _maxScale == -1f || Root.localScale.x < _maxScale * 0.99f; } }
         /// <summary>
         /// Could the ocean horizontal scale decrease (for e.g. if the viewpoint drops in altitude). Will be false if ocean already at minimum scale.
         /// </summary>
-        public bool ScaleCouldDecrease { get { return _minScale == -1f || transform.localScale.x > _minScale * 1.01f; } }
+        public bool ScaleCouldDecrease { get { return _minScale == -1f || Root.localScale.x > _minScale * 1.01f; } }
 
         /// <summary>
         /// User shape inputs can report in how far they might displace the shape horizontally and vertically. The max value is

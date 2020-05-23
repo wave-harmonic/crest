@@ -90,8 +90,8 @@ namespace Crest
                 _renderData[lodIdx]._textureRes = OceanRenderer.Instance.LodDataResolution;
                 _renderData[lodIdx]._texelWidth = 2f * camOrthSize / _renderData[lodIdx]._textureRes;
                 // snap so that shape texels are stationary
-                _renderData[lodIdx]._posSnapped = OceanRenderer.Instance.transform.position
-                    - new Vector3(Mathf.Repeat(OceanRenderer.Instance.transform.position.x, _renderData[lodIdx]._texelWidth), 0f, Mathf.Repeat(OceanRenderer.Instance.transform.position.z, _renderData[lodIdx]._texelWidth));
+                _renderData[lodIdx]._posSnapped = OceanRenderer.Instance.Root.position
+                    - new Vector3(Mathf.Repeat(OceanRenderer.Instance.Root.position.x, _renderData[lodIdx]._texelWidth), 0f, Mathf.Repeat(OceanRenderer.Instance.Root.position.z, _renderData[lodIdx]._texelWidth));
 
                 _renderData[lodIdx]._frame = OceanRenderer.FrameCount;
 

@@ -211,7 +211,7 @@ namespace Crest
                 var centerPoint = Vector3.zero;
                 if (OceanRenderer.Instance != null)
                 {
-                    centerPoint.y = OceanRenderer.Instance.transform.position.y;
+                    centerPoint.y = OceanRenderer.Instance.Root.position.y;
                 }
                 else
                 {
@@ -319,7 +319,7 @@ namespace Crest
                 Debug.LogError($"Validation: Ocean depth cache scale Y should be set to 1.0. Its current scale in the hierarchy is {transform.lossyScale.y}.", this);
             }
 
-            if (Mathf.Abs(transform.position.y - ocean.transform.position.y) > 0.00001f)
+            if (Mathf.Abs(transform.position.y - ocean.Root.position.y) > 0.00001f)
             {
                 Debug.LogWarning("Validation: It is recommended that the cache is placed at the same height (y component of position) as the ocean, i.e. at the sea level. If the cache is created before the ocean is present, the cache height will inform the sea level. Click this message to highlight the cache in question.", this);
             }

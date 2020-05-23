@@ -100,7 +100,7 @@ namespace Crest
             }
 
             // determine if this LOD has changed scale and by how much (in exponent of 2)
-            float oceanLocalScale = OceanRenderer.Instance.transform.localScale.x;
+            float oceanLocalScale = OceanRenderer.Instance.Root.localScale.x;
             if (_oceanLocalScalePrev == -1f) _oceanLocalScalePrev = oceanLocalScale;
             float ratio = oceanLocalScale / _oceanLocalScalePrev;
             _oceanLocalScalePrev = oceanLocalScale;

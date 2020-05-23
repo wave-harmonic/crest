@@ -162,7 +162,7 @@ namespace Crest
             }
 
             // Find out the reflection plane: position and normal in world space
-            Vector3 planePos = OceanRenderer.Instance.transform.position;
+            Vector3 planePos = OceanRenderer.Instance.Root.position;
             Vector3 planeNormal = Vector3.up;
 
             // Optionally disable pixel lights for reflection/refraction

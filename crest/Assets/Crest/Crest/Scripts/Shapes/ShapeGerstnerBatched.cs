@@ -587,7 +587,7 @@ namespace Crest
             o_height = 0f;
 
             Vector3 posFlatland = i_worldPos;
-            posFlatland.y = OceanRenderer.Instance.transform.position.y;
+            posFlatland.y = OceanRenderer.Instance.Root.position.y;
 
             Vector3 undisplacedPos;
             if (!ComputeUndisplacedPosition(ref posFlatland, i_minSpatialLength, out undisplacedPos))

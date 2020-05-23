@@ -155,7 +155,7 @@ namespace Crest
 
         [Header("Debug Params")]
 
-        [Range(0.1f, 60f), SerializeField]
+        [Tooltip("Sets the update rate of the ocean system when in edit mode. Can be reduced to save power."), Range(0.1f, 60f), SerializeField]
         public float _editModeFPS = 30f;
 
         [Tooltip("Attach debug gui that adds some controls and allows to visualise the ocean data."), SerializeField]

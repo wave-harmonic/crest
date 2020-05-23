@@ -120,7 +120,7 @@ Shader "Crest/Underwater/Post Process"
 			sampler2D _CameraDepthTexture;
 			sampler2D _Normals;
 
-			#include "../ApplyUnderwaterEffect.hlsl"
+			#include "../UnderwaterHelpers.hlsl"
 
 			fixed4 Frag (Varyings input) : SV_Target
 			{

@@ -17,120 +17,31 @@
 
 		Pass
 		{
-			Name "CrestApplyFog"
+			Name "CrestWaterTransparency"
 			Blend Off
 			CGPROGRAM
-				#pragma vertex Vert
-				#pragma fragment Frag
-				#include "UnityCG.cginc"
-				#include "Lighting.cginc"
 
+			#include "../../../Crest/Shaders/UnderwaterWindowShaderPass.hlsl"
 
-				struct Attributes
-				{
-					float4 positionOS : POSITION;
-					float2 uv         : TEXCOORD0;
-				};
+			#pragma vertex Vert
+			#pragma fragment Frag
 
-				struct Varyings {
-					float4 positionCS : POSITION;
-					float4 screenPos  : TEXCOORD0;
-					float3 worldPos     : TEXCOORD1;
-				};
+			#pragma shader_feature _SUBSURFACESCATTERING_ON
+			#pragma shader_feature _SUBSURFACESHALLOWCOLOUR_ON
+			#pragma shader_feature _TRANSPARENCY_ON
+			#pragma shader_feature _CAUSTICS_ON
+			#pragma shader_feature _SHADOWS_ON
+			#pragma shader_feature _COMPILESHADERWITHDEBUGINFO_ON
+			#pragma shader_feature _MENISCUS_ON
 
-				Varyings Vert (Attributes input)
-				{
-					Varyings output;
-					output.positionCS = UnityObjectToClipPos(input.positionOS);
-					output.screenPos = ComputeScreenPos(output.positionCS);
-					output.worldPos = mul(unity_ObjectToWorld, input.positionOS);
-					return output;
-				}
+			#pragma multi_compile __ _FULL_SCREEN_EFFECT
+			#pragma multi_compile __ _DEBUG_VIEW_OCEAN_MASK
 
-				#pragma shader_feature _SUBSURFACESCATTERING_ON
-				#pragma shader_feature _SUBSURFACESHALLOWCOLOUR_ON
-				#pragma shader_feature _TRANSPARENCY_ON
-				#pragma shader_feature _CAUSTICS_ON
-				#pragma shader_feature _SHADOWS_ON
-				#pragma shader_feature _COMPILESHADERWITHDEBUGINFO_ON
-				#pragma shader_feature _MENISCUS_ON
+			#if _COMPILESHADERWITHDEBUGINFO_ON
+			#pragma enable_d3d11_debug_symbols
+			#endif
 
-				#pragma multi_compile __ _FULL_SCREEN_EFFECT
-				#pragma multi_compile __ _DEBUG_VIEW_OCEAN_MASK
-
-				#if _COMPILESHADERWITHDEBUGINFO_ON
-				#pragma enable_d3d11_debug_symbols
-				#endif
-
-				#pragma enable_d3d11_debug_symbols
-
-
-				half3 _CrestAmbientLighting;
-				#include "../../../Crest/Shaders/OceanConstants.hlsl"
-				#include "../../../Crest/Shaders/OceanInputsDriven.hlsl"
-				#include "../../../Crest/Shaders/OceanGlobals.hlsl"
-				#include "../../../Crest/Shaders/OceanLODData.hlsl"
-				#include "../../../Crest/Shaders/OceanHelpersNew.hlsl"
-				#include "../../../Crest/Shaders/OceanEmission.hlsl"
-
-				float4 _CrestHorizonPosNormal;
-				sampler2D _CrestOceanMaskTexture;
-				sampler2D _CrestOceanMaskDepthTexture;
-
-				#include "../../../Crest/Shaders/ApplyUnderwaterEffect.hlsl"
-
-				sampler2D _Normals;
-				sampler2D _CameraDepthTexture;
-
-				void CrestApplyUnderwaterFog (in float2 uvScreenSpace, in float3 viewWS, in float surfaceZ01, inout fixed4 sceneColour)
-				{
-					// TODO(TRC):Now, break this all out into a helpfer function that will
-					// also compute fog
-					float oceanMask = tex2D(_CrestOceanMaskTexture, uvScreenSpace).x;
-					float sceneZ01 =  tex2D(_CameraDepthTexture, uvScreenSpace).x;
-					float oceanSceneZ01 =  tex2D(_CrestOceanMaskDepthTexture, uvScreenSpace).x;
-					bool isOceanSurface = false;
-					if(oceanSceneZ01 > sceneZ01)
-					{
-						sceneZ01 = oceanSceneZ01;
-						isOceanSurface = true;
-					}
-					const bool isBelowHorizon = dot(uvScreenSpace - _CrestHorizonPosNormal.xy, _CrestHorizonPosNormal.zw) > 0.0;
-					bool isUnderwater = oceanMask == UNDERWATER_MASK_WATER_SURFACE_BELOW || (isBelowHorizon && oceanMask != UNDERWATER_MASK_WATER_SURFACE_ABOVE);
-
-					float sceneDepth = LinearEyeDepth(sceneZ01);
-					float fogDistance = sceneDepth - LinearEyeDepth(surfaceZ01);
-
-					// TODO(TRC):Now Figure out how to get the to the right value if this is occluded by another transparency.
-					if(isUnderwater)
-					{
-						half3 view = normalize(viewWS);
-						sceneColour.xyz = ApplyUnderwaterEffect(
-							_LD_TexArray_AnimatedWaves,
-							_Normals,
-							_WorldSpaceCameraPos,
-							_CrestAmbientLighting,
-							sceneColour.xyz,
-							sceneDepth,
-							fogDistance,
-							view,
-							_DepthFogDensity,
-							isOceanSurface
-						);
-					}
-
-				}
-
-				sampler2D _GrabTexture;
-				float4 _GrabTexture_TexelSize;
-
-				half4 Frag( Varyings input ) : COLOR
-				{
-					float2 uvScreenSpace = input.screenPos.xy / input.screenPos.w;
-					half4 color = tex2D(_GrabTexture, uvScreenSpace);
-					CrestApplyUnderwaterFog(uvScreenSpace, _WorldSpaceCameraPos - input.worldPos, input.positionCS.z, color);
-					return color;
-				}
+			#pragma enable_d3d11_debug_symbols
 
 
 			ENDCG
@@ -153,7 +64,6 @@
 		half _Glossiness;
 		half _Metallic;
 		fixed4 _Albedo;
-		#pragma enable_d3d11_debug_symbols
 
 		// Add instancing support for this shader. You need to check 'Enable Instancing' on materials that use the shader.
 		// See https://docs.unity3d.com/Manual/GPUInstancing.html for more information about instancing.

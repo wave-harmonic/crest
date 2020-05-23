@@ -24,6 +24,11 @@ namespace Crest
         PropertyWrapperMPB _mpb;
 
         public Renderer Renderer => _rend;
+        // We need to ensure that all ocean data has been bound for the mask to
+        // render properly - this is something that needs to happen irrespective
+        // of occlusion culling because we need the mask to render as a
+        // contiguous surface.
+        internal bool OceanDataHasBeenBound = true;
 
         // Cache these off to support regenerating ocean surface
         int _lodIndex = -1;
@@ -75,6 +80,7 @@ namespace Crest
         // where the ocean itself doesn't need to be rendered or has otherwise been disabled
         internal void BindOceanData(Camera camera)
         {
+            OceanDataHasBeenBound = true;
             if (_rend.sharedMaterial != OceanRenderer.Instance.OceanMaterial)
             {
                 _rend.sharedMaterial = OceanRenderer.Instance.OceanMaterial;

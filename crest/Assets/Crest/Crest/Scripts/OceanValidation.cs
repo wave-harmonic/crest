@@ -29,13 +29,9 @@ namespace Crest
         public static void RunValidation(OceanRenderer ocean)
         {
             // OceanRenderer
-            if (ocean.transform.childCount > 0)
-            {
-                Debug.LogWarning("Validation: The ocean changes scale at runtime so may not be a good idea to store objects underneath it, especially if they are sensitive to scale.", ocean);
-            }
             if (FindObjectsOfType<OceanRenderer>().Length > 1)
             {
-                Debug.LogWarning("Validation: Multiple OceanRenderer scripts detected in open scenes, this is not typical - usually only one OceanRenderer is expected to be present.", ocean);
+                Debug.LogWarning("Validation: Multiple OceanRenderer components detected in open scenes, this is not typical - usually only one OceanRenderer is expected to be present.", ocean);
             }
 
             // ShapeGerstnerBatched

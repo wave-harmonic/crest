@@ -349,12 +349,12 @@ namespace Crest
 
             // Add any required GPU readbacks
             {
-                if (_lodDataAnimWaves.Settings.CollisionSource == SimSettingsAnimatedWaves.CollisionSources.ComputeShaderQueries)
+                if (_lodDataAnimWaves.Settings.CollisionSource == SimSettingsAnimatedWaves.CollisionSources.ComputeShaderQueries && gameObject.GetComponent<QueryDisplacements>() == null)
                 {
                     gameObject.AddComponent<QueryDisplacements>().hideFlags = HideFlags.DontSave;
                 }
 
-                if (CreateFlowSim)
+                if (CreateFlowSim && gameObject.GetComponent<QueryFlow>() == null)
                 {
                     gameObject.AddComponent<QueryFlow>().hideFlags = HideFlags.DontSave;
                 }

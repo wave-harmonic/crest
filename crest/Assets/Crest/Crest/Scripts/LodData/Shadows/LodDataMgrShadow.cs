@@ -222,8 +222,13 @@ namespace Crest
                 _renderProperties.SetVector(sp_CenterPos, lt._renderData[lodIdx]._posSnapped);
                 var scale = OceanRenderer.Instance.CalcLodScale(lodIdx);
                 _renderProperties.SetVector(sp_Scale, new Vector3(scale, 1f, scale));
-                _renderProperties.SetVector(sp_CamPos, OceanRenderer.Instance.Viewpoint.position);
-                _renderProperties.SetVector(sp_CamForward, OceanRenderer.Instance.Viewpoint.forward);
+
+                if (OceanRenderer.Instance.Viewpoint != null)
+                {
+                    _renderProperties.SetVector(sp_CamPos, OceanRenderer.Instance.Viewpoint.position);
+                    _renderProperties.SetVector(sp_CamForward, OceanRenderer.Instance.Viewpoint.forward);
+                }
+
                 _renderProperties.SetVector(sp_JitterDiameters_CurrentFrameWeights, new Vector4(Settings._jitterDiameterSoft, Settings._jitterDiameterHard, Settings._currentFrameWeightSoft, Settings._currentFrameWeightHard));
                 _renderProperties.SetMatrix(sp_MainCameraProjectionMatrix, _cameraMain.projectionMatrix * _cameraMain.worldToCameraMatrix);
                 _renderProperties.SetFloat(sp_SimDeltaTime, OceanRenderer.Instance.DeltaTimeDynamics);

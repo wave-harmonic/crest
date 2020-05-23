@@ -41,8 +41,17 @@ namespace Crest
                     }
                 }
 #endif
+                if (_viewpoint != null)
+                {
+                    return _viewpoint;
+                }
 
-                return _viewpoint;
+                if (Camera.main != null)
+                {
+                    return Camera.main.transform;
+                }
+
+                return null;
             }
             set
             {
@@ -419,12 +428,18 @@ namespace Crest
             var meshScaleLerp = needToBlendOutShape ? ViewerAltitudeLevelAlpha : 0f;
             Shader.SetGlobalFloat(sp_meshScaleLerp, meshScaleLerp);
 
-            if (Viewpoint == null)
+            if (Viewpoint == null
+                )
             {
-                Debug.LogError("Viewpoint is null, ocean update will fail.", this);
+#if UNITY_EDITOR
+                if (EditorApplication.isPlaying)
+#endif
+                {
+                    Debug.LogError("Viewpoint is null, ocean update will fail.", this);
+                }
             }
 
-            if (_followViewpoint)
+            if (_followViewpoint && Viewpoint != null)
             {
                 LateUpdatePosition();
                 LateUpdateScale();

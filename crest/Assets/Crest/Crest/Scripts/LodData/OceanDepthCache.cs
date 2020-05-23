@@ -37,6 +37,9 @@ namespace Crest
         OceanDepthCacheRefreshMode _refreshMode = OceanDepthCacheRefreshMode.OnStart;
         public OceanDepthCacheRefreshMode RefreshMode => _refreshMode;
 
+        [Tooltip("In edit mode update every frame so that scene changes take effect immediately. Increases power usage in edit mode."), SerializeField]
+        bool _refreshEveryFrameInEditMode = true;
+
         [Tooltip("Renderers in scene to render into this depth cache. When provided this saves the code from doing an expensive FindObjectsOfType() call. If one or more renderers are specified, the layer setting is ignored."), SerializeField]
         Renderer[] _geometryToRenderIntoCache = new Renderer[0];
 
@@ -99,7 +102,7 @@ namespace Crest
 #if UNITY_EDITOR
         void Update()
         {
-            if (_forceAlwaysUpdateDebug || !EditorApplication.isPlaying)
+            if (_forceAlwaysUpdateDebug || (!EditorApplication.isPlaying && _refreshEveryFrameInEditMode))
             {
                 PopulateCache();
             }
@@ -198,18 +201,26 @@ namespace Crest
                 _camDepthCache.gameObject.SetActive(false);
             }
 
-            // Shader needs sea level to determine water depth
-            var centerPoint = Vector3.zero;
-            if (OceanRenderer.Instance != null)
+            // Make sure this global is set - I found this was necessary to set it here. However this can cause glitchiness in editor
+            // as it messes with this global vector, so only do it if not in edit mode
+#if UNITY_EDITOR
+            if (EditorApplication.isPlaying)
+#endif
             {
-                centerPoint.y = OceanRenderer.Instance.transform.position.y;
+                // Shader needs sea level to determine water depth
+                var centerPoint = Vector3.zero;
+                if (OceanRenderer.Instance != null)
+                {
+                    centerPoint.y = OceanRenderer.Instance.transform.position.y;
+                }
+                else
+                {
+                    centerPoint.y = transform.position.y;
+                }
+
+                Shader.SetGlobalVector("_OceanCenterPosWorld", centerPoint);
             }
-            else
-            {
-                centerPoint.y = transform.position.y;
-            }
-            // Make sure this global is set - I found this was necessary to set it here
-            Shader.SetGlobalVector("_OceanCenterPosWorld", centerPoint);
+
             _camDepthCache.RenderWithShader(Shader.Find("Crest/Inputs/Depth/Ocean Depth From Geometry"), null);
 
             DrawCacheQuad();
@@ -326,7 +337,7 @@ namespace Crest
     [CustomEditor(typeof(OceanDepthCache))]
     public class OceanDepthCacheEditor : Editor
     {
-        readonly string[] _propertiesToExclude = new string[] { "m_Script", "_type", "_refreshMode", "_savedCache", "_geometryToRenderIntoCache", "_layerNames", "_resolution", "_cameraMaxTerrainHeight", "_forceAlwaysUpdateDebug", "_checkTerrainDrawInstancedOption" };
+        readonly string[] _propertiesToExclude = new string[] { "m_Script", "_type", "_refreshMode", "_savedCache", "_geometryToRenderIntoCache", "_layerNames", "_resolution", "_cameraMaxTerrainHeight", "_forceAlwaysUpdateDebug", "_checkTerrainDrawInstancedOption", "_refreshEveryFrameInEditMode" };
 
         public override void OnInspectorGUI()
         {
@@ -348,6 +359,7 @@ namespace Crest
             {
                 // Only expose the following if real-time cache type
                 EditorGUILayout.PropertyField(serializedObject.FindProperty("_refreshMode"));
+                EditorGUILayout.PropertyField(serializedObject.FindProperty("_refreshEveryFrameInEditMode"));
                 EditorGUILayout.PropertyField(serializedObject.FindProperty("_geometryToRenderIntoCache"), true);
                 EditorGUILayout.PropertyField(serializedObject.FindProperty("_layerNames"), true);
                 EditorGUILayout.PropertyField(serializedObject.FindProperty("_resolution"));

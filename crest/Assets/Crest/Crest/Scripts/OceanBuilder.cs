@@ -304,6 +304,7 @@ namespace Crest
             // create mesh
 
             Mesh mesh = new Mesh();
+            mesh.hideFlags = HideFlags.DontSave;
             if (verts != null && verts.Count > 0)
             {
                 Vector3[] arrV = new Vector3[verts.Count];

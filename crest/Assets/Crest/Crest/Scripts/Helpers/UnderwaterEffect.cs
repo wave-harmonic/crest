@@ -191,6 +191,7 @@ namespace Crest
             }
 
             var mesh = new Mesh();
+            mesh.hideFlags = HideFlags.DontSave;
             mesh.name = "Grid2D_" + divs0 + "x" + divs1;
             mesh.vertices = verts;
             mesh.uv = uvs;

@@ -9,6 +9,14 @@
 	}
 	SubShader
 	{
+		// TODO(TRC):Now how do we express all the contraints that this needs?
+		// - The part of the queue it should go into
+		// - The name of the grabpass
+		// - All the pragmas that are required
+		// - Can we get this to work with shadergraph materials?
+		// Is there a way to programmatically apply this to any transparent
+		// surface? Can we inject our own shader pass? That would be the ideal
+		// thing to do (from UnderwaterEffectFilter.cs).
 		Tags { "Queue" = "Geometry+511" "RenderType"="Transparent" }
 
 		GrabPass {

@@ -113,6 +113,8 @@ Shader "Crest/Underwater/Post Process"
 			sampler2D _MainTex;
 			sampler2D _CrestOceanMaskTexture;
 			sampler2D _CrestOceanMaskDepthTexture;
+			// TODO(TRC):Now @optimisation pack opaque information in the underwater mask texture, only enable
+			// parts of this based on which underwater features we have enabled.
 			sampler2D _CrestGeneralMaskTexture;
 			sampler2D _CrestGeneralMaskDepthTexture;
 
@@ -157,40 +159,35 @@ Shader "Crest/Underwater/Post Process"
 				bool isUnderwater = oceanMask == UNDERWATER_MASK_WATER_SURFACE_BELOW || (isBelowHorizon  && oceanMask != UNDERWATER_MASK_WATER_SURFACE_ABOVE);
 
 				// If we have a view into underwater through a window, we need to make sure to only apply fog for the distance starting from behind it
-				float distanceToWindow = 0.0;
+				if(isUnderwater)
 				{
-					if(isUnderwater)
+					const float overrideMask = tex2D(_CrestGeneralMaskTexture, uvScreenSpace).x;
+					const float overrideDepth01 = tex2D(_CrestGeneralMaskDepthTexture, uvScreenSpace).x;
 					{
-						const float overrideMask = tex2D(_CrestGeneralMaskTexture, uvScreenSpace).x;
-						const float overrideDepth01 = tex2D(_CrestGeneralMaskDepthTexture, uvScreenSpace).x;
-						{
-							const bool disableWaterBehindOverrideMask = (overrideMask == OVERRIDE_MASK_UNDERWATER_DISABLE_BACK && (oceanDepth01 < overrideDepth01));
-							oceanDepth01 = disableWaterBehindOverrideMask ? overrideDepth01 : oceanDepth01;
-						}
-
-						if(overrideMask == OVERRIDE_MASK_UNDERWATER_DISABLE)
-						{
-							oceanMask = UNDERWATER_MASK_WATER_SURFACE_ABOVE;
-						}
-						else if(overrideMask == OVERRIDE_MASK_UNDERWATER_DISABLE_BACK)
-						{
-							// We want to disable underwater behind the override surface,
-							// but therefore if we are already underwater, we need to ensure that we apply for to the appropriate pixels.
-							oceanMask = UNDERWATER_MASK_WATER_SURFACE_BELOW;
-						}
-						else if(overrideMask == OVERRIDE_MASK_UNDERWATER_DISABLE_FRONT)
-						{
-							oceanMask = UNDERWATER_MASK_WATER_SURFACE_ABOVE;
-							// distanceToWindow = LinearEyeDepth(overrideDepth01);
-						}
-						isUnderwater = oceanMask != UNDERWATER_MASK_WATER_SURFACE_ABOVE;
+						const bool disableWaterBehindOverrideMask = (overrideMask == OVERRIDE_MASK_UNDERWATER_DISABLE_BACK && (oceanDepth01 < overrideDepth01));
+						oceanDepth01 = disableWaterBehindOverrideMask ? overrideDepth01 : oceanDepth01;
 					}
+
+					// TODO(TRC):Now @optimisation pack opaque information in the underwater mask texture, only enable
+					// parts of this based on which underwater features we have enabled.
+					if(overrideMask == OVERRIDE_MASK_UNDERWATER_DISABLE || overrideMask == OVERRIDE_MASK_UNDERWATER_DISABLE_FRONT)
+					{
+						oceanMask = UNDERWATER_MASK_WATER_SURFACE_ABOVE;
+					}
+					else if(overrideMask == OVERRIDE_MASK_UNDERWATER_DISABLE_BACK)
+					{
+						// We want to disable underwater behind the override surface,
+						// but therefore if we are already underwater, we need to ensure that we apply for to the appropriate pixels.
+						oceanMask = UNDERWATER_MASK_WATER_SURFACE_BELOW;
+					}
+					isUnderwater = oceanMask != UNDERWATER_MASK_WATER_SURFACE_ABOVE;
 				}
+
 				// Ocean surface check is used avoid drawing caustics on the water or masked surface
 				bool disableCaustics = oceanMask != UNDERWATER_MASK_NO_MASK && (sceneZ01 <= (oceanDepth01 + oceanDepthTolerance));
 
 				sceneZ01 = disableCaustics ? oceanDepth01 : sceneZ01;
-				const float sceneZ = LinearEyeDepth(sceneZ01) - distanceToWindow;
+				const float sceneZ = LinearEyeDepth(sceneZ01);
 
 				float wt = 1.0;
 

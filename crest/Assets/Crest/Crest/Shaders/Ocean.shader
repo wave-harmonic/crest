@@ -437,19 +437,15 @@ Shader "Crest/Ocean"
 				half3 screenPos = input.foam_screenPosXYW.yzw;
 				half2 uvDepth = screenPos.xy / screenPos.z;
 				{
+					// TODO(TRC):Now @optimisation pack opaque information in the underwater mask texture, only enable
+					// parts of this based on which underwater features we have enabled.
 					float overrideMask = tex2D(_CrestGeneralMaskTexture, uvDepth).x;
 					float overrideDepth = tex2D(_CrestGeneralMaskDepthTexture, uvDepth).x;
-					if(overrideMask == OVERRIDE_MASK_UNDERWATER_DISABLE)
-					{
-						discard;
-					}
-					if(overrideMask == OVERRIDE_MASK_UNDERWATER_DISABLE_FRONT && overrideDepth < input.positionCS.z)
-					{
-						discard;
-					}
-
-					if(overrideMask == OVERRIDE_MASK_UNDERWATER_DISABLE_BACK && overrideDepth >= input.positionCS.z)
-					{
+					if(
+						(overrideMask == OVERRIDE_MASK_UNDERWATER_DISABLE) ||
+						(overrideMask == OVERRIDE_MASK_UNDERWATER_DISABLE_FRONT && overrideDepth < input.positionCS.z) ||
+						(overrideMask == OVERRIDE_MASK_UNDERWATER_DISABLE_BACK && overrideDepth >= input.positionCS.z)
+					) {
 						discard;
 					}
 				}

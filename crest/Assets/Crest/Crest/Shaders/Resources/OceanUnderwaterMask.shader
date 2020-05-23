@@ -100,16 +100,12 @@ Shader "Crest/Underwater/Ocean Mask"
 				float overrideMask = tex2D(_CrestGeneralMaskTexture, uv_z.xy).x;
 				float overrideDepth = tex2D(_CrestGeneralMaskDepthTexture, uv_z.xy).x;
 
-				if(overrideMask == OVERRIDE_MASK_UNDERWATER_DISABLE)
+				// TODO(TRC):Now @optimisation pack opaque information in the underwater mask texture, only enable
+				// parts of this based on which underwater features we have enabled.
+				if(overrideMask == OVERRIDE_MASK_UNDERWATER_DISABLE || (overrideMask == OVERRIDE_MASK_UNDERWATER_DISABLE_FRONT && overrideDepth < uv_z.z))
 				{
 					discard;
 				}
-
-				if(overrideMask == OVERRIDE_MASK_UNDERWATER_DISABLE_FRONT && overrideDepth < uv_z.z)
-				{
-					discard;
-				}
-
 
 				if(IsUnderwater(facing, _ForceUnderwater))
 				{

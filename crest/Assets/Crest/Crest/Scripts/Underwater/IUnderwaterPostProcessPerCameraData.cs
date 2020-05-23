@@ -12,6 +12,8 @@ namespace Crest
     // of underwater post-processing, but done using different classes.
     public interface IUnderwaterPostProcessPerCameraData
     {
-        List<UnderwaterEffectFilter> GeneralUnderwaterMasksToRender { get; }
+        List<OceanOccluder> OceanOccluderMasksToRender { get; }
+        bool enabled { get; }
+        void RegisterOceanOccluder(OceanOccluder _oceanOccluder);
     }
 }

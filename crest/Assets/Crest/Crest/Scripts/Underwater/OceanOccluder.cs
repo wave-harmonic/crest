@@ -5,29 +5,41 @@
 using UnityEngine;
 #if UNITY_2018
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.Serialization;
 #else
 using UnityEngine.Rendering;
 #endif
 
 namespace Crest
 {
+    // @volatile:UnderwaterMaskValues These MUST match the values in OceanConstants.hlsl
+    public enum OceanOccluderType
+    {
+        OccludeAll = 0,
+        CancelOcclusion = 1,
+        OccludeWaterBehind = 2,
+        OccludeWaterInFront = 3,
+    }
 
-    public class UnderwaterEffectFilter : MonoBehaviour
+    [RequireComponent(typeof(Renderer))]
+    public class OceanOccluder : MonoBehaviour
     {
         private static Camera _currentCamera;
-        private Renderer _rend;
+        private Renderer _renderer;
 
-        public static readonly int sp_Mask = Shader.PropertyToID("_Mask");
+        public static readonly int sp_OceanOccluderType = Shader.PropertyToID("_OceanOccluderType");
 
-        public UnderwaterMaskValues MaskType = UnderwaterMaskValues.UnderwaterDisableFront;
-        public Renderer Renderer => _rend;
+        [Tooltip("What kind of ocean occluder is this?\nThe first two options should be used for opaque surfaces as they have a lower overhead. You can disable all ocean rendering on one material, and then have it cancelled-out by the other to re-enable water when outside of an enclosed space in the water.\nThe latter two should be used for transparencies but have a bit more overhead.")]
+        [FormerlySerializedAs("MaskType")]
+        public OceanOccluderType OccluderType = OceanOccluderType.OccludeWaterInFront;
+        public Renderer Renderer => _renderer;
 
         void Start()
         {
-            _rend = GetComponent<Renderer>();
-            if (_rend == null)
+            _renderer = GetComponent<Renderer>();
+            if (_renderer == null)
             {
-                Debug.LogError($"UnderwaterEffectFilter can only be added to Game Objects with a Renderer attached!", this);
+                Debug.LogError($"Ocean Occluder can only be added to Game Objects with a Renderer attached!", this);
                 enabled = false;
             }
         }
@@ -64,21 +76,22 @@ namespace Crest
             {
                 _currentCamera = Camera.current;
             }
-            if(MaskType == UnderwaterMaskValues.UnderwaterDisableFront && !_hasCopied)
+
+            if (OccluderType == OceanOccluderType.OccludeWaterInFront && !_hasCopied)
             {
                 // TODO(TRC):Now This hack exists because we have to copy the properties from the ocean renderer to the
                 // transparent material so it can render the fog effect behind it properly. How we solve it is an
-                // important problem. We need a way especially of tranferring the shader defines across in a simple
+                // important problem. We need a way especially of transferring the shader defines across in a simple
                 // and comprehensive manner.
                 Material material = GetComponent<MeshRenderer>().material;
                 material.CopyPropertiesFromMaterial(OceanRenderer.Instance.OceanMaterial);
                 material.SetTexture("_SurfaceNormal", OceanRenderer.Instance.OceanMaterial.GetTexture("_Normals"));
             }
 
-            var underwater = _currentCamera.GetComponent<UnderwaterPostProcess>();
+            var underwater = _currentCamera.GetComponent<IUnderwaterPostProcessPerCameraData>();
             if (underwater != null && underwater.enabled)
             {
-                underwater.RegisterGeneralUnderwaterMaskToRender(this);
+                underwater.RegisterOceanOccluder(this);
             }
         }
     }

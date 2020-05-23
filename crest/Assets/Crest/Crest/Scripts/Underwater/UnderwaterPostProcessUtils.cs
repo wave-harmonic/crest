@@ -10,15 +10,6 @@ using UnityEngine.XR;
 
 namespace Crest
 {
-    // @volatile:UnderwaterMaskValues These MUST match the values in OceanConstants.hlsl
-    public enum UnderwaterMaskValues
-    {
-        UnderwaterDisable = 0,
-        UnderwaterEnable = 1,
-        UnderwaterDisableBack = 2,
-        UnderwaterDisableFront = 3,
-    }
-
     internal static class UnderwaterPostProcessUtils
     {
         public static readonly int sp_CrestOceanMaskTexture = Shader.PropertyToID("_CrestOceanMaskTexture");
@@ -36,6 +27,7 @@ namespace Crest
         static readonly int sp_CrestHorizonPosNormalRight = Shader.PropertyToID("_CrestHorizonPosNormalRight");
 
         internal const string tooltipHorizonSafetyMarginMultiplier = "A safety margin multiplier to adjust horizon line based on camera position to avoid minor artifacts caused by floating point precision issues, the default value has been chosen based on careful experimentation.";
+        internal const string toolipCopyOceanParamsEachFrame = "If true, underwater effect copies ocean material params each frame. Setting to false will make it cheaper but risks the underwater appearance looking wrong if the ocean material is changed.";
 
         // A magic number found after a small-amount of iteration that is used to deal with horizon-line floating-point
         // issues. It allows us to give it a small *nudge* in the right direction based on whether the camera is above
@@ -89,7 +81,7 @@ namespace Crest
         internal static void PopulateOceanMask(
             CommandBuffer commandBuffer, Camera camera,
             List<OceanChunkRenderer> chunksToRender,
-            List<UnderwaterEffectFilter> underwaterEffectFilters,
+            List<OceanOccluder> underwaterEffectFilters,
             Plane[] frustumPlanes,
             RenderTexture oceanColorBuffer, RenderTexture oceanDepthBuffer,
             RenderTexture generalColorBuffer, RenderTexture generalDepthBuffer,
@@ -104,9 +96,9 @@ namespace Crest
             commandBuffer.ClearRenderTarget(true, true, Color.white * UNDERWATER_MASK_NO_MASK);
             commandBuffer.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
 
-            foreach (UnderwaterEffectFilter underwaterEffectFilter in underwaterEffectFilters)
+            foreach (OceanOccluder underwaterEffectFilter in underwaterEffectFilters)
             {
-                commandBuffer.SetGlobalFloat(UnderwaterEffectFilter.sp_Mask, (float)underwaterEffectFilter.MaskType);
+                commandBuffer.SetGlobalFloat(OceanOccluder.sp_OceanOccluderType, (float)underwaterEffectFilter.OccluderType);
                 commandBuffer.DrawRenderer(underwaterEffectFilter.Renderer, generalMaskMaterial);
             }
 

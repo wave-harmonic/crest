@@ -2,7 +2,7 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
-Shader "Crest/Underwater/General Underwater Mask"
+Shader "Crest/Underwater/Ocean Occluder Mask"
 {
 	SubShader
 	{
@@ -34,7 +34,7 @@ Shader "Crest/Underwater/General Underwater Mask"
 				float4 grabPos : TEXCOORD0;
 			};
 
-			float _Mask;
+			float _OceanOccluderType;
 			sampler2D _UnderwaterMaskTex;
 
 			Varyings Vert (Attributes input)
@@ -48,7 +48,7 @@ Shader "Crest/Underwater/General Underwater Mask"
 			fixed4 Frag (const Varyings input) : SV_Target
 			{
 
-				return (half4) _Mask;
+				return (half4) _OceanOccluderType;
 			}
 			ENDCG
 		}

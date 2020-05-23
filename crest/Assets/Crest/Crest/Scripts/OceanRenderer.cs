@@ -22,19 +22,22 @@ namespace Crest
             get
             {
 #if UNITY_EDITOR
-                if(EditorWindow.focusedWindow != null &&
-                    (EditorWindow.focusedWindow.titleContent.text == "Scene" || EditorWindow.focusedWindow.titleContent.text == "Game"))
+                if (_followSceneCamera)
                 {
-                    _lastGameOrSceneEditorWindow = EditorWindow.focusedWindow;
-                }
-
-                // If scene view is focused, use its camera. This code is slightly ropey but seems to work ok enough.
-                if (_lastGameOrSceneEditorWindow != null && _lastGameOrSceneEditorWindow.titleContent.text == "Scene")
-                {
-                    var sv = SceneView.lastActiveSceneView;
-                    if (sv != null && !EditorApplication.isPlaying && sv.camera != null)
+                    if (EditorWindow.focusedWindow != null &&
+                        (EditorWindow.focusedWindow.titleContent.text == "Scene" || EditorWindow.focusedWindow.titleContent.text == "Game"))
                     {
-                        return sv.camera.transform;
+                        _lastGameOrSceneEditorWindow = EditorWindow.focusedWindow;
+                    }
+
+                    // If scene view is focused, use its camera. This code is slightly ropey but seems to work ok enough.
+                    if (_lastGameOrSceneEditorWindow != null && _lastGameOrSceneEditorWindow.titleContent.text == "Scene")
+                    {
+                        var sv = SceneView.lastActiveSceneView;
+                        if (sv != null && !EditorApplication.isPlaying && sv.camera != null)
+                        {
+                            return sv.camera.transform;
+                        }
                     }
                 }
 #endif
@@ -160,6 +163,8 @@ namespace Crest
 
         [Tooltip("Move ocean with viewpoint.")]
         public bool _followViewpoint = true;
+        [Tooltip("Move ocean with Scene view camera if Scene window is focused.")]
+        public bool _followSceneCamera = true;
         [HideInInspector, Tooltip("Whether to generate ocean geometry tiles uniformly (with overlaps).")]
         public bool _uniformTiles = false;
         [HideInInspector, Tooltip("Disable generating a wide strip of triangles at the outer edge to extend ocean to edge of view frustum.")]

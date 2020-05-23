@@ -29,8 +29,7 @@ namespace Crest
             {
                 if (_blackTextureArray == null)
                 {
-                    _blackTextureArray = CreateTexture2DArray(Texture2D.blackTexture);
-                    _blackTextureArray.name = "Black Texture2DArray";
+                    CreateBlackTexArray();
                 }
                 return _blackTextureArray;
             }
@@ -94,8 +93,7 @@ namespace Crest
 
             if (_blackTextureArray == null)
             {
-                _blackTextureArray = CreateTexture2DArray(Texture2D.blackTexture);
-                _blackTextureArray.name = "Black Texture2DArray";
+                CreateBlackTexArray();
             }
 
             if (s_clearToBlackShader == null)
@@ -106,6 +104,12 @@ namespace Crest
             {
                 krnl_ClearToBlack = s_clearToBlackShader.FindKernel(CLEAR_TO_BLACK_SHADER_NAME);
             }
+        }
+
+        static void CreateBlackTexArray()
+        {
+            _blackTextureArray = CreateTexture2DArray(Texture2D.blackTexture);
+            _blackTextureArray.name = "Black Texture2DArray";
         }
     }
 }

@@ -258,7 +258,7 @@ namespace Crest
             // Make sure this global is set - I found this was necessary to set it here
             Shader.SetGlobalVector("_OceanCenterPosWorld", centerPoint);
             _depthCacheCamera.RenderWithShader(Shader.Find("Crest/Inputs/Depth/Ocean Depth From Geometry"), null);
-            DrawCacheQuad(ref _drawDepthCacheQuad, "DepthCache_", _type == OceanDepthCacheType.Baked ? (Texture)_savedCache : _depthCacheTexture);
+            //DrawCacheQuad(ref _drawDepthCacheQuad, "DepthCache_", _type == OceanDepthCacheType.Baked ? (Texture)_savedCache : _depthCacheTexture);
 
             if (_generateSignedDistanceFieldForShorelines)
             {

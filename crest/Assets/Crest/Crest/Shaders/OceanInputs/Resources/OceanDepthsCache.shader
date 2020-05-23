@@ -17,14 +17,18 @@ Shader "Crest/Inputs/Depth/Cached Depths"
 			// Min blending to take the min of all depths. Similar in spirit to zbuffer'd visibility when viewing from top down.
 			// To confuse matters further, ocean depth is now more like 'sea floor altitude' - a height above a deep water value,
 			// so values are increasing in Y and we need to take the MAX of all depths.
-			BlendOp Min
-			ColorMask R
+
+			// TODO(TRC):Now workout how to blend SDF data!
+			// BlendOp Min
+			// ColorMask R
 
 			CGPROGRAM
 			#pragma vertex Vert
 			#pragma fragment Frag
-		
+
 			#include "UnityCG.cginc"
+
+			#pragma enable_d3d11_debug_symbols
 
 			sampler2D _MainTex;
 
@@ -54,7 +58,7 @@ Shader "Crest/Inputs/Depth/Cached Depths"
 
 			half4 Frag(Varyings input) : SV_Target
 			{
-				return half4(tex2D(_MainTex, input.uv).x, 0.0, 0.0, 0.0);
+				return half4(tex2D(_MainTex, input.uv));
 			}
 
 			ENDCG

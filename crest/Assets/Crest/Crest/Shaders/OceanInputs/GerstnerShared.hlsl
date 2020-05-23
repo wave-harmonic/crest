@@ -27,18 +27,24 @@ half4 ComputeGerstner(float2 worldPosXZ, float3 uv_slice)
 {
 	float2 displacementNormalized = 0.0;
 
+	// TODO(TRC):Now do something sensible here
 	// sample ocean depth (this render target should 1:1 match depth texture, so UVs are trivial)
 	const half depth = _LD_TexArray_SeaFloorDepth.Sample(LODData_linear_clamp_sampler, uv_slice).x;
+	//const half depth = _LD_TexArray_SeaFloorDepth.Sample(LODData_linear_clamp_sampler, uv_slice).y;
 
 	// Preferred wave directions
-#if CREST_DIRECT_TOWARDS_POINT_INTERNAL
-	float2 offset = worldPosXZ - _TargetPointData.xy;
-	float preferDist = length(offset);
-	float preferWt = smoothstep(_TargetPointData.w, _TargetPointData.z, preferDist);
-	half2 preferredDir = preferWt * offset / preferDist;
-	half4 preferredDirX = preferredDir.x;
-	half4 preferredDirZ = preferredDir.y;
-#endif
+// #if CREST_DIRECT_TOWARDS_POINT_INTERNAL
+	// float2 offset = worldPosXZ - _TargetPointData.xy;
+	// float preferDist = length(offset);
+	// float preferWt = smoothstep(_TargetPointData.w, _TargetPointData.z, preferDist);
+	// half2 preferredDir = preferWt * offset / preferDist;
+	// half4 preferredDirX = preferredDir.x;
+	// half4 preferredDirZ = preferredDir.y;
+	// TODO(TRC):Now figure-out some actual maths here
+	// half2 preferredDir = _LD_TexArray_SeaFloorDepth.Sample(LODData_linear_clamp_sampler, uv_slice).zw/_LD_TexArray_SeaFloorDepth.Sample(LODData_linear_clamp_sampler, uv_slice).g;
+	// half4 preferredDirX = preferredDir.x;
+	// half4 preferredDirZ = preferredDir.y;
+// #endif
 
 	half3 result = (half3)0.0;
 
@@ -60,9 +66,9 @@ half4 ComputeGerstner(float2 worldPosXZ, float3 uv_slice)
 		half4 Dz = _WaveDirZ[vi];
 
 		// Peferred wave direction
-#if CREST_DIRECT_TOWARDS_POINT_INTERNAL
+// #if CREST_DIRECT_TOWARDS_POINT_INTERNAL
 		wt *= max((1.0 + Dx * preferredDirX + Dz * preferredDirZ) / 2.0, 0.1);
-#endif
+// #endif
 
 		// wave number
 		half4 k = _TwoPiOverWavelengths[vi];

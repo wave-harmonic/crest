@@ -89,7 +89,7 @@ namespace Crest
             }
 #endif
 
-            if (_type == OceanDepthCacheType.Baked && _drawCacheQuad == null)
+            if (_type == OceanDepthCacheType.Baked)
             {
                 DrawCacheQuad();
             }
@@ -228,6 +228,11 @@ namespace Crest
 
         void DrawCacheQuad()
         {
+            if (_drawCacheQuad != null)
+            {
+                return;
+            }
+
             _drawCacheQuad = GameObject.CreatePrimitive(PrimitiveType.Quad);
             _drawCacheQuad.hideFlags = HideFlags.DontSave;
 #if UNITY_EDITOR

@@ -64,9 +64,12 @@ namespace Crest
             {
                 _currentCamera = Camera.current;
             }
-            // TODO(TRC):Now Remove this hack!
             if(MaskType == UnderwaterMaskValues.UnderwaterDisableFront && !_hasCopied)
             {
+                // TODO(TRC):Now This hack exists because we have to copy the properties from the ocean renderer to the
+                // transparent material so it can render the fog effect behind it properly. How we solve it is an
+                // important problem. We need a way especially of tranferring the shader defines across in a simple
+                // and comprehensive manner.
                 Material material = GetComponent<MeshRenderer>().material;
                 material.CopyPropertiesFromMaterial(OceanRenderer.Instance.OceanMaterial);
                 material.SetTexture("_SurfaceNormal", OceanRenderer.Instance.OceanMaterial.GetTexture("_Normals"));

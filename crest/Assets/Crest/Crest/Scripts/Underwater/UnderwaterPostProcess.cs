@@ -156,7 +156,14 @@ namespace Crest
 
         private void ViewerMoreThan2mAboveWater(OceanRenderer ocean)
         {
-            // TODO(TRC):Now sort this out
+            // TODO(TRC):Now This "optimisation" doesn't work if you have underwater windows, because the ocean mask
+            // needs to be rendered for them to work no matter the heigh of the camera- > it gives the ocean holes.
+
+            // I think it might be worth re-considering remove the event system for this stuff and implementing this as
+            // separate enabler script that spins-up to enable/disabel to the post-process effect. (maybe?)
+            //
+            // That way we can actively check if there are any UnderwaterEffectFilters, and then only enable this if
+            // there aren't any? :DeOptimiseForFilters
             // enabled = false;
         }
 
@@ -219,7 +226,7 @@ namespace Crest
             {
                 OceanRenderer.Instance.ViewerLessThan2mAboveWater += ViewerLessThan2mAboveWater;
                 OceanRenderer.Instance.ViewerMoreThan2mAboveWater += ViewerMoreThan2mAboveWater;
-                // TODO(TRC):Now sort this out
+                // TODO(TRC):Now See :DeOptimiseForFilters
                 // enabled = OceanRenderer.Instance.ViewerHeightAboveWater < 2f;
                 _eventsRegistered = true;
             }

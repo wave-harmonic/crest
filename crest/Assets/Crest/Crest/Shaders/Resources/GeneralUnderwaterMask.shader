@@ -10,7 +10,8 @@ Shader "Crest/Underwater/General Underwater Mask"
 		{
 			// We always disable culling when rendering ocean mask, as we only
 			// use it for underwater rendering features.
-			// TODO(TRC):Now (can we make this toggleable?)
+			// TODO(TRC):Now (can we make this toggleable?) (The calling should
+			// match the culling setting of the source shader?)
 			Cull Back
 			CGPROGRAM
 

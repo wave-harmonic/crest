@@ -20,9 +20,17 @@ namespace Crest
         {
             base.OnInspectorGUI();
 
+            var ocean = target as OceanRenderer;
+
+            if (GUILayout.Button("Rebuild Ocean"))
+            {
+                ocean.enabled = false;
+                ocean.enabled = true;
+            }
+
             if (GUILayout.Button("Validate Setup"))
             {
-                RunValidation(target as OceanRenderer);
+                RunValidation(ocean);
             }
         }
 

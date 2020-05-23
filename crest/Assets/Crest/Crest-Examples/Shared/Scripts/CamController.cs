@@ -20,11 +20,23 @@ public class CamController : MonoBehaviour
 
     Transform _targetTransform;
 
+    [System.Serializable]
+    class DebugFields
+    {
+        [Tooltip("Disables the XR occlusion mesh for debugging purposes. Only works with legacy XR.")]
+        public bool disableOcclusionMesh = false;
+
+        [Tooltip("Sets the XR occlusion mesh scale. Useful for debugging refractions. Only works with legacy XR."), Range(1f, 2f)]
+        public float occlusionMeshScale = 1f;
+    }
+
+    [SerializeField] DebugFields _debug = new DebugFields();
+
     void Awake()
     {
         _targetTransform = transform;
 
-        // We cannot change the Camera's transform when XR is enabled.
+        // We cannot change the Camera's transform when XR is enabled. This is not an issue with the new XR plugin.
         if (XRSettings.enabled)
         {
             // Disable XR temporarily so we can change the transform of the camera.
@@ -39,10 +51,14 @@ public class CamController : MonoBehaviour
             _targetTransform.parent = parent.transform;
             _targetTransform.localPosition = Vector3.zero;
             _targetTransform.localRotation = Quaternion.identity;
-            _targetTransform.localScale = Vector3.zero;
+            _targetTransform.localScale = Vector3.one;
             // We want to manipulate this transform.
             _targetTransform = parent.transform;
             XRSettings.enabled = true;
+
+            // Seems like the best place to put this for now. Most XR debugging happens using this component.
+            XRSettings.useOcclusionMesh = !_debug.disableOcclusionMesh;
+            XRSettings.occlusionMaskScale = _debug.occlusionMeshScale;
         }
     }
 
@@ -54,9 +70,23 @@ public class CamController : MonoBehaviour
 
         UpdateMovement(dt);
 
-        UpdateDragging(dt);
+        // These aren't useful and can break for XR hardware.
+        if (!XRSettings.enabled || XRSettings.loadedDeviceName == "MockHMD")
+        {
+            UpdateDragging(dt);
+            UpdateKillRoll();
+        }
 
-        UpdateKillRoll();
+        if (XRSettings.enabled)
+        {
+            // Check if property has changed.
+            if (XRSettings.useOcclusionMesh == _debug.disableOcclusionMesh)
+            {
+                XRSettings.useOcclusionMesh = !_debug.disableOcclusionMesh;
+            }
+
+            XRSettings.occlusionMaskScale = _debug.occlusionMeshScale;
+        }
     }
 
     void UpdateMovement(float dt)

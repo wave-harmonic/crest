@@ -22,8 +22,14 @@ namespace Crest
             get
             {
 #if UNITY_EDITOR
+                if(EditorWindow.focusedWindow != null &&
+                    (EditorWindow.focusedWindow.titleContent.text == "Scene" || EditorWindow.focusedWindow.titleContent.text == "Game"))
+                {
+                    _lastGameOrSceneEditorWindow = EditorWindow.focusedWindow;
+                }
+
                 // If scene view is focused, use its camera. This code is slightly ropey but seems to work ok enough.
-                if (EditorWindow.focusedWindow.titleContent.text == "Scene")
+                if (_lastGameOrSceneEditorWindow != null && _lastGameOrSceneEditorWindow.titleContent.text == "Scene")
                 {
                     var sv = SceneView.lastActiveSceneView;
                     if (sv != null && !EditorApplication.isPlaying && sv.camera != null)
@@ -40,6 +46,10 @@ namespace Crest
                 _viewpoint = value;
             }
         }
+
+#if UNITY_EDITOR
+        static EditorWindow _lastGameOrSceneEditorWindow = null;
+#endif
 
         [Tooltip("Optional provider for time, can be used to hard-code time for automation, or provide server time. Defaults to local Unity time."), SerializeField]
         TimeProviderBase _timeProvider = null;

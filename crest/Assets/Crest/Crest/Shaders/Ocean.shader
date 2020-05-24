@@ -268,9 +268,7 @@ Shader "Crest/Ocean"
 			#include "OceanLODData.hlsl"
 			#include "OceanHelpersNew.hlsl"
 			#include "OceanHelpers.hlsl"
-
-			sampler2D _CrestOceanOccluderMaskTexture;
-			sampler2D _CrestOceanOccluderMaskDepthTexture;
+			#include "OceanOccluderHelpers.hlsl"
 
 			// Argument name is v because some macros like COMPUTE_EYEDEPTH require it.
 			Varyings Vert(Attributes v)
@@ -437,17 +435,7 @@ Shader "Crest/Ocean"
 				half3 screenPos = input.foam_screenPosXYW.yzw;
 				half2 uvDepth = screenPos.xy / screenPos.z;
 				{
-					// TODO(TRC):Now @optimisation pack opaque information in the underwater mask texture, only enable
-					// parts of this based on which underwater features we have enabled.
-					float overrideMask = tex2D(_CrestOceanOccluderMaskTexture, uvDepth).x;
-					float overrideDepth = tex2D(_CrestOceanOccluderMaskDepthTexture, uvDepth).x;
-					if(
-						(overrideMask == OVERRIDE_MASK_UNDERWATER_DISABLE) ||
-						(overrideMask == OVERRIDE_MASK_UNDERWATER_DISABLE_FRONT && overrideDepth < input.positionCS.z) ||
-						(overrideMask == OVERRIDE_MASK_UNDERWATER_DISABLE_BACK && overrideDepth >= input.positionCS.z)
-					) {
-						discard;
-					}
+					DiscardOceanSurfaceFromOccluderMask(uvDepth, input.positionCS.z);
 				}
 				float sceneZ01 = tex2D(_CameraDepthTexture, uvDepth).x;
 				float sceneZ = LinearEyeDepth(sceneZ01);

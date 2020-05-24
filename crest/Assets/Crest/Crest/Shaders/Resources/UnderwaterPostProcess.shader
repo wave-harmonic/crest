@@ -113,10 +113,8 @@ Shader "Crest/Underwater/Post Process"
 			sampler2D _MainTex;
 			sampler2D _CrestOceanMaskTexture;
 			sampler2D _CrestOceanMaskDepthTexture;
-			// TODO(TRC):Now @optimisation pack opaque information in the underwater mask texture, only enable
-			// parts of this based on which underwater features we have enabled.
-			sampler2D _CrestOceanOccluderMaskTexture;
-			sampler2D _CrestOceanOccluderMaskDepthTexture;
+
+			#include "../OceanOccluderHelpers.hlsl"
 
 			// In-built Unity textures
 			sampler2D _CameraDepthTexture;
@@ -161,25 +159,7 @@ Shader "Crest/Underwater/Post Process"
 				// If we have a view into underwater through a window, we need to make sure to only apply fog for the distance starting from behind it
 				if(isUnderwater)
 				{
-					const float overrideMask = tex2D(_CrestOceanOccluderMaskTexture, uvScreenSpace).x;
-					const float overrideDepth01 = tex2D(_CrestOceanOccluderMaskDepthTexture, uvScreenSpace).x;
-					{
-						const bool disableWaterBehindOverrideMask = (overrideMask == OVERRIDE_MASK_UNDERWATER_DISABLE_BACK && (oceanDepth01 < overrideDepth01));
-						oceanDepth01 = disableWaterBehindOverrideMask ? overrideDepth01 : oceanDepth01;
-					}
-
-					// TODO(TRC):Now @optimisation pack opaque information in the underwater mask texture, only enable
-					// parts of this based on which underwater features we have enabled.
-					if(overrideMask == OVERRIDE_MASK_UNDERWATER_DISABLE || overrideMask == OVERRIDE_MASK_UNDERWATER_DISABLE_FRONT)
-					{
-						oceanMask = UNDERWATER_MASK_WATER_SURFACE_ABOVE;
-					}
-					else if(overrideMask == OVERRIDE_MASK_UNDERWATER_DISABLE_BACK)
-					{
-						// We want to disable underwater behind the override surface,
-						// but therefore if we are already underwater, we need to ensure that we apply for to the appropriate pixels.
-						oceanMask = UNDERWATER_MASK_WATER_SURFACE_BELOW;
-					}
+					oceanMask = PostProcessHandleOccluderMask(uvScreenSpace, oceanMask, oceanDepth01);
 					isUnderwater = oceanMask != UNDERWATER_MASK_WATER_SURFACE_ABOVE;
 				}
 

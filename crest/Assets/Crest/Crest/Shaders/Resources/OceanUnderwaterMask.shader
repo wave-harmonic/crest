@@ -44,14 +44,13 @@ Shader "Crest/Underwater/Ocean Mask"
 			#include "../OceanLODData.hlsl"
 			#include "../OceanHelpersNew.hlsl"
 			#include "../OceanHelpers.hlsl"
+			#include "../OceanOccluderHelpers.hlsl"
 
 			// Hack - due to SV_IsFrontFace occasionally coming through as true for backfaces,
 			// add a param here that forces ocean to be in undrwater state. I think the root
 			// cause here might be imprecision or numerical issues at ocean tile boundaries, although
 			// i'm not sure why cracks are not visible in this case.
 			float _ForceUnderwater;
-			sampler2D _CrestOceanOccluderMaskTexture;
-			sampler2D _CrestOceanOccluderMaskDepthTexture;
 
 			Varyings Vert(Attributes v)
 			{
@@ -97,15 +96,7 @@ Shader "Crest/Underwater/Ocean Mask"
 			{
 				half3 uv_z = input.screenPos.xyz/input.screenPos.w;
 
-				float overrideMask = tex2D(_CrestOceanOccluderMaskTexture, uv_z.xy).x;
-				float overrideDepth = tex2D(_CrestOceanOccluderMaskDepthTexture, uv_z.xy).x;
-
-				// TODO(TRC):Now @optimisation pack opaque information in the underwater mask texture, only enable
-				// parts of this based on which underwater features we have enabled.
-				if(overrideMask == OVERRIDE_MASK_UNDERWATER_DISABLE || (overrideMask == OVERRIDE_MASK_UNDERWATER_DISABLE_FRONT && overrideDepth < uv_z.z))
-				{
-					discard;
-				}
+				DiscardOceanMaskFromOccluderMask(uv_z.xy, uv_z.z);
 
 				if(IsUnderwater(facing, _ForceUnderwater))
 				{

@@ -164,16 +164,29 @@ namespace Crest
         bool _createClipSurfaceData = false;
         public bool CreateClipSurfaceData { get { return _createClipSurfaceData; } }
 
-        [Header("Debug Params")]
+        [Header("Edit Mode Params")]
+
+        [SerializeField]
+#pragma warning disable 414
+        bool _showProxyPlane = true;
+#pragma warning restore 414
+#if UNITY_EDITOR
+        GameObject _proxyPlane;
+        const string kProxyShader = "Hidden/Crest/OceanProxy";
+#endif
 
         [Tooltip("Sets the update rate of the ocean system when in edit mode. Can be reduced to save power."), Range(0f, 60f), SerializeField]
         float _editModeFPS = 30f;
+
+        [Tooltip("Move ocean with Scene view camera if Scene window is focused."), SerializeField]
+        bool _followSceneCamera = true;
+
+        [Header("Debug Params")]
+
         [Tooltip("Attach debug gui that adds some controls and allows to visualise the ocean data."), SerializeField]
         bool _attachDebugGUI = false;
         [Tooltip("Move ocean with viewpoint.")]
         bool _followViewpoint = true;
-        [Tooltip("Move ocean with Scene view camera if Scene window is focused."), SerializeField]
-        bool _followSceneCamera = true;
         [Tooltip("Set the ocean surface tiles hidden by default to clean up the hierarchy.")]
         public bool _hideOceanTileGameObjects = true;
         [HideInInspector, Tooltip("Whether to generate ocean geometry tiles uniformly (with overlaps).")]
@@ -455,7 +468,26 @@ namespace Crest
 
             LateUpdateLods();
 
-            _commandbufferBuilder.BuildAndExecute();
+#if UNITY_EDITOR
+            if (EditorApplication.isPlaying || !_showProxyPlane)
+#endif
+            {
+                _commandbufferBuilder.BuildAndExecute();
+            }
+#if UNITY_EDITOR
+            else
+            {
+                // If we're not running, reset the frame data to avoid validation warnings
+                for (int i = 0; i < _lodTransform._renderData.Length; i++)
+                {
+                    _lodTransform._renderData[i]._frame = -1;
+                }
+                for (int i = 0; i < _lodTransform._renderDataSource.Length; i++)
+                {
+                    _lodTransform._renderDataSource[i]._frame = -1;
+                }
+            }
+#endif
         }
 
         void LateUpdatePosition()
@@ -755,6 +787,41 @@ namespace Crest
         private static void OnReLoadScripts()
         {
             Instance = FindObjectOfType<OceanRenderer>();
+        }
+
+        private void OnDrawGizmos()
+        {
+            // Don't need proxy if in play mode
+            if (EditorApplication.isPlaying)
+            {
+                return;
+            }
+
+            // Create proxy if not present already, and proxy enabled
+            if (_proxyPlane == null && _showProxyPlane)
+            {
+                _proxyPlane = GameObject.CreatePrimitive(PrimitiveType.Plane);
+                DestroyImmediate(_proxyPlane.GetComponent<Collider>());
+                _proxyPlane.hideFlags = HideFlags.HideAndDontSave;
+                _proxyPlane.transform.parent = transform;
+                _proxyPlane.transform.localPosition = Vector3.zero;
+                _proxyPlane.transform.localRotation = Quaternion.identity;
+                _proxyPlane.transform.localScale = 4000f * Vector3.one;
+
+                _proxyPlane.GetComponent<Renderer>().sharedMaterial = new Material(Shader.Find(kProxyShader));
+            }
+
+            // Change active state of proxy if necessary
+            if (_proxyPlane != null && _proxyPlane.activeSelf != _showProxyPlane)
+            {
+                _proxyPlane.SetActive(_showProxyPlane);
+
+                // Scene view doesnt automatically refresh which makes the option confusing, so force it
+                EditorWindow view = EditorWindow.GetWindow<SceneView>();
+                view.Repaint();
+            }
+
+            Root.gameObject.SetActive(!_showProxyPlane);
         }
 #endif
     }

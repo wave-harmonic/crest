@@ -167,15 +167,15 @@ namespace Crest
         [Header("Debug Params")]
 
         [Tooltip("Sets the update rate of the ocean system when in edit mode. Can be reduced to save power."), Range(0f, 60f), SerializeField]
-        public float _editModeFPS = 30f;
-
+        float _editModeFPS = 30f;
         [Tooltip("Attach debug gui that adds some controls and allows to visualise the ocean data."), SerializeField]
         bool _attachDebugGUI = false;
-
         [Tooltip("Move ocean with viewpoint.")]
-        public bool _followViewpoint = true;
-        [Tooltip("Move ocean with Scene view camera if Scene window is focused.")]
-        public bool _followSceneCamera = true;
+        bool _followViewpoint = true;
+        [Tooltip("Move ocean with Scene view camera if Scene window is focused."), SerializeField]
+        bool _followSceneCamera = true;
+        [Tooltip("Set the ocean surface tiles hidden by default to clean up the hierarchy.")]
+        public bool _hideOceanTileGameObjects = true;
         [HideInInspector, Tooltip("Whether to generate ocean geometry tiles uniformly (with overlaps).")]
         public bool _uniformTiles = false;
         [HideInInspector, Tooltip("Disable generating a wide strip of triangles at the outer edge to extend ocean to edge of view frustum.")]

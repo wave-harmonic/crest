@@ -158,7 +158,7 @@ namespace Crest
             ClearOutTiles(ocean);
 
             var root = new GameObject("Root");
-            root.hideFlags = HideFlags.DontSave;
+            root.hideFlags = ocean._hideOceanTileGameObjects ? HideFlags.HideAndDontSave : HideFlags.DontSave;
             root.transform.parent = ocean.transform;
             root.transform.localPosition = Vector3.zero;
             root.transform.localRotation = Quaternion.identity;

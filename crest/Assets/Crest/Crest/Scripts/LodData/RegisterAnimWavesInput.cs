@@ -26,6 +26,8 @@ namespace Crest
         public readonly static Color s_gizmoColor = new Color(0f, 1f, 0f, 0.5f);
         protected override Color GizmoColor => s_gizmoColor;
 
+        protected override string ShaderPrefix => "Crest/Inputs/Animated Waves";
+
         [SerializeField, Tooltip("Inform ocean how much this input will displace the ocean surface vertically. This is used to set bounding box heights for the ocean tiles.")]
         float _maxDisplacementVertical = 0f;
         [SerializeField, Tooltip("Inform ocean how much this input will displace the ocean surface horizontally. This is used to set bounding box widths for the ocean tiles.")]

@@ -119,7 +119,7 @@ namespace Crest
 
             _mpb.SetInt(LodDataMgr.sp_LD_SliceIndex, _lodIndex);
             ldaws.BindResultData(_mpb);
-            if (ldflow) ldflow.BindResultData(_mpb);
+            if (ldflow) ldflow.BindResultData(_mpb); else LodDataMgrFlow.BindNull(_mpb);
             if (ldfoam) ldfoam.BindResultData(_mpb); else LodDataMgrFoam.BindNull(_mpb);
             if (ldsds) ldsds.BindResultData(_mpb); else LodDataMgrSeaFloorDepth.BindNull(_mpb);
             if (ldclip) ldclip.BindResultData(_mpb); else LodDataMgrClipSurface.BindNull(_mpb);

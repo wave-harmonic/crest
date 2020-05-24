@@ -39,7 +39,7 @@ public class CamController : MonoBehaviour
             _targetTransform.parent = parent.transform;
             _targetTransform.localPosition = Vector3.zero;
             _targetTransform.localRotation = Quaternion.identity;
-            _targetTransform.localScale = Vector3.zero;
+            _targetTransform.localScale = Vector3.one;
             // We want to manipulate this transform.
             _targetTransform = parent.transform;
             XRSettings.enabled = true;
@@ -54,9 +54,12 @@ public class CamController : MonoBehaviour
 
         UpdateMovement(dt);
 
-        UpdateDragging(dt);
-
-        UpdateKillRoll();
+        // These aren't useful and can break for XR hardware.
+        if (!XRSettings.enabled || XRSettings.loadedDeviceName == "MockHMD")
+        {
+            UpdateDragging(dt);
+            UpdateKillRoll();
+        }
     }
 
     void UpdateMovement(float dt)

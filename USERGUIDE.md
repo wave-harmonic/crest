@@ -149,7 +149,6 @@ Crest supports inputing any foam into the system. To add some shape, add some ge
 
 The foam sim can be configured by assigning a Foam Sim Settings asset to the OceanRenderer script in your scene (*Create/Crest/Foam Sim Settings*). There are also parameters on the material which control the appearance of the foam.
 
-
 ## Sea Floor Depth
 
 This LOD data provides a sense of water depth. More information about how this is used is in the **Shorelines and shallow water** section below.
@@ -183,6 +182,8 @@ Currently in the built-in render pipeline, shadows only work when the primary ca
 ## Flow
 
 Flow is the horizontal motion of the water volumes. It is used in the *whirlpool.unity* scene to rotate the waves and foam around the vortex. It does not affect wave directions, but transports the waves horizontally. This horizontal motion also affects physics.
+
+To turn on this feature, enable the *Create Flow Sim* option on the *OceanRenderer* script, and ensure the *Flow* option is ticked on the ocean material.
 
 Crest supports adding any flow velocities to the system. To add flow, add some geometry into the world which when rendered from a top down perspective will draw the desired displacements. Then assign the *RegisterFlowInput* script which will tag it for rendering into the flow, and apply a material with a shader of type *Crest/Inputs/Flow/...*. The *Crest/Inputs/Flow/Add Flow Map* shader writes a flow texture into the system. It assumes the x component of the flow velocity is packed into 0-1 range in the red channel, and the z component of the velocity is packed into 0-1 range in the green channel. The shader reads the values, subtracts 0.5, and multiplies them by the provided scale value on the shader. The process of adding ocean inputs is demonstrated in the following video: https://www.youtube.com/watch?v=sQIakAjSq4Y.
 
@@ -429,7 +430,7 @@ Therefore we target Crest at PC/console platforms.
 **Which platforms does Crest support?**
 Testing occurs primarily on Windows.
 We have users targeting Windows, Mac, Linux, PS4, XboxOne, Switch and iOS/Android.
-Performance is a challenge on Switch and mobile platforms - see the previous question.
+Performance is a challenge on Switch and mobile platforms - see the previous question. For additional platform notes, see [Platform Support](https://github.com/crest-ocean/crest/wiki/Platform-Support).
 
 **Is Crest well suited for localised bodies of water such as lakes?**
 Currently Crest is currrently targeted towards large bodies of water.

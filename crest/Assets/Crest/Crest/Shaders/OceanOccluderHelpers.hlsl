@@ -52,8 +52,8 @@ float PostProcessHandleOccluderMask(float2 uv, float oceanMask, float oceanDepth
 	const float occluderMask = tex2D(_CrestOceanOccluderMaskTexture, uv).x;
 	const float occluderDepth01 = tex2D(_CrestOceanOccluderMaskDepthTexture, uv).x;
 	{
-		const bool disableWaterBehindoccluderMask = (occluderMask == OCCLUDER_MASK_OCCLUDE_WATER_BEHIND && (oceanDepth01 < occluderDepth01));
-		oceanDepth01 = disableWaterBehindoccluderMask ? occluderDepth01 : oceanDepth01;
+		const bool disableWaterBehindOccluderMask = (occluderMask == OCCLUDER_MASK_OCCLUDE_WATER_BEHIND && (oceanDepth01 < occluderDepth01));
+		oceanDepth01 = disableWaterBehindOccluderMask ? occluderDepth01 : oceanDepth01;
 	}
 
 	// TODO(TRC):Now @optimisation pack opaque information in the underwater mask texture, only enable

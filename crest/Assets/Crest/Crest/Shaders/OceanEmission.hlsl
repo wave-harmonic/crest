@@ -72,7 +72,7 @@ half3 ScatterColour(
 		// Pick lower res data for shadowing, helps to smooth out artifacts slightly
 		const float minSliceIndex = 4.0;
 		uint slice0, slice1; float lodAlpha;
-		PosToSliceIndices(samplePoint, _InstanceData.x, minSliceIndex, slice0, slice1, lodAlpha);
+		PosToSliceIndices(samplePoint, minSliceIndex, _InstanceData.x, _LD_Pos_Scale[0].z, slice0, slice1, lodAlpha);
 
 		half2 shadowSoftHard = 0.0;
 		// TODO - fix data type of slice index in WorldToUV - #343
@@ -143,7 +143,7 @@ void ApplyCaustics(in const half3 i_view, in const half3 i_lightDir, in const fl
 	// Compute mip index manually, with bias based on sea floor depth. We compute it manually because if it is computed automatically it produces ugly patches
 	// where samples are stretched/dilated. The bias is to give a focusing effect to caustics - they are sharpest at a particular depth. This doesn't work amazingly
 	// well and could be replaced.
-	float mipLod = log2(i_sceneZ) + abs(sceneDepth - _CausticsFocalDepth) / _CausticsDepthOfField;
+	float mipLod = log2(max(i_sceneZ, 1.0)) + abs(sceneDepth - _CausticsFocalDepth) / _CausticsDepthOfField;
 	// project along light dir, but multiply by a fudge factor reduce the angle bit - compensates for fact that in real life
 	// caustics come from many directions and don't exhibit such a strong directonality
 	float2 surfacePosXZ = scenePos.xz + i_lightDir.xz * sceneDepth / (4.*i_lightDir.y);
@@ -151,7 +151,9 @@ void ApplyCaustics(in const half3 i_view, in const half3 i_lightDir, in const fl
 	float4 cuv1 = float4((surfacePosXZ / _CausticsTextureScale + 1.3 *causticN + float2(0.044*_CrestTime + 17.16, -0.169*_CrestTime)), 0., mipLod);
 	float4 cuv2 = float4((1.37*surfacePosXZ / _CausticsTextureScale + 1.77*causticN + float2(0.248*_CrestTime, 0.117*_CrestTime)), 0., mipLod);
 
-	half causticsStrength = _CausticsStrength;
+	// Scale caustics strength by primary light, depth fog density and scene depth.
+	half3 causticsStrength = lerp(_CausticsStrength * _LightColor0, 0.0, saturate(1.0 - exp(-_DepthFogDensity.xyz * sceneDepth)));
+
 #if _SHADOWS_ON
 	{
 		half2 causticShadow = 0.0;

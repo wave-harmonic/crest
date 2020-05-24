@@ -14,12 +14,13 @@ RWStructuredBuffer<float3> _ResultDisplacements;
 #include "../OceanGlobals.hlsl"
 #include "../OceanInputsDriven.hlsl"
 #include "../OceanLODData.hlsl"
+#include "../OceanHelpersNew.hlsl"
 
 float3 ComputeDisplacement(float2 undispPos, float minSlice)
 {
 	uint slice0, slice1;
 	float lodAlpha;
-	PosToSliceIndices(undispPos, _MeshScaleLerp, minSlice, slice0, slice1, lodAlpha);
+	PosToSliceIndices(undispPos, minSlice, _MeshScaleLerp, _LD_Pos_Scale[0].z, slice0, slice1, lodAlpha);
 
 	float3 uv0 = WorldToUV(undispPos, slice0);
 	float3 uv1 = WorldToUV(undispPos, slice1);
@@ -40,7 +41,7 @@ void CSMain(uint3 id : SV_DispatchThreadID)
 	const float minGridSize = data.z;
 
 	const float gridSizeSlice0 = _LD_Params[0].x;
-	const float minSlice = clamp(floor(log2(minGridSize / gridSizeSlice0)), 0.0, _SliceCount - 1.0);
+	const float minSlice = clamp(floor(log2(max(minGridSize / gridSizeSlice0, 1.0))), 0.0, _SliceCount - 1.0);
 
 	// Perform iteration to invert the displacement vector field - find position that displaces to query position,
 	// and return displacement at that point.

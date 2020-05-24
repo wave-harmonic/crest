@@ -23,6 +23,8 @@ namespace Crest
 
         public const string ShaderName = "Crest/Inputs/Depth/Cached Depths";
 
+        // We want the null colour to be the depth where wave attenuation begins (1000 metres)
+        readonly static Color s_nullColor = Color.red * 1000f;
         static Texture2DArray s_nullTexture2DArray;
 
         public override void BuildCommandBuffer(OceanRenderer ocean, CommandBuffer buf)
@@ -39,7 +41,7 @@ namespace Crest
             for (int lodIdx = OceanRenderer.Instance.CurrentLodCount - 1; lodIdx >= 0; lodIdx--)
             {
                 buf.SetRenderTarget(_targets, 0, CubemapFace.Unknown, lodIdx);
-                buf.ClearRenderTarget(false, true, Color.red * 1000f);
+                buf.ClearRenderTarget(false, true, s_nullColor);
                 buf.SetGlobalInt(sp_LD_SliceIndex, lodIdx);
                 SubmitDraws(lodIdx, buf);
             }
@@ -57,8 +59,7 @@ namespace Crest
         }
         public static void BindNull(IPropertyWrapper properties, bool sourceLod = false)
         {
-            // Texture2D.whiteTexture prevents us from initialising this in a static constructor. Seemed appropriate to
-            // do it here.
+            // TextureArrayHelpers prevents use from using this in a static constructor due to blackTexture usage
             if (s_nullTexture2DArray == null)
             {
                 InitNullTexture();
@@ -69,16 +70,8 @@ namespace Crest
 
         static void InitNullTexture()
         {
-            var texture = Instantiate<Texture2D>(Texture2D.whiteTexture);
-            // Null texture needs to be white (uses R channel) with a 1000 intensity.
-            var color = new Color(1000, 1000, 1000, 1);
-            Color[] pixels = new Color[texture.height * texture.width];
-            for(int i = 0; i < pixels.Length; i++)
-            {
-                pixels[i] = color;
-            }
-            texture.SetPixels(pixels);
-            texture.Apply();
+            // Depth textures use HDR values
+            var texture = TextureArrayHelpers.CreateTexture2D(s_nullColor, UnityEngine.TextureFormat.RGB9e5Float);
             s_nullTexture2DArray = TextureArrayHelpers.CreateTexture2DArray(texture);
             s_nullTexture2DArray.name = "Sea Floor Depth Null Texture";
         }

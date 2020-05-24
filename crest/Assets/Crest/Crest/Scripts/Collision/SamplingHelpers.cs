@@ -3,7 +3,7 @@
 namespace Crest
 {
     /// <summary>
-    /// Helper to obtain the ocean surface height at a single location. This is not particularly efficient to sample a single height,
+    /// Helper to obtain the ocean surface height at a single location per frame. This is not particularly efficient to sample a single height,
     /// but is a fairly common case.
     /// </summary>
     public class SampleHeightHelper
@@ -15,16 +15,30 @@ namespace Crest
 
         float _minLength = 0f;
 
+#if UNITY_EDITOR
+        int _lastFrame = -1;
+#endif
+
         /// <summary>
-        /// Call this to prime the sampling
+        /// Call this to prime the sampling. The SampleHeightHelper is good for one query per frame - if it is called multiple times in one frame
+        /// it will throw a warning. Calls from FixedUpdate are an exception to this - pass true as the last argument to disable the warning.
         /// </summary>
         /// <param name="i_queryPos">World space position to sample</param>
         /// <param name="i_minLength">The smallest length scale you are interested in. If you are sampling data for boat physics,
         /// pass in the boats width. Larger objects will ignore small wavelengths.</param>
-        public void Init(Vector3 i_queryPos, float i_minLength)
+        /// <param name="fromFixedUpdate">Pass true if calling from FixedUpdate(). This will omit a warning when there on multipled-FixedUpdate frames.</param>
+        public void Init(Vector3 i_queryPos, float i_minLength = 0f, bool fromFixedUpdate = false)
         {
             _queryPos[0] = i_queryPos;
             _minLength = i_minLength;
+
+#if UNITY_EDITOR
+            if (!fromFixedUpdate && _lastFrame >= Time.frameCount)
+            {
+                Debug.LogWarning("Each SampleHeightHelper object services a single height query per frame. To perform multiple queries, create multiple SampleHeightHelper objects or use the CollProvider.Query() API directly.");
+            }
+            _lastFrame = Time.frameCount;
+#endif
         }
 
         /// <summary>
@@ -93,7 +107,7 @@ namespace Crest
     }
 
     /// <summary>
-    /// Helper to obtain the ocean surface height at a single location. This is not particularly efficient to sample a single height,
+    /// Helper to obtain the flow data (horizontal water motion) at a single location. This is not particularly efficient to sample a single height,
     /// but is a fairly common case.
     /// </summary>
     public class SampleFlowHelper

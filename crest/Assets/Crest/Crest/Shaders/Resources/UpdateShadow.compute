@@ -28,6 +28,8 @@ uniform float4 _LightShadowData;
 #include "../OceanGlobals.hlsl"
 #include "../OceanInputsDriven.hlsl"
 #include "../OceanLODData.hlsl"
+#include "../OceanHelpersNew.hlsl"
+#include "../OceanHelpers.hlsl"
 
 struct ShadowCoords
 {
@@ -85,7 +87,7 @@ fixed ComputeShadow(in ShadowCoords shadowCoords, in float jitterDiameter, in fl
 	return shadow;
 }
 
-[numthreads(THREAD_GROUP_SIZE_X,THREAD_GROUP_SIZE_Y,1)]
+[numthreads(THREAD_GROUP_SIZE_X, THREAD_GROUP_SIZE_Y, 1)]
 void UpdateShadow(uint3 id : SV_DispatchThreadID)
 {
 	float width; float height; float depth;

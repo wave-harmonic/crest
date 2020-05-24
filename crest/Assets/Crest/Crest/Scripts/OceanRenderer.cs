@@ -2,6 +2,7 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+using UnityEditor;
 using UnityEngine;
 
 namespace Crest
@@ -21,6 +22,11 @@ namespace Crest
         public float CurrentTime => _timeProvider.CurrentTime;
         public float DeltaTime => _timeProvider.DeltaTime;
         public float DeltaTimeDynamics => _timeProvider.DeltaTimeDynamics;
+
+        [Tooltip("The primary directional light. Required if shadowing is enabled.")]
+        public Light _primaryLight;
+        [SerializeField, Tooltip("If Primary Light is not set, search the scene for all directional lights and pick the brightest to use as the sun light.")]
+        bool _searchForPrimaryLightOnStartup = true;
 
         [Header("Ocean Params")]
 
@@ -90,8 +96,6 @@ namespace Crest
         [Tooltip("Shadow information used for lighting water."), SerializeField]
         bool _createShadowData = false;
         public bool CreateShadowData { get { return _createShadowData; } }
-        [Tooltip("The primary directional light. Required if shadowing is enabled.")]
-        public Light _primaryLight;
         public SimSettingsShadow _simSettingsShadow;
 
         [Tooltip("Clip surface information for clipping the ocean surface."), SerializeField]
@@ -99,6 +103,15 @@ namespace Crest
         public bool CreateClipSurfaceData { get { return _createClipSurfaceData; } }
 
         [Header("Debug Params")]
+
+        [SerializeField]
+#pragma warning disable 414
+        bool _showProxyPlane = true;
+#pragma warning restore 414
+#if UNITY_EDITOR
+        GameObject _proxyPlane;
+        const string kProxyShader = "Hidden/Crest/OceanProxy";
+#endif
 
         [Tooltip("Attach debug gui that adds some controls and allows to visualise the ocean data."), SerializeField]
         bool _attachDebugGUI = false;
@@ -150,14 +163,25 @@ namespace Crest
 
         public static OceanRenderer Instance { get; private set; }
 
+        // We are computing these values to be optimal based on the base mesh vertice density.
+        float _lodAlphaBlackPointFade;
+        float _lodAlphaBlackPointWhitePointFade;
+
         readonly int sp_crestTime = Shader.PropertyToID("_CrestTime");
         readonly int sp_texelsPerWave = Shader.PropertyToID("_TexelsPerWave");
         readonly int sp_oceanCenterPosWorld = Shader.PropertyToID("_OceanCenterPosWorld");
         readonly int sp_meshScaleLerp = Shader.PropertyToID("_MeshScaleLerp");
         readonly int sp_sliceCount = Shader.PropertyToID("_SliceCount");
+        readonly int sp_lodAlphaBlackPointFade = Shader.PropertyToID("_CrestLodAlphaBlackPointFade");
+        readonly int sp_lodAlphaBlackPointWhitePointFade = Shader.PropertyToID("_CrestLodAlphaBlackPointWhitePointFade");
 
         void Awake()
         {
+            if (!_primaryLight && _searchForPrimaryLightOnStartup)
+            {
+                _primaryLight = RenderSettings.sun;
+            }
+
             if (!VerifyRequirements())
             {
                 enabled = false;
@@ -166,6 +190,14 @@ namespace Crest
 
             Instance = this;
             Scale = Mathf.Clamp(Scale, _minScale, _maxScale);
+
+            // Resolution is 4 tiles across.
+            var baseMeshDensity = _lodDataResolution * 0.25f / _geometryDownSampleFactor;
+            // 0.4f is the "best" value when base mesh density is 8. Scaling down from there produces results similar to
+            // hand crafted values which looked good when the ocean is flat.
+            _lodAlphaBlackPointFade = 0.4f / (baseMeshDensity / 8f);
+            // We could calculate this in the shader, but we can save two subtractions this way.
+            _lodAlphaBlackPointWhitePointFade = 1f - _lodAlphaBlackPointFade - _lodAlphaBlackPointFade;
 
             OceanBuilder.GenerateMesh(this, _lodDataResolution, _geometryDownSampleFactor, _lodCount);
 
@@ -177,7 +209,7 @@ namespace Crest
             InitViewpoint();
             InitTimeProvider();
 
-            if(_attachDebugGUI && GetComponent<OceanDebugGUI>() == null)
+            if (_attachDebugGUI && GetComponent<OceanDebugGUI>() == null)
             {
                 gameObject.AddComponent<OceanDebugGUI>();
             }
@@ -215,7 +247,7 @@ namespace Crest
                 }
                 else
                 {
-                    Debug.LogError("Please provide the viewpoint transform, or tag the primary camera as MainCamera.", this);
+                    Debug.LogError("Crest needs to know where to focus the ocean detail. Please set the Viewpoint property of the OceanRenderer component to the transform of the viewpoint/camera that the ocean should follow, or tag the primary camera as MainCamera.", this);
                 }
             }
         }
@@ -245,6 +277,8 @@ namespace Crest
             Shader.SetGlobalFloat(sp_texelsPerWave, MinTexelsPerWave);
             Shader.SetGlobalFloat(sp_crestTime, CurrentTime);
             Shader.SetGlobalFloat(sp_sliceCount, CurrentLodCount);
+            Shader.SetGlobalFloat(sp_lodAlphaBlackPointFade, _lodAlphaBlackPointFade);
+            Shader.SetGlobalFloat(sp_lodAlphaBlackPointWhitePointFade, _lodAlphaBlackPointWhitePointFade);
 
             // LOD 0 is blended in/out when scale changes, to eliminate pops. Here we set it as a global, whereas in OceanChunkRenderer it
             // is applied to LOD0 tiles only through _InstanceData. This global can be used in compute, where we only apply this factor for slice 0.
@@ -409,6 +443,39 @@ namespace Crest
         private static void OnReLoadScripts()
         {
             Instance = FindObjectOfType<OceanRenderer>();
+        }
+
+        private void OnDrawGizmos()
+        {
+            // Don't need proxy if in play mode
+            if (EditorApplication.isPlaying)
+            {
+                return;
+            }
+
+            // Create proxy if not present already, and proxy enabled
+            if (_proxyPlane == null && _showProxyPlane)
+            {
+                _proxyPlane = GameObject.CreatePrimitive(PrimitiveType.Plane);
+                DestroyImmediate(_proxyPlane.GetComponent<Collider>());
+                _proxyPlane.hideFlags = HideFlags.HideAndDontSave;
+                _proxyPlane.transform.parent = transform;
+                _proxyPlane.transform.localPosition = Vector3.zero;
+                _proxyPlane.transform.localRotation = Quaternion.identity;
+                _proxyPlane.transform.localScale = 4000f * Vector3.one;
+                
+                _proxyPlane.GetComponent<Renderer>().sharedMaterial = new Material(Shader.Find(kProxyShader));
+            }
+
+            // Change active state of proxy if necessary
+            if (_proxyPlane != null && _proxyPlane.activeSelf != _showProxyPlane)
+            {
+                _proxyPlane.SetActive(_showProxyPlane);
+
+                // Scene view doesnt automatically refresh which makes the option confusing, so force it
+                EditorWindow view = EditorWindow.GetWindow<SceneView>();
+                view.Repaint();
+            }
         }
 #endif
     }

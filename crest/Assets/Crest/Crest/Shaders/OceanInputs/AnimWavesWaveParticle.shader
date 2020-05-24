@@ -73,7 +73,7 @@ Shader "Crest/Inputs/Animated Waves/Wave Particle"
 
 				return float4(0.0, y * _Weight, 0.0, 0.0);
 			}
-			
+
 			ENDCG
 		}
 	}

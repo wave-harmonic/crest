@@ -5,6 +5,11 @@
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
+#if UNITY_2018
+using UnityEditor.Experimental.SceneManagement;
+#else
+using UnityEditor.SceneManagement;
+#endif
 
 namespace Crest
 {
@@ -259,6 +264,12 @@ namespace Crest
         // Drive state from OnEnable and OnDisable? OnEnable on RegisterLodDataInput seems to get called on script reload
         void OnEnable()
         {
+            // We don't run in "prefab scenes", i.e. when editing a prefab. Bail out if prefab scene is detected.
+            if (PrefabStageUtility.GetCurrentPrefabStage() != null)
+            {
+                return;
+            }
+
             if (!_primaryLight && _searchForPrimaryLightOnStartup)
             {
                 _primaryLight = RenderSettings.sun;
@@ -309,6 +320,12 @@ namespace Crest
 
         private void OnDisable()
         {
+            // We don't run in "prefab scenes", i.e. when editing a prefab. Bail out if prefab scene is detected.
+            if (PrefabStageUtility.GetCurrentPrefabStage() != null)
+            {
+                return;
+            }
+
             CleanUp();
 
             Instance = null;

@@ -44,9 +44,9 @@ Shader "Crest/Inputs/Flow/Fixed Direction"
 				return o;
 			}
 
-			float2 Frag(Varyings input) : SV_Target
+			float4 Frag(Varyings input) : SV_Target
 			{
-				return input.vel;
+				return float4(input.vel, 0.0, 0.0);
 			}
 			ENDCG
 		}

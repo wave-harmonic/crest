@@ -168,7 +168,7 @@ namespace Crest
 
         [SerializeField]
 #pragma warning disable 414
-        bool _showProxyPlane = true;
+        bool _showOceanProxyPlane = false;
 #pragma warning restore 414
 #if UNITY_EDITOR
         GameObject _proxyPlane;
@@ -469,7 +469,7 @@ namespace Crest
             LateUpdateLods();
 
 #if UNITY_EDITOR
-            if (EditorApplication.isPlaying || !_showProxyPlane)
+            if (EditorApplication.isPlaying || !_showOceanProxyPlane)
 #endif
             {
                 _commandbufferBuilder.BuildAndExecute();
@@ -798,7 +798,7 @@ namespace Crest
             }
 
             // Create proxy if not present already, and proxy enabled
-            if (_proxyPlane == null && _showProxyPlane)
+            if (_proxyPlane == null && _showOceanProxyPlane)
             {
                 _proxyPlane = GameObject.CreatePrimitive(PrimitiveType.Plane);
                 DestroyImmediate(_proxyPlane.GetComponent<Collider>());
@@ -812,16 +812,16 @@ namespace Crest
             }
 
             // Change active state of proxy if necessary
-            if (_proxyPlane != null && _proxyPlane.activeSelf != _showProxyPlane)
+            if (_proxyPlane != null && _proxyPlane.activeSelf != _showOceanProxyPlane)
             {
-                _proxyPlane.SetActive(_showProxyPlane);
+                _proxyPlane.SetActive(_showOceanProxyPlane);
 
                 // Scene view doesnt automatically refresh which makes the option confusing, so force it
                 EditorWindow view = EditorWindow.GetWindow<SceneView>();
                 view.Repaint();
             }
 
-            Root.gameObject.SetActive(!_showProxyPlane);
+            Root.gameObject.SetActive(!_showOceanProxyPlane);
         }
 #endif
     }

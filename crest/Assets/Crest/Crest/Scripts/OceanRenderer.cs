@@ -395,6 +395,7 @@ namespace Crest
         {
             if (_material == null
 #if UNITY_EDITOR
+                // It appears OnValidate is called before default data is serialised onto this component, so don't call this in edit mode
                 && EditorApplication.isPlaying
 #endif
                 )

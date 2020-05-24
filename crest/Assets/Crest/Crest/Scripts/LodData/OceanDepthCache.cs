@@ -58,6 +58,9 @@ namespace Crest
         bool _forceAlwaysUpdateDebug = false;
 #pragma warning restore 414
 
+        [Tooltip("Hides the depth cache camera, for cleanliness. Disable to make it visible in the Hierarchy."), SerializeField]
+        bool _hideDepthCacheCam = true;
+
         [Tooltip("Baked depth cache. Baking button available in play mode."), SerializeField]
 #pragma warning disable 649
         Texture2D _savedCache;
@@ -181,7 +184,7 @@ namespace Crest
             if (_camDepthCache == null)
             {
                 _camDepthCache = new GameObject("DepthCacheCam").AddComponent<Camera>();
-                _camDepthCache.gameObject.hideFlags = HideFlags.DontSave;
+                _camDepthCache.gameObject.hideFlags = _hideDepthCacheCam ? HideFlags.HideAndDontSave : HideFlags.DontSave;
                 _camDepthCache.transform.position = transform.position + Vector3.up * _cameraMaxTerrainHeight;
                 _camDepthCache.transform.parent = transform;
                 _camDepthCache.transform.localEulerAngles = 90f * Vector3.right;

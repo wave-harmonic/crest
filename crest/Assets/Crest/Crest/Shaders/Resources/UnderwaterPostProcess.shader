@@ -115,8 +115,8 @@ Shader "Crest/Underwater/Post Process"
 			sampler2D _CrestOceanMaskDepthTexture;
 			// TODO(TRC):Now @optimisation pack opaque information in the underwater mask texture, only enable
 			// parts of this based on which underwater features we have enabled.
-			sampler2D _CrestGeneralMaskTexture;
-			sampler2D _CrestGeneralMaskDepthTexture;
+			sampler2D _CrestOceanOccluderMaskTexture;
+			sampler2D _CrestOceanOccluderMaskDepthTexture;
 
 			// In-built Unity textures
 			sampler2D _CameraDepthTexture;
@@ -161,8 +161,8 @@ Shader "Crest/Underwater/Post Process"
 				// If we have a view into underwater through a window, we need to make sure to only apply fog for the distance starting from behind it
 				if(isUnderwater)
 				{
-					const float overrideMask = tex2D(_CrestGeneralMaskTexture, uvScreenSpace).x;
-					const float overrideDepth01 = tex2D(_CrestGeneralMaskDepthTexture, uvScreenSpace).x;
+					const float overrideMask = tex2D(_CrestOceanOccluderMaskTexture, uvScreenSpace).x;
+					const float overrideDepth01 = tex2D(_CrestOceanOccluderMaskDepthTexture, uvScreenSpace).x;
 					{
 						const bool disableWaterBehindOverrideMask = (overrideMask == OVERRIDE_MASK_UNDERWATER_DISABLE_BACK && (oceanDepth01 < overrideDepth01));
 						oceanDepth01 = disableWaterBehindOverrideMask ? overrideDepth01 : oceanDepth01;

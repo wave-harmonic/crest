@@ -14,8 +14,8 @@ namespace Crest
     {
         public static readonly int sp_CrestOceanMaskTexture = Shader.PropertyToID("_CrestOceanMaskTexture");
         public static readonly int sp_CrestOceanMaskDepthTexture = Shader.PropertyToID("_CrestOceanMaskDepthTexture");
-        public static readonly int sp_CrestGeneralMaskTexture = Shader.PropertyToID("_CrestGeneralMaskTexture");
-        public static readonly int sp_CrestGeneralMaskDepthTexture = Shader.PropertyToID("_CrestGeneralMaskDepthTexture");
+        public static readonly int sp_CrestOceanOccluderMaskTexture = Shader.PropertyToID("_CrestOceanOccluderMaskTexture");
+        public static readonly int sp_CrestOceanOccluderMaskDepthTexture = Shader.PropertyToID("_CrestOceanOccluderMaskDepthTexture");
         public static readonly int sp_CrestInvViewProjection = Shader.PropertyToID("_CrestInvViewProjection");
         public static readonly int sp_CrestInvViewProjectionRight = Shader.PropertyToID("_CrestInvViewProjectionRight");
 
@@ -60,7 +60,7 @@ namespace Crest
 
                 textureMask = new RenderTexture(desc);
                 textureMask.depth = 0;
-                textureMask.name = isOcean ? "Ocean Mask" : "General Mask";
+                textureMask.name = isOcean ? "Ocean Mask" : "Ocean Occluder Mask";
 
                 // @Memory: We could investigate making this an 8-bit texture instead to reduce GPU memory usage.
                 // We could also potentially try a half res mask as the mensicus could mask res issues.
@@ -70,7 +70,7 @@ namespace Crest
                 depthBuffer = new RenderTexture(desc);
                 depthBuffer.depth = 24;
                 depthBuffer.enableRandomWrite = false;
-                depthBuffer.name = isOcean ? "Ocean Mask Depth" : "General Mask Depth";
+                depthBuffer.name = isOcean ? "Ocean Depth Buffer" : "Ocean Occluder Depth Buffer";
                 depthBuffer.format = RenderTextureFormat.Depth;
                 depthBuffer.Create();
             }
@@ -83,30 +83,29 @@ namespace Crest
             List<OceanChunkRenderer> chunksToRender,
             List<OceanOccluder> underwaterEffectFilters,
             Plane[] frustumPlanes,
-            RenderTexture oceanColorBuffer, RenderTexture oceanDepthBuffer,
-            RenderTexture generalColorBuffer, RenderTexture generalDepthBuffer,
-            Material oceanMaskMaterial, Material generalMaskMaterial,
+            RenderTexture oceanMask, RenderTexture oceanDepthBuffer, Material oceanMaskMaterial,
+            RenderTexture oceanOccluderMask, RenderTexture oceanOccluderDepthBuffer, Material oceanOccluderMaskMaterial,
             UnderwaterSphericalHarmonicsData sphericalHarmonicsData,
             float horizonSafetyMarginMultiplier,
             bool debugDisableOceanMask
         )
         {
 
-            commandBuffer.SetRenderTarget(generalColorBuffer.colorBuffer, generalDepthBuffer.depthBuffer);
+            commandBuffer.SetRenderTarget(oceanOccluderMask.colorBuffer, oceanOccluderDepthBuffer.depthBuffer);
             commandBuffer.ClearRenderTarget(true, true, Color.white * UNDERWATER_MASK_NO_MASK);
             commandBuffer.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
 
             foreach (OceanOccluder underwaterEffectFilter in underwaterEffectFilters)
             {
                 commandBuffer.SetGlobalFloat(OceanOccluder.sp_OceanOccluderType, (float)underwaterEffectFilter.OccluderType);
-                commandBuffer.DrawRenderer(underwaterEffectFilter.Renderer, generalMaskMaterial);
+                commandBuffer.DrawRenderer(underwaterEffectFilter.Renderer, oceanOccluderMaskMaterial);
             }
 
-            commandBuffer.SetGlobalTexture(sp_CrestGeneralMaskTexture, generalColorBuffer);
-            commandBuffer.SetGlobalTexture(sp_CrestGeneralMaskDepthTexture, generalDepthBuffer);
+            commandBuffer.SetGlobalTexture(sp_CrestOceanOccluderMaskTexture, oceanOccluderMask);
+            commandBuffer.SetGlobalTexture(sp_CrestOceanOccluderMaskDepthTexture, oceanOccluderDepthBuffer);
 
             // Get all ocean chunks and render them using cmd buffer, but with mask shader
-            commandBuffer.SetRenderTarget(oceanColorBuffer.colorBuffer, oceanDepthBuffer.depthBuffer);
+            commandBuffer.SetRenderTarget(oceanMask.colorBuffer, oceanDepthBuffer.depthBuffer);
             commandBuffer.ClearRenderTarget(true, true, Color.white * UNDERWATER_MASK_NO_MASK);
             commandBuffer.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
 
@@ -129,7 +128,7 @@ namespace Crest
                 }
             }
 
-            commandBuffer.SetGlobalTexture(sp_CrestOceanMaskTexture, oceanColorBuffer);
+            commandBuffer.SetGlobalTexture(sp_CrestOceanMaskTexture, oceanMask);
             commandBuffer.SetGlobalTexture(sp_CrestOceanMaskDepthTexture, oceanDepthBuffer);
 
             float oceanHeight = OceanRenderer.Instance.SeaLevel;

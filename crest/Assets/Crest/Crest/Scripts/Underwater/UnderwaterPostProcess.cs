@@ -34,17 +34,17 @@ namespace Crest
         // end public debug options
 
         private Camera _mainCamera;
-        private RenderTexture _oceanTextureMask;
+        private RenderTexture _oceanMask;
         private RenderTexture _oceanDepthBuffer;
-        private RenderTexture _generalTextureMask;
-        private RenderTexture _generalDepthBuffer;
+        private RenderTexture _oceanOccluderMask;
+        private RenderTexture _oceanOccluderDepthBuffer;
         private CommandBuffer _maskCommandBuffer;
         private CommandBuffer _postProcessCommandBuffer;
 
         private Plane[] _cameraFrustumPlanes;
 
         private Material _oceanMaskMaterial = null;
-        private Material _oceanOccluderMaterial = null;
+        private Material _oceanOccluderMaskMaterial = null;
 
         private PropertyWrapperMaterial _underwaterPostProcessMaterialWrapper;
 
@@ -91,8 +91,8 @@ namespace Crest
 
             {
                 var oceanOccluderShader = Shader.Find(OCEAN_OCCLUDER_MASK);
-                _oceanOccluderMaterial = oceanOccluderShader ? new Material(oceanOccluderShader) : null;
-                if (_oceanOccluderMaterial == null)
+                _oceanOccluderMaskMaterial = oceanOccluderShader ? new Material(oceanOccluderShader) : null;
+                if (_oceanOccluderMaskMaterial == null)
                 {
                     Debug.LogError($"Could not create a material with shader {OCEAN_OCCLUDER_MASK}", this);
                     return false;
@@ -193,8 +193,9 @@ namespace Crest
 
             {
                 RenderTextureDescriptor descriptor = new RenderTextureDescriptor(_mainCamera.pixelWidth, _mainCamera.pixelHeight);
-                InitialiseMaskTextures(descriptor, true, ref _oceanTextureMask, ref _oceanDepthBuffer);
-                InitialiseMaskTextures(descriptor, false, ref _generalTextureMask, ref _generalDepthBuffer);
+                InitialiseMaskTextures(descriptor, true, ref _oceanMask, ref _oceanDepthBuffer);
+                // TODO(TRC):Now only initialise these if there are any transparent ocean occluders
+                InitialiseMaskTextures(descriptor, false, ref _oceanOccluderMask, ref _oceanOccluderDepthBuffer);
             }
 
             PopulateOceanMask(
@@ -202,9 +203,8 @@ namespace Crest
                 OceanBuilder.OceanChunkRenderers,
                 _oceanOccluderMasksToRender,
                 _cameraFrustumPlanes,
-                _oceanTextureMask, _oceanDepthBuffer,
-                _generalTextureMask, _generalDepthBuffer,
-                _oceanMaskMaterial, _oceanOccluderMaterial,
+                _oceanMask, _oceanDepthBuffer, _oceanMaskMaterial,
+                _oceanOccluderMask, _oceanOccluderDepthBuffer, _oceanOccluderMaskMaterial,
                 _sphericalHarmonicsData,
                 _horizonSafetyMarginMultiplier,
                 _disableOceanMask

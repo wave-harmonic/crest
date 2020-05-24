@@ -50,8 +50,8 @@ Shader "Crest/Underwater/Ocean Mask"
 			// cause here might be imprecision or numerical issues at ocean tile boundaries, although
 			// i'm not sure why cracks are not visible in this case.
 			float _ForceUnderwater;
-			sampler2D _CrestGeneralMaskTexture;
-			sampler2D _CrestGeneralMaskDepthTexture;
+			sampler2D _CrestOceanOccluderMaskTexture;
+			sampler2D _CrestOceanOccluderMaskDepthTexture;
 
 			Varyings Vert(Attributes v)
 			{
@@ -97,8 +97,8 @@ Shader "Crest/Underwater/Ocean Mask"
 			{
 				half3 uv_z = input.screenPos.xyz/input.screenPos.w;
 
-				float overrideMask = tex2D(_CrestGeneralMaskTexture, uv_z.xy).x;
-				float overrideDepth = tex2D(_CrestGeneralMaskDepthTexture, uv_z.xy).x;
+				float overrideMask = tex2D(_CrestOceanOccluderMaskTexture, uv_z.xy).x;
+				float overrideDepth = tex2D(_CrestOceanOccluderMaskDepthTexture, uv_z.xy).x;
 
 				// TODO(TRC):Now @optimisation pack opaque information in the underwater mask texture, only enable
 				// parts of this based on which underwater features we have enabled.

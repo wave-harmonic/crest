@@ -376,7 +376,11 @@ namespace Crest
 
         bool VerifyRequirements()
         {
-            if (_material == null)
+            if (_material == null
+#if UNITY_EDITOR
+                && EditorApplication.isPlaying
+#endif
+                )
             {
                 Debug.LogError("A material for the ocean must be assigned on the Material property of the OceanRenderer.", this);
                 return false;
@@ -821,7 +825,10 @@ namespace Crest
                 view.Repaint();
             }
 
-            Root.gameObject.SetActive(!_showOceanProxyPlane);
+            if (Root != null)
+            {
+                Root.gameObject.SetActive(!_showOceanProxyPlane);
+            }
         }
 #endif
     }

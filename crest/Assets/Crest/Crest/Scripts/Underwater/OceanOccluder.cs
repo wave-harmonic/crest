@@ -12,7 +12,7 @@ using UnityEngine.Rendering;
 
 namespace Crest
 {
-    // @volatile:UnderwaterMaskValues These MUST match the values in OceanConstants.hlsl
+    // @volatile:OceanOccluderMaskValues These MUST match the values in OceanOccluderHelpers.hlsl
     public enum OceanOccluderType
     {
         OccludeAll = 0,

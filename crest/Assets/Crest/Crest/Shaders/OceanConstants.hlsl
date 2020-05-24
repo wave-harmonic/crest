@@ -30,12 +30,6 @@
 // Underwater effect applied from a distance (Only works for geometry not in the depth buffer)
 #define UNDERWATER_MASK_WINDOW 3.0
 
-// @volatie:UnderwaterMaskValues These MUST match the values in UnderwaterPostProcessUtils.cs
-#define OVERRIDE_MASK_UNDERWATER_DISABLE 0.0
-#define OVERRIDE_MASK_UNDERWATER_ENABLE 1.0
-#define OVERRIDE_MASK_UNDERWATER_DISABLE_BACK 2.0 // for transparent materials
-#define OVERRIDE_MASK_UNDERWATER_DISABLE_FRONT 3.0 // for transparent materials
-
 #if defined(UNITY_SINGLE_PASS_STEREO) || defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
 #define CREST_HANDLE_XR 1
 #else

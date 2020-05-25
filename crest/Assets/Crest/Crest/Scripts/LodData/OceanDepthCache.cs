@@ -38,7 +38,9 @@ namespace Crest
         public OceanDepthCacheRefreshMode RefreshMode => _refreshMode;
 
         [Tooltip("In edit mode update every frame so that scene changes take effect immediately. Increases power usage in edit mode."), SerializeField]
+#pragma warning disable 414
         bool _refreshEveryFrameInEditMode = true;
+#pragma warning restore 414
 
         [Tooltip("Renderers in scene to render into this depth cache. When provided this saves the code from doing an expensive FindObjectsOfType() call. If one or more renderers are specified, the layer setting is ignored."), SerializeField]
         Renderer[] _geometryToRenderIntoCache = new Renderer[0];

@@ -5,10 +5,12 @@
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
+#if UNITY_EDITOR
 #if UNITY_2018
 using UnityEditor.Experimental.SceneManagement;
 #else
 using UnityEditor.SceneManagement;
+#endif
 #endif
 
 namespace Crest
@@ -181,10 +183,14 @@ namespace Crest
 #endif
 
         [Tooltip("Sets the update rate of the ocean system when in edit mode. Can be reduced to save power."), Range(0f, 60f), SerializeField]
+#pragma warning disable 414
         float _editModeFPS = 30f;
+#pragma warning restore 414
 
         [Tooltip("Move ocean with Scene view camera if Scene window is focused."), SerializeField]
+#pragma warning disable 414
         bool _followSceneCamera = true;
+#pragma warning restore 414
 
         [Header("Debug Params")]
 
@@ -265,10 +271,12 @@ namespace Crest
         void OnEnable()
         {
             // We don't run in "prefab scenes", i.e. when editing a prefab. Bail out if prefab scene is detected.
+#if UNITY_EDITOR
             if (PrefabStageUtility.GetCurrentPrefabStage() != null)
             {
                 return;
             }
+#endif
 
             if (!_primaryLight && _searchForPrimaryLightOnStartup)
             {
@@ -320,11 +328,13 @@ namespace Crest
 
         private void OnDisable()
         {
+#if UNITY_EDITOR
             // We don't run in "prefab scenes", i.e. when editing a prefab. Bail out if prefab scene is detected.
             if (PrefabStageUtility.GetCurrentPrefabStage() != null)
             {
                 return;
             }
+#endif
 
             CleanUp();
 

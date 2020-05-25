@@ -50,7 +50,8 @@ namespace Crest
             base.Start();
 
 #if UNITY_EDITOR
-            if (!OceanRenderer.Instance.OceanMaterial.IsKeywordEnabled("_FOAM_ON"))
+            if (OceanRenderer.Instance != null && OceanRenderer.Instance.OceanMaterial != null
+                && !OceanRenderer.Instance.OceanMaterial.IsKeywordEnabled("_FOAM_ON"))
             {
                 Debug.LogWarning("Foam is not enabled on the current ocean material and will not be visible.", _ocean);
             }

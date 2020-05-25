@@ -15,7 +15,7 @@ namespace Crest
     {
         public override bool Enabled => true;
 
-        [SerializeField] bool _assignOceanDepthMaterial = true;
+        public bool _assignOceanDepthMaterial = true;
 
         public override float Wavelength => 0f;
 

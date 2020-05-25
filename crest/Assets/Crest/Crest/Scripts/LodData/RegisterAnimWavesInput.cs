@@ -37,24 +37,17 @@ namespace Crest
         [SerializeField, Tooltip("Use the bounding box of an attached renderer component to determine the max vertical displacement.")]
         bool _reportRendererBoundsToOceanSystem = false;
 
-        Renderer _rend;
-
-        protected override void Start()
+        protected override void Update()
         {
-            base.Start();
+            base.Update();
 
-            _rend = GetComponent<Renderer>();
-        }
-
-        private void Update()
-        {
             var maxDispVert = 0f;
 
             // let ocean system know how far from the sea level this shape may displace the surface
             if (_reportRendererBoundsToOceanSystem)
             {
-                var minY = _rend.bounds.min.y;
-                var maxY = _rend.bounds.max.y;
+                var minY = _renderer.bounds.min.y;
+                var maxY = _renderer.bounds.max.y;
                 var seaLevel = OceanRenderer.Instance.SeaLevel;
                 maxDispVert = Mathf.Max(Mathf.Abs(seaLevel - minY), Mathf.Abs(seaLevel - maxY));
             }

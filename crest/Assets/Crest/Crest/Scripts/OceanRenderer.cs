@@ -6,11 +6,7 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 #if UNITY_EDITOR
-#if UNITY_2018
 using UnityEditor.Experimental.SceneManagement;
-#else
-using UnityEditor.SceneManagement;
-#endif
 #endif
 
 namespace Crest

@@ -35,6 +35,7 @@ namespace Crest
     /// <summary>
     /// Base class for scripts that register input to the various LOD data types.
     /// </summary>
+    [ExecuteAlways]
     public abstract class RegisterLodDataInputBase : MonoBehaviour, ILodDataInput, IValidated
     {
         [SerializeField, Tooltip("Check that the shader applied to this object matches the input type (so e.g. an Animated Waves input object has an Animated Waves input shader.")]
@@ -62,23 +63,37 @@ namespace Crest
             return registered;
         }
 
-        Renderer _renderer;
-        Material[] _materials = new Material[2];
+        protected Renderer _renderer;
+        protected Material _material;
 
-        protected virtual void Start()
+        void InitRendererAndMaterial(bool verifyShader)
         {
             _renderer = GetComponent<Renderer>();
 
             if (_renderer)
             {
-                if (_checkShaderName)
+                if (_checkShaderName && verifyShader)
                 {
                     CheckShaderName(_renderer);
                 }
 
-                _materials[0] = _renderer.sharedMaterial;
-                _materials[1] = new Material(_renderer.sharedMaterial);
+                _material = _renderer.sharedMaterial;
             }
+        }
+
+        protected void Start()
+        {
+            InitRendererAndMaterial(true);
+        }
+
+        protected virtual void Update()
+        {
+#if UNITY_EDITOR
+            if (!UnityEditor.EditorApplication.isPlaying)
+            {
+                InitRendererAndMaterial(true);
+            }
+#endif
         }
 
         bool CheckShaderName(Renderer renderer)
@@ -93,17 +108,13 @@ namespace Crest
 
         public void Draw(CommandBuffer buf, float weight, int isTransition, int lodIdx)
         {
-            if (_renderer && weight > 0f)
+            if (_renderer && _material && weight > 0f)
             {
-                _materials[isTransition].SetFloat(sp_Weight, weight);
-                _materials[isTransition].SetInt(LodDataMgr.sp_LD_SliceIndex, lodIdx);
-
-                buf.DrawRenderer(_renderer, _materials[isTransition]);
+                buf.SetGlobalFloat(sp_Weight, weight);
+                buf.SetGlobalFloat(LodDataMgr.sp_LD_SliceIndex, lodIdx);
+                buf.DrawRenderer(_renderer, _material);
             }
         }
-
-        public int MaterialCount => _materials.Length;
-        public Material GetMaterial(int index) => _materials[index];
 
 #if UNITY_2019_3_OR_NEWER
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
@@ -124,6 +135,7 @@ namespace Crest
     /// <summary>
     /// Registers input to a particular LOD data.
     /// </summary>
+    [ExecuteAlways]
     public abstract class RegisterLodDataInput<LodDataType> : RegisterLodDataInputBase
         where LodDataType : LodDataMgr
     {
@@ -131,31 +143,68 @@ namespace Crest
 
         protected abstract Color GizmoColor { get; }
 
+        int _registeredQueueValue = int.MinValue;
+
+        bool GetQueue(out int queue)
+        {
+            var rend = GetComponent<Renderer>();
+            if (rend && rend.sharedMaterial != null)
+            {
+                queue = rend.sharedMaterial.renderQueue;
+                return true;
+            }
+            queue = int.MinValue;
+            return false;
+        }
+
         protected virtual void OnEnable()
         {
-            var queue = 0;
-            var rend = GetComponent<Renderer>();
-            if (rend)
+            if (_disableRenderer)
             {
-                if (_disableRenderer)
+                var rend = GetComponent<Renderer>();
+                if (rend)
                 {
                     rend.enabled = false;
                 }
-
-                queue = (rend.sharedMaterial ?? rend.material).renderQueue;
             }
 
+            int q;
+            GetQueue(out q);
+
             var registrar = GetRegistrar(typeof(LodDataType));
-            registrar.Add(queue, this);
+            registrar.Add(q, this);
+            _registeredQueueValue = q;
         }
 
         protected virtual void OnDisable()
         {
-            var registered = GetRegistrar(typeof(LodDataType));
-            if (registered != null)
+            var registrar = GetRegistrar(typeof(LodDataType));
+            if (registrar != null)
             {
-                registered.Remove(this);
+                registrar.Remove(this);
             }
+        }
+
+        protected override void Update()
+        {
+            base.Update();
+
+#if UNITY_EDITOR
+            if (!UnityEditor.EditorApplication.isPlaying)
+            {
+                int q;
+                if (GetQueue(out q))
+                {
+                    if (q != _registeredQueueValue)
+                    {
+                        var registrar = GetRegistrar(typeof(LodDataType));
+                        registrar.Remove(this);
+                        registrar.Add(q, this);
+                        _registeredQueueValue = q;
+                    }
+                }
+            }
+#endif
         }
 
         private void OnDrawGizmosSelected()

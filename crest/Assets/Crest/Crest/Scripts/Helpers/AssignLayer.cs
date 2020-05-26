@@ -2,6 +2,7 @@
 
 namespace Crest
 {
+    [ExecuteAlways]
     public class AssignLayer : MonoBehaviour, IValidated
     {
         [SerializeField]

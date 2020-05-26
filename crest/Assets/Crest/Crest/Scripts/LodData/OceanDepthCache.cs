@@ -14,6 +14,7 @@ namespace Crest
     /// Renders terrain height / ocean depth once into a render target to cache this off and avoid rendering it every frame.
     /// This should be used for static geometry, dynamic objects should be tagged with the Render Ocean Depth component.
     /// </summary>
+    [ExecuteAlways]
     public class OceanDepthCache : MonoBehaviour
     {
         public enum OceanDepthCacheType
@@ -36,6 +37,11 @@ namespace Crest
         OceanDepthCacheRefreshMode _refreshMode = OceanDepthCacheRefreshMode.OnStart;
         public OceanDepthCacheRefreshMode RefreshMode => _refreshMode;
 
+        [Tooltip("In edit mode update every frame so that scene changes take effect immediately. Increases power usage in edit mode."), SerializeField]
+#pragma warning disable 414
+        bool _refreshEveryFrameInEditMode = true;
+#pragma warning restore 414
+
         [Tooltip("Renderers in scene to render into this depth cache. When provided this saves the code from doing an expensive FindObjectsOfType() call. If one or more renderers are specified, the layer setting is ignored."), SerializeField]
         Renderer[] _geometryToRenderIntoCache = new Renderer[0];
 
@@ -53,6 +59,9 @@ namespace Crest
 #pragma warning disable 414
         bool _forceAlwaysUpdateDebug = false;
 #pragma warning restore 414
+
+        [Tooltip("Hides the depth cache camera, for cleanliness. Disable to make it visible in the Hierarchy."), SerializeField]
+        bool _hideDepthCacheCam = true;
 
         [Tooltip("Baked depth cache. Baking button available in play mode."), SerializeField]
 #pragma warning disable 649
@@ -85,7 +94,7 @@ namespace Crest
             }
 #endif
 
-            if (_type == OceanDepthCacheType.Baked && _drawCacheQuad == null)
+            if (_type == OceanDepthCacheType.Baked)
             {
                 DrawCacheQuad();
             }
@@ -98,7 +107,7 @@ namespace Crest
 #if UNITY_EDITOR
         void Update()
         {
-            if (_forceAlwaysUpdateDebug)
+            if (_forceAlwaysUpdateDebug || (!EditorApplication.isPlaying && _refreshEveryFrameInEditMode))
             {
                 PopulateCache();
             }
@@ -177,6 +186,7 @@ namespace Crest
             if (_camDepthCache == null)
             {
                 _camDepthCache = new GameObject("DepthCacheCam").AddComponent<Camera>();
+                _camDepthCache.gameObject.hideFlags = _hideDepthCacheCam ? HideFlags.HideAndDontSave : HideFlags.DontSave;
                 _camDepthCache.transform.position = transform.position + Vector3.up * _cameraMaxTerrainHeight;
                 _camDepthCache.transform.parent = transform;
                 _camDepthCache.transform.localEulerAngles = 90f * Vector3.right;
@@ -196,18 +206,26 @@ namespace Crest
                 _camDepthCache.gameObject.SetActive(false);
             }
 
-            // Shader needs sea level to determine water depth
-            var centerPoint = Vector3.zero;
-            if (OceanRenderer.Instance != null)
+            // Make sure this global is set - I found this was necessary to set it here. However this can cause glitchiness in editor
+            // as it messes with this global vector, so only do it if not in edit mode
+#if UNITY_EDITOR
+            if (EditorApplication.isPlaying)
+#endif
             {
-                centerPoint.y = OceanRenderer.Instance.transform.position.y;
+                // Shader needs sea level to determine water depth
+                var centerPoint = Vector3.zero;
+                if (OceanRenderer.Instance != null)
+                {
+                    centerPoint.y = OceanRenderer.Instance.Root.position.y;
+                }
+                else
+                {
+                    centerPoint.y = transform.position.y;
+                }
+
+                Shader.SetGlobalVector("_OceanCenterPosWorld", centerPoint);
             }
-            else
-            {
-                centerPoint.y = transform.position.y;
-            }
-            // Make sure this global is set - I found this was necessary to set it here
-            Shader.SetGlobalVector("_OceanCenterPosWorld", centerPoint);
+
             _camDepthCache.RenderWithShader(Shader.Find("Crest/Inputs/Depth/Ocean Depth From Geometry"), null);
 
             DrawCacheQuad();
@@ -215,14 +233,24 @@ namespace Crest
 
         void DrawCacheQuad()
         {
+            if (_drawCacheQuad != null)
+            {
+                return;
+            }
+
             _drawCacheQuad = GameObject.CreatePrimitive(PrimitiveType.Quad);
+            _drawCacheQuad.hideFlags = HideFlags.DontSave;
+#if UNITY_EDITOR
+            DestroyImmediate(_drawCacheQuad.GetComponent<Collider>());
+#else
             Destroy(_drawCacheQuad.GetComponent<Collider>());
+#endif
             _drawCacheQuad.name = "DepthCache_" + gameObject.name;
             _drawCacheQuad.transform.SetParent(transform, false);
             _drawCacheQuad.transform.localEulerAngles = 90f * Vector3.right;
-            _drawCacheQuad.AddComponent<RegisterSeaFloorDepthInput>();
+            _drawCacheQuad.AddComponent<RegisterSeaFloorDepthInput>()._assignOceanDepthMaterial = false;
             var qr = _drawCacheQuad.GetComponent<Renderer>();
-            qr.material = new Material(Shader.Find(LodDataMgrSeaFloorDepth.ShaderName));
+            qr.sharedMaterial = new Material(Shader.Find(LodDataMgrSeaFloorDepth.ShaderName));
 
             if (_type == OceanDepthCacheType.Baked)
             {
@@ -230,7 +258,7 @@ namespace Crest
             }
             else
             {
-                qr.material.mainTexture = _cacheTexture;
+                qr.sharedMaterial.mainTexture = _cacheTexture;
             }
 
             qr.enabled = false;
@@ -301,15 +329,9 @@ namespace Crest
                 Debug.LogError($"Validation: Ocean depth cache scale Y should be set to 1.0. Its current scale in the hierarchy is {transform.lossyScale.y}.", this);
             }
 
-            if (Mathf.Abs(transform.position.y - ocean.transform.position.y) > 0.00001f)
+            if (Mathf.Abs(transform.position.y - ocean.Root.position.y) > 0.00001f)
             {
                 Debug.LogWarning("Validation: It is recommended that the cache is placed at the same height (y component of position) as the ocean, i.e. at the sea level. If the cache is created before the ocean is present, the cache height will inform the sea level. Click this message to highlight the cache in question.", this);
-            }
-
-            var rend = GetComponentInChildren<Renderer>();
-            if (rend != null)
-            {
-                Debug.LogWarning("Validation: It is not expected that a depth cache object has a Renderer component in its hierarchy. The cache is typically attached to an empty GameObject. Click this message to highlight the Renderer. Please refer to the example content.", rend);
             }
         }
 #endif
@@ -319,7 +341,7 @@ namespace Crest
     [CustomEditor(typeof(OceanDepthCache))]
     public class OceanDepthCacheEditor : Editor
     {
-        readonly string[] _propertiesToExclude = new string[] { "m_Script", "_type", "_refreshMode", "_savedCache", "_geometryToRenderIntoCache", "_layerNames", "_resolution", "_cameraMaxTerrainHeight", "_forceAlwaysUpdateDebug", "_checkTerrainDrawInstancedOption" };
+        readonly string[] _propertiesToExclude = new string[] { "m_Script", "_type", "_refreshMode", "_savedCache", "_geometryToRenderIntoCache", "_layerNames", "_resolution", "_cameraMaxTerrainHeight", "_forceAlwaysUpdateDebug", "_checkTerrainDrawInstancedOption", "_refreshEveryFrameInEditMode" };
 
         public override void OnInspectorGUI()
         {
@@ -341,6 +363,7 @@ namespace Crest
             {
                 // Only expose the following if real-time cache type
                 EditorGUILayout.PropertyField(serializedObject.FindProperty("_refreshMode"));
+                EditorGUILayout.PropertyField(serializedObject.FindProperty("_refreshEveryFrameInEditMode"));
                 EditorGUILayout.PropertyField(serializedObject.FindProperty("_geometryToRenderIntoCache"), true);
                 EditorGUILayout.PropertyField(serializedObject.FindProperty("_layerNames"), true);
                 EditorGUILayout.PropertyField(serializedObject.FindProperty("_resolution"));

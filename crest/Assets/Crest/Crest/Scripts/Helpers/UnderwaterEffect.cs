@@ -10,6 +10,7 @@ namespace Crest
     /// Handles effects that need to track the water surface. Feeds in wave data and disables rendering when
     /// not close to water.
     /// </summary>
+    [ExecuteAlways]
     public class UnderwaterEffect : MonoBehaviour
     {
         [Header("Copy params from Ocean material")]
@@ -44,7 +45,7 @@ namespace Crest
 
             // Render before the surface mesh
             _rend.sortingOrder = _overrideSortingOrder ? _overridenSortingOrder : -LodDataMgr.MAX_LOD_COUNT - 1;
-            GetComponent<MeshFilter>().mesh = Mesh2DGrid(0, 2, -0.5f, -0.5f, 1f, 1f, GEOM_HORIZ_DIVISIONS, 1);
+            GetComponent<MeshFilter>().sharedMesh = Mesh2DGrid(0, 2, -0.5f, -0.5f, 1f, 1f, GEOM_HORIZ_DIVISIONS, 1);
 
             // hack - push forward so the geometry wont be frustum culled. there might be better ways to draw
             // this stuff.
@@ -63,7 +64,8 @@ namespace Crest
         {
             if (OceanRenderer.Instance == null) return;
 
-            var keywords = _rend.material.shaderKeywords;
+            var keywords = _rend.sharedMaterial.shaderKeywords;
+
             foreach (var keyword in keywords)
             {
                 if (keyword == "_COMPILESHADERWITHDEBUGINFO_ON") continue;
@@ -76,7 +78,7 @@ namespace Crest
 
             if (_copyParamsOnStartup)
             {
-                _rend.material.CopyPropertiesFromMaterial(OceanRenderer.Instance.OceanMaterial);
+                _rend.sharedMaterial.CopyPropertiesFromMaterial(OceanRenderer.Instance.OceanMaterial);
             }
         }
 
@@ -89,7 +91,9 @@ namespace Crest
             }
 
             float waterHeight = OceanRenderer.Instance.SeaLevel;
-            _sampleWaterHeight.Init(transform.position, 0f);
+            // Pass true in last arg for a crap reason - in edit mode LateUpdate can be called very frequently, and the height sampler mistakenly thinks
+            // this is erroneous and complains.
+            _sampleWaterHeight.Init(transform.position, 0f, true);
             _sampleWaterHeight.Sample(ref waterHeight);
 
             float heightOffset = transform.position.y - waterHeight;
@@ -103,7 +107,7 @@ namespace Crest
             {
                 if (_copyParamsEachFrame)
                 {
-                    _rend.material.CopyPropertiesFromMaterial(OceanRenderer.Instance.OceanMaterial);
+                    _rend.sharedMaterial.CopyPropertiesFromMaterial(OceanRenderer.Instance.OceanMaterial);
                 }
 
                 // Assign lod0 shape - trivial but bound every frame because lod transform comes from here
@@ -117,7 +121,7 @@ namespace Crest
                 _mpb.SetInt(LodDataMgr.sp_LD_SliceIndex, 0);
                 OceanRenderer.Instance._lodDataAnimWaves.BindResultData(_mpb);
 
-                if (OceanRenderer.Instance._lodDataSeaDepths)
+                if (OceanRenderer.Instance._lodDataSeaDepths != null)
                 {
                     OceanRenderer.Instance._lodDataSeaDepths.BindResultData(_mpb);
                 }
@@ -126,7 +130,7 @@ namespace Crest
                     LodDataMgrSeaFloorDepth.BindNull(_mpb);
                 }
 
-                if (OceanRenderer.Instance._lodDataShadow)
+                if (OceanRenderer.Instance._lodDataShadow != null)
                 {
                     OceanRenderer.Instance._lodDataShadow.BindResultData(_mpb);
                 }
@@ -187,6 +191,7 @@ namespace Crest
             }
 
             var mesh = new Mesh();
+            mesh.hideFlags = HideFlags.DontSave;
             mesh.name = "Grid2D_" + divs0 + "x" + divs1;
             mesh.vertices = verts;
             mesh.uv = uvs;

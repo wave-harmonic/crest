@@ -12,6 +12,7 @@ namespace Crest
     /// Support script for Gerstner wave ocean shapes.
     /// Generates a number of batches of Gerstner waves.
     /// </summary>
+    [ExecuteAlways]
     public class ShapeGerstnerBatched : MonoBehaviour, ICollProvider, IFloatingOrigin
     {
         public enum GerstnerMode
@@ -32,8 +33,11 @@ namespace Crest
 
         public class GerstnerBatch : ILodDataInput
         {
-            public GerstnerBatch(MeshRenderer rend, bool directTowardsPoint)
+            public GerstnerBatch(ShapeGerstnerBatched gerstner, int batchIndex, MeshRenderer rend, bool directTowardsPoint)
             {
+                _gerstner = gerstner;
+                _batchIndex = batchIndex;
+
                 _materials = new PropertyWrapperMaterial[]
                 {
                     new PropertyWrapperMaterial(new Material(rend.sharedMaterial ?? rend.material)),
@@ -47,6 +51,8 @@ namespace Crest
                 }
 
                 _rend = rend;
+
+                Enabled = true;
             }
 
             public PropertyWrapperMaterial GetMaterial(int isTransition) => _materials[isTransition];
@@ -57,12 +63,22 @@ namespace Crest
 
             MeshRenderer _rend;
 
-            public float Wavelength { get; set; }
+            ShapeGerstnerBatched _gerstner;
+            int _batchIndex = -1;
+
+            // The ocean input system uses this to decide which lod this batch belongs in
+            public float Wavelength => OceanRenderer.Instance._lodTransform.MaxWavelength(_batchIndex) / 2f;
+
             public bool Enabled { get; set; }
+
+            public bool HasWaves { get; set; }
 
             public void Draw(CommandBuffer buf, float weight, int isTransition, int lodIdx)
             {
-                if (Enabled && weight > 0f)
+                HasWaves = false;
+                _gerstner.UpdateBatch(this, _batchIndex);
+
+                if (HasWaves && weight > 0f)
                 {
                     PropertyWrapperMaterial mat = GetMaterial(isTransition);
                     mat.SetFloat(RegisterLodDataInputBase.sp_Weight, weight);
@@ -123,7 +139,7 @@ namespace Crest
             public readonly static Vector4[] _chopAmpsBatch = new Vector4[BATCH_SIZE / 4];
         }
 
-        void Start()
+        private void OnEnable()
         {
             if (_spectrum == null)
             {
@@ -176,9 +192,14 @@ namespace Crest
             }
         }
 
-        void Update()
+        float _lastUpdateTime = -1f;
+
+        void UpdateData()
         {
             if (OceanRenderer.Instance == null) return;
+
+            if (_lastUpdateTime >= OceanRenderer.Instance.CurrentTime) return;
+            _lastUpdateTime = OceanRenderer.Instance.CurrentTime;
 
             if (_evaluateSpectrumAtRuntime)
             {
@@ -222,7 +243,7 @@ namespace Crest
 
         private void ReportMaxDisplacement()
         {
-            if(_spectrum._chopScales.Length != OceanWaveSpectrum.NUM_OCTAVES)
+            if (_spectrum._chopScales.Length != OceanWaveSpectrum.NUM_OCTAVES)
             {
                 Debug.LogError($"OceanWaveSpectrum {_spectrum.name} is out of date, please open this asset and resave in editor.", _spectrum);
             }
@@ -267,7 +288,11 @@ namespace Crest
 
                 // Create a proxy MeshRenderer to feed the rendering
                 var renderProxy = GameObject.CreatePrimitive(PrimitiveType.Quad);
+#if UNITY_EDITOR
+                DestroyImmediate(renderProxy.GetComponent<Collider>());
+#else
                 Destroy(renderProxy.GetComponent<Collider>());
+#endif
                 renderProxy.hideFlags = HideFlags.HideAndDontSave;
                 renderProxy.transform.parent = transform;
                 rend = renderProxy.GetComponent<MeshRenderer>();
@@ -287,7 +312,7 @@ namespace Crest
             _batches = new GerstnerBatch[LodDataMgr.MAX_LOD_COUNT];
             for (int i = 0; i < _batches.Length; i++)
             {
-                _batches[i] = new GerstnerBatch(rend, _directTowardsPoint);
+                _batches[i] = new GerstnerBatch(this, i, rend, _directTowardsPoint);
             }
 
             // Submit draws to create the Gerstner waves. LODs from 0 to N-2 render the Gerstner waves from their lod. Additionally, any waves
@@ -307,7 +332,7 @@ namespace Crest
         /// </summary>
         void UpdateBatch(int lodIdx, int firstComponent, int lastComponentNonInc, GerstnerBatch batch)
         {
-            batch.Enabled = false;
+            batch.HasWaves = false;
 
             int numComponents = lastComponentNonInc - firstComponent;
             int numInBatch = 0;
@@ -407,14 +432,14 @@ namespace Crest
                 mat.SetVectorArray(sp_Phases, UpdateBatchScratchData._phasesBatch);
                 mat.SetVectorArray(sp_ChopAmps, UpdateBatchScratchData._chopAmpsBatch);
                 mat.SetFloat(sp_NumInBatch, numInBatch);
-                mat.SetFloat(sp_AttenuationInShallows, OceanRenderer.Instance._simSettingsAnimatedWaves.AttenuationInShallows);
+                mat.SetFloat(sp_AttenuationInShallows, OceanRenderer.Instance._lodDataAnimWaves.Settings.AttenuationInShallows);
 
                 int numVecs = (numInBatch + 3) / 4;
                 mat.SetInt(sp_NumWaveVecs, numVecs);
                 mat.SetInt(LodDataMgr.sp_LD_SliceIndex, lodIdx - i);
                 OceanRenderer.Instance._lodDataAnimWaves.BindResultData(mat);
 
-                if (OceanRenderer.Instance._lodDataSeaDepths)
+                if (OceanRenderer.Instance._lodDataSeaDepths != null)
                 {
                     OceanRenderer.Instance._lodDataSeaDepths.BindResultData(mat, false);
                 }
@@ -429,65 +454,49 @@ namespace Crest
                 }
             }
 
-            batch.Enabled = true;
+            batch.HasWaves = true;
         }
 
-        /// <summary>
-        /// More complicated than one would hope - loops over each component and assigns to a Gerstner batch which will render to a LOD.
-        /// the camera WL range does not always match the octave WL range (because the vertices per wave is not constrained to powers of
-        /// 2, unfortunately), so i cant easily just loop over octaves. also any WLs that either go to the last WDC, or don't fit in the last
-        /// WDC, are rendered into both the last and second-to-last WDCs, in order to transition them smoothly without pops in all scenarios.
-        /// </summary>
-        void LateUpdate()
+        void UpdateBatch(GerstnerBatch batch, int batchIdx)
         {
+            // Default to disabling all batches
+            batch.HasWaves = false;
+
             if (OceanRenderer.Instance == null)
             {
                 return;
             }
 
+            UpdateData();
+
+            if (_wavelengths.Length == 0)
+            {
+                return;
+            }
+
+            int lodIdx = Mathf.Min(batchIdx, OceanRenderer.Instance.CurrentLodCount - 1);
+
             int componentIdx = 0;
 
             // seek forward to first wavelength that is big enough to render into current LODs
-            float minWl = OceanRenderer.Instance._lodTransform.MaxWavelength(0) / 2f;
-            while (_wavelengths[componentIdx] < minWl && componentIdx < _wavelengths.Length)
+            float minWl = OceanRenderer.Instance._lodTransform.MaxWavelength(batchIdx) / 2f;
+            while (componentIdx < _wavelengths.Length && _wavelengths[componentIdx] < minWl)
             {
                 componentIdx++;
             }
 
-            for (int i = 0; i < _batches.Length; i++)
+            // Assemble wavelengths into current batch
+            int startCompIdx = componentIdx;
+            while (componentIdx < _wavelengths.Length && _wavelengths[componentIdx] < 2f * minWl)
             {
-                // Default to disabling all batches
-                _batches[i].Enabled = false;
+                componentIdx++;
             }
 
-            int batch = 0;
-            int lodIdx = 0;
-            while (componentIdx < _wavelengths.Length)
+            // One or more wavelengths - update the batch
+            if (componentIdx > startCompIdx)
             {
-                if (batch >= _batches.Length)
-                {
-                    Debug.LogWarning("Out of Gerstner batches.", this);
-                    break;
-                }
-
-                // Assemble wavelengths into current batch
-                int startCompIdx = componentIdx;
-                while (componentIdx < _wavelengths.Length && _wavelengths[componentIdx] < 2f * minWl)
-                {
-                    componentIdx++;
-                }
-
-                // One or more wavelengths - update the batch
-                if (componentIdx > startCompIdx)
-                {
-                    UpdateBatch(lodIdx, startCompIdx, componentIdx, _batches[batch]);
-
-                    _batches[batch].Wavelength = minWl;
-                }
-
-                batch++;
-                lodIdx = Mathf.Min(lodIdx + 1, OceanRenderer.Instance.CurrentLodCount - 1);
-                minWl *= 2f;
+                //Debug.Log($"Batch {batch}, lodIdx {lodIdx}, range: {minWl} -> {2f * minWl}, indices: {startCompIdx} -> {componentIdx}");
+                UpdateBatch(lodIdx, startCompIdx, componentIdx, batch);
             }
         }
 
@@ -578,7 +587,7 @@ namespace Crest
             o_height = 0f;
 
             Vector3 posFlatland = i_worldPos;
-            posFlatland.y = OceanRenderer.Instance.transform.position.y;
+            posFlatland.y = OceanRenderer.Instance.Root.position.y;
 
             Vector3 undisplacedPos;
             if (!ComputeUndisplacedPosition(ref posFlatland, i_minSpatialLength, out undisplacedPos))

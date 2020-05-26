@@ -10,12 +10,9 @@ namespace Crest
     /// <summary>
     /// Base class for data/behaviours created on each LOD.
     /// </summary>
-    public abstract class LodDataMgr : MonoBehaviour
+    public abstract class LodDataMgr
     {
         public abstract string SimName { get; }
-
-        public abstract SimSettingsBase CreateDefaultSettings();
-        public abstract void UseSettings(SimSettingsBase settings);
 
         public abstract RenderTextureFormat TextureFormat { get; }
 
@@ -43,9 +40,19 @@ namespace Crest
         int _scaleDifferencePow2 = 0;
         protected int ScaleDifferencePow2 { get { return _scaleDifferencePow2; } }
 
-        protected virtual void Start()
+        public bool enabled { get; protected set; }
+
+        protected OceanRenderer _ocean;
+
+        public LodDataMgr(OceanRenderer ocean)
+        {
+            _ocean = ocean;
+        }
+
+        public virtual void Start()
         {
             InitData();
+            enabled = true;
         }
 
         public static RenderTexture CreateLodDataTextures(RenderTextureDescriptor desc, string name, bool needToReadWriteTextureData)
@@ -93,7 +100,7 @@ namespace Crest
             }
 
             // determine if this LOD has changed scale and by how much (in exponent of 2)
-            float oceanLocalScale = OceanRenderer.Instance.transform.localScale.x;
+            float oceanLocalScale = OceanRenderer.Instance.Root.localScale.x;
             if (_oceanLocalScalePrev == -1f) _oceanLocalScalePrev = oceanLocalScale;
             float ratio = oceanLocalScale / _oceanLocalScalePrev;
             _oceanLocalScalePrev = oceanLocalScale;
@@ -138,20 +145,6 @@ namespace Crest
             properties.SetVectorArray(LodTransform.ParamIdOcean(sourceLod), _BindData_paramIdOceans);
         }
 
-        public static LodDataType Create<LodDataType, LodDataSettings>(GameObject attachGO, ref LodDataSettings settings)
-            where LodDataType : LodDataMgr where LodDataSettings : SimSettingsBase
-        {
-            var sim = attachGO.AddComponent<LodDataType>();
-
-            if (settings == null)
-            {
-                settings = sim.CreateDefaultSettings() as LodDataSettings;
-            }
-            sim.UseSettings(settings);
-
-            return sim;
-        }
-
         public virtual void BuildCommandBuffer(OceanRenderer ocean, CommandBuffer buf)
         {
         }
@@ -171,7 +164,7 @@ namespace Crest
         protected void SubmitDraws(int lodIdx, CommandBuffer buf)
         {
             var lt = OceanRenderer.Instance._lodTransform;
-            lt._renderData[lodIdx].Validate(0, this);
+            lt._renderData[lodIdx].Validate(0, SimName);
 
             lt.SetViewProjectionMatrices(lodIdx, buf);
 
@@ -190,7 +183,7 @@ namespace Crest
         protected void SubmitDrawsFiltered(int lodIdx, CommandBuffer buf, IDrawFilter filter)
         {
             var lt = OceanRenderer.Instance._lodTransform;
-            lt._renderData[lodIdx].Validate(0, this);
+            lt._renderData[lodIdx].Validate(0, SimName);
 
             lt.SetViewProjectionMatrices(lodIdx, buf);
 
@@ -225,6 +218,13 @@ namespace Crest
                 _paramId_Source = Shader.PropertyToID(textureArrayName + "_Source");
             }
             public int GetId(bool sourceLod) { return sourceLod ? _paramId_Source : _paramId; }
+        }
+
+        internal virtual void OnEnable()
+        {
+        }
+        internal virtual void OnDisable()
+        {
         }
 
 #if UNITY_2019_3_OR_NEWER

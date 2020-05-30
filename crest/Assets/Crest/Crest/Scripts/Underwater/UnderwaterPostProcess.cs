@@ -38,12 +38,14 @@ namespace Crest
         private RenderTexture _depthBuffer;
         private CommandBuffer _maskCommandBuffer;
         private CommandBuffer _postProcessCommandBuffer;
+        private readonly SampleHeightHelper _sampleHeightHelper = new SampleHeightHelper();
 
         private Plane[] _cameraFrustumPlanes;
 
         private Material _oceanMaskMaterial = null;
 
         private PropertyWrapperMaterial _underwaterPostProcessMaterialWrapper;
+
 
         private const string SHADER_OCEAN_MASK = "Crest/Underwater/Ocean Mask";
 
@@ -205,6 +207,7 @@ namespace Crest
                 _mainCamera,
                 _underwaterPostProcessMaterialWrapper,
                 _sphericalHarmonicsData,
+                _sampleHeightHelper,
                 _firstRender || _copyOceanMaterialParamsEachFrame,
                 _viewPostProcessMask,
                 _horizonSafetyMarginMultiplier

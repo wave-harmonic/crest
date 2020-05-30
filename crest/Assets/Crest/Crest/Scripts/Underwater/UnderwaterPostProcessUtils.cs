@@ -115,6 +115,7 @@ namespace Crest
             Camera camera,
             PropertyWrapperMaterial underwaterPostProcessMaterialWrapper,
             UnderwaterSphericalHarmonicsData sphericalHarmonicsData,
+            SampleHeightHelper sampleHeightHelper,
             bool copyParamsFromOceanMaterial,
             bool debugViewPostProcessMask,
             float horizonSafetyMarginMultiplier
@@ -160,6 +161,26 @@ namespace Crest
             }
 
             float seaLevel = OceanRenderer.Instance.SeaLevel;
+            {
+                // We only apply the horizon safety margin multiplier to horizon if and only if
+                // concrete height of the camera relative to the water and the height of the camera
+                // relative to the sea-level are the same. This ensures that in incredibly turbulent
+                // water - if in doubt - use the neutral horizon.
+                float seaLevelHeightDifference = camera.transform.position.y - seaLevel;
+                float waterHeightLevelDifference = seaLevelHeightDifference;
+                {
+                    float waterHeight = 0.0f;
+                    sampleHeightHelper.Init(camera.transform.position, 0f);
+                    if (sampleHeightHelper.Sample(ref waterHeight))
+                    {
+                        waterHeightLevelDifference = camera.transform.position.y - waterHeight;
+                    }
+                }
+                if (seaLevelHeightDifference >= 0.0f ^ waterHeightLevelDifference >= 0.0f)
+                {
+                    horizonSafetyMarginMultiplier = 0.0f;
+                }
+            }
             {
                 underwaterPostProcessMaterial.SetFloat(sp_OceanHeight, seaLevel);
 

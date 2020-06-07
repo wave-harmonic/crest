@@ -758,12 +758,13 @@ namespace Crest
             _lodDatas.Clear();
 
 #if UNITY_EDITOR
-            if (!EditorApplication.isPlaying)
+            if (!EditorApplication.isPlaying && Root != null)
             {
                 DestroyImmediate(Root.gameObject);
             }
             else
 #endif
+            if (Root != null)
             {
                 Destroy(Root.gameObject);
             }

@@ -112,7 +112,9 @@ namespace Crest
         Skybox _camReflectionsSkybox;
 
         private long _lastRefreshOnFrame = -1;
-        float[] _cullDistances;
+
+        const int CULL_DISTANCE_COUNT = 32;
+        float[] _cullDistances = new float[CULL_DISTANCE_COUNT];
 
         private void Start()
         {
@@ -237,8 +239,8 @@ namespace Crest
         /// <param name="farClipPlane">reflection far clip distance</param>
         private void ForceDistanceCulling(float farClipPlane)
         {
-            if (_cullDistances == null || _cullDistances.Length != 32)
-                _cullDistances = new float[32];
+            if (_cullDistances == null || _cullDistances.Length != CULL_DISTANCE_COUNT)
+                _cullDistances = new float[CULL_DISTANCE_COUNT];
             for (var i = 0; i < _cullDistances.Length; i++)
             {
                 // The culling distance

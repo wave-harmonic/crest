@@ -393,13 +393,25 @@ namespace Crest
             return 0;
         }
 
+        bool _receivedData = false;
+        private void Update()
+        {
+            if (!_receivedData)
+            {
+                InternalUpdate();
+                _receivedData = true;
+            }
+        }
+
         // This needs to run in Update()
         // - It needs to run before OceanRenderer.LateUpdate, because the latter will change the LOD positions/scales, while we will read
         // the last frames displacements.
         // - It should run after FixedUpdate, as physics objects will update query points there. Also it computes the displacement timestamps
         // using Time.time and Time.deltaTime, which would be incorrect if it were in FixedUpdate.
-        void Update()
+        void InternalUpdate()
         {
+            //Debug.Log("Update: " + Time.frameCount);
+
             if (_segmentRegistrarRingBuffer.Current._numQueries > 0)
             {
                 ExecuteQueries();
@@ -435,6 +447,8 @@ namespace Crest
         /// </summary>
         void DataArrived(AsyncGPUReadbackRequest req)
         {
+            //Debug.Log("DataArrived: " + Time.frameCount);
+
             // Can get callbacks after disable, so detect this.
             if (!_queryResults.IsCreated)
             {
@@ -479,6 +493,8 @@ namespace Crest
                 _requests.RemoveAt(i);
                 _segmentRegistrarRingBuffer.ReleaseLast();
             }
+
+            InternalUpdate();
         }
 
         protected virtual void OnEnable()

@@ -4,6 +4,10 @@
 
 using UnityEngine;
 
+#if UNITY_EDITOR
+using UnityEditor.Experimental.SceneManagement;
+#endif
+
 namespace Crest
 {
     /// <summary>
@@ -41,6 +45,13 @@ namespace Crest
 
         private void Start()
         {
+#if UNITY_EDITOR
+            // We don't run in "prefab scenes", i.e. when editing a prefab. Bail out if prefab scene is detected.
+            if (PrefabStageUtility.GetCurrentPrefabStage() != null)
+            {
+                return;
+            }
+#endif
             _rend = GetComponent<Renderer>();
 
             // Render before the surface mesh
@@ -84,6 +95,14 @@ namespace Crest
 
         private void LateUpdate()
         {
+#if UNITY_EDITOR
+            // We don't run in "prefab scenes", i.e. when editing a prefab. Bail out if prefab scene is detected.
+            if (PrefabStageUtility.GetCurrentPrefabStage() != null)
+            {
+                return;
+            }
+#endif
+
             if (OceanRenderer.Instance == null)
             {
                 _rend.enabled = false;

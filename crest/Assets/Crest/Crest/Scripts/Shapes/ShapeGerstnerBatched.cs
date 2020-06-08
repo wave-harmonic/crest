@@ -52,6 +52,8 @@ namespace Crest
 
                 _rend = rend;
 
+                // Enabled stays true, because we don't sort the waves into buckets until Draw time, so we don't know if something should
+                // be drawn in advance.
                 Enabled = true;
             }
 

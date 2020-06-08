@@ -92,13 +92,8 @@ namespace Crest
                 // The last index should never increment and land on the first index - it should only happen the other way around.
                 Debug.Assert(_segmentAcquire != _segmentRelease, "Segment registrar scratch exhausted.");
 
-                _segments[_segmentAcquire]._numQueries = _segments[lastIndex]._numQueries;
-
+                _segments[_segmentAcquire]._numQueries = 0;
                 _segments[_segmentAcquire]._segments.Clear();
-                foreach (var segment in _segments[lastIndex]._segments)
-                {
-                    _segments[_segmentAcquire]._segments.Add(segment.Key, segment.Value);
-                }
             }
 
             public void ReleaseLast()
@@ -285,7 +280,7 @@ namespace Crest
 
         /// <summary>
         /// Remove air bubbles from the query array. Currently this lazily just nukes all the registered
-        /// query IDs so they'll be recreated next time (generating garbage). TODO..
+        /// query IDs so they'll be recreated next time (generating garbage).
         /// </summary>
         public void CompactQueryStorage()
         {
@@ -490,13 +485,9 @@ namespace Crest
         {
             _dataArrivedAction = new System.Action<AsyncGPUReadbackRequest>(DataArrived);
 
-            _shaderProcessQueries = Resources.Load<ComputeShader>(QueryShaderName);
-            _kernelHandle = _shaderProcessQueries.FindKernel(QueryKernelName);
-            _wrapper = new PropertyWrapperComputeStandalone(_shaderProcessQueries, _kernelHandle);
-
-            if (_maxQueryCount != OceanRenderer.Instance._simSettingsAnimatedWaves.MaxQueryCount)
+            if (_maxQueryCount != OceanRenderer.Instance._lodDataAnimWaves.Settings.MaxQueryCount)
             {
-                _maxQueryCount = OceanRenderer.Instance._simSettingsAnimatedWaves.MaxQueryCount;
+                _maxQueryCount = OceanRenderer.Instance._lodDataAnimWaves.Settings.MaxQueryCount;
                 _queryPosXZ_minGridSize = new Vector3[_maxQueryCount];
             }
 
@@ -505,6 +496,15 @@ namespace Crest
 
             _queryResults = new NativeArray<Vector3>(_maxQueryCount, Allocator.Persistent, NativeArrayOptions.ClearMemory);
             _queryResultsLast = new NativeArray<Vector3>(_maxQueryCount, Allocator.Persistent, NativeArrayOptions.ClearMemory);
+
+            _shaderProcessQueries = ComputeShaderHelpers.LoadShader(QueryShaderName);
+            if (_shaderProcessQueries == null)
+            {
+                enabled = false;
+                return;
+            }
+            _kernelHandle = _shaderProcessQueries.FindKernel(QueryKernelName);
+            _wrapper = new PropertyWrapperComputeStandalone(_shaderProcessQueries, _kernelHandle);
         }
 
         protected virtual void OnDisable()
@@ -544,5 +544,7 @@ namespace Crest
         {
             return (queryStatus & (int)QueryStatus.RetrieveFailed) == 0;
         }
+
+        public int ResultGuidCount => _resultSegments != null ? _resultSegments.Count : 0;
     }
 }

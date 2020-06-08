@@ -7,6 +7,8 @@ using UnityEngine.Rendering;
 
 namespace Crest
 {
+    using SettingsType = SimSettingsSeaFloorDepth;
+
     /// <summary>
     /// Renders depth of the ocean (height of sea level above ocean floor), by rendering the relative height of tagged objects from top down.
     /// Y channel is negative of the height offset from global sea level. So if water level should be 50m above the base sea level, sea floor
@@ -18,18 +20,34 @@ namespace Crest
         public override RenderTextureFormat TextureFormat { get { return Settings._allowMultipleSeaLevels ? RenderTextureFormat.RGHalf : RenderTextureFormat.RHalf; } }
         protected override bool NeedToReadWriteTextureData { get { return false; } }
 
-        SimSettingsSeaFloorDepth Settings { get { return OceanRenderer.Instance._simSettingsSeaFloorDepth; } }
-        public override void UseSettings(SimSettingsBase settings) { OceanRenderer.Instance._simSettingsSeaFloorDepth = settings as SimSettingsSeaFloorDepth; }
-        public override SimSettingsBase CreateDefaultSettings()
-        {
-            var settings = ScriptableObject.CreateInstance<SimSettingsSeaFloorDepth>();
-            settings.name = SimName + " Auto-generated Settings";
-            return settings;
-        }
-
         bool _targetsClear = false;
 
         public const string ShaderName = "Crest/Inputs/Depth/Cached Depths";
+
+        // We want the null colour to be the depth where wave attenuation begins (1000 metres)
+        readonly static Color s_nullColor = Color.red * 1000f;
+        static Texture2DArray s_nullTexture2DArray;
+
+        SettingsType _defaultSettings;
+        public SettingsType Settings
+        {
+            get
+            {
+                if (_ocean._simSettingsSeaFloorDepth != null) return _ocean._simSettingsSeaFloorDepth;
+
+                if (_defaultSettings == null)
+                {
+                    _defaultSettings = ScriptableObject.CreateInstance<SettingsType>();
+                    _defaultSettings.name = SimName + " Auto-generated Settings";
+                }
+                return _defaultSettings;
+            }
+        }
+
+        public LodDataMgrSeaFloorDepth(OceanRenderer ocean) : base(ocean)
+        {
+            Start();
+        }
 
         public override void BuildCommandBuffer(OceanRenderer ocean, CommandBuffer buf)
         {
@@ -45,7 +63,7 @@ namespace Crest
             for (int lodIdx = OceanRenderer.Instance.CurrentLodCount - 1; lodIdx >= 0; lodIdx--)
             {
                 buf.SetRenderTarget(_targets, 0, CubemapFace.Unknown, lodIdx);
-                buf.ClearRenderTarget(false, true, Color.red * 1000f);
+                buf.ClearRenderTarget(false, true, s_nullColor);
                 buf.SetGlobalInt(sp_LD_SliceIndex, lodIdx);
                 SubmitDraws(lodIdx, buf);
             }
@@ -63,7 +81,21 @@ namespace Crest
         }
         public static void BindNull(IPropertyWrapper properties, bool sourceLod = false)
         {
-            properties.SetTexture(ParamIdSampler(sourceLod), TextureArrayHelpers.BlackTextureArray);
+            // TextureArrayHelpers prevents use from using this in a static constructor due to blackTexture usage
+            if (s_nullTexture2DArray == null)
+            {
+                InitNullTexture();
+            }
+
+            properties.SetTexture(ParamIdSampler(sourceLod), s_nullTexture2DArray);
+        }
+
+        static void InitNullTexture()
+        {
+            // Depth textures use HDR values
+            var texture = TextureArrayHelpers.CreateTexture2D(s_nullColor, UnityEngine.TextureFormat.RGB9e5Float);
+            s_nullTexture2DArray = TextureArrayHelpers.CreateTexture2DArray(texture);
+            s_nullTexture2DArray.name = "Sea Floor Depth Null Texture";
         }
 
 #if UNITY_2019_3_OR_NEWER

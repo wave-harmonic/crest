@@ -126,21 +126,13 @@ namespace Crest
             Count,
         }
 
-        public static void GenerateMesh(OceanRenderer ocean, int lodDataResolution, int geoDownSampleFactor, int lodCount)
+        public static Transform GenerateMesh(OceanRenderer ocean, int lodDataResolution, int geoDownSampleFactor, int lodCount)
         {
             if (lodCount < 1)
             {
                 Debug.LogError("Invalid LOD count: " + lodCount.ToString(), ocean);
-                return;
+                return null;
             }
-
-#if UNITY_EDITOR
-            if (!UnityEditor.EditorApplication.isPlaying)
-            {
-                Debug.LogError("Ocean mesh meant to be (re)generated in play mode", ocean);
-                return;
-            }
-#endif
 
             int oceanLayer = LayerMask.NameToLayer(ocean.LayerName);
             if (oceanLayer == -1)
@@ -163,70 +155,65 @@ namespace Crest
                 meshInsts[i] = BuildOceanPatch((PatchType)i, tileResolution);
             }
 
-            ocean._lodTransform = ocean.gameObject.AddComponent<LodTransform>();
-            ocean._lodTransform.InitLODData(lodCount);
+            ClearOutTiles(ocean);
 
-            // Create the LOD data managers
-            ocean._lodDataAnimWaves = LodDataMgr.Create<LodDataMgrAnimWaves, SimSettingsAnimatedWaves>(ocean.gameObject, ref ocean._simSettingsAnimatedWaves);
-            if (ocean.CreateDynamicWaveSim)
-            {
-                ocean._lodDataDynWaves = LodDataMgr.Create<LodDataMgrDynWaves, SimSettingsWave>(ocean.gameObject, ref ocean._simSettingsDynamicWaves);
-            }
-            if (ocean.CreateFlowSim)
-            {
-                ocean._lodDataFlow = LodDataMgr.Create<LodDataMgrFlow, SimSettingsFlow>(ocean.gameObject, ref ocean._simSettingsFlow);
-            }
-            if (ocean.CreateFoamSim)
-            {
-                ocean._lodDataFoam = LodDataMgr.Create<LodDataMgrFoam, SimSettingsFoam>(ocean.gameObject, ref ocean._simSettingsFoam);
-            }
-            if (ocean.CreateShadowData)
-            {
-                ocean._lodDataShadow = LodDataMgr.Create<LodDataMgrShadow, SimSettingsShadow>(ocean.gameObject, ref ocean._simSettingsShadow);
-            }
-            if (ocean.CreateSeaFloorDepthData)
-            {
-                ocean._lodDataSeaDepths = LodDataMgr.Create<LodDataMgrSeaFloorDepth, SimSettingsSeaFloorDepth>(ocean.gameObject, ref ocean._simSettingsSeaFloorDepth);
-            }
-            if (ocean.CreateClipSurfaceData)
-            {
-                ocean._lodDataClipSurface = ocean.gameObject.AddComponent<LodDataMgrClipSurface>();
-            }
-
-            // Add any required GPU readbacks
-            {
-                var ssaw = ocean._simSettingsAnimatedWaves;
-                if (ssaw && ssaw.CollisionSource == SimSettingsAnimatedWaves.CollisionSources.ComputeShaderQueries)
-                {
-                    ocean.gameObject.AddComponent<QueryDisplacements>();
-                }
-
-                if (ocean.CreateFlowSim)
-                {
-                    ocean.gameObject.AddComponent<QueryFlow>();
-                }
-            }
-
-            // Remove existing LODs
-            for (int i = 0; i < ocean.transform.childCount; i++)
-            {
-                var child = ocean.transform.GetChild(i);
-                if (child.name.StartsWith("Tile_L"))
-                {
-                    child.parent = null;
-                    Object.Destroy(child.gameObject);
-                    i--;
-                }
-            }
+            var root = new GameObject("Root");
+            root.hideFlags = ocean._hideOceanTileGameObjects ? HideFlags.HideAndDontSave : HideFlags.DontSave;
+            root.transform.parent = ocean.transform;
+            root.transform.localPosition = Vector3.zero;
+            root.transform.localRotation = Quaternion.identity;
+            root.transform.localScale = Vector3.one;
 
             for (int i = 0; i < lodCount; i++)
             {
-                CreateLOD(ocean, i, lodCount, meshInsts, lodDataResolution, geoDownSampleFactor, oceanLayer);
+                CreateLOD(ocean, root.transform, i, lodCount, meshInsts, lodDataResolution, geoDownSampleFactor, oceanLayer);
             }
 
 #if PROFILE_CONSTRUCTION
             sw.Stop();
             Debug.Log( "Finished generating " + lodCount.ToString() + " LODs, time: " + (1000.0*sw.Elapsed.TotalSeconds).ToString(".000") + "ms" );
+#endif
+
+            return root.transform;
+        }
+
+        public static void ClearOutTiles(OceanRenderer ocean)
+        {
+            if (ocean.Root == null)
+            {
+                return;
+            }
+
+            // Remove existing LODs
+            for (int i = 0; i < ocean.Root.childCount; i++)
+            {
+                var child = ocean.Root.GetChild(i);
+                if (child.name.StartsWith("Tile_L"))
+                {
+                    DestroyGO(child);
+
+                    i--;
+                }
+            }
+
+            DestroyGO(ocean.Root);
+        }
+
+        static void DestroyGO(Transform go)
+        {
+            go.parent = null;
+
+#if UNITY_EDITOR
+            if (UnityEditor.EditorApplication.isPlaying)
+            {
+                Object.Destroy(go.gameObject);
+            }
+            else
+            {
+                Object.DestroyImmediate(go.gameObject);
+            }
+#else
+            Object.Destroy(go.gameObject);
 #endif
         }
 
@@ -340,6 +327,7 @@ namespace Crest
             // create mesh
 
             Mesh mesh = new Mesh();
+            mesh.hideFlags = HideFlags.DontSave;
             if (verts != null && verts.Count > 0)
             {
                 Vector3[] arrV = new Vector3[verts.Count];
@@ -364,7 +352,7 @@ namespace Crest
             return mesh;
         }
 
-        static void CreateLOD(OceanRenderer ocean, int lodIndex, int lodCount, Mesh[] meshData, int lodDataResolution, int geoDownSampleFactor, int oceanLayer)
+        static void CreateLOD(OceanRenderer ocean, Transform parent, int lodIndex, int lodCount, Mesh[] meshData, int lodDataResolution, int geoDownSampleFactor, int oceanLayer)
         {
             float horizScale = Mathf.Pow(2f, lodIndex);
 
@@ -444,15 +432,16 @@ namespace Crest
             {
                 // instantiate and place patch
                 var patch = new GameObject(string.Format("Tile_L{0}", lodIndex));
+                patch.hideFlags = HideFlags.DontSave;
                 patch.layer = oceanLayer;
-                patch.transform.parent = ocean.transform;
+                patch.transform.parent = parent;
                 Vector2 pos = offsets[i];
                 patch.transform.localPosition = horizScale * new Vector3(pos.x, 0f, pos.y);
                 // scale only horizontally, otherwise culling bounding box will be scaled up in y
                 patch.transform.localScale = new Vector3(horizScale, 1f, horizScale);
 
                 patch.AddComponent<OceanChunkRenderer>().SetInstanceData(lodIndex, lodCount, lodDataResolution, geoDownSampleFactor);
-                patch.AddComponent<MeshFilter>().mesh = meshData[(int)patchTypes[i]];
+                patch.AddComponent<MeshFilter>().sharedMesh = meshData[(int)patchTypes[i]];
 
                 var mr = patch.AddComponent<MeshRenderer>();
 

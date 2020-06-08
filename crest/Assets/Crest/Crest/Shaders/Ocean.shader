@@ -261,6 +261,8 @@ Shader "Crest/Ocean"
 			#include "OceanConstants.hlsl"
 			#include "OceanGlobals.hlsl"
 			#include "OceanInputsDriven.hlsl"
+			#include "OceanLODData.hlsl"
+			#include "OceanHelpersNew.hlsl"
 			#include "OceanHelpers.hlsl"
 
 			// Argument name is v because some macros like COMPUTE_EYEDEPTH require it.

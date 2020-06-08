@@ -20,22 +20,26 @@ namespace Crest
         {
             base.OnInspectorGUI();
 
+            var ocean = target as OceanRenderer;
+
+            if (GUILayout.Button("Rebuild Ocean"))
+            {
+                ocean.enabled = false;
+                ocean.enabled = true;
+            }
+
             if (GUILayout.Button("Validate Setup"))
             {
-                RunValidation(target as OceanRenderer);
+                RunValidation(ocean);
             }
         }
 
         public static void RunValidation(OceanRenderer ocean)
         {
             // OceanRenderer
-            if (ocean.transform.childCount > 0)
-            {
-                Debug.LogWarning("Validation: The ocean changes scale at runtime so may not be a good idea to store objects underneath it, especially if they are sensitive to scale.", ocean);
-            }
             if (FindObjectsOfType<OceanRenderer>().Length > 1)
             {
-                Debug.LogWarning("Validation: Multiple OceanRenderer scripts detected in open scenes, this is not typical - usually only one OceanRenderer is expected to be present.", ocean);
+                Debug.LogWarning("Validation: Multiple OceanRenderer components detected in open scenes, this is not typical - usually only one OceanRenderer is expected to be present.", ocean);
             }
 
             // ShapeGerstnerBatched
@@ -86,7 +90,7 @@ namespace Crest
             var floatingObjects = FindObjectsOfType<FloatingObjectBase>();
             foreach (var floatingObject in floatingObjects)
             {
-                if (ocean._simSettingsAnimatedWaves != null && ocean._simSettingsAnimatedWaves.CollisionSource == SimSettingsAnimatedWaves.CollisionSources.None)
+                if (ocean._lodDataAnimWaves != null && ocean._lodDataAnimWaves.Settings.CollisionSource == SimSettingsAnimatedWaves.CollisionSources.None)
                 {
                     Debug.LogWarning("Collision Source in Animated Waves Settings is set to None. The floating objects in the scene will use a flat horizontal plane.", ocean);
                 }
@@ -96,6 +100,13 @@ namespace Crest
                 {
                     Debug.LogError("Expected to have one rigidbody on floating object, currently has " + rbs.Length + " object(s). Click this message to see the script in question.", floatingObject);
                 }
+            }
+
+            // Inputs
+            var inputs = FindObjectsOfType<RegisterLodDataInputBase>();
+            foreach (var input in inputs)
+            {
+                input.Validate(ocean);
             }
 
             Debug.Log("Validation complete!", ocean);

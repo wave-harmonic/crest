@@ -18,6 +18,8 @@ float3 _OceanCenterPosWorld;
 float _SliceCount;
 float _MeshScaleLerp;
 float _ClipByDefault;
+float _CrestLodAlphaBlackPointFade;
+float _CrestLodAlphaBlackPointWhitePointFade;
 
 float3 _PrimaryLightDirection;
 float3 _PrimaryLightIntensity;

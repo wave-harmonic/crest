@@ -30,6 +30,7 @@ Shader "Crest/Underwater Meniscus"
 			#include "../OceanGlobals.hlsl"
 			#include "../OceanInputsDriven.hlsl"
 			#include "../OceanLODData.hlsl"
+			#include "../OceanHelpersNew.hlsl"
 			#include "UnderwaterShared.hlsl"
 
 			#define MAX_OFFSET 5.0

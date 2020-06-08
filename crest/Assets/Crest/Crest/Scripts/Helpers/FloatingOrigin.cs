@@ -141,6 +141,8 @@ namespace Crest
         {
             if (OceanRenderer.Instance)
             {
+                OceanRenderer.Instance._lodTransform.SetOrigin(newOrigin);
+
                 var fos = OceanRenderer.Instance.GetComponentsInChildren<IFloatingOrigin>();
                 foreach (var fo in fos)
                 {

@@ -27,17 +27,12 @@ namespace Crest
 
         protected override Color GizmoColor => new Color(0f, 1f, 1f, 0.5f);
 
+        protected override string ShaderPrefix => "Crest/Inputs/Clip Surface";
+
         PropertyWrapperMPB _mpb;
-        Renderer _rend;
         SampleHeightHelper _sampleHeightHelper = new SampleHeightHelper();
 
         static int sp_DisplacementSamplingIterations = Shader.PropertyToID("_DisplacementSamplingIterations");
-
-        protected override void Start()
-        {
-            base.Start();
-            _rend = GetComponent<Renderer>();
-        }
 
         private void LateUpdate()
         {
@@ -56,7 +51,7 @@ namespace Crest
                 if (_sampleHeightHelper.Sample(ref waterHeight))
                 {
                     position.y = waterHeight;
-                    _enabled = Mathf.Abs(_rend.bounds.ClosestPoint(position).y - waterHeight) < 1;
+                    _enabled = Mathf.Abs(_renderer.bounds.ClosestPoint(position).y - waterHeight) < 1;
                 }
             }
             else
@@ -75,7 +70,7 @@ namespace Crest
                     _mpb = new PropertyWrapperMPB();
                 }
 
-                _rend.GetPropertyBlock(_mpb.materialPropertyBlock);
+                _renderer.GetPropertyBlock(_mpb.materialPropertyBlock);
 
                 var lodCount = OceanRenderer.Instance.CurrentLodCount;
                 var lodDataAnimWaves = OceanRenderer.Instance._lodDataAnimWaves;
@@ -92,7 +87,7 @@ namespace Crest
                 float farNormalsWeight = needToBlendOutNormals ? OceanRenderer.Instance.ViewerAltitudeLevelAlpha : 1f;
                 _mpb.SetVector(OceanChunkRenderer.sp_InstanceData, new Vector3(meshScaleLerp, farNormalsWeight, lodIdx));
 
-                _rend.SetPropertyBlock(_mpb.materialPropertyBlock);
+                _renderer.SetPropertyBlock(_mpb.materialPropertyBlock);
             }
         }
     }

@@ -21,7 +21,6 @@ namespace Crest
 
         protected override void OnEnable()
         {
-            Debug.Assert(Instance == null);
             Instance = this;
 
             base.OnEnable();
@@ -29,7 +28,8 @@ namespace Crest
 
         protected override void OnDisable()
         {
-            Instance = null;
+            // We don't set Instance to null here because it breaks exiting play mode, as OnDisable is called but no matching call to OnEnable :/.
+            // This would probably be better if the Query system did not inherit from MonoBehaviour and was built up by the OceanRenderer..
 
             base.OnDisable();
         }
@@ -38,7 +38,7 @@ namespace Crest
         {
             OceanRenderer.Instance._lodDataAnimWaves.BindResultData(wrapper);
 
-            if (OceanRenderer.Instance._lodDataSeaDepths)
+            if (OceanRenderer.Instance._lodDataSeaDepths != null)
             {
                 OceanRenderer.Instance._lodDataSeaDepths.BindResultData(wrapper);
             }

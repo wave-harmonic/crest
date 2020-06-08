@@ -37,6 +37,8 @@ Shader "Crest/Ocean Surface Alpha"
 
 			#include "OceanGlobals.hlsl"
 			#include "OceanInputsDriven.hlsl"
+			#include "OceanLODData.hlsl"
+			#include "OceanHelpersNew.hlsl"
 			#include "OceanHelpers.hlsl"
 
 			sampler2D _MainTex;

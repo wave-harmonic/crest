@@ -20,7 +20,7 @@ public class SimpleAutomation : MonoBehaviour
             _reloadPending = false;
         }
 
-        if (_pauseOnFrame != -1 && Time.frameCount >= _pauseOnFrame)
+        if (_pauseOnFrame != -1 && Crest.OceanRenderer.FrameCount >= _pauseOnFrame)
         {
             UnityEditor.EditorApplication.isPaused = true;
         }

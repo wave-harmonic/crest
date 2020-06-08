@@ -24,6 +24,8 @@ namespace Crest
         [Tooltip("If set to 'Global', waves will render everywhere. If set to 'Geometry', the geometry on this GameObject will be rendered from a top down perspective to generate the waves. This allows having local wave conditions by placing Quad geometry where desired. The geometry must have one of the Gerstner shaders on it such as 'Crest/Inputs/Animated Waves/Gerstner Batch Geometry'.")]
         public GerstnerMode _mode = GerstnerMode.Global;
 
+        public bool _alphaBlend = false;
+
         [Tooltip("The spectrum that defines the ocean surface shape. Create asset of type Crest/Ocean Waves Spectrum.")]
         public OceanWaveSpectrum _spectrum;
 
@@ -33,7 +35,7 @@ namespace Crest
 
         public class GerstnerBatch : ILodDataInput
         {
-            public GerstnerBatch(ShapeGerstnerBatched gerstner, int batchIndex, MeshRenderer rend, bool directTowardsPoint)
+            public GerstnerBatch(ShapeGerstnerBatched gerstner, int batchIndex, MeshRenderer rend, bool directTowardsPoint, bool alphaBlend)
             {
                 _gerstner = gerstner;
                 _batchIndex = batchIndex;
@@ -43,6 +45,14 @@ namespace Crest
                     new PropertyWrapperMaterial(new Material(rend.sharedMaterial ?? rend.material)),
                     new PropertyWrapperMaterial(new Material(rend.sharedMaterial ?? rend.material))
                 };
+
+                _alphaBlend = alphaBlend;
+                if (_alphaBlend)
+                {
+                    _materialAlphaBlend = new Material(Shader.Find("Crest/Inputs/Animated Waves/Gerstner Batch Geometry Alpha Blend"));
+                    int pid = Shader.PropertyToID("_FeatherWidth");
+                    _materialAlphaBlend.SetFloat(pid, _materials[0].material.GetFloat(pid));
+                }
 
                 if (directTowardsPoint)
                 {
@@ -62,6 +72,9 @@ namespace Crest
             // Two materials because as batch may be rendered twice if it has large wavelengths that are being transitioned back
             // and forth across the last 2 LODs.
             PropertyWrapperMaterial[] _materials;
+            Material _materialAlphaBlend;
+
+            bool _alphaBlend = false;
 
             MeshRenderer _rend;
 
@@ -82,8 +95,15 @@ namespace Crest
 
                 if (HasWaves && weight > 0f)
                 {
+                    if (_alphaBlend)
+                    {
+                        _materialAlphaBlend.SetFloat(RegisterLodDataInputBase.sp_Weight, weight);
+                        buf.DrawRenderer(_rend, _materialAlphaBlend);
+                    }
+
                     PropertyWrapperMaterial mat = GetMaterial(isTransition);
                     mat.SetFloat(RegisterLodDataInputBase.sp_Weight, weight);
+
                     buf.DrawRenderer(_rend, mat.material);
                 }
             }
@@ -314,7 +334,7 @@ namespace Crest
             _batches = new GerstnerBatch[LodDataMgr.MAX_LOD_COUNT];
             for (int i = 0; i < _batches.Length; i++)
             {
-                _batches[i] = new GerstnerBatch(this, i, rend, _directTowardsPoint);
+                _batches[i] = new GerstnerBatch(this, i, rend, _directTowardsPoint, _alphaBlend);
             }
 
             // Submit draws to create the Gerstner waves. LODs from 0 to N-2 render the Gerstner waves from their lod. Additionally, any waves

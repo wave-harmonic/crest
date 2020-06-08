@@ -82,6 +82,7 @@ namespace Crest
     public class OceanPlanarReflection : MonoBehaviour
     {
         [SerializeField] LayerMask _reflectionLayers = 1;
+        [SerializeField] bool _disableOcclusionCulling = true;
         [SerializeField] bool _disablePixelLights = true;
         [SerializeField] bool _disableShadows = false;
         [SerializeField] int _textureSize = 256;
@@ -281,6 +282,7 @@ namespace Crest
             _camReflections.orthographicSize = _camViewpoint.orthographicSize;
             _camReflections.allowMSAA = _allowMSAA;
             _camReflections.aspect = _camViewpoint.aspect;
+            _camReflections.useOcclusionCulling = !_disableOcclusionCulling && _camViewpoint.useOcclusionCulling;
         }
 
         // On-demand create any objects we need for water

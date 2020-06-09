@@ -560,6 +560,12 @@ namespace Crest
                 );
             }
 
+            // SimSettingsAnimatedWaves
+            if (_simSettingsAnimatedWaves)
+            {
+                _simSettingsAnimatedWaves.Validate(ocean, showMessage);
+            }
+
             return isValid;
         }
 

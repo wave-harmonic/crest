@@ -560,6 +560,28 @@ namespace Crest
                 );
             }
 
+            // Ocean Detail Parameters
+            var baseMeshDensity = _lodDataResolution * 0.25f / _geometryDownSampleFactor;
+
+            if (baseMeshDensity < 8)
+            {
+                showMessage
+                (
+                    "Base mesh density is lower than 8. There will be visible gaps in the ocean surface. " +
+                    "Increase the <i>LOD Data Resolution</i> or the <i>Geometry Down Sample Factor</i>.",
+                    ValidatedHelper.MessageType.Error, ocean
+                );
+            }
+            else if (baseMeshDensity < 16)
+            {
+                showMessage
+                (
+                    "Base mesh density is lower than 16. There will be visible transitions when traversing the ocean surface. " +
+                    "Increase the <i>LOD Data Resolution</i> or the <i>Geometry Down Sample Factor</i>.",
+                    ValidatedHelper.MessageType.Warning, ocean
+                );
+            }
+
             // Spherical Harmonics
             if (Lightmapping.giWorkflowMode != Lightmapping.GIWorkflowMode.Iterative && !Lightmapping.lightingDataAsset)
             {

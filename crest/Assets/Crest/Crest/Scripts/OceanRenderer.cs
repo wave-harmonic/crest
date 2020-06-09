@@ -560,6 +560,16 @@ namespace Crest
                 );
             }
 
+            // Spherical Harmonics
+            if (Lightmapping.giWorkflowMode != Lightmapping.GIWorkflowMode.Iterative && !Lightmapping.lightingDataAsset)
+            {
+                showMessage
+                (
+                    "Lighting data is missing. Ocean colour will be incorrect without baked spherical harmonics. Generate lighting or enable Auto Generate from the Lighting window.",
+                    ValidatedHelper.MessageType.Warning, ocean
+                );
+            }
+
             // SimSettingsAnimatedWaves
             if (_simSettingsAnimatedWaves)
             {

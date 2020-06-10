@@ -7,6 +7,7 @@ using UnityEngine;
 #if UNITY_EDITOR
 using UnityEditor;
 using System.Collections.Generic;
+using UnityEditor.Experimental.SceneManagement;
 #endif
 
 namespace Crest
@@ -15,6 +16,7 @@ namespace Crest
     /// Handles effects that need to track the water surface. Feeds in wave data and disables rendering when
     /// not close to water.
     /// </summary>
+    [ExecuteAlways]
     public partial class UnderwaterEffect : MonoBehaviour
     {
         [Header("Copy params from Ocean material")]
@@ -45,11 +47,18 @@ namespace Crest
 
         private void Start()
         {
+#if UNITY_EDITOR
+            // We don't run in "prefab scenes", i.e. when editing a prefab. Bail out if prefab scene is detected.
+            if (PrefabStageUtility.GetCurrentPrefabStage() != null)
+            {
+                return;
+            }
+#endif
             _rend = GetComponent<Renderer>();
 
             // Render before the surface mesh
             _rend.sortingOrder = _overrideSortingOrder ? _overridenSortingOrder : -LodDataMgr.MAX_LOD_COUNT - 1;
-            GetComponent<MeshFilter>().mesh = Mesh2DGrid(0, 2, -0.5f, -0.5f, 1f, 1f, GEOM_HORIZ_DIVISIONS, 1);
+            GetComponent<MeshFilter>().sharedMesh = Mesh2DGrid(0, 2, -0.5f, -0.5f, 1f, 1f, GEOM_HORIZ_DIVISIONS, 1);
 
 #if UNITY_EDITOR
             if (!Validate(OceanRenderer.Instance, ValidatedHelper.DebugLog))
@@ -72,12 +81,20 @@ namespace Crest
 
             if (_copyParamsOnStartup)
             {
-                _rend.material.CopyPropertiesFromMaterial(OceanRenderer.Instance.OceanMaterial);
+                _rend.sharedMaterial.CopyPropertiesFromMaterial(OceanRenderer.Instance.OceanMaterial);
             }
         }
 
         private void LateUpdate()
         {
+#if UNITY_EDITOR
+            // We don't run in "prefab scenes", i.e. when editing a prefab. Bail out if prefab scene is detected.
+            if (PrefabStageUtility.GetCurrentPrefabStage() != null)
+            {
+                return;
+            }
+#endif
+
             if (OceanRenderer.Instance == null)
             {
                 _rend.enabled = false;
@@ -85,7 +102,9 @@ namespace Crest
             }
 
             float waterHeight = OceanRenderer.Instance.SeaLevel;
-            _sampleWaterHeight.Init(transform.position, 0f);
+            // Pass true in last arg for a crap reason - in edit mode LateUpdate can be called very frequently, and the height sampler mistakenly thinks
+            // this is erroneous and complains.
+            _sampleWaterHeight.Init(transform.position, 0f, true);
             _sampleWaterHeight.Sample(ref waterHeight);
 
             float heightOffset = transform.position.y - waterHeight;
@@ -99,7 +118,7 @@ namespace Crest
             {
                 if (_copyParamsEachFrame)
                 {
-                    _rend.material.CopyPropertiesFromMaterial(OceanRenderer.Instance.OceanMaterial);
+                    _rend.sharedMaterial.CopyPropertiesFromMaterial(OceanRenderer.Instance.OceanMaterial);
                 }
 
                 // Assign lod0 shape - trivial but bound every frame because lod transform comes from here
@@ -113,7 +132,7 @@ namespace Crest
                 _mpb.SetInt(LodDataMgr.sp_LD_SliceIndex, 0);
                 OceanRenderer.Instance._lodDataAnimWaves.BindResultData(_mpb);
 
-                if (OceanRenderer.Instance._lodDataSeaDepths)
+                if (OceanRenderer.Instance._lodDataSeaDepths != null)
                 {
                     OceanRenderer.Instance._lodDataSeaDepths.BindResultData(_mpb);
                 }
@@ -122,7 +141,7 @@ namespace Crest
                     LodDataMgrSeaFloorDepth.BindNull(_mpb);
                 }
 
-                if (OceanRenderer.Instance._lodDataShadow)
+                if (OceanRenderer.Instance._lodDataShadow != null)
                 {
                     OceanRenderer.Instance._lodDataShadow.BindResultData(_mpb);
                 }
@@ -183,6 +202,7 @@ namespace Crest
             }
 
             var mesh = new Mesh();
+            mesh.hideFlags = HideFlags.DontSave;
             mesh.name = "Grid2D_" + divs0 + "x" + divs1;
             mesh.vertices = verts;
             mesh.uv = uvs;

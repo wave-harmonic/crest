@@ -6,24 +6,17 @@ using UnityEngine;
 
 namespace Crest
 {
+    using SettingsType = SimSettingsFoam;
+
     /// <summary>
     /// A persistent foam simulation that moves around with a displacement LOD. The input is fully combined water surface shape.
     /// </summary>
     public class LodDataMgrFoam : LodDataMgrPersistent
     {
         protected override string ShaderSim { get { return "UpdateFoam"; } }
-        protected override int krnl_ShaderSim { get { return _shader.FindKernel(ShaderSim); }}
+        protected override int krnl_ShaderSim { get { return _shader.FindKernel(ShaderSim); } }
         public override string SimName { get { return "Foam"; } }
         public override RenderTextureFormat TextureFormat { get { return Settings._renderTextureFormat; } }
-
-        SimSettingsFoam Settings { get { return OceanRenderer.Instance._simSettingsFoam; } }
-        public override void UseSettings(SimSettingsBase settings) { OceanRenderer.Instance._simSettingsFoam = settings as SimSettingsFoam; }
-        public override SimSettingsBase CreateDefaultSettings()
-        {
-            var settings = ScriptableObject.CreateInstance<SimSettingsFoam>();
-            settings.name = SimName + " Auto-generated Settings";
-            return settings;
-        }
 
         readonly int sp_FoamFadeRate = Shader.PropertyToID("_FoamFadeRate");
         readonly int sp_WaveFoamStrength = Shader.PropertyToID("_WaveFoamStrength");
@@ -31,15 +24,36 @@ namespace Crest
         readonly int sp_ShorelineFoamMaxDepth = Shader.PropertyToID("_ShorelineFoamMaxDepth");
         readonly int sp_ShorelineFoamStrength = Shader.PropertyToID("_ShorelineFoamStrength");
 
+        SettingsType _defaultSettings;
+        public SettingsType Settings
+        {
+            get
+            {
+                if (_ocean._simSettingsFoam != null) return _ocean._simSettingsFoam;
 
-        protected override void Start()
+                if (_defaultSettings == null)
+                {
+                    _defaultSettings = ScriptableObject.CreateInstance<SettingsType>();
+                    _defaultSettings.name = SimName + " Auto-generated Settings";
+                }
+                return _defaultSettings;
+            }
+        }
+
+        public LodDataMgrFoam(OceanRenderer ocean) : base(ocean)
+        {
+            Start();
+        }
+
+        public override void Start()
         {
             base.Start();
 
 #if UNITY_EDITOR
-            if (!OceanRenderer.Instance.OceanMaterial.IsKeywordEnabled("_FOAM_ON"))
+            if (OceanRenderer.Instance != null && OceanRenderer.Instance.OceanMaterial != null
+                && !OceanRenderer.Instance.OceanMaterial.IsKeywordEnabled("_FOAM_ON"))
             {
-                Debug.LogWarning("Foam is not enabled on the current ocean material and will not be visible.", this);
+                Debug.LogWarning("Foam is not enabled on the current ocean material and will not be visible.", _ocean);
             }
 #endif
         }
@@ -58,7 +72,7 @@ namespace Crest
             OceanRenderer.Instance._lodDataAnimWaves.BindResultData(simMaterial);
 
             // assign sea floor depth - to slot 1 current frame data
-            if (OceanRenderer.Instance._lodDataSeaDepths)
+            if (OceanRenderer.Instance._lodDataSeaDepths != null)
             {
                 OceanRenderer.Instance._lodDataSeaDepths.BindResultData(simMaterial);
             }
@@ -68,7 +82,7 @@ namespace Crest
             }
 
             // assign flow - to slot 1 current frame data
-            if (OceanRenderer.Instance._lodDataFlow)
+            if (OceanRenderer.Instance._lodDataFlow != null)
             {
                 OceanRenderer.Instance._lodDataFlow.BindResultData(simMaterial);
             }

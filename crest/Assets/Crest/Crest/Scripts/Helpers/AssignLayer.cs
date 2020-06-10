@@ -6,6 +6,7 @@ using UnityEditor;
 
 namespace Crest
 {
+    [ExecuteAlways]
     public partial class AssignLayer : MonoBehaviour
     {
         [SerializeField]

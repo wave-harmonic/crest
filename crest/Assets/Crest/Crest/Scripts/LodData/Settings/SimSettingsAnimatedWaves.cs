@@ -53,7 +53,7 @@ namespace Crest
                 // this should not be hit, but can be if compute shaders aren't loaded correctly.
                 // they will print out appropriate errors, so we don't want to return just null and have null reference
                 // exceptions spamming the logs.
-                Debug.LogError($"Could not create collision provider. Collision source = {_collisionSource.ToString()}", this);
+                //Debug.LogError($"Could not create collision provider. Collision source = {_collisionSource.ToString()}", this);
                 return new CollProviderNull();
             }
 
@@ -76,6 +76,14 @@ namespace Crest
                     "water depth or any custom rendered shape. It does not support multiple " +
                     "<i>GerstnerWavesBatched</i> components including cross blending. Please read the user guide for more information.",
                     ValidatedHelper.MessageType.Info, this
+                );
+            }
+            else if (_collisionSource == CollisionSources.None)
+            {
+                showMessage
+                (
+                    "Collision Source in Animated Waves Settings is set to None. The floating objects in the scene will use a flat horizontal plane.",
+                    ValidatedHelper.MessageType.Warning, this
                 );
             }
 

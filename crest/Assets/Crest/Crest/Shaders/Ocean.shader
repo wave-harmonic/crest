@@ -194,7 +194,7 @@ Shader "Crest/Ocean"
 			"Queue"="Geometry+510"
 			"IgnoreProjector"="True"
 			"RenderType"="Opaque"
-			"DisableBatching" = "True"
+			"DisableBatching"="True"
 		}
 
 		GrabPass

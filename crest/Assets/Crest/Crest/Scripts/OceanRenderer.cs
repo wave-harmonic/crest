@@ -20,7 +20,39 @@ namespace Crest
     {
         [Tooltip("The viewpoint which drives the ocean detail. Defaults to main camera."), SerializeField]
         Transform _viewpoint;
-        public Transform Viewpoint
+        public bool GetViewpointPos(out Vector3 pos)
+        {
+            if (ViewpointTransform == null)
+            {
+                pos = Vector3.zero;
+                return false;
+            }
+
+            pos = ViewpointTransform.position;
+            return true;
+        }
+        public bool GetViewpointForward(out Vector3 forward)
+        {
+            if (ViewpointTransform == null)
+            {
+                forward = Vector3.forward;
+                return false;
+            }
+
+            forward = ViewpointTransform.forward;
+            return true;
+        }
+        public Camera GetViewpointCamera()
+        {
+            return ViewpointTransform?.GetComponent<Camera>();
+        }
+        bool HasViewpoint()
+        {
+            // TODO - cinemachine as well..
+            return ViewpointTransform != null;
+        }
+
+        Transform ViewpointTransform
         {
             get
             {
@@ -537,12 +569,12 @@ namespace Crest
 
         void InitViewpoint()
         {
-            if (Viewpoint == null)
+            if (ViewpointTransform == null)
             {
                 var camMain = Camera.main;
                 if (camMain != null)
                 {
-                    Viewpoint = camMain.transform;
+                    ViewpointTransform = camMain.transform;
                 }
                 else
                 {
@@ -588,22 +620,23 @@ namespace Crest
             var meshScaleLerp = needToBlendOutShape ? ViewerAltitudeLevelAlpha : 0f;
             Shader.SetGlobalFloat(sp_meshScaleLerp, meshScaleLerp);
 
-            if (Viewpoint == null
+            if (!HasViewpoint()
+#if UNITY_EDITOR
+                && EditorApplication.isPlaying
+#endif
                 )
             {
-#if UNITY_EDITOR
-                if (EditorApplication.isPlaying)
-#endif
-                {
-                    Debug.LogError("Viewpoint is null, ocean update will fail.", this);
-                }
+                Debug.LogError("Viewpoint is null, ocean update will fail.", this);
             }
 
-            if (_followViewpoint && Viewpoint != null)
+            if (_followViewpoint && HasViewpoint())
             {
-                LateUpdatePosition();
-                LateUpdateScale();
-                LateUpdateViewerHeight();
+                Vector3 viewPos;
+                GetViewpointPos(out viewPos);
+
+                LateUpdatePosition(viewPos);
+                LateUpdateScale(viewPos);
+                LateUpdateViewerHeight(viewPos);
             }
 
             CreateDestroyLodDatas();
@@ -632,25 +665,23 @@ namespace Crest
 #endif
         }
 
-        void LateUpdatePosition()
+        void LateUpdatePosition(Vector3 viewPos)
         {
-            Vector3 pos = Viewpoint.position;
-
             // maintain y coordinate - sea level
-            pos.y = Root.position.y;
+            viewPos.y = Root.position.y;
 
-            Root.position = pos;
+            Root.position = viewPos;
 
             Shader.SetGlobalVector(sp_oceanCenterPosWorld, Root.position);
         }
 
-        void LateUpdateScale()
+        void LateUpdateScale(Vector3 viewPos)
         {
             // reach maximum detail at slightly below sea level. this should combat cases where visual range can be lost
             // when water height is low and camera is suspended in air. i tried a scheme where it was based on difference
             // to water height but this does help with the problem of horizontal range getting limited at bad times.
             float maxDetailY = SeaLevel - _maxVertDispFromWaves * _dropDetailHeightBasedOnWaves;
-            float camDistance = Mathf.Abs(Viewpoint.position.y - maxDetailY);
+            float camDistance = Mathf.Abs(viewPos.y - maxDetailY);
 
             // offset level of detail to keep max detail in a band near the surface
             camDistance = Mathf.Max(camDistance - 4f, 0f);
@@ -670,14 +701,14 @@ namespace Crest
             Root.localScale = new Vector3(Scale, 1f, Scale);
         }
 
-        void LateUpdateViewerHeight()
+        void LateUpdateViewerHeight(Vector3 viewPos)
         {
-            _sampleHeightHelper.Init(Viewpoint.position, 0f, true);
+            _sampleHeightHelper.Init(viewPos, 0f, true);
 
             float waterHeight = 0f;
             _sampleHeightHelper.Sample(ref waterHeight);
 
-            ViewerHeightAboveWater = Viewpoint.position.y - waterHeight;
+            ViewerHeightAboveWater = viewPos.y - waterHeight;
         }
 
         void LateUpdateLods()

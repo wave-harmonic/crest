@@ -2,6 +2,12 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+//#define USE_CINEMACHINE
+
+#if USE_CINEMACHINE
+using Cinemachine;
+#endif
+
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
@@ -20,8 +26,22 @@ namespace Crest
     {
         [Tooltip("The viewpoint which drives the ocean detail. Defaults to main camera."), SerializeField]
         Transform _viewpoint;
+
+        // TODO is this ok?
+#if USE_CINEMACHINE
+        [Tooltip("Cinemachine to use to provide viewpoint. This overrides the previous Viewpoint property."), SerializeField]
+        CinemachineBrain _useCinemachine;
+#endif
+
         public bool GetViewpointPos(out Vector3 pos)
         {
+#if USE_CINEMACHINE
+            if (_useCinemachine != null)
+            {
+                pos = _useCinemachine.CurrentCameraState.FinalPosition;
+            }
+#endif
+
             if (ViewpointTransform == null)
             {
                 pos = Vector3.zero;
@@ -33,6 +53,13 @@ namespace Crest
         }
         public bool GetViewpointForward(out Vector3 forward)
         {
+#if USE_CINEMACHINE
+            if (_useCinemachine != null)
+            {
+                forward = _useCinemachine.CurrentCameraState.FinalOrientation.Forward;
+            }
+#endif
+
             if (ViewpointTransform == null)
             {
                 forward = Vector3.forward;

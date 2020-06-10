@@ -480,11 +480,7 @@ namespace Crest
             var renderers = GetComponentsInChildren<Renderer>();
             if (renderers.Length > (Application.isPlaying ? 1 : 0))
             {
-                Renderer quadRenderer = null;
-                if (Application.isPlaying && _drawCacheQuad)
-                {
-                    quadRenderer = _drawCacheQuad.GetComponent<Renderer>();
-                }
+                Renderer quadRenderer = _drawCacheQuad ? _drawCacheQuad.GetComponent<Renderer>() : null;
 
                 foreach (var renderer in renderers)
                 {

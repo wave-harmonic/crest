@@ -893,25 +893,6 @@ namespace Crest
                 isValid =  false;
             }
 
-            // We would have to take the tiles into account for this to work in play mode.
-            if (!EditorApplication.isPlaying)
-            {
-                var childCount = ocean.transform.childCount;
-                if (ocean._showOceanProxyPlane)
-                {
-                    childCount -= 1;
-                }
-
-                if (childCount > 0)
-                {
-                    showMessage
-                    (
-                        "The ocean changes scale at runtime so may not be a good idea to store objects underneath it, especially if they are sensitive to scale.",
-                        ValidatedHelper.MessageType.Warning, ocean
-                    );
-                }
-            }
-
             // OceanRenderer
             if (FindObjectsOfType<OceanRenderer>().Length > 1)
             {

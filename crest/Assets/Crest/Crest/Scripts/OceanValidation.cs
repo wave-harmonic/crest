@@ -55,6 +55,34 @@ namespace Crest
         {
             messages[(int) type].Add(message);
         }
+
+        public static bool ValidateRenderer(GameObject gameObject, string shaderPrefix, ShowMessage showMessage)
+        {
+            var renderer = gameObject.GetComponent<Renderer>();
+            if (!renderer)
+            {
+                showMessage
+                (
+                    "No renderer has been attached to ocean input. A renderer is required.",
+                    MessageType.Error, gameObject
+                );
+
+                return false;
+            }
+
+            if (!renderer.sharedMaterial || renderer.sharedMaterial.shader && !renderer.sharedMaterial.shader.name.StartsWith(shaderPrefix))
+            {
+                showMessage
+                (
+                    $"Shader assigned to ocean input expected to be of type <i>{shaderPrefix}</i>.",
+                    MessageType.Error, gameObject
+                );
+
+                return false;
+            }
+
+            return true;
+        }
     }
 
     public abstract class ValidatedEditor : Editor

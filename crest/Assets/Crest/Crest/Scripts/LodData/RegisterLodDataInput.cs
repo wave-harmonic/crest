@@ -81,7 +81,7 @@ namespace Crest
 #if UNITY_EDITOR
                 if (_checkShaderName && verifyShader)
                 {
-                    CheckShaderName(_renderer, ValidatedHelper.DebugLog);
+                    ValidatedHelper.ValidateRenderer(gameObject, ShaderPrefix, ValidatedHelper.DebugLog);
                 }
 #endif
 
@@ -216,34 +216,7 @@ namespace Crest
     {
         public bool Validate(OceanRenderer ocean, ValidatedHelper.ShowMessage showMessage)
         {
-            return CheckShaderName(GetComponent<Renderer>(), showMessage);
-        }
-
-        bool CheckShaderName(Renderer renderer, ValidatedHelper.ShowMessage showMessage)
-        {
-            if (!renderer)
-            {
-                showMessage
-                (
-                    "No renderer has been attached to ocean input. A renderer is required.",
-                    ValidatedHelper.MessageType.Error, this
-                );
-
-                return false;
-            }
-
-            if (!renderer.sharedMaterial || renderer.sharedMaterial.shader && !renderer.sharedMaterial.shader.name.StartsWith(ShaderPrefix))
-            {
-                showMessage
-                (
-                    $"Shader assigned to ocean input expected to be of type <i>{ShaderPrefix}</i>.",
-                    ValidatedHelper.MessageType.Error, this
-                );
-
-                return false;
-            }
-
-            return true;
+            return ValidatedHelper.ValidateRenderer(gameObject, ShaderPrefix, showMessage);
         }
     }
 

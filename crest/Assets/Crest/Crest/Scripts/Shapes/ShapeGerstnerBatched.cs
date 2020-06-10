@@ -813,6 +813,8 @@ namespace Crest
         {
             var isValid = true;
 
+            isValid = ValidatedHelper.ValidateRenderer(gameObject, "Crest/Inputs/Animated Waves/Gerstner", showMessage);
+
             if (_componentsPerOctave == 0)
             {
                 showMessage

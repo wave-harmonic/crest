@@ -1,3 +1,21 @@
-﻿{
-	"name": "Crest"
+{
+    "name": "Crest",
+    "references": [
+        "GUID:4307f53044263cf4b835bd812fc161a4"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [
+        {
+            "name": "com.unity.cinemachine",
+            "expression": "1.0",
+            "define": "CREST_CINEMACHINE"
+        }
+    ],
+    "noEngineReferences": false
 }

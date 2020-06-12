@@ -2,12 +2,6 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
-//#define USE_CINEMACHINE
-
-#if USE_CINEMACHINE
-using Cinemachine;
-#endif
-
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;

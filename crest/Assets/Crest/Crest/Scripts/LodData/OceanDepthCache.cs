@@ -123,8 +123,15 @@ namespace Crest
             var errorShown = false;
             foreach (var layer in _layerNames)
             {
+                if (string.IsNullOrEmpty(layer))
+                {
+                    Debug.LogError("OceanDepthCache: An empty layer name was provided. Please provide a valid layer name. Click this message to highlight the cache in question.", this);
+                    errorShown = true;
+                    continue;
+                }
+
                 int layerIdx = LayerMask.NameToLayer(layer);
-                if (string.IsNullOrEmpty(layer) || layerIdx == -1)
+                if (layerIdx == -1)
                 {
                     Debug.LogError("OceanDepthCache: Invalid layer specified: \"" + layer +
                         "\". Does this layer need to be added to the project (Edit/Project Settings/Tags and Layers)? Click this message to highlight the cache in question.", this);
@@ -415,6 +422,18 @@ namespace Crest
 
                 foreach (var layerName in _layerNames)
                 {
+                    if (string.IsNullOrEmpty(layerName))
+                    {
+                        showMessage
+                        (
+                            "An empty layer name was provided. Please provide a valid layer name.",
+                            ValidatedHelper.MessageType.Error, this
+                        );
+
+                        isValid = false;
+                        continue;
+                    }
+
                     var layer = LayerMask.NameToLayer(layerName);
                     if (layer == -1)
                     {

@@ -15,6 +15,10 @@ using UnityEngine;
 using UnityEditor.Experimental.SceneManagement;
 #endif
 
+#if CREST_CINEMACHINE
+using Cinemachine;
+#endif
+
 namespace Crest
 {
     /// <summary>
@@ -325,6 +329,11 @@ namespace Crest
         // Drive state from OnEnable and OnDisable? OnEnable on RegisterLodDataInput seems to get called on script reload
         void OnEnable()
         {
+#if CREST_CINEMACHINE
+            Debug.Log($"Cinemachine supported");
+#else
+            Debug.Log($"Cinemachine not supported");
+#endif
             // We don't run in "prefab scenes", i.e. when editing a prefab. Bail out if prefab scene is detected.
 #if UNITY_EDITOR
             if (PrefabStageUtility.GetCurrentPrefabStage() != null)

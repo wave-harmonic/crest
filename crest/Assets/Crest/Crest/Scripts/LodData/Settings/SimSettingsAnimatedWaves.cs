@@ -7,7 +7,7 @@ using UnityEngine;
 namespace Crest
 {
     [CreateAssetMenu(fileName = "SimSettingsAnimatedWaves", menuName = "Crest/Animated Waves Sim Settings", order = 10000)]
-    public class SimSettingsAnimatedWaves : SimSettingsBase
+    public partial class SimSettingsAnimatedWaves : SimSettingsBase
     {
         [Tooltip("How much waves are dampened in shallow water."), SerializeField, Range(0f, 1f)]
         float _attenuationInShallows = 0.95f;
@@ -60,4 +60,35 @@ namespace Crest
             return result;
         }
     }
+
+#if UNITY_EDITOR
+    public partial class SimSettingsAnimatedWaves : IValidated
+    {
+        public override bool Validate(OceanRenderer ocean, ValidatedHelper.ShowMessage showMessage)
+        {
+            var isValid = base.Validate(ocean, showMessage);
+
+            if (_collisionSource == CollisionSources.GerstnerWavesCPU)
+            {
+                showMessage
+                (
+                    "<i>Gerstner Waves CPU</i> has significant drawbacks. It does not include wave attenuation from " +
+                    "water depth or any custom rendered shape. It does not support multiple " +
+                    "<i>GerstnerWavesBatched</i> components including cross blending. Please read the user guide for more information.",
+                    ValidatedHelper.MessageType.Info, this
+                );
+            }
+            else if (_collisionSource == CollisionSources.None)
+            {
+                showMessage
+                (
+                    "Collision Source in Animated Waves Settings is set to None. The floating objects in the scene will use a flat horizontal plane.",
+                    ValidatedHelper.MessageType.Warning, this
+                );
+            }
+
+            return isValid;
+        }
+    }
+#endif
 }

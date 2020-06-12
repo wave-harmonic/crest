@@ -68,7 +68,6 @@ If you encounter an issue, please search the [Issues page](https://github.com/hu
 
 There are a few issues worth calling out here:
 
-* Sky solutions such as Azure[Sky] requires some code to be added to the ocean shader for the fogging/scattering to work. This is a requirement of these products which typically come with instructions for what needs to be added. See issue #62 for an example.
-* Issue with LWRP and VR - refraction appears broken due to what seems to be a bug in LWRP. See issue #206.
-* This built-in render pipeline version of crest requires the *Draw Instanced* option on terrains to be disabled at start time. It can be re-enabled subsequently after the depth cache is populated. See issue #158.
+* Sky solutions such as Azure[Sky] requires some code to be added to the ocean shader for the fogging/scattering to work. This is a requirement of these products which typically come with instructions for what needs to be added. See the [wiki](https://github.com/crest-ocean/crest/wiki) for examples.
+* This built-in render pipeline version of crest requires the *Draw Instanced* option on terrains to be disabled at start time. It can be re-enabled subsequently after the depth cache is populated. See [issue #158](https://github.com/crest-ocean/crest/issues/158).
 * *Crest* does not support OpenGL or WebGL backends

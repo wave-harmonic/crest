@@ -7,6 +7,10 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+
 namespace Crest
 {
     using OceanInput = CrestSortedList<int, ILodDataInput>;
@@ -36,10 +40,12 @@ namespace Crest
     /// Base class for scripts that register input to the various LOD data types.
     /// </summary>
     [ExecuteAlways]
-    public abstract class RegisterLodDataInputBase : MonoBehaviour, ILodDataInput, IValidated
+    public abstract partial class RegisterLodDataInputBase : MonoBehaviour, ILodDataInput
     {
+#if UNITY_EDITOR
         [SerializeField, Tooltip("Check that the shader applied to this object matches the input type (so e.g. an Animated Waves input object has an Animated Waves input shader.")]
         bool _checkShaderName = true;
+#endif
 
         public abstract float Wavelength { get; }
 
@@ -72,10 +78,12 @@ namespace Crest
 
             if (_renderer)
             {
+#if UNITY_EDITOR
                 if (_checkShaderName && verifyShader)
                 {
-                    CheckShaderName(_renderer);
+                    ValidatedHelper.ValidateRenderer(gameObject, ShaderPrefix, ValidatedHelper.DebugLog);
                 }
+#endif
 
                 _material = _renderer.sharedMaterial;
             }
@@ -96,16 +104,6 @@ namespace Crest
 #endif
         }
 
-        bool CheckShaderName(Renderer renderer)
-        {
-            if (renderer.sharedMaterial && renderer.sharedMaterial.shader && !renderer.sharedMaterial.shader.name.StartsWith(ShaderPrefix))
-            {
-                Debug.LogError($"Shader assigned to ocean input expected to be of type <i>{ShaderPrefix}</i>. Click this error to highlight the input.", this);
-                return false;
-            }
-            return true;
-        }
-
         public void Draw(CommandBuffer buf, float weight, int isTransition, int lodIdx)
         {
             if (_renderer && _material && weight > 0f)
@@ -124,11 +122,6 @@ namespace Crest
             // Init here from 2019.3 onwards
             s_registrar.Clear();
             sp_Weight = Shader.PropertyToID("_Weight");
-        }
-
-        public bool Validate(OceanRenderer ocean)
-        {
-            return CheckShaderName(GetComponent<Renderer>());
         }
     }
 
@@ -217,4 +210,17 @@ namespace Crest
             }
         }
     }
+
+#if UNITY_EDITOR
+    public abstract partial class RegisterLodDataInputBase : IValidated
+    {
+        public bool Validate(OceanRenderer ocean, ValidatedHelper.ShowMessage showMessage)
+        {
+            return ValidatedHelper.ValidateRenderer(gameObject, ShaderPrefix, showMessage);
+        }
+    }
+
+    [CustomEditor(typeof(RegisterLodDataInputBase), true), CanEditMultipleObjects]
+    class RegisterLodDataInputBaseEditor : ValidatedEditor { }
+#endif
 }

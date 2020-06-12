@@ -184,10 +184,18 @@ Shader "Crest/Ocean"
 
 	SubShader
 	{
-		// ForwardBase - tell unity we're going to render water in forward manner and we're going to do lighting and it will set the appropriate uniforms
-		// Geometry+510 - unity treats anything after Geometry+500 as transparent, and will render it in a forward manner and copy out the gbuffer data
-		//     and do post processing before running it. Discussion of this in issue #53.
-		Tags { "LightMode"="ForwardBase" "Queue"="Geometry+510" "IgnoreProjector"="True" "RenderType"="Opaque" }
+		Tags
+		{
+			// Tell Unity we're going to render water in forward manner and we're going to do lighting and it will set
+			// the appropriate uniforms.
+			"LightMode"="ForwardBase"
+			// Unity treats anything after Geometry+500 as transparent, and will render it in a forward manner and copy
+			// out the gbuffer data and do post processing before running it. Discussion of this in issue #53.
+			"Queue"="Geometry+510"
+			"IgnoreProjector"="True"
+			"RenderType"="Opaque"
+			"DisableBatching"="True"
+		}
 
 		GrabPass
 		{

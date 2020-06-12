@@ -13,7 +13,7 @@ namespace Crest
     /// Generates a number of batches of Gerstner waves.
     /// </summary>
     [ExecuteAlways]
-    public class ShapeGerstnerBatched : MonoBehaviour, ICollProvider, IFloatingOrigin
+    public partial class ShapeGerstnerBatched : MonoBehaviour, ICollProvider, IFloatingOrigin
     {
         public enum GerstnerMode
         {
@@ -782,8 +782,8 @@ namespace Crest
     }
 
 #if UNITY_EDITOR
-    [CustomEditor(typeof(ShapeGerstnerBatched))]
-    public class ShapeGerstnerBatchedEditor : Editor
+    [CustomEditor(typeof(ShapeGerstnerBatched)), CanEditMultipleObjects]
+    public class ShapeGerstnerBatchedEditor : ValidatedEditor
     {
         public override void OnInspectorGUI()
         {
@@ -804,6 +804,33 @@ namespace Crest
                 }
             }
             GUI.enabled = true;
+        }
+    }
+
+    public partial class ShapeGerstnerBatched : IValidated
+    {
+        public bool Validate(OceanRenderer ocean, ValidatedHelper.ShowMessage showMessage)
+        {
+            var isValid = true;
+
+            // Renderer
+            if (_mode == GerstnerMode.Geometry)
+            {
+                isValid = ValidatedHelper.ValidateRenderer(gameObject, "Crest/Inputs/Animated Waves/Gerstner", showMessage);
+            }
+
+            if (_componentsPerOctave == 0)
+            {
+                showMessage
+                (
+                    "Components Per Octave set to 0 meaning this Gerstner component won't generate any waves.",
+                    ValidatedHelper.MessageType.Warning, this
+                );
+
+                isValid = false;
+            }
+
+            return isValid;
         }
     }
 #endif

@@ -288,8 +288,6 @@ namespace Crest
 
         public override void OnInspectorGUI()
         {
-            ShowValidationMessages();
-
             // We won't just use default inspector because we want to show some of the params conditionally based on cache type
 
             // First show standard 'Script' field
@@ -366,6 +364,8 @@ namespace Crest
 
                 Debug.Log("Cache saved to " + path, AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(path));
             }
+
+            ShowValidationMessages();
         }
     }
 

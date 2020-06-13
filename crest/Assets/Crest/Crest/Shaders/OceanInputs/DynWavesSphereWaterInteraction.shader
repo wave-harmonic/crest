@@ -55,7 +55,7 @@ Shader "Crest/Inputs/Dynamic Waves/Sphere-Water Interaction"
 				o.offsetXZ = vertexWorldPos.xz - centerPos.xz;
 
 				// Correct for displacement
-				vertexWorldPos -= _DisplacementAtInputPosition;
+				vertexWorldPos.xz -= _DisplacementAtInputPosition.xz;
 
 				o.positionCS = mul(UNITY_MATRIX_VP, float4(vertexWorldPos, 1.0));
 

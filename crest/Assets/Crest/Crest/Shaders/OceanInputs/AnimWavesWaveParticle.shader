@@ -56,7 +56,7 @@ Shader "Crest/Inputs/Animated Waves/Wave Particle"
 				newWorldPos.xz += o.worldOffsetScaledXZ * _Radius;
 
 				// Correct for displacement
-				newWorldPos.xyz -= _DisplacementAtInputPosition;
+				newWorldPos.xz -= _DisplacementAtInputPosition.xz;
 
 				o.positionCS = mul(UNITY_MATRIX_VP, newWorldPos);
 

@@ -54,7 +54,7 @@ Shader "Crest/Inputs/Dynamic Waves/Dampen Circle"
 				newWorldPos.xz += o.worldOffsetScaled.xy * _Radius;
 
 				// Correct for displacement
-				newWorldPos.xyz -= _DisplacementAtInputPosition;
+				newWorldPos.xz -= _DisplacementAtInputPosition.xz;
 
 				o.positionCS = mul(UNITY_MATRIX_VP, newWorldPos);
 

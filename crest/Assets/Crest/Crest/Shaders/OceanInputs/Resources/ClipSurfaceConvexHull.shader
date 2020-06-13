@@ -48,9 +48,9 @@ Shader "Crest/Inputs/Clip Surface/Convex Hull"
 
 				o.positionWS = mul(unity_ObjectToWorld, float4(input.positionOS, 1.0)).xyz;
 				// Correct for displacement
-				o.positionWS.xyz -= _DisplacementAtInputPosition;
+				o.positionWS.xz -= _DisplacementAtInputPosition.xz;
 				o.positionCS = mul(UNITY_MATRIX_VP, float4(o.positionWS, 1.0));
-				
+
 				return o;
 			}
 

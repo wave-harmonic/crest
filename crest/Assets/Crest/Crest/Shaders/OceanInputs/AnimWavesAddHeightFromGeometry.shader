@@ -52,7 +52,7 @@ Shader "Crest/Inputs/Animated Waves/Add Water Height From Geometry"
 
 				o.worldPos = mul(unity_ObjectToWorld, float4(input.positionOS, 1.0)).xyz;
 				// Correct for displacement
-				o.worldPos.xyz -= _DisplacementAtInputPosition;
+				o.worldPos.xz -= _DisplacementAtInputPosition.xz;
 
 				o.positionCS = mul(UNITY_MATRIX_VP, float4(o.worldPos, 1.0));
 

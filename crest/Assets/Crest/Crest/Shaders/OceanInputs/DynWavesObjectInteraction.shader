@@ -57,7 +57,7 @@ Shader "Crest/Inputs/Dynamic Waves/Object Interaction"
 
 				float3 vertexWorldPos = mul(unity_ObjectToWorld, float4(input.positionOS, 1.0));
 				// Correct for displacement
-				vertexWorldPos -= _DisplacementAtInputPosition;
+				vertexWorldPos.xz -= _DisplacementAtInputPosition.xz;
 
 				o.normal = normalize(mul(unity_ObjectToWorld, float4(input.normal, 0.)).xyz);
 

@@ -43,7 +43,7 @@ Shader "Crest/Inputs/Flow/Fixed Direction"
 
 				float3 worldPos = mul(unity_ObjectToWorld, float4(input.positionOS, 1.0)).xyz;
 				// Correct for displacement
-				worldPos.xyz -= _DisplacementAtInputPosition;
+				worldPos.xz -= _DisplacementAtInputPosition.xz;
 				o.positionCS = mul(UNITY_MATRIX_VP, float4(worldPos, 1.0));
 
 				o.vel = _Speed * float2(cos(_Direction * 6.283185), sin(_Direction * 6.283185));

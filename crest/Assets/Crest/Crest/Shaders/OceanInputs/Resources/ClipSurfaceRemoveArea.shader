@@ -42,7 +42,7 @@ Shader "Crest/Inputs/Clip Surface/Remove Area"
 
 				float3 positionWS = mul(unity_ObjectToWorld, float4(input.positionOS, 1.0)).xyz;
 				// Correct for displacement
-				positionWS.xyz -= _DisplacementAtInputPosition;
+				positionWS.xz -= _DisplacementAtInputPosition.xz;
 				o.positionCS = mul(UNITY_MATRIX_VP, float4(positionWS, 1.0));
 
 				return o;

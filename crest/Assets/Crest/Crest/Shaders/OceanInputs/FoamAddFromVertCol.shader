@@ -44,7 +44,7 @@ Shader "Crest/Inputs/Foam/Add From Vert Colours"
 
 				float3 worldPos = mul(unity_ObjectToWorld, float4(input.positionOS, 1.0)).xyz;
 				// Correct for displacement
-				worldPos.xyz -= _DisplacementAtInputPosition;
+				worldPos.xz -= _DisplacementAtInputPosition.xz;
 				o.positionCS = mul(UNITY_MATRIX_VP, float4(worldPos, 1.0));
 				
 				o.col = input.col;

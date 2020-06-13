@@ -229,7 +229,7 @@ namespace Crest
             var isValid = true;
 
             // Check that underwater effect is parented to a camera.
-            if (transform.parent.GetComponent<Camera>() == null)
+            if (!transform.parent || transform.parent.GetComponent<Camera>() == null)
             {
                 showMessage
                 (

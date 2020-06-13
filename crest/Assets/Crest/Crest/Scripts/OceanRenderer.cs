@@ -25,15 +25,14 @@ namespace Crest
         [Tooltip("The viewpoint which drives the ocean detail. Defaults to main camera."), SerializeField]
         Transform _viewpoint;
 
-        // TODO is this ok?
-#if USE_CINEMACHINE
+#if CREST_CINEMACHINE
         [Tooltip("Cinemachine to use to provide viewpoint. This overrides the previous Viewpoint property."), SerializeField]
-        CinemachineBrain _useCinemachine;
+        CinemachineBrain _useCinemachine = null;
 #endif
 
         public bool GetViewpointPos(out Vector3 pos)
         {
-#if USE_CINEMACHINE
+#if CREST_CINEMACHINE
             if (_useCinemachine != null)
             {
                 pos = _useCinemachine.CurrentCameraState.FinalPosition;
@@ -51,10 +50,10 @@ namespace Crest
         }
         public bool GetViewpointForward(out Vector3 forward)
         {
-#if USE_CINEMACHINE
+#if CREST_CINEMACHINE
             if (_useCinemachine != null)
             {
-                forward = _useCinemachine.CurrentCameraState.FinalOrientation.Forward;
+                forward = _useCinemachine.CurrentCameraState.FinalOrientation * Vector3.forward;
             }
 #endif
 
@@ -73,8 +72,11 @@ namespace Crest
         }
         bool HasViewpoint()
         {
-            // TODO - cinemachine as well..
-            return ViewpointTransform != null;
+            return ViewpointTransform != null
+#if CREST_CINEMACHINE
+                || _useCinemachine != null
+#endif
+                ;
         }
 
         Transform ViewpointTransform

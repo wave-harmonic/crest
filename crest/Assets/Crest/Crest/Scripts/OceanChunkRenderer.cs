@@ -3,11 +3,7 @@
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 using UnityEngine;
-#if UNITY_2018
-using UnityEngine.Experimental.Rendering;
-#else
 using UnityEngine.Rendering;
-#endif
 
 namespace Crest
 {
@@ -61,11 +57,7 @@ namespace Crest
 
         static Camera _currentCamera = null;
 
-#if UNITY_2018
-        private static void BeginCameraRendering(Camera camera)
-#else
         private static void BeginCameraRendering(ScriptableRenderContext context, Camera camera)
-#endif
         {
             _currentCamera = camera;
         }
@@ -195,13 +187,8 @@ namespace Crest
         [RuntimeInitializeOnLoadMethod]
         static void RunOnStart()
         {
-#if UNITY_2018
-            RenderPipeline.beginCameraRendering -= BeginCameraRendering;
-            RenderPipeline.beginCameraRendering += BeginCameraRendering;
-#else
             RenderPipelineManager.beginCameraRendering -= BeginCameraRendering;
             RenderPipelineManager.beginCameraRendering += BeginCameraRendering;
-#endif
         }
     }
 

@@ -83,6 +83,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 942c4eeba14a7db4882e57488905e8eb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _checkShaderName: 1
+  _applyDisplacementCorrection: 0
   _disableRenderer: 1
 --- !u!114 &1709276512157696609
 MonoBehaviour:
@@ -249,18 +251,13 @@ MonoBehaviour:
   _createShadowData: 0
   _simSettingsShadow: {fileID: 0}
   _createClipSurfaceData: 1
+  _showOceanProxyPlane: 0
+  _editModeFPS: 30
+  _followSceneCamera: 1
   _attachDebugGUI: 1
-  _followViewpoint: 1
+  _hideOceanTileGameObjects: 1
   _uniformTiles: 0
   _disableSkirt: 0
-  _lodTransform: {fileID: 0}
-  _lodDataAnimWaves: {fileID: 0}
-  _lodDataSeaDepths: {fileID: 0}
-  _lodDataClipSurface: {fileID: 0}
-  _lodDataDynWaves: {fileID: 0}
-  _lodDataFlow: {fileID: 0}
-  _lodDataFoam: {fileID: 0}
-  _lodDataShadow: {fileID: 0}
 --- !u!1 &1709276512233510730
 GameObject:
   m_ObjectHideFlags: 0
@@ -307,6 +304,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 942c4eeba14a7db4882e57488905e8eb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _checkShaderName: 1
+  _applyDisplacementCorrection: 1
   _disableRenderer: 1
 --- !u!114 &1709276512233510726
 MonoBehaviour:
@@ -419,6 +418,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 942c4eeba14a7db4882e57488905e8eb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _checkShaderName: 1
+  _applyDisplacementCorrection: 1
   _disableRenderer: 1
 --- !u!114 &1709276512244294423
 MonoBehaviour:
@@ -531,6 +532,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 942c4eeba14a7db4882e57488905e8eb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _checkShaderName: 1
+  _applyDisplacementCorrection: 1
   _disableRenderer: 1
 --- !u!114 &1709276512279401647
 MonoBehaviour:
@@ -928,7 +931,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1709276512394246534}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -970,6 +973,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 26cbe8d1fc0a69249bc135d85739ad39, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _checkShaderName: 1
+  _applyDisplacementCorrection: 0
   _disableRenderer: 1
   _octaveWavelength: 0
   _maxDisplacementVertical: 0
@@ -1164,6 +1169,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 942c4eeba14a7db4882e57488905e8eb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _checkShaderName: 1
+  _applyDisplacementCorrection: 1
   _disableRenderer: 1
 --- !u!114 &1709276512438433994
 MonoBehaviour:
@@ -1307,6 +1314,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 942c4eeba14a7db4882e57488905e8eb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _checkShaderName: 1
+  _applyDisplacementCorrection: 1
   _disableRenderer: 1
 --- !u!114 &1709276512497236251
 MonoBehaviour:
@@ -1419,6 +1428,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 942c4eeba14a7db4882e57488905e8eb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _checkShaderName: 1
+  _applyDisplacementCorrection: 1
   _disableRenderer: 1
 --- !u!114 &1709276512513943406
 MonoBehaviour:
@@ -1697,7 +1708,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1709276512772348141}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -1739,6 +1750,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 26cbe8d1fc0a69249bc135d85739ad39, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _checkShaderName: 1
+  _applyDisplacementCorrection: 0
   _disableRenderer: 1
   _octaveWavelength: 11
   _maxDisplacementVertical: 5.5
@@ -1842,6 +1855,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 942c4eeba14a7db4882e57488905e8eb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _checkShaderName: 1
+  _applyDisplacementCorrection: 1
   _disableRenderer: 1
 --- !u!114 &1709276512808272740
 MonoBehaviour:
@@ -1954,6 +1969,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 942c4eeba14a7db4882e57488905e8eb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _checkShaderName: 1
+  _applyDisplacementCorrection: 1
   _disableRenderer: 1
 --- !u!114 &1709276512818193546
 MonoBehaviour:
@@ -2313,6 +2330,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 942c4eeba14a7db4882e57488905e8eb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _checkShaderName: 1
+  _applyDisplacementCorrection: 1
   _disableRenderer: 1
 --- !u!114 &1709276512964091443
 MonoBehaviour:
@@ -2559,6 +2578,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 942c4eeba14a7db4882e57488905e8eb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _checkShaderName: 1
+  _applyDisplacementCorrection: 1
   _disableRenderer: 1
 --- !u!114 &1709276513084485791
 MonoBehaviour:
@@ -2843,7 +2864,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1709276513223586033}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -2885,6 +2906,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 26cbe8d1fc0a69249bc135d85739ad39, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _checkShaderName: 1
+  _applyDisplacementCorrection: 0
   _disableRenderer: 1
   _octaveWavelength: 0
   _maxDisplacementVertical: 0
@@ -3187,6 +3210,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 942c4eeba14a7db4882e57488905e8eb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _checkShaderName: 1
+  _applyDisplacementCorrection: 1
   _disableRenderer: 1
 --- !u!114 &1709276513386320555
 MonoBehaviour:
@@ -3299,6 +3324,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 942c4eeba14a7db4882e57488905e8eb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _checkShaderName: 1
+  _applyDisplacementCorrection: 1
   _disableRenderer: 1
 --- !u!114 &1709276513401815294
 MonoBehaviour:
@@ -3445,7 +3472,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1709276513453457207}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 0
   m_ReceiveShadows: 0
   m_DynamicOccludee: 0
@@ -3487,7 +3514,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e66dbc64761412d41801763633a21b35, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _localOffset: {x: 0, y: 0, z: 0}
   _noiseFreq: 6
   _noiseAmp: 0
   _weightUpDownMul: 0.3
@@ -3508,6 +3534,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 942c4eeba14a7db4882e57488905e8eb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _checkShaderName: 1
+  _applyDisplacementCorrection: 1
   _disableRenderer: 1
 --- !u!1 &1709276513481094579
 GameObject:
@@ -3715,6 +3743,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 942c4eeba14a7db4882e57488905e8eb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _checkShaderName: 1
+  _applyDisplacementCorrection: 1
   _disableRenderer: 1
 --- !u!114 &1709276513542739760
 MonoBehaviour:
@@ -3827,6 +3857,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 942c4eeba14a7db4882e57488905e8eb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _checkShaderName: 1
+  _applyDisplacementCorrection: 1
   _disableRenderer: 1
 --- !u!114 &1709276513546739013
 MonoBehaviour:
@@ -3977,6 +4009,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 942c4eeba14a7db4882e57488905e8eb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _checkShaderName: 1
+  _applyDisplacementCorrection: 1
   _disableRenderer: 1
 --- !u!114 &1709276513612569861
 MonoBehaviour:
@@ -4208,6 +4242,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 942c4eeba14a7db4882e57488905e8eb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _checkShaderName: 1
+  _applyDisplacementCorrection: 1
   _disableRenderer: 1
 --- !u!114 &1709276513790209468
 MonoBehaviour:
@@ -4320,6 +4356,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 942c4eeba14a7db4882e57488905e8eb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _checkShaderName: 1
+  _applyDisplacementCorrection: 1
   _disableRenderer: 1
 --- !u!114 &1709276513809432409
 MonoBehaviour:
@@ -4570,6 +4608,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 942c4eeba14a7db4882e57488905e8eb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _checkShaderName: 1
+  _applyDisplacementCorrection: 0
   _disableRenderer: 1
 --- !u!1 &1709276513975709553
 GameObject:
@@ -4779,6 +4819,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 942c4eeba14a7db4882e57488905e8eb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _checkShaderName: 1
+  _applyDisplacementCorrection: 1
   _disableRenderer: 1
 --- !u!114 &1709276514066741512
 MonoBehaviour:
@@ -5001,7 +5043,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3951424492669154611}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 0
   m_ReceiveShadows: 0
   m_DynamicOccludee: 1
@@ -5043,6 +5085,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cdff4e1b753d044b5a7dcf91a7e7b863, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _checkShaderName: 1
+  _applyDisplacementCorrection: 0
   _disableRenderer: 1
   _disableClipSurfaceWhenTooFarFromSurface: 0
   _animatedWavesDisplacementSamplingIterations: 4
@@ -5086,7 +5130,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5831241881590923069}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -5363,6 +5407,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_LocalScale.z
       value: 258.85278
+      objectReference: {fileID: 0}
+    - target: {fileID: 6370312182862802035, guid: 0dde4b778082b1241ba64e4ad3e46fa1,
+        type: 3}
+      propertyPath: m_Enabled
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 0dde4b778082b1241ba64e4ad3e46fa1, type: 3}

@@ -95,7 +95,7 @@ namespace Crest
                     // can happen if the Scene and Game view are not visible, in which case async readbacks dont get processed
                     // and the pipeline blocks up.
 #if !UNITY_EDITOR
-                    Debug.LogError("Query ring buffer exhausted. Please report this to developers.", this);
+                    Debug.LogError("Query ring buffer exhausted. Please report this to developers.");
 #endif
                     return;
                 }

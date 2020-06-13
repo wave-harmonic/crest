@@ -10,7 +10,7 @@ namespace Crest
     /// <summary>
     /// This script is attached to the parent GameObject of each LOD. It provides helper functionality related to each LOD.
     /// </summary>
-    public class LodTransform : MonoBehaviour, IFloatingOrigin
+    public class LodTransform : IFloatingOrigin
     {
         protected int[] _transformUpdateFrame;
 
@@ -27,12 +27,12 @@ namespace Crest
             public Vector3 _posSnapped;
             public int _frame;
 
-            public RenderData Validate(int frameOffset, Object context)
+            public RenderData Validate(int frameOffset, string context)
             {
                 // ignore first frame - this patches errors when using edit & continue in editor
-                if (_frame > 0 && _frame != Time.frameCount + frameOffset)
+                if (_frame > 0 && _frame != OceanRenderer.FrameCount + frameOffset)
                 {
-                    Debug.LogWarning(string.Format("RenderData validation failed: _frame of data ({0}) != expected ({1}), which may indicate some update functions are being called out of order, or script execution order is broken.", _frame, Time.frameCount + frameOffset), context);
+                    Debug.LogWarning($"RenderData validation failed - {context} - _frame of data ({_frame}) != expected ({OceanRenderer.FrameCount + frameOffset}), which may indicate some update functions are being called out of order, or script execution order is broken.", OceanRenderer.Instance);
                 }
                 return this;
             }
@@ -77,9 +77,9 @@ namespace Crest
         {
             for (int lodIdx = 0; lodIdx < LodCount; lodIdx++)
             {
-                if (_transformUpdateFrame[lodIdx] == Time.frameCount) continue;
+                if (_transformUpdateFrame[lodIdx] == OceanRenderer.FrameCount) continue;
 
-                _transformUpdateFrame[lodIdx] = Time.frameCount;
+                _transformUpdateFrame[lodIdx] = OceanRenderer.FrameCount;
 
                 _renderDataSource[lodIdx] = _renderData[lodIdx];
 
@@ -90,10 +90,10 @@ namespace Crest
                 _renderData[lodIdx]._textureRes = OceanRenderer.Instance.LodDataResolution;
                 _renderData[lodIdx]._texelWidth = 2f * camOrthSize / _renderData[lodIdx]._textureRes;
                 // snap so that shape texels are stationary
-                _renderData[lodIdx]._posSnapped = OceanRenderer.Instance.transform.position
-                    - new Vector3(Mathf.Repeat(OceanRenderer.Instance.transform.position.x, _renderData[lodIdx]._texelWidth), 0f, Mathf.Repeat(OceanRenderer.Instance.transform.position.z, _renderData[lodIdx]._texelWidth));
+                _renderData[lodIdx]._posSnapped = OceanRenderer.Instance.Root.position
+                    - new Vector3(Mathf.Repeat(OceanRenderer.Instance.Root.position.x, _renderData[lodIdx]._texelWidth), 0f, Mathf.Repeat(OceanRenderer.Instance.Root.position.z, _renderData[lodIdx]._texelWidth));
 
-                _renderData[lodIdx]._frame = Time.frameCount;
+                _renderData[lodIdx]._frame = OceanRenderer.FrameCount;
 
                 // detect first update and populate the render data if so - otherwise it can give divide by 0s and other nastiness
                 if (_renderDataSource[lodIdx]._textureRes == 0f)

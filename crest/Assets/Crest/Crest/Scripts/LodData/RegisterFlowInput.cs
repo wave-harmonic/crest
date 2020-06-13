@@ -9,6 +9,7 @@ namespace Crest
     /// <summary>
     /// Registers a custom input to the flow data. Attach this GameObjects that you want to influence the horizontal flow of the water volume.
     /// </summary>
+    [ExecuteAlways]
     public class RegisterFlowInput : RegisterLodDataInput<LodDataMgrFlow>
     {
         public override bool Enabled => true;

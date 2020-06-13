@@ -14,6 +14,7 @@ namespace Crest
     /// <summary>
     /// Sets shader parameters for each geometry tile/chunk.
     /// </summary>
+    [ExecuteAlways]
     public class OceanChunkRenderer : MonoBehaviour
     {
         public bool _drawRenderBounds = false;
@@ -38,7 +39,7 @@ namespace Crest
         void Start()
         {
             _rend = GetComponent<Renderer>();
-            _mesh = GetComponent<MeshFilter>().mesh;
+            _mesh = GetComponent<MeshFilter>().sharedMesh;
             _boundsLocal = _mesh.bounds;
 
             UpdateMeshBounds();
@@ -72,6 +73,11 @@ namespace Crest
         // Called when visible to a camera
         void OnWillRenderObject()
         {
+            if (OceanRenderer.Instance == null || _rend == null)
+            {
+                return;
+            }
+
             // check if built-in pipeline being used
             if (Camera.current != null)
             {
@@ -124,12 +130,12 @@ namespace Crest
             var ldshadows = OceanRenderer.Instance._lodDataShadow;
 
             _mpb.SetInt(LodDataMgr.sp_LD_SliceIndex, _lodIndex);
-            ldaws.BindResultData(_mpb);
-            if (ldflow) ldflow.BindResultData(_mpb); else LodDataMgrFlow.BindNull(_mpb);
-            if (ldfoam) ldfoam.BindResultData(_mpb); else LodDataMgrFoam.BindNull(_mpb);
-            if (ldsds) ldsds.BindResultData(_mpb); else LodDataMgrSeaFloorDepth.BindNull(_mpb);
-            if (ldclip) ldclip.BindResultData(_mpb); else LodDataMgrClipSurface.BindNull(_mpb);
-            if (ldshadows) ldshadows.BindResultData(_mpb); else LodDataMgrShadow.BindNull(_mpb);
+            if (ldaws != null) ldaws.BindResultData(_mpb);
+            if (ldflow != null) ldflow.BindResultData(_mpb); else LodDataMgrFlow.BindNull(_mpb);
+            if (ldfoam != null) ldfoam.BindResultData(_mpb); else LodDataMgrFoam.BindNull(_mpb);
+            if (ldsds != null) ldsds.BindResultData(_mpb); else LodDataMgrSeaFloorDepth.BindNull(_mpb);
+            if (ldclip != null) ldclip.BindResultData(_mpb); else LodDataMgrClipSurface.BindNull(_mpb);
+            if (ldshadows != null) ldshadows.BindResultData(_mpb); else LodDataMgrShadow.BindNull(_mpb);
 
             var reflTex = PreparedReflections.GetRenderTexture(_currentCamera.GetHashCode());
             if (reflTex)

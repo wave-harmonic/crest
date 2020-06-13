@@ -6,7 +6,7 @@
 
 # Intro
 
-*Crest* is a technically advanced ocean renderer implemented in Unity3D 2018.4 and later.
+*Crest* is a technically advanced ocean renderer implemented in Unity3D 2019.4 and later.
 The version hosted here targets the **built-in render pipeline**, a link to the scriptable render pipeline versions (URP/HDRP) on the Asset Store are below.
 
 ![Teaser](https://raw.githubusercontent.com/huwb/crest-oceanrender/master/img/teaser5.png)
@@ -44,7 +44,7 @@ There is also a getting started video here: https://www.youtube.com/watch?v=qsge
 
 * Unity version:
   * The SRP assets on the Asset Store specify the minimum version required.
-  * Releases on this GitHub target the built-in render pipeline, and each release specifies which version of Unity it was developed on. Currently Unity 2018.3 or later is the minimum version.
+  * Releases on this GitHub target the built-in render pipeline, and each release specifies which version of Unity it was developed on. Currently Unity 2019.1 or later is the minimum version. A legacy version which supports [2018.4](https://github.com/crest-ocean/crest/tree/legacy/unity-2018) is available here.
 * *Crest* example content:
   * The content requires a layer named *Terrain* which should be added to your project.
   * The post processing package is used (for aesthetic reasons), if this is not present in your project you will see an unassigned script warning which you can fix by removing the offending script.

@@ -28,6 +28,7 @@ Shader "Crest/Inputs/Clip Surface/Convex Hull"
 
 			CBUFFER_START(CrestPerOceanInput)
 			uint _DisplacementSamplingIterations;
+			float3 _DisplacementAtInputPosition;
 			CBUFFER_END
 
 			struct Attributes
@@ -44,8 +45,12 @@ Shader "Crest/Inputs/Clip Surface/Convex Hull"
 			Varyings Vert(Attributes input)
 			{
 				Varyings o;
-				o.positionCS = UnityObjectToClipPos(input.positionOS);
-				o.positionWS = mul(unity_ObjectToWorld, float4(input.positionOS, 1.0));
+
+				o.positionWS = mul(unity_ObjectToWorld, float4(input.positionOS, 1.0)).xyz;
+				// Correct for displacement
+				o.positionWS.xyz -= _DisplacementAtInputPosition;
+				o.positionCS = mul(UNITY_MATRIX_VP, float4(o.positionWS, 1.0));
+				
 				return o;
 			}
 

@@ -37,6 +37,7 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Batch Geometry"
 
 			CBUFFER_START(GerstnerPerMaterial)
 			half _FeatherWidth;
+			float3 _DisplacementAtInputPosition;
 			CBUFFER_END
 
 			struct Attributes
@@ -55,9 +56,14 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Batch Geometry"
 			Varyings Vert(Attributes input)
 			{
 				Varyings o;
-				o.positionCS = UnityObjectToClipPos(input.positionOS);
 
-				o.worldPosXZ_uv.xy = mul(unity_ObjectToWorld, float4(input.positionOS, 1.0)).xz;
+				float3 worldPos = mul(unity_ObjectToWorld, float4(input.positionOS, 1.0)).xyz;
+				// Correct for displacement
+				worldPos.xyz -= _DisplacementAtInputPosition;
+
+				o.positionCS = mul(UNITY_MATRIX_VP, float4(worldPos, 1.0));
+
+				o.worldPosXZ_uv.xy = worldPos.xz;
 				o.worldPosXZ_uv.zw = input.uv;
 
 				o.uv_slice_wt.xyz = WorldToUV(o.worldPosXZ_uv.xy, _LD_SliceIndex);

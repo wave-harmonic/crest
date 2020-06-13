@@ -28,6 +28,7 @@ Shader "Crest/Inputs/Flow/Add Flow Map"
 			CBUFFER_START(CrestPerOceanInput)
 			float4 _FlowMap_ST;
 			float _Strength;
+			float3 _DisplacementAtInputPosition;
 			CBUFFER_END
 
 			struct Attributes
@@ -45,7 +46,12 @@ Shader "Crest/Inputs/Flow/Add Flow Map"
 			Varyings Vert(Attributes input)
 			{
 				Varyings o;
-				o.positionCS = UnityObjectToClipPos(input.positionOS);
+
+				float3 worldPos = mul(unity_ObjectToWorld, float4(input.positionOS, 1.0)).xyz;
+				// Correct for displacement
+				worldPos.xyz -= _DisplacementAtInputPosition;
+				o.positionCS = mul(UNITY_MATRIX_VP, float4(worldPos, 1.0));
+				
 				o.uv = TRANSFORM_TEX(input.uv, _FlowMap);
 				return o;
 			}

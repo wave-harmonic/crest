@@ -23,6 +23,7 @@ Shader "Crest/Inputs/Animated Waves/Push Water Under Convex Hull"
 
 			CBUFFER_START(CrestPerOceanInput)
 			float _Weight;
+			float3 _DisplacementAtInputPosition;
 			CBUFFER_END
 
 			struct Attributes
@@ -39,8 +40,13 @@ Shader "Crest/Inputs/Animated Waves/Push Water Under Convex Hull"
 			Varyings Vert(Attributes input)
 			{
 				Varyings o;
-				o.positionCS = UnityObjectToClipPos(input.positionOS);
-				o.worldPos = mul(unity_ObjectToWorld, float4(input.positionOS, 1.0));
+
+				o.worldPos = mul(unity_ObjectToWorld, float4(input.positionOS, 1.0)).xyz;
+				// Correct for displacement
+				o.worldPos.xz -= _DisplacementAtInputPosition;
+				
+				o.positionCS = mul(UNITY_MATRIX_VP, float4(o.worldPos, 1.0));
+
 				return o;
 			}
 

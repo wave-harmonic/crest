@@ -26,6 +26,7 @@ Shader "Crest/Inputs/Dynamic Waves/Add Bump"
 			float _SimCount;
 			float _SimDeltaTime;
 			float _Amplitude;
+			float3 _DisplacementAtInputPosition;
 			CBUFFER_END
 
 			struct Attributes
@@ -53,6 +54,10 @@ Shader "Crest/Inputs/Dynamic Waves/Add Bump"
 				o.worldOffsetScaled.xy = sign(o.worldOffsetScaled.xy);
 				float4 newWorldPos = float4(centerPos, 1.0);
 				newWorldPos.xz += o.worldOffsetScaled.xy * _Radius;
+
+				// Correct for displacement
+				newWorldPos.xyz -= _DisplacementAtInputPosition;
+				
 				o.positionCS = mul(UNITY_MATRIX_VP, newWorldPos);
 
 				return o;

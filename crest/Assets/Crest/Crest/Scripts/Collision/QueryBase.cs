@@ -87,10 +87,20 @@ namespace Crest
             {
                 var lastIndex = _segmentAcquire;
 
-                _segmentAcquire = (_segmentAcquire + 1) % _segments.Length;
+                var newSegmentAcquire = (_segmentAcquire + 1) % _segments.Length;
 
-                // The last index should never increment and land on the first index - it should only happen the other way around.
-                Debug.Assert(_segmentAcquire != _segmentRelease, "Segment registrar scratch exhausted.");
+                if (newSegmentAcquire == _segmentRelease)
+                {
+                    // The last index has incremented and landed on the first index. This shouldn't happen normally, but
+                    // can happen if the Scene and Game view are not visible, in which case async readbacks dont get processed
+                    // and the pipeline blocks up.
+#if !UNITY_EDITOR
+                    Debug.LogError("Query ring buffer exhausted. Please report this to developers.");
+#endif
+                    return;
+                }
+
+                _segmentAcquire = newSegmentAcquire;
 
                 _segments[_segmentAcquire]._numQueries = 0;
                 _segments[_segmentAcquire]._segments.Clear();
@@ -280,7 +290,7 @@ namespace Crest
 
         /// <summary>
         /// Remove air bubbles from the query array. Currently this lazily just nukes all the registered
-        /// query IDs so they'll be recreated next time (generating garbage). TODO..
+        /// query IDs so they'll be recreated next time (generating garbage).
         /// </summary>
         public void CompactQueryStorage()
         {
@@ -485,9 +495,9 @@ namespace Crest
         {
             _dataArrivedAction = new System.Action<AsyncGPUReadbackRequest>(DataArrived);
 
-            if (_maxQueryCount != OceanRenderer.Instance._simSettingsAnimatedWaves.MaxQueryCount)
+            if (_maxQueryCount != OceanRenderer.Instance._lodDataAnimWaves.Settings.MaxQueryCount)
             {
-                _maxQueryCount = OceanRenderer.Instance._simSettingsAnimatedWaves.MaxQueryCount;
+                _maxQueryCount = OceanRenderer.Instance._lodDataAnimWaves.Settings.MaxQueryCount;
                 _queryPosXZ_minGridSize = new Vector3[_maxQueryCount];
             }
 

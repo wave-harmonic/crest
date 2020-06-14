@@ -10,7 +10,7 @@ public class Sleeper : MonoBehaviour
 
     void Update()
     {
-        if (Time.frameCount % _sleepStride == 0)
+        if (Crest.OceanRenderer.FrameCount % _sleepStride == 0)
         {
             var sleep = _jitter ? (int)(Random.value * _sleepMs) : _sleepMs;
             System.Threading.Thread.Sleep(sleep);

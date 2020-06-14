@@ -21,7 +21,6 @@ namespace Crest
 
         protected override void OnEnable()
         {
-            Debug.Assert(Instance == null);
             Instance = this;
 
             base.OnEnable();
@@ -29,15 +28,19 @@ namespace Crest
 
         protected override void OnDisable()
         {
-            Instance = null;
+            // We don't set Instance to null here because it breaks exiting play mode, as OnDisable is called but no matching call to OnEnable :/.
+            // This would probably be better if the Query system did not inherit from MonoBehaviour and was built up by the OceanRenderer..
 
             base.OnDisable();
         }
 
         protected override void BindInputsAndOutputs(PropertyWrapperComputeStandalone wrapper, ComputeBuffer resultsBuffer)
         {
-            OceanRenderer.Instance._lodDataFlow.BindResultData(wrapper);
-            ShaderProcessQueries.SetTexture(_kernelHandle, sp_LD_TexArray_Flow, OceanRenderer.Instance._lodDataFlow.DataTexture);
+            if (OceanRenderer.Instance._lodDataFlow != null)
+            {
+                OceanRenderer.Instance._lodDataFlow.BindResultData(wrapper);
+                ShaderProcessQueries.SetTexture(_kernelHandle, sp_LD_TexArray_Flow, OceanRenderer.Instance._lodDataFlow.DataTexture);
+            }
             ShaderProcessQueries.SetBuffer(_kernelHandle, sp_ResultFlows, resultsBuffer);
         }
 

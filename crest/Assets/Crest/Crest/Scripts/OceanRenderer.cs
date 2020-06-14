@@ -316,7 +316,7 @@ namespace Crest
 
             CreateDestroyLodDatas();
 
-            _collProvider = _lodDataAnimWaves.Settings.CreateCollisionProvider();
+            CollisionProvider = _lodDataAnimWaves.Settings.CreateCollisionProvider();
 
             //// Add any required GPU readbacks
             //{
@@ -581,7 +581,7 @@ namespace Crest
         void RunUpdate()
         {
             // Do this *before* changing the ocean position, as it needs the current LOD positions to associate with the current queries
-            _collProvider.UpdateQueries();
+            CollisionProvider.UpdateQueries();
 
             // set global shader params
             Shader.SetGlobalFloat(sp_texelsPerWave, MinTexelsPerWave);
@@ -745,15 +745,7 @@ namespace Crest
         /// <summary>
         /// Provides ocean shape to CPU.
         /// </summary>
-        ICollProvider _collProvider;
-
-        public ICollProvider CollisionProvider
-        {
-            get
-            {
-                return _collProvider;
-            }
-        }
+        public ICollProvider CollisionProvider { get; private set; }
 
         private void CleanUp()
         {
@@ -786,8 +778,8 @@ namespace Crest
             _lodDataSeaDepths = null;
             _lodDataShadow = null;
 
-            _collProvider.CleanUp();
-            _collProvider = null;
+            CollisionProvider.CleanUp();
+            CollisionProvider = null;
         }
 
 #if UNITY_EDITOR

@@ -26,13 +26,13 @@ namespace Crest
             base.OnEnable();
         }
 
-        protected override void OnDisable()
-        {
-            // We don't set Instance to null here because it breaks exiting play mode, as OnDisable is called but no matching call to OnEnable :/.
-            // This would probably be better if the Query system did not inherit from MonoBehaviour and was built up by the OceanRenderer..
+        //protected override void OnDisable()
+        //{
+        //    // We don't set Instance to null here because it breaks exiting play mode, as OnDisable is called but no matching call to OnEnable :/.
+        //    // This would probably be better if the Query system did not inherit from MonoBehaviour and was built up by the OceanRenderer..
 
-            base.OnDisable();
-        }
+        //    base.OnDisable();
+        //}
 
         protected override void BindInputsAndOutputs(PropertyWrapperComputeStandalone wrapper, ComputeBuffer resultsBuffer)
         {

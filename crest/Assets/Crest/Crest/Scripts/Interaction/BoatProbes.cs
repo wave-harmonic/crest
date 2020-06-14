@@ -114,13 +114,14 @@ namespace Crest
 
             var waterSurfaceVel = _queryResultVels[_forcePoints.Length];
 
-            if(QueryFlow.Instance)
-            {
-                _sampleFlowHelper.Init(transform.position, _minSpatialLength);
-                Vector2 surfaceFlow = Vector2.zero;
-                _sampleFlowHelper.Sample(ref surfaceFlow);
-                waterSurfaceVel += new Vector3(surfaceFlow.x, 0, surfaceFlow.y);
-            }
+            //// TODO
+            //if(QueryFlow.Instance)
+            //{
+            //    _sampleFlowHelper.Init(transform.position, _minSpatialLength);
+            //    Vector2 surfaceFlow = Vector2.zero;
+            //    _sampleFlowHelper.Sample(ref surfaceFlow);
+            //    waterSurfaceVel += new Vector3(surfaceFlow.x, 0, surfaceFlow.y);
+            //}
 
             // Buoyancy
             FixedUpdateBuoyancy(collProvider);
@@ -193,14 +194,6 @@ namespace Crest
 
                 Gizmos.color = Color.red;
                 Gizmos.DrawCube(transformedPoint, Vector3.one * 0.5f);
-            }
-        }
-
-        private void OnDisable()
-        {
-            if (QueryDisplacements.Instance)
-            {
-                QueryDisplacements.Instance.RemoveQueryPoints(GetHashCode());
             }
         }
     }

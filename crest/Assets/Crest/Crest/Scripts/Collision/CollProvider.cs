@@ -37,5 +37,7 @@ namespace Crest
         /// Check if query results could be retrieved successfully using return code from Query() function
         /// </summary>
         bool RetrieveSucceeded(int queryStatus);
+
+        void CleanUp();
     }
 }

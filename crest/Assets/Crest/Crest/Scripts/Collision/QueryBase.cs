@@ -18,7 +18,7 @@ namespace Crest
     /// the data and then transferring back the results asynchronously. An exception to this is water surface velocities - these can
     /// not be computed on the GPU and are instead computed on the CPU by retaining last frames' query results and computing finite diffs.
     /// </summary>
-    public abstract class QueryBase : MonoBehaviour
+    public abstract class QueryBase
     {
         protected int _kernelHandle;
 
@@ -179,6 +179,11 @@ namespace Crest
             InvalidDtForVelocity = 16,
         }
 
+        public QueryBase()
+        {
+            OnEnable();
+        }
+
         protected abstract void BindInputsAndOutputs(PropertyWrapperComputeStandalone wrapper, ComputeBuffer resultsBuffer);
 
         /// <summary>
@@ -218,7 +223,7 @@ namespace Crest
             {
                 if (_segmentRegistrarRingBuffer.Current._segments.Count >= s_maxGuids)
                 {
-                    Debug.LogError("Too many guids registered with CollProviderCompute. Increase s_maxGuids.", this);
+                    Debug.LogError("Too many guids registered with CollProviderCompute. Increase s_maxGuids.");
                     return false;
                 }
 
@@ -238,7 +243,7 @@ namespace Crest
 
             if (countPts + segment.x > _queryPosXZ_minGridSize.Length)
             {
-                Debug.LogError("Too many wave height queries. Increase Max Query Count in the Animated Waves Settings.", this);
+                Debug.LogError("Too many wave height queries. Increase Max Query Count in the Animated Waves Settings.");
                 return false;
             }
 
@@ -500,14 +505,14 @@ namespace Crest
             _shaderProcessQueries = ComputeShaderHelpers.LoadShader(QueryShaderName);
             if (_shaderProcessQueries == null)
             {
-                enabled = false;
+                Debug.LogError($"Could not load Query compute shader {QueryShaderName}");
                 return;
             }
             _kernelHandle = _shaderProcessQueries.FindKernel(QueryKernelName);
             _wrapper = new PropertyWrapperComputeStandalone(_shaderProcessQueries, _kernelHandle);
         }
 
-        protected virtual void OnDisable()
+        public void CleanUp()
         {
             _computeBufQueries.Dispose();
             _computeBufResults.Dispose();

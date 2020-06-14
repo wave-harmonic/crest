@@ -311,18 +311,18 @@ namespace Crest
 
             CreateDestroyLodDatas();
 
-            // Add any required GPU readbacks
-            {
-                if (_lodDataAnimWaves.Settings.CollisionSource == SimSettingsAnimatedWaves.CollisionSources.ComputeShaderQueries && gameObject.GetComponent<QueryDisplacements>() == null)
-                {
-                    gameObject.AddComponent<QueryDisplacements>().hideFlags = HideFlags.DontSave;
-                }
+            //// Add any required GPU readbacks
+            //{
+            //    if (_lodDataAnimWaves.Settings.CollisionSource == SimSettingsAnimatedWaves.CollisionSources.ComputeShaderQueries && gameObject.GetComponent<QueryDisplacements>() == null)
+            //    {
+            //        gameObject.AddComponent<QueryDisplacements>().hideFlags = HideFlags.DontSave;
+            //    }
 
-                if (CreateFlowSim && gameObject.GetComponent<QueryFlow>() == null)
-                {
-                    gameObject.AddComponent<QueryFlow>().hideFlags = HideFlags.DontSave;
-                }
-            }
+            //    if (CreateFlowSim && gameObject.GetComponent<QueryFlow>() == null)
+            //    {
+            //        gameObject.AddComponent<QueryFlow>().hideFlags = HideFlags.DontSave;
+            //    }
+            //}
 
             _commandbufferBuilder = new BuildCommandBuffer();
 
@@ -777,6 +777,9 @@ namespace Crest
             _lodDataFoam = null;
             _lodDataSeaDepths = null;
             _lodDataShadow = null;
+
+            _collProvider.CleanUp();
+            _collProvider = null;
         }
 
 #if UNITY_EDITOR

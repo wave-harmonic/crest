@@ -17,22 +17,22 @@ namespace Crest
         protected override string QueryShaderName => "QueryDisplacements";
         protected override string QueryKernelName => "CSMain";
 
-        public static QueryDisplacements Instance { get; private set; }
+        //public static QueryDisplacements Instance { get; private set; }
 
-        protected override void OnEnable()
-        {
-            Instance = this;
+        //protected override void OnEnable()
+        //{
+        //    Instance = this;
 
-            base.OnEnable();
-        }
+        //    base.OnEnable();
+        //}
 
-        protected override void OnDisable()
-        {
-            // We don't set Instance to null here because it breaks exiting play mode, as OnDisable is called but no matching call to OnEnable :/.
-            // This would probably be better if the Query system did not inherit from MonoBehaviour and was built up by the OceanRenderer..
+        //protected override void OnDisable()
+        //{
+        //    // We don't set Instance to null here because it breaks exiting play mode, as OnDisable is called but no matching call to OnEnable :/.
+        //    // This would probably be better if the Query system did not inherit from MonoBehaviour and was built up by the OceanRenderer..
 
-            base.OnDisable();
-        }
+        //    base.OnDisable();
+        //}
 
         protected override void BindInputsAndOutputs(PropertyWrapperComputeStandalone wrapper, ComputeBuffer resultsBuffer)
         {
@@ -63,13 +63,13 @@ namespace Crest
             return result;
         }
 
-#if UNITY_2019_3_OR_NEWER
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-#endif
-        static void InitStatics()
-        {
-            // Init here from 2019.3 onwards
-            Instance = null;
-        }
+//#if UNITY_2019_3_OR_NEWER
+//        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+//#endif
+//        static void InitStatics()
+//        {
+//            // Init here from 2019.3 onwards
+//            Instance = null;
+//        }
     }
 }

@@ -189,13 +189,14 @@ namespace Crest
                 vel = Vector3.zero;
             }
 
-            if (QueryFlow.Instance)
-            {
-                _sampleFlowHelper.Init(transform.position, _object.ObjectWidth);
-                Vector2 surfaceFlow = Vector2.zero;
-                _sampleFlowHelper.Sample(ref surfaceFlow);
-                vel -= new Vector3(surfaceFlow.x, 0, surfaceFlow.y);
-            }
+            // TODO
+            //if (QueryFlow.Instance)
+            //{
+            //    _sampleFlowHelper.Init(transform.position, _object.ObjectWidth);
+            //    Vector2 surfaceFlow = Vector2.zero;
+            //    _sampleFlowHelper.Sample(ref surfaceFlow);
+            //    vel -= new Vector3(surfaceFlow.x, 0, surfaceFlow.y);
+            //}
             vel.y *= _weightUpDownMul;
 
             var speedKmh = vel.magnitude * 3.6f;

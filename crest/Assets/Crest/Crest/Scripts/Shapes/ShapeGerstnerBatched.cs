@@ -779,6 +779,10 @@ namespace Crest
         {
             return queryStatus == 0;
         }
+
+        public void CleanUp()
+        {
+        }
     }
 
 #if UNITY_EDITOR

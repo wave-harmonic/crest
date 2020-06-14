@@ -82,14 +82,15 @@ namespace Crest
 
             if (_debugDraw) VisualiseCollisionArea.DebugDrawCross(undispPos, 1f, Color.red);
 
-            if (QueryFlow.Instance)
-            {
-                _sampleFlowHelper.Init(transform.position, ObjectWidth);
+            // TODO
+            //if (QueryFlow.Instance)
+            //{
+            //    _sampleFlowHelper.Init(transform.position, ObjectWidth);
 
-                Vector2 surfaceFlow = Vector2.zero;
-                _sampleFlowHelper.Sample(ref surfaceFlow);
-                waterSurfaceVel += new Vector3(surfaceFlow.x, 0, surfaceFlow.y);
-            }
+            //    Vector2 surfaceFlow = Vector2.zero;
+            //    _sampleFlowHelper.Sample(ref surfaceFlow);
+            //    waterSurfaceVel += new Vector3(surfaceFlow.x, 0, surfaceFlow.y);
+            //}
 
             if (_debugDraw)
             {

@@ -74,6 +74,10 @@ namespace Crest
             return true;
         }
 
+        public void UpdateQueries()
+        {
+        }
+
         public void CleanUp()
         {
         }

@@ -316,6 +316,8 @@ namespace Crest
 
             CreateDestroyLodDatas();
 
+            _collProvider = _lodDataAnimWaves.Settings.CreateCollisionProvider();
+
             //// Add any required GPU readbacks
             //{
             //    if (_lodDataAnimWaves.Settings.CollisionSource == SimSettingsAnimatedWaves.CollisionSources.ComputeShaderQueries && gameObject.GetComponent<QueryDisplacements>() == null)
@@ -578,6 +580,9 @@ namespace Crest
 
         void RunUpdate()
         {
+            // Do this *before* changing the ocean position, as it needs the current LOD positions to associate with the current queries
+            _collProvider.UpdateQueries();
+
             // set global shader params
             Shader.SetGlobalFloat(sp_texelsPerWave, MinTexelsPerWave);
             Shader.SetGlobalFloat(sp_crestTime, CurrentTime);
@@ -746,8 +751,6 @@ namespace Crest
         {
             get
             {
-                if (_collProvider != null) return _collProvider;
-                _collProvider = _lodDataAnimWaves?.Settings?.CreateCollisionProvider();
                 return _collProvider;
             }
         }

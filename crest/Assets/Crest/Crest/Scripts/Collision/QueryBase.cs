@@ -191,7 +191,28 @@ namespace Crest
 
         public QueryBase()
         {
-            OnEnable();
+            _dataArrivedAction = new System.Action<AsyncGPUReadbackRequest>(DataArrived);
+
+            if (_maxQueryCount != OceanRenderer.Instance._lodDataAnimWaves.Settings.MaxQueryCount)
+            {
+                _maxQueryCount = OceanRenderer.Instance._lodDataAnimWaves.Settings.MaxQueryCount;
+                _queryPosXZ_minGridSize = new Vector3[_maxQueryCount];
+            }
+
+            _computeBufQueries = new ComputeBuffer(_maxQueryCount, 12, ComputeBufferType.Default);
+            _computeBufResults = new ComputeBuffer(_maxQueryCount, 12, ComputeBufferType.Default);
+
+            _queryResults = new NativeArray<Vector3>(_maxQueryCount, Allocator.Persistent, NativeArrayOptions.ClearMemory);
+            _queryResultsLast = new NativeArray<Vector3>(_maxQueryCount, Allocator.Persistent, NativeArrayOptions.ClearMemory);
+
+            _shaderProcessQueries = ComputeShaderHelpers.LoadShader(QueryShaderName);
+            if (_shaderProcessQueries == null)
+            {
+                Debug.LogError($"Could not load Query compute shader {QueryShaderName}");
+                return;
+            }
+            _kernelHandle = _shaderProcessQueries.FindKernel(QueryKernelName);
+            _wrapper = new PropertyWrapperComputeStandalone(_shaderProcessQueries, _kernelHandle);
         }
 
         protected abstract void BindInputsAndOutputs(PropertyWrapperComputeStandalone wrapper, ComputeBuffer resultsBuffer);
@@ -408,12 +429,7 @@ namespace Crest
             return 0;
         }
 
-        // This needs to run in Update()
-        // - It needs to run before OceanRenderer.LateUpdate, because the latter will change the LOD positions/scales, while we will read
-        // the last frames displacements.
-        // - It should run after FixedUpdate, as physics objects will update query points there. Also it computes the displacement timestamps
-        // using Time.time and Time.deltaTime, which would be incorrect if it were in FixedUpdate.
-        void Update()
+        public void UpdateQueries()
         {
             if (_segmentRegistrarRingBuffer.Current._numQueries > 0)
             {
@@ -494,32 +510,6 @@ namespace Crest
                 _requests.RemoveAt(i);
                 _segmentRegistrarRingBuffer.ReleaseLast();
             }
-        }
-
-        protected virtual void OnEnable()
-        {
-            _dataArrivedAction = new System.Action<AsyncGPUReadbackRequest>(DataArrived);
-
-            if (_maxQueryCount != OceanRenderer.Instance._lodDataAnimWaves.Settings.MaxQueryCount)
-            {
-                _maxQueryCount = OceanRenderer.Instance._lodDataAnimWaves.Settings.MaxQueryCount;
-                _queryPosXZ_minGridSize = new Vector3[_maxQueryCount];
-            }
-
-            _computeBufQueries = new ComputeBuffer(_maxQueryCount, 12, ComputeBufferType.Default);
-            _computeBufResults = new ComputeBuffer(_maxQueryCount, 12, ComputeBufferType.Default);
-
-            _queryResults = new NativeArray<Vector3>(_maxQueryCount, Allocator.Persistent, NativeArrayOptions.ClearMemory);
-            _queryResultsLast = new NativeArray<Vector3>(_maxQueryCount, Allocator.Persistent, NativeArrayOptions.ClearMemory);
-
-            _shaderProcessQueries = ComputeShaderHelpers.LoadShader(QueryShaderName);
-            if (_shaderProcessQueries == null)
-            {
-                Debug.LogError($"Could not load Query compute shader {QueryShaderName}");
-                return;
-            }
-            _kernelHandle = _shaderProcessQueries.FindKernel(QueryKernelName);
-            _wrapper = new PropertyWrapperComputeStandalone(_shaderProcessQueries, _kernelHandle);
         }
 
         public void CleanUp()

@@ -145,18 +145,19 @@ namespace Crest
         /// </summary>
         public bool Sample(ref Vector2 o_flow)
         {
-            if (QueryFlow.Instance == null) return false;
+            // TODO
+            //if (QueryFlow.Instance == null) return false;
 
-            var status = QueryFlow.Instance.Query(GetHashCode(), _minLength, _queryPos, _queryResult);
+            //var status = QueryFlow.Instance.Query(GetHashCode(), _minLength, _queryPos, _queryResult);
 
-            if (!QueryFlow.Instance.RetrieveSucceeded(status))
-            {
-                return false;
-            }
+            //if (!QueryFlow.Instance.RetrieveSucceeded(status))
+            //{
+            //    return false;
+            //}
 
-            // We don't support float2 queries unfortunately, so unpack from float3
-            o_flow.x = _queryResult[0].x;
-            o_flow.y = _queryResult[0].z;
+            //// We don't support float2 queries unfortunately, so unpack from float3
+            //o_flow.x = _queryResult[0].x;
+            //o_flow.y = _queryResult[0].z;
 
             return true;
         }

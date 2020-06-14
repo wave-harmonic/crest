@@ -317,19 +317,7 @@ namespace Crest
             CreateDestroyLodDatas();
 
             CollisionProvider = _lodDataAnimWaves.Settings.CreateCollisionProvider();
-
-            //// Add any required GPU readbacks
-            //{
-            //    if (_lodDataAnimWaves.Settings.CollisionSource == SimSettingsAnimatedWaves.CollisionSources.ComputeShaderQueries && gameObject.GetComponent<QueryDisplacements>() == null)
-            //    {
-            //        gameObject.AddComponent<QueryDisplacements>().hideFlags = HideFlags.DontSave;
-            //    }
-
-            //    if (CreateFlowSim && gameObject.GetComponent<QueryFlow>() == null)
-            //    {
-            //        gameObject.AddComponent<QueryFlow>().hideFlags = HideFlags.DontSave;
-            //    }
-            //}
+            FlowProvider = _lodDataAnimWaves.Settings.CreateFlowProvider();
 
             _commandbufferBuilder = new BuildCommandBuffer();
 
@@ -582,6 +570,7 @@ namespace Crest
         {
             // Do this *before* changing the ocean position, as it needs the current LOD positions to associate with the current queries
             CollisionProvider.UpdateQueries();
+            FlowProvider.UpdateQueries();
 
             // set global shader params
             Shader.SetGlobalFloat(sp_texelsPerWave, MinTexelsPerWave);
@@ -746,6 +735,7 @@ namespace Crest
         /// Provides ocean shape to CPU.
         /// </summary>
         public ICollProvider CollisionProvider { get; private set; }
+        public IFlowProvider FlowProvider { get; private set; }
 
         private void CleanUp()
         {
@@ -780,6 +770,9 @@ namespace Crest
 
             CollisionProvider.CleanUp();
             CollisionProvider = null;
+
+            FlowProvider.CleanUp();
+            FlowProvider = null;
         }
 
 #if UNITY_EDITOR

@@ -60,6 +60,17 @@ namespace Crest
 
             return result;
         }
+
+        public IFlowProvider CreateFlowProvider()
+        {
+            // Flow is GPU only, and can only be queried using the compute path
+            if (_collisionSource == CollisionSources.ComputeShaderQueries)
+            {
+                return new QueryFlow();
+            }
+
+            return new FlowProviderNull();
+        }
     }
 
 #if UNITY_EDITOR

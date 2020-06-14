@@ -9,7 +9,7 @@ namespace Crest
     /// <summary>
     /// Samples horizontal motion of water volume
     /// </summary>
-    public class QueryFlow : QueryBase
+    public class QueryFlow : QueryBase, IFlowProvider
     {
         readonly int sp_LD_TexArray_Flow = Shader.PropertyToID("_LD_TexArray_Flow");
         readonly int sp_ResultFlows = Shader.PropertyToID("_ResultFlows");

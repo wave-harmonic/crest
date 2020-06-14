@@ -96,14 +96,13 @@ public class BoatAlignNormal : FloatingObjectBase
         // height = base sea level + surface displacement y
         height += _displacementToObject.y;
 
-        //if (QueryFlow.Instance)
-        //{
-        //    _sampleFlowHelper.Init(transform.position, _boatWidth);
+        {
+            _sampleFlowHelper.Init(transform.position, _boatWidth);
 
-        //    Vector2 surfaceFlow = Vector2.zero;
-        //    _sampleFlowHelper.Sample(ref surfaceFlow);
-        //    waterSurfaceVel += new Vector3(surfaceFlow.x, 0, surfaceFlow.y);
-        //}
+            Vector2 surfaceFlow = Vector2.zero;
+            _sampleFlowHelper.Sample(ref surfaceFlow);
+            waterSurfaceVel += new Vector3(surfaceFlow.x, 0, surfaceFlow.y);
+        }
 
         // I could filter the surface vel as the min of the last 2 frames. theres a hard case where a wavelength is turned on/off
         // which generates single frame vel spikes - because the surface legitimately moves very fast.

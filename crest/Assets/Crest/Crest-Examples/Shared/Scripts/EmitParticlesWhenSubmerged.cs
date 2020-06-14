@@ -37,8 +37,12 @@ public class EmitParticlesWhenSubmerged : MonoBehaviour
         var vel = Vector3.zero;
         if (_sampleHeightHelper.Sample(ref height, ref dummy, ref vel))
         {
+            Debug.Log($"{height} > {transform.position.y}");
+            Debug.Log($"{_lastHeight} <= {transform.position.y}");
+            Debug.Log($"{vel.y} <= {_minVel}");
             if (height > transform.position.y && _lastHeight <= transform.position.y && vel.y > _minVel)
             {
+                Debug.Log("PLAYIT");
                 _particleSystem.Play();
                 //var module = _particleSystem.main;
                 //module.startSpeedMultiplier = 0.5f + 0.5f * Mathf.Clamp01((vel.y - _minVel) / 1f);

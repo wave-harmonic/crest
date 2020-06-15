@@ -783,6 +783,14 @@ namespace Crest
         {
             return queryStatus == 0;
         }
+
+        public void UpdateQueries()
+        {
+        }
+
+        public void CleanUp()
+        {
+        }
     }
 
 #if UNITY_EDITOR

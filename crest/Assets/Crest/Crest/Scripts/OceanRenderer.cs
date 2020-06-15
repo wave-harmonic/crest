@@ -314,20 +314,7 @@ namespace Crest
 
             Root = OceanBuilder.GenerateMesh(this, _lodDataResolution, _geometryDownSampleFactor, _lodCount);
 
-            CreateDestroyLodDatas();
-
-            // Add any required GPU readbacks
-            {
-                if (_lodDataAnimWaves.Settings.CollisionSource == SimSettingsAnimatedWaves.CollisionSources.ComputeShaderQueries && gameObject.GetComponent<QueryDisplacements>() == null)
-                {
-                    gameObject.AddComponent<QueryDisplacements>().hideFlags = HideFlags.DontSave;
-                }
-
-                if (CreateFlowSim && gameObject.GetComponent<QueryFlow>() == null)
-                {
-                    gameObject.AddComponent<QueryFlow>().hideFlags = HideFlags.DontSave;
-                }
-            }
+            CreateDestroySubSystems();
 
             _commandbufferBuilder = new BuildCommandBuffer();
 
@@ -403,7 +390,7 @@ namespace Crest
             }
         }
 
-        void CreateDestroyLodDatas()
+        void CreateDestroySubSystems()
         {
             {
                 if (_lodDataAnimWaves == null)
@@ -456,6 +443,12 @@ namespace Crest
                     _lodDataFlow = new LodDataMgrFlow(this);
                     _lodDatas.Add(_lodDataFlow);
                 }
+
+                if (FlowProvider != null && !(FlowProvider is QueryFlow))
+                {
+                    FlowProvider.CleanUp();
+                    FlowProvider = null;
+                }
             }
             else
             {
@@ -465,6 +458,16 @@ namespace Crest
                     _lodDatas.Remove(_lodDataFlow);
                     _lodDataFlow = null;
                 }
+
+                if (FlowProvider != null && FlowProvider is QueryFlow)
+                {
+                    FlowProvider.CleanUp();
+                    FlowProvider = null;
+                }
+            }
+            if (FlowProvider == null)
+            {
+                FlowProvider = _lodDataAnimWaves.Settings.CreateFlowProvider(this);
             }
 
             if (CreateFoamSim)
@@ -519,6 +522,12 @@ namespace Crest
                     _lodDatas.Remove(_lodDataShadow);
                     _lodDataShadow = null;
                 }
+            }
+
+            // Potential extension - add 'type' field to collprovider and change provider if settings have changed - this would support runtime changes.
+            if (CollisionProvider == null)
+            {
+                CollisionProvider = _lodDataAnimWaves.Settings.CreateCollisionProvider();
             }
         }
 
@@ -578,6 +587,10 @@ namespace Crest
 
         void RunUpdate()
         {
+            // Do this *before* changing the ocean position, as it needs the current LOD positions to associate with the current queries
+            CollisionProvider.UpdateQueries();
+            FlowProvider.UpdateQueries();
+
             // set global shader params
             Shader.SetGlobalFloat(sp_texelsPerWave, MinTexelsPerWave);
             Shader.SetGlobalFloat(sp_crestTime, CurrentTime);
@@ -609,7 +622,7 @@ namespace Crest
                 LateUpdateViewerHeight();
             }
 
-            CreateDestroyLodDatas();
+            CreateDestroySubSystems();
 
             LateUpdateLods();
 
@@ -740,17 +753,8 @@ namespace Crest
         /// <summary>
         /// Provides ocean shape to CPU.
         /// </summary>
-        ICollProvider _collProvider;
-
-        public ICollProvider CollisionProvider
-        {
-            get
-            {
-                if (_collProvider != null) return _collProvider;
-                _collProvider = _lodDataAnimWaves?.Settings?.CreateCollisionProvider();
-                return _collProvider;
-            }
-        }
+        public ICollProvider CollisionProvider { get; private set; }
+        public IFlowProvider FlowProvider { get; private set; }
 
         private void CleanUp()
         {
@@ -782,6 +786,12 @@ namespace Crest
             _lodDataFoam = null;
             _lodDataSeaDepths = null;
             _lodDataShadow = null;
+
+            CollisionProvider.CleanUp();
+            CollisionProvider = null;
+
+            FlowProvider.CleanUp();
+            FlowProvider = null;
         }
 
 #if UNITY_EDITOR

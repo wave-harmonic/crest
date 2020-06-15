@@ -116,7 +116,6 @@ namespace Crest
                 vel = Vector3.zero;
             }
 
-            if (QueryFlow.Instance)
             {
                 _sampleFlowHelper.Init(transform.position, _boat.ObjectWidth);
                 Vector2 surfaceFlow = Vector2.zero;

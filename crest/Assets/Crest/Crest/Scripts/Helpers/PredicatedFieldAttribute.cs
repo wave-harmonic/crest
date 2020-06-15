@@ -29,6 +29,7 @@ namespace Crest
             _disableIfValueIs = disableIfValueIs;
         }
 
+#if UNITY_EDITOR
         public bool GUIEnabled(SerializedProperty prop)
         {
             bool result;
@@ -63,6 +64,7 @@ namespace Crest
 
             return _inverted ? !result : result;
         }
+#endif
     }
 
 #if UNITY_EDITOR

@@ -24,6 +24,11 @@ namespace Crest
                 OceanRenderer.Instance._lodDataFlow.BindResultData(wrapper);
                 ShaderProcessQueries.SetTexture(_kernelHandle, sp_LD_TexArray_Flow, OceanRenderer.Instance._lodDataFlow.DataTexture);
             }
+            else
+            {
+                LodDataMgrFlow.BindNull(wrapper);
+            }
+
             ShaderProcessQueries.SetBuffer(_kernelHandle, sp_ResultFlows, resultsBuffer);
         }
 

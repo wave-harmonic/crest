@@ -96,7 +96,6 @@ public class BoatAlignNormal : FloatingObjectBase
         // height = base sea level + surface displacement y
         height += _displacementToObject.y;
 
-        if (QueryFlow.Instance)
         {
             _sampleFlowHelper.Init(transform.position, _boatWidth);
 

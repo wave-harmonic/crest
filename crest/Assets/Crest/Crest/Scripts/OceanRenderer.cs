@@ -444,7 +444,7 @@ namespace Crest
                     _lodDatas.Add(_lodDataFlow);
                 }
 
-                if (!(FlowProvider is QueryFlow))
+                if (FlowProvider != null && !(FlowProvider is QueryFlow))
                 {
                     FlowProvider.CleanUp();
                     FlowProvider = null;
@@ -459,7 +459,7 @@ namespace Crest
                     _lodDataFlow = null;
                 }
 
-                if (FlowProvider is QueryFlow)
+                if (FlowProvider != null && FlowProvider is QueryFlow)
                 {
                     FlowProvider.CleanUp();
                     FlowProvider = null;

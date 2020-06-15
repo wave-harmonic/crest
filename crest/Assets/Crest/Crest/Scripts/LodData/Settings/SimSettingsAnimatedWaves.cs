@@ -61,10 +61,10 @@ namespace Crest
             return result;
         }
 
-        public IFlowProvider CreateFlowProvider()
+        public IFlowProvider CreateFlowProvider(OceanRenderer ocean)
         {
             // Flow is GPU only, and can only be queried using the compute path
-            if (_collisionSource == CollisionSources.ComputeShaderQueries)
+            if (ocean._lodDataFlow != null)
             {
                 return new QueryFlow();
             }

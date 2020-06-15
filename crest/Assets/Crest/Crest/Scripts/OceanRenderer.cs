@@ -314,10 +314,7 @@ namespace Crest
 
             Root = OceanBuilder.GenerateMesh(this, _lodDataResolution, _geometryDownSampleFactor, _lodCount);
 
-            CreateDestroyLodDatas();
-
-            CollisionProvider = _lodDataAnimWaves.Settings.CreateCollisionProvider();
-            FlowProvider = _lodDataAnimWaves.Settings.CreateFlowProvider();
+            CreateDestroySubSystems();
 
             _commandbufferBuilder = new BuildCommandBuffer();
 
@@ -393,7 +390,7 @@ namespace Crest
             }
         }
 
-        void CreateDestroyLodDatas()
+        void CreateDestroySubSystems()
         {
             {
                 if (_lodDataAnimWaves == null)
@@ -446,6 +443,12 @@ namespace Crest
                     _lodDataFlow = new LodDataMgrFlow(this);
                     _lodDatas.Add(_lodDataFlow);
                 }
+
+                if (!(FlowProvider is QueryFlow))
+                {
+                    FlowProvider.CleanUp();
+                    FlowProvider = null;
+                }
             }
             else
             {
@@ -455,6 +458,16 @@ namespace Crest
                     _lodDatas.Remove(_lodDataFlow);
                     _lodDataFlow = null;
                 }
+
+                if (FlowProvider is QueryFlow)
+                {
+                    FlowProvider.CleanUp();
+                    FlowProvider = null;
+                }
+            }
+            if (FlowProvider == null)
+            {
+                FlowProvider = _lodDataAnimWaves.Settings.CreateFlowProvider(this);
             }
 
             if (CreateFoamSim)
@@ -509,6 +522,12 @@ namespace Crest
                     _lodDatas.Remove(_lodDataShadow);
                     _lodDataShadow = null;
                 }
+            }
+
+            // Potential extension - add 'type' field to collprovider and change provider if settings have changed - this would support runtime changes.
+            if (CollisionProvider == null)
+            {
+                CollisionProvider = _lodDataAnimWaves.Settings.CreateCollisionProvider();
             }
         }
 
@@ -603,7 +622,7 @@ namespace Crest
                 LateUpdateViewerHeight();
             }
 
-            CreateDestroyLodDatas();
+            CreateDestroySubSystems();
 
             LateUpdateLods();
 

@@ -229,7 +229,7 @@ namespace Crest
             var isValid = true;
 
             // Check that underwater effect is parented to a camera.
-            if (transform.parent.GetComponent<Camera>() == null)
+            if (!transform.parent || transform.parent.GetComponent<Camera>() == null)
             {
                 showMessage
                 (
@@ -253,7 +253,8 @@ namespace Crest
 
                 isValid = false;
             }
-            else if (renderer.sharedMaterial.shader.name == "Crest/Underwater Curtain" && ocean.OceanMaterial)
+            else if (renderer.sharedMaterial.shader.name == "Crest/Underwater Curtain" && ocean != null && ocean.OceanMaterial
+                && (!_copyParamsEachFrame && !_copyParamsOnStartup || EditorApplication.isPlaying && !_copyParamsEachFrame))
             {
                 // Check that enabled underwater material keywords are enabled on the ocean material.
                 var keywords = renderer.sharedMaterial.shaderKeywords;

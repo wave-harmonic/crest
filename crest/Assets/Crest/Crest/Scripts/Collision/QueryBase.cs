@@ -18,7 +18,7 @@ namespace Crest
     /// the data and then transferring back the results asynchronously. An exception to this is water surface velocities - these can
     /// not be computed on the GPU and are instead computed on the CPU by retaining last frames' query results and computing finite diffs.
     /// </summary>
-    public abstract class QueryBase : MonoBehaviour
+    public abstract class QueryBase
     {
         protected int _kernelHandle;
 
@@ -87,10 +87,20 @@ namespace Crest
             {
                 var lastIndex = _segmentAcquire;
 
-                _segmentAcquire = (_segmentAcquire + 1) % _segments.Length;
+                var newSegmentAcquire = (_segmentAcquire + 1) % _segments.Length;
 
-                // The last index should never increment and land on the first index - it should only happen the other way around.
-                Debug.Assert(_segmentAcquire != _segmentRelease, "Segment registrar scratch exhausted.");
+                if (newSegmentAcquire == _segmentRelease)
+                {
+                    // The last index has incremented and landed on the first index. This shouldn't happen normally, but
+                    // can happen if the Scene and Game view are not visible, in which case async readbacks dont get processed
+                    // and the pipeline blocks up.
+#if !UNITY_EDITOR
+                    Debug.LogError("Query ring buffer exhausted. Please report this to developers.");
+#endif
+                    return;
+                }
+
+                _segmentAcquire = newSegmentAcquire;
 
                 _segments[_segmentAcquire]._numQueries = 0;
                 _segments[_segmentAcquire]._segments.Clear();
@@ -179,6 +189,32 @@ namespace Crest
             InvalidDtForVelocity = 16,
         }
 
+        public QueryBase()
+        {
+            _dataArrivedAction = new System.Action<AsyncGPUReadbackRequest>(DataArrived);
+
+            if (_maxQueryCount != OceanRenderer.Instance._lodDataAnimWaves.Settings.MaxQueryCount)
+            {
+                _maxQueryCount = OceanRenderer.Instance._lodDataAnimWaves.Settings.MaxQueryCount;
+                _queryPosXZ_minGridSize = new Vector3[_maxQueryCount];
+            }
+
+            _computeBufQueries = new ComputeBuffer(_maxQueryCount, 12, ComputeBufferType.Default);
+            _computeBufResults = new ComputeBuffer(_maxQueryCount, 12, ComputeBufferType.Default);
+
+            _queryResults = new NativeArray<Vector3>(_maxQueryCount, Allocator.Persistent, NativeArrayOptions.ClearMemory);
+            _queryResultsLast = new NativeArray<Vector3>(_maxQueryCount, Allocator.Persistent, NativeArrayOptions.ClearMemory);
+
+            _shaderProcessQueries = ComputeShaderHelpers.LoadShader(QueryShaderName);
+            if (_shaderProcessQueries == null)
+            {
+                Debug.LogError($"Could not load Query compute shader {QueryShaderName}");
+                return;
+            }
+            _kernelHandle = _shaderProcessQueries.FindKernel(QueryKernelName);
+            _wrapper = new PropertyWrapperComputeStandalone(_shaderProcessQueries, _kernelHandle);
+        }
+
         protected abstract void BindInputsAndOutputs(PropertyWrapperComputeStandalone wrapper, ComputeBuffer resultsBuffer);
 
         /// <summary>
@@ -218,7 +254,7 @@ namespace Crest
             {
                 if (_segmentRegistrarRingBuffer.Current._segments.Count >= s_maxGuids)
                 {
-                    Debug.LogError("Too many guids registered with CollProviderCompute. Increase s_maxGuids.", this);
+                    Debug.LogError("Too many guids registered with CollProviderCompute. Increase s_maxGuids.");
                     return false;
                 }
 
@@ -238,7 +274,7 @@ namespace Crest
 
             if (countPts + segment.x > _queryPosXZ_minGridSize.Length)
             {
-                Debug.LogError("Too many wave height queries. Increase Max Query Count in the Animated Waves Settings.", this);
+                Debug.LogError("Too many wave height queries. Increase Max Query Count in the Animated Waves Settings.");
                 return false;
             }
 
@@ -393,12 +429,7 @@ namespace Crest
             return 0;
         }
 
-        // This needs to run in Update()
-        // - It needs to run before OceanRenderer.LateUpdate, because the latter will change the LOD positions/scales, while we will read
-        // the last frames displacements.
-        // - It should run after FixedUpdate, as physics objects will update query points there. Also it computes the displacement timestamps
-        // using Time.time and Time.deltaTime, which would be incorrect if it were in FixedUpdate.
-        void Update()
+        public void UpdateQueries()
         {
             if (_segmentRegistrarRingBuffer.Current._numQueries > 0)
             {
@@ -481,33 +512,7 @@ namespace Crest
             }
         }
 
-        protected virtual void OnEnable()
-        {
-            _dataArrivedAction = new System.Action<AsyncGPUReadbackRequest>(DataArrived);
-
-            if (_maxQueryCount != OceanRenderer.Instance._lodDataAnimWaves.Settings.MaxQueryCount)
-            {
-                _maxQueryCount = OceanRenderer.Instance._lodDataAnimWaves.Settings.MaxQueryCount;
-                _queryPosXZ_minGridSize = new Vector3[_maxQueryCount];
-            }
-
-            _computeBufQueries = new ComputeBuffer(_maxQueryCount, 12, ComputeBufferType.Default);
-            _computeBufResults = new ComputeBuffer(_maxQueryCount, 12, ComputeBufferType.Default);
-
-            _queryResults = new NativeArray<Vector3>(_maxQueryCount, Allocator.Persistent, NativeArrayOptions.ClearMemory);
-            _queryResultsLast = new NativeArray<Vector3>(_maxQueryCount, Allocator.Persistent, NativeArrayOptions.ClearMemory);
-
-            _shaderProcessQueries = ComputeShaderHelpers.LoadShader(QueryShaderName);
-            if (_shaderProcessQueries == null)
-            {
-                enabled = false;
-                return;
-            }
-            _kernelHandle = _shaderProcessQueries.FindKernel(QueryKernelName);
-            _wrapper = new PropertyWrapperComputeStandalone(_shaderProcessQueries, _kernelHandle);
-        }
-
-        protected virtual void OnDisable()
+        public void CleanUp()
         {
             _computeBufQueries.Dispose();
             _computeBufResults.Dispose();

@@ -102,9 +102,13 @@ namespace Crest
         // Data for all components
         [Header("Wave data (usually populated at runtime)")]
         public bool _evaluateSpectrumAtRuntime = true;
+        [PredicatedField("_evaluateSpectrumAtRuntime", true)]
         public float[] _wavelengths;
+        [PredicatedField("_evaluateSpectrumAtRuntime", true)]
         public float[] _amplitudes;
+        [PredicatedField("_evaluateSpectrumAtRuntime", true)]
         public float[] _angleDegs;
+        [PredicatedField("_evaluateSpectrumAtRuntime", true)]
         public float[] _phases;
 
         [SerializeField, Tooltip("Make waves converge towards a point. Must be set at edit time only, applied on startup."), Header("Direct towards point")]
@@ -778,6 +782,14 @@ namespace Crest
         public bool RetrieveSucceeded(int queryStatus)
         {
             return queryStatus == 0;
+        }
+
+        public void UpdateQueries()
+        {
+        }
+
+        public void CleanUp()
+        {
         }
     }
 

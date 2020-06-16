@@ -4,12 +4,16 @@
 
 using UnityEngine;
 
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+
 namespace Crest
 {
     /// <summary>
     /// Drives object/water interaction - sets parameters each frame on material that renders into the dynamic wave sim.
     /// </summary>
-    public class ObjectWaterInteraction : MonoBehaviour
+    public partial class ObjectWaterInteraction : MonoBehaviour
     {
         [HideInInspector]
         public Vector3 _localOffset;
@@ -46,48 +50,39 @@ namespace Crest
 
         private void Start()
         {
-            if (OceanRenderer.Instance == null || !OceanRenderer.Instance.CreateDynamicWaveSim)
+            if (OceanRenderer.Instance == null)
             {
                 enabled = false;
                 return;
             }
 
-            if (transform.parent == null)
+#if UNITY_EDITOR
+            if (!Validate(OceanRenderer.Instance, ValidatedHelper.DebugLog))
             {
-                Debug.LogError("ObjectWaterInteraction script requires a parent GameObject.", this);
                 enabled = false;
                 return;
             }
+#endif
 
             _localOffset = transform.localPosition;
-
             _dynWavesInput = GetComponent<RegisterDynWavesInput>();
-            if (_dynWavesInput == null)
-            {
-                Debug.LogError("ObjectWaterInteraction script requires RegisterDynWavesInput script to be present.", this);
-                enabled = false;
-                return;
-            }
+            _renderer = GetComponent<Renderer>();
+            _mpb = new MaterialPropertyBlock();
 
             _boat = GetComponentInParent<FloatingObjectBase>();
             if (_boat == null)
             {
                 _boat = transform.parent.gameObject.AddComponent<ObjectWaterInteractionAdaptor>();
             }
-
-            _renderer = GetComponent<Renderer>();
-            if (_renderer == null)
-            {
-                Debug.LogError("ObjectWaterInteraction script requires Renderer component.", this);
-                enabled = false;
-                return;
-            }
-
-            _mpb = new MaterialPropertyBlock();
         }
 
         void LateUpdate()
         {
+            if (OceanRenderer.Instance == null)
+            {
+                return;
+            }
+
             // which lod is this object in (roughly)?
             var thisRect = new Rect(new Vector2(transform.position.x, transform.position.z), Vector3.zero);
             var minLod = LodDataMgrAnimWaves.SuggestDataLOD(thisRect);
@@ -126,7 +121,6 @@ namespace Crest
                 vel = Vector3.zero;
             }
 
-            if (QueryFlow.Instance)
             {
                 _sampleFlowHelper.Init(transform.position, _boat.ObjectWidth);
                 Vector2 surfaceFlow = Vector2.zero;
@@ -172,4 +166,63 @@ namespace Crest
             _posLast = transform.position;
         }
     }
+
+#if UNITY_EDITOR
+    public partial class ObjectWaterInteraction : IValidated
+    {
+        public bool Validate(OceanRenderer ocean, ValidatedHelper.ShowMessage showMessage)
+        {
+            var isValid = true;
+
+            if (!ocean.CreateDynamicWaveSim)
+            {
+                showMessage
+                (
+                    "<i>ObjectWaterInteraction</i> requires dynamic wave simulation to be enabled on <i>OceanRenderer</i>.",
+                    ValidatedHelper.MessageType.Error, ocean
+                );
+
+                isValid = false;
+            }
+
+            if (transform.parent == null)
+            {
+                showMessage
+                (
+                    "<i>ObjectWaterInteraction</i> script requires a parent <i>GameObject</i>.",
+                    ValidatedHelper.MessageType.Error, this
+                );
+
+                isValid = false;
+            }
+
+            if (GetComponent<RegisterDynWavesInput>() == null)
+            {
+                showMessage
+                (
+                    "<i>ObjectWaterInteraction</i> script requires <i>RegisterDynWavesInput</i> script to be present.",
+                    ValidatedHelper.MessageType.Error, this
+                );
+
+                isValid = false;
+            }
+
+            if (GetComponent<Renderer>() == null)
+            {
+                showMessage
+                (
+                    "<i>ObjectWaterInteraction</i> script requires <i>Renderer</i> component.",
+                    ValidatedHelper.MessageType.Error, this
+                );
+
+                isValid = false;
+            }
+
+            return isValid;
+        }
+
+        [CustomEditor(typeof(ObjectWaterInteraction), true), CanEditMultipleObjects]
+        class ObjectWaterInteractionEditor : ValidatedEditor { }
+    }
+#endif
 }

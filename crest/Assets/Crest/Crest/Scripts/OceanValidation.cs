@@ -175,10 +175,10 @@ namespace Crest
 
         public override void OnInspectorGUI()
         {
-            ShowValidationMessages();
-
-            // Draw the normal inspector after validation messages.
             base.OnInspectorGUI();
+
+            // We want to show messages at the bottom or it will disturb input focus.
+            ShowValidationMessages();
         }
     }
 }

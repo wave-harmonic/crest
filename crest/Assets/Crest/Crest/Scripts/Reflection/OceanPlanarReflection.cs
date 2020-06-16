@@ -119,6 +119,12 @@ namespace Crest
 
         private void Start()
         {
+            if (OceanRenderer.Instance == null)
+            {
+                enabled = false;
+                return;
+            }
+
             _camViewpoint = GetComponent<Camera>();
             if (!_camViewpoint)
             {
@@ -156,6 +162,11 @@ namespace Crest
         {
             if (!RequestRefresh(Time.renderedFrameCount))
                 return; // Skip if not need to refresh on this frame
+
+            if (OceanRenderer.Instance == null)
+            {
+                return;
+            }
 
             CreateWaterObjects(_camViewpoint);
 

@@ -103,6 +103,11 @@ namespace Crest
             CalcTotalWeight();
 #endif
 
+            if (OceanRenderer.Instance == null)
+            {
+                return;
+            }
+
             var collProvider = OceanRenderer.Instance.CollisionProvider;
 
             // Do queries

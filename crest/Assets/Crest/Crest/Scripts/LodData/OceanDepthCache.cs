@@ -484,7 +484,7 @@ namespace Crest
                 isValid = false;
             }
 
-            if (Mathf.Abs(transform.position.y - ocean.Root.position.y) > 0.00001f)
+            if (ocean != null && ocean.Root != null && Mathf.Abs(transform.position.y - ocean.Root.position.y) > 0.00001f)
             {
                 showMessage
                 (

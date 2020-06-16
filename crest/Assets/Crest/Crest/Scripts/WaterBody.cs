@@ -7,7 +7,7 @@ using UnityEngine;
 namespace Crest
 {
     /// <summary>
-    /// Demarcates an area where water is present in the world. If present, ocean tiles will be
+    /// Demarcates an AABB area where water is present in the world. If present, ocean tiles will be
     /// culled if they don't overlap any WaterBody.
     /// </summary>
     [ExecuteAlways]

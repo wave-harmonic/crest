@@ -248,6 +248,7 @@ namespace Crest
 
         SampleHeightHelper _sampleHeightHelper = new SampleHeightHelper();
 
+        public List<WaterBody> WaterBodies => _waterBodies;
         List<WaterBody> _waterBodies = new List<WaterBody>();
 
         public static OceanRenderer Instance { get; private set; }

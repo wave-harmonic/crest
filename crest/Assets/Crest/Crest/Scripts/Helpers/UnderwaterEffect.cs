@@ -26,9 +26,6 @@ namespace Crest
         [Tooltip("Copy ocean material settings on each frame, to ensure consistent appearance between underwater effect and ocean surface. This should be turned off if you are not changing the ocean material values every frame."), SerializeField]
         bool _copyParamsEachFrame = true;
 
-        [SerializeField]
-        bool _turnOffOutsideWaterBodies = true;
-
         [Header("Advanced")]
 
         [Tooltip("This GameObject will be disabled when view height is more than this much above the water surface."), SerializeField]
@@ -37,6 +34,8 @@ namespace Crest
         bool _overrideSortingOrder = false;
         [Tooltip("If the draw order override is enabled use this new order value."), SerializeField]
         int _overridenSortingOrder = 0;
+        [Tooltip("Disable underwater effect outside areas defined by WaterBody scripts, if such areas are present."), SerializeField]
+        bool _turnOffOutsideWaterBodies = true;
 
         // how many vertical edges to add to curtain geometry
         const int GEOM_HORIZ_DIVISIONS = 64;

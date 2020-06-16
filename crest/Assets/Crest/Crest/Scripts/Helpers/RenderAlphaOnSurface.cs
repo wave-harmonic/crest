@@ -33,7 +33,7 @@ namespace Crest
 
         private void LateUpdate()
         {
-            if(OceanRenderer.Instance == null)
+            if (OceanRenderer.Instance == null)
             {
                 return;
             }

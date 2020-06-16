@@ -22,7 +22,7 @@ namespace Crest
         [HideInInspector]
         public float _fetch = 500000f;
 
-        public static readonly float MIN_POWER_LOG = -6f;
+        public static readonly float MIN_POWER_LOG = -7f;
         public static readonly float MAX_POWER_LOG = 5f;
 
         [Tooltip("Variance of wave directions, in degrees"), Range(0f, 180f)]

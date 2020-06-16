@@ -19,17 +19,23 @@ namespace Crest
             new SceneItem("threeboats", "Assets/Crest/Crest-Examples/BoatDev/Scenes/threeboats.unity"),
             new SceneItem("whirlpool", "Assets/Crest/Crest-Examples/Whirlpool/Scenes/whirlpool.unity"),
         };
+        List<SceneItem> _testScenes = new List<SceneItem> {
+            new SceneItem("Test", "Assets/Development/Scenes/Test.unity"),
+        };
 
         private void OnGUI()
         {
-            OnGUILoadSceneButtons();
+            OnGUILoadSceneButtons("Production Scenes", _scenes);
+            OnGUILoadSceneButtons("Development Scenes", _testScenes);
         }
 
-        void OnGUILoadSceneButtons()
+        void OnGUILoadSceneButtons(string heading, List<SceneItem> scenes)
         {
+            EditorGUILayout.LabelField(heading, EditorStyles.boldLabel);
+
             EditorGUILayout.BeginHorizontal();
 
-            foreach (var kvp in _scenes)
+            foreach (var kvp in scenes)
             {
                 if (GUILayout.Button(kvp.Key))
                 {

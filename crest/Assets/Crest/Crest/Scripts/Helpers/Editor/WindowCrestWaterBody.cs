@@ -92,9 +92,9 @@ namespace Crest
         {
             // Remove delegate listener if it has previously
             // been assigned.
-            SceneView.onSceneGUIDelegate -= OnSceneGUI;
+            SceneView.duringSceneGui -= OnSceneGUI;
             // Add (or re-add) the delegate.
-            SceneView.onSceneGUIDelegate += OnSceneGUI;
+            SceneView.duringSceneGui += OnSceneGUI;
 
             if (_proxyObject == null)
             {
@@ -104,7 +104,7 @@ namespace Crest
 
         private void OnDestroy()
         {
-            SceneView.onSceneGUIDelegate -= OnSceneGUI;
+            SceneView.duringSceneGui -= OnSceneGUI;
 
             if (_proxyObject != null)
             {

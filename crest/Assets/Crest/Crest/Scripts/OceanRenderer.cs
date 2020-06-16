@@ -643,6 +643,7 @@ namespace Crest
             LateUpdateLods();
 
             LateUpdateBodies();
+
 #if UNITY_EDITOR
             if (EditorApplication.isPlaying || !_showOceanProxyPlane)
 #endif

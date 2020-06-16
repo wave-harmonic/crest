@@ -241,6 +241,8 @@ namespace Crest
 
         List<LodDataMgr> _lodDatas = new List<LodDataMgr>();
 
+        List<OceanChunkRenderer> _oceanChunkRenderers = new List<OceanChunkRenderer>();
+
         /// <summary>
         /// The number of LODs/scales that the ocean is currently using.
         /// </summary>
@@ -327,7 +329,7 @@ namespace Crest
             // We could calculate this in the shader, but we can save two subtractions this way.
             _lodAlphaBlackPointWhitePointFade = 1f - _lodAlphaBlackPointFade - _lodAlphaBlackPointFade;
 
-            Root = OceanBuilder.GenerateMesh(this, _lodDataResolution, _geometryDownSampleFactor, _lodCount);
+            Root = OceanBuilder.GenerateMesh(this, _oceanChunkRenderers, _lodDataResolution, _geometryDownSampleFactor, _lodCount);
 
             CreateDestroySubSystems();
 
@@ -642,7 +644,10 @@ namespace Crest
 
             LateUpdateLods();
 
-            LateUpdateBodies();
+            if (Viewpoint != null)
+            {
+                LateUpdateTiles();
+            }
 
 #if UNITY_EDITOR
             if (EditorApplication.isPlaying || !_showOceanProxyPlane)
@@ -734,6 +739,37 @@ namespace Crest
             _lodDataFoam?.UpdateLodData();
             _lodDataSeaDepths?.UpdateLodData();
             _lodDataShadow?.UpdateLodData();
+        }
+
+        void LateUpdateTiles()
+        {
+            // If there are local bodies of water, this will do overlap tests between the ocean tiles
+            // and the water bodies and turn off any that don't overlap.
+            if (_waterBodies.Count == 0) return;
+
+            foreach (OceanChunkRenderer tile in _oceanChunkRenderers)
+            {
+                var chunkBounds = tile.Rend.bounds;
+
+                var overlappingOne = false;
+                var overlappingY = 0f;
+                foreach (var body in _waterBodies)
+                {
+                    var bounds = body.AABB;
+
+                    bool overlapping =
+                        bounds.max.x > chunkBounds.min.x && bounds.min.x < chunkBounds.max.x &&
+                        bounds.max.z > chunkBounds.min.z && bounds.min.z < chunkBounds.max.z;
+                    if (overlapping)
+                    {
+                        overlappingY = bounds.center.y;
+                        overlappingOne = true;
+                        break;
+                    }
+                }
+
+                tile.Rend.enabled = overlappingOne;
+            }
         }
 
         /// <summary>
@@ -872,40 +908,6 @@ namespace Crest
         public void UnregisterWaterBody(WaterBody body)
         {
             _waterBodies.Remove(body);
-        }
-
-        /// <summary>
-        /// If there are local bodies of water, this will do overlap tests between the ocean tiles
-        /// and the water bodies and turn off any that don't overlap.
-        /// </summary>
-        void LateUpdateBodies()
-        {
-            if (_waterBodies.Count == 0) return;
-
-            var chunks = GetComponentsInChildren<OceanChunkRenderer>();
-            foreach (OceanChunkRenderer chunk in chunks)
-            {
-                var chunkBounds = chunk.Rend.bounds;
-
-                var overlappingOne = false;
-                var overlappingY = 0f;
-                foreach (var body in _waterBodies)
-                {
-                    var bounds = body.AABB;
-
-                    bool overlapping =
-                        bounds.max.x > chunkBounds.min.x && bounds.min.x < chunkBounds.max.x &&
-                        bounds.max.z > chunkBounds.min.z && bounds.min.z < chunkBounds.max.z;
-                    if (overlapping)
-                    {
-                        overlappingY = bounds.center.y;
-                        overlappingOne = true;
-                        break;
-                    }
-                }
-
-                chunk.Rend.enabled = overlappingOne;
-            }
         }
     }
 

@@ -45,7 +45,7 @@ namespace Crest
                     result = FindObjectOfType<ShapeGerstnerBatched>();
                     break;
                 case CollisionSources.ComputeShaderQueries:
-                    result = QueryDisplacements.Instance;
+                    result = new QueryDisplacements();
                     break;
             }
 
@@ -59,6 +59,17 @@ namespace Crest
             }
 
             return result;
+        }
+
+        public IFlowProvider CreateFlowProvider(OceanRenderer ocean)
+        {
+            // Flow is GPU only, and can only be queried using the compute path
+            if (ocean._lodDataFlow != null)
+            {
+                return new QueryFlow();
+            }
+
+            return new FlowProviderNull();
         }
     }
 

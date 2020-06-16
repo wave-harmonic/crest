@@ -78,6 +78,11 @@ namespace Crest
 
         void LateUpdate()
         {
+            if (OceanRenderer.Instance == null)
+            {
+                return;
+            }
+
             // which lod is this object in (roughly)?
             var thisRect = new Rect(new Vector2(transform.position.x, transform.position.z), Vector3.zero);
             var minLod = LodDataMgrAnimWaves.SuggestDataLOD(thisRect);
@@ -116,7 +121,6 @@ namespace Crest
                 vel = Vector3.zero;
             }
 
-            if (QueryFlow.Instance)
             {
                 _sampleFlowHelper.Init(transform.position, _boat.ObjectWidth);
                 Vector2 surfaceFlow = Vector2.zero;

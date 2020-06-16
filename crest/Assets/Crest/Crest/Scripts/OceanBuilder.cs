@@ -5,6 +5,7 @@
 //#define PROFILE_CONSTRUCTION
 
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Crest
@@ -126,7 +127,7 @@ namespace Crest
             Count,
         }
 
-        public static Transform GenerateMesh(OceanRenderer ocean, int lodDataResolution, int geoDownSampleFactor, int lodCount)
+        public static Transform GenerateMesh(OceanRenderer ocean, List<OceanChunkRenderer> tiles, int lodDataResolution, int geoDownSampleFactor, int lodCount)
         {
             if (lodCount < 1)
             {
@@ -155,7 +156,7 @@ namespace Crest
                 meshInsts[i] = BuildOceanPatch((PatchType)i, tileResolution);
             }
 
-            ClearOutTiles(ocean);
+            ClearOutTiles(ocean, tiles);
 
             var root = new GameObject("Root");
             root.hideFlags = ocean._hideOceanTileGameObjects ? HideFlags.HideAndDontSave : HideFlags.DontSave;
@@ -166,7 +167,7 @@ namespace Crest
 
             for (int i = 0; i < lodCount; i++)
             {
-                CreateLOD(ocean, root.transform, i, lodCount, meshInsts, lodDataResolution, geoDownSampleFactor, oceanLayer);
+                CreateLOD(ocean, tiles, root.transform, i, lodCount, meshInsts, lodDataResolution, geoDownSampleFactor, oceanLayer);
             }
 
 #if PROFILE_CONSTRUCTION
@@ -177,8 +178,10 @@ namespace Crest
             return root.transform;
         }
 
-        public static void ClearOutTiles(OceanRenderer ocean)
+        public static void ClearOutTiles(OceanRenderer ocean, List<OceanChunkRenderer> tiles)
         {
+            tiles.Clear();
+
             if (ocean.Root == null)
             {
                 return;
@@ -352,7 +355,7 @@ namespace Crest
             return mesh;
         }
 
-        static void CreateLOD(OceanRenderer ocean, Transform parent, int lodIndex, int lodCount, Mesh[] meshData, int lodDataResolution, int geoDownSampleFactor, int oceanLayer)
+        static void CreateLOD(OceanRenderer ocean, List<OceanChunkRenderer> tiles, Transform parent, int lodIndex, int lodCount, Mesh[] meshData, int lodDataResolution, int geoDownSampleFactor, int oceanLayer)
         {
             float horizScale = Mathf.Pow(2f, lodIndex);
 
@@ -440,8 +443,12 @@ namespace Crest
                 // scale only horizontally, otherwise culling bounding box will be scaled up in y
                 patch.transform.localScale = new Vector3(horizScale, 1f, horizScale);
 
-                patch.AddComponent<OceanChunkRenderer>().SetInstanceData(lodIndex, lodCount, lodDataResolution, geoDownSampleFactor);
-                patch.AddComponent<MeshFilter>().sharedMesh = meshData[(int)patchTypes[i]];
+                {
+                    var oceanChunkRenderer = patch.AddComponent<OceanChunkRenderer>();
+                    patch.AddComponent<MeshFilter>().sharedMesh = meshData[(int)patchTypes[i]];
+                    oceanChunkRenderer.SetInstanceData(lodIndex, lodCount, lodDataResolution, geoDownSampleFactor);
+                    tiles.Add(oceanChunkRenderer);
+                }
 
                 var mr = patch.AddComponent<MeshRenderer>();
 

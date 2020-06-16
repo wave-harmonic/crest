@@ -232,8 +232,6 @@ namespace Crest
         [HideInInspector] public LodDataMgrFoam _lodDataFoam;
         [HideInInspector] public LodDataMgrShadow _lodDataShadow;
 
-        List<LodDataMgr> _lodDatas = new List<LodDataMgr>();
-
         /// <summary>
         /// The number of LODs/scales that the ocean is currently using.
         /// </summary>
@@ -244,7 +242,13 @@ namespace Crest
         /// </summary>
         public float ViewerHeightAboveWater { get; private set; }
 
+        List<LodDataMgr> _lodDatas = new List<LodDataMgr>();
+
+        List<OceanChunkRenderer> _oceanChunkRenderers = new List<OceanChunkRenderer>();
+
         SampleHeightHelper _sampleHeightHelper = new SampleHeightHelper();
+
+        List<WaterBody> _waterBodies = new List<WaterBody>();
 
         public static OceanRenderer Instance { get; private set; }
 
@@ -312,7 +316,7 @@ namespace Crest
             // We could calculate this in the shader, but we can save two subtractions this way.
             _lodAlphaBlackPointWhitePointFade = 1f - _lodAlphaBlackPointFade - _lodAlphaBlackPointFade;
 
-            Root = OceanBuilder.GenerateMesh(this, _lodDataResolution, _geometryDownSampleFactor, _lodCount);
+            Root = OceanBuilder.GenerateMesh(this, _oceanChunkRenderers, _lodDataResolution, _geometryDownSampleFactor, _lodCount);
 
             CreateDestroySubSystems();
 
@@ -626,6 +630,11 @@ namespace Crest
 
             LateUpdateLods();
 
+            if (Viewpoint != null)
+            {
+                LateUpdateTiles();
+            }
+
 #if UNITY_EDITOR
             if (EditorApplication.isPlaying || !_showOceanProxyPlane)
 #endif
@@ -711,6 +720,42 @@ namespace Crest
             _lodDataShadow?.UpdateLodData();
         }
 
+        void LateUpdateTiles()
+        {
+            // If there are local bodies of water, this will do overlap tests between the ocean tiles
+            // and the water bodies and turn off any that don't overlap.
+            if (_waterBodies.Count == 0) return;
+
+            foreach (OceanChunkRenderer tile in _oceanChunkRenderers)
+            {
+                if (tile.Rend == null)
+                {
+                    continue;
+                }
+
+                var chunkBounds = tile.Rend.bounds;
+
+                var overlappingOne = false;
+                var overlappingY = 0f;
+                foreach (var body in _waterBodies)
+                {
+                    var bounds = body.AABB;
+
+                    bool overlapping =
+                        bounds.max.x > chunkBounds.min.x && bounds.min.x < chunkBounds.max.x &&
+                        bounds.max.z > chunkBounds.min.z && bounds.min.z < chunkBounds.max.z;
+                    if (overlapping)
+                    {
+                        overlappingY = bounds.center.y;
+                        overlappingOne = true;
+                        break;
+                    }
+                }
+
+                tile.Rend.enabled = overlappingOne;
+            }
+        }
+
         /// <summary>
         /// Could the ocean horizontal scale increase (for e.g. if the viewpoint gains altitude). Will be false if ocean already at maximum scale.
         /// </summary>
@@ -792,6 +837,9 @@ namespace Crest
 
             FlowProvider.CleanUp();
             FlowProvider = null;
+
+            _oceanChunkRenderers.Clear();
+            _waterBodies.Clear();
         }
 
 #if UNITY_EDITOR
@@ -839,6 +887,15 @@ namespace Crest
             }
         }
 #endif
+
+        public void RegisterWaterBody(WaterBody body)
+        {
+            _waterBodies.Add(body);
+        }
+        public void UnregisterWaterBody(WaterBody body)
+        {
+            _waterBodies.Remove(body);
+        }
     }
 
 #if UNITY_EDITOR

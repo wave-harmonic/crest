@@ -442,7 +442,7 @@ namespace Crest
                 ExecuteQueries();
 
                 // Remove oldest requests if we have hit the limit
-                while (_requests.Count >= _maxQueryCount)
+                while (_requests.Count >= s_maxRequests)
                 {
                     _requests.RemoveAt(0);
                 }

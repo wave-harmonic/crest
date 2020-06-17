@@ -223,6 +223,12 @@ namespace Crest
         /// </summary>
         protected bool UpdateQueryPoints(int i_ownerHash, float i_minSpatialLength, Vector3[] queryPoints, Vector3[] queryNormals)
         {
+            if (queryPoints.Length + _segmentRegistrarRingBuffer.Current._numQueries > _maxQueryCount)
+            {
+                Debug.LogError($"Max query count ({_maxQueryCount}) exceeded, increase the max query count in the Animated Waves Settings to support a higher number of queries.");
+                return false;
+            }
+
             var segmentRetrieved = false;
             Vector2Int segment;
 

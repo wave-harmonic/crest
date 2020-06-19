@@ -46,7 +46,7 @@ namespace Crest
         Renderer[] _geometryToRenderIntoCache = new Renderer[0];
 
         [Tooltip("The layers to render into the depth cache. This is ignored if geometry instances are specified in the Geometry To Render Into Cache field."), SerializeField]
-        string[] _layerNames = null;
+        string[] _layerNames = new string[0];
 
         [Tooltip("The resolution of the cached depth - lower will be more efficient."), SerializeField]
         int _resolution = 512;
@@ -397,8 +397,7 @@ namespace Crest
             }
             else
             {
-                if ((_geometryToRenderIntoCache == null || _geometryToRenderIntoCache.Length == 0)
-                    && (_layerNames == null || _layerNames.Length == 0))
+                if (_geometryToRenderIntoCache.Length == 0 && _layerNames.Length == 0)
                 {
                     showMessage
                     (

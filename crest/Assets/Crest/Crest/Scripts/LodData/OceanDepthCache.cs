@@ -5,8 +5,11 @@
 // This is the original version that uses an auxillary camera and works with Unity's GPU terrain - issue 152.
 
 using System;
-using UnityEditor;
 using UnityEngine;
+
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 namespace Crest
 {

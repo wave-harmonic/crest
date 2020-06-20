@@ -831,11 +831,17 @@ namespace Crest
             _lodDataSeaDepths = null;
             _lodDataShadow = null;
 
-            CollisionProvider.CleanUp();
-            CollisionProvider = null;
+            if (CollisionProvider != null)
+            {
+                CollisionProvider.CleanUp();
+                CollisionProvider = null;
+            }
 
-            FlowProvider.CleanUp();
-            FlowProvider = null;
+            if (FlowProvider != null)
+            {
+                FlowProvider.CleanUp();
+                FlowProvider = null;
+            }
 
             _oceanChunkRenderers.Clear();
             _waterBodies.Clear();

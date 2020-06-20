@@ -15,7 +15,7 @@ namespace Crest
     {
         public bool _drawRenderBounds = false;
 
-        Bounds _boundsLocal;
+        public Bounds _boundsLocal;
         Mesh _mesh;
         public Renderer Rend { get; private set; }
         PropertyWrapperMPB _mpb;
@@ -36,7 +36,6 @@ namespace Crest
         {
             Rend = GetComponent<Renderer>();
             _mesh = GetComponent<MeshFilter>().sharedMesh;
-            _boundsLocal = _mesh.bounds;
 
             UpdateMeshBounds();
         }

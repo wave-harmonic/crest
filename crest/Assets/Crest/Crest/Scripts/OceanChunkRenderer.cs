@@ -146,11 +146,6 @@ namespace Crest
             _mpb.SetFloat(sp_ForceUnderwater, heightOffset < -2f ? 1f : 0f);
 
             Rend.SetPropertyBlock(_mpb.materialPropertyBlock);
-
-            if (_drawRenderBounds)
-            {
-                Rend.bounds.DebugDraw();
-            }
         }
 
         // this is called every frame because the bounds are given in world space and depend on the transform scale, which
@@ -188,6 +183,15 @@ namespace Crest
         {
             RenderPipelineManager.beginCameraRendering -= BeginCameraRendering;
             RenderPipelineManager.beginCameraRendering += BeginCameraRendering;
+        }
+
+
+        private void OnDrawGizmos()
+        {
+            if (_drawRenderBounds)
+            {
+                Rend.bounds.GizmosDraw();
+            }
         }
     }
 

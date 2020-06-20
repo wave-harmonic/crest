@@ -184,10 +184,18 @@ Shader "Crest/Ocean"
 
 	SubShader
 	{
-		// ForwardBase - tell unity we're going to render water in forward manner and we're going to do lighting and it will set the appropriate uniforms
-		// Geometry+510 - unity treats anything after Geometry+500 as transparent, and will render it in a forward manner and copy out the gbuffer data
-		//     and do post processing before running it. Discussion of this in issue #53.
-		Tags { "LightMode"="ForwardBase" "Queue"="Geometry+510" "IgnoreProjector"="True" "RenderType"="Opaque" }
+		Tags
+		{
+			// Tell Unity we're going to render water in forward manner and we're going to do lighting and it will set
+			// the appropriate uniforms.
+			"LightMode"="ForwardBase"
+			// Unity treats anything after Geometry+500 as transparent, and will render it in a forward manner and copy
+			// out the gbuffer data and do post processing before running it. Discussion of this in issue #53.
+			"Queue"="Geometry+510"
+			"IgnoreProjector"="True"
+			"RenderType"="Opaque"
+			"DisableBatching"="True"
+		}
 
 		GrabPass
 		{
@@ -329,28 +337,36 @@ Shader "Crest/Ocean"
 				}
 
 				// Data that needs to be sampled at the displaced position
-				if (wt_smallerLod > 0.001)
+				if (wt_smallerLod > 0.0001)
 				{
 					const float3 uv_slice_smallerLodDisp = WorldToUV(o.worldPos.xz);
 
 					#if _SUBSURFACESHALLOWCOLOUR_ON
+					// The minimum sampling weight is lower (0.0001) than others to fix shallow water colour popping.
 					SampleSeaDepth(_LD_TexArray_SeaFloorDepth, uv_slice_smallerLodDisp, wt_smallerLod, o.lodAlpha_worldXZUndisplaced_oceanDepth.w);
 					#endif
 
 					#if _SHADOWS_ON
-					SampleShadow(_LD_TexArray_Shadow, uv_slice_smallerLodDisp, wt_smallerLod, o.flow_shadow.zw);
+					if (wt_smallerLod > 0.001)
+					{
+						SampleShadow(_LD_TexArray_Shadow, uv_slice_smallerLodDisp, wt_smallerLod, o.flow_shadow.zw);
+					}
 					#endif
 				}
-				if (wt_biggerLod > 0.001)
+				if (wt_biggerLod > 0.0001)
 				{
 					const float3 uv_slice_biggerLodDisp = WorldToUV_BiggerLod(o.worldPos.xz);
 
 					#if _SUBSURFACESHALLOWCOLOUR_ON
+					// The minimum sampling weight is lower (0.0001) than others to fix shallow water colour popping.
 					SampleSeaDepth(_LD_TexArray_SeaFloorDepth, uv_slice_biggerLodDisp, wt_biggerLod, o.lodAlpha_worldXZUndisplaced_oceanDepth.w);
 					#endif
 
 					#if _SHADOWS_ON
-					SampleShadow(_LD_TexArray_Shadow, uv_slice_biggerLodDisp, wt_biggerLod, o.flow_shadow.zw);
+					if (wt_biggerLod > 0.001)
+					{
+						SampleShadow(_LD_TexArray_Shadow, uv_slice_biggerLodDisp, wt_biggerLod, o.flow_shadow.zw);
+					}
 					#endif
 				}
 

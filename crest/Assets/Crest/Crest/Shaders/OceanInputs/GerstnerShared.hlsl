@@ -67,7 +67,7 @@ half4 ComputeGerstner(float2 worldPosXZ, float3 uv_slice)
 
 		// Peferred wave direction
 // #if CREST_DIRECT_TOWARDS_POINT_INTERNAL
-		wt *= max((1.0 + Dx * preferredDirX + Dz * preferredDirZ) / 2.0, 0.1);
+		// wt *= max((1.0 + Dx * preferredDirX + Dz * preferredDirZ) / 2.0, 0.1);
 // #endif
 
 		// wave number

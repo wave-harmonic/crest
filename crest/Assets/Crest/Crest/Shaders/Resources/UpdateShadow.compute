@@ -69,7 +69,7 @@ fixed ComputeShadow(in ShadowCoords shadowCoords, in float jitterDiameter, in fl
 
 	if (jitterDiameter > 0.0)
 	{
-		half2 jitter = jitterDiameter * (hash33(uint3(abs(shadowCoords._WorldPosViewZ.xz*10.0), _Time.y*120.0)) - 0.5).xy;
+		half2 jitter = jitterDiameter * (hash33(uint3(abs(shadowCoords._WorldPosViewZ.xz*10.0), _CrestTime*120.0)) - 0.5).xy;
 		shadowCoords._ShadowCoord0.xz += shadowCoords.ShadowCoord0_dxdz.xy * jitter.x + shadowCoords.ShadowCoord0_dxdz.zw * jitter.y;
 		shadowCoords._ShadowCoord1.xz += shadowCoords.ShadowCoord1_dxdz.xy * jitter.x + shadowCoords.ShadowCoord1_dxdz.zw * jitter.y;
 		shadowCoords._ShadowCoord2.xz += shadowCoords.ShadowCoord2_dxdz.xy * jitter.x + shadowCoords.ShadowCoord2_dxdz.zw * jitter.y;

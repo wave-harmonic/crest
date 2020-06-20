@@ -121,6 +121,14 @@ half3 ScatterColour(
 	}
 #endif // _SUBSURFACESCATTERING_ON
 
+	// Out-scatter light - attenuate the final colour by the camera depth under the water, to approximate less
+	// throughput due to light scatter as the camera gets further under water.
+	if (i_outscatterLight && i_underwater)
+	{
+		half camDepth = max(_OceanCenterPosWorld.y - _WorldSpaceCameraPos.y, 0.0);
+		col *= exp(-_DepthFogDensity.xyz * camDepth * DEPTH_OUTSCATTER_CONSTANT);
+	}
+
 	return col;
 }
 

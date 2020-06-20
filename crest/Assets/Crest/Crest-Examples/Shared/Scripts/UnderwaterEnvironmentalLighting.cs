@@ -3,6 +3,7 @@
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace Crest
 {
@@ -22,6 +23,21 @@ namespace Crest
         float _averageDensity = 0f;
 
         public const float DEPTH_OUTSCATTER_CONSTANT = 0.25f;
+
+        [Tooltip("Uses shadows to reduce light when going deep underwater.")]
+        [SerializeField] bool _useShadowCaster = true;
+        Transform _shadowCasterTransform = null;
+        Renderer _shadowCasterRenderer = null;
+
+        [System.Serializable]
+        class DebugFields
+        {
+            [Tooltip("Shows the shadow caster in hierarchy and in game view.")]
+            public bool showShadowCaster = false;
+        }
+
+        [SerializeField] DebugFields _debug = new DebugFields();
+        Transform _debugShadowCaster;
 
         void Start()
         {
@@ -51,6 +67,12 @@ namespace Crest
 
             Color density = OceanRenderer.Instance.OceanMaterial.GetColor("_DepthFogDensity");
             _averageDensity = (density.r + density.g + density.b) / 3f;
+
+            // Setup shadow caster.
+            if (_useShadowCaster)
+            {
+                SetupShadowCaster();
+            }
         }
 
         void OnDisable()
@@ -75,14 +97,107 @@ namespace Crest
             float depthMultiplier = Mathf.Exp(_averageDensity * 
                 Mathf.Min(OceanRenderer.Instance.ViewerHeightAboveWater * DEPTH_OUTSCATTER_CONSTANT, 0f));
 
-            // Darken environmental lighting when viewer underwater
-            if (_primaryLight)
-            {
-                _primaryLight.intensity = Mathf.Lerp(0, _lightIntensity, depthMultiplier);
-            }
+            // // Darken environmental lighting when viewer underwater
+            // if (_primaryLight)
+            // {
+            //     _primaryLight.intensity = Mathf.Lerp(0, _lightIntensity, depthMultiplier);
+            // }
             RenderSettings.ambientIntensity = Mathf.Lerp(0, _ambientIntensity, depthMultiplier);
             RenderSettings.reflectionIntensity = Mathf.Lerp(0, _reflectionIntensity, depthMultiplier);
             RenderSettings.fogDensity = Mathf.Lerp(0, _fogDensity, depthMultiplier);
+
+            // Cast shadows to darken scenery.
+            if (_useShadowCaster)
+            {
+                if (_shadowCasterTransform == null)
+                {
+                    SetupShadowCaster();
+                }
+
+                if (!_shadowCasterTransform.gameObject.activeSelf)
+                {
+                    _shadowCasterTransform.gameObject.SetActive(true);
+                }
+
+                // Position the shadow caster between the camera and the primary light. Then have it face the primary 
+                // light.
+                _shadowCasterTransform.position = OceanRenderer.Instance.Viewpoint.position + 
+                    -_primaryLight.transform.forward * 500f;
+                _shadowCasterTransform.rotation = Quaternion.LookRotation(OceanRenderer.Instance.Viewpoint.position - 
+                    _shadowCasterTransform.position, Vector3.up);
+                // TODO: Create our own shader. The name of this property will be different across pipelines. Our own
+                // shader will require a bit of effort since it will require knowledge of shadow casting (HDRP could be
+                // painful).
+                _shadowCasterRenderer.material.SetColor("_Color", new Color(1, 1, 1, 1f - depthMultiplier));
+
+#if UNITY_EDITOR
+                DebugChangeShadowCasterVisibility();
+#endif
+            }
+            else if (_shadowCasterTransform != null)
+            {
+                _shadowCasterTransform.gameObject.SetActive(false);
+            }
+
         }
+
+        void SetupShadowCaster()
+        {
+            // Create root shadow caster transform.
+            _shadowCasterTransform = new GameObject("OceanOutscatteringShadowCaster").transform;
+            _shadowCasterTransform.hideFlags = HideFlags.HideInHierarchy;
+            // Create shadow caster plane.
+            var plane = GameObject.CreatePrimitive(PrimitiveType.Plane);
+            Destroy(plane.GetComponent<MeshCollider>());
+            plane.name = "ShadowCaster";
+            // It is more intuitive for the plane surface to face forward.
+            plane.transform.localRotation = Quaternion.Euler(90f, 180f, 0f);
+            // Seems like a good size. We could make this dynamic.
+            plane.transform.localScale = new Vector3(500f, 1f, 500f);
+            plane.transform.parent = _shadowCasterTransform;
+            // Configure renderer for only casting shadows.
+            _shadowCasterRenderer = plane.GetComponent<MeshRenderer>();
+            // We get the default material. Configure to be Rendering Mode: Fade.
+            _shadowCasterRenderer.material.SetFloat("_Mode", 2);
+            _shadowCasterRenderer.material.SetInt("_SrcBlend", (int)BlendMode.SrcAlpha);
+            _shadowCasterRenderer.material.SetInt("_DstBlend", (int)BlendMode.OneMinusSrcAlpha);
+            _shadowCasterRenderer.material.SetInt("_ZWrite", 0);
+            _shadowCasterRenderer.material.DisableKeyword("_ALPHATEST_ON");
+            _shadowCasterRenderer.material.EnableKeyword("_ALPHABLEND_ON");
+            _shadowCasterRenderer.material.DisableKeyword("_ALPHAPREMULTIPLY_ON");
+            _shadowCasterRenderer.material.renderQueue = 3000;
+            _shadowCasterRenderer.shadowCastingMode = ShadowCastingMode.ShadowsOnly;
+            _shadowCasterRenderer.receiveShadows = false;
+            _shadowCasterRenderer.reflectionProbeUsage = ReflectionProbeUsage.Off;
+            _shadowCasterRenderer.lightProbeUsage = LightProbeUsage.Off;
+            _shadowCasterRenderer.allowOcclusionWhenDynamic = false;
+
+#if UNITY_EDITOR
+            // Create debug shadow caster plane. For visualising th plane only.
+            _debugShadowCaster = GameObject.CreatePrimitive(PrimitiveType.Plane).transform;
+            Destroy(_debugShadowCaster.GetComponent<MeshCollider>());
+            _debugShadowCaster.name = "DebugShadowCasterVisualiser";
+            // Face the opposite to above so faces face camera.
+            _debugShadowCaster.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
+            _debugShadowCaster.transform.localScale = plane.transform.localScale;
+            _debugShadowCaster.transform.parent = plane.transform.parent;
+            _debugShadowCaster.gameObject.SetActive(_debug.showShadowCaster);
+            // Configure renderer for not casting shadows.
+            var renderer = _debugShadowCaster.GetComponent<MeshRenderer>();
+            renderer.shadowCastingMode = ShadowCastingMode.Off;
+            renderer.receiveShadows = false;
+            renderer.reflectionProbeUsage = ReflectionProbeUsage.Off;
+            renderer.lightProbeUsage = LightProbeUsage.Off;
+            renderer.allowOcclusionWhenDynamic = false;
+#endif
+        }
+
+#if UNITY_EDITOR
+        void DebugChangeShadowCasterVisibility()
+        {
+            _shadowCasterTransform.hideFlags = _debug.showShadowCaster ? HideFlags.None : HideFlags.HideInHierarchy;
+            _debugShadowCaster.gameObject.SetActive(_debug.showShadowCaster);
+        }
+#endif
     }
 }

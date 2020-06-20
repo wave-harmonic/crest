@@ -162,11 +162,11 @@ namespace Crest
 
         bool ShowEffect()
         {
-            if (_turnOffOutsideWaterBodies && OceanRenderer.Instance.WaterBodies.Count > 0)
+            if (_turnOffOutsideWaterBodies && WaterBody.WaterBodies.Count > 0)
             {
                 var inOne = false;
                 float x = transform.position.x, z = transform.position.z;
-                foreach (var body in OceanRenderer.Instance.WaterBodies)
+                foreach (var body in WaterBody.WaterBodies)
                 {
                     var bounds = body.AABB;
                     if (x >= bounds.min.x && x <= bounds.max.x &&

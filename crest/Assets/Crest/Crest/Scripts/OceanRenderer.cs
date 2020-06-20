@@ -248,12 +248,9 @@ namespace Crest
 
         SampleHeightHelper _sampleHeightHelper = new SampleHeightHelper();
 
-        public List<WaterBody> WaterBodies => _waterBodies;
-        List<WaterBody> _waterBodies = new List<WaterBody>();
-
         public static OceanRenderer Instance { get; private set; }
 
-        // We are computing these values to be optimal based on the base mesh vertice density.
+        // We are computing these values to be optimal based on the base mesh vertex density.
         float _lodAlphaBlackPointFade;
         float _lodAlphaBlackPointWhitePointFade;
 
@@ -725,7 +722,7 @@ namespace Crest
         {
             // If there are local bodies of water, this will do overlap tests between the ocean tiles
             // and the water bodies and turn off any that don't overlap.
-            if (_waterBodies.Count == 0) return;
+            if (WaterBody.WaterBodies.Count == 0) return;
 
             foreach (OceanChunkRenderer tile in _oceanChunkRenderers)
             {
@@ -737,7 +734,7 @@ namespace Crest
                 var chunkBounds = tile.Rend.bounds;
 
                 var overlappingOne = false;
-                foreach (var body in _waterBodies)
+                foreach (var body in WaterBody.WaterBodies)
                 {
                     var bounds = body.AABB;
 
@@ -844,7 +841,6 @@ namespace Crest
             }
 
             _oceanChunkRenderers.Clear();
-            _waterBodies.Clear();
         }
 
 #if UNITY_EDITOR
@@ -892,15 +888,6 @@ namespace Crest
             }
         }
 #endif
-
-        public void RegisterWaterBody(WaterBody body)
-        {
-            _waterBodies.Add(body);
-        }
-        public void UnregisterWaterBody(WaterBody body)
-        {
-            _waterBodies.Remove(body);
-        }
     }
 
 #if UNITY_EDITOR

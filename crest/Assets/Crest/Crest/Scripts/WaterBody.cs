@@ -2,6 +2,7 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Crest
@@ -18,22 +19,21 @@ namespace Crest
         bool _runValidationOnStart = true;
 #pragma warning restore 414
 
+        public static List<WaterBody> WaterBodies => _waterBodies;
+        static List<WaterBody> _waterBodies = new List<WaterBody>();
+
         public Bounds AABB { get; private set; }
 
         private void OnEnable()
         {
-            if (OceanRenderer.Instance == null) return;
-
             CalculateBounds();
 
-            OceanRenderer.Instance.RegisterWaterBody(this);
+            _waterBodies.Add(this);
         }
 
         private void OnDisable()
         {
-            if (OceanRenderer.Instance == null) return;
-
-            OceanRenderer.Instance.UnregisterWaterBody(this);
+            _waterBodies.Remove(this);
         }
 
         private void CalculateBounds()

@@ -414,8 +414,8 @@ namespace Crest
                 // section doesn't need any skirting. this is good - this is the highest density part of the mesh.
                 patchTypes = new PatchType[] {
                     tlCornerType,       leadSideType,           leadSideType,           leadCornerType,
-                    trailSideType,      PatchType.Interior,     PatchType.Interior,     leadSideType,
-                    trailSideType,      PatchType.Interior,     PatchType.Interior,     leadSideType,
+                    trailSideType,      leadSideType,     PatchType.Interior,     leadSideType,
+                    trailSideType,      leadSideType,     leadSideType,     leadSideType,
                     trailCornerType,    trailSideType,          trailSideType,          brCornerType,
                 };
             }

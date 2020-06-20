@@ -725,7 +725,19 @@ namespace Crest
         {
             // If there are local bodies of water, this will do overlap tests between the ocean tiles
             // and the water bodies and turn off any that don't overlap.
-            if (_waterBodies.Count == 0) return;
+            if (_waterBodies.Count == 0)
+            {
+                foreach (OceanChunkRenderer tile in _oceanChunkRenderers)
+                {
+                    if (tile.Rend == null)
+                    {
+                        continue;
+                    }
+
+                    tile.Rend.enabled = true;
+                }
+                return;
+            }
 
             foreach (OceanChunkRenderer tile in _oceanChunkRenderers)
             {
@@ -746,6 +758,8 @@ namespace Crest
                         bounds.max.z > chunkBounds.min.z && bounds.min.z < chunkBounds.max.z;
                     if (overlapping)
                     {
+                        //bounds.GizmosDraw();
+                        //chunkBounds.GizmosDraw();
                         overlappingOne = true;
                         break;
                     }
@@ -890,6 +904,40 @@ namespace Crest
             {
                 Root.gameObject.SetActive(!_showOceanProxyPlane);
             }
+
+
+            if (_waterBodies.Count == 0)
+            {
+                return;
+            }
+
+            foreach (OceanChunkRenderer tile in _oceanChunkRenderers)
+            {
+                if (tile.Rend == null)
+                {
+                    continue;
+                }
+
+                var chunkBounds = tile.Rend.bounds;
+
+                var overlappingOne = false;
+                foreach (var body in _waterBodies)
+                {
+                    var bounds = body.AABB;
+
+                    bool overlapping =
+                        bounds.max.x > chunkBounds.min.x && bounds.min.x < chunkBounds.max.x &&
+                        bounds.max.z > chunkBounds.min.z && bounds.min.z < chunkBounds.max.z;
+                    if (overlapping)
+                    {
+                        bounds.GizmosDraw();
+                        chunkBounds.GizmosDraw();
+                        overlappingOne = true;
+                        break;
+                    }
+                }
+            }
+
         }
 #endif
 

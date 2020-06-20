@@ -90,7 +90,7 @@ namespace Crest
             }
 
             var bounds = _boundsLocal;
-            OceanChunkRenderer.ExpandBoundsForDisplacements(transform, ref bounds);
+            OceanChunkRenderer.ExpandBoundsForDisplacements(transform, ref bounds, "Other", -1);
             _mesh.bounds = bounds;
 
             if (_drawBounds)

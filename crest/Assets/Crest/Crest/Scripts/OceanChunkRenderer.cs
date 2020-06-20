@@ -2,6 +2,7 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -15,7 +16,6 @@ namespace Crest
     {
         public bool _drawRenderBounds = false;
 
-        Bounds _boundsLocal;
         Mesh _mesh;
         public Renderer Rend { get; private set; }
         PropertyWrapperMPB _mpb;
@@ -32,27 +32,42 @@ namespace Crest
         // MeshScaleLerp, FarNormalsWeight, LODIndex (debug)
         public static int sp_InstanceData = Shader.PropertyToID("_InstanceData");
 
+        static Dictionary<Mesh, Bounds> _originalMeshBounds = new Dictionary<Mesh, Bounds>();
+
         void Start()
         {
             Rend = GetComponent<Renderer>();
             _mesh = GetComponent<MeshFilter>().sharedMesh;
-            _boundsLocal = _mesh.bounds;
+
+            if (!_originalMeshBounds.ContainsKey(_mesh))
+            {
+                Debug.LogWarning($"BOUNDS: {_mesh.name} : {_mesh.bounds}");
+                _originalMeshBounds.Add(_mesh, _mesh.bounds);
+            }
 
             UpdateMeshBounds();
         }
+
+        int updateCount = 0;
 
         private void Update()
         {
             // This needs to be called on Update because the bounds depend on transform scale which can change. Also OnWillRenderObject depends on
             // the bounds being correct. This could however be called on scale change events, but would add slightly more complexity.
-            UpdateMeshBounds();
+            if (updateCount < 2)
+                UpdateMeshBounds();
+            updateCount++;
+
         }
 
         void UpdateMeshBounds()
         {
-            var newBounds = _boundsLocal;
-            ExpandBoundsForDisplacements(transform, ref newBounds);
-            _mesh.bounds = newBounds;
+            var newBounds = _originalMeshBounds[_mesh];
+            //if (_mesh.name != "Interior")
+            {
+                ExpandBoundsForDisplacements(transform, ref newBounds, _mesh.name, _lodIndex);
+                _mesh.bounds = newBounds;
+            }
         }
 
         static Camera _currentCamera = null;
@@ -154,16 +169,21 @@ namespace Crest
             }
         }
 
+        static float boundsPadding, expandXZ, boundsY;
+        static Bounds boundsCopy;
         // this is called every frame because the bounds are given in world space and depend on the transform scale, which
         // can change depending on view altitude
-        public static void ExpandBoundsForDisplacements(Transform transform, ref Bounds bounds)
+        public static void ExpandBoundsForDisplacements(Transform transform, ref Bounds bounds, string meshName, int lodIndex)
         {
-            var boundsPadding = OceanRenderer.Instance.MaxHorizDisplacement;
-            var expandXZ = boundsPadding / transform.lossyScale.x;
-            var boundsY = OceanRenderer.Instance.MaxVertDisplacement;
+            boundsPadding = OceanRenderer.Instance.MaxHorizDisplacement;
+            expandXZ = boundsPadding / transform.lossyScale.x;
+            //if (meshName == "Interior") expandXZ = 0f;
+            boundsY = OceanRenderer.Instance.MaxVertDisplacement;
             // extend the kinematic bounds slightly to give room for dynamic sim stuff
             boundsY += 5f;
             bounds.extents = new Vector3(bounds.extents.x + expandXZ, boundsY / transform.lossyScale.y, bounds.extents.z + expandXZ);
+            boundsCopy = bounds;
+            Debug.Log($"{meshName} {lodIndex}: expandXZ: {expandXZ} transform.lossyScale.x: {transform.lossyScale.x} extents: {new Vector3(bounds.extents.x + expandXZ, boundsY / transform.lossyScale.y, bounds.extents.z + expandXZ)}");
         }
 
         public void SetInstanceData(int lodIndex, int totalLodCount, int lodDataResolution, int geoDownSampleFactor)
@@ -189,6 +209,17 @@ namespace Crest
         {
             RenderPipelineManager.beginCameraRendering -= BeginCameraRendering;
             RenderPipelineManager.beginCameraRendering += BeginCameraRendering;
+        }
+
+        void OnDrawGizmosSelected()
+        {
+            Rend.bounds.GizmosDraw(Color.red);
+            _originalMeshBounds[_mesh].GizmosDraw(Color.red);
+            //Debug.Log(transform.lossyScale.x); // same
+            //Debug.Log($"_boundsLocal {_boundsLocal}");
+            //Debug.Log(boundsCopy);
+            //Debug.Log($"boundsPadding {boundsPadding}, expandXZ {expandXZ}, boundsY {boundsY}");
+            //Debug.Log(_mesh.bounds);
         }
     }
 
@@ -221,6 +252,11 @@ namespace Crest
 
         public static void GizmosDraw(this Bounds b)
         {
+            b.GizmosDraw(Color.white);
+        }
+
+        public static void GizmosDraw(this Bounds b, Color color)
+        {
             var xmin = b.min.x;
             var ymin = b.min.y;
             var zmin = b.min.z;
@@ -228,20 +264,24 @@ namespace Crest
             var ymax = b.max.y;
             var zmax = b.max.z;
 
+            Gizmos.color = color;
+
             Gizmos.DrawLine(new Vector3(xmin, ymin, zmin), new Vector3(xmin, ymin, zmax));
             Gizmos.DrawLine(new Vector3(xmin, ymin, zmin), new Vector3(xmax, ymin, zmin));
             Gizmos.DrawLine(new Vector3(xmax, ymin, zmax), new Vector3(xmin, ymin, zmax));
             Gizmos.DrawLine(new Vector3(xmax, ymin, zmax), new Vector3(xmax, ymin, zmin));
-            
+
             Gizmos.DrawLine(new Vector3(xmin, ymax, zmin), new Vector3(xmin, ymax, zmax));
             Gizmos.DrawLine(new Vector3(xmin, ymax, zmin), new Vector3(xmax, ymax, zmin));
             Gizmos.DrawLine(new Vector3(xmax, ymax, zmax), new Vector3(xmin, ymax, zmax));
             Gizmos.DrawLine(new Vector3(xmax, ymax, zmax), new Vector3(xmax, ymax, zmin));
-            
+
             Gizmos.DrawLine(new Vector3(xmax, ymax, zmax), new Vector3(xmax, ymin, zmax));
             Gizmos.DrawLine(new Vector3(xmin, ymin, zmin), new Vector3(xmin, ymax, zmin));
             Gizmos.DrawLine(new Vector3(xmax, ymin, zmin), new Vector3(xmax, ymax, zmin));
             Gizmos.DrawLine(new Vector3(xmin, ymax, zmax), new Vector3(xmin, ymin, zmax));
+
+            Gizmos.color = Color.white;
         }
     }
 }

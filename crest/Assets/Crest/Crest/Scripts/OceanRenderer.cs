@@ -254,6 +254,8 @@ namespace Crest
         float _lodAlphaBlackPointFade;
         float _lodAlphaBlackPointWhitePointFade;
 
+        bool _canSkipCulling = false;
+
         readonly int sp_crestTime = Shader.PropertyToID("_CrestTime");
         readonly int sp_texelsPerWave = Shader.PropertyToID("_TexelsPerWave");
         readonly int sp_oceanCenterPosWorld = Shader.PropertyToID("_OceanCenterPosWorld");
@@ -335,6 +337,8 @@ namespace Crest
             {
                 lodData.OnEnable();
             }
+
+            _canSkipCulling = false;
         }
 
         private void OnDisable()
@@ -722,7 +726,10 @@ namespace Crest
         {
             // If there are local bodies of water, this will do overlap tests between the ocean tiles
             // and the water bodies and turn off any that don't overlap.
-            if (WaterBody.WaterBodies.Count == 0) return;
+            if (WaterBody.WaterBodies.Count == 0 && _canSkipCulling)
+            {
+                return;
+            }
 
             foreach (OceanChunkRenderer tile in _oceanChunkRenderers)
             {
@@ -748,8 +755,11 @@ namespace Crest
                     }
                 }
 
-                tile.Rend.enabled = overlappingOne;
+                tile.Rend.enabled = overlappingOne || WaterBody.WaterBodies.Count == 0;
             }
+
+            // Can skip culling next time around if water body count stays at 0
+            _canSkipCulling = WaterBody.WaterBodies.Count == 0;
         }
 
         /// <summary>

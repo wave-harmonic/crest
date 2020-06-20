@@ -59,11 +59,10 @@ namespace Crest
 
         private void OnDrawGizmos()
         {
-            Gizmos.color = Color.blue;
+            Gizmos.color = Color.white;
             // Required as we're not normally executing in edit mode
             CalculateBounds();
             AABB.GizmosDraw();
-            Gizmos.color = Color.white;
         }
 #endif
     }

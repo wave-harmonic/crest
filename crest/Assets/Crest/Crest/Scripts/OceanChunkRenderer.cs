@@ -185,7 +185,6 @@ namespace Crest
             RenderPipelineManager.beginCameraRendering += BeginCameraRendering;
         }
 
-
         private void OnDrawGizmos()
         {
             if (_drawRenderBounds)

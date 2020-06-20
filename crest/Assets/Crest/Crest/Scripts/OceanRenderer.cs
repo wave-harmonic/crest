@@ -737,7 +737,6 @@ namespace Crest
                 var chunkBounds = tile.Rend.bounds;
 
                 var overlappingOne = false;
-                var overlappingY = 0f;
                 foreach (var body in _waterBodies)
                 {
                     var bounds = body.AABB;
@@ -747,7 +746,6 @@ namespace Crest
                         bounds.max.z > chunkBounds.min.z && bounds.min.z < chunkBounds.max.z;
                     if (overlapping)
                     {
-                        overlappingY = bounds.center.y;
                         overlappingOne = true;
                         break;
                     }

@@ -3,6 +3,9 @@
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 using System.Collections.Generic;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 using UnityEngine;
 
 namespace Crest
@@ -72,11 +75,11 @@ namespace Crest
     {
         public bool Validate(OceanRenderer ocean, ValidatedHelper.ShowMessage showMessage)
         {
-            if (transform.lossyScale.magnitude < 2f)
+            if (Mathf.Abs(transform.lossyScale.x) < 2f && Mathf.Abs(transform.lossyScale.z) < 2f)
             {
                 showMessage
                 (
-                    $"Water body {gameObject.name} has a very small size (the size is set by the scale of its transform). This will be a very small body of water. Is this intentional?",
+                    $"Water body {gameObject.name} has a very small size (the size is set by the X & Z scale of its transform). This will be a very small body of water. Is this intentional?",
                     ValidatedHelper.MessageType.Error, this
                 );
 
@@ -86,5 +89,8 @@ namespace Crest
             return true;
         }
     }
+
+    [CustomEditor(typeof(WaterBody), true), CanEditMultipleObjects]
+    class WaterBodyEditor : ValidatedEditor { }
 #endif
 }

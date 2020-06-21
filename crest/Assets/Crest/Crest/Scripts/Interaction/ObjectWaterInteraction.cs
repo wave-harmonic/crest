@@ -154,6 +154,7 @@ namespace Crest
             float dt; int steps;
             ocean._lodDataDynWaves.GetSimSubstepData(ocean.DeltaTimeDynamics, out steps, out dt);
             float weight = _boat.InWater ? 1f / simsActive : 0f;
+            weight *= OceanRenderer.Instance._simSettingsDynamicWaves._gravityMultiplier / 12f;
 
             _renderer.GetPropertyBlock(_mpb);
 

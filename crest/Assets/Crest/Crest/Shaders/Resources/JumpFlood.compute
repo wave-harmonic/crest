@@ -18,23 +18,50 @@ RWTexture2D<float4> _ToTexture;
 void JumpFlood(uint3 id : SV_DispatchThreadID)
 {
 	float4 result = _FromTexture[id.xy];
-	float resultRight = _textureDimension  - _jumpSize > id.x ? _FromTexture[id.xy + uint2(_jumpSize, 0)].y + _jumpSize : result.y;
-	float resultUp    = _textureDimension  - _jumpSize > id.y ? _FromTexture[id.xy + uint2(0, _jumpSize)].y + _jumpSize : result.y;
-	float resultLeft  = id.x >= _jumpSize                     ? _FromTexture[id.xy - uint2(_jumpSize, 0)].y + _jumpSize : result.y;
-	float resultDown  = id.y >= _jumpSize                     ? _FromTexture[id.xy - uint2(0, _jumpSize)].y + _jumpSize : result.y;
+
+	float sdfCurrent = result.y;
+
+	bool rightIsInBounds = _textureDimension  - _jumpSize > id.x;
+	bool upIsInBounds    = _textureDimension  - _jumpSize > id.y;
+	bool leftIsInBounds  = id.x >= _jumpSize;
+	bool downIsInBounds  = id.y >= _jumpSize;
+
+	// TODO(TRC):Now mvoe this calculation to the CPU
+	float jumpSizeSQR = sqrt((float) (_jumpSize * _jumpSize));
+
+	float sdfUp          = upIsInBounds                      ? _FromTexture[id.xy + uint2(0         ,  _jumpSize)].y + _jumpSize   : sdfCurrent;
+	float sdfUpRight     = upIsInBounds && rightIsInBounds   ? _FromTexture[id.xy + uint2(_jumpSize ,  _jumpSize)].y + jumpSizeSQR : sdfCurrent;
+	float sdfRight       = rightIsInBounds                   ? _FromTexture[id.xy + uint2(_jumpSize ,          0)].y + _jumpSize   : sdfCurrent;
+	float sdfRightDown   = rightIsInBounds && downIsInBounds ? _FromTexture[id.xy + uint2(_jumpSize , -_jumpSize)].y + jumpSizeSQR : sdfCurrent;
+	float sdfDown        = downIsInBounds                    ? _FromTexture[id.xy + uint2(0         , -_jumpSize)].y + _jumpSize   : sdfCurrent;
+	float sdfDownLeft    = downIsInBounds && leftIsInBounds  ? _FromTexture[id.xy + uint2(-_jumpSize, -_jumpSize)].y + jumpSizeSQR : sdfCurrent;
+	float sdfLeft        = leftIsInBounds                    ? _FromTexture[id.xy + uint2(-_jumpSize,          0)].y + _jumpSize   : sdfCurrent;
+	float sdfLeftUp      = leftIsInBounds && upIsInBounds    ? _FromTexture[id.xy + uint2(-_jumpSize,  _jumpSize)].y + jumpSizeSQR : sdfCurrent;
 
 	result.y = min(
 		min(
 			min(
-				resultRight,
-				resultUp
+				min(
+					sdfRight,
+					sdfUp
+				),
+				min(
+					sdfDown,
+					sdfLeft
+				)
 			),
 			min(
-				resultDown,
-				resultLeft
+				min(
+					sdfUpRight,
+					sdfRightDown
+				),
+				min(
+					sdfDownLeft,
+					sdfLeftUp
+				)
 			)
 		),
-		result.y
+		sdfCurrent
 	);
 	_ToTexture[id.xy] = result;
 }

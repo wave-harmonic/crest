@@ -92,7 +92,6 @@ namespace Crest
         public void ShowValidationMessages()
         {
             IValidated target = (IValidated)this.target;
-            var ocean = FindObjectOfType<OceanRenderer>();
 
             // Enable rich text in help boxes. Store original so we can revert since this might be a "hack".
             var styleRichText = GUI.skin.GetStyle("HelpBox").richText;
@@ -107,7 +106,7 @@ namespace Crest
 
             // OceanRenderer isn't a hard requirement for validation to work. Null needs to be handled in each
             // component.
-            target.Validate(ocean, ValidatedHelper.HelpBox);
+            target.Validate(FindObjectOfType<OceanRenderer>(), ValidatedHelper.HelpBox);
 
             // We only want space before and after the list of help boxes. We don't want space between.
             var needsSpaceAbove = true;

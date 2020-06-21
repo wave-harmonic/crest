@@ -34,6 +34,7 @@ Shader "Crest/Inputs/Dynamic Waves/Object Interaction"
 			float _SimDeltaTime;
 			float _Strength;
 			float _Weight;
+			float _GridSize;
 			CBUFFER_END
 			
 			struct Attributes
@@ -98,7 +99,7 @@ Shader "Crest/Inputs/Dynamic Waves/Object Interaction"
 				}
 
 				// Accelerated velocities
-				return _Weight * half4(0., col.x*_SimDeltaTime, 0., 0.);
+				return 0.125 * sqrt(_GridSize) * _Weight * half4(0., col.x*_SimDeltaTime, 0., 0.);
 			}
 			ENDCG
 		}

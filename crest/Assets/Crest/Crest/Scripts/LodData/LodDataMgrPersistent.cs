@@ -131,6 +131,9 @@ namespace Crest
                 for (var lodIdx = lodCount - 1; lodIdx >= 0; lodIdx--)
                 {
                     buf.SetRenderTarget(_targets, _targets.depthBuffer, 0, CubemapFace.Unknown, lodIdx);
+
+                    buf.SetGlobalFloat("_GridSize", OceanRenderer.Instance._lodTransform._renderData[lodIdx]._texelWidth);
+
                     SubmitDraws(lodIdx, buf);
                 }
 

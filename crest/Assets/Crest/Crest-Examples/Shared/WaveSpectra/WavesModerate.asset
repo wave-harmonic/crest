@@ -17,7 +17,7 @@ MonoBehaviour:
   _waveDirectionVariance: 90
   _gravityScale: 1
   _smallWavelengthMultiplier: 1
-  _multiplier: 2.27
+  _multiplier: 1
   _powerLog:
   - -5.7439322
   - -5.141873
@@ -64,5 +64,5 @@ MonoBehaviour:
   - 1
   - 1
   - 1
-  _chop: 1.149
+  _chop: 1.5
   _showAdvancedControls: 0

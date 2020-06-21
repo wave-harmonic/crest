@@ -136,22 +136,22 @@ PrefabInstance:
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
       propertyPath: _minVel
-      value: 0.3
+      value: 0.4
       objectReference: {fileID: 0}
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
       propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[0].inSlope
-      value: 1.0526363
+      value: 1.3278935
       objectReference: {fileID: 0}
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
       propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[0].outSlope
-      value: 1.9160287
+      value: 1.3278935
       objectReference: {fileID: 0}
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
       propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[0].tangentMode
-      value: 1
+      value: 34
       objectReference: {fileID: 0}
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
@@ -166,22 +166,22 @@ PrefabInstance:
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
       propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[1].inSlope
-      value: 0.39978403
+      value: 1.3278935
       objectReference: {fileID: 0}
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
       propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[1].outSlope
-      value: 0.39978403
+      value: 1.3278935
       objectReference: {fileID: 0}
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
       propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[1].tangentMode
-      value: 0
+      value: 34
       objectReference: {fileID: 0}
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
       propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[1].inWeight
-      value: 0.12287324
+      value: 0.33333334
       objectReference: {fileID: 0}
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
@@ -221,7 +221,7 @@ PrefabInstance:
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
       propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[0].outWeight
-      value: 0.05860112
+      value: 0.33333334
       objectReference: {fileID: 0}
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
@@ -237,6 +237,11 @@ PrefabInstance:
         type: 3}
       propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[0].inWeight
       value: 0.33333334
+      objectReference: {fileID: 0}
+    - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
+        type: 3}
+      propertyPath: _logEvents
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6250038149528882544, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
@@ -297,6 +302,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: EmitParticlesWhenSubmerged (2)
+      objectReference: {fileID: 0}
+    - target: {fileID: 6250038149528882547, guid: 34a75d3090a1f5e4381b47d7f91a997e,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 34a75d3090a1f5e4381b47d7f91a997e, type: 3}
@@ -367,22 +377,22 @@ PrefabInstance:
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
       propertyPath: _minVel
-      value: 0.3
+      value: 0.4
       objectReference: {fileID: 0}
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
       propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[0].inSlope
-      value: 1.0526363
+      value: 1.3278935
       objectReference: {fileID: 0}
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
       propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[0].outSlope
-      value: 1.9160287
+      value: 1.3278935
       objectReference: {fileID: 0}
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
       propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[0].tangentMode
-      value: 1
+      value: 34
       objectReference: {fileID: 0}
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
@@ -397,22 +407,22 @@ PrefabInstance:
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
       propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[1].inSlope
-      value: 0.39978403
+      value: 1.3278935
       objectReference: {fileID: 0}
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
       propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[1].outSlope
-      value: 0.39978403
+      value: 1.3278935
       objectReference: {fileID: 0}
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
       propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[1].tangentMode
-      value: 0
+      value: 34
       objectReference: {fileID: 0}
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
       propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[1].inWeight
-      value: 0.12287324
+      value: 0.33333334
       objectReference: {fileID: 0}
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
@@ -452,7 +462,7 @@ PrefabInstance:
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
       propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[0].outWeight
-      value: 0.05860112
+      value: 0.33333334
       objectReference: {fileID: 0}
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
@@ -468,6 +478,11 @@ PrefabInstance:
         type: 3}
       propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[0].inWeight
       value: 0.33333334
+      objectReference: {fileID: 0}
+    - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
+        type: 3}
+      propertyPath: _logEvents
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6250038149528882544, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
@@ -529,6 +544,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: EmitParticlesWhenSubmerged (6)
       objectReference: {fileID: 0}
+    - target: {fileID: 6250038149528882547, guid: 34a75d3090a1f5e4381b47d7f91a997e,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 34a75d3090a1f5e4381b47d7f91a997e, type: 3}
 --- !u!4 &335396008 stripped
@@ -564,22 +584,22 @@ PrefabInstance:
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
       propertyPath: _minVel
-      value: 0.3
+      value: 0.4
       objectReference: {fileID: 0}
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
       propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[0].inSlope
-      value: 1.0526363
+      value: 1.3278935
       objectReference: {fileID: 0}
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
       propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[0].outSlope
-      value: 1.9160287
+      value: 1.3278935
       objectReference: {fileID: 0}
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
       propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[0].tangentMode
-      value: 1
+      value: 34
       objectReference: {fileID: 0}
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
@@ -594,22 +614,22 @@ PrefabInstance:
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
       propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[1].inSlope
-      value: 0.39978403
+      value: 1.3278935
       objectReference: {fileID: 0}
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
       propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[1].outSlope
-      value: 0.39978403
+      value: 1.3278935
       objectReference: {fileID: 0}
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
       propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[1].tangentMode
-      value: 0
+      value: 34
       objectReference: {fileID: 0}
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
       propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[1].inWeight
-      value: 0.12287324
+      value: 0.33333334
       objectReference: {fileID: 0}
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
@@ -649,7 +669,7 @@ PrefabInstance:
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
       propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[0].outWeight
-      value: 0.05860112
+      value: 0.33333334
       objectReference: {fileID: 0}
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
@@ -665,6 +685,11 @@ PrefabInstance:
         type: 3}
       propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[0].inWeight
       value: 0.33333334
+      objectReference: {fileID: 0}
+    - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
+        type: 3}
+      propertyPath: _logEvents
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6250038149528882544, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
@@ -726,6 +751,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: EmitParticlesWhenSubmerged (4)
       objectReference: {fileID: 0}
+    - target: {fileID: 6250038149528882547, guid: 34a75d3090a1f5e4381b47d7f91a997e,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 34a75d3090a1f5e4381b47d7f91a997e, type: 3}
 --- !u!4 &525336244 stripped
@@ -755,22 +785,22 @@ PrefabInstance:
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
       propertyPath: _minVel
-      value: 0.3
+      value: 0.4
       objectReference: {fileID: 0}
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
       propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[0].inSlope
-      value: 1.0526363
+      value: 1.3278935
       objectReference: {fileID: 0}
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
       propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[0].outSlope
-      value: 1.9160287
+      value: 1.3278935
       objectReference: {fileID: 0}
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
       propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[0].tangentMode
-      value: 1
+      value: 34
       objectReference: {fileID: 0}
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
@@ -785,22 +815,22 @@ PrefabInstance:
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
       propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[1].inSlope
-      value: 0.39978403
+      value: 1.3278935
       objectReference: {fileID: 0}
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
       propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[1].outSlope
-      value: 0.39978403
+      value: 1.3278935
       objectReference: {fileID: 0}
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
       propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[1].tangentMode
-      value: 0
+      value: 34
       objectReference: {fileID: 0}
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
       propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[1].inWeight
-      value: 0.12287324
+      value: 0.33333334
       objectReference: {fileID: 0}
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
@@ -840,7 +870,7 @@ PrefabInstance:
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
       propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[0].outWeight
-      value: 0.05860112
+      value: 0.33333334
       objectReference: {fileID: 0}
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
@@ -856,6 +886,11 @@ PrefabInstance:
         type: 3}
       propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[0].inWeight
       value: 0.33333334
+      objectReference: {fileID: 0}
+    - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
+        type: 3}
+      propertyPath: _logEvents
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6250038149528882544, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
@@ -917,6 +952,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: EmitParticlesWhenSubmerged (5)
       objectReference: {fileID: 0}
+    - target: {fileID: 6250038149528882547, guid: 34a75d3090a1f5e4381b47d7f91a997e,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 34a75d3090a1f5e4381b47d7f91a997e, type: 3}
 --- !u!4 &747971854 stripped
@@ -946,22 +986,22 @@ PrefabInstance:
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
       propertyPath: _minVel
-      value: 0.3
+      value: 0.4
       objectReference: {fileID: 0}
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
       propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[0].inSlope
-      value: 1.0526363
+      value: 1.3278935
       objectReference: {fileID: 0}
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
       propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[0].outSlope
-      value: 1.9160287
+      value: 1.3278935
       objectReference: {fileID: 0}
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
       propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[0].tangentMode
-      value: 1
+      value: 34
       objectReference: {fileID: 0}
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
@@ -976,22 +1016,22 @@ PrefabInstance:
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
       propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[1].inSlope
-      value: 0.39978403
+      value: 1.3278935
       objectReference: {fileID: 0}
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
       propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[1].outSlope
-      value: 0.39978403
+      value: 1.3278935
       objectReference: {fileID: 0}
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
       propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[1].tangentMode
-      value: 0
+      value: 34
       objectReference: {fileID: 0}
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
       propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[1].inWeight
-      value: 0.12287324
+      value: 0.33333334
       objectReference: {fileID: 0}
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
@@ -1031,7 +1071,7 @@ PrefabInstance:
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
       propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[0].outWeight
-      value: 0.05860112
+      value: 0.33333334
       objectReference: {fileID: 0}
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
@@ -1047,6 +1087,11 @@ PrefabInstance:
         type: 3}
       propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[0].inWeight
       value: 0.33333334
+      objectReference: {fileID: 0}
+    - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
+        type: 3}
+      propertyPath: _logEvents
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6250038149528882544, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
@@ -1107,6 +1152,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: EmitParticlesWhenSubmerged (7)
+      objectReference: {fileID: 0}
+    - target: {fileID: 6250038149528882547, guid: 34a75d3090a1f5e4381b47d7f91a997e,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 34a75d3090a1f5e4381b47d7f91a997e, type: 3}
@@ -1251,22 +1301,22 @@ PrefabInstance:
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
       propertyPath: _minVel
-      value: 0.3
+      value: 0.4
       objectReference: {fileID: 0}
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
       propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[0].inSlope
-      value: 1.0526363
+      value: 1.3278935
       objectReference: {fileID: 0}
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
       propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[0].outSlope
-      value: 1.9160287
+      value: 1.3278935
       objectReference: {fileID: 0}
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
       propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[0].tangentMode
-      value: 1
+      value: 34
       objectReference: {fileID: 0}
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
@@ -1281,22 +1331,22 @@ PrefabInstance:
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
       propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[1].inSlope
-      value: 0.39978403
+      value: 1.3278935
       objectReference: {fileID: 0}
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
       propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[1].outSlope
-      value: 0.39978403
+      value: 1.3278935
       objectReference: {fileID: 0}
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
       propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[1].tangentMode
-      value: 0
+      value: 34
       objectReference: {fileID: 0}
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
       propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[1].inWeight
-      value: 0.12287324
+      value: 0.33333334
       objectReference: {fileID: 0}
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
@@ -1336,7 +1386,7 @@ PrefabInstance:
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
       propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[0].outWeight
-      value: 0.05860112
+      value: 0.33333334
       objectReference: {fileID: 0}
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
@@ -1352,6 +1402,11 @@ PrefabInstance:
         type: 3}
       propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[0].inWeight
       value: 0.33333334
+      objectReference: {fileID: 0}
+    - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
+        type: 3}
+      propertyPath: _logEvents
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6250038149528882544, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
@@ -1413,6 +1468,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: EmitParticlesWhenSubmerged (1)
       objectReference: {fileID: 0}
+    - target: {fileID: 6250038149528882547, guid: 34a75d3090a1f5e4381b47d7f91a997e,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 34a75d3090a1f5e4381b47d7f91a997e, type: 3}
 --- !u!4 &1133410763 stripped
@@ -1436,22 +1496,22 @@ PrefabInstance:
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
       propertyPath: _minVel
-      value: 0.3
+      value: 0.4
       objectReference: {fileID: 0}
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
       propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[0].inSlope
-      value: 1.0526363
+      value: 1.3278935
       objectReference: {fileID: 0}
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
       propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[0].outSlope
-      value: 1.9160287
+      value: 1.3278935
       objectReference: {fileID: 0}
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
       propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[0].tangentMode
-      value: 1
+      value: 34
       objectReference: {fileID: 0}
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
@@ -1466,22 +1526,22 @@ PrefabInstance:
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
       propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[1].inSlope
-      value: 0.39978403
+      value: 1.3278935
       objectReference: {fileID: 0}
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
       propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[1].outSlope
-      value: 0.39978403
+      value: 1.3278935
       objectReference: {fileID: 0}
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
       propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[1].tangentMode
-      value: 0
+      value: 34
       objectReference: {fileID: 0}
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
       propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[1].inWeight
-      value: 0.12287324
+      value: 0.33333334
       objectReference: {fileID: 0}
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
@@ -1521,7 +1581,7 @@ PrefabInstance:
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
       propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[0].outWeight
-      value: 0.05860112
+      value: 0.33333334
       objectReference: {fileID: 0}
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
@@ -1537,6 +1597,11 @@ PrefabInstance:
         type: 3}
       propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[0].inWeight
       value: 0.33333334
+      objectReference: {fileID: 0}
+    - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
+        type: 3}
+      propertyPath: _logEvents
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6250038149528882544, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
@@ -1598,6 +1663,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: EmitParticlesWhenSubmerged (3)
       objectReference: {fileID: 0}
+    - target: {fileID: 6250038149528882547, guid: 34a75d3090a1f5e4381b47d7f91a997e,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 34a75d3090a1f5e4381b47d7f91a997e, type: 3}
 --- !u!4 &1259641542 stripped
@@ -1621,22 +1691,22 @@ PrefabInstance:
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
       propertyPath: _minVel
-      value: 0.3
+      value: 0.4
       objectReference: {fileID: 0}
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
       propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[0].inSlope
-      value: 1.0526363
+      value: 1.3278935
       objectReference: {fileID: 0}
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
       propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[0].outSlope
-      value: 1.9160287
+      value: 1.3278935
       objectReference: {fileID: 0}
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
       propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[0].tangentMode
-      value: 1
+      value: 34
       objectReference: {fileID: 0}
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
@@ -1651,22 +1721,22 @@ PrefabInstance:
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
       propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[1].inSlope
-      value: 0.39978403
+      value: 1.3278935
       objectReference: {fileID: 0}
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
       propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[1].outSlope
-      value: 0.39978403
+      value: 1.3278935
       objectReference: {fileID: 0}
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
       propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[1].tangentMode
-      value: 0
+      value: 34
       objectReference: {fileID: 0}
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
       propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[1].inWeight
-      value: 0.12287324
+      value: 0.33333334
       objectReference: {fileID: 0}
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
@@ -1706,7 +1776,7 @@ PrefabInstance:
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
       propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[0].outWeight
-      value: 0.05860112
+      value: 0.33333334
       objectReference: {fileID: 0}
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
@@ -1722,6 +1792,11 @@ PrefabInstance:
         type: 3}
       propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[0].inWeight
       value: 0.33333334
+      objectReference: {fileID: 0}
+    - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
+        type: 3}
+      propertyPath: _logEvents
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6250038149528882544, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
@@ -1783,6 +1858,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: EmitParticlesWhenSubmerged (9)
       objectReference: {fileID: 0}
+    - target: {fileID: 6250038149528882547, guid: 34a75d3090a1f5e4381b47d7f91a997e,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 34a75d3090a1f5e4381b47d7f91a997e, type: 3}
 --- !u!1001 &2066539054
@@ -1800,22 +1880,22 @@ PrefabInstance:
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
       propertyPath: _minVel
-      value: 0.3
+      value: 0.4
       objectReference: {fileID: 0}
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
       propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[0].inSlope
-      value: 1.0526363
+      value: 1.3278935
       objectReference: {fileID: 0}
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
       propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[0].outSlope
-      value: 1.9160287
+      value: 1.3278935
       objectReference: {fileID: 0}
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
       propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[0].tangentMode
-      value: 1
+      value: 34
       objectReference: {fileID: 0}
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
@@ -1830,22 +1910,22 @@ PrefabInstance:
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
       propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[1].inSlope
-      value: 0.39978403
+      value: 1.3278935
       objectReference: {fileID: 0}
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
       propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[1].outSlope
-      value: 0.39978403
+      value: 1.3278935
       objectReference: {fileID: 0}
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
       propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[1].tangentMode
-      value: 0
+      value: 34
       objectReference: {fileID: 0}
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
       propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[1].inWeight
-      value: 0.12287324
+      value: 0.33333334
       objectReference: {fileID: 0}
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
@@ -1885,7 +1965,7 @@ PrefabInstance:
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
       propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[0].outWeight
-      value: 0.05860112
+      value: 0.33333334
       objectReference: {fileID: 0}
     - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
@@ -1901,6 +1981,11 @@ PrefabInstance:
         type: 3}
       propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[0].inWeight
       value: 0.33333334
+      objectReference: {fileID: 0}
+    - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
+        type: 3}
+      propertyPath: _logEvents
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6250038149528882544, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
@@ -1962,6 +2047,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: EmitParticlesWhenSubmerged (8)
       objectReference: {fileID: 0}
+    - target: {fileID: 6250038149528882547, guid: 34a75d3090a1f5e4381b47d7f91a997e,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 34a75d3090a1f5e4381b47d7f91a997e, type: 3}
 --- !u!1001 &6250038149350409183
@@ -1971,116 +2061,6 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 306610653}
     m_Modifications:
-    - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
-        type: 3}
-      propertyPath: _initalVelVsWaterVel2.m_Curve.Array.size
-      value: 2
-      objectReference: {fileID: 0}
-    - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
-        type: 3}
-      propertyPath: _minVel
-      value: 0.3
-      objectReference: {fileID: 0}
-    - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
-        type: 3}
-      propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[0].inSlope
-      value: 1.0526363
-      objectReference: {fileID: 0}
-    - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
-        type: 3}
-      propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[0].outSlope
-      value: 1.9160287
-      objectReference: {fileID: 0}
-    - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
-        type: 3}
-      propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[0].tangentMode
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
-        type: 3}
-      propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[1].time
-      value: 4.0003295
-      objectReference: {fileID: 0}
-    - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
-        type: 3}
-      propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[1].value
-      value: 4.984118
-      objectReference: {fileID: 0}
-    - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
-        type: 3}
-      propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[1].inSlope
-      value: 0.39978403
-      objectReference: {fileID: 0}
-    - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
-        type: 3}
-      propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[1].outSlope
-      value: 0.39978403
-      objectReference: {fileID: 0}
-    - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
-        type: 3}
-      propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[1].tangentMode
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
-        type: 3}
-      propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[1].inWeight
-      value: 0.12287324
-      objectReference: {fileID: 0}
-    - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
-        type: 3}
-      propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[1].outWeight
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
-        type: 3}
-      propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[2].time
-      value: 2
-      objectReference: {fileID: 0}
-    - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
-        type: 3}
-      propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[2].value
-      value: 4
-      objectReference: {fileID: 0}
-    - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
-        type: 3}
-      propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[2].inSlope
-      value: 3
-      objectReference: {fileID: 0}
-    - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
-        type: 3}
-      propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[2].outSlope
-      value: 3
-      objectReference: {fileID: 0}
-    - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
-        type: 3}
-      propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[2].tangentMode
-      value: 34
-      objectReference: {fileID: 0}
-    - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
-        type: 3}
-      propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[2].inWeight
-      value: 0.33333334
-      objectReference: {fileID: 0}
-    - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
-        type: 3}
-      propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[0].outWeight
-      value: 0.05860112
-      objectReference: {fileID: 0}
-    - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
-        type: 3}
-      propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[0].time
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
-        type: 3}
-      propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[0].value
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 6250038149528882543, guid: 34a75d3090a1f5e4381b47d7f91a997e,
-        type: 3}
-      propertyPath: _initalVelVsWaterVel2.m_Curve.Array.data[0].inWeight
-      value: 0.33333334
-      objectReference: {fileID: 0}
     - target: {fileID: 6250038149528882544, guid: 34a75d3090a1f5e4381b47d7f91a997e,
         type: 3}
       propertyPath: m_LocalPosition.x

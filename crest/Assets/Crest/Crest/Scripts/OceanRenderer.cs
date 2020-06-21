@@ -260,7 +260,6 @@ namespace Crest
         float _viewerHeightAboveWaterSmooth = 0f;
 
         SampleHeightHelper _sampleHeightHelper = new SampleHeightHelper();
-        List<WaterBody> _waterBodies = new List<WaterBody>();
 
         public static OceanRenderer Instance { get; private set; }
 
@@ -921,15 +920,6 @@ namespace Crest
             }
         }
 #endif
-
-        public void RegisterWaterBody(WaterBody body)
-        {
-            _waterBodies.Add(body);
-        }
-        public void UnregisterWaterBody(WaterBody body)
-        {
-            _waterBodies.Remove(body);
-        }
     }
 
 #if UNITY_EDITOR

@@ -2,37 +2,41 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+using System.Collections.Generic;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 using UnityEngine;
 
 namespace Crest
 {
     /// <summary>
-    /// Demarcates an area where water is present in the world. If present, ocean tiles will be
+    /// Demarcates an AABB area where water is present in the world. If present, ocean tiles will be
     /// culled if they don't overlap any WaterBody.
     /// </summary>
-    public class WaterBody : MonoBehaviour
+    [ExecuteAlways]
+    public partial class WaterBody : MonoBehaviour
     {
 #pragma warning disable 414
         [Tooltip("Editor only: run validation checks on Start() to check for issues."), SerializeField]
         bool _runValidationOnStart = true;
 #pragma warning restore 414
 
+        public static List<WaterBody> WaterBodies => _waterBodies;
+        static List<WaterBody> _waterBodies = new List<WaterBody>();
+
         public Bounds AABB { get; private set; }
 
         private void OnEnable()
         {
-            if (OceanRenderer.Instance == null) return;
-
             CalculateBounds();
 
-            OceanRenderer.Instance.RegisterWaterBody(this);
+            _waterBodies.Add(this);
         }
 
         private void OnDisable()
         {
-            if (OceanRenderer.Instance == null) return;
-
-            OceanRenderer.Instance.UnregisterWaterBody(this);
+            _waterBodies.Remove(this);
         }
 
         private void CalculateBounds()
@@ -52,26 +56,49 @@ namespace Crest
         {
             if (_runValidationOnStart)
             {
-                Validate(OceanRenderer.Instance);
+                Validate(OceanRenderer.Instance, ValidatedHelper.DebugLog);
             }
         }
 
-        public void Validate(OceanRenderer ocean)
+        private void OnDrawGizmosSelected()
         {
-            if (transform.lossyScale.magnitude < 2f)
-            {
-                Debug.LogWarning($"Water body {gameObject.name} has a very small size (the size is set by the scale of its transform). This will be a very small body of water. Is this intentional?", this);
-            }
-        }
-
-        private void OnDrawGizmos()
-        {
-            Gizmos.color = Color.blue;
             // Required as we're not normally executing in edit mode
             CalculateBounds();
-            AABB.GizmosDraw();
-            Gizmos.color = Color.white;
+
+            var oldColor = Gizmos.color;
+            Gizmos.color = new Color(1f, 1f, 1f, 0.5f);
+            var center = AABB.center;
+            if (OceanRenderer.Instance != null && OceanRenderer.Instance.Root != null)
+            {
+                center.y = OceanRenderer.Instance.Root.position.y;
+            }
+            Gizmos.DrawCube(center, new Vector3(AABB.extents.x, 1f, AABB.extents.z));
+            Gizmos.color = oldColor;
         }
 #endif
     }
+
+#if UNITY_EDITOR
+    public partial class WaterBody : IValidated
+    {
+        public bool Validate(OceanRenderer ocean, ValidatedHelper.ShowMessage showMessage)
+        {
+            if (Mathf.Abs(transform.lossyScale.x) < 2f && Mathf.Abs(transform.lossyScale.z) < 2f)
+            {
+                showMessage
+                (
+                    $"Water body {gameObject.name} has a very small size (the size is set by the X & Z scale of its transform). This will be a very small body of water. Is this intentional?",
+                    ValidatedHelper.MessageType.Error, this
+                );
+
+                return false;
+            }
+
+            return true;
+        }
+    }
+
+    [CustomEditor(typeof(WaterBody), true), CanEditMultipleObjects]
+    class WaterBodyEditor : ValidatedEditor { }
+#endif
 }

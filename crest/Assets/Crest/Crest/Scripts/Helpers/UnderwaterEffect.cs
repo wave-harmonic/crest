@@ -34,6 +34,8 @@ namespace Crest
         bool _overrideSortingOrder = false;
         [Tooltip("If the draw order override is enabled use this new order value."), SerializeField]
         int _overridenSortingOrder = 0;
+        [Tooltip("Disable underwater effect outside areas defined by WaterBody scripts, if such areas are present."), SerializeField]
+        bool _turnOffOutsideWaterBodies = true;
 
         // how many vertical edges to add to curtain geometry
         const int GEOM_HORIZ_DIVISIONS = 64;
@@ -95,7 +97,7 @@ namespace Crest
             }
 #endif
 
-            if (OceanRenderer.Instance == null)
+            if (OceanRenderer.Instance == null || !ShowEffect())
             {
                 _rend.enabled = false;
                 return;
@@ -156,6 +158,32 @@ namespace Crest
 
                 _rend.SetPropertyBlock(_mpb.materialPropertyBlock);
             }
+        }
+
+        bool ShowEffect()
+        {
+            if (_turnOffOutsideWaterBodies && WaterBody.WaterBodies.Count > 0)
+            {
+                var inOne = false;
+                float x = transform.position.x, z = transform.position.z;
+                foreach (var body in WaterBody.WaterBodies)
+                {
+                    var bounds = body.AABB;
+                    if (x >= bounds.min.x && x <= bounds.max.x &&
+                        z >= bounds.min.z && z <= bounds.max.z)
+                    {
+                        inOne = true;
+                        break;
+                    }
+                }
+
+                if (!inOne)
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         static Mesh Mesh2DGrid(int dim0, int dim1, float start0, float start1, float width0, float width1, int divs0, int divs1)

@@ -94,13 +94,6 @@ namespace Crest
             IValidated target = (IValidated)this.target;
             var ocean = FindObjectOfType<OceanRenderer>();
 
-            // WaterBody
-            var waterBodies = FindObjectsOfType<WaterBody>();
-            foreach (var body in waterBodies)
-            {
-                body.Validate(ocean);
-            }
-
             // Enable rich text in help boxes. Store original so we can revert since this might be a "hack".
             var styleRichText = GUI.skin.GetStyle("HelpBox").richText;
             GUI.skin.GetStyle("HelpBox").richText = true;

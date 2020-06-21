@@ -3,9 +3,9 @@
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 using System.Collections.Generic;
-using UnityEditor;
 using UnityEngine;
 #if UNITY_EDITOR
+using UnityEditor;
 using UnityEditor.Experimental.SceneManagement;
 #endif
 
@@ -239,10 +239,6 @@ namespace Crest
         [HideInInspector] public LodDataMgrFoam _lodDataFoam;
         [HideInInspector] public LodDataMgrShadow _lodDataShadow;
 
-        List<LodDataMgr> _lodDatas = new List<LodDataMgr>();
-
-        List<OceanChunkRenderer> _oceanChunkRenderers = new List<OceanChunkRenderer>();
-
         /// <summary>
         /// The number of LODs/scales that the ocean is currently using.
         /// </summary>
@@ -252,6 +248,10 @@ namespace Crest
         /// Vertical offset of viewer vs water surface
         /// </summary>
         public float ViewerHeightAboveWater { get; private set; }
+
+        List<LodDataMgr> _lodDatas = new List<LodDataMgr>();
+
+        List<OceanChunkRenderer> _oceanChunkRenderers = new List<OceanChunkRenderer>();
 
         /// <summary>
         /// Smoothly varying version of viewer height to combat sudden changes in water level that are possible
@@ -264,9 +264,11 @@ namespace Crest
 
         public static OceanRenderer Instance { get; private set; }
 
-        // We are computing these values to be optimal based on the base mesh vertice density.
+        // We are computing these values to be optimal based on the base mesh vertex density.
         float _lodAlphaBlackPointFade;
         float _lodAlphaBlackPointWhitePointFade;
+
+        bool _canSkipCulling = false;
 
         readonly int sp_crestTime = Shader.PropertyToID("_CrestTime");
         readonly int sp_texelsPerWave = Shader.PropertyToID("_TexelsPerWave");
@@ -350,6 +352,8 @@ namespace Crest
             {
                 lodData.OnEnable();
             }
+
+            _canSkipCulling = false;
         }
 
         private void OnDisable()
@@ -745,15 +749,22 @@ namespace Crest
         {
             // If there are local bodies of water, this will do overlap tests between the ocean tiles
             // and the water bodies and turn off any that don't overlap.
-            if (_waterBodies.Count == 0) return;
+            if (WaterBody.WaterBodies.Count == 0 && _canSkipCulling)
+            {
+                return;
+            }
 
             foreach (OceanChunkRenderer tile in _oceanChunkRenderers)
             {
+                if (tile.Rend == null)
+                {
+                    continue;
+                }
+
                 var chunkBounds = tile.Rend.bounds;
 
                 var overlappingOne = false;
-                var overlappingY = 0f;
-                foreach (var body in _waterBodies)
+                foreach (var body in WaterBody.WaterBodies)
                 {
                     var bounds = body.AABB;
 
@@ -762,14 +773,16 @@ namespace Crest
                         bounds.max.z > chunkBounds.min.z && bounds.min.z < chunkBounds.max.z;
                     if (overlapping)
                     {
-                        overlappingY = bounds.center.y;
                         overlappingOne = true;
                         break;
                     }
                 }
 
-                tile.Rend.enabled = overlappingOne;
+                tile.Rend.enabled = overlappingOne || WaterBody.WaterBodies.Count == 0;
             }
+
+            // Can skip culling next time around if water body count stays at 0
+            _canSkipCulling = WaterBody.WaterBodies.Count == 0;
         }
 
         /// <summary>
@@ -848,11 +861,19 @@ namespace Crest
             _lodDataSeaDepths = null;
             _lodDataShadow = null;
 
-            CollisionProvider.CleanUp();
-            CollisionProvider = null;
+            if (CollisionProvider != null)
+            {
+                CollisionProvider.CleanUp();
+                CollisionProvider = null;
+            }
 
-            FlowProvider.CleanUp();
-            FlowProvider = null;
+            if (FlowProvider != null)
+            {
+                FlowProvider.CleanUp();
+                FlowProvider = null;
+            }
+
+            _oceanChunkRenderers.Clear();
         }
 
 #if UNITY_EDITOR

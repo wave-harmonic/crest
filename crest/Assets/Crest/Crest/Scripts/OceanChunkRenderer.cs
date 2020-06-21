@@ -15,7 +15,7 @@ namespace Crest
     {
         public bool _drawRenderBounds = false;
 
-        Bounds _boundsLocal;
+        public Bounds _boundsLocal;
         Mesh _mesh;
         public Renderer Rend { get; private set; }
         PropertyWrapperMPB _mpb;
@@ -36,7 +36,6 @@ namespace Crest
         {
             Rend = GetComponent<Renderer>();
             _mesh = GetComponent<MeshFilter>().sharedMesh;
-            _boundsLocal = _mesh.bounds;
 
             UpdateMeshBounds();
         }
@@ -147,11 +146,6 @@ namespace Crest
             _mpb.SetFloat(sp_ForceUnderwater, heightOffset < -2f ? 1f : 0f);
 
             Rend.SetPropertyBlock(_mpb.materialPropertyBlock);
-
-            if (_drawRenderBounds)
-            {
-                Rend.bounds.DebugDraw();
-            }
         }
 
         // this is called every frame because the bounds are given in world space and depend on the transform scale, which
@@ -189,6 +183,14 @@ namespace Crest
         {
             RenderPipelineManager.beginCameraRendering -= BeginCameraRendering;
             RenderPipelineManager.beginCameraRendering += BeginCameraRendering;
+        }
+
+        private void OnDrawGizmos()
+        {
+            if (_drawRenderBounds)
+            {
+                Rend.bounds.GizmosDraw();
+            }
         }
     }
 

@@ -28,25 +28,28 @@ Shader "Crest/Inputs/Depth/Initialise Signed Distance Field From Geometry"
 			{
 				float4 positionCS : SV_POSITION;
 				float depth : TEXCOORD0;
+				float2 worldPosXZ : TEXCOORD1;
 			};
 
 			Varyings Vert(Attributes input)
 			{
-				Varyings o;
-				o.positionCS = UnityObjectToClipPos(input.positionOS);
+				Varyings output;
+				output.positionCS = UnityObjectToClipPos(input.positionOS);
 
-				float altitude = mul(unity_ObjectToWorld, float4(input.positionOS, 1.0)).y;
+				float3 worldPos = mul(unity_ObjectToWorld, float4(input.positionOS, 1.0));
 
-				o.depth = _OceanCenterPosWorld.y - altitude;
+				output.depth = _OceanCenterPosWorld.y - worldPos.y;
+				output.worldPosXZ = worldPos.xz;
 
-				return o;
+
+				return output;
 			}
 
 			float4 Frag(Varyings input) : SV_Target
 			{
-				float depth = input.depth;
-				float signedDistance = depth <= 0.0f ? 0.0f : 1000.0f;
-				return float4(depth, signedDistance, 0.0f, 0.0f);
+				float depth    = input.depth;
+				float2 position = depth <= 0.0 ? input.worldPosXZ : float2(0.0, 0.0);
+				return float4(depth, 0.0, position.x, position.y);
 			}
 			ENDCG
 		}

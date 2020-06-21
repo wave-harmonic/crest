@@ -223,6 +223,12 @@ namespace Crest
         /// </summary>
         protected bool UpdateQueryPoints(int i_ownerHash, float i_minSpatialLength, Vector3[] queryPoints, Vector3[] queryNormals)
         {
+            if (queryPoints.Length + _segmentRegistrarRingBuffer.Current._numQueries > _maxQueryCount)
+            {
+                Debug.LogError($"Max query count ({_maxQueryCount}) exceeded, increase the max query count in the Animated Waves Settings to support a higher number of queries.");
+                return false;
+            }
+
             var segmentRetrieved = false;
             Vector2Int segment;
 
@@ -436,7 +442,7 @@ namespace Crest
                 ExecuteQueries();
 
                 // Remove oldest requests if we have hit the limit
-                while (_requests.Count >= _maxQueryCount)
+                while (_requests.Count >= s_maxRequests)
                 {
                     _requests.RemoveAt(0);
                 }
@@ -457,7 +463,7 @@ namespace Crest
             _shaderProcessQueries.SetBuffer(_kernelHandle, sp_queryPositions_minGridSizes, _computeBufQueries);
             BindInputsAndOutputs(_wrapper, _computeBufResults);
 
-            var numGroups = (int)Mathf.Ceil((float)_segmentRegistrarRingBuffer.Current._numQueries / (float)s_computeGroupSize) * s_computeGroupSize;
+            var numGroups = (_segmentRegistrarRingBuffer.Current._numQueries + s_computeGroupSize - 1) / s_computeGroupSize;
             _shaderProcessQueries.Dispatch(_kernelHandle, numGroups, 1, 1);
         }
 

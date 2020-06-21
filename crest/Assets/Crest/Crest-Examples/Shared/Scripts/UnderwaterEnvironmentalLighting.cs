@@ -25,6 +25,12 @@ namespace Crest
 
         void Start()
         {
+            if (OceanRenderer.Instance == null)
+            {
+                enabled = false;
+                return;
+            }
+
             _primaryLight = OceanRenderer.Instance._primaryLight;
 
             // Store lighting settings
@@ -61,6 +67,11 @@ namespace Crest
 
         void LateUpdate()
         {
+            if (OceanRenderer.Instance == null)
+            {
+                return;
+            }
+
             float depthMultiplier = Mathf.Exp(_averageDensity * 
                 Mathf.Min(OceanRenderer.Instance.ViewerHeightAboveWater * DEPTH_OUTSCATTER_CONSTANT, 0f));
 

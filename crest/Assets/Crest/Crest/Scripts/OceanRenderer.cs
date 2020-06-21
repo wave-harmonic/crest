@@ -3,9 +3,9 @@
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 using System.Collections.Generic;
-using UnityEditor;
 using UnityEngine;
 #if UNITY_EDITOR
+using UnityEditor;
 using UnityEditor.Experimental.SceneManagement;
 #endif
 

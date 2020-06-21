@@ -60,12 +60,20 @@ namespace Crest
             }
         }
 
-        private void OnDrawGizmos()
+        private void OnDrawGizmosSelected()
         {
-            Gizmos.color = Color.white;
             // Required as we're not normally executing in edit mode
             CalculateBounds();
-            AABB.GizmosDraw();
+
+            var oldColor = Gizmos.color;
+            Gizmos.color = new Color(1f, 1f, 1f, 0.5f);
+            var center = AABB.center;
+            if (OceanRenderer.Instance != null && OceanRenderer.Instance.Root != null)
+            {
+                center.y = OceanRenderer.Instance.Root.position.y;
+            }
+            Gizmos.DrawCube(center, new Vector3(AABB.extents.x, 1f, AABB.extents.z));
+            Gizmos.color = oldColor;
         }
 #endif
     }

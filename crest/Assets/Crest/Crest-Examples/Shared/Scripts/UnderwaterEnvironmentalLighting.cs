@@ -4,6 +4,10 @@
 
 using UnityEngine;
 
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+
 namespace Crest
 {
     /// <summary>
@@ -85,4 +89,22 @@ namespace Crest
             RenderSettings.fogDensity = Mathf.Lerp(0, _fogDensity, depthMultiplier);
         }
     }
+
+#if UNITY_EDITOR
+    [CustomEditor(typeof(UnderwaterEnvironmentalLighting))]
+    public class UnderwaterEnvironmentalLightingEditor : Editor
+    {
+        public override void OnInspectorGUI()
+        {
+            EditorGUILayout.Space();
+            EditorGUILayout.HelpBox("This is an example component that will likely require modification to work " +
+                "correctly with your project. It implements out-scattering when underwater. It does so, primarily, " +
+                "by changing the intensity of the primary light. The deeper underwater, the less intense the light. " +
+                "There may be unsuitable performance costs or required features to be enabled.", MessageType.Info);
+            EditorGUILayout.Space();
+
+            base.OnInspectorGUI();
+        }
+    }
+#endif
 }

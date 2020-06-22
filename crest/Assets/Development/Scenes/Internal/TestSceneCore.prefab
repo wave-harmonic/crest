@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 5000802075441277900}
   m_Layer: 0
-  m_Name: TestScene 1
+  m_Name: TestSceneCore
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -103,7 +103,7 @@ MonoBehaviour:
   _createShadowData: 0
   _simSettingsShadow: {fileID: 0}
   _createClipSurfaceData: 0
-  _showOceanProxyPlane: 0
+  _showOceanProxyPlane: 1
   _editModeFPS: 30
   _followSceneCamera: 1
   _attachDebugGUI: 1

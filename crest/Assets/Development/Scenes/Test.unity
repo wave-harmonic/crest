@@ -209,6 +209,11 @@ PrefabInstance:
       propertyPath: _spectrum
       value: 
       objectReference: {fileID: 525439133}
+    - target: {fileID: 5936305147766402612, guid: aae5df3f107964395909354f7f0ec49c,
+        type: 3}
+      propertyPath: _showOceanProxyPlane
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 5936305147822911460, guid: aae5df3f107964395909354f7f0ec49c,
         type: 3}
       propertyPath: m_LocalPosition.x

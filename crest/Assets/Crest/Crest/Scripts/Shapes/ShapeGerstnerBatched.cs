@@ -468,6 +468,10 @@ namespace Crest
 
         void UpdateBatch(GerstnerBatch batch, int batchIdx)
         {
+#if UNITY_EDITOR
+            if (_spectrum == null) return;
+#endif
+
             // Default to disabling all batches
             batch.HasWaves = false;
 
@@ -832,6 +836,17 @@ namespace Crest
             if (_mode == GerstnerMode.Geometry)
             {
                 isValid = ValidatedHelper.ValidateRenderer(gameObject, "Crest/Inputs/Animated Waves/Gerstner", showMessage);
+            }
+
+            if (_spectrum == null)
+            {
+                showMessage
+                (
+                    "There is no spectrum assigned meaning this Gerstner component won't generate any waves.",
+                    ValidatedHelper.MessageType.Warning, this
+                );
+
+                isValid = false;
             }
 
             if (_componentsPerOctave == 0)

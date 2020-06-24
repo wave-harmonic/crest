@@ -63,7 +63,7 @@ namespace Crest
             GetComponent<MeshFilter>().sharedMesh = Mesh2DGrid(0, 2, -0.5f, -0.5f, 1f, 1f, GEOM_HORIZ_DIVISIONS, 1);
 
 #if UNITY_EDITOR
-            if (!Validate(OceanRenderer.Instance, ValidatedHelper.DebugLog))
+            if (EditorApplication.isPlaying && !Validate(OceanRenderer.Instance, ValidatedHelper.DebugLog))
             {
                 enabled = false;
                 return;

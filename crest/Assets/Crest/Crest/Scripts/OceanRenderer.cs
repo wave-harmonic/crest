@@ -295,7 +295,7 @@ namespace Crest
             }
 
 #if UNITY_EDITOR
-            if (!Validate(this, ValidatedHelper.DebugLog))
+            if (EditorApplication.isPlaying && !Validate(this, ValidatedHelper.DebugLog))
             {
                 enabled = false;
                 return;

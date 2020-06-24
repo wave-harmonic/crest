@@ -17,7 +17,7 @@ namespace Crest
             enabled = false;
 
 #if UNITY_EDITOR
-            if (!Validate(OceanRenderer.Instance, ValidatedHelper.DebugLog))
+            if (EditorApplication.isPlaying && !Validate(OceanRenderer.Instance, ValidatedHelper.DebugLog))
             {
                 return;
             }

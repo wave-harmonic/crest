@@ -81,6 +81,11 @@ namespace Crest
         {
             if (OceanRenderer.Instance == null) return;
 
+#if UNITY_EDITOR
+            // This prevents the shader/material from going shader error pink.
+            if (!EditorApplication.isPlaying) return;
+#endif
+
             if (_copyParamsOnStartup)
             {
                 _rend.sharedMaterial.CopyPropertiesFromMaterial(OceanRenderer.Instance.OceanMaterial);

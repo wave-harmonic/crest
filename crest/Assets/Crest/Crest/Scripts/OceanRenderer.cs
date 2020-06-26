@@ -177,6 +177,7 @@ namespace Crest
             NothingClipped,
             EverythingClipped,
         }
+        [Tooltip("Whether to clip nothing by default (and clip inputs remove patches of surface), or to clip everything by default (and clip inputs add patches of surface).")]
         public DefaultClippingState _defaultClippingState = DefaultClippingState.NothingClipped;
 
         [Header("Edit Mode Params")]
@@ -274,7 +275,7 @@ namespace Crest
         readonly int sp_oceanCenterPosWorld = Shader.PropertyToID("_OceanCenterPosWorld");
         readonly int sp_meshScaleLerp = Shader.PropertyToID("_MeshScaleLerp");
         readonly int sp_sliceCount = Shader.PropertyToID("_SliceCount");
-        readonly int sp_clipByDefault = Shader.PropertyToID("_ClipByDefault");
+        readonly int sp_clipByDefault = Shader.PropertyToID("_CrestClipByDefault");
         readonly int sp_lodAlphaBlackPointFade = Shader.PropertyToID("_CrestLodAlphaBlackPointFade");
         readonly int sp_lodAlphaBlackPointWhitePointFade = Shader.PropertyToID("_CrestLodAlphaBlackPointWhitePointFade");
 
@@ -309,7 +310,7 @@ namespace Crest
             }
 
 #if UNITY_EDITOR
-            if (!Validate(this, ValidatedHelper.DebugLog))
+            if (EditorApplication.isPlaying && !Validate(this, ValidatedHelper.DebugLog))
             {
                 enabled = false;
                 return;

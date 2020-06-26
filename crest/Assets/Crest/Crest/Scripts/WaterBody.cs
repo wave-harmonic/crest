@@ -54,7 +54,7 @@ namespace Crest
 #if UNITY_EDITOR
         private void Start()
         {
-            if (_runValidationOnStart)
+            if (EditorApplication.isPlaying && _runValidationOnStart)
             {
                 Validate(OceanRenderer.Instance, ValidatedHelper.DebugLog);
             }

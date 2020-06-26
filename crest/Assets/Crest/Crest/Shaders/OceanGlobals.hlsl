@@ -17,7 +17,7 @@ float _TexelsPerWave;
 float3 _OceanCenterPosWorld;
 float _SliceCount;
 float _MeshScaleLerp;
-float _ClipByDefault;
+float _CrestClipByDefault;
 float _CrestLodAlphaBlackPointFade;
 float _CrestLodAlphaBlackPointWhitePointFade;
 

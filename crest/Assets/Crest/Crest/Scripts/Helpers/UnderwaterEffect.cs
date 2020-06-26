@@ -63,7 +63,7 @@ namespace Crest
             GetComponent<MeshFilter>().sharedMesh = Mesh2DGrid(0, 2, -0.5f, -0.5f, 1f, 1f, GEOM_HORIZ_DIVISIONS, 1);
 
 #if UNITY_EDITOR
-            if (!Validate(OceanRenderer.Instance, ValidatedHelper.DebugLog))
+            if (EditorApplication.isPlaying && !Validate(OceanRenderer.Instance, ValidatedHelper.DebugLog))
             {
                 enabled = false;
                 return;
@@ -80,6 +80,11 @@ namespace Crest
         void ConfigureMaterial()
         {
             if (OceanRenderer.Instance == null) return;
+
+#if UNITY_EDITOR
+            // This prevents the shader/material from going shader error pink.
+            if (!EditorApplication.isPlaying) return;
+#endif
 
             if (_copyParamsOnStartup)
             {

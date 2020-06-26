@@ -7,8 +7,8 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: ClipSurfaceConvexHull
-  m_Shader: {fileID: 4800000, guid: bc1b1d703e37c48fa9b8c4d0e107ae0c, type: 3}
+  m_Name: WaterBodyGerstnerPatch
+  m_Shader: {fileID: 4800000, guid: 575237b882fa60e4a9215a6d46e8abe5, type: 3}
   m_ShaderKeywords: 
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
@@ -57,10 +57,11 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Floats:
     - _BumpScale: 1
-    - _ColorWriteMask: 4
     - _Cutoff: 0.5
     - _DetailNormalMapScale: 1
     - _DstBlend: 0
+    - _FeatherAtUVExtents: 0
+    - _FeatherWidth: 0.1
     - _GlossMapScale: 1
     - _Glossiness: 0.5
     - _GlossyReflections: 1

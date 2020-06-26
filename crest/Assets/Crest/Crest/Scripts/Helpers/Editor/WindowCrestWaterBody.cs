@@ -144,7 +144,7 @@ namespace Crest
         {
             if (_clipMaterial == null)
             {
-                _clipMaterial = AssetDatabase.LoadAssetAtPath<Material>("Assets/Crest/Crest/Materials/OceanInputs/WaterBodyClipIncludeArea.mat");
+                _clipMaterial = AssetDatabase.LoadAssetAtPath<Material>("Assets/Crest/Crest/Materials/OceanInputs/ClipSurfaceIncludeArea.mat");
                 if (_clipMaterial == null) return false;
             }
 

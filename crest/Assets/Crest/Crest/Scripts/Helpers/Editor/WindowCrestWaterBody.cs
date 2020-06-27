@@ -93,6 +93,10 @@ namespace Crest
 
             _createClipArea = EditorGUILayout.BeginToggleGroup("Create Clip Area", _createClipArea);
             _clipMaterial = EditorGUILayout.ObjectField("Clip material", _clipMaterial, typeof(Material), false) as Material;
+            if (_createClipArea)
+            {
+                EditorGUILayout.HelpBox("Create Clip Surface Data should be enabled on the OceanRnederer component, and the Default Clipping State should be set to Everything Clipped.", MessageType.Info);
+            }
             EditorGUILayout.EndToggleGroup();
 
             if (EditorGUI.EndChangeCheck())

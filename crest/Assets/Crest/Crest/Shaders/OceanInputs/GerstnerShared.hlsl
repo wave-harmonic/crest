@@ -68,7 +68,7 @@ half4 ComputeGerstner(float2 worldPosXZ, float3 uv_slice)
 		half4 k = _TwoPiOverWavelengths[vi];
 		// spatial location
 		half4 x = Dx * worldPosXZ.x + Dz * worldPosXZ.y;
-		half4 angle = k * x + _Phases[vi];
+		half4 angle = k * x - _Phases[vi];
 
 		// dx and dz could be baked into _ChopAmps
 		half4 disp = _ChopAmps[vi] * sin(angle);

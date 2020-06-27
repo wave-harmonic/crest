@@ -583,7 +583,7 @@ namespace Crest
                 float k = 2f * Mathf.PI / _wavelengths[j];
 
                 float x = Vector2.Dot(D, pos);
-                float t = k * (x + C * mytime) + _phases[j];
+                float t = k * (x - C * mytime) + _phases[j];
                 float disp = -_spectrum._chop * k * C * Mathf.Cos(t);
                 o_surfaceVel += _amplitudes[j] * new Vector3(
                     D.x * disp,
@@ -666,7 +666,7 @@ namespace Crest
                 float k = 2f * Mathf.PI / _wavelengths[j];
 
                 float x = Vector2.Dot(D, pos);
-                float t = k * (x + C * mytime) + _phases[j];
+                float t = k * (x - C * mytime) + _phases[j];
                 float disp = k * -_spectrum._chop * Mathf.Cos(t);
                 float dispx = D.x * disp;
                 float dispz = D.y * disp;
@@ -708,7 +708,7 @@ namespace Crest
                 float k = 2f * Mathf.PI / _wavelengths[j];
 
                 float x = Vector2.Dot(D, pos);
-                float t = k * (x + C * mytime) + _phases[j];
+                float t = k * (x - C * mytime) + _phases[j];
                 float disp = -_spectrum._chop * Mathf.Sin(t);
                 o_displacement += _amplitudes[j] * new Vector3(
                     D.x * disp,

@@ -273,16 +273,8 @@ namespace Crest
             {
                 rend = GetComponent<MeshRenderer>();
 
-                if (!rend)
+                if (rend == null)
                 {
-                    Debug.LogError($"Gerstner input '{gameObject.name}' has Mode set to Geometry, but no MeshRenderer component is attached. Please attach a MeshRenderer to provide the geometry for rendering the Gerstner waves.", this);
-                    enabled = false;
-                    return;
-                }
-                if (!rend.sharedMaterial)
-                {
-                    Debug.LogError($"Gerstner input '{gameObject.name}' has Mode set to Geometry, but the geometry has no material assigned. Please assign a material that uses one of the Gerstner input shaders.", this);
-                    enabled = false;
                     return;
                 }
 
@@ -290,11 +282,6 @@ namespace Crest
             }
             else if (_mode == GerstnerMode.Global)
             {
-                if (GetComponent<MeshRenderer>() != null)
-                {
-                    Debug.LogWarning($"Gerstner input '{gameObject.name}' has MeshRenderer component that will be ignored because the Mode is set to Global.", this);
-                }
-
                 // Create a proxy MeshRenderer to feed the rendering
                 var renderProxy = GameObject.CreatePrimitive(PrimitiveType.Quad);
 #if UNITY_EDITOR
@@ -836,6 +823,17 @@ namespace Crest
             if (_mode == GerstnerMode.Geometry)
             {
                 isValid = ValidatedHelper.ValidateRenderer(gameObject, "Crest/Inputs/Animated Waves/Gerstner", showMessage);
+            }
+
+            if (_mode == GerstnerMode.Global && GetComponent<MeshRenderer>() != null)
+            {
+                showMessage
+                (
+                    "The MeshRenderer component will be ignored because the Mode is set to Global.",
+                    ValidatedHelper.MessageType.Warning, this
+                );
+
+                isValid = false;
             }
 
             if (_spectrum == null)

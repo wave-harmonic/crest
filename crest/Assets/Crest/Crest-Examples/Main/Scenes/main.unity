@@ -363,7 +363,7 @@ Transform:
   - {fileID: 347257547}
   - {fileID: 450064600}
   m_Father: {fileID: 0}
-  m_RootOrder: 2
+  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &104585987
 MonoBehaviour:
@@ -383,75 +383,6 @@ MonoBehaviour:
   _orthogonalMotion: 0
   _rotationFreq: 1
   _rotationVel: 0
---- !u!1001 &297897775
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    m_TransformParent: {fileID: 0}
-    m_Modifications:
-    - target: {fileID: 6201845813285292510, guid: 0d0a689219f534745b663e4b5ad110d5,
-        type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 81.3
-      objectReference: {fileID: 0}
-    - target: {fileID: 6201845813285292510, guid: 0d0a689219f534745b663e4b5ad110d5,
-        type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 5
-      objectReference: {fileID: 0}
-    - target: {fileID: 6201845813285292510, guid: 0d0a689219f534745b663e4b5ad110d5,
-        type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 78.38
-      objectReference: {fileID: 0}
-    - target: {fileID: 6201845813285292510, guid: 0d0a689219f534745b663e4b5ad110d5,
-        type: 3}
-      propertyPath: m_LocalRotation.x
-      value: -0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6201845813285292510, guid: 0d0a689219f534745b663e4b5ad110d5,
-        type: 3}
-      propertyPath: m_LocalRotation.y
-      value: -0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6201845813285292510, guid: 0d0a689219f534745b663e4b5ad110d5,
-        type: 3}
-      propertyPath: m_LocalRotation.z
-      value: -0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6201845813285292510, guid: 0d0a689219f534745b663e4b5ad110d5,
-        type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 6201845813285292510, guid: 0d0a689219f534745b663e4b5ad110d5,
-        type: 3}
-      propertyPath: m_RootOrder
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 6201845813285292510, guid: 0d0a689219f534745b663e4b5ad110d5,
-        type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6201845813285292510, guid: 0d0a689219f534745b663e4b5ad110d5,
-        type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6201845813285292510, guid: 0d0a689219f534745b663e4b5ad110d5,
-        type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6201845813285292513, guid: 0d0a689219f534745b663e4b5ad110d5,
-        type: 3}
-      propertyPath: m_Name
-      value: Spinner
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: 0d0a689219f534745b663e4b5ad110d5, type: 3}
 --- !u!1 &306610652
 GameObject:
   m_ObjectHideFlags: 0
@@ -1432,7 +1363,7 @@ PrefabInstance:
     - target: {fileID: 1935528129688418602, guid: ddf71bfb72c45407fb8cea42d3aaeac4,
         type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4340091527242924124, guid: ddf71bfb72c45407fb8cea42d3aaeac4,
         type: 3}
@@ -1457,12 +1388,12 @@ PrefabInstance:
     - target: {fileID: 5936606776992183399, guid: ddf71bfb72c45407fb8cea42d3aaeac4,
         type: 3}
       propertyPath: m_BoundingSphereOverride.y
-      value: 1.04e-43
+      value: -0.0000000013485568
       objectReference: {fileID: 0}
     - target: {fileID: 5936606776992183399, guid: ddf71bfb72c45407fb8cea42d3aaeac4,
         type: 3}
       propertyPath: m_BoundingSphereOverride.z
-      value: 8.17e-43
+      value: 6.9e-43
       objectReference: {fileID: 0}
     - target: {fileID: 5936606776992183399, guid: ddf71bfb72c45407fb8cea42d3aaeac4,
         type: 3}
@@ -1472,7 +1403,7 @@ PrefabInstance:
     - target: {fileID: 5936606776992183399, guid: ddf71bfb72c45407fb8cea42d3aaeac4,
         type: 3}
       propertyPath: m_BoundingSphereOverride.x
-      value: 5.332e-42
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6133608929023231975, guid: ddf71bfb72c45407fb8cea42d3aaeac4,
         type: 3}
@@ -1525,6 +1456,11 @@ PrefabInstance:
         type: 3}
       propertyPath: _createClipSurfaceData
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8066748594655780890, guid: ddf71bfb72c45407fb8cea42d3aaeac4,
+        type: 3}
+      propertyPath: _lodDataResolution
+      value: 384
       objectReference: {fileID: 0}
     - target: {fileID: 9037604615445586465, guid: ddf71bfb72c45407fb8cea42d3aaeac4,
         type: 3}

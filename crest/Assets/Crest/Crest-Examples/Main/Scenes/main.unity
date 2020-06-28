@@ -161,7 +161,7 @@ PrefabInstance:
     - target: {fileID: 7875352124311410512, guid: ddf71bfb72c45407fb8cea42d3aaeac4,
         type: 3}
       propertyPath: _forceAlwaysUpdateDebug
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8066748594655780890, guid: ddf71bfb72c45407fb8cea42d3aaeac4,
         type: 3}

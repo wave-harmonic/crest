@@ -171,6 +171,13 @@ namespace Crest
         [Tooltip("Clip surface information for clipping the ocean surface."), SerializeField]
         bool _createClipSurfaceData = false;
         public bool CreateClipSurfaceData { get { return _createClipSurfaceData; } }
+        public enum DefaultClippingState
+        {
+            NothingClipped,
+            EverythingClipped,
+        }
+        [Tooltip("Whether to clip nothing by default (and clip inputs remove patches of surface), or to clip everything by default (and clip inputs add patches of surface).")]
+        public DefaultClippingState _defaultClippingState = DefaultClippingState.NothingClipped;
 
         [Header("Edit Mode Params")]
 
@@ -232,8 +239,6 @@ namespace Crest
         [HideInInspector] public LodDataMgrFoam _lodDataFoam;
         [HideInInspector] public LodDataMgrShadow _lodDataShadow;
 
-        List<LodDataMgr> _lodDatas = new List<LodDataMgr>();
-
         /// <summary>
         /// The number of LODs/scales that the ocean is currently using.
         /// </summary>
@@ -244,19 +249,26 @@ namespace Crest
         /// </summary>
         public float ViewerHeightAboveWater { get; private set; }
 
+        List<LodDataMgr> _lodDatas = new List<LodDataMgr>();
+
+        List<OceanChunkRenderer> _oceanChunkRenderers = new List<OceanChunkRenderer>();
+
         SampleHeightHelper _sampleHeightHelper = new SampleHeightHelper();
 
         public static OceanRenderer Instance { get; private set; }
 
-        // We are computing these values to be optimal based on the base mesh vertice density.
+        // We are computing these values to be optimal based on the base mesh vertex density.
         float _lodAlphaBlackPointFade;
         float _lodAlphaBlackPointWhitePointFade;
+
+        bool _canSkipCulling = false;
 
         readonly int sp_crestTime = Shader.PropertyToID("_CrestTime");
         readonly int sp_texelsPerWave = Shader.PropertyToID("_TexelsPerWave");
         readonly int sp_oceanCenterPosWorld = Shader.PropertyToID("_OceanCenterPosWorld");
         readonly int sp_meshScaleLerp = Shader.PropertyToID("_MeshScaleLerp");
         readonly int sp_sliceCount = Shader.PropertyToID("_SliceCount");
+        readonly int sp_clipByDefault = Shader.PropertyToID("_CrestClipByDefault");
         readonly int sp_lodAlphaBlackPointFade = Shader.PropertyToID("_CrestLodAlphaBlackPointFade");
         readonly int sp_lodAlphaBlackPointWhitePointFade = Shader.PropertyToID("_CrestLodAlphaBlackPointWhitePointFade");
 
@@ -291,7 +303,7 @@ namespace Crest
             }
 
 #if UNITY_EDITOR
-            if (!Validate(this, ValidatedHelper.DebugLog))
+            if (EditorApplication.isPlaying && !Validate(this, ValidatedHelper.DebugLog))
             {
                 enabled = false;
                 return;
@@ -312,7 +324,7 @@ namespace Crest
             // We could calculate this in the shader, but we can save two subtractions this way.
             _lodAlphaBlackPointWhitePointFade = 1f - _lodAlphaBlackPointFade - _lodAlphaBlackPointFade;
 
-            Root = OceanBuilder.GenerateMesh(this, _lodDataResolution, _geometryDownSampleFactor, _lodCount);
+            Root = OceanBuilder.GenerateMesh(this, _oceanChunkRenderers, _lodDataResolution, _geometryDownSampleFactor, _lodCount);
 
             CreateDestroySubSystems();
 
@@ -333,6 +345,8 @@ namespace Crest
             {
                 lodData.OnEnable();
             }
+
+            _canSkipCulling = false;
         }
 
         private void OnDisable()
@@ -595,6 +609,7 @@ namespace Crest
             Shader.SetGlobalFloat(sp_texelsPerWave, MinTexelsPerWave);
             Shader.SetGlobalFloat(sp_crestTime, CurrentTime);
             Shader.SetGlobalFloat(sp_sliceCount, CurrentLodCount);
+            Shader.SetGlobalFloat(sp_clipByDefault, _defaultClippingState == DefaultClippingState.EverythingClipped ? 1f : 0f);
             Shader.SetGlobalFloat(sp_lodAlphaBlackPointFade, _lodAlphaBlackPointFade);
             Shader.SetGlobalFloat(sp_lodAlphaBlackPointWhitePointFade, _lodAlphaBlackPointWhitePointFade);
 
@@ -625,6 +640,11 @@ namespace Crest
             CreateDestroySubSystems();
 
             LateUpdateLods();
+
+            if (Viewpoint != null)
+            {
+                LateUpdateTiles();
+            }
 
 #if UNITY_EDITOR
             if (EditorApplication.isPlaying || !_showOceanProxyPlane)
@@ -711,6 +731,46 @@ namespace Crest
             _lodDataShadow?.UpdateLodData();
         }
 
+        void LateUpdateTiles()
+        {
+            // If there are local bodies of water, this will do overlap tests between the ocean tiles
+            // and the water bodies and turn off any that don't overlap.
+            if (WaterBody.WaterBodies.Count == 0 && _canSkipCulling)
+            {
+                return;
+            }
+
+            foreach (OceanChunkRenderer tile in _oceanChunkRenderers)
+            {
+                if (tile.Rend == null)
+                {
+                    continue;
+                }
+
+                var chunkBounds = tile.Rend.bounds;
+
+                var overlappingOne = false;
+                foreach (var body in WaterBody.WaterBodies)
+                {
+                    var bounds = body.AABB;
+
+                    bool overlapping =
+                        bounds.max.x > chunkBounds.min.x && bounds.min.x < chunkBounds.max.x &&
+                        bounds.max.z > chunkBounds.min.z && bounds.min.z < chunkBounds.max.z;
+                    if (overlapping)
+                    {
+                        overlappingOne = true;
+                        break;
+                    }
+                }
+
+                tile.Rend.enabled = overlappingOne || WaterBody.WaterBodies.Count == 0;
+            }
+
+            // Can skip culling next time around if water body count stays at 0
+            _canSkipCulling = WaterBody.WaterBodies.Count == 0;
+        }
+
         /// <summary>
         /// Could the ocean horizontal scale increase (for e.g. if the viewpoint gains altitude). Will be false if ocean already at maximum scale.
         /// </summary>
@@ -787,11 +847,19 @@ namespace Crest
             _lodDataSeaDepths = null;
             _lodDataShadow = null;
 
-            CollisionProvider.CleanUp();
-            CollisionProvider = null;
+            if (CollisionProvider != null)
+            {
+                CollisionProvider.CleanUp();
+                CollisionProvider = null;
+            }
 
-            FlowProvider.CleanUp();
-            FlowProvider = null;
+            if (FlowProvider != null)
+            {
+                FlowProvider.CleanUp();
+                FlowProvider = null;
+            }
+
+            _oceanChunkRenderers.Clear();
         }
 
 #if UNITY_EDITOR

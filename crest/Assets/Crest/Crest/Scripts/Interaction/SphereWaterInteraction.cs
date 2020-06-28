@@ -93,12 +93,6 @@ namespace Crest
             int simsActive;
             if (!LateUpdateCountOverlappingSims(out simsActive, out int simsPresent))
             {
-                if (simsPresent == 0)
-                {
-                    // Counting non-existent sims is expensive - stop updating if none found
-                    enabled = false;
-                }
-
                 // No sims running - abort. don't bother switching off renderer - camera wont be active
                 return;
             }

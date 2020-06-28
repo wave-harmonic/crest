@@ -70,32 +70,33 @@ Shader "Hidden/Crest/Inputs/Animated Waves/Gerstner Batch Global"
 
 			half4 Frag(Varyings input) : SV_Target
 			{
-				//return ComputeGerstner(input.worldPosXZ, input.uv_slice);
 				half3 distance_dirXZ = _LD_TexArray_SeaFloorDepth.Sample(LODData_linear_clamp_sampler, input.uv_slice).yzw;
 				float2 headingvec = distance_dirXZ.yz;
-				//float2 headingvec = float2(24.0 + 10.*sin(input.worldPosXZ.x / 10.), 3.0 + 15.*cos(input.worldPosXZ.y / 7.)) - input.worldPosXZ;
-
 				float inangle = atan2(headingvec.y, headingvec.x);
 
-				// Quantize the direction
-				float angle = inangle;
-				float dangle = PI / 32.0;
-				float angleAlpha = 1.0;
-				Quantize(inangle, dangle, angle, angleAlpha);
 
-				// Compute the waves for nearest quantized directions, blend
-				half4 waves0 = ComputeGerstner(angle, input.worldPosXZ, input.uv_slice);
-				half4 waves1 = ComputeGerstner(angle + dangle, input.worldPosXZ, input.uv_slice);
-
-				half4 directionalWaves = lerp(waves0, waves1, angleAlpha);
-
-				half4 wavesUndir = ComputeGerstner(input.worldPosXZ, input.uv_slice);
-
-				//return directionalWaves;
-				//return wavesUndir;
 				const float lerpDistance = 250.0;
-				float directionalStrengh = (min(distance_dirXZ.x, lerpDistance) / lerpDistance);
-				return lerp(directionalWaves, wavesUndir, directionalStrengh);
+				float directionalStrengh = 1.0 - clamp(distance_dirXZ.x / lerpDistance, 0.0, 1.0);
+				half4 directionalWaves;
+				half4 uniformWaves;
+				{
+					// Quantize the direction
+					float angle = inangle;
+					float dangle = PI / 32.0;
+					float angleAlpha = 1.0;
+					Quantize(inangle, dangle, angle, angleAlpha);
+
+					// Compute the waves for nearest quantized directions, blend
+					float4 waves0 = ComputeGerstner(input.worldPosXZ, input.uv_slice, -float2(cos(angle), sin(angle)));
+					float4 waves1 = ComputeGerstner(input.worldPosXZ, input.uv_slice, -float2(cos(angle + dangle), sin(angle + dangle)));
+					directionalWaves = lerp(waves0, waves1, angleAlpha);
+				}
+
+				float4 result = ComputeGerstner(input.worldPosXZ, input.uv_slice, float2(1, 0));
+
+				result = lerp(result, directionalWaves, directionalStrengh);
+
+				return result;
 			}
 			ENDCG
 		}

@@ -23,30 +23,12 @@ half4 _ChopAmps[BATCH_SIZE / 4];
 float4 _TargetPointData;
 CBUFFER_END
 
-half4 ComputeGerstner(float2 worldPosXZ, float3 uv_slice)
+half4 ComputeGerstner(float2 worldPosXZ, float3 uv_slice, float2 blendBias)
 {
 	float2 displacementNormalized = 0.0;
 
-	// TODO(TRC):Now do something sensible here
 	// sample ocean depth (this render target should 1:1 match depth texture, so UVs are trivial)
 	const half depth = _LD_TexArray_SeaFloorDepth.Sample(LODData_linear_clamp_sampler, uv_slice).x;
-	// const half depth = 1000; //_LD_TexArray_SeaFloorDepth.Sample(LODData_linear_clamp_sampler, uv_slice).y;
-
-	// Preferred wave directions
-// #if CREST_DIRECT_TOWARDS_POINT_INTERNAL
-	// float2 offset = worldPosXZ - _TargetPointData.xy;
-	// float preferDist = length(offset);
-	// float preferWt = smoothstep(_TargetPointData.w, _TargetPointData.z, preferDist);
-	// half2 preferredDir = preferWt * offset / preferDist;
-	// half4 preferredDirX = preferredDir.x;
-	// half4 preferredDirZ = preferredDir.y;
-
-	// TODO(TRC):Now figure-out some actual maths here
-	// half3 distance_dirXZ = _LD_TexArray_SeaFloorDepth.Sample(LODData_linear_clamp_sampler, uv_slice).yzw;
-	// half2 preferredDir = (distance_dirXZ.yz * -1.0 / ((distance_dirXZ.x / 10.0) + 1.0));
-	// half preferredDirX = preferredDir.x;
-	// half preferredDirZ = preferredDir.y;
-// #endif
 
 	half3 result = (half3)0.0;
 
@@ -64,98 +46,8 @@ half4 ComputeGerstner(float2 worldPosXZ, float3 uv_slice)
 	for (uint vi = 0; vi < _NumWaveVecs; vi++)
 	{
 		// direction
-		half4 Dx = _WaveDirX[vi];
-		half4 Dz = _WaveDirZ[vi];
-
-		// Peferred wave direction
-// #if CREST_DIRECT_TOWARDS_POINT_INTERNAL
-		// Dx += preferredDirX;
-		// Dz += preferredDirZ;
-		//wt *= max((1.0 + Dx * preferredDirX + Dz * preferredDirZ) / 2.0, 0.1);
-// #endif
-
-		// wave number
-		half4 k = _TwoPiOverWavelengths[vi];
-		// spatial location
-		half4 x = Dx * worldPosXZ.x + Dz * worldPosXZ.y;
-		half4 angle = k * x + _Phases[vi];
-
-		// dx and dz could be baked into _ChopAmps
-		half4 disp = _ChopAmps[vi] * sin(angle);
-		half4 resultx = disp * Dx;
-		half4 resultz = disp * Dz;
-
-		half4 resulty = _Amplitudes[vi] * cos(angle);
-
-		// sum the vector results
-		result.x += dot(resultx, wt);
-		result.y += dot(resulty, wt);
-		result.z += dot(resultz, wt);
-
-		half4 sssFactor = min(1.0, _TwoPiOverWavelengths[vi]);
-		displacementNormalized.x += dot(resultx * sssFactor, wt);
-		displacementNormalized.y += dot(resultz * sssFactor, wt);
-	}
-
-	half sss = length(displacementNormalized);
-
-	return _Weight * half4(result, sss);
-}
-
-
-half4 ComputeGerstner(float windAngle, float2 worldPosXZ, float3 uv_slice)
-{
-	float2 zaxis = -float2(cos(windAngle), sin(windAngle));
-	float2 xaxis; xaxis.x = -zaxis.y; xaxis.y = zaxis.x;
-
-	float2 displacementNormalized = 0.0;
-
-	// TODO(TRC):Now do something sensible here
-	// sample ocean depth (this render target should 1:1 match depth texture, so UVs are trivial)
-	const half depth = _LD_TexArray_SeaFloorDepth.Sample(LODData_linear_clamp_sampler, uv_slice).x;
-	//const half depth = 1000; //_LD_TexArray_SeaFloorDepth.Sample(LODData_linear_clamp_sampler, uv_slice).y;
-
-	// Preferred wave directions
-// #if CREST_DIRECT_TOWARDS_POINT_INTERNAL
-	// float2 offset = worldPosXZ - _TargetPointData.xy;
-	// float preferDist = length(offset);
-	// float preferWt = smoothstep(_TargetPointData.w, _TargetPointData.z, preferDist);
-	// half2 preferredDir = preferWt * offset / preferDist;
-	// half4 preferredDirX = preferredDir.x;
-	// half4 preferredDirZ = preferredDir.y;
-
-	// TODO(TRC):Now figure-out some actual maths here
-	// half3 distance_dirXZ = _LD_TexArray_SeaFloorDepth.Sample(LODData_linear_clamp_sampler, uv_slice).yzw;
-	// half2 preferredDir = (distance_dirXZ.yz * -1.0 / ((distance_dirXZ.x / 10.0) + 1.0));
-	// half preferredDirX = preferredDir.x;
-	// half preferredDirZ = preferredDir.y;
-// #endif
-
-	half3 result = (half3)0.0;
-
-	// attenuate waves based on ocean depth. if depth is greater than 0.5*wavelength, water is considered Deep and wave is
-	// unaffected. if depth is less than this, wave velocity decreases. waves will then bunch up and grow in amplitude and
-	// eventually break. i model "Deep" water, but then simply ramp down waves in non-deep water with a linear multiplier.
-	// http://hyperphysics.phy-astr.gsu.edu/hbase/Waves/watwav2.html
-	// http://hyperphysics.phy-astr.gsu.edu/hbase/watwav.html#c1
-	// optimisation - do this outside the loop below - take the median wavelength for depth weighting, intead of computing
-	// per component. computing per component makes little difference to the end result
-	half depth_wt = saturate(depth * _TwoPiOverWavelengths[_NumWaveVecs / 2].x / PI);
-	half4 wt = _AttenuationInShallows * depth_wt + (1.0 - _AttenuationInShallows);
-
-	// gerstner computation is vectorized - processes 4 wave components at once
-	for (uint vi = 0; vi < _NumWaveVecs; vi++)
-	{
-		// direction
-		half4 Dx = _WaveDirX[vi] * zaxis.x + _WaveDirZ[vi] * xaxis.x;
-		half4 Dz = _WaveDirX[vi] * zaxis.y + _WaveDirZ[vi] * xaxis.y;
-
-		// Peferred wave direction
-// #if CREST_DIRECT_TOWARDS_POINT_INTERNAL
-		// Dx += preferredDirX;
-		// Dz += preferredDirZ;
-		//wt *= max((1.0 + Dx * preferredDirX + Dz * preferredDirZ) / 2.0, 0.1);
-// #endif
+		float4 Dx = (_WaveDirX[vi] * blendBias.x + _WaveDirZ[vi] * -blendBias.y);
+		float4 Dz = (_WaveDirX[vi] * blendBias.y + _WaveDirZ[vi] *  blendBias.x);
 
 		// wave number
 		half4 k = _TwoPiOverWavelengths[vi];

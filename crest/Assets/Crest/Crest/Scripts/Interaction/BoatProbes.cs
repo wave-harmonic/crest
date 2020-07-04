@@ -87,6 +87,17 @@ namespace Crest
             _queryResultVels = new Vector3[_forcePoints.Length + 1];
         }
 
+        private void OnDisable()
+        {
+            _sampleFlowHelper.StopQueries();
+
+            var collProvider = OceanRenderer.Instance?.CollisionProvider;
+            if (collProvider != null)
+            {
+                collProvider.RemoveQueries(GetHashCode());
+            }
+        }
+
         void CalcTotalWeight()
         {
             _totalWeight = 0f;

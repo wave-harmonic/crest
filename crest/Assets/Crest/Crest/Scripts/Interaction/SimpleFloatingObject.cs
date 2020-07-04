@@ -60,6 +60,12 @@ namespace Crest
             }
         }
 
+        void OnDisable()
+        {
+            _sampleHeightHelper.StopQueries();
+            _sampleFlowHelper.StopQueries();
+        }
+
         void FixedUpdate()
         {
             UnityEngine.Profiling.Profiler.BeginSample("SimpleFloatingObject.FixedUpdate");

@@ -74,6 +74,13 @@ public class BoatAlignNormal : FloatingObjectBase
         }
     }
 
+    private void OnDisable()
+    {
+        _sampleHeightHelper.StopQueries();
+        _sampleHeightHelperLengthwise.StopQueries();
+        _sampleFlowHelper.StopQueries();
+    }
+
     void FixedUpdate()
     {
         if (OceanRenderer.Instance == null)

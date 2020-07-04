@@ -824,6 +824,10 @@ namespace Crest
         public void CleanUp()
         {
         }
+
+        public void RemoveQueries(int i_ownerHash)
+        {
+        }
     }
 
 #if UNITY_EDITOR

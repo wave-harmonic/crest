@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
 namespace Crest
 {
@@ -6,7 +7,7 @@ namespace Crest
     /// Helper to obtain the ocean surface height at a single location per frame. This is not particularly efficient to sample a single height,
     /// but is a fairly common case.
     /// </summary>
-    public class SampleHeightHelper
+    public class SampleHeightHelper : IDisposable
     {
         Vector3[] _queryPos = new Vector3[1];
         Vector3[] _queryResult = new Vector3[1];
@@ -115,13 +116,29 @@ namespace Crest
 
             return true;
         }
+
+        public void Dispose()
+        {
+            StopQueries();
+        }
+
+        /// <summary>
+        /// Stop running queries. This must be called to stop processing the queries for this object. It is fine
+        /// to start using this object again later by calling Init()/Query() as before.
+        /// </summary>
+        public void StopQueries()
+        {
+            var collProvider = OceanRenderer.Instance?.CollisionProvider;
+            if (collProvider == null) return;
+            collProvider.RemoveQueries(GetHashCode());
+        }
     }
 
     /// <summary>
     /// Helper to obtain the flow data (horizontal water motion) at a single location. This is not particularly efficient to sample a single height,
     /// but is a fairly common case.
     /// </summary>
-    public class SampleFlowHelper
+    public class SampleFlowHelper : IDisposable
     {
         Vector3[] _queryPos = new Vector3[1];
         Vector3[] _queryResult = new Vector3[1];
@@ -159,6 +176,22 @@ namespace Crest
             o_flow.y = _queryResult[0].z;
 
             return true;
+        }
+
+        public void Dispose()
+        {
+            StopQueries();
+        }
+
+        /// <summary>
+        /// Stop running queries. This must be called to stop processing the queries for this object. It is fine
+        /// to start using this object again later by calling Init()/Query() as before.
+        /// </summary>
+        public void StopQueries()
+        {
+            var collProvider = OceanRenderer.Instance?.CollisionProvider;
+            if (collProvider == null) return;
+            collProvider.RemoveQueries(GetHashCode());
         }
     }
 }

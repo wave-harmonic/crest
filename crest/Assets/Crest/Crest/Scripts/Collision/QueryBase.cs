@@ -87,23 +87,34 @@ namespace Crest
             {
                 var lastIndex = _segmentAcquire;
 
-                var newSegmentAcquire = (_segmentAcquire + 1) % _segments.Length;
-
-                if (newSegmentAcquire == _segmentRelease)
                 {
-                    // The last index has incremented and landed on the first index. This shouldn't happen normally, but
-                    // can happen if the Scene and Game view are not visible, in which case async readbacks dont get processed
-                    // and the pipeline blocks up.
+                    var newSegmentAcquire = (_segmentAcquire + 1) % _segments.Length;
+
+                    if (newSegmentAcquire == _segmentRelease)
+                    {
+                        // The last index has incremented and landed on the first index. This shouldn't happen normally, but
+                        // can happen if the Scene and Game view are not visible, in which case async readbacks dont get processed
+                        // and the pipeline blocks up.
 #if !UNITY_EDITOR
                     Debug.LogError("Query ring buffer exhausted. Please report this to developers.");
 #endif
-                    return;
+                        return;
+                    }
+
+                    _segmentAcquire = newSegmentAcquire;
                 }
 
-                _segmentAcquire = newSegmentAcquire;
-
-                _segments[_segmentAcquire]._numQueries = 0;
                 _segments[_segmentAcquire]._segments.Clear();
+
+#if false
+                _segments[_segmentAcquire]._numQueries = 0;
+#else
+                _segments[_segmentAcquire]._numQueries = _segments[lastIndex]._numQueries;
+                foreach (var segment in _segments[lastIndex]._segments)
+                {
+                    _segments[_segmentAcquire]._segments.Add(segment.Key, segment.Value);
+                }
+#endif
             }
 
             public void ReleaseLast()
@@ -549,6 +560,11 @@ namespace Crest
             }
 
             return result;
+        }
+
+        public void RemoveQueries(int i_ownerHash)
+        {
+            _segmentRegistrarRingBuffer.Current._segments.Remove(i_ownerHash);
         }
 
         public bool RetrieveSucceeded(int queryStatus)

@@ -34,6 +34,13 @@ namespace Crest
 
         static int sp_DisplacementSamplingIterations = Shader.PropertyToID("_DisplacementSamplingIterations");
 
+        protected override void OnDisable()
+        {
+            base.OnDisable();
+
+            _sampleHeightHelper.StopQueries();
+        }
+
         private void LateUpdate()
         {
             if (OceanRenderer.Instance == null)

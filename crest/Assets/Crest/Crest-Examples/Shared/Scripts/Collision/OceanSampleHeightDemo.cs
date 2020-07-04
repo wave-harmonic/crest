@@ -24,4 +24,9 @@ public class OceanSampleHeightDemo : MonoBehaviour
             transform.position = pos;
         }
     }
+
+    void OnDisable()
+    {
+        _sampleHeightHelper.StopQueries();
+    }
 }

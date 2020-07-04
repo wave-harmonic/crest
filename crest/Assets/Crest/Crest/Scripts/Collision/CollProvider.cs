@@ -34,6 +34,13 @@ namespace Crest
         int Query(int i_ownerHash, float i_minSpatialLength, Vector3[] i_queryPoints, Vector3[] o_resultDisps, Vector3[] o_resultNorms, Vector3[] o_resultVels);
 
         /// <summary>
+        /// Remove queries from this owner. In order to support making queries from FixedUpdate() (which can be called irregularly),
+        /// queries are persistent by default and need to be manually removed to stop processing. If this function is not called
+        /// queries will be 'leaked' and increase in number over time. The debug menu reports the number of query GUIDs.
+        /// </summary>
+        void RemoveQueries(int i_ownerHash);
+
+        /// <summary>
         /// Check if query results could be retrieved successfully using return code from Query() function
         /// </summary>
         bool RetrieveSucceeded(int queryStatus);

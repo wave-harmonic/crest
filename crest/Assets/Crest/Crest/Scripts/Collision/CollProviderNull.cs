@@ -82,6 +82,10 @@ namespace Crest
         {
         }
 
+        public void RemoveQueries(int i_ownerHash)
+        {
+        }
+
         public readonly static CollProviderNull Instance = new CollProviderNull();
     }
 }

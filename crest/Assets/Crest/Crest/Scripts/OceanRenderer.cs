@@ -861,6 +861,8 @@ namespace Crest
             }
 
             _oceanChunkRenderers.Clear();
+
+            _sampleHeightHelper.StopQueries();
         }
 
 #if UNITY_EDITOR

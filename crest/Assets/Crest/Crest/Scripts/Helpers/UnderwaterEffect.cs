@@ -77,6 +77,11 @@ namespace Crest
             ConfigureMaterial();
         }
 
+        void OnDisable()
+        {
+            _sampleWaterHeight.StopQueries();
+        }
+
         void ConfigureMaterial()
         {
             if (OceanRenderer.Instance == null) return;

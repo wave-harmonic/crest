@@ -96,7 +96,7 @@ namespace Crest
                         // can happen if the Scene and Game view are not visible, in which case async readbacks dont get processed
                         // and the pipeline blocks up.
 #if !UNITY_EDITOR
-                    Debug.LogError("Query ring buffer exhausted. Please report this to developers.");
+                        Debug.LogError("Query ring buffer exhausted. Please report this to developers.");
 #endif
                         return;
                     }
@@ -104,17 +104,18 @@ namespace Crest
                     _segmentAcquire = newSegmentAcquire;
                 }
 
-                _segments[_segmentAcquire]._segments.Clear();
-
-#if false
-                _segments[_segmentAcquire]._numQueries = 0;
-#else
-                _segments[_segmentAcquire]._numQueries = _segments[lastIndex]._numQueries;
-                foreach (var segment in _segments[lastIndex]._segments)
+                // Copy the registrations across from the previous frame. This makes queries persistent. This is needed because
+                // queries are often made from FixedUpdate(), and at high framerates this may not be called, which would mean
+                // the query would get lost and this leads to stuttering and other artifacts.
                 {
-                    _segments[_segmentAcquire]._segments.Add(segment.Key, segment.Value);
+                    _segments[_segmentAcquire]._numQueries = _segments[lastIndex]._numQueries;
+
+                    _segments[_segmentAcquire]._segments.Clear();
+                    foreach (var segment in _segments[lastIndex]._segments)
+                    {
+                        _segments[_segmentAcquire]._segments.Add(segment.Key, segment.Value);
+                    }
                 }
-#endif
             }
 
             public void ReleaseLast()

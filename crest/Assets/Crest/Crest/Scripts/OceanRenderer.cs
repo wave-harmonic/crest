@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 #if UNITY_EDITOR
+using UnityEngine.Rendering;
 using UnityEditor;
 using UnityEditor.Experimental.SceneManagement;
 #endif
@@ -1033,12 +1034,72 @@ namespace Crest
                 );
             }
 
-            // Spherical Harmonics
-            if (Lightmapping.giWorkflowMode != Lightmapping.GIWorkflowMode.Iterative && !Lightmapping.lightingDataAsset)
+            var hasMaterial = ocean != null && ocean._material != null;
+            var oceanColourIncorrectText = "Ocean colour will be incorrect. ";
+
+            // Check lighting. There is an edge case where the lighting data is invalid because settings has changed.
+            // We don't need to check anything if the following material options are used.
+            if (hasMaterial && !ocean._material.IsKeywordEnabled("_PROCEDURALSKY_ON") &&
+                !ocean._material.IsKeywordEnabled("_OVERRIDEREFLECTIONCUBEMAP_ON"))
+            {
+                var alternativesText = "Alternatively, try the <i>Procedural Sky</i> or <i>Override Reflection " +
+                    "Cubemap</i> option on the ocean material.";
+
+                if (RenderSettings.defaultReflectionMode == DefaultReflectionMode.Skybox)
+                {
+                    var isLightingDataMissing = Lightmapping.giWorkflowMode != Lightmapping.GIWorkflowMode.Iterative &&
+                        !Lightmapping.lightingDataAsset;
+
+                    // Generated lighting will be wrong without a skybox.
+                    if (RenderSettings.skybox == null)
+                    {
+                        showMessage
+                        (
+                            "There is no skybox set in the lighting settings window. " +
+                            oceanColourIncorrectText +
+                            alternativesText,
+                            ValidatedHelper.MessageType.Warning, ocean
+                        );
+                    }
+                    // Spherical Harmonics is missing and required.
+                    else if (isLightingDataMissing)
+                    {
+                        showMessage
+                        (
+                            "Lighting data is missing which provides baked spherical harmonics." +
+                            oceanColourIncorrectText +
+                            "Generate lighting or enable Auto Generate from the Lighting window. " +
+                            alternativesText,
+                            ValidatedHelper.MessageType.Warning, ocean
+                        );
+                    }
+                }
+                else
+                {
+                    // We need a cubemap if using custom reflections.
+                    if (RenderSettings.customReflection == null)
+                    {
+                        showMessage
+                        (
+                            "Environmental Reflections is set to Custom, but no cubemap has been provided. " +
+                            oceanColourIncorrectText +
+                            "Assign a cubemap in the lighting settings window. " +
+                            alternativesText,
+                            ValidatedHelper.MessageType.Warning, ocean
+                        );
+                    }
+                }
+            }
+            // Check override reflections cubemap option. Procedural skybox will override this, but it is a waste to
+            // have the keyword enabled and not use it.
+            else if (hasMaterial && ocean._material.IsKeywordEnabled("_OVERRIDEREFLECTIONCUBEMAP_ON") &&
+                ocean._material.GetTexture("_ReflectionCubemapOverride") == null)
             {
                 showMessage
                 (
-                    "Lighting data is missing. Ocean colour will be incorrect without baked spherical harmonics. Generate lighting or enable Auto Generate from the Lighting window.",
+                    "<i>Override Reflection Cubemap</i> is enabled but no cubemap has been provided. " +
+                    oceanColourIncorrectText +
+                    "Assign a cubemap or disable the checkbox on the ocean material.",
                     ValidatedHelper.MessageType.Warning, ocean
                 );
             }

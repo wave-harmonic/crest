@@ -11,9 +11,15 @@ namespace Crest
 {
     public class WindowCrestWaterBody : EditorWindow
     {
+        enum State
+        {
+            Idle,
+            Placing
+        }
+        State _state;
+
         // This is required because gizmos don't intersect with scene, which makes them useless as a guide when placing
         GameObject _proxyObject;
-        bool _showProxy = true;
 
         // Placement
         Vector3 _position = Vector3.zero;
@@ -34,10 +40,36 @@ namespace Crest
 
         private void OnGUI()
         {
+            switch (_state)
+            {
+                case State.Idle:
+                    OnGUIIdle();
+                    break;
+                case State.Placing:
+                    OnGUIPlacing();
+                    break;
+            }
+        }
+
+        private void OnGUIIdle()
+        {
+            if (GUILayout.Button("Create Water Body"))
+            {
+                _state = State.Placing;
+
+                // Refresh scene view
+                GetWindow<SceneView>();
+            }
+        }
+        Vector2 _scrollPosition;
+
+        private void OnGUIPlacing()
+        {
+            _scrollPosition = EditorGUILayout.BeginScrollView(_scrollPosition);
+
             EditorGUI.BeginChangeCheck();
 
             EditorGUILayout.LabelField("Placement", EditorStyles.boldLabel);
-            _showProxy = EditorGUILayout.Toggle("Show layout proxy", _showProxy);
             _position = EditorGUILayout.Vector3Field("Center position", _position);
             _sizeX = EditorGUILayout.FloatField("Size X", _sizeX);
             _sizeZ = EditorGUILayout.FloatField("Size Z", _sizeZ);
@@ -61,6 +93,10 @@ namespace Crest
 
             _createClipArea = EditorGUILayout.BeginToggleGroup("Create Clip Area", _createClipArea);
             _clipMaterial = EditorGUILayout.ObjectField("Clip material", _clipMaterial, typeof(Material), false) as Material;
+            if (_createClipArea)
+            {
+                EditorGUILayout.HelpBox("Create Clip Surface Data should be enabled on the OceanRnederer component, and the Default Clipping State should be set to Everything Clipped.", MessageType.Info);
+            }
             EditorGUILayout.EndToggleGroup();
 
             if (EditorGUI.EndChangeCheck())
@@ -75,6 +111,16 @@ namespace Crest
             {
                 CreateWaterBody();
             }
+
+            if (GUILayout.Button("Done"))
+            {
+                _state = State.Idle;
+
+                // Refresh scene view
+                GetWindow<SceneView>();
+            }
+
+            EditorGUILayout.EndScrollView();
         }
 
         [MenuItem("Window/Crest/Create Water Body")]
@@ -86,6 +132,9 @@ namespace Crest
         private void OnEnable()
         {
             PopulateResources();
+
+            var ocean = FindObjectOfType<OceanRenderer>();
+            _position.y = (ocean != null && ocean.Root != null) ? ocean.Root.position.y : 0f;
         }
 
         private void OnFocus()
@@ -114,13 +163,14 @@ namespace Crest
 
         void OnSceneGUI(SceneView sceneView)
         {
-            if (!_showProxy)
+            UpdateProxy();
+
+            if (_state != State.Placing)
             {
                 return;
             }
 
             _position = Handles.DoPositionHandle(_position, Quaternion.identity);
-            UpdateProxy();
         }
 
         void CreateProxyObject()
@@ -137,7 +187,7 @@ namespace Crest
             _proxyObject.transform.rotation = Quaternion.AngleAxis(_rotation, Vector3.up);
             var planeScaleFactor = 10f;
             _proxyObject.transform.localScale = new Vector3(_sizeX / planeScaleFactor, 1f, _sizeZ / planeScaleFactor);
-            _proxyObject.SetActive(_showProxy);
+            _proxyObject.SetActive(_state == State.Placing);
         }
 
         bool PopulateResources()

@@ -230,8 +230,10 @@ It must also have a material using the *Crest/Inputs/Animated Waves/Gerstner Bat
 For a concrete example, see the *GerstnerPatch* object in *boat.unity*.
 It has a *MeshFilter* component with the *Quad* mesh applied, and is rotated so the quad is face up.
 It has a *MeshRenderer* component with a material assigned with a Gerstner material.
-Additionally, the material has the *Feather at UV Extents* option enabled, which will fade down the waves where the UVs go to 0 or 1 (at the edges of the quad).
-The end result is a local patch of waves that are smoothly blended over the area of the quad.
+
+The material has the *Feather at UV Extents* option enabled, which will fade down the waves where the UVs go to 0 or 1 (at the edges of the quad).
+A more general solution is to scale the waves based on vertex colour so weights can be painted - this is provided through the *Weight from vertex colour (red channel)* option.
+This allows different wave conditions in different areas of the world with smooth blending.
 
 
 # Shorelines and shallow water

@@ -16,9 +16,6 @@ namespace Crest
         public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RHalf; } }
         protected override bool NeedToReadWriteTextureData { get { return false; } }
 
-        public override SimSettingsBase CreateDefaultSettings() { return null; }
-        public override void UseSettings(SimSettingsBase settings) { }
-
         bool _targetsClear = false;
 
         public const string ShaderName = "Crest/Inputs/Depth/Cached Depths";
@@ -26,6 +23,11 @@ namespace Crest
         // We want the null colour to be the depth where wave attenuation begins (1000 metres)
         readonly static Color s_nullColor = Color.red * 1000f;
         static Texture2DArray s_nullTexture2DArray;
+
+        public LodDataMgrSeaFloorDepth(OceanRenderer ocean) : base(ocean)
+        {
+            Start();
+        }
 
         public override void BuildCommandBuffer(OceanRenderer ocean, CommandBuffer buf)
         {

@@ -165,7 +165,7 @@ namespace Crest
             }
 
             PopulateOceanMask(
-                _maskCommandBuffer, _mainCamera, OceanBuilder.OceanChunkRenderers, _cameraFrustumPlanes,
+                _maskCommandBuffer, _mainCamera, OceanRenderer.Instance.Tiles, _cameraFrustumPlanes,
                 _textureMask, _depthBuffer,
                 _oceanMaskMaterial,
                 _disableOceanMask

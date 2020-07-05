@@ -184,10 +184,18 @@ Shader "Crest/Ocean"
 
 	SubShader
 	{
-		// ForwardBase - tell unity we're going to render water in forward manner and we're going to do lighting and it will set the appropriate uniforms
-		// Geometry+510 - unity treats anything after Geometry+500 as transparent, and will render it in a forward manner and copy out the gbuffer data
-		//     and do post processing before running it. Discussion of this in issue #53.
-		Tags { "LightMode"="ForwardBase" "Queue"="Geometry+510" "IgnoreProjector"="True" "RenderType"="Opaque" }
+		Tags
+		{
+			// Tell Unity we're going to render water in forward manner and we're going to do lighting and it will set
+			// the appropriate uniforms.
+			"LightMode"="ForwardBase"
+			// Unity treats anything after Geometry+500 as transparent, and will render it in a forward manner and copy
+			// out the gbuffer data and do post processing before running it. Discussion of this in issue #53.
+			"Queue"="Geometry+510"
+			"IgnoreProjector"="True"
+			"RenderType"="Opaque"
+			"DisableBatching"="True"
+		}
 
 		GrabPass
 		{
@@ -205,6 +213,7 @@ Shader "Crest/Ocean"
 			// for VFACE
 			#pragma target 3.0
 			#pragma multi_compile_fog
+			#pragma multi_compile_instancing
 
 			#pragma shader_feature _APPLYNORMALMAPPING_ON
 			#pragma shader_feature _COMPUTEDIRECTIONALLIGHT_ON
@@ -261,6 +270,8 @@ Shader "Crest/Ocean"
 
 				UNITY_VERTEX_OUTPUT_STEREO
 			};
+
+			UNITY_DECLARE_SCREENSPACE_TEXTURE(_CameraDepthTexture);
 
 			#include "OceanConstants.hlsl"
 			#include "OceanGlobals.hlsl"
@@ -337,28 +348,36 @@ Shader "Crest/Ocean"
 				}
 
 				// Data that needs to be sampled at the displaced position
-				if (wt_smallerLod > 0.001)
+				if (wt_smallerLod > 0.0001)
 				{
 					const float3 uv_slice_smallerLodDisp = WorldToUV(o.worldPos.xz);
 
 					#if _SUBSURFACESHALLOWCOLOUR_ON
+					// The minimum sampling weight is lower (0.0001) than others to fix shallow water colour popping.
 					SampleSeaDepth(_LD_TexArray_SeaFloorDepth, uv_slice_smallerLodDisp, wt_smallerLod, o.lodAlpha_worldXZUndisplaced_oceanDepth.w);
 					#endif
 
 					#if _SHADOWS_ON
-					SampleShadow(_LD_TexArray_Shadow, uv_slice_smallerLodDisp, wt_smallerLod, o.flow_shadow.zw);
+					if (wt_smallerLod > 0.001)
+					{
+						SampleShadow(_LD_TexArray_Shadow, uv_slice_smallerLodDisp, wt_smallerLod, o.flow_shadow.zw);
+					}
 					#endif
 				}
-				if (wt_biggerLod > 0.001)
+				if (wt_biggerLod > 0.0001)
 				{
 					const float3 uv_slice_biggerLodDisp = WorldToUV_BiggerLod(o.worldPos.xz);
 
 					#if _SUBSURFACESHALLOWCOLOUR_ON
+					// The minimum sampling weight is lower (0.0001) than others to fix shallow water colour popping.
 					SampleSeaDepth(_LD_TexArray_SeaFloorDepth, uv_slice_biggerLodDisp, wt_biggerLod, o.lodAlpha_worldXZUndisplaced_oceanDepth.w);
 					#endif
 
 					#if _SHADOWS_ON
-					SampleShadow(_LD_TexArray_Shadow, uv_slice_biggerLodDisp, wt_biggerLod, o.flow_shadow.zw);
+					if (wt_biggerLod > 0.001)
+					{
+						SampleShadow(_LD_TexArray_Shadow, uv_slice_biggerLodDisp, wt_biggerLod, o.flow_shadow.zw);
+					}
 					#endif
 				}
 
@@ -393,8 +412,6 @@ Shader "Crest/Ocean"
 			uniform sampler2D _Normals;
 			#include "OceanNormalMapping.hlsl"
 
-			uniform sampler2D _CameraDepthTexture;
-
 			// Hack - due to SV_IsFrontFace occasionally coming through as true for backfaces,
 			// add a param here that forces ocean to be in undrwater state. I think the root
 			// cause here might be imprecision or numerical issues at ocean tile boundaries, although
@@ -419,6 +436,9 @@ Shader "Crest/Ocean"
 
 			half4 Frag(const Varyings input, const float facing : VFACE) : SV_Target
 			{
+				// We need this when sampling a screenspace texture.
+				UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+
 				#if _UNDERWATER_ON
 				const bool underwater = IsUnderwater(facing, _ForceUnderwater);
 				#else
@@ -433,7 +453,7 @@ Shader "Crest/Ocean"
 				float pixelZ = LinearEyeDepth(input.positionCS.z);
 				half3 screenPos = input.foam_screenPosXYW.yzw;
 				half2 uvDepth = screenPos.xy / screenPos.z;
-				float sceneZ01 = tex2D(_CameraDepthTexture, uvDepth).x;
+				float sceneZ01 = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CameraDepthTexture, uvDepth).x;
 				float sceneZ = LinearEyeDepth(sceneZ01);
 
 				float3 lightDir = WorldSpaceLightDir(input.worldPos);
@@ -479,6 +499,7 @@ Shader "Crest/Ocean"
 				{
 					SampleClip(_LD_TexArray_ClipSurface, WorldToUV_BiggerLod(input.worldPos.xz), wt_biggerLod, clipVal);
 				}
+				clipVal = lerp(_CrestClipByDefault, clipVal, wt_smallerLod + wt_biggerLod);
 				// Add 0.5 bias for LOD blending and texel resolution correction. This will help to tighten and smooth clipped edges
 				clip(-clipVal + 0.5);
 				#endif
@@ -496,7 +517,7 @@ Shader "Crest/Ocean"
 
 				// Compute color of ocean - in-scattered light + refracted scene
 				half3 scatterCol = ScatterColour(ambientLight, input.lodAlpha_worldXZUndisplaced_oceanDepth.w, _WorldSpaceCameraPos, lightDir, view, shadow.x, underwater, true, sss);
-				half3 col = OceanEmission(view, n_pixel, lightDir, input.grabPos, pixelZ, uvDepth, sceneZ, sceneZ01, bubbleCol, _Normals, _CameraDepthTexture, underwater, scatterCol);
+				half3 col = OceanEmission(view, n_pixel, lightDir, input.grabPos, pixelZ, uvDepth, sceneZ, sceneZ01, bubbleCol, _Normals, underwater, scatterCol);
 
 				// Light that reflects off water surface
 

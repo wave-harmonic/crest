@@ -67,6 +67,10 @@ Shader "Crest/Underwater/Post Process"
 
 			half3 _AmbientLighting;
 
+			// In-built Unity textures
+			sampler2D _CameraDepthTexture;
+			sampler2D _Normals;
+
 			#include "../OceanEmission.hlsl"
 
 			float _OceanHeight;
@@ -114,9 +118,6 @@ Shader "Crest/Underwater/Post Process"
 			sampler2D _CrestOceanMaskTexture;
 			sampler2D _CrestOceanMaskDepthTexture;
 
-			// In-built Unity textures
-			sampler2D _CameraDepthTexture;
-			sampler2D _Normals;
 
 			half3 ApplyUnderwaterEffect(half3 sceneColour, const float sceneZ01, const half3 view, bool isOceanSurface)
 			{

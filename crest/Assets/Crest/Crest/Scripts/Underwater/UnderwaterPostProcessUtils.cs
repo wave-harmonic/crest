@@ -91,7 +91,7 @@ namespace Crest
                 // Spends approx 0.2-0.3ms here on dell laptop
                 foreach (OceanChunkRenderer chunk in chunksToRender)
                 {
-                    Renderer renderer = chunk.Renderer;
+                    Renderer renderer = chunk.Rend;
                     Bounds bounds = renderer.bounds;
                     if (GeometryUtility.TestPlanesAABB(frustumPlanes, bounds))
                     {
@@ -142,7 +142,7 @@ namespace Crest
             underwaterPostProcessMaterial.SetVector(sp_InstanceData, new Vector4(OceanRenderer.Instance.ViewerAltitudeLevelAlpha, 0f, 0f, OceanRenderer.Instance.CurrentLodCount));
 
             OceanRenderer.Instance._lodDataAnimWaves.BindResultData(underwaterPostProcessMaterialWrapper);
-            if (OceanRenderer.Instance._lodDataSeaDepths)
+            if (OceanRenderer.Instance._lodDataSeaDepths  != null)
             {
                 OceanRenderer.Instance._lodDataSeaDepths.BindResultData(underwaterPostProcessMaterialWrapper);
             }
@@ -151,7 +151,7 @@ namespace Crest
                 LodDataMgrSeaFloorDepth.BindNull(underwaterPostProcessMaterialWrapper);
             }
 
-            if (OceanRenderer.Instance._lodDataShadow)
+            if (OceanRenderer.Instance._lodDataShadow  != null)
             {
                 OceanRenderer.Instance._lodDataShadow.BindResultData(underwaterPostProcessMaterialWrapper);
             }

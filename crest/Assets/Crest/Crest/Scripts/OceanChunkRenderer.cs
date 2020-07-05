@@ -3,27 +3,23 @@
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 using UnityEngine;
-#if UNITY_2018
-using UnityEngine.Experimental.Rendering;
-#else
 using UnityEngine.Rendering;
-#endif
 
 namespace Crest
 {
     /// <summary>
     /// Sets shader parameters for each geometry tile/chunk.
     /// </summary>
+    [ExecuteAlways]
     public class OceanChunkRenderer : MonoBehaviour
     {
         public bool _drawRenderBounds = false;
 
-        Bounds _boundsLocal;
+        public Bounds _boundsLocal;
         Mesh _mesh;
-        Renderer _rend;
+        public Renderer Rend { get; private set; }
         PropertyWrapperMPB _mpb;
 
-        public Renderer Renderer => _rend;
         // We need to ensure that all ocean data has been bound for the mask to
         // render properly - this is something that needs to happen irrespective
         // of occlusion culling because we need the mask to render as a
@@ -44,9 +40,8 @@ namespace Crest
 
         void Start()
         {
-            _rend = GetComponent<Renderer>();
-            _mesh = GetComponent<MeshFilter>().mesh;
-            _boundsLocal = _mesh.bounds;
+            Rend = GetComponent<Renderer>();
+            _mesh = GetComponent<MeshFilter>().sharedMesh;
 
             UpdateMeshBounds();
         }
@@ -67,11 +62,7 @@ namespace Crest
 
         static Camera _currentCamera = null;
 
-#if UNITY_2018
-        private static void BeginCameraRendering(Camera camera)
-#else
         private static void BeginCameraRendering(ScriptableRenderContext context, Camera camera)
-#endif
         {
             _currentCamera = camera;
         }
@@ -81,9 +72,23 @@ namespace Crest
         internal void BindOceanData(Camera camera)
         {
             _oceanDataHasBeenBound = true;
-            if (_rend.sharedMaterial != OceanRenderer.Instance.OceanMaterial)
+            if (OceanRenderer.Instance == null || Rend == null)
             {
-                _rend.sharedMaterial = OceanRenderer.Instance.OceanMaterial;
+                return;
+            }
+
+            // check if built-in pipeline being used
+            if (Camera.current != null)
+            {
+                _currentCamera = Camera.current;
+            }
+
+            // Depth texture is used by ocean shader for transparency/depth fog, and for fading out foam at shoreline.
+            _currentCamera.depthTextureMode |= DepthTextureMode.Depth;
+
+            if (Rend.sharedMaterial != OceanRenderer.Instance.OceanMaterial)
+            {
+                Rend.sharedMaterial = OceanRenderer.Instance.OceanMaterial;
             }
 
             // per instance data
@@ -92,7 +97,7 @@ namespace Crest
             {
                 _mpb = new PropertyWrapperMPB();
             }
-            _rend.GetPropertyBlock(_mpb.materialPropertyBlock);
+            Rend.GetPropertyBlock(_mpb.materialPropertyBlock);
 
             // blend LOD 0 shape in/out to avoid pop, if the ocean might scale up later (it is smaller than its maximum scale)
             var needToBlendOutShape = _lodIndex == 0 && OceanRenderer.Instance.ScaleCouldIncrease;
@@ -124,12 +129,12 @@ namespace Crest
             var ldshadows = OceanRenderer.Instance._lodDataShadow;
 
             _mpb.SetInt(LodDataMgr.sp_LD_SliceIndex, _lodIndex);
-            ldaws.BindResultData(_mpb);
-            if (ldflow) ldflow.BindResultData(_mpb); else LodDataMgrFlow.BindNull(_mpb);
-            if (ldfoam) ldfoam.BindResultData(_mpb); else LodDataMgrFoam.BindNull(_mpb);
-            if (ldsds) ldsds.BindResultData(_mpb); else LodDataMgrSeaFloorDepth.BindNull(_mpb);
-            if (ldclip) ldclip.BindResultData(_mpb); else LodDataMgrClipSurface.BindNull(_mpb);
-            if (ldshadows) ldshadows.BindResultData(_mpb); else LodDataMgrShadow.BindNull(_mpb);
+            if (ldaws != null) ldaws.BindResultData(_mpb);
+            if (ldflow != null) ldflow.BindResultData(_mpb); else LodDataMgrFlow.BindNull(_mpb);
+            if (ldfoam != null) ldfoam.BindResultData(_mpb); else LodDataMgrFoam.BindNull(_mpb);
+            if (ldsds != null) ldsds.BindResultData(_mpb); else LodDataMgrSeaFloorDepth.BindNull(_mpb);
+            if (ldclip != null) ldclip.BindResultData(_mpb); else LodDataMgrClipSurface.BindNull(_mpb);
+            if (ldshadows != null) ldshadows.BindResultData(_mpb); else LodDataMgrShadow.BindNull(_mpb);
 
             var reflTex = PreparedReflections.GetRenderTexture(camera.GetHashCode());
             if (reflTex)
@@ -148,7 +153,7 @@ namespace Crest
             var heightOffset = OceanRenderer.Instance.ViewerHeightAboveWater;
             _mpb.SetFloat(sp_ForceUnderwater, heightOffset < -2f ? 1f : 0f);
 
-            _rend.SetPropertyBlock(_mpb.materialPropertyBlock);
+            Rend.SetPropertyBlock(_mpb.materialPropertyBlock);
         }
 
         // Called when visible to a camera
@@ -167,7 +172,7 @@ namespace Crest
 
             if (_drawRenderBounds)
             {
-                _rend.bounds.DebugDraw();
+                Rend.bounds.DebugDraw();
             }
         }
 
@@ -204,13 +209,16 @@ namespace Crest
         [RuntimeInitializeOnLoadMethod]
         static void RunOnStart()
         {
-#if UNITY_2018
-            RenderPipeline.beginCameraRendering -= BeginCameraRendering;
-            RenderPipeline.beginCameraRendering += BeginCameraRendering;
-#else
             RenderPipelineManager.beginCameraRendering -= BeginCameraRendering;
             RenderPipelineManager.beginCameraRendering += BeginCameraRendering;
-#endif
+        }
+
+        private void OnDrawGizmos()
+        {
+            if (_drawRenderBounds)
+            {
+                Rend.bounds.GizmosDraw();
+            }
         }
     }
 
@@ -239,6 +247,31 @@ namespace Crest
             Debug.DrawLine(new Vector3(xmin, ymin, zmin), new Vector3(xmin, ymax, zmin));
             Debug.DrawLine(new Vector3(xmax, ymin, zmin), new Vector3(xmax, ymax, zmin));
             Debug.DrawLine(new Vector3(xmin, ymax, zmax), new Vector3(xmin, ymin, zmax));
+        }
+
+        public static void GizmosDraw(this Bounds b)
+        {
+            var xmin = b.min.x;
+            var ymin = b.min.y;
+            var zmin = b.min.z;
+            var xmax = b.max.x;
+            var ymax = b.max.y;
+            var zmax = b.max.z;
+
+            Gizmos.DrawLine(new Vector3(xmin, ymin, zmin), new Vector3(xmin, ymin, zmax));
+            Gizmos.DrawLine(new Vector3(xmin, ymin, zmin), new Vector3(xmax, ymin, zmin));
+            Gizmos.DrawLine(new Vector3(xmax, ymin, zmax), new Vector3(xmin, ymin, zmax));
+            Gizmos.DrawLine(new Vector3(xmax, ymin, zmax), new Vector3(xmax, ymin, zmin));
+
+            Gizmos.DrawLine(new Vector3(xmin, ymax, zmin), new Vector3(xmin, ymax, zmax));
+            Gizmos.DrawLine(new Vector3(xmin, ymax, zmin), new Vector3(xmax, ymax, zmin));
+            Gizmos.DrawLine(new Vector3(xmax, ymax, zmax), new Vector3(xmin, ymax, zmax));
+            Gizmos.DrawLine(new Vector3(xmax, ymax, zmax), new Vector3(xmax, ymax, zmin));
+
+            Gizmos.DrawLine(new Vector3(xmax, ymax, zmax), new Vector3(xmax, ymin, zmax));
+            Gizmos.DrawLine(new Vector3(xmin, ymin, zmin), new Vector3(xmin, ymax, zmin));
+            Gizmos.DrawLine(new Vector3(xmax, ymin, zmin), new Vector3(xmax, ymax, zmin));
+            Gizmos.DrawLine(new Vector3(xmin, ymax, zmax), new Vector3(xmin, ymin, zmax));
         }
     }
 }

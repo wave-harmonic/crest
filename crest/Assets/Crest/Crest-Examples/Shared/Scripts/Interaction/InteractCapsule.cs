@@ -24,6 +24,11 @@ public class InteractCapsule : MonoBehaviour
 
     void Update()
     {
+        if (OceanRenderer.Instance == null)
+        {
+            return;
+        }
+
         float dy = _lastY - transform.position.y;
 
         float a = transform.lossyScale.x / 2f;

@@ -18,7 +18,7 @@ namespace Crest
     /// the data and then transferring back the results asynchronously. An exception to this is water surface velocities - these can
     /// not be computed on the GPU and are instead computed on the CPU by retaining last frames' query results and computing finite diffs.
     /// </summary>
-    public abstract class QueryBase : MonoBehaviour
+    public abstract class QueryBase
     {
         protected int _kernelHandle;
 
@@ -55,7 +55,8 @@ namespace Crest
         /// </summary>
         class SegmentRegistrar
         {
-            public Dictionary<int, Vector2Int> _segments = new Dictionary<int, Vector2Int>();
+            // Map from guids to (segment start index, segment end index, frame number when query was made)
+            public Dictionary<int, Vector3Int> _segments = new Dictionary<int, Vector3Int>();
             public int _numQueries = 0;
         }
 
@@ -87,13 +88,48 @@ namespace Crest
             {
                 var lastIndex = _segmentAcquire;
 
-                _segmentAcquire = (_segmentAcquire + 1) % _segments.Length;
+                {
+                    var newSegmentAcquire = (_segmentAcquire + 1) % _segments.Length;
 
-                // The last index should never increment and land on the first index - it should only happen the other way around.
-                Debug.Assert(_segmentAcquire != _segmentRelease, "Segment registrar scratch exhausted.");
+                    if (newSegmentAcquire == _segmentRelease)
+                    {
+                        // The last index has incremented and landed on the first index. This shouldn't happen normally, but
+                        // can happen if the Scene and Game view are not visible, in which case async readbacks dont get processed
+                        // and the pipeline blocks up.
+#if !UNITY_EDITOR
+                        Debug.LogError("Query ring buffer exhausted. Please report this to developers.");
+#endif
+                        return;
+                    }
 
-                _segments[_segmentAcquire]._numQueries = 0;
-                _segments[_segmentAcquire]._segments.Clear();
+                    _segmentAcquire = newSegmentAcquire;
+                }
+
+                // Copy the registrations across from the previous frame. This makes queries persistent. This is needed because
+                // queries are often made from FixedUpdate(), and at high framerates this may not be called, which would mean
+                // the query would get lost and this leads to stuttering and other artifacts.
+                {
+                    _segments[_segmentAcquire]._numQueries = 0;
+                    _segments[_segmentAcquire]._segments.Clear();
+
+                    foreach (var segment in _segments[lastIndex]._segments)
+                    {
+                        var age = Time.frameCount - segment.Value.z;
+
+                        // Don't keep queries around if they have not be active in the last 10 frames
+                        if (age < 10)
+                        {
+                            // Compute a new segment range - we may have removed some segments that were too old, so this ensures
+                            // we have a nice compact array of queries each frame rather than accumulating persistent air bubbles
+                            var newSegment = segment.Value;
+                            newSegment.x = _segments[_segmentAcquire]._numQueries;
+                            newSegment.y = newSegment.x + (segment.Value.y - segment.Value.x);
+                            _segments[_segmentAcquire]._numQueries = newSegment.y + 1;
+
+                            _segments[_segmentAcquire]._segments.Add(segment.Key, newSegment);
+                        }
+                    }
+                }
             }
 
             public void ReleaseLast()
@@ -154,17 +190,17 @@ namespace Crest
 
         NativeArray<Vector3> _queryResults;
         float _queryResultsTime = -1f;
-        Dictionary<int, Vector2Int> _resultSegments;
+        Dictionary<int, Vector3Int> _resultSegments;
 
         NativeArray<Vector3> _queryResultsLast;
         float _queryResultsTimeLast = -1f;
-        Dictionary<int, Vector2Int> _resultSegmentsLast;
+        Dictionary<int, Vector3Int> _resultSegmentsLast;
 
         struct ReadbackRequest
         {
             public AsyncGPUReadbackRequest _request;
             public float _dataTimestamp;
-            public Dictionary<int, Vector2Int> _segments;
+            public Dictionary<int, Vector3Int> _segments;
         }
 
         List<ReadbackRequest> _requests = new List<ReadbackRequest>();
@@ -179,6 +215,32 @@ namespace Crest
             InvalidDtForVelocity = 16,
         }
 
+        public QueryBase()
+        {
+            _dataArrivedAction = new System.Action<AsyncGPUReadbackRequest>(DataArrived);
+
+            if (_maxQueryCount != OceanRenderer.Instance._lodDataAnimWaves.Settings.MaxQueryCount)
+            {
+                _maxQueryCount = OceanRenderer.Instance._lodDataAnimWaves.Settings.MaxQueryCount;
+                _queryPosXZ_minGridSize = new Vector3[_maxQueryCount];
+            }
+
+            _computeBufQueries = new ComputeBuffer(_maxQueryCount, 12, ComputeBufferType.Default);
+            _computeBufResults = new ComputeBuffer(_maxQueryCount, 12, ComputeBufferType.Default);
+
+            _queryResults = new NativeArray<Vector3>(_maxQueryCount, Allocator.Persistent, NativeArrayOptions.ClearMemory);
+            _queryResultsLast = new NativeArray<Vector3>(_maxQueryCount, Allocator.Persistent, NativeArrayOptions.ClearMemory);
+
+            _shaderProcessQueries = ComputeShaderHelpers.LoadShader(QueryShaderName);
+            if (_shaderProcessQueries == null)
+            {
+                Debug.LogError($"Could not load Query compute shader {QueryShaderName}");
+                return;
+            }
+            _kernelHandle = _shaderProcessQueries.FindKernel(QueryKernelName);
+            _wrapper = new PropertyWrapperComputeStandalone(_shaderProcessQueries, _kernelHandle);
+        }
+
         protected abstract void BindInputsAndOutputs(PropertyWrapperComputeStandalone wrapper, ComputeBuffer resultsBuffer);
 
         /// <summary>
@@ -187,8 +249,14 @@ namespace Crest
         /// </summary>
         protected bool UpdateQueryPoints(int i_ownerHash, float i_minSpatialLength, Vector3[] queryPoints, Vector3[] queryNormals)
         {
+            if (queryPoints.Length + _segmentRegistrarRingBuffer.Current._numQueries > _maxQueryCount)
+            {
+                Debug.LogError($"Max query count ({_maxQueryCount}) exceeded, increase the max query count in the Animated Waves Settings to support a higher number of queries.");
+                return false;
+            }
+
             var segmentRetrieved = false;
-            Vector2Int segment;
+            Vector3Int segment;
 
             // We'll send in 3 points to get normals
             var countPts = (queryPoints != null ? queryPoints.Length : 0);
@@ -200,6 +268,10 @@ namespace Crest
                 var segmentSize = segment.y - segment.x + 1;
                 if (segmentSize == countTotal)
                 {
+                    // Update frame count
+                    segment.z = Time.frameCount;
+                    _segmentRegistrarRingBuffer.Current._segments[i_ownerHash] = segment;
+
                     segmentRetrieved = true;
                 }
                 else
@@ -218,12 +290,13 @@ namespace Crest
             {
                 if (_segmentRegistrarRingBuffer.Current._segments.Count >= s_maxGuids)
                 {
-                    Debug.LogError("Too many guids registered with CollProviderCompute. Increase s_maxGuids.", this);
+                    Debug.LogError("Too many guids registered with CollProviderCompute. Increase s_maxGuids.");
                     return false;
                 }
 
                 segment.x = _segmentRegistrarRingBuffer.Current._numQueries;
                 segment.y = segment.x + countTotal - 1;
+                segment.z = Time.frameCount;
                 _segmentRegistrarRingBuffer.Current._segments.Add(i_ownerHash, segment);
 
                 _segmentRegistrarRingBuffer.Current._numQueries += countTotal;
@@ -238,7 +311,7 @@ namespace Crest
 
             if (countPts + segment.x > _queryPosXZ_minGridSize.Length)
             {
-                Debug.LogError("Too many wave height queries. Increase Max Query Count in the Animated Waves Settings.", this);
+                Debug.LogError("Too many wave height queries. Increase Max Query Count in the Animated Waves Settings.");
                 return false;
             }
 
@@ -280,7 +353,7 @@ namespace Crest
 
         /// <summary>
         /// Remove air bubbles from the query array. Currently this lazily just nukes all the registered
-        /// query IDs so they'll be recreated next time (generating garbage). TODO..
+        /// query IDs so they'll be recreated next time (generating garbage).
         /// </summary>
         public void CompactQueryStorage()
         {
@@ -298,7 +371,7 @@ namespace Crest
             }
 
             // Check if there are results that came back for this guid
-            Vector2Int segment;
+            Vector3Int segment;
             if (!_resultSegments.TryGetValue(guid, out segment))
             {
                 // Guid not found - no result
@@ -360,13 +433,13 @@ namespace Crest
                 return 1;
             }
 
-            Vector2Int segment;
+            Vector3Int segment;
             if (!_resultSegments.TryGetValue(i_ownerHash, out segment))
             {
                 return (int)QueryStatus.RetrieveFailed;
             }
 
-            Vector2Int segmentLast;
+            Vector3Int segmentLast;
             if (!_resultSegmentsLast.TryGetValue(i_ownerHash, out segmentLast))
             {
                 return (int)QueryStatus.NotEnoughDataForVels;
@@ -393,19 +466,14 @@ namespace Crest
             return 0;
         }
 
-        // This needs to run in Update()
-        // - It needs to run before OceanRenderer.LateUpdate, because the latter will change the LOD positions/scales, while we will read
-        // the last frames displacements.
-        // - It should run after FixedUpdate, as physics objects will update query points there. Also it computes the displacement timestamps
-        // using Time.time and Time.deltaTime, which would be incorrect if it were in FixedUpdate.
-        void Update()
+        public void UpdateQueries()
         {
             if (_segmentRegistrarRingBuffer.Current._numQueries > 0)
             {
                 ExecuteQueries();
 
                 // Remove oldest requests if we have hit the limit
-                while (_requests.Count >= _maxQueryCount)
+                while (_requests.Count >= s_maxRequests)
                 {
                     _requests.RemoveAt(0);
                 }
@@ -426,7 +494,7 @@ namespace Crest
             _shaderProcessQueries.SetBuffer(_kernelHandle, sp_queryPositions_minGridSizes, _computeBufQueries);
             BindInputsAndOutputs(_wrapper, _computeBufResults);
 
-            var numGroups = (int)Mathf.Ceil((float)_segmentRegistrarRingBuffer.Current._numQueries / (float)s_computeGroupSize) * s_computeGroupSize;
+            var numGroups = (_segmentRegistrarRingBuffer.Current._numQueries + s_computeGroupSize - 1) / s_computeGroupSize;
             _shaderProcessQueries.Dispatch(_kernelHandle, numGroups, 1, 1);
         }
 
@@ -481,33 +549,7 @@ namespace Crest
             }
         }
 
-        protected virtual void OnEnable()
-        {
-            _dataArrivedAction = new System.Action<AsyncGPUReadbackRequest>(DataArrived);
-
-            if (_maxQueryCount != OceanRenderer.Instance._simSettingsAnimatedWaves.MaxQueryCount)
-            {
-                _maxQueryCount = OceanRenderer.Instance._simSettingsAnimatedWaves.MaxQueryCount;
-                _queryPosXZ_minGridSize = new Vector3[_maxQueryCount];
-            }
-
-            _computeBufQueries = new ComputeBuffer(_maxQueryCount, 12, ComputeBufferType.Default);
-            _computeBufResults = new ComputeBuffer(_maxQueryCount, 12, ComputeBufferType.Default);
-
-            _queryResults = new NativeArray<Vector3>(_maxQueryCount, Allocator.Persistent, NativeArrayOptions.ClearMemory);
-            _queryResultsLast = new NativeArray<Vector3>(_maxQueryCount, Allocator.Persistent, NativeArrayOptions.ClearMemory);
-
-            _shaderProcessQueries = ComputeShaderHelpers.LoadShader(QueryShaderName);
-            if (_shaderProcessQueries == null)
-            {
-                enabled = false;
-                return;
-            }
-            _kernelHandle = _shaderProcessQueries.FindKernel(QueryKernelName);
-            _wrapper = new PropertyWrapperComputeStandalone(_shaderProcessQueries, _kernelHandle);
-        }
-
-        protected virtual void OnDisable()
+        public void CleanUp()
         {
             _computeBufQueries.Dispose();
             _computeBufResults.Dispose();

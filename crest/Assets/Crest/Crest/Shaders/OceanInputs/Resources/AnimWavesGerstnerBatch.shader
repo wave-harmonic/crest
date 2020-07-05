@@ -5,10 +5,6 @@
 // Adds Gerstner waves everywhere. Must be given batch prepared by ShapeGerstnerBatched.cs.
 Shader "Hidden/Crest/Inputs/Animated Waves/Gerstner Batch Global"
 {
-	Properties
-	{
-	}
-
 	SubShader
 	{
 		Pass
@@ -57,6 +53,7 @@ Shader "Hidden/Crest/Inputs/Animated Waves/Gerstner Batch Global"
 				float2 worldXZ = UVToWorld(input.uv);
 				o.worldPosXZ = worldXZ;
 				o.uv_slice = float3(input.uv, _LD_SliceIndex);
+
 				return o;
 			}
 

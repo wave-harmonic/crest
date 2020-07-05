@@ -49,10 +49,10 @@ namespace Crest
         Renderer[] _geometryToRenderIntoCache = new Renderer[0];
 
         [Tooltip("The layers to render into the depth cache. This is ignored if geometry instances are specified in the Geometry To Render Into Cache field."), SerializeField]
-        string[] _layerNames = new string[0];
+        public string[] _layerNames = new string[0];
 
         [Tooltip("The resolution of the cached depth - lower will be more efficient."), SerializeField]
-        int _resolution = 512;
+        public int _resolution = 512;
 
         // A big hill will still want to write its height into the depth texture
         [Tooltip("The 'near plane' for the depth cache camera (top down)."), SerializeField]

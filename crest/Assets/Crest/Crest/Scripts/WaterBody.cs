@@ -72,7 +72,7 @@ namespace Crest
             {
                 center.y = OceanRenderer.Instance.Root.position.y;
             }
-            Gizmos.DrawCube(center, new Vector3(AABB.extents.x, 1f, AABB.extents.z));
+            Gizmos.DrawCube(center, 2f * new Vector3(AABB.extents.x, 1f, AABB.extents.z));
             Gizmos.color = oldColor;
         }
 #endif

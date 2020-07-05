@@ -872,6 +872,17 @@ namespace Crest
                 );
             }
 
+            if (_mode == GerstnerMode.Global && GetComponent<MeshRenderer>() != null)
+            {
+                showMessage
+                (
+                    "The MeshRenderer component will be ignored because the Mode is set to Global.",
+                    ValidatedHelper.MessageType.Warning, this
+                );
+
+                isValid = false;
+            }
+
             if (_spectrum == null)
             {
                 showMessage

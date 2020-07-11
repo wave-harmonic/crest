@@ -1101,7 +1101,7 @@ namespace Crest
             {
                 showMessage
                 (
-                    $"There must be no rotation on the ocean GameObject, and no rotation on any parent. Currently the rotation Euler angles are {transform.eulerAngles}",
+                    $"There must be no rotation on the ocean GameObject, and no rotation on any parent. Currently the rotation Euler angles are {transform.eulerAngles}.",
                     ValidatedHelper.MessageType.Error, ocean
                 );
             }

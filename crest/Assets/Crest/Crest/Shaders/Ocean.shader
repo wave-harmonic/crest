@@ -445,6 +445,24 @@ Shader "Crest/Ocean"
 
 				const bool underwater = IsUnderwater(facing);
 				const float lodAlpha = input.lodAlpha_worldXZUndisplaced_oceanDepth.x;
+				const float wt_smallerLod = (1.0 - lodAlpha) * _LD_Params[_LD_SliceIndex].z;
+				const float wt_biggerLod = (1.0 - wt_smallerLod) * _LD_Params[_LD_SliceIndex + 1].z;
+
+				#if _CLIPSURFACE_ON
+				// Clip surface
+				half clipVal = 0.0;
+				if (wt_smallerLod > 0.001)
+				{
+					SampleClip(_LD_TexArray_ClipSurface, WorldToUV(input.worldPos.xz), wt_smallerLod, clipVal);
+				}
+				if (wt_biggerLod > 0.001)
+				{
+					SampleClip(_LD_TexArray_ClipSurface, WorldToUV_BiggerLod(input.worldPos.xz), wt_biggerLod, clipVal);
+				}
+				clipVal = lerp(_CrestClipByDefault, clipVal, wt_smallerLod + wt_biggerLod);
+				// Add 0.5 bias for LOD blending and texel resolution correction. This will help to tighten and smooth clipped edges
+				clip(-clipVal + 0.5);
+				#endif
 
 				half3 view = normalize(_WorldSpaceCameraPos - input.worldPos);
 
@@ -466,8 +484,6 @@ Shader "Crest/Ocean"
 				// Normal - geom + normal mapping. Subsurface scattering.
 				const float3 uv_slice_smallerLod = WorldToUV(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz);
 				const float3 uv_slice_biggerLod = WorldToUV_BiggerLod(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz);
-				const float wt_smallerLod = (1. - lodAlpha) * _LD_Params[_LD_SliceIndex].z;
-				const float wt_biggerLod = (1. - wt_smallerLod) * _LD_Params[_LD_SliceIndex + 1].z;
 				float3 dummy = 0.;
 				half3 n_geom = half3(0.0, 1.0, 0.0);
 				half sss = 0.;
@@ -484,22 +500,6 @@ Shader "Crest/Ocean"
 				n_pixel.xz += (underwater ? -1. : 1.) * SampleNormalMaps(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, lodAlpha);
 				n_pixel = normalize(n_pixel);
 				#endif
-				#endif
-
-				#if _CLIPSURFACE_ON
-				// Clip surface
-				half clipVal = 0.0;
-				if (wt_smallerLod > 0.001)
-				{
-					SampleClip(_LD_TexArray_ClipSurface, WorldToUV(input.worldPos.xz), wt_smallerLod, clipVal);
-				}
-				if (wt_biggerLod > 0.001)
-				{
-					SampleClip(_LD_TexArray_ClipSurface, WorldToUV_BiggerLod(input.worldPos.xz), wt_biggerLod, clipVal);
-				}
-				clipVal = lerp(_CrestClipByDefault, clipVal, wt_smallerLod + wt_biggerLod);
-				// Add 0.5 bias for LOD blending and texel resolution correction. This will help to tighten and smooth clipped edges
-				clip(-clipVal + 0.5);
 				#endif
 
 				// Foam - underwater bubbles and whitefoam

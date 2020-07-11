@@ -343,7 +343,7 @@ namespace Crest
                 dc.PopulateCache();
             }
 
-            if (playing && isBakeable && GUILayout.Button("Save cache to file"))
+            if (isBakeable && GUILayout.Button("Save cache to file"))
             {
                 var rt = dc.CacheTexture;
                 RenderTexture.active = rt;

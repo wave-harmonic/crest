@@ -40,11 +40,6 @@ namespace Crest
         OceanDepthCacheRefreshMode _refreshMode = OceanDepthCacheRefreshMode.OnStart;
         public OceanDepthCacheRefreshMode RefreshMode => _refreshMode;
 
-        [Tooltip("In edit mode update every frame so that scene changes take effect immediately. Increases power usage in edit mode."), SerializeField]
-#pragma warning disable 414
-        bool _refreshEveryFrameInEditMode = true;
-#pragma warning restore 414
-
         [Tooltip("Renderers in scene to render into this depth cache. When provided this saves the code from doing an expensive FindObjectsOfType() call. If one or more renderers are specified, the layer setting is ignored."), SerializeField]
         Renderer[] _geometryToRenderIntoCache = new Renderer[0];
 
@@ -110,7 +105,7 @@ namespace Crest
 #if UNITY_EDITOR
         void Update()
         {
-            if (_forceAlwaysUpdateDebug || (!EditorApplication.isPlaying && _refreshEveryFrameInEditMode))
+            if (_forceAlwaysUpdateDebug)
             {
                 PopulateCache();
             }
@@ -316,7 +311,6 @@ namespace Crest
             {
                 // Only expose the following if real-time cache type
                 EditorGUILayout.PropertyField(serializedObject.FindProperty("_refreshMode"));
-                EditorGUILayout.PropertyField(serializedObject.FindProperty("_refreshEveryFrameInEditMode"));
                 EditorGUILayout.PropertyField(serializedObject.FindProperty("_geometryToRenderIntoCache"), true);
                 EditorGUILayout.PropertyField(serializedObject.FindProperty("_layerNames"), true);
                 EditorGUILayout.PropertyField(serializedObject.FindProperty("_resolution"));
@@ -344,7 +338,7 @@ namespace Crest
             var isBakeable = cacheType == OceanDepthCache.OceanDepthCacheType.Realtime &&
                 (!isOnDemand || dc.CacheTexture != null);
 
-            if (playing && isOnDemand && GUILayout.Button("Populate cache"))
+            if ((!playing || isOnDemand) && dc.Type != OceanDepthCache.OceanDepthCacheType.Baked && GUILayout.Button("Populate cache"))
             {
                 dc.PopulateCache();
             }

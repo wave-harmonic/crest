@@ -23,12 +23,19 @@ half4 _ChopAmps[BATCH_SIZE / 4];
 float4 _TargetPointData;
 CBUFFER_END
 
-half4 ComputeGerstner(float2 worldPosXZ, float3 uv_slice, float2 blendBias)
+half4 ComputeGerstner(float2 worldPosXZ, float3 uv_slice, half depth)
 {
 	float2 displacementNormalized = 0.0;
 
-	// sample ocean depth (this render target should 1:1 match depth texture, so UVs are trivial)
-	const half depth = _LD_TexArray_SeaFloorDepth.Sample(LODData_linear_clamp_sampler, uv_slice).x;
+	// Preferred wave directions
+#if CREST_DIRECT_TOWARDS_POINT_INTERNAL
+	float2 offset = worldPosXZ - _TargetPointData.xy;
+	float preferDist = length(offset);
+	float preferWt = smoothstep(_TargetPointData.w, _TargetPointData.z, preferDist);
+	half2 preferredDir = preferWt * offset / preferDist;
+	half4 preferredDirX = preferredDir.x;
+	half4 preferredDirZ = preferredDir.y;
+#endif
 
 	half3 result = (half3)0.0;
 
@@ -39,15 +46,20 @@ half4 ComputeGerstner(float2 worldPosXZ, float3 uv_slice, float2 blendBias)
 	// http://hyperphysics.phy-astr.gsu.edu/hbase/watwav.html#c1
 	// optimisation - do this outside the loop below - take the median wavelength for depth weighting, intead of computing
 	// per component. computing per component makes little difference to the end result
-	half depth_wt = saturate(1000 * _TwoPiOverWavelengths[_NumWaveVecs / 2].x / PI);
+	half depth_wt = saturate(depth * _TwoPiOverWavelengths[_NumWaveVecs / 2].x / PI);
 	half4 wt = _AttenuationInShallows * depth_wt + (1.0 - _AttenuationInShallows);
 
 	// gerstner computation is vectorized - processes 4 wave components at once
 	for (uint vi = 0; vi < _NumWaveVecs; vi++)
 	{
 		// direction
-		float4 Dx = (_WaveDirX[vi] * blendBias.x + _WaveDirZ[vi] * -blendBias.y);
-		float4 Dz = (_WaveDirX[vi] * blendBias.y + _WaveDirZ[vi] *  blendBias.x);
+		half4 Dx = _WaveDirX[vi];
+		half4 Dz = _WaveDirZ[vi];
+
+		// Peferred wave direction
+#if CREST_DIRECT_TOWARDS_POINT_INTERNAL
+		wt *= max((1.0 + Dx * preferredDirX + Dz * preferredDirZ) / 2.0, 0.1);
+#endif
 
 		// wave number
 		half4 k = _TwoPiOverWavelengths[vi];
@@ -63,12 +75,9 @@ half4 ComputeGerstner(float2 worldPosXZ, float3 uv_slice, float2 blendBias)
 		half4 resulty = _Amplitudes[vi] * cos(angle);
 
 		// sum the vector results
-		half depthStretch = 0;// max(0.0, 40.0 - depth);
-		half horizontalStretchModerator = 10.0 * resulty;
-		half verticalStretchModerator = 0.05;
-		result.x += dot(resultx + (depthStretch * _WaveDirX[vi] * blendBias.x  * horizontalStretchModerator), wt);
-		result.y += dot(resulty, wt) * (1.0 + (verticalStretchModerator * depthStretch));
-		result.z += dot(resultz + (depthStretch * _WaveDirZ[vi] * blendBias.y * horizontalStretchModerator), wt);
+		result.x += dot(resultx, wt);
+		result.y += dot(resulty, wt);
+		result.z += dot(resultz, wt);
 
 		half4 sssFactor = min(1.0, _TwoPiOverWavelengths[vi]);
 		displacementNormalized.x += dot(resultx * sssFactor, wt);
@@ -80,13 +89,9 @@ half4 ComputeGerstner(float2 worldPosXZ, float3 uv_slice, float2 blendBias)
 	return _Weight * half4(result, sss);
 }
 
-
-half4 ComputeShorelineGerstner(float2 worldPosXZ, float3 uv_slice, float2 blendBias)
+half4 ComputeShorelineGerstner(float2 worldPosXZ, float3 uv_slice, half depth, float2 direction)
 {
 	float2 displacementNormalized = 0.0;
-
-	// sample ocean depth (this render target should 1:1 match depth texture, so UVs are trivial)
-	const half depth = _LD_TexArray_SeaFloorDepth.Sample(LODData_linear_clamp_sampler, uv_slice).x;
 
 	half3 result = (half3)0.0;
 
@@ -104,8 +109,8 @@ half4 ComputeShorelineGerstner(float2 worldPosXZ, float3 uv_slice, float2 blendB
 	for (uint vi = 0; vi < _NumWaveVecs; vi++)
 	{
 		// direction
-		float4 Dx = (_WaveDirX[vi] * blendBias.x + _WaveDirZ[vi] * -blendBias.y);
-		float4 Dz = (_WaveDirX[vi] * blendBias.y + _WaveDirZ[vi] *  blendBias.x);
+		float4 Dx = (_WaveDirX[vi] * direction.x + _WaveDirZ[vi] * -direction.y);
+		float4 Dz = (_WaveDirX[vi] * direction.y + _WaveDirZ[vi] *  direction.x);
 
 		// wave number
 		half4 k = _TwoPiOverWavelengths[vi];
@@ -124,9 +129,9 @@ half4 ComputeShorelineGerstner(float2 worldPosXZ, float3 uv_slice, float2 blendB
 		half depthStretch = 0;// max(0.0, 40.0 - depth);
 		half horizontalStretchModerator = 10.0 * resulty;
 		half verticalStretchModerator = 0.05;
-		result.x += dot(resultx + (depthStretch * _WaveDirX[vi] * blendBias.x  * horizontalStretchModerator), wt);
+		result.x += dot(resultx + (depthStretch * _WaveDirX[vi] * direction.x  * horizontalStretchModerator), wt);
 		result.y += dot(resulty, wt) * (1.0 + (verticalStretchModerator * depthStretch));
-		result.z += dot(resultz + (depthStretch * _WaveDirZ[vi] * blendBias.y * horizontalStretchModerator), wt);
+		result.z += dot(resultz + (depthStretch * _WaveDirZ[vi] * direction.y * horizontalStretchModerator), wt);
 
 		half4 sssFactor = min(1.0, _TwoPiOverWavelengths[vi]);
 		displacementNormalized.x += dot(resultx * sssFactor, wt);

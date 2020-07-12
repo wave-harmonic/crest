@@ -70,29 +70,22 @@ Shader "Hidden/Crest/Inputs/Animated Waves/Gerstner Batch Global"
 
 			half4 Frag(Varyings input) : SV_Target
 			{
+				// sample ocean depth (this render target should 1:1 match depth texture, so UVs are trivial)
 				half4 depth_distance_dirXZ = _LD_TexArray_SeaFloorDepth.Sample(LODData_linear_clamp_sampler, input.uv_slice);
 				float2 headingvec = normalize(depth_distance_dirXZ.zw);
-				float inangle = atan2(headingvec.y, headingvec.x);
+
 				const float lerpDistance = 500.0;
 				float directionalStrengh = 1.0 - clamp(depth_distance_dirXZ.y / lerpDistance, 0.0, 1.0);
-				half4 directionalWaves;
-				half4 uniformWaves;
-				{
-					// Quantize the direction
-					float angle = inangle;
-					float dangle = PI / 32.0;
-					float angleAlpha = 1.0;
-					Quantize(inangle, dangle, angle, angleAlpha);
 
-					// Compute the waves for nearest quantized directions, blend
-					float4 waves0 = ComputeShorelineGerstner(input.worldPosXZ, input.uv_slice, -float2(cos(angle), sin(angle)));
-					float4 waves1 = ComputeShorelineGerstner(input.worldPosXZ, input.uv_slice, -float2(cos(angle + dangle), sin(angle + dangle)));
-					directionalWaves = lerp(waves0, waves1, angleAlpha);
+				half4 directionalWaves;
+				{
+					directionalWaves = ComputeShorelineGerstner(input.worldPosXZ, input.uv_slice, depth_distance_dirXZ.x, headingvec);
 				}
 
-				float4 result = ComputeGerstner(input.worldPosXZ, input.uv_slice, float2(1, 0));
+				float4 result = ComputeGerstner(input.worldPosXZ, input.uv_slice, depth_distance_dirXZ.x);
 
-				result = lerp(result, directionalWaves, directionalStrengh);
+				// result += directionalWaves * directionalStrengh;
+				result = directionalWaves;
 
 				return result;
 			}

@@ -29,7 +29,6 @@ Shader "Crest/Inputs/Clip Surface/Remove Area Texture"
 
 			CBUFFER_START(CrestPerOceanInput)
 			float4 _MainTex_ST;
-			float3 _DisplacementAtInputPosition;
 			CBUFFER_END
 
 			struct Attributes
@@ -47,14 +46,8 @@ Shader "Crest/Inputs/Clip Surface/Remove Area Texture"
 			Varyings Vert(Attributes input)
 			{
 				Varyings o;
-
-				float3 positionWS = mul(unity_ObjectToWorld, float4(input.positionOS, 1.0)).xyz;
-				// Correct for displacement
-				positionWS.xz -= _DisplacementAtInputPosition.xz;
-				o.positionCS = mul(UNITY_MATRIX_VP, float4(positionWS, 1.0));
-
+				o.positionCS = UnityObjectToClipPos(input.positionOS);
 				o.uv = TRANSFORM_TEX(input.uv, _MainTex);
-
 				return o;
 			}
 

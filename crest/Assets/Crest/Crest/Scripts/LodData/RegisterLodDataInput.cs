@@ -54,8 +54,7 @@ namespace Crest
         public static int sp_Weight = Shader.PropertyToID("_Weight");
         public static int sp_DisplacementAtInputPosition = Shader.PropertyToID("_DisplacementAtInputPosition");
 
-        [SerializeField, Tooltip("Correct for horizontal displacement so that this input does not move from side to side with the waves.")]
-        bool _followHorizontalMotion = false;
+        protected virtual bool FollowHorizontalMotion => false;
 
         protected abstract string ShaderPrefix { get; }
 
@@ -116,7 +115,7 @@ namespace Crest
                 buf.SetGlobalFloat(sp_Weight, weight);
                 buf.SetGlobalFloat(LodDataMgr.sp_LD_SliceIndex, lodIdx);
 
-                if (!_followHorizontalMotion)
+                if (!FollowHorizontalMotion)
                 {
                     // This can be called multiple times per frame - one for each LOD potentially
                     _sampleHelper.Init(transform.position, 0f, true, this);
@@ -228,6 +227,16 @@ namespace Crest
                 Gizmos.DrawWireMesh(mf.sharedMesh, transform.position, transform.rotation, transform.lossyScale);
             }
         }
+    }
+
+    [ExecuteAlways]
+    public abstract class RegisterLodDataInputDisplacementCorrection<LodDataType> : RegisterLodDataInput<LodDataType>
+        where LodDataType : LodDataMgr
+    {
+        [SerializeField, Tooltip("Correct for horizontal displacement so that this input does not move from side to side with the waves.")]
+        bool _followHorizontalMotion = false;
+
+        protected override bool FollowHorizontalMotion => _followHorizontalMotion;
     }
 
 #if UNITY_EDITOR

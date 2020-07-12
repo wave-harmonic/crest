@@ -29,6 +29,9 @@ namespace Crest
 
         protected override string ShaderPrefix => "Crest/Inputs/Clip Surface";
 
+        // The clip surface samples at the displaced position in the ocean shader, so the displacement correction is not needed.
+        protected override bool FollowHorizontalMotion => true;
+
         PropertyWrapperMPB _mpb;
         SampleHeightHelper _sampleHeightHelper = new SampleHeightHelper();
 

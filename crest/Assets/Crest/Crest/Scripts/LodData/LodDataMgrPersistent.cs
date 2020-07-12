@@ -44,7 +44,7 @@ namespace Crest
         void CreateProperties(int lodCount)
         {
             _shader = ComputeShaderHelpers.LoadShader(ShaderSim);
-            if(_shader == null)
+            if (_shader == null)
             {
                 enabled = false;
                 return;

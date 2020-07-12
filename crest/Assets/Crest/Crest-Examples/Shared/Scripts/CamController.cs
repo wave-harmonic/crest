@@ -124,18 +124,18 @@ public class CamController : MonoBehaviour
         mousePos.x = Input.mousePosition.x;
         mousePos.y = Input.mousePosition.y;
 
-        if( !_dragging && Input.GetMouseButtonDown( 0 ) && !Crest.OceanDebugGUI.OverGUI( mousePos ) )
+        if (!_dragging && Input.GetMouseButtonDown(0) && !Crest.OceanDebugGUI.OverGUI(mousePos))
         {
             _dragging = true;
             _lastMousePos = mousePos;
         }
-        if( _dragging && Input.GetMouseButtonUp( 0 ) )
+        if (_dragging && Input.GetMouseButtonUp(0))
         {
             _dragging = false;
             _lastMousePos = -Vector2.one;
         }
 
-        if( _dragging )
+        if (_dragging)
         {
             Vector2 delta = mousePos - _lastMousePos;
 

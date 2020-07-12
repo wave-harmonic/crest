@@ -172,7 +172,7 @@ Shader "Crest/Ocean"
 		// Discards ocean surface pixels. Requires 'Create Clip Surface Data' enabled on OceanRenderer script.
 		[Toggle] _ClipSurface("Enable", Float) = 0
 		// Clips purely based on water depth
-		[Toggle] _ClipUnderTerrain("Clip under terrain", Float) = 0
+		[Toggle] _ClipUnderTerrain("Clip Below Terrain (Requires depth cache)", Float) = 0
 
 		[Header(Debug Options)]
 		// Build shader with debug info which allows stepping through the code in a GPU debugger. I typically use RenderDoc or

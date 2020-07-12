@@ -48,15 +48,11 @@ namespace Crest
         [Tooltip("Used to automatically add turning input"), SerializeField]
         float _turnBias = 0f;
 
-
         private const float WATER_DENSITY = 1000;
 
         public override Vector3 Velocity => _rb.velocity;
 
         Rigidbody _rb;
-
-        Vector3 _displacementToObject = Vector3.zero;
-        public override Vector3 CalculateDisplacementToObject() { return _displacementToObject; }
 
         public override float ObjectWidth { get { return _minSpatialLength; } }
         public override bool InWater { get { return true; } }
@@ -113,7 +109,6 @@ namespace Crest
             // Do queries
             UpdateWaterQueries(collProvider);
 
-            _displacementToObject = _queryResultDisps[_forcePoints.Length];
             var undispPos = transform.position - _queryResultDisps[_forcePoints.Length];
             undispPos.y = OceanRenderer.Instance.SeaLevel;
 

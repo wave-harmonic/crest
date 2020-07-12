@@ -7,8 +7,8 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: ClipSurfaceConvexHull
-  m_Shader: {fileID: 4800000, guid: bc1b1d703e37c48fa9b8c4d0e107ae0c, type: 3}
+  m_Name: ClipSurfaceIncludeArea
+  m_Shader: {fileID: 4800000, guid: 38d3d96bc65c24f42ace56d4fbc0e5ed, type: 3}
   m_ShaderKeywords: 
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0

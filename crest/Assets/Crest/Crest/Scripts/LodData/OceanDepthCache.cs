@@ -5,9 +5,12 @@
 // This is the original version that uses an auxillary camera and works with Unity's GPU terrain - issue 152.
 
 using System;
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
+
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 namespace Crest
 {
@@ -109,7 +112,7 @@ namespace Crest
         void Start()
         {
 #if UNITY_EDITOR
-            if (_runValidationOnStart)
+            if (EditorApplication.isPlaying && _runValidationOnStart)
             {
                 Validate(OceanRenderer.Instance, ValidatedHelper.DebugLog);
             }

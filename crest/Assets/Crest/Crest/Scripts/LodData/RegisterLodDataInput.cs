@@ -124,7 +124,11 @@ namespace Crest
                     _sampleHelper.Sample(ref displacement, ref dummy, ref dummy);
                     _material.SetVector(sp_DisplacementAtInputPosition, displacement);
                 }
-                
+                else
+                {
+                    _material.SetVector(sp_DisplacementAtInputPosition, Vector3.zero);
+                }
+
                 buf.DrawRenderer(_renderer, _material);
             }
         }

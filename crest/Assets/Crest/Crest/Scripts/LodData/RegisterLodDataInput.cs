@@ -55,7 +55,7 @@ namespace Crest
         public static int sp_DisplacementAtInputPosition = Shader.PropertyToID("_DisplacementAtInputPosition");
 
         [SerializeField, Tooltip("Correct for horizontal displacement so that this input does not move from side to side with the waves.")]
-        bool _applyDisplacementCorrection = false;
+        bool _followHorizontalMotion = false;
 
         protected abstract string ShaderPrefix { get; }
 
@@ -116,7 +116,7 @@ namespace Crest
                 buf.SetGlobalFloat(sp_Weight, weight);
                 buf.SetGlobalFloat(LodDataMgr.sp_LD_SliceIndex, lodIdx);
 
-                if (_applyDisplacementCorrection)
+                if (!_followHorizontalMotion)
                 {
                     // This can be called multiple times per frame - one for each LOD potentially
                     _sampleHelper.Init(transform.position, 0f, true, this);

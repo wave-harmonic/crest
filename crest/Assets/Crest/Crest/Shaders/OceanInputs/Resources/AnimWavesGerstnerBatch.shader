@@ -85,7 +85,7 @@ Shader "Hidden/Crest/Inputs/Animated Waves/Gerstner Batch Global"
 				float4 result = ComputeGerstner(input.worldPosXZ, input.uv_slice, depth_distance_dirXZ.x);
 
 				// result += directionalWaves * directionalStrengh;
-				result = directionalWaves;
+				result = directionalWaves * directionalStrengh;
 
 				return result;
 			}

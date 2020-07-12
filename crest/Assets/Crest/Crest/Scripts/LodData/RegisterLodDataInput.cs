@@ -54,6 +54,8 @@ namespace Crest
         public static int sp_Weight = Shader.PropertyToID("_Weight");
         public static int sp_DisplacementAtInputPosition = Shader.PropertyToID("_DisplacementAtInputPosition");
 
+        // By default do not follow horizontal motion of waves. This means that the ocean input will appear on the surface at its XZ location, instead
+        // of moving horizontally with the waves.
         protected virtual bool FollowHorizontalMotion => false;
 
         protected abstract string ShaderPrefix { get; }
@@ -233,7 +235,7 @@ namespace Crest
     public abstract class RegisterLodDataInputDisplacementCorrection<LodDataType> : RegisterLodDataInput<LodDataType>
         where LodDataType : LodDataMgr
     {
-        [SerializeField, Tooltip("Correct for horizontal displacement so that this input does not move from side to side with the waves.")]
+        [SerializeField, Tooltip("Correct for horizontal displacement so that this input does not move from side to side with the waves. Adds a small performance overhead when disabled.")]
         bool _followHorizontalMotion = false;
 
         protected override bool FollowHorizontalMotion => _followHorizontalMotion;

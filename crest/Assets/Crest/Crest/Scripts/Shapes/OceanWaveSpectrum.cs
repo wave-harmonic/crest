@@ -2,8 +2,11 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
-using UnityEditor;
 using UnityEngine;
+
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 namespace Crest
 {
@@ -22,7 +25,7 @@ namespace Crest
         [HideInInspector]
         public float _fetch = 500000f;
 
-        public static readonly float MIN_POWER_LOG = -6f;
+        public static readonly float MIN_POWER_LOG = -7f;
         public static readonly float MAX_POWER_LOG = 5f;
 
         [Tooltip("Variance of wave directions, in degrees"), Range(0f, 180f)]

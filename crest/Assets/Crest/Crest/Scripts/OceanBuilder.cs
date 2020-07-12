@@ -5,6 +5,7 @@
 //#define PROFILE_CONSTRUCTION
 
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Crest
@@ -126,7 +127,7 @@ namespace Crest
             Count,
         }
 
-        public static Transform GenerateMesh(OceanRenderer ocean, int lodDataResolution, int geoDownSampleFactor, int lodCount)
+        public static Transform GenerateMesh(OceanRenderer ocean, List<OceanChunkRenderer> tiles, int lodDataResolution, int geoDownSampleFactor, int lodCount)
         {
             if (lodCount < 1)
             {
@@ -148,14 +149,15 @@ namespace Crest
 
             // create mesh data
             Mesh[] meshInsts = new Mesh[(int)PatchType.Count];
+            Bounds[] meshBounds = new Bounds[(int)PatchType.Count];
             // 4 tiles across a LOD, and support lowering density by a factor
             var tileResolution = Mathf.Round(0.25f * lodDataResolution / geoDownSampleFactor);
             for (int i = 0; i < (int)PatchType.Count; i++)
             {
-                meshInsts[i] = BuildOceanPatch((PatchType)i, tileResolution);
+                meshInsts[i] = BuildOceanPatch((PatchType)i, tileResolution, out meshBounds[i]);
             }
 
-            ClearOutTiles(ocean);
+            ClearOutTiles(ocean, tiles);
 
             var root = new GameObject("Root");
             root.hideFlags = ocean._hideOceanTileGameObjects ? HideFlags.HideAndDontSave : HideFlags.DontSave;
@@ -166,7 +168,7 @@ namespace Crest
 
             for (int i = 0; i < lodCount; i++)
             {
-                CreateLOD(ocean, root.transform, i, lodCount, meshInsts, lodDataResolution, geoDownSampleFactor, oceanLayer);
+                CreateLOD(ocean, tiles, root.transform, i, lodCount, meshInsts, meshBounds, lodDataResolution, geoDownSampleFactor, oceanLayer);
             }
 
 #if PROFILE_CONSTRUCTION
@@ -177,8 +179,10 @@ namespace Crest
             return root.transform;
         }
 
-        public static void ClearOutTiles(OceanRenderer ocean)
+        public static void ClearOutTiles(OceanRenderer ocean, List<OceanChunkRenderer> tiles)
         {
+            tiles.Clear();
+
             if (ocean.Root == null)
             {
                 return;
@@ -217,7 +221,7 @@ namespace Crest
 #endif
         }
 
-        static Mesh BuildOceanPatch(PatchType pt, float vertDensity)
+        static Mesh BuildOceanPatch(PatchType pt, float vertDensity, out Bounds bounds)
         {
             ArrayList verts = new ArrayList();
             ArrayList indices = new ArrayList();
@@ -344,15 +348,20 @@ namespace Crest
                 // recalculate bounds. add a little allowance for snapping. in the chunk renderer script, the bounds will be expanded further
                 // to allow for horizontal displacement
                 mesh.RecalculateBounds();
-                Bounds bounds = mesh.bounds;
+                bounds = mesh.bounds;
                 bounds.extents = new Vector3(bounds.extents.x + dx, 100f, bounds.extents.z + dx);
                 mesh.bounds = bounds;
                 mesh.name = pt.ToString();
             }
+            else
+            {
+                bounds = new Bounds();
+            }
+
             return mesh;
         }
 
-        static void CreateLOD(OceanRenderer ocean, Transform parent, int lodIndex, int lodCount, Mesh[] meshData, int lodDataResolution, int geoDownSampleFactor, int oceanLayer)
+        static void CreateLOD(OceanRenderer ocean, List<OceanChunkRenderer> tiles, Transform parent, int lodIndex, int lodCount, Mesh[] meshData, Bounds[] meshBounds, int lodDataResolution, int geoDownSampleFactor, int oceanLayer)
         {
             float horizScale = Mathf.Pow(2f, lodIndex);
 
@@ -440,8 +449,13 @@ namespace Crest
                 // scale only horizontally, otherwise culling bounding box will be scaled up in y
                 patch.transform.localScale = new Vector3(horizScale, 1f, horizScale);
 
-                patch.AddComponent<OceanChunkRenderer>().SetInstanceData(lodIndex, lodCount, lodDataResolution, geoDownSampleFactor);
-                patch.AddComponent<MeshFilter>().sharedMesh = meshData[(int)patchTypes[i]];
+                {
+                    var oceanChunkRenderer = patch.AddComponent<OceanChunkRenderer>();
+                    oceanChunkRenderer._boundsLocal = meshBounds[(int)patchTypes[i]];
+                    patch.AddComponent<MeshFilter>().sharedMesh = meshData[(int)patchTypes[i]];
+                    oceanChunkRenderer.SetInstanceData(lodIndex, lodCount, lodDataResolution, geoDownSampleFactor);
+                    tiles.Add(oceanChunkRenderer);
+                }
 
                 var mr = patch.AddComponent<MeshRenderer>();
 

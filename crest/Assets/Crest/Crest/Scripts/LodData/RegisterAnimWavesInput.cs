@@ -41,6 +41,11 @@ namespace Crest
         {
             base.Update();
 
+            if (OceanRenderer.Instance == null)
+            {
+                return;
+            }
+
             var maxDispVert = 0f;
 
             // let ocean system know how far from the sea level this shape may displace the surface

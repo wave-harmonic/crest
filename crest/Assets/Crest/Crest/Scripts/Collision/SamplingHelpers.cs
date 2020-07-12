@@ -145,11 +145,11 @@ namespace Crest
         /// </summary>
         public bool Sample(ref Vector2 o_flow)
         {
-            if (QueryFlow.Instance == null) return false;
+            var flowProvider = OceanRenderer.Instance?.FlowProvider;
+            if (flowProvider == null) return false;
+            var status = flowProvider.Query(GetHashCode(), _minLength, _queryPos, _queryResult);
 
-            var status = QueryFlow.Instance.Query(GetHashCode(), _minLength, _queryPos, _queryResult);
-
-            if (!QueryFlow.Instance.RetrieveSucceeded(status))
+            if (!flowProvider.RetrieveSucceeded(status))
             {
                 return false;
             }

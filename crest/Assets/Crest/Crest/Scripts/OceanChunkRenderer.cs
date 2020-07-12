@@ -3,11 +3,7 @@
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 using UnityEngine;
-#if UNITY_2018
-using UnityEngine.Experimental.Rendering;
-#else
 using UnityEngine.Rendering;
-#endif
 
 namespace Crest
 {
@@ -19,9 +15,9 @@ namespace Crest
     {
         public bool _drawRenderBounds = false;
 
-        Bounds _boundsLocal;
+        public Bounds _boundsLocal;
         Mesh _mesh;
-        Renderer _rend;
+        public Renderer Rend { get; private set; }
         PropertyWrapperMPB _mpb;
 
         // Cache these off to support regenerating ocean surface
@@ -38,9 +34,8 @@ namespace Crest
 
         void Start()
         {
-            _rend = GetComponent<Renderer>();
+            Rend = GetComponent<Renderer>();
             _mesh = GetComponent<MeshFilter>().sharedMesh;
-            _boundsLocal = _mesh.bounds;
 
             UpdateMeshBounds();
         }
@@ -61,11 +56,7 @@ namespace Crest
 
         static Camera _currentCamera = null;
 
-#if UNITY_2018
-        private static void BeginCameraRendering(Camera camera)
-#else
         private static void BeginCameraRendering(ScriptableRenderContext context, Camera camera)
-#endif
         {
             _currentCamera = camera;
         }
@@ -73,7 +64,7 @@ namespace Crest
         // Called when visible to a camera
         void OnWillRenderObject()
         {
-            if (OceanRenderer.Instance == null || _rend == null)
+            if (OceanRenderer.Instance == null || Rend == null)
             {
                 return;
             }
@@ -87,9 +78,9 @@ namespace Crest
             // Depth texture is used by ocean shader for transparency/depth fog, and for fading out foam at shoreline.
             _currentCamera.depthTextureMode |= DepthTextureMode.Depth;
 
-            if (_rend.sharedMaterial != OceanRenderer.Instance.OceanMaterial)
+            if (Rend.sharedMaterial != OceanRenderer.Instance.OceanMaterial)
             {
-                _rend.sharedMaterial = OceanRenderer.Instance.OceanMaterial;
+                Rend.sharedMaterial = OceanRenderer.Instance.OceanMaterial;
             }
 
             // per instance data
@@ -98,7 +89,7 @@ namespace Crest
             {
                 _mpb = new PropertyWrapperMPB();
             }
-            _rend.GetPropertyBlock(_mpb.materialPropertyBlock);
+            Rend.GetPropertyBlock(_mpb.materialPropertyBlock);
 
             // blend LOD 0 shape in/out to avoid pop, if the ocean might scale up later (it is smaller than its maximum scale)
             var needToBlendOutShape = _lodIndex == 0 && OceanRenderer.Instance.ScaleCouldIncrease;
@@ -154,12 +145,7 @@ namespace Crest
             var heightOffset = OceanRenderer.Instance.ViewerHeightAboveWater;
             _mpb.SetFloat(sp_ForceUnderwater, heightOffset < -2f ? 1f : 0f);
 
-            _rend.SetPropertyBlock(_mpb.materialPropertyBlock);
-
-            if (_drawRenderBounds)
-            {
-                _rend.bounds.DebugDraw();
-            }
+            Rend.SetPropertyBlock(_mpb.materialPropertyBlock);
         }
 
         // this is called every frame because the bounds are given in world space and depend on the transform scale, which
@@ -195,13 +181,16 @@ namespace Crest
         [RuntimeInitializeOnLoadMethod]
         static void RunOnStart()
         {
-#if UNITY_2018
-            RenderPipeline.beginCameraRendering -= BeginCameraRendering;
-            RenderPipeline.beginCameraRendering += BeginCameraRendering;
-#else
             RenderPipelineManager.beginCameraRendering -= BeginCameraRendering;
             RenderPipelineManager.beginCameraRendering += BeginCameraRendering;
-#endif
+        }
+
+        private void OnDrawGizmos()
+        {
+            if (_drawRenderBounds)
+            {
+                Rend.bounds.GizmosDraw();
+            }
         }
     }
 
@@ -230,6 +219,31 @@ namespace Crest
             Debug.DrawLine(new Vector3(xmin, ymin, zmin), new Vector3(xmin, ymax, zmin));
             Debug.DrawLine(new Vector3(xmax, ymin, zmin), new Vector3(xmax, ymax, zmin));
             Debug.DrawLine(new Vector3(xmin, ymax, zmax), new Vector3(xmin, ymin, zmax));
+        }
+
+        public static void GizmosDraw(this Bounds b)
+        {
+            var xmin = b.min.x;
+            var ymin = b.min.y;
+            var zmin = b.min.z;
+            var xmax = b.max.x;
+            var ymax = b.max.y;
+            var zmax = b.max.z;
+
+            Gizmos.DrawLine(new Vector3(xmin, ymin, zmin), new Vector3(xmin, ymin, zmax));
+            Gizmos.DrawLine(new Vector3(xmin, ymin, zmin), new Vector3(xmax, ymin, zmin));
+            Gizmos.DrawLine(new Vector3(xmax, ymin, zmax), new Vector3(xmin, ymin, zmax));
+            Gizmos.DrawLine(new Vector3(xmax, ymin, zmax), new Vector3(xmax, ymin, zmin));
+            
+            Gizmos.DrawLine(new Vector3(xmin, ymax, zmin), new Vector3(xmin, ymax, zmax));
+            Gizmos.DrawLine(new Vector3(xmin, ymax, zmin), new Vector3(xmax, ymax, zmin));
+            Gizmos.DrawLine(new Vector3(xmax, ymax, zmax), new Vector3(xmin, ymax, zmax));
+            Gizmos.DrawLine(new Vector3(xmax, ymax, zmax), new Vector3(xmax, ymax, zmin));
+            
+            Gizmos.DrawLine(new Vector3(xmax, ymax, zmax), new Vector3(xmax, ymin, zmax));
+            Gizmos.DrawLine(new Vector3(xmin, ymin, zmin), new Vector3(xmin, ymax, zmin));
+            Gizmos.DrawLine(new Vector3(xmax, ymin, zmin), new Vector3(xmax, ymax, zmin));
+            Gizmos.DrawLine(new Vector3(xmin, ymax, zmax), new Vector3(xmin, ymin, zmax));
         }
     }
 }

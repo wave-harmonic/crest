@@ -27,6 +27,11 @@ namespace Crest
 
         private void Update()
         {
+            if (OceanRenderer.Instance == null)
+            {
+                return;
+            }
+
             _queryPoints[0] = transform.position;
             var result = OceanRenderer.Instance.CollisionProvider.Query(GetHashCode(), ObjectWidth, _queryPoints, _resultDisps, null, null);
             if (OceanRenderer.Instance.CollisionProvider.RetrieveSucceeded(result))

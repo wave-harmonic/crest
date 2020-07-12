@@ -2,9 +2,12 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
+
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 namespace Crest
 {
@@ -102,9 +105,13 @@ namespace Crest
         // Data for all components
         [Header("Wave data (usually populated at runtime)")]
         public bool _evaluateSpectrumAtRuntime = true;
+        [PredicatedField("_evaluateSpectrumAtRuntime", true)]
         public float[] _wavelengths;
+        [PredicatedField("_evaluateSpectrumAtRuntime", true)]
         public float[] _amplitudes;
+        [PredicatedField("_evaluateSpectrumAtRuntime", true)]
         public float[] _angleDegs;
+        [PredicatedField("_evaluateSpectrumAtRuntime", true)]
         public float[] _phases;
 
         [SerializeField, Tooltip("Make waves converge towards a point. Must be set at edit time only, applied on startup."), Header("Direct towards point")]
@@ -130,6 +137,8 @@ namespace Crest
         // IMPORTANT - this mirrors the constant with the same name in ShapeGerstnerBatch.shader, both must be updated together!
         const int BATCH_SIZE = 32;
 
+        GameObject _renderProxy;
+
         // scratch data used by batching code
         struct UpdateBatchScratchData
         {
@@ -143,18 +152,36 @@ namespace Crest
 
         private void OnEnable()
         {
+#if UNITY_EDITOR
+            // Initialise with spectrum
             if (_spectrum == null)
             {
                 _spectrum = ScriptableObject.CreateInstance<OceanWaveSpectrum>();
                 _spectrum.name = "Default Waves (auto)";
             }
 
-#if UNITY_EDITOR
+            if (EditorApplication.isPlaying && !Validate(OceanRenderer.Instance, ValidatedHelper.DebugLog))
+            {
+                enabled = false;
+                return;
+            }
+
             _spectrum.Upgrade();
 #endif
 
             InitBatches();
         }
+
+#if UNITY_EDITOR
+        void Update()
+        {
+            // We are using the render proxy to hold state since we need to anyway.
+            if (_renderProxy != null ? _mode == GerstnerMode.Geometry : _mode == GerstnerMode.Global)
+            {
+                InitBatches();
+            }
+        }
+#endif
 
         void InitPhases()
         {
@@ -261,55 +288,62 @@ namespace Crest
         void InitBatches()
         {
             // Get the wave
-            MeshRenderer rend = null;
+            MeshRenderer rend = GetComponent<MeshRenderer>();
             if (_mode == GerstnerMode.Geometry)
             {
-                rend = GetComponent<MeshRenderer>();
-
-                if (!rend)
-                {
-                    Debug.LogError($"Gerstner input '{gameObject.name}' has Mode set to Geometry, but no MeshRenderer component is attached. Please attach a MeshRenderer to provide the geometry for rendering the Gerstner waves.", this);
-                    enabled = false;
-                    return;
-                }
-                if (!rend.sharedMaterial)
-                {
-                    Debug.LogError($"Gerstner input '{gameObject.name}' has Mode set to Geometry, but the geometry has no material assigned. Please assign a material that uses one of the Gerstner input shaders.", this);
-                    enabled = false;
-                    return;
-                }
-
                 rend.enabled = false;
+#if UNITY_EDITOR
+                // Cleanup render proxy used for global mode after switching.
+                if (_renderProxy != null)
+                {
+                    DestroyImmediate(_renderProxy);
+                }
+#endif
             }
             else if (_mode == GerstnerMode.Global)
             {
-                if (GetComponent<MeshRenderer>() != null)
+                // Create render proxy only if we don't already have one.
+                if (_renderProxy == null)
                 {
-                    Debug.LogWarning($"Gerstner input '{gameObject.name}' has MeshRenderer component that will be ignored because the Mode is set to Global.", this);
-                }
-
-                // Create a proxy MeshRenderer to feed the rendering
-                var renderProxy = GameObject.CreatePrimitive(PrimitiveType.Quad);
+                    // Create a proxy MeshRenderer to feed the rendering
+                    _renderProxy = GameObject.CreatePrimitive(PrimitiveType.Quad);
 #if UNITY_EDITOR
-                DestroyImmediate(renderProxy.GetComponent<Collider>());
+                    DestroyImmediate(_renderProxy.GetComponent<Collider>());
 #else
-                Destroy(renderProxy.GetComponent<Collider>());
+                    Destroy(_renderProxy.GetComponent<Collider>());
 #endif
-                renderProxy.hideFlags = HideFlags.HideAndDontSave;
-                renderProxy.transform.parent = transform;
-                rend = renderProxy.GetComponent<MeshRenderer>();
-                rend.enabled = false;
+                    _renderProxy.hideFlags = HideFlags.HideAndDontSave;
+                    _renderProxy.transform.parent = transform;
+                    rend = _renderProxy.GetComponent<MeshRenderer>();
+                    rend.enabled = false;
+                    var waveShader = Shader.Find("Hidden/Crest/Inputs/Animated Waves/Gerstner Batch Global");
+                    Debug.Assert(waveShader, "Could not load Gerstner wave shader, make sure it is packaged in the build.");
+                    if (waveShader == null)
+                    {
+                        enabled = false;
+                        return;
+                    }
 
-                var waveShader = Shader.Find("Hidden/Crest/Inputs/Animated Waves/Gerstner Batch Global");
-                Debug.Assert(waveShader, "Could not load Gerstner wave shader, make sure it is packaged in the build.");
-                if (waveShader == null)
-                {
-                    enabled = false;
-                    return;
+                    rend.material = new Material(waveShader);
                 }
-
-                rend.material = new Material(waveShader);
+                else
+                {
+                    rend = _renderProxy.GetComponent<MeshRenderer>();
+                }
             }
+
+            var registered = RegisterLodDataInputBase.GetRegistrar(typeof(LodDataMgrAnimWaves));
+
+#if UNITY_EDITOR
+            // Unregister after switching modes in the editor.
+            if (_batches != null)
+            {
+                foreach (var batch in _batches)
+                {
+                    registered.Remove(batch);
+                }
+            }
+#endif
 
             _batches = new GerstnerBatch[LodDataMgr.MAX_LOD_COUNT];
             for (int i = 0; i < _batches.Length; i++)
@@ -321,7 +355,6 @@ namespace Crest
             // in the biggest lod, or too big for the biggest lod, are rendered into both of the last two LODs N-1 and N-2, as this allows us to
             // move these waves between LODs without pops when the camera changes heights and the LODs need to change scale.
 
-            var registered = RegisterLodDataInputBase.GetRegistrar(typeof(LodDataMgrAnimWaves));
             foreach (var batch in _batches)
             {
                 registered.Add(0, batch);
@@ -461,6 +494,10 @@ namespace Crest
 
         void UpdateBatch(GerstnerBatch batch, int batchIdx)
         {
+#if UNITY_EDITOR
+            if (_spectrum == null) return;
+#endif
+
             // Default to disabling all batches
             batch.HasWaves = false;
 
@@ -779,6 +816,14 @@ namespace Crest
         {
             return queryStatus == 0;
         }
+
+        public void UpdateQueries()
+        {
+        }
+
+        public void CleanUp()
+        {
+        }
     }
 
 #if UNITY_EDITOR
@@ -817,6 +862,36 @@ namespace Crest
             if (_mode == GerstnerMode.Geometry)
             {
                 isValid = ValidatedHelper.ValidateRenderer(gameObject, "Crest/Inputs/Animated Waves/Gerstner", showMessage);
+            }
+            else if (_mode == GerstnerMode.Global && GetComponent<MeshRenderer>() != null)
+            {
+                showMessage
+                (
+                    "The MeshRenderer component will be ignored because the Mode is set to Global.",
+                    ValidatedHelper.MessageType.Warning, this
+                );
+            }
+
+            if (_mode == GerstnerMode.Global && GetComponent<MeshRenderer>() != null)
+            {
+                showMessage
+                (
+                    "The MeshRenderer component will be ignored because the Mode is set to Global.",
+                    ValidatedHelper.MessageType.Warning, this
+                );
+
+                isValid = false;
+            }
+
+            if (_spectrum == null)
+            {
+                showMessage
+                (
+                    "There is no spectrum assigned meaning this Gerstner component won't generate any waves.",
+                    ValidatedHelper.MessageType.Warning, this
+                );
+
+                isValid = false;
             }
 
             if (_componentsPerOctave == 0)

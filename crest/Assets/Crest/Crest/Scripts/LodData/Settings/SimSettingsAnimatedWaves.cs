@@ -24,7 +24,8 @@ namespace Crest
         CollisionSources _collisionSource = CollisionSources.ComputeShaderQueries;
         public CollisionSources CollisionSource { get { return _collisionSource; } }
 
-        [Tooltip("Maximum number of wave queries that can be performed when using ComputeShaderQueries."), SerializeField]
+        [Tooltip("Maximum number of wave queries that can be performed when using ComputeShaderQueries.")]
+        [PredicatedField("_collisionSource", true, (int)CollisionSources.ComputeShaderQueries), SerializeField]
         int _maxQueryCount = QueryBase.MAX_QUERY_COUNT_DEFAULT;
         public int MaxQueryCount { get { return _maxQueryCount; } }
 
@@ -44,7 +45,7 @@ namespace Crest
                     result = FindObjectOfType<ShapeGerstnerBatched>();
                     break;
                 case CollisionSources.ComputeShaderQueries:
-                    result = QueryDisplacements.Instance;
+                    result = new QueryDisplacements();
                     break;
             }
 
@@ -58,6 +59,17 @@ namespace Crest
             }
 
             return result;
+        }
+
+        public IFlowProvider CreateFlowProvider(OceanRenderer ocean)
+        {
+            // Flow is GPU only, and can only be queried using the compute path
+            if (ocean._lodDataFlow != null)
+            {
+                return new QueryFlow();
+            }
+
+            return new FlowProviderNull();
         }
     }
 

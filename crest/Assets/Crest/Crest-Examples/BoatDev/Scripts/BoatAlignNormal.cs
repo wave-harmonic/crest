@@ -29,7 +29,7 @@ public class BoatAlignNormal : FloatingObjectBase
 
     [SerializeField, Tooltip("Computes a separate normal based on boat length to get more accurate orientations, at the cost of an extra collision sample.")]
     bool _useBoatLength = false;
-    [Tooltip("Length dimension of boat. Only used if Use Boat Length is enabled."), SerializeField]
+    [Tooltip("Length dimension of boat. Only used if Use Boat Length is enabled."), SerializeField, PredicatedField("_useBoatLength")]
     float _boatLength = 3f;
 
     [Header("Drag")]
@@ -94,7 +94,6 @@ public class BoatAlignNormal : FloatingObjectBase
         // height = base sea level + surface displacement y
         height += disp.y;
 
-        if (QueryFlow.Instance)
         {
             _sampleFlowHelper.Init(transform.position, _boatWidth);
 

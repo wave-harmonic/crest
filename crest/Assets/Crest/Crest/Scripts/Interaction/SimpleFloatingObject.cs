@@ -74,7 +74,6 @@ namespace Crest
             _sampleHeightHelper.Init(transform.position, _objectWidth, true);
             _sampleHeightHelper.Sample(ref disp, ref normal, ref waterSurfaceVel);
 
-            if (QueryFlow.Instance)
             {
                 _sampleFlowHelper.Init(transform.position, ObjectWidth);
 

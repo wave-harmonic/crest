@@ -103,7 +103,8 @@ half4 ComputeShorelineGerstner(float2 worldPosXZ, float3 uv_slice, half distance
 		float amplitude = 2.0;
 
 		float theta = 2 * PIS * (((sqrt(distance))/(waveLength)) + (_Time/period));
-		result.y = amplitude * sin(theta);
+		result.y = amplitude * cos(theta);
+		result.xz = direction * sin(theta) * (1.0/(1.0+distance));
 	}
 	return _Weight * half4(result, 0.0);
 }

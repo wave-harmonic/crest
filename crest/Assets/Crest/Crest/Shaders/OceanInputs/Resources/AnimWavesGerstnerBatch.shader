@@ -79,7 +79,7 @@ Shader "Hidden/Crest/Inputs/Animated Waves/Gerstner Batch Global"
 
 				half4 directionalWaves;
 				{
-					directionalWaves = ComputeShorelineGerstner(input.worldPosXZ, input.uv_slice, depth_distance_dirXZ.x, headingvec);
+					directionalWaves = ComputeShorelineGerstner(input.worldPosXZ, input.uv_slice, depth_distance_dirXZ.y, depth_distance_dirXZ.x, headingvec);
 				}
 
 				float4 result = ComputeGerstner(input.worldPosXZ, input.uv_slice, depth_distance_dirXZ.x);

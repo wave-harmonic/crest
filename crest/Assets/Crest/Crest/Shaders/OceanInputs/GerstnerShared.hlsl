@@ -89,7 +89,7 @@ half4 ComputeGerstner(float2 worldPosXZ, float3 uv_slice, half depth)
 	return _Weight * half4(result, sss);
 }
 
-half4 ComputeShorelineGerstner(float2 worldPosXZ, float3 uv_slice, half depth, half2 direction)
+half4 ComputeShorelineGerstner(float2 worldPosXZ, float3 uv_slice, half distance, half depth, half2 direction)
 {
 	float2 displacementNormalized = 0.0;
 	half3 result = (half3)0.0;
@@ -102,7 +102,7 @@ half4 ComputeShorelineGerstner(float2 worldPosXZ, float3 uv_slice, half depth, h
 		float period = 0.1;
 		float amplitude = 2.0;
 
-		float theta = 2 * PIS * (((worldPosXZ * -direction)/(waveLength)) - (_Time/period));
+		float theta = 2 * PIS * (((sqrt(distance))/(waveLength)) + (_Time/period));
 		result.y = amplitude * sin(theta);
 	}
 	return _Weight * half4(result, 0.0);

@@ -309,9 +309,14 @@ namespace Crest
         private static GUIStyle ToggleButtonStyleNormal = null;
         private static GUIStyle ToggleButtonStyleToggled = null;
 
-        static GUIContent s_labelPhillips = new GUIContent("Phillips", "Base of modern parametric wave spectra");
-        static GUIContent s_labelPiersonMoskowitz = new GUIContent("Pierson-Moskowitz", "Fully developed sea with infinite fetch");
-        static GUIContent s_labelJONSWAP = new GUIContent("JONSWAP", "Fetch limited sea where waves continue to grow");
+        readonly static string[] modelDescriptions = new string[]
+        {
+            "Select an option to author waves using a spectrum model.",
+            "Base of modern parametric wave spectra.",
+            "Fully developed sea with infinite fetch.",
+            "Fetch limited sea where waves continue to grow.",
+        };
+
         static GUIContent s_labelSWM = new GUIContent("Small wavelength multiplier", "Modifies parameters for the empirical spectra, tends to boost smaller wavelengths");
         static GUIContent s_labelFetch = new GUIContent("Fetch", "Length of area that wind excites waves. Applies only to JONSWAP");
 
@@ -428,6 +433,10 @@ namespace Crest
             EditorGUILayout.BeginHorizontal();
             spec.Model = (OceanWaveSpectrum.SpectrumModel)EditorGUILayout.EnumPopup(spec.Model);
             EditorGUILayout.EndHorizontal();
+
+            EditorGUILayout.Space();
+            EditorGUILayout.HelpBox(modelDescriptions[(int)spec.Model], MessageType.Info);
+            EditorGUILayout.Space();
 
             if (spec.Model == OceanWaveSpectrum.SpectrumModel.None)
             {

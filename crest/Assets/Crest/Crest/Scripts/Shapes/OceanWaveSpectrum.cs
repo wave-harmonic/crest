@@ -58,9 +58,10 @@ namespace Crest
         [Tooltip("Scales horizontal displacement"), Range(0f, 2f)]
         public float _chop = 1.6f;
 
-        public bool _showAdvancedControls = false;
 
 #if UNITY_EDITOR
+        [SerializeField] bool _showAdvancedControls = false;
+
         public enum SpectrumModel
         {
             None,

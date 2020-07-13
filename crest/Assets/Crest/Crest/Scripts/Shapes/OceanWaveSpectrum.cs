@@ -472,6 +472,12 @@ namespace Crest
             }
 
             serializedObject.ApplyModifiedProperties();
+
+            if (GUI.changed)
+            {
+                // We need to call this otherwise any property which has HideInInspector won't save.
+                EditorUtility.SetDirty(spec);
+            }
         }
     }
 #endif

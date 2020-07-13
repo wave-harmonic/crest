@@ -71,7 +71,7 @@ namespace Crest
         }
 
         // We need to serialize if we want undo/redo.
-        [SerializeField] SpectrumModel _model;
+        [HideInInspector, SerializeField] SpectrumModel _model;
         internal SpectrumModel Model { get => _model; set => _model = value; }
 #endif
 

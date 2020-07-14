@@ -72,9 +72,10 @@ namespace Crest
             JONSWAP,
         }
 
+#pragma warning disable 414
         // We need to serialize if we want undo/redo.
         [HideInInspector, SerializeField] SpectrumModel _model;
-        internal SpectrumModel Model { get => _model; set => _model = value; }
+#pragma warning restore 414
 #endif
 
         public static float SmallWavelength(float octaveIndex) { return Mathf.Pow(2f, SMALLEST_WL_POW_2 + octaveIndex); }
@@ -360,6 +361,9 @@ namespace Crest
 
             var showAdvancedControls = serializedObject.FindProperty("_showAdvancedControls").boolValue;
 
+            var spSpectrumModel = serializedObject.FindProperty("_model");
+            var spectrumModel = (OceanWaveSpectrum.SpectrumModel)serializedObject.FindProperty("_model").enumValueIndex;
+
             // preamble - styles for toggle buttons. this code and the below was based off the useful info provided by user Lasse here:
             // https://gamedev.stackexchange.com/questions/98920/how-do-i-create-a-toggle-button-in-unity-inspector
             if (ToggleButtonStyleNormal == null)
@@ -400,7 +404,7 @@ namespace Crest
             UpgradeSpectrum(spGravScales, 1f);
 
             // Disable sliders if authoring with model.
-            var canEditSpectrum = spec.Model != OceanWaveSpectrum.SpectrumModel.None;
+            var canEditSpectrum = spectrumModel != OceanWaveSpectrum.SpectrumModel.None;
 
             for (int i = 0; i < spPower.arraySize; i++)
             {
@@ -454,21 +458,22 @@ namespace Crest
             EditorGUILayout.LabelField("Empirical Spectra", EditorStyles.boldLabel);
 
             EditorGUILayout.BeginHorizontal();
-            spec.Model = (OceanWaveSpectrum.SpectrumModel)EditorGUILayout.EnumPopup(spec.Model);
+            spectrumModel = (OceanWaveSpectrum.SpectrumModel)EditorGUILayout.EnumPopup(spectrumModel);
+            spSpectrumModel.enumValueIndex = (int)spectrumModel;
             EditorGUILayout.EndHorizontal();
 
             EditorGUILayout.Space();
-            EditorGUILayout.HelpBox(modelDescriptions[(int)spec.Model], MessageType.Info);
+            EditorGUILayout.HelpBox(modelDescriptions[(int)spectrumModel], MessageType.Info);
             EditorGUILayout.Space();
 
-            if (spec.Model == OceanWaveSpectrum.SpectrumModel.None)
+            if (spectrumModel == OceanWaveSpectrum.SpectrumModel.None)
             {
                 Undo.RecordObject(spec, "Change Spectrum");
             }
             else
             {
                 // It doesn't seem to matter where this is called.
-                Undo.RecordObject(spec, $"Apply {ObjectNames.NicifyVariableName(spec.Model.ToString())} Spectrum");
+                Undo.RecordObject(spec, $"Apply {ObjectNames.NicifyVariableName(spectrumModel.ToString())} Spectrum");
 
                 var labelWidth = 170f;
                 EditorGUILayout.BeginHorizontal();
@@ -483,7 +488,7 @@ namespace Crest
                 spec._smallWavelengthMultiplier = EditorGUILayout.Slider(spec._smallWavelengthMultiplier, 0f, 10f);
                 EditorGUILayout.EndHorizontal();
 
-                if (spec.Model == OceanWaveSpectrum.SpectrumModel.JONSWAP)
+                if (spectrumModel == OceanWaveSpectrum.SpectrumModel.JONSWAP)
                 {
                     spec._fetch = EditorGUILayout.Slider(s_labelFetch, spec._fetch, 0f, 1000000f);
                 }
@@ -491,7 +496,7 @@ namespace Crest
                 // Descriptions from this very useful paper:
                 // https://hal.archives-ouvertes.fr/file/index/docid/307938/filename/frechot_realistic_simulation_of_ocean_surface_using_wave_spectra.pdf
 
-                switch (spec.Model)
+                switch (spectrumModel)
                 {
                     case OceanWaveSpectrum.SpectrumModel.Phillips:
                         spec.ApplyPhillipsSpectrum(spec._windSpeed, spec._smallWavelengthMultiplier);

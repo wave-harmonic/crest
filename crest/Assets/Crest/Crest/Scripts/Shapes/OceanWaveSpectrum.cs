@@ -310,9 +310,6 @@ namespace Crest
     [CustomEditor(typeof(OceanWaveSpectrum))]
     public class OceanWaveSpectrumEditor : Editor
     {
-        private static GUIStyle ToggleButtonStyleNormal = null;
-        private static GUIStyle ToggleButtonStyleToggled = null;
-
         readonly static string[] modelDescriptions = new string[]
         {
             "Select an option to author waves using a spectrum model.",
@@ -363,15 +360,6 @@ namespace Crest
 
             var spSpectrumModel = serializedObject.FindProperty("_model");
             var spectrumModel = (OceanWaveSpectrum.SpectrumModel)serializedObject.FindProperty("_model").enumValueIndex;
-
-            // preamble - styles for toggle buttons. this code and the below was based off the useful info provided by user Lasse here:
-            // https://gamedev.stackexchange.com/questions/98920/how-do-i-create-a-toggle-button-in-unity-inspector
-            if (ToggleButtonStyleNormal == null)
-            {
-                ToggleButtonStyleNormal = "Button";
-                ToggleButtonStyleToggled = new GUIStyle(ToggleButtonStyleNormal);
-                ToggleButtonStyleToggled.normal.background = ToggleButtonStyleToggled.active.background;
-            }
 
             EditorGUILayout.Space();
 

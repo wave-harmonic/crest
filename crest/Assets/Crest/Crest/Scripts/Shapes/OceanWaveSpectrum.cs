@@ -410,13 +410,16 @@ namespace Crest
                 float smallWL = OceanWaveSpectrum.SmallWavelength(i);
                 var spPower_i = spPower.GetArrayElementAtIndex(i);
 
+                var isPowerDisabled = spDisabled_i.boolValue;
+                var powerValue = isPowerDisabled ? OceanWaveSpectrum.MIN_POWER_LOG : spPower_i.floatValue;
+
                 if (showAdvancedControls)
                 {
                     EditorGUILayout.LabelField(string.Format("{0}", smallWL), EditorStyles.boldLabel);
                     EditorGUILayout.EndHorizontal();
                     // Disable slider if authoring with model.
                     GUI.enabled = !canEditSpectrum && !spDisabled_i.boolValue;
-                    EditorGUILayout.Slider(spPower_i, OceanWaveSpectrum.MIN_POWER_LOG, OceanWaveSpectrum.MAX_POWER_LOG, "    Power");
+                    powerValue = EditorGUILayout.Slider("    Power", powerValue, OceanWaveSpectrum.MIN_POWER_LOG, OceanWaveSpectrum.MAX_POWER_LOG);
                     GUI.enabled = true;
                 }
                 else
@@ -424,11 +427,17 @@ namespace Crest
                     EditorGUILayout.LabelField(string.Format("{0}", smallWL), GUILayout.Width(30f));
                     // Disable slider if authoring with model.
                     GUI.enabled = !canEditSpectrum && !spDisabled_i.boolValue;
-                    spPower_i.floatValue = GUILayout.HorizontalSlider(spPower_i.floatValue, OceanWaveSpectrum.MIN_POWER_LOG, OceanWaveSpectrum.MAX_POWER_LOG);
+                    powerValue = GUILayout.HorizontalSlider(powerValue, OceanWaveSpectrum.MIN_POWER_LOG, OceanWaveSpectrum.MAX_POWER_LOG);
                     GUI.enabled = true;
                     EditorGUILayout.EndHorizontal();
                     // This will create a tooltip for slider.
-                    GUI.Label(GUILayoutUtility.GetLastRect(), new GUIContent("", spPower_i.floatValue.ToString()));
+                    GUI.Label(GUILayoutUtility.GetLastRect(), new GUIContent("", powerValue.ToString()));
+                }
+
+                // If the power is disabled, we are using the MIN_POWER_LOG value so we don't want to store it.
+                if (!isPowerDisabled)
+                {
+                    spPower_i.floatValue = powerValue;
                 }
 
                 if (showAdvancedControls)

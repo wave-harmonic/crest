@@ -76,14 +76,14 @@ namespace Crest
 
             var index = (int)(wl_pow2 - SMALLEST_WL_POW_2);
 
-            if(_powerLog.Length < NUM_OCTAVES)
+            if (_powerLog.Length < NUM_OCTAVES || _powerDisabled.Length < NUM_OCTAVES)
             {
                 Debug.LogWarning($"Wave spectrum {name} is out of date, please open this asset and resave in editor.", this);
             }
 
-            if (index >= _powerLog.Length)
+            if (index >= _powerLog.Length || index >= _powerDisabled.Length)
             {
-                Debug.Assert(index < _powerLog.Length, $"OceanWaveSpectrum: index {index} is out of range.", this);
+                Debug.Assert(index < _powerLog.Length && index < _powerDisabled.Length, $"OceanWaveSpectrum: index {index} is out of range.", this);
                 return 0f;
             }
 

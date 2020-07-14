@@ -1,4 +1,6 @@
-﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
+﻿// Crest Ocean System
+
+// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 using Crest;
 using UnityEngine;
@@ -52,9 +54,6 @@ public class BoatAlignNormal : FloatingObjectBase
     bool _inWater;
     public override bool InWater { get { return _inWater; } }
 
-    Vector3 _displacementToObject = Vector3.zero;
-    public override Vector3 CalculateDisplacementToObject() { return _displacementToObject; }
-
     public override Vector3 Velocity => _rb.velocity;
 
     Rigidbody _rb;
@@ -88,13 +87,14 @@ public class BoatAlignNormal : FloatingObjectBase
 
         _sampleHeightHelper.Init(transform.position, _boatWidth, true);
         var height = OceanRenderer.Instance.SeaLevel;
+        var disp = Vector3.zero;
         var normal = Vector3.up;
         var waterSurfaceVel = Vector3.zero;
 
-        _sampleHeightHelper.Sample(ref _displacementToObject, ref normal, ref waterSurfaceVel);
+        _sampleHeightHelper.Sample(ref disp, ref normal, ref waterSurfaceVel);
 
         // height = base sea level + surface displacement y
-        height += _displacementToObject.y;
+        height += disp.y;
 
         {
             _sampleFlowHelper.Init(transform.position, _boatWidth);

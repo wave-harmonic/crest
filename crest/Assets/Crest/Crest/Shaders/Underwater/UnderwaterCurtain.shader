@@ -39,12 +39,12 @@ Shader "Crest/Underwater Curtain"
 
 			#pragma multi_compile_instancing
 
-			#pragma shader_feature _SUBSURFACESCATTERING_ON
-			#pragma shader_feature _SUBSURFACESHALLOWCOLOUR_ON
-			#pragma shader_feature _TRANSPARENCY_ON
-			#pragma shader_feature _CAUSTICS_ON
-			#pragma shader_feature _SHADOWS_ON
-			#pragma shader_feature _COMPILESHADERWITHDEBUGINFO_ON
+			#pragma shader_feature_local _SUBSURFACESCATTERING_ON
+			#pragma shader_feature_local _SUBSURFACESHALLOWCOLOUR_ON
+			#pragma shader_feature_local _TRANSPARENCY_ON
+			#pragma shader_feature_local _CAUSTICS_ON
+			#pragma shader_feature_local _SHADOWS_ON
+			#pragma shader_feature_local _COMPILESHADERWITHDEBUGINFO_ON
 
 			#if _COMPILESHADERWITHDEBUGINFO_ON
 			#pragma enable_d3d11_debug_symbols

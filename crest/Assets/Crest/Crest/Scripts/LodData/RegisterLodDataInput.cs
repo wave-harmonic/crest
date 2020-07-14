@@ -52,6 +52,11 @@ namespace Crest
         public abstract bool Enabled { get; }
 
         public static int sp_Weight = Shader.PropertyToID("_Weight");
+        public static int sp_DisplacementAtInputPosition = Shader.PropertyToID("_DisplacementAtInputPosition");
+
+        // By default do not follow horizontal motion of waves. This means that the ocean input will appear on the surface at its XZ location, instead
+        // of moving horizontally with the waves.
+        protected virtual bool FollowHorizontalMotion => false;
 
         protected abstract string ShaderPrefix { get; }
 
@@ -71,6 +76,7 @@ namespace Crest
 
         protected Renderer _renderer;
         protected Material _material;
+        SampleHeightHelper _sampleHelper = new SampleHeightHelper();
 
         void InitRendererAndMaterial(bool verifyShader)
         {
@@ -110,6 +116,20 @@ namespace Crest
             {
                 buf.SetGlobalFloat(sp_Weight, weight);
                 buf.SetGlobalFloat(LodDataMgr.sp_LD_SliceIndex, lodIdx);
+
+                if (!FollowHorizontalMotion)
+                {
+                    // This can be called multiple times per frame - one for each LOD potentially
+                    _sampleHelper.Init(transform.position, 0f, true, this);
+                    Vector3 displacement = Vector3.zero, dummy = Vector3.zero;
+                    _sampleHelper.Sample(ref displacement, ref dummy, ref dummy);
+                    _material.SetVector(sp_DisplacementAtInputPosition, displacement);
+                }
+                else
+                {
+                    _material.SetVector(sp_DisplacementAtInputPosition, Vector3.zero);
+                }
+
                 buf.DrawRenderer(_renderer, _material);
             }
         }
@@ -209,6 +229,16 @@ namespace Crest
                 Gizmos.DrawWireMesh(mf.sharedMesh, transform.position, transform.rotation, transform.lossyScale);
             }
         }
+    }
+
+    [ExecuteAlways]
+    public abstract class RegisterLodDataInputDisplacementCorrection<LodDataType> : RegisterLodDataInput<LodDataType>
+        where LodDataType : LodDataMgr
+    {
+        [SerializeField, Tooltip("Correct for horizontal displacement so that this input does not move from side to side with the waves. Adds a small performance overhead when disabled.")]
+        bool _followHorizontalMotion = false;
+
+        protected override bool FollowHorizontalMotion => _followHorizontalMotion;
     }
 
 #if UNITY_EDITOR

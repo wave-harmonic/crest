@@ -46,6 +46,7 @@ namespace Crest
         Vector3 _localPositionRest;
         Vector3 _posLast;
 
+        SampleHeightHelper _sampleHeightHelper = new SampleHeightHelper();
         SampleFlowHelper _sampleFlowHelper = new SampleFlowHelper();
 
         Renderer _renderer;
@@ -97,17 +98,12 @@ namespace Crest
                 return;
             }
 
-            var disp = _object.CalculateDisplacementToObject();
+            var disp = Vector3.zero; var dummy = Vector3.zero;
+            _sampleHeightHelper.Init(transform.position, 2f * Radius);
+            _sampleHeightHelper.Sample(ref disp, ref dummy, ref dummy);
 
-            // Set position of interaction
-            {
-                var dispFlatLand = disp;
-                dispFlatLand.y = 0f;
-                var velBoat = _object.Velocity;
-                velBoat.y = 0f;
-                transform.position = transform.parent.TransformPoint(_localPositionRest) - dispFlatLand;
-                transform.rotation = Quaternion.Euler(90f, 0f, 0f);
-            }
+            // Enforce upwards
+            transform.rotation = Quaternion.Euler(90f, 0f, 0f);
 
             // Velocity relative to water
             Vector3 relativeVelocity = LateUpdateComputeVelRelativeToWater(ocean);

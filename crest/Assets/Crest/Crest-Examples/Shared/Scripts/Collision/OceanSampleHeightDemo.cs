@@ -1,4 +1,6 @@
-﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
+﻿// Crest Ocean System
+
+// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 using Crest;
 using UnityEngine;
@@ -17,7 +19,7 @@ public class OceanSampleHeightDemo : MonoBehaviour
         _sampleHeightHelper.Init(transform.position, 2f * r);
 
         float height = 0f;
-        if(_sampleHeightHelper.Sample(ref height))
+        if (_sampleHeightHelper.Sample(ref height))
         {
             var pos = transform.position;
             pos.y = height;

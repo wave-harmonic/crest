@@ -1,4 +1,8 @@
-﻿using UnityEngine;
+﻿// Crest Ocean System
+
+// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
+
+using UnityEngine;
 
 namespace Crest
 {
@@ -26,16 +30,16 @@ namespace Crest
         /// <param name="i_queryPos">World space position to sample</param>
         /// <param name="i_minLength">The smallest length scale you are interested in. If you are sampling data for boat physics,
         /// pass in the boats width. Larger objects will ignore small wavelengths.</param>
-        /// <param name="fromFixedUpdate">Pass true if calling from FixedUpdate(). This will omit a warning when there on multipled-FixedUpdate frames.</param>
-        public void Init(Vector3 i_queryPos, float i_minLength = 0f, bool fromFixedUpdate = false)
+        /// <param name="allowMultipleCallsPerFrame">Pass true if calling from FixedUpdate(). This will omit a warning when there on multipled-FixedUpdate frames.</param>
+        public void Init(Vector3 i_queryPos, float i_minLength = 0f, bool allowMultipleCallsPerFrame = false, Object context = null)
         {
             _queryPos[0] = i_queryPos;
             _minLength = i_minLength;
 
 #if UNITY_EDITOR
-            if (!fromFixedUpdate && _lastFrame >= OceanRenderer.FrameCount)
+            if (!allowMultipleCallsPerFrame && _lastFrame >= OceanRenderer.FrameCount)
             {
-                Debug.LogWarning("Each SampleHeightHelper object services a single height query per frame. To perform multiple queries, create multiple SampleHeightHelper objects or use the CollProvider.Query() API directly.");
+                Debug.LogWarning($"Each SampleHeightHelper object services a single height query per frame. To perform multiple queries, create multiple SampleHeightHelper objects or use the CollProvider.Query() API directly. (_lastFrame = {_lastFrame})", context);
             }
             _lastFrame = OceanRenderer.FrameCount;
 #endif

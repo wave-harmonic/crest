@@ -1097,7 +1097,7 @@ namespace Crest
                 _simSettingsAnimatedWaves.Validate(ocean, showMessage);
             }
 
-            if(transform.eulerAngles.magnitude > 0.0001f)
+            if (transform.eulerAngles.magnitude > 0.0001f)
             {
                 showMessage
                 (

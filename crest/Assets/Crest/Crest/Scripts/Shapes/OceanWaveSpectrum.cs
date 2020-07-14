@@ -40,11 +40,11 @@ namespace Crest
         [Tooltip("Multiplier"), Range(0f, 10f), SerializeField]
         float _multiplier = 1f;
 
-        [SerializeField]
+        [HideInInspector, SerializeField]
         float[] _powerLog = new float[NUM_OCTAVES]
             { -6f, -6f, -6f, -4.0088496f, -3.4452133f, -2.6996124f, -2.615044f, -1.2080691f, -0.53905386f, 0.27448857f, 0.53627354f, 1.0282621f, 1.4403292f, -6f };
 
-        [SerializeField]
+        [HideInInspector, SerializeField]
         bool[] _powerDisabled = new bool[NUM_OCTAVES];
 
         [HideInInspector]
@@ -418,6 +418,8 @@ namespace Crest
                     EditorGUILayout.LabelField(string.Format("{0}", smallWL), GUILayout.Width(30f));
                     spPower_i.floatValue = GUILayout.HorizontalSlider(spPower_i.floatValue, OceanWaveSpectrum.MIN_POWER_LOG, OceanWaveSpectrum.MAX_POWER_LOG);
                     EditorGUILayout.EndHorizontal();
+                    // This will create a tooltip for slider.
+                    GUI.Label(GUILayoutUtility.GetLastRect(), new GUIContent("", spPower_i.floatValue.ToString()));
                 }
 
                 if (showAdvancedControls)

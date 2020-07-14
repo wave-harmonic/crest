@@ -171,6 +171,8 @@ Shader "Crest/Ocean"
 		[Header(Clip Surface)]
 		// Discards ocean surface pixels. Requires 'Create Clip Surface Data' enabled on OceanRenderer script.
 		[Toggle] _ClipSurface("Enable", Float) = 0
+		// Clips purely based on water depth
+		[Toggle] _ClipUnderTerrain("Clip Below Terrain (Requires depth cache)", Float) = 0
 
 		[Header(Debug Options)]
 		// Build shader with debug info which allows stepping through the code in a GPU debugger. I typically use RenderDoc or
@@ -232,6 +234,7 @@ Shader "Crest/Ocean"
 			#pragma shader_feature_local _FLOW_ON
 			#pragma shader_feature_local _SHADOWS_ON
 			#pragma shader_feature_local _CLIPSURFACE_ON
+			#pragma shader_feature_local _CLIPUNDERTERRAIN_ON
 
 			#pragma shader_feature_local _DEBUGDISABLESHAPETEXTURES_ON
 			#pragma shader_feature_local _DEBUGVISUALISESHAPESAMPLE_ON
@@ -462,6 +465,10 @@ Shader "Crest/Ocean"
 				clipVal = lerp(_CrestClipByDefault, clipVal, wt_smallerLod + wt_biggerLod);
 				// Add 0.5 bias for LOD blending and texel resolution correction. This will help to tighten and smooth clipped edges
 				clip(-clipVal + 0.5);
+				#endif
+
+				#if _CLIPUNDERTERRAIN_ON
+				clip(input.lodAlpha_worldXZUndisplaced_oceanDepth.w + 2.0);
 				#endif
 
 				half3 view = normalize(_WorldSpaceCameraPos - input.worldPos);

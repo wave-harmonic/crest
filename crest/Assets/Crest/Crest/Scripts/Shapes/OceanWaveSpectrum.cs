@@ -60,7 +60,9 @@ namespace Crest
 
 
 #if UNITY_EDITOR
+#pragma warning disable 414
         [SerializeField] bool _showAdvancedControls = false;
+#pragma warning restore 414
 
         public enum SpectrumModel
         {

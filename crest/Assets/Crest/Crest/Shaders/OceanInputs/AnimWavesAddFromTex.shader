@@ -26,8 +26,8 @@ Shader "Crest/Inputs/Animated Waves/Add From Texture"
 			#pragma vertex Vert
 			#pragma fragment Frag
 
-			#pragma shader_feature _HEIGHTSONLY_ON
-			#pragma shader_feature _SSSFROMALPHA_ON
+			#pragma shader_feature_local _HEIGHTSONLY_ON
+			#pragma shader_feature_local _SSSFROMALPHA_ON
 
 			#include "UnityCG.cginc"
 

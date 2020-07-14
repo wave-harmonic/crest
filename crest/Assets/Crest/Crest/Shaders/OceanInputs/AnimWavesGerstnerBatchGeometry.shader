@@ -25,9 +25,9 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Batch Geometry"
 			CGPROGRAM
 			#pragma vertex Vert
 			#pragma fragment Frag
-			#pragma multi_compile __ CREST_DIRECT_TOWARDS_POINT_INTERNAL
-			#pragma shader_feature _WEIGHTFROMVERTEXCOLOURRED_ON
-			#pragma shader_feature _FEATHERATUVEXTENTS_ON
+			#pragma multi_compile_local __ CREST_DIRECT_TOWARDS_POINT_INTERNAL
+			#pragma shader_feature_local _WEIGHTFROMVERTEXCOLOURRED_ON
+			#pragma shader_feature_local _FEATHERATUVEXTENTS_ON
 
 			#include "UnityCG.cginc"
 

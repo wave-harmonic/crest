@@ -415,7 +415,7 @@ namespace Crest
                     EditorGUILayout.LabelField(string.Format("{0}", smallWL), EditorStyles.boldLabel);
                     EditorGUILayout.EndHorizontal();
                     // Disable slider if authoring with model.
-                    GUI.enabled = !canEditSpectrum;
+                    GUI.enabled = !canEditSpectrum && !spDisabled_i.boolValue;
                     EditorGUILayout.Slider(spPower_i, OceanWaveSpectrum.MIN_POWER_LOG, OceanWaveSpectrum.MAX_POWER_LOG, "    Power");
                     GUI.enabled = true;
                 }
@@ -423,7 +423,7 @@ namespace Crest
                 {
                     EditorGUILayout.LabelField(string.Format("{0}", smallWL), GUILayout.Width(30f));
                     // Disable slider if authoring with model.
-                    GUI.enabled = !canEditSpectrum;
+                    GUI.enabled = !canEditSpectrum && !spDisabled_i.boolValue;
                     spPower_i.floatValue = GUILayout.HorizontalSlider(spPower_i.floatValue, OceanWaveSpectrum.MIN_POWER_LOG, OceanWaveSpectrum.MAX_POWER_LOG);
                     GUI.enabled = true;
                     EditorGUILayout.EndHorizontal();

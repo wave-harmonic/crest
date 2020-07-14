@@ -397,6 +397,9 @@ namespace Crest
             var spGravScales = serializedObject.FindProperty("_gravityScales");
             UpgradeSpectrum(spGravScales, 1f);
 
+            // Disable sliders if authoring with model.
+            var canEditSpectrum = spec.Model != OceanWaveSpectrum.SpectrumModel.None;
+
             for (int i = 0; i < spPower.arraySize; i++)
             {
                 EditorGUILayout.BeginHorizontal();
@@ -411,12 +414,18 @@ namespace Crest
                 {
                     EditorGUILayout.LabelField(string.Format("{0}", smallWL), EditorStyles.boldLabel);
                     EditorGUILayout.EndHorizontal();
+                    // Disable slider if authoring with model.
+                    GUI.enabled = !canEditSpectrum;
                     EditorGUILayout.Slider(spPower_i, OceanWaveSpectrum.MIN_POWER_LOG, OceanWaveSpectrum.MAX_POWER_LOG, "    Power");
+                    GUI.enabled = true;
                 }
                 else
                 {
                     EditorGUILayout.LabelField(string.Format("{0}", smallWL), GUILayout.Width(30f));
+                    // Disable slider if authoring with model.
+                    GUI.enabled = !canEditSpectrum;
                     spPower_i.floatValue = GUILayout.HorizontalSlider(spPower_i.floatValue, OceanWaveSpectrum.MIN_POWER_LOG, OceanWaveSpectrum.MAX_POWER_LOG);
+                    GUI.enabled = true;
                     EditorGUILayout.EndHorizontal();
                     // This will create a tooltip for slider.
                     GUI.Label(GUILayoutUtility.GetLastRect(), new GUIContent("", spPower_i.floatValue.ToString()));

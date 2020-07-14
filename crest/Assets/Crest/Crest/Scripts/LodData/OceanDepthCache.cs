@@ -259,7 +259,7 @@ namespace Crest
 
             if (_type == OceanDepthCacheType.Baked)
             {
-                qr.material.mainTexture = _savedCache;
+                qr.sharedMaterial.mainTexture = _savedCache;
             }
             else
             {

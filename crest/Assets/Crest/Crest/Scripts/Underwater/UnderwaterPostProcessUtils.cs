@@ -200,7 +200,7 @@ namespace Crest
                     maxY = Mathf.Max(maxY, current);
                     minY = Mathf.Min(minY, current);
 
-                    current = camera.ViewportToWorldPoint(new Vector3(0f, 1f, camera.nearClipPlane)).y;
+                    current = camera.ViewportToWorldPoint(new Vector3(1f, 1f, camera.nearClipPlane)).y;
                     maxY = Mathf.Max(maxY, current);
                     minY = Mathf.Min(minY, current);
 

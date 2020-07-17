@@ -126,6 +126,9 @@ namespace Crest
                     DataTexture
                 );
 
+                // Bind current data
+                BindData(_renderSimProperties, null, false, ref OceanRenderer.Instance._lodTransform._renderData, false);
+
                 _renderSimProperties.DispatchShaderMultiLOD();
 
                 for (var lodIdx = lodCount - 1; lodIdx >= 0; lodIdx--)

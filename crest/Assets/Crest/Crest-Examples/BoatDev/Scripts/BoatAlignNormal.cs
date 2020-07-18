@@ -85,7 +85,7 @@ public class BoatAlignNormal : FloatingObjectBase
         _sampleHeightHelper.Init(transform.position, _boatWidth, true);
         var height = OceanRenderer.Instance.SeaLevel;
 
-        _sampleHeightHelper.Sample(out Vector3 disp, out Vector3 normal, out Vector3 waterSurfaceVel);
+        _sampleHeightHelper.Sample(out Vector3 disp, out var normal, out var waterSurfaceVel);
 
         // height = base sea level + surface displacement y
         height += disp.y;

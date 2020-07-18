@@ -375,9 +375,6 @@ namespace Crest
 
             float twopi = 2f * Mathf.PI;
             float one_over_2pi = 1f / twopi;
-            float minWavelengthThisBatch = OceanRenderer.Instance._lodTransform.MaxWavelength(lodIdx) / 2f;
-            float maxWavelengthCurrentlyRendering = OceanRenderer.Instance._lodTransform.MaxWavelength(OceanRenderer.Instance.CurrentLodCount - 1);
-            float viewerAltitudeLevelAlpha = OceanRenderer.Instance.ViewerAltitudeLevelAlpha;
 
             // register any nonzero components
             for (int i = 0; i < numComponents; i++)

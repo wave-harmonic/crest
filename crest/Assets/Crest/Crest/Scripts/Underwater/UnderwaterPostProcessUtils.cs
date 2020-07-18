@@ -57,17 +57,21 @@ namespace Crest
 
                 textureMask = new RenderTexture(desc);
                 textureMask.depth = 0;
+                // textureMask.vrUsage = VRTextureUsage.TwoEyes; // Does nothing
                 textureMask.name = "Ocean Mask";
                 // @Memory: We could investigate making this an 8-bit texture instead to reduce GPU memory usage.
                 // We could also potentially try a half res mask as the mensicus could mask res issues.
                 textureMask.format = RenderTextureFormat.RHalf;
+                // textureMask.dimension = TextureDimension.Tex2DArray; // Does nothing
                 textureMask.Create();
 
                 depthBuffer = new RenderTexture(desc);
                 depthBuffer.depth = 24;
+                depthBuffer.vrUsage = VRTextureUsage.TwoEyes; // Does nothing
                 depthBuffer.enableRandomWrite = false;
                 depthBuffer.name = "Ocean Mask Depth";
                 depthBuffer.format = RenderTextureFormat.Depth;
+                // depthBuffer.dimension = TextureDimension.Tex2DArray; // Does nothing
                 depthBuffer.Create();
             }
         }
@@ -77,14 +81,19 @@ namespace Crest
         internal static void PopulateOceanMask(
             CommandBuffer commandBuffer, Camera camera, List<OceanChunkRenderer> chunksToRender, Plane[] frustumPlanes,
             RenderTexture colorBuffer, RenderTexture depthBuffer,
-            Material oceanMaskMaterial,
+            Material oceanMaskMaterial, int depthSlice,
             bool debugDisableOceanMask
         )
         {
             // Get all ocean chunks and render them using cmd buffer, but with mask shader
-            commandBuffer.SetRenderTarget(colorBuffer.colorBuffer, depthBuffer.depthBuffer);
+            commandBuffer.SetRenderTarget(colorBuffer.colorBuffer, depthBuffer.depthBuffer, 0, CubemapFace.Unknown, depthSlice: depthSlice);
             commandBuffer.ClearRenderTarget(true, true, Color.white * UNDERWATER_MASK_NO_MASK);
-            commandBuffer.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
+            // commandBuffer.SetSinglePassStereo(SinglePassStereoMode.Instancing);
+
+            // // NOTE: Seems like we don't need to set these unlike in HDRP? They appear to have no effect...
+            // var eye = (Camera.StereoscopicEye) depthSlice;
+            // commandBuffer.SetViewProjectionMatrices(camera.GetStereoViewMatrix(eye), camera.GetStereoProjectionMatrix(eye));
+            // commandBuffer.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
 
             if (!debugDisableOceanMask)
             {

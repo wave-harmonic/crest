@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.XR;
 
 using static Crest.UnderwaterPostProcessUtils;
 
@@ -149,7 +150,7 @@ namespace Crest
                 _maskCommandBuffer = new CommandBuffer();
                 _maskCommandBuffer.name = "Ocean Mask Command Buffer";
                 _mainCamera.AddCommandBuffer(
-                    CameraEvent.BeforeForwardAlpha,
+                    CameraEvent.AfterForwardAlpha, // BeforeForwardAlpha breaks XR SPI right eye completely
                     _maskCommandBuffer
                 );
             }
@@ -160,17 +161,19 @@ namespace Crest
             }
 
             {
-                RenderTextureDescriptor descriptor = new RenderTextureDescriptor(_mainCamera.pixelWidth, _mainCamera.pixelHeight);
+                RenderTextureDescriptor descriptor = XRSettings.enabled ? XRSettings.eyeTextureDesc : new RenderTextureDescriptor(_mainCamera.pixelWidth, _mainCamera.pixelHeight);
                 InitialiseMaskTextures(descriptor, ref _textureMask, ref _depthBuffer);
             }
 
-            PopulateOceanMask(
-                _maskCommandBuffer, _mainCamera, OceanRenderer.Instance.Tiles, _cameraFrustumPlanes,
-                _textureMask, _depthBuffer,
-                _oceanMaskMaterial,
-                _disableOceanMask
-            );
-
+            for (var depthSlice = 0; depthSlice < _textureMask.volumeDepth; depthSlice++)
+            {
+                PopulateOceanMask(
+                    _maskCommandBuffer, _mainCamera, OceanRenderer.Instance.Tiles, _cameraFrustumPlanes,
+                    _textureMask, _depthBuffer,
+                    _oceanMaskMaterial, depthSlice,
+                    _disableOceanMask
+                );
+            }
         }
 
         void OnRenderImage(RenderTexture source, RenderTexture target)

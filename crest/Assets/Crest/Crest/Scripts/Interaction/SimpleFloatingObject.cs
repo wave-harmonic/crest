@@ -69,15 +69,13 @@ namespace Crest
                 return;
             }
 
-            var normal = Vector3.up; var waterSurfaceVel = Vector3.zero; var disp = Vector3.zero;
             _sampleHeightHelper.Init(transform.position, _objectWidth, true);
-            _sampleHeightHelper.Sample(ref disp, ref normal, ref waterSurfaceVel);
+            _sampleHeightHelper.Sample(out Vector3 disp, out var normal, out var waterSurfaceVel);
 
             {
                 _sampleFlowHelper.Init(transform.position, ObjectWidth);
 
-                Vector2 surfaceFlow = Vector2.zero;
-                _sampleFlowHelper.Sample(ref surfaceFlow);
+                _sampleFlowHelper.Sample(out var surfaceFlow);
                 waterSurfaceVel += new Vector3(surfaceFlow.x, 0, surfaceFlow.y);
             }
 

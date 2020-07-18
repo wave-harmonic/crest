@@ -121,8 +121,7 @@ namespace Crest
                 {
                     // This can be called multiple times per frame - one for each LOD potentially
                     _sampleHelper.Init(transform.position, 0f, true, this);
-                    Vector3 displacement = Vector3.zero, dummy = Vector3.zero;
-                    _sampleHelper.Sample(ref displacement, ref dummy, ref dummy);
+                    _sampleHelper.Sample(out Vector3 displacement, out _, out _);
                     _material.SetVector(sp_DisplacementAtInputPosition, displacement);
                 }
                 else

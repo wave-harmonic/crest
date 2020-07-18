@@ -122,7 +122,6 @@ namespace Crest
             {
                 LodDataMgrFlow.BindNull(simMaterial);
             }
-
         }
 
         public static void CountWaveSims(int countFrom, out int o_present, out int o_active)

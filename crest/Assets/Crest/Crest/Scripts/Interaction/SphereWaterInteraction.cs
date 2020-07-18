@@ -87,9 +87,8 @@ namespace Crest
                 return;
             }
 
-            var disp = Vector3.zero; var dummy = Vector3.zero;
             _sampleHeightHelper.Init(transform.position, 2f * Radius);
-            _sampleHeightHelper.Sample(ref disp, ref dummy, ref dummy);
+            _sampleHeightHelper.Sample(out Vector3 disp, out _, out _);
 
             // Enforce upwards
             transform.rotation = Quaternion.Euler(90f, 0f, 0f);
@@ -159,8 +158,7 @@ namespace Crest
 
             {
                 _sampleFlowHelper.Init(transform.position, _object.ObjectWidth);
-                Vector2 surfaceFlow = Vector2.zero;
-                _sampleFlowHelper.Sample(ref surfaceFlow);
+                _sampleFlowHelper.Sample(out var surfaceFlow);
                 vel -= new Vector3(surfaceFlow.x, 0, surfaceFlow.y);
             }
             vel.y *= _weightUpDownMul;

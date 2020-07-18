@@ -15,12 +15,6 @@ namespace Crest
     /// </summary>
     public partial class ObjectWaterInteraction : MonoBehaviour
     {
-        [Range(0f, 10f), SerializeField]
-        float _noiseFreq = 6f;
-
-        [Range(0f, 1f), SerializeField]
-        float _noiseAmp = 0.5f;
-
         [Range(0f, 2f), SerializeField]
         float _weightUpDownMul = 0.5f;
 
@@ -36,7 +30,6 @@ namespace Crest
         [SerializeField]
         float _velocityPositionOffset = 0.2f;
 
-        RegisterDynWavesInput _dynWavesInput;
         FloatingObjectBase _boat;
         Vector3 _posLast;
         Vector3 _localOffset;
@@ -63,7 +56,6 @@ namespace Crest
 #endif
 
             _localOffset = transform.localPosition;
-            _dynWavesInput = GetComponent<RegisterDynWavesInput>();
             _renderer = GetComponent<Renderer>();
             _mpb = new MaterialPropertyBlock();
 
@@ -110,7 +102,6 @@ namespace Crest
 
             var ocean = OceanRenderer.Instance;
 
-            var rnd = 1f + _noiseAmp * (2f * Mathf.PerlinNoise(_noiseFreq * ocean.CurrentTime, 0.5f) - 1f);
             // feed in water velocity
             var vel = (transform.position - _posLast) / ocean.DeltaTimeDynamics;
             if (ocean.DeltaTimeDynamics < 0.0001f)
@@ -147,8 +138,8 @@ namespace Crest
                 }
             }
 
-            float dt; int steps;
-            ocean._lodDataDynWaves.GetSimSubstepData(ocean.DeltaTimeDynamics, out steps, out dt);
+            float dt;
+            ocean._lodDataDynWaves.GetSimSubstepData(ocean.DeltaTimeDynamics, out _, out dt);
             float weight = _boat.InWater ? 1f / simsActive : 0f;
 
             _renderer.GetPropertyBlock(_mpb);

@@ -13,7 +13,6 @@ public class RippleGenerator : MonoBehaviour
     public float _period = 4f;
 
     Renderer _rend;
-    Material _mat;
     MaterialPropertyBlock _mpb;
 
     RegisterDynWavesInput _rdwi;
@@ -29,7 +28,6 @@ public class RippleGenerator : MonoBehaviour
         }
 
         _rend = GetComponent<Renderer>();
-        _mat = _rend.material;
         _mpb = new MaterialPropertyBlock();
     }
 
@@ -69,8 +67,8 @@ public class RippleGenerator : MonoBehaviour
             return;
         }
 
-        float dt; int steps;
-        OceanRenderer.Instance._lodDataDynWaves.GetSimSubstepData(OceanRenderer.Instance.DeltaTimeDynamics, out steps, out dt);
+        float dt;
+        OceanRenderer.Instance._lodDataDynWaves.GetSimSubstepData(OceanRenderer.Instance.DeltaTimeDynamics, out _, out dt);
 
         _rend.GetPropertyBlock(_mpb);
 

@@ -69,12 +69,8 @@ namespace Crest
                 return;
             }
 
-            var collProvider = OceanRenderer.Instance.CollisionProvider;
-            var position = transform.position;
-
-            Vector3 normal, waterSurfaceVel, disp;
             _sampleHeightHelper.Init(transform.position, _objectWidth, true);
-            _sampleHeightHelper.Sample(out disp, out normal, out waterSurfaceVel);
+            _sampleHeightHelper.Sample(out Vector3 disp, out var normal, out var waterSurfaceVel);
 
             {
                 _sampleFlowHelper.Init(transform.position, ObjectWidth);
@@ -123,8 +119,6 @@ namespace Crest
         /// </summary>
         void FixedUpdateOrientation(Vector3 normal)
         {
-            Vector3 normalLongitudinal = Vector3.up;
-
             if (_debugDraw) Debug.DrawLine(transform.position, transform.position + 5f * normal, Color.green);
 
             var torqueWidth = Vector3.Cross(transform.up, normal);

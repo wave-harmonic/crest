@@ -38,10 +38,10 @@ namespace Crest
         {
             base.Start();
 
-            CreateProperties(OceanRenderer.Instance.CurrentLodCount);
+            CreateProperties();
         }
 
-        void CreateProperties(int lodCount)
+        void CreateProperties()
         {
             _shader = ComputeShaderHelpers.LoadShader(ShaderSim);
             if (_shader == null)
@@ -125,6 +125,9 @@ namespace Crest
                     sp_LD_TexArray_Target,
                     DataTexture
                 );
+
+                // Bind current data
+                BindData(_renderSimProperties, null, false, ref OceanRenderer.Instance._lodTransform._renderData, false);
 
                 _renderSimProperties.DispatchShaderMultiLOD();
 

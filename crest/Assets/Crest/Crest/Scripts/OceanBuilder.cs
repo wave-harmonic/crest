@@ -440,7 +440,7 @@ namespace Crest
             for (int i = 0; i < offsets.Length; i++)
             {
                 // instantiate and place patch
-                var patch = new GameObject(string.Format("Tile_L{0}", lodIndex));
+                var patch = new GameObject($"Tile_L{lodIndex}_{patchTypes[i]}");
                 patch.hideFlags = HideFlags.DontSave;
                 patch.layer = oceanLayer;
                 patch.transform.parent = parent;

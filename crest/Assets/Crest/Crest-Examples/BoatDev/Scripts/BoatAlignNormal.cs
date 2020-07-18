@@ -82,9 +82,6 @@ public class BoatAlignNormal : FloatingObjectBase
 
         UnityEngine.Profiling.Profiler.BeginSample("BoatAlignNormal.FixedUpdate");
 
-        var collProvider = OceanRenderer.Instance.CollisionProvider;
-        var position = transform.position;
-
         _sampleHeightHelper.Init(transform.position, _boatWidth, true);
         var height = OceanRenderer.Instance.SeaLevel;
 
@@ -142,7 +139,7 @@ public class BoatAlignNormal : FloatingObjectBase
                 (Input.GetKey(KeyCode.D) ? reverseMultiplier * 1f : 0f);
         _rb.AddTorque(transform.up * _turnPower * sideways, ForceMode.Acceleration);
 
-        FixedUpdateOrientation(collProvider, normal);
+        FixedUpdateOrientation(normal);
 
         UnityEngine.Profiling.Profiler.EndSample();
     }
@@ -151,7 +148,7 @@ public class BoatAlignNormal : FloatingObjectBase
     /// Align to water normal. One normal by default, but can use a separate normal based on boat length vs width. This gives
     /// varying rotations based on boat dimensions.
     /// </summary>
-    void FixedUpdateOrientation(ICollProvider collProvider, Vector3 normalSideways)
+    void FixedUpdateOrientation(Vector3 normalSideways)
     {
         Vector3 normal = normalSideways, normalLongitudinal = Vector3.up;
 

@@ -49,9 +49,8 @@ namespace Crest
             {
                 var position = transform.position;
                 _sampleHeightHelper.Init(position, 0f);
-                float waterHeight = 0f;
 
-                if (_sampleHeightHelper.Sample(ref waterHeight))
+                if (_sampleHeightHelper.Sample(out float waterHeight))
                 {
                     position.y = waterHeight;
                     _enabled = Mathf.Abs(_renderer.bounds.ClosestPoint(position).y - waterHeight) < 1;

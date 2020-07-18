@@ -87,11 +87,8 @@ public class BoatAlignNormal : FloatingObjectBase
 
         _sampleHeightHelper.Init(transform.position, _boatWidth, true);
         var height = OceanRenderer.Instance.SeaLevel;
-        var disp = Vector3.zero;
-        var normal = Vector3.up;
-        var waterSurfaceVel = Vector3.zero;
 
-        _sampleHeightHelper.Sample(ref disp, ref normal, ref waterSurfaceVel);
+        _sampleHeightHelper.Sample(out Vector3 disp, out Vector3 normal, out Vector3 waterSurfaceVel);
 
         // height = base sea level + surface displacement y
         height += disp.y;
@@ -99,8 +96,7 @@ public class BoatAlignNormal : FloatingObjectBase
         {
             _sampleFlowHelper.Init(transform.position, _boatWidth);
 
-            Vector2 surfaceFlow = Vector2.zero;
-            _sampleFlowHelper.Sample(ref surfaceFlow);
+            _sampleFlowHelper.Sample(out var surfaceFlow);
             waterSurfaceVel += new Vector3(surfaceFlow.x, 0, surfaceFlow.y);
         }
 
@@ -162,8 +158,7 @@ public class BoatAlignNormal : FloatingObjectBase
         if (_useBoatLength)
         {
             _sampleHeightHelperLengthwise.Init(transform.position, _boatLength, true);
-            var dummy = 0f;
-            if (_sampleHeightHelperLengthwise.Sample(ref dummy, ref normalLongitudinal))
+            if (_sampleHeightHelperLengthwise.Sample(out _, out normalLongitudinal))
             {
                 var F = transform.forward;
                 F.y = 0f;

@@ -23,8 +23,7 @@ public class LerpCam : MonoBehaviour
         }
 
         _sampleHeightHelper.Init(transform.position, 0f);
-        float h = 0f;
-        _sampleHeightHelper.Sample(ref h);
+        _sampleHeightHelper.Sample(out var h);
 
         var targetPos = _targetPos.position;
         targetPos.y = Mathf.Max(targetPos.y, h + _minHeightAboveWater);

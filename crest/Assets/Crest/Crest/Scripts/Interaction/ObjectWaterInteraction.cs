@@ -120,8 +120,7 @@ namespace Crest
 
             {
                 _sampleFlowHelper.Init(transform.position, _boat.ObjectWidth);
-                Vector2 surfaceFlow = Vector2.zero;
-                _sampleFlowHelper.Sample(ref surfaceFlow);
+                _sampleFlowHelper.Sample(out var surfaceFlow);
                 vel -= new Vector3(surfaceFlow.x, 0, surfaceFlow.y);
             }
             vel.y *= _weightUpDownMul;

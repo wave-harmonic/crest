@@ -72,15 +72,14 @@ namespace Crest
             var collProvider = OceanRenderer.Instance.CollisionProvider;
             var position = transform.position;
 
-            var normal = Vector3.up; var waterSurfaceVel = Vector3.zero; var disp = Vector3.zero;
+            Vector3 normal, waterSurfaceVel, disp;
             _sampleHeightHelper.Init(transform.position, _objectWidth, true);
-            _sampleHeightHelper.Sample(ref disp, ref normal, ref waterSurfaceVel);
+            _sampleHeightHelper.Sample(out disp, out normal, out waterSurfaceVel);
 
             {
                 _sampleFlowHelper.Init(transform.position, ObjectWidth);
 
-                Vector2 surfaceFlow = Vector2.zero;
-                _sampleFlowHelper.Sample(ref surfaceFlow);
+                _sampleFlowHelper.Sample(out var surfaceFlow);
                 waterSurfaceVel += new Vector3(surfaceFlow.x, 0, surfaceFlow.y);
             }
 

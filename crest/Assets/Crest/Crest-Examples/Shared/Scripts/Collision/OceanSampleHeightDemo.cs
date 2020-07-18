@@ -18,8 +18,7 @@ public class OceanSampleHeightDemo : MonoBehaviour
         var r = transform.lossyScale.magnitude;
         _sampleHeightHelper.Init(transform.position, 2f * r);
 
-        float height = 0f;
-        if (_sampleHeightHelper.Sample(ref height))
+        if (_sampleHeightHelper.Sample(out var height))
         {
             var pos = transform.position;
             pos.y = height;

@@ -124,7 +124,6 @@ namespace Crest
                 properties.SetTexture(GetParamIdSampler(sourceLod), applyData);
             }
 
-            var lt = OceanRenderer.Instance._lodTransform;
             for (int lodIdx = 0; lodIdx < OceanRenderer.Instance.CurrentLodCount; lodIdx++)
             {
                 // NOTE: gets zeroed by unity, see https://www.alanzucconi.com/2016/10/24/arrays-shaders-unity-5-4/

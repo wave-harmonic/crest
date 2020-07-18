@@ -23,13 +23,6 @@ namespace Crest
         [Range(0f, 2f), SerializeField]
         float _weightUpDownMul = 0.5f;
 
-        [Header("Noise")]
-        [Range(0f, 1f), SerializeField]
-        float _noiseAmp = 0.5f;
-
-        [Range(0f, 10f), SerializeField]
-        float _noiseFreq = 6f;
-
         [Header("Limits")]
         [Tooltip("Teleport speed (km/h) - if the calculated speed is larger than this amount, the object is deemed to have teleported and the computed velocity is discarded."), SerializeField]
         float _teleportSpeed = 500f;
@@ -40,10 +33,8 @@ namespace Crest
         [SerializeField]
         bool _warnOnSpeedClamp = false;
 
-        RegisterDynWavesInput _dynWavesInput;
         FloatingObjectBase _object;
 
-        Vector3 _localPositionRest;
         Vector3 _posLast;
 
         SampleHeightHelper _sampleHeightHelper = new SampleHeightHelper();
@@ -73,8 +64,6 @@ namespace Crest
             }
 #endif
 
-            _localPositionRest = transform.localPosition;
-            _dynWavesInput = GetComponent<RegisterDynWavesInput>();
             _renderer = GetComponent<Renderer>();
             _mpb = new MaterialPropertyBlock();
 
@@ -92,7 +81,7 @@ namespace Crest
 
             // Which lod is this object in (roughly)?
             int simsActive;
-            if (!LateUpdateCountOverlappingSims(out simsActive, out int simsPresent))
+            if (!LateUpdateCountOverlappingSims(out simsActive, out _))
             {
                 // No sims running - abort. don't bother switching off renderer - camera wont be active
                 return;
@@ -108,8 +97,8 @@ namespace Crest
             // Velocity relative to water
             Vector3 relativeVelocity = LateUpdateComputeVelRelativeToWater(ocean);
 
-            float dt; int steps;
-            ocean._lodDataDynWaves.GetSimSubstepData(ocean.DeltaTimeDynamics, out steps, out dt);
+            float dt;
+            ocean._lodDataDynWaves.GetSimSubstepData(ocean.DeltaTimeDynamics, out _, out dt);
 
             float weight = _weight / simsActive;
 
@@ -161,7 +150,6 @@ namespace Crest
         {
             Vector3 vel;
 
-            var rnd = 1f + _noiseAmp * (2f * Mathf.PerlinNoise(_noiseFreq * ocean.CurrentTime, 0.5f) - 1f);
             // feed in water velocity
             vel = (transform.position - _posLast) / ocean.DeltaTimeDynamics;
             if (ocean.DeltaTimeDynamics < 0.0001f)

@@ -34,6 +34,9 @@ namespace Crest
         public float _windDirectionAngle = 0f;
         public Vector2 WindDir => new Vector2(Mathf.Cos(Mathf.PI * _windDirectionAngle / 180f), Mathf.Sin(Mathf.PI * _windDirectionAngle / 180f));
 
+        [Tooltip("Enable shoreline waves")]
+        public bool _enableShorelineWaves;
+
         public class GerstnerBatch : ILodDataInput
         {
             public GerstnerBatch(ShapeGerstnerBatched gerstner, int batchIndex, MeshRenderer rend, bool directTowardsPoint)

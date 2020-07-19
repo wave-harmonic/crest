@@ -3,7 +3,7 @@
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 // Adds Gerstner waves everywhere. Must be given batch prepared by ShapeGerstnerBatched.cs.
-Shader "Hidden/Crest/Inputs/Animated Waves/Gerstner Batch Global"
+Shader "Hidden/Crest/Inputs/Animated Waves/Shoreline Global"
 {
 	Properties
 	{
@@ -77,15 +77,9 @@ Shader "Hidden/Crest/Inputs/Animated Waves/Gerstner Batch Global"
 				const float lerpDistance = 500.0;
 				float directionalStrengh = 1.0 - clamp(depth_distance_dirXZ.y / lerpDistance, 0.0, 1.0);
 
-				half4 directionalWaves;
-				{
-					directionalWaves = ComputeShorelineGerstner(input.worldPosXZ, input.uv_slice, depth_distance_dirXZ.y, depth_distance_dirXZ.x, headingvec);
-				}
+				half4 = ComputeShorelineGerstner(input.worldPosXZ, input.uv_slice, depth_distance_dirXZ.y, depth_distance_dirXZ.x, headingvec);
 
-				float4 result = ComputeGerstner(input.worldPosXZ, input.uv_slice, depth_distance_dirXZ.x);
-
-				result += directionalWaves * directionalStrengh;
-				// result = directionalWaves * directionalStrengh;
+				result = directionalWaves * directionalStrengh;
 
 				return result;
 			}

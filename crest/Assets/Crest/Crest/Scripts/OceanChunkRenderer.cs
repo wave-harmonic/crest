@@ -35,7 +35,17 @@ namespace Crest
         void Start()
         {
             Rend = GetComponent<Renderer>();
-            _mesh = GetComponent<MeshFilter>().sharedMesh;
+#if UNITY_EDITOR
+            if (!Application.isPlaying)
+            {
+                _mesh = GetComponent<MeshFilter>().sharedMesh;
+            }
+            else
+#endif
+            {
+                // An unshared mesh will break instancing, but a shared mesh will break culling due to shared bounds.
+                _mesh = GetComponent<MeshFilter>().mesh;
+            }
 
             UpdateMeshBounds();
         }

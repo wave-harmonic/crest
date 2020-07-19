@@ -294,6 +294,14 @@ namespace Crest
                     v_world[i] = camera.ViewportToWorldPoint(v_screenXY_viewZ[i], eye);
                 }
 
+                // This is a temporary fix to the horizonSafetyMarginMultiplier thinking the horizon is the top of the
+                // screen causing the underwater effect to render from the top of the screen downwards when looking up.
+                if ((v_world[0].y >= 0 && v_world[1].y >= 0 && v_world[2].y >= 0 && v_world[3].y >= 0) ||
+                    (v_world[0].y <= 0 && v_world[1].y <= 0 && v_world[2].y <= 0 && v_world[3].y <= 0))
+                {
+                    horizonSafetyMarginMultiplier = 0.0f;
+                }
+
                 NativeArray<Vector2> intersectionsScreen = new NativeArray<Vector2>(2, Allocator.Temp);
                 // This is only used to disambiguate the normal later. Could be removed if we were more careful with point order/indices below.
                 NativeArray<Vector3> intersectionsWorld = new NativeArray<Vector3>(2, Allocator.Temp);

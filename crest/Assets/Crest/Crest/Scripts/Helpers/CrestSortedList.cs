@@ -2,7 +2,6 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
-using System;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -79,7 +78,7 @@ namespace Crest
             return removed;
         }
 
-#region GetEnumerator
+        #region GetEnumerator
         public List<KeyValuePair<TKey, TValue>>.Enumerator GetEnumerator()
         {
             ResortArrays();
@@ -95,7 +94,7 @@ namespace Crest
         {
             return GetEnumerator();
         }
-#endregion
+        #endregion
 
         private void ResortArrays()
         {

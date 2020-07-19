@@ -69,7 +69,7 @@ namespace Crest
             {
                 if (_ocean._simSettingsAnimatedWaves != null) return _ocean._simSettingsAnimatedWaves;
 
-                if(_defaultSettings == null)
+                if (_defaultSettings == null)
                 {
                     _defaultSettings = ScriptableObject.CreateInstance<SettingsType>();
                     _defaultSettings.name = SimName + " Auto-generated Settings";

@@ -25,9 +25,9 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Batch Geometry"
 			CGPROGRAM
 			#pragma vertex Vert
 			#pragma fragment Frag
-			#pragma multi_compile __ CREST_DIRECT_TOWARDS_POINT_INTERNAL
-			#pragma shader_feature _WEIGHTFROMVERTEXCOLOURRED_ON
-			#pragma shader_feature _FEATHERATUVEXTENTS_ON
+			#pragma multi_compile_local __ CREST_DIRECT_TOWARDS_POINT_INTERNAL
+			#pragma shader_feature_local _WEIGHTFROMVERTEXCOLOURRED_ON
+			#pragma shader_feature_local _FEATHERATUVEXTENTS_ON
 
 			#include "UnityCG.cginc"
 
@@ -39,6 +39,7 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Batch Geometry"
 
 			CBUFFER_START(GerstnerPerMaterial)
 			half _FeatherWidth;
+			float3 _DisplacementAtInputPosition;
 			CBUFFER_END
 
 			struct Attributes
@@ -64,9 +65,14 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Batch Geometry"
 			{
 				Varyings o;
 				
-				o.positionCS = UnityObjectToClipPos(input.positionOS);
 
-				o.worldPosXZ_uv.xy = mul(unity_ObjectToWorld, float4(input.positionOS, 1.0)).xz;
+				float3 worldPos = mul(unity_ObjectToWorld, float4(input.positionOS, 1.0)).xyz;
+				// Correct for displacement
+				worldPos.xz -= _DisplacementAtInputPosition.xz;
+
+				o.positionCS = mul(UNITY_MATRIX_VP, float4(worldPos, 1.0));
+
+				o.worldPosXZ_uv.xy = worldPos.xz;
 				o.worldPosXZ_uv.zw = input.uv;
 
 				o.uv_slice_wt.xyz = WorldToUV(o.worldPosXZ_uv.xy, _LD_SliceIndex);

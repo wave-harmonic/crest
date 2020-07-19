@@ -48,15 +48,11 @@ namespace Crest
         [Tooltip("Used to automatically add turning input"), SerializeField]
         float _turnBias = 0f;
 
-
         private const float WATER_DENSITY = 1000;
 
         public override Vector3 Velocity => _rb.velocity;
 
         Rigidbody _rb;
-
-        Vector3 _displacementToObject = Vector3.zero;
-        public override Vector3 CalculateDisplacementToObject() { return _displacementToObject; }
 
         public override float ObjectWidth { get { return _minSpatialLength; } }
         public override bool InWater { get { return true; } }
@@ -113,7 +109,6 @@ namespace Crest
             // Do queries
             UpdateWaterQueries(collProvider);
 
-            _displacementToObject = _queryResultDisps[_forcePoints.Length];
             var undispPos = transform.position - _queryResultDisps[_forcePoints.Length];
             undispPos.y = OceanRenderer.Instance.SeaLevel;
 
@@ -121,14 +116,13 @@ namespace Crest
 
             {
                 _sampleFlowHelper.Init(transform.position, _minSpatialLength);
-                Vector2 surfaceFlow = Vector2.zero;
-                _sampleFlowHelper.Sample(ref surfaceFlow);
+                _sampleFlowHelper.Sample(out var surfaceFlow);
                 waterSurfaceVel += new Vector3(surfaceFlow.x, 0, surfaceFlow.y);
             }
 
             // Buoyancy
-            FixedUpdateBuoyancy(collProvider);
-            FixedUpdateDrag(collProvider, waterSurfaceVel);
+            FixedUpdateBuoyancy();
+            FixedUpdateDrag(waterSurfaceVel);
             FixedUpdateEngine();
         }
 
@@ -158,7 +152,7 @@ namespace Crest
             _rb.AddTorque(rotVec * _turnPower * sideways, ForceMode.Acceleration);
         }
 
-        void FixedUpdateBuoyancy(ICollProvider collProvider)
+        void FixedUpdateBuoyancy()
         {
             var archimedesForceMagnitude = WATER_DENSITY * Mathf.Abs(Physics.gravity.y);
 
@@ -173,7 +167,7 @@ namespace Crest
             }
         }
 
-        void FixedUpdateDrag(ICollProvider collProvider, Vector3 waterSurfaceVel)
+        void FixedUpdateDrag(Vector3 waterSurfaceVel)
         {
             // Apply drag relative to water
             var _velocityRelativeToWater = _rb.velocity - waterSurfaceVel;

@@ -151,7 +151,7 @@ namespace Crest
 
                 // Gerstner components
                 var gerstners = _overrideGerstnerList != null && _overrideGerstnerList.Length > 0 ? _overrideGerstnerList : FindObjectsOfType<ShapeGerstnerBatched>();
-                foreach (var gerstner in _overrideGerstnerList)
+                foreach (var gerstner in gerstners)
                 {
                     gerstner.SetOrigin(newOrigin);
                 }

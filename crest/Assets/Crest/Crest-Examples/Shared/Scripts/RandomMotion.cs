@@ -23,7 +23,6 @@ public class RandomMotion : MonoBehaviour
     public float _rotationVel = 0f;
 
     Vector3 _origin;
-    Vector3 _rotation;
 
     void Start()
     {

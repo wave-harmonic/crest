@@ -85,7 +85,7 @@ namespace Crest
             if (_renderer)
             {
 #if UNITY_EDITOR
-                if (_checkShaderName && verifyShader)
+                if (Application.isPlaying && _checkShaderName && verifyShader)
                 {
                     ValidatedHelper.ValidateRenderer(gameObject, ShaderPrefix, ValidatedHelper.DebugLog);
                 }

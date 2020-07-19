@@ -169,9 +169,8 @@ namespace Crest
                 float seaLevelHeightDifference = camera.transform.position.y - seaLevel;
                 float waterHeightLevelDifference = seaLevelHeightDifference;
                 {
-                    float waterHeight = 0.0f;
                     sampleHeightHelper.Init(camera.transform.position, 0f);
-                    if (sampleHeightHelper.Sample(ref waterHeight))
+                    if (sampleHeightHelper.Sample(out var waterHeight))
                     {
                         waterHeightLevelDifference = camera.transform.position.y - waterHeight;
                     }

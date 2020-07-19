@@ -89,22 +89,23 @@ half4 ComputeGerstner(float2 worldPosXZ, float3 uv_slice, half depth)
 	return _Weight * half4(result, sss);
 }
 
-half4 ComputeShorelineGerstner(float2 worldPosXZ, float3 uv_slice, half distance, half depth, half2 direction)
+half4 ComputeShorelineGerstner(float2 worldPosXZ, float3 uv_slice, half depth, half distanceToShore, half2 directionToShore)
 {
 	float2 displacementNormalized = 0.0;
 	half3 result = (half3)0.0;
 
-	if(depth > 0.5)
+	if(depth > 0.0)
 	{
-		float PIS = 3.141;
+		const float pi = 3.141;
+		const float twoPiOverWavelength = (2.0 * pi) / 2.5;
+		const float twoPiOverPeriod = (2.0 * pi) / 2.0;
+		const float amplitude = 0.12;
+		// Chop increases as depth increases
+		const float chopAmplitude = 2.0/(1.0+sqrt(distanceToShore));
 
-		float waveLength = 5.0;
-		float period = 0.1;
-		float amplitude = 0.12;
-
-		float theta = 2 * PIS * (((sqrt(distance)*2.0)/(waveLength)) + (_Time/period));
-		result.y = amplitude * cos(theta);
-		result.xz = direction * sin(theta) * (1.0/(1.0+distance));
+		const float angle = (twoPiOverWavelength * sqrt(distanceToShore)) + (_CrestTime * twoPiOverPeriod);
+		result.y = amplitude * cos(angle);
+		result.xz = chopAmplitude * directionToShore * sin(angle) * result.y;
 	}
 	return _Weight * half4(result, 0.0);
 }

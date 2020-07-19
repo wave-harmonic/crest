@@ -74,18 +74,18 @@ Shader "Hidden/Crest/Inputs/Animated Waves/Gerstner Batch Global"
 				half4 depth_distance_dirXZ = _LD_TexArray_SeaFloorDepth.Sample(LODData_linear_clamp_sampler, input.uv_slice);
 				float2 headingvec = normalize(depth_distance_dirXZ.zw);
 
-				const float lerpDistance = 500.0;
+				const float lerpDistance = 100.0;
 				float directionalStrengh = 1.0 - clamp(depth_distance_dirXZ.y / lerpDistance, 0.0, 1.0);
 
 				half4 directionalWaves;
 				{
-					directionalWaves = ComputeShorelineGerstner(input.worldPosXZ, input.uv_slice, depth_distance_dirXZ.y, depth_distance_dirXZ.x, headingvec);
+					directionalWaves = ComputeShorelineGerstner(input.worldPosXZ, input.uv_slice, depth_distance_dirXZ.x, depth_distance_dirXZ.y, headingvec);
 				}
 
 				float4 result = ComputeGerstner(input.worldPosXZ, input.uv_slice, depth_distance_dirXZ.x);
 
 				result += directionalWaves * directionalStrengh;
-				// result = directionalWaves * directionalStrengh;
+				//result = directionalWaves * directionalStrengh;
 
 				return result;
 			}

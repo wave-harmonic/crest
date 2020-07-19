@@ -5,6 +5,10 @@
 using UnityEngine;
 using UnityEngine.Rendering;
 
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+
 namespace Crest
 {
     /// <summary>
@@ -35,7 +39,17 @@ namespace Crest
         void Start()
         {
             Rend = GetComponent<Renderer>();
-            _mesh = GetComponent<MeshFilter>().sharedMesh;
+#if UNITY_EDITOR
+            if (!Application.isPlaying)
+            {
+                _mesh = GetComponent<MeshFilter>().sharedMesh;
+            }
+            else
+#endif
+            {
+                // An unshared mesh will break instancing, but a shared mesh will break culling due to shared bounds.
+                _mesh = GetComponent<MeshFilter>().mesh;
+            }
 
             UpdateMeshBounds();
         }
@@ -246,4 +260,27 @@ namespace Crest
             Gizmos.DrawLine(new Vector3(xmin, ymax, zmax), new Vector3(xmin, ymin, zmax));
         }
     }
+
+#if UNITY_EDITOR
+    [CustomEditor(typeof(OceanChunkRenderer))]
+    public class OceanChunkRendererEditor : Editor
+    {
+        Renderer renderer;
+        public override void OnInspectorGUI()
+        {
+            base.OnInspectorGUI();
+
+            var oceanChunkRenderer = target as OceanChunkRenderer;
+
+            if (renderer == null)
+            {
+                renderer = oceanChunkRenderer.GetComponent<Renderer>();
+            }
+
+            GUI.enabled = false;
+            EditorGUILayout.BoundsField("Expanded Bounds", renderer.bounds);
+            GUI.enabled = true;
+        }
+    }
+#endif
 }

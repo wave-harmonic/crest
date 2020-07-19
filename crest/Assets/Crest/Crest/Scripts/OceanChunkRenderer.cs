@@ -5,6 +5,10 @@
 using UnityEngine;
 using UnityEngine.Rendering;
 
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+
 namespace Crest
 {
     /// <summary>
@@ -256,4 +260,27 @@ namespace Crest
             Gizmos.DrawLine(new Vector3(xmin, ymax, zmax), new Vector3(xmin, ymin, zmax));
         }
     }
+
+#if UNITY_EDITOR
+    [CustomEditor(typeof(OceanChunkRenderer))]
+    public class OceanChunkRendererEditor : Editor
+    {
+        Renderer renderer;
+        public override void OnInspectorGUI()
+        {
+            base.OnInspectorGUI();
+
+            var oceanChunkRenderer = target as OceanChunkRenderer;
+
+            if (renderer == null)
+            {
+                renderer = oceanChunkRenderer.GetComponent<Renderer>();
+            }
+
+            GUI.enabled = false;
+            EditorGUILayout.BoundsField("Expanded Bounds", renderer.bounds);
+            GUI.enabled = true;
+        }
+    }
+#endif
 }

@@ -262,7 +262,7 @@ namespace Crest
     }
 
 #if UNITY_EDITOR
-    [CustomEditor(typeof(OceanChunkRenderer))]
+    [CustomEditor(typeof(OceanChunkRenderer)), CanEditMultipleObjects]
     public class OceanChunkRendererEditor : Editor
     {
         Renderer renderer;

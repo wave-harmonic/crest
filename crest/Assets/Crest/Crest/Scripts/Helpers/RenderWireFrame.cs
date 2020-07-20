@@ -1,11 +1,13 @@
-﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
+﻿// Crest Ocean System
+
+// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 using UnityEngine;
 
 /// <summary>
 /// Triggers the scene render to happen in wireframe. Unfortunately this currently affects the GUI elements as well.
 /// </summary>
-[RequireComponent( typeof( Camera ) )]
+[RequireComponent(typeof(Camera))]
 public class RenderWireFrame : MonoBehaviour
 {
     public bool _gui = true;
@@ -27,7 +29,9 @@ public class RenderWireFrame : MonoBehaviour
 
     void OnPreRender()
     {
-    	if( enabled )
-    		GL.wireframe = _wireFrame;
+        if (enabled)
+        {
+            GL.wireframe = _wireFrame;
+        }
     }
 }

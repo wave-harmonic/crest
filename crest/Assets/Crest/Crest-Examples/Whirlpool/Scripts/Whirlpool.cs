@@ -79,6 +79,11 @@ namespace Crest
 
         void Update()
         {
+            if (OceanRenderer.Instance == null)
+            {
+                return;
+            }
+
             OceanRenderer.Instance.ReportMaxDisplacementFromShape(0f, _amplitude, 0f);
 
             UpdateMaterials();

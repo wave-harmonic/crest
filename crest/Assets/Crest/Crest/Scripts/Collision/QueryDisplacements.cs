@@ -17,23 +17,6 @@ namespace Crest
         protected override string QueryShaderName => "QueryDisplacements";
         protected override string QueryKernelName => "CSMain";
 
-        public static QueryDisplacements Instance { get; private set; }
-
-        protected override void OnEnable()
-        {
-            Debug.Assert(Instance == null);
-            Instance = this;
-
-            base.OnEnable();
-        }
-
-        protected override void OnDisable()
-        {
-            Instance = null;
-
-            base.OnDisable();
-        }
-
         protected override void BindInputsAndOutputs(PropertyWrapperComputeStandalone wrapper, ComputeBuffer resultsBuffer)
         {
             OceanRenderer.Instance._lodDataAnimWaves.BindResultData(wrapper);
@@ -57,19 +40,10 @@ namespace Crest
 
             if (o_resultVels != null)
             {
-                result |= CalculateVelocities(i_ownerHash, i_minSpatialLength, i_queryPoints, o_resultVels);
+                result |= CalculateVelocities(i_ownerHash, o_resultVels);
             }
 
             return result;
-        }
-
-#if UNITY_2019_3_OR_NEWER
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-#endif
-        static void InitStatics()
-        {
-            // Init here from 2019.3 onwards
-            Instance = null;
         }
     }
 }

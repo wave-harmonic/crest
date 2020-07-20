@@ -37,12 +37,14 @@ Shader "Crest/Underwater Curtain"
 			#pragma vertex Vert
 			#pragma fragment Frag
 
-			#pragma shader_feature _SUBSURFACESCATTERING_ON
-			#pragma shader_feature _SUBSURFACESHALLOWCOLOUR_ON
-			#pragma shader_feature _TRANSPARENCY_ON
-			#pragma shader_feature _CAUSTICS_ON
-			#pragma shader_feature _SHADOWS_ON
-			#pragma shader_feature _COMPILESHADERWITHDEBUGINFO_ON
+			#pragma multi_compile_instancing
+
+			#pragma shader_feature_local _SUBSURFACESCATTERING_ON
+			#pragma shader_feature_local _SUBSURFACESHALLOWCOLOUR_ON
+			#pragma shader_feature_local _TRANSPARENCY_ON
+			#pragma shader_feature_local _CAUSTICS_ON
+			#pragma shader_feature_local _SHADOWS_ON
+			#pragma shader_feature_local _COMPILESHADERWITHDEBUGINFO_ON
 
 			#if _COMPILESHADERWITHDEBUGINFO_ON
 			#pragma enable_d3d11_debug_symbols
@@ -58,18 +60,20 @@ Shader "Crest/Underwater Curtain"
 			#include "UnderwaterShared.hlsl"
 
 			float _HeightOffset;
+			UNITY_DECLARE_SCREENSPACE_TEXTURE(_CameraDepthTexture);
 
 			#include "../OceanEmission.hlsl"
 
 			#define MAX_OFFSET 5.0
 
-			sampler2D _CameraDepthTexture;
 			sampler2D _Normals;
 
 			struct Attributes
 			{
 				float3 positionOS : POSITION;
 				float2 uv : TEXCOORD0;
+
+				UNITY_VERTEX_INPUT_INSTANCE_ID
 			};
 
 			struct Varyings
@@ -79,11 +83,17 @@ Shader "Crest/Underwater Curtain"
 				half4 foam_screenPos : TEXCOORD1;
 				half4 grabPos : TEXCOORD2;
 				float3 positionWS : TEXCOORD3;
+
+				UNITY_VERTEX_OUTPUT_STEREO
 			};
 
 			Varyings Vert(Attributes input)
 			{
 				Varyings o;
+
+				UNITY_SETUP_INSTANCE_ID(input);
+				UNITY_INITIALIZE_OUTPUT(Varyings, o);
+				UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
 
 				// Goal of this vert shader is to place a sheet of triangles in front of the camera. The geometry has
 				// two rows of verts, the top row and the bottom row (top and bottom are view relative). The bottom row
@@ -170,12 +180,15 @@ Shader "Crest/Underwater Curtain"
 
 			half4 Frag(Varyings input) : SV_Target
 			{
+				// We need this when sampling a screenspace texture.
+				UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+
 				const half3 view = normalize(_WorldSpaceCameraPos - input.positionWS);
 
 				const float pixelZ = LinearEyeDepth(input.positionCS.z);
 				const half3 screenPos = input.foam_screenPos.yzw;
 				const half2 uvDepth = screenPos.xy / screenPos.z;
-				const float sceneZ01 = tex2D(_CameraDepthTexture, uvDepth).x;
+				const float sceneZ01 = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CameraDepthTexture, uvDepth).x;
 				const float sceneZ = LinearEyeDepth(sceneZ01);
 
 				const float3 lightDir = _WorldSpaceLightPos0.xyz;
@@ -193,7 +206,7 @@ Shader "Crest/Underwater Curtain"
 
 				const half3 scatterCol = ScatterColour(depth, _WorldSpaceCameraPos, lightDir, view, shadow, true, true, sss);
 
-				half3 sceneColour = tex2D(_BackgroundTexture, input.grabPos.xy / input.grabPos.w).rgb;
+				half3 sceneColour = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_BackgroundTexture, input.grabPos.xy / input.grabPos.w).rgb;
 
 #if _CAUSTICS_ON
 				if (sceneZ01 != 0.0)

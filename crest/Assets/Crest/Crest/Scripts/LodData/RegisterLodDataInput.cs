@@ -7,6 +7,10 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+
 namespace Crest
 {
     using OceanInput = CrestSortedList<int, ILodDataInput>;
@@ -35,16 +39,24 @@ namespace Crest
     /// <summary>
     /// Base class for scripts that register input to the various LOD data types.
     /// </summary>
-    public abstract class RegisterLodDataInputBase : MonoBehaviour, ILodDataInput, IValidated
+    [ExecuteAlways]
+    public abstract partial class RegisterLodDataInputBase : MonoBehaviour, ILodDataInput
     {
+#if UNITY_EDITOR
         [SerializeField, Tooltip("Check that the shader applied to this object matches the input type (so e.g. an Animated Waves input object has an Animated Waves input shader.")]
         bool _checkShaderName = true;
+#endif
 
         public abstract float Wavelength { get; }
 
         public abstract bool Enabled { get; }
 
         public static int sp_Weight = Shader.PropertyToID("_Weight");
+        public static int sp_DisplacementAtInputPosition = Shader.PropertyToID("_DisplacementAtInputPosition");
+
+        // By default do not follow horizontal motion of waves. This means that the ocean input will appear on the surface at its XZ location, instead
+        // of moving horizontally with the waves.
+        protected virtual bool FollowHorizontalMotion => false;
 
         protected abstract string ShaderPrefix { get; }
 
@@ -62,48 +74,64 @@ namespace Crest
             return registered;
         }
 
-        Renderer _renderer;
-        Material[] _materials = new Material[2];
+        protected Renderer _renderer;
+        protected Material _material;
+        SampleHeightHelper _sampleHelper = new SampleHeightHelper();
 
-        protected virtual void Start()
+        void InitRendererAndMaterial(bool verifyShader)
         {
             _renderer = GetComponent<Renderer>();
 
             if (_renderer)
             {
-                if (_checkShaderName)
+#if UNITY_EDITOR
+                if (Application.isPlaying && _checkShaderName && verifyShader)
                 {
-                    CheckShaderName(_renderer);
+                    ValidatedHelper.ValidateRenderer(gameObject, ShaderPrefix, ValidatedHelper.DebugLog);
                 }
+#endif
 
-                _materials[0] = _renderer.sharedMaterial;
-                _materials[1] = new Material(_renderer.sharedMaterial);
+                _material = _renderer.sharedMaterial;
             }
         }
 
-        bool CheckShaderName(Renderer renderer)
+        protected void Start()
         {
-            if (renderer.sharedMaterial && renderer.sharedMaterial.shader && !renderer.sharedMaterial.shader.name.StartsWith(ShaderPrefix))
+            InitRendererAndMaterial(true);
+        }
+
+        protected virtual void Update()
+        {
+#if UNITY_EDITOR
+            if (!UnityEditor.EditorApplication.isPlaying)
             {
-                Debug.LogError($"Shader assigned to ocean input expected to be of type <i>{ShaderPrefix}</i>. Click this error to highlight the input.", this);
-                return false;
+                InitRendererAndMaterial(true);
             }
-            return true;
+#endif
         }
 
         public void Draw(CommandBuffer buf, float weight, int isTransition, int lodIdx)
         {
-            if (_renderer && weight > 0f)
+            if (_renderer && _material && weight > 0f)
             {
-                _materials[isTransition].SetFloat(sp_Weight, weight);
-                _materials[isTransition].SetInt(LodDataMgr.sp_LD_SliceIndex, lodIdx);
+                buf.SetGlobalFloat(sp_Weight, weight);
+                buf.SetGlobalFloat(LodDataMgr.sp_LD_SliceIndex, lodIdx);
 
-                buf.DrawRenderer(_renderer, _materials[isTransition]);
+                if (!FollowHorizontalMotion)
+                {
+                    // This can be called multiple times per frame - one for each LOD potentially
+                    _sampleHelper.Init(transform.position, 0f, true, this);
+                    _sampleHelper.Sample(out Vector3 displacement, out _, out _);
+                    _material.SetVector(sp_DisplacementAtInputPosition, displacement);
+                }
+                else
+                {
+                    _material.SetVector(sp_DisplacementAtInputPosition, Vector3.zero);
+                }
+
+                buf.DrawRenderer(_renderer, _material);
             }
         }
-
-        public int MaterialCount => _materials.Length;
-        public Material GetMaterial(int index) => _materials[index];
 
 #if UNITY_2019_3_OR_NEWER
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
@@ -114,16 +142,12 @@ namespace Crest
             s_registrar.Clear();
             sp_Weight = Shader.PropertyToID("_Weight");
         }
-
-        public bool Validate(OceanRenderer ocean)
-        {
-            return CheckShaderName(GetComponent<Renderer>());
-        }
     }
 
     /// <summary>
     /// Registers input to a particular LOD data.
     /// </summary>
+    [ExecuteAlways]
     public abstract class RegisterLodDataInput<LodDataType> : RegisterLodDataInputBase
         where LodDataType : LodDataMgr
     {
@@ -131,31 +155,68 @@ namespace Crest
 
         protected abstract Color GizmoColor { get; }
 
+        int _registeredQueueValue = int.MinValue;
+
+        bool GetQueue(out int queue)
+        {
+            var rend = GetComponent<Renderer>();
+            if (rend && rend.sharedMaterial != null)
+            {
+                queue = rend.sharedMaterial.renderQueue;
+                return true;
+            }
+            queue = int.MinValue;
+            return false;
+        }
+
         protected virtual void OnEnable()
         {
-            var queue = 0;
-            var rend = GetComponent<Renderer>();
-            if (rend)
+            if (_disableRenderer)
             {
-                if (_disableRenderer)
+                var rend = GetComponent<Renderer>();
+                if (rend)
                 {
                     rend.enabled = false;
                 }
-
-                queue = (rend.sharedMaterial ?? rend.material).renderQueue;
             }
 
+            int q;
+            GetQueue(out q);
+
             var registrar = GetRegistrar(typeof(LodDataType));
-            registrar.Add(queue, this);
+            registrar.Add(q, this);
+            _registeredQueueValue = q;
         }
 
         protected virtual void OnDisable()
         {
-            var registered = GetRegistrar(typeof(LodDataType));
-            if (registered != null)
+            var registrar = GetRegistrar(typeof(LodDataType));
+            if (registrar != null)
             {
-                registered.Remove(this);
+                registrar.Remove(this);
             }
+        }
+
+        protected override void Update()
+        {
+            base.Update();
+
+#if UNITY_EDITOR
+            if (!UnityEditor.EditorApplication.isPlaying)
+            {
+                int q;
+                if (GetQueue(out q))
+                {
+                    if (q != _registeredQueueValue)
+                    {
+                        var registrar = GetRegistrar(typeof(LodDataType));
+                        registrar.Remove(this);
+                        registrar.Add(q, this);
+                        _registeredQueueValue = q;
+                    }
+                }
+            }
+#endif
         }
 
         private void OnDrawGizmosSelected()
@@ -168,4 +229,27 @@ namespace Crest
             }
         }
     }
+
+    [ExecuteAlways]
+    public abstract class RegisterLodDataInputDisplacementCorrection<LodDataType> : RegisterLodDataInput<LodDataType>
+        where LodDataType : LodDataMgr
+    {
+        [SerializeField, Tooltip("Correct for horizontal displacement so that this input does not move from side to side with the waves. Adds a small performance overhead when disabled.")]
+        bool _followHorizontalMotion = false;
+
+        protected override bool FollowHorizontalMotion => _followHorizontalMotion;
+    }
+
+#if UNITY_EDITOR
+    public abstract partial class RegisterLodDataInputBase : IValidated
+    {
+        public bool Validate(OceanRenderer ocean, ValidatedHelper.ShowMessage showMessage)
+        {
+            return ValidatedHelper.ValidateRenderer(gameObject, ShaderPrefix, showMessage);
+        }
+    }
+
+    [CustomEditor(typeof(RegisterLodDataInputBase), true), CanEditMultipleObjects]
+    class RegisterLodDataInputBaseEditor : ValidatedEditor { }
+#endif
 }

@@ -1,4 +1,6 @@
-﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
+﻿// Crest Ocean System
+
+// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 // Thanks to @VizzzU for contributing this.
 
@@ -39,9 +41,6 @@ namespace Crest
         bool _inWater;
         public override bool InWater { get { return _inWater; } }
 
-        Vector3 _displacementToObject = Vector3.zero;
-        public override Vector3 CalculateDisplacementToObject() { return _displacementToObject; }
-
         public override Vector3 Velocity => _rb.velocity;
 
         Rigidbody _rb;
@@ -70,24 +69,13 @@ namespace Crest
                 return;
             }
 
-            var collProvider = OceanRenderer.Instance.CollisionProvider;
-            var position = transform.position;
-
-            var normal = Vector3.up; var waterSurfaceVel = Vector3.zero;
             _sampleHeightHelper.Init(transform.position, _objectWidth, true);
-            _sampleHeightHelper.Sample(ref _displacementToObject, ref normal, ref waterSurfaceVel);
+            _sampleHeightHelper.Sample(out Vector3 disp, out var normal, out var waterSurfaceVel);
 
-            var undispPos = transform.position - _displacementToObject;
-            undispPos.y = OceanRenderer.Instance.SeaLevel;
-
-            if (_debugDraw) VisualiseCollisionArea.DebugDrawCross(undispPos, 1f, Color.red);
-
-            if (QueryFlow.Instance)
             {
                 _sampleFlowHelper.Init(transform.position, ObjectWidth);
 
-                Vector2 surfaceFlow = Vector2.zero;
-                _sampleFlowHelper.Sample(ref surfaceFlow);
+                _sampleFlowHelper.Sample(out var surfaceFlow);
                 waterSurfaceVel += new Vector3(surfaceFlow.x, 0, surfaceFlow.y);
             }
 
@@ -99,10 +87,7 @@ namespace Crest
 
             var velocityRelativeToWater = _rb.velocity - waterSurfaceVel;
 
-            var dispPos = undispPos + _displacementToObject;
-            if (_debugDraw) VisualiseCollisionArea.DebugDrawCross(dispPos, 4f, Color.white);
-
-            float height = dispPos.y;
+            float height = disp.y + OceanRenderer.Instance.SeaLevel;
 
             float bottomDepth = height - transform.position.y + _raiseObject;
 
@@ -134,8 +119,6 @@ namespace Crest
         /// </summary>
         void FixedUpdateOrientation(Vector3 normal)
         {
-            Vector3 normalLongitudinal = Vector3.up;
-
             if (_debugDraw) Debug.DrawLine(transform.position, transform.position + 5f * normal, Color.green);
 
             var torqueWidth = Vector3.Cross(transform.up, normal);

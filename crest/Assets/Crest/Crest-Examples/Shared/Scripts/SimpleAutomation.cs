@@ -1,4 +1,6 @@
-﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
+﻿// Crest Ocean System
+
+// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -20,7 +22,7 @@ public class SimpleAutomation : MonoBehaviour
             _reloadPending = false;
         }
 
-        if (_pauseOnFrame != -1 && Time.frameCount >= _pauseOnFrame)
+        if (_pauseOnFrame != -1 && Crest.OceanRenderer.FrameCount >= _pauseOnFrame)
         {
             UnityEditor.EditorApplication.isPaused = true;
         }

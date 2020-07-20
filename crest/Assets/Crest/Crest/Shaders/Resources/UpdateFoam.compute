@@ -50,7 +50,7 @@ void UpdateFoam(uint3 id : SV_DispatchThreadID)
 	half2 r = abs(uv_slice_source.xy - 0.5);
 	if (max(r.x, r.y) <= r_max)
 	{
-		foam = _LD_TexArray_Foam_Source.SampleLevel(LODData_linear_clamp_sampler, uv_slice_source, 0).x;
+		foam = _LD_TexArray_Foam_Source.SampleLevel(LODData_linear_clamp_sampler, uv_slice_source, 0.0).x;
 	}
 	else if (sliceIndexSource + 1.0 < depth)
 	{
@@ -70,8 +70,8 @@ void UpdateFoam(uint3 id : SV_DispatchThreadID)
 	// sample displacement texture and generate foam from it
 	const float3 dd = float3(_LD_Params[sliceIndex].w, 0.0, _LD_Params[sliceIndex].x);
 	half3 s = SampleLod(_LD_TexArray_AnimatedWaves, uv_slice).xyz;
-	half3 sx = SampleLodLevel(_LD_TexArray_AnimatedWaves, uv_slice + float3(dd.xy, 0), dd.y).xyz;
-	half3 sz = SampleLodLevel(_LD_TexArray_AnimatedWaves, uv_slice + float3(dd.yx, 0), dd.y).xyz;
+	half3 sx = SampleLodLevel(_LD_TexArray_AnimatedWaves, uv_slice + float3(dd.xy, 0.0), dd.y).xyz;
+	half3 sz = SampleLodLevel(_LD_TexArray_AnimatedWaves, uv_slice + float3(dd.yx, 0.0), dd.y).xyz;
 	float3 disp = s.xyz;
 	float3 disp_x = dd.zyy + sx.xyz;
 	float3 disp_z = dd.yyz + sz.xyz;
@@ -85,7 +85,7 @@ void UpdateFoam(uint3 id : SV_DispatchThreadID)
 
 	// add foam in shallow water. use the displaced position to ensure we add foam where world objects are.
 	float3 uv_slice_displaced = WorldToUV(worldPosXZ + disp.xz, sliceIndex);
-	float signedOceanDepth = SampleLodLevel(_LD_TexArray_SeaFloorDepth, uv_slice_displaced, 1).x + disp.y;
+	float signedOceanDepth = SampleLodLevel(_LD_TexArray_SeaFloorDepth, uv_slice_displaced, 0.0).x + disp.y;
 	foam += _ShorelineFoamStrength * _SimDeltaTime * saturate(1.0 - signedOceanDepth / _ShorelineFoamMaxDepth);
 
 	_LD_TexArray_Target[id] = foam;

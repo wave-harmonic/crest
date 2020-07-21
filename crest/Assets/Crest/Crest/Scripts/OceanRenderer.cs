@@ -983,6 +983,7 @@ namespace Crest
         {
             var isValid = true;
 
+#if UNITY_2019
             if (EditorSettings.enterPlayModeOptionsEnabled && 
                 EditorSettings.enterPlayModeOptions.HasFlag(EnterPlayModeOptions.DisableSceneReload))
             {
@@ -992,6 +993,7 @@ namespace Crest
                     ValidatedHelper.MessageType.Error, ocean
                 );
             }
+#endif
 
             if (_material == null)
             {
@@ -1192,4 +1194,4 @@ namespace Crest
         }
     }
 #endif
-}
+        }

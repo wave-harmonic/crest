@@ -49,6 +49,17 @@ namespace Crest
                     OnGUIPlacing();
                     break;
             }
+
+#if UNITY_2018
+            UpdateProxy();
+
+            if (_state != State.Placing)
+            {
+                return;
+            }
+
+            _position = Handles.DoPositionHandle(_position, Quaternion.identity);
+#endif
         }
 
         private void OnGUIIdle()
@@ -139,11 +150,13 @@ namespace Crest
 
         private void OnFocus()
         {
+#if UNITY_2019
             // Remove delegate listener if it has previously
             // been assigned.
             SceneView.duringSceneGui -= OnSceneGUI;
             // Add (or re-add) the delegate.
             SceneView.duringSceneGui += OnSceneGUI;
+#endif
 
             if (_proxyObject == null)
             {
@@ -153,7 +166,9 @@ namespace Crest
 
         private void OnDestroy()
         {
+#if UNITY_2019
             SceneView.duringSceneGui -= OnSceneGUI;
+#endif
 
             if (_proxyObject != null)
             {
@@ -161,6 +176,7 @@ namespace Crest
             }
         }
 
+#if UNITY_2019
         void OnSceneGUI(SceneView sceneView)
         {
             UpdateProxy();
@@ -172,6 +188,7 @@ namespace Crest
 
             _position = Handles.DoPositionHandle(_position, Quaternion.identity);
         }
+#endif
 
         void CreateProxyObject()
         {

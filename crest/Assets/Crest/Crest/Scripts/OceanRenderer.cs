@@ -770,13 +770,6 @@ namespace Crest
             var volumeExtinctionLength = -Mathf.Log(_underwaterCullLimit) / minimumFogDensity;
             var canSkipCulling = WaterBody.WaterBodies.Count == 0 && _canSkipCulling;
 
-            // If there are local bodies of water, this will do overlap tests between the ocean tiles
-            // and the water bodies and turn off any that don't overlap.
-            if (WaterBody.WaterBodies.Count == 0 && _canSkipCulling)
-            {
-                return;
-            }
-
             foreach (OceanChunkRenderer tile in _oceanChunkRenderers)
             {
                 if (tile.Rend == null)

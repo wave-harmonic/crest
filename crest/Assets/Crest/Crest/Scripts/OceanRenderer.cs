@@ -632,8 +632,6 @@ namespace Crest
                 }
             }
 
-            LateUpdateResetMaxDisplacementFromShape();
-
             if (_followViewpoint && Viewpoint != null)
             {
                 LateUpdatePosition();
@@ -649,6 +647,8 @@ namespace Crest
             {
                 LateUpdateTiles();
             }
+
+            LateUpdateResetMaxDisplacementFromShape();
 
 #if UNITY_EDITOR
             if (EditorApplication.isPlaying || !_showOceanProxyPlane)

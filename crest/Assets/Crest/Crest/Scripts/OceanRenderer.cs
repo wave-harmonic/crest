@@ -645,8 +645,6 @@ namespace Crest
                 }
             }
 
-            LateUpdateResetMaxDisplacementFromShape();
-
             if (_followViewpoint && Viewpoint != null)
             {
                 LateUpdatePosition();
@@ -662,6 +660,8 @@ namespace Crest
             {
                 LateUpdateTiles();
             }
+
+            LateUpdateResetMaxDisplacementFromShape();
 
 #if UNITY_EDITOR
             if (EditorApplication.isPlaying || !_showOceanProxyPlane)
@@ -1028,6 +1028,16 @@ namespace Crest
         public bool Validate(OceanRenderer ocean, ValidatedHelper.ShowMessage showMessage)
         {
             var isValid = true;
+
+            if (EditorSettings.enterPlayModeOptionsEnabled && 
+                EditorSettings.enterPlayModeOptions.HasFlag(EnterPlayModeOptions.DisableSceneReload))
+            {
+                showMessage
+                (
+                    "Crest will not work correctly with <i>Disable Scene Reload</i> enabled.",
+                    ValidatedHelper.MessageType.Error, ocean
+                );
+            }
 
             if (_material == null)
             {

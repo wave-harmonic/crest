@@ -777,6 +777,7 @@ namespace Crest
                     continue;
                 }
 
+                var isCulled = false;
 
                 // If there are local bodies of water, this will do overlap tests between the ocean tiles
                 // and the water bodies and turn off any that don't overlap.
@@ -799,13 +800,16 @@ namespace Crest
                         }
                     }
 
-                    tile.Rend.enabled = overlappingOne || WaterBody.WaterBodies.Count == 0;
+                    isCulled = !overlappingOne && WaterBody.WaterBodies.Count > 0;
                 }
 
-                if (canSkipCulling || tile.Rend.enabled)
+                // Cull tiles the viewer cannot see through the underwater fog.
+                if (!isCulled)
                 {
-                    tile.Rend.enabled = (!definitelyUnderwater) || (Viewpoint.position - tile.Rend.bounds.ClosestPoint(Viewpoint.position)).magnitude < volumeExtinctionLength;
+                    isCulled = definitelyUnderwater && (Viewpoint.position - tile.Rend.bounds.ClosestPoint(Viewpoint.position)).magnitude >= volumeExtinctionLength;
                 }
+
+                tile.Rend.enabled = !isCulled;
             }
 
             // Can skip culling next time around if water body count stays at 0

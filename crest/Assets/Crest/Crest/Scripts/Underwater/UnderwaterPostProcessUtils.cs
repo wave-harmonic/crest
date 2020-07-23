@@ -272,7 +272,8 @@ namespace Crest
         }
 
         /// <summary>
-        /// Compute intersection between the frustum far plane and the ocean plane, and return screen space pos and normal for this horizon line
+        /// Compute intersection between the frustum far plane and the ocean plane, and return view space pos and normal
+        /// for this horizon line.
         /// </summary>
         static void GetHorizonPosNormal(Camera camera, Camera.MonoOrStereoscopicEye eye, float seaLevel, float horizonSafetyMarginMultiplier, out Vector2 resultPos, out Vector2 resultNormal)
         {

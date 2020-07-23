@@ -94,6 +94,15 @@ namespace Crest
                 return false;
             }
 
+            if (transform.eulerAngles.magnitude > 0.0001f)
+            {
+                showMessage
+                (
+                    $"There must be no rotation on the WaterBody GameObject, and no rotation on any parent. Currently the rotation Euler angles are {transform.eulerAngles}.",
+                    ValidatedHelper.MessageType.Error, this
+                );
+            }
+
             return true;
         }
     }

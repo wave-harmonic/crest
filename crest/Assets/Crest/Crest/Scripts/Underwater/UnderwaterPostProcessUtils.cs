@@ -328,11 +328,14 @@ namespace Crest
                         resultNormal.x = -tangent.y;
                         resultNormal.y = tangent.x;
 
+                        // Disambiguate the normal. The tangent normal might go from left to right or right to left
+                        // since we do not handle ordering of intersection points.
                         if (Vector3.Dot(intersectionsWorld[0] - intersectionsWorld[1], camera.transform.right) > 0f)
                         {
                             resultNormal = -resultNormal;
                         }
 
+                        // Invert the normal if camera is upside down.
                         if (camera.transform.up.y <= 0f)
                         {
                             resultNormal = -resultNormal;

@@ -340,6 +340,22 @@ namespace Crest
                         {
                             resultNormal = -resultNormal;
                         }
+
+                        // The above will sometimes produce a normal that is inverted around 90° along the Z axis. Here
+                        // we are using world up to make sure that water is world down.
+                        {
+                            var cameraFacing = Vector3.Dot(camera.transform.right, Vector3.up);
+                            var normalFacing = Vector2.Dot(resultNormal, Vector2.right);
+
+                            if (cameraFacing > 0.75f && normalFacing > 0.9f)
+                            {
+                                resultNormal = -resultNormal;
+                            }
+                            else if (cameraFacing < -0.75f && normalFacing < -0.9f)
+                            {
+                                resultNormal = -resultNormal;
+                            }
+                        }
                     }
                     else
                     {

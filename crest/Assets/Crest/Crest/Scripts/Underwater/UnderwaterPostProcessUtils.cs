@@ -386,10 +386,12 @@ namespace Crest
                         var cameraToSeaLevelSign = seaLevel - camera.transform.position.y;
                         cameraToSeaLevelSign = cameraToSeaLevelSign > 0f ? 1f : cameraToSeaLevelSign < 0f ? -1f : 0f;
 
+                        // We want to invert the direction of the multiplier when underwater.
+                        horizonSafetyMarginMultiplier *= -cameraToSeaLevelSign;
                         // For compatibility so previous 0.01f property value is the same strength as before.
-                        horizonSafetyMarginMultiplier *= 0.01f * cameraToSeaLevelSign;
+                        horizonSafetyMarginMultiplier *= 0.01f;
                         // We use the normal so the multiplier is applied in the correct direction.
-                        resultPos += -resultNormal.normalized * horizonSafetyMarginMultiplier;
+                        resultPos += resultNormal.normalized * horizonSafetyMarginMultiplier;
                     }
                     else
                     {

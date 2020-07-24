@@ -234,7 +234,13 @@ namespace Crest
             }
             else
             {
-                var inverseViewProjectionMatrix = (camera.GetStereoProjectionMatrix(Camera.StereoscopicEye.Left) * camera.worldToCameraMatrix).inverse;
+                // Store projection matrix to restore later.
+                var projectionMatrix = camera.projectionMatrix;
+
+                // We need to set the matrix ourselves. Maybe ViewportToWorldPoint has a bug.
+                camera.projectionMatrix = camera.GetStereoProjectionMatrix(Camera.StereoscopicEye.Left);
+
+                var inverseViewProjectionMatrix = (camera.GetStereoProjectionMatrix(Camera.StereoscopicEye.Left) * camera.GetStereoViewMatrix(Camera.StereoscopicEye.Left)).inverse;
                 underwaterPostProcessMaterial.SetMatrix(sp_InvViewProjection, inverseViewProjectionMatrix);
 
                 {
@@ -242,13 +248,19 @@ namespace Crest
                     underwaterPostProcessMaterial.SetVector(sp_HorizonPosNormal, new Vector4(pos.x, pos.y, normal.x, normal.y));
                 }
 
-                var inverseViewProjectionMatrixRightEye = (camera.GetStereoProjectionMatrix(Camera.StereoscopicEye.Right) * camera.worldToCameraMatrix).inverse;
+                // We need to set the matrix ourselves. Maybe ViewportToWorldPoint has a bug.
+                camera.projectionMatrix = camera.GetStereoProjectionMatrix(Camera.StereoscopicEye.Right);
+
+                var inverseViewProjectionMatrixRightEye = (camera.GetStereoProjectionMatrix(Camera.StereoscopicEye.Right) * camera.GetStereoViewMatrix(Camera.StereoscopicEye.Right)).inverse;
                 underwaterPostProcessMaterial.SetMatrix(sp_InvViewProjectionRight, inverseViewProjectionMatrixRightEye);
 
                 {
                     GetHorizonPosNormal(camera, Camera.MonoOrStereoscopicEye.Right, seaLevel, horizonSafetyMarginMultiplier, out Vector2 pos, out Vector2 normal);
                     underwaterPostProcessMaterial.SetVector(sp_HorizonPosNormalRight, new Vector4(pos.x, pos.y, normal.x, normal.y));
                 }
+
+                // Restore projection matrix.
+                camera.projectionMatrix = projectionMatrix;
             }
 
             // Not sure why we need to do this - blit should set it...?

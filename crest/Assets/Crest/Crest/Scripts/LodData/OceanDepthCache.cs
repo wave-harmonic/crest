@@ -41,19 +41,14 @@ namespace Crest
         OceanDepthCacheRefreshMode _refreshMode = OceanDepthCacheRefreshMode.OnStart;
         public OceanDepthCacheRefreshMode RefreshMode => _refreshMode;
 
-        [Tooltip("In edit mode update every frame so that scene changes take effect immediately. Increases power usage in edit mode."), SerializeField]
-#pragma warning disable 414
-        bool _refreshEveryFrameInEditMode = true;
-#pragma warning restore 414
-
         [Tooltip("Renderers in scene to render into this depth cache. When provided this saves the code from doing an expensive FindObjectsOfType() call. If one or more renderers are specified, the layer setting is ignored."), SerializeField]
         Renderer[] _geometryToRenderIntoCache = new Renderer[0];
 
-        [Tooltip("The layers to render into the depth cache. This is ignored if geometry instances are specified in the Geometry To Render Into Cache field."), SerializeField]
-        string[] _layerNames = new string[0];
+        [Tooltip("The layers to render into the depth cache. This is ignored if geometry instances are specified in the Geometry To Render Into Cache field.")]
+        public string[] _layerNames = new string[0];
 
-        [Tooltip("The resolution of the cached depth - lower will be more efficient."), SerializeField]
-        int _resolution = 512;
+        [Tooltip("The resolution of the cached depth - lower will be more efficient.")]
+        public int _resolution = 512;
 
         // A big hill will still want to write its height into the depth texture
         [Tooltip("The 'near plane' for the depth cache camera (top down)."), SerializeField]
@@ -131,7 +126,7 @@ namespace Crest
 #if UNITY_EDITOR
         void Update()
         {
-            if (_forceAlwaysUpdateDebug || (!EditorApplication.isPlaying && _refreshEveryFrameInEditMode))
+            if (_forceAlwaysUpdateDebug)
             {
                 PopulateCache();
             }
@@ -450,7 +445,7 @@ namespace Crest
             qr.sharedMaterial = new Material(Shader.Find(LodDataMgrSeaFloorDepth.ShaderName));
             if (_type == OceanDepthCacheType.Baked)
             {
-                qr.material.mainTexture = texture;
+                qr.sharedMaterial.mainTexture = texture;
             }
             else
             {
@@ -501,7 +496,6 @@ namespace Crest
             {
                 // Only expose the following if real-time cache type
                 EditorGUILayout.PropertyField(serializedObject.FindProperty("_refreshMode"));
-                EditorGUILayout.PropertyField(serializedObject.FindProperty("_refreshEveryFrameInEditMode"));
                 EditorGUILayout.PropertyField(serializedObject.FindProperty("_geometryToRenderIntoCache"), true);
                 EditorGUILayout.PropertyField(serializedObject.FindProperty("_layerNames"), true);
                 EditorGUILayout.PropertyField(serializedObject.FindProperty("_resolution"));
@@ -529,12 +523,12 @@ namespace Crest
             var isBakeable = cacheType == OceanDepthCache.OceanDepthCacheType.Realtime &&
                 (!isOnDemand || dc.CacheTexture != null);
 
-            if (playing && isOnDemand && GUILayout.Button("Populate cache"))
+            if ((!playing || isOnDemand) && dc.Type != OceanDepthCache.OceanDepthCacheType.Baked && GUILayout.Button("Populate cache"))
             {
                 dc.PopulateCache();
             }
 
-            if (playing && isBakeable && GUILayout.Button("Save cache to file"))
+            if (isBakeable && GUILayout.Button("Save cache to file"))
             {
                 var rt = dc.CacheTexture;
                 RenderTexture.active = rt;

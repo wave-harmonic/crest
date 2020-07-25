@@ -10,7 +10,7 @@ namespace Crest
     /// Registers a custom input to the wave shape. Attach this GameObjects that you want to render into the displacmeent textures to affect ocean shape.
     /// </summary>
     [ExecuteAlways]
-    public class RegisterAnimWavesInput : RegisterLodDataInput<LodDataMgrAnimWaves>
+    public class RegisterAnimWavesInput : RegisterLodDataInputDisplacementCorrection<LodDataMgrAnimWaves>
     {
         public override bool Enabled => true;
 

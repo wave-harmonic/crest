@@ -30,8 +30,8 @@ float ComputeLodAlpha(float3 i_worldPos, float i_meshScaleAlpha)
 
 void SnapAndTransitionVertLayout(float i_meshScaleAlpha, inout float3 io_worldPos, out float o_lodAlpha)
 {
-	// see comments above on _GeomData
-	const float GRID_SIZE_2 = 2.0*_GeomData.y, GRID_SIZE_4 = 4.0*_GeomData.y;
+	// Grid includes small "epsilon" to solve numerical issues.
+	const float GRID_SIZE_2 = 2.00000012 *  _GeomData.y, GRID_SIZE_4 = 4.0 * _GeomData.y;
 
 	// snap the verts to the grid
 	// The snap size should be twice the original size to keep the shape of the eight triangles (otherwise the edge layout changes).

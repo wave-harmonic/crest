@@ -178,6 +178,7 @@ namespace Crest
             EverythingClipped,
         }
         [Tooltip("Whether to clip nothing by default (and clip inputs remove patches of surface), or to clip everything by default (and clip inputs add patches of surface).")]
+        [PredicatedField("_createClipSurfaceData")]
         public DefaultClippingState _defaultClippingState = DefaultClippingState.NothingClipped;
 
         [Header("Edit Mode Params")]
@@ -264,6 +265,9 @@ namespace Crest
 
         bool _canSkipCulling = false;
 
+        // Becomes false after the first RunUpdate call. Used for some state initialisation.
+        bool _isFirstUpdate = true;
+
         readonly int sp_crestTime = Shader.PropertyToID("_CrestTime");
         readonly int sp_texelsPerWave = Shader.PropertyToID("_TexelsPerWave");
         readonly int sp_oceanCenterPosWorld = Shader.PropertyToID("_OceanCenterPosWorld");
@@ -310,6 +314,8 @@ namespace Crest
                 return;
             }
 #endif
+
+            _isFirstUpdate = true;
 
             Instance = this;
             Scale = Mathf.Clamp(Scale, _minScale, _maxScale);
@@ -647,6 +653,8 @@ namespace Crest
                 LateUpdateTiles();
             }
 
+            LateUpdateResetMaxDisplacementFromShape();
+
 #if UNITY_EDITOR
             if (EditorApplication.isPlaying || !_showOceanProxyPlane)
 #endif
@@ -667,6 +675,8 @@ namespace Crest
                 }
             }
 #endif
+
+            _isFirstUpdate = false;
         }
 
         void LateUpdatePosition()
@@ -711,8 +721,7 @@ namespace Crest
         {
             _sampleHeightHelper.Init(Viewpoint.position, 0f, true);
 
-            float waterHeight = 0f;
-            _sampleHeightHelper.Sample(ref waterHeight);
+            _sampleHeightHelper.Sample(out var waterHeight);
 
             ViewerHeightAboveWater = Viewpoint.position.y - waterHeight;
         }
@@ -772,6 +781,22 @@ namespace Crest
             _canSkipCulling = WaterBody.WaterBodies.Count == 0;
         }
 
+        void LateUpdateResetMaxDisplacementFromShape()
+        {
+            // If time stops, then reporting will become inconsistent.
+            if (!_isFirstUpdate && Time.timeScale == 0)
+            {
+                return;
+            }
+
+            if (FrameCount != _maxDisplacementCachedTime)
+            {
+                _maxHorizDispFromShape = _maxVertDispFromShape = _maxVertDispFromWaves = 0f;
+            }
+
+            _maxDisplacementCachedTime = FrameCount;
+        }
+
         /// <summary>
         /// Could the ocean horizontal scale increase (for e.g. if the viewpoint gains altitude). Will be false if ocean already at maximum scale.
         /// </summary>
@@ -787,16 +812,15 @@ namespace Crest
         /// </summary>
         public void ReportMaxDisplacementFromShape(float maxHorizDisp, float maxVertDisp, float maxVertDispFromWaves)
         {
-            if (FrameCount != _maxDisplacementCachedTime)
+            // If time stops, then reporting will become inconsistent.
+            if (!_isFirstUpdate && Time.timeScale == 0)
             {
-                _maxHorizDispFromShape = _maxVertDispFromShape = _maxVertDispFromWaves = 0f;
+                return;
             }
 
             _maxHorizDispFromShape += maxHorizDisp;
             _maxVertDispFromShape += maxVertDisp;
             _maxVertDispFromWaves += maxVertDispFromWaves;
-
-            _maxDisplacementCachedTime = FrameCount;
         }
         float _maxHorizDispFromShape = 0f;
         float _maxVertDispFromShape = 0f;
@@ -966,6 +990,16 @@ namespace Crest
         {
             var isValid = true;
 
+            if (EditorSettings.enterPlayModeOptionsEnabled && 
+                EditorSettings.enterPlayModeOptions.HasFlag(EnterPlayModeOptions.DisableSceneReload))
+            {
+                showMessage
+                (
+                    "Crest will not work correctly with <i>Disable Scene Reload</i> enabled.",
+                    ValidatedHelper.MessageType.Error, ocean
+                );
+            }
+
             if (_material == null)
             {
                 showMessage
@@ -1094,6 +1128,15 @@ namespace Crest
             if (_simSettingsAnimatedWaves)
             {
                 _simSettingsAnimatedWaves.Validate(ocean, showMessage);
+            }
+
+            if (transform.eulerAngles.magnitude > 0.0001f)
+            {
+                showMessage
+                (
+                    $"There must be no rotation on the ocean GameObject, and no rotation on any parent. Currently the rotation Euler angles are {transform.eulerAngles}.",
+                    ValidatedHelper.MessageType.Error, ocean
+                );
             }
 
             return isValid;

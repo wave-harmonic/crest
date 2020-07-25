@@ -158,7 +158,7 @@ This LOD data provides a sense of water depth. More information about how this i
 
 ## Clip Surface
 
-This data drives clipping of the ocean surface, as in carving out holes. This can be useful for hollow vessels or low terrain that goes below sea level. Data can come from geometry, convex hulls or a texture.
+This data drives clipping of the ocean surface, as in carving out holes. This can be useful for hollow vessels or low terrain that goes below sea level. Data can come from geometry, convex hulls or a texture. The system can also be configured to clip everything by default and include only where needed which is useful if water is only required in limited area(s), and this use case is described below.
 
 To turn on this feature, enable the *Create Clip Surface Data* option on the *OceanRenderer* script, and ensure the *Enable* option is ticked in the *Clip Surface* group on the ocean material.
 
@@ -169,6 +169,10 @@ Overlapping meshes will not work correctly in all cases. There will be cases whe
 Clip areas can be added by adding geometry that covers the desired hole area to the scene and then assigning the *RegisterClipSurfaceInput* script. See the *FloatingOpenContainer* object in the *boat.unity* scene for an example usage.
 
 To use other available shaders like *ClipSurfaceRemoveArea* or *ClipSurfaceRemoveAreaTexture*: create a material, assign to renderer and disable *Assign Clip Surface Material* option. For the *ClipSurfaceRemoveArea* shaders, the geometry should be added from a top down perspective and the faces pointing upwards.
+
+The system can be configured to clip everything by default and include water only where needed, which is useful if water is only required in limited area(s). This is configured by the *Default Clipping State* setting on the *OceanRenderer* component. It can be set to *Everything Clipped* and then a clipping input with shader type *Crest/Inputs/Clip Surface/Include Area* will include areas of water.
+
+As a final feature, the *Clip Below Terrain* toggle on the ocean material will clip the surface underneath the land. Note that this works purely from a depth cache and does not required the *Create Clip Surface Data* option enabled on the *OceanRenderer* component and is therefore more efficient.
 
 ## Shadow
 
@@ -230,8 +234,10 @@ It must also have a material using the *Crest/Inputs/Animated Waves/Gerstner Bat
 For a concrete example, see the *GerstnerPatch* object in *boat.unity*.
 It has a *MeshFilter* component with the *Quad* mesh applied, and is rotated so the quad is face up.
 It has a *MeshRenderer* component with a material assigned with a Gerstner material.
-Additionally, the material has the *Feather at UV Extents* option enabled, which will fade down the waves where the UVs go to 0 or 1 (at the edges of the quad).
-The end result is a local patch of waves that are smoothly blended over the area of the quad.
+
+The material has the *Feather at UV Extents* option enabled, which will fade down the waves where the UVs go to 0 or 1 (at the edges of the quad).
+A more general solution is to scale the waves based on vertex colour so weights can be painted - this is provided through the *Weight from vertex colour (red channel)* option.
+This allows different wave conditions in different areas of the world with smooth blending.
 
 
 # Shorelines and shallow water
@@ -261,6 +267,25 @@ By default the cache is populated in the `Start()` function. It can instead be c
 Once populated the cache contents can be saved to disk by clicking the *Save cache to file* button that will appear in the Inspector in play mode. Once saved, the *Type* can be set to *Baked* and the saved data can be assigned to the *Saved Cache* field.
 
 **Note:** This built-in render pipeline version of crest requires the *Draw Instanced* option on terrains to be disabled at start time. It can be re-enabled subsequently after the depth cache is populated. See issue #158.
+
+
+# Limiting water area
+
+By default the system generates a water surface that expands our to the horizon in every direction. There are mechanisms to limit the area.
+
+* The waves can be generated in a limited area - see **Local Waves** section above
+* The *WaterBody* component, if present, marks areas of the scene where water should be present. It can be created by attaching this component to a GameObject and setting the X/Z scale to set the size of the water body. If gizmos are enabled an outline showing the size will be drawn in the Scene View.
+* The *WaterBody* component turns off tiles that do not overlap the desired area. The *Clip Surface* feature can be used to precisely remove any remaining water outside the intended area. Additionally, the clipping system can be configured to clip everything by default, and then areas can be defined where water should be included. See the **Clip Surface** section above.
+
+We recently added a 'wizard' to help create this setup. It is available on the *master* branch in this repository, but not yet in Crest URP/HDRP. It can be used as follows:
+
+* Open the wizard window by selecting *Window/Crest/Create Water Body*
+* Click *Create Water Body*. A white plane should appear in the Scene View visualising the location and size
+* Set the position using the translation gizmo in the Scene View, or using the *Center position* input
+* Set the size using the *Size X* and *Size Z* inputs
+* Each of the above components are available via the *Create ...* toggles
+* Click *Create* and a water body should be created in the scene
+* Click *Done* to close the wizard
 
 
 # Collision Shape for Physics

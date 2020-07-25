@@ -5,10 +5,6 @@
 // Adds Gerstner waves everywhere. Must be given batch prepared by ShapeGerstnerBatched.cs.
 Shader "Hidden/Crest/Inputs/Animated Waves/Gerstner Batch Global"
 {
-	Properties
-	{
-	}
-
 	SubShader
 	{
 		Pass
@@ -21,7 +17,7 @@ Shader "Hidden/Crest/Inputs/Animated Waves/Gerstner Batch Global"
 			CGPROGRAM
 			#pragma vertex Vert
 			#pragma fragment Frag
-			#pragma multi_compile __ CREST_DIRECT_TOWARDS_POINT_INTERNAL
+			#pragma multi_compile_local __ CREST_DIRECT_TOWARDS_POINT_INTERNAL
 
 			#pragma enable_d3d11_debug_symbols
 
@@ -35,7 +31,7 @@ Shader "Hidden/Crest/Inputs/Animated Waves/Gerstner Batch Global"
 
 			struct Attributes
 			{
-				float4 positionOS : POSITION;
+				float3 positionOS : POSITION;
 				float2 uv : TEXCOORD0;
 			};
 
@@ -49,6 +45,7 @@ Shader "Hidden/Crest/Inputs/Animated Waves/Gerstner Batch Global"
 			Varyings Vert(Attributes input)
 			{
 				Varyings o;
+
 				o.positionCS = float4(input.positionOS.xy, 0.0, 0.5);
 
 #if UNITY_UV_STARTS_AT_TOP // https://docs.unity3d.com/Manual/SL-PlatformDifferences.html
@@ -58,6 +55,7 @@ Shader "Hidden/Crest/Inputs/Animated Waves/Gerstner Batch Global"
 				float2 worldXZ = UVToWorld(input.uv);
 				o.worldPosXZ = worldXZ;
 				o.uv_slice = float3(input.uv, _LD_SliceIndex);
+
 				return o;
 			}
 

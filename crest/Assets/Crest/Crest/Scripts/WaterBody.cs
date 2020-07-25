@@ -72,7 +72,7 @@ namespace Crest
             {
                 center.y = OceanRenderer.Instance.Root.position.y;
             }
-            Gizmos.DrawCube(center, new Vector3(AABB.extents.x, 1f, AABB.extents.z));
+            Gizmos.DrawCube(center, 2f * new Vector3(AABB.extents.x, 1f, AABB.extents.z));
             Gizmos.color = oldColor;
         }
 #endif
@@ -92,6 +92,15 @@ namespace Crest
                 );
 
                 return false;
+            }
+
+            if (transform.eulerAngles.magnitude > 0.0001f)
+            {
+                showMessage
+                (
+                    $"There must be no rotation on the WaterBody GameObject, and no rotation on any parent. Currently the rotation Euler angles are {transform.eulerAngles}.",
+                    ValidatedHelper.MessageType.Error, this
+                );
             }
 
             return true;

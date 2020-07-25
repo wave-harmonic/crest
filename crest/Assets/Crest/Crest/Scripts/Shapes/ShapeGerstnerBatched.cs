@@ -378,9 +378,6 @@ namespace Crest
 
             float twopi = 2f * Mathf.PI;
             float one_over_2pi = 1f / twopi;
-            float minWavelengthThisBatch = OceanRenderer.Instance._lodTransform.MaxWavelength(lodIdx) / 2f;
-            float maxWavelengthCurrentlyRendering = OceanRenderer.Instance._lodTransform.MaxWavelength(OceanRenderer.Instance.CurrentLodCount - 1);
-            float viewerAltitudeLevelAlpha = OceanRenderer.Instance.ViewerAltitudeLevelAlpha;
 
             // register any nonzero components
             for (int i = 0; i < numComponents; i++)
@@ -873,6 +870,17 @@ namespace Crest
                     "The MeshRenderer component will be ignored because the Mode is set to Global.",
                     ValidatedHelper.MessageType.Warning, this
                 );
+            }
+
+            if (_mode == GerstnerMode.Global && GetComponent<MeshRenderer>() != null)
+            {
+                showMessage
+                (
+                    "The MeshRenderer component will be ignored because the Mode is set to Global.",
+                    ValidatedHelper.MessageType.Warning, this
+                );
+
+                isValid = false;
             }
 
             if (_spectrum == null)

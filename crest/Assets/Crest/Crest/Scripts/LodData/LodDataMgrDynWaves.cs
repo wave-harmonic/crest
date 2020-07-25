@@ -122,7 +122,6 @@ namespace Crest
             {
                 LodDataMgrFlow.BindNull(simMaterial);
             }
-
         }
 
         public static void CountWaveSims(int countFrom, out int o_present, out int o_active)
@@ -153,8 +152,6 @@ namespace Crest
 
         public override void GetSimSubstepData(float frameDt, out int numSubsteps, out float substepDt)
         {
-            var ocean = OceanRenderer.Instance;
-
             // lod 0 will always be most demanding - wave speed is square root of wavelength, so waves will be fast relative to stability in
             // lowest lod, and slow relative to stability in largest lod.
             float maxDt = MaxSimDt(0);

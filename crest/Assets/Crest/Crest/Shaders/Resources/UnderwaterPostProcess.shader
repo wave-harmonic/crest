@@ -41,16 +41,16 @@ Shader "Crest/Underwater/Post Process"
 			#pragma vertex Vert
 			#pragma fragment Frag
 
-			#pragma shader_feature _SUBSURFACESCATTERING_ON
-			#pragma shader_feature _SUBSURFACESHALLOWCOLOUR_ON
-			#pragma shader_feature _TRANSPARENCY_ON
-			#pragma shader_feature _CAUSTICS_ON
-			#pragma shader_feature _SHADOWS_ON
-			#pragma shader_feature _COMPILESHADERWITHDEBUGINFO_ON
-			#pragma shader_feature _MENISCUS_ON
+			#pragma shader_feature_local _SUBSURFACESCATTERING_ON
+			#pragma shader_feature_local _SUBSURFACESHALLOWCOLOUR_ON
+			#pragma shader_feature_local _TRANSPARENCY_ON
+			#pragma shader_feature_local _CAUSTICS_ON
+			#pragma shader_feature_local _SHADOWS_ON
+			#pragma shader_feature_local _COMPILESHADERWITHDEBUGINFO_ON
+			#pragma shader_feature_local _MENISCUS_ON
 
-			#pragma multi_compile __ _FULL_SCREEN_EFFECT
-			#pragma multi_compile __ _DEBUG_VIEW_OCEAN_MASK
+			#pragma multi_compile_local __ _FULL_SCREEN_EFFECT
+			#pragma multi_compile_local __ _DEBUG_VIEW_OCEAN_MASK
 
 			#if _COMPILESHADERWITHDEBUGINFO_ON
 			#pragma enable_d3d11_debug_symbols

@@ -234,7 +234,13 @@ namespace Crest
             }
             else
             {
-                var inverseViewProjectionMatrix = (camera.GetStereoProjectionMatrix(Camera.StereoscopicEye.Left) * camera.worldToCameraMatrix).inverse;
+                // Store projection matrix to restore later.
+                var projectionMatrix = camera.projectionMatrix;
+
+                // We need to set the matrix ourselves. Maybe ViewportToWorldPoint has a bug.
+                camera.projectionMatrix = camera.GetStereoProjectionMatrix(Camera.StereoscopicEye.Left);
+
+                var inverseViewProjectionMatrix = (camera.GetStereoProjectionMatrix(Camera.StereoscopicEye.Left) * camera.GetStereoViewMatrix(Camera.StereoscopicEye.Left)).inverse;
                 underwaterPostProcessMaterial.SetMatrix(sp_InvViewProjection, inverseViewProjectionMatrix);
 
                 {
@@ -242,13 +248,19 @@ namespace Crest
                     underwaterPostProcessMaterial.SetVector(sp_HorizonPosNormal, new Vector4(pos.x, pos.y, normal.x, normal.y));
                 }
 
-                var inverseViewProjectionMatrixRightEye = (camera.GetStereoProjectionMatrix(Camera.StereoscopicEye.Right) * camera.worldToCameraMatrix).inverse;
+                // We need to set the matrix ourselves. Maybe ViewportToWorldPoint has a bug.
+                camera.projectionMatrix = camera.GetStereoProjectionMatrix(Camera.StereoscopicEye.Right);
+
+                var inverseViewProjectionMatrixRightEye = (camera.GetStereoProjectionMatrix(Camera.StereoscopicEye.Right) * camera.GetStereoViewMatrix(Camera.StereoscopicEye.Right)).inverse;
                 underwaterPostProcessMaterial.SetMatrix(sp_InvViewProjectionRight, inverseViewProjectionMatrixRightEye);
 
                 {
                     GetHorizonPosNormal(camera, Camera.MonoOrStereoscopicEye.Right, seaLevel, horizonSafetyMarginMultiplier, out Vector2 pos, out Vector2 normal);
                     underwaterPostProcessMaterial.SetVector(sp_HorizonPosNormalRight, new Vector4(pos.x, pos.y, normal.x, normal.y));
                 }
+
+                // Restore projection matrix.
+                camera.projectionMatrix = projectionMatrix;
             }
 
             // Not sure why we need to do this - blit should set it...?
@@ -340,6 +352,46 @@ namespace Crest
                         {
                             resultNormal = -resultNormal;
                         }
+
+                        // The above will sometimes produce a normal that is inverted around 90° along the Z axis. Here
+                        // we are using world up to make sure that water is world down.
+                        {
+                            var cameraFacing = Vector3.Dot(camera.transform.right, Vector3.up);
+                            var normalFacing = Vector2.Dot(resultNormal, Vector2.right);
+
+                            if (cameraFacing > 0.75f && normalFacing > 0.9f)
+                            {
+                                resultNormal = -resultNormal;
+                            }
+                            else if (cameraFacing < -0.75f && normalFacing < -0.9f)
+                            {
+                                resultNormal = -resultNormal;
+                            }
+                        }
+
+                        // Calculate a scale value so that the multiplier is consistent when rotating camera. We need
+                        // to do this because we are working in view space which is always 0-1.
+                        {
+                            var angleFromWorldNormal = Mathf.Abs(Vector2.Angle(Vector2.up, -resultNormal.normalized) / 90f);
+                            if (angleFromWorldNormal > 1f)
+                            {
+                                angleFromWorldNormal = Mathf.Abs(2f - angleFromWorldNormal);
+                            }
+                            horizonSafetyMarginMultiplier /= Mathf.Lerp(1f, camera.aspect, angleFromWorldNormal);
+                        }
+
+                        // Get the sign (with zero) of the camera-to-sea-level to set the multiplier direction. We want
+                        // it between -1 and 1 so it does not influence the size of the safety margin. Otherwise, it can
+                        // appear in turbulent water edge cases.
+                        var cameraToSeaLevelSign = seaLevel - camera.transform.position.y;
+                        cameraToSeaLevelSign = cameraToSeaLevelSign > 0f ? 1f : cameraToSeaLevelSign < 0f ? -1f : 0f;
+
+                        // We want to invert the direction of the multiplier when underwater.
+                        horizonSafetyMarginMultiplier *= -cameraToSeaLevelSign;
+                        // For compatibility so previous 0.01f property value is the same strength as before.
+                        horizonSafetyMarginMultiplier *= 0.01f;
+                        // We use the normal so the multiplier is applied in the correct direction.
+                        resultPos += resultNormal.normalized * horizonSafetyMarginMultiplier;
                     }
                     else
                     {
@@ -365,17 +417,11 @@ namespace Crest
                             }
                         }
 
-                        // @Hack: fix horizonSafetyMarginMultiplier causing the underwater effect to render at the top
-                        // of the viewport when looking upwards. If the horizon is not in view, then we do not need it.
-                        horizonSafetyMarginMultiplier = 0.0f;
-
                         if (!found)
                         {
                             throw new System.Exception("GetHorizonPosNormal: Could not determine if far plane is above or below water.");
                         }
                     }
-
-                    resultPos.y += (seaLevel - camera.transform.position.y) * horizonSafetyMarginMultiplier;
                 }
                 finally
                 {

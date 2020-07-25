@@ -89,7 +89,7 @@ half4 ComputeGerstner(float2 worldPosXZ, float3 uv_slice, half depth)
 	return _Weight * half4(result, sss);
 }
 
-half4 ComputeShorelineGerstner(float2 worldPosXZ, float3 uv_slice, half depth, half distanceToShore, half2 directionToShore)
+half4 ComputeShorelineGerstner(float2 worldPosXZ, float3 uv_slice, half depth, half distanceToShore, half2 directionToShore, float strength)
 {
 	float2 displacementNormalized = 0.0;
 	half3 result = (half3)0.0;
@@ -97,15 +97,47 @@ half4 ComputeShorelineGerstner(float2 worldPosXZ, float3 uv_slice, half depth, h
 	if(depth > 0.0)
 	{
 		const float pi = 3.141;
-		const float twoPiOverWavelength = (2.0 * pi) / 2.5;
-		const float twoPiOverPeriod = (2.0 * pi) / 2.0;
-		const float amplitude = 0.12;
-		// Chop increases as depth increases
-		const float chopAmplitude = 2.0/(1.0+sqrt(distanceToShore));
 
+		// We lerp between a "near" and "far" wavelength - ish
+		// Just based on experimentation this is a visually-pleasing counter-weight to the
+		// fact that the "length" is done based on the square-root of the distance (this means
+		// larger waves further-away from the shore-which is what we want) - by having a "shorter"
+		// "far" wave-length - we can keep waves more-compressed closer to the shore.
+		// This is a big hack and should probably be replaced with something that actually operates
+		// on real-world values.
+		const float twoPiOverWavelengthNear = (2.0 * pi) / 2.5;
+		const float twoPiOverWavelengthFar = (2.0 * pi) / 1.5;
+		const float twoPiOverWavelength = lerp(twoPiOverWavelengthFar, twoPiOverWavelengthNear, sqrt(strength));
+
+		const float twoPiOverPeriod = (2.0 * pi) / 1.7;
+
+		// We increase the wave amplitude slightly as depth decreases - have tried doing
+		// this based on distance to the shoreline as well - but I think this produces betteer results.
+		const float amplitude = 0.3/(1.0+sqrt(depth));
+		// Chop increases as depth increases
+		const float chopAmplitude = 2.0/(1.0+sqrt(depth));
+
+		// The wave-angle is calculated using the square root of the distance to the shoreline in order
+		// to make waves further-from the shoreline spread further-apart. However we slightlly counteract this
+		// using the lerping above. A bit odd.
 		const float angle = (twoPiOverWavelength * sqrt(distanceToShore)) + (_CrestTime * twoPiOverPeriod);
 		result.y = amplitude * cos(angle);
+
+		// We tip the top of the waves forwards slightly the closer to the shoreline we are
+		// to simulate the drag the bottom of the waves experience compared-with the top.
 		result.xz = chopAmplitude * directionToShore * sin(angle) * result.y;
+
+
+		// We intentially slightly increase the height of the bottom of the wave as the depth
+		// decreases in order to prevent it from intersecting with the terrain - a hack but it kind-of
+		// works. :)
+		result.y += lerp(0, ((amplitude + 0.1) / (1.0 + depth)), sqrt((1.0 - result.y) * 0.5));
+
+
+		// Dampen waves really-close to the shoreline so that the "naturally" fade away instead of intersecting with the terrain
+		const float boundarySafeDistance = 0.1; // distance within which shore-lines should be stifled
+		const float boundaryLerpDampenLength = 6.0; // distance over which we should start dampening shoreline waves
+		result.xyz = lerp(0, result.xyz, saturate((distanceToShore / boundaryLerpDampenLength) - boundarySafeDistance));
 	}
 	return _Weight * half4(result, 0.0);
 }

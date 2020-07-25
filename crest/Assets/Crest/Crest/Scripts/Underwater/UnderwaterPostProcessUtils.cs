@@ -380,8 +380,8 @@ namespace Crest
                             horizonSafetyMarginMultiplier /= Mathf.Lerp(1f, camera.aspect, angleFromWorldNormal);
                         }
 
-                        // Get the sign (with zero) of the camera-to-sea-level to set the multiplier direction. We want
-                        // it between -1 and 1 so it does not influence the size of the safety margin. Otherwise, it can
+                        // Get the sign (with zero) of the camera-to-sea-level to set the multiplier direction. We don't
+                        // want the distance as it will influence the size of the safety margin which it might then
                         // appear in turbulent water edge cases.
                         var cameraToSeaLevelSign = seaLevel - camera.transform.position.y;
                         cameraToSeaLevelSign = cameraToSeaLevelSign > 0f ? 1f : cameraToSeaLevelSign < 0f ? -1f : 0f;

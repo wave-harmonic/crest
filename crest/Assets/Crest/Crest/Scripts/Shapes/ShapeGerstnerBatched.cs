@@ -123,10 +123,26 @@ namespace Crest
         [PredicatedField("_evaluateSpectrumAtRuntime", true)]
         public float[] _phases;
 
+        [Header("Shorelines (Experimental)")]
+        [Tooltip("Generate waves that are directed towards shorelines using a generated signed distance field. Must be set at edit time only, applied on startup. You must enable signed distance fields on the generated depth caches for terrain in order for this to work.")]
+        public bool _sdfShorelines = false;
+        [PredicatedField("_sdfShorelines")]
+        public float _shorelineWavelengthNear = 2.5f;
+        [PredicatedField("_sdfShorelines")]
+        public float _shorelineWavelengthFar = 1.5f;
+        [PredicatedField("_sdfShorelines")]
+        public float _shorelineLerpDistance = 100.0f;
+        [PredicatedField("_sdfShorelines")]
+        public float _shorelineShorelineWavePeriod = 1.7f;
+        [PredicatedField("_sdfShorelines")]
+        public float _shorelineAmplitude = 0.3f;
+        [PredicatedField("_sdfShorelines")]
+        public float _shorelineChop = 2.0f;
+        [PredicatedField("_sdfShorelines")]
+        public uint _shorelineWavePeriodSeparation = 1;
+
         [SerializeField, Tooltip("Make waves converge towards a point. Must be set at edit time only, applied on startup."), Header("Direct towards point")]
         bool _directTowardsPoint = false;
-        [SerializeField, Tooltip("Generate waves that are directed towards shorelines using a generated signed distance field. Must be set at edit time only, applied on startup."), Header("Shorelines")]
-        bool _sdfShorelines = true;
         [SerializeField, Tooltip("Target point XZ to converge to.")]
         Vector2 _pointPositionXZ = Vector2.zero;
         [SerializeField, Tooltip("Inner and outer radii. Influence at full strength at inner radius, fades off at outer radius.")]
@@ -145,6 +161,14 @@ namespace Crest
         readonly int sp_AttenuationInShallows = Shader.PropertyToID("_AttenuationInShallows");
         readonly int sp_NumWaveVecs = Shader.PropertyToID("_NumWaveVecs");
         readonly int sp_TargetPointData = Shader.PropertyToID("_TargetPointData");
+
+        readonly int sp_ShorelineTwoPiOverWavelengthNear = Shader.PropertyToID("_ShorelineTwoPiOverWavelengthNear");
+        readonly int sp_ShorelineTwoPiOverWavelengthFar = Shader.PropertyToID("_ShorelineTwoPiOverWavelengthFar");
+        readonly int sp_ShorelineLerpDistance = Shader.PropertyToID("_ShorelineLerpDistance");
+        readonly int sp_ShorelineTwoPiOverWavePeriod = Shader.PropertyToID("_ShorelineTwoPiOverWavePeriod");
+        readonly int sp_ShorelineAmplitude = Shader.PropertyToID("_ShorelineAmplitude");
+        readonly int sp_ShorelineChop = Shader.PropertyToID("_ShorelineChop");
+        readonly int sp_ShorelineWavePeriodSeparation = Shader.PropertyToID("_ShorelineWavePeriodSeparation");
 
         // IMPORTANT - this mirrors the constant with the same name in ShapeGerstnerBatch.shader, both must be updated together!
         const int BATCH_SIZE = 32;
@@ -545,6 +569,22 @@ namespace Crest
             {
                 //Debug.Log($"Batch {batch}, lodIdx {lodIdx}, range: {minWl} -> {2f * minWl}, indices: {startCompIdx} -> {componentIdx}");
                 UpdateBatch(lodIdx, startCompIdx, componentIdx, batch);
+            }
+
+            if (_sdfShorelines)
+            {
+                // apply the data to the shape property
+                for (int i = 0; i < 2; i++)
+                {
+                    var mat = batch.GetMaterial(i);
+                    mat.SetFloat(sp_ShorelineTwoPiOverWavelengthNear, (Mathf.PI * 2.0f) / _shorelineWavelengthNear);
+                    mat.SetFloat(sp_ShorelineTwoPiOverWavelengthFar, (Mathf.PI * 2.0f) / _shorelineWavelengthFar);
+                    mat.SetFloat(sp_ShorelineLerpDistance, _shorelineLerpDistance);
+                    mat.SetFloat(sp_ShorelineTwoPiOverWavePeriod, (Mathf.PI * 2.0f) / _shorelineShorelineWavePeriod);
+                    mat.SetFloat(sp_ShorelineAmplitude, _shorelineAmplitude);
+                    mat.SetFloat(sp_ShorelineChop, _shorelineChop);
+                    mat.SetInt(sp_ShorelineWavePeriodSeparation, (int)_shorelineWavePeriodSeparation);
+                }
             }
         }
 

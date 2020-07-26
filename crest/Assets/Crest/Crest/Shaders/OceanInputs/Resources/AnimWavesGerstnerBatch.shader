@@ -76,10 +76,7 @@ Shader "Hidden/Crest/Inputs/Animated Waves/Gerstner Batch Global"
 				float4 result = ComputeGerstner(input.worldPosXZ, input.uv_slice, depth_distance_dirXZ.x);
 
 #if CREST_SDF_SHORELINES
-				const float2 headingvec = normalize(depth_distance_dirXZ.zw);
-				const float lerpDistance = 100.0;
-				const float directionalStrengh = 1.0 - clamp(depth_distance_dirXZ.y / lerpDistance, 0.0, 1.0);
-				result += ComputeShorelineGerstner(input.worldPosXZ, input.uv_slice, depth_distance_dirXZ.x, depth_distance_dirXZ.y, headingvec, directionalStrengh) * directionalStrengh;
+				result += ComputeShorelineGerstner(input.worldPosXZ, input.uv_slice, depth_distance_dirXZ);
 #endif
 
 				return result;

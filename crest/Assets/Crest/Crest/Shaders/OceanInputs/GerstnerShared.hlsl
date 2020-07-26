@@ -21,6 +21,15 @@ half4 _Phases[BATCH_SIZE / 4];
 half4 _ChopAmps[BATCH_SIZE / 4];
 
 float4 _TargetPointData;
+
+half _ShorelineTwoPiOverWavelengthNear;
+half _ShorelineTwoPiOverWavelengthFar;
+float _ShorelineLerpDistance;
+half _ShorelineTwoPiOverWavePeriod;
+half _ShorelineAmplitude;
+half _ShorelineChop;
+uint _ShorelineWavePeriodSeparation;
+
 CBUFFER_END
 
 half4 ComputeGerstner(float2 worldPosXZ, float3 uv_slice, half depth)
@@ -89,15 +98,18 @@ half4 ComputeGerstner(float2 worldPosXZ, float3 uv_slice, half depth)
 	return _Weight * half4(result, sss);
 }
 
-half4 ComputeShorelineGerstner(float2 worldPosXZ, float3 uv_slice, half depth, half distanceToShore, half2 directionToShore, float strength)
+half4 ComputeShorelineGerstner(float2 worldPosXZ, float3 uv_slice, half4 depth_distance_dirXZ)
 {
+	half depth = depth_distance_dirXZ.x;
+	half distanceToShore = depth_distance_dirXZ.y;
+	half2 directionToShore = normalize(depth_distance_dirXZ.zw); // TODO(TRC): Normalise shoudn't be needed
+	const float lerpDistance = _ShorelineLerpDistance;
+	float directionalStrength = 1.0 - clamp(distanceToShore / lerpDistance, 0.0, 1.0);
 	float2 displacementNormalized = 0.0;
 	half3 result = (half3)0.0;
 
 	if(depth > 0.0)
 	{
-		const float pi = 3.141;
-
 		// We lerp between a "near" and "far" wavelength - ish
 		// Just based on experimentation this is a visually-pleasing counter-weight to the
 		// fact that the "length" is done based on the square-root of the distance (this means
@@ -105,17 +117,17 @@ half4 ComputeShorelineGerstner(float2 worldPosXZ, float3 uv_slice, half depth, h
 		// "far" wave-length - we can keep waves more-compressed closer to the shore.
 		// This is a big hack and should probably be replaced with something that actually operates
 		// on real-world values.
-		const float twoPiOverWavelengthNear = (2.0 * pi) / 2.5;
-		const float twoPiOverWavelengthFar = (2.0 * pi) / 1.5;
-		const float twoPiOverWavelength = lerp(twoPiOverWavelengthFar, twoPiOverWavelengthNear, sqrt(strength));
+		const float twoPiOverWavelengthNear = _ShorelineTwoPiOverWavelengthNear;
+		const float twoPiOverWavelengthFar = _ShorelineTwoPiOverWavelengthFar;
+		const float twoPiOverWavelength = lerp(twoPiOverWavelengthFar, twoPiOverWavelengthNear, sqrt(directionalStrength));
 
-		const float twoPiOverPeriod = (2.0 * pi) / 1.7;
+		const float twoPiOverPeriod = _ShorelineTwoPiOverWavePeriod;
 
 		// We increase the wave amplitude slightly as depth decreases - have tried doing
 		// this based on distance to the shoreline as well - but I think this produces betteer results.
-		const float amplitude = 0.3/(1.0+sqrt(depth));
+		const float amplitude = _ShorelineAmplitude/(1.0+sqrt(depth));
 		// Chop increases as depth increases
-		const float chopAmplitude = 2.0/(1.0+sqrt(depth));
+		const float chopAmplitude = _ShorelineChop/(1.0+sqrt(depth));
 
 		float angleDistance = distanceToShore;
 		float breakupDampner = 1.0;
@@ -139,9 +151,10 @@ half4 ComputeShorelineGerstner(float2 worldPosXZ, float3 uv_slice, half depth, h
 		// We can make it so that waves come in multiples of a given period :)
 		// TODO(TRC): Implement lerping to make it less discontinuous and make it so that noise can a factor here.
 		// (eg - have overlappng and different wave phases at different parts of the wavefront).
-		const int wavePeriodSeperation = 1;
+		const int wavePeriodSeparation = _ShorelineWavePeriodSeparation;
 
-		if(floor((angle + (pi + 0.5)) / ( 2.0 * pi)) % wavePeriodSeperation != 0)
+		const float pi = 3.14;
+		if(floor((angle + (pi + 0.5)) / ( 2.0 * pi)) % wavePeriodSeparation != 0)
 		{
 			breakupDampner = 0.0;
 		}
@@ -163,5 +176,5 @@ half4 ComputeShorelineGerstner(float2 worldPosXZ, float3 uv_slice, half depth, h
 		result.xyz = lerp(0, result.xyz, saturate((distanceToShore / boundaryLerpDampenLength) - boundarySafeDistance));
 		result.xyz *= breakupDampner;
 	}
-	return _Weight * half4(result, 0.0);
+	return _Weight * half4(result, 0.0) * directionalStrength;
 }

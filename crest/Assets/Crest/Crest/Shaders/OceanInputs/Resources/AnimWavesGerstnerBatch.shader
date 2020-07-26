@@ -18,6 +18,7 @@ Shader "Hidden/Crest/Inputs/Animated Waves/Gerstner Batch Global"
 			#pragma vertex Vert
 			#pragma fragment Frag
 			#pragma multi_compile_local __ CREST_DIRECT_TOWARDS_POINT_INTERNAL
+			#pragma multi_compile_local __ CREST_SDF_SHORELINES
 
 			#pragma enable_d3d11_debug_symbols
 
@@ -70,20 +71,16 @@ Shader "Hidden/Crest/Inputs/Animated Waves/Gerstner Batch Global"
 			{
 				// sample ocean depth (this render target should 1:1 match depth texture, so UVs are trivial)
 				half4 depth_distance_dirXZ = _LD_TexArray_SeaFloorDepth.Sample(LODData_linear_clamp_sampler, input.uv_slice);
-				float2 headingvec = normalize(depth_distance_dirXZ.zw);
 
-				const float lerpDistance = 100.0;
-				float directionalStrengh = 1.0 - clamp(depth_distance_dirXZ.y / lerpDistance, 0.0, 1.0);
-
-				half4 directionalWaves;
-				{
-					directionalWaves = ComputeShorelineGerstner(input.worldPosXZ, input.uv_slice, depth_distance_dirXZ.x, depth_distance_dirXZ.y, headingvec, directionalStrengh);
-				}
 
 				float4 result = ComputeGerstner(input.worldPosXZ, input.uv_slice, depth_distance_dirXZ.x);
 
-				result += directionalWaves * directionalStrengh;
-				//result = directionalWaves * directionalStrengh;
+#if CREST_SDF_SHORELINES
+				const float2 headingvec = normalize(depth_distance_dirXZ.zw);
+				const float lerpDistance = 100.0;
+				const float directionalStrengh = 1.0 - clamp(depth_distance_dirXZ.y / lerpDistance, 0.0, 1.0);
+				result += ComputeShorelineGerstner(input.worldPosXZ, input.uv_slice, depth_distance_dirXZ.x, depth_distance_dirXZ.y, headingvec, directionalStrengh) * directionalStrengh;
+#endif
 
 				return result;
 			}

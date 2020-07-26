@@ -39,7 +39,7 @@ namespace Crest
 
         public class GerstnerBatch : ILodDataInput
         {
-            public GerstnerBatch(ShapeGerstnerBatched gerstner, int batchIndex, MeshRenderer rend, bool directTowardsPoint)
+            public GerstnerBatch(ShapeGerstnerBatched gerstner, int batchIndex, MeshRenderer rend, bool directTowardsPoint, bool sdfShorelines)
             {
                 _gerstner = gerstner;
                 _batchIndex = batchIndex;
@@ -54,6 +54,12 @@ namespace Crest
                 {
                     _materials[0].material.EnableKeyword(DIRECT_TOWARDS_POINT_KEYWORD);
                     _materials[1].material.EnableKeyword(DIRECT_TOWARDS_POINT_KEYWORD);
+                }
+
+                if (sdfShorelines)
+                {
+                    _materials[0].material.EnableKeyword(SFD_SHORELINES_KEYWORD);
+                    _materials[1].material.EnableKeyword(SFD_SHORELINES_KEYWORD);
                 }
 
                 _rend = rend;
@@ -119,12 +125,15 @@ namespace Crest
 
         [SerializeField, Tooltip("Make waves converge towards a point. Must be set at edit time only, applied on startup."), Header("Direct towards point")]
         bool _directTowardsPoint = false;
+        [SerializeField, Tooltip("Generate waves that are directed towards shorelines using a generated signed distance field. Must be set at edit time only, applied on startup."), Header("Shorelines")]
+        bool _sdfShorelines = true;
         [SerializeField, Tooltip("Target point XZ to converge to.")]
         Vector2 _pointPositionXZ = Vector2.zero;
         [SerializeField, Tooltip("Inner and outer radii. Influence at full strength at inner radius, fades off at outer radius.")]
         Vector2 _pointRadii = new Vector2(100f, 200f);
 
         const string DIRECT_TOWARDS_POINT_KEYWORD = "CREST_DIRECT_TOWARDS_POINT_INTERNAL";
+        const string SFD_SHORELINES_KEYWORD = "CREST_SDF_SHORELINES";
 
         readonly int sp_TwoPiOverWavelengths = Shader.PropertyToID("_TwoPiOverWavelengths");
         readonly int sp_Amplitudes = Shader.PropertyToID("_Amplitudes");
@@ -351,7 +360,7 @@ namespace Crest
             _batches = new GerstnerBatch[LodDataMgr.MAX_LOD_COUNT];
             for (int i = 0; i < _batches.Length; i++)
             {
-                _batches[i] = new GerstnerBatch(this, i, rend, _directTowardsPoint);
+                _batches[i] = new GerstnerBatch(this, i, rend, _directTowardsPoint, _sdfShorelines);
             }
 
             // Submit draws to create the Gerstner waves. LODs from 0 to N-2 render the Gerstner waves from their lod. Additionally, any waves

@@ -126,7 +126,7 @@ namespace Crest
         [PredicatedField("_sdfShorelines")]
         public float _shorelineWavelengthNear = 2.5f;
         [PredicatedField("_sdfShorelines")]
-        public float _shorelineWavelengthFar = 1.5f;
+        public float _shorelineWavelengthFar = 15f;
         [PredicatedField("_sdfShorelines")]
         public float _shorelineLerpDistance = 100.0f;
         [PredicatedField("_sdfShorelines")]
@@ -575,7 +575,7 @@ namespace Crest
                 {
                     var mat = batch.GetMaterial(i);
                     mat.SetFloat(sp_ShorelineTwoPiOverWavelengthNear, (Mathf.PI * 2.0f) / _shorelineWavelengthNear);
-                    mat.SetFloat(sp_ShorelineTwoPiOverWavelengthFar, (Mathf.PI * 2.0f) / _shorelineWavelengthFar);
+                    mat.SetFloat(sp_ShorelineTwoPiOverWavelengthFar, (Mathf.Sqrt(_shorelineLerpDistance) * Mathf.PI * 2.0f) /_shorelineWavelengthFar);
                     mat.SetFloat(sp_ShorelineLerpDistance, _shorelineLerpDistance);
                     mat.SetFloat(sp_ShorelineTwoPiOverWavePeriod, (Mathf.PI * 2.0f) / _shorelineShorelineWavePeriod);
                     mat.SetFloat(sp_ShorelineAmplitude, _shorelineAmplitude);

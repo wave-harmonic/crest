@@ -117,11 +117,34 @@ half4 ComputeShorelineGerstner(float2 worldPosXZ, float3 uv_slice, half depth, h
 		// Chop increases as depth increases
 		const float chopAmplitude = 2.0/(1.0+sqrt(depth));
 
+		float angleDistance = distanceToShore;
+		float breakupDampner = 1.0;
+		// An attempt to add-noise or otherwise break-up the visual makeup of the shoreline waves.
+		// {
+		// 	float worldSpaceHeuristic = (worldPosXZ.x + worldPosXZ.y);
+		// 	float lerpFun = (sin(worldSpaceHeuristic * 0.1) + 1.0) * 0.5;
+		// 	if(lerpFun < 0.5)
+		// 	{
+		// 		angleDistance += 4.0;
+		// 		breakupDampner = lerp(0, 1, lerpFun - 0.1);
+		// 	}
+		// }
+
 		// The wave-angle is calculated using the square root of the distance to the shoreline in order
 		// to make waves further-from the shoreline spread further-apart. However we slightlly counteract this
 		// using the lerping above. A bit odd.
-		const float angle = (twoPiOverWavelength * sqrt(distanceToShore)) + (_CrestTime * twoPiOverPeriod);
+		const float angle = (twoPiOverWavelength * sqrt(angleDistance)) + (_CrestTime * twoPiOverPeriod);
 		result.y = amplitude * cos(angle);
+
+		// We can make it so that waves come in multiples of a given period :)
+		// TODO(TRC): Implement lerping to make it less discontinuous and make it so that noise can a factor here.
+		// (eg - have overlappng and different wave phases at different parts of the wavefront).
+		const int wavePeriodSeperation = 1;
+
+		if(floor((angle + (pi + 0.5)) / ( 2.0 * pi)) % wavePeriodSeperation != 0)
+		{
+			breakupDampner = 0.0;
+		}
 
 		// We tip the top of the waves forwards slightly the closer to the shoreline we are
 		// to simulate the drag the bottom of the waves experience compared-with the top.
@@ -138,6 +161,7 @@ half4 ComputeShorelineGerstner(float2 worldPosXZ, float3 uv_slice, half depth, h
 		const float boundarySafeDistance = 0.1; // distance within which shore-lines should be stifled
 		const float boundaryLerpDampenLength = 6.0; // distance over which we should start dampening shoreline waves
 		result.xyz = lerp(0, result.xyz, saturate((distanceToShore / boundaryLerpDampenLength) - boundarySafeDistance));
+		result.xyz *= breakupDampner;
 	}
 	return _Weight * half4(result, 0.0);
 }

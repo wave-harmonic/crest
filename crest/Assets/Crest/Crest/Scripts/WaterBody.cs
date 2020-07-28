@@ -83,6 +83,17 @@ namespace Crest
     {
         public bool Validate(OceanRenderer ocean, ValidatedHelper.ShowMessage showMessage)
         {
+            if (OceanRenderer.Instance == null)
+            {
+                showMessage
+                (
+                    $"Water body {gameObject.name} requires an ocean renderer component to be present. Please add one.",
+                    ValidatedHelper.MessageType.Error, this
+                );
+
+                return false;
+            }
+
             if (Mathf.Abs(transform.lossyScale.x) < 2f && Mathf.Abs(transform.lossyScale.z) < 2f)
             {
                 showMessage

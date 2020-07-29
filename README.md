@@ -63,7 +63,7 @@ Unity packages are uploaded with each release which can be imported into your pr
 
 ## 2018.4
 
-There is a [legacy branch] for 2018.4 support. A direct download to an archive is available [here](https://github.com/crest-ocean/crest/archive/legacy/unity-2018.zip).
+There is a [legacy branch] for 2018.4 support. A direct download to an archive is available [here](https://github.com/crest-ocean/crest/archive/legacy/unity-2018.zip). It is not actively developed.
 
 # Issues
 

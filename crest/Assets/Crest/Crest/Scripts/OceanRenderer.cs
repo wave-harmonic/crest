@@ -554,6 +554,18 @@ namespace Crest
 
         bool VerifyRequirements()
         {
+            if (Application.platform == RuntimePlatform.WebGLPlayer)
+            {
+                Debug.LogError("Crest does not support WebGL backends.", this);
+                return false;
+            }
+            if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES2 ||
+                SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3 ||
+                SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLCore)
+            {
+                Debug.LogError("Crest does not support OpenGL backends.", this);
+                return false;
+            }
             if (SystemInfo.graphicsShaderLevel < 45)
             {
                 Debug.LogError("Crest requires graphics devices that support shader level 4.5 or above.", this);

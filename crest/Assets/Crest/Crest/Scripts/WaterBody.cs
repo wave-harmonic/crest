@@ -83,7 +83,7 @@ namespace Crest
     {
         public bool Validate(OceanRenderer ocean, ValidatedHelper.ShowMessage showMessage)
         {
-            if (OceanRenderer.Instance == null)
+            if (FindObjectOfType<OceanRenderer>() == null)
             {
                 showMessage
                 (

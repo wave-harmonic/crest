@@ -88,7 +88,7 @@ namespace Crest
             {
                 showMessage
                 (
-                    $"Water body {gameObject.name} requires an ocean renderer component to be present. Please add one.",
+                    $"Water body <i>{gameObject.name}</i> requires an ocean renderer component to be present. Please create a separate Game Object and add an Ocean Renderer component to it.",
                     ValidatedHelper.MessageType.Error, this
                 );
 

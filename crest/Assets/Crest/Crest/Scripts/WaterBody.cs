@@ -83,7 +83,8 @@ namespace Crest
     {
         public bool Validate(OceanRenderer ocean, ValidatedHelper.ShowMessage showMessage)
         {
-            if (FindObjectOfType<OceanRenderer>() == null)
+            // This will also return disabled objects. Safe to use in this case.
+            if (Resources.FindObjectsOfTypeAll<OceanRenderer>().Length == 0)
             {
                 showMessage
                 (

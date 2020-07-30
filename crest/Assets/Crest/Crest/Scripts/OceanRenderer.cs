@@ -1000,6 +1000,13 @@ namespace Crest
                 input.Validate(ocean, ValidatedHelper.DebugLog);
             }
 
+            // WaterBody
+            var waterBodies = FindObjectsOfType<WaterBody>();
+            foreach (var waterBody in waterBodies)
+            {
+                waterBody.Validate(ocean, ValidatedHelper.DebugLog);
+            }
+
             Debug.Log("Validation complete!", ocean);
         }
 

@@ -159,19 +159,19 @@ void ApplyCaustics(in const half3 i_view, in const half3 i_lightDir, in const fl
 	{
 		// Calculate projected position again as we do not want the fudge factor. If we include the fudge factor, the
 		// caustics will not be aligned with shadows.
-		const float2 surfacePosXZ = scenePos.xz + i_lightDir.xz * sceneDepth / i_lightDir.y;
+		const float2 shadowSurfacePosXZ = scenePos.xz + i_lightDir.xz * sceneDepth / i_lightDir.y;
 		half2 causticShadow = 0.0;
 		// As per the comment for the underwater code in ScatterColour,
 		// LOD_1 data can be missing when underwater
 		if (i_underwater)
 		{
-			const float3 uv_smallerLod = WorldToUV(surfacePosXZ);
+			const float3 uv_smallerLod = WorldToUV(shadowSurfacePosXZ);
 			SampleShadow(_LD_TexArray_Shadow, uv_smallerLod, 1.0, causticShadow);
 		}
 		else
 		{
 			// only sample the bigger lod. if pops are noticeable this could lerp the 2 lods smoothly, but i didnt notice issues.
-			float3 uv_biggerLod = WorldToUV_BiggerLod(surfacePosXZ);
+			float3 uv_biggerLod = WorldToUV_BiggerLod(shadowSurfacePosXZ);
 			SampleShadow(_LD_TexArray_Shadow, uv_biggerLod, 1.0, causticShadow);
 		}
 		causticsStrength *= 1.0 - causticShadow.y;

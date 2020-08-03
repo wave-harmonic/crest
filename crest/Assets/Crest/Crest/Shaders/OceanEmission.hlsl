@@ -157,7 +157,8 @@ void ApplyCaustics(in const half3 i_view, in const half3 i_lightDir, in const fl
 
 #if _SHADOWS_ON
 	{
-		// Calculate projected position again as we do not want the fudge factor.
+		// Calculate projected position again as we do not want the fudge factor. If we include the fudge factor, the
+		// caustics will not be aligned with shadows.
 		const float2 surfacePosXZ = scenePos.xz + i_lightDir.xz * sceneDepth / i_lightDir.y;
 		half2 causticShadow = 0.0;
 		// As per the comment for the underwater code in ScatterColour,

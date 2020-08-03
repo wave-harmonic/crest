@@ -121,12 +121,14 @@ namespace Crest
 
             EditorGUILayout.Space();
 
+            var created = false;
             if (GUILayout.Button("Create"))
             {
                 CreateWaterBody();
+                created = true;
             }
 
-            if (GUILayout.Button("Done"))
+            if (created || GUILayout.Button("Done"))
             {
                 _state = State.Idle;
 

@@ -88,19 +88,8 @@ namespace Crest
                 return;
             }
 
-            _cameraMain = Camera.main;
-            if (_cameraMain == null)
-            {
-                var viewpoint = OceanRenderer.Instance.Viewpoint;
-                _cameraMain = viewpoint != null ? viewpoint.GetComponent<Camera>() : null;
-
-                if (_cameraMain == null)
-                {
-                    Debug.LogError("Could not find main camera, disabling shadow data", _ocean);
-                    enabled = false;
-                    return;
-                }
-            }
+            // Setup the camera.
+            UpdateCameraMain();
 
 #if UNITY_EDITOR
             if (!OceanRenderer.Instance.OceanMaterial.IsKeywordEnabled("_SHADOWS_ON"))
@@ -160,6 +149,12 @@ namespace Crest
                     TextureArrayHelpers.ClearToBlack(_targets);
                 }
                 _mainLight = null;
+            }
+
+            // Update the camera if it has changed.
+            if (_cameraMain.transform != OceanRenderer.Instance.Viewpoint)
+            {
+                UpdateCameraMain();
             }
 
             if (!OceanRenderer.Instance._primaryLight)
@@ -241,6 +236,19 @@ namespace Crest
                 BindSourceData(_renderProperties, false);
                 _renderProperties.SetTexture(sp_LD_TexArray_Target, _targets);
                 _renderProperties.DispatchShader();
+            }
+        }
+
+        void UpdateCameraMain()
+        {
+            var viewpoint = OceanRenderer.Instance.Viewpoint;
+            _cameraMain = viewpoint != null ? viewpoint.GetComponent<Camera>() : null;
+
+            if (_cameraMain == null)
+            {
+                Debug.LogError("Could not find main camera, disabling shadow data", _ocean);
+                enabled = false;
+                return;
             }
         }
 

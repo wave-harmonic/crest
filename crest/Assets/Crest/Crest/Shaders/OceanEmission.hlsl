@@ -146,6 +146,8 @@ void ApplyCaustics(in const half3 i_view, in const half3 i_lightDir, in const fl
 	float mipLod = log2(max(i_sceneZ, 1.0)) + abs(sceneDepth - _CausticsFocalDepth) / _CausticsDepthOfField;
 	// project along light dir, but multiply by a fudge factor reduce the angle bit - compensates for fact that in real life
 	// caustics come from many directions and don't exhibit such a strong directonality
+	// Removing the fudge factor (4.0) will result in stretched/dilated caustics in certain areas. This is especially
+	// noticeable on angled surfaces.
 	float2 surfacePosXZ = scenePos.xz + i_lightDir.xz * sceneDepth / (4.*i_lightDir.y);
 	half2 causticN = _CausticsDistortionStrength * UnpackNormal(tex2D(i_normals, surfacePosXZ / _CausticsDistortionScale)).xy;
 	float4 cuv1 = float4((surfacePosXZ / _CausticsTextureScale + 1.3 *causticN + float2(0.044*_CrestTime + 17.16, -0.169*_CrestTime)), 0., mipLod);

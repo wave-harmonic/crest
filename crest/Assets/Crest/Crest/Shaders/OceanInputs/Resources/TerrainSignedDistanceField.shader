@@ -9,7 +9,8 @@ Shader "Crest/Inputs/Depth/Initialise Signed Distance Field From Geometry"
 	{
 		Pass
 		{
-			BlendOp Min
+			// TODO(TRC):Now figure-out how to handle this blend operation properly!
+			// BlendOp Min
 
 			CGPROGRAM
 			#pragma vertex Vert

@@ -243,6 +243,11 @@ PrefabInstance:
       propertyPath: m_SortingOrder
       value: -16
       objectReference: {fileID: 0}
+    - target: {fileID: 5751754697289442536, guid: ddf71bfb72c45407fb8cea42d3aaeac4,
+        type: 3}
+      propertyPath: _sdfShorelines
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 6133608929023231975, guid: ddf71bfb72c45407fb8cea42d3aaeac4,
         type: 3}
       propertyPath: m_Enabled

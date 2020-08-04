@@ -151,12 +151,6 @@ namespace Crest
                 _mainLight = null;
             }
 
-            // Update the camera if it has changed.
-            if (_cameraMain.transform != OceanRenderer.Instance.Viewpoint)
-            {
-                UpdateCameraMain();
-            }
-
             if (!OceanRenderer.Instance._primaryLight)
             {
                 if (!Settings._allowNullLight)
@@ -190,6 +184,12 @@ namespace Crest
             if (!s_processData)
             {
                 return;
+            }
+
+            // Update the camera if it has changed.
+            if (_cameraMain.transform != OceanRenderer.Instance.Viewpoint)
+            {
+                UpdateCameraMain();
             }
 
             Swap(ref _sources, ref _targets);

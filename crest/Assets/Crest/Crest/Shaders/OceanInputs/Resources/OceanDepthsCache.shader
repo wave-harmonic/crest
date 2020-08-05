@@ -28,8 +28,6 @@ Shader "Crest/Inputs/Depth/Cached Depths"
 
 			#include "UnityCG.cginc"
 
-			#pragma enable_d3d11_debug_symbols
-
 			sampler2D _MainTex;
 
 			CBUFFER_START(CrestPerOceanInput)

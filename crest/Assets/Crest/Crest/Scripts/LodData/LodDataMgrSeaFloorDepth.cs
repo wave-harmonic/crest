@@ -13,6 +13,7 @@ namespace Crest
     public class LodDataMgrSeaFloorDepth : LodDataMgr
     {
         public override string SimName { get { return "SeaFloorDepth"; } }
+        // TODO(TRC):Now figure-out how to return the correct rendertexture format here based on whether shorelines are supported or not
         public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.ARGBHalf; } }
         protected override bool NeedToReadWriteTextureData { get { return false; } }
 

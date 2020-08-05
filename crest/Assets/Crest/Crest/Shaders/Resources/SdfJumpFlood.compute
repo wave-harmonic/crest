@@ -39,7 +39,6 @@ void SdfJumpFlood(uint3 id : SV_DispatchThreadID)
 	candidatePositions[7] = leftIsInBounds && upIsInBounds    ? _FromTexture[id.xy + uint2(-_jumpSize,  _jumpSize)] : currentNearestPoint;
 
 	{
-		// TODO(TRC):Now test the square distance for cheapness
 		float2 currentPosition = IDtoWorld(id.xy, _textureDimension, _projectionToWorld);
 
 		float currentDistSq;

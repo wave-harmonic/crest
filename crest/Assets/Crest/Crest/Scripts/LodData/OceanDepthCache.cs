@@ -81,22 +81,15 @@ namespace Crest
         [Tooltip("Generate a signed distance field for shorelines"), SerializeField]
         internal bool _generateSignedDistanceFieldForShorelines = false;
 
-        [Tooltip("The resolution of the cached signed distance field - lower will be more efficient. Must be a power of two."), SerializeField]
-        int _signedDistanceFieldForShorelinesResolution = 512; // TODO(TRC):Now enforce this being a power of two
-        [Tooltip("How many additional Jump Flood Algorithm rounds to use"), SerializeField]
-        int _numberOfAdditionalJumpFloodRounds = 7; // TODO(TRC):Now Max this as log(_signedDistanceFieldForShorelinesResolution)
+        [PredicatedField("_generateSignedDistanceFieldForShorelines", true)]
+        [Tooltip("How many additional Jump Flood Algorithm rounds to use - (over the standard log2(Resolution)"), SerializeField]
+        int _numberOfAdditionalJumpFloodRounds = 7;
 
         RenderTexture _depthCacheTexture;
         public RenderTexture CacheTexture => _depthCacheTexture;
 
-        RenderTexture _signedDistanceFieldCacheTexture;
-        public RenderTexture SignedDistanceFieldCacheTexture => _signedDistanceFieldCacheTexture;
-
         GameObject _drawDepthCacheQuad;
         Camera _depthCacheCamera;
-
-        GameObject _drawSdfCacheQuad;
-        Camera _sdfCacheCamera;
 
         private readonly int sp_jumpSize = Shader.PropertyToID("_jumpSize");
         private readonly int sp_textureDimension = Shader.PropertyToID("_textureDimension");
@@ -195,65 +188,40 @@ namespace Crest
 
             if (_depthCacheTexture == null)
             {
+                RenderTextureFormat fmt;
+                if (_generateSignedDistanceFieldForShorelines)
+                {
+                    fmt = RenderTextureFormat.ARGBHalf;
+                }
+                else
+                {
 #if UNITY_EDITOR_WIN
-                var fmt = RenderTextureFormat.DefaultHDR;
+                    fmt = RenderTextureFormat.DefaultHDR;
 #else
-                var fmt = RenderTextureFormat.RHalf;
+                    fmt = RenderTextureFormat.RHalf;
 #endif
-                // TODO(TRC):Now this garbage generation that would be generated each time this is called
+                }
+
                 Debug.Assert(SystemInfo.SupportsRenderTextureFormat(fmt), "The graphics device does not support the render texture format " + fmt.ToString());
                 _depthCacheTexture = new RenderTexture(_resolution, _resolution, 0);
                 _depthCacheTexture.name = gameObject.name + "_oceanDepth";
                 _depthCacheTexture.format = fmt;
                 _depthCacheTexture.useMipMap = false;
                 _depthCacheTexture.anisoLevel = 0;
+                _depthCacheTexture.enableRandomWrite = _generateSignedDistanceFieldForShorelines;
                 _depthCacheTexture.Create();
-            }
-
-            if (_generateSignedDistanceFieldForShorelines && _signedDistanceFieldCacheTexture == null)
-            {
-                RenderTextureFormat fmt = RenderTextureFormat.ARGBHalf;
-                // TODO(TRC):Now this garbage generation that would be generated each time this is called
-                Debug.Assert(SystemInfo.SupportsRenderTextureFormat(fmt), "The graphics device does not support the render texture format " + fmt.ToString());
-                _signedDistanceFieldCacheTexture = new RenderTexture(_signedDistanceFieldForShorelinesResolution, _signedDistanceFieldForShorelinesResolution, 0);
-                _signedDistanceFieldCacheTexture.name = gameObject.name + "_signedDistanceField";
-                _signedDistanceFieldCacheTexture.format = fmt;
-                _signedDistanceFieldCacheTexture.useMipMap = false;
-                _signedDistanceFieldCacheTexture.anisoLevel = 0;
-                _signedDistanceFieldCacheTexture.enableRandomWrite = true;
-                _signedDistanceFieldCacheTexture.Create();
             }
 
             if (_depthCacheCamera == null)
             {
                 _depthCacheCamera = GenerateCacheCamera(
                     layerMask,
-                    "DepthCacheCam",
+                    _generateSignedDistanceFieldForShorelines ? "DepthSdfCam" : "DepthCacheCam",
                     _cameraMaxTerrainHeight,
                     transform,
                     _depthCacheTexture,
                     _hideDepthCacheCam
                 );
-            }
-
-            if (_generateSignedDistanceFieldForShorelines)
-            {
-                if (_sdfCacheCamera == null)
-                {
-                    _sdfCacheCamera = GenerateCacheCamera(
-                        layerMask,
-                        "DepthSdfCam",
-                        _cameraMaxTerrainHeight,
-                        transform,
-                        _signedDistanceFieldCacheTexture,
-                        _hideDepthCacheCam
-                    );
-                }
-                else
-                {
-
-                    _sdfCacheCamera.targetTexture = _signedDistanceFieldCacheTexture;
-                }
             }
 
 
@@ -277,13 +245,10 @@ namespace Crest
                 Shader.SetGlobalVector("_OceanCenterPosWorld", centerPoint);
             }
 
-            _depthCacheCamera.RenderWithShader(Shader.Find("Crest/Inputs/Depth/Ocean Depth From Geometry"), null);
-            //DrawCacheQuad(ref _drawDepthCacheQuad, "DepthCache_", _type == OceanDepthCacheType.Baked ? (Texture)_savedCache : _depthCacheTexture);
-
             if (_generateSignedDistanceFieldForShorelines)
             {
                 RenderTextureFormat fmt = RenderTextureFormat.RGHalf;
-                RenderTexture voronoiPingPongTexture0 = new RenderTexture(_signedDistanceFieldForShorelinesResolution, _signedDistanceFieldForShorelinesResolution, 0);
+                RenderTexture voronoiPingPongTexture0 = new RenderTexture(_resolution, _resolution, 0);
                 voronoiPingPongTexture0.name = gameObject.name + "_voronoiPingPong0";
                 voronoiPingPongTexture0.format = fmt;
                 voronoiPingPongTexture0.useMipMap = false;
@@ -291,7 +256,7 @@ namespace Crest
                 voronoiPingPongTexture0.enableRandomWrite = true;
                 voronoiPingPongTexture0.Create();
 
-                RenderTexture voronoiPingPongTexture1 = new RenderTexture(_signedDistanceFieldForShorelinesResolution, _signedDistanceFieldForShorelinesResolution, 0);
+                RenderTexture voronoiPingPongTexture1 = new RenderTexture(_resolution, _resolution, 0);
                 voronoiPingPongTexture1.name = gameObject.name + "_voronoiPingPong1";
                 voronoiPingPongTexture1.format = fmt;
                 voronoiPingPongTexture1.useMipMap = false;
@@ -299,19 +264,19 @@ namespace Crest
                 voronoiPingPongTexture1.enableRandomWrite = true;
                 voronoiPingPongTexture1.Create();
 
-                _sdfCacheCamera.RenderWithShader(Shader.Find("Crest/Inputs/Depth/Initialise Signed Distance Field From Geometry"), null);
+                _depthCacheCamera.RenderWithShader(Shader.Find("Crest/Inputs/Depth/Initialise Signed Distance Field From Geometry"), null);
                 using (CommandBuffer jumpFloodCommandBuffer = new CommandBuffer())
                 {
                     {
                         ComputeShader initJumpFloodShader = ComputeShaderHelpers.LoadShader("SdfInitJumpFlood");
                         int initJumpFloodKernel = initJumpFloodShader.FindKernel("SdfInitJumpFlood");
-                        jumpFloodCommandBuffer.SetComputeTextureParam(initJumpFloodShader, initJumpFloodKernel, sp_FromTexture, _signedDistanceFieldCacheTexture);
+                        jumpFloodCommandBuffer.SetComputeTextureParam(initJumpFloodShader, initJumpFloodKernel, sp_FromTexture, _depthCacheTexture);
                         jumpFloodCommandBuffer.SetComputeTextureParam(initJumpFloodShader, initJumpFloodKernel, sp_ToTexture, voronoiPingPongTexture0);
                         jumpFloodCommandBuffer.DispatchCompute(
                             initJumpFloodShader,
                             initJumpFloodKernel,
-                            _signedDistanceFieldCacheTexture.width / 8,
-                            _signedDistanceFieldCacheTexture.height / 8,
+                            _depthCacheTexture.width / 8,
+                            _depthCacheTexture.height / 8,
                             1
                         );
                     }
@@ -321,8 +286,8 @@ namespace Crest
                     ComputeShader sdfGradientShader = ComputeShaderHelpers.LoadShader("SdfApply");
                     int sdfKernel = sdfGradientShader.FindKernel("SdfApply");
 
-                    var cameraToWorldMatrix = _sdfCacheCamera.cameraToWorldMatrix;
-                    var projectionMatrix = _sdfCacheCamera.projectionMatrix;
+                    var cameraToWorldMatrix = _depthCacheCamera.cameraToWorldMatrix;
+                    var projectionMatrix = _depthCacheCamera.projectionMatrix;
                     var projectionToWorldMatrix = cameraToWorldMatrix * projectionMatrix.inverse;
 
                     jumpFloodCommandBuffer.name = "Jump Flood";
@@ -357,7 +322,7 @@ namespace Crest
                     // TODO(TRC):Set world-space texture dimensions
                     // jumpFloodCommandBuffer.SetComputeIntParam(sdfGradientShader, sp_textureDimension, (int)textureDimension);
                     jumpFloodCommandBuffer.SetComputeTextureParam(sdfGradientShader, sdfKernel, sp_FromTexture, voronoiPingPongTexture0);
-                    jumpFloodCommandBuffer.SetComputeTextureParam(sdfGradientShader, sdfKernel, sp_ToTexture, _signedDistanceFieldCacheTexture);
+                    jumpFloodCommandBuffer.SetComputeTextureParam(sdfGradientShader, sdfKernel, sp_ToTexture, _depthCacheTexture);
                     jumpFloodCommandBuffer.SetComputeIntParam(sdfGradientShader, sp_textureDimension, (int)textureDimension);
                     jumpFloodCommandBuffer.SetComputeMatrixParam(sdfGradientShader, sp_projectionToWorld, projectionToWorldMatrix);
                     jumpFloodCommandBuffer.DispatchCompute(
@@ -369,7 +334,12 @@ namespace Crest
                     );
                     Graphics.ExecuteCommandBuffer(jumpFloodCommandBuffer);
                 }
-                DrawCacheQuad(ref _drawSdfCacheQuad, "SDFCache_", OceanDepthCacheType.Baked, _signedDistanceFieldCacheTexture);
+                DrawCacheQuad(ref _drawDepthCacheQuad, "SDFCache_", OceanDepthCacheType.Baked, _type == OceanDepthCacheType.Baked ? (Texture)_savedCache : _depthCacheTexture);
+            }
+            else
+            {
+                _depthCacheCamera.RenderWithShader(Shader.Find("Crest/Inputs/Depth/Ocean Depth From Geometry"), null);
+                DrawCacheQuad(ref _drawDepthCacheQuad, "DepthCache_", _type, _type == OceanDepthCacheType.Baked ? (Texture)_savedCache : _depthCacheTexture);
             }
         }
 

@@ -40,6 +40,14 @@ namespace Crest
 
         private void OnGUI()
         {
+            if (OceanRenderer.Instance == null)
+            {
+                EditorGUILayout.HelpBox(
+                    "No water object in loaded scenes, so no water will appear. To add one create a new GameObject and attach a OceanRenderer component to it.",
+                    MessageType.Warning
+                    );
+            }
+
             switch (_state)
             {
                 case State.Idle:

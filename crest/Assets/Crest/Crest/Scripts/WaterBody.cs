@@ -83,6 +83,18 @@ namespace Crest
     {
         public bool Validate(OceanRenderer ocean, ValidatedHelper.ShowMessage showMessage)
         {
+            // This will also return disabled objects. Safe to use in this case.
+            if (Resources.FindObjectsOfTypeAll<OceanRenderer>().Length == 0)
+            {
+                showMessage
+                (
+                    $"Water body <i>{gameObject.name}</i> requires an ocean renderer component to be present. Please create a separate Game Object and add an Ocean Renderer component to it.",
+                    ValidatedHelper.MessageType.Error, this
+                );
+
+                return false;
+            }
+
             if (Mathf.Abs(transform.lossyScale.x) < 2f && Mathf.Abs(transform.lossyScale.z) < 2f)
             {
                 showMessage

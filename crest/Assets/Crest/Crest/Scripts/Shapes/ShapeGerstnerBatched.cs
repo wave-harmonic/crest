@@ -575,7 +575,7 @@ namespace Crest
                 {
                     var mat = batch.GetMaterial(i);
                     mat.SetFloat(sp_ShorelineTwoPiOverWavelengthNear, (Mathf.PI * 2.0f) / _shorelineWavelengthNear);
-                    mat.SetFloat(sp_ShorelineTwoPiOverWavelengthFar, (Mathf.Sqrt(_shorelineLerpDistance) * Mathf.PI * 2.0f) /_shorelineWavelengthFar);
+                    mat.SetFloat(sp_ShorelineTwoPiOverWavelengthFar, (Mathf.Sqrt(_shorelineLerpDistance) * Mathf.PI * 2.0f) / _shorelineWavelengthFar);
                     mat.SetFloat(sp_ShorelineLerpDistance, _shorelineLerpDistance);
                     mat.SetFloat(sp_ShorelineTwoPiOverWavePeriod, (Mathf.PI * 2.0f) / _shorelineShorelineWavePeriod);
                     mat.SetFloat(sp_ShorelineAmplitude, _shorelineAmplitude);
@@ -949,6 +949,39 @@ namespace Crest
                 );
 
                 isValid = false;
+            }
+
+            {
+                OceanDepthCache[] oceanDepthCaches = FindObjectsOfType<OceanDepthCache>();
+                if (_sdfShorelines)
+                {
+                    foreach (OceanDepthCache oceanDepthCache in oceanDepthCaches)
+                    {
+                        if (!oceanDepthCache._generateSignedDistanceFieldForShorelines)
+                        {
+                            showMessage
+                            (
+                                $"The ocean depth cache {oceanDepthCache.name} isn't configured to generate a signed distance field, which means shoreline waves will not be supported by it.",
+                                ValidatedHelper.MessageType.Warning, oceanDepthCache
+                            );
+                        }
+                    }
+                }
+                else
+                {
+                    foreach (OceanDepthCache oceanDepthCache in oceanDepthCaches)
+                    {
+                        if (oceanDepthCache._generateSignedDistanceFieldForShorelines)
+                        {
+                            showMessage
+                            (
+                                $"The ocean depth cache {oceanDepthCache.name} is configured to generate a signed distance field which is extra generated texture data that won't be used as shorelines are disabled here.",
+                                ValidatedHelper.MessageType.Warning, oceanDepthCache
+                            );
+                        }
+                    }
+
+                }
             }
 
             return isValid;

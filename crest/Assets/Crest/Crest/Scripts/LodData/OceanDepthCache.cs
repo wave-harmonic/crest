@@ -79,7 +79,7 @@ namespace Crest
 #pragma warning restore 414
 
         [Tooltip("Generate a signed distance field for shorelines"), SerializeField]
-        bool _generateSignedDistanceFieldForShorelines = true;
+        internal bool _generateSignedDistanceFieldForShorelines = false;
 
         [Tooltip("The resolution of the cached signed distance field - lower will be more efficient. Must be a power of two."), SerializeField]
         int _signedDistanceFieldForShorelinesResolution = 512; // TODO(TRC):Now enforce this being a power of two
@@ -236,21 +236,26 @@ namespace Crest
                 );
             }
 
-            if (_generateSignedDistanceFieldForShorelines && _sdfCacheCamera == null)
+            if (_generateSignedDistanceFieldForShorelines)
             {
-                _sdfCacheCamera = GenerateCacheCamera(
-                    layerMask,
-                    "DepthSdfCam",
-                    _cameraMaxTerrainHeight,
-                    transform,
-                    _signedDistanceFieldCacheTexture,
-                    _hideDepthCacheCam
-                );
+                if (_sdfCacheCamera == null)
+                {
+                    _sdfCacheCamera = GenerateCacheCamera(
+                        layerMask,
+                        "DepthSdfCam",
+                        _cameraMaxTerrainHeight,
+                        transform,
+                        _signedDistanceFieldCacheTexture,
+                        _hideDepthCacheCam
+                    );
+                }
+                else
+                {
+
+                    _sdfCacheCamera.targetTexture = _signedDistanceFieldCacheTexture;
+                }
             }
-            else
-            {
-                _sdfCacheCamera.targetTexture = _signedDistanceFieldCacheTexture;
-            }
+
 
             // Make sure this global is set - I found this was necessary to set it here. However this can cause glitchiness in editor
             // as it messes with this global vector, so only do it if not in edit mode

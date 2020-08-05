@@ -107,6 +107,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _checkShaderName: 1
   _disableRenderer: 1
+  _followHorizontalMotion: 0
   _octaveWavelength: 11
   _maxDisplacementVertical: 0
   _maxDisplacementHorizontal: 0
@@ -219,6 +220,7 @@ MonoBehaviour:
   _createShadowData: 1
   _simSettingsShadow: {fileID: 0}
   _createClipSurfaceData: 1
+  _defaultClippingState: 0
   _showOceanProxyPlane: 0
   _editModeFPS: 30
   _followSceneCamera: 1
@@ -408,6 +410,14 @@ MonoBehaviour:
   _amplitudes: []
   _angleDegs: []
   _phases: []
+  _sdfShorelines: 0
+  _shorelineWavelengthNear: 2.5
+  _shorelineWavelengthFar: 15
+  _shorelineLerpDistance: 100
+  _shorelineShorelineWavePeriod: 1.7
+  _shorelineAmplitude: 0.3
+  _shorelineChop: 2
+  _shorelineWavePeriodSeparation: 1
   _directTowardsPoint: 0
   _pointPositionXZ: {x: 0, y: 0}
   _pointRadii: {x: 100, y: 200}
@@ -456,7 +466,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _type: 0
   _refreshMode: 0
-  _refreshEveryFrameInEditMode: 1
   _geometryToRenderIntoCache: []
   _layerNames:
   - Terrain
@@ -467,7 +476,7 @@ MonoBehaviour:
   _savedCache: {fileID: 0}
   _checkTerrainDrawInstancedOption: 1
   _runValidationOnStart: 1
-  _generateSignedDistanceFieldForShorelines: 1
+  _generateSignedDistanceFieldForShorelines: 0
   _signedDistanceFieldForShorelinesResolution: 512
   _numberOfAdditionalJumpFloodRounds: 7
 --- !u!114 &8887844017883251668

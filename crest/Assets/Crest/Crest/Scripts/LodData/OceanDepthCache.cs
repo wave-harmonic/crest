@@ -88,7 +88,7 @@ namespace Crest
 #if UNITY_EDITOR
             if (EditorApplication.isPlaying && _runValidationOnStart)
             {
-                Validate(OceanRenderer.Instance, ValidatedHelper.DebugLog);
+                Validate(OceanRenderer.AnyInstance, ValidatedHelper.DebugLog);
             }
 #endif
 
@@ -217,11 +217,13 @@ namespace Crest
             if (EditorApplication.isPlaying)
 #endif
             {
+                var ocean = OceanRenderer.ClosestInstance(transform.position);
+
                 // Shader needs sea level to determine water depth
                 var centerPoint = Vector3.zero;
-                if (OceanRenderer.Instance != null)
+                if (ocean != null)
                 {
-                    centerPoint.y = OceanRenderer.Instance.Root.position.y;
+                    centerPoint.y = ocean.Root.position.y;
                 }
                 else
                 {

@@ -56,7 +56,7 @@ namespace Crest
         {
             if (EditorApplication.isPlaying && _runValidationOnStart)
             {
-                Validate(OceanRenderer.Instance, ValidatedHelper.DebugLog);
+                Validate(OceanRenderer.AnyInstance, ValidatedHelper.DebugLog);
             }
         }
 
@@ -68,9 +68,9 @@ namespace Crest
             var oldColor = Gizmos.color;
             Gizmos.color = new Color(1f, 1f, 1f, 0.5f);
             var center = AABB.center;
-            if (OceanRenderer.Instance != null && OceanRenderer.Instance.Root != null)
+            if (OceanRenderer.AnyInstance != null && OceanRenderer.AnyInstance.Root != null)
             {
-                center.y = OceanRenderer.Instance.Root.position.y;
+                center.y = OceanRenderer.AnyInstance.Root.position.y;
             }
             Gizmos.DrawCube(center, 2f * new Vector3(AABB.extents.x, 1f, AABB.extents.z));
             Gizmos.color = oldColor;

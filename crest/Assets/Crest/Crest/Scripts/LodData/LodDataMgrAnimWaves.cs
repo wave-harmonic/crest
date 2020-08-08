@@ -92,15 +92,15 @@ namespace Crest
             // for all LODs, we employ a compute shader as only they can
             // read and write to the same texture.
 
-            int resolution = OceanRenderer.Instance.LodDataResolution;
+            int resolution = _ocean.LodDataResolution;
             var desc = new RenderTextureDescriptor(resolution, resolution, TextureFormat, 0);
 
-            _waveBuffers = CreateLodDataTextures(desc, "WaveBuffer", false);
+            _waveBuffers = CreateLodDataTextures(_ocean, desc, "WaveBuffer", false);
 
             _combineBuffer = CreateCombineBuffer(desc);
 
             var combineShader = Shader.Find("Hidden/Crest/Simulation/Combine Animated Wave LODs");
-            _combineMaterial = new PropertyWrapperMaterial[OceanRenderer.Instance.CurrentLodCount];
+            _combineMaterial = new PropertyWrapperMaterial[_ocean.CurrentLodCount];
             for (int i = 0; i < _combineMaterial.Length; i++)
             {
                 var mat = new Material(combineShader);
@@ -148,10 +148,11 @@ namespace Crest
             public int _lodIdx;
             public int _lodCount;
             public float _globalMaxWavelength;
+            public OceanRenderer _ocean;
 
             public float Filter(ILodDataInput data, out int isTransition)
             {
-                var drawOctaveWavelength = data.Wavelength;
+                var drawOctaveWavelength = data.Wavelength(_ocean);
                 isTransition = 0;
 
                 // No wavelength preference - don't draw per-lod
@@ -172,12 +173,12 @@ namespace Crest
                     if (_lodIdx == _lodCount - 2)
                     {
                         isTransition = 1;
-                        return 1f - OceanRenderer.Instance.ViewerAltitudeLevelAlpha;
+                        return 1f - _ocean.ViewerAltitudeLevelAlpha;
                     }
 
                     if (_lodIdx == _lodCount - 1)
                     {
-                        return OceanRenderer.Instance.ViewerAltitudeLevelAlpha;
+                        return _ocean.ViewerAltitudeLevelAlpha;
                     }
                 }
                 else if (drawOctaveWavelength < _lodMaxWavelength)
@@ -193,10 +194,12 @@ namespace Crest
 
         public class FilterNoLodPreference : IDrawFilter
         {
+            public OceanRenderer _ocean;
+
             public float Filter(ILodDataInput data, out int isTransition)
             {
                 isTransition = 0;
-                return data.Wavelength == 0f ? 1f : 0f;
+                return data.Wavelength(_ocean) == 0f ? 1f : 0f;
             }
         }
         FilterNoLodPreference _filterNoLodPreference = new FilterNoLodPreference();
@@ -205,12 +208,12 @@ namespace Crest
         {
             base.BuildCommandBuffer(ocean, buf);
 
-            var lodCount = OceanRenderer.Instance.CurrentLodCount;
+            var lodCount = _ocean.CurrentLodCount;
 
             // Validation
-            for (int lodIdx = 0; lodIdx < OceanRenderer.Instance.CurrentLodCount; lodIdx++)
+            for (int lodIdx = 0; lodIdx < _ocean.CurrentLodCount; lodIdx++)
             {
-                OceanRenderer.Instance._lodTransform._renderData[lodIdx].Validate(0, SimName);
+                _ocean._lodTransform._renderData[lodIdx].Validate(0, SimName);
             }
 
             // lod-dependent data
@@ -222,9 +225,10 @@ namespace Crest
 
                 // draw any data with lod preference
                 _filterWavelength._lodIdx = lodIdx;
-                _filterWavelength._lodMaxWavelength = OceanRenderer.Instance._lodTransform.MaxWavelength(lodIdx);
+                _filterWavelength._lodMaxWavelength = _ocean._lodTransform.MaxWavelength(lodIdx);
                 _filterWavelength._lodMinWavelength = _filterWavelength._lodMaxWavelength / 2f;
-                _filterWavelength._globalMaxWavelength = OceanRenderer.Instance._lodTransform.MaxWavelength(OceanRenderer.Instance.CurrentLodCount - 1);
+                _filterWavelength._globalMaxWavelength = _ocean._lodTransform.MaxWavelength(_ocean.CurrentLodCount - 1);
+                _filterWavelength._ocean = ocean;
                 SubmitDrawsFiltered(lodIdx, buf, _filterWavelength);
             }
 
@@ -244,13 +248,14 @@ namespace Crest
                 buf.SetRenderTarget(_targets, 0, CubemapFace.Unknown, lodIdx);
 
                 // draw any data that did not express a preference for one lod or another
+                _filterNoLodPreference._ocean = _ocean;
                 SubmitDrawsFiltered(lodIdx, buf, _filterNoLodPreference);
             }
         }
 
         void CombinePassPingPong(CommandBuffer buf)
         {
-            var lodCount = OceanRenderer.Instance.CurrentLodCount;
+            var lodCount = _ocean.CurrentLodCount;
             const int shaderPassCombineIntoAux = 0, shaderPassCopyResultBack = 1;
 
             // combine waves
@@ -270,10 +275,10 @@ namespace Crest
                 }
 
                 // Dynamic waves
-                if (OceanRenderer.Instance._lodDataDynWaves != null)
+                if (_ocean._lodDataDynWaves != null)
                 {
-                    OceanRenderer.Instance._lodDataDynWaves.BindCopySettings(_combineMaterial[lodIdx]);
-                    OceanRenderer.Instance._lodDataDynWaves.BindResultData(_combineMaterial[lodIdx]);
+                    _ocean._lodDataDynWaves.BindCopySettings(_combineMaterial[lodIdx]);
+                    _ocean._lodDataDynWaves.BindResultData(_combineMaterial[lodIdx]);
                 }
                 else
                 {
@@ -281,9 +286,9 @@ namespace Crest
                 }
 
                 // Flow
-                if (OceanRenderer.Instance._lodDataFlow != null)
+                if (_ocean._lodDataFlow != null)
                 {
-                    OceanRenderer.Instance._lodDataFlow.BindResultData(_combineMaterial[lodIdx]);
+                    _ocean._lodDataFlow.BindResultData(_combineMaterial[lodIdx]);
                 }
                 else
                 {
@@ -305,13 +310,13 @@ namespace Crest
 
         void CombinePassCompute(CommandBuffer buf)
         {
-            var lodCount = OceanRenderer.Instance.CurrentLodCount;
+            var lodCount = _ocean.CurrentLodCount;
 
             int combineShaderKernel = krnl_ShapeCombine;
             int combineShaderKernel_lastLOD = krnl_ShapeCombine_DISABLE_COMBINE;
             {
-                bool isFlowOn = OceanRenderer.Instance._lodDataFlow != null;
-                bool isDynWavesOn = OceanRenderer.Instance._lodDataDynWaves != null;
+                bool isFlowOn = _ocean._lodDataFlow != null;
+                bool isDynWavesOn = _ocean._lodDataDynWaves != null;
                 // set the shader kernels that we will use.
                 if (isFlowOn && isDynWavesOn)
                 {
@@ -351,10 +356,10 @@ namespace Crest
                 BindResultData(_combineProperties);
 
                 // Dynamic waves
-                if (OceanRenderer.Instance._lodDataDynWaves != null)
+                if (_ocean._lodDataDynWaves != null)
                 {
-                    OceanRenderer.Instance._lodDataDynWaves.BindCopySettings(_combineProperties);
-                    OceanRenderer.Instance._lodDataDynWaves.BindResultData(_combineProperties);
+                    _ocean._lodDataDynWaves.BindCopySettings(_combineProperties);
+                    _ocean._lodDataDynWaves.BindResultData(_combineProperties);
                 }
                 else
                 {
@@ -362,9 +367,9 @@ namespace Crest
                 }
 
                 // Flow
-                if (OceanRenderer.Instance._lodDataFlow != null)
+                if (_ocean._lodDataFlow != null)
                 {
-                    OceanRenderer.Instance._lodDataFlow.BindResultData(_combineProperties);
+                    _ocean._lodDataFlow.BindResultData(_combineProperties);
                 }
                 else
                 {
@@ -378,27 +383,27 @@ namespace Crest
                 );
 
                 _combineProperties.SetInt(sp_LD_SliceIndex, lodIdx);
-                _combineProperties.DispatchShader();
+                _combineProperties.DispatchShader(_ocean);
             }
         }
 
         public void BindWaveBuffer(IPropertyWrapper properties, bool sourceLod = false)
         {
             properties.SetTexture(sp_LD_TexArray_WaveBuffer, _waveBuffers);
-            BindData(properties, null, true, ref OceanRenderer.Instance._lodTransform._renderData, sourceLod);
+            BindData(properties, null, true, ref _ocean._lodTransform._renderData, sourceLod);
         }
 
         protected override void BindData(IPropertyWrapper properties, Texture applyData, bool blendOut, ref LodTransform.RenderData[] renderData, bool sourceLod = false)
         {
             base.BindData(properties, applyData, blendOut, ref renderData, sourceLod);
 
-            var lt = OceanRenderer.Instance._lodTransform;
+            var lt = _ocean._lodTransform;
 
-            for (int lodIdx = 0; lodIdx < OceanRenderer.Instance.CurrentLodCount; lodIdx++)
+            for (int lodIdx = 0; lodIdx < _ocean.CurrentLodCount; lodIdx++)
             {
                 // need to blend out shape if this is the largest lod, and the ocean might get scaled down later (so the largest lod will disappear)
-                bool needToBlendOutShape = lodIdx == OceanRenderer.Instance.CurrentLodCount - 1 && OceanRenderer.Instance.ScaleCouldDecrease && blendOut;
-                float shapeWeight = needToBlendOutShape ? OceanRenderer.Instance.ViewerAltitudeLevelAlpha : 1f;
+                bool needToBlendOutShape = lodIdx == _ocean.CurrentLodCount - 1 && _ocean.ScaleCouldDecrease && blendOut;
+                float shapeWeight = needToBlendOutShape ? _ocean.ViewerAltitudeLevelAlpha : 1f;
                 _BindData_paramIdOceans[lodIdx] = new Vector4(
                     lt._renderData[lodIdx]._texelWidth,
                     lt._renderData[lodIdx]._textureRes, shapeWeight,
@@ -412,14 +417,14 @@ namespace Crest
         /// spatial length. If no such lod available, returns -1. This means high frequency wavelengths are filtered out, and the lod index can
         /// be used for each sample in the sample area.
         /// </summary>
-        public static int SuggestDataLOD(Rect sampleAreaXZ)
+        public static int SuggestDataLOD(OceanRenderer ocean, Rect sampleAreaXZ)
         {
-            return SuggestDataLOD(sampleAreaXZ, Mathf.Min(sampleAreaXZ.width, sampleAreaXZ.height));
+            return SuggestDataLOD(ocean, sampleAreaXZ, Mathf.Min(sampleAreaXZ.width, sampleAreaXZ.height));
         }
-        public static int SuggestDataLOD(Rect sampleAreaXZ, float minSpatialLength)
+        public static int SuggestDataLOD(OceanRenderer ocean, Rect sampleAreaXZ, float minSpatialLength)
         {
-            var lodCount = OceanRenderer.Instance.CurrentLodCount;
-            var lt = OceanRenderer.Instance._lodTransform;
+            var lodCount = ocean.CurrentLodCount;
+            var lt = ocean._lodTransform;
 
             for (int lod = 0; lod < lodCount; lod++)
             {

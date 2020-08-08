@@ -23,12 +23,12 @@ namespace Crest
 
         void Update()
         {
-            if (OceanRenderer.Instance == null || OceanRenderer.Instance.CollisionProvider == null)
+            if (OceanRenderer.AnyInstance == null)
             {
                 return;
             }
 
-            var collProvider = OceanRenderer.Instance.CollisionProvider;
+            var collProvider = OceanRenderer.ClosestInstance(transform.position).CollisionProvider;
 
             for (int i = 0; i < s_steps; i++)
             {

@@ -52,7 +52,7 @@ namespace Crest
         {
             _rb = GetComponent<Rigidbody>();
 
-            if (OceanRenderer.Instance == null)
+            if (OceanRenderer.AnyInstance == null)
             {
                 enabled = false;
                 return;
@@ -63,7 +63,8 @@ namespace Crest
         {
             UnityEngine.Profiling.Profiler.BeginSample("SimpleFloatingObject.FixedUpdate");
 
-            if (OceanRenderer.Instance == null)
+            var ocean = OceanRenderer.ClosestInstance(transform.position);
+            if (ocean == null)
             {
                 UnityEngine.Profiling.Profiler.EndSample();
                 return;
@@ -87,7 +88,7 @@ namespace Crest
 
             var velocityRelativeToWater = _rb.velocity - waterSurfaceVel;
 
-            float height = disp.y + OceanRenderer.Instance.SeaLevel;
+            float height = disp.y + ocean.SeaLevel;
 
             float bottomDepth = height - transform.position.y + _raiseObject;
 

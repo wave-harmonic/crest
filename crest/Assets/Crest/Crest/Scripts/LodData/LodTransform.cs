@@ -32,7 +32,7 @@ namespace Crest
                 // ignore first frame - this patches errors when using edit & continue in editor
                 if (_frame > 0 && _frame != OceanRenderer.FrameCount + frameOffset)
                 {
-                    Debug.LogWarning($"RenderData validation failed - {context} - _frame of data ({_frame}) != expected ({OceanRenderer.FrameCount + frameOffset}), which may indicate some update functions are being called out of order, or script execution order is broken.", OceanRenderer.Instance);
+                    Debug.LogWarning($"RenderData validation failed - {context} - _frame of data ({_frame}) != expected ({OceanRenderer.FrameCount + frameOffset}), which may indicate some update functions are being called out of order, or script execution order is broken.", OceanRenderer.AnyInstance);
                 }
                 return this;
             }
@@ -47,6 +47,8 @@ namespace Crest
             }
         }
 
+        OceanRenderer _ocean;
+
         public RenderData[] _renderData = null;
         public RenderData[] _renderDataSource = null;
 
@@ -56,6 +58,11 @@ namespace Crest
         Matrix4x4[] _projectionMatrix;
         public Matrix4x4 GetWorldToCameraMatrix(int lodIdx) { return _worldToCameraMatrix[lodIdx]; }
         public Matrix4x4 GetProjectionMatrix(int lodIdx) { return _projectionMatrix[lodIdx]; }
+
+        public LodTransform(OceanRenderer ocean)
+        {
+            _ocean = ocean;
+        }
 
         public void InitLODData(int lodCount)
         {
@@ -83,15 +90,15 @@ namespace Crest
 
                 _renderDataSource[lodIdx] = _renderData[lodIdx];
 
-                var lodScale = OceanRenderer.Instance.CalcLodScale(lodIdx);
+                var lodScale = _ocean.CalcLodScale(lodIdx);
                 var camOrthSize = 2f * lodScale;
 
                 // find snap period
-                _renderData[lodIdx]._textureRes = OceanRenderer.Instance.LodDataResolution;
+                _renderData[lodIdx]._textureRes = _ocean.LodDataResolution;
                 _renderData[lodIdx]._texelWidth = 2f * camOrthSize / _renderData[lodIdx]._textureRes;
                 // snap so that shape texels are stationary
-                _renderData[lodIdx]._posSnapped = OceanRenderer.Instance.Root.position
-                    - new Vector3(Mathf.Repeat(OceanRenderer.Instance.Root.position.x, _renderData[lodIdx]._texelWidth), 0f, Mathf.Repeat(OceanRenderer.Instance.Root.position.z, _renderData[lodIdx]._texelWidth));
+                _renderData[lodIdx]._posSnapped = _ocean.Root.position
+                    - new Vector3(Mathf.Repeat(_ocean.Root.position.x, _renderData[lodIdx]._texelWidth), 0f, Mathf.Repeat(_ocean.Root.position.z, _renderData[lodIdx]._texelWidth));
 
                 _renderData[lodIdx]._frame = OceanRenderer.FrameCount;
 
@@ -122,10 +129,10 @@ namespace Crest
 
         public float MaxWavelength(int lodIdx)
         {
-            float oceanBaseScale = OceanRenderer.Instance.Scale;
+            float oceanBaseScale = _ocean.Scale;
             float maxDiameter = 4f * oceanBaseScale * Mathf.Pow(2f, lodIdx);
-            float maxTexelSize = maxDiameter / OceanRenderer.Instance.LodDataResolution;
-            return 2f * maxTexelSize * OceanRenderer.Instance.MinTexelsPerWave;
+            float maxTexelSize = maxDiameter / _ocean.LodDataResolution;
+            return 2f * maxTexelSize * _ocean.MinTexelsPerWave;
         }
 
         public static int ParamIdPosScale(bool sourceLod = false)

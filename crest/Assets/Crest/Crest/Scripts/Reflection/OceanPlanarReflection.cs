@@ -119,7 +119,7 @@ namespace Crest
 
         private void Start()
         {
-            if (OceanRenderer.Instance == null)
+            if (OceanRenderer.AnyInstance == null)
             {
                 enabled = false;
                 return;
@@ -139,7 +139,7 @@ namespace Crest
             CreateWaterObjects(_camViewpoint);
 
 #if UNITY_EDITOR
-            if (!OceanRenderer.Instance.OceanMaterial.IsKeywordEnabled("_PLANARREFLECTIONS_ON"))
+            if (!OceanRenderer.AnyInstance.OceanMaterial.IsKeywordEnabled("_PLANARREFLECTIONS_ON"))
             {
                 Debug.LogWarning("Planar reflections are not enabled on the current ocean material and will not be visible.", this);
             }
@@ -163,7 +163,7 @@ namespace Crest
             if (!RequestRefresh(Time.renderedFrameCount))
                 return; // Skip if not need to refresh on this frame
 
-            if (OceanRenderer.Instance == null)
+            if (OceanRenderer.AnyInstance == null)
             {
                 return;
             }
@@ -176,7 +176,7 @@ namespace Crest
             }
 
             // Find out the reflection plane: position and normal in world space
-            Vector3 planePos = OceanRenderer.Instance.Root.position;
+            Vector3 planePos = OceanRenderer.AnyInstance.Root.position;
             Vector3 planeNormal = Vector3.up;
 
             // Optionally disable pixel lights for reflection/refraction

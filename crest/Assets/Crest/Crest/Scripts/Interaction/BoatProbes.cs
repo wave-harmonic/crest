@@ -70,7 +70,7 @@ namespace Crest
             _rb = GetComponent<Rigidbody>();
             _rb.centerOfMass = _centerOfMass;
 
-            if (OceanRenderer.Instance == null)
+            if (OceanRenderer.AnyInstance == null)
             {
                 enabled = false;
                 return;
@@ -98,19 +98,20 @@ namespace Crest
             // Sum weights every frame when running in editor in case weights are edited in the inspector.
             CalcTotalWeight();
 #endif
+            var ocean = OceanRenderer.ClosestInstance(transform.position);
 
-            if (OceanRenderer.Instance == null)
+            if (ocean == null)
             {
                 return;
             }
 
-            var collProvider = OceanRenderer.Instance.CollisionProvider;
+            var collProvider = ocean.CollisionProvider;
 
             // Do queries
             UpdateWaterQueries(collProvider);
 
             var undispPos = transform.position - _queryResultDisps[_forcePoints.Length];
-            undispPos.y = OceanRenderer.Instance.SeaLevel;
+            undispPos.y = ocean.SeaLevel;
 
             var waterSurfaceVel = _queryResultVels[_forcePoints.Length];
 
@@ -121,7 +122,7 @@ namespace Crest
             }
 
             // Buoyancy
-            FixedUpdateBuoyancy();
+            FixedUpdateBuoyancy(ocean);
             FixedUpdateDrag(waterSurfaceVel);
             FixedUpdateEngine();
         }
@@ -152,13 +153,13 @@ namespace Crest
             _rb.AddTorque(rotVec * _turnPower * sideways, ForceMode.Acceleration);
         }
 
-        void FixedUpdateBuoyancy()
+        void FixedUpdateBuoyancy(OceanRenderer ocean)
         {
             var archimedesForceMagnitude = WATER_DENSITY * Mathf.Abs(Physics.gravity.y);
 
             for (int i = 0; i < _forcePoints.Length; i++)
             {
-                var waterHeight = OceanRenderer.Instance.SeaLevel + _queryResultDisps[i].y;
+                var waterHeight = ocean.SeaLevel + _queryResultDisps[i].y;
                 var heightDiff = waterHeight - _queryPoints[i].y;
                 if (heightDiff > 0)
                 {

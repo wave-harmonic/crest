@@ -12,6 +12,8 @@ namespace Crest
     /// </summary>
     public class RayTraceHelper
     {
+        OceanRenderer _ocean;
+
         Vector3[] _queryPos;
         Vector3[] _queryResult;
 
@@ -53,6 +55,8 @@ namespace Crest
         /// <param name="i_rayDirection">World space ray direction</param>
         public void Init(Vector3 i_rayOrigin, Vector3 i_rayDirection)
         {
+            _ocean = OceanRenderer.ClosestInstance(i_rayOrigin);
+
             for (int i = 0; i < _queryPos.Length; i++)
             {
                 _queryPos[i] = i_rayOrigin + i * _rayStepSize * i_rayDirection;
@@ -82,9 +86,9 @@ namespace Crest
                 return false;
             }
 
-            var status = OceanRenderer.Instance.CollisionProvider.Query(GetHashCode(), _minLength, _queryPos, _queryResult, null, null);
+            var status = _ocean.CollisionProvider.Query(GetHashCode(), _minLength, _queryPos, _queryResult, null, null);
 
-            if (!OceanRenderer.Instance.CollisionProvider.RetrieveSucceeded(status))
+            if (!_ocean.CollisionProvider.RetrieveSucceeded(status))
             {
                 _valid = false;
                 return false;
@@ -94,8 +98,8 @@ namespace Crest
             // the ray crosses the surface, the distance to the intersection is interpolated from the heights.
             for (int i = 1; i < _queryPos.Length; i++)
             {
-                var height0 = _queryResult[i - 1].y + OceanRenderer.Instance.SeaLevel - _queryPos[i - 1].y;
-                var height1 = _queryResult[i].y + OceanRenderer.Instance.SeaLevel - _queryPos[i].y;
+                var height0 = _queryResult[i - 1].y + _ocean.SeaLevel - _queryPos[i - 1].y;
+                var height1 = _queryResult[i].y + _ocean.SeaLevel - _queryPos[i].y;
 
                 if (Mathf.Sign(height0) != Mathf.Sign(height1))
                 {

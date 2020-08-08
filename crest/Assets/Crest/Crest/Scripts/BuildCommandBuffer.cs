@@ -86,10 +86,8 @@ namespace Crest
         /// <summary>
         /// Construct the command buffer and attach it to the camera so that it will be executed in the render.
         /// </summary>
-        public void BuildAndExecute()
+        public void BuildAndExecute(OceanRenderer ocean)
         {
-            if (OceanRenderer.Instance == null) return;
-
             if (_buf == null)
             {
                 _buf = new CommandBuffer();
@@ -98,7 +96,7 @@ namespace Crest
 
             _buf.Clear();
 
-            BuildLodData(OceanRenderer.Instance, _buf);
+            BuildLodData(ocean, _buf);
 
             // This will execute at the beginning of the frame before the graphics queue
             Graphics.ExecuteCommandBuffer(_buf);

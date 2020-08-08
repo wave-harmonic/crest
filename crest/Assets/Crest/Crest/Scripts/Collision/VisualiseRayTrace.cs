@@ -15,7 +15,7 @@ namespace Crest
 
         void Update()
         {
-            if (OceanRenderer.Instance == null || OceanRenderer.Instance.CollisionProvider == null)
+            if (OceanRenderer.AnyInstance == null)
             {
                 return;
             }

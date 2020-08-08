@@ -50,8 +50,8 @@ namespace Crest
             base.Start();
 
 #if UNITY_EDITOR
-            if (OceanRenderer.Instance != null && OceanRenderer.Instance.OceanMaterial != null
-                && !OceanRenderer.Instance.OceanMaterial.IsKeywordEnabled("_FOAM_ON"))
+            if (_ocean != null && _ocean.OceanMaterial != null
+                && !_ocean.OceanMaterial.IsKeywordEnabled("_FOAM_ON"))
             {
                 Debug.LogWarning("Foam is not enabled on the current ocean material and will not be visible.", _ocean);
             }
@@ -69,12 +69,12 @@ namespace Crest
             simMaterial.SetFloat(sp_ShorelineFoamStrength, Settings._shorelineFoamStrength);
 
             // assign animated waves - to slot 1 current frame data
-            OceanRenderer.Instance._lodDataAnimWaves.BindResultData(simMaterial);
+            _ocean._lodDataAnimWaves.BindResultData(simMaterial);
 
             // assign sea floor depth - to slot 1 current frame data
-            if (OceanRenderer.Instance._lodDataSeaDepths != null)
+            if (_ocean._lodDataSeaDepths != null)
             {
-                OceanRenderer.Instance._lodDataSeaDepths.BindResultData(simMaterial);
+                _ocean._lodDataSeaDepths.BindResultData(simMaterial);
             }
             else
             {
@@ -82,9 +82,9 @@ namespace Crest
             }
 
             // assign flow - to slot 1 current frame data
-            if (OceanRenderer.Instance._lodDataFlow != null)
+            if (_ocean._lodDataFlow != null)
             {
-                OceanRenderer.Instance._lodDataFlow.BindResultData(simMaterial);
+                _ocean._lodDataFlow.BindResultData(simMaterial);
             }
             else
             {

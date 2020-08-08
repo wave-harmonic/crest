@@ -57,6 +57,8 @@ namespace Crest
         {
             Color bkp = GUI.color;
 
+            var ocean = OceanRenderer.InstanceCount > 0 ? OceanRenderer.GetInstance(0) : null;
+
             if (_guiVisible)
             {
                 GUI.skin.toggle.normal.textColor = Color.white;
@@ -109,17 +111,17 @@ namespace Crest
 
                 LodDataMgrShadow.s_processData = GUI.Toggle(new Rect(x, y, w, h), LodDataMgrShadow.s_processData, "Process Shadows"); y += h;
 
-                if (OceanRenderer.Instance)
+                if (ocean != null)
                 {
-                    if (OceanRenderer.Instance._lodDataDynWaves != null)
+                    if (ocean._lodDataDynWaves != null)
                     {
                         int steps; float dt;
-                        OceanRenderer.Instance._lodDataDynWaves.GetSimSubstepData(OceanRenderer.Instance.DeltaTimeDynamics, out steps, out dt);
+                        ocean._lodDataDynWaves.GetSimSubstepData(ocean.DeltaTimeDynamics, out steps, out dt);
                         GUI.Label(new Rect(x, y, w, h), string.Format("Sim steps: {0:0.00000} x {1}", dt, steps)); y += h;
                     }
 
-                    var querySystem = OceanRenderer.Instance.CollisionProvider as QueryBase;
-                    if (OceanRenderer.Instance.CollisionProvider != null && querySystem != null)
+                    var querySystem = ocean.CollisionProvider as QueryBase;
+                    if (ocean.CollisionProvider != null && querySystem != null)
                     {
                         GUI.Label(new Rect(x, y, w, h), string.Format("Query result GUIDs: {0}", querySystem.ResultGuidCount)); y += h;
                     }
@@ -127,7 +129,7 @@ namespace Crest
 #if UNITY_EDITOR
                     if (GUI.Button(new Rect(x, y, w, h), "Select Ocean Mat"))
                     {
-                        var path = UnityEditor.AssetDatabase.GetAssetPath(OceanRenderer.Instance.OceanMaterial);
+                        var path = UnityEditor.AssetDatabase.GetAssetPath(ocean.OceanMaterial);
                         var asset = UnityEditor.AssetDatabase.LoadMainAssetAtPath(path);
                         UnityEditor.Selection.activeObject = asset;
                     }
@@ -145,15 +147,15 @@ namespace Crest
             // draw source textures to screen
             if (_showOceanData)
             {
-                DrawShapeTargets();
+                DrawShapeTargets(ocean);
             }
 
             GUI.color = bkp;
         }
 
-        void DrawShapeTargets()
+        void DrawShapeTargets(OceanRenderer ocean)
         {
-            if (OceanRenderer.Instance == null) return;
+            if (ocean == null) return;
 
             // Draw bottom panel for toggles
             var bottomBar = new Rect(_guiVisible ? _leftPanelWidth : 0,
@@ -164,23 +166,23 @@ namespace Crest
 
             // Show viewer height above water in bottom panel
             bottomBar.x += 10;
-            GUI.Label(bottomBar, "Viewer Height Above Water: " + OceanRenderer.Instance.ViewerHeightAboveWater);
+            GUI.Label(bottomBar, "Viewer Height Above Water: " + ocean.ViewerHeightAboveWater);
 
             // Draw sim data
-            DrawSims();
+            DrawSims(ocean);
         }
 
-        void DrawSims()
+        void DrawSims(OceanRenderer ocean)
         {
             float column = 1f;
 
-            DrawSim<LodDataMgrAnimWaves>(OceanRenderer.Instance._lodDataAnimWaves, ref _drawAnimWaves, ref column);
-            DrawSim<LodDataMgrDynWaves>(OceanRenderer.Instance._lodDataDynWaves, ref _drawDynWaves, ref column);
-            DrawSim<LodDataMgrFoam>(OceanRenderer.Instance._lodDataFoam, ref _drawFoam, ref column);
-            DrawSim<LodDataMgrFlow>(OceanRenderer.Instance._lodDataFlow, ref _drawFlow, ref column);
-            DrawSim<LodDataMgrShadow>(OceanRenderer.Instance._lodDataShadow, ref _drawShadow, ref column);
-            DrawSim<LodDataMgrSeaFloorDepth>(OceanRenderer.Instance._lodDataSeaDepths, ref _drawSeaFloorDepth, ref column);
-            DrawSim<LodDataMgrClipSurface>(OceanRenderer.Instance._lodDataClipSurface, ref _drawClipSurface, ref column);
+            DrawSim<LodDataMgrAnimWaves>(ocean._lodDataAnimWaves, ref _drawAnimWaves, ref column);
+            DrawSim<LodDataMgrDynWaves>(ocean._lodDataDynWaves, ref _drawDynWaves, ref column);
+            DrawSim<LodDataMgrFoam>(ocean._lodDataFoam, ref _drawFoam, ref column);
+            DrawSim<LodDataMgrFlow>(ocean._lodDataFlow, ref _drawFlow, ref column);
+            DrawSim<LodDataMgrShadow>(ocean._lodDataShadow, ref _drawShadow, ref column);
+            DrawSim<LodDataMgrSeaFloorDepth>(ocean._lodDataSeaDepths, ref _drawSeaFloorDepth, ref column);
+            DrawSim<LodDataMgrClipSurface>(ocean._lodDataClipSurface, ref _drawClipSurface, ref column);
         }
 
         static void DrawSim<SimType>(LodDataMgr lodData, ref bool doDraw, ref float offset) where SimType : LodDataMgr

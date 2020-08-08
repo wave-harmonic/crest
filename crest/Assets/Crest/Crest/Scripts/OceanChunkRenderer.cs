@@ -17,6 +17,9 @@ namespace Crest
     [ExecuteAlways]
     public class OceanChunkRenderer : MonoBehaviour
     {
+        [HideInInspector]
+        public OceanRenderer _ocean;
+
         public bool _drawRenderBounds = false;
 
         public Bounds _boundsLocal;
@@ -64,7 +67,7 @@ namespace Crest
         void UpdateMeshBounds()
         {
             var newBounds = _boundsLocal;
-            ExpandBoundsForDisplacements(transform, ref newBounds);
+            ExpandBoundsForDisplacements(_ocean, transform, ref newBounds);
             _mesh.bounds = newBounds;
         }
 
@@ -78,7 +81,7 @@ namespace Crest
         // Called when visible to a camera
         void OnWillRenderObject()
         {
-            if (OceanRenderer.Instance == null || Rend == null)
+            if (_ocean == null || Rend == null)
             {
                 return;
             }
@@ -92,9 +95,9 @@ namespace Crest
             // Depth texture is used by ocean shader for transparency/depth fog, and for fading out foam at shoreline.
             _currentCamera.depthTextureMode |= DepthTextureMode.Depth;
 
-            if (Rend.sharedMaterial != OceanRenderer.Instance.OceanMaterial)
+            if (Rend.sharedMaterial != _ocean.OceanMaterial)
             {
-                Rend.sharedMaterial = OceanRenderer.Instance.OceanMaterial;
+                Rend.sharedMaterial = _ocean.OceanMaterial;
             }
 
             // per instance data
@@ -106,18 +109,18 @@ namespace Crest
             Rend.GetPropertyBlock(_mpb.materialPropertyBlock);
 
             // blend LOD 0 shape in/out to avoid pop, if the ocean might scale up later (it is smaller than its maximum scale)
-            var needToBlendOutShape = _lodIndex == 0 && OceanRenderer.Instance.ScaleCouldIncrease;
-            var meshScaleLerp = needToBlendOutShape ? OceanRenderer.Instance.ViewerAltitudeLevelAlpha : 0f;
+            var needToBlendOutShape = _lodIndex == 0 && _ocean.ScaleCouldIncrease;
+            var meshScaleLerp = needToBlendOutShape ? _ocean.ViewerAltitudeLevelAlpha : 0f;
 
             // blend furthest normals scale in/out to avoid pop, if scale could reduce
-            var needToBlendOutNormals = _lodIndex == _totalLodCount - 1 && OceanRenderer.Instance.ScaleCouldDecrease;
-            var farNormalsWeight = needToBlendOutNormals ? OceanRenderer.Instance.ViewerAltitudeLevelAlpha : 1f;
+            var needToBlendOutNormals = _lodIndex == _totalLodCount - 1 && _ocean.ScaleCouldDecrease;
+            var farNormalsWeight = needToBlendOutNormals ? _ocean.ViewerAltitudeLevelAlpha : 1f;
             _mpb.SetVector(sp_InstanceData, new Vector3(meshScaleLerp, farNormalsWeight, _lodIndex));
 
             // geometry data
             // compute grid size of geometry. take the long way to get there - make sure we land exactly on a power of two
             // and not inherit any of the lossy-ness from lossyScale.
-            var scale_pow_2 = OceanRenderer.Instance.CalcLodScale(_lodIndex);
+            var scale_pow_2 = _ocean.CalcLodScale(_lodIndex);
             var gridSizeGeo = scale_pow_2 / (0.25f * _lodDataResolution / _geoDownSampleFactor);
             var gridSizeLodData = gridSizeGeo / _geoDownSampleFactor;
             var mul = 1.875f; // fudge 1
@@ -127,12 +130,12 @@ namespace Crest
             _mpb.SetVector(sp_GeomData, new Vector4(gridSizeLodData, gridSizeGeo, normalScrollSpeed0, normalScrollSpeed1));
 
             // Assign LOD data to ocean shader
-            var ldaws = OceanRenderer.Instance._lodDataAnimWaves;
-            var ldsds = OceanRenderer.Instance._lodDataSeaDepths;
-            var ldclip = OceanRenderer.Instance._lodDataClipSurface;
-            var ldfoam = OceanRenderer.Instance._lodDataFoam;
-            var ldflow = OceanRenderer.Instance._lodDataFlow;
-            var ldshadows = OceanRenderer.Instance._lodDataShadow;
+            var ldaws = _ocean._lodDataAnimWaves;
+            var ldsds = _ocean._lodDataSeaDepths;
+            var ldclip = _ocean._lodDataClipSurface;
+            var ldfoam = _ocean._lodDataFoam;
+            var ldflow = _ocean._lodDataFlow;
+            var ldshadows = _ocean._lodDataShadow;
 
             _mpb.SetInt(LodDataMgr.sp_LD_SliceIndex, _lodIndex);
             if (ldaws != null) ldaws.BindResultData(_mpb);
@@ -156,7 +159,7 @@ namespace Crest
             // add a param here that forces ocean to be in underwater state. I think the root
             // cause here might be imprecision or numerical issues at ocean tile boundaries, although
             // i'm not sure why cracks are not visible in this case.
-            var heightOffset = OceanRenderer.Instance.ViewerHeightAboveWater;
+            var heightOffset = _ocean.ViewerHeightAboveWater;
             _mpb.SetFloat(sp_ForceUnderwater, heightOffset < -2f ? 1f : 0f);
 
             Rend.SetPropertyBlock(_mpb.materialPropertyBlock);
@@ -164,11 +167,11 @@ namespace Crest
 
         // this is called every frame because the bounds are given in world space and depend on the transform scale, which
         // can change depending on view altitude
-        public static void ExpandBoundsForDisplacements(Transform transform, ref Bounds bounds)
+        public static void ExpandBoundsForDisplacements(OceanRenderer ocean, Transform transform, ref Bounds bounds)
         {
-            var boundsPadding = OceanRenderer.Instance.MaxHorizDisplacement;
+            var boundsPadding = ocean.MaxHorizDisplacement;
             var expandXZ = boundsPadding / transform.lossyScale.x;
-            var boundsY = OceanRenderer.Instance.MaxVertDisplacement;
+            var boundsY = ocean.MaxVertDisplacement;
             // extend the kinematic bounds slightly to give room for dynamic sim stuff
             boundsY += 5f;
             bounds.extents = new Vector3(bounds.extents.x + expandXZ, boundsY / transform.lossyScale.y, bounds.extents.z + expandXZ);

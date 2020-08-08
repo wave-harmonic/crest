@@ -17,12 +17,16 @@ namespace Crest
         protected override string QueryShaderName => "QueryFlow";
         protected override string QueryKernelName => "CSMain";
 
+        public QueryFlow(OceanRenderer ocean) : base(ocean)
+        {
+        }
+
         protected override void BindInputsAndOutputs(PropertyWrapperComputeStandalone wrapper, ComputeBuffer resultsBuffer)
         {
-            if (OceanRenderer.Instance._lodDataFlow != null)
+            if (_ocean._lodDataFlow != null)
             {
-                OceanRenderer.Instance._lodDataFlow.BindResultData(wrapper);
-                ShaderProcessQueries.SetTexture(_kernelHandle, sp_LD_TexArray_Flow, OceanRenderer.Instance._lodDataFlow.DataTexture);
+                _ocean._lodDataFlow.BindResultData(wrapper);
+                ShaderProcessQueries.SetTexture(_kernelHandle, sp_LD_TexArray_Flow, _ocean._lodDataFlow.DataTexture);
             }
             else
             {

@@ -31,8 +31,8 @@ namespace Crest
 
     public interface ILodDataInput
     {
-        void Draw(CommandBuffer buf, float weight, int isTransition, int lodIdx);
-        float Wavelength { get; }
+        void Draw(OceanRenderer ocean, CommandBuffer buf, float weight, int isTransition, int lodIdx);
+        float Wavelength(OceanRenderer ocean);
         bool Enabled { get; }
     }
 
@@ -47,7 +47,7 @@ namespace Crest
         bool _checkShaderName = true;
 #endif
 
-        public abstract float Wavelength { get; }
+        public abstract float Wavelength(OceanRenderer ocean);
 
         public abstract bool Enabled { get; }
 
@@ -110,7 +110,7 @@ namespace Crest
 #endif
         }
 
-        public void Draw(CommandBuffer buf, float weight, int isTransition, int lodIdx)
+        public void Draw(OceanRenderer ocean, CommandBuffer buf, float weight, int isTransition, int lodIdx)
         {
             if (_renderer && _material && weight > 0f)
             {

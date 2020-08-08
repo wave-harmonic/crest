@@ -46,7 +46,7 @@ namespace Crest
                 return;
             }
 
-            if (OceanRenderer.Instance == null)
+            if (OceanRenderer.AnyInstance == null)
             {
                 EditorGUILayout.HelpBox(
                     "No water object in loaded scenes, so no water will appear. To add one create a new GameObject and attach a OceanRenderer component to it.",

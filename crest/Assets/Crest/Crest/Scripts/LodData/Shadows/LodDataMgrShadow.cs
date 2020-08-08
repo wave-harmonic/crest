@@ -92,7 +92,7 @@ namespace Crest
             UpdateCameraMain();
 
 #if UNITY_EDITOR
-            if (!OceanRenderer.Instance.OceanMaterial.IsKeywordEnabled("_SHADOWS_ON"))
+            if (!_ocean.OceanMaterial.IsKeywordEnabled("_SHADOWS_ON"))
             {
                 Debug.LogWarning("Shadowing is not enabled on the current ocean material and will not be visible.", _ocean);
             }
@@ -103,9 +103,9 @@ namespace Crest
         {
             base.InitData();
 
-            int resolution = OceanRenderer.Instance.LodDataResolution;
+            int resolution = _ocean.LodDataResolution;
             var desc = new RenderTextureDescriptor(resolution, resolution, TextureFormat, 0);
-            _sources = CreateLodDataTextures(desc, SimName + "_1", NeedToReadWriteTextureData);
+            _sources = CreateLodDataTextures(_ocean, desc, SimName + "_1", NeedToReadWriteTextureData);
 
             TextureArrayHelpers.ClearToBlack(_sources);
             TextureArrayHelpers.ClearToBlack(_targets);
@@ -113,17 +113,17 @@ namespace Crest
 
         bool StartInitLight()
         {
-            _mainLight = OceanRenderer.Instance._primaryLight;
+            _mainLight = _ocean._primaryLight;
 
             if (_mainLight.type != LightType.Directional)
             {
-                Debug.LogError("Primary light must be of type Directional.", OceanRenderer.Instance);
+                Debug.LogError("Primary light must be of type Directional.", _ocean);
                 return false;
             }
 
             if (_mainLight.shadows == LightShadows.None)
             {
-                Debug.LogError("Shadows must be enabled on primary light to enable ocean shadowing (types Hard and Soft are equivalent for the ocean system).", OceanRenderer.Instance);
+                Debug.LogError("Shadows must be enabled on primary light to enable ocean shadowing (types Hard and Soft are equivalent for the ocean system).", _ocean);
                 return false;
             }
 
@@ -139,7 +139,7 @@ namespace Crest
 
             base.UpdateLodData();
 
-            if (_mainLight != OceanRenderer.Instance._primaryLight)
+            if (_mainLight != _ocean._primaryLight)
             {
                 if (_mainLight)
                 {
@@ -151,11 +151,11 @@ namespace Crest
                 _mainLight = null;
             }
 
-            if (!OceanRenderer.Instance._primaryLight)
+            if (!_ocean._primaryLight)
             {
                 if (!Settings._allowNullLight)
                 {
-                    Debug.LogWarning("Primary light must be specified on OceanRenderer script to enable shadows.", OceanRenderer.Instance);
+                    Debug.LogWarning("Primary light must be specified on OceanRenderer script to enable shadows.", _ocean);
                 }
                 return;
             }
@@ -187,7 +187,7 @@ namespace Crest
             }
 
             // Update the camera if it has changed.
-            if (_cameraMain.transform != OceanRenderer.Instance.Viewpoint)
+            if (_cameraMain.transform != _ocean.Viewpoint)
             {
                 UpdateCameraMain();
             }
@@ -208,25 +208,25 @@ namespace Crest
                 TextureArrayHelpers.ClearToBlack(_targets);
             }
 
-            var lt = OceanRenderer.Instance._lodTransform;
+            var lt = _ocean._lodTransform;
             for (var lodIdx = lt.LodCount - 1; lodIdx >= 0; lodIdx--)
             {
                 _renderProperties.Initialise(BufCopyShadowMap, _updateShadowShader, krnl_UpdateShadow);
 
                 lt._renderData[lodIdx].Validate(0, SimName);
                 _renderProperties.SetVector(sp_CenterPos, lt._renderData[lodIdx]._posSnapped);
-                var scale = OceanRenderer.Instance.CalcLodScale(lodIdx);
+                var scale = _ocean.CalcLodScale(lodIdx);
                 _renderProperties.SetVector(sp_Scale, new Vector3(scale, 1f, scale));
 
-                if (OceanRenderer.Instance.Viewpoint != null)
+                if (_ocean.Viewpoint != null)
                 {
-                    _renderProperties.SetVector(sp_CamPos, OceanRenderer.Instance.Viewpoint.position);
-                    _renderProperties.SetVector(sp_CamForward, OceanRenderer.Instance.Viewpoint.forward);
+                    _renderProperties.SetVector(sp_CamPos, _ocean.Viewpoint.position);
+                    _renderProperties.SetVector(sp_CamForward, _ocean.Viewpoint.forward);
                 }
 
                 _renderProperties.SetVector(sp_JitterDiameters_CurrentFrameWeights, new Vector4(Settings._jitterDiameterSoft, Settings._jitterDiameterHard, Settings._currentFrameWeightSoft, Settings._currentFrameWeightHard));
                 _renderProperties.SetMatrix(sp_MainCameraProjectionMatrix, _cameraMain.projectionMatrix * _cameraMain.worldToCameraMatrix);
-                _renderProperties.SetFloat(sp_SimDeltaTime, OceanRenderer.Instance.DeltaTimeDynamics);
+                _renderProperties.SetFloat(sp_SimDeltaTime, _ocean.DeltaTimeDynamics);
 
                 // compute which lod data we are sampling previous frame shadows from. if a scale change has happened this can be any lod up or down the chain.
                 var srcDataIdx = lodIdx + ScaleDifferencePow2;
@@ -235,13 +235,13 @@ namespace Crest
                 _renderProperties.SetInt(sp_LD_SliceIndex_Source, srcDataIdx);
                 BindSourceData(_renderProperties, false);
                 _renderProperties.SetTexture(sp_LD_TexArray_Target, _targets);
-                _renderProperties.DispatchShader();
+                _renderProperties.DispatchShader(_ocean);
             }
         }
 
         void UpdateCameraMain()
         {
-            var viewpoint = OceanRenderer.Instance.Viewpoint;
+            var viewpoint = _ocean.Viewpoint;
             _cameraMain = viewpoint != null ? viewpoint.GetComponent<Camera>() : null;
 
             if (_cameraMain == null)
@@ -262,7 +262,7 @@ namespace Crest
             }
 #endif
 
-            foreach (var renderData in OceanRenderer.Instance._lodTransform._renderDataSource)
+            foreach (var renderData in _ocean._lodTransform._renderDataSource)
             {
                 renderData.Validate(BuildCommandBufferBase._lastUpdateFrame - OceanRenderer.FrameCount, SimName);
             }
@@ -270,7 +270,7 @@ namespace Crest
 
         public void BindSourceData(IPropertyWrapper simMaterial, bool paramsOnly)
         {
-            var rd = OceanRenderer.Instance._lodTransform._renderDataSource;
+            var rd = _ocean._lodTransform._renderDataSource;
             BindData(simMaterial, paramsOnly ? Texture2D.blackTexture : _sources as Texture, true, ref rd, true);
         }
 

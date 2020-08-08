@@ -80,12 +80,12 @@ namespace Crest
         // 64 recommended as a good common minimum: https://www.reddit.com/r/GraphicsProgramming/comments/aeyfkh/for_compute_shaders_is_there_an_ideal_numthreads/
         public const int THREAD_GROUP_SIZE_X = 8;
         public const int THREAD_GROUP_SIZE_Y = 8;
-        public void DispatchShader()
+        public void DispatchShader(OceanRenderer ocean)
         {
             _commandBuffer.DispatchCompute(
                 _computeShader, _computeKernel,
-                OceanRenderer.Instance.LodDataResolution / THREAD_GROUP_SIZE_X,
-                OceanRenderer.Instance.LodDataResolution / THREAD_GROUP_SIZE_Y,
+                ocean.LodDataResolution / THREAD_GROUP_SIZE_X,
+                ocean.LodDataResolution / THREAD_GROUP_SIZE_Y,
                 1
             );
 
@@ -94,13 +94,13 @@ namespace Crest
             _computeKernel = -1;
         }
 
-        public void DispatchShaderMultiLOD()
+        public void DispatchShaderMultiLOD(OceanRenderer ocean)
         {
             _commandBuffer.DispatchCompute(
                 _computeShader, _computeKernel,
-                OceanRenderer.Instance.LodDataResolution / THREAD_GROUP_SIZE_X,
-                OceanRenderer.Instance.LodDataResolution / THREAD_GROUP_SIZE_Y,
-                OceanRenderer.Instance.CurrentLodCount
+                ocean.LodDataResolution / THREAD_GROUP_SIZE_X,
+                ocean.LodDataResolution / THREAD_GROUP_SIZE_Y,
+                ocean.CurrentLodCount
             );
 
             _commandBuffer = null;

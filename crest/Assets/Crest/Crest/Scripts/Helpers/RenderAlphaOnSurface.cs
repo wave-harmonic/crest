@@ -18,14 +18,16 @@ namespace Crest
         Renderer _rend;
         Mesh _mesh;
         Bounds _boundsLocal;
+        OceanRenderer _ocean;
 
         private void Start()
         {
             _rend = GetComponent<Renderer>();
             _mesh = GetComponent<MeshFilter>().mesh;
             _boundsLocal = _mesh.bounds;
+            _ocean = OceanRenderer.ClosestInstance(transform.position);
 
-            if (OceanRenderer.Instance != null)
+            if (_ocean != null)
             {
                 LateUpdateBounds();
             }
@@ -33,14 +35,15 @@ namespace Crest
 
         private void LateUpdate()
         {
-            if (OceanRenderer.Instance == null)
+            _ocean = OceanRenderer.ClosestInstance(transform.position);
+            if (_ocean == null)
             {
                 return;
             }
 
             // find which lod this object is overlapping
             var rect = new Rect(transform.position.x, transform.position.z, 0f, 0f);
-            var lodIdx = LodDataMgrAnimWaves.SuggestDataLOD(rect);
+            var lodIdx = LodDataMgrAnimWaves.SuggestDataLOD(_ocean, rect);
 
             if (lodIdx > -1)
             {
@@ -51,11 +54,11 @@ namespace Crest
 
                 _rend.GetPropertyBlock(_mpb.materialPropertyBlock);
 
-                var lodCount = OceanRenderer.Instance.CurrentLodCount;
-                var lodDataAnimWaves = OceanRenderer.Instance._lodDataAnimWaves;
+                var lodCount = _ocean.CurrentLodCount;
+                var lodDataAnimWaves = _ocean._lodDataAnimWaves;
                 _mpb.SetInt(LodDataMgr.sp_LD_SliceIndex, lodIdx);
                 lodDataAnimWaves.BindResultData(_mpb);
-                var lodDataClipSurface = OceanRenderer.Instance._lodDataClipSurface;
+                var lodDataClipSurface = _ocean._lodDataClipSurface;
                 if (lodDataClipSurface != null)
                 {
                     lodDataClipSurface.BindResultData(_mpb);
@@ -66,12 +69,12 @@ namespace Crest
                 }
 
                 // blend LOD 0 shape in/out to avoid pop, if the ocean might scale up later (it is smaller than its maximum scale)
-                bool needToBlendOutShape = lodIdx == 0 && OceanRenderer.Instance.ScaleCouldIncrease;
-                float meshScaleLerp = needToBlendOutShape ? OceanRenderer.Instance.ViewerAltitudeLevelAlpha : 0f;
+                bool needToBlendOutShape = lodIdx == 0 && _ocean.ScaleCouldIncrease;
+                float meshScaleLerp = needToBlendOutShape ? _ocean.ViewerAltitudeLevelAlpha : 0f;
 
                 // blend furthest normals scale in/out to avoid pop, if scale could reduce
-                bool needToBlendOutNormals = lodIdx == lodCount - 1 && OceanRenderer.Instance.ScaleCouldDecrease;
-                float farNormalsWeight = needToBlendOutNormals ? OceanRenderer.Instance.ViewerAltitudeLevelAlpha : 1f;
+                bool needToBlendOutNormals = lodIdx == lodCount - 1 && _ocean.ScaleCouldDecrease;
+                float farNormalsWeight = needToBlendOutNormals ? _ocean.ViewerAltitudeLevelAlpha : 1f;
                 _mpb.SetVector(OceanChunkRenderer.sp_InstanceData, new Vector3(meshScaleLerp, farNormalsWeight, lodIdx));
 
                 _rend.SetPropertyBlock(_mpb.materialPropertyBlock);
@@ -84,13 +87,13 @@ namespace Crest
         {
             // make sure we're at sea level. we will expand the bounds which only works at sea level
             float y = transform.position.y;
-            if (!Mathf.Approximately(y, OceanRenderer.Instance.SeaLevel))
+            if (!Mathf.Approximately(y, _ocean.SeaLevel))
             {
-                transform.position += (OceanRenderer.Instance.SeaLevel - y) * Vector3.up;
+                transform.position += (_ocean.SeaLevel - y) * Vector3.up;
             }
 
             var bounds = _boundsLocal;
-            OceanChunkRenderer.ExpandBoundsForDisplacements(transform, ref bounds);
+            OceanChunkRenderer.ExpandBoundsForDisplacements(_ocean, transform, ref bounds);
             _mesh.bounds = bounds;
 
             if (_drawBounds)

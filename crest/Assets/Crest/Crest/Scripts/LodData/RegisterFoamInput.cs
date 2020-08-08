@@ -14,7 +14,7 @@ namespace Crest
     {
         public override bool Enabled => true;
 
-        public override float Wavelength => 0f;
+        public override float Wavelength(OceanRenderer ocean) => 0f;
 
         protected override Color GizmoColor => new Color(1f, 1f, 1f, 0.5f);
 

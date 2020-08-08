@@ -66,7 +66,7 @@ public class BoatAlignNormal : FloatingObjectBase
     {
         _rb = GetComponent<Rigidbody>();
 
-        if (OceanRenderer.Instance == null)
+        if (OceanRenderer.AnyInstance == null)
         {
             enabled = false;
             return;
@@ -75,7 +75,8 @@ public class BoatAlignNormal : FloatingObjectBase
 
     void FixedUpdate()
     {
-        if (OceanRenderer.Instance == null)
+        var ocean = OceanRenderer.ClosestInstance(transform.position);
+        if (ocean == null)
         {
             return;
         }
@@ -83,7 +84,7 @@ public class BoatAlignNormal : FloatingObjectBase
         UnityEngine.Profiling.Profiler.BeginSample("BoatAlignNormal.FixedUpdate");
 
         _sampleHeightHelper.Init(transform.position, _boatWidth, true);
-        var height = OceanRenderer.Instance.SeaLevel;
+        var height = ocean.SeaLevel;
 
         _sampleHeightHelper.Sample(out Vector3 disp, out var normal, out var waterSurfaceVel);
 

@@ -56,9 +56,9 @@ namespace Crest
         {
             base.InitData();
 
-            int resolution = OceanRenderer.Instance.LodDataResolution;
+            int resolution = _ocean.LodDataResolution;
             var desc = new RenderTextureDescriptor(resolution, resolution, TextureFormat, 0);
-            _sources = CreateLodDataTextures(desc, SimName + "_1", NeedToReadWriteTextureData);
+            _sources = CreateLodDataTextures(_ocean, desc, SimName + "_1", NeedToReadWriteTextureData);
 
             TextureArrayHelpers.ClearToBlack(_targets);
             TextureArrayHelpers.ClearToBlack(_sources);
@@ -67,8 +67,8 @@ namespace Crest
         public void ValidateSourceData(bool usePrevTransform)
         {
             var renderDataToValidate = usePrevTransform ?
-                OceanRenderer.Instance._lodTransform._renderDataSource
-                : OceanRenderer.Instance._lodTransform._renderData;
+                _ocean._lodTransform._renderDataSource
+                : _ocean._lodTransform._renderData;
             int validationFrame = usePrevTransform ? BuildCommandBufferBase._lastUpdateFrame - OceanRenderer.FrameCount : 0;
             foreach (var renderData in renderDataToValidate)
             {
@@ -79,8 +79,8 @@ namespace Crest
         public void BindSourceData(IPropertyWrapper properties, bool paramsOnly, bool usePrevTransform, bool sourceLod = false)
         {
             var renderData = usePrevTransform ?
-                OceanRenderer.Instance._lodTransform._renderDataSource
-                : OceanRenderer.Instance._lodTransform._renderData;
+                _ocean._lodTransform._renderDataSource
+                : _ocean._lodTransform._renderData;
 
             BindData(properties, paramsOnly ? TextureArrayHelpers.BlackTextureArray : (Texture)_sources, true, ref renderData, sourceLod);
         }
@@ -127,9 +127,9 @@ namespace Crest
                 );
 
                 // Bind current data
-                BindData(_renderSimProperties, null, false, ref OceanRenderer.Instance._lodTransform._renderData, false);
+                BindData(_renderSimProperties, null, false, ref _ocean._lodTransform._renderData, false);
 
-                _renderSimProperties.DispatchShaderMultiLOD();
+                _renderSimProperties.DispatchShaderMultiLOD(_ocean);
 
                 for (var lodIdx = lodCount - 1; lodIdx >= 0; lodIdx--)
                 {

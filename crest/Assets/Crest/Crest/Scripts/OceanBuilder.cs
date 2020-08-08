@@ -451,6 +451,7 @@ namespace Crest
 
                 {
                     var oceanChunkRenderer = patch.AddComponent<OceanChunkRenderer>();
+                    oceanChunkRenderer._ocean = ocean;
                     oceanChunkRenderer._boundsLocal = meshBounds[(int)patchTypes[i]];
                     patch.AddComponent<MeshFilter>().sharedMesh = meshData[(int)patchTypes[i]];
                     oceanChunkRenderer.SetInstanceData(lodIndex, lodCount, lodDataResolution, geoDownSampleFactor);

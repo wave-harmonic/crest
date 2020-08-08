@@ -40,6 +40,7 @@ namespace Crest
         // how many vertical edges to add to curtain geometry
         const int GEOM_HORIZ_DIVISIONS = 64;
 
+        OceanRenderer _ocean;
         PropertyWrapperMPB _mpb;
         Renderer _rend;
 
@@ -62,8 +63,11 @@ namespace Crest
             _rend.sortingOrder = _overrideSortingOrder ? _overridenSortingOrder : -LodDataMgr.MAX_LOD_COUNT - 1;
             GetComponent<MeshFilter>().sharedMesh = Mesh2DGrid(0, 2, -0.5f, -0.5f, 1f, 1f, GEOM_HORIZ_DIVISIONS, 1);
 
+            // TODO - how to connect camera/underwater effect with ocean?
+            _ocean = OceanRenderer.AnyInstance;
+
 #if UNITY_EDITOR
-            if (EditorApplication.isPlaying && !Validate(OceanRenderer.Instance, ValidatedHelper.DebugLog))
+            if (EditorApplication.isPlaying && !Validate(_ocean, ValidatedHelper.DebugLog))
             {
                 enabled = false;
                 return;
@@ -79,7 +83,7 @@ namespace Crest
 
         void ConfigureMaterial()
         {
-            if (OceanRenderer.Instance == null) return;
+            if (_ocean == null) return;
 
 #if UNITY_EDITOR
             // This prevents the shader/material from going shader error pink.
@@ -88,7 +92,7 @@ namespace Crest
 
             if (_copyParamsOnStartup)
             {
-                _rend.sharedMaterial.CopyPropertiesFromMaterial(OceanRenderer.Instance.OceanMaterial);
+                _rend.sharedMaterial.CopyPropertiesFromMaterial(_ocean.OceanMaterial);
             }
         }
 
@@ -102,7 +106,7 @@ namespace Crest
             }
 #endif
 
-            if (OceanRenderer.Instance == null || !ShowEffect())
+            if (_ocean == null || !ShowEffect())
             {
                 _rend.enabled = false;
                 return;
@@ -124,7 +128,7 @@ namespace Crest
             {
                 if (_copyParamsEachFrame)
                 {
-                    _rend.sharedMaterial.CopyPropertiesFromMaterial(OceanRenderer.Instance.OceanMaterial);
+                    _rend.sharedMaterial.CopyPropertiesFromMaterial(_ocean.OceanMaterial);
                 }
 
                 // Assign lod0 shape - trivial but bound every frame because lod transform comes from here
@@ -136,20 +140,20 @@ namespace Crest
 
                 // Underwater rendering uses displacements for intersecting the waves with the near plane, and ocean depth/shadows for ScatterColour()
                 _mpb.SetInt(LodDataMgr.sp_LD_SliceIndex, 0);
-                OceanRenderer.Instance._lodDataAnimWaves.BindResultData(_mpb);
+                _ocean._lodDataAnimWaves.BindResultData(_mpb);
 
-                if (OceanRenderer.Instance._lodDataSeaDepths != null)
+                if (_ocean._lodDataSeaDepths != null)
                 {
-                    OceanRenderer.Instance._lodDataSeaDepths.BindResultData(_mpb);
+                    _ocean._lodDataSeaDepths.BindResultData(_mpb);
                 }
                 else
                 {
                     LodDataMgrSeaFloorDepth.BindNull(_mpb);
                 }
 
-                if (OceanRenderer.Instance._lodDataShadow != null)
+                if (_ocean._lodDataShadow != null)
                 {
-                    OceanRenderer.Instance._lodDataShadow.BindResultData(_mpb);
+                    _ocean._lodDataShadow.BindResultData(_mpb);
                 }
                 else
                 {
@@ -158,7 +162,7 @@ namespace Crest
 
                 _mpb.SetFloat(sp_HeightOffset, heightOffset);
 
-                _mpb.SetVector(OceanChunkRenderer.sp_InstanceData, new Vector3(OceanRenderer.Instance.ViewerAltitudeLevelAlpha, 0f, 0f));
+                _mpb.SetVector(OceanChunkRenderer.sp_InstanceData, new Vector3(_ocean.ViewerAltitudeLevelAlpha, 0f, 0f));
 
                 _rend.SetPropertyBlock(_mpb.materialPropertyBlock);
             }

@@ -72,16 +72,16 @@ namespace Crest
             int _batchIndex = -1;
 
             // The ocean input system uses this to decide which lod this batch belongs in
-            public float Wavelength => OceanRenderer.Instance._lodTransform.MaxWavelength(_batchIndex) / 2f;
+            public float Wavelength(OceanRenderer ocean) => ocean._lodTransform.MaxWavelength(_batchIndex) / 2f;
 
             public bool Enabled { get; set; }
 
             public bool HasWaves { get; set; }
 
-            public void Draw(CommandBuffer buf, float weight, int isTransition, int lodIdx)
+            public void Draw(OceanRenderer ocean, CommandBuffer buf, float weight, int isTransition, int lodIdx)
             {
                 HasWaves = false;
-                _gerstner.UpdateBatch(this, _batchIndex);
+                _gerstner.UpdateBatch(ocean, this, _batchIndex);
 
                 if (HasWaves && weight > 0f)
                 {
@@ -160,7 +160,7 @@ namespace Crest
                 _spectrum.name = "Default Waves (auto)";
             }
 
-            if (EditorApplication.isPlaying && !Validate(OceanRenderer.Instance, ValidatedHelper.DebugLog))
+            if (EditorApplication.isPlaying && !Validate(OceanRenderer.AnyInstance, ValidatedHelper.DebugLog))
             {
                 enabled = false;
                 return;
@@ -223,19 +223,19 @@ namespace Crest
 
         float _lastUpdateTime = -1f;
 
-        void UpdateData()
+        void UpdateData(OceanRenderer ocean)
         {
-            if (OceanRenderer.Instance == null) return;
+            if (ocean == null) return;
 
-            if (_lastUpdateTime >= OceanRenderer.Instance.CurrentTime) return;
-            _lastUpdateTime = OceanRenderer.Instance.CurrentTime;
+            if (_lastUpdateTime >= ocean.CurrentTime) return;
+            _lastUpdateTime = ocean.CurrentTime;
 
             if (_evaluateSpectrumAtRuntime)
             {
                 UpdateWaveData();
             }
 
-            ReportMaxDisplacement();
+            ReportMaxDisplacement(ocean);
         }
 
         public void UpdateWaveData()
@@ -270,7 +270,7 @@ namespace Crest
             }
         }
 
-        private void ReportMaxDisplacement()
+        private void ReportMaxDisplacement(OceanRenderer ocean)
         {
             if (_spectrum._chopScales.Length != OceanWaveSpectrum.NUM_OCTAVES)
             {
@@ -282,7 +282,7 @@ namespace Crest
             {
                 ampSum += _amplitudes[i] * _spectrum._chopScales[i / _componentsPerOctave];
             }
-            OceanRenderer.Instance.ReportMaxDisplacementFromShape(ampSum * _spectrum._chop, ampSum, ampSum);
+            ocean.ReportMaxDisplacementFromShape(ampSum * _spectrum._chop, ampSum, ampSum);
         }
 
         void InitBatches()
@@ -365,7 +365,7 @@ namespace Crest
         /// Computes Gerstner params for a set of waves, for the given lod idx. Writes shader data to the given property.
         /// Returns number of wave components rendered in this batch.
         /// </summary>
-        void UpdateBatch(int lodIdx, int firstComponent, int lastComponentNonInc, GerstnerBatch batch)
+        void UpdateBatch(OceanRenderer ocean, int lodIdx, int firstComponent, int lastComponentNonInc, GerstnerBatch batch)
         {
             batch.HasWaves = false;
 
@@ -404,11 +404,11 @@ namespace Crest
                         // It used to be this, but I'm pushing all the stuff that doesn't depend on position into the phase.
                         //half4 angle = k * (C * _CrestTime + x) + _Phases[vi];
                         float gravityScale = _spectrum._gravityScales[(firstComponent + i) / _componentsPerOctave];
-                        float gravity = OceanRenderer.Instance.Gravity * _spectrum._gravityScale;
+                        float gravity = ocean.Gravity * _spectrum._gravityScale;
                         float C = Mathf.Sqrt(wl * gravity * gravityScale * one_over_2pi);
                         float k = twopi / wl;
                         // Repeat every 2pi to keep angle bounded - helps precision on 16bit platforms
-                        UpdateBatchScratchData._phasesBatch[vi][ei] = Mathf.Repeat(_phases[firstComponent + i] + k * C * OceanRenderer.Instance.CurrentTime, Mathf.PI * 2f);
+                        UpdateBatchScratchData._phasesBatch[vi][ei] = Mathf.Repeat(_phases[firstComponent + i] + k * C * ocean.CurrentTime, Mathf.PI * 2f);
 
                         numInBatch++;
                     }
@@ -464,16 +464,16 @@ namespace Crest
                 mat.SetVectorArray(sp_Phases, UpdateBatchScratchData._phasesBatch);
                 mat.SetVectorArray(sp_ChopAmps, UpdateBatchScratchData._chopAmpsBatch);
                 mat.SetFloat(sp_NumInBatch, numInBatch);
-                mat.SetFloat(sp_AttenuationInShallows, OceanRenderer.Instance._lodDataAnimWaves.Settings.AttenuationInShallows);
+                mat.SetFloat(sp_AttenuationInShallows, ocean._lodDataAnimWaves.Settings.AttenuationInShallows);
 
                 int numVecs = (numInBatch + 3) / 4;
                 mat.SetInt(sp_NumWaveVecs, numVecs);
                 mat.SetInt(LodDataMgr.sp_LD_SliceIndex, lodIdx - i);
-                OceanRenderer.Instance._lodDataAnimWaves.BindResultData(mat);
+                ocean._lodDataAnimWaves.BindResultData(mat);
 
-                if (OceanRenderer.Instance._lodDataSeaDepths != null)
+                if (ocean._lodDataSeaDepths != null)
                 {
-                    OceanRenderer.Instance._lodDataSeaDepths.BindResultData(mat, false);
+                    ocean._lodDataSeaDepths.BindResultData(mat, false);
                 }
                 else
                 {
@@ -489,7 +489,7 @@ namespace Crest
             batch.HasWaves = true;
         }
 
-        void UpdateBatch(GerstnerBatch batch, int batchIdx)
+        void UpdateBatch(OceanRenderer ocean, GerstnerBatch batch, int batchIdx)
         {
 #if UNITY_EDITOR
             if (_spectrum == null) return;
@@ -498,24 +498,24 @@ namespace Crest
             // Default to disabling all batches
             batch.HasWaves = false;
 
-            if (OceanRenderer.Instance == null)
+            if (ocean == null)
             {
                 return;
             }
 
-            UpdateData();
+            UpdateData(ocean);
 
             if (_wavelengths.Length == 0)
             {
                 return;
             }
 
-            int lodIdx = Mathf.Min(batchIdx, OceanRenderer.Instance.CurrentLodCount - 1);
+            int lodIdx = Mathf.Min(batchIdx, ocean.CurrentLodCount - 1);
 
             int componentIdx = 0;
 
             // seek forward to first wavelength that is big enough to render into current LODs
-            float minWl = OceanRenderer.Instance._lodTransform.MaxWavelength(batchIdx) / 2f;
+            float minWl = ocean._lodTransform.MaxWavelength(batchIdx) / 2f;
             while (componentIdx < _wavelengths.Length && _wavelengths[componentIdx] < minWl)
             {
                 componentIdx++;
@@ -532,7 +532,7 @@ namespace Crest
             if (componentIdx > startCompIdx)
             {
                 //Debug.Log($"Batch {batch}, lodIdx {lodIdx}, range: {minWl} -> {2f * minWl}, indices: {startCompIdx} -> {componentIdx}");
-                UpdateBatch(lodIdx, startCompIdx, componentIdx, batch);
+                UpdateBatch(ocean, lodIdx, startCompIdx, componentIdx, batch);
             }
         }
 
@@ -589,7 +589,8 @@ namespace Crest
             if (_amplitudes == null) return false;
 
             Vector2 pos = new Vector2(i_worldPos.x, i_worldPos.z);
-            float mytime = OceanRenderer.Instance.CurrentTime;
+            // TODO - whats the solve here?
+            float mytime = OceanRenderer.AnyInstance.CurrentTime;
             float windAngle = _windDirectionAngle;
             float minWaveLength = i_minSpatialLength / 2f;
 
@@ -623,7 +624,8 @@ namespace Crest
             o_height = 0f;
 
             Vector3 posFlatland = i_worldPos;
-            posFlatland.y = OceanRenderer.Instance.Root.position.y;
+            // todo
+            posFlatland.y = OceanRenderer.AnyInstance.Root.position.y;
 
             Vector3 undisplacedPos;
             if (!ComputeUndisplacedPosition(ref posFlatland, i_minSpatialLength, out undisplacedPos))
@@ -655,7 +657,8 @@ namespace Crest
             }
 
             o_undisplacedWorldPos = guess;
-            o_undisplacedWorldPos.y = OceanRenderer.Instance.SeaLevel;
+            // todo
+            o_undisplacedWorldPos.y = OceanRenderer.AnyInstance.SeaLevel;
 
             return true;
         }
@@ -668,7 +671,8 @@ namespace Crest
             if (_amplitudes == null) return false;
 
             var pos = new Vector2(i_undisplacedWorldPos.x, i_undisplacedWorldPos.z);
-            float mytime = OceanRenderer.Instance.CurrentTime;
+            // todo
+            float mytime = OceanRenderer.AnyInstance.CurrentTime;
             float windAngle = _windDirectionAngle;
             float minWaveLength = i_minSpatialLength / 2f;
 
@@ -714,7 +718,8 @@ namespace Crest
             }
 
             Vector2 pos = new Vector2(i_worldPos.x, i_worldPos.z);
-            float mytime = OceanRenderer.Instance.CurrentTime;
+            // todo
+            float mytime = OceanRenderer.AnyInstance.CurrentTime;
             float windAngle = _windDirectionAngle;
             float minWavelength = i_minSpatialLength / 2f;
 

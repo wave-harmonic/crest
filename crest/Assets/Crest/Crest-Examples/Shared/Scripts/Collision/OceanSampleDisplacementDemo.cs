@@ -25,14 +25,15 @@ public class OceanSampleDisplacementDemo : MonoBehaviour
 
     void Update()
     {
-        if (OceanRenderer.Instance == null)
+        var ocean = OceanRenderer.ClosestInstance(transform.position);
+        if (ocean == null)
         {
             return;
         }
 
         if (_trackCamera)
         {
-            var height = Mathf.Abs(Camera.main.transform.position.y - OceanRenderer.Instance.SeaLevel);
+            var height = Mathf.Abs(Camera.main.transform.position.y - ocean.SeaLevel);
             var lookAngle = Mathf.Max(Mathf.Abs(Camera.main.transform.forward.y), 0.001f);
             var offset = height / lookAngle;
             _markerPos[0] = Camera.main.transform.position + Camera.main.transform.forward * offset;
@@ -40,7 +41,7 @@ public class OceanSampleDisplacementDemo : MonoBehaviour
             _markerPos[2] = Camera.main.transform.position + Camera.main.transform.forward * offset + _samplesRadius * Vector3.forward;
         }
 
-        var collProvider = OceanRenderer.Instance.CollisionProvider;
+        var collProvider = ocean.CollisionProvider;
 
         var status = collProvider.Query(GetHashCode(), _minGridSize, _markerPos, _resultDisps, _resultNorms, _resultVels);
 
@@ -56,7 +57,7 @@ public class OceanSampleDisplacementDemo : MonoBehaviour
                 }
 
                 var query = _markerPos[i];
-                query.y = OceanRenderer.Instance.SeaLevel;
+                query.y = ocean.SeaLevel;
 
                 var disp = _resultDisps[i];
 

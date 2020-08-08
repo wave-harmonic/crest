@@ -40,7 +40,7 @@ namespace Crest
                 return;
             }
 
-            for (int lodIdx = OceanRenderer.Instance.CurrentLodCount - 1; lodIdx >= 0; lodIdx--)
+            for (int lodIdx = _ocean.CurrentLodCount - 1; lodIdx >= 0; lodIdx--)
             {
                 buf.SetRenderTarget(_targets, 0, CubemapFace.Unknown, lodIdx);
                 buf.ClearRenderTarget(false, true, s_nullColor);

@@ -12,7 +12,7 @@ namespace Crest
     [ExecuteAlways]
     public class RegisterDynWavesInput : RegisterLodDataInput<LodDataMgrDynWaves>
     {
-        public override float Wavelength => 0f;
+        public override float Wavelength(OceanRenderer ocean) => 0f;
 
         public override bool Enabled => true;
 

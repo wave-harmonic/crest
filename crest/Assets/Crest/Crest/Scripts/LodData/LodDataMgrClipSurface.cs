@@ -30,7 +30,7 @@ namespace Crest
             base.Start();
 
 #if UNITY_EDITOR
-            if (!OceanRenderer.Instance.OceanMaterial.IsKeywordEnabled("_CLIPSURFACE_ON"))
+            if (!_ocean.OceanMaterial.IsKeywordEnabled("_CLIPSURFACE_ON"))
             {
                 Debug.LogWarning("Clip Surface is not enabled on the current ocean material, so the surface clipping will not work. Please enable it on the material.", _ocean);
             }
@@ -48,10 +48,10 @@ namespace Crest
                 return;
             }
 
-            for (int lodIdx = OceanRenderer.Instance.CurrentLodCount - 1; lodIdx >= 0; lodIdx--)
+            for (int lodIdx = _ocean.CurrentLodCount - 1; lodIdx >= 0; lodIdx--)
             {
                 buf.SetRenderTarget(_targets, 0, CubemapFace.Unknown, lodIdx);
-                var defaultToClip = OceanRenderer.Instance._defaultClippingState == OceanRenderer.DefaultClippingState.EverythingClipped;
+                var defaultToClip = _ocean._defaultClippingState == OceanRenderer.DefaultClippingState.EverythingClipped;
                 buf.ClearRenderTarget(false, true, defaultToClip ? Color.white : Color.black);
                 buf.SetGlobalInt(sp_LD_SliceIndex, lodIdx);
                 SubmitDraws(lodIdx, buf);

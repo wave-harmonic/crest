@@ -41,14 +41,14 @@ namespace Crest
 
         private void Start()
         {
-            if (OceanRenderer.Instance == null)
+            if (OceanRenderer.AnyInstance == null)
             {
                 enabled = false;
                 return;
             }
 
 #if UNITY_EDITOR
-            if (EditorApplication.isPlaying && !Validate(OceanRenderer.Instance, ValidatedHelper.DebugLog))
+            if (EditorApplication.isPlaying && !Validate(OceanRenderer.AnyInstance, ValidatedHelper.DebugLog))
             {
                 enabled = false;
                 return;
@@ -68,14 +68,16 @@ namespace Crest
 
         void LateUpdate()
         {
-            if (OceanRenderer.Instance == null)
+            var ocean = OceanRenderer.ClosestInstance(transform.position);
+
+            if (ocean == null)
             {
                 return;
             }
 
             // which lod is this object in (roughly)?
             var thisRect = new Rect(new Vector2(transform.position.x, transform.position.z), Vector3.zero);
-            var minLod = LodDataMgrAnimWaves.SuggestDataLOD(thisRect);
+            var minLod = LodDataMgrAnimWaves.SuggestDataLOD(ocean, thisRect);
             if (minLod == -1)
             {
                 // outside all lods, nothing to update!
@@ -85,7 +87,7 @@ namespace Crest
             // how many active wave sims currently apply to this object - ideally this would eliminate sims that are too
             // low res, by providing a max grid size param
             int simsPresent, simsActive;
-            LodDataMgrDynWaves.CountWaveSims(minLod, out simsPresent, out simsActive);
+            LodDataMgrDynWaves.CountWaveSims(ocean, minLod, out simsPresent, out simsActive);
 
             // counting non-existent sims is expensive - stop updating if none found
             if (simsPresent == 0)
@@ -99,8 +101,6 @@ namespace Crest
                 return;
 
             transform.position = transform.parent.TransformPoint(_localOffset) + _velocityPositionOffset * _boat.Velocity;
-
-            var ocean = OceanRenderer.Instance;
 
             // feed in water velocity
             var vel = (transform.position - _posLast) / ocean.DeltaTimeDynamics;

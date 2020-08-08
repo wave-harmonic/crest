@@ -57,7 +57,7 @@ namespace Crest
         {
             base.InitData();
 
-            _active = new bool[OceanRenderer.Instance.CurrentLodCount];
+            _active = new bool[_ocean.CurrentLodCount];
             for (int i = 0; i < _active.Length; i++) _active[i] = true;
         }
 
@@ -81,7 +81,7 @@ namespace Crest
                 return false;
 
             // check if the sim should be running
-            float texelWidth = OceanRenderer.Instance._lodTransform._renderData[lodIdx].Validate(0, SimName)._texelWidth;
+            float texelWidth = _ocean._lodTransform._renderData[lodIdx].Validate(0, SimName)._texelWidth;
             _active[lodIdx] = texelWidth >= Settings._minGridSize && (texelWidth <= Settings._maxGridSize || Settings._maxGridSize == 0f);
 
             return true;
@@ -98,25 +98,25 @@ namespace Crest
             base.SetAdditionalSimParams(simMaterial);
 
             simMaterial.SetFloat(sp_Damping, Settings._damping);
-            simMaterial.SetFloat(sp_Gravity, OceanRenderer.Instance.Gravity * Settings._gravityMultiplier);
+            simMaterial.SetFloat(sp_Gravity, _ocean.Gravity * Settings._gravityMultiplier);
 
             float laplacianKernelAngle = _rotateLaplacian ? Mathf.PI * 2f * Random.value : 0f;
             simMaterial.SetVector(sp_LaplacianAxisX, new Vector2(Mathf.Cos(laplacianKernelAngle), Mathf.Sin(laplacianKernelAngle)));
 
             // assign sea floor depth - to slot 1 current frame data. minor bug here - this depth will actually be from the previous frame,
             // because the depth is scheduled to render just before the animated waves, and this sim happens before animated waves.
-            if (OceanRenderer.Instance._lodDataSeaDepths != null)
+            if (_ocean._lodDataSeaDepths != null)
             {
-                OceanRenderer.Instance._lodDataSeaDepths.BindResultData(simMaterial);
+                _ocean._lodDataSeaDepths.BindResultData(simMaterial);
             }
             else
             {
                 LodDataMgrSeaFloorDepth.BindNull(simMaterial);
             }
 
-            if (OceanRenderer.Instance._lodDataFlow != null)
+            if (_ocean._lodDataFlow != null)
             {
-                OceanRenderer.Instance._lodDataFlow.BindResultData(simMaterial);
+                _ocean._lodDataFlow.BindResultData(simMaterial);
             }
             else
             {
@@ -124,14 +124,14 @@ namespace Crest
             }
         }
 
-        public static void CountWaveSims(int countFrom, out int o_present, out int o_active)
+        public static void CountWaveSims(OceanRenderer ocean, int countFrom, out int o_present, out int o_active)
         {
-            o_present = OceanRenderer.Instance.CurrentLodCount;
+            o_present = ocean.CurrentLodCount;
             o_active = 0;
             for (int i = 0; i < o_present; i++)
             {
                 if (i < countFrom) continue;
-                if (!OceanRenderer.Instance._lodDataDynWaves.SimActive(i)) continue;
+                if (!ocean._lodDataDynWaves.SimActive(i)) continue;
 
                 o_active++;
             }
@@ -139,7 +139,7 @@ namespace Crest
 
         float MaxSimDt(int lodIdx)
         {
-            var ocean = OceanRenderer.Instance;
+            var ocean = _ocean;
 
             // Limit timestep based on Courant constant: https://www.uio.no/studier/emner/matnat/ifi/nedlagte-emner/INF2340/v05/foiler/sim04.pdf
             var Cmax = Settings._courantNumber;

@@ -17,6 +17,8 @@ namespace Crest
         Vector3[] _queryResultNormal = new Vector3[1];
         Vector3[] _queryResultVel = new Vector3[1];
 
+        OceanRenderer _ocean;
+
         float _minLength = 0f;
 
 #if UNITY_EDITOR
@@ -35,6 +37,7 @@ namespace Crest
         {
             _queryPos[0] = i_queryPos;
             _minLength = i_minLength;
+            _ocean = OceanRenderer.ClosestInstance(i_queryPos);
 
 #if UNITY_EDITOR
             if (!allowMultipleCallsPerFrame && _lastFrame >= OceanRenderer.FrameCount)
@@ -50,7 +53,7 @@ namespace Crest
         /// </summary>
         public bool Sample(out float o_height)
         {
-            var collProvider = OceanRenderer.Instance?.CollisionProvider;
+            var collProvider = _ocean?.CollisionProvider;
             if (collProvider == null)
             {
                 o_height = 0f;
@@ -61,18 +64,18 @@ namespace Crest
 
             if (!collProvider.RetrieveSucceeded(status))
             {
-                o_height = OceanRenderer.Instance.SeaLevel;
+                o_height = _ocean.SeaLevel;
                 return false;
             }
 
-            o_height = _queryResult[0].y + OceanRenderer.Instance.SeaLevel;
+            o_height = _queryResult[0].y + _ocean.SeaLevel;
 
             return true;
         }
 
         public bool Sample(out float o_height, out Vector3 o_normal)
         {
-            var collProvider = OceanRenderer.Instance?.CollisionProvider;
+            var collProvider = _ocean?.CollisionProvider;
             if (collProvider == null)
             {
                 o_height = 0f;
@@ -84,12 +87,12 @@ namespace Crest
 
             if (!collProvider.RetrieveSucceeded(status))
             {
-                o_height = OceanRenderer.Instance.SeaLevel;
+                o_height = _ocean.SeaLevel;
                 o_normal = Vector3.up;
                 return false;
             }
 
-            o_height = _queryResult[0].y + OceanRenderer.Instance.SeaLevel;
+            o_height = _queryResult[0].y + _ocean.SeaLevel;
             o_normal = _queryResultNormal[0];
 
             return true;
@@ -97,7 +100,7 @@ namespace Crest
 
         public bool Sample(out float o_height, out Vector3 o_normal, out Vector3 o_surfaceVel)
         {
-            var collProvider = OceanRenderer.Instance?.CollisionProvider;
+            var collProvider = _ocean?.CollisionProvider;
             if (collProvider == null)
             {
                 o_height = 0f;
@@ -110,13 +113,13 @@ namespace Crest
 
             if (!collProvider.RetrieveSucceeded(status))
             {
-                o_height = OceanRenderer.Instance.SeaLevel;
+                o_height = _ocean.SeaLevel;
                 o_normal = Vector3.up;
                 o_surfaceVel = Vector3.zero;
                 return false;
             }
 
-            o_height = _queryResult[0].y + OceanRenderer.Instance.SeaLevel;
+            o_height = _queryResult[0].y + _ocean.SeaLevel;
             o_normal = _queryResultNormal[0];
             o_surfaceVel = _queryResultVel[0];
 
@@ -125,7 +128,7 @@ namespace Crest
 
         public bool Sample(out Vector3 o_displacementToPoint, out Vector3 o_normal, out Vector3 o_surfaceVel)
         {
-            var collProvider = OceanRenderer.Instance?.CollisionProvider;
+            var collProvider = _ocean?.CollisionProvider;
             if (collProvider == null)
             {
                 o_displacementToPoint = Vector3.zero;
@@ -159,7 +162,7 @@ namespace Crest
     {
         Vector3[] _queryPos = new Vector3[1];
         Vector3[] _queryResult = new Vector3[1];
-
+        OceanRenderer _ocean;
         float _minLength = 0f;
 
         /// <summary>
@@ -172,6 +175,7 @@ namespace Crest
         {
             _queryPos[0] = i_queryPos;
             _minLength = i_minLength;
+            _ocean = OceanRenderer.ClosestInstance(i_queryPos);
         }
 
         /// <summary>
@@ -179,7 +183,7 @@ namespace Crest
         /// </summary>
         public bool Sample(out Vector2 o_flow)
         {
-            var flowProvider = OceanRenderer.Instance?.FlowProvider;
+            var flowProvider = _ocean?.FlowProvider;
             if (flowProvider == null)
             {
                 o_flow = Vector2.zero;

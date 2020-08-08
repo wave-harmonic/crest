@@ -49,7 +49,7 @@ namespace Crest
             base.Start();
 
 #if UNITY_EDITOR
-            if (!OceanRenderer.Instance.OceanMaterial.IsKeywordEnabled("_FLOW_ON"))
+            if (!_ocean.OceanMaterial.IsKeywordEnabled("_FLOW_ON"))
             {
                 Debug.LogWarning("Flow is not enabled on the current ocean material and will not be visible.", _ocean);
             }
@@ -81,7 +81,7 @@ namespace Crest
                 return;
             }
 
-            for (int lodIdx = OceanRenderer.Instance.CurrentLodCount - 1; lodIdx >= 0; lodIdx--)
+            for (int lodIdx = _ocean.CurrentLodCount - 1; lodIdx >= 0; lodIdx--)
             {
                 buf.SetRenderTarget(_targets, 0, CubemapFace.Unknown, lodIdx);
                 buf.ClearRenderTarget(false, true, Color.black);

@@ -29,13 +29,14 @@ namespace Crest
 
         void Start()
         {
-            if (OceanRenderer.Instance == null)
+            // todo - how to connect this to correct ocean instance?
+            if (OceanRenderer.AnyInstance == null)
             {
                 enabled = false;
                 return;
             }
 
-            _primaryLight = OceanRenderer.Instance._primaryLight;
+            _primaryLight = OceanRenderer.AnyInstance._primaryLight;
 
             // Store lighting settings
             if (_primaryLight)
@@ -47,13 +48,13 @@ namespace Crest
             _fogDensity = RenderSettings.fogDensity;
 
             // Check to make sure the property exists. We might be using a test material.
-            if (!OceanRenderer.Instance.OceanMaterial.HasProperty("_DepthFogDensity"))
+            if (!OceanRenderer.AnyInstance.OceanMaterial.HasProperty("_DepthFogDensity"))
             {
                 enabled = false;
                 return;
             }
 
-            Color density = OceanRenderer.Instance.OceanMaterial.GetColor("_DepthFogDensity");
+            Color density = OceanRenderer.AnyInstance.OceanMaterial.GetColor("_DepthFogDensity");
             _averageDensity = (density.r + density.g + density.b) / 3f;
         }
 
@@ -71,13 +72,13 @@ namespace Crest
 
         void LateUpdate()
         {
-            if (OceanRenderer.Instance == null)
+            if (OceanRenderer.AnyInstance == null)
             {
                 return;
             }
 
             float depthMultiplier = Mathf.Exp(_averageDensity *
-                Mathf.Min(OceanRenderer.Instance.ViewerHeightAboveWater * DEPTH_OUTSCATTER_CONSTANT, 0f));
+                Mathf.Min(OceanRenderer.AnyInstance.ViewerHeightAboveWater * DEPTH_OUTSCATTER_CONSTANT, 0f));
 
             // Darken environmental lighting when viewer underwater
             if (_primaryLight)

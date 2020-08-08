@@ -28,6 +28,8 @@ namespace Crest
         const int s_maxRequests = 4;
         const int s_maxGuids = 1024;
 
+        protected OceanRenderer _ocean;
+
         protected virtual ComputeShader ShaderProcessQueries => _shaderProcessQueries;
         ComputeShader _shaderProcessQueries;
         PropertyWrapperComputeStandalone _wrapper;
@@ -215,13 +217,15 @@ namespace Crest
             InvalidDtForVelocity = 16,
         }
 
-        public QueryBase()
+        public QueryBase(OceanRenderer ocean)
         {
+            _ocean = ocean;
+
             _dataArrivedAction = new System.Action<AsyncGPUReadbackRequest>(DataArrived);
 
-            if (_maxQueryCount != OceanRenderer.Instance._lodDataAnimWaves.Settings.MaxQueryCount)
+            if (_maxQueryCount != ocean._lodDataAnimWaves.Settings.MaxQueryCount)
             {
-                _maxQueryCount = OceanRenderer.Instance._lodDataAnimWaves.Settings.MaxQueryCount;
+                _maxQueryCount = ocean._lodDataAnimWaves.Settings.MaxQueryCount;
                 _queryPosXZ_minGridSize = new Vector3[_maxQueryCount];
             }
 
@@ -307,7 +311,7 @@ namespace Crest
             // The smallest wavelengths should repeat no more than twice across the smaller spatial length. Unless we're
             // in the last LOD - then this is the best we can do.
             float minWavelength = i_minSpatialLength / 2f;
-            float minGridSize = minWavelength / OceanRenderer.Instance.MinTexelsPerWave;
+            float minGridSize = minWavelength / _ocean.MinTexelsPerWave;
 
             if (countPts + segment.x > _queryPosXZ_minGridSize.Length)
             {
@@ -392,7 +396,7 @@ namespace Crest
                 // Retrieve Result heights
                 if (heights != null)
                 {
-                    var seaLevel = OceanRenderer.Instance.SeaLevel;
+                    var seaLevel = _ocean.SeaLevel;
                     for (int i = 0; i < countPoints; i++)
                     {
                         heights[i] = seaLevel + _queryResults[i + segment.x].y;

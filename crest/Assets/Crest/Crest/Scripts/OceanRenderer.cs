@@ -2,6 +2,15 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+// Lod data resolution should be global setting, right now taken from one instance
+// Validation passed "AnyInstance" in a few places, is this ok?
+// Debuggui always takes first instance
+// RenderData.Validate - uses any instance
+// RegisterLodDataClipSurface - this got broken
+// OceanChunkRenderer.OnWillRenderObject - needs layer so it only goes in one cam
+// How to connect underwater effect to ocean instance?
+// How to connect underwater environment lighting with ocean instance?
+
 using System.Collections.Generic;
 using UnityEngine;
 #if UNITY_EDITOR
@@ -257,7 +266,29 @@ namespace Crest
 
         SampleHeightHelper _sampleHeightHelper = new SampleHeightHelper();
 
-        public static OceanRenderer Instance { get; private set; }
+        public static OceanRenderer AnyInstance => _instances.Count > 0 ? _instances[0] : null;
+        public static int InstanceCount => _instances.Count;
+        public static OceanRenderer GetInstance(int index) => _instances[index];
+        public static OceanRenderer ClosestInstance(Vector3 position)
+        {
+            if (_instances.Count == 0) return null;
+
+            var result = _instances[0];
+            var dist2 = (result.transform.position - position).sqrMagnitude;
+            for (int i = 1; i < _instances.Count; i++)
+            {
+                var newdist2 = (_instances[i].transform.position - position).sqrMagnitude;
+                if (newdist2 < dist2)
+                {
+                    result = _instances[i];
+                    dist2 = newdist2;
+                }
+            }
+
+            return result;
+        }
+
+        static List<OceanRenderer> _instances = new List<OceanRenderer>();
 
         // We are computing these values to be optimal based on the base mesh vertex density.
         float _lodAlphaBlackPointFade;
@@ -317,10 +348,14 @@ namespace Crest
 
             _isFirstUpdate = true;
 
-            Instance = this;
+            if (!_instances.Contains(this))
+            {
+                _instances.Add(this);
+            }
+
             Scale = Mathf.Clamp(Scale, _minScale, _maxScale);
 
-            _lodTransform = new LodTransform();
+            _lodTransform = new LodTransform(this);
             _lodTransform.InitLODData(_lodCount);
 
             // Resolution is 4 tiles across.
@@ -368,23 +403,29 @@ namespace Crest
 
             CleanUp();
 
-            Instance = null;
+            if (_instances.Contains(this))
+            {
+                _instances.Remove(this);
+            }
         }
 
 #if UNITY_EDITOR
         static void EditorUpdate()
         {
-            if (Instance == null) return;
-
             if (!EditorApplication.isPlaying)
             {
-                if (EditorApplication.timeSinceStartup - _lastUpdateEditorTime > 1f / Mathf.Clamp(Instance._editModeFPS, 0.01f, 60f))
+                var editModeFPS = AnyInstance._editModeFPS;
+
+                if (EditorApplication.timeSinceStartup - _lastUpdateEditorTime > 1f / Mathf.Clamp(editModeFPS, 0.01f, 60f))
                 {
                     _editorFrames++;
 
                     _lastUpdateEditorTime = (float)EditorApplication.timeSinceStartup;
 
-                    Instance.RunUpdate();
+                    for (var i = 0; i < InstanceCount; i++)
+                    {
+                        GetInstance(i).RunUpdate();
+                    }
                 }
             }
         }
@@ -548,7 +589,7 @@ namespace Crest
             // Potential extension - add 'type' field to collprovider and change provider if settings have changed - this would support runtime changes.
             if (CollisionProvider == null)
             {
-                CollisionProvider = _lodDataAnimWaves.Settings.CreateCollisionProvider();
+                CollisionProvider = _lodDataAnimWaves.Settings.CreateCollisionProvider(this);
             }
         }
 
@@ -609,7 +650,7 @@ namespace Crest
         static void InitStatics()
         {
             // Init here from 2019.3 onwards
-            Instance = null;
+            _instances.Clear();
         }
 
         void LateUpdate()
@@ -678,7 +719,7 @@ namespace Crest
             if (EditorApplication.isPlaying || !_showOceanProxyPlane)
 #endif
             {
-                _commandbufferBuilder.BuildAndExecute();
+                _commandbufferBuilder.BuildAndExecute(this);
             }
 #if UNITY_EDITOR
             else
@@ -910,7 +951,13 @@ namespace Crest
         [UnityEditor.Callbacks.DidReloadScripts]
         private static void OnReLoadScripts()
         {
-            Instance = FindObjectOfType<OceanRenderer>();
+            if (_instances == null)
+            {
+                _instances = new List<OceanRenderer>();
+            }
+
+            _instances.Clear();
+            _instances.AddRange(FindObjectsOfType<OceanRenderer>());
         }
 
         private void OnDrawGizmos()
@@ -1016,7 +1063,7 @@ namespace Crest
         {
             var isValid = true;
 
-            if (EditorSettings.enterPlayModeOptionsEnabled && 
+            if (EditorSettings.enterPlayModeOptionsEnabled &&
                 EditorSettings.enterPlayModeOptions.HasFlag(EnterPlayModeOptions.DisableSceneReload))
             {
                 showMessage

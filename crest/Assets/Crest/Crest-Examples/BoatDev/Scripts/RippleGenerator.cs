@@ -21,7 +21,7 @@ public class RippleGenerator : MonoBehaviour
     {
         _rdwi = GetComponent<RegisterDynWavesInput>();
 
-        if (OceanRenderer.Instance == null || !OceanRenderer.Instance.CreateDynamicWaveSim || _rdwi == null)
+        if (OceanRenderer.AnyInstance == null || !OceanRenderer.AnyInstance.CreateDynamicWaveSim || _rdwi == null)
         {
             enabled = false;
             return;
@@ -33,14 +33,15 @@ public class RippleGenerator : MonoBehaviour
 
     void Update()
     {
-        if (OceanRenderer.Instance == null)
+        var ocean = OceanRenderer.AnyInstance;
+        if (ocean == null)
         {
             return;
         }
 
         if (_animate)
         {
-            float t = OceanRenderer.Instance.CurrentTime;
+            float t = OceanRenderer.AnyInstance.CurrentTime;
             if (t < _warmUp)
                 return;
             t -= _warmUp;
@@ -50,7 +51,7 @@ public class RippleGenerator : MonoBehaviour
 
         // which lod is this object in (roughly)?
         Rect thisRect = new Rect(new Vector2(transform.position.x, transform.position.z), Vector3.zero);
-        int minLod = LodDataMgrAnimWaves.SuggestDataLOD(thisRect);
+        int minLod = LodDataMgrAnimWaves.SuggestDataLOD(ocean, thisRect);
         if (minLod == -1)
         {
             // outside all lods, nothing to update!
@@ -60,7 +61,7 @@ public class RippleGenerator : MonoBehaviour
         // how many active wave sims currently apply to this object - ideally this would eliminate sims that are too
         // low res, by providing a max grid size param
         int simsPresent, simsActive;
-        LodDataMgrDynWaves.CountWaveSims(minLod, out simsPresent, out simsActive);
+        LodDataMgrDynWaves.CountWaveSims(ocean, minLod, out simsPresent, out simsActive);
         if (simsPresent == 0)
         {
             enabled = false;
@@ -68,7 +69,7 @@ public class RippleGenerator : MonoBehaviour
         }
 
         float dt;
-        OceanRenderer.Instance._lodDataDynWaves.GetSimSubstepData(OceanRenderer.Instance.DeltaTimeDynamics, out _, out dt);
+        ocean._lodDataDynWaves.GetSimSubstepData(ocean.DeltaTimeDynamics, out _, out dt);
 
         _rend.GetPropertyBlock(_mpb);
 

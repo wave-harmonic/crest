@@ -50,14 +50,14 @@ namespace Crest
 
         private void Start()
         {
-            if (OceanRenderer.Instance == null)
+            if (OceanRenderer.AnyInstance == null)
             {
                 enabled = false;
                 return;
             }
 
 #if UNITY_EDITOR
-            if (EditorApplication.isPlaying && !Validate(OceanRenderer.Instance, ValidatedHelper.DebugLog))
+            if (EditorApplication.isPlaying && !Validate(OceanRenderer.AnyInstance, ValidatedHelper.DebugLog))
             {
                 enabled = false;
                 return;
@@ -76,12 +76,12 @@ namespace Crest
 
         void LateUpdate()
         {
-            var ocean = OceanRenderer.Instance;
+            var ocean = OceanRenderer.ClosestInstance(transform.position);
             if (ocean == null) return;
 
             // Which lod is this object in (roughly)?
             int simsActive;
-            if (!LateUpdateCountOverlappingSims(out simsActive, out _))
+            if (!LateUpdateCountOverlappingSims(ocean, out simsActive, out _))
             {
                 // No sims running - abort. don't bother switching off renderer - camera wont be active
                 return;
@@ -118,13 +118,13 @@ namespace Crest
 
         // Multiple sims run at different scales in the world. Count how many sims this interaction will overlap, so that
         // we can normalize the interaction force for the number of sims.
-        bool LateUpdateCountOverlappingSims(out int simsActive, out int simsPresent)
+        bool LateUpdateCountOverlappingSims(OceanRenderer ocean, out int simsActive, out int simsPresent)
         {
             simsActive = 0;
             simsPresent = 0;
 
             var thisRect = new Rect(new Vector2(transform.position.x, transform.position.z), Vector3.zero);
-            var minLod = LodDataMgrAnimWaves.SuggestDataLOD(thisRect);
+            var minLod = LodDataMgrAnimWaves.SuggestDataLOD(ocean, thisRect);
             if (minLod == -1)
             {
                 // Outside all lods, nothing to update!
@@ -133,7 +133,7 @@ namespace Crest
 
             // How many active wave sims currently apply to this object - ideally this would eliminate sims that are too
             // low res, by providing a max grid size param
-            LodDataMgrDynWaves.CountWaveSims(minLod, out simsPresent, out simsActive);
+            LodDataMgrDynWaves.CountWaveSims(ocean, minLod, out simsPresent, out simsActive);
 
             if (simsPresent == 0)
             {

@@ -139,22 +139,24 @@ namespace Crest
         /// </summary>
         void MoveOriginOcean(Vector3 newOrigin)
         {
-            if (OceanRenderer.Instance)
+            for (var i = 0; i < OceanRenderer.InstanceCount; i++)
             {
-                OceanRenderer.Instance._lodTransform.SetOrigin(newOrigin);
+                var ocean = OceanRenderer.GetInstance(i);
 
-                var fos = OceanRenderer.Instance.GetComponentsInChildren<IFloatingOrigin>();
+                ocean._lodTransform.SetOrigin(newOrigin);
+
+                var fos = ocean.GetComponentsInChildren<IFloatingOrigin>();
                 foreach (var fo in fos)
                 {
                     fo.SetOrigin(newOrigin);
                 }
+            }
 
-                // Gerstner components
-                var gerstners = _overrideGerstnerList != null && _overrideGerstnerList.Length > 0 ? _overrideGerstnerList : FindObjectsOfType<ShapeGerstnerBatched>();
-                foreach (var gerstner in gerstners)
-                {
-                    gerstner.SetOrigin(newOrigin);
-                }
+            // Gerstner components
+            var gerstners = _overrideGerstnerList != null && _overrideGerstnerList.Length > 0 ? _overrideGerstnerList : FindObjectsOfType<ShapeGerstnerBatched>();
+            foreach (var gerstner in gerstners)
+            {
+                gerstner.SetOrigin(newOrigin);
             }
         }
 

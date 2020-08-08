@@ -55,7 +55,7 @@ namespace Crest
             enabled = true;
         }
 
-        public static RenderTexture CreateLodDataTextures(RenderTextureDescriptor desc, string name, bool needToReadWriteTextureData)
+        public static RenderTexture CreateLodDataTextures(OceanRenderer ocean, RenderTextureDescriptor desc, string name, bool needToReadWriteTextureData)
         {
             RenderTexture result = new RenderTexture(desc);
             result.wrapMode = TextureWrapMode.Clamp;
@@ -65,7 +65,7 @@ namespace Crest
             result.useMipMap = false;
             result.name = name;
             result.dimension = TextureDimension.Tex2DArray;
-            result.volumeDepth = OceanRenderer.Instance.CurrentLodCount;
+            result.volumeDepth = ocean.CurrentLodCount;
             result.enableRandomWrite = needToReadWriteTextureData;
             result.Create();
             return result;
@@ -75,16 +75,16 @@ namespace Crest
         {
             Debug.Assert(SystemInfo.SupportsRenderTextureFormat(TextureFormat), "The graphics device does not support the render texture format " + TextureFormat.ToString());
 
-            Debug.Assert(OceanRenderer.Instance.CurrentLodCount <= MAX_LOD_COUNT);
+            Debug.Assert(_ocean.CurrentLodCount <= MAX_LOD_COUNT);
 
-            var resolution = OceanRenderer.Instance.LodDataResolution;
+            var resolution = _ocean.LodDataResolution;
             var desc = new RenderTextureDescriptor(resolution, resolution, TextureFormat, 0);
-            _targets = CreateLodDataTextures(desc, SimName, NeedToReadWriteTextureData);
+            _targets = CreateLodDataTextures(_ocean, desc, SimName, NeedToReadWriteTextureData);
         }
 
         public virtual void UpdateLodData()
         {
-            int width = OceanRenderer.Instance.LodDataResolution;
+            int width = _ocean.LodDataResolution;
             // debug functionality to resize RT if different size was specified.
             if (_shapeRes == -1)
             {
@@ -100,7 +100,7 @@ namespace Crest
             }
 
             // determine if this LOD has changed scale and by how much (in exponent of 2)
-            float oceanLocalScale = OceanRenderer.Instance.Root.localScale.x;
+            float oceanLocalScale = _ocean.Root.localScale.x;
             if (_oceanLocalScalePrev == -1f) _oceanLocalScalePrev = oceanLocalScale;
             float ratio = oceanLocalScale / _oceanLocalScalePrev;
             _oceanLocalScalePrev = oceanLocalScale;
@@ -110,7 +110,7 @@ namespace Crest
 
         public void BindResultData(IPropertyWrapper properties, bool blendOut = true)
         {
-            BindData(properties, _targets, blendOut, ref OceanRenderer.Instance._lodTransform._renderData);
+            BindData(properties, _targets, blendOut, ref _ocean._lodTransform._renderData);
         }
 
         // Avoid heap allocations instead BindData
@@ -124,21 +124,21 @@ namespace Crest
                 properties.SetTexture(GetParamIdSampler(sourceLod), applyData);
             }
 
-            for (int lodIdx = 0; lodIdx < OceanRenderer.Instance.CurrentLodCount; lodIdx++)
+            for (int lodIdx = 0; lodIdx < _ocean.CurrentLodCount; lodIdx++)
             {
                 // NOTE: gets zeroed by unity, see https://www.alanzucconi.com/2016/10/24/arrays-shaders-unity-5-4/
                 _BindData_paramIdPosScales[lodIdx] = new Vector4(
                     renderData[lodIdx]._posSnapped.x, renderData[lodIdx]._posSnapped.z,
-                    OceanRenderer.Instance.CalcLodScale(lodIdx), 0f);
+                    _ocean.CalcLodScale(lodIdx), 0f);
                 _BindData_paramIdOceans[lodIdx] = new Vector4(renderData[lodIdx]._texelWidth, renderData[lodIdx]._textureRes, 1f, 1f / renderData[lodIdx]._textureRes);
             }
 
             // Duplicate the last element as the shader accesses element {slice index + 1] in a few situations. This way going
             // off the end of this parameter is the same as going off the end of the texture array with our clamped sampler.
-            _BindData_paramIdPosScales[OceanRenderer.Instance.CurrentLodCount] = _BindData_paramIdPosScales[OceanRenderer.Instance.CurrentLodCount - 1];
-            _BindData_paramIdOceans[OceanRenderer.Instance.CurrentLodCount] = _BindData_paramIdOceans[OceanRenderer.Instance.CurrentLodCount - 1];
+            _BindData_paramIdPosScales[_ocean.CurrentLodCount] = _BindData_paramIdPosScales[_ocean.CurrentLodCount - 1];
+            _BindData_paramIdOceans[_ocean.CurrentLodCount] = _BindData_paramIdOceans[_ocean.CurrentLodCount - 1];
             // Never use this last lod - it exists to give 'something' but should not be used
-            _BindData_paramIdOceans[OceanRenderer.Instance.CurrentLodCount].z = 0f;
+            _BindData_paramIdOceans[_ocean.CurrentLodCount].z = 0f;
 
             properties.SetVectorArray(LodTransform.ParamIdPosScale(sourceLod), _BindData_paramIdPosScales);
             properties.SetVectorArray(LodTransform.ParamIdOcean(sourceLod), _BindData_paramIdOceans);
@@ -162,7 +162,7 @@ namespace Crest
 
         protected void SubmitDraws(int lodIdx, CommandBuffer buf)
         {
-            var lt = OceanRenderer.Instance._lodTransform;
+            var lt = _ocean._lodTransform;
             lt._renderData[lodIdx].Validate(0, SimName);
 
             lt.SetViewProjectionMatrices(lodIdx, buf);
@@ -175,13 +175,13 @@ namespace Crest
                     continue;
                 }
 
-                draw.Value.Draw(buf, 1f, 0, lodIdx);
+                draw.Value.Draw(_ocean, buf, 1f, 0, lodIdx);
             }
         }
 
         protected void SubmitDrawsFiltered(int lodIdx, CommandBuffer buf, IDrawFilter filter)
         {
-            var lt = OceanRenderer.Instance._lodTransform;
+            var lt = _ocean._lodTransform;
             lt._renderData[lodIdx].Validate(0, SimName);
 
             lt.SetViewProjectionMatrices(lodIdx, buf);
@@ -198,7 +198,7 @@ namespace Crest
                 float weight = filter.Filter(draw.Value, out isTransition);
                 if (weight > 0f)
                 {
-                    draw.Value.Draw(buf, weight, isTransition, lodIdx);
+                    draw.Value.Draw(_ocean, buf, weight, isTransition, lodIdx);
                 }
             }
         }
@@ -210,7 +210,7 @@ namespace Crest
             public TextureArrayParamIds(string textureArrayName)
             {
                 _paramId = Shader.PropertyToID(textureArrayName);
-                // Note: string concatonation does generate a small amount of
+                // Note: string concatenation does generate a small amount of
                 // garbage. However, this is called on initialisation so should
                 // be ok for now? Something worth considering for the future if
                 // we want to go garbage-free.

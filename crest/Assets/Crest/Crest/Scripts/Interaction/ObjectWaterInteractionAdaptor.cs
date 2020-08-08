@@ -27,18 +27,19 @@ namespace Crest
 
         private void Update()
         {
-            if (OceanRenderer.Instance == null)
+            var ocean = OceanRenderer.ClosestInstance(transform.position);
+            if (ocean == null)
             {
                 return;
             }
 
             _queryPoints[0] = transform.position;
-            var result = OceanRenderer.Instance.CollisionProvider.Query(GetHashCode(), ObjectWidth, _queryPoints, _resultDisps, null, null);
-            if (OceanRenderer.Instance.CollisionProvider.RetrieveSucceeded(result))
+            var result = ocean.CollisionProvider.Query(GetHashCode(), ObjectWidth, _queryPoints, _resultDisps, null, null);
+            if (ocean.CollisionProvider.RetrieveSucceeded(result))
             {
                 _hasWaterData = true;
 
-                _height = OceanRenderer.Instance.SeaLevel + _resultDisps[0].y;
+                _height = ocean.SeaLevel + _resultDisps[0].y;
             }
 
             if (Time.deltaTime > 0.00001f)

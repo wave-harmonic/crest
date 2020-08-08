@@ -44,10 +44,11 @@ namespace Crest
                 return;
             }
             s_clearToBlackShader.SetTexture(krnl_ClearToBlack, sp_LD_TexArray_Target, dst);
+            // todo - make lod data resolution a global setting (or pass in ocean?)
             s_clearToBlackShader.Dispatch(
                 krnl_ClearToBlack,
-                OceanRenderer.Instance.LodDataResolution / PropertyWrapperCompute.THREAD_GROUP_SIZE_X,
-                OceanRenderer.Instance.LodDataResolution / PropertyWrapperCompute.THREAD_GROUP_SIZE_Y,
+                OceanRenderer.AnyInstance.LodDataResolution / PropertyWrapperCompute.THREAD_GROUP_SIZE_X,
+                OceanRenderer.AnyInstance.LodDataResolution / PropertyWrapperCompute.THREAD_GROUP_SIZE_Y,
                 dst.volumeDepth
             );
         }

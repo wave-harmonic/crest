@@ -37,7 +37,7 @@ namespace Crest
 
         void Start()
         {
-            if (OceanRenderer.Instance == null)
+            if (OceanRenderer.AnyInstance == null)
             {
                 enabled = false;
                 return;
@@ -79,12 +79,16 @@ namespace Crest
 
         void Update()
         {
-            if (OceanRenderer.Instance == null)
+            for (var i = 0; i < OceanRenderer.InstanceCount; i++)
             {
-                return;
-            }
+                var ocean = OceanRenderer.GetInstance(i);
+                if (ocean == null)
+                {
+                    continue;
+                }
 
-            OceanRenderer.Instance.ReportMaxDisplacementFromShape(0f, _amplitude, 0f);
+                ocean.ReportMaxDisplacementFromShape(0f, _amplitude, 0f);
+            }
 
             UpdateMaterials();
         }

@@ -23,7 +23,7 @@ namespace Crest
         [Tooltip("Large, choppy waves require higher iterations to have accurate holes.")]
         [SerializeField] uint _animatedWavesDisplacementSamplingIterations = 4;
 
-        public override float Wavelength => 0f;
+        public override float Wavelength(OceanRenderer ocean) => 0f;
 
         protected override Color GizmoColor => new Color(0f, 1f, 1f, 0.5f);
 
@@ -39,11 +39,6 @@ namespace Crest
 
         private void LateUpdate()
         {
-            if (OceanRenderer.Instance == null)
-            {
-                return;
-            }
-
             // Prevents possible conflicts since overlapping doesn't work for every case.
             if (_disableClipSurfaceWhenTooFarFromSurface)
             {
@@ -63,7 +58,8 @@ namespace Crest
 
             // find which lod this object is overlapping
             var rect = new Rect(transform.position.x, transform.position.z, 0f, 0f);
-            var lodIdx = LodDataMgrAnimWaves.SuggestDataLOD(rect);
+            // TODO - tricky. see todo below.
+            var lodIdx = LodDataMgrAnimWaves.SuggestDataLOD(OceanRenderer.AnyInstance, rect);
 
             if (lodIdx > -1)
             {
@@ -74,20 +70,24 @@ namespace Crest
 
                 _renderer.GetPropertyBlock(_mpb.materialPropertyBlock);
 
-                var lodCount = OceanRenderer.Instance.CurrentLodCount;
-                var lodDataAnimWaves = OceanRenderer.Instance._lodDataAnimWaves;
+                // todo - hmm this is tricky :/ - clip data does things related to the current lod. cant use material property block then.
+                // move onto command buffer?
+                var lodDataAnimWaves = OceanRenderer.AnyInstance._lodDataAnimWaves;
                 _mpb.SetInt(LodDataMgr.sp_LD_SliceIndex, lodIdx);
                 _mpb.SetInt(sp_DisplacementSamplingIterations, (int)_animatedWavesDisplacementSamplingIterations);
                 lodDataAnimWaves.BindResultData(_mpb);
 
-                // blend LOD 0 shape in/out to avoid pop, if the ocean might scale up later (it is smaller than its maximum scale)
-                bool needToBlendOutShape = lodIdx == 0 && OceanRenderer.Instance.ScaleCouldIncrease;
-                float meshScaleLerp = needToBlendOutShape ? OceanRenderer.Instance.ViewerAltitudeLevelAlpha : 0f;
+                // todo - @daleeidd is any of this needed for the clip data?
 
-                // blend furthest normals scale in/out to avoid pop, if scale could reduce
-                bool needToBlendOutNormals = lodIdx == lodCount - 1 && OceanRenderer.Instance.ScaleCouldDecrease;
-                float farNormalsWeight = needToBlendOutNormals ? OceanRenderer.Instance.ViewerAltitudeLevelAlpha : 1f;
-                _mpb.SetVector(OceanChunkRenderer.sp_InstanceData, new Vector3(meshScaleLerp, farNormalsWeight, lodIdx));
+                //// blend LOD 0 shape in/out to avoid pop, if the ocean might scale up later (it is smaller than its maximum scale)
+                //bool needToBlendOutShape = lodIdx == 0 && OceanRenderer.Instance.ScaleCouldIncrease;
+                //float meshScaleLerp = needToBlendOutShape ? OceanRenderer.Instance.ViewerAltitudeLevelAlpha : 0f;
+
+                //// blend furthest normals scale in/out to avoid pop, if scale could reduce
+                //var lodCount = OceanRenderer.Instance.CurrentLodCount;
+                //bool needToBlendOutNormals = lodIdx == lodCount - 1 && OceanRenderer.Instance.ScaleCouldDecrease;
+                //float farNormalsWeight = needToBlendOutNormals ? OceanRenderer.Instance.ViewerAltitudeLevelAlpha : 1f;
+                //_mpb.SetVector(OceanChunkRenderer.sp_InstanceData, new Vector3(meshScaleLerp, farNormalsWeight, lodIdx));
 
                 _renderer.SetPropertyBlock(_mpb.materialPropertyBlock);
             }

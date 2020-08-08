@@ -32,7 +32,7 @@ namespace Crest
         /// <summary>
         /// Provides ocean shape to CPU.
         /// </summary>
-        public ICollProvider CreateCollisionProvider()
+        public ICollProvider CreateCollisionProvider(OceanRenderer ocean)
         {
             ICollProvider result = null;
 
@@ -45,7 +45,7 @@ namespace Crest
                     result = FindObjectOfType<ShapeGerstnerBatched>();
                     break;
                 case CollisionSources.ComputeShaderQueries:
-                    result = new QueryDisplacements();
+                    result = new QueryDisplacements(ocean);
                     break;
             }
 
@@ -66,7 +66,7 @@ namespace Crest
             // Flow is GPU only, and can only be queried using the compute path
             if (ocean._lodDataFlow != null)
             {
-                return new QueryFlow();
+                return new QueryFlow(ocean);
             }
 
             return new FlowProviderNull();

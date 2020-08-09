@@ -8,8 +8,6 @@ using UnityEngine.Experimental.Rendering;
 #else
 using UnityEngine.Rendering;
 #endif
-
-
 #if UNITY_EDITOR
 using UnityEditor;
 #endif

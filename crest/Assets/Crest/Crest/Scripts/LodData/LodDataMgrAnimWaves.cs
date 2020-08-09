@@ -379,7 +379,10 @@ namespace Crest
 
                 _combineProperties.SetInt(sp_LD_SliceIndex, lodIdx);
 
-                buf.DispatchCompute(_combineShader, selectedShaderKernel, OceanRenderer.Instance.LodDataResolution / THREAD_GROUP_SIZE_X, OceanRenderer.Instance.LodDataResolution / THREAD_GROUP_SIZE_Y, 1);
+                buf.DispatchCompute(_combineShader, selectedShaderKernel,
+                    OceanRenderer.Instance.LodDataResolution / THREAD_GROUP_SIZE_X,
+                    OceanRenderer.Instance.LodDataResolution / THREAD_GROUP_SIZE_Y,
+                    1);
             }
         }
 

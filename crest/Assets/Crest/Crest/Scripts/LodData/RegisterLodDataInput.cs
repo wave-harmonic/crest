@@ -103,7 +103,7 @@ namespace Crest
         protected virtual void Update()
         {
 #if UNITY_EDITOR
-            if (!UnityEditor.EditorApplication.isPlaying)
+            if (!EditorApplication.isPlaying)
             {
                 InitRendererAndMaterial(true);
             }
@@ -202,7 +202,7 @@ namespace Crest
             base.Update();
 
 #if UNITY_EDITOR
-            if (!UnityEditor.EditorApplication.isPlaying)
+            if (!EditorApplication.isPlaying)
             {
                 int q;
                 if (GetQueue(out q))

@@ -40,6 +40,20 @@ namespace Crest
 
         private void OnGUI()
         {
+            if (EditorApplication.isPlaying == true)
+            {
+                EditorGUILayout.HelpBox("Exit play mode to create water bodies.", MessageType.Info);
+                return;
+            }
+
+            if (OceanRenderer.Instance == null)
+            {
+                EditorGUILayout.HelpBox(
+                    "No water object in loaded scenes, so no water will appear. To add one create a new GameObject and attach a OceanRenderer component to it.",
+                    MessageType.Warning
+                    );
+            }
+
             switch (_state)
             {
                 case State.Idle:
@@ -107,12 +121,14 @@ namespace Crest
 
             EditorGUILayout.Space();
 
+            var created = false;
             if (GUILayout.Button("Create"))
             {
                 CreateWaterBody();
+                created = true;
             }
 
-            if (GUILayout.Button("Done"))
+            if (created || GUILayout.Button("Done"))
             {
                 _state = State.Idle;
 

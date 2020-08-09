@@ -265,6 +265,9 @@ namespace Crest
 
         bool _canSkipCulling = false;
 
+        // Becomes false after the first RunUpdate call. Used for some state initialisation.
+        bool _isFirstUpdate = true;
+
         readonly int sp_crestTime = Shader.PropertyToID("_CrestTime");
         readonly int sp_texelsPerWave = Shader.PropertyToID("_TexelsPerWave");
         readonly int sp_oceanCenterPosWorld = Shader.PropertyToID("_OceanCenterPosWorld");
@@ -311,6 +314,8 @@ namespace Crest
                 return;
             }
 #endif
+
+            _isFirstUpdate = true;
 
             Instance = this;
             Scale = Mathf.Clamp(Scale, _minScale, _maxScale);
@@ -549,6 +554,25 @@ namespace Crest
 
         bool VerifyRequirements()
         {
+            if (Application.platform == RuntimePlatform.WebGLPlayer)
+            {
+                Debug.LogError("Crest does not support WebGL backends.", this);
+                return false;
+            }
+#if UNITY_EDITOR
+            if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES2 ||
+                SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3 ||
+                SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLCore)
+            {
+                Debug.LogError("Crest does not support OpenGL backends.", this);
+                return false;
+            }
+#endif
+            if (SystemInfo.graphicsShaderLevel < 45)
+            {
+                Debug.LogError("Crest requires graphics devices that support shader level 4.5 or above.", this);
+                return false;
+            }
             if (!SystemInfo.supportsComputeShaders)
             {
                 Debug.LogError("Crest requires graphics devices that support compute shaders.", this);
@@ -670,6 +694,8 @@ namespace Crest
                 }
             }
 #endif
+
+            _isFirstUpdate = false;
         }
 
         void LateUpdatePosition()
@@ -777,7 +803,7 @@ namespace Crest
         void LateUpdateResetMaxDisplacementFromShape()
         {
             // If time stops, then reporting will become inconsistent.
-            if (Time.timeScale == 0)
+            if (!_isFirstUpdate && Time.timeScale == 0)
             {
                 return;
             }
@@ -806,7 +832,7 @@ namespace Crest
         public void ReportMaxDisplacementFromShape(float maxHorizDisp, float maxVertDisp, float maxVertDispFromWaves)
         {
             // If time stops, then reporting will become inconsistent.
-            if (Time.timeScale == 0)
+            if (!_isFirstUpdate && Time.timeScale == 0)
             {
                 return;
             }
@@ -974,6 +1000,13 @@ namespace Crest
             foreach (var input in inputs)
             {
                 input.Validate(ocean, ValidatedHelper.DebugLog);
+            }
+
+            // WaterBody
+            var waterBodies = FindObjectsOfType<WaterBody>();
+            foreach (var waterBody in waterBodies)
+            {
+                waterBody.Validate(ocean, ValidatedHelper.DebugLog);
             }
 
             Debug.Log("Validation complete!", ocean);

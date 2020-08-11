@@ -235,7 +235,11 @@ namespace Crest
                 _renderProperties.SetInt(sp_LD_SliceIndex_Source, srcDataIdx);
                 BindSourceData(_renderProperties, false);
                 _renderProperties.SetTexture(sp_LD_TexArray_Target, _targets);
-                _renderProperties.DispatchShader();
+
+                BufCopyShadowMap.DispatchCompute(_updateShadowShader, krnl_UpdateShadow,
+                    OceanRenderer.Instance.LodDataResolution / THREAD_GROUP_SIZE_X,
+                    OceanRenderer.Instance.LodDataResolution / THREAD_GROUP_SIZE_Y,
+                    1);
             }
         }
 

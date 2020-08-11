@@ -20,6 +20,11 @@ namespace Crest
         // determines the size of the texture arrays in the shaders.
         public const int MAX_LOD_COUNT = 15;
 
+        // NOTE: these MUST match the values in OceanLODData.hlsl
+        // 64 recommended as a good common minimum: https://www.reddit.com/r/GraphicsProgramming/comments/aeyfkh/for_compute_shaders_is_there_an_ideal_numthreads/
+        public const int THREAD_GROUP_SIZE_X = 8;
+        public const int THREAD_GROUP_SIZE_Y = 8;
+
         protected abstract int GetParamIdSampler(bool sourceLod = false);
 
         protected abstract bool NeedToReadWriteTextureData { get; }

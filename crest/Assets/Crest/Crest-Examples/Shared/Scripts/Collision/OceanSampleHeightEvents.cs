@@ -23,7 +23,7 @@ public class OceanSampleHeightEvents : MonoBehaviour
 
     [Header("Distance From Ocean Surface")]
 
-    [Tooltip("Distance from ocean surface will be between zero and one.")]
+    [Tooltip("A normalised distance from ocean surface will be between zero and one.")]
     [SerializeField] bool _normaliseDistance = true;
 
     [Tooltip("The maximum distance passed to function. Always use a real distance value (not a normalised one).")]

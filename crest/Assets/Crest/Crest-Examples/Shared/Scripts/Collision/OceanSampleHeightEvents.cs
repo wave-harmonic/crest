@@ -11,7 +11,7 @@ using UnityEditor;
 #endif
 
 /// <summary>
-/// Emits an event on state change for when either above or below the ocean surface.
+/// Emits useful events (UnityEvents) based on the sampled height of the ocean surface.
 /// </summary>
 public class OceanSampleHeightEvents : MonoBehaviour
 {

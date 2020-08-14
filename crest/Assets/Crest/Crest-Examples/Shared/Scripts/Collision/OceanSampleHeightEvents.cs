@@ -15,8 +15,10 @@ using UnityEditor;
 /// </summary>
 public class OceanSampleHeightEvents : MonoBehaviour
 {
-    [Tooltip("The higher the value, the more smaller waves will be ignored.")]
-    [SerializeField] float _samplingLengthScale = 1f;
+    [Header("Settings For All Events")]
+
+    [Tooltip("The higher the value, the more smaller waves will be ignored when sampling the ocean surface.")]
+    [SerializeField] float _minimumWaveLength = 1f;
 
 
     [Header("Distance From Ocean Surface")]
@@ -50,7 +52,7 @@ public class OceanSampleHeightEvents : MonoBehaviour
 
     void Update()
     {
-        _sampleHeightHelper.Init(transform.position, 2f * _samplingLengthScale);
+        _sampleHeightHelper.Init(transform.position, 2f * _minimumWaveLength);
 
         if (_sampleHeightHelper.Sample(out var height))
         {

@@ -5,21 +5,6 @@
 // Ocean LOD data - data, samplers and functions associated with LODs
 
 // Conversions for world space from/to UV space. All these should *not* be clamped otherwise they'll break fullscreen triangles.
-float2 LD_WorldToUV(in float2 i_samplePos, in float2 i_centerPos, in float i_res, in float i_texelSize)
-{
-	return (i_samplePos - i_centerPos) / (i_texelSize * i_res) + 0.5;
-}
-
-float3 WorldToUV_Source(in float2 i_samplePos, in uint i_sliceIndex_Source) {
-	const float2 result = LD_WorldToUV(
-		i_samplePos,
-		_LD_Pos_Scale_Source[i_sliceIndex_Source].xy,
-		_LD_Params_Source[i_sliceIndex_Source].y,
-		_LD_Params_Source[i_sliceIndex_Source].x
-	);
-	return float3(result, i_sliceIndex_Source);
-}
-
 
 float2 LD_UVToWorld(in float2 i_uv, in float2 i_centerPos, in float i_res, in float i_texelSize)
 {

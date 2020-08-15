@@ -57,7 +57,7 @@ void UpdateDynWaves(uint3 id : SV_DispatchThreadID)
 	const float3 uv_slice = float3(input_uv, sliceIndex);
 
 	const half2 velocity = SampleLod(_LD_TexArray_Flow, uv_slice).xy;
-	const float3 uv_source = WorldToUV_Source(worldPosXZ - (dt * velocity), sliceIndexSource);
+	const float3 uv_source = WorldToUV(worldPosXZ - (dt * velocity), _LD_Pos_Scale_Source[sliceIndexSource], _LD_Params_Source[sliceIndexSource], sliceIndexSource);
 
 	// weighting for source position - weight 0 for off texture accesses to stop streaky artifacts
 	float2 distToEdge = min(uv_source.xy, 1.0 - uv_source.xy);

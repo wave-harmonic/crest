@@ -23,18 +23,24 @@ namespace Crest
         static readonly int sp_AmbientLighting = Shader.PropertyToID("_AmbientLighting");
         static readonly int sp_HorizonPosNormal = Shader.PropertyToID("_HorizonPosNormal");
         static readonly int sp_HorizonPosNormalRight = Shader.PropertyToID("_HorizonPosNormalRight");
+        static readonly int sp_DataSliceOffset = Shader.PropertyToID("_DataSliceOffset");
 
         internal const string tooltipHorizonSafetyMarginMultiplier = "A safety margin multiplier to adjust horizon line based on camera position to avoid minor artifacts caused by floating point precision issues, the default value has been chosen based on careful experimentation.";
+        internal const string tooltipFilterOceanData = "How much to smooth ocean data such as water depth, light scattering, shadowing. Helps to smooth flickering that can occur under camera motion.";
 
         // A magic number found after a small-amount of iteration that is used to deal with horizon-line floating-point
         // issues. It allows us to give it a small *nudge* in the right direction based on whether the camera is above
         // or below the horizon line itself already.
         internal const float DefaultHorizonSafetyMarginMultiplier = 0.01f;
 
+        internal const float DefaultFilterOceanDataValue = LodDataMgr.MAX_LOD_COUNT - 2.0f;
+        internal const float MinFilterOceanDataValue = 0;
+        internal const float MaxFilterOceanDataValue = LodDataMgr.MAX_LOD_COUNT - 2.0f;
+
         internal class UnderwaterSphericalHarmonicsData
         {
             internal Color[] _ambientLighting = new Color[1];
-            internal Vector3[] _shDirections = new Vector3[] { new Vector3(0.0f, 0.0f, 0.0f) };
+            internal Vector3[] _shDirections = { new Vector3(0.0f, 0.0f, 0.0f) };
         }
 
         // This matches const on shader side
@@ -118,7 +124,8 @@ namespace Crest
             SampleHeightHelper sampleHeightHelper,
             bool copyParamsFromOceanMaterial,
             bool debugViewPostProcessMask,
-            float horizonSafetyMarginMultiplier
+            float horizonSafetyMarginMultiplier,
+            float dataSliceOffset
         )
         {
             Material underwaterPostProcessMaterial = underwaterPostProcessMaterialWrapper.material;
@@ -182,6 +189,7 @@ namespace Crest
             }
             {
                 underwaterPostProcessMaterial.SetFloat(sp_OceanHeight, seaLevel);
+                underwaterPostProcessMaterial.SetFloat(sp_DataSliceOffset, dataSliceOffset);
 
                 float maxOceanVerticalDisplacement = OceanRenderer.Instance.MaxVertDisplacement * 0.5f;
                 float cameraYPosition = camera.transform.position.y;

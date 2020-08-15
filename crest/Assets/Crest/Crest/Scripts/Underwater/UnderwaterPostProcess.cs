@@ -26,6 +26,9 @@ namespace Crest
         [SerializeField, Tooltip("Assign this to a material that uses shader `Crest/Underwater/Post Process`, with the same features enabled as the ocean surface material(s).")]
         Material _underwaterPostProcessMaterial;
 
+        [SerializeField, Tooltip(UnderwaterPostProcessUtils.tooltipFilterOceanData), Range(UnderwaterPostProcessUtils.MinFilterOceanDataValue, UnderwaterPostProcessUtils.MaxFilterOceanDataValue)]
+        public float _filterOceanData = UnderwaterPostProcessUtils.DefaultFilterOceanDataValue;
+
         [Header("Debug Options")]
         [SerializeField] bool _viewPostProcessMask = false;
         [SerializeField] bool _disableOceanMask = false;
@@ -210,7 +213,8 @@ namespace Crest
                 _sampleHeightHelper,
                 _firstRender || _copyOceanMaterialParamsEachFrame,
                 _viewPostProcessMask,
-                _horizonSafetyMarginMultiplier
+                _horizonSafetyMarginMultiplier,
+                _filterOceanData
             );
 
             _postProcessCommandBuffer.Blit(source, target, _underwaterPostProcessMaterial);

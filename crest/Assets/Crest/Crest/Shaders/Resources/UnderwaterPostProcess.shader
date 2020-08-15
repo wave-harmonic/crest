@@ -78,6 +78,7 @@ Shader "Crest/Underwater/Post Process"
 			float4x4 _InvViewProjectionRight;
 			float4 _HorizonPosNormal;
 			float4 _HorizonPosNormalRight;
+			half _DataSliceOffset;
 
 			struct Attributes
 			{
@@ -128,7 +129,9 @@ Shader "Crest/Underwater/Post Process"
 				{
 					float3 dummy;
 					half sss = 0.0;
-					const float3 uv_slice = WorldToUV(_WorldSpaceCameraPos.xz);
+					float3 uv_slice = WorldToUV(_WorldSpaceCameraPos.xz);
+					// Offset slice so that we dont get high freq detail. But never use last lod as this has crossfading.
+					uv_slice.z = clamp(uv_slice.z + _DataSliceOffset, 0.0, _SliceCount - 2.0);
 					SampleDisplacements(_LD_TexArray_AnimatedWaves, uv_slice, 1.0, dummy, sss);
 
 					// depth and shadow are computed in ScatterColour when underwater==true, using the LOD1 texture.

@@ -68,13 +68,29 @@ Shader "Hidden/Crest/Inputs/Animated Waves/Gerstner Batch Global"
 			half4 Frag(Varyings input) : SV_Target
 			{
 				// sample ocean depth (this render target should 1:1 match depth texture, so UVs are trivial)
-				half4 depth_distance_dirXZ = _LD_TexArray_SeaFloorDepth.Sample(LODData_linear_clamp_sampler, input.uv_slice);
+				half2 depth_distance = _LD_TexArray_SeaFloorDepth.Sample(LODData_linear_clamp_sampler, input.uv_slice).xy;
 
 
-				float4 result = ComputeGerstner(input.worldPosXZ, input.uv_slice, depth_distance_dirXZ.x);
+				float4 result = ComputeGerstner(input.worldPosXZ, input.uv_slice, depth_distance.x);
 
 #if CREST_SDF_SHORELINES
-				result += ComputeShorelineGerstner(input.worldPosXZ, input.uv_slice, depth_distance_dirXZ);
+				// Calculate gradient by offsetting samples and normalising the resultant vector
+				// https://github.com/electricsquare/raymarching-workshop#diffuse-term
+				// Another option would be to store the gradient directtly in the channels of the SeaFloorDepth texture
+				// - this would have been more accurate, but results in extra bandwidth usage and clashes with data that
+				// we will need to store for local water-bodies. eps_zero was picked as an offset that worked best after
+				// trial and error. If it's too small - you won't be able to pickup the actual gradient - if it's too
+				// large, there will be a bias and rapid changes in the gradient can cause self-intersection if it
+				// occurs close to the shoreline.
+				float2 eps_zero = float2(0.00005, 0.0);
+				half sdf1 = _LD_TexArray_SeaFloorDepth.Sample(LODData_linear_clamp_sampler, input.uv_slice + eps_zero.xyy).y;
+				half sdf2 = _LD_TexArray_SeaFloorDepth.Sample(LODData_linear_clamp_sampler, input.uv_slice + eps_zero.yxy).y;
+				half2 directionToShore = depth_distance.y - half2(sdf1, sdf2);
+				if(dot(directionToShore, directionToShore) != 0.0)
+				{
+					directionToShore = normalize(directionToShore);
+				}
+				result += ComputeShorelineGerstner(input.worldPosXZ, input.uv_slice, depth_distance, directionToShore);
 #endif
 
 				return result;

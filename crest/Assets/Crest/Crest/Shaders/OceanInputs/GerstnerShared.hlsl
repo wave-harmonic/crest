@@ -98,11 +98,10 @@ half4 ComputeGerstner(float2 worldPosXZ, float3 uv_slice, half depth)
 	return _Weight * half4(result, sss);
 }
 
-half4 ComputeShorelineGerstner(float2 worldPosXZ, float3 uv_slice, half4 depth_distance_dirXZ)
+half4 ComputeShorelineGerstner(float2 worldPosXZ, float3 uv_slice, half2 depth_distance, half2 directionToShore)
 {
-	half depth = depth_distance_dirXZ.x;
-	half distanceToShore = depth_distance_dirXZ.y;
-	half2 directionToShore = normalize(depth_distance_dirXZ.zw); // TODO(TRC): Normalise shoudn't be needed
+	half depth = depth_distance.x;
+	half distanceToShore = depth_distance.y;
 	const float lerpDistance = _ShorelineLerpDistance;
 	float directionalStrength = 1.0 - clamp(distanceToShore / lerpDistance, 0.0, 1.0);
 	float2 displacementNormalized = 0.0;

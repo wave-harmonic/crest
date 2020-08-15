@@ -279,7 +279,6 @@ Shader "Crest/Ocean"
 			#include "OceanConstants.hlsl"
 			#include "OceanGlobals.hlsl"
 			#include "OceanInputsDriven.hlsl"
-			#include "OceanLODData.hlsl"
 			#include "OceanHelpersNew.hlsl"
 			#include "OceanHelpers.hlsl"
 

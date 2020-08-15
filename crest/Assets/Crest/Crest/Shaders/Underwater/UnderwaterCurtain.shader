@@ -55,7 +55,6 @@ Shader "Crest/Underwater Curtain"
 
 			#include "../OceanGlobals.hlsl"
 			#include "../OceanInputsDriven.hlsl"
-			#include "../OceanLODData.hlsl"
 			#include "../OceanHelpersNew.hlsl"
 			#include "UnderwaterShared.hlsl"
 

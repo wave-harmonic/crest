@@ -66,7 +66,9 @@ void ApplyOceanClipSurface(in const float3 io_positionWS, in const float i_lodAl
 	}
 	if (wt_biggerLod > 0.001)
 	{
-		SampleClip(_LD_TexArray_ClipSurface, WorldToUV_BiggerLod(worldXZ), wt_biggerLod, clipValue);
+		const uint si = _LD_SliceIndex + 1;
+		float3 uv = WorldToUV(worldXZ, _LD_Pos_Scale[si], _LD_Params[si], si);
+		SampleClip(_LD_TexArray_ClipSurface, uv, wt_biggerLod, clipValue);
 	}
 
 	// Add 0.5 bias for LOD blending and texel resolution correction. This will help to tighten and smooth clipped edges

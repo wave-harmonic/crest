@@ -72,7 +72,8 @@ Shader "Hidden/Crest/Simulation/Combine Animated Wave LODs"
 				const float2 worldPosXZ = UVToWorld(input.uv);
 
 				// sample the shape 1 texture at this world pos
-				const float3 uv_nextLod = WorldToUV_BiggerLod(worldPosXZ);
+				const uint si = _LD_SliceIndex + 1;
+				const float3 uv_nextLod = WorldToUV(worldPosXZ, _LD_Pos_Scale[si], _LD_Params[si], si);
 
 				float3 result = 0.0;
 				half sss = 0.0;

@@ -85,13 +85,19 @@ Shader "Crest/Ocean Surface Alpha"
 
 				// sample weights. params.z allows shape to be faded out (used on last lod to support pop-less scale transitions)
 				float wt_smallerLod = (1.0 - lodAlpha) * _LD_Params[_LD_SliceIndex].z;
-				float wt_biggerLod = (1.0 - wt_smallerLod) * _LD_Params[_LD_SliceIndex + 1].z;
 				// sample displacement textures, add results to current world pos / normal / foam
 				const float2 wxz = worldPos.xz;
 				half foam = 0.0;
 				half sss = 0.;
 				SampleDisplacements(_LD_TexArray_AnimatedWaves, WorldToUV(wxz), wt_smallerLod, worldPos, sss);
-				SampleDisplacements(_LD_TexArray_AnimatedWaves, WorldToUV_BiggerLod(wxz), wt_biggerLod, worldPos, sss);
+
+				{
+					// sample weight. params.z allows shape to be faded out (used on last lod to support pop-less scale transitions)
+					const float wt_biggerLod = (1.0 - wt_smallerLod) * _LD_Params[_LD_SliceIndex + 1].z;
+					const uint si = _LD_SliceIndex + 1;
+					const float3 uv_slice = WorldToUV(worldPos.xz, _LD_Pos_Scale[si], _LD_Params[si], si);
+					SampleDisplacements(_LD_TexArray_AnimatedWaves, uv_slice, wt_biggerLod, worldPos, sss);
+				}
 
 				// move to sea level
 				worldPos.y += _OceanCenterPosWorld.y;

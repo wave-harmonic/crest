@@ -334,7 +334,8 @@ Shader "Crest/Ocean"
 				}
 				if (wt_biggerLod > 0.001)
 				{
-					const float3 uv_slice_biggerLod = WorldToUV_BiggerLod(positionWS_XZ_before);
+					const uint si = _LD_SliceIndex + 1;
+					const float3 uv_slice_biggerLod = WorldToUV(positionWS_XZ_before, _LD_Pos_Scale[si], _LD_Params[si], si);
 
 					#if !_DEBUGDISABLESHAPETEXTURES_ON
 					half sss = 0.;
@@ -369,7 +370,8 @@ Shader "Crest/Ocean"
 				}
 				if (wt_biggerLod > 0.0001)
 				{
-					const float3 uv_slice_biggerLodDisp = WorldToUV_BiggerLod(o.worldPos.xz);
+					const uint si = _LD_SliceIndex + 1;
+					const float3 uv_slice_biggerLodDisp = WorldToUV(o.worldPos.xz, _LD_Pos_Scale[si], _LD_Params[si], si);
 
 					#if _SUBSURFACESHALLOWCOLOUR_ON
 					// The minimum sampling weight is lower (0.0001) than others to fix shallow water colour popping.
@@ -460,7 +462,9 @@ Shader "Crest/Ocean"
 				}
 				if (wt_biggerLod > 0.001)
 				{
-					SampleClip(_LD_TexArray_ClipSurface, WorldToUV_BiggerLod(input.worldPos.xz), wt_biggerLod, clipVal);
+					const uint si = _LD_SliceIndex + 1;
+					const float3 uv_slice_biggerLod = WorldToUV(input.worldPos.xz, _LD_Pos_Scale[si], _LD_Params[si], si);
+					SampleClip(_LD_TexArray_ClipSurface, uv_slice_biggerLod, wt_biggerLod, clipVal);
 				}
 				clipVal = lerp(_CrestClipByDefault, clipVal, wt_smallerLod + wt_biggerLod);
 				// Add 0.5 bias for LOD blending and texel resolution correction. This will help to tighten and smooth clipped edges
@@ -490,12 +494,16 @@ Shader "Crest/Ocean"
 
 				// Normal - geom + normal mapping. Subsurface scattering.
 				const float3 uv_slice_smallerLod = WorldToUV(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz);
-				const float3 uv_slice_biggerLod = WorldToUV_BiggerLod(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz);
 				float3 dummy = 0.;
 				half3 n_geom = half3(0.0, 1.0, 0.0);
 				half sss = 0.;
 				if (wt_smallerLod > 0.001) SampleDisplacementsNormals(_LD_TexArray_AnimatedWaves, uv_slice_smallerLod, wt_smallerLod, _LD_Params[_LD_SliceIndex].w, _LD_Params[_LD_SliceIndex].x, dummy, n_geom.xz, sss);
-				if (wt_biggerLod > 0.001) SampleDisplacementsNormals(_LD_TexArray_AnimatedWaves, uv_slice_biggerLod, wt_biggerLod, _LD_Params[_LD_SliceIndex + 1].w, _LD_Params[_LD_SliceIndex + 1].x, dummy, n_geom.xz, sss);
+				if (wt_biggerLod > 0.001)
+				{
+					const uint si = _LD_SliceIndex + 1;
+					const float3 uv_slice_biggerLod = WorldToUV(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, _LD_Pos_Scale[si], _LD_Params[si], si);
+					SampleDisplacementsNormals(_LD_TexArray_AnimatedWaves, uv_slice_biggerLod, wt_biggerLod, _LD_Params[_LD_SliceIndex + 1].w, _LD_Params[_LD_SliceIndex + 1].x, dummy, n_geom.xz, sss);
+				}
 				n_geom = normalize(n_geom);
 
 				if (underwater) n_geom = -n_geom;

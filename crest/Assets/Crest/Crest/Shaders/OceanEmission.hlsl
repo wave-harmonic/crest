@@ -62,7 +62,7 @@ half3 ScatterColour(
 		// 2. for the underwater skirt geometry, we don't have the lod data sampled from the verts with lod transitions etc,
 		//    so just approximate by sampling at the camera position.
 		// this used to sample LOD1 but that doesnt work in last LOD, the data will be missing.
-		const float3 uv_smallerLod = WorldToUV(i_cameraPos.xz);
+		const float3 uv_smallerLod = WorldToUV(i_cameraPos.xz, _LD_Pos_Scale[_LD_SliceIndex], _LD_Params[_LD_SliceIndex], _LD_SliceIndex);
 		depth = CREST_OCEAN_DEPTH_BASELINE;
 		SampleSeaDepth(_LD_TexArray_SeaFloorDepth, uv_smallerLod, 1.0, depth);
 
@@ -75,9 +75,14 @@ half3 ScatterColour(
 		PosToSliceIndices(samplePoint, minSliceIndex, _InstanceData.x, _LD_Pos_Scale[0].z, slice0, slice1, lodAlpha);
 
 		half2 shadowSoftHard = 0.0;
-		// TODO - fix data type of slice index in WorldToUV - #343
-		SampleShadow(_LD_TexArray_Shadow, WorldToUV(samplePoint, slice0), 1.0 - lodAlpha, shadowSoftHard);
-		SampleShadow(_LD_TexArray_Shadow, WorldToUV(samplePoint, slice1), lodAlpha, shadowSoftHard);
+		{
+			const float3 uv = WorldToUV(samplePoint, _LD_Pos_Scale[slice0], _LD_Params[slice0], slice0);
+			SampleShadow(_LD_TexArray_Shadow, uv, 1.0 - lodAlpha, shadowSoftHard);
+		}
+		{
+			const float3 uv = WorldToUV(samplePoint, _LD_Pos_Scale[slice1], _LD_Params[slice1], slice1);
+			SampleShadow(_LD_TexArray_Shadow, uv, lodAlpha, shadowSoftHard);
+		}
 
 		shadow = saturate(1.0 - shadowSoftHard.x);
 #endif
@@ -168,7 +173,7 @@ void ApplyCaustics(in const half3 i_view, in const half3 i_lightDir, in const fl
 		// LOD_1 data can be missing when underwater
 		if (i_underwater)
 		{
-			const float3 uv_smallerLod = WorldToUV(shadowSurfacePosXZ);
+			const float3 uv_smallerLod = WorldToUV(shadowSurfacePosXZ, _LD_Pos_Scale[_LD_SliceIndex], _LD_Params[_LD_SliceIndex], _LD_SliceIndex);
 			SampleShadow(_LD_TexArray_Shadow, uv_smallerLod, 1.0, causticShadow);
 		}
 		else

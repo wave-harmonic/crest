@@ -85,8 +85,8 @@ Shader "Hidden/Crest/Simulation/Combine Animated Wave LODs"
 				float2 offsets, weights;
 				Flow(offsets, weights);
 
-				float3 uv_thisLod_flow_0 = WorldToUV(worldPosXZ - offsets[0] * flow);
-				float3 uv_thisLod_flow_1 = WorldToUV(worldPosXZ - offsets[1] * flow);
+				const float3 uv_thisLod_flow_0 = WorldToUV(worldPosXZ - offsets[0] * flow, _LD_Pos_Scale[_LD_SliceIndex], _LD_Params[_LD_SliceIndex], _LD_SliceIndex);
+				const float3 uv_thisLod_flow_1 = WorldToUV(worldPosXZ - offsets[1] * flow, _LD_Pos_Scale[_LD_SliceIndex], _LD_Params[_LD_SliceIndex], _LD_SliceIndex);
 				SampleDisplacements(_LD_TexArray_WaveBuffer, uv_thisLod_flow_0, weights[0], result, sss);
 				SampleDisplacements(_LD_TexArray_WaveBuffer, uv_thisLod_flow_1, weights[1], result, sss);
 #else

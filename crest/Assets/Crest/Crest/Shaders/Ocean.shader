@@ -317,7 +317,7 @@ Shader "Crest/Ocean"
 				// Data that needs to be sampled at the undisplaced position
 				if (wt_smallerLod > 0.001)
 				{
-					const float3 uv_slice_smallerLod = WorldToUV(positionWS_XZ_before);
+					const float3 uv_slice_smallerLod = WorldToUV(positionWS_XZ_before, _LD_Pos_Scale[_LD_SliceIndex], _LD_Params[_LD_SliceIndex], _LD_SliceIndex);
 
 					#if !_DEBUGDISABLESHAPETEXTURES_ON
 					half sss = 0.;
@@ -354,7 +354,7 @@ Shader "Crest/Ocean"
 				// Data that needs to be sampled at the displaced position
 				if (wt_smallerLod > 0.0001)
 				{
-					const float3 uv_slice_smallerLodDisp = WorldToUV(o.worldPos.xz);
+					const float3 uv_slice_smallerLodDisp = WorldToUV(o.worldPos.xz, _LD_Pos_Scale[_LD_SliceIndex], _LD_Params[_LD_SliceIndex], _LD_SliceIndex);
 
 					#if _SUBSURFACESHALLOWCOLOUR_ON
 					// The minimum sampling weight is lower (0.0001) than others to fix shallow water colour popping.
@@ -458,7 +458,8 @@ Shader "Crest/Ocean"
 				half clipVal = 0.0;
 				if (wt_smallerLod > 0.001)
 				{
-					SampleClip(_LD_TexArray_ClipSurface, WorldToUV(input.worldPos.xz), wt_smallerLod, clipVal);
+					const float3 uv_slice_smallerLod = WorldToUV(input.worldPos.xz, _LD_Pos_Scale[_LD_SliceIndex], _LD_Params[_LD_SliceIndex], _LD_SliceIndex);
+					SampleClip(_LD_TexArray_ClipSurface, uv_slice_smallerLod, wt_smallerLod, clipVal);
 				}
 				if (wt_biggerLod > 0.001)
 				{
@@ -493,11 +494,14 @@ Shader "Crest/Ocean"
 					;
 
 				// Normal - geom + normal mapping. Subsurface scattering.
-				const float3 uv_slice_smallerLod = WorldToUV(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz);
 				float3 dummy = 0.;
 				half3 n_geom = half3(0.0, 1.0, 0.0);
 				half sss = 0.;
-				if (wt_smallerLod > 0.001) SampleDisplacementsNormals(_LD_TexArray_AnimatedWaves, uv_slice_smallerLod, wt_smallerLod, _LD_Params[_LD_SliceIndex].w, _LD_Params[_LD_SliceIndex].x, dummy, n_geom.xz, sss);
+				if (wt_smallerLod > 0.001)
+				{
+					const float3 uv_slice_smallerLod = WorldToUV(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, _LD_Pos_Scale[_LD_SliceIndex], _LD_Params[_LD_SliceIndex], _LD_SliceIndex);
+					SampleDisplacementsNormals(_LD_TexArray_AnimatedWaves, uv_slice_smallerLod, wt_smallerLod, _LD_Params[_LD_SliceIndex].w, _LD_Params[_LD_SliceIndex].x, dummy, n_geom.xz, sss);
+				}
 				if (wt_biggerLod > 0.001)
 				{
 					const uint si = _LD_SliceIndex + 1;

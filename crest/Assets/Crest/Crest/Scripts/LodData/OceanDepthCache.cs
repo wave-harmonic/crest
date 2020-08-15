@@ -94,6 +94,7 @@ namespace Crest
         private readonly int sp_jumpSize = Shader.PropertyToID("_jumpSize");
         private readonly int sp_textureDimension = Shader.PropertyToID("_textureDimension");
         private readonly int sp_projectionToWorld = Shader.PropertyToID("_projectionToWorld");
+        private readonly int sp_InitTexture = Shader.PropertyToID("_InitTexture");
         private readonly int sp_FromTexture = Shader.PropertyToID("_FromTexture");
         private readonly int sp_ToTexture = Shader.PropertyToID("_ToTexture");
 
@@ -191,7 +192,7 @@ namespace Crest
                 RenderTextureFormat fmt;
                 if (_generateSignedDistanceFieldForShorelines)
                 {
-                    fmt = RenderTextureFormat.ARGBHalf;
+                    fmt = RenderTextureFormat.RGHalf;
                 }
                 else
                 {
@@ -264,13 +265,23 @@ namespace Crest
                 voronoiPingPongTexture1.enableRandomWrite = true;
                 voronoiPingPongTexture1.Create();
 
+
+                RenderTexture initTexture = new RenderTexture(_resolution, _resolution, 0);
+                initTexture.name = gameObject.name + "_initTexture";
+                initTexture.format = RenderTextureFormat.ARGBHalf; // need 4 channels on this texture
+                initTexture.useMipMap = false;
+                initTexture.anisoLevel = 0;
+                initTexture.enableRandomWrite = false;
+                initTexture.Create();
+
+                _depthCacheCamera.targetTexture = initTexture;
                 _depthCacheCamera.RenderWithShader(Shader.Find("Crest/Inputs/Depth/Initialise Signed Distance Field From Geometry"), null);
                 using (CommandBuffer jumpFloodCommandBuffer = new CommandBuffer())
                 {
                     {
                         ComputeShader initJumpFloodShader = ComputeShaderHelpers.LoadShader("SdfInitJumpFlood");
                         int initJumpFloodKernel = initJumpFloodShader.FindKernel("SdfInitJumpFlood");
-                        jumpFloodCommandBuffer.SetComputeTextureParam(initJumpFloodShader, initJumpFloodKernel, sp_FromTexture, _depthCacheTexture);
+                        jumpFloodCommandBuffer.SetComputeTextureParam(initJumpFloodShader, initJumpFloodKernel, sp_FromTexture, initTexture);
                         jumpFloodCommandBuffer.SetComputeTextureParam(initJumpFloodShader, initJumpFloodKernel, sp_ToTexture, voronoiPingPongTexture0);
                         jumpFloodCommandBuffer.DispatchCompute(
                             initJumpFloodShader,
@@ -321,6 +332,7 @@ namespace Crest
 
                     // TODO(TRC):Set world-space texture dimensions
                     // jumpFloodCommandBuffer.SetComputeIntParam(sdfGradientShader, sp_textureDimension, (int)textureDimension);
+                    jumpFloodCommandBuffer.SetComputeTextureParam(sdfGradientShader, sdfKernel, sp_InitTexture, initTexture);
                     jumpFloodCommandBuffer.SetComputeTextureParam(sdfGradientShader, sdfKernel, sp_FromTexture, voronoiPingPongTexture0);
                     jumpFloodCommandBuffer.SetComputeTextureParam(sdfGradientShader, sdfKernel, sp_ToTexture, _depthCacheTexture);
                     jumpFloodCommandBuffer.SetComputeIntParam(sdfGradientShader, sp_textureDimension, (int)textureDimension);
@@ -335,6 +347,10 @@ namespace Crest
                     Graphics.ExecuteCommandBuffer(jumpFloodCommandBuffer);
                 }
                 DrawCacheQuad(ref _drawDepthCacheQuad, "SDFCache_", OceanDepthCacheType.Baked, _type == OceanDepthCacheType.Baked ? (Texture)_savedCache : _depthCacheTexture);
+
+                initTexture.DiscardContents();
+                voronoiPingPongTexture0.DiscardContents();
+                voronoiPingPongTexture1.DiscardContents();
             }
             else
             {

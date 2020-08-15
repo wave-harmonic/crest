@@ -14,7 +14,7 @@ namespace Crest
     {
         public override string SimName { get { return "SeaFloorDepth"; } }
         // TODO(TRC):Now figure-out how to return the correct rendertexture format here based on whether shorelines are supported or not
-        public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.ARGBHalf; } }
+        public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RGHalf; } }
         protected override bool NeedToReadWriteTextureData { get { return false; } }
 
         bool _targetsClear = false;

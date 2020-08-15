@@ -43,7 +43,7 @@ void UpdateDynWaves(uint3 id : SV_DispatchThreadID)
 		_LD_TexArray_DynamicWaves_Source.GetDimensions(width, height, depth);
 	}
 	const float2 input_uv = IDtoUV(id.xy, width, height);
-	const float2 worldPosXZ = UVToWorld(input_uv, sliceIndex);
+	const float2 worldPosXZ = UVToWorld(input_uv, sliceIndex, _LD_Pos_Scale[sliceIndex], _LD_Params[sliceIndex]);
 	const float gridSize = _LD_Params[sliceIndex].x;
 
 	// average wavelength for this scale

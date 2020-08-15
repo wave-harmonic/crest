@@ -83,7 +83,7 @@ void ShapeCombineBase(uint3 id)
 	}
 	const float2 input_uv = IDtoUV(id.xy, width, height);
 
-	const float2 worldPosXZ = UVToWorld(input_uv);
+	const float2 worldPosXZ = UVToWorld(input_uv, _LD_SliceIndex, _LD_Pos_Scale[_LD_SliceIndex], _LD_Params[_LD_SliceIndex]);
 
 	// sample the shape 1 texture at this world pos
 	const uint si = _LD_SliceIndex + 1;

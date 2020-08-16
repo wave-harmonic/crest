@@ -81,7 +81,7 @@ namespace Crest
         [Tooltip("Generate a signed distance field for shorelines"), SerializeField]
         internal bool _generateSignedDistanceFieldForShorelines = false;
 
-        [PredicatedField("_generateSignedDistanceFieldForShorelines", true)]
+        [PredicatedField("_generateSignedDistanceFieldForShorelines")]
         [Tooltip("How many additional Jump Flood Algorithm rounds to use - (over the standard log2(Resolution)"), SerializeField]
         int _numberOfAdditionalJumpFloodRounds = 7;
 

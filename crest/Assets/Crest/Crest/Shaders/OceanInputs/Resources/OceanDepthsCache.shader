@@ -18,9 +18,8 @@ Shader "Crest/Inputs/Depth/Cached Depths"
 			// To confuse matters further, ocean depth is now more like 'sea floor altitude' - a height above a deep water value,
 			// so values are increasing in Y and we need to take the MAX of all depths.
 
-			// TODO(TRC):Now workout how to blend SDF data!
-			// BlendOp Min
-			// ColorMask R
+			BlendOp Min
+			ColorMask RG
 
 			CGPROGRAM
 			#pragma vertex Vert

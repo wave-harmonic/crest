@@ -323,8 +323,6 @@ namespace Crest
                         LodDataMgr.Swap(ref voronoiPingPongTexture1, ref voronoiPingPongTexture0);
                     }
 
-                    // TODO(TRC):Set world-space texture dimensions
-                    // jumpFloodCommandBuffer.SetComputeIntParam(sdfGradientShader, sp_textureDimension, (int)textureDimension);
                     jumpFloodCommandBuffer.SetComputeTextureParam(sdfGradientShader, sdfKernel, sp_FromTexture, voronoiPingPongTexture0);
                     jumpFloodCommandBuffer.SetComputeTextureParam(sdfGradientShader, sdfKernel, sp_ToTexture, _depthCacheTexture);
                     jumpFloodCommandBuffer.SetComputeIntParam(sdfGradientShader, sp_textureDimension, (int)textureDimension);

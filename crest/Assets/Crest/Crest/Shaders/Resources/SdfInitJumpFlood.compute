@@ -21,5 +21,5 @@ void SdfInitJumpFlood(uint3 id : SV_DispatchThreadID)
 {
 	float depth = _FromTexture[id.xy].x;
 	float2 currentPosition = IDtoWorld(id.xy, _textureDimension, _projectionToWorld);
-	_ToTexture[id.xy] = depth <= 0.0 ? currentPosition : float2(0.0, 0.0);
+	_ToTexture[id.xy] = depth <= 0.0 ? currentPosition : CREST_SDF_UNINITIALISED_POSITION;
 }

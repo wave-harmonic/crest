@@ -1,3 +1,11 @@
+// Crest Ocean System
+
+// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
+
+// Setting this to 0.0 means that gometry at exactly the origin won't be handled
+// super-gracefully - but it would only affect a single-pixel in the worst-case
+// and would doubtfully be noticable anyway.
+const float2 CREST_SDF_UNINITIALISED_POSITION = float2(0.0, 0.0);
 
 // Convert compute shader id to uv texture coordinates
 float2 IDtoUV(in float2 i_id, in float i_width, in float i_height)

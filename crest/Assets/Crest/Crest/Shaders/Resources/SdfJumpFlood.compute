@@ -19,8 +19,7 @@ RWTexture2D<float2> _ToTexture;
 [numthreads(8,8,1)]
 void SdfJumpFlood(uint3 id : SV_DispatchThreadID)
 {
-	// TODO(TRC):Now decide on a sensible default that always will be overriden (set by TerrainSignedDistanceFieldShader).
-	float2 defaultValue = float2(0, 0);
+	float2 uninitialisedPositionValue = CREST_SDF_UNINITIALISED_POSITION;
 	float2 currentNearestPoint = _FromTexture[id.xy];
 
 	bool rightIsInBounds = _textureDimension  - _jumpSize > id.x;
@@ -48,7 +47,7 @@ void SdfJumpFlood(uint3 id : SV_DispatchThreadID)
 		}
 		for(int i = 0; i < 8; i++)
 		{
-			if(currentNearestPoint.x == defaultValue.x && currentNearestPoint.y == defaultValue.y)
+			if(currentNearestPoint.x == uninitialisedPositionValue.x && currentNearestPoint.y == uninitialisedPositionValue.y)
 			{
 				currentNearestPoint = candidatePositions[i];
 				continue;

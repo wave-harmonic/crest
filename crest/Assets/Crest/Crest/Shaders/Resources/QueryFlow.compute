@@ -22,8 +22,8 @@ float3 ComputeFlow(float2 undispPos, float minSlice)
 	float lodAlpha;
 	PosToSliceIndices(undispPos, minSlice, _MeshScaleLerp, _LD_Pos_Scale[0].z, slice0, slice1, lodAlpha);
 
-	float3 uv0 = WorldToUV(undispPos, slice0);
-	float3 uv1 = WorldToUV(undispPos, slice1);
+	const float3 uv0 = WorldToUV(undispPos, _LD_Pos_Scale[slice0], _LD_Params[slice0], slice0);
+	const float3 uv1 = WorldToUV(undispPos, _LD_Pos_Scale[slice1], _LD_Params[slice1], slice1);
 
 	const float wt_0 = (1. - lodAlpha) * _LD_Params[slice0].z;
 	const float wt_1 = (1. - wt_0) * _LD_Params[slice1].z;

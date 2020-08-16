@@ -68,7 +68,6 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
-  m_RayTracingMode: 2
   m_RenderingLayerMask: 4294967295
   m_RendererPriority: 0
   m_Materials:
@@ -80,7 +79,6 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
-  m_ReceiveGI: 1
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -105,9 +103,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 26cbe8d1fc0a69249bc135d85739ad39, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _checkShaderName: 1
   _disableRenderer: 1
-  _followHorizontalMotion: 0
   _octaveWavelength: 11
   _maxDisplacementVertical: 0
   _maxDisplacementHorizontal: 0
@@ -220,14 +216,18 @@ MonoBehaviour:
   _createShadowData: 1
   _simSettingsShadow: {fileID: 0}
   _createClipSurfaceData: 1
-  _defaultClippingState: 0
-  _showOceanProxyPlane: 0
-  _editModeFPS: 30
-  _followSceneCamera: 1
   _attachDebugGUI: 1
-  _hideOceanTileGameObjects: 1
+  _followViewpoint: 1
   _uniformTiles: 0
   _disableSkirt: 0
+  _lodTransform: {fileID: 0}
+  _lodDataAnimWaves: {fileID: 0}
+  _lodDataSeaDepths: {fileID: 0}
+  _lodDataClipSurface: {fileID: 0}
+  _lodDataDynWaves: {fileID: 0}
+  _lodDataFlow: {fileID: 0}
+  _lodDataFoam: {fileID: 0}
+  _lodDataShadow: {fileID: 0}
 --- !u!1 &2513648072465438343
 GameObject:
   m_ObjectHideFlags: 0
@@ -318,7 +318,6 @@ MeshRenderer:
   m_MotionVectors: 2
   m_LightProbeUsage: 0
   m_ReflectionProbeUsage: 0
-  m_RayTracingMode: 2
   m_RenderingLayerMask: 4294967295
   m_RendererPriority: 0
   m_Materials:
@@ -330,7 +329,6 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
-  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -410,14 +408,6 @@ MonoBehaviour:
   _amplitudes: []
   _angleDegs: []
   _phases: []
-  _sdfShorelines: 0
-  _shorelineWavelengthNear: 2.5
-  _shorelineWavelengthFar: 15
-  _shorelineLerpDistance: 100
-  _shorelineShorelineWavePeriod: 1.7
-  _shorelineAmplitude: 0.3
-  _shorelineChop: 2
-  _shorelineWavePeriodSeparation: 1
   _directTowardsPoint: 0
   _pointPositionXZ: {x: 0, y: 0}
   _pointRadii: {x: 100, y: 200}
@@ -472,12 +462,9 @@ MonoBehaviour:
   _resolution: 384
   _cameraMaxTerrainHeight: 100
   _forceAlwaysUpdateDebug: 0
-  _hideDepthCacheCam: 1
   _savedCache: {fileID: 0}
   _checkTerrainDrawInstancedOption: 1
   _runValidationOnStart: 1
-  _generateSignedDistanceFieldForShorelines: 0
-  _numberOfAdditionalJumpFloodRounds: 7
 --- !u!114 &8887844017883251668
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1161,6 +1148,11 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 1026320130941649105}
     m_Modifications:
+    - target: {fileID: 5304508333967466499, guid: 37bbe23c17398419cbc8674f5c5dbccb,
+        type: 3}
+      propertyPath: m_Name
+      value: DemoLighting
+      objectReference: {fileID: 0}
     - target: {fileID: 1399345652565587599, guid: 37bbe23c17398419cbc8674f5c5dbccb,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -1215,11 +1207,6 @@ PrefabInstance:
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5304508333967466499, guid: 37bbe23c17398419cbc8674f5c5dbccb,
-        type: 3}
-      propertyPath: m_Name
-      value: DemoLighting
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 37bbe23c17398419cbc8674f5c5dbccb, type: 3}
@@ -1536,10 +1523,6 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 1026320130941649105}
     m_Modifications:
-    - target: {fileID: 1503911228227206, guid: d954bade270d6474e8d7b513f76b114c, type: 3}
-      propertyPath: m_IsActive
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 4317204734693030, guid: d954bade270d6474e8d7b513f76b114c, type: 3}
       propertyPath: m_LocalPosition.x
       value: 68.05
@@ -1571,6 +1554,10 @@ PrefabInstance:
     - target: {fileID: 4317204734693030, guid: d954bade270d6474e8d7b513f76b114c, type: 3}
       propertyPath: m_RootOrder
       value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 1503911228227206, guid: d954bade270d6474e8d7b513f76b114c, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: d954bade270d6474e8d7b513f76b114c, type: 3}
@@ -1654,15 +1641,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: cada5253abff1481b98c0880eb065d8e, type: 3}
---- !u!4 &6008382642350785674 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 2452750316707852748, guid: cada5253abff1481b98c0880eb065d8e,
-    type: 3}
-  m_PrefabInstance: {fileID: 8172902231589795142}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &6008382642350785677 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 2452750316707852747, guid: cada5253abff1481b98c0880eb065d8e,
+    type: 3}
+  m_PrefabInstance: {fileID: 8172902231589795142}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &6008382642350785674 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 2452750316707852748, guid: cada5253abff1481b98c0880eb065d8e,
     type: 3}
   m_PrefabInstance: {fileID: 8172902231589795142}
   m_PrefabAsset: {fileID: 0}

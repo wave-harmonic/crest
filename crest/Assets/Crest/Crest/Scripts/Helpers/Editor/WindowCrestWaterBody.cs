@@ -40,6 +40,12 @@ namespace Crest
 
         private void OnGUI()
         {
+            if (EditorApplication.isPlaying == true)
+            {
+                EditorGUILayout.HelpBox("Exit play mode to create water bodies.", MessageType.Info);
+                return;
+            }
+
             if (OceanRenderer.Instance == null)
             {
                 EditorGUILayout.HelpBox(
@@ -115,12 +121,14 @@ namespace Crest
 
             EditorGUILayout.Space();
 
+            var created = false;
             if (GUILayout.Button("Create"))
             {
                 CreateWaterBody();
+                created = true;
             }
 
-            if (GUILayout.Button("Done"))
+            if (created || GUILayout.Button("Done"))
             {
                 _state = State.Idle;
 

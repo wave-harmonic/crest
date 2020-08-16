@@ -25,6 +25,11 @@ public class OceanSampleDisplacementDemo : MonoBehaviour
 
     void Update()
     {
+        if (OceanRenderer.Instance == null)
+        {
+            return;
+        }
+
         if (_trackCamera)
         {
             var height = Mathf.Abs(Camera.main.transform.position.y - OceanRenderer.Instance.SeaLevel);
@@ -33,11 +38,6 @@ public class OceanSampleDisplacementDemo : MonoBehaviour
             _markerPos[0] = Camera.main.transform.position + Camera.main.transform.forward * offset;
             _markerPos[1] = Camera.main.transform.position + Camera.main.transform.forward * offset + _samplesRadius * Vector3.right;
             _markerPos[2] = Camera.main.transform.position + Camera.main.transform.forward * offset + _samplesRadius * Vector3.forward;
-        }
-
-        if (OceanRenderer.Instance == null)
-        {
-            return;
         }
 
         var collProvider = OceanRenderer.Instance.CollisionProvider;

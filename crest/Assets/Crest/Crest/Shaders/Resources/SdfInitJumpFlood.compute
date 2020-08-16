@@ -7,6 +7,11 @@
 
 #pragma kernel SdfInitJumpFlood
 
+#include "../SdfShared.hlsl"
+
+uint _textureDimension;
+float4x4 _projectionToWorld;
+
 Texture2D<float4>   _FromTexture;
 RWTexture2D<float2> _ToTexture;
 
@@ -14,6 +19,7 @@ RWTexture2D<float2> _ToTexture;
 [numthreads(8,8,1)]
 void SdfInitJumpFlood(uint3 id : SV_DispatchThreadID)
 {
-	float4 result = _FromTexture[id.xy];
-	_ToTexture[id.xy] = result.zw;
+	float depth = _FromTexture[id.xy].x;
+	float2 currentPosition = IDtoWorld(id.xy, _textureDimension, _projectionToWorld);
+	_ToTexture[id.xy] = depth <= 0.0 ? currentPosition : float2(0.0, 0.0);
 }

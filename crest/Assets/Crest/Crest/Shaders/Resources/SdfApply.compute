@@ -12,7 +12,6 @@
 uint _textureDimension;
 float4x4 _projectionToWorld;
 
-Texture2D<float4>   _InitTexture;
 Texture2D<float2>   _FromTexture;
 RWTexture2D<float2> _ToTexture;
 
@@ -25,7 +24,7 @@ void SdfApply(uint3 id : SV_DispatchThreadID)
 	float2 currentPosition = IDtoWorld(id.xy, _textureDimension, _projectionToWorld);
 	float2 displacementFromShore = nearestShorePos - currentPosition;
 
-	result.x = _InitTexture[id.xy].x;
+	result.x = _ToTexture[id.xy].x;
 	result.y = length(displacementFromShore);
 
 	_ToTexture[id.xy] = result;

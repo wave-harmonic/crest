@@ -86,9 +86,12 @@ Shader "Hidden/Crest/Inputs/Animated Waves/Gerstner Batch Global"
 				half sdf1 = _LD_TexArray_SeaFloorDepth.Sample(LODData_linear_clamp_sampler, input.uv_slice + eps_zero.xyy).y;
 				half sdf2 = _LD_TexArray_SeaFloorDepth.Sample(LODData_linear_clamp_sampler, input.uv_slice + eps_zero.yxy).y;
 				half2 directionToShore = depth_distance.y - half2(sdf1, sdf2);
-				if(dot(directionToShore, directionToShore) != 0.0)
 				{
-					directionToShore = normalize(directionToShore);
+					// Safely normalise directionToShore
+					// See: https://github.com/Unity-Technologies/Graphics/blob/fbec6739bb9d7b115beb0c06161bd99f6f05d390/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl#L1156
+					const float floatMin = 1.175494351e-38; // Minimum normalized positive floating-point number
+					float safeOneOverDistance = rsqrt(max(floatMin, dot(directionToShore, directionToShore)));
+					directionToShore = directionToShore * safeOneOverDistance;
 				}
 				result += ComputeShorelineGerstner(input.worldPosXZ, input.uv_slice, depth_distance, directionToShore);
 #endif

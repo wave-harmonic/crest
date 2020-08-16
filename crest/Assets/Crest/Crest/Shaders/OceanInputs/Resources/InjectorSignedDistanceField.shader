@@ -9,9 +9,6 @@ Shader "Crest/Inputs/Depth/Inject Signed Distance Field From Geometry"
 	{
 		Pass
 		{
-			// TODO(TRC):Now figure-out how to handle this blend operation properly!
-			// BlendOp Min
-
 			CGPROGRAM
 			#pragma vertex Vert
 			#pragma fragment Frag

@@ -33,9 +33,9 @@ namespace Crest
         // or below the horizon line itself already.
         internal const float DefaultHorizonSafetyMarginMultiplier = 0.01f;
 
-        internal const float DefaultFilterOceanDataValue = LodDataMgr.MAX_LOD_COUNT - 2.0f;
-        internal const float MinFilterOceanDataValue = 0;
-        internal const float MaxFilterOceanDataValue = LodDataMgr.MAX_LOD_COUNT - 2.0f;
+        internal const int DefaultFilterOceanDataValue = LodDataMgr.MAX_LOD_COUNT - 2;
+        internal const int MinFilterOceanDataValue = 0;
+        internal const int MaxFilterOceanDataValue = LodDataMgr.MAX_LOD_COUNT - 2;
 
         internal class UnderwaterSphericalHarmonicsData
         {
@@ -125,7 +125,7 @@ namespace Crest
             bool copyParamsFromOceanMaterial,
             bool debugViewPostProcessMask,
             float horizonSafetyMarginMultiplier,
-            float dataSliceOffset
+            int dataSliceOffset
         )
         {
             Material underwaterPostProcessMaterial = underwaterPostProcessMaterialWrapper.material;
@@ -189,7 +189,7 @@ namespace Crest
             }
             {
                 underwaterPostProcessMaterial.SetFloat(sp_OceanHeight, seaLevel);
-                underwaterPostProcessMaterial.SetFloat(sp_DataSliceOffset, dataSliceOffset);
+                underwaterPostProcessMaterial.SetInt(sp_DataSliceOffset, dataSliceOffset);
 
                 float maxOceanVerticalDisplacement = OceanRenderer.Instance.MaxVertDisplacement * 0.5f;
                 float cameraYPosition = camera.transform.position.y;

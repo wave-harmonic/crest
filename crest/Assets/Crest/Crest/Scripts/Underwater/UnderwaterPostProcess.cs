@@ -27,7 +27,7 @@ namespace Crest
         Material _underwaterPostProcessMaterial;
 
         [SerializeField, Tooltip(UnderwaterPostProcessUtils.tooltipFilterOceanData), Range(UnderwaterPostProcessUtils.MinFilterOceanDataValue, UnderwaterPostProcessUtils.MaxFilterOceanDataValue)]
-        public float _filterOceanData = UnderwaterPostProcessUtils.DefaultFilterOceanDataValue;
+        public int _filterOceanData = UnderwaterPostProcessUtils.DefaultFilterOceanDataValue;
 
         [Header("Debug Options")]
         [SerializeField] bool _viewPostProcessMask = false;

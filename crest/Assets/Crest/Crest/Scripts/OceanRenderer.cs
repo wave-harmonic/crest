@@ -555,7 +555,10 @@ namespace Crest
         bool VerifyRequirements()
         {
 #if !UNITY_2019_4_OR_NEWER
-            Debug.LogError("Crest requires Unity 2019.4 or newer.");
+            {
+                Debug.LogError("Crest requires Unity 2019.4 or newer.", this);
+                return false;
+            }
 #endif
 
             if (Application.platform == RuntimePlatform.WebGLPlayer)

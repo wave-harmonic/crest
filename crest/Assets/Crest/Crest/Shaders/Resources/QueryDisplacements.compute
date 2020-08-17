@@ -13,7 +13,6 @@ RWStructuredBuffer<float3> _ResultDisplacements;
 #include "HLSLSupport.cginc"
 #include "../OceanGlobals.hlsl"
 #include "../OceanInputsDriven.hlsl"
-#include "../OceanLODData.hlsl"
 #include "../OceanHelpersNew.hlsl"
 
 float3 ComputeDisplacement(float2 undispPos, float minSlice)

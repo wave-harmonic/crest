@@ -11,7 +11,6 @@
 #include "HLSLSupport.cginc"
 #include "../OceanGlobals.hlsl"
 #include "../OceanInputsDriven.hlsl"
-#include "../OceanLODData.hlsl"
 #include "../OceanHelpersNew.hlsl"
 
 CBUFFER_START(CrestPerMaterial)

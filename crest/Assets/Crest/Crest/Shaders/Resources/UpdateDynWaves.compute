@@ -9,9 +9,12 @@
 #define MIN_DT 0.00001
 
 #include "HLSLSupport.cginc"
+
 #include "../OceanGlobals.hlsl"
 #include "../OceanInputsDriven.hlsl"
 #include "../OceanHelpersNew.hlsl"
+
+RWTexture2DArray<float2> _LD_TexArray_Target;
 
 CBUFFER_START(CrestPerMaterial)
 float _Damping;
@@ -29,8 +32,6 @@ float ComputeWaveSpeed(float wavelength, float g)
 	const float one_over_2pi = 0.15915494;
 	return sqrt(wavelength*g*one_over_2pi);
 }
-
-RWTexture2DArray<float2> _LD_TexArray_Target;
 
 [numthreads(THREAD_GROUP_SIZE_X, THREAD_GROUP_SIZE_Y, 1)]
 void UpdateDynWaves(uint3 id : SV_DispatchThreadID)

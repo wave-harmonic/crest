@@ -5,9 +5,12 @@
 #pragma kernel UpdateFoam
 
 #include "HLSLSupport.cginc"
+
 #include "../OceanGlobals.hlsl"
 #include "../OceanInputsDriven.hlsl"
 #include "../OceanHelpersNew.hlsl"
+
+RWTexture2DArray<float> _LD_TexArray_Target;
 
 CBUFFER_START(CrestPerMaterial)
 float _FoamFadeRate;
@@ -19,8 +22,6 @@ float _SimDeltaTime;
 float _SimDeltaTimePrev;
 float _LODChange;
 CBUFFER_END
-
-RWTexture2DArray<float> _LD_TexArray_Target;
 
 [numthreads(THREAD_GROUP_SIZE_X, THREAD_GROUP_SIZE_Y, 1)]
 void UpdateFoam(uint3 id : SV_DispatchThreadID)

@@ -64,7 +64,6 @@ Shader "Crest/Inputs/Animated Waves/Whirlpool"
 
 				return float4(0.0, _Weight * y, 0.0, 0.0);
 			}
-
 			ENDCG
 		}
 	}

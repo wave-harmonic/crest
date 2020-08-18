@@ -8,12 +8,16 @@ using System;
 using UnityEngine;
 using UnityEngine.Serialization;
 
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+
 namespace Crest
 {
     /// <summary>
     /// Boat physics by sampling at multiple probe points.
     /// </summary>
-    public class BoatProbes : FloatingObjectBase
+    public partial class BoatProbes : FloatingObjectBase
     {
         [Header("Forces")]
         [Tooltip("Override RB center of mass, in local space."), SerializeField]
@@ -74,11 +78,6 @@ namespace Crest
             {
                 enabled = false;
                 return;
-            }
-
-            if (!_boatControl)
-            {
-                _boatControl = GetComponent<BoatControl>();
             }
 
             CalcTotalWeight();
@@ -207,4 +206,31 @@ namespace Crest
 
         public Vector3 _offsetPosition;
     }
+
+#if UNITY_EDITOR
+    public partial class BoatProbes : IValidated
+    {
+        public override bool Validate(OceanRenderer ocean, ValidatedHelper.ShowMessage showMessage)
+        {
+            var isValid = base.Validate(ocean, showMessage);
+
+            if (!_boatControl)
+            {
+                showMessage
+                (
+                    "<i>BoatProbes</i> has no component deriving from <i>BoatControl</i> assigned. The boat will " +
+                    "not respond to input. If this is not intentional, then please add one and assign it to this " +
+                    "component.",
+                    ValidatedHelper.MessageType.Warning, this
+                );
+            }
+
+            return isValid;
+        }
+    }
+
+    [CustomEditor(typeof(BoatProbes), true), CanEditMultipleObjects]
+    class BoatProbesEditor : ValidatedEditor { }
+#endif
+
 }

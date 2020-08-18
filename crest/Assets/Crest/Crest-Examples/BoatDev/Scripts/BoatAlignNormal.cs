@@ -5,10 +5,14 @@
 using Crest;
 using UnityEngine;
 
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+
 /// <summary>
 /// Simple type of buoyancy - takes one sample and matches boat height and orientation to water height and normal.
 /// </summary>
-public class BoatAlignNormal : FloatingObjectBase
+public partial class BoatAlignNormal : FloatingObjectBase
 {
     [Header("Buoyancy Force")]
     [Tooltip("Height offset from transform center to bottom of boat (if any)."), SerializeField]
@@ -66,11 +70,6 @@ public class BoatAlignNormal : FloatingObjectBase
         {
             enabled = false;
             return;
-        }
-
-        if (!_boatControl)
-        {
-            _boatControl = GetComponent<BoatControl>();
         }
     }
 
@@ -176,3 +175,29 @@ public class BoatAlignNormal : FloatingObjectBase
         }
     }
 }
+
+#if UNITY_EDITOR
+public partial class BoatAlignNormal : IValidated
+{
+    public override bool Validate(OceanRenderer ocean, ValidatedHelper.ShowMessage showMessage)
+    {
+        var isValid = base.Validate(ocean, showMessage);
+
+        if (!_boatControl)
+        {
+            showMessage
+            (
+                "<i>BoatAlignNormal</i> has no component deriving from <i>BoatControl</i> assigned. The boat will " +
+                "not respond to input. If this is not intentional, then please add one and assign it to this " +
+                "component.",
+                ValidatedHelper.MessageType.Warning, this
+            );
+        }
+
+        return isValid;
+    }
+}
+
+[CustomEditor(typeof(BoatAlignNormal), true), CanEditMultipleObjects]
+class BoatAlignNormalEditor : ValidatedEditor { }
+#endif

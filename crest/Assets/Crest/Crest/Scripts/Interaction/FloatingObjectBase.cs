@@ -23,7 +23,7 @@ namespace Crest
 #if UNITY_EDITOR
     public abstract partial class FloatingObjectBase : IValidated
     {
-        public bool Validate(OceanRenderer ocean, ValidatedHelper.ShowMessage showMessage)
+        public virtual bool Validate(OceanRenderer ocean, ValidatedHelper.ShowMessage showMessage)
         {
             var isValid = true;
 

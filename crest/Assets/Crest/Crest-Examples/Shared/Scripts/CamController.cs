@@ -5,6 +5,9 @@
 using UnityEngine;
 using UnityEngine.XR;
 
+/// <summary>
+/// A simple and dumb camera script that can be controlled using WASD and the mouse.
+/// </summary>
 public class CamController : MonoBehaviour
 {
     public float linSpeed = 10f;

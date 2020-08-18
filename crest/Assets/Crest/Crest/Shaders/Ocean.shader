@@ -589,4 +589,7 @@ Shader "Crest/Ocean"
 			ENDCG
 		}
 	}
+
+	// If the above doesn't work then error.
+	FallBack "Hidden/InternalErrorShader"
 }

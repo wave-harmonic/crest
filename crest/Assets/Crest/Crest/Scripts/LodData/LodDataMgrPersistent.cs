@@ -10,7 +10,6 @@ namespace Crest
     /// <summary>
     /// A persistent simulation that moves around with a displacement LOD.
     /// </summary>
-    [ExecuteAlways]
     public abstract class LodDataMgrPersistent : LodDataMgr
     {
         protected override bool NeedToReadWriteTextureData { get { return true; } }

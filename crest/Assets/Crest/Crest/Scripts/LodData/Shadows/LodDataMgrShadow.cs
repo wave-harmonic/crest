@@ -25,7 +25,7 @@ namespace Crest
         Light _mainLight;
         Camera _cameraMain;
 
-        // LWRP version needs access to this externally, hence public get
+        // SRP version needs access to this externally, hence public get
         public CommandBuffer BufCopyShadowMap { get; private set; }
 
         RenderTexture _sources;

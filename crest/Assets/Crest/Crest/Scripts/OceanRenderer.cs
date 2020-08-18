@@ -1020,7 +1020,7 @@ namespace Crest
         {
             var isValid = true;
 
-            if (EditorSettings.enterPlayModeOptionsEnabled && 
+            if (EditorSettings.enterPlayModeOptionsEnabled &&
                 EditorSettings.enterPlayModeOptions.HasFlag(EnterPlayModeOptions.DisableSceneReload))
             {
                 showMessage

@@ -7,6 +7,8 @@ using UnityEngine.Rendering;
 
 namespace Crest
 {
+    using SettingsType = SimSettingsAnimatedWaves;
+
     /// <summary>
     /// Captures waves/shape that is drawn kinematically - there is no frame-to-frame state. The Gerstner
     /// waves are drawn in this way. There are two special features of this particular LodData.
@@ -60,12 +62,25 @@ namespace Crest
         readonly int sp_LD_TexArray_WaveBuffer = Shader.PropertyToID("_LD_TexArray_WaveBuffer");
         const string s_textureArrayName = "_LD_TexArray_AnimatedWaves";
 
-        public override void UseSettings(SimSettingsBase settings) { OceanRenderer.Instance._simSettingsAnimatedWaves = settings as SimSettingsAnimatedWaves; }
-        public override SimSettingsBase CreateDefaultSettings()
+        SettingsType _defaultSettings;
+        public SettingsType Settings
         {
-            var settings = ScriptableObject.CreateInstance<SimSettingsAnimatedWaves>();
-            settings.name = SimName + " Auto-generated Settings";
-            return settings;
+            get
+            {
+                if (_ocean._simSettingsAnimatedWaves != null) return _ocean._simSettingsAnimatedWaves;
+
+                if (_defaultSettings == null)
+                {
+                    _defaultSettings = ScriptableObject.CreateInstance<SettingsType>();
+                    _defaultSettings.name = SimName + " Auto-generated Settings";
+                }
+                return _defaultSettings;
+            }
+        }
+
+        public LodDataMgrAnimWaves(OceanRenderer ocean) : base(ocean)
+        {
+            Start();
         }
 
         protected override void InitData()
@@ -93,7 +108,7 @@ namespace Crest
             }
 
             _combineShader = ComputeShaderHelpers.LoadShader(ShaderName);
-            if(_combineShader == null)
+            if (_combineShader == null)
             {
                 enabled = false;
                 return;
@@ -195,7 +210,7 @@ namespace Crest
             // Validation
             for (int lodIdx = 0; lodIdx < OceanRenderer.Instance.CurrentLodCount; lodIdx++)
             {
-                OceanRenderer.Instance._lodTransform._renderData[lodIdx].Validate(0, this);
+                OceanRenderer.Instance._lodTransform._renderData[lodIdx].Validate(0, SimName);
             }
 
             // lod-dependent data
@@ -255,7 +270,7 @@ namespace Crest
                 }
 
                 // Dynamic waves
-                if (OceanRenderer.Instance._lodDataDynWaves)
+                if (OceanRenderer.Instance._lodDataDynWaves != null)
                 {
                     OceanRenderer.Instance._lodDataDynWaves.BindCopySettings(_combineMaterial[lodIdx]);
                     OceanRenderer.Instance._lodDataDynWaves.BindResultData(_combineMaterial[lodIdx]);
@@ -266,7 +281,7 @@ namespace Crest
                 }
 
                 // Flow
-                if (OceanRenderer.Instance._lodDataFlow)
+                if (OceanRenderer.Instance._lodDataFlow != null)
                 {
                     OceanRenderer.Instance._lodDataFlow.BindResultData(_combineMaterial[lodIdx]);
                 }
@@ -336,7 +351,7 @@ namespace Crest
                 BindResultData(_combineProperties);
 
                 // Dynamic waves
-                if (OceanRenderer.Instance._lodDataDynWaves)
+                if (OceanRenderer.Instance._lodDataDynWaves != null)
                 {
                     OceanRenderer.Instance._lodDataDynWaves.BindCopySettings(_combineProperties);
                     OceanRenderer.Instance._lodDataDynWaves.BindResultData(_combineProperties);
@@ -347,7 +362,7 @@ namespace Crest
                 }
 
                 // Flow
-                if (OceanRenderer.Instance._lodDataFlow)
+                if (OceanRenderer.Instance._lodDataFlow != null)
                 {
                     OceanRenderer.Instance._lodDataFlow.BindResultData(_combineProperties);
                 }
@@ -363,7 +378,11 @@ namespace Crest
                 );
 
                 _combineProperties.SetInt(sp_LD_SliceIndex, lodIdx);
-                _combineProperties.DispatchShader();
+
+                buf.DispatchCompute(_combineShader, selectedShaderKernel,
+                    OceanRenderer.Instance.LodDataResolution / THREAD_GROUP_SIZE_X,
+                    OceanRenderer.Instance.LodDataResolution / THREAD_GROUP_SIZE_Y,
+                    1);
             }
         }
 

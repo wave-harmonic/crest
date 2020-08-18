@@ -5,6 +5,9 @@
 using UnityEngine;
 using UnityEngine.XR;
 
+/// <summary>
+/// A simple and dumb camera script that can be controlled using WASD and the mouse.
+/// </summary>
 public class CamController : MonoBehaviour
 {
     public float linSpeed = 10f;
@@ -20,11 +23,23 @@ public class CamController : MonoBehaviour
 
     Transform _targetTransform;
 
+    [System.Serializable]
+    class DebugFields
+    {
+        [Tooltip("Disables the XR occlusion mesh for debugging purposes. Only works with legacy XR.")]
+        public bool disableOcclusionMesh = false;
+
+        [Tooltip("Sets the XR occlusion mesh scale. Useful for debugging refractions. Only works with legacy XR."), Range(1f, 2f)]
+        public float occlusionMeshScale = 1f;
+    }
+
+    [SerializeField] DebugFields _debug = new DebugFields();
+
     void Awake()
     {
         _targetTransform = transform;
 
-        // We cannot change the Camera's transform when XR is enabled.
+        // We cannot change the Camera's transform when XR is enabled. This is not an issue with the new XR plugin.
         if (XRSettings.enabled)
         {
             // Disable XR temporarily so we can change the transform of the camera.
@@ -43,6 +58,10 @@ public class CamController : MonoBehaviour
             // We want to manipulate this transform.
             _targetTransform = parent.transform;
             XRSettings.enabled = true;
+
+            // Seems like the best place to put this for now. Most XR debugging happens using this component.
+            XRSettings.useOcclusionMesh = !_debug.disableOcclusionMesh;
+            XRSettings.occlusionMaskScale = _debug.occlusionMeshScale;
         }
     }
 
@@ -59,6 +78,17 @@ public class CamController : MonoBehaviour
         {
             UpdateDragging(dt);
             UpdateKillRoll();
+        }
+
+        if (XRSettings.enabled)
+        {
+            // Check if property has changed.
+            if (XRSettings.useOcclusionMesh == _debug.disableOcclusionMesh)
+            {
+                XRSettings.useOcclusionMesh = !_debug.disableOcclusionMesh;
+            }
+
+            XRSettings.occlusionMaskScale = _debug.occlusionMeshScale;
         }
     }
 
@@ -89,6 +119,16 @@ public class CamController : MonoBehaviour
         _targetTransform.position -= speed * _targetTransform.up * (Input.GetKey(KeyCode.Q) ? 1 : 0) * dt;
         _targetTransform.position -= speed * _targetTransform.right * (Input.GetKey(KeyCode.A) ? 1 : 0) * dt;
         _targetTransform.position += speed * _targetTransform.right * (Input.GetKey(KeyCode.D) ? 1 : 0) * dt;
+
+        {
+            float rotate = 0f;
+            rotate += (Input.GetKey(KeyCode.RightArrow) ? 1 : 0);
+            rotate -= (Input.GetKey(KeyCode.LeftArrow) ? 1 : 0);
+            rotate *= 5f;
+            Vector3 ea = _targetTransform.eulerAngles;
+            ea.y += 0.1f * rotSpeed * rotate * dt;
+            _targetTransform.eulerAngles = ea;
+        }
     }
 
     void UpdateDragging(float dt)
@@ -97,18 +137,18 @@ public class CamController : MonoBehaviour
         mousePos.x = Input.mousePosition.x;
         mousePos.y = Input.mousePosition.y;
 
-        if( !_dragging && Input.GetMouseButtonDown( 0 ) && !Crest.OceanDebugGUI.OverGUI( mousePos ) )
+        if (!_dragging && Input.GetMouseButtonDown(0) && !Crest.OceanDebugGUI.OverGUI(mousePos))
         {
             _dragging = true;
             _lastMousePos = mousePos;
         }
-        if( _dragging && Input.GetMouseButtonUp( 0 ) )
+        if (_dragging && Input.GetMouseButtonUp(0))
         {
             _dragging = false;
             _lastMousePos = -Vector2.one;
         }
 
-        if( _dragging )
+        if (_dragging)
         {
             Vector2 delta = mousePos - _lastMousePos;
 

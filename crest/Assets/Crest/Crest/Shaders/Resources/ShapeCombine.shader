@@ -28,7 +28,6 @@ Shader "Hidden/Crest/Simulation/Combine Animated Wave LODs"
 
 			#include "../OceanGlobals.hlsl"
 			#include "../OceanInputsDriven.hlsl"
-			#include "../OceanLODData.hlsl"
 			#include "../OceanHelpersNew.hlsl"
 			#include "../FullScreenTriangle.hlsl"
 
@@ -69,10 +68,11 @@ Shader "Hidden/Crest/Simulation/Combine Animated Wave LODs"
 				float3 uv_thisLod = float3(input.uv, _LD_SliceIndex);
 
 				// go from uv out to world for the current shape texture
-				const float2 worldPosXZ = UVToWorld(input.uv);
+				const float2 worldPosXZ = UVToWorld(input.uv, _LD_SliceIndex, _LD_Pos_Scale[_LD_SliceIndex], _LD_Params[_LD_SliceIndex]);
 
 				// sample the shape 1 texture at this world pos
-				const float3 uv_nextLod = WorldToUV_BiggerLod(worldPosXZ);
+				const uint si = _LD_SliceIndex + 1;
+				const float3 uv_nextLod = WorldToUV(worldPosXZ, _LD_Pos_Scale[si], _LD_Params[si], si);
 
 				float3 result = 0.0;
 				half sss = 0.0;
@@ -84,8 +84,8 @@ Shader "Hidden/Crest/Simulation/Combine Animated Wave LODs"
 				float2 offsets, weights;
 				Flow(offsets, weights);
 
-				float3 uv_thisLod_flow_0 = WorldToUV(worldPosXZ - offsets[0] * flow);
-				float3 uv_thisLod_flow_1 = WorldToUV(worldPosXZ - offsets[1] * flow);
+				const float3 uv_thisLod_flow_0 = WorldToUV(worldPosXZ - offsets[0] * flow, _LD_Pos_Scale[_LD_SliceIndex], _LD_Params[_LD_SliceIndex], _LD_SliceIndex);
+				const float3 uv_thisLod_flow_1 = WorldToUV(worldPosXZ - offsets[1] * flow, _LD_Pos_Scale[_LD_SliceIndex], _LD_Params[_LD_SliceIndex], _LD_SliceIndex);
 				SampleDisplacements(_LD_TexArray_WaveBuffer, uv_thisLod_flow_0, weights[0], result, sss);
 				SampleDisplacements(_LD_TexArray_WaveBuffer, uv_thisLod_flow_1, weights[1], result, sss);
 #else

@@ -21,6 +21,7 @@ namespace Crest
         void SetInt(int param, int value);
     }
 
+    [System.Serializable]
     public class PropertyWrapperMaterial : IPropertyWrapper
     {
         public PropertyWrapperMaterial(Material target) { material = target; }
@@ -74,38 +75,6 @@ namespace Crest
         public void SetVector(int param, Vector4 value) { _commandBuffer.SetComputeVectorParam(_computeShader, param, value); }
         public void SetVectorArray(int param, Vector4[] value) { _commandBuffer.SetComputeVectorArrayParam(_computeShader, param, value); }
         public void SetMatrix(int param, Matrix4x4 value) { _commandBuffer.SetComputeMatrixParam(_computeShader, param, value); }
-
-        // NOTE: these MUST match the values in OceanLODData.hlsl
-        // 64 recommended as a good common minimum: https://www.reddit.com/r/GraphicsProgramming/comments/aeyfkh/for_compute_shaders_is_there_an_ideal_numthreads/
-        public const int THREAD_GROUP_SIZE_X = 8;
-        public const int THREAD_GROUP_SIZE_Y = 8;
-        public void DispatchShader()
-        {
-            _commandBuffer.DispatchCompute(
-                _computeShader, _computeKernel,
-                OceanRenderer.Instance.LodDataResolution / THREAD_GROUP_SIZE_X,
-                OceanRenderer.Instance.LodDataResolution / THREAD_GROUP_SIZE_Y,
-                1
-            );
-
-            _commandBuffer = null;
-            _computeShader = null;
-            _computeKernel = -1;
-        }
-
-        public void DispatchShaderMultiLOD()
-        {
-            _commandBuffer.DispatchCompute(
-                _computeShader, _computeKernel,
-                OceanRenderer.Instance.LodDataResolution / THREAD_GROUP_SIZE_X,
-                OceanRenderer.Instance.LodDataResolution / THREAD_GROUP_SIZE_Y,
-                OceanRenderer.Instance.CurrentLodCount
-            );
-
-            _commandBuffer = null;
-            _computeShader = null;
-            _computeKernel = -1;
-        }
     }
 
     [System.Serializable]

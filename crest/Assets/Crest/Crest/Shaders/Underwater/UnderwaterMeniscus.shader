@@ -24,12 +24,13 @@ Shader "Crest/Underwater Meniscus"
 			#pragma vertex Vert
 			#pragma fragment Frag
 
+			#pragma multi_compile_instancing
+
 			#include "UnityCG.cginc"
 			#include "Lighting.cginc"
 
 			#include "../OceanGlobals.hlsl"
 			#include "../OceanInputsDriven.hlsl"
-			#include "../OceanLODData.hlsl"
 			#include "../OceanHelpersNew.hlsl"
 			#include "UnderwaterShared.hlsl"
 
@@ -43,6 +44,8 @@ Shader "Crest/Underwater Meniscus"
 			{
 				float4 positionOS : POSITION;
 				float2 uv : TEXCOORD0;
+
+				UNITY_VERTEX_INPUT_INSTANCE_ID
 			};
 
 			struct Varyings
@@ -52,11 +55,17 @@ Shader "Crest/Underwater Meniscus"
 				half4 foam_screenPos : TEXCOORD1;
 				half4 grabPos : TEXCOORD2;
 				float3 worldPos : TEXCOORD3;
+
+				UNITY_VERTEX_OUTPUT_STEREO
 			};
 
 			Varyings Vert(Attributes input)
 			{
 				Varyings o;
+
+				UNITY_SETUP_INSTANCE_ID(input);
+				UNITY_INITIALIZE_OUTPUT(Varyings, o);
+				UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
 
 				// view coordinate frame for camera
 				const float3 right = unity_CameraToWorld._11_21_31;

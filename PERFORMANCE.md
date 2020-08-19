@@ -8,7 +8,7 @@ The foundation of *Crest* is architected for performance from the ground up with
 
 These are currently available for tweaking and should be explored on every project:
 
-* See the *Ocean Construction Parameters* described in the USERGUIDE.md which directly control how much detail is in the ocean, and therefore the work required to update and render it.
+* See the *[Ocean Construction Parameters]* described in the USERGUIDE.md which directly control how much detail is in the ocean, and therefore the work required to update and render it.
 * The ocean shader has accrued a number of features and has become a reasonably heavy shader. Where possible these are on toggles and can be disabled, which will help the rendering cost.
 * The number of wave components will affect the update cost. This can be reduced by turning down sliders in the wave spectrum, and by reducing the *Components per Octave* setting on the *OceanGerstnerBatched* script.
 
@@ -28,3 +28,5 @@ The following are optimisation ideas.
 * GPU-instance ocean material tiles. Discussed in Issue #27. Not currently planned for *Crest*.
 * Pre-rendered wave displacements - sample waves from texture instead of computing them on the fly. I tried this out in the branch *feature/baked-waves* and found it challenging to get good shape without interpolation artifacts. Given that the baking step is also inconvenient, there are no plans to explore this further.
 * Packing ocean shader params - many of the params on the ocean shader are single floats which take a large number of registers. Using a custom material inspector it should be possible to pack these into float4s which will reduce constant buffer size massively and may help perf (or not..).
+
+[Ocean Construction Parameters]: https://github.com/crest-ocean/crest/blob/master/USERGUIDE.md#ocean-construction-parameters

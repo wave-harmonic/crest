@@ -119,7 +119,7 @@ namespace Crest
             if (_rend.enabled)
             {
                 // Only execute when playing to stop CopyPropertiesFromMaterial from corrupting and breaking the material.
-                if (_copyParamsEachFrame && EditorApplication.isPlaying)
+                if (_copyParamsEachFrame && Application.isPlaying)
                 {
                     _rend.sharedMaterial.CopyPropertiesFromMaterial(OceanRenderer.Instance.OceanMaterial);
                 }

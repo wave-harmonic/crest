@@ -640,15 +640,9 @@ namespace Crest
             var meshScaleLerp = needToBlendOutShape ? ViewerAltitudeLevelAlpha : 0f;
             Shader.SetGlobalFloat(sp_meshScaleLerp, meshScaleLerp);
 
-            if (Viewpoint == null
-                )
+            if (Viewpoint == null && Application.isPlaying)
             {
-#if UNITY_EDITOR
-                if (EditorApplication.isPlaying)
-#endif
-                {
-                    Debug.LogError("Viewpoint is null, ocean update will fail.", this);
-                }
+                Debug.LogError("Viewpoint is null, ocean update will fail.", this);
             }
 
             if (_followViewpoint && Viewpoint != null)

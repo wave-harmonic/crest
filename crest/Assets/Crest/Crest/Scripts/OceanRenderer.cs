@@ -399,14 +399,10 @@ namespace Crest
                     return _editorFrames;
                 }
                 else
-                {
-                    return Time.frameCount;
-                }
-#else
-                {
-                    return Time.frameCount;
-                }
 #endif
+                {
+                    return Time.frameCount;
+                }
             }
         }
 

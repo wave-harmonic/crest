@@ -269,9 +269,6 @@ namespace Crest
 
         bool _canSkipCulling = false;
 
-        // Becomes false after the first RunUpdate call. Used for some state initialisation.
-        bool _isFirstUpdate = true;
-
         readonly int sp_crestTime = Shader.PropertyToID("_CrestTime");
         readonly int sp_texelsPerWave = Shader.PropertyToID("_TexelsPerWave");
         readonly int sp_oceanCenterPosWorld = Shader.PropertyToID("_OceanCenterPosWorld");
@@ -318,8 +315,6 @@ namespace Crest
                 return;
             }
 #endif
-
-            _isFirstUpdate = true;
 
             Instance = this;
             Scale = Mathf.Clamp(Scale, _minScale, _maxScale);
@@ -698,8 +693,6 @@ namespace Crest
                 }
             }
 #endif
-
-            _isFirstUpdate = false;
         }
 
         void LateUpdatePosition()
@@ -806,12 +799,6 @@ namespace Crest
 
         void LateUpdateResetMaxDisplacementFromShape()
         {
-            // If time stops, then reporting will become inconsistent.
-            if (!_isFirstUpdate && Time.timeScale == 0)
-            {
-                return;
-            }
-
             if (FrameCount != _maxDisplacementCachedTime)
             {
                 _maxHorizDispFromShape = _maxVertDispFromShape = _maxVertDispFromWaves = 0f;
@@ -835,12 +822,6 @@ namespace Crest
         /// </summary>
         public void ReportMaxDisplacementFromShape(float maxHorizDisp, float maxVertDisp, float maxVertDispFromWaves)
         {
-            // If time stops, then reporting will become inconsistent.
-            if (!_isFirstUpdate && Time.timeScale == 0)
-            {
-                return;
-            }
-
             _maxHorizDispFromShape += maxHorizDisp;
             _maxVertDispFromShape += maxVertDisp;
             _maxVertDispFromWaves += maxVertDispFromWaves;

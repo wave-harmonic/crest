@@ -254,14 +254,15 @@ namespace Crest
             }
         }
 
-        float _lastUpdateTime = -1f;
+        int _lastFrameForUpdateData = -1;
 
         void UpdateData()
         {
             if (OceanRenderer.Instance == null) return;
 
-            if (_lastUpdateTime >= OceanRenderer.Instance.CurrentTime) return;
-            _lastUpdateTime = OceanRenderer.Instance.CurrentTime;
+            // We only want this to be executed once per frame.
+            if (_lastFrameForUpdateData == OceanRenderer.FrameCount) return;
+            _lastFrameForUpdateData = OceanRenderer.FrameCount;
 
             if (_evaluateSpectrumAtRuntime)
             {
@@ -951,13 +952,35 @@ namespace Crest
                 isValid = false;
             }
 
+            // TODO(TRC):Now workout why the ocean can be null... :(
+            if(ocean != null)
+            {
+                if(ocean._simSettingsDepth == null)
+                {
+                    showMessage
+                    (
+                        $"The ocean doesn't have any depth sim settings, please add them and enable signed distance fields to support shoreline waves.",
+                        ValidatedHelper.MessageType.Warning, ocean
+                    );
+
+                }
+                else if(!ocean._simSettingsDepth._enableSignedDistanceFields)
+                {
+                    showMessage
+                    (
+                        $"Please enable signed distance fields on sim settings depth to support shoreline waves.",
+                        ValidatedHelper.MessageType.Warning, ocean._simSettingsDepth
+                    );
+                }
+            }
+
             {
                 OceanDepthCache[] oceanDepthCaches = FindObjectsOfType<OceanDepthCache>();
                 if (_sdfShorelines)
                 {
                     foreach (OceanDepthCache oceanDepthCache in oceanDepthCaches)
                     {
-                        if (!oceanDepthCache._generateSignedDistanceFieldForShorelines)
+                        if (!oceanDepthCache._generateSDF)
                         {
                             showMessage
                             (
@@ -971,7 +994,7 @@ namespace Crest
                 {
                     foreach (OceanDepthCache oceanDepthCache in oceanDepthCaches)
                     {
-                        if (oceanDepthCache._generateSignedDistanceFieldForShorelines)
+                        if (oceanDepthCache._generateSDF)
                         {
                             showMessage
                             (

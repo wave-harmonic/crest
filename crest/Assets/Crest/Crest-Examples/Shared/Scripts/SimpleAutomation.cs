@@ -7,6 +7,9 @@ using UnityEngine.SceneManagement;
 
 #if UNITY_EDITOR
 
+/// <summary>
+/// A simple automation script that pauses the game after a time.
+/// </summary>
 public class SimpleAutomation : MonoBehaviour
 {
     static bool _reloadPending = true;

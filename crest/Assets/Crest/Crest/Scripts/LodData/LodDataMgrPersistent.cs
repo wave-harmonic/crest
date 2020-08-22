@@ -10,7 +10,6 @@ namespace Crest
     /// <summary>
     /// A persistent simulation that moves around with a displacement LOD.
     /// </summary>
-    [ExecuteAlways]
     public abstract class LodDataMgrPersistent : LodDataMgr
     {
         protected override bool NeedToReadWriteTextureData { get { return true; } }
@@ -129,7 +128,10 @@ namespace Crest
                 // Bind current data
                 BindData(_renderSimProperties, null, false, ref OceanRenderer.Instance._lodTransform._renderData, false);
 
-                _renderSimProperties.DispatchShaderMultiLOD();
+                buf.DispatchCompute(_shader, krnl_ShaderSim,
+                    OceanRenderer.Instance.LodDataResolution / THREAD_GROUP_SIZE_X,
+                    OceanRenderer.Instance.LodDataResolution / THREAD_GROUP_SIZE_Y,
+                    OceanRenderer.Instance.CurrentLodCount);
 
                 for (var lodIdx = lodCount - 1; lodIdx >= 0; lodIdx--)
                 {

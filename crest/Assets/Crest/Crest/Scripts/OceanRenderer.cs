@@ -10,6 +10,10 @@ using UnityEditor;
 using UnityEditor.Experimental.SceneManagement;
 #endif
 
+#if !UNITY_2019_4_OR_NEWER
+#error This version of Crest requires Unity 2019.4 or later.
+#endif
+
 namespace Crest
 {
     /// <summary>
@@ -144,6 +148,8 @@ namespace Crest
         [Tooltip("Water depth information used for shallow water, shoreline foam, wave attenuation, among others."), SerializeField]
         bool _createSeaFloorDepthData = true;
         public bool CreateSeaFloorDepthData { get { return _createSeaFloorDepthData; } }
+        [PredicatedField("_createSeaFloorDepthData")]
+        public SimSettingsDepth _simSettingsDepth;
 
         [Tooltip("Simulation of foam created in choppy water and dissipating over time."), SerializeField]
         bool _createFoamSim = true;
@@ -265,9 +271,6 @@ namespace Crest
 
         bool _canSkipCulling = false;
 
-        // Becomes false after the first RunUpdate call. Used for some state initialisation.
-        bool _isFirstUpdate = true;
-
         readonly int sp_crestTime = Shader.PropertyToID("_CrestTime");
         readonly int sp_texelsPerWave = Shader.PropertyToID("_TexelsPerWave");
         readonly int sp_oceanCenterPosWorld = Shader.PropertyToID("_OceanCenterPosWorld");
@@ -314,8 +317,6 @@ namespace Crest
                 return;
             }
 #endif
-
-            _isFirstUpdate = true;
 
             Instance = this;
             Scale = Mathf.Clamp(Scale, _minScale, _maxScale);
@@ -400,14 +401,10 @@ namespace Crest
                     return _editorFrames;
                 }
                 else
-                {
-                    return Time.frameCount;
-                }
-#else
-                {
-                    return Time.frameCount;
-                }
 #endif
+                {
+                    return Time.frameCount;
+                }
             }
         }
 
@@ -645,15 +642,9 @@ namespace Crest
             var meshScaleLerp = needToBlendOutShape ? ViewerAltitudeLevelAlpha : 0f;
             Shader.SetGlobalFloat(sp_meshScaleLerp, meshScaleLerp);
 
-            if (Viewpoint == null
-                )
+            if (Viewpoint == null && Application.isPlaying)
             {
-#if UNITY_EDITOR
-                if (EditorApplication.isPlaying)
-#endif
-                {
-                    Debug.LogError("Viewpoint is null, ocean update will fail.", this);
-                }
+                Debug.LogError("Viewpoint is null, ocean update will fail.", this);
             }
 
             if (_followViewpoint && Viewpoint != null)
@@ -694,8 +685,6 @@ namespace Crest
                 }
             }
 #endif
-
-            _isFirstUpdate = false;
         }
 
         void LateUpdatePosition()
@@ -802,12 +791,6 @@ namespace Crest
 
         void LateUpdateResetMaxDisplacementFromShape()
         {
-            // If time stops, then reporting will become inconsistent.
-            if (!_isFirstUpdate && Time.timeScale == 0)
-            {
-                return;
-            }
-
             if (FrameCount != _maxDisplacementCachedTime)
             {
                 _maxHorizDispFromShape = _maxVertDispFromShape = _maxVertDispFromWaves = 0f;
@@ -831,12 +814,6 @@ namespace Crest
         /// </summary>
         public void ReportMaxDisplacementFromShape(float maxHorizDisp, float maxVertDisp, float maxVertDispFromWaves)
         {
-            // If time stops, then reporting will become inconsistent.
-            if (!_isFirstUpdate && Time.timeScale == 0)
-            {
-                return;
-            }
-
             _maxHorizDispFromShape += maxHorizDisp;
             _maxVertDispFromShape += maxVertDisp;
             _maxVertDispFromWaves += maxVertDispFromWaves;
@@ -1016,7 +993,7 @@ namespace Crest
         {
             var isValid = true;
 
-            if (EditorSettings.enterPlayModeOptionsEnabled && 
+            if (EditorSettings.enterPlayModeOptionsEnabled &&
                 EditorSettings.enterPlayModeOptions.HasFlag(EnterPlayModeOptions.DisableSceneReload))
             {
                 showMessage

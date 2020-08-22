@@ -208,9 +208,8 @@ MonoBehaviour:
   _savedCache: {fileID: 0}
   _checkTerrainDrawInstancedOption: 1
   _runValidationOnStart: 1
-  _generateSignedDistanceFieldForShorelines: 1
-  _signedDistanceFieldForShorelinesResolution: 512
-  _numberOfAdditionalJumpFloodRounds: 7
+  _generateSDF: 1
+  _additionalJumpFloodRounds: 7
 --- !u!1001 &1030721467
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -283,6 +282,11 @@ PrefabInstance:
       propertyPath: _generateSignedDistanceFieldForShorelines
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 7875352124311410512, guid: ddf71bfb72c45407fb8cea42d3aaeac4,
+        type: 3}
+      propertyPath: _generateSDF
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 8066748594655780890, guid: ddf71bfb72c45407fb8cea42d3aaeac4,
         type: 3}
       propertyPath: _primaryLight
@@ -293,6 +297,12 @@ PrefabInstance:
       propertyPath: _editModeFPS
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 8066748594655780890, guid: ddf71bfb72c45407fb8cea42d3aaeac4,
+        type: 3}
+      propertyPath: _simSettingsDepth
+      value: 
+      objectReference: {fileID: 11400000, guid: 58797619cec435a43a40b371be711dfb,
+        type: 2}
     - target: {fileID: 8463273387121746141, guid: ddf71bfb72c45407fb8cea42d3aaeac4,
         type: 3}
       propertyPath: m_LocalPosition.z

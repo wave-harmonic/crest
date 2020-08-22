@@ -2,7 +2,9 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
-// Renders signed distance field without any depth
+// Renders signed distance field data into the depth cache without setting a
+// depth, this allows a region to have waves empty-of oriented waves whilst
+// having waves oriented towards it. Eg. inside the cove of a bay.
 Shader "Crest/Inputs/Depth/Inject Signed Distance Field From Geometry"
 {
 	SubShader
@@ -25,7 +27,6 @@ Shader "Crest/Inputs/Depth/Inject Signed Distance Field From Geometry"
 			struct Varyings
 			{
 				float4 positionCS : SV_POSITION;
-				float depth : TEXCOORD0;
 				float2 worldPosXZ : TEXCOORD1;
 			};
 
@@ -35,11 +36,7 @@ Shader "Crest/Inputs/Depth/Inject Signed Distance Field From Geometry"
 				output.positionCS = UnityObjectToClipPos(input.positionOS);
 
 				float3 worldPos = mul(unity_ObjectToWorld, float4(input.positionOS, 1.0));
-
-				output.depth = _OceanCenterPosWorld.y - worldPos.y;
 				output.worldPosXZ = worldPos.xz;
-
-
 				return output;
 			}
 

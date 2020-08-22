@@ -93,6 +93,7 @@ Material:
     - _CausticsTextureAverage: 0.07
     - _CausticsTextureScale: 5
     - _ClipSurface: 1
+    - _ClipUnderTerrain: 0
     - _CompileShaderWithDebugInfo: 0
     - _ComputeDirectionalLight: 1
     - _CullMode: 2
@@ -121,6 +122,7 @@ Material:
     - _NormalsStrength: 0.36
     - _Offset: 0.00008
     - _OverrideReflectionCubemap: 0
+    - _PlanarReflectionIntensity: 1
     - _PlanarReflectionNormalsStrength: 1
     - _PlanarReflections: 0
     - _ProceduralSky: 0
@@ -128,6 +130,7 @@ Material:
     - _RefractionStrength: 1
     - _RefractiveIndexOfAir: 1
     - _RefractiveIndexOfWater: 1.333
+    - _Roughness: 0
     - _S: 1
     - _Shadows: 0
     - _ShorelineFoamMinDepth: 0.27

@@ -221,14 +221,15 @@ namespace Crest
             }
         }
 
-        float _lastUpdateTime = -1f;
+        int _lastFrameForUpdateData = -1;
 
         void UpdateData()
         {
             if (OceanRenderer.Instance == null) return;
 
-            if (_lastUpdateTime >= OceanRenderer.Instance.CurrentTime) return;
-            _lastUpdateTime = OceanRenderer.Instance.CurrentTime;
+            // We only want this to be executed once per frame.
+            if (_lastFrameForUpdateData == OceanRenderer.FrameCount) return;
+            _lastFrameForUpdateData = OceanRenderer.FrameCount;
 
             if (_evaluateSpectrumAtRuntime)
             {

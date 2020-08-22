@@ -446,6 +446,9 @@ When rendering the ocean, the various LOD data are sample for each vert and the 
 **Can I sample the water height at a position from C#?**
 Yes, see *SampleHeightHelper*. *OceanRenderer* uses this helper to get the height of the viewer above the water, and makes this viewer height available via the *ViewerHeightAboveWater* property.
 
+**Can I trigger something when an object is above or under the ocean surface without any scripting knowledge?**
+The *OceanSampleHeightEvents* can be used for this purpose. It will invoke a *UnityEvent* when the attached game object is above or below the ocean surface once per state change.
+
 **Is Crest well suited for medium-to-low powered mobile devices?**
 Crest is built to be performant by design and has numerous quality/performance levers.
 However it is also built to be very flexible and powerful and as such can not compete with a minimal, mobile-centric ocean renderer such as the one in the *BoatAttack* project.

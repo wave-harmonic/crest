@@ -1,4 +1,6 @@
-﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
+﻿// Crest Ocean System
+
+// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 Shader "Crest/Inputs/Flow/Whirlpool"
 {
@@ -35,7 +37,6 @@ Shader "Crest/Inputs/Flow/Whirlpool"
 				Varyings o;
 				o.positionCS = UnityObjectToClipPos(input.positionOS);
 				o.uv = input.uv;
-
 				return o;
 			}
 
@@ -65,7 +66,6 @@ Shader "Crest/Inputs/Flow/Whirlpool"
 
 				return float4(flow, 0.0, 0.0);
 			}
-
 			ENDCG
 		}
 	}

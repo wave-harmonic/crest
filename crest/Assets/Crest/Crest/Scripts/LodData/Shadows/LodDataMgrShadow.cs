@@ -25,7 +25,7 @@ namespace Crest
         Light _mainLight;
         Camera _cameraMain;
 
-        // LWRP version needs access to this externally, hence public get
+        // SRP version needs access to this externally, hence public get
         public CommandBuffer BufCopyShadowMap { get; private set; }
 
         RenderTexture _sources;
@@ -235,7 +235,11 @@ namespace Crest
                 _renderProperties.SetInt(sp_LD_SliceIndex_Source, srcDataIdx);
                 BindSourceData(_renderProperties, false);
                 _renderProperties.SetTexture(sp_LD_TexArray_Target, _targets);
-                _renderProperties.DispatchShader();
+
+                BufCopyShadowMap.DispatchCompute(_updateShadowShader, krnl_UpdateShadow,
+                    OceanRenderer.Instance.LodDataResolution / THREAD_GROUP_SIZE_X,
+                    OceanRenderer.Instance.LodDataResolution / THREAD_GROUP_SIZE_Y,
+                    1);
             }
         }
 

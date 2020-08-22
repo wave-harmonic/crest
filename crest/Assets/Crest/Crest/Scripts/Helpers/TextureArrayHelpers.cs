@@ -46,8 +46,8 @@ namespace Crest
             s_clearToBlackShader.SetTexture(krnl_ClearToBlack, sp_LD_TexArray_Target, dst);
             s_clearToBlackShader.Dispatch(
                 krnl_ClearToBlack,
-                OceanRenderer.Instance.LodDataResolution / PropertyWrapperCompute.THREAD_GROUP_SIZE_X,
-                OceanRenderer.Instance.LodDataResolution / PropertyWrapperCompute.THREAD_GROUP_SIZE_Y,
+                OceanRenderer.Instance.LodDataResolution / LodDataMgr.THREAD_GROUP_SIZE_X,
+                OceanRenderer.Instance.LodDataResolution / LodDataMgr.THREAD_GROUP_SIZE_Y,
                 dst.volumeDepth
             );
         }

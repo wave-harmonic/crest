@@ -18,13 +18,17 @@ namespace Crest
 
         }
 
-        public override void Render(PostProcessRenderContext context)
+        public override void Release()
         {
 
+        }
 
-            // Stop the material from being saved on-edits at runtime
-            _underwaterPostProcessMaterial = new Material(settings._underwaterPostProcessMaterial);
-            _underwaterPostProcessMaterialWrapper = new PropertyWrapperMaterial(_underwaterPostProcessMaterial);
+        public override void Render(PostProcessRenderContext context)
+        {
+            PropertySheet underWaterPostProcessEffect = context.propertySheets.Get(Shader.Find("Crest/Underwater/Post Process"));
+            PropertyWrapperMPB underwaterPostProcessMaterialWrapper = new PropertyWrapperMPB(underWaterPostProcessEffect.properties);
+
+            context.command.BlitFullscreenTriangle(context.source, context.destination, underWaterPostProcessEffect, 0);
         }
     }
 }

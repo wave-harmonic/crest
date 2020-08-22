@@ -1,0 +1,54 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8e6292b2c06870d4495f009f912b9600, type: 3}
+  m_Name: DemoCamera Profile
+  m_EditorClassIdentifier: 
+  settings:
+  - {fileID: 2881444115054542064}
+--- !u!114 &2881444115054542064
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cf71aff14bbeb704091b8dae82314623, type: 3}
+  m_Name: PostProcessStackSettings
+  m_EditorClassIdentifier: 
+  active: 1
+  enabled:
+    overrideState: 1
+    value: 1
+  _underwaterPostProcessMaterial: {fileID: 0}
+  _enable:
+    overrideState: 0
+    value: 1
+  _copyOceanMaterialParamsEachFrame:
+    overrideState: 0
+    value: 0
+  _filterOceanData:
+    overrideState: 0
+    value: 13
+  _viewOceanMask:
+    overrideState: 0
+    value: 0
+  _disableOceanMask:
+    overrideState: 0
+    value: 0
+  _horizonSafetyMarginMultiplier:
+    overrideState: 0
+    value: 0.01
+  _scaleSafetyMarginWithDynamicResolution:
+    overrideState: 0
+    value: 1

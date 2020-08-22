@@ -40,6 +40,7 @@ namespace Crest
     public class PropertyWrapperMPB : IPropertyWrapper
     {
         public PropertyWrapperMPB() { materialPropertyBlock = new MaterialPropertyBlock(); }
+        public PropertyWrapperMPB(MaterialPropertyBlock materialPropertyBlock) { this.materialPropertyBlock = materialPropertyBlock; }
         public void SetFloat(int param, float value) { materialPropertyBlock.SetFloat(param, value); }
         public void SetFloatArray(int param, float[] value) { materialPropertyBlock.SetFloatArray(param, value); }
         public void SetTexture(int param, Texture value) { materialPropertyBlock.SetTexture(param, value); }

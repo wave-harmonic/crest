@@ -132,7 +132,7 @@ namespace Crest
                 if (layerIdx == -1)
                 {
                     Debug.LogError("OceanDepthCache: Invalid layer specified: \"" + layer +
-                        "\". Does this layer need to be added to the project (Edit/Project Settings/Tags and Layers)? Click this message to highlight the cache in question.", this);
+                        "\". Please add this layer to the project by putting the name in an empty layer slot in Edit/Project Settings/Tags and Layers. Click this message to highlight the cache in question.", this);
 
                     errorShown = true;
                 }
@@ -435,7 +435,7 @@ namespace Crest
                     {
                         showMessage
                         (
-                            $"Invalid layer specified for objects/geometry providing the ocean depth: <i>{layerName}</i>. Does this layer need to be added to the project <i>Edit/Project Settings/Tags and Layers</i>?",
+                            $"Invalid layer specified for objects/geometry providing the ocean depth: <i>{layerName}</i>. Please add this layer to the project by putting the name in an empty layer slot in <i>Edit/Project Settings/Tags and Layers</i>?",
                             ValidatedHelper.MessageType.Error, this
                         );
 

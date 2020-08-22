@@ -10,6 +10,10 @@ using UnityEditor;
 using UnityEditor.Experimental.SceneManagement;
 #endif
 
+#if !UNITY_2019_4_OR_NEWER
+#error This version of Crest requires Unity 2019.4 or later.
+#endif
+
 namespace Crest
 {
     /// <summary>
@@ -408,14 +412,10 @@ namespace Crest
                     return _editorFrames;
                 }
                 else
-                {
-                    return Time.frameCount;
-                }
-#else
-                {
-                    return Time.frameCount;
-                }
 #endif
+                {
+                    return Time.frameCount;
+                }
             }
         }
 
@@ -562,6 +562,25 @@ namespace Crest
 
         bool VerifyRequirements()
         {
+            if (Application.platform == RuntimePlatform.WebGLPlayer)
+            {
+                Debug.LogError("Crest does not support WebGL backends.", this);
+                return false;
+            }
+#if UNITY_EDITOR
+            if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES2 ||
+                SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3 ||
+                SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLCore)
+            {
+                Debug.LogError("Crest does not support OpenGL backends.", this);
+                return false;
+            }
+#endif
+            if (SystemInfo.graphicsShaderLevel < 45)
+            {
+                Debug.LogError("Crest requires graphics devices that support shader level 4.5 or above.", this);
+                return false;
+            }
             if (!SystemInfo.supportsComputeShaders)
             {
                 Debug.LogError("Crest requires graphics devices that support compute shaders.", this);
@@ -634,15 +653,9 @@ namespace Crest
             var meshScaleLerp = needToBlendOutShape ? ViewerAltitudeLevelAlpha : 0f;
             Shader.SetGlobalFloat(sp_meshScaleLerp, meshScaleLerp);
 
-            if (Viewpoint == null
-                )
+            if (Viewpoint == null && Application.isPlaying)
             {
-#if UNITY_EDITOR
-                if (EditorApplication.isPlaying)
-#endif
-                {
-                    Debug.LogError("Viewpoint is null, ocean update will fail.", this);
-                }
+                Debug.LogError("Viewpoint is null, ocean update will fail.", this);
             }
 
             if (_followViewpoint && Viewpoint != null)
@@ -818,12 +831,6 @@ namespace Crest
 
         void LateUpdateResetMaxDisplacementFromShape()
         {
-            // If time stops, then reporting will become inconsistent.
-            if (Time.timeScale == 0)
-            {
-                return;
-            }
-
             if (FrameCount != _maxDisplacementCachedTime)
             {
                 _maxHorizDispFromShape = _maxVertDispFromShape = _maxVertDispFromWaves = 0f;
@@ -847,12 +854,6 @@ namespace Crest
         /// </summary>
         public void ReportMaxDisplacementFromShape(float maxHorizDisp, float maxVertDisp, float maxVertDispFromWaves)
         {
-            // If time stops, then reporting will become inconsistent.
-            if (Time.timeScale == 0)
-            {
-                return;
-            }
-
             _maxHorizDispFromShape += maxHorizDisp;
             _maxVertDispFromShape += maxVertDisp;
             _maxVertDispFromWaves += maxVertDispFromWaves;
@@ -1019,6 +1020,13 @@ namespace Crest
                 input.Validate(ocean, ValidatedHelper.DebugLog);
             }
 
+            // WaterBody
+            var waterBodies = FindObjectsOfType<WaterBody>();
+            foreach (var waterBody in waterBodies)
+            {
+                waterBody.Validate(ocean, ValidatedHelper.DebugLog);
+            }
+
             Debug.Log("Validation complete!", ocean);
         }
 
@@ -1026,7 +1034,7 @@ namespace Crest
         {
             var isValid = true;
 
-            if (EditorSettings.enterPlayModeOptionsEnabled && 
+            if (EditorSettings.enterPlayModeOptionsEnabled &&
                 EditorSettings.enterPlayModeOptions.HasFlag(EnterPlayModeOptions.DisableSceneReload))
             {
                 showMessage

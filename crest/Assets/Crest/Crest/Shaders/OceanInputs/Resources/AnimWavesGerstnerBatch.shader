@@ -24,7 +24,7 @@ Shader "Hidden/Crest/Inputs/Animated Waves/Gerstner Batch Global"
 			#include "../../OceanConstants.hlsl"
 			#include "../../OceanGlobals.hlsl"
 			#include "../../OceanInputsDriven.hlsl"
-			#include "../../OceanLODData.hlsl"
+			#include "../../OceanHelpersNew.hlsl"
 
 			#include "../GerstnerShared.hlsl"
 
@@ -51,7 +51,7 @@ Shader "Hidden/Crest/Inputs/Animated Waves/Gerstner Batch Global"
 				o.positionCS.y = -o.positionCS.y;
 #endif
 
-				float2 worldXZ = UVToWorld(input.uv);
+				const float2 worldXZ = UVToWorld(input.uv, _LD_SliceIndex, _LD_Pos_Scale[_LD_SliceIndex], _LD_Params[_LD_SliceIndex]);
 				o.worldPosXZ = worldXZ;
 				o.uv_slice = float3(input.uv, _LD_SliceIndex);
 

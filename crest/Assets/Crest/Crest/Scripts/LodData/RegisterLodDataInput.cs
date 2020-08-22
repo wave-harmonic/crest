@@ -103,7 +103,7 @@ namespace Crest
         protected virtual void Update()
         {
 #if UNITY_EDITOR
-            if (!UnityEditor.EditorApplication.isPlaying)
+            if (!EditorApplication.isPlaying)
             {
                 InitRendererAndMaterial(true);
             }
@@ -202,7 +202,7 @@ namespace Crest
             base.Update();
 
 #if UNITY_EDITOR
-            if (!UnityEditor.EditorApplication.isPlaying)
+            if (!EditorApplication.isPlaying)
             {
                 int q;
                 if (GetQueue(out q))
@@ -234,7 +234,7 @@ namespace Crest
     public abstract class RegisterLodDataInputDisplacementCorrection<LodDataType> : RegisterLodDataInput<LodDataType>
         where LodDataType : LodDataMgr
     {
-        [SerializeField, Tooltip("Correct for horizontal displacement so that this input does not move from side to side with the waves. Adds a small performance overhead when disabled.")]
+        [SerializeField, Tooltip("Whether this input data should displace horizontally with waves. If false, data will not move from side to side with the waves. Adds a small performance overhead when disabled.")]
         bool _followHorizontalMotion = false;
 
         protected override bool FollowHorizontalMotion => _followHorizontalMotion;

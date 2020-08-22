@@ -30,7 +30,7 @@ Shader "Crest/Inputs/Dynamic Waves/Dampen Circle"
 
 			struct Attributes
 			{
-				float4 positionOS : POSITION;
+				float3 positionOS : POSITION;
 			};
 
 			struct Varyings
@@ -44,7 +44,7 @@ Shader "Crest/Inputs/Dynamic Waves/Dampen Circle"
 				Varyings o;
 				o.positionCS = UnityObjectToClipPos(input.positionOS);
 
-				float3 worldPos = mul(unity_ObjectToWorld, input.positionOS).xyz;
+				float3 worldPos = mul(unity_ObjectToWorld, float4(input.positionOS, 1.0)).xyz;
 				float3 centerPos = unity_ObjectToWorld._m03_m13_m23;
 				o.worldOffsetScaled.xy = worldPos.xz - centerPos.xz;
 

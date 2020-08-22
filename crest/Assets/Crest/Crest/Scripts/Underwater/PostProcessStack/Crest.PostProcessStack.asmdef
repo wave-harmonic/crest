@@ -1,0 +1,16 @@
+{
+    "name": "Crest.PostProcessStack",
+    "references": [
+        "GUID:5b35af79ebbe89647a157055d52c59d3",
+        "GUID:d60799ab2a985554ea1a39cd38695018"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -10,7 +10,7 @@ using UnityEngine.XR;
 
 namespace Crest
 {
-    internal static class UnderwaterPostProcessUtils
+    public static class UnderwaterPostProcessUtils
     {
         public static readonly int sp_CrestOceanMaskTexture = Shader.PropertyToID("_CrestOceanMaskTexture");
         public static readonly int sp_CrestOceanMaskDepthTexture = Shader.PropertyToID("_CrestOceanMaskDepthTexture");
@@ -25,17 +25,17 @@ namespace Crest
         static readonly int sp_HorizonPosNormalRight = Shader.PropertyToID("_HorizonPosNormalRight");
         static readonly int sp_DataSliceOffset = Shader.PropertyToID("_DataSliceOffset");
 
-        internal const string tooltipHorizonSafetyMarginMultiplier = "A safety margin multiplier to adjust horizon line based on camera position to avoid minor artifacts caused by floating point precision issues, the default value has been chosen based on careful experimentation.";
-        internal const string tooltipFilterOceanData = "How much to smooth ocean data such as water depth, light scattering, shadowing. Helps to smooth flickering that can occur under camera motion.";
+        public const string tooltipHorizonSafetyMarginMultiplier = "A safety margin multiplier to adjust horizon line based on camera position to avoid minor artifacts caused by floating point precision issues, the default value has been chosen based on careful experimentation.";
+        public const string tooltipFilterOceanData = "How much to smooth ocean data such as water depth, light scattering, shadowing. Helps to smooth flickering that can occur under camera motion.";
 
         // A magic number found after a small-amount of iteration that is used to deal with horizon-line floating-point
         // issues. It allows us to give it a small *nudge* in the right direction based on whether the camera is above
         // or below the horizon line itself already.
-        internal const float DefaultHorizonSafetyMarginMultiplier = 0.01f;
+        public const float DefaultHorizonSafetyMarginMultiplier = 0.01f;
 
-        internal const int DefaultFilterOceanDataValue = LodDataMgr.MAX_LOD_COUNT - 2;
-        internal const int MinFilterOceanDataValue = 0;
-        internal const int MaxFilterOceanDataValue = LodDataMgr.MAX_LOD_COUNT - 2;
+        public const int DefaultFilterOceanDataValue = LodDataMgr.MAX_LOD_COUNT - 2;
+        public const int MinFilterOceanDataValue = 0;
+        public const int MaxFilterOceanDataValue = LodDataMgr.MAX_LOD_COUNT - 2;
 
         internal class UnderwaterSphericalHarmonicsData
         {

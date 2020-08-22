@@ -78,12 +78,13 @@ namespace Crest
         bool _runValidationOnStart = true;
 #pragma warning restore 414
 
-        [Tooltip("Generate a signed distance field for shorelines"), SerializeField]
-        internal bool _generateSignedDistanceFieldForShorelines = false;
+        [Header("Signed Distance Field (Experimental)")]
+        [Tooltip("Generate a signed distance field (experimental)"), SerializeField]
+        internal bool _generateSDF = false;
 
-        [PredicatedField("_generateSignedDistanceFieldForShorelines")]
+        [PredicatedField("_generateSDF")]
         [Tooltip("How many additional Jump Flood Algorithm rounds to use - (over the standard log2(Resolution)"), SerializeField]
-        int _numberOfAdditionalJumpFloodRounds = 7;
+        int _additionalJumpFloodRounds = 7;
 
         RenderTexture _depthCacheTexture;
         public RenderTexture CacheTexture => _depthCacheTexture;
@@ -190,7 +191,7 @@ namespace Crest
             if (_depthCacheTexture == null)
             {
                 RenderTextureFormat fmt;
-                if (_generateSignedDistanceFieldForShorelines)
+                if (_generateSDF)
                 {
                     fmt = RenderTextureFormat.RGHalf;
                 }
@@ -209,7 +210,7 @@ namespace Crest
                 _depthCacheTexture.format = fmt;
                 _depthCacheTexture.useMipMap = false;
                 _depthCacheTexture.anisoLevel = 0;
-                _depthCacheTexture.enableRandomWrite = _generateSignedDistanceFieldForShorelines;
+                _depthCacheTexture.enableRandomWrite = _generateSDF;
                 _depthCacheTexture.Create();
             }
 
@@ -217,7 +218,7 @@ namespace Crest
             {
                 _depthCacheCamera = GenerateCacheCamera(
                     layerMask,
-                    _generateSignedDistanceFieldForShorelines ? "DepthSdfCam" : "DepthCacheCam",
+                    _generateSDF ? "DepthSdfCam" : "DepthCacheCam",
                     _cameraMaxTerrainHeight,
                     transform,
                     _depthCacheTexture,
@@ -248,7 +249,7 @@ namespace Crest
 
             _depthCacheCamera.RenderWithShader(Shader.Find("Crest/Inputs/Depth/Ocean Depth From Geometry"), null);
 
-            if (_generateSignedDistanceFieldForShorelines)
+            if (_generateSDF)
             {
                 RenderTextureFormat fmt = RenderTextureFormat.RGHalf;
                 RenderTexture voronoiPingPongTexture0 = new RenderTexture(_resolution, _resolution, 0);
@@ -309,7 +310,7 @@ namespace Crest
                         LodDataMgr.Swap(ref voronoiPingPongTexture1, ref voronoiPingPongTexture0);
                     }
 
-                    for (uint roundNum = 0; roundNum < _numberOfAdditionalJumpFloodRounds; roundNum++)
+                    for (uint roundNum = 0; roundNum < _additionalJumpFloodRounds; roundNum++)
                     {
                         uint jumpSize = (uint)1 << (int)roundNum;
                         ApplyJumpFlood(

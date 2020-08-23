@@ -52,7 +52,7 @@ There is also a getting started video here: https://www.youtube.com/watch?v=qsge
 * [Shader compilation target](https://docs.unity3d.com/Manual/SL-ShaderCompileTargets.html) 4.5 or above
   * *Crest* unfortunately does not support OpenGL or WebGL backends
 
-# Releases
+# Installation
 
 One way to obtain *Crest* is take the latest version in the master branch by forking/cloning this repository or by using the green download button above.
 The files that should be copied into an existing project are under *crest/Assets/Crest*.

@@ -64,5 +64,6 @@ MonoBehaviour:
   - 1
   - 1
   - 1
-  _chop: 1.5
+  _chop: 1.3
   _showAdvancedControls: 0
+  _model: 0

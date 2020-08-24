@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.40652782, g: 0.59053, b: 0.9443165, a: 1}
+  m_IndirectSpecularColor: {r: 0.40657905, g: 0.5909717, b: 0.9444369, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &4
 LightmapSettings:
@@ -321,6 +321,146 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 6250038149528882544, guid: 34a75d3090a1f5e4381b47d7f91a997e,
     type: 3}
   m_PrefabInstance: {fileID: 1417720057}
+  m_PrefabAsset: {fileID: 0}
+--- !u!198 &55247431 stripped
+ParticleSystem:
+  m_CorrespondingSourceObject: {fileID: 4341254330952622401, guid: 70047ef9acf78184eae5c7af84c79cd4,
+    type: 3}
+  m_PrefabInstance: {fileID: 7675157708153489423}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &66752302 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 7675157706720733355, guid: 70047ef9acf78184eae5c7af84c79cd4,
+    type: 3}
+  m_PrefabInstance: {fileID: 7675157708153489423}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &66752307
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 66752302}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0ff8316675e444bc893ea5ecbbf3ba26, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _minimumWaveLength: 1
+  _normaliseDistance: 1
+  _maximumDistance: 100
+  _distanceCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 1
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 1
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  _minimumVelocity: 3
+  _maximumHeightDifference: 0.5
+  _initalVelVsWaterVel2:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 4
+      value: 5
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  _allowMultipleSimultaneousEmissions: 0
+  _onBelowOceanSurface:
+    m_PersistentCalls:
+      m_Calls: []
+  _onAboveOceanSurface:
+    m_PersistentCalls:
+      m_Calls: []
+  _distanceFromOceanSurface:
+    m_PersistentCalls:
+      m_Calls: []
+  _onContactWithSurface:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 1249856087}
+        m_MethodName: Play
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+      - m_Target: {fileID: 260076654}
+        m_MethodName: Play
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+      - m_Target: {fileID: 1367189299}
+        m_MethodName: Play
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+      - m_Target: {fileID: 55247431}
+        m_MethodName: Play
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+--- !u!198 &260076654 stripped
+ParticleSystem:
+  m_CorrespondingSourceObject: {fileID: 4341254331225829206, guid: 70047ef9acf78184eae5c7af84c79cd4,
+    type: 3}
+  m_PrefabInstance: {fileID: 7675157708153489423}
   m_PrefabAsset: {fileID: 0}
 --- !u!1 &306610652
 GameObject:
@@ -1537,6 +1677,12 @@ Transform:
     type: 3}
   m_PrefabInstance: {fileID: 1133410762}
   m_PrefabAsset: {fileID: 0}
+--- !u!198 &1249856087 stripped
+ParticleSystem:
+  m_CorrespondingSourceObject: {fileID: 4341254331275703561, guid: 70047ef9acf78184eae5c7af84c79cd4,
+    type: 3}
+  m_PrefabInstance: {fileID: 7675157708153489423}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &1259641541
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1731,6 +1877,12 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 6250038149528882544, guid: 34a75d3090a1f5e4381b47d7f91a997e,
     type: 3}
   m_PrefabInstance: {fileID: 1259641541}
+  m_PrefabAsset: {fileID: 0}
+--- !u!198 &1367189299 stripped
+ParticleSystem:
+  m_CorrespondingSourceObject: {fileID: 4341254331047942660, guid: 70047ef9acf78184eae5c7af84c79cd4,
+    type: 3}
+  m_PrefabInstance: {fileID: 7675157708153489423}
   m_PrefabAsset: {fileID: 0}
 --- !u!1001 &1417720057
 PrefabInstance:
@@ -2186,6 +2338,26 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 4341254330952622431, guid: 70047ef9acf78184eae5c7af84c79cd4,
+        type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4341254331047942682, guid: 70047ef9acf78184eae5c7af84c79cd4,
+        type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4341254331225829192, guid: 70047ef9acf78184eae5c7af84c79cd4,
+        type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4341254331275703575, guid: 70047ef9acf78184eae5c7af84c79cd4,
+        type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 7675157708121363213, guid: 70047ef9acf78184eae5c7af84c79cd4,
         type: 3}
       propertyPath: m_LocalPosition.x

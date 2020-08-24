@@ -29,6 +29,10 @@ namespace Crest
 
         protected override string ShaderPrefix => "Crest/Inputs/Animated Waves";
 
+        [SerializeField, Tooltip("Whether this input data should displace horizontally with waves. If false, data will not move from side to side with the waves. Adds a small performance overhead when disabled.")]
+        bool _followHorizontalMotion = true;
+        protected override bool FollowHorizontalMotion => _followHorizontalMotion;
+
         [SerializeField, Tooltip("Inform ocean how much this input will displace the ocean surface vertically. This is used to set bounding box heights for the ocean tiles.")]
         float _maxDisplacementVertical = 0f;
         [SerializeField, Tooltip("Inform ocean how much this input will displace the ocean surface horizontally. This is used to set bounding box widths for the ocean tiles.")]

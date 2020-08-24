@@ -5,8 +5,13 @@
 using System.Collections.Generic;
 using UnityEngine;
 #if UNITY_EDITOR
+using UnityEngine.Rendering;
 using UnityEditor;
 using UnityEditor.Experimental.SceneManagement;
+#endif
+
+#if !UNITY_2019_4_OR_NEWER
+#error This version of Crest requires Unity 2019.4 or later.
 #endif
 
 namespace Crest
@@ -177,6 +182,7 @@ namespace Crest
             EverythingClipped,
         }
         [Tooltip("Whether to clip nothing by default (and clip inputs remove patches of surface), or to clip everything by default (and clip inputs add patches of surface).")]
+        [PredicatedField("_createClipSurfaceData")]
         public DefaultClippingState _defaultClippingState = DefaultClippingState.NothingClipped;
 
         [Header("Edit Mode Params")]
@@ -393,14 +399,10 @@ namespace Crest
                     return _editorFrames;
                 }
                 else
-                {
-                    return Time.frameCount;
-                }
-#else
-                {
-                    return Time.frameCount;
-                }
 #endif
+                {
+                    return Time.frameCount;
+                }
             }
         }
 
@@ -547,6 +549,25 @@ namespace Crest
 
         bool VerifyRequirements()
         {
+            if (Application.platform == RuntimePlatform.WebGLPlayer)
+            {
+                Debug.LogError("Crest does not support WebGL backends.", this);
+                return false;
+            }
+#if UNITY_EDITOR
+            if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES2 ||
+                SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3 ||
+                SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLCore)
+            {
+                Debug.LogError("Crest does not support OpenGL backends.", this);
+                return false;
+            }
+#endif
+            if (SystemInfo.graphicsShaderLevel < 45)
+            {
+                Debug.LogError("Crest requires graphics devices that support shader level 4.5 or above.", this);
+                return false;
+            }
             if (!SystemInfo.supportsComputeShaders)
             {
                 Debug.LogError("Crest requires graphics devices that support compute shaders.", this);
@@ -619,15 +640,9 @@ namespace Crest
             var meshScaleLerp = needToBlendOutShape ? ViewerAltitudeLevelAlpha : 0f;
             Shader.SetGlobalFloat(sp_meshScaleLerp, meshScaleLerp);
 
-            if (Viewpoint == null
-                )
+            if (Viewpoint == null && Application.isPlaying)
             {
-#if UNITY_EDITOR
-                if (EditorApplication.isPlaying)
-#endif
-                {
-                    Debug.LogError("Viewpoint is null, ocean update will fail.", this);
-                }
+                Debug.LogError("Viewpoint is null, ocean update will fail.", this);
             }
 
             if (_followViewpoint && Viewpoint != null)
@@ -645,6 +660,8 @@ namespace Crest
             {
                 LateUpdateTiles();
             }
+
+            LateUpdateResetMaxDisplacementFromShape();
 
 #if UNITY_EDITOR
             if (EditorApplication.isPlaying || !_showOceanProxyPlane)
@@ -710,8 +727,7 @@ namespace Crest
         {
             _sampleHeightHelper.Init(Viewpoint.position, 0f, true);
 
-            float waterHeight = 0f;
-            _sampleHeightHelper.Sample(ref waterHeight);
+            _sampleHeightHelper.Sample(out var waterHeight);
 
             ViewerHeightAboveWater = Viewpoint.position.y - waterHeight;
         }
@@ -771,6 +787,16 @@ namespace Crest
             _canSkipCulling = WaterBody.WaterBodies.Count == 0;
         }
 
+        void LateUpdateResetMaxDisplacementFromShape()
+        {
+            if (FrameCount != _maxDisplacementCachedTime)
+            {
+                _maxHorizDispFromShape = _maxVertDispFromShape = _maxVertDispFromWaves = 0f;
+            }
+
+            _maxDisplacementCachedTime = FrameCount;
+        }
+
         /// <summary>
         /// Could the ocean horizontal scale increase (for e.g. if the viewpoint gains altitude). Will be false if ocean already at maximum scale.
         /// </summary>
@@ -786,16 +812,9 @@ namespace Crest
         /// </summary>
         public void ReportMaxDisplacementFromShape(float maxHorizDisp, float maxVertDisp, float maxVertDispFromWaves)
         {
-            if (FrameCount != _maxDisplacementCachedTime)
-            {
-                _maxHorizDispFromShape = _maxVertDispFromShape = _maxVertDispFromWaves = 0f;
-            }
-
             _maxHorizDispFromShape += maxHorizDisp;
             _maxVertDispFromShape += maxVertDisp;
             _maxVertDispFromWaves += maxVertDispFromWaves;
-
-            _maxDisplacementCachedTime = FrameCount;
         }
         float _maxHorizDispFromShape = 0f;
         float _maxVertDispFromShape = 0f;
@@ -958,12 +977,29 @@ namespace Crest
                 input.Validate(ocean, ValidatedHelper.DebugLog);
             }
 
+            // WaterBody
+            var waterBodies = FindObjectsOfType<WaterBody>();
+            foreach (var waterBody in waterBodies)
+            {
+                waterBody.Validate(ocean, ValidatedHelper.DebugLog);
+            }
+
             Debug.Log("Validation complete!", ocean);
         }
 
         public bool Validate(OceanRenderer ocean, ValidatedHelper.ShowMessage showMessage)
         {
             var isValid = true;
+
+            if (EditorSettings.enterPlayModeOptionsEnabled &&
+                EditorSettings.enterPlayModeOptions.HasFlag(EnterPlayModeOptions.DisableSceneReload))
+            {
+                showMessage
+                (
+                    "Crest will not work correctly with <i>Disable Scene Reload</i> enabled.",
+                    ValidatedHelper.MessageType.Error, ocean
+                );
+            }
 
             if (_material == null)
             {
@@ -1019,12 +1055,72 @@ namespace Crest
                 );
             }
 
-            // Spherical Harmonics
-            if (Lightmapping.giWorkflowMode != Lightmapping.GIWorkflowMode.Iterative && !Lightmapping.lightingDataAsset)
+            var hasMaterial = ocean != null && ocean._material != null;
+            var oceanColourIncorrectText = "Ocean colour will be incorrect. ";
+
+            // Check lighting. There is an edge case where the lighting data is invalid because settings has changed.
+            // We don't need to check anything if the following material options are used.
+            if (hasMaterial && !ocean._material.IsKeywordEnabled("_PROCEDURALSKY_ON") &&
+                !ocean._material.IsKeywordEnabled("_OVERRIDEREFLECTIONCUBEMAP_ON"))
+            {
+                var alternativesText = "Alternatively, try the <i>Procedural Sky</i> or <i>Override Reflection " +
+                    "Cubemap</i> option on the ocean material.";
+
+                if (RenderSettings.defaultReflectionMode == DefaultReflectionMode.Skybox)
+                {
+                    var isLightingDataMissing = Lightmapping.giWorkflowMode != Lightmapping.GIWorkflowMode.Iterative &&
+                        !Lightmapping.lightingDataAsset;
+
+                    // Generated lighting will be wrong without a skybox.
+                    if (RenderSettings.skybox == null)
+                    {
+                        showMessage
+                        (
+                            "There is no skybox set in the lighting settings window. " +
+                            oceanColourIncorrectText +
+                            alternativesText,
+                            ValidatedHelper.MessageType.Warning, ocean
+                        );
+                    }
+                    // Spherical Harmonics is missing and required.
+                    else if (isLightingDataMissing)
+                    {
+                        showMessage
+                        (
+                            "Lighting data is missing which provides baked spherical harmonics." +
+                            oceanColourIncorrectText +
+                            "Generate lighting or enable Auto Generate from the Lighting window. " +
+                            alternativesText,
+                            ValidatedHelper.MessageType.Warning, ocean
+                        );
+                    }
+                }
+                else
+                {
+                    // We need a cubemap if using custom reflections.
+                    if (RenderSettings.customReflection == null)
+                    {
+                        showMessage
+                        (
+                            "Environmental Reflections is set to Custom, but no cubemap has been provided. " +
+                            oceanColourIncorrectText +
+                            "Assign a cubemap in the lighting settings window. " +
+                            alternativesText,
+                            ValidatedHelper.MessageType.Warning, ocean
+                        );
+                    }
+                }
+            }
+            // Check override reflections cubemap option. Procedural skybox will override this, but it is a waste to
+            // have the keyword enabled and not use it.
+            else if (hasMaterial && ocean._material.IsKeywordEnabled("_OVERRIDEREFLECTIONCUBEMAP_ON") &&
+                ocean._material.GetTexture("_ReflectionCubemapOverride") == null)
             {
                 showMessage
                 (
-                    "Lighting data is missing. Ocean colour will be incorrect without baked spherical harmonics. Generate lighting or enable Auto Generate from the Lighting window.",
+                    "<i>Override Reflection Cubemap</i> is enabled but no cubemap has been provided. " +
+                    oceanColourIncorrectText +
+                    "Assign a cubemap or disable the checkbox on the ocean material.",
                     ValidatedHelper.MessageType.Warning, ocean
                 );
             }
@@ -1033,6 +1129,15 @@ namespace Crest
             if (_simSettingsAnimatedWaves)
             {
                 _simSettingsAnimatedWaves.Validate(ocean, showMessage);
+            }
+
+            if (transform.eulerAngles.magnitude > 0.0001f)
+            {
+                showMessage
+                (
+                    $"There must be no rotation on the ocean GameObject, and no rotation on any parent. Currently the rotation Euler angles are {transform.eulerAngles}.",
+                    ValidatedHelper.MessageType.Error, ocean
+                );
             }
 
             return isValid;

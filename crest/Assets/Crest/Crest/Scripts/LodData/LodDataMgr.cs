@@ -16,9 +16,14 @@ namespace Crest
 
         public abstract RenderTextureFormat TextureFormat { get; }
 
-        // NOTE: This MUST match the value in OceanLODData.hlsl, as it
+        // NOTE: This MUST match the value in OceanConstants.hlsl, as it
         // determines the size of the texture arrays in the shaders.
         public const int MAX_LOD_COUNT = 15;
+
+        // NOTE: these MUST match the values in OceanConstants.hlsl
+        // 64 recommended as a good common minimum: https://www.reddit.com/r/GraphicsProgramming/comments/aeyfkh/for_compute_shaders_is_there_an_ideal_numthreads/
+        public const int THREAD_GROUP_SIZE_X = 8;
+        public const int THREAD_GROUP_SIZE_Y = 8;
 
         protected abstract int GetParamIdSampler(bool sourceLod = false);
 
@@ -114,7 +119,7 @@ namespace Crest
         }
 
         // Avoid heap allocations instead BindData
-        private Vector4[] _BindData_paramIdPosScales = new Vector4[MAX_LOD_COUNT + 1];
+        protected Vector4[] _BindData_paramIdPosScales = new Vector4[MAX_LOD_COUNT + 1];
         // Used in child
         protected Vector4[] _BindData_paramIdOceans = new Vector4[MAX_LOD_COUNT + 1];
         protected virtual void BindData(IPropertyWrapper properties, Texture applyData, bool blendOut, ref LodTransform.RenderData[] renderData, bool sourceLod = false)
@@ -124,7 +129,6 @@ namespace Crest
                 properties.SetTexture(GetParamIdSampler(sourceLod), applyData);
             }
 
-            var lt = OceanRenderer.Instance._lodTransform;
             for (int lodIdx = 0; lodIdx < OceanRenderer.Instance.CurrentLodCount; lodIdx++)
             {
                 // NOTE: gets zeroed by unity, see https://www.alanzucconi.com/2016/10/24/arrays-shaders-unity-5-4/

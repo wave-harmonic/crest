@@ -25,7 +25,7 @@ namespace Crest
         Light _mainLight;
         Camera _cameraMain;
 
-        // LWRP version needs access to this externally, hence public get
+        // SRP version needs access to this externally, hence public get
         public CommandBuffer BufCopyShadowMap { get; private set; }
 
         RenderTexture _sources;
@@ -88,19 +88,8 @@ namespace Crest
                 return;
             }
 
-            _cameraMain = Camera.main;
-            if (_cameraMain == null)
-            {
-                var viewpoint = OceanRenderer.Instance.Viewpoint;
-                _cameraMain = viewpoint != null ? viewpoint.GetComponent<Camera>() : null;
-
-                if (_cameraMain == null)
-                {
-                    Debug.LogError("Could not find main camera, disabling shadow data", _ocean);
-                    enabled = false;
-                    return;
-                }
-            }
+            // Setup the camera.
+            UpdateCameraMain();
 
 #if UNITY_EDITOR
             if (!OceanRenderer.Instance.OceanMaterial.IsKeywordEnabled("_SHADOWS_ON"))
@@ -197,6 +186,12 @@ namespace Crest
                 return;
             }
 
+            // Update the camera if it has changed.
+            if (_cameraMain.transform != OceanRenderer.Instance.Viewpoint)
+            {
+                UpdateCameraMain();
+            }
+
             Swap(ref _sources, ref _targets);
 
             BufCopyShadowMap.Clear();
@@ -240,7 +235,24 @@ namespace Crest
                 _renderProperties.SetInt(sp_LD_SliceIndex_Source, srcDataIdx);
                 BindSourceData(_renderProperties, false);
                 _renderProperties.SetTexture(sp_LD_TexArray_Target, _targets);
-                _renderProperties.DispatchShader();
+
+                BufCopyShadowMap.DispatchCompute(_updateShadowShader, krnl_UpdateShadow,
+                    OceanRenderer.Instance.LodDataResolution / THREAD_GROUP_SIZE_X,
+                    OceanRenderer.Instance.LodDataResolution / THREAD_GROUP_SIZE_Y,
+                    1);
+            }
+        }
+
+        void UpdateCameraMain()
+        {
+            var viewpoint = OceanRenderer.Instance.Viewpoint;
+            _cameraMain = viewpoint != null ? viewpoint.GetComponent<Camera>() : null;
+
+            if (_cameraMain == null)
+            {
+                Debug.LogError("Could not find main camera, disabling shadow data", _ocean);
+                enabled = false;
+                return;
             }
         }
 

@@ -9,10 +9,12 @@
 #define MIN_DT 0.00001
 
 #include "HLSLSupport.cginc"
+
 #include "../OceanGlobals.hlsl"
 #include "../OceanInputsDriven.hlsl"
-#include "../OceanLODData.hlsl"
 #include "../OceanHelpersNew.hlsl"
+
+RWTexture2DArray<float2> _LD_TexArray_Target;
 
 CBUFFER_START(CrestPerMaterial)
 float _Damping;
@@ -31,8 +33,6 @@ float ComputeWaveSpeed(float wavelength, float g)
 	return sqrt(wavelength*g*one_over_2pi);
 }
 
-RWTexture2DArray<float2> _LD_TexArray_Target;
-
 [numthreads(THREAD_GROUP_SIZE_X, THREAD_GROUP_SIZE_Y, 1)]
 void UpdateDynWaves(uint3 id : SV_DispatchThreadID)
 {
@@ -43,7 +43,7 @@ void UpdateDynWaves(uint3 id : SV_DispatchThreadID)
 		_LD_TexArray_DynamicWaves_Source.GetDimensions(width, height, depth);
 	}
 	const float2 input_uv = IDtoUV(id.xy, width, height);
-	const float2 worldPosXZ = UVToWorld(input_uv, sliceIndex);
+	const float2 worldPosXZ = UVToWorld(input_uv, sliceIndex, _LD_Pos_Scale[sliceIndex], _LD_Params[sliceIndex]);
 	const float gridSize = _LD_Params[sliceIndex].x;
 
 	// average wavelength for this scale
@@ -57,7 +57,7 @@ void UpdateDynWaves(uint3 id : SV_DispatchThreadID)
 	const float3 uv_slice = float3(input_uv, sliceIndex);
 
 	const half2 velocity = SampleLod(_LD_TexArray_Flow, uv_slice).xy;
-	const float3 uv_source = WorldToUV_Source(worldPosXZ - (dt * velocity), sliceIndexSource);
+	const float3 uv_source = WorldToUV(worldPosXZ - (dt * velocity), _LD_Pos_Scale_Source[sliceIndexSource], _LD_Params_Source[sliceIndexSource], sliceIndexSource);
 
 	// weighting for source position - weight 0 for off texture accesses to stop streaky artifacts
 	float2 distToEdge = min(uv_source.xy, 1.0 - uv_source.xy);

@@ -32,6 +32,7 @@ Shader "Crest/Inputs/Animated Waves/Add Water Height From Geometry"
 
 			CBUFFER_START(CrestPerOceanInput)
 			float _Weight;
+			float3 _DisplacementAtInputPosition;
 			CBUFFER_END
 
 			struct Attributes
@@ -48,8 +49,13 @@ Shader "Crest/Inputs/Animated Waves/Add Water Height From Geometry"
 			Varyings Vert(Attributes input)
 			{
 				Varyings o;
-				o.positionCS = UnityObjectToClipPos(input.positionOS);
-				o.worldPos = mul(unity_ObjectToWorld, float4(input.positionOS, 1.0));
+
+				o.worldPos = mul(unity_ObjectToWorld, float4(input.positionOS, 1.0)).xyz;
+				// Correct for displacement
+				o.worldPos.xz -= _DisplacementAtInputPosition.xz;
+
+				o.positionCS = mul(UNITY_MATRIX_VP, float4(o.worldPos, 1.0));
+
 				return o;
 			}
 
@@ -57,7 +63,7 @@ Shader "Crest/Inputs/Animated Waves/Add Water Height From Geometry"
 			{
 				// Write displacement to get from sea level of ocean to the y value of this geometry
 				float addHeight = input.worldPos.y - _OceanCenterPosWorld.y;
-				return _Weight * half4(0.0, addHeight, 0.0, 1.0);
+				return _Weight * half4(0.0, addHeight, 0.0, 0.0);
 			}
 			ENDCG
 		}

@@ -33,6 +33,21 @@ public class OceanSampleHeightEvents : MonoBehaviour
     [SerializeField] AnimationCurve _distanceCurve = AnimationCurve.Linear(0f, 0f, 1f, 1f);
 
 
+    [Header("Contact With Ocean Surface")]
+
+    [Tooltip("Minimum vertical water velocity, emits if water exceeds this velocity upwards."), SerializeField]
+    float _minimumVelocity = 0.4f;
+
+    [Tooltip("Maximum difference in height between the water surface and this position. No emission if water is too far above/below this position."), SerializeField]
+    float _maximumHeightDifference = 0.5f;
+
+    [Tooltip("Scale value for particle speed multiplier. Time axis is proportion of the Minimum Velocity setting. Value of curve at Time=1 is used if water vel exactly matches minimum emission velocity. Value of curve at Time=3 is used if water vel is 3x greater than the minimum velocity."), SerializeField]
+    AnimationCurve _initalVelVsWaterVel2 = new AnimationCurve(new Keyframe[] { new Keyframe(1f, 1f), new Keyframe(4f, 5f) });
+
+    [Tooltip("If false, script will wait until particle system is not playing before emitting again."), SerializeField]
+    bool _allowMultipleSimultaneousEmissions = false;
+
+
     [Header("Events")]
 
     [SerializeField] UnityEvent _onBelowOceanSurface = new UnityEvent();
@@ -41,20 +56,33 @@ public class OceanSampleHeightEvents : MonoBehaviour
     public UnityEvent OnAboveOceanSurface => _onAboveOceanSurface;
     [SerializeField] FloatEvent _distanceFromOceanSurface = new FloatEvent();
     public FloatEvent DistanceFromOceanSurface => _distanceFromOceanSurface;
+    [SerializeField] UnityEvent _onContactWithSurface = new UnityEvent();
+    public UnityEvent OnContactWithSurface => _onContactWithSurface;
 
     // Store state
     bool _isAboveSurface = false;
     bool _isFirstUpdate = true;
     readonly SampleHeightHelper _sampleHeightHelper = new SampleHeightHelper();
 
+    Vector3 _lastPos = Vector3.zero;
+    bool _lastPosValid = false;
+    Vector3 _thisVelocity = Vector3.zero;
+
     // Dynamic UnityEvent definitions.
     [System.Serializable] public class FloatEvent : UnityEvent<float> { }
 
     void Update()
     {
+        if (_lastPosValid && Time.deltaTime > 0.0001f)
+        {
+            _thisVelocity = (transform.position - _lastPos) / Time.deltaTime;
+        }
+        _lastPos = transform.position;
+        _lastPosValid = true;
+
         _sampleHeightHelper.Init(transform.position, 2f * _minimumWaveLength);
 
-        if (_sampleHeightHelper.Sample(out var height))
+        if (_sampleHeightHelper.Sample(out float height, out _, out var velocity))
         {
             var distance = transform.position.y - height;
             var isAboveSurface = distance > 0;
@@ -88,6 +116,44 @@ public class OceanSampleHeightEvents : MonoBehaviour
                 }
 
                 _distanceFromOceanSurface.Invoke(distanceFromOceanSurface);
+            }
+
+            {
+                // Compensate for motion of this emitter object
+                velocity -= _thisVelocity;
+
+                if (Mathf.Abs(height - transform.position.y) < _maximumHeightDifference && velocity.y > _minimumVelocity)
+                {
+                    // We want to modify some of the particle system's properties. Unfortunately, not all properties are
+                    // available to us from the UnityEvent inspector which means we have to get the particle system.
+                    var startSpeedMultiplier = _initalVelVsWaterVel2.Evaluate(velocity.y / _minimumVelocity);
+                    for (var i = 0; i < _onContactWithSurface.GetPersistentEventCount(); i++)
+                    {
+                        var particleSystem = _onContactWithSurface.GetPersistentTarget(i) as ParticleSystem;
+                        if (particleSystem != null)
+                        {
+                            var module = particleSystem.main;
+                            module.startSpeedMultiplier = startSpeedMultiplier;
+
+                            if (!_allowMultipleSimultaneousEmissions)
+                            {
+                                if (particleSystem.isEmitting || particleSystem.isPlaying)
+                                {
+                                    // To prevent multiple emissions, we need to disable the listener.
+                                    _onContactWithSurface.SetPersistentListenerState(i, UnityEventCallState.Off);
+                                }
+                                else
+                                {
+                                    // It doesn't look like we can get the state so we have to guess what user wants
+                                    // when restoring.
+                                    _onContactWithSurface.SetPersistentListenerState(i, UnityEventCallState.RuntimeOnly);
+                                }
+                            }
+                        }
+                    }
+
+                    _onContactWithSurface.Invoke();
+                }
             }
         }
     }

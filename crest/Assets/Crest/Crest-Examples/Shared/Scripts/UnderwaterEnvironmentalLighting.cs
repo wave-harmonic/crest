@@ -27,8 +27,11 @@ namespace Crest
 
         public const float DEPTH_OUTSCATTER_CONSTANT = 0.25f;
 
-        void Start()
+        void OnEnable()
         {
+            OceanRenderer.OnOceanRendererEnabled -= OnOceanRendererEnabled;
+            OceanRenderer.OnOceanRendererEnabled += OnOceanRendererEnabled;
+
             if (OceanRenderer.Instance == null)
             {
                 enabled = false;
@@ -67,6 +70,18 @@ namespace Crest
             RenderSettings.ambientIntensity = _ambientIntensity;
             RenderSettings.reflectionIntensity = _reflectionIntensity;
             RenderSettings.fogDensity = _fogDensity;
+        }
+
+        private void OnDestroy()
+        {
+            // We need this event registered even when this component is disabled. So we unregister only when the
+            // component is destroyed.
+            OceanRenderer.OnOceanRendererEnabled -= OnOceanRendererEnabled;
+        }
+
+        void OnOceanRendererEnabled()
+        {
+            enabled = true;
         }
 
         void LateUpdate()

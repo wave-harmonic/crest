@@ -257,6 +257,7 @@ namespace Crest
         SampleHeightHelper _sampleHeightHelper = new SampleHeightHelper();
 
         public static OceanRenderer Instance { get; private set; }
+        public static System.Action OnOceanRendererEnabled;
 
         // We are computing these values to be optimal based on the base mesh vertex density.
         float _lodAlphaBlackPointFade;
@@ -348,6 +349,8 @@ namespace Crest
             }
 
             _canSkipCulling = false;
+
+            OnOceanRendererEnabled?.Invoke();
         }
 
         private void OnDisable()

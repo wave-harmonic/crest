@@ -119,11 +119,10 @@ namespace Crest
 
         private void OnEnable()
         {
-            OceanRenderer.OnOceanRendererEnabled -= OnOceanRendererEnabled;
-            OceanRenderer.OnOceanRendererEnabled += OnOceanRendererEnabled;
-
             if (OceanRenderer.Instance == null)
             {
+                OceanRenderer.OnOceanRendererEnabled -= OnOceanRendererEnabled;
+                OceanRenderer.OnOceanRendererEnabled += OnOceanRendererEnabled;
                 enabled = false;
                 return;
             }

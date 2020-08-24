@@ -62,7 +62,7 @@ namespace Crest
             float height = 0f;
             var dummy = Vector3.zero;
             var vel = Vector3.zero;
-            var sampled = _sampleHeightHelper.Sample(ref height, ref dummy, ref vel);
+            var sampled = _sampleHeightHelper.Sample(out height, out dummy, out vel);
 
             if (_particleSystem.isEmitting || (_particleSystem.isPlaying && !_allowMultipleSimultaneousEmissions))
             {

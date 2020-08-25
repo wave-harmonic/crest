@@ -30,7 +30,7 @@ namespace Crest
 
         // This is a shared resource. It will be cleared before use. It is only used by the HelpBox delegate since we
         // want to group them by severity (MessageType). Make sure length matches MessageType length.
-        public static readonly List<string>[] messages = new []
+        public static readonly List<string>[] messages = new[]
         {
             new List<string>(),
             new List<string>(),
@@ -53,7 +53,7 @@ namespace Crest
 
         public static void HelpBox(string message, MessageType type, Object @object = null)
         {
-            messages[(int) type].Add(message);
+            messages[(int)type].Add(message);
         }
 
         public static bool ValidateRenderer(GameObject gameObject, string shaderPrefix, ShowMessage showMessage)

@@ -1,4 +1,8 @@
-﻿using UnityEngine;
+﻿// Crest Ocean System
+
+// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
+
+using UnityEngine;
 
 namespace Crest
 {
@@ -45,8 +49,8 @@ namespace Crest
         /// <summary>
         /// Call this each frame to initialize the trace.
         /// </summary>
-        /// <param name="i_rayOrigin">World space position ray origin</param>
-        /// <param name="i_rayDirection">World space position ray direction</param>
+        /// <param name="i_rayOrigin">World space position of ray origin</param>
+        /// <param name="i_rayDirection">World space ray direction</param>
         public void Init(Vector3 i_rayOrigin, Vector3 i_rayDirection)
         {
             for (int i = 0; i < _queryPos.Length; i++)

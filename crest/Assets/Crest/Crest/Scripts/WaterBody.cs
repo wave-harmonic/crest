@@ -72,7 +72,7 @@ namespace Crest
             {
                 center.y = OceanRenderer.Instance.Root.position.y;
             }
-            Gizmos.DrawCube(center, new Vector3(AABB.extents.x, 1f, AABB.extents.z));
+            Gizmos.DrawCube(center, 2f * new Vector3(AABB.extents.x, 1f, AABB.extents.z));
             Gizmos.color = oldColor;
         }
 #endif
@@ -83,6 +83,18 @@ namespace Crest
     {
         public bool Validate(OceanRenderer ocean, ValidatedHelper.ShowMessage showMessage)
         {
+            // This will also return disabled objects. Safe to use in this case.
+            if (Resources.FindObjectsOfTypeAll<OceanRenderer>().Length == 0)
+            {
+                showMessage
+                (
+                    $"Water body <i>{gameObject.name}</i> requires an ocean renderer component to be present. Please create a separate Game Object and add an Ocean Renderer component to it.",
+                    ValidatedHelper.MessageType.Error, this
+                );
+
+                return false;
+            }
+
             if (Mathf.Abs(transform.lossyScale.x) < 2f && Mathf.Abs(transform.lossyScale.z) < 2f)
             {
                 showMessage
@@ -92,6 +104,15 @@ namespace Crest
                 );
 
                 return false;
+            }
+
+            if (transform.eulerAngles.magnitude > 0.0001f)
+            {
+                showMessage
+                (
+                    $"There must be no rotation on the WaterBody GameObject, and no rotation on any parent. Currently the rotation Euler angles are {transform.eulerAngles}.",
+                    ValidatedHelper.MessageType.Error, this
+                );
             }
 
             return true;

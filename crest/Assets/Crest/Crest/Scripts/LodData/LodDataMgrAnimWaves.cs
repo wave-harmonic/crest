@@ -69,7 +69,7 @@ namespace Crest
             {
                 if (_ocean._simSettingsAnimatedWaves != null) return _ocean._simSettingsAnimatedWaves;
 
-                if(_defaultSettings == null)
+                if (_defaultSettings == null)
                 {
                     _defaultSettings = ScriptableObject.CreateInstance<SettingsType>();
                     _defaultSettings.name = SimName + " Auto-generated Settings";
@@ -378,7 +378,11 @@ namespace Crest
                 );
 
                 _combineProperties.SetInt(sp_LD_SliceIndex, lodIdx);
-                _combineProperties.DispatchShader();
+
+                buf.DispatchCompute(_combineShader, selectedShaderKernel,
+                    OceanRenderer.Instance.LodDataResolution / THREAD_GROUP_SIZE_X,
+                    OceanRenderer.Instance.LodDataResolution / THREAD_GROUP_SIZE_Y,
+                    1);
             }
         }
 

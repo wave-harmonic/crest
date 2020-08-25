@@ -4,6 +4,9 @@
 
 using UnityEngine;
 
+/// <summary>
+/// Shoves the gameobject around random amounts, occasionally useful for debugging where some motion is required to reproduce an issue.
+/// </summary>
 public class RandomMotion : MonoBehaviour
 {
     [Header("Translation")]
@@ -23,7 +26,6 @@ public class RandomMotion : MonoBehaviour
     public float _rotationVel = 0f;
 
     Vector3 _origin;
-    Vector3 _rotation;
 
     void Start()
     {

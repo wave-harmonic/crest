@@ -29,6 +29,9 @@ namespace Crest
 
         protected override string ShaderPrefix => "Crest/Inputs/Clip Surface";
 
+        // The clip surface samples at the displaced position in the ocean shader, so the displacement correction is not needed.
+        protected override bool FollowHorizontalMotion => true;
+
         PropertyWrapperMPB _mpb;
         SampleHeightHelper _sampleHeightHelper = new SampleHeightHelper();
 
@@ -46,9 +49,8 @@ namespace Crest
             {
                 var position = transform.position;
                 _sampleHeightHelper.Init(position, 0f);
-                float waterHeight = 0f;
 
-                if (_sampleHeightHelper.Sample(ref waterHeight))
+                if (_sampleHeightHelper.Sample(out float waterHeight))
                 {
                     position.y = waterHeight;
                     _enabled = Mathf.Abs(_renderer.bounds.ClosestPoint(position).y - waterHeight) < 1;

@@ -23,18 +23,24 @@ namespace Crest
         static readonly int sp_AmbientLighting = Shader.PropertyToID("_AmbientLighting");
         static readonly int sp_HorizonPosNormal = Shader.PropertyToID("_HorizonPosNormal");
         static readonly int sp_HorizonPosNormalRight = Shader.PropertyToID("_HorizonPosNormalRight");
+        static readonly int sp_DataSliceOffset = Shader.PropertyToID("_DataSliceOffset");
 
         internal const string tooltipHorizonSafetyMarginMultiplier = "A safety margin multiplier to adjust horizon line based on camera position to avoid minor artifacts caused by floating point precision issues, the default value has been chosen based on careful experimentation.";
+        internal const string tooltipFilterOceanData = "How much to smooth ocean data such as water depth, light scattering, shadowing. Helps to smooth flickering that can occur under camera motion.";
 
         // A magic number found after a small-amount of iteration that is used to deal with horizon-line floating-point
         // issues. It allows us to give it a small *nudge* in the right direction based on whether the camera is above
         // or below the horizon line itself already.
         internal const float DefaultHorizonSafetyMarginMultiplier = 0.01f;
 
+        internal const int DefaultFilterOceanDataValue = LodDataMgr.MAX_LOD_COUNT - 2;
+        internal const int MinFilterOceanDataValue = 0;
+        internal const int MaxFilterOceanDataValue = LodDataMgr.MAX_LOD_COUNT - 2;
+
         internal class UnderwaterSphericalHarmonicsData
         {
             internal Color[] _ambientLighting = new Color[1];
-            internal Vector3[] _shDirections = new Vector3[] { new Vector3(0.0f, 0.0f, 0.0f) };
+            internal Vector3[] _shDirections = { new Vector3(0.0f, 0.0f, 0.0f) };
         }
 
         // This matches const on shader side
@@ -126,7 +132,8 @@ namespace Crest
             SampleHeightHelper sampleHeightHelper,
             bool copyParamsFromOceanMaterial,
             bool debugViewPostProcessMask,
-            float horizonSafetyMarginMultiplier
+            float horizonSafetyMarginMultiplier,
+            int dataSliceOffset
         )
         {
             Material underwaterPostProcessMaterial = underwaterPostProcessMaterialWrapper.material;
@@ -150,7 +157,7 @@ namespace Crest
             underwaterPostProcessMaterial.SetVector(sp_InstanceData, new Vector4(OceanRenderer.Instance.ViewerAltitudeLevelAlpha, 0f, 0f, OceanRenderer.Instance.CurrentLodCount));
 
             OceanRenderer.Instance._lodDataAnimWaves.BindResultData(underwaterPostProcessMaterialWrapper);
-            if (OceanRenderer.Instance._lodDataSeaDepths  != null)
+            if (OceanRenderer.Instance._lodDataSeaDepths != null)
             {
                 OceanRenderer.Instance._lodDataSeaDepths.BindResultData(underwaterPostProcessMaterialWrapper);
             }
@@ -159,7 +166,7 @@ namespace Crest
                 LodDataMgrSeaFloorDepth.BindNull(underwaterPostProcessMaterialWrapper);
             }
 
-            if (OceanRenderer.Instance._lodDataShadow  != null)
+            if (OceanRenderer.Instance._lodDataShadow != null)
             {
                 OceanRenderer.Instance._lodDataShadow.BindResultData(underwaterPostProcessMaterialWrapper);
             }
@@ -177,9 +184,8 @@ namespace Crest
                 float seaLevelHeightDifference = camera.transform.position.y - seaLevel;
                 float waterHeightLevelDifference = seaLevelHeightDifference;
                 {
-                    float waterHeight = 0.0f;
                     sampleHeightHelper.Init(camera.transform.position, 0f);
-                    if (sampleHeightHelper.Sample(ref waterHeight))
+                    if (sampleHeightHelper.Sample(out var waterHeight))
                     {
                         waterHeightLevelDifference = camera.transform.position.y - waterHeight;
                     }
@@ -191,6 +197,7 @@ namespace Crest
             }
             {
                 underwaterPostProcessMaterial.SetFloat(sp_OceanHeight, seaLevel);
+                underwaterPostProcessMaterial.SetInt(sp_DataSliceOffset, dataSliceOffset);
 
                 float maxOceanVerticalDisplacement = OceanRenderer.Instance.MaxVertDisplacement * 0.5f;
                 float cameraYPosition = camera.transform.position.y;
@@ -243,9 +250,12 @@ namespace Crest
             }
             else
             {
+                // Store projection matrix to restore later.
                 var projectionMatrix = camera.projectionMatrix;
 
+                // We need to set the matrix ourselves. Maybe ViewportToWorldPoint has a bug.
                 camera.projectionMatrix = camera.GetStereoProjectionMatrix(Camera.StereoscopicEye.Left);
+
                 var inverseViewProjectionMatrix = (camera.GetStereoProjectionMatrix(Camera.StereoscopicEye.Left) * camera.GetStereoViewMatrix(Camera.StereoscopicEye.Left)).inverse;
                 underwaterPostProcessMaterial.SetMatrix(sp_InvViewProjection, inverseViewProjectionMatrix);
 
@@ -254,6 +264,7 @@ namespace Crest
                     underwaterPostProcessMaterial.SetVector(sp_HorizonPosNormal, new Vector4(pos.x, pos.y, normal.x, normal.y));
                 }
 
+                // We need to set the matrix ourselves. Maybe ViewportToWorldPoint has a bug.
                 camera.projectionMatrix = camera.GetStereoProjectionMatrix(Camera.StereoscopicEye.Right);
 
                 var inverseViewProjectionMatrixRightEye = (camera.GetStereoProjectionMatrix(Camera.StereoscopicEye.Right) * camera.GetStereoViewMatrix(Camera.StereoscopicEye.Right)).inverse;
@@ -264,6 +275,7 @@ namespace Crest
                     underwaterPostProcessMaterial.SetVector(sp_HorizonPosNormalRight, new Vector4(pos.x, pos.y, normal.x, normal.y));
                 }
 
+                // Restore projection matrix.
                 camera.projectionMatrix = projectionMatrix;
             }
 
@@ -288,7 +300,8 @@ namespace Crest
         }
 
         /// <summary>
-        /// Compute intersection between the frustum far plane and the ocean plane, and return screen space pos and normal for this horizon line
+        /// Compute intersection between the frustum far plane and the ocean plane, and return view space pos and normal
+        /// for this horizon line.
         /// </summary>
         static void GetHorizonPosNormal(Camera camera, Camera.MonoOrStereoscopicEye eye, float seaLevel, float horizonSafetyMarginMultiplier, out Vector2 resultPos, out Vector2 resultNormal)
         {
@@ -343,15 +356,58 @@ namespace Crest
                         resultNormal.x = -tangent.y;
                         resultNormal.y = tangent.x;
 
+                        // Disambiguate the normal. The tangent normal might go from left to right or right to left
+                        // since we do not handle ordering of intersection points.
                         if (Vector3.Dot(intersectionsWorld[0] - intersectionsWorld[1], camera.transform.right) > 0f)
                         {
                             resultNormal = -resultNormal;
                         }
 
+                        // Invert the normal if camera is upside down.
                         if (camera.transform.up.y <= 0f)
                         {
                             resultNormal = -resultNormal;
                         }
+
+                        // The above will sometimes produce a normal that is inverted around 90° along the Z axis. Here
+                        // we are using world up to make sure that water is world down.
+                        {
+                            var cameraFacing = Vector3.Dot(camera.transform.right, Vector3.up);
+                            var normalFacing = Vector2.Dot(resultNormal, Vector2.right);
+
+                            if (cameraFacing > 0.75f && normalFacing > 0.9f)
+                            {
+                                resultNormal = -resultNormal;
+                            }
+                            else if (cameraFacing < -0.75f && normalFacing < -0.9f)
+                            {
+                                resultNormal = -resultNormal;
+                            }
+                        }
+
+                        // Calculate a scale value so that the multiplier is consistent when rotating camera. We need
+                        // to do this because we are working in view space which is always 0-1.
+                        {
+                            var angleFromWorldNormal = Mathf.Abs(Vector2.Angle(Vector2.up, -resultNormal.normalized) / 90f);
+                            if (angleFromWorldNormal > 1f)
+                            {
+                                angleFromWorldNormal = Mathf.Abs(2f - angleFromWorldNormal);
+                            }
+                            horizonSafetyMarginMultiplier /= Mathf.Lerp(1f, camera.aspect, angleFromWorldNormal);
+                        }
+
+                        // Get the sign (with zero) of the camera-to-sea-level to set the multiplier direction. We don't
+                        // want the distance as it will influence the size of the safety margin which it might then
+                        // appear in turbulent water edge cases.
+                        var cameraToSeaLevelSign = seaLevel - camera.transform.position.y;
+                        cameraToSeaLevelSign = cameraToSeaLevelSign > 0f ? 1f : cameraToSeaLevelSign < 0f ? -1f : 0f;
+
+                        // We want to invert the direction of the multiplier when underwater.
+                        horizonSafetyMarginMultiplier *= -cameraToSeaLevelSign;
+                        // For compatibility so previous 0.01f property value is the same strength as before.
+                        horizonSafetyMarginMultiplier *= 0.01f;
+                        // We use the normal so the multiplier is applied in the correct direction.
+                        resultPos += resultNormal.normalized * horizonSafetyMarginMultiplier;
                     }
                     else
                     {
@@ -382,8 +438,6 @@ namespace Crest
                             throw new System.Exception("GetHorizonPosNormal: Could not determine if far plane is above or below water.");
                         }
                     }
-
-                    resultPos.y += (seaLevel - camera.transform.position.y) * horizonSafetyMarginMultiplier;
                 }
                 finally
                 {

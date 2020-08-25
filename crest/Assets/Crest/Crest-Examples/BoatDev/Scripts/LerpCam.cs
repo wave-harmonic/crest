@@ -1,4 +1,6 @@
-﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
+﻿// Crest Ocean System
+
+// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 using Crest;
 using UnityEngine;
@@ -21,8 +23,7 @@ public class LerpCam : MonoBehaviour
         }
 
         _sampleHeightHelper.Init(transform.position, 0f);
-        float h = 0f;
-        _sampleHeightHelper.Sample(ref h);
+        _sampleHeightHelper.Sample(out var h);
 
         var targetPos = _targetPos.position;
         targetPos.y = Mathf.Max(targetPos.y, h + _minHeightAboveWater);

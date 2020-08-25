@@ -1,4 +1,6 @@
-﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
+﻿// Crest Ocean System
+
+// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 using UnityEngine;
 
@@ -16,11 +18,6 @@ namespace Crest
         public abstract float ObjectWidth { get; }
         public abstract bool InWater { get; }
         public abstract Vector3 Velocity { get; }
-
-        /// <summary>
-        /// The ocean data has horizontal displacements. This represents the displacement that lands at this object position.
-        /// </summary>
-        public abstract Vector3 CalculateDisplacementToObject();
     }
 
 #if UNITY_EDITOR

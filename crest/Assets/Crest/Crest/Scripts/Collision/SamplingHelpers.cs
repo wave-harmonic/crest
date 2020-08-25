@@ -1,4 +1,8 @@
-﻿using UnityEngine;
+﻿// Crest Ocean System
+
+// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
+
+using UnityEngine;
 
 namespace Crest
 {
@@ -26,16 +30,16 @@ namespace Crest
         /// <param name="i_queryPos">World space position to sample</param>
         /// <param name="i_minLength">The smallest length scale you are interested in. If you are sampling data for boat physics,
         /// pass in the boats width. Larger objects will ignore small wavelengths.</param>
-        /// <param name="fromFixedUpdate">Pass true if calling from FixedUpdate(). This will omit a warning when there on multipled-FixedUpdate frames.</param>
-        public void Init(Vector3 i_queryPos, float i_minLength = 0f, bool fromFixedUpdate = false)
+        /// <param name="allowMultipleCallsPerFrame">Pass true if calling from FixedUpdate(). This will omit a warning when there on multipled-FixedUpdate frames.</param>
+        public void Init(Vector3 i_queryPos, float i_minLength = 0f, bool allowMultipleCallsPerFrame = false, Object context = null)
         {
             _queryPos[0] = i_queryPos;
             _minLength = i_minLength;
 
 #if UNITY_EDITOR
-            if (!fromFixedUpdate && _lastFrame >= OceanRenderer.FrameCount)
+            if (!allowMultipleCallsPerFrame && _lastFrame >= OceanRenderer.FrameCount)
             {
-                Debug.LogWarning("Each SampleHeightHelper object services a single height query per frame. To perform multiple queries, create multiple SampleHeightHelper objects or use the CollProvider.Query() API directly.");
+                Debug.LogWarning($"Each SampleHeightHelper object services a single height query per frame. To perform multiple queries, create multiple SampleHeightHelper objects or use the CollProvider.Query() API directly. (_lastFrame = {_lastFrame})", context);
             }
             _lastFrame = OceanRenderer.FrameCount;
 #endif
@@ -44,15 +48,20 @@ namespace Crest
         /// <summary>
         /// Call this to do the query. Can be called only once after Init().
         /// </summary>
-        public bool Sample(ref float o_height)
+        public bool Sample(out float o_height)
         {
             var collProvider = OceanRenderer.Instance?.CollisionProvider;
-            if (collProvider == null) return false;
+            if (collProvider == null)
+            {
+                o_height = 0f;
+                return false;
+            }
 
             var status = collProvider.Query(GetHashCode(), _minLength, _queryPos, _queryResult, null, null);
 
             if (!collProvider.RetrieveSucceeded(status))
             {
+                o_height = OceanRenderer.Instance.SeaLevel;
                 return false;
             }
 
@@ -61,15 +70,22 @@ namespace Crest
             return true;
         }
 
-        public bool Sample(ref float o_height, ref Vector3 o_normal)
+        public bool Sample(out float o_height, out Vector3 o_normal)
         {
             var collProvider = OceanRenderer.Instance?.CollisionProvider;
-            if (collProvider == null) return false;
+            if (collProvider == null)
+            {
+                o_height = 0f;
+                o_normal = Vector3.up;
+                return false;
+            }
 
             var status = collProvider.Query(GetHashCode(), _minLength, _queryPos, _queryResult, _queryResultNormal, null);
 
             if (!collProvider.RetrieveSucceeded(status))
             {
+                o_height = OceanRenderer.Instance.SeaLevel;
+                o_normal = Vector3.up;
                 return false;
             }
 
@@ -79,15 +95,24 @@ namespace Crest
             return true;
         }
 
-        public bool Sample(ref float o_height, ref Vector3 o_normal, ref Vector3 o_surfaceVel)
+        public bool Sample(out float o_height, out Vector3 o_normal, out Vector3 o_surfaceVel)
         {
             var collProvider = OceanRenderer.Instance?.CollisionProvider;
-            if (collProvider == null) return false;
+            if (collProvider == null)
+            {
+                o_height = 0f;
+                o_normal = Vector3.up;
+                o_surfaceVel = Vector3.zero;
+                return false;
+            }
 
             var status = collProvider.Query(GetHashCode(), _minLength, _queryPos, _queryResult, _queryResultNormal, _queryResultVel);
 
             if (!collProvider.RetrieveSucceeded(status))
             {
+                o_height = OceanRenderer.Instance.SeaLevel;
+                o_normal = Vector3.up;
+                o_surfaceVel = Vector3.zero;
                 return false;
             }
 
@@ -98,14 +123,23 @@ namespace Crest
             return true;
         }
 
-        public bool Sample(ref Vector3 o_displacementToPoint, ref Vector3 o_normal, ref Vector3 o_surfaceVel)
+        public bool Sample(out Vector3 o_displacementToPoint, out Vector3 o_normal, out Vector3 o_surfaceVel)
         {
             var collProvider = OceanRenderer.Instance?.CollisionProvider;
-            if (collProvider == null) return false;
+            if (collProvider == null)
+            {
+                o_displacementToPoint = Vector3.zero;
+                o_normal = Vector3.up;
+                o_surfaceVel = Vector3.zero;
+                return false;
+            }
             var status = collProvider.Query(GetHashCode(), _minLength, _queryPos, _queryResult, _queryResultNormal, _queryResultVel);
 
             if (!collProvider.RetrieveSucceeded(status))
             {
+                o_displacementToPoint = Vector3.zero;
+                o_normal = Vector3.up;
+                o_surfaceVel = Vector3.zero;
                 return false;
             }
 
@@ -143,14 +177,19 @@ namespace Crest
         /// <summary>
         /// Call this to do the query. Can be called only once after Init().
         /// </summary>
-        public bool Sample(ref Vector2 o_flow)
+        public bool Sample(out Vector2 o_flow)
         {
             var flowProvider = OceanRenderer.Instance?.FlowProvider;
-            if (flowProvider == null) return false;
+            if (flowProvider == null)
+            {
+                o_flow = Vector2.zero;
+                return false;
+            }
             var status = flowProvider.Query(GetHashCode(), _minLength, _queryPos, _queryResult);
 
             if (!flowProvider.RetrieveSucceeded(status))
             {
+                o_flow = Vector2.zero;
                 return false;
             }
 

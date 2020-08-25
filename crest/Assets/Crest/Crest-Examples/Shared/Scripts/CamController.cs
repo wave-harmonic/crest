@@ -5,6 +5,9 @@
 using UnityEngine;
 using UnityEngine.XR;
 
+/// <summary>
+/// A simple and dumb camera script that can be controlled using WASD and the mouse.
+/// </summary>
 public class CamController : MonoBehaviour
 {
     public float linSpeed = 10f;
@@ -23,6 +26,9 @@ public class CamController : MonoBehaviour
     [System.Serializable]
     class DebugFields
     {
+        [Tooltip("Disables controller preventing the camera from rolling (rotating on the z axis).")]
+        public bool disableCameraRollPrevention = false;
+
         [Tooltip("Disables the XR occlusion mesh for debugging purposes. Only works with legacy XR.")]
         public bool disableOcclusionMesh = false;
 
@@ -116,6 +122,16 @@ public class CamController : MonoBehaviour
         _targetTransform.position -= speed * _targetTransform.up * (Input.GetKey(KeyCode.Q) ? 1 : 0) * dt;
         _targetTransform.position -= speed * _targetTransform.right * (Input.GetKey(KeyCode.A) ? 1 : 0) * dt;
         _targetTransform.position += speed * _targetTransform.right * (Input.GetKey(KeyCode.D) ? 1 : 0) * dt;
+
+        {
+            float rotate = 0f;
+            rotate += (Input.GetKey(KeyCode.RightArrow) ? 1 : 0);
+            rotate -= (Input.GetKey(KeyCode.LeftArrow) ? 1 : 0);
+            rotate *= 5f;
+            Vector3 ea = _targetTransform.eulerAngles;
+            ea.y += 0.1f * rotSpeed * rotate * dt;
+            _targetTransform.eulerAngles = ea;
+        }
     }
 
     void UpdateDragging(float dt)
@@ -124,18 +140,18 @@ public class CamController : MonoBehaviour
         mousePos.x = Input.mousePosition.x;
         mousePos.y = Input.mousePosition.y;
 
-        if( !_dragging && Input.GetMouseButtonDown( 0 ) && !Crest.OceanDebugGUI.OverGUI( mousePos ) )
+        if (!_dragging && Input.GetMouseButtonDown(0) && !Crest.OceanDebugGUI.OverGUI(mousePos))
         {
             _dragging = true;
             _lastMousePos = mousePos;
         }
-        if( _dragging && Input.GetMouseButtonUp( 0 ) )
+        if (_dragging && Input.GetMouseButtonUp(0))
         {
             _dragging = false;
             _lastMousePos = -Vector2.one;
         }
 
-        if( _dragging )
+        if (_dragging)
         {
             Vector2 delta = mousePos - _lastMousePos;
 
@@ -150,6 +166,7 @@ public class CamController : MonoBehaviour
 
     void UpdateKillRoll()
     {
+        if (_debug.disableCameraRollPrevention) return;
         Vector3 ea = _targetTransform.eulerAngles;
         ea.z = 0f;
         transform.eulerAngles = ea;

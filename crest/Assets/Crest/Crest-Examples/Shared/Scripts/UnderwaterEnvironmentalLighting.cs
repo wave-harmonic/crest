@@ -76,7 +76,7 @@ namespace Crest
                 return;
             }
 
-            float depthMultiplier = Mathf.Exp(_averageDensity * 
+            float depthMultiplier = Mathf.Exp(_averageDensity *
                 Mathf.Min(OceanRenderer.Instance.ViewerHeightAboveWater * DEPTH_OUTSCATTER_CONSTANT, 0f));
 
             // Darken environmental lighting when viewer underwater

@@ -10,6 +10,10 @@ using UnityEditor;
 using UnityEditor.Experimental.SceneManagement;
 #endif
 
+#if !UNITY_2019_4_OR_NEWER
+#error This version of Crest requires Unity 2019.4 or later.
+#endif
+
 namespace Crest
 {
     /// <summary>
@@ -181,6 +185,7 @@ namespace Crest
             EverythingClipped,
         }
         [Tooltip("Whether to clip nothing by default (and clip inputs remove patches of surface), or to clip everything by default (and clip inputs add patches of surface).")]
+        [PredicatedField("_createClipSurfaceData")]
         public DefaultClippingState _defaultClippingState = DefaultClippingState.NothingClipped;
 
         [Header("Edit Mode Params")]
@@ -407,14 +412,10 @@ namespace Crest
                     return _editorFrames;
                 }
                 else
-                {
-                    return Time.frameCount;
-                }
-#else
-                {
-                    return Time.frameCount;
-                }
 #endif
+                {
+                    return Time.frameCount;
+                }
             }
         }
 
@@ -561,6 +562,25 @@ namespace Crest
 
         bool VerifyRequirements()
         {
+            if (Application.platform == RuntimePlatform.WebGLPlayer)
+            {
+                Debug.LogError("Crest does not support WebGL backends.", this);
+                return false;
+            }
+#if UNITY_EDITOR
+            if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES2 ||
+                SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3 ||
+                SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLCore)
+            {
+                Debug.LogError("Crest does not support OpenGL backends.", this);
+                return false;
+            }
+#endif
+            if (SystemInfo.graphicsShaderLevel < 45)
+            {
+                Debug.LogError("Crest requires graphics devices that support shader level 4.5 or above.", this);
+                return false;
+            }
             if (!SystemInfo.supportsComputeShaders)
             {
                 Debug.LogError("Crest requires graphics devices that support compute shaders.", this);
@@ -633,15 +653,9 @@ namespace Crest
             var meshScaleLerp = needToBlendOutShape ? ViewerAltitudeLevelAlpha : 0f;
             Shader.SetGlobalFloat(sp_meshScaleLerp, meshScaleLerp);
 
-            if (Viewpoint == null
-                )
+            if (Viewpoint == null && Application.isPlaying)
             {
-#if UNITY_EDITOR
-                if (EditorApplication.isPlaying)
-#endif
-                {
-                    Debug.LogError("Viewpoint is null, ocean update will fail.", this);
-                }
+                Debug.LogError("Viewpoint is null, ocean update will fail.", this);
             }
 
             if (_followViewpoint && Viewpoint != null)
@@ -659,6 +673,8 @@ namespace Crest
             {
                 LateUpdateTiles();
             }
+
+            LateUpdateResetMaxDisplacementFromShape();
 
 #if UNITY_EDITOR
             if (EditorApplication.isPlaying || !_showOceanProxyPlane)
@@ -724,9 +740,10 @@ namespace Crest
         {
             var oldViewerHeight = ViewerHeightAboveWater;
 
-            var waterHeight = 0f;
             _sampleHeightHelper.Init(Viewpoint.position, 0f, true);
-            _sampleHeightHelper.Sample(ref waterHeight);
+
+            _sampleHeightHelper.Sample(out var waterHeight);
+
             ViewerHeightAboveWater = Viewpoint.position.y - waterHeight;
 
             // _firstViewerHeightUpdate is tracked to always broadcast initial state
@@ -766,13 +783,6 @@ namespace Crest
             var volumeExtinctionLength = -Mathf.Log(_underwaterCullLimit) / minimumFogDensity;
             var canSkipCulling = WaterBody.WaterBodies.Count == 0 && _canSkipCulling;
 
-            // If there are local bodies of water, this will do overlap tests between the ocean tiles
-            // and the water bodies and turn off any that don't overlap.
-            if (WaterBody.WaterBodies.Count == 0 && _canSkipCulling)
-            {
-                return;
-            }
-
             foreach (OceanChunkRenderer tile in _oceanChunkRenderers)
             {
                 if (tile.Rend == null)
@@ -780,6 +790,7 @@ namespace Crest
                     continue;
                 }
 
+                var isCulled = false;
 
                 // If there are local bodies of water, this will do overlap tests between the ocean tiles
                 // and the water bodies and turn off any that don't overlap.
@@ -802,17 +813,30 @@ namespace Crest
                         }
                     }
 
-                    tile.Rend.enabled = overlappingOne || WaterBody.WaterBodies.Count == 0;
+                    isCulled = !overlappingOne && WaterBody.WaterBodies.Count > 0;
                 }
 
-                if (canSkipCulling || tile.Rend.enabled)
+                // Cull tiles the viewer cannot see through the underwater fog.
+                if (!isCulled)
                 {
-                    tile.Rend.enabled = (!definitelyUnderwater) || (Viewpoint.position - tile.Rend.bounds.ClosestPoint(Viewpoint.position)).magnitude < volumeExtinctionLength;
+                    isCulled = definitelyUnderwater && (Viewpoint.position - tile.Rend.bounds.ClosestPoint(Viewpoint.position)).magnitude >= volumeExtinctionLength;
                 }
+
+                tile.Rend.enabled = !isCulled;
             }
 
             // Can skip culling next time around if water body count stays at 0
             _canSkipCulling = WaterBody.WaterBodies.Count == 0;
+        }
+
+        void LateUpdateResetMaxDisplacementFromShape()
+        {
+            if (FrameCount != _maxDisplacementCachedTime)
+            {
+                _maxHorizDispFromShape = _maxVertDispFromShape = _maxVertDispFromWaves = 0f;
+            }
+
+            _maxDisplacementCachedTime = FrameCount;
         }
 
         /// <summary>
@@ -830,16 +854,9 @@ namespace Crest
         /// </summary>
         public void ReportMaxDisplacementFromShape(float maxHorizDisp, float maxVertDisp, float maxVertDispFromWaves)
         {
-            if (FrameCount != _maxDisplacementCachedTime)
-            {
-                _maxHorizDispFromShape = _maxVertDispFromShape = _maxVertDispFromWaves = 0f;
-            }
-
             _maxHorizDispFromShape += maxHorizDisp;
             _maxVertDispFromShape += maxVertDisp;
             _maxVertDispFromWaves += maxVertDispFromWaves;
-
-            _maxDisplacementCachedTime = FrameCount;
         }
         float _maxHorizDispFromShape = 0f;
         float _maxVertDispFromShape = 0f;
@@ -1003,12 +1020,29 @@ namespace Crest
                 input.Validate(ocean, ValidatedHelper.DebugLog);
             }
 
+            // WaterBody
+            var waterBodies = FindObjectsOfType<WaterBody>();
+            foreach (var waterBody in waterBodies)
+            {
+                waterBody.Validate(ocean, ValidatedHelper.DebugLog);
+            }
+
             Debug.Log("Validation complete!", ocean);
         }
 
         public bool Validate(OceanRenderer ocean, ValidatedHelper.ShowMessage showMessage)
         {
             var isValid = true;
+
+            if (EditorSettings.enterPlayModeOptionsEnabled &&
+                EditorSettings.enterPlayModeOptions.HasFlag(EnterPlayModeOptions.DisableSceneReload))
+            {
+                showMessage
+                (
+                    "Crest will not work correctly with <i>Disable Scene Reload</i> enabled.",
+                    ValidatedHelper.MessageType.Error, ocean
+                );
+            }
 
             if (_material == null)
             {
@@ -1138,6 +1172,15 @@ namespace Crest
             if (_simSettingsAnimatedWaves)
             {
                 _simSettingsAnimatedWaves.Validate(ocean, showMessage);
+            }
+
+            if (transform.eulerAngles.magnitude > 0.0001f)
+            {
+                showMessage
+                (
+                    $"There must be no rotation on the ocean GameObject, and no rotation on any parent. Currently the rotation Euler angles are {transform.eulerAngles}.",
+                    ValidatedHelper.MessageType.Error, ocean
+                );
             }
 
             return isValid;

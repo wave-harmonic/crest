@@ -43,16 +43,16 @@ Shader "Crest/Underwater/Post Process"
 
 			#pragma multi_compile_instancing
 
-			#pragma shader_feature _SUBSURFACESCATTERING_ON
-			#pragma shader_feature _SUBSURFACESHALLOWCOLOUR_ON
-			#pragma shader_feature _TRANSPARENCY_ON
-			#pragma shader_feature _CAUSTICS_ON
-			#pragma shader_feature _SHADOWS_ON
-			#pragma shader_feature _COMPILESHADERWITHDEBUGINFO_ON
-			#pragma shader_feature _MENISCUS_ON
+			#pragma shader_feature_local _SUBSURFACESCATTERING_ON
+			#pragma shader_feature_local _SUBSURFACESHALLOWCOLOUR_ON
+			#pragma shader_feature_local _TRANSPARENCY_ON
+			#pragma shader_feature_local _CAUSTICS_ON
+			#pragma shader_feature_local _SHADOWS_ON
+			#pragma shader_feature_local _COMPILESHADERWITHDEBUGINFO_ON
+			#pragma shader_feature_local _MENISCUS_ON
 
-			#pragma multi_compile __ _FULL_SCREEN_EFFECT
-			#pragma multi_compile __ _DEBUG_VIEW_OCEAN_MASK
+			#pragma multi_compile_local __ _FULL_SCREEN_EFFECT
+			#pragma multi_compile_local __ _DEBUG_VIEW_OCEAN_MASK
 
 			#if _COMPILESHADERWITHDEBUGINFO_ON
 			#pragma enable_d3d11_debug_symbols
@@ -64,7 +64,6 @@ Shader "Crest/Underwater/Post Process"
 			#include "../OceanConstants.hlsl"
 			#include "../OceanInputsDriven.hlsl"
 			#include "../OceanGlobals.hlsl"
-			#include "../OceanLODData.hlsl"
 			#include "../OceanHelpersNew.hlsl"
 
 			half3 _AmbientLighting;
@@ -80,6 +79,7 @@ Shader "Crest/Underwater/Post Process"
 			float4x4 _InvViewProjectionRight;
 			float4 _HorizonPosNormal;
 			float4 _HorizonPosNormalRight;
+			half _DataSliceOffset;
 
 			struct Attributes
 			{
@@ -139,7 +139,9 @@ Shader "Crest/Underwater/Post Process"
 				{
 					float3 dummy;
 					half sss = 0.0;
-					const float3 uv_slice = WorldToUV(_WorldSpaceCameraPos.xz);
+					// Offset slice so that we dont get high freq detail. But never use last lod as this has crossfading.
+					int sliceIndex = clamp(_DataSliceOffset, 0, _SliceCount - 2);
+					const float3 uv_slice = WorldToUV(_WorldSpaceCameraPos.xz, _LD_Pos_Scale[sliceIndex], _LD_Params[sliceIndex], sliceIndex);
 					SampleDisplacements(_LD_TexArray_AnimatedWaves, uv_slice, 1.0, dummy, sss);
 
 					// depth and shadow are computed in ScatterColour when underwater==true, using the LOD1 texture.
@@ -212,7 +214,7 @@ Shader "Crest/Underwater/Post Process"
 #endif // _MENISCUS_ON
 
 #if _DEBUG_VIEW_OCEAN_MASK
-				if(!isOceanSurface)
+				if (!isOceanSurface)
 				{
 					return float4(sceneColour * float3(isUnderwater * 0.5, (1.0 - isUnderwater) * 0.5, 1.0), 1.0);
 				}
@@ -221,7 +223,7 @@ Shader "Crest/Underwater/Post Process"
 					return float4(sceneColour * float3(mask == UNDERWATER_MASK_WATER_SURFACE_ABOVE, mask == UNDERWATER_MASK_WATER_SURFACE_BELOW, 0.0), 1.0);
 				}
 #else
-				if(isUnderwater)
+				if (isUnderwater)
 				{
 					const half3 view = normalize(input.viewWS);
 					sceneColour = ApplyUnderwaterEffect(sceneColour, sceneZ01, view, isOceanSurface);

@@ -241,6 +241,13 @@ namespace Crest
                     OceanRenderer.Instance.LodDataResolution / THREAD_GROUP_SIZE_Y,
                     1);
             }
+
+            // Process registered inputs.
+            for (var lodIdx = lt.LodCount - 1; lodIdx >= 0; lodIdx--)
+            {
+                BufCopyShadowMap.SetRenderTarget(_targets, _targets.depthBuffer, 0, CubemapFace.Unknown, lodIdx);
+                SubmitDraws(lodIdx, BufCopyShadowMap);
+            }
         }
 
         void UpdateCameraMain()

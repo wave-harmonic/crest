@@ -72,6 +72,7 @@ namespace Crest
         public void SetFloatArray(int param, float[] value) { _commandBuffer.SetGlobalFloatArray(param, value); }
         public void SetInt(int param, int value) { _commandBuffer.SetComputeIntParam(_computeShader, param, value); }
         public void SetTexture(int param, Texture value) { _commandBuffer.SetComputeTextureParam(_computeShader, _computeKernel, param, value); }
+        public void SetBuffer(int param, ComputeBuffer value) { _commandBuffer.SetComputeBufferParam(_computeShader, _computeKernel, param, value); }
         public void SetVector(int param, Vector4 value) { _commandBuffer.SetComputeVectorParam(_computeShader, param, value); }
         public void SetVectorArray(int param, Vector4[] value) { _commandBuffer.SetComputeVectorArrayParam(_computeShader, param, value); }
         public void SetMatrix(int param, Matrix4x4 value) { _commandBuffer.SetComputeMatrixParam(_computeShader, param, value); }

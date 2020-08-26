@@ -12,10 +12,13 @@ uniform half _NormalsScale;
 
 half2 SampleNormalMaps(float2 worldXZUndisplaced, float lodAlpha)
 {
+	const float lodDataGridSize = _CascadeDataTgt[_LD_SliceIndex]._texelWidth;
+	float2 normalScrollSpeeds = _PerCascadeInstanceData[_LD_SliceIndex]._normalScrollSpeeds;
+
 	const float2 v0 = float2(0.94, 0.34), v1 = float2(-0.85, -0.53);
-	const float lodDataGridSize = _GeomData.x;
+	
 	float nstretch = _NormalsScale * lodDataGridSize; // normals scaled with geometry
-	const float spdmulL = _GeomData.z;
+	const float spdmulL = normalScrollSpeeds[0];
 	half2 norm =
 		UnpackNormal(tex2D(_Normals, (v0*_CrestTime*spdmulL + worldXZUndisplaced) / nstretch)).xy +
 		UnpackNormal(tex2D(_Normals, (v1*_CrestTime*spdmulL + worldXZUndisplaced) / nstretch)).xy;
@@ -27,7 +30,7 @@ half2 SampleNormalMaps(float2 worldXZUndisplaced, float lodAlpha)
 	{
 		// next lod level
 		nstretch *= 2.;
-		const float spdmulH = _GeomData.w;
+		const float spdmulH = normalScrollSpeeds[1];
 		norm = lerp(norm,
 			UnpackNormal(tex2D(_Normals, (v0*_CrestTime*spdmulH + worldXZUndisplaced) / nstretch)).xy +
 			UnpackNormal(tex2D(_Normals, (v1*_CrestTime*spdmulH + worldXZUndisplaced) / nstretch)).xy,

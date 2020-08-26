@@ -29,8 +29,8 @@ half3 AmbientLight()
 half WhiteFoamTexture(half i_foam, float2 i_worldXZUndisplaced, half lodVal)
 {
 	half ft = lerp(
-		tex2D(_FoamTexture, (1.25*i_worldXZUndisplaced + _CrestTime / 10.) / (4.*_LD_Params[_LD_SliceIndex].x*_FoamScale)).r,
-		tex2D(_FoamTexture, (1.25*i_worldXZUndisplaced + _CrestTime / 10.) / (4.*_LD_Params[_LD_SliceIndex + 1].x*_FoamScale)).r,
+		tex2D(_FoamTexture, (1.25*i_worldXZUndisplaced + _CrestTime / 10.) / (4.*_CascadeDataTgt[_LD_SliceIndex]._texelWidth*_FoamScale)).r,
+		tex2D(_FoamTexture, (1.25*i_worldXZUndisplaced + _CrestTime / 10.) / (4.*_CascadeDataTgt[_LD_SliceIndex + 1]._texelWidth*_FoamScale)).r,
 		lodVal);
 
 	// black point fade
@@ -44,8 +44,8 @@ half BubbleFoamTexture(float2 i_worldXZ, float2 i_worldXZUndisplaced, half3 i_n,
 	float2 foamUVBubbles = (lerp(i_worldXZUndisplaced, i_worldXZ, 0.7) + 0.5 * _CrestTime * windDir) / _FoamScale + 0.125 * i_n.xz;
 	float2 parallaxOffset = -_FoamBubbleParallax * i_view.xz / dot(i_n, i_view);
 	half ft = lerp(
-		tex2Dlod(_FoamTexture, float4((0.74 * foamUVBubbles + parallaxOffset) / (4.0*_LD_Params[_LD_SliceIndex].x), 0., 3.)).r,
-		tex2Dlod(_FoamTexture, float4((0.74 * foamUVBubbles + parallaxOffset) / (4.0*_LD_Params[_LD_SliceIndex + 1].x), 0., 3.)).r,
+		tex2Dlod(_FoamTexture, float4((0.74 * foamUVBubbles + parallaxOffset) / (4.0*_CascadeDataTgt[_LD_SliceIndex]._texelWidth), 0., 3.)).r,
+		tex2Dlod(_FoamTexture, float4((0.74 * foamUVBubbles + parallaxOffset) / (4.0*_CascadeDataTgt[_LD_SliceIndex + 1]._texelWidth), 0., 3.)).r,
 		lodVal);
 
 	return ft;

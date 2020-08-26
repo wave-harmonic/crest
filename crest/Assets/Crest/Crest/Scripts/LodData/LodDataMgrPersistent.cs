@@ -128,6 +128,9 @@ namespace Crest
                 // Bind current data
                 BindData(_renderSimProperties, null, false, ref OceanRenderer.Instance._lodTransform._renderData, false);
 
+                _renderSimProperties.SetBuffer(Shader.PropertyToID("_CascadeDataSrc"), OceanRenderer.Instance._bufCascadeDataSrc);
+                _renderSimProperties.SetBuffer(Shader.PropertyToID("_CascadeDataTgt"), OceanRenderer.Instance._bufCascadeDataTgt);
+
                 buf.DispatchCompute(_shader, krnl_ShaderSim,
                     OceanRenderer.Instance.LodDataResolution / THREAD_GROUP_SIZE_X,
                     OceanRenderer.Instance.LodDataResolution / THREAD_GROUP_SIZE_Y,

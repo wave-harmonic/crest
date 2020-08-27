@@ -146,6 +146,8 @@ namespace Crest
 
         void OnPreRender()
         {
+            XRHelpers.Update(_mainCamera);
+
             // Allocate planes only once
             if (_cameraFrustumPlanes == null)
             {
@@ -173,7 +175,7 @@ namespace Crest
                 PopulateOceanMask(
                     _maskCommandBuffer, _mainCamera, OceanRenderer.Instance.Tiles, _cameraFrustumPlanes,
                     _textureMask, _depthBuffer,
-                    _oceanMaskMaterial, depthSlice,
+                    _oceanMaskMaterial, depthSlice, 0,
                     _disableOceanMask
                 );
             }

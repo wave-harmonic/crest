@@ -14,7 +14,7 @@ half2 SampleNormalMaps(float2 worldXZUndisplaced, float lodAlpha)
 {
 	const float2 v0 = float2(0.94, 0.34), v1 = float2(-0.85, -0.53);
 	const float lodDataGridSize = _GeomData.x;
-	float nstretch = _NormalsScale * lodDataGridSize; // normals scaled with geometry
+	float nstretch = _NormalsScale * _SpectrumDrivenNormals * lodDataGridSize; // normals scaled with geometry
 	const float spdmulL = _GeomData.z;
 	half2 norm =
 		UnpackNormal(tex2D(_Normals, (v0*_CrestTime*spdmulL + worldXZUndisplaced) / nstretch)).xy +
@@ -26,7 +26,7 @@ half2 SampleNormalMaps(float2 worldXZUndisplaced, float lodAlpha)
 	if (nblend > 0.001)
 	{
 		// next lod level
-		nstretch *= 2.;
+		nstretch = _NormalsScale * lodDataGridSize * 2.0 * _SpectrumDrivenNormalsNext;
 		const float spdmulH = _GeomData.w;
 		norm = lerp(norm,
 			UnpackNormal(tex2D(_Normals, (v0*_CrestTime*spdmulH + worldXZUndisplaced) / nstretch)).xy +

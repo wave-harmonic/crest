@@ -21,7 +21,7 @@ namespace Crest
         PropertyWrapperMPB _mpb;
 
         // Cache these off to support regenerating ocean surface
-        int _lodIndex = -1;
+        public int _lodIndex = -1;
         int _totalLodCount = -1;
         int _lodDataResolution = 256;
         int _geoDownSampleFactor = 1;
@@ -32,10 +32,29 @@ namespace Crest
         // MeshScaleLerp, FarNormalsWeight, LODIndex (debug)
         public static int sp_InstanceData = Shader.PropertyToID("_InstanceData");
 
+        static int sp_SpectrumDrivenNormals = Shader.PropertyToID("_SpectrumDrivenNormals");
+        static int sp_SpectrumDrivenNormalsNext = Shader.PropertyToID("_SpectrumDrivenNormalsNext");
+        static int sp_SpectrumDrivenRoughness = Shader.PropertyToID("_SpectrumDrivenRoughness");
+        ShapeGerstnerBatched _dominantShapedGerstnerBatched;
+        // Storing these here temporarily so they can be viewed in inspector.
+        public float maxWaveLength = 0;
+        public float minWaveLength = 0;
+        public float normalsWaveLength = 0;
+        public float normalsWaveLengthNext = 0;
+        public float roughnessWaveLength = 0;
+        public int normalsWaveLengthIndex = 0;
+        public int normalsWaveLengthNextIndex = 0;
+        public int roughnessWaveLengthIndex = 0;
+        public float normalsAmplitude = 0;
+        public float normalsAmplitudeNext = 0;
+        public float roughnessAmplitude = 0;
+
         void Start()
         {
             Rend = GetComponent<Renderer>();
             _mesh = GetComponent<MeshFilter>().sharedMesh;
+
+            _dominantShapedGerstnerBatched = FindObjectOfType<ShapeGerstnerBatched>();
 
             UpdateMeshBounds();
         }
@@ -112,6 +131,8 @@ namespace Crest
             var normalScrollSpeed1 = Mathf.Pow(Mathf.Log(1f + 4f * gridSizeLodData) * mul, pow);
             _mpb.SetVector(sp_GeomData, new Vector4(gridSizeLodData, gridSizeGeo, normalScrollSpeed0, normalScrollSpeed1));
 
+            DriveSmallDetailsStrength();
+
             // Assign LOD data to ocean shader
             var ldaws = OceanRenderer.Instance._lodDataAnimWaves;
             var ldsds = OceanRenderer.Instance._lodDataSeaDepths;
@@ -146,6 +167,43 @@ namespace Crest
             _mpb.SetFloat(sp_ForceUnderwater, heightOffset < -2f ? 1f : 0f);
 
             Rend.SetPropertyBlock(_mpb.materialPropertyBlock);
+        }
+
+        public void DriveSmallDetailsStrength()
+        {
+            maxWaveLength = OceanRenderer.Instance._lodTransform.MaxWavelength(_lodIndex);
+            minWaveLength = maxWaveLength * 0.5f;
+
+            normalsWaveLength = minWaveLength * 0.5f;
+            normalsWaveLengthNext = minWaveLength;
+            roughnessWaveLength = normalsWaveLength * 0.5f;
+
+            normalsWaveLengthIndex = (int)Mathf.Max(-1, OceanWaveSpectrum.OctaveIndex(normalsWaveLength)) * _dominantShapedGerstnerBatched._componentsPerOctave;
+            roughnessWaveLengthIndex = (int)Mathf.Max(-1, OceanWaveSpectrum.OctaveIndex(roughnessWaveLength)) * _dominantShapedGerstnerBatched._componentsPerOctave;
+
+            normalsAmplitude = CalculateSmallDetailsStrength(normalsWaveLength, ref normalsWaveLengthIndex);
+            normalsAmplitudeNext = CalculateSmallDetailsStrength(normalsWaveLengthNext, ref normalsWaveLengthNextIndex);
+            roughnessAmplitude = CalculateSmallDetailsStrength(roughnessWaveLength, ref roughnessWaveLengthIndex);
+
+            _mpb.SetFloat(sp_SpectrumDrivenNormals, OceanRenderer.Instance.EnableSpectrumDrivenNormals ? normalsAmplitude : 1f);
+            _mpb.SetFloat(sp_SpectrumDrivenNormalsNext, OceanRenderer.Instance.EnableSpectrumDrivenNormals ? normalsAmplitudeNext : 1f);
+            _mpb.SetFloat(sp_SpectrumDrivenRoughness, OceanRenderer.Instance.EnableSpectrumDrivenRoughness ? roughnessAmplitude : 1f);
+        }
+
+        public float CalculateSmallDetailsStrength(float waveLength, ref int waveLengthIndex)
+        {
+            waveLengthIndex = (int)Mathf.Max(-1, OceanWaveSpectrum.OctaveIndex(waveLength)) * _dominantShapedGerstnerBatched._componentsPerOctave;
+            var amplitude = 0f;
+            if (waveLengthIndex >= 0)
+            {
+                for (var i = 0; i < waveLengthIndex + _dominantShapedGerstnerBatched._componentsPerOctave; i++)
+                {
+                    amplitude = Mathf.Max(amplitude, _dominantShapedGerstnerBatched._amplitudes[waveLengthIndex]);
+                }
+            }
+
+            // Without multiplying by 10, results were not showing since the numbers were too small.
+            return amplitude * 10f;
         }
 
         // this is called every frame because the bounds are given in world space and depend on the transform scale, which

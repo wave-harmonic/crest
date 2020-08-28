@@ -249,6 +249,10 @@ Shader "Crest/Ocean"
 			#include "UnityCG.cginc"
 			#include "Lighting.cginc"
 
+			float _SpectrumDrivenNormals;
+			float _SpectrumDrivenNormalsNext;
+			float _SpectrumDrivenRoughness;
+
 			struct Attributes
 			{
 				// The old unity macros require this name and type.

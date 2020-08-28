@@ -1,6 +1,6 @@
 ﻿// Crest Ocean System
 
-// Copyright 2020 Wave Harmonic Ltd
+// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 // An adaptor layer for both VR/XR modules.
 
@@ -110,7 +110,12 @@ namespace Crest
             {
                 // Built-in is the same for old or new XR.
                 var eye = (Camera.StereoscopicEye)(IsSinglePass ? viewIndex : passIndex);
-                commandBuffer.SetGlobalMatrix("_ViewProjectionMatrix", GL.GetGPUProjectionMatrix(camera.GetStereoProjectionMatrix(eye), true) * camera.GetStereoViewMatrix(eye));
+                // It appears that the command buffer matrix changes were being overwritten so we just pass it as a
+                // property instead. According to documentation, GetGPUProjectionMatrix is correct way to get the final
+                // matrix similar to how Unity would do it.
+                commandBuffer.SetGlobalMatrix("_ViewProjectionMatrix",
+                    GL.GetGPUProjectionMatrix(camera.GetStereoProjectionMatrix(eye), true) *
+                    camera.GetStereoViewMatrix(eye));
                 commandBuffer.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
             }
             else if (IsNewSDKRunning)

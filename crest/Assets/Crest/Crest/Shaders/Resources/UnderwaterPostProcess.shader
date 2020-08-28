@@ -106,7 +106,6 @@ Shader "Crest/Underwater/Post Process"
 				UNITY_INITIALIZE_OUTPUT(Varyings, output);
 				UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
-
 				output.positionCS = UnityObjectToClipPos(input.positionOS);
 				output.uv = input.uv;
 

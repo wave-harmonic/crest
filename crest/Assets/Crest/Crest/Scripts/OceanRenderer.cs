@@ -205,6 +205,7 @@ namespace Crest
         [Header("Spectrum Driven Details")]
         public bool EnableSpectrumDrivenNormals = true;
         public bool EnableSpectrumDrivenRoughness = true;
+        [Range(0, 100)] public float AmplitudeMultiplier = 10f;
 
         [Header("Debug Params")]
 

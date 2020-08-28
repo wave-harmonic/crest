@@ -15,6 +15,8 @@ Shader "Crest/Ocean"
 		_NormalsStrength("Strength", Range(0.01, 2.0)) = 0.36
 		// Scale of normal map texture
 		_NormalsScale("Scale", Range(0.01, 200.0)) = 40.0
+		_NormalsMinScale("Min Scale", Range(0.01, 200.0)) = 20.0
+		_NormalsMaxScale("Max Scale", Range(0.01, 200.0)) = 80.0
 
 		// Base light scattering settings which give water colour
 		[Header(Scattering)]
@@ -248,10 +250,6 @@ Shader "Crest/Ocean"
 
 			#include "UnityCG.cginc"
 			#include "Lighting.cginc"
-
-			float _SpectrumDrivenNormals;
-			float _SpectrumDrivenNormalsNext;
-			float _SpectrumDrivenRoughness;
 
 			struct Attributes
 			{

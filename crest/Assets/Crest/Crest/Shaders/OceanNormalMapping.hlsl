@@ -9,12 +9,16 @@
 
 uniform half _NormalsStrength;
 uniform half _NormalsScale;
+uniform half _NormalsMinScale;
+uniform half _NormalsMaxScale;
+uniform half _SpectrumDrivenNormals;
+uniform half _SpectrumDrivenNormalsNext;
 
 half2 SampleNormalMaps(float2 worldXZUndisplaced, float lodAlpha)
 {
 	const float2 v0 = float2(0.94, 0.34), v1 = float2(-0.85, -0.53);
 	const float lodDataGridSize = _GeomData.x;
-	float nstretch = _NormalsScale * _SpectrumDrivenNormals * lodDataGridSize; // normals scaled with geometry
+	float nstretch = clamp(_NormalsScale * _SpectrumDrivenNormals, _NormalsMinScale, _NormalsMaxScale) * lodDataGridSize; // normals scaled with geometry
 	const float spdmulL = _GeomData.z;
 	half2 norm =
 		UnpackNormal(tex2D(_Normals, (v0*_CrestTime*spdmulL + worldXZUndisplaced) / nstretch)).xy +
@@ -23,19 +27,21 @@ half2 SampleNormalMaps(float2 worldXZUndisplaced, float lodAlpha)
 	// blend in next higher scale of normals to obtain continuity
 	const float farNormalsWeight = _InstanceData.y;
 	const half nblend = lodAlpha * farNormalsWeight;
+	half normalsStrength = _NormalsStrength * _SpectrumDrivenNormals;
 	if (nblend > 0.001)
 	{
 		// next lod level
-		nstretch = _NormalsScale * lodDataGridSize * 2.0 * _SpectrumDrivenNormalsNext;
+		nstretch = clamp(_NormalsScale * _SpectrumDrivenNormalsNext, _NormalsMinScale, _NormalsMaxScale) * lodDataGridSize * 2.0;
 		const float spdmulH = _GeomData.w;
 		norm = lerp(norm,
 			UnpackNormal(tex2D(_Normals, (v0*_CrestTime*spdmulH + worldXZUndisplaced) / nstretch)).xy +
 			UnpackNormal(tex2D(_Normals, (v1*_CrestTime*spdmulH + worldXZUndisplaced) / nstretch)).xy,
 			nblend);
+		normalsStrength = lerp(normalsStrength, _NormalsStrength * _SpectrumDrivenNormalsNext, nblend);
 	}
 
 	// approximate combine of normals. would be better if normals applied in local frame.
-	return _NormalsStrength * norm;
+	return normalsStrength * norm;
 }
 
 void ApplyNormalMapsWithFlow(float2 worldXZUndisplaced, float2 flow, float lodAlpha, inout half3 io_n)

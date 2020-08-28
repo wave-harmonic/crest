@@ -119,8 +119,10 @@ Material:
     - _Invert: 1
     - _MipBias: 0
     - _Moving: 0.17
+    - _NormalsMaxScale: 80
+    - _NormalsMinScale: 40
     - _NormalsScale: 40
-    - _NormalsStrength: 0.36
+    - _NormalsStrength: 1
     - _Offset: 0.00008
     - _OverrideReflectionCubemap: 0
     - _PlanarReflectionIntensity: 1

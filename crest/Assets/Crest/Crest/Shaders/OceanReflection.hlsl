@@ -2,6 +2,8 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+uniform half _SpectrumDrivenRoughness;
+
 #if _PROCEDURALSKY_ON
 uniform half3 _SkyBase, _SkyAwayFromSun, _SkyTowardsSun;
 uniform half _SkyDirectionality;

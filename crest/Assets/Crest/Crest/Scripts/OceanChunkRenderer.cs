@@ -203,7 +203,7 @@ namespace Crest
             }
 
             // Without multiplying by 10, results were not showing since the numbers were too small.
-            return amplitude * 10f;
+            return amplitude * OceanRenderer.Instance.AmplitudeMultiplier;
         }
 
         // this is called every frame because the bounds are given in world space and depend on the transform scale, which

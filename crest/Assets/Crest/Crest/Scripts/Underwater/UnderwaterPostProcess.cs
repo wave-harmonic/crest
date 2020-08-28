@@ -5,7 +5,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
-using UnityEngine.XR;
 
 using static Crest.UnderwaterPostProcessUtils;
 
@@ -166,7 +165,9 @@ namespace Crest
             }
 
             {
-                RenderTextureDescriptor descriptor = XRSettings.enabled ? XRSettings.eyeTextureDesc : new RenderTextureDescriptor(_mainCamera.pixelWidth, _mainCamera.pixelHeight);
+                RenderTextureDescriptor descriptor = XRHelpers.IsRunning
+                    ? XRHelpers.EyeRenderTextureDescriptor
+                    : new RenderTextureDescriptor(_mainCamera.pixelWidth, _mainCamera.pixelHeight);
                 InitialiseMaskTextures(descriptor, ref _textureMask, ref _depthBuffer);
             }
 

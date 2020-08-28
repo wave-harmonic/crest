@@ -104,6 +104,9 @@ namespace Crest
         // Unity only supports one display right now.
         public static XRDisplaySubsystem Display => IsNewSDKRunning ? _displayList[0] : null;
 
+        // This works for both old and new XR API in legacy renderer.
+        public static RenderTextureDescriptor EyeRenderTextureDescriptor => XRSettings.eyeTextureDesc;
+
         public static void SetViewProjectionMatrices(Camera camera, int viewIndex, int passIndex, CommandBuffer commandBuffer)
         {
             if (IsLegacyRenderer)

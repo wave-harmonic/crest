@@ -206,6 +206,11 @@ namespace Crest
         bool _followSceneCamera = true;
 #pragma warning restore 414
 
+        [Header("Spectrum Driven Details")]
+        public bool EnableSpectrumDrivenNormals = true;
+        public bool EnableSpectrumDrivenRoughness = true;
+        [Range(0, 100)] public float AmplitudeMultiplier = 10f;
+
         [Header("Debug Params")]
 
         [Tooltip("Attach debug gui that adds some controls and allows to visualise the ocean data."), SerializeField]

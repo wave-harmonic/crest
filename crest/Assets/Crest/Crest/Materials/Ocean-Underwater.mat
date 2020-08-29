@@ -119,8 +119,10 @@ Material:
     - _Invert: 1
     - _MipBias: 0
     - _Moving: 0.17
+    - _NormalsMaxScale: 80
+    - _NormalsMinScale: 40
     - _NormalsScale: 40
-    - _NormalsStrength: 0.36
+    - _NormalsStrength: 1
     - _Offset: 0.00008
     - _OverrideReflectionCubemap: 0
     - _PlanarReflectionIntensity: 1
@@ -131,7 +133,7 @@ Material:
     - _RefractionStrength: 1
     - _RefractiveIndexOfAir: 1.2
     - _RefractiveIndexOfWater: 1.333
-    - _Roughness: 0
+    - _Roughness: 1
     - _S: 1
     - _Shadows: 1
     - _ShorelineFoamMinDepth: 0.27

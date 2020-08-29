@@ -79,6 +79,7 @@ namespace Crest
 #endif
 
         public static float SmallWavelength(float octaveIndex) { return Mathf.Pow(2f, SMALLEST_WL_POW_2 + octaveIndex); }
+        public static float OctaveIndex(float waveLength) => Mathf.Log(waveLength, 2f) - SMALLEST_WL_POW_2;
 
         public float GetAmplitude(float wavelength, float componentsPerOctave)
         {

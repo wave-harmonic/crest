@@ -176,7 +176,9 @@ namespace Crest
                 float seaLevelHeightDifference = camera.transform.position.y - seaLevel;
                 float waterHeightLevelDifference = seaLevelHeightDifference;
                 {
-                    sampleHeightHelper.Init(camera.transform.position, 0f);
+                    // Viewpoint and camera transform could be different so we will sample again instead of using
+                    // ViewerHeightAboveWater. Allow multiple samples per frame for multi-pass XR.
+                    sampleHeightHelper.Init(camera.transform.position, 0f, allowMultipleCallsPerFrame: true);
                     if (sampleHeightHelper.Sample(out var waterHeight))
                     {
                         waterHeightLevelDifference = camera.transform.position.y - waterHeight;

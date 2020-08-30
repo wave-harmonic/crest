@@ -3,6 +3,7 @@
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 
 namespace Crest
 {
@@ -16,7 +17,7 @@ namespace Crest
         protected override string ShaderSim { get { return "UpdateFoam"; } }
         protected override int krnl_ShaderSim { get { return _shader.FindKernel(ShaderSim); } }
         public override string SimName { get { return "Foam"; } }
-        public override RenderTextureFormat TextureFormat { get { return Settings._renderTextureFormat; } }
+        public override GraphicsFormat TextureFormat => Settings._renderTextureFormat;
 
         readonly int sp_FoamFadeRate = Shader.PropertyToID("_FoamFadeRate");
         readonly int sp_WaveFoamStrength = Shader.PropertyToID("_WaveFoamStrength");

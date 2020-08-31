@@ -709,6 +709,8 @@ namespace Crest
 
             LateUpdateResetMaxDisplacementFromShape();
 
+            WritePerFrameMaterialParams();
+            
 #if UNITY_EDITOR
             if (EditorApplication.isPlaying || !_showOceanProxyPlane)
 #endif
@@ -729,8 +731,6 @@ namespace Crest
                 }
             }
 #endif
-
-            WritePerFrameMaterialParams();
         }
 
         void WritePerFrameMaterialParams()

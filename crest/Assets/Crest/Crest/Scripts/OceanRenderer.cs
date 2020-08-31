@@ -314,7 +314,7 @@ namespace Crest
             public float _farNormalsWeight;
             public float _geoGridWidth;
             public Vector2 _normalScrollSpeeds;
-            
+
             // Align to 32 bytes
             public Vector3 __padding;
         }
@@ -741,9 +741,6 @@ namespace Crest
 
         void WritePerFrameMaterialParams()
         {
-            // TODO
-            var matProps = new PropertyWrapperMaterial(OceanMaterial);
-
             // Hack - due to SV_IsFrontFace occasionally coming through as true for back faces,
             // add a param here that forces ocean to be in underwater state. I think the root
             // cause here might be imprecision or numerical issues at ocean tile boundaries, although
@@ -754,30 +751,34 @@ namespace Crest
             _bufCascadeDataTgt.SetData(_cascadeParamsTgt);
             _bufCascadeDataSrc.SetData(_cascadeParamsSrc);
 
-            for (int i = 0; i < CurrentLodCount; i++)
+            WritePerCascadeInstanceData(_perCascadeInstanceData);
+            _bufPerCascadeInstanceData.SetData(_perCascadeInstanceData);
+        }
+
+        void WritePerCascadeInstanceData(PerCascadeInstanceData[] instanceData)
+        {
+            for (int lodIdx = 0; lodIdx < CurrentLodCount; lodIdx++)
             {
                 // blend LOD 0 shape in/out to avoid pop, if the ocean might scale up later (it is smaller than its maximum scale)
-                var needToBlendOutShape = i == 0 && ScaleCouldIncrease;
-                _perCascadeInstanceData[i]._meshScaleLerp = needToBlendOutShape ? ViewerAltitudeLevelAlpha : 0f;
+                var needToBlendOutShape = lodIdx == 0 && ScaleCouldIncrease;
+                instanceData[lodIdx]._meshScaleLerp = needToBlendOutShape ? ViewerAltitudeLevelAlpha : 0f;
 
                 // blend furthest normals scale in/out to avoid pop, if scale could reduce
-                var needToBlendOutNormals = i == CurrentLodCount - 1 && ScaleCouldDecrease;
-                _perCascadeInstanceData[i]._farNormalsWeight = needToBlendOutNormals ? ViewerAltitudeLevelAlpha : 1f;
+                var needToBlendOutNormals = lodIdx == CurrentLodCount - 1 && ScaleCouldDecrease;
+                instanceData[lodIdx]._farNormalsWeight = needToBlendOutNormals ? ViewerAltitudeLevelAlpha : 1f;
 
                 // geometry data
                 // compute grid size of geometry. take the long way to get there - make sure we land exactly on a power of two
                 // and not inherit any of the lossy-ness from lossyScale.
-                var scale_pow_2 = CalcLodScale(i);
-                _perCascadeInstanceData[i]._geoGridWidth = scale_pow_2 / (0.25f * _lodDataResolution / _geometryDownSampleFactor);
+                var scale_pow_2 = CalcLodScale(lodIdx);
+                instanceData[lodIdx]._geoGridWidth = scale_pow_2 / (0.25f * _lodDataResolution / _geometryDownSampleFactor);
 
                 var mul = 1.875f; // fudge 1
                 var pow = 1.4f; // fudge 2
-                var texelWidth = _perCascadeInstanceData[i]._geoGridWidth / _geometryDownSampleFactor;
-                _perCascadeInstanceData[i]._normalScrollSpeeds[0] = Mathf.Pow(Mathf.Log(1f + 2f * texelWidth) * mul, pow);
-                _perCascadeInstanceData[i]._normalScrollSpeeds[1] = Mathf.Pow(Mathf.Log(1f + 4f * texelWidth) * mul, pow);
+                var texelWidth = instanceData[lodIdx]._geoGridWidth / _geometryDownSampleFactor;
+                instanceData[lodIdx]._normalScrollSpeeds[0] = Mathf.Pow(Mathf.Log(1f + 2f * texelWidth) * mul, pow);
+                instanceData[lodIdx]._normalScrollSpeeds[1] = Mathf.Pow(Mathf.Log(1f + 4f * texelWidth) * mul, pow);
             }
-
-            _bufPerCascadeInstanceData.SetData(_perCascadeInstanceData);
         }
 
         void LateUpdatePosition()

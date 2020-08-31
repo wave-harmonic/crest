@@ -86,6 +86,7 @@ namespace Crest
             var desc = new RenderTextureDescriptor(resolution, resolution, TextureFormat, 0);
             _targets = CreateLodDataTextures(desc, SimName, NeedToReadWriteTextureData);
 
+            // Bind globally once here on init, which will bind to all graphics shaders (not compute)
             Shader.SetGlobalTexture(GetParamIdSampler(), _targets);
         }
 
@@ -196,6 +197,7 @@ namespace Crest
         }
         internal virtual void OnDisable()
         {
+            // Unbind from all graphics shaders (not compute)
             Shader.SetGlobalTexture(GetParamIdSampler(), null);
         }
 

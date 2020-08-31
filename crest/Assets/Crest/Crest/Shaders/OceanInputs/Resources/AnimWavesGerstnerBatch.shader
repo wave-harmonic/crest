@@ -18,7 +18,6 @@ Shader "Hidden/Crest/Inputs/Animated Waves/Gerstner Batch Global"
 			#pragma vertex Vert
 			#pragma fragment Frag
 			#pragma multi_compile_local __ CREST_DIRECT_TOWARDS_POINT_INTERNAL
-			#pragma enable_d3d11_debug_symbols
 
 			#include "UnityCG.cginc"
 

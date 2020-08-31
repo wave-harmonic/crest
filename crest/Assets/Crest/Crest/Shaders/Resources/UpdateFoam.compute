@@ -3,7 +3,6 @@
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 #pragma kernel UpdateFoam
-#pragma enable_d3d11_debug_symbols
 
 #include "HLSLSupport.cginc"
 

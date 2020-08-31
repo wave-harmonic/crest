@@ -343,14 +343,14 @@ namespace Crest
                 Bind(_combineProperties);
 
                 // Dynamic waves
-                LodDataMgrDynWaves.Bind(_combineMaterial[lodIdx]);
+                LodDataMgrDynWaves.Bind(_combineProperties);
                 if (OceanRenderer.Instance._lodDataDynWaves != null)
                 {
                     OceanRenderer.Instance._lodDataDynWaves.BindCopySettings(_combineProperties);
                 }
 
                 // Flow
-                LodDataMgrFlow.Bind((_combineMaterial[lodIdx]));
+                LodDataMgrFlow.Bind((_combineProperties));
 
                 // Set the animated waves texture where the results will be combined.
                 _combineProperties.SetTexture(

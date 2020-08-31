@@ -474,9 +474,6 @@ namespace Crest
                 LodDataMgrAnimWaves.Bind(mat);
                 LodDataMgrSeaFloorDepth.Bind(mat);
 
-                mat.SetBuffer(OceanRenderer.sp_cascadeData, OceanRenderer.Instance._bufCascadeDataTgt);
-                mat.SetBuffer(OceanRenderer.sp_perCascadeInstanceData, OceanRenderer.Instance._bufPerCascadeInstanceData);
-
                 if (_directTowardsPoint)
                 {
                     mat.SetVector(sp_TargetPointData, new Vector4(_pointPositionXZ.x, _pointPositionXZ.y, _pointRadii.x, _pointRadii.y));

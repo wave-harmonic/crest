@@ -301,6 +301,9 @@ namespace Crest
             public float _texelWidth;
 
             public float _weight;
+
+            // Align to 32 bytes
+            public float __padding;
         }
         public ComputeBuffer _bufCascadeDataTgt;
         public ComputeBuffer _bufCascadeDataSrc;
@@ -311,6 +314,9 @@ namespace Crest
             public float _farNormalsWeight;
             public float _geoGridWidth;
             public Vector2 _normalScrollSpeeds;
+            
+            // Align to 32 bytes
+            public Vector3 __padding;
         }
         public ComputeBuffer _bufPerCascadeInstanceData;
 

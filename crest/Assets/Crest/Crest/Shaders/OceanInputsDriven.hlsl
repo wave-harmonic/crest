@@ -19,6 +19,8 @@ struct CascadeParams
 	float _oneOverTextureRes;
 	float _texelWidth;
 	float _weight;
+	// Align to 32 bytes
+	float __padding;
 };
 
 StructuredBuffer<CascadeParams> _CascadeData;
@@ -29,6 +31,8 @@ struct PerCascadeInstanceData
 	float _farNormalsWeight;
 	float _geoGridWidth;
 	float2 _normalScrollSpeeds;
+	// Align to 32 bytes
+	float3 __padding;
 };
 
 StructuredBuffer<PerCascadeInstanceData> _PerCascadeInstanceData;

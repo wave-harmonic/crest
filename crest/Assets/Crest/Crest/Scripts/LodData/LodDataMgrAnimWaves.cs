@@ -292,6 +292,10 @@ namespace Crest
 
                 _combineMaterial[lodIdx].SetInt(sp_LD_SliceIndex, lodIdx);
 
+                _combineMaterial[lodIdx].SetBuffer("_CascadeDataTgt", OceanRenderer.Instance._bufCascadeDataTgt);
+                _combineMaterial[lodIdx].SetBuffer("_CascadeDataSrc", OceanRenderer.Instance._bufCascadeDataSrc);
+                _combineMaterial[lodIdx].SetBuffer("_PerCascadeInstanceData", OceanRenderer.Instance._bufPerCascadeInstanceData);
+
                 // Combine this LOD's waves with waves from the LODs above into auxiliary combine buffer
                 buf.SetRenderTarget(_combineBuffer);
                 buf.DrawProcedural(Matrix4x4.identity, _combineMaterial[lodIdx].material, shaderPassCombineIntoAux, MeshTopology.Triangles, 3);

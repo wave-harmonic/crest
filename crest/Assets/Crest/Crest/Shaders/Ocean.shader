@@ -296,7 +296,7 @@ Shader "Crest/Ocean"
 
 				// Vertex snapping and lod transition
 				float lodAlpha;
-				SnapAndTransitionVertLayout(_InstanceData.x, o.worldPos, lodAlpha);
+				SnapAndTransitionVertLayout(_PerCascadeInstanceData[_LD_SliceIndex]._meshScaleLerp, o.worldPos, lodAlpha);
 				o.lodAlpha_worldXZUndisplaced_oceanDepth.x = lodAlpha;
 				o.lodAlpha_worldXZUndisplaced_oceanDepth.yz = o.worldPos.xz;
 
@@ -308,15 +308,15 @@ Shader "Crest/Ocean"
 				// Sample shape textures - always lerp between 2 LOD scales, so sample two textures
 
 				// Calculate sample weights. params.z allows shape to be faded out (used on last lod to support pop-less scale transitions)
-				const float wt_smallerLod = (1. - lodAlpha) * _LD_Params[_LD_SliceIndex].z;
-				const float wt_biggerLod = (1. - wt_smallerLod) * _LD_Params[_LD_SliceIndex + 1].z;
+				const float wt_smallerLod = (1. - lodAlpha) * _CascadeDataTgt[_LD_SliceIndex]._weight;
+				const float wt_biggerLod = (1. - wt_smallerLod) * _CascadeDataTgt[_LD_SliceIndex + 1]._weight;
 				// Sample displacement textures, add results to current world pos / normal / foam
 				const float2 positionWS_XZ_before = o.worldPos.xz;
 
 				// Data that needs to be sampled at the undisplaced position
 				if (wt_smallerLod > 0.001)
 				{
-					const float3 uv_slice_smallerLod = WorldToUV(positionWS_XZ_before, _LD_Pos_Scale[_LD_SliceIndex], _LD_Params[_LD_SliceIndex], _LD_SliceIndex);
+					const float3 uv_slice_smallerLod = WorldToUV(positionWS_XZ_before, _CascadeDataTgt[_LD_SliceIndex], _LD_SliceIndex);
 
 					#if !_DEBUGDISABLESHAPETEXTURES_ON
 					half sss = 0.;
@@ -334,7 +334,7 @@ Shader "Crest/Ocean"
 				if (wt_biggerLod > 0.001)
 				{
 					const uint si = _LD_SliceIndex + 1;
-					const float3 uv_slice_biggerLod = WorldToUV(positionWS_XZ_before, _LD_Pos_Scale[si], _LD_Params[si], si);
+					const float3 uv_slice_biggerLod = WorldToUV(positionWS_XZ_before, _CascadeDataTgt[si], si);
 
 					#if !_DEBUGDISABLESHAPETEXTURES_ON
 					half sss = 0.;
@@ -353,7 +353,7 @@ Shader "Crest/Ocean"
 				// Data that needs to be sampled at the displaced position
 				if (wt_smallerLod > 0.0001)
 				{
-					const float3 uv_slice_smallerLodDisp = WorldToUV(o.worldPos.xz, _LD_Pos_Scale[_LD_SliceIndex], _LD_Params[_LD_SliceIndex], _LD_SliceIndex);
+					const float3 uv_slice_smallerLodDisp = WorldToUV(o.worldPos.xz, _CascadeDataTgt[_LD_SliceIndex], _LD_SliceIndex);
 
 					#if _SUBSURFACESHALLOWCOLOUR_ON
 					// The minimum sampling weight is lower (0.0001) than others to fix shallow water colour popping.
@@ -370,7 +370,7 @@ Shader "Crest/Ocean"
 				if (wt_biggerLod > 0.0001)
 				{
 					const uint si = _LD_SliceIndex + 1;
-					const float3 uv_slice_biggerLodDisp = WorldToUV(o.worldPos.xz, _LD_Pos_Scale[si], _LD_Params[si], si);
+					const float3 uv_slice_biggerLodDisp = WorldToUV(o.worldPos.xz, _CascadeDataTgt[si], si);
 
 					#if _SUBSURFACESHALLOWCOLOUR_ON
 					// The minimum sampling weight is lower (0.0001) than others to fix shallow water colour popping.
@@ -449,21 +449,21 @@ Shader "Crest/Ocean"
 
 				const bool underwater = IsUnderwater(facing);
 				const float lodAlpha = input.lodAlpha_worldXZUndisplaced_oceanDepth.x;
-				const float wt_smallerLod = (1.0 - lodAlpha) * _LD_Params[_LD_SliceIndex].z;
-				const float wt_biggerLod = (1.0 - wt_smallerLod) * _LD_Params[_LD_SliceIndex + 1].z;
+				const float wt_smallerLod = (1.0 - lodAlpha) * _CascadeDataTgt[_LD_SliceIndex]._weight;
+				const float wt_biggerLod = (1.0 - wt_smallerLod) * _CascadeDataTgt[_LD_SliceIndex + 1]._weight;
 
 				#if _CLIPSURFACE_ON
 				// Clip surface
 				half clipVal = 0.0;
 				if (wt_smallerLod > 0.001)
 				{
-					const float3 uv_slice_smallerLod = WorldToUV(input.worldPos.xz, _LD_Pos_Scale[_LD_SliceIndex], _LD_Params[_LD_SliceIndex], _LD_SliceIndex);
+					const float3 uv_slice_smallerLod = WorldToUV(input.worldPos.xz, _CascadeDataTgt[_LD_SliceIndex], _LD_SliceIndex);
 					SampleClip(_LD_TexArray_ClipSurface, uv_slice_smallerLod, wt_smallerLod, clipVal);
 				}
 				if (wt_biggerLod > 0.001)
 				{
 					const uint si = _LD_SliceIndex + 1;
-					const float3 uv_slice_biggerLod = WorldToUV(input.worldPos.xz, _LD_Pos_Scale[si], _LD_Params[si], si);
+					const float3 uv_slice_biggerLod = WorldToUV(input.worldPos.xz, _CascadeDataTgt[si], si);
 					SampleClip(_LD_TexArray_ClipSurface, uv_slice_biggerLod, wt_biggerLod, clipVal);
 				}
 				clipVal = lerp(_CrestClipByDefault, clipVal, wt_smallerLod + wt_biggerLod);
@@ -498,14 +498,14 @@ Shader "Crest/Ocean"
 				half sss = 0.;
 				if (wt_smallerLod > 0.001)
 				{
-					const float3 uv_slice_smallerLod = WorldToUV(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, _LD_Pos_Scale[_LD_SliceIndex], _LD_Params[_LD_SliceIndex], _LD_SliceIndex);
-					SampleDisplacementsNormals(_LD_TexArray_AnimatedWaves, uv_slice_smallerLod, wt_smallerLod, _LD_Params[_LD_SliceIndex].w, _LD_Params[_LD_SliceIndex].x, dummy, n_geom.xz, sss);
+					const float3 uv_slice_smallerLod = WorldToUV(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, _CascadeDataTgt[_LD_SliceIndex], _LD_SliceIndex);
+					SampleDisplacementsNormals(_LD_TexArray_AnimatedWaves, uv_slice_smallerLod, wt_smallerLod, _CascadeDataTgt[_LD_SliceIndex]._oneOverTextureRes, _CascadeDataTgt[_LD_SliceIndex]._texelWidth, dummy, n_geom.xz, sss);
 				}
 				if (wt_biggerLod > 0.001)
 				{
 					const uint si = _LD_SliceIndex + 1;
-					const float3 uv_slice_biggerLod = WorldToUV(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, _LD_Pos_Scale[si], _LD_Params[si], si);
-					SampleDisplacementsNormals(_LD_TexArray_AnimatedWaves, uv_slice_biggerLod, wt_biggerLod, _LD_Params[_LD_SliceIndex + 1].w, _LD_Params[_LD_SliceIndex + 1].x, dummy, n_geom.xz, sss);
+					const float3 uv_slice_biggerLod = WorldToUV(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, _CascadeDataTgt[si], si);
+					SampleDisplacementsNormals(_LD_TexArray_AnimatedWaves, uv_slice_biggerLod, wt_biggerLod, _CascadeDataTgt[_LD_SliceIndex + 1]._oneOverTextureRes, _CascadeDataTgt[_LD_SliceIndex + 1]._texelWidth, dummy, n_geom.xz, sss);
 				}
 				n_geom = normalize(n_geom);
 

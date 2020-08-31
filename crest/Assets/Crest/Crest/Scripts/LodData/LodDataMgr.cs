@@ -118,7 +118,7 @@ namespace Crest
             BindData(properties, _targets, blendOut, ref OceanRenderer.Instance._lodTransform._renderData);
         }
 
-        // Avoid heap allocations instead BindData
+        // Avoid heap allocations inside BindData
         protected Vector4[] _BindData_paramIdPosScales = new Vector4[MAX_LOD_COUNT + 1];
         // Used in child
         protected Vector4[] _BindData_paramIdOceans = new Vector4[MAX_LOD_COUNT + 1];

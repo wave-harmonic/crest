@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using UnityEngine;
+using System.Runtime.InteropServices;
 #if UNITY_EDITOR
 using UnityEngine.Rendering;
 using UnityEditor;
@@ -277,6 +278,7 @@ namespace Crest
         readonly int sp_clipByDefault = Shader.PropertyToID("_CrestClipByDefault");
         readonly int sp_lodAlphaBlackPointFade = Shader.PropertyToID("_CrestLodAlphaBlackPointFade");
         readonly int sp_lodAlphaBlackPointWhitePointFade = Shader.PropertyToID("_CrestLodAlphaBlackPointWhitePointFade");
+        static int sp_ForceUnderwater = Shader.PropertyToID("_ForceUnderwater");
 
 #if UNITY_EDITOR
         static float _lastUpdateEditorTime = -1f;
@@ -285,6 +287,35 @@ namespace Crest
 #endif
 
         BuildCommandBuffer _commandbufferBuilder;
+
+        public struct CascadeParams
+        {
+            public Vector2 _posSnapped;
+            public float _scale;
+
+            public float _textureRes;
+            public float _oneOverTextureRes;
+
+            public float _texelWidth;
+
+            public float _weight;
+        }
+        public ComputeBuffer _bufCascadeDataTgt;
+        public ComputeBuffer _bufCascadeDataSrc;
+
+        public struct PerCascadeInstanceData
+        {
+            public float _meshScaleLerp;
+            public float _farNormalsWeight;
+            public float _geoGridWidth;
+            public Vector2 _normalScrollSpeeds;
+        }
+        public ComputeBuffer _bufPerCascadeInstanceData;
+
+        CascadeParams[] _cascadeParamsSrc = new CascadeParams[LodDataMgr.MAX_LOD_COUNT + 1];
+        CascadeParams[] _cascadeParamsTgt = new CascadeParams[LodDataMgr.MAX_LOD_COUNT + 1];
+
+        PerCascadeInstanceData[] _perCascadeInstanceData = new PerCascadeInstanceData[LodDataMgr.MAX_LOD_COUNT];
 
         // Drive state from OnEnable and OnDisable? OnEnable on RegisterLodDataInput seems to get called on script reload
         void OnEnable()
@@ -318,6 +349,11 @@ namespace Crest
 
             Instance = this;
             Scale = Mathf.Clamp(Scale, _minScale, _maxScale);
+
+            _bufPerCascadeInstanceData = new ComputeBuffer(_perCascadeInstanceData.Length, Marshal.SizeOf<PerCascadeInstanceData>());
+
+            _bufCascadeDataTgt = new ComputeBuffer(_cascadeParamsTgt.Length, Marshal.SizeOf<CascadeParams>());
+            _bufCascadeDataSrc = new ComputeBuffer(_cascadeParamsSrc.Length, Marshal.SizeOf<CascadeParams>());
 
             _lodTransform = new LodTransform();
             _lodTransform.InitLODData(_lodCount);
@@ -605,6 +641,8 @@ namespace Crest
         {
             // Init here from 2019.3 onwards
             Instance = null;
+
+            sp_ForceUnderwater = Shader.PropertyToID("_ForceUnderwater");
         }
 
         void LateUpdate()
@@ -683,6 +721,61 @@ namespace Crest
                 }
             }
 #endif
+
+            WritePerFrameMaterialParams();
+        }
+
+        void WritePerFrameMaterialParams()
+        {
+            // TODO
+            var matProps = new PropertyWrapperMaterial(OceanMaterial);
+
+            // Hack - due to SV_IsFrontFace occasionally coming through as true for back faces,
+            // add a param here that forces ocean to be in underwater state. I think the root
+            // cause here might be imprecision or numerical issues at ocean tile boundaries, although
+            // i'm not sure why cracks are not visible in this case.
+            OceanMaterial.SetFloat(sp_ForceUnderwater, ViewerHeightAboveWater < -2f ? 1f : 0f);
+
+            _lodTransform.BindTransforms(matProps);
+
+            _lodTransform.WriteCascadeParams(_cascadeParamsTgt, _cascadeParamsSrc);
+            _bufCascadeDataTgt.SetData(_cascadeParamsTgt);
+            _bufCascadeDataSrc.SetData(_cascadeParamsSrc);
+
+            for (int i = 0; i < CurrentLodCount; i++)
+            {
+                // blend LOD 0 shape in/out to avoid pop, if the ocean might scale up later (it is smaller than its maximum scale)
+                var needToBlendOutShape = i == 0 && ScaleCouldIncrease;
+                _perCascadeInstanceData[i]._meshScaleLerp = needToBlendOutShape ? ViewerAltitudeLevelAlpha : 0f;
+
+                // blend furthest normals scale in/out to avoid pop, if scale could reduce
+                var needToBlendOutNormals = i == CurrentLodCount - 1 && ScaleCouldDecrease;
+                _perCascadeInstanceData[i]._farNormalsWeight = needToBlendOutNormals ? ViewerAltitudeLevelAlpha : 1f;
+
+                // geometry data
+                // compute grid size of geometry. take the long way to get there - make sure we land exactly on a power of two
+                // and not inherit any of the lossy-ness from lossyScale.
+                var scale_pow_2 = CalcLodScale(i);
+                _perCascadeInstanceData[i]._geoGridWidth = scale_pow_2 / (0.25f * _lodDataResolution / _geometryDownSampleFactor);
+
+                var mul = 1.875f; // fudge 1
+                var pow = 1.4f; // fudge 2
+                var texelWidth = _perCascadeInstanceData[i]._geoGridWidth / _geometryDownSampleFactor;
+                _perCascadeInstanceData[i]._normalScrollSpeeds[0] = Mathf.Pow(Mathf.Log(1f + 2f * texelWidth) * mul, pow);
+                _perCascadeInstanceData[i]._normalScrollSpeeds[1] = Mathf.Pow(Mathf.Log(1f + 4f * texelWidth) * mul, pow);
+            }
+
+            _bufPerCascadeInstanceData.SetData(_perCascadeInstanceData);
+
+            //Shader.SetGlobalBuffer("_CascadeDataTgt", _bufCascadeDataTgt);
+            //Shader.SetGlobalBuffer("_CascadeDataSrc", _bufCascadeDataSrc);
+            //Shader.SetGlobalBuffer("_PerCascadeInstanceData", _bufPerCascadeInstanceData);
+            OceanMaterial.SetBuffer("_CascadeDataTgt", _bufCascadeDataTgt);
+            OceanMaterial.SetBuffer("_CascadeDataSrc", _bufCascadeDataSrc);
+            OceanMaterial.SetBuffer("_PerCascadeInstanceData", _bufPerCascadeInstanceData);
+
+            // Apply foam - needs to be done each frame due to ping pong rendering - targets change
+            if (_lodDataFoam != null) _lodDataFoam.BindResultData(matProps); else LodDataMgrFoam.BindNull(matProps);
         }
 
         void LateUpdatePosition()
@@ -879,6 +972,10 @@ namespace Crest
             }
 
             _oceanChunkRenderers.Clear();
+
+            _bufPerCascadeInstanceData.Dispose();
+            _bufCascadeDataTgt.Dispose();
+            _bufCascadeDataSrc.Dispose();
         }
 
 #if UNITY_EDITOR

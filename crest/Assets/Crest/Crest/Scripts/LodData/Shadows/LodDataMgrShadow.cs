@@ -236,6 +236,8 @@ namespace Crest
                 BindSourceData(_renderProperties, false);
                 _renderProperties.SetTexture(sp_LD_TexArray_Target, _targets);
 
+                _renderProperties.SetBuffer(Shader.PropertyToID("_CascadeDataSrc"), OceanRenderer.Instance._bufCascadeDataSrc);
+
                 BufCopyShadowMap.DispatchCompute(_updateShadowShader, krnl_UpdateShadow,
                     OceanRenderer.Instance.LodDataResolution / THREAD_GROUP_SIZE_X,
                     OceanRenderer.Instance.LodDataResolution / THREAD_GROUP_SIZE_Y,

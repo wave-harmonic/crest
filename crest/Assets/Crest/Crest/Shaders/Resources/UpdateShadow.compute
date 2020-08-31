@@ -131,7 +131,7 @@ void UpdateShadow(uint3 id : SV_DispatchThreadID)
 	const half r_max = 0.5 - _LD_Params_Source[_LD_SliceIndex_Source].w;
 
 	// Shadow from last frame - manually implement black border
-	const float3 uv_source = WorldToUV(shadowCoords._WorldPosViewZ.xz, _LD_Pos_Scale_Source[_LD_SliceIndex_Source], _LD_Params_Source[_LD_SliceIndex_Source], _LD_SliceIndex_Source);
+	const float3 uv_source = WorldToUV(shadowCoords._WorldPosViewZ.xz, _CascadeDataSrc[_LD_SliceIndex_Source], _LD_SliceIndex_Source);
 	const half2 r = abs(uv_source.xy - 0.5);
 	if (max(r.x, r.y) <= r_max)
 	{
@@ -139,7 +139,7 @@ void UpdateShadow(uint3 id : SV_DispatchThreadID)
 	}
 	else if (_LD_SliceIndex_Source + 1.0 < depth)
 	{
-		const float3 uv_source_nextlod = WorldToUV(shadowCoords._WorldPosViewZ.xz, _LD_Pos_Scale_Source[_LD_SliceIndex_Source + 1], _LD_Params_Source[_LD_SliceIndex_Source + 1], _LD_SliceIndex_Source + 1);
+		const float3 uv_source_nextlod = WorldToUV(shadowCoords._WorldPosViewZ.xz, _CascadeDataSrc[_LD_SliceIndex_Source + 1], _LD_SliceIndex_Source + 1);
 		const half2 r2 = abs(uv_source_nextlod.xy - 0.5);
 		if (max(r2.x, r2.y) < r_max)
 		{

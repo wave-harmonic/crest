@@ -5,6 +5,7 @@
 // Solves 2D wave equation
 
 #pragma kernel UpdateDynWaves
+#pragma enable_d3d11_debug_symbols
 
 #define MIN_DT 0.00001
 
@@ -43,8 +44,8 @@ void UpdateDynWaves(uint3 id : SV_DispatchThreadID)
 		_LD_TexArray_DynamicWaves_Source.GetDimensions(width, height, depth);
 	}
 	const float2 input_uv = IDtoUV(id.xy, width, height);
-	const float2 worldPosXZ = UVToWorld(input_uv, sliceIndex, _LD_Pos_Scale[sliceIndex], _LD_Params[sliceIndex]);
-	const float gridSize = _LD_Params[sliceIndex].x;
+	const float2 worldPosXZ = UVToWorld(input_uv, sliceIndex, _CascadeDataTgt[sliceIndex]);
+	const float gridSize = _CascadeDataTgt[sliceIndex]._texelWidth;
 
 	// average wavelength for this scale
 	const float wavelength = 1.0 * _TexelsPerWave * gridSize;
@@ -57,7 +58,7 @@ void UpdateDynWaves(uint3 id : SV_DispatchThreadID)
 	const float3 uv_slice = float3(input_uv, sliceIndex);
 
 	const half2 velocity = SampleLod(_LD_TexArray_Flow, uv_slice).xy;
-	const float3 uv_source = WorldToUV(worldPosXZ - (dt * velocity), _LD_Pos_Scale_Source[sliceIndexSource], _LD_Params_Source[sliceIndexSource], sliceIndexSource);
+	const float3 uv_source = WorldToUV(worldPosXZ - (dt * velocity), _CascadeDataSrc[sliceIndexSource], sliceIndexSource);
 
 	// weighting for source position - weight 0 for off texture accesses to stop streaky artifacts
 	float2 distToEdge = min(uv_source.xy, 1.0 - uv_source.xy);

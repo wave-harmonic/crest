@@ -172,5 +172,62 @@ namespace Crest
             s_paramsOcean = Shader.PropertyToID("_LD_Params");
             s_paramsOceanSource = Shader.PropertyToID("_LD_Params_Source");
         }
+
+        // Avoid heap allocations inside BindTransforms
+        protected Vector4[] _BindData_paramIdPosScales = new Vector4[LodDataMgr.MAX_LOD_COUNT + 1];
+        // Used in child
+        protected Vector4[] _BindData_paramIdOceans = new Vector4[LodDataMgr.MAX_LOD_COUNT + 1];
+
+        public void BindTransforms(IPropertyWrapper properties, bool sourceData = false)
+        {
+            var renderData = sourceData ? _renderData : _renderDataSource;
+
+            for (int lodIdx = 0; lodIdx < OceanRenderer.Instance.CurrentLodCount; lodIdx++)
+            {
+                // NOTE: gets zeroed by unity, see https://www.alanzucconi.com/2016/10/24/arrays-shaders-unity-5-4/
+                _BindData_paramIdPosScales[lodIdx] = new Vector4(
+                    renderData[lodIdx]._posSnapped.x, renderData[lodIdx]._posSnapped.z,
+                    OceanRenderer.Instance.CalcLodScale(lodIdx), 0f);
+                _BindData_paramIdOceans[lodIdx] = new Vector4(renderData[lodIdx]._texelWidth, renderData[lodIdx]._textureRes, 1f, 1f / renderData[lodIdx]._textureRes);
+            }
+
+            // Duplicate the last element as the shader accesses element {slice index + 1] in a few situations. This way going
+            // off the end of this parameter is the same as going off the end of the texture array with our clamped sampler.
+            _BindData_paramIdPosScales[OceanRenderer.Instance.CurrentLodCount] = _BindData_paramIdPosScales[OceanRenderer.Instance.CurrentLodCount - 1];
+            _BindData_paramIdOceans[OceanRenderer.Instance.CurrentLodCount] = _BindData_paramIdOceans[OceanRenderer.Instance.CurrentLodCount - 1];
+            // Never use this last lod - it exists to give 'something' but should not be used
+            _BindData_paramIdOceans[OceanRenderer.Instance.CurrentLodCount].z = 0f;
+
+            properties.SetVectorArray(ParamIdPosScale(!sourceData), _BindData_paramIdPosScales);
+            properties.SetVectorArray(ParamIdOcean(!sourceData), _BindData_paramIdOceans);
+        }
+
+        public void WriteCascadeParams(OceanRenderer.CascadeParams[] cascadeParamsTgt, OceanRenderer.CascadeParams[] cascadeParamsSrc)
+        {
+            for (int lodIdx = 0; lodIdx < OceanRenderer.Instance.CurrentLodCount; lodIdx++)
+            {
+                cascadeParamsTgt[lodIdx]._posSnapped[0] = _renderData[lodIdx]._posSnapped[0];
+                cascadeParamsTgt[lodIdx]._posSnapped[1] = _renderData[lodIdx]._posSnapped[2];
+                cascadeParamsSrc[lodIdx]._posSnapped[0] = _renderDataSource[lodIdx]._posSnapped[0];
+                cascadeParamsSrc[lodIdx]._posSnapped[1] = _renderDataSource[lodIdx]._posSnapped[2];
+
+                cascadeParamsTgt[lodIdx]._scale = cascadeParamsSrc[lodIdx]._scale = OceanRenderer.Instance.CalcLodScale(lodIdx);
+
+                cascadeParamsTgt[lodIdx]._textureRes = _renderData[lodIdx]._textureRes;
+                cascadeParamsSrc[lodIdx]._textureRes = _renderDataSource[lodIdx]._textureRes;
+
+                cascadeParamsTgt[lodIdx]._textureRes = 1f / cascadeParamsTgt[lodIdx]._textureRes;
+                cascadeParamsSrc[lodIdx]._textureRes = 1f / cascadeParamsSrc[lodIdx]._textureRes;
+
+                cascadeParamsTgt[lodIdx]._texelWidth = _renderData[lodIdx]._texelWidth;
+                cascadeParamsSrc[lodIdx]._texelWidth = _renderDataSource[lodIdx]._texelWidth;
+
+                cascadeParamsTgt[lodIdx]._weight = cascadeParamsSrc[lodIdx]._weight = 1f;
+            }
+
+            cascadeParamsTgt[OceanRenderer.Instance.CurrentLodCount] = cascadeParamsTgt[OceanRenderer.Instance.CurrentLodCount - 1];
+            cascadeParamsSrc[OceanRenderer.Instance.CurrentLodCount] = cascadeParamsSrc[OceanRenderer.Instance.CurrentLodCount - 1];
+            cascadeParamsSrc[OceanRenderer.Instance.CurrentLodCount]._weight = 0f;
+        }
     }
 }

@@ -22,6 +22,8 @@ namespace Crest
             OceanRenderer.Instance._lodDataAnimWaves.BindResultData(wrapper);
             ShaderProcessQueries.SetTexture(_kernelHandle, sp_LD_TexArray_AnimatedWaves, OceanRenderer.Instance._lodDataAnimWaves.DataTexture);
             ShaderProcessQueries.SetBuffer(_kernelHandle, sp_ResultDisplacements, resultsBuffer);
+
+            ShaderProcessQueries.SetBuffer(_kernelHandle, Shader.PropertyToID("_CascadeDataTgt"), OceanRenderer.Instance._bufCascadeDataTgt);
         }
 
         public int Query(int i_ownerHash, float i_minSpatialLength, Vector3[] i_queryPoints, float[] o_resultHeights, Vector3[] o_resultNorms, Vector3[] o_resultVels)

@@ -62,7 +62,7 @@ half3 ScatterColour(
 		// 2. for the underwater skirt geometry, we don't have the lod data sampled from the verts with lod transitions etc,
 		//    so just approximate by sampling at the camera position.
 		// this used to sample LOD1 but that doesnt work in last LOD, the data will be missing.
-		const float3 uv_smallerLod = WorldToUV(i_cameraPos.xz, _LD_Pos_Scale[_LD_SliceIndex], _LD_Params[_LD_SliceIndex], _LD_SliceIndex);
+		const float3 uv_smallerLod = WorldToUV(i_cameraPos.xz, _CascadeDataTgt[_LD_SliceIndex], _LD_SliceIndex);
 		depth = CREST_OCEAN_DEPTH_BASELINE;
 		SampleSeaDepth(_LD_TexArray_SeaFloorDepth, uv_smallerLod, 1.0, depth);
 
@@ -72,15 +72,15 @@ half3 ScatterColour(
 		// Pick lower res data for shadowing, helps to smooth out artifacts slightly
 		const float minSliceIndex = 4.0;
 		uint slice0, slice1; float lodAlpha;
-		PosToSliceIndices(samplePoint, minSliceIndex, _InstanceData.x, _LD_Pos_Scale[0].z, slice0, slice1, lodAlpha);
+		PosToSliceIndices(samplePoint, minSliceIndex, 1.0 /*_PerCascadeInstanceData[_LD_SliceIndex]._meshScaleLerp TODO*/, _LD_Pos_Scale[0].z, slice0, slice1, lodAlpha);
 
 		half2 shadowSoftHard = 0.0;
 		{
-			const float3 uv = WorldToUV(samplePoint, _LD_Pos_Scale[slice0], _LD_Params[slice0], slice0);
+			const float3 uv = WorldToUV(samplePoint, _CascadeDataTgt[slice0], slice0);
 			SampleShadow(_LD_TexArray_Shadow, uv, 1.0 - lodAlpha, shadowSoftHard);
 		}
 		{
-			const float3 uv = WorldToUV(samplePoint, _LD_Pos_Scale[slice1], _LD_Params[slice1], slice1);
+			const float3 uv = WorldToUV(samplePoint, _CascadeDataTgt[slice1], slice1);
 			SampleShadow(_LD_TexArray_Shadow, uv, lodAlpha, shadowSoftHard);
 		}
 
@@ -139,7 +139,7 @@ void ApplyCaustics(in const half3 i_view, in const half3 i_lightDir, in const fl
 	float3 scenePos = _WorldSpaceCameraPos - i_view * i_sceneZ / dot(camForward, -i_view);
 
 	const uint si = _LD_SliceIndex + 1;
-	const float3 scenePosUV = WorldToUV(scenePos.xz, _LD_Pos_Scale[si], _LD_Params[si], si);
+	const float3 scenePosUV = WorldToUV(scenePos.xz, _CascadeDataTgt[si], si);
 
 	half3 disp = 0.;
 	half sss = 0.;
@@ -173,14 +173,14 @@ void ApplyCaustics(in const half3 i_view, in const half3 i_lightDir, in const fl
 		// LOD_1 data can be missing when underwater
 		if (i_underwater)
 		{
-			const float3 uv_smallerLod = WorldToUV(shadowSurfacePosXZ, _LD_Pos_Scale[_LD_SliceIndex], _LD_Params[_LD_SliceIndex], _LD_SliceIndex);
+			const float3 uv_smallerLod = WorldToUV(shadowSurfacePosXZ, _CascadeDataTgt[_LD_SliceIndex], _LD_SliceIndex);
 			SampleShadow(_LD_TexArray_Shadow, uv_smallerLod, 1.0, causticShadow);
 		}
 		else
 		{
 			// only sample the bigger lod. if pops are noticeable this could lerp the 2 lods smoothly, but i didnt notice issues.
 			const uint si = _LD_SliceIndex + 1;
-			const float3 uv_biggerLod = WorldToUV(shadowSurfacePosXZ, _LD_Pos_Scale[si], _LD_Params[si], si);
+			const float3 uv_biggerLod = WorldToUV(shadowSurfacePosXZ, _CascadeDataTgt[si], si);
 			SampleShadow(_LD_TexArray_Shadow, uv_biggerLod, 1.0, causticShadow);
 		}
 		causticsStrength *= 1.0 - causticShadow.y;

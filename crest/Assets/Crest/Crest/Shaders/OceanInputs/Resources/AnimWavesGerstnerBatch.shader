@@ -18,6 +18,7 @@ Shader "Hidden/Crest/Inputs/Animated Waves/Gerstner Batch Global"
 			#pragma vertex Vert
 			#pragma fragment Frag
 			#pragma multi_compile_local __ CREST_DIRECT_TOWARDS_POINT_INTERNAL
+			#pragma enable_d3d11_debug_symbols
 
 			#include "UnityCG.cginc"
 
@@ -50,7 +51,7 @@ Shader "Hidden/Crest/Inputs/Animated Waves/Gerstner Batch Global"
 				o.positionCS.y = -o.positionCS.y;
 #endif
 
-				const float2 worldXZ = UVToWorld(input.uv, _LD_SliceIndex, _LD_Pos_Scale[_LD_SliceIndex], _LD_Params[_LD_SliceIndex]);
+				const float2 worldXZ = UVToWorld(input.uv, _LD_SliceIndex, _CascadeDataTgt[_LD_SliceIndex]);
 				o.worldPosXZ = worldXZ;
 				o.uv_slice = float3(input.uv, _LD_SliceIndex);
 

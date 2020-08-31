@@ -31,7 +31,8 @@ float ComputeLodAlpha(float3 i_worldPos, float i_meshScaleAlpha)
 void SnapAndTransitionVertLayout(float i_meshScaleAlpha, inout float3 io_worldPos, out float o_lodAlpha)
 {
 	// Grid includes small "epsilon" to solve numerical issues.
-	const float GRID_SIZE_2 = 2.00000012 *  _GeomData.y, GRID_SIZE_4 = 4.0 * _GeomData.y;
+	float gridSize = _PerCascadeInstanceData[_LD_SliceIndex]._geoGridWidth;
+	const float GRID_SIZE_2 = 2.00000012 * gridSize, GRID_SIZE_4 = 4.0 * gridSize;
 
 	// snap the verts to the grid
 	// The snap size should be twice the original size to keep the shape of the eight triangles (otherwise the edge layout changes).
@@ -55,20 +56,20 @@ void ApplyOceanClipSurface(in const float3 io_positionWS, in const float i_lodAl
 	// Sample shape textures - always lerp between 2 scales, so sample two textures
 	// Sample weights. params.z allows shape to be faded out (used on last lod to support pop-less scale transitions)
 	const float2 worldXZ = io_positionWS.xz;
-	float wt_smallerLod = (1. - i_lodAlpha) * _LD_Params[_LD_SliceIndex].z;
-	float wt_biggerLod = (1. - wt_smallerLod) * _LD_Params[_LD_SliceIndex + 1].z;
+	float wt_smallerLod = (1. - i_lodAlpha) * _CascadeDataTgt[_LD_SliceIndex]._weight;
+	float wt_biggerLod = (1. - wt_smallerLod) * _CascadeDataTgt[_LD_SliceIndex + 1]._weight;
 
 	// Sample clip surface data
 	half clipValue = 0.0;
 	if (wt_smallerLod > 0.001)
 	{
-		const float3 uv = WorldToUV(worldXZ, _LD_Pos_Scale[_LD_SliceIndex], _LD_Params[_LD_SliceIndex], _LD_SliceIndex);
+		const float3 uv = WorldToUV(worldXZ, _CascadeDataTgt[_LD_SliceIndex], _LD_SliceIndex);
 		SampleClip(_LD_TexArray_ClipSurface, uv, wt_smallerLod, clipValue);
 	}
 	if (wt_biggerLod > 0.001)
 	{
 		const uint si = _LD_SliceIndex + 1;
-		const float3 uv = WorldToUV(worldXZ, _LD_Pos_Scale[si], _LD_Params[si], si);
+		const float3 uv = WorldToUV(worldXZ, _CascadeDataTgt[si], si);
 		SampleClip(_LD_TexArray_ClipSurface, uv, wt_biggerLod, clipValue);
 	}
 

@@ -216,8 +216,8 @@ namespace Crest
                 cascadeParamsTgt[lodIdx]._textureRes = _renderData[lodIdx]._textureRes;
                 cascadeParamsSrc[lodIdx]._textureRes = _renderDataSource[lodIdx]._textureRes;
 
-                cascadeParamsTgt[lodIdx]._textureRes = 1f / cascadeParamsTgt[lodIdx]._textureRes;
-                cascadeParamsSrc[lodIdx]._textureRes = 1f / cascadeParamsSrc[lodIdx]._textureRes;
+                cascadeParamsTgt[lodIdx]._oneOverTextureRes = 1f / cascadeParamsTgt[lodIdx]._textureRes;
+                cascadeParamsSrc[lodIdx]._oneOverTextureRes = 1f / cascadeParamsSrc[lodIdx]._textureRes;
 
                 cascadeParamsTgt[lodIdx]._texelWidth = _renderData[lodIdx]._texelWidth;
                 cascadeParamsSrc[lodIdx]._texelWidth = _renderDataSource[lodIdx]._texelWidth;

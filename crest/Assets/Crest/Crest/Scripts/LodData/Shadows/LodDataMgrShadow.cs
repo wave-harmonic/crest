@@ -234,7 +234,9 @@ namespace Crest
                 srcDataIdx = Mathf.Clamp(srcDataIdx, 0, lt.LodCount - 1);
                 _renderProperties.SetInt(sp_LD_SliceIndex, lodIdx);
                 _renderProperties.SetInt(sp_LD_SliceIndex_Source, srcDataIdx);
-                BindSourceData(_renderProperties, false);
+
+                _renderProperties.SetTexture(GetParamIdSampler(true), (Texture)_sources);
+
                 _renderProperties.SetTexture(sp_LD_TexArray_Target, _targets);
 
                 _renderProperties.SetBuffer(sp_cascadeDataSrc, OceanRenderer.Instance._bufCascadeDataSrc);
@@ -273,12 +275,6 @@ namespace Crest
             {
                 renderData.Validate(BuildCommandBufferBase._lastUpdateFrame - OceanRenderer.FrameCount, SimName);
             }
-        }
-
-        public void BindSourceData(IPropertyWrapper simMaterial, bool paramsOnly)
-        {
-            var rd = OceanRenderer.Instance._lodTransform._renderDataSource;
-            BindData(simMaterial, paramsOnly ? Texture2D.blackTexture : _sources as Texture, true, ref rd, true);
         }
 
         internal override void OnEnable()

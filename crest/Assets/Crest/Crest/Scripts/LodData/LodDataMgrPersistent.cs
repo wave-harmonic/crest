@@ -76,15 +76,6 @@ namespace Crest
             }
         }
 
-        public void BindSourceData(IPropertyWrapper properties, bool paramsOnly, bool usePrevTransform, bool sourceLod = false)
-        {
-            var renderData = usePrevTransform ?
-                OceanRenderer.Instance._lodTransform._renderDataSource
-                : OceanRenderer.Instance._lodTransform._renderData;
-
-            BindData(properties, paramsOnly ? TextureArrayHelpers.BlackTextureArray : (Texture)_sources, true, ref renderData, sourceLod);
-        }
-
         public abstract void GetSimSubstepData(float frameDt, out int numSubsteps, out float substepDt);
 
         public override void BuildCommandBuffer(OceanRenderer ocean, CommandBuffer buf)
@@ -115,7 +106,7 @@ namespace Crest
 
                 // bind data to slot 0 - previous frame data
                 ValidateSourceData(usePreviousFrameTransform);
-                BindSourceData(_renderSimProperties, false, usePreviousFrameTransform, true);
+                _renderSimProperties.SetTexture(GetParamIdSampler(true), _sources);
 
                 SetAdditionalSimParams(_renderSimProperties);
 
@@ -126,12 +117,10 @@ namespace Crest
                     DataTexture
                 );
 
+                // Bind current data
                 // Global shader vars don't carry over to compute
-                // TODO this is not handled at all - probably need to have specific data for simulation src/target
                 _renderSimProperties.SetBuffer(sp_cascadeDataSrc, usePreviousFrameTransform ? OceanRenderer.Instance._bufCascadeDataSrc : OceanRenderer.Instance._bufCascadeDataTgt);
                 _renderSimProperties.SetBuffer(OceanRenderer.sp_cascadeData, OceanRenderer.Instance._bufCascadeDataTgt);
-                // Bind current data
-                // BindData(_renderSimProperties, null, false, ref OceanRenderer.Instance._lodTransform._renderData, false);
 
                 buf.DispatchCompute(_shader, krnl_ShaderSim,
                     OceanRenderer.Instance.LodDataResolution / THREAD_GROUP_SIZE_X,

@@ -115,20 +115,6 @@ namespace Crest
             _scaleDifferencePow2 = Mathf.RoundToInt(ratio_l2);
         }
 
-        public void BindResultData(IPropertyWrapper properties, bool blendOut = true)
-        {
-            BindData(properties, _targets, blendOut, ref OceanRenderer.Instance._lodTransform._renderData);
-        }
-
-        protected virtual void BindData(IPropertyWrapper properties, Texture applyData, bool blendOut, ref LodTransform.RenderData[] renderData, bool sourceLod = false)
-        {
-            if (!applyData) Debug.LogWarning("Unnecessary call to BindData");
-
-            if (applyData)
-            {
-                properties.SetTexture(GetParamIdSampler(sourceLod), applyData);
-            }
-        }
 
         public virtual void BuildCommandBuffer(OceanRenderer ocean, CommandBuffer buf)
         {

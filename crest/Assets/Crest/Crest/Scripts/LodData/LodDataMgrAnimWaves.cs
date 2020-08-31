@@ -262,33 +262,22 @@ namespace Crest
                 // Bind this LOD data (displacements). Option to disable the combine pass - very useful debugging feature.
                 if (_shapeCombinePass)
                 {
-                    BindResultData(_combineMaterial[lodIdx]);
+                    Bind(_combineMaterial[lodIdx]);
                 }
                 else
                 {
-                    BindNull(_combineMaterial[lodIdx]);
+                    _combineMaterial[lodIdx].SetTexture(GetParamIdSampler(), TextureArrayHelpers.BlackTextureArray);
                 }
 
                 // Dynamic waves
+                LodDataMgrDynWaves.Bind(_combineMaterial[lodIdx]);
                 if (OceanRenderer.Instance._lodDataDynWaves != null)
                 {
                     OceanRenderer.Instance._lodDataDynWaves.BindCopySettings(_combineMaterial[lodIdx]);
-                    OceanRenderer.Instance._lodDataDynWaves.BindResultData(_combineMaterial[lodIdx]);
-                }
-                else
-                {
-                    LodDataMgrDynWaves.BindNull(_combineMaterial[lodIdx]);
                 }
 
                 // Flow
-                if (OceanRenderer.Instance._lodDataFlow != null)
-                {
-                    OceanRenderer.Instance._lodDataFlow.BindResultData(_combineMaterial[lodIdx]);
-                }
-                else
-                {
-                    LodDataMgrFlow.BindNull(_combineMaterial[lodIdx]);
-                }
+                LodDataMgrFlow.Bind((_combineMaterial[lodIdx]));
 
                 _combineMaterial[lodIdx].SetInt(sp_LD_SliceIndex, lodIdx);
 
@@ -351,28 +340,17 @@ namespace Crest
                 // The per-octave wave buffers
                 BindWaveBuffer(_combineProperties);
                 // Bind this LOD data (displacements)
-                BindResultData(_combineProperties);
+                Bind(_combineProperties);
 
                 // Dynamic waves
+                LodDataMgrDynWaves.Bind(_combineMaterial[lodIdx]);
                 if (OceanRenderer.Instance._lodDataDynWaves != null)
                 {
                     OceanRenderer.Instance._lodDataDynWaves.BindCopySettings(_combineProperties);
-                    OceanRenderer.Instance._lodDataDynWaves.BindResultData(_combineProperties);
-                }
-                else
-                {
-                    LodDataMgrDynWaves.BindNull(_combineProperties);
                 }
 
                 // Flow
-                if (OceanRenderer.Instance._lodDataFlow != null)
-                {
-                    OceanRenderer.Instance._lodDataFlow.BindResultData(_combineProperties);
-                }
-                else
-                {
-                    LodDataMgrFlow.BindNull(_combineProperties);
-                }
+                LodDataMgrFlow.Bind((_combineMaterial[lodIdx]));
 
                 // Set the animated waves texture where the results will be combined.
                 _combineProperties.SetTexture(
@@ -439,9 +417,17 @@ namespace Crest
         {
             return ParamIdSampler(sourceLod);
         }
-        public static void BindNull(IPropertyWrapper properties, bool sourceLod = false)
+
+        public static void Bind(IPropertyWrapper properties, bool sourceLod = false)
         {
-            properties.SetTexture(ParamIdSampler(sourceLod), TextureArrayHelpers.BlackTextureArray);
+            if (OceanRenderer.Instance._lodDataAnimWaves != null)
+            {
+                properties.SetTexture(OceanRenderer.Instance._lodDataAnimWaves.GetParamIdSampler(sourceLod), OceanRenderer.Instance._lodDataAnimWaves.DataTexture);
+            }
+            else
+            {
+                properties.SetTexture(ParamIdSampler(sourceLod), TextureArrayHelpers.BlackTextureArray);
+            }
         }
 
 #if UNITY_2019_3_OR_NEWER

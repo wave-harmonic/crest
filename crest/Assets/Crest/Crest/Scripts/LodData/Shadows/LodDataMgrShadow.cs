@@ -310,9 +310,17 @@ namespace Crest
         {
             return ParamIdSampler(sourceLod);
         }
-        public static void BindNull(IPropertyWrapper properties, bool sourceLod = false)
+
+        public static void Bind(IPropertyWrapper properties, bool sourceLod = false)
         {
-            properties.SetTexture(ParamIdSampler(sourceLod), TextureArrayHelpers.BlackTextureArray);
+            if (OceanRenderer.Instance._lodDataShadow != null)
+            {
+                properties.SetTexture(OceanRenderer.Instance._lodDataShadow.GetParamIdSampler(sourceLod), OceanRenderer.Instance._lodDataShadow.DataTexture);
+            }
+            else
+            {
+                properties.SetTexture(ParamIdSampler(sourceLod), TextureArrayHelpers.BlackTextureArray);
+            }
         }
 
 #if UNITY_2019_3_OR_NEWER

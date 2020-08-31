@@ -19,7 +19,7 @@ namespace Crest
 
         protected override void BindInputsAndOutputs(PropertyWrapperComputeStandalone wrapper, ComputeBuffer resultsBuffer)
         {
-            OceanRenderer.Instance._lodDataAnimWaves.BindResultData(wrapper);
+            LodDataMgrAnimWaves.Bind(wrapper);
             ShaderProcessQueries.SetTexture(_kernelHandle, sp_LD_TexArray_AnimatedWaves, OceanRenderer.Instance._lodDataAnimWaves.DataTexture);
             ShaderProcessQueries.SetBuffer(_kernelHandle, sp_ResultDisplacements, resultsBuffer);
 

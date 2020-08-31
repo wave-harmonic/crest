@@ -394,6 +394,8 @@ namespace Crest
             properties.SetTexture(sp_LD_TexArray_WaveBuffer, _waveBuffers);
         }
 
+        // TODO theres probably a pop because this used to have its own BindData() function which probably handled the cross fade add the end of the cascade chain
+
         /// <summary>
         /// Returns index of lod that completely covers the sample area, and contains wavelengths that repeat no more than twice across the smaller
         /// spatial length. If no such lod available, returns -1. This means high frequency wavelengths are filtered out, and the lod index can

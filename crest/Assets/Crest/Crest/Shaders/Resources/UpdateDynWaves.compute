@@ -68,7 +68,7 @@ void UpdateDynWaves(uint3 id : SV_DispatchThreadID)
 	weightEdge = lerp(0.95, 1.0, weightEdge);
 
 	// compute axes of laplacian kernel - rotated every frame
-	const float e = _LD_Params_Source[sliceIndexSource].w; // assumes square RT
+	const float e = _CascadeDataSrc[sliceIndexSource]._oneOverTextureRes; // assumes square RT
 	//float3 X = float3(1.0, 0.0, 0.0);
 	const float3 X = float3(_LaplacianAxisX, 0.0);
 	const float3 Y = float3(-X.y, X.x, 0.0);

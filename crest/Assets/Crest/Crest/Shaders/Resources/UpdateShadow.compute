@@ -128,7 +128,7 @@ void UpdateShadow(uint3 id : SV_DispatchThreadID)
 	}
 
 	half2 shadow = 0.0;
-	const half r_max = 0.5 - _LD_Params_Source[_LD_SliceIndex_Source].w;
+	const half r_max = 0.5 - _CascadeDataSrc[_LD_SliceIndex_Source]._oneOverTextureRes;
 
 	// Shadow from last frame - manually implement black border
 	const float3 uv_source = WorldToUV(shadowCoords._WorldPosViewZ.xz, _CascadeDataSrc[_LD_SliceIndex_Source], _LD_SliceIndex_Source);

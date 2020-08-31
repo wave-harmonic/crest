@@ -44,7 +44,7 @@ void UpdateFoam(uint3 id : SV_DispatchThreadID)
 	const float2 worldPosXZ_flowed = worldPosXZ - _SimDeltaTime * velocity;
 
 	half foam = 0.0;
-	const half r_max = 0.5 - _LD_Params_Source[sliceIndexSource].w;
+	const half r_max = 0.5 - _CascadeDataSrc[sliceIndexSource]._oneOverTextureRes;
 
 	// Try to sample the source slice, if it the sample position lies within its footprint
 	const float3 uv_slice_source = WorldToUV(worldPosXZ_flowed, _CascadeDataSrc[sliceIndexSource], sliceIndexSource);

@@ -50,21 +50,7 @@ namespace Crest
                 }
 
                 _rend.GetPropertyBlock(_mpb.materialPropertyBlock);
-
-                var lodCount = OceanRenderer.Instance.CurrentLodCount;
-                var lodDataAnimWaves = OceanRenderer.Instance._lodDataAnimWaves;
                 _mpb.SetInt(LodDataMgr.sp_LD_SliceIndex, lodIdx);
-                lodDataAnimWaves.BindResultData(_mpb);
-                var lodDataClipSurface = OceanRenderer.Instance._lodDataClipSurface;
-                if (lodDataClipSurface != null)
-                {
-                    lodDataClipSurface.BindResultData(_mpb);
-                }
-                else
-                {
-                    LodDataMgrClipSurface.BindNull(_mpb);
-                }
-
                 _rend.SetPropertyBlock(_mpb.materialPropertyBlock);
             }
 

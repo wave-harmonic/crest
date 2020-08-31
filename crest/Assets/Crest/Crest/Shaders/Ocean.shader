@@ -296,7 +296,8 @@ Shader "Crest/Ocean"
 
 				// Vertex snapping and lod transition
 				float lodAlpha;
-				SnapAndTransitionVertLayout(_PerCascadeInstanceData[_LD_SliceIndex]._meshScaleLerp, o.worldPos, lodAlpha);
+				const float meshScaleLerp = _PerCascadeInstanceData[_LD_SliceIndex]._meshScaleLerp;
+				SnapAndTransitionVertLayout(meshScaleLerp, o.worldPos, lodAlpha);
 				o.lodAlpha_worldXZUndisplaced_oceanDepth.x = lodAlpha;
 				o.lodAlpha_worldXZUndisplaced_oceanDepth.yz = o.worldPos.xz;
 

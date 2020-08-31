@@ -24,7 +24,7 @@ half2 SampleNormalMaps(float2 worldXZUndisplaced, float lodAlpha)
 		UnpackNormal(tex2D(_Normals, (v1*_CrestTime*spdmulL + worldXZUndisplaced) / nstretch)).xy;
 
 	// blend in next higher scale of normals to obtain continuity
-	const float farNormalsWeight = /*_PerCascadeInstanceData[_LD_SliceIndex]._farNormalsWeight*/ 0.0; // todo
+	const float farNormalsWeight = _PerCascadeInstanceData[_LD_SliceIndex]._farNormalsWeight;
 	const half nblend = lodAlpha * farNormalsWeight;
 	if (nblend > 0.001)
 	{

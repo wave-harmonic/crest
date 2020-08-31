@@ -24,7 +24,7 @@ CBUFFER_START(CrestOceanSurfaceDrivenValues)
 
 // _LD_Params: float4(world texel size, texture resolution, shape weight multiplier, 1 / texture resolution)
 //float4 _LD_Params[MAX_LOD_COUNT + 1];
-float3 _LD_Pos_Scale[MAX_LOD_COUNT + 1];
+//float3 _LD_Pos_Scale[MAX_LOD_COUNT + 1];
 uint _LD_SliceIndex;
 float4 _LD_Params_Source[MAX_LOD_COUNT + 1];
 float3 _LD_Pos_Scale_Source[MAX_LOD_COUNT + 1];

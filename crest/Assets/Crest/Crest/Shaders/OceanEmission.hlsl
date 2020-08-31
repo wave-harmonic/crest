@@ -72,7 +72,9 @@ half3 ScatterColour(
 		// Pick lower res data for shadowing, helps to smooth out artifacts slightly
 		const float minSliceIndex = 4.0;
 		uint slice0, slice1; float lodAlpha;
-		PosToSliceIndices(samplePoint, minSliceIndex, 1.0 /*_PerCascadeInstanceData[_LD_SliceIndex]._meshScaleLerp TODO*/, _LD_Pos_Scale[0].z, slice0, slice1, lodAlpha);
+		const float meshScaleLerp = _PerCascadeInstanceData[_LD_SliceIndex]._meshScaleLerp;
+		const float scale_base = _CascadeDataTgt[0]._scale;
+		PosToSliceIndices(samplePoint, minSliceIndex, meshScaleLerp, scale_base, slice0, slice1, lodAlpha);
 
 		half2 shadowSoftHard = 0.0;
 		{

@@ -11,7 +11,8 @@ float ComputeLodAlpha(float3 i_worldPos, float i_meshScaleAlpha)
 	float taxicab_norm = max(offsetFromCenter.x, offsetFromCenter.y);
 
 	// interpolation factor to next lod (lower density / higher sampling period)
-	float lodAlpha = taxicab_norm / _LD_Pos_Scale[_LD_SliceIndex].z - 1.0;
+	const float scale = _CascadeDataTgt[_LD_SliceIndex]._scale;
+	float lodAlpha = taxicab_norm / scale - 1.0;
 
 	// LOD alpha is remapped to ensure patches weld together properly. Patches can vary significantly in shape (with
 	// strips added and removed), and this variance depends on the base vertex density of the mesh, as this defines the 

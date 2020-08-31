@@ -153,6 +153,9 @@ namespace Crest
             {
                 BuildCommandBufferInternal(lodIdx);
             }
+
+            // Set the target texture as to make sure we catch the 'pong' each frame
+            Shader.SetGlobalTexture(GetParamIdSampler(), _targets);
         }
 
         protected virtual bool BuildCommandBufferInternal(int lodIdx)

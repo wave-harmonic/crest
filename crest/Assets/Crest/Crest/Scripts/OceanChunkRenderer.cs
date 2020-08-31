@@ -63,18 +63,6 @@ namespace Crest
 
             _mpb.SetInt(LodDataMgr.sp_LD_SliceIndex, _lodIndex);
 
-            var ldaws = OceanRenderer.Instance._lodDataAnimWaves;
-            var ldsds = OceanRenderer.Instance._lodDataSeaDepths;
-            var ldclip = OceanRenderer.Instance._lodDataClipSurface;
-            var ldflow = OceanRenderer.Instance._lodDataFlow;
-            var ldshadows = OceanRenderer.Instance._lodDataShadow;
-
-            if (ldaws != null) ldaws.BindResultData(_mpb);
-            if (ldflow != null) ldflow.BindResultData(_mpb); else LodDataMgrFlow.BindNull(_mpb);
-            if (ldsds != null) ldsds.BindResultData(_mpb); else LodDataMgrSeaFloorDepth.BindNull(_mpb);
-            if (ldclip != null) ldclip.BindResultData(_mpb); else LodDataMgrClipSurface.BindNull(_mpb);
-            if (ldshadows != null) ldshadows.BindResultData(_mpb); else LodDataMgrShadow.BindNull(_mpb);
-
             Rend.SetPropertyBlock(_mpb.materialPropertyBlock);
         }
 

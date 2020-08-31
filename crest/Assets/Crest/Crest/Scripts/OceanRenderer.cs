@@ -710,7 +710,7 @@ namespace Crest
             LateUpdateResetMaxDisplacementFromShape();
 
             WritePerFrameMaterialParams();
-            
+
 #if UNITY_EDITOR
             if (EditorApplication.isPlaying || !_showOceanProxyPlane)
 #endif
@@ -772,9 +772,6 @@ namespace Crest
             }
 
             _bufPerCascadeInstanceData.SetData(_perCascadeInstanceData);
-
-            // Apply foam - needs to be done each frame due to ping pong rendering - targets change
-            if (_lodDataFoam != null) _lodDataFoam.BindResultData(matProps); else LodDataMgrFoam.BindNull(matProps);
         }
 
         void LateUpdatePosition()

@@ -85,6 +85,8 @@ namespace Crest
             var resolution = OceanRenderer.Instance.LodDataResolution;
             var desc = new RenderTextureDescriptor(resolution, resolution, TextureFormat, 0);
             _targets = CreateLodDataTextures(desc, SimName, NeedToReadWriteTextureData);
+
+            Shader.SetGlobalTexture(GetParamIdSampler(), _targets);
         }
 
         public virtual void UpdateLodData()
@@ -208,6 +210,7 @@ namespace Crest
         }
         internal virtual void OnDisable()
         {
+            Shader.SetGlobalTexture(GetParamIdSampler(), null);
         }
 
 #if UNITY_2019_3_OR_NEWER

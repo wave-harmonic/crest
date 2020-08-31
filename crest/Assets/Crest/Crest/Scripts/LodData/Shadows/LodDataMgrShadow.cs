@@ -311,15 +311,15 @@ namespace Crest
             return ParamIdSampler(sourceLod);
         }
 
-        public static void Bind(IPropertyWrapper properties, bool sourceLod = false)
+        public static void Bind(IPropertyWrapper properties)
         {
             if (OceanRenderer.Instance._lodDataShadow != null)
             {
-                properties.SetTexture(OceanRenderer.Instance._lodDataShadow.GetParamIdSampler(sourceLod), OceanRenderer.Instance._lodDataShadow.DataTexture);
+                properties.SetTexture(OceanRenderer.Instance._lodDataShadow.GetParamIdSampler(), OceanRenderer.Instance._lodDataShadow.DataTexture);
             }
             else
             {
-                properties.SetTexture(ParamIdSampler(sourceLod), TextureArrayHelpers.BlackTextureArray);
+                properties.SetTexture(ParamIdSampler(), TextureArrayHelpers.BlackTextureArray);
             }
         }
 

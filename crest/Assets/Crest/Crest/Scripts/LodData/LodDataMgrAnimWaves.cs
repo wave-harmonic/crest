@@ -257,7 +257,7 @@ namespace Crest
             for (int lodIdx = lodCount - 1; lodIdx >= 0; lodIdx--)
             {
                 // The per-octave wave buffers
-                BindWaveBuffer(_combineMaterial[lodIdx], false);
+                BindWaveBuffer(_combineMaterial[lodIdx]);
 
                 // Bind this LOD data (displacements). Option to disable the combine pass - very useful debugging feature.
                 if (_shapeCombinePass)
@@ -367,7 +367,7 @@ namespace Crest
             }
         }
 
-        public void BindWaveBuffer(IPropertyWrapper properties, bool sourceLod = false)
+        public void BindWaveBuffer(IPropertyWrapper properties)
         {
             properties.SetTexture(sp_LD_TexArray_WaveBuffer, _waveBuffers);
         }
@@ -418,15 +418,15 @@ namespace Crest
             return ParamIdSampler(sourceLod);
         }
 
-        public static void Bind(IPropertyWrapper properties, bool sourceLod = false)
+        public static void Bind(IPropertyWrapper properties)
         {
             if (OceanRenderer.Instance._lodDataAnimWaves != null)
             {
-                properties.SetTexture(OceanRenderer.Instance._lodDataAnimWaves.GetParamIdSampler(sourceLod), OceanRenderer.Instance._lodDataAnimWaves.DataTexture);
+                properties.SetTexture(OceanRenderer.Instance._lodDataAnimWaves.GetParamIdSampler(), OceanRenderer.Instance._lodDataAnimWaves.DataTexture);
             }
             else
             {
-                properties.SetTexture(ParamIdSampler(sourceLod), TextureArrayHelpers.BlackTextureArray);
+                properties.SetTexture(ParamIdSampler(), TextureArrayHelpers.BlackTextureArray);
             }
         }
 

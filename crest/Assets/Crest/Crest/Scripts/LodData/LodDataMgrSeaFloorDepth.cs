@@ -60,11 +60,11 @@ namespace Crest
             return ParamIdSampler(sourceLod);
         }
 
-        public static void Bind(IPropertyWrapper properties, bool sourceLod = false)
+        public static void Bind(IPropertyWrapper properties)
         {
             if (OceanRenderer.Instance._lodDataSeaDepths != null)
             {
-                properties.SetTexture(OceanRenderer.Instance._lodDataSeaDepths.GetParamIdSampler(sourceLod), OceanRenderer.Instance._lodDataSeaDepths.DataTexture);
+                properties.SetTexture(OceanRenderer.Instance._lodDataSeaDepths.GetParamIdSampler(), OceanRenderer.Instance._lodDataSeaDepths.DataTexture);
             }
             else
             {
@@ -74,7 +74,7 @@ namespace Crest
                     InitNullTexture();
                 }
 
-                properties.SetTexture(ParamIdSampler(sourceLod), s_nullTexture2DArray);
+                properties.SetTexture(ParamIdSampler(), s_nullTexture2DArray);
             }
         }
 

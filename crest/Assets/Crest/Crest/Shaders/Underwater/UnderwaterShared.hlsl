@@ -20,7 +20,7 @@ float IntersectRayWithWaterSurface(const float3 pos, const float3 dir)
 		// Sample displacement textures, add results to current world pos / normal / foam
 		disp = float3(sampleXZ.x, _OceanCenterPosWorld.y, sampleXZ.y);
 		half sss = 0.;
-		const float3 uv = WorldToUV(sampleXZ, _CascadeDataTgt[_LD_SliceIndex], _LD_SliceIndex);
+		const float3 uv = WorldToUV(sampleXZ, _CascadeData[_LD_SliceIndex], _LD_SliceIndex);
 		SampleDisplacements(_LD_TexArray_AnimatedWaves, uv, 1.0, disp, sss);
 		float3 nearestPointOnRay = pos + dir * dot(disp - pos, dir);
 		const float2 error = disp.xz - nearestPointOnRay.xz;
@@ -30,7 +30,7 @@ float IntersectRayWithWaterSurface(const float3 pos, const float3 dir)
 		// Sample displacement textures, add results to current world pos / normal / foam
 		disp = float3(sampleXZ.x, _OceanCenterPosWorld.y, sampleXZ.y);
 		half sss = 0.;
-		const float3 uv = WorldToUV(sampleXZ, _CascadeDataTgt[_LD_SliceIndex], _LD_SliceIndex);
+		const float3 uv = WorldToUV(sampleXZ, _CascadeData[_LD_SliceIndex], _LD_SliceIndex);
 		SampleDisplacements(_LD_TexArray_AnimatedWaves, uv, 1.0, disp, sss);
 		float3 nearestPointOnRay = pos + dir * dot(disp - pos, dir);
 		const float2 error = disp.xz - nearestPointOnRay.xz;
@@ -40,7 +40,7 @@ float IntersectRayWithWaterSurface(const float3 pos, const float3 dir)
 		// Sample displacement textures, add results to current world pos / normal / foam
 		disp = float3(sampleXZ.x, _OceanCenterPosWorld.y, sampleXZ.y);
 		half sss = 0.;
-		const float3 uv = WorldToUV(sampleXZ, _CascadeDataTgt[_LD_SliceIndex], _LD_SliceIndex);
+		const float3 uv = WorldToUV(sampleXZ, _CascadeData[_LD_SliceIndex], _LD_SliceIndex);
 		SampleDisplacements(_LD_TexArray_AnimatedWaves, uv, 1.0, disp, sss);
 		float3 nearestPointOnRay = pos + dir * dot(disp - pos, dir);
 		const float2 error = disp.xz - nearestPointOnRay.xz;
@@ -50,7 +50,7 @@ float IntersectRayWithWaterSurface(const float3 pos, const float3 dir)
 		// Sample displacement textures, add results to current world pos / normal / foam
 		disp = float3(sampleXZ.x, _OceanCenterPosWorld.y, sampleXZ.y);
 		half sss = 0.;
-		const float3 uv = WorldToUV(sampleXZ, _CascadeDataTgt[_LD_SliceIndex], _LD_SliceIndex);
+		const float3 uv = WorldToUV(sampleXZ, _CascadeData[_LD_SliceIndex], _LD_SliceIndex);
 		SampleDisplacements(_LD_TexArray_AnimatedWaves, uv, 1.0, disp, sss);
 		float3 nearestPointOnRay = pos + dir * dot(disp - pos, dir);
 		const float2 error = disp.xz - nearestPointOnRay.xz;
@@ -60,7 +60,7 @@ float IntersectRayWithWaterSurface(const float3 pos, const float3 dir)
 		// Sample displacement textures, add results to current world pos / normal / foam
 		disp = float3(sampleXZ.x, _OceanCenterPosWorld.y, sampleXZ.y);
 		half sss = 0.;
-		const float3 uv = WorldToUV(sampleXZ, _CascadeDataTgt[_LD_SliceIndex], _LD_SliceIndex);
+		const float3 uv = WorldToUV(sampleXZ, _CascadeData[_LD_SliceIndex], _LD_SliceIndex);
 		SampleDisplacements(_LD_TexArray_AnimatedWaves, uv, 1.0, disp, sss);
 		float3 nearestPointOnRay = pos + dir * dot(disp - pos, dir);
 		const float2 error = disp.xz - nearestPointOnRay.xz;
@@ -70,7 +70,7 @@ float IntersectRayWithWaterSurface(const float3 pos, const float3 dir)
 		// Sample displacement textures, add results to current world pos / normal / foam
 		disp = float3(sampleXZ.x, _OceanCenterPosWorld.y, sampleXZ.y);
 		half sss = 0.;
-		const float3 uv = WorldToUV(sampleXZ, _CascadeDataTgt[_LD_SliceIndex], _LD_SliceIndex);
+		const float3 uv = WorldToUV(sampleXZ, _CascadeData[_LD_SliceIndex], _LD_SliceIndex);
 		SampleDisplacements(_LD_TexArray_AnimatedWaves, uv, 1.0, disp, sss);
 		float3 nearestPointOnRay = pos + dir * dot(disp - pos, dir);
 		const float2 error = disp.xz - nearestPointOnRay.xz;

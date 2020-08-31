@@ -43,6 +43,7 @@ namespace Crest
         readonly int sp_SimDeltaTime = Shader.PropertyToID("_SimDeltaTime");
         readonly int sp_LD_SliceIndex_Source = Shader.PropertyToID("_LD_SliceIndex_Source");
         readonly int sp_LD_TexArray_Target = Shader.PropertyToID("_LD_TexArray_Target");
+        readonly int sp_cascadeDataSrc = Shader.PropertyToID("_CascadeDataSrc");
 
         SettingsType _defaultSettings;
         public SettingsType Settings
@@ -236,7 +237,7 @@ namespace Crest
                 BindSourceData(_renderProperties, false);
                 _renderProperties.SetTexture(sp_LD_TexArray_Target, _targets);
 
-                _renderProperties.SetBuffer(Shader.PropertyToID("_CascadeDataSrc"), OceanRenderer.Instance._bufCascadeDataSrc);
+                _renderProperties.SetBuffer(sp_cascadeDataSrc, OceanRenderer.Instance._bufCascadeDataSrc);
 
                 BufCopyShadowMap.DispatchCompute(_updateShadowShader, krnl_UpdateShadow,
                     OceanRenderer.Instance.LodDataResolution / THREAD_GROUP_SIZE_X,

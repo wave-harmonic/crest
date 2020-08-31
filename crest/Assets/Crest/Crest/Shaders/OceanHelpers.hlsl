@@ -11,7 +11,7 @@ float ComputeLodAlpha(float3 i_worldPos, float i_meshScaleAlpha)
 	float taxicab_norm = max(offsetFromCenter.x, offsetFromCenter.y);
 
 	// interpolation factor to next lod (lower density / higher sampling period)
-	const float scale = _CascadeDataTgt[_LD_SliceIndex]._scale;
+	const float scale = _CascadeData[_LD_SliceIndex]._scale;
 	float lodAlpha = taxicab_norm / scale - 1.0;
 
 	// LOD alpha is remapped to ensure patches weld together properly. Patches can vary significantly in shape (with
@@ -57,20 +57,20 @@ void ApplyOceanClipSurface(in const float3 io_positionWS, in const float i_lodAl
 	// Sample shape textures - always lerp between 2 scales, so sample two textures
 	// Sample weights. params.z allows shape to be faded out (used on last lod to support pop-less scale transitions)
 	const float2 worldXZ = io_positionWS.xz;
-	float wt_smallerLod = (1. - i_lodAlpha) * _CascadeDataTgt[_LD_SliceIndex]._weight;
-	float wt_biggerLod = (1. - wt_smallerLod) * _CascadeDataTgt[_LD_SliceIndex + 1]._weight;
+	float wt_smallerLod = (1. - i_lodAlpha) * _CascadeData[_LD_SliceIndex]._weight;
+	float wt_biggerLod = (1. - wt_smallerLod) * _CascadeData[_LD_SliceIndex + 1]._weight;
 
 	// Sample clip surface data
 	half clipValue = 0.0;
 	if (wt_smallerLod > 0.001)
 	{
-		const float3 uv = WorldToUV(worldXZ, _CascadeDataTgt[_LD_SliceIndex], _LD_SliceIndex);
+		const float3 uv = WorldToUV(worldXZ, _CascadeData[_LD_SliceIndex], _LD_SliceIndex);
 		SampleClip(_LD_TexArray_ClipSurface, uv, wt_smallerLod, clipValue);
 	}
 	if (wt_biggerLod > 0.001)
 	{
 		const uint si = _LD_SliceIndex + 1;
-		const float3 uv = WorldToUV(worldXZ, _CascadeDataTgt[si], si);
+		const float3 uv = WorldToUV(worldXZ, _CascadeData[si], si);
 		SampleClip(_LD_TexArray_ClipSurface, uv, wt_biggerLod, clipValue);
 	}
 

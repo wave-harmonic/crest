@@ -12,7 +12,7 @@ uniform half _NormalsScale;
 
 half2 SampleNormalMaps(float2 worldXZUndisplaced, float lodAlpha)
 {
-	const float lodDataGridSize = _CascadeDataTgt[_LD_SliceIndex]._texelWidth;
+	const float lodDataGridSize = _CascadeData[_LD_SliceIndex]._texelWidth;
 	float2 normalScrollSpeeds = _PerCascadeInstanceData[_LD_SliceIndex]._normalScrollSpeeds;
 
 	const float2 v0 = float2(0.94, 0.34), v1 = float2(-0.85, -0.53);

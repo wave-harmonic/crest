@@ -14,11 +14,6 @@ namespace Crest
     {
         protected int[] _transformUpdateFrame;
 
-        static int s_paramsPosScale = Shader.PropertyToID("_LD_Pos_Scale");
-        static int s_paramsPosScaleSource = Shader.PropertyToID("_LD_Pos_Scale_Source");
-        static int s_paramsOcean = Shader.PropertyToID("_LD_Params");
-        static int s_paramsOceanSource = Shader.PropertyToID("_LD_Params_Source");
-
         [System.Serializable]
         public struct RenderData
         {
@@ -128,30 +123,6 @@ namespace Crest
             return 2f * maxTexelSize * OceanRenderer.Instance.MinTexelsPerWave;
         }
 
-        public static int ParamIdPosScale(bool sourceLod = false)
-        {
-            if (sourceLod)
-            {
-                return s_paramsPosScaleSource;
-            }
-            else
-            {
-                return s_paramsPosScale;
-            }
-        }
-
-        public static int ParamIdOcean(bool sourceLod = false)
-        {
-            if (sourceLod)
-            {
-                return s_paramsOceanSource;
-            }
-            else
-            {
-                return s_paramsOcean;
-            }
-        }
-
         public void SetOrigin(Vector3 newOrigin)
         {
             for (int lodIdx = 0; lodIdx < LodCount; lodIdx++)
@@ -159,47 +130,6 @@ namespace Crest
                 _renderData[lodIdx]._posSnapped -= newOrigin;
                 _renderDataSource[lodIdx]._posSnapped -= newOrigin;
             }
-        }
-
-#if UNITY_2019_3_OR_NEWER
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-#endif
-        static void InitStatics()
-        {
-            // Init here from 2019.3 onwards
-            s_paramsPosScale = Shader.PropertyToID("_LD_Pos_Scale");
-            s_paramsPosScaleSource = Shader.PropertyToID("_LD_Pos_Scale_Source");
-            s_paramsOcean = Shader.PropertyToID("_LD_Params");
-            s_paramsOceanSource = Shader.PropertyToID("_LD_Params_Source");
-        }
-
-        // Avoid heap allocations inside BindTransforms
-        protected Vector4[] _BindData_paramIdPosScales = new Vector4[LodDataMgr.MAX_LOD_COUNT + 1];
-        // Used in child
-        protected Vector4[] _BindData_paramIdOceans = new Vector4[LodDataMgr.MAX_LOD_COUNT + 1];
-
-        public void BindTransforms(IPropertyWrapper properties, bool sourceData = false)
-        {
-            var renderData = sourceData ? _renderData : _renderDataSource;
-
-            for (int lodIdx = 0; lodIdx < OceanRenderer.Instance.CurrentLodCount; lodIdx++)
-            {
-                // NOTE: gets zeroed by unity, see https://www.alanzucconi.com/2016/10/24/arrays-shaders-unity-5-4/
-                _BindData_paramIdPosScales[lodIdx] = new Vector4(
-                    renderData[lodIdx]._posSnapped.x, renderData[lodIdx]._posSnapped.z,
-                    OceanRenderer.Instance.CalcLodScale(lodIdx), 0f);
-                _BindData_paramIdOceans[lodIdx] = new Vector4(renderData[lodIdx]._texelWidth, renderData[lodIdx]._textureRes, 1f, 1f / renderData[lodIdx]._textureRes);
-            }
-
-            // Duplicate the last element as the shader accesses element {slice index + 1] in a few situations. This way going
-            // off the end of this parameter is the same as going off the end of the texture array with our clamped sampler.
-            _BindData_paramIdPosScales[OceanRenderer.Instance.CurrentLodCount] = _BindData_paramIdPosScales[OceanRenderer.Instance.CurrentLodCount - 1];
-            _BindData_paramIdOceans[OceanRenderer.Instance.CurrentLodCount] = _BindData_paramIdOceans[OceanRenderer.Instance.CurrentLodCount - 1];
-            // Never use this last lod - it exists to give 'something' but should not be used
-            _BindData_paramIdOceans[OceanRenderer.Instance.CurrentLodCount].z = 0f;
-
-            properties.SetVectorArray(ParamIdPosScale(!sourceData), _BindData_paramIdPosScales);
-            properties.SetVectorArray(ParamIdOcean(!sourceData), _BindData_paramIdOceans);
         }
 
         public void WriteCascadeParams(OceanRenderer.CascadeParams[] cascadeParamsTgt, OceanRenderer.CascadeParams[] cascadeParamsSrc)

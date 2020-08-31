@@ -21,12 +21,7 @@ struct CascadeParams
 	float _weight;
 };
 
-// Create two sets of LOD data, which have overloaded meaning depending on use:
-// * the ocean surface geometry always lerps from a more detailed LOD (0) to a less detailed LOD (1)
-// * simulations (persistent lod data) read last frame's data from slot 0, and any current frame data from slot 1
-// * any other use that does not fall into the previous categories can use either slot and generally use slot 0
-StructuredBuffer<CascadeParams> _CascadeDataTgt;
-StructuredBuffer<CascadeParams> _CascadeDataSrc;
+StructuredBuffer<CascadeParams> _CascadeData;
 
 struct PerCascadeInstanceData
 {

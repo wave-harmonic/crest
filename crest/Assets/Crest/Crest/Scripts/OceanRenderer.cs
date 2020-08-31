@@ -279,6 +279,8 @@ namespace Crest
         readonly int sp_lodAlphaBlackPointFade = Shader.PropertyToID("_CrestLodAlphaBlackPointFade");
         readonly int sp_lodAlphaBlackPointWhitePointFade = Shader.PropertyToID("_CrestLodAlphaBlackPointWhitePointFade");
         static int sp_ForceUnderwater = Shader.PropertyToID("_ForceUnderwater");
+        public static int sp_perCascadeInstanceData = Shader.PropertyToID("_PerCascadeInstanceData");
+        public static int sp_cascadeData = Shader.PropertyToID("_CascadeData");
 
 #if UNITY_EDITOR
         static float _lastUpdateEditorTime = -1f;
@@ -351,8 +353,12 @@ namespace Crest
             Scale = Mathf.Clamp(Scale, _minScale, _maxScale);
 
             _bufPerCascadeInstanceData = new ComputeBuffer(_perCascadeInstanceData.Length, Marshal.SizeOf<PerCascadeInstanceData>());
+            Shader.SetGlobalBuffer("_PerCascadeInstanceData", _bufPerCascadeInstanceData);
 
             _bufCascadeDataTgt = new ComputeBuffer(_cascadeParamsTgt.Length, Marshal.SizeOf<CascadeParams>());
+            Shader.SetGlobalBuffer(sp_cascadeData, _bufCascadeDataTgt);
+
+            // Not used by graphics shaders, so not set globally (global does not work for compute)
             _bufCascadeDataSrc = new ComputeBuffer(_cascadeParamsSrc.Length, Marshal.SizeOf<CascadeParams>());
 
             _lodTransform = new LodTransform();
@@ -643,6 +649,8 @@ namespace Crest
             Instance = null;
 
             sp_ForceUnderwater = Shader.PropertyToID("_ForceUnderwater");
+            sp_perCascadeInstanceData = Shader.PropertyToID("_PerCascadeInstanceData");
+            sp_cascadeData = Shader.PropertyToID("_CascadeData");
         }
 
         void LateUpdate()
@@ -673,7 +681,7 @@ namespace Crest
             Shader.SetGlobalFloat(sp_lodAlphaBlackPointWhitePointFade, _lodAlphaBlackPointWhitePointFade);
 
             // LOD 0 is blended in/out when scale changes, to eliminate pops. Here we set it as a global, whereas in OceanChunkRenderer it
-            // is applied to LOD0 tiles only through _InstanceData. This global can be used in compute, where we only apply this factor for slice 0.
+            // is applied to LOD0 tiles only through instance data. This global can be used in compute, where we only apply this factor for slice 0.
             var needToBlendOutShape = ScaleCouldIncrease;
             var meshScaleLerp = needToBlendOutShape ? ViewerAltitudeLevelAlpha : 0f;
             Shader.SetGlobalFloat(sp_meshScaleLerp, meshScaleLerp);
@@ -736,8 +744,6 @@ namespace Crest
             // i'm not sure why cracks are not visible in this case.
             OceanMaterial.SetFloat(sp_ForceUnderwater, ViewerHeightAboveWater < -2f ? 1f : 0f);
 
-            _lodTransform.BindTransforms(matProps);
-
             _lodTransform.WriteCascadeParams(_cascadeParamsTgt, _cascadeParamsSrc);
             _bufCascadeDataTgt.SetData(_cascadeParamsTgt);
             _bufCascadeDataSrc.SetData(_cascadeParamsSrc);
@@ -766,13 +772,6 @@ namespace Crest
             }
 
             _bufPerCascadeInstanceData.SetData(_perCascadeInstanceData);
-
-            //Shader.SetGlobalBuffer("_CascadeDataTgt", _bufCascadeDataTgt);
-            //Shader.SetGlobalBuffer("_CascadeDataSrc", _bufCascadeDataSrc);
-            //Shader.SetGlobalBuffer("_PerCascadeInstanceData", _bufPerCascadeInstanceData);
-            OceanMaterial.SetBuffer("_CascadeDataTgt", _bufCascadeDataTgt);
-            OceanMaterial.SetBuffer("_CascadeDataSrc", _bufCascadeDataSrc);
-            OceanMaterial.SetBuffer("_PerCascadeInstanceData", _bufPerCascadeInstanceData);
 
             // Apply foam - needs to be done each frame due to ping pong rendering - targets change
             if (_lodDataFoam != null) _lodDataFoam.BindResultData(matProps); else LodDataMgrFoam.BindNull(matProps);

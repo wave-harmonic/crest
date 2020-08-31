@@ -480,9 +480,8 @@ namespace Crest
                 {
                     LodDataMgrSeaFloorDepth.BindNull(mat, false);
                 }
-                mat.SetBuffer("_CascadeDataTgt", OceanRenderer.Instance._bufCascadeDataTgt);
-                mat.SetBuffer("_CascadeDataSrc", OceanRenderer.Instance._bufCascadeDataSrc);
-                mat.SetBuffer("_PerCascadeInstanceData", OceanRenderer.Instance._bufPerCascadeInstanceData);
+                mat.SetBuffer(OceanRenderer.sp_cascadeData, OceanRenderer.Instance._bufCascadeDataTgt);
+                mat.SetBuffer(OceanRenderer.sp_perCascadeInstanceData, OceanRenderer.Instance._bufPerCascadeInstanceData);
 
                 if (_directTowardsPoint)
                 {

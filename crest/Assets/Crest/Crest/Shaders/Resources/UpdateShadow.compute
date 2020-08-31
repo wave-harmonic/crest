@@ -42,6 +42,7 @@ struct ShadowCoords
 	float4 MainCameraCoords;
 };
 
+StructuredBuffer<CascadeParams> _CascadeDataSrc;
 uniform uint _LD_SliceIndex_Source;
 uniform float3 _CenterPos;
 uniform float3 _Scale;

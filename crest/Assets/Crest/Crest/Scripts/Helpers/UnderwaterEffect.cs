@@ -155,8 +155,6 @@ namespace Crest
 
                 _mpb.SetFloat(sp_HeightOffset, heightOffset);
 
-                _mpb.SetVector(OceanChunkRenderer.sp_InstanceData, new Vector3(OceanRenderer.Instance.ViewerAltitudeLevelAlpha, 0f, 0f));
-
                 _rend.SetPropertyBlock(_mpb.materialPropertyBlock);
             }
         }

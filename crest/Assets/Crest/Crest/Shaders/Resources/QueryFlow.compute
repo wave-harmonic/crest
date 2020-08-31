@@ -20,14 +20,14 @@ float3 ComputeFlow(float2 undispPos, float minSlice)
 {
 	uint slice0, slice1;
 	float lodAlpha;
-	const float scale_base = _CascadeDataTgt[0]._scale;
+	const float scale_base = _CascadeData[0]._scale;
 	PosToSliceIndices(undispPos, minSlice, _MeshScaleLerp, scale_base, slice0, slice1, lodAlpha);
 
-	const float3 uv0 = WorldToUV(undispPos, _CascadeDataTgt[slice0], slice0);
-	const float3 uv1 = WorldToUV(undispPos, _CascadeDataTgt[slice1], slice1);
+	const float3 uv0 = WorldToUV(undispPos, _CascadeData[slice0], slice0);
+	const float3 uv1 = WorldToUV(undispPos, _CascadeData[slice1], slice1);
 
-	const float wt_0 = (1. - lodAlpha) * _CascadeDataTgt[slice0]._weight;
-	const float wt_1 = (1. - wt_0) * _CascadeDataTgt[slice1]._weight;
+	const float wt_0 = (1. - lodAlpha) * _CascadeData[slice0]._weight;
+	const float wt_1 = (1. - wt_0) * _CascadeData[slice1]._weight;
 
 	float2 result =
 		wt_0 * _LD_TexArray_Flow.SampleLevel(LODData_linear_clamp_sampler, uv0, 0).xy +
@@ -44,7 +44,7 @@ void CSMain(uint3 id : SV_DispatchThreadID)
 	const float2 queryPosXZ = data.xy;
 	const float minGridSize = data.z;
 
-	const float gridSizeSlice0 = _CascadeDataTgt[0]._texelWidth;
+	const float gridSizeSlice0 = _CascadeData[0]._texelWidth;
 	const float minSlice = clamp(floor(log2(max(minGridSize / gridSizeSlice0, 1.0))), 0.0, _SliceCount - 1.0);
 
 	_ResultFlows[id.x] = ComputeFlow(queryPosXZ, minSlice);

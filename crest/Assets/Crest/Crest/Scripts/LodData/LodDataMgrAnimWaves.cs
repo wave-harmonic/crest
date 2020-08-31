@@ -292,9 +292,8 @@ namespace Crest
 
                 _combineMaterial[lodIdx].SetInt(sp_LD_SliceIndex, lodIdx);
 
-                _combineMaterial[lodIdx].SetBuffer("_CascadeDataTgt", OceanRenderer.Instance._bufCascadeDataTgt);
-                _combineMaterial[lodIdx].SetBuffer("_CascadeDataSrc", OceanRenderer.Instance._bufCascadeDataSrc);
-                _combineMaterial[lodIdx].SetBuffer("_PerCascadeInstanceData", OceanRenderer.Instance._bufPerCascadeInstanceData);
+                _combineMaterial[lodIdx].SetBuffer(OceanRenderer.sp_cascadeData, OceanRenderer.Instance._bufCascadeDataTgt);
+                _combineMaterial[lodIdx].SetBuffer(OceanRenderer.sp_perCascadeInstanceData, OceanRenderer.Instance._bufPerCascadeInstanceData);
 
                 // Combine this LOD's waves with waves from the LODs above into auxiliary combine buffer
                 buf.SetRenderTarget(_combineBuffer);
@@ -393,26 +392,6 @@ namespace Crest
         public void BindWaveBuffer(IPropertyWrapper properties, bool sourceLod = false)
         {
             properties.SetTexture(sp_LD_TexArray_WaveBuffer, _waveBuffers);
-            BindData(properties, null, true, ref OceanRenderer.Instance._lodTransform._renderData, sourceLod);
-        }
-
-        protected override void BindData(IPropertyWrapper properties, Texture applyData, bool blendOut, ref LodTransform.RenderData[] renderData, bool sourceLod = false)
-        {
-            base.BindData(properties, applyData, blendOut, ref renderData, sourceLod);
-
-            var lt = OceanRenderer.Instance._lodTransform;
-
-            for (int lodIdx = 0; lodIdx < OceanRenderer.Instance.CurrentLodCount; lodIdx++)
-            {
-                // need to blend out shape if this is the largest lod, and the ocean might get scaled down later (so the largest lod will disappear)
-                bool needToBlendOutShape = lodIdx == OceanRenderer.Instance.CurrentLodCount - 1 && OceanRenderer.Instance.ScaleCouldDecrease && blendOut;
-                float shapeWeight = needToBlendOutShape ? OceanRenderer.Instance.ViewerAltitudeLevelAlpha : 1f;
-                _BindData_paramIdOceans[lodIdx] = new Vector4(
-                    lt._renderData[lodIdx]._texelWidth,
-                    lt._renderData[lodIdx]._textureRes, shapeWeight,
-                    1f / lt._renderData[lodIdx]._textureRes);
-            }
-            properties.SetVectorArray(LodTransform.ParamIdOcean(sourceLod), _BindData_paramIdOceans);
         }
 
         /// <summary>

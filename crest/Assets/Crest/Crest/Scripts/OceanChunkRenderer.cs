@@ -31,9 +31,6 @@ namespace Crest
         int _geoDownSampleFactor = 1;
 
         static int sp_ReflectionTex = Shader.PropertyToID("_ReflectionTex");
-        static int sp_GeomData = Shader.PropertyToID("_GeomData");
-        // MeshScaleLerp, FarNormalsWeight, LODIndex (debug)
-        public static int sp_InstanceData = Shader.PropertyToID("_InstanceData");
 
         void Start()
         {
@@ -170,8 +167,6 @@ namespace Crest
         {
             // Init here from 2019.3 onwards
             sp_ReflectionTex = Shader.PropertyToID("_ReflectionTex");
-            sp_GeomData = Shader.PropertyToID("_GeomData");
-            sp_InstanceData = Shader.PropertyToID("_InstanceData");
             _currentCamera = null;
         }
 

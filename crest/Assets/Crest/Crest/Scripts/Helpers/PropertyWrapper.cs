@@ -29,7 +29,7 @@ namespace Crest
         public void SetFloat(int param, float value) { material.SetFloat(param, value); }
         public void SetFloatArray(int param, float[] value) { material.SetFloatArray(param, value); }
         public void SetTexture(int param, Texture value) { material.SetTexture(param, value); }
-        public void SetBuffer(string name, ComputeBuffer value) { material.SetBuffer(name, value); }
+        public void SetBuffer(int param, ComputeBuffer value) { material.SetBuffer(param, value); }
         public void SetVector(int param, Vector4 value) { material.SetVector(param, value); }
         public void SetVectorArray(int param, Vector4[] value) { material.SetVectorArray(param, value); }
         public void SetMatrix(int param, Matrix4x4 value) { material.SetMatrix(param, value); }
@@ -44,7 +44,7 @@ namespace Crest
         public void SetFloat(int param, float value) { materialPropertyBlock.SetFloat(param, value); }
         public void SetFloatArray(int param, float[] value) { materialPropertyBlock.SetFloatArray(param, value); }
         public void SetTexture(int param, Texture value) { materialPropertyBlock.SetTexture(param, value); }
-        public void SetBuffer(string name, ComputeBuffer value) { materialPropertyBlock.SetBuffer(name, value); }
+        // public void SetBuffer(int param, ComputeBuffer value) { materialPropertyBlock.SetBuffer(param, value); }
         public void SetVector(int param, Vector4 value) { materialPropertyBlock.SetVector(param, value); }
         public void SetVectorArray(int param, Vector4[] value) { materialPropertyBlock.SetVectorArray(param, value); }
         public void SetMatrix(int param, Matrix4x4 value) { materialPropertyBlock.SetMatrix(param, value); }

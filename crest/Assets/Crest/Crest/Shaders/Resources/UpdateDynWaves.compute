@@ -15,6 +15,7 @@
 #include "../OceanInputsDriven.hlsl"
 #include "../OceanHelpersNew.hlsl"
 
+StructuredBuffer<CascadeParams> _CascadeDataSrc;
 RWTexture2DArray<float2> _LD_TexArray_Target;
 
 CBUFFER_START(CrestPerMaterial)
@@ -44,8 +45,8 @@ void UpdateDynWaves(uint3 id : SV_DispatchThreadID)
 		_LD_TexArray_DynamicWaves_Source.GetDimensions(width, height, depth);
 	}
 	const float2 input_uv = IDtoUV(id.xy, width, height);
-	const float2 worldPosXZ = UVToWorld(input_uv, sliceIndex, _CascadeDataTgt[sliceIndex]);
-	const float gridSize = _CascadeDataTgt[sliceIndex]._texelWidth;
+	const float2 worldPosXZ = UVToWorld(input_uv, sliceIndex, _CascadeData[sliceIndex]);
+	const float gridSize = _CascadeData[sliceIndex]._texelWidth;
 
 	// average wavelength for this scale
 	const float wavelength = 1.0 * _TexelsPerWave * gridSize;

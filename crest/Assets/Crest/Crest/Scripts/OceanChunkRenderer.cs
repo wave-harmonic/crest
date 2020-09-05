@@ -3,7 +3,6 @@
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 using UnityEngine;
-using UnityEngine.Rendering;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -26,11 +25,6 @@ namespace Crest
 
         // Cache these off to support regenerating ocean surface
         int _lodIndex = -1;
-        int _totalLodCount = -1;
-        int _lodDataResolution = 256;
-        int _geoDownSampleFactor = 1;
-
-        static int sp_ReflectionTex = Shader.PropertyToID("_ReflectionTex");
 
         void Start()
         {
@@ -80,58 +74,6 @@ namespace Crest
             _mesh.bounds = newBounds;
         }
 
-        static Camera _currentCamera = null;
-
-        private static void BeginCameraRendering(ScriptableRenderContext context, Camera camera)
-        {
-            _currentCamera = camera;
-        }
-
-        // Called when visible to a camera
-        void OnWillRenderObject()
-        {
-            if (OceanRenderer.Instance == null || Rend == null)
-            {
-                return;
-            }
-
-            // check if built-in pipeline being used
-            if (Camera.current != null)
-            {
-                _currentCamera = Camera.current;
-            }
-
-            // Depth texture is used by ocean shader for transparency/depth fog, and for fading out foam at shoreline.
-            _currentCamera.depthTextureMode |= DepthTextureMode.Depth;
-
-            if (Rend.sharedMaterial != OceanRenderer.Instance.OceanMaterial)
-            {
-                Rend.sharedMaterial = OceanRenderer.Instance.OceanMaterial;
-            }
-
-            // per instance data
-
-            if (_mpb == null)
-            {
-                _mpb = new PropertyWrapperMPB();
-            }
-            Rend.GetPropertyBlock(_mpb.materialPropertyBlock);
-
-            // Only done here because current camera is defined. This could be done just once, probably on the OnRender function
-            // or similar on the OceanPlanarReflection script?
-            var reflTex = PreparedReflections.GetRenderTexture(_currentCamera.GetHashCode());
-            if (reflTex)
-            {
-                _mpb.SetTexture(sp_ReflectionTex, reflTex);
-            }
-            else
-            {
-                _mpb.SetTexture(sp_ReflectionTex, Texture2D.blackTexture);
-            }
-
-            Rend.SetPropertyBlock(_mpb.materialPropertyBlock);
-        }
-
         // this is called every frame because the bounds are given in world space and depend on the transform scale, which
         // can change depending on view altitude
         public static void ExpandBoundsForDisplacements(Transform transform, ref Bounds bounds)
@@ -144,26 +86,9 @@ namespace Crest
             bounds.extents = new Vector3(bounds.extents.x + expandXZ, boundsY / transform.lossyScale.y, bounds.extents.z + expandXZ);
         }
 
-        public void SetInstanceData(int lodIndex, int totalLodCount, int lodDataResolution, int geoDownSampleFactor)
+        public void SetInstanceData(int lodIndex)
         {
-            _lodIndex = lodIndex; _totalLodCount = totalLodCount; _lodDataResolution = lodDataResolution; _geoDownSampleFactor = geoDownSampleFactor;
-        }
-
-#if UNITY_2019_3_OR_NEWER
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-#endif
-        static void InitStatics()
-        {
-            // Init here from 2019.3 onwards
-            sp_ReflectionTex = Shader.PropertyToID("_ReflectionTex");
-            _currentCamera = null;
-        }
-
-        [RuntimeInitializeOnLoadMethod]
-        static void RunOnStart()
-        {
-            RenderPipelineManager.beginCameraRendering -= BeginCameraRendering;
-            RenderPipelineManager.beginCameraRendering += BeginCameraRendering;
+            _lodIndex = lodIndex;
         }
 
         private void OnDrawGizmos()

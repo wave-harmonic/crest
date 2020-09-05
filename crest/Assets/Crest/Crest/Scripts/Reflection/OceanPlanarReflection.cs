@@ -117,6 +117,8 @@ namespace Crest
         const int CULL_DISTANCE_COUNT = 32;
         float[] _cullDistances = new float[CULL_DISTANCE_COUNT];
 
+        readonly int sp_ReflectionTex = Shader.PropertyToID("_ReflectionTex");
+
         private void Start()
         {
             if (OceanRenderer.Instance == null)
@@ -242,6 +244,8 @@ namespace Crest
             }
 
             Refreshed(Time.renderedFrameCount); //remember this frame as last refreshed
+
+            OceanRenderer.Instance.OceanMaterial.SetTexture(sp_ReflectionTex, _reflectionTexture);
         }
 
 

@@ -214,37 +214,41 @@ namespace Crest
 
                 // It feels like quite a lot could be optimized out of the below. I think the same params are written repeatedly, and probably
                 // a bunch of them are already available in existing ocean globals.
+
+                _renderProperties.Initialise(BufCopyShadowMap, _updateShadowShader, krnl_UpdateShadow);
+
+                if (OceanRenderer.Instance.Viewpoint != null)
+                {
+                    _renderProperties.SetVector(sp_CamPos, OceanRenderer.Instance.Viewpoint.position);
+                    _renderProperties.SetVector(sp_CamForward, OceanRenderer.Instance.Viewpoint.forward);
+                }
+
+                _renderProperties.SetVector(sp_JitterDiameters_CurrentFrameWeights, new Vector4(Settings._jitterDiameterSoft, Settings._jitterDiameterHard, Settings._currentFrameWeightSoft, Settings._currentFrameWeightHard));
+                _renderProperties.SetMatrix(sp_MainCameraProjectionMatrix, _cameraMain.projectionMatrix * _cameraMain.worldToCameraMatrix);
+                _renderProperties.SetFloat(sp_SimDeltaTime, OceanRenderer.Instance.DeltaTimeDynamics);
+
+                _renderProperties.SetTexture(GetParamIdSampler(true), (Texture)_sources);
+
+                _renderProperties.SetTexture(sp_LD_TexArray_Target, _targets);
+
+                _renderProperties.SetBuffer(sp_cascadeDataSrc, OceanRenderer.Instance._bufCascadeDataSrc);
+
                 var lt = OceanRenderer.Instance._lodTransform;
                 for (var lodIdx = lt.LodCount - 1; lodIdx >= 0; lodIdx--)
                 {
-                    _renderProperties.Initialise(BufCopyShadowMap, _updateShadowShader, krnl_UpdateShadow);
-
+                    #if UNITY_EDITOR
                     lt._renderData[lodIdx].Validate(0, SimName);
+                    #endif
+
                     _renderProperties.SetVector(sp_CenterPos, lt._renderData[lodIdx]._posSnapped);
                     var scale = OceanRenderer.Instance.CalcLodScale(lodIdx);
                     _renderProperties.SetVector(sp_Scale, new Vector3(scale, 1f, scale));
-
-                    if (OceanRenderer.Instance.Viewpoint != null)
-                    {
-                        _renderProperties.SetVector(sp_CamPos, OceanRenderer.Instance.Viewpoint.position);
-                        _renderProperties.SetVector(sp_CamForward, OceanRenderer.Instance.Viewpoint.forward);
-                    }
-
-                    _renderProperties.SetVector(sp_JitterDiameters_CurrentFrameWeights, new Vector4(Settings._jitterDiameterSoft, Settings._jitterDiameterHard, Settings._currentFrameWeightSoft, Settings._currentFrameWeightHard));
-                    _renderProperties.SetMatrix(sp_MainCameraProjectionMatrix, _cameraMain.projectionMatrix * _cameraMain.worldToCameraMatrix);
-                    _renderProperties.SetFloat(sp_SimDeltaTime, OceanRenderer.Instance.DeltaTimeDynamics);
 
                     // compute which lod data we are sampling previous frame shadows from. if a scale change has happened this can be any lod up or down the chain.
                     var srcDataIdx = lodIdx + ScaleDifferencePow2;
                     srcDataIdx = Mathf.Clamp(srcDataIdx, 0, lt.LodCount - 1);
                     _renderProperties.SetInt(sp_LD_SliceIndex, lodIdx);
                     _renderProperties.SetInt(sp_LD_SliceIndex_Source, srcDataIdx);
-
-                    _renderProperties.SetTexture(GetParamIdSampler(true), (Texture)_sources);
-
-                    _renderProperties.SetTexture(sp_LD_TexArray_Target, _targets);
-
-                    _renderProperties.SetBuffer(sp_cascadeDataSrc, OceanRenderer.Instance._bufCascadeDataSrc);
 
                     BufCopyShadowMap.DispatchCompute(_updateShadowShader, krnl_UpdateShadow,
                         OceanRenderer.Instance.LodDataResolution / THREAD_GROUP_SIZE_X,

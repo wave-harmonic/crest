@@ -246,6 +246,9 @@ namespace Crest
                     OceanRenderer.Instance.LodDataResolution / THREAD_GROUP_SIZE_Y,
                     1);
             }
+
+            // Set the target texture as to make sure we catch the 'pong' each frame
+            Shader.SetGlobalTexture(GetParamIdSampler(), _targets);
         }
 
         void UpdateCameraMain()

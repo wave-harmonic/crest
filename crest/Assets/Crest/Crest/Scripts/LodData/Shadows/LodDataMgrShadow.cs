@@ -210,6 +210,10 @@ namespace Crest
             }
 
             {
+                // Run shadow update
+
+                // It feels like quite a lot could be optimized out of the below. I think the same params are written repeatedly, and probably
+                // a bunch of them are already available in existing ocean globals.
                 var lt = OceanRenderer.Instance._lodTransform;
                 for (var lodIdx = lt.LodCount - 1; lodIdx >= 0; lodIdx--)
                 {

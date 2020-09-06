@@ -212,7 +212,7 @@ Shader "Crest/Underwater Curtain"
 #if _CAUSTICS_ON
 				if (sceneZ01 != 0.0)
 				{
-					ApplyCaustics(view, lightDir, sceneZ, _Normals, true, sceneColour);
+					ApplyCaustics(view, lightDir, sceneZ, _Normals, true, sceneColour, _CascadeData[_LD_SliceIndex], _CascadeData[_LD_SliceIndex + 1]);
 				}
 #endif // _CAUSTICS_ON
 

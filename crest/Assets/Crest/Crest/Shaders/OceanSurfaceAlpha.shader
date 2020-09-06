@@ -72,8 +72,8 @@ Shader "Crest/Ocean Surface Alpha"
 				UNITY_INITIALIZE_OUTPUT(Varyings, o);
 				UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
 
-				const CascadeParams cascadeData0 = _CascadeData[_LD_SliceIndex];
-				const CascadeParams cascadeData1 = _CascadeData[_LD_SliceIndex + 1];
+				const CascadeParams cascadeData0 = _CrestCascadeData[_LD_SliceIndex];
+				const CascadeParams cascadeData1 = _CrestCascadeData[_LD_SliceIndex + 1];
 
 				// move to world
 				float3 worldPos;

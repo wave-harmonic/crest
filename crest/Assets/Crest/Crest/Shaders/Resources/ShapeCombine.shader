@@ -55,7 +55,7 @@ Shader "Hidden/Crest/Simulation/Combine Animated Wave LODs"
 
 			void Flow(out float2 offsets, out float2 weights)
 			{
-				const float period = 3.0 * _CascadeData[_LD_SliceIndex]._texelWidth;
+				const float period = 3.0 * _CrestCascadeData[_LD_SliceIndex]._texelWidth;
 				const float half_period = period / 2.0;
 				offsets = fmod(float2(_CrestTime, _CrestTime + half_period), period);
 				weights.x = offsets.x / half_period;
@@ -66,8 +66,8 @@ Shader "Hidden/Crest/Simulation/Combine Animated Wave LODs"
 			half4 Frag(Varyings input) : SV_Target
 			{
 				float3 uv_thisLod = float3(input.uv, _LD_SliceIndex);
-				const CascadeParams cascadeData0 = _CascadeData[_LD_SliceIndex];
-				const CascadeParams cascadeData1 = _CascadeData[_LD_SliceIndex + 1];
+				const CascadeParams cascadeData0 = _CrestCascadeData[_LD_SliceIndex];
+				const CascadeParams cascadeData1 = _CrestCascadeData[_LD_SliceIndex + 1];
 
 				// go from uv out to world for the current shape texture
 				const float2 worldPosXZ = UVToWorld(input.uv, _LD_SliceIndex, cascadeData0);

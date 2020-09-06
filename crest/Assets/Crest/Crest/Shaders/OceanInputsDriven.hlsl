@@ -23,7 +23,7 @@ struct CascadeParams
 	float __padding;
 };
 
-StructuredBuffer<CascadeParams> _CascadeData;
+StructuredBuffer<CascadeParams> _CrestCascadeData;
 
 struct PerCascadeInstanceData
 {

@@ -280,7 +280,7 @@ namespace Crest
         readonly int sp_lodAlphaBlackPointWhitePointFade = Shader.PropertyToID("_CrestLodAlphaBlackPointWhitePointFade");
         static int sp_ForceUnderwater = Shader.PropertyToID("_ForceUnderwater");
         public static int sp_perCascadeInstanceData = Shader.PropertyToID("_PerCascadeInstanceData");
-        public static int sp_cascadeData = Shader.PropertyToID("_CascadeData");
+        public static int sp_cascadeData = Shader.PropertyToID("_CrestCascadeData");
 
 #if UNITY_EDITOR
         static float _lastUpdateEditorTime = -1f;
@@ -656,7 +656,7 @@ namespace Crest
 
             sp_ForceUnderwater = Shader.PropertyToID("_ForceUnderwater");
             sp_perCascadeInstanceData = Shader.PropertyToID("_PerCascadeInstanceData");
-            sp_cascadeData = Shader.PropertyToID("_CascadeData");
+            sp_cascadeData = Shader.PropertyToID("_CrestCascadeData");
         }
 
         void LateUpdate()

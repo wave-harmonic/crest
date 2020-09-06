@@ -28,7 +28,7 @@ RWTexture2DArray<half4> _LD_TexArray_AnimatedWaves_Compute;
 
 void Flow(in const CascadeParams cascadeData, out float2 offsets, out float2 weights)
 {
-	const float period = 3.0 * _CascadeData[_LD_SliceIndex]._texelWidth;
+	const float period = 3.0 * _CrestCascadeData[_LD_SliceIndex]._texelWidth;
 	const float half_period = period / 2.0;
 	offsets = fmod(float2(_CrestTime, _CrestTime + half_period), period);
 	weights.x = offsets.x / half_period;
@@ -82,8 +82,8 @@ void ShapeCombineBase(uint3 id)
 		_LD_TexArray_AnimatedWaves_Compute.GetDimensions(width, height, depth);
 	}
 	const float2 input_uv = IDtoUV(id.xy, width, height);
-	const CascadeParams cascadeData0 = _CascadeData[_LD_SliceIndex];
-	const CascadeParams cascadeData1 = _CascadeData[_LD_SliceIndex + 1];
+	const CascadeParams cascadeData0 = _CrestCascadeData[_LD_SliceIndex];
+	const CascadeParams cascadeData1 = _CrestCascadeData[_LD_SliceIndex + 1];
 
 	const float2 worldPosXZ = UVToWorld(input_uv, _LD_SliceIndex, cascadeData0);
 

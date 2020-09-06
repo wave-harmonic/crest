@@ -37,7 +37,7 @@ void UpdateFoam(uint3 id : SV_DispatchThreadID)
 	const float sliceIndexSource = clamp(id.z + _LODChange, 0.0, depth - 1.0);
 
 	const float2 input_uv = IDtoUV(id.xy, width, height);
-	const CascadeParams cascadeData = _CascadeData[sliceIndex];
+	const CascadeParams cascadeData = _CrestCascadeData[sliceIndex];
 	const float2 worldPosXZ = UVToWorld(input_uv, sliceIndex, cascadeData);
 	const float3 uv_slice = float3(input_uv, id.z);
 

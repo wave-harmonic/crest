@@ -78,11 +78,11 @@ half3 ScatterColour(
 
 		half2 shadowSoftHard = 0.0;
 		{
-			const float3 uv = WorldToUV(samplePoint, _CascadeData[slice0], slice0);
+			const float3 uv = WorldToUV(samplePoint, _CrestCascadeData[slice0], slice0);
 			SampleShadow(_LD_TexArray_Shadow, uv, 1.0 - lodAlpha, shadowSoftHard);
 		}
 		{
-			const float3 uv = WorldToUV(samplePoint, _CascadeData[slice1], slice1);
+			const float3 uv = WorldToUV(samplePoint, _CrestCascadeData[slice1], slice1);
 			SampleShadow(_LD_TexArray_Shadow, uv, lodAlpha, shadowSoftHard);
 		}
 

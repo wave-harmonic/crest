@@ -12,6 +12,7 @@ uint _LD_SliceIndex;
 CBUFFER_END
 
 // This must exactly match struct with same name in C#
+// :CascadeParams
 struct CascadeParams
 {
 	float2 _posSnapped;
@@ -27,6 +28,7 @@ struct CascadeParams
 StructuredBuffer<CascadeParams> _CrestCascadeData;
 
 // This must exactly match struct with same name in C#
+// :PerCascadeInstanceData
 struct PerCascadeInstanceData
 {
 	float _meshScaleLerp;

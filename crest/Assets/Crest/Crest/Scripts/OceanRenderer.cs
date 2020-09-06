@@ -291,6 +291,7 @@ namespace Crest
         BuildCommandBuffer _commandbufferBuilder;
 
         // This must exactly match struct with same name in HLSL
+        // :CascadeParams
         public struct CascadeParams
         {
             public Vector2 _posSnapped;
@@ -310,6 +311,7 @@ namespace Crest
         public ComputeBuffer _bufCascadeDataSrc;
 
         // This must exactly match struct with same name in HLSL
+        // :PerCascadeInstanceData
         public struct PerCascadeInstanceData
         {
             public float _meshScaleLerp;

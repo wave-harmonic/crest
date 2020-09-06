@@ -517,9 +517,9 @@ Shader "Crest/Ocean"
 				half3 n_pixel = n_geom;
 				#if _APPLYNORMALMAPPING_ON
 				#if _FLOW_ON
-				ApplyNormalMapsWithFlow(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, input.flow_shadow.xy, lodAlpha, cascadeData0, n_pixel);
+				ApplyNormalMapsWithFlow(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, input.flow_shadow.xy, lodAlpha, cascadeData0, _PerCascadeInstanceData[_LD_SliceIndex], n_pixel);
 				#else
-				n_pixel.xz += (underwater ? -1. : 1.) * SampleNormalMaps(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, lodAlpha, cascadeData0);
+				n_pixel.xz += (underwater ? -1. : 1.) * SampleNormalMaps(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, lodAlpha, cascadeData0, _PerCascadeInstanceData[_LD_SliceIndex]);
 				n_pixel = normalize(n_pixel);
 				#endif
 				#endif

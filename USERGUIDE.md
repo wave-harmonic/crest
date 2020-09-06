@@ -184,6 +184,8 @@ It stores two channels - one channel is normal shadowing, and the other jitters 
 
 The shadow sim can be configured by assigning a Shadow Sim Settings asset to the OceanRenderer script in your scene (*Create/Crest/Shadow Sim Settings*). In particular, the soft shadows are very soft by default, and may not appear for small/thin shadow casters. This can be configured using the *Jitter Diameter Soft* setting.
 
+There will be times when the shadow jitter settings will cause shadows or light to leak. An example of this is when trying to create a dark room during daylight. At the edges of the room the jittering will cause the ocean on the inside of the room (shadowed) to sample outside of the room (not shadowed) resulting in light at the edges. Reducing the *Jitter Diameter Soft* can solve this, but we have also provided a *Register Shadow Input* component which can override shadow data. This component bypasses jittering and gives you full control.
+
 Currently in the built-in render pipeline, shadows only work when the primary camera is set to Forward rendering.
 
 ## Flow

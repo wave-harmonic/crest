@@ -163,8 +163,23 @@ void UpdateShadow(uint3 id : SV_DispatchThreadID)
 		half shadowFade = saturate(sphereDist * _LightShadowData.z + _LightShadowData.w);
 
 		fixed2 shadowThisFrame;
-		shadowThisFrame.x = ComputeShadow(shadowCoords, _JitterDiameters_CurrentFrameWeights.x, cascadeWeights);
-		shadowThisFrame.y = ComputeShadow(shadowCoords, _JitterDiameters_CurrentFrameWeights.y, cascadeWeights);
+
+		// Add soft shadowing data.
+		shadowThisFrame[CREST_SHADOW_INDEX_SOFT] = ComputeShadow
+		(
+			shadowCoords,
+			_JitterDiameters_CurrentFrameWeights[CREST_SHADOW_INDEX_SOFT],
+			cascadeWeights
+		);
+
+		// Add hard shadowing data.
+		shadowThisFrame[CREST_SHADOW_INDEX_HARD] = ComputeShadow
+		(
+			shadowCoords,
+			_JitterDiameters_CurrentFrameWeights[CREST_SHADOW_INDEX_HARD],
+			cascadeWeights
+		);
+
 		shadowThisFrame = (fixed2)1.0 - saturate(shadowThisFrame + shadowFade);
 
 		shadow = lerp(shadow, shadowThisFrame, _JitterDiameters_CurrentFrameWeights.zw * _SimDeltaTime * 60.0);

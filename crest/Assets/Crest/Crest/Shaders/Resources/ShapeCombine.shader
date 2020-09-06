@@ -66,13 +66,14 @@ Shader "Hidden/Crest/Simulation/Combine Animated Wave LODs"
 			half4 Frag(Varyings input) : SV_Target
 			{
 				float3 uv_thisLod = float3(input.uv, _LD_SliceIndex);
+				const CascadeParams cascadeData0 = _CascadeData[_LD_SliceIndex];
+				const CascadeParams cascadeData1 = _CascadeData[_LD_SliceIndex + 1];
 
 				// go from uv out to world for the current shape texture
-				const float2 worldPosXZ = UVToWorld(input.uv, _LD_SliceIndex, _CascadeData[_LD_SliceIndex]);
+				const float2 worldPosXZ = UVToWorld(input.uv, _LD_SliceIndex, cascadeData0);
 
 				// sample the shape 1 texture at this world pos
-				const uint si = _LD_SliceIndex + 1;
-				const float3 uv_nextLod = WorldToUV(worldPosXZ, _CascadeData[si], si);
+				const float3 uv_nextLod = WorldToUV(worldPosXZ, cascadeData1, _LD_SliceIndex + 1);
 
 				float3 result = 0.0;
 				half sss = 0.0;
@@ -84,8 +85,8 @@ Shader "Hidden/Crest/Simulation/Combine Animated Wave LODs"
 				float2 offsets, weights;
 				Flow(offsets, weights);
 
-				const float3 uv_thisLod_flow_0 = WorldToUV(worldPosXZ - offsets[0] * flow, _CascadeData[_LD_SliceIndex], _LD_SliceIndex);
-				const float3 uv_thisLod_flow_1 = WorldToUV(worldPosXZ - offsets[1] * flow, _CascadeData[_LD_SliceIndex], _LD_SliceIndex);
+				const float3 uv_thisLod_flow_0 = WorldToUV(worldPosXZ - offsets[0] * flow, cascadeData0, _LD_SliceIndex);
+				const float3 uv_thisLod_flow_1 = WorldToUV(worldPosXZ - offsets[1] * flow, cascadeData0, _LD_SliceIndex);
 				SampleDisplacements(_LD_TexArray_WaveBuffer, uv_thisLod_flow_0, weights[0], result, sss);
 				SampleDisplacements(_LD_TexArray_WaveBuffer, uv_thisLod_flow_1, weights[1], result, sss);
 #else
@@ -115,7 +116,7 @@ Shader "Hidden/Crest/Simulation/Combine Animated Wave LODs"
 					half waveSimY = SampleLod(_LD_TexArray_DynamicWaves, uv_thisLod).x;
 					result.y += waveSimY;
 
-					const float2 invRes = float2(_CascadeData[_LD_SliceIndex]._oneOverTextureRes, 0.0);
+					const float2 invRes = float2(cascadeData0._oneOverTextureRes, 0.0);
 					const half waveSimY_px = SampleLod(_LD_TexArray_DynamicWaves, uv_thisLod + float3(invRes.xy, 0)).x;
 					const half waveSimY_nx = SampleLod(_LD_TexArray_DynamicWaves, uv_thisLod - float3(invRes.xy, 0)).x;
 					const half waveSimY_pz = SampleLod(_LD_TexArray_DynamicWaves, uv_thisLod + float3(invRes.yx, 0)).x;
@@ -123,12 +124,12 @@ Shader "Hidden/Crest/Simulation/Combine Animated Wave LODs"
 					// compute displacement from gradient of water surface - discussed in issue #18 and then in issue #47
 
 					// For gerstner waves, horiz displacement is proportional to derivative of vertical displacement multiplied by the wavelength
-					const float wavelength_mid = 2.0 * _CascadeData[_LD_SliceIndex]._texelWidth * 1.5;
+					const float wavelength_mid = 2.0 * cascadeData0._texelWidth * 1.5;
 					const float wavevector = 2.0 * 3.14159 / wavelength_mid;
-					const float2 dydx = (float2(waveSimY_px, waveSimY_pz) - float2(waveSimY_nx, waveSimY_nz)) / (2.0 * _CascadeData[_LD_SliceIndex]._texelWidth);
+					const float2 dydx = (float2(waveSimY_px, waveSimY_pz) - float2(waveSimY_nx, waveSimY_nz)) / (2.0 * cascadeData0._texelWidth);
 					float2 dispXZ = _HorizDisplace * dydx / wavevector;
 
-					const float maxDisp = _CascadeData[_LD_SliceIndex]._texelWidth * _DisplaceClamp;
+					const float maxDisp = cascadeData0._texelWidth * _DisplaceClamp;
 					dispXZ = clamp(dispXZ, -maxDisp, maxDisp);
 
 					result.xz += dispXZ;

@@ -50,7 +50,9 @@ uniform half3 _DiffuseShadow;
 half3 ScatterColour(
 	in const half i_surfaceOceanDepth, in const float3 i_cameraPos,
 	in const half3 i_lightDir, in const half3 i_view, in const fixed i_shadow,
-	in const bool i_underwater, in const bool i_outscatterLight, half sss)
+	in const bool i_underwater, in const bool i_outscatterLight, half sss,
+	in const float i_meshScaleLerp, in const float i_scaleBase,
+	in const CascadeParams cascadeData0)
 {
 	half depth;
 	half shadow = 1.0;
@@ -62,7 +64,7 @@ half3 ScatterColour(
 		// 2. for the underwater skirt geometry, we don't have the lod data sampled from the verts with lod transitions etc,
 		//    so just approximate by sampling at the camera position.
 		// this used to sample LOD1 but that doesnt work in last LOD, the data will be missing.
-		const float3 uv_smallerLod = WorldToUV(i_cameraPos.xz, _CascadeData[_LD_SliceIndex], _LD_SliceIndex);
+		const float3 uv_smallerLod = WorldToUV(i_cameraPos.xz, cascadeData0, _LD_SliceIndex);
 		depth = CREST_OCEAN_DEPTH_BASELINE;
 		SampleSeaDepth(_LD_TexArray_SeaFloorDepth, uv_smallerLod, 1.0, depth);
 
@@ -72,9 +74,7 @@ half3 ScatterColour(
 		// Pick lower res data for shadowing, helps to smooth out artifacts slightly
 		const float minSliceIndex = 4.0;
 		uint slice0, slice1; float lodAlpha;
-		const float meshScaleLerp = _PerCascadeInstanceData[_LD_SliceIndex]._meshScaleLerp;
-		const float scale_base = _CascadeData[0]._scale;
-		PosToSliceIndices(samplePoint, minSliceIndex, meshScaleLerp, scale_base, slice0, slice1, lodAlpha);
+		PosToSliceIndices(samplePoint, minSliceIndex, i_meshScaleLerp, i_scaleBase, slice0, slice1, lodAlpha);
 
 		half2 shadowSoftHard = 0.0;
 		{

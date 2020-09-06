@@ -127,7 +127,7 @@ Shader "Crest/Underwater Curtain"
 					if (abs(forward.y) < CREST_MAX_UPDOWN_AMOUNT)
 					{
 						// move vert in the up direction, but only to an extent, otherwise numerical issues can cause weirdness
-						o.positionWS += min(IntersectRayWithWaterSurface(o.positionWS, up), MAX_OFFSET) * up;
+						o.positionWS += min(IntersectRayWithWaterSurface(o.positionWS, up, _CascadeData[_LD_SliceIndex]), MAX_OFFSET) * up;
 
 						// Move the geometry towards the horizon. As noted above, the skirt will be stomped by the ocean
 						// surface render. If we project a bit towards the horizon to make a bit of overlap then we can reduce
@@ -190,13 +190,16 @@ Shader "Crest/Underwater Curtain"
 				const float sceneZ01 = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CameraDepthTexture, uvDepth).x;
 				const float sceneZ = LinearEyeDepth(sceneZ01);
 
+				const CascadeParams cascadeData0 = _CascadeData[_LD_SliceIndex];
+				const CascadeParams cascadeData1 = _CascadeData[_LD_SliceIndex + 1];
+
 				const float3 lightDir = _WorldSpaceLightPos0.xyz;
 				const half3 n_pixel = 0.0;
 				const half3 bubbleCol = 0.0;
 
 				float3 dummy = 0.0;
 				half sss = 0.;
-				const float3 uv_slice = WorldToUV(_WorldSpaceCameraPos.xz, _CascadeData[_LD_SliceIndex], _LD_SliceIndex);
+				const float3 uv_slice = WorldToUV(_WorldSpaceCameraPos.xz, cascadeData0, _LD_SliceIndex);
 				SampleDisplacements(_LD_TexArray_AnimatedWaves, uv_slice, 1.0, dummy, sss);
 
 				// depth and shadow are computed in ScatterColour when underwater==true, using the LOD1 texture.
@@ -205,14 +208,14 @@ Shader "Crest/Underwater Curtain"
 
 				const float meshScaleLerp = _PerCascadeInstanceData[_LD_SliceIndex]._meshScaleLerp;
 				const float baseCascadeScale = _CascadeData[0]._scale;
-				const half3 scatterCol = ScatterColour(depth, _WorldSpaceCameraPos, lightDir, view, shadow, true, true, sss, meshScaleLerp, baseCascadeScale, _CascadeData[_LD_SliceIndex]);
+				const half3 scatterCol = ScatterColour(depth, _WorldSpaceCameraPos, lightDir, view, shadow, true, true, sss, meshScaleLerp, baseCascadeScale, cascadeData0);
 
 				half3 sceneColour = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_BackgroundTexture, input.grabPos.xy / input.grabPos.w).rgb;
 
 #if _CAUSTICS_ON
 				if (sceneZ01 != 0.0)
 				{
-					ApplyCaustics(view, lightDir, sceneZ, _Normals, true, sceneColour, _CascadeData[_LD_SliceIndex], _CascadeData[_LD_SliceIndex + 1]);
+					ApplyCaustics(view, lightDir, sceneZ, _Normals, true, sceneColour, cascadeData0, cascadeData1]);
 				}
 #endif // _CAUSTICS_ON
 

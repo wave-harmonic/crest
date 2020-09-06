@@ -5,7 +5,12 @@
 // Setting this to 0.0 means that gometry at exactly the origin won't be handled
 // super-gracefully - but it would only affect a single-pixel in the worst-case
 // and would doubtfully be noticable anyway.
-const float2 CREST_SDF_UNINITIALISED_POSITION = float2(0.0, 0.0);
+const float2 CREST_SDF_UNINITIALISED_POSITION = float2(1.#INF, 1.#INF);
+
+bool IsUninitialisedPosition(in float2 position)
+{
+	return isinf(position.x);
+}
 
 // Convert compute shader id to uv texture coordinates
 float2 IDtoUV(in float2 i_id, in float i_width, in float i_height)

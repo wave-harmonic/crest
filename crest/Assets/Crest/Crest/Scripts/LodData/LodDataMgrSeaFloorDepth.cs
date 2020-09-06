@@ -23,7 +23,7 @@ namespace Crest
         public const string ShaderName = "Crest/Inputs/Depth/Cached Depths";
 
         // We want the null colour to be the depth where wave attenuation begins (1000 metres)
-        readonly static Color s_nullColor = new Color(1000f, 100f, 0f, 0f);
+        readonly static Color s_nullColor = new Color(1000f, 1000f, 0f, 0f);
         static Texture2DArray s_nullTexture2DArray;
 
         SettingsType _defaultSettings;

@@ -19,7 +19,6 @@ RWTexture2D<float2> _ToTexture;
 [numthreads(8,8,1)]
 void SdfJumpFlood(uint3 id : SV_DispatchThreadID)
 {
-	float2 uninitialisedPositionValue = CREST_SDF_UNINITIALISED_POSITION;
 	float2 currentNearestPoint = _FromTexture[id.xy];
 
 	bool rightIsInBounds = _textureDimension  - _jumpSize > id.x;
@@ -28,14 +27,14 @@ void SdfJumpFlood(uint3 id : SV_DispatchThreadID)
 	bool downIsInBounds  = id.y >= _jumpSize;
 
 	float2 candidatePositions[8];
-	candidatePositions[0] = upIsInBounds                      ? _FromTexture[id.xy + uint2(0,                       _jumpSize)] : currentNearestPoint;
-	candidatePositions[1] = upIsInBounds && rightIsInBounds   ? _FromTexture[id.xy + uint2(_jumpSize,               _jumpSize)] : currentNearestPoint;
-	candidatePositions[2] = rightIsInBounds                   ? _FromTexture[id.xy + uint2(_jumpSize,                       0)] : currentNearestPoint;
-	candidatePositions[3] = rightIsInBounds && downIsInBounds ? _FromTexture[id.xy + uint2(_jumpSize,        -(int) _jumpSize)] : currentNearestPoint;
-	candidatePositions[4] = downIsInBounds                    ? _FromTexture[id.xy + uint2(0,                -(int) _jumpSize)] : currentNearestPoint;
-	candidatePositions[5] = downIsInBounds && leftIsInBounds  ? _FromTexture[id.xy + uint2(-(int) _jumpSize, -(int) _jumpSize)] : currentNearestPoint;
-	candidatePositions[6] = leftIsInBounds                    ? _FromTexture[id.xy + uint2(-(int) _jumpSize,                0)] : currentNearestPoint;
-	candidatePositions[7] = leftIsInBounds && upIsInBounds    ? _FromTexture[id.xy + uint2(-(int) _jumpSize,        _jumpSize)] : currentNearestPoint;
+	candidatePositions[0] = upIsInBounds                      ? _FromTexture[id.xy + uint2(0                ,         _jumpSize)] : currentNearestPoint;
+	candidatePositions[1] = upIsInBounds && rightIsInBounds   ? _FromTexture[id.xy + uint2(_jumpSize        ,         _jumpSize)] : currentNearestPoint;
+	candidatePositions[2] = rightIsInBounds                   ? _FromTexture[id.xy + uint2(_jumpSize        ,                 0)] : currentNearestPoint;
+	candidatePositions[3] = rightIsInBounds && downIsInBounds ? _FromTexture[id.xy + uint2(_jumpSize        , - (int) _jumpSize)] : currentNearestPoint;
+	candidatePositions[4] = downIsInBounds                    ? _FromTexture[id.xy + uint2(0                , - (int) _jumpSize)] : currentNearestPoint;
+	candidatePositions[5] = downIsInBounds && leftIsInBounds  ? _FromTexture[id.xy + uint2(- (int) _jumpSize, - (int) _jumpSize)] : currentNearestPoint;
+	candidatePositions[6] = leftIsInBounds                    ? _FromTexture[id.xy + uint2(- (int) _jumpSize,                 0)] : currentNearestPoint;
+	candidatePositions[7] = leftIsInBounds && upIsInBounds    ? _FromTexture[id.xy + uint2(- (int) _jumpSize,         _jumpSize)] : currentNearestPoint;
 
 	{
 		float2 currentPosition = IDtoWorld(id.xy, _textureDimension, _projectionToWorld);
@@ -47,7 +46,7 @@ void SdfJumpFlood(uint3 id : SV_DispatchThreadID)
 		}
 		for(int i = 0; i < 8; i++)
 		{
-			if(currentNearestPoint.x == uninitialisedPositionValue.x && currentNearestPoint.y == uninitialisedPositionValue.y)
+			if(IsUninitialisedPosition(currentNearestPoint))
 			{
 				currentNearestPoint = candidatePositions[i];
 				continue;

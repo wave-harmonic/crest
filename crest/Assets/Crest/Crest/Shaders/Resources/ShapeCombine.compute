@@ -26,7 +26,7 @@ float _DisplaceClamp;
 
 RWTexture2DArray<half4> _LD_TexArray_AnimatedWaves_Compute;
 
-void Flow(out float2 offsets, out float2 weights)
+void Flow(in const CascadeParams cascadeData, out float2 offsets, out float2 weights)
 {
 	const float period = 3.0 * _CascadeData[_LD_SliceIndex]._texelWidth;
 	const float half_period = period / 2.0;
@@ -100,7 +100,7 @@ void ShapeCombineBase(uint3 id)
 	SampleFlow(_LD_TexArray_Flow, uv_thisLod, 1.0, flow);
 
 	float2 offsets, weights;
-	Flow(offsets, weights);
+	Flow(cascadeData0, offsets, weights);
 
 	const float3 uv_thisLod_flow_0 = WorldToUV(worldPosXZ - offsets[0] * flow, cascadeData0, _LD_SliceIndex);
 	const float3 uv_thisLod_flow_1 = WorldToUV(worldPosXZ - offsets[1] * flow, cascadeData0, _LD_SliceIndex);

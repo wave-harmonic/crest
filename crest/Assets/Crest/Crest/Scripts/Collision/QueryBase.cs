@@ -587,5 +587,7 @@ namespace Crest
         }
 
         public int ResultGuidCount => _resultSegments != null ? _resultSegments.Count : 0;
+
+        public int RequestCount => _requests != null ? _requests.Count : 0;
     }
 }

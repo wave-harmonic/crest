@@ -16,12 +16,11 @@ RWStructuredBuffer<float3> _ResultDisplacements;
 #include "../OceanInputsDriven.hlsl"
 #include "../OceanHelpersNew.hlsl"
 
-float3 ComputeDisplacement(float2 undispPos, float minSlice)
+float3 ComputeDisplacement(float2 undispPos, float minSlice, const float baseScale)
 {
 	uint slice0, slice1;
 	float lodAlpha;
-	const float scale_base = _CascadeData[0]._scale;
-	PosToSliceIndices(undispPos, minSlice, _MeshScaleLerp, scale_base, slice0, slice1, lodAlpha);
+	PosToSliceIndices(undispPos, minSlice, _MeshScaleLerp, baseScale, slice0, slice1, lodAlpha);
 
 	const float3 uv0 = WorldToUV(undispPos, _CascadeData[slice0], slice0);
 	const float3 uv1 = WorldToUV(undispPos, _CascadeData[slice1], slice1);
@@ -43,6 +42,7 @@ void CSMain(uint3 id : SV_DispatchThreadID)
 
 	const float gridSizeSlice0 = _CascadeData[0]._texelWidth;
 	const float minSlice = clamp(floor(log2(max(minGridSize / gridSizeSlice0, 1.0))), 0.0, _SliceCount - 1.0);
+	const float baseScale = _CascadeData[0]._scale;
 
 	// Perform iteration to invert the displacement vector field - find position that displaces to query position,
 	// and return displacement at that point.
@@ -50,12 +50,12 @@ void CSMain(uint3 id : SV_DispatchThreadID)
 	float2 undispPos = queryPosXZ;
 	for (int i = 0; i < 4; i++)
 	{
-		float3 displacement = ComputeDisplacement(undispPos, minSlice);
+		float3 displacement = ComputeDisplacement(undispPos, minSlice, baseScale);
 
 		float2 error = (undispPos + displacement.xz) - queryPosXZ;
 
 		undispPos -= error;
 	}
 
-	_ResultDisplacements[id.x] = ComputeDisplacement(undispPos, minSlice);
+	_ResultDisplacements[id.x] = ComputeDisplacement(undispPos, minSlice, baseScale);
 }

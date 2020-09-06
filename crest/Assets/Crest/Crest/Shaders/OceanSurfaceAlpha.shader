@@ -72,6 +72,9 @@ Shader "Crest/Ocean Surface Alpha"
 				UNITY_INITIALIZE_OUTPUT(Varyings, o);
 				UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
 
+				const CascadeParams cascadeData0 = _CascadeData[_LD_SliceIndex];
+				const CascadeParams cascadeData1 = _CascadeData[_LD_SliceIndex + 1];
+
 				// move to world
 				float3 worldPos;
 				worldPos.xz = mul(unity_ObjectToWorld, float4(input.positionOS, 1.0)).xz;
@@ -87,18 +90,17 @@ Shader "Crest/Ocean Surface Alpha"
 				half foam = 0.0;
 				half sss = 0.;
 				// sample weight. params.z allows shape to be faded out (used on last lod to support pop-less scale transitions)
-				const float cascadeWt0 = _CascadeData[_LD_SliceIndex]._weight;
+				const float cascadeWt0 = cascadeData0._weight;
 				float wt_smallerLod = (1.0 - lodAlpha) * cascadeWt0;
 				{
-					const float3 uv_slice = WorldToUV(worldPos.xz, _CascadeData[_LD_SliceIndex], _LD_SliceIndex);
+					const float3 uv_slice = WorldToUV(worldPos.xz, cascadeData0, _LD_SliceIndex);
 					SampleDisplacements(_LD_TexArray_AnimatedWaves, uv_slice, wt_smallerLod, worldPos, sss);
 				}
 				{
 					// sample weight. params.z allows shape to be faded out (used on last lod to support pop-less scale transitions)
-					const float cascadeWt1 = _CascadeData[_LD_SliceIndex + 1]._weight;
+					const float cascadeWt1 = cascadeData1._weight;
 					const float wt_biggerLod = (1.0 - wt_smallerLod) * cascadeWt1;
-					const uint si = _LD_SliceIndex + 1;
-					const float3 uv_slice = WorldToUV(worldPos.xz, _CascadeData[si], si);
+					const float3 uv_slice = WorldToUV(worldPos.xz, cascadeData1, _LD_SliceIndex + 1);
 					SampleDisplacements(_LD_TexArray_AnimatedWaves, uv_slice, wt_biggerLod, worldPos, sss);
 				}
 

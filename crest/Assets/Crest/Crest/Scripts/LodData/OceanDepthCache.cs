@@ -84,6 +84,7 @@ namespace Crest
 
         [PredicatedField("_generateSDF")]
         [Tooltip("How many additional Jump Flood Algorithm rounds to use - (over the standard log2(Resolution)"), SerializeField]
+        // additional rounds of jump flood can help reduce innacuracies from JFA, see paper for details.
         int _additionalJumpFloodRounds = 7;
 
         RenderTexture _depthCacheTexture;

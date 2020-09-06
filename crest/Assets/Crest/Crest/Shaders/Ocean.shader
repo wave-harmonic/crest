@@ -448,23 +448,25 @@ Shader "Crest/Ocean"
 				// We need this when sampling a screenspace texture.
 				UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
+				CascadeParams cascadeData0 = _CascadeData[_LD_SliceIndex];
+				CascadeParams cascadeData1 = _CascadeData[_LD_SliceIndex + 1];
+
 				const bool underwater = IsUnderwater(facing);
 				const float lodAlpha = input.lodAlpha_worldXZUndisplaced_oceanDepth.x;
-				const float wt_smallerLod = (1.0 - lodAlpha) * _CascadeData[_LD_SliceIndex]._weight;
-				const float wt_biggerLod = (1.0 - wt_smallerLod) * _CascadeData[_LD_SliceIndex + 1]._weight;
+				const float wt_smallerLod = (1.0 - lodAlpha) * cascadeData0._weight;
+				const float wt_biggerLod = (1.0 - wt_smallerLod) * cascadeData1._weight;
 
 				#if _CLIPSURFACE_ON
 				// Clip surface
 				half clipVal = 0.0;
 				if (wt_smallerLod > 0.001)
 				{
-					const float3 uv_slice_smallerLod = WorldToUV(input.worldPos.xz, _CascadeData[_LD_SliceIndex], _LD_SliceIndex);
+					const float3 uv_slice_smallerLod = WorldToUV(input.worldPos.xz, cascadeData0, _LD_SliceIndex);
 					SampleClip(_LD_TexArray_ClipSurface, uv_slice_smallerLod, wt_smallerLod, clipVal);
 				}
 				if (wt_biggerLod > 0.001)
 				{
-					const uint si = _LD_SliceIndex + 1;
-					const float3 uv_slice_biggerLod = WorldToUV(input.worldPos.xz, _CascadeData[si], si);
+					const float3 uv_slice_biggerLod = WorldToUV(input.worldPos.xz, cascadeData1, _LD_SliceIndex + 1);
 					SampleClip(_LD_TexArray_ClipSurface, uv_slice_biggerLod, wt_biggerLod, clipVal);
 				}
 				clipVal = lerp(_CrestClipByDefault, clipVal, wt_smallerLod + wt_biggerLod);
@@ -535,8 +537,8 @@ Shader "Crest/Ocean"
 				// Compute color of ocean - in-scattered light + refracted scene
 				const float meshScaleLerp = _PerCascadeInstanceData[_LD_SliceIndex]._meshScaleLerp;
 				const float baseCascadeScale = _CascadeData[0]._scale;
-				half3 scatterCol = ScatterColour(input.lodAlpha_worldXZUndisplaced_oceanDepth.w, _WorldSpaceCameraPos, lightDir, view, shadow.x, underwater, true, sss, meshScaleLerp, baseCascadeScale, _CascadeData[_LD_SliceIndex]);
-				half3 col = OceanEmission(view, n_pixel, lightDir, input.grabPos, pixelZ, uvDepth, sceneZ, sceneZ01, bubbleCol, _Normals, underwater, scatterCol, _CascadeData[_LD_SliceIndex], _CascadeData[_LD_SliceIndex + 1]);
+				half3 scatterCol = ScatterColour(input.lodAlpha_worldXZUndisplaced_oceanDepth.w, _WorldSpaceCameraPos, lightDir, view, shadow.x, underwater, true, sss, meshScaleLerp, baseCascadeScale, cascadeData0);
+				half3 col = OceanEmission(view, n_pixel, lightDir, input.grabPos, pixelZ, uvDepth, sceneZ, sceneZ01, bubbleCol, _Normals, underwater, scatterCol, cascadeData0, cascadeData1);
 
 				// Light that reflects off water surface
 

@@ -29,10 +29,9 @@ float ComputeLodAlpha(float3 i_worldPos, float i_meshScaleAlpha)
 	return lodAlpha;
 }
 
-void SnapAndTransitionVertLayout(float i_meshScaleAlpha, inout float3 io_worldPos, out float o_lodAlpha)
+void SnapAndTransitionVertLayout(float i_meshScaleAlpha, const float gridSize, inout float3 io_worldPos, out float o_lodAlpha)
 {
 	// Grid includes small "epsilon" to solve numerical issues.
-	float gridSize = _PerCascadeInstanceData[_LD_SliceIndex]._geoGridWidth;
 	const float GRID_SIZE_2 = 2.00000012 * gridSize, GRID_SIZE_4 = 4.0 * gridSize;
 
 	// snap the verts to the grid

@@ -293,14 +293,16 @@ Shader "Crest/Ocean"
 
 				const CascadeParams cascadeData0 = _CascadeData[_LD_SliceIndex];
 				const CascadeParams cascadeData1 = _CascadeData[_LD_SliceIndex + 1];
+				const PerCascadeInstanceData instanceData = _PerCascadeInstanceData[_LD_SliceIndex];
 
 				// Move to world space
 				o.worldPos = mul(unity_ObjectToWorld, float4(v.vertex.xyz, 1.0));
 
 				// Vertex snapping and lod transition
 				float lodAlpha;
-				const float meshScaleLerp = _PerCascadeInstanceData[_LD_SliceIndex]._meshScaleLerp;
-				SnapAndTransitionVertLayout(meshScaleLerp, o.worldPos, lodAlpha);
+				const float meshScaleLerp = instanceData._meshScaleLerp;
+				const float gridSize = instanceData._geoGridWidth;
+				SnapAndTransitionVertLayout(meshScaleLerp, gridSize, o.worldPos, lodAlpha);
 				o.lodAlpha_worldXZUndisplaced_oceanDepth.x = lodAlpha;
 				o.lodAlpha_worldXZUndisplaced_oceanDepth.yz = o.worldPos.xz;
 
@@ -451,6 +453,7 @@ Shader "Crest/Ocean"
 
 				const CascadeParams cascadeData0 = _CascadeData[_LD_SliceIndex];
 				const CascadeParams cascadeData1 = _CascadeData[_LD_SliceIndex + 1];
+				const PerCascadeInstanceData instanceData = _PerCascadeInstanceData[_LD_SliceIndex];
 
 				const bool underwater = IsUnderwater(facing);
 				const float lodAlpha = input.lodAlpha_worldXZUndisplaced_oceanDepth.x;
@@ -517,9 +520,9 @@ Shader "Crest/Ocean"
 				half3 n_pixel = n_geom;
 				#if _APPLYNORMALMAPPING_ON
 				#if _FLOW_ON
-				ApplyNormalMapsWithFlow(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, input.flow_shadow.xy, lodAlpha, cascadeData0, _PerCascadeInstanceData[_LD_SliceIndex], n_pixel);
+				ApplyNormalMapsWithFlow(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, input.flow_shadow.xy, lodAlpha, cascadeData0, instanceData, n_pixel);
 				#else
-				n_pixel.xz += (underwater ? -1. : 1.) * SampleNormalMaps(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, lodAlpha, cascadeData0, _PerCascadeInstanceData[_LD_SliceIndex]);
+				n_pixel.xz += (underwater ? -1. : 1.) * SampleNormalMaps(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, lodAlpha, cascadeData0, instanceData);
 				n_pixel = normalize(n_pixel);
 				#endif
 				#endif

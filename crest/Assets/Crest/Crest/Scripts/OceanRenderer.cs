@@ -4,7 +4,7 @@
 
 using System.Collections.Generic;
 using UnityEngine;
-using System.Runtime.InteropServices;
+using Unity.Collections.LowLevel.Unsafe;
 #if UNITY_EDITOR
 using UnityEngine.Rendering;
 using UnityEditor;
@@ -360,14 +360,14 @@ namespace Crest
             Instance = this;
             Scale = Mathf.Clamp(Scale, _minScale, _maxScale);
 
-            _bufPerCascadeInstanceData = new ComputeBuffer(_perCascadeInstanceData.Length, Marshal.SizeOf<PerCascadeInstanceData>());
+            _bufPerCascadeInstanceData = new ComputeBuffer(_perCascadeInstanceData.Length, UnsafeUtility.SizeOf<PerCascadeInstanceData>());
             Shader.SetGlobalBuffer("_CrestPerCascadeInstanceData", _bufPerCascadeInstanceData);
 
-            _bufCascadeDataTgt = new ComputeBuffer(_cascadeParamsTgt.Length, Marshal.SizeOf<CascadeParams>());
+            _bufCascadeDataTgt = new ComputeBuffer(_cascadeParamsTgt.Length, UnsafeUtility.SizeOf<CascadeParams>());
             Shader.SetGlobalBuffer(sp_cascadeData, _bufCascadeDataTgt);
 
             // Not used by graphics shaders, so not set globally (global does not work for compute)
-            _bufCascadeDataSrc = new ComputeBuffer(_cascadeParamsSrc.Length, Marshal.SizeOf<CascadeParams>());
+            _bufCascadeDataSrc = new ComputeBuffer(_cascadeParamsSrc.Length, UnsafeUtility.SizeOf<CascadeParams>());
 
             _lodTransform = new LodTransform();
             _lodTransform.InitLODData(_lodCount);

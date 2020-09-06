@@ -13,7 +13,7 @@ half4 SampleOceanDataAtWorldPosition(in Texture2DArray i_oceanData, in const flo
 {
 	// Sample ocean data textures - always lerp between 2 scales, so sample two textures
 
-	const float meshScaleLerp = _PerCascadeInstanceData[_LD_SliceIndex]._meshScaleLerp;
+	const float meshScaleLerp = _CrestPerCascadeInstanceData[_LD_SliceIndex]._meshScaleLerp;
 	const float3 posScaleBase = float3( _CrestCascadeData[0]._posSnapped, _CrestCascadeData[0]._scale);
 	float lodAlpha = ComputeLodAlpha(i_positionWS, meshScaleLerp, posScaleBase);
 

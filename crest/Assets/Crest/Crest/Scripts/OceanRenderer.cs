@@ -279,7 +279,7 @@ namespace Crest
         readonly int sp_lodAlphaBlackPointFade = Shader.PropertyToID("_CrestLodAlphaBlackPointFade");
         readonly int sp_lodAlphaBlackPointWhitePointFade = Shader.PropertyToID("_CrestLodAlphaBlackPointWhitePointFade");
         static int sp_ForceUnderwater = Shader.PropertyToID("_ForceUnderwater");
-        public static int sp_perCascadeInstanceData = Shader.PropertyToID("_PerCascadeInstanceData");
+        public static int sp_perCascadeInstanceData = Shader.PropertyToID("_CrestPerCascadeInstanceData");
         public static int sp_cascadeData = Shader.PropertyToID("_CrestCascadeData");
 
 #if UNITY_EDITOR
@@ -361,7 +361,7 @@ namespace Crest
             Scale = Mathf.Clamp(Scale, _minScale, _maxScale);
 
             _bufPerCascadeInstanceData = new ComputeBuffer(_perCascadeInstanceData.Length, Marshal.SizeOf<PerCascadeInstanceData>());
-            Shader.SetGlobalBuffer("_PerCascadeInstanceData", _bufPerCascadeInstanceData);
+            Shader.SetGlobalBuffer("_CrestPerCascadeInstanceData", _bufPerCascadeInstanceData);
 
             _bufCascadeDataTgt = new ComputeBuffer(_cascadeParamsTgt.Length, Marshal.SizeOf<CascadeParams>());
             Shader.SetGlobalBuffer(sp_cascadeData, _bufCascadeDataTgt);
@@ -657,7 +657,7 @@ namespace Crest
             Instance = null;
 
             sp_ForceUnderwater = Shader.PropertyToID("_ForceUnderwater");
-            sp_perCascadeInstanceData = Shader.PropertyToID("_PerCascadeInstanceData");
+            sp_perCascadeInstanceData = Shader.PropertyToID("_CrestPerCascadeInstanceData");
             sp_cascadeData = Shader.PropertyToID("_CrestCascadeData");
         }
 

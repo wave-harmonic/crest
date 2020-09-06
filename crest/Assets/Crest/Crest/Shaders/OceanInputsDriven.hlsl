@@ -37,7 +37,7 @@ struct PerCascadeInstanceData
 	float3 __padding;
 };
 
-StructuredBuffer<PerCascadeInstanceData> _PerCascadeInstanceData;
+StructuredBuffer<PerCascadeInstanceData> _CrestPerCascadeInstanceData;
 
 Texture2DArray _LD_TexArray_AnimatedWaves;
 Texture2DArray _LD_TexArray_WaveBuffer;

@@ -293,7 +293,7 @@ Shader "Crest/Ocean"
 
 				const CascadeParams cascadeData0 = _CrestCascadeData[_LD_SliceIndex];
 				const CascadeParams cascadeData1 = _CrestCascadeData[_LD_SliceIndex + 1];
-				const PerCascadeInstanceData instanceData = _PerCascadeInstanceData[_LD_SliceIndex];
+				const PerCascadeInstanceData instanceData = _CrestPerCascadeInstanceData[_LD_SliceIndex];
 
 				// Move to world space
 				o.worldPos = mul(unity_ObjectToWorld, float4(v.vertex.xyz, 1.0));
@@ -453,7 +453,7 @@ Shader "Crest/Ocean"
 
 				const CascadeParams cascadeData0 = _CrestCascadeData[_LD_SliceIndex];
 				const CascadeParams cascadeData1 = _CrestCascadeData[_LD_SliceIndex + 1];
-				const PerCascadeInstanceData instanceData = _PerCascadeInstanceData[_LD_SliceIndex];
+				const PerCascadeInstanceData instanceData = _CrestPerCascadeInstanceData[_LD_SliceIndex];
 
 				const bool underwater = IsUnderwater(facing);
 				const float lodAlpha = input.lodAlpha_worldXZUndisplaced_oceanDepth.x;

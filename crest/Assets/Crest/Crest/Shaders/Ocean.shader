@@ -291,6 +291,9 @@ Shader "Crest/Ocean"
 				UNITY_INITIALIZE_OUTPUT(Varyings, o);
 				UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
 
+				const CascadeParams cascadeData0 = _CascadeData[_LD_SliceIndex];
+				const CascadeParams cascadeData1 = _CascadeData[_LD_SliceIndex + 1];
+
 				// Move to world space
 				o.worldPos = mul(unity_ObjectToWorld, float4(v.vertex.xyz, 1.0));
 
@@ -309,15 +312,15 @@ Shader "Crest/Ocean"
 				// Sample shape textures - always lerp between 2 LOD scales, so sample two textures
 
 				// Calculate sample weights. params.z allows shape to be faded out (used on last lod to support pop-less scale transitions)
-				const float wt_smallerLod = (1. - lodAlpha) * _CascadeData[_LD_SliceIndex]._weight;
-				const float wt_biggerLod = (1. - wt_smallerLod) * _CascadeData[_LD_SliceIndex + 1]._weight;
+				const float wt_smallerLod = (1. - lodAlpha) * cascadeData0._weight;
+				const float wt_biggerLod = (1. - wt_smallerLod) * cascadeData1._weight;
 				// Sample displacement textures, add results to current world pos / normal / foam
 				const float2 positionWS_XZ_before = o.worldPos.xz;
 
 				// Data that needs to be sampled at the undisplaced position
 				if (wt_smallerLod > 0.001)
 				{
-					const float3 uv_slice_smallerLod = WorldToUV(positionWS_XZ_before, _CascadeData[_LD_SliceIndex], _LD_SliceIndex);
+					const float3 uv_slice_smallerLod = WorldToUV(positionWS_XZ_before, cascadeData0, _LD_SliceIndex);
 
 					#if !_DEBUGDISABLESHAPETEXTURES_ON
 					half sss = 0.;
@@ -334,8 +337,7 @@ Shader "Crest/Ocean"
 				}
 				if (wt_biggerLod > 0.001)
 				{
-					const uint si = _LD_SliceIndex + 1;
-					const float3 uv_slice_biggerLod = WorldToUV(positionWS_XZ_before, _CascadeData[si], si);
+					const float3 uv_slice_biggerLod = WorldToUV(positionWS_XZ_before, cascadeData1, _LD_SliceIndex + 1);
 
 					#if !_DEBUGDISABLESHAPETEXTURES_ON
 					half sss = 0.;
@@ -354,7 +356,7 @@ Shader "Crest/Ocean"
 				// Data that needs to be sampled at the displaced position
 				if (wt_smallerLod > 0.0001)
 				{
-					const float3 uv_slice_smallerLodDisp = WorldToUV(o.worldPos.xz, _CascadeData[_LD_SliceIndex], _LD_SliceIndex);
+					const float3 uv_slice_smallerLodDisp = WorldToUV(o.worldPos.xz, cascadeData0, _LD_SliceIndex);
 
 					#if _SUBSURFACESHALLOWCOLOUR_ON
 					// The minimum sampling weight is lower (0.0001) than others to fix shallow water colour popping.
@@ -370,8 +372,7 @@ Shader "Crest/Ocean"
 				}
 				if (wt_biggerLod > 0.0001)
 				{
-					const uint si = _LD_SliceIndex + 1;
-					const float3 uv_slice_biggerLodDisp = WorldToUV(o.worldPos.xz, _CascadeData[si], si);
+					const float3 uv_slice_biggerLodDisp = WorldToUV(o.worldPos.xz, cascadeData1, _LD_SliceIndex + 1);
 
 					#if _SUBSURFACESHALLOWCOLOUR_ON
 					// The minimum sampling weight is lower (0.0001) than others to fix shallow water colour popping.
@@ -448,8 +449,8 @@ Shader "Crest/Ocean"
 				// We need this when sampling a screenspace texture.
 				UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-				CascadeParams cascadeData0 = _CascadeData[_LD_SliceIndex];
-				CascadeParams cascadeData1 = _CascadeData[_LD_SliceIndex + 1];
+				const CascadeParams cascadeData0 = _CascadeData[_LD_SliceIndex];
+				const CascadeParams cascadeData1 = _CascadeData[_LD_SliceIndex + 1];
 
 				const bool underwater = IsUnderwater(facing);
 				const float lodAlpha = input.lodAlpha_worldXZUndisplaced_oceanDepth.x;
@@ -502,13 +503,13 @@ Shader "Crest/Ocean"
 				if (wt_smallerLod > 0.001)
 				{
 					const float3 uv_slice_smallerLod = WorldToUV(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, _CascadeData[_LD_SliceIndex], _LD_SliceIndex);
-					SampleDisplacementsNormals(_LD_TexArray_AnimatedWaves, uv_slice_smallerLod, wt_smallerLod, _CascadeData[_LD_SliceIndex]._oneOverTextureRes, _CascadeData[_LD_SliceIndex]._texelWidth, dummy, n_geom.xz, sss);
+					SampleDisplacementsNormals(_LD_TexArray_AnimatedWaves, uv_slice_smallerLod, wt_smallerLod, _CascadeData[_LD_SliceIndex]._oneOverTextureRes, cascadeData0._texelWidth, dummy, n_geom.xz, sss);
 				}
 				if (wt_biggerLod > 0.001)
 				{
 					const uint si = _LD_SliceIndex + 1;
 					const float3 uv_slice_biggerLod = WorldToUV(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, _CascadeData[si], si);
-					SampleDisplacementsNormals(_LD_TexArray_AnimatedWaves, uv_slice_biggerLod, wt_biggerLod, _CascadeData[_LD_SliceIndex + 1]._oneOverTextureRes, _CascadeData[_LD_SliceIndex + 1]._texelWidth, dummy, n_geom.xz, sss);
+					SampleDisplacementsNormals(_LD_TexArray_AnimatedWaves, uv_slice_biggerLod, wt_biggerLod, cascadeData1._oneOverTextureRes, cascadeData1._texelWidth, dummy, n_geom.xz, sss);
 				}
 				n_geom = normalize(n_geom);
 

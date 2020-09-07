@@ -26,6 +26,7 @@ crest/*.pidb
 crest/*.booproj
 crest/*.svd
 crest/*.pdb
+crest/.idea
 
 # Unity3D generated meta files
 crest/*.pidb.meta

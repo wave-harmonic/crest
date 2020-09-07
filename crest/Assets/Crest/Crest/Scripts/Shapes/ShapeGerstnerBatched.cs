@@ -470,16 +470,9 @@ namespace Crest
                 int numVecs = (numInBatch + 3) / 4;
                 mat.SetInt(sp_NumWaveVecs, numVecs);
                 mat.SetInt(LodDataMgr.sp_LD_SliceIndex, lodIdx - i);
-                OceanRenderer.Instance._lodDataAnimWaves.BindResultData(mat);
 
-                if (OceanRenderer.Instance._lodDataSeaDepths != null)
-                {
-                    OceanRenderer.Instance._lodDataSeaDepths.BindResultData(mat, false);
-                }
-                else
-                {
-                    LodDataMgrSeaFloorDepth.BindNull(mat, false);
-                }
+                LodDataMgrAnimWaves.Bind(mat);
+                LodDataMgrSeaFloorDepth.Bind(mat);
 
                 if (_directTowardsPoint)
                 {

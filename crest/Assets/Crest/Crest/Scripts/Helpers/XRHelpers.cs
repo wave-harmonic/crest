@@ -96,6 +96,19 @@ namespace Crest
             }
         }
 
+        // Double-wide is legacy single pass (single pass without instancing). It is being phased out.
+        public static bool IsDoubleWide
+        {
+            get
+            {
+                #if !_XR_ENABLED
+                    return false;
+                #endif
+
+                return IsOldSDKRunning && XRSettings.stereoRenderingMode == XRSettings.StereoRenderingMode.SinglePass; 
+            }
+        }
+
         public static bool IsLegacyRenderer => GraphicsSettings.currentRenderPipeline == null;
 
         // This is according to HDRP

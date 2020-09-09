@@ -39,7 +39,7 @@ Shader "Crest/Ocean Surface Alpha"
 			#include "OceanGlobals.hlsl"
 			#include "OceanInputsDriven.hlsl"
 			#include "OceanHelpersNew.hlsl"
-			#include "OceanHelpers.hlsl"
+			#include "OceanVertHelpers.hlsl"
 
 			sampler2D _MainTex;
 			float4 _MainTex_ST;
@@ -82,7 +82,7 @@ Shader "Crest/Ocean Surface Alpha"
 
 				// vertex snapping and lod transition
 				float meshScaleLerp = _CrestPerCascadeInstanceData[_LD_SliceIndex]._meshScaleLerp;
-				float lodAlpha = ComputeLodAlpha(worldPos, meshScaleLerp);
+				float lodAlpha = ComputeLodAlpha(worldPos, meshScaleLerp, cascadeData0);
 
 				// sample shape textures - always lerp between 2 scales, so sample two textures
 

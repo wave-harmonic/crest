@@ -280,7 +280,7 @@ Shader "Crest/Ocean"
 			#include "OceanGlobals.hlsl"
 			#include "OceanInputsDriven.hlsl"
 			#include "OceanHelpersNew.hlsl"
-			#include "OceanHelpers.hlsl"
+			#include "OceanVertHelpers.hlsl"
 
 			// Argument name is v because some macros like COMPUTE_EYEDEPTH require it.
 			Varyings Vert(Attributes v)
@@ -302,7 +302,7 @@ Shader "Crest/Ocean"
 				float lodAlpha;
 				const float meshScaleLerp = instanceData._meshScaleLerp;
 				const float gridSize = instanceData._geoGridWidth;
-				SnapAndTransitionVertLayout(meshScaleLerp, gridSize, o.worldPos, lodAlpha);
+				SnapAndTransitionVertLayout(meshScaleLerp, cascadeData0, gridSize, o.worldPos, lodAlpha);
 				o.lodAlpha_worldXZUndisplaced_oceanDepth.x = lodAlpha;
 				o.lodAlpha_worldXZUndisplaced_oceanDepth.yz = o.worldPos.xz;
 

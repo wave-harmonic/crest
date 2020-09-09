@@ -153,8 +153,10 @@ namespace Crest
                 _cameraFrustumPlanes = GeometryUtility.CalculateFrustumPlanes(_mainCamera);
                 _maskCommandBuffer = new CommandBuffer();
                 _maskCommandBuffer.name = "Ocean Mask Command Buffer";
-                // BeforeForwardAlpha breaks XR SPI right eye completely for MockHMD (not tested on XR hardware). This
-                // could either be a Unity bug or we have to restore a something after the command buffer is executed.
+                // @FixMe: BeforeForwardAlpha breaks XR SPI right eye completely for MockHMD (not tested on XR
+                // hardware). This could either be a Unity bug or we have to restore something after the command buffer
+                // is executed. BeforeForwardAlpha is necessary for features that rely on the ocean shader using the
+                // mask.
                 _mainCamera.AddCommandBuffer(
                     XRHelpers.IsSinglePass && !XRHelpers.IsDoubleWide
                         ? CameraEvent.AfterForwardAlpha

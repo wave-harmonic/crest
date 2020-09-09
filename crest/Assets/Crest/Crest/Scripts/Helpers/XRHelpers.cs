@@ -82,10 +82,12 @@ namespace Crest
                     return false;
                 #endif
 
-                if (IsLegacyRenderer || IsOldSDKRunning)
-                {
-                    return XRSettings.stereoRenderingMode != XRSettings.StereoRenderingMode.MultiPass;
-                }
+                #if _VR_MODULE_ENABLED
+                    if (IsOldSDKRunning)
+                    {
+                        return XRSettings.stereoRenderingMode != XRSettings.StereoRenderingMode.MultiPass;
+                    }
+                #endif
 
                 if (IsNewSDKRunning)
                 {
@@ -101,11 +103,11 @@ namespace Crest
         {
             get
             {
-                #if !_XR_ENABLED
+                #if _VR_MODULE_ENABLED
+                    return IsOldSDKRunning && XRSettings.stereoRenderingMode == XRSettings.StereoRenderingMode.SinglePass;
+                #else
                     return false;
                 #endif
-
-                return IsOldSDKRunning && XRSettings.stereoRenderingMode == XRSettings.StereoRenderingMode.SinglePass; 
             }
         }
 
@@ -117,7 +119,8 @@ namespace Crest
         // Unity only supports one display right now.
         public static XRDisplaySubsystem Display => IsNewSDKRunning ? _displayList[0] : null;
 
-        // This works for both old and new XR API in legacy renderer.
+        // This works for both old and new XR API in legacy renderer. If the VR module is disabled, this will be a
+        // compilation error, but an alternative is unknown at this point. Maybe once the new XR API improves.
         public static RenderTextureDescriptor EyeRenderTextureDescriptor => XRSettings.eyeTextureDesc;
 
         public static void SetViewProjectionMatrices(Camera camera, int viewIndex, int passIndex, CommandBuffer commandBuffer)

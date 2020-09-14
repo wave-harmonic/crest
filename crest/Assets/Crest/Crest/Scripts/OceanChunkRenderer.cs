@@ -178,9 +178,6 @@ namespace Crest
             normalsWaveLengthNext = minWaveLength;
             roughnessWaveLength = normalsWaveLength * 0.5f;
 
-            normalsWaveLengthIndex = (int)Mathf.Max(-1, OceanWaveSpectrum.OctaveIndex(normalsWaveLength)) * _dominantShapedGerstnerBatched._componentsPerOctave;
-            roughnessWaveLengthIndex = (int)Mathf.Max(-1, OceanWaveSpectrum.OctaveIndex(roughnessWaveLength)) * _dominantShapedGerstnerBatched._componentsPerOctave;
-
             normalsAmplitude = CalculateSmallDetailsStrength(normalsWaveLength, ref normalsWaveLengthIndex);
             normalsAmplitudeNext = CalculateSmallDetailsStrength(normalsWaveLengthNext, ref normalsWaveLengthNextIndex);
             roughnessAmplitude = CalculateSmallDetailsStrength(roughnessWaveLength, ref roughnessWaveLengthIndex);
@@ -196,7 +193,8 @@ namespace Crest
             var amplitude = 0f;
             if (waveLengthIndex >= 0)
             {
-                for (var i = 0; i < waveLengthIndex + _dominantShapedGerstnerBatched._componentsPerOctave; i++)
+                var maximumAmplitudeIndex = waveLengthIndex + _dominantShapedGerstnerBatched._componentsPerOctave;
+                for (var i = 0; i < maximumAmplitudeIndex; i++)
                 {
                     amplitude = Mathf.Max(amplitude, _dominantShapedGerstnerBatched._amplitudes[i]);
                 }

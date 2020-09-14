@@ -198,7 +198,7 @@ namespace Crest
             {
                 for (var i = 0; i < waveLengthIndex + _dominantShapedGerstnerBatched._componentsPerOctave; i++)
                 {
-                    amplitude = Mathf.Max(amplitude, _dominantShapedGerstnerBatched._amplitudes[waveLengthIndex]);
+                    amplitude = Mathf.Max(amplitude, _dominantShapedGerstnerBatched._amplitudes[i]);
                 }
             }
 

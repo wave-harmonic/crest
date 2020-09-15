@@ -23,9 +23,6 @@ namespace Crest
     public partial class UnderwaterEffect : MonoBehaviour
     {
         [Header("Copy params from Ocean material")]
-
-        [Tooltip("Copy ocean material settings on startup, to ensure consistent appearance between underwater effect and ocean surface."), SerializeField]
-        bool _copyParamsOnStartup = true;
         [Tooltip("Copy ocean material settings on each frame, to ensure consistent appearance between underwater effect and ocean surface. This should be turned off if you are not changing the ocean material values every frame."), SerializeField]
         bool _copyParamsEachFrame = true;
 
@@ -50,6 +47,8 @@ namespace Crest
 
         SampleHeightHelper _sampleWaterHeight = new SampleHeightHelper();
 
+        bool isMeniscus;
+
         private void Start()
         {
 #if UNITY_EDITOR
@@ -64,6 +63,8 @@ namespace Crest
             // Render before the surface mesh
             _rend.sortingOrder = _overrideSortingOrder ? _overridenSortingOrder : -LodDataMgr.MAX_LOD_COUNT - 1;
             GetComponent<MeshFilter>().sharedMesh = Mesh2DGrid(0, 2, -0.5f, -0.5f, 1f, 1f, GEOM_HORIZ_DIVISIONS, 1);
+
+            isMeniscus = _rend.material.shader.name.Contains("Meniscus");
 
 #if UNITY_EDITOR
             if (EditorApplication.isPlaying && !Validate(OceanRenderer.Instance, ValidatedHelper.DebugLog))
@@ -85,7 +86,7 @@ namespace Crest
             if (OceanRenderer.Instance == null) return;
 
             // Only execute when playing to stop CopyPropertiesFromMaterial from corrupting and breaking the material.
-            if (_copyParamsOnStartup)
+            if (!isMeniscus)
             {
                 _rend.material.CopyPropertiesFromMaterial(OceanRenderer.Instance.OceanMaterial);
             }
@@ -122,7 +123,7 @@ namespace Crest
             if (_rend.enabled)
             {
                 // Only execute when playing to stop CopyPropertiesFromMaterial from corrupting and breaking the material.
-                if (_copyParamsEachFrame)
+                if (!isMeniscus && _copyParamsEachFrame)
                 {
                     _rend.material.CopyPropertiesFromMaterial(OceanRenderer.Instance.OceanMaterial);
                 }
@@ -269,7 +270,7 @@ namespace Crest
                 isValid = false;
             }
             else if (renderer.sharedMaterial.shader.name == "Crest/Underwater Curtain" && ocean != null && ocean.OceanMaterial
-                && (!_copyParamsEachFrame && !_copyParamsOnStartup || EditorApplication.isPlaying && !_copyParamsEachFrame))
+                && (!_copyParamsEachFrame || EditorApplication.isPlaying && !_copyParamsEachFrame))
             {
                 // Check that enabled underwater material keywords are enabled on the ocean material.
                 var keywords = renderer.sharedMaterial.shaderKeywords;

@@ -46,11 +46,11 @@ namespace Crest
 
             if (shader.name == UnderwaterShaderName)
             {
-                ProcessUnderwaterShader(shader, snippet, data);
+                ProcessUnderwaterShader(shader, data);
             }
         }
 
-        public void ProcessUnderwaterShader(Shader shader, ShaderSnippetData snippet, IList<ShaderCompilerData> data)
+        public void ProcessUnderwaterShader(Shader shader, IList<ShaderCompilerData> data)
         {
             // This should not happen. There should always be at least one variant.
             if (data.Count == 0)

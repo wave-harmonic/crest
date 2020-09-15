@@ -67,7 +67,8 @@ namespace Crest
             {
                 // Each ShaderCompilerData is a variant which is a combination of keywords. Since each list will be
                 // different, simply getting a list of all keywords is not possible. This also appears to be the only
-                // way to get a list of keywords without trying to extract them from shader property names.
+                // way to get a list of keywords without trying to extract them from shader property names. Lastly,
+                // shader_feature will be returned only if they are enabled.
                 unusedShaderKeywords.UnionWith(data[i].shaderKeywordSet.GetShaderKeywords());
             }
 
@@ -75,18 +76,18 @@ namespace Crest
             var usedShaderKeywords = new List<ShaderKeyword>();
             foreach (var shaderKeyword in unusedShaderKeywords)
             {
-                // GetKeywordName will work for both global and local keywords.
-                var shaderKeywordName = ShaderKeyword.GetKeywordName(shader, shaderKeyword);
-
-                // Meniscus shader keyword will not be on ocean material.
-                if (shaderKeywordName.Contains("MENISCUS"))
+                // Do not handle built-in shader keywords.
+                if (ShaderKeyword.GetKeywordType(shader, shaderKeyword) != ShaderKeywordType.UserDefined)
                 {
                     usedShaderKeywords.Add(shaderKeyword);
                     continue;
                 }
 
-                // Instancing should not be determined by the ocean material.
-                if (shaderKeywordName.Contains("INSTANCING"))
+                // GetKeywordName will work for both global and local keywords.
+                var shaderKeywordName = ShaderKeyword.GetKeywordName(shader, shaderKeyword);
+
+                // Meniscus shader keyword will not be on ocean material.
+                if (shaderKeywordName.Contains("MENISCUS"))
                 {
                     usedShaderKeywords.Add(shaderKeyword);
                     continue;

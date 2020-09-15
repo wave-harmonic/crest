@@ -1,0 +1,17 @@
+{
+    "name": "Crest.Helpers.Editor",
+    "references": [
+        "GUID:5b35af79ebbe89647a157055d52c59d3"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -2,6 +2,10 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+// NOTE: ExecuteAlways has been removed as it causes the material to break. Keeping the implementation to be compatible
+// with ExecuteAlways as it might be re-introduced if a fix is found. It is very likely the underwater post-processing
+// branch will arrive before then though.
+
 using UnityEngine;
 
 #if UNITY_EDITOR
@@ -16,7 +20,6 @@ namespace Crest
     /// Handles effects that need to track the water surface. Feeds in wave data and disables rendering when
     /// not close to water.
     /// </summary>
-    [ExecuteAlways]
     public partial class UnderwaterEffect : MonoBehaviour
     {
         [Header("Copy params from Ocean material")]
@@ -82,9 +85,9 @@ namespace Crest
             if (OceanRenderer.Instance == null) return;
 
             // Only execute when playing to stop CopyPropertiesFromMaterial from corrupting and breaking the material.
-            if (_copyParamsOnStartup && Application.isPlaying)
+            if (_copyParamsOnStartup)
             {
-                _rend.sharedMaterial.CopyPropertiesFromMaterial(OceanRenderer.Instance.OceanMaterial);
+                _rend.material.CopyPropertiesFromMaterial(OceanRenderer.Instance.OceanMaterial);
             }
         }
 
@@ -119,9 +122,9 @@ namespace Crest
             if (_rend.enabled)
             {
                 // Only execute when playing to stop CopyPropertiesFromMaterial from corrupting and breaking the material.
-                if (_copyParamsEachFrame && Application.isPlaying)
+                if (_copyParamsEachFrame)
                 {
-                    _rend.sharedMaterial.CopyPropertiesFromMaterial(OceanRenderer.Instance.OceanMaterial);
+                    _rend.material.CopyPropertiesFromMaterial(OceanRenderer.Instance.OceanMaterial);
                 }
 
                 // Assign lod0 shape - trivial but bound every frame because lod transform comes from here

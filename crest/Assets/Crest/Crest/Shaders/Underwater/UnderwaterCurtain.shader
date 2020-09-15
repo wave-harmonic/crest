@@ -44,7 +44,7 @@ Shader "Crest/Underwater Curtain"
 			#pragma multi_compile_local __ _TRANSPARENCY_ON
 			#pragma multi_compile_local __ _CAUSTICS_ON
 			#pragma multi_compile_local __ _SHADOWS_ON
-			#pragma shader_feature_local _COMPILESHADERWITHDEBUGINFO_ON
+			#pragma multi_compile_local __ _COMPILESHADERWITHDEBUGINFO_ON
 
 			#if _COMPILESHADERWITHDEBUGINFO_ON
 			#pragma enable_d3d11_debug_symbols

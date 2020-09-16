@@ -39,6 +39,8 @@ Shader "Crest/Underwater Curtain"
 
 			#pragma multi_compile_instancing
 
+			// Use multi_compile because these keywords are copied over from the ocean material. With shader_feature,
+			// the keywords would be stripped from builds. Unused shader variants are stripped using a build processor.
 			#pragma multi_compile_local __ _SUBSURFACESCATTERING_ON
 			#pragma multi_compile_local __ _SUBSURFACESHALLOWCOLOUR_ON
 			#pragma multi_compile_local __ _TRANSPARENCY_ON

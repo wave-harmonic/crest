@@ -13,6 +13,9 @@ using UnityEngine.SceneManagement;
 
 namespace Crest
 {
+    /// <summary>
+    /// Optimises Crest for builds by stripping shader variants to reduce build times and size.
+    /// </summary>
     class BuildProcessor : IPreprocessShaders, IProcessSceneWithReport, IPostprocessBuildWithReport
     {
         public int callbackOrder => 0;
@@ -54,6 +57,9 @@ namespace Crest
             }
         }
 
+        /// <summary>
+        /// Strips shader variants from the underwater shader based on what features are enabled on the ocean material.
+        /// </summary>
         public void ProcessUnderwaterShader(Shader shader, IList<ShaderCompilerData> data)
         {
             // This should not happen. There should always be at least one variant.

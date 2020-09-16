@@ -125,12 +125,16 @@ namespace Crest
 
             this.shaderVarientStrippedCount += shaderVarientStrippedCount;
 
+#if CREST_DEBUG
             Debug.Log($"Crest: {shaderVarientStrippedCount} shader variants stripped of {shaderVariantCount} from {shader.name}.");
+#endif
         }
 
         public void OnPostprocessBuild(BuildReport report)
         {
+#if CREST_DEBUG
             Debug.Log($"Crest: Stripped {shaderVarientStrippedCount} shader variants of {shaderVariantCount} from Crest.");
+#endif
         }
     }
 }

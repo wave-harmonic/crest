@@ -35,8 +35,11 @@ namespace Crest
         static int sp_SpectrumDrivenNormals = Shader.PropertyToID("_SpectrumDrivenNormals");
         static int sp_SpectrumDrivenNormalsNext = Shader.PropertyToID("_SpectrumDrivenNormalsNext");
         static int sp_SpectrumDrivenRoughness = Shader.PropertyToID("_SpectrumDrivenRoughness");
+
+        // TODO: This should be a static list on the ShapeGerstnerBatched
         ShapeGerstnerBatched _dominantShapedGerstnerBatched;
-        // Storing these here temporarily so they can be viewed in inspector.
+
+        // NOTE: Storing these here temporarily so they can be viewed in inspector.
         public float maxWaveLength = 0;
         public float minWaveLength = 0;
         public float normalsWaveLength = 0;
@@ -54,6 +57,8 @@ namespace Crest
             Rend = GetComponent<Renderer>();
             _mesh = GetComponent<MeshFilter>().sharedMesh;
 
+            // TODO: How to handle multiple and local gerstners. Multiple gerstners should be simply taking the highest
+            // value. The only issue is with local gerstners, but they could be ignored for now.
             _dominantShapedGerstnerBatched = FindObjectOfType<ShapeGerstnerBatched>();
 
             UpdateMeshBounds();
@@ -171,6 +176,7 @@ namespace Crest
 
         public void DriveSmallDetailsStrength()
         {
+            // TODO: We could reduce work by only computing all of this once per lod index.
             maxWaveLength = OceanRenderer.Instance._lodTransform.MaxWavelength(_lodIndex);
             minWaveLength = maxWaveLength * 0.5f;
 
@@ -187,6 +193,7 @@ namespace Crest
             _mpb.SetFloat(sp_SpectrumDrivenRoughness, OceanRenderer.Instance.EnableSpectrumDrivenRoughness ? roughnessAmplitude : 1f);
         }
 
+        // NOTE: ref waveLengthIndex parameter is only used for debugging purposes. It will be removed.
         public float CalculateSmallDetailsStrength(float waveLength, ref int waveLengthIndex)
         {
             waveLengthIndex = (int)Mathf.Max(-1, OceanWaveSpectrum.OctaveIndex(waveLength)) * _dominantShapedGerstnerBatched._componentsPerOctave;

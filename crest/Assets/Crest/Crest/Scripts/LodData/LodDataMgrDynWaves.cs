@@ -105,23 +105,8 @@ namespace Crest
 
             // assign sea floor depth - to slot 1 current frame data. minor bug here - this depth will actually be from the previous frame,
             // because the depth is scheduled to render just before the animated waves, and this sim happens before animated waves.
-            if (OceanRenderer.Instance._lodDataSeaDepths != null)
-            {
-                OceanRenderer.Instance._lodDataSeaDepths.BindResultData(simMaterial);
-            }
-            else
-            {
-                LodDataMgrSeaFloorDepth.BindNull(simMaterial);
-            }
-
-            if (OceanRenderer.Instance._lodDataFlow != null)
-            {
-                OceanRenderer.Instance._lodDataFlow.BindResultData(simMaterial);
-            }
-            else
-            {
-                LodDataMgrFlow.BindNull(simMaterial);
-            }
+            LodDataMgrSeaFloorDepth.Bind(simMaterial);
+            LodDataMgrFlow.Bind(simMaterial);
         }
 
         public static void CountWaveSims(int countFrom, out int o_present, out int o_active)
@@ -169,9 +154,17 @@ namespace Crest
         {
             return ParamIdSampler(sourceLod);
         }
-        public static void BindNull(IPropertyWrapper properties, bool sourceLod = false)
+
+        public static void Bind(IPropertyWrapper properties)
         {
-            properties.SetTexture(ParamIdSampler(sourceLod), TextureArrayHelpers.BlackTextureArray);
+            if (OceanRenderer.Instance._lodDataDynWaves != null)
+            {
+                properties.SetTexture(OceanRenderer.Instance._lodDataDynWaves.GetParamIdSampler(), OceanRenderer.Instance._lodDataDynWaves.DataTexture);
+            }
+            else
+            {
+                properties.SetTexture(ParamIdSampler(), TextureArrayHelpers.BlackTextureArray);
+            }
         }
 
 #if UNITY_2019_3_OR_NEWER

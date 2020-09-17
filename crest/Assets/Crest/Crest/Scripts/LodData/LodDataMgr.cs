@@ -85,6 +85,9 @@ namespace Crest
             var resolution = OceanRenderer.Instance.LodDataResolution;
             var desc = new RenderTextureDescriptor(resolution, resolution, TextureFormat, 0);
             _targets = CreateLodDataTextures(desc, SimName, NeedToReadWriteTextureData);
+
+            // Bind globally once here on init, which will bind to all graphics shaders (not compute)
+            Shader.SetGlobalTexture(GetParamIdSampler(), _targets);
         }
 
         public virtual void UpdateLodData()
@@ -113,41 +116,6 @@ namespace Crest
             _scaleDifferencePow2 = Mathf.RoundToInt(ratio_l2);
         }
 
-        public void BindResultData(IPropertyWrapper properties, bool blendOut = true)
-        {
-            BindData(properties, _targets, blendOut, ref OceanRenderer.Instance._lodTransform._renderData);
-        }
-
-        // Avoid heap allocations instead BindData
-        protected Vector4[] _BindData_paramIdPosScales = new Vector4[MAX_LOD_COUNT + 1];
-        // Used in child
-        protected Vector4[] _BindData_paramIdOceans = new Vector4[MAX_LOD_COUNT + 1];
-        protected virtual void BindData(IPropertyWrapper properties, Texture applyData, bool blendOut, ref LodTransform.RenderData[] renderData, bool sourceLod = false)
-        {
-            if (applyData)
-            {
-                properties.SetTexture(GetParamIdSampler(sourceLod), applyData);
-            }
-
-            for (int lodIdx = 0; lodIdx < OceanRenderer.Instance.CurrentLodCount; lodIdx++)
-            {
-                // NOTE: gets zeroed by unity, see https://www.alanzucconi.com/2016/10/24/arrays-shaders-unity-5-4/
-                _BindData_paramIdPosScales[lodIdx] = new Vector4(
-                    renderData[lodIdx]._posSnapped.x, renderData[lodIdx]._posSnapped.z,
-                    OceanRenderer.Instance.CalcLodScale(lodIdx), 0f);
-                _BindData_paramIdOceans[lodIdx] = new Vector4(renderData[lodIdx]._texelWidth, renderData[lodIdx]._textureRes, 1f, 1f / renderData[lodIdx]._textureRes);
-            }
-
-            // Duplicate the last element as the shader accesses element {slice index + 1] in a few situations. This way going
-            // off the end of this parameter is the same as going off the end of the texture array with our clamped sampler.
-            _BindData_paramIdPosScales[OceanRenderer.Instance.CurrentLodCount] = _BindData_paramIdPosScales[OceanRenderer.Instance.CurrentLodCount - 1];
-            _BindData_paramIdOceans[OceanRenderer.Instance.CurrentLodCount] = _BindData_paramIdOceans[OceanRenderer.Instance.CurrentLodCount - 1];
-            // Never use this last lod - it exists to give 'something' but should not be used
-            _BindData_paramIdOceans[OceanRenderer.Instance.CurrentLodCount].z = 0f;
-
-            properties.SetVectorArray(LodTransform.ParamIdPosScale(sourceLod), _BindData_paramIdPosScales);
-            properties.SetVectorArray(LodTransform.ParamIdOcean(sourceLod), _BindData_paramIdOceans);
-        }
 
         public virtual void BuildCommandBuffer(OceanRenderer ocean, CommandBuffer buf)
         {
@@ -229,6 +197,8 @@ namespace Crest
         }
         internal virtual void OnDisable()
         {
+            // Unbind from all graphics shaders (not compute)
+            Shader.SetGlobalTexture(GetParamIdSampler(), null);
         }
 
 #if UNITY_2019_3_OR_NEWER

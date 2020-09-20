@@ -148,24 +148,9 @@ namespace Crest
             underwaterPostProcessMaterial.SetFloat(LodDataMgr.sp_LD_SliceIndex, 0);
             underwaterPostProcessMaterial.SetVector(sp_InstanceData, new Vector4(OceanRenderer.Instance.ViewerAltitudeLevelAlpha, 0f, 0f, OceanRenderer.Instance.CurrentLodCount));
 
-            OceanRenderer.Instance._lodDataAnimWaves.BindResultData(underwaterPostProcessMaterialWrapper);
-            if (OceanRenderer.Instance._lodDataSeaDepths != null)
-            {
-                OceanRenderer.Instance._lodDataSeaDepths.BindResultData(underwaterPostProcessMaterialWrapper);
-            }
-            else
-            {
-                LodDataMgrSeaFloorDepth.BindNull(underwaterPostProcessMaterialWrapper);
-            }
-
-            if (OceanRenderer.Instance._lodDataShadow != null)
-            {
-                OceanRenderer.Instance._lodDataShadow.BindResultData(underwaterPostProcessMaterialWrapper);
-            }
-            else
-            {
-                LodDataMgrShadow.BindNull(underwaterPostProcessMaterialWrapper);
-            }
+            LodDataMgrAnimWaves.Bind(underwaterPostProcessMaterialWrapper);
+            LodDataMgrSeaFloorDepth.Bind(underwaterPostProcessMaterialWrapper);
+            LodDataMgrShadow.Bind(underwaterPostProcessMaterialWrapper);
 
             float seaLevel = OceanRenderer.Instance.SeaLevel;
             {

@@ -19,9 +19,11 @@ namespace Crest
 
         protected override void BindInputsAndOutputs(PropertyWrapperComputeStandalone wrapper, ComputeBuffer resultsBuffer)
         {
-            OceanRenderer.Instance._lodDataAnimWaves.BindResultData(wrapper);
+            LodDataMgrAnimWaves.Bind(wrapper);
             ShaderProcessQueries.SetTexture(_kernelHandle, sp_LD_TexArray_AnimatedWaves, OceanRenderer.Instance._lodDataAnimWaves.DataTexture);
             ShaderProcessQueries.SetBuffer(_kernelHandle, sp_ResultDisplacements, resultsBuffer);
+
+            ShaderProcessQueries.SetBuffer(_kernelHandle, OceanRenderer.sp_cascadeData, OceanRenderer.Instance._bufCascadeDataTgt);
         }
 
         public int Query(int i_ownerHash, float i_minSpatialLength, Vector3[] i_queryPoints, float[] o_resultHeights, Vector3[] o_resultNorms, Vector3[] o_resultVels)

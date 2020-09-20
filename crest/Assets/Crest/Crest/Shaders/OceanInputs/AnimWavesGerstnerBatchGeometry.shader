@@ -75,7 +75,7 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Batch Geometry"
 				o.worldPosXZ_uv.xy = worldPos.xz;
 				o.worldPosXZ_uv.zw = input.uv;
 
-				o.uv_slice_wt.xyz = WorldToUV(o.worldPosXZ_uv.xy, _LD_Pos_Scale[_LD_SliceIndex], _LD_Params[_LD_SliceIndex], _LD_SliceIndex);
+				o.uv_slice_wt.xyz = WorldToUV(o.worldPosXZ_uv.xy, _CrestCascadeData[_LD_SliceIndex], _LD_SliceIndex);
 				o.uv_slice_wt.w = 1.0;
 
 #if _WEIGHTFROMVERTEXCOLOURRED_ON

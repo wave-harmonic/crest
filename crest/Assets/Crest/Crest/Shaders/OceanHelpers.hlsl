@@ -57,6 +57,11 @@ bool IsUnderwater(const float facing, const float forceUnderwater)
 	return backface || forceUnderwater > 0.0;
 }
 
+half3 AmbientLight()
+{
+	return half3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w);
+}
+
 // Clips using ocean surface clip data
 void ApplyOceanClipSurface(in const float3 io_positionWS, in const float i_lodAlpha)
 {

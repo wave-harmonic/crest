@@ -21,11 +21,6 @@ uniform half _WaveFoamSpecularFallOff;
 uniform half _WaveFoamSpecularBoost;
 uniform half _WaveFoamLightScale;
 
-half3 AmbientLight()
-{
-	return half3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w);
-}
-
 half WhiteFoamTexture(half i_foam, float2 i_worldXZUndisplaced, half lodVal, in const CascadeParams cascadeData0, in const CascadeParams cascadeData1)
 {
 	half ft = lerp(

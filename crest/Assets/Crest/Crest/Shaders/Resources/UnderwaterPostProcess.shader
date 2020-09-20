@@ -63,6 +63,9 @@ Shader "Crest/Underwater/Post Process"
 			#include "../OceanInputsDriven.hlsl"
 			#include "../OceanGlobals.hlsl"
 			#include "../OceanHelpersNew.hlsl"
+			#include "../OceanHelpersNew.hlsl"
+
+			half3 _AmbientLighting;
 
 			// In-built Unity textures
 			sampler2D _CameraDepthTexture;
@@ -137,7 +140,7 @@ Shader "Crest/Underwater/Post Process"
 					{
 						const float meshScaleLerp = _CrestPerCascadeInstanceData[sliceIndex]._meshScaleLerp;
 						const float baseCascadeScale = _CrestCascadeData[0]._scale;
-						scatterCol = ScatterColour(depth, _WorldSpaceCameraPos, lightDir, view, shadow, true, true, sss, meshScaleLerp, baseCascadeScale, _CrestCascadeData[sliceIndex]);
+						scatterCol = ScatterColour(_AmbientLighting, depth, _WorldSpaceCameraPos, lightDir, view, shadow, true, true, sss, meshScaleLerp, baseCascadeScale, _CrestCascadeData[sliceIndex]);
 					}
 				}
 

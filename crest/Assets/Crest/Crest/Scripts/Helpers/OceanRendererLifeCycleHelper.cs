@@ -29,7 +29,10 @@ namespace Crest
             OceanRenderer.OnOceanRendererDisabled += OnOceanRendererDisabled;
         }
 
-        ~OceanRendererLifeCycleHelper()
+        /// <summary>
+        /// Needs to be called to clean up resources. Destructors do not work when domain reload is disabled.
+        /// </summary>
+        public void OnDestroy()
         {
             OceanRenderer.OnOceanRendererEnabled -= OnOceanRendererEnabled;
             OceanRenderer.OnOceanRendererDisabled -= OnOceanRendererDisabled;
@@ -68,7 +71,6 @@ namespace Crest
             return true;
         }
 
-
         /// <summary>
         /// Sets enabled based on OceanRenderer's life cycle.
         /// </summary>
@@ -92,7 +94,7 @@ namespace Crest
 
 #if UNITY_EDITOR
             // We do not want to change a serialised value in edit mode.
-            if (Application.isPlaying && _monoBehaviour != null)
+            if (Application.isPlaying)
 #endif
             {
                 _monoBehaviour.enabled = _enabledUserPreference;
@@ -105,7 +107,7 @@ namespace Crest
             _isStateChangeFromUser = !_enabledUserPreference;
 #if UNITY_EDITOR
             // We do not want to change a serialised value in edit mode.
-            if (Application.isPlaying && _monoBehaviour != null)
+            if (Application.isPlaying)
 #endif
             {
                 _monoBehaviour.enabled = false;

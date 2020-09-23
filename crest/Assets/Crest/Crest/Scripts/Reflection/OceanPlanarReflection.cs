@@ -400,5 +400,10 @@ namespace Crest
                 _camReflections = null;
             }
         }
+
+        private void OnDestroy()
+        {
+            _oceanRendererLifeCycle.OnDestroy();
+        }
     }
 }

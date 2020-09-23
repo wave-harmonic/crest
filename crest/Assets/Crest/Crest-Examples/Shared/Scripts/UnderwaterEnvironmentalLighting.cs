@@ -87,6 +87,11 @@ namespace Crest
             _isInitialised = false;
         }
 
+        void OnDestroy()
+        {
+            _oceanRendererLifeCycle.OnDestroy();
+        }
+
         void LateUpdate()
         {
             if (OceanRenderer.Instance == null)

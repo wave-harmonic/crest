@@ -117,13 +117,18 @@ namespace Crest
         const int CULL_DISTANCE_COUNT = 32;
         float[] _cullDistances = new float[CULL_DISTANCE_COUNT];
 
+        OceanRendererLifeCycleHelper _oceanRendererLifeCycle;
+
+        private void Awake()
+        {
+            Debug.Log($"Awake");
+            _oceanRendererLifeCycle = new OceanRendererLifeCycleHelper(this);
+        }
+
         private void OnEnable()
         {
-            if (OceanRenderer.Instance == null)
+            if (!_oceanRendererLifeCycle.OnEnable())
             {
-                OceanRenderer.OnOceanRendererEnabled -= OnOceanRendererEnabled;
-                OceanRenderer.OnOceanRendererEnabled += OnOceanRendererEnabled;
-                enabled = false;
                 return;
             }
 
@@ -146,11 +151,6 @@ namespace Crest
                 Debug.LogWarning("Planar reflections are not enabled on the current ocean material and will not be visible.", this);
             }
 #endif
-        }
-
-        void OnOceanRendererEnabled()
-        {
-            enabled = true;
         }
 
         bool RequestRefresh(long frame)
@@ -382,6 +382,8 @@ namespace Crest
 
         private void OnDisable()
         {
+            _oceanRendererLifeCycle.OnDisable();
+
             if (_camViewpoint != null)
             {
                 PreparedReflections.Remove(_camViewpoint.GetHashCode());
@@ -398,13 +400,6 @@ namespace Crest
                 Destroy(_camReflections.gameObject);
                 _camReflections = null;
             }
-        }
-
-        private void OnDestroy()
-        {
-            // We need this event registered even when this component is disabled. So we unregister only when the
-            // component is destroyed.
-            OceanRenderer.OnOceanRendererEnabled -= OnOceanRendererEnabled;
         }
     }
 }

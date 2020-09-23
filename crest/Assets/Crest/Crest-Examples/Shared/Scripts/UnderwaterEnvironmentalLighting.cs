@@ -27,13 +27,17 @@ namespace Crest
 
         public const float DEPTH_OUTSCATTER_CONSTANT = 0.25f;
 
+        OceanRendererLifeCycleHelper _oceanRendererLifeCycle;
+
+        private void Awake()
+        {
+            _oceanRendererLifeCycle = new OceanRendererLifeCycleHelper(this);
+        }
+
         void OnEnable()
         {
-            if (OceanRenderer.Instance == null)
+            if (!_oceanRendererLifeCycle.OnEnable())
             {
-                OceanRenderer.OnOceanRendererEnabled -= OnOceanRendererEnabled;
-                OceanRenderer.OnOceanRendererEnabled += OnOceanRendererEnabled;
-                enabled = false;
                 return;
             }
 
@@ -61,6 +65,8 @@ namespace Crest
 
         void OnDisable()
         {
+            _oceanRendererLifeCycle.OnDisable();
+
             // Restore lighting settings
             if (_primaryLight)
             {
@@ -69,18 +75,6 @@ namespace Crest
             RenderSettings.ambientIntensity = _ambientIntensity;
             RenderSettings.reflectionIntensity = _reflectionIntensity;
             RenderSettings.fogDensity = _fogDensity;
-        }
-
-        private void OnDestroy()
-        {
-            // We need this event registered even when this component is disabled. So we unregister only when the
-            // component is destroyed.
-            OceanRenderer.OnOceanRendererEnabled -= OnOceanRendererEnabled;
-        }
-
-        void OnOceanRendererEnabled()
-        {
-            enabled = true;
         }
 
         void LateUpdate()

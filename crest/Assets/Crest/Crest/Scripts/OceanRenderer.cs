@@ -258,6 +258,7 @@ namespace Crest
 
         public static OceanRenderer Instance { get; private set; }
         public static System.Action OnOceanRendererEnabled;
+        public static System.Action OnOceanRendererDisabled;
 
         // We are computing these values to be optimal based on the base mesh vertex density.
         float _lodAlphaBlackPointFade;
@@ -362,6 +363,8 @@ namespace Crest
                 return;
             }
 #endif
+
+            OnOceanRendererDisabled?.Invoke();
 
             CleanUp();
 

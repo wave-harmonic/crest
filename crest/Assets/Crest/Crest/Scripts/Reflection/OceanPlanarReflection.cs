@@ -121,7 +121,6 @@ namespace Crest
 
         private void Awake()
         {
-            Debug.Log($"Awake");
             _oceanRendererLifeCycle = new OceanRendererLifeCycleHelper(this);
         }
 

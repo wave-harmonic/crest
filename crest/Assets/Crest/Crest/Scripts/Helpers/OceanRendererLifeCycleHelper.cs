@@ -20,7 +20,6 @@ namespace Crest
 
         public OceanRendererLifeCycleHelper(MonoBehaviour monoBehaviour)
         {
-            Debug.Log($"OceanRendererLifeCycleHelper {monoBehaviour}");
             _monoBehaviour = monoBehaviour;
             _enabledUserPreference = _monoBehaviour.enabled;
 

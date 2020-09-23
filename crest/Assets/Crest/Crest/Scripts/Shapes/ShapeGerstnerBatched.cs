@@ -221,14 +221,15 @@ namespace Crest
             }
         }
 
-        float _lastUpdateTime = -1f;
+        int _lastFrameForUpdateData = -1;
 
         void UpdateData()
         {
             if (OceanRenderer.Instance == null) return;
 
-            if (_lastUpdateTime >= OceanRenderer.Instance.CurrentTime) return;
-            _lastUpdateTime = OceanRenderer.Instance.CurrentTime;
+            // We only want this to be executed once per frame.
+            if (_lastFrameForUpdateData == OceanRenderer.FrameCount) return;
+            _lastFrameForUpdateData = OceanRenderer.FrameCount;
 
             if (_evaluateSpectrumAtRuntime)
             {
@@ -375,9 +376,6 @@ namespace Crest
 
             float twopi = 2f * Mathf.PI;
             float one_over_2pi = 1f / twopi;
-            float minWavelengthThisBatch = OceanRenderer.Instance._lodTransform.MaxWavelength(lodIdx) / 2f;
-            float maxWavelengthCurrentlyRendering = OceanRenderer.Instance._lodTransform.MaxWavelength(OceanRenderer.Instance.CurrentLodCount - 1);
-            float viewerAltitudeLevelAlpha = OceanRenderer.Instance.ViewerAltitudeLevelAlpha;
 
             // register any nonzero components
             for (int i = 0; i < numComponents; i++)
@@ -472,16 +470,9 @@ namespace Crest
                 int numVecs = (numInBatch + 3) / 4;
                 mat.SetInt(sp_NumWaveVecs, numVecs);
                 mat.SetInt(LodDataMgr.sp_LD_SliceIndex, lodIdx - i);
-                OceanRenderer.Instance._lodDataAnimWaves.BindResultData(mat);
 
-                if (OceanRenderer.Instance._lodDataSeaDepths != null)
-                {
-                    OceanRenderer.Instance._lodDataSeaDepths.BindResultData(mat, false);
-                }
-                else
-                {
-                    LodDataMgrSeaFloorDepth.BindNull(mat, false);
-                }
+                LodDataMgrAnimWaves.Bind(mat);
+                LodDataMgrSeaFloorDepth.Bind(mat);
 
                 if (_directTowardsPoint)
                 {

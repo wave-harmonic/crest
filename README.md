@@ -44,7 +44,7 @@ There is also a getting started video here: https://www.youtube.com/watch?v=qsge
 
 * Unity version:
   * The SRP assets on the Asset Store specify the minimum version required.
-  * Releases on this GitHub target the built-in render pipeline, and each release specifies which version of Unity it was developed on. Currently Unity 2019.1 or later is the minimum version. A legacy version which supports [2018.4](https://github.com/crest-ocean/crest/tree/legacy/unity-2018) is available here.
+  * Releases on this GitHub target the built-in render pipeline, and each release specifies which version of Unity it was developed on. Currently Unity 2019.4 or later is the minimum version. See further down for 2018.4 support.
 * *Crest* example content:
   * The content requires a layer named *Terrain* which should be added to your project.
   * The post processing package is used (for aesthetic reasons), if this is not present in your project you will see an unassigned script warning which you can fix by removing the offending script.
@@ -52,7 +52,7 @@ There is also a getting started video here: https://www.youtube.com/watch?v=qsge
 * [Shader compilation target](https://docs.unity3d.com/Manual/SL-ShaderCompileTargets.html) 4.5 or above
   * *Crest* unfortunately does not support OpenGL or WebGL backends
 
-# Releases
+# Installation
 
 One way to obtain *Crest* is take the latest version in the master branch by forking/cloning this repository or by using the green download button above.
 The files that should be copied into an existing project are under *crest/Assets/Crest*.
@@ -61,6 +61,9 @@ Note that *crest/Assets/Crest/Crest-Examples* contains example content that is u
 Releases of this version of *Crest* are published irregularly and posted on the [Releases page](https://github.com/huwb/crest-oceanrender/releases).
 Unity packages are uploaded with each release which can be imported into your project using *Assets/Import Package*.
 
+## 2018.4
+
+There is a [legacy branch] for 2018.4 support. A direct download to an archive is available [here](https://github.com/crest-ocean/crest/archive/legacy/unity-2018.zip). It is not actively developed.
 
 # Issues
 
@@ -71,3 +74,5 @@ There are a few issues worth calling out here:
 * Sky solutions such as Azure[Sky] requires some code to be added to the ocean shader for the fogging/scattering to work. This is a requirement of these products which typically come with instructions for what needs to be added. See the [wiki](https://github.com/crest-ocean/crest/wiki) for examples.
 * This built-in render pipeline version of crest requires the *Draw Instanced* option on terrains to be disabled at start time. It can be re-enabled subsequently after the depth cache is populated. See [issue #158](https://github.com/crest-ocean/crest/issues/158).
 * *Crest* does not support OpenGL or WebGL backends
+
+[legacy branch]: https://github.com/crest-ocean/crest/tree/legacy/unity-2018

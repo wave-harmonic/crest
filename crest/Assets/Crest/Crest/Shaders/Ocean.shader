@@ -171,6 +171,8 @@ Shader "Crest/Ocean"
 		[Header(Clip Surface)]
 		// Discards ocean surface pixels. Requires 'Create Clip Surface Data' enabled on OceanRenderer script.
 		[Toggle] _ClipSurface("Enable", Float) = 0
+		// Clips purely based on water depth
+		[Toggle] _ClipUnderTerrain("Clip Below Terrain (Requires depth cache)", Float) = 0
 
 		[Header(Debug Options)]
 		// Build shader with debug info which allows stepping through the code in a GPU debugger. I typically use RenderDoc or
@@ -215,29 +217,30 @@ Shader "Crest/Ocean"
 			#pragma multi_compile_fog
 			#pragma multi_compile_instancing
 
-			#pragma shader_feature _APPLYNORMALMAPPING_ON
-			#pragma shader_feature _COMPUTEDIRECTIONALLIGHT_ON
-			#pragma shader_feature _DIRECTIONALLIGHTVARYROUGHNESS_ON
-			#pragma shader_feature _SUBSURFACESCATTERING_ON
-			#pragma shader_feature _SUBSURFACESHALLOWCOLOUR_ON
-			#pragma shader_feature _TRANSPARENCY_ON
-			#pragma shader_feature _CAUSTICS_ON
-			#pragma shader_feature _FOAM_ON
-			#pragma shader_feature _FOAM3DLIGHTING_ON
-			#pragma shader_feature _PLANARREFLECTIONS_ON
-			#pragma shader_feature _OVERRIDEREFLECTIONCUBEMAP_ON
+			#pragma shader_feature_local _APPLYNORMALMAPPING_ON
+			#pragma shader_feature_local _COMPUTEDIRECTIONALLIGHT_ON
+			#pragma shader_feature_local _DIRECTIONALLIGHTVARYROUGHNESS_ON
+			#pragma shader_feature_local _SUBSURFACESCATTERING_ON
+			#pragma shader_feature_local _SUBSURFACESHALLOWCOLOUR_ON
+			#pragma shader_feature_local _TRANSPARENCY_ON
+			#pragma shader_feature_local _CAUSTICS_ON
+			#pragma shader_feature_local _FOAM_ON
+			#pragma shader_feature_local _FOAM3DLIGHTING_ON
+			#pragma shader_feature_local _PLANARREFLECTIONS_ON
+			#pragma shader_feature_local _OVERRIDEREFLECTIONCUBEMAP_ON
 
-			#pragma shader_feature _PROCEDURALSKY_ON
-			#pragma shader_feature _UNDERWATER_ON
-			#pragma shader_feature _FLOW_ON
-			#pragma shader_feature _SHADOWS_ON
-			#pragma shader_feature _CLIPSURFACE_ON
+			#pragma shader_feature_local _PROCEDURALSKY_ON
+			#pragma shader_feature_local _UNDERWATER_ON
+			#pragma shader_feature_local _FLOW_ON
+			#pragma shader_feature_local _SHADOWS_ON
+			#pragma shader_feature_local _CLIPSURFACE_ON
+			#pragma shader_feature_local _CLIPUNDERTERRAIN_ON
 
-			#pragma shader_feature _DEBUGDISABLESHAPETEXTURES_ON
-			#pragma shader_feature _DEBUGVISUALISESHAPESAMPLE_ON
-			#pragma shader_feature _DEBUGVISUALISEFLOW_ON
-			#pragma shader_feature _DEBUGDISABLESMOOTHLOD_ON
-			#pragma shader_feature _COMPILESHADERWITHDEBUGINFO_ON
+			#pragma shader_feature_local _DEBUGDISABLESHAPETEXTURES_ON
+			#pragma shader_feature_local _DEBUGVISUALISESHAPESAMPLE_ON
+			#pragma shader_feature_local _DEBUGVISUALISEFLOW_ON
+			#pragma shader_feature_local _DEBUGDISABLESMOOTHLOD_ON
+			#pragma shader_feature_local _COMPILESHADERWITHDEBUGINFO_ON
 
 			#if _COMPILESHADERWITHDEBUGINFO_ON
 			#pragma enable_d3d11_debug_symbols
@@ -276,7 +279,6 @@ Shader "Crest/Ocean"
 			#include "OceanConstants.hlsl"
 			#include "OceanGlobals.hlsl"
 			#include "OceanInputsDriven.hlsl"
-			#include "OceanLODData.hlsl"
 			#include "OceanHelpersNew.hlsl"
 			#include "OceanHelpers.hlsl"
 
@@ -289,12 +291,22 @@ Shader "Crest/Ocean"
 				UNITY_INITIALIZE_OUTPUT(Varyings, o);
 				UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
 
+				// Scale up by small "epsilon" to solve numerical issues.
+				// :OceanGridPrecisionErrors
+				v.vertex.xyz *= 1.00001;
+
+				const CascadeParams cascadeData0 = _CrestCascadeData[_LD_SliceIndex];
+				const CascadeParams cascadeData1 = _CrestCascadeData[_LD_SliceIndex + 1];
+				const PerCascadeInstanceData instanceData = _CrestPerCascadeInstanceData[_LD_SliceIndex];
+
 				// Move to world space
 				o.worldPos = mul(unity_ObjectToWorld, float4(v.vertex.xyz, 1.0));
 
 				// Vertex snapping and lod transition
 				float lodAlpha;
-				SnapAndTransitionVertLayout(_InstanceData.x, o.worldPos, lodAlpha);
+				const float meshScaleLerp = instanceData._meshScaleLerp;
+				const float gridSize = instanceData._geoGridWidth;
+				SnapAndTransitionVertLayout(meshScaleLerp, gridSize, o.worldPos, lodAlpha);
 				o.lodAlpha_worldXZUndisplaced_oceanDepth.x = lodAlpha;
 				o.lodAlpha_worldXZUndisplaced_oceanDepth.yz = o.worldPos.xz;
 
@@ -306,15 +318,15 @@ Shader "Crest/Ocean"
 				// Sample shape textures - always lerp between 2 LOD scales, so sample two textures
 
 				// Calculate sample weights. params.z allows shape to be faded out (used on last lod to support pop-less scale transitions)
-				const float wt_smallerLod = (1. - lodAlpha) * _LD_Params[_LD_SliceIndex].z;
-				const float wt_biggerLod = (1. - wt_smallerLod) * _LD_Params[_LD_SliceIndex + 1].z;
+				const float wt_smallerLod = (1. - lodAlpha) * cascadeData0._weight;
+				const float wt_biggerLod = (1. - wt_smallerLod) * cascadeData1._weight;
 				// Sample displacement textures, add results to current world pos / normal / foam
 				const float2 positionWS_XZ_before = o.worldPos.xz;
 
 				// Data that needs to be sampled at the undisplaced position
 				if (wt_smallerLod > 0.001)
 				{
-					const float3 uv_slice_smallerLod = WorldToUV(positionWS_XZ_before);
+					const float3 uv_slice_smallerLod = WorldToUV(positionWS_XZ_before, cascadeData0, _LD_SliceIndex);
 
 					#if !_DEBUGDISABLESHAPETEXTURES_ON
 					half sss = 0.;
@@ -331,7 +343,7 @@ Shader "Crest/Ocean"
 				}
 				if (wt_biggerLod > 0.001)
 				{
-					const float3 uv_slice_biggerLod = WorldToUV_BiggerLod(positionWS_XZ_before);
+					const float3 uv_slice_biggerLod = WorldToUV(positionWS_XZ_before, cascadeData1, _LD_SliceIndex + 1);
 
 					#if !_DEBUGDISABLESHAPETEXTURES_ON
 					half sss = 0.;
@@ -350,7 +362,7 @@ Shader "Crest/Ocean"
 				// Data that needs to be sampled at the displaced position
 				if (wt_smallerLod > 0.0001)
 				{
-					const float3 uv_slice_smallerLodDisp = WorldToUV(o.worldPos.xz);
+					const float3 uv_slice_smallerLodDisp = WorldToUV(o.worldPos.xz, cascadeData0, _LD_SliceIndex);
 
 					#if _SUBSURFACESHALLOWCOLOUR_ON
 					// The minimum sampling weight is lower (0.0001) than others to fix shallow water colour popping.
@@ -366,7 +378,7 @@ Shader "Crest/Ocean"
 				}
 				if (wt_biggerLod > 0.0001)
 				{
-					const float3 uv_slice_biggerLodDisp = WorldToUV_BiggerLod(o.worldPos.xz);
+					const float3 uv_slice_biggerLodDisp = WorldToUV(o.worldPos.xz, cascadeData1, _LD_SliceIndex + 1);
 
 					#if _SUBSURFACESHALLOWCOLOUR_ON
 					// The minimum sampling weight is lower (0.0001) than others to fix shallow water colour popping.
@@ -443,8 +455,36 @@ Shader "Crest/Ocean"
 				// We need this when sampling a screenspace texture.
 				UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
+				const CascadeParams cascadeData0 = _CrestCascadeData[_LD_SliceIndex];
+				const CascadeParams cascadeData1 = _CrestCascadeData[_LD_SliceIndex + 1];
+				const PerCascadeInstanceData instanceData = _CrestPerCascadeInstanceData[_LD_SliceIndex];
+
 				const bool underwater = IsUnderwater(facing);
 				const float lodAlpha = input.lodAlpha_worldXZUndisplaced_oceanDepth.x;
+				const float wt_smallerLod = (1.0 - lodAlpha) * cascadeData0._weight;
+				const float wt_biggerLod = (1.0 - wt_smallerLod) * cascadeData1._weight;
+
+				#if _CLIPSURFACE_ON
+				// Clip surface
+				half clipVal = 0.0;
+				if (wt_smallerLod > 0.001)
+				{
+					const float3 uv_slice_smallerLod = WorldToUV(input.worldPos.xz, cascadeData0, _LD_SliceIndex);
+					SampleClip(_LD_TexArray_ClipSurface, uv_slice_smallerLod, wt_smallerLod, clipVal);
+				}
+				if (wt_biggerLod > 0.001)
+				{
+					const float3 uv_slice_biggerLod = WorldToUV(input.worldPos.xz, cascadeData1, _LD_SliceIndex + 1);
+					SampleClip(_LD_TexArray_ClipSurface, uv_slice_biggerLod, wt_biggerLod, clipVal);
+				}
+				clipVal = lerp(_CrestClipByDefault, clipVal, wt_smallerLod + wt_biggerLod);
+				// Add 0.5 bias for LOD blending and texel resolution correction. This will help to tighten and smooth clipped edges
+				clip(-clipVal + 0.5);
+				#endif
+
+				#if _CLIPUNDERTERRAIN_ON
+				clip(input.lodAlpha_worldXZUndisplaced_oceanDepth.w + 2.0);
+				#endif
 
 				half3 view = normalize(_WorldSpaceCameraPos - input.worldPos);
 
@@ -464,42 +504,31 @@ Shader "Crest/Ocean"
 					;
 
 				// Normal - geom + normal mapping. Subsurface scattering.
-				const float3 uv_slice_smallerLod = WorldToUV(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz);
-				const float3 uv_slice_biggerLod = WorldToUV_BiggerLod(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz);
-				const float wt_smallerLod = (1. - lodAlpha) * _LD_Params[_LD_SliceIndex].z;
-				const float wt_biggerLod = (1. - wt_smallerLod) * _LD_Params[_LD_SliceIndex + 1].z;
 				float3 dummy = 0.;
 				half3 n_geom = half3(0.0, 1.0, 0.0);
 				half sss = 0.;
-				if (wt_smallerLod > 0.001) SampleDisplacementsNormals(_LD_TexArray_AnimatedWaves, uv_slice_smallerLod, wt_smallerLod, _LD_Params[_LD_SliceIndex].w, _LD_Params[_LD_SliceIndex].x, dummy, n_geom.xz, sss);
-				if (wt_biggerLod > 0.001) SampleDisplacementsNormals(_LD_TexArray_AnimatedWaves, uv_slice_biggerLod, wt_biggerLod, _LD_Params[_LD_SliceIndex + 1].w, _LD_Params[_LD_SliceIndex + 1].x, dummy, n_geom.xz, sss);
+				if (wt_smallerLod > 0.001)
+				{
+					const float3 uv_slice_smallerLod = WorldToUV(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, _CrestCascadeData[_LD_SliceIndex], _LD_SliceIndex);
+					SampleDisplacementsNormals(_LD_TexArray_AnimatedWaves, uv_slice_smallerLod, wt_smallerLod, _CrestCascadeData[_LD_SliceIndex]._oneOverTextureRes, cascadeData0._texelWidth, dummy, n_geom.xz, sss);
+				}
+				if (wt_biggerLod > 0.001)
+				{
+					const uint si = _LD_SliceIndex + 1;
+					const float3 uv_slice_biggerLod = WorldToUV(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, _CrestCascadeData[si], si);
+					SampleDisplacementsNormals(_LD_TexArray_AnimatedWaves, uv_slice_biggerLod, wt_biggerLod, cascadeData1._oneOverTextureRes, cascadeData1._texelWidth, dummy, n_geom.xz, sss);
+				}
 				n_geom = normalize(n_geom);
 
 				if (underwater) n_geom = -n_geom;
 				half3 n_pixel = n_geom;
 				#if _APPLYNORMALMAPPING_ON
 				#if _FLOW_ON
-				ApplyNormalMapsWithFlow(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, input.flow_shadow.xy, lodAlpha, n_pixel);
+				ApplyNormalMapsWithFlow(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, input.flow_shadow.xy, lodAlpha, cascadeData0, instanceData, n_pixel);
 				#else
-				n_pixel.xz += (underwater ? -1. : 1.) * SampleNormalMaps(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, lodAlpha);
+				n_pixel.xz += (underwater ? -1. : 1.) * SampleNormalMaps(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, lodAlpha, cascadeData0, instanceData);
 				n_pixel = normalize(n_pixel);
 				#endif
-				#endif
-
-				#if _CLIPSURFACE_ON
-				// Clip surface
-				half clipVal = 0.0;
-				if (wt_smallerLod > 0.001)
-				{
-					SampleClip(_LD_TexArray_ClipSurface, WorldToUV(input.worldPos.xz), wt_smallerLod, clipVal);
-				}
-				if (wt_biggerLod > 0.001)
-				{
-					SampleClip(_LD_TexArray_ClipSurface, WorldToUV_BiggerLod(input.worldPos.xz), wt_biggerLod, clipVal);
-				}
-				clipVal = lerp(_CrestClipByDefault, clipVal, wt_smallerLod + wt_biggerLod);
-				// Add 0.5 bias for LOD blending and texel resolution correction. This will help to tighten and smooth clipped edges
-				clip(-clipVal + 0.5);
 				#endif
 
 				// Foam - underwater bubbles and whitefoam
@@ -507,15 +536,17 @@ Shader "Crest/Ocean"
 				#if _FOAM_ON
 				half4 whiteFoamCol;
 				#if !_FLOW_ON
-				ComputeFoam(input.foam_screenPosXYW.x, input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, input.worldPos.xz, n_pixel, pixelZ, sceneZ, view, lightDir, shadow.y, lodAlpha, bubbleCol, whiteFoamCol);
+				ComputeFoam(input.foam_screenPosXYW.x, input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, input.worldPos.xz, n_pixel, pixelZ, sceneZ, view, lightDir, shadow.y, lodAlpha, bubbleCol, whiteFoamCol, cascadeData0, cascadeData1);
 				#else
-				ComputeFoamWithFlow(input.flow_shadow.xy, input.foam_screenPosXYW.x, input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, input.worldPos.xz, n_pixel, pixelZ, sceneZ, view, lightDir, shadow.y, lodAlpha, bubbleCol, whiteFoamCol);
+				ComputeFoamWithFlow(input.flow_shadow.xy, input.foam_screenPosXYW.x, input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, input.worldPos.xz, n_pixel, pixelZ, sceneZ, view, lightDir, shadow.y, lodAlpha, bubbleCol, whiteFoamCol, cascadeData0, cascadeData1);
 				#endif // _FLOW_ON
 				#endif // _FOAM_ON
 
 				// Compute color of ocean - in-scattered light + refracted scene
-				half3 scatterCol = ScatterColour(input.lodAlpha_worldXZUndisplaced_oceanDepth.w, _WorldSpaceCameraPos, lightDir, view, shadow.x, underwater, true, sss);
-				half3 col = OceanEmission(view, n_pixel, lightDir, input.grabPos, pixelZ, uvDepth, sceneZ, sceneZ01, bubbleCol, _Normals, underwater, scatterCol);
+				const float baseCascadeScale = _CrestCascadeData[0]._scale;
+				const float meshScaleLerp = instanceData._meshScaleLerp;
+				half3 scatterCol = ScatterColour(input.lodAlpha_worldXZUndisplaced_oceanDepth.w, _WorldSpaceCameraPos, lightDir, view, shadow.x, underwater, true, sss, meshScaleLerp, baseCascadeScale, cascadeData0);
+				half3 col = OceanEmission(view, n_pixel, lightDir, input.grabPos, pixelZ, uvDepth, sceneZ, sceneZ01, bubbleCol, _Normals, underwater, scatterCol, cascadeData0, cascadeData1);
 
 				// Light that reflects off water surface
 
@@ -571,4 +602,7 @@ Shader "Crest/Ocean"
 			ENDCG
 		}
 	}
+
+	// If the above doesn't work then error.
+	FallBack "Hidden/InternalErrorShader"
 }

@@ -11,10 +11,6 @@ using UnityEditor;
 using UnityEditor.Experimental.SceneManagement;
 #endif
 
-#if !UNITY_2019_4_OR_NEWER
-#error This version of Crest requires Unity 2019.4 or later.
-#endif
-
 namespace Crest
 {
     /// <summary>

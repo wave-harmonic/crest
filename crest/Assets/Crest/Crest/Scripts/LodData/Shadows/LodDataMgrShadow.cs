@@ -262,7 +262,9 @@ namespace Crest
                 // appears to be a Unity bug only for the legacy VR system.
                 if (_cameraMain.stereoEnabled && XRSettings.stereoRenderingMode == XRSettings.StereoRenderingMode.SinglePass)
                 {
+#if UNITY_2019_4_OR_NEWER
                     BufCopyShadowMap.SetSinglePassStereo(SinglePassStereoMode.None);
+#endif
                     BufCopyShadowMap.DisableShaderKeyword("UNITY_SINGLE_PASS_STEREO");
                 }
 
@@ -276,7 +278,9 @@ namespace Crest
                 // Restore single pass double-wide as we cannot rely on remaining pipeline to do it for us.
                 if (_cameraMain.stereoEnabled && XRSettings.stereoRenderingMode == XRSettings.StereoRenderingMode.SinglePass)
                 {
+#if UNITY_2019_4_OR_NEWER
                     BufCopyShadowMap.SetSinglePassStereo(SinglePassStereoMode.SideBySide);
+#endif
                     BufCopyShadowMap.EnableShaderKeyword("UNITY_SINGLE_PASS_STEREO");
                 }
             }

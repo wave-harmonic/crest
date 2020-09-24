@@ -87,14 +87,14 @@ namespace Crest
             foreach (var shaderKeyword in unusedShaderKeywords)
             {
                 // Do not handle built-in shader keywords.
-                if (ShaderKeyword.GetKeywordType(shader, shaderKeyword) != ShaderKeywordType.UserDefined)
+                if (shaderKeyword.GetKeywordType() != ShaderKeywordType.UserDefined)
                 {
                     usedShaderKeywords.Add(shaderKeyword);
                     continue;
                 }
 
                 // GetKeywordName will work for both global and local keywords.
-                var shaderKeywordName = ShaderKeyword.GetKeywordName(shader, shaderKeyword);
+                var shaderKeywordName = shaderKeyword.GetKeywordName();
 
                 // Meniscus shader keyword will not be on ocean material.
                 if (shaderKeywordName.Contains("MENISCUS"))

@@ -41,12 +41,21 @@ Shader "Crest/Underwater Curtain"
 
 			// Use multi_compile because these keywords are copied over from the ocean material. With shader_feature,
 			// the keywords would be stripped from builds. Unused shader variants are stripped using a build processor.
+			#if UNITY_VERSION >= 201910
 			#pragma multi_compile_local __ _SUBSURFACESCATTERING_ON
 			#pragma multi_compile_local __ _SUBSURFACESHALLOWCOLOUR_ON
 			#pragma multi_compile_local __ _TRANSPARENCY_ON
 			#pragma multi_compile_local __ _CAUSTICS_ON
 			#pragma multi_compile_local __ _SHADOWS_ON
 			#pragma multi_compile_local __ _COMPILESHADERWITHDEBUGINFO_ON
+			#else
+			#pragma multi_compile __ _SUBSURFACESCATTERING_ON
+			#pragma multi_compile __ _SUBSURFACESHALLOWCOLOUR_ON
+			#pragma multi_compile __ _TRANSPARENCY_ON
+			#pragma multi_compile __ _CAUSTICS_ON
+			#pragma multi_compile __ _SHADOWS_ON
+			#pragma multi_compile __ _COMPILESHADERWITHDEBUGINFO_ON
+			#endif
 
 			#if _COMPILESHADERWITHDEBUGINFO_ON
 			#pragma enable_d3d11_debug_symbols

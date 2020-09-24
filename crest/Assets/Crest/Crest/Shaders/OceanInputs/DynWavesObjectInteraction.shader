@@ -20,7 +20,7 @@ Shader "Crest/Inputs/Dynamic Waves/Object Interaction"
 			Blend One One
 			ZTest Always
 			ZWrite Off
-			
+
 			CGPROGRAM
 			#pragma vertex Vert
 			#pragma fragment Frag

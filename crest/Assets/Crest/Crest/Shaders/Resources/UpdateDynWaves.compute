@@ -9,10 +9,13 @@
 #define MIN_DT 0.00001
 
 #include "HLSLSupport.cginc"
+
 #include "../OceanGlobals.hlsl"
 #include "../OceanInputsDriven.hlsl"
-#include "../OceanLODData.hlsl"
 #include "../OceanHelpersNew.hlsl"
+
+StructuredBuffer<CascadeParams> _CascadeDataSrc;
+RWTexture2DArray<float2> _LD_TexArray_Target;
 
 CBUFFER_START(CrestPerMaterial)
 float _Damping;
@@ -31,8 +34,6 @@ float ComputeWaveSpeed(float wavelength, float g)
 	return sqrt(wavelength*g*one_over_2pi);
 }
 
-RWTexture2DArray<float2> _LD_TexArray_Target;
-
 [numthreads(THREAD_GROUP_SIZE_X, THREAD_GROUP_SIZE_Y, 1)]
 void UpdateDynWaves(uint3 id : SV_DispatchThreadID)
 {
@@ -43,8 +44,9 @@ void UpdateDynWaves(uint3 id : SV_DispatchThreadID)
 		_LD_TexArray_DynamicWaves_Source.GetDimensions(width, height, depth);
 	}
 	const float2 input_uv = IDtoUV(id.xy, width, height);
-	const float2 worldPosXZ = UVToWorld(input_uv, sliceIndex);
-	const float gridSize = _LD_Params[sliceIndex].x;
+	const CascadeParams cascadeData = _CrestCascadeData[sliceIndex];
+	const float2 worldPosXZ = UVToWorld(input_uv, sliceIndex, cascadeData);
+	const float gridSize = cascadeData._texelWidth;
 
 	// average wavelength for this scale
 	const float wavelength = 1.0 * _TexelsPerWave * gridSize;
@@ -57,7 +59,7 @@ void UpdateDynWaves(uint3 id : SV_DispatchThreadID)
 	const float3 uv_slice = float3(input_uv, sliceIndex);
 
 	const half2 velocity = SampleLod(_LD_TexArray_Flow, uv_slice).xy;
-	const float3 uv_source = WorldToUV_Source(worldPosXZ - (dt * velocity), sliceIndexSource);
+	const float3 uv_source = WorldToUV(worldPosXZ - (dt * velocity), _CascadeDataSrc[sliceIndexSource], sliceIndexSource);
 
 	// weighting for source position - weight 0 for off texture accesses to stop streaky artifacts
 	float2 distToEdge = min(uv_source.xy, 1.0 - uv_source.xy);
@@ -67,7 +69,7 @@ void UpdateDynWaves(uint3 id : SV_DispatchThreadID)
 	weightEdge = lerp(0.95, 1.0, weightEdge);
 
 	// compute axes of laplacian kernel - rotated every frame
-	const float e = _LD_Params_Source[sliceIndexSource].w; // assumes square RT
+	const float e = _CascadeDataSrc[sliceIndexSource]._oneOverTextureRes; // assumes square RT
 	//float3 X = float3(1.0, 0.0, 0.0);
 	const float3 X = float3(_LaplacianAxisX, 0.0);
 	const float3 Y = float3(-X.y, X.x, 0.0);

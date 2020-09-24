@@ -4,6 +4,9 @@
 
 using UnityEngine;
 
+/// <summary>
+/// Adds a sleep/freeze into the update, can be used to inflate the frame time.
+/// </summary>
 public class Sleeper : MonoBehaviour
 {
     public int _sleepMs = 0;

@@ -8,27 +8,38 @@
 #include "OceanConstants.hlsl"
 
 CBUFFER_START(CrestOceanSurfaceDrivenValues)
-// MeshScaleLerp, FarNormalsWeight, LODIndex (debug)
-float3 _InstanceData;
-
-// Geometry data
-// x: Grid size of lod data - size of lod data texel in world space.
-// y: Grid size of geometry - distance between verts in mesh.
-// zw: normalScrollSpeed0, normalScrollSpeed1
-float4 _GeomData;
-
-// Create two sets of LOD data, which have overloaded meaning depending on use:
-// * the ocean surface geometry always lerps from a more detailed LOD (0) to a less detailed LOD (1)
-// * simulations (persistent lod data) read last frame's data from slot 0, and any current frame data from slot 1
-// * any other use that does not fall into the previous categories can use either slot and generally use slot 0
-
-// _LD_Params: float4(world texel size, texture resolution, shape weight multiplier, 1 / texture resolution)
-float4 _LD_Params[MAX_LOD_COUNT + 1];
-float3 _LD_Pos_Scale[MAX_LOD_COUNT + 1];
 uint _LD_SliceIndex;
-float4 _LD_Params_Source[MAX_LOD_COUNT + 1];
-float3 _LD_Pos_Scale_Source[MAX_LOD_COUNT + 1];
 CBUFFER_END
+
+// This must exactly match struct with same name in C#
+// :CascadeParams
+struct CascadeParams
+{
+	float2 _posSnapped;
+	float _scale;
+	float _textureRes;
+	float _oneOverTextureRes;
+	float _texelWidth;
+	float _weight;
+	// Align to 32 bytes
+	float __padding;
+};
+
+StructuredBuffer<CascadeParams> _CrestCascadeData;
+
+// This must exactly match struct with same name in C#
+// :PerCascadeInstanceData
+struct PerCascadeInstanceData
+{
+	float _meshScaleLerp;
+	float _farNormalsWeight;
+	float _geoGridWidth;
+	float2 _normalScrollSpeeds;
+	// Align to 32 bytes
+	float3 __padding;
+};
+
+StructuredBuffer<PerCascadeInstanceData> _CrestPerCascadeInstanceData;
 
 Texture2DArray _LD_TexArray_AnimatedWaves;
 Texture2DArray _LD_TexArray_WaveBuffer;

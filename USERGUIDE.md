@@ -33,7 +33,7 @@ The steps to set up the ocean:
   * Set the Y coordinate of the position to the desired sea level.
 * Tag a primary camera as *MainCamera* if one is not tagged already, or provide the *Viewpoint* transform to the *OceanRenderer* script. If you need to switch between multiple cameras, update the *Viewpoint* field to ensure the ocean follows the correct view.
 * To add waves, create a new GameObject and add the *Shape Gerster Batched* component.
-  * On startup this script creates a default ocean shape. To edit the shape, create an asset of type *Crest/Ocean Wave Spectrum* and provide it to this script.
+  * On startup this script creates a default ocean shape. To edit the shape, right click in the Project view and select *Create/Crest/Ocean Wave Spectrum* and provide it to this script.
   * Smooth blending of ocean shapes can be achieved by adding multiple *Shape Gerstner Batched* scripts and crossfading them using the *Weight* parameter.
 * For geometry that should influence the ocean (attenuate waves, generate foam):
   * Static geometry should render ocean depth just once on startup into an *Ocean Depth Cache* - the island in the main scene in the example content demonstrates this.
@@ -183,6 +183,8 @@ To turn on this feature, enable the *Create Shadow Data* option on the *OceanRen
 It stores two channels - one channel is normal shadowing, and the other jitters the lookup and accumulates across many frames to blur and soften the shadow data. The latter channel is used to affect scattered light within the water volume.
 
 The shadow sim can be configured by assigning a Shadow Sim Settings asset to the OceanRenderer script in your scene (*Create/Crest/Shadow Sim Settings*). In particular, the soft shadows are very soft by default, and may not appear for small/thin shadow casters. This can be configured using the *Jitter Diameter Soft* setting.
+
+There will be times when the shadow jitter settings will cause shadows or light to leak. An example of this is when trying to create a dark room during daylight. At the edges of the room the jittering will cause the ocean on the inside of the room (shadowed) to sample outside of the room (not shadowed) resulting in light at the edges. Reducing the *Jitter Diameter Soft* can solve this, but we have also provided a *Register Shadow Input* component which can override shadow data. This component bypasses jittering and gives you full control.
 
 Currently in the built-in render pipeline, shadows only work when the primary camera is set to Forward rendering.
 
@@ -445,6 +447,9 @@ When rendering the ocean, the various LOD data are sample for each vert and the 
 
 **Can I sample the water height at a position from C#?**
 Yes, see *SampleHeightHelper*. *OceanRenderer* uses this helper to get the height of the viewer above the water, and makes this viewer height available via the *ViewerHeightAboveWater* property.
+
+**Can I trigger something when an object is above or under the ocean surface without any scripting knowledge?**
+The *OceanSampleHeightEvents* can be used for this purpose. It will invoke a *UnityEvent* when the attached game object is above or below the ocean surface once per state change.
 
 **Is Crest well suited for medium-to-low powered mobile devices?**
 Crest is built to be performant by design and has numerous quality/performance levers.

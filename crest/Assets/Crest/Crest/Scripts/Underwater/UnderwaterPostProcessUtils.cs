@@ -148,24 +148,9 @@ namespace Crest
             underwaterPostProcessMaterial.SetFloat(LodDataMgr.sp_LD_SliceIndex, 0);
             underwaterPostProcessMaterial.SetVector(sp_InstanceData, new Vector4(OceanRenderer.Instance.ViewerAltitudeLevelAlpha, 0f, 0f, OceanRenderer.Instance.CurrentLodCount));
 
-            OceanRenderer.Instance._lodDataAnimWaves.BindResultData(underwaterPostProcessMaterialWrapper);
-            if (OceanRenderer.Instance._lodDataSeaDepths != null)
-            {
-                OceanRenderer.Instance._lodDataSeaDepths.BindResultData(underwaterPostProcessMaterialWrapper);
-            }
-            else
-            {
-                LodDataMgrSeaFloorDepth.BindNull(underwaterPostProcessMaterialWrapper);
-            }
-
-            if (OceanRenderer.Instance._lodDataShadow != null)
-            {
-                OceanRenderer.Instance._lodDataShadow.BindResultData(underwaterPostProcessMaterialWrapper);
-            }
-            else
-            {
-                LodDataMgrShadow.BindNull(underwaterPostProcessMaterialWrapper);
-            }
+            LodDataMgrAnimWaves.Bind(underwaterPostProcessMaterialWrapper);
+            LodDataMgrSeaFloorDepth.Bind(underwaterPostProcessMaterialWrapper);
+            LodDataMgrShadow.Bind(underwaterPostProcessMaterialWrapper);
 
             float seaLevel = OceanRenderer.Instance.SeaLevel;
             {
@@ -176,7 +161,9 @@ namespace Crest
                 float seaLevelHeightDifference = camera.transform.position.y - seaLevel;
                 float waterHeightLevelDifference = seaLevelHeightDifference;
                 {
-                    sampleHeightHelper.Init(camera.transform.position, 0f);
+                    // Viewpoint and camera transform could be different so we will sample again instead of using
+                    // ViewerHeightAboveWater. Allow multiple samples per frame for multi-pass XR.
+                    sampleHeightHelper.Init(camera.transform.position, 0f, allowMultipleCallsPerFrame: true);
                     if (sampleHeightHelper.Sample(out var waterHeight))
                     {
                         waterHeightLevelDifference = camera.transform.position.y - waterHeight;

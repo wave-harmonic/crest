@@ -69,27 +69,13 @@ namespace Crest
             simMaterial.SetFloat(sp_ShorelineFoamStrength, Settings._shorelineFoamStrength);
 
             // assign animated waves - to slot 1 current frame data
-            OceanRenderer.Instance._lodDataAnimWaves.BindResultData(simMaterial);
+            LodDataMgrAnimWaves.Bind(simMaterial);
 
             // assign sea floor depth - to slot 1 current frame data
-            if (OceanRenderer.Instance._lodDataSeaDepths != null)
-            {
-                OceanRenderer.Instance._lodDataSeaDepths.BindResultData(simMaterial);
-            }
-            else
-            {
-                LodDataMgrSeaFloorDepth.BindNull(simMaterial);
-            }
+            LodDataMgrSeaFloorDepth.Bind(simMaterial);
 
             // assign flow - to slot 1 current frame data
-            if (OceanRenderer.Instance._lodDataFlow != null)
-            {
-                OceanRenderer.Instance._lodDataFlow.BindResultData(simMaterial);
-            }
-            else
-            {
-                LodDataMgrFlow.BindNull(simMaterial);
-            }
+            LodDataMgrFlow.Bind(simMaterial);
         }
 
         public override void GetSimSubstepData(float frameDt, out int numSubsteps, out float substepDt)
@@ -106,9 +92,17 @@ namespace Crest
         {
             return ParamIdSampler(sourceLod);
         }
-        public static void BindNull(IPropertyWrapper properties, bool sourceLod = false)
+
+        public static void Bind(IPropertyWrapper properties)
         {
-            properties.SetTexture(ParamIdSampler(sourceLod), TextureArrayHelpers.BlackTextureArray);
+            if (OceanRenderer.Instance._lodDataFoam != null)
+            {
+                properties.SetTexture(OceanRenderer.Instance._lodDataFoam.GetParamIdSampler(), OceanRenderer.Instance._lodDataFoam.DataTexture);
+            }
+            else
+            {
+                properties.SetTexture(ParamIdSampler(), TextureArrayHelpers.BlackTextureArray);
+            }
         }
 
 #if UNITY_2019_3_OR_NEWER

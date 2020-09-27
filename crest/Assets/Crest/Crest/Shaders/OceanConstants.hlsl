@@ -19,6 +19,10 @@
 // Bias ocean floor depth so that default (0) values in texture are not interpreted as shallow and generating foam everywhere
 #define CREST_OCEAN_DEPTH_BASELINE 1000.0
 
+// Soft shadows is red, hard shadows is green.
+#define CREST_SHADOW_INDEX_SOFT 0
+#define CREST_SHADOW_INDEX_HARD 1
+
 // Background
 #define UNDERWATER_MASK_NO_MASK 1.0
 // Water rendered from above

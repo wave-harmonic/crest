@@ -63,6 +63,7 @@ Shader "Crest/Underwater/Post Process"
 			#include "../OceanInputsDriven.hlsl"
 			#include "../OceanGlobals.hlsl"
 			#include "../OceanHelpersNew.hlsl"
+			#include "../OceanHelpersNew.hlsl"
 
 			half3 _AmbientLighting;
 
@@ -125,25 +126,28 @@ Shader "Crest/Underwater/Post Process"
 				const float3 lightDir = _WorldSpaceLightPos0.xyz;
 
 				half3 scatterCol = 0.0;
+				int sliceIndex = clamp(_DataSliceOffset, 0, _SliceCount - 2);
 				{
 					float3 dummy;
 					half sss = 0.0;
 					// Offset slice so that we dont get high freq detail. But never use last lod as this has crossfading.
-					int sliceIndex = clamp(_DataSliceOffset, 0, _SliceCount - 2);
-					const float3 uv_slice = WorldToUV(_WorldSpaceCameraPos.xz, _LD_Pos_Scale[sliceIndex], _LD_Params[sliceIndex], sliceIndex);
+					const float3 uv_slice = WorldToUV(_WorldSpaceCameraPos.xz, _CrestCascadeData[sliceIndex], sliceIndex);
 					SampleDisplacements(_LD_TexArray_AnimatedWaves, uv_slice, 1.0, dummy, sss);
 
 					// depth and shadow are computed in ScatterColour when underwater==true, using the LOD1 texture.
 					const float depth = 0.0;
 					const half shadow = 1.0;
-
-					scatterCol = ScatterColour(_AmbientLighting, depth, _WorldSpaceCameraPos, lightDir, view, shadow, true, true, sss);
+					{
+						const float meshScaleLerp = _CrestPerCascadeInstanceData[sliceIndex]._meshScaleLerp;
+						const float baseCascadeScale = _CrestCascadeData[0]._scale;
+						scatterCol = ScatterColour(_AmbientLighting, depth, _WorldSpaceCameraPos, lightDir, view, shadow, true, true, sss, meshScaleLerp, baseCascadeScale, _CrestCascadeData[sliceIndex]);
+					}
 				}
 
 #if _CAUSTICS_ON
 				if (sceneZ01 != 0.0 && !isOceanSurface)
 				{
-					ApplyCaustics(view, lightDir, sceneZ, _Normals, true, sceneColour);
+					ApplyCaustics(view, lightDir, sceneZ, _Normals, true, sceneColour, _CrestCascadeData[sliceIndex], _CrestCascadeData[sliceIndex + 1]);
 				}
 #endif // _CAUSTICS_ON
 

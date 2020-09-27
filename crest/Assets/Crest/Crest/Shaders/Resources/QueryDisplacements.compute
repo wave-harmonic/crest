@@ -16,17 +16,17 @@ RWStructuredBuffer<float3> _ResultDisplacements;
 #include "../OceanInputsDriven.hlsl"
 #include "../OceanHelpersNew.hlsl"
 
-float3 ComputeDisplacement(float2 undispPos, float minSlice)
+float3 ComputeDisplacement(float2 undispPos, float minSlice, const float baseScale)
 {
 	uint slice0, slice1;
 	float lodAlpha;
-	PosToSliceIndices(undispPos, minSlice, _MeshScaleLerp, _LD_Pos_Scale[0].z, slice0, slice1, lodAlpha);
+	PosToSliceIndices(undispPos, minSlice, _MeshScaleLerp, baseScale, slice0, slice1, lodAlpha);
 
-	const float3 uv0 = WorldToUV(undispPos, _LD_Pos_Scale[slice0], _LD_Params[slice0], slice0);
-	const float3 uv1 = WorldToUV(undispPos, _LD_Pos_Scale[slice1], _LD_Params[slice1], slice1);
+	const float3 uv0 = WorldToUV(undispPos, _CrestCascadeData[slice0], slice0);
+	const float3 uv1 = WorldToUV(undispPos, _CrestCascadeData[slice1], slice1);
 
-	const float wt_0 = (1. - lodAlpha) * _LD_Params[slice0].z;
-	const float wt_1 = (1. - wt_0) * _LD_Params[slice1].z;
+	const float wt_0 = (1. - lodAlpha) * _CrestCascadeData[slice0]._weight;
+	const float wt_1 = (1. - wt_0) * _CrestCascadeData[slice1]._weight;
 
 	return
 		wt_0 * _LD_TexArray_AnimatedWaves.SampleLevel(LODData_linear_clamp_sampler, uv0, 0).xyz +
@@ -40,8 +40,9 @@ void CSMain(uint3 id : SV_DispatchThreadID)
 	const float2 queryPosXZ = data.xy;
 	const float minGridSize = data.z;
 
-	const float gridSizeSlice0 = _LD_Params[0].x;
+	const float gridSizeSlice0 = _CrestCascadeData[0]._texelWidth;
 	const float minSlice = clamp(floor(log2(max(minGridSize / gridSizeSlice0, 1.0))), 0.0, _SliceCount - 1.0);
+	const float baseScale = _CrestCascadeData[0]._scale;
 
 	// Perform iteration to invert the displacement vector field - find position that displaces to query position,
 	// and return displacement at that point.
@@ -49,12 +50,12 @@ void CSMain(uint3 id : SV_DispatchThreadID)
 	float2 undispPos = queryPosXZ;
 	for (int i = 0; i < 4; i++)
 	{
-		float3 displacement = ComputeDisplacement(undispPos, minSlice);
+		float3 displacement = ComputeDisplacement(undispPos, minSlice, baseScale);
 
 		float2 error = (undispPos + displacement.xz) - queryPosXZ;
 
 		undispPos -= error;
 	}
 
-	_ResultDisplacements[id.x] = ComputeDisplacement(undispPos, minSlice);
+	_ResultDisplacements[id.x] = ComputeDisplacement(undispPos, minSlice, baseScale);
 }

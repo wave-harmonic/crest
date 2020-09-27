@@ -21,7 +21,7 @@ namespace Crest
         public int callbackOrder => 0;
         int shaderVariantCount = 0;
         int shaderVarientStrippedCount = 0;
-        string UnderwaterShaderName => "Crest/Underwater Curtain";
+        string UnderwaterShaderName => "Crest/Underwater/Post Process";
         readonly List<Material> _oceanMaterials = new List<Material>();
 
         public void OnProcessScene(Scene scene, BuildReport report)

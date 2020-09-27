@@ -37,7 +37,7 @@ namespace Crest
         public const int MinFilterOceanDataValue = 0;
         public const int MaxFilterOceanDataValue = LodDataMgr.MAX_LOD_COUNT - 2;
 
-        internal class UnderwaterSphericalHarmonicsData
+        public class UnderwaterSphericalHarmonicsData
         {
             internal Color[] _ambientLighting = new Color[1];
             internal Vector3[] _shDirections = { new Vector3(0.0f, 0.0f, 0.0f) };
@@ -48,7 +48,7 @@ namespace Crest
         internal const string FULL_SCREEN_EFFECT = "_FULL_SCREEN_EFFECT";
         internal const string DEBUG_VIEW_OCEAN_MASK = "_DEBUG_VIEW_OCEAN_MASK";
 
-        internal static void InitialiseMaskTextures(RenderTextureDescriptor desc, ref RenderTexture textureMask, ref RenderTexture depthBuffer)
+        public static void InitialiseMaskTextures(RenderTextureDescriptor desc, ref RenderTexture textureMask, ref RenderTexture depthBuffer)
         {
             // Note: we pass-through pixel dimensions explicitly as we have to handle this slightly differently in HDRP
             if (textureMask == null || textureMask.width != desc.width || textureMask.height != desc.height)
@@ -80,7 +80,7 @@ namespace Crest
 
         // Populates a screen space mask which will inform the underwater postprocess. As a future optimisation we may
         // be able to avoid this pass completely if we can reuse the camera depth after transparents are rendered.
-        internal static void PopulateOceanMask(
+        public static void PopulateOceanMask(
             CommandBuffer commandBuffer, Camera camera, List<OceanChunkRenderer> chunksToRender, Plane[] frustumPlanes,
             RenderTexture colorBuffer, RenderTexture depthBuffer,
             Material oceanMaskMaterial,
@@ -116,10 +116,10 @@ namespace Crest
 
         }
 
-        internal static void UpdatePostProcessMaterial(
-            RenderTexture source,
+        public static void UpdatePostProcessMaterial(
+            RenderTargetIdentifier source,
             Camera camera,
-            PropertyWrapperMaterial underwaterPostProcessMaterialWrapper,
+            IPropertyWrapper underwaterPostProcessMaterialWrapper,
             UnderwaterSphericalHarmonicsData sphericalHarmonicsData,
             SampleHeightHelper sampleHeightHelper,
             bool copyParamsFromOceanMaterial,
@@ -128,25 +128,25 @@ namespace Crest
             int dataSliceOffset
         )
         {
-            Material underwaterPostProcessMaterial = underwaterPostProcessMaterialWrapper.material;
+            // Material underwaterPostProcessMaterial = underwaterPostProcessMaterialWrapper.material;
             if (copyParamsFromOceanMaterial)
             {
                 // Measured this at approx 0.05ms on dell laptop
-                underwaterPostProcessMaterial.CopyPropertiesFromMaterial(OceanRenderer.Instance.OceanMaterial);
+                // underwaterPostProcessMaterial.CopyPropertiesFromMaterial(OceanRenderer.Instance.OceanMaterial);
             }
 
             // Enabling/disabling keywords each frame don't seem to have large measurable overhead
             if (debugViewPostProcessMask)
             {
-                underwaterPostProcessMaterial.EnableKeyword(DEBUG_VIEW_OCEAN_MASK);
+                // underwaterPostProcessMaterial.EnableKeyword(DEBUG_VIEW_OCEAN_MASK);
             }
             else
             {
-                underwaterPostProcessMaterial.DisableKeyword(DEBUG_VIEW_OCEAN_MASK);
+                // underwaterPostProcessMaterial.DisableKeyword(DEBUG_VIEW_OCEAN_MASK);
             }
 
-            underwaterPostProcessMaterial.SetFloat(LodDataMgr.sp_LD_SliceIndex, 0);
-            underwaterPostProcessMaterial.SetVector(sp_InstanceData, new Vector4(OceanRenderer.Instance.ViewerAltitudeLevelAlpha, 0f, 0f, OceanRenderer.Instance.CurrentLodCount));
+            underwaterPostProcessMaterialWrapper.SetFloat(LodDataMgr.sp_LD_SliceIndex, 0);
+            underwaterPostProcessMaterialWrapper.SetVector(sp_InstanceData, new Vector4(OceanRenderer.Instance.ViewerAltitudeLevelAlpha, 0f, 0f, OceanRenderer.Instance.CurrentLodCount));
 
             LodDataMgrAnimWaves.Bind(underwaterPostProcessMaterialWrapper);
             LodDataMgrSeaFloorDepth.Bind(underwaterPostProcessMaterialWrapper);
@@ -175,8 +175,8 @@ namespace Crest
                 }
             }
             {
-                underwaterPostProcessMaterial.SetFloat(sp_OceanHeight, seaLevel);
-                underwaterPostProcessMaterial.SetInt(sp_DataSliceOffset, dataSliceOffset);
+                underwaterPostProcessMaterialWrapper.SetFloat(sp_OceanHeight, seaLevel);
+                underwaterPostProcessMaterialWrapper.SetInt(sp_DataSliceOffset, dataSliceOffset);
 
                 float maxOceanVerticalDisplacement = OceanRenderer.Instance.MaxVertDisplacement * 0.5f;
                 float cameraYPosition = camera.transform.position.y;
@@ -203,15 +203,15 @@ namespace Crest
                 // We don't both setting the horizon value if we know we are going to be having to apply the post-processing
                 // effect full-screen anyway.
                 bool forceFullShader = (cameraYPosition + nearPlaneFrustumWorldHeight + maxOceanVerticalDisplacement) <= seaLevel;
-                underwaterPostProcessMaterial.SetFloat(sp_OceanHeight, seaLevel);
-                if (forceFullShader)
-                {
-                    underwaterPostProcessMaterial.EnableKeyword(FULL_SCREEN_EFFECT);
-                }
-                else
-                {
-                    underwaterPostProcessMaterial.DisableKeyword(FULL_SCREEN_EFFECT);
-                }
+                underwaterPostProcessMaterialWrapper.SetFloat(sp_OceanHeight, seaLevel);
+                // if (forceFullShader)
+                // {
+                //     underwaterPostProcessMaterial.EnableKeyword(FULL_SCREEN_EFFECT);
+                // }
+                // else
+                // {
+                //     underwaterPostProcessMaterial.DisableKeyword(FULL_SCREEN_EFFECT);
+                // }
 
             }
 
@@ -220,11 +220,11 @@ namespace Crest
             {
 
                 var inverseViewProjectionMatrix = (camera.projectionMatrix * camera.worldToCameraMatrix).inverse;
-                underwaterPostProcessMaterial.SetMatrix(sp_InvViewProjection, inverseViewProjectionMatrix);
+                underwaterPostProcessMaterialWrapper.SetMatrix(sp_InvViewProjection, inverseViewProjectionMatrix);
 
                 {
                     GetHorizonPosNormal(camera, Camera.MonoOrStereoscopicEye.Mono, seaLevel, horizonSafetyMarginMultiplier, out Vector2 pos, out Vector2 normal);
-                    underwaterPostProcessMaterial.SetVector(sp_HorizonPosNormal, new Vector4(pos.x, pos.y, normal.x, normal.y));
+                    underwaterPostProcessMaterialWrapper.SetVector(sp_HorizonPosNormal, new Vector4(pos.x, pos.y, normal.x, normal.y));
                 }
             }
             else
@@ -236,22 +236,22 @@ namespace Crest
                 camera.projectionMatrix = camera.GetStereoProjectionMatrix(Camera.StereoscopicEye.Left);
 
                 var inverseViewProjectionMatrix = (camera.GetStereoProjectionMatrix(Camera.StereoscopicEye.Left) * camera.GetStereoViewMatrix(Camera.StereoscopicEye.Left)).inverse;
-                underwaterPostProcessMaterial.SetMatrix(sp_InvViewProjection, inverseViewProjectionMatrix);
+                underwaterPostProcessMaterialWrapper.SetMatrix(sp_InvViewProjection, inverseViewProjectionMatrix);
 
                 {
                     GetHorizonPosNormal(camera, Camera.MonoOrStereoscopicEye.Left, seaLevel, horizonSafetyMarginMultiplier, out Vector2 pos, out Vector2 normal);
-                    underwaterPostProcessMaterial.SetVector(sp_HorizonPosNormal, new Vector4(pos.x, pos.y, normal.x, normal.y));
+                    underwaterPostProcessMaterialWrapper.SetVector(sp_HorizonPosNormal, new Vector4(pos.x, pos.y, normal.x, normal.y));
                 }
 
                 // We need to set the matrix ourselves. Maybe ViewportToWorldPoint has a bug.
                 camera.projectionMatrix = camera.GetStereoProjectionMatrix(Camera.StereoscopicEye.Right);
 
                 var inverseViewProjectionMatrixRightEye = (camera.GetStereoProjectionMatrix(Camera.StereoscopicEye.Right) * camera.GetStereoViewMatrix(Camera.StereoscopicEye.Right)).inverse;
-                underwaterPostProcessMaterial.SetMatrix(sp_InvViewProjectionRight, inverseViewProjectionMatrixRightEye);
+                underwaterPostProcessMaterialWrapper.SetMatrix(sp_InvViewProjectionRight, inverseViewProjectionMatrixRightEye);
 
                 {
                     GetHorizonPosNormal(camera, Camera.MonoOrStereoscopicEye.Right, seaLevel, horizonSafetyMarginMultiplier, out Vector2 pos, out Vector2 normal);
-                    underwaterPostProcessMaterial.SetVector(sp_HorizonPosNormalRight, new Vector4(pos.x, pos.y, normal.x, normal.y));
+                    underwaterPostProcessMaterialWrapper.SetVector(sp_HorizonPosNormalRight, new Vector4(pos.x, pos.y, normal.x, normal.y));
                 }
 
                 // Restore projection matrix.
@@ -259,7 +259,8 @@ namespace Crest
             }
 
             // Not sure why we need to do this - blit should set it...?
-            underwaterPostProcessMaterial.SetTexture(sp_MainTex, source);
+            // TODO(TRC):NowNow fix this
+            // underwaterPostProcessMaterial.SetTexture(sp_MainTex, source);
 
             // Compute ambient lighting SH
             {
@@ -272,7 +273,7 @@ namespace Crest
 
                 LightProbes.GetInterpolatedProbe(OceanRenderer.Instance.Viewpoint.position, null, out SphericalHarmonicsL2 sphericalHarmonicsL2);
                 sphericalHarmonicsL2.Evaluate(sphericalHarmonicsData._shDirections, sphericalHarmonicsData._ambientLighting);
-                underwaterPostProcessMaterial.SetVector(sp_AmbientLighting, sphericalHarmonicsData._ambientLighting[0]);
+                underwaterPostProcessMaterialWrapper.SetVector(sp_AmbientLighting, sphericalHarmonicsData._ambientLighting[0]);
 
                 UnityEngine.Profiling.Profiler.EndSample();
             }

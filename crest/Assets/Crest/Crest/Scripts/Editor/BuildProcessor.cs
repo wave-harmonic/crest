@@ -132,6 +132,7 @@ namespace Crest
                     {
                         data.RemoveAt(index--);
                         shaderVarientStrippedCount++;
+                        break;
                     }
                 }
             }

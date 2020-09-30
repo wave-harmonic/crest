@@ -96,8 +96,15 @@ namespace Crest
                 // GetKeywordName will work for both global and local keywords.
                 var shaderKeywordName = shaderKeyword.GetKeywordName();
 
-                // Meniscus shader keyword will not be on ocean material.
-                if (shaderKeywordName.Contains("MENISCUS"))
+                // These keywords will not be on ocean material.
+                if (shaderKeywordName.Contains("_MENISCUS") || shaderKeywordName.Contains("_FULL_SCREEN_EFFECT"))
+                {
+                    usedShaderKeywords.Add(shaderKeyword);
+                    continue;
+                }
+
+                // TODO: Strip this once post-processing is more unified.
+                if (shaderKeywordName.Contains("_DEBUG_VIEW_OCEAN_MASK"))
                 {
                     usedShaderKeywords.Add(shaderKeyword);
                     continue;
@@ -125,6 +132,7 @@ namespace Crest
                     {
                         data.RemoveAt(index--);
                         shaderVarientStrippedCount++;
+                        break;
                     }
                 }
             }

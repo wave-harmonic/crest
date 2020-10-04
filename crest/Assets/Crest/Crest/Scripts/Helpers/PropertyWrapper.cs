@@ -19,6 +19,8 @@ namespace Crest
         void SetTexture(int param, Texture value);
         void SetMatrix(int param, Matrix4x4 matrix);
         void SetInt(int param, int value);
+        void EnableKeyword(string keyword);
+        void DisableKeyword(string keyword);
     }
 
     [System.Serializable]
@@ -34,6 +36,8 @@ namespace Crest
         public void SetVectorArray(int param, Vector4[] value) { material.SetVectorArray(param, value); }
         public void SetMatrix(int param, Matrix4x4 value) { material.SetMatrix(param, value); }
         public void SetInt(int param, int value) { material.SetInt(param, value); }
+        public void EnableKeyword(string keyword) => material.EnableKeyword(keyword);
+        public void DisableKeyword(string keyword) => material.DisableKeyword(keyword);
 
         public Material material { get; private set; }
     }
@@ -49,6 +53,8 @@ namespace Crest
         public void SetVectorArray(int param, Vector4[] value) { materialPropertyBlock.SetVectorArray(param, value); }
         public void SetMatrix(int param, Matrix4x4 value) { materialPropertyBlock.SetMatrix(param, value); }
         public void SetInt(int param, int value) { materialPropertyBlock.SetInt(param, value); }
+        public void EnableKeyword(string keyword) => throw new System.NotImplementedException();
+        public void DisableKeyword(string keyword) => throw new System.NotImplementedException();
 
         public MaterialPropertyBlock materialPropertyBlock { get; private set; }
     }
@@ -78,6 +84,8 @@ namespace Crest
         public void SetVector(int param, Vector4 value) { _commandBuffer.SetComputeVectorParam(_computeShader, param, value); }
         public void SetVectorArray(int param, Vector4[] value) { _commandBuffer.SetComputeVectorArrayParam(_computeShader, param, value); }
         public void SetMatrix(int param, Matrix4x4 value) { _commandBuffer.SetComputeMatrixParam(_computeShader, param, value); }
+        public void EnableKeyword(string keyword) => throw new System.NotImplementedException();
+        public void DisableKeyword(string keyword) => throw new System.NotImplementedException();
     }
 
     [System.Serializable]
@@ -101,5 +109,7 @@ namespace Crest
         public void SetVector(int param, Vector4 value) { _computeShader.SetVector(param, value); }
         public void SetVectorArray(int param, Vector4[] value) { _computeShader.SetVectorArray(param, value); }
         public void SetMatrix(int param, Matrix4x4 value) { _computeShader.SetMatrix(param, value); }
+        public void EnableKeyword(string keyword) => throw new System.NotImplementedException();
+        public void DisableKeyword(string keyword) => throw new System.NotImplementedException();
     }
 }

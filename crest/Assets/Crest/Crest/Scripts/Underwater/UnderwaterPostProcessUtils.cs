@@ -129,21 +129,20 @@ namespace Crest
         )
         {
             // TODO(TRC):Now Re-enable this with a property wrapper abstraction
-            // Material underwaterPostProcessMaterial = underwaterPostProcessMaterialWrapper.material;
             if (copyParamsFromOceanMaterial)
             {
                 // Measured this at approx 0.05ms on dell laptop
-                // underwaterPostProcessMaterial.CopyPropertiesFromMaterial(OceanRenderer.Instance.OceanMaterial);
+                // underwaterPostProcessMaterialWrapper.CopyPropertiesFromMaterial(OceanRenderer.Instance.OceanMaterial);
             }
 
             // Enabling/disabling keywords each frame don't seem to have large measurable overhead
             if (debugViewPostProcessMask)
             {
-                // underwaterPostProcessMaterial.EnableKeyword(DEBUG_VIEW_OCEAN_MASK);
+                underwaterPostProcessMaterialWrapper.EnableKeyword(DEBUG_VIEW_OCEAN_MASK);
             }
             else
             {
-                // underwaterPostProcessMaterial.DisableKeyword(DEBUG_VIEW_OCEAN_MASK);
+                underwaterPostProcessMaterialWrapper.DisableKeyword(DEBUG_VIEW_OCEAN_MASK);
             }
 
             underwaterPostProcessMaterialWrapper.SetFloat(LodDataMgr.sp_LD_SliceIndex, 0);
@@ -204,16 +203,16 @@ namespace Crest
                 // We don't both setting the horizon value if we know we are going to be having to apply the post-processing
                 // effect full-screen anyway.
                 bool forceFullShader = (cameraYPosition + nearPlaneFrustumWorldHeight + maxOceanVerticalDisplacement) <= seaLevel;
-                // TODO(TRC):Now Re-enable this with a property wrapper abstraction
+
                 underwaterPostProcessMaterialWrapper.SetFloat(sp_OceanHeight, seaLevel);
-                // if (forceFullShader)
-                // {
-                //     underwaterPostProcessMaterial.EnableKeyword(FULL_SCREEN_EFFECT);
-                // }
-                // else
-                // {
-                //     underwaterPostProcessMaterial.DisableKeyword(FULL_SCREEN_EFFECT);
-                // }
+                if (forceFullShader)
+                {
+                    underwaterPostProcessMaterialWrapper.EnableKeyword(FULL_SCREEN_EFFECT);
+                }
+                else
+                {
+                    underwaterPostProcessMaterialWrapper.DisableKeyword(FULL_SCREEN_EFFECT);
+                }
 
             }
 
@@ -262,7 +261,7 @@ namespace Crest
 
             // Not sure why we need to do this - blit should set it...?
             // TODO(TRC):Now Re-enable this with a property wrapper abstraction
-            // underwaterPostProcessMaterial.SetTexture(sp_MainTex, source);
+            // underwaterPostProcessMaterialWrapper.SetTexture(sp_MainTex, source);
 
             // Compute ambient lighting SH
             {

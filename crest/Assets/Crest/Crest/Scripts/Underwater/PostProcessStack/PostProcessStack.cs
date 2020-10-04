@@ -10,6 +10,22 @@ using static Crest.UnderwaterPostProcessUtils;
 
 namespace Crest
 {
+    public class PropertyWrapperPropertySheet : IPropertyWrapper
+    {
+        public PropertyWrapperPropertySheet(PropertySheet propertySheet) => this.propertySheet = propertySheet;
+        public void SetFloat(int param, float value) => propertySheet.properties.SetFloat(param, value);
+        public void SetFloatArray(int param, float[] value) => propertySheet.properties.SetFloatArray(param, value);
+        public void SetTexture(int param, Texture value) => propertySheet.properties.SetTexture(param, value);
+        public void SetVector(int param, Vector4 value) => propertySheet.properties.SetVector(param, value);
+        public void SetVectorArray(int param, Vector4[] value) => propertySheet.properties.SetVectorArray(param, value);
+        public void SetMatrix(int param, Matrix4x4 value) => propertySheet.properties.SetMatrix(param, value);
+        public void SetInt(int param, int value) => propertySheet.properties.SetInt(param, value);
+        public void EnableKeyword(string keyword) => propertySheet.EnableKeyword(keyword);
+        public void DisableKeyword(string keyword) => propertySheet.DisableKeyword(keyword);
+
+        public PropertySheet propertySheet { get; private set; }
+    }
+
     public sealed class PostProcessStack : PostProcessEffectRenderer<PostProcessStackSettings>
     {
         private Material _underwaterPostProcessMaterial;
@@ -31,7 +47,7 @@ namespace Crest
         public override void Render(PostProcessRenderContext context)
         {
             PropertySheet underWaterPostProcessEffect = context.propertySheets.Get(Shader.Find("Crest/Underwater/Post Process Stack"));
-            PropertyWrapperMPB underwaterPostProcessMaterialWrapper = new PropertyWrapperMPB(underWaterPostProcessEffect.properties);
+            PropertyWrapperPropertySheet underwaterPostProcessMaterialWrapper = new PropertyWrapperPropertySheet(underWaterPostProcessEffect);
 
             if (OceanRenderer.Instance == null)
             {

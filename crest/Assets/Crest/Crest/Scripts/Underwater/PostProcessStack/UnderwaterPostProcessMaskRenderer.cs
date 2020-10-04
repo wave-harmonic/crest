@@ -10,26 +10,16 @@ using static Crest.UnderwaterPostProcessUtils;
 
 namespace Crest
 {
-    /// <summary>
-    /// Underwater Post Process. If a camera needs to go underwater it needs to have this script attached. This adds fullscreen passes and should
-    /// only be used if necessary. This effect disables itself when camera is not close to the water volume.
-    ///
-    /// For convenience, all shader material settings are copied from the main ocean shader. This includes underwater
-    /// specific features such as enabling the meniscus.
-    /// </summary>
     [RequireComponent(typeof(Camera))]
     public class UnderwaterPostProcessMaskRenderer : MonoBehaviour
     {
-        BoolParameter _disableOceanMask;
-
+        private Camera _mainCamera;
+        private Plane[] _cameraFrustumPlanes;
+        private CommandBuffer _maskCommandBuffer;
+        private Material _oceanMaskMaterial = null;
         internal RenderTexture _textureMask;
         internal RenderTexture _depthBuffer;
-        private CommandBuffer _maskCommandBuffer;
-
-        private Plane[] _cameraFrustumPlanes;
-
-        private Material _oceanMaskMaterial = null;
-        private Camera _mainCamera;
+        BoolParameter _disableOceanMask;
         internal readonly SampleHeightHelper _sampleHeightHelper = new SampleHeightHelper();
 
         internal void Initialise(Material oceanMaskMaterial, BoolParameter disableOceanMask)

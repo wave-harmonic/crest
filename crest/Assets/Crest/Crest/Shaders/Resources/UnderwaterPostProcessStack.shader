@@ -2,6 +2,9 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+// Modelled after the ScreenSpaceReflections shader in the post-process static V2
+// as we need to use Unity's lighting structures
+
 Shader "Crest/Underwater/Post Process Stack"
 {
 	Properties
@@ -80,10 +83,10 @@ Shader "Crest/Underwater/Post Process Stack"
 			float4 _HorizonPosNormalRight;
 			half _DataSliceOffset;
 
-			struct Attributes
+			// Ported from StdLib, we can't include it as it'll conflict with internal Unity includes
+			struct AttributesDefault
 			{
-				float4 positionOS : POSITION;
-				float2 uv : TEXCOORD0;
+				float3 vertex : POSITION;
 			};
 
 			struct Varyings
@@ -93,15 +96,18 @@ Shader "Crest/Underwater/Post Process Stack"
 				float3 viewWS : TEXCOORD1;
 			};
 
-			Varyings Vert (Attributes input)
+			Varyings Vert (AttributesDefault input)
 			{
 				Varyings output;
-				output.positionCS = UnityObjectToClipPos(input.positionOS);
-				output.uv = input.uv;
+				output.positionCS = float4(input.vertex.xy, 0.0, 1.0);
+				output.uv = (input.vertex.xy + 1.0) * 0.5;
+#if UNITY_UV_STARTS_AT_TOP
+				output.uv = output.uv * float2(1.0, -1.0) + float2(0.0, 1.0);
+#endif
 
 				// Compute world space view vector
 				{
-					const float2 pixelCS = input.uv * 2 - float2(1.0, 1.0);
+					const float2 pixelCS = output.uv * 2 - float2(1.0, 1.0);
 #if CREST_HANDLE_XR
 					const float4x4 InvViewProjection = unity_StereoEyeIndex == 0 ? _InvViewProjection : _InvViewProjectionRight;
 #else

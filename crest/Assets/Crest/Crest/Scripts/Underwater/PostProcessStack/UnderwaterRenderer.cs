@@ -26,7 +26,7 @@ namespace Crest
         public PropertySheet propertySheet { get; private set; }
     }
 
-    public sealed class PostProcessStack : PostProcessEffectRenderer<PostProcessStackSettings>
+    public sealed class UnderwaterRenderer : PostProcessEffectRenderer<UnderwaterRendererSettings>
     {
         private Material _underwaterPostProcessMaterial;
         private Material _oceanMaskMaterial;

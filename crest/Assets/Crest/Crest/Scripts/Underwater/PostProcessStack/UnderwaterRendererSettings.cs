@@ -8,8 +8,8 @@ using UnityEngine.Rendering.PostProcessing;
 namespace Crest
 {
     [Serializable]
-    [PostProcess(typeof(PostProcessStack), PostProcessEvent.BeforeStack, "Crest/Underwater", false)]
-    public sealed class PostProcessStackSettings : PostProcessEffectSettings
+    [PostProcess(typeof(UnderwaterRenderer), PostProcessEvent.BeforeStack, "Crest/Underwater", false)]
+    public sealed class UnderwaterRendererSettings : PostProcessEffectSettings
     {
         public Material _underwaterPostProcessMaterial;
 

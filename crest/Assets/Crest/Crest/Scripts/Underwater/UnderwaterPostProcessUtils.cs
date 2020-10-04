@@ -132,7 +132,7 @@ namespace Crest
             if (copyParamsFromOceanMaterial)
             {
                 // Measured this at approx 0.05ms on dell laptop
-                // underwaterPostProcessMaterialWrapper.CopyPropertiesFromMaterial(OceanRenderer.Instance.OceanMaterial);
+                underwaterPostProcessMaterialWrapper.CopyPropertiesFromMaterial(OceanRenderer.Instance.OceanMaterial);
             }
 
             // Enabling/disabling keywords each frame don't seem to have large measurable overhead

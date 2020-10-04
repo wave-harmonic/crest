@@ -22,6 +22,7 @@ namespace Crest
         public void SetInt(int param, int value) => propertySheet.properties.SetInt(param, value);
         public void EnableKeyword(string keyword) => propertySheet.EnableKeyword(keyword);
         public void DisableKeyword(string keyword) => propertySheet.DisableKeyword(keyword);
+        public void CopyPropertiesFromMaterial(Material material) => propertySheet.CopyPropertiesFromMaterial(material);
 
         public PropertySheet propertySheet { get; private set; }
     }

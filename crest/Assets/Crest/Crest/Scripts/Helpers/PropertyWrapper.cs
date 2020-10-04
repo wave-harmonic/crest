@@ -21,6 +21,7 @@ namespace Crest
         void SetInt(int param, int value);
         void EnableKeyword(string keyword);
         void DisableKeyword(string keyword);
+        void CopyPropertiesFromMaterial(Material material);
     }
 
     [System.Serializable]
@@ -38,6 +39,7 @@ namespace Crest
         public void SetInt(int param, int value) { material.SetInt(param, value); }
         public void EnableKeyword(string keyword) => material.EnableKeyword(keyword);
         public void DisableKeyword(string keyword) => material.DisableKeyword(keyword);
+        public void CopyPropertiesFromMaterial(Material m) => material.CopyPropertiesFromMaterial(material);
 
         public Material material { get; private set; }
     }
@@ -55,6 +57,7 @@ namespace Crest
         public void SetInt(int param, int value) { materialPropertyBlock.SetInt(param, value); }
         public void EnableKeyword(string keyword) => throw new System.NotImplementedException();
         public void DisableKeyword(string keyword) => throw new System.NotImplementedException();
+        public void CopyPropertiesFromMaterial(Material material) => throw new System.NotImplementedException();
 
         public MaterialPropertyBlock materialPropertyBlock { get; private set; }
     }
@@ -86,6 +89,7 @@ namespace Crest
         public void SetMatrix(int param, Matrix4x4 value) { _commandBuffer.SetComputeMatrixParam(_computeShader, param, value); }
         public void EnableKeyword(string keyword) => throw new System.NotImplementedException();
         public void DisableKeyword(string keyword) => throw new System.NotImplementedException();
+        public void CopyPropertiesFromMaterial(Material material) => throw new System.NotImplementedException();
     }
 
     [System.Serializable]
@@ -111,5 +115,6 @@ namespace Crest
         public void SetMatrix(int param, Matrix4x4 value) { _computeShader.SetMatrix(param, value); }
         public void EnableKeyword(string keyword) => throw new System.NotImplementedException();
         public void DisableKeyword(string keyword) => throw new System.NotImplementedException();
+        public void CopyPropertiesFromMaterial(Material material) => throw new System.NotImplementedException();
     }
 }

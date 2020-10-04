@@ -9,7 +9,7 @@ Material:
   m_PrefabAsset: {fileID: 0}
   m_Name: Ocean-Underwater-PostProcess
   m_Shader: {fileID: 4800000, guid: 21526e2f48db9c74fa5d5800b309c2b0, type: 3}
-  m_ShaderKeywords: _SHADOWS_ON _SUBSURFACESCATTERING_ON
+  m_ShaderKeywords:
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 1
   m_DoubleSidedGI: 0

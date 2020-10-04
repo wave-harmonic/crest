@@ -9,24 +9,6 @@ Shader "Crest/Underwater/Post Process Stack"
 {
 	Properties
 	{
-		// These mirror the same toggles on the ocean material
-
-		[Header(Scattering)]
-		[Toggle] _Shadows("Shadowing", Float) = 0
-
-		[Header(Subsurface Scattering)]
-		[Toggle] _SubSurfaceScattering("Enable", Float) = 1
-
-		[Header(Shallow Scattering)]
-		[Toggle] _SubSurfaceShallowColour("Enable", Float) = 1
-
-		[Header(Transparency)]
-		[Toggle] _Transparency("Enable", Float) = 1
-
-		[Header(Caustics)]
-		[Toggle] _Caustics("Enable", Float) = 1
-
-		[Header(Underwater)]
 		// Add a meniscus to the boundary between water and air
 		[Toggle] _Meniscus("Meniscus", float) = 1
 
@@ -44,12 +26,15 @@ Shader "Crest/Underwater/Post Process Stack"
 			#pragma vertex Vert
 			#pragma fragment Frag
 
-			#pragma shader_feature_local _SUBSURFACESCATTERING_ON
-			#pragma shader_feature_local _SUBSURFACESHALLOWCOLOUR_ON
-			#pragma shader_feature_local _TRANSPARENCY_ON
-			#pragma shader_feature_local _CAUSTICS_ON
-			#pragma shader_feature_local _SHADOWS_ON
-			#pragma shader_feature_local _COMPILESHADERWITHDEBUGINFO_ON
+			// Use multi_compile because these keywords are copied over from the ocean material. With shader_feature,
+			// the keywords would be stripped from builds. Unused shader variants are stripped using a build processor.
+			#pragma multi_compile_local __ _SUBSURFACESCATTERING_ON
+			#pragma multi_compile_local __ _SUBSURFACESHALLOWCOLOUR_ON
+			#pragma multi_compile_local __ _TRANSPARENCY_ON
+			#pragma multi_compile_local __ _CAUSTICS_ON
+			#pragma multi_compile_local __ _SHADOWS_ON
+			#pragma multi_compile_local __ _COMPILESHADERWITHDEBUGINFO_ON
+
 			#pragma shader_feature_local _MENISCUS_ON
 
 			#pragma multi_compile_local __ _FULL_SCREEN_EFFECT

@@ -26,20 +26,6 @@ namespace Crest
         public FloatParameter _horizonSafetyMarginMultiplier = new FloatParameter() { value = UnderwaterPostProcessUtils.DefaultHorizonSafetyMarginMultiplier };
         public BoolParameter _scaleSafetyMarginWithDynamicResolution = new BoolParameter() { value = true };
 
-        public override bool IsEnabledAndSupported(PostProcessRenderContext context)
-        {
-            if (!Application.isPlaying)
-            {
-                return false;
-            }
-            if (OceanRenderer.Instance != null)
-            {
-                return OceanRenderer.Instance.ViewerHeightAboveWater < 2f && _enable.value;
-            }
-            else
-            {
-                return false;
-            }
-        }
+        public override bool IsEnabledAndSupported(PostProcessRenderContext context) => _enable.value && UnderwaterPostProcessUtils.ShouldBeEnabled();
     }
 }

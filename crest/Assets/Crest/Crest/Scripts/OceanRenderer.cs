@@ -266,11 +266,6 @@ namespace Crest
 
         SampleHeightHelper _sampleHeightHelper = new SampleHeightHelper();
 
-        public delegate void EventHandler(OceanRenderer ocean);
-        public event EventHandler ViewerLessThan2mAboveWater;
-        public event EventHandler ViewerMoreThan2mAboveWater;
-        bool _firstViewerHeightUpdate = true;
-
         public static OceanRenderer Instance { get; private set; }
 
         // We are computing these values to be optimal based on the base mesh vertex density.
@@ -341,8 +336,6 @@ namespace Crest
         // Drive state from OnEnable and OnDisable? OnEnable on RegisterLodDataInput seems to get called on script reload
         void OnEnable()
         {
-            _firstViewerHeightUpdate = true;
-
             // We don't run in "prefab scenes", i.e. when editing a prefab. Bail out if prefab scene is detected.
 #if UNITY_EDITOR
             if (PrefabStageUtility.GetCurrentPrefabStage() != null)
@@ -420,7 +413,6 @@ namespace Crest
 
         private void OnDisable()
         {
-            _firstViewerHeightUpdate = true;
 
 #if UNITY_EDITOR
             // We don't run in "prefab scenes", i.e. when editing a prefab. Bail out if prefab scene is detected.
@@ -853,17 +845,6 @@ namespace Crest
 
             ViewerHeightAboveWater = Viewpoint.position.y - waterHeight;
 
-            // _firstViewerHeightUpdate is tracked to always broadcast initial state
-            if ((oldViewerHeight >= 2f || _firstViewerHeightUpdate) && ViewerHeightAboveWater < 2f)
-            {
-                ViewerLessThan2mAboveWater?.Invoke(this);
-            }
-            else if ((oldViewerHeight < 2f || _firstViewerHeightUpdate) && ViewerHeightAboveWater >= 2f)
-            {
-                ViewerMoreThan2mAboveWater?.Invoke(this);
-            }
-
-            _firstViewerHeightUpdate = false;
         }
 
         void LateUpdateLods()

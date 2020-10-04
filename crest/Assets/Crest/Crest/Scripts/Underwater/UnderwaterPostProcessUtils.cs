@@ -432,5 +432,21 @@ namespace Crest
                 v_world.Dispose();
             }
         }
+
+        public static bool ShouldBeEnabled()
+        {
+            if (!Application.isPlaying)
+            {
+                return false;
+            }
+            if (OceanRenderer.Instance != null)
+            {
+                return OceanRenderer.Instance.ViewerHeightAboveWater < 2f;
+            }
+            else
+            {
+                return false;
+            }
+        }
     }
 }

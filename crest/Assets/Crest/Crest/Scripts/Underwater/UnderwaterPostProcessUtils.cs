@@ -128,6 +128,7 @@ namespace Crest
             int dataSliceOffset
         )
         {
+            // TODO(TRC):Now Re-enable this with a property wrapper abstraction
             // Material underwaterPostProcessMaterial = underwaterPostProcessMaterialWrapper.material;
             if (copyParamsFromOceanMaterial)
             {
@@ -203,6 +204,7 @@ namespace Crest
                 // We don't both setting the horizon value if we know we are going to be having to apply the post-processing
                 // effect full-screen anyway.
                 bool forceFullShader = (cameraYPosition + nearPlaneFrustumWorldHeight + maxOceanVerticalDisplacement) <= seaLevel;
+                // TODO(TRC):Now Re-enable this with a property wrapper abstraction
                 underwaterPostProcessMaterialWrapper.SetFloat(sp_OceanHeight, seaLevel);
                 // if (forceFullShader)
                 // {
@@ -259,7 +261,7 @@ namespace Crest
             }
 
             // Not sure why we need to do this - blit should set it...?
-            // TODO(TRC):NowNow fix this
+            // TODO(TRC):Now Re-enable this with a property wrapper abstraction
             // underwaterPostProcessMaterial.SetTexture(sp_MainTex, source);
 
             // Compute ambient lighting SH

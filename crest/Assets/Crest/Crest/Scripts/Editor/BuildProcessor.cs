@@ -35,7 +35,7 @@ namespace Crest
             // Resources.FindObjectsOfTypeAll will get all materials that are used for this scene.
             foreach (var material in Resources.FindObjectsOfTypeAll<Material>())
             {
-                if (material.shader.name != "Crest/Ocean")
+                if (material.shader.name != "Crest/Ocean" && material.shader.name != "Crest/Ocean URP" && material.shader.name != "Crest/Framework")
                 {
                     continue;
                 }

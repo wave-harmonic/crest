@@ -19,10 +19,13 @@ namespace Crest
     class BuildProcessor : IPreprocessShaders, IProcessSceneWithReport, IPostprocessBuildWithReport
     {
         public int callbackOrder => 0;
-        int shaderVariantCount = 0;
-        int shaderVarientStrippedCount = 0;
         string UnderwaterShaderName => "Crest/Underwater Curtain";
         readonly List<Material> _oceanMaterials = new List<Material>();
+
+#if CREST_DEBUG
+        int shaderVariantCount = 0;
+        int shaderVarientStrippedCount = 0;
+#endif
 
         public void OnProcessScene(Scene scene, BuildReport report)
         {
@@ -46,10 +49,12 @@ namespace Crest
 
         public void OnProcessShader(Shader shader, ShaderSnippetData snippet, IList<ShaderCompilerData> data)
         {
+#if CREST_DEBUG
             if (shader.name.StartsWith("Crest"))
             {
                 shaderVariantCount += data.Count;
             }
+#endif
 
             if (shader.name == UnderwaterShaderName)
             {
@@ -68,8 +73,10 @@ namespace Crest
                 return;
             }
 
+#if CREST_DEBUG
             var shaderVariantCount = data.Count;
             var shaderVarientStrippedCount = 0;
+#endif
 
             // Collect all shader keywords.
             var unusedShaderKeywords = new HashSet<ShaderKeyword>();
@@ -131,15 +138,16 @@ namespace Crest
                     if (data[index].shaderKeywordSet.IsEnabled(unusedShaderKeyword))
                     {
                         data.RemoveAt(index--);
+#if CREST_DEBUG
                         shaderVarientStrippedCount++;
+#endif
                         break;
                     }
                 }
             }
 
-            this.shaderVarientStrippedCount += shaderVarientStrippedCount;
-
 #if CREST_DEBUG
+            this.shaderVarientStrippedCount += shaderVarientStrippedCount;
             Debug.Log($"Crest: {shaderVarientStrippedCount} shader variants stripped of {shaderVariantCount} from {shader.name}.");
 #endif
         }

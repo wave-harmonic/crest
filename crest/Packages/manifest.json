@@ -4,7 +4,7 @@
     "com.unity.2d.tilemap": "1.0.0",
     "com.unity.ide.rider": "1.1.4",
     "com.unity.ide.vscode": "1.2.1",
-    "com.unity.postprocessing": "2.3.0",
+    "com.unity.postprocessing": "https://github.com/Unity-Technologies/PostProcessing.git",
     "com.unity.test-framework": "1.1.14",
     "com.unity.timeline": "1.2.15",
     "com.unity.ugui": "1.0.0",
@@ -32,5 +32,11 @@
     "com.unity.modules.vr": "1.0.0",
     "com.unity.modules.wind": "1.0.0",
     "com.unity.modules.xr": "1.0.0"
+  },
+  "lock": {
+    "com.unity.postprocessing": {
+      "revision": "HEAD",
+      "hash": "bf1957be6024f23f0204bf2b05f9f7c6ce1c98fd"
+    }
   }
 }

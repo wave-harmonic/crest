@@ -56,7 +56,7 @@ Shader "Crest/Underwater/Post Process Stack"
 			half3 _AmbientLighting;
 
 			// In-built Unity textures
-			sampler2D _CameraDepthTexture;
+			UNITY_DECLARE_SCREENSPACE_TEXTURE(_CameraDepthTexture);
 			sampler2D _Normals;
 
 			#include "../OceanEmission.hlsl"
@@ -168,7 +168,7 @@ Shader "Crest/Underwater/Post Process Stack"
 
 				half3 sceneColour = tex2D(_MainTex, uvScreenSpace).rgb;
 
-				float sceneZ01 = tex2D(_CameraDepthTexture, uvScreenSpace).x;
+				float sceneZ01 = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CameraDepthTexture, uvScreenSpace).x;
 
 				float mask = tex2D(_CrestOceanMaskTexture, uvScreenSpace).x;
 				const float oceanDepth01 = tex2D(_CrestOceanMaskDepthTexture, uvScreenSpace);

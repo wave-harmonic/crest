@@ -7,6 +7,7 @@
 #ifndef CREST_OCEAN_GLOBALS_H
 #define CREST_OCEAN_GLOBALS_H
 
+SamplerState LODData_linear_repeat_sampler;
 SamplerState LODData_linear_clamp_sampler;
 SamplerState LODData_point_clamp_sampler;
 SamplerState sampler_Crest_linear_repeat;

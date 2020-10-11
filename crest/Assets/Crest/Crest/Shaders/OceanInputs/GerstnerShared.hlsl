@@ -50,7 +50,9 @@ half4 ComputeGerstner(float2 worldPosXZ, float3 uv_slice)
 	// optimisation - do this outside the loop below - take the median wavelength for depth weighting, intead of computing
 	// per component. computing per component makes little difference to the end result
 	half depth_wt = saturate(depth * _TwoPiOverWavelengths[_NumWaveVecs / 2].x / PI);
-	half4 wt = _AttenuationInShallows * depth_wt + (1.0 - _AttenuationInShallows);
+	half4 wt = 1.0;// _AttenuationInShallows * depth_wt + (1.0 - _AttenuationInShallows);
+
+	float L = _CrestCascadeData[_LD_SliceIndex]._texelWidth * _CrestCascadeData[_LD_SliceIndex]._textureRes; // size of patch
 
 	// gerstner computation is vectorized - processes 4 wave components at once
 	for (uint vi = 0; vi < _NumWaveVecs; vi++)
@@ -66,9 +68,24 @@ half4 ComputeGerstner(float2 worldPosXZ, float3 uv_slice)
 
 		// wave number
 		half4 k = _TwoPiOverWavelengths[vi];
+
+		half4 kx = k * Dx;
+		half4 kz = k * Dz;
+		// http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.161.9102&rep=rep1&type=pdf eqn 19
+		// kx = 2 pi n / L
+		// kx / (2pi/L) = n
+		float4 n = kx / (2.0 * 3.141592654 / L);
+		float4 m = kz / (2.0 * 3.141592654 / L);
+		n = round(n);
+		m = round(m);
+		#if 1
+		kx = 2.0 * 3.141592654 * n / L;
+		kz = 2.0 * 3.141592654 * m / L;
+		#endif
+
 		// spatial location
-		float4 x = Dx * worldPosXZ.x + Dz * worldPosXZ.y;
-		half4 angle = k * x + _Phases[vi];
+		float4 x = kx * worldPosXZ.x + kz * worldPosXZ.y;
+		half4 angle = x + _Phases[vi];
 
 		// dx and dz could be baked into _ChopAmps
 		half4 disp = _ChopAmps[vi] * sin(angle);

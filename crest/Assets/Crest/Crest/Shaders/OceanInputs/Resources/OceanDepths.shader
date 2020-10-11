@@ -10,7 +10,6 @@ Shader "Crest/Inputs/Depth/Ocean Depth From Geometry"
 		Pass
 		{
 			BlendOp Min
-			ColorMask R
 
 			CGPROGRAM
 			#pragma vertex Vert

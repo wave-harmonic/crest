@@ -68,12 +68,12 @@ Shader "Crest/Underwater/Post Process Stack"
 			float4 _HorizonPosNormalRight;
 			half _DataSliceOffset;
 
+			uint _StereoEyeIndex;
+
 			// Ported from StdLib, we can't include it as it'll conflict with internal Unity includes
 			struct Attributes
 			{
 				float3 vertex : POSITION;
-
-				UNITY_VERTEX_INPUT_INSTANCE_ID
 			};
 
 			struct Varyings
@@ -81,17 +81,12 @@ Shader "Crest/Underwater/Post Process Stack"
 				float4 positionCS : SV_POSITION;
 				float2 uv : TEXCOORD0;
 				float3 viewWS : TEXCOORD1;
-
-				UNITY_VERTEX_OUTPUT_STEREO
 			};
 
 			Varyings Vert (Attributes input)
 			{
 				Varyings output;
 
-				UNITY_SETUP_INSTANCE_ID(input);
-				UNITY_INITIALIZE_OUTPUT(Varyings, output);
-				UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 				output.positionCS = float4(input.vertex.xy, 0.0, 1.0);
 				output.uv = (input.vertex.xy + 1.0) * 0.5;
 #if UNITY_UV_STARTS_AT_TOP
@@ -102,7 +97,7 @@ Shader "Crest/Underwater/Post Process Stack"
 				{
 					const float2 pixelCS = output.uv * 2 - float2(1.0, 1.0);
 #if CREST_HANDLE_XR
-					const float4x4 InvViewProjection = unity_StereoEyeIndex == 0 ? _InvViewProjection : _InvViewProjectionRight;
+					const float4x4 InvViewProjection = _StereoEyeIndex == 0 ? _InvViewProjection : _InvViewProjectionRight;
 #else
 					const float4x4 InvViewProjection = _InvViewProjection;
 #endif
@@ -114,9 +109,16 @@ Shader "Crest/Underwater/Post Process Stack"
 				return output;
 			}
 
-			UNITY_DECLARE_SCREENSPACE_TEXTURE(_MainTex);
-			UNITY_DECLARE_SCREENSPACE_TEXTURE(_CrestOceanMaskTexture);
-			UNITY_DECLARE_SCREENSPACE_TEXTURE(_CrestOceanMaskDepthTexture);
+			sampler2D _MainTex;
+
+			// STEREO_INSTANCING_ON is used exclusively in the post-processing stack.
+#if STEREO_INSTANCING_ON
+			UNITY_DECLARE_TEX2DARRAY(_CrestOceanMaskTexture);
+			UNITY_DECLARE_TEX2DARRAY(_CrestOceanMaskDepthTexture);
+#else
+			sampler2D _CrestOceanMaskTexture;
+			sampler2D _CrestOceanMaskDepthTexture;
+#endif
 
 			half3 ApplyUnderwaterEffect(half3 sceneColour, const float sceneZ01, const half3 view, bool isOceanSurface)
 			{
@@ -154,9 +156,6 @@ Shader "Crest/Underwater/Post Process Stack"
 
 			fixed4 Frag (Varyings input) : SV_Target
 			{
-				// We need this when sampling a screenspace texture.
-				UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-
 				float3 viewWS;
 				float farPlanePixelHeight;
 
@@ -164,7 +163,7 @@ Shader "Crest/Underwater/Post Process Stack"
 				// The horizon line is the intersection between the far plane and the ocean plane. The pos and normal of this
 				// intersection line is passed in.
 #if CREST_HANDLE_XR
-				const bool isBelowHorizon = unity_StereoEyeIndex == 0 ?
+				const bool isBelowHorizon = _StereoEyeIndex == 0 ?
 					dot(input.uv - _HorizonPosNormal.xy, _HorizonPosNormal.zw) > 0.0 :
 					dot(input.uv - _HorizonPosNormalRight.xy, _HorizonPosNormalRight.zw) > 0.0;
 #else // CREST_HANDLE_XR
@@ -174,14 +173,24 @@ Shader "Crest/Underwater/Post Process Stack"
 				const bool isBelowHorizon = true;
 #endif // !_FULL_SCREEN_EFFECT
 
+				// STEREO_INSTANCING_ON is used exclusively in the post-processing stack.
+#if STEREO_INSTANCING_ON
+				const float3 uvScreenSpace = float3(UnityStereoTransformScreenSpaceTex(input.uv), _StereoEyeIndex);
+#else
 				const float2 uvScreenSpace = UnityStereoTransformScreenSpaceTex(input.uv);
+#endif
 
-				half3 sceneColour = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_MainTex, uvScreenSpace).rgb;
+				half3 sceneColour = tex2D(_MainTex, uvScreenSpace).rgb;
 
 				float sceneZ01 = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CameraDepthTexture, uvScreenSpace).x;
-
-				float mask = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CrestOceanMaskTexture, uvScreenSpace).x;
-				const float oceanDepth01 = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CrestOceanMaskDepthTexture, uvScreenSpace);
+				// STEREO_INSTANCING_ON is used exclusively in the post-processing stack.
+#if STEREO_INSTANCING_ON
+				float mask = UNITY_SAMPLE_TEX2DARRAY(_CrestOceanMaskTexture, uvScreenSpace).x;
+				const float oceanDepth01 = UNITY_SAMPLE_TEX2DARRAY(_CrestOceanMaskDepthTexture, uvScreenSpace);
+#else
+				float mask = tex2D(_CrestOceanMaskTexture, uvScreenSpace).x;
+				const float oceanDepth01 = tex2D(_CrestOceanMaskDepthTexture, uvScreenSpace);
+#endif
 				bool isOceanSurface = mask != UNDERWATER_MASK_NO_MASK && (sceneZ01 < oceanDepth01);
 				bool isUnderwater = mask == UNDERWATER_MASK_WATER_SURFACE_BELOW || (isBelowHorizon && mask != UNDERWATER_MASK_WATER_SURFACE_ABOVE);
 				sceneZ01 = isOceanSurface ? oceanDepth01 : sceneZ01;
@@ -198,9 +207,9 @@ Shader "Crest/Underwater/Post Process Stack"
 					// a calculation to get it smooth both above and below, but might be more complex.
 					float wt_mul = 0.9;
 					float4 dy = float4(0.0, -1.0, -2.0, -3.0) / _ScreenParams.y;
-					wt *= (UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CrestOceanMaskTexture, uvScreenSpace + dy.xy).x > mask) ? wt_mul : 1.0;
-					wt *= (UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CrestOceanMaskTexture, uvScreenSpace + dy.xz).x > mask) ? wt_mul : 1.0;
-					wt *= (UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CrestOceanMaskTexture, uvScreenSpace + dy.xw).x > mask) ? wt_mul : 1.0;
+					wt *= (tex2D(_CrestOceanMaskTexture, uvScreenSpace + dy.xy).x > mask) ? wt_mul : 1.0;
+					wt *= (tex2D(_CrestOceanMaskTexture, uvScreenSpace + dy.xz).x > mask) ? wt_mul : 1.0;
+					wt *= (tex2D(_CrestOceanMaskTexture, uvScreenSpace + dy.xw).x > mask) ? wt_mul : 1.0;
 				}
 #endif // _MENISCUS_ON
 

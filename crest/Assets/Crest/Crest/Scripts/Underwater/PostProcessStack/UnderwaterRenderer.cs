@@ -35,6 +35,8 @@ namespace Crest
         UnderwaterSphericalHarmonicsData _sphericalHarmonicsData = new UnderwaterSphericalHarmonicsData();
         bool _firstRender = true;
 
+        int _stereoEyeIndex = -1;
+
         public override void Init()
         {
 
@@ -47,6 +49,15 @@ namespace Crest
 
         public override void Render(PostProcessRenderContext context)
         {
+            if (context.stereoRenderingMode == PostProcessRenderContext.StereoRenderingMode.SinglePassInstanced)
+            {
+                _stereoEyeIndex = (_stereoEyeIndex + 1) % 2;
+            }
+            else
+            {
+                _stereoEyeIndex = 0;
+            }
+
             PropertySheet underWaterPostProcessEffect = context.propertySheets.Get(Shader.Find("Crest/Underwater/Post Process Stack"));
             PropertyWrapperPropertySheet underwaterPostProcessMaterialWrapper = new PropertyWrapperPropertySheet(underWaterPostProcessEffect);
 
@@ -81,10 +92,16 @@ namespace Crest
                 _firstRender || settings._copyOceanMaterialParamsEachFrame.value,
                 settings._viewOceanMask.value,
                 horizonSafetyMarginMultiplier,
-                settings._filterOceanData.value
+                settings._filterOceanData.value,
+                _stereoEyeIndex
             );
             _firstRender = false;
 
+
+            if (context.stereoRenderingMode == PostProcessRenderContext.StereoRenderingMode.SinglePassInstanced)
+            {
+                context.command.SetGlobalInt("_StereoEyeIndex", _stereoEyeIndex);
+            }
 
             context.command.BlitFullscreenTriangle(context.source, context.destination, underWaterPostProcessEffect, 0);
         }

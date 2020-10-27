@@ -29,7 +29,10 @@ namespace Crest
             _maskCommandBuffer = new CommandBuffer();
             _maskCommandBuffer.name = "Ocean Mask Command Buffer";
             _mainCamera.AddCommandBuffer(
-                CameraEvent.BeforeForwardAlpha,
+                // CameraEvent.BeforeForwardAlpha,
+                XRHelpers.IsSinglePass && !XRHelpers.IsDoubleWide
+                        ? CameraEvent.AfterForwardAlpha
+                        : CameraEvent.BeforeForwardAlpha,
                 _maskCommandBuffer
             );
             _oceanMaskMaterial = oceanMaskMaterial;
@@ -38,21 +41,27 @@ namespace Crest
 
         void OnPreRender()
         {
+            XRHelpers.Update(_mainCamera);
+
             GeometryUtility.CalculateFrustumPlanes(_mainCamera, _cameraFrustumPlanes);
             _maskCommandBuffer.Clear();
 
             {
-                RenderTextureDescriptor descriptor = new RenderTextureDescriptor(_mainCamera.pixelWidth, _mainCamera.pixelHeight);
+                RenderTextureDescriptor descriptor = XRHelpers.IsRunning
+                    ? XRHelpers.EyeRenderTextureDescriptor
+                    : new RenderTextureDescriptor(_mainCamera.pixelWidth, _mainCamera.pixelHeight);
                 InitialiseMaskTextures(descriptor, ref _textureMask, ref _depthBuffer);
             }
 
-            PopulateOceanMask(
-                _maskCommandBuffer, _mainCamera, OceanRenderer.Instance.Tiles, _cameraFrustumPlanes,
-                _textureMask, _depthBuffer,
-                _oceanMaskMaterial,
-                _disableOceanMask.value
-            );
-
+            for (var depthSlice = 0; depthSlice < _textureMask.volumeDepth; depthSlice++)
+            {
+                PopulateOceanMask(
+                    _maskCommandBuffer, _mainCamera, OceanRenderer.Instance.Tiles, _cameraFrustumPlanes,
+                    _textureMask, _depthBuffer,
+                    _oceanMaskMaterial, depthSlice, 0,
+                    _disableOceanMask
+                );
+            }
         }
     }
 }

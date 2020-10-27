@@ -32,11 +32,5 @@
     "com.unity.modules.vr": "1.0.0",
     "com.unity.modules.wind": "1.0.0",
     "com.unity.modules.xr": "1.0.0"
-  },
-  "lock": {
-    "com.unity.postprocessing": {
-      "revision": "HEAD",
-      "hash": "bf1957be6024f23f0204bf2b05f9f7c6ce1c98fd"
-    }
   }
 }

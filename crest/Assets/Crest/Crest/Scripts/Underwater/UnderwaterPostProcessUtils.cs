@@ -132,7 +132,8 @@ namespace Crest
             bool copyParamsFromOceanMaterial,
             bool debugViewPostProcessMask,
             float horizonSafetyMarginMultiplier,
-            int dataSliceOffset
+            int dataSliceOffset,
+            int stereoEyeIndex
         )
         {
             // TODO(TRC):Now Re-enable this with a property wrapper abstraction
@@ -231,26 +232,31 @@ namespace Crest
                 // Store projection matrix to restore later.
                 var projectionMatrix = camera.projectionMatrix;
 
-                // We need to set the matrix ourselves. Maybe ViewportToWorldPoint has a bug.
-                camera.projectionMatrix = XRHelpers.LeftEyeProjectionMatrix;
-
-                var inverseViewProjectionMatrix = (XRHelpers.LeftEyeProjectionMatrix * XRHelpers.LeftEyeViewMatrix).inverse;
-                underwaterPostProcessMaterialWrapper.SetMatrix(sp_InvViewProjection, inverseViewProjectionMatrix);
-
+                if (stereoEyeIndex == 0)
                 {
-                    GetHorizonPosNormal(camera, Camera.MonoOrStereoscopicEye.Left, seaLevel, horizonSafetyMarginMultiplier, out Vector2 pos, out Vector2 normal);
-                    underwaterPostProcessMaterialWrapper.SetVector(sp_HorizonPosNormal, new Vector4(pos.x, pos.y, normal.x, normal.y));
+                    // We need to set the matrix ourselves. Maybe ViewportToWorldPoint has a bug.
+                    camera.projectionMatrix = XRHelpers.LeftEyeProjectionMatrix;
+
+                    var inverseViewProjectionMatrix = (XRHelpers.LeftEyeProjectionMatrix * XRHelpers.LeftEyeViewMatrix).inverse;
+                    underwaterPostProcessMaterialWrapper.SetMatrix(sp_InvViewProjection, inverseViewProjectionMatrix);
+
+                    {
+                        GetHorizonPosNormal(camera, Camera.MonoOrStereoscopicEye.Left, seaLevel, horizonSafetyMarginMultiplier, out Vector2 pos, out Vector2 normal);
+                        underwaterPostProcessMaterialWrapper.SetVector(sp_HorizonPosNormal, new Vector4(pos.x, pos.y, normal.x, normal.y));
+                    }
                 }
-
-                // We need to set the matrix ourselves. Maybe ViewportToWorldPoint has a bug.
-                camera.projectionMatrix = XRHelpers.RightEyeProjectionMatrix;
-
-                var inverseViewProjectionMatrixRightEye = (XRHelpers.RightEyeProjectionMatrix * XRHelpers.RightEyeViewMatrix).inverse;
-                underwaterPostProcessMaterialWrapper.SetMatrix(sp_InvViewProjectionRight, inverseViewProjectionMatrixRightEye);
-
+                else
                 {
-                    GetHorizonPosNormal(camera, Camera.MonoOrStereoscopicEye.Right, seaLevel, horizonSafetyMarginMultiplier, out Vector2 pos, out Vector2 normal);
-                    underwaterPostProcessMaterialWrapper.SetVector(sp_HorizonPosNormalRight, new Vector4(pos.x, pos.y, normal.x, normal.y));
+                    // We need to set the matrix ourselves. Maybe ViewportToWorldPoint has a bug.
+                    camera.projectionMatrix = XRHelpers.RightEyeProjectionMatrix;
+
+                    var inverseViewProjectionMatrixRightEye = (XRHelpers.RightEyeProjectionMatrix * XRHelpers.RightEyeViewMatrix).inverse;
+                    underwaterPostProcessMaterialWrapper.SetMatrix(sp_InvViewProjectionRight, inverseViewProjectionMatrixRightEye);
+
+                    {
+                        GetHorizonPosNormal(camera, Camera.MonoOrStereoscopicEye.Right, seaLevel, horizonSafetyMarginMultiplier, out Vector2 pos, out Vector2 normal);
+                        underwaterPostProcessMaterialWrapper.SetVector(sp_HorizonPosNormalRight, new Vector4(pos.x, pos.y, normal.x, normal.y));
+                    }
                 }
 
                 // Restore projection matrix.
@@ -301,7 +307,6 @@ namespace Crest
             NativeArray<Vector3> v_world = new NativeArray<Vector3>(4, Allocator.Temp);
             try
             {
-
                 v_screenXY_viewZ[0] = new Vector3(0f, 0f, camera.farClipPlane);
                 v_screenXY_viewZ[1] = new Vector3(0f, 1f, camera.farClipPlane);
                 v_screenXY_viewZ[2] = new Vector3(1f, 1f, camera.farClipPlane);

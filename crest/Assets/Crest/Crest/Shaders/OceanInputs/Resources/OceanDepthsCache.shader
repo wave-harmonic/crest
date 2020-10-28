@@ -56,7 +56,6 @@ Shader "Crest/Inputs/Depth/Cached Depths"
 			{
 				return half4(tex2D(_MainTex, input.uv).x, 0.0, 0.0, 0.0);
 			}
-
 			ENDCG
 		}
 	}

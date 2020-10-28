@@ -19,16 +19,7 @@ namespace Crest
 
         protected override void BindInputsAndOutputs(PropertyWrapperComputeStandalone wrapper, ComputeBuffer resultsBuffer)
         {
-            if (OceanRenderer.Instance._lodDataFlow != null)
-            {
-                OceanRenderer.Instance._lodDataFlow.BindResultData(wrapper);
-                ShaderProcessQueries.SetTexture(_kernelHandle, sp_LD_TexArray_Flow, OceanRenderer.Instance._lodDataFlow.DataTexture);
-            }
-            else
-            {
-                LodDataMgrFlow.BindNull(wrapper);
-            }
-
+            LodDataMgrFlow.Bind(wrapper);
             ShaderProcessQueries.SetBuffer(_kernelHandle, sp_ResultFlows, resultsBuffer);
         }
 

@@ -2,6 +2,8 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+// NOTE: DWP2 depends on this file. Any API changes need to be communicated to the DWP2 authors in advance.
+
 using UnityEngine;
 
 namespace Crest

@@ -150,6 +150,8 @@ To turn on this feature, enable the *Create Foam Sim* option on the *OceanRender
 
 Crest supports inputing any foam into the system. To add some shape, add some geometry into the world which when rendered from a top down perspective will generate the desired foam values. Then assign the *RegisterFoamInput* script which will tag it for rendering into the shape, and apply a material with a shader of type *Crest/Inputs/Foam/...*. The process for adding inputs is demonstrated in this tutorial video: https://www.youtube.com/watch?v=sQIakAjSq4Y.
 
+Foam can be masked by using the *FoamOverride* material.
+
 The foam sim can be configured by assigning a Foam Sim Settings asset to the OceanRenderer script in your scene (*Create/Crest/Foam Sim Settings*). There are also parameters on the material which control the appearance of the foam.
 
 ## Sea Floor Depth

@@ -47,9 +47,14 @@ uniform half _CausticsDistortionStrength;
 uniform half3 _DiffuseShadow;
 #endif
 
+#if _UNDERWATERSUNOCCLUSION_ON
+half _UnderwaterSunOcclusionDistance;
+half _UnderwaterSunOcclusionFallOff;
+#endif
+
 half3 ScatterColour(
 	in const half i_surfaceOceanDepth, in const float3 i_cameraPos,
-	in const half3 i_lightDir, in const half3 i_view, in const fixed i_shadow,
+	in const half3 i_lightDir, in const half3 i_view, in const float i_sceneZ, in const fixed i_shadow,
 	in const bool i_underwater, in const bool i_outscatterLight, half sss,
 	in const float i_meshScaleLerp, in const float i_scaleBase,
 	in const CascadeParams cascadeData0)
@@ -121,6 +126,24 @@ half3 ScatterColour(
 
 		// Approximate subsurface scattering - add light when surface faces viewer. Use geometry normal - don't need high freqs.
 		half towardsSun = pow(max(0., dot(i_lightDir, -i_view)), _SubSurfaceSunFallOff);
+
+#if _UNDERWATERSUNOCCLUSION_ON
+		if (i_underwater)
+		{
+			// Apply strength factor. Otherwise, occlusion will not be noticeable.
+			half sunOcclusion = saturate(i_sceneZ / _UnderwaterSunOcclusionDistance);
+
+			// Only apply occlusion to depth buffer contents.
+			if (i_sceneZ < _ProjectionParams.z)
+			{
+				// Apply separate fall-off.
+				sunOcclusion += pow(1.0 - towardsSun, 1.0 - _UnderwaterSunOcclusionFallOff);
+			}
+
+			towardsSun = lerp(0, towardsSun, saturate(sunOcclusion));
+		}
+#endif
+
 		half3 subsurface = (_SubSurfaceBase + _SubSurfaceSun * towardsSun) * _SubSurfaceColour.rgb * _LightColor0 * shadow;
 		if (!i_underwater)
 			subsurface *= (1.0 - v * v) * sss;

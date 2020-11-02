@@ -3,7 +3,6 @@
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 using UnityEngine;
-using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 
 namespace Crest
@@ -16,7 +15,7 @@ namespace Crest
         public override string SimName { get { return "ClipSurface"; } }
 
         // The clip values only really need 8bits
-        public override GraphicsFormat TextureFormat => GraphicsFormat.R8_UNorm;
+        public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.R8; } }
         protected override bool NeedToReadWriteTextureData { get { return true; } }
 
         bool _targetsClear = false;
@@ -69,9 +68,9 @@ namespace Crest
         {
             return ParamIdSampler(sourceLod);
         }
-        public static void BindNull(IPropertyWrapper properties, bool sourceLod = false)
+        public static void BindNull(IPropertyWrapper properties)
         {
-            properties.SetTexture(ParamIdSampler(sourceLod), TextureArrayHelpers.BlackTextureArray);
+            properties.SetTexture(ParamIdSampler(), TextureArrayHelpers.BlackTextureArray);
         }
 
 #if UNITY_2019_3_OR_NEWER

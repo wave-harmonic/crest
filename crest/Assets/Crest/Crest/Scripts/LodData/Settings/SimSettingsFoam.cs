@@ -3,7 +3,6 @@
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 using UnityEngine;
-using UnityEngine.Experimental.Rendering;
 
 namespace Crest
 {
@@ -21,6 +20,6 @@ namespace Crest
         [Range(0f, 5f), Tooltip("Scales intensity of foam generated in shallow water.")]
         public float _shorelineFoamStrength = 2f;
         [Tooltip("The rendertexture format to use for the foam simulation")]
-        public GraphicsFormat _renderTextureFormat = GraphicsFormat.R16_SFloat;
+        public RenderTextureFormat _renderTextureFormat = RenderTextureFormat.RHalf;
     }
 }

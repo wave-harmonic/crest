@@ -3,7 +3,6 @@
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 using UnityEngine;
-using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 
 namespace Crest
@@ -14,7 +13,7 @@ namespace Crest
     public class LodDataMgrSeaFloorDepth : LodDataMgr
     {
         public override string SimName { get { return "SeaFloorDepth"; } }
-        public override GraphicsFormat TextureFormat => GraphicsFormat.R16_SFloat;
+        public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RHalf; } }
         protected override bool NeedToReadWriteTextureData { get { return false; } }
 
         bool _targetsClear = false;
@@ -60,15 +59,23 @@ namespace Crest
         {
             return ParamIdSampler(sourceLod);
         }
-        public static void BindNull(IPropertyWrapper properties, bool sourceLod = false)
-        {
-            // TextureArrayHelpers prevents use from using this in a static constructor due to blackTexture usage
-            if (s_nullTexture2DArray == null)
-            {
-                InitNullTexture();
-            }
 
-            properties.SetTexture(ParamIdSampler(sourceLod), s_nullTexture2DArray);
+        public static void Bind(IPropertyWrapper properties)
+        {
+            if (OceanRenderer.Instance._lodDataSeaDepths != null)
+            {
+                properties.SetTexture(OceanRenderer.Instance._lodDataSeaDepths.GetParamIdSampler(), OceanRenderer.Instance._lodDataSeaDepths.DataTexture);
+            }
+            else
+            {
+                // TextureArrayHelpers prevents use from using this in a static constructor due to blackTexture usage
+                if (s_nullTexture2DArray == null)
+                {
+                    InitNullTexture();
+                }
+
+                properties.SetTexture(ParamIdSampler(), s_nullTexture2DArray);
+            }
         }
 
         static void InitNullTexture()

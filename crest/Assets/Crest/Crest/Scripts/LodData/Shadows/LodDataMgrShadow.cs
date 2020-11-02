@@ -4,8 +4,8 @@
 
 using System;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
+using UnityEngine.XR;
 
 namespace Crest
 {
@@ -18,7 +18,7 @@ namespace Crest
     public class LodDataMgrShadow : LodDataMgr
     {
         public override string SimName { get { return "Shadow"; } }
-        public override GraphicsFormat TextureFormat => GraphicsFormat.R8G8_UNorm;
+        public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RG16; } }
         protected override bool NeedToReadWriteTextureData { get { return true; } }
 
         public static bool s_processData = true;
@@ -44,6 +44,7 @@ namespace Crest
         readonly int sp_SimDeltaTime = Shader.PropertyToID("_SimDeltaTime");
         readonly int sp_LD_SliceIndex_Source = Shader.PropertyToID("_LD_SliceIndex_Source");
         readonly int sp_LD_TexArray_Target = Shader.PropertyToID("_LD_TexArray_Target");
+        readonly int sp_cascadeDataSrc = Shader.PropertyToID("_CascadeDataSrc");
 
         SettingsType _defaultSettings;
         public SettingsType Settings
@@ -210,38 +211,59 @@ namespace Crest
             }
 
             {
+                // Run shadow update
+
+                // It feels like quite a lot could be optimized out of the below. I think the same params are written repeatedly, and probably
+                // a bunch of them are already available in existing ocean globals.
+
+                _renderProperties.Initialise(BufCopyShadowMap, _updateShadowShader, krnl_UpdateShadow);
+
+                if (OceanRenderer.Instance.Viewpoint != null)
+                {
+                    _renderProperties.SetVector(sp_CamPos, OceanRenderer.Instance.Viewpoint.position);
+                    _renderProperties.SetVector(sp_CamForward, OceanRenderer.Instance.Viewpoint.forward);
+                }
+
+                _renderProperties.SetVector(sp_JitterDiameters_CurrentFrameWeights, new Vector4(Settings._jitterDiameterSoft, Settings._jitterDiameterHard, Settings._currentFrameWeightSoft, Settings._currentFrameWeightHard));
+                _renderProperties.SetMatrix(sp_MainCameraProjectionMatrix, _cameraMain.projectionMatrix * _cameraMain.worldToCameraMatrix);
+                _renderProperties.SetFloat(sp_SimDeltaTime, OceanRenderer.Instance.DeltaTimeDynamics);
+
+                _renderProperties.SetTexture(GetParamIdSampler(true), (Texture)_sources);
+
+                _renderProperties.SetTexture(sp_LD_TexArray_Target, _targets);
+
+                _renderProperties.SetBuffer(sp_cascadeDataSrc, OceanRenderer.Instance._bufCascadeDataSrc);
+
                 var lt = OceanRenderer.Instance._lodTransform;
                 for (var lodIdx = lt.LodCount - 1; lodIdx >= 0; lodIdx--)
                 {
-                    _renderProperties.Initialise(BufCopyShadowMap, _updateShadowShader, krnl_UpdateShadow);
-
+                    #if UNITY_EDITOR
                     lt._renderData[lodIdx].Validate(0, SimName);
+                    #endif
+
                     _renderProperties.SetVector(sp_CenterPos, lt._renderData[lodIdx]._posSnapped);
                     var scale = OceanRenderer.Instance.CalcLodScale(lodIdx);
                     _renderProperties.SetVector(sp_Scale, new Vector3(scale, 1f, scale));
-
-                    if (OceanRenderer.Instance.Viewpoint != null)
-                    {
-                        _renderProperties.SetVector(sp_CamPos, OceanRenderer.Instance.Viewpoint.position);
-                        _renderProperties.SetVector(sp_CamForward, OceanRenderer.Instance.Viewpoint.forward);
-                    }
-
-                    _renderProperties.SetVector(sp_JitterDiameters_CurrentFrameWeights, new Vector4(Settings._jitterDiameterSoft, Settings._jitterDiameterHard, Settings._currentFrameWeightSoft, Settings._currentFrameWeightHard));
-                    _renderProperties.SetMatrix(sp_MainCameraProjectionMatrix, _cameraMain.projectionMatrix * _cameraMain.worldToCameraMatrix);
-                    _renderProperties.SetFloat(sp_SimDeltaTime, OceanRenderer.Instance.DeltaTimeDynamics);
 
                     // compute which lod data we are sampling previous frame shadows from. if a scale change has happened this can be any lod up or down the chain.
                     var srcDataIdx = lodIdx + ScaleDifferencePow2;
                     srcDataIdx = Mathf.Clamp(srcDataIdx, 0, lt.LodCount - 1);
                     _renderProperties.SetInt(sp_LD_SliceIndex, lodIdx);
                     _renderProperties.SetInt(sp_LD_SliceIndex_Source, srcDataIdx);
-                    BindSourceData(_renderProperties, false);
-                    _renderProperties.SetTexture(sp_LD_TexArray_Target, _targets);
 
                     BufCopyShadowMap.DispatchCompute(_updateShadowShader, krnl_UpdateShadow,
                         OceanRenderer.Instance.LodDataResolution / THREAD_GROUP_SIZE_X,
                         OceanRenderer.Instance.LodDataResolution / THREAD_GROUP_SIZE_Y,
                         1);
+                }
+
+                // Disable single pass double-wide stereo rendering for these commands since we are rendering to
+                // rendering texture. Otherwise, it will render double. Single pass instanced is broken here, but that
+                // appears to be a Unity bug only for the legacy VR system.
+                if (_cameraMain.stereoEnabled && XRSettings.stereoRenderingMode == XRSettings.StereoRenderingMode.SinglePass)
+                {
+                    BufCopyShadowMap.SetSinglePassStereo(SinglePassStereoMode.None);
+                    BufCopyShadowMap.DisableShaderKeyword("UNITY_SINGLE_PASS_STEREO");
                 }
 
                 // Process registered inputs.
@@ -250,7 +272,17 @@ namespace Crest
                     BufCopyShadowMap.SetRenderTarget(_targets, _targets.depthBuffer, 0, CubemapFace.Unknown, lodIdx);
                     SubmitDraws(lodIdx, BufCopyShadowMap);
                 }
+
+                // Restore single pass double-wide as we cannot rely on remaining pipeline to do it for us.
+                if (_cameraMain.stereoEnabled && XRSettings.stereoRenderingMode == XRSettings.StereoRenderingMode.SinglePass)
+                {
+                    BufCopyShadowMap.SetSinglePassStereo(SinglePassStereoMode.SideBySide);
+                    BufCopyShadowMap.EnableShaderKeyword("UNITY_SINGLE_PASS_STEREO");
+                }
             }
+
+            // Set the target texture as to make sure we catch the 'pong' each frame
+            Shader.SetGlobalTexture(GetParamIdSampler(), _targets);
         }
 
         void UpdateCameraMain()
@@ -280,12 +312,6 @@ namespace Crest
             {
                 renderData.Validate(BuildCommandBufferBase._lastUpdateFrame - OceanRenderer.FrameCount, SimName);
             }
-        }
-
-        public void BindSourceData(IPropertyWrapper simMaterial, bool paramsOnly)
-        {
-            var rd = OceanRenderer.Instance._lodTransform._renderDataSource;
-            BindData(simMaterial, paramsOnly ? Texture2D.blackTexture : _sources as Texture, true, ref rd, true);
         }
 
         internal override void OnEnable()
@@ -321,9 +347,17 @@ namespace Crest
         {
             return ParamIdSampler(sourceLod);
         }
-        public static void BindNull(IPropertyWrapper properties, bool sourceLod = false)
+
+        public static void Bind(IPropertyWrapper properties)
         {
-            properties.SetTexture(ParamIdSampler(sourceLod), TextureArrayHelpers.BlackTextureArray);
+            if (OceanRenderer.Instance._lodDataShadow != null)
+            {
+                properties.SetTexture(OceanRenderer.Instance._lodDataShadow.GetParamIdSampler(), OceanRenderer.Instance._lodDataShadow.DataTexture);
+            }
+            else
+            {
+                properties.SetTexture(ParamIdSampler(), TextureArrayHelpers.BlackTextureArray);
+            }
         }
 
 #if UNITY_2019_3_OR_NEWER

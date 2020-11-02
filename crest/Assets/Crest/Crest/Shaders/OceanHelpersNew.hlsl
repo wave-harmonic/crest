@@ -7,22 +7,22 @@
 #ifndef CREST_OCEAN_HELPERS_H
 #define CREST_OCEAN_HELPERS_H
 
-float2 WorldToUV(in float2 i_samplePos, in float3 i_oceanPosScale, in float4 i_oceanParams)
+float2 WorldToUV(in float2 i_samplePos, in CascadeParams i_cascadeParams)
 {
-	return (i_samplePos - i_oceanPosScale.xy) / (i_oceanParams.x * i_oceanParams.y) + 0.5;
+	return (i_samplePos - i_cascadeParams._posSnapped) / (i_cascadeParams._texelWidth * i_cascadeParams._textureRes) + 0.5;
 }
 
-float3 WorldToUV(in float2 i_samplePos, in float3 i_oceanPosScale, in float4 i_oceanParams, in float i_sliceIndex)
+float3 WorldToUV(in float2 i_samplePos, in CascadeParams i_cascadeParams, in float i_sliceIndex)
 {
-	float2 uv = (i_samplePos - i_oceanPosScale.xy) / (i_oceanParams.x * i_oceanParams.y) + 0.5;
+	float2 uv = (i_samplePos - i_cascadeParams._posSnapped) / (i_cascadeParams._texelWidth * i_cascadeParams._textureRes) + 0.5;
 	return float3(uv, i_sliceIndex);
 }
 
-float2 UVToWorld(in float2 i_uv, in float i_sliceIndex, in float3 i_oceanPosScale, in float4 i_oceanParams)
+float2 UVToWorld(in float2 i_uv, in float i_sliceIndex, in CascadeParams i_cascadeParams)
 {
-	const float texelSize = i_oceanParams.x;
-	const float res = i_oceanParams.y;
-	return texelSize * res * (i_uv - 0.5) + i_oceanPosScale.xy;
+	const float texelSize = i_cascadeParams._texelWidth;
+	const float res = i_cascadeParams._textureRes;
+	return texelSize * res * (i_uv - 0.5) + i_cascadeParams._posSnapped;
 }
 
 // Convert compute shader id to uv texture coordinates
@@ -120,8 +120,7 @@ void PosToSliceIndices
 float3 InvertDisplacement
 (
 	in const Texture2DArray i_oceanData,
-	in float3 i_oceanPosScale,
-	in float4 i_oceanParams,
+	in CascadeParams i_cascadeParams,
 	in uint i_sliceIndex,
 	in const float3 i_positionWS,
 	in const uint i_iterations
@@ -130,7 +129,7 @@ float3 InvertDisplacement
 	float3 invertedDisplacedPosition = i_positionWS;
 	for (uint i = 0; i < i_iterations; i++)
 	{
-		const float3 uv_slice = WorldToUV(invertedDisplacedPosition.xz, i_oceanPosScale, i_oceanParams, i_sliceIndex);
+		const float3 uv_slice = WorldToUV(invertedDisplacedPosition.xz, i_cascadeParams, i_sliceIndex);
 		const float3 displacement = i_oceanData.SampleLevel(LODData_linear_clamp_sampler, uv_slice, 0.0).xyz;
 		const float3 error = (invertedDisplacedPosition + displacement) - i_positionWS;
 		invertedDisplacedPosition -= error;

@@ -3,7 +3,6 @@
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 using UnityEngine;
-using UnityEngine.Experimental.Rendering;
 
 namespace Crest
 {
@@ -17,7 +16,7 @@ namespace Crest
         protected override string ShaderSim { get { return "UpdateFoam"; } }
         protected override int krnl_ShaderSim { get { return _shader.FindKernel(ShaderSim); } }
         public override string SimName { get { return "Foam"; } }
-        public override GraphicsFormat TextureFormat => Settings._renderTextureFormat;
+        public override RenderTextureFormat TextureFormat { get { return Settings._renderTextureFormat; } }
 
         readonly int sp_FoamFadeRate = Shader.PropertyToID("_FoamFadeRate");
         readonly int sp_WaveFoamStrength = Shader.PropertyToID("_WaveFoamStrength");
@@ -70,27 +69,13 @@ namespace Crest
             simMaterial.SetFloat(sp_ShorelineFoamStrength, Settings._shorelineFoamStrength);
 
             // assign animated waves - to slot 1 current frame data
-            OceanRenderer.Instance._lodDataAnimWaves.BindResultData(simMaterial);
+            LodDataMgrAnimWaves.Bind(simMaterial);
 
             // assign sea floor depth - to slot 1 current frame data
-            if (OceanRenderer.Instance._lodDataSeaDepths != null)
-            {
-                OceanRenderer.Instance._lodDataSeaDepths.BindResultData(simMaterial);
-            }
-            else
-            {
-                LodDataMgrSeaFloorDepth.BindNull(simMaterial);
-            }
+            LodDataMgrSeaFloorDepth.Bind(simMaterial);
 
             // assign flow - to slot 1 current frame data
-            if (OceanRenderer.Instance._lodDataFlow != null)
-            {
-                OceanRenderer.Instance._lodDataFlow.BindResultData(simMaterial);
-            }
-            else
-            {
-                LodDataMgrFlow.BindNull(simMaterial);
-            }
+            LodDataMgrFlow.Bind(simMaterial);
         }
 
         public override void GetSimSubstepData(float frameDt, out int numSubsteps, out float substepDt)
@@ -107,9 +92,17 @@ namespace Crest
         {
             return ParamIdSampler(sourceLod);
         }
-        public static void BindNull(IPropertyWrapper properties, bool sourceLod = false)
+
+        public static void Bind(IPropertyWrapper properties)
         {
-            properties.SetTexture(ParamIdSampler(sourceLod), TextureArrayHelpers.BlackTextureArray);
+            if (OceanRenderer.Instance._lodDataFoam != null)
+            {
+                properties.SetTexture(OceanRenderer.Instance._lodDataFoam.GetParamIdSampler(), OceanRenderer.Instance._lodDataFoam.DataTexture);
+            }
+            else
+            {
+                properties.SetTexture(ParamIdSampler(), TextureArrayHelpers.BlackTextureArray);
+            }
         }
 
 #if UNITY_2019_3_OR_NEWER

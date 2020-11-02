@@ -3,6 +3,7 @@
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 
 namespace Crest
@@ -14,7 +15,7 @@ namespace Crest
     {
         public abstract string SimName { get; }
 
-        public abstract RenderTextureFormat TextureFormat { get; }
+        public abstract GraphicsFormat TextureFormat { get; }
 
         // NOTE: This MUST match the value in OceanConstants.hlsl, as it
         // determines the size of the texture arrays in the shaders.
@@ -78,12 +79,19 @@ namespace Crest
 
         protected virtual void InitData()
         {
-            Debug.Assert(SystemInfo.SupportsRenderTextureFormat(TextureFormat), "The graphics device does not support the render texture format " + TextureFormat.ToString());
+            // Find a compatible texture format.
+            var formatUsage = NeedToReadWriteTextureData ? FormatUsage.LoadStore : FormatUsage.Sample;
+            var graphicsFormat = SystemInfo.GetCompatibleFormat(TextureFormat, formatUsage);
+            if (graphicsFormat != TextureFormat)
+            {
+                Debug.Log($"Using render texture format {graphicsFormat} instead of {TextureFormat}");
+            }
+            Debug.Assert(graphicsFormat != GraphicsFormat.None, $"The graphics device does not support the render texture format {TextureFormat}");
 
             Debug.Assert(OceanRenderer.Instance.CurrentLodCount <= MAX_LOD_COUNT);
 
             var resolution = OceanRenderer.Instance.LodDataResolution;
-            var desc = new RenderTextureDescriptor(resolution, resolution, TextureFormat, 0);
+            var desc = new RenderTextureDescriptor(resolution, resolution, graphicsFormat, 0);
             _targets = CreateLodDataTextures(desc, SimName, NeedToReadWriteTextureData);
 
             // Bind globally once here on init, which will bind to all graphics shaders (not compute)

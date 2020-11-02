@@ -3,6 +3,7 @@
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 
 namespace Crest
 {
@@ -17,7 +18,7 @@ namespace Crest
         protected override int krnl_ShaderSim { get { return _shader.FindKernel(ShaderSim); } }
 
         public override string SimName { get { return "DynamicWaves"; } }
-        public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RGHalf; } }
+        public override GraphicsFormat TextureFormat => GraphicsFormat.R16G16_SFloat;
 
         public bool _rotateLaplacian = true;
 

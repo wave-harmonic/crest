@@ -86,7 +86,6 @@ namespace Crest
                 // Unity has greatly improved performance of this operation in 2019.4.9.
                 return Camera.main;
             }
-
             set
             {
                 _camera = value;

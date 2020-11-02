@@ -45,7 +45,7 @@ namespace Crest
                     return _viewpoint;
                 }
 
-                // Cache until Unity improves Camera.main performance in 2020.2.
+                // Even with performance improvements, it is still good to cache whenever possible.
                 var camera = ViewCamera;
 
                 if (camera != null)
@@ -83,6 +83,7 @@ namespace Crest
                     return _camera;
                 }
 
+                // Unity has greatly improved performance of this operation in 2019.4.9.
                 return Camera.main;
             }
 
@@ -1110,6 +1111,18 @@ namespace Crest
         public bool Validate(OceanRenderer ocean, ValidatedHelper.ShowMessage showMessage)
         {
             var isValid = true;
+
+#if !UNITY_2019_4_9_OR_NEWER
+            if (_camera == null)
+            {
+                showMessage
+                (
+                    "Not setting the camera property will result in using Camera.main which has a significant " +
+                    "performance cost. This is improved in Unity 2019.4.9 and above.",
+                    ValidatedHelper.MessageType.Warning, ocean
+                );
+            }
+#endif
 
             if (_material == null)
             {

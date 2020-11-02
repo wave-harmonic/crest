@@ -200,6 +200,14 @@ namespace Crest
                 TextureArrayHelpers.ClearToBlack(_targets);
             }
 
+            // Cache the camera for further down.
+            var camera = OceanRenderer.Instance.ViewCamera;
+            if (camera == null)
+            {
+                // We want to return early after clear.
+                return;
+            }
+
             {
                 // Run shadow update
 
@@ -208,14 +216,11 @@ namespace Crest
 
                 _renderProperties.Initialise(BufCopyShadowMap, _updateShadowShader, krnl_UpdateShadow);
 
-                if (OceanRenderer.Instance.ViewCamera != null)
-                {
-                    _renderProperties.SetVector(sp_CamPos, OceanRenderer.Instance.ViewCamera.transform.position);
-                    _renderProperties.SetVector(sp_CamForward, OceanRenderer.Instance.ViewCamera.transform.forward);
-                }
+                _renderProperties.SetVector(sp_CamPos, camera.transform.position);
+                _renderProperties.SetVector(sp_CamForward, camera.transform.forward);
 
                 _renderProperties.SetVector(sp_JitterDiameters_CurrentFrameWeights, new Vector4(Settings._jitterDiameterSoft, Settings._jitterDiameterHard, Settings._currentFrameWeightSoft, Settings._currentFrameWeightHard));
-                _renderProperties.SetMatrix(sp_MainCameraProjectionMatrix, OceanRenderer.Instance.ViewCamera.projectionMatrix * OceanRenderer.Instance.ViewCamera.worldToCameraMatrix);
+                _renderProperties.SetMatrix(sp_MainCameraProjectionMatrix, camera.projectionMatrix * camera.worldToCameraMatrix);
                 _renderProperties.SetFloat(sp_SimDeltaTime, OceanRenderer.Instance.DeltaTimeDynamics);
 
                 _renderProperties.SetTexture(GetParamIdSampler(true), (Texture)_sources);
@@ -250,7 +255,7 @@ namespace Crest
                 // Disable single pass double-wide stereo rendering for these commands since we are rendering to
                 // rendering texture. Otherwise, it will render double. Single pass instanced is broken here, but that
                 // appears to be a Unity bug only for the legacy VR system.
-                if (OceanRenderer.Instance.ViewCamera.stereoEnabled && XRSettings.stereoRenderingMode == XRSettings.StereoRenderingMode.SinglePass)
+                if (camera.stereoEnabled && XRSettings.stereoRenderingMode == XRSettings.StereoRenderingMode.SinglePass)
                 {
                     BufCopyShadowMap.SetSinglePassStereo(SinglePassStereoMode.None);
                     BufCopyShadowMap.DisableShaderKeyword("UNITY_SINGLE_PASS_STEREO");
@@ -264,7 +269,7 @@ namespace Crest
                 }
 
                 // Restore single pass double-wide as we cannot rely on remaining pipeline to do it for us.
-                if (OceanRenderer.Instance.ViewCamera.stereoEnabled && XRSettings.stereoRenderingMode == XRSettings.StereoRenderingMode.SinglePass)
+                if (camera.stereoEnabled && XRSettings.stereoRenderingMode == XRSettings.StereoRenderingMode.SinglePass)
                 {
                     BufCopyShadowMap.SetSinglePassStereo(SinglePassStereoMode.SideBySide);
                     BufCopyShadowMap.EnableShaderKeyword("UNITY_SINGLE_PASS_STEREO");

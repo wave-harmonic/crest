@@ -841,11 +841,13 @@ namespace Crest
 
         void LateUpdateViewerHeight()
         {
-            _sampleHeightHelper.Init(ViewCamera.transform.position, 0f, true);
+            var camera = ViewCamera;
+
+            _sampleHeightHelper.Init(camera.transform.position, 0f, true);
 
             _sampleHeightHelper.Sample(out var waterHeight);
 
-            ViewerHeightAboveWater = ViewCamera.transform.position.y - waterHeight;
+            ViewerHeightAboveWater = camera.transform.position.y - waterHeight;
         }
 
         void LateUpdateLods()

@@ -17,7 +17,6 @@ namespace Crest
 
         // This is the texture format we want to use.
         public abstract GraphicsFormat TextureFormat { get; }
-        public abstract RenderTextureFormat TextureFormat { get; }
 
         // This is the platform compatible texture format we will use.
         public GraphicsFormat CompatibleTextureFormat { get; private set; }

@@ -4,7 +4,6 @@
 
 using System;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 using UnityEngine.XR;
 
@@ -19,7 +18,7 @@ namespace Crest
     public class LodDataMgrShadow : LodDataMgr
     {
         public override string SimName { get { return "Shadow"; } }
-        public override GraphicsFormat TextureFormat => GraphicsFormat.R8G8_UNorm;
+        public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RG16; } }
         protected override bool NeedToReadWriteTextureData { get { return true; } }
 
         public static bool s_processData = true;

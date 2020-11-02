@@ -408,7 +408,7 @@ namespace Crest
 
             _commandbufferBuilder = new BuildCommandBuffer();
 
-            InitViewpoint();
+            ValidateViewpoint();
 
             if (_attachDebugGUI && GetComponent<OceanDebugGUI>() == null)
             {
@@ -654,19 +654,11 @@ namespace Crest
             return true;
         }
 
-        void InitViewpoint()
+        void ValidateViewpoint()
         {
             if (Viewpoint == null)
             {
-                var camMain = ViewCamera;
-                if (camMain != null)
-                {
-                    Viewpoint = camMain.transform;
-                }
-                else
-                {
-                    Debug.LogError("Crest needs to know where to focus the ocean detail. Please set the Viewpoint property of the OceanRenderer component to the transform of the viewpoint/camera that the ocean should follow, or tag the primary camera as MainCamera.", this);
-                }
+                Debug.LogError("Crest needs to know where to focus the ocean detail. Please set the <i>ViewCamera</i> or the <i>Viewpoint</i> property that will render the ocean, or tag the primary camera as <i>MainCamera</i>.", this);
             }
         }
 
@@ -723,10 +715,7 @@ namespace Crest
             var meshScaleLerp = needToBlendOutShape ? ViewerAltitudeLevelAlpha : 0f;
             Shader.SetGlobalFloat(sp_meshScaleLerp, meshScaleLerp);
 
-            if (Viewpoint == null && Application.isPlaying)
-            {
-                Debug.LogError("Viewpoint is null, ocean update will fail.", this);
-            }
+            ValidateViewpoint();
 
             if (_followViewpoint && Viewpoint != null)
             {

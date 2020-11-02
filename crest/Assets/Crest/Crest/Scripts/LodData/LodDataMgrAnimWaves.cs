@@ -94,7 +94,7 @@ namespace Crest
             // read and write to the same texture.
 
             int resolution = OceanRenderer.Instance.LodDataResolution;
-            var desc = new RenderTextureDescriptor(resolution, resolution, TextureFormat, 0);
+            var desc = new RenderTextureDescriptor(resolution, resolution, CompatibleTextureFormat, 0);
 
             _waveBuffers = CreateLodDataTextures(desc, "WaveBuffer", false);
 

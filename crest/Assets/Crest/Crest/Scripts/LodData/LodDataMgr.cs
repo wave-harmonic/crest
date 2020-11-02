@@ -15,7 +15,11 @@ namespace Crest
     {
         public abstract string SimName { get; }
 
+        // This is the texture format we want to use.
         public abstract GraphicsFormat TextureFormat { get; }
+
+        // This is the platform compatible texture format we will use.
+        public GraphicsFormat CompatibleTextureFormat { get; private set; }
 
         // NOTE: This MUST match the value in OceanConstants.hlsl, as it
         // determines the size of the texture arrays in the shaders.
@@ -79,19 +83,22 @@ namespace Crest
 
         protected virtual void InitData()
         {
-            // Find a compatible texture format.
-            var formatUsage = NeedToReadWriteTextureData ? FormatUsage.LoadStore : FormatUsage.Sample;
-            var graphicsFormat = SystemInfo.GetCompatibleFormat(TextureFormat, formatUsage);
-            if (graphicsFormat != TextureFormat)
+            if (CompatibleTextureFormat == GraphicsFormat.None)
             {
-                Debug.Log($"Using render texture format {graphicsFormat} instead of {TextureFormat}");
+                // Find a compatible texture format.
+                var formatUsage = NeedToReadWriteTextureData ? FormatUsage.LoadStore : FormatUsage.Sample;
+                CompatibleTextureFormat = SystemInfo.GetCompatibleFormat(TextureFormat, formatUsage);
+                if (CompatibleTextureFormat != TextureFormat)
+                {
+                    Debug.Log($"Using render texture format {CompatibleTextureFormat} instead of {TextureFormat}");
+                }
+                Debug.Assert(CompatibleTextureFormat != GraphicsFormat.None, $"The graphics device does not support the render texture format {TextureFormat}");
             }
-            Debug.Assert(graphicsFormat != GraphicsFormat.None, $"The graphics device does not support the render texture format {TextureFormat}");
 
             Debug.Assert(OceanRenderer.Instance.CurrentLodCount <= MAX_LOD_COUNT);
 
             var resolution = OceanRenderer.Instance.LodDataResolution;
-            var desc = new RenderTextureDescriptor(resolution, resolution, graphicsFormat, 0);
+            var desc = new RenderTextureDescriptor(resolution, resolution, CompatibleTextureFormat, 0);
             _targets = CreateLodDataTextures(desc, SimName, NeedToReadWriteTextureData);
         }
 

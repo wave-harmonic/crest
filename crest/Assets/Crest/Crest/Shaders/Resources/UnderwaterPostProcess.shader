@@ -68,6 +68,7 @@ Shader "Crest/Underwater/Post Process Stack"
 			float4 _HorizonPosNormalRight;
 			half _DataSliceOffset;
 
+			// unity_StereoEyeIndex is not being set so we handle it ourselves.
 			uint _StereoEyeIndex;
 
 			// Ported from StdLib, we can't include it as it'll conflict with internal Unity includes
@@ -86,7 +87,6 @@ Shader "Crest/Underwater/Post Process Stack"
 			Varyings Vert (Attributes input)
 			{
 				Varyings output;
-
 				output.positionCS = float4(input.vertex.xy, 0.0, 1.0);
 				output.uv = (input.vertex.xy + 1.0) * 0.5;
 #if UNITY_UV_STARTS_AT_TOP

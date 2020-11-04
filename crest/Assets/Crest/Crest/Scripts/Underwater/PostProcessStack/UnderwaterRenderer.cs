@@ -35,6 +35,7 @@ namespace Crest
         UnderwaterSphericalHarmonicsData _sphericalHarmonicsData = new UnderwaterSphericalHarmonicsData();
         bool _firstRender = true;
 
+        // We need to track the stereo eye index for XR SPI for usage in scripts and shaders.
         int _stereoEyeIndex = -1;
 
         public override void Init()
@@ -49,6 +50,8 @@ namespace Crest
 
         public override void Render(PostProcessRenderContext context)
         {
+            // Render is called per eye for XR SPI. We are keeping track of the eye index to determine which eye is
+            // being processed for both scripts and shaders. It is possible that Unity might change this behaviour.
             if (context.stereoRenderingMode == PostProcessRenderContext.StereoRenderingMode.SinglePassInstanced)
             {
                 _stereoEyeIndex = (_stereoEyeIndex + 1) % 2;
@@ -97,7 +100,9 @@ namespace Crest
             );
             _firstRender = false;
 
-
+            // We are currently using CG shaders which means we cannot use the HLSL includes from the post-processing
+            // stack package. This leaves some variables not set like unity_StereoEyeIndex. We could setup each eye
+            // correctly so we do not need the eye index, but this might diverge from downstream too much.
             if (context.stereoRenderingMode == PostProcessRenderContext.StereoRenderingMode.SinglePassInstanced)
             {
                 context.command.SetGlobalInt("_StereoEyeIndex", _stereoEyeIndex);

@@ -232,6 +232,9 @@ namespace Crest
                 // Store projection matrix to restore later.
                 var projectionMatrix = camera.projectionMatrix;
 
+                // For VR/XR SPI and the PPS, the render function is called per eye. This branch prevents an out of
+                // bounds exception when calling ViewportToWorldPoint in GetHorizonPosNormal. This is not the case for
+                // the SRP volume framework.
                 if (stereoEyeIndex == 0)
                 {
                     // We need to set the matrix ourselves. Maybe ViewportToWorldPoint has a bug.

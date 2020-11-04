@@ -83,17 +83,14 @@ namespace Crest
 
         protected virtual void InitData()
         {
-            if (CompatibleTextureFormat == GraphicsFormat.None)
+            // Find a compatible texture format.
+            var formatUsage = NeedToReadWriteTextureData ? FormatUsage.LoadStore : FormatUsage.Sample;
+            CompatibleTextureFormat = SystemInfo.GetCompatibleFormat(TextureFormat, formatUsage);
+            if (CompatibleTextureFormat != TextureFormat)
             {
-                // Find a compatible texture format.
-                var formatUsage = NeedToReadWriteTextureData ? FormatUsage.LoadStore : FormatUsage.Sample;
-                CompatibleTextureFormat = SystemInfo.GetCompatibleFormat(TextureFormat, formatUsage);
-                if (CompatibleTextureFormat != TextureFormat)
-                {
-                    Debug.Log($"Using render texture format {CompatibleTextureFormat} instead of {TextureFormat}");
-                }
-                Debug.Assert(CompatibleTextureFormat != GraphicsFormat.None, $"The graphics device does not support the render texture format {TextureFormat}");
+                Debug.Log($"Using render texture format {CompatibleTextureFormat} instead of {TextureFormat}");
             }
+            Debug.Assert(CompatibleTextureFormat != GraphicsFormat.None, $"The graphics device does not support the render texture format {TextureFormat}");
 
             Debug.Assert(OceanRenderer.Instance.CurrentLodCount <= MAX_LOD_COUNT);
 

@@ -1,15 +1,26 @@
-// Crest Ocean System
+﻿// Crest Ocean System
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
-// Renders ocean depth - signed distance from sea level to sea floor
-Shader "Crest/Inputs/Depth/Ocean Depth From Geometry"
+// Renders the geometry to the foam texture and sets foam data to provided value.
+
+Shader "Crest/Inputs/Foam/Override Foam"
 {
+	Properties
+	{
+		_FoamValue("Foam Value", Range(0.0, 1.0)) = 1.0
+	}
+
 	SubShader
 	{
+		// Base simulation runs on the Geometry queue, before this shader.
+		Tags { "Queue" = "Transparent" }
+
 		Pass
 		{
-			BlendOp Min
+			Blend Off
+			ZWrite Off
+			ColorMask R
 
 			CGPROGRAM
 			#pragma vertex Vert
@@ -17,7 +28,7 @@ Shader "Crest/Inputs/Depth/Ocean Depth From Geometry"
 
 			#include "UnityCG.cginc"
 
-			#include "../../OceanGlobals.hlsl"
+			half _FoamValue;
 
 			struct Attributes
 			{
@@ -27,24 +38,18 @@ Shader "Crest/Inputs/Depth/Ocean Depth From Geometry"
 			struct Varyings
 			{
 				float4 positionCS : SV_POSITION;
-				float depth : TEXCOORD0;
 			};
 
 			Varyings Vert(Attributes input)
 			{
 				Varyings o;
 				o.positionCS = UnityObjectToClipPos(input.positionOS);
-
-				float altitude = mul(unity_ObjectToWorld, float4(input.positionOS, 1.0)).y;
-
-				o.depth = _OceanCenterPosWorld.y - altitude;
-
 				return o;
 			}
 
-			float4 Frag(Varyings input) : SV_Target
+			half4 Frag(Varyings input) : SV_Target
 			{
-				return float4(input.depth, 0.0, 0.0, 0.0);
+				return _FoamValue;
 			}
 			ENDCG
 		}

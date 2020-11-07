@@ -5,6 +5,7 @@
 using System;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.XR;
 
 namespace Crest
 {
@@ -256,11 +257,27 @@ namespace Crest
                         1);
                 }
 
+                // Disable single pass double-wide stereo rendering for these commands since we are rendering to
+                // rendering texture. Otherwise, it will render double. Single pass instanced is broken here, but that
+                // appears to be a Unity bug only for the legacy VR system.
+                if (_cameraMain.stereoEnabled && XRSettings.stereoRenderingMode == XRSettings.StereoRenderingMode.SinglePass)
+                {
+                    BufCopyShadowMap.SetSinglePassStereo(SinglePassStereoMode.None);
+                    BufCopyShadowMap.DisableShaderKeyword("UNITY_SINGLE_PASS_STEREO");
+                }
+
                 // Process registered inputs.
                 for (var lodIdx = lt.LodCount - 1; lodIdx >= 0; lodIdx--)
                 {
                     BufCopyShadowMap.SetRenderTarget(_targets, _targets.depthBuffer, 0, CubemapFace.Unknown, lodIdx);
                     SubmitDraws(lodIdx, BufCopyShadowMap);
+                }
+
+                // Restore single pass double-wide as we cannot rely on remaining pipeline to do it for us.
+                if (_cameraMain.stereoEnabled && XRSettings.stereoRenderingMode == XRSettings.StereoRenderingMode.SinglePass)
+                {
+                    BufCopyShadowMap.SetSinglePassStereo(SinglePassStereoMode.SideBySide);
+                    BufCopyShadowMap.EnableShaderKeyword("UNITY_SINGLE_PASS_STEREO");
                 }
             }
 

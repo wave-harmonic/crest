@@ -149,8 +149,6 @@ namespace Crest
         [Tooltip("Water depth information used for shallow water, shoreline foam, wave attenuation, among others."), SerializeField]
         bool _createSeaFloorDepthData = true;
         public bool CreateSeaFloorDepthData { get { return _createSeaFloorDepthData; } }
-        [PredicatedField("_createSeaFloorDepthData")]
-        public SimSettingsDepth _simSettingsDepth;
 
         [Tooltip("Simulation of foam created in choppy water and dissipating over time."), SerializeField]
         bool _createFoamSim = true;
@@ -1103,16 +1101,6 @@ namespace Crest
         public bool Validate(OceanRenderer ocean, ValidatedHelper.ShowMessage showMessage)
         {
             var isValid = true;
-
-            if (EditorSettings.enterPlayModeOptionsEnabled &&
-                EditorSettings.enterPlayModeOptions.HasFlag(EnterPlayModeOptions.DisableSceneReload))
-            {
-                showMessage
-                (
-                    "Crest will not work correctly with <i>Disable Scene Reload</i> enabled.",
-                    ValidatedHelper.MessageType.Error, ocean
-                );
-            }
 
             if (_material == null)
             {

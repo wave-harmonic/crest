@@ -291,6 +291,10 @@ Shader "Crest/Ocean"
 				UNITY_INITIALIZE_OUTPUT(Varyings, o);
 				UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
 
+				// Scale up by small "epsilon" to solve numerical issues.
+				// :OceanGridPrecisionErrors
+				v.vertex.xyz *= 1.00001;
+
 				const CascadeParams cascadeData0 = _CrestCascadeData[_LD_SliceIndex];
 				const CascadeParams cascadeData1 = _CrestCascadeData[_LD_SliceIndex + 1];
 				const PerCascadeInstanceData instanceData = _CrestPerCascadeInstanceData[_LD_SliceIndex];

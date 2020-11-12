@@ -24,7 +24,6 @@ namespace Crest
         public static bool s_processData = true;
 
         Light _mainLight;
-        Camera _cameraMain;
 
         // SRP version needs access to this externally, hence public get
         public CommandBuffer BufCopyShadowMap { get; private set; }
@@ -89,9 +88,6 @@ namespace Crest
                 enabled = false;
                 return;
             }
-
-            // Setup the camera.
-            UpdateCameraMain();
 
 #if UNITY_EDITOR
             if (!OceanRenderer.Instance.OceanMaterial.IsKeywordEnabled("_SHADOWS_ON"))
@@ -188,12 +184,6 @@ namespace Crest
                 return;
             }
 
-            // Update the camera if it has changed.
-            if (_cameraMain.transform != OceanRenderer.Instance.Viewpoint)
-            {
-                UpdateCameraMain();
-            }
-
             Swap(ref _sources, ref _targets);
 
             BufCopyShadowMap.Clear();
@@ -210,6 +200,14 @@ namespace Crest
                 TextureArrayHelpers.ClearToBlack(_targets);
             }
 
+            // Cache the camera for further down.
+            var camera = OceanRenderer.Instance.ViewCamera;
+            if (camera == null)
+            {
+                // We want to return early after clear.
+                return;
+            }
+
             {
                 // Run shadow update
 
@@ -218,14 +216,11 @@ namespace Crest
 
                 _renderProperties.Initialise(BufCopyShadowMap, _updateShadowShader, krnl_UpdateShadow);
 
-                if (OceanRenderer.Instance.Viewpoint != null)
-                {
-                    _renderProperties.SetVector(sp_CamPos, OceanRenderer.Instance.Viewpoint.position);
-                    _renderProperties.SetVector(sp_CamForward, OceanRenderer.Instance.Viewpoint.forward);
-                }
+                _renderProperties.SetVector(sp_CamPos, camera.transform.position);
+                _renderProperties.SetVector(sp_CamForward, camera.transform.forward);
 
                 _renderProperties.SetVector(sp_JitterDiameters_CurrentFrameWeights, new Vector4(Settings._jitterDiameterSoft, Settings._jitterDiameterHard, Settings._currentFrameWeightSoft, Settings._currentFrameWeightHard));
-                _renderProperties.SetMatrix(sp_MainCameraProjectionMatrix, _cameraMain.projectionMatrix * _cameraMain.worldToCameraMatrix);
+                _renderProperties.SetMatrix(sp_MainCameraProjectionMatrix, camera.projectionMatrix * camera.worldToCameraMatrix);
                 _renderProperties.SetFloat(sp_SimDeltaTime, OceanRenderer.Instance.DeltaTimeDynamics);
 
                 _renderProperties.SetTexture(GetParamIdSampler(true), (Texture)_sources);
@@ -260,7 +255,7 @@ namespace Crest
                 // Disable single pass double-wide stereo rendering for these commands since we are rendering to
                 // rendering texture. Otherwise, it will render double. Single pass instanced is broken here, but that
                 // appears to be a Unity bug only for the legacy VR system.
-                if (_cameraMain.stereoEnabled && XRSettings.stereoRenderingMode == XRSettings.StereoRenderingMode.SinglePass)
+                if (camera.stereoEnabled && XRSettings.stereoRenderingMode == XRSettings.StereoRenderingMode.SinglePass)
                 {
                     BufCopyShadowMap.SetSinglePassStereo(SinglePassStereoMode.None);
                     BufCopyShadowMap.DisableShaderKeyword("UNITY_SINGLE_PASS_STEREO");
@@ -274,7 +269,7 @@ namespace Crest
                 }
 
                 // Restore single pass double-wide as we cannot rely on remaining pipeline to do it for us.
-                if (_cameraMain.stereoEnabled && XRSettings.stereoRenderingMode == XRSettings.StereoRenderingMode.SinglePass)
+                if (camera.stereoEnabled && XRSettings.stereoRenderingMode == XRSettings.StereoRenderingMode.SinglePass)
                 {
                     BufCopyShadowMap.SetSinglePassStereo(SinglePassStereoMode.SideBySide);
                     BufCopyShadowMap.EnableShaderKeyword("UNITY_SINGLE_PASS_STEREO");
@@ -283,19 +278,6 @@ namespace Crest
 
             // Set the target texture as to make sure we catch the 'pong' each frame
             Shader.SetGlobalTexture(GetParamIdSampler(), _targets);
-        }
-
-        void UpdateCameraMain()
-        {
-            var viewpoint = OceanRenderer.Instance.Viewpoint;
-            _cameraMain = viewpoint != null ? viewpoint.GetComponent<Camera>() : null;
-
-            if (_cameraMain == null)
-            {
-                Debug.LogError("Could not find main camera, disabling shadow data", _ocean);
-                enabled = false;
-                return;
-            }
         }
 
         public void ValidateSourceData()

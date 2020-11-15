@@ -503,15 +503,15 @@ Shader "Crest/Ocean"
 				float3 dummy = 0.;
 				half3 n_geom = half3(0.0, 1.0, 0.0);
 				int offset = -1;
-				const uint sliceNormals0 = max(0, _LD_SliceIndex + offset);
-				const uint sliceNormals1 = max(0, _LD_SliceIndex + offset + 1);
+				const uint sliceNormals0 = max(0, offset + (int)_LD_SliceIndex);
+				const uint sliceNormals1 = max(0, offset + (int)_LD_SliceIndex + 1);
 				half sss = 0.;
 				if (wt_smallerLod > 0.001)
 				{
 					const float3 uv_slice_smallerLod = WorldToUV(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, _CrestCascadeData[sliceNormals0], sliceNormals0);
 					SampleDisplacementsNormals(_LD_TexArray_AnimatedWaves, uv_slice_smallerLod, 1., _CrestCascadeData[sliceNormals0]._oneOverTextureRes, _CrestCascadeData[sliceNormals0]._texelWidth, dummy, n_geom.xz, sss);
 				}
-				if (wt_biggerLod > 0.001 && false)
+				if (wt_biggerLod > 0.001)
 				{
 					const uint si = sliceNormals1;
 					const float3 uv_slice_biggerLod = WorldToUV(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, _CrestCascadeData[si], si);

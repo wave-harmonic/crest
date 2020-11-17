@@ -54,14 +54,23 @@ There is also a getting started video here: https://www.youtube.com/watch?v=qsge
 
 # Installation
 
+***You can download the latest version from [here](https://github.com/crest-ocean/crest/archive/master.zip).***
+
 One way to obtain *Crest* is take the latest version in the master branch by forking/cloning this repository or by using the green download button above.
 The files that should be copied into an existing project are under *crest/Assets/Crest*.
-Note that *crest/Assets/Crest/Crest-Examples* contains example content that is useful for first time users but not required for the core *Crest* functionality.
 
-Releases of this version of *Crest* are published irregularly and posted on the [Releases page](https://github.com/huwb/crest-oceanrender/releases).
-Unity packages are uploaded with each release which can be imported into your project using *Assets/Import Package*.
+Note that *crest/Assets/Crest/Crest-Examples* contains example content that is useful for first time users but not required for the core *Crest* functionality. Furthermore, the *crest/Assets/Crest/Development* folder is not needed as it is only for *Crest* development.
 
-## 2018.4
+## Legacy
+
+The following options are no longer maintained or supported.
+
+### Releases
+
+*Crest* releases are no longer published or supported. Old releases can be obtained from the [Releases page](https://github.com/huwb/crest-oceanrender/releases), but they are not recommended.
+They are Unity packages which can be imported into your project using *Assets/Import Package*.
+
+### 2018.4
 
 There is a [legacy branch] for 2018.4 support. A direct download to an archive is available [here](https://github.com/crest-ocean/crest/archive/legacy/unity-2018.zip). It is not actively developed.
 

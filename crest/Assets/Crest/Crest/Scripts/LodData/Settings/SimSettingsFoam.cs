@@ -21,6 +21,6 @@ namespace Crest
         [Range(0f, 5f), Tooltip("Scales intensity of foam generated in shallow water.")]
         public float _shorelineFoamStrength = 2f;
         [Tooltip("The rendertexture format to use for the foam simulation")]
-        public GraphicsFormat _renderTextureFormat = GraphicsFormat.R16_SFloat;
+        public GraphicsFormat _renderTextureGraphicsFormat = GraphicsFormat.R16_SFloat;
     }
 }

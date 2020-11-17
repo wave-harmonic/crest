@@ -17,7 +17,7 @@ namespace Crest
         protected override string ShaderSim { get { return "UpdateFoam"; } }
         protected override int krnl_ShaderSim { get { return _shader.FindKernel(ShaderSim); } }
         public override string SimName { get { return "Foam"; } }
-        protected override GraphicsFormat RequestedTextureFormat => Settings._renderTextureFormat;
+        protected override GraphicsFormat RequestedTextureFormat => Settings._renderTextureGraphicsFormat;
 
         readonly int sp_FoamFadeRate = Shader.PropertyToID("_FoamFadeRate");
         readonly int sp_WaveFoamStrength = Shader.PropertyToID("_WaveFoamStrength");

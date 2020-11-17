@@ -14,7 +14,7 @@ namespace Crest
     public class LodDataMgrSeaFloorDepth : LodDataMgr
     {
         public override string SimName { get { return "SeaFloorDepth"; } }
-        public override GraphicsFormat TextureFormat => GraphicsFormat.R16_SFloat;
+        protected override GraphicsFormat RequestedTextureFormat => GraphicsFormat.R16_SFloat;
         protected override bool NeedToReadWriteTextureData { get { return false; } }
 
         bool _targetsClear = false;

@@ -16,7 +16,7 @@ namespace Crest
     public class LodDataMgrFlow : LodDataMgr
     {
         public override string SimName { get { return "Flow"; } }
-        public override GraphicsFormat TextureFormat => GraphicsFormat.R16G16_SFloat;
+        protected override GraphicsFormat RequestedTextureFormat => GraphicsFormat.R16G16_SFloat;
         protected override bool NeedToReadWriteTextureData { get { return false; } }
 
         bool _targetsClear = false;

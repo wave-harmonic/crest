@@ -16,7 +16,7 @@ namespace Crest
         public abstract string SimName { get; }
 
         // This is the texture format we want to use.
-        public abstract GraphicsFormat TextureFormat { get; }
+        protected abstract GraphicsFormat RequestedTextureFormat { get; }
 
         // This is the platform compatible texture format we will use.
         public GraphicsFormat CompatibleTextureFormat { get; private set; }
@@ -85,12 +85,12 @@ namespace Crest
         {
             // Find a compatible texture format.
             var formatUsage = NeedToReadWriteTextureData ? FormatUsage.LoadStore : FormatUsage.Sample;
-            CompatibleTextureFormat = SystemInfo.GetCompatibleFormat(TextureFormat, formatUsage);
-            if (CompatibleTextureFormat != TextureFormat)
+            CompatibleTextureFormat = SystemInfo.GetCompatibleFormat(RequestedTextureFormat, formatUsage);
+            if (CompatibleTextureFormat != RequestedTextureFormat)
             {
-                Debug.Log($"Using render texture format {CompatibleTextureFormat} instead of {TextureFormat}");
+                Debug.Log($"Using render texture format {CompatibleTextureFormat} instead of {RequestedTextureFormat}");
             }
-            Debug.Assert(CompatibleTextureFormat != GraphicsFormat.None, $"The graphics device does not support the render texture format {TextureFormat}");
+            Debug.Assert(CompatibleTextureFormat != GraphicsFormat.None, $"The graphics device does not support the render texture format {RequestedTextureFormat}");
 
             Debug.Assert(OceanRenderer.Instance.CurrentLodCount <= MAX_LOD_COUNT);
 

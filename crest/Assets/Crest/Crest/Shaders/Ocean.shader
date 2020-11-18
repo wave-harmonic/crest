@@ -293,7 +293,7 @@ Shader "Crest/Ocean"
 
 				// Scale up by small "epsilon" to solve numerical issues.
 				// :OceanGridPrecisionErrors
-				v.vertex.xyz *= 1.00001;
+				v.vertex.xyz *= 1.0;
 
 				const CascadeParams cascadeData0 = _CrestCascadeData[_LD_SliceIndex];
 				const CascadeParams cascadeData1 = _CrestCascadeData[_LD_SliceIndex + 1];

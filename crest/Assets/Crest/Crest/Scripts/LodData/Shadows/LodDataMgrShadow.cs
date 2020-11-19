@@ -4,6 +4,7 @@
 
 using System;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 using UnityEngine.XR;
 
@@ -18,7 +19,7 @@ namespace Crest
     public class LodDataMgrShadow : LodDataMgr
     {
         public override string SimName { get { return "Shadow"; } }
-        public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RG16; } }
+        protected override GraphicsFormat RequestedTextureFormat => GraphicsFormat.R8G8_UNorm;
         protected override bool NeedToReadWriteTextureData { get { return true; } }
 
         public static bool s_processData = true;
@@ -102,7 +103,7 @@ namespace Crest
             base.InitData();
 
             int resolution = OceanRenderer.Instance.LodDataResolution;
-            var desc = new RenderTextureDescriptor(resolution, resolution, TextureFormat, 0);
+            var desc = new RenderTextureDescriptor(resolution, resolution, CompatibleTextureFormat, 0);
             _sources = CreateLodDataTextures(desc, SimName + "_1", NeedToReadWriteTextureData);
 
             TextureArrayHelpers.ClearToBlack(_sources);

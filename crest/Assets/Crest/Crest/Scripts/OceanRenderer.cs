@@ -24,7 +24,7 @@ namespace Crest
     [ExecuteAlways, SelectionBase]
     public partial class OceanRenderer : MonoBehaviour
     {
-        [Tooltip("The viewpoint which drives the ocean detail. Defaults to main camera."), SerializeField]
+        [Tooltip("The viewpoint which drives the ocean detail. Defaults to the camera."), SerializeField]
         Transform _viewpoint;
         public Transform Viewpoint
         {
@@ -33,20 +33,10 @@ namespace Crest
 #if UNITY_EDITOR
                 if (_followSceneCamera)
                 {
-                    if (EditorWindow.focusedWindow != null &&
-                        (EditorWindow.focusedWindow.titleContent.text == "Scene" || EditorWindow.focusedWindow.titleContent.text == "Game"))
+                    var sceneViewCamera = EditorHelpers.GetActiveSceneViewCamera();
+                    if (sceneViewCamera != null)
                     {
-                        _lastGameOrSceneEditorWindow = EditorWindow.focusedWindow;
-                    }
-
-                    // If scene view is focused, use its camera. This code is slightly ropey but seems to work ok enough.
-                    if (_lastGameOrSceneEditorWindow != null && _lastGameOrSceneEditorWindow.titleContent.text == "Scene")
-                    {
-                        var sv = SceneView.lastActiveSceneView;
-                        if (sv != null && !EditorApplication.isPlaying && sv.camera != null)
-                        {
-                            return sv.camera.transform;
-                        }
+                        return sceneViewCamera.transform;
                     }
                 }
 #endif
@@ -55,9 +45,12 @@ namespace Crest
                     return _viewpoint;
                 }
 
-                if (Camera.main != null)
+                // Even with performance improvements, it is still good to cache whenever possible.
+                var camera = ViewCamera;
+
+                if (camera != null)
                 {
-                    return Camera.main.transform;
+                    return camera.transform;
                 }
 
                 return null;
@@ -68,11 +61,38 @@ namespace Crest
             }
         }
 
-        public Transform Root { get; private set; }
-
+        [Tooltip("The camera which drives the ocean data. Defaults to main camera."), SerializeField]
+        Camera _camera;
+        public Camera ViewCamera
+        {
+            get
+            {
 #if UNITY_EDITOR
-        static EditorWindow _lastGameOrSceneEditorWindow = null;
+                if (_followSceneCamera)
+                {
+                    var sceneViewCamera = EditorHelpers.GetActiveSceneViewCamera();
+                    if (sceneViewCamera != null)
+                    {
+                        return sceneViewCamera;
+                    }
+                }
 #endif
+
+                if (_camera != null)
+                {
+                    return _camera;
+                }
+
+                // Unity has greatly improved performance of this operation in 2019.4.9.
+                return Camera.main;
+            }
+            set
+            {
+                _camera = value;
+            }
+        }
+
+        public Transform Root { get; private set; }
 
         [Tooltip("Optional provider for time, can be used to hard-code time for automation, or provide server time. Defaults to local Unity time."), SerializeField]
         TimeProviderBase _timeProvider = null;
@@ -255,7 +275,7 @@ namespace Crest
         public int CurrentLodCount { get { return _lodTransform != null ? _lodTransform.LodCount : 0; } }
 
         /// <summary>
-        /// Vertical offset of viewer vs water surface
+        /// Vertical offset of camera vs water surface.
         /// </summary>
         public float ViewerHeightAboveWater { get; private set; }
 
@@ -399,7 +419,7 @@ namespace Crest
 
             _commandbufferBuilder = new BuildCommandBuffer();
 
-            InitViewpoint();
+            ValidateViewpoint();
 
             if (_attachDebugGUI && GetComponent<OceanDebugGUI>() == null)
             {
@@ -647,19 +667,11 @@ namespace Crest
             return true;
         }
 
-        void InitViewpoint()
+        void ValidateViewpoint()
         {
             if (Viewpoint == null)
             {
-                var camMain = Camera.main;
-                if (camMain != null)
-                {
-                    Viewpoint = camMain.transform;
-                }
-                else
-                {
-                    Debug.LogError("Crest needs to know where to focus the ocean detail. Please set the Viewpoint property of the OceanRenderer component to the transform of the viewpoint/camera that the ocean should follow, or tag the primary camera as MainCamera.", this);
-                }
+                Debug.LogError("Crest needs to know where to focus the ocean detail. Please set the <i>ViewCamera</i> or the <i>Viewpoint</i> property that will render the ocean, or tag the primary camera as <i>MainCamera</i>.", this);
             }
         }
 
@@ -716,10 +728,7 @@ namespace Crest
             var meshScaleLerp = needToBlendOutShape ? ViewerAltitudeLevelAlpha : 0f;
             Shader.SetGlobalFloat(sp_meshScaleLerp, meshScaleLerp);
 
-            if (Viewpoint == null && Application.isPlaying)
-            {
-                Debug.LogError("Viewpoint is null, ocean update will fail.", this);
-            }
+            ValidateViewpoint();
 
             if (_followViewpoint && Viewpoint != null)
             {
@@ -846,12 +855,13 @@ namespace Crest
         void LateUpdateViewerHeight()
         {
             var oldViewerHeight = ViewerHeightAboveWater;
+            var camera = ViewCamera;
 
-            _sampleHeightHelper.Init(Viewpoint.position, 0f, true);
+            _sampleHeightHelper.Init(camera.transform.position, 0f, true);
 
             _sampleHeightHelper.Sample(out var waterHeight);
 
-            ViewerHeightAboveWater = Viewpoint.position.y - waterHeight;
+            ViewerHeightAboveWater = camera.transform.position.y - waterHeight;
 
             // _firstViewerHeightUpdate is tracked to always broadcast initial state
             if ((oldViewerHeight >= 2f || _firstViewerHeightUpdate) && ViewerHeightAboveWater < 2f)
@@ -1144,6 +1154,18 @@ namespace Crest
         public bool Validate(OceanRenderer ocean, ValidatedHelper.ShowMessage showMessage)
         {
             var isValid = true;
+
+#if !UNITY_2019_4_9_OR_NEWER
+            if (_camera == null)
+            {
+                showMessage
+                (
+                    "Not setting the camera property will result in using Camera.main which has a significant " +
+                    "performance cost. This is improved in Unity 2019.4.9 and above.",
+                    ValidatedHelper.MessageType.Warning, ocean
+                );
+            }
+#endif
 
             if (_material == null)
             {

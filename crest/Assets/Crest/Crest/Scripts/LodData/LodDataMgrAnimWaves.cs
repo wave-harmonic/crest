@@ -3,6 +3,7 @@
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 
 namespace Crest
@@ -23,7 +24,7 @@ namespace Crest
     {
         public override string SimName { get { return "AnimatedWaves"; } }
         // shape format. i tried RGB111110Float but error becomes visible. one option would be to use a UNORM setup.
-        public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.ARGBHalf; } }
+        protected override GraphicsFormat RequestedTextureFormat => GraphicsFormat.R16G16B16A16_SFloat;
         protected override bool NeedToReadWriteTextureData { get { return true; } }
 
         [Tooltip("Read shape textures back to the CPU for collision purposes.")]
@@ -93,7 +94,7 @@ namespace Crest
             // read and write to the same texture.
 
             int resolution = OceanRenderer.Instance.LodDataResolution;
-            var desc = new RenderTextureDescriptor(resolution, resolution, TextureFormat, 0);
+            var desc = new RenderTextureDescriptor(resolution, resolution, CompatibleTextureFormat, 0);
 
             _waveBuffers = CreateLodDataTextures(desc, "WaveBuffer", false);
 

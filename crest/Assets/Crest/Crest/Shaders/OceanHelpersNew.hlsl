@@ -165,4 +165,10 @@ void ApplyOceanClipSurface(in const float3 io_positionWS, in const float i_lodAl
 	clip(-clipValue + 0.5);
 }
 
+bool IsUnderwater(const float facing, const float forceUnderwater)
+{
+	const bool backface = facing < 0.0;
+	return backface || forceUnderwater > 0.0;
+}
+
 #endif // CREST_OCEAN_HELPERS_H

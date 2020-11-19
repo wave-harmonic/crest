@@ -41,7 +41,7 @@ Shader "Crest/Underwater/Ocean Mask"
 			#include "../OceanInputsDriven.hlsl"
 			#include "../OceanGlobals.hlsl"
 			#include "../OceanHelpersNew.hlsl"
-			#include "../OceanHelpers.hlsl"
+			#include "../OceanVertHelpers.hlsl"
 
 			// Hack - due to SV_IsFrontFace occasionally coming through as true for backfaces,
 			// add a param here that forces ocean to be in undrwater state. I think the root
@@ -68,7 +68,7 @@ Shader "Crest/Underwater/Ocean Mask"
 				float lodAlpha;
 				const float meshScaleLerp = instanceData._meshScaleLerp;
 				const float gridSize = instanceData._geoGridWidth;
-				SnapAndTransitionVertLayout(meshScaleLerp, gridSize, worldPos, lodAlpha);
+				SnapAndTransitionVertLayout(meshScaleLerp, cascadeData0, gridSize, worldPos, lodAlpha);
 
 				// Calculate sample weights. params.z allows shape to be faded out (used on last lod to support pop-less scale transitions)
 				const float wt_smallerLod = (1. - lodAlpha) * cascadeData0._weight;

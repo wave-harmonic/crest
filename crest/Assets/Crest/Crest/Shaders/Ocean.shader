@@ -281,6 +281,7 @@ Shader "Crest/Ocean"
 			#include "OceanInputsDriven.hlsl"
 			#include "OceanHelpersNew.hlsl"
 			#include "OceanVertHelpers.hlsl"
+			#include "OceanLightingHelpers.hlsl"
 
 			// Argument name is v because some macros like COMPUTE_EYEDEPTH require it.
 			Varyings Vert(Attributes v)
@@ -425,17 +426,6 @@ Shader "Crest/Ocean"
 			// cause here might be imprecision or numerical issues at ocean tile boundaries, although
 			// i'm not sure why cracks are not visible in this case.
 			uniform float _ForceUnderwater;
-
-			float3 WorldSpaceLightDir(float3 worldPos)
-			{
-				float3 lightDir = _WorldSpaceLightPos0.xyz;
-				if (_WorldSpaceLightPos0.w > 0.)
-				{
-					// non-directional light - this is a position, not a direction
-					lightDir = normalize(lightDir - worldPos.xyz);
-				}
-				return lightDir;
-			}
 
 			half4 Frag(const Varyings input, const float facing : VFACE) : SV_Target
 			{

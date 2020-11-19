@@ -57,6 +57,9 @@ namespace Crest
         bool _eventsRegistered = false;
         bool _firstRender = true;
 
+        // Only one camera is supported.
+        public static UnderwaterPostProcess Instance { get; private set; }
+
         private bool InitialisedCorrectly()
         {
             _mainCamera = GetComponent<Camera>();
@@ -131,6 +134,16 @@ namespace Crest
             }
 
             _eventsRegistered = false;
+        }
+
+        void OnEnable()
+        {
+            Instance = this;
+        }
+
+        void OnDisable()
+        {
+            Instance = null;
         }
 
         private void ViewerMoreThan2mAboveWater(OceanRenderer ocean)

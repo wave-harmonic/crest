@@ -893,11 +893,19 @@ namespace Crest
 
         void LateUpdateTiles()
         {
-            var definitelyUnderwater = ViewerHeightAboveWater < -5f;
+            var isUnderwaterActive = UnderwaterPostProcess.Instance != null;
 
-            var density = _material.GetVector("_DepthFogDensity");
-            var minimumFogDensity = Mathf.Min(Mathf.Min(density.x, density.y), density.z);
-            var volumeExtinctionLength = -Mathf.Log(_underwaterCullLimit) / minimumFogDensity;
+            var definitelyUnderwater = false;
+            var volumeExtinctionLength = 0f;
+
+            if (isUnderwaterActive)
+            {
+                definitelyUnderwater = ViewerHeightAboveWater < -5f;
+                var density = _material.GetVector("_DepthFogDensity");
+                var minimumFogDensity = Mathf.Min(Mathf.Min(density.x, density.y), density.z);
+                volumeExtinctionLength = -Mathf.Log(_underwaterCullLimit) / minimumFogDensity;
+            }
+
             var canSkipCulling = WaterBody.WaterBodies.Count == 0 && _canSkipCulling;
 
             foreach (OceanChunkRenderer tile in _oceanChunkRenderers)
@@ -934,7 +942,7 @@ namespace Crest
                 }
 
                 // Cull tiles the viewer cannot see through the underwater fog.
-                if (!isCulled)
+                if (!isCulled && isUnderwaterActive)
                 {
                     isCulled = definitelyUnderwater && (Viewpoint.position - tile.Rend.bounds.ClosestPoint(Viewpoint.position)).magnitude >= volumeExtinctionLength;
                 }

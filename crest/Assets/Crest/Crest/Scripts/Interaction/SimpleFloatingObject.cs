@@ -106,7 +106,7 @@ namespace Crest
             // Approximate hydrodynamics of sliding along water
             if (_accelerateDownhill > 0f)
             {
-                _rb.AddForce(new Vector3(normal.x, 0f, normal.z) * -Physics.gravity.y, ForceMode.Acceleration);
+                _rb.AddForce(new Vector3(normal.x, 0f, normal.z) * -Physics.gravity.y * _accelerateDownhill, ForceMode.Acceleration);
             }
 
             // Apply drag relative to water

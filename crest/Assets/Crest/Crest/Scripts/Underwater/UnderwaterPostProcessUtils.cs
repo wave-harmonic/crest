@@ -121,7 +121,6 @@ namespace Crest
             Camera camera,
             PropertyWrapperMaterial underwaterPostProcessMaterialWrapper,
             UnderwaterSphericalHarmonicsData sphericalHarmonicsData,
-            SampleHeightHelper sampleHeightHelper,
             bool copyParamsFromOceanMaterial,
             bool debugViewPostProcessMask,
             float horizonSafetyMarginMultiplier,
@@ -159,17 +158,7 @@ namespace Crest
                 // relative to the sea-level are the same. This ensures that in incredibly turbulent
                 // water - if in doubt - use the neutral horizon.
                 float seaLevelHeightDifference = camera.transform.position.y - seaLevel;
-                float waterHeightLevelDifference = seaLevelHeightDifference;
-                {
-                    // Viewpoint and camera transform could be different so we will sample again instead of using
-                    // ViewerHeightAboveWater. Allow multiple samples per frame for multi-pass XR.
-                    sampleHeightHelper.Init(camera.transform.position, 0f, allowMultipleCallsPerFrame: true);
-                    if (sampleHeightHelper.Sample(out var waterHeight))
-                    {
-                        waterHeightLevelDifference = camera.transform.position.y - waterHeight;
-                    }
-                }
-                if (seaLevelHeightDifference >= 0.0f ^ waterHeightLevelDifference >= 0.0f)
+                if (seaLevelHeightDifference >= 0.0f ^ OceanRenderer.Instance.ViewerHeightAboveWater >= 0.0f)
                 {
                     horizonSafetyMarginMultiplier = 0.0f;
                 }
@@ -270,7 +259,7 @@ namespace Crest
 
                 UnityEngine.Profiling.Profiler.BeginSample("Underwater sample spherical harmonics");
 
-                LightProbes.GetInterpolatedProbe(OceanRenderer.Instance.Viewpoint.position, null, out SphericalHarmonicsL2 sphericalHarmonicsL2);
+                LightProbes.GetInterpolatedProbe(OceanRenderer.Instance.ViewCamera.transform.position, null, out SphericalHarmonicsL2 sphericalHarmonicsL2);
                 sphericalHarmonicsL2.Evaluate(sphericalHarmonicsData._shDirections, sphericalHarmonicsData._ambientLighting);
                 underwaterPostProcessMaterial.SetVector(sp_AmbientLighting, sphericalHarmonicsData._ambientLighting[0]);
 

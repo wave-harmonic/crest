@@ -31,11 +31,19 @@ float ComputeLodAlpha(float3 i_worldPos, float i_meshScaleAlpha, in const Cascad
 	return lodAlpha;
 }
 
+float _GridFudge;
+
 void SnapAndTransitionVertLayout(in const float i_meshScaleAlpha, in const CascadeParams i_cascadeData0, in const float i_geometryGridSize, inout float3 io_worldPos, out float o_lodAlpha)
 {
 	// Grid includes small "epsilon" to solve numerical issues.
 	// :OceanGridPrecisionErrors
-	const float GRID_SIZE_2 = 2.0 * i_geometryGridSize, GRID_SIZE_4 = 4.0 * i_geometryGridSize;
+	const float GRID_SIZE_2 =
+#if _APPLYGRIDFUDGE_ON
+	_GridFudge
+#else
+	2.0
+#endif
+	* i_geometryGridSize, GRID_SIZE_4 = 4.0 * i_geometryGridSize;
 
 	// snap the verts to the grid
 	// The snap size should be twice the original size to keep the shape of the eight triangles (otherwise the edge layout changes).

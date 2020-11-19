@@ -152,7 +152,7 @@ namespace Crest
         float _dropDetailHeightBasedOnWaves = 0.2f;
 
         [SerializeField, Delayed, Tooltip("Resolution of ocean LOD data. Use even numbers like 256 or 384. This is 4x the old 'Base Vert Density' param, so if you used 64 for this param, set this to 256. Press 'Rebuild Ocean' button below to apply.")]
-        int _lodDataResolution = 256;
+        public int _lodDataResolution = 256;
         public int LodDataResolution { get { return _lodDataResolution; } }
 
         [SerializeField, Delayed, Tooltip("How much of the water shape gets tessellated by geometry. If set to e.g. 4, every geometry quad will span 4x4 LOD data texels. Use power of 2 values like 1, 2, 4... Press 'Rebuild Ocean' button below to apply.")]
@@ -1265,6 +1265,12 @@ namespace Crest
             }
 
             return isValid;
+        }
+
+        public void Rebuild()
+        {
+            enabled = false;
+            enabled = true;
         }
 
         void OnValidate()

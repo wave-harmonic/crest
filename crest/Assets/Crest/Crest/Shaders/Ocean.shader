@@ -6,6 +6,11 @@ Shader "Crest/Ocean"
 {
 	Properties
 	{
+		[Toggle] _ApplyScalingFudge("Apply Scale Fudge", Float) = 1
+		_ScaleFudge("Scale Fudge", Range(1.0, 1.1)) = 1.00001
+		[Toggle] _ApplyGridFudge("Apply Grid Fudge", Float) = 1
+		_GridFudge("Grid Fudge", Range(2.0, 2.1)) = 2.000001
+
 		[Header(Normal Mapping)]
 		// Whether to add normal detail from a texture. Can be used to add visual detail to the water surface
 		[Toggle] _ApplyNormalMapping("Enable", Float) = 1
@@ -242,6 +247,9 @@ Shader "Crest/Ocean"
 			#pragma shader_feature_local _DEBUGDISABLESMOOTHLOD_ON
 			#pragma shader_feature_local _COMPILESHADERWITHDEBUGINFO_ON
 
+			#pragma shader_feature_local _APPLYSCALEFUDGE_ON
+			#pragma shader_feature_local _APPLYGRIDFUDGE_ON
+
 			#if _COMPILESHADERWITHDEBUGINFO_ON
 			#pragma enable_d3d11_debug_symbols
 			#endif
@@ -282,6 +290,8 @@ Shader "Crest/Ocean"
 			#include "OceanHelpersNew.hlsl"
 			#include "OceanVertHelpers.hlsl"
 
+			float _ScaleFudge;
+
 			// Argument name is v because some macros like COMPUTE_EYEDEPTH require it.
 			Varyings Vert(Attributes v)
 			{
@@ -291,9 +301,11 @@ Shader "Crest/Ocean"
 				UNITY_INITIALIZE_OUTPUT(Varyings, o);
 				UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
 
+#if _APPLYSCALEFUDGE_ON
 				// Scale up by small "epsilon" to solve numerical issues.
 				// :OceanGridPrecisionErrors
-				v.vertex.xyz *= 1.0;
+				v.vertex.xyz *= _ScaleFudge;
+#endif
 
 				const CascadeParams cascadeData0 = _CrestCascadeData[_LD_SliceIndex];
 				const CascadeParams cascadeData1 = _CrestCascadeData[_LD_SliceIndex + 1];

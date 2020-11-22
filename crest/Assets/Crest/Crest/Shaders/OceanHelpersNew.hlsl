@@ -165,4 +165,18 @@ void ApplyOceanClipSurface(in const float3 io_positionWS, in const float i_lodAl
 	clip(-clipValue + 0.5);
 }
 
+float4 SampleDataAtWorldPos( in Texture2DArray i_data, in const float3 i_worldPos )
+{
+	float slice0, slice1, lodAlpha;
+	PosToSliceIndices( i_worldPos.xz, 0.0, 0.0, _CrestCascadeData[0]._scale, slice0, slice1, lodAlpha );
+
+	float3 uv0 = WorldToUV( i_worldPos.xz, _CrestCascadeData[slice0], slice0 );
+	float3 uv1 = WorldToUV( i_worldPos.xz, _CrestCascadeData[slice1], slice1 );
+
+	float4 data0 = SampleLod( i_data, uv0 );
+	float4 data1 = SampleLod( i_data, uv1 );
+
+	return lerp( data0, data1, lodAlpha );
+}
+
 #endif // CREST_OCEAN_HELPERS_H

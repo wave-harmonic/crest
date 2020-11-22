@@ -31,6 +31,10 @@ Shader "Crest/Inputs/Animated Waves/Add From Texture"
 
 			#include "UnityCG.cginc"
 
+			#include "../OceanGlobals.hlsl"
+			#include "../OceanInputsDriven.hlsl"
+			#include "../OceanHelpersNew.hlsl"
+
 			sampler2D _MainTex;
 
 			CBUFFER_START(CrestPerOceanInput)
@@ -51,16 +55,18 @@ Shader "Crest/Inputs/Animated Waves/Add From Texture"
 			{
 				float4 positionCS : SV_POSITION;
 				float2 uv : TEXCOORD0;
+				float3 worldPos : TEXCOORD1;
 			};
 
 			Varyings Vert(Attributes input)
 			{
 				Varyings o;
 
-				float3 worldPos = mul(unity_ObjectToWorld, float4(input.positionOS, 1.0)).xyz;
+				o.worldPos = mul(unity_ObjectToWorld, float4(input.positionOS, 1.0)).xyz;
 				// Correct for displacement
-				worldPos.xz -= _DisplacementAtInputPosition.xz;
-				o.positionCS = mul(UNITY_MATRIX_VP, float4(worldPos, 1.0));
+				o.worldPos.xz -= _DisplacementAtInputPosition.xz;
+
+				o.positionCS = mul(UNITY_MATRIX_VP, float4(o.worldPos, 1.0));
 				
 				o.uv = TRANSFORM_TEX(input.uv, _MainTex);
 				return o;
@@ -78,10 +84,12 @@ Shader "Crest/Inputs/Animated Waves/Add From Texture"
 #else
 				displacement.xyz = texSample.xyz * _Strength;
 #endif
-
+				
 #if _SSSFROMALPHA_ON
 				sss = texSample.x * _SSSStrength;
 #endif
+
+				float depth = SampleDataAtWorldPos( _LD_TexArray_SeaFloorDepth, input.worldPos ).x;
 
 				return _Weight * half4(displacement, sss);
 			}

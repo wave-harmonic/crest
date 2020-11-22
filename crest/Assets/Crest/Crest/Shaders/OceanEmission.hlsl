@@ -74,7 +74,7 @@ half3 ScatterColour(
 		// Pick lower res data for shadowing, helps to smooth out artifacts slightly
 		const float minSliceIndex = 4.0;
 		uint slice0, slice1; float lodAlpha;
-		PosToSliceIndices(samplePoint, minSliceIndex, i_meshScaleLerp, i_scaleBase, slice0, slice1, lodAlpha);
+		PosToSliceIndices(samplePoint, minSliceIndex, i_scaleBase, slice0, slice1, lodAlpha);
 
 		half2 shadowSoftHard = 0.0;
 		{

@@ -84,7 +84,6 @@ void PosToSliceIndices
 (
 	const float2 worldXZ,
 	const float minSlice,
-	const float minScale,
 	const float oceanScale0,
 	out float slice0,
 	out float slice1,

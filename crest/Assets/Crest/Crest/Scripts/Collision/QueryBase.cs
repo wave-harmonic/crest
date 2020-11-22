@@ -66,8 +66,9 @@ namespace Crest
         /// </summary>
         class SegmentRegistrarRingBuffer
         {
-            // Requests in flight plus 2 held values, plus one current
-            readonly static int s_poolSize = s_maxRequests + 2 + 1;
+            // Requests in flight plus 2 held values, plus one current, plus three more which a particular
+            // Linux setup needed :(
+            readonly static int s_poolSize = s_maxRequests + 2 + 1 + 3;
 
             SegmentRegistrar[] _segments = new SegmentRegistrar[s_poolSize];
 

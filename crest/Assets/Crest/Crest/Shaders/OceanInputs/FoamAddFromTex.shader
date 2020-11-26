@@ -1,6 +1,6 @@
 // Crest Ocean System
 
-// Copyright 2020 Wave Harmonic Ltd
+// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 Shader "Crest/Inputs/Foam/Add From Texture"
 {
@@ -23,7 +23,7 @@ Shader "Crest/Inputs/Foam/Add From Texture"
 			#pragma vertex Vert
 			#pragma fragment Frag
 
-			#include "UnityCG.cginc" 
+			#include "UnityCG.cginc"
 
 			sampler2D _MainTex;
 			float _Strength;

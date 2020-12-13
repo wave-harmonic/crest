@@ -71,7 +71,8 @@ namespace Crest
         }
 
         /// <summary>
-        /// Call this to do the query. Can be called only once after Init().
+        /// Call this to do the query. Can be called only once after Init(). This variant compensates for
+        /// latency in the query system if present.
         /// </summary>
         public bool SampleWithLantencyCompensation(out float o_height)
         {

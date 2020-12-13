@@ -16,21 +16,16 @@
 
 float _TextureRes;
 
-struct GerstnerCascadeParams
-{
-	float _worldSize;
-};
-StructuredBuffer<GerstnerCascadeParams> _GerstnerCascadeParams;
 
 RWTexture2DArray<half4> _WaveBuffer;
 
 [numthreads(THREAD_GROUP_SIZE_X, THREAD_GROUP_SIZE_Y, 1)]
 void Gerstner(uint3 id : SV_DispatchThreadID)
 {
-	GerstnerCascadeParams params = _GerstnerCascadeParams[id.z];
+	float worldSize = (float)(1 << id.z);
 
 	// Each cascade lies on XZ plane and starts from the origin
-	float2 worldPosXZ = (id.xy + 0.5) * params._worldSize / _TextureRes;
+	float2 worldPosXZ = (id.xy + 0.5) * worldSize / _TextureRes;
 
 	_WaveBuffer[id] = half4(worldPosXZ.x / 10.0, sin( dot( worldPosXZ, 0.1 ) ), worldPosXZ.y / 10.0, 0.0);
 }

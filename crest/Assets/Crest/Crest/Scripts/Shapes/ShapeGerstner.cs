@@ -112,13 +112,6 @@ namespace Crest
         public int _resolution = 32;
         RenderTexture _waveBuffers;
 
-        struct GerstnerCascadeParams
-        {
-            public float _worldSize;
-        }
-        ComputeBuffer _bufCascadeParams;
-        static int sp_cascadeParams = Shader.PropertyToID("_GerstnerCascadeParams");
-        GerstnerCascadeParams[] _cascadeParams = new GerstnerCascadeParams[LodDataMgr.MAX_LOD_COUNT];
 
         ComputeShader _shaderGerstner;
         int _krnlGerstner = -1;
@@ -192,8 +185,6 @@ namespace Crest
                 _waveBuffers.Create();
             }
 
-            _bufCascadeParams = new ComputeBuffer(LodDataMgr.MAX_LOD_COUNT, UnsafeUtility.SizeOf<GerstnerCascadeParams>());
-            Shader.SetGlobalBuffer(sp_cascadeParams, _bufCascadeParams);
 
             _shaderGerstner = ComputeShaderHelpers.LoadShader("Gerstner");
             _krnlGerstner = _shaderGerstner.FindKernel("Gerstner");
@@ -211,15 +202,9 @@ namespace Crest
             }
 
             // Draw waves
-            for (int i = 0; i < _cascadeParams.Length; i++)
-            {
-                _cascadeParams[i]._worldSize = Mathf.Pow(2f, i + 1);
-            }
-            _bufCascadeParams.SetData(_cascadeParams);
 
             _buf.Clear();
             _buf.SetComputeFloatParam(_shaderGerstner, "_TextureRes", _waveBuffers.width);
-            _buf.SetComputeBufferParam(_shaderGerstner, _krnlGerstner, "_GerstnerCascadeParams", _bufCascadeParams);
             _buf.SetComputeTextureParam(_shaderGerstner, _krnlGerstner, "_WaveBuffer", _waveBuffers);
             _buf.DispatchCompute(_shaderGerstner, _krnlGerstner, _waveBuffers.width / 8, _waveBuffers.height / 8, _waveBuffers.volumeDepth);
             Graphics.ExecuteCommandBuffer(_buf);

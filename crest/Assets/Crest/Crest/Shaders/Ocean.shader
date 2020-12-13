@@ -506,24 +506,19 @@ Shader "Crest/Ocean"
 				// Normal - geom + normal mapping. Subsurface scattering.
 				float3 dummy = 0.;
 				half3 n_geom = half3(0.0, 1.0, 0.0);
-				int offset = -1;
-				const uint sliceNormals0 = max(0, offset + (int)_LD_SliceIndex);
-				const uint sliceNormals1 = max(0, offset + (int)_LD_SliceIndex + 1);
 				half sss = 0.;
 				if (wt_smallerLod > 0.001)
 				{
-					const float3 uv_slice_smallerLod = WorldToUV(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, _CrestCascadeData[sliceNormals0], sliceNormals0);
-					SampleDisplacementsNormals(_LD_TexArray_AnimatedWaves, uv_slice_smallerLod, 1., _CrestCascadeData[sliceNormals0]._oneOverTextureRes, _CrestCascadeData[sliceNormals0]._texelWidth, dummy, n_geom.xz, sss);
+					const float3 uv_slice_smallerLod = WorldToUV(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, _CrestCascadeData[_LD_SliceIndex], _LD_SliceIndex);
+					SampleDisplacementsNormals(_LD_TexArray_AnimatedWaves, uv_slice_smallerLod, wt_smallerLod, _CrestCascadeData[_LD_SliceIndex]._oneOverTextureRes, cascadeData0._texelWidth, dummy, n_geom.xz, sss);
 				}
 				if (wt_biggerLod > 0.001)
 				{
-					const uint si = sliceNormals1;
+					const uint si = _LD_SliceIndex + 1;
 					const float3 uv_slice_biggerLod = WorldToUV(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, _CrestCascadeData[si], si);
-					SampleDisplacementsNormals(_LD_TexArray_AnimatedWaves, uv_slice_biggerLod, wt_biggerLod, _CrestCascadeData[si]._oneOverTextureRes, _CrestCascadeData[si]._texelWidth, dummy, n_geom.xz, sss);
+					SampleDisplacementsNormals(_LD_TexArray_AnimatedWaves, uv_slice_biggerLod, wt_biggerLod, cascadeData1._oneOverTextureRes, cascadeData1._texelWidth, dummy, n_geom.xz, sss);
 				}
-				n_geom.xz *= 0.75;
 				n_geom = normalize(n_geom);
-				sss = 0.;
 
 				if (underwater) n_geom = -n_geom;
 				half3 n_pixel = n_geom;

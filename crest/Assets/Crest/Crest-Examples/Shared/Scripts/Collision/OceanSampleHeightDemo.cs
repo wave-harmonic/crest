@@ -3,6 +3,7 @@
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 using Crest;
+using System.Threading;
 using UnityEngine;
 
 /// <summary>
@@ -10,9 +11,10 @@ using UnityEngine;
 /// </summary>
 public class OceanSampleHeightDemo : MonoBehaviour
 {
-    SampleHeightHelper _sampleHeightHelper = new SampleHeightHelper();
+    [Tooltip("Some query systems return results with latency. This applies a correction to compensate.")]
+    public bool _compensateLatency = true;
 
-    public float _extrapFrames = 0f;
+    SampleHeightHelper _sampleHeightHelper = new SampleHeightHelper();
 
     void Update()
     {
@@ -20,7 +22,10 @@ public class OceanSampleHeightDemo : MonoBehaviour
         var r = transform.lossyScale.magnitude;
         _sampleHeightHelper.Init(transform.position, 2f * r);
 
-        if (_sampleHeightHelper.Sample(out var height, Time.deltaTime * _extrapFrames))
+        float height;
+        bool result = _compensateLatency ? _sampleHeightHelper.SampleWithLantencyCompensation(out height) : _sampleHeightHelper.Sample(out height);
+
+        if (result)
         {
             var pos = transform.position;
             pos.y = height;

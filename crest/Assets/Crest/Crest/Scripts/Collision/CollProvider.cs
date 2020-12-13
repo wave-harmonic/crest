@@ -46,6 +46,11 @@ namespace Crest
         void UpdateQueries();
 
         /// <summary>
+        /// For query providers where there is one or more frames latency, this will adjust the height to compensate
+        /// </summary>
+        float CompensateLatency(float i_height, float i_velocity, float i_frameTime);
+
+        /// <summary>
         /// On destroy, to cleanup resources
         /// </summary>
         void CleanUp();

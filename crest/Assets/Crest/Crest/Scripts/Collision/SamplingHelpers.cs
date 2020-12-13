@@ -48,25 +48,13 @@ namespace Crest
         /// <summary>
         /// Call this to do the query. Can be called only once after Init().
         /// </summary>
-        public bool Sample(out float o_height, float extrapolateTime = 0f)
+        public bool Sample(out float o_height)
         {
             var collProvider = OceanRenderer.Instance?.CollisionProvider;
             if (collProvider == null)
             {
                 o_height = 0f;
                 return false;
-            }
-
-            // If extrapolating, try get vel first
-            if (extrapolateTime > 0f)
-            {
-                var result = collProvider.Query(GetHashCode(), _minLength, _queryPos, _queryResult, null, _queryResultVel);
-
-                if (collProvider.RetrieveSucceeded(result))
-                {
-                    o_height = OceanRenderer.Instance.SeaLevel + _queryResult[0].y + extrapolateTime * _queryResultVel[0].y;
-                    return true;
-                }
             }
 
             var status = collProvider.Query(GetHashCode(), _minLength, _queryPos, _queryResult, null, null);
@@ -78,6 +66,32 @@ namespace Crest
             }
 
             o_height = _queryResult[0].y + OceanRenderer.Instance.SeaLevel;
+
+            return true;
+        }
+
+        /// <summary>
+        /// Call this to do the query. Can be called only once after Init().
+        /// </summary>
+        public bool SampleWithLantencyCompensation(out float o_height)
+        {
+            var collProvider = OceanRenderer.Instance?.CollisionProvider;
+            if (collProvider == null)
+            {
+                o_height = 0f;
+                return false;
+            }
+
+            var status = collProvider.Query(GetHashCode(), _minLength, _queryPos, _queryResult, null, _queryResultVel);
+
+            if (!collProvider.RetrieveSucceeded(status))
+            {
+                o_height = OceanRenderer.Instance.SeaLevel;
+                return false;
+            }
+
+            o_height = _queryResult[0].y + OceanRenderer.Instance.SeaLevel;
+            o_height = collProvider.CompensateLatency(o_height, _queryResultVel[0].y, Time.deltaTime);
 
             return true;
         }

@@ -3,6 +3,7 @@
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 
 namespace Crest
@@ -15,7 +16,7 @@ namespace Crest
         public override string SimName { get { return "ClipSurface"; } }
 
         // The clip values only really need 8bits
-        public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.R8; } }
+        protected override GraphicsFormat RequestedTextureFormat => GraphicsFormat.R8_UNorm;
         protected override bool NeedToReadWriteTextureData { get { return true; } }
 
         bool _targetsClear = false;

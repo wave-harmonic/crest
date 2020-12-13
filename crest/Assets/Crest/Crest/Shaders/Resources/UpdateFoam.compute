@@ -90,5 +90,5 @@ void UpdateFoam(uint3 id : SV_DispatchThreadID)
 	float signedOceanDepth = SampleLodLevel(_LD_TexArray_SeaFloorDepth, uv_slice_displaced, 0.0).x + disp.y;
 	foam += _ShorelineFoamStrength * _SimDeltaTime * saturate(1.0 - signedOceanDepth / _ShorelineFoamMaxDepth);
 
-	_LD_TexArray_Target[id] = foam;
+	_LD_TexArray_Target[id] = saturate(foam);
 }

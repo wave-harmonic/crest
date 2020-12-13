@@ -136,7 +136,7 @@ Material:
     - _SkyDirectionality: 0.875
     - _Specular: 1
     - _StartLevel: 0.157
-    - _SubSurfaceBase: 0.24
+    - _SubSurfaceBase: 0.17
     - _SubSurfaceDepthMax: 9.4
     - _SubSurfaceDepthPower: 2.57
     - _SubSurfaceHeightLerp: 1
@@ -144,7 +144,7 @@ Material:
     - _SubSurfaceHeightPower: 1.68
     - _SubSurfaceScattering: 1
     - _SubSurfaceShallowColour: 1
-    - _SubSurfaceSun: 1.59
+    - _SubSurfaceSun: 1.06
     - _SubSurfaceSunFallOff: 7.11
     - _TexelSize: 0.125
     - _TextureRes: 1024

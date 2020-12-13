@@ -3,6 +3,7 @@
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 
 namespace Crest
@@ -14,7 +15,11 @@ namespace Crest
     {
         public abstract string SimName { get; }
 
-        public abstract RenderTextureFormat TextureFormat { get; }
+        // This is the texture format we want to use.
+        protected abstract GraphicsFormat RequestedTextureFormat { get; }
+
+        // This is the platform compatible texture format we will use.
+        public GraphicsFormat CompatibleTextureFormat { get; private set; }
 
         // NOTE: This MUST match the value in OceanConstants.hlsl, as it
         // determines the size of the texture arrays in the shaders.
@@ -78,12 +83,19 @@ namespace Crest
 
         protected virtual void InitData()
         {
-            Debug.Assert(SystemInfo.SupportsRenderTextureFormat(TextureFormat), "The graphics device does not support the render texture format " + TextureFormat.ToString());
+            // Find a compatible texture format.
+            var formatUsage = NeedToReadWriteTextureData ? FormatUsage.LoadStore : FormatUsage.Sample;
+            CompatibleTextureFormat = SystemInfo.GetCompatibleFormat(RequestedTextureFormat, formatUsage);
+            if (CompatibleTextureFormat != RequestedTextureFormat)
+            {
+                Debug.Log($"Using render texture format {CompatibleTextureFormat} instead of {RequestedTextureFormat}");
+            }
+            Debug.Assert(CompatibleTextureFormat != GraphicsFormat.None, $"The graphics device does not support the render texture format {RequestedTextureFormat}");
 
             Debug.Assert(OceanRenderer.Instance.CurrentLodCount <= MAX_LOD_COUNT);
 
             var resolution = OceanRenderer.Instance.LodDataResolution;
-            var desc = new RenderTextureDescriptor(resolution, resolution, TextureFormat, 0);
+            var desc = new RenderTextureDescriptor(resolution, resolution, CompatibleTextureFormat, 0);
             _targets = CreateLodDataTextures(desc, SimName, NeedToReadWriteTextureData);
 
             // Bind globally once here on init, which will bind to all graphics shaders (not compute)

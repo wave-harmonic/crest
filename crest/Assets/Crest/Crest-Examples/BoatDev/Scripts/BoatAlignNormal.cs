@@ -17,6 +17,8 @@ public class BoatAlignNormal : FloatingObjectBase
     float _buoyancyCoeff = 1.5f;
     [Tooltip("Strength of torque applied to match boat orientation to water normal."), SerializeField]
     float _boyancyTorque = 8f;
+    [Tooltip("Approximate hydrodynamics of 'surfing' down waves."), SerializeField, Range(0, 1)]
+    float _accelerateDownhill = 0f;
 
     [Header("Engine Power")]
     [Tooltip("Vertical offset for where engine force should be applied."), SerializeField]
@@ -120,6 +122,11 @@ public class BoatAlignNormal : FloatingObjectBase
         var buoyancy = -Physics.gravity.normalized * _buoyancyCoeff * bottomDepth * bottomDepth * bottomDepth;
         _rb.AddForce(buoyancy, ForceMode.Acceleration);
 
+        // Approximate hydrodynamics of sliding along water
+        if (_accelerateDownhill > 0f)
+        {
+            _rb.AddForce(new Vector3(normal.x, 0f, normal.z) * -Physics.gravity.y * _accelerateDownhill, ForceMode.Acceleration);
+        }
 
         // apply drag relative to water
         var forcePosition = _rb.position + _forceHeightOffset * Vector3.up;

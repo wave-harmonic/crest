@@ -2,10 +2,6 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
-// Compute shader to perform combine of displacements. Reads and writes to texture array which saves
-// needing to do ping pong of render targets. Unfortunately reading/writing float4s is not supported
-// on pre-DX11.3 hardware (aka typed UAV loads), so this path is not the default, for now..
-
 #pragma kernel Gerstner
 
 #include "HLSLSupport.cginc"
@@ -16,16 +12,28 @@
 
 float _TextureRes;
 
+struct GerstnerCascadeParams
+{
+	int _startIndex;
+};
+StructuredBuffer<GerstnerCascadeParams> _GerstnerCascadeParams;
 
 RWTexture2DArray<half4> _WaveBuffer;
 
 [numthreads(THREAD_GROUP_SIZE_X, THREAD_GROUP_SIZE_Y, 1)]
 void Gerstner(uint3 id : SV_DispatchThreadID)
 {
-	float worldSize = (float)(1 << id.z);
+	const float worldSize = (float)(1 << id.z);
 
 	// Each cascade lies on XZ plane and starts from the origin
-	float2 worldPosXZ = (id.xy + 0.5) * worldSize / _TextureRes;
+	const float2 worldPosXZ = (id.xy + 0.5) * worldSize / _TextureRes;
+
+	const int startIndex = _GerstnerCascadeParams[id.z]._startIndex;
+	const int endIndex = _GerstnerCascadeParams[id.z + 1]._startIndex;
+	//for( int i = startIndex; i <= endIndex; i++ )
+	//{
+	//	// Sum up waves from another buffer
+	//}
 
 	_WaveBuffer[id] = half4(worldPosXZ.x / 10.0, sin( dot( worldPosXZ, 0.1 ) ), worldPosXZ.y / 10.0, 0.0);
 }

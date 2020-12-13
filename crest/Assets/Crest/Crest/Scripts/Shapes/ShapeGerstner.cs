@@ -112,6 +112,13 @@ namespace Crest
         public int _resolution = 32;
         RenderTexture _waveBuffers;
 
+        struct GerstnerCascadeParams
+        {
+            public int _startIndex;
+        }
+        ComputeBuffer _bufCascadeParams;
+        static int sp_cascadeParams = Shader.PropertyToID("_GerstnerCascadeParams");
+        GerstnerCascadeParams[] _cascadeParams = new GerstnerCascadeParams[LodDataMgr.MAX_LOD_COUNT + 1];
 
         ComputeShader _shaderGerstner;
         int _krnlGerstner = -1;
@@ -136,12 +143,12 @@ namespace Crest
         // scratch data used by batching code
         struct UpdateBatchScratchData
         {
-            public readonly static Vector4[] _twoPiOverWavelengthsBatch = new Vector4[BATCH_SIZE / 4];
-            public readonly static Vector4[] _ampsBatch = new Vector4[BATCH_SIZE / 4];
-            public readonly static Vector4[] _waveDirXBatch = new Vector4[BATCH_SIZE / 4];
-            public readonly static Vector4[] _waveDirZBatch = new Vector4[BATCH_SIZE / 4];
-            public readonly static Vector4[] _phasesBatch = new Vector4[BATCH_SIZE / 4];
-            public readonly static Vector4[] _chopAmpsBatch = new Vector4[BATCH_SIZE / 4];
+            public readonly static Vector4[] _twoPiOverWavelengthsBatch = new Vector4[BATCH_SIZE];
+            public readonly static Vector4[] _ampsBatch = new Vector4[BATCH_SIZE];
+            public readonly static Vector4[] _waveDirXBatch = new Vector4[BATCH_SIZE];
+            public readonly static Vector4[] _waveDirZBatch = new Vector4[BATCH_SIZE];
+            public readonly static Vector4[] _phasesBatch = new Vector4[BATCH_SIZE];
+            public readonly static Vector4[] _chopAmpsBatch = new Vector4[BATCH_SIZE];
         }
 
         private void OnEnable()
@@ -185,6 +192,7 @@ namespace Crest
                 _waveBuffers.Create();
             }
 
+            _bufCascadeParams = new ComputeBuffer(LodDataMgr.MAX_LOD_COUNT + 1, UnsafeUtility.SizeOf<GerstnerCascadeParams>());
 
             _shaderGerstner = ComputeShaderHelpers.LoadShader("Gerstner");
             _krnlGerstner = _shaderGerstner.FindKernel("Gerstner");
@@ -192,6 +200,15 @@ namespace Crest
             _buf = new CommandBuffer();
             _buf.name = "ShapeGerstner";
         }
+
+        public float MinWavelength(int cascadeIdx)
+        {
+            var diameter = (float)(1 << cascadeIdx);
+            var texelSize = diameter / _resolution;
+            return texelSize * OceanRenderer.Instance.MinTexelsPerWave;
+        }
+        float twopi = 2f * Mathf.PI;
+        float one_over_2pi = 1f / (2f * Mathf.PI);
 
         void Update()
         {
@@ -201,13 +218,127 @@ namespace Crest
                 InitBatches();
             }
 
-            // Draw waves
+            // Should be done only once when sampling a spectrum
+            SliceUpWaves();
 
             _buf.Clear();
             _buf.SetComputeFloatParam(_shaderGerstner, "_TextureRes", _waveBuffers.width);
+            _buf.SetComputeBufferParam(_shaderGerstner, _krnlGerstner, "_GerstnerCascadeParams", _bufCascadeParams);
             _buf.SetComputeTextureParam(_shaderGerstner, _krnlGerstner, "_WaveBuffer", _waveBuffers);
             _buf.DispatchCompute(_shaderGerstner, _krnlGerstner, _waveBuffers.width / 8, _waveBuffers.height / 8, _waveBuffers.volumeDepth);
             Graphics.ExecuteCommandBuffer(_buf);
+        }
+
+        void SliceUpWaves()
+        {
+            var cascadeIdx = 0;
+            var componentIdx = 0;
+            var outputIdx = 0;
+            _cascadeParams[0]._startIndex = 0;
+
+            {
+                // Seek forward to first wavelength that is big enough to render into current cascades
+                var minWl = MinWavelength(cascadeIdx);
+                while (componentIdx < _wavelengths.Length && _wavelengths[componentIdx] < minWl)
+                {
+                    componentIdx++;
+                }
+                //Debug.Log($"{cascadeIdx}: start {_cascadeParams[cascadeIdx]._startIndex} minWL {minWl}");
+
+                for (; componentIdx < _wavelengths.Length; componentIdx++)
+                {
+                    // Skip small waves
+                    while (componentIdx < _wavelengths.Length && _amplitudes[componentIdx] < 0.01f)
+                    {
+                        componentIdx++;
+                    }
+                    if (componentIdx >= _wavelengths.Length) break;
+
+                    // Check if we need to move to the next cascade
+                    while (cascadeIdx < LodDataMgr.MAX_LOD_COUNT && _wavelengths[componentIdx] >= 2f * minWl)
+                    {
+                        // Wrap up this cascade and begin next
+
+                        // Fill remaining elements of current vector4 with 0s
+                        int vi = outputIdx / 4;
+                        int ei = outputIdx - vi * 4;
+
+                        while (ei != 0)
+                        {
+                            UpdateBatchScratchData._twoPiOverWavelengthsBatch[vi][ei] = 1f;
+                            UpdateBatchScratchData._ampsBatch[vi][ei] = 0f;
+                            UpdateBatchScratchData._waveDirXBatch[vi][ei] = 0f;
+                            UpdateBatchScratchData._waveDirZBatch[vi][ei] = 0f;
+                            UpdateBatchScratchData._phasesBatch[vi][ei] = 0f;
+                            UpdateBatchScratchData._chopAmpsBatch[vi][ei] = 0f;
+                            ei = (ei + 1) % 4;
+                            outputIdx++;
+                        }
+
+                        cascadeIdx++;
+                        _cascadeParams[cascadeIdx]._startIndex = outputIdx;
+                        minWl *= 2f;
+
+                        //Debug.Log($"{cascadeIdx}: start {_cascadeParams[cascadeIdx]._startIndex} minWL {minWl}");
+                    }
+                    if (cascadeIdx == LodDataMgr.MAX_LOD_COUNT) break;
+
+                    {
+                        // Pack into vector elements
+                        int vi = outputIdx / 4;
+                        int ei = outputIdx - vi * 4;
+
+                        UpdateBatchScratchData._twoPiOverWavelengthsBatch[vi][ei] = 2f * Mathf.PI / _wavelengths[componentIdx];
+                        UpdateBatchScratchData._ampsBatch[vi][ei] = _amplitudes[componentIdx];
+
+                        float chopScale = _spectrum._chopScales[(componentIdx) / _componentsPerOctave];
+                        UpdateBatchScratchData._chopAmpsBatch[vi][ei] = -chopScale * _spectrum._chop * _amplitudes[componentIdx];
+
+                        float angle = Mathf.Deg2Rad * (_windDirectionAngle + _angleDegs[componentIdx]);
+                        UpdateBatchScratchData._waveDirXBatch[vi][ei] = Mathf.Cos(angle);
+                        UpdateBatchScratchData._waveDirZBatch[vi][ei] = Mathf.Sin(angle);
+
+                        // It used to be this, but I'm pushing all the stuff that doesn't depend on position into the phase.
+                        //half4 angle = k * (C * _CrestTime + x) + _Phases[vi];
+                        float gravityScale = _spectrum._gravityScales[(componentIdx) / _componentsPerOctave];
+                        float gravity = OceanRenderer.Instance.Gravity * _spectrum._gravityScale;
+                        float C = Mathf.Sqrt(_wavelengths[componentIdx] * gravity * gravityScale * one_over_2pi);
+                        float k = twopi / _wavelengths[componentIdx];
+                        // Repeat every 2pi to keep angle bounded - helps precision on 16bit platforms
+                        UpdateBatchScratchData._phasesBatch[vi][ei] = Mathf.Repeat(_phases[componentIdx] + k * C * OceanRenderer.Instance.CurrentTime, Mathf.PI * 2f);
+
+                        outputIdx++;
+                    }
+                }
+
+                {
+                    // Fill remaining elements of current vector4 with 0s
+                    int vi = outputIdx / 4;
+                    int ei = outputIdx - vi * 4;
+
+                    while (ei != 0)
+                    {
+                        UpdateBatchScratchData._twoPiOverWavelengthsBatch[vi][ei] = 1f;
+                        UpdateBatchScratchData._ampsBatch[vi][ei] = 0f;
+                        UpdateBatchScratchData._waveDirXBatch[vi][ei] = 0f;
+                        UpdateBatchScratchData._waveDirZBatch[vi][ei] = 0f;
+                        UpdateBatchScratchData._phasesBatch[vi][ei] = 0f;
+                        UpdateBatchScratchData._chopAmpsBatch[vi][ei] = 0f;
+                        ei = (ei + 1) % 4;
+                        outputIdx++;
+                    }
+                }
+
+                while (cascadeIdx < LodDataMgr.MAX_LOD_COUNT)
+                {
+                    cascadeIdx++;
+                    minWl *= 2f;
+                    _cascadeParams[cascadeIdx]._startIndex = outputIdx;
+                    //Debug.Log($"{cascadeIdx}: start {_cascadeParams[cascadeIdx]._startIndex} minWL {minWl}");
+                }
+            }
+
+            _bufCascadeParams.SetData(_cascadeParams);
         }
 
         void InitPhases()

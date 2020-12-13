@@ -12,13 +12,15 @@ public class OceanSampleHeightDemo : MonoBehaviour
 {
     SampleHeightHelper _sampleHeightHelper = new SampleHeightHelper();
 
+    public float _extrapFrames = 0f;
+
     void Update()
     {
         // Assume a primitive like a sphere or box.
         var r = transform.lossyScale.magnitude;
         _sampleHeightHelper.Init(transform.position, 2f * r);
 
-        if (_sampleHeightHelper.Sample(out var height))
+        if (_sampleHeightHelper.Sample(out var height, Time.deltaTime * _extrapFrames))
         {
             var pos = transform.position;
             pos.y = height;

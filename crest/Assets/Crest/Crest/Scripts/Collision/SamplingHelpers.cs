@@ -48,13 +48,25 @@ namespace Crest
         /// <summary>
         /// Call this to do the query. Can be called only once after Init().
         /// </summary>
-        public bool Sample(out float o_height)
+        public bool Sample(out float o_height, float extrapolateTime = 0f)
         {
             var collProvider = OceanRenderer.Instance?.CollisionProvider;
             if (collProvider == null)
             {
                 o_height = 0f;
                 return false;
+            }
+
+            // If extrapolating, try get vel first
+            if (extrapolateTime > 0f)
+            {
+                var result = collProvider.Query(GetHashCode(), _minLength, _queryPos, _queryResult, null, _queryResultVel);
+
+                if (collProvider.RetrieveSucceeded(result))
+                {
+                    o_height = OceanRenderer.Instance.SeaLevel + _queryResult[0].y + extrapolateTime * _queryResultVel[0].y;
+                    return true;
+                }
             }
 
             var status = collProvider.Query(GetHashCode(), _minLength, _queryPos, _queryResult, null, null);

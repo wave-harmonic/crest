@@ -25,7 +25,7 @@ namespace Crest
         protected abstract string QueryShaderName { get; }
         protected abstract string QueryKernelName { get; }
 
-		// 4 was enough for a long time, but Linux setups seems to demand 7
+        // 4 was enough for a long time, but Linux setups seems to demand 7
         const int s_maxRequests = 7;
         const int s_maxGuids = 1024;
 

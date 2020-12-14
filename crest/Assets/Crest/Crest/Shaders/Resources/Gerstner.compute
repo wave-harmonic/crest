@@ -21,12 +21,13 @@ StructuredBuffer<GerstnerCascadeParams> _GerstnerCascadeParams;
 
 struct GerstnerWaveComponent4
 {
-	float4 _twoPiOverWavelengths;
-	float4 _amps;
+	float4 _twoPiOverWavelength;
+	float4 _amp;
 	float4 _waveDirX;
 	float4 _waveDirZ;
-	float4 _phases;
-	float4 _chopAmps;
+	float4 _omega;
+	float4 _phase;
+	float4 _chopAmp;
 };
 StructuredBuffer<GerstnerWaveComponent4> _GerstnerWaveData;
 
@@ -41,7 +42,7 @@ void ComputeGerstner( float2 worldPosXZ, float worldSize, GerstnerWaveComponent4
 	half4 Dz = data._waveDirZ;
 
 	// wave number
-	half4 k = data._twoPiOverWavelengths;
+	half4 k = data._twoPiOverWavelength;
 
 	half4 kx = k * Dx;
 	half4 kz = k * Dz;
@@ -59,21 +60,22 @@ void ComputeGerstner( float2 worldPosXZ, float worldSize, GerstnerWaveComponent4
 
 	// spatial location
 	float4 x = kx * worldPosXZ.x + kz * worldPosXZ.y;
-	half4 angle = x + data._phases;
+	half4 angle = data._omega * _CrestTime + data._phase;
+	angle += x;
 
-	// dx and dz could be baked into _ChopAmps
-	half4 disp = data._chopAmps * sin( angle );
+	// dx and dz could be baked into _ChopAmp
+	half4 disp = data._chopAmp * sin( angle );
 	half4 resultx = disp * Dx;
 	half4 resultz = disp * Dz;
 
-	half4 resulty = data._amps * cos( angle );
+	half4 resulty = data._amp * cos( angle );
 
 	// sum the vector results
 	result.x += dot( resultx, 1.0 );
 	result.y += dot( resulty, 1.0 );
 	result.z += dot( resultz, 1.0 );
 
-	half4 sssFactor = min( 1.0, data._twoPiOverWavelengths );
+	half4 sssFactor = min( 1.0, data._twoPiOverWavelength );
 	displacementNormalized.x += dot( resultx, sssFactor );
 	displacementNormalized.y += dot( resultz, sssFactor );
 }

@@ -290,7 +290,7 @@ namespace Crest
 
         bool _canSkipCulling = false;
 
-        readonly int sp_crestTime = Shader.PropertyToID("_CrestTime");
+        public static int sp_crestTime = Shader.PropertyToID("_CrestTime");
         readonly int sp_texelsPerWave = Shader.PropertyToID("_TexelsPerWave");
         readonly int sp_oceanCenterPosWorld = Shader.PropertyToID("_OceanCenterPosWorld");
         readonly int sp_meshScaleLerp = Shader.PropertyToID("_MeshScaleLerp");

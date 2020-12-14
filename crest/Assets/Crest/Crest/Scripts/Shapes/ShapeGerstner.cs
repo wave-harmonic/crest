@@ -14,21 +14,11 @@ using UnityEditor;
 namespace Crest
 {
     /// <summary>
-    /// Support script for Gerstner wave ocean shapes.
-    /// Generates a number of batches of Gerstner waves.
+    /// Gerstner ocean waves.
     /// </summary>
     public partial class ShapeGerstner : MonoBehaviour, IFloatingOrigin
     {
-        public enum GerstnerMode
-        {
-            Global,
-            Geometry,
-        }
-
-        [Tooltip("If set to 'Global', waves will render everywhere. If set to 'Geometry', the geometry on this GameObject will be rendered from a top down perspective to generate the waves. This allows having local wave conditions by placing Quad geometry where desired. The geometry must have one of the Gerstner shaders on it such as 'Crest/Inputs/Animated Waves/Gerstner Batch Geometry'.")]
-        public GerstnerMode _mode = GerstnerMode.Global;
-
-        [Tooltip("The spectrum that defines the ocean surface shape. Create asset of type Crest/Ocean Waves Spectrum.")]
+        [Tooltip("The spectrum that defines the ocean surface shape. Assign asset of type Crest/Ocean Waves Spectrum.")]
         public OceanWaveSpectrum _spectrum;
 
         [Tooltip("Wind direction (angle from x axis in degrees)"), Range(-180, 180)]
@@ -37,52 +27,40 @@ namespace Crest
 
         public class GerstnerBatch : ILodDataInput
         {
-            public GerstnerBatch(ShapeGerstner gerstner, int batchIndex, MeshRenderer rend)
+            RenderTexture _waveBuffer;
+
+            public GerstnerBatch(float wavelength, RenderTexture waveBuffer)
             {
-                _gerstner = gerstner;
-                _batchIndex = batchIndex;
+                Wavelength = wavelength;
+                _waveBuffer = waveBuffer;
 
-                _materials = new PropertyWrapperMaterial[]
-                {
-                    new PropertyWrapperMaterial(new Material(rend.sharedMaterial ?? rend.material)),
-                    new PropertyWrapperMaterial(new Material(rend.sharedMaterial ?? rend.material))
-                };
-
-                _rend = rend;
-
-                // Enabled stays true, because we don't sort the waves into buckets until Draw time, so we don't know if something should
-                // be drawn in advance.
-                Enabled = true;
+                //_materials = new PropertyWrapperMaterial[]
+                //{
+                //    new PropertyWrapperMaterial(new Material(rend.sharedMaterial ?? rend.material)),
+                //    new PropertyWrapperMaterial(new Material(rend.sharedMaterial ?? rend.material))
+                //};
             }
 
-            public PropertyWrapperMaterial GetMaterial(int isTransition) => _materials[isTransition];
+            //public PropertyWrapperMaterial GetMaterial(int isTransition) => _materials[isTransition];
 
             // Two materials because as batch may be rendered twice if it has large wavelengths that are being transitioned back
             // and forth across the last 2 LODs.
-            PropertyWrapperMaterial[] _materials;
-
-            MeshRenderer _rend;
-
-            ShapeGerstner _gerstner;
-            int _batchIndex = -1;
+            //PropertyWrapperMaterial[] _materials;
 
             // The ocean input system uses this to decide which lod this batch belongs in
-            public float Wavelength => OceanRenderer.Instance._lodTransform.MaxWavelength(_batchIndex) / 2f;
+            public float Wavelength { get; private set; }
 
-            public bool Enabled { get; set; }
-
-            public bool HasWaves { get; set; }
+            public bool Enabled { get => true; set { } }
 
             public void Draw(CommandBuffer buf, float weight, int isTransition, int lodIdx)
             {
-                HasWaves = false;
-                _gerstner.UpdateBatch(this, _batchIndex);
-
-                if (HasWaves && weight > 0f)
+                if (weight > 0f)
                 {
-                    PropertyWrapperMaterial mat = GetMaterial(isTransition);
-                    mat.SetFloat(RegisterLodDataInputBase.sp_Weight, weight);
-                    buf.DrawRenderer(_rend, mat.material);
+                    //PropertyWrapperMaterial mat = GetMaterial(isTransition);
+                    //mat.SetFloat(RegisterLodDataInputBase.sp_Weight, weight);
+
+                    // TODO draw full screen quad?
+                    //buf.DrawRenderer(_rend, mat.material);
                 }
             }
         }
@@ -98,15 +76,15 @@ namespace Crest
         public int _randomSeed = 0;
 
         // Data for all components
-        [Header("Wave data (usually populated at runtime)")]
-        public bool _evaluateSpectrumAtRuntime = true;
-        [PredicatedField("_evaluateSpectrumAtRuntime", true)]
+        //[Header("Wave data (usually populated at runtime)")]
+        //public bool _evaluateSpectrumAtRuntime = true;
+        //[PredicatedField("_evaluateSpectrumAtRuntime", true)]
         public float[] _wavelengths;
-        [PredicatedField("_evaluateSpectrumAtRuntime", true)]
+        //[PredicatedField("_evaluateSpectrumAtRuntime", true)]
         public float[] _amplitudes;
-        [PredicatedField("_evaluateSpectrumAtRuntime", true)]
+        //[PredicatedField("_evaluateSpectrumAtRuntime", true)]
         public float[] _angleDegs;
-        [PredicatedField("_evaluateSpectrumAtRuntime", true)]
+        //[PredicatedField("_evaluateSpectrumAtRuntime", true)]
         public float[] _phases;
 
         public int _resolution = 32;
@@ -124,12 +102,13 @@ namespace Crest
 
         struct GerstnerWaveComponent4
         {
-            public Vector4 _twoPiOverWavelengths;
-            public Vector4 _amps;
+            public Vector4 _twoPiOverWavelength;
+            public Vector4 _amp;
             public Vector4 _waveDirX;
             public Vector4 _waveDirZ;
-            public Vector4 _phases;
-            public Vector4 _chopAmps;
+            public Vector4 _omega;
+            public Vector4 _phase;
+            public Vector4 _chopAmp;
         }
         ComputeBuffer _bufWaveData;
         const int MAX_WAVE_COMPONENTS = 1024;
@@ -146,12 +125,10 @@ namespace Crest
         readonly int sp_GerstnerWaveData = Shader.PropertyToID("_GerstnerWaveData");
         readonly int sp_WaveBuffer = Shader.PropertyToID("_WaveBuffer");
 
-        // IMPORTANT - this mirrors the constant with the same name in ShapeGerstnerBatch.shader, both must be updated together!
-        const int BATCH_SIZE = 32;
-
         GameObject _renderProxy;
 
-        // scratch data used by batching code
+        readonly float _twopi = 2f * Mathf.PI;
+        readonly float _one_over_2pi = 1f / (2f * Mathf.PI);
 
         private void OnEnable()
         {
@@ -171,17 +148,12 @@ namespace Crest
 
             _spectrum.Upgrade();
 #endif
-
-            InitData();
-
-            InitBatches();
         }
 
         void InitData()
         {
             {
-                var desc = new RenderTextureDescriptor(_resolution, _resolution, GraphicsFormat.R16G16B16A16_SFloat, 0);
-                _waveBuffers = new RenderTexture(desc);
+                _waveBuffers = new RenderTexture(_resolution, _resolution, 0, GraphicsFormat.R16G16B16A16_SFloat);
                 _waveBuffers.wrapMode = TextureWrapMode.Clamp;
                 _waveBuffers.antiAliasing = 1;
                 _waveBuffers.filterMode = FilterMode.Bilinear;
@@ -210,30 +182,38 @@ namespace Crest
             var texelSize = diameter / _resolution;
             return texelSize * OceanRenderer.Instance.MinTexelsPerWave;
         }
-        float twopi = 2f * Mathf.PI;
-        float one_over_2pi = 1f / (2f * Mathf.PI);
+
+        bool _firstUpdate = true;
 
         void Update()
         {
-            // We are using the render proxy to hold state since we need to anyway.
-            if (_renderProxy != null ? _mode == GerstnerMode.Geometry : _mode == GerstnerMode.Global)
+            if (_firstUpdate)
             {
+                InitData();
+
+                UpdateWaveData();
+
                 InitBatches();
+
+                _firstUpdate = false;
             }
 
-            // Should be done only once when sampling a spectrum
-            SliceUpWaves();
+            ReportMaxDisplacement();
 
             if (_firstCascade != -1 && _lastCascade != -1)
             {
                 //Debug.Log($"{_firstCascade} to {_lastCascade}");
 
                 _buf.Clear();
+
                 _buf.SetComputeFloatParam(_shaderGerstner, sp_TextureRes, _waveBuffers.width);
+                _buf.SetComputeFloatParam(_shaderGerstner, OceanRenderer.sp_crestTime, OceanRenderer.Instance.CurrentTime);
                 _buf.SetComputeBufferParam(_shaderGerstner, _krnlGerstner, sp_CascadeParams, _bufCascadeParams);
                 _buf.SetComputeBufferParam(_shaderGerstner, _krnlGerstner, sp_GerstnerWaveData, _bufWaveData);
                 _buf.SetComputeTextureParam(_shaderGerstner, _krnlGerstner, sp_WaveBuffer, _waveBuffers);
+
                 _buf.DispatchCompute(_shaderGerstner, _krnlGerstner, _waveBuffers.width / 8, _waveBuffers.height / 8, _lastCascade - _firstCascade + 1);
+
                 Graphics.ExecuteCommandBuffer(_buf);
             }
         }
@@ -273,12 +253,13 @@ namespace Crest
 
                     while (ei != 0)
                     {
-                        _waveData[vi]._twoPiOverWavelengths[ei] = 1f;
-                        _waveData[vi]._amps[ei] = 0f;
+                        _waveData[vi]._twoPiOverWavelength[ei] = 1f;
+                        _waveData[vi]._amp[ei] = 0f;
                         _waveData[vi]._waveDirX[ei] = 0f;
                         _waveData[vi]._waveDirZ[ei] = 0f;
-                        _waveData[vi]._phases[ei] = 0f;
-                        _waveData[vi]._chopAmps[ei] = 0f;
+                        _waveData[vi]._omega[ei] = 0f;
+                        _waveData[vi]._phase[ei] = 0f;
+                        _waveData[vi]._chopAmp[ei] = 0f;
                         ei = (ei + 1) % 4;
                         outputIdx++;
                     }
@@ -298,11 +279,11 @@ namespace Crest
                     int vi = outputIdx / 4;
                     int ei = outputIdx - vi * 4;
 
-                    _waveData[vi]._twoPiOverWavelengths[ei] = 2f * Mathf.PI / _wavelengths[componentIdx];
-                    _waveData[vi]._amps[ei] = _amplitudes[componentIdx];
+                    _waveData[vi]._twoPiOverWavelength[ei] = 2f * Mathf.PI / _wavelengths[componentIdx];
+                    _waveData[vi]._amp[ei] = _amplitudes[componentIdx];
 
                     float chopScale = _spectrum._chopScales[(componentIdx) / _componentsPerOctave];
-                    _waveData[vi]._chopAmps[ei] = -chopScale * _spectrum._chop * _amplitudes[componentIdx];
+                    _waveData[vi]._chopAmp[ei] = -chopScale * _spectrum._chop * _amplitudes[componentIdx];
 
                     float angle = Mathf.Deg2Rad * (_windDirectionAngle + _angleDegs[componentIdx]);
                     _waveData[vi]._waveDirX[ei] = Mathf.Cos(angle);
@@ -312,10 +293,11 @@ namespace Crest
                     //half4 angle = k * (C * _CrestTime + x) + _Phases[vi];
                     float gravityScale = _spectrum._gravityScales[(componentIdx) / _componentsPerOctave];
                     float gravity = OceanRenderer.Instance.Gravity * _spectrum._gravityScale;
-                    float C = Mathf.Sqrt(_wavelengths[componentIdx] * gravity * gravityScale * one_over_2pi);
-                    float k = twopi / _wavelengths[componentIdx];
+                    float C = Mathf.Sqrt(_wavelengths[componentIdx] * gravity * gravityScale * _one_over_2pi);
+                    float k = _twopi / _wavelengths[componentIdx];
                     // Repeat every 2pi to keep angle bounded - helps precision on 16bit platforms
-                    _waveData[vi]._phases[ei] = Mathf.Repeat(_phases[componentIdx] + k * C * OceanRenderer.Instance.CurrentTime, Mathf.PI * 2f);
+                    _waveData[vi]._omega[ei] = k * C;
+                    _waveData[vi]._phase[ei] = Mathf.Repeat(_phases[componentIdx], Mathf.PI * 2f);
 
                     outputIdx++;
                 }
@@ -330,12 +312,13 @@ namespace Crest
 
                 while (ei != 0)
                 {
-                    _waveData[vi]._twoPiOverWavelengths[ei] = 1f;
-                    _waveData[vi]._amps[ei] = 0f;
+                    _waveData[vi]._twoPiOverWavelength[ei] = 1f;
+                    _waveData[vi]._amp[ei] = 0f;
                     _waveData[vi]._waveDirX[ei] = 0f;
                     _waveData[vi]._waveDirZ[ei] = 0f;
-                    _waveData[vi]._phases[ei] = 0f;
-                    _waveData[vi]._chopAmps[ei] = 0f;
+                    _waveData[vi]._omega[ei] = 0f;
+                    _waveData[vi]._phase[ei] = 0f;
+                    _waveData[vi]._chopAmp[ei] = 0f;
                     ei = (ei + 1) % 4;
                     outputIdx++;
                 }
@@ -351,6 +334,57 @@ namespace Crest
 
             _bufCascadeParams.SetData(_cascadeParams);
             _bufWaveData.SetData(_waveData);
+        }
+
+        public void SetOrigin(Vector3 newOrigin)
+        {
+            if (_phases == null) return;
+
+            var windAngle = _windDirectionAngle;
+            for (int i = 0; i < _phases.Length; i++)
+            {
+                var direction = new Vector3(Mathf.Cos((windAngle + _angleDegs[i]) * Mathf.Deg2Rad), 0f, Mathf.Sin((windAngle + _angleDegs[i]) * Mathf.Deg2Rad));
+                var phaseOffsetMeters = Vector3.Dot(newOrigin, direction);
+
+                // wave number
+                var k = 2f * Mathf.PI / _wavelengths[i];
+
+                _phases[i] = Mathf.Repeat(_phases[i] + phaseOffsetMeters * k, Mathf.PI * 2f);
+            }
+        }
+
+        public void UpdateWaveData()
+        {
+            // Set random seed to get repeatable results
+            Random.State randomStateBkp = Random.state;
+            Random.InitState(_randomSeed);
+
+            _spectrum.GenerateWaveData(_componentsPerOctave, ref _wavelengths, ref _angleDegs);
+
+            UpdateAmplitudes();
+
+            // Won't run every time so put last in the random sequence
+            if (_phases == null || _phases.Length != _wavelengths.Length)
+            {
+                InitPhases();
+            }
+
+            Random.state = randomStateBkp;
+
+            SliceUpWaves();
+        }
+
+        void UpdateAmplitudes()
+        {
+            if (_amplitudes == null || _amplitudes.Length != _wavelengths.Length)
+            {
+                _amplitudes = new float[_wavelengths.Length];
+            }
+
+            for (int i = 0; i < _wavelengths.Length; i++)
+            {
+                _amplitudes[i] = _weight * _spectrum.GetAmplitude(_wavelengths[i], _componentsPerOctave);
+            }
         }
 
         void InitPhases()
@@ -374,73 +408,6 @@ namespace Crest
             Random.state = randomStateBkp;
         }
 
-        public void SetOrigin(Vector3 newOrigin)
-        {
-            if (_phases == null) return;
-
-            var windAngle = _windDirectionAngle;
-            for (int i = 0; i < _phases.Length; i++)
-            {
-                var direction = new Vector3(Mathf.Cos((windAngle + _angleDegs[i]) * Mathf.Deg2Rad), 0f, Mathf.Sin((windAngle + _angleDegs[i]) * Mathf.Deg2Rad));
-                var phaseOffsetMeters = Vector3.Dot(newOrigin, direction);
-
-                // wave number
-                var k = 2f * Mathf.PI / _wavelengths[i];
-
-                _phases[i] = Mathf.Repeat(_phases[i] + phaseOffsetMeters * k, Mathf.PI * 2f);
-            }
-        }
-
-        int _lastFrameForUpdateData = -1;
-
-        void UpdateData()
-        {
-            if (OceanRenderer.Instance == null) return;
-
-            // We only want this to be executed once per frame.
-            if (_lastFrameForUpdateData == OceanRenderer.FrameCount) return;
-            _lastFrameForUpdateData = OceanRenderer.FrameCount;
-
-            if (_evaluateSpectrumAtRuntime)
-            {
-                UpdateWaveData();
-            }
-
-            ReportMaxDisplacement();
-        }
-
-        public void UpdateWaveData()
-        {
-            // Set random seed to get repeatable results
-            Random.State randomStateBkp = Random.state;
-            Random.InitState(_randomSeed);
-
-            _spectrum.GenerateWaveData(_componentsPerOctave, ref _wavelengths, ref _angleDegs);
-
-            UpdateAmplitudes();
-
-            // Won't run every time so put last in the random sequence
-            if (_phases == null || _phases.Length != _wavelengths.Length)
-            {
-                InitPhases();
-            }
-
-            Random.state = randomStateBkp;
-        }
-
-        void UpdateAmplitudes()
-        {
-            if (_amplitudes == null || _amplitudes.Length != _wavelengths.Length)
-            {
-                _amplitudes = new float[_wavelengths.Length];
-            }
-
-            for (int i = 0; i < _wavelengths.Length; i++)
-            {
-                _amplitudes[i] = _weight * _spectrum.GetAmplitude(_wavelengths[i], _componentsPerOctave);
-            }
-        }
-
         private void ReportMaxDisplacement()
         {
             if (_spectrum._chopScales.Length != OceanWaveSpectrum.NUM_OCTAVES)
@@ -458,51 +425,6 @@ namespace Crest
 
         void InitBatches()
         {
-            // Get the wave
-            MeshRenderer rend = GetComponent<MeshRenderer>();
-            if (_mode == GerstnerMode.Geometry)
-            {
-                rend.enabled = false;
-#if UNITY_EDITOR
-                // Cleanup render proxy used for global mode after switching.
-                if (_renderProxy != null)
-                {
-                    DestroyImmediate(_renderProxy);
-                }
-#endif
-            }
-            else if (_mode == GerstnerMode.Global)
-            {
-                // Create render proxy only if we don't already have one.
-                if (_renderProxy == null)
-                {
-                    // Create a proxy MeshRenderer to feed the rendering
-                    _renderProxy = GameObject.CreatePrimitive(PrimitiveType.Quad);
-#if UNITY_EDITOR
-                    DestroyImmediate(_renderProxy.GetComponent<Collider>());
-#else
-                    Destroy(_renderProxy.GetComponent<Collider>());
-#endif
-                    _renderProxy.hideFlags = HideFlags.HideAndDontSave;
-                    _renderProxy.transform.parent = transform;
-                    rend = _renderProxy.GetComponent<MeshRenderer>();
-                    rend.enabled = false;
-                    var waveShader = Shader.Find("Hidden/Crest/Inputs/Animated Waves/Gerstner Batch Global");
-                    Debug.Assert(waveShader, "Could not load Gerstner wave shader, make sure it is packaged in the build.");
-                    if (waveShader == null)
-                    {
-                        enabled = false;
-                        return;
-                    }
-
-                    rend.material = new Material(waveShader);
-                }
-                else
-                {
-                    rend = _renderProxy.GetComponent<MeshRenderer>();
-                }
-            }
-
             var registered = RegisterLodDataInputBase.GetRegistrar(typeof(LodDataMgrAnimWaves));
 
 #if UNITY_EDITOR
@@ -516,146 +438,13 @@ namespace Crest
             }
 #endif
 
+            // Submit draws to create the Gerstner waves
             _batches = new GerstnerBatch[LodDataMgr.MAX_LOD_COUNT];
-            for (int i = 0; i < _batches.Length; i++)
+            for (int i = _firstCascade; i <= _lastCascade; i++)
             {
-                _batches[i] = new GerstnerBatch(this, i, rend);
-            }
-
-            // Submit draws to create the Gerstner waves. LODs from 0 to N-2 render the Gerstner waves from their lod. Additionally, any waves
-            // in the biggest lod, or too big for the biggest lod, are rendered into both of the last two LODs N-1 and N-2, as this allows us to
-            // move these waves between LODs without pops when the camera changes heights and the LODs need to change scale.
-
-            foreach (var batch in _batches)
-            {
-                registered.Add(0, batch);
-            }
-        }
-
-        /// <summary>
-        /// Computes Gerstner params for a set of waves, for the given lod idx. Writes shader data to the given property.
-        /// Returns number of wave components rendered in this batch.
-        /// </summary>
-        void UpdateBatch(int lodIdx, int firstComponent, int lastComponentNonInc, GerstnerBatch batch)
-        {
-            batch.HasWaves = false;
-
-            int numComponents = lastComponentNonInc - firstComponent;
-            int numInBatch = 0;
-            int dropped = 0;
-
-            float twopi = 2f * Mathf.PI;
-            float one_over_2pi = 1f / twopi;
-
-            // register any nonzero components
-            for (int i = 0; i < numComponents; i++)
-            {
-                float wl = _wavelengths[firstComponent + i];
-
-                // compute amp - contains logic for shifting wave components between last two LODs...
-                float amp = _amplitudes[firstComponent + i];
-
-                if (amp >= 0.001f)
-                {
-                    if (numInBatch < BATCH_SIZE)
-                    {
-                        numInBatch++;
-                    }
-                    else
-                    {
-                        dropped++;
-                    }
-                }
-            }
-
-            if (dropped > 0)
-            {
-                Debug.LogWarning(string.Format("Gerstner LOD{0}: Batch limit reached, dropped {1} wavelengths. To support bigger batch sizes, see the comment around the BATCH_SIZE declaration.", lodIdx, dropped), this);
-                numComponents = BATCH_SIZE;
-            }
-
-            if (numInBatch == 0)
-            {
-                // no waves to draw - abort
-                return;
-            }
-
-            // if we did not fill the batch, put a terminator signal after the last position
-            if (numInBatch < BATCH_SIZE)
-            {
-                int vi_last = numInBatch / 4;
-                int ei_last = numInBatch - vi_last * 4;
-
-                for (int vi = vi_last; vi < BATCH_SIZE / 4; vi++)
-                {
-                    for (int ei = ei_last; ei < 4; ei++)
-                    {
-                    }
-
-                    ei_last = 0;
-                }
-            }
-
-            // apply the data to the shape property
-            for (int i = 0; i < 2; i++)
-            {
-                var mat = batch.GetMaterial(i);
-                mat.SetFloat(sp_AttenuationInShallows, OceanRenderer.Instance._lodDataAnimWaves.Settings.AttenuationInShallows);
-
-                int numVecs = (numInBatch + 3) / 4;
-                mat.SetInt(LodDataMgr.sp_LD_SliceIndex, lodIdx - i);
-
-                LodDataMgrAnimWaves.Bind(mat);
-                LodDataMgrSeaFloorDepth.Bind(mat);
-            }
-
-            batch.HasWaves = true;
-        }
-
-        void UpdateBatch(GerstnerBatch batch, int batchIdx)
-        {
-#if UNITY_EDITOR
-            if (_spectrum == null) return;
-#endif
-
-            // Default to disabling all batches
-            batch.HasWaves = false;
-
-            if (OceanRenderer.Instance == null)
-            {
-                return;
-            }
-
-            UpdateData();
-
-            if (_wavelengths.Length == 0)
-            {
-                return;
-            }
-
-            int lodIdx = Mathf.Min(batchIdx, OceanRenderer.Instance.CurrentLodCount - 1);
-
-            int componentIdx = 0;
-
-            // seek forward to first wavelength that is big enough to render into current LODs
-            float minWl = OceanRenderer.Instance._lodTransform.MaxWavelength(batchIdx) / 2f;
-            while (componentIdx < _wavelengths.Length && _wavelengths[componentIdx] < minWl)
-            {
-                componentIdx++;
-            }
-
-            // Assemble wavelengths into current batch
-            int startCompIdx = componentIdx;
-            while (componentIdx < _wavelengths.Length && _wavelengths[componentIdx] < 2f * minWl)
-            {
-                componentIdx++;
-            }
-
-            // One or more wavelengths - update the batch
-            if (componentIdx > startCompIdx)
-            {
-                //Debug.Log($"Batch {batch}, lodIdx {lodIdx}, range: {minWl} -> {2f * minWl}, indices: {startCompIdx} -> {componentIdx}");
-                UpdateBatch(lodIdx, startCompIdx, componentIdx, batch);
+                if (i == -1) break;
+                _batches[i] = new GerstnerBatch(MinWavelength(i), _waveBuffers);
+                registered.Add(0, _batches[i]);
             }
         }
 
@@ -699,61 +488,11 @@ namespace Crest
     }
 
 #if UNITY_EDITOR
-    [CustomEditor(typeof(ShapeGerstner)), CanEditMultipleObjects]
-    public class ShapeGerstnerEditor : ValidatedEditor
-    {
-        public override void OnInspectorGUI()
-        {
-            base.OnInspectorGUI();
-
-            var gerstner = target as ShapeGerstner;
-
-            GUI.enabled = !EditorApplication.isPlaying || !gerstner._evaluateSpectrumAtRuntime;
-            if (GUILayout.Button("Generate wave data from spectrum"))
-            {
-                if (gerstner._spectrum == null)
-                {
-                    Debug.LogError("A wave spectrum must be assigned in order to generate wave data.", gerstner);
-                }
-                else
-                {
-                    gerstner.UpdateWaveData();
-                }
-            }
-            GUI.enabled = true;
-        }
-    }
-
     public partial class ShapeGerstner : IValidated
     {
         public bool Validate(OceanRenderer ocean, ValidatedHelper.ShowMessage showMessage)
         {
             var isValid = true;
-
-            // Renderer
-            if (_mode == GerstnerMode.Geometry)
-            {
-                isValid = ValidatedHelper.ValidateRenderer(gameObject, "Crest/Inputs/Animated Waves/Gerstner", showMessage);
-            }
-            else if (_mode == GerstnerMode.Global && GetComponent<MeshRenderer>() != null)
-            {
-                showMessage
-                (
-                    "The MeshRenderer component will be ignored because the Mode is set to Global.",
-                    ValidatedHelper.MessageType.Warning, this
-                );
-            }
-
-            if (_mode == GerstnerMode.Global && GetComponent<MeshRenderer>() != null)
-            {
-                showMessage
-                (
-                    "The MeshRenderer component will be ignored because the Mode is set to Global.",
-                    ValidatedHelper.MessageType.Warning, this
-                );
-
-                isValid = false;
-            }
 
             if (_spectrum == null)
             {

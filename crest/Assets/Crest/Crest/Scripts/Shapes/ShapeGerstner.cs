@@ -120,17 +120,28 @@ namespace Crest
         static int sp_cascadeParams = Shader.PropertyToID("_GerstnerCascadeParams");
         GerstnerCascadeParams[] _cascadeParams = new GerstnerCascadeParams[LodDataMgr.MAX_LOD_COUNT + 1];
 
+        int _firstCascade = -1;
+        int _lastCascade = -1;
+
+        struct GerstnerWaveComponent4
+        {
+            public Vector4 _twoPiOverWavelengths;
+            public Vector4 _amps;
+            public Vector4 _waveDirX;
+            public Vector4 _waveDirZ;
+            public Vector4 _phases;
+            public Vector4 _chopAmps;
+        }
+        ComputeBuffer _bufWaveData;
+        const int MAX_WAVE_COMPONENTS = 1024;
+        static int sp_waveData = Shader.PropertyToID("_GerstnerWaveData");
+        GerstnerWaveComponent4[] _waveData = new GerstnerWaveComponent4[MAX_WAVE_COMPONENTS / 4];
+
         ComputeShader _shaderGerstner;
         int _krnlGerstner = -1;
 
         CommandBuffer _buf;
 
-        readonly int sp_TwoPiOverWavelengths = Shader.PropertyToID("_TwoPiOverWavelengths");
-        readonly int sp_Amplitudes = Shader.PropertyToID("_Amplitudes");
-        readonly int sp_WaveDirX = Shader.PropertyToID("_WaveDirX");
-        readonly int sp_WaveDirZ = Shader.PropertyToID("_WaveDirZ");
-        readonly int sp_Phases = Shader.PropertyToID("_Phases");
-        readonly int sp_ChopAmps = Shader.PropertyToID("_ChopAmps");
         readonly int sp_NumInBatch = Shader.PropertyToID("_NumInBatch");
         readonly int sp_AttenuationInShallows = Shader.PropertyToID("_AttenuationInShallows");
         readonly int sp_NumWaveVecs = Shader.PropertyToID("_NumWaveVecs");
@@ -141,15 +152,6 @@ namespace Crest
         GameObject _renderProxy;
 
         // scratch data used by batching code
-        struct UpdateBatchScratchData
-        {
-            public readonly static Vector4[] _twoPiOverWavelengthsBatch = new Vector4[BATCH_SIZE];
-            public readonly static Vector4[] _ampsBatch = new Vector4[BATCH_SIZE];
-            public readonly static Vector4[] _waveDirXBatch = new Vector4[BATCH_SIZE];
-            public readonly static Vector4[] _waveDirZBatch = new Vector4[BATCH_SIZE];
-            public readonly static Vector4[] _phasesBatch = new Vector4[BATCH_SIZE];
-            public readonly static Vector4[] _chopAmpsBatch = new Vector4[BATCH_SIZE];
-        }
 
         private void OnEnable()
         {
@@ -193,6 +195,7 @@ namespace Crest
             }
 
             _bufCascadeParams = new ComputeBuffer(LodDataMgr.MAX_LOD_COUNT + 1, UnsafeUtility.SizeOf<GerstnerCascadeParams>());
+            _bufWaveData = new ComputeBuffer(MAX_WAVE_COMPONENTS / 4, UnsafeUtility.SizeOf<GerstnerWaveComponent4>());
 
             _shaderGerstner = ComputeShaderHelpers.LoadShader("Gerstner");
             _krnlGerstner = _shaderGerstner.FindKernel("Gerstner");
@@ -221,12 +224,18 @@ namespace Crest
             // Should be done only once when sampling a spectrum
             SliceUpWaves();
 
-            _buf.Clear();
-            _buf.SetComputeFloatParam(_shaderGerstner, "_TextureRes", _waveBuffers.width);
-            _buf.SetComputeBufferParam(_shaderGerstner, _krnlGerstner, "_GerstnerCascadeParams", _bufCascadeParams);
-            _buf.SetComputeTextureParam(_shaderGerstner, _krnlGerstner, "_WaveBuffer", _waveBuffers);
-            _buf.DispatchCompute(_shaderGerstner, _krnlGerstner, _waveBuffers.width / 8, _waveBuffers.height / 8, _waveBuffers.volumeDepth);
-            Graphics.ExecuteCommandBuffer(_buf);
+            if (_firstCascade != -1 && _lastCascade != -1)
+            {
+                //Debug.Log($"{_firstCascade} to {_lastCascade}");
+
+                _buf.Clear();
+                _buf.SetComputeFloatParam(_shaderGerstner, "_TextureRes", _waveBuffers.width);
+                _buf.SetComputeBufferParam(_shaderGerstner, _krnlGerstner, sp_cascadeParams, _bufCascadeParams);
+                _buf.SetComputeBufferParam(_shaderGerstner, _krnlGerstner, "_GerstnerWaveData", _bufWaveData);
+                _buf.SetComputeTextureParam(_shaderGerstner, _krnlGerstner, "_WaveBuffer", _waveBuffers);
+                _buf.DispatchCompute(_shaderGerstner, _krnlGerstner, _waveBuffers.width / 8, _waveBuffers.height / 8, _lastCascade - _firstCascade + 1);
+                Graphics.ExecuteCommandBuffer(_buf);
+            }
         }
 
         void SliceUpWaves()
@@ -236,109 +245,112 @@ namespace Crest
             var outputIdx = 0;
             _cascadeParams[0]._startIndex = 0;
 
+            // Seek forward to first wavelength that is big enough to render into current cascades
+            var minWl = MinWavelength(cascadeIdx);
+            while (componentIdx < _wavelengths.Length && _wavelengths[componentIdx] < minWl)
             {
-                // Seek forward to first wavelength that is big enough to render into current cascades
-                var minWl = MinWavelength(cascadeIdx);
-                while (componentIdx < _wavelengths.Length && _wavelengths[componentIdx] < minWl)
+                componentIdx++;
+            }
+            //Debug.Log($"{cascadeIdx}: start {_cascadeParams[cascadeIdx]._startIndex} minWL {minWl}");
+
+            for (; componentIdx < _wavelengths.Length; componentIdx++)
+            {
+                // Skip small waves
+                while (componentIdx < _wavelengths.Length && _amplitudes[componentIdx] < 0.01f)
                 {
                     componentIdx++;
                 }
-                //Debug.Log($"{cascadeIdx}: start {_cascadeParams[cascadeIdx]._startIndex} minWL {minWl}");
+                if (componentIdx >= _wavelengths.Length) break;
 
-                for (; componentIdx < _wavelengths.Length; componentIdx++)
+                // Check if we need to move to the next cascade
+                while (cascadeIdx < LodDataMgr.MAX_LOD_COUNT && _wavelengths[componentIdx] >= 2f * minWl)
                 {
-                    // Skip small waves
-                    while (componentIdx < _wavelengths.Length && _amplitudes[componentIdx] < 0.01f)
-                    {
-                        componentIdx++;
-                    }
-                    if (componentIdx >= _wavelengths.Length) break;
+                    // Wrap up this cascade and begin next
 
-                    // Check if we need to move to the next cascade
-                    while (cascadeIdx < LodDataMgr.MAX_LOD_COUNT && _wavelengths[componentIdx] >= 2f * minWl)
-                    {
-                        // Wrap up this cascade and begin next
-
-                        // Fill remaining elements of current vector4 with 0s
-                        int vi = outputIdx / 4;
-                        int ei = outputIdx - vi * 4;
-
-                        while (ei != 0)
-                        {
-                            UpdateBatchScratchData._twoPiOverWavelengthsBatch[vi][ei] = 1f;
-                            UpdateBatchScratchData._ampsBatch[vi][ei] = 0f;
-                            UpdateBatchScratchData._waveDirXBatch[vi][ei] = 0f;
-                            UpdateBatchScratchData._waveDirZBatch[vi][ei] = 0f;
-                            UpdateBatchScratchData._phasesBatch[vi][ei] = 0f;
-                            UpdateBatchScratchData._chopAmpsBatch[vi][ei] = 0f;
-                            ei = (ei + 1) % 4;
-                            outputIdx++;
-                        }
-
-                        cascadeIdx++;
-                        _cascadeParams[cascadeIdx]._startIndex = outputIdx;
-                        minWl *= 2f;
-
-                        //Debug.Log($"{cascadeIdx}: start {_cascadeParams[cascadeIdx]._startIndex} minWL {minWl}");
-                    }
-                    if (cascadeIdx == LodDataMgr.MAX_LOD_COUNT) break;
-
-                    {
-                        // Pack into vector elements
-                        int vi = outputIdx / 4;
-                        int ei = outputIdx - vi * 4;
-
-                        UpdateBatchScratchData._twoPiOverWavelengthsBatch[vi][ei] = 2f * Mathf.PI / _wavelengths[componentIdx];
-                        UpdateBatchScratchData._ampsBatch[vi][ei] = _amplitudes[componentIdx];
-
-                        float chopScale = _spectrum._chopScales[(componentIdx) / _componentsPerOctave];
-                        UpdateBatchScratchData._chopAmpsBatch[vi][ei] = -chopScale * _spectrum._chop * _amplitudes[componentIdx];
-
-                        float angle = Mathf.Deg2Rad * (_windDirectionAngle + _angleDegs[componentIdx]);
-                        UpdateBatchScratchData._waveDirXBatch[vi][ei] = Mathf.Cos(angle);
-                        UpdateBatchScratchData._waveDirZBatch[vi][ei] = Mathf.Sin(angle);
-
-                        // It used to be this, but I'm pushing all the stuff that doesn't depend on position into the phase.
-                        //half4 angle = k * (C * _CrestTime + x) + _Phases[vi];
-                        float gravityScale = _spectrum._gravityScales[(componentIdx) / _componentsPerOctave];
-                        float gravity = OceanRenderer.Instance.Gravity * _spectrum._gravityScale;
-                        float C = Mathf.Sqrt(_wavelengths[componentIdx] * gravity * gravityScale * one_over_2pi);
-                        float k = twopi / _wavelengths[componentIdx];
-                        // Repeat every 2pi to keep angle bounded - helps precision on 16bit platforms
-                        UpdateBatchScratchData._phasesBatch[vi][ei] = Mathf.Repeat(_phases[componentIdx] + k * C * OceanRenderer.Instance.CurrentTime, Mathf.PI * 2f);
-
-                        outputIdx++;
-                    }
-                }
-
-                {
                     // Fill remaining elements of current vector4 with 0s
                     int vi = outputIdx / 4;
                     int ei = outputIdx - vi * 4;
 
                     while (ei != 0)
                     {
-                        UpdateBatchScratchData._twoPiOverWavelengthsBatch[vi][ei] = 1f;
-                        UpdateBatchScratchData._ampsBatch[vi][ei] = 0f;
-                        UpdateBatchScratchData._waveDirXBatch[vi][ei] = 0f;
-                        UpdateBatchScratchData._waveDirZBatch[vi][ei] = 0f;
-                        UpdateBatchScratchData._phasesBatch[vi][ei] = 0f;
-                        UpdateBatchScratchData._chopAmpsBatch[vi][ei] = 0f;
+                        _waveData[vi]._twoPiOverWavelengths[ei] = 1f;
+                        _waveData[vi]._amps[ei] = 0f;
+                        _waveData[vi]._waveDirX[ei] = 0f;
+                        _waveData[vi]._waveDirZ[ei] = 0f;
+                        _waveData[vi]._phases[ei] = 0f;
+                        _waveData[vi]._chopAmps[ei] = 0f;
                         ei = (ei + 1) % 4;
                         outputIdx++;
                     }
-                }
 
-                while (cascadeIdx < LodDataMgr.MAX_LOD_COUNT)
-                {
+                    if (outputIdx > 0 && _firstCascade == -1) _firstCascade = cascadeIdx;
+
                     cascadeIdx++;
+                    _cascadeParams[cascadeIdx]._startIndex = outputIdx / 4;
                     minWl *= 2f;
-                    _cascadeParams[cascadeIdx]._startIndex = outputIdx;
+
                     //Debug.Log($"{cascadeIdx}: start {_cascadeParams[cascadeIdx]._startIndex} minWL {minWl}");
+                }
+                if (cascadeIdx == LodDataMgr.MAX_LOD_COUNT) break;
+
+                {
+                    // Pack into vector elements
+                    int vi = outputIdx / 4;
+                    int ei = outputIdx - vi * 4;
+
+                    _waveData[vi]._twoPiOverWavelengths[ei] = 2f * Mathf.PI / _wavelengths[componentIdx];
+                    _waveData[vi]._amps[ei] = _amplitudes[componentIdx];
+
+                    float chopScale = _spectrum._chopScales[(componentIdx) / _componentsPerOctave];
+                    _waveData[vi]._chopAmps[ei] = -chopScale * _spectrum._chop * _amplitudes[componentIdx];
+
+                    float angle = Mathf.Deg2Rad * (_windDirectionAngle + _angleDegs[componentIdx]);
+                    _waveData[vi]._waveDirX[ei] = Mathf.Cos(angle);
+                    _waveData[vi]._waveDirZ[ei] = Mathf.Sin(angle);
+
+                    // It used to be this, but I'm pushing all the stuff that doesn't depend on position into the phase.
+                    //half4 angle = k * (C * _CrestTime + x) + _Phases[vi];
+                    float gravityScale = _spectrum._gravityScales[(componentIdx) / _componentsPerOctave];
+                    float gravity = OceanRenderer.Instance.Gravity * _spectrum._gravityScale;
+                    float C = Mathf.Sqrt(_wavelengths[componentIdx] * gravity * gravityScale * one_over_2pi);
+                    float k = twopi / _wavelengths[componentIdx];
+                    // Repeat every 2pi to keep angle bounded - helps precision on 16bit platforms
+                    _waveData[vi]._phases[ei] = Mathf.Repeat(_phases[componentIdx] + k * C * OceanRenderer.Instance.CurrentTime, Mathf.PI * 2f);
+
+                    outputIdx++;
                 }
             }
 
+            _lastCascade = cascadeIdx;
+
+            {
+                // Fill remaining elements of current vector4 with 0s
+                int vi = outputIdx / 4;
+                int ei = outputIdx - vi * 4;
+
+                while (ei != 0)
+                {
+                    _waveData[vi]._twoPiOverWavelengths[ei] = 1f;
+                    _waveData[vi]._amps[ei] = 0f;
+                    _waveData[vi]._waveDirX[ei] = 0f;
+                    _waveData[vi]._waveDirZ[ei] = 0f;
+                    _waveData[vi]._phases[ei] = 0f;
+                    _waveData[vi]._chopAmps[ei] = 0f;
+                    ei = (ei + 1) % 4;
+                    outputIdx++;
+                }
+            }
+
+            while (cascadeIdx < LodDataMgr.MAX_LOD_COUNT)
+            {
+                cascadeIdx++;
+                minWl *= 2f;
+                _cascadeParams[cascadeIdx]._startIndex = outputIdx / 4;
+                //Debug.Log($"{cascadeIdx}: start {_cascadeParams[cascadeIdx]._startIndex} minWL {minWl}");
+            }
+
             _bufCascadeParams.SetData(_cascadeParams);
+            _bufWaveData.SetData(_waveData);
         }
 
         void InitPhases()
@@ -547,28 +559,6 @@ namespace Crest
                 {
                     if (numInBatch < BATCH_SIZE)
                     {
-                        int vi = numInBatch / 4;
-                        int ei = numInBatch - vi * 4;
-
-                        UpdateBatchScratchData._twoPiOverWavelengthsBatch[vi][ei] = 2f * Mathf.PI / wl;
-                        UpdateBatchScratchData._ampsBatch[vi][ei] = amp;
-
-                        float chopScale = _spectrum._chopScales[(firstComponent + i) / _componentsPerOctave];
-                        UpdateBatchScratchData._chopAmpsBatch[vi][ei] = -chopScale * _spectrum._chop * amp;
-
-                        float angle = Mathf.Deg2Rad * (_windDirectionAngle + _angleDegs[firstComponent + i]);
-                        UpdateBatchScratchData._waveDirXBatch[vi][ei] = Mathf.Cos(angle);
-                        UpdateBatchScratchData._waveDirZBatch[vi][ei] = Mathf.Sin(angle);
-
-                        // It used to be this, but I'm pushing all the stuff that doesn't depend on position into the phase.
-                        //half4 angle = k * (C * _CrestTime + x) + _Phases[vi];
-                        float gravityScale = _spectrum._gravityScales[(firstComponent + i) / _componentsPerOctave];
-                        float gravity = OceanRenderer.Instance.Gravity * _spectrum._gravityScale;
-                        float C = Mathf.Sqrt(wl * gravity * gravityScale * one_over_2pi);
-                        float k = twopi / wl;
-                        // Repeat every 2pi to keep angle bounded - helps precision on 16bit platforms
-                        UpdateBatchScratchData._phasesBatch[vi][ei] = Mathf.Repeat(_phases[firstComponent + i] + k * C * OceanRenderer.Instance.CurrentTime, Mathf.PI * 2f);
-
                         numInBatch++;
                     }
                     else
@@ -600,12 +590,6 @@ namespace Crest
                 {
                     for (int ei = ei_last; ei < 4; ei++)
                     {
-                        UpdateBatchScratchData._twoPiOverWavelengthsBatch[vi][ei] = 1f; // wary of NaNs
-                        UpdateBatchScratchData._ampsBatch[vi][ei] = 0f;
-                        UpdateBatchScratchData._waveDirXBatch[vi][ei] = 0f;
-                        UpdateBatchScratchData._waveDirZBatch[vi][ei] = 0f;
-                        UpdateBatchScratchData._phasesBatch[vi][ei] = 0f;
-                        UpdateBatchScratchData._chopAmpsBatch[vi][ei] = 0f;
                     }
 
                     ei_last = 0;
@@ -616,12 +600,6 @@ namespace Crest
             for (int i = 0; i < 2; i++)
             {
                 var mat = batch.GetMaterial(i);
-                mat.SetVectorArray(sp_TwoPiOverWavelengths, UpdateBatchScratchData._twoPiOverWavelengthsBatch);
-                mat.SetVectorArray(sp_Amplitudes, UpdateBatchScratchData._ampsBatch);
-                mat.SetVectorArray(sp_WaveDirX, UpdateBatchScratchData._waveDirXBatch);
-                mat.SetVectorArray(sp_WaveDirZ, UpdateBatchScratchData._waveDirZBatch);
-                mat.SetVectorArray(sp_Phases, UpdateBatchScratchData._phasesBatch);
-                mat.SetVectorArray(sp_ChopAmps, UpdateBatchScratchData._chopAmpsBatch);
                 mat.SetFloat(sp_NumInBatch, numInBatch);
                 mat.SetFloat(sp_AttenuationInShallows, OceanRenderer.Instance._lodDataAnimWaves.Settings.AttenuationInShallows);
 

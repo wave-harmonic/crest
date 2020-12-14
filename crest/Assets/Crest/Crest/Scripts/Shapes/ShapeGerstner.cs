@@ -117,7 +117,6 @@ namespace Crest
             public int _startIndex;
         }
         ComputeBuffer _bufCascadeParams;
-        static int sp_cascadeParams = Shader.PropertyToID("_GerstnerCascadeParams");
         GerstnerCascadeParams[] _cascadeParams = new GerstnerCascadeParams[LodDataMgr.MAX_LOD_COUNT + 1];
 
         int _firstCascade = -1;
@@ -134,7 +133,6 @@ namespace Crest
         }
         ComputeBuffer _bufWaveData;
         const int MAX_WAVE_COMPONENTS = 1024;
-        static int sp_waveData = Shader.PropertyToID("_GerstnerWaveData");
         GerstnerWaveComponent4[] _waveData = new GerstnerWaveComponent4[MAX_WAVE_COMPONENTS / 4];
 
         ComputeShader _shaderGerstner;
@@ -142,9 +140,11 @@ namespace Crest
 
         CommandBuffer _buf;
 
-        readonly int sp_NumInBatch = Shader.PropertyToID("_NumInBatch");
+        readonly int sp_TextureRes = Shader.PropertyToID("_TextureRes");
         readonly int sp_AttenuationInShallows = Shader.PropertyToID("_AttenuationInShallows");
-        readonly int sp_NumWaveVecs = Shader.PropertyToID("_NumWaveVecs");
+        readonly int sp_CascadeParams = Shader.PropertyToID("_GerstnerCascadeParams");
+        readonly int sp_GerstnerWaveData = Shader.PropertyToID("_GerstnerWaveData");
+        readonly int sp_WaveBuffer = Shader.PropertyToID("_WaveBuffer");
 
         // IMPORTANT - this mirrors the constant with the same name in ShapeGerstnerBatch.shader, both must be updated together!
         const int BATCH_SIZE = 32;
@@ -229,10 +229,10 @@ namespace Crest
                 //Debug.Log($"{_firstCascade} to {_lastCascade}");
 
                 _buf.Clear();
-                _buf.SetComputeFloatParam(_shaderGerstner, "_TextureRes", _waveBuffers.width);
-                _buf.SetComputeBufferParam(_shaderGerstner, _krnlGerstner, sp_cascadeParams, _bufCascadeParams);
-                _buf.SetComputeBufferParam(_shaderGerstner, _krnlGerstner, "_GerstnerWaveData", _bufWaveData);
-                _buf.SetComputeTextureParam(_shaderGerstner, _krnlGerstner, "_WaveBuffer", _waveBuffers);
+                _buf.SetComputeFloatParam(_shaderGerstner, sp_TextureRes, _waveBuffers.width);
+                _buf.SetComputeBufferParam(_shaderGerstner, _krnlGerstner, sp_CascadeParams, _bufCascadeParams);
+                _buf.SetComputeBufferParam(_shaderGerstner, _krnlGerstner, sp_GerstnerWaveData, _bufWaveData);
+                _buf.SetComputeTextureParam(_shaderGerstner, _krnlGerstner, sp_WaveBuffer, _waveBuffers);
                 _buf.DispatchCompute(_shaderGerstner, _krnlGerstner, _waveBuffers.width / 8, _waveBuffers.height / 8, _lastCascade - _firstCascade + 1);
                 Graphics.ExecuteCommandBuffer(_buf);
             }
@@ -600,11 +600,9 @@ namespace Crest
             for (int i = 0; i < 2; i++)
             {
                 var mat = batch.GetMaterial(i);
-                mat.SetFloat(sp_NumInBatch, numInBatch);
                 mat.SetFloat(sp_AttenuationInShallows, OceanRenderer.Instance._lodDataAnimWaves.Settings.AttenuationInShallows);
 
                 int numVecs = (numInBatch + 3) / 4;
-                mat.SetInt(sp_NumWaveVecs, numVecs);
                 mat.SetInt(LodDataMgr.sp_LD_SliceIndex, lodIdx - i);
 
                 LodDataMgrAnimWaves.Bind(mat);

@@ -92,7 +92,7 @@ Shader "Crest/Underwater Curtain"
 				half4 grabPos : TEXCOORD2;
 				float3 positionWS : TEXCOORD3;
 #if defined(VERTEXLIGHT_ON)
-				half4 uvLightsAtten : TEXCOORD10;
+				half4 uvLightsAtten : TEXCOORD4;
 #endif // VERTEXLIGHT_ON
 
 				UNITY_VERTEX_OUTPUT_STEREO

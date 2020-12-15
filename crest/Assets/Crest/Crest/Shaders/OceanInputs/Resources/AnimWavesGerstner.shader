@@ -19,6 +19,7 @@ Shader "Hidden/Crest/Inputs/Animated Waves/Gerstner Global"
 			CGPROGRAM
 			#pragma vertex Vert
 			#pragma fragment Frag
+			#pragma enable_d3d11_debug_symbols
 
 			#include "UnityCG.cginc"
 

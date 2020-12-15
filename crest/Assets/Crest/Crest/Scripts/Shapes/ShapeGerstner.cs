@@ -210,8 +210,6 @@ namespace Crest
 
             if (_firstCascade != -1 && _lastCascade != -1)
             {
-                //Debug.Log($"{_firstCascade} to {_lastCascade}");
-
                 _buf.Clear();
 
                 _buf.SetComputeFloatParam(_shaderGerstner, sp_TextureRes, _waveBuffers.width);
@@ -228,6 +226,8 @@ namespace Crest
 
         void SliceUpWaves()
         {
+            _firstCascade = _lastCascade = -1;
+
             var cascadeIdx = 0;
             var componentIdx = 0;
             var outputIdx = 0;
@@ -435,7 +435,7 @@ namespace Crest
         {
             var registered = RegisterLodDataInputBase.GetRegistrar(typeof(LodDataMgrAnimWaves));
 
-#if UNITY_EDITOR
+//#if UNITY_EDITOR
             // Unregister after switching modes in the editor.
             if (_batches != null)
             {
@@ -444,7 +444,7 @@ namespace Crest
                     registered.Remove(batch);
                 }
             }
-#endif
+//#endif
 
             // Submit draws to create the Gerstner waves
             _batches = new GerstnerBatch[LodDataMgr.MAX_LOD_COUNT];

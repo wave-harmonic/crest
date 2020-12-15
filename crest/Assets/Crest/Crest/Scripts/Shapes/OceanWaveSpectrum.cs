@@ -2,8 +2,11 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
-using UnityEditor;
 using UnityEngine;
+
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 namespace Crest
 {
@@ -22,7 +25,7 @@ namespace Crest
         [HideInInspector]
         public float _fetch = 500000f;
 
-        public static readonly float MIN_POWER_LOG = -6f;
+        public static readonly float MIN_POWER_LOG = -7f;
         public static readonly float MAX_POWER_LOG = 5f;
 
         [Tooltip("Variance of wave directions, in degrees"), Range(0f, 180f)]
@@ -37,11 +40,11 @@ namespace Crest
         [Tooltip("Multiplier"), Range(0f, 10f), SerializeField]
         float _multiplier = 1f;
 
-        [SerializeField]
+        [HideInInspector, SerializeField]
         float[] _powerLog = new float[NUM_OCTAVES]
             { -6f, -6f, -6f, -4.0088496f, -3.4452133f, -2.6996124f, -2.615044f, -1.2080691f, -0.53905386f, 0.27448857f, 0.53627354f, 1.0282621f, 1.4403292f, -6f };
 
-        [SerializeField]
+        [HideInInspector, SerializeField]
         bool[] _powerDisabled = new bool[NUM_OCTAVES];
 
         [HideInInspector]
@@ -53,9 +56,27 @@ namespace Crest
             { 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f };
 
         [Tooltip("Scales horizontal displacement"), Range(0f, 2f)]
-        public float _chop = 1f;
+        public float _chop = 1.6f;
 
-        public bool _showAdvancedControls = false;
+
+#if UNITY_EDITOR
+#pragma warning disable 414
+        [SerializeField] bool _showAdvancedControls = false;
+#pragma warning restore 414
+
+        public enum SpectrumModel
+        {
+            None,
+            Phillips,
+            PiersonMoskowitz,
+            JONSWAP,
+        }
+
+#pragma warning disable 414
+        // We need to serialize if we want undo/redo.
+        [HideInInspector, SerializeField] SpectrumModel _model;
+#pragma warning restore 414
+#endif
 
         public static float SmallWavelength(float octaveIndex) { return Mathf.Pow(2f, SMALLEST_WL_POW_2 + octaveIndex); }
 
@@ -73,14 +94,14 @@ namespace Crest
 
             var index = (int)(wl_pow2 - SMALLEST_WL_POW_2);
 
-            if(_powerLog.Length < NUM_OCTAVES)
+            if (_powerLog.Length < NUM_OCTAVES || _powerDisabled.Length < NUM_OCTAVES)
             {
                 Debug.LogWarning($"Wave spectrum {name} is out of date, please open this asset and resave in editor.", this);
             }
 
-            if (index >= _powerLog.Length)
+            if (index >= _powerLog.Length || index >= _powerDisabled.Length)
             {
-                Debug.Assert(index < _powerLog.Length, $"OceanWaveSpectrum: index {index} is out of range.", this);
+                Debug.Assert(index < _powerLog.Length && index < _powerDisabled.Length, $"OceanWaveSpectrum: index {index} is out of range.", this);
                 return 0f;
             }
 
@@ -289,16 +310,14 @@ namespace Crest
     [CustomEditor(typeof(OceanWaveSpectrum))]
     public class OceanWaveSpectrumEditor : Editor
     {
-        private static GUIStyle ToggleButtonStyleNormal = null;
-        private static GUIStyle ToggleButtonStyleToggled = null;
+        readonly static string[] modelDescriptions = new string[]
+        {
+            "Select an option to author waves using a spectrum model.",
+            "Base of modern parametric wave spectra.",
+            "Fully developed sea with infinite fetch.",
+            "Fetch limited sea where waves continue to grow.",
+        };
 
-        static bool _applyPhillipsSpectrum = false;
-        static bool _applyPiersonMoskowitzSpectrum = false;
-        static bool _applyJONSWAPSpectrum = false;
-
-        static GUIContent s_labelPhillips = new GUIContent("Phillips", "Base of modern parametric wave spectra");
-        static GUIContent s_labelPiersonMoskowitz = new GUIContent("Pierson-Moskowitz", "Fully developed sea with infinite fetch");
-        static GUIContent s_labelJONSWAP = new GUIContent("JONSWAP", "Fetch limited sea where waves continue to grow");
         static GUIContent s_labelSWM = new GUIContent("Small wavelength multiplier", "Modifies parameters for the empirical spectra, tends to boost smaller wavelengths");
         static GUIContent s_labelFetch = new GUIContent("Fetch", "Length of area that wind excites waves. Applies only to JONSWAP");
 
@@ -339,14 +358,8 @@ namespace Crest
 
             var showAdvancedControls = serializedObject.FindProperty("_showAdvancedControls").boolValue;
 
-            // preamble - styles for toggle buttons. this code and the below was based off the useful info provided by user Lasse here:
-            // https://gamedev.stackexchange.com/questions/98920/how-do-i-create-a-toggle-button-in-unity-inspector
-            if (ToggleButtonStyleNormal == null)
-            {
-                ToggleButtonStyleNormal = "Button";
-                ToggleButtonStyleToggled = new GUIStyle(ToggleButtonStyleNormal);
-                ToggleButtonStyleToggled.normal.background = ToggleButtonStyleToggled.active.background;
-            }
+            var spSpectrumModel = serializedObject.FindProperty("_model");
+            var spectrumModel = (OceanWaveSpectrum.SpectrumModel)serializedObject.FindProperty("_model").enumValueIndex;
 
             EditorGUILayout.Space();
 
@@ -378,6 +391,9 @@ namespace Crest
             var spGravScales = serializedObject.FindProperty("_gravityScales");
             UpgradeSpectrum(spGravScales, 1f);
 
+            // Disable sliders if authoring with model.
+            var canEditSpectrum = spectrumModel != OceanWaveSpectrum.SpectrumModel.None;
+
             for (int i = 0; i < spPower.arraySize; i++)
             {
                 EditorGUILayout.BeginHorizontal();
@@ -388,17 +404,34 @@ namespace Crest
                 float smallWL = OceanWaveSpectrum.SmallWavelength(i);
                 var spPower_i = spPower.GetArrayElementAtIndex(i);
 
+                var isPowerDisabled = spDisabled_i.boolValue;
+                var powerValue = isPowerDisabled ? OceanWaveSpectrum.MIN_POWER_LOG : spPower_i.floatValue;
+
                 if (showAdvancedControls)
                 {
                     EditorGUILayout.LabelField(string.Format("{0}", smallWL), EditorStyles.boldLabel);
                     EditorGUILayout.EndHorizontal();
-                    EditorGUILayout.Slider(spPower_i, OceanWaveSpectrum.MIN_POWER_LOG, OceanWaveSpectrum.MAX_POWER_LOG, "    Power");
+                    // Disable slider if authoring with model.
+                    GUI.enabled = !canEditSpectrum && !spDisabled_i.boolValue;
+                    powerValue = EditorGUILayout.Slider("    Power", powerValue, OceanWaveSpectrum.MIN_POWER_LOG, OceanWaveSpectrum.MAX_POWER_LOG);
+                    GUI.enabled = true;
                 }
                 else
                 {
                     EditorGUILayout.LabelField(string.Format("{0}", smallWL), GUILayout.Width(30f));
-                    spPower_i.floatValue = GUILayout.HorizontalSlider(spPower_i.floatValue, OceanWaveSpectrum.MIN_POWER_LOG, OceanWaveSpectrum.MAX_POWER_LOG);
+                    // Disable slider if authoring with model.
+                    GUI.enabled = !canEditSpectrum && !spDisabled_i.boolValue;
+                    powerValue = GUILayout.HorizontalSlider(powerValue, OceanWaveSpectrum.MIN_POWER_LOG, OceanWaveSpectrum.MAX_POWER_LOG);
+                    GUI.enabled = true;
                     EditorGUILayout.EndHorizontal();
+                    // This will create a tooltip for slider.
+                    GUI.Label(GUILayoutUtility.GetLastRect(), new GUIContent("", powerValue.ToString()));
+                }
+
+                // If the power is disabled, we are using the MIN_POWER_LOG value so we don't want to store it.
+                if (!isPowerDisabled)
+                {
+                    spPower_i.floatValue = powerValue;
                 }
 
                 if (showAdvancedControls)
@@ -412,63 +445,66 @@ namespace Crest
             EditorGUILayout.Space();
             EditorGUILayout.LabelField("Empirical Spectra", EditorStyles.boldLabel);
 
-            var labelWidth = 170f;
             EditorGUILayout.BeginHorizontal();
-            float spd_kmh = spec._windSpeed * 3.6f;
-            EditorGUILayout.LabelField("Wind speed (km/h)", GUILayout.Width(labelWidth));
-            spd_kmh = EditorGUILayout.Slider(spd_kmh, 0f, 120f);
-            spec._windSpeed = spd_kmh / 3.6f;
+            spectrumModel = (OceanWaveSpectrum.SpectrumModel)EditorGUILayout.EnumPopup(spectrumModel);
+            spSpectrumModel.enumValueIndex = (int)spectrumModel;
             EditorGUILayout.EndHorizontal();
 
-            EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.LabelField(s_labelSWM, GUILayout.Width(labelWidth));
-            spec._smallWavelengthMultiplier = EditorGUILayout.Slider(spec._smallWavelengthMultiplier, 0f, 10f);
-            EditorGUILayout.EndHorizontal();
+            EditorGUILayout.Space();
+            EditorGUILayout.HelpBox(modelDescriptions[(int)spectrumModel], MessageType.Info);
+            EditorGUILayout.Space();
 
-            // descriptions from this very useful paper: https://hal.archives-ouvertes.fr/file/index/docid/307938/filename/frechot_realistic_simulation_of_ocean_surface_using_wave_spectra.pdf
-
-            if (GUILayout.Button(s_labelPhillips, _applyPhillipsSpectrum ? ToggleButtonStyleToggled : ToggleButtonStyleNormal))
+            if (spectrumModel == OceanWaveSpectrum.SpectrumModel.None)
             {
-                _applyPhillipsSpectrum = !_applyPhillipsSpectrum;
+                Undo.RecordObject(spec, "Change Spectrum");
             }
-            if (_applyPhillipsSpectrum)
+            else
             {
-                _applyJONSWAPSpectrum = _applyPiersonMoskowitzSpectrum = false;
+                // It doesn't seem to matter where this is called.
+                Undo.RecordObject(spec, $"Apply {ObjectNames.NicifyVariableName(spectrumModel.ToString())} Spectrum");
 
-                Undo.RecordObject(this, "Apply Phillips Spectrum");
+                var labelWidth = 170f;
+                EditorGUILayout.BeginHorizontal();
+                float spd_kmh = spec._windSpeed * 3.6f;
+                EditorGUILayout.LabelField("Wind speed (km/h)", GUILayout.Width(labelWidth));
+                spd_kmh = EditorGUILayout.Slider(spd_kmh, 0f, 120f);
+                spec._windSpeed = spd_kmh / 3.6f;
+                EditorGUILayout.EndHorizontal();
 
-                spec.ApplyPhillipsSpectrum(spec._windSpeed, spec._smallWavelengthMultiplier);
-            }
+                EditorGUILayout.BeginHorizontal();
+                EditorGUILayout.LabelField(s_labelSWM, GUILayout.Width(labelWidth));
+                spec._smallWavelengthMultiplier = EditorGUILayout.Slider(spec._smallWavelengthMultiplier, 0f, 10f);
+                EditorGUILayout.EndHorizontal();
 
-            if (GUILayout.Button(s_labelPiersonMoskowitz, _applyPiersonMoskowitzSpectrum ? ToggleButtonStyleToggled : ToggleButtonStyleNormal))
-            {
-                _applyPiersonMoskowitzSpectrum = !_applyPiersonMoskowitzSpectrum;
-            }
-            if (_applyPiersonMoskowitzSpectrum)
-            {
-                _applyPhillipsSpectrum = _applyJONSWAPSpectrum = false;
+                if (spectrumModel == OceanWaveSpectrum.SpectrumModel.JONSWAP)
+                {
+                    spec._fetch = EditorGUILayout.Slider(s_labelFetch, spec._fetch, 0f, 1000000f);
+                }
 
-                Undo.RecordObject(this, "Apply Pierson-Moskowitz Spectrum");
+                // Descriptions from this very useful paper:
+                // https://hal.archives-ouvertes.fr/file/index/docid/307938/filename/frechot_realistic_simulation_of_ocean_surface_using_wave_spectra.pdf
 
-                spec.ApplyPiersonMoskowitzSpectrum(spec._windSpeed, spec._smallWavelengthMultiplier);
-            }
-
-            spec._fetch = EditorGUILayout.Slider(s_labelFetch, spec._fetch, 0f, 1000000f);
-
-            if (GUILayout.Button(s_labelJONSWAP, _applyJONSWAPSpectrum ? ToggleButtonStyleToggled : ToggleButtonStyleNormal))
-            {
-                _applyJONSWAPSpectrum = !_applyJONSWAPSpectrum;
-            }
-            if (_applyJONSWAPSpectrum)
-            {
-                _applyPhillipsSpectrum = _applyPiersonMoskowitzSpectrum = false;
-
-                Undo.RecordObject(this, "Apply JONSWAP Spectrum");
-
-                spec.ApplyJONSWAPSpectrum(spec._windSpeed, spec._fetch, spec._smallWavelengthMultiplier);
+                switch (spectrumModel)
+                {
+                    case OceanWaveSpectrum.SpectrumModel.Phillips:
+                        spec.ApplyPhillipsSpectrum(spec._windSpeed, spec._smallWavelengthMultiplier);
+                        break;
+                    case OceanWaveSpectrum.SpectrumModel.PiersonMoskowitz:
+                        spec.ApplyPiersonMoskowitzSpectrum(spec._windSpeed, spec._smallWavelengthMultiplier);
+                        break;
+                    case OceanWaveSpectrum.SpectrumModel.JONSWAP:
+                        spec.ApplyJONSWAPSpectrum(spec._windSpeed, spec._fetch, spec._smallWavelengthMultiplier);
+                        break;
+                }
             }
 
             serializedObject.ApplyModifiedProperties();
+
+            if (GUI.changed)
+            {
+                // We need to call this otherwise any property which has HideInInspector won't save.
+                EditorUtility.SetDirty(spec);
+            }
         }
     }
 #endif

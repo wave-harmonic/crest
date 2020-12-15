@@ -9,7 +9,6 @@ Shader "Crest/Inputs/Dynamic Waves/Object Interaction"
 		_FactorParallel("FactorParallel", Range(0., 8.)) = 0.2
 		_FactorOrthogonal("FactorOrthogonal", Range(0., 4.)) = 0.2
 		_Strength("Strength", Range(0., 1000.)) = 0.2
-		_Velocity("Velocity", Vector) = (0,0,0,0)
 	}
 
 	SubShader
@@ -21,19 +20,22 @@ Shader "Crest/Inputs/Dynamic Waves/Object Interaction"
 			Blend One One
 			ZTest Always
 			ZWrite Off
-			
+
 			CGPROGRAM
 			#pragma vertex Vert
 			#pragma fragment Frag
 
 			#include "UnityCG.cginc"
 
+			CBUFFER_START(CrestPerOceanInput)
 			float _FactorParallel;
 			float _FactorOrthogonal;
 			float3 _Velocity;
 			float _SimDeltaTime;
 			float _Strength;
 			float _Weight;
+			float3 _DisplacementAtInputPosition;
+			CBUFFER_END
 			
 			struct Attributes
 			{
@@ -54,6 +56,8 @@ Shader "Crest/Inputs/Dynamic Waves/Object Interaction"
 				Varyings o;
 
 				float3 vertexWorldPos = mul(unity_ObjectToWorld, float4(input.positionOS, 1.0));
+				// Correct for displacement
+				vertexWorldPos.xz -= _DisplacementAtInputPosition.xz;
 
 				o.normal = normalize(mul(unity_ObjectToWorld, float4(input.normal, 0.)).xyz);
 

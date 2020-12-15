@@ -1,4 +1,6 @@
-﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
+﻿// Crest Ocean System
+
+// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 Shader "Crest/Inputs/Flow/Whirlpool"
 {
@@ -6,7 +8,7 @@ Shader "Crest/Inputs/Flow/Whirlpool"
 	{
 		Pass
 		{
-			Tags { "LightMode" = "Always" }
+			Tags { "DisableBatching" = "True" }
 			Blend One One
 
 			CGPROGRAM
@@ -35,11 +37,10 @@ Shader "Crest/Inputs/Flow/Whirlpool"
 				Varyings o;
 				o.positionCS = UnityObjectToClipPos(input.positionOS);
 				o.uv = input.uv;
-
 				return o;
 			}
 
-			float2 Frag(Varyings input) : SV_Target
+			float4 Frag(Varyings input) : SV_Target
 			{
 				float2 flow = float2(0.0, 0.0);
 
@@ -63,9 +64,8 @@ Shader "Crest/Inputs/Flow/Whirlpool"
 					);
 				}
 
-				return flow;
+				return float4(flow, 0.0, 0.0);
 			}
-
 			ENDCG
 		}
 	}

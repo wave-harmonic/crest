@@ -6,7 +6,8 @@
 
 # Intro
 
-*Crest* is a technically advanced ocean renderer implemented in Unity3D 2018.3 and later. The version hosted here targets the **built-in render pipeline**, a link to the LWRP version on the Asset Store is below.
+*Crest* is a technically advanced ocean renderer implemented in Unity3D 2019.4.8 and later.
+The version hosted here targets the **built-in render pipeline**, a link to the scriptable render pipeline versions (URP/HDRP) on the Asset Store are below.
 
 ![Teaser](https://raw.githubusercontent.com/huwb/crest-oceanrender/master/img/teaser5.png)
 
@@ -14,14 +15,17 @@
 
 **Twitter:** [@crest_ocean](https://twitter.com/@crest_ocean)
 
-**URP asset:** [Crest Ocean System URP](https://assetstore.unity.com/detail/tools/particles-effects/crest-ocean-system-lwrp-urp-141674)
+**URP asset:** [Crest Ocean System URP](https://assetstore.unity.com/packages/tools/particles-effects/crest-ocean-system-urp-141674)
 
-**HDRP asset:** Coming soon.
+**HDRP asset:** [Crest Ocean System HDRP](https://assetstore.unity.com/packages/tools/particles-effects/crest-ocean-system-hdrp-164158)
 
 # Showcase Gallery
 
 *Your game here! We're looking for projects to showcase - if you upload a video of your work to youtube and send us a link (or create a pull request) we'll put a thumbnail here and link to it.*
 
+<a href="https://www.youtube.com/watch?feature=player_embedded&v=_Rq5dfZfQ1k" target="_blank"><img src="https://img.youtube.com/vi/_Rq5dfZfQ1k/0.jpg" alt="Out of Reach: Treasure Royale - Trailer" width="240" height="180" /></a>
+<a href="https://www.youtube.com/watch?feature=player_embedded&v=70voKq6cdKQ" target="_blank"><img src="https://img.youtube.com/vi/70voKq6cdKQ/0.jpg" alt="Windbound - Brave the Storm Announce Trailer [Official]" width="240" height="180" /></a>
+<a href="https://www.youtube.com/watch?feature=player_embedded&v=ZmKto87To-0" target="_blank"><img src="https://img.youtube.com/vi/ZmKto87To-0/0.jpg" alt="An Adventure to the World of Artificial Intelligenc" width="240" height="180" /></a>
 <a href="https://www.youtube.com/watch?feature=player_embedded&v=nsQJ5IJVHVw" target="_blank"><img src="https://img.youtube.com/vi/nsQJ5IJVHVw/0.jpg" alt="Hope Adrift Gameplay & Release Trailer" width="240" height="180" /></a>
 <a href="https://www.youtube.com/watch?feature=player_embedded&v=Qfy5P4Zygvs" target="_blank"><img src="https://img.youtube.com/vi/Qfy5P4Zygvs/0.jpg" alt="Morild Navigator" width="240" height="180" /></a>
 <a href="https://www.youtube.com/watch?feature=player_embedded&v=LNIQ6RF5lrw" target="_blank"><img src="https://img.youtube.com/vi/LNIQ6RF5lrw/0.jpg" alt="Blue Water Dev Diary - CIWS Expo" width="240" height="180" /></a>
@@ -40,20 +44,35 @@ There is also a getting started video here: https://www.youtube.com/watch?v=qsge
 
 * Unity version:
   * The SRP assets on the Asset Store specify the minimum version required.
-  * Releases on this GitHub target the built-in render pipeline, and each release specifies which version of Unity it was developed on. Currently Unity 2018.3 or later is the minimum version.
+  * Releases on this GitHub target the built-in render pipeline, and each release specifies which version of Unity it was developed on. Currently Unity 2019.4.8 or later is the minimum version. See further down for 2018.4 support.
 * *Crest* example content:
   * The content requires a layer named *Terrain* which should be added to your project.
   * The post processing package is used (for aesthetic reasons), if this is not present in your project you will see an unassigned script warning which you can fix by removing the offending script.
 * .NET 4.x runtime
-* Direct X11 or Vulkan, other platforms targeting [shader compilation target](https://docs.unity3d.com/Manual/SL-ShaderCompileTargets.html) 4.5 or above may work but we cannot provide support for, or test on, other APIs ourselves.
+* [Shader compilation target](https://docs.unity3d.com/Manual/SL-ShaderCompileTargets.html) 4.5 or above
+  * *Crest* unfortunately does not support OpenGL or WebGL backends
 
+# Installation
 
-# Releases
+***You can download the latest version from [here](https://github.com/crest-ocean/crest/archive/master.zip).***
 
-The best way to obtain *Crest* is take the latest version in the master branch by forking/cloning this repository or by using the green download button above. We rely heavily on the community to help us test new features before creating releases. Once features are settled they are integrated into the SRP assets (linked above).
+One way to obtain *Crest* is take the latest version in the master branch by forking/cloning this repository or by using the green download button above.
+The files that should be copied into an existing project are under *crest/Assets/Crest*.
 
-Releases are published irregularly and posted on the [Releases page](https://github.com/huwb/crest-oceanrender/releases). Unity packages are uploaded with each release. The lastest release version is 9.0.0.
+Note that *crest/Assets/Crest/Crest-Examples* contains example content that is useful for first time users but not required for the core *Crest* functionality. Furthermore, the *crest/Assets/Crest/Development* folder is not needed as it is only for *Crest* development.
 
+## Legacy
+
+The following options are no longer maintained or supported.
+
+### Releases
+
+*Crest* releases are no longer published or supported. Old releases can be obtained from the [Releases page](https://github.com/huwb/crest-oceanrender/releases), but they are not recommended.
+They are Unity packages which can be imported into your project using *Assets/Import Package*.
+
+### 2018.4
+
+There is a [legacy branch] for 2018.4 support. A direct download to an archive is available [here](https://github.com/crest-ocean/crest/archive/legacy/unity-2018.zip). It is not actively developed.
 
 # Issues
 
@@ -61,7 +80,8 @@ If you encounter an issue, please search the [Issues page](https://github.com/hu
 
 There are a few issues worth calling out here:
 
-* *Crest* does not yet support *HDRP*. If you would find such support useful, please feel free to comment in issue #201.
-* Azure[Sky] requires some code to be added to the ocean shader for the fogging/scattering to work. This is a requirement of this product and apparently comes with instructions for what needs to be added. See issue #62.
-* Issue with LWRP and VR - refraction appears broken due to what seems to be a bug in LWRP. See issue #206.
-* Unity 2018.3 introduced significant changes to prefabs. We don't make extensive use of prefabs, but there are some for boats and others, and these may not work in earlier versions. These will need to be recreated manually.
+* Sky solutions such as Azure[Sky] requires some code to be added to the ocean shader for the fogging/scattering to work. This is a requirement of these products which typically come with instructions for what needs to be added. See the [wiki](https://github.com/crest-ocean/crest/wiki) for examples.
+* This built-in render pipeline version of crest requires the *Draw Instanced* option on terrains to be disabled at start time. It can be re-enabled subsequently after the depth cache is populated. See [issue #158](https://github.com/crest-ocean/crest/issues/158).
+* *Crest* does not support OpenGL or WebGL backends
+
+[legacy branch]: https://github.com/crest-ocean/crest/tree/legacy/unity-2018

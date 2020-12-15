@@ -1,4 +1,6 @@
-﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
+﻿// Crest Ocean System
+
+// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 using Crest;
 using UnityEngine;
@@ -10,10 +12,12 @@ public class RippleGenerator : MonoBehaviour
     public float _onTime = 0.2f;
     public float _period = 4f;
 
-    Material _mat;
+    Renderer _rend;
+    MaterialPropertyBlock _mpb;
+
     RegisterDynWavesInput _rdwi;
 
-	void Start()
+    void Start()
     {
         _rdwi = GetComponent<RegisterDynWavesInput>();
 
@@ -23,12 +27,18 @@ public class RippleGenerator : MonoBehaviour
             return;
         }
 
-        _mat = GetComponent<MeshRenderer>().material;
-	}
-	
-	void Update()
+        _rend = GetComponent<Renderer>();
+        _mpb = new MaterialPropertyBlock();
+    }
+
+    void Update()
     {
-        if(_animate)
+        if (OceanRenderer.Instance == null)
+        {
+            return;
+        }
+
+        if (_animate)
         {
             float t = OceanRenderer.Instance.CurrentTime;
             if (t < _warmUp)
@@ -57,13 +67,14 @@ public class RippleGenerator : MonoBehaviour
             return;
         }
 
-        if (simsActive > 0)
-        {
-            _mat.SetFloat("_SimCount", simsActive);
-        }
+        float dt;
+        OceanRenderer.Instance._lodDataDynWaves.GetSimSubstepData(OceanRenderer.Instance.DeltaTimeDynamics, out _, out dt);
 
-        float dt; int steps;
-        OceanRenderer.Instance._lodDataDynWaves.GetSimSubstepData(OceanRenderer.Instance.DeltaTimeDynamics, out steps, out dt);
-        _mat.SetFloat("_SimDeltaTime", dt);
+        _rend.GetPropertyBlock(_mpb);
+
+        _mpb.SetFloat("_SimCount", simsActive);
+        _mpb.SetFloat("_SimDeltaTime", dt);
+
+        _rend.SetPropertyBlock(_mpb);
     }
 }

@@ -3,51 +3,70 @@
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 
 namespace Crest
 {
+    using SettingsType = SimSettingsFlow;
+
     /// <summary>
     /// A persistent flow simulation that moves around with a displacement LOD. The input is fully combined water surface shape.
     /// </summary>
     public class LodDataMgrFlow : LodDataMgr
     {
         public override string SimName { get { return "Flow"; } }
-        public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RGHalf; } }
+        protected override GraphicsFormat RequestedTextureFormat => GraphicsFormat.R16G16_SFloat;
         protected override bool NeedToReadWriteTextureData { get { return false; } }
-
-        public SimSettingsFlow Settings { get { return OceanRenderer.Instance._simSettingsFlow; } }
-        public override void UseSettings(SimSettingsBase settings) { OceanRenderer.Instance._simSettingsFlow = settings as SimSettingsFlow; }
-        public override SimSettingsBase CreateDefaultSettings()
-        {
-            var settings = ScriptableObject.CreateInstance<SimSettingsFlow>();
-            settings.name = SimName + " Auto-generated Settings";
-            return settings;
-        }
 
         bool _targetsClear = false;
 
-        public const string FLOW_KEYWORD = "_FLOW_ON";
+        public const string FLOW_KEYWORD = "CREST_FLOW_ON_INTERNAL";
 
-        protected override void Start()
+        SettingsType _defaultSettings;
+        public SettingsType Settings
+        {
+            get
+            {
+                if (_ocean._simSettingsFlow != null) return _ocean._simSettingsFlow;
+
+                if (_defaultSettings == null)
+                {
+                    _defaultSettings = ScriptableObject.CreateInstance<SettingsType>();
+                    _defaultSettings.name = SimName + " Auto-generated Settings";
+                }
+                return _defaultSettings;
+            }
+        }
+
+        public LodDataMgrFlow(OceanRenderer ocean) : base(ocean)
+        {
+            Start();
+        }
+
+        public override void Start()
         {
             base.Start();
 
 #if UNITY_EDITOR
-            if (!OceanRenderer.Instance.OceanMaterial.IsKeywordEnabled(FLOW_KEYWORD))
+            if (!OceanRenderer.Instance.OceanMaterial.IsKeywordEnabled("_FLOW_ON"))
             {
-                Debug.LogWarning("Flow is not enabled on the current ocean material and will not be visible.", this);
+                Debug.LogWarning("Flow is not enabled on the current ocean material and will not be visible.", _ocean);
             }
 #endif
         }
 
-        private void OnEnable()
+        internal override void OnEnable()
         {
+            base.OnEnable();
+
             Shader.EnableKeyword(FLOW_KEYWORD);
         }
 
-        private void OnDisable()
+        internal override void OnDisable()
         {
+            base.OnDisable();
+
             Shader.DisableKeyword(FLOW_KEYWORD);
         }
 
@@ -77,16 +96,33 @@ namespace Crest
             }
         }
 
-        public static string TextureArrayName = "_LD_TexArray_Flow";
-        private static TextureArrayParamIds textureArrayParamIds = new TextureArrayParamIds(TextureArrayName);
-        public static int ParamIdSampler(bool sourceLod = false) { return textureArrayParamIds.GetId(sourceLod); }
+        readonly static string s_textureArrayName = "_LD_TexArray_Flow";
+        private static TextureArrayParamIds s_textureArrayParamIds = new TextureArrayParamIds(s_textureArrayName);
+        public static int ParamIdSampler(bool sourceLod = false) { return s_textureArrayParamIds.GetId(sourceLod); }
         protected override int GetParamIdSampler(bool sourceLod = false)
         {
             return ParamIdSampler(sourceLod);
         }
-        public static void BindNull(IPropertyWrapper properties, bool sourceLod = false)
+
+        public static void Bind(IPropertyWrapper properties)
         {
-            properties.SetTexture(ParamIdSampler(sourceLod), TextureArrayHelpers.BlackTextureArray);
+            if (OceanRenderer.Instance._lodDataFlow != null)
+            {
+                properties.SetTexture(OceanRenderer.Instance._lodDataFlow.GetParamIdSampler(), OceanRenderer.Instance._lodDataFlow.DataTexture);
+            }
+            else
+            {
+                properties.SetTexture(ParamIdSampler(), TextureArrayHelpers.BlackTextureArray);
+            }
+        }
+
+#if UNITY_2019_3_OR_NEWER
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+#endif
+        static void InitStatics()
+        {
+            // Init here from 2019.3 onwards
+            s_textureArrayParamIds = new TextureArrayParamIds(s_textureArrayName);
         }
     }
 }

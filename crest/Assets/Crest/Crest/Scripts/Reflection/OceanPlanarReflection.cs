@@ -15,9 +15,10 @@ namespace Crest
 {
     internal static class PreparedReflections
     {
-        private static volatile RenderTexture _currentreflectiontexture;
+        private static volatile RenderTexture _currentreflectiontexture = null;
         private static volatile int _referenceCameraInstanceId = -1;
         private static volatile KeyValuePair<int, RenderTexture>[] _collection = new KeyValuePair<int, RenderTexture>[0];
+
         public static RenderTexture GetRenderTexture(int camerainstanceid)
         {
             if (camerainstanceid == _referenceCameraInstanceId)
@@ -62,6 +63,17 @@ namespace Crest
             _collection = currentcollection
                 .Append(new KeyValuePair<int, RenderTexture>(instanceId, reflectionTexture)).ToArray();
         }
+
+#if UNITY_2019_3_OR_NEWER
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+#endif
+        static void InitStatics()
+        {
+            // Init here from 2019.3 onwards
+            _currentreflectiontexture = null;
+            _referenceCameraInstanceId = -1;
+            _collection = new KeyValuePair<int, RenderTexture>[0];
+        }
     }
 
     /// <summary>
@@ -70,7 +82,9 @@ namespace Crest
     public class OceanPlanarReflection : MonoBehaviour
     {
         [SerializeField] LayerMask _reflectionLayers = 1;
+        [SerializeField] bool _disableOcclusionCulling = true;
         [SerializeField] bool _disablePixelLights = true;
+        [SerializeField] bool _disableShadows = false;
         [SerializeField] int _textureSize = 256;
         [SerializeField] float _clipPlaneOffset = 0.07f;
         [SerializeField] bool _hdr = true;
@@ -99,10 +113,18 @@ namespace Crest
         Skybox _camReflectionsSkybox;
 
         private long _lastRefreshOnFrame = -1;
-        float[] _cullDistances;
+
+        const int CULL_DISTANCE_COUNT = 32;
+        float[] _cullDistances = new float[CULL_DISTANCE_COUNT];
 
         private void Start()
         {
+            if (OceanRenderer.Instance == null)
+            {
+                enabled = false;
+                return;
+            }
+
             _camViewpoint = GetComponent<Camera>();
             if (!_camViewpoint)
             {
@@ -141,6 +163,11 @@ namespace Crest
             if (!RequestRefresh(Time.renderedFrameCount))
                 return; // Skip if not need to refresh on this frame
 
+            if (OceanRenderer.Instance == null)
+            {
+                return;
+            }
+
             CreateWaterObjects(_camViewpoint);
 
             if (!_camReflections)
@@ -149,7 +176,7 @@ namespace Crest
             }
 
             // Find out the reflection plane: position and normal in world space
-            Vector3 planePos = OceanRenderer.Instance.transform.position;
+            Vector3 planePos = OceanRenderer.Instance.Root.position;
             Vector3 planeNormal = Vector3.up;
 
             // Optionally disable pixel lights for reflection/refraction
@@ -157,6 +184,13 @@ namespace Crest
             if (_disablePixelLights)
             {
                 QualitySettings.pixelLightCount = 0;
+            }
+
+            // Optionally disable shadows for reflection/refraction
+            ShadowQuality oldShadowQuality = QualitySettings.shadows;
+            if (_disableShadows)
+            {
+                QualitySettings.shadows = ShadowQuality.Disable;
             }
 
             UpdateCameraModes();
@@ -195,6 +229,12 @@ namespace Crest
 
             GL.invertCulling = oldCulling;
 
+            // Restore shadows
+            if (_disableShadows)
+            {
+                QualitySettings.shadows = oldShadowQuality;
+            }
+
             // Restore pixel light count
             if (_disablePixelLights)
             {
@@ -211,8 +251,8 @@ namespace Crest
         /// <param name="farClipPlane">reflection far clip distance</param>
         private void ForceDistanceCulling(float farClipPlane)
         {
-            if (_cullDistances == null)
-                _cullDistances = new float[32];
+            if (_cullDistances == null || _cullDistances.Length != CULL_DISTANCE_COUNT)
+                _cullDistances = new float[CULL_DISTANCE_COUNT];
             for (var i = 0; i < _cullDistances.Length; i++)
             {
                 // The culling distance
@@ -253,6 +293,7 @@ namespace Crest
             _camReflections.orthographicSize = _camViewpoint.orthographicSize;
             _camReflections.allowMSAA = _allowMSAA;
             _camReflections.aspect = _camViewpoint.aspect;
+            _camReflections.useOcclusionCulling = !_disableOcclusionCulling && _camViewpoint.useOcclusionCulling;
         }
 
         // On-demand create any objects we need for water

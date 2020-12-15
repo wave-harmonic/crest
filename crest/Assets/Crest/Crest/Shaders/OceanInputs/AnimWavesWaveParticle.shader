@@ -22,10 +22,14 @@ Shader "Crest/Inputs/Animated Waves/Wave Particle"
 			#pragma vertex Vert
 			#pragma fragment Frag
 
+			#include "UnityCG.cginc"
+
+			CBUFFER_START(CrestPerOceanInput)
 			float _Radius;
 			float _Amplitude;
-			// TODO add this for all ocean inputs?
 			float _Weight;
+			float3 _DisplacementAtInputPosition;
+			CBUFFER_END
 
 			struct Attributes
 			{
@@ -41,16 +45,19 @@ Shader "Crest/Inputs/Animated Waves/Wave Particle"
 			Varyings Vert(Attributes input)
 			{
 				Varyings o;
-				o.positionCS = UnityObjectToClipPos(input.positionOS);
 
-				float3 worldPos = mul(unity_ObjectToWorld, float4(input.positionOS, 1.0));
+				float3 worldPos = mul(unity_ObjectToWorld, float4(input.positionOS, 1.0)).xyz;
 				float3 centerPos = unity_ObjectToWorld._m03_m13_m23;
 				o.worldOffsetScaledXZ = worldPos.xz - centerPos.xz;
 
 				// shape is symmetric around center with known radius - fix the vert positions to perfectly wrap the shape.
 				o.worldOffsetScaledXZ = sign(o.worldOffsetScaledXZ);
-				float4 newWorldPos = float4(centerPos, 1.);
+				float4 newWorldPos = float4(centerPos, 1.0);
 				newWorldPos.xz += o.worldOffsetScaledXZ * _Radius;
+
+				// Correct for displacement
+				newWorldPos.xz -= _DisplacementAtInputPosition.xz;
+
 				o.positionCS = mul(UNITY_MATRIX_VP, newWorldPos);
 
 				return o;
@@ -70,7 +77,7 @@ Shader "Crest/Inputs/Animated Waves/Wave Particle"
 
 				return float4(0.0, y * _Weight, 0.0, 0.0);
 			}
-			
+
 			ENDCG
 		}
 	}

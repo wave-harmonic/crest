@@ -24,20 +24,28 @@ Shader "Crest/Underwater Meniscus"
 			#pragma vertex Vert
 			#pragma fragment Frag
 
+			#pragma multi_compile_instancing
+
 			#include "UnityCG.cginc"
 			#include "Lighting.cginc"
-			#include "../OceanLODData.hlsl"
+
+			#include "../OceanGlobals.hlsl"
+			#include "../OceanInputsDriven.hlsl"
+			#include "../OceanHelpersNew.hlsl"
 			#include "UnderwaterShared.hlsl"
 
 			#define MAX_OFFSET 5.0
 
-			float _CrestTime;
+			CBUFFER_START(UnderwaterAdditional)
 			float _MeniscusWidth;
+			CBUFFER_END
 
 			struct Attributes
 			{
 				float4 positionOS : POSITION;
 				float2 uv : TEXCOORD0;
+
+				UNITY_VERTEX_INPUT_INSTANCE_ID
 			};
 
 			struct Varyings
@@ -47,11 +55,17 @@ Shader "Crest/Underwater Meniscus"
 				half4 foam_screenPos : TEXCOORD1;
 				half4 grabPos : TEXCOORD2;
 				float3 worldPos : TEXCOORD3;
+
+				UNITY_VERTEX_OUTPUT_STEREO
 			};
 
 			Varyings Vert(Attributes input)
 			{
 				Varyings o;
+
+				UNITY_SETUP_INSTANCE_ID(input);
+				UNITY_INITIALIZE_OUTPUT(Varyings, o);
+				UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
 
 				// view coordinate frame for camera
 				const float3 right = unity_CameraToWorld._11_21_31;
@@ -67,7 +81,7 @@ Shader "Crest/Underwater Meniscus"
 
 				if (abs(forward.y) < CREST_MAX_UPDOWN_AMOUNT)
 				{
-					o.worldPos += min(IntersectRayWithWaterSurface(o.worldPos, up), MAX_OFFSET) * up;
+					o.worldPos += min(IntersectRayWithWaterSurface(o.worldPos, up, _CrestCascadeData[_LD_SliceIndex]), MAX_OFFSET) * up;
 
 					const float offset = 0.001 * _ProjectionParams.y * _MeniscusWidth;
 					if (input.positionOS.z > 0.49)

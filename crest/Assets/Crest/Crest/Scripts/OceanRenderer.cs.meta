@@ -13,7 +13,7 @@ MonoImporter:
   - _simSettingsFlow: {instanceID: 0}
   - _primaryLight: {instanceID: 0}
   - _simSettingsShadow: {instanceID: 0}
-  executionOrder: -100
+  executionOrder: 200
   icon: {instanceID: 0}
   userData: 
   assetBundleName: 

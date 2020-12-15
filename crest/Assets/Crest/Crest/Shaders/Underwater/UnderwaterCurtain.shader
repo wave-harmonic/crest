@@ -37,14 +37,18 @@ Shader "Crest/Underwater Curtain"
 			#pragma vertex Vert
 			#pragma fragment Frag
 
+			#pragma multi_compile_instancing
+
 			#pragma multi_compile _ VERTEXLIGHT_ON
 
-			#pragma shader_feature _SUBSURFACESCATTERING_ON
-			#pragma shader_feature _SUBSURFACESHALLOWCOLOUR_ON
-			#pragma shader_feature _TRANSPARENCY_ON
-			#pragma shader_feature _CAUSTICS_ON
-			#pragma shader_feature _SHADOWS_ON
-			#pragma shader_feature _COMPILESHADERWITHDEBUGINFO_ON
+			// Use multi_compile because these keywords are copied over from the ocean material. With shader_feature,
+			// the keywords would be stripped from builds. Unused shader variants are stripped using a build processor.
+			#pragma multi_compile_local __ _SUBSURFACESCATTERING_ON
+			#pragma multi_compile_local __ _SUBSURFACESHALLOWCOLOUR_ON
+			#pragma multi_compile_local __ _TRANSPARENCY_ON
+			#pragma multi_compile_local __ _CAUSTICS_ON
+			#pragma multi_compile_local __ _SHADOWS_ON
+			#pragma multi_compile_local __ _COMPILESHADERWITHDEBUGINFO_ON
 
 			#if _COMPILESHADERWITHDEBUGINFO_ON
 			#pragma enable_d3d11_debug_symbols
@@ -52,21 +56,20 @@ Shader "Crest/Underwater Curtain"
 
 			#include "UnityCG.cginc"
 			#include "Lighting.cginc"
-			#include "../OceanLODData.hlsl"
+
+			#include "../OceanGlobals.hlsl"
+			#include "../OceanInputsDriven.hlsl"
+			#include "../OceanHelpersNew.hlsl"
 			#include "UnderwaterShared.hlsl"
 
-			float _CrestTime;
 			float _HeightOffset;
-
-			// MeshScaleLerp, FarNormalsWeight, LODIndex (debug)
-			float3 _InstanceData;
+			UNITY_DECLARE_SCREENSPACE_TEXTURE(_CameraDepthTexture);
 
 			#include "../OceanEmission.hlsl"
 			#include "../OceanLightingHelpers.hlsl"
 
 			#define MAX_OFFSET 5.0
 
-			sampler2D _CameraDepthTexture;
 			sampler2D _Normals;
 
 #if defined(VERTEXLIGHT_ON)
@@ -77,6 +80,8 @@ Shader "Crest/Underwater Curtain"
 			{
 				float3 positionOS : POSITION;
 				float2 uv : TEXCOORD0;
+
+				UNITY_VERTEX_INPUT_INSTANCE_ID
 			};
 
 			struct Varyings
@@ -89,11 +94,17 @@ Shader "Crest/Underwater Curtain"
 #if defined(VERTEXLIGHT_ON)
 				half4 uvLightsAtten : TEXCOORD10;
 #endif // VERTEXLIGHT_ON
+
+				UNITY_VERTEX_OUTPUT_STEREO
 			};
 
 			Varyings Vert(Attributes input)
 			{
 				Varyings o;
+
+				UNITY_SETUP_INSTANCE_ID(input);
+				UNITY_INITIALIZE_OUTPUT(Varyings, o);
+				UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
 
 				// Goal of this vert shader is to place a sheet of triangles in front of the camera. The geometry has
 				// two rows of verts, the top row and the bottom row (top and bottom are view relative). The bottom row
@@ -128,7 +139,7 @@ Shader "Crest/Underwater Curtain"
 					if (abs(forward.y) < CREST_MAX_UPDOWN_AMOUNT)
 					{
 						// move vert in the up direction, but only to an extent, otherwise numerical issues can cause weirdness
-						o.positionWS += min(IntersectRayWithWaterSurface(o.positionWS, up), MAX_OFFSET) * up;
+						o.positionWS += min(IntersectRayWithWaterSurface(o.positionWS, up, _CrestCascadeData[_LD_SliceIndex]), MAX_OFFSET) * up;
 
 						// Move the geometry towards the horizon. As noted above, the skirt will be stomped by the ocean
 						// surface render. If we project a bit towards the horizon to make a bit of overlap then we can reduce
@@ -185,13 +196,19 @@ Shader "Crest/Underwater Curtain"
 
 			half4 Frag(Varyings input) : SV_Target
 			{
+				// We need this when sampling a screenspace texture.
+				UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+
 				const half3 view = normalize(_WorldSpaceCameraPos - input.positionWS);
 
 				const float pixelZ = LinearEyeDepth(input.positionCS.z);
 				const half3 screenPos = input.foam_screenPos.yzw;
 				const half2 uvDepth = screenPos.xy / screenPos.z;
-				const float sceneZ01 = tex2D(_CameraDepthTexture, uvDepth).x;
+				const float sceneZ01 = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CameraDepthTexture, uvDepth).x;
 				const float sceneZ = LinearEyeDepth(sceneZ01);
+
+				const CascadeParams cascadeData0 = _CrestCascadeData[_LD_SliceIndex];
+				const CascadeParams cascadeData1 = _CrestCascadeData[_LD_SliceIndex + 1];
 
 				const float3 lightDir = _WorldSpaceLightPos0.xyz;
 				const half3 n_pixel = 0.0;
@@ -199,7 +216,7 @@ Shader "Crest/Underwater Curtain"
 
 				float3 dummy = 0.0;
 				half sss = 0.;
-				const float3 uv_slice = WorldToUV(_WorldSpaceCameraPos.xz);
+				const float3 uv_slice = WorldToUV(_WorldSpaceCameraPos.xz, cascadeData0, _LD_SliceIndex);
 				SampleDisplacements(_LD_TexArray_AnimatedWaves, uv_slice, 1.0, dummy, sss);
 
 				// depth and shadow are computed in ScatterColour when underwater==true, using the LOD1 texture.
@@ -215,14 +232,16 @@ Shader "Crest/Underwater Curtain"
 				lightsCol *= 0.5;
 #endif // VERTEXLIGHT_ON
 
-				const half3 scatterCol = ScatterColour(depth, _WorldSpaceCameraPos, lightDir, view, shadow, true, true, sss, lightsCol);
+				const float meshScaleLerp = _CrestPerCascadeInstanceData[_LD_SliceIndex]._meshScaleLerp;
+				const float baseCascadeScale = _CrestCascadeData[0]._scale;
+				const half3 scatterCol = ScatterColour(depth, _WorldSpaceCameraPos, lightDir, view, shadow, true, true, sss, lightsCol, meshScaleLerp, baseCascadeScale, cascadeData0);
 
-				half3 sceneColour = tex2D(_BackgroundTexture, input.grabPos.xy / input.grabPos.w).rgb;
+				half3 sceneColour = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_BackgroundTexture, input.grabPos.xy / input.grabPos.w).rgb;
 
 #if _CAUSTICS_ON
 				if (sceneZ01 != 0.0)
 				{
-					ApplyCaustics(view, lightDir, sceneZ, _Normals, true, sceneColour);
+					ApplyCaustics(view, lightDir, sceneZ, _Normals, true, sceneColour, cascadeData0, cascadeData1);
 				}
 #endif // _CAUSTICS_ON
 

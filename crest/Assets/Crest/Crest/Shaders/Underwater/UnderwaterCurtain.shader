@@ -228,8 +228,8 @@ Shader "Crest/Underwater Curtain"
 				// Calculate vertex lights colour
 #if defined(VERTEXLIGHT_ON)
 				lightsCol = CalculateVertexLightsColor(input.uvLightsAtten, input.positionWS, _LightTextureB0);
-				// Decrease intensity so it isn't overwhelming
-				lightsCol *= 0.5;
+				// Apply depth fog to light colour. Otherwise, there will light patches visible from far away.
+				lightsCol *= exp(-_DepthFogDensity.xyz * sceneZ);
 #endif // VERTEXLIGHT_ON
 
 				const float meshScaleLerp = _CrestPerCascadeInstanceData[_LD_SliceIndex]._meshScaleLerp;

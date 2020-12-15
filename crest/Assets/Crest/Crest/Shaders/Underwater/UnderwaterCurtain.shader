@@ -223,7 +223,7 @@ Shader "Crest/Underwater Curtain"
 				const float depth = 0.0;
 				const half shadow = 1.0;
 
-				half3 lightsCol = 0;
+				half3 lightsCol = 0.0;
 
 				// Calculate vertex lights colour
 #if defined(VERTEXLIGHT_ON)

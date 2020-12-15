@@ -522,7 +522,7 @@ Shader "Crest/Ocean"
 				float sceneZ = LinearEyeDepth(sceneZ01);
 
 				float3 lightDir = WorldSpaceLightDir(input.worldPos);
-				half3 lightsCol = 0;
+				half3 lightsCol = 0.0;
 
 				// Calculate
 				#if defined(VERTEXLIGHT_ON)

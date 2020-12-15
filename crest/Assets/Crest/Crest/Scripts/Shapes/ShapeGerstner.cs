@@ -28,17 +28,18 @@ namespace Crest
         public class GerstnerBatch : ILodDataInput
         {
             RenderTexture _waveBuffer;
+            Material _material;
 
-            public GerstnerBatch(float wavelength, RenderTexture waveBuffer)
+            public GerstnerBatch(float wavelength, RenderTexture waveBuffer, int waveBufferSliceIndex)
             {
                 Wavelength = wavelength;
+
                 _waveBuffer = waveBuffer;
 
-                //_materials = new PropertyWrapperMaterial[]
-                //{
-                //    new PropertyWrapperMaterial(new Material(rend.sharedMaterial ?? rend.material)),
-                //    new PropertyWrapperMaterial(new Material(rend.sharedMaterial ?? rend.material))
-                //};
+                var combineShader = Shader.Find("Hidden/Crest/Inputs/Animated Waves/Gerstner Global");
+                _material = new Material(combineShader);
+                _material.SetTexture("_WaveBuffer", waveBuffer);
+                _material.SetInt("_WaveBufferSliceIndex", waveBufferSliceIndex);
             }
 
             //public PropertyWrapperMaterial GetMaterial(int isTransition) => _materials[isTransition];
@@ -56,6 +57,9 @@ namespace Crest
             {
                 if (weight > 0f)
                 {
+                    buf.DrawProcedural(Matrix4x4.identity, _material, 0, MeshTopology.Triangles, 3);
+                    Debug.Log($"{Time.frameCount}: Drawing {lodIdx}");
+
                     //PropertyWrapperMaterial mat = GetMaterial(isTransition);
                     //mat.SetFloat(RegisterLodDataInputBase.sp_Weight, weight);
 
@@ -190,13 +194,17 @@ namespace Crest
             if (_firstUpdate)
             {
                 InitData();
+            }
 
+            bool doEveryFrame = true;
+            if (_firstUpdate || doEveryFrame)
+            {
                 UpdateWaveData();
 
                 InitBatches();
-
-                _firstUpdate = false;
             }
+
+            _firstUpdate = false;
 
             ReportMaxDisplacement();
 
@@ -443,7 +451,7 @@ namespace Crest
             for (int i = _firstCascade; i <= _lastCascade; i++)
             {
                 if (i == -1) break;
-                _batches[i] = new GerstnerBatch(MinWavelength(i), _waveBuffers);
+                _batches[i] = new GerstnerBatch(MinWavelength(i), _waveBuffers, i);
                 registered.Add(0, _batches[i]);
             }
         }

@@ -232,6 +232,48 @@ namespace Crest
             offset++;
         }
 
+        public static void DrawGerstner(ShapeGerstner gerstner)
+        {
+            int offset = 7;
+
+            float togglesBegin = Screen.height - _bottomPanelHeight;
+            float b = 7f;
+            float h = togglesBegin / (float)gerstner._waveBuffers.volumeDepth;
+            float w = h + b;
+            float x = Screen.width - w * offset + b * (offset - 1f);
+
+            //if (doDraw)
+            {
+                GUI.color = _guiColor;
+                GUI.DrawTexture(new Rect(x, 0, offset == 1f ? w : w - b, Screen.height - _bottomPanelHeight), Texture2D.whiteTexture);
+                GUI.color = Color.white;
+
+                // Only use Graphics.DrawTexture in EventType.Repaint events if called in OnGUI
+                if (Event.current.type.Equals(EventType.Repaint))
+                {
+                    for (int idx = 0; idx < gerstner._waveBuffers.volumeDepth; idx++)
+                    {
+                        float y = idx * h;
+                        if (offset == 1f) w += b;
+
+                        if (s_textureArrayMaterial == null)
+                        {
+                            s_textureArrayMaterial = new Material(Shader.Find("Hidden/Crest/Debug/TextureArray"));
+                        }
+
+                        // Render specific slice of 2D texture array
+                        s_textureArrayMaterial.SetInt("_Depth", idx);
+                        Graphics.DrawTexture(new Rect(x + b, y + b / 2f, h - b, h - b), gerstner._waveBuffers, s_textureArrayMaterial);
+                    }
+                }
+            }
+
+
+            //doDraw = GUI.Toggle(new Rect(x + b, togglesBegin, w - 2f * b, _bottomPanelHeight), doDraw, s_simNames[type]);
+
+            //offset++;
+        }
+
         void ToggleGUI()
         {
             _guiVisible = !_guiVisible;

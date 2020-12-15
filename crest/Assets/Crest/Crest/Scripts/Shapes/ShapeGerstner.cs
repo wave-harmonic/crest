@@ -58,7 +58,7 @@ namespace Crest
                 if (weight > 0f)
                 {
                     buf.DrawProcedural(Matrix4x4.identity, _material, 0, MeshTopology.Triangles, 3);
-                    Debug.Log($"{Time.frameCount}: Drawing {lodIdx}");
+                    //Debug.Log($"{Time.frameCount}: Drawing {lodIdx}");
 
                     //PropertyWrapperMaterial mat = GetMaterial(isTransition);
                     //mat.SetFloat(RegisterLodDataInputBase.sp_Weight, weight);
@@ -92,7 +92,7 @@ namespace Crest
         public float[] _phases;
 
         public int _resolution = 32;
-        RenderTexture _waveBuffers;
+        public RenderTexture _waveBuffers;
 
         struct GerstnerCascadeParams
         {
@@ -482,16 +482,9 @@ namespace Crest
         }
 #endif
 
-        float ComputeWaveSpeed(float wavelength/*, float depth*/)
+        void OnGUI()
         {
-            // wave speed of deep sea ocean waves: https://en.wikipedia.org/wiki/Wind_wave
-            // https://en.wikipedia.org/wiki/Dispersion_(water_waves)#Wave_propagation_and_dispersion
-            float g = 9.81f;
-            float k = 2f * Mathf.PI / wavelength;
-            //float h = max(depth, 0.01);
-            //float cp = sqrt(abs(tanh_clamped(h * k)) * g / k);
-            float cp = Mathf.Sqrt(g / k);
-            return cp;
+            OceanDebugGUI.DrawGerstner(this);
         }
     }
 

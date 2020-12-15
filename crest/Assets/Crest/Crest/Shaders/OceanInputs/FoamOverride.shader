@@ -30,6 +30,10 @@ Shader "Crest/Inputs/Foam/Override Foam"
 
 			half _FoamValue;
 
+			CBUFFER_START(CrestPerOceanInput)
+			float3 _DisplacementAtInputPosition;
+			CBUFFER_END
+
 			struct Attributes
 			{
 				float3 positionOS : POSITION;
@@ -43,7 +47,12 @@ Shader "Crest/Inputs/Foam/Override Foam"
 			Varyings Vert(Attributes input)
 			{
 				Varyings o;
-				o.positionCS = UnityObjectToClipPos(input.positionOS);
+
+				float3 worldPos = mul(unity_ObjectToWorld, float4(input.positionOS, 1.0)).xyz;
+				// Correct for displacement.
+				worldPos.xz -= _DisplacementAtInputPosition.xz;
+
+				o.positionCS = mul(UNITY_MATRIX_VP, float4(worldPos, 1.0));
 				return o;
 			}
 

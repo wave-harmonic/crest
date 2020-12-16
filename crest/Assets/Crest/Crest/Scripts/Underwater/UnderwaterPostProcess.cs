@@ -29,6 +29,9 @@ namespace Crest
         [SerializeField, Tooltip(UnderwaterPostProcessUtils.tooltipFilterOceanData), Range(UnderwaterPostProcessUtils.MinFilterOceanDataValue, UnderwaterPostProcessUtils.MaxFilterOceanDataValue)]
         public int _filterOceanData = UnderwaterPostProcessUtils.DefaultFilterOceanDataValue;
 
+        [SerializeField, Tooltip(tooltipMeniscus)]
+        bool _meniscus = true;
+
         [Header("Debug Options")]
         [SerializeField] bool _viewPostProcessMask = false;
         [SerializeField] bool _disableOceanMask = false;
@@ -222,6 +225,7 @@ namespace Crest
                 _mainCamera,
                 _underwaterPostProcessMaterialWrapper,
                 _sphericalHarmonicsData,
+                _meniscus,
                 _firstRender || _copyOceanMaterialParamsEachFrame,
                 _viewPostProcessMask,
                 _horizonSafetyMarginMultiplier,

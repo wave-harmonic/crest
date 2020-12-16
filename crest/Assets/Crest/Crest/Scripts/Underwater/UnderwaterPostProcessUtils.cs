@@ -27,6 +27,7 @@ namespace Crest
 
         internal const string tooltipHorizonSafetyMarginMultiplier = "A safety margin multiplier to adjust horizon line based on camera position to avoid minor artifacts caused by floating point precision issues, the default value has been chosen based on careful experimentation.";
         internal const string tooltipFilterOceanData = "How much to smooth ocean data such as water depth, light scattering, shadowing. Helps to smooth flickering that can occur under camera motion.";
+        internal const string tooltipMeniscus = "Add a meniscus to the boundary between water and air.";
 
         // A magic number found after a small-amount of iteration that is used to deal with horizon-line floating-point
         // issues. It allows us to give it a small *nudge* in the right direction based on whether the camera is above
@@ -121,6 +122,7 @@ namespace Crest
             Camera camera,
             PropertyWrapperMaterial underwaterPostProcessMaterialWrapper,
             UnderwaterSphericalHarmonicsData sphericalHarmonicsData,
+            bool isMeniscusEnabled,
             bool copyParamsFromOceanMaterial,
             bool debugViewPostProcessMask,
             float horizonSafetyMarginMultiplier,
@@ -132,6 +134,16 @@ namespace Crest
             {
                 // Measured this at approx 0.05ms on dell laptop
                 underwaterPostProcessMaterial.CopyPropertiesFromMaterial(OceanRenderer.Instance.OceanMaterial);
+            }
+
+            // Enable/Disable meniscus.
+            if (isMeniscusEnabled)
+            {
+                underwaterPostProcessMaterial.EnableKeyword("CREST_MENISCUS");
+            }
+            else
+            {
+                underwaterPostProcessMaterial.DisableKeyword("CREST_MENISCUS");
             }
 
             // Enabling/disabling keywords each frame don't seem to have large measurable overhead

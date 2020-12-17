@@ -240,7 +240,7 @@ namespace Crest
             for (; componentIdx < _wavelengths.Length; componentIdx++)
             {
                 // Skip small waves
-                while (componentIdx < _wavelengths.Length && _amplitudes[componentIdx] < 0.01f)
+                while (componentIdx < _wavelengths.Length && _amplitudes[componentIdx] < 0.001f)
                 {
                     componentIdx++;
                 }

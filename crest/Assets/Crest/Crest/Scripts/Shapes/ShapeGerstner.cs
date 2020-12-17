@@ -29,13 +29,11 @@ namespace Crest
         {
             Material _material;
 
-            public GerstnerBatch(float wavelength, RenderTexture waveBuffer, int waveBufferSliceIndex)
+            public GerstnerBatch(float wavelength, RenderTexture waveBuffer, int waveBufferSliceIndex, Shader oceanInputShader)
             {
                 Wavelength = wavelength;
 
-                var combineShader = Shader.Find("Hidden/Crest/Inputs/Animated Waves/Gerstner Global");
-                _material = new Material(combineShader);
-
+                _material = new Material(oceanInputShader);
                 _material.SetTexture("_WaveBuffer", waveBuffer);
                 _material.SetInt("_WaveBufferSliceIndex", waveBufferSliceIndex);
             }
@@ -49,15 +47,9 @@ namespace Crest
             {
                 if (weight > 0f)
                 {
-                    //Debug.Log($"{Time.frameCount}: Drawing {lodIdx}");
-
-                    //PropertyWrapperMaterial mat = GetMaterial(isTransition);
-                    //mat.SetFloat(RegisterLodDataInputBase.sp_Weight, weight);
                     buf.SetGlobalInt("_LD_SliceIndex", lodIdx);
                     buf.SetGlobalFloat(RegisterLodDataInputBase.sp_Weight, weight);
 
-                    // TODO draw full screen quad?
-                    //buf.DrawRenderer(_rend, mat.material);
                     buf.DrawProcedural(Matrix4x4.identity, _material, 0, MeshTopology.Triangles, 3);
                 }
             }
@@ -442,12 +434,14 @@ namespace Crest
             }
 //#endif
 
+            var oceanInputShader = Shader.Find("Hidden/Crest/Inputs/Animated Waves/Gerstner Global");
+
             // Submit draws to create the Gerstner waves
             _batches = new GerstnerBatch[LodDataMgr.MAX_LOD_COUNT];
             for (int i = _firstCascade; i <= _lastCascade; i++)
             {
                 if (i == -1) break;
-                _batches[i] = new GerstnerBatch(MinWavelength(i), _waveBuffers, i);
+                _batches[i] = new GerstnerBatch(MinWavelength(i), _waveBuffers, i, oceanInputShader);
                 registered.Add(0, _batches[i]);
             }
         }

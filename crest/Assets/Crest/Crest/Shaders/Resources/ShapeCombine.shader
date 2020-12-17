@@ -66,7 +66,6 @@ Shader "Hidden/Crest/Simulation/Combine Animated Wave LODs"
 			half4 Frag(Varyings input) : SV_Target
 			{
 				float3 uv_thisLod = float3(input.uv, _LD_SliceIndex);
-				
 				const CascadeParams cascadeData0 = _CrestCascadeData[_LD_SliceIndex];
 				const CascadeParams cascadeData1 = _CrestCascadeData[_LD_SliceIndex + 1];
 
@@ -91,7 +90,7 @@ Shader "Hidden/Crest/Simulation/Combine Animated Wave LODs"
 				SampleDisplacements(_LD_TexArray_WaveBuffer, uv_thisLod_flow_0, weights[0], result, sss);
 				SampleDisplacements(_LD_TexArray_WaveBuffer, uv_thisLod_flow_1, weights[1], result, sss);
 #else
-				float4 data = _LD_TexArray_WaveBuffer.SampleLevel(LODData_linear_clamp_sampler, float3(fmod(uv_thisLod.xy, 1.0/4.0), uv_thisLod.z), 0.0);
+				float4 data = _LD_TexArray_WaveBuffer.SampleLevel(LODData_linear_clamp_sampler, uv_thisLod, 0.0);
 				result += data.xyz;
 				sss = data.w;
 #endif // CREST_FLOW_ON_INTERNAL

@@ -29,7 +29,11 @@ Shader "Hidden/Crest/Inputs/Animated Waves/Gerstner Global"
 			#include "../../FullScreenTriangle.hlsl"
 
 			Texture2DArray _WaveBuffer;
+
+			CBUFFER_START(CrestPerOceanInput)
 			int _WaveBufferSliceIndex;
+			float _Weight;
+			CBUFFER_END
 
 			struct Attributes
 			{
@@ -39,7 +43,7 @@ Shader "Hidden/Crest/Inputs/Animated Waves/Gerstner Global"
 			struct Varyings
 			{
 				float4 positionCS : SV_POSITION;
-				float2 uv : TEXCOORD1;
+				float2 uv : TEXCOORD0;
 			};
 
 			Varyings Vert(Attributes input)
@@ -57,7 +61,7 @@ Shader "Hidden/Crest/Inputs/Animated Waves/Gerstner Global"
 			
 			half4 Frag( Varyings input ) : SV_Target
 			{
-				return _WaveBuffer.SampleLevel( sampler_Crest_linear_repeat, float3(input.uv, _WaveBufferSliceIndex), 0 );
+				return _Weight * _WaveBuffer.SampleLevel( sampler_Crest_linear_repeat, float3(input.uv, _WaveBufferSliceIndex), 0 );
 			}
 			ENDCG
 		}

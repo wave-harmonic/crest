@@ -49,14 +49,16 @@ namespace Crest
             {
                 if (weight > 0f)
                 {
-                    buf.DrawProcedural(Matrix4x4.identity, _material, 0, MeshTopology.Triangles, 3);
                     //Debug.Log($"{Time.frameCount}: Drawing {lodIdx}");
 
                     //PropertyWrapperMaterial mat = GetMaterial(isTransition);
                     //mat.SetFloat(RegisterLodDataInputBase.sp_Weight, weight);
+                    buf.SetGlobalInt("_LD_SliceIndex", lodIdx);
+                    buf.SetGlobalFloat(RegisterLodDataInputBase.sp_Weight, weight);
 
                     // TODO draw full screen quad?
                     //buf.DrawRenderer(_rend, mat.material);
+                    buf.DrawProcedural(Matrix4x4.identity, _material, 0, MeshTopology.Triangles, 3);
                 }
             }
         }

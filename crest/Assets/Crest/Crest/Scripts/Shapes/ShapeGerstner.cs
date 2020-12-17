@@ -123,6 +123,7 @@ namespace Crest
 
         CommandBuffer _buf;
 
+        readonly int sp_FirstCascadeIndex = Shader.PropertyToID("_FirstCascadeIndex");
         readonly int sp_TextureRes = Shader.PropertyToID("_TextureRes");
         readonly int sp_AttenuationInShallows = Shader.PropertyToID("_AttenuationInShallows");
         readonly int sp_CascadeParams = Shader.PropertyToID("_GerstnerCascadeParams");
@@ -214,6 +215,7 @@ namespace Crest
 
                 _buf.SetComputeFloatParam(_shaderGerstner, sp_TextureRes, _waveBuffers.width);
                 _buf.SetComputeFloatParam(_shaderGerstner, OceanRenderer.sp_crestTime, OceanRenderer.Instance.CurrentTime);
+                _buf.SetComputeIntParam(_shaderGerstner, sp_FirstCascadeIndex, _firstCascade);
                 _buf.SetComputeBufferParam(_shaderGerstner, _krnlGerstner, sp_CascadeParams, _bufCascadeParams);
                 _buf.SetComputeBufferParam(_shaderGerstner, _krnlGerstner, sp_GerstnerWaveData, _bufWaveData);
                 _buf.SetComputeTextureParam(_shaderGerstner, _krnlGerstner, sp_WaveBuffer, _waveBuffers);

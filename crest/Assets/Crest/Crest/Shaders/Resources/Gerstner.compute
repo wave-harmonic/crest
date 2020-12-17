@@ -84,7 +84,7 @@ void ComputeGerstner( float2 worldPosXZ, float worldSize, GerstnerWaveComponent4
 void Gerstner(uint3 id : SV_DispatchThreadID)
 {
 	const uint cascadeIndex = id.z + _FirstCascadeIndex;
-	const float worldSize = (float)(1 << cascadeIndex);
+	const float worldSize = 0.5f * (1 << cascadeIndex);
 
 	// Each cascade lies on XZ plane and starts from the origin
 	const float texelWidth = worldSize / _TextureRes;

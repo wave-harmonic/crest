@@ -52,7 +52,7 @@ Shader "Hidden/Crest/Inputs/Animated Waves/Gerstner Global"
 
 				float2 worldPosXZ = UVToWorld( GetFullScreenTriangleTexCoord( input.VertexID ), _LD_SliceIndex, _CrestCascadeData[_LD_SliceIndex] );
 
-				float scale = (float)(1 << _WaveBufferSliceIndex);
+				float scale = 0.5f * (1 << _WaveBufferSliceIndex);
 				o.uv = worldPosXZ / scale;
 
 				return o;

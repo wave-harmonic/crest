@@ -27,26 +27,18 @@ namespace Crest
 
         public class GerstnerBatch : ILodDataInput
         {
-            RenderTexture _waveBuffer;
             Material _material;
 
             public GerstnerBatch(float wavelength, RenderTexture waveBuffer, int waveBufferSliceIndex)
             {
                 Wavelength = wavelength;
 
-                _waveBuffer = waveBuffer;
-
                 var combineShader = Shader.Find("Hidden/Crest/Inputs/Animated Waves/Gerstner Global");
                 _material = new Material(combineShader);
+
                 _material.SetTexture("_WaveBuffer", waveBuffer);
                 _material.SetInt("_WaveBufferSliceIndex", waveBufferSliceIndex);
             }
-
-            //public PropertyWrapperMaterial GetMaterial(int isTransition) => _materials[isTransition];
-
-            // Two materials because as batch may be rendered twice if it has large wavelengths that are being transitioned back
-            // and forth across the last 2 LODs.
-            //PropertyWrapperMaterial[] _materials;
 
             // The ocean input system uses this to decide which lod this batch belongs in
             public float Wavelength { get; private set; }

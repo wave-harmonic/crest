@@ -79,7 +79,9 @@ namespace Crest
         //[PredicatedField("_evaluateSpectrumAtRuntime", true)]
         public float[] _phases;
 
+        [Delayed]
         public int _resolution = 32;
+        [HideInInspector]
         public RenderTexture _waveBuffers;
 
         struct GerstnerCascadeParams
@@ -180,7 +182,7 @@ namespace Crest
 
         void Update()
         {
-            if (_firstUpdate)
+            if (_firstUpdate || _resolution != _waveBuffers.width)
             {
                 InitData();
             }

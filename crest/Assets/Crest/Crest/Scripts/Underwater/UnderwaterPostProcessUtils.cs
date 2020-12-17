@@ -124,7 +124,8 @@ namespace Crest
             bool copyParamsFromOceanMaterial,
             bool debugViewPostProcessMask,
             float horizonSafetyMarginMultiplier,
-            int dataSliceOffset
+            int dataSliceOffset,
+            bool _testMaskSearch
         )
         {
             Material underwaterPostProcessMaterial = underwaterPostProcessMaterialWrapper.material;
@@ -132,6 +133,15 @@ namespace Crest
             {
                 // Measured this at approx 0.05ms on dell laptop
                 underwaterPostProcessMaterial.CopyPropertiesFromMaterial(OceanRenderer.Instance.OceanMaterial);
+
+                if (_testMaskSearch)
+                {
+                    underwaterPostProcessMaterial.EnableKeyword("_TEST");
+                }
+                else
+                {
+                    underwaterPostProcessMaterial.DisableKeyword("_TEST");
+                }
             }
 
             // Enabling/disabling keywords each frame don't seem to have large measurable overhead

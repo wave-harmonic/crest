@@ -42,6 +42,8 @@ namespace Crest
         private CommandBuffer _maskCommandBuffer;
         private CommandBuffer _postProcessCommandBuffer;
 
+        public bool _testMaskSearch = false;
+
         private Plane[] _cameraFrustumPlanes;
 
         private Material _oceanMaskMaterial = null;
@@ -108,7 +110,7 @@ namespace Crest
                 }
             }
 
-            return success;
+            return true;
         }
 
         void Start()
@@ -225,7 +227,8 @@ namespace Crest
                 _firstRender || _copyOceanMaterialParamsEachFrame,
                 _viewPostProcessMask,
                 _horizonSafetyMarginMultiplier,
-                _filterOceanData
+                _filterOceanData,
+                _testMaskSearch
             );
 
             _postProcessCommandBuffer.Blit(source, target, _underwaterPostProcessMaterial);

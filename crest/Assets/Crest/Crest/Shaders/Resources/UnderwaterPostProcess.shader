@@ -33,6 +33,7 @@ Shader "Crest/Underwater/Post Process"
 			#pragma multi_compile_local __ _COMPILESHADERWITHDEBUGINFO_ON
 
 			#pragma shader_feature_local _MENISCUS_ON
+			#pragma shader_feature_local _TEST
 
 			#pragma multi_compile_local __ _FULL_SCREEN_EFFECT
 			#pragma multi_compile_local __ _DEBUG_VIEW_OCEAN_MASK
@@ -166,8 +167,16 @@ Shader "Crest/Underwater/Post Process"
 
 				float mask = tex2D(_CrestOceanMaskTexture, uvScreenSpace).x;
 				const float oceanDepth01 = tex2D(_CrestOceanMaskDepthTexture, uvScreenSpace);
+
+				bool isUnderwater2 = tex2D(_CrestOceanMaskTexture, uvScreenSpace + float2(0.0, 1.0) / _ScreenParams.y).x == UNDERWATER_MASK_WATER_SURFACE_BELOW;
+
 				bool isOceanSurface = mask != UNDERWATER_MASK_NO_MASK && (sceneZ01 < oceanDepth01);
-				bool isUnderwater = mask == UNDERWATER_MASK_WATER_SURFACE_BELOW || (isBelowHorizon && mask != UNDERWATER_MASK_WATER_SURFACE_ABOVE);
+				bool isUnderwater = mask == UNDERWATER_MASK_WATER_SURFACE_BELOW ||
+#if _TEST
+					isUnderwater2 ||
+#endif
+					(isBelowHorizon && mask != UNDERWATER_MASK_WATER_SURFACE_ABOVE);
+
 				sceneZ01 = isOceanSurface ? oceanDepth01 : sceneZ01;
 
 				float wt = 1.0;

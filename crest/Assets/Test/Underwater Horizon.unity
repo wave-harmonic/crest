@@ -242,7 +242,7 @@ MonoBehaviour:
   _requireLMBToMove: 0
   _fixedDt: 0.016666668
   _debug:
-    disableCameraRollPrevention: 0
+    disableCameraRollPrevention: 1
     disableOcclusionMesh: 0
     occlusionMeshScale: 1
 --- !u!114 &727014904
@@ -332,6 +332,7 @@ MonoBehaviour:
   _viewPostProcessMask: 0
   _disableOceanMask: 0
   _horizonSafetyMarginMultiplier: 0
+  _testMaskSearch: 0
 --- !u!114 &727014908
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -390,7 +391,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _mode: 0
-  _spectrum: {fileID: 11400000, guid: 84781695775274d3f856a1d5a6dff51a, type: 2}
+  _spectrum: {fileID: 0}
   _windDirectionAngle: 0
   _componentsPerOctave: 8
   _weight: 1
@@ -920,7 +921,7 @@ MonoBehaviour:
   _requireLMBToMove: 0
   _fixedDt: 0.016666668
   _debug:
-    disableCameraRollPrevention: 0
+    disableCameraRollPrevention: 1
     disableOcclusionMesh: 0
     occlusionMeshScale: 1
 --- !u!114 &1408333196
@@ -1010,6 +1011,7 @@ MonoBehaviour:
   _viewPostProcessMask: 0
   _disableOceanMask: 0
   _horizonSafetyMarginMultiplier: 1
+  _testMaskSearch: 0
 --- !u!114 &1408333200
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1093,7 +1095,7 @@ MonoBehaviour:
   _requireLMBToMove: 0
   _fixedDt: 0.016666668
   _debug:
-    disableCameraRollPrevention: 0
+    disableCameraRollPrevention: 1
     disableOcclusionMesh: 0
     occlusionMeshScale: 1
 --- !u!114 &1541917532
@@ -1183,6 +1185,7 @@ MonoBehaviour:
   _viewPostProcessMask: 0
   _disableOceanMask: 0
   _horizonSafetyMarginMultiplier: 1
+  _testMaskSearch: 0
 --- !u!114 &1541917536
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1379,7 +1382,7 @@ MonoBehaviour:
   _requireLMBToMove: 0
   _fixedDt: 0.016666668
   _debug:
-    disableCameraRollPrevention: 0
+    disableCameraRollPrevention: 1
     disableOcclusionMesh: 0
     occlusionMeshScale: 1
 --- !u!114 &1992433126
@@ -1469,6 +1472,7 @@ MonoBehaviour:
   _viewPostProcessMask: 0
   _disableOceanMask: 0
   _horizonSafetyMarginMultiplier: 0
+  _testMaskSearch: 0
 --- !u!114 &1992433130
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1605,7 +1609,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _mode: 0
-  _spectrum: {fileID: 11400000, guid: 84781695775274d3f856a1d5a6dff51a, type: 2}
+  _spectrum: {fileID: 0}
   _windDirectionAngle: 0
   _componentsPerOctave: 8
   _weight: 1

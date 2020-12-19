@@ -36,6 +36,7 @@ namespace Crest
                 _material = new Material(oceanInputShader);
                 _material.SetTexture("_WaveBuffer", waveBuffer);
                 _material.SetInt("_WaveBufferSliceIndex", waveBufferSliceIndex);
+                _material.SetFloat("_AverageWavelength", wavelength * 1.5f);
             }
 
             // The ocean input system uses this to decide which lod this batch belongs in
@@ -47,7 +48,7 @@ namespace Crest
             {
                 if (weight > 0f)
                 {
-                    buf.SetGlobalInt("_LD_SliceIndex", lodIdx);
+                    buf.SetGlobalInt(LodDataMgr.sp_LD_SliceIndex, lodIdx);
                     buf.SetGlobalFloat(RegisterLodDataInputBase.sp_Weight, weight);
 
                     buf.DrawProcedural(Matrix4x4.identity, _material, 0, MeshTopology.Triangles, 3);

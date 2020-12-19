@@ -23,7 +23,6 @@
 
 float _HorizDisplace;
 float _DisplaceClamp;
-float _AttenuationInShallows;
 
 RWTexture2DArray<half4> _LD_TexArray_AnimatedWaves_Compute;
 
@@ -94,11 +93,6 @@ void ShapeCombineBase(uint3 id)
 
 	float3 uv_thisLod = float3(input_uv, _LD_SliceIndex);
 
-	const half averageWavelength = _TexelsPerWave * 1.5 * cascadeData0._texelWidth;
-	const half depth = _LD_TexArray_SeaFloorDepth.SampleLevel(LODData_linear_clamp_sampler, uv_thisLod, 0.0).x;
-	half depth_wt = saturate(2.0 * depth / averageWavelength);
-	depth_wt = _AttenuationInShallows * depth_wt + (1.0 - _AttenuationInShallows);
-	
 	float3 result = 0.0;
 	half sss = 0.;
 	// Sample in waves for this cascade
@@ -108,14 +102,13 @@ void ShapeCombineBase(uint3 id)
 
 	float2 offsets, weights;
 	Flow(cascadeData0, offsets, weights);
-	weights *= depth_wt;
 
 	const float3 uv_thisLod_flow_0 = WorldToUV(worldPosXZ - offsets[0] * flow, cascadeData0, _LD_SliceIndex);
 	const float3 uv_thisLod_flow_1 = WorldToUV(worldPosXZ - offsets[1] * flow, cascadeData0, _LD_SliceIndex);
 	SampleDisplacements(_LD_TexArray_WaveBuffer, uv_thisLod_flow_0, weights[0], result, sss);
 	SampleDisplacements(_LD_TexArray_WaveBuffer, uv_thisLod_flow_1, weights[1], result, sss);
 #else
-	SampleDisplacements(_LD_TexArray_WaveBuffer, uv_thisLod, depth_wt, result, sss);
+	SampleDisplacements(_LD_TexArray_WaveBuffer, uv_thisLod, 1.0, result, sss);
 #endif // _FLOW_ON
 
 #if !_DISABLE_COMBINE

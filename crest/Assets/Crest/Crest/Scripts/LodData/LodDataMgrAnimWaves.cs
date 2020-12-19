@@ -207,6 +207,8 @@ namespace Crest
         {
             base.BuildCommandBuffer(ocean, buf);
 
+            Shader.SetGlobalFloat(sp_AttenuationInShallows, Settings.AttenuationInShallows);
+
             var lodCount = OceanRenderer.Instance.CurrentLodCount;
 
             // Validation
@@ -282,7 +284,6 @@ namespace Crest
                 LodDataMgrFlow.Bind((_combineMaterial[lodIdx]));
 
                 _combineMaterial[lodIdx].SetInt(sp_LD_SliceIndex, lodIdx);
-                _combineMaterial[lodIdx].SetFloat(sp_AttenuationInShallows, Settings.AttenuationInShallows);
 
                 _combineMaterial[lodIdx].SetBuffer(OceanRenderer.sp_cascadeData, OceanRenderer.Instance._bufCascadeDataTgt);
                 _combineMaterial[lodIdx].SetBuffer(OceanRenderer.sp_perCascadeInstanceData, OceanRenderer.Instance._bufPerCascadeInstanceData);
@@ -364,7 +365,6 @@ namespace Crest
                 );
 
                 _combineProperties.SetInt(sp_LD_SliceIndex, lodIdx);
-                _combineProperties.SetFloat(sp_AttenuationInShallows, Settings.AttenuationInShallows);
 
                 buf.DispatchCompute(_combineShader, selectedShaderKernel,
                     OceanRenderer.Instance.LodDataResolution / THREAD_GROUP_SIZE_X,

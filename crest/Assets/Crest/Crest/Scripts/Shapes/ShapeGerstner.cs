@@ -16,6 +16,7 @@ namespace Crest
     /// <summary>
     /// Gerstner ocean waves.
     /// </summary>
+    [ExecuteAlways]
     public partial class ShapeGerstner : MonoBehaviour, IFloatingOrigin
     {
         [Tooltip("The spectrum that defines the ocean surface shape. Assign asset of type Crest/Ocean Waves Spectrum.")]
@@ -184,7 +185,7 @@ namespace Crest
 
         void Update()
         {
-            if (_firstUpdate || _resolution != _waveBuffers.width)
+            if (_resolution != _waveBuffers.width || _bufCascadeParams == null || _bufWaveData == null)
             {
                 InitData();
             }

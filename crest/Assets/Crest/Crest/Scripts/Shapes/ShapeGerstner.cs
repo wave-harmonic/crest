@@ -111,7 +111,6 @@ namespace Crest
 
         readonly int sp_FirstCascadeIndex = Shader.PropertyToID("_FirstCascadeIndex");
         readonly int sp_TextureRes = Shader.PropertyToID("_TextureRes");
-        readonly int sp_AttenuationInShallows = Shader.PropertyToID("_AttenuationInShallows");
         readonly int sp_CascadeParams = Shader.PropertyToID("_GerstnerCascadeParams");
         readonly int sp_GerstnerWaveData = Shader.PropertyToID("_GerstnerWaveData");
         readonly int sp_WaveBuffer = Shader.PropertyToID("_WaveBuffer");

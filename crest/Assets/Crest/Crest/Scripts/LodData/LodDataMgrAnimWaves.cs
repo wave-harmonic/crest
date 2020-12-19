@@ -61,6 +61,7 @@ namespace Crest
 
         readonly int sp_LD_TexArray_AnimatedWaves_Compute = Shader.PropertyToID("_LD_TexArray_AnimatedWaves_Compute");
         readonly int sp_LD_TexArray_WaveBuffer = Shader.PropertyToID("_LD_TexArray_WaveBuffer");
+        readonly int sp_AttenuationInShallows = Shader.PropertyToID("_AttenuationInShallows");
         const string s_textureArrayName = "_LD_TexArray_AnimatedWaves";
 
         SettingsType _defaultSettings;
@@ -281,6 +282,7 @@ namespace Crest
                 LodDataMgrFlow.Bind((_combineMaterial[lodIdx]));
 
                 _combineMaterial[lodIdx].SetInt(sp_LD_SliceIndex, lodIdx);
+                _combineMaterial[lodIdx].SetFloat(sp_AttenuationInShallows, Settings.AttenuationInShallows);
 
                 _combineMaterial[lodIdx].SetBuffer(OceanRenderer.sp_cascadeData, OceanRenderer.Instance._bufCascadeDataTgt);
                 _combineMaterial[lodIdx].SetBuffer(OceanRenderer.sp_perCascadeInstanceData, OceanRenderer.Instance._bufPerCascadeInstanceData);
@@ -353,6 +355,8 @@ namespace Crest
                 // Flow
                 LodDataMgrFlow.Bind((_combineProperties));
 
+                LodDataMgrSeaFloorDepth.Bind(_combineProperties);
+
                 // Set the animated waves texture where the results will be combined.
                 _combineProperties.SetTexture(
                     sp_LD_TexArray_AnimatedWaves_Compute,
@@ -360,6 +364,7 @@ namespace Crest
                 );
 
                 _combineProperties.SetInt(sp_LD_SliceIndex, lodIdx);
+                _combineProperties.SetFloat(sp_AttenuationInShallows, Settings.AttenuationInShallows);
 
                 buf.DispatchCompute(_combineShader, selectedShaderKernel,
                     OceanRenderer.Instance.LodDataResolution / THREAD_GROUP_SIZE_X,

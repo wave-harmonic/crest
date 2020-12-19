@@ -10,7 +10,6 @@
 // Caution - this exploded on vulkan due to a collision with 'CrestPerObject' cbuffer in OceanInput
 CBUFFER_START(GerstnerUniforms)
 half _Weight;
-half _AttenuationInShallows;
 uint _NumWaveVecs;
 
 half4 _TwoPiOverWavelengths[BATCH_SIZE / 4];
@@ -42,16 +41,6 @@ half4 ComputeGerstner(float2 worldPosXZ, float3 uv_slice)
 
 	half3 result = (half3)0.0;
 
-	// attenuate waves based on ocean depth. if depth is greater than 0.5*wavelength, water is considered Deep and wave is
-	// unaffected. if depth is less than this, wave velocity decreases. waves will then bunch up and grow in amplitude and
-	// eventually break. i model "Deep" water, but then simply ramp down waves in non-deep water with a linear multiplier.
-	// http://hyperphysics.phy-astr.gsu.edu/hbase/Waves/watwav2.html
-	// http://hyperphysics.phy-astr.gsu.edu/hbase/watwav.html#c1
-	// optimisation - do this outside the loop below - take the median wavelength for depth weighting, intead of computing
-	// per component. computing per component makes little difference to the end result
-	half depth_wt = saturate(depth * _TwoPiOverWavelengths[_NumWaveVecs / 2].x / PI);
-	half4 wt = 1.0; // _AttenuationInShallows* depth_wt + (1.0 - _AttenuationInShallows);
-
 	float factor = 4.0;
 	float L = _CrestCascadeData[_LD_SliceIndex]._texelWidth * _CrestCascadeData[_LD_SliceIndex]._textureRes / factor;
 	if( uv_slice.x > 1.0 / factor ) return result.xyzz;
@@ -63,6 +52,8 @@ half4 ComputeGerstner(float2 worldPosXZ, float3 uv_slice)
 		// direction
 		half4 Dx = _WaveDirX[vi];
 		half4 Dz = _WaveDirZ[vi];
+
+		half4 wt = 1.0;
 
 		// Peferred wave direction
 #if CREST_DIRECT_TOWARDS_POINT_INTERNAL

@@ -464,6 +464,17 @@ namespace Crest
 
                 _batches = null;
             }
+
+            if (_bufCascadeParams != null && _bufCascadeParams.IsValid())
+            {
+                _bufCascadeParams.Dispose();
+                _bufCascadeParams = null;
+            }
+            if (_bufWaveData != null && _bufWaveData.IsValid())
+            {
+                _bufWaveData.Dispose();
+                _bufWaveData = null;
+            }
         }
 
 #if UNITY_EDITOR

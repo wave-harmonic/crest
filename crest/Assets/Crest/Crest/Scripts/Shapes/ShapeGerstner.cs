@@ -34,9 +34,9 @@ namespace Crest
                 Wavelength = wavelength;
 
                 _material = new Material(oceanInputShader);
-                _material.SetTexture("_WaveBuffer", waveBuffer);
-                _material.SetInt("_WaveBufferSliceIndex", waveBufferSliceIndex);
-                _material.SetFloat("_AverageWavelength", wavelength * 1.5f);
+                _material.SetTexture(sp_WaveBuffer, waveBuffer);
+                _material.SetInt(sp_WaveBufferSliceIndex, waveBufferSliceIndex);
+                _material.SetFloat(sp_AverageWavelength, wavelength * 1.5f);
             }
 
             // The ocean input system uses this to decide which lod this batch belongs in
@@ -118,7 +118,9 @@ namespace Crest
         readonly int sp_TextureRes = Shader.PropertyToID("_TextureRes");
         readonly int sp_CascadeParams = Shader.PropertyToID("_GerstnerCascadeParams");
         readonly int sp_GerstnerWaveData = Shader.PropertyToID("_GerstnerWaveData");
-        readonly int sp_WaveBuffer = Shader.PropertyToID("_WaveBuffer");
+        static readonly int sp_WaveBuffer = Shader.PropertyToID("_WaveBuffer");
+        static readonly int sp_WaveBufferSliceIndex = Shader.PropertyToID("_WaveBufferSliceIndex");
+        static readonly int sp_AverageWavelength = Shader.PropertyToID("_AverageWavelength");
 
         GameObject _renderProxy;
 

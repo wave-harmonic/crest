@@ -125,8 +125,8 @@ namespace Crest
 
         GameObject _renderProxy;
 
-        readonly float _twopi = 2f * Mathf.PI;
-        readonly float _one_over_2pi = 1f / (2f * Mathf.PI);
+        readonly float _twoPi = 2f * Mathf.PI;
+        readonly float _recipTwoPi = 1f / (2f * Mathf.PI);
 
         private void OnEnable()
         {
@@ -296,8 +296,8 @@ namespace Crest
                     //half4 angle = k * (C * _CrestTime + x) + _Phases[vi];
                     float gravityScale = _spectrum._gravityScales[(componentIdx) / _componentsPerOctave];
                     float gravity = OceanRenderer.Instance.Gravity * _spectrum._gravityScale;
-                    float C = Mathf.Sqrt(_wavelengths[componentIdx] * gravity * gravityScale * _one_over_2pi);
-                    float k = _twopi / _wavelengths[componentIdx];
+                    float C = Mathf.Sqrt(_wavelengths[componentIdx] * gravity * gravityScale * _recipTwoPi);
+                    float k = _twoPi / _wavelengths[componentIdx];
                     // Repeat every 2pi to keep angle bounded - helps precision on 16bit platforms
                     _waveData[vi]._omega[ei] = k * C;
                     _waveData[vi]._phase[ei] = Mathf.Repeat(_phases[componentIdx], Mathf.PI * 2f);

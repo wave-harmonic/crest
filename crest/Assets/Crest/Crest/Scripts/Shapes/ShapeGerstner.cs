@@ -55,6 +55,8 @@ namespace Crest
             }
         }
 
+        const int CASCADE_COUNT = 16;
+
         GerstnerBatch[] _batches = null;
 
         [Delayed, Tooltip("How many wave components to generate in each octave.")]
@@ -77,7 +79,9 @@ namespace Crest
         //[PredicatedField("_evaluateSpectrumAtRuntime", true)]
         public float[] _phases;
 
+        [Delayed]
         public int _resolution = 32;
+        [HideInInspector]
         public RenderTexture _waveBuffers;
 
         struct GerstnerCascadeParams
@@ -85,7 +89,7 @@ namespace Crest
             public int _startIndex;
         }
         ComputeBuffer _bufCascadeParams;
-        GerstnerCascadeParams[] _cascadeParams = new GerstnerCascadeParams[LodDataMgr.MAX_LOD_COUNT + 1];
+        GerstnerCascadeParams[] _cascadeParams = new GerstnerCascadeParams[CASCADE_COUNT + 1];
 
         int _firstCascade = -1;
         int _lastCascade = -1;
@@ -151,12 +155,12 @@ namespace Crest
                 _waveBuffers.useMipMap = false;
                 _waveBuffers.name = "GerstnerCascades";
                 _waveBuffers.dimension = TextureDimension.Tex2DArray;
-                _waveBuffers.volumeDepth = LodDataMgr.MAX_LOD_COUNT;
+                _waveBuffers.volumeDepth = CASCADE_COUNT;
                 _waveBuffers.enableRandomWrite = true;
                 _waveBuffers.Create();
             }
 
-            _bufCascadeParams = new ComputeBuffer(LodDataMgr.MAX_LOD_COUNT + 1, UnsafeUtility.SizeOf<GerstnerCascadeParams>());
+            _bufCascadeParams = new ComputeBuffer(CASCADE_COUNT + 1, UnsafeUtility.SizeOf<GerstnerCascadeParams>());
             _bufWaveData = new ComputeBuffer(MAX_WAVE_COMPONENTS / 4, UnsafeUtility.SizeOf<GerstnerWaveComponent4>());
 
             _shaderGerstner = ComputeShaderHelpers.LoadShader("Gerstner");
@@ -168,7 +172,7 @@ namespace Crest
 
         public float MinWavelength(int cascadeIdx)
         {
-            var diameter = (float)(1 << cascadeIdx);
+            var diameter = 0.5f * (1 << cascadeIdx);
             var texelSize = diameter / _resolution;
             return texelSize * OceanRenderer.Instance.MinTexelsPerWave;
         }
@@ -177,7 +181,7 @@ namespace Crest
 
         void Update()
         {
-            if (_firstUpdate)
+            if (_firstUpdate || _resolution != _waveBuffers.width)
             {
                 InitData();
             }
@@ -238,7 +242,7 @@ namespace Crest
                 if (componentIdx >= _wavelengths.Length) break;
 
                 // Check if we need to move to the next cascade
-                while (cascadeIdx < LodDataMgr.MAX_LOD_COUNT && _wavelengths[componentIdx] >= 2f * minWl)
+                while (cascadeIdx < CASCADE_COUNT && _wavelengths[componentIdx] >= 2f * minWl)
                 {
                     // Wrap up this cascade and begin next
 
@@ -267,7 +271,7 @@ namespace Crest
 
                     //Debug.Log($"{cascadeIdx}: start {_cascadeParams[cascadeIdx]._startIndex} minWL {minWl}");
                 }
-                if (cascadeIdx == LodDataMgr.MAX_LOD_COUNT) break;
+                if (cascadeIdx == CASCADE_COUNT) break;
 
                 {
                     // Pack into vector elements
@@ -319,7 +323,7 @@ namespace Crest
                 }
             }
 
-            while (cascadeIdx < LodDataMgr.MAX_LOD_COUNT)
+            while (cascadeIdx < CASCADE_COUNT)
             {
                 cascadeIdx++;
                 minWl *= 2f;
@@ -436,7 +440,7 @@ namespace Crest
             var oceanInputShader = Shader.Find("Hidden/Crest/Inputs/Animated Waves/Gerstner Global");
 
             // Submit draws to create the Gerstner waves
-            _batches = new GerstnerBatch[LodDataMgr.MAX_LOD_COUNT];
+            _batches = new GerstnerBatch[CASCADE_COUNT];
             for (int i = _firstCascade; i <= _lastCascade; i++)
             {
                 if (i == -1) break;

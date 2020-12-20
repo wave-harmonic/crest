@@ -61,7 +61,7 @@ namespace Crest
                 _waveBufferSliceIndex = waveBufferSliceIndex;
                 _rend = renderer;
 
-                if(_rend == null)
+                if (_rend == null)
                 {
                     _material = new Material(shaderGerstnerGlobal);
                 }
@@ -76,12 +76,14 @@ namespace Crest
 
             public bool Enabled { get => true; set { } }
 
+            public float Weight { get; set; }
+
             public void Draw(CommandBuffer buf, float weight, int isTransition, int lodIdx)
             {
                 if (weight > 0f)
                 {
                     buf.SetGlobalInt(LodDataMgr.sp_LD_SliceIndex, lodIdx);
-                    buf.SetGlobalFloat(RegisterLodDataInputBase.sp_Weight, weight);
+                    buf.SetGlobalFloat(RegisterLodDataInputBase.sp_Weight, Weight * weight);
                     buf.SetGlobalTexture(sp_WaveBuffer, _waveBuffer);
                     buf.SetGlobalInt(sp_WaveBufferSliceIndex, _waveBufferSliceIndex);
                     buf.SetGlobalFloat(sp_AverageWavelength, Wavelength * 1.5f);
@@ -206,6 +208,15 @@ namespace Crest
                 InitBatches();
 
                 _firstUpdate = false;
+            }
+
+            // Set weights - this should always happen
+            foreach (var batch in _batches)
+            {
+                if (batch != null)
+                {
+                    batch.Weight = _weight;
+                }
             }
 
             ReportMaxDisplacement();

@@ -22,9 +22,20 @@ namespace Crest
         [Tooltip("The spectrum that defines the ocean surface shape. Assign asset of type Crest/Ocean Waves Spectrum.")]
         public OceanWaveSpectrum _spectrum;
 
+        [Tooltip("If a spectrum will not change at runtime, set this true to calculate the wave data once on first update rather than each frame."), SerializeField]
+        bool _spectrumIsStatic = false;
+
         [Tooltip("Wind direction (angle from x axis in degrees)"), Range(-180, 180)]
         public float _windDirectionAngle = 0f;
         public Vector2 WindDir => new Vector2(Mathf.Cos(Mathf.PI * _windDirectionAngle / 180f), Mathf.Sin(Mathf.PI * _windDirectionAngle / 180f));
+
+        [Delayed, Tooltip("How many wave components to generate in each octave.")]
+        public int _componentsPerOctave = 8;
+
+        [Range(0f, 1f)]
+        public float _weight = 1f;
+
+        public int _randomSeed = 0;
 
         public class GerstnerBatch : ILodDataInput
         {
@@ -58,28 +69,15 @@ namespace Crest
         }
 
         const int CASCADE_COUNT = 16;
+        const int MAX_WAVE_COMPONENTS = 1024;
 
         GerstnerBatch[] _batches = null;
 
-        [Delayed, Tooltip("How many wave components to generate in each octave.")]
-        public int _componentsPerOctave = 8;
-
-        [Range(0f, 1f)]
-        public float _weight = 1f;
-
-        public int _randomSeed = 0;
-
         // Data for all components
-        //[Header("Wave data (usually populated at runtime)")]
-        //public bool _evaluateSpectrumAtRuntime = true;
-        //[PredicatedField("_evaluateSpectrumAtRuntime", true)]
-        public float[] _wavelengths;
-        //[PredicatedField("_evaluateSpectrumAtRuntime", true)]
-        public float[] _amplitudes;
-        //[PredicatedField("_evaluateSpectrumAtRuntime", true)]
-        public float[] _angleDegs;
-        //[PredicatedField("_evaluateSpectrumAtRuntime", true)]
-        public float[] _phases;
+        float[] _wavelengths;
+        float[] _amplitudes;
+        float[] _angleDegs;
+        float[] _phases;
 
         [Delayed]
         public int _resolution = 32;
@@ -93,8 +91,13 @@ namespace Crest
         ComputeBuffer _bufCascadeParams;
         GerstnerCascadeParams[] _cascadeParams = new GerstnerCascadeParams[CASCADE_COUNT + 1];
 
+        // First cascade of wave buffer that has waves and will be rendered
         int _firstCascade = -1;
+        // Last cascade of wave buffer that has waves and will be rendered
         int _lastCascade = -1;
+
+        // Used to populate data on first frame
+        bool _firstUpdate = true;
 
         struct GerstnerWaveComponent4
         {
@@ -107,12 +110,12 @@ namespace Crest
             public Vector4 _chopAmp;
         }
         ComputeBuffer _bufWaveData;
-        const int MAX_WAVE_COMPONENTS = 1024;
         GerstnerWaveComponent4[] _waveData = new GerstnerWaveComponent4[MAX_WAVE_COMPONENTS / 4];
 
         ComputeShader _shaderGerstner;
         int _krnlGerstner = -1;
 
+        // TODO - put on ocean update. Register this component with oceanrenderer?
         CommandBuffer _buf;
 
         readonly int sp_FirstCascadeIndex = Shader.PropertyToID("_FirstCascadeIndex");
@@ -130,6 +133,8 @@ namespace Crest
 
         private void OnEnable()
         {
+            _firstUpdate = true;
+
 #if UNITY_EDITOR
             // Initialise with spectrum
             if (_spectrum == null)
@@ -174,14 +179,15 @@ namespace Crest
             _buf.name = "ShapeGerstner";
         }
 
+        /// <summary>
+        /// Min wavelength for a cascade in the wave buffer. Does not depend on viewpoint.
+        /// </summary>
         public float MinWavelength(int cascadeIdx)
         {
             var diameter = 0.5f * (1 << cascadeIdx);
             var texelSize = diameter / _resolution;
             return texelSize * OceanRenderer.Instance.MinTexelsPerWave;
         }
-
-        bool _firstUpdate = true;
 
         void Update()
         {
@@ -190,8 +196,7 @@ namespace Crest
                 InitData();
             }
 
-            bool doEveryFrame = true;
-            if (_firstUpdate || doEveryFrame)
+            if (_firstUpdate || !_spectrumIsStatic)
             {
                 UpdateWaveData();
 
@@ -213,7 +218,7 @@ namespace Crest
                 _buf.SetComputeBufferParam(_shaderGerstner, _krnlGerstner, sp_GerstnerWaveData, _bufWaveData);
                 _buf.SetComputeTextureParam(_shaderGerstner, _krnlGerstner, sp_WaveBuffer, _waveBuffers);
 
-                _buf.DispatchCompute(_shaderGerstner, _krnlGerstner, _waveBuffers.width / 8, _waveBuffers.height / 8, _lastCascade - _firstCascade + 1);
+                _buf.DispatchCompute(_shaderGerstner, _krnlGerstner, _waveBuffers.width / LodDataMgr.THREAD_GROUP_SIZE_X, _waveBuffers.height / LodDataMgr.THREAD_GROUP_SIZE_Y, _lastCascade - _firstCascade + 1);
 
                 Graphics.ExecuteCommandBuffer(_buf);
             }

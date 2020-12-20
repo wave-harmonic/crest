@@ -49,7 +49,7 @@ void ComputeGerstner( float2 worldPosXZ, float worldSize, GerstnerWaveComponent4
 
 	// spatial location
 	float4 x = kx * worldPosXZ.x + kz * worldPosXZ.y;
-	half4 angle = data._omega * _CrestTime + data._phase;
+	half4 angle = data._phase - data._omega * _CrestTime;
 	angle += x;
 
 	// dx and dz could be baked into _ChopAmp

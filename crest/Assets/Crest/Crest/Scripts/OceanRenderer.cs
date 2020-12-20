@@ -1147,8 +1147,9 @@ namespace Crest
             }
 
             // ShapeGerstnerBatched
-            var gerstners = FindObjectsOfType<ShapeGerstnerBatched>();
-            if (gerstners.Length == 0)
+            var gerstnerBatchs = FindObjectsOfType<ShapeGerstnerBatched>();
+            var gerstners = FindObjectsOfType<ShapeGerstner>();
+            if (gerstnerBatchs.Length == 0 && gerstners.Length == 0)
             {
                 showMessage
                 (

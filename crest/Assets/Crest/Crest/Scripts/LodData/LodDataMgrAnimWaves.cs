@@ -61,6 +61,7 @@ namespace Crest
 
         readonly int sp_LD_TexArray_AnimatedWaves_Compute = Shader.PropertyToID("_LD_TexArray_AnimatedWaves_Compute");
         readonly int sp_LD_TexArray_WaveBuffer = Shader.PropertyToID("_LD_TexArray_WaveBuffer");
+        public static readonly int sp_AttenuationInShallows = Shader.PropertyToID("_AttenuationInShallows");
         const string s_textureArrayName = "_LD_TexArray_AnimatedWaves";
 
         SettingsType _defaultSettings;
@@ -205,6 +206,8 @@ namespace Crest
         public override void BuildCommandBuffer(OceanRenderer ocean, CommandBuffer buf)
         {
             base.BuildCommandBuffer(ocean, buf);
+
+            Shader.SetGlobalFloat(sp_AttenuationInShallows, Settings.AttenuationInShallows);
 
             var lodCount = OceanRenderer.Instance.CurrentLodCount;
 

@@ -46,17 +46,6 @@ void ComputeGerstner( float2 worldPosXZ, float worldSize, GerstnerWaveComponent4
 
 	half4 kx = k * Dx;
 	half4 kz = k * Dz;
-	// http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.161.9102&rep=rep1&type=pdf eqn 19
-	// kx = 2 pi n / L
-	// kx / (2pi/L) = n
-	float4 n = kx / (2.0 * 3.141592654 / worldSize);
-	float4 m = kz / (2.0 * 3.141592654 / worldSize);
-	n = round( n );
-	m = round( m );
-#if 1
-	kx = 2.0 * 3.141592654 * n / worldSize;
-	kz = 2.0 * 3.141592654 * m / worldSize;
-#endif
 
 	// spatial location
 	float4 x = kx * worldPosXZ.x + kz * worldPosXZ.y;

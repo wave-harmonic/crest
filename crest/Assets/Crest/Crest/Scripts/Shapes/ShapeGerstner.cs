@@ -298,8 +298,8 @@ namespace Crest
                     _waveData[vi]._chopAmp[ei] = -chopScale * _spectrum._chop * _amplitudes[componentIdx];
 
                     float angle = Mathf.Deg2Rad * (_windDirectionAngle + _angleDegs[componentIdx]);
-                    _waveData[vi]._waveDirX[ei] = Mathf.Cos(angle);
-                    _waveData[vi]._waveDirZ[ei] = Mathf.Sin(angle);
+                    float dx = Mathf.Cos(angle);
+                    float dz = Mathf.Sin(angle);
 
                     // It used to be this, but I'm pushing all the stuff that doesn't depend on position into the phase.
                     //half4 angle = k * (C * _CrestTime + x) + _Phases[vi];
@@ -307,6 +307,25 @@ namespace Crest
                     float gravity = OceanRenderer.Instance.Gravity * _spectrum._gravityScale;
                     float C = Mathf.Sqrt(_wavelengths[componentIdx] * gravity * gravityScale * _recipTwoPi);
                     float k = _twoPi / _wavelengths[componentIdx];
+
+                    // Constrain wave vector (wavelength and wave direction) to ensure wave tiles across domain
+                    {
+                        float kx = k * dx;
+                        float kz = k * dz;
+                        var diameter = 0.5f * (1 << cascadeIdx);
+                        float n = kx / (2f * Mathf.PI / diameter);
+                        float m = kz / (2f * Mathf.PI / diameter);
+                        kx = 2f * Mathf.PI * Mathf.Round(n) / diameter;
+                        kz = 2f * Mathf.PI * Mathf.Round(m) / diameter;
+
+                        k = Mathf.Sqrt(kx * kx + kz * kz);
+                        dx = kx / k;
+                        dz = kz / k;
+                    }
+
+                    _waveData[vi]._waveDirX[ei] = dx;
+                    _waveData[vi]._waveDirZ[ei] = dz;
+
                     // Repeat every 2pi to keep angle bounded - helps precision on 16bit platforms
                     _waveData[vi]._omega[ei] = k * C;
                     _waveData[vi]._phase[ei] = Mathf.Repeat(_phases[componentIdx], Mathf.PI * 2f);

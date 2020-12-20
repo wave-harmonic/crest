@@ -41,20 +41,34 @@ namespace Crest
         public int _resolution = 32;
 
         [SerializeField]
+        Renderer _meshForDrawingWaves;
+
+        [SerializeField]
         bool _debugDrawSlicesInEditor = false;
 
         public class GerstnerBatch : ILodDataInput
         {
             Material _material;
+            Renderer _rend;
 
-            public GerstnerBatch(float wavelength, RenderTexture waveBuffer, int waveBufferSliceIndex, Shader oceanInputShader)
+            RenderTexture _waveBuffer;
+            int _waveBufferSliceIndex;
+
+            public GerstnerBatch(float wavelength, RenderTexture waveBuffer, int waveBufferSliceIndex, Shader shaderGerstnerGlobal, Renderer renderer)
             {
                 Wavelength = wavelength;
+                _waveBuffer = waveBuffer;
+                _waveBufferSliceIndex = waveBufferSliceIndex;
+                _rend = renderer;
 
-                _material = new Material(oceanInputShader);
-                _material.SetTexture(sp_WaveBuffer, waveBuffer);
-                _material.SetInt(sp_WaveBufferSliceIndex, waveBufferSliceIndex);
-                _material.SetFloat(sp_AverageWavelength, wavelength * 1.5f);
+                if(_rend == null)
+                {
+                    _material = new Material(shaderGerstnerGlobal);
+                }
+                else
+                {
+                    _material = _rend.sharedMaterial;
+                }
             }
 
             // The ocean input system uses this to decide which lod this batch belongs in
@@ -68,8 +82,19 @@ namespace Crest
                 {
                     buf.SetGlobalInt(LodDataMgr.sp_LD_SliceIndex, lodIdx);
                     buf.SetGlobalFloat(RegisterLodDataInputBase.sp_Weight, weight);
+                    buf.SetGlobalTexture(sp_WaveBuffer, _waveBuffer);
+                    buf.SetGlobalInt(sp_WaveBufferSliceIndex, _waveBufferSliceIndex);
+                    buf.SetGlobalFloat(sp_AverageWavelength, Wavelength * 1.5f);
 
-                    buf.DrawProcedural(Matrix4x4.identity, _material, 0, MeshTopology.Triangles, 3);
+                    // Either use a full screen quad, or a provided mesh renderer to draw the waves
+                    if (_rend == null)
+                    {
+                        buf.DrawProcedural(Matrix4x4.identity, _material, 0, MeshTopology.Triangles, 3);
+                    }
+                    else
+                    {
+                        buf.DrawRenderer(_rend, _material);
+                    }
                 }
             }
         }
@@ -165,7 +190,7 @@ namespace Crest
 
         public void CrestUpdate(CommandBuffer buf)
         {
-            if (_resolution != _waveBuffers.width || _bufCascadeParams == null || _bufWaveData == null)
+            if (_waveBuffers == null || _resolution != _waveBuffers.width || _bufCascadeParams == null || _bufWaveData == null)
             {
                 InitData();
             }
@@ -426,14 +451,14 @@ namespace Crest
             }
             //#endif
 
-            var oceanInputShader = Shader.Find("Hidden/Crest/Inputs/Animated Waves/Gerstner Global");
+            var shaderGerstnerGlobal = Shader.Find("Hidden/Crest/Inputs/Animated Waves/Gerstner Global");
 
             // Submit draws to create the Gerstner waves
             _batches = new GerstnerBatch[CASCADE_COUNT];
             for (int i = _firstCascade; i <= _lastCascade; i++)
             {
                 if (i == -1) break;
-                _batches[i] = new GerstnerBatch(MinWavelength(i), _waveBuffers, i, oceanInputShader);
+                _batches[i] = new GerstnerBatch(MinWavelength(i), _waveBuffers, i, shaderGerstnerGlobal, _meshForDrawingWaves);
                 registered.Add(0, _batches[i]);
             }
         }

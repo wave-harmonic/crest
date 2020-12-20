@@ -1,10 +1,10 @@
-// Crest Ocean System
+﻿// Crest Ocean System
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
-// Renders gerstner waves from geometry. Allows localised wave areas. Can fade waves based on UVs - fades to 0
-// as U or V approach 0 or 1, with configurable feather width. Can also take weight from vertex colour (red channel).
-Shader "Crest/Inputs/Animated Waves/Gerstner Batch Geometry"
+// Adds Gestner waves to world
+
+Shader "Crest/Inputs/Animated Waves/Gerstner Geometry"
 {
 	Properties
 	{
@@ -15,17 +15,18 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Batch Geometry"
 
 	SubShader
 	{
+		// Additive blend everywhere
+		Blend One One
+		ZWrite Off
+		ZTest Always
+		Cull Off
+
 		Pass
 		{
-			Blend One One
-			ZWrite Off
-			ZTest Always
-			Cull Off
-
 			CGPROGRAM
 			#pragma vertex Vert
 			#pragma fragment Frag
-			#pragma multi_compile_local __ CREST_DIRECT_TOWARDS_POINT_INTERNAL
+			//#pragma enable_d3d11_debug_symbols
 			#pragma shader_feature_local _WEIGHTFROMVERTEXCOLOURRED_ON
 			#pragma shader_feature_local _FEATHERATUVEXTENTS_ON
 
@@ -35,7 +36,14 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Batch Geometry"
 			#include "../OceanInputsDriven.hlsl"
 			#include "../OceanHelpersNew.hlsl"
 
-			#include "GerstnerShared.hlsl"
+			Texture2DArray _WaveBuffer;
+
+			CBUFFER_START(CrestPerOceanInput)
+			int _WaveBufferSliceIndex;
+			float _Weight;
+			float _AverageWavelength;
+			float _AttenuationInShallows;
+			CBUFFER_END
 
 			CBUFFER_START(GerstnerPerMaterial)
 			half _FeatherWidth;
@@ -54,7 +62,8 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Batch Geometry"
 			struct Varyings
 			{
 				float4 positionCS : SV_POSITION;
-				float4 worldPosXZ_uv : TEXCOORD0;
+				float4 uvGeo_uvWaves : TEXCOORD0;
+				float2 worldPosXZ : TEXCOORD3;
 				float4 uv_slice_wt : TEXCOORD1;
 #if _WEIGHTFROMVERTEXCOLOURRED_ON
 				float weight : TEXCOORD2;
@@ -65,40 +74,43 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Batch Geometry"
 			{
 				Varyings o;
 
+				o.uvGeo_uvWaves.xy = input.uv;
+
 				float3 worldPos = mul(unity_ObjectToWorld, float4(input.positionOS, 1.0)).xyz;
 				// Correct for displacement
 				worldPos.xz -= _DisplacementAtInputPosition.xz;
-
+				o.worldPosXZ = worldPos.xz;
+				
 				o.positionCS = mul(UNITY_MATRIX_VP, float4(worldPos, 1.0));
 
-				o.worldPosXZ_uv.xy = worldPos.xz;
-				o.worldPosXZ_uv.zw = input.uv;
+				o.uv_slice_wt.xyz = WorldToUV(o.worldPosXZ, _CrestCascadeData[_LD_SliceIndex], _LD_SliceIndex);
 
-				o.uv_slice_wt.xyz = WorldToUV(o.worldPosXZ_uv.xy, _CrestCascadeData[_LD_SliceIndex], _LD_SliceIndex);
 				o.uv_slice_wt.w = 1.0;
-
 #if _WEIGHTFROMVERTEXCOLOURRED_ON
-				o.weight = input.colour.x;
+				o.uv_slice_wt.w = input.colour.x;
 #endif
+
+				float scale = 0.5f * (1 << _WaveBufferSliceIndex);
+				o.uvGeo_uvWaves.zw = o.worldPosXZ / scale;
 
 				return o;
 			}
-
-			half4 Frag(Varyings input) : SV_Target
+			
+			half4 Frag( Varyings input ) : SV_Target
 			{
-				float wt = 1.0;
-
-#if _WEIGHTFROMVERTEXCOLOURRED_ON
-				wt *= input.weight;
-#endif
+				float wt = _Weight;
 
 #if _FEATHERATUVEXTENTS_ON
-				float2 offset = abs(input.worldPosXZ_uv.zw - 0.5);
+				float2 offset = abs(input.uvGeo_uvWaves.xy - 0.5);
 				float r_l1 = max(offset.x, offset.y);
 				wt *= saturate(1.0 - (r_l1 - (0.5 - _FeatherWidth)) / _FeatherWidth);
 #endif
 
-				return wt * ComputeGerstner(input.worldPosXZ_uv.xy, input.uv_slice_wt.xyz);
+				const half depth = _LD_TexArray_SeaFloorDepth.SampleLevel(LODData_linear_clamp_sampler, input.uv_slice_wt.xyz, 0.0).x;
+				half depth_wt = saturate(2.0 * depth / _AverageWavelength);
+				wt *= _AttenuationInShallows * depth_wt + (1.0 - _AttenuationInShallows);
+
+				return wt * _WaveBuffer.SampleLevel( sampler_Crest_linear_repeat, float3(input.uvGeo_uvWaves.zw, _WaveBufferSliceIndex), 0 );
 			}
 			ENDCG
 		}

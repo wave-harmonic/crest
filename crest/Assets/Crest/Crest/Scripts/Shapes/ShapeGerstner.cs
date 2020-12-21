@@ -235,6 +235,8 @@ namespace Crest
 
         void SliceUpWaves()
         {
+            float divider = 1f;
+
             _firstCascade = _lastCascade = -1;
 
             var cascadeIdx = 0;
@@ -249,11 +251,12 @@ namespace Crest
             {
                 // Compute foam term
                 float k = _twoPi / _wavelengths[componentIdx];
+                float knext = _twoPi / _wavelengths[Mathf.Min(componentIdx + 1, _wavelengths.Length - 1)];
                 float k2 = k * k;
                 float specSample = _powers[componentIdx];
-                float slopeVariance = k2 * specSample * specSample * 2f;
+                float slopeVariance = k2 * specSample * specSample * Mathf.Abs(knext - k);
                 float chopScale = _spectrum._chopScales[componentIdx / _componentsPerOctave];
-                _cascadeParams[cascadeIdx]._W_cumulative += chopScale * slopeVariance / 40000000f;
+                _cascadeParams[cascadeIdx]._W_cumulative += chopScale * slopeVariance / divider;
 
                 componentIdx++;
             }
@@ -266,13 +269,14 @@ namespace Crest
                 {
                     // Compute foam term
                     float k = _twoPi / _wavelengths[componentIdx];
+                    float knext = _twoPi / _wavelengths[Mathf.Min(componentIdx + 1, _wavelengths.Length - 1)];
                     float k2 = k * k;
                     float specSample = _powers[componentIdx];
-                    float slopeVariance = k2 * specSample * specSample * 2f;
+                    float slopeVariance = k2 * specSample * specSample * Mathf.Abs(knext - k);
                     float chopScale = _spectrum._chopScales[componentIdx / _componentsPerOctave];
-                    _cascadeParams[cascadeIdx]._W_cumulative += chopScale * slopeVariance / 40000000f;
+                    _cascadeParams[cascadeIdx]._W_cumulative += chopScale * slopeVariance / divider;
 
-                    //Debug.Log("KSIP: " + (chopScale * slopeVariance / 40000000f) + ", power: " + _powers[componentIdx]);
+                    //Debug.Log("KSIP: " + (chopScale * slopeVariance / divider) + ", power: " + _powers[componentIdx]);
                     componentIdx++;
                 }
                 if (componentIdx >= _wavelengths.Length) break;
@@ -356,9 +360,10 @@ namespace Crest
 
                     // Compute foam term
                     float k2 = k * k;
+                    float knext = _twoPi / _wavelengths[Mathf.Min(componentIdx + 1, _wavelengths.Length - 1)];
                     float specSample = _powers[componentIdx];
-                    float slopeVariance = k2 * specSample * specSample * 2f;
-                    _cascadeParams[cascadeIdx]._W_cumulative += chopScale * slopeVariance / 40000000f;
+                    float slopeVariance = k2 * specSample * specSample * Mathf.Abs(knext - k);
+                    _cascadeParams[cascadeIdx]._W_cumulative += chopScale * slopeVariance / divider;
 
                     outputIdx++;
                 }
@@ -394,7 +399,9 @@ namespace Crest
                 //Debug.Log($"{cascadeIdx}: start {_cascadeParams[cascadeIdx]._startIndex} minWL {minWl}");
             }
 
-            Debug.Log("Last variance: " + _cascadeParams[0]._W_cumulative);
+            _lastCascade = CASCADE_COUNT - 1;
+
+            Debug.Log("Last variance: " + _cascadeParams[CASCADE_COUNT]._W_cumulative);
 
             _bufCascadeParams.SetData(_cascadeParams);
             _bufWaveData.SetData(_waveData);

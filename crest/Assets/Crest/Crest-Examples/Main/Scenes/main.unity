@@ -216,11 +216,11 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 428de101e6784fc459bc2b998d691b61,
         type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 428de101e6784fc459bc2b998d691b61, type: 3}
---- !u!84 &235731420
+--- !u!84 &480744382
 RenderTexture:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -255,7 +255,7 @@ RenderTexture:
     m_WrapW: 1
   m_Dimension: 5
   m_VolumeDepth: 16
---- !u!84 &596924877
+--- !u!84 &714839368
 RenderTexture:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -432,7 +432,7 @@ MonoBehaviour:
   _resolution: 32
   _meshForDrawingWaves: {fileID: 1290917734}
   _debugDrawSlicesInEditor: 0
-  _waveBuffers: {fileID: 596924877}
+  _waveBuffers: {fileID: 714839368}
 --- !u!108 &2089466775 stripped
 Light:
   m_CorrespondingSourceObject: {fileID: 5936606776992183399, guid: ddf71bfb72c45407fb8cea42d3aaeac4,
@@ -469,7 +469,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _spectrum: {fileID: 11400000, guid: 454d1b08383f089479cf6794620926f4, type: 2}
-  _spectrumIsStatic: 1
+  _spectrumIsStatic: 0
   _windDirectionAngle: -123
   _componentsPerOctave: 8
   _weight: 1
@@ -477,7 +477,7 @@ MonoBehaviour:
   _resolution: 32
   _meshForDrawingWaves: {fileID: 0}
   _debugDrawSlicesInEditor: 0
-  _waveBuffers: {fileID: 235731420}
+  _waveBuffers: {fileID: 480744382}
 --- !u!4 &2119375525
 Transform:
   m_ObjectHideFlags: 0

@@ -130,8 +130,9 @@ namespace Crest
 
             // Power
             power = hasNextIndex ? Mathf.Lerp(thisPower, nextPower, alpha) : thisPower;
+            power = Mathf.Pow(10f, power);
 
-            var a_2 = 2f * Mathf.Pow(10f, power) * domega;
+            var a_2 = 2f * power * domega;
 
             // Amplitude
             var a = Mathf.Sqrt(a_2);

@@ -596,7 +596,7 @@ Shader "Crest/Ocean"
 				col.rg = lerp(col.rg, input.flow_shadow.xy, 0.5);
 				#endif
 				#endif
-				col = sss;
+				//col = sss;
 				return half4(col, 1.);
 			}
 

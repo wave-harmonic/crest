@@ -86,7 +86,7 @@ void UpdateFoam(uint3 id : SV_DispatchThreadID)
 	float4 du = float4(disp_x.xz, disp_z.xz) - disp.xzxz;
 	float det = (du.x * du.w - du.y * du.z) / (cascadeData._texelWidth * cascadeData._texelWidth);
 	//foam += 5.0 * _SimDeltaTime * _WaveFoamStrength * saturate(_WaveFoamCoverage - det);
-	foam += 5.0 * _SimDeltaTime * _WaveFoamStrength * step( det - foamBase*4., _WaveFoamCoverage );
+	foam += 5.0 * _SimDeltaTime * _WaveFoamStrength * step( det - foamBase*400, _WaveFoamCoverage );
 
 	// add foam in shallow water. use the displaced position to ensure we add foam where world objects are.
 	const float3 uv_slice_displaced = WorldToUV(worldPosXZ + disp.xz, cascadeData, sliceIndex);

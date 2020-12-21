@@ -266,7 +266,7 @@ namespace Crest
 
             for (int i = 0; i < _wavelengths.Length; i++)
             {
-                _amplitudes[i] = _weight * _spectrum.GetAmplitude(_wavelengths[i], _componentsPerOctave);
+                _amplitudes[i] = _weight * _spectrum.GetAmplitude(_wavelengths[i], _componentsPerOctave, out _);
             }
         }
 

@@ -106,7 +106,7 @@ Shader "Hidden/Crest/Simulation/Combine Animated Wave LODs"
 				{
 					float4 dataNextLod = _LD_TexArray_AnimatedWaves.SampleLevel(LODData_linear_clamp_sampler, uv_nextLod, 0.0);
 					result += dataNextLod.xyz;
-					sss += dataNextLod.w;
+					//sss += dataNextLod.w;
 				}
 
 #if CREST_DYNAMIC_WAVE_SIM_ON_INTERNAL

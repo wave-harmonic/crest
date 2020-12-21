@@ -109,6 +109,7 @@ namespace Crest
         // Data for all components
         float[] _wavelengths;
         float[] _amplitudes;
+        float[] _powers;
         float[] _angleDegs;
         float[] _phases;
 
@@ -118,6 +119,7 @@ namespace Crest
         struct GerstnerCascadeParams
         {
             public int _startIndex;
+            public float _W_cumulative;
         }
         ComputeBuffer _bufCascadeParams;
         GerstnerCascadeParams[] _cascadeParams = new GerstnerCascadeParams[CASCADE_COUNT + 1];
@@ -239,20 +241,38 @@ namespace Crest
             var componentIdx = 0;
             var outputIdx = 0;
             _cascadeParams[0]._startIndex = 0;
+            _cascadeParams[0]._W_cumulative = 0f;
 
             // Seek forward to first wavelength that is big enough to render into current cascades
             var minWl = MinWavelength(cascadeIdx);
             while (componentIdx < _wavelengths.Length && _wavelengths[componentIdx] < minWl)
             {
+                // Compute foam term
+                float k = _twoPi / _wavelengths[componentIdx];
+                float k2 = k * k;
+                float specSample = _powers[componentIdx];
+                float slopeVariance = k2 * specSample * specSample * 2f;
+                float chopScale = _spectrum._chopScales[componentIdx / _componentsPerOctave];
+                _cascadeParams[cascadeIdx]._W_cumulative += chopScale * slopeVariance / 40000000f;
+
                 componentIdx++;
             }
             //Debug.Log($"{cascadeIdx}: start {_cascadeParams[cascadeIdx]._startIndex} minWL {minWl}");
 
             for (; componentIdx < _wavelengths.Length; componentIdx++)
             {
-                // Skip small waves
+                // Skip small amplitude waves
                 while (componentIdx < _wavelengths.Length && _amplitudes[componentIdx] < 0.001f)
                 {
+                    // Compute foam term
+                    float k = _twoPi / _wavelengths[componentIdx];
+                    float k2 = k * k;
+                    float specSample = _powers[componentIdx];
+                    float slopeVariance = k2 * specSample * specSample * 2f;
+                    float chopScale = _spectrum._chopScales[componentIdx / _componentsPerOctave];
+                    _cascadeParams[cascadeIdx]._W_cumulative += chopScale * slopeVariance / 40000000f;
+
+                    //Debug.Log("KSIP: " + (chopScale * slopeVariance / 40000000f) + ", power: " + _powers[componentIdx]);
                     componentIdx++;
                 }
                 if (componentIdx >= _wavelengths.Length) break;
@@ -283,6 +303,7 @@ namespace Crest
 
                     cascadeIdx++;
                     _cascadeParams[cascadeIdx]._startIndex = outputIdx / 4;
+                    _cascadeParams[cascadeIdx]._W_cumulative = cascadeIdx > 0 ? _cascadeParams[cascadeIdx - 1]._W_cumulative : 0f;
                     minWl *= 2f;
 
                     //Debug.Log($"{cascadeIdx}: start {_cascadeParams[cascadeIdx]._startIndex} minWL {minWl}");
@@ -297,7 +318,7 @@ namespace Crest
                     _waveData[vi]._twoPiOverWavelength[ei] = 2f * Mathf.PI / _wavelengths[componentIdx];
                     _waveData[vi]._amp[ei] = _amplitudes[componentIdx];
 
-                    float chopScale = _spectrum._chopScales[(componentIdx) / _componentsPerOctave];
+                    float chopScale = _spectrum._chopScales[componentIdx / _componentsPerOctave];
                     _waveData[vi]._chopAmp[ei] = -chopScale * _spectrum._chop * _amplitudes[componentIdx];
 
                     float angle = Mathf.Deg2Rad * _angleDegs[componentIdx];
@@ -333,6 +354,12 @@ namespace Crest
                     _waveData[vi]._omega[ei] = k * C;
                     _waveData[vi]._phase[ei] = Mathf.Repeat(_phases[componentIdx], Mathf.PI * 2f);
 
+                    // Compute foam term
+                    float k2 = k * k;
+                    float specSample = _powers[componentIdx];
+                    float slopeVariance = k2 * specSample * specSample * 2f;
+                    _cascadeParams[cascadeIdx]._W_cumulative += chopScale * slopeVariance / 40000000f;
+
                     outputIdx++;
                 }
             }
@@ -363,8 +390,11 @@ namespace Crest
                 cascadeIdx++;
                 minWl *= 2f;
                 _cascadeParams[cascadeIdx]._startIndex = outputIdx / 4;
+                _cascadeParams[cascadeIdx]._W_cumulative = cascadeIdx > 0 ? _cascadeParams[cascadeIdx - 1]._W_cumulative : 0f;
                 //Debug.Log($"{cascadeIdx}: start {_cascadeParams[cascadeIdx]._startIndex} minWL {minWl}");
             }
+
+            Debug.Log("Last variance: " + _cascadeParams[0]._W_cumulative);
 
             _bufCascadeParams.SetData(_cascadeParams);
             _bufWaveData.SetData(_waveData);
@@ -426,10 +456,14 @@ namespace Crest
             {
                 _amplitudes = new float[_wavelengths.Length];
             }
+            if (_powers == null || _powers.Length != _wavelengths.Length)
+            {
+                _powers = new float[_wavelengths.Length];
+            }
 
             for (int i = 0; i < _wavelengths.Length; i++)
             {
-                _amplitudes[i] = _weight * _spectrum.GetAmplitude(_wavelengths[i], _componentsPerOctave);
+                _amplitudes[i] = _weight * _spectrum.GetAmplitude(_wavelengths[i], _componentsPerOctave, out _powers[i]);
             }
         }
 

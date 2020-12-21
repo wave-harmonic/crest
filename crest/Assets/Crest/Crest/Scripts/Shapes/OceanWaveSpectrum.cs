@@ -80,7 +80,7 @@ namespace Crest
 
         public static float SmallWavelength(float octaveIndex) { return Mathf.Pow(2f, SMALLEST_WL_POW_2 + octaveIndex); }
 
-        public float GetAmplitude(float wavelength, float componentsPerOctave)
+        public float GetAmplitude(float wavelength, float componentsPerOctave, out float power)
         {
             // Always take random value so that sequence remains deterministic even if this function early outs
             var rand0 = Random.value;
@@ -102,6 +102,7 @@ namespace Crest
             if (index >= _powerLog.Length || index >= _powerDisabled.Length)
             {
                 Debug.Assert(index < _powerLog.Length && index < _powerDisabled.Length, $"OceanWaveSpectrum: index {index} is out of range.", this);
+                power = 0f;
                 return 0f;
             }
 
@@ -128,9 +129,9 @@ namespace Crest
             var alpha = (wavelength - lower) / lower;
 
             // Power
-            var pow = hasNextIndex ? Mathf.Lerp(thisPower, nextPower, alpha) : thisPower;
+            power = hasNextIndex ? Mathf.Lerp(thisPower, nextPower, alpha) : thisPower;
 
-            var a_2 = 2f * Mathf.Pow(10f, pow) * domega;
+            var a_2 = 2f * Mathf.Pow(10f, power) * domega;
 
             // Amplitude
             var a = Mathf.Sqrt(a_2);

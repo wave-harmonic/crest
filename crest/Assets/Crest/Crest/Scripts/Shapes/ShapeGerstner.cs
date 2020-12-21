@@ -153,6 +153,7 @@ namespace Crest
         static readonly int sp_WaveBuffer = Shader.PropertyToID("_WaveBuffer");
         static readonly int sp_WaveBufferSliceIndex = Shader.PropertyToID("_WaveBufferSliceIndex");
         static readonly int sp_AverageWavelength = Shader.PropertyToID("_AverageWavelength");
+        readonly int sp_AxisX = Shader.PropertyToID("_AxisX");
 
         readonly float _twoPi = 2f * Mathf.PI;
         readonly float _recipTwoPi = 1f / (2f * Mathf.PI);
@@ -226,6 +227,8 @@ namespace Crest
             {
                 UpdateGenerateWaves(buf);
             }
+
+            buf.SetGlobalVector(sp_AxisX, WindDir);
         }
 
         void SliceUpWaves()
@@ -297,7 +300,7 @@ namespace Crest
                     float chopScale = _spectrum._chopScales[(componentIdx) / _componentsPerOctave];
                     _waveData[vi]._chopAmp[ei] = -chopScale * _spectrum._chop * _amplitudes[componentIdx];
 
-                    float angle = Mathf.Deg2Rad * (_windDirectionAngle + _angleDegs[componentIdx]);
+                    float angle = Mathf.Deg2Rad * _angleDegs[componentIdx];
                     float dx = Mathf.Cos(angle);
                     float dz = Mathf.Sin(angle);
 

@@ -35,6 +35,7 @@ Shader "Hidden/Crest/Inputs/Animated Waves/Gerstner Global"
 			float _Weight;
 			float _AverageWavelength;
 			float _AttenuationInShallows;
+			float2 _AxisX;
 			CBUFFER_END
 
 			struct Attributes
@@ -57,8 +58,10 @@ Shader "Hidden/Crest/Inputs/Animated Waves/Gerstner Global"
 
 				float2 worldPosXZ = UVToWorld( o.uv_uvWaves.xy, _LD_SliceIndex, _CrestCascadeData[_LD_SliceIndex] );
 
+				// UV coordinate into wave buffer
+				float2 wavePos = float2( dot(worldPosXZ, _AxisX), dot(worldPosXZ, float2(-_AxisX.y, _AxisX.x)) );
 				float scale = 0.5f * (1 << _WaveBufferSliceIndex);
-				o.uv_uvWaves.zw = worldPosXZ / scale;
+				o.uv_uvWaves.zw = wavePos / scale;
 
 				return o;
 			}
@@ -67,11 +70,15 @@ Shader "Hidden/Crest/Inputs/Animated Waves/Gerstner Global"
 			{
 				float wt = _Weight;
 
+				// Attenuate if depth is less than half of the average wavelength
 				const half depth = _LD_TexArray_SeaFloorDepth.SampleLevel(LODData_linear_clamp_sampler, float3(input.uv_uvWaves.xy, _LD_SliceIndex), 0.0).x;
 				half depth_wt = saturate(2.0 * depth / _AverageWavelength);
 				wt *= _AttenuationInShallows * depth_wt + (1.0 - _AttenuationInShallows);
 
-				return wt * _WaveBuffer.SampleLevel( sampler_Crest_linear_repeat, float3(input.uv_uvWaves.zw, _WaveBufferSliceIndex), 0 );
+				// Sample displacement, rotate into frame
+				float4 disp = _WaveBuffer.SampleLevel(sampler_Crest_linear_repeat, float3(input.uv_uvWaves.zw, _WaveBufferSliceIndex), 0);
+				disp.xz = disp.x * _AxisX + disp.z * float2(-_AxisX.y, _AxisX.x);
+				return wt * disp;
 			}
 			ENDCG
 		}

@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Unlit_NewUnlitShader
+  m_Name: GerstnerRing
   m_Shader: {fileID: 4800000, guid: cdbc0f776e994c44d9e0b45ae2413748, type: 3}
   m_ShaderKeywords: 
   m_LightmapFlags: 4

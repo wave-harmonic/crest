@@ -24,7 +24,8 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Floats:
-    - _FeatherWidth: 0.179
-    - _RadiusInner: 16
+    - _FeatherWidth: 0.205
+    - _RadiusInner: 0
     - _RadiusOuter: 177
+    - _UseShallowWaterAttenuation: 0
     m_Colors: []

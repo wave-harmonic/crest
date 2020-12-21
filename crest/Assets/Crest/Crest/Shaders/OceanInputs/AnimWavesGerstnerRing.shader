@@ -11,6 +11,7 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Ring"
 		_RadiusInner("Inner radius", Range(0.0, 1000.0)) = 5.0
 		_RadiusOuter("Outer radius", Range(0.0, 1000.0)) = 50.0
 		_FeatherWidth("Feather width", Range(0.001, 0.5)) = 0.1
+		_UseShallowWaterAttenuation("Use Shallow Water Attenuation", Range(0, 1)) = 1
 	}
 
     SubShader
@@ -53,6 +54,7 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Ring"
 			float _RadiusInner;
 			float _RadiusOuter;
 			half _FeatherWidth;
+			float _UseShallowWaterAttenuation;
 			CBUFFER_END
 
 			CBUFFER_START(CrestPerOceanInput)
@@ -99,7 +101,8 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Ring"
 				// Attenuate if depth is less than half of the average wavelength
 				const half depth = _LD_TexArray_SeaFloorDepth.SampleLevel(LODData_linear_clamp_sampler, input.uv_slice.xyz, 0.0).x;
 				half depth_wt = saturate(2.0 * depth / _AverageWavelength);
-				wt *= _AttenuationInShallows * depth_wt + (1.0 - _AttenuationInShallows);
+				const float attenuationAmount = _AttenuationInShallows * _UseShallowWaterAttenuation;
+				wt *= attenuationAmount * depth_wt + (1.0 - attenuationAmount);
 
 				// Feature at front/back
 				float r_l1 = abs(input.uvGeo_uvWaves.y - 0.5);

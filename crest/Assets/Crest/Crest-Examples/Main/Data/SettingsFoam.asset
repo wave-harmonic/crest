@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _foamFadeRate: 0.5
   _waveFoamStrength: 0.49
-  _waveFoamCoverage: 0.553
+  _waveFoamCoverage: 0.629
   _shorelineFoamMaxDepth: 0.8
   _shorelineFoamStrength: 0.5
   _renderTextureGraphicsFormat: 45

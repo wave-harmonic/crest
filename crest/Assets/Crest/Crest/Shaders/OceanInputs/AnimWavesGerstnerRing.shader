@@ -109,10 +109,18 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Ring"
 				wt *= saturate(1.0 - (r_l1 - (0.5 - _FeatherWidth)) / _FeatherWidth);
 
 				// Sample displacement, rotate into frame
-				float4 disp = _WaveBuffer.SampleLevel(sampler_Crest_linear_repeat, float3(input.uvGeo_uvWaves.zw, _WaveBufferSliceIndex), 0);
-				disp.xz = disp.x * input.axisX + disp.z * float2(-input.axisX.y, input.axisX.x);
+				float4 disp_variance = _WaveBuffer.SampleLevel(sampler_Crest_linear_repeat, float3(input.uvGeo_uvWaves.zw, _WaveBufferSliceIndex), 0);
+				disp_variance.xz = disp_variance.x * input.axisX + disp_variance.z * float2(-input.axisX.y, input.axisX.x);
 
-				return wt * disp;
+				// The large waves are added to the last two lods. Don't write cumulative variances for these - cumulative variance
+				// for the last fitting wave cascade captures everything needed.
+				const float minWavelength = _AverageWavelength / 1.5;
+				if( minWavelength > _CrestCascadeData[_LD_SliceIndex]._maxWavelength )
+				{
+					disp_variance.w = 0.0;
+				}
+
+				return wt * disp_variance;
             }
             ENDCG
         }

@@ -416,7 +416,6 @@ namespace Crest
                 _cascadeParams[i]._W_cumulative += amp_over_wl;
             }
 
-            Debug.Log("Last variance: " + _cascadeParams[CASCADE_COUNT]._W_cumulative);
 
             _bufCascadeParams.SetData(_cascadeParams);
             _bufWaveData.SetData(_waveData);

@@ -76,9 +76,18 @@ Shader "Hidden/Crest/Inputs/Animated Waves/Gerstner Global"
 				wt *= _AttenuationInShallows * depth_wt + (1.0 - _AttenuationInShallows);
 
 				// Sample displacement, rotate into frame
-				float4 disp = _WaveBuffer.SampleLevel(sampler_Crest_linear_repeat, float3(input.uv_uvWaves.zw, _WaveBufferSliceIndex), 0);
-				disp.xz = disp.x * _AxisX + disp.z * float2(-_AxisX.y, _AxisX.x);
-				return wt * disp;
+				float4 disp_variance = _WaveBuffer.SampleLevel(sampler_Crest_linear_repeat, float3(input.uv_uvWaves.zw, _WaveBufferSliceIndex), 0);
+				disp_variance.xz = disp_variance.x * _AxisX + disp_variance.z * float2(-_AxisX.y, _AxisX.x);
+
+				// The large waves are added to the last two lods. Don't write cumulative variances for these - cumulative variance
+				// for the last fitting wave cascade captures everything needed.
+				const float minWavelength = _AverageWavelength / 1.5;
+				if( minWavelength > _CrestCascadeData[_LD_SliceIndex]._maxWavelength )
+				{
+					disp_variance.w = 0.0;
+				}
+
+				return wt * disp_variance;
 			}
 			ENDCG
 		}

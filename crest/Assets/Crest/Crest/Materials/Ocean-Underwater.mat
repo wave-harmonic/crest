@@ -104,8 +104,8 @@ Material:
     - _DebugShapeSample: 0
     - _DebugVisualiseFlow: 0
     - _DebugVisualiseShapeSample: 0
-    - _DirectionalLightBoost: 7
-    - _DirectionalLightFallOff: 188
+    - _DirectionalLightBoost: 3
+    - _DirectionalLightFallOff: 1142
     - _DirectionalLightFallOffFar: 42
     - _DirectionalLightFarDistance: 137
     - _DirectionalLightVaryRoughness: 1

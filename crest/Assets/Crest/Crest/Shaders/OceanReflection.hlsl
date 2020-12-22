@@ -65,7 +65,7 @@ float CalculateFresnelReflectionCoefficient(float cosTheta)
 	return R_theta;
 }
 
-void ApplyReflectionSky(in const half3 i_view, in const half3 i_n_pixel, in const half3 i_lightDir, in const half i_shadow, in const half4 i_screenPos, in const float i_pixelZ, in const half i_weight, inout half3 io_col)
+void ApplyReflectionSky(float variance, in const half3 i_view, in const half3 i_n_pixel, in const half3 i_lightDir, in const half i_shadow, in const half4 i_screenPos, in const float i_pixelZ, in const half i_weight, inout half3 io_col)
 {
 	// Reflection
 	half3 refl = reflect(-i_view, i_n_pixel);
@@ -125,7 +125,9 @@ void ApplyReflectionSky(in const half3 i_view, in const half3 i_n_pixel, in cons
 	half fallOff = _DirectionalLightFallOff;
 #endif
 
-	skyColour += pow(max(0., dot(refl, i_lightDir)), fallOff) * _DirectionalLightBoost * _LightColor0 * i_shadow;
+	float fallOff1 = _DirectionalLightFallOff * max( 0.02, 1.0 - pow(variance/4., .5) * 4 );
+
+	skyColour += pow(max(0., dot(refl, i_lightDir)), fallOff1 ) * _DirectionalLightBoost * _LightColor0 * i_shadow;
 #endif
 
 	// Fresnel

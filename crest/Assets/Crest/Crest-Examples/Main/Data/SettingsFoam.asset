@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 19dae60af28271c45a418e0869b9b921, type: 3}
   m_Name: SettingsFoam
   m_EditorClassIdentifier: 
-  _foamFadeRate: 0.5
+  _foamFadeRate: 0.125
   _waveFoamStrength: 0.49
   _waveFoamCoverage: 0.518
   _shorelineFoamMaxDepth: 0.8

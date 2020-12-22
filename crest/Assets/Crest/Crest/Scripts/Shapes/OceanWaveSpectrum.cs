@@ -80,12 +80,19 @@ namespace Crest
 
         public static float SmallWavelength(float octaveIndex) { return Mathf.Pow(2f, SMALLEST_WL_POW_2 + octaveIndex); }
 
+        public static int GetOctaveIndex(float wavelength)
+        {
+            Debug.Assert(wavelength > 0f, "OceanWaveSpectrum: Wavelength must be > 0.");
+            var wl_pow2 = Mathf.Log(wavelength) / Mathf.Log(2f);
+            return (int)(wl_pow2 - SMALLEST_WL_POW_2);
+        }
+
         public float GetAmplitude(float wavelength, float componentsPerOctave, out float power)
         {
             // Always take random value so that sequence remains deterministic even if this function early outs
             var rand0 = Random.value;
 
-            Debug.Assert(wavelength > 0f, "OceanWaveSpectrum: Wavelength must be >= 0f", this);
+            Debug.Assert(wavelength > 0f, "OceanWaveSpectrum: Wavelength must be > 0.", this);
 
             var wl_pow2 = Mathf.Log(wavelength) / Mathf.Log(2f);
             wl_pow2 = Mathf.Clamp(wl_pow2, SMALLEST_WL_POW_2, SMALLEST_WL_POW_2 + NUM_OCTAVES - 1f);

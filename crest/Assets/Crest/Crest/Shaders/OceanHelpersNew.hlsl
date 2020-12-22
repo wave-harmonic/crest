@@ -7,6 +7,9 @@
 #ifndef CREST_OCEAN_HELPERS_H
 #define CREST_OCEAN_HELPERS_H
 
+#define SampleLod(i_lodTextureArray, i_uv_slice) (i_lodTextureArray.SampleLevel(LODData_linear_clamp_sampler, i_uv_slice, 0.0))
+#define SampleLodLevel(i_lodTextureArray, i_uv_slice, mips) (i_lodTextureArray.SampleLevel(LODData_linear_clamp_sampler, i_uv_slice, mips))
+
 float2 WorldToUV(in float2 i_samplePos, in CascadeParams i_cascadeParams)
 {
 	return (i_samplePos - i_cascadeParams._posSnapped) / (i_cascadeParams._texelWidth * i_cascadeParams._textureRes) + 0.5;
@@ -42,16 +45,27 @@ void SampleDisplacements(in Texture2DArray i_dispSampler, in float3 i_uv_slice, 
 void SampleDisplacementsNormals(in Texture2DArray i_dispSampler, in float3 i_uv_slice, in float i_wt, in float i_invRes, in float i_texelSize, inout float3 io_worldPos, inout half2 io_nxz, inout half io_sss)
 {
 	const half4 data = i_dispSampler.SampleLevel(LODData_linear_clamp_sampler, i_uv_slice, 0.0);
-	io_sss += i_wt * data.a;
 	const half3 disp = data.xyz;
 	io_worldPos += i_wt * disp;
 
-	float3 n; {
-		float3 dd = float3(i_invRes, 0.0, i_texelSize);
-		half3 disp_x = dd.zyy + i_dispSampler.SampleLevel(LODData_linear_clamp_sampler, i_uv_slice + float3(dd.xy, 0.0), dd.y).xyz;
-		half3 disp_z = dd.yyz + i_dispSampler.SampleLevel(LODData_linear_clamp_sampler, i_uv_slice + float3(dd.yx, 0.0), dd.y).xyz;
+	float3 dd = float3(i_invRes, 0.0, i_texelSize);
+	half3 disp_x = dd.zyy + i_dispSampler.SampleLevel( LODData_linear_clamp_sampler, i_uv_slice + float3(dd.xy, 0.0), 0.0 ).xyz;
+	half3 disp_z = dd.yyz + i_dispSampler.SampleLevel( LODData_linear_clamp_sampler, i_uv_slice + float3(dd.yx, 0.0), 0.0 ).xyz;
+
+	// Normal
+	float3 n;
+	{
 		n = normalize(cross(disp_z - disp, disp_x - disp));
 	}
+
+	// SSS - based off pinch
+	{
+		float varianceBeforeThisCascade = data.w;
+		float4 du = float4(disp_x.xz, disp_z.xz) - disp.xzxz;
+		float det = (du.x * du.w - du.y * du.z) / (i_texelSize * i_texelSize);
+		io_sss += i_wt * saturate( .015*(9.0 - (det * 4.0 - varianceBeforeThisCascade * 6.0 )));
+	}
+
 	io_nxz += i_wt * n.xz;
 }
 
@@ -111,9 +125,6 @@ void PosToSliceIndices
 		lodAlpha = min(lodAlpha + _MeshScaleLerp, 1.0);
 	}
 }
-
-#define SampleLod(i_lodTextureArray, i_uv_slice) (i_lodTextureArray.SampleLevel(LODData_linear_clamp_sampler, i_uv_slice, 0.0))
-#define SampleLodLevel(i_lodTextureArray, i_uv_slice, mips) (i_lodTextureArray.SampleLevel(LODData_linear_clamp_sampler, i_uv_slice, mips))
 
 // Perform iteration to invert the displacement vector field - find position that displaces to query position.
 float3 InvertDisplacement

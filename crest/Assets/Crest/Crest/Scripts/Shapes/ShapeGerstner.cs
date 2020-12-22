@@ -401,20 +401,20 @@ namespace Crest
 
             _lastCascade = CASCADE_COUNT - 1;
 
-            for (int i = 0; i < CASCADE_COUNT; i++)
-            {
-                _cascadeParams[i]._W_cumulative = i > 0 ? _cascadeParams[i - 1]._W_cumulative : 0f;
+            //for (int i = 0; i < CASCADE_COUNT; i++)
+            //{
+            //    _cascadeParams[i]._W_cumulative = i > 0 ? _cascadeParams[i - 1]._W_cumulative : 0f;
 
-                var wl = MinWavelength(i) * 1.5f;
-                var octaveIndex = OceanWaveSpectrum.GetOctaveIndex(wl);
-                //Debug.Log("Index: " + octaveIndex);
-                octaveIndex = Mathf.Min(octaveIndex, _spectrum._chopScales.Length - 1);
+            //    var wl = MinWavelength(i) * 1.5f;
+            //    var octaveIndex = OceanWaveSpectrum.GetOctaveIndex(wl);
+            //    //Debug.Log("Index: " + octaveIndex);
+            //    octaveIndex = Mathf.Min(octaveIndex, _spectrum._chopScales.Length - 1);
 
-                var amp = _spectrum.GetAmplitude(wl, 1f, out _);
-                var chop = _spectrum._chopScales[octaveIndex];
-                float amp_over_wl = chop * amp / wl;
-                _cascadeParams[i]._W_cumulative += amp_over_wl;
-            }
+            //    var amp = _spectrum.GetAmplitude(wl, 1f, out _);
+            //    var chop = _spectrum._chopScales[octaveIndex];
+            //    float amp_over_wl = chop * amp / wl;
+            //    _cascadeParams[i]._W_cumulative += amp_over_wl;
+            //}
 
 
             _bufCascadeParams.SetData(_cascadeParams);

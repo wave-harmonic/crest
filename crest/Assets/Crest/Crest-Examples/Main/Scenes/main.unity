@@ -220,7 +220,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 428de101e6784fc459bc2b998d691b61, type: 3}
---- !u!84 &146567322
+--- !u!84 &191124698
 RenderTexture:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -255,7 +255,7 @@ RenderTexture:
     m_WrapW: 1
   m_Dimension: 5
   m_VolumeDepth: 16
---- !u!84 &985980231
+--- !u!84 &199484357
 RenderTexture:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -300,7 +300,7 @@ PrefabInstance:
     - target: {fileID: 356844271489020624, guid: ddf71bfb72c45407fb8cea42d3aaeac4,
         type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 1935528129688418602, guid: ddf71bfb72c45407fb8cea42d3aaeac4,
         type: 3}
@@ -335,6 +335,11 @@ PrefabInstance:
     - target: {fileID: 8066748594655780890, guid: ddf71bfb72c45407fb8cea42d3aaeac4,
         type: 3}
       propertyPath: _createFoamSim
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8066748594655780890, guid: ddf71bfb72c45407fb8cea42d3aaeac4,
+        type: 3}
+      propertyPath: _showOceanProxyPlane
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 9037604615445586465, guid: ddf71bfb72c45407fb8cea42d3aaeac4,
@@ -432,7 +437,7 @@ MonoBehaviour:
   _resolution: 32
   _meshForDrawingWaves: {fileID: 1290917734}
   _debugDrawSlicesInEditor: 0
-  _waveBuffers: {fileID: 146567322}
+  _waveBuffers: {fileID: 191124698}
 --- !u!108 &2089466775 stripped
 Light:
   m_CorrespondingSourceObject: {fileID: 5936606776992183399, guid: ddf71bfb72c45407fb8cea42d3aaeac4,
@@ -477,7 +482,7 @@ MonoBehaviour:
   _resolution: 32
   _meshForDrawingWaves: {fileID: 0}
   _debugDrawSlicesInEditor: 1
-  _waveBuffers: {fileID: 985980231}
+  _waveBuffers: {fileID: 199484357}
 --- !u!4 &2119375525
 Transform:
   m_ObjectHideFlags: 0

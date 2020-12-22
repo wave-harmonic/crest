@@ -89,9 +89,6 @@ namespace Crest
 
         public float GetAmplitude(float wavelength, float componentsPerOctave, out float power)
         {
-            // Always take random value so that sequence remains deterministic even if this function early outs
-            var rand0 = Random.value;
-
             Debug.Assert(wavelength > 0f, "OceanWaveSpectrum: Wavelength must be > 0.", this);
 
             var wl_pow2 = Mathf.Log(wavelength) / Mathf.Log(2f);
@@ -144,7 +141,7 @@ namespace Crest
             // Amplitude
             var a = Mathf.Sqrt(a_2);
 
-            return a * rand0 * _multiplier;
+            return a * _multiplier;
         }
 
         public static float ComputeWaveSpeed(float wavelength, float gravityMultiplier = 1f)

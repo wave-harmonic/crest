@@ -389,6 +389,7 @@ namespace Crest
                 float amp_over_wl = chop * amp / wl;
                 _cascadeParams[i]._cumulativeVariance += amp_over_wl;
             }
+            _cascadeParams[CASCADE_COUNT]._cumulativeVariance = _cascadeParams[CASCADE_COUNT - 1]._cumulativeVariance;
 
             _bufCascadeParams.SetData(_cascadeParams);
             _bufWaveData.SetData(_waveData);
@@ -457,7 +458,7 @@ namespace Crest
 
             for (int i = 0; i < _wavelengths.Length; i++)
             {
-                _amplitudes[i] = _weight * _spectrum.GetAmplitude(_wavelengths[i], _componentsPerOctave, out _powers[i]);
+                _amplitudes[i] = Random.value * _weight * _spectrum.GetAmplitude(_wavelengths[i], _componentsPerOctave, out _powers[i]);
             }
         }
 

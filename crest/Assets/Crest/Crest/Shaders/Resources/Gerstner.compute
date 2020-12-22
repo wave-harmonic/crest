@@ -18,7 +18,7 @@ uint _FirstCascadeIndex;
 struct GerstnerCascadeParams
 {
 	int _startIndex;
-	float _W_cumulative;
+	float _cumulativeVariance;
 };
 StructuredBuffer<GerstnerCascadeParams> _GerstnerCascadeParams;
 
@@ -88,8 +88,9 @@ void Gerstner(uint3 id : SV_DispatchThreadID)
 		ComputeGerstner( worldPosXZ, worldSize, _GerstnerWaveData[i], result );
 	}
 
-	// Get foam term up until this cascade
-	float Wprev = cascadeIndex > 0 ? _GerstnerCascadeParams[cascadeIndex - 1]._W_cumulative : 0.0;
+	// Get variance term up until just before this cascade. Gives a statistical measure of wave content
+	// in lower cascades.
+	float _cumulativeVarianceBeforeThisCascade = cascadeIndex > 0 ? _GerstnerCascadeParams[cascadeIndex - 1]._cumulativeVariance : 0.0;
 
-	_WaveBuffer[uint3(id.xy, cascadeIndex)] = float4(result, Wprev);
+	_WaveBuffer[uint3(id.xy, cascadeIndex)] = float4(result, _cumulativeVarianceBeforeThisCascade);
 }

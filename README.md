@@ -7,7 +7,7 @@
 # Intro
 
 *Crest* is a technically advanced ocean renderer implemented in Unity3D 2019.4.8 and later.
-The version hosted here targets the **built-in render pipeline**, a link to the scriptable render pipeline versions (URP/HDRP) on the Asset Store are below.
+The version hosted here targets the **built-in render pipeline**, links to the scriptable render pipeline versions (URP/HDRP) on the Asset Store are below.
 
 ![Teaser](https://raw.githubusercontent.com/huwb/crest-oceanrender/master/img/teaser5.png)
 

@@ -21,8 +21,6 @@ The version hosted here targets the **built-in render pipeline**, links to the s
 
 # Showcase Gallery
 
-*Your game here! We're looking for projects to showcase - if you upload a video of your work to youtube and send us a link (or create a pull request) we'll put a thumbnail here and link to it.*
-
 <a href="https://www.youtube.com/watch?feature=player_embedded&v=aZScNG8-H2U" target="_blank"><img src="https://img.youtube.com/vi/aZScNG8-H2U/0.jpg" alt="Irval the Dragon in Crest Ocean and Lordenfel Ruins" width="240" height="180" /></a>
 <a href="https://www.youtube.com/watch?feature=player_embedded&v=_Rq5dfZfQ1k" target="_blank"><img src="https://img.youtube.com/vi/_Rq5dfZfQ1k/0.jpg" alt="Out of Reach: Treasure Royale - Trailer" width="240" height="180" /></a>
 <a href="https://www.youtube.com/watch?feature=player_embedded&v=70voKq6cdKQ" target="_blank"><img src="https://img.youtube.com/vi/70voKq6cdKQ/0.jpg" alt="Windbound - Brave the Storm Announce Trailer [Official]" width="240" height="180" /></a>

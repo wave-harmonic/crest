@@ -2,6 +2,7 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
@@ -61,7 +62,12 @@ namespace Crest
 
         readonly int sp_LD_TexArray_AnimatedWaves_Compute = Shader.PropertyToID("_LD_TexArray_AnimatedWaves_Compute");
         readonly int sp_LD_TexArray_WaveBuffer = Shader.PropertyToID("_LD_TexArray_WaveBuffer");
+        public static readonly int sp_AttenuationInShallows = Shader.PropertyToID("_AttenuationInShallows");
         const string s_textureArrayName = "_LD_TexArray_AnimatedWaves";
+
+        static List<ShapeGerstner> _gerstners = new List<ShapeGerstner>();
+        public static void RegisterUpdatable(ShapeGerstner updatable) => _gerstners.Add(updatable);
+        public static void DeregisterUpdatable(ShapeGerstner updatable) => _gerstners.RemoveAll(candidate => candidate == updatable);
 
         SettingsType _defaultSettings;
         public SettingsType Settings
@@ -206,12 +212,19 @@ namespace Crest
         {
             base.BuildCommandBuffer(ocean, buf);
 
+            Shader.SetGlobalFloat(sp_AttenuationInShallows, Settings.AttenuationInShallows);
+
             var lodCount = OceanRenderer.Instance.CurrentLodCount;
 
             // Validation
             for (int lodIdx = 0; lodIdx < OceanRenderer.Instance.CurrentLodCount; lodIdx++)
             {
                 OceanRenderer.Instance._lodTransform._renderData[lodIdx].Validate(0, SimName);
+            }
+
+            foreach(var gerstner in _gerstners)
+            {
+                gerstner.CrestUpdate(buf);
             }
 
             // lod-dependent data
@@ -440,6 +453,7 @@ namespace Crest
             sp_LD_SliceIndex = Shader.PropertyToID("_LD_SliceIndex");
             sp_LODChange = Shader.PropertyToID("_LODChange");
             s_textureArrayParamIds = new TextureArrayParamIds(s_textureArrayName);
+            _gerstners.Clear();
         }
     }
 }

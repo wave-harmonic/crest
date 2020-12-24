@@ -64,7 +64,6 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Batch Geometry"
 			Varyings Vert(Attributes input)
 			{
 				Varyings o;
-				
 
 				float3 worldPos = mul(unity_ObjectToWorld, float4(input.positionOS, 1.0)).xyz;
 				// Correct for displacement

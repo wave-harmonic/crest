@@ -250,7 +250,7 @@ namespace Crest
 
             for (; componentIdx < _wavelengths.Length; componentIdx++)
             {
-                // Skip small waves
+                // Skip small amplitude waves
                 while (componentIdx < _wavelengths.Length && _amplitudes[componentIdx] < 0.001f)
                 {
                     componentIdx++;
@@ -297,7 +297,7 @@ namespace Crest
                     _waveData[vi]._twoPiOverWavelength[ei] = 2f * Mathf.PI / _wavelengths[componentIdx];
                     _waveData[vi]._amp[ei] = _amplitudes[componentIdx];
 
-                    float chopScale = _spectrum._chopScales[(componentIdx) / _componentsPerOctave];
+                    float chopScale = _spectrum._chopScales[componentIdx / _componentsPerOctave];
                     _waveData[vi]._chopAmp[ei] = -chopScale * _spectrum._chop * _amplitudes[componentIdx];
 
                     float angle = Mathf.Deg2Rad * _angleDegs[componentIdx];

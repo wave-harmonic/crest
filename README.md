@@ -7,7 +7,7 @@
 # Intro
 
 *Crest* is a technically advanced ocean renderer implemented in Unity3D 2019.4.8 and later.
-The version hosted here targets the **built-in render pipeline**, a link to the scriptable render pipeline versions (URP/HDRP) on the Asset Store are below.
+The version hosted here targets the **built-in render pipeline**, links to the scriptable render pipeline versions (URP/HDRP) on the Asset Store are below.
 
 ![Teaser](https://raw.githubusercontent.com/huwb/crest-oceanrender/master/img/teaser5.png)
 
@@ -21,8 +21,7 @@ The version hosted here targets the **built-in render pipeline**, a link to the 
 
 # Showcase Gallery
 
-*Your game here! We're looking for projects to showcase - if you upload a video of your work to youtube and send us a link (or create a pull request) we'll put a thumbnail here and link to it.*
-
+<a href="https://www.youtube.com/watch?feature=player_embedded&v=aZScNG8-H2U" target="_blank"><img src="https://img.youtube.com/vi/aZScNG8-H2U/0.jpg" alt="Irval the Dragon in Crest Ocean and Lordenfel Ruins" width="240" height="180" /></a>
 <a href="https://www.youtube.com/watch?feature=player_embedded&v=_Rq5dfZfQ1k" target="_blank"><img src="https://img.youtube.com/vi/_Rq5dfZfQ1k/0.jpg" alt="Out of Reach: Treasure Royale - Trailer" width="240" height="180" /></a>
 <a href="https://www.youtube.com/watch?feature=player_embedded&v=70voKq6cdKQ" target="_blank"><img src="https://img.youtube.com/vi/70voKq6cdKQ/0.jpg" alt="Windbound - Brave the Storm Announce Trailer [Official]" width="240" height="180" /></a>
 <a href="https://www.youtube.com/watch?feature=player_embedded&v=ZmKto87To-0" target="_blank"><img src="https://img.youtube.com/vi/ZmKto87To-0/0.jpg" alt="An Adventure to the World of Artificial Intelligenc" width="240" height="180" /></a>
@@ -33,6 +32,7 @@ The version hosted here targets the **built-in render pipeline**, a link to the 
 <a href="https://www.youtube.com/watch?feature=player_embedded&v=m2ZojyD4PZc" target="_blank"><img src="https://img.youtube.com/vi/m2ZojyD4PZc/0.jpg" alt="Critter Cove & Crest Trailer" width="240" height="180" /></a>
 <a href="https://www.youtube.com/watch?feature=player_embedded&v=zCeK_Kdxqa0" target="_blank"><img src="https://img.youtube.com/vi/zCeK_Kdxqa0/0.jpg" alt="Of Ships & Scoundrels - Crest Demo" width="240" height="180" /></a>
 <a href="https://www.youtube.com/watch?feature=player_embedded&v=HVlJa2J0wSc" target="_blank"><img src="https://img.youtube.com/vi/HVlJa2J0wSc/0.jpg" alt="Rogue Waves" width="240" height="180" /></a>
+<a href="https://www.youtube.com/watch?feature=player_embedded&v=e1maUIXQIRI" target="_blank"><img src="https://img.youtube.com/vi/e1maUIXQIRI/0.jpg" alt="Ship Simulator : Realistic" width="240" height="180" /></a>
 
 # Documentation
 
@@ -56,7 +56,8 @@ There is also a getting started video here: https://www.youtube.com/watch?v=qsge
 
 ***You can download the latest version from [here](https://github.com/crest-ocean/crest/archive/master.zip).***
 
-One way to obtain *Crest* is take the latest version in the master branch by forking/cloning this repository or by using the green download button above.
+Another way to obtain *Crest* is to fork/clone this repository.
+
 The files that should be copied into an existing project are under *crest/Assets/Crest*.
 
 Note that *crest/Assets/Crest/Crest-Examples* contains example content that is useful for first time users but not required for the core *Crest* functionality. Furthermore, the *crest/Assets/Crest/Development* folder is not needed as it is only for *Crest* development.
@@ -67,8 +68,7 @@ The following options are no longer maintained or supported.
 
 ### Releases
 
-*Crest* releases are no longer published or supported. Old releases can be obtained from the [Releases page](https://github.com/huwb/crest-oceanrender/releases), but they are not recommended.
-They are Unity packages which can be imported into your project using *Assets/Import Package*.
+*Crest* releases are no longer published or supported.
 
 ### 2018.4
 

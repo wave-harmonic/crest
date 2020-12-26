@@ -26,6 +26,7 @@ Shader "Crest/Ocean"
 		[Toggle] _Shadows("Shadowing", Float) = 0
 		// Base colour in shadow
 		_DiffuseShadow("Diffuse (Shadow)", Color) = (0.0, 0.356, 0.565, 1.0)
+		_FogColour("Fog Colour", Color) = (0.05, 0.1, 0.2, 0.1)
 
 		[Header(Subsurface Scattering)]
 		// Whether to to emulate light scattering through the water volume

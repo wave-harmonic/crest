@@ -11,8 +11,7 @@ Material:
   m_Shader: {fileID: 4800000, guid: 668aecf91371c8b4997e42c0c7b19527, type: 3}
   m_ShaderKeywords: _APPLYNORMALMAPPING_ON _CAUSTICS_ON _CLIPSURFACE_ON _COMPUTEDIRECTIONALLIGHT_ON
     _DEBUGMULTIPLYBYLIGHT0COLOR_ON _DIRECTIONALLIGHTVARYROUGHNESS_ON _FOAM3DLIGHTING_ON
-    _FOAM_ON _SHADOWS_ON _SUBSURFACEHEIGHTLERP_ON _SUBSURFACESCATTERING_ON _SUBSURFACESHALLOWCOLOUR_ON
-    _TRANSPARENCY_ON _UNDERWATER_ON
+    _FOAM_ON _SUBSURFACEHEIGHTLERP_ON _SUBSURFACESCATTERING_ON _TRANSPARENCY_ON _UNDERWATER_ON
   m_LightmapFlags: 5
   m_EnableInstancingVariants: 1
   m_DoubleSidedGI: 0
@@ -133,22 +132,22 @@ Material:
     - _RefractiveIndexOfWater: 1.333
     - _Roughness: 0
     - _S: 1
-    - _Shadows: 1
-    - _ShorelineFoamMinDepth: 0.27
+    - _Shadows: 0
+    - _ShorelineFoamMinDepth: 0.05
     - _SkyDirectionality: 0.875
     - _Specular: 1
     - _StartLevel: 0.157
     - _StencilFunction: 0
-    - _SubSurfaceBase: 1.04
+    - _SubSurfaceBase: 0
     - _SubSurfaceDepthMax: 9.4
     - _SubSurfaceDepthPower: 2.57
     - _SubSurfaceHeightLerp: 1
     - _SubSurfaceHeightMax: 24.9
     - _SubSurfaceHeightPower: 1.68
     - _SubSurfaceScattering: 1
-    - _SubSurfaceShallowColour: 1
-    - _SubSurfaceSun: 4.46
-    - _SubSurfaceSunFallOff: 5.26
+    - _SubSurfaceShallowColour: 0
+    - _SubSurfaceSun: 1.73
+    - _SubSurfaceSunFallOff: 3.39
     - _TexelSize: 0.125
     - _TextureRes: 1024
     - _Transparency: 1
@@ -168,17 +167,18 @@ Material:
     - _WaveFoamStart: 0
     - _WaveFoamStrength: 1
     m_Colors:
-    - _DepthFogDensity: {r: 0.33, g: 0.23, b: 0.27, a: 1}
-    - _Diffuse: {r: 0, g: 0.012440592, b: 0.5660378, a: 1}
-    - _DiffuseGrazing: {r: 0.06345675, g: 0.10691091, b: 0.5849056, a: 1}
-    - _DiffuseShadow: {r: 0, g: 0.3560004, b: 0.5647059, a: 1}
-    - _FoamBubbleColor: {r: 0.5482029, g: 0.71300006, b: 0.7062737, a: 1}
+    - _DepthFogDensity: {r: 0.675036, g: 0.38429654, b: 0.31816182, a: 0}
+    - _Diffuse: {r: 0.027068181, g: 0.21654546, b: 0.397, a: 1}
+    - _DiffuseGrazing: {r: 0.03424792, g: 0.28254563, b: 0.518, a: 1}
+    - _DiffuseShadow: {r: 0.011702475, g: 0.09654551, b: 0.177, a: 1}
+    - _FoamBubbleColor: {r: 0, g: 0, b: 0, a: 1}
     - _FoamWhiteColor: {r: 1, g: 0.99634784, b: 0.97199994, a: 0.6862745}
+    - _FogColour: {r: 0.79607844, g: 0.8782052, b: 0.8980392, a: 0.4627451}
     - _SkyAwayFromSun: {r: 0.15419213, g: 0.22129796, b: 0.5372549, a: 1}
     - _SkyBase: {r: 0.55200005, g: 0.85242355, b: 1, a: 1}
     - _SkyTowardsSun: {r: 2.6390157, g: 1.8217498, b: 0.9236555, a: 1}
     - _SubSurface: {r: 0, g: 0.48, b: 0.36, a: 1}
-    - _SubSurfaceColour: {r: 0.10196078, g: 0.57254905, b: 0.5256646, a: 1}
+    - _SubSurfaceColour: {r: 0.10196078, g: 0.55813485, b: 0.57254905, a: 1}
     - _SubSurfaceShallowCol: {r: 0.552, g: 1, b: 1, a: 1}
     - _SubSurfaceShallowColShadow: {r: 0.14417942, g: 0.2264151, b: 0.21173015, a: 1}
     - _SubSurfaceShallowColour: {r: 0.41999996, g: 0.75, b: 0.69, a: 1}

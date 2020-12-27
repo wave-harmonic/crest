@@ -42,7 +42,7 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Geometry"
 				float4 vertex : SV_POSITION;
 				float3 uv_slice : TEXCOORD1;
 				float axisHeading : TEXCOORD2;
-				float3 worldPos : TEXCOORD3;
+				float3 worldPosScaled : TEXCOORD3;
             };
 
 			Texture2DArray _WaveBuffer;
@@ -69,8 +69,11 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Geometry"
 				o.vertex = UnityObjectToClipPos(positionOS);
 
 				// UV coordinate into the cascade we are rendering into
-				o.worldPos = mul(unity_ObjectToWorld, float4(positionOS, 1.0)).xyz;
-				o.uv_slice.xyz = WorldToUV(o.worldPos.xz, _CrestCascadeData[_LD_SliceIndex], _LD_SliceIndex);
+				float3 worldPos = mul(unity_ObjectToWorld, float4(positionOS, 1.0)).xyz;
+				o.uv_slice.xyz = WorldToUV(worldPos.xz, _CrestCascadeData[_LD_SliceIndex], _LD_SliceIndex);
+
+				const float waveBufferSize = 0.5f * (1 << _WaveBufferSliceIndex);
+				o.worldPosScaled = worldPos / waveBufferSize;
 
 				o.axisHeading = atan2( v.axis.y, v.axis.x ) + 2.0 * 3.141592654;
 
@@ -91,6 +94,7 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Geometry"
 				//float r_l1 = abs(input.uvGeo_uvWaves.y - 0.5);
 				//wt *= saturate(1.0 - (r_l1 - (0.5 - _FeatherWidth)) / _FeatherWidth);
 
+				// Quantize wave direction and interpolate waves
 				const float dTheta = 0.5*0.314159265;
 				float angle0 = input.axisHeading;
 				float rem = fmod( angle0, dTheta );
@@ -106,10 +110,8 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Geometry"
 				axisZ1.x = -axisX1.y;
 				axisZ1.y = axisX1.x;
 
-				const float waveBufferSize = 0.5f * (1 << _WaveBufferSliceIndex);
-				input.worldPos /= waveBufferSize;
-				float2 uv0 = float2(dot( input.worldPos.xz, axisX0 ), dot( input.worldPos.xz, axisZ0 ));
-				float2 uv1 = float2(dot( input.worldPos.xz, axisX1 ), dot( input.worldPos.xz, axisZ1 ));
+				float2 uv0 = float2(dot( input.worldPosScaled.xz, axisX0 ), dot( input.worldPosScaled.xz, axisZ0 ));
+				float2 uv1 = float2(dot( input.worldPosScaled.xz, axisX1 ), dot( input.worldPosScaled.xz, axisZ1 ));
 
 				// Sample displacement, rotate into frame
 				float4 disp_variance0 = _WaveBuffer.SampleLevel( sampler_Crest_linear_repeat, float3(uv0, _WaveBufferSliceIndex), 0 );

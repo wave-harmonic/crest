@@ -86,7 +86,7 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Geometry"
 
 				// Attenuate if depth is less than half of the average wavelength
 				const half depth = _LD_TexArray_SeaFloorDepth.SampleLevel(LODData_linear_clamp_sampler, input.uv_slice.xyz, 0.0).x;
-				half depth_wt = saturate(2.0 * depth / _AverageWavelength);
+				const half depth_wt = saturate(2.0 * depth / _AverageWavelength);
 				const float attenuationAmount = _AttenuationInShallows * _UseShallowWaterAttenuation;
 				wt *= attenuationAmount * depth_wt + (1.0 - attenuationAmount);
 
@@ -97,29 +97,25 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Geometry"
 				// Quantize wave direction and interpolate waves
 				const float dTheta = 0.5*0.314159265;
 				float angle0 = input.axisHeading;
-				float rem = fmod( angle0, dTheta );
+				const float rem = fmod( angle0, dTheta );
 				angle0 -= rem;
-				float angle1 = angle0 + dTheta;
+				const float angle1 = angle0 + dTheta;
 
-				float2 axisX0 = float2(cos( angle0 ), sin( angle0 ));
-				float2 axisZ0;
-				axisZ0.x = -axisX0.y;
-				axisZ0.y = axisX0.x;
-				float2 axisX1 = float2(cos( angle1 ), sin( angle1 ));
-				float2 axisZ1;
-				axisZ1.x = -axisX1.y;
-				axisZ1.y = axisX1.x;
+				const float2 axisX0 = float2(cos( angle0 ), sin( angle0 ));
+				const float2 axisX1 = float2(cos( angle1 ), sin( angle1 ));
+				float2 axisZ0; axisZ0.x = -axisX0.y; axisZ0.y = axisX0.x;
+				float2 axisZ1; axisZ1.x = -axisX1.y; axisZ1.y = axisX1.x;
 
-				float2 uv0 = float2(dot( input.worldPosScaled.xz, axisX0 ), dot( input.worldPosScaled.xz, axisZ0 ));
-				float2 uv1 = float2(dot( input.worldPosScaled.xz, axisX1 ), dot( input.worldPosScaled.xz, axisZ1 ));
+				const float2 uv0 = float2(dot( input.worldPosScaled.xz, axisX0 ), dot( input.worldPosScaled.xz, axisZ0 ));
+				const float2 uv1 = float2(dot( input.worldPosScaled.xz, axisX1 ), dot( input.worldPosScaled.xz, axisZ1 ));
 
 				// Sample displacement, rotate into frame
 				float4 disp_variance0 = _WaveBuffer.SampleLevel( sampler_Crest_linear_repeat, float3(uv0, _WaveBufferSliceIndex), 0 );
-				disp_variance0.xz = disp_variance0.x * axisX0 + disp_variance0.z * axisZ0;
 				float4 disp_variance1 = _WaveBuffer.SampleLevel( sampler_Crest_linear_repeat, float3(uv1, _WaveBufferSliceIndex), 0 );
+				disp_variance0.xz = disp_variance0.x * axisX0 + disp_variance0.z * axisZ0;
 				disp_variance1.xz = disp_variance1.x * axisX1 + disp_variance1.z * axisZ1;
-				float alpha = rem / dTheta;
-				float4 disp_variance = lerp( disp_variance1, disp_variance0, 1-alpha );
+				const float alpha = rem / dTheta;
+				float4 disp_variance = lerp( disp_variance0, disp_variance1, alpha );
 
 				// The large waves are added to the last two lods. Don't write cumulative variances for these - cumulative variance
 				// for the last fitting wave cascade captures everything needed.

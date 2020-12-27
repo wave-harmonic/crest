@@ -1,8 +1,8 @@
-﻿using UnityEditor;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace Crest.Spline
 {
+    [ExecuteAlways]
     public class Spline : MonoBehaviour
     {
         [SerializeField, Delayed]
@@ -17,6 +17,11 @@ namespace Crest.Spline
         Mesh _mesh;
 
         SplinePoint[] SplinePoints => GetComponentsInChildren<SplinePoint>();
+
+        void Awake()
+        {
+            Generate();
+        }
 
         Vector3 TangentAfter(SplinePoint[] splinePoints, int idx)
         {
@@ -53,7 +58,7 @@ namespace Crest.Spline
             return tangent / wt;
         }
 
-        void OnDrawGizmos()
+        void Generate()
         {
             var splinePoints = SplinePoints;
             if (splinePoints.Length < 2) return;
@@ -65,10 +70,10 @@ namespace Crest.Spline
             }
             lengthEst = Mathf.Max(lengthEst, 1f);
 
-            Vector3[] points = new Vector3[(splinePoints.Length - 1) * 3 + 1];
+            var points = new Vector3[(splinePoints.Length - 1) * 3 + 1];
             for (int i = 0; i < points.Length; i++)
             {
-                float tm = 0.5f;
+                float tm = 0.39f;
 
                 if (i % 3 == 0)
                 {
@@ -114,8 +119,6 @@ namespace Crest.Spline
 
             if (splinePoints.Length > 1)
             {
-                Handles.color = Color.red;
-
                 float spacing = 16f / Mathf.Pow(2f, _subdivisions + 2);
                 int pointCount = Mathf.RoundToInt(lengthEst / spacing);
 
@@ -137,8 +140,6 @@ namespace Crest.Spline
                     var pidx = spidx * 3;
 
                     resultPts0[i] = (1 - alpha) * (1 - alpha) * (1 - alpha) * points[pidx] + 3 * alpha * (1 - alpha) * (1 - alpha) * points[pidx + 1] + 3 * alpha * alpha * (1 - alpha) * points[pidx + 2] + alpha * alpha * alpha * points[pidx + 3];
-
-                    Handles.DrawLine(resultPts0[i], resultPts0[i - 1]);
                 }
 
                 var resultPts1 = new Vector3[pointCount];
@@ -167,23 +168,32 @@ namespace Crest.Spline
                     resultPtsTmp = tmp;
                 }
 
-                //for (int i = 0; i < pointCount; i++)
-                //{
-                //    Handles.DrawLine(resultPts0[i], resultPts1[i]);
-                //}
-
-                Handles.color = Color.white;
-
                 CreateMesh(resultPts0, resultPts1, lengthEst);
             }
         }
 
-        void OnDrawGizmosSelected()
+#if UNITY_EDITOR
+        void Update()
+        {
+            // Would be ideal to hash and only generate on change
+            Generate();
+        }
+#endif
+
+        public void OnDrawGizmosSelected()
         {
             var mf = GetComponent<MeshFilter>();
             if (mf != null && mf.sharedMesh != null)
             {
                 Gizmos.DrawWireMesh(mf.sharedMesh, 0, transform.position, transform.rotation, transform.lossyScale);
+            }
+
+            var points = SplinePoints;
+            foreach (var point in points)
+            {
+                Gizmos.color = Color.red;
+                Gizmos.DrawWireSphere(point.transform.position, 1f);
+                Gizmos.color = Color.white;
             }
         }
 
@@ -209,10 +219,12 @@ namespace Crest.Spline
                 var dist0 = totalLengthEst * i / (resultPts0.Length - 1f);
                 var dist1 = totalLengthEst * (i + 1) / (resultPts0.Length - 1f);
 
-                uvs[2 * i] = new Vector2(dist0, (resultPts1[i] - resultPts0[i]).magnitude);
-                uvs[2 * i + 1] = new Vector2(dist0, 0f);
-                uvs[2 * (i + 1)] = new Vector2(dist1, (resultPts1[i + 1] - resultPts0[i + 1]).magnitude);
-                uvs[2 * (i + 1) + 1] = new Vector2(dist1, 0f);
+                var axis0 = -new Vector2(resultPts1[i + 0].x - resultPts0[i + 0].x, resultPts1[i + 0].z - resultPts0[i + 0].z).normalized;
+                var axis1 = -new Vector2(resultPts1[i + 1].x - resultPts0[i + 1].x, resultPts1[i + 1].z - resultPts0[i + 1].z).normalized;
+                uvs[2 * i] = axis0;
+                uvs[2 * i + 1] = axis0;
+                uvs[2 * (i + 1)] = axis1;
+                uvs[2 * (i + 1) + 1] = axis1;
 
                 indices[i * 6] = 2 * i;
                 indices[i * 6 + 1] = 2 * (i + 1);

@@ -3,11 +3,22 @@ using UnityEngine;
 
 namespace Crest.Spline
 {
+    [ExecuteAlways]
     public class SplinePoint : MonoBehaviour
     {
-        void OnDrawGizmos()
+        Spline _spline;
+
+        void Awake()
         {
-            Gizmos.DrawWireSphere(transform.position, 1f);
+            _spline = transform.parent != null ? transform.parent.GetComponent<Spline>() : null;
+        }
+
+        void OnDrawGizmosSelected()
+        {
+            if (_spline != null)
+            {
+                _spline.OnDrawGizmosSelected();
+            }
         }
     }
 

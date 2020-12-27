@@ -93,7 +93,7 @@ namespace Crest
                     {
                         buf.DrawProcedural(Matrix4x4.identity, _material, 0, MeshTopology.Triangles, 3);
                     }
-                    else
+                    else if (_material != null)
                     {
                         buf.DrawRenderer(_rend, _material);
                     }

@@ -34,14 +34,16 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Geometry"
 			struct appdata
             {
                 float4 vertex : POSITION;
-                float2 uv : TEXCOORD0;
+                float2 axis : TEXCOORD0;
             };
 
             struct v2f
             {
 				float4 vertex : SV_POSITION;
-				float4 uvGeo_uvWaves : TEXCOORD0;
+				//float4 uvGeo_uvWaves : TEXCOORD0;
 				float3 uv_slice : TEXCOORD1;
+				float axisHeading : TEXCOORD2;
+				float3 worldPos : TEXCOORD3;
             };
 
 			Texture2DArray _WaveBuffer;
@@ -58,7 +60,7 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Geometry"
 			float _Weight;
 			CBUFFER_END
 
-            v2f vert (appdata v)
+            v2f vert(appdata v)
             {
                 v2f o;
 
@@ -69,7 +71,7 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Geometry"
 				//positionOS *= lerp(_RadiusOuter, _RadiusInner, v.uv.y);
 
 				o.vertex = UnityObjectToClipPos(positionOS);
-				o.uvGeo_uvWaves.xy = v.uv;
+				//o.uvGeo_uvWaves.xy = v.uv;
 
 				//float aveCircum = 3.1415927 * (_RadiusInner + _RadiusOuter);
 				const float waveBufferSize = 0.5f * (1 << _WaveBufferSliceIndex);
@@ -77,12 +79,14 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Geometry"
 				//aveCircum = max(1.0, round(aveCircum / waveBufferSize)) * waveBufferSize;
 
 				// UV coordinate into wave buffer
-				const float2 wavePosition = v.uv; // v.uv* float2(aveCircum, _RadiusOuter - _RadiusInner);
-				o.uvGeo_uvWaves.zw = wavePosition.yx / waveBufferSize;
+				//const float2 wavePosition = v.uv; // v.uv* float2(aveCircum, _RadiusOuter - _RadiusInner);
+				//o.uvGeo_uvWaves.zw = wavePosition.yx / waveBufferSize;
 
 				// UV coordinate into the cascade we are rendering into
-				const float3 worldPos = mul(unity_ObjectToWorld, float4(positionOS, 1.0)).xyz;
-				o.uv_slice.xyz = WorldToUV(worldPos.xz, _CrestCascadeData[_LD_SliceIndex], _LD_SliceIndex);
+				o.worldPos = mul(unity_ObjectToWorld, float4(positionOS, 1.0)).xyz;
+				o.uv_slice.xyz = WorldToUV(o.worldPos.xz, _CrestCascadeData[_LD_SliceIndex], _LD_SliceIndex);
+
+				o.axisHeading = atan2( v.axis.y, v.axis.x ) + 2.0 * 3.141592654;
 
                 return o;
             }
@@ -101,9 +105,36 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Geometry"
 				//float r_l1 = abs(input.uvGeo_uvWaves.y - 0.5);
 				//wt *= saturate(1.0 - (r_l1 - (0.5 - _FeatherWidth)) / _FeatherWidth);
 
+				//input.axisHeading = _Time.w/20.;
+
+				const float dTheta = .5*0.314159265;
+				float angle0 = input.axisHeading;
+				float rem = fmod( angle0, dTheta );
+				angle0 -= rem;
+				float angle1 = angle0 + dTheta;
+
+				float2 axisX0 = float2(cos( angle0 ), sin( angle0 ));
+				float2 axisZ0;
+				axisZ0.x = -axisX0.y;
+				axisZ0.y = axisX0.x;
+				float2 axisX1 = float2(cos( angle1 ), sin( angle1 ));
+				float2 axisZ1;
+				axisZ1.x = -axisX1.y;
+				axisZ1.y = axisX1.x;
+
+				const float waveBufferSize = 0.5f * (1 << _WaveBufferSliceIndex);
+				input.worldPos /= waveBufferSize;
+				float2 uv0 = float2(dot( input.worldPos.xz, axisX0 ), dot( input.worldPos.xz, axisZ0 ));
+				float2 uv1 = float2(dot( input.worldPos.xz, axisX1 ), dot( input.worldPos.xz, axisZ1 ));
+
 				// Sample displacement, rotate into frame
-				float4 disp_variance = _WaveBuffer.SampleLevel(sampler_Crest_linear_repeat, float3(input.uvGeo_uvWaves.zw, _WaveBufferSliceIndex), 0);
-				//disp_variance.xz = disp_variance.x * input.axisX + disp_variance.z * float2(-input.axisX.y, input.axisX.x);
+				float4 disp_variance0 = _WaveBuffer.SampleLevel( sampler_Crest_linear_repeat, float3(uv0, _WaveBufferSliceIndex), 0 );
+				disp_variance0.xz = disp_variance0.x * axisX0 + disp_variance0.z * axisZ0;
+				float4 disp_variance1 = _WaveBuffer.SampleLevel( sampler_Crest_linear_repeat, float3(uv1, _WaveBufferSliceIndex), 0 );
+				disp_variance1.xz = disp_variance1.x * axisX1 + disp_variance1.z * axisZ1;
+				float alpha = rem / dTheta;
+				//alpha = saturate( (alpha - 0.4) * 6.8 );
+				float4 disp_variance = lerp( disp_variance1, disp_variance0, 1-alpha );
 
 				// The large waves are added to the last two lods. Don't write cumulative variances for these - cumulative variance
 				// for the last fitting wave cascade captures everything needed.

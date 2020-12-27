@@ -2,117 +2,120 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
-// Adds Gestner waves to world
-
 Shader "Crest/Inputs/Animated Waves/Gerstner Geometry"
 {
-	Properties
-	{
-		[Toggle] _WeightFromVertexColourRed("Weight from vertex colour (red channel)", Float) = 0
-		[Toggle] _FeatherAtUVExtents("Feather at UV extents", Float) = 0
+    Properties
+    {
 		_FeatherWidth("Feather width", Range(0.001, 0.5)) = 0.1
+		_UseShallowWaterAttenuation("Use Shallow Water Attenuation", Range(0, 1)) = 1
 	}
 
-	SubShader
-	{
+    SubShader
+    {
 		// Additive blend everywhere
 		Blend One One
 		ZWrite Off
 		ZTest Always
 		Cull Off
 
-		Pass
-		{
-			CGPROGRAM
-			#pragma vertex Vert
-			#pragma fragment Frag
-			//#pragma enable_d3d11_debug_symbols
-			#pragma shader_feature_local _WEIGHTFROMVERTEXCOLOURRED_ON
-			#pragma shader_feature_local _FEATHERATUVEXTENTS_ON
+        Pass
+        {
+            CGPROGRAM
+            #pragma vertex vert
+            #pragma fragment frag
+			#pragma enable_d3d11_debug_symbols
 
-			#include "UnityCG.cginc"
+            #include "UnityCG.cginc"
 
 			#include "../OceanGlobals.hlsl"
 			#include "../OceanInputsDriven.hlsl"
 			#include "../OceanHelpersNew.hlsl"
 
-			Texture2DArray _WaveBuffer;
+			struct appdata
+            {
+                float4 vertex : POSITION;
+                float2 uv : TEXCOORD0;
+            };
 
-			CBUFFER_START(CrestPerOceanInput)
-			int _WaveBufferSliceIndex;
-			float _Weight;
-			float _AverageWavelength;
-			float _AttenuationInShallows;
-			CBUFFER_END
+            struct v2f
+            {
+				float4 vertex : SV_POSITION;
+				float4 uvGeo_uvWaves : TEXCOORD0;
+				float3 uv_slice : TEXCOORD1;
+            };
+
+			Texture2DArray _WaveBuffer;
 
 			CBUFFER_START(GerstnerPerMaterial)
 			half _FeatherWidth;
-			float3 _DisplacementAtInputPosition;
+			float _UseShallowWaterAttenuation;
 			CBUFFER_END
 
-			struct Attributes
-			{
-				float3 positionOS : POSITION;
-				float2 uv : TEXCOORD0;
-#if _WEIGHTFROMVERTEXCOLOURRED_ON
-				float3 colour : COLOR0;
-#endif
-			};
+			CBUFFER_START(CrestPerOceanInput)
+			int _WaveBufferSliceIndex;
+			float _AverageWavelength;
+			float _AttenuationInShallows;
+			float _Weight;
+			CBUFFER_END
 
-			struct Varyings
-			{
-				float4 positionCS : SV_POSITION;
-				float4 uvGeo_uvWaves : TEXCOORD0;
-				float2 worldPosXZ : TEXCOORD3;
-				float4 uv_slice_wt : TEXCOORD1;
-#if _WEIGHTFROMVERTEXCOLOURRED_ON
-				float weight : TEXCOORD2;
-#endif
-			};
+            v2f vert (appdata v)
+            {
+                v2f o;
 
-			Varyings Vert(Attributes input)
-			{
-				Varyings o;
+				// We take direction of vert, not its position
+				float3 positionOS = v.vertex.xyz;
 
-				o.uvGeo_uvWaves.xy = input.uv;
+				// Scale by inner/outer edge distance to create ring
+				//positionOS *= lerp(_RadiusOuter, _RadiusInner, v.uv.y);
 
-				float3 worldPos = mul(unity_ObjectToWorld, float4(input.positionOS, 1.0)).xyz;
-				// Correct for displacement
-				worldPos.xz -= _DisplacementAtInputPosition.xz;
-				o.worldPosXZ = worldPos.xz;
-				
-				o.positionCS = mul(UNITY_MATRIX_VP, float4(worldPos, 1.0));
+				o.vertex = UnityObjectToClipPos(positionOS);
+				o.uvGeo_uvWaves.xy = v.uv;
 
-				o.uv_slice_wt.xyz = WorldToUV(o.worldPosXZ, _CrestCascadeData[_LD_SliceIndex], _LD_SliceIndex);
+				//float aveCircum = 3.1415927 * (_RadiusInner + _RadiusOuter);
+				const float waveBufferSize = 0.5f * (1 << _WaveBufferSliceIndex);
+				// Make wave buffer repeat an integral number of times around the circumference
+				//aveCircum = max(1.0, round(aveCircum / waveBufferSize)) * waveBufferSize;
 
-				o.uv_slice_wt.w = 1.0;
-#if _WEIGHTFROMVERTEXCOLOURRED_ON
-				o.uv_slice_wt.w = input.colour.x;
-#endif
+				// UV coordinate into wave buffer
+				const float2 wavePosition = v.uv; // v.uv* float2(aveCircum, _RadiusOuter - _RadiusInner);
+				o.uvGeo_uvWaves.zw = wavePosition.yx / waveBufferSize;
 
-				float scale = 0.5f * (1 << _WaveBufferSliceIndex);
-				o.uvGeo_uvWaves.zw = o.worldPosXZ / scale;
+				// UV coordinate into the cascade we are rendering into
+				const float3 worldPos = mul(unity_ObjectToWorld, float4(positionOS, 1.0)).xyz;
+				o.uv_slice.xyz = WorldToUV(worldPos.xz, _CrestCascadeData[_LD_SliceIndex], _LD_SliceIndex);
 
-				return o;
-			}
-			
-			half4 Frag( Varyings input ) : SV_Target
-			{
+                return o;
+            }
+
+            float4 frag(v2f input) : SV_Target
+            {
 				float wt = _Weight;
 
-#if _FEATHERATUVEXTENTS_ON
-				float2 offset = abs(input.uvGeo_uvWaves.xy - 0.5);
-				float r_l1 = max(offset.x, offset.y);
-				wt *= saturate(1.0 - (r_l1 - (0.5 - _FeatherWidth)) / _FeatherWidth);
-#endif
-
-				const half depth = _LD_TexArray_SeaFloorDepth.SampleLevel(LODData_linear_clamp_sampler, input.uv_slice_wt.xyz, 0.0).x;
+				// Attenuate if depth is less than half of the average wavelength
+				const half depth = _LD_TexArray_SeaFloorDepth.SampleLevel(LODData_linear_clamp_sampler, input.uv_slice.xyz, 0.0).x;
 				half depth_wt = saturate(2.0 * depth / _AverageWavelength);
-				wt *= _AttenuationInShallows * depth_wt + (1.0 - _AttenuationInShallows);
+				const float attenuationAmount = _AttenuationInShallows * _UseShallowWaterAttenuation;
+				wt *= attenuationAmount * depth_wt + (1.0 - attenuationAmount);
 
-				return wt * _WaveBuffer.SampleLevel( sampler_Crest_linear_repeat, float3(input.uvGeo_uvWaves.zw, _WaveBufferSliceIndex), 0 );
-			}
-			ENDCG
-		}
-	}
+				// Feature at front/back
+				//float r_l1 = abs(input.uvGeo_uvWaves.y - 0.5);
+				//wt *= saturate(1.0 - (r_l1 - (0.5 - _FeatherWidth)) / _FeatherWidth);
+
+				// Sample displacement, rotate into frame
+				float4 disp_variance = _WaveBuffer.SampleLevel(sampler_Crest_linear_repeat, float3(input.uvGeo_uvWaves.zw, _WaveBufferSliceIndex), 0);
+				//disp_variance.xz = disp_variance.x * input.axisX + disp_variance.z * float2(-input.axisX.y, input.axisX.x);
+
+				// The large waves are added to the last two lods. Don't write cumulative variances for these - cumulative variance
+				// for the last fitting wave cascade captures everything needed.
+				const float minWavelength = _AverageWavelength / 1.5;
+				if( minWavelength > _CrestCascadeData[_LD_SliceIndex]._maxWavelength )
+				{
+					disp_variance.w = 0.0;
+				}
+
+				return wt * disp_variance;
+            }
+            ENDCG
+        }
+    }
 }

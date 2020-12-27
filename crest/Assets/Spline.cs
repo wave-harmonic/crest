@@ -58,6 +58,13 @@ namespace Crest.Spline
             var splinePoints = SplinePoints;
             if (splinePoints.Length < 2) return;
 
+            float lengthEst = 0f;
+            for (int i = 1; i < splinePoints.Length; i++)
+            {
+                lengthEst += (splinePoints[i].transform.position - splinePoints[i - 1].transform.position).magnitude;
+            }
+            lengthEst = Mathf.Max(lengthEst, 1f);
+
             Vector3[] points = new Vector3[(splinePoints.Length - 1) * 3 + 1];
             for (int i = 0; i < points.Length; i++)
             {
@@ -109,12 +116,6 @@ namespace Crest.Spline
             {
                 Handles.color = Color.red;
 
-                float lengthEst = 0f;
-                for (int i = 1; i < splinePoints.Length; i++)
-                {
-                    lengthEst += (splinePoints[i].transform.position - splinePoints[i - 1].transform.position).magnitude;
-                }
-                lengthEst = Mathf.Max(lengthEst, 1f);
                 float spacing = 16f / Mathf.Pow(2f, _subdivisions + 2);
                 int pointCount = Mathf.RoundToInt(lengthEst / spacing);
 
@@ -173,11 +174,20 @@ namespace Crest.Spline
 
                 Handles.color = Color.white;
 
-                CreateMesh(resultPts0, resultPts1);
+                CreateMesh(resultPts0, resultPts1, lengthEst);
             }
         }
 
-        void CreateMesh(Vector3[] resultPts0, Vector3[] resultPts1)
+        void OnDrawGizmosSelected()
+        {
+            var mf = GetComponent<MeshFilter>();
+            if (mf != null && mf.sharedMesh != null)
+            {
+                Gizmos.DrawWireMesh(mf.sharedMesh, 0, transform.position, transform.rotation, transform.lossyScale);
+            }
+        }
+
+        void CreateMesh(Vector3[] resultPts0, Vector3[] resultPts1, float totalLengthEst)
         {
             if (_mesh == null)
             {
@@ -186,7 +196,8 @@ namespace Crest.Spline
             }
 
             var triCount = (resultPts0.Length - 1) * 2;
-            var verts = new Vector3[triCount+2];
+            var verts = new Vector3[triCount + 2];
+            var uvs = new Vector2[triCount + 2];
             var indices = new int[triCount * 6];
             for (var i = 0; i < resultPts0.Length - 1; i += 1)
             {
@@ -194,6 +205,15 @@ namespace Crest.Spline
                 verts[2 * i + 1] = transform.InverseTransformPoint(resultPts1[i]);
                 verts[2 * (i + 1)] = transform.InverseTransformPoint(resultPts0[(i + 1)]);
                 verts[2 * (i + 1) + 1] = transform.InverseTransformPoint(resultPts1[(i + 1)]);
+
+                var dist0 = totalLengthEst * i / (resultPts0.Length - 1f);
+                var dist1 = totalLengthEst * (i + 1) / (resultPts0.Length - 1f);
+
+                uvs[2 * i] = new Vector2(dist0, (resultPts1[i] - resultPts0[i]).magnitude);
+                uvs[2 * i + 1] = new Vector2(dist0, 0f);
+                uvs[2 * (i + 1)] = new Vector2(dist1, (resultPts1[i + 1] - resultPts0[i + 1]).magnitude);
+                uvs[2 * (i + 1) + 1] = new Vector2(dist1, 0f);
+
                 indices[i * 6] = 2 * i;
                 indices[i * 6 + 1] = 2 * (i + 1);
                 indices[i * 6 + 2] = 2 * i + 1;
@@ -203,9 +223,11 @@ namespace Crest.Spline
                 indices[i * 6 + 5] = 2 * i + 1;
             }
 
-            _mesh.SetIndices(new int[] {}, MeshTopology.Triangles, 0);
+            _mesh.SetIndices(new int[] { }, MeshTopology.Triangles, 0);
             _mesh.vertices = verts;
+            _mesh.uv = uvs;
             _mesh.SetIndices(indices, MeshTopology.Triangles, 0);
+            _mesh.RecalculateNormals();
 
             var mf = GetComponent<MeshFilter>();
             if (mf == null) mf = gameObject.AddComponent<MeshFilter>();

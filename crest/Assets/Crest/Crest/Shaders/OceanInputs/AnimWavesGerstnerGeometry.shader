@@ -40,7 +40,6 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Geometry"
             struct v2f
             {
 				float4 vertex : SV_POSITION;
-				//float4 uvGeo_uvWaves : TEXCOORD0;
 				float3 uv_slice : TEXCOORD1;
 				float axisHeading : TEXCOORD2;
 				float3 worldPos : TEXCOORD3;
@@ -67,20 +66,7 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Geometry"
 				// We take direction of vert, not its position
 				float3 positionOS = v.vertex.xyz;
 
-				// Scale by inner/outer edge distance to create ring
-				//positionOS *= lerp(_RadiusOuter, _RadiusInner, v.uv.y);
-
 				o.vertex = UnityObjectToClipPos(positionOS);
-				//o.uvGeo_uvWaves.xy = v.uv;
-
-				//float aveCircum = 3.1415927 * (_RadiusInner + _RadiusOuter);
-				const float waveBufferSize = 0.5f * (1 << _WaveBufferSliceIndex);
-				// Make wave buffer repeat an integral number of times around the circumference
-				//aveCircum = max(1.0, round(aveCircum / waveBufferSize)) * waveBufferSize;
-
-				// UV coordinate into wave buffer
-				//const float2 wavePosition = v.uv; // v.uv* float2(aveCircum, _RadiusOuter - _RadiusInner);
-				//o.uvGeo_uvWaves.zw = wavePosition.yx / waveBufferSize;
 
 				// UV coordinate into the cascade we are rendering into
 				o.worldPos = mul(unity_ObjectToWorld, float4(positionOS, 1.0)).xyz;
@@ -105,9 +91,7 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Geometry"
 				//float r_l1 = abs(input.uvGeo_uvWaves.y - 0.5);
 				//wt *= saturate(1.0 - (r_l1 - (0.5 - _FeatherWidth)) / _FeatherWidth);
 
-				//input.axisHeading = _Time.w/20.;
-
-				const float dTheta = .5*0.314159265;
+				const float dTheta = 0.5*0.314159265;
 				float angle0 = input.axisHeading;
 				float rem = fmod( angle0, dTheta );
 				angle0 -= rem;
@@ -133,7 +117,6 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Geometry"
 				float4 disp_variance1 = _WaveBuffer.SampleLevel( sampler_Crest_linear_repeat, float3(uv1, _WaveBufferSliceIndex), 0 );
 				disp_variance1.xz = disp_variance1.x * axisX1 + disp_variance1.z * axisZ1;
 				float alpha = rem / dTheta;
-				//alpha = saturate( (alpha - 0.4) * 6.8 );
 				float4 disp_variance = lerp( disp_variance1, disp_variance0, 1-alpha );
 
 				// The large waves are added to the last two lods. Don't write cumulative variances for these - cumulative variance

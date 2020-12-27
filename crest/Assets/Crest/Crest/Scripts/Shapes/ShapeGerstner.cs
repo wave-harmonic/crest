@@ -235,8 +235,6 @@ namespace Crest
 
         void SliceUpWaves()
         {
-            float divider = 1f;
-
             _firstCascade = _lastCascade = -1;
 
             var cascadeIdx = 0;
@@ -257,7 +255,6 @@ namespace Crest
                 // Skip small amplitude waves
                 while (componentIdx < _wavelengths.Length && _amplitudes[componentIdx] < 0.001f)
                 {
-                    //Debug.Log("KSIP: " + (chopScale * slopeVariance / divider) + ", power: " + _powers[componentIdx]);
                     componentIdx++;
                 }
                 if (componentIdx >= _wavelengths.Length) break;

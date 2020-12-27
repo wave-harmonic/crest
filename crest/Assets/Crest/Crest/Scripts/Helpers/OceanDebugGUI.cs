@@ -26,7 +26,8 @@ namespace Crest
         readonly static float _leftPanelWidth = 180f;
         readonly static float _bottomPanelHeight = 25f;
         readonly static Color _guiColor = Color.black * 0.7f;
-        ShapeGerstnerBatched[] _gerstners;
+        ShapeGerstnerBatched[] _gerstnerBatches;
+        ShapeGerstner[] _gerstners;
 
         static readonly Dictionary<System.Type, string> s_simNames = new Dictionary<System.Type, string>();
 
@@ -78,29 +79,7 @@ namespace Crest
                     Time.timeScale = freeze ? 0f : 1f;
                 }
 
-                GUI.Label(new Rect(x, y, w, h), "Gerstner weight(s)"); y += h;
-                if (_gerstners == null)
-                {
-                    _gerstners = FindObjectsOfType<ShapeGerstnerBatched>();
-                    // i am getting the array in the reverse order compared to the hierarchy which bugs me. sort them based on sibling index,
-                    // which helps if the Gerstners are on sibling GOs.
-                    System.Array.Sort(_gerstners, (a, b) => a.transform.GetSiblingIndex().CompareTo(b.transform.GetSiblingIndex()));
-                }
-                foreach (var gerstner in _gerstners)
-                {
-                    var specW = 75f;
-                    gerstner._weight = GUI.HorizontalSlider(new Rect(x, y, w - specW - 5f, h), gerstner._weight, 0f, 1f);
-
-#if UNITY_EDITOR
-                    if (GUI.Button(new Rect(x + w - specW, y, specW, h), "Spectrum"))
-                    {
-                        var path = UnityEditor.AssetDatabase.GetAssetPath(gerstner._spectrum);
-                        var asset = UnityEditor.AssetDatabase.LoadMainAssetAtPath(path);
-                        UnityEditor.Selection.activeObject = asset;
-                    }
-#endif
-                    y += h;
-                }
+                OnGUIGerstnerSection(x, ref y, w, h);
 
                 _showOceanData = GUI.Toggle(new Rect(x, y, w, h), _showOceanData, "Show sim data"); y += h;
 
@@ -150,6 +129,55 @@ namespace Crest
             }
 
             GUI.color = bkp;
+        }
+
+        void OnGUIGerstnerSection(float x, ref float y, float w, float h)
+        {
+            GUI.Label(new Rect(x, y, w, h), "Gerstner weight(s)"); y += h;
+            if (_gerstnerBatches == null)
+            {
+                _gerstnerBatches = FindObjectsOfType<ShapeGerstnerBatched>();
+                // i am getting the array in the reverse order compared to the hierarchy which bugs me. sort them based on sibling index,
+                // which helps if the Gerstners are on sibling GOs.
+                System.Array.Sort(_gerstnerBatches, (a, b) => a.transform.GetSiblingIndex().CompareTo(b.transform.GetSiblingIndex()));
+            }
+            foreach (var gerstner in _gerstnerBatches)
+            {
+                var specW = 75f;
+                gerstner._weight = GUI.HorizontalSlider(new Rect(x, y, w - specW - 5f, h), gerstner._weight, 0f, 1f);
+
+#if UNITY_EDITOR
+                if (GUI.Button(new Rect(x + w - specW, y, specW, h), "Spectrum"))
+                {
+                    var path = UnityEditor.AssetDatabase.GetAssetPath(gerstner._spectrum);
+                    var asset = UnityEditor.AssetDatabase.LoadMainAssetAtPath(path);
+                    UnityEditor.Selection.activeObject = asset;
+                }
+#endif
+                y += h;
+            }
+            if (_gerstners == null)
+            {
+                _gerstners = FindObjectsOfType<ShapeGerstner>();
+                // i am getting the array in the reverse order compared to the hierarchy which bugs me. sort them based on sibling index,
+                // which helps if the Gerstners are on sibling GOs.
+                System.Array.Sort(_gerstners, (a, b) => a.transform.GetSiblingIndex().CompareTo(b.transform.GetSiblingIndex()));
+            }
+            foreach (var gerstner in _gerstners)
+            {
+                var specW = 75f;
+                gerstner._weight = GUI.HorizontalSlider(new Rect(x, y, w - specW - 5f, h), gerstner._weight, 0f, 1f);
+
+#if UNITY_EDITOR
+                if (GUI.Button(new Rect(x + w - specW, y, specW, h), "Spectrum"))
+                {
+                    var path = UnityEditor.AssetDatabase.GetAssetPath(gerstner._spectrum);
+                    var asset = UnityEditor.AssetDatabase.LoadMainAssetAtPath(path);
+                    UnityEditor.Selection.activeObject = asset;
+                }
+#endif
+                y += h;
+            }
         }
 
         void DrawShapeTargets()

@@ -8,7 +8,7 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Geometry"
     {
 		_FeatherWaveStart("Feather wave start (0-1)", Range( 0.0, 0.5 ) ) = 0.1
 		_FeatherFromSplineEnd("Feather from spline end (m)", Range( 0.0, 100.0 ) ) = 0.0
-		_UseShallowWaterAttenuation("Use Shallow Water Attenuation", Range(0, 1)) = 1
+		_RespectShallowWaterAttenuation("Respect Shallow Water Attenuation", Range(0, 1)) = 1
 	}
 
     SubShader
@@ -53,7 +53,7 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Geometry"
 			CBUFFER_START(GerstnerPerMaterial)
 			half _FeatherWaveStart;
 			half _FeatherFromSplineEnd;
-			float _UseShallowWaterAttenuation;
+			float _RespectShallowWaterAttenuation;
 			CBUFFER_END
 
 			CBUFFER_START(CrestPerOceanInput)
@@ -93,7 +93,7 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Geometry"
 				// Attenuate if depth is less than half of the average wavelength
 				const half depth = _LD_TexArray_SeaFloorDepth.SampleLevel(LODData_linear_clamp_sampler, input.uv_slice.xyz, 0.0).x;
 				const half depth_wt = saturate(2.0 * depth / _AverageWavelength);
-				const float attenuationAmount = _AttenuationInShallows * _UseShallowWaterAttenuation;
+				const float attenuationAmount = _AttenuationInShallows * _RespectShallowWaterAttenuation;
 				wt *= attenuationAmount * depth_wt + (1.0 - attenuationAmount);
 
 				// Feature at front/back

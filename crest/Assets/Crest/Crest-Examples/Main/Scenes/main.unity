@@ -1151,6 +1151,7 @@ MonoBehaviour:
   _spectrumIsStatic: 1
   _windDirectionAngle: 0
   _weight: 1
+  _respectShallowWaterAttenuation: 1
   _componentsPerOctave: 8
   _randomSeed: 0
   _resolution: 32
@@ -1158,6 +1159,8 @@ MonoBehaviour:
   _subdivisions: 1
   _radius: 20
   _smoothingIterations: 60
+  _featherWaveStart: 0.1
+  _featherFromSplineEnds: 0
   _waveBuffers: {fileID: 1471952347}
 --- !u!23 &396912885
 MeshRenderer:
@@ -1464,6 +1467,7 @@ MonoBehaviour:
   _spectrumIsStatic: 0
   _windDirectionAngle: 0
   _weight: 0.805
+  _respectShallowWaterAttenuation: 1
   _componentsPerOctave: 8
   _randomSeed: 0
   _resolution: 32
@@ -1471,6 +1475,8 @@ MonoBehaviour:
   _subdivisions: 1
   _radius: 20
   _smoothingIterations: 60
+  _featherWaveStart: 0.1
+  _featherFromSplineEnds: 0
   _waveBuffers: {fileID: 1819151190}
 --- !u!1 &448816444
 GameObject:
@@ -1558,6 +1564,41 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 128486e28072dc741bdfd69bef81aeae, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!84 &468937730
+RenderTexture:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: GerstnerCascades
+  m_ImageContentsHash:
+    serializedVersion: 2
+    Hash: 00000000000000000000000000000000
+  m_ForcedFallbackFormat: 4
+  m_DownscaleFallback: 0
+  serializedVersion: 3
+  m_Width: 32
+  m_Height: 32
+  m_AntiAliasing: 1
+  m_MipCount: -1
+  m_DepthFormat: 0
+  m_ColorFormat: 48
+  m_MipMap: 0
+  m_GenerateMips: 1
+  m_SRGB: 0
+  m_UseDynamicScale: 0
+  m_BindMS: 0
+  m_EnableCompatibleFormat: 1
+  m_TextureSettings:
+    serializedVersion: 2
+    m_FilterMode: 1
+    m_Aniso: 0
+    m_MipBias: 0
+    m_WrapU: 1
+    m_WrapV: 1
+    m_WrapW: 1
+  m_Dimension: 5
+  m_VolumeDepth: 16
 --- !u!1 &503482074
 GameObject:
   m_ObjectHideFlags: 0
@@ -1851,6 +1892,7 @@ MonoBehaviour:
   _spectrumIsStatic: 0
   _windDirectionAngle: 0
   _weight: 0.805
+  _respectShallowWaterAttenuation: 1
   _componentsPerOctave: 8
   _randomSeed: 0
   _resolution: 32
@@ -1858,6 +1900,8 @@ MonoBehaviour:
   _subdivisions: 1
   _radius: 20
   _smoothingIterations: 60
+  _featherWaveStart: 0.1
+  _featherFromSplineEnds: 0
   _waveBuffers: {fileID: 191124698}
 --- !u!1 &665883448
 GameObject:
@@ -2323,6 +2367,41 @@ Mesh:
     offset: 0
     size: 0
     path: 
+--- !u!84 &790456296
+RenderTexture:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: GerstnerCascades
+  m_ImageContentsHash:
+    serializedVersion: 2
+    Hash: 00000000000000000000000000000000
+  m_ForcedFallbackFormat: 4
+  m_DownscaleFallback: 0
+  serializedVersion: 3
+  m_Width: 32
+  m_Height: 32
+  m_AntiAliasing: 1
+  m_MipCount: -1
+  m_DepthFormat: 0
+  m_ColorFormat: 48
+  m_MipMap: 0
+  m_GenerateMips: 1
+  m_SRGB: 0
+  m_UseDynamicScale: 0
+  m_BindMS: 0
+  m_EnableCompatibleFormat: 1
+  m_TextureSettings:
+    serializedVersion: 2
+    m_FilterMode: 1
+    m_Aniso: 0
+    m_MipBias: 0
+    m_WrapU: 1
+    m_WrapV: 1
+    m_WrapW: 1
+  m_Dimension: 5
+  m_VolumeDepth: 16
 --- !u!1 &827646642
 GameObject:
   m_ObjectHideFlags: 0
@@ -2538,41 +2617,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 128486e28072dc741bdfd69bef81aeae, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!84 &1004823137
-RenderTexture:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: GerstnerCascades
-  m_ImageContentsHash:
-    serializedVersion: 2
-    Hash: 00000000000000000000000000000000
-  m_ForcedFallbackFormat: 4
-  m_DownscaleFallback: 0
-  serializedVersion: 3
-  m_Width: 32
-  m_Height: 32
-  m_AntiAliasing: 1
-  m_MipCount: -1
-  m_DepthFormat: 0
-  m_ColorFormat: 48
-  m_MipMap: 0
-  m_GenerateMips: 1
-  m_SRGB: 0
-  m_UseDynamicScale: 0
-  m_BindMS: 0
-  m_EnableCompatibleFormat: 1
-  m_TextureSettings:
-    serializedVersion: 2
-    m_FilterMode: 1
-    m_Aniso: 0
-    m_MipBias: 0
-    m_WrapU: 1
-    m_WrapV: 1
-    m_WrapW: 1
-  m_Dimension: 5
-  m_VolumeDepth: 16
 --- !u!1001 &1030721467
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3171,6 +3215,7 @@ MonoBehaviour:
   _spectrumIsStatic: 1
   _windDirectionAngle: 0
   _weight: 1
+  _respectShallowWaterAttenuation: 0.343
   _componentsPerOctave: 2
   _randomSeed: 0
   _resolution: 32
@@ -3178,7 +3223,9 @@ MonoBehaviour:
   _subdivisions: 0
   _radius: 40
   _smoothingIterations: 60
-  _waveBuffers: {fileID: 1004823137}
+  _featherWaveStart: 0.174
+  _featherFromSplineEnds: 9
+  _waveBuffers: {fileID: 790456296}
 --- !u!114 &1283289773
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3324,6 +3371,7 @@ MonoBehaviour:
   _spectrumIsStatic: 0
   _windDirectionAngle: 0
   _weight: 0.805
+  _respectShallowWaterAttenuation: 1
   _componentsPerOctave: 8
   _randomSeed: 0
   _resolution: 32
@@ -3331,6 +3379,8 @@ MonoBehaviour:
   _subdivisions: 1
   _radius: 20
   _smoothingIterations: 60
+  _featherWaveStart: 0.1
+  _featherFromSplineEnds: 0
   _waveBuffers: {fileID: 191124698}
 --- !u!1 &1304965551
 GameObject:
@@ -3796,41 +3846,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 128486e28072dc741bdfd69bef81aeae, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!84 &1420449575
-RenderTexture:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: GerstnerCascades
-  m_ImageContentsHash:
-    serializedVersion: 2
-    Hash: 00000000000000000000000000000000
-  m_ForcedFallbackFormat: 4
-  m_DownscaleFallback: 0
-  serializedVersion: 3
-  m_Width: 32
-  m_Height: 32
-  m_AntiAliasing: 1
-  m_MipCount: -1
-  m_DepthFormat: 0
-  m_ColorFormat: 48
-  m_MipMap: 0
-  m_GenerateMips: 1
-  m_SRGB: 0
-  m_UseDynamicScale: 0
-  m_BindMS: 0
-  m_EnableCompatibleFormat: 1
-  m_TextureSettings:
-    serializedVersion: 2
-    m_FilterMode: 1
-    m_Aniso: 0
-    m_MipBias: 0
-    m_WrapU: 1
-    m_WrapV: 1
-    m_WrapW: 1
-  m_Dimension: 5
-  m_VolumeDepth: 16
 --- !u!1 &1440412137
 GameObject:
   m_ObjectHideFlags: 0
@@ -5316,6 +5331,7 @@ MonoBehaviour:
   _spectrumIsStatic: 0
   _windDirectionAngle: -123
   _weight: 0.72
+  _respectShallowWaterAttenuation: 1
   _componentsPerOctave: 8
   _randomSeed: 0
   _resolution: 32
@@ -5323,7 +5339,9 @@ MonoBehaviour:
   _subdivisions: 0
   _radius: 50
   _smoothingIterations: 60
-  _waveBuffers: {fileID: 1420449575}
+  _featherWaveStart: 0.1
+  _featherFromSplineEnds: 0
+  _waveBuffers: {fileID: 468937730}
 --- !u!4 &2119375525
 Transform:
   m_ObjectHideFlags: 0

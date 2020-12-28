@@ -37,6 +37,9 @@ namespace Crest
         [Range(0f, 1f)]
         public float _weight = 1f;
 
+        [SerializeField, Range(0f, 1f)]
+        float _respectShallowWaterAttenuation = 1f;
+
         [Header("Generation Settings")]
         [Delayed, Tooltip("How many wave components to generate in each octave.")]
         public int _componentsPerOctave = 8;
@@ -59,25 +62,32 @@ namespace Crest
         [SerializeField, Delayed]
         int _smoothingIterations = 60;
 
+        [SerializeField]
+        float _featherWaveStart = 0.1f;
+
+        [SerializeField]
+        float _featherFromSplineEnds = 0f;
+
         Mesh _meshForDrawingWaves;
 
         public class GerstnerBatch : ILodDataInput
         {
+            ShapeGerstner _gerstner;
+
             Material _material;
             Mesh _mesh;
 
             RenderTexture _waveBuffer;
             int _waveBufferSliceIndex;
-            public Matrix4x4 _matrix;
 
-            public GerstnerBatch(float wavelength, RenderTexture waveBuffer, int waveBufferSliceIndex, Material material, Mesh mesh, Matrix4x4 matrix)
+            public GerstnerBatch(ShapeGerstner gerstner, float wavelength, RenderTexture waveBuffer, int waveBufferSliceIndex, Material material, Mesh mesh)
             {
+                _gerstner = gerstner;
                 Wavelength = wavelength;
                 _waveBuffer = waveBuffer;
                 _waveBufferSliceIndex = waveBufferSliceIndex;
                 _mesh = mesh;
                 _material = material;
-                _matrix = matrix;
             }
 
             // The ocean input system uses this to decide which lod this batch belongs in
@@ -85,17 +95,17 @@ namespace Crest
 
             public bool Enabled { get => true; set { } }
 
-            public float Weight { get; set; }
-
             public void Draw(CommandBuffer buf, float weight, int isTransition, int lodIdx)
             {
-                if (weight > 0f)
+                var finalWeight = weight * _gerstner._weight;
+                if (finalWeight > 0f)
                 {
                     buf.SetGlobalInt(LodDataMgr.sp_LD_SliceIndex, lodIdx);
-                    buf.SetGlobalFloat(RegisterLodDataInputBase.sp_Weight, Weight * weight);
+                    buf.SetGlobalFloat(RegisterLodDataInputBase.sp_Weight, finalWeight);
                     buf.SetGlobalTexture(sp_WaveBuffer, _waveBuffer);
                     buf.SetGlobalInt(sp_WaveBufferSliceIndex, _waveBufferSliceIndex);
                     buf.SetGlobalFloat(sp_AverageWavelength, Wavelength * 1.5f);
+                    buf.SetGlobalFloat(sp_RespectShallowWaterAttenuation, _gerstner._respectShallowWaterAttenuation);
 
                     // Either use a full screen quad, or a provided mesh renderer to draw the waves
                     if (_mesh == null)
@@ -104,7 +114,10 @@ namespace Crest
                     }
                     else if (_material != null)
                     {
-                        buf.DrawMesh(_mesh, _matrix, _material);
+                        _material.SetFloat(sp_FeatherWaveStart, _gerstner._featherWaveStart);
+                        _material.SetFloat(sp_FeatherFromSplineEnds, _gerstner._featherFromSplineEnds);
+
+                        buf.DrawMesh(_mesh, _gerstner.transform.localToWorldMatrix, _material);
                     }
                 }
             }
@@ -164,6 +177,9 @@ namespace Crest
         static readonly int sp_WaveBuffer = Shader.PropertyToID("_WaveBuffer");
         static readonly int sp_WaveBufferSliceIndex = Shader.PropertyToID("_WaveBufferSliceIndex");
         static readonly int sp_AverageWavelength = Shader.PropertyToID("_AverageWavelength");
+        static readonly int sp_RespectShallowWaterAttenuation = Shader.PropertyToID("_RespectShallowWaterAttenuation");
+        static readonly int sp_FeatherWaveStart = Shader.PropertyToID("_FeatherWaveStart");
+        static readonly int sp_FeatherFromSplineEnds = Shader.PropertyToID("_FeatherFromSplineEnds");
         readonly int sp_AxisX = Shader.PropertyToID("_AxisX");
 
         readonly float _twoPi = 2f * Mathf.PI;
@@ -224,16 +240,6 @@ namespace Crest
                 InitBatches();
 
                 _firstUpdate = false;
-            }
-
-            // Set weights - this should always happen
-            foreach (var batch in _batches)
-            {
-                if (batch != null)
-                {
-                    batch.Weight = _weight;
-                    batch._matrix = transform.localToWorldMatrix;
-                }
             }
 
             ReportMaxDisplacement();
@@ -565,7 +571,7 @@ namespace Crest
             for (int i = _firstCascade; i <= _lastCascade; i++)
             {
                 if (i == -1) break;
-                _batches[i] = new GerstnerBatch(MinWavelength(i), _waveBuffers, i, mat, _meshForDrawingWaves, transform.localToWorldMatrix);
+                _batches[i] = new GerstnerBatch(this, MinWavelength(i), _waveBuffers, i, mat, _meshForDrawingWaves);
                 registered.Add(0, _batches[i]);
             }
         }

@@ -1,9 +1,10 @@
-﻿using UnityEngine;
+﻿using UnityEditor;
+using UnityEngine;
 
 namespace Crest.Spline
 {
     [ExecuteAlways]
-    public class Spline : MonoBehaviour
+    public partial class Spline : MonoBehaviour
     {
         [SerializeField, Delayed]
         int _subdivisions = 0;
@@ -120,7 +121,8 @@ namespace Crest.Spline
                 lengthEst = Mathf.Max(lengthEst, 1f);
 
                 float spacing = 16f / Mathf.Pow(2f, _subdivisions + 2);
-                int pointCount = Mathf.RoundToInt(lengthEst / spacing);
+                int pointCount = Mathf.CeilToInt(lengthEst / spacing);
+                pointCount = Mathf.Max(pointCount, 1);
 
                 var resultPts0 = new Vector3[pointCount];
 
@@ -293,4 +295,56 @@ namespace Crest.Spline
             mf.mesh = _mesh;
         }
     }
+
+#if UNITY_EDITOR
+    public partial class Spline : IValidated
+    {
+        public bool Validate(OceanRenderer ocean, ValidatedHelper.ShowMessage showMessage)
+        {
+            var isValid = true;
+
+            var points = SplinePoints;
+
+            if (points.Length < 2)
+            {
+                showMessage
+                (
+                    "Spline must have at least 2 spline points. Click the <i>Add point</i> button in the Inspector, or add a child GameObject and attach <i>SplinePoint</i> component to it.",
+                    ValidatedHelper.MessageType.Error, this
+                );
+
+                isValid = false;
+            }
+
+            for (int i = 0; i < transform.childCount; i++)
+            {
+                if (transform.GetChild(i).GetComponent<SplinePoint>() == null)
+                {
+                    showMessage
+                    (
+                        "All child GameObjects under <i>Spline</i> must have SplinePoint component added. Click to select missing component.",
+                        ValidatedHelper.MessageType.Error, this
+                    );
+
+                }
+            }
+
+            return isValid;
+        }
+    }
+
+    [CustomEditor(typeof(Spline))]
+    public class SplineEditor : ValidatedEditor
+    {
+        public override void OnInspectorGUI()
+        {
+            base.OnInspectorGUI();
+
+            if (GUILayout.Button("Add point"))
+            {
+                SplinePointEditor.AddSplinePointAfter((target as Spline).transform);
+            }
+        }
+    }
+#endif
 }

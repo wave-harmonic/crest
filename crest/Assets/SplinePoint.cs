@@ -119,12 +119,42 @@ namespace Crest.Spline
             }
         }
 
-        GameObject CreateNewSP()
+        static GameObject CreateNewSP()
         {
             var newPoint = new GameObject();
             newPoint.name = "SplinePoint";
             newPoint.AddComponent<SplinePoint>();
             return newPoint;
+        }
+
+        public static void AddSplinePointAfter(Transform parent, int afterIdx = -1)
+        {
+            if (afterIdx == -1) afterIdx = parent.childCount - 1;
+
+            var newPoint = CreateNewSP();
+            newPoint.transform.parent = parent;
+
+            var newIdx = afterIdx + 1;
+            newPoint.transform.SetSiblingIndex(newIdx);
+
+            if (parent.childCount == 1)
+            {
+                newPoint.transform.localPosition = Vector3.zero;
+            }
+            else if (parent.childCount == 2)
+            {
+                newPoint.transform.position = parent.GetChild(afterIdx).position + 10f * Vector3.forward;
+            }
+            else if (newIdx < parent.childCount - 1)
+            {
+                var beforeNewPoint = parent.GetChild(afterIdx);
+                var afterNewPoint = parent.GetChild(afterIdx + 2);
+                newPoint.transform.position = Vector3.Lerp(beforeNewPoint.position, afterNewPoint.position, 0.5f);
+            }
+            else if (parent.childCount > 2)
+            {
+                newPoint.transform.position = 2f * parent.GetChild(newIdx - 1).position - parent.GetChild(newIdx - 2).position;
+            }
         }
     }
 #endif

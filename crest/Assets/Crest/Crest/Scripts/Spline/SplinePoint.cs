@@ -1,4 +1,8 @@
-﻿using UnityEditor;
+﻿// Crest Ocean System
+
+// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
+
+using UnityEditor;
 using UnityEngine;
 
 namespace Crest.Spline
@@ -6,6 +10,7 @@ namespace Crest.Spline
     [ExecuteAlways]
     public class SplinePoint : MonoBehaviour
     {
+#if UNITY_EDITOR
         Spline _spline;
 
         void Awake()
@@ -17,6 +22,12 @@ namespace Crest.Spline
         {
             if (Selection.activeGameObject == gameObject)
             {
+                var messageReceivers = GetComponentsInParent<IReceiveSplinePointOnDrawGizmosSelectedMessages>();
+                foreach (var rec in messageReceivers)
+                {
+                    rec.OnSplinePointDrawGizmosSelected(this);
+                }
+
                 if (_spline == null) _spline = transform.parent.GetComponent<Spline>();
                 if (_spline != null)
                 {
@@ -33,9 +44,15 @@ namespace Crest.Spline
             }
             Gizmos.color = Color.white;
         }
+#endif
     }
 
 #if UNITY_EDITOR
+    public interface IReceiveSplinePointOnDrawGizmosSelectedMessages
+    {
+        void OnSplinePointDrawGizmosSelected(SplinePoint point);
+    }
+
     [CustomEditor(typeof(SplinePoint))]
     public class SplinePointEditor : Editor
     {

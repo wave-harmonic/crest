@@ -1,4 +1,8 @@
-﻿using UnityEditor;
+﻿// Crest Ocean System
+
+// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
+
+using UnityEditor;
 using UnityEngine;
 
 namespace Crest.Spline
@@ -7,14 +11,6 @@ namespace Crest.Spline
     public partial class Spline : MonoBehaviour
     {
         public SplinePoint[] SplinePoints => GetComponentsInChildren<SplinePoint>();
-
-#if UNITY_EDITOR
-        void Update()
-        {
-            // Would be ideal to hash and only generate on change
-            //Generate();
-        }
-#endif
 
         public void OnDrawGizmosSelected()
         {

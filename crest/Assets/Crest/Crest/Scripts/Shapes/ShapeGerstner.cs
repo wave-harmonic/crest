@@ -19,6 +19,9 @@ namespace Crest
     /// </summary>
     [ExecuteAlways]
     public partial class ShapeGerstner : MonoBehaviour, IFloatingOrigin
+#if UNITY_EDITOR
+        , IReceiveSplinePointOnDrawGizmosSelectedMessages
+#endif
     {
         [Header("Wave Settings")]
         [Tooltip("The spectrum that defines the ocean surface shape. Assign asset of type Crest/Ocean Waves Spectrum.")]
@@ -210,6 +213,10 @@ namespace Crest
 
         public void CrestUpdate(CommandBuffer buf)
         {
+#if UNITY_EDITOR
+            UpdateEditorOnly();
+#endif
+
             if (_waveBuffers == null || _resolution != _waveBuffers.width || _bufCascadeParams == null || _bufWaveData == null)
             {
                 InitData();
@@ -247,6 +254,23 @@ namespace Crest
 
             buf.SetGlobalVector(sp_AxisX, WindDir);
         }
+
+#if UNITY_EDITOR
+        void UpdateEditorOnly()
+        {
+            if (_spectrum == null)
+            {
+                _spectrum = ScriptableObject.CreateInstance<OceanWaveSpectrum>();
+                _spectrum.name = "Default Waves (auto)";
+            }
+
+            // Unassign mesh
+            if (_meshForDrawingWaves != null && GetComponent<Spline.Spline>() == null)
+            {
+                _meshForDrawingWaves = null;
+            }
+        }
+#endif
 
         void SliceUpWaves()
         {
@@ -849,6 +873,11 @@ namespace Crest
 #if UNITY_EDITOR
         private void OnDrawGizmosSelected()
         {
+            DrawMesh();
+        }
+
+        void DrawMesh()
+        {
             if (_meshForDrawingWaves != null)
             {
                 Gizmos.color = RegisterAnimWavesInput.s_gizmoColor;
@@ -863,6 +892,11 @@ namespace Crest
                 OceanDebugGUI.DrawTextureArray(_waveBuffers, 8);
             }
         }
+
+        public void OnSplinePointDrawGizmosSelected(SplinePoint point)
+        {
+            DrawMesh();
+        }
 #endif
     }
 
@@ -872,17 +906,6 @@ namespace Crest
         public bool Validate(OceanRenderer ocean, ValidatedHelper.ShowMessage showMessage)
         {
             var isValid = true;
-
-            if (_spectrum == null)
-            {
-                showMessage
-                (
-                    "There is no spectrum assigned meaning this Gerstner component won't generate any waves.",
-                    ValidatedHelper.MessageType.Warning, this
-                );
-
-                isValid = false;
-            }
 
             if (_componentsPerOctave == 0)
             {

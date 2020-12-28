@@ -43,7 +43,7 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Geometry"
             {
 				float4 vertex : SV_POSITION;
 				float3 uv_slice : TEXCOORD1;
-				float axisHeading : TEXCOORD2;
+				float2 axis : TEXCOORD2;
 				float3 worldPosScaled : TEXCOORD3;
 				float2 distToSplineEnd_invNormDistToShoreline : TEXCOORD4;
             };
@@ -79,9 +79,9 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Geometry"
 				const float waveBufferSize = 0.5f * (1 << _WaveBufferSliceIndex);
 				o.worldPosScaled = worldPos / waveBufferSize;
 
-				o.axisHeading = atan2( v.axis.y, v.axis.x ) + 2.0 * 3.141592654;
-
 				o.distToSplineEnd_invNormDistToShoreline = v.distToSplineEnd_invNormDistToShoreline;
+
+				o.axis = v.axis;
 
                 return o;
             }
@@ -101,8 +101,9 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Geometry"
 				if( _FeatherFromSplineEnd > 0.0 ) wt *= saturate( input.distToSplineEnd_invNormDistToShoreline.x / _FeatherFromSplineEnd );
 
 				// Quantize wave direction and interpolate waves
+				float axisHeading = atan2( input.axis.y, input.axis.x ) + 2.0 * 3.141592654;
 				const float dTheta = 0.5*0.314159265;
-				float angle0 = input.axisHeading;
+				float angle0 = axisHeading;
 				const float rem = fmod( angle0, dTheta );
 				angle0 -= rem;
 				const float angle1 = angle0 + dTheta;

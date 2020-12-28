@@ -76,10 +76,26 @@ namespace Crest.Spline
         {
             base.OnInspectorGUI();
 
+            var targetSpline = target as Spline;
+
             if (GUILayout.Button("Add point (extend)"))
             {
-                SplinePointEditor.AddSplinePointAfter((target as Spline).transform);
+                SplinePointEditor.AddSplinePointAfter(targetSpline.transform);
             }
+
+            GUILayout.BeginHorizontal();
+            var pointCount = targetSpline.transform.childCount;
+            GUI.enabled = pointCount > 0;
+            if (GUILayout.Button("Select first point"))
+            {
+                Selection.activeGameObject = targetSpline.transform.GetChild(0).gameObject;
+            }
+            if (GUILayout.Button("Select last point"))
+            {
+                Selection.activeGameObject = targetSpline.transform.GetChild(pointCount - 1).gameObject;
+            }
+            GUI.enabled = true;
+            GUILayout.EndHorizontal();
         }
     }
 #endif

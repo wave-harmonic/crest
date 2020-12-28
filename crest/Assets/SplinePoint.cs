@@ -13,12 +13,25 @@ namespace Crest.Spline
             _spline = transform.parent != null ? transform.parent.GetComponent<Spline>() : null;
         }
 
-        void OnDrawGizmosSelected()
+        void OnDrawGizmos()
         {
-            if (_spline != null)
+            if (Selection.activeGameObject == gameObject)
             {
-                _spline.OnDrawGizmosSelected();
+                if (_spline == null) _spline = transform.parent.GetComponent<Spline>();
+                if (_spline != null)
+                {
+                    _spline.OnDrawGizmosSelected();
+                }
+
+                Gizmos.color = Color.yellow;
+                Gizmos.DrawSphere(transform.position, 1f);
             }
+            else
+            {
+                Gizmos.color = Color.black * 0.5f;
+                Gizmos.DrawSphere(transform.position, 1f);
+            }
+            Gizmos.color = Color.white;
         }
     }
 

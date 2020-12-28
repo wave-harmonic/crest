@@ -7,7 +7,7 @@ namespace Crest.Spline
     public partial class Spline : MonoBehaviour
     {
         [SerializeField, Delayed]
-        int _subdivisions = 0;
+        int _subdivisions = 1;
 
         [SerializeField]
         float _radius = 20f;
@@ -191,12 +191,13 @@ namespace Crest.Spline
                 Gizmos.DrawWireMesh(mf.sharedMesh, 0, transform.position, transform.rotation, transform.lossyScale);
             }
 
-            Gizmos.color = Color.red;
+            Gizmos.color = Color.black * 0.5f;
             var points = SplinePoints;
-            foreach (var point in points)
+            for (int i = 0; i < points.Length - 1; i++)
             {
-                Gizmos.DrawWireSphere(point.transform.position, 1f);
+                Gizmos.DrawLine(points[i].transform.position, points[i + 1].transform.position);
             }
+
             Gizmos.color = Color.white;
         }
 

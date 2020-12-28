@@ -51,7 +51,7 @@ namespace Crest
         int _subdivisions = 1;
 
         [SerializeField]
-        float _radius = 20f;
+        float _radius = 50f;
 
         [SerializeField, Delayed]
         int _smoothingIterations = 60;
@@ -895,8 +895,33 @@ namespace Crest
                 isValid = false;
             }
 
+            if (GetComponent<Spline.Spline>() == null)
+            {
+                showMessage
+                (
+                    "These waves will be applied everywhere in the world. To limit the area, attach a Spline component.",
+                    ValidatedHelper.MessageType.Info, this
+                );
+            }
+            else
+            {
+                if (_meshForDrawingWaves == null)
+                {
+                    showMessage
+                    (
+                        "There is an issue with the attached Spline component and no waves are rendered. Please check this component in the Inspector for issues.",
+                        ValidatedHelper.MessageType.Error, this
+                    );
+                }
+            }
+
             return isValid;
         }
+    }
+
+    [CustomEditor(typeof(ShapeGerstner))]
+    public class ShapeGerstnerEditor : ValidatedEditor
+    {
     }
 #endif
 }

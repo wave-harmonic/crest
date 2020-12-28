@@ -21,8 +21,8 @@ Material:
     m_TexEnvs: []
     m_Floats:
     - _FeatherFromShoreline: 0.203
-    - _FeatherFromSplineEnd: 0
+    - _FeatherFromSplineEnd: 9.1
     - _FeatherWaveStart: 0.174
     - _FeatherWidth: 0.1
-    - _UseShallowWaterAttenuation: 1
+    - _UseShallowWaterAttenuation: 0.343
     m_Colors: []

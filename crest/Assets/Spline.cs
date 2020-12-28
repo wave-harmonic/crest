@@ -182,19 +182,20 @@ namespace Crest.Spline
 
         public void OnDrawGizmosSelected()
         {
+            Gizmos.color = Color.white * 0.65f;
             var mf = GetComponent<MeshFilter>();
             if (mf != null && mf.sharedMesh != null)
             {
                 Gizmos.DrawWireMesh(mf.sharedMesh, 0, transform.position, transform.rotation, transform.lossyScale);
             }
 
+            Gizmos.color = Color.red;
             var points = SplinePoints;
             foreach (var point in points)
             {
-                Gizmos.color = Color.red;
                 Gizmos.DrawWireSphere(point.transform.position, 1f);
-                Gizmos.color = Color.white;
             }
+            Gizmos.color = Color.white;
         }
 
         void CreateMesh(Vector3[] resultPts0, Vector3[] resultPts1)

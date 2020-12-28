@@ -78,7 +78,10 @@ namespace Crest.Spline
             GUILayout.Label("Spline actions", EditorStyles.boldLabel);
 
             GUILayout.BeginHorizontal();
-            if (GUILayout.Button("Add before"))
+            string label;
+
+            label = thisIdx == 0 ? "Add before (extend)" : "Add before";
+            if (GUILayout.Button(label))
             {
                 var newPoint = CreateNewSP();
                 newPoint.transform.parent = parent;
@@ -97,24 +100,11 @@ namespace Crest.Spline
 
                 Selection.activeObject = newPoint;
             }
-            if (GUILayout.Button("Add after"))
+
+            label = (thisIdx == parent.childCount - 1 || parent.childCount == 0) ? "Add after (extend)" : "Add after";
+            if (GUILayout.Button(label))
             {
-                var newPoint = CreateNewSP();
-                newPoint.transform.parent = parent;
-                var newIdx = thisIdx + 1;
-                newPoint.transform.SetSiblingIndex(newIdx);
-
-                if (newIdx < parent.childCount - 1)
-                {
-                    var afterNewPoint = parent.GetChild(thisIdx + 2);
-                    newPoint.transform.position = Vector3.Lerp(afterNewPoint.position, thisSP.transform.position, 0.5f);
-                }
-                else if (parent.childCount > 2)
-                {
-                    newPoint.transform.position = 2f * parent.GetChild(newIdx - 1).position - parent.GetChild(newIdx - 2).position;
-                }
-
-                Selection.activeObject = newPoint;
+                Selection.activeObject = AddSplinePointAfter(parent, thisIdx);
             }
             GUILayout.EndHorizontal();
 
@@ -140,7 +130,7 @@ namespace Crest.Spline
             return newPoint;
         }
 
-        public static void AddSplinePointAfter(Transform parent, int afterIdx = -1)
+        public static GameObject AddSplinePointAfter(Transform parent, int afterIdx = -1)
         {
             if (afterIdx == -1) afterIdx = parent.childCount - 1;
 
@@ -168,6 +158,8 @@ namespace Crest.Spline
             {
                 newPoint.transform.position = 2f * parent.GetChild(newIdx - 1).position - parent.GetChild(newIdx - 2).position;
             }
+
+            return newPoint;
         }
     }
 #endif

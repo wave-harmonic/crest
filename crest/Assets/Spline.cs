@@ -323,7 +323,7 @@ namespace Crest.Spline
                 {
                     showMessage
                     (
-                        "All child GameObjects under <i>Spline</i> must have SplinePoint component added. Click to select missing component.",
+                        $"All child GameObjects under <i>Spline</i> must have <i>SplinePoint</i> component added. Object <i>{transform.GetChild(i).gameObject.name}</i> does not and should have one added, or be moved out of the hierarchy.",
                         ValidatedHelper.MessageType.Error, this
                     );
 

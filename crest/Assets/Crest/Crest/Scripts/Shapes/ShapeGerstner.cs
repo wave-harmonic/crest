@@ -78,14 +78,6 @@ namespace Crest
                 _mesh = mesh;
                 _material = material;
                 _matrix = matrix;
-                //if (_mesh == null)
-                //{
-                //    _material = new Material(shaderGerstnerGlobal);
-                //}
-                //else
-                //{
-                //    _material = _mesh.sharedMaterial;
-                //}
             }
 
             // The ocean input system uses this to decide which lod this batch belongs in
@@ -112,7 +104,6 @@ namespace Crest
                     }
                     else if (_material != null)
                     {
-                        //buf.DrawRenderer(_mesh, _material);
                         buf.DrawMesh(_mesh, _matrix, _material);
                     }
                 }
@@ -241,6 +232,7 @@ namespace Crest
                 if (batch != null)
                 {
                     batch.Weight = _weight;
+                    batch._matrix = transform.localToWorldMatrix;
                 }
             }
 

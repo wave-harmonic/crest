@@ -63,13 +63,6 @@ namespace Crest.Spline
             var splinePoints = SplinePoints;
             if (splinePoints.Length < 2) return;
 
-            float lengthEst = 0f;
-            for (int i = 1; i < splinePoints.Length; i++)
-            {
-                lengthEst += (splinePoints[i].transform.position - splinePoints[i - 1].transform.position).magnitude;
-            }
-            lengthEst = Mathf.Max(lengthEst, 1f);
-
             var points = new Vector3[(splinePoints.Length - 1) * 3 + 1];
             for (int i = 0; i < points.Length; i++)
             {
@@ -119,6 +112,13 @@ namespace Crest.Spline
 
             if (splinePoints.Length > 1)
             {
+                float lengthEst = 0f;
+                for (int i = 1; i < splinePoints.Length; i++)
+                {
+                    lengthEst += (splinePoints[i].transform.position - splinePoints[i - 1].transform.position).magnitude;
+                }
+                lengthEst = Mathf.Max(lengthEst, 1f);
+
                 float spacing = 16f / Mathf.Pow(2f, _subdivisions + 2);
                 int pointCount = Mathf.RoundToInt(lengthEst / spacing);
 
@@ -168,7 +168,7 @@ namespace Crest.Spline
                     resultPtsTmp = tmp;
                 }
 
-                CreateMesh(resultPts0, resultPts1, lengthEst);
+                CreateMesh(resultPts0, resultPts1);
             }
         }
 
@@ -197,7 +197,7 @@ namespace Crest.Spline
             }
         }
 
-        void CreateMesh(Vector3[] resultPts0, Vector3[] resultPts1, float totalLengthEst)
+        void CreateMesh(Vector3[] resultPts0, Vector3[] resultPts1)
         {
             if (_mesh == null)
             {
@@ -205,41 +205,85 @@ namespace Crest.Spline
                 _mesh.name = name + "_mesh";
             }
 
+            var splineLength = 0f;
+            for (int i = 1; i < resultPts0.Length; i++)
+            {
+                splineLength += (resultPts0[i] - resultPts0[i - 1]).magnitude;
+            }
+
+            //           \
+            //   \   ___--4 uvs1 _-
+            //    4--      \
+            //     \        \
+            //  sp1 3--------3
+            //      |        |
+            //      2--------2
+            //      |        |
+            //      1--------1
+            //      |        |
+            //  sp0 0--------0 uvs1 __
+            //      ^        ^
+            //     RP0s     RP1s
+            //
             var triCount = (resultPts0.Length - 1) * 2;
             var verts = new Vector3[triCount + 2];
             var uvs = new Vector2[triCount + 2];
+            var uvs2 = new Vector2[triCount + 2];
             var indices = new int[triCount * 6];
-            for (var i = 0; i < resultPts0.Length - 1; i += 1)
+            var distSoFar = 0f;
+            for (var i0 = 0; i0 < resultPts0.Length - 1; i0 += 1)
             {
-                verts[2 * i] = transform.InverseTransformPoint(resultPts0[i]);
-                verts[2 * i + 1] = transform.InverseTransformPoint(resultPts1[i]);
-                verts[2 * (i + 1)] = transform.InverseTransformPoint(resultPts0[(i + 1)]);
-                verts[2 * (i + 1) + 1] = transform.InverseTransformPoint(resultPts1[(i + 1)]);
+                // Vert indices:
+                //
+                //     2i1------2i1+1
+                //      |\       |
+                //      |  \     |
+                //      |    \   |
+                //      |      \ |
+                //     2i0------2i0+1
+                //      |        |
+                //    sp0--------*
+                //
+                var i1 = i0 + 1;
 
-                var dist0 = totalLengthEst * i / (resultPts0.Length - 1f);
-                var dist1 = totalLengthEst * (i + 1) / (resultPts0.Length - 1f);
+                verts[2 * i0] = transform.InverseTransformPoint(resultPts0[i0]);
+                verts[2 * i0 + 1] = transform.InverseTransformPoint(resultPts1[i0]);
+                verts[2 * i1] = transform.InverseTransformPoint(resultPts0[i1]);
+                verts[2 * i1 + 1] = transform.InverseTransformPoint(resultPts1[i1]);
 
-                var axis0 = -new Vector2(resultPts1[i + 0].x - resultPts0[i + 0].x, resultPts1[i + 0].z - resultPts0[i + 0].z).normalized;
-                var axis1 = -new Vector2(resultPts1[i + 1].x - resultPts0[i + 1].x, resultPts1[i + 1].z - resultPts0[i + 1].z).normalized;
-                uvs[2 * i] = axis0;
-                uvs[2 * i + 1] = axis0;
-                uvs[2 * (i + 1)] = axis1;
-                uvs[2 * (i + 1) + 1] = axis1;
+                var axis0 = -new Vector2(resultPts1[i0].x - resultPts0[i0].x, resultPts1[i0].z - resultPts0[i0].z).normalized;
+                var axis1 = -new Vector2(resultPts1[i1].x - resultPts0[i1].x, resultPts1[i1].z - resultPts0[i1].z).normalized;
+                uvs[2 * i0] = axis0;
+                uvs[2 * i0 + 1] = axis0;
+                uvs[2 * i1] = axis1;
+                uvs[2 * i1 + 1] = axis1;
 
-                indices[i * 6] = 2 * i;
-                indices[i * 6 + 1] = 2 * (i + 1);
-                indices[i * 6 + 2] = 2 * i + 1;
+                // uvs2.x - Dist to closest spline end
+                // uvs2.y - 1-0 inverted normalized dist from shoreline
+                var nextDistSoFar = distSoFar + (resultPts0[i0 + 1] - resultPts0[i0]).magnitude;
+                uvs2[2 * i0].x = uvs2[2 * i0 + 1].x = Mathf.Min(distSoFar, splineLength - distSoFar);
+                uvs2[2 * i1].x = uvs2[2 * i1 + 1].x = Mathf.Min(nextDistSoFar, splineLength - nextDistSoFar);
+                uvs2[2 * i0].y = uvs[2 * i1].y = 1f;
+                uvs2[2 * i0 + 1].y = uvs[2 * i1 + 1].y = 0f;
 
-                indices[i * 6 + 3] = 2 * (i + 1);
-                indices[i * 6 + 4] = 2 * (i + 1) + 1;
-                indices[i * 6 + 5] = 2 * i + 1;
+                indices[i0 * 6] = 2 * i0;
+                indices[i0 * 6 + 1] = 2 * i1;
+                indices[i0 * 6 + 2] = 2 * i0 + 1;
+
+                indices[i0 * 6 + 3] = 2 * i1;
+                indices[i0 * 6 + 4] = 2 * i1 + 1;
+                indices[i0 * 6 + 5] = 2 * i0 + 1;
+
+                distSoFar = nextDistSoFar;
             }
 
             _mesh.SetIndices(new int[] { }, MeshTopology.Triangles, 0);
             _mesh.vertices = verts;
             _mesh.uv = uvs;
+            _mesh.uv2 = uvs2;
             _mesh.SetIndices(indices, MeshTopology.Triangles, 0);
             _mesh.RecalculateNormals();
+            //_mesh.uv2
 
             var mf = GetComponent<MeshFilter>();
             if (mf == null) mf = gameObject.AddComponent<MeshFilter>();

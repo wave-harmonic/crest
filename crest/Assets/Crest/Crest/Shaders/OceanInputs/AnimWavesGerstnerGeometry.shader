@@ -6,7 +6,8 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Geometry"
 {
     Properties
     {
-		_FeatherWidth("Feather width", Range(0.001, 0.5)) = 0.1
+		_FeatherWaveStart("Feather wave start (0-1)", Range( 0.0, 0.5 ) ) = 0.1
+		_FeatherFromSplineEnd("Feather from spline end (m)", Range( 0.0, 100.0 ) ) = 0.0
 		_UseShallowWaterAttenuation("Use Shallow Water Attenuation", Range(0, 1)) = 1
 	}
 
@@ -35,6 +36,7 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Geometry"
             {
                 float4 vertex : POSITION;
                 float2 axis : TEXCOORD0;
+				float2 distToSplineEnd_invNormDistToShoreline : TEXCOORD1;
             };
 
             struct v2f
@@ -43,12 +45,14 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Geometry"
 				float3 uv_slice : TEXCOORD1;
 				float axisHeading : TEXCOORD2;
 				float3 worldPosScaled : TEXCOORD3;
+				float2 distToSplineEnd_invNormDistToShoreline : TEXCOORD4;
             };
 
 			Texture2DArray _WaveBuffer;
 
 			CBUFFER_START(GerstnerPerMaterial)
-			half _FeatherWidth;
+			half _FeatherWaveStart;
+			half _FeatherFromSplineEnd;
 			float _UseShallowWaterAttenuation;
 			CBUFFER_END
 
@@ -77,6 +81,8 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Geometry"
 
 				o.axisHeading = atan2( v.axis.y, v.axis.x ) + 2.0 * 3.141592654;
 
+				o.distToSplineEnd_invNormDistToShoreline = v.distToSplineEnd_invNormDistToShoreline;
+
                 return o;
             }
 
@@ -91,8 +97,8 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Geometry"
 				wt *= attenuationAmount * depth_wt + (1.0 - attenuationAmount);
 
 				// Feature at front/back
-				//float r_l1 = abs(input.uvGeo_uvWaves.y - 0.5);
-				//wt *= saturate(1.0 - (r_l1 - (0.5 - _FeatherWidth)) / _FeatherWidth);
+				wt *= min( input.distToSplineEnd_invNormDistToShoreline.y / _FeatherWaveStart, 1.0 );
+				if( _FeatherFromSplineEnd > 0.0 ) wt *= saturate( input.distToSplineEnd_invNormDistToShoreline.x / _FeatherFromSplineEnd );
 
 				// Quantize wave direction and interpolate waves
 				const float dTheta = 0.5*0.314159265;

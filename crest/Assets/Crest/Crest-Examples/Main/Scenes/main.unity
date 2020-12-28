@@ -1150,14 +1150,14 @@ MonoBehaviour:
   _spectrum: {fileID: 11400000, guid: 402c1c5b779879e4fb3f59dc73b66299, type: 2}
   _spectrumIsStatic: 1
   _windDirectionAngle: 0
-  _componentsPerOctave: 8
   _weight: 1
+  _componentsPerOctave: 8
   _randomSeed: 0
   _resolution: 32
+  _debugDrawSlicesInEditor: 0
   _subdivisions: 1
   _radius: 20
   _smoothingIterations: 60
-  _debugDrawSlicesInEditor: 0
   _waveBuffers: {fileID: 1471952347}
 --- !u!23 &396912885
 MeshRenderer:
@@ -1463,14 +1463,14 @@ MonoBehaviour:
   _spectrum: {fileID: 11400000, guid: 402c1c5b779879e4fb3f59dc73b66299, type: 2}
   _spectrumIsStatic: 0
   _windDirectionAngle: 0
-  _componentsPerOctave: 8
   _weight: 0.805
+  _componentsPerOctave: 8
   _randomSeed: 0
   _resolution: 32
+  _debugDrawSlicesInEditor: 0
   _subdivisions: 1
   _radius: 20
   _smoothingIterations: 60
-  _debugDrawSlicesInEditor: 0
   _waveBuffers: {fileID: 1819151190}
 --- !u!1 &448816444
 GameObject:
@@ -1850,14 +1850,14 @@ MonoBehaviour:
   _spectrum: {fileID: 11400000, guid: 402c1c5b779879e4fb3f59dc73b66299, type: 2}
   _spectrumIsStatic: 0
   _windDirectionAngle: 0
-  _componentsPerOctave: 8
   _weight: 0.805
+  _componentsPerOctave: 8
   _randomSeed: 0
   _resolution: 32
+  _debugDrawSlicesInEditor: 0
   _subdivisions: 1
   _radius: 20
   _smoothingIterations: 60
-  _debugDrawSlicesInEditor: 0
   _waveBuffers: {fileID: 191124698}
 --- !u!1 &665883448
 GameObject:
@@ -2409,6 +2409,41 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 128486e28072dc741bdfd69bef81aeae, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!84 &880187766
+RenderTexture:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: GerstnerCascades
+  m_ImageContentsHash:
+    serializedVersion: 2
+    Hash: 00000000000000000000000000000000
+  m_ForcedFallbackFormat: 4
+  m_DownscaleFallback: 0
+  serializedVersion: 3
+  m_Width: 32
+  m_Height: 32
+  m_AntiAliasing: 1
+  m_MipCount: -1
+  m_DepthFormat: 0
+  m_ColorFormat: 48
+  m_MipMap: 0
+  m_GenerateMips: 1
+  m_SRGB: 0
+  m_UseDynamicScale: 0
+  m_BindMS: 0
+  m_EnableCompatibleFormat: 1
+  m_TextureSettings:
+    serializedVersion: 2
+    m_FilterMode: 1
+    m_Aniso: 0
+    m_MipBias: 0
+    m_WrapU: 1
+    m_WrapV: 1
+    m_WrapW: 1
+  m_Dimension: 5
+  m_VolumeDepth: 16
 --- !u!1 &944208813
 GameObject:
   m_ObjectHideFlags: 0
@@ -3059,41 +3094,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 128486e28072dc741bdfd69bef81aeae, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!84 &1269823375
-RenderTexture:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: GerstnerCascades
-  m_ImageContentsHash:
-    serializedVersion: 2
-    Hash: 00000000000000000000000000000000
-  m_ForcedFallbackFormat: 4
-  m_DownscaleFallback: 0
-  serializedVersion: 3
-  m_Width: 32
-  m_Height: 32
-  m_AntiAliasing: 1
-  m_MipCount: -1
-  m_DepthFormat: 0
-  m_ColorFormat: 48
-  m_MipMap: 0
-  m_GenerateMips: 1
-  m_SRGB: 0
-  m_UseDynamicScale: 0
-  m_BindMS: 0
-  m_EnableCompatibleFormat: 1
-  m_TextureSettings:
-    serializedVersion: 2
-    m_FilterMode: 1
-    m_Aniso: 0
-    m_MipBias: 0
-    m_WrapU: 1
-    m_WrapV: 1
-    m_WrapW: 1
-  m_Dimension: 5
-  m_VolumeDepth: 16
 --- !u!1 &1272087605
 GameObject:
   m_ObjectHideFlags: 0
@@ -3170,15 +3170,15 @@ MonoBehaviour:
   _spectrum: {fileID: 11400000, guid: 402c1c5b779879e4fb3f59dc73b66299, type: 2}
   _spectrumIsStatic: 1
   _windDirectionAngle: 0
-  _componentsPerOctave: 2
   _weight: 1
+  _componentsPerOctave: 2
   _randomSeed: 0
   _resolution: 32
+  _debugDrawSlicesInEditor: 0
   _subdivisions: 0
   _radius: 40
   _smoothingIterations: 60
-  _debugDrawSlicesInEditor: 0
-  _waveBuffers: {fileID: 1269823375}
+  _waveBuffers: {fileID: 1645428731}
 --- !u!114 &1283289773
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3323,14 +3323,14 @@ MonoBehaviour:
   _spectrum: {fileID: 11400000, guid: 402c1c5b779879e4fb3f59dc73b66299, type: 2}
   _spectrumIsStatic: 0
   _windDirectionAngle: 0
-  _componentsPerOctave: 8
   _weight: 0.805
+  _componentsPerOctave: 8
   _randomSeed: 0
   _resolution: 32
+  _debugDrawSlicesInEditor: 0
   _subdivisions: 1
   _radius: 20
   _smoothingIterations: 60
-  _debugDrawSlicesInEditor: 0
   _waveBuffers: {fileID: 191124698}
 --- !u!1 &1304965551
 GameObject:
@@ -4046,7 +4046,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 128486e28072dc741bdfd69bef81aeae, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!84 &1570069101
+--- !u!84 &1645428731
 RenderTexture:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -5315,15 +5315,15 @@ MonoBehaviour:
   _spectrum: {fileID: 11400000, guid: 454d1b08383f089479cf6794620926f4, type: 2}
   _spectrumIsStatic: 0
   _windDirectionAngle: -123
-  _componentsPerOctave: 8
   _weight: 0.72
+  _componentsPerOctave: 8
   _randomSeed: 0
   _resolution: 32
+  _debugDrawSlicesInEditor: 0
   _subdivisions: 1
   _radius: 20
   _smoothingIterations: 60
-  _debugDrawSlicesInEditor: 1
-  _waveBuffers: {fileID: 1570069101}
+  _waveBuffers: {fileID: 880187766}
 --- !u!4 &2119375525
 Transform:
   m_ObjectHideFlags: 0

@@ -77,14 +77,12 @@ namespace Crest
             Material _material;
             Mesh _mesh;
 
-            RenderTexture _waveBuffer;
             int _waveBufferSliceIndex;
 
-            public GerstnerBatch(ShapeGerstner gerstner, float wavelength, RenderTexture waveBuffer, int waveBufferSliceIndex, Material material, Mesh mesh)
+            public GerstnerBatch(ShapeGerstner gerstner, float wavelength, int waveBufferSliceIndex, Material material, Mesh mesh)
             {
                 _gerstner = gerstner;
                 Wavelength = wavelength;
-                _waveBuffer = waveBuffer;
                 _waveBufferSliceIndex = waveBufferSliceIndex;
                 _mesh = mesh;
                 _material = material;
@@ -102,10 +100,8 @@ namespace Crest
                 {
                     buf.SetGlobalInt(LodDataMgr.sp_LD_SliceIndex, lodIdx);
                     buf.SetGlobalFloat(RegisterLodDataInputBase.sp_Weight, finalWeight);
-                    buf.SetGlobalTexture(sp_WaveBuffer, _waveBuffer);
                     buf.SetGlobalInt(sp_WaveBufferSliceIndex, _waveBufferSliceIndex);
                     buf.SetGlobalFloat(sp_AverageWavelength, Wavelength * 1.5f);
-                    buf.SetGlobalFloat(sp_RespectShallowWaterAttenuation, _gerstner._respectShallowWaterAttenuation);
 
                     // Either use a full screen quad, or a provided mesh renderer to draw the waves
                     if (_mesh == null)
@@ -114,9 +110,6 @@ namespace Crest
                     }
                     else if (_material != null)
                     {
-                        _material.SetFloat(sp_FeatherWaveStart, _gerstner._featherWaveStart);
-                        _material.SetFloat(sp_FeatherFromSplineEnds, _gerstner._featherFromSplineEnds);
-
                         buf.DrawMesh(_mesh, _gerstner.transform.localToWorldMatrix, _material);
                     }
                 }
@@ -169,6 +162,8 @@ namespace Crest
 
         ComputeShader _shaderGerstner;
         int _krnlGerstner = -1;
+
+        Material _matGenerateWaves;
 
         readonly int sp_FirstCascadeIndex = Shader.PropertyToID("_FirstCascadeIndex");
         readonly int sp_TextureRes = Shader.PropertyToID("_TextureRes");
@@ -241,6 +236,10 @@ namespace Crest
 
                 _firstUpdate = false;
             }
+
+            _matGenerateWaves.SetFloat(sp_FeatherWaveStart, _featherWaveStart);
+            _matGenerateWaves.SetFloat(sp_FeatherFromSplineEnds, _featherFromSplineEnds);
+            _matGenerateWaves.SetFloat(sp_RespectShallowWaterAttenuation, _respectShallowWaterAttenuation);
 
             ReportMaxDisplacement();
 
@@ -556,22 +555,23 @@ namespace Crest
                 }
             }
 
-            Material mat;
             if (_meshForDrawingWaves == null)
             {
-                mat = new Material(Shader.Find("Hidden/Crest/Inputs/Animated Waves/Gerstner Global"));
+                _matGenerateWaves = new Material(Shader.Find("Hidden/Crest/Inputs/Animated Waves/Gerstner Global"));
             }
             else
             {
-                mat = new Material(Shader.Find("Crest/Inputs/Animated Waves/Gerstner Geometry"));
+                _matGenerateWaves = new Material(Shader.Find("Crest/Inputs/Animated Waves/Gerstner Geometry"));
             }
+
+            _matGenerateWaves.SetTexture(sp_WaveBuffer, _waveBuffers);
 
             // Submit draws to create the Gerstner waves
             _batches = new GerstnerBatch[CASCADE_COUNT];
             for (int i = _firstCascade; i <= _lastCascade; i++)
             {
                 if (i == -1) break;
-                _batches[i] = new GerstnerBatch(this, MinWavelength(i), _waveBuffers, i, mat, _meshForDrawingWaves);
+                _batches[i] = new GerstnerBatch(this, MinWavelength(i), i, _matGenerateWaves, _meshForDrawingWaves);
                 registered.Add(0, _batches[i]);
             }
         }
@@ -688,6 +688,7 @@ namespace Crest
         }
     }
 
+    // Here for the help boxes
     [CustomEditor(typeof(ShapeGerstner))]
     public class ShapeGerstnerEditor : ValidatedEditor
     {

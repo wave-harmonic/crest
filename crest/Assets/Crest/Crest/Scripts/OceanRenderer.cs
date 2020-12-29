@@ -324,8 +324,7 @@ namespace Crest
 
             public float _weight;
 
-            // Align to 32 bytes
-            public float __padding;
+            public float _maxWavelength;
         }
         public ComputeBuffer _bufCascadeDataTgt;
         public ComputeBuffer _bufCascadeDataSrc;

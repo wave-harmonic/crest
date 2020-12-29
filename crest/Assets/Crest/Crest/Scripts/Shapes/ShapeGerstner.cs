@@ -19,6 +19,7 @@ namespace Crest
     [ExecuteAlways]
     public partial class ShapeGerstner : MonoBehaviour, IFloatingOrigin
     {
+        [Header("Wave Settings")]
         [Tooltip("The spectrum that defines the ocean surface shape. Assign asset of type Crest/Ocean Waves Spectrum.")]
         public OceanWaveSpectrum _spectrum;
 
@@ -29,21 +30,23 @@ namespace Crest
         public float _windDirectionAngle = 0f;
         public Vector2 WindDir => new Vector2(Mathf.Cos(Mathf.PI * _windDirectionAngle / 180f), Mathf.Sin(Mathf.PI * _windDirectionAngle / 180f));
 
+        [Tooltip("Multiplier for these waves to scale up/down."), Range(0f, 1f)]
+        public float _weight = 1f;
+
+        [Tooltip("How much these waves respect the shallow water attenuation setting in the Animated Waves Settings. Set to 0 to ignore shallow water."), SerializeField, Range(0f, 1f)]
+        float _respectShallowWaterAttenuation = 1f;
+
+        [Header("Generation Settings")]
         [Delayed, Tooltip("How many wave components to generate in each octave.")]
         public int _componentsPerOctave = 8;
 
-        [Range(0f, 1f)]
-        public float _weight = 1f;
-
-        [SerializeField, Range(0f, 1f)]
-        float _respectShallowWaterAttenuation = 1f;
-
+        [Tooltip("Change to get a different set of waves.")]
         public int _randomSeed = 0;
 
-        [Delayed]
+        [Tooltip("Resolution to use for wave generation buffers. Low resolutions are more efficient but can result in noticeable patterns in the shape."), Delayed]
         public int _resolution = 32;
 
-        [SerializeField]
+        [Tooltip("In Editor, shows the wave generation buffers on screen."), SerializeField]
         bool _debugDrawSlicesInEditor = false;
 
         Mesh _meshForDrawingWaves;

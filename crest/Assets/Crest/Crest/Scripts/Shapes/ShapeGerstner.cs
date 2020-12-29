@@ -35,40 +35,35 @@ namespace Crest
         [Range(0f, 1f)]
         public float _weight = 1f;
 
+        [SerializeField, Range(0f, 1f)]
+        float _respectShallowWaterAttenuation = 1f;
+
         public int _randomSeed = 0;
 
         [Delayed]
         public int _resolution = 32;
 
         [SerializeField]
-        Renderer _meshForDrawingWaves;
-
-        [SerializeField]
         bool _debugDrawSlicesInEditor = false;
+
+        Mesh _meshForDrawingWaves;
 
         public class GerstnerBatch : ILodDataInput
         {
-            Material _material;
-            Renderer _rend;
+            ShapeGerstner _gerstner;
 
-            RenderTexture _waveBuffer;
+            Material _material;
+            Mesh _mesh;
+
             int _waveBufferSliceIndex;
 
-            public GerstnerBatch(float wavelength, RenderTexture waveBuffer, int waveBufferSliceIndex, Shader shaderGerstnerGlobal, Renderer renderer)
+            public GerstnerBatch(ShapeGerstner gerstner, float wavelength, int waveBufferSliceIndex, Material material, Mesh mesh)
             {
+                _gerstner = gerstner;
                 Wavelength = wavelength;
-                _waveBuffer = waveBuffer;
                 _waveBufferSliceIndex = waveBufferSliceIndex;
-                _rend = renderer;
-
-                if (_rend == null)
-                {
-                    _material = new Material(shaderGerstnerGlobal);
-                }
-                else
-                {
-                    _material = _rend.sharedMaterial;
-                }
+                _mesh = mesh;
+                _material = material;
             }
 
             // The ocean input system uses this to decide which lod this batch belongs in
@@ -76,26 +71,24 @@ namespace Crest
 
             public bool Enabled { get => true; set { } }
 
-            public float Weight { get; set; }
-
             public void Draw(CommandBuffer buf, float weight, int isTransition, int lodIdx)
             {
-                if (weight > 0f)
+                var finalWeight = weight * _gerstner._weight;
+                if (finalWeight > 0f)
                 {
                     buf.SetGlobalInt(LodDataMgr.sp_LD_SliceIndex, lodIdx);
-                    buf.SetGlobalFloat(RegisterLodDataInputBase.sp_Weight, Weight * weight);
-                    buf.SetGlobalTexture(sp_WaveBuffer, _waveBuffer);
+                    buf.SetGlobalFloat(RegisterLodDataInputBase.sp_Weight, finalWeight);
                     buf.SetGlobalInt(sp_WaveBufferSliceIndex, _waveBufferSliceIndex);
                     buf.SetGlobalFloat(sp_AverageWavelength, Wavelength * 1.5f);
 
                     // Either use a full screen quad, or a provided mesh renderer to draw the waves
-                    if (_rend == null)
+                    if (_mesh == null)
                     {
                         buf.DrawProcedural(Matrix4x4.identity, _material, 0, MeshTopology.Triangles, 3);
                     }
-                    else
+                    else if (_material != null)
                     {
-                        buf.DrawRenderer(_rend, _material);
+                        buf.DrawMesh(_mesh, _gerstner.transform.localToWorldMatrix, _material);
                     }
                 }
             }
@@ -146,6 +139,8 @@ namespace Crest
         ComputeShader _shaderGerstner;
         int _krnlGerstner = -1;
 
+        Material _matGenerateWaves;
+
         readonly int sp_FirstCascadeIndex = Shader.PropertyToID("_FirstCascadeIndex");
         readonly int sp_TextureRes = Shader.PropertyToID("_TextureRes");
         readonly int sp_CascadeParams = Shader.PropertyToID("_GerstnerCascadeParams");
@@ -153,6 +148,7 @@ namespace Crest
         static readonly int sp_WaveBuffer = Shader.PropertyToID("_WaveBuffer");
         static readonly int sp_WaveBufferSliceIndex = Shader.PropertyToID("_WaveBufferSliceIndex");
         static readonly int sp_AverageWavelength = Shader.PropertyToID("_AverageWavelength");
+        static readonly int sp_RespectShallowWaterAttenuation = Shader.PropertyToID("_RespectShallowWaterAttenuation");
         readonly int sp_AxisX = Shader.PropertyToID("_AxisX");
 
         readonly float _twoPi = 2f * Mathf.PI;
@@ -193,6 +189,10 @@ namespace Crest
 
         public void CrestUpdate(CommandBuffer buf)
         {
+#if UNITY_EDITOR
+            UpdateEditorOnly();
+#endif
+
             if (_waveBuffers == null || _resolution != _waveBuffers.width || _bufCascadeParams == null || _bufWaveData == null)
             {
                 InitData();
@@ -211,14 +211,7 @@ namespace Crest
                 _firstUpdate = false;
             }
 
-            // Set weights - this should always happen
-            foreach (var batch in _batches)
-            {
-                if (batch != null)
-                {
-                    batch.Weight = _weight;
-                }
-            }
+            _matGenerateWaves.SetFloat(sp_RespectShallowWaterAttenuation, _respectShallowWaterAttenuation);
 
             ReportMaxDisplacement();
 
@@ -230,6 +223,17 @@ namespace Crest
 
             buf.SetGlobalVector(sp_AxisX, WindDir);
         }
+
+#if UNITY_EDITOR
+        void UpdateEditorOnly()
+        {
+            if (_spectrum == null)
+            {
+                _spectrum = ScriptableObject.CreateInstance<OceanWaveSpectrum>();
+                _spectrum.name = "Default Waves (auto)";
+            }
+        }
+#endif
 
         void SliceUpWaves()
         {
@@ -484,14 +488,23 @@ namespace Crest
             }
             //#endif
 
-            var shaderGerstnerGlobal = Shader.Find("Hidden/Crest/Inputs/Animated Waves/Gerstner Global");
+            if (_meshForDrawingWaves == null)
+            {
+                _matGenerateWaves = new Material(Shader.Find("Hidden/Crest/Inputs/Animated Waves/Gerstner Global"));
+            }
+            else
+            {
+                _matGenerateWaves = new Material(Shader.Find("Crest/Inputs/Animated Waves/Gerstner Geometry"));
+            }
+
+            _matGenerateWaves.SetTexture(sp_WaveBuffer, _waveBuffers);
 
             // Submit draws to create the Gerstner waves
             _batches = new GerstnerBatch[CASCADE_COUNT];
             for (int i = _firstCascade; i <= _lastCascade; i++)
             {
                 if (i == -1) break;
-                _batches[i] = new GerstnerBatch(MinWavelength(i), _waveBuffers, i, shaderGerstnerGlobal, _meshForDrawingWaves);
+                _batches[i] = new GerstnerBatch(this, MinWavelength(i), i, _matGenerateWaves, _meshForDrawingWaves);
                 registered.Add(0, _batches[i]);
             }
         }
@@ -550,11 +563,15 @@ namespace Crest
 #if UNITY_EDITOR
         private void OnDrawGizmosSelected()
         {
-            var mf = GetComponent<MeshFilter>();
-            if (mf)
+            DrawMesh();
+        }
+
+        void DrawMesh()
+        {
+            if (_meshForDrawingWaves != null)
             {
                 Gizmos.color = RegisterAnimWavesInput.s_gizmoColor;
-                Gizmos.DrawWireMesh(mf.sharedMesh, transform.position, transform.rotation, transform.lossyScale);
+                Gizmos.DrawWireMesh(_meshForDrawingWaves, 0, transform.position, transform.rotation, transform.lossyScale);
             }
         }
 
@@ -575,17 +592,6 @@ namespace Crest
         {
             var isValid = true;
 
-            if (_spectrum == null)
-            {
-                showMessage
-                (
-                    "There is no spectrum assigned meaning this Gerstner component won't generate any waves.",
-                    ValidatedHelper.MessageType.Warning, this
-                );
-
-                isValid = false;
-            }
-
             if (_componentsPerOctave == 0)
             {
                 showMessage
@@ -599,6 +605,12 @@ namespace Crest
 
             return isValid;
         }
+    }
+
+    // Here for the help boxes
+    [CustomEditor(typeof(ShapeGerstner))]
+    public class ShapeGerstnerEditor : ValidatedEditor
+    {
     }
 #endif
 }

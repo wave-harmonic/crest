@@ -518,7 +518,6 @@ Shader "Crest/Ocean"
 					const float3 uv_slice_biggerLod = WorldToUV(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, _CrestCascadeData[si], si);
 					SampleDisplacementsNormals(_LD_TexArray_AnimatedWaves, uv_slice_biggerLod, wt_biggerLod, cascadeData1._oneOverTextureRes, cascadeData1._texelWidth, dummy, n_geom.xz, sss);
 				}
-				//sss /= 80000.;
 				n_geom = normalize(n_geom);
 
 				if (underwater) n_geom = -n_geom;
@@ -596,7 +595,7 @@ Shader "Crest/Ocean"
 				col.rg = lerp(col.rg, input.flow_shadow.xy, 0.5);
 				#endif
 				#endif
-				//col = sss;
+
 				return half4(col, 1.);
 			}
 

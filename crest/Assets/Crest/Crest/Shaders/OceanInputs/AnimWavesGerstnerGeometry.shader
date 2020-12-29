@@ -7,7 +7,7 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Geometry"
     Properties
     {
 		_FeatherWaveStart("Feather wave start (0-1)", Range( 0.0, 0.5 ) ) = 0.1
-		_FeatherFromSplineEnd("Feather from spline end (m)", Range( 0.0, 100.0 ) ) = 0.0
+		_FeatherFromSplineEnds("Feather from spline ends (m)", Range( 0.0, 100.0 ) ) = 0.0
 		_RespectShallowWaterAttenuation("Respect Shallow Water Attenuation", Range(0, 1)) = 1
 	}
 
@@ -52,7 +52,7 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Geometry"
 
 			CBUFFER_START(GerstnerPerMaterial)
 			half _FeatherWaveStart;
-			half _FeatherFromSplineEnd;
+			half _FeatherFromSplineEnds;
 			float _RespectShallowWaterAttenuation;
 			CBUFFER_END
 
@@ -98,7 +98,7 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Geometry"
 
 				// Feature at front/back
 				wt *= min( input.distToSplineEnd_invNormDistToShoreline.y / _FeatherWaveStart, 1.0 );
-				if( _FeatherFromSplineEnd > 0.0 ) wt *= saturate( input.distToSplineEnd_invNormDistToShoreline.x / _FeatherFromSplineEnd );
+				if( _FeatherFromSplineEnds > 0.0 ) wt *= saturate( input.distToSplineEnd_invNormDistToShoreline.x / _FeatherFromSplineEnds );
 
 				// Quantize wave direction and interpolate waves
 				float axisHeading = atan2( input.axis.y, input.axis.x ) + 2.0 * 3.141592654;

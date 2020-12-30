@@ -241,6 +241,8 @@ namespace Crest
             _matGenerateWaves.SetFloat(sp_FeatherWaveStart, _featherWaveStart);
             _matGenerateWaves.SetFloat(sp_FeatherFromSplineEnds, _featherFromSplineEnds);
             _matGenerateWaves.SetFloat(sp_RespectShallowWaterAttenuation, _respectShallowWaterAttenuation);
+            // Seems like shader errors cause this to unbind if i dont set it every frame. Could be an editor only issue.
+            _matGenerateWaves.SetTexture(sp_WaveBuffer, _waveBuffers);
 
             ReportMaxDisplacement();
 

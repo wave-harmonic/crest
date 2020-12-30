@@ -472,7 +472,7 @@ namespace Crest
                     "Validation: The depth cache must be placed at the sea level or higher.",
                     ValidatedHelper.MessageType.Error, this
                 );
-                
+
                 isValid = false;
             }
 

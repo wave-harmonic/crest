@@ -17,8 +17,6 @@ Shader "Crest/Inputs/Depth/Ocean Depth From Geometry"
 
 			#include "UnityCG.cginc"
 
-			#include "../../OceanGlobals.hlsl"
-
 			float _SeaLevel;
 
 			struct Attributes

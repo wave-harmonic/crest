@@ -211,25 +211,10 @@ namespace Crest
                 _camDepthCache.gameObject.SetActive(false);
             }
 
-            // Make sure this global is set - I found this was necessary to set it here. However this can cause glitchiness in editor
-            // as it messes with this global vector, so only do it if not in edit mode
-#if UNITY_EDITOR
-            if (EditorApplication.isPlaying)
-#endif
-            {
-                // Shader needs sea level to determine water depth
-                var centerPoint = Vector3.zero;
-                if (OceanRenderer.Instance != null)
-                {
-                    centerPoint.y = OceanRenderer.Instance.Root.position.y;
-                }
-                else
-                {
-                    centerPoint.y = transform.position.y;
-                }
-
-                Shader.SetGlobalVector("_OceanCenterPosWorld", centerPoint);
-            }
+            // Set average water height from this cache position, relative to which water depth is computed. This assumes that
+            // this cache is correctly placed. I don't think there is a good way to know at validation time, so this is a pitfall
+            // at the moment.
+            Shader.SetGlobalFloat("_SeaLevel", transform.position.y);
 
             _camDepthCache.RenderWithShader(Shader.Find("Crest/Inputs/Depth/Ocean Depth From Geometry"), null);
 

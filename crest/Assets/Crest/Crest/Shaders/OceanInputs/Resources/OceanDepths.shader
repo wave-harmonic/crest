@@ -19,6 +19,8 @@ Shader "Crest/Inputs/Depth/Ocean Depth From Geometry"
 
 			#include "../../OceanGlobals.hlsl"
 
+			float _SeaLevel;
+
 			struct Attributes
 			{
 				float3 positionOS : POSITION;
@@ -37,7 +39,7 @@ Shader "Crest/Inputs/Depth/Ocean Depth From Geometry"
 
 				float altitude = mul(unity_ObjectToWorld, float4(input.positionOS, 1.0)).y;
 
-				o.depth = _OceanCenterPosWorld.y - altitude;
+				o.depth = _SeaLevel - altitude;
 
 				return o;
 			}

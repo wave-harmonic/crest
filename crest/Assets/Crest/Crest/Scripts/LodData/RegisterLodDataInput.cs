@@ -52,6 +52,11 @@ namespace Crest
         public abstract bool Enabled { get; }
 
         public static int sp_Weight = Shader.PropertyToID("_Weight");
+        public static int sp_DisplacementAtInputPosition = Shader.PropertyToID("_DisplacementAtInputPosition");
+
+        // By default do not follow horizontal motion of waves. This means that the ocean input will appear on the surface at its XZ location, instead
+        // of moving horizontally with the waves.
+        protected virtual bool FollowHorizontalMotion => false;
 
         protected abstract string ShaderPrefix { get; }
 
@@ -71,6 +76,7 @@ namespace Crest
 
         protected Renderer _renderer;
         protected Material _material;
+        SampleHeightHelper _sampleHelper = new SampleHeightHelper();
 
         void InitRendererAndMaterial(bool verifyShader)
         {
@@ -79,7 +85,7 @@ namespace Crest
             if (_renderer)
             {
 #if UNITY_EDITOR
-                if (_checkShaderName && verifyShader)
+                if (Application.isPlaying && _checkShaderName && verifyShader)
                 {
                     ValidatedHelper.ValidateRenderer(gameObject, ShaderPrefix, ValidatedHelper.DebugLog);
                 }
@@ -97,7 +103,7 @@ namespace Crest
         protected virtual void Update()
         {
 #if UNITY_EDITOR
-            if (!UnityEditor.EditorApplication.isPlaying)
+            if (!EditorApplication.isPlaying)
             {
                 InitRendererAndMaterial(true);
             }
@@ -110,6 +116,19 @@ namespace Crest
             {
                 buf.SetGlobalFloat(sp_Weight, weight);
                 buf.SetGlobalFloat(LodDataMgr.sp_LD_SliceIndex, lodIdx);
+
+                if (!FollowHorizontalMotion)
+                {
+                    // This can be called multiple times per frame - one for each LOD potentially
+                    _sampleHelper.Init(transform.position, 0f, true, this);
+                    _sampleHelper.Sample(out Vector3 displacement, out _, out _);
+                    buf.SetGlobalVector(sp_DisplacementAtInputPosition, displacement);
+                }
+                else
+                {
+                    buf.SetGlobalVector(sp_DisplacementAtInputPosition, Vector3.zero);
+                }
+
                 buf.DrawRenderer(_renderer, _material);
             }
         }
@@ -183,7 +202,7 @@ namespace Crest
             base.Update();
 
 #if UNITY_EDITOR
-            if (!UnityEditor.EditorApplication.isPlaying)
+            if (!EditorApplication.isPlaying)
             {
                 int q;
                 if (GetQueue(out q))
@@ -209,6 +228,16 @@ namespace Crest
                 Gizmos.DrawWireMesh(mf.sharedMesh, transform.position, transform.rotation, transform.lossyScale);
             }
         }
+    }
+
+    [ExecuteAlways]
+    public abstract class RegisterLodDataInputDisplacementCorrection<LodDataType> : RegisterLodDataInput<LodDataType>
+        where LodDataType : LodDataMgr
+    {
+        [SerializeField, Tooltip("Whether this input data should displace horizontally with waves. If false, data will not move from side to side with the waves. Adds a small performance overhead when disabled.")]
+        bool _followHorizontalMotion = false;
+
+        protected override bool FollowHorizontalMotion => _followHorizontalMotion;
     }
 
 #if UNITY_EDITOR

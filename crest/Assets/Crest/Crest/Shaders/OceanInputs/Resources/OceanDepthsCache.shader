@@ -62,7 +62,6 @@ Shader "Crest/Inputs/Depth/Cached Depths"
 				// offsets are only ever above sea level, not below.
 				return float2(cachedDepth, -seaLevelOffset);
 			}
-
 			ENDCG
 		}
 	}

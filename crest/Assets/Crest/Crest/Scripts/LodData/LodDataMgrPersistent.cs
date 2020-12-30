@@ -10,7 +10,6 @@ namespace Crest
     /// <summary>
     /// A persistent simulation that moves around with a displacement LOD.
     /// </summary>
-    [ExecuteAlways]
     public abstract class LodDataMgrPersistent : LodDataMgr
     {
         protected override bool NeedToReadWriteTextureData { get { return true; } }
@@ -19,6 +18,7 @@ namespace Crest
         PropertyWrapperCompute _renderSimProperties;
 
         readonly int sp_LD_TexArray_Target = Shader.PropertyToID("_LD_TexArray_Target");
+        readonly int sp_cascadeDataSrc = Shader.PropertyToID("_CascadeDataSrc");
 
         protected ComputeShader _shader;
 
@@ -38,13 +38,13 @@ namespace Crest
         {
             base.Start();
 
-            CreateProperties(OceanRenderer.Instance.CurrentLodCount);
+            CreateProperties();
         }
 
-        void CreateProperties(int lodCount)
+        void CreateProperties()
         {
             _shader = ComputeShaderHelpers.LoadShader(ShaderSim);
-            if(_shader == null)
+            if (_shader == null)
             {
                 enabled = false;
                 return;
@@ -57,7 +57,7 @@ namespace Crest
             base.InitData();
 
             int resolution = OceanRenderer.Instance.LodDataResolution;
-            var desc = new RenderTextureDescriptor(resolution, resolution, TextureFormat, 0);
+            var desc = new RenderTextureDescriptor(resolution, resolution, CompatibleTextureFormat, 0);
             _sources = CreateLodDataTextures(desc, SimName + "_1", NeedToReadWriteTextureData);
 
             TextureArrayHelpers.ClearToBlack(_targets);
@@ -74,15 +74,6 @@ namespace Crest
             {
                 renderData.Validate(validationFrame, SimName);
             }
-        }
-
-        public void BindSourceData(IPropertyWrapper properties, bool paramsOnly, bool usePrevTransform, bool sourceLod = false)
-        {
-            var renderData = usePrevTransform ?
-                OceanRenderer.Instance._lodTransform._renderDataSource
-                : OceanRenderer.Instance._lodTransform._renderData;
-
-            BindData(properties, paramsOnly ? TextureArrayHelpers.BlackTextureArray : (Texture)_sources, true, ref renderData, sourceLod);
         }
 
         public abstract void GetSimSubstepData(float frameDt, out int numSubsteps, out float substepDt);
@@ -115,7 +106,7 @@ namespace Crest
 
                 // bind data to slot 0 - previous frame data
                 ValidateSourceData(usePreviousFrameTransform);
-                BindSourceData(_renderSimProperties, false, usePreviousFrameTransform, true);
+                _renderSimProperties.SetTexture(GetParamIdSampler(true), _sources);
 
                 SetAdditionalSimParams(_renderSimProperties);
 
@@ -126,7 +117,15 @@ namespace Crest
                     DataTexture
                 );
 
-                _renderSimProperties.DispatchShaderMultiLOD();
+                // Bind current data
+                // Global shader vars don't carry over to compute
+                _renderSimProperties.SetBuffer(sp_cascadeDataSrc, usePreviousFrameTransform ? OceanRenderer.Instance._bufCascadeDataSrc : OceanRenderer.Instance._bufCascadeDataTgt);
+                _renderSimProperties.SetBuffer(OceanRenderer.sp_cascadeData, OceanRenderer.Instance._bufCascadeDataTgt);
+
+                buf.DispatchCompute(_shader, krnl_ShaderSim,
+                    OceanRenderer.Instance.LodDataResolution / THREAD_GROUP_SIZE_X,
+                    OceanRenderer.Instance.LodDataResolution / THREAD_GROUP_SIZE_Y,
+                    OceanRenderer.Instance.CurrentLodCount);
 
                 for (var lodIdx = lodCount - 1; lodIdx >= 0; lodIdx--)
                 {
@@ -143,6 +142,9 @@ namespace Crest
             {
                 BuildCommandBufferInternal(lodIdx);
             }
+
+            // Set the target texture as to make sure we catch the 'pong' each frame
+            Shader.SetGlobalTexture(GetParamIdSampler(), _targets);
         }
 
         protected virtual bool BuildCommandBufferInternal(int lodIdx)

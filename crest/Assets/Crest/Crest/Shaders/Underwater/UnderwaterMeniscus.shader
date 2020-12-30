@@ -31,7 +31,6 @@ Shader "Crest/Underwater Meniscus"
 
 			#include "../OceanGlobals.hlsl"
 			#include "../OceanInputsDriven.hlsl"
-			#include "../OceanLODData.hlsl"
 			#include "../OceanHelpersNew.hlsl"
 			#include "UnderwaterShared.hlsl"
 
@@ -84,12 +83,12 @@ Shader "Crest/Underwater Meniscus"
 				{
 					float seaLevel = _OceanCenterPosWorld.y;
 					{
-						float3 uv_slice = WorldToUV(_WorldSpaceCameraPos.xz, 0.0);
+						float3 uv_slice = WorldToUV(_WorldSpaceCameraPos.xz, _CrestCascadeData[_LD_SliceIndex], 0.0);
 						float waterDepth = 0.0;
 						SampleSeaDepth(_LD_TexArray_SeaFloorDepth, uv_slice, 1.0, waterDepth, seaLevel);
 					}
 
-					o.worldPos += min(IntersectRayWithWaterSurface(seaLevel, o.worldPos, up), MAX_OFFSET) * up;
+					o.worldPos += min(IntersectRayWithWaterSurface(seaLevel, o.worldPos, up, _CrestCascadeData[_LD_SliceIndex]), MAX_OFFSET) * up;
 
 					const float offset = 0.001 * _ProjectionParams.y * _MeniscusWidth;
 					if (input.positionOS.z > 0.49)

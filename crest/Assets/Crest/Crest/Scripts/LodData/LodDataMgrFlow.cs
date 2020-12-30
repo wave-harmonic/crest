@@ -3,6 +3,7 @@
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 
 namespace Crest
@@ -12,11 +13,10 @@ namespace Crest
     /// <summary>
     /// A persistent flow simulation that moves around with a displacement LOD. The input is fully combined water surface shape.
     /// </summary>
-    [ExecuteAlways]
     public class LodDataMgrFlow : LodDataMgr
     {
         public override string SimName { get { return "Flow"; } }
-        public override RenderTextureFormat TextureFormat { get { return RenderTextureFormat.RGHalf; } }
+        protected override GraphicsFormat RequestedTextureFormat => GraphicsFormat.R16G16_SFloat;
         protected override bool NeedToReadWriteTextureData { get { return false; } }
 
         bool _targetsClear = false;
@@ -103,9 +103,17 @@ namespace Crest
         {
             return ParamIdSampler(sourceLod);
         }
-        public static void BindNull(IPropertyWrapper properties, bool sourceLod = false)
+
+        public static void Bind(IPropertyWrapper properties)
         {
-            properties.SetTexture(ParamIdSampler(sourceLod), TextureArrayHelpers.BlackTextureArray);
+            if (OceanRenderer.Instance._lodDataFlow != null)
+            {
+                properties.SetTexture(OceanRenderer.Instance._lodDataFlow.GetParamIdSampler(), OceanRenderer.Instance._lodDataFlow.DataTexture);
+            }
+            else
+            {
+                properties.SetTexture(ParamIdSampler(), TextureArrayHelpers.BlackTextureArray);
+            }
         }
 
 #if UNITY_2019_3_OR_NEWER

@@ -25,7 +25,8 @@ namespace Crest
         protected abstract string QueryShaderName { get; }
         protected abstract string QueryKernelName { get; }
 
-        const int s_maxRequests = 4;
+        // 4 was enough for a long time, but Linux setups seems to demand 7
+        const int s_maxRequests = 7;
         const int s_maxGuids = 1024;
 
         protected virtual ComputeShader ShaderProcessQueries => _shaderProcessQueries;
@@ -383,7 +384,6 @@ namespace Crest
             if (heights != null) countPoints = heights.Length;
             if (displacements != null && heights != null) Debug.Assert(displacements.Length == heights.Length);
             var countNorms = (normals != null ? normals.Length : 0);
-            var countTotal = countPoints + countNorms * 3;
 
             if (countPoints > 0)
             {
@@ -425,7 +425,7 @@ namespace Crest
         /// Compute time derivative of the displacements by calculating difference from last query. More complicated than it would seem - results
         /// may not be available in one or both of the results, or the query locations in the array may change.
         /// </summary>
-        protected int CalculateVelocities(int i_ownerHash, float i_minSpatialLength, Vector3[] i_queryPositions, Vector3[] results)
+        protected int CalculateVelocities(int i_ownerHash, Vector3[] results)
         {
             // Need at least 2 returned results to do finite difference
             if (_queryResultsTime < 0f || _queryResultsTimeLast < 0f)
@@ -576,7 +576,7 @@ namespace Crest
 
             if (o_resultVels != null)
             {
-                result |= CalculateVelocities(i_ownerHash, i_minSpatialLength, i_queryPoints, o_resultVels);
+                result |= CalculateVelocities(i_ownerHash, o_resultVels);
             }
 
             return result;
@@ -588,5 +588,7 @@ namespace Crest
         }
 
         public int ResultGuidCount => _resultSegments != null ? _resultSegments.Count : 0;
+
+        public int RequestCount => _requests != null ? _requests.Count : 0;
     }
 }

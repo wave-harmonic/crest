@@ -121,7 +121,8 @@ namespace Crest
                     var querySystem = OceanRenderer.Instance.CollisionProvider as QueryBase;
                     if (OceanRenderer.Instance.CollisionProvider != null && querySystem != null)
                     {
-                        GUI.Label(new Rect(x, y, w, h), string.Format("Query result GUIDs: {0}", querySystem.ResultGuidCount)); y += h;
+                        GUI.Label(new Rect(x, y, w, h), $"Query result GUIDs: {querySystem.ResultGuidCount}"); y += h;
+                        GUI.Label(new Rect(x, y, w, h), $"Queries in flight: {querySystem.RequestCount}"); y += h;
                     }
 
 #if UNITY_EDITOR

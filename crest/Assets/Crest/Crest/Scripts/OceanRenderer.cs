@@ -4,10 +4,15 @@
 
 using System.Collections.Generic;
 using UnityEngine;
+using Unity.Collections.LowLevel.Unsafe;
 #if UNITY_EDITOR
 using UnityEngine.Rendering;
 using UnityEditor;
 using UnityEditor.Experimental.SceneManagement;
+#endif
+
+#if !UNITY_2019_4_OR_NEWER
+#error This version of Crest requires Unity 2019.4 or later.
 #endif
 
 namespace Crest
@@ -19,7 +24,7 @@ namespace Crest
     [ExecuteAlways, SelectionBase]
     public partial class OceanRenderer : MonoBehaviour
     {
-        [Tooltip("The viewpoint which drives the ocean detail. Defaults to main camera."), SerializeField]
+        [Tooltip("The viewpoint which drives the ocean detail. Defaults to the camera."), SerializeField]
         Transform _viewpoint;
         public Transform Viewpoint
         {
@@ -28,20 +33,10 @@ namespace Crest
 #if UNITY_EDITOR
                 if (_followSceneCamera)
                 {
-                    if (EditorWindow.focusedWindow != null &&
-                        (EditorWindow.focusedWindow.titleContent.text == "Scene" || EditorWindow.focusedWindow.titleContent.text == "Game"))
+                    var sceneViewCamera = EditorHelpers.GetActiveSceneViewCamera();
+                    if (sceneViewCamera != null)
                     {
-                        _lastGameOrSceneEditorWindow = EditorWindow.focusedWindow;
-                    }
-
-                    // If scene view is focused, use its camera. This code is slightly ropey but seems to work ok enough.
-                    if (_lastGameOrSceneEditorWindow != null && _lastGameOrSceneEditorWindow.titleContent.text == "Scene")
-                    {
-                        var sv = SceneView.lastActiveSceneView;
-                        if (sv != null && !EditorApplication.isPlaying && sv.camera != null)
-                        {
-                            return sv.camera.transform;
-                        }
+                        return sceneViewCamera.transform;
                     }
                 }
 #endif
@@ -50,9 +45,12 @@ namespace Crest
                     return _viewpoint;
                 }
 
-                if (Camera.main != null)
+                // Even with performance improvements, it is still good to cache whenever possible.
+                var camera = ViewCamera;
+
+                if (camera != null)
                 {
-                    return Camera.main.transform;
+                    return camera.transform;
                 }
 
                 return null;
@@ -63,11 +61,38 @@ namespace Crest
             }
         }
 
-        public Transform Root { get; private set; }
-
+        [Tooltip("The camera which drives the ocean data. Defaults to main camera."), SerializeField]
+        Camera _camera;
+        public Camera ViewCamera
+        {
+            get
+            {
 #if UNITY_EDITOR
-        static EditorWindow _lastGameOrSceneEditorWindow = null;
+                if (_followSceneCamera)
+                {
+                    var sceneViewCamera = EditorHelpers.GetActiveSceneViewCamera();
+                    if (sceneViewCamera != null)
+                    {
+                        return sceneViewCamera;
+                    }
+                }
 #endif
+
+                if (_camera != null)
+                {
+                    return _camera;
+                }
+
+                // Unity has greatly improved performance of this operation in 2019.4.9.
+                return Camera.main;
+            }
+            set
+            {
+                _camera = value;
+            }
+        }
+
+        public Transform Root { get; private set; }
 
         [Tooltip("Optional provider for time, can be used to hard-code time for automation, or provide server time. Defaults to local Unity time."), SerializeField]
         TimeProviderBase _timeProvider = null;
@@ -179,6 +204,7 @@ namespace Crest
             EverythingClipped,
         }
         [Tooltip("Whether to clip nothing by default (and clip inputs remove patches of surface), or to clip everything by default (and clip inputs add patches of surface).")]
+        [PredicatedField("_createClipSurfaceData")]
         public DefaultClippingState _defaultClippingState = DefaultClippingState.NothingClipped;
 
         [Header("Edit Mode Params")]
@@ -247,7 +273,7 @@ namespace Crest
         public int CurrentLodCount { get { return _lodTransform != null ? _lodTransform.LodCount : 0; } }
 
         /// <summary>
-        /// Vertical offset of viewer vs water surface
+        /// Vertical offset of camera vs water surface.
         /// </summary>
         public float ViewerHeightAboveWater { get; private set; }
 
@@ -279,6 +305,9 @@ namespace Crest
         readonly int sp_clipByDefault = Shader.PropertyToID("_CrestClipByDefault");
         readonly int sp_lodAlphaBlackPointFade = Shader.PropertyToID("_CrestLodAlphaBlackPointFade");
         readonly int sp_lodAlphaBlackPointWhitePointFade = Shader.PropertyToID("_CrestLodAlphaBlackPointWhitePointFade");
+        static int sp_ForceUnderwater = Shader.PropertyToID("_ForceUnderwater");
+        public static int sp_perCascadeInstanceData = Shader.PropertyToID("_CrestPerCascadeInstanceData");
+        public static int sp_cascadeData = Shader.PropertyToID("_CrestCascadeData");
 
 #if UNITY_EDITOR
         static float _lastUpdateEditorTime = -1f;
@@ -287,6 +316,45 @@ namespace Crest
 #endif
 
         BuildCommandBuffer _commandbufferBuilder;
+
+        // This must exactly match struct with same name in HLSL
+        // :CascadeParams
+        public struct CascadeParams
+        {
+            public Vector2 _posSnapped;
+            public float _scale;
+
+            public float _textureRes;
+            public float _oneOverTextureRes;
+
+            public float _texelWidth;
+
+            public float _weight;
+
+            // Align to 32 bytes
+            public float __padding;
+        }
+        public ComputeBuffer _bufCascadeDataTgt;
+        public ComputeBuffer _bufCascadeDataSrc;
+
+        // This must exactly match struct with same name in HLSL
+        // :PerCascadeInstanceData
+        public struct PerCascadeInstanceData
+        {
+            public float _meshScaleLerp;
+            public float _farNormalsWeight;
+            public float _geoGridWidth;
+            public Vector2 _normalScrollSpeeds;
+
+            // Align to 32 bytes
+            public Vector3 __padding;
+        }
+        public ComputeBuffer _bufPerCascadeInstanceData;
+
+        CascadeParams[] _cascadeParamsSrc = new CascadeParams[LodDataMgr.MAX_LOD_COUNT + 1];
+        CascadeParams[] _cascadeParamsTgt = new CascadeParams[LodDataMgr.MAX_LOD_COUNT + 1];
+
+        PerCascadeInstanceData[] _perCascadeInstanceData = new PerCascadeInstanceData[LodDataMgr.MAX_LOD_COUNT];
 
         // Drive state from OnEnable and OnDisable? OnEnable on RegisterLodDataInput seems to get called on script reload
         void OnEnable()
@@ -321,6 +389,15 @@ namespace Crest
             Instance = this;
             Scale = Mathf.Clamp(Scale, _minScale, _maxScale);
 
+            _bufPerCascadeInstanceData = new ComputeBuffer(_perCascadeInstanceData.Length, UnsafeUtility.SizeOf<PerCascadeInstanceData>());
+            Shader.SetGlobalBuffer("_CrestPerCascadeInstanceData", _bufPerCascadeInstanceData);
+
+            _bufCascadeDataTgt = new ComputeBuffer(_cascadeParamsTgt.Length, UnsafeUtility.SizeOf<CascadeParams>());
+            Shader.SetGlobalBuffer(sp_cascadeData, _bufCascadeDataTgt);
+
+            // Not used by graphics shaders, so not set globally (global does not work for compute)
+            _bufCascadeDataSrc = new ComputeBuffer(_cascadeParamsSrc.Length, UnsafeUtility.SizeOf<CascadeParams>());
+
             _lodTransform = new LodTransform();
             _lodTransform.InitLODData(_lodCount);
 
@@ -338,7 +415,7 @@ namespace Crest
 
             _commandbufferBuilder = new BuildCommandBuffer();
 
-            InitViewpoint();
+            ValidateViewpoint();
 
             if (_attachDebugGUI && GetComponent<OceanDebugGUI>() == null)
             {
@@ -401,14 +478,10 @@ namespace Crest
                     return _editorFrames;
                 }
                 else
-                {
-                    return Time.frameCount;
-                }
-#else
-                {
-                    return Time.frameCount;
-                }
 #endif
+                {
+                    return Time.frameCount;
+                }
             }
         }
 
@@ -555,6 +628,25 @@ namespace Crest
 
         bool VerifyRequirements()
         {
+            if (Application.platform == RuntimePlatform.WebGLPlayer)
+            {
+                Debug.LogError("Crest does not support WebGL backends.", this);
+                return false;
+            }
+#if UNITY_EDITOR
+            if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES2 ||
+                SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3 ||
+                SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLCore)
+            {
+                Debug.LogError("Crest does not support OpenGL backends.", this);
+                return false;
+            }
+#endif
+            if (SystemInfo.graphicsShaderLevel < 45)
+            {
+                Debug.LogError("Crest requires graphics devices that support shader level 4.5 or above.", this);
+                return false;
+            }
             if (!SystemInfo.supportsComputeShaders)
             {
                 Debug.LogError("Crest requires graphics devices that support compute shaders.", this);
@@ -569,19 +661,11 @@ namespace Crest
             return true;
         }
 
-        void InitViewpoint()
+        void ValidateViewpoint()
         {
             if (Viewpoint == null)
             {
-                var camMain = Camera.main;
-                if (camMain != null)
-                {
-                    Viewpoint = camMain.transform;
-                }
-                else
-                {
-                    Debug.LogError("Crest needs to know where to focus the ocean detail. Please set the Viewpoint property of the OceanRenderer component to the transform of the viewpoint/camera that the ocean should follow, or tag the primary camera as MainCamera.", this);
-                }
+                Debug.LogError("Crest needs to know where to focus the ocean detail. Please set the <i>ViewCamera</i> or the <i>Viewpoint</i> property that will render the ocean, or tag the primary camera as <i>MainCamera</i>.", this);
             }
         }
 
@@ -592,6 +676,10 @@ namespace Crest
         {
             // Init here from 2019.3 onwards
             Instance = null;
+
+            sp_ForceUnderwater = Shader.PropertyToID("_ForceUnderwater");
+            sp_perCascadeInstanceData = Shader.PropertyToID("_CrestPerCascadeInstanceData");
+            sp_cascadeData = Shader.PropertyToID("_CrestCascadeData");
         }
 
         void LateUpdate()
@@ -609,9 +697,16 @@ namespace Crest
 
         void RunUpdate()
         {
-            // Do this *before* changing the ocean position, as it needs the current LOD positions to associate with the current queries
-            CollisionProvider.UpdateQueries();
-            FlowProvider.UpdateQueries();
+            // Run queries *before* changing the ocean position, as it needs the current LOD positions to associate with the current queries
+#if UNITY_EDITOR
+            // Issue #630 - seems to be a terrible memory leak coming from creating async gpu readbacks. We don't rely on queries in edit mode AFAIK
+            // so knock this out.
+            if (EditorApplication.isPlaying)
+#endif
+            {
+                CollisionProvider.UpdateQueries();
+                FlowProvider.UpdateQueries();
+            }
 
             // set global shader params
             Shader.SetGlobalFloat(sp_texelsPerWave, MinTexelsPerWave);
@@ -622,21 +717,12 @@ namespace Crest
             Shader.SetGlobalFloat(sp_lodAlphaBlackPointWhitePointFade, _lodAlphaBlackPointWhitePointFade);
 
             // LOD 0 is blended in/out when scale changes, to eliminate pops. Here we set it as a global, whereas in OceanChunkRenderer it
-            // is applied to LOD0 tiles only through _InstanceData. This global can be used in compute, where we only apply this factor for slice 0.
+            // is applied to LOD0 tiles only through instance data. This global can be used in compute, where we only apply this factor for slice 0.
             var needToBlendOutShape = ScaleCouldIncrease;
             var meshScaleLerp = needToBlendOutShape ? ViewerAltitudeLevelAlpha : 0f;
             Shader.SetGlobalFloat(sp_meshScaleLerp, meshScaleLerp);
 
-            if (Viewpoint == null
-                )
-            {
-#if UNITY_EDITOR
-                if (EditorApplication.isPlaying)
-#endif
-                {
-                    Debug.LogError("Viewpoint is null, ocean update will fail.", this);
-                }
-            }
+            ValidateViewpoint();
 
             if (_followViewpoint && Viewpoint != null)
             {
@@ -653,6 +739,10 @@ namespace Crest
             {
                 LateUpdateTiles();
             }
+
+            LateUpdateResetMaxDisplacementFromShape();
+
+            WritePerFrameMaterialParams();
 
 #if UNITY_EDITOR
             if (EditorApplication.isPlaying || !_showOceanProxyPlane)
@@ -674,6 +764,48 @@ namespace Crest
                 }
             }
 #endif
+        }
+
+        void WritePerFrameMaterialParams()
+        {
+            // Hack - due to SV_IsFrontFace occasionally coming through as true for back faces,
+            // add a param here that forces ocean to be in underwater state. I think the root
+            // cause here might be imprecision or numerical issues at ocean tile boundaries, although
+            // i'm not sure why cracks are not visible in this case.
+            OceanMaterial.SetFloat(sp_ForceUnderwater, ViewerHeightAboveWater < -2f ? 1f : 0f);
+
+            _lodTransform.WriteCascadeParams(_cascadeParamsTgt, _cascadeParamsSrc);
+            _bufCascadeDataTgt.SetData(_cascadeParamsTgt);
+            _bufCascadeDataSrc.SetData(_cascadeParamsSrc);
+
+            WritePerCascadeInstanceData(_perCascadeInstanceData);
+            _bufPerCascadeInstanceData.SetData(_perCascadeInstanceData);
+        }
+
+        void WritePerCascadeInstanceData(PerCascadeInstanceData[] instanceData)
+        {
+            for (int lodIdx = 0; lodIdx < CurrentLodCount; lodIdx++)
+            {
+                // blend LOD 0 shape in/out to avoid pop, if the ocean might scale up later (it is smaller than its maximum scale)
+                var needToBlendOutShape = lodIdx == 0 && ScaleCouldIncrease;
+                instanceData[lodIdx]._meshScaleLerp = needToBlendOutShape ? ViewerAltitudeLevelAlpha : 0f;
+
+                // blend furthest normals scale in/out to avoid pop, if scale could reduce
+                var needToBlendOutNormals = lodIdx == CurrentLodCount - 1 && ScaleCouldDecrease;
+                instanceData[lodIdx]._farNormalsWeight = needToBlendOutNormals ? ViewerAltitudeLevelAlpha : 1f;
+
+                // geometry data
+                // compute grid size of geometry. take the long way to get there - make sure we land exactly on a power of two
+                // and not inherit any of the lossy-ness from lossyScale.
+                var scale_pow_2 = CalcLodScale(lodIdx);
+                instanceData[lodIdx]._geoGridWidth = scale_pow_2 / (0.25f * _lodDataResolution / _geometryDownSampleFactor);
+
+                var mul = 1.875f; // fudge 1
+                var pow = 1.4f; // fudge 2
+                var texelWidth = instanceData[lodIdx]._geoGridWidth / _geometryDownSampleFactor;
+                instanceData[lodIdx]._normalScrollSpeeds[0] = Mathf.Pow(Mathf.Log(1f + 2f * texelWidth) * mul, pow);
+                instanceData[lodIdx]._normalScrollSpeeds[1] = Mathf.Pow(Mathf.Log(1f + 4f * texelWidth) * mul, pow);
+            }
         }
 
         void LateUpdatePosition()
@@ -719,13 +851,14 @@ namespace Crest
 
         void LateUpdateViewerHeight()
         {
-            _sampleHeightHelper.Init(Viewpoint.position, 0f, true);
+            var camera = ViewCamera;
 
-            var waterHeight = SeaLevel;
-            _sampleHeightHelper.Sample(ref waterHeight);
+            _sampleHeightHelper.Init(camera.transform.position, 0f, true);
 
-            ViewerHeightAboveWater = Viewpoint.position.y - waterHeight;
+            _sampleHeightHelper.Sample(out var waterHeight);
 
+            ViewerHeightAboveWater = camera.transform.position.y - waterHeight;
+            
             // Smoothly varying version of viewer height to combat sudden changes in water level that are possible
             // when there are local bodies of water
             _viewerHeightAboveWaterSmooth = Mathf.Lerp(_viewerHeightAboveWaterSmooth, ViewerHeightAboveWater, 0.05f);
@@ -786,6 +919,16 @@ namespace Crest
             _canSkipCulling = WaterBody.WaterBodies.Count == 0;
         }
 
+        void LateUpdateResetMaxDisplacementFromShape()
+        {
+            if (FrameCount != _maxDisplacementCachedTime)
+            {
+                _maxHorizDispFromShape = _maxVertDispFromShape = _maxVertDispFromWaves = 0f;
+            }
+
+            _maxDisplacementCachedTime = FrameCount;
+        }
+
         /// <summary>
         /// Could the ocean horizontal scale increase (for e.g. if the viewpoint gains altitude). Will be false if ocean already at maximum scale.
         /// </summary>
@@ -801,16 +944,9 @@ namespace Crest
         /// </summary>
         public void ReportMaxDisplacementFromShape(float maxHorizDisp, float maxVertDisp, float maxVertDispFromWaves)
         {
-            if (FrameCount != _maxDisplacementCachedTime)
-            {
-                _maxHorizDispFromShape = _maxVertDispFromShape = _maxVertDispFromWaves = 0f;
-            }
-
             _maxHorizDispFromShape += maxHorizDisp;
             _maxVertDispFromShape += maxVertDisp;
             _maxVertDispFromWaves += maxVertDispFromWaves;
-
-            _maxDisplacementCachedTime = FrameCount;
         }
         float _maxHorizDispFromShape = 0f;
         float _maxVertDispFromShape = 0f;
@@ -875,6 +1011,10 @@ namespace Crest
             }
 
             _oceanChunkRenderers.Clear();
+
+            _bufPerCascadeInstanceData.Dispose();
+            _bufCascadeDataTgt.Dispose();
+            _bufCascadeDataSrc.Dispose();
         }
 
 #if UNITY_EDITOR
@@ -973,12 +1113,31 @@ namespace Crest
                 input.Validate(ocean, ValidatedHelper.DebugLog);
             }
 
+            // WaterBody
+            var waterBodies = FindObjectsOfType<WaterBody>();
+            foreach (var waterBody in waterBodies)
+            {
+                waterBody.Validate(ocean, ValidatedHelper.DebugLog);
+            }
+
             Debug.Log("Validation complete!", ocean);
         }
 
         public bool Validate(OceanRenderer ocean, ValidatedHelper.ShowMessage showMessage)
         {
             var isValid = true;
+
+#if !UNITY_2019_4_9_OR_NEWER
+            if (_camera == null)
+            {
+                showMessage
+                (
+                    "Not setting the camera property will result in using Camera.main which has a significant " +
+                    "performance cost. This is improved in Unity 2019.4.9 and above.",
+                    ValidatedHelper.MessageType.Warning, ocean
+                );
+            }
+#endif
 
             if (_material == null)
             {
@@ -1108,6 +1267,15 @@ namespace Crest
             if (_simSettingsAnimatedWaves)
             {
                 _simSettingsAnimatedWaves.Validate(ocean, showMessage);
+            }
+
+            if (transform.eulerAngles.magnitude > 0.0001f)
+            {
+                showMessage
+                (
+                    $"There must be no rotation on the ocean GameObject, and no rotation on any parent. Currently the rotation Euler angles are {transform.eulerAngles}.",
+                    ValidatedHelper.MessageType.Error, ocean
+                );
             }
 
             return isValid;

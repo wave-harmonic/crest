@@ -301,7 +301,6 @@ namespace Crest
                     int vi = outputIdx / 4;
                     int ei = outputIdx - vi * 4;
 
-                    _waveData[vi]._twoPiOverWavelength[ei] = _twoPi / _wavelengths[componentIdx];
                     _waveData[vi]._amp[ei] = _amplitudes[componentIdx];
 
                     float chopScale = _spectrum._chopScales[componentIdx / _componentsPerOctave];

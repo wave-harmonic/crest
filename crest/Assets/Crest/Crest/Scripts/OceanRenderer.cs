@@ -673,6 +673,7 @@ namespace Crest
             sp_ForceUnderwater = Shader.PropertyToID("_ForceUnderwater");
             sp_perCascadeInstanceData = Shader.PropertyToID("_CrestPerCascadeInstanceData");
             sp_cascadeData = Shader.PropertyToID("_CrestCascadeData");
+            sp_crestTime = Shader.PropertyToID("_CrestTime");
         }
 
         void LateUpdate()

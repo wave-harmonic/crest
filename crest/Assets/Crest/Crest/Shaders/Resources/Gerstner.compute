@@ -35,8 +35,6 @@ StructuredBuffer<GerstnerWaveComponent4> _GerstnerWaveData;
 
 RWTexture2DArray<half4> _WaveBuffer;
 
-// 7.7us
-
 void ComputeGerstner( float2 worldPosXZ, float worldSize, GerstnerWaveComponent4 data, inout float3 result, inout float2 displacementNormalized )
 {
 	// direction

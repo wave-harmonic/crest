@@ -26,7 +26,8 @@ namespace Crest
         readonly static float _leftPanelWidth = 180f;
         readonly static float _bottomPanelHeight = 25f;
         readonly static Color _guiColor = Color.black * 0.7f;
-        ShapeGerstnerBatched[] _gerstners;
+        ShapeGerstnerBatched[] _gerstnerBatches;
+        ShapeGerstner[] _gerstners;
 
         static readonly Dictionary<System.Type, string> s_simNames = new Dictionary<System.Type, string>();
 
@@ -78,29 +79,7 @@ namespace Crest
                     Time.timeScale = freeze ? 0f : 1f;
                 }
 
-                GUI.Label(new Rect(x, y, w, h), "Gerstner weight(s)"); y += h;
-                if (_gerstners == null)
-                {
-                    _gerstners = FindObjectsOfType<ShapeGerstnerBatched>();
-                    // i am getting the array in the reverse order compared to the hierarchy which bugs me. sort them based on sibling index,
-                    // which helps if the Gerstners are on sibling GOs.
-                    System.Array.Sort(_gerstners, (a, b) => a.transform.GetSiblingIndex().CompareTo(b.transform.GetSiblingIndex()));
-                }
-                foreach (var gerstner in _gerstners)
-                {
-                    var specW = 75f;
-                    gerstner._weight = GUI.HorizontalSlider(new Rect(x, y, w - specW - 5f, h), gerstner._weight, 0f, 1f);
-
-#if UNITY_EDITOR
-                    if (GUI.Button(new Rect(x + w - specW, y, specW, h), "Spectrum"))
-                    {
-                        var path = UnityEditor.AssetDatabase.GetAssetPath(gerstner._spectrum);
-                        var asset = UnityEditor.AssetDatabase.LoadMainAssetAtPath(path);
-                        UnityEditor.Selection.activeObject = asset;
-                    }
-#endif
-                    y += h;
-                }
+                OnGUIGerstnerSection(x, ref y, w, h);
 
                 _showOceanData = GUI.Toggle(new Rect(x, y, w, h), _showOceanData, "Show sim data"); y += h;
 
@@ -150,6 +129,55 @@ namespace Crest
             }
 
             GUI.color = bkp;
+        }
+
+        void OnGUIGerstnerSection(float x, ref float y, float w, float h)
+        {
+            GUI.Label(new Rect(x, y, w, h), "Gerstner weight(s)"); y += h;
+            if (_gerstnerBatches == null)
+            {
+                _gerstnerBatches = FindObjectsOfType<ShapeGerstnerBatched>();
+                // i am getting the array in the reverse order compared to the hierarchy which bugs me. sort them based on sibling index,
+                // which helps if the Gerstners are on sibling GOs.
+                System.Array.Sort(_gerstnerBatches, (a, b) => a.transform.GetSiblingIndex().CompareTo(b.transform.GetSiblingIndex()));
+            }
+            foreach (var gerstner in _gerstnerBatches)
+            {
+                var specW = 75f;
+                gerstner._weight = GUI.HorizontalSlider(new Rect(x, y, w - specW - 5f, h), gerstner._weight, 0f, 1f);
+
+#if UNITY_EDITOR
+                if (GUI.Button(new Rect(x + w - specW, y, specW, h), "Spectrum"))
+                {
+                    var path = UnityEditor.AssetDatabase.GetAssetPath(gerstner._spectrum);
+                    var asset = UnityEditor.AssetDatabase.LoadMainAssetAtPath(path);
+                    UnityEditor.Selection.activeObject = asset;
+                }
+#endif
+                y += h;
+            }
+            if (_gerstners == null)
+            {
+                _gerstners = FindObjectsOfType<ShapeGerstner>();
+                // i am getting the array in the reverse order compared to the hierarchy which bugs me. sort them based on sibling index,
+                // which helps if the Gerstners are on sibling GOs.
+                System.Array.Sort(_gerstners, (a, b) => a.transform.GetSiblingIndex().CompareTo(b.transform.GetSiblingIndex()));
+            }
+            foreach (var gerstner in _gerstners)
+            {
+                var specW = 75f;
+                gerstner._weight = GUI.HorizontalSlider(new Rect(x, y, w - specW - 5f, h), gerstner._weight, 0f, 1f);
+
+#if UNITY_EDITOR
+                if (GUI.Button(new Rect(x + w - specW, y, specW, h), "Spectrum"))
+                {
+                    var path = UnityEditor.AssetDatabase.GetAssetPath(gerstner._spectrum);
+                    var asset = UnityEditor.AssetDatabase.LoadMainAssetAtPath(path);
+                    UnityEditor.Selection.activeObject = asset;
+                }
+#endif
+                y += h;
+            }
         }
 
         void DrawShapeTargets()
@@ -202,6 +230,7 @@ namespace Crest
 
             if (doDraw)
             {
+                // Background behind slices
                 GUI.color = _guiColor;
                 GUI.DrawTexture(new Rect(x, 0, offset == 1f ? w : w - b, Screen.height - _bottomPanelHeight), Texture2D.whiteTexture);
                 GUI.color = Color.white;
@@ -230,6 +259,43 @@ namespace Crest
             doDraw = GUI.Toggle(new Rect(x + b, togglesBegin, w - 2f * b, _bottomPanelHeight), doDraw, s_simNames[type]);
 
             offset++;
+        }
+
+        public static void DrawTextureArray(RenderTexture data, int columnOffsetFromRightSide)
+        {
+            int offset = columnOffsetFromRightSide;
+
+            float togglesBegin = Screen.height - _bottomPanelHeight;
+            float b = 1f;
+            float h = togglesBegin / (float)data.volumeDepth;
+            float w = h + b;
+            float x = Screen.width - w * offset + b * (offset - 1f);
+
+            {
+                // Background behind slices
+                GUI.color = _guiColor;
+                GUI.DrawTexture(new Rect(x, 0, offset == 1f ? w : w - b, Screen.height - _bottomPanelHeight), Texture2D.whiteTexture);
+                GUI.color = Color.white;
+
+                // Only use Graphics.DrawTexture in EventType.Repaint events if called in OnGUI
+                if (Event.current.type.Equals(EventType.Repaint))
+                {
+                    for (int idx = 0; idx < data.volumeDepth; idx++)
+                    {
+                        float y = idx * h;
+                        if (offset == 1f) w += b;
+
+                        if (s_textureArrayMaterial == null)
+                        {
+                            s_textureArrayMaterial = new Material(Shader.Find("Hidden/Crest/Debug/TextureArray"));
+                        }
+
+                        // Render specific slice of 2D texture array
+                        s_textureArrayMaterial.SetInt("_Depth", idx);
+                        Graphics.DrawTexture(new Rect(x + b, y + b / 2f, h - b, h - b), data, s_textureArrayMaterial);
+                    }
+                }
+            }
         }
 
         void ToggleGUI()

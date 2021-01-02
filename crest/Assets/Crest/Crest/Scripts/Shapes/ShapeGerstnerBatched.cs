@@ -130,7 +130,6 @@ namespace Crest
         readonly int sp_Phases = Shader.PropertyToID("_Phases");
         readonly int sp_ChopAmps = Shader.PropertyToID("_ChopAmps");
         readonly int sp_NumInBatch = Shader.PropertyToID("_NumInBatch");
-        readonly int sp_AttenuationInShallows = Shader.PropertyToID("_AttenuationInShallows");
         readonly int sp_NumWaveVecs = Shader.PropertyToID("_NumWaveVecs");
         readonly int sp_TargetPointData = Shader.PropertyToID("_TargetPointData");
 
@@ -465,7 +464,7 @@ namespace Crest
                 mat.SetVectorArray(sp_Phases, UpdateBatchScratchData._phasesBatch);
                 mat.SetVectorArray(sp_ChopAmps, UpdateBatchScratchData._chopAmpsBatch);
                 mat.SetFloat(sp_NumInBatch, numInBatch);
-                mat.SetFloat(sp_AttenuationInShallows, OceanRenderer.Instance._lodDataAnimWaves.Settings.AttenuationInShallows);
+                mat.SetFloat(LodDataMgrAnimWaves.sp_AttenuationInShallows, OceanRenderer.Instance._lodDataAnimWaves.Settings.AttenuationInShallows);
 
                 int numVecs = (numInBatch + 3) / 4;
                 mat.SetInt(sp_NumWaveVecs, numVecs);

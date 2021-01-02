@@ -482,8 +482,6 @@ namespace Crest
         {
             var registered = RegisterLodDataInputBase.GetRegistrar(typeof(LodDataMgrAnimWaves));
 
-            //#if UNITY_EDITOR
-            // Unregister after switching modes in the editor.
             if (_batches != null)
             {
                 foreach (var batch in _batches)
@@ -491,7 +489,6 @@ namespace Crest
                     registered.Remove(batch);
                 }
             }
-            //#endif
 
             if (_meshForDrawingWaves == null)
             {

@@ -38,6 +38,7 @@ Shader "Crest/Ocean"
 		_SubSurfaceSun("Sun Mul", Range(0.0, 10.0)) = 4.5
 		// Fall-off for primary light scattering to affect directionality
 		_SubSurfaceSunFallOff("Sun Fall-Off", Range(1.0, 16.0)) = 5.0
+		_BackgroundSSSValue("Average Scattering To Use At Far Distance", Range(0.0, 1.0)) = 0.5
 
 		[Header(Shallow Scattering)]
 		// Enable light scattering in shallow water
@@ -429,6 +430,9 @@ Shader "Crest/Ocean"
 			// cause here might be imprecision or numerical issues at ocean tile boundaries, although
 			// i'm not sure why cracks are not visible in this case.
 			uniform float _ForceUnderwater;
+			#if _SUBSURFACESCATTERING_ON
+			uniform half _BackgroundSSSValue;
+			#endif // _SUBSURFACESCATTERING_ON
 
 			float3 WorldSpaceLightDir(float3 worldPos)
 			{
@@ -520,8 +524,10 @@ Shader "Crest/Ocean"
 				}
 				n_geom = normalize(n_geom);
 
+				#if _SUBSURFACESCATTERING_ON
 				const float leftoverWeight = 1.0 - wt_smallerLod - wt_biggerLod;
-				sss += leftoverWeight * 0.8;
+				sss += leftoverWeight * _BackgroundSSSValue;
+				#endif
 
 				if (underwater) n_geom = -n_geom;
 				half3 n_pixel = n_geom;

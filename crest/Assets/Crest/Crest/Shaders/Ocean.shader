@@ -504,7 +504,7 @@ Shader "Crest/Ocean"
 				// Normal - geom + normal mapping. Subsurface scattering.
 				float3 dummy = 0.;
 				half3 n_geom = half3(0.0, 1.0, 0.0);
-				half sss = 0.;
+				half sss = 0.0;
 				if (wt_smallerLod > 0.001)
 				{
 					const float3 uv_slice_smallerLod = WorldToUV(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, _CrestCascadeData[_LD_SliceIndex], _LD_SliceIndex);

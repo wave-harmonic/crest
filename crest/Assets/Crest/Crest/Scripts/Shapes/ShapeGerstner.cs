@@ -115,6 +115,7 @@ namespace Crest
         struct GerstnerCascadeParams
         {
             public int _startIndex;
+            public float _cumulativeVariance;
         }
         ComputeBuffer _bufCascadeParams;
         GerstnerCascadeParams[] _cascadeParams = new GerstnerCascadeParams[CASCADE_COUNT + 1];
@@ -377,6 +378,26 @@ namespace Crest
                 _cascadeParams[cascadeIdx]._startIndex = outputIdx / 4;
                 //Debug.Log($"{cascadeIdx}: start {_cascadeParams[cascadeIdx]._startIndex} minWL {minWl}");
             }
+
+            _lastCascade = CASCADE_COUNT - 1;
+
+            // Compute a measure of variance, cumulative from low cascades to high
+            for (int i = 0; i < CASCADE_COUNT; i++)
+            {
+                // Accumulate from lower cascades
+                _cascadeParams[i]._cumulativeVariance = i > 0 ? _cascadeParams[i - 1]._cumulativeVariance : 0f;
+
+                var wl = MinWavelength(i) * 1.5f;
+                var octaveIndex = OceanWaveSpectrum.GetOctaveIndex(wl);
+                octaveIndex = Mathf.Min(octaveIndex, _spectrum._chopScales.Length - 1);
+
+                // Heuristic - horiz disp is roughly amp*chop, divide by wavelength to normalize
+                var amp = _spectrum.GetAmplitude(wl, 1f, out _);
+                var chop = _spectrum._chopScales[octaveIndex];
+                float amp_over_wl = chop * amp / wl;
+                _cascadeParams[i]._cumulativeVariance += amp_over_wl;
+            }
+            _cascadeParams[CASCADE_COUNT]._cumulativeVariance = _cascadeParams[CASCADE_COUNT - 1]._cumulativeVariance;
 
             _bufCascadeParams.SetData(_cascadeParams);
             _bufWaveData.SetData(_waveData);

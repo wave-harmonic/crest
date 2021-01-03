@@ -273,6 +273,8 @@ namespace Crest
 
         void CombinePassPingPong(CommandBuffer buf)
         {
+            if (_combineMaterial == null) return;
+
             var lodCount = OceanRenderer.Instance.CurrentLodCount;
             const int shaderPassCombineIntoAux = 0, shaderPassCopyResultBack = 1;
 

@@ -225,6 +225,8 @@ namespace Crest
             }
 
             buf.SetGlobalVector(sp_AxisX, WindDir);
+            // Seems to come unbound when editing shaders at runtime, so rebinding here.
+            _matGenerateWaves.SetTexture(sp_WaveBuffer, _waveBuffers);
         }
 
 #if UNITY_EDITOR
@@ -498,8 +500,6 @@ namespace Crest
             {
                 _matGenerateWaves = new Material(Shader.Find("Crest/Inputs/Animated Waves/Gerstner Geometry"));
             }
-
-            _matGenerateWaves.SetTexture(sp_WaveBuffer, _waveBuffers);
 
             // Submit draws to create the Gerstner waves
             _batches = new GerstnerBatch[CASCADE_COUNT];

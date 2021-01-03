@@ -105,6 +105,7 @@ namespace Crest
         // Data for all components
         float[] _wavelengths;
         float[] _amplitudes;
+        float[] _powers;
         float[] _angleDegs;
         float[] _phases;
 
@@ -437,10 +438,14 @@ namespace Crest
             {
                 _amplitudes = new float[_wavelengths.Length];
             }
+            if (_powers == null || _powers.Length != _wavelengths.Length)
+            {
+                _powers = new float[_wavelengths.Length];
+            }
 
             for (int i = 0; i < _wavelengths.Length; i++)
             {
-                _amplitudes[i] = _weight * _spectrum.GetAmplitude(_wavelengths[i], _componentsPerOctave);
+                _amplitudes[i] = Random.value * _weight * _spectrum.GetAmplitude(_wavelengths[i], _componentsPerOctave, out _powers[i]);
             }
         }
 

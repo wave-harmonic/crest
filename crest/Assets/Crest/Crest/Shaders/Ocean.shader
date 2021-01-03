@@ -520,6 +520,9 @@ Shader "Crest/Ocean"
 				}
 				n_geom = normalize(n_geom);
 
+				const float leftoverWeight = 1.0 - wt_smallerLod - wt_biggerLod;
+				sss += leftoverWeight * 0.8;
+
 				if (underwater) n_geom = -n_geom;
 				half3 n_pixel = n_geom;
 				#if _APPLYNORMALMAPPING_ON

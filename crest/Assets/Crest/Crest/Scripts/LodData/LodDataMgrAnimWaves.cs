@@ -106,14 +106,23 @@ namespace Crest
 
             _combineBuffer = CreateCombineBuffer(desc);
 
-            var combineShader = Shader.Find("Hidden/Crest/Simulation/Combine Animated Wave LODs");
-            _combineMaterial = new PropertyWrapperMaterial[OceanRenderer.Instance.CurrentLodCount];
-            for (int i = 0; i < _combineMaterial.Length; i++)
+            // Combine graphics shader - for 'ping pong' approach (legacy hardware)
+            var combineShaderNameGraphics = "Hidden/Crest/Simulation/Combine Animated Wave LODs";
+            var combineShaderGraphics = Shader.Find(combineShaderNameGraphics);
+            Debug.Assert(combineShaderGraphics != null,
+                $"Could not load shader {combineShaderNameGraphics}. Try right clicking the Crest folder in the Project view and selecting Reimport, and checking for errors.",
+                OceanRenderer.Instance);
+            if (combineShaderGraphics != null)
             {
-                var mat = new Material(combineShader);
-                _combineMaterial[i] = new PropertyWrapperMaterial(mat);
+                _combineMaterial = new PropertyWrapperMaterial[OceanRenderer.Instance.CurrentLodCount];
+                for (int i = 0; i < _combineMaterial.Length; i++)
+                {
+                    var mat = new Material(combineShaderGraphics);
+                    _combineMaterial[i] = new PropertyWrapperMaterial(mat);
+                }
             }
 
+            // Combine compute shader - modern hardware
             _combineShader = ComputeShaderHelpers.LoadShader(ShaderName);
             if (_combineShader == null)
             {

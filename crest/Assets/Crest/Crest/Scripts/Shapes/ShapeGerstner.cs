@@ -238,9 +238,9 @@ namespace Crest
                 _firstUpdate = false;
             }
 
+            _matGenerateWaves.SetFloat(sp_RespectShallowWaterAttenuation, _respectShallowWaterAttenuation);
             _matGenerateWaves.SetFloat(sp_FeatherWaveStart, _featherWaveStart);
             _matGenerateWaves.SetFloat(sp_FeatherFromSplineEnds, _featherFromSplineEnds);
-            _matGenerateWaves.SetFloat(sp_RespectShallowWaterAttenuation, _respectShallowWaterAttenuation);
             // Seems like shader errors cause this to unbind if i dont set it every frame. Could be an editor only issue.
             _matGenerateWaves.SetTexture(sp_WaveBuffer, _waveBuffers);
 
@@ -335,7 +335,6 @@ namespace Crest
                     int vi = outputIdx / 4;
                     int ei = outputIdx - vi * 4;
 
-                    _waveData[vi]._twoPiOverWavelength[ei] = 2f * Mathf.PI / _wavelengths[componentIdx];
                     _waveData[vi]._amp[ei] = _amplitudes[componentIdx];
 
                     float chopScale = _spectrum._chopScales[componentIdx / _componentsPerOctave];
@@ -345,8 +344,6 @@ namespace Crest
                     float dx = Mathf.Cos(angle);
                     float dz = Mathf.Sin(angle);
 
-                    // It used to be this, but I'm pushing all the stuff that doesn't depend on position into the phase.
-                    //half4 angle = k * (C * _CrestTime + x) + _Phases[vi];
                     float gravityScale = _spectrum._gravityScales[(componentIdx) / _componentsPerOctave];
                     float gravity = OceanRenderer.Instance.Gravity * _spectrum._gravityScale;
                     float C = Mathf.Sqrt(_wavelengths[componentIdx] * gravity * gravityScale * _recipTwoPi);
@@ -357,16 +354,21 @@ namespace Crest
                         float kx = k * dx;
                         float kz = k * dz;
                         var diameter = 0.5f * (1 << cascadeIdx);
-                        float n = kx / (2f * Mathf.PI / diameter);
-                        float m = kz / (2f * Mathf.PI / diameter);
-                        kx = 2f * Mathf.PI * Mathf.Round(n) / diameter;
-                        kz = 2f * Mathf.PI * Mathf.Round(m) / diameter;
 
+                        // Number of times wave repeats across domain in x and z
+                        float n = kx / (_twoPi / diameter);
+                        float m = kz / (_twoPi / diameter);
+                        // Ensure the wave repeats an integral number of times across domain
+                        kx = _twoPi * Mathf.Round(n) / diameter;
+                        kz = _twoPi * Mathf.Round(m) / diameter;
+
+                        // Compute new wave vector and direction
                         k = Mathf.Sqrt(kx * kx + kz * kz);
                         dx = kx / k;
                         dz = kz / k;
                     }
 
+                    _waveData[vi]._twoPiOverWavelength[ei] = k;
                     _waveData[vi]._waveDirX[ei] = dx;
                     _waveData[vi]._waveDirZ[ei] = dz;
 
@@ -538,8 +540,6 @@ namespace Crest
         {
             var registered = RegisterLodDataInputBase.GetRegistrar(typeof(LodDataMgrAnimWaves));
 
-            //#if UNITY_EDITOR
-            // Unregister after switching modes in the editor.
             if (_batches != null)
             {
                 foreach (var batch in _batches)
@@ -547,7 +547,6 @@ namespace Crest
                     registered.Remove(batch);
                 }
             }
-            //#endif
 
             var splineForWaves = GetComponent<Spline.Spline>();
             if (splineForWaves != null)
@@ -557,7 +556,7 @@ namespace Crest
                     _meshForDrawingWaves.name = gameObject.name + "_mesh";
                 }
             }
-
+            
             if (_meshForDrawingWaves == null)
             {
                 _matGenerateWaves = new Material(Shader.Find("Hidden/Crest/Inputs/Animated Waves/Gerstner Global"));
@@ -666,17 +665,6 @@ namespace Crest
         public bool Validate(OceanRenderer ocean, ValidatedHelper.ShowMessage showMessage)
         {
             var isValid = true;
-
-            if (_componentsPerOctave == 0)
-            {
-                showMessage
-                (
-                    "Components Per Octave set to 0 meaning this Gerstner component won't generate any waves.",
-                    ValidatedHelper.MessageType.Warning, this
-                );
-
-                isValid = false;
-            }
 
             if (GetComponent<Spline.Spline>() != null && _meshForDrawingWaves == null)
             {

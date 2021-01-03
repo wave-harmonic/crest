@@ -35,11 +35,21 @@ float2 IDtoUV(in float2 i_id, in float i_width, in float i_height)
 }
 
 // Sampling functions
-void SampleDisplacements(in Texture2DArray i_dispSampler, in float3 i_uv_slice, in float i_wt, inout float3 io_worldPos, inout half io_sss)
+
+// Displacements. Variance is a statistical measure of how many waves are in the smaller cascades (below this cascade slice). This gives a measure
+// of how much wave content is missing when we sample a particular LOD, and can be used to compensate. The foam sim uses it to compensate for missing
+// waves when computing surface pinch.
+void SampleDisplacements(in Texture2DArray i_dispSampler, in float3 i_uv_slice, in float i_wt, inout float3 io_worldPos, inout half io_variance)
 {
 	const half4 data = i_dispSampler.SampleLevel(LODData_linear_clamp_sampler, i_uv_slice, 0.0);
 	io_worldPos += i_wt * data.xyz;
-	io_sss += i_wt * data.a;
+	io_variance += i_wt * data.w;
+}
+
+void SampleDisplacements( in Texture2DArray i_dispSampler, in float3 i_uv_slice, in float i_wt, inout float3 io_worldPos )
+{
+	half unusedVariance = 0.0;
+	SampleDisplacements( i_dispSampler, i_uv_slice, i_wt, io_worldPos, unusedVariance );
 }
 
 void SampleDisplacementsNormals(in Texture2DArray i_dispSampler, in float3 i_uv_slice, in float i_wt, in float i_invRes, in float i_texelSize, inout float3 io_worldPos, inout half2 io_nxz, inout half io_sss)
@@ -60,10 +70,11 @@ void SampleDisplacementsNormals(in Texture2DArray i_dispSampler, in float3 i_uv_
 
 	// SSS - based off pinch
 	{
-		float varianceBeforeThisCascade = data.w;
+		// Don't use variance - yet
+		// float varianceBeforeThisCascade = data.w;
 		float4 du = float4(disp_x.xz, disp_z.xz) - disp.xzxz;
 		float det = (du.x * du.w - du.y * du.z) / (i_texelSize * i_texelSize);
-		io_sss += i_wt * saturate( .015*(9.0 - (det * 4.0 - varianceBeforeThisCascade * 6.0 )));
+		io_sss += i_wt * saturate( .03 * (20.0 - (det * 4.0 /*- varianceBeforeThisCascade * 20.0*/)) );
 	}
 
 	io_nxz += i_wt * n.xz;

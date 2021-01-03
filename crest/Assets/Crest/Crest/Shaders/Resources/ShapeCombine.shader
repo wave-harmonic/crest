@@ -78,6 +78,7 @@ Shader "Hidden/Crest/Simulation/Combine Animated Wave LODs"
 				float3 result = 0.0;
 				float variance = 0.0;
 
+				// Sample in waves for this cascade.
 #if CREST_FLOW_ON_INTERNAL
 				half2 flow = 0.0;
 				SampleFlow(_LD_TexArray_Flow, uv_thisLod, 1.0, flow);
@@ -91,7 +92,7 @@ Shader "Hidden/Crest/Simulation/Combine Animated Wave LODs"
 				SampleDisplacements(_LD_TexArray_WaveBuffer, uv_thisLod_flow_1, weights[1], result, variance);
 #else
 				float4 data = _LD_TexArray_WaveBuffer.SampleLevel(LODData_linear_clamp_sampler, uv_thisLod, 0.0);
-				result += data.xyz;
+				result = data.xyz;
 				variance = data.w;
 #endif // CREST_FLOW_ON_INTERNAL
 
@@ -101,7 +102,7 @@ Shader "Hidden/Crest/Simulation/Combine Animated Wave LODs"
 					_LD_TexArray_AnimatedWaves.GetDimensions(w, h, arrayDepth);
 				}
 
-				// waves to combine down from the next lod up the chain
+				// Waves to combine down from the next lod up the chain.
 				if ((float)_LD_SliceIndex < arrayDepth - 1.0)
 				{
 					float4 dataNextLod = _LD_TexArray_AnimatedWaves.SampleLevel(LODData_linear_clamp_sampler, uv_nextLod, 0.0);

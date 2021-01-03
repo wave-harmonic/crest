@@ -59,11 +59,11 @@ void SampleDisplacementsNormals(in Texture2DArray i_dispSampler, in float3 i_uv_
 
 	// SSS - based off pinch
 	{
-		float varianceBeforeThisCascade = data.w;
+		// Don't use variance - yet
+		// float varianceBeforeThisCascade = data.w;
 		float4 du = float4(disp_x.xz, disp_z.xz) - disp.xzxz;
 		float det = (du.x * du.w - du.y * du.z) / (i_texelSize * i_texelSize);
-		io_sss += i_wt * saturate( .03 * (20.0 - (det * 4.0 - varianceBeforeThisCascade * 20.0)) );
-		//io_sss += i_wt * 10*saturate( .015*(9.0 - (det * 4.0 - varianceBeforeThisCascade * 6.0 )));
+		io_sss += i_wt * saturate( .03 * (20.0 - (det * 4.0 /*- varianceBeforeThisCascade * 20.0*/)) );
 	}
 
 	io_nxz += i_wt * n.xz;

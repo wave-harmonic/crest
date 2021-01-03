@@ -7,6 +7,9 @@ using Crest.Spline;
 
 namespace Crest
 {
+    /// <summary>
+    /// Generates mesh suitable for rendering gerstner waves from a spline
+    /// </summary>
     public static class ShapeGerstnerSplineHandling
     {
         public static bool GenerateMeshFromSpline(Spline.Spline spline, Transform transform, int subdivisions, float radius, int smoothingIterations, ref Mesh mesh)
@@ -15,96 +18,52 @@ namespace Crest
             if (splinePoints.Length < 2) return false;
 
             var points = new Vector3[(splinePoints.Length - 1) * 3 + 1];
-            for (int i = 0; i < points.Length; i++)
+
+            if (!SplineInterpolation.GenerateCubicSplineHull(splinePoints, points))
             {
-                float tm = 0.39f;
-
-                if (i % 3 == 0)
-                {
-                    points[i] = splinePoints[i / 3].transform.position;
-                }
-                else if (i % 3 == 1)
-                {
-                    var idx = i / 3;
-                    var tangent = TangentAfter(splinePoints, idx);
-                    tangent = tangent.normalized * (splinePoints[i / 3 + 1].transform.position - splinePoints[i / 3].transform.position).magnitude;
-                    points[i] = splinePoints[idx].transform.position + tm * tangent;
-
-                    if (i == 1)
-                    {
-                        tangent = TangentBefore(splinePoints, idx + 1);
-                        // Mirror first tangent
-                        var toNext = (splinePoints[idx + 1].transform.position - splinePoints[idx].transform.position).normalized;
-                        var nearestPoint = Vector3.Dot(tangent, toNext) * toNext;
-                        tangent += 2f * (nearestPoint - tangent);
-                        tangent = tangent.normalized * (splinePoints[i / 3 + 1].transform.position - splinePoints[i / 3].transform.position).magnitude;
-                        points[i] = splinePoints[idx].transform.position + tm * tangent;
-                    }
-                }
-                else
-                {
-                    var idx = i / 3 + 1;
-                    var tangent = TangentBefore(splinePoints, idx);
-                    tangent = tangent.normalized * (splinePoints[i / 3 + 1].transform.position - splinePoints[i / 3].transform.position).magnitude;
-                    points[i] = splinePoints[idx].transform.position - tm * tangent;
-
-                    if (i == points.Length - 2)
-                    {
-                        tangent = TangentAfter(splinePoints, idx - 1);
-                        // Mirror first tangent
-                        var toNext = (splinePoints[idx - 1].transform.position - splinePoints[idx].transform.position).normalized;
-                        var nearestPoint = Vector3.Dot(tangent, toNext) * toNext;
-                        tangent += 2f * (nearestPoint - tangent);
-                        tangent = tangent.normalized * (splinePoints[i / 3 + 1].transform.position - splinePoints[i / 3].transform.position).magnitude;
-                        points[i] = splinePoints[idx].transform.position - tm * tangent;
-                    }
-                }
+                return false;
             }
 
-            if (splinePoints.Length > 1)
+            // Sample spline
+
+            // Estimate total length of spline and use this to compute a sample count
+            var lengthEst = 0f;
+            for (int i = 1; i < splinePoints.Length; i++)
             {
-                float lengthEst = 0f;
-                for (int i = 1; i < splinePoints.Length; i++)
-                {
-                    lengthEst += (splinePoints[i].transform.position - splinePoints[i - 1].transform.position).magnitude;
-                }
-                lengthEst = Mathf.Max(lengthEst, 1f);
+                lengthEst += (splinePoints[i].transform.position - splinePoints[i - 1].transform.position).magnitude;
+            }
+            lengthEst = Mathf.Max(lengthEst, 1f);
 
-                float spacing = 16f / Mathf.Pow(2f, subdivisions + 2);
-                int pointCount = Mathf.CeilToInt(lengthEst / spacing);
-                pointCount = Mathf.Max(pointCount, 1);
+            var spacing = 16f / Mathf.Pow(2f, subdivisions + 2);
+            var pointCount = Mathf.CeilToInt(lengthEst / spacing);
+            pointCount = Mathf.Max(pointCount, 1);
 
-                var resultPts0 = new Vector3[pointCount];
+            var resultPts0 = new Vector3[pointCount];
+            var resultPts1 = new Vector3[pointCount];
 
-                resultPts0[0] = points[0];
-                for (int i = 1; i < pointCount; i++)
-                {
-                    float t = i / (float)(pointCount - 1);
+            // First set of sample points lie on spline
+            resultPts0[0] = points[0];
+            for (int i = 1; i < pointCount; i++)
+            {
+                float t = i / (float)(pointCount - 1);
 
-                    var tpts = t * (splinePoints.Length - 1);
-                    var spidx = Mathf.FloorToInt(tpts);
-                    var alpha = tpts - spidx;
-                    if (spidx == splinePoints.Length - 1)
-                    {
-                        spidx -= 1;
-                        alpha = 1f;
-                    }
-                    var pidx = spidx * 3;
+                SplineInterpolation.InterpolateCubicPosition(splinePoints.Length, points, t, out resultPts0[i]);
+            }
 
-                    resultPts0[i] = (1 - alpha) * (1 - alpha) * (1 - alpha) * points[pidx] + 3 * alpha * (1 - alpha) * (1 - alpha) * points[pidx + 1] + 3 * alpha * alpha * (1 - alpha) * points[pidx + 2] + alpha * alpha * alpha * points[pidx + 3];
-                }
+            // Second set of sample points lie off-spline - some distance to the right
+            for (int i = 0; i < pointCount; i++)
+            {
+                var tangent = resultPts0[Mathf.Min(pointCount - 1, i + 1)] - resultPts0[Mathf.Max(0, i - 1)];
+                var normal = tangent;
+                normal.x = tangent.z;
+                normal.z = -tangent.x;
+                normal = normal.normalized;
+                resultPts1[i] = resultPts0[i] + normal * radius;
+            }
 
-                var resultPts1 = new Vector3[pointCount];
-                for (int i = 0; i < pointCount; i++)
-                {
-                    var tangent = resultPts0[Mathf.Min(pointCount - 1, i + 1)] - resultPts0[Mathf.Max(0, i - 1)];
-                    var normal = tangent;
-                    normal.x = tangent.z;
-                    normal.z = -tangent.x;
-                    normal = normal.normalized;
-                    resultPts1[i] = resultPts0[i] + normal * radius;
-                }
-
+            // Blur the second set of points to help solve overlaps or large distortions. Not perfect but helps in many cases.
+            if (smoothingIterations > 0)
+            {
                 var resultPtsTmp = new Vector3[pointCount];
                 for (int j = 0; j < smoothingIterations; j++)
                 {
@@ -119,46 +78,9 @@ namespace Crest
                     resultPts1 = resultPtsTmp;
                     resultPtsTmp = tmp;
                 }
-
-                return UpdateMesh(transform, resultPts0, resultPts1, ref mesh);
             }
 
-            return false;
-        }
-
-        static Vector3 TangentAfter(SplinePoint[] splinePoints, int idx)
-        {
-            var tangent = Vector3.zero;
-            var wt = 0f;
-            //var idx = i / 3;
-            if (idx - 1 >= 0)
-            {
-                tangent += splinePoints[idx].transform.position - splinePoints[idx - 1].transform.position;
-                wt += 1f;
-            }
-            if (idx + 1 < splinePoints.Length)
-            {
-                tangent += splinePoints[idx + 1].transform.position - splinePoints[idx].transform.position;
-                wt += 1f;
-            }
-            return tangent / wt;
-        }
-
-        static Vector3 TangentBefore(SplinePoint[] splinePoints, int idx)
-        {
-            var tangent = Vector3.zero;
-            var wt = 0f;
-            if (idx - 1 >= 0)
-            {
-                tangent += splinePoints[idx].transform.position - splinePoints[idx - 1].transform.position;
-                wt += 1f;
-            }
-            if (idx + 1 < splinePoints.Length)
-            {
-                tangent += splinePoints[idx + 1].transform.position - splinePoints[idx].transform.position;
-                wt += 1f;
-            }
-            return tangent / wt;
+            return UpdateMesh(transform, resultPts0, resultPts1, ref mesh);
         }
 
         static bool UpdateMesh(Transform transform, Vector3[] resultPts0, Vector3[] resultPts1, ref Mesh mesh)

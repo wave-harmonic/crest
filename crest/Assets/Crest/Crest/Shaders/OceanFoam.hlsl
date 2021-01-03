@@ -28,6 +28,8 @@ half3 AmbientLight()
 
 half WhiteFoamTexture(half i_foam, float2 i_worldXZUndisplaced, half lodVal, in const CascadeParams cascadeData0, in const CascadeParams cascadeData1)
 {
+	if( i_foam > 0.9 ) return min(0.9 + (i_foam - 0.9) * 5.0, 1.0);
+
 	half ft = lerp(
 		tex2D(_FoamTexture, (1.25*i_worldXZUndisplaced + _CrestTime / 10.) / (4.*cascadeData0._texelWidth*_FoamScale)).r,
 		tex2D(_FoamTexture, (1.25*i_worldXZUndisplaced + _CrestTime / 10.) / (4.*cascadeData1._texelWidth*_FoamScale)).r,

@@ -98,7 +98,7 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Batch Geometry"
 				wt *= saturate(1.0 - (r_l1 - (0.5 - _FeatherWidth)) / _FeatherWidth);
 #endif
 
-				return wt * ComputeGerstner(input.worldPosXZ_uv.xy, input.uv_slice_wt.xyz);
+				return half4(wt * ComputeGerstner(input.worldPosXZ_uv.xy, input.uv_slice_wt.xyz), 0.0);
 			}
 			ENDCG
 		}

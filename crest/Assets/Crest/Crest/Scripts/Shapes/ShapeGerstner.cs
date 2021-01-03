@@ -23,8 +23,8 @@ namespace Crest
         [Tooltip("The spectrum that defines the ocean surface shape. Assign asset of type Crest/Ocean Waves Spectrum.")]
         public OceanWaveSpectrum _spectrum;
 
-        [Tooltip("If a spectrum will not change at runtime, set this true to calculate the wave data once on first update rather than each frame."), SerializeField]
-        bool _spectrumIsStatic = true;
+        [Tooltip("When true, the wave spectrum is evaluated once on startup in editor play mode and standalone builds, rather than every frame. This is less flexible but reduces the performance cost significantly."), SerializeField]
+        bool _spectrumFixedAtRuntime = true;
 
         [Tooltip("Wind direction (angle from x axis in degrees)"), Range(-180, 180)]
         public float _windDirectionAngle = 0f;
@@ -201,7 +201,7 @@ namespace Crest
                 InitData();
             }
 
-            var updateDataEachFrame = !_spectrumIsStatic;
+            var updateDataEachFrame = !_spectrumFixedAtRuntime;
 #if UNITY_EDITOR
             if (!EditorApplication.isPlaying) updateDataEachFrame = true;
 #endif

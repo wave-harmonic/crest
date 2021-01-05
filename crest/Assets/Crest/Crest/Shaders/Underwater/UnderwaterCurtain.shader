@@ -57,17 +57,13 @@ Shader "Crest/Underwater Curtain"
 
 			#include "../OceanGlobals.hlsl"
 			#include "../OceanInputsDriven.hlsl"
+			#include "../OceanShaderData.hlsl"
 			#include "../OceanHelpersNew.hlsl"
 			#include "UnderwaterShared.hlsl"
-
-			float _HeightOffset;
-			UNITY_DECLARE_SCREENSPACE_TEXTURE(_CameraDepthTexture);
 
 			#include "../OceanEmission.hlsl"
 
 			#define MAX_OFFSET 5.0
-
-			sampler2D _Normals;
 
 			struct Attributes
 			{

@@ -808,6 +808,17 @@ namespace Crest
             // maintain y coordinate - sea level
             pos.y = Root.position.y;
 
+            // Don't land very close to integral positions because different tiles might land on either side due
+            // to numerical error and snap to the wrong positions
+            if (Mathf.Abs(pos.x - Mathf.Round(pos.x)) < 0.001f)
+            {
+                pos.x += 0.002f;
+            }
+            if (Mathf.Abs(pos.z - Mathf.Round(pos.z)) < 0.001f)
+            {
+                pos.z += 0.002f;
+            }
+
             Root.position = pos;
 
             Shader.SetGlobalVector(sp_oceanCenterPosWorld, Root.position);

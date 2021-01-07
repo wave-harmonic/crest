@@ -301,12 +301,6 @@ Shader "Crest/Ocean"
 				UNITY_INITIALIZE_OUTPUT(Varyings, o);
 				UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
 
-#if _APPLYSCALEFUDGE_ON
-				// Scale up by small "epsilon" to solve numerical issues.
-				// :OceanGridPrecisionErrors
-				v.vertex.xyz *= _ScaleFudge;
-#endif
-
 				const CascadeParams cascadeData0 = _CrestCascadeData[_LD_SliceIndex];
 				const CascadeParams cascadeData1 = _CrestCascadeData[_LD_SliceIndex + 1];
 				const PerCascadeInstanceData instanceData = _CrestPerCascadeInstanceData[_LD_SliceIndex];
@@ -319,6 +313,14 @@ Shader "Crest/Ocean"
 				const float meshScaleLerp = instanceData._meshScaleLerp;
 				const float gridSize = instanceData._geoGridWidth;
 				SnapAndTransitionVertLayout(meshScaleLerp, cascadeData0, gridSize, o.worldPos, lodAlpha);
+
+#if _APPLYSCALEFUDGE_ON
+				// Scale up by small "epsilon" to solve numerical issues.
+				// :OceanGridPrecisionErrors
+				const float3 tileCenter = mul( unity_ObjectToWorld, float4(0.0, 0.0, 0.0, 1.0) );
+				o.worldPos.xz = tileCenter.xz + (o.worldPos.xz - tileCenter.xz) * _ScaleFudge;
+#endif
+
 				o.lodAlpha_worldXZUndisplaced_oceanDepth.x = lodAlpha;
 				o.lodAlpha_worldXZUndisplaced_oceanDepth.yz = o.worldPos.xz;
 

@@ -371,12 +371,12 @@ namespace Crest
             Vector2[] offsets;
             PatchType[] patchTypes;
 
-            PatchType leadSideType = generateSkirt ? PatchType.FatXOuter : PatchType.SlimX;
-            PatchType trailSideType = generateSkirt ? PatchType.FatXOuter : PatchType.FatX;
-            PatchType leadCornerType = generateSkirt ? PatchType.FatXZOuter : PatchType.SlimXZ;
+            PatchType leadSideType = generateSkirt ? PatchType.FatXOuter : PatchType.Fat;
+            PatchType trailSideType = generateSkirt ? PatchType.FatXOuter : PatchType.Fat;
+            PatchType leadCornerType = generateSkirt ? PatchType.FatXZOuter : PatchType.Fat;
             PatchType trailCornerType = generateSkirt ? PatchType.FatXZOuter : PatchType.FatXZ;
             PatchType tlCornerType = generateSkirt ? PatchType.FatXZOuter : PatchType.SlimXFatZ;
-            PatchType brCornerType = generateSkirt ? PatchType.FatXZOuter : PatchType.FatXSlimZ;
+            PatchType brCornerType = generateSkirt ? PatchType.FatXZOuter : PatchType.Fat;
 
             if (lodIndex != 0)
             {

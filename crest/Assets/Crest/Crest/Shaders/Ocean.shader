@@ -314,12 +314,10 @@ Shader "Crest/Ocean"
 				const float gridSize = instanceData._geoGridWidth;
 				SnapAndTransitionVertLayout(meshScaleLerp, cascadeData0, gridSize, o.worldPos, lodAlpha);
 
-#if _APPLYSCALEFUDGE_ON
-				// Scale up by small "epsilon" to solve numerical issues.
+				// Scale up by small "epsilon" to solve numerical issues. Expand slightly about tile center.
 				// :OceanGridPrecisionErrors
-				const float3 tileCenter = mul( unity_ObjectToWorld, float4(0.0, 0.0, 0.0, 1.0) );
-				o.worldPos.xz = tileCenter.xz + (o.worldPos.xz - tileCenter.xz) * _ScaleFudge;
-#endif
+				const float2 tileCenterXZ = UNITY_MATRIX_M._m03_m23;
+				o.worldPos.xz = lerp( tileCenterXZ, o.worldPos.xz, 1.0001 );
 
 				o.lodAlpha_worldXZUndisplaced_oceanDepth.x = lodAlpha;
 				o.lodAlpha_worldXZUndisplaced_oceanDepth.yz = o.worldPos.xz;

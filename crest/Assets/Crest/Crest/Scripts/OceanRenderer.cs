@@ -812,6 +812,7 @@ namespace Crest
             // Don't land very close to regular positions where things are likely to snap to, because different tiles might
             // land on either side of a snap boundary due to numerical error and snap to the wrong positions. Nudge away from
             // common by using increments of 1/60 which have lots of factors.
+            // :OceanGridPrecisionErrors
             if (Mathf.Abs(pos.x * 60f - Mathf.Round(pos.x * 60f)) < 0.001f)
             {
                 pos.x += 0.002f;

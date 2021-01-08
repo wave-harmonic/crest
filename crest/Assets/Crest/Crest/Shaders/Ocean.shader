@@ -309,6 +309,20 @@ Shader "Crest/Ocean"
 				const float2 tileCenterXZ = UNITY_MATRIX_M._m03_m23;
 				o.worldPos.xz = lerp( tileCenterXZ, o.worldPos.xz, 1.0001 );
 
+				// Calculate sample weights. params.z allows shape to be faded out (used on last lod to support pop-less scale transitions)
+				const float wt_smallerLod = (1. - lodAlpha) * cascadeData0._weight;
+				const float wt_biggerLod = (1. - wt_smallerLod) * cascadeData1._weight;
+
+				float3 viewForward = unity_CameraToWorld._m02_m12_m22;// mul( (float3x3)unity_CameraToWorld, float3(0, 0, 1) );
+				float viewZ = dot( o.worldPos - _WorldSpaceCameraPos, viewForward );
+				float zfar = 10000.0;
+				float riseAlpha = saturate( (viewZ - 0.6 * zfar) / (0.4 * zfar) );
+				if( _LD_SliceIndex == 6 )
+				{
+					riseAlpha = max( riseAlpha, lodAlpha );
+				}
+				o.worldPos.y = lerp( o.worldPos.y, _WorldSpaceCameraPos.y, riseAlpha );
+
 				o.lodAlpha_worldXZUndisplaced_oceanDepth.x = lodAlpha;
 				o.lodAlpha_worldXZUndisplaced_oceanDepth.yz = o.worldPos.xz;
 
@@ -319,9 +333,6 @@ Shader "Crest/Ocean"
 				o.lodAlpha_worldXZUndisplaced_oceanDepth.w = CREST_OCEAN_DEPTH_BASELINE;
 				// Sample shape textures - always lerp between 2 LOD scales, so sample two textures
 
-				// Calculate sample weights. params.z allows shape to be faded out (used on last lod to support pop-less scale transitions)
-				const float wt_smallerLod = (1. - lodAlpha) * cascadeData0._weight;
-				const float wt_biggerLod = (1. - wt_smallerLod) * cascadeData1._weight;
 				// Sample displacement textures, add results to current world pos / normal / foam
 				const float2 positionWS_XZ_before = o.worldPos.xz;
 

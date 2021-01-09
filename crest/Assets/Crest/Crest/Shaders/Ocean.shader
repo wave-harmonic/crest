@@ -163,6 +163,14 @@ Shader "Crest/Ocean"
 		// underwater effect is being used.
 		[Enum(CullMode)] _CullMode("Cull Mode", Int) = 2
 
+		[Header(Underwater Sun Occlusion)]
+		// Whether to occlude light scattering for the volume.
+		[Toggle] _UnderwaterSunOcclusion("Enable", Float) = 1
+		// Strength of the occlusion through the underwater fog.
+		_UnderwaterSunOcclusionDistance("Sun Occlusion Distance Strength", Range(0.0, 1000.0)) = 100.0
+		// Fall-off to affect directionality.
+		_UnderwaterSunOcclusionFallOff("Sun Occlusion Fall-Off", Range(0, 1.0)) = 0.5
+
 		[Header(Flow)]
 		// Flow is horizontal motion in water as demonstrated in the 'whirlpool' example scene. 'Create Flow Sim' must be
 		// enabled on the OceanRenderer to generate flow data.
@@ -231,6 +239,7 @@ Shader "Crest/Ocean"
 
 			#pragma shader_feature_local _PROCEDURALSKY_ON
 			#pragma shader_feature_local _UNDERWATER_ON
+			#pragma shader_feature_local _UNDERWATERSUNOCCLUSION_ON
 			#pragma shader_feature_local _FLOW_ON
 			#pragma shader_feature_local _SHADOWS_ON
 			#pragma shader_feature_local _CLIPSURFACE_ON
@@ -548,7 +557,7 @@ Shader "Crest/Ocean"
 				// Compute color of ocean - in-scattered light + refracted scene
 				const float baseCascadeScale = _CrestCascadeData[0]._scale;
 				const float meshScaleLerp = instanceData._meshScaleLerp;
-				half3 scatterCol = ScatterColour(input.lodAlpha_worldXZUndisplaced_oceanDepth.w, _WorldSpaceCameraPos, lightDir, view, shadow.x, underwater, true, sss, meshScaleLerp, baseCascadeScale, cascadeData0);
+				half3 scatterCol = ScatterColour(input.lodAlpha_worldXZUndisplaced_oceanDepth.w, _WorldSpaceCameraPos, lightDir, view, sceneZ, shadow.x, underwater, true, sss, meshScaleLerp, baseCascadeScale, cascadeData0);
 				half3 col = OceanEmission(view, n_pixel, lightDir, input.grabPos, pixelZ, uvDepth, sceneZ, sceneZ01, bubbleCol, _Normals, underwater, scatterCol, cascadeData0, cascadeData1);
 
 				// Light that reflects off water surface

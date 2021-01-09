@@ -15,7 +15,6 @@ UNITY_DECLARE_SCREENSPACE_TEXTURE(_BackgroundTexture);
 uniform half _RefractionStrength;
 #endif // _TRANSPARENCY_ON
 uniform half4 _DepthFogDensity;
-//uniform half4 _FogColour;
 
 #if _SUBSURFACESCATTERING_ON
 uniform half3 _SubSurfaceColour;
@@ -252,8 +251,7 @@ half3 OceanEmission(in const half3 i_view, in const half3 i_n_pixel, in const fl
 	}
 
 	// blend from water colour to the scene colour
-	col = lerp(sceneColour * 0.9, col, alpha);
-	//col += (1.0 - alpha) * sceneColour * 0.8;
+	col = lerp(sceneColour, col, alpha);
 
 #endif // _TRANSPARENCY_ON
 

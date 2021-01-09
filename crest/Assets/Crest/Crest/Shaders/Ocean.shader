@@ -148,9 +148,9 @@ Shader "Crest/Ocean"
 		// Scaling / intensity
 		_CausticsStrength("Strength", Range(0.0, 10.0)) = 3.2
 		// The depth at which the caustics are in focus
-		_CausticsFocalDepth("Focal Depth", Range(0.0, 25.0)) = 2.0
+		_CausticsFocalDepth("Focal Depth", Range(0.0, 250.0)) = 2.0
 		// The range of depths over which the caustics are in focus
-		_CausticsDepthOfField("Depth Of Field", Range(0.01, 10.0)) = 0.33
+		_CausticsDepthOfField("Depth Of Field", Range(0.01, 1000.0)) = 0.33
 		// How much the caustics texture is distorted
 		_CausticsDistortionStrength("Distortion Strength", Range(0.0, 0.25)) = 0.16
 		// The scale of the distortion pattern used to distort the caustics
@@ -292,10 +292,6 @@ Shader "Crest/Ocean"
 				UNITY_INITIALIZE_OUTPUT(Varyings, o);
 				UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
 
-				// Scale up by small "epsilon" to solve numerical issues.
-				// :OceanGridPrecisionErrors
-				v.vertex.xyz *= 1.00001;
-
 				const CascadeParams cascadeData0 = _CrestCascadeData[_LD_SliceIndex];
 				const CascadeParams cascadeData1 = _CrestCascadeData[_LD_SliceIndex + 1];
 				const PerCascadeInstanceData instanceData = _CrestPerCascadeInstanceData[_LD_SliceIndex];
@@ -308,6 +304,12 @@ Shader "Crest/Ocean"
 				const float meshScaleLerp = instanceData._meshScaleLerp;
 				const float gridSize = instanceData._geoGridWidth;
 				SnapAndTransitionVertLayout(meshScaleLerp, cascadeData0, gridSize, o.worldPos, lodAlpha);
+
+				// Scale up by small "epsilon" to solve numerical issues. Expand slightly about tile center.
+				// :OceanGridPrecisionErrors
+				const float2 tileCenterXZ = UNITY_MATRIX_M._m03_m23;
+				o.worldPos.xz = lerp( tileCenterXZ, o.worldPos.xz, 1.0001 );
+
 				o.lodAlpha_worldXZUndisplaced_oceanDepth.x = lodAlpha;
 				o.lodAlpha_worldXZUndisplaced_oceanDepth.yz = o.worldPos.xz;
 
@@ -521,16 +523,17 @@ Shader "Crest/Ocean"
 				}
 				n_geom = normalize(n_geom);
 
-				if (underwater) n_geom = -n_geom;
 				half3 n_pixel = n_geom;
 				#if _APPLYNORMALMAPPING_ON
 				#if _FLOW_ON
 				ApplyNormalMapsWithFlow(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, input.flow_shadow.xy, lodAlpha, cascadeData0, instanceData, n_pixel);
 				#else
-				n_pixel.xz += (underwater ? -1. : 1.) * SampleNormalMaps(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, lodAlpha, cascadeData0, instanceData);
+				n_pixel.xz += SampleNormalMaps(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, lodAlpha, cascadeData0, instanceData);
 				n_pixel = normalize(n_pixel);
 				#endif
 				#endif
+				// We do not flip n_geom because we do not use it.
+				if (underwater) n_pixel = -n_pixel;
 
 				// Foam - underwater bubbles and whitefoam
 				half3 bubbleCol = (half3)0.;

@@ -13,6 +13,8 @@ The version hosted here targets the **built-in render pipeline**, links to the s
 
 **Discord for news/updates/discussions:** https://discord.gg/g7GpjDC
 
+**YouTube for tutorials and showcases:** [Crest Ocean System](https://www.youtube.com/channel/UC7_ZKKCXZmH64rRZqe-C0WA)
+
 **Twitter:** [@crest_ocean](https://twitter.com/@crest_ocean)
 
 **URP asset:** [Crest Ocean System URP](https://assetstore.unity.com/packages/tools/particles-effects/crest-ocean-system-urp-141674)

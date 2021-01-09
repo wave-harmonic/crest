@@ -711,9 +711,8 @@ namespace Crest
             Shader.SetGlobalFloat(sp_lodAlphaBlackPointWhitePointFade, _lodAlphaBlackPointWhitePointFade);
 
             // If a fog colour is non-black (black is default) then set fog density from colour
-            var fogColour = _material.GetColor("_FogColour");
-            if(fogColour.r > 0f || fogColour.g > 0f || fogColour.b > 0f)
             {
+                var fogColour = _material.GetColor("_FogColour");
                 Vector3 alpha = Vector3.zero;
                 alpha.x = Mathf.Log(fogColour.r + 0.0001f);
                 alpha.y = Mathf.Log(fogColour.g + 0.0001f);

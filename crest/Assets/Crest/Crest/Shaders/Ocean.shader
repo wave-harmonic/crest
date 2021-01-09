@@ -147,9 +147,9 @@ Shader "Crest/Ocean"
 		// Scaling / intensity
 		_CausticsStrength("Strength", Range(0.0, 10.0)) = 3.2
 		// The depth at which the caustics are in focus
-		_CausticsFocalDepth("Focal Depth", Range(0.0, 25.0)) = 2.0
+		_CausticsFocalDepth("Focal Depth", Range(0.0, 250.0)) = 2.0
 		// The range of depths over which the caustics are in focus
-		_CausticsDepthOfField("Depth Of Field", Range(0.01, 10.0)) = 0.33
+		_CausticsDepthOfField("Depth Of Field", Range(0.01, 1000.0)) = 0.33
 		// How much the caustics texture is distorted
 		_CausticsDistortionStrength("Distortion Strength", Range(0.0, 0.25)) = 0.16
 		// The scale of the distortion pattern used to distort the caustics

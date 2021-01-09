@@ -26,7 +26,6 @@ Shader "Crest/Ocean"
 		[Toggle] _Shadows("Shadowing", Float) = 0
 		// Base colour in shadow
 		_DiffuseShadow("Diffuse (Shadow)", Color) = (0.0, 0.356, 0.565, 1.0)
-		_FogColour("Fog Colour", Color) = (0.05, 0.1, 0.2, 0.1)
 
 		[Header(Subsurface Scattering)]
 		// Whether to to emulate light scattering through the water volume
@@ -131,7 +130,9 @@ Shader "Crest/Ocean"
 		[Header(Transparency)]
 		// Whether light can pass through the water surface
 		[Toggle] _Transparency("Enable", Float) = 1
-		// Scattering coefficient within water volume, per channel
+		// The colour of the fog at 5m from the viewer. Alpha value scales fog density. Set to black to specify density values directly in parameter below.
+		_FogColour("Fog Colour", Color) = (0.0, 0.0, 0.0, 0.5)
+		// Scattering coefficient within water volume, per channel. This will be set automatically if a non-black fog colour is given.
 		_DepthFogDensity("Fog Density", Vector) = (0.33, 0.23, 0.37, 1.0)
 		// How strongly light is refracted when passing through water surface
 		_RefractionStrength("Refraction Strength", Range(0.0, 2.0)) = 0.1

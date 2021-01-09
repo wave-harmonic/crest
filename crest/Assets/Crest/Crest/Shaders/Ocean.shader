@@ -182,6 +182,9 @@ Shader "Crest/Ocean"
 		[Toggle] _DebugVisualiseShapeSample("Debug Visualise Shape Sample", Float) = 0
 		[Toggle] _DebugVisualiseFlow("Debug Visualise Flow", Float) = 0
 		[Toggle] _DebugDisableSmoothLOD("Debug Disable Smooth LOD", Float) = 0
+
+		[Header(Experimental)]
+		[Toggle] _MatchCameraHeightAtDistance("Match Camera Height At Distance", Float) = 0
 	}
 
 	SubShader
@@ -235,6 +238,8 @@ Shader "Crest/Ocean"
 			#pragma shader_feature_local _SHADOWS_ON
 			#pragma shader_feature_local _CLIPSURFACE_ON
 			#pragma shader_feature_local _CLIPUNDERTERRAIN_ON
+
+			#pragma shader_feature_local _MATCHCAMERAHEIGHTATDISTANCE_ON
 
 			#pragma shader_feature_local _DEBUGDISABLESHAPETEXTURES_ON
 			#pragma shader_feature_local _DEBUGVISUALISESHAPESAMPLE_ON
@@ -313,6 +318,7 @@ Shader "Crest/Ocean"
 				const float wt_smallerLod = (1. - lodAlpha) * cascadeData0._weight;
 				const float wt_biggerLod = (1. - wt_smallerLod) * cascadeData1._weight;
 
+#if _MATCHCAMERAHEIGHTATDISTANCE_ON
 				float3 viewForward = unity_CameraToWorld._m02_m12_m22;// mul( (float3x3)unity_CameraToWorld, float3(0, 0, 1) );
 				float viewZ = dot( o.worldPos - _WorldSpaceCameraPos, viewForward );
 				float zfar = 10000.0;
@@ -322,6 +328,7 @@ Shader "Crest/Ocean"
 					riseAlpha = max( riseAlpha, lodAlpha );
 				}
 				o.worldPos.y = lerp( o.worldPos.y, _WorldSpaceCameraPos.y, riseAlpha );
+#endif
 
 				o.lodAlpha_worldXZUndisplaced_oceanDepth.x = lodAlpha;
 				o.lodAlpha_worldXZUndisplaced_oceanDepth.yz = o.worldPos.xz;

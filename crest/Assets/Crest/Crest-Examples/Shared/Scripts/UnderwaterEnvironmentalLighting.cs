@@ -17,6 +17,9 @@ namespace Crest
     /// </summary>
     public class UnderwaterEnvironmentalLighting : MonoBehaviour
     {
+        [Tooltip("How much this effect applies. Values less than 1 attenuate light less underwater"), SerializeField, Range(0f, 3f)]
+        float _weight = 1f;
+
         Light _primaryLight;
         float _lightIntensity;
         float _ambientIntensity;
@@ -88,7 +91,8 @@ namespace Crest
             }
 
             float depthMultiplier = Mathf.Exp(_averageDensity *
-                Mathf.Min(OceanRenderer.Instance.ViewerHeightAboveWater * DEPTH_OUTSCATTER_CONSTANT, 0f));
+                Mathf.Min(OceanRenderer.Instance.ViewerHeightAboveWater * DEPTH_OUTSCATTER_CONSTANT, 0f) *
+                _weight);
 
             // Darken environmental lighting when viewer underwater
             if (_primaryLight)

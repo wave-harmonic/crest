@@ -522,16 +522,17 @@ Shader "Crest/Ocean"
 				}
 				n_geom = normalize(n_geom);
 
-				if (underwater) n_geom = -n_geom;
 				half3 n_pixel = n_geom;
 				#if _APPLYNORMALMAPPING_ON
 				#if _FLOW_ON
 				ApplyNormalMapsWithFlow(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, input.flow_shadow.xy, lodAlpha, cascadeData0, instanceData, n_pixel);
 				#else
-				n_pixel.xz += (underwater ? -1. : 1.) * SampleNormalMaps(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, lodAlpha, cascadeData0, instanceData);
+				n_pixel.xz += SampleNormalMaps(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, lodAlpha, cascadeData0, instanceData);
 				n_pixel = normalize(n_pixel);
 				#endif
 				#endif
+				// We do not flip n_geom because we do not use it.
+				if (underwater) n_pixel = -n_pixel;
 
 				// Foam - underwater bubbles and whitefoam
 				half3 bubbleCol = (half3)0.;

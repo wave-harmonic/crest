@@ -39,6 +39,8 @@ Shader "Crest/Underwater Curtain"
 
 			#pragma multi_compile_instancing
 
+			#pragma multi_compile _ VERTEXLIGHT_ON
+
 			// Use multi_compile because these keywords are copied over from the ocean material. With shader_feature,
 			// the keywords would be stripped from builds. Unused shader variants are stripped using a build processor.
 			#pragma multi_compile_local __ _SUBSURFACESCATTERING_ON
@@ -64,10 +66,15 @@ Shader "Crest/Underwater Curtain"
 			UNITY_DECLARE_SCREENSPACE_TEXTURE(_CameraDepthTexture);
 
 			#include "../OceanEmission.hlsl"
+			#include "../OceanLightingHelpers.hlsl"
 
 			#define MAX_OFFSET 5.0
 
 			sampler2D _Normals;
+
+#if defined(VERTEXLIGHT_ON)
+			uniform sampler2D _LightTextureB0;
+#endif // VERTEXLIGHT_ON
 
 			struct Attributes
 			{
@@ -84,6 +91,9 @@ Shader "Crest/Underwater Curtain"
 				half4 foam_screenPos : TEXCOORD1;
 				half4 grabPos : TEXCOORD2;
 				float3 positionWS : TEXCOORD3;
+#if defined(VERTEXLIGHT_ON)
+				half4 uvLightsAtten : TEXCOORD4;
+#endif // VERTEXLIGHT_ON
 
 				UNITY_VERTEX_OUTPUT_STEREO
 			};
@@ -176,6 +186,11 @@ Shader "Crest/Underwater Curtain"
 
 				o.uv = input.uv;
 
+				// Calculate vertex light attenuation here to save on performance
+#if defined(VERTEXLIGHT_ON)
+				CalculateVertexLightsAttenuation(o.uvLightsAtten, o.positionWS);
+#endif // VERTEXLIGHT_ON
+
 				return o;
 			}
 
@@ -208,9 +223,18 @@ Shader "Crest/Underwater Curtain"
 				const float depth = 0.0;
 				const half shadow = 1.0;
 
+				half3 lightsCol = 0.0;
+
+				// Calculate vertex lights colour
+#if defined(VERTEXLIGHT_ON)
+				lightsCol = CalculateVertexLightsColor(input.uvLightsAtten, input.positionWS, _LightTextureB0);
+				// Apply depth fog to light colour. Otherwise, there will light patches visible from far away.
+				lightsCol *= exp(-_DepthFogDensity.xyz * sceneZ);
+#endif // VERTEXLIGHT_ON
+
 				const float meshScaleLerp = _CrestPerCascadeInstanceData[_LD_SliceIndex]._meshScaleLerp;
 				const float baseCascadeScale = _CrestCascadeData[0]._scale;
-				const half3 scatterCol = ScatterColour(depth, _WorldSpaceCameraPos, lightDir, view, shadow, true, true, sss, meshScaleLerp, baseCascadeScale, cascadeData0);
+				const half3 scatterCol = ScatterColour(depth, _WorldSpaceCameraPos, lightDir, view, shadow, true, true, sss, lightsCol, meshScaleLerp, baseCascadeScale, cascadeData0);
 
 				half3 sceneColour = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_BackgroundTexture, input.grabPos.xy / input.grabPos.w).rgb;
 

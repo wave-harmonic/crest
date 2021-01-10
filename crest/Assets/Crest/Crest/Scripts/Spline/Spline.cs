@@ -10,6 +10,7 @@ namespace Crest.Spline
     [ExecuteAlways]
     public partial class Spline : MonoBehaviour
     {
+        [Tooltip("Connect start and end point to close spline into a loop. Requires at least 3 spline points.")]
         public bool _closed = false;
 
         public SplinePoint[] SplinePoints => GetComponentsInChildren<SplinePoint>();
@@ -22,31 +23,6 @@ namespace Crest.Spline
             {
                 Gizmos.DrawLine(points[i].transform.position, points[i + 1].transform.position);
             }
-
-            {
-                var splinePoints = SplinePoints;
-                if (splinePoints.Length < 2) return;
-
-                var splinePointCount = splinePoints.Length;
-                if (_closed && splinePointCount > 2)
-                {
-                    splinePointCount++;
-                }
-
-                var hullPoints = new Vector3[(splinePointCount - 1) * 3 + 1];
-
-                if (!SplineInterpolation.GenerateCubicSplineHull(splinePoints, hullPoints, _closed))
-                {
-                    return;
-                }
-
-                foreach(var pt in hullPoints)
-                {
-                    Debug.DrawLine(pt - 10f * Vector3.up, pt + 10f * Vector3.up);
-                }
-
-            }
-
             Gizmos.color = Color.white;
         }
     }
@@ -65,6 +41,16 @@ namespace Crest.Spline
                 showMessage
                 (
                     "Spline must have at least 2 spline points. Click the <i>Add point</i> button in the Inspector, or add a child GameObject and attach <i>SplinePoint</i> component to it.",
+                    ValidatedHelper.MessageType.Error, this
+                );
+
+                isValid = false;
+            }
+            else if(_closed && points.Length < 3)
+            {
+                showMessage
+                (
+                    "Closed splines must have at least 3 spline points. See the <i>Closed</i> parameter and tooltip. To add a point click the <i>Add point</i> button in the Inspector, or add a child GameObject and attach <i>SplinePoint</i> component to it.",
                     ValidatedHelper.MessageType.Error, this
                 );
 

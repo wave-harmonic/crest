@@ -2,8 +2,8 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
-using UnityEngine;
 using Crest.Spline;
+using UnityEngine;
 
 namespace Crest
 {
@@ -17,9 +17,15 @@ namespace Crest
             var splinePoints = spline.SplinePoints;
             if (splinePoints.Length < 2) return false;
 
-            var points = new Vector3[(splinePoints.Length - 1) * 3 + 1];
+            var splinePointCount = splinePoints.Length;
+            if (spline._closed && splinePointCount > 2)
+            {
+                splinePointCount++;
+            }
 
-            if (!SplineInterpolation.GenerateCubicSplineHull(splinePoints, points))
+            var points = new Vector3[(splinePointCount - 1) * 3 + 1];
+
+            if (!SplineInterpolation.GenerateCubicSplineHull(splinePoints, points, spline._closed))
             {
                 return false;
             }
@@ -28,9 +34,9 @@ namespace Crest
 
             // Estimate total length of spline and use this to compute a sample count
             var lengthEst = 0f;
-            for (int i = 1; i < splinePoints.Length; i++)
+            for (int i = 1; i < splinePointCount; i++)
             {
-                lengthEst += (splinePoints[i].transform.position - splinePoints[i - 1].transform.position).magnitude;
+                lengthEst += (splinePoints[i % splinePoints.Length].transform.position - splinePoints[i - 1].transform.position).magnitude;
             }
             lengthEst = Mathf.Max(lengthEst, 1f);
 
@@ -47,7 +53,7 @@ namespace Crest
             {
                 float t = i / (float)(pointCount - 1);
 
-                SplineInterpolation.InterpolateCubicPosition(splinePoints.Length, points, t, out resultPts0[i]);
+                SplineInterpolation.InterpolateCubicPosition(splinePointCount, points, t, out resultPts0[i]);
             }
 
             // Second set of sample points lie off-spline - some distance to the right
@@ -80,10 +86,10 @@ namespace Crest
                 }
             }
 
-            return UpdateMesh(transform, resultPts0, resultPts1, ref mesh);
+            return UpdateMesh(transform, resultPts0, resultPts1, spline._closed, ref mesh);
         }
 
-        static bool UpdateMesh(Transform transform, Vector3[] resultPts0, Vector3[] resultPts1, ref Mesh mesh)
+        static bool UpdateMesh(Transform transform, Vector3[] resultPts0, Vector3[] resultPts1, bool closed, ref Mesh mesh)
         {
             if (mesh == null)
             {

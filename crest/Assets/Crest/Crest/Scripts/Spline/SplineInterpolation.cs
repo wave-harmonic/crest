@@ -60,56 +60,64 @@ namespace Crest.Spline
         /// </summary>
         /// <param name="splinePoints">Input user-placed spline positions</param>
         /// <param name="splinePointsAndTangents">Generated spline points and tangents</param>
-        public static bool GenerateCubicSplineHull(SplinePoint[] splinePoints, Vector3[] splinePointsAndTangents)
+        public static bool GenerateCubicSplineHull(SplinePoint[] splinePoints, Vector3[] splinePointsAndTangents, bool closed)
         {
             if (splinePoints.Length < 2) return false;
 
-            Debug.Assert(splinePointsAndTangents != null && splinePointsAndTangents.Length == (splinePoints.Length - 1) * 3 + 1,
-                "splinePointsAndTangents array must be length {(splinePoints.Length - 1) * 3 + 1}");
+            //Debug.Assert(splinePointsAndTangents != null && splinePointsAndTangents.Length == (splinePoints.Length - 1) * 3 + 1,
+            //    "splinePointsAndTangents array must be length {(splinePoints.Length - 1) * 3 + 1}");
 
             for (int i = 0; i < splinePointsAndTangents.Length; i++)
             {
+                int spi = (i / 3) % splinePoints.Length;
+                int spiNext = (spi + 1) % splinePoints.Length;
+
                 // Scale factor for tangents. Controls shape of resulting curve. When I placed spline points in a diamond, this
                 // value produced a spline very close to a circle.
                 float tm = 0.39f;
 
                 if (i % 3 == 0)
                 {
-                    splinePointsAndTangents[i] = splinePoints[i / 3].transform.position;
+                    // Position point
+                    splinePointsAndTangents[i] = splinePoints[spi].transform.position;
                 }
                 else if (i % 3 == 1)
                 {
-                    var idx = i / 3;
-                    var tangent = TangentAfter(splinePoints, idx);
-                    tangent = tangent.normalized * (splinePoints[i / 3 + 1].transform.position - splinePoints[i / 3].transform.position).magnitude;
+                    // Out tangent
+                    var idx = spi;
+                    var tangent = TangentAfter(splinePoints, idx, closed);
+                    tangent = tangent.normalized * (splinePoints[spiNext].transform.position - splinePoints[spi].transform.position).magnitude;
                     splinePointsAndTangents[i] = splinePoints[idx].transform.position + tm * tangent;
 
-                    if (i == 1)
+                    if (i == 1 && !closed)
                     {
-                        tangent = TangentBefore(splinePoints, idx + 1);
+                        tangent = TangentBefore(splinePoints, idx + 1, closed);
                         // Mirror first tangent
                         var toNext = (splinePoints[idx + 1].transform.position - splinePoints[idx].transform.position).normalized;
                         var nearestPoint = Vector3.Dot(tangent, toNext) * toNext;
                         tangent += 2f * (nearestPoint - tangent);
-                        tangent = tangent.normalized * (splinePoints[i / 3 + 1].transform.position - splinePoints[i / 3].transform.position).magnitude;
+                        tangent = tangent.normalized * (splinePoints[spiNext].transform.position - splinePoints[spi].transform.position).magnitude;
                         splinePointsAndTangents[i] = splinePoints[idx].transform.position + tm * tangent;
                     }
                 }
                 else
                 {
-                    var idx = i / 3 + 1;
-                    var tangent = TangentBefore(splinePoints, idx);
-                    tangent = tangent.normalized * (splinePoints[i / 3 + 1].transform.position - splinePoints[i / 3].transform.position).magnitude;
+                    // In tangent
+                    var idx = spiNext;
+                    var tangent = TangentBefore(splinePoints, idx, closed);
+                    tangent = tangent.normalized * (splinePoints[spiNext].transform.position - splinePoints[spi].transform.position).magnitude;
                     splinePointsAndTangents[i] = splinePoints[idx].transform.position - tm * tangent;
 
-                    if (i == splinePointsAndTangents.Length - 2)
+                    if (i == splinePointsAndTangents.Length - 2 && !closed)
                     {
-                        tangent = TangentAfter(splinePoints, idx - 1);
+                        int idxPrev = idx - 1;
+                        if (idxPrev < 0 && closed) idxPrev += splinePoints.Length;
+                        tangent = TangentAfter(splinePoints, idxPrev, closed);
                         // Mirror first tangent
-                        var toNext = (splinePoints[idx - 1].transform.position - splinePoints[idx].transform.position).normalized;
+                        var toNext = (splinePoints[idxPrev].transform.position - splinePoints[idx].transform.position).normalized;
                         var nearestPoint = Vector3.Dot(tangent, toNext) * toNext;
                         tangent += 2f * (nearestPoint - tangent);
-                        tangent = tangent.normalized * (splinePoints[i / 3 + 1].transform.position - splinePoints[i / 3].transform.position).magnitude;
+                        tangent = tangent.normalized * (splinePoints[spiNext].transform.position - splinePoints[spi].transform.position).magnitude;
                         splinePointsAndTangents[i] = splinePoints[idx].transform.position - tm * tangent;
                     }
                 }
@@ -118,36 +126,49 @@ namespace Crest.Spline
             return true;
         }
 
-        static Vector3 TangentAfter(SplinePoint[] splinePoints, int idx)
+        static Vector3 TangentAfter(SplinePoint[] splinePoints, int idx, bool closed)
         {
             var tangent = Vector3.zero;
             var wt = 0f;
-            //var idx = i / 3;
-            if (idx - 1 >= 0)
+
+            int idxBefore = idx - 1;
+            if (idxBefore < 0 && closed) idxBefore += splinePoints.Length;
+            int idxAfter = idx + 1;
+            if (idxAfter >= splinePoints.Length && closed) idxAfter -= splinePoints.Length;
+
+            Debug.Assert(idx < splinePoints.Length && idx >= 0);
+
+            if (idxBefore >= 0)
             {
-                tangent += splinePoints[idx].transform.position - splinePoints[idx - 1].transform.position;
+                tangent += splinePoints[idx].transform.position - splinePoints[idxBefore].transform.position;
                 wt += 1f;
             }
-            if (idx + 1 < splinePoints.Length)
+            if (idxAfter < splinePoints.Length)
             {
-                tangent += splinePoints[idx + 1].transform.position - splinePoints[idx].transform.position;
+                tangent += splinePoints[idxAfter].transform.position - splinePoints[idx].transform.position;
                 wt += 1f;
             }
             return tangent / wt;
         }
 
-        static Vector3 TangentBefore(SplinePoint[] splinePoints, int idx)
+        static Vector3 TangentBefore(SplinePoint[] splinePoints, int idx, bool closed)
         {
             var tangent = Vector3.zero;
             var wt = 0f;
-            if (idx - 1 >= 0)
+
+            int idxBefore = idx - 1;
+            if (idxBefore < 0 && closed) idxBefore += splinePoints.Length;
+            int idxAfter = idx + 1;
+            if (idxAfter >= splinePoints.Length && closed) idxAfter -= splinePoints.Length;
+
+            if (idxBefore >= 0)
             {
-                tangent += splinePoints[idx].transform.position - splinePoints[idx - 1].transform.position;
+                tangent += splinePoints[idx].transform.position - splinePoints[idxBefore].transform.position;
                 wt += 1f;
             }
-            if (idx + 1 < splinePoints.Length)
+            if (idxAfter < splinePoints.Length)
             {
-                tangent += splinePoints[idx + 1].transform.position - splinePoints[idx].transform.position;
+                tangent += splinePoints[idxAfter].transform.position - splinePoints[idx].transform.position;
                 wt += 1f;
             }
             return tangent / wt;

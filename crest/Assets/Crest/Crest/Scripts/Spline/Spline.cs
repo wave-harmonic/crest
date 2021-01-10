@@ -10,22 +10,41 @@ namespace Crest.Spline
     [ExecuteAlways]
     public partial class Spline : MonoBehaviour
     {
+        public bool _closed = false;
+
         public SplinePoint[] SplinePoints => GetComponentsInChildren<SplinePoint>();
 
         public void OnDrawGizmosSelected()
         {
-            Gizmos.color = Color.white * 0.65f;
-            var mf = GetComponent<MeshFilter>();
-            if (mf != null && mf.sharedMesh != null)
-            {
-                Gizmos.DrawWireMesh(mf.sharedMesh, 0, transform.position, transform.rotation, transform.lossyScale);
-            }
-
             Gizmos.color = Color.black * 0.5f;
             var points = SplinePoints;
             for (int i = 0; i < points.Length - 1; i++)
             {
                 Gizmos.DrawLine(points[i].transform.position, points[i + 1].transform.position);
+            }
+
+            {
+                var splinePoints = SplinePoints;
+                if (splinePoints.Length < 2) return;
+
+                var splinePointCount = splinePoints.Length;
+                if (_closed && splinePointCount > 2)
+                {
+                    splinePointCount++;
+                }
+
+                var hullPoints = new Vector3[(splinePointCount - 1) * 3 + 1];
+
+                if (!SplineInterpolation.GenerateCubicSplineHull(splinePoints, hullPoints, _closed))
+                {
+                    return;
+                }
+
+                foreach(var pt in hullPoints)
+                {
+                    Debug.DrawLine(pt - 10f * Vector3.up, pt + 10f * Vector3.up);
+                }
+
             }
 
             Gizmos.color = Color.white;

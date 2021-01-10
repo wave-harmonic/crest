@@ -71,18 +71,39 @@ namespace Crest
             if (smoothingIterations > 0)
             {
                 var resultPtsTmp = new Vector3[pointCount];
-                for (int j = 0; j < smoothingIterations; j++)
+
+                // Ring buffer stye access when closed spline
+                if (!spline._closed)
                 {
-                    resultPtsTmp[0] = resultPts1[0];
-                    resultPtsTmp[pointCount - 1] = resultPts1[pointCount - 1];
-                    for (int i = 1; i < pointCount - 1; i++)
+                    for (int j = 0; j < smoothingIterations; j++)
                     {
-                        resultPtsTmp[i] = (resultPts1[i] + resultPts1[i + 1] + resultPts1[i - 1]) / 3f;
-                        resultPtsTmp[i] = resultPts0[i] + (resultPtsTmp[i] - resultPts0[i]).normalized * radius;
+                        resultPtsTmp[0] = resultPts1[0];
+                        resultPtsTmp[pointCount - 1] = resultPts1[pointCount - 1];
+                        for (int i = 1; i < pointCount - 1; i++)
+                        {
+                            resultPtsTmp[i] = (resultPts1[i] + resultPts1[i + 1] + resultPts1[i - 1]) / 3f;
+                            resultPtsTmp[i] = resultPts0[i] + (resultPtsTmp[i] - resultPts0[i]).normalized * radius;
+                        }
+                        var tmp = resultPts1;
+                        resultPts1 = resultPtsTmp;
+                        resultPtsTmp = tmp;
                     }
-                    var tmp = resultPts1;
-                    resultPts1 = resultPtsTmp;
-                    resultPtsTmp = tmp;
+                }
+                else
+                {
+                    for (int j = 0; j < smoothingIterations; j++)
+                    {
+                        for (int i = 0; i < pointCount; i++)
+                        {
+                            var ibefore = i - 1; if (ibefore < 0) ibefore += resultPts1.Length;
+                            var iafter = i + 1; if (iafter >= pointCount) iafter -= resultPts1.Length;
+                            resultPtsTmp[i] = (resultPts1[i] + resultPts1[iafter] + resultPts1[ibefore]) / 3f;
+                            resultPtsTmp[i] = resultPts0[i] + (resultPtsTmp[i] - resultPts0[i]).normalized * radius;
+                        }
+                        var tmp = resultPts1;
+                        resultPts1 = resultPtsTmp;
+                        resultPtsTmp = tmp;
+                    }
                 }
             }
 
@@ -122,7 +143,8 @@ namespace Crest
             var uvs2 = new Vector2[triCount + 2];
             var indices = new int[triCount * 6];
             var distSoFar = 0f;
-            for (var i0 = 0; i0 < resultPts0.Length - 1; i0 += 1)
+            var emitCount = closed ? resultPts0.Length : (resultPts0.Length - 1);
+            for (var i0 = 0; i0 < emitCount; i0 += 1)
             {
                 // Vert indices:
                 //
@@ -135,7 +157,7 @@ namespace Crest
                 //      |        |
                 //    sp0--------*
                 //
-                var i1 = i0 + 1;
+                var i1 = (i0 + 1) % resultPts0.Length;
 
                 verts[2 * i0] = transform.InverseTransformPoint(resultPts0[i0]);
                 verts[2 * i0 + 1] = transform.InverseTransformPoint(resultPts1[i0]);
@@ -151,7 +173,7 @@ namespace Crest
 
                 // uvs2.x - Dist to closest spline end
                 // uvs2.y - 1-0 inverted normalized dist from shoreline
-                var nextDistSoFar = distSoFar + (resultPts0[i0 + 1] - resultPts0[i0]).magnitude;
+                var nextDistSoFar = distSoFar + (resultPts0[i1] - resultPts0[i0]).magnitude;
                 uvs2[2 * i0].x = uvs2[2 * i0 + 1].x = Mathf.Min(distSoFar, splineLength - distSoFar);
                 uvs2[2 * i1].x = uvs2[2 * i1 + 1].x = Mathf.Min(nextDistSoFar, splineLength - nextDistSoFar);
                 uvs2[2 * i0].y = uvs[2 * i1].y = 1f;

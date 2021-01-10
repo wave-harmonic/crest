@@ -40,7 +40,7 @@ namespace Crest
             }
             lengthEst = Mathf.Max(lengthEst, 1f);
 
-            var spacing = 16f / Mathf.Pow(2f, subdivisions + 2);
+            var spacing = 16f / Mathf.Pow(2f, subdivisions + 1);
             var pointCount = Mathf.CeilToInt(lengthEst / spacing);
             pointCount = Mathf.Max(pointCount, 1);
 

@@ -6,6 +6,9 @@ Shader "Crest/Ocean"
 {
 	Properties
 	{
+		_MinLodFilterSSS("_MinLodFilterSSS", Range(0, 15)) = 0
+		_MaxLodFilterSSS("_MaxLodFilterSSS", Range(0, 15)) = 15
+
 		[Header(Normal Mapping)]
 		// Whether to add normal detail from a texture. Can be used to add visual detail to the water surface
 		[Toggle] _ApplyNormalMapping("Enable", Float) = 1
@@ -448,6 +451,36 @@ Shader "Crest/Ocean"
 				return backface || _ForceUnderwater > 0.0;
 			}
 
+			uint _MinLodFilterSSS;
+			uint _MaxLodFilterSSS;
+
+			half ComputeSSS(const float i_lodAlpha, const float2 worldXZUndisplaced)
+			{
+				const uint si = clamp(_LD_SliceIndex, _MinLodFilterSSS, _MaxLodFilterSSS);
+				const CascadeParams cascadeData0 = _CrestCascadeData[si];
+				const CascadeParams cascadeData1 = _CrestCascadeData[si + 1];
+
+				const float wt_smallerLod = (1.0 - i_lodAlpha) * cascadeData0._weight;
+				const float wt_biggerLod = (1.0 - wt_smallerLod) * cascadeData1._weight;
+
+				float3 dummy = 0.0;
+				float2 dummy2 = 0.0;
+				half sss = 0.0;
+
+				if (wt_smallerLod > 0.001)
+				{
+					const float3 uv_slice_smallerLod = WorldToUV(worldXZUndisplaced, cascadeData0, si);
+					SampleDisplacementsNormals(_LD_TexArray_AnimatedWaves, uv_slice_smallerLod, wt_smallerLod, cascadeData0._oneOverTextureRes, cascadeData0._texelWidth, dummy, dummy2, sss);
+				}
+				if (wt_biggerLod > 0.001)
+				{
+					const float3 uv_slice_biggerLod = WorldToUV(worldXZUndisplaced, cascadeData1, si + 1);
+					SampleDisplacementsNormals(_LD_TexArray_AnimatedWaves, uv_slice_biggerLod, wt_biggerLod,cascadeData1._oneOverTextureRes,cascadeData1._texelWidth, dummy, dummy2, sss);
+				}
+
+				return sss;
+			}
+
 			half4 Frag(const Varyings input, const float facing : VFACE) : SV_Target
 			{
 				// We need this when sampling a screenspace texture.
@@ -517,6 +550,8 @@ Shader "Crest/Ocean"
 					SampleDisplacementsNormals(_LD_TexArray_AnimatedWaves, uv_slice_biggerLod, wt_biggerLod, cascadeData1._oneOverTextureRes, cascadeData1._texelWidth, dummy, n_geom.xz, sss);
 				}
 				n_geom = normalize(n_geom);
+
+				sss = ComputeSSS(lodAlpha, input.lodAlpha_worldXZUndisplaced_oceanDepth.yz);
 
 				if (underwater) n_geom = -n_geom;
 				half3 n_pixel = n_geom;

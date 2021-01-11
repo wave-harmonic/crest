@@ -174,6 +174,10 @@ Shader "Crest/Ocean"
 		// Clips purely based on water depth
 		[Toggle] _ClipUnderTerrain("Clip Below Terrain (Requires depth cache)", Float) = 0
 
+		[Header(Rendering)]
+		// What projection modes will this material support? Choosing perspective or orthographic is an optimisation.
+		[KeywordEnum(Both, Perspective, Orthographic)] _Projection("Projection Support", Float) = 0.0
+
 		[Header(Debug Options)]
 		// Build shader with debug info which allows stepping through the code in a GPU debugger. I typically use RenderDoc or
 		// PIX for Windows (requires DX12 API to be selected).
@@ -236,6 +240,8 @@ Shader "Crest/Ocean"
 			#pragma shader_feature_local _CLIPSURFACE_ON
 			#pragma shader_feature_local _CLIPUNDERTERRAIN_ON
 
+			#pragma multi_compile_local _PROJECTION_BOTH _PROJECTION_PERSPECTIVE _PROJECTION_ORTHOGRAPHIC
+
 			#pragma shader_feature_local _DEBUGDISABLESHAPETEXTURES_ON
 			#pragma shader_feature_local _DEBUGVISUALISESHAPESAMPLE_ON
 			#pragma shader_feature_local _DEBUGVISUALISEFLOW_ON
@@ -281,6 +287,7 @@ Shader "Crest/Ocean"
 			#include "OceanInputsDriven.hlsl"
 			#include "OceanHelpersNew.hlsl"
 			#include "OceanVertHelpers.hlsl"
+			#include "OceanShaderHelpers.hlsl"
 
 			// Argument name is v because some macros like COMPUTE_EYEDEPTH require it.
 			Varyings Vert(Attributes v)
@@ -494,8 +501,9 @@ Shader "Crest/Ocean"
 				float pixelZ = LinearEyeDepth(input.positionCS.z);
 				half3 screenPos = input.foam_screenPosXYW.yzw;
 				half2 uvDepth = screenPos.xy / screenPos.z;
-				float sceneZ01 = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CameraDepthTexture, uvDepth).x;
-				float sceneZ = LinearEyeDepth(sceneZ01);
+				// Raw depth is logarithmic for perspective, and linear (0-1) for orthographic.
+				float rawDepth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, uvDepth).x;
+				float sceneZ = CrestLinearEyeDepth(rawDepth);
 
 				float3 lightDir = WorldSpaceLightDir(input.worldPos);
 				// Soft shadow, hard shadow
@@ -549,7 +557,7 @@ Shader "Crest/Ocean"
 				const float baseCascadeScale = _CrestCascadeData[0]._scale;
 				const float meshScaleLerp = instanceData._meshScaleLerp;
 				half3 scatterCol = ScatterColour(input.lodAlpha_worldXZUndisplaced_oceanDepth.w, _WorldSpaceCameraPos, lightDir, view, shadow.x, underwater, true, sss, meshScaleLerp, baseCascadeScale, cascadeData0);
-				half3 col = OceanEmission(view, n_pixel, lightDir, input.grabPos, pixelZ, uvDepth, sceneZ, sceneZ01, bubbleCol, _Normals, underwater, scatterCol, cascadeData0, cascadeData1);
+				half3 col = OceanEmission(view, n_pixel, lightDir, input.grabPos, pixelZ, uvDepth, sceneZ, bubbleCol, _Normals, underwater, scatterCol, cascadeData0, cascadeData1);
 
 				// Light that reflects off water surface
 

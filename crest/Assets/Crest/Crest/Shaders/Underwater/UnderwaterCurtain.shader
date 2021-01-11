@@ -58,6 +58,7 @@ Shader "Crest/Underwater Curtain"
 			#include "../OceanGlobals.hlsl"
 			#include "../OceanInputsDriven.hlsl"
 			#include "../OceanHelpersNew.hlsl"
+			#include "../OceanShaderHelpers.hlsl"
 			#include "UnderwaterShared.hlsl"
 
 			float _HeightOffset;

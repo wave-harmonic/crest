@@ -40,10 +40,7 @@ namespace Crest
         OceanDepthCacheRefreshMode _refreshMode = OceanDepthCacheRefreshMode.OnStart;
         public OceanDepthCacheRefreshMode RefreshMode => _refreshMode;
 
-        [Tooltip("Renderers in scene to render into this depth cache. When provided this saves the code from doing an expensive FindObjectsOfType() call. If one or more renderers are specified, the layer setting is ignored."), SerializeField]
-        Renderer[] _geometryToRenderIntoCache = new Renderer[0];
-
-        [Tooltip("The layers to render into the depth cache. This is ignored if geometry instances are specified in the Geometry To Render Into Cache field.")]
+        [Tooltip("The layers to render into the depth cache.")]
         public string[] _layerNames = new string[0];
 
         [Tooltip("The resolution of the cached depth - lower will be more efficient.")]
@@ -289,7 +286,7 @@ namespace Crest
     [CustomEditor(typeof(OceanDepthCache))]
     public class OceanDepthCacheEditor : ValidatedEditor
     {
-        readonly string[] _propertiesToExclude = new string[] { "m_Script", "_type", "_refreshMode", "_savedCache", "_geometryToRenderIntoCache", "_layerNames", "_resolution", "_cameraMaxTerrainHeight", "_forceAlwaysUpdateDebug", "_checkTerrainDrawInstancedOption", "_refreshEveryFrameInEditMode" };
+        readonly string[] _propertiesToExclude = new string[] { "m_Script", "_type", "_refreshMode", "_savedCache", "_layerNames", "_resolution", "_cameraMaxTerrainHeight", "_forceAlwaysUpdateDebug", "_checkTerrainDrawInstancedOption", "_refreshEveryFrameInEditMode" };
 
         public override void OnInspectorGUI()
         {
@@ -311,7 +308,6 @@ namespace Crest
             {
                 // Only expose the following if real-time cache type
                 EditorGUILayout.PropertyField(serializedObject.FindProperty("_refreshMode"));
-                EditorGUILayout.PropertyField(serializedObject.FindProperty("_geometryToRenderIntoCache"), true);
                 EditorGUILayout.PropertyField(serializedObject.FindProperty("_layerNames"), true);
                 EditorGUILayout.PropertyField(serializedObject.FindProperty("_resolution"));
                 EditorGUILayout.PropertyField(serializedObject.FindProperty("_cameraMaxTerrainHeight"));
@@ -394,7 +390,7 @@ namespace Crest
             }
             else
             {
-                if (_geometryToRenderIntoCache.Length == 0 && _layerNames.Length == 0)
+                if (_layerNames.Length == 0)
                 {
                     showMessage
                     (

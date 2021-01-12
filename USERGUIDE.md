@@ -270,7 +270,6 @@ By default the cache is populated in the `Start()` function. It can instead be c
 
 Once populated the cache contents can be saved to disk by clicking the *Save cache to file* button that will appear in the Inspector in play mode. Once saved, the *Type* can be set to *Baked* and the saved data can be assigned to the *Saved Cache* field.
 
-**Note:** This built-in render pipeline version of crest requires the *Draw Instanced* option on terrains to be disabled at start time. It can be re-enabled subsequently after the depth cache is populated. See issue #158.
 
 
 # Limiting water area
@@ -481,6 +480,3 @@ However, the dynamic wave sim is not fully deterministic and can not currently b
 
 **Can the density of the fog in the water be reduced?**
 The density of the fog underwater can be controlled using the *Fog Density* parameter on the ocean material. This applies to both above water and underwater.
-
-**My terrain does not appear to affect the water - no shorelines or shallow water waves.**
-This built-in render pipeline version of crest requires the *Draw Instanced* option on terrains to be disabled at start time. It can be re-enabled subsequently after the depth cache is populated. See issue #158.

@@ -2,6 +2,8 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+// NOTE: DWP2 depends on this file. Any API changes need to be communicated to the DWP2 authors in advance.
+
 using UnityEngine;
 
 namespace Crest
@@ -37,5 +39,15 @@ namespace Crest
         /// Check if query results could be retrieved successfully using return code from Query() function
         /// </summary>
         bool RetrieveSucceeded(int queryStatus);
+
+        /// <summary>
+        /// Per frame update callback
+        /// </summary>
+        void UpdateQueries();
+
+        /// <summary>
+        /// On destroy, to cleanup resources
+        /// </summary>
+        void CleanUp();
     }
 }

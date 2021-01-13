@@ -1,0 +1,21 @@
+{
+    "name": "Crest.Development",
+    "references": [
+        "GUID:df380645f10b7bc4b97d4f5eb6303d95"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [
+        {
+            "name": "com.unity.render-pipelines.core",
+            "expression": "",
+            "define": "CREST_SRP"
+        }
+    ],
+    "noEngineReferences": false
+}

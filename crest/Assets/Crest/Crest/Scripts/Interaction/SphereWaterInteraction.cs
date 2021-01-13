@@ -4,13 +4,17 @@
 
 using UnityEngine;
 
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+
 namespace Crest
 {
     /// <summary>
     /// This script and associated shader approximate the interaction between a sphere and the water. Multiple
     /// spheres can be used to model the interaction of a non-spherical shape.
     /// </summary>
-    public class SphereWaterInteraction : MonoBehaviour
+    public partial class SphereWaterInteraction : MonoBehaviour
     {
         float Radius => 0.5f * transform.lossyScale.x;
 
@@ -18,13 +22,6 @@ namespace Crest
         float _weight = 1f;
         [Range(0f, 2f), SerializeField]
         float _weightUpDownMul = 0.5f;
-
-        [Header("Noise")]
-        [Range(0f, 1f), SerializeField]
-        float _noiseAmp = 0.5f;
-
-        [Range(0f, 10f), SerializeField]
-        float _noiseFreq = 6f;
 
         [Header("Limits")]
         [Tooltip("Teleport speed (km/h) - if the calculated speed is larger than this amount, the object is deemed to have teleported and the computed velocity is discarded."), SerializeField]
@@ -36,12 +33,11 @@ namespace Crest
         [SerializeField]
         bool _warnOnSpeedClamp = false;
 
-        RegisterDynWavesInput _dynWavesInput;
         FloatingObjectBase _object;
 
-        Vector3 _localPositionRest;
         Vector3 _posLast;
 
+        SampleHeightHelper _sampleHeightHelper = new SampleHeightHelper();
         SampleFlowHelper _sampleFlowHelper = new SampleFlowHelper();
 
         Renderer _renderer;
@@ -54,44 +50,28 @@ namespace Crest
 
         private void Start()
         {
-            if (OceanRenderer.Instance == null || !OceanRenderer.Instance.CreateDynamicWaveSim)
+            if (OceanRenderer.Instance == null)
             {
                 enabled = false;
                 return;
             }
 
-            if (transform.parent == null)
+#if UNITY_EDITOR
+            if (EditorApplication.isPlaying && !Validate(OceanRenderer.Instance, ValidatedHelper.DebugLog))
             {
-                Debug.LogError("ObjectWaterInteraction script requires a parent GameObject.", this);
                 enabled = false;
                 return;
             }
+#endif
 
-            _localPositionRest = transform.localPosition;
-
-            _dynWavesInput = GetComponent<RegisterDynWavesInput>();
-            if (_dynWavesInput == null)
-            {
-                Debug.LogError("ObjectWaterInteraction script requires RegisterDynWavesInput script to be present.", this);
-                enabled = false;
-                return;
-            }
+            _renderer = GetComponent<Renderer>();
+            _mpb = new MaterialPropertyBlock();
 
             _object = GetComponentInParent<FloatingObjectBase>();
             if (_object == null)
             {
                 _object = transform.parent.gameObject.AddComponent<ObjectWaterInteractionAdaptor>();
             }
-
-            _renderer = GetComponent<Renderer>();
-            if (_renderer == null)
-            {
-                Debug.LogError("ObjectWaterInteraction script requires Renderer component.", this);
-                enabled = false;
-                return;
-            }
-
-            _mpb = new MaterialPropertyBlock();
         }
 
         void LateUpdate()
@@ -101,35 +81,23 @@ namespace Crest
 
             // Which lod is this object in (roughly)?
             int simsActive;
-            if (!LateUpdateCountOverlappingSims(out simsActive, out int simsPresent))
+            if (!LateUpdateCountOverlappingSims(out simsActive, out _))
             {
-                if (simsPresent == 0)
-                {
-                    // Counting non-existent sims is expensive - stop updating if none found
-                    enabled = false;
-                }
-
                 // No sims running - abort. don't bother switching off renderer - camera wont be active
                 return;
             }
 
-            var disp = _object.CalculateDisplacementToObject();
+            _sampleHeightHelper.Init(transform.position, 2f * Radius);
+            _sampleHeightHelper.Sample(out Vector3 disp, out _, out _);
 
-            // Set position of interaction
-            {
-                var dispFlatLand = disp;
-                dispFlatLand.y = 0f;
-                var velBoat = _object.Velocity;
-                velBoat.y = 0f;
-                transform.position = transform.parent.TransformPoint(_localPositionRest) - dispFlatLand;
-                transform.rotation = Quaternion.Euler(90f, 0f, 0f);
-            }
+            // Enforce upwards
+            transform.rotation = Quaternion.Euler(90f, 0f, 0f);
 
             // Velocity relative to water
             Vector3 relativeVelocity = LateUpdateComputeVelRelativeToWater(ocean);
 
-            float dt; int steps;
-            ocean._lodDataDynWaves.GetSimSubstepData(ocean.DeltaTimeDynamics, out steps, out dt);
+            float dt;
+            ocean._lodDataDynWaves.GetSimSubstepData(ocean.DeltaTimeDynamics, out _, out dt);
 
             float weight = _weight / simsActive;
 
@@ -181,7 +149,6 @@ namespace Crest
         {
             Vector3 vel;
 
-            var rnd = 1f + _noiseAmp * (2f * Mathf.PerlinNoise(_noiseFreq * ocean.CurrentTime, 0.5f) - 1f);
             // feed in water velocity
             vel = (transform.position - _posLast) / ocean.DeltaTimeDynamics;
             if (ocean.DeltaTimeDynamics < 0.0001f)
@@ -189,11 +156,9 @@ namespace Crest
                 vel = Vector3.zero;
             }
 
-            if (QueryFlow.Instance)
             {
                 _sampleFlowHelper.Init(transform.position, _object.ObjectWidth);
-                Vector2 surfaceFlow = Vector2.zero;
-                _sampleFlowHelper.Sample(ref surfaceFlow);
+                _sampleFlowHelper.Sample(out var surfaceFlow);
                 vel -= new Vector3(surfaceFlow.x, 0, surfaceFlow.y);
             }
             vel.y *= _weightUpDownMul;
@@ -262,4 +227,63 @@ namespace Crest
             sp_radius = Shader.PropertyToID("_Radius");
         }
     }
+
+#if UNITY_EDITOR
+    public partial class SphereWaterInteraction : IValidated
+    {
+        public bool Validate(OceanRenderer ocean, ValidatedHelper.ShowMessage showMessage)
+        {
+            var isValid = true;
+
+            if (!ocean.CreateDynamicWaveSim)
+            {
+                showMessage
+                (
+                    "<i>SphereWaterInteraction</i> requires dynamic wave simulation to be enabled on <i>OceanRenderer</i>.",
+                    ValidatedHelper.MessageType.Error, ocean
+                );
+
+                isValid = false;
+            }
+
+            if (transform.parent == null)
+            {
+                showMessage
+                (
+                    "<i>SphereWaterInteraction</i> script requires a parent <i>GameObject</i>.",
+                    ValidatedHelper.MessageType.Error, this
+                );
+
+                isValid = false;
+            }
+
+            if (GetComponent<RegisterDynWavesInput>() == null)
+            {
+                showMessage
+                (
+                    "<i>SphereWaterInteraction</i> script requires <i>RegisterDynWavesInput</i> script to be present.",
+                    ValidatedHelper.MessageType.Error, this
+                );
+
+                isValid = false;
+            }
+
+            if (GetComponent<Renderer>() == null)
+            {
+                showMessage
+                (
+                    "<i>SphereWaterInteraction</i> script requires <i>Renderer</i> component.",
+                    ValidatedHelper.MessageType.Error, this
+                );
+
+                isValid = false;
+            }
+
+            return isValid;
+        }
+
+        [CustomEditor(typeof(SphereWaterInteraction), true), CanEditMultipleObjects]
+        class SphereWaterInteractionEditor : ValidatedEditor { }
+    }
+#endif
 }

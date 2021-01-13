@@ -10,14 +10,9 @@ namespace Crest
     /// <summary>
     /// This script is attached to the parent GameObject of each LOD. It provides helper functionality related to each LOD.
     /// </summary>
-    public class LodTransform : MonoBehaviour, IFloatingOrigin
+    public class LodTransform : IFloatingOrigin
     {
         protected int[] _transformUpdateFrame;
-
-        static int s_paramsPosScale = Shader.PropertyToID("_LD_Pos_Scale");
-        static int s_paramsPosScaleSource = Shader.PropertyToID("_LD_Pos_Scale_Source");
-        static int s_paramsOcean = Shader.PropertyToID("_LD_Params");
-        static int s_paramsOceanSource = Shader.PropertyToID("_LD_Params_Source");
 
         [System.Serializable]
         public class RenderData
@@ -28,12 +23,12 @@ namespace Crest
             public int _frame;
             public float _oceanScale;
 
-            public RenderData Validate(int frameOffset, Object context)
+            public RenderData Validate(int frameOffset, string context)
             {
                 // ignore first frame - this patches errors when using edit & continue in editor
-                if (_frame > 0 && _frame != Time.frameCount + frameOffset)
+                if (_frame > 0 && _frame != OceanRenderer.FrameCount + frameOffset)
                 {
-                    Debug.LogWarning(string.Format("RenderData validation failed: _frame of data ({0}) != expected ({1}), which may indicate some update functions are being called out of order, or script execution order is broken.", _frame, Time.frameCount + frameOffset), context);
+                    Debug.LogWarning($"RenderData validation failed - {context} - _frame of data ({_frame}) != expected ({OceanRenderer.FrameCount + frameOffset}), which may indicate some update functions are being called out of order, or script execution order is broken.", OceanRenderer.Instance);
                 }
                 return this;
             }
@@ -81,9 +76,9 @@ namespace Crest
         {
             for (int lodIdx = 0; lodIdx < LodCount; lodIdx++)
             {
-                if (_transformUpdateFrame[lodIdx] == Time.frameCount) continue;
+                if (_transformUpdateFrame[lodIdx] == OceanRenderer.FrameCount) continue;
 
-                _transformUpdateFrame[lodIdx] = Time.frameCount;
+                _transformUpdateFrame[lodIdx] = OceanRenderer.FrameCount;
 
                 var lodScale = OceanRenderer.Instance.CalcLodScale(lodIdx);
                 var camOrthSize = 2f * lodScale;
@@ -92,10 +87,10 @@ namespace Crest
                 _renderData[lodIdx].Current._textureRes = OceanRenderer.Instance.LodDataResolution;
                 _renderData[lodIdx].Current._texelWidth = 2f * camOrthSize / _renderData[lodIdx].Current._textureRes;
                 // snap so that shape texels are stationary
-                _renderData[lodIdx].Current._posSnapped = OceanRenderer.Instance.transform.position
-                    - new Vector3(Mathf.Repeat(OceanRenderer.Instance.transform.position.x, _renderData[lodIdx].Current._texelWidth), 0f, Mathf.Repeat(OceanRenderer.Instance.transform.position.z, _renderData[lodIdx].Current._texelWidth));
+                _renderData[lodIdx].Current._posSnapped = OceanRenderer.Instance.Root.position
+                    - new Vector3(Mathf.Repeat(OceanRenderer.Instance.Root.position.x, _renderData[lodIdx].Current._texelWidth), 0f, Mathf.Repeat(OceanRenderer.Instance.Root.position.z, _renderData[lodIdx].Current._texelWidth));
 
-                _renderData[lodIdx].Current._frame = Time.frameCount;
+                _renderData[lodIdx].Current._frame = OceanRenderer.FrameCount;
 
                 _renderData[lodIdx].Current._oceanScale = OceanRenderer.Instance.Scale;
 
@@ -133,30 +128,6 @@ namespace Crest
             return 2f * maxTexelSize * OceanRenderer.Instance.MinTexelsPerWave;
         }
 
-        public static int ParamIdPosScale(bool sourceLod = false)
-        {
-            if (sourceLod)
-            {
-                return s_paramsPosScaleSource;
-            }
-            else
-            {
-                return s_paramsPosScale;
-            }
-        }
-
-        public static int ParamIdOcean(bool sourceLod = false)
-        {
-            if (sourceLod)
-            {
-                return s_paramsOceanSource;
-            }
-            else
-            {
-                return s_paramsOcean;
-            }
-        }
-
         public void SetOrigin(Vector3 newOrigin)
         {
             for (var lodIdx = 0; lodIdx < LodCount; lodIdx++)
@@ -165,16 +136,33 @@ namespace Crest
             }
         }
 
-#if UNITY_2019_3_OR_NEWER
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-#endif
-        static void InitStatics()
+        public void WriteCascadeParams(OceanRenderer.CascadeParams[] cascadeParamsTgt, OceanRenderer.CascadeParams[] cascadeParamsSrc)
         {
-            // Init here from 2019.3 onwards
-            s_paramsPosScale = Shader.PropertyToID("_LD_Pos_Scale");
-            s_paramsPosScaleSource = Shader.PropertyToID("_LD_Pos_Scale_Source");
-            s_paramsOcean = Shader.PropertyToID("_LD_Params");
-            s_paramsOceanSource = Shader.PropertyToID("_LD_Params_Source");
+            for (int lodIdx = 0; lodIdx < OceanRenderer.Instance.CurrentLodCount; lodIdx++)
+            {
+                cascadeParamsTgt[lodIdx]._posSnapped[0] = _renderData[lodIdx].Current._posSnapped[0];
+                cascadeParamsTgt[lodIdx]._posSnapped[1] = _renderData[lodIdx].Current._posSnapped[2];
+                cascadeParamsSrc[lodIdx]._posSnapped[0] = _renderData[lodIdx].Previous(1)._posSnapped[0];
+                cascadeParamsSrc[lodIdx]._posSnapped[1] = _renderData[lodIdx].Previous(1)._posSnapped[2];
+
+                cascadeParamsTgt[lodIdx]._scale = cascadeParamsSrc[lodIdx]._scale = OceanRenderer.Instance.CalcLodScale(lodIdx);
+
+                cascadeParamsTgt[lodIdx]._textureRes = _renderData[lodIdx].Current._textureRes;
+                cascadeParamsSrc[lodIdx]._textureRes = _renderData[lodIdx].Previous(1)._textureRes;
+
+                cascadeParamsTgt[lodIdx]._oneOverTextureRes = 1f / cascadeParamsTgt[lodIdx]._textureRes;
+                cascadeParamsSrc[lodIdx]._oneOverTextureRes = 1f / cascadeParamsSrc[lodIdx]._textureRes;
+
+                cascadeParamsTgt[lodIdx]._texelWidth = _renderData[lodIdx].Current._texelWidth;
+                cascadeParamsSrc[lodIdx]._texelWidth = _renderData[lodIdx].Previous(1)._texelWidth;
+
+                cascadeParamsTgt[lodIdx]._weight = cascadeParamsSrc[lodIdx]._weight = 1f;
+            }
+
+            // Duplicate last element so that things can safely read off the end of the cascades
+            cascadeParamsTgt[OceanRenderer.Instance.CurrentLodCount] = cascadeParamsTgt[OceanRenderer.Instance.CurrentLodCount - 1];
+            cascadeParamsSrc[OceanRenderer.Instance.CurrentLodCount] = cascadeParamsSrc[OceanRenderer.Instance.CurrentLodCount - 1];
+            cascadeParamsTgt[OceanRenderer.Instance.CurrentLodCount]._weight = cascadeParamsSrc[OceanRenderer.Instance.CurrentLodCount]._weight = 0f;
         }
     }
 }

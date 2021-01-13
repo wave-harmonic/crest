@@ -27,17 +27,15 @@ namespace Crest
 
         protected override Color GizmoColor => new Color(0f, 1f, 1f, 0.5f);
 
+        protected override string ShaderPrefix => "Crest/Inputs/Clip Surface";
+
+        // The clip surface samples at the displaced position in the ocean shader, so the displacement correction is not needed.
+        protected override bool FollowHorizontalMotion => true;
+
         PropertyWrapperMPB _mpb;
-        Renderer _rend;
         SampleHeightHelper _sampleHeightHelper = new SampleHeightHelper();
 
         static int sp_DisplacementSamplingIterations = Shader.PropertyToID("_DisplacementSamplingIterations");
-
-        protected override void Start()
-        {
-            base.Start();
-            _rend = GetComponent<Renderer>();
-        }
 
         private void LateUpdate()
         {
@@ -51,12 +49,11 @@ namespace Crest
             {
                 var position = transform.position;
                 _sampleHeightHelper.Init(position, 0f);
-                float waterHeight = 0f;
 
-                if (_sampleHeightHelper.Sample(ref waterHeight))
+                if (_sampleHeightHelper.Sample(out float waterHeight))
                 {
                     position.y = waterHeight;
-                    _enabled = Mathf.Abs(_rend.bounds.ClosestPoint(position).y - waterHeight) < 1;
+                    _enabled = Mathf.Abs(_renderer.bounds.ClosestPoint(position).y - waterHeight) < 1;
                 }
             }
             else
@@ -75,24 +72,12 @@ namespace Crest
                     _mpb = new PropertyWrapperMPB();
                 }
 
-                _rend.GetPropertyBlock(_mpb.materialPropertyBlock);
+                _renderer.GetPropertyBlock(_mpb.materialPropertyBlock);
 
-                var lodCount = OceanRenderer.Instance.CurrentLodCount;
-                var lodDataAnimWaves = OceanRenderer.Instance._lodDataAnimWaves;
                 _mpb.SetInt(LodDataMgr.sp_LD_SliceIndex, lodIdx);
                 _mpb.SetInt(sp_DisplacementSamplingIterations, (int)_animatedWavesDisplacementSamplingIterations);
-                lodDataAnimWaves.BindResultData(_mpb);
 
-                // blend LOD 0 shape in/out to avoid pop, if the ocean might scale up later (it is smaller than its maximum scale)
-                bool needToBlendOutShape = lodIdx == 0 && OceanRenderer.Instance.ScaleCouldIncrease;
-                float meshScaleLerp = needToBlendOutShape ? OceanRenderer.Instance.ViewerAltitudeLevelAlpha : 0f;
-
-                // blend furthest normals scale in/out to avoid pop, if scale could reduce
-                bool needToBlendOutNormals = lodIdx == lodCount - 1 && OceanRenderer.Instance.ScaleCouldDecrease;
-                float farNormalsWeight = needToBlendOutNormals ? OceanRenderer.Instance.ViewerAltitudeLevelAlpha : 1f;
-                _mpb.SetVector(OceanChunkRenderer.sp_InstanceData, new Vector3(meshScaleLerp, farNormalsWeight, lodIdx));
-
-                _rend.SetPropertyBlock(_mpb.materialPropertyBlock);
+                _renderer.SetPropertyBlock(_mpb.materialPropertyBlock);
             }
         }
     }

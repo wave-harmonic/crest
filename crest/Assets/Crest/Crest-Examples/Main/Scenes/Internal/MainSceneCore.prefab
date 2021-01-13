@@ -7,7 +7,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 431262903129107537}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d50a235c0d5333f4b86b695bb6ec026d, type: 3}
   m_Name: 
@@ -193,6 +193,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _viewpoint: {fileID: 0}
   _timeProvider: {fileID: 0}
+  _primaryLight: {fileID: 0}
+  _searchForPrimaryLightOnStartup: 1
   _material: {fileID: 2100000, guid: ef94c26e44a36e24a9dcbc5995a2bed1, type: 2}
   _layerName: Water
   _gravityMultiplier: 1
@@ -203,16 +205,17 @@ MonoBehaviour:
   _lodDataResolution: 384
   _geometryDownSampleFactor: 4
   _lodCount: 7
-  _simSettingsAnimatedWaves: {fileID: 0}
+  _simSettingsAnimatedWaves: {fileID: 11400000, guid: 62a7ebcba67387043b90226c6ee957b7,
+    type: 2}
   _createSeaFloorDepthData: 1
+  _simSettingsDepth: {fileID: 0}
   _createFoamSim: 1
-  _simSettingsFoam: {fileID: 0}
+  _simSettingsFoam: {fileID: 11400000, guid: b699a3b46fff8d340aeb6110c75cf178, type: 2}
   _createDynamicWaveSim: 0
   _simSettingsDynamicWaves: {fileID: 0}
   _createFlowSim: 0
   _simSettingsFlow: {fileID: 0}
   _createShadowData: 1
-  _primaryLight: {fileID: 8390934028832870448}
   _simSettingsShadow: {fileID: 0}
   _createClipSurfaceData: 1
   _attachDebugGUI: 1
@@ -1209,12 +1212,6 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 37bbe23c17398419cbc8674f5c5dbccb, type: 3}
---- !u!108 &8390934028832870448 stripped
-Light:
-  m_CorrespondingSourceObject: {fileID: 6141750961475219240, guid: 37bbe23c17398419cbc8674f5c5dbccb,
-    type: 3}
-  m_PrefabInstance: {fileID: 2398580214993452824}
-  m_PrefabAsset: {fileID: 0}
 --- !u!4 &3612465844302268823 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 1399345652565587599, guid: 37bbe23c17398419cbc8674f5c5dbccb,

@@ -57,7 +57,7 @@ Camera:
     width: 1
     height: 1
   near clip plane: 1
-  far clip plane: 100000
+  far clip plane: 10000
   field of view: 60
   orthographic: 0
   orthographic size: 5
@@ -71,7 +71,7 @@ Camera:
   m_TargetEye: 3
   m_HDR: 0
   m_AllowMSAA: 0
-  m_AllowDynamicResolution: 0
+  m_AllowDynamicResolution: 1
   m_ForceIntoRT: 1
   m_OcclusionCulling: 0
   m_StereoConvergence: 10

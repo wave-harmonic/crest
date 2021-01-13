@@ -1,4 +1,6 @@
-﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
+﻿// Crest Ocean System
+
+// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 // Thanks to @VizzzU for contributing this.
 
@@ -19,6 +21,8 @@ namespace Crest
         float _buoyancyCoeff = 3f;
         [Tooltip("Strength of torque applied to match boat orientation to water normal."), SerializeField]
         float _boyancyTorque = 8f;
+        [Tooltip("Approximate hydrodynamics of 'surfing' down waves."), SerializeField, Range(0, 1)]
+        float _accelerateDownhill = 0f;
 
         [Header("Wave Response")]
         [Tooltip("Diameter of object, for physics purposes. The larger this value, the more filtered/smooth the wave response will be."), SerializeField]
@@ -38,9 +42,6 @@ namespace Crest
 
         bool _inWater;
         public override bool InWater { get { return _inWater; } }
-
-        Vector3 _displacementToObject = Vector3.zero;
-        public override Vector3 CalculateDisplacementToObject() { return _displacementToObject; }
 
         public override Vector3 Velocity => _rb.velocity;
 
@@ -70,24 +71,13 @@ namespace Crest
                 return;
             }
 
-            var collProvider = OceanRenderer.Instance.CollisionProvider;
-            var position = transform.position;
+            _sampleHeightHelper.Init(transform.position, _objectWidth, true);
+            _sampleHeightHelper.Sample(out Vector3 disp, out var normal, out var waterSurfaceVel);
 
-            var normal = Vector3.up; var waterSurfaceVel = Vector3.zero;
-            _sampleHeightHelper.Init(transform.position, _objectWidth);
-            _sampleHeightHelper.Sample(ref _displacementToObject, ref normal, ref waterSurfaceVel);
-
-            var undispPos = transform.position - _displacementToObject;
-            undispPos.y = OceanRenderer.Instance.SeaLevel;
-
-            if (_debugDraw) VisualiseCollisionArea.DebugDrawCross(undispPos, 1f, Color.red);
-
-            if (QueryFlow.Instance)
             {
                 _sampleFlowHelper.Init(transform.position, ObjectWidth);
 
-                Vector2 surfaceFlow = Vector2.zero;
-                _sampleFlowHelper.Sample(ref surfaceFlow);
+                _sampleFlowHelper.Sample(out var surfaceFlow);
                 waterSurfaceVel += new Vector3(surfaceFlow.x, 0, surfaceFlow.y);
             }
 
@@ -99,10 +89,7 @@ namespace Crest
 
             var velocityRelativeToWater = _rb.velocity - waterSurfaceVel;
 
-            var dispPos = undispPos + _displacementToObject;
-            if (_debugDraw) VisualiseCollisionArea.DebugDrawCross(dispPos, 4f, Color.white);
-
-            float height = dispPos.y;
+            float height = disp.y + OceanRenderer.Instance.SeaLevel;
 
             float bottomDepth = height - transform.position.y + _raiseObject;
 
@@ -116,8 +103,13 @@ namespace Crest
             var buoyancy = -Physics.gravity.normalized * _buoyancyCoeff * bottomDepth * bottomDepth * bottomDepth;
             _rb.AddForce(buoyancy, ForceMode.Acceleration);
 
+            // Approximate hydrodynamics of sliding along water
+            if (_accelerateDownhill > 0f)
+            {
+                _rb.AddForce(new Vector3(normal.x, 0f, normal.z) * -Physics.gravity.y * _accelerateDownhill, ForceMode.Acceleration);
+            }
 
-            // apply drag relative to water
+            // Apply drag relative to water
             var forcePosition = _rb.position + _forceHeightOffset * Vector3.up;
             _rb.AddForceAtPosition(Vector3.up * Vector3.Dot(Vector3.up, -velocityRelativeToWater) * _dragInWaterUp, forcePosition, ForceMode.Acceleration);
             _rb.AddForceAtPosition(transform.right * Vector3.Dot(transform.right, -velocityRelativeToWater) * _dragInWaterRight, forcePosition, ForceMode.Acceleration);
@@ -134,8 +126,6 @@ namespace Crest
         /// </summary>
         void FixedUpdateOrientation(Vector3 normal)
         {
-            Vector3 normalLongitudinal = Vector3.up;
-
             if (_debugDraw) Debug.DrawLine(transform.position, transform.position + 5f * normal, Color.green);
 
             var torqueWidth = Vector3.Cross(transform.up, normal);

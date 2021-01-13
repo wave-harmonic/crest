@@ -12,7 +12,7 @@ namespace Crest
     /// own update logic, you can create a new component that inherits from this class and attach it to the same GameObject as the
     /// OceanRenderer script. The new component should be set to update after the Default bucket, similar to BuildCommandBuffer.
     /// </summary>
-    public abstract class BuildCommandBufferBase : MonoBehaviour
+    public abstract class BuildCommandBufferBase
     {
         /// <summary>
         /// Used to validate update order
@@ -38,46 +38,46 @@ namespace Crest
     {
         CommandBuffer _buf;
 
-        static void Build(OceanRenderer ocean, CommandBuffer buf)
+        void BuildLodData(OceanRenderer ocean, CommandBuffer buf)
         {
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // --- Ocean depths
-            if (ocean._lodDataSeaDepths && ocean._lodDataSeaDepths.enabled)
+            if (ocean._lodDataSeaDepths != null && ocean._lodDataSeaDepths.enabled)
             {
                 ocean._lodDataSeaDepths.BuildCommandBuffer(ocean, buf);
             }
 
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // --- Flow data
-            if (ocean._lodDataFlow && ocean._lodDataFlow.enabled)
+            if (ocean._lodDataFlow != null && ocean._lodDataFlow.enabled)
             {
                 ocean._lodDataFlow.BuildCommandBuffer(ocean, buf);
             }
 
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // --- Dynamic wave simulations
-            if (ocean._lodDataDynWaves && ocean._lodDataDynWaves.enabled)
+            if (ocean._lodDataDynWaves != null && ocean._lodDataDynWaves.enabled)
             {
                 ocean._lodDataDynWaves.BuildCommandBuffer(ocean, buf);
             }
 
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // --- Animated waves next
-            if (ocean._lodDataAnimWaves && ocean._lodDataAnimWaves.enabled)
+            if (ocean._lodDataAnimWaves != null && ocean._lodDataAnimWaves.enabled)
             {
                 ocean._lodDataAnimWaves.BuildCommandBuffer(ocean, buf);
             }
 
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // --- Foam simulation
-            if (ocean._lodDataFoam && ocean._lodDataFoam.enabled)
+            if (ocean._lodDataFoam != null && ocean._lodDataFoam.enabled)
             {
                 ocean._lodDataFoam.BuildCommandBuffer(ocean, buf);
             }
 
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // --- Clip surface
-            if (ocean._lodDataClipSurface && ocean._lodDataClipSurface.enabled)
+            if (ocean._lodDataClipSurface != null && ocean._lodDataClipSurface.enabled)
             {
                 ocean._lodDataClipSurface.BuildCommandBuffer(ocean, buf);
             }
@@ -87,35 +87,35 @@ namespace Crest
         {
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // --- Ocean depths
-            if (ocean._lodDataSeaDepths)
+            if (ocean._lodDataSeaDepths != null)
             {
                 ocean._lodDataSeaDepths.FlipBuffers();
             }
 
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // --- Flow data
-            if (ocean._lodDataFlow)
+            if (ocean._lodDataFlow != null)
             {
                 ocean._lodDataFlow.FlipBuffers();
             }
 
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // --- Dynamic wave simulations
-            if (ocean._lodDataDynWaves)
+            if (ocean._lodDataDynWaves != null)
             {
                 ocean._lodDataDynWaves.FlipBuffers();
             }
 
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // --- Animated waves next
-            if (ocean._lodDataAnimWaves)
+            if (ocean._lodDataAnimWaves != null)
             {
                 ocean._lodDataAnimWaves.FlipBuffers();
             }
 
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // --- Foam simulation
-            if (ocean._lodDataFoam)
+            if (ocean._lodDataFoam != null)
             {
                 ocean._lodDataFoam.FlipBuffers();
             }
@@ -129,7 +129,7 @@ namespace Crest
         /// <summary>
         /// Construct the command buffer and attach it to the camera so that it will be executed in the render.
         /// </summary>
-        public void LateUpdate()
+        public void BuildAndExecute()
         {
             if (OceanRenderer.Instance == null) return;
 
@@ -141,12 +141,12 @@ namespace Crest
 
             _buf.Clear();
 
-            Build(OceanRenderer.Instance, _buf);
+            BuildLodData(OceanRenderer.Instance, _buf);
 
             // This will execute at the beginning of the frame before the graphics queue
             Graphics.ExecuteCommandBuffer(_buf);
 
-            _lastUpdateFrame = Time.frameCount;
+            _lastUpdateFrame = OceanRenderer.FrameCount;
         }
     }
 }

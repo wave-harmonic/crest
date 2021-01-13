@@ -14,7 +14,7 @@ Material:
     _FOAM_ON _SHADOWS_ON _SUBSURFACEHEIGHTLERP_ON _SUBSURFACESCATTERING_ON _SUBSURFACESHALLOWCOLOUR_ON
     _TRANSPARENCY_ON _UNDERWATER_ON
   m_LightmapFlags: 5
-  m_EnableInstancingVariants: 0
+  m_EnableInstancingVariants: 1
   m_DoubleSidedGI: 0
   m_CustomRenderQueue: -1
   stringTagMap: {}
@@ -27,7 +27,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _FoamTexture:
-        m_Texture: {fileID: 2800000, guid: e330b3b94b6bdfb42ab2a9e1ca3a5efc, type: 3}
+        m_Texture: {fileID: 2800000, guid: 02e417d5711139342884479f53dbecea, type: 3}
         m_Scale: {x: 0.1, y: 0.1}
         m_Offset: {x: 0, y: 0}
     - _MainTex:
@@ -93,6 +93,7 @@ Material:
     - _CausticsTextureAverage: 0.07
     - _CausticsTextureScale: 5
     - _ClipSurface: 1
+    - _ClipUnderTerrain: 0
     - _CompileShaderWithDebugInfo: 0
     - _ComputeDirectionalLight: 1
     - _CullMode: 0
@@ -122,6 +123,7 @@ Material:
     - _NormalsStrength: 0.36
     - _Offset: 0.00008
     - _OverrideReflectionCubemap: 0
+    - _PlanarReflectionIntensity: 1
     - _PlanarReflectionNormalsStrength: 1
     - _PlanarReflections: 0
     - _ProceduralSky: 0
@@ -129,6 +131,7 @@ Material:
     - _RefractionStrength: 1
     - _RefractiveIndexOfAir: 1.2
     - _RefractiveIndexOfWater: 1.333
+    - _Roughness: 0
     - _S: 1
     - _Shadows: 1
     - _ShorelineFoamMinDepth: 0.27

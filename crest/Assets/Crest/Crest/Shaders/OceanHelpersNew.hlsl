@@ -7,22 +7,22 @@
 #ifndef CREST_OCEAN_HELPERS_H
 #define CREST_OCEAN_HELPERS_H
 
-float2 WorldToUV(in float2 i_samplePos, in float3 i_oceanPosScale, in float4 i_oceanParams)
+float2 WorldToUV(in float2 i_samplePos, in CascadeParams i_cascadeParams)
 {
-	return (i_samplePos - i_oceanPosScale.xy) / (i_oceanParams.x * i_oceanParams.y) + 0.5;
+	return (i_samplePos - i_cascadeParams._posSnapped) / (i_cascadeParams._texelWidth * i_cascadeParams._textureRes) + 0.5;
 }
 
-float3 WorldToUV(in float2 i_samplePos, in float3 i_oceanPosScale, in float4 i_oceanParams, in float i_sliceIndex)
+float3 WorldToUV(in float2 i_samplePos, in CascadeParams i_cascadeParams, in float i_sliceIndex)
 {
-	float2 uv = (i_samplePos - i_oceanPosScale.xy) / (i_oceanParams.x * i_oceanParams.y) + 0.5;
+	float2 uv = (i_samplePos - i_cascadeParams._posSnapped) / (i_cascadeParams._texelWidth * i_cascadeParams._textureRes) + 0.5;
 	return float3(uv, i_sliceIndex);
 }
 
-float2 UVToWorld(in float2 i_uv, in float i_sliceIndex, in float3 i_oceanPosScale, in float4 i_oceanParams)
+float2 UVToWorld(in float2 i_uv, in float i_sliceIndex, in CascadeParams i_cascadeParams)
 {
-	const float texelSize = i_oceanParams.x;
-	const float res = i_oceanParams.y;
-	return texelSize * res * (i_uv - 0.5) + i_oceanPosScale.xy;
+	const float texelSize = i_cascadeParams._texelWidth;
+	const float res = i_cascadeParams._textureRes;
+	return texelSize * res * (i_uv - 0.5) + i_cascadeParams._posSnapped;
 }
 
 // Convert compute shader id to uv texture coordinates
@@ -84,7 +84,6 @@ void PosToSliceIndices
 (
 	const float2 worldXZ,
 	const float minSlice,
-	const float minScale,
 	const float oceanScale0,
 	out float slice0,
 	out float slice1,
@@ -120,8 +119,7 @@ void PosToSliceIndices
 float3 InvertDisplacement
 (
 	in const Texture2DArray i_oceanData,
-	in float3 i_oceanPosScale,
-	in float4 i_oceanParams,
+	in CascadeParams i_cascadeParams,
 	in uint i_sliceIndex,
 	in const float3 i_positionWS,
 	in const uint i_iterations
@@ -130,13 +128,40 @@ float3 InvertDisplacement
 	float3 invertedDisplacedPosition = i_positionWS;
 	for (uint i = 0; i < i_iterations; i++)
 	{
-		const float3 uv_slice = WorldToUV(invertedDisplacedPosition.xz, i_oceanPosScale, i_oceanParams, i_sliceIndex);
+		const float3 uv_slice = WorldToUV(invertedDisplacedPosition.xz, i_cascadeParams, i_sliceIndex);
 		const float3 displacement = i_oceanData.SampleLevel(LODData_linear_clamp_sampler, uv_slice, 0.0).xyz;
 		const float3 error = (invertedDisplacedPosition + displacement) - i_positionWS;
 		invertedDisplacedPosition -= error;
 	}
 
 	return invertedDisplacedPosition;
+}
+
+// Clips using ocean surface clip data
+void ApplyOceanClipSurface(in const float3 io_positionWS, in const float i_lodAlpha)
+{
+	// Sample shape textures - always lerp between 2 scales, so sample two textures
+	// Sample weights. params.z allows shape to be faded out (used on last lod to support pop-less scale transitions)
+	const float2 worldXZ = io_positionWS.xz;
+	float wt_smallerLod = (1. - i_lodAlpha) * _CrestCascadeData[_LD_SliceIndex]._weight;
+	float wt_biggerLod = (1. - wt_smallerLod) * _CrestCascadeData[_LD_SliceIndex + 1]._weight;
+
+	// Sample clip surface data
+	half clipValue = 0.0;
+	if (wt_smallerLod > 0.001)
+	{
+		const float3 uv = WorldToUV(worldXZ, _CrestCascadeData[_LD_SliceIndex], _LD_SliceIndex);
+		SampleClip(_LD_TexArray_ClipSurface, uv, wt_smallerLod, clipValue);
+	}
+	if (wt_biggerLod > 0.001)
+	{
+		const uint si = _LD_SliceIndex + 1;
+		const float3 uv = WorldToUV(worldXZ, _CrestCascadeData[si], si);
+		SampleClip(_LD_TexArray_ClipSurface, uv, wt_biggerLod, clipValue);
+	}
+
+	// Add 0.5 bias for LOD blending and texel resolution correction. This will help to tighten and smooth clipped edges
+	clip(-clipValue + 0.5);
 }
 
 #endif // CREST_OCEAN_HELPERS_H

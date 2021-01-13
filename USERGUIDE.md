@@ -33,7 +33,7 @@ The steps to set up the ocean:
   * Set the Y coordinate of the position to the desired sea level.
 * Tag a primary camera as *MainCamera* if one is not tagged already, or provide the *Viewpoint* transform to the *OceanRenderer* script. If you need to switch between multiple cameras, update the *Viewpoint* field to ensure the ocean follows the correct view.
 * To add waves, create a new GameObject and add the *Shape Gerster Batched* component.
-  * On startup this script creates a default ocean shape. To edit the shape, create an asset of type *Crest/Ocean Wave Spectrum* and provide it to this script.
+  * On startup this script creates a default ocean shape. To edit the shape, right click in the Project view and select *Create/Crest/Ocean Wave Spectrum* and provide it to this script.
   * Smooth blending of ocean shapes can be achieved by adding multiple *Shape Gerstner Batched* scripts and crossfading them using the *Weight* parameter.
 * For geometry that should influence the ocean (attenuate waves, generate foam):
   * Static geometry should render ocean depth just once on startup into an *Ocean Depth Cache* - the island in the main scene in the example content demonstrates this.
@@ -150,8 +150,9 @@ To turn on this feature, enable the *Create Foam Sim* option on the *OceanRender
 
 Crest supports inputing any foam into the system. To add some shape, add some geometry into the world which when rendered from a top down perspective will generate the desired foam values. Then assign the *RegisterFoamInput* script which will tag it for rendering into the shape, and apply a material with a shader of type *Crest/Inputs/Foam/...*. The process for adding inputs is demonstrated in this tutorial video: https://www.youtube.com/watch?v=sQIakAjSq4Y.
 
-The foam sim can be configured by assigning a Foam Sim Settings asset to the OceanRenderer script in your scene (*Create/Crest/Foam Sim Settings*). There are also parameters on the material which control the appearance of the foam.
+Foam can be masked by using the *FoamOverride* material.
 
+The foam sim can be configured by assigning a Foam Sim Settings asset to the OceanRenderer script in your scene (*Create/Crest/Foam Sim Settings*). There are also parameters on the material which control the appearance of the foam.
 
 ## Sea Floor Depth
 
@@ -159,7 +160,7 @@ This LOD data provides a sense of water depth. More information about how this i
 
 ## Clip Surface
 
-This data drives clipping of the ocean surface, as in carving out holes. This can be useful for hollow vessels or low terrain that goes below sea level. Data can come from geometry, convex hulls or a texture.
+This data drives clipping of the ocean surface, as in carving out holes. This can be useful for hollow vessels or low terrain that goes below sea level. Data can come from geometry, convex hulls or a texture. The system can also be configured to clip everything by default and include only where needed which is useful if water is only required in limited area(s), and this use case is described below.
 
 To turn on this feature, enable the *Create Clip Surface Data* option on the *OceanRenderer* script, and ensure the *Enable* option is ticked in the *Clip Surface* group on the ocean material.
 
@@ -171,6 +172,10 @@ Clip areas can be added by adding geometry that covers the desired hole area to 
 
 To use other available shaders like *ClipSurfaceRemoveArea* or *ClipSurfaceRemoveAreaTexture*: create a material, assign to renderer and disable *Assign Clip Surface Material* option. For the *ClipSurfaceRemoveArea* shaders, the geometry should be added from a top down perspective and the faces pointing upwards.
 
+The system can be configured to clip everything by default and include water only where needed, which is useful if water is only required in limited area(s). This is configured by the *Default Clipping State* setting on the *OceanRenderer* component. It can be set to *Everything Clipped* and then a clipping input with shader type *Crest/Inputs/Clip Surface/Include Area* will include areas of water.
+
+As a final feature, the *Clip Below Terrain* toggle on the ocean material will clip the surface underneath the land. Note that this works purely from a depth cache and does not required the *Create Clip Surface Data* option enabled on the *OceanRenderer* component and is therefore more efficient.
+
 ## Shadow
 
 To enable shadowing of the ocean surface, data is captured from the shadow maps Unity renders. These shadow maps are always rendered in front of the viewer. The Shadow LOD Data then reads these shadow maps and copies shadow information into its LOD textures.
@@ -181,11 +186,15 @@ It stores two channels - one channel is normal shadowing, and the other jitters 
 
 The shadow sim can be configured by assigning a Shadow Sim Settings asset to the OceanRenderer script in your scene (*Create/Crest/Shadow Sim Settings*). In particular, the soft shadows are very soft by default, and may not appear for small/thin shadow casters. This can be configured using the *Jitter Diameter Soft* setting.
 
+There will be times when the shadow jitter settings will cause shadows or light to leak. An example of this is when trying to create a dark room during daylight. At the edges of the room the jittering will cause the ocean on the inside of the room (shadowed) to sample outside of the room (not shadowed) resulting in light at the edges. Reducing the *Jitter Diameter Soft* can solve this, but we have also provided a *Register Shadow Input* component which can override shadow data. This component bypasses jittering and gives you full control.
+
 Currently in the built-in render pipeline, shadows only work when the primary camera is set to Forward rendering.
 
 ## Flow
 
 Flow is the horizontal motion of the water volumes. It is used in the *whirlpool.unity* scene to rotate the waves and foam around the vortex. It does not affect wave directions, but transports the waves horizontally. This horizontal motion also affects physics.
+
+To turn on this feature, enable the *Create Flow Sim* option on the *OceanRenderer* script, and ensure the *Flow* option is ticked on the ocean material.
 
 Crest supports adding any flow velocities to the system. To add flow, add some geometry into the world which when rendered from a top down perspective will draw the desired displacements. Then assign the *RegisterFlowInput* script which will tag it for rendering into the flow, and apply a material with a shader of type *Crest/Inputs/Flow/...*. The *Crest/Inputs/Flow/Add Flow Map* shader writes a flow texture into the system. It assumes the x component of the flow velocity is packed into 0-1 range in the red channel, and the z component of the velocity is packed into 0-1 range in the green channel. The shader reads the values, subtracts 0.5, and multiplies them by the provided scale value on the shader. The process of adding ocean inputs is demonstrated in the following video: https://www.youtube.com/watch?v=sQIakAjSq4Y.
 
@@ -229,8 +238,10 @@ It must also have a material using the *Crest/Inputs/Animated Waves/Gerstner Bat
 For a concrete example, see the *GerstnerPatch* object in *boat.unity*.
 It has a *MeshFilter* component with the *Quad* mesh applied, and is rotated so the quad is face up.
 It has a *MeshRenderer* component with a material assigned with a Gerstner material.
-Additionally, the material has the *Feather at UV Extents* option enabled, which will fade down the waves where the UVs go to 0 or 1 (at the edges of the quad).
-The end result is a local patch of waves that are smoothly blended over the area of the quad.
+
+The material has the *Feather at UV Extents* option enabled, which will fade down the waves where the UVs go to 0 or 1 (at the edges of the quad).
+A more general solution is to scale the waves based on vertex colour so weights can be painted - this is provided through the *Weight from vertex colour (red channel)* option.
+This allows different wave conditions in different areas of the world with smooth blending.
 
 
 # Shorelines and shallow water
@@ -260,6 +271,25 @@ By default the cache is populated in the `Start()` function. It can instead be c
 Once populated the cache contents can be saved to disk by clicking the *Save cache to file* button that will appear in the Inspector in play mode. Once saved, the *Type* can be set to *Baked* and the saved data can be assigned to the *Saved Cache* field.
 
 **Note:** This built-in render pipeline version of crest requires the *Draw Instanced* option on terrains to be disabled at start time. It can be re-enabled subsequently after the depth cache is populated. See issue #158.
+
+
+# Limiting water area
+
+By default the system generates a water surface that expands our to the horizon in every direction. There are mechanisms to limit the area.
+
+* The waves can be generated in a limited area - see **Local Waves** section above
+* The *WaterBody* component, if present, marks areas of the scene where water should be present. It can be created by attaching this component to a GameObject and setting the X/Z scale to set the size of the water body. If gizmos are enabled an outline showing the size will be drawn in the Scene View.
+* The *WaterBody* component turns off tiles that do not overlap the desired area. The *Clip Surface* feature can be used to precisely remove any remaining water outside the intended area. Additionally, the clipping system can be configured to clip everything by default, and then areas can be defined where water should be included. See the **Clip Surface** section above.
+
+We recently added a 'wizard' to help create this setup. It is available on the *master* branch in this repository, but not yet in Crest URP/HDRP. It can be used as follows:
+
+* Open the wizard window by selecting *Window/Crest/Create Water Body*
+* Click *Create Water Body*. A white plane should appear in the Scene View visualising the location and size
+* Set the position using the translation gizmo in the Scene View, or using the *Center position* input
+* Set the size using the *Size X* and *Size Z* inputs
+* Each of the above components are available via the *Create ...* toggles
+* Click *Create* and a water body should be created in the scene
+* Click *Done* to close the wizard
 
 
 # Collision Shape for Physics
@@ -420,6 +450,9 @@ When rendering the ocean, the various LOD data are sample for each vert and the 
 **Can I sample the water height at a position from C#?**
 Yes, see *SampleHeightHelper*. *OceanRenderer* uses this helper to get the height of the viewer above the water, and makes this viewer height available via the *ViewerHeightAboveWater* property.
 
+**Can I trigger something when an object is above or under the ocean surface without any scripting knowledge?**
+The *OceanSampleHeightEvents* can be used for this purpose. It will invoke a *UnityEvent* when the attached game object is above or below the ocean surface once per state change.
+
 **Is Crest well suited for medium-to-low powered mobile devices?**
 Crest is built to be performant by design and has numerous quality/performance levers.
 However it is also built to be very flexible and powerful and as such can not compete with a minimal, mobile-centric ocean renderer such as the one in the *BoatAttack* project.
@@ -428,7 +461,7 @@ Therefore we target Crest at PC/console platforms.
 **Which platforms does Crest support?**
 Testing occurs primarily on Windows.
 We have users targeting Windows, Mac, Linux, PS4, XboxOne, Switch and iOS/Android.
-Performance is a challenge on Switch and mobile platforms - see the previous question.
+Performance is a challenge on Switch and mobile platforms - see the previous question. For additional platform notes, see [Platform Support](https://github.com/crest-ocean/crest/wiki/Platform-Support).
 
 **Is Crest well suited for localised bodies of water such as lakes?**
 Currently Crest is currrently targeted towards large bodies of water.

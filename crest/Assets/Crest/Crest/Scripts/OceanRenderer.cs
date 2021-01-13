@@ -881,6 +881,9 @@ namespace Crest
 
         void LateUpdateTiles()
         {
+            // Beyond here throws errors because culling shouldn't come before DrawMeshInstanced?
+            return;
+
             // If there are local bodies of water, this will do overlap tests between the ocean tiles
             // and the water bodies and turn off any that don't overlap.
             if (WaterBody.WaterBodies.Count == 0 && _canSkipCulling)

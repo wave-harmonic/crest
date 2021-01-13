@@ -47,6 +47,8 @@ namespace Crest
                 _mesh = GetComponent<MeshFilter>().mesh;
             }
 
+            Rend.enabled = false;
+
             UpdateMeshBounds();
 
             SetOneTimeMPBParams();
@@ -71,6 +73,7 @@ namespace Crest
             // This needs to be called on Update because the bounds depend on transform scale which can change. Also OnWillRenderObject depends on
             // the bounds being correct. This could however be called on scale change events, but would add slightly more complexity.
             UpdateMeshBounds();
+            OnWillRenderObject();
         }
 
         void UpdateMeshBounds()
@@ -95,11 +98,8 @@ namespace Crest
                 return;
             }
 
-            // check if built-in pipeline being used
-            if (Camera.current != null)
-            {
-                _currentCamera = Camera.current;
-            }
+            // Camera.current no longer worked?
+            _currentCamera = OceanRenderer.Instance.ViewCamera;
 
             // Depth texture is used by ocean shader for transparency/depth fog, and for fading out foam at shoreline.
             _currentCamera.depthTextureMode |= DepthTextureMode.Depth;
@@ -130,6 +130,22 @@ namespace Crest
             }
 
             Rend.SetPropertyBlock(_mpb.materialPropertyBlock);
+
+            Matrix4x4 matrix = Matrix4x4.TRS(transform.position, transform.rotation, transform.lossyScale);
+
+            Graphics.DrawMeshInstanced
+            (
+                mesh: _mesh,
+                submeshIndex: 0,
+                material: Rend.sharedMaterial,
+                matrices: new Matrix4x4[] { matrix },
+                count: 1,
+                properties: _mpb.materialPropertyBlock,
+                castShadows: ShadowCastingMode.Off,
+                receiveShadows: false,
+                layer: gameObject.layer,
+                camera: null
+            );
         }
 
         // this is called every frame because the bounds are given in world space and depend on the transform scale, which

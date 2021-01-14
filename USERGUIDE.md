@@ -70,6 +70,14 @@ This base reflection can then be overridden by dynamic planar reflections. This 
 
 A good strategy for debugging the use of Unity's specular cubemap is to put another reflective/glossy object in the scene near the surface, and verify that it is lit and reflects the scene properly. Crest tries to use the same inputs for lighting/reflections, so if it works for a test object it should work for the water surface as well.
 
+### Orthographic Projection
+
+Crest supports orthographic projection out-of-the-box, but it might require some configuration to get a desired appearance.
+
+Crest uses the camera's position for the LOD system which can be awkward for orthographic which uses the size property on the camera.
+Use the *Viewpoint* property on the *Ocean Renderer* to override the camera's position.
+
+Underwater effects do *not* support orthographic projection.
 
 ## Ocean construction parameters
 
@@ -484,3 +492,6 @@ The density of the fog underwater can be controlled using the *Fog Density* para
 
 **My terrain does not appear to affect the water - no shorelines or shallow water waves.**
 This built-in render pipeline version of crest requires the *Draw Instanced* option on terrains to be disabled at start time. It can be re-enabled subsequently after the depth cache is populated. See issue #158.
+
+**Does Crest support orthographic projection?**
+It does. Please see the [Orthographic Projection](#orthographic-projection) section.

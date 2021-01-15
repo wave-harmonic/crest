@@ -498,7 +498,7 @@ Shader "Crest/Ocean"
 				half3 view = normalize(_WorldSpaceCameraPos - input.worldPos);
 
 				// water surface depth, and underlying scene opaque surface depth
-				float pixelZ = LinearEyeDepth(input.positionCS.z);
+				float pixelZ = CrestLinearEyeDepth(input.positionCS.z);
 				half3 screenPos = input.foam_screenPosXYW.yzw;
 				half2 uvDepth = screenPos.xy / screenPos.z;
 				// Raw depth is logarithmic for perspective, and linear (0-1) for orthographic.

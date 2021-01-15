@@ -195,7 +195,7 @@ void ApplyCaustics(in const half3 i_view, in const half3 i_lightDir, in const fl
 
 
 half3 OceanEmission(in const half3 i_view, in const half3 i_n_pixel, in const float3 i_lightDir,
-	in const half4 i_grabPos, in const float i_pixelZ, in const half2 i_uvDepth, in const float i_sceneZ, in const float i_sceneZ01,
+	in const half4 i_grabPos, in const float i_pixelZ, in const half2 i_uvDepth, in const float i_sceneZ,
 	in const half3 i_bubbleCol, in sampler2D i_normals, in const bool i_underwater, in const half3 i_scatterCol,
 	in const CascadeParams cascadeData0, in const CascadeParams cascadeData1)
 {
@@ -217,7 +217,9 @@ half3 OceanEmission(in const half3 i_view, in const half3 i_n_pixel, in const fl
 	if (!i_underwater)
 	{
 		const half2 refractOffset = _RefractionStrength * i_n_pixel.xz * min(1.0, 0.5*(i_sceneZ - i_pixelZ)) / i_sceneZ;
-		const float sceneZRefract = LinearEyeDepth(UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CameraDepthTexture, i_uvDepth + refractOffset).x);
+		// Raw depth is logarithmic for perspective, and linear (0-1) for orthographic.
+		const float rawDepth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, i_uvDepth + refractOffset).x;
+		const float sceneZRefract = CrestLinearEyeDepth(rawDepth);
 		half2 uvBackgroundRefract;
 
 		// Compute depth fog alpha based on refracted position if it landed on an underwater surface, or on unrefracted depth otherwise

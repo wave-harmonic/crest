@@ -47,7 +47,7 @@ Shader "Crest/Copy Depth Buffer Into Cache"
 			{
 				Varyings output;
 				output.uv = input.uv;
-				output.positionCS = UnityObjectToClipPos(input.positionOS.xyz);
+				output.positionCS = UnityObjectToClipPos(input.positionOS);
 				return output;
 			}
 

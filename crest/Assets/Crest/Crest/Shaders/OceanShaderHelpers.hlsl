@@ -7,14 +7,16 @@
 #ifndef CREST_OCEAN_SHADER_HELPERS_H
 #define CREST_OCEAN_SHADER_HELPERS_H
 
+// Same as LinearEyeDepth except supports orthographic projection. Use projection keywords to restrict support to either
+// of these modes as an optimisation.
 float CrestLinearEyeDepth(const float i_rawDepth)
 {
-#if defined(_PROJECTION_BOTH) || defined(_PROJECTION_PERSPECTIVE)
+#if !defined(_PROJECTION_ORTHOGRAPHIC)
 	// Handles UNITY_REVERSED_Z for us.
 	float perspective = LinearEyeDepth(i_rawDepth);
 #endif // _PROJECTION
 
-#if defined(_PROJECTION_BOTH) || defined(_PROJECTION_ORTHOGRAPHIC)
+#if !defined(_PROJECTION_PERSPECTIVE)
 	// Orthographic Depth taken and modified from:
 	// https://github.com/keijiro/DepthInverseProjection/blob/master/Assets/InverseProjection/Resources/InverseProjection.shader
 	float near = _ProjectionParams.y;
@@ -28,15 +30,13 @@ float CrestLinearEyeDepth(const float i_rawDepth)
 #endif // UNITY_REVERSED_Z
 #endif // _PROJECTION
 
-#if defined(_PROJECTION_BOTH)
-	return lerp(perspective, orthographic, isOrthographic);
-#elif defined(_PROJECTION_ORTHOGRAPHIC)
+#if defined(_PROJECTION_ORTHOGRAPHIC)
 	return orthographic;
 #elif defined(_PROJECTION_PERSPECTIVE)
 	return perspective;
 #else
-	// If a shader does not have the projection enumeration, then assume they want perspective.
-	return LinearEyeDepth(i_rawDepth);
+	// If a shader does not have the projection enumeration, then assume they want to support both projection modes.
+	return lerp(perspective, orthographic, isOrthographic);
 #endif // _PROJECTION
 }
 

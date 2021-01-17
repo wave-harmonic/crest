@@ -240,7 +240,7 @@ Shader "Crest/Ocean"
 			#pragma shader_feature_local _CLIPSURFACE_ON
 			#pragma shader_feature_local _CLIPUNDERTERRAIN_ON
 
-			#pragma shader_feature_local _PROJECTION_BOTH _PROJECTION_PERSPECTIVE _PROJECTION_ORTHOGRAPHIC
+			#pragma shader_feature_local _ _PROJECTION_PERSPECTIVE _PROJECTION_ORTHOGRAPHIC
 
 			#pragma shader_feature_local _DEBUGDISABLESHAPETEXTURES_ON
 			#pragma shader_feature_local _DEBUGVISUALISESHAPESAMPLE_ON

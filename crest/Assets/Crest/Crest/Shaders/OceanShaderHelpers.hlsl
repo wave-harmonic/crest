@@ -2,7 +2,7 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
-// Helpers that will only be used when rendering to a screen (eg depth, lighting etc).
+// Helpers that will only be used for shaders (eg depth, lighting etc).
 
 #ifndef CREST_OCEAN_SHADER_HELPERS_H
 #define CREST_OCEAN_SHADER_HELPERS_H

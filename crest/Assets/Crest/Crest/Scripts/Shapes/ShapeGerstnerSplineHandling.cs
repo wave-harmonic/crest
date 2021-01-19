@@ -185,7 +185,7 @@ namespace Crest
                 //      |        |
                 //    sp0--------*
                 //
-                var i1 = (i0 + 1) % resultPts0.Length;
+                var i1 = i0 + 1;
 
                 verts[2 * i0] = transform.InverseTransformPoint(resultPts0[i0]);
                 verts[2 * i0 + 1] = transform.InverseTransformPoint(resultPts1[i0]);

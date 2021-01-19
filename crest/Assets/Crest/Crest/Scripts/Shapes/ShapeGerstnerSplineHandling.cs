@@ -171,8 +171,7 @@ namespace Crest
             var distSoFar = 0f;
             // This iterates over result points and emits a quad starting from the current result points (resultPts0[i0], resultPts1[i1]) to
             // the next result points. If the spline is closed, last quad bridges the last result points and the first result points.
-            var emitCount = /*closed ? resultPts0.Length :*/ (resultPts0.Length - 1);
-            for (var i0 = 0; i0 < emitCount; i0 += 1)
+            for (var i0 = 0; i0 < resultPts0.Length - 1; i0 += 1)
             {
                 // Vert indices:
                 //

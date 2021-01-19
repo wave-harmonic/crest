@@ -91,9 +91,11 @@ float _RefractiveIndexOfWater;
 
 #if _COMPUTEDIRECTIONALLIGHT_ON
 half _DirectionalLightFallOff;
+half _DirectionalLightBoost;
+#if _DIRECTIONALLIGHTVARYROUGHNESS_ON
 half _DirectionalLightFarDistance;
 half _DirectionalLightFallOffFar;
-half _DirectionalLightBoost;
+#endif
 #endif
 
 #if _PLANARREFLECTIONS_ON

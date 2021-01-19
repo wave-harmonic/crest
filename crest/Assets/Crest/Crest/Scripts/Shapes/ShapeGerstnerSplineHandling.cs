@@ -113,10 +113,16 @@ namespace Crest
                 {
                     for (int j = 0; j < smoothingIterations; j++)
                     {
-                        for (int i = 0; i < pointCount; i++)
+                        for (int i = 0; i < resultPts1.Length; i++)
                         {
-                            var ibefore = i - 1; if (ibefore < 0) ibefore += resultPts1.Length;
-                            var iafter = i + 1; if (iafter >= pointCount) iafter -= resultPts1.Length;
+                            // Slightly odd indexing. The first and last point are the same, the indices need to wrap to either the
+                            // second element (if overflow) or the penultimate element (if underflow) to ensure tension is maintained at ends.
+                            var ibefore = i - 1;
+                            var iafter = i + 1;
+
+                            if (ibefore < 0) ibefore = resultPts1.Length - 2;
+                            if (iafter >= resultPts1.Length) iafter = 1;
+
                             resultPtsTmp[i] = (resultPts1[i] + resultPts1[iafter] + resultPts1[ibefore]) / 3f;
                             resultPtsTmp[i] = resultPts0[i] + (resultPtsTmp[i] - resultPts0[i]).normalized * radius;
                         }

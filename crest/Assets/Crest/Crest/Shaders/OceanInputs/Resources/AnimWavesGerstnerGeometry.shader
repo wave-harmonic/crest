@@ -46,9 +46,9 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Geometry"
 
             #include "UnityCG.cginc"
 
-			#include "../OceanGlobals.hlsl"
-			#include "../OceanInputsDriven.hlsl"
-			#include "../OceanHelpersNew.hlsl"
+			#include "../../OceanGlobals.hlsl"
+			#include "../../OceanInputsDriven.hlsl"
+			#include "../../OceanHelpersNew.hlsl"
 
 			struct appdata
             {
@@ -85,15 +85,14 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Geometry"
             {
                 v2f o;
 
-				// We take direction of vert, not its position
-				float3 positionOS = v.vertex.xyz;
-
+				const float3 positionOS = v.vertex.xyz;
 				o.vertex = UnityObjectToClipPos(positionOS);
+				const float3 worldPos = mul( unity_ObjectToWorld, float4(positionOS, 1.0) ).xyz;
 
 				// UV coordinate into the cascade we are rendering into
-				float3 worldPos = mul(unity_ObjectToWorld, float4(positionOS, 1.0)).xyz;
 				o.uv_slice.xyz = WorldToUV(worldPos.xz, _CrestCascadeData[_LD_SliceIndex], _LD_SliceIndex);
 
+				// World pos prescaled by wave buffer size, suitable for using as UVs in fragment shader
 				const float waveBufferSize = 0.5f * (1 << _WaveBufferSliceIndex);
 				o.worldPosScaled = worldPos / waveBufferSize;
 
@@ -127,8 +126,8 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Geometry"
 				angle0 -= rem;
 				const float angle1 = angle0 + dTheta;
 
-				const float2 axisX0 = float2(cos( angle0 ), sin( angle0 ));
-				const float2 axisX1 = float2(cos( angle1 ), sin( angle1 ));
+				float2 axisX0; sincos( angle0, axisX0.y, axisX0.x );
+				float2 axisX1; sincos( angle1, axisX1.y, axisX1.x );
 				float2 axisZ0; axisZ0.x = -axisX0.y; axisZ0.y = axisX0.x;
 				float2 axisZ1; axisZ1.x = -axisX1.y; axisZ1.y = axisX1.x;
 

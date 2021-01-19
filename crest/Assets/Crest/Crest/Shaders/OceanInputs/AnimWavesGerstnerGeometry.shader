@@ -81,7 +81,8 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Geometry"
 
 				o.distToSplineEnd_invNormDistToShoreline = v.distToSplineEnd_invNormDistToShoreline;
 
-				o.axis = v.axis;
+				// Rotate forward axis around y-axis into world space
+				o.axis = v.axis.x * unity_ObjectToWorld._m00_m20 + v.axis.y * unity_ObjectToWorld._m02_m22;
 
                 return o;
             }

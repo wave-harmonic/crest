@@ -59,12 +59,32 @@ namespace Crest
             // Second set of sample points lie off-spline - some distance to the right
             for (int i = 0; i < pointCount; i++)
             {
-                var tangent = resultPts0[Mathf.Min(pointCount - 1, i + 1)] - resultPts0[Mathf.Max(0, i - 1)];
+                var ibefore = i - 1;
+                var iafter = i + 1;
+                if (!spline._closed)
+                {
+                    // Not closed - clamp to range
+                    ibefore = Mathf.Max(ibefore, 0);
+                    iafter = Mathf.Min(iafter, pointCount - 1);
+                }
+                else
+                {
+                    // Closed - wrap into range
+                    if (ibefore < 0) ibefore += pointCount;
+                    iafter %= pointCount;
+                }
+
+                var tangent = resultPts0[iafter] - resultPts0[ibefore];
                 var normal = tangent;
                 normal.x = tangent.z;
                 normal.z = -tangent.x;
                 normal = normal.normalized;
                 resultPts1[i] = resultPts0[i] + normal * radius;
+            }
+            if (spline._closed)
+            {
+                var midPoint = Vector3.Lerp(resultPts1[0], resultPts1[resultPts1.Length - 1], 0.5f);
+                resultPts1[0] = resultPts1[resultPts1.Length - 1] = midPoint;
             }
 
             // Blur the second set of points to help solve overlaps or large distortions. Not perfect but helps in many cases.
@@ -143,7 +163,9 @@ namespace Crest
             var uvs2 = new Vector2[triCount + 2];
             var indices = new int[triCount * 6];
             var distSoFar = 0f;
-            var emitCount = closed ? resultPts0.Length : (resultPts0.Length - 1);
+            // This iterates over result points and emits a quad starting from the current result points (resultPts0[i0], resultPts1[i1]) to
+            // the next result points. If the spline is closed, last quad bridges the last result points and the first result points.
+            var emitCount = /*closed ? resultPts0.Length :*/ (resultPts0.Length - 1);
             for (var i0 = 0; i0 < emitCount; i0 += 1)
             {
                 // Vert indices:

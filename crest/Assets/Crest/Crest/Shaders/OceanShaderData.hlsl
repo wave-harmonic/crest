@@ -116,17 +116,20 @@ half _SkyDirectionality;
 
 #if _FOAM_ON
 half _FoamScale;
-float4 _FoamTexture_TexelSize;
 half4 _FoamWhiteColor;
-half4 _FoamBubbleColor;
-half _FoamBubbleParallax;
-half _ShorelineFoamMinDepth;
 half _WaveFoamFeather;
-half _WaveFoamBubblesCoverage;
+half _WaveFoamLightScale;
+half _ShorelineFoamMinDepth;
+#if _FOAM3DLIGHTING_ON
+float4 _FoamTexture_TexelSize;
 half _WaveFoamNormalStrength;
 half _WaveFoamSpecularFallOff;
 half _WaveFoamSpecularBoost;
-half _WaveFoamLightScale;
+#endif
+// Foam Bubbles
+half4 _FoamBubbleColor;
+half _FoamBubbleParallax;
+half _WaveFoamBubblesCoverage;
 #endif
 
 // ----------------------------------------------------------------------------

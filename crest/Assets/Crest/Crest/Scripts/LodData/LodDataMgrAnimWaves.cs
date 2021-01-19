@@ -19,7 +19,10 @@ namespace Crest
     ///  * The textures from this LodData are passed to the ocean material when the surface is drawn (by OceanChunkRenderer).
     ///  * LodDataDynamicWaves adds its results into this LodData. The dynamic waves piggy back off the combine
     ///    pass and subsequent assignment to the ocean material (see OceanScheduler).
-    ///  * The LodDataSeaFloorDepth sits on this same GameObject and borrows the camera. This could be a model for the other sim types..
+    ///
+    /// The RGB channels are the XYZ displacement from a rest plane at sea level to the corresponding displaced position on the
+    /// surface. The A channel holds the variance/energy in all the smaller wavelengths that are too small to go into the cascade
+    /// slice. This is used as a statistical measure for the missing waves and is used to ensure foam is generated everywhere.
     /// </summary>
     public class LodDataMgrAnimWaves : LodDataMgr
     {

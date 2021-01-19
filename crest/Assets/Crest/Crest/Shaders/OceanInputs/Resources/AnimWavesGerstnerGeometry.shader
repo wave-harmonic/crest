@@ -2,6 +2,21 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+// Generates waves from geometry that is rendered into the water simulation from a top down camera. Expects
+// following data on verts:
+//   - POSITION: Vert positions as normal.
+//   - TEXCOORD0: Axis - direction for waves to travel. "Forward vector" for waves.
+//   - TEXCOORD1: X - distance from nearest side, needed if "feather from spline ends" is non-zero.
+//                Y - 0 at start of waves, 1 at end of waves
+//
+//  uv1.x = 0 -------- uv1.x = 50m --------- uv1.x = 0
+//  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ uv1.y = 0             |
+//  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  |                    |  uv0 - wave direction vector
+//  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  |                   \|/
+//  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ uv1.y = 1
+//  ------------------- shoreline --------------------
+//
+
 Shader "Crest/Inputs/Animated Waves/Gerstner Geometry"
 {
     Properties

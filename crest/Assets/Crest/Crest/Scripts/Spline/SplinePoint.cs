@@ -7,6 +7,9 @@ using UnityEngine;
 
 namespace Crest.Spline
 {
+    /// <summary>
+    /// Spline point, intended to be child of Spline object
+    /// </summary>
     [ExecuteAlways]
     public class SplinePoint : MonoBehaviour
     {

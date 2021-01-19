@@ -6,6 +6,9 @@ using UnityEngine;
 
 namespace Crest.Spline
 {
+    /// <summary>
+    /// Support functions for interpolating a spline
+    /// </summary>
     public static class SplineInterpolation
     {
         /// <summary>

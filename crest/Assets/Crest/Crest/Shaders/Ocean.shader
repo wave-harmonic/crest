@@ -147,9 +147,9 @@ Shader "Crest/Ocean"
 		// Scaling / intensity
 		_CausticsStrength("Strength", Range(0.0, 10.0)) = 3.2
 		// The depth at which the caustics are in focus
-		_CausticsFocalDepth("Focal Depth", Range(0.0, 25.0)) = 2.0
+		_CausticsFocalDepth("Focal Depth", Range(0.0, 250.0)) = 2.0
 		// The range of depths over which the caustics are in focus
-		_CausticsDepthOfField("Depth Of Field", Range(0.01, 10.0)) = 0.33
+		_CausticsDepthOfField("Depth Of Field", Range(0.01, 1000.0)) = 0.33
 		// How much the caustics texture is distorted
 		_CausticsDistortionStrength("Distortion Strength", Range(0.0, 0.25)) = 0.16
 		// The scale of the distortion pattern used to distort the caustics
@@ -173,6 +173,10 @@ Shader "Crest/Ocean"
 		[Toggle] _ClipSurface("Enable", Float) = 0
 		// Clips purely based on water depth
 		[Toggle] _ClipUnderTerrain("Clip Below Terrain (Requires depth cache)", Float) = 0
+
+		[Header(Rendering)]
+		// What projection modes will this material support? Choosing perspective or orthographic is an optimisation.
+		[KeywordEnum(Both, Perspective, Orthographic)] _Projection("Projection Support", Float) = 0.0
 
 		[Header(Debug Options)]
 		// Build shader with debug info which allows stepping through the code in a GPU debugger. I typically use RenderDoc or
@@ -236,6 +240,8 @@ Shader "Crest/Ocean"
 			#pragma shader_feature_local _CLIPSURFACE_ON
 			#pragma shader_feature_local _CLIPUNDERTERRAIN_ON
 
+			#pragma shader_feature_local _ _PROJECTION_PERSPECTIVE _PROJECTION_ORTHOGRAPHIC
+
 			#pragma shader_feature_local _DEBUGDISABLESHAPETEXTURES_ON
 			#pragma shader_feature_local _DEBUGVISUALISESHAPESAMPLE_ON
 			#pragma shader_feature_local _DEBUGVISUALISEFLOW_ON
@@ -254,6 +260,7 @@ Shader "Crest/Ocean"
 			#include "OceanShaderData.hlsl"
 			#include "OceanHelpersNew.hlsl"
 			#include "OceanVertHelpers.hlsl"
+			#include "OceanShaderHelpers.hlsl"
 
 			#include "OceanEmission.hlsl"
 			#include "OceanNormalMapping.hlsl"
@@ -294,10 +301,6 @@ Shader "Crest/Ocean"
 				UNITY_INITIALIZE_OUTPUT(Varyings, o);
 				UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
 
-				// Scale up by small "epsilon" to solve numerical issues.
-				// :OceanGridPrecisionErrors
-				v.vertex.xyz *= 1.00001;
-
 				const CascadeParams cascadeData0 = _CrestCascadeData[_LD_SliceIndex];
 				const CascadeParams cascadeData1 = _CrestCascadeData[_LD_SliceIndex + 1];
 				const PerCascadeInstanceData instanceData = _CrestPerCascadeInstanceData[_LD_SliceIndex];
@@ -310,6 +313,12 @@ Shader "Crest/Ocean"
 				const float meshScaleLerp = instanceData._meshScaleLerp;
 				const float gridSize = instanceData._geoGridWidth;
 				SnapAndTransitionVertLayout(meshScaleLerp, cascadeData0, gridSize, o.worldPos, lodAlpha);
+
+				// Scale up by small "epsilon" to solve numerical issues. Expand slightly about tile center.
+				// :OceanGridPrecisionErrors
+				const float2 tileCenterXZ = UNITY_MATRIX_M._m03_m23;
+				o.worldPos.xz = lerp( tileCenterXZ, o.worldPos.xz, 1.0001 );
+
 				o.lodAlpha_worldXZUndisplaced_oceanDepth.x = lodAlpha;
 				o.lodAlpha_worldXZUndisplaced_oceanDepth.yz = o.worldPos.xz;
 
@@ -478,11 +487,12 @@ Shader "Crest/Ocean"
 				half3 view = normalize(_WorldSpaceCameraPos - input.worldPos);
 
 				// water surface depth, and underlying scene opaque surface depth
-				float pixelZ = LinearEyeDepth(input.positionCS.z);
+				float pixelZ = CrestLinearEyeDepth(input.positionCS.z);
 				half3 screenPos = input.foam_screenPosXYW.yzw;
 				half2 uvDepth = screenPos.xy / screenPos.z;
-				float sceneZ01 = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_CameraDepthTexture, uvDepth).x;
-				float sceneZ = LinearEyeDepth(sceneZ01);
+				// Raw depth is logarithmic for perspective, and linear (0-1) for orthographic.
+				float rawDepth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, uvDepth).x;
+				float sceneZ = CrestLinearEyeDepth(rawDepth);
 
 				float3 lightDir = WorldSpaceLightDir(input.worldPos);
 				// Soft shadow, hard shadow
@@ -509,16 +519,17 @@ Shader "Crest/Ocean"
 				}
 				n_geom = normalize(n_geom);
 
-				if (underwater) n_geom = -n_geom;
 				half3 n_pixel = n_geom;
 				#if _APPLYNORMALMAPPING_ON
 				#if _FLOW_ON
 				ApplyNormalMapsWithFlow(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, input.flow_shadow.xy, lodAlpha, cascadeData0, instanceData, n_pixel);
 				#else
-				n_pixel.xz += (underwater ? -1. : 1.) * SampleNormalMaps(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, lodAlpha, cascadeData0, instanceData);
+				n_pixel.xz += SampleNormalMaps(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, lodAlpha, cascadeData0, instanceData);
 				n_pixel = normalize(n_pixel);
 				#endif
 				#endif
+				// We do not flip n_geom because we do not use it.
+				if (underwater) n_pixel = -n_pixel;
 
 				// Foam - underwater bubbles and whitefoam
 				half3 bubbleCol = (half3)0.;
@@ -535,7 +546,7 @@ Shader "Crest/Ocean"
 				const float baseCascadeScale = _CrestCascadeData[0]._scale;
 				const float meshScaleLerp = instanceData._meshScaleLerp;
 				half3 scatterCol = ScatterColour(input.lodAlpha_worldXZUndisplaced_oceanDepth.w, _WorldSpaceCameraPos, lightDir, view, shadow.x, underwater, true, sss, meshScaleLerp, baseCascadeScale, cascadeData0);
-				half3 col = OceanEmission(view, n_pixel, lightDir, input.grabPos, pixelZ, uvDepth, sceneZ, sceneZ01, bubbleCol, _Normals, underwater, scatterCol, cascadeData0, cascadeData1);
+				half3 col = OceanEmission(view, n_pixel, lightDir, input.grabPos, pixelZ, uvDepth, sceneZ, bubbleCol, _Normals, underwater, scatterCol, cascadeData0, cascadeData1);
 
 				// Light that reflects off water surface
 

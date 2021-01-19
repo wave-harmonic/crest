@@ -69,6 +69,7 @@ void SampleDisplacementsNormals(in Texture2DArray i_dispSampler, in float3 i_uv_
 	}
 
 	// SSS - based off pinch
+#if _SUBSURFACESCATTERING_ON
 	{
 		// Don't use variance - yet
 		// float varianceBeforeThisCascade = data.w;
@@ -76,6 +77,7 @@ void SampleDisplacementsNormals(in Texture2DArray i_dispSampler, in float3 i_uv_
 		float det = determinant( jacobian );
 		io_sss += i_wt * saturate( 0.60 - det * 0.12 );
 	}
+#endif // _SUBSURFACESCATTERING_ON
 
 	io_nxz += i_wt * n.xz;
 }

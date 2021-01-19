@@ -167,7 +167,7 @@ namespace Crest
             var verts = new Vector3[triCount + 2];
             var uvs = new Vector2[triCount + 2];
             var uvs2 = new Vector2[triCount + 2];
-            var indices = new int[triCount * 6];
+            var indices = new int[triCount * 3];
             var distSoFar = 0f;
             // This iterates over result points and emits a quad starting from the current result points (resultPts0[i0], resultPts1[i1]) to
             // the next result points. If the spline is closed, last quad bridges the last result points and the first result points.

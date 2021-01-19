@@ -23,7 +23,13 @@ namespace Crest.Spline
             {
                 Gizmos.DrawLine(points[i].transform.position, points[i + 1].transform.position);
             }
+
             Gizmos.color = Color.white;
+
+            if (_closed && points.Length > 2)
+            {
+                Gizmos.DrawLine(points[points.Length - 1].transform.position, points[0].transform.position);
+            }
         }
     }
 
@@ -46,7 +52,7 @@ namespace Crest.Spline
 
                 isValid = false;
             }
-            else if(_closed && points.Length < 3)
+            else if (_closed && points.Length < 3)
             {
                 showMessage
                 (

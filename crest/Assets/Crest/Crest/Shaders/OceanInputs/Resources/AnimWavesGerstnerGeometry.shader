@@ -21,8 +21,11 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Geometry"
 {
     Properties
     {
+		// Controls ramp distance over which waves grow/fade as they move forwards
 		_FeatherWaveStart("Feather wave start (0-1)", Range( 0.0, 0.5 ) ) = 0.1
+		// Fade in waves from the sides
 		_FeatherFromSplineEnds("Feather from spline ends (m)", Range( 0.0, 100.0 ) ) = 0.0
+		// Can be set to 0 to make waves ignore shallow water
 		_RespectShallowWaterAttenuation("Respect Shallow Water Attenuation", Range(0, 1)) = 1
 	}
 

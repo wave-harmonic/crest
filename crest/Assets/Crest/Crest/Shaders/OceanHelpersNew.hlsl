@@ -72,9 +72,9 @@ void SampleDisplacementsNormals(in Texture2DArray i_dispSampler, in float3 i_uv_
 	{
 		// Don't use variance - yet
 		// float varianceBeforeThisCascade = data.w;
-		float4 du = float4(disp_x.xz, disp_z.xz) - disp.xzxz;
-		float det = (du.x * du.w - du.y * du.z) / (i_texelSize * i_texelSize);
-		io_sss += i_wt * saturate( .03 * (20.0 - (det * 4.0 /*- varianceBeforeThisCascade * 20.0*/)) );
+		float2x2 jacobian = (float2x2(disp_x.xz, disp_z.xz) - disp.xzxz) / i_texelSize;
+		float det = determinant( jacobian );
+		io_sss += i_wt * saturate( 0.60 - det * 0.12 );
 	}
 
 	io_nxz += i_wt * n.xz;

@@ -5,48 +5,6 @@
 #ifndef CREST_OCEAN_EMISSION_INCLUDED
 #define CREST_OCEAN_EMISSION_INCLUDED
 
-uniform half3 _Diffuse;
-uniform half3 _DiffuseGrazing;
-
-// this is copied from the render target by unity
-UNITY_DECLARE_SCREENSPACE_TEXTURE(_BackgroundTexture);
-
-#if _TRANSPARENCY_ON
-uniform half _RefractionStrength;
-#endif // _TRANSPARENCY_ON
-uniform half4 _DepthFogDensity;
-
-#if _SUBSURFACESCATTERING_ON
-uniform half3 _SubSurfaceColour;
-uniform half _SubSurfaceBase;
-uniform half _SubSurfaceSun;
-uniform half _SubSurfaceSunFallOff;
-#endif // _SUBSURFACESCATTERING_ON
-
-#if _SUBSURFACESHALLOWCOLOUR_ON
-uniform half _SubSurfaceDepthMax;
-uniform half _SubSurfaceDepthPower;
-uniform half3 _SubSurfaceShallowCol;
-#if _SHADOWS_ON
-uniform half3 _SubSurfaceShallowColShadow;
-#endif // _SHADOWS_ON
-#endif // _SUBSURFACESHALLOWCOLOUR_ON
-
-#if _CAUSTICS_ON
-uniform sampler2D _CausticsTexture;
-uniform half _CausticsTextureScale;
-uniform half _CausticsTextureAverage;
-uniform half _CausticsStrength;
-uniform half _CausticsFocalDepth;
-uniform half _CausticsDepthOfField;
-uniform half _CausticsDistortionScale;
-uniform half _CausticsDistortionStrength;
-#endif // _CAUSTICS_ON
-
-#if _SHADOWS_ON
-uniform half3 _DiffuseShadow;
-#endif
-
 half3 ScatterColour(
 	in const half i_surfaceOceanDepth, in const float3 i_cameraPos,
 	in const half3 i_lightDir, in const half3 i_view, in const fixed i_shadow,

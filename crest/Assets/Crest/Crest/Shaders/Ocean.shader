@@ -255,6 +255,18 @@ Shader "Crest/Ocean"
 			#include "UnityCG.cginc"
 			#include "Lighting.cginc"
 
+			#include "OceanGlobals.hlsl"
+			#include "OceanInputsDriven.hlsl"
+			#include "OceanShaderData.hlsl"
+			#include "OceanHelpersNew.hlsl"
+			#include "OceanVertHelpers.hlsl"
+			#include "OceanShaderHelpers.hlsl"
+
+			#include "OceanEmission.hlsl"
+			#include "OceanNormalMapping.hlsl"
+			#include "OceanReflection.hlsl"
+			#include "OceanFoam.hlsl"
+
 			struct Attributes
 			{
 				// The old unity macros require this name and type.
@@ -279,15 +291,6 @@ Shader "Crest/Ocean"
 
 				UNITY_VERTEX_OUTPUT_STEREO
 			};
-
-			UNITY_DECLARE_SCREENSPACE_TEXTURE(_CameraDepthTexture);
-
-			#include "OceanConstants.hlsl"
-			#include "OceanGlobals.hlsl"
-			#include "OceanInputsDriven.hlsl"
-			#include "OceanHelpersNew.hlsl"
-			#include "OceanVertHelpers.hlsl"
-			#include "OceanShaderHelpers.hlsl"
 
 			// Argument name is v because some macros like COMPUTE_EYEDEPTH require it.
 			Varyings Vert(Attributes v)
@@ -424,20 +427,6 @@ Shader "Crest/Ocean"
 				o.foam_screenPosXYW.yzw = ComputeScreenPos(o.positionCS).xyw;
 				return o;
 			}
-
-			// frag shader uniforms
-
-			#include "OceanFoam.hlsl"
-			#include "OceanEmission.hlsl"
-			#include "OceanReflection.hlsl"
-			uniform sampler2D _Normals;
-			#include "OceanNormalMapping.hlsl"
-
-			// Hack - due to SV_IsFrontFace occasionally coming through as true for backfaces,
-			// add a param here that forces ocean to be in undrwater state. I think the root
-			// cause here might be imprecision or numerical issues at ocean tile boundaries, although
-			// i'm not sure why cracks are not visible in this case.
-			uniform float _ForceUnderwater;
 
 			float3 WorldSpaceLightDir(float3 worldPos)
 			{

@@ -92,7 +92,7 @@ namespace Crest
             {
                 var resultPtsTmp = new Vector3[pointCount];
 
-                // Ring buffer stye access when closed spline
+                // Ring buffer style access when closed spline
                 if (!spline._closed)
                 {
                     for (int j = 0; j < smoothingIterations; j++)
@@ -192,8 +192,8 @@ namespace Crest
                 verts[2 * i1] = transform.InverseTransformPoint(resultPts0[i1]);
                 verts[2 * i1 + 1] = transform.InverseTransformPoint(resultPts1[i1]);
 
-                var axis0 = -new Vector2(resultPts1[i0].x - resultPts0[i0].x, resultPts1[i0].z - resultPts0[i0].z).normalized;
-                var axis1 = -new Vector2(resultPts1[i1].x - resultPts0[i1].x, resultPts1[i1].z - resultPts0[i1].z).normalized;
+                var axis0 = new Vector2(verts[2 * i0].x - verts[2 * i0 + 1].x, verts[2 * i0].z - verts[2 * i0 + 1].z).normalized;
+                var axis1 = new Vector2(verts[2 * i1].x - verts[2 * i1 + 1].x, verts[2 * i1].z - verts[2 * i1 + 1].z).normalized;
                 uvs[2 * i0] = axis0;
                 uvs[2 * i0 + 1] = axis0;
                 uvs[2 * i1] = axis1;
@@ -204,8 +204,8 @@ namespace Crest
                 var nextDistSoFar = distSoFar + (resultPts0[i1] - resultPts0[i0]).magnitude;
                 uvs2[2 * i0].x = uvs2[2 * i0 + 1].x = Mathf.Min(distSoFar, splineLength - distSoFar);
                 uvs2[2 * i1].x = uvs2[2 * i1 + 1].x = Mathf.Min(nextDistSoFar, splineLength - nextDistSoFar);
-                uvs2[2 * i0].y = uvs[2 * i1].y = 1f;
-                uvs2[2 * i0 + 1].y = uvs[2 * i1 + 1].y = 0f;
+                uvs2[2 * i0].y = uvs2[2 * i1].y = 1f;
+                uvs2[2 * i0 + 1].y = uvs2[2 * i1 + 1].y = 0f;
 
                 indices[i0 * 6] = 2 * i0;
                 indices[i0 * 6 + 1] = 2 * i1;

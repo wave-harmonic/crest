@@ -51,7 +51,9 @@ namespace Crest
         public int _resolution = 32;
 
         [Tooltip("In Editor, shows the wave generation buffers on screen."), SerializeField]
+#pragma warning disable 414
         bool _debugDrawSlicesInEditor = false;
+#pragma warning restore 414
 
         [Header("Spline Settings")]
         [SerializeField, Delayed]

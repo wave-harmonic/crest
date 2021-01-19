@@ -69,13 +69,16 @@ void SampleDisplacementsNormals(in Texture2DArray i_dispSampler, in float3 i_uv_
 	}
 
 	// SSS - based off pinch
+#if _SUBSURFACESCATTERING_ON
 	{
-		// Don't use variance - yet
-		// float varianceBeforeThisCascade = data.w;
-		float4 du = float4(disp_x.xz, disp_z.xz) - disp.xzxz;
-		float det = (du.x * du.w - du.y * du.z) / (i_texelSize * i_texelSize);
-		io_sss += i_wt * saturate( .03 * (20.0 - (det * 4.0 /*- varianceBeforeThisCascade * 20.0*/)) );
+		const float2x2 jacobian = (float2x2(disp_x.xz, disp_z.xz) - disp.xzxz) / i_texelSize;
+		// Determinant is < 1 for pinched, < 0 for overlap/inversion
+		const float det = determinant( jacobian );
+		const float sssMax = 0.6;
+		const float sssRange = 0.12;
+		io_sss += i_wt * saturate( sssMax - sssRange * det );
 	}
+#endif // _SUBSURFACESCATTERING_ON
 
 	io_nxz += i_wt * n.xz;
 }

@@ -9,11 +9,26 @@
     ],
     "pathToPublic": "pdf/readme.pdf",
     "removeTemp": true,
-    "emulateMedia": "screen",
+    "emulateMedia": "print",
     "pathToDocsifyEntryPoint": "./docs",
-    "mainMdFilename": "Overview.md"
+    "mainMdFilename": "README.md",
+    "pdfOptions": {
+      "margin": {
+        "top": "10mm",
+        "left": "10mm",
+        "right": "9.5mm",
+        "bottom": "9.5mm"
+      },
+      "displayHeaderFooter": true,
+      "headerTemplate": " ",
+      "footerTemplate": "<style> .pageFooter { font-size:12px; margin-left:auto; margin-right: 9.5mm;}</style> <span class='pageFooter'><span class='pageNumber'></span> / <span class='totalPages'></span></span>",
+      "format": "A4"
+    }
   },
   "devDependencies": {
     "docsify-pdf-converter": "github:privoro/docsify-to-pdf-converter#resolve-static-in-docs-entry-dir"
+  },
+  "scripts": {
+    "convert": "docsify-pdf-converter"
   }
 }

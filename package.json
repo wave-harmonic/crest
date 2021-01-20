@@ -1,0 +1,19 @@
+{
+  "private": true,
+  "name": "",
+  "version": "",
+  "description": "<img src=\"https://raw.githubusercontent.com/huwb/crest-oceanrender/master/logo/crest-oceanrender-logotype1.png\" width=\"214\">",
+  "docsifytopdf": {
+    "contents": [
+      "docs/_sidebar.md"
+    ],
+    "pathToPublic": "pdf/readme.pdf",
+    "removeTemp": true,
+    "emulateMedia": "screen",
+    "pathToDocsifyEntryPoint": "./docs",
+    "mainMdFilename": "README.md"
+  },
+  "devDependencies": {
+    "docsify-pdf-converter": "github:privoro/docsify-to-pdf-converter#resolve-static-in-docs-entry-dir"
+  }
+}

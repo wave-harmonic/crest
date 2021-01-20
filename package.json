@@ -11,7 +11,7 @@
     "removeTemp": true,
     "emulateMedia": "screen",
     "pathToDocsifyEntryPoint": "./docs",
-    "mainMdFilename": "README.md"
+    "mainMdFilename": "Overview.md"
   },
   "devDependencies": {
     "docsify-pdf-converter": "github:privoro/docsify-to-pdf-converter#resolve-static-in-docs-entry-dir"

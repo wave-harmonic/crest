@@ -46,10 +46,9 @@ Camera:
   m_ClearFlags: 1
   m_BackGroundColor: {r: 0.22794116, g: 0.22794116, b: 0.22794116, a: 1}
   m_projectionMatrixMode: 1
-  m_GateFitMode: 2
-  m_FOVAxisMode: 0
   m_SensorSize: {x: 36, y: 24}
   m_LensShift: {x: 0, y: 0}
+  m_GateFitMode: 2
   m_FocalLength: 50
   m_NormalizedViewPortRect:
     serializedVersion: 2
@@ -119,6 +118,3 @@ MonoBehaviour:
   simForwardInput: 0
   _requireLMBToMove: 0
   _fixedDt: 0.016666668
-  _debug:
-    disableOcclusionMesh: 0
-    occlusionMeshScale: 1

@@ -31,19 +31,11 @@ namespace Crest.Spline
                     rec.OnSplinePointDrawGizmosSelected(this);
                 }
 
-                if (_spline == null) _spline = transform.parent.GetComponent<Spline>();
-                if (_spline != null)
-                {
-                    _spline.OnDrawGizmosSelected();
-                }
-
-                Gizmos.color = Color.yellow;
-                Gizmos.DrawSphere(transform.position, 1f);
+                Gizmos.DrawIcon(transform.position, "Animation.Record@2x", true);
             }
             else
             {
-                Gizmos.color = Color.black * 0.5f;
-                Gizmos.DrawSphere(transform.position, 1f);
+                Gizmos.DrawIcon(transform.position, "Animation.Record", true);
             }
             Gizmos.color = Color.white;
         }

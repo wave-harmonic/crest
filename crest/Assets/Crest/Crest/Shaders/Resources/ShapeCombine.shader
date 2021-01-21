@@ -20,6 +20,7 @@ Shader "Hidden/Crest/Simulation/Combine Animated Wave LODs"
 			CGPROGRAM
 			#pragma vertex Vert
 			#pragma fragment Frag
+			#pragma target 3.5
 
 			#pragma multi_compile __ CREST_DYNAMIC_WAVE_SIM_ON_INTERNAL
 			#pragma multi_compile __ CREST_FLOW_ON_INTERNAL

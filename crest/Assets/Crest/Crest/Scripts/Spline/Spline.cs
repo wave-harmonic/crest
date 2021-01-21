@@ -17,8 +17,12 @@ namespace Crest.Spline
         public bool _closed = false;
 
         public SplinePoint[] SplinePoints => GetComponentsInChildren<SplinePoint>();
+    }
 
-        public void OnDrawGizmosSelected()
+#if UNITY_EDITOR
+    public partial class Spline : IValidated
+    {
+        public void OnDrawGizmos()
         {
             Gizmos.color = Color.black * 0.5f;
             var points = SplinePoints;
@@ -34,11 +38,7 @@ namespace Crest.Spline
                 Gizmos.DrawLine(points[points.Length - 1].transform.position, points[0].transform.position);
             }
         }
-    }
 
-#if UNITY_EDITOR
-    public partial class Spline : IValidated
-    {
         public bool Validate(OceanRenderer ocean, ValidatedHelper.ShowMessage showMessage)
         {
             var isValid = true;

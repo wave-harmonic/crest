@@ -560,7 +560,7 @@ namespace Crest
                     _meshForDrawingWaves.name = gameObject.name + "_mesh";
                 }
             }
-            
+
             if (_meshForDrawingWaves == null)
             {
                 _matGenerateWaves = new Material(Shader.Find("Hidden/Crest/Inputs/Animated Waves/Gerstner Global"));

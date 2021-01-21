@@ -110,6 +110,14 @@ namespace Crest.Spline
             }
             GUI.enabled = true;
             GUILayout.EndHorizontal();
+
+            if (GUILayout.Button("Reverse"))
+            {
+                for (int i = 1; i < targetSpline.transform.childCount; i++)
+                {
+                    targetSpline.transform.GetChild(i).SetSiblingIndex(0);
+                }
+            }
         }
     }
 #endif

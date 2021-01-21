@@ -43,7 +43,7 @@ namespace Crest
         /// Ping pong between render targets to do the combine. Disabling this uses a compute shader instead which doesn't need
         /// to copy back and forth between targets, but has dodgy historical support as pre-DX11.3 hardware may not support typed UAV loads.
         /// </summary>
-        public static bool _shapeCombinePassPingPong = true;
+        public static bool _shapeCombinePassPingPong = false;
 
         RenderTexture _waveBuffers;
         RenderTexture _combineBuffer;

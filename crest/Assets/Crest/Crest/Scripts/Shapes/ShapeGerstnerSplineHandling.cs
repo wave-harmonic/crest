@@ -14,7 +14,7 @@ namespace Crest
     {
         public static bool GenerateMeshFromSpline(Spline.Spline spline, Transform transform, int subdivisions, float radius, int smoothingIterations, ref Mesh mesh)
         {
-            var splinePoints = spline.SplinePoints;
+            var splinePoints = spline.GetComponentsInChildren<SplinePoint>();
             if (splinePoints.Length < 2) return false;
 
             var splinePointCount = splinePoints.Length;

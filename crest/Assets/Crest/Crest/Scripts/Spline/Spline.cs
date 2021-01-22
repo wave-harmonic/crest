@@ -15,8 +15,6 @@ namespace Crest.Spline
     {
         [Tooltip("Connect start and end point to close spline into a loop. Requires at least 3 spline points.")]
         public bool _closed = false;
-
-        public SplinePoint[] SplinePoints => GetComponentsInChildren<SplinePoint>();
     }
 
 #if UNITY_EDITOR
@@ -25,7 +23,7 @@ namespace Crest.Spline
         public void OnDrawGizmos()
         {
             Gizmos.color = Color.black * 0.5f;
-            var points = SplinePoints;
+            var points = GetComponentsInChildren<SplinePoint>();
             for (int i = 0; i < points.Length - 1; i++)
             {
                 Gizmos.DrawLine(points[i].transform.position, points[i + 1].transform.position);
@@ -43,7 +41,7 @@ namespace Crest.Spline
         {
             var isValid = true;
 
-            var points = SplinePoints;
+            var points = GetComponentsInChildren<SplinePoint>();
 
             if (points.Length < 2)
             {

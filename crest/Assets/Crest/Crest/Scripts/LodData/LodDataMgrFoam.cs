@@ -81,9 +81,25 @@ namespace Crest
 
         public override void GetSimSubstepData(float frameDt, out int numSubsteps, out float substepDt)
         {
-            // Run foam sim at 30hz
-            substepDt = 1 / 30f;
-            numSubsteps = Mathf.FloorToInt(frameDt / substepDt);
+            // TODO this function is called from many places and so need an accurate picture of how many substeps there will be
+            // so it computes the total update time. need to figure out how to simplify this.
+            frameDt += _timeToSimulate;
+
+            // Run foam sim at 30hz. Allow to go 2% over/under to eliminate drift.
+            var targetDt = 1f / 30;
+
+            var numSteps = frameDt / targetDt;
+            var frac = Mathf.Repeat(numSteps, 1f);
+            if (frac <= 0.02f || frac >= 0.98f)
+            {
+                numSubsteps = Mathf.RoundToInt(numSteps);
+            }
+            else
+            {
+                numSubsteps = Mathf.FloorToInt(numSteps);
+            }
+
+            substepDt = numSubsteps > 0 ? frameDt / numSubsteps : 0f;
         }
 
         readonly static string s_textureArrayName = "_LD_TexArray_Foam";

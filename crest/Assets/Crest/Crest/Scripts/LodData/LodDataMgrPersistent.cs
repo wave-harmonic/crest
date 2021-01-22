@@ -31,7 +31,7 @@ namespace Crest
         readonly int sp_SimDeltaTimePrev = Shader.PropertyToID("_SimDeltaTimePrev");
 
         // This is how far the simulation time is behind unity's time
-        float _timeToSimulate = 0f;
+        protected float _timeToSimulate = 0f;
 
         public LodDataMgrPersistent(OceanRenderer ocean) : base(ocean)
         {
@@ -87,13 +87,13 @@ namespace Crest
 
             var lodCount = ocean.CurrentLodCount;
 
-            // How far are we behind
-            _timeToSimulate += ocean.DeltaTime;
-
             // Do a set of substeps to catch up
             float substepDt;
             int numSubsteps;
-            GetSimSubstepData(_timeToSimulate, out numSubsteps, out substepDt);
+            GetSimSubstepData(ocean.DeltaTime, out numSubsteps, out substepDt);
+
+            // How far are we behind
+            _timeToSimulate += ocean.DeltaTime;
 
             // Record how much we caught up
             _timeToSimulate -= substepDt * numSubsteps;

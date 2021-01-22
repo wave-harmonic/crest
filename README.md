@@ -9,7 +9,7 @@
 *Crest* is a technically advanced ocean renderer implemented in Unity3D 2019.4.8 and later.
 The version hosted here targets the **built-in render pipeline**, links to the scriptable render pipeline versions (URP/HDRP) on the Asset Store are below.
 
-![Teaser](https://raw.githubusercontent.com/huwb/crest-oceanrender/master/img/teaser5.png)
+![Teaser](https://raw.githubusercontent.com/wave-harmonic/crest/master/img/teaser5.png)
 
 **Discord for news/updates/discussions:** https://discord.gg/g7GpjDC
 
@@ -38,7 +38,7 @@ The version hosted here targets the **built-in render pipeline**, links to the s
 
 # Documentation
 
-Refer to [USERGUIDE.md](https://github.com/wave-harmonic/crest-oceanrender/blob/master/USERGUIDE.md) for full documentation, including **Initial setup steps**.
+Refer to [USERGUIDE.md](https://github.com/wave-harmonic/crest/blob/master/USERGUIDE.md) for full documentation, including **Initial setup steps**.
 
 There is also a getting started video here: https://www.youtube.com/watch?v=qsgeG4sSLFw&t=142s .
 
@@ -78,7 +78,7 @@ There is a [legacy branch] for 2018.4 support. A direct download to an archive i
 
 # Issues
 
-If you encounter an issue, please search the [Issues page](https://github.com/wave-harmonic/crest-oceanrender/issues) to see if there is already a resolution, and if you don't find one then please report it as a new issue.
+If you encounter an issue, please search the [Issues page](https://github.com/wave-harmonic/crest/issues) to see if there is already a resolution, and if you don't find one then please report it as a new issue.
 
 There are a few issues worth calling out here:
 

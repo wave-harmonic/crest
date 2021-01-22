@@ -30,6 +30,9 @@ namespace Crest
         readonly int sp_SimDeltaTime = Shader.PropertyToID("_SimDeltaTime");
         readonly int sp_SimDeltaTimePrev = Shader.PropertyToID("_SimDeltaTimePrev");
 
+        // This is how far the simulation time is behind unity's time
+        float _timeToSimulate = 0f;
+
         public LodDataMgrPersistent(OceanRenderer ocean) : base(ocean)
         {
         }
@@ -84,9 +87,24 @@ namespace Crest
 
             var lodCount = ocean.CurrentLodCount;
 
+            // How far are we behind
+            _timeToSimulate += ocean.DeltaTime;
+
+            // Do a set of substeps to catch up
             float substepDt;
             int numSubsteps;
-            GetSimSubstepData(ocean.DeltaTime, out numSubsteps, out substepDt);
+            GetSimSubstepData(_timeToSimulate, out numSubsteps, out substepDt);
+
+            // Record how much we caught up
+            _timeToSimulate -= substepDt * numSubsteps;
+
+            // Even if no steps were needed this frame, the sim still needs to advect to compensate for camera motion / ocean scale changes,
+            // so do a trivial substep. This could be a specialised kernel that only advects, or the sim shader could have a branch for 0 dt.
+            if (numSubsteps == 0)
+            {
+                numSubsteps = 1;
+                substepDt = 0f;
+            }
 
             for (int stepi = 0; stepi < numSubsteps; stepi++)
             {

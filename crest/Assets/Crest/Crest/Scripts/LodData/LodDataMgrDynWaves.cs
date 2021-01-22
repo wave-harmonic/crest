@@ -138,14 +138,9 @@ namespace Crest
 
         public override void GetSimSubstepData(float frameDt, out int numSubsteps, out float substepDt)
         {
-            // lod 0 will always be most demanding - wave speed is square root of wavelength, so waves will be fast relative to stability in
-            // lowest lod, and slow relative to stability in largest lod.
-            float maxDt = MaxSimDt(0);
-
-            numSubsteps = Mathf.CeilToInt(frameDt / maxDt);
-            // Always do at least one step so that the sim moves around when time is frozen
-            numSubsteps = Mathf.Clamp(numSubsteps, 1, Settings._maxSimStepsPerFrame);
-            substepDt = Mathf.Min(maxDt, frameDt / numSubsteps);
+            // Run dynamic wave sim at 60hz
+            substepDt = 1 / 60f;
+            numSubsteps = Mathf.FloorToInt(frameDt / substepDt);
         }
 
         readonly static string s_textureArrayName = "_LD_TexArray_DynamicWaves";

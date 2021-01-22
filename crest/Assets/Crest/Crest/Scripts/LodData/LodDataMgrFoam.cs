@@ -81,9 +81,9 @@ namespace Crest
 
         public override void GetSimSubstepData(float frameDt, out int numSubsteps, out float substepDt)
         {
-            // foam always does just one sim step
-            substepDt = frameDt;
-            numSubsteps = 1;
+            // Run foam sim at 30hz
+            substepDt = 1 / 30f;
+            numSubsteps = Mathf.FloorToInt(frameDt / substepDt);
         }
 
         readonly static string s_textureArrayName = "_LD_TexArray_Foam";

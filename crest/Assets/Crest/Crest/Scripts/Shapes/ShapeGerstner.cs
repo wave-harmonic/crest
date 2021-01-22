@@ -269,7 +269,7 @@ namespace Crest
             }
 
             // Unassign mesh
-            if (_meshForDrawingWaves != null && GetComponent<Spline.Spline>() == null)
+            if (_meshForDrawingWaves != null && !TryGetComponent<Spline.Spline>(out _))
             {
                 _meshForDrawingWaves = null;
             }
@@ -667,8 +667,7 @@ namespace Crest
         {
             var isValid = true;
 
-            var spline = GetComponent<Spline.Spline>();
-            if (spline != null && !spline.Validate(ocean, ValidatedHelper.Suppressed))
+            if (TryGetComponent<Spline.Spline>(out var spline) && !spline.Validate(ocean, ValidatedHelper.Suppressed))
             {
                 showMessage
                 (

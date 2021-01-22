@@ -668,11 +668,12 @@ namespace Crest
         {
             var isValid = true;
 
-            if (GetComponent<Spline.Spline>() != null && _meshForDrawingWaves == null)
+            var spline = GetComponent<Spline.Spline>();
+            if (spline != null && !spline.Validate(ocean, ValidatedHelper.Suppressed))
             {
                 showMessage
                 (
-                    "There is an issue with the attached Spline component and no waves are rendered. Please check this component in the Inspector for issues.",
+                    "A Spline component is attached but it has validation errors. Please check this component in the Inspector for issues.",
                     ValidatedHelper.MessageType.Error, this
                 );
             }

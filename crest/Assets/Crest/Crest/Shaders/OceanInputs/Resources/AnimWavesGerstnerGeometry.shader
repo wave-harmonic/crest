@@ -19,26 +19,26 @@
 
 Shader "Crest/Inputs/Animated Waves/Gerstner Geometry"
 {
-    Properties
-    {
+	Properties
+	{
 		// Controls ramp distance over which waves grow/fade as they move forwards
-		_FeatherWaveStart("Feather wave start (0-1)", Range( 0.0, 0.5 ) ) = 0.1
+		_FeatherWaveStart( "Feather wave start (0-1)", Range( 0.0, 0.5 ) ) = 0.1
 		// Fade in waves from the sides
-		_FeatherFromSplineEnds("Feather from spline ends (m)", Range( 0.0, 100.0 ) ) = 0.0
+		_FeatherFromSplineEnds( "Feather from spline ends (m)", Range( 0.0, 100.0 ) ) = 0.0
 		// Can be set to 0 to make waves ignore shallow water
-		_RespectShallowWaterAttenuation("Respect Shallow Water Attenuation", Range(0, 1)) = 1
+		_RespectShallowWaterAttenuation( "Respect Shallow Water Attenuation", Range( 0, 1 ) ) = 1
 	}
 
-    SubShader
-    {
+	SubShader
+	{
 		// Additive blend everywhere
 		Blend One One
 		ZWrite Off
 		ZTest Always
 		Cull Off
 
-        Pass
-        {
+		Pass
+		{
 			CGPROGRAM
 			#pragma vertex vert
 			#pragma fragment frag
@@ -153,6 +153,6 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Geometry"
 				return wt * disp_variance;
 			}
 			ENDCG
-        }
-    }
+		}
+	}
 }

@@ -2,6 +2,7 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
@@ -18,7 +19,10 @@ namespace Crest
     ///  * The textures from this LodData are passed to the ocean material when the surface is drawn (by OceanChunkRenderer).
     ///  * LodDataDynamicWaves adds its results into this LodData. The dynamic waves piggy back off the combine
     ///    pass and subsequent assignment to the ocean material (see OceanScheduler).
-    ///  * The LodDataSeaFloorDepth sits on this same GameObject and borrows the camera. This could be a model for the other sim types..
+    ///
+    /// The RGB channels are the XYZ displacement from a rest plane at sea level to the corresponding displaced position on the
+    /// surface. The A channel holds the variance/energy in all the smaller wavelengths that are too small to go into the cascade
+    /// slice. This is used as a statistical measure for the missing waves and is used to ensure foam is generated everywhere.
     /// </summary>
     public class LodDataMgrAnimWaves : LodDataMgr
     {
@@ -61,7 +65,12 @@ namespace Crest
 
         readonly int sp_LD_TexArray_AnimatedWaves_Compute = Shader.PropertyToID("_LD_TexArray_AnimatedWaves_Compute");
         readonly int sp_LD_TexArray_WaveBuffer = Shader.PropertyToID("_LD_TexArray_WaveBuffer");
+        public static readonly int sp_AttenuationInShallows = Shader.PropertyToID("_AttenuationInShallows");
         const string s_textureArrayName = "_LD_TexArray_AnimatedWaves";
+
+        static List<ShapeGerstner> _gerstners = new List<ShapeGerstner>();
+        public static void RegisterUpdatable(ShapeGerstner updatable) => _gerstners.Add(updatable);
+        public static void DeregisterUpdatable(ShapeGerstner updatable) => _gerstners.RemoveAll(candidate => candidate == updatable);
 
         SettingsType _defaultSettings;
         public SettingsType Settings
@@ -100,14 +109,23 @@ namespace Crest
 
             _combineBuffer = CreateCombineBuffer(desc);
 
-            var combineShader = Shader.Find("Hidden/Crest/Simulation/Combine Animated Wave LODs");
-            _combineMaterial = new PropertyWrapperMaterial[OceanRenderer.Instance.CurrentLodCount];
-            for (int i = 0; i < _combineMaterial.Length; i++)
+            // Combine graphics shader - for 'ping pong' approach (legacy hardware)
+            var combineShaderNameGraphics = "Hidden/Crest/Simulation/Combine Animated Wave LODs";
+            var combineShaderGraphics = Shader.Find(combineShaderNameGraphics);
+            Debug.Assert(combineShaderGraphics != null,
+                $"Could not load shader {combineShaderNameGraphics}. Try right clicking the Crest folder in the Project view and selecting Reimport, and checking for errors.",
+                OceanRenderer.Instance);
+            if (combineShaderGraphics != null)
             {
-                var mat = new Material(combineShader);
-                _combineMaterial[i] = new PropertyWrapperMaterial(mat);
+                _combineMaterial = new PropertyWrapperMaterial[OceanRenderer.Instance.CurrentLodCount];
+                for (int i = 0; i < _combineMaterial.Length; i++)
+                {
+                    var mat = new Material(combineShaderGraphics);
+                    _combineMaterial[i] = new PropertyWrapperMaterial(mat);
+                }
             }
 
+            // Combine compute shader - modern hardware
             _combineShader = ComputeShaderHelpers.LoadShader(ShaderName);
             if (_combineShader == null)
             {
@@ -206,12 +224,19 @@ namespace Crest
         {
             base.BuildCommandBuffer(ocean, buf);
 
+            Shader.SetGlobalFloat(sp_AttenuationInShallows, Settings.AttenuationInShallows);
+
             var lodCount = OceanRenderer.Instance.CurrentLodCount;
 
             // Validation
             for (int lodIdx = 0; lodIdx < OceanRenderer.Instance.CurrentLodCount; lodIdx++)
             {
                 OceanRenderer.Instance._lodTransform._renderData[lodIdx].Validate(0, SimName);
+            }
+
+            foreach(var gerstner in _gerstners)
+            {
+                gerstner.CrestUpdate(buf);
             }
 
             // lod-dependent data
@@ -251,6 +276,8 @@ namespace Crest
 
         void CombinePassPingPong(CommandBuffer buf)
         {
+            if (_combineMaterial == null) return;
+
             var lodCount = OceanRenderer.Instance.CurrentLodCount;
             const int shaderPassCombineIntoAux = 0, shaderPassCopyResultBack = 1;
 
@@ -440,6 +467,7 @@ namespace Crest
             sp_LD_SliceIndex = Shader.PropertyToID("_LD_SliceIndex");
             sp_LODChange = Shader.PropertyToID("_LODChange");
             s_textureArrayParamIds = new TextureArrayParamIds(s_textureArrayName);
+            _gerstners.Clear();
         }
     }
 }

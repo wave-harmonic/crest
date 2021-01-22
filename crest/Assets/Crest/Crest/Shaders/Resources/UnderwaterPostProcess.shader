@@ -31,6 +31,8 @@ Shader "Crest/Underwater/Post Process"
 
 			#pragma multi_compile_local __ CREST_MENISCUS
 
+			#pragma multi_compile_local __ _PROJECTION_PERSPECTIVE _PROJECTION_ORTHOGRAPHIC
+
 			#pragma multi_compile_local __ _FULL_SCREEN_EFFECT
 			#pragma multi_compile_local __ _DEBUG_VIEW_OCEAN_MASK
 
@@ -41,17 +43,13 @@ Shader "Crest/Underwater/Post Process"
 			#include "UnityCG.cginc"
 			#include "Lighting.cginc"
 
-			#include "../OceanConstants.hlsl"
-			#include "../OceanInputsDriven.hlsl"
 			#include "../OceanGlobals.hlsl"
+			#include "../OceanInputsDriven.hlsl"
+			#include "../OceanShaderData.hlsl"
 			#include "../OceanHelpersNew.hlsl"
-			#include "../OceanHelpersNew.hlsl"
+			#include "../OceanShaderHelpers.hlsl"
 
 			half3 _AmbientLighting;
-
-			// In-built Unity textures
-			sampler2D _CameraDepthTexture;
-			sampler2D _Normals;
 
 			#include "../OceanEmission.hlsl"
 
@@ -104,7 +102,7 @@ Shader "Crest/Underwater/Post Process"
 
 			half3 ApplyUnderwaterEffect(half3 sceneColour, const float sceneZ01, const half3 view, bool isOceanSurface)
 			{
-				const float sceneZ = LinearEyeDepth(sceneZ01);
+				const float sceneZ = CrestLinearEyeDepth(sceneZ01);
 				const float3 lightDir = _WorldSpaceLightPos0.xyz;
 
 				half3 scatterCol = 0.0;

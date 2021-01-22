@@ -64,6 +64,11 @@ Shader "Crest/Underwater/Ocean Mask"
 
 				float3 worldPos = mul(unity_ObjectToWorld, float4(v.vertex.xyz, 1.0));
 
+				// Scale up by small "epsilon" to solve numerical issues. Expand slightly about tile center.
+				// :OceanGridPrecisionErrors
+				const float2 tileCenterXZ = UNITY_MATRIX_M._m03_m23;
+				worldPos.xz = lerp( tileCenterXZ, worldPos.xz, 1.0001 );
+
 				// Vertex snapping and lod transition
 				float lodAlpha;
 				const float meshScaleLerp = instanceData._meshScaleLerp;

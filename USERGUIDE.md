@@ -70,6 +70,14 @@ This base reflection can then be overridden by dynamic planar reflections. This 
 
 A good strategy for debugging the use of Unity's specular cubemap is to put another reflective/glossy object in the scene near the surface, and verify that it is lit and reflects the scene properly. Crest tries to use the same inputs for lighting/reflections, so if it works for a test object it should work for the water surface as well.
 
+### Orthographic Projection
+
+Crest supports orthographic projection out-of-the-box, but it might require some configuration to get a desired appearance.
+
+Crest uses the camera's position for the LOD system which can be awkward for orthographic which uses the size property on the camera.
+Use the *Viewpoint* property on the *Ocean Renderer* to override the camera's position.
+
+Underwater effects do *not* support orthographic projection.
 
 ## Ocean construction parameters
 
@@ -220,7 +228,7 @@ Select one of the spectra by toggling the button, and then tweak the spectra inp
 When done, toggle the button off to stop overriding the spectrum.
 
 All of the above can be tweaked in play mode.
-Together these controls give the flexibility to express the great variation one can observe in real world seascapes. 
+Together these controls give the flexibility to express the great variation one can observe in real world seascapes.
 
 ## Local waves
 
@@ -267,7 +275,6 @@ By default the cache is populated in the `Start()` function. It can instead be c
 
 Once populated the cache contents can be saved to disk by clicking the *Save cache to file* button that will appear in the Inspector in play mode. Once saved, the *Type* can be set to *Baked* and the saved data can be assigned to the *Saved Cache* field.
 
-**Note:** This built-in render pipeline version of crest requires the *Draw Instanced* option on terrains to be disabled at start time. It can be re-enabled subsequently after the depth cache is populated. See issue #158.
 
 
 # Limiting water area
@@ -472,9 +479,6 @@ The water could be pushed down where it's not wanted which would allow it to ach
 We have heard of Crest users using TrueSky, AzureSky.
 These may require some code to be inserted into the ocean shader - there is a comment referring to this, search *Ocean.shader* for 'Azure'.
 
-**Can Crest work in Edit mode in the Unity Editor, or only in Play mode?**
-Currently it only works in Play mode. Some work has been done to make it work in Edit mode but more work/fixes/testing is needed. https://github.com/huwb/crest-oceanrender/issues/208
-
 **Can Crest work with multiplayer?**
 Yes the animated waves are deterministic and easily synchronized.
 See discussion in https://github.com/huwb/crest-oceanrender/issues/75.
@@ -483,5 +487,5 @@ However, the dynamic wave sim is not fully deterministic and can not currently b
 **Can the density of the fog in the water be reduced?**
 The density of the fog underwater can be controlled using the *Fog Density* parameter on the ocean material. This applies to both above water and underwater.
 
-**My terrain does not appear to affect the water - no shorelines or shallow water waves.**
-This built-in render pipeline version of crest requires the *Draw Instanced* option on terrains to be disabled at start time. It can be re-enabled subsequently after the depth cache is populated. See issue #158.
+**Does Crest support orthographic projection?**
+It does. Please see the [Orthographic Projection](#orthographic-projection) section.

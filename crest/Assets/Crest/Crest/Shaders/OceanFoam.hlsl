@@ -7,20 +7,6 @@
 
 #if _FOAM_ON
 
-uniform sampler2D _FoamTexture;
-uniform half _FoamScale;
-uniform float4 _FoamTexture_TexelSize;
-uniform half4 _FoamWhiteColor;
-uniform half4 _FoamBubbleColor;
-uniform half _FoamBubbleParallax;
-uniform half _ShorelineFoamMinDepth;
-uniform half _WaveFoamFeather;
-uniform half _WaveFoamBubblesCoverage;
-uniform half _WaveFoamNormalStrength;
-uniform half _WaveFoamSpecularFallOff;
-uniform half _WaveFoamSpecularBoost;
-uniform half _WaveFoamLightScale;
-
 half WhiteFoamTexture(half i_foam, float2 i_worldXZUndisplaced, half lodVal, in const CascadeParams cascadeData0, in const CascadeParams cascadeData1)
 {
 	half ft = lerp(

@@ -552,8 +552,7 @@ namespace Crest
                 }
             }
 
-            var splineForWaves = GetComponent<Spline.Spline>();
-            if (splineForWaves != null)
+            if (TryGetComponent<Spline.Spline>(out var splineForWaves))
             {
                 if (ShapeGerstnerSplineHandling.GenerateMeshFromSpline(splineForWaves, transform, _subdivisions, _radius, _smoothingIterations, ref _meshForDrawingWaves))
                 {

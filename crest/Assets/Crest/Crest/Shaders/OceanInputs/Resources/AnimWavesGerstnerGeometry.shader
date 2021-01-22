@@ -39,32 +39,32 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Geometry"
 
         Pass
         {
-            CGPROGRAM
-            #pragma vertex vert
-            #pragma fragment frag
+			CGPROGRAM
+			#pragma vertex vert
+			#pragma fragment frag
 			#pragma enable_d3d11_debug_symbols
 
-            #include "UnityCG.cginc"
+			#include "UnityCG.cginc"
 
 			#include "../../OceanGlobals.hlsl"
 			#include "../../OceanInputsDriven.hlsl"
 			#include "../../OceanHelpersNew.hlsl"
 
 			struct appdata
-            {
-                float4 vertex : POSITION;
-                float2 axis : TEXCOORD0;
+			{
+				float4 vertex : POSITION;
+				float2 axis : TEXCOORD0;
 				float2 distToSplineEnd_invNormDistToShoreline : TEXCOORD1;
-            };
+			};
 
-            struct v2f
-            {
+			struct v2f
+			{
 				float4 vertex : SV_POSITION;
 				float3 uv_slice : TEXCOORD1;
 				float2 axis : TEXCOORD2;
 				float3 worldPosScaled : TEXCOORD3;
 				float2 distToSplineEnd_invNormDistToShoreline : TEXCOORD4;
-            };
+			};
 
 			Texture2DArray _WaveBuffer;
 
@@ -81,9 +81,9 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Geometry"
 			float _Weight;
 			CBUFFER_END
 
-            v2f vert(appdata v)
-            {
-                v2f o;
+			v2f vert(appdata v)
+			{
+				v2f o;
 
 				const float3 positionOS = v.vertex.xyz;
 				o.vertex = UnityObjectToClipPos(positionOS);
@@ -101,11 +101,11 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Geometry"
 				// Rotate forward axis around y-axis into world space
 				o.axis = v.axis.x * unity_ObjectToWorld._m00_m20 + v.axis.y * unity_ObjectToWorld._m02_m22;
 
-                return o;
-            }
+				return o;
+			}
 
-            float4 frag(v2f input) : SV_Target
-            {
+			float4 frag(v2f input) : SV_Target
+			{
 				float wt = _Weight;
 
 				// Attenuate if depth is less than half of the average wavelength
@@ -151,8 +151,8 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Geometry"
 				}
 
 				return wt * disp_variance;
-            }
-            ENDCG
+			}
+			ENDCG
         }
     }
 }

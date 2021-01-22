@@ -92,7 +92,9 @@ namespace Crest.Spline
 
             if (GUILayout.Button("Add point (extend)"))
             {
-                SplinePointEditor.AddSplinePointAfter(targetSpline.transform);
+                var newPoint = SplinePointEditor.AddSplinePointAfter(targetSpline.transform);
+
+                Undo.RegisterCreatedObjectUndo(newPoint, "Add Crest Spline Point");
             }
 
             GUILayout.BeginHorizontal();

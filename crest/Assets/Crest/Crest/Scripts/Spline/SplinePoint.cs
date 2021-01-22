@@ -110,13 +110,19 @@ namespace Crest.Spline
                     newPoint.transform.position = 2f * parent.GetChild(newIdx + 1).position - parent.GetChild(newIdx + 2).position;
                 }
 
+                Undo.RegisterCreatedObjectUndo(newPoint, "Add Crest Spline Point");
+
                 Selection.activeObject = newPoint;
             }
 
             label = (thisIdx == parent.childCount - 1 || parent.childCount == 0) ? "Add after (extend)" : "Add after";
             if (GUILayout.Button(label))
             {
-                Selection.activeObject = AddSplinePointAfter(parent, thisIdx);
+                var newPoint = AddSplinePointAfter(parent, thisIdx);
+
+                Undo.RegisterCreatedObjectUndo(newPoint, "Add Crest Spline Point");
+
+                Selection.activeObject = newPoint;
             }
             GUILayout.EndHorizontal();
 

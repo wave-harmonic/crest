@@ -14,13 +14,6 @@ namespace Crest.Spline
     public class SplinePoint : MonoBehaviour
     {
 #if UNITY_EDITOR
-        Spline _spline;
-
-        void Awake()
-        {
-            _spline = transform.parent != null ? transform.parent.GetComponent<Spline>() : null;
-        }
-
         void OnDrawGizmos()
         {
             if (Selection.activeGameObject == gameObject)

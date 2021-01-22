@@ -22,6 +22,6 @@ Material:
     m_Floats:
     - _FactorOrthogonal: 0.2
     - _FactorParallel: 0.2
-    - _Strength: 10
+    - _Strength: 3
     m_Colors:
     - _Velocity: {r: 0, g: 0, b: 0, a: 0}

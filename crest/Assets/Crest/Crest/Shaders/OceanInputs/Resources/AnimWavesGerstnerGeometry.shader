@@ -79,8 +79,8 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Geometry"
             float _AverageWavelength;
             float _AttenuationInShallows;
             float _Weight;
-			float2 _AxisX;
-			CBUFFER_END
+            float2 _AxisX;
+            CBUFFER_END
 
             v2f vert(appdata v)
             {
@@ -99,8 +99,8 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Geometry"
 
                 o.distToSplineEnd_invNormDistToShoreline = v.distToSplineEnd_invNormDistToShoreline;
 
-				// Rotate forward axis around y-axis into world space
-				o.axis = dot( v.axis, _AxisX ) * unity_ObjectToWorld._m00_m20 + dot( v.axis, float2(-_AxisX.y, _AxisX.x) ) * unity_ObjectToWorld._m02_m22;
+                // Rotate forward axis around y-axis into world space
+                o.axis = dot( v.axis, _AxisX ) * unity_ObjectToWorld._m00_m20 + dot( v.axis, float2(-_AxisX.y, _AxisX.x) ) * unity_ObjectToWorld._m02_m22;
 
                 return o;
             }

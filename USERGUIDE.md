@@ -371,14 +371,8 @@ The system does not support cross blending of multiple scripts.
 
 ## Technical Notes
 
-Sampling the height of a displacement texture is in general non-trivial.
-A displacement can define a concave surface with overhanging elements such as a wave that has begun to break.
-At such locations the surface has multiple heights, so we need some mechanism to search for a height.
-Luckily there is a powerful tool to do this search known as Fixed Point Iteration (FPI).
-For an introduction to FPI and a discussion of this scenario see this GDC talk: [link](http://www.huwbowles.com/fpi-gdc-2016/).
-Computing this height is relatively expensive as each search step samples the displacement.
-To help reduce cost a height cache can be enabled in the *Animated Waves Sim Settings* which will cache the water height at a 2D position so that any subsequent samples in the same frame will quickly return the height.
-
+We use a technique called Fixed Point Iteration to calculate the water height.
+We gave a talk at GDC about this technique which may be useful to learn more: [link](http://www.huwbowles.com/fpi-gdc-2016/).
 
 # Other features
 

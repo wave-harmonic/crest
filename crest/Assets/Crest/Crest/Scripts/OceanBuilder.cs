@@ -171,6 +171,14 @@ namespace Crest
                 CreateLOD(ocean, tiles, root.transform, i, lodCount, meshInsts, meshBounds, lodDataResolution, geoDownSampleFactor, oceanLayer);
             }
 
+#if UNITY_EDITOR
+            if (OceanRenderer.Instance._hideOceanTileGameObjects)
+            {
+                // This should cover patches too, but doesn't seem to...
+                UnityEditor.SceneVisibilityManager.instance.DisablePicking(root, includeDescendants: true);
+            }
+#endif
+
 #if PROFILE_CONSTRUCTION
             sw.Stop();
             Debug.Log( "Finished generating " + lodCount.ToString() + " LODs, time: " + (1000.0*sw.Elapsed.TotalSeconds).ToString(".000") + "ms" );
@@ -442,6 +450,14 @@ namespace Crest
                 // instantiate and place patch
                 var patch = new GameObject($"Tile_L{lodIndex}_{patchTypes[i]}");
                 patch.hideFlags = HideFlags.DontSave;
+#if UNITY_EDITOR
+                if (OceanRenderer.Instance._hideOceanTileGameObjects)
+                {
+                    // Prevents patches from being selected in the editor. Can be disabled using Unity's scene
+                    // visibility and pickability UI without having to rebuild.
+                    UnityEditor.SceneVisibilityManager.instance.DisablePicking(patch, includeDescendants: true);
+                }
+#endif
                 patch.layer = oceanLayer;
                 patch.transform.parent = parent;
                 Vector2 pos = offsets[i];

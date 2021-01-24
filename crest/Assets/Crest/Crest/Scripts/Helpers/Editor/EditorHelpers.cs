@@ -9,7 +9,7 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
-namespace Crest
+namespace Crest.EditorHelpers
 {
     /// <summary>
     /// Provides general helper functions for the editor.

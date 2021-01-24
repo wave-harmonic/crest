@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Unity.Collections.LowLevel.Unsafe;
+using Crest.EditorHelpers;
 #if UNITY_EDITOR
 using UnityEngine.Rendering;
 using UnityEditor;
@@ -33,7 +34,7 @@ namespace Crest
 #if UNITY_EDITOR
                 if (_followSceneCamera)
                 {
-                    var sceneViewCamera = EditorHelpers.GetActiveSceneViewCamera();
+                    var sceneViewCamera = EditorHelpers.EditorHelpers.GetActiveSceneViewCamera();
                     if (sceneViewCamera != null)
                     {
                         return sceneViewCamera.transform;
@@ -70,7 +71,7 @@ namespace Crest
 #if UNITY_EDITOR
                 if (_followSceneCamera)
                 {
-                    var sceneViewCamera = EditorHelpers.GetActiveSceneViewCamera();
+                    var sceneViewCamera = EditorHelpers.EditorHelpers.GetActiveSceneViewCamera();
                     if (sceneViewCamera != null)
                     {
                         return sceneViewCamera;
@@ -1319,9 +1320,40 @@ namespace Crest
     [CustomEditor(typeof(OceanRenderer))]
     public class OceanRendererEditor : ValidatedEditor
     {
+        readonly string[] _propertiesToExclude = new string[] { "m_Script", "_simSettingsFoam", "_simSettingsShadow" };
+        //readonly string[] _propertiesToExclude = new string[] { "m_Script", "_type", "_refreshMode", "_savedCache", "_layerNames", "_resolution", "_cameraMaxTerrainHeight", "_forceAlwaysUpdateDebug" };
+
+        EmbeddeAssetEditor<SimSettingsFoam> m_settingsEditorFoam;
+        EmbeddeAssetEditor<SimSettingsShadow> m_settingsEditorShadow;
+
+        void OnEnable()
+        {
+            m_settingsEditorFoam = new EmbeddeAssetEditor<SimSettingsFoam>("_simSettingsFoam", this);
+            m_settingsEditorShadow = new EmbeddeAssetEditor<SimSettingsShadow>("_simSettingsShadow", this);
+        }
+        void OnDisable()
+        {
+            if (m_settingsEditorFoam != null)
+            {
+                m_settingsEditorFoam.OnDisable();
+            }
+            if (m_settingsEditorShadow != null)
+            {
+                m_settingsEditorShadow.OnDisable();
+            }
+        }
+
         public override void OnInspectorGUI()
         {
-            base.OnInspectorGUI();
+            GUI.enabled = false;
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("m_Script"));
+            GUI.enabled = true;
+
+            DrawPropertiesExcluding(serializedObject, _propertiesToExclude);
+
+            // In-line settings editors
+            m_settingsEditorFoam.DrawEditorCombo("Create New Foam Settings Asset", "Settings_Foam", "asset", string.Empty, "Foam Settings", false);
+            m_settingsEditorShadow.DrawEditorCombo("Create New Shadow Settings Asset", "Settings_Shadow", "asset", string.Empty, "Shadow Settings", false);
 
             var target = this.target as OceanRenderer;
 
@@ -1335,6 +1367,8 @@ namespace Crest
             {
                 OceanRenderer.RunValidation(target);
             }
+
+            serializedObject.ApplyModifiedProperties();
         }
     }
 #endif

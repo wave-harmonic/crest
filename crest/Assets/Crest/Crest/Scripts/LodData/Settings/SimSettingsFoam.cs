@@ -5,16 +5,17 @@
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+
 namespace Crest
 {
     [CreateAssetMenu(fileName = "SimSettingsFoam", menuName = "Crest/Foam Sim Settings", order = 10000)]
-    [HelpURL("https://github.com/wave-harmonic/crest/blob/master/USERGUIDE.md#foam")]
+    [HelpURL(HELP_URL)]
     public class SimSettingsFoam : SimSettingsBase
     {
-        [SerializeField]
-#pragma warning disable 414
-        string _helpURL = "https://github.com/wave-harmonic/crest/blob/master/USERGUIDE.md#foam";
-#pragma warning restore 414
+        public const string HELP_URL = "https://github.com/wave-harmonic/crest/blob/master/USERGUIDE.md#foam";
 
         [Header("General settings")]
         [Range(0f, 20f), Tooltip("Speed at which foam fades/dissipates.")]
@@ -36,4 +37,22 @@ namespace Crest
         [Tooltip("The render texture format to use for the foam simulation. This is mostly for debugging and should be left at its default.")]
         public GraphicsFormat _renderTextureGraphicsFormat = GraphicsFormat.R16_SFloat;
     }
+
+#if UNITY_EDITOR
+    [CustomEditor(typeof(SimSettingsFoam), true), CanEditMultipleObjects]
+    class SimSettingsFoamEditor : SimSettingsBaseEditor
+    {
+        public override void OnInspectorGUI()
+        {
+            EditorGUILayout.Space();
+            if (GUILayout.Button("Open Online Help Page"))
+            {
+                Application.OpenURL(SimSettingsFoam.HELP_URL);
+            }
+            EditorGUILayout.Space();
+
+            base.OnInspectorGUI();
+        }
+    }
+#endif
 }

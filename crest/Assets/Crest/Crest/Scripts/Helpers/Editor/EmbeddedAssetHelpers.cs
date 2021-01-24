@@ -1,6 +1,6 @@
 // Crest Ocean System
 
-// Lovingly copy pasted from Cinemachine - https://raw.githubusercontent.com/Unity-Technologies/upm-package-cinemachine/master/Editor/Utility/EmbeddedAssetHelpers.cs
+// Lovingly adapted from Cinemachine - https://raw.githubusercontent.com/Unity-Technologies/upm-package-cinemachine/master/Editor/Utility/EmbeddedAssetHelpers.cs
 // Unity Companion License: https://github.com/Unity-Technologies/upm-package-cinemachine/blob/master/LICENSE.md
 
 using UnityEngine;

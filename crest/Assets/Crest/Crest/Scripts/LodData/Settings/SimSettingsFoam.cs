@@ -12,7 +12,9 @@ namespace Crest
     public class SimSettingsFoam : SimSettingsBase
     {
         [SerializeField]
+#pragma warning disable 414
         string _helpURL = "https://github.com/wave-harmonic/crest/blob/master/USERGUIDE.md#foam";
+#pragma warning restore 414
 
         [Header("General settings")]
         [Range(0f, 20f), Tooltip("Speed at which foam fades/dissipates.")]

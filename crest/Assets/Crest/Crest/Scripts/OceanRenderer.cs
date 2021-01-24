@@ -96,17 +96,29 @@ namespace Crest
 
         [Tooltip("Optional provider for time, can be used to hard-code time for automation, or provide server time. Defaults to local Unity time."), SerializeField]
         TimeProviderBase _timeProvider = null;
-        TimeProviderDefault _timeProviderDefault = new TimeProviderDefault();
+        ITimeProvider _timeProviderActive = null;
         public ITimeProvider TimeProvider
         {
             get
             {
-                if (_timeProvider != null)
+                if (_timeProviderActive == null)
                 {
-                    return _timeProvider;
+                    if (_timeProvider != null)
+                    {
+                        _timeProviderActive = _timeProvider;
+                    }
+                    else
+                    {
+                        _timeProviderActive = new TimeProviderDefault();
+                    }
                 }
 
-                return _timeProviderDefault ?? (_timeProviderDefault = new TimeProviderDefault());
+                return _timeProviderActive;
+            }
+
+            set
+            {
+                _timeProviderActive = value;
             }
         }
 

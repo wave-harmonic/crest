@@ -16,20 +16,12 @@ namespace Crest.Spline
 #if UNITY_EDITOR
         void OnDrawGizmos()
         {
-            if (Selection.activeGameObject == gameObject)
-            {
-                var messageReceivers = GetComponentsInParent<IReceiveSplinePointOnDrawGizmosSelectedMessages>();
-                foreach (var rec in messageReceivers)
-                {
-                    rec.OnSplinePointDrawGizmosSelected(this);
-                }
+            var size = 1.5f * Vector3.one;
 
-                Gizmos.DrawIcon(transform.position, "Animation.Record@2x", true);
-            }
-            else
-            {
-                Gizmos.DrawIcon(transform.position, "Animation.Record", true);
-            }
+            Gizmos.color = Color.red;
+            Gizmos.DrawCube(transform.position, size);
+            Gizmos.color = Color.red * 0.5f;
+            Gizmos.DrawWireCube(transform.position, size);
             Gizmos.color = Color.white;
         }
 #endif

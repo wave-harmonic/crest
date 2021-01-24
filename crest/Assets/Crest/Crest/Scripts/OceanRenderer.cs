@@ -101,16 +101,15 @@ namespace Crest
         {
             get
             {
+                // Specified by user on component - always prefer this
+                if (_timeProvider != null)
+                {
+                    return _timeProvider;
+                }
+
                 if (_timeProviderActive == null)
                 {
-                    if (_timeProvider != null)
-                    {
-                        _timeProviderActive = _timeProvider;
-                    }
-                    else
-                    {
-                        _timeProviderActive = new TimeProviderDefault();
-                    }
+                    _timeProviderActive = new TimeProviderDefault();
                 }
 
                 return _timeProviderActive;
@@ -118,6 +117,7 @@ namespace Crest
 
             set
             {
+                Debug.Assert(_timeProvider == null, "Setting time provider will take no effect because a time provider has been specified in the Inspector which will take priority.");
                 _timeProviderActive = value;
             }
         }

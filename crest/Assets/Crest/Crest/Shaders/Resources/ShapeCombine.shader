@@ -151,6 +151,7 @@ Shader "Hidden/Crest/Simulation/Combine Animated Wave LODs"
 			CGPROGRAM
 			#pragma vertex Vert
 			#pragma fragment Frag
+			#pragma target 3.5
 
 			#include "UnityCG.cginc"
 

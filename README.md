@@ -1,5 +1,5 @@
 
-<img src="https://raw.githubusercontent.com/huwb/crest-oceanrender/master/logo/crest-oceanrender-logotype1.png" width="214">
+<img src="https://raw.githubusercontent.com/wave-harmonic/crest/master/logo/crest-oceanrender-logotype1.png" width="214">
 
 &nbsp;
 
@@ -9,7 +9,7 @@
 *Crest* is a technically advanced ocean renderer implemented in Unity3D 2019.4.8 and later.
 The version hosted here targets the **built-in render pipeline**, links to the scriptable render pipeline versions (URP/HDRP) on the Asset Store are below.
 
-![Teaser](https://raw.githubusercontent.com/huwb/crest-oceanrender/master/img/teaser5.png)
+![Teaser](https://raw.githubusercontent.com/wave-harmonic/crest/master/img/teaser5.png)
 
 **Discord for news/updates/discussions:** https://discord.gg/g7GpjDC
 
@@ -38,7 +38,7 @@ The version hosted here targets the **built-in render pipeline**, links to the s
 
 # Documentation
 
-Refer to [USERGUIDE.md](https://github.com/huwb/crest-oceanrender/blob/master/USERGUIDE.md) for full documentation, including **Initial setup steps**.
+Refer to [USERGUIDE.md](https://github.com/wave-harmonic/crest/blob/master/USERGUIDE.md) for full documentation, including **Initial setup steps**.
 
 There is also a getting started video here: https://www.youtube.com/watch?v=qsgeG4sSLFw&t=142s .
 
@@ -56,7 +56,7 @@ There is also a getting started video here: https://www.youtube.com/watch?v=qsge
 
 # Installation
 
-***You can download the latest version from [here](https://github.com/crest-ocean/crest/archive/master.zip).***
+***You can download the latest version from [here](https://github.com/wave-harmonic/crest/archive/master.zip).***
 
 Another way to obtain *Crest* is to fork/clone this repository.
 
@@ -74,15 +74,15 @@ The following options are no longer maintained or supported.
 
 ### 2018.4
 
-There is a [legacy branch] for 2018.4 support. A direct download to an archive is available [here](https://github.com/crest-ocean/crest/archive/legacy/unity-2018.zip). It is not actively developed.
+There is a [legacy branch] for 2018.4 support. A direct download to an archive is available [here](https://github.com/wave-harmonic/crest/archive/legacy/unity-2018.zip). It is not actively developed.
 
 # Issues
 
-If you encounter an issue, please search the [Issues page](https://github.com/huwb/crest-oceanrender/issues) to see if there is already a resolution, and if you don't find one then please report it as a new issue.
+If you encounter an issue, please search the [Issues page](https://github.com/wave-harmonic/crest/issues) to see if there is already a resolution, and if you don't find one then please report it as a new issue.
 
 There are a few issues worth calling out here:
 
-* Sky solutions such as Azure[Sky] requires some code to be added to the ocean shader for the fogging/scattering to work. This is a requirement of these products which typically come with instructions for what needs to be added. See the [wiki](https://github.com/crest-ocean/crest/wiki) for examples.
+* Sky solutions such as Azure[Sky] requires some code to be added to the ocean shader for the fogging/scattering to work. This is a requirement of these products which typically come with instructions for what needs to be added. See the [wiki](https://github.com/wave-harmonic/crest/wiki) for examples.
 * *Crest* does not support OpenGL or WebGL backends
 
-[legacy branch]: https://github.com/crest-ocean/crest/tree/legacy/unity-2018
+[legacy branch]: https://github.com/wave-harmonic/crest/tree/legacy/unity-2018

@@ -16,6 +16,7 @@ namespace Crest
     /// This should be used for static geometry, dynamic objects should be tagged with the Render Ocean Depth component.
     /// </summary>
     [ExecuteAlways]
+    [HelpURL("https://github.com/wave-harmonic/crest/blob/master/USERGUIDE.md#shorelines-and-shallow-water")]
     public partial class OceanDepthCache : MonoBehaviour
     {
         public enum OceanDepthCacheType

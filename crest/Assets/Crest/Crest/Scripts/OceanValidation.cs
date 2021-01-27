@@ -56,6 +56,10 @@ namespace Crest
             messages[(int)type].Add(message);
         }
 
+        public static void Suppressed(string message, MessageType type, Object @object = null)
+        {
+        }
+
         public static bool ValidateRenderer(GameObject gameObject, string shaderPrefix, ShowMessage showMessage)
         {
             var renderer = gameObject.GetComponent<Renderer>();

@@ -19,14 +19,15 @@ namespace Crest.Spline
             // We could not get gizmos or handles to work well when 3D Icons is enabled. problems included
             // them being almost invisible when occluded, or hard to select. DrawIcon is almost perfect,
             // but is very faint when occluded, but drawing it 8 times makes it easier to see.. sigh..
-            Gizmos.DrawIcon(transform.position, "animationdopesheetkeyframe", true);
-            Gizmos.DrawIcon(transform.position, "animationdopesheetkeyframe", true);
-            Gizmos.DrawIcon(transform.position, "animationdopesheetkeyframe", true);
-            Gizmos.DrawIcon(transform.position, "animationdopesheetkeyframe", true);
-            Gizmos.DrawIcon(transform.position, "animationdopesheetkeyframe", true);
-            Gizmos.DrawIcon(transform.position, "animationdopesheetkeyframe", true);
-            Gizmos.DrawIcon(transform.position, "animationdopesheetkeyframe", true);
-            Gizmos.DrawIcon(transform.position, "animationdopesheetkeyframe", true);
+            var iconName = "d_Animation.Record@2x";
+            Gizmos.DrawIcon(transform.position, iconName, true);
+            Gizmos.DrawIcon(transform.position, iconName, true);
+            Gizmos.DrawIcon(transform.position, iconName, true);
+            Gizmos.DrawIcon(transform.position, iconName, true);
+            Gizmos.DrawIcon(transform.position, iconName, true);
+            Gizmos.DrawIcon(transform.position, iconName, true);
+            Gizmos.DrawIcon(transform.position, iconName, true);
+            Gizmos.DrawIcon(transform.position, iconName, true);
         }
 #endif
     }

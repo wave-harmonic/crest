@@ -16,13 +16,17 @@ namespace Crest.Spline
 #if UNITY_EDITOR
         void OnDrawGizmos()
         {
-            var size = 1.5f * Vector3.one;
-
-            Gizmos.color = Color.red;
-            Gizmos.DrawCube(transform.position, size);
-            Gizmos.color = Color.red * 0.5f;
-            Gizmos.DrawWireCube(transform.position, size);
-            Gizmos.color = Color.white;
+            // We could not get gizmos or handles to work well when 3D Icons is enabled. problems included
+            // them being almost invisible when occluded, or hard to select. DrawIcon is almost perfect,
+            // but is very faint when occluded, but drawing it 8 times makes it easier to see.. sigh..
+            Gizmos.DrawIcon(transform.position, "animationdopesheetkeyframe", true);
+            Gizmos.DrawIcon(transform.position, "animationdopesheetkeyframe", true);
+            Gizmos.DrawIcon(transform.position, "animationdopesheetkeyframe", true);
+            Gizmos.DrawIcon(transform.position, "animationdopesheetkeyframe", true);
+            Gizmos.DrawIcon(transform.position, "animationdopesheetkeyframe", true);
+            Gizmos.DrawIcon(transform.position, "animationdopesheetkeyframe", true);
+            Gizmos.DrawIcon(transform.position, "animationdopesheetkeyframe", true);
+            Gizmos.DrawIcon(transform.position, "animationdopesheetkeyframe", true);
         }
 #endif
     }

@@ -12,15 +12,13 @@ namespace Crest.EditorHelpers
     /// <summary>
     /// Helper for drawing embedded asset editors
     /// </summary>
-    internal class EmbeddeAssetEditor<T> where T : ScriptableObject
+    internal class EmbeddeAssetEditor
     {
         /// <summary>
         /// Create in OnEnable()
         /// </summary>
-        public EmbeddeAssetEditor(string propertyName, UnityEditor.Editor owner)
+        public EmbeddeAssetEditor()
         {
-            m_PropertyName = propertyName;
-            m_Owner = owner;
             m_CreateButtonGUIContent = new GUIContent(
                     "Create Asset", "Create a new shared settings asset");
         }
@@ -36,7 +34,7 @@ namespace Crest.EditorHelpers
         /// Called when the asset being edited was changed by the user.
         /// </summary>
         public OnChangedDelegate OnChanged;
-        public delegate void OnChangedDelegate(T obj);
+        public delegate void OnChangedDelegate(System.Type type, Object obj);
 
         /// <summary>
         /// Free the resources in OnDisable()
@@ -44,7 +42,6 @@ namespace Crest.EditorHelpers
         public void OnDisable()
         {
             DestroyEditor();
-            m_Owner = null;
         }
 
         /// <summary>
@@ -52,24 +49,37 @@ namespace Crest.EditorHelpers
         /// </summary>
         public GUIContent m_CreateButtonGUIContent;
 
-        private string m_PropertyName;
         private UnityEditor.Editor m_Editor = null;
-        private UnityEditor.Editor m_Owner = null;
+
+        System.Type type;
 
         const int kIndentOffset = 3;
+
+        public void DrawEditorCombo(PropertyDrawer drawer, SerializedProperty property, string extension)
+        {
+            type = drawer.fieldInfo.FieldType;
+
+            DrawEditorCombo(
+                $"Create {property.displayName} Asset",
+                $"{property.displayName.Replace(' ', '_')}",
+                extension,
+                string.Empty,
+                false,
+                property
+            );
+        }
 
         /// <summary>
         /// Call this from OnInspectorGUI.  Will draw the asset reference field, and
         /// the embedded editor, or a Create Asset button, if no asset is set.
         /// </summary>
         public void DrawEditorCombo(
-            string title, string defaultName, string extension, string message,
-            string showLabel, bool indent)
+            string title, string defaultName, string extension, string message, bool indent, SerializedProperty property)
         {
-            SerializedProperty property = m_Owner.serializedObject.FindProperty(m_PropertyName);
+            // return;
             UpdateEditor(property);
             if (m_Editor == null)
-                AssetFieldWithCreateButton(property, title, defaultName, extension, message);
+                AssetFieldWithCreateButton(property, title, defaultName, extension, message, property.serializedObject);
             else
             {
                 EditorGUILayout.BeginVertical(GUI.skin.box);
@@ -79,7 +89,7 @@ namespace Crest.EditorHelpers
                 EditorGUI.PropertyField(rect, property);
                 if (EditorGUI.EndChangeCheck())
                 {
-                    m_Owner.serializedObject.ApplyModifiedProperties();
+                    property.serializedObject.ApplyModifiedProperties();
                     UpdateEditor(property);
                 }
                 if (m_Editor != null)
@@ -95,7 +105,7 @@ namespace Crest.EditorHelpers
                     {
                         EditorGUILayout.Separator();
                         EditorGUILayout.HelpBox(
-                            "This is a shared asset.  Changes made here will apply to all users of this asset.", 
+                            "This is a shared asset.  Changes made here will apply to all users of this asset.",
                             MessageType.Info);
                         EditorGUI.BeginChangeCheck();
                         if (indent)
@@ -104,7 +114,7 @@ namespace Crest.EditorHelpers
                         if (indent)
                             --EditorGUI.indentLevel;
                         if (EditorGUI.EndChangeCheck() && (OnChanged != null))
-                            OnChanged(property.objectReferenceValue as T);
+                            OnChanged(type, property.objectReferenceValue);
                     }
                     GUI.enabled = true;
                     if(m_Editor.target != null)
@@ -122,7 +132,7 @@ namespace Crest.EditorHelpers
 
         private void AssetFieldWithCreateButton(
             SerializedProperty property,
-            string title, string defaultName, string extension, string message)
+            string title, string defaultName, string extension, string message, SerializedObject serializedObject)
         {
             EditorGUI.BeginChangeCheck();
 
@@ -138,14 +148,14 @@ namespace Crest.EditorHelpers
                         title, defaultName, extension, message);
                 if (!string.IsNullOrEmpty(newAssetPath))
                 {
-                    T asset = ScriptableObjectUtility.CreateAt<T>(newAssetPath);
+                    var asset = ScriptableObjectUtility.CreateAt(type, newAssetPath);
                     property.objectReferenceValue = asset;
-                    m_Owner.serializedObject.ApplyModifiedProperties();
+                    serializedObject.ApplyModifiedProperties();
                 }
             }
             if (EditorGUI.EndChangeCheck())
             {
-                m_Owner.serializedObject.ApplyModifiedProperties();
+                serializedObject.ApplyModifiedProperties();
                 UpdateEditor(property);
             }
         }

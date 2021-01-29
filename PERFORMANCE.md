@@ -11,6 +11,7 @@ These are currently available for tweaking and should be explored on every proje
 * See the *[Ocean Construction Parameters]* described in the USERGUIDE.md which directly control how much detail is in the ocean, and therefore the work required to update and render it.
 * The ocean shader has accrued a number of features and has become a reasonably heavy shader. Where possible these are on toggles and can be disabled, which will help the rendering cost.
 * The number of wave components will affect the update cost. This can be reduced by turning down sliders in the wave spectrum, and by reducing the *Components per Octave* setting on the *OceanGerstnerBatched* script.
+* Our Gerstner system uses an inefficient approach to generate the waves to avoid an incompatibility in older hardware. If you are shipping on a limited set of hardware which you can test the waves on, you may try disabling the *Ping pong combine* option in the *Animated Wave Settings* asset.
 
 Consider tweaking these on a per scene/level basis.
 

@@ -116,7 +116,7 @@ A typical render order for a frame is the following:
 
 ## Animated Waves
 
-The Animated Waves simulation contains the animated surface shape. This typically contains the ocean waves, but can be modified as required. For example parts of the water can be pushed down below geometry if required.
+The Animated Waves simulation contains the animated surface shape. This typically contains the ocean waves (see the **Wave conditions** section below), but can be modified as required. For example parts of the water can be pushed down below geometry if required.
 
 The animated waves sim can be configured by assigning an Animated Waves Sim Settings asset to the OceanRenderer script in your scene (*Create/Crest/Animated Wave Sim Settings*). The waves will be dampened/attenuated in shallow water if a *Sea Floor Depth* LOD data is used (see below). The amount that waves are attenuated is configurable using the *Attenuation In Shallows* setting.
 
@@ -272,6 +272,25 @@ It has a *MeshRenderer* component with a material assigned with a Gerstner mater
 The material has the *Feather at UV Extents* option enabled, which will fade down the waves where the UVs go to 0 or 1 (at the edges of the quad).
 A more general solution is to scale the waves based on vertex colour so weights can be painted - this is provided through the *Weight from vertex colour (red channel)* option.
 This allows different wave conditions in different areas of the world with smooth blending.
+
+## ShapeGerstner - new system (preview)
+
+A new Gerstner wave system has been added, intended to replace the current system. It can be tested by adding a *ShapeGerstner* component to a GameObject. The setup is quite similar to the current system (described above). The new system has the following advantages:
+
+* Much lower ocean update CPU cost per-frame (35% reduction in our tests for just one gerstner component). Part of this efficiency comes from not recalculating the wave spectrum at run-time by default as toggled by the *Spectrum is static* option on the *ShapeGerstner* component. When this optimisation is enabled, *waves must be edited in edit mode (not in play mode)*.
+* Lower GPU cost (0.12ms saved for wave generation in our tests)
+* Wave foam generation works much better in background thanks to a new wave variance statistic
+* Support for wave splines (see below)
+
+After more testing we will switch over to this new system and deprecate the *ShapeGerstnerBatched* component.
+
+## Wave splines - new system (preview)
+
+While it is possible to use the above steps to place localised waves in the world, we added a new system we call *wave splines* to make it easier and faster.
+
+As part of this system, we added a generic *Spline* component which is in itself a useful spline tool which could be re-used for other purposes.
+
+If the *Spline* component is attached to the same GameObject as a *ShapeGerstner* component, the waves will be generated along the spline. This allows for quick experimentation with placing and orienting waves in different areas of the environment.
 
 
 # Shorelines and shallow water

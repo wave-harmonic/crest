@@ -317,7 +317,7 @@ Shader "Crest/Ocean"
 				// Scale up by small "epsilon" to solve numerical issues. Expand slightly about tile center.
 				// :OceanGridPrecisionErrors
 				const float2 tileCenterXZ = UNITY_MATRIX_M._m03_m23;
-				o.worldPos.xz = lerp( tileCenterXZ, o.worldPos.xz, 1.0001 );
+				o.worldPos.xz = lerp( tileCenterXZ, o.worldPos.xz, 1 );// 1.0001 );
 
 				o.lodAlpha_worldXZUndisplaced_oceanDepth.x = lodAlpha;
 				o.lodAlpha_worldXZUndisplaced_oceanDepth.yz = o.worldPos.xz;

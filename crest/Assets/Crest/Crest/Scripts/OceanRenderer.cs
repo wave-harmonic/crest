@@ -255,7 +255,7 @@ namespace Crest
         /// <summary>
         /// Sea level is given by y coordinate of GameObject with OceanRenderer script.
         /// </summary>
-        public float SeaLevel { get { return Root.position.y; } }
+        public float SeaLevel { get { return transform.position.y; } }
 
         [HideInInspector] public LodTransform _lodTransform;
         [HideInInspector] public LodDataMgrAnimWaves _lodDataAnimWaves;
@@ -393,16 +393,6 @@ namespace Crest
             _lodTransform = new LodTransform();
             _lodTransform.InitLODData(_lodCount);
 
-            // Resolution is 4 tiles across.
-            var baseMeshDensity = _lodDataResolution * 0.25f / _geometryDownSampleFactor;
-            // 0.4f is the "best" value when base mesh density is 8. Scaling down from there produces results similar to
-            // hand crafted values which looked good when the ocean is flat.
-            _lodAlphaBlackPointFade = 0.4f / (baseMeshDensity / 8f);
-            // We could calculate this in the shader, but we can save two subtractions this way.
-            _lodAlphaBlackPointWhitePointFade = 1f - _lodAlphaBlackPointFade - _lodAlphaBlackPointFade;
-
-            Root = OceanBuilder.GenerateMesh(this, _oceanChunkRenderers, _lodDataResolution, _geometryDownSampleFactor, _lodCount);
-
             CreateDestroySubSystems();
 
             _commandbufferBuilder = new BuildCommandBuffer();
@@ -424,6 +414,19 @@ namespace Crest
             }
 
             _canSkipCulling = false;
+        }
+
+        void ConstructOceanTiles()
+        {
+            // Resolution is 4 tiles across.
+            var baseMeshDensity = _lodDataResolution * 0.25f / _geometryDownSampleFactor;
+            // 0.4f is the "best" value when base mesh density is 8. Scaling down from there produces results similar to
+            // hand crafted values which looked good when the ocean is flat.
+            _lodAlphaBlackPointFade = 0.4f / (baseMeshDensity / 8f);
+            // We could calculate this in the shader, but we can save two subtractions this way.
+            _lodAlphaBlackPointWhitePointFade = 1f - _lodAlphaBlackPointFade - _lodAlphaBlackPointFade;
+
+            Root = OceanBuilder.GenerateMesh(this, _oceanChunkRenderers, _lodDataResolution, _geometryDownSampleFactor, _lodCount);
         }
 
         private void OnDisable()
@@ -690,6 +693,14 @@ namespace Crest
 
         void RunUpdate()
         {
+            // Detect if we need to build the surface tiles hierarchy
+            if (Root == null)
+            {
+                // This used to be called from OnEnable, but when adding a OceanRenderer component to a gameobject the calls that new'd gameobjects
+                // returned null. Makes sense that unity would defer gameobject creation when getting called from OnEnable.
+                ConstructOceanTiles();
+            }
+
             // Run queries *before* changing the ocean position, as it needs the current LOD positions to associate with the current queries
 #if UNITY_EDITOR
             // Issue #630 - seems to be a terrible memory leak coming from creating async gpu readbacks. We don't rely on queries in edit mode AFAIK

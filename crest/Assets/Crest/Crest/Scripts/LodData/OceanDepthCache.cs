@@ -266,7 +266,7 @@ namespace Crest
             // Shader needs sea level to determine water depth. Ocean instance might not be available in prefabs.
             var centerPoint = Vector3.zero;
             centerPoint.y = OceanRenderer.Instance != null
-                ? OceanRenderer.Instance.Root.position.y : transform.position.y;
+                ? OceanRenderer.Instance.SeaLevel : transform.position.y;
 
             _copyDepthMaterial.SetVector("_OceanCenterPosWorld", centerPoint);
 

@@ -290,7 +290,7 @@ namespace Crest
 
         bool _canSkipCulling = false;
 
-        readonly int sp_crestTime = Shader.PropertyToID("_CrestTime");
+        public static int sp_crestTime = Shader.PropertyToID("_CrestTime");
         readonly int sp_texelsPerWave = Shader.PropertyToID("_TexelsPerWave");
         readonly int sp_oceanCenterPosWorld = Shader.PropertyToID("_OceanCenterPosWorld");
         readonly int sp_meshScaleLerp = Shader.PropertyToID("_MeshScaleLerp");
@@ -324,8 +324,7 @@ namespace Crest
 
             public float _weight;
 
-            // Align to 32 bytes
-            public float __padding;
+            public float _maxWavelength;
         }
         public ComputeBuffer _bufCascadeDataTgt;
         public ComputeBuffer _bufCascadeDataSrc;
@@ -673,6 +672,7 @@ namespace Crest
             sp_ForceUnderwater = Shader.PropertyToID("_ForceUnderwater");
             sp_perCascadeInstanceData = Shader.PropertyToID("_CrestPerCascadeInstanceData");
             sp_cascadeData = Shader.PropertyToID("_CrestCascadeData");
+            sp_crestTime = Shader.PropertyToID("_CrestTime");
         }
 
         void LateUpdate()
@@ -811,6 +811,7 @@ namespace Crest
             // Don't land very close to regular positions where things are likely to snap to, because different tiles might
             // land on either side of a snap boundary due to numerical error and snap to the wrong positions. Nudge away from
             // common by using increments of 1/60 which have lots of factors.
+            // :OceanGridPrecisionErrors
             if (Mathf.Abs(pos.x * 60f - Mathf.Round(pos.x * 60f)) < 0.001f)
             {
                 pos.x += 0.002f;
@@ -1125,18 +1126,6 @@ namespace Crest
         {
             var isValid = true;
 
-#if !UNITY_2019_4_9_OR_NEWER
-            if (_camera == null)
-            {
-                showMessage
-                (
-                    "Not setting the camera property will result in using Camera.main which has a significant " +
-                    "performance cost. This is improved in Unity 2019.4.9 and above.",
-                    ValidatedHelper.MessageType.Warning, ocean
-                );
-            }
-#endif
-
             if (_material == null)
             {
                 showMessage
@@ -1159,8 +1148,9 @@ namespace Crest
             }
 
             // ShapeGerstnerBatched
-            var gerstners = FindObjectsOfType<ShapeGerstnerBatched>();
-            if (gerstners.Length == 0)
+            var gerstnerBatchs = FindObjectsOfType<ShapeGerstnerBatched>();
+            var gerstners = FindObjectsOfType<ShapeGerstner>();
+            if (gerstnerBatchs.Length == 0 && gerstners.Length == 0)
             {
                 showMessage
                 (

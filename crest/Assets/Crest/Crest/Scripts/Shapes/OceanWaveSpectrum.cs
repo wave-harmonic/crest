@@ -80,12 +80,16 @@ namespace Crest
 
         public static float SmallWavelength(float octaveIndex) { return Mathf.Pow(2f, SMALLEST_WL_POW_2 + octaveIndex); }
 
-        public float GetAmplitude(float wavelength, float componentsPerOctave)
+        public static int GetOctaveIndex(float wavelength)
         {
-            // Always take random value so that sequence remains deterministic even if this function early outs
-            var rand0 = Random.value;
+            Debug.Assert(wavelength > 0f, "OceanWaveSpectrum: Wavelength must be > 0.");
+            var wl_pow2 = Mathf.Log(wavelength) / Mathf.Log(2f);
+            return (int)(wl_pow2 - SMALLEST_WL_POW_2);
+        }
 
-            Debug.Assert(wavelength > 0f, "OceanWaveSpectrum: Wavelength must be >= 0f", this);
+        public float GetAmplitude(float wavelength, float componentsPerOctave, out float power)
+        {
+            Debug.Assert(wavelength > 0f, "OceanWaveSpectrum: Wavelength must be > 0.", this);
 
             var wl_pow2 = Mathf.Log(wavelength) / Mathf.Log(2f);
             wl_pow2 = Mathf.Clamp(wl_pow2, SMALLEST_WL_POW_2, SMALLEST_WL_POW_2 + NUM_OCTAVES - 1f);
@@ -102,6 +106,7 @@ namespace Crest
             if (index >= _powerLog.Length || index >= _powerDisabled.Length)
             {
                 Debug.Assert(index < _powerLog.Length && index < _powerDisabled.Length, $"OceanWaveSpectrum: index {index} is out of range.", this);
+                power = 0f;
                 return 0f;
             }
 
@@ -128,14 +133,15 @@ namespace Crest
             var alpha = (wavelength - lower) / lower;
 
             // Power
-            var pow = hasNextIndex ? Mathf.Lerp(thisPower, nextPower, alpha) : thisPower;
+            power = hasNextIndex ? Mathf.Lerp(thisPower, nextPower, alpha) : thisPower;
+            power = Mathf.Pow(10f, power);
 
-            var a_2 = 2f * Mathf.Pow(10f, pow) * domega;
+            var a_2 = 2f * power * domega;
 
             // Amplitude
             var a = Mathf.Sqrt(a_2);
 
-            return a * rand0 * _multiplier;
+            return a * _multiplier;
         }
 
         public static float ComputeWaveSpeed(float wavelength, float gravityMultiplier = 1f)

@@ -84,6 +84,9 @@ namespace Crest
 
         private static void BeginCameraRendering(ScriptableRenderContext context, Camera camera)
         {
+            // Camera.current is only supported in the built-in pipeline. This provides the current camera for
+            // OnWillRenderObject for SRPs. BeginCameraRendering is called for each active camera in every frame.
+            // OnWillRenderObject is called after BeginCameraRendering for the current camera so this works.
             _currentCamera = camera;
         }
 
@@ -95,7 +98,7 @@ namespace Crest
                 return;
             }
 
-            // check if built-in pipeline being used
+            // Camera.current is only supported in built-in pipeline.
             if (Camera.current != null)
             {
                 _currentCamera = Camera.current;

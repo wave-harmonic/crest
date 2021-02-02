@@ -29,6 +29,14 @@ namespace Crest.Spline
             Gizmos.DrawIcon(transform.position, iconName, true);
             Gizmos.DrawIcon(transform.position, iconName, true);
         }
+
+        void OnDrawGizmosSelected()
+        {
+            if (transform.parent.TryGetComponent<IReceiveSplinePointOnDrawGizmosSelectedMessages>(out var receiver))
+            {
+                receiver.OnSplinePointDrawGizmosSelected(this);
+            }
+        }
 #endif
     }
 

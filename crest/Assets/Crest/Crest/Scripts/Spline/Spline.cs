@@ -41,6 +41,23 @@ namespace Crest.Spline
         {
             var isValid = true;
 
+            for (int i = 0; i < transform.childCount; i++)
+            {
+                if (!transform.GetChild(i).TryGetComponent<SplinePoint>(out _))
+                {
+                    showMessage
+                    (
+                        $"All child GameObjects under <i>Spline</i> must have <i>SplinePoint</i> component added. Object <i>{transform.GetChild(i).gameObject.name}</i> does not and should have one added, or be moved out of the hierarchy.",
+                        ValidatedHelper.MessageType.Error, this
+                    );
+
+                    isValid = false;
+
+                    // One error is enough probably - don't fill the Inspector with tons of errors
+                    break;
+                }
+            }
+
             var points = GetComponentsInChildren<SplinePoint>();
 
             if (points.Length < 2)
@@ -62,21 +79,6 @@ namespace Crest.Spline
                 );
 
                 isValid = false;
-            }
-
-            for (int i = 0; i < transform.childCount; i++)
-            {
-                if (!transform.GetChild(i).TryGetComponent<SplinePoint>(out _))
-                {
-                    showMessage
-                    (
-                        $"All child GameObjects under <i>Spline</i> must have <i>SplinePoint</i> component added. Object <i>{transform.GetChild(i).gameObject.name}</i> does not and should have one added, or be moved out of the hierarchy.",
-                        ValidatedHelper.MessageType.Error, this
-                    );
-
-                    // One error is enough probably - don't fill the Inspector with tons of errors
-                    break;
-                }
             }
 
             return isValid;

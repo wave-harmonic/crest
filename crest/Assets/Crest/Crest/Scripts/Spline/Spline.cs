@@ -74,6 +74,8 @@ namespace Crest.Spline
                         ValidatedHelper.MessageType.Error, this
                     );
 
+                    // One error is enough probably - don't fill the Inspector with tons of errors
+                    break;
                 }
             }
 

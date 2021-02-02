@@ -19,6 +19,36 @@ A video walkthrough of the setup steps below is available on youtube: https://ww
 
 Note: Frequently when changing Unity versions the project can appear to break (no ocean rendering, materials appear pink, other issues). Usually restarting the Editor fixes it. In one case the scripts became unassigned in the example content scene, but closing Unity, removing the Library folder, and restarting resolved it.
 
+<!-- select:start -->
+<!-- select-menu-labels: Rendering Pipeline -->
+
+Common content can go here above the first heading in a section and be rendered for all selections!
+
+#### --High Definition--
+
+High Definition instructions here
+
+#### --Universal--
+
+Universal instructions here
+
+<!-- select:end -->
+
+<!-- select:start -->
+<!-- select-menu-labels: Rendering Pipeline -->
+
+Common content can go here above the first heading in a section and be rendered for all selections!
+
+#### --High Definition--
+
+High Definition instructions here
+
+#### --Universal--
+
+Universal instructions here
+
+<!-- select:end -->
+
 ## Importing Crest files into project
 
 The steps to set up *Crest* in a new or existing project currently look as follows:

@@ -11,19 +11,19 @@ namespace Crest.Spline
     /// Simple spline object. Spline points are child gameobjects.
     /// </summary>
     [ExecuteAlways]
-    public partial class Spline : MonoBehaviour
+    public partial class CrestSpline : MonoBehaviour
     {
         [Tooltip("Connect start and end point to close spline into a loop. Requires at least 3 spline points.")]
         public bool _closed = false;
     }
 
 #if UNITY_EDITOR
-    public partial class Spline : IValidated
+    public partial class CrestSpline : IValidated
     {
         public void OnDrawGizmos()
         {
             Gizmos.color = Color.black * 0.5f;
-            var points = GetComponentsInChildren<SplinePoint>();
+            var points = GetComponentsInChildren<CrestSplinePoint>();
             for (int i = 0; i < points.Length - 1; i++)
             {
                 Gizmos.DrawLine(points[i].transform.position, points[i + 1].transform.position);
@@ -41,13 +41,13 @@ namespace Crest.Spline
         {
             var isValid = true;
 
-            var points = GetComponentsInChildren<SplinePoint>();
+            var points = GetComponentsInChildren<CrestSplinePoint>();
 
             if (points.Length < 2)
             {
                 showMessage
                 (
-                    "Spline must have at least 2 spline points. Click the <i>Add point</i> button in the Inspector, or add a child GameObject and attach <i>SplinePoint</i> component to it.",
+                    "Spline must have at least 2 spline points. Click the <i>Add point</i> button in the Inspector, or add a child GameObject and attach <i>CrestSplinePoint</i> component to it.",
                     ValidatedHelper.MessageType.Error, this
                 );
 
@@ -57,7 +57,7 @@ namespace Crest.Spline
             {
                 showMessage
                 (
-                    "Closed splines must have at least 3 spline points. See the <i>Closed</i> parameter and tooltip. To add a point click the <i>Add point</i> button in the Inspector, or add a child GameObject and attach <i>SplinePoint</i> component to it.",
+                    "Closed splines must have at least 3 spline points. See the <i>Closed</i> parameter and tooltip. To add a point click the <i>Add point</i> button in the Inspector, or add a child GameObject and attach <i>CrestSplinePoint</i> component to it.",
                     ValidatedHelper.MessageType.Error, this
                 );
 
@@ -66,11 +66,11 @@ namespace Crest.Spline
 
             for (int i = 0; i < transform.childCount; i++)
             {
-                if (!transform.GetChild(i).TryGetComponent<SplinePoint>(out _))
+                if (!transform.GetChild(i).TryGetComponent<CrestSplinePoint>(out _))
                 {
                     showMessage
                     (
-                        $"All child GameObjects under <i>Spline</i> must have <i>SplinePoint</i> component added. Object <i>{transform.GetChild(i).gameObject.name}</i> does not and should have one added, or be moved out of the hierarchy.",
+                        $"All child GameObjects under <i>Spline</i> must have <i>CrestSplinePoint</i> component added. Object <i>{transform.GetChild(i).gameObject.name}</i> does not and should have one added, or be moved out of the hierarchy.",
                         ValidatedHelper.MessageType.Error, this
                     );
 
@@ -81,18 +81,18 @@ namespace Crest.Spline
         }
     }
 
-    [CustomEditor(typeof(Spline))]
+    [CustomEditor(typeof(CrestSpline))]
     public class SplineEditor : ValidatedEditor
     {
         public override void OnInspectorGUI()
         {
             base.OnInspectorGUI();
 
-            var targetSpline = target as Spline;
+            var targetSpline = target as CrestSpline;
 
             if (GUILayout.Button("Add point (extend)"))
             {
-                var newPoint = SplinePointEditor.AddSplinePointAfter(targetSpline.transform);
+                var newPoint = CrestSplinePointEditor.AddSplinePointAfter(targetSpline.transform);
 
                 Undo.RegisterCreatedObjectUndo(newPoint, "Add Crest Spline Point");
             }

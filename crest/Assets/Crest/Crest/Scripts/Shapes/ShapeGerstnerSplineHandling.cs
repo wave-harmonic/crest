@@ -12,9 +12,9 @@ namespace Crest
     /// </summary>
     public static class ShapeGerstnerSplineHandling
     {
-        public static bool GenerateMeshFromSpline(Spline.Spline spline, Transform transform, int subdivisions, float radius, int smoothingIterations, ref Mesh mesh)
+        public static bool GenerateMeshFromSpline(Spline.CrestSpline spline, Transform transform, int subdivisions, float radius, int smoothingIterations, ref Mesh mesh)
         {
-            var splinePoints = spline.GetComponentsInChildren<SplinePoint>();
+            var splinePoints = spline.GetComponentsInChildren<CrestSplinePoint>();
             if (splinePoints.Length < 2) return false;
 
             var splinePointCount = splinePoints.Length;

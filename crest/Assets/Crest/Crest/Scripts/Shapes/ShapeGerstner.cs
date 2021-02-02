@@ -269,7 +269,7 @@ namespace Crest
             }
 
             // Unassign mesh
-            if (_meshForDrawingWaves != null && !TryGetComponent<Spline.Spline>(out _))
+            if (_meshForDrawingWaves != null && !TryGetComponent<Spline.CrestSpline>(out _))
             {
                 _meshForDrawingWaves = null;
             }
@@ -552,7 +552,7 @@ namespace Crest
                 }
             }
 
-            if (TryGetComponent<Spline.Spline>(out var splineForWaves))
+            if (TryGetComponent<Spline.CrestSpline>(out var splineForWaves))
             {
                 if (ShapeGerstnerSplineHandling.GenerateMeshFromSpline(splineForWaves, transform, _subdivisions, _radius, _smoothingIterations, ref _meshForDrawingWaves))
                 {
@@ -653,7 +653,7 @@ namespace Crest
             }
         }
 
-        public void OnSplinePointDrawGizmosSelected(SplinePoint point)
+        public void OnSplinePointDrawGizmosSelected(CrestSplinePoint point)
         {
             DrawMesh();
         }
@@ -667,7 +667,7 @@ namespace Crest
         {
             var isValid = true;
 
-            if (TryGetComponent<Spline.Spline>(out var spline) && !spline.Validate(ocean, ValidatedHelper.Suppressed))
+            if (TryGetComponent<Spline.CrestSpline>(out var spline) && !spline.Validate(ocean, ValidatedHelper.Suppressed))
             {
                 showMessage
                 (

@@ -11,7 +11,7 @@ namespace Crest.Spline
     /// Spline point, intended to be child of Spline object
     /// </summary>
     [ExecuteAlways]
-    public class SplinePoint : MonoBehaviour
+    public class CrestSplinePoint : MonoBehaviour
     {
 #if UNITY_EDITOR
         void OnDrawGizmos()
@@ -35,21 +35,21 @@ namespace Crest.Spline
 #if UNITY_EDITOR
     public interface IReceiveSplinePointOnDrawGizmosSelectedMessages
     {
-        void OnSplinePointDrawGizmosSelected(SplinePoint point);
+        void OnSplinePointDrawGizmosSelected(CrestSplinePoint point);
     }
 
-    [CustomEditor(typeof(SplinePoint))]
-    public class SplinePointEditor : Editor
+    [CustomEditor(typeof(CrestSplinePoint))]
+    public class CrestSplinePointEditor : Editor
     {
         public override void OnInspectorGUI()
         {
             base.OnInspectorGUI();
 
-            var thisSP = target as SplinePoint;
+            var thisSP = target as CrestSplinePoint;
             var thisIdx = thisSP.transform.GetSiblingIndex();
 
             var parent = thisSP.transform.parent;
-            if (parent == null || parent.GetComponent<Spline>() == null)
+            if (parent == null || parent.GetComponent<CrestSpline>() == null)
             {
                 EditorGUILayout.HelpBox("Spline component must be present on parent of this GameObject.", MessageType.Error);
                 return;
@@ -130,7 +130,7 @@ namespace Crest.Spline
         {
             var newPoint = new GameObject();
             newPoint.name = "SplinePoint";
-            newPoint.AddComponent<SplinePoint>();
+            newPoint.AddComponent<CrestSplinePoint>();
             return newPoint;
         }
 

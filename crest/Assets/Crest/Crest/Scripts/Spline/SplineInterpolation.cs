@@ -63,7 +63,7 @@ namespace Crest.Spline
         /// </summary>
         /// <param name="splinePoints">Input user-placed spline positions</param>
         /// <param name="splinePointsAndTangents">Generated spline points and tangents</param>
-        public static bool GenerateCubicSplineHull(SplinePoint[] splinePoints, Vector3[] splinePointsAndTangents, bool closed)
+        public static bool GenerateCubicSplineHull(CrestSplinePoint[] splinePoints, Vector3[] splinePointsAndTangents, bool closed)
         {
             if (splinePoints.Length < 2) return false;
 
@@ -129,7 +129,7 @@ namespace Crest.Spline
             return true;
         }
 
-        static Vector3 TangentAfter(SplinePoint[] splinePoints, int idx, bool closed)
+        static Vector3 TangentAfter(CrestSplinePoint[] splinePoints, int idx, bool closed)
         {
             var tangent = Vector3.zero;
             var wt = 0f;
@@ -154,7 +154,7 @@ namespace Crest.Spline
             return tangent / wt;
         }
 
-        static Vector3 TangentBefore(SplinePoint[] splinePoints, int idx, bool closed)
+        static Vector3 TangentBefore(CrestSplinePoint[] splinePoints, int idx, bool closed)
         {
             var tangent = Vector3.zero;
             var wt = 0f;

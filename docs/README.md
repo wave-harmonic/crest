@@ -10,6 +10,9 @@
 
 # Initial setup
 
+> [!WARNING]
+> These docs are only concerned with the open source version of Crest available on GitHub.
+
 A video walkthrough of the setup steps below is available on youtube: https://www.youtube.com/watch?v=qsgeG4sSLFw .
 
 <iframe width="560" height="315" src="https://www.youtube-nocookie.com/embed/qsgeG4sSLFw" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>

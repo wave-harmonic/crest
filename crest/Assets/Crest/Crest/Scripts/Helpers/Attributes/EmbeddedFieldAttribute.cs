@@ -9,11 +9,11 @@ namespace Crest
 
     public class EmbeddedFieldAttribute : PropertyAttribute
     {
-        internal EmbeddeAssetEditor editor;
+        internal EmbeddedAssetEditor editor;
 
         public EmbeddedFieldAttribute()
         {
-            editor = new EmbeddeAssetEditor();
+            editor = new EmbeddedAssetEditor();
         }
     }
 }

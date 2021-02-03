@@ -12,12 +12,12 @@ namespace Crest.EditorHelpers
     /// <summary>
     /// Helper for drawing embedded asset editors
     /// </summary>
-    internal class EmbeddeAssetEditor
+    internal class EmbeddedAssetEditor
     {
         /// <summary>
         /// Create in OnEnable()
         /// </summary>
-        public EmbeddeAssetEditor()
+        public EmbeddedAssetEditor()
         {
             m_CreateButtonGUIContent = new GUIContent(
                     "Create Asset", "Create a new shared settings asset");

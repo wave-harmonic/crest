@@ -172,13 +172,22 @@ namespace Crest.EditorHelpers
         public void UpdateEditor(SerializedProperty property)
         {
             var target = property.objectReferenceValue;
+
+            // Destroy the editor if target has changed.
             if (m_Editor != null && m_Editor.target != target)
-                DestroyEditor();
-            if (target != null)
             {
-                m_Editor = UnityEditor.Editor.CreateEditor(target);
+                DestroyEditor();
+            }
+
+            // NOTE: This is triggered twice on asset switch for some reason.
+            // Create editor if need one.
+            if (m_Editor == null && target != null)
+            {
+                m_Editor = Editor.CreateEditor(target);
                 if (OnCreateEditor != null)
+                {
                     OnCreateEditor(m_Editor);
+                }
             }
         }
     }

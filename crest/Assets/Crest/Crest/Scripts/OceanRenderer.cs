@@ -5,7 +5,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Unity.Collections.LowLevel.Unsafe;
-using Crest.EditorHelpers;
 #if UNITY_EDITOR
 using UnityEngine.Rendering;
 using UnityEditor;

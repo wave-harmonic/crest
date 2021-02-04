@@ -164,6 +164,7 @@ namespace Crest
 
         [Header("Simulation Params")]
 
+        [EmbeddedField]
         public SimSettingsAnimatedWaves _simSettingsAnimatedWaves;
 
         [Tooltip("Water depth information used for shallow water, shoreline foam, wave attenuation, among others."), SerializeField]
@@ -173,24 +174,25 @@ namespace Crest
         [Tooltip("Simulation of foam created in choppy water and dissipating over time."), SerializeField]
         bool _createFoamSim = true;
         public bool CreateFoamSim { get { return _createFoamSim; } }
-        [EmbeddedField] public SimSettingsFoam _simSettingsFoam;
+        [EmbeddedField]
+        public SimSettingsFoam _simSettingsFoam;
 
         [Tooltip("Dynamic waves generated from interactions with objects such as boats."), SerializeField]
         bool _createDynamicWaveSim = false;
         public bool CreateDynamicWaveSim { get { return _createDynamicWaveSim; } }
-        [PredicatedField("_createDynamicWaveSim")]
+        [EmbeddedField]
         public SimSettingsWave _simSettingsDynamicWaves;
 
         [Tooltip("Horizontal motion of water body, akin to water currents."), SerializeField]
         bool _createFlowSim = false;
         public bool CreateFlowSim { get { return _createFlowSim; } }
-        [PredicatedField("_createFlowSim")]
+        [EmbeddedField]
         public SimSettingsFlow _simSettingsFlow;
 
         [Tooltip("Shadow information used for lighting water."), SerializeField]
         bool _createShadowData = false;
         public bool CreateShadowData { get { return _createShadowData; } }
-        [PredicatedField("_createShadowData")]
+        [EmbeddedField]
         public SimSettingsShadow _simSettingsShadow;
 
         [Tooltip("Clip surface information for clipping the ocean surface."), SerializeField]

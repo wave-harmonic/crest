@@ -102,7 +102,10 @@ namespace Crest.EditorHelpers
                         foldoutRect, property.isExpanded, GUIContent.none, true);
 
                     bool canEditAsset = AssetDatabase.IsOpenForEdit(m_Editor.target, StatusQueryOptions.UseCachedIfPossible);
-                    GUI.enabled = canEditAsset;
+
+                    // We take the current GUI state into account to support attribute stacking.
+                    GUI.enabled = GUI.enabled && canEditAsset;
+
                     if (property.isExpanded)
                     {
                         EditorGUILayout.Separator();

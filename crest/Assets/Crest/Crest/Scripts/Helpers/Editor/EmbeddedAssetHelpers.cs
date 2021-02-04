@@ -78,8 +78,8 @@ namespace Crest.EditorHelpers
         public void DrawEditorCombo(
             string title, string defaultName, string extension, string message, bool indent, SerializedProperty property)
         {
-            // return;
             UpdateEditor(property);
+
             if (m_Editor == null)
                 AssetFieldWithCreateButton(property, title, defaultName, extension, message, property.serializedObject);
             else
@@ -119,13 +119,13 @@ namespace Crest.EditorHelpers
                             OnChanged(type, property.objectReferenceValue);
                     }
                     GUI.enabled = true;
-                    if(m_Editor.target != null)
+                    if (m_Editor.target != null)
                     {
-			            if (!canEditAsset && GUILayout.Button("Check out"))
-			            {
+                        if (!canEditAsset && GUILayout.Button("Check out"))
+                        {
                             Task task = Provider.Checkout(AssetDatabase.GetAssetPath(m_Editor.target), CheckoutMode.Asset);
-			                task.Wait();
-			            }
+                            task.Wait();
+                        }
                     }
                 }
                 EditorGUILayout.EndVertical();

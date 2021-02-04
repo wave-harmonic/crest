@@ -3,6 +3,8 @@
 // Lovingly adapted from Cinemachine - https://raw.githubusercontent.com/Unity-Technologies/upm-package-cinemachine/master/Editor/Utility/EmbeddedAssetHelpers.cs
 // Unity Companion License: https://github.com/Unity-Technologies/upm-package-cinemachine/blob/master/LICENSE.md
 
+#if UNITY_EDITOR
+
 using UnityEngine;
 using UnityEditor;
 using UnityEditor.VersionControl;
@@ -192,3 +194,5 @@ namespace Crest.EditorHelpers
         }
     }
 }
+
+#endif

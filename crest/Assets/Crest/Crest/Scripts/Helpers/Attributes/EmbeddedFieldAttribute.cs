@@ -4,20 +4,24 @@
 
 namespace Crest
 {
-    using Crest.EditorHelpers;
     using UnityEngine;
 
 #if UNITY_EDITOR
+    using Crest.EditorHelpers;
     using UnityEditor;
 #endif
 
     public class EmbeddedFieldAttribute : PropertyAttribute
     {
+#if UNITY_EDITOR
         internal EmbeddedAssetEditor editor;
+#endif
 
         public EmbeddedFieldAttribute()
         {
+#if UNITY_EDITOR
             editor = new EmbeddedAssetEditor();
+#endif
         }
     }
 

@@ -29,4 +29,4 @@ The following are optimisation ideas.
 * Pre-rendered wave displacements - sample waves from texture instead of computing them on the fly. I tried this out in the branch *feature/baked-waves* and found it challenging to get good shape without interpolation artifacts. Given that the baking step is also inconvenient, there are no plans to explore this further.
 * Packing ocean shader params - many of the params on the ocean shader are single floats which take a large number of registers. Using a custom material inspector it should be possible to pack these into float4s which will reduce constant buffer size massively and may help perf (or not..).
 
-[Ocean Construction Parameters]: https://github.com/crest-ocean/crest/blob/master/USERGUIDE.md#ocean-construction-parameters
+[Ocean Construction Parameters]: https://github.com/wave-harmonic/crest/blob/master/USERGUIDE.md#ocean-construction-parameters

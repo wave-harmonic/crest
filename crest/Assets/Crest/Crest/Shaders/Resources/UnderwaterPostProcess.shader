@@ -9,9 +9,6 @@ Shader "Crest/Underwater/Post Process Stack"
 {
 	Properties
 	{
-		// Add a meniscus to the boundary between water and air
-		[Toggle] _Meniscus("Meniscus", float) = 1
-
 		[Header(Debug Options)]
 		[Toggle] _CompileShaderWithDebugInfo("Compile Shader With Debug Info (D3D11)", Float) = 0
 	}
@@ -35,7 +32,9 @@ Shader "Crest/Underwater/Post Process Stack"
 			#pragma multi_compile_local __ _SHADOWS_ON
 			#pragma multi_compile_local __ _COMPILESHADERWITHDEBUGINFO_ON
 
-			#pragma shader_feature_local _MENISCUS_ON
+			#pragma multi_compile_local __ CREST_MENISCUS
+
+			#pragma multi_compile_local __ _PROJECTION_PERSPECTIVE _PROJECTION_ORTHOGRAPHIC
 
 			#pragma multi_compile_local __ _FULL_SCREEN_EFFECT
 			#pragma multi_compile_local __ _DEBUG_VIEW_OCEAN_MASK
@@ -47,17 +46,13 @@ Shader "Crest/Underwater/Post Process Stack"
 			#include "UnityCG.cginc"
 			#include "Lighting.cginc"
 
-			#include "../OceanConstants.hlsl"
-			#include "../OceanInputsDriven.hlsl"
 			#include "../OceanGlobals.hlsl"
+			#include "../OceanInputsDriven.hlsl"
+			#include "../OceanShaderData.hlsl"
 			#include "../OceanHelpersNew.hlsl"
-			#include "../OceanHelpersNew.hlsl"
+			#include "../OceanShaderHelpers.hlsl"
 
 			half3 _AmbientLighting;
-
-			// In-built Unity textures
-			sampler2D _CameraDepthTexture;
-			sampler2D _Normals;
 
 			#include "../OceanEmission.hlsl"
 
@@ -113,7 +108,7 @@ Shader "Crest/Underwater/Post Process Stack"
 
 			half3 ApplyUnderwaterEffect(half3 sceneColour, const float sceneZ01, const half3 view, bool isOceanSurface)
 			{
-				const float sceneZ = LinearEyeDepth(sceneZ01);
+				const float sceneZ = CrestLinearEyeDepth(sceneZ01);
 				const float3 lightDir = _WorldSpaceLightPos0.xyz;
 
 				half3 scatterCol = 0.0;
@@ -178,9 +173,9 @@ Shader "Crest/Underwater/Post Process Stack"
 
 				float wt = 1.0;
 
-#if _MENISCUS_ON
+#if CREST_MENISCUS
 				// Detect water to no water transitions which happen if mask values on below pixels are less than this mask
-				//if (mask <= 1.0)
+				if (mask <= 1.0)
 				{
 					// Looks at pixels below this pixel and if there is a transition from above to below, darken the pixel
 					// to emulate a meniscus effect. It does a few to get a thicker line than 1 pixel. The line it produces is
@@ -192,7 +187,7 @@ Shader "Crest/Underwater/Post Process Stack"
 					wt *= (tex2D(_CrestOceanMaskTexture, uvScreenSpace + dy.xz).x > mask) ? wt_mul : 1.0;
 					wt *= (tex2D(_CrestOceanMaskTexture, uvScreenSpace + dy.xw).x > mask) ? wt_mul : 1.0;
 				}
-#endif // _MENISCUS_ON
+#endif // CREST_MENISCUS
 
 #if _DEBUG_VIEW_OCEAN_MASK
 				if (!isOceanSurface)

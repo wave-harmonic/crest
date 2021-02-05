@@ -60,7 +60,7 @@ Shader "Hidden/Crest/Inputs/Animated Waves/Gerstner Batch Global"
 
 			half4 Frag(Varyings input) : SV_Target
 			{
-				return ComputeGerstner(input.worldPosXZ, input.uv_slice);
+				return half4(ComputeGerstner(input.worldPosXZ, input.uv_slice), 0.0);
 			}
 			ENDCG
 		}

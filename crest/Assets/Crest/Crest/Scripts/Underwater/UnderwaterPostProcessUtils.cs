@@ -27,6 +27,7 @@ namespace Crest
 
         public const string tooltipHorizonSafetyMarginMultiplier = "A safety margin multiplier to adjust horizon line based on camera position to avoid minor artifacts caused by floating point precision issues, the default value has been chosen based on careful experimentation.";
         public const string tooltipFilterOceanData = "How much to smooth ocean data such as water depth, light scattering, shadowing. Helps to smooth flickering that can occur under camera motion.";
+        public const string tooltipMeniscus = "Add a meniscus to the boundary between water and air.";
 
         // A magic number found after a small-amount of iteration that is used to deal with horizon-line floating-point
         // issues. It allows us to give it a small *nudge* in the right direction based on whether the camera is above
@@ -121,7 +122,7 @@ namespace Crest
             Camera camera,
             IPropertyWrapper underwaterPostProcessMaterialWrapper,
             UnderwaterSphericalHarmonicsData sphericalHarmonicsData,
-            SampleHeightHelper sampleHeightHelper,
+            bool isMeniscusEnabled,
             bool copyParamsFromOceanMaterial,
             bool debugViewPostProcessMask,
             float horizonSafetyMarginMultiplier,
@@ -133,6 +134,16 @@ namespace Crest
             {
                 // Measured this at approx 0.05ms on dell laptop
                 underwaterPostProcessMaterialWrapper.CopyPropertiesFromMaterial(OceanRenderer.Instance.OceanMaterial);
+            }
+
+            // Enable/Disable meniscus.
+            if (isMeniscusEnabled)
+            {
+                underwaterPostProcessMaterial.EnableKeyword("CREST_MENISCUS");
+            }
+            else
+            {
+                underwaterPostProcessMaterial.DisableKeyword("CREST_MENISCUS");
             }
 
             // Enabling/disabling keywords each frame don't seem to have large measurable overhead
@@ -159,17 +170,7 @@ namespace Crest
                 // relative to the sea-level are the same. This ensures that in incredibly turbulent
                 // water - if in doubt - use the neutral horizon.
                 float seaLevelHeightDifference = camera.transform.position.y - seaLevel;
-                float waterHeightLevelDifference = seaLevelHeightDifference;
-                {
-                    // Viewpoint and camera transform could be different so we will sample again instead of using
-                    // ViewerHeightAboveWater. Allow multiple samples per frame for multi-pass XR.
-                    sampleHeightHelper.Init(camera.transform.position, 0f, allowMultipleCallsPerFrame: true);
-                    if (sampleHeightHelper.Sample(out var waterHeight))
-                    {
-                        waterHeightLevelDifference = camera.transform.position.y - waterHeight;
-                    }
-                }
-                if (seaLevelHeightDifference >= 0.0f ^ waterHeightLevelDifference >= 0.0f)
+                if (seaLevelHeightDifference >= 0.0f ^ OceanRenderer.Instance.ViewerHeightAboveWater >= 0.0f)
                 {
                     horizonSafetyMarginMultiplier = 0.0f;
                 }
@@ -272,7 +273,7 @@ namespace Crest
 
                 UnityEngine.Profiling.Profiler.BeginSample("Underwater sample spherical harmonics");
 
-                LightProbes.GetInterpolatedProbe(OceanRenderer.Instance.Viewpoint.position, null, out SphericalHarmonicsL2 sphericalHarmonicsL2);
+                LightProbes.GetInterpolatedProbe(OceanRenderer.Instance.ViewCamera.transform.position, null, out SphericalHarmonicsL2 sphericalHarmonicsL2);
                 sphericalHarmonicsL2.Evaluate(sphericalHarmonicsData._shDirections, sphericalHarmonicsData._ambientLighting);
                 underwaterPostProcessMaterialWrapper.SetVector(sp_AmbientLighting, sphericalHarmonicsData._ambientLighting[0]);
 

@@ -26,6 +26,7 @@ Shader "Crest/Inputs/Foam/Add From Texture"
 			#include "UnityCG.cginc"
 
 			sampler2D _MainTex;
+			float _Strength;
 			
 			CBUFFER_START(CrestPerOceanInput)
 			float4 _MainTex_ST;
@@ -61,7 +62,7 @@ Shader "Crest/Inputs/Foam/Add From Texture"
 
 			float4 Frag(Varyings input) : SV_Target
 			{
-				return tex2D(_MainTex, input.uv);
+				return tex2D(_MainTex, input.uv) * _Strength;
 			}
 
 			ENDCG

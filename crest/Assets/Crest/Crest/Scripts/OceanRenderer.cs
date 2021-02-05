@@ -24,7 +24,7 @@ namespace Crest
     [ExecuteAlways, SelectionBase]
     public partial class OceanRenderer : MonoBehaviour
     {
-        [Tooltip("The viewpoint which drives the ocean detail. Defaults to main camera."), SerializeField]
+        [Tooltip("The viewpoint which drives the ocean detail. Defaults to the camera."), SerializeField]
         Transform _viewpoint;
         public Transform Viewpoint
         {
@@ -33,20 +33,10 @@ namespace Crest
 #if UNITY_EDITOR
                 if (_followSceneCamera)
                 {
-                    if (EditorWindow.focusedWindow != null &&
-                        (EditorWindow.focusedWindow.titleContent.text == "Scene" || EditorWindow.focusedWindow.titleContent.text == "Game"))
+                    var sceneViewCamera = EditorHelpers.GetActiveSceneViewCamera();
+                    if (sceneViewCamera != null)
                     {
-                        _lastGameOrSceneEditorWindow = EditorWindow.focusedWindow;
-                    }
-
-                    // If scene view is focused, use its camera. This code is slightly ropey but seems to work ok enough.
-                    if (_lastGameOrSceneEditorWindow != null && _lastGameOrSceneEditorWindow.titleContent.text == "Scene")
-                    {
-                        var sv = SceneView.lastActiveSceneView;
-                        if (sv != null && !EditorApplication.isPlaying && sv.camera != null)
-                        {
-                            return sv.camera.transform;
-                        }
+                        return sceneViewCamera.transform;
                     }
                 }
 #endif
@@ -55,9 +45,12 @@ namespace Crest
                     return _viewpoint;
                 }
 
-                if (Camera.main != null)
+                // Even with performance improvements, it is still good to cache whenever possible.
+                var camera = ViewCamera;
+
+                if (camera != null)
                 {
-                    return Camera.main.transform;
+                    return camera.transform;
                 }
 
                 return null;
@@ -68,11 +61,38 @@ namespace Crest
             }
         }
 
-        public Transform Root { get; private set; }
-
+        [Tooltip("The camera which drives the ocean data. Defaults to main camera."), SerializeField]
+        Camera _camera;
+        public Camera ViewCamera
+        {
+            get
+            {
 #if UNITY_EDITOR
-        static EditorWindow _lastGameOrSceneEditorWindow = null;
+                if (_followSceneCamera)
+                {
+                    var sceneViewCamera = EditorHelpers.GetActiveSceneViewCamera();
+                    if (sceneViewCamera != null)
+                    {
+                        return sceneViewCamera;
+                    }
+                }
 #endif
+
+                if (_camera != null)
+                {
+                    return _camera;
+                }
+
+                // Unity has greatly improved performance of this operation in 2019.4.9.
+                return Camera.main;
+            }
+            set
+            {
+                _camera = value;
+            }
+        }
+
+        public Transform Root { get; private set; }
 
         [Tooltip("Optional provider for time, can be used to hard-code time for automation, or provide server time. Defaults to local Unity time."), SerializeField]
         TimeProviderBase _timeProvider = null;
@@ -255,7 +275,7 @@ namespace Crest
         public int CurrentLodCount { get { return _lodTransform != null ? _lodTransform.LodCount : 0; } }
 
         /// <summary>
-        /// Vertical offset of viewer vs water surface
+        /// Vertical offset of camera vs water surface.
         /// </summary>
         public float ViewerHeightAboveWater { get; private set; }
 
@@ -274,7 +294,7 @@ namespace Crest
 
         bool _canSkipCulling = false;
 
-        readonly int sp_crestTime = Shader.PropertyToID("_CrestTime");
+        public static int sp_crestTime = Shader.PropertyToID("_CrestTime");
         readonly int sp_texelsPerWave = Shader.PropertyToID("_TexelsPerWave");
         readonly int sp_oceanCenterPosWorld = Shader.PropertyToID("_OceanCenterPosWorld");
         readonly int sp_meshScaleLerp = Shader.PropertyToID("_MeshScaleLerp");
@@ -308,8 +328,7 @@ namespace Crest
 
             public float _weight;
 
-            // Align to 32 bytes
-            public float __padding;
+            public float _maxWavelength;
         }
         public ComputeBuffer _bufCascadeDataTgt;
         public ComputeBuffer _bufCascadeDataSrc;
@@ -392,7 +411,7 @@ namespace Crest
 
             _commandbufferBuilder = new BuildCommandBuffer();
 
-            InitViewpoint();
+            ValidateViewpoint();
 
             if (_attachDebugGUI && GetComponent<OceanDebugGUI>() == null)
             {
@@ -639,19 +658,11 @@ namespace Crest
             return true;
         }
 
-        void InitViewpoint()
+        void ValidateViewpoint()
         {
             if (Viewpoint == null)
             {
-                var camMain = Camera.main;
-                if (camMain != null)
-                {
-                    Viewpoint = camMain.transform;
-                }
-                else
-                {
-                    Debug.LogError("Crest needs to know where to focus the ocean detail. Please set the Viewpoint property of the OceanRenderer component to the transform of the viewpoint/camera that the ocean should follow, or tag the primary camera as MainCamera.", this);
-                }
+                Debug.LogError("Crest needs to know where to focus the ocean detail. Please set the <i>ViewCamera</i> or the <i>Viewpoint</i> property that will render the ocean, or tag the primary camera as <i>MainCamera</i>.", this);
             }
         }
 
@@ -666,6 +677,7 @@ namespace Crest
             sp_ForceUnderwater = Shader.PropertyToID("_ForceUnderwater");
             sp_perCascadeInstanceData = Shader.PropertyToID("_CrestPerCascadeInstanceData");
             sp_cascadeData = Shader.PropertyToID("_CrestCascadeData");
+            sp_crestTime = Shader.PropertyToID("_CrestTime");
         }
 
         void LateUpdate()
@@ -708,10 +720,7 @@ namespace Crest
             var meshScaleLerp = needToBlendOutShape ? ViewerAltitudeLevelAlpha : 0f;
             Shader.SetGlobalFloat(sp_meshScaleLerp, meshScaleLerp);
 
-            if (Viewpoint == null && Application.isPlaying)
-            {
-                Debug.LogError("Viewpoint is null, ocean update will fail.", this);
-            }
+            ValidateViewpoint();
 
             if (_followViewpoint && Viewpoint != null)
             {
@@ -804,6 +813,19 @@ namespace Crest
             // maintain y coordinate - sea level
             pos.y = Root.position.y;
 
+            // Don't land very close to regular positions where things are likely to snap to, because different tiles might
+            // land on either side of a snap boundary due to numerical error and snap to the wrong positions. Nudge away from
+            // common by using increments of 1/60 which have lots of factors.
+            // :OceanGridPrecisionErrors
+            if (Mathf.Abs(pos.x * 60f - Mathf.Round(pos.x * 60f)) < 0.001f)
+            {
+                pos.x += 0.002f;
+            }
+            if (Mathf.Abs(pos.z * 60f - Mathf.Round(pos.z * 60f)) < 0.001f)
+            {
+                pos.z += 0.002f;
+            }
+
             Root.position = pos;
 
             Shader.SetGlobalVector(sp_oceanCenterPosWorld, Root.position);
@@ -838,12 +860,13 @@ namespace Crest
         void LateUpdateViewerHeight()
         {
             var oldViewerHeight = ViewerHeightAboveWater;
+            var camera = ViewCamera;
 
-            _sampleHeightHelper.Init(Viewpoint.position, 0f, true);
+            _sampleHeightHelper.Init(camera.transform.position, 0f, true);
 
             _sampleHeightHelper.Sample(out var waterHeight);
 
-            ViewerHeightAboveWater = Viewpoint.position.y - waterHeight;
+            ViewerHeightAboveWater = camera.transform.position.y - waterHeight;
 
         }
 
@@ -864,11 +887,19 @@ namespace Crest
 
         void LateUpdateTiles()
         {
-            var definitelyUnderwater = ViewerHeightAboveWater < -5f;
+            var isUnderwaterActive = UnderwaterPostProcess.Instance != null;
 
-            var density = _material.GetVector("_DepthFogDensity");
-            var minimumFogDensity = Mathf.Min(Mathf.Min(density.x, density.y), density.z);
-            var volumeExtinctionLength = -Mathf.Log(_underwaterCullLimit) / minimumFogDensity;
+            var definitelyUnderwater = false;
+            var volumeExtinctionLength = 0f;
+
+            if (isUnderwaterActive)
+            {
+                definitelyUnderwater = ViewerHeightAboveWater < -5f;
+                var density = _material.GetVector("_DepthFogDensity");
+                var minimumFogDensity = Mathf.Min(Mathf.Min(density.x, density.y), density.z);
+                volumeExtinctionLength = -Mathf.Log(_underwaterCullLimit) / minimumFogDensity;
+            }
+
             var canSkipCulling = WaterBody.WaterBodies.Count == 0 && _canSkipCulling;
 
             foreach (OceanChunkRenderer tile in _oceanChunkRenderers)
@@ -905,7 +936,7 @@ namespace Crest
                 }
 
                 // Cull tiles the viewer cannot see through the underwater fog.
-                if (!isCulled)
+                if (!isCulled && isUnderwaterActive)
                 {
                     isCulled = definitelyUnderwater && (Viewpoint.position - tile.Rend.bounds.ClosestPoint(Viewpoint.position)).magnitude >= volumeExtinctionLength;
                 }
@@ -1126,6 +1157,18 @@ namespace Crest
         {
             var isValid = true;
 
+#if !UNITY_2019_4_9_OR_NEWER
+            if (_camera == null)
+            {
+                showMessage
+                (
+                    "Not setting the camera property will result in using Camera.main which has a significant " +
+                    "performance cost. This is improved in Unity 2019.4.9 and above.",
+                    ValidatedHelper.MessageType.Warning, ocean
+                );
+            }
+#endif
+
             if (_material == null)
             {
                 showMessage
@@ -1148,8 +1191,9 @@ namespace Crest
             }
 
             // ShapeGerstnerBatched
-            var gerstners = FindObjectsOfType<ShapeGerstnerBatched>();
-            if (gerstners.Length == 0)
+            var gerstnerBatchs = FindObjectsOfType<ShapeGerstnerBatched>();
+            var gerstners = FindObjectsOfType<ShapeGerstner>();
+            if (gerstnerBatchs.Length == 0 && gerstners.Length == 0)
             {
                 showMessage
                 (

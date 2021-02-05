@@ -15,6 +15,8 @@ namespace Crest
 
         public BoolParameter _enable = new BoolParameter() { value = true };
         public BoolParameter _copyOceanMaterialParamsEachFrame = new BoolParameter() { value = false };
+        [Tooltip(UnderwaterPostProcessUtils.tooltipMeniscus)]
+        public BoolParameter _meniscus = new BoolParameter() { value = false };
 
         [Range(UnderwaterPostProcessUtils.MinFilterOceanDataValue, UnderwaterPostProcessUtils.MaxFilterOceanDataValue), Tooltip(UnderwaterPostProcessUtils.tooltipFilterOceanData)]
         public IntParameter _filterOceanData = new IntParameter() { value = UnderwaterPostProcessUtils.DefaultFilterOceanDataValue };

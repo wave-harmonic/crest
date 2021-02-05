@@ -887,12 +887,13 @@ namespace Crest
 
         void LateUpdateTiles()
         {
-            var isUnderwaterActive = UnderwaterPostProcess.Instance != null;
+            // TODO: Need a workaround to make this work. Might have to delete the assembly definition.
+            // var isUnderwaterActive = UnderwaterRenderer.Instance != null;
 
             var definitelyUnderwater = false;
             var volumeExtinctionLength = 0f;
 
-            if (isUnderwaterActive)
+            // if (isUnderwaterActive)
             {
                 definitelyUnderwater = ViewerHeightAboveWater < -5f;
                 var density = _material.GetVector("_DepthFogDensity");
@@ -936,7 +937,7 @@ namespace Crest
                 }
 
                 // Cull tiles the viewer cannot see through the underwater fog.
-                if (!isCulled && isUnderwaterActive)
+                if (!isCulled) // && isUnderwaterActive)
                 {
                     isCulled = definitelyUnderwater && (Viewpoint.position - tile.Rend.bounds.ClosestPoint(Viewpoint.position)).magnitude >= volumeExtinctionLength;
                 }

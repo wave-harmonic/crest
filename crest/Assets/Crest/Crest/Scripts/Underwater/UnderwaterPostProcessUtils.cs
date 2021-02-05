@@ -139,11 +139,11 @@ namespace Crest
             // Enable/Disable meniscus.
             if (isMeniscusEnabled)
             {
-                underwaterPostProcessMaterial.EnableKeyword("CREST_MENISCUS");
+                underwaterPostProcessMaterialWrapper.EnableKeyword("CREST_MENISCUS");
             }
             else
             {
-                underwaterPostProcessMaterial.DisableKeyword("CREST_MENISCUS");
+                underwaterPostProcessMaterialWrapper.DisableKeyword("CREST_MENISCUS");
             }
 
             // Enabling/disabling keywords each frame don't seem to have large measurable overhead

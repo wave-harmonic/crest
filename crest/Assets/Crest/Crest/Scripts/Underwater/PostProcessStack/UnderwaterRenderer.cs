@@ -35,14 +35,16 @@ namespace Crest
         UnderwaterSphericalHarmonicsData _sphericalHarmonicsData = new UnderwaterSphericalHarmonicsData();
         bool _firstRender = true;
 
+        public static UnderwaterRenderer Instance { get; private set; }
+
         public override void Init()
         {
-
+            Instance = this;
         }
 
         public override void Release()
         {
-
+            Instance = null;
         }
 
         public override void Render(PostProcessRenderContext context)
@@ -77,7 +79,7 @@ namespace Crest
                 context.camera,
                 underwaterPostProcessMaterialWrapper,
                 _sphericalHarmonicsData,
-                perCameraData._sampleHeightHelper,
+                settings._meniscus,
                 _firstRender || settings._copyOceanMaterialParamsEachFrame.value,
                 settings._viewOceanMask.value,
                 horizonSafetyMarginMultiplier,

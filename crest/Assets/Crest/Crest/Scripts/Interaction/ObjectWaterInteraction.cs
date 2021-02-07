@@ -138,9 +138,8 @@ namespace Crest
                 }
             }
 
-            float dt;
-            ocean._lodDataDynWaves.GetSimSubstepData(ocean.DeltaTimeDynamics, out _, out dt);
-            float weight = _boat.InWater ? 1f / simsActive : 0f;
+            var dt = 1f / ocean._lodDataDynWaves.Settings._simulationFrequency;
+            var weight = _boat.InWater ? 1f / simsActive : 0f;
 
             _renderer.GetPropertyBlock(_mpb);
 

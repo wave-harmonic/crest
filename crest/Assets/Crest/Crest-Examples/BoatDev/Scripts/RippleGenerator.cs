@@ -67,8 +67,7 @@ public class RippleGenerator : MonoBehaviour
             return;
         }
 
-        float dt;
-        OceanRenderer.Instance._lodDataDynWaves.GetSimSubstepData(OceanRenderer.Instance.DeltaTimeDynamics, out _, out dt);
+        var dt = 1 / OceanRenderer.Instance._lodDataDynWaves.Settings._simulationFrequency;
 
         _rend.GetPropertyBlock(_mpb);
 

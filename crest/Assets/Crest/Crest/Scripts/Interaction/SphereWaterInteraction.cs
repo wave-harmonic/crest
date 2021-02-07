@@ -96,10 +96,8 @@ namespace Crest
             // Velocity relative to water
             Vector3 relativeVelocity = LateUpdateComputeVelRelativeToWater(ocean);
 
-            float dt;
-            ocean._lodDataDynWaves.GetSimSubstepData(ocean.DeltaTimeDynamics, out _, out dt);
-
-            float weight = _weight / simsActive;
+            var dt = 1 / ocean._lodDataDynWaves.Settings._simulationFrequency;
+            var weight = _weight / simsActive;
 
             var waterHeight = disp.y + ocean.SeaLevel;
             LateUpdateSphereWeight(waterHeight, ref weight);

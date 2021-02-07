@@ -127,12 +127,9 @@ namespace Crest
             // so it computes the total update time. need to figure out how to simplify this.
             frameDt += _timeToSimulate;
 
-            // Run dynamic wave sim at 60hz. Allow to go 2% over/under to eliminate drift.
-            var targetDt = 1f / Settings._simulationFrequency;
+            numSubsteps = Mathf.RoundToInt(frameDt * Settings._simulationFrequency);
 
-            numSubsteps = Mathf.RoundToInt(frameDt / targetDt);
-
-            substepDt = numSubsteps > 0 ? targetDt : 0f;
+            substepDt = numSubsteps > 0 ? (1f / Settings._simulationFrequency) : 0f;
         }
 
         readonly static string s_textureArrayName = "_LD_TexArray_DynamicWaves";

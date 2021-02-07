@@ -31,7 +31,6 @@ namespace Crest
         readonly int sp_DisplaceClamp = Shader.PropertyToID("_DisplaceClamp");
         readonly int sp_Damping = Shader.PropertyToID("_Damping");
         readonly int sp_Gravity = Shader.PropertyToID("_Gravity");
-        readonly int sp_LaplacianAxisX = Shader.PropertyToID("_LaplacianAxisX");
         readonly int sp_CourantNumber = Shader.PropertyToID("_CourantNumber");
 
         SettingsType _defaultSettings;
@@ -102,9 +101,6 @@ namespace Crest
             simMaterial.SetFloat(sp_Damping, Settings._damping);
             simMaterial.SetFloat(sp_Gravity, OceanRenderer.Instance.Gravity * Settings._gravityMultiplier);
             simMaterial.SetFloat(sp_CourantNumber, Settings._courantNumber);
-
-            float laplacianKernelAngle = _rotateLaplacian ? Mathf.PI * 2f * Random.value : 0f;
-            simMaterial.SetVector(sp_LaplacianAxisX, new Vector2(Mathf.Cos(laplacianKernelAngle), Mathf.Sin(laplacianKernelAngle)));
 
             // assign sea floor depth - to slot 1 current frame data. minor bug here - this depth will actually be from the previous frame,
             // because the depth is scheduled to render just before the animated waves, and this sim happens before animated waves.

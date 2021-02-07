@@ -100,7 +100,7 @@ void UpdateDynWaves(uint3 id : SV_DispatchThreadID)
 	const float vt = ft_v.y;
 
 	// wave equation
-	float coeff = dt * c * c / (gridSize*gridSize);
+	float coeff = dt * c * c / (gridSize * gridSize);
 	float vtp = vt + coeff * (fxm + fxp + fym + fyp - 4.0 * ft);
 
 	// damping. works ok at low dts, doesnt damp well at high dts which counter intuitively leads to instabilities, i think.

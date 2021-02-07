@@ -110,6 +110,7 @@ namespace Crest
             _mpb.SetFloat(sp_weight, weight);
             _mpb.SetFloat(sp_simDeltaTime, dt);
             _mpb.SetFloat(sp_radius, Radius);
+            _mpb.SetFloat("_GravityMul", ocean._lodDataDynWaves.Settings._gravityMultiplier);
 
             _renderer.SetPropertyBlock(_mpb);
 

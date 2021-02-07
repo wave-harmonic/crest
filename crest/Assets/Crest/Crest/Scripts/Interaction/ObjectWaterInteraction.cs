@@ -147,6 +147,7 @@ namespace Crest
             _mpb.SetVector("_Velocity", vel);
             _mpb.SetFloat("_Weight", weight);
             _mpb.SetFloat("_SimDeltaTime", dt);
+            _mpb.SetFloat("_GravityMul", ocean._lodDataDynWaves.Settings._gravityMultiplier);
 
             _renderer.SetPropertyBlock(_mpb);
 

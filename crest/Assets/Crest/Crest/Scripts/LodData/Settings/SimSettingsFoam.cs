@@ -22,5 +22,7 @@ namespace Crest
         public float _shorelineFoamStrength = 2f;
         [Tooltip("The rendertexture format to use for the foam simulation")]
         public GraphicsFormat _renderTextureGraphicsFormat = GraphicsFormat.R16_SFloat;
+        [Range(15f, 200f), Tooltip("Frequency to run the foam sim, in updates per second. Lower frequencies can be more efficient but may lead to visible jitter. Default is 30 updates per second.")]
+        public float _simulationFrequency = 30f;
     }
 }

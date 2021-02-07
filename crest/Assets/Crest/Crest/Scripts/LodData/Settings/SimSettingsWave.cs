@@ -17,7 +17,7 @@ namespace Crest
             HideInInspector]
         public float _maxGridSize = 0f;
 
-        [Header("Stability")]
+        [Header("Simulation")]
         [Range(15f, 200f), Tooltip("Frequency to run the dynamic wave sim, in updates per second. Lower frequencies can be more efficent but may limit wave speed or lead to visible jitter. Default is 60 updates per second.")]
         public float _simulationFrequency = 60f;
         [Range(0f, 1f), Tooltip("How much energy is dissipated each frame. Helps sim stability, but limits how far ripples will propagate. Set this as large as possible/acceptable. Default is 0.05.")]

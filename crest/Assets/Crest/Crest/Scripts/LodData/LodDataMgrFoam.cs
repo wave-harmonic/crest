@@ -85,21 +85,10 @@ namespace Crest
             // so it computes the total update time. need to figure out how to simplify this.
             frameDt += _timeToSimulate;
 
-            // Run foam sim at 30hz. Allow to go 2% over/under to eliminate drift.
-            var targetDt = 1f / 30;
+            numSubsteps = Mathf.RoundToInt(frameDt * Settings._simulationFrequency);
 
-            var numSteps = frameDt / targetDt;
-            var frac = Mathf.Repeat(numSteps, 1f);
-            if (frac <= 0.02f || frac >= 0.98f)
-            {
-                numSubsteps = Mathf.RoundToInt(numSteps);
-            }
-            else
-            {
-                numSubsteps = Mathf.FloorToInt(numSteps);
-            }
+            substepDt = numSubsteps > 0 ? (1f / Settings._simulationFrequency) : 0f;
 
-            substepDt = numSubsteps > 0 ? frameDt / numSubsteps : 0f;
         }
 
         readonly static string s_textureArrayName = "_LD_TexArray_Foam";

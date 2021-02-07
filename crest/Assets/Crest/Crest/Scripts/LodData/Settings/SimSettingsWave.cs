@@ -18,10 +18,12 @@ namespace Crest
         public float _maxGridSize = 0f;
 
         [Header("Stability")]
+        [Range(15f, 200f), Tooltip("Frequency to run the dynamic wave sim, in updates per second. Lower frequencies can be more efficent but may limit wave speed or lead to visible jitter. Default is 60 updates per second.")]
+        public float _simulationFrequency = 60f;
         [Range(0f, 1f), Tooltip("How much energy is dissipated each frame. Helps sim stability, but limits how far ripples will propagate. Set this as large as possible/acceptable.")]
         public float _damping = 0.25f;
-        [Range(0.1f, 3f), Tooltip("Stability measurement. Lower values means more stable sim, at the cost of more computation. This value should be set as large as possible until sim instabilities/flickering begin to appear.")]
-        public float _courantNumber = 1f;
+        [Range(0.1f, 1f), Tooltip("Stability control. Lower values means more stable sim, but may slow down some dynamic waves. This value should be set as large as possible until sim instabilities/flickering begin to appear.")]
+        public float _courantNumber = 0.7f;
         [Range(1, 8), Tooltip("How many simulation substeps are allowed per frame. Run at target framerate with the OceanDebugGUI visible to see how many substeps are being done when the camera is close to the water, and set the limit to this value. If the max substeps is set lower than this value, the detailed/high frequency waves will propagate slower than they would in reality. For many applications this may not be an issue.")]
         public int _maxSimStepsPerFrame = 3;
 

@@ -23,6 +23,7 @@ float2 _LaplacianAxisX;
 float _Gravity;
 float _SimDeltaTime;
 float _LODChange;
+float _CourantNumber;
 CBUFFER_END
 
 float ComputeWaveSpeed(float wavelength, float g)
@@ -57,7 +58,7 @@ void UpdateDynWaves(uint3 id : SV_DispatchThreadID)
 	const float dt = _SimDeltaTime;
 
 	// Clamp based on my main man Courant
-	c = min( c, 0.7 * gridSize / dt );
+	c = min( c, _CourantNumber * gridSize / dt );
 
 	const float3 uv_slice = float3(input_uv, sliceIndex);
 

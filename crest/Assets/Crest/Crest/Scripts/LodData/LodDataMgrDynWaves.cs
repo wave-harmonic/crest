@@ -32,6 +32,7 @@ namespace Crest
         readonly int sp_Damping = Shader.PropertyToID("_Damping");
         readonly int sp_Gravity = Shader.PropertyToID("_Gravity");
         readonly int sp_LaplacianAxisX = Shader.PropertyToID("_LaplacianAxisX");
+        readonly int sp_CourantNumber = Shader.PropertyToID("_CourantNumber");
 
         SettingsType _defaultSettings;
         public SettingsType Settings
@@ -100,6 +101,7 @@ namespace Crest
 
             simMaterial.SetFloat(sp_Damping, Settings._damping);
             simMaterial.SetFloat(sp_Gravity, OceanRenderer.Instance.Gravity * Settings._gravityMultiplier);
+            simMaterial.SetFloat(sp_CourantNumber, Settings._courantNumber);
 
             float laplacianKernelAngle = _rotateLaplacian ? Mathf.PI * 2f * Random.value : 0f;
             simMaterial.SetVector(sp_LaplacianAxisX, new Vector2(Mathf.Cos(laplacianKernelAngle), Mathf.Sin(laplacianKernelAngle)));
@@ -123,19 +125,6 @@ namespace Crest
             }
         }
 
-        float MaxSimDt(int lodIdx)
-        {
-            var ocean = OceanRenderer.Instance;
-
-            // Limit timestep based on Courant constant: https://www.uio.no/studier/emner/matnat/ifi/nedlagte-emner/INF2340/v05/foiler/sim04.pdf
-            var Cmax = Settings._courantNumber;
-            var minWavelength = ocean._lodTransform.MaxWavelength(lodIdx) / 2f;
-            var waveSpeed = OceanWaveSpectrum.ComputeWaveSpeed(minWavelength, Settings._gravityMultiplier);
-            // 0.5f because its 2D
-            var maxDt = 0.5f * Cmax * ocean.CalcGridSize(lodIdx) / waveSpeed;
-            return maxDt;
-        }
-
         public override void GetSimSubstepData(float frameDt, out int numSubsteps, out float substepDt)
         {
             // TODO this function is called from many places and so need an accurate picture of how many substeps there will be
@@ -143,18 +132,9 @@ namespace Crest
             frameDt += _timeToSimulate;
 
             // Run dynamic wave sim at 60hz. Allow to go 2% over/under to eliminate drift.
-            var targetDt = 1f / 60;
+            var targetDt = 1f / Settings._simulationFrequency;
 
-            var numSteps = frameDt / targetDt;
-            var frac = Mathf.Repeat(numSteps, 1f);
-            //if (frac <= 0.02f || frac >= 0.98f)
-            //{
-            //    numSubsteps = Mathf.RoundToInt(numSteps);
-            //}
-            //else
-            {
-                numSubsteps = Mathf.FloorToInt(numSteps);
-            }
+            numSubsteps = Mathf.RoundToInt(frameDt / targetDt);
 
             substepDt = numSubsteps > 0 ? targetDt : 0f;
         }

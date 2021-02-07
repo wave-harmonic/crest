@@ -52,9 +52,12 @@ void UpdateDynWaves(uint3 id : SV_DispatchThreadID)
 	const float wavelength = 1.0 * _TexelsPerWave * gridSize;
 	// could make velocity depend on waves
 	//float h = max(waterSignedDepth + ft, 0.);
-	const float c = ComputeWaveSpeed(wavelength, _Gravity);
+	float c = ComputeWaveSpeed(wavelength, _Gravity);
 
 	const float dt = _SimDeltaTime;
+
+	// Clamp based on my main man Courant
+	c = min( c, 0.7 * gridSize / dt );
 
 	const float3 uv_slice = float3(input_uv, sliceIndex);
 

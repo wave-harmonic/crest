@@ -104,7 +104,8 @@ namespace Crest.EditorHelpers
                     bool canEditAsset = AssetDatabase.IsOpenForEdit(m_Editor.target, StatusQueryOptions.UseCachedIfPossible);
 
                     // We take the current GUI state into account to support attribute stacking.
-                    GUI.enabled = GUI.enabled && canEditAsset;
+                    var guiEnabled = GUI.enabled;
+                    GUI.enabled = guiEnabled && canEditAsset;
 
                     if (property.isExpanded)
                     {
@@ -121,7 +122,10 @@ namespace Crest.EditorHelpers
                         if (EditorGUI.EndChangeCheck() && (OnChanged != null))
                             OnChanged(type, property.objectReferenceValue);
                     }
+
+                    // Enable GUI so the checkout button works.
                     GUI.enabled = true;
+
                     if (m_Editor.target != null)
                     {
                         if (!canEditAsset && GUILayout.Button("Check out"))
@@ -130,6 +134,9 @@ namespace Crest.EditorHelpers
                             task.Wait();
                         }
                     }
+
+                    // Restore stacked GUI enabled state.
+                    GUI.enabled = guiEnabled;
                 }
                 EditorGUILayout.EndVertical();
             }

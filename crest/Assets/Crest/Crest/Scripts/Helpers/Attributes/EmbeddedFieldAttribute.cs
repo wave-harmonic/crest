@@ -11,7 +11,7 @@ namespace Crest
     using UnityEditor;
 #endif
 
-    public class EmbeddedFieldAttribute : PropertyAttribute
+    public class EmbeddedFieldAttribute : MultiPropertyAttribute
     {
 #if UNITY_EDITOR
         internal EmbeddedAssetEditor editor;
@@ -23,20 +23,16 @@ namespace Crest
             editor = new EmbeddedAssetEditor();
 #endif
         }
-    }
 
 #if UNITY_EDITOR
-    [CustomPropertyDrawer(typeof(EmbeddedFieldAttribute))]
-    public class EmbeddedFieldAttributePropertyDrawer : PropertyDrawer
-    {
-        public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
+        internal override void OnGUI(Rect position, SerializedProperty property, GUIContent label, MultiPropertyDrawer drawer)
         {
-            EmbeddedFieldAttribute embeddedAttribute = (EmbeddedFieldAttribute)attribute;
-            embeddedAttribute.editor.DrawEditorCombo(this, property, "asset");
+            EmbeddedFieldAttribute embeddedAttribute = this;
+            embeddedAttribute.editor.DrawEditorCombo(drawer, property, "asset");
         }
 
         // Removes space above embedded editor so the embedded editor replaces this drawer.
-        public override float GetPropertyHeight(SerializedProperty property, GUIContent label) => 0f;
-    }
+        internal override float? GetPropertyHeight(SerializedProperty property, GUIContent label) => 0f;
 #endif
+    }
 }

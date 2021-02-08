@@ -33,6 +33,9 @@ Shader "Crest/Inputs/Dynamic Waves/Sphere-Water Interaction"
 			float _GravityMul;
 			CBUFFER_END
 
+			float _MinWavelength;
+			float _LodIdx;
+
 			struct Attributes
 			{
 				float3 positionOS : POSITION;
@@ -60,7 +63,18 @@ Shader "Crest/Inputs/Dynamic Waves/Sphere-Water Interaction"
 
 				o.positionCS = mul(UNITY_MATRIX_VP, float4(vertexWorldPos, 1.0));
 
+				if( _Radius*1.0 < _MinWavelength ) o.positionCS *= 0.;
+
 				return o;
+			}
+
+			float bandfilteredStep( float a, float x )
+			{
+				float a2 = a * a;
+				float a4 = a2 * a2;
+				float a6 = a2 * a4;
+
+				return a * x / (1.0 + a6 * pow( x, 6.0 ));
 			}
 
 			// Signed distance field for sphere.
@@ -87,9 +101,12 @@ Shader "Crest/Inputs/Dynamic Waves/Sphere-Water Interaction"
 
 				// Forces from horizontal motion - push water up in direction of motion, pull down behind.
 				float forceHoriz = -0.75 * dot(sdfNormal, _Velocity.xz);
-				if (signedDist > 0.0)
+				if( signedDist > 0.0 );// && forceHoriz < 0.)
 				{
-					forceHoriz *= -exp(-signedDist * signedDist);
+					float range = 0.7;
+					float a = 1.0 / (_MinWavelength * range);
+					forceHoriz *= -bandfilteredStep( a, signedDist + 0. * _MinWavelength );
+					//forceHoriz *= -exp( -signedDist * signedDist );
 				}
 
 				// Add to velocity (y-channel) to accelerate water.

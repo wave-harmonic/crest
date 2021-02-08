@@ -154,6 +154,8 @@ namespace Crest
                 {
                     for (var lodIdx = lodCount - 1; lodIdx >= 0; lodIdx--)
                     {
+                        buf.SetGlobalFloat("_MinWavelength", ocean._lodTransform.MaxWavelength(lodIdx) / 2f);
+                        buf.SetGlobalFloat("_LodIdx", lodIdx);
                         buf.SetRenderTarget(_targets, _targets.depthBuffer, 0, CubemapFace.Unknown, lodIdx);
                         SubmitDraws(lodIdx, buf);
                     }

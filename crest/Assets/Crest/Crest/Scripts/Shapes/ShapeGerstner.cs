@@ -7,7 +7,6 @@ using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 using Unity.Collections.LowLevel.Unsafe;
 using Crest.Spline;
-using Crest.EditorHelpers;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -24,7 +23,7 @@ namespace Crest
         , IReceiveSplinePointOnDrawGizmosSelectedMessages
 #endif
     {
-        [Tooltip("The spectrum that defines the ocean surface shape. Assign asset of type Crest/Ocean Waves Spectrum.")]
+        [Tooltip("The spectrum that defines the ocean surface shape. Assign asset of type Crest/Ocean Waves Spectrum."), EmbeddedField]
         public OceanWaveSpectrum _spectrum;
         OceanWaveSpectrum _activeSpectrum = null;
 
@@ -34,7 +33,7 @@ namespace Crest
         [Tooltip("Primary wave direction heading (deg). This is the angle from x axis in degrees that the waves are oriented towards. If a spline is being used to place the waves, this angle is relative ot the spline."), Range(-180, 180)]
         public float _waveDirectionHeadingAngle = 0f;
         public Vector2 PrimaryWaveDirection => new Vector2(Mathf.Cos(Mathf.PI * _waveDirectionHeadingAngle / 180f), Mathf.Sin(Mathf.PI * _waveDirectionHeadingAngle / 180f));
-        
+
         [Tooltip("Multiplier for these waves to scale up/down."), Range(0f, 1f)]
         public float _weight = 1f;
 
@@ -692,37 +691,6 @@ namespace Crest
 
     // Here for the help boxes
     [CustomEditor(typeof(ShapeGerstner))]
-    public class ShapeGerstnerEditor : ValidatedEditor
-    {
-        readonly string[] _propertiesToExclude = new string[] { "m_Script", "_spectrum" };
-
-        EmbeddeAssetEditor<OceanWaveSpectrum> m_settingsEditorSpectrum;
-
-        void OnEnable()
-        {
-            m_settingsEditorSpectrum = new EmbeddeAssetEditor<OceanWaveSpectrum>("_spectrum", this);
-        }
-        void OnDisable()
-        {
-            if (m_settingsEditorSpectrum != null)
-            {
-                m_settingsEditorSpectrum.OnDisable();
-            }
-        }
-
-        public override void OnInspectorGUI()
-        {
-            GUI.enabled = false;
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("m_Script"));
-            GUI.enabled = true;
-
-            // In-line settings editors
-            m_settingsEditorSpectrum.DrawEditorCombo("Create New Wave Spectrum Asset", "WaveSpectrum", "asset", string.Empty, "Wave Spectrum", false);
-
-            DrawPropertiesExcluding(serializedObject, _propertiesToExclude);
-
-            serializedObject.ApplyModifiedProperties();
-        }
-    }
+    public class ShapeGerstnerEditor : ValidatedEditor { }
 #endif
 }

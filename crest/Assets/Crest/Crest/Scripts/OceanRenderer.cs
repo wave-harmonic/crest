@@ -5,7 +5,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Unity.Collections.LowLevel.Unsafe;
-using Crest.EditorHelpers;
 #if UNITY_EDITOR
 using UnityEngine.Rendering;
 using UnityEditor;
@@ -165,6 +164,7 @@ namespace Crest
 
         [Header("Simulation Params")]
 
+        [EmbeddedField]
         public SimSettingsAnimatedWaves _simSettingsAnimatedWaves;
 
         [Tooltip("Water depth information used for shallow water, shoreline foam, wave attenuation, among others."), SerializeField]
@@ -174,25 +174,25 @@ namespace Crest
         [Tooltip("Simulation of foam created in choppy water and dissipating over time."), SerializeField]
         bool _createFoamSim = true;
         public bool CreateFoamSim { get { return _createFoamSim; } }
-        [PredicatedField("_createFoamSim")]
+        [PredicatedField("_createFoamSim", order = 0), EmbeddedField(order = 1)]
         public SimSettingsFoam _simSettingsFoam;
 
         [Tooltip("Dynamic waves generated from interactions with objects such as boats."), SerializeField]
         bool _createDynamicWaveSim = false;
         public bool CreateDynamicWaveSim { get { return _createDynamicWaveSim; } }
-        [PredicatedField("_createDynamicWaveSim")]
+        [PredicatedField("_createDynamicWaveSim", order = 0), EmbeddedField(order = 1)]
         public SimSettingsWave _simSettingsDynamicWaves;
 
         [Tooltip("Horizontal motion of water body, akin to water currents."), SerializeField]
         bool _createFlowSim = false;
         public bool CreateFlowSim { get { return _createFlowSim; } }
-        [PredicatedField("_createFlowSim")]
+        [PredicatedField("_createFlowSim", order = 0), EmbeddedField(order = 1)]
         public SimSettingsFlow _simSettingsFlow;
 
         [Tooltip("Shadow information used for lighting water."), SerializeField]
         bool _createShadowData = false;
         public bool CreateShadowData { get { return _createShadowData; } }
-        [PredicatedField("_createShadowData")]
+        [PredicatedField("_createShadowData", order = 0), EmbeddedField(order = 1)]
         public SimSettingsShadow _simSettingsShadow;
 
         [Tooltip("Clip surface information for clipping the ocean surface."), SerializeField]
@@ -1308,40 +1308,9 @@ namespace Crest
     [CustomEditor(typeof(OceanRenderer))]
     public class OceanRendererEditor : ValidatedEditor
     {
-        readonly string[] _propertiesToExclude = new string[] { "m_Script", "_simSettingsFoam", "_simSettingsShadow" };
-        //readonly string[] _propertiesToExclude = new string[] { "m_Script", "_type", "_refreshMode", "_savedCache", "_layerNames", "_resolution", "_cameraMaxTerrainHeight", "_forceAlwaysUpdateDebug" };
-
-        EmbeddeAssetEditor<SimSettingsFoam> m_settingsEditorFoam;
-        EmbeddeAssetEditor<SimSettingsShadow> m_settingsEditorShadow;
-
-        void OnEnable()
-        {
-            m_settingsEditorFoam = new EmbeddeAssetEditor<SimSettingsFoam>("_simSettingsFoam", this);
-            m_settingsEditorShadow = new EmbeddeAssetEditor<SimSettingsShadow>("_simSettingsShadow", this);
-        }
-        void OnDisable()
-        {
-            if (m_settingsEditorFoam != null)
-            {
-                m_settingsEditorFoam.OnDisable();
-            }
-            if (m_settingsEditorShadow != null)
-            {
-                m_settingsEditorShadow.OnDisable();
-            }
-        }
-
         public override void OnInspectorGUI()
         {
-            GUI.enabled = false;
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("m_Script"));
-            GUI.enabled = true;
-
-            DrawPropertiesExcluding(serializedObject, _propertiesToExclude);
-
-            // In-line settings editors
-            m_settingsEditorFoam.DrawEditorCombo("Create New Foam Settings Asset", "Settings_Foam", "asset", string.Empty, "Foam Settings", false);
-            m_settingsEditorShadow.DrawEditorCombo("Create New Shadow Settings Asset", "Settings_Shadow", "asset", string.Empty, "Shadow Settings", false);
+            base.OnInspectorGUI();
 
             var target = this.target as OceanRenderer;
 
@@ -1355,8 +1324,6 @@ namespace Crest
             {
                 OceanRenderer.RunValidation(target);
             }
-
-            serializedObject.ApplyModifiedProperties();
         }
     }
 #endif

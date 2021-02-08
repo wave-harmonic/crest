@@ -23,7 +23,7 @@ namespace Crest
         , IReceiveSplinePointOnDrawGizmosSelectedMessages
 #endif
     {
-        [EmbeddedField]
+        [Tooltip("The spectrum that defines the ocean surface shape. Assign asset of type Crest/Ocean Waves Spectrum."), EmbeddedField]
         public OceanWaveSpectrum _spectrum;
         OceanWaveSpectrum _activeSpectrum = null;
 
@@ -691,8 +691,6 @@ namespace Crest
 
     // Here for the help boxes
     [CustomEditor(typeof(ShapeGerstner))]
-    public class ShapeGerstnerEditor : ValidatedEditor
-    {
-    }
+    public class ShapeGerstnerEditor : ValidatedEditor { }
 #endif
 }

@@ -10,11 +10,11 @@
 
 namespace Crest
 {
-    using UnityEditor;
+    using UnityEngine;
 
 #if UNITY_EDITOR
     using Crest.EditorHelpers;
-    using UnityEngine;
+    using UnityEditor;
 #endif
 
     public abstract class MultiPropertyAttribute : PropertyAttribute
@@ -34,6 +34,6 @@ namespace Crest
         /// Override this method to specify how tall the GUI for this field is in pixels.
         /// </summary>
         internal virtual float? GetPropertyHeight(SerializedProperty property, GUIContent label) => null;
-    }
 #endif
+    }
 }

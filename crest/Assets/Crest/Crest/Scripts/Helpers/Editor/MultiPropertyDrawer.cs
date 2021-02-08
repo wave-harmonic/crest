@@ -5,6 +5,8 @@
 // This class draws all the attributes which inherit from MultiPropertyAttribute. This class may need to be extended to
 // handle reseting GUI states as we need them.
 
+#if UNITY_EDITOR
+
 namespace Crest.EditorHelpers
 {
     using System.Collections.Generic;
@@ -71,3 +73,5 @@ namespace Crest.EditorHelpers
         }
     }
 }
+
+#endif

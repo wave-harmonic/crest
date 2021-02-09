@@ -19,6 +19,15 @@ uniform float4 _LightShadowData;
 #define _LightShadowData _LightShadowData_KNOCKED_OUT
 #endif
 
+// @Hack:
+// Fixes the following error on Metal:
+// > Shader error in 'UpdateShadow.compute': All kernels must use same constant buffer layouts; 'unity_LightColor0'
+// > property found to be different
+// unity_LightColor0 is defined in a constant buffer called "UnityLightingOld". We probably do not use this.
+#if SHADER_API_METAL
+#define unity_LightColor0 unity_LightColor0_KNOCKED_OUT
+#endif
+
 #include "UnityCG.cginc"
 
 #if SHADER_API_VULKAN || SHADER_API_METAL

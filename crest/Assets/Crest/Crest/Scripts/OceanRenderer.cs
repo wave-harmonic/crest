@@ -1126,18 +1126,6 @@ namespace Crest
         {
             var isValid = true;
 
-#if !UNITY_2019_4_9_OR_NEWER
-            if (_camera == null)
-            {
-                showMessage
-                (
-                    "Not setting the camera property will result in using Camera.main which has a significant " +
-                    "performance cost. This is improved in Unity 2019.4.9 and above.",
-                    ValidatedHelper.MessageType.Warning, ocean
-                );
-            }
-#endif
-
             if (_material == null)
             {
                 showMessage

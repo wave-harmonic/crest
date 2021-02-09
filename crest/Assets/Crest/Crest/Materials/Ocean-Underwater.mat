@@ -127,6 +127,7 @@ Material:
     - _PlanarReflectionNormalsStrength: 1
     - _PlanarReflections: 0
     - _ProceduralSky: 0
+    - _Projection: 0
     - _RefractAmt: 0
     - _RefractionStrength: 1
     - _RefractiveIndexOfAir: 1.2

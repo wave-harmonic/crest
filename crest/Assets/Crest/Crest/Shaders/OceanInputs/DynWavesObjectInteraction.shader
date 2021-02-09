@@ -101,7 +101,7 @@ Shader "Crest/Inputs/Dynamic Waves/Object Interaction"
 				}
 
 				// Accelerated velocities
-				return _Weight * half4(0., col.x * _SimDeltaTime, 0., 0.);
+				return _Weight * half4(0., col.x*_SimDeltaTime, 0., 0.);
 			}
 			ENDCG
 		}

@@ -67,13 +67,16 @@ Shader "Crest/Inputs/Dynamic Waves/Sphere-Water Interaction"
 				return o;
 			}
 
-			float bandfilteredStep( float a, float x )
+			// Resolution-aware interaction falloff function, inspired by "bandfiltered step" from Ottosson.
+			// Basically adding together this falloff function at different scales generates a consistent result
+			// that doesn't grow into an ugly uintended shape. Shadertoy with more details: https://www.shadertoy.com/view/WltBWM
+			float InteractionFalloff( float a, float x )
 			{
-				float a2 = a * a;
-				float a4 = a2 * a2;
-				float a6 = a2 * a4;
-
-				return a * x / (1.0 + a6 * pow( x, 6.0 ));
+				float ax = a * x;
+				float ax2 = ax * ax;
+				float ax4 = ax2 * ax2;
+				
+				return ax / (1.0 + ax2 * ax4);
 			}
 
 			// Signed distance field for sphere.
@@ -99,13 +102,13 @@ Shader "Crest/Inputs/Dynamic Waves/Sphere-Water Interaction"
 				}
 
 				// Forces from horizontal motion - push water up in direction of motion, pull down behind.
-				float forceHoriz = -0.75 * dot(sdfNormal, _Velocity.xz);
-				if( signedDist > 0.0 );// && forceHoriz < 0.)
+				float forceHoriz = 0.75 * dot(sdfNormal, _Velocity.xz);
+				if( signedDist > 0.0 )
 				{
-					float range = 0.7;
-					float a = 1.0 / (_MinWavelength * range);
-					forceHoriz *= -bandfilteredStep( a, signedDist + 0. * _MinWavelength );
-					//forceHoriz *= -exp( -signedDist * signedDist );
+					// Range / radius of interaction force
+					const float range = 0.7 * _MinWavelength;
+					const float a = 1.0 / range;
+					forceHoriz *= InteractionFalloff( a, signedDist );
 				}
 
 				// Add to velocity (y-channel) to accelerate water.

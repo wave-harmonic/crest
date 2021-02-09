@@ -266,7 +266,7 @@ namespace Crest
             {
                 _activeSpectrum = _spectrum;
             }
-            // TODO - dont do this. could init to default spectrum asset in Reset() function
+
             if (_activeSpectrum == null)
             {
                 _activeSpectrum = ScriptableObject.CreateInstance<OceanWaveSpectrum>();

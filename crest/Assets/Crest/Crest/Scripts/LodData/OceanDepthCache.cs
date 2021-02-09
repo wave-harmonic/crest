@@ -255,6 +255,14 @@ namespace Crest
                 return;
             }
 
+#if UNITY_EDITOR
+            // Users must call this themselves during runtime if they change depth cache settings during runtime.
+            if (!Application.isPlaying || _forceAlwaysUpdateDebug)
+            {
+                UpdateCacheComponents();
+            }
+#endif
+
             // Render scene, saving depths in depth buffer.
             _camDepthCache.Render();
 
@@ -297,6 +305,54 @@ namespace Crest
                 {
                     // Only disable component when in play mode, otherwise it changes authoring data
                     enabled = false;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Updates components like the depth cache camera. Call this after changing any of the depth cache settings
+        /// like resolution.
+        /// </summary>
+        public void UpdateCacheComponents()
+        {
+            UpdateCacheCamera();
+            UpdateCacheTexture();
+        }
+
+        void UpdateCacheCamera()
+        {
+            if (_camDepthCache == null)
+            {
+                return;
+            }
+
+            _camDepthCache.transform.position = transform.position + Vector3.up * _cameraMaxTerrainHeight;
+            _camDepthCache.orthographicSize = Mathf.Max(transform.lossyScale.x / 2f, transform.lossyScale.z / 2f);
+
+            if (_camDepthCache.targetTexture.width != _resolution || _camDepthCache.targetTexture.height != _resolution)
+            {
+                _camDepthCache.targetTexture.Release();
+                _camDepthCache.targetTexture = MakeRT(true);
+                _camDepthCache.targetTexture.Create();
+            }
+        }
+
+        void UpdateCacheTexture()
+        {
+            if (_cacheTexture == null)
+            {
+                return;
+            }
+
+            if (_cacheTexture.width != _resolution || _cacheTexture.height != _resolution)
+            {
+                _cacheTexture.Release();
+                _cacheTexture = MakeRT(false);
+                _cacheTexture.Create();
+
+                if (_drawCacheQuad != null)
+                {
+                    _drawCacheQuad.GetComponent<Renderer>().sharedMaterial.mainTexture = _cacheTexture;
                 }
             }
         }

@@ -1,6 +1,6 @@
 ﻿// Crest Ocean System
 
-// Taken and modified from: https://forum.unity.com/threads/drawing-a-field-using-multiple-property-drawers.479377/
+// Adapted from: https://forum.unity.com/threads/drawing-a-field-using-multiple-property-drawers.479377/
 
 // This class draws all the attributes which inherit from MultiPropertyAttribute. This class may need to be extended to
 // handle reseting GUI states as we need them.

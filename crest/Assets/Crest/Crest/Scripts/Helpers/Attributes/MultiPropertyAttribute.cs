@@ -1,6 +1,6 @@
 ﻿// Crest Ocean System
 
-// Taken and modified from: https://forum.unity.com/threads/drawing-a-field-using-multiple-property-drawers.479377/
+// Adapted from: https://forum.unity.com/threads/drawing-a-field-using-multiple-property-drawers.479377/
 
 // This class allows multiple attributes to be used together providing they inherit from this class. It also eliminates
 // the requirement to create a custom property drawer as the MultiPropertyDrawer class handles all of that for us. The

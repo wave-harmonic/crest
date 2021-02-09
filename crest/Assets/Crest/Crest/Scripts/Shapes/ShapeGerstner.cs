@@ -23,9 +23,9 @@ namespace Crest
         , IReceiveSplinePointOnDrawGizmosSelectedMessages
 #endif
     {
-        [Header("Wave Settings")]
-        [Tooltip("The spectrum that defines the ocean surface shape. Assign asset of type Crest/Ocean Waves Spectrum.")]
+        [Tooltip("The spectrum that defines the ocean surface shape. Assign asset of type Crest/Ocean Waves Spectrum."), EmbeddedField]
         public OceanWaveSpectrum _spectrum;
+        OceanWaveSpectrum _activeSpectrum = null;
 
         [Tooltip("When true, the wave spectrum is evaluated once on startup in editor play mode and standalone builds, rather than every frame. This is less flexible but reduces the performance cost significantly."), SerializeField]
         bool _spectrumFixedAtRuntime = true;
@@ -33,7 +33,7 @@ namespace Crest
         [Tooltip("Primary wave direction heading (deg). This is the angle from x axis in degrees that the waves are oriented towards. If a spline is being used to place the waves, this angle is relative ot the spline."), Range(-180, 180)]
         public float _waveDirectionHeadingAngle = 0f;
         public Vector2 PrimaryWaveDirection => new Vector2(Mathf.Cos(Mathf.PI * _waveDirectionHeadingAngle / 180f), Mathf.Sin(Mathf.PI * _waveDirectionHeadingAngle / 180f));
-        
+
         [Tooltip("Multiplier for these waves to scale up/down."), Range(0f, 1f)]
         public float _weight = 1f;
 
@@ -262,10 +262,15 @@ namespace Crest
 #if UNITY_EDITOR
         void UpdateEditorOnly()
         {
-            if (_spectrum == null)
+            if (_spectrum != null)
             {
-                _spectrum = ScriptableObject.CreateInstance<OceanWaveSpectrum>();
-                _spectrum.name = "Default Waves (auto)";
+                _activeSpectrum = _spectrum;
+            }
+
+            if (_activeSpectrum == null)
+            {
+                _activeSpectrum = ScriptableObject.CreateInstance<OceanWaveSpectrum>();
+                _activeSpectrum.name = "Default Waves (auto)";
             }
 
             // Unassign mesh
@@ -341,15 +346,15 @@ namespace Crest
 
                     _waveData[vi]._amp[ei] = _amplitudes[componentIdx];
 
-                    float chopScale = _spectrum._chopScales[componentIdx / _componentsPerOctave];
-                    _waveData[vi]._chopAmp[ei] = -chopScale * _spectrum._chop * _amplitudes[componentIdx];
+                    float chopScale = _activeSpectrum._chopScales[componentIdx / _componentsPerOctave];
+                    _waveData[vi]._chopAmp[ei] = -chopScale * _activeSpectrum._chop * _amplitudes[componentIdx];
 
                     float angle = Mathf.Deg2Rad * _angleDegs[componentIdx];
                     float dx = Mathf.Cos(angle);
                     float dz = Mathf.Sin(angle);
 
-                    float gravityScale = _spectrum._gravityScales[(componentIdx) / _componentsPerOctave];
-                    float gravity = OceanRenderer.Instance.Gravity * _spectrum._gravityScale;
+                    float gravityScale = _activeSpectrum._gravityScales[(componentIdx) / _componentsPerOctave];
+                    float gravity = OceanRenderer.Instance.Gravity * _activeSpectrum._gravityScale;
                     float C = Mathf.Sqrt(_wavelengths[componentIdx] * gravity * gravityScale * _recipTwoPi);
                     float k = _twoPi / _wavelengths[componentIdx];
 
@@ -423,11 +428,11 @@ namespace Crest
 
                 var wl = MinWavelength(i) * 1.5f;
                 var octaveIndex = OceanWaveSpectrum.GetOctaveIndex(wl);
-                octaveIndex = Mathf.Min(octaveIndex, _spectrum._chopScales.Length - 1);
+                octaveIndex = Mathf.Min(octaveIndex, _activeSpectrum._chopScales.Length - 1);
 
                 // Heuristic - horiz disp is roughly amp*chop, divide by wavelength to normalize
-                var amp = _spectrum.GetAmplitude(wl, 1f, out _);
-                var chop = _spectrum._chopScales[octaveIndex];
+                var amp = _activeSpectrum.GetAmplitude(wl, 1f, out _);
+                var chop = _activeSpectrum._chopScales[octaveIndex];
                 float amp_over_wl = chop * amp / wl;
                 _cascadeParams[i]._cumulativeVariance += amp_over_wl;
             }
@@ -472,7 +477,7 @@ namespace Crest
             Random.State randomStateBkp = Random.state;
             Random.InitState(_randomSeed);
 
-            _spectrum.GenerateWaveData(_componentsPerOctave, ref _wavelengths, ref _angleDegs);
+            _activeSpectrum.GenerateWaveData(_componentsPerOctave, ref _wavelengths, ref _angleDegs);
 
             UpdateAmplitudes();
 
@@ -500,7 +505,7 @@ namespace Crest
 
             for (int i = 0; i < _wavelengths.Length; i++)
             {
-                _amplitudes[i] = Random.value * _weight * _spectrum.GetAmplitude(_wavelengths[i], _componentsPerOctave, out _powers[i]);
+                _amplitudes[i] = Random.value * _weight * _activeSpectrum.GetAmplitude(_wavelengths[i], _componentsPerOctave, out _powers[i]);
             }
         }
 
@@ -527,17 +532,17 @@ namespace Crest
 
         private void ReportMaxDisplacement()
         {
-            if (_spectrum._chopScales.Length != OceanWaveSpectrum.NUM_OCTAVES)
+            if (_activeSpectrum._chopScales.Length != OceanWaveSpectrum.NUM_OCTAVES)
             {
-                Debug.LogError($"OceanWaveSpectrum {_spectrum.name} is out of date, please open this asset and resave in editor.", _spectrum);
+                Debug.LogError($"OceanWaveSpectrum {_activeSpectrum.name} is out of date, please open this asset and resave in editor.", _activeSpectrum);
             }
 
             float ampSum = 0f;
             for (int i = 0; i < _wavelengths.Length; i++)
             {
-                ampSum += _amplitudes[i] * _spectrum._chopScales[i / _componentsPerOctave];
+                ampSum += _amplitudes[i] * _activeSpectrum._chopScales[i / _componentsPerOctave];
             }
-            OceanRenderer.Instance.ReportMaxDisplacementFromShape(ampSum * _spectrum._chop, ampSum, ampSum);
+            OceanRenderer.Instance.ReportMaxDisplacementFromShape(ampSum * _activeSpectrum._chop, ampSum, ampSum);
         }
 
         void InitBatches()
@@ -585,10 +590,14 @@ namespace Crest
 
 #if UNITY_EDITOR
             // Initialise with spectrum
-            if (_spectrum == null)
+            if (_spectrum != null)
             {
-                _spectrum = ScriptableObject.CreateInstance<OceanWaveSpectrum>();
-                _spectrum.name = "Default Waves (auto)";
+                _activeSpectrum = _spectrum;
+            }
+            if (_activeSpectrum == null)
+            {
+                _activeSpectrum = ScriptableObject.CreateInstance<OceanWaveSpectrum>();
+                _activeSpectrum.name = "Default Waves (auto)";
             }
 
             if (EditorApplication.isPlaying && !Validate(OceanRenderer.Instance, ValidatedHelper.DebugLog))
@@ -597,7 +606,7 @@ namespace Crest
                 return;
             }
 
-            _spectrum.Upgrade();
+            _activeSpectrum.Upgrade();
 #endif
 
             LodDataMgrAnimWaves.RegisterUpdatable(this);
@@ -682,8 +691,6 @@ namespace Crest
 
     // Here for the help boxes
     [CustomEditor(typeof(ShapeGerstner))]
-    public class ShapeGerstnerEditor : ValidatedEditor
-    {
-    }
+    public class ShapeGerstnerEditor : ValidatedEditor { }
 #endif
 }

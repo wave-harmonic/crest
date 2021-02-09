@@ -27,7 +27,7 @@ namespace Crest
         [Tooltip("If set to 'Global', waves will render everywhere. If set to 'Geometry', the geometry on this GameObject will be rendered from a top down perspective to generate the waves. This allows having local wave conditions by placing Quad geometry where desired. The geometry must have one of the Gerstner shaders on it such as 'Crest/Inputs/Animated Waves/Gerstner Batch Geometry'.")]
         public GerstnerMode _mode = GerstnerMode.Global;
 
-        [Tooltip("The spectrum that defines the ocean surface shape. Create asset of type Crest/Ocean Waves Spectrum.")]
+        [Tooltip("The spectrum that defines the ocean surface shape. Create asset of type Crest/Ocean Waves Spectrum."), EmbeddedField]
         public OceanWaveSpectrum _spectrum;
 
         [Tooltip("Wind direction (angle from x axis in degrees)"), Range(-180, 180)]

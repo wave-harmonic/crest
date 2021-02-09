@@ -33,7 +33,7 @@ namespace Crest
 #if UNITY_EDITOR
                 if (_followSceneCamera)
                 {
-                    var sceneViewCamera = EditorHelpers.GetActiveSceneViewCamera();
+                    var sceneViewCamera = EditorHelpers.EditorHelpers.GetActiveSceneViewCamera();
                     if (sceneViewCamera != null)
                     {
                         return sceneViewCamera.transform;
@@ -70,7 +70,7 @@ namespace Crest
 #if UNITY_EDITOR
                 if (_followSceneCamera)
                 {
-                    var sceneViewCamera = EditorHelpers.GetActiveSceneViewCamera();
+                    var sceneViewCamera = EditorHelpers.EditorHelpers.GetActiveSceneViewCamera();
                     if (sceneViewCamera != null)
                     {
                         return sceneViewCamera;
@@ -164,6 +164,7 @@ namespace Crest
 
         [Header("Simulation Params")]
 
+        [EmbeddedField]
         public SimSettingsAnimatedWaves _simSettingsAnimatedWaves;
 
         [Tooltip("Water depth information used for shallow water, shoreline foam, wave attenuation, among others."), SerializeField]
@@ -173,25 +174,25 @@ namespace Crest
         [Tooltip("Simulation of foam created in choppy water and dissipating over time."), SerializeField]
         bool _createFoamSim = true;
         public bool CreateFoamSim { get { return _createFoamSim; } }
-        [PredicatedField("_createFoamSim")]
+        [PredicatedField("_createFoamSim", order = 0), EmbeddedField(order = 1)]
         public SimSettingsFoam _simSettingsFoam;
 
         [Tooltip("Dynamic waves generated from interactions with objects such as boats."), SerializeField]
         bool _createDynamicWaveSim = false;
         public bool CreateDynamicWaveSim { get { return _createDynamicWaveSim; } }
-        [PredicatedField("_createDynamicWaveSim")]
+        [PredicatedField("_createDynamicWaveSim", order = 0), EmbeddedField(order = 1)]
         public SimSettingsWave _simSettingsDynamicWaves;
 
         [Tooltip("Horizontal motion of water body, akin to water currents."), SerializeField]
         bool _createFlowSim = false;
         public bool CreateFlowSim { get { return _createFlowSim; } }
-        [PredicatedField("_createFlowSim")]
+        [PredicatedField("_createFlowSim", order = 0), EmbeddedField(order = 1)]
         public SimSettingsFlow _simSettingsFlow;
 
         [Tooltip("Shadow information used for lighting water."), SerializeField]
         bool _createShadowData = false;
         public bool CreateShadowData { get { return _createShadowData; } }
-        [PredicatedField("_createShadowData")]
+        [PredicatedField("_createShadowData", order = 0), EmbeddedField(order = 1)]
         public SimSettingsShadow _simSettingsShadow;
 
         [Tooltip("Clip surface information for clipping the ocean surface."), SerializeField]

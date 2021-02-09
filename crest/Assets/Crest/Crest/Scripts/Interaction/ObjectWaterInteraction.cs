@@ -144,9 +144,11 @@ namespace Crest
             _renderer.GetPropertyBlock(_mpb);
 
             _mpb.SetVector("_Velocity", vel);
-            _mpb.SetFloat("_Weight", weight);
             _mpb.SetFloat("_SimDeltaTime", dt);
-            _mpb.SetFloat("_GravityMul", ocean._lodDataDynWaves.Settings._gravityMultiplier);
+
+            // Weighting with this value helps keep ripples consistent for different gravity values
+            var gravityMul = Mathf.Sqrt(ocean._lodDataDynWaves.Settings._gravityMultiplier / 25f);
+            _mpb.SetFloat("_Weight", weight * gravityMul);
 
             _renderer.SetPropertyBlock(_mpb);
 

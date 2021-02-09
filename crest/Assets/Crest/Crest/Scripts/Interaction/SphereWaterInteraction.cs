@@ -88,7 +88,7 @@ namespace Crest
             // Velocity relative to water
             Vector3 relativeVelocity = LateUpdateComputeVelRelativeToWater(ocean);
 
-            var dt = 1 / ocean._lodDataDynWaves.Settings._simulationFrequency;
+            var dt = 1f / ocean._lodDataDynWaves.Settings._simulationFrequency;
             var weight = _weight;
 
             var waterHeight = disp.y + ocean.SeaLevel;
@@ -97,10 +97,12 @@ namespace Crest
             _renderer.GetPropertyBlock(_mpb);
 
             _mpb.SetVector(sp_velocity, relativeVelocity);
-            _mpb.SetFloat(sp_weight, weight);
             _mpb.SetFloat(sp_simDeltaTime, dt);
             _mpb.SetFloat(sp_radius, Radius);
-            _mpb.SetFloat("_GravityMul", ocean._lodDataDynWaves.Settings._gravityMultiplier);
+
+            // Weighting with this value helps keep ripples consistent for different gravity values
+            var gravityMul = Mathf.Sqrt(ocean._lodDataDynWaves.Settings._gravityMultiplier / 25f);
+            _mpb.SetFloat(sp_weight, weight * gravityMul);
 
             _renderer.SetPropertyBlock(_mpb);
 

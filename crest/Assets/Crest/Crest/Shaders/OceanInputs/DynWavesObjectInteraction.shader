@@ -35,7 +35,6 @@ Shader "Crest/Inputs/Dynamic Waves/Object Interaction"
 			float _Strength;
 			float _Weight;
 			float3 _DisplacementAtInputPosition;
-			float _GravityMul;
 			CBUFFER_END
 			
 			struct Attributes
@@ -102,7 +101,7 @@ Shader "Crest/Inputs/Dynamic Waves/Object Interaction"
 				}
 
 				// Accelerated velocities
-				return _Weight * half4(0., col.x * _SimDeltaTime, 0., 0.) * sqrt(_GravityMul / 22.0);
+				return _Weight * half4(0., col.x * _SimDeltaTime, 0., 0.);
 			}
 			ENDCG
 		}

@@ -30,7 +30,6 @@ Shader "Crest/Inputs/Dynamic Waves/Sphere-Water Interaction"
 			float _Weight;
 			float _Radius;
 			float3 _DisplacementAtInputPosition;
-			float _GravityMul;
 			CBUFFER_END
 
 			float _MinWavelength;
@@ -110,8 +109,7 @@ Shader "Crest/Inputs/Dynamic Waves/Sphere-Water Interaction"
 				}
 
 				// Add to velocity (y-channel) to accelerate water.
-				return _Weight * half4(0.0, (forceUpDown + forceHoriz) * _SimDeltaTime * _Strength, 0.0, 0.0)
-					* sqrt( _GravityMul / 25.0 );
+				return _Weight * half4(0.0, (forceUpDown + forceHoriz) * _SimDeltaTime * _Strength, 0.0, 0.0);
 			}
 			ENDCG
 		}

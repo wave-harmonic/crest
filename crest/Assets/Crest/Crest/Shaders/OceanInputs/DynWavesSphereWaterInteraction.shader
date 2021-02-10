@@ -62,7 +62,7 @@ Shader "Crest/Inputs/Dynamic Waves/Sphere-Water Interaction"
 
 				o.positionCS = mul(UNITY_MATRIX_VP, float4(vertexWorldPos, 1.0));
 
-				if( _Radius*1.0 < _MinWavelength ) o.positionCS *= 0.;
+				if( _Radius < _MinWavelength ) o.positionCS *= 0.0;
 
 				return o;
 			}
@@ -95,20 +95,29 @@ Shader "Crest/Inputs/Dynamic Waves/Sphere-Water Interaction"
 				SphereSDF(input.offsetXZ, signedDist, sdfNormal);
 
 				// Forces from up/down motion. Push in same direction as vel inside sphere, and opposite dir outside.
-				float forceUpDown = _Velocity.y;
-				if (signedDist > 0.0)
+				float forceUpDown = 0.0;
+				if( _Radius > _MinWavelength )
 				{
-					forceUpDown *= -exp(-signedDist * signedDist * 4.0);
+					forceUpDown = -5. * _Velocity.y;
+					if( signedDist > 0.0 );// && _Radius < 8.0 * _MinWavelength )
+					{
+						//forceUpDown *= -exp(-signedDist * signedDist * 4.0);
+						// Range / radius of interaction force
+						const float range = 0.6 * _MinWavelength;
+						const float a = 1.0 / range;
+						forceUpDown *= InteractionFalloff( a, signedDist );
+					}
+
 				}
 
 				// Forces from horizontal motion - push water up in direction of motion, pull down behind.
-				float forceHoriz = 0.75 * dot(sdfNormal, _Velocity.xz);
+				float forceHoriz = 0.;
 				if( signedDist > 0.0 )
 				{
 					// Range / radius of interaction force
 					const float range = 0.7 * _MinWavelength;
 					const float a = 1.0 / range;
-					forceHoriz *= InteractionFalloff( a, signedDist );
+					forceHoriz = 0.75 * dot( sdfNormal, _Velocity.xz ) * InteractionFalloff( a, signedDist );
 				}
 
 				// Add to velocity (y-channel) to accelerate water.

@@ -292,21 +292,6 @@ namespace Crest
 
             // Copy from depth buffer into the cache
             Graphics.Blit(null, _cacheTexture, _copyDepthMaterial);
-
-            var leaveEnabled = _forceAlwaysUpdateDebug;
-
-            if (!leaveEnabled)
-            {
-                _camDepthCache.targetTexture = null;
-
-#if UNITY_EDITOR
-                if (EditorApplication.isPlaying)
-#endif
-                {
-                    // Only disable component when in play mode, otherwise it changes authoring data
-                    enabled = false;
-                }
-            }
         }
 
         /// <summary>

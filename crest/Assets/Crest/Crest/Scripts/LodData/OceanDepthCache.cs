@@ -105,10 +105,25 @@ namespace Crest
         {
             if (_forceAlwaysUpdateDebug)
             {
-                PopulateCache();
+                PopulateCache(updateComponents: true);
             }
         }
 #endif
+
+        float CalculateCacheCameraOrthographicSize()
+        {
+            return Mathf.Max(transform.lossyScale.x / 2f, transform.lossyScale.z / 2f);
+        }
+
+        Vector3 CalculateCacheCameraPosition()
+        {
+            return transform.position + Vector3.up * _cameraMaxTerrainHeight;
+        }
+
+        bool IsCacheTextureOutdated(RenderTexture texture)
+        {
+            return texture != null && (texture.width != _resolution || texture.height != _resolution);
+        }
 
         RenderTexture MakeRT(bool depthStencilTarget)
         {
@@ -136,14 +151,24 @@ namespace Crest
             return result;
         }
 
-        bool InitObjects()
+        bool InitObjects(bool updateComponents)
         {
+            if (updateComponents && IsCacheTextureOutdated(_cacheTexture))
+            {
+                // Destroy the texture so it can be recreated.
+                _cacheTexture.Release();
+                _cacheTexture = null;
+            }
+
             if (_cacheTexture == null)
             {
                 _cacheTexture = MakeRT(false);
             }
 
-            if (_camDepthCache == null)
+            // We want to know this later.
+            var isDepthCacheCameraCreation = _camDepthCache == null;
+
+            if (isDepthCacheCameraCreation)
             {
                 var errorShown = false;
                 var layerMask = 0;
@@ -182,11 +207,9 @@ namespace Crest
 
                 _camDepthCache = new GameObject("DepthCacheCam").AddComponent<Camera>();
                 _camDepthCache.gameObject.hideFlags = _hideDepthCacheCam ? HideFlags.HideAndDontSave : HideFlags.DontSave;
-                _camDepthCache.transform.position = transform.position + Vector3.up * _cameraMaxTerrainHeight;
                 _camDepthCache.transform.parent = transform;
                 _camDepthCache.transform.localEulerAngles = 90f * Vector3.right;
                 _camDepthCache.orthographic = true;
-                _camDepthCache.orthographicSize = Mathf.Max(transform.lossyScale.x / 2f, transform.lossyScale.z / 2f);
                 _camDepthCache.cullingMask = layerMask;
                 _camDepthCache.clearFlags = CameraClearFlags.SolidColor;
                 // Clear to 'very deep'
@@ -198,6 +221,20 @@ namespace Crest
                 _camDepthCache.cameraType = CameraType.Reflection;
                 // I'd prefer to destroy the camera object, but I found sometimes (on first start of editor) it will fail to render.
                 _camDepthCache.gameObject.SetActive(false);
+            }
+
+            if (updateComponents || isDepthCacheCameraCreation)
+            {
+                // Calculate here so it is always updated.
+                _camDepthCache.transform.position = CalculateCacheCameraPosition();
+                _camDepthCache.orthographicSize = CalculateCacheCameraOrthographicSize();
+            }
+
+            if (updateComponents && IsCacheTextureOutdated(_camDepthCache.targetTexture))
+            {
+                // Destroy the texture so it can be recreated.
+                _camDepthCache.targetTexture.Release();
+                _camDepthCache.targetTexture = null;
             }
 
             if (_camDepthCache.targetTexture == null)
@@ -247,21 +284,25 @@ namespace Crest
             qr.enabled = false;
         }
 
-        public void PopulateCache()
+        /// <summary>
+        /// Populates the ocean depth cache. Call this method if using <i>On Demand<i>.
+        /// </summary>
+        /// <param name="updateComponents">
+        /// Updates components like the depth cache camera. Pass true if you have changed any depth cache properties.
+        /// </param>
+        public void PopulateCache(bool updateComponents = false)
         {
-            // Make sure we have required objects
-            if (!InitObjects())
+            // Nothing to populate for baked.
+            if (_type == OceanDepthCacheType.Baked)
             {
                 return;
             }
 
-#if UNITY_EDITOR
-            // Users must call this themselves during runtime if they change depth cache settings during runtime.
-            if (!Application.isPlaying || _forceAlwaysUpdateDebug)
+            // Make sure we have required objects.
+            if (!InitObjects(updateComponents))
             {
-                UpdateCacheComponents();
+                return;
             }
-#endif
 
             // Render scene, saving depths in depth buffer.
             _camDepthCache.Render();
@@ -292,54 +333,6 @@ namespace Crest
 
             // Copy from depth buffer into the cache
             Graphics.Blit(null, _cacheTexture, _copyDepthMaterial);
-        }
-
-        /// <summary>
-        /// Updates components like the depth cache camera. Call this after changing any of the depth cache settings
-        /// like resolution.
-        /// </summary>
-        public void UpdateCacheComponents()
-        {
-            UpdateCacheCamera();
-            UpdateCacheTexture();
-        }
-
-        void UpdateCacheCamera()
-        {
-            if (_camDepthCache == null)
-            {
-                return;
-            }
-
-            _camDepthCache.transform.position = transform.position + Vector3.up * _cameraMaxTerrainHeight;
-            _camDepthCache.orthographicSize = Mathf.Max(transform.lossyScale.x / 2f, transform.lossyScale.z / 2f);
-
-            if (_camDepthCache.targetTexture.width != _resolution || _camDepthCache.targetTexture.height != _resolution)
-            {
-                _camDepthCache.targetTexture.Release();
-                _camDepthCache.targetTexture = MakeRT(true);
-                _camDepthCache.targetTexture.Create();
-            }
-        }
-
-        void UpdateCacheTexture()
-        {
-            if (_cacheTexture == null)
-            {
-                return;
-            }
-
-            if (_cacheTexture.width != _resolution || _cacheTexture.height != _resolution)
-            {
-                _cacheTexture.Release();
-                _cacheTexture = MakeRT(false);
-                _cacheTexture.Create();
-
-                if (_drawCacheQuad != null)
-                {
-                    _drawCacheQuad.GetComponent<Renderer>().sharedMaterial.mainTexture = _cacheTexture;
-                }
-            }
         }
 
 #if UNITY_EDITOR
@@ -411,7 +404,7 @@ namespace Crest
 
             if ((!playing || isOnDemand) && dc.Type != OceanDepthCache.OceanDepthCacheType.Baked && GUILayout.Button("Populate cache"))
             {
-                dc.PopulateCache();
+                dc.PopulateCache(updateComponents: true);
             }
 
             if (isBakeable && GUILayout.Button("Save cache to file"))
@@ -446,9 +439,30 @@ namespace Crest
 
     public partial class OceanDepthCache : IValidated
     {
+        bool IsCacheOutdated()
+        {
+            return _camDepthCache.orthographicSize != CalculateCacheCameraOrthographicSize() ||
+                _camDepthCache.transform.position != CalculateCacheCameraPosition() ||
+                IsCacheTextureOutdated(_camDepthCache.targetTexture) ||
+                IsCacheTextureOutdated(_cacheTexture);
+        }
+
         public bool Validate(OceanRenderer ocean, ValidatedHelper.ShowMessage showMessage)
         {
             var isValid = true;
+
+            if (_camDepthCache != null && _camDepthCache.targetTexture != null && _cacheTexture != null)
+            {
+                if (IsCacheOutdated())
+                {
+                    showMessage
+                    (
+                        "Depth cache is outdated. Click <i>Populate Cache</i> or re-bake the cache to bring the cache " +
+                        "up-to-date with component changes.",
+                        ValidatedHelper.MessageType.Warning, this
+                    );
+                }
+            }
 
             if (_type == OceanDepthCacheType.Baked)
             {

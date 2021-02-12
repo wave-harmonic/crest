@@ -56,21 +56,21 @@ High Definition content
 
 #### Universal <!-- select-option -->
 
-##### Pipeline Setup
+##### Pipeline Setup <!-- {docsify-ignore} -->
 
 Ensure Universal Render Pipeline (URP) is setup and functioning, either by setting up a new project using the URP template or by installing the URP package into an existing project and configuring the Render Pipeline Asset.
 Please see the [Unity documentation](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@10.2/manual/InstallingAndConfiguringURP.html) for more information.
 
 Switch to Linear space rendering under _Edit/Project Settings/Player/Other Settings_. If your platform(s) require Gamma space, the material settings will need to be adjusted to compensate.
 
-##### Importing Crest
+##### Importing Crest <!-- {docsify-ignore} -->
 
 Import _Crest_ package into project using the _Asset Store_ window or the _Package Manager_ in the Unity Editor.
 
 > [!TIP]
 > The files under _Crest-Examples_ are not required by our core functionality, but are provided for illustrative purposes. We recommend first time users import them as they may provide useful guidance.
 
-##### Transparency
+##### Transparency <!-- {docsify-ignore} -->
 
 To enable the water surface to be transparent, two options must be enabled in the URP configuration.
 To find the configuration, open _Edit/Project Settings/Graphics_ and double click the _Scriptable Render Pipeline Settings_ field to open the render pipeline settings.
@@ -82,7 +82,7 @@ After double clicking the graphics settings should appear in the Inspector. Tran
 
 ![Pipeline Settings](/_media/UrpPipelineSettings1.png)
 
-##### Shadowing
+##### Shadowing <!-- {docsify-ignore} -->
 
 To enable shadowing of the water surface to darken the appearance in shadows, open the _Forward Renderer Data_ by clicking the gear icon in the render pipeline settings from the previous step:
 

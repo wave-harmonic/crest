@@ -55,9 +55,10 @@
     }
   },
   "scripts": {
-    "pdf:hdrp": "docsify-pdf-converter hdrp",
-    "pdf:urp": "docsify-pdf-converter urp",
-    "pdf:brp": "docsify-pdf-converter brp",
+    "pdf:hdrp": "docsify-pdf-converter hdrp; mv -f pdf/{readme,hdrp}.pdf",
+    "pdf:urp": "docsify-pdf-converter urp; mv -f pdf/{readme,urp}.pdf",
+    "pdf:brp": "docsify-pdf-converter brp; mv -f pdf/{readme,brp}.pdf",
+    "pdf": "npm run-script pdf:hdrp; npm run-script pdf:urp; npm run-script pdf:brp",
     "push": "git push docsify test/docsify:master"
   },
   "devDependencies": {

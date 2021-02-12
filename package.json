@@ -12,6 +12,35 @@
     "emulateMedia": "print",
     "pathToDocsifyEntryPoint": "./docs",
     "mainMdFilename": "README.md",
+    "$docsify": {
+      "hdrp": {
+        "select": {
+          "useSelectHeadingComment": true,
+          "sync": true,
+          "selected": {
+            "rendering-pipeline": "high definition"
+          }
+        }
+      },
+      "urp": {
+        "select": {
+          "useSelectHeadingComment": true,
+          "sync": true,
+          "selected": {
+            "rendering-pipeline": "universal"
+          }
+        }
+      },
+      "brp": {
+        "select": {
+          "useSelectHeadingComment": true,
+          "sync": true,
+          "selected": {
+            "rendering-pipeline": "built-in"
+          }
+        }
+      }
+    },
     "pdfOptions": {
       "margin": {
         "top": "10mm",
@@ -25,11 +54,13 @@
       "format": "A4"
     }
   },
-  "devDependencies": {
-    "docsify-pdf-converter": "github:privoro/docsify-to-pdf-converter#resolve-static-in-docs-entry-dir"
-  },
   "scripts": {
-    "convert": "docsify-pdf-converter",
+    "pdf:hdrp": "docsify-pdf-converter hdrp",
+    "pdf:urp": "docsify-pdf-converter urp",
+    "pdf:brp": "docsify-pdf-converter brp",
     "push": "git push docsify test/docsify:master"
+  },
+  "devDependencies": {
+    "docsify-pdf-converter": "github:daleeidd/docsify-to-pdf-converter#injectable-settings"
   }
 }

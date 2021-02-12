@@ -11,20 +11,92 @@
 <body>
   <div id="app"></div>
   <script>
+    const RENDERING_PIPELINE_KEY = "rendering-pipeline"
+    const RENDERING_PIPELINE_REGEX = new RegExp(`[?&]${RENDERING_PIPELINE_KEY}=[^&]*`)
+    const GLOBAL_SEARCH_PARAMS = new URL(location.href.replace("/#/", "/")).searchParams
+
+    function getRenderingPipelineKey() {
+      var searchParameters = new URL(location.href.replace("/#/", "/")).searchParams.get(RENDERING_PIPELINE_KEY)
+      return searchParameters != null ? searchParameters.replace(/_/gi, " ") : null
+    }
+
     window.$docsify = {
-      name: '',
-      repo: '',
+      name: 'Crest',
+      logo: 'https://raw.githubusercontent.com/wave-harmonic/crest/master/logo/crest-oceanrender-logotype1.png',
+      repo: 'https://github.com/wave-harmonic/crest',
       loadSidebar: true,
-      subMaxLevel: 2,
+      subMaxLevel: 10,
+      loadNavbar: true,
+      loadNavbar: '_navbar.md',
+      auto2top: true,
+      // homepage: 'Home.md',
+      themeColor: '#0BA8FF',
+      coverpage: true,
+      onlyCover: true,
+      // autoHeader: true,
       select: {
+        useSelectHeadingComment: true,
         detectOperatingSystem: {
           enabled: false,
           menuId: "operating-system"
         },
         sync: true,
-        theme: "classic"
+        theme: "classic",
+        selected: {
+          [RENDERING_PIPELINE_KEY]: getRenderingPipelineKey(),
+        },
       },
+      // alias: {
+      //   '/.*/_sidebar.md': '/_sidebar.md', // See #301
+      // },
+      plugins: [
+        function(hook, vm) {
+          hook.init(function() {
+            // Called when the script starts running, only trigger once, no arguments,
+          })
+          hook.beforeEach(function(content) {
+            // Invoked each time before parsing the Markdown file.
+            // ...
+            return content
+          })
+          hook.afterEach(function(html, next) {
+            // Invoked each time after the Markdown file is parsed.
+            // beforeEach and afterEach support asynchronous。
+            // ...
+            // call `next(html)` when task is done.
+            next(html);
+          })
+          hook.doneEach(function() {
+            // Invoked each time after the data is fully loaded, no arguments,
+            // ...
+          })
+          hook.mounted(function() {
+            // Called after initial completion. Only trigger once, no arguments.
+          })
+          hook.ready(function() {
+            // Called after initial completion, no arguments.
+            if (GLOBAL_SEARCH_PARAMS.has(RENDERING_PIPELINE_KEY)) {
+              console.log("It does")
+              const pair = `${RENDERING_PIPELINE_KEY}=${GLOBAL_SEARCH_PARAMS.get(RENDERING_PIPELINE_KEY)}`
+              ;[...document.querySelectorAll("a")].forEach(x => {
+                x.href += x.href.includes("?") ? "&" : "?"
+                x.href += pair
+              })
+            }
+          })
+        },
+      ],
+      ...window.$docsify,
     }
+
+    function onHashChange(event) {
+      let oldParameters = new URL(event.oldURL.replace("/#/", "/")).searchParams
+      let newParameters = new URL(event.newURL.replace("/#/", "/")).searchParams
+      if (oldParameters.has(RENDERING_PIPELINE_KEY) !== newParameters.has(RENDERING_PIPELINE_KEY)) return location.reload()
+      if (oldParameters.get(RENDERING_PIPELINE_KEY) !== newParameters.get(RENDERING_PIPELINE_KEY)) return location.reload()
+    }
+
+    window.addEventListener("hashchange", onHashChange, false)
   </script>
   <style media="screen">
     body:not(.close) .sidebar-toggle,
@@ -40,16 +112,28 @@
       max-width: 100% !important;
       width: 560px !important;
     }
+    .app-name-link img {
+      width: 10rem;
+    }
+    .cover-main img {
+      width: 20rem;
+    }
+    img.medium-zoom-image {
+      max-width: 20rem;
+    }
   </style>
   <style media="print">
     iframe {
       display: none !important;
     }
+    .docsify-select-group {
+      display: none !important;
+    }
   </style>
-  <!-- Docsify v4 -->
   <script src="//cdn.jsdelivr.net/npm/docsify@4"></script>
   <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/search.min.js"></script>
-  <script src="https://unpkg.com/docsify-plugin-flexible-alerts"></script>
-  <script src="https://cdn.jsdelivr.net/npm/docsify-select@1"></script>
+  <script src="//unpkg.com/docsify-plugin-flexible-alerts"></script>
+  <script src="//cdn.jsdelivr.net/npm/docsify-select@0.3.0"></script>
+  <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/zoom-image.min.js"></script>
 </body>
 </html>

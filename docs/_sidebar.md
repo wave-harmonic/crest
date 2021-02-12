@@ -1,4 +1,5 @@
 - [Overview](README.md)
+- [Getting Started](GettingStarted.md)
 - [Configuration](Configuration.md)
 - [Ocean Features](OceanFeatures.md)
 - [Wave Conditions](WaveConditions.md)

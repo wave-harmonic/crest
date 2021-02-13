@@ -542,6 +542,19 @@ namespace Crest
                     isValid = false;
                 }
 
+                if (transform.lossyScale.x != transform.lossyScale.z)
+                {
+                    showMessage
+                    (
+                        "The <i>Ocean Depth Cache</i> in realtime only supports a uniform scale for X and Z. " +
+                        "These values currently do not match. " +
+                        $"Its current scale in the hierarchy is: X = {transform.lossyScale.x} Z = {transform.lossyScale.z}.",
+                        ValidatedHelper.MessageType.Error, this
+                    );
+
+                    isValid = false;
+                }
+
                 // We used to test if nothing is present that would render into the cache, but these could probably come from other scenes, and AssignLayer means
                 // objects can be tagged up at run-time.
             }

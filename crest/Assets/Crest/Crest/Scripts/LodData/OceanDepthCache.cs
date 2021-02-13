@@ -103,25 +103,13 @@ namespace Crest
 #if UNITY_EDITOR
         void Update()
         {
+            // We need to switch the quad texture if the user changes the cache type in the editor.
+            InitCacheQuad();
+
             if (_forceAlwaysUpdateDebug)
             {
                 PopulateCache(updateComponents: true);
             }
-        }
-
-        bool _isFirstOnValidate = true;
-
-        void OnValidate()
-        {
-            // OnValidate also runs between Awake and Start regardless of change.
-            if (_isFirstOnValidate)
-            {
-                _isFirstOnValidate = false;
-                return;
-            }
-
-            // If the user switches cache type, we want to switch the target texture.
-            InitCacheQuad();
         }
 #endif
 

@@ -542,7 +542,7 @@ namespace Crest
                     isValid = false;
                 }
 
-                if (transform.lossyScale.x != transform.lossyScale.z)
+                if (!Mathf.Approximately(transform.lossyScale.x, transform.lossyScale.z))
                 {
                     showMessage
                     (

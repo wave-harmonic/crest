@@ -108,6 +108,21 @@ namespace Crest
                 PopulateCache(updateComponents: true);
             }
         }
+
+        bool _isFirstOnValidate = true;
+
+        void OnValidate()
+        {
+            // OnValidate also runs between Awake and Start regardless of change.
+            if (_isFirstOnValidate)
+            {
+                _isFirstOnValidate = false;
+                return;
+            }
+
+            // If the user switches cache type, we want to switch the target texture.
+            InitCacheQuad();
+        }
 #endif
 
         float CalculateCacheCameraOrthographicSize()

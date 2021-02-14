@@ -123,8 +123,8 @@ namespace Crest
 
         protected override void GetSimSubstepData(float timeToSimulate, out int numSubsteps, out float substepDt)
         {
-            numSubsteps = Mathf.RoundToInt(timeToSimulate * Settings._simulationFrequency);
-
+            numSubsteps = Mathf.FloorToInt(timeToSimulate * Settings._simulationFrequency);
+            
             substepDt = numSubsteps > 0 ? (1f / Settings._simulationFrequency) : 0f;
         }
 

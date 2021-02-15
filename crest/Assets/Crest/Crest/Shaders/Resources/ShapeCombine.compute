@@ -138,7 +138,7 @@ void ShapeCombineBase(uint3 id)
 		float2 dispXZ = _HorizDisplace * dydx / wavevector;
 
 		const float maxDisp = cascadeData0._texelWidth * _DisplaceClamp;
-		dispXZ = clamp(dispXZ, -maxDisp, maxDisp);
+		//dispXZ = clamp(dispXZ, -maxDisp, maxDisp);
 
 		result.xz += dispXZ;
 	}

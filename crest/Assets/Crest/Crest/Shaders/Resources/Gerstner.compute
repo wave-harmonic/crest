@@ -36,7 +36,7 @@ StructuredBuffer<GerstnerWaveComponent4> _GerstnerWaveData;
 
 RWTexture2DArray<half4> _WaveBuffer;
 
-void ComputeGerstner( float2 worldPosXZ, float worldSize, GerstnerWaveComponent4 data, inout float3 result )
+void ComputeGerstner( float2 worldPosXZ, float worldSize, GerstnerWaveComponent4 data, inout float4 result )
 {
 	// direction
 	half4 Dx = data._waveDirX;
@@ -60,10 +60,13 @@ void ComputeGerstner( float2 worldPosXZ, float worldSize, GerstnerWaveComponent4
 
 	half4 resulty = data._amp * cos( angle );
 
+	half4 resultv = data._amp * -sin( angle ) * (-data._omega);
+
 	// sum the vector results
 	result.x += dot( resultx, 1.0 );
 	result.y += dot( resulty, 1.0 );
 	result.z += dot( resultz, 1.0 );
+	result.w += dot( resultv, 1.0 );
 }
 
 [numthreads(THREAD_GROUP_SIZE_X, THREAD_GROUP_SIZE_Y, 1)]
@@ -76,7 +79,7 @@ void Gerstner(uint3 id : SV_DispatchThreadID)
 	const float texelWidth = worldSize / _TextureRes;
 	const float2 worldPosXZ = (id.xy + 0.5) * texelWidth;
 
-	float3 result = 0.0;
+	float4 result = 0.0;
 
 	const int startIndex = _GerstnerCascadeParams[cascadeIndex]._startIndex;
 	const int endIndex = _GerstnerCascadeParams[cascadeIndex + 1]._startIndex;
@@ -90,5 +93,5 @@ void Gerstner(uint3 id : SV_DispatchThreadID)
 	// in lower cascades.
 	float _cumulativeVarianceBeforeThisCascade = cascadeIndex > 0 ? _GerstnerCascadeParams[cascadeIndex - 1]._cumulativeVariance : 0.0;
 
-	_WaveBuffer[uint3(id.xy, cascadeIndex)] = float4(result, _cumulativeVarianceBeforeThisCascade);
+	_WaveBuffer[uint3(id.xy, cascadeIndex)] = result; // float4(result, _cumulativeVarianceBeforeThisCascade);
 }

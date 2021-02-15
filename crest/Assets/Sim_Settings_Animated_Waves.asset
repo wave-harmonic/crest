@@ -9,14 +9,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 467d18cefc08f7f44bd5688ce841f075, type: 3}
-  m_Name: SettingsWavesWakes
+  m_Script: {fileID: 11500000, guid: 6fcc1742c5d877741b8e82fe2bb66a75, type: 3}
+  m_Name: Sim_Settings_Animated_Waves
   m_EditorClassIdentifier: 
-  _minGridSize: 0
-  _maxGridSize: 0
-  _simulationFrequency: 60
-  _damping: 0
-  _courantNumber: 0.7
-  _horizDisplace: 6
-  _displaceClamp: 0.3
-  _gravityMultiplier: 1
+  _attenuationInShallows: 0.95
+  _collisionSource: 2
+  _maxQueryCount: 4096
+  _pingPongCombinePass: 1

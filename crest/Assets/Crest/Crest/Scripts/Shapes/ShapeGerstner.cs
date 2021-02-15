@@ -73,6 +73,8 @@ namespace Crest
 
         Mesh _meshForDrawingWaves;
 
+        public bool _driveDynWaves = false;
+
         public class GerstnerBatch : ILodDataInput
         {
             ShapeGerstner _gerstner;
@@ -547,7 +549,8 @@ namespace Crest
 
         void InitBatches()
         {
-            var registered = RegisterLodDataInputBase.GetRegistrar(typeof(LodDataMgrAnimWaves));
+            var registered = _driveDynWaves ? RegisterLodDataInputBase.GetRegistrar(typeof(LodDataMgrDynWaves))
+                : RegisterLodDataInputBase.GetRegistrar(typeof(LodDataMgrAnimWaves));
 
             if (_batches != null)
             {
@@ -567,7 +570,14 @@ namespace Crest
 
             if (_meshForDrawingWaves == null)
             {
-                _matGenerateWaves = new Material(Shader.Find("Hidden/Crest/Inputs/Animated Waves/Gerstner Global"));
+                if (_driveDynWaves)
+                {
+                    _matGenerateWaves = new Material(Shader.Find("Hidden/Crest/Inputs/Dynamic Waves/Gerstner Global"));
+                }
+                else
+                {
+                    _matGenerateWaves = new Material(Shader.Find("Hidden/Crest/Inputs/Animated Waves/Gerstner Global"));
+                }
             }
             else
             {
@@ -618,7 +628,9 @@ namespace Crest
 
             if (_batches != null)
             {
-                var registered = RegisterLodDataInputBase.GetRegistrar(typeof(LodDataMgrAnimWaves));
+                var registered = _driveDynWaves ? RegisterLodDataInputBase.GetRegistrar(typeof(LodDataMgrDynWaves))
+                    : RegisterLodDataInputBase.GetRegistrar(typeof(LodDataMgrAnimWaves));
+
                 foreach (var batch in _batches)
                 {
                     registered.Remove(batch);

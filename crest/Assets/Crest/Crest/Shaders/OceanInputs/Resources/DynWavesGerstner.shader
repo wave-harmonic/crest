@@ -89,7 +89,9 @@ Shader "Hidden/Crest/Inputs/Dynamic Waves/Gerstner Global"
 					disp_variance.w = 0.0;
 				}
 
-				float scale = 0.5f * (1 << _WaveBufferSliceIndex);
+				// HACK: We hijacked the w channel of the gerstners to give y velocity. This pushes that
+				// velocity onto the dyn wave sim velocity. We don't actually use the xyz displacement of the
+				// gerstner waves at all, only the y velocity.
 				return wt * float2(0.0, 0.002 * disp_variance.w);
 			}
 			ENDCG

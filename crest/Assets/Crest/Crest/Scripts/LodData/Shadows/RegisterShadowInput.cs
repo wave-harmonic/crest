@@ -21,5 +21,11 @@ namespace Crest
         protected override string ShaderPrefix => "Crest/Inputs/Shadows";
 
         protected override bool FollowHorizontalMotion => false;
+
+        protected override bool FeatureEnabled(OceanRenderer ocean) => ocean.CreateShadowData;
+        protected override string FeatureDisabledErrorMessage => "<i>Create Shadow Data</i> must be enabled on the OceanRenderer component.";
+
+        protected override string RequiredShaderKeyword => "_SHADOWS_ON";
+        protected override string KeywordMissingErrorMessage => "Shadowing must be enabled on the ocean material. Tick the <i>Shadowing</i> option in the <i>Scattering</i> parameter section on the material currently assigned to the OceanRenderer component.";
     }
 }

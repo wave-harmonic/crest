@@ -1138,6 +1138,8 @@ namespace Crest
                 isValid = false;
             }
 
+            // TODO - we dont use the isValid flag again from here on. Should we?
+
             // OceanRenderer
             if (FindObjectsOfType<OceanRenderer>().Length > 1)
             {
@@ -1265,6 +1267,50 @@ namespace Crest
                     $"There must be no rotation on the ocean GameObject, and no rotation on any parent. Currently the rotation Euler angles are {transform.eulerAngles}.",
                     ValidatedHelper.MessageType.Error, ocean
                 );
+            }
+
+            if (ocean.CreateFoamSim && !ocean.OceanMaterial.IsKeywordEnabled("_FOAM_ON"))
+            {
+                showMessage
+                (
+                    "Foam must be enabled on the ocean material. Tick the <i>Enable</i> option in the <i>Foam</i> parameter section on the material currently assigned to the OceanRenderer component.",
+                    ValidatedHelper.MessageType.Error, ocean.OceanMaterial
+                );
+
+                isValid = false;
+            }
+
+            if (ocean.CreateFlowSim && !ocean.OceanMaterial.IsKeywordEnabled("_FLOW_ON"))
+            {
+                showMessage
+                (
+                    "Flow must be enabled on the ocean material. Tick the <i>Enable</i> option in the <i>Flow</i> parameter section on the material currently assigned to the OceanRenderer component.",
+                    ValidatedHelper.MessageType.Error, ocean.OceanMaterial
+                );
+
+                isValid = false;
+            }
+
+            if (ocean.CreateShadowData && !ocean.OceanMaterial.IsKeywordEnabled("_SHADOWS_ON"))
+            {
+                showMessage
+                (
+                    "Shadowing must be enabled on the ocean material. Tick the <i>Shadowing</i> option in the <i>Scattering</i> parameter section on the material currently assigned to the OceanRenderer component.",
+                    ValidatedHelper.MessageType.Error, ocean.OceanMaterial
+                );
+
+                isValid = false;
+            }
+
+            if (ocean.CreateClipSurfaceData && !ocean.OceanMaterial.IsKeywordEnabled("_CLIPSURFACE_ON"))
+            {
+                showMessage
+                (
+                    "Clipping must be enabled on the ocean material to enable clipping holes in the water surface. Tick the <i>Enable</i> option in the <i>Clip Surface</i> parameter section on the material currently assigned to the OceanRenderer component.",
+                    ValidatedHelper.MessageType.Error, ocean.OceanMaterial
+                );
+
+                isValid = false;
             }
 
             return isValid;

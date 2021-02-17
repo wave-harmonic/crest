@@ -19,5 +19,11 @@ namespace Crest
         protected override Color GizmoColor => new Color(0f, 0f, 1f, 0.5f);
 
         protected override string ShaderPrefix => "Crest/Inputs/Flow";
+
+        protected override bool FeatureEnabled(OceanRenderer ocean) => ocean.CreateFlowSim;
+        protected override string FeatureDisabledErrorMessage => "<i>Create Clip Surface Data</i> must be enabled on the OceanRenderer component to enable clipping holes in the water surface.";
+
+        protected override string RequiredShaderKeyword => "_FLOW_ON";
+        protected override string KeywordMissingErrorMessage => "Flow must be enabled on the ocean material. Tick the <i>Enable</i> option in the <i>Flow</i> parameter section on the material currently assigned to the OceanRenderer component.";
     }
 }

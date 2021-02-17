@@ -243,9 +243,39 @@ namespace Crest
 #if UNITY_EDITOR
     public abstract partial class RegisterLodDataInputBase : IValidated
     {
+        protected abstract bool FeatureEnabled(OceanRenderer ocean);
+        protected virtual string RequiredShaderKeyword => null;
+
+        protected virtual string FeatureDisabledErrorMessage => "Feature must be enabled on the OceanRenderer component.";
+        protected virtual string KeywordMissingErrorMessage => "Feature must be enabled on the ocean material.";
+
         public bool Validate(OceanRenderer ocean, ValidatedHelper.ShowMessage showMessage)
         {
-            return ValidatedHelper.ValidateRenderer(gameObject, ShaderPrefix, showMessage);
+            bool isValid = ValidatedHelper.ValidateRenderer(gameObject, ShaderPrefix, showMessage);
+
+            if (!FeatureEnabled(ocean))
+            {
+                showMessage
+                (
+                    FeatureDisabledErrorMessage,
+                    ValidatedHelper.MessageType.Error, ocean
+                );
+
+                isValid = false;
+            }
+
+            if (!string.IsNullOrEmpty(RequiredShaderKeyword) && !ocean.OceanMaterial.IsKeywordEnabled(RequiredShaderKeyword))
+            {
+                showMessage
+                (
+                    KeywordMissingErrorMessage,
+                    ValidatedHelper.MessageType.Error, ocean.OceanMaterial
+                );
+
+                isValid = false;
+            }
+
+            return isValid;
         }
     }
 

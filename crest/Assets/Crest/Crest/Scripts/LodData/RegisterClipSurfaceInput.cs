@@ -80,5 +80,13 @@ namespace Crest
                 _renderer.SetPropertyBlock(_mpb.materialPropertyBlock);
             }
         }
+
+#if UNITY_EDITOR
+        protected override bool FeatureEnabled(OceanRenderer ocean) => ocean.CreateClipSurfaceData;
+        protected override string RequiredShaderKeyword => "_CLIPSURFACE_ON";
+
+        protected override string FeatureDisabledErrorMessage => "<i>Create Clip Surface Data</i> must be enabled on the OceanRenderer component to enable clipping holes in the water surface.";
+        protected override string KeywordMissingErrorMessage => "Clipping must be enabled on the ocean material to enable clipping holes in the water surface. Tick the <i>Enable</i> option in the <i>Clip Surface</i> parameter section on the material currently assigned to the OceanRenderer component.";
+#endif
     }
 }

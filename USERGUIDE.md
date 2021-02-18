@@ -190,21 +190,19 @@ This feature records the water depth which is used for a number of features incl
 
 ## Clip Surface
 
-This data drives clipping of the ocean surface, as in carving out holes. This can be useful for hollow vessels or low terrain that goes below sea level. Data can come from geometry, convex hulls or a texture. The system can also be configured to clip everything by default and include only where needed which is useful if water is only required in limited area(s), and this use case is described below.
+This data drives clipping of the ocean surface, as in cutting holes in the water. This can be useful for hollow vessels or low terrain that goes below sea level. Data can come from geometry, convex hulls or a texture. The system can also be configured to clip everything by default and include only where needed which is useful if water is only required in limited area(s), and this use case is described below.
 
 To turn on this feature, enable the *Create Clip Surface Data* option on the *OceanRenderer* script, and ensure the *Enable* option is ticked in the *Clip Surface* group on the ocean material.
 
-The data contains 0-1 values. Holes are carved into the surface when the values is greater than 0.5.
+To remove an area of water (area of the XZ plane), add a Plane primitive or other shape that covers the area, assign the *ClipSurfaceRemoveArea* material, and add the *RegisterClipSurfaceInput* component to the GameObject to register it with the system.
 
-Overlapping meshes will not work correctly in all cases. There will be cases where one mesh will overwrite another resulting in ocean surface appearing where it should not. Overlapping boxes aligned on the axes will work well whilst spheres may have issues.
+To carve a convex shape out of the water, add a convex primitive like a Sphere or Capsule, assign the *ClipSurfaceConvexHull* material, and add the *RegisterClipSurfaceInput* component to the GameObject to register it with the system. (Note that multiple overlapping clipping shapes will not work correctly in all cases. There will be cases where one mesh will overwrite another resulting in ocean surface appearing where it should not. Overlapping boxes aligned on the axes will work well whilst spheres may have issues).
 
-Clip areas can be added by adding geometry that covers the desired hole area to the scene and then assigning the *RegisterClipSurfaceInput* script. See the *FloatingOpenContainer* object in the *boat.unity* scene for an example usage.
-
-To use other available shaders like *ClipSurfaceRemoveArea* or *ClipSurfaceRemoveAreaTexture*: create a material, assign to renderer and disable *Assign Clip Surface Material* option. For the *ClipSurfaceRemoveArea* shaders, the geometry should be added from a top down perspective and the faces pointing upwards.
+See the *FloatingOpenContainer* object in the *boat.unity* scene for an example usage.
 
 The system can be configured to clip everything by default and include water only where needed, which is useful if water is only required in limited area(s). This is configured by the *Default Clipping State* setting on the *OceanRenderer* component. It can be set to *Everything Clipped* and then a clipping input with shader type *Crest/Inputs/Clip Surface/Include Area* will include areas of water.
 
-As a final feature, the *Clip Below Terrain* toggle on the ocean material will clip the surface underneath the land. Note that this works purely from a depth cache and does not required the *Create Clip Surface Data* option enabled on the *OceanRenderer* component and is therefore more efficient.
+As a final feature, the *Clip Below Terrain* toggle on the ocean material will clip the surface underneath the land. Note that this works purely from a depth cache and does not require the *Create Clip Surface Data* option enabled on the *OceanRenderer* component and is therefore more efficient.
 
 ## Shadow
 

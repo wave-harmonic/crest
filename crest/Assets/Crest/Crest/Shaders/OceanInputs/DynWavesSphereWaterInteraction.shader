@@ -6,7 +6,8 @@ Shader "Crest/Inputs/Dynamic Waves/Sphere-Water Interaction"
 {
 	Properties
 	{
-		_Strength("Strength", Range(0., 1000.)) = 0.2
+		_Strength("Strength", Range(0.0, 10.0)) = 0.2
+		_StrengthVertical("Vertical Strength Multiplier", Range(0.0, 1.0)) = 1.0
 	}
 
 	SubShader
@@ -27,6 +28,7 @@ Shader "Crest/Inputs/Dynamic Waves/Sphere-Water Interaction"
 			float3 _Velocity;
 			float _SimDeltaTime;
 			float _Strength;
+			float _StrengthVertical;
 			float _Weight;
 			float _Radius;
 			float3 _DisplacementAtInputPosition;
@@ -98,7 +100,7 @@ Shader "Crest/Inputs/Dynamic Waves/Sphere-Water Interaction"
 				float forceUpDown = 0.0;
 				if( _Radius > _MinWavelength )
 				{
-					forceUpDown = -5. * _Velocity.y;
+					forceUpDown = -5.0 * _StrengthVertical * _Velocity.y;
 					if( signedDist > 0.0 );// && _Radius < 8.0 * _MinWavelength )
 					{
 						//forceUpDown *= -exp(-signedDist * signedDist * 4.0);
@@ -111,7 +113,7 @@ Shader "Crest/Inputs/Dynamic Waves/Sphere-Water Interaction"
 				}
 
 				// Forces from horizontal motion - push water up in direction of motion, pull down behind.
-				float forceHoriz = 0.;
+				float forceHoriz = 0.0;
 				if( signedDist > 0.0 )
 				{
 					// Range / radius of interaction force

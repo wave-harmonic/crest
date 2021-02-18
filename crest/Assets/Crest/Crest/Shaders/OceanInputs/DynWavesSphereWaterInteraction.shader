@@ -98,7 +98,6 @@ Shader "Crest/Inputs/Dynamic Waves/Sphere-Water Interaction"
 
 				// Forces from up/down motion. Push in same direction as vel inside sphere, and opposite dir outside.
 				float forceUpDown = 0.0;
-				if( _Radius > _MinWavelength )
 				{
 					forceUpDown = -5.0 * _StrengthVertical * _Velocity.y;
 					if( signedDist > 0.0 );// && _Radius < 8.0 * _MinWavelength )

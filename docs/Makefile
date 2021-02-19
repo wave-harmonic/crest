@@ -14,6 +14,9 @@ help:
 
 .PHONY: help Makefile
 
+serve:
+	cd _build/html; echo "http://0.0.0.0:8000"; python -m SimpleHTTPServer
+
 # Catch-all target: route all unknown targets to Sphinx using the new
 # "make mode" option.  $(O) is meant as a shortcut for $(SPHINXOPTS).
 %: Makefile

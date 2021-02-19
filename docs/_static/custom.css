@@ -1,0 +1,146 @@
+.wy-nav-side
+{
+    background: #FAFAFA;
+    border-right: solid 1px rgba(0, 0, 0, 0.1);
+}
+
+.wy-body-for-nav
+{
+    background: white;
+}
+
+.wy-menu-vertical a
+{
+    color: #364149;
+}
+
+.wy-nav-content-wrap
+{
+    background: none;
+}
+
+/* The following changes the layout so the document expands and the footer is at the bottom. */
+
+.wy-nav-content
+{
+    display: flex;
+    flex-direction: column;
+    max-width: 100%;
+    min-height: 100vh;
+
+    overflow-x: hidden;
+
+    background: none;
+}
+
+.rst-content
+{
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.document
+{
+    max-width: 800px;
+    flex: 1;
+}
+
+/*****************************************************************************/
+
+.sphinx-tabs
+{
+    border-bottom: solid 1px #E1E4E5;
+    background-color: #FBFBFB;
+    margin-bottom: 2rem;
+}
+
+.sphinx-tabs > *[role="tablist"]
+{
+    background-color: white;
+    border-bottom-color: #E1E4E5;
+}
+
+.sphinx-tabs-panel
+{
+    border: none;
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+    max-width: 800px;
+}
+
+.sphinx-tabs-tab[aria-selected="true"]
+{
+    border-color: #E1E4E5;
+    border-bottom: solid 1px #FBFBFB;
+}
+
+.sphinx-tabs-panel,
+.sphinx-tabs-tab[aria-selected="true"]
+{
+    background-color: #FBFBFB;
+}
+
+/* Tabs from here is is layout. */
+
+.sphinx-tabs
+{
+    width: 100vw;
+    max-width: 100vw;
+    margin-left: -1.618em;
+}
+
+.sphinx-tabs > *
+{
+    padding-left: 1.618em;
+    padding-right: 1.618em;
+}
+
+@media (min-width: 768px)
+{
+    .sphinx-tabs
+    {
+        width: calc(100vw - 300px);
+        max-width: calc(100vw - 300px);
+        margin-left: -3.236em;
+    }
+
+    .sphinx-tabs > *
+    {
+        padding-left: 3.236em;
+        padding-right: 3.236em;
+    }
+}
+
+/*****************************************************************************/
+
+
+
+/* iframe
+{
+    display: block;
+    margin: 0 auto;
+} */
+
+.video-container {
+    position: relative;
+    padding-bottom: 56.25%; /* 16:9 */
+    height: 0;
+}
+.video-container iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+img
+{
+    margin-bottom: 24px;
+}
+
+.figure img
+{
+    margin-bottom: 0;
+}

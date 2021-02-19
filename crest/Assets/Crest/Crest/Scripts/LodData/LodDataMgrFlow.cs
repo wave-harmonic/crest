@@ -19,6 +19,9 @@ namespace Crest
         protected override GraphicsFormat RequestedTextureFormat => GraphicsFormat.R16G16_SFloat;
         protected override bool NeedToReadWriteTextureData { get { return false; } }
 
+        internal const string MATERIAL_KEYWORD = "_FLOW_ON";
+        internal const string MATERIAL_KEYWORD_MISSING_ERROR = "Flow must be enabled on the ocean material. Tick the <i>Enable</i> option in the <i>Flow</i> parameter section on the material currently assigned to the OceanRenderer component.";
+
         bool _targetsClear = false;
 
         public const string FLOW_KEYWORD = "CREST_FLOW_ON_INTERNAL";
@@ -49,9 +52,9 @@ namespace Crest
             base.Start();
 
 #if UNITY_EDITOR
-            if (!OceanRenderer.Instance.OceanMaterial.IsKeywordEnabled("_FLOW_ON"))
+            if (!OceanRenderer.Instance.OceanMaterial.IsKeywordEnabled(MATERIAL_KEYWORD))
             {
-                Debug.LogWarning("Flow is not enabled on the current ocean material and will not be visible.", _ocean);
+                Debug.LogWarning(MATERIAL_KEYWORD_MISSING_ERROR, _ocean);
             }
 #endif
         }

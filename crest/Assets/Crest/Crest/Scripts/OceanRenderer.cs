@@ -1269,47 +1269,27 @@ namespace Crest
                 );
             }
 
-            if (ocean.CreateFoamSim && !ocean.OceanMaterial.IsKeywordEnabled("_FOAM_ON"))
+            if (ocean.CreateFoamSim && !ocean.OceanMaterial.IsKeywordEnabled(LodDataMgrFoam.MATERIAL_KEYWORD))
             {
-                showMessage
-                (
-                    "Foam must be enabled on the ocean material. Tick the <i>Enable</i> option in the <i>Foam</i> parameter section on the material currently assigned to the OceanRenderer component.",
-                    ValidatedHelper.MessageType.Error, ocean.OceanMaterial
-                );
-
+                showMessage(LodDataMgrFoam.MATERIAL_KEYWORD_MISSING_ERROR, ValidatedHelper.MessageType.Error, ocean.OceanMaterial);
                 isValid = false;
             }
 
-            if (ocean.CreateFlowSim && !ocean.OceanMaterial.IsKeywordEnabled("_FLOW_ON"))
+            if (ocean.CreateFlowSim && !ocean.OceanMaterial.IsKeywordEnabled(LodDataMgrFlow.MATERIAL_KEYWORD))
             {
-                showMessage
-                (
-                    "Flow must be enabled on the ocean material. Tick the <i>Enable</i> option in the <i>Flow</i> parameter section on the material currently assigned to the OceanRenderer component.",
-                    ValidatedHelper.MessageType.Error, ocean.OceanMaterial
-                );
-
+                showMessage(LodDataMgrFlow.MATERIAL_KEYWORD_MISSING_ERROR, ValidatedHelper.MessageType.Error, ocean.OceanMaterial);
                 isValid = false;
             }
 
-            if (ocean.CreateShadowData && !ocean.OceanMaterial.IsKeywordEnabled("_SHADOWS_ON"))
+            if (ocean.CreateShadowData && !ocean.OceanMaterial.IsKeywordEnabled(LodDataMgrShadow.MATERIAL_KEYWORD))
             {
-                showMessage
-                (
-                    "Shadowing must be enabled on the ocean material. Tick the <i>Shadowing</i> option in the <i>Scattering</i> parameter section on the material currently assigned to the OceanRenderer component.",
-                    ValidatedHelper.MessageType.Error, ocean.OceanMaterial
-                );
-
+                showMessage(LodDataMgrShadow.MATERIAL_KEYWORD_MISSING_ERROR, ValidatedHelper.MessageType.Error, ocean.OceanMaterial);
                 isValid = false;
             }
 
-            if (ocean.CreateClipSurfaceData && !ocean.OceanMaterial.IsKeywordEnabled("_CLIPSURFACE_ON"))
+            if (ocean.CreateClipSurfaceData && !ocean.OceanMaterial.IsKeywordEnabled(LodDataMgrClipSurface.MATERIAL_KEYWORD))
             {
-                showMessage
-                (
-                    "Clipping must be enabled on the ocean material to enable clipping holes in the water surface. Tick the <i>Enable</i> option in the <i>Clip Surface</i> parameter section on the material currently assigned to the OceanRenderer component.",
-                    ValidatedHelper.MessageType.Error, ocean.OceanMaterial
-                );
-
+                showMessage(LodDataMgrClipSurface.MATERIAL_KEYWORD_MISSING_ERROR, ValidatedHelper.MessageType.Error, ocean.OceanMaterial);
                 isValid = false;
             }
 

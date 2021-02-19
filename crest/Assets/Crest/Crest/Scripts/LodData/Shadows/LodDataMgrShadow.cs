@@ -22,6 +22,9 @@ namespace Crest
         protected override GraphicsFormat RequestedTextureFormat => GraphicsFormat.R8G8_UNorm;
         protected override bool NeedToReadWriteTextureData { get { return true; } }
 
+        internal const string MATERIAL_KEYWORD = "_SHADOWS_ON";
+        internal const string MATERIAL_KEYWORD_MISSING_ERROR = "Shadowing must be enabled on the ocean material. Tick the <i>Shadowing</i> option in the <i>Scattering</i> parameter section on the material currently assigned to the OceanRenderer component.";
+
         public static bool s_processData = true;
 
         Light _mainLight;
@@ -91,7 +94,7 @@ namespace Crest
             }
 
 #if UNITY_EDITOR
-            if (!OceanRenderer.Instance.OceanMaterial.IsKeywordEnabled("_SHADOWS_ON"))
+            if (!OceanRenderer.Instance.OceanMaterial.IsKeywordEnabled(MATERIAL_KEYWORD))
             {
                 Debug.LogWarning("Shadowing is not enabled on the current ocean material and will not be visible.", _ocean);
             }

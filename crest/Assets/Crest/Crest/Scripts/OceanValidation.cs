@@ -28,7 +28,7 @@ namespace Crest
             Info,
         }
 
-        public class HelpBoxMessage
+        public struct HelpBoxMessage
         {
             public string _message;
             public Object _object;

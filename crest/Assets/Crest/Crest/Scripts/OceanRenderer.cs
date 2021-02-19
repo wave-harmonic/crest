@@ -1138,8 +1138,6 @@ namespace Crest
                 isValid = false;
             }
 
-            // TODO - we dont use the isValid flag again from here on. Should we?
-
             // OceanRenderer
             if (FindObjectsOfType<OceanRenderer>().Length > 1)
             {
@@ -1272,25 +1270,21 @@ namespace Crest
             if (ocean.CreateFoamSim && !ocean.OceanMaterial.IsKeywordEnabled(LodDataMgrFoam.MATERIAL_KEYWORD))
             {
                 showMessage(LodDataMgrFoam.MATERIAL_KEYWORD_MISSING_ERROR, ValidatedHelper.MessageType.Error, ocean.OceanMaterial);
-                isValid = false;
             }
 
             if (ocean.CreateFlowSim && !ocean.OceanMaterial.IsKeywordEnabled(LodDataMgrFlow.MATERIAL_KEYWORD))
             {
                 showMessage(LodDataMgrFlow.MATERIAL_KEYWORD_MISSING_ERROR, ValidatedHelper.MessageType.Error, ocean.OceanMaterial);
-                isValid = false;
             }
 
             if (ocean.CreateShadowData && !ocean.OceanMaterial.IsKeywordEnabled(LodDataMgrShadow.MATERIAL_KEYWORD))
             {
                 showMessage(LodDataMgrShadow.MATERIAL_KEYWORD_MISSING_ERROR, ValidatedHelper.MessageType.Error, ocean.OceanMaterial);
-                isValid = false;
             }
 
             if (ocean.CreateClipSurfaceData && !ocean.OceanMaterial.IsKeywordEnabled(LodDataMgrClipSurface.MATERIAL_KEYWORD))
             {
                 showMessage(LodDataMgrClipSurface.MATERIAL_KEYWORD_MISSING_ERROR, ValidatedHelper.MessageType.Error, ocean.OceanMaterial);
-                isValid = false;
             }
 
             return isValid;

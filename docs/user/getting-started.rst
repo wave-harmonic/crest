@@ -45,7 +45,7 @@ To augment / complement this written documentation we published a video availabl
 
 .. only:: latex
 
-    .. only:: readthedocs or brp_only
+    .. only:: readthedocs or brp
 
         .. only:: readthedocs
 
@@ -53,7 +53,7 @@ To augment / complement this written documentation we published a video availabl
 
         https://www.youtube.com/watch?v=qsgeG4sSLFw
 
-    .. only:: readthedocs or urp_only
+    .. only:: readthedocs or urp
 
         .. only:: readthedocs
 
@@ -61,11 +61,11 @@ To augment / complement this written documentation we published a video availabl
 
         https://www.youtube.com/watch?v=TpJf13d_-3E
 
-    .. only:: readthedocs or hdrp_only
+    .. only:: readthedocs or hdrp
 
         .. only:: readthedocs
 
-                |hdrp_long|
+            |hdrp_long|
 
         https://www.youtube.com/watch?v=FE6l39Lt3js
 
@@ -115,45 +115,27 @@ Import the *Crest* package into project using the *Asset Store* window in the Un
     The files under Crest-Examples are not required by our core functionality, but are provided for illustrative
     purposes. We recommend first time users import them as they may provide useful guidance.
 
-.. tabs::
+.. only:: html
 
-    .. group-tab:: |brp_long|
+    .. tabs::
 
-        TODO
+        .. group-tab:: |brp_long|
 
-    .. group-tab:: |hdrp_long|
+            TODO
 
-        TODO
+        .. group-tab:: |hdrp_long|
 
-    .. group-tab:: |urp_long|
+            TODO
 
-        .. raw:: html
+        .. group-tab:: |urp_long|
 
-            <h4>Transparency</h4>
+            .. include:: includes/_importing-crest-urp.rst
 
-        To enable the water surface to be transparent, two options must be enabled in the URP configuration.
-        To find the configuration, open *Edit/Project Settings/Graphics* and double click the *Scriptable Render Pipeline Settings* field to open the render pipeline settings.
-        This field will be populated if URP was successfully installed.
+.. only:: latex
 
-        .. image:: /_media/GraphicsSettings1.png
+    .. only:: urp
 
-        After double clicking the graphics settings should appear in the Inspector. Transparency requires the following two options to be enabled, *Depth Texture* and *Opaque Texture*:
-
-        .. image:: /_media/UrpPipelineSettings1.png
-
-        .. raw:: html
-
-            <h4>Shadowing</h4>
-
-        To enable shadowing of the water surface to darken the appearance in shadows, open the *Forward Renderer Data* by clicking the gear icon in the render pipeline settings from the previous step:
-
-        .. figure:: /_media/UrpPipelineSettings2.png
-
-            Gear/More icon
-
-        In the *Forward Renderer Data* add the *SampleShadows* render feature using the Add button:
-
-        .. image:: /_media/UrpPipelineSettingsRenderer1.png
+        .. include:: includes/_importing-crest-urp.rst
 
 Adding *Crest* to a Scene
 -------------------------

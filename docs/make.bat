@@ -11,6 +11,7 @@ set SOURCEDIR=.
 set BUILDDIR=_build
 
 if "%1" == "" goto help
+if "%1" == "serve" goto serve
 
 %SPHINXBUILD% >NUL 2>NUL
 if errorlevel 9009 (
@@ -25,7 +26,33 @@ if errorlevel 9009 (
 	exit /b 1
 )
 
+if "%1" == "pdf-hdrp" goto pdf-hdrp
+if "%1" == "pdf-urp" goto pdf-urp
+if "%1" == "pdf-brp" goto pdf-brp
+if "%1" == "pdf" goto pdf
+
 %SPHINXBUILD% -M %1 %SOURCEDIR% %BUILDDIR% %SPHINXOPTS% %O%
+goto end
+
+:pdf
+
+:pdf-brp
+%SPHINXBUILD% -M latexpdf %SOURCEDIR% %BUILDDIR% %SPHINXOPTS% -t brp %O%
+MOVE /Y _build\latex\crest.pdf _build\crest-brp.pdf
+if NOT "%1" == "pdf" goto end
+
+:pdf-urp
+%SPHINXBUILD% -M latexpdf %SOURCEDIR% %BUILDDIR% %SPHINXOPTS% -t urp %O%
+MOVE /Y _build\latex\crest.pdf _build\crest-urp.pdf
+if NOT "%1" == "pdf" goto end
+
+:pdf-hdrp
+%SPHINXBUILD% -M latexpdf %SOURCEDIR% %BUILDDIR% %SPHINXOPTS% -t hdrp %O%
+MOVE /Y _build\latex\crest.pdf _build\crest-hdrp.pdf
+goto end
+
+:serve
+py -m http.server -d _build\html
 goto end
 
 :help

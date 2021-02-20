@@ -64,15 +64,11 @@ The files that should be copied into an existing project are under *crest/Assets
 
 Note that *crest/Assets/Crest/Crest-Examples* contains example content that is useful for first time users but not required for the core *Crest* functionality. Furthermore, the *crest/Assets/Crest/Development* folder is not needed as it is only for *Crest* development.
 
-## Legacy
+## Releases
 
-The following options are no longer maintained or supported.
+*Crest* releases on the GitHub are not currently published, use the download or clone feature as described above.
 
-### Releases
-
-*Crest* releases are no longer published or supported.
-
-### 2018.4
+## 2018.4
 
 There is a [legacy branch] for 2018.4 support. A direct download to an archive is available [here](https://github.com/wave-harmonic/crest/archive/legacy/unity-2018.zip). It is not actively developed.
 

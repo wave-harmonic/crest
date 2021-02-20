@@ -96,7 +96,7 @@ namespace Crest
 #if UNITY_EDITOR
             if (!OceanRenderer.Instance.OceanMaterial.IsKeywordEnabled(MATERIAL_KEYWORD))
             {
-                Debug.LogWarning("Shadowing is not enabled on the current ocean material and will not be visible.", _ocean);
+                Debug.LogWarning(MATERIAL_KEYWORD_MISSING_ERROR, _ocean);
             }
 #endif
         }
@@ -236,9 +236,9 @@ namespace Crest
                 var lt = OceanRenderer.Instance._lodTransform;
                 for (var lodIdx = lt.LodCount - 1; lodIdx >= 0; lodIdx--)
                 {
-                    #if UNITY_EDITOR
+#if UNITY_EDITOR
                     lt._renderData[lodIdx].Validate(0, SimName);
-                    #endif
+#endif
 
                     _renderProperties.SetVector(sp_CenterPos, lt._renderData[lodIdx]._posSnapped);
                     var scale = OceanRenderer.Instance.CalcLodScale(lodIdx);

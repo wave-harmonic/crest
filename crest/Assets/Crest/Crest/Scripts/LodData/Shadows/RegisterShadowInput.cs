@@ -22,10 +22,12 @@ namespace Crest
 
         protected override bool FollowHorizontalMotion => false;
 
+#if UNITY_EDITOR
         protected override bool FeatureEnabled(OceanRenderer ocean) => ocean.CreateShadowData;
         protected override string FeatureDisabledErrorMessage => "<i>Create Shadow Data</i> must be enabled on the OceanRenderer component.";
 
         protected override string RequiredShaderKeyword => LodDataMgrShadow.MATERIAL_KEYWORD;
         protected override string KeywordMissingErrorMessage => LodDataMgrShadow.MATERIAL_KEYWORD_MISSING_ERROR;
+#endif // UNITY_EDITOR
     }
 }

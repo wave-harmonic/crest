@@ -37,7 +37,9 @@ namespace Crest
             }
         }
 
+#if UNITY_EDITOR
         protected override bool FeatureEnabled(OceanRenderer ocean) => ocean.CreateSeaFloorDepthData;
         protected override string FeatureDisabledErrorMessage => "<i>Create Sea Floor Depth Data</i> must be enabled on the OceanRenderer component.";
+#endif // UNITY_EDITOR
     }
 }

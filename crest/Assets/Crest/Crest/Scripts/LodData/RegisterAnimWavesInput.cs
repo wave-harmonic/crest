@@ -69,7 +69,9 @@ namespace Crest
             }
         }
 
+#if UNITY_EDITOR
         // Animated waves are always enabled
         protected override bool FeatureEnabled(OceanRenderer ocean) => true;
+#endif // UNITY_EDITOR
     }
 }

@@ -20,10 +20,12 @@ namespace Crest
 
         protected override string ShaderPrefix => "Crest/Inputs/Foam";
 
+#if UNITY_EDITOR
         protected override bool FeatureEnabled(OceanRenderer ocean) => ocean.CreateFoamSim;
         protected override string FeatureDisabledErrorMessage => "<i>Create Foam Sim</i> must be enabled on the OceanRenderer component.";
 
         protected override string RequiredShaderKeyword => LodDataMgrFoam.MATERIAL_KEYWORD;
         protected override string KeywordMissingErrorMessage => LodDataMgrFoam.MATERIAL_KEYWORD_MISSING_ERROR;
+#endif // UNITY_EDITOR
     }
 }

@@ -17,6 +17,23 @@ help:
 serve:
 	cd _build/html; echo "http://0.0.0.0:8000"; python -m SimpleHTTPServer
 
+pdf-hdrp:
+	@$(SPHINXBUILD) -M latexpdf "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) -t hdrp $(O)
+	mv -f _build/latex/crest.pdf _build/crest-hdrp.pdf
+
+pdf-urp:
+	@$(SPHINXBUILD) -M latexpdf "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) -t urp $(O)
+	mv -f _build/latex/crest.pdf _build/crest-urp.pdf
+
+pdf-brp:
+	@$(SPHINXBUILD) -M latexpdf "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) -t brp $(O)
+	mv -f _build/latex/crest.pdf _build/crest-brp.pdf
+
+pdf:
+	make pdf-brp
+	make pdf-urp
+	make pdf-hdrp
+
 # Catch-all target: route all unknown targets to Sphinx using the new
 # "make mode" option.  $(O) is meant as a shortcut for $(SPHINXOPTS).
 %: Makefile

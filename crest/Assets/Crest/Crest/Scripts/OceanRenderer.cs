@@ -1267,24 +1267,52 @@ namespace Crest
                 );
             }
 
-            if (ocean.CreateFoamSim && !ocean.OceanMaterial.IsKeywordEnabled(LodDataMgrFoam.MATERIAL_KEYWORD))
+            if (ocean.CreateFoamSim != ocean.OceanMaterial.IsKeywordEnabled(LodDataMgrFoam.MATERIAL_KEYWORD))
             {
-                showMessage(LodDataMgrFoam.MATERIAL_KEYWORD_MISSING_ERROR, ValidatedHelper.MessageType.Error, ocean.OceanMaterial);
+                if (ocean.CreateFoamSim)
+                {
+                    showMessage(LodDataMgrFoam.ERROR_MATERIAL_KEYWORD_MISSING, ValidatedHelper.MessageType.Error, ocean.OceanMaterial);
+                }
+                else
+                {
+                    showMessage(LodDataMgrFoam.ERROR_MATERIAL_KEYWORD_ON_FEATURE_OFF, ValidatedHelper.MessageType.Info, ocean.OceanMaterial);
+                }
             }
 
-            if (ocean.CreateFlowSim && !ocean.OceanMaterial.IsKeywordEnabled(LodDataMgrFlow.MATERIAL_KEYWORD))
+            if (ocean.CreateFlowSim != ocean.OceanMaterial.IsKeywordEnabled(LodDataMgrFlow.MATERIAL_KEYWORD))
             {
-                showMessage(LodDataMgrFlow.MATERIAL_KEYWORD_MISSING_ERROR, ValidatedHelper.MessageType.Error, ocean.OceanMaterial);
+                if (ocean.CreateFlowSim)
+                {
+                    showMessage(LodDataMgrFlow.ERROR_MATERIAL_KEYWORD_MISSING, ValidatedHelper.MessageType.Error, ocean.OceanMaterial);
+                }
+                else
+                {
+                    showMessage(LodDataMgrFlow.ERROR_MATERIAL_KEYWORD_ON_FEATURE_OFF, ValidatedHelper.MessageType.Info, ocean.OceanMaterial);
+                }
             }
 
-            if (ocean.CreateShadowData && !ocean.OceanMaterial.IsKeywordEnabled(LodDataMgrShadow.MATERIAL_KEYWORD))
+            if (ocean.CreateShadowData != ocean.OceanMaterial.IsKeywordEnabled(LodDataMgrShadow.MATERIAL_KEYWORD))
             {
-                showMessage(LodDataMgrShadow.MATERIAL_KEYWORD_MISSING_ERROR, ValidatedHelper.MessageType.Error, ocean.OceanMaterial);
+                if (ocean.CreateShadowData)
+                {
+                    showMessage(LodDataMgrShadow.ERROR_MATERIAL_KEYWORD_MISSING, ValidatedHelper.MessageType.Error, ocean.OceanMaterial);
+                }
+                else
+                {
+                    showMessage(LodDataMgrShadow.ERROR_MATERIAL_KEYWORD_ON_FEATURE_OFF, ValidatedHelper.MessageType.Info, ocean.OceanMaterial);
+                }
             }
 
-            if (ocean.CreateClipSurfaceData && !ocean.OceanMaterial.IsKeywordEnabled(LodDataMgrClipSurface.MATERIAL_KEYWORD))
+            if (ocean.CreateClipSurfaceData != ocean.OceanMaterial.IsKeywordEnabled(LodDataMgrClipSurface.MATERIAL_KEYWORD))
             {
-                showMessage(LodDataMgrClipSurface.MATERIAL_KEYWORD_MISSING_ERROR, ValidatedHelper.MessageType.Error, ocean.OceanMaterial);
+                if (ocean.CreateClipSurfaceData)
+                {
+                    showMessage(LodDataMgrClipSurface.ERROR_MATERIAL_KEYWORD_MISSING, ValidatedHelper.MessageType.Error, ocean.OceanMaterial);
+                }
+                else
+                {
+                    showMessage(LodDataMgrClipSurface.ERROR_MATERIAL_KEYWORD_ON_FEATURE_OFF, ValidatedHelper.MessageType.Info, ocean.OceanMaterial);
+                }
             }
 
             return isValid;

@@ -86,7 +86,7 @@ namespace Crest
         protected override string RequiredShaderKeyword => LodDataMgrClipSurface.MATERIAL_KEYWORD;
 
         protected override string FeatureDisabledErrorMessage => "<i>Create Clip Surface Data</i> must be enabled on the OceanRenderer component to enable clipping holes in the water surface.";
-        protected override string KeywordMissingErrorMessage => LodDataMgrClipSurface.MATERIAL_KEYWORD_MISSING_ERROR;
+        protected override string KeywordMissingErrorMessage => LodDataMgrClipSurface.ERROR_MATERIAL_KEYWORD_MISSING;
 #endif
     }
 }

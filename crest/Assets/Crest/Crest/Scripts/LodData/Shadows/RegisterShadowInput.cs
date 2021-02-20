@@ -27,7 +27,7 @@ namespace Crest
         protected override string FeatureDisabledErrorMessage => "<i>Create Shadow Data</i> must be enabled on the OceanRenderer component.";
 
         protected override string RequiredShaderKeyword => LodDataMgrShadow.MATERIAL_KEYWORD;
-        protected override string KeywordMissingErrorMessage => LodDataMgrShadow.MATERIAL_KEYWORD_MISSING_ERROR;
+        protected override string KeywordMissingErrorMessage => LodDataMgrShadow.ERROR_MATERIAL_KEYWORD_MISSING;
 #endif // UNITY_EDITOR
     }
 }

@@ -67,7 +67,7 @@ Note that *crest/Assets/Crest/Crest-Examples* contains example content that is u
 **Releases**: *Crest* releases on the GitHub are not currently published, use the download or clone feature as described above.
 
 
-# Issues
+# Notes and Issues
 
 If you encounter an issue, please search the [Issues page](https://github.com/wave-harmonic/crest/issues) to see if there is already a resolution, and if you don't find one then please report it as a new issue.
 

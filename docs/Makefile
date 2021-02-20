@@ -15,7 +15,7 @@ help:
 .PHONY: help Makefile
 
 serve:
-	cd _build/html; echo "http://0.0.0.0:8000"; python -m SimpleHTTPServer
+	echo "http://localhost:8000"; python3 -m http.server -d _build/html
 
 pdf-hdrp:
 	@$(SPHINXBUILD) -M latexpdf "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) -t hdrp $(O)

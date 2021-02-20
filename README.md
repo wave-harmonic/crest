@@ -64,7 +64,7 @@ The files that should be copied into an existing project are under *crest/Assets
 
 Note that *crest/Assets/Crest/Crest-Examples* contains example content that is useful for first time users but not required for the core *Crest* functionality. Furthermore, the *crest/Assets/Crest/Development* folder is not needed as it is only for *Crest* development.
 
-**Releases**: *Crest* releases on the GitHub are not currently published, use the download or clone feature as described above.
+**Releases**: Currently we do not prepare release packages. However, we do tag each asset store version, so the zip corresponding to each version can be downloaded by clicking the desired version on the [Releases page](https://github.com/wave-harmonic/crest/releases). Once the zip is downloaded, the steps are as above.
 
 
 # Notes and Issues

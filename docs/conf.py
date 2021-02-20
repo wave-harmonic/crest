@@ -81,9 +81,10 @@ html_css_files = [
     'custom.css',
 ]
 
-# html_js_files = [
-#     'custom.js',
-# ]
+html_js_files = [
+    'js/expand-tabs.js',
+    # 'custom.js',
+]
 
 # The following will be included before every page:
 rst_prolog = """

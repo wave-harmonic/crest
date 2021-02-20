@@ -73,6 +73,9 @@
 {
     border-color: #E1E4E5;
     border-bottom: solid 1px #FBFBFB;
+
+    /* Otherwise, the tab can be clicked and it will close all tabs. */
+    pointer-events: none;
 }
 
 .sphinx-tabs-panel,

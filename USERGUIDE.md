@@ -190,6 +190,8 @@ This feature records the water depth which is used for a number of features incl
 
 ## Clip Surface
 
+There is a tutorial specifically for surface clipping here: https://www.youtube.com/watch?v=Y7ny8pKzWMk
+
 This data drives clipping of the ocean surface, as in cutting holes in the water. This can be useful for hollow vessels or low terrain that goes below sea level. Data can come from geometry, convex hulls or a texture. The system can also be configured to clip everything by default and include only where needed which is useful if water is only required in limited area(s), and this use case is described below.
 
 To turn on this feature, enable the *Create Clip Surface Data* option on the *OceanRenderer* script, and ensure the *Enable* option is ticked in the *Clip Surface* group on the ocean material.
@@ -329,6 +331,8 @@ At runtime, a child object underneath the cache will be created with the prefix 
 
 
 # Limiting water area
+
+There is a tutorial for limiting the water area here: https://www.youtube.com/watch?v=Y7ny8pKzWMk
 
 By default the system generates a water surface that expands our to the horizon in every direction. There are mechanisms to limit the area.
 

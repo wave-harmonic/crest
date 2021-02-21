@@ -64,19 +64,10 @@ The files that should be copied into an existing project are under *crest/Assets
 
 Note that *crest/Assets/Crest/Crest-Examples* contains example content that is useful for first time users but not required for the core *Crest* functionality. Furthermore, the *crest/Assets/Crest/Development* folder is not needed as it is only for *Crest* development.
 
-## Legacy
+**Releases**: Currently we do not prepare release packages. However, we do tag each asset store version, so the zip corresponding to each version can be downloaded by clicking the desired version on the [Releases page](https://github.com/wave-harmonic/crest/releases). Once the zip is downloaded, the steps are as above.
 
-The following options are no longer maintained or supported.
 
-### Releases
-
-*Crest* releases are no longer published or supported.
-
-### 2018.4
-
-There is a [legacy branch] for 2018.4 support. A direct download to an archive is available [here](https://github.com/wave-harmonic/crest/archive/legacy/unity-2018.zip). It is not actively developed.
-
-# Issues
+# Notes and Issues
 
 If you encounter an issue, please search the [Issues page](https://github.com/wave-harmonic/crest/issues) to see if there is already a resolution, and if you don't find one then please report it as a new issue.
 
@@ -84,5 +75,4 @@ There are a few issues worth calling out here:
 
 * Sky solutions such as Azure[Sky] requires some code to be added to the ocean shader for the fogging/scattering to work. This is a requirement of these products which typically come with instructions for what needs to be added. See the [wiki](https://github.com/wave-harmonic/crest/wiki) for examples.
 * *Crest* does not support OpenGL or WebGL backends
-
-[legacy branch]: https://github.com/wave-harmonic/crest/tree/legacy/unity-2018
+* Unity 2018 support - There is a [legacy branch] for 2018.4 support. A direct download to an archive is available [here](https://github.com/wave-harmonic/crest/archive/legacy/unity-2018.zip). It is not actively developed.

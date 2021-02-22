@@ -113,8 +113,8 @@ void PosToSliceIndices
 	const float2 worldXZ,
 	const float minSlice,
 	const float oceanScale0,
-	out float slice0,
-	out float slice1,
+	out uint slice0,
+	out uint slice1,
 	out float lodAlpha
 )
 {
@@ -125,7 +125,7 @@ void PosToSliceIndices
 
 	lodAlpha = frac(sliceNumber);
 	slice0 = floor(sliceNumber);
-	slice1 = slice0 + 1.0;
+	slice1 = slice0 + 1;
 
 	// lod alpha is remapped to ensure patches weld together properly. patches can vary significantly in shape (with
 	// strips added and removed), and this variance depends on the base density of the mesh, as this defines the strip width.

@@ -47,6 +47,8 @@ void ApplyNormalMapsWithFlow(float2 worldXZUndisplaced, float2 flow, float lodAl
 	if (sample1_weight > 1.0) sample1_weight = 2.0 - sample1_weight;
 	float sample2_offset = fmod(_CrestTime + half_period, period);
 	float sample2_weight = 1.0 - sample1_weight;
+	sample1_offset -= 0.5 * period;
+	sample2_offset -= 0.5 * period;
 
 	// In order to prevent flow from distorting the UVs too much,
 	// we fade between two samples of normal maps so that for each

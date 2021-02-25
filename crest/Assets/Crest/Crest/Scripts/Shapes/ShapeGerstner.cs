@@ -588,12 +588,12 @@ namespace Crest
         {
             _firstUpdate = true;
 
-#if UNITY_EDITOR
             // Initialise with spectrum
             if (_spectrum != null)
             {
                 _activeSpectrum = _spectrum;
             }
+#if UNITY_EDITOR
             if (_activeSpectrum == null)
             {
                 _activeSpectrum = ScriptableObject.CreateInstance<OceanWaveSpectrum>();

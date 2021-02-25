@@ -32,9 +32,10 @@ namespace Crest
         {
             public string _message;
             public Object _object;
+            public System.Action<SerializedObject> _action;
         }
 
-        // This is a shared resource. It will be cleared before use. It is only used by the HelpBox delegate since we 
+        // This is a shared resource. It will be cleared before use. It is only used by the HelpBox delegate since we
         // want to group them by severity (MessageType). Make sure length matches MessageType length.
         public static readonly List<HelpBoxMessage>[] messages = new[]
         {
@@ -43,9 +44,9 @@ namespace Crest
             new List<HelpBoxMessage>(),
         };
 
-        public delegate void ShowMessage(string message, MessageType type, Object @object = null);
+        public delegate void ShowMessage(string message, MessageType type, Object @object = null, System.Action<SerializedObject> action = null);
 
-        public static void DebugLog(string message, MessageType type, Object @object = null)
+        public static void DebugLog(string message, MessageType type, Object @object = null, System.Action<SerializedObject> action = null)
         {
             message = $"Validation: {message} Click this message to highlight the problem object.";
 
@@ -57,12 +58,12 @@ namespace Crest
             }
         }
 
-        public static void HelpBox(string message, MessageType type, Object @object = null)
+        public static void HelpBox(string message, MessageType type, Object @object = null, System.Action<SerializedObject> action = null)
         {
-            messages[(int)type].Add(new HelpBoxMessage { _message = message, _object = @object });
+            messages[(int)type].Add(new HelpBoxMessage { _message = message, _object = @object, _action = action });
         }
 
-        public static void Suppressed(string message, MessageType type, Object @object = null)
+        public static void Suppressed(string message, MessageType type, Object @object = null, System.Action<SerializedObject> action = null)
         {
         }
 
@@ -99,6 +100,7 @@ namespace Crest
     {
         static readonly bool _groupMessages = false;
         static GUIContent s_jumpButtonContent = null;
+        static GUIContent s_fixButtonContent = null;
 
         public void ShowValidationMessages()
         {
@@ -176,12 +178,32 @@ namespace Crest
                                 {
                                     if (s_jumpButtonContent == null)
                                     {
-                                        s_jumpButtonContent = new GUIContent(EditorGUIUtility.FindTexture("d_scenepicking_pickable_hover"), "Jump to object to resolve issue");
+                                        s_jumpButtonContent = new GUIContent(EditorGUIUtility.FindTexture("scenepicking_pickable_hover@2x"), "Jump to object to resolve issue");
                                     }
 
                                     if (GUILayout.Button(s_jumpButtonContent, GUILayout.ExpandWidth(false), GUILayout.ExpandHeight(true)))
                                     {
                                         Selection.activeObject = message._object;
+                                    }
+                                }
+                            }
+
+                            // Fix the issue button.
+                            if (message._action != null)
+                            {
+                                if (s_fixButtonContent == null)
+                                {
+                                    s_fixButtonContent = new GUIContent(EditorGUIUtility.FindTexture("SceneViewTools@2x"), "Fix the issue");
+                                }
+
+                                if (GUILayout.Button(s_fixButtonContent, GUILayout.ExpandWidth(false), GUILayout.ExpandHeight(true)))
+                                {
+                                    var serializedObject = new SerializedObject(message._object);
+                                    message._action.Invoke(serializedObject);
+                                    if (serializedObject.ApplyModifiedProperties())
+                                    {
+                                        // SerializedObject does this for us, but gives the history item a nicer label.
+                                        Undo.RecordObject(message._object, $"Fix for {message._object.name}");
                                     }
                                 }
                             }

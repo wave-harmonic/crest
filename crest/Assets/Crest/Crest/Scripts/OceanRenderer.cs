@@ -1357,7 +1357,14 @@ namespace Crest
         // Adapted from: http://answers.unity.com/answers/975894/view.html
         void DrawMaterialEditor()
         {
-            if ((_materialEditor == null && _target._material != null) || (Material)_materialEditor.target != _target._material)
+            Material oldMaterial = null;
+
+            if (_materialEditor != null)
+            {
+                oldMaterial = (Material)_materialEditor.target;
+            }
+
+            if (oldMaterial != _target._material)
             {
                 serializedObject.ApplyModifiedProperties();
 
@@ -1371,7 +1378,6 @@ namespace Crest
                 {
                     // Create a new instance of the default MaterialEditor.
                     _materialEditor = (MaterialEditor)CreateEditor(_target._material);
-
                 }
             }
 

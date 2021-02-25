@@ -71,7 +71,7 @@ void SampleDisplacementsNormals(in Texture2DArray i_dispSampler, in float3 i_uv_
 	// SSS - based off pinch
 #if _SUBSURFACESCATTERING_ON
 	{
-		const float2x2 jacobian = (float2x2(disp_x.xz, disp_z.xz) - disp.xzxz) / i_texelSize;
+		const float2x2 jacobian = (float4(disp_x.xz, disp_z.xz) - disp.xzxz) / i_texelSize;
 		// Determinant is < 1 for pinched, < 0 for overlap/inversion
 		const float det = determinant( jacobian );
 		const float sssMax = 0.6;

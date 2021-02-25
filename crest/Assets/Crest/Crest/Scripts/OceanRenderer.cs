@@ -135,7 +135,7 @@ namespace Crest
         [Header("Ocean Params")]
 
         [SerializeField, Tooltip("Material to use for the ocean surface")]
-        Material _material = null;
+        internal Material _material = null;
         public Material OceanMaterial { get { return _material; } }
 
         [SerializeField]
@@ -774,11 +774,14 @@ namespace Crest
 
         void WritePerFrameMaterialParams()
         {
-            // Hack - due to SV_IsFrontFace occasionally coming through as true for back faces,
-            // add a param here that forces ocean to be in underwater state. I think the root
-            // cause here might be imprecision or numerical issues at ocean tile boundaries, although
-            // i'm not sure why cracks are not visible in this case.
-            OceanMaterial.SetFloat(sp_ForceUnderwater, ViewerHeightAboveWater < -2f ? 1f : 0f);
+            if (OceanMaterial != null)
+            {
+                // Hack - due to SV_IsFrontFace occasionally coming through as true for back faces,
+                // add a param here that forces ocean to be in underwater state. I think the root
+                // cause here might be imprecision or numerical issues at ocean tile boundaries, although
+                // i'm not sure why cracks are not visible in this case.
+                OceanMaterial.SetFloat(sp_ForceUnderwater, ViewerHeightAboveWater < -2f ? 1f : 0f);
+            }
 
             _lodTransform.WriteCascadeParams(_cascadeParamsTgt, _cascadeParamsSrc);
             _bufCascadeDataTgt.SetData(_cascadeParamsTgt);
@@ -1368,6 +1371,29 @@ namespace Crest
     [CustomEditor(typeof(OceanRenderer))]
     public class OceanRendererEditor : ValidatedEditor
     {
+        OceanRenderer _target;
+        MaterialEditor _materialEditor;
+
+        void OnEnable()
+        {
+            _target = (OceanRenderer)target;
+
+            if (_target._material != null)
+            {
+                // Create an instance of the default MaterialEditor.
+                _materialEditor = (MaterialEditor)CreateEditor(_target._material);
+            }
+        }
+
+        void OnDisable()
+        {
+            if (_materialEditor != null)
+            {
+                // Free the memory used by default MaterialEditor.
+                DestroyImmediate(_materialEditor);
+            }
+        }
+
         public override void OnInspectorGUI()
         {
             base.OnInspectorGUI();
@@ -1383,6 +1409,51 @@ namespace Crest
             if (GUILayout.Button("Validate Setup"))
             {
                 OceanRenderer.RunValidation(target);
+            }
+
+            DrawMaterialEditor();
+        }
+
+        // Adapted from: http://answers.unity.com/answers/975894/view.html
+        void DrawMaterialEditor()
+        {
+            Material oldMaterial = null;
+
+            if (_materialEditor != null)
+            {
+                oldMaterial = (Material)_materialEditor.target;
+            }
+
+            if (oldMaterial != _target._material)
+            {
+                serializedObject.ApplyModifiedProperties();
+
+                if (_materialEditor != null)
+                {
+                    // Free the memory used by the previous MaterialEditor.
+                    DestroyImmediate(_materialEditor);
+                }
+
+                if (_target._material != null)
+                {
+                    // Create a new instance of the default MaterialEditor.
+                    _materialEditor = (MaterialEditor)CreateEditor(_target._material);
+                }
+            }
+
+            if (_materialEditor != null)
+            {
+                // Draw the material's foldout and the material shader field. Required to call OnInspectorGUI.
+                _materialEditor.DrawHeader();
+
+                // We need to prevent the user from editing Unity's default materials.
+                bool isDefaultMaterial = !AssetDatabase.GetAssetPath(_target._material).StartsWith("Assets");
+
+                using (new EditorGUI.DisabledGroupScope(isDefaultMaterial))
+                {
+                    // Draw the material properties. Works only if the foldout of DrawHeader is open.
+                    _materialEditor.OnInspectorGUI();
+                }
             }
         }
     }

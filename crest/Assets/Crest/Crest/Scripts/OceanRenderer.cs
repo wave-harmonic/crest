@@ -762,11 +762,14 @@ namespace Crest
 
         void WritePerFrameMaterialParams()
         {
-            // Hack - due to SV_IsFrontFace occasionally coming through as true for back faces,
-            // add a param here that forces ocean to be in underwater state. I think the root
-            // cause here might be imprecision or numerical issues at ocean tile boundaries, although
-            // i'm not sure why cracks are not visible in this case.
-            OceanMaterial.SetFloat(sp_ForceUnderwater, ViewerHeightAboveWater < -2f ? 1f : 0f);
+            if (OceanMaterial != null)
+            {
+                // Hack - due to SV_IsFrontFace occasionally coming through as true for back faces,
+                // add a param here that forces ocean to be in underwater state. I think the root
+                // cause here might be imprecision or numerical issues at ocean tile boundaries, although
+                // i'm not sure why cracks are not visible in this case.
+                OceanMaterial.SetFloat(sp_ForceUnderwater, ViewerHeightAboveWater < -2f ? 1f : 0f);
+            }
 
             _lodTransform.WriteCascadeParams(_cascadeParamsTgt, _cascadeParamsSrc);
             _bufCascadeDataTgt.SetData(_cascadeParamsTgt);

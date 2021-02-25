@@ -30,8 +30,16 @@ namespace Crest
             if (_assignOceanDepthMaterial)
             {
                 var rend = GetComponent<Renderer>();
-                rend.material = new Material(Shader.Find("Crest/Inputs/Depth/Ocean Depth From Geometry"));
+                if (rend != null)
+                {
+                    rend.material = new Material(Shader.Find("Crest/Inputs/Depth/Ocean Depth From Geometry"));
+                }
             }
         }
+
+#if UNITY_EDITOR
+        protected override bool FeatureEnabled(OceanRenderer ocean) => ocean.CreateSeaFloorDepthData;
+        protected override string FeatureDisabledErrorMessage => "<i>Create Sea Floor Depth Data</i> must be enabled on the OceanRenderer component.";
+#endif // UNITY_EDITOR
     }
 }

@@ -19,5 +19,13 @@ namespace Crest
         protected override Color GizmoColor => new Color(1f, 1f, 1f, 0.5f);
 
         protected override string ShaderPrefix => "Crest/Inputs/Foam";
+
+#if UNITY_EDITOR
+        protected override bool FeatureEnabled(OceanRenderer ocean) => ocean.CreateFoamSim;
+        protected override string FeatureDisabledErrorMessage => "<i>Create Foam Sim</i> must be enabled on the OceanRenderer component.";
+
+        protected override string RequiredShaderKeyword => LodDataMgrFoam.MATERIAL_KEYWORD;
+        protected override string KeywordMissingErrorMessage => LodDataMgrFoam.ERROR_MATERIAL_KEYWORD_MISSING;
+#endif // UNITY_EDITOR
     }
 }

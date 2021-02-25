@@ -28,13 +28,19 @@ namespace Crest
             Info,
         }
 
+        public struct HelpBoxMessage
+        {
+            public string _message;
+            public Object _object;
+        }
+
         // This is a shared resource. It will be cleared before use. It is only used by the HelpBox delegate since we 
         // want to group them by severity (MessageType). Make sure length matches MessageType length.
-        public static readonly List<string>[] messages = new[]
+        public static readonly List<HelpBoxMessage>[] messages = new[]
         {
-            new List<string>(),
-            new List<string>(),
-            new List<string>(),
+            new List<HelpBoxMessage>(),
+            new List<HelpBoxMessage>(),
+            new List<HelpBoxMessage>(),
         };
 
         public delegate void ShowMessage(string message, MessageType type, Object @object = null);
@@ -53,7 +59,7 @@ namespace Crest
 
         public static void HelpBox(string message, MessageType type, Object @object = null)
         {
-            messages[(int)type].Add(message);
+            messages[(int)type].Add(new HelpBoxMessage { _message = message, _object = @object });
         }
 
         public static void Suppressed(string message, MessageType type, Object @object = null)
@@ -92,6 +98,7 @@ namespace Crest
     public abstract class ValidatedEditor : Editor
     {
         static readonly bool _groupMessages = false;
+        static GUIContent s_jumpButtonContent = null;
 
         public void ShowValidationMessages()
         {
@@ -139,7 +146,7 @@ namespace Crest
                     if (_groupMessages)
                     {
                         // We join the messages together to reduce vertical space since HelpBox has padding, borders etc.
-                        var joinedMessage = messages[0];
+                        var joinedMessage = messages[0]._message;
                         // Format as list if we have more than one message.
                         if (messages.Count > 1) joinedMessage = $"- {joinedMessage}";
 
@@ -154,7 +161,24 @@ namespace Crest
                     {
                         foreach (var message in messages)
                         {
-                            EditorGUILayout.HelpBox(message, messageType);
+                            EditorGUILayout.BeginHorizontal();
+                            EditorGUILayout.HelpBox(message._message, messageType);
+
+                            // Jump to object button
+                            if (message._object != null && Selection.activeObject != message._object)
+                            {
+                                if (s_jumpButtonContent == null)
+                                {
+                                    s_jumpButtonContent = new GUIContent(EditorGUIUtility.FindTexture("d_scenepicking_pickable_hover"), "Jump to object to resolve issue");
+                                }
+
+                                if (GUILayout.Button(s_jumpButtonContent, GUILayout.ExpandWidth(false), GUILayout.ExpandHeight(true)))
+                                {
+                                    Selection.activeObject = message._object;
+                                }
+                            }
+
+                            EditorGUILayout.EndHorizontal();
                         }
                     }
                 }

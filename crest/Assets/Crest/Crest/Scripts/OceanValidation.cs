@@ -164,17 +164,25 @@ namespace Crest
                             EditorGUILayout.BeginHorizontal();
                             EditorGUILayout.HelpBox(message._message, messageType);
 
-                            // Jump to object button
-                            if (message._object != null && Selection.activeObject != message._object)
+                            // Jump to object button.
+                            if (message._object != null)
                             {
-                                if (s_jumpButtonContent == null)
-                                {
-                                    s_jumpButtonContent = new GUIContent(EditorGUIUtility.FindTexture("d_scenepicking_pickable_hover"), "Jump to object to resolve issue");
-                                }
+                                // Selection.activeObject can be message._object.gameObject instead of the component
+                                // itself. We soft cast to MonoBehaviour to get the gameObject for comparison.
+                                // Alternatively, we could always pass gameObject instead of "this".
+                                var casted = message._object as MonoBehaviour;
 
-                                if (GUILayout.Button(s_jumpButtonContent, GUILayout.ExpandWidth(false), GUILayout.ExpandHeight(true)))
+                                if (Selection.activeObject != message._object && (casted == null || casted.gameObject != Selection.activeObject))
                                 {
-                                    Selection.activeObject = message._object;
+                                    if (s_jumpButtonContent == null)
+                                    {
+                                        s_jumpButtonContent = new GUIContent(EditorGUIUtility.FindTexture("d_scenepicking_pickable_hover"), "Jump to object to resolve issue");
+                                    }
+
+                                    if (GUILayout.Button(s_jumpButtonContent, GUILayout.ExpandWidth(false), GUILayout.ExpandHeight(true)))
+                                    {
+                                        Selection.activeObject = message._object;
+                                    }
                                 }
                             }
 

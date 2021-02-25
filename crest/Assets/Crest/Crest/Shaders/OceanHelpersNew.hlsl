@@ -71,7 +71,7 @@ void SampleDisplacementsNormals(in Texture2DArray i_dispSampler, in float3 i_uv_
 	// SSS - based off pinch
 #if _SUBSURFACESCATTERING_ON
 	{
-		const float2x2 jacobian = (float2x2(disp_x.xz, disp_z.xz) - disp.xzxz) / i_texelSize;
+		const float2x2 jacobian = (float4(disp_x.xz, disp_z.xz) - disp.xzxz) / i_texelSize;
 		// Determinant is < 1 for pinched, < 0 for overlap/inversion
 		const float det = determinant( jacobian );
 		const float sssMax = 0.6;
@@ -113,8 +113,8 @@ void PosToSliceIndices
 	const float2 worldXZ,
 	const float minSlice,
 	const float oceanScale0,
-	out float slice0,
-	out float slice1,
+	out uint slice0,
+	out uint slice1,
 	out float lodAlpha
 )
 {
@@ -125,7 +125,7 @@ void PosToSliceIndices
 
 	lodAlpha = frac(sliceNumber);
 	slice0 = floor(sliceNumber);
-	slice1 = slice0 + 1.0;
+	slice1 = slice0 + 1;
 
 	// lod alpha is remapped to ensure patches weld together properly. patches can vary significantly in shape (with
 	// strips added and removed), and this variance depends on the base density of the mesh, as this defines the strip width.

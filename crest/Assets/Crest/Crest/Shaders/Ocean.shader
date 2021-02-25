@@ -325,7 +325,7 @@ Shader "Crest/Ocean"
 				// sample shape textures - always lerp between 2 LOD scales, so sample two textures
 				o.flow_shadow = half4(0., 0., 0., 0.);
 				o.foam_screenPosXYW.x = 0.;
-
+				
 				o.lodAlpha_worldXZUndisplaced_oceanDepth.w = CREST_OCEAN_DEPTH_BASELINE;
 				// Sample shape textures - always lerp between 2 LOD scales, so sample two textures
 

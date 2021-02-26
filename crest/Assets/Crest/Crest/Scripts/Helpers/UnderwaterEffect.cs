@@ -236,8 +236,8 @@ namespace Crest
             "_SUBSURFACESCATTERING_ON",
             "_SUBSURFACESHALLOWCOLOUR_ON",
             "_TRANSPARENCY_ON",
-            "_CAUSTICS_ON",
-            "_SHADOWS_ON",
+            "CREST_CAUSTICS_ON",
+            "CREST_SHADOWS_ON",
         };
 
         public bool Validate(OceanRenderer ocean, ValidatedHelper.ShowMessage showMessage)

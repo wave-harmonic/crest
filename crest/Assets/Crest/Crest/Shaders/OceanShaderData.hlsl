@@ -19,10 +19,10 @@ sampler2D _ReflectionTex;
 #if _OVERRIDEREFLECTIONCUBEMAP_ON
 samplerCUBE _ReflectionCubemapOverride;
 #endif
-#if _FOAM_ON
+#if CREST_FOAM_ON
 sampler2D _FoamTexture;
 #endif
-#if _CAUSTICS_ON
+#if CREST_CAUSTICS_ON
 sampler2D _CausticsTexture;
 #endif
 
@@ -37,7 +37,7 @@ CBUFFER_START(CrestInputsPerMaterial)
 
 half3 _Diffuse;
 half3 _DiffuseGrazing;
-#if _SHADOWS_ON
+#if CREST_SHADOWS_ON
 half3 _DiffuseShadow;
 #endif
 
@@ -74,7 +74,7 @@ half _SubSurfaceSunFallOff;
 half _SubSurfaceDepthMax;
 half _SubSurfaceDepthPower;
 half3 _SubSurfaceShallowCol;
-#if _SHADOWS_ON
+#if CREST_SHADOWS_ON
 half3 _SubSurfaceShallowColShadow;
 #endif
 #endif
@@ -114,7 +114,7 @@ half _SkyDirectionality;
 // Foam
 // ----------------------------------------------------------------------------
 
-#if _FOAM_ON
+#if CREST_FOAM_ON
 half _FoamScale;
 half4 _FoamWhiteColor;
 half _WaveFoamFeather;
@@ -136,7 +136,7 @@ half _WaveFoamBubblesCoverage;
 // Caustics
 // ----------------------------------------------------------------------------
 
-#if _CAUSTICS_ON
+#if CREST_CAUSTICS_ON
 half _CausticsTextureScale;
 half _CausticsTextureAverage;
 half _CausticsStrength;

@@ -13,6 +13,10 @@ namespace Crest.Editor
     {
         internal static readonly Dictionary<string, string> RenamedKeywords = new Dictionary<string, string>
         {
+            { "_Foam", "CREST_FOAM" },
+            { "_Shadows", "CREST_SHADOWS" },
+            { "_Caustics", "CREST_CAUSTICS" },
+            { "_Flow", "CREST_FLOW" },
         };
 
         internal static void MigrateKeywords(Material material, SerializedObject serializedObject, SerializedProperty floatProperties, SerializedProperty keywordProperties)

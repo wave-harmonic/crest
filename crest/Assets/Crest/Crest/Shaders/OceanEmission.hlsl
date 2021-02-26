@@ -26,7 +26,7 @@ half3 ScatterColour(
 		depth = CREST_OCEAN_DEPTH_BASELINE;
 		SampleSeaDepth(_LD_TexArray_SeaFloorDepth, uv_smallerLod, 1.0, depth);
 
-#if _SHADOWS_ON
+#if CREST_SHADOWS_ON
 		const float2 samplePoint = i_cameraPos.xz;
 
 		// Pick lower res data for shadowing, helps to smooth out artifacts slightly
@@ -58,7 +58,7 @@ half3 ScatterColour(
 	float v = abs(i_view.y);
 	half3 col = lerp(_Diffuse, _DiffuseGrazing, 1. - pow(v, 1.0));
 
-#if _SHADOWS_ON
+#if CREST_SHADOWS_ON
 	col = lerp(_DiffuseShadow, col, shadow);
 #endif
 
@@ -67,7 +67,7 @@ half3 ScatterColour(
 #if _SUBSURFACESHALLOWCOLOUR_ON
 		float shallowness = pow(1. - saturate(depth / _SubSurfaceDepthMax), _SubSurfaceDepthPower);
 		half3 shallowCol = _SubSurfaceShallowCol;
-#if _SHADOWS_ON
+#if CREST_SHADOWS_ON
 		shallowCol = lerp(_SubSurfaceShallowColShadow, shallowCol, shadow);
 #endif
 		col = lerp(col, shallowCol, shallowness);
@@ -90,7 +90,7 @@ half3 ScatterColour(
 }
 
 
-#if _CAUSTICS_ON
+#if CREST_CAUSTICS_ON
 void ApplyCaustics(in const half3 i_view, in const half3 i_lightDir, in const float i_sceneZ, in sampler2D i_normals, in const bool i_underwater, inout half3 io_sceneColour,
 	in const CascadeParams cascadeData0, in const CascadeParams cascadeData1)
 {
@@ -122,7 +122,7 @@ void ApplyCaustics(in const half3 i_view, in const half3 i_lightDir, in const fl
 
 	half causticsStrength = _CausticsStrength;
 
-#if _SHADOWS_ON
+#if CREST_SHADOWS_ON
 	{
 		// Calculate projected position again as we do not want the fudge factor. If we include the fudge factor, the
 		// caustics will not be aligned with shadows.
@@ -143,12 +143,12 @@ void ApplyCaustics(in const half3 i_view, in const half3 i_lightDir, in const fl
 		}
 		causticsStrength *= 1.0 - causticShadow.y;
 	}
-#endif // _SHADOWS_ON
+#endif // CREST_SHADOWS_ON
 
 	io_sceneColour.xyz *= 1.0 + causticsStrength *
 		(0.5*tex2Dlod(_CausticsTexture, cuv1).xyz + 0.5*tex2Dlod(_CausticsTexture, cuv2).xyz - _CausticsTextureAverage);
 }
-#endif // _CAUSTICS_ON
+#endif // CREST_CAUSTICS_ON
 
 
 half3 OceanEmission(in const half3 i_view, in const half3 i_n_pixel, in const float3 i_lightDir,
@@ -195,7 +195,7 @@ half3 OceanEmission(in const half3 i_view, in const half3 i_n_pixel, in const fl
 		}
 
 		sceneColour = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_BackgroundTexture, uvBackgroundRefract).rgb;
-#if _CAUSTICS_ON
+#if CREST_CAUSTICS_ON
 		ApplyCaustics(i_view, i_lightDir, i_sceneZ, i_normals, i_underwater, sceneColour, cascadeData0, cascadeData1);
 #endif
 		alpha = 1.0 - exp(-_DepthFogDensity.xyz * depthFogDistance);

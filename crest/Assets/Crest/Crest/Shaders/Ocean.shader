@@ -23,7 +23,7 @@ Shader "Crest/Ocean"
 		// Base colour when looking into water at shallow/grazing angle
 		_DiffuseGrazing("Diffuse Grazing", Color) = (0.184, 0.393, 0.519, 1)
 		// Changes colour in shadow. Requires 'Create Shadow Data' enabled on OceanRenderer script.
-		[Toggle] _Shadows("Shadowing", Float) = 0
+		[Toggle] CREST_SHADOWS("Shadowing", Float) = 0
 		// Base colour in shadow
 		_DiffuseShadow("Diffuse (Shadow)", Color) = (0.0, 0.356, 0.565, 1.0)
 
@@ -97,7 +97,7 @@ Shader "Crest/Ocean"
 
 		[Header(Foam)]
 		// Enable foam layer on ocean surface
-		[Toggle] _Foam("Enable", Float) = 1
+		[Toggle] CREST_FOAM("Enable", Float) = 1
 		// Foam texture
 		[NoScaleOffset] _FoamTexture("Texture", 2D) = "white" {}
 		// Foam texture scale
@@ -137,7 +137,7 @@ Shader "Crest/Ocean"
 
 		[Header(Caustics)]
 		// Approximate rays being focused/defocused on underwater surfaces
-		[Toggle] _Caustics("Enable", Float) = 1
+		[Toggle] CREST_CAUSTICS("Enable", Float) = 1
 		// Caustics texture
 		[NoScaleOffset] _CausticsTexture("Caustics", 2D) = "black" {}
 		// Caustics texture scale
@@ -166,7 +166,7 @@ Shader "Crest/Ocean"
 		[Header(Flow)]
 		// Flow is horizontal motion in water as demonstrated in the 'whirlpool' example scene. 'Create Flow Sim' must be
 		// enabled on the OceanRenderer to generate flow data.
-		[Toggle] _Flow("Enable", Float) = 0
+		[Toggle] CREST_FLOW("Enable", Float) = 0
 
 		[Header(Clip Surface)]
 		// Discards ocean surface pixels. Requires 'Create Clip Surface Data' enabled on OceanRenderer script.
@@ -227,16 +227,16 @@ Shader "Crest/Ocean"
 			#pragma shader_feature_local _SUBSURFACESCATTERING_ON
 			#pragma shader_feature_local _SUBSURFACESHALLOWCOLOUR_ON
 			#pragma shader_feature_local _TRANSPARENCY_ON
-			#pragma shader_feature_local _CAUSTICS_ON
-			#pragma shader_feature_local _FOAM_ON
+			#pragma shader_feature_local CREST_CAUSTICS_ON
+			#pragma shader_feature_local CREST_FOAM_ON
 			#pragma shader_feature_local _FOAM3DLIGHTING_ON
 			#pragma shader_feature_local _PLANARREFLECTIONS_ON
 			#pragma shader_feature_local _OVERRIDEREFLECTIONCUBEMAP_ON
 
 			#pragma shader_feature_local _PROCEDURALSKY_ON
 			#pragma shader_feature_local _UNDERWATER_ON
-			#pragma shader_feature_local _FLOW_ON
-			#pragma shader_feature_local _SHADOWS_ON
+			#pragma shader_feature_local CREST_FLOW_ON
+			#pragma shader_feature_local CREST_SHADOWS_ON
 			#pragma shader_feature_local _CLIPSURFACE_ON
 			#pragma shader_feature_local _CLIPUNDERTERRAIN_ON
 
@@ -344,11 +344,11 @@ Shader "Crest/Ocean"
 					SampleDisplacements(_LD_TexArray_AnimatedWaves, uv_slice_smallerLod, wt_smallerLod, o.worldPos);
 					#endif
 
-					#if _FOAM_ON
+					#if CREST_FOAM_ON
 					SampleFoam(_LD_TexArray_Foam, uv_slice_smallerLod, wt_smallerLod, o.foam_screenPosXYW.x);
 					#endif
 
-					#if _FLOW_ON
+					#if CREST_FLOW_ON
 					SampleFlow(_LD_TexArray_Flow, uv_slice_smallerLod, wt_smallerLod, o.flow_shadow.xy);
 					#endif
 				}
@@ -360,11 +360,11 @@ Shader "Crest/Ocean"
 					SampleDisplacements(_LD_TexArray_AnimatedWaves, uv_slice_biggerLod, wt_biggerLod, o.worldPos);
 					#endif
 
-					#if _FOAM_ON
+					#if CREST_FOAM_ON
 					SampleFoam(_LD_TexArray_Foam, uv_slice_biggerLod, wt_biggerLod, o.foam_screenPosXYW.x);
 					#endif
 
-					#if _FLOW_ON
+					#if CREST_FLOW_ON
 					SampleFlow(_LD_TexArray_Flow, uv_slice_biggerLod, wt_biggerLod, o.flow_shadow.xy);
 					#endif
 				}
@@ -379,7 +379,7 @@ Shader "Crest/Ocean"
 					SampleSeaDepth(_LD_TexArray_SeaFloorDepth, uv_slice_smallerLodDisp, wt_smallerLod, o.lodAlpha_worldXZUndisplaced_oceanDepth.w);
 					#endif
 
-					#if _SHADOWS_ON
+					#if CREST_SHADOWS_ON
 					if (wt_smallerLod > 0.001)
 					{
 						SampleShadow(_LD_TexArray_Shadow, uv_slice_smallerLodDisp, wt_smallerLod, o.flow_shadow.zw);
@@ -395,7 +395,7 @@ Shader "Crest/Ocean"
 					SampleSeaDepth(_LD_TexArray_SeaFloorDepth, uv_slice_biggerLodDisp, wt_biggerLod, o.lodAlpha_worldXZUndisplaced_oceanDepth.w);
 					#endif
 
-					#if _SHADOWS_ON
+					#if CREST_SHADOWS_ON
 					if (wt_biggerLod > 0.001)
 					{
 						SampleShadow(_LD_TexArray_Shadow, uv_slice_biggerLodDisp, wt_biggerLod, o.flow_shadow.zw);
@@ -495,7 +495,7 @@ Shader "Crest/Ocean"
 				float3 lightDir = WorldSpaceLightDir(input.worldPos);
 				// Soft shadow, hard shadow
 				fixed2 shadow = (fixed2)1.0
-				#if _SHADOWS_ON
+				#if CREST_SHADOWS_ON
 					- input.flow_shadow.zw
 				#endif
 					;
@@ -519,7 +519,7 @@ Shader "Crest/Ocean"
 
 				half3 n_pixel = n_geom;
 				#if _APPLYNORMALMAPPING_ON
-				#if _FLOW_ON
+				#if CREST_FLOW_ON
 				ApplyNormalMapsWithFlow(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, input.flow_shadow.xy, lodAlpha, cascadeData0, instanceData, n_pixel);
 				#else
 				n_pixel.xz += SampleNormalMaps(input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, lodAlpha, cascadeData0, instanceData);
@@ -531,14 +531,14 @@ Shader "Crest/Ocean"
 
 				// Foam - underwater bubbles and whitefoam
 				half3 bubbleCol = (half3)0.;
-				#if _FOAM_ON
+				#if CREST_FOAM_ON
 				half4 whiteFoamCol;
-				#if !_FLOW_ON
+				#if !CREST_FLOW_ON
 				ComputeFoam(input.foam_screenPosXYW.x, input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, input.worldPos.xz, n_pixel, pixelZ, sceneZ, view, lightDir, shadow.y, lodAlpha, bubbleCol, whiteFoamCol, cascadeData0, cascadeData1);
 				#else
 				ComputeFoamWithFlow(input.flow_shadow.xy, input.foam_screenPosXYW.x, input.lodAlpha_worldXZUndisplaced_oceanDepth.yz, input.worldPos.xz, n_pixel, pixelZ, sceneZ, view, lightDir, shadow.y, lodAlpha, bubbleCol, whiteFoamCol, cascadeData0, cascadeData1);
-				#endif // _FLOW_ON
-				#endif // _FOAM_ON
+				#endif // CREST_FLOW_ON
+				#endif // CREST_FOAM_ON
 
 				// Compute color of ocean - in-scattered light + refracted scene
 				const float baseCascadeScale = _CrestCascadeData[0]._scale;
@@ -569,7 +569,7 @@ Shader "Crest/Ocean"
 				}
 
 				// Override final result with white foam - bubbles on surface
-				#if _FOAM_ON
+				#if CREST_FOAM_ON
 				col = lerp(col, whiteFoamCol.rgb, whiteFoamCol.a);
 				#endif
 
@@ -589,7 +589,7 @@ Shader "Crest/Ocean"
 				col = lerp(col.rgb, input.debugtint, 0.5);
 				#endif
 				#if _DEBUGVISUALISEFLOW_ON
-				#if _FLOW_ON
+				#if CREST_FLOW_ON
 				col.rg = lerp(col.rg, input.flow_shadow.xy, 0.5);
 				#endif
 				#endif
@@ -603,4 +603,5 @@ Shader "Crest/Ocean"
 
 	// If the above doesn't work then error.
 	FallBack "Hidden/InternalErrorShader"
+	CustomEditor "Crest.Editor.OceanShaderGUI"
 }

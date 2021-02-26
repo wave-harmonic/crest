@@ -44,8 +44,8 @@ Shader "Crest/Underwater Curtain"
 			#pragma multi_compile_local __ _SUBSURFACESCATTERING_ON
 			#pragma multi_compile_local __ _SUBSURFACESHALLOWCOLOUR_ON
 			#pragma multi_compile_local __ _TRANSPARENCY_ON
-			#pragma multi_compile_local __ _CAUSTICS_ON
-			#pragma multi_compile_local __ _SHADOWS_ON
+			#pragma multi_compile_local __ CREST_CAUSTICS_ON
+			#pragma multi_compile_local __ CREST_SHADOWS_ON
 			#pragma multi_compile_local __ _COMPILESHADERWITHDEBUGINFO_ON
 
 			#if _COMPILESHADERWITHDEBUGINFO_ON
@@ -207,12 +207,12 @@ Shader "Crest/Underwater Curtain"
 
 				half3 sceneColour = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_BackgroundTexture, input.grabPos.xy / input.grabPos.w).rgb;
 
-#if _CAUSTICS_ON
+#if CREST_CAUSTICS_ON
 				if (sceneZ01 != 0.0)
 				{
 					ApplyCaustics(view, lightDir, sceneZ, _Normals, true, sceneColour, cascadeData0, cascadeData1);
 				}
-#endif // _CAUSTICS_ON
+#endif // CREST_CAUSTICS_ON
 
 				half3 col = lerp(sceneColour, scatterCol, 1.0 - exp(-_DepthFogDensity.xyz * sceneZ));
 

@@ -7,32 +7,32 @@ Shader "Crest/Ocean"
 	Properties
 	{
 		[Header(Normal Mapping)]
-		// Whether to add normal detail from a texture. Can be used to add visual detail to the water surface
-		[Toggle] _ApplyNormalMapping("Enable", Float) = 1
-		// Normal map texture (should be set to Normals type in the properties)
+		[CrestToggle(_Tooltip Whether to add normal detail from a texture. Can be used to add visual detail to the water surface)]
+		_ApplyNormalMapping("Enable", Float) = 1
+		[CrestTooltip(Normal map texture should be set to Normals type in the properties)]
 		[NoScaleOffset] _Normals("Normal Map", 2D) = "bump" {}
-		// Strength of normal map influence
+		[CrestTooltip(Strength of normal map influence)]
 		_NormalsStrength("Strength", Range(0.01, 2.0)) = 0.36
-		// Scale of normal map texture
+		[CrestTooltip(Scale of normal map texture)]
 		_NormalsScale("Scale", Range(0.01, 200.0)) = 40.0
 
 		// Base light scattering settings which give water colour
 		[Header(Scattering)]
-		// Base colour when looking straight down into water
+		[CrestTooltip(Base colour when looking straight down into water)]
 		_Diffuse("Diffuse", Color) = (0.0, 0.0124, 0.566, 1.0)
-		// Base colour when looking into water at shallow/grazing angle
+		[CrestTooltip(Base colour when looking into water at shallow slash grazing angle)]
 		_DiffuseGrazing("Diffuse Grazing", Color) = (0.184, 0.393, 0.519, 1)
-		// Changes colour in shadow. Requires 'Create Shadow Data' enabled on OceanRenderer script.
-		[Toggle] _Shadows("Shadowing", Float) = 0
-		// Base colour in shadow
+		[CrestToggle(_Tooltip Changes colour in shadow. Requires Create Shadow Data enabled on OceanRenderer script.)]
+		_Shadows("Shadowing", Float) = 0
+		[CrestToggle(_Tooltip Base colour in shadow.)]
 		_DiffuseShadow("Diffuse (Shadow)", Color) = (0.0, 0.356, 0.565, 1.0)
 
 		[Header(Subsurface Scattering)]
-		// Whether to to emulate light scattering through the water volume
-		[Toggle] _SubSurfaceScattering("Enable", Float) = 1
-		// Colour tint for primary light contribution
+		[CrestToggle(_Tooltip Whether to to emulate light scattering through the water volume)]
+		_SubSurfaceScattering("Enable", Float) = 1
+		[CrestTooltip(Colour tint for primary light contribution)]
 		_SubSurfaceColour("Colour", Color) = (0.0, 0.48, 0.36)
-		// Amount of primary light contribution that always comes in
+		[CrestTooltip(Amount of primary light contribution that always comes in)]
 		_SubSurfaceBase("Base Mul", Range(0.0, 4.0)) = 1.0
 		// Primary light contribution in direction of light to emulate light passing through waves
 		_SubSurfaceSun("Sun Mul", Range(0.0, 10.0)) = 4.5
@@ -71,14 +71,14 @@ Shader "Crest/Ocean"
 		_PlanarReflectionIntensity("Planar Reflection Intensity", Range(0.0, 1.0)) = 1.0
 		// Whether to use an overridden reflection cubemap (provided in the next property)
 		[Toggle] _OverrideReflectionCubemap("Override Reflection Cubemap", Float) = 0
-		// Custom environment map to reflect
+		[CrestTooltip(Custom environment map to reflect)]
 		[NoScaleOffset] _ReflectionCubemapOverride("Override Reflection Cubemap", CUBE) = "" {}
 
 		[Header(Procedural Skybox)]
 		// Enable a simple procedural skybox, not suitable for realistic reflections, but can be useful to give control over reflection colour
 		// especially in stylized/non realistic applications
 		[Toggle] _ProceduralSky("Enable", Float) = 0
-		// Base sky colour
+		[CrestTooltip(Base sky colour)]
 		[HDR] _SkyBase("Base", Color) = (1.0, 1.0, 1.0, 1.0)
 		// Colour in sun direction
 		[HDR] _SkyTowardsSun("Towards Sun", Color) = (1.0, 1.0, 1.0, 1.0)
@@ -130,7 +130,7 @@ Shader "Crest/Ocean"
 		[Header(Transparency)]
 		// Whether light can pass through the water surface
 		[Toggle] _Transparency("Enable", Float) = 1
-		// Scattering coefficient within water volume, per channel
+		[CrestTooltip(Scattering coefficient within water volume per channel)]
 		_DepthFogDensity("Fog Density", Vector) = (0.33, 0.23, 0.37, 1.0)
 		// How strongly light is refracted when passing through water surface
 		_RefractionStrength("Refraction Strength", Range(0.0, 2.0)) = 0.1

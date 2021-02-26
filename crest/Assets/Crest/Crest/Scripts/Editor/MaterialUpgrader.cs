@@ -17,6 +17,7 @@ namespace Crest.Editor
             "Leave Crest Materials Alone"
         );
 
+        [MenuItem("Edit/Crest/Upgrade Materials")]
         [InitializeOnLoadMethod]
         static void UpgradeMaterials()
         {
@@ -37,6 +38,7 @@ namespace Crest.Editor
                     var material = AssetDatabase.LoadAssetAtPath<Material>(AssetDatabase.GUIDToAssetPath(guid));
                     if (material.shader.name == "Crest/Ocean")
                     {
+                        // Get all of the properties to query and manipulate.
                         var serializedObject = new SerializedObject(material);
                         var floatProperties = serializedObject.FindProperty("m_SavedProperties.m_Floats");
                         var keywordProperties = serializedObject.FindProperty("m_ShaderKeywords");

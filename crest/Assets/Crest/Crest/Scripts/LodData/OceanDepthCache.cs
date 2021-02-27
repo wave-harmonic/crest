@@ -209,7 +209,6 @@ namespace Crest
                 }
 
                 _camDepthCache = new GameObject("DepthCacheCam").AddComponent<Camera>();
-                _camDepthCache.gameObject.hideFlags = _hideDepthCacheCam ? HideFlags.HideAndDontSave : HideFlags.DontSave;
                 _camDepthCache.transform.parent = transform;
                 _camDepthCache.transform.localEulerAngles = 90f * Vector3.right;
                 _camDepthCache.orthographic = true;
@@ -231,6 +230,7 @@ namespace Crest
                 // Calculate here so it is always updated.
                 _camDepthCache.transform.position = CalculateCacheCameraPosition();
                 _camDepthCache.orthographicSize = CalculateCacheCameraOrthographicSize();
+                _camDepthCache.gameObject.hideFlags = _hideDepthCacheCam ? HideFlags.HideAndDontSave : HideFlags.DontSave;
             }
 
             if (updateComponents && IsCacheTextureOutdated(_camDepthCache.targetTexture))

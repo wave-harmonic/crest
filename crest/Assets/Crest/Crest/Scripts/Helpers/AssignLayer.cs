@@ -10,7 +10,7 @@ using UnityEditor;
 
 namespace Crest
 {
-    [ExecuteAlways]
+    [System.Obsolete("No longer supported. AssignLayer will be removed in future versions."), ExecuteAlways]
     public partial class AssignLayer : MonoBehaviour
     {
         [SerializeField]
@@ -62,7 +62,9 @@ namespace Crest
         }
     }
 
+#pragma warning disable 0618
     [CustomEditor(typeof(AssignLayer)), CanEditMultipleObjects]
     class AssignLayerEditor : ValidatedEditor { }
+#pragma warning restore 0618
 #endif
 }

@@ -40,6 +40,9 @@ namespace Crest
         public OceanDepthCacheRefreshMode RefreshMode => _refreshMode;
 
         [Tooltip("The layers to render into the depth cache.")]
+        public LayerMask _layers = 1; // Default
+
+        [Obsolete("Layer Names (string[] _layerNames) is obsolete and is no longer used. Use Layers (LayerMask _layers) instead."), HideInInspector]
         public string[] _layerNames = new string[0];
 
         [Tooltip("The resolution of the cached depth - lower will be more efficient.")]
@@ -171,48 +174,18 @@ namespace Crest
             // We want to know this later.
             var isDepthCacheCameraCreation = _camDepthCache == null;
 
+            if (_layers == 0)
+            {
+                Debug.LogError("No valid layers for populating depth cache, aborting.", this);
+                return false;
+            }
+
             if (isDepthCacheCameraCreation)
             {
-                var errorShown = false;
-                var layerMask = 0;
-                foreach (var layer in _layerNames)
-                {
-                    if (string.IsNullOrEmpty(layer))
-                    {
-                        Debug.LogError("OceanDepthCache: An empty layer name was provided. Please provide a valid layer name. Click this message to highlight the cache in question.", this);
-                        errorShown = true;
-                        continue;
-                    }
-
-                    int layerIdx = LayerMask.NameToLayer(layer);
-                    if (layerIdx == -1)
-                    {
-                        Debug.LogError("OceanDepthCache: Invalid layer specified: \"" + layer +
-                            "\". Please add this layer to the project by putting the name in an empty layer slot in Edit/Project Settings/Tags and Layers. Click this message to highlight the cache in question.", this);
-
-                        errorShown = true;
-                    }
-                    else
-                    {
-                        layerMask = layerMask | (1 << layerIdx);
-                    }
-                }
-
-                if (layerMask == 0)
-                {
-                    if (!errorShown)
-                    {
-                        Debug.LogError("No valid layers for populating depth cache, aborting.", this);
-                    }
-
-                    return false;
-                }
-
                 _camDepthCache = new GameObject("DepthCacheCam").AddComponent<Camera>();
                 _camDepthCache.transform.parent = transform;
                 _camDepthCache.transform.localEulerAngles = 90f * Vector3.right;
                 _camDepthCache.orthographic = true;
-                _camDepthCache.cullingMask = layerMask;
                 _camDepthCache.clearFlags = CameraClearFlags.SolidColor;
                 // Clear to 'very deep'
                 _camDepthCache.backgroundColor = Color.white * 1000f;
@@ -230,6 +203,7 @@ namespace Crest
                 // Calculate here so it is always updated.
                 _camDepthCache.transform.position = CalculateCacheCameraPosition();
                 _camDepthCache.orthographicSize = CalculateCacheCameraOrthographicSize();
+                _camDepthCache.cullingMask = _layers;
                 _camDepthCache.gameObject.hideFlags = _hideDepthCacheCam ? HideFlags.HideAndDontSave : HideFlags.DontSave;
             }
 
@@ -358,7 +332,7 @@ namespace Crest
     [CustomEditor(typeof(OceanDepthCache))]
     public class OceanDepthCacheEditor : ValidatedEditor
     {
-        readonly string[] _propertiesToExclude = new string[] { "m_Script", "_type", "_refreshMode", "_savedCache", "_layerNames", "_resolution", "_cameraMaxTerrainHeight", "_forceAlwaysUpdateDebug" };
+        readonly string[] _propertiesToExclude = new string[] { "m_Script", "_type", "_refreshMode", "_savedCache", "_layers", "_resolution", "_cameraMaxTerrainHeight", "_forceAlwaysUpdateDebug" };
 
         public override void OnInspectorGUI()
         {
@@ -380,7 +354,7 @@ namespace Crest
             {
                 // Only expose the following if real-time cache type
                 EditorGUILayout.PropertyField(serializedObject.FindProperty("_refreshMode"));
-                EditorGUILayout.PropertyField(serializedObject.FindProperty("_layerNames"), true);
+                EditorGUILayout.PropertyField(serializedObject.FindProperty("_layers"));
                 EditorGUILayout.PropertyField(serializedObject.FindProperty("_resolution"));
                 EditorGUILayout.PropertyField(serializedObject.FindProperty("_cameraMaxTerrainHeight"));
                 EditorGUILayout.PropertyField(serializedObject.FindProperty("_forceAlwaysUpdateDebug"));
@@ -454,6 +428,8 @@ namespace Crest
         {
             var isValid = true;
 
+            isValid = ValidateObsolete(ocean, showMessage);
+
             if (_camDepthCache != null && _camDepthCache.targetTexture != null && _cacheTexture != null)
             {
                 if (IsCacheOutdated())
@@ -482,11 +458,11 @@ namespace Crest
             }
             else
             {
-                if (_layerNames.Length == 0)
+                if (_layers == 0)
                 {
                     showMessage
                     (
-                        "No layers specified for rendering into depth cache, and no geometries manually provided.",
+                        "No layers specified for rendering into depth cache.",
                         ValidatedHelper.MessageType.Error, this
                     );
 
@@ -502,33 +478,6 @@ namespace Crest
                     );
 
                     isValid = false;
-                }
-
-                foreach (var layerName in _layerNames)
-                {
-                    if (string.IsNullOrEmpty(layerName))
-                    {
-                        showMessage
-                        (
-                            "An empty layer name was provided. Please provide a valid layer name.",
-                            ValidatedHelper.MessageType.Error, this
-                        );
-
-                        isValid = false;
-                        continue;
-                    }
-
-                    var layer = LayerMask.NameToLayer(layerName);
-                    if (layer == -1)
-                    {
-                        showMessage
-                        (
-                            $"Invalid layer specified for objects/geometry providing the ocean depth: <i>{layerName}</i>. Please add this layer to the project by putting the name in an empty layer slot in <i>Edit/Project Settings/Tags and Layers</i>?",
-                            ValidatedHelper.MessageType.Error, this
-                        );
-
-                        isValid = false;
-                    }
                 }
 
                 if (_resolution < 4)
@@ -555,8 +504,7 @@ namespace Crest
                     isValid = false;
                 }
 
-                // We used to test if nothing is present that would render into the cache, but these could probably come from other scenes, and AssignLayer means
-                // objects can be tagged up at run-time.
+                // We used to test if nothing is present that would render into the cache, but these could probably come from other scenes.
             }
 
             if (transform.lossyScale.magnitude < 5f)
@@ -618,6 +566,31 @@ namespace Crest
 
             return isValid;
         }
+
+#pragma warning disable 0618
+        public bool ValidateObsolete(OceanRenderer ocean, ValidatedHelper.ShowMessage showMessage)
+        {
+            var isValid = true;
+
+            if (_layerNames?.Length > 0)
+            {
+                showMessage
+                (
+                    "<i>Layer Names</i> on the <i>Ocean Depth Cache</i> is obsolete and is no longer used. " +
+                    "Use <i>Layers</i> instead.",
+                    ValidatedHelper.MessageType.Error, this, (SerializedObject serializedObject) =>
+                    {
+                        serializedObject.FindProperty("_layers").intValue = LayerMask.GetMask(_layerNames);
+                        serializedObject.FindProperty("_layerNames").arraySize = 0;
+                    }
+                );
+
+                isValid = false;
+            }
+
+            return isValid;
+        }
+#pragma warning restore 0618
     }
 #endif
 }

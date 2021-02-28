@@ -31,21 +31,8 @@ namespace Crest
 
     public interface ILodDataInput
     {
-        /// <summary>
-        /// Draw the input (the render target will be bound)
-        /// </summary>
         void Draw(CommandBuffer buf, float weight, int isTransition, int lodIdx);
-
-        /// <summary>
-        /// The wavelength of the input - used to choose which level of detail to apply the input to.
-        /// This is primarily used for displacement/surface shape inputs which support rendering to
-        /// specific LODs (which are then combined later). Specify 0 for no preference / render to all LODs.
-        /// </summary>
         float Wavelength { get; }
-
-        /// <summary>
-        /// Whether to apply this input.
-        /// </summary>
         bool Enabled { get; }
     }
 

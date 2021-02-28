@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: DynWavesBoat
+  m_Name: DynWavesProceduralInteraction
   m_Shader: {fileID: 4800000, guid: 2352bf438ced844418f174ea6d1e5d4d, type: 3}
   m_ShaderKeywords: 
   m_LightmapFlags: 4
@@ -22,7 +22,6 @@ Material:
     m_Floats:
     - _FactorOrthogonal: 0.2
     - _FactorParallel: 0.2
-    - _Strength: 3
-    - _StrengthVertical: 0.3
+    - _Strength: 10
     m_Colors:
     - _Velocity: {r: 0, g: 0, b: 0, a: 0}

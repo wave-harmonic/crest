@@ -19,10 +19,10 @@ RWTexture2DArray<float2> _LD_TexArray_Target;
 
 CBUFFER_START(CrestPerMaterial)
 float _Damping;
+float2 _LaplacianAxisX;
 float _Gravity;
 float _SimDeltaTime;
 float _LODChange;
-float _CourantNumber;
 CBUFFER_END
 
 float ComputeWaveSpeed(float wavelength, float g)
@@ -52,12 +52,9 @@ void UpdateDynWaves(uint3 id : SV_DispatchThreadID)
 	const float wavelength = 1.0 * _TexelsPerWave * gridSize;
 	// could make velocity depend on waves
 	//float h = max(waterSignedDepth + ft, 0.);
-	float c = ComputeWaveSpeed(wavelength, _Gravity);
+	const float c = ComputeWaveSpeed(wavelength, _Gravity);
 
 	const float dt = _SimDeltaTime;
-
-	// Clamp based on my main man Courant
-	c = min( c, _CourantNumber * gridSize / dt );
 
 	const float3 uv_slice = float3(input_uv, sliceIndex);
 
@@ -73,7 +70,8 @@ void UpdateDynWaves(uint3 id : SV_DispatchThreadID)
 
 	// compute axes of laplacian kernel - rotated every frame
 	const float e = _CascadeDataSrc[sliceIndexSource]._oneOverTextureRes; // assumes square RT
-	float3 X = float3(1.0, 0.0, 0.0);
+	//float3 X = float3(1.0, 0.0, 0.0);
+	const float3 X = float3(_LaplacianAxisX, 0.0);
 	const float3 Y = float3(-X.y, X.x, 0.0);
 
 	// no border wrap mode for RTs in unity it seems,
@@ -99,7 +97,7 @@ void UpdateDynWaves(uint3 id : SV_DispatchThreadID)
 	const float vt = ft_v.y;
 
 	// wave equation
-	float coeff = dt * c * c / (gridSize * gridSize);
+	float coeff = dt * c * c / (gridSize*gridSize);
 	float vtp = vt + coeff * (fxm + fxp + fym + fyp - 4.0 * ft);
 
 	// damping. works ok at low dts, doesnt damp well at high dts which counter intuitively leads to instabilities, i think.

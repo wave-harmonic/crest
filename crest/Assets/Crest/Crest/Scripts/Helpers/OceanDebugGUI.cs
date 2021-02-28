@@ -91,8 +91,8 @@ namespace Crest
                 {
                     if (OceanRenderer.Instance._lodDataDynWaves != null)
                     {
-                        var dt = 1f / OceanRenderer.Instance._lodDataDynWaves.Settings._simulationFrequency;
-                        var steps = OceanRenderer.Instance._lodDataDynWaves.LastUpdateSubstepCount;
+                        int steps; float dt;
+                        OceanRenderer.Instance._lodDataDynWaves.GetSimSubstepData(OceanRenderer.Instance.DeltaTimeDynamics, out steps, out dt);
                         GUI.Label(new Rect(x, y, w, h), string.Format("Sim steps: {0:0.00000} x {1}", dt, steps)); y += h;
                     }
 

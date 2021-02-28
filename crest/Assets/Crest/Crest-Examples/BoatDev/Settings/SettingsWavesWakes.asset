@@ -14,9 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _minGridSize: 0
   _maxGridSize: 0
-  _simulationFrequency: 60
-  _damping: 0.05
-  _courantNumber: 0.7
+  _damping: 0.25
+  _courantNumber: 1
+  _maxSimStepsPerFrame: 3
   _horizDisplace: 6
   _displaceClamp: 0.3
-  _gravityMultiplier: 9
+  _gravityMultiplier: 12

@@ -31,7 +31,7 @@ namespace Crest
         readonly int sp_DisplaceClamp = Shader.PropertyToID("_DisplaceClamp");
         readonly int sp_Damping = Shader.PropertyToID("_Damping");
         readonly int sp_Gravity = Shader.PropertyToID("_Gravity");
-        readonly int sp_CourantNumber = Shader.PropertyToID("_CourantNumber");
+        readonly int sp_LaplacianAxisX = Shader.PropertyToID("_LaplacianAxisX");
 
         SettingsType _defaultSettings;
         public SettingsType Settings
@@ -100,7 +100,9 @@ namespace Crest
 
             simMaterial.SetFloat(sp_Damping, Settings._damping);
             simMaterial.SetFloat(sp_Gravity, OceanRenderer.Instance.Gravity * Settings._gravityMultiplier);
-            simMaterial.SetFloat(sp_CourantNumber, Settings._courantNumber);
+
+            float laplacianKernelAngle = _rotateLaplacian ? Mathf.PI * 2f * Random.value : 0f;
+            simMaterial.SetVector(sp_LaplacianAxisX, new Vector2(Mathf.Cos(laplacianKernelAngle), Mathf.Sin(laplacianKernelAngle)));
 
             // assign sea floor depth - to slot 1 current frame data. minor bug here - this depth will actually be from the previous frame,
             // because the depth is scheduled to render just before the animated waves, and this sim happens before animated waves.
@@ -121,11 +123,29 @@ namespace Crest
             }
         }
 
-        protected override void GetSimSubstepData(float timeToSimulate, out int numSubsteps, out float substepDt)
+        float MaxSimDt(int lodIdx)
         {
-            numSubsteps = Mathf.FloorToInt(timeToSimulate * Settings._simulationFrequency);
-            
-            substepDt = numSubsteps > 0 ? (1f / Settings._simulationFrequency) : 0f;
+            var ocean = OceanRenderer.Instance;
+
+            // Limit timestep based on Courant constant: https://www.uio.no/studier/emner/matnat/ifi/nedlagte-emner/INF2340/v05/foiler/sim04.pdf
+            var Cmax = Settings._courantNumber;
+            var minWavelength = ocean._lodTransform.MaxWavelength(lodIdx) / 2f;
+            var waveSpeed = OceanWaveSpectrum.ComputeWaveSpeed(minWavelength, Settings._gravityMultiplier);
+            // 0.5f because its 2D
+            var maxDt = 0.5f * Cmax * ocean.CalcGridSize(lodIdx) / waveSpeed;
+            return maxDt;
+        }
+
+        public override void GetSimSubstepData(float frameDt, out int numSubsteps, out float substepDt)
+        {
+            // lod 0 will always be most demanding - wave speed is square root of wavelength, so waves will be fast relative to stability in
+            // lowest lod, and slow relative to stability in largest lod.
+            float maxDt = MaxSimDt(0);
+
+            numSubsteps = Mathf.CeilToInt(frameDt / maxDt);
+            // Always do at least one step so that the sim moves around when time is frozen
+            numSubsteps = Mathf.Clamp(numSubsteps, 1, Settings._maxSimStepsPerFrame);
+            substepDt = Mathf.Min(maxDt, frameDt / numSubsteps);
         }
 
         readonly static string s_textureArrayName = "_LD_TexArray_DynamicWaves";

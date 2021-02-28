@@ -83,7 +83,7 @@ void UpdateFoam(uint3 id : SV_DispatchThreadID)
 	// > 1: Stretch
 	// < 1: Squash
 	// < 0: Overlap
-	const float2x2 jacobian = (float2x2(disp_x.xz, disp_z.xz) - disp.xzxz) / cascadeData._texelWidth;
+	const float2x2 jacobian = (float4(disp_x.xz, disp_z.xz) - disp.xzxz) / cascadeData._texelWidth;
 	// Determinant is < 1 for pinched, < 0 for overlap/inversion
 	const float det = determinant( jacobian );
 	foam += 5.0 * _SimDeltaTime * _WaveFoamStrength * saturate( _WaveFoamCoverage - det + foamBase * 0.7 );

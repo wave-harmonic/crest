@@ -22,6 +22,10 @@ namespace Crest
         protected override GraphicsFormat RequestedTextureFormat => GraphicsFormat.R8G8_UNorm;
         protected override bool NeedToReadWriteTextureData { get { return true; } }
 
+        internal const string MATERIAL_KEYWORD = "_SHADOWS_ON";
+        internal const string ERROR_MATERIAL_KEYWORD_MISSING = "Shadowing must be enabled on the ocean material. Tick the <i>Shadowing</i> option in the <i>Scattering</i> parameter section on the material currently assigned to the OceanRenderer component.";
+        internal const string ERROR_MATERIAL_KEYWORD_ON_FEATURE_OFF = "The shadow feature is disabled on this component but is enabled on the ocean material. If this is not intentional, either enable the <i>Create Shadow Data</i> option on this component to turn it on, or disable the Shadowing feature on the ocean material to save performance.";
+
         public static bool s_processData = true;
 
         Light _mainLight;
@@ -91,9 +95,9 @@ namespace Crest
             }
 
 #if UNITY_EDITOR
-            if (!OceanRenderer.Instance.OceanMaterial.IsKeywordEnabled("_SHADOWS_ON"))
+            if (!OceanRenderer.Instance.OceanMaterial.IsKeywordEnabled(MATERIAL_KEYWORD))
             {
-                Debug.LogWarning("Shadowing is not enabled on the current ocean material and will not be visible.", _ocean);
+                Debug.LogWarning(ERROR_MATERIAL_KEYWORD_MISSING, _ocean);
             }
 #endif
         }
@@ -233,9 +237,9 @@ namespace Crest
                 var lt = OceanRenderer.Instance._lodTransform;
                 for (var lodIdx = lt.LodCount - 1; lodIdx >= 0; lodIdx--)
                 {
-                    #if UNITY_EDITOR
+#if UNITY_EDITOR
                     lt._renderData[lodIdx].Validate(0, SimName);
-                    #endif
+#endif
 
                     _renderProperties.SetVector(sp_CenterPos, lt._renderData[lodIdx]._posSnapped);
                     var scale = OceanRenderer.Instance.CalcLodScale(lodIdx);

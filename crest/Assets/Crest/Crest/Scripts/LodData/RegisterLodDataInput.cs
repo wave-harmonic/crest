@@ -100,7 +100,7 @@ namespace Crest
 #if UNITY_EDITOR
                 if (Application.isPlaying && _checkShaderName && verifyShader)
                 {
-                    ValidatedHelper.ValidateRenderer(gameObject, ShaderPrefix, ValidatedHelper.DebugLog);
+                    ValidatedHelper.ValidateRenderer(RendererRequired, gameObject, ShaderPrefix, ValidatedHelper.DebugLog);
                 }
 #endif
 
@@ -232,7 +232,7 @@ namespace Crest
 #endif
         }
 
-        private void OnDrawGizmosSelected()
+        protected void OnDrawGizmosSelected()
         {
             var mf = GetComponent<MeshFilter>();
             if (mf)
@@ -256,6 +256,8 @@ namespace Crest
 #if UNITY_EDITOR
     public abstract partial class RegisterLodDataInputBase : IValidated
     {
+        protected virtual bool RendererRequired => true;
+
         protected abstract bool FeatureEnabled(OceanRenderer ocean);
         protected virtual string RequiredShaderKeyword => null;
 
@@ -266,27 +268,17 @@ namespace Crest
 
         public bool Validate(OceanRenderer ocean, ValidatedHelper.ShowMessage showMessage)
         {
-            bool isValid = ValidatedHelper.ValidateRenderer(gameObject, ShaderPrefix, showMessage);
+            bool isValid = ValidatedHelper.ValidateRenderer(RendererRequired, gameObject, ShaderPrefix, showMessage);
 
             if (!FeatureEnabled(ocean))
             {
-                showMessage
-                (
-                    FeatureDisabledErrorMessage,
-                    ValidatedHelper.MessageType.Error, ocean, FixOceanFeatureDisabled
-                );
-
+                showMessage(FeatureDisabledErrorMessage, ValidatedHelper.MessageType.Error, ocean, FixOceanFeatureDisabled);
                 isValid = false;
             }
 
             if (!string.IsNullOrEmpty(RequiredShaderKeyword) && !ocean.OceanMaterial.IsKeywordEnabled(RequiredShaderKeyword))
             {
-                showMessage
-                (
-                    KeywordMissingErrorMessage,
-                    ValidatedHelper.MessageType.Error, ocean.OceanMaterial
-                );
-
+                showMessage(KeywordMissingErrorMessage, ValidatedHelper.MessageType.Error, ocean.OceanMaterial);
                 isValid = false;
             }
 

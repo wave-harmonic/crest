@@ -74,28 +74,38 @@ namespace Crest
             EditorUtility.SetDirty(gameObject);
         }
 
-        public static bool ValidateRenderer(GameObject gameObject, string shaderPrefix, ShowMessage showMessage)
+        static void FixRemoveRenderer(SerializedObject lodInputComponent)
         {
-            var renderer = gameObject.GetComponent<Renderer>();
+            var gameObject = lodInputComponent.targetObject as GameObject;
+            var renderer = gameObject.GetComponent<MeshRenderer>();
+            Object.DestroyImmediate(renderer);
+            EditorUtility.SetDirty(gameObject);
+        }
+
+        public static bool ValidateRenderer(bool rendererRequired, GameObject gameObject, string shaderPrefix, ShowMessage showMessage)
+        {
+            var renderer = gameObject.GetComponent<MeshRenderer>();
+
+            if (!rendererRequired)
+            {
+                if (renderer)
+                {
+                    showMessage("A MeshRenderer is present but is unused and should be removed.", MessageType.Warning, gameObject, FixRemoveRenderer);
+                    return false;
+                }
+
+                return true;
+            }
+
             if (!renderer)
             {
-                showMessage
-                (
-                    "No renderer has been attached to ocean input. A renderer is required.",
-                    MessageType.Error, gameObject, FixAttachRenderer
-                );
-
+                showMessage("A MeshRenderer component is required but none is attached to ocean input.", MessageType.Error, gameObject, FixAttachRenderer);
                 return false;
             }
 
             if (!renderer.sharedMaterial || renderer.sharedMaterial.shader && !renderer.sharedMaterial.shader.name.StartsWith(shaderPrefix))
             {
-                showMessage
-                (
-                    $"Shader assigned to ocean input expected to be of type <i>{shaderPrefix}</i>.",
-                    MessageType.Error, gameObject
-                );
-
+                showMessage($"Shader assigned to ocean input expected to be of type <i>{shaderPrefix}</i>.", MessageType.Error, gameObject);
                 return false;
             }
 

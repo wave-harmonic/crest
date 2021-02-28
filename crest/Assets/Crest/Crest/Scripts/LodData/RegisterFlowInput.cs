@@ -2,8 +2,8 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+using Crest.Spline;
 using UnityEditor;
-using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -14,6 +14,9 @@ namespace Crest
     /// </summary>
     [ExecuteAlways]
     public class RegisterFlowInput : RegisterLodDataInputDisplacementCorrection<LodDataMgrFlow>
+#if UNITY_EDITOR
+        , IReceiveSplinePointOnDrawGizmosSelectedMessages
+#endif
     {
         public override bool Enabled => true;
 
@@ -23,7 +26,16 @@ namespace Crest
 
         protected override string ShaderPrefix => "Crest/Inputs/Flow";
 
+        [Header("Spline settings")]
+        [SerializeField]
+        float _radius = 20f;
+        [SerializeField]
+        int _subdivisions = 1;
+        [SerializeField]
+        int _smoothingIterations = 0;
+
 #if UNITY_EDITOR
+        protected override bool RendererRequired => _spline == null;
         protected override bool FeatureEnabled(OceanRenderer ocean) => ocean.CreateFlowSim;
         protected override string FeatureDisabledErrorMessage => "<i>Create Flow Sim</i> must be enabled on the OceanRenderer component to enable flow on the water surface.";
         protected override void FixOceanFeatureDisabled(SerializedObject oceanComponent)
@@ -33,6 +45,18 @@ namespace Crest
 
         protected override string RequiredShaderKeyword => LodDataMgrFlow.MATERIAL_KEYWORD;
         protected override string KeywordMissingErrorMessage => LodDataMgrFlow.ERROR_MATERIAL_KEYWORD_MISSING;
+
+
+        protected new void OnDrawGizmosSelected()
+        {
+            Gizmos.color = GizmoColor;
+            Gizmos.DrawWireMesh(_myMesh, transform.position, transform.rotation, transform.lossyScale);
+        }
+
+        public void OnSplinePointDrawGizmosSelected(SplinePoint point)
+        {
+            OnDrawGizmosSelected();
+        }
 #endif // UNITY_EDITOR
 
         Spline.Spline _spline;
@@ -46,7 +70,7 @@ namespace Crest
 
             if (_flowMaterial != null && (_spline != null || TryGetComponent(out _spline)))
             {
-                ShapeGerstnerSplineHandling.GenerateMeshFromSpline(_spline, transform, 2, 20f, 0, ref _myMesh);
+                ShapeGerstnerSplineHandling.GenerateMeshFromSpline(_spline, transform, _subdivisions, _radius, _smoothingIterations, ref _myMesh);
 
                 buf.SetGlobalFloat(sp_Weight, weight);
                 buf.SetGlobalFloat(LodDataMgr.sp_LD_SliceIndex, lodIdx);
@@ -57,12 +81,6 @@ namespace Crest
             {
                 base.Draw(buf, weight, isTransition, lodIdx);
             }
-        }
-
-        private void OnDrawGizmosSelected()
-        {
-            Gizmos.color = GizmoColor;
-            Gizmos.DrawWireMesh(_myMesh, transform.position, transform.rotation, transform.lossyScale);
         }
     }
 }

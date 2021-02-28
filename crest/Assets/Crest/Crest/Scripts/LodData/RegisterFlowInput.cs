@@ -33,6 +33,10 @@ namespace Crest
         int _subdivisions = 1;
         [SerializeField]
         int _smoothingIterations = 0;
+        [SerializeField]
+        float _speed = 5f;
+
+        Material _splineFlowMaterial;
 
 #if UNITY_EDITOR
         protected override bool RendererRequired => _spline == null;
@@ -62,20 +66,24 @@ namespace Crest
         Spline.Spline _spline;
         Mesh _myMesh;
 
-        public Material _flowMaterial;
-
         public override void Draw(CommandBuffer buf, float weight, int isTransition, int lodIdx)
         {
             if (weight <= 0f) return;
 
-            if (_flowMaterial != null && (_spline != null || TryGetComponent(out _spline)))
+            if (_spline != null || TryGetComponent(out _spline))
             {
+                if (_splineFlowMaterial == null)
+                {
+                    _splineFlowMaterial = new Material(Shader.Find("Hidden/Crest/Inputs/Flow/Spline Geometry"));
+                }
+                _splineFlowMaterial.SetFloat("_Speed", _speed);
+
                 ShapeGerstnerSplineHandling.GenerateMeshFromSpline(_spline, transform, _subdivisions, _radius, _smoothingIterations, ref _myMesh);
 
                 buf.SetGlobalFloat(sp_Weight, weight);
                 buf.SetGlobalFloat(LodDataMgr.sp_LD_SliceIndex, lodIdx);
                 buf.SetGlobalVector(sp_DisplacementAtInputPosition, Vector3.zero);
-                buf.DrawMesh(_myMesh, transform.localToWorldMatrix, _flowMaterial);
+                buf.DrawMesh(_myMesh, transform.localToWorldMatrix, _splineFlowMaterial);
             }
             else
             {

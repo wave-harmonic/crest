@@ -17,7 +17,7 @@
 //  ------------------- shoreline --------------------
 //
 
-Shader "Crest/Inputs/Flow/Spline Geometry"
+Shader "Hidden/Crest/Inputs/Flow/Spline Geometry"
 {
     Properties
     {

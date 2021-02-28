@@ -2738,8 +2738,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1574782663}
-  - component: {fileID: 1574782662}
   - component: {fileID: 1574782661}
+  - component: {fileID: 1574782660}
   m_Layer: 0
   m_Name: FlowSpline
   m_TagString: Untagged
@@ -2747,6 +2747,19 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
+--- !u!114 &1574782660
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1574782659}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 25005f087efa7d84d908849cbdc09632, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _closed: 1
 --- !u!114 &1574782661
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2765,20 +2778,7 @@ MonoBehaviour:
   _radius: 40
   _subdivisions: 1
   _smoothingIterations: 30
-  _flowMaterial: {fileID: 2100000, guid: 337237470a156da4495d3bc751fb5682, type: 2}
---- !u!114 &1574782662
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1574782659}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 25005f087efa7d84d908849cbdc09632, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _closed: 1
+  _speed: 5
 --- !u!4 &1574782663
 Transform:
   m_ObjectHideFlags: 0

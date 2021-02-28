@@ -2,6 +2,7 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+using UnityEditor;
 using UnityEngine;
 
 namespace Crest
@@ -84,6 +85,10 @@ namespace Crest
 #if UNITY_EDITOR
         protected override bool FeatureEnabled(OceanRenderer ocean) => ocean.CreateClipSurfaceData;
         protected override string RequiredShaderKeyword => LodDataMgrClipSurface.MATERIAL_KEYWORD;
+        protected override void FixOceanFeatureDisabled(SerializedObject oceanComponent)
+        {
+            oceanComponent.FindProperty("_createClipSurfaceData").boolValue = true;
+        }
 
         protected override string FeatureDisabledErrorMessage => "<i>Create Clip Surface Data</i> must be enabled on the OceanRenderer component to enable clipping holes in the water surface.";
         protected override string KeywordMissingErrorMessage => LodDataMgrClipSurface.ERROR_MATERIAL_KEYWORD_MISSING;

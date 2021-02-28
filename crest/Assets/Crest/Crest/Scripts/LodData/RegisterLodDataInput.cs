@@ -270,23 +270,13 @@ namespace Crest
 
             if (!FeatureEnabled(ocean))
             {
-                showMessage
-                (
-                    FeatureDisabledErrorMessage,
-                    ValidatedHelper.MessageType.Error, ocean, FixOceanFeatureDisabled
-                );
-
+                showMessage(FeatureDisabledErrorMessage, ValidatedHelper.MessageType.Error, ocean, FixOceanFeatureDisabled);
                 isValid = false;
             }
 
             if (!string.IsNullOrEmpty(RequiredShaderKeyword) && !ocean.OceanMaterial.IsKeywordEnabled(RequiredShaderKeyword))
             {
-                showMessage
-                (
-                    KeywordMissingErrorMessage,
-                    ValidatedHelper.MessageType.Error, ocean.OceanMaterial
-                );
-
+                showMessage(KeywordMissingErrorMessage, ValidatedHelper.MessageType.Error, ocean.OceanMaterial);
                 isValid = false;
             }
 

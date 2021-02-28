@@ -2,6 +2,7 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+using UnityEditor;
 using UnityEngine;
 
 namespace Crest
@@ -40,6 +41,10 @@ namespace Crest
 #if UNITY_EDITOR
         protected override bool FeatureEnabled(OceanRenderer ocean) => ocean.CreateSeaFloorDepthData;
         protected override string FeatureDisabledErrorMessage => "<i>Create Sea Floor Depth Data</i> must be enabled on the OceanRenderer component.";
+        protected override void FixOceanFeatureDisabled(SerializedObject oceanComponent)
+        {
+            oceanComponent.FindProperty("_createSeaFloorDepthData").boolValue = true;
+        }
 #endif // UNITY_EDITOR
     }
 }

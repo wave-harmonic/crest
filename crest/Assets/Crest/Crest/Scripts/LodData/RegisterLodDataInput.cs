@@ -262,6 +262,8 @@ namespace Crest
         protected virtual string FeatureDisabledErrorMessage => "Feature must be enabled on the OceanRenderer component.";
         protected virtual string KeywordMissingErrorMessage => "Feature must be enabled on the ocean material.";
 
+        protected virtual void FixOceanFeatureDisabled(SerializedObject oceanComponent) { }
+
         public bool Validate(OceanRenderer ocean, ValidatedHelper.ShowMessage showMessage)
         {
             bool isValid = ValidatedHelper.ValidateRenderer(gameObject, ShaderPrefix, showMessage);
@@ -271,7 +273,7 @@ namespace Crest
                 showMessage
                 (
                     FeatureDisabledErrorMessage,
-                    ValidatedHelper.MessageType.Error, ocean
+                    ValidatedHelper.MessageType.Error, ocean, FixOceanFeatureDisabled
                 );
 
                 isValid = false;

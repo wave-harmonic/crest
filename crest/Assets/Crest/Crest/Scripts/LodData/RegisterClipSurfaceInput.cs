@@ -37,6 +37,13 @@ namespace Crest
 
         static int sp_DisplacementSamplingIterations = Shader.PropertyToID("_DisplacementSamplingIterations");
 
+#if UNITY_EDITOR
+        void Awake()
+        {
+            EditorHelpers.EditorHelpers.SetGizmoIconEnabled(typeof(RegisterClipSurfaceInput), false);
+        }
+#endif
+
         private void LateUpdate()
         {
             if (OceanRenderer.Instance == null || _renderer == null)

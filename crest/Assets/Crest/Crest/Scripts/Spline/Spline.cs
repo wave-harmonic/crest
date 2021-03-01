@@ -20,6 +20,11 @@ namespace Crest.Spline
 #if UNITY_EDITOR
     public partial class Spline : IValidated
     {
+        void Awake()
+        {
+            EditorHelpers.EditorHelpers.SetGizmoIconEnabled(typeof(Spline), false);
+        }
+
         public void OnDrawGizmos()
         {
             Gizmos.color = Color.black * 0.5f;

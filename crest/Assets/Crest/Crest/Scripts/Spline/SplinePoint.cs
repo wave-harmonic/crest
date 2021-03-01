@@ -14,6 +14,11 @@ namespace Crest.Spline
     public class SplinePoint : MonoBehaviour
     {
 #if UNITY_EDITOR
+        void Awake()
+        {
+            EditorHelpers.EditorHelpers.SetGizmoIconEnabled(typeof(SplinePoint), false);
+        }
+
         void OnDrawGizmos()
         {
             // We could not get gizmos or handles to work well when 3D Icons is enabled. problems included

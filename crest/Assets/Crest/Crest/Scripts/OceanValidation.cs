@@ -67,6 +67,13 @@ namespace Crest
         {
         }
 
+        static void FixAttachRenderer(SerializedObject lodInputComponent)
+        {
+            var gameObject = lodInputComponent.targetObject as GameObject;
+            gameObject.AddComponent<MeshRenderer>();
+            EditorUtility.SetDirty(gameObject);
+        }
+
         public static bool ValidateRenderer(GameObject gameObject, string shaderPrefix, ShowMessage showMessage)
         {
             var renderer = gameObject.GetComponent<Renderer>();
@@ -75,7 +82,7 @@ namespace Crest
                 showMessage
                 (
                     "No renderer has been attached to ocean input. A renderer is required.",
-                    MessageType.Error, gameObject
+                    MessageType.Error, gameObject, FixAttachRenderer
                 );
 
                 return false;

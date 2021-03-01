@@ -2,6 +2,7 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+using UnityEditor;
 using UnityEngine;
 
 namespace Crest
@@ -22,7 +23,11 @@ namespace Crest
 
 #if UNITY_EDITOR
         protected override bool FeatureEnabled(OceanRenderer ocean) => ocean.CreateFlowSim;
-        protected override string FeatureDisabledErrorMessage => "<i>Create Clip Surface Data</i> must be enabled on the OceanRenderer component to enable clipping holes in the water surface.";
+        protected override string FeatureDisabledErrorMessage => "<i>Create Flow Sim</i> must be enabled on the OceanRenderer component to enable flow on the water surface.";
+        protected override void FixOceanFeatureDisabled(SerializedObject oceanComponent)
+        {
+            oceanComponent.FindProperty("_createFlowSim").boolValue = true;
+        }
 
         protected override string RequiredShaderKeyword => LodDataMgrFlow.MATERIAL_KEYWORD;
         protected override string KeywordMissingErrorMessage => LodDataMgrFlow.ERROR_MATERIAL_KEYWORD_MISSING;

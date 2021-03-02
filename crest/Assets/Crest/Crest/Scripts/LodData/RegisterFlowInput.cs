@@ -14,6 +14,7 @@ namespace Crest
     /// </summary>
     [ExecuteAlways]
     public class RegisterFlowInput : RegisterLodDataInputDisplacementCorrection<LodDataMgrFlow>
+        , ISplinePointCustomDataSetup
 #if UNITY_EDITOR
         , IReceiveSplinePointOnDrawGizmosSelectedMessages
 #endif
@@ -89,6 +90,18 @@ namespace Crest
             {
                 base.Draw(buf, weight, isTransition, lodIdx);
             }
+        }
+
+        public bool AttachDataToSplinePoint(GameObject splinePoint)
+        {
+            if (splinePoint.TryGetComponent(out SplinePointDataFlow _))
+            {
+                // Already existing, nothing to do
+                return false;
+            }
+
+            splinePoint.AddComponent<SplinePointDataFlow>();
+            return true;
         }
     }
 }

@@ -57,6 +57,7 @@ Shader "Hidden/Crest/Inputs/Flow/Spline Geometry"
                 float4 vertex : POSITION;
                 float2 axis : TEXCOORD0;
                 float2 distToSplineEnd_invNormDistToShoreline : TEXCOORD1;
+				float speed : TEXCOORD2;
             };
 
             struct v2f
@@ -65,6 +66,7 @@ Shader "Hidden/Crest/Inputs/Flow/Spline Geometry"
                 float3 uv_slice : TEXCOORD1;
                 float2 axis : TEXCOORD2;
                 float2 distToSplineEnd_invNormDistToShoreline : TEXCOORD4;
+				float speed : TEXCOORD5;
             };
 
             CBUFFER_START(GerstnerPerMaterial)
@@ -97,6 +99,8 @@ Shader "Hidden/Crest/Inputs/Flow/Spline Geometry"
                 // Rotate local-space sideays axis around y-axis, by 90deg, and by object to world to move into world space
 				o.axis = v.axis.y * unity_ObjectToWorld._m00_m20 - v.axis.x * unity_ObjectToWorld._m02_m22;
 
+				o.speed = v.speed;
+
                 return o;
             }
 
@@ -109,7 +113,7 @@ Shader "Hidden/Crest/Inputs/Flow/Spline Geometry"
                 wt *= min( input.distToSplineEnd_invNormDistToShoreline.y / _FeatherWaveStart, 1.0 );
                 if( _FeatherFromSplineEnds > 0.0 ) wt *= saturate( input.distToSplineEnd_invNormDistToShoreline.x / _FeatherFromSplineEnds );
 
-				return wt * _Speed * input.axis;
+				return wt * _Speed * input.speed * input.axis;
             }
             ENDCG
         }

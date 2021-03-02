@@ -7,6 +7,11 @@ using UnityEngine;
 
 namespace Crest.Spline
 {
+    public interface ISplinePointCustomDataSetup
+    {
+        bool AttachDataToSplinePoint(GameObject splinePoint);
+    }
+
     /// <summary>
     /// Simple spline object. Spline points are child gameobjects.
     /// </summary>

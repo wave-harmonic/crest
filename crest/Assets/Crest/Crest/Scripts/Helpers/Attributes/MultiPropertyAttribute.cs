@@ -28,7 +28,7 @@ namespace Crest
         /// <summary>
         /// Override this method to make your own IMGUI based GUI for the property.
         /// </summary>
-        internal abstract void OnGUI(Rect position, SerializedProperty property, GUIContent label, MultiPropertyDrawer drawer);
+        internal abstract void OnGUI(Rect position, SerializedProperty property, GUIContent label, MultiPropertyDrawer drawer, bool isLast);
 
         /// <summary>
         /// Override this method to specify how tall the GUI for this field is in pixels.

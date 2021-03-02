@@ -69,7 +69,7 @@ namespace Crest
             return _inverted ? !result : result;
         }
 
-        internal override void OnGUI(Rect position, SerializedProperty property, GUIContent label, MultiPropertyDrawer drawer)
+        internal override void OnGUI(Rect position, SerializedProperty property, GUIContent label, MultiPropertyDrawer drawer, bool isLast)
         {
             // Get the other property to be the predicate for the enabled/disabled state of this property.
             var otherProperty = property.serializedObject.FindProperty(_propertyName);
@@ -77,7 +77,12 @@ namespace Crest
             {
                 GUI.enabled = GUIEnabled(otherProperty);
             }
-          }
+
+            if (isLast)
+            {
+                EditorGUI.PropertyField(position, property, label);
+            }
+        }
 #endif
     }
 }

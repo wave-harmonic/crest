@@ -31,8 +31,21 @@ namespace Crest
 
     public interface ILodDataInput
     {
+        /// <summary>
+        /// Draw the input (the render target will be bound)
+        /// </summary>
         void Draw(CommandBuffer buf, float weight, int isTransition, int lodIdx);
+
+        /// <summary>
+        /// The wavelength of the input - used to choose which level of detail to apply the input to.
+        /// This is primarily used for displacement/surface shape inputs which support rendering to
+        /// specific LODs (which are then combined later). Specify 0 for no preference / render to all LODs.
+        /// </summary>
         float Wavelength { get; }
+
+        /// <summary>
+        /// Whether to apply this input.
+        /// </summary>
         bool Enabled { get; }
     }
 
@@ -251,7 +264,7 @@ namespace Crest
         protected virtual string FeatureDisabledErrorMessage => "Feature must be enabled on the OceanRenderer component.";
         protected virtual string KeywordMissingErrorMessage => "Feature must be enabled on the ocean material.";
 
-        protected virtual void FixOceanFeatureDisabled(SerializedObject oceanComponent) { }
+        protected abstract void FixOceanFeatureDisabled(SerializedObject oceanComponent);
 
         public bool Validate(OceanRenderer ocean, ValidatedHelper.ShowMessage showMessage)
         {

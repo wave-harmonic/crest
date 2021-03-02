@@ -62,9 +62,11 @@ namespace Crest.EditorHelpers
             var originalColor = GUI.color;
             var originalEnabled = GUI.enabled;
 
-            foreach (MultiPropertyAttribute attribute in MultiPropertyAttributes)
+            for (var index = 0; index < MultiPropertyAttributes.Count; index++)
             {
-                attribute.OnGUI(position, property, attribute.BuildLabel(label), this);
+                var attribute = (MultiPropertyAttribute)MultiPropertyAttributes[index];
+                var isLast = index == MultiPropertyAttributes.Count - 1;
+                attribute.OnGUI(position, property, attribute.BuildLabel(label), this, isLast);
             }
 
             // Handle resetting the GUI state.

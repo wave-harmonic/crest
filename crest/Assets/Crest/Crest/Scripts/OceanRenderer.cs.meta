@@ -14,7 +14,7 @@ MonoImporter:
   - _primaryLight: {instanceID: 0}
   - _simSettingsShadow: {instanceID: 0}
   executionOrder: 200
-  icon: {fileID: 2800000, guid: d254fdcebc9d1ce45a2d81cb7928a699, type: 3}
+  icon: {instanceID: 0}
   userData: 
   assetBundleName: 
   assetBundleVariant: 

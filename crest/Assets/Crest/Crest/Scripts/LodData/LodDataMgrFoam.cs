@@ -83,11 +83,11 @@ namespace Crest
             LodDataMgrFlow.Bind(simMaterial);
         }
 
-        public override void GetSimSubstepData(float frameDt, out int numSubsteps, out float substepDt)
+        protected override void GetSimSubstepData(float timeToSimulate, out int numSubsteps, out float substepDt)
         {
-            // foam always does just one sim step
-            substepDt = frameDt;
-            numSubsteps = 1;
+            numSubsteps = Mathf.FloorToInt(timeToSimulate * Settings._simulationFrequency);
+
+            substepDt = numSubsteps > 0 ? (1f / Settings._simulationFrequency) : 0f;
         }
 
         readonly static string s_textureArrayName = "_LD_TexArray_Foam";

@@ -535,4 +535,4 @@ The density of the fog underwater can be controlled using the *Fog Density* para
 **Does Crest support orthographic projection?**
 It does. Please see the [Orthographic Projection](#orthographic-projection) section.
 
-[SampleHeight.cs]: https://github.com/wave-harmonic/crest/blob/master/crest/Assets/Crest/Crest/Scripts/Collision/SamplingHelpers.cs
+[SamplingHelpers.cs]: https://github.com/wave-harmonic/crest/blob/master/crest/Assets/Crest/Crest/Scripts/Collision/SamplingHelpers.cs

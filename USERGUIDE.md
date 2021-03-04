@@ -501,7 +501,7 @@ When rendering the ocean, the various LOD data are sample for each vert and the 
 # Q&A
 
 **Can I sample the water height at a position from C#?**
-Yes, see *SampleHeightHelper*. *OceanRenderer* uses this helper to get the height of the viewer above the water, and makes this viewer height available via the *ViewerHeightAboveWater* property.
+Yes, see *SampleHeightHelper* class in [SamplingHelpers.cs]. *OceanRenderer* uses this helper to get the height of the viewer above the water, and makes this viewer height available via the *ViewerHeightAboveWater* property.
 
 **Can I trigger something when an object is above or under the ocean surface without any scripting knowledge?**
 The *OceanSampleHeightEvents* can be used for this purpose. It will invoke a *UnityEvent* when the attached game object is above or below the ocean surface once per state change.
@@ -534,3 +534,5 @@ The density of the fog underwater can be controlled using the *Fog Density* para
 
 **Does Crest support orthographic projection?**
 It does. Please see the [Orthographic Projection](#orthographic-projection) section.
+
+[SampleHeight.cs]: https://github.com/wave-harmonic/crest/blob/master/crest/Assets/Crest/Crest/Scripts/Collision/SamplingHelpers.cs

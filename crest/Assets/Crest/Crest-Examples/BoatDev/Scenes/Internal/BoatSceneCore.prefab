@@ -83,6 +83,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 942c4eeba14a7db4882e57488905e8eb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _checkShaderName: 1
   _disableRenderer: 1
 --- !u!114 &1709276512157696609
 MonoBehaviour:
@@ -98,8 +99,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _weight: 1
   _weightUpDownMul: 0.5
-  _noiseAmp: 0
-  _noiseFreq: 6
   _teleportSpeed: 500
   _warnOnTeleport: 0
   _maxSpeed: 100
@@ -126,6 +125,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -137,6 +137,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -249,18 +250,14 @@ MonoBehaviour:
   _createShadowData: 0
   _simSettingsShadow: {fileID: 0}
   _createClipSurfaceData: 1
+  _defaultClippingState: 0
+  _showOceanProxyPlane: 0
+  _editModeFPS: 30
+  _followSceneCamera: 1
   _attachDebugGUI: 1
-  _followViewpoint: 1
+  _hideOceanTileGameObjects: 1
   _uniformTiles: 0
   _disableSkirt: 0
-  _lodTransform: {fileID: 0}
-  _lodDataAnimWaves: {fileID: 0}
-  _lodDataSeaDepths: {fileID: 0}
-  _lodDataClipSurface: {fileID: 0}
-  _lodDataDynWaves: {fileID: 0}
-  _lodDataFlow: {fileID: 0}
-  _lodDataFoam: {fileID: 0}
-  _lodDataShadow: {fileID: 0}
 --- !u!1 &1709276512233510730
 GameObject:
   m_ObjectHideFlags: 0
@@ -307,6 +304,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 942c4eeba14a7db4882e57488905e8eb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _checkShaderName: 1
   _disableRenderer: 1
 --- !u!114 &1709276512233510726
 MonoBehaviour:
@@ -322,8 +320,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _weight: 1
   _weightUpDownMul: 0.5
-  _noiseAmp: 0
-  _noiseFreq: 6
   _teleportSpeed: 500
   _warnOnTeleport: 0
   _maxSpeed: 100
@@ -350,6 +346,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -361,6 +358,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -419,6 +417,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 942c4eeba14a7db4882e57488905e8eb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _checkShaderName: 1
   _disableRenderer: 1
 --- !u!114 &1709276512244294423
 MonoBehaviour:
@@ -434,8 +433,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _weight: 1
   _weightUpDownMul: 0.5
-  _noiseAmp: 0
-  _noiseFreq: 6
   _teleportSpeed: 500
   _warnOnTeleport: 0
   _maxSpeed: 100
@@ -462,6 +459,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -473,6 +471,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -531,6 +530,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 942c4eeba14a7db4882e57488905e8eb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _checkShaderName: 1
   _disableRenderer: 1
 --- !u!114 &1709276512279401647
 MonoBehaviour:
@@ -546,8 +546,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _weight: 1
   _weightUpDownMul: 0.5
-  _noiseAmp: 0
-  _noiseFreq: 6
   _teleportSpeed: 500
   _warnOnTeleport: 0
   _maxSpeed: 100
@@ -574,6 +572,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -585,6 +584,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -651,6 +651,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -662,6 +663,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -766,6 +768,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -777,6 +780,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -857,6 +861,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -868,6 +873,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -935,6 +941,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -946,6 +953,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -970,8 +978,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 26cbe8d1fc0a69249bc135d85739ad39, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _checkShaderName: 1
   _disableRenderer: 1
   _octaveWavelength: 0
+  _followHorizontalMotion: 1
   _maxDisplacementVertical: 0
   _maxDisplacementHorizontal: 0
   _reportRendererBoundsToOceanSystem: 0
@@ -1032,6 +1042,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -1043,6 +1054,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -1164,6 +1176,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 942c4eeba14a7db4882e57488905e8eb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _checkShaderName: 1
   _disableRenderer: 1
 --- !u!114 &1709276512438433994
 MonoBehaviour:
@@ -1179,8 +1192,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _weight: 1
   _weightUpDownMul: 0.5
-  _noiseAmp: 0
-  _noiseFreq: 6
   _teleportSpeed: 500
   _warnOnTeleport: 0
   _maxSpeed: 100
@@ -1207,6 +1218,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -1218,6 +1230,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -1307,6 +1320,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 942c4eeba14a7db4882e57488905e8eb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _checkShaderName: 1
   _disableRenderer: 1
 --- !u!114 &1709276512497236251
 MonoBehaviour:
@@ -1322,8 +1336,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _weight: 1
   _weightUpDownMul: 0.5
-  _noiseAmp: 0
-  _noiseFreq: 6
   _teleportSpeed: 500
   _warnOnTeleport: 0
   _maxSpeed: 100
@@ -1350,6 +1362,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -1361,6 +1374,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -1419,6 +1433,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 942c4eeba14a7db4882e57488905e8eb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _checkShaderName: 1
   _disableRenderer: 1
 --- !u!114 &1709276512513943406
 MonoBehaviour:
@@ -1434,8 +1449,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _weight: 1
   _weightUpDownMul: 0.5
-  _noiseAmp: 0
-  _noiseFreq: 6
   _teleportSpeed: 500
   _warnOnTeleport: 0
   _maxSpeed: 100
@@ -1462,6 +1475,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -1473,6 +1487,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -1704,6 +1719,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
   m_RenderingLayerMask: 4294967295
   m_RendererPriority: 0
   m_Materials:
@@ -1715,6 +1731,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -1739,8 +1756,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 26cbe8d1fc0a69249bc135d85739ad39, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _checkShaderName: 1
   _disableRenderer: 1
   _octaveWavelength: 11
+  _followHorizontalMotion: 1
   _maxDisplacementVertical: 5.5
   _maxDisplacementHorizontal: 0
   _reportRendererBoundsToOceanSystem: 0
@@ -1842,6 +1861,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 942c4eeba14a7db4882e57488905e8eb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _checkShaderName: 1
   _disableRenderer: 1
 --- !u!114 &1709276512808272740
 MonoBehaviour:
@@ -1857,8 +1877,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _weight: 1
   _weightUpDownMul: 0.5
-  _noiseAmp: 0
-  _noiseFreq: 6
   _teleportSpeed: 500
   _warnOnTeleport: 0
   _maxSpeed: 100
@@ -1885,6 +1903,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -1896,6 +1915,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -1954,6 +1974,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 942c4eeba14a7db4882e57488905e8eb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _checkShaderName: 1
   _disableRenderer: 1
 --- !u!114 &1709276512818193546
 MonoBehaviour:
@@ -1969,8 +1990,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _weight: 1
   _weightUpDownMul: 0.5
-  _noiseAmp: 0
-  _noiseFreq: 6
   _teleportSpeed: 500
   _warnOnTeleport: 0
   _maxSpeed: 100
@@ -1997,6 +2016,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -2008,6 +2028,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -2075,6 +2096,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -2086,6 +2108,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -2199,6 +2222,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -2210,6 +2234,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -2313,6 +2338,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 942c4eeba14a7db4882e57488905e8eb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _checkShaderName: 1
   _disableRenderer: 1
 --- !u!114 &1709276512964091443
 MonoBehaviour:
@@ -2328,8 +2354,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _weight: 1
   _weightUpDownMul: 0.5
-  _noiseAmp: 0
-  _noiseFreq: 6
   _teleportSpeed: 500
   _warnOnTeleport: 0
   _maxSpeed: 100
@@ -2356,6 +2380,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -2367,6 +2392,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -2559,6 +2585,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 942c4eeba14a7db4882e57488905e8eb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _checkShaderName: 1
   _disableRenderer: 1
 --- !u!114 &1709276513084485791
 MonoBehaviour:
@@ -2574,8 +2601,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _weight: 1
   _weightUpDownMul: 0.5
-  _noiseAmp: 0
-  _noiseFreq: 6
   _teleportSpeed: 500
   _warnOnTeleport: 0
   _maxSpeed: 100
@@ -2602,6 +2627,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -2613,6 +2639,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -2772,6 +2799,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -2783,6 +2811,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -2850,6 +2879,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -2861,6 +2891,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -2885,8 +2916,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 26cbe8d1fc0a69249bc135d85739ad39, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _checkShaderName: 1
   _disableRenderer: 1
   _octaveWavelength: 0
+  _followHorizontalMotion: 1
   _maxDisplacementVertical: 0
   _maxDisplacementHorizontal: 0
   _reportRendererBoundsToOceanSystem: 0
@@ -2989,6 +3022,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -3000,6 +3034,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -3073,6 +3108,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -3084,6 +3120,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -3187,6 +3224,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 942c4eeba14a7db4882e57488905e8eb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _checkShaderName: 1
   _disableRenderer: 1
 --- !u!114 &1709276513386320555
 MonoBehaviour:
@@ -3202,8 +3240,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _weight: 1
   _weightUpDownMul: 0.5
-  _noiseAmp: 0
-  _noiseFreq: 6
   _teleportSpeed: 500
   _warnOnTeleport: 0
   _maxSpeed: 100
@@ -3230,6 +3266,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -3241,6 +3278,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -3299,6 +3337,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 942c4eeba14a7db4882e57488905e8eb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _checkShaderName: 1
   _disableRenderer: 1
 --- !u!114 &1709276513401815294
 MonoBehaviour:
@@ -3314,8 +3353,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _weight: 1
   _weightUpDownMul: 0.5
-  _noiseAmp: 0
-  _noiseFreq: 6
   _teleportSpeed: 500
   _warnOnTeleport: 0
   _maxSpeed: 100
@@ -3342,6 +3379,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -3353,6 +3391,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -3452,6 +3491,7 @@ MeshRenderer:
   m_MotionVectors: 2
   m_LightProbeUsage: 0
   m_ReflectionProbeUsage: 0
+  m_RayTracingMode: 2
   m_RenderingLayerMask: 4294967295
   m_RendererPriority: 0
   m_Materials:
@@ -3463,6 +3503,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -3487,9 +3528,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e66dbc64761412d41801763633a21b35, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _localOffset: {x: 0, y: 0, z: 0}
-  _noiseFreq: 6
-  _noiseAmp: 0
   _weightUpDownMul: 0.3
   _teleportSpeed: 500
   _warnOnTeleport: 0
@@ -3508,6 +3546,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 942c4eeba14a7db4882e57488905e8eb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _checkShaderName: 1
   _disableRenderer: 1
 --- !u!1 &1709276513481094579
 GameObject:
@@ -3632,6 +3671,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -3643,6 +3683,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -3715,6 +3756,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 942c4eeba14a7db4882e57488905e8eb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _checkShaderName: 1
   _disableRenderer: 1
 --- !u!114 &1709276513542739760
 MonoBehaviour:
@@ -3730,8 +3772,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _weight: 1
   _weightUpDownMul: 0.5
-  _noiseAmp: 0
-  _noiseFreq: 6
   _teleportSpeed: 500
   _warnOnTeleport: 0
   _maxSpeed: 100
@@ -3758,6 +3798,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -3769,6 +3810,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -3827,6 +3869,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 942c4eeba14a7db4882e57488905e8eb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _checkShaderName: 1
   _disableRenderer: 1
 --- !u!114 &1709276513546739013
 MonoBehaviour:
@@ -3842,8 +3885,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _weight: 1
   _weightUpDownMul: 0.5
-  _noiseAmp: 0
-  _noiseFreq: 6
   _teleportSpeed: 500
   _warnOnTeleport: 0
   _maxSpeed: 100
@@ -3870,6 +3911,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -3881,6 +3923,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -3977,6 +4020,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 942c4eeba14a7db4882e57488905e8eb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _checkShaderName: 1
   _disableRenderer: 1
 --- !u!114 &1709276513612569861
 MonoBehaviour:
@@ -3992,8 +4036,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _weight: 1
   _weightUpDownMul: 0.5
-  _noiseAmp: 0
-  _noiseFreq: 6
   _teleportSpeed: 500
   _warnOnTeleport: 0
   _maxSpeed: 100
@@ -4020,6 +4062,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -4031,6 +4074,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -4208,6 +4252,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 942c4eeba14a7db4882e57488905e8eb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _checkShaderName: 1
   _disableRenderer: 1
 --- !u!114 &1709276513790209468
 MonoBehaviour:
@@ -4223,8 +4268,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _weight: 1
   _weightUpDownMul: 0.5
-  _noiseAmp: 0
-  _noiseFreq: 6
   _teleportSpeed: 500
   _warnOnTeleport: 0
   _maxSpeed: 100
@@ -4251,6 +4294,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -4262,6 +4306,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -4320,6 +4365,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 942c4eeba14a7db4882e57488905e8eb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _checkShaderName: 1
   _disableRenderer: 1
 --- !u!114 &1709276513809432409
 MonoBehaviour:
@@ -4335,8 +4381,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _weight: 1
   _weightUpDownMul: 0.5
-  _noiseAmp: 0
-  _noiseFreq: 6
   _teleportSpeed: 500
   _warnOnTeleport: 0
   _maxSpeed: 100
@@ -4363,6 +4407,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -4374,6 +4419,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -4440,6 +4486,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -4451,6 +4498,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -4519,6 +4567,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
   m_RenderingLayerMask: 4294967295
   m_RendererPriority: 0
   m_Materials:
@@ -4530,6 +4579,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -4570,6 +4620,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 942c4eeba14a7db4882e57488905e8eb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _checkShaderName: 1
   _disableRenderer: 1
 --- !u!1 &1709276513975709553
 GameObject:
@@ -4659,6 +4710,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -4670,6 +4722,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -4779,6 +4832,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 942c4eeba14a7db4882e57488905e8eb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _checkShaderName: 1
   _disableRenderer: 1
 --- !u!114 &1709276514066741512
 MonoBehaviour:
@@ -4794,8 +4848,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _weight: 1
   _weightUpDownMul: 0.5
-  _noiseAmp: 0
-  _noiseFreq: 6
   _teleportSpeed: 500
   _warnOnTeleport: 0
   _maxSpeed: 100
@@ -4822,6 +4874,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -4833,6 +4886,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -4899,6 +4953,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -4910,6 +4965,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -4953,6 +5009,48 @@ Transform:
   m_Father: {fileID: 1709276513045204676}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1764472591654415558
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1710328059454620554}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 97ebca8e7448b432788bf5cb107fb1d0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _throttle: 1
+  _steer: 1
+--- !u!114 &6884324570879391917
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1710929957084941739}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a6c15b5f79d9e4d829e474ae0bb5a632, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _steerInputAxisName: Horizontal
+  _throttleInputAxisName: Vertical
+--- !u!114 &4939720168841361829
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1710929957482201323}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 97ebca8e7448b432788bf5cb107fb1d0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _throttle: 1
+  _steer: 0.8
 --- !u!1 &3951424492669154611
 GameObject:
   m_ObjectHideFlags: 0
@@ -5008,6 +5106,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 0
   m_ReflectionProbeUsage: 0
+  m_RayTracingMode: 2
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -5019,6 +5118,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -5043,6 +5143,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cdff4e1b753d044b5a7dcf91a7e7b863, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _checkShaderName: 1
   _disableRenderer: 1
   _disableClipSurfaceWhenTooFarFromSurface: 0
   _animatedWavesDisplacementSamplingIterations: 4
@@ -5093,6 +5194,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -5104,6 +5206,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -5205,11 +5308,32 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 114772648209712106, guid: a9de35a642561b7479e8ab40bb529e8c,
+        type: 3}
+      propertyPath: _boatControl
+      value: 
+      objectReference: {fileID: 1764472591654415558}
+    - target: {fileID: 1459210513898229855, guid: a9de35a642561b7479e8ab40bb529e8c,
+        type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3559931980440291151, guid: a9de35a642561b7479e8ab40bb529e8c,
+        type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: a9de35a642561b7479e8ab40bb529e8c, type: 3}
 --- !u!4 &1705138506076335996 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4872491186423460, guid: a9de35a642561b7479e8ab40bb529e8c,
+    type: 3}
+  m_PrefabInstance: {fileID: 1709276512690350552}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &1710328059454620554 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1371779553471058, guid: a9de35a642561b7479e8ab40bb529e8c,
     type: 3}
   m_PrefabInstance: {fileID: 1709276512690350552}
   m_PrefabAsset: {fileID: 0}
@@ -5268,6 +5392,21 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 23429759743720956, guid: 71ede3c2ab0b7cb43b7dad6ae3b6190b,
+        type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 114101010989703450, guid: 71ede3c2ab0b7cb43b7dad6ae3b6190b,
+        type: 3}
+      propertyPath: _boatControl
+      value: 
+      objectReference: {fileID: 6884324570879391917}
+    - target: {fileID: 6795513849157194684, guid: 71ede3c2ab0b7cb43b7dad6ae3b6190b,
+        type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 71ede3c2ab0b7cb43b7dad6ae3b6190b, type: 3}
 --- !u!4 &1709044165449915545 stripped
@@ -5282,6 +5421,12 @@ Transform:
     type: 3}
   m_PrefabInstance: {fileID: 1709276513273483773}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1710929957084941739 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1935509346245718, guid: 71ede3c2ab0b7cb43b7dad6ae3b6190b,
+    type: 3}
+  m_PrefabInstance: {fileID: 1709276513273483773}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &1709276513278746923
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -5289,11 +5434,6 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 1709276513045204676}
     m_Modifications:
-    - target: {fileID: 6370312182862802037, guid: 0dde4b778082b1241ba64e4ad3e46fa1,
-        type: 3}
-      propertyPath: m_Name
-      value: AddBumpsToWater
-      objectReference: {fileID: 0}
     - target: {fileID: 6370312182862802033, guid: 0dde4b778082b1241ba64e4ad3e46fa1,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -5364,6 +5504,16 @@ PrefabInstance:
       propertyPath: m_LocalScale.z
       value: 258.85278
       objectReference: {fileID: 0}
+    - target: {fileID: 6370312182862802035, guid: 0dde4b778082b1241ba64e4ad3e46fa1,
+        type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6370312182862802037, guid: 0dde4b778082b1241ba64e4ad3e46fa1,
+        type: 3}
+      propertyPath: m_Name
+      value: AddBumpsToWater
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 0dde4b778082b1241ba64e4ad3e46fa1, type: 3}
 --- !u!4 &5755447229855075674 stripped
@@ -5419,6 +5569,11 @@ PrefabInstance:
       propertyPath: m_RootOrder
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 23429759743720956, guid: 71ede3c2ab0b7cb43b7dad6ae3b6190b,
+        type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 114101010989703450, guid: 71ede3c2ab0b7cb43b7dad6ae3b6190b,
         type: 3}
       propertyPath: _playerControlled
@@ -5434,9 +5589,25 @@ PrefabInstance:
       propertyPath: _steerBias
       value: 0.8
       objectReference: {fileID: 0}
+    - target: {fileID: 114101010989703450, guid: 71ede3c2ab0b7cb43b7dad6ae3b6190b,
+        type: 3}
+      propertyPath: _boatControl
+      value: 
+      objectReference: {fileID: 4939720168841361829}
+    - target: {fileID: 6795513849157194684, guid: 71ede3c2ab0b7cb43b7dad6ae3b6190b,
+        type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 0}
   m_SourcePrefab: {fileID: 100100000, guid: 71ede3c2ab0b7cb43b7dad6ae3b6190b, type: 3}
+--- !u!1 &1710929957482201323 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1935509346245718, guid: 71ede3c2ab0b7cb43b7dad6ae3b6190b,
+    type: 3}
+  m_PrefabInstance: {fileID: 1709276513671044285}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &1709113576309914051 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4341219009766782, guid: 71ede3c2ab0b7cb43b7dad6ae3b6190b,
@@ -5450,11 +5621,6 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 1709276513481094578}
     m_Modifications:
-    - target: {fileID: 5304508333967466499, guid: 37bbe23c17398419cbc8674f5c5dbccb,
-        type: 3}
-      propertyPath: m_Name
-      value: DemoLighting
-      objectReference: {fileID: 0}
     - target: {fileID: 1399345652565587599, guid: 37bbe23c17398419cbc8674f5c5dbccb,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -5540,6 +5706,11 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.y
       value: -71
       objectReference: {fileID: 0}
+    - target: {fileID: 5304508333967466499, guid: 37bbe23c17398419cbc8674f5c5dbccb,
+        type: 3}
+      propertyPath: m_Name
+      value: DemoLighting
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 37bbe23c17398419cbc8674f5c5dbccb, type: 3}
 --- !u!4 &915948055602687982 stripped
@@ -5555,6 +5726,26 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 1709276513029972002}
     m_Modifications:
+    - target: {fileID: 2452750316707852745, guid: cada5253abff1481b98c0880eb065d8e,
+        type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2452750316707852745, guid: cada5253abff1481b98c0880eb065d8e,
+        type: 3}
+      propertyPath: _lerpAlpha
+      value: 0.03
+      objectReference: {fileID: 0}
+    - target: {fileID: 2452750316707852745, guid: cada5253abff1481b98c0880eb065d8e,
+        type: 3}
+      propertyPath: _targetPos
+      value: 
+      objectReference: {fileID: 1709044165449915545}
+    - target: {fileID: 2452750316707852745, guid: cada5253abff1481b98c0880eb065d8e,
+        type: 3}
+      propertyPath: _targetLookatPos
+      value: 
+      objectReference: {fileID: 1709113576438740099}
     - target: {fileID: 2452750316707852747, guid: cada5253abff1481b98c0880eb065d8e,
         type: 3}
       propertyPath: m_Name
@@ -5620,26 +5811,6 @@ PrefabInstance:
       propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 2452750316707852745, guid: cada5253abff1481b98c0880eb065d8e,
-        type: 3}
-      propertyPath: m_Enabled
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 2452750316707852745, guid: cada5253abff1481b98c0880eb065d8e,
-        type: 3}
-      propertyPath: _lerpAlpha
-      value: 0.03
-      objectReference: {fileID: 0}
-    - target: {fileID: 2452750316707852745, guid: cada5253abff1481b98c0880eb065d8e,
-        type: 3}
-      propertyPath: _targetPos
-      value: 
-      objectReference: {fileID: 1709044165449915545}
-    - target: {fileID: 2452750316707852745, guid: cada5253abff1481b98c0880eb065d8e,
-        type: 3}
-      propertyPath: _targetLookatPos
-      value: 
-      objectReference: {fileID: 1709113576438740099}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: cada5253abff1481b98c0880eb065d8e, type: 3}
 --- !u!4 &1741912049970687794 stripped

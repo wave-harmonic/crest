@@ -5,10 +5,14 @@
 using Crest;
 using UnityEngine;
 
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+
 /// <summary>
 /// Simple type of buoyancy - takes one sample and matches boat height and orientation to water height and normal.
 /// </summary>
-public class BoatAlignNormal : FloatingObjectBase
+public partial class BoatAlignNormal : FloatingObjectBase
 {
     [Header("Buoyancy Force")]
     [Tooltip("Height offset from transform center to bottom of boat (if any)."), SerializeField]
@@ -19,12 +23,6 @@ public class BoatAlignNormal : FloatingObjectBase
     float _boyancyTorque = 8f;
     [Tooltip("Approximate hydrodynamics of 'surfing' down waves."), SerializeField, Range(0, 1)]
     float _accelerateDownhill = 0f;
-
-    [Header("Engine Power")]
-    [Tooltip("Vertical offset for where engine force should be applied."), SerializeField]
-    float _forceHeightOffset = -0.3f;
-    [SerializeField] float _enginePower = 11f;
-    [SerializeField] float _turnPower = 1.3f;
 
     [Header("Wave Response")]
     [Tooltip("Width dimension of boat. The larger this value, the more filtered/smooth the wave response will be."), SerializeField]
@@ -41,13 +39,15 @@ public class BoatAlignNormal : FloatingObjectBase
     [SerializeField] float _dragInWaterRight = 2f;
     [SerializeField] float _dragInWaterForward = 1f;
 
+    [Header("Engine Power")]
+    [Tooltip("Vertical offset for where engine force should be applied."), SerializeField]
+    float _forceHeightOffset = -0.3f;
+    [SerializeField] float _enginePower = 11f;
+    [SerializeField] float _turnPower = 1.3f;
+
     [Header("Controls")]
     [SerializeField]
-    bool _playerControlled = true;
-    [Tooltip("Used to automatically add throttle input"), SerializeField]
-    float _throttleBias = 0f;
-    [Tooltip("Used to automatically add turning input"), SerializeField]
-    float _steerBias = 0f;
+    BoatControl _boatControl;
 
     [Header("Debug")]
     [SerializeField]
@@ -134,17 +134,11 @@ public class BoatAlignNormal : FloatingObjectBase
         _rb.AddForceAtPosition(transform.right * Vector3.Dot(transform.right, -velocityRelativeToWater) * _dragInWaterRight, forcePosition, ForceMode.Acceleration);
         _rb.AddForceAtPosition(transform.forward * Vector3.Dot(transform.forward, -velocityRelativeToWater) * _dragInWaterForward, forcePosition, ForceMode.Acceleration);
 
-        float forward = _throttleBias;
-        float rawForward = Input.GetAxis("Vertical");
-        if (_playerControlled) forward += rawForward;
-        _rb.AddForceAtPosition(transform.forward * _enginePower * forward, forcePosition, ForceMode.Acceleration);
+        // Get input. X is steer and Z is throttle. Ignore Y.
+        var input = _boatControl ? _boatControl.Input : Vector3.zero;
 
-        float reverseMultiplier = (rawForward < 0f ? -1f : 1f);
-        float sideways = _steerBias;
-        if (_playerControlled) sideways +=
-                (Input.GetKey(KeyCode.A) ? reverseMultiplier * -1f : 0f) +
-                (Input.GetKey(KeyCode.D) ? reverseMultiplier * 1f : 0f);
-        _rb.AddTorque(transform.up * _turnPower * sideways, ForceMode.Acceleration);
+        _rb.AddForceAtPosition(transform.forward * _enginePower * input.z, forcePosition, ForceMode.Acceleration);
+        _rb.AddTorque(transform.up * _turnPower * input.x, ForceMode.Acceleration);
 
         FixedUpdateOrientation(normal);
 
@@ -188,3 +182,29 @@ public class BoatAlignNormal : FloatingObjectBase
         }
     }
 }
+
+#if UNITY_EDITOR
+public partial class BoatAlignNormal : IValidated
+{
+    public override bool Validate(OceanRenderer ocean, ValidatedHelper.ShowMessage showMessage)
+    {
+        var isValid = base.Validate(ocean, showMessage);
+
+        if (!_boatControl)
+        {
+            showMessage
+            (
+                "<i>BoatAlignNormal</i> has no component deriving from <i>BoatControl</i> assigned. The boat will " +
+                "not respond to input. If this is not intentional, then please add one and assign it to this " +
+                "component.",
+                ValidatedHelper.MessageType.Warning, this
+            );
+        }
+
+        return isValid;
+    }
+}
+
+[CustomEditor(typeof(BoatAlignNormal), true), CanEditMultipleObjects]
+class BoatAlignNormalEditor : ValidatedEditor { }
+#endif

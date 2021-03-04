@@ -451,6 +451,7 @@ Setting up a boat with physics can be a dark art. The authors recommend duplicat
   * If, even after experimenting with the mass and drag, the boat is responding too much to small waves, increase these parameters (try doubling or quadrupling at first and then compensate).
 * There are power settings for engine turning which also help to give a feeling of weight
 * The dynamic wave interaction is driven by the object in the boat hierarchy called *WaterObjectInteractionSphere*. It can be scaled to match the dimensions of the boat. The *Weight* param controls the strength of the interaction.
+* Add and assign a *BoatControl* component. You can use one we provide or create your own. We provide two: one for player control and one for fixed movement. To create your own, see the ones we provide as an example.
 
 The above steps should maintain a working boat throughout - we recommend testing after each step to catch issues early.
 

@@ -16,19 +16,19 @@ This section has steps for importing the `Crest` content into a project, and for
 
 To augment / complement this written documentation we published a video available here:
 
-.. only:: html or birp
+.. only:: html or birp or readthedocs
 
     .. tab:: `BIRP`
 
         .. youtube:: qsgeG4sSLFw
 
-.. only:: html or hdrp
+.. only:: html or hdrp or readthedocs
 
     .. tab:: `HDRP`
 
         .. youtube:: FE6l39Lt3js
 
-.. only:: html or urp
+.. only:: html or urp or readthedocs
 
     .. tab:: `URP`
 

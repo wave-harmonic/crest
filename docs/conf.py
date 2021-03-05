@@ -9,11 +9,10 @@
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
-#
-# import os
-# import sys
-# sys.path.insert(0, os.path.abspath('.')) # Replace . with path to extensions
 
+import os
+import sys
+sys.path.insert(0, os.path.abspath('./extensions'))
 
 # -- Project information -----------------------------------------------------
 
@@ -28,8 +27,13 @@ author = 'Wave Harmonic & Contributors'
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    "sphinx_rtd_theme",
-    "sphinx_tabs.tabs",
+    # Global packages
+    "sphinx_inline_tabs",
+    "furo",
+
+    # Local packages
+    "youtube",
+    "variables",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -38,35 +42,23 @@ templates_path = ['_templates']
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
+exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', ".env", "extensions"]
 
 
 # -- Options for HTML output -------------------------------------------------
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-#
-html_theme = 'sphinx_rtd_theme'
-# html_logo = '../logo/crest-oceanrender-logomark.png'
-html_logo = 'crest-oceanrender.png'
+# https://github.com/pradyunsg/furo
+# https://pradyunsg.me/furo/
+html_theme = 'furo'
+html_logo = '../logo/crest-oceanrender-logomark.png'
+html_title = "CREST"
+
+# html_logo = 'crest-oceanrender.png'
 html_theme_options = {
-    'logo_only': True,
-    'display_version': False,
-    'style_nav_header_background': '#FAFAFA',
-    # 'analytics_id': 'UA-XXXXXXX-1',  #  Provided by Google in your dashboard
-    # 'analytics_anonymize_ip': False,
-    # 'logo_only': False,
-    # 'display_version': True,
-    # 'prev_next_buttons_location': 'bottom',
-    # 'style_external_links': False,
-    # 'vcs_pageview_mode': '',
-    # 'style_nav_header_background': 'white',
-    # # Toc options
-    # 'collapse_navigation': True,
-    # 'sticky_navigation': True,
-    # 'navigation_depth': 4,
-    # 'includehidden': True,
-    # 'titles_only': False
+    # "sidebar_hide_name": True,
+    # "announcement": "<em>Important</em> announcement!",
 }
 # html_favicon = 'crest-oceanrender-logomark.png'
 
@@ -83,16 +75,80 @@ html_css_files = [
 
 html_js_files = [
     'js/expand-tabs.js',
+    'js/link-target.js',
     # 'custom.js',
 ]
 
+
+# -- Templating --------------------------------------------------------------
+
+# The default role will be used for `` so we do not need to do :get:``.
+default_role = "get"
+
+# "replace" substitutions are static/global:
+#   |name1| replace:: value
+#   |name1|
+# Cannot do this:
+#   |name2| replace:: |name1|
+# Inline content has no nested parsing.
+
+# "set" only supports inline content. It will pass its contents to the parser so roles will be processed. Brace
+# substitution is supported and is text only (it will lose any nodes). Use it when you need substitutions in role
+# content.
+#   .. set:: LongName Example
+#   .. set:: ShortName :abbr:`{LongName}`
+#   An example of using `ShortName`.
+
+# For links where you want to use substitutions, use the link role:
+#   .. set Something Example Page
+#   .. set BaseURL https://example.com
+#   :link:`Link Text for {Something} <{BaseURL}/example>`
+# Pass the URL within the angle brackets. Brace substitution will work and will be text only for URLs and support nodes
+# for the link text.
+#
+# For URLs, it is best to use braces even in "set" as they don't require being enclosed in escaped whitespace:
+#   .. set:: Link `LinkBase`\ /something/\ `LinkPart`\ /example.html
+# Versus:
+#   .. set:: Link {LinkBase}/something/{LinkPart}/example.html
+
 # The following will be included before every page:
 rst_prolog = """
+.. set:: AssetVersion 4.9
+.. set:: RPMinVersion 7.3
+.. set:: RPDocLinkBase \https://docs.unity3d.com/Packages/com.unity.render-pipelines.
+.. set:: UnityMinVersionShort 2019.4
+.. set:: UnityMinVersion {UnityMinVersionShort}.9
+.. set:: UnityDocLinkBase https://docs.unity3d.com/{UnityMinVersionShort}/Documentation/Manual
+.. set:: AssetStoreLinkBase \https://assetstore.unity.com/packages/tools/particles-effects
 
-.. |hdrp_long| replace:: High Definition
+.. set:: BIRPNameLong Built-in
+.. set:: BIRPNameShort BIRP
+.. set:: BIRP :abbr:`{BIRPNameShort} ({BIRPNameLong} Render Pipeline)`
+.. set:: BIRPMinVersion `RPMinVersion`
+.. set:: BIRPDocLink {UnityDocLinkBase}/
 
-.. |urp_long| replace:: Universal
+.. set:: URPNameLong Universal
+.. set:: URPNameShort URP
+.. set:: URP :abbr:`{URPNameShort} ({URPNameLong} Render Pipeline)`
+.. set:: URPMinVersion `RPMinVersion`
+.. set:: URPDocLink {RPDocLinkBase}universal@{URPMinVersion}/manual
+.. set:: URPAssetLink {AssetStoreLinkBase}/crest-ocean-system-urp-141674
 
-.. |brp_long| replace:: Built-in
+.. set:: HDRPNameLong High Definition
+.. set:: HDRPNameShort HDRP
+.. set:: HDRP :abbr:`{HDRPNameShort} ({HDRPNameLong} Render Pipeline)`
+.. set:: HDRPMinVersion `RPMinVersion`
+.. set:: HDRPDocLink {RPDocLinkBase}high-definition@{HDRPMinVersion}/manual
+.. set:: HDRPAssetLink {AssetStoreLinkBase}/crest-ocean-system-hdrp-164158
 
+.. set:: Crest *Crest*
+
+.. set:: TAA :abbr:`TAA (Temporal Anti-Aliasing)`
+.. set:: SMAA :abbr:`SMAA (Subpixel Morphological Anti-Aliasing)`
 """
+
+# -- Debugging ---------------------------------------------------------------
+
+# For debugging if you want to always have a tag on or off
+# tags.add("tag")
+# tags.remove("tag")

@@ -18,15 +18,15 @@ serve:
 	echo "http://localhost:8000"; python3 -m http.server -d _build/html
 
 pdf-hdrp:
-	@$(SPHINXBUILD) -M latexpdf "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) -t hdrp $(O)
+	@$(SPHINXBUILD) -M latexpdf "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) -t hdrp -t no-tabs $(O)
 	mv -f _build/latex/crest.pdf _build/crest-hdrp.pdf
 
 pdf-urp:
-	@$(SPHINXBUILD) -M latexpdf "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) -t urp $(O)
+	@$(SPHINXBUILD) -M latexpdf "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) -t urp -t no-tabs $(O)
 	mv -f _build/latex/crest.pdf _build/crest-urp.pdf
 
 pdf-brp:
-	@$(SPHINXBUILD) -M latexpdf "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) -t brp $(O)
+	@$(SPHINXBUILD) -M latexpdf "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) -t brp -t no-tabs $(O)
 	mv -f _build/latex/crest.pdf _build/crest-brp.pdf
 
 pdf:

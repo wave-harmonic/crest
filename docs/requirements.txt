@@ -1,22 +1,25 @@
 alabaster==0.7.12
 Babel==2.9.0
+beautifulsoup4==4.9.3
 certifi==2020.12.5
 chardet==4.0.0
+decorator==4.4.2
 docutils==0.16
+furo @ git+https://github.com/daleeidd/furo@cd085aedb5a365e6658575040432b3ce8574a18d
 idna==2.10
 imagesize==1.2.0
 Jinja2==2.11.3
 MarkupSafe==1.1.1
 packaging==20.9
-Pygments==2.7.4
+Pygments==2.8.0
 pyparsing==2.4.7
 pytz==2021.1
 requests==2.25.1
-rstcheck==3.3.1
+six==1.15.0
 snowballstemmer==2.1.0
-Sphinx==3.4.3
-sphinx-rtd-theme==0.5.1
-sphinx-tabs==2.0.1
+soupsieve==2.2
+Sphinx==3.5.1
+sphinx-inline-tabs @ git+https://github.com/daleeidd/sphinx-inline-tabs@e70a7d08f11df10df1011c575d73d6f296b62cfc
 sphinxcontrib-applehelp==1.0.2
 sphinxcontrib-devhelp==1.0.2
 sphinxcontrib-htmlhelp==1.0.3

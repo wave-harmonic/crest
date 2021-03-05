@@ -1,143 +1,138 @@
 Getting Started
 ===============
 
-This section has steps for importing the *Crest* content into a project, and for adding a new ocean surface to a scene.
+This section has steps for importing the `Crest` content into a project, and for adding a new ocean surface to a scene.
 
-.. warning:: Frequently when changing Unity versions the project can appear to break (no ocean rendering, materials
-    appear pink, other issues). Usually restarting the Editor fixes it. In one case the scripts became unassigned in the
-    example content scene, but closing Unity, removing the Library folder, and restarting resolved it.
+.. warning::
+
+    When changing Unity versions, setting up a render pipeline or making changes to packages, the project can appear to break.
+    This may manifest as spurious errors in the log, no ocean rendering, magenta materials, scripts unassigned in example scenes, etcetera.
+    Often, restarting the Editor fixes it.
+    Clearing out the \textit{/Library} folder can also help to reset the project and clear temporary errors.
+    These issues are not specific to `Crest`, but we note them anyway as we find our users regularly encounter them.
 
 .. Getting Started Video
 .. ---------------------
 
 To augment / complement this written documentation we published a video available here:
 
-.. only:: html
+.. only:: html or birp
 
-    .. tabs::
+    .. tab:: `BIRP`
 
-        .. group-tab:: |brp_long|
+        .. youtube:: qsgeG4sSLFw
 
-            .. raw:: html
+.. only:: html or hdrp
 
-                <div class="video-container">
-                    <iframe width="100%" height="100%" src="https://www.youtube-nocookie.com/embed/qsgeG4sSLFw" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen>
-                        Fallback
-                    </iframe>
-                </div>
+    .. tab:: `HDRP`
 
-        .. group-tab:: |hdrp_long|
+        .. youtube:: FE6l39Lt3js
 
-            .. raw:: html
+.. only:: html or urp
 
-                <div class="video-container">
-                    <iframe width="560" height="315" src="https://www.youtube-nocookie.com/embed/FE6l39Lt3js" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-                </div>
+    .. tab:: `URP`
 
-        .. group-tab:: |urp_long|
-
-            .. raw:: html
-
-                <div class="video-container">
-                    <iframe width="560" height="315" src="https://www.youtube-nocookie.com/embed/TpJf13d_-3E" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-                </div>
+        .. youtube:: TpJf13d_-3E
 
 
-.. only:: latex
+Requirements
+------------
 
-    .. only:: readthedocs or brp
+- Unity Version: `UnityMinVersion`
+- .NET 4.x runtime
+- Shader compilation target 4.5 or above
+- Crest unfortunately does not support OpenGL or WebGL backends
 
-        .. only:: readthedocs
+.. only:: html or birp
 
-            |brp_long|
+    .. tab:: `BIRP`
 
-        https://www.youtube.com/watch?v=qsgeG4sSLFw
+        - The `Crest` example content uses the post-processing package (for aesthetic reasons).
+          If this is not present in your project, you will see an unassigned script warning which you can fix by removing the offending script.
 
-    .. only:: readthedocs or urp
+.. only:: html or hdrp
 
-        .. only:: readthedocs
+    .. tab:: `HDRP`
 
-            |urp_long|
+        - The minimum `HDRP` package version is `HDRPMinVersion`
 
-        https://www.youtube.com/watch?v=TpJf13d_-3E
+.. only:: html or urp
 
-    .. only:: readthedocs or hdrp
+    .. tab:: `URP`
 
-        .. only:: readthedocs
-
-            |hdrp_long|
-
-        https://www.youtube.com/watch?v=FE6l39Lt3js
+        - The minimum `URP` package version is `URPMinVersion`
 
 
-Importing *Crest* files into project
+Importing `Crest` files into project
 ------------------------------------
+
+The steps to set up `Crest` in a new or existing project are as follows:
+
 
 Pipeline Setup
 ^^^^^^^^^^^^^^
 
-.. tabs::
+.. only:: html or birp
 
-    .. group-tab:: |brp_long|
+    .. tab:: `BIRP`
 
-        Ensure |brp_long| Render Pipeline (BRP) is setup and functioning, either by setting up a new project using the
-        URP template or by installing the URP package into an existing project and configuring the Render Pipeline
-        Asset. Please see the Unity documentation for more information.
+        .. include:: includes/_birp-vars.rst
+        .. include:: includes/_pipeline-setup.rst
 
-        .. note::
+.. only:: html or hdrp
 
-            Switch to Linear space rendering under Edit/Project Settings/Player/Other Settings. If your platform(s) require
-            Gamma space, the material settings will need to be adjusted to compensate.
+    .. tab:: `HDRP`
 
-    .. group-tab:: |hdrp_long|
+        .. include:: includes/_hdrp-vars.rst
+        .. include:: includes/_pipeline-setup.rst
 
-        Ensure |hdrp_long| Render Pipeline (URP) is setup and functioning, either by setting up a new project using the
-        URP template or by installing the URP package into an existing project and configuring the Render Pipeline
-        Asset. Please see the Unity documentation for more information.
+        `HDRP` defaults to using `TAA`, which does not work well with the water material and makes it look blurry under motion.
+        We recommend switching to a different anti-aliasing method such as `SMAA` using the *Anti-aliasing* option on the camera component.
 
-    .. group-tab:: |urp_long|
+.. only:: html or urp
 
-        Ensure the |urp_long| Render Pipeline (URP) is setup and functioning, either by setting up a new project using the
-        URP template or by installing the URP package into an existing project and configuring the Render Pipeline
-        Asset. Please see the Unity documentation for more information.
+    .. tab:: `URP`
 
-        .. note::
+        .. include:: includes/_urp-vars.rst
+        .. include:: includes/_pipeline-setup.rst
 
-            Switch to Linear space rendering under Edit/Project Settings/Player/Other Settings. If your platform(s) require
-            Gamma space, the material settings will need to be adjusted to compensate.
+Switch to Linear space rendering under :menuselection:`Edit --> Project Settings --> Player --> Other Settings`.
+If your platform(s) require Gamma space (and providing your pipeline supports it), the material settings will need to be adjusted to compensate.
+Please see the :link:`Unity documentation <{UnityDocLinkBase}/LinearRendering-LinearOrGammaWorkflow.html>` for more information.
+
 
 Importing Crest
 ^^^^^^^^^^^^^^^
 
-Import the *Crest* package into project using the *Asset Store* window in the Unity Editor.
+Import the `Crest` package into project using the *Asset Store* window in the Unity Editor.
 
 .. note::
     The files under Crest-Examples are not required by our core functionality, but are provided for illustrative
     purposes. We recommend first time users import them as they may provide useful guidance.
 
-.. only:: html
+.. only:: html or birp
 
-    .. tabs::
+    .. tab:: `BIRP`
 
-        .. group-tab:: |brp_long|
+        TODO
 
-            TODO
+.. only:: html or hdrp
 
-        .. group-tab:: |hdrp_long|
+    .. tab:: `HDRP`
 
-            TODO
+        TODO
 
-        .. group-tab:: |urp_long|
+.. only:: html or urp
 
-            .. include:: includes/_importing-crest-urp.rst
-
-.. only:: latex
-
-    .. only:: urp
+    .. tab:: `URP`
 
         .. include:: includes/_importing-crest-urp.rst
 
-Adding *Crest* to a Scene
+.. TODO
+.. If you imported the example content, open an example scene such as *Crest/Crest-Examples/Main/Scenes/main.unity* and press Play and the ocean will get generated.
+.. Otherwise proceed to the next section to add the ocean to an existing scene.
+
+Adding `Crest` to a Scene
 -------------------------
 
 Adding the Ocean
@@ -162,6 +157,7 @@ The steps to add an ocean to an existing scene are as follows:
 
   .. tip:: You can check *Auto Generate* to ensure lighting is always generated.
 
+
 Adding Waves
 ^^^^^^^^^^^^
 
@@ -170,6 +166,7 @@ To add waves:
 * Create a new GameObject and add the *Shape Gerstner Batched* component.
 * On startup this script creates a default ocean shape. To edit the shape, right click in the Project view and select *Create/Crest/Ocean Wave Spectrum* and provide it to this script.
 * Smooth blending of ocean shapes can be achieved by adding multiple *Shape Gerstner Batched* scripts and crossfading them using the *Weight* parameter.
+
 
 Adding Ocean Depth
 ^^^^^^^^^^^^^^^^^^

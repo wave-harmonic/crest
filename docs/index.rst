@@ -18,12 +18,20 @@ This documentation targets all rendering pipelines.
 * **Twitter** `<https://twitter.com/@crest_ocean>`_
 
 .. toctree::
+   :numbered:
    :maxdepth: 3
    :caption: User Guide
 
    user/getting-started
    user/configuration
-   user/decals
+   user/ocean-simulation
+   user/wave-conditions
+   user/shallows-and-shorelines
+   user/water-bodies
+   user/collision-shape-for-physics
+   user/underwater
+   user/other-features
+   user/performance
 
 .. user/quickstart
 .. user/support
@@ -37,5 +45,5 @@ This documentation targets all rendering pipelines.
 
 Links
 -----
-URP Asset: `Crest Ocean System URP <https://assetstore.unity.com/packages/tools/particles-effects/crest-ocean-system-urp-141674>`_
-HDRP Asset: `Crest Ocean System HDRP <https://assetstore.unity.com/packages/tools/particles-effects/crest-ocean-system-hdrp-164158>`_
+`URP` Asset: :link:`Crest Ocean System URP <{URPAssetLink}>`
+`HDRP` Asset: :link:`Crest Ocean System HDRP <{HDRPAssetLink}>`

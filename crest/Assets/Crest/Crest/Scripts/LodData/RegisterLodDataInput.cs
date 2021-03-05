@@ -258,6 +258,8 @@ namespace Crest
     {
         protected abstract bool FeatureEnabled(OceanRenderer ocean);
         protected virtual string RequiredShaderKeyword => null;
+        // NOTE: Temporary until shader keywords are the same across pipelines.
+        protected virtual string RequiredShaderKeywordProperty => null;
 
         protected virtual string FeatureDisabledErrorMessage => "Feature must be enabled on the OceanRenderer component.";
         protected virtual string KeywordMissingErrorMessage => "Feature must be enabled on the ocean material.";
@@ -274,7 +276,7 @@ namespace Crest
                 isValid = false;
             }
 
-            if (!string.IsNullOrEmpty(RequiredShaderKeyword) && !ocean.OceanMaterial.IsKeywordEnabled(RequiredShaderKeyword))
+            if (!string.IsNullOrEmpty(RequiredShaderKeyword) && ocean.OceanMaterial.HasProperty(RequiredShaderKeywordProperty) && !ocean.OceanMaterial.IsKeywordEnabled(RequiredShaderKeyword))
             {
                 showMessage(KeywordMissingErrorMessage, ValidatedHelper.MessageType.Error, ocean.OceanMaterial);
                 isValid = false;

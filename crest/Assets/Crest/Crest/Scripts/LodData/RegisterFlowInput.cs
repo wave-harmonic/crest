@@ -29,6 +29,7 @@ namespace Crest
             oceanComponent.FindProperty("_createFlowSim").boolValue = true;
         }
 
+        protected override string RequiredShaderKeywordProperty => LodDataMgrFlow.MATERIAL_KEYWORD_PROPERTY;
         protected override string RequiredShaderKeyword => LodDataMgrFlow.MATERIAL_KEYWORD;
         protected override string KeywordMissingErrorMessage => LodDataMgrFlow.ERROR_MATERIAL_KEYWORD_MISSING;
 #endif // UNITY_EDITOR

@@ -29,6 +29,7 @@ namespace Crest
             oceanComponent.FindProperty("_createFoamSim").boolValue = true;
         }
 
+        protected override string RequiredShaderKeywordProperty => LodDataMgrFoam.MATERIAL_KEYWORD_PROPERTY;
         protected override string RequiredShaderKeyword => LodDataMgrFoam.MATERIAL_KEYWORD;
         protected override string KeywordMissingErrorMessage => LodDataMgrFoam.ERROR_MATERIAL_KEYWORD_MISSING;
 #endif // UNITY_EDITOR

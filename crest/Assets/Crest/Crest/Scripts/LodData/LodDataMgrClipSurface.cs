@@ -19,6 +19,7 @@ namespace Crest
         protected override GraphicsFormat RequestedTextureFormat => GraphicsFormat.R8_UNorm;
         protected override bool NeedToReadWriteTextureData { get { return true; } }
 
+        internal const string MATERIAL_KEYWORD_PROPERTY = "_ClipSurface";
         internal const string MATERIAL_KEYWORD = MATERIAL_KEYWORD_PREFIX + "_CLIPSURFACE_ON";
         internal const string ERROR_MATERIAL_KEYWORD_MISSING = "Clipping must be enabled on the ocean material to enable clipping holes in the water surface. Tick the <i>Enable</i> option in the <i>Clip Surface</i> parameter section on the material currently assigned to the OceanRenderer component.";
         internal const string ERROR_MATERIAL_KEYWORD_ON_FEATURE_OFF = "The clipping feature is disabled on this component but is enabled on the ocean material. If this is not intentional, either enable the <i>Create Clip Surface Data</i> option on this component to turn it on, or disable the Clipping feature on the ocean material to save performance.";
@@ -35,7 +36,9 @@ namespace Crest
             base.Start();
 
 #if UNITY_EDITOR
-            if (!OceanRenderer.Instance.OceanMaterial.IsKeywordEnabled(LodDataMgrClipSurface.MATERIAL_KEYWORD))
+            if (OceanRenderer.Instance.OceanMaterial != null
+                && OceanRenderer.Instance.OceanMaterial.HasProperty(MATERIAL_KEYWORD_PROPERTY)
+                && !OceanRenderer.Instance.OceanMaterial.IsKeywordEnabled(MATERIAL_KEYWORD))
             {
                 Debug.LogWarning(ERROR_MATERIAL_KEYWORD_MISSING, _ocean);
             }

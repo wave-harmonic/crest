@@ -84,6 +84,7 @@ namespace Crest
 
 #if UNITY_EDITOR
         protected override bool FeatureEnabled(OceanRenderer ocean) => ocean.CreateClipSurfaceData;
+        protected override string RequiredShaderKeywordProperty => LodDataMgrClipSurface.MATERIAL_KEYWORD_PROPERTY;
         protected override string RequiredShaderKeyword => LodDataMgrClipSurface.MATERIAL_KEYWORD;
         protected override void FixOceanFeatureDisabled(SerializedObject oceanComponent)
         {

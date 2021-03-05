@@ -30,6 +30,9 @@ namespace Crest
         public const int THREAD_GROUP_SIZE_X = 8;
         public const int THREAD_GROUP_SIZE_Y = 8;
 
+        // NOTE: This is a temporary solution to keywords having prefixes downstream.
+        internal const string MATERIAL_KEYWORD_PREFIX = "";
+
         protected abstract int GetParamIdSampler(bool sourceLod = false);
 
         protected abstract bool NeedToReadWriteTextureData { get; }

@@ -68,7 +68,9 @@ namespace Crest.Spline
                 return;
             }
 
-            if (parent.TryGetComponent(out ISplinePointCustomDataSetup customData))
+            // For any components on spline that want custom data added to spline points, add them
+            var customDatas = parent.GetComponents<ISplinePointCustomDataSetup>();
+            foreach (var customData in customDatas)
             {
                 if (customData.AttachDataToSplinePoint(thisSP.gameObject))
                 {

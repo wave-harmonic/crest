@@ -37,7 +37,7 @@ namespace Crest
         [SerializeField]
         float _speed = 5f;
 
-        Material _splineFlowMaterial;
+        Material _splineMaterial;
         Spline.Spline _spline;
         Mesh _splineMesh;
 
@@ -47,9 +47,9 @@ namespace Crest
             {
                 ShapeGerstnerSplineHandling.GenerateMeshFromSpline(_spline, transform, _subdivisions, _radius, _smoothingIterations, ref _splineMesh);
 
-                if (_splineFlowMaterial == null)
+                if (_splineMaterial == null)
                 {
-                    _splineFlowMaterial = new Material(Shader.Find("Hidden/Crest/Inputs/Flow/Spline Geometry"));
+                    _splineMaterial = new Material(Shader.Find("Hidden/Crest/Inputs/Flow/Spline Geometry"));
                 }
             }
         }
@@ -71,9 +71,9 @@ namespace Crest
                 {
                     ShapeGerstnerSplineHandling.GenerateMeshFromSpline(_spline, transform, _subdivisions, _radius, _smoothingIterations, ref _splineMesh);
 
-                    if (_splineFlowMaterial == null)
+                    if (_splineMaterial == null)
                     {
-                        _splineFlowMaterial = new Material(Shader.Find("Hidden/Crest/Inputs/Flow/Spline Geometry"));
+                        _splineMaterial = new Material(Shader.Find("Hidden/Crest/Inputs/Flow/Spline Geometry"));
                     }
                 }
                 else
@@ -111,14 +111,14 @@ namespace Crest
         {
             if (weight <= 0f) return;
 
-            if (_splineMesh != null && _splineFlowMaterial != null)
+            if (_splineMesh != null && _splineMaterial != null)
             {
-                _splineFlowMaterial.SetFloat("_Speed", _speed);
+                _splineMaterial.SetFloat("_Speed", _speed);
 
                 buf.SetGlobalFloat(sp_Weight, weight);
                 buf.SetGlobalFloat(LodDataMgr.sp_LD_SliceIndex, lodIdx);
                 buf.SetGlobalVector(sp_DisplacementAtInputPosition, Vector3.zero);
-                buf.DrawMesh(_splineMesh, transform.localToWorldMatrix, _splineFlowMaterial);
+                buf.DrawMesh(_splineMesh, transform.localToWorldMatrix, _splineMaterial);
             }
             else
             {

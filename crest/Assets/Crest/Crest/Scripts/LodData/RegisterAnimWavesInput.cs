@@ -2,8 +2,10 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+using Crest.Spline;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace Crest
 {
@@ -12,6 +14,9 @@ namespace Crest
     /// </summary>
     [ExecuteAlways]
     public class RegisterAnimWavesInput : RegisterLodDataInput<LodDataMgrAnimWaves>
+#if UNITY_EDITOR
+        , IReceiveSplinePointOnDrawGizmosSelectedMessages
+#endif
     {
         public override bool Enabled => true;
 
@@ -42,9 +47,57 @@ namespace Crest
         [SerializeField, Tooltip("Use the bounding box of an attached renderer component to determine the max vertical displacement.")]
         bool _reportRendererBoundsToOceanSystem = false;
 
+        [Header("Spline settings")]
+        [SerializeField]
+        float _radius = 20f;
+        [SerializeField]
+        int _subdivisions = 1;
+        [SerializeField]
+        int _smoothingIterations = 0;
+
+        Material _splineMaterial;
+        Spline.Spline _spline;
+        Mesh _splineMesh;
+
+        void Awake()
+        {
+            if (TryGetComponent<Spline.Spline>(out _spline))
+            {
+                ShapeGerstnerSplineHandling.GenerateMeshFromSpline(_spline, transform, _subdivisions, _radius, _smoothingIterations, ref _splineMesh);
+
+                if (_splineMaterial == null)
+                {
+                    _splineMaterial = new Material(Shader.Find("Crest/Inputs/Animated Waves/Add Water Height From Geometry"));
+                }
+            }
+        }
+
         protected override void Update()
         {
             base.Update();
+
+            // Check for spline and rebuild spline mesh each frame in edit mode
+            if (!EditorApplication.isPlaying)
+            {
+                if (_spline == null)
+                {
+                    TryGetComponent<Spline.Spline>(out _spline);
+                }
+
+                if (_spline != null)
+                {
+                    ShapeGerstnerSplineHandling.GenerateMeshFromSpline(_spline, transform, _subdivisions, _radius, _smoothingIterations, ref _splineMesh);
+
+                    if (_splineMaterial == null)
+                    {
+                        _splineMaterial = new Material(Shader.Find("Hidden/Crest/Inputs/Flow/Spline Geometry"));
+                    }
+                }
+                else
+                {
+                    _splineMesh = null;
+                }
+            }
 
             if (OceanRenderer.Instance == null)
             {
@@ -70,10 +123,39 @@ namespace Crest
             }
         }
 
+        public override void Draw(CommandBuffer buf, float weight, int isTransition, int lodIdx)
+        {
+            if (weight <= 0f) return;
+
+            if (_splineMesh != null && _splineMaterial != null)
+            {
+                buf.SetGlobalFloat(sp_Weight, weight);
+                buf.SetGlobalFloat(LodDataMgr.sp_LD_SliceIndex, lodIdx);
+                buf.SetGlobalVector(sp_DisplacementAtInputPosition, Vector3.zero);
+                buf.DrawMesh(_splineMesh, transform.localToWorldMatrix, _splineMaterial);
+            }
+            else
+            {
+                base.Draw(buf, weight, isTransition, lodIdx);
+            }
+        }
+
 #if UNITY_EDITOR
         // Animated waves are always enabled
+        protected override bool RendererRequired => _spline == null;
         protected override bool FeatureEnabled(OceanRenderer ocean) => true;
         protected override void FixOceanFeatureDisabled(SerializedObject oceanComponent) { }
+
+        protected new void OnDrawGizmosSelected()
+        {
+            Gizmos.color = GizmoColor;
+            Gizmos.DrawWireMesh(_splineMesh, transform.position, transform.rotation, transform.lossyScale);
+        }
+
+        public void OnSplinePointDrawGizmosSelected(SplinePoint point)
+        {
+            OnDrawGizmosSelected();
+        }
 #endif // UNITY_EDITOR
     }
 }

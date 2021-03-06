@@ -38,8 +38,51 @@ namespace Crest
         float _speed = 5f;
 
         Material _splineFlowMaterial;
+        Spline.Spline _spline;
+        Mesh _splineMesh;
+
+        void Awake()
+        {
+            if (TryGetComponent<Spline.Spline>(out _spline))
+            {
+                ShapeGerstnerSplineHandling.GenerateMeshFromSpline(_spline, transform, _subdivisions, _radius, _smoothingIterations, ref _splineMesh);
+
+                if (_splineFlowMaterial == null)
+                {
+                    _splineFlowMaterial = new Material(Shader.Find("Hidden/Crest/Inputs/Flow/Spline Geometry"));
+                }
+            }
+        }
 
 #if UNITY_EDITOR
+        protected override void Update()
+        {
+            base.Update();
+
+            // Check for spline and rebuild spline mesh each frame in edit mode
+            if (!EditorApplication.isPlaying)
+            {
+                if (_spline == null)
+                {
+                    TryGetComponent<Spline.Spline>(out _spline);
+                }
+
+                if (_spline != null)
+                {
+                    ShapeGerstnerSplineHandling.GenerateMeshFromSpline(_spline, transform, _subdivisions, _radius, _smoothingIterations, ref _splineMesh);
+
+                    if (_splineFlowMaterial == null)
+                    {
+                        _splineFlowMaterial = new Material(Shader.Find("Hidden/Crest/Inputs/Flow/Spline Geometry"));
+                    }
+                }
+                else
+                {
+                    _splineMesh = null;
+                }
+            }
+        }
+
         protected override bool RendererRequired => _spline == null;
         protected override bool FeatureEnabled(OceanRenderer ocean) => ocean.CreateFlowSim;
         protected override string FeatureDisabledErrorMessage => "<i>Create Flow Sim</i> must be enabled on the OceanRenderer component to enable flow on the water surface.";
@@ -55,7 +98,7 @@ namespace Crest
         protected new void OnDrawGizmosSelected()
         {
             Gizmos.color = GizmoColor;
-            Gizmos.DrawWireMesh(_myMesh, transform.position, transform.rotation, transform.lossyScale);
+            Gizmos.DrawWireMesh(_splineMesh, transform.position, transform.rotation, transform.lossyScale);
         }
 
         public void OnSplinePointDrawGizmosSelected(SplinePoint point)
@@ -64,27 +107,18 @@ namespace Crest
         }
 #endif // UNITY_EDITOR
 
-        Spline.Spline _spline;
-        Mesh _myMesh;
-
         public override void Draw(CommandBuffer buf, float weight, int isTransition, int lodIdx)
         {
             if (weight <= 0f) return;
 
-            if (_spline != null || TryGetComponent(out _spline))
+            if (_splineMesh != null && _splineFlowMaterial != null)
             {
-                if (_splineFlowMaterial == null)
-                {
-                    _splineFlowMaterial = new Material(Shader.Find("Hidden/Crest/Inputs/Flow/Spline Geometry"));
-                }
                 _splineFlowMaterial.SetFloat("_Speed", _speed);
-
-                ShapeGerstnerSplineHandling.GenerateMeshFromSpline(_spline, transform, _subdivisions, _radius, _smoothingIterations, ref _myMesh);
 
                 buf.SetGlobalFloat(sp_Weight, weight);
                 buf.SetGlobalFloat(LodDataMgr.sp_LD_SliceIndex, lodIdx);
                 buf.SetGlobalVector(sp_DisplacementAtInputPosition, Vector3.zero);
-                buf.DrawMesh(_myMesh, transform.localToWorldMatrix, _splineFlowMaterial);
+                buf.DrawMesh(_splineMesh, transform.localToWorldMatrix, _splineFlowMaterial);
             }
             else
             {

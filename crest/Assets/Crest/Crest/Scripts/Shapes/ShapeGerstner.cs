@@ -666,13 +666,13 @@ namespace Crest
 
         public bool AttachDataToSplinePoint(GameObject splinePoint)
         {
-            if (splinePoint.TryGetComponent(out SplinePointDataWeight _))
+            if (splinePoint.TryGetComponent(out SplinePointDataGerstner _))
             {
                 // Already existing, nothing to do
                 return false;
             }
 
-            splinePoint.AddComponent<SplinePointDataWeight>();
+            splinePoint.AddComponent<SplinePointDataGerstner>();
             return true;
         }
     }

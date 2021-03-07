@@ -17,12 +17,6 @@
 
 Shader "Hidden/Crest/Inputs/Flow/Spline Geometry"
 {
-    Properties
-    {
-        // Controls ramp distance over which waves grow/fade as they move forwards
-        _FeatherWaveStart( "Feather wave start (0-1)", Range( 0.0, 0.5 ) ) = 0.1
-    }
-
     SubShader
     {
         // Additive blend everywhere
@@ -34,8 +28,8 @@ Shader "Hidden/Crest/Inputs/Flow/Spline Geometry"
         Pass
         {
             CGPROGRAM
-            #pragma vertex vert
-            #pragma fragment frag
+            #pragma vertex Vert
+            #pragma fragment Frag
             #pragma enable_d3d11_debug_symbols
 
             #include "UnityCG.cginc"
@@ -44,17 +38,17 @@ Shader "Hidden/Crest/Inputs/Flow/Spline Geometry"
             #include "../../OceanInputsDriven.hlsl"
             #include "../../OceanHelpersNew.hlsl"
 
-            struct appdata
+            struct Attributes
             {
-                float4 vertex : POSITION;
+                float3 positionOS : POSITION;
                 float2 axis : TEXCOORD0;
                 float invNormDistToShoreline : TEXCOORD1;
 				float speed : TEXCOORD2;
             };
 
-            struct v2f
+            struct Varyings
             {
-                float4 vertex : SV_POSITION;
+                float4 positionCS : SV_POSITION;
                 float3 uv_slice : TEXCOORD1;
                 float2 axis : TEXCOORD2;
                 float invNormDistToShoreline : TEXCOORD4;
@@ -66,18 +60,15 @@ Shader "Hidden/Crest/Inputs/Flow/Spline Geometry"
             CBUFFER_END
 
             CBUFFER_START(CrestPerOceanInput)
-            float _AverageWavelength;
-            float _AttenuationInShallows;
             float _Weight;
-            float2 _AxisX;
             CBUFFER_END
 
-            v2f vert(appdata v)
+            Varyings Vert(Attributes v)
             {
-                v2f o;
+				Varyings o;
 
-                const float3 positionOS = v.vertex.xyz;
-                o.vertex = UnityObjectToClipPos(positionOS);
+                const float3 positionOS = v.positionOS;
+                o.positionCS = UnityObjectToClipPos(positionOS);
                 const float3 worldPos = mul( unity_ObjectToWorld, float4(positionOS, 1.0) ).xyz;
 
                 // UV coordinate into the cascade we are rendering into
@@ -93,11 +84,11 @@ Shader "Hidden/Crest/Inputs/Flow/Spline Geometry"
                 return o;
             }
 
-            float2 frag(v2f input) : SV_Target
+            float2 Frag(Varyings input) : SV_Target
             {
                 float wt = _Weight;
 
-                // Feature at front/back
+                // Feather at front/back
 				if( input.invNormDistToShoreline > 0.5 ) input.invNormDistToShoreline = 1.0 - input.invNormDistToShoreline;
                 wt *= min( input.invNormDistToShoreline / _FeatherWaveStart, 1.0 );
 

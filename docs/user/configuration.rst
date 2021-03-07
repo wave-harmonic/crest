@@ -44,113 +44,123 @@ Material Parameters
 Normal Mapping
 ^^^^^^^^^^^^^^
 
-.. only:: birp or urp
+.. line-block::
 
-  | **Enable** Whether to add normal detail from a texture. Can be used to add visual detail to the water surface `[BIRP]` `[URP]`
+  .. only:: birp or urp
 
-| **Normals** Normal map and caustics distortion texture (should be set to Normals type in the properties)
-| **Normals Scale** Scale of normal map texture
-| **Normals Strength** Strength of normal map influence
+    | **Enable** Whether to add normal detail from a texture. Can be used to add visual detail to the water surface `[BIRP]` `[URP]`
+
+  | **Normals** Normal map and caustics distortion texture (should be set to Normals type in the properties)
+  | **Normals Scale** Scale of normal map texture
+  | **Normals Strength** Strength of normal map influence
 
 
 Scattering
 ^^^^^^^^^^
 
-| **Scatter Colour Base** Base colour when looking straight down into water.
+.. line-block::
 
-.. only:: birp or urp
+  | **Scatter Colour Base** Base colour when looking straight down into water.
 
-  | **Scatter Colour Grazing** Base colour when looking into water at shallow/grazing angle. `[BIRP]` `[URP]`
-  | **Enable Shadowing** Changes colour in shadow. Requires 'Create Shadow Data' enabled on OceanRenderer script. `[BIRP]` `[URP]`
+  .. only:: birp or urp
 
-| **Scatter Colour Shadow** Base colour in shadow. Requires 'Create Shadow Data' enabled on OceanRenderer script.
+    | **Scatter Colour Grazing** Base colour when looking into water at shallow/grazing angle. `[BIRP]` `[URP]`
+    | **Enable Shadowing** Changes colour in shadow. Requires 'Create Shadow Data' enabled on OceanRenderer script. `[BIRP]` `[URP]`
+
+  | **Scatter Colour Shadow** Base colour in shadow. Requires 'Create Shadow Data' enabled on OceanRenderer script.
 
 Subsurface Scattering
 ^^^^^^^^^^^^^^^^^^^^^
 
-.. only:: birp or urp
+.. line-block::
 
-  | **Enable** Whether to to emulate light scattering through the water volume. `[BIRP]` `[URP]`
+  .. only:: birp or urp
 
-| **SSS Tint** Colour tint for primary light contribution.
-| **SSS Intensity Base** Amount of primary light contribution that always comes in.
-| **SSS Intensity Sun** Primary light contribution in direction of light to emulate light passing through waves.
-| **SSS Sun Falloff** Falloff for primary light scattering to affect directionality.
+    | **Enable** Whether to to emulate light scattering through the water volume. `[BIRP]` `[URP]`
+
+  | **SSS Tint** Colour tint for primary light contribution.
+  | **SSS Intensity Base** Amount of primary light contribution that always comes in.
+  | **SSS Intensity Sun** Primary light contribution in direction of light to emulate light passing through waves.
+  | **SSS Sun Falloff** Falloff for primary light scattering to affect directionality.
 
 
 Shallow Scattering
 ^^^^^^^^^^^^^^^^^^
 
-.. only:: birp or urp
+.. line-block::
 
-  | **Enable** Enable light scattering in shallow water. `[BIRP]` `[URP]`
+  .. only:: birp or urp
 
-| **Scatter Colour Shallow** Colour in shallow water.
-| **Scatter Colour Depth Max** Max depth that is considered 'shallow'.
-| **Scatter Colour Depth Falloff** Fall off of shallow scattering.
+    | **Enable** Enable light scattering in shallow water. `[BIRP]` `[URP]`
 
-.. only:: birp or urp
+  | **Scatter Colour Shallow** Colour in shallow water.
+  | **Scatter Colour Depth Max** Max depth that is considered 'shallow'.
+  | **Scatter Colour Depth Falloff** Fall off of shallow scattering.
 
-  | **Scatter Colour Shallow Shadow** Shallow water colour in shadow (see comment on Shadowing param above). `[BIRP]` `[URP]`
+  .. only:: birp or urp
+
+    | **Scatter Colour Shallow Shadow** Shallow water colour in shadow (see comment on Shadowing param above). `[BIRP]` `[URP]`
 
 
 Reflection Environment
 ^^^^^^^^^^^^^^^^^^^^^^
 
-| **Specular** Strength of specular lighting response.
+.. line-block::
 
-.. only:: hdrp
+  | **Specular** Strength of specular lighting response.
 
-  | **Occlusion** Strength of reflection. `[HDRP]`
+  .. only:: hdrp
 
-.. only:: hdrp or urp
+    | **Occlusion** Strength of reflection. `[HDRP]`
 
-  .. NOTE: BIRP has roughness? Nope
+  .. only:: hdrp or urp
 
-  | **Smoothness** Smoothness of surface.
+    .. NOTE: BIRP has roughness? Nope
 
-.. only:: urp
+    | **Smoothness** Smoothness of surface.
 
-  .. NOTE: "Vary Fall-Off Over Distance" in BIRP
+  .. only:: urp
 
-  | **Vary Smoothness Over Distance** Helps to spread out specular highlight in mid-to-background. From a theory point of view, models transfer of normal detail to microfacets in BRDF.
+    .. NOTE: "Vary Fall-Off Over Distance" in BIRP
 
-.. only:: hdrp or urp
+    | **Vary Smoothness Over Distance** Helps to spread out specular highlight in mid-to-background. From a theory point of view, models transfer of normal detail to microfacets in BRDF.
 
-  .. TODO: Rename Power to Falloff in URP
+  .. only:: hdrp or urp
 
-  | **Smoothness Far** Material smoothness at far distance from camera.
-  | **Smoothness Far Distance** Definition of far distance.
-  | **Smoothness Falloff** How smoothness varies between near and far distance.
+    .. TODO: Rename Power to Falloff in URP
 
-.. only:: birp
+    | **Smoothness Far** Material smoothness at far distance from camera.
+    | **Smoothness Far Distance** Definition of far distance.
+    | **Smoothness Falloff** How smoothness varies between near and far distance.
 
-  .. NOTE: Appears to be "Softness" in URP - but different. Roughness is the opposite of smoothness. "Softness" isn't really a thing from what I can see. I think this is both "Smoothness" and "Softness".
+  .. only:: birp
 
-  | **Roughness** Controls blurriness of reflection `[BIRP]`
+    .. NOTE: Appears to be "Softness" in URP - but different. Roughness is the opposite of smoothness. "Softness" isn't really a thing from what I can see. I think this is both "Smoothness" and "Softness".
 
-.. only:: urp
+    | **Roughness** Controls blurriness of reflection `[BIRP]`
 
-  | **Softness** Acts as mip bias to smooth/blur reflection.
+  .. only:: urp
 
-  .. NOTE: This couldbe handled by supporting light layers when they support multiple main lights.
+    | **Softness** Acts as mip bias to smooth/blur reflection.
 
-  | **Light Intensity Multiplier** Main light intensity multiplier.
+    .. NOTE: This couldbe handled by supporting light layers when they support multiple main lights.
 
-.. only:: birp or urp
+    | **Light Intensity Multiplier** Main light intensity multiplier.
 
-  | **Fresnel Power** Controls harshness of Fresnel behaviour. `[BIRP]` `[URP]`
-  | **Refractive Index of Air** Index of refraction of air.
-    Can be increased to almost 1.333 to increase visibility up through water surface. `[BIRP]` `[URP]`
-  | **Refractive Index of Water** Index of refraction of water. Typically left at 1.333. `[BIRP]` `[URP]`
-  | **Planar Reflections** Dynamically rendered 'reflection plane' style reflections.
-    Requires OceanPlanarReflection script added to main camera. `[BIRP]` `[URP]`
-  | **Planar Reflections Distortion** How much the water normal affects the planar reflection. `[BIRP]` `[URP]`
+  .. only:: birp or urp
 
-.. only:: birp
+    | **Fresnel Power** Controls harshness of Fresnel behaviour. `[BIRP]` `[URP]`
+    | **Refractive Index of Air** Index of refraction of air.
+      Can be increased to almost 1.333 to increase visibility up through water surface. `[BIRP]` `[URP]`
+    | **Refractive Index of Water** Index of refraction of water. Typically left at 1.333. `[BIRP]` `[URP]`
+    | **Planar Reflections** Dynamically rendered 'reflection plane' style reflections.
+      Requires OceanPlanarReflection script added to main camera. `[BIRP]` `[URP]`
+    | **Planar Reflections Distortion** How much the water normal affects the planar reflection. `[BIRP]` `[URP]`
 
-  | **Override Reflection Cubemap** Whether to use an overridden reflection cubemap (provided in the next property). `[BIRP]`
-  | **Reflection Cubemap Override** Custom environment map to reflect. `[BIRP]`
+  .. only:: birp
+
+    | **Override Reflection Cubemap** Whether to use an overridden reflection cubemap (provided in the next property). `[BIRP]`
+    | **Reflection Cubemap Override** Custom environment map to reflect. `[BIRP]`
 
 
 .. only:: birp
@@ -183,27 +193,30 @@ Reflection Environment
 Foam
 ^^^^
 
-| **Enable** Enable foam layer on ocean surface.
-| **Foam** Foam texture.
-| **Foam Scale** Foam texture scale.
-| **Foam Feather** Controls how gradual the transition is from full foam to no foam.
 
-.. only:: birp or urp
+.. line-block::
 
-  .. TODO: Consider removing Shoreline Foam Min Depth as it is just feathering the edges.
+  | **Enable** Enable foam layer on ocean surface.
+  | **Foam** Foam texture.
+  | **Foam Scale** Foam texture scale.
+  | **Foam Feather** Controls how gradual the transition is from full foam to no foam.
 
-  | **Foam Tint** Colour tint for whitecaps / foam on water surface. `[BIRP]` `[URP]`
-  | **Light Scale** Scale intensity of lighting. `[BIRP]` `[URP]`
-  | **Shoreline Foam Min Depth** Proximity to sea floor where foam starts to get generated. `[BIRP]` `[URP]`
+  .. only:: birp or urp
 
-  .. albedo intensity is foam colour except grayscale
-  .. foam emissive intensity is light scale
+    .. TODO: Consider removing Shoreline Foam Min Depth as it is just feathering the edges.
 
-.. only:: hdrp
+    | **Foam Tint** Colour tint for whitecaps / foam on water surface. `[BIRP]` `[URP]`
+    | **Light Scale** Scale intensity of lighting. `[BIRP]` `[URP]`
+    | **Shoreline Foam Min Depth** Proximity to sea floor where foam starts to get generated. `[BIRP]` `[URP]`
 
-  | **Foam Albedo Intensity** Scale intensity of diffuse lighting.
-  | **Foam Emissive Intensity** Scale intensity of emitted light.
-  | **Foam Smoothness** Smoothness of foam material.
+    .. albedo intensity is foam colour except grayscale
+    .. foam emissive intensity is light scale
+
+  .. only:: hdrp
+
+    | **Foam Albedo Intensity** Scale intensity of diffuse lighting.
+    | **Foam Emissive Intensity** Scale intensity of emitted light.
+    | **Foam Smoothness** Smoothness of foam material.
 
 
 .. Adding only to heading will hoist Foam Normal Strength and below above it.
@@ -212,16 +225,18 @@ Foam
 Foam 3D Lighting
 ^^^^^^^^^^^^^^^^
 
-.. only:: birp or urp
+.. line-block::
 
-  | **Enable** Generates normals for the foam based on foam values/texture and use it for foam lighting. `[BIRP]` `[URP]`
+  .. only:: birp or urp
 
-| **Foam Normal Strength** Strength of the generated normals.
+    | **Enable** Generates normals for the foam based on foam values/texture and use it for foam lighting. `[BIRP]` `[URP]`
 
-.. only:: birp or urp
+  | **Foam Normal Strength** Strength of the generated normals.
 
-  | **Specular Fall-Off** Acts like a gloss parameter for specular response. `[BIRP]` `[URP]`
-  | **Specular Boost** Strength of specular response. `[BIRP]` `[URP]`
+  .. only:: birp or urp
+
+    | **Specular Fall-Off** Acts like a gloss parameter for specular response. `[BIRP]` `[URP]`
+    | **Specular Boost** Strength of specular response. `[BIRP]` `[URP]`
 
 .. NOTE: Emission is the water colour for SG. Albedo is foam tint but grayscale. Foam overrides it. Albedo overrides emission.
 
@@ -237,12 +252,14 @@ Foam Bubbles
 Transparency
 ^^^^^^^^^^^^
 
-.. only:: birp or urp
+.. line-block::
 
-  | **Enable** Whether light can pass through the water surface. `[BIRP]` `[URP]`
+  .. only:: birp or urp
 
-| **Refraction Strength** How strongly light is refracted when passing through water surface.
-| **Depth Fog Density** Scattering coefficient within water volume, per channel.
+    | **Enable** Whether light can pass through the water surface. `[BIRP]` `[URP]`
+
+  | **Refraction Strength** How strongly light is refracted when passing through water surface.
+  | **Depth Fog Density** Scattering coefficient within water volume, per channel.
 
 
 Caustics
@@ -261,13 +278,15 @@ Caustics
 Underwater
 ^^^^^^^^^^
 
-.. only:: birp or urp
+.. line-block::
 
-  .. NOTE: Will be removed once we migrate to the underwater post-process effect.
+  .. only:: birp or urp
 
-  | **Enable** Whether the underwater effect is being used. This enables code that shades the surface correctly from underneath.
+    .. NOTE: Will be removed once we migrate to the underwater post-process effect.
 
-| **Cull Mode** Ordinarily set this to *Back* to cull back faces, but set to *Off* to make sure both sides of the surface draw if the underwater effect is being used.
+    | **Enable** Whether the underwater effect is being used. This enables code that shades the surface correctly from underneath.
+
+  | **Cull Mode** Ordinarily set this to *Back* to cull back faces, but set to *Off* to make sure both sides of the surface draw if the underwater effect is being used.
 
 Flow
 ^^^^

@@ -38,6 +38,7 @@ extensions = [
     "labels",
     "tags",
     "links",
+    "hacks",
 ]
 
 # Add any paths that contain templates here, relative to this directory.

@@ -4,24 +4,13 @@ Ocean Simulation
 ================
 
 The following sections cover the major elements of the ocean simulation. All of these can be directly controlled with
-user input, as covered in this video: https://www.youtube.com/watch?v=sQIakAjSq4Y.
+user input, as covered in this video:
+
+.. _adding-inputs-video:
 
 .. youtube:: sQIakAjSq4Y
 
-.. .. youtube-figure:: sQIakAjSq4Y
-..
-..       Caption
-
-.. .. figure::
-
-..     .. raw:: html
-
-..         <div class="video-container">
-..             <iframe width="100%" height="100%" src="https://www.youtube-nocookie.com/embed/sQIakAjSq4Y" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen>
-..             </iframe>
-..         </div>
-
-..     Gear/More icon
+   Basics of Adding Ocean Inputs
 
 .. _animated-waves-section:
 
@@ -45,7 +34,7 @@ User Inputs
 
 To add some shape, add some geometry into the world which when rendered from a top down perspective will draw the desired displacements.
 Then assign the *Register Anim Waves Input* script which will tag it for rendering into the shape.
-This is demonstrated in this video: https://www.youtube.com/watch?v=sQIakAjSq4Y.
+This is demonstrated in :numref:`adding-inputs-video`
 
 There is an example in the *boat.unity* scene, GameObject *wp0*, where a smoothstep bump is added to the water shape.
 This is an efficient way to generate dynamic shape.
@@ -85,7 +74,7 @@ The dynamic waves sim can be configured by assigning a Dynamic Wave Sim
 Settings asset to the OceanRenderer script in your scene
 (*Create/Crest/Dynamic Wave Sim Settings*).
 
-.. .. _dyn_waves_config:
+.. _dynamic_waves_setup:
 
 Simulation setup
 ^^^^^^^^^^^^^^^^
@@ -318,23 +307,26 @@ down perspective and the faces pointing upwards.
 Shadows
 -------
 
-The shadow data consists of two channels. One is for normal shadows as
-would be used to block specular reflection of the light. The other is a
-much softer shadowing value that can approximately variation in light
-scattering in the water volume.
+.. TODO: this is URP. Need HDRP too
 
-To turn on this feature, enable the *Create Shadow Data* option on the
-*OceanRenderer* script, and ensure the *Shadowing* option is ticked on
-the ocean material.
+.. only:: birp
 
-This data is captured from the shadow maps Unity renders. These shadow
-maps are always rendered in front of the viewer. The Shadow LOD Data
-then reads these shadow maps and copies shadow information into its LOD
-textures.
+   .. admonition:: Bug
+
+      Shadows are not supported using Deferred Lighting. Please see :issue:`198` for a workaround.
+
+The shadow data consists of two channels.
+One is for normal shadows as would be used to block specular reflection of the light.
+The other is a much softer shadowing value that can approximately variation in light scattering in the water volume.
+
+To turn on this feature, enable the *Create Shadow Data* option on the *OceanRenderer* script, and ensure the *Shadowing* option is ticked on the ocean material.
+
+This data is captured from the shadow maps Unity renders.
+These shadow maps are always rendered in front of the viewer.
+The Shadow LOD Data then reads these shadow maps and copies shadow information into its LOD textures.
 
 We have provided an example configuration with shadows enabled;
-*Assets/Crest/CrestExampleRPAsset*, which should be set to use the
-following Custom Renderer: *Assets/Crest/ForwardRendererCrestShadows*.
+*Assets/Crest/CrestExampleRPAsset*, which should be set to use the following Custom Renderer: *Assets/Crest/ForwardRendererCrestShadows*.
 In the setup instructions in section `[initial_setup]`_, steps to use
 this asset and renderer were given, and no further action is required if
 this setup is used.

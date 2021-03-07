@@ -43,7 +43,12 @@ def link_role(name, rawtext, text, lineno, inliner, options={}, content=[]):
 
 
 def get_role(name, rawtext, text, lineno, inliner, options={}, content=[]):
-    return dictionary[text.split()[0]], []
+    try:
+        return dictionary[text.split()[0]], []
+    except Exception as error:
+        message = inliner.reporter.error(error, line=lineno)
+        node = inliner.problematic(rawtext, rawtext, message)
+        return [node], [message]
 
 
 def setup(app):

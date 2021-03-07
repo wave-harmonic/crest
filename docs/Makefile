@@ -17,6 +17,9 @@ help:
 serve:
 	echo "http://localhost:8000"; python3 -m http.server -d _build/html
 
+live:
+	sphinx-autobuild "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
+
 pdf-hdrp:
 	@$(SPHINXBUILD) -M latexpdf "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) -t hdrp -t no-tabs $(O)
 	mv -f _build/latex/crest.pdf _build/crest-hdrp.pdf

@@ -1,3 +1,5 @@
+.. _underwater:
+
 Underwater
 ==========
 
@@ -16,6 +18,8 @@ Transparent materials may not render correctly underwater.
 
 For performance reasons, the underwater effect is disabled if the viewpoint is not underwater.
 Only the camera rendering the ocean surface will be used.
+
+.. TODO: refer to a common camera section
 
 .. note::
 
@@ -46,6 +50,8 @@ Checklist for using underwater:
 Underwater Post-Process
 -----------------------
 
+.. TODO: \includegraphics[scale=0.3]{UnderwaterPP-Result}
+
 .. note::
 
     High Definition render pipeline only. Coming to other render pipelines soon.
@@ -59,8 +65,12 @@ Steps to set up underwater:
 
 #. Add the underwater post-process - go to *Edit/Project Settings/HDRP Default Settings* and add *Crest.UnderwaterPostProcessHDRP* to the *Before Post Process* list:
 
+.. \includegraphics[scale=0.5]{UnderwaterPP-AddPP}
+
     .. note::
 
         For Unity 2020.2+/HDRP 10+, use *Before TAA*. This will fix the outline on objects undewater that use alpha clipping.
 
 #. Configure the ocean material for underwater rendering - in the *Underwater* section of the material params, ensure *Cull Mode* is set to *Off* so that the underside of the ocean surface renders. See *Ocean-Underwater.mat* for an example.
+
+.. \includegraphics[scale=0.8]{UnderwaterPP-MaterialSetting}

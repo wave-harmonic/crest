@@ -29,11 +29,15 @@ author = 'Wave Harmonic & Contributors'
 extensions = [
     # Global packages
     "sphinx_inline_tabs",
+    "sphinx_panels",
     "furo",
 
     # Local packages
     "youtube",
     "variables",
+    "labels",
+    "tags",
+    "links",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -44,6 +48,12 @@ templates_path = ['_templates']
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', ".env", "extensions"]
 
+# master_doc = "_user/overview"
+
+# -- Features ----------------------------------------------------------------
+
+# Auto numbering of figures
+numfig = True
 
 # -- Options for HTML output -------------------------------------------------
 
@@ -113,6 +123,8 @@ default_role = "get"
 
 # The following will be included before every page:
 rst_prolog = """
+.. tags::
+
 .. set:: AssetVersion 4.9
 .. set:: RPMinVersion 7.3
 .. set:: RPDocLinkBase \https://docs.unity3d.com/Packages/com.unity.render-pipelines.
@@ -121,12 +133,14 @@ rst_prolog = """
 .. set:: UnityDocLinkBase https://docs.unity3d.com/{UnityMinVersionShort}/Documentation/Manual
 .. set:: AssetStoreLinkBase \https://assetstore.unity.com/packages/tools/particles-effects
 
+.. set:: [BIRP] :guilabel:`BIRP`
 .. set:: BIRPNameLong Built-in
 .. set:: BIRPNameShort BIRP
 .. set:: BIRP :abbr:`{BIRPNameShort} ({BIRPNameLong} Render Pipeline)`
 .. set:: BIRPMinVersion `RPMinVersion`
 .. set:: BIRPDocLink {UnityDocLinkBase}/
 
+.. set:: [URP] :guilabel:`URP`
 .. set:: URPNameLong Universal
 .. set:: URPNameShort URP
 .. set:: URP :abbr:`{URPNameShort} ({URPNameLong} Render Pipeline)`
@@ -134,6 +148,7 @@ rst_prolog = """
 .. set:: URPDocLink {RPDocLinkBase}universal@{URPMinVersion}/manual
 .. set:: URPAssetLink {AssetStoreLinkBase}/crest-ocean-system-urp-141674
 
+.. set:: [HDRP] :guilabel:`HDRP`
 .. set:: HDRPNameLong High Definition
 .. set:: HDRPNameShort HDRP
 .. set:: HDRP :abbr:`{HDRPNameShort} ({HDRPNameLong} Render Pipeline)`
@@ -147,8 +162,16 @@ rst_prolog = """
 .. set:: SMAA :abbr:`SMAA (Subpixel Morphological Anti-Aliasing)`
 """
 
+# TODO: use compound
+# .. compound::
+
 # -- Debugging ---------------------------------------------------------------
 
 # For debugging if you want to always have a tag on or off
 # tags.add("tag")
 # tags.remove("tag")
+
+# https://sphinx-rtd-theme.readthedocs.io/
+# https://pradyunsg.me/furo/kitchen-sink/
+
+# https://github.com/executablebooks/sphinx-copybutton

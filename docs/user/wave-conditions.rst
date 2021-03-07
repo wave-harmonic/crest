@@ -12,6 +12,7 @@ To enable real-time update enable *Animated Materials* in the Scene View toggles
 
 The following sections describe how to define the wave conditions.
 
+
 .. _wave-authoring-section:
 
 Authoring
@@ -38,6 +39,7 @@ When done, toggle the button off to stop overriding the spectrum.
 
 Together these controls give the flexibility to express the great variation one can observe in real world seascapes.
 
+
 .. _local-waves-section:
 
 Local Waves
@@ -59,12 +61,14 @@ The material has the *Feather at UV Extents* option enabled, which will fade dow
 A more general solution is to scale the waves based on vertex colour so weights can be painted - this is provided through the *Weight from vertex colour (red channel)* option.
 This allows different wave conditions in different areas of the world with smooth blending.
 
+
 ShapeGerstnerBatched
 --------------------
 
 .. deprecated:: 4.8
 
     *ShapeGerstnerBatched* will be replaced by the much improved *ShapeGerstner*.
+
 
 .. _shape-gerstner-section:
 
@@ -88,6 +92,7 @@ The new system has the following advantages:
 -  Support for wave splines (see below)
 
 After more testing we will switch over to this new system and deprecate the *ShapeGerstnerBatched* component.
+
 
 .. _wave-splines-section:
 

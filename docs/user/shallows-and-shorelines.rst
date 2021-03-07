@@ -1,3 +1,5 @@
+.. _shallows:
+
 Shorelines and Shallows
 =======================
 

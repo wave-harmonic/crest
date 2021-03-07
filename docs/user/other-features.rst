@@ -4,20 +4,20 @@ Other Features
 Decals
 ------
 
-.. only:: html or birp
+.. only:: birp
 
     .. tab:: `BIRP`
 
         .. include:: includes/_render-alpha-surface.rst
 
-.. only:: html or hdrp
+.. only:: hdrp
 
     .. tab:: `HDRP`
 
         Use the :link:`Decal Projector <{HDRPDocLink}/Decal-Projector.html>`.
         Make sure to enable *Affects Transparent*.
 
-.. only:: html or urp
+.. only:: urp
 
     .. tab:: `URP`
 

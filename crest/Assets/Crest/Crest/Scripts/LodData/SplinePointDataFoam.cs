@@ -7,9 +7,13 @@ using UnityEngine;
 
 namespace Crest
 {
+    /// <summary>
+    /// Foam tweakable param on spline points
+    /// </summary>
     public class SplinePointDataFoam : MonoBehaviour, ISplinePointCustomData
     {
-        public float _foamAmount = 1f;
+        [Tooltip("Amount of foam emitted."), SerializeField]
+        float _foamAmount = 1f;
 
         public Vector2 GetData()
         {

@@ -7,9 +7,13 @@ using UnityEngine;
 
 namespace Crest
 {
+    /// <summary>
+    /// Custom spline point data for Gerstner waves
+    /// </summary>
     public class SplinePointDataGerstner : MonoBehaviour, ISplinePointCustomData
     {
-        public float _weight = 1f;
+        [Tooltip("Weight multiplier to scale waves."), SerializeField]
+        float _weight = 1f;
 
         public Vector2 GetData()
         {

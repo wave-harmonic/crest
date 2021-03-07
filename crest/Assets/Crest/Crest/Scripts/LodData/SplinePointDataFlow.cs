@@ -13,7 +13,9 @@ namespace Crest
     public class SplinePointDataFlow : MonoBehaviour, ISplinePointCustomData
     {
         public const float k_defaultSpeed = 2f;
-        public float _flowVelocity = k_defaultSpeed;
+
+        [Tooltip("Flow velocity (speed of flow in direction of spline). Can be negative to flip direction."), SerializeField]
+        float _flowVelocity = k_defaultSpeed;
 
         public Vector2 GetData()
         {

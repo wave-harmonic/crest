@@ -7,6 +7,9 @@ Crest Ocean System
     :target: https://crest.readthedocs.io/en/latest/?badge=latest
     :alt: Documentation Status
 
+.. only:: readthedocs
+
+  This was built using Read The Docs.
 
 Introduction
 ------------

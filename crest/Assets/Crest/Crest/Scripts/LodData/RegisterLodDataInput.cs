@@ -246,12 +246,21 @@ namespace Crest
         }
     }
 
+    public abstract class RegisterLodDataInputWithSplineSupport<LodDataType>
+        : RegisterLodDataInputWithSplineSupport<LodDataType, SplinePointDataNone>
+        where LodDataType : LodDataMgr
+    {
+    }
+
     [ExecuteAlways]
-    public abstract class RegisterLodDataInputWithSplineSupport<LodDataType> : RegisterLodDataInput<LodDataType>
+    public abstract class RegisterLodDataInputWithSplineSupport<LodDataType, SplinePointCustomData>
+        : RegisterLodDataInput<LodDataType>
+        , ISplinePointCustomDataSetup
 #if UNITY_EDITOR
         , IReceiveSplinePointOnDrawGizmosSelectedMessages
 #endif
         where LodDataType : LodDataMgr
+        where SplinePointCustomData : MonoBehaviour, ISplinePointCustomData
     {
         [Header("Spline settings")]
         [SerializeField]
@@ -272,7 +281,7 @@ namespace Crest
         {
             if (TryGetComponent<Spline.Spline>(out _spline))
             {
-                ShapeGerstnerSplineHandling.GenerateMeshFromSpline(_spline, transform, _subdivisions, _radius, _smoothingIterations, DefaultCustomData, ref _splineMesh);
+                ShapeGerstnerSplineHandling.GenerateMeshFromSpline<SplinePointCustomData>(_spline, transform, _subdivisions, _radius, _smoothingIterations, DefaultCustomData, ref _splineMesh);
 
                 if (_splineMaterial == null)
                 {
@@ -298,6 +307,24 @@ namespace Crest
             }
         }
 
+        public bool AttachDataToSplinePoint(GameObject splinePoint)
+        {
+            if (typeof(SplinePointCustomData) == typeof(SplinePointDataNone))
+            {
+                // No custom data required
+                return false;
+            }
+
+            if (splinePoint.TryGetComponent(out SplinePointCustomData _))
+            {
+                // Already existing, nothing to do
+                return false;
+            }
+
+            splinePoint.AddComponent<SplinePointCustomData>();
+            return true;
+        }
+
 #if UNITY_EDITOR
         protected override bool RendererRequired => _spline == null;
 
@@ -315,7 +342,7 @@ namespace Crest
 
                 if (_spline != null)
                 {
-                    ShapeGerstnerSplineHandling.GenerateMeshFromSpline(_spline, transform, _subdivisions, _radius, _smoothingIterations, DefaultCustomData, ref _splineMesh);
+                    ShapeGerstnerSplineHandling.GenerateMeshFromSpline<SplinePointCustomData>(_spline, transform, _subdivisions, _radius, _smoothingIterations, DefaultCustomData, ref _splineMesh);
 
                     if (_splineMaterial == null)
                     {

@@ -14,6 +14,12 @@ namespace Crest
     {
         public static bool GenerateMeshFromSpline(Spline.Spline spline, Transform transform, int subdivisions, float radius, int smoothingIterations, Vector2 customDataDefault, ref Mesh mesh)
         {
+            return GenerateMeshFromSpline<SplinePointDataNone>(spline, transform, subdivisions, radius, smoothingIterations, customDataDefault, ref mesh);
+        }
+
+        public static bool GenerateMeshFromSpline<SplinePointCustomData>(Spline.Spline spline, Transform transform, int subdivisions, float radius, int smoothingIterations, Vector2 customDataDefault, ref Mesh mesh)
+            where SplinePointCustomData : ISplinePointCustomData
+        {
             var splinePoints = spline.GetComponentsInChildren<SplinePoint>();
             if (splinePoints.Length < 2) return false;
 
@@ -51,7 +57,7 @@ namespace Crest
             // First set of sample points lie on spline
             sampledPtsOnSpline[0] = points[0];
             customData[0] = customDataDefault;
-            if (splinePoints[0].TryGetComponent(out ISplinePointCustomData customDataComp00))
+            if (splinePoints[0].TryGetComponent(out SplinePointCustomData customDataComp00))
             {
                 customData[0] = customDataComp00.GetData();
             }
@@ -66,12 +72,12 @@ namespace Crest
                 var spidx = Mathf.FloorToInt(tpts);
                 var alpha = tpts - spidx;
                 var customData0 = customDataDefault;
-                if (splinePoints[spidx].TryGetComponent(out ISplinePointCustomData customDataComp0))
+                if (splinePoints[spidx].TryGetComponent(out SplinePointCustomData customDataComp0))
                 {
                     customData0 = customDataComp0.GetData();
                 }
                 var customData1 = customDataDefault;
-                if (splinePoints[Mathf.Min(spidx + 1, splinePoints.Length - 1)].TryGetComponent(out ISplinePointCustomData customDataComp1))
+                if (splinePoints[Mathf.Min(spidx + 1, splinePoints.Length - 1)].TryGetComponent(out SplinePointCustomData customDataComp1))
                 {
                     customData1 = customDataComp1.GetData();
                 }

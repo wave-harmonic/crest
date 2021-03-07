@@ -2,10 +2,8 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
-using Crest.Spline;
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.Rendering;
 
 namespace Crest
 {
@@ -13,8 +11,7 @@ namespace Crest
     /// Registers a custom input to the flow data. Attach this GameObjects that you want to influence the horizontal flow of the water volume.
     /// </summary>
     [ExecuteAlways]
-    public class RegisterFlowInput : RegisterLodDataInputWithSplineSupport<LodDataMgrFlow>
-        , ISplinePointCustomDataSetup
+    public class RegisterFlowInput : RegisterLodDataInputWithSplineSupport<LodDataMgrFlow, SplinePointDataFlow>
     {
         public override bool Enabled => true;
 
@@ -45,17 +42,5 @@ namespace Crest
         protected override string RequiredShaderKeyword => LodDataMgrFlow.MATERIAL_KEYWORD;
         protected override string KeywordMissingErrorMessage => LodDataMgrFlow.ERROR_MATERIAL_KEYWORD_MISSING;
 #endif // UNITY_EDITOR
-
-        public bool AttachDataToSplinePoint(GameObject splinePoint)
-        {
-            if (splinePoint.TryGetComponent(out SplinePointDataFlow _))
-            {
-                // Already existing, nothing to do
-                return false;
-            }
-
-            splinePoint.AddComponent<SplinePointDataFlow>();
-            return true;
-        }
     }
 }

@@ -5,7 +5,8 @@ namespace Crest
 {
     public class SplinePointDataFlow : MonoBehaviour, ISplinePointCustomData
     {
-        public float _flowSpeed = 5f;
+        public const float k_defaultSpeed = 1f;
+        public float _flowSpeed = k_defaultSpeed;
 
         public Vector2 GetData()
         {

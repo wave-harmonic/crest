@@ -266,12 +266,13 @@ namespace Crest
         Mesh _splineMesh;
 
         protected abstract string SplineShaderName { get; }
+        protected abstract Vector2 DefaultCustomData { get; }
 
         void Awake()
         {
             if (TryGetComponent<Spline.Spline>(out _spline))
             {
-                ShapeGerstnerSplineHandling.GenerateMeshFromSpline(_spline, transform, _subdivisions, _radius, _smoothingIterations, ref _splineMesh);
+                ShapeGerstnerSplineHandling.GenerateMeshFromSpline(_spline, transform, _subdivisions, _radius, _smoothingIterations, DefaultCustomData, ref _splineMesh);
 
                 if (_splineMaterial == null)
                 {
@@ -314,7 +315,7 @@ namespace Crest
 
                 if (_spline != null)
                 {
-                    ShapeGerstnerSplineHandling.GenerateMeshFromSpline(_spline, transform, _subdivisions, _radius, _smoothingIterations, ref _splineMesh);
+                    ShapeGerstnerSplineHandling.GenerateMeshFromSpline(_spline, transform, _subdivisions, _radius, _smoothingIterations, DefaultCustomData, ref _splineMesh);
 
                     if (_splineMaterial == null)
                     {

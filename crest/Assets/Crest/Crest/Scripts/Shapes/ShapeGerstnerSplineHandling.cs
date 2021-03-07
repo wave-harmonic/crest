@@ -12,7 +12,7 @@ namespace Crest
     /// </summary>
     public static class ShapeGerstnerSplineHandling
     {
-        public static bool GenerateMeshFromSpline(Spline.Spline spline, Transform transform, int subdivisions, float radius, int smoothingIterations, ref Mesh mesh)
+        public static bool GenerateMeshFromSpline(Spline.Spline spline, Transform transform, int subdivisions, float radius, int smoothingIterations, Vector2 customDataDefault, ref Mesh mesh)
         {
             var splinePoints = spline.GetComponentsInChildren<SplinePoint>();
             if (splinePoints.Length < 2) return false;
@@ -50,7 +50,7 @@ namespace Crest
 
             // First set of sample points lie on spline
             sampledPtsOnSpline[0] = points[0];
-            customData[0] = Vector2.zero;
+            customData[0] = customDataDefault;
             if (splinePoints[0].TryGetComponent(out ISplinePointCustomData customDataComp00))
             {
                 customData[0] = customDataComp00.GetData();
@@ -65,12 +65,12 @@ namespace Crest
                 var tpts = t * (splinePoints.Length - 1f);
                 var spidx = Mathf.FloorToInt(tpts);
                 var alpha = tpts - spidx;
-                var customData0 = Vector2.zero;// splinePoints[spidx].GetComponent<ISplinePointCustomData>();
+                var customData0 = customDataDefault;
                 if (splinePoints[spidx].TryGetComponent(out ISplinePointCustomData customDataComp0))
                 {
                     customData0 = customDataComp0.GetData();
                 }
-                var customData1 = Vector2.zero;// splinePoints[spidx].GetComponent<ISplinePointCustomData>();
+                var customData1 = customDataDefault;
                 if (splinePoints[Mathf.Min(spidx + 1, splinePoints.Length - 1)].TryGetComponent(out ISplinePointCustomData customDataComp1))
                 {
                     customData1 = customDataComp1.GetData();

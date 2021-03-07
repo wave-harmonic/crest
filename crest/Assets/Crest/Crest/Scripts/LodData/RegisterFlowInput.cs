@@ -27,6 +27,7 @@ namespace Crest
         protected override bool FollowHorizontalMotion => _followHorizontalMotion;
 
         protected override string SplineShaderName => "Hidden/Crest/Inputs/Flow/Spline Geometry";
+        protected override Vector2 DefaultCustomData => new Vector2(SplinePointDataFlow.k_defaultSpeed, 0f);
 
         [Header("Flow Input Settings")]
         [SerializeField]

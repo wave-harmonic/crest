@@ -559,7 +559,7 @@ namespace Crest
 
             if (TryGetComponent<Spline.Spline>(out var splineForWaves))
             {
-                if (ShapeGerstnerSplineHandling.GenerateMeshFromSpline(splineForWaves, transform, _subdivisions, _radius, _smoothingIterations, ref _meshForDrawingWaves))
+                if (ShapeGerstnerSplineHandling.GenerateMeshFromSpline(splineForWaves, transform, _subdivisions, _radius, _smoothingIterations, Vector2.zero, ref _meshForDrawingWaves))
                 {
                     _meshForDrawingWaves.name = gameObject.name + "_mesh";
                 }

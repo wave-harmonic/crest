@@ -34,6 +34,7 @@ namespace Crest
         protected override string ShaderPrefix => "Crest/Inputs/Animated Waves";
 
         protected override string SplineShaderName => "Crest/Inputs/Animated Waves/Add Water Height From Geometry";
+        protected override Vector2 DefaultCustomData => Vector2.zero;
 
         [SerializeField, Tooltip(k_displacementCorrectionTooltip)]
         bool _followHorizontalMotion = true;

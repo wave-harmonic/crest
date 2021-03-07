@@ -19,6 +19,7 @@ namespace Crest
     /// </summary>
     [ExecuteAlways]
     public partial class ShapeGerstner : MonoBehaviour, IFloatingOrigin
+        , ISplinePointCustomDataSetup
 #if UNITY_EDITOR
         , IReceiveSplinePointOnDrawGizmosSelectedMessages
 #endif
@@ -559,7 +560,7 @@ namespace Crest
 
             if (TryGetComponent<Spline.Spline>(out var splineForWaves))
             {
-                if (ShapeGerstnerSplineHandling.GenerateMeshFromSpline(splineForWaves, transform, _subdivisions, _radius, _smoothingIterations, Vector2.zero, ref _meshForDrawingWaves))
+                if (ShapeGerstnerSplineHandling.GenerateMeshFromSpline(splineForWaves, transform, _subdivisions, _radius, _smoothingIterations, Vector2.one, ref _meshForDrawingWaves))
                 {
                     _meshForDrawingWaves.name = gameObject.name + "_mesh";
                 }
@@ -667,6 +668,18 @@ namespace Crest
             DrawMesh();
         }
 #endif
+
+        public bool AttachDataToSplinePoint(GameObject splinePoint)
+        {
+            if (splinePoint.TryGetComponent(out SplinePointDataWeight _))
+            {
+                // Already existing, nothing to do
+                return false;
+            }
+
+            splinePoint.AddComponent<SplinePointDataWeight>();
+            return true;
+        }
     }
 
 #if UNITY_EDITOR

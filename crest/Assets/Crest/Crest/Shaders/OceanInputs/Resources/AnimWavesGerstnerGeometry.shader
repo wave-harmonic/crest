@@ -55,7 +55,8 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Geometry"
                 float4 vertex : POSITION;
                 float2 axis : TEXCOORD0;
                 float2 distToSplineEnd_invNormDistToShoreline : TEXCOORD1;
-            };
+				float weight : TEXCOORD2;
+	};
 
             struct v2f
             {
@@ -63,7 +64,7 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Geometry"
                 float3 uv_slice : TEXCOORD1;
                 float2 axis : TEXCOORD2;
                 float3 worldPosScaled : TEXCOORD3;
-                float2 distToSplineEnd_invNormDistToShoreline : TEXCOORD4;
+                float3 distToSplineEnd_invNormDistToShoreline_weight : TEXCOORD4;
             };
 
             Texture2DArray _WaveBuffer;
@@ -97,7 +98,8 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Geometry"
                 const float waveBufferSize = 0.5f * (1 << _WaveBufferSliceIndex);
                 o.worldPosScaled = worldPos / waveBufferSize;
 
-                o.distToSplineEnd_invNormDistToShoreline = v.distToSplineEnd_invNormDistToShoreline;
+                o.distToSplineEnd_invNormDistToShoreline_weight.xy = v.distToSplineEnd_invNormDistToShoreline;
+				o.distToSplineEnd_invNormDistToShoreline_weight.z = v.weight * _Weight;
 
                 // Rotate forward axis around y-axis into world space
                 o.axis = dot( v.axis, _AxisX ) * unity_ObjectToWorld._m00_m20 + dot( v.axis, float2(-_AxisX.y, _AxisX.x) ) * unity_ObjectToWorld._m02_m22;
@@ -107,7 +109,7 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Geometry"
 
             float4 frag(v2f input) : SV_Target
             {
-                float wt = _Weight;
+                float wt = input.distToSplineEnd_invNormDistToShoreline_weight.z;
 
                 // Attenuate if depth is less than half of the average wavelength
                 const half depth = _LD_TexArray_SeaFloorDepth.SampleLevel(LODData_linear_clamp_sampler, input.uv_slice.xyz, 0.0).x;
@@ -116,8 +118,8 @@ Shader "Crest/Inputs/Animated Waves/Gerstner Geometry"
                 wt *= attenuationAmount * depth_wt + (1.0 - attenuationAmount);
 
                 // Feature at front/back
-                wt *= min( input.distToSplineEnd_invNormDistToShoreline.y / _FeatherWaveStart, 1.0 );
-                if( _FeatherFromSplineEnds > 0.0 ) wt *= saturate( input.distToSplineEnd_invNormDistToShoreline.x / _FeatherFromSplineEnds );
+                wt *= min( input.distToSplineEnd_invNormDistToShoreline_weight.y / _FeatherWaveStart, 1.0 );
+                if( _FeatherFromSplineEnds > 0.0 ) wt *= saturate( input.distToSplineEnd_invNormDistToShoreline_weight.x / _FeatherFromSplineEnds );
 
                 // Quantize wave direction and interpolate waves
                 float axisHeading = atan2( input.axis.y, input.axis.x ) + 2.0 * 3.141592654;

@@ -168,7 +168,7 @@ rst_prolog = """
 # -- Debugging ---------------------------------------------------------------
 
 if os.environ.get('PLATFORM') == "READTHEDOCS":
-    tags.add('testreadthedocs')
+    tags.add('readthedocs')
 
 # https://github.com/readthedocs/readthedocs.org/issues/4603
 

@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
+using Crest.Spline;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -164,6 +165,8 @@ namespace Crest
     public abstract class RegisterLodDataInput<LodDataType> : RegisterLodDataInputBase
         where LodDataType : LodDataMgr
     {
+        protected const string k_displacementCorrectionTooltip = "Whether this input data should displace horizontally with waves. If false, data will not move from side to side with the waves. Adds a small performance overhead when disabled.";
+
         [SerializeField] bool _disableRenderer = true;
 
         protected abstract Color GizmoColor { get; }
@@ -244,13 +247,98 @@ namespace Crest
     }
 
     [ExecuteAlways]
-    public abstract class RegisterLodDataInputDisplacementCorrection<LodDataType> : RegisterLodDataInput<LodDataType>
+    public abstract class RegisterLodDataInputWithSplineSupport<LodDataType> : RegisterLodDataInput<LodDataType>
+#if UNITY_EDITOR
+        , IReceiveSplinePointOnDrawGizmosSelectedMessages
+#endif
         where LodDataType : LodDataMgr
     {
-        [SerializeField, Tooltip("Whether this input data should displace horizontally with waves. If false, data will not move from side to side with the waves. Adds a small performance overhead when disabled.")]
-        bool _followHorizontalMotion = false;
+        [Header("Spline settings")]
+        [SerializeField]
+        float _radius = 20f;
+        [SerializeField]
+        int _subdivisions = 1;
+        [SerializeField]
+        int _smoothingIterations = 0;
 
-        protected override bool FollowHorizontalMotion => _followHorizontalMotion;
+        protected Material _splineMaterial;
+        Spline.Spline _spline;
+        Mesh _splineMesh;
+
+        protected abstract string SplineShaderName { get; }
+
+        void Awake()
+        {
+            if (TryGetComponent<Spline.Spline>(out _spline))
+            {
+                ShapeGerstnerSplineHandling.GenerateMeshFromSpline(_spline, transform, _subdivisions, _radius, _smoothingIterations, ref _splineMesh);
+
+                if (_splineMaterial == null)
+                {
+                    _splineMaterial = new Material(Shader.Find(SplineShaderName));
+                }
+            }
+        }
+
+        public override void Draw(CommandBuffer buf, float weight, int isTransition, int lodIdx)
+        {
+            if (weight <= 0f) return;
+
+            if (_splineMesh != null && _splineMaterial != null)
+            {
+                buf.SetGlobalFloat(sp_Weight, weight);
+                buf.SetGlobalFloat(LodDataMgr.sp_LD_SliceIndex, lodIdx);
+                buf.SetGlobalVector(sp_DisplacementAtInputPosition, Vector3.zero);
+                buf.DrawMesh(_splineMesh, transform.localToWorldMatrix, _splineMaterial);
+            }
+            else
+            {
+                base.Draw(buf, weight, isTransition, lodIdx);
+            }
+        }
+
+#if UNITY_EDITOR
+        protected override bool RendererRequired => _spline == null;
+
+        protected override void Update()
+        {
+            base.Update();
+
+            // Check for spline and rebuild spline mesh each frame in edit mode
+            if (!EditorApplication.isPlaying)
+            {
+                if (_spline == null)
+                {
+                    TryGetComponent<Spline.Spline>(out _spline);
+                }
+
+                if (_spline != null)
+                {
+                    ShapeGerstnerSplineHandling.GenerateMeshFromSpline(_spline, transform, _subdivisions, _radius, _smoothingIterations, ref _splineMesh);
+
+                    if (_splineMaterial == null)
+                    {
+                        _splineMaterial = new Material(Shader.Find("Hidden/Crest/Inputs/Flow/Spline Geometry"));
+                    }
+                }
+                else
+                {
+                    _splineMesh = null;
+                }
+            }
+        }
+
+        protected new void OnDrawGizmosSelected()
+        {
+            Gizmos.color = GizmoColor;
+            Gizmos.DrawWireMesh(_splineMesh, transform.position, transform.rotation, transform.lossyScale);
+        }
+
+        public void OnSplinePointDrawGizmosSelected(SplinePoint point)
+        {
+            OnDrawGizmosSelected();
+        }
+#endif // UNITY_EDITOR
     }
 
 #if UNITY_EDITOR

@@ -21,10 +21,6 @@ Shader "Hidden/Crest/Inputs/Flow/Spline Geometry"
     {
         // Controls ramp distance over which waves grow/fade as they move forwards
         _FeatherWaveStart( "Feather wave start (0-1)", Range( 0.0, 0.5 ) ) = 0.1
-        // Can be set to 0 to make waves ignore shallow water
-        _RespectShallowWaterAttenuation( "Respect Shallow Water Attenuation", Range( 0, 1 ) ) = 1
-
-		_Speed( "Speed", Float ) = 5.0
     }
 
     SubShader
@@ -67,8 +63,6 @@ Shader "Hidden/Crest/Inputs/Flow/Spline Geometry"
 
             CBUFFER_START(GerstnerPerMaterial)
             half _FeatherWaveStart;
-            float _RespectShallowWaterAttenuation;
-			float _Speed;
             CBUFFER_END
 
             CBUFFER_START(CrestPerOceanInput)
@@ -107,7 +101,7 @@ Shader "Hidden/Crest/Inputs/Flow/Spline Geometry"
 				if( input.invNormDistToShoreline > 0.5 ) input.invNormDistToShoreline = 1.0 - input.invNormDistToShoreline;
                 wt *= min( input.invNormDistToShoreline / _FeatherWaveStart, 1.0 );
 
-				return wt * _Speed * input.speed * input.axis;
+				return wt * input.speed * input.axis;
             }
             ENDCG
         }

@@ -29,22 +29,10 @@ namespace Crest
         protected override string SplineShaderName => "Hidden/Crest/Inputs/Flow/Spline Geometry";
         protected override Vector2 DefaultCustomData => new Vector2(SplinePointDataFlow.k_defaultSpeed, 0f);
 
-        [Header("Flow Input Settings")]
-        [SerializeField]
-        float _speed = 5f;
+        [Header("Other Settings")]
 
         [SerializeField, Tooltip(k_displacementCorrectionTooltip)]
         bool _followHorizontalMotion = false;
-
-        protected override void Update()
-        {
-            base.Update();
-
-            if (_splineMaterial != null)
-            {
-                _splineMaterial.SetFloat("_Speed", _speed);
-            }
-        }
 
 #if UNITY_EDITOR
         protected override bool FeatureEnabled(OceanRenderer ocean) => ocean.CreateFlowSim;

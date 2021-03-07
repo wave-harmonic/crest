@@ -121,6 +121,41 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!84 &46939016
+RenderTexture:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: GerstnerCascades
+  m_ImageContentsHash:
+    serializedVersion: 2
+    Hash: 00000000000000000000000000000000
+  m_ForcedFallbackFormat: 4
+  m_DownscaleFallback: 0
+  serializedVersion: 3
+  m_Width: 32
+  m_Height: 32
+  m_AntiAliasing: 1
+  m_MipCount: -1
+  m_DepthFormat: 0
+  m_ColorFormat: 48
+  m_MipMap: 0
+  m_GenerateMips: 1
+  m_SRGB: 0
+  m_UseDynamicScale: 0
+  m_BindMS: 0
+  m_EnableCompatibleFormat: 1
+  m_TextureSettings:
+    serializedVersion: 2
+    m_FilterMode: 1
+    m_Aniso: 0
+    m_MipBias: 0
+    m_WrapU: 1
+    m_WrapV: 1
+    m_WrapW: 1
+  m_Dimension: 5
+  m_VolumeDepth: 16
 --- !u!1 &176671366
 GameObject:
   m_ObjectHideFlags: 0
@@ -177,7 +212,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bfdd42d729f2b1446ac97aaedcf7694a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _flowSpeed: 5
+  _flowVelocity: 1
 --- !u!1 &352575159
 GameObject:
   m_ObjectHideFlags: 0
@@ -222,7 +257,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bfdd42d729f2b1446ac97aaedcf7694a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _flowSpeed: 5
+  _flowVelocity: 1
 --- !u!114 &352575162
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -291,7 +326,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bfdd42d729f2b1446ac97aaedcf7694a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _flowSpeed: 5
+  _flowVelocity: 1
 --- !u!1 &424636582
 GameObject:
   m_ObjectHideFlags: 0
@@ -302,6 +337,7 @@ GameObject:
   m_Component:
   - component: {fileID: 424636583}
   - component: {fileID: 424636584}
+  - component: {fileID: 424636585}
   m_Layer: 0
   m_Name: SplinePoint
   m_TagString: Untagged
@@ -335,6 +371,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 128486e28072dc741bdfd69bef81aeae, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &424636585
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 424636582}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bfdd42d729f2b1446ac97aaedcf7694a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _flowVelocity: 10
 --- !u!108 &494488679 stripped
 Light:
   m_CorrespondingSourceObject: {fileID: 5936606776992183399, guid: ddf71bfb72c45407fb8cea42d3aaeac4,
@@ -455,7 +504,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bfdd42d729f2b1446ac97aaedcf7694a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _flowSpeed: 5
+  _flowVelocity: 1
 --- !u!114 &1011467431
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2903,7 +2952,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bfdd42d729f2b1446ac97aaedcf7694a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _flowSpeed: 5
+  _flowVelocity: 1
 --- !u!1 &1360537241
 GameObject:
   m_ObjectHideFlags: 0
@@ -2960,7 +3009,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bfdd42d729f2b1446ac97aaedcf7694a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _flowSpeed: 5
+  _flowVelocity: 1
 --- !u!1 &1485556245
 GameObject:
   m_ObjectHideFlags: 0
@@ -3017,7 +3066,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bfdd42d729f2b1446ac97aaedcf7694a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _flowSpeed: 5
+  _flowVelocity: 1
 --- !u!1 &1574782659
 GameObject:
   m_ObjectHideFlags: 0
@@ -3066,7 +3115,6 @@ MonoBehaviour:
   _radius: 40
   _subdivisions: 1
   _smoothingIterations: 30
-  _speed: 5
   _followHorizontalMotion: 0
 --- !u!4 &1574782663
 Transform:
@@ -3221,7 +3269,7 @@ MonoBehaviour:
   _radius: 50
   _smoothingIterations: 60
   _featherWaveStart: 0.1
-  _waveBuffers: {fileID: 2076880371}
+  _waveBuffers: {fileID: 46939016}
 --- !u!1 &1874292646
 GameObject:
   m_ObjectHideFlags: 0
@@ -3321,7 +3369,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bfdd42d729f2b1446ac97aaedcf7694a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _flowSpeed: 5
+  _flowVelocity: 1
 --- !u!1 &1948575170
 GameObject:
   m_ObjectHideFlags: 0
@@ -3422,41 +3470,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 128486e28072dc741bdfd69bef81aeae, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!84 &2076880371
-RenderTexture:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: GerstnerCascades
-  m_ImageContentsHash:
-    serializedVersion: 2
-    Hash: 00000000000000000000000000000000
-  m_ForcedFallbackFormat: 4
-  m_DownscaleFallback: 0
-  serializedVersion: 3
-  m_Width: 32
-  m_Height: 32
-  m_AntiAliasing: 1
-  m_MipCount: -1
-  m_DepthFormat: 0
-  m_ColorFormat: 48
-  m_MipMap: 0
-  m_GenerateMips: 1
-  m_SRGB: 0
-  m_UseDynamicScale: 0
-  m_BindMS: 0
-  m_EnableCompatibleFormat: 1
-  m_TextureSettings:
-    serializedVersion: 2
-    m_FilterMode: 1
-    m_Aniso: 0
-    m_MipBias: 0
-    m_WrapU: 1
-    m_WrapV: 1
-    m_WrapW: 1
-  m_Dimension: 5
-  m_VolumeDepth: 16
 --- !u!1 &2100153646
 GameObject:
   m_ObjectHideFlags: 0
@@ -3570,4 +3583,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bfdd42d729f2b1446ac97aaedcf7694a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _flowSpeed: 5
+  _flowVelocity: 1

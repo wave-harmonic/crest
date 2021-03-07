@@ -346,7 +346,7 @@ namespace Crest
 
                     if (_splineMaterial == null)
                     {
-                        _splineMaterial = new Material(Shader.Find("Hidden/Crest/Inputs/Flow/Spline Geometry"));
+                        _splineMaterial = new Material(Shader.Find(SplineShaderName));
                     }
                 }
                 else

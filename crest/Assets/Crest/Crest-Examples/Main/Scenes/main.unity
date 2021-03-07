@@ -235,41 +235,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 128486e28072dc741bdfd69bef81aeae, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!84 &390857485
-RenderTexture:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: GerstnerCascades
-  m_ImageContentsHash:
-    serializedVersion: 2
-    Hash: 00000000000000000000000000000000
-  m_ForcedFallbackFormat: 4
-  m_DownscaleFallback: 0
-  serializedVersion: 3
-  m_Width: 32
-  m_Height: 32
-  m_AntiAliasing: 1
-  m_MipCount: -1
-  m_DepthFormat: 0
-  m_ColorFormat: 48
-  m_MipMap: 0
-  m_GenerateMips: 1
-  m_SRGB: 0
-  m_UseDynamicScale: 0
-  m_BindMS: 0
-  m_EnableCompatibleFormat: 1
-  m_TextureSettings:
-    serializedVersion: 2
-    m_FilterMode: 1
-    m_Aniso: 0
-    m_MipBias: 0
-    m_WrapU: 1
-    m_WrapV: 1
-    m_WrapW: 1
-  m_Dimension: 5
-  m_VolumeDepth: 16
 --- !u!1 &419893123
 GameObject:
   m_ObjectHideFlags: 0
@@ -3149,6 +3114,8 @@ GameObject:
   m_Component:
   - component: {fileID: 1682808053}
   - component: {fileID: 1682808055}
+  - component: {fileID: 1682808056}
+  - component: {fileID: 1682808054}
   m_Layer: 0
   m_Name: SplinePoint
   m_TagString: Untagged
@@ -3170,6 +3137,19 @@ Transform:
   m_Father: {fileID: 1827852730}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1682808054
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1682808052}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b7b01dd578485d4498457299aaaeffa8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _foamAmount: 0.5
 --- !u!114 &1682808055
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3182,6 +3162,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 128486e28072dc741bdfd69bef81aeae, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &1682808056
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1682808052}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 195788a19db58f145908f7b22a193f41, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _weight: 1
 --- !u!1 &1827852728
 GameObject:
   m_ObjectHideFlags: 0
@@ -3193,6 +3186,7 @@ GameObject:
   - component: {fileID: 1827852730}
   - component: {fileID: 1827852731}
   - component: {fileID: 1827852729}
+  - component: {fileID: 1827852732}
   m_Layer: 0
   m_Name: Gersties
   m_TagString: Untagged
@@ -3255,7 +3249,25 @@ MonoBehaviour:
   _radius: 50
   _smoothingIterations: 60
   _featherWaveStart: 0.1
-  _waveBuffers: {fileID: 390857485}
+  _waveBuffers: {fileID: 1919151472}
+--- !u!114 &1827852732
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1827852728}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 66f48a8051df1bc4580cc98f58f1114b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _checkShaderName: 1
+  _disableRenderer: 1
+  _radius: 20
+  _subdivisions: 1
+  _smoothingIterations: 0
+  _followHorizontalMotion: 0
 --- !u!1 &1874292646
 GameObject:
   m_ObjectHideFlags: 0
@@ -3370,6 +3382,41 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _flowVelocity: 1
+--- !u!84 &1919151472
+RenderTexture:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: GerstnerCascades
+  m_ImageContentsHash:
+    serializedVersion: 2
+    Hash: 00000000000000000000000000000000
+  m_ForcedFallbackFormat: 4
+  m_DownscaleFallback: 0
+  serializedVersion: 3
+  m_Width: 32
+  m_Height: 32
+  m_AntiAliasing: 1
+  m_MipCount: -1
+  m_DepthFormat: 0
+  m_ColorFormat: 48
+  m_MipMap: 0
+  m_GenerateMips: 1
+  m_SRGB: 0
+  m_UseDynamicScale: 0
+  m_BindMS: 0
+  m_EnableCompatibleFormat: 1
+  m_TextureSettings:
+    serializedVersion: 2
+    m_FilterMode: 1
+    m_Aniso: 0
+    m_MipBias: 0
+    m_WrapU: 1
+    m_WrapV: 1
+    m_WrapW: 1
+  m_Dimension: 5
+  m_VolumeDepth: 16
 --- !u!1 &1948575170
 GameObject:
   m_ObjectHideFlags: 0
@@ -3381,6 +3428,7 @@ GameObject:
   - component: {fileID: 1948575171}
   - component: {fileID: 1948575172}
   - component: {fileID: 1948575174}
+  - component: {fileID: 1948575173}
   m_Layer: 0
   m_Name: SplinePoint
   m_TagString: Untagged
@@ -3396,7 +3444,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1948575170}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -16.4, y: 0, z: -8.5}
+  m_LocalPosition: {x: -15.78, y: 0, z: -19.01}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1827852730}
@@ -3414,6 +3462,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 128486e28072dc741bdfd69bef81aeae, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &1948575173
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1948575170}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b7b01dd578485d4498457299aaaeffa8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _foamAmount: 0
 --- !u!114 &1948575174
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3481,6 +3542,7 @@ GameObject:
   - component: {fileID: 2100153647}
   - component: {fileID: 2100153648}
   - component: {fileID: 2100153650}
+  - component: {fileID: 2100153649}
   m_Layer: 0
   m_Name: SplinePoint
   m_TagString: Untagged
@@ -3496,7 +3558,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2100153646}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 9.399994, y: 0, z: 47.799995}
+  m_LocalPosition: {x: 6.96, y: 0, z: 49.37}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1827852730}
@@ -3514,6 +3576,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 128486e28072dc741bdfd69bef81aeae, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &2100153649
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2100153646}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b7b01dd578485d4498457299aaaeffa8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _foamAmount: 2
 --- !u!114 &2100153650
 MonoBehaviour:
   m_ObjectHideFlags: 0

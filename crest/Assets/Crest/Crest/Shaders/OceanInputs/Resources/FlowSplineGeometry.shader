@@ -6,14 +6,12 @@
 // following data on verts:
 //   - POSITION: Vert positions as normal.
 //   - TEXCOORD0: Axis - direction for waves to travel. "Forward vector" for waves.
-//   - TEXCOORD1: X - distance from nearest side, needed if "feather from spline ends" is non-zero.
-//                Y - 0 at start of waves, 1 at end of waves
+//   - TEXCOORD1: X - 0 at start of waves, 1 at end of waves
 //
-//  uv1.x = 0 -------- uv1.x = 50m --------- uv1.x = 0
-//  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ uv1.y = 0             |
+//  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ uv1.x = 0             |
 //  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  |                    |  uv0 - wave direction vector
 //  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  |                   \|/
-//  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ uv1.y = 1
+//  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ uv1.x = 1
 //  ------------------- shoreline --------------------
 //
 
@@ -23,8 +21,6 @@ Shader "Hidden/Crest/Inputs/Flow/Spline Geometry"
     {
         // Controls ramp distance over which waves grow/fade as they move forwards
         _FeatherWaveStart( "Feather wave start (0-1)", Range( 0.0, 0.5 ) ) = 0.1
-        // Fade in waves from the sides
-        _FeatherFromSplineEnds( "Feather from spline ends (m)", Range( 0.0, 100.0 ) ) = 0.0
         // Can be set to 0 to make waves ignore shallow water
         _RespectShallowWaterAttenuation( "Respect Shallow Water Attenuation", Range( 0, 1 ) ) = 1
 
@@ -56,7 +52,7 @@ Shader "Hidden/Crest/Inputs/Flow/Spline Geometry"
             {
                 float4 vertex : POSITION;
                 float2 axis : TEXCOORD0;
-                float2 distToSplineEnd_invNormDistToShoreline : TEXCOORD1;
+                float invNormDistToShoreline : TEXCOORD1;
 				float speed : TEXCOORD2;
             };
 
@@ -65,13 +61,12 @@ Shader "Hidden/Crest/Inputs/Flow/Spline Geometry"
                 float4 vertex : SV_POSITION;
                 float3 uv_slice : TEXCOORD1;
                 float2 axis : TEXCOORD2;
-                float2 distToSplineEnd_invNormDistToShoreline : TEXCOORD4;
+                float invNormDistToShoreline : TEXCOORD4;
 				float speed : TEXCOORD5;
             };
 
             CBUFFER_START(GerstnerPerMaterial)
             half _FeatherWaveStart;
-            half _FeatherFromSplineEnds;
             float _RespectShallowWaterAttenuation;
 			float _Speed;
             CBUFFER_END
@@ -94,7 +89,7 @@ Shader "Hidden/Crest/Inputs/Flow/Spline Geometry"
                 // UV coordinate into the cascade we are rendering into
                 o.uv_slice.xyz = WorldToUV(worldPos.xz, _CrestCascadeData[_LD_SliceIndex], _LD_SliceIndex);
 
-                o.distToSplineEnd_invNormDistToShoreline = v.distToSplineEnd_invNormDistToShoreline;
+                o.invNormDistToShoreline = v.invNormDistToShoreline;
 
                 // Rotate local-space sideays axis around y-axis, by 90deg, and by object to world to move into world space
 				o.axis = v.axis.y * unity_ObjectToWorld._m00_m20 - v.axis.x * unity_ObjectToWorld._m02_m22;
@@ -109,9 +104,8 @@ Shader "Hidden/Crest/Inputs/Flow/Spline Geometry"
                 float wt = _Weight;
 
                 // Feature at front/back
-				if( input.distToSplineEnd_invNormDistToShoreline.y > 0.5 ) input.distToSplineEnd_invNormDistToShoreline.y = 1.0 - input.distToSplineEnd_invNormDistToShoreline.y;
-                wt *= min( input.distToSplineEnd_invNormDistToShoreline.y / _FeatherWaveStart, 1.0 );
-                if( _FeatherFromSplineEnds > 0.0 ) wt *= saturate( input.distToSplineEnd_invNormDistToShoreline.x / _FeatherFromSplineEnds );
+				if( input.invNormDistToShoreline > 0.5 ) input.invNormDistToShoreline = 1.0 - input.invNormDistToShoreline;
+                wt *= min( input.invNormDistToShoreline / _FeatherWaveStart, 1.0 );
 
 				return wt * _Speed * input.speed * input.axis;
             }

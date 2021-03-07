@@ -166,12 +166,6 @@ namespace Crest
                 mesh = new Mesh();
             }
 
-            var splineLength = 0f;
-            for (var i = 1; i < sampledPtsOnSpline.Length; i++)
-            {
-                splineLength += (sampledPtsOnSpline[i] - sampledPtsOnSpline[i - 1]).magnitude;
-            }
-
             //                       \
             //               \   ___--4
             //                4--      \
@@ -195,7 +189,6 @@ namespace Crest
             var uvs = new Vector2[vertCount];
             var uvs2 = new Vector2[vertCount];
             var uvs3 = new Vector2[vertCount];
-            var distSoFar = 0f;
 
             // This iterates over result points and emits a quad starting from the current result points (resultPts0[i0], resultPts1[i1]) to
             // the next result points. If the spline is closed, last quad bridges the last result points and the first result points.
@@ -215,11 +208,6 @@ namespace Crest
                 //    splinePoint0--------|
                 //
 
-                if (i > 0)
-                {
-                    distSoFar += (sampledPtsOnSpline[i - 1] - sampledPtsOnSpline[i]).magnitude;
-                }
-
                 verts[2 * i] = transform.InverseTransformPoint(sampledPtsOnSpline[i]);
                 verts[2 * i + 1] = transform.InverseTransformPoint(sampledPtsOffSpline[i]);
 
@@ -227,11 +215,9 @@ namespace Crest
                 uvs[2 * i] = axis0;
                 uvs[2 * i + 1] = axis0;
 
-                // uvs2.x - Dist to closest spline end
-                // uvs2.y - 1-0 inverted normalized dist from shoreline
-                uvs2[2 * i].x = uvs2[2 * i + 1].x = Mathf.Min(distSoFar, splineLength - distSoFar);
-                uvs2[2 * i].y = 1f;
-                uvs2[2 * i + 1].y = 0f;
+                // uvs2.x - 1-0 inverted normalized dist from shoreline
+                uvs2[2 * i].x = 1f;
+                uvs2[2 * i + 1].x = 0f;
 
                 uvs3[2 * i] = customData[i];
                 uvs3[2 * i + 1] = customData[i];

@@ -11,6 +11,10 @@ class Tags(SphinxDirective):
             tags.add("hdrp")
             tags.add("urp")
 
+        # We only do stripping in local PDFs.
+        if tags.has("latex") and not tags.has("readthedocs"):
+            tags.add("stripping")
+
         return []
 
 def setup(app):

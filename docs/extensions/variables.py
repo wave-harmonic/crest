@@ -1,8 +1,7 @@
 import re
 from docutils import nodes
-from docutils.parsers.rst import Directive
 from sphinx import addnodes
-from sphinx.util.docutils import SphinxDirective
+from sphinx.util.docutils import SphinxDirective, SphinxRole
 
 
 dictionary = {}
@@ -42,18 +41,26 @@ def link_role(name, rawtext, text, lineno, inliner, options={}, content=[]):
     return [node], []
 
 
-def get_role(name, rawtext, text, lineno, inliner, options={}, content=[]):
-    try:
-        return dictionary[text.split()[0]], []
-    except Exception as error:
-        message = inliner.reporter.error(error, line=lineno)
-        node = inliner.problematic(rawtext, rawtext, message)
-        return [node], [message]
+class VariableRole(SphinxRole):
+    def run(self):
+        try:
+            # NOTE: Data after the split is thrown away, but it could be used for something?
+            key = self.text.split()[0]
+            tags = self.env.app.tags
+            # Implicit stripping of labels ([label]). If we are stripping and the label matches a tag, then we strip it.
+            # I don't think this will cause an issue.
+            if tags.has("stripping") and key.startswith("[") and key.endswith("]") and tags.eval_condition(key[1:-1].lower()):
+                return [], []
+            return dictionary[key], []
+        except Exception as error:
+            message = self.inliner.reporter.error(error, line=self.lineno)
+            node = self.inliner.problematic(self.rawtext, self.rawtext, message)
+            return [node], [message]
 
 
 def setup(app):
     app.add_directive("set", VariableSet)
-    app.add_role('get', get_role)
+    app.add_role("get", VariableRole())
     app.add_role('link', link_role)
 
 

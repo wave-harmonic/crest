@@ -167,6 +167,11 @@ rst_prolog = """
 
 # -- Debugging ---------------------------------------------------------------
 
+if READTHEDOCS == 'True':
+    tags.add('testreadthedocs')
+
+# https://github.com/readthedocs/readthedocs.org/issues/4603
+
 # For debugging if you want to always have a tag on or off
 # tags.add("tag")
 # tags.remove("tag")

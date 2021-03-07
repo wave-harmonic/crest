@@ -9,7 +9,11 @@ Crest Ocean System
 
 .. only:: readthedocs
 
-  This was built using Read The Docs.
+  This was built using Read The Docs 1.
+
+.. only:: testreadthedocs
+
+  This was built using Read The Docs 2.
 
 Introduction
 ------------

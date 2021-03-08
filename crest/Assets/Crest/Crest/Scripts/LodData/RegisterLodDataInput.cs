@@ -101,7 +101,12 @@ namespace Crest
 #if UNITY_EDITOR
                 if (Application.isPlaying && _checkShaderName && verifyShader)
                 {
-                    ValidatedHelper.ValidateRenderer(RendererRequired, gameObject, ShaderPrefix, ValidatedHelper.DebugLog);
+                    ValidatedHelper.ValidateRenderer(RendererRequired, gameObject, ValidatedHelper.DebugLog);
+
+                    if (TryGetComponent<MeshRenderer>(out var meshRenderer))
+                    {
+                        ValidatedHelper.ValidateMaterial(meshRenderer.sharedMaterial, ShaderPrefix, gameObject, ValidatedHelper.DebugLog);
+                    }
                 }
 #endif
 
@@ -384,7 +389,12 @@ namespace Crest
 
         public bool Validate(OceanRenderer ocean, ValidatedHelper.ShowMessage showMessage)
         {
-            bool isValid = ValidatedHelper.ValidateRenderer(RendererRequired, gameObject, ShaderPrefix, showMessage);
+            bool isValid = ValidatedHelper.ValidateRenderer(RendererRequired, gameObject, showMessage);
+
+            if (TryGetComponent<MeshRenderer>(out var meshRenderer))
+            {
+                isValid = ValidatedHelper.ValidateMaterial(meshRenderer.sharedMaterial, ShaderPrefix, gameObject, ValidatedHelper.DebugLog) && isValid;
+            }
 
             if (!FeatureEnabled(ocean))
             {

@@ -82,7 +82,18 @@ namespace Crest
             EditorUtility.SetDirty(gameObject);
         }
 
-        public static bool ValidateRenderer(bool rendererRequired, GameObject gameObject, string shaderPrefix, ShowMessage showMessage)
+        public static bool ValidateMaterial(Material material, string shaderPrefix, GameObject gameObject, ShowMessage showMessage)
+        {
+            if (!material || material.shader && !material.shader.name.StartsWith(shaderPrefix))
+            {
+                showMessage($"Shader assigned to ocean input expected to be of type <i>{shaderPrefix}</i>.", MessageType.Error, gameObject);
+                return false;
+            }
+
+            return true;
+        }
+
+        public static bool ValidateRenderer(bool rendererRequired, GameObject gameObject, ShowMessage showMessage)
         {
             var renderer = gameObject.GetComponent<MeshRenderer>();
 
@@ -100,12 +111,6 @@ namespace Crest
             if (!renderer)
             {
                 showMessage("A MeshRenderer component is required but none is attached to ocean input.", MessageType.Error, gameObject, FixAttachRenderer);
-                return false;
-            }
-
-            if (!renderer.sharedMaterial || renderer.sharedMaterial.shader && !renderer.sharedMaterial.shader.name.StartsWith(shaderPrefix))
-            {
-                showMessage($"Shader assigned to ocean input expected to be of type <i>{shaderPrefix}</i>.", MessageType.Error, gameObject);
                 return false;
             }
 

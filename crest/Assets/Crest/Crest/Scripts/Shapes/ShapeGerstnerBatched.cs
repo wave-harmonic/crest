@@ -289,7 +289,7 @@ namespace Crest
         {
             // Get the wave
             MeshRenderer rend = GetComponent<MeshRenderer>();
-            if (_mode == GerstnerMode.Geometry)
+            if (_mode == GerstnerMode.Geometry && rend != null)
             {
                 rend.enabled = false;
 #if UNITY_EDITOR
@@ -344,6 +344,8 @@ namespace Crest
                 }
             }
 #endif
+
+            if (rend == null) return;
 
             _batches = new GerstnerBatch[LodDataMgr.MAX_LOD_COUNT];
             for (int i = 0; i < _batches.Length; i++)
@@ -851,7 +853,12 @@ namespace Crest
             // Renderer
             if (_mode == GerstnerMode.Geometry)
             {
-                isValid = ValidatedHelper.ValidateRenderer(true, gameObject, "Crest/Inputs/Animated Waves/Gerstner", showMessage);
+                isValid = ValidatedHelper.ValidateRenderer(true, gameObject, showMessage);
+
+                if (TryGetComponent<MeshRenderer>(out var meshRenderer))
+                {
+                    isValid = ValidatedHelper.ValidateMaterial(meshRenderer.sharedMaterial, "Crest/Inputs/Animated Waves/Gerstner", gameObject, ValidatedHelper.DebugLog) && isValid;
+                }
             }
             else if (_mode == GerstnerMode.Global && GetComponent<MeshRenderer>() != null)
             {

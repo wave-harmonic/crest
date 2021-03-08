@@ -15,7 +15,7 @@ Decals
     .. tab:: `HDRP`
 
         Use the :link:`Decal Projector <{HDRPDocLink}/Decal-Projector.html>`.
-        Make sure to enable :link:`Affects Transparent <{HDRPDocLink/Decal-Projector.html#properties>`.
+        Make sure to enable :link:`Affects Transparent <{HDRPDocLink}/Decal-Projector.html#properties>`.
 
 .. only:: urp
 

@@ -30,6 +30,9 @@ extensions = [
     # Global packages
     "sphinx_inline_tabs",
     "sphinx_panels",
+    "sphinx_issues",
+    # "sphinx-hoverxref'",
+
     "furo",
 
     # Local packages
@@ -39,6 +42,9 @@ extensions = [
     "tags",
     "links",
     "hacks",
+
+    "hoverxref.extension",
+    "sphinx_search.extension",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -55,6 +61,12 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', ".env", "extensions"]
 
 # Auto numbering of figures
 numfig = True
+
+# GitHub repo
+issues_github_path = "wave-harmonic/crest"
+
+# https://sphinx-hoverxref.readthedocs.io/en/latest/usage.html#tooltip-on-all-ref-roles
+hoverxref_auto_ref = True
 
 # -- Options for HTML output -------------------------------------------------
 
@@ -85,9 +97,10 @@ html_css_files = [
 ]
 
 html_js_files = [
+    'https://cdnjs.cloudflare.com/ajax/libs/medium-zoom/1.0.6/medium-zoom.min.js',
     'js/expand-tabs.js',
     'js/link-target.js',
-    # 'custom.js',
+    'custom.js',
 ]
 
 

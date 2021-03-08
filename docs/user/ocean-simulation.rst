@@ -27,7 +27,7 @@ For example, parts of the water can be pushed down below geometry if required.
 
 The animated waves sim can be configured by assigning an Animated Waves Sim Settings asset to the OceanRenderer script in your scene (:menuselection:`Create --> Crest --> Animated Wave Sim Settings`).
 
-The waves will be dampened/attenuated in shallow water if a *Sea Floor Depth* LOD data is used (see :ref:`_sea-floor-depth-section`).
+The waves will be dampened/attenuated in shallow water if a *Sea Floor Depth* LOD data is used (see :ref:`sea-floor-depth-section`).
 The amount that waves are attenuated is configurable using the *Attenuation In Shallows* setting.
 
 User Inputs
@@ -263,8 +263,8 @@ Shadows
 -------
 
 The shadow data consists of two channels.
-One is for normal shadows as would be used to block specular reflection of the light.
-The other is a much softer shadowing value that can approximately variation in light scattering in the water volume.
+One is for normal shadows (hard shadow term) as would be used to block specular reflection of the light.
+The other is a much softer shadowing value (soft shadow term) that can approximately variation in light scattering in the water volume.
 
 This data is captured from the shadow maps Unity renders before the transparent pass.
 These shadow maps are always rendered in front of the viewer.
@@ -289,6 +289,17 @@ The Shadow LOD Data then reads these shadow maps and copies shadow information i
 
         .. include:: includes/_urp-shadows.rst
 
+The shadow sim can be configured by assigning a Shadow Sim Settings asset to the OceanRenderer script in your scene (*Create/Crest/Shadow Sim Settings*).
+In particular, the soft shadows are very soft by default, and may not appear for small/thin shadow casters.
+This can be configured using the *Jitter Diameter Soft* setting.
+
+There will be times when the shadow jitter settings will cause shadows or light to leak.
+An example of this is when trying to create a dark room during daylight.
+At the edges of the room the jittering will cause the ocean on the inside of the room (shadowed) to sample outside of the room (not shadowed) resulting in light at the edges.
+Reducing the *Jitter Diameter Soft* setting can solve this, but we have also provided a *Register Shadow Input* component which can override the shadow data.
+This component bypasses jittering and gives you full control.
+
+.. Note: RP should allow sampling the shadow maps directly in the ocean shader which would be an alternative to using this shadow data, although it would not give the softer shadow component. This would likely work on 2018.
 
 .. _flow-section:
 

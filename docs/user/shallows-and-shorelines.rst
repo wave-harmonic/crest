@@ -3,6 +3,10 @@
 Shorelines and Shallows
 =======================
 
+.. versionchanged:: 4.9
+
+    *Layer Names* (String[]) has changed to *Layers* (LayerMask).
+
 *Crest* requires water depth information to attenuate large waves in shallow water, to generate foam near shorelines, and to provide shallow water shading.
 The way this information is typically generated is through the *OceanDepthCache* component, which takes one or more layers, and renders everything in those layers from a top-down orthographic view to generate a heightfield for the seabed.
 These layers could contain the render geometry/terrains, or it could be geometry that is placed in a non-rendered layer that serves only to populate the depth cache.
@@ -16,9 +20,7 @@ Setup
 
 .. youtube:: jcmqUlboTUk
 
-.. versionchanged:: 4.9
-
-    *Layer Names* (String[]) has changed to *Layers* (LayerMask).
+   Depth Cache usage and setup
 
 One way to inform *Crest* of the seabed is to attach the *RegisterSeaFloorDepthInput* component.
 *Crest* will record the height of these objects every frame, so they can be dynamic.

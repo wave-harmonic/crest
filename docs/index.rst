@@ -104,6 +104,7 @@ User Guide
    user/underwater
    user/other-features
    user/performance
+   user/technical-information
    user/faq
 
 .. user/quickstart

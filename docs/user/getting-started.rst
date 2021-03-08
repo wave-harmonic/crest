@@ -94,6 +94,7 @@ Switch to Linear space rendering under :menuselection:`Edit --> Project Settings
 If your platform(s) require Gamma space (and providing your pipeline supports it), the material settings will need to be adjusted to compensate.
 Please see the :link:`Unity documentation <{UnityDocLink}/LinearRendering-LinearOrGammaWorkflow.html>` for more information.
 
+.. _importing-crest-section:
 
 Importing Crest
 ^^^^^^^^^^^^^^^

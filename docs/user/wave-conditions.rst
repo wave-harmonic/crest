@@ -3,9 +3,11 @@
 Wave Conditions
 ===============
 
-It is useful to see the animated ocean surface while tweaking the wave conditions.
+.. tip::
 
-.. include:: includes/_animated-materials.rst
+    It is useful to see the animated ocean surface while tweaking the wave conditions.
+
+    .. include:: includes/_animated-materials.rst
 
 The following sections describe how to define the wave conditions.
 
@@ -62,7 +64,7 @@ This allows different wave conditions in different areas of the world with smoot
 ShapeGerstnerBatched
 --------------------
 
-.. deprecated:: 4.8
+.. deprecated:: 4.9
 
     *ShapeGerstnerBatched* will be replaced by the much improved *ShapeGerstner*.
 
@@ -71,10 +73,6 @@ ShapeGerstnerBatched
 
 ShapeGerstner (preview)
 -----------------------
-
-.. versionadded:: 4.8
-
-    Introduced as preview
 
 A new Gerstner wave system has been added, intended to replace the current system.
 It can be tested by adding a *ShapeGerstner* component to a GameObject.
@@ -97,6 +95,8 @@ Wave Splines (preview)
 ----------------------
 
 .. youtube:: JRzPcUP5aaA
+
+    Wave Splines
 
 While it is possible to use the above steps to place localised waves in the world, we added a new system we call *Wave Splines* to make it easier and faster.
 

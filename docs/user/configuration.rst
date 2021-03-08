@@ -3,10 +3,6 @@ Configuration
 
 Some quick start pointers for changing the ocean look and behaviour:
 
-- Edit mode behaviour:
-
-  .. include:: includes/_animated-materials.rst
-
 - Ocean surface appearance: The active ocean material is assigned to the *OceanRenderer* script.
   The material parameters are described in section :ref:`material_parameters`.
   Turn off unnecessary features to maximize performance.
@@ -30,6 +26,10 @@ Some quick start pointers for changing the ocean look and behaviour:
   Inputs are generally tagged with the *Register* scripts and examples can be found in the example content scenes.
 
 All settings can be changed at run-time and live authored. When tweaking ocean shape it can be useful to freeze time (from script, set *Time.timeScale* to 0) to clearly see the effect of each octave of waves.
+
+.. tip::
+
+  .. include:: includes/_animated-materials.rst
 
 
 .. _material_parameters:
@@ -349,7 +349,7 @@ position.
 Underwater effects do *not* currently support orthographic projection.
 
 
-.. _ocean_construction_params:
+.. _ocean_construction_parameters:
 
 Ocean Construction Parameters
 -----------------------------

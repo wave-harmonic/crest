@@ -79,8 +79,8 @@ Assets
     :classes: btn-outline-primary btn-block stretched-link
 
 
-Table of Contents
------------------
+User Guide
+----------
 
 .. NOTE: toctree must be indented with three spaces!
 

@@ -131,15 +131,16 @@ rst_prolog = """
 .. set:: RPDocLinkBase \https://docs.unity3d.com/Packages/com.unity.render-pipelines.
 .. set:: UnityMinVersionShort 2019.4
 .. set:: UnityMinVersion {UnityMinVersionShort}.9
-.. set:: UnityDocLinkBase https://docs.unity3d.com/{UnityMinVersionShort}/Documentation/Manual
+.. set:: UnityDocLink https://docs.unity3d.com/{UnityMinVersionShort}/Documentation/Manual
 .. set:: AssetStoreLinkBase \https://assetstore.unity.com/packages/tools/particles-effects
+.. set:: GitHubLink \https://github.com/wave-harmonic/crest
 
 .. set:: [BIRP] :guilabel:`BIRP`
 .. set:: BIRPNameLong Built-in
 .. set:: BIRPNameShort BIRP
 .. set:: BIRP :abbr:`{BIRPNameShort} ({BIRPNameLong} Render Pipeline)`
 .. set:: BIRPMinVersion `RPMinVersion`
-.. set:: BIRPDocLink {UnityDocLinkBase}/
+.. set:: BIRPDocLink {UnityDocLink}/
 
 .. set:: [URP] :guilabel:`URP`
 .. set:: URPNameLong Universal

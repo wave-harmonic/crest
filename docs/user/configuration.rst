@@ -3,21 +3,19 @@ Configuration
 
 Some quick start pointers for changing the ocean look and behaviour:
 
-- Edit mode behaviour: by default the ocean is visible in edit mode, and updates infrequently to save power.
-  To enable real-time update enable *Animated Materials* in the Scene View toggles:
+- Edit mode behaviour:
 
-  ..  .. image:: AnimatedMaterialsOption
-  ..     :alt: image
+  .. include:: includes/_animated-materials.rst
 
 - Ocean surface appearance: The active ocean material is assigned to the *OceanRenderer* script.
   The material parameters are described in section :ref:`material_parameters`.
   Turn off unnecessary features to maximize performance.
 
 - Animated waves / ocean shape: Configured on the *ShapeGerstnerBatched* script by providing an *Ocean Wave Spectrum* asset.
-  This asset has an equalizer-style interface for tweaking different scales of waves, and also has some parametric wave spectra from the literature for comparison.
+  This asset has an equalizer-style interface for tweaking different scales of waves, and also has some parametric wave spectra from the literature for comparison. See section :ref:`wave-conditions-section`.
 
 - Shallow water: Any ocean seabed geometry needs mark up to register it with *Crest*.
-  See section :ref:`_shallows`.
+  See section :ref:`shallows`.
 
 - Ocean foam: Configured on the *OceanRenderer* script by providing a *Sim Settings Foam* asset.
 
@@ -25,7 +23,7 @@ Some quick start pointers for changing the ocean look and behaviour:
   See section :ref:`underwater` for instructions.
 
 - Dynamic wave simulation: Simulates dynamic effects like object-water interaction.
-  Configured on the *OceanRenderer* script by providing a *Sim Settings Wave* asset, described in section :ref:`_dynamic_waves_setup`.
+  Configured on the *OceanRenderer* script by providing a *Sim Settings Wave* asset, described in section :ref:`dynamic_waves_setup`.
 
 - A big strength of *Crest* is that you can add whatever contributions you like into the system.
   You could add your own shape or deposit foam onto the surface where desired.
@@ -38,8 +36,6 @@ All settings can be changed at run-time and live authored. When tweaking ocean s
 
 Material Parameters
 -------------------
-
-.. TODO: BIRP doesn't have this section. It will be similar to URP.
 
 Normal Mapping
 ^^^^^^^^^^^^^^
@@ -193,7 +189,6 @@ Reflection Environment
 Foam
 ^^^^
 
-
 .. line-block::
 
   | **Enable** Enable foam layer on ocean surface.
@@ -237,8 +232,6 @@ Foam 3D Lighting
 
     | **Specular Fall-Off** Acts like a gloss parameter for specular response. `[BIRP]` `[URP]`
     | **Specular Boost** Strength of specular response. `[BIRP]` `[URP]`
-
-.. NOTE: Emission is the water colour for SG. Albedo is foam tint but grayscale. Foam overrides it. Albedo overrides emission.
 
 
 Foam Bubbles
@@ -294,24 +287,6 @@ Flow
 | **Enable** Flow is horizontal motion in water as demonstrated in the 'whirlpool' example scene.
   'Create Flow Sim' must be enabled on the OceanRenderer to generate flow data.
 
-.. .. only:: birp
-
-..     .. tab:: `BIRP`
-
-..         TODO
-
-.. .. only:: hdrp
-
-..     .. tab:: `HDRP`
-
-..         .. include:: includes/_hdrp-material-parameters.rst
-
-.. .. only:: urp
-
-..     .. tab:: `URP`
-
-..         .. include:: includes/_urp-material-parameters.rst
-
 
 Reflections
 -----------
@@ -340,8 +315,6 @@ The look of the ocean will dramatically changed based on the reflection environm
 
 Lighting
 --------
-
-.. TODO: BIRP and URP doesn't have this section.
 
 .. only:: birp
 

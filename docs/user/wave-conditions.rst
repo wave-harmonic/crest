@@ -4,11 +4,8 @@ Wave Conditions
 ===============
 
 It is useful to see the animated ocean surface while tweaking the wave conditions.
-By default, the ocean update is throttled by Unity to save power.
-To enable real-time update enable *Animated Materials* in the Scene View toggles:
 
-.. .. image:: AnimatedMaterialsOption
-..    :alt: image
+.. include:: includes/_animated-materials.rst
 
 The following sections describe how to define the wave conditions.
 

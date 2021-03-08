@@ -8,11 +8,8 @@ This section has steps for importing the `Crest` content into a project, and for
     When changing Unity versions, setting up a render pipeline or making changes to packages, the project can appear to break.
     This may manifest as spurious errors in the log, no ocean rendering, magenta materials, scripts unassigned in example scenes, etcetera.
     Often, restarting the Editor fixes it.
-    Clearing out the \textit{/Library} folder can also help to reset the project and clear temporary errors.
+    Clearing out the *Library* folder can also help to reset the project and clear temporary errors.
     These issues are not specific to `Crest`, but we note them anyway as we find our users regularly encounter them.
-
-.. Getting Started Video
-.. ---------------------
 
 To augment / complement this written documentation we published a video available here:
 
@@ -86,9 +83,6 @@ Pipeline Setup
         .. include:: includes/_hdrp-vars.rst
         .. include:: includes/_pipeline-setup.rst
 
-        `HDRP` defaults to using `TAA`, which does not work well with the water material and makes it look blurry under motion.
-        We recommend switching to a different anti-aliasing method such as `SMAA` using the *Anti-aliasing* option on the camera component.
-
 .. only:: urp
 
     .. tab:: `URP`
@@ -98,7 +92,7 @@ Pipeline Setup
 
 Switch to Linear space rendering under :menuselection:`Edit --> Project Settings --> Player --> Other Settings`.
 If your platform(s) require Gamma space (and providing your pipeline supports it), the material settings will need to be adjusted to compensate.
-Please see the :link:`Unity documentation <{UnityDocLinkBase}/LinearRendering-LinearOrGammaWorkflow.html>` for more information.
+Please see the :link:`Unity documentation <{UnityDocLink}/LinearRendering-LinearOrGammaWorkflow.html>` for more information.
 
 
 Importing Crest
@@ -114,13 +108,13 @@ Import the `Crest` package into project using the *Asset Store* window in the Un
 
     .. tab:: `BIRP`
 
-        TODO
+        .. include:: includes/_importing-crest-birp.rst
 
 .. only:: hdrp
 
     .. tab:: `HDRP`
 
-        TODO
+        .. include:: includes/_importing-crest-hdrp.rst
 
 .. only:: urp
 
@@ -137,19 +131,20 @@ Import the `Crest` package into project using the *Asset Store* window in the Un
 Adding `Crest` to a Scene
 -------------------------
 
-Adding the Ocean
-^^^^^^^^^^^^^^^^
+.. Adding the Ocean
+.. ^^^^^^^^^^^^^^^^
 
 The steps to add an ocean to an existing scene are as follows:
 
 * Create a new *GameObject* for the ocean, give it a descriptive name such as *Ocean*.
 
-  * Assign the *OceanRenderer* component to it. On startup this component will generate the ocean geometry and do all required initialisation.
+  * Assign the *OceanRenderer* component to it.
+    On startup this component will generate the ocean geometry and do all required initialisation.
   * Assign the desired ocean material to the *OceanRenderer* script - this is a material using the *Crest/Ocean* shader.
   * Set the Y coordinate of the position to the desired sea level.
 
-* Tag a primary camera as *MainCamera* if one is not tagged already, or provide the *Camera* to the *View Camera* property on the *OceanRenderer* script. If you need to switch between multiple cameras, update the *ViewCamera* field to ensure the ocean follows the correct view.
-
+* Tag a primary camera as *MainCamera* if one is not tagged already, or provide the *Camera* to the *View Camera* property on the *OceanRenderer* script.
+  If you need to switch between multiple cameras, update the *ViewCamera* field to ensure the ocean follows the correct view.
 * Be sure to generate lighting if necessary. The ocean lighting takes the ambient intensity from the baked spherical
   harmonics. It can be found at the following:
 
@@ -157,35 +152,42 @@ The steps to add an ocean to an existing scene are as follows:
 
   .. tip:: You can check *Auto Generate* to ensure lighting is always generated.
 
+* To add waves, create a new GameObject and add the *Shape Gerstner Batched* component.
+  See :ref:`wave-conditions-section` section for customisation.
+* Any ocean seabed geometry needs mark up to register it with `Crest`. See section :ref:`shallows`.
+* If the camera needs to go underwater, the underwater effect must be configured.
+  See section :ref:`underwater` for instructions.
 
-Adding Waves
-^^^^^^^^^^^^
 
-To add waves:
+.. Adding Waves
+.. ^^^^^^^^^^^^
 
-* Create a new GameObject and add the *Shape Gerstner Batched* component.
-* On startup this script creates a default ocean shape. To edit the shape, right click in the Project view and select *Create/Crest/Ocean Wave Spectrum* and provide it to this script.
-* Smooth blending of ocean shapes can be achieved by adding multiple *Shape Gerstner Batched* scripts and crossfading them using the *Weight* parameter.
+.. To add waves:
 
-.. TODO: refer to wave condition section instead?
+.. * Create a new GameObject and add the *Shape Gerstner Batched* component.
+.. * On startup this script creates a default ocean shape. To edit the shape, right click in the Project view and select *Create/Crest/Ocean Wave Spectrum* and provide it to this script.
+.. * Smooth blending of ocean shapes can be achieved by adding multiple *Shape Gerstner Batched* scripts and crossfading them using the *Weight* parameter.
 
-Adding Ocean Depth
-^^^^^^^^^^^^^^^^^^
+.. See :ref:`_wave-authoring-section` for in depth documentation.
 
-.. TODO: refer to shallows section instead?
-.. Any ocean seabed geometry needs mark up to register it with \textit{Crest}. See section \ref{shallow_water}.
 
-For geometry that should influence the ocean (attenuate waves, generate foam):
+.. Adding Ocean Depth
+.. ^^^^^^^^^^^^^^^^^^
 
-* Static geometry should render ocean depth just once on startup into an *Ocean Depth Cache* - the island in the main scene in the example content demonstrates this.
-* Dynamic objects that need to render depth every frame should have a *Register Sea Floor Depth Input* component attached.
+.. For geometry that should influence the ocean (attenuate waves, generate foam):
 
-Underwater
-^^^^^^^^^^
+.. * Static geometry should render ocean depth just once on startup into an *Ocean Depth Cache* - the island in the main scene in the example content demonstrates this.
+.. * Dynamic objects that need to render depth every frame should have a *Register Sea Floor Depth Input* component attached.
 
-.. TODO:
-.. If the camera needs to go underwater, the underwater effect must be configured.
-See section \ref{underwater} for instructions.
+.. See :ref:`shallows` for in depth documentation.
+
+
+.. Underwater
+.. ^^^^^^^^^^
+
+.. * If the camera needs to go underwater, the underwater effect must be configured.
+
+.. See section :ref:`underwater` for instructions.
 
 
 Frequent Setup Issues
@@ -194,54 +196,54 @@ Frequent Setup Issues
 .. TODO:
 .. This is from HDRP. URP might have its own
 
-The following are kinks or bugs with the install process which come up
-frequently.
+The following are kinks or bugs with the install process which come up frequently.
+
 
 Errors present, or visual issues
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Try restarting Unity as a first step.
 
-Compile errors in the log, not possible to enter play mode, visual issues in the scene
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Verify that RP is installed and enabled in the settings. See here for
-documentation: `\\PipelineDocLink/Upgrading-To-HDRP.html`_.
+.. only:: hdrp or urp
 
-Possible to enter play mode, but errors appear in the log at runtime that mention missing ’kernels’
+    Compile errors in the log, not possible to enter play mode, visual issues in the scene
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+    Verify that render pipeline is installed and enabled in the settings. See the follow for documentation:
+
+    .. only:: hdrp
+
+        :link:`Upgrading to {HDRP} <{HDRPDocLink}/Upgrading-To-HDRP.html>`
+
+    .. only:: urp
+
+        :link:`Installing {URP} into a project <{URPDocLink}/InstallURPIntoAProject.html>`
+
+
+Possible to enter play mode, but errors appear in the log at runtime that mention missing 'kernels'
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Recent versions of Unity have a bug that makes shader import unreliable.
-Please try reimporting the *Crest/Shaders* folder using the right click
-menu in the project view, or simply close Unity and delete the Library
-folder and restart which will trigger everything to reimport.
+Please try reimporting the *Crest/Shaders* folder using the right click menu in the project view.
+Or simply close Unity, delete the Library folder and restart which will trigger everything to reimport.
+
 
 Ocean framerate low in edit mode
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The update speed is intentionally throttled by Unity to save power when
-in edit mode. To enable real-time update, enable *Animated Materials* in
-the Scene View toggles:
+.. include:: includes/_animated-materials.rst
 
-.. .. image:: AnimatedMaterialsOption
-..    :alt: image
+.. only:: hdrp
 
-Ocean surface appears blurred under motion
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    Ocean surface appears blurred under motion `[HDRP]`
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-RP defaults to using Temporal Anti-aliasing (TAA), which does not work
-well with the water material and makes it look blurry under motion. We
-recommend switching to a different anti-aliasing method such as SMAA
-using the *Anti-aliasing* option on the camera component.
+    .. include:: includes/_hdrp-taa.rst
 
-Ocean reflections/lighting/fog looks wrong
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    Ocean reflections/lighting/fog looks wrong `[HDRP]`
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-If reflections appear wrong, it can be useful to make a simple test
-shadergraph with our water normal map applied to it, to compare results.
-We provide a simple test shadergraph for debugging purposes - enable the
-*Apply test material* debug option on the *OceanRenderer* component to
-apply it. If you find you are getting good results with a test
-shadergraph but not with our ocean shader, please report this to us.
-
-.. .. _\\PipelineDocLink/Upgrading-To-HDRP.html: \PipelineDocLink/Upgrading-To-HDRP.html
+    If reflections appear wrong, it can be useful to make a simple test shadergraph with our water normal map applied to it, to compare results.
+    We provide a simple test shadergraph for debugging purposes - enable the *Apply test material* debug option on the *OceanRenderer* component to apply it.
+    If you find you are getting good results with a test shadergraph but not with our ocean shader, please report this to us.

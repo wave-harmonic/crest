@@ -31,14 +31,12 @@ extensions = [
     "sphinx_inline_tabs",
     "sphinx_panels",
     "sphinx_issues",
-    # "sphinx-hoverxref'",
 
     "furo",
 
     # Local packages
     "youtube",
     "variables",
-    "labels",
     "tags",
     "links",
     "hacks",
@@ -105,8 +103,6 @@ html_css_files = [
 
 html_js_files = [
     'https://cdnjs.cloudflare.com/ajax/libs/medium-zoom/1.0.6/medium-zoom.min.js',
-    'js/expand-tabs.js',
-    'js/link-target.js',
     'custom.js',
 ]
 

@@ -19,17 +19,23 @@ To augment / complement this written documentation we published a video availabl
 
         .. youtube:: qsgeG4sSLFw
 
+            Getting Start with Crest for `BIRP`
+
 .. only:: hdrp
 
     .. tab:: `HDRP`
 
         .. youtube:: FE6l39Lt3js
 
+            Getting Start with Crest for `HDRP`
+
 .. only:: urp
 
     .. tab:: `URP`
 
         .. youtube:: TpJf13d_-3E
+
+            Getting Start with Crest for `URP`
 
 
 Requirements

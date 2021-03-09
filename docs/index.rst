@@ -110,6 +110,8 @@ User Guide
 .. user/quickstart
 .. user/support
 
+.. TODO: Add markdown parser so we can add these files:
+..
 .. .. toctree::
 ..    :maxdepth: 1
 ..    :caption: Developer Guide

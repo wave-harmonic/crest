@@ -49,6 +49,8 @@ Tweaking
 
 .. youtube:: Y7ny8pKzWMk
 
+   Tweaking Shorelines
+
 The above video will go through the difficulties of getting realistic shorelines.
 
 Troubleshooting

@@ -50,7 +50,7 @@ Only the camera rendering the ocean surface will be used.
    Underwater Post-Process `[HDRP]`
    --------------------------------
 
-   .. image:: /_media/Old/UnderwaterPP-Result.png
+   .. image:: /_media/UnderwaterPostProcess.png
 
 
    Unlike the Underwater Curtain, the custom post-process effect is pixel-perfect.

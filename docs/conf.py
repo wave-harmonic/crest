@@ -57,6 +57,10 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', ".env", "extensions"]
 
 # master_doc = "_user/overview"
 
+# https://github.com/readthedocs/readthedocs.org/issues/4603
+if os.environ.get('PLATFORM') == "READTHEDOCS":
+    tags.add('readthedocs')
+
 # -- Features ----------------------------------------------------------------
 
 # Auto numbering of figures
@@ -103,6 +107,13 @@ html_js_files = [
     'custom.js',
 ]
 
+# -- Options for PDF output --------------------------------------------------
+
+# Customise PDF here. maketitle overrides the cover page.
+#
+# latex_elements = {
+#     "maketitle": "\\input{your_cover.tex}"
+# }
 
 # -- Templating --------------------------------------------------------------
 
@@ -177,15 +188,7 @@ rst_prolog = """
 .. set:: SMAA :abbr:`SMAA (Subpixel Morphological Anti-Aliasing)`
 """
 
-# TODO: use compound
-# .. compound::
-
 # -- Debugging ---------------------------------------------------------------
-
-if os.environ.get('PLATFORM') == "READTHEDOCS":
-    tags.add('readthedocs')
-
-# https://github.com/readthedocs/readthedocs.org/issues/4603
 
 # For debugging if you want to always have a tag on or off
 # tags.add("tag")

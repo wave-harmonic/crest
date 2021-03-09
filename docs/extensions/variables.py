@@ -83,5 +83,5 @@ def brace_substitution_node(text):
             node_list += dictionary[part]
         else:
             # This part will be just text so created a node.
-            node_list += nodes.inline(text, text)
+            node_list += nodes.inline(part, part)
     return node_list

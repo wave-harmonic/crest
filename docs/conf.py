@@ -158,6 +158,7 @@ rst_prolog = """
 .. set:: UnityDocLink https://docs.unity3d.com/{UnityMinVersionShort}/Documentation/Manual
 .. set:: AssetStoreLinkBase \https://assetstore.unity.com/packages/tools/particles-effects
 .. set:: GitHubLink \https://github.com/wave-harmonic/crest
+.. set:: WikiLink \{GitHubLink}/wiki
 
 .. set:: [BIRP] :guilabel:`BIRP`
 .. set:: BIRPNameLong Built-in

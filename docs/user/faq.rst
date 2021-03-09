@@ -15,10 +15,23 @@ Therefore we target *Crest* at PC/console platforms.
 Which platforms does `Crest` support?
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Testing occurs primarily on Windows.
-We have users targeting Windows, Mac, Linux, PS4, XboxOne and Switch.
-Performance is a challenge on Switch - see the previous question.
 
-`Crest` also supports VR/XR, but Oculus Quest isn't officially supported due to poor performance.
+We have users targeting the following platforms:
+
+-  Windows
+-  Mac
+-  Linux
+-  PS4
+-  XboxOne
+-  Switch
+-  iOS/Android `[BIRP]` `[URP]`
+-  Quest `[BIRP]` `[URP]`
+
+`Crest` also supports VR/XR.
+
+Performance is a challenge on Switch, mobile platforms and standalone headsets (like Quest). Please see the previous question.
+
+For additional platform notes, see :link:`Platform Support <{WikiLink}/Platform-Support>`.
 
 Is `Crest` well suited for localised bodies of water such as lakes?
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -74,3 +87,5 @@ This applies to both above water and underwater.
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
     We have heard of Crest users using TrueSky, AzureSky.
     These may require some code to be inserted into the ocean shader - there is a comment referring to this, search Ocean.shader for 'Azure'.
+
+    Please see the Community Contributions section in our :link:`Wiki <{WikiLink}>` for some integration solutions.

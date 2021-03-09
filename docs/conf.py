@@ -23,19 +23,19 @@ author = 'Wave Harmonic & Contributors'
 
 # -- Create API copy DefaultDocumentation  -----------------------------------
 
-try:
-    files = [file for file in os.listdir("../crest/Temp/bin/Debug") if file.endswith('.md')]
-    if not (os.path.exists('api/') and os.path.isdir('api/')):
-        os.mkdir('api/')
-    if len(files) == 0:
-        raise FileNotFoundError("No .md files were found in ../crest/Temp/bin/Debug/")
+# try:
+#     files = [file for file in os.listdir("../crest/Temp/bin/Debug") if file.endswith('.md')]
+#     if not (os.path.exists('api/') and os.path.isdir('api/')):
+#         os.mkdir('api/')
+#     if len(files) == 0:
+#         raise FileNotFoundError("No .md files were found in ../crest/Temp/bin/Debug/")
 
-    import shutil
-    for file_name in files:
-        shutil.copyfile(os.path.abspath('../crest/Temp/bin/Debug/' + file_name), os.path.abspath('api/' + file_name))
-except FileNotFoundError as e:
-    print(e)
-    print('Assuming .md files are already present in docs/api/')
+#     import shutil
+#     for file_name in files:
+#         shutil.copyfile(os.path.abspath('../crest/Temp/bin/Debug/' + file_name), os.path.abspath('api/' + file_name))
+# except FileNotFoundError as e:
+#     print(e)
+#     print('Assuming .md files are already present in docs/api/')
 
 
 # -- General configuration ---------------------------------------------------
@@ -52,6 +52,7 @@ extensions = [
     "furo",
 
     "recommonmark",
+    "sphinx_markdown_tables",
 
     # Local packages
     "youtube",

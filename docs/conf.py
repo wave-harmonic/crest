@@ -60,6 +60,9 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', ".env", "extensions"]
 # https://github.com/readthedocs/readthedocs.org/issues/4603
 if os.environ.get('PLATFORM') == "READTHEDOCS":
     tags.add('readthedocs')
+    tags.add("birp")
+    tags.add("hdrp")
+    tags.add("urp")
 
 # -- Features ----------------------------------------------------------------
 

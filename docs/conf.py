@@ -12,6 +12,7 @@
 
 import os
 import sys
+
 sys.path.insert(0, os.path.abspath('./extensions'))
 
 # -- Project information -----------------------------------------------------
@@ -19,6 +20,22 @@ sys.path.insert(0, os.path.abspath('./extensions'))
 project = 'Crest'
 copyright = '2021, Wave Harmonic & Contributors'
 author = 'Wave Harmonic & Contributors'
+
+# -- Create API copy DefaultDocumentation  -----------------------------------
+
+try:
+    files = [file for file in os.listdir("../crest/Temp/bin/Debug") if file.endswith('.md')]
+    if not (os.path.exists('api/') and os.path.isdir('api/')):
+        os.mkdir('api/')
+    if len(files) == 0:
+        raise FileNotFoundError("No .md files were found in ../crest/Temp/bin/Debug/")
+
+    import shutil
+    for file_name in files:
+        shutil.copyfile(os.path.abspath('../crest/Temp/bin/Debug/' + file_name), os.path.abspath('api/' + file_name))
+except FileNotFoundError as e:
+    print(e)
+    print('Assuming .md files are already present in docs/api/')
 
 
 # -- General configuration ---------------------------------------------------
@@ -34,6 +51,8 @@ extensions = [
 
     "furo",
 
+    "recommonmark",
+
     # Local packages
     "youtube",
     "variables",
@@ -44,6 +63,11 @@ extensions = [
     "hoverxref.extension",
     "sphinx_search.extension",
 ]
+
+source_suffix = {
+    '.rst': 'restructuredtext',
+    '.md': 'markdown',
+}
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']

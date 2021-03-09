@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project TreatAsLocalProperty="VsxmdRuntime;VsxmdBinaryDirectory;VsxmdBinary;VsxmdCommand" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Target Name="Vsxmd" AfterTargets="PostBuildEvent">
+    <PropertyGroup>
+      <VsxmdRuntime Condition=" $([MSBuild]::IsOsPlatform('Linux')) ">linux-x64</VsxmdRuntime>
+      <VsxmdRuntime Condition=" $([MSBuild]::IsOsPlatform('Linux')) AND (EXISTS('/lib/ld-musl-x86_64.so.1') OR EXISTS('/usr/lib/ld-musl-x86_64.so.1')) ">linux-musl-x64</VsxmdRuntime>
+      <VsxmdRuntime Condition=" $([MSBuild]::IsOsPlatform('OSX')) ">osx-x64</VsxmdRuntime>
+      <VsxmdRuntime Condition=" $([MSBuild]::IsOsPlatform('Windows')) AND '$([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture)' == 'X64' ">win-x64</VsxmdRuntime>
+      <VsxmdRuntime Condition=" $([MSBuild]::IsOsPlatform('Windows')) AND '$([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture)' == 'X86' ">win-x86</VsxmdRuntime>
+      <VsxmdBinaryDirectory>$(MSBuildThisFileDirectory)/../tools/$(VsxmdRuntime)</VsxmdBinaryDirectory>
+      <VsxmdBinary Condition=" '$(VsxmdBinary)' == '' AND EXISTS('$(VsxmdBinaryDirectory)/Vsxmd') ">$(VsxmdBinaryDirectory)/Vsxmd</VsxmdBinary>
+      <VsxmdBinary Condition=" '$(VsxmdBinary)' == '' AND EXISTS('$(VsxmdBinaryDirectory)/Vsxmd.exe') ">$(VsxmdBinaryDirectory)/Vsxmd.exe</VsxmdBinary>
+      <VsxmdCommand Condition=" '$(VsxmdBinary)' == '' ">echo "The Vsxmd command is not currently available."</VsxmdCommand>
+      <VsxmdCommand Condition=" '$(VsxmdBinary)' != '' ">"$(VsxmdBinary)" "$(DocumentationFile)" "$(DocumentationMarkdown)" "$(VsxmdAutoDeleteXml)"</VsxmdCommand>
+    </PropertyGroup>
+    <Message Text="Vsxmd starts to convert XML to Markdown." />
+    <Exec Command="$(VsxmdCommand)" />
+    <Message Text="Vsxmd finishes conversion." />
+  </Target>
+</Project>

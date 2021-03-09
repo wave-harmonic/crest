@@ -106,6 +106,7 @@ User Guide
    user/performance
    user/technical-information
    user/faq
+   api/Crest
 
 .. user/quickstart
 .. user/support

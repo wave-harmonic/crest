@@ -107,7 +107,7 @@ Reflection Environment
 
   .. only:: hdrp
 
-    | **Occlusion** Strength of reflection. `[HDRP] [URP]`
+    | **Occlusion** Strength of reflection. `[HDRP]`
 
   .. only:: hdrp or urp
 

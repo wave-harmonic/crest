@@ -118,5 +118,3 @@ User Guide
 
 ..    dev/contributing
 ..    dev/source
-
-

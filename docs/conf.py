@@ -197,8 +197,3 @@ rst_prolog = """
 # For debugging if you want to always have a tag on or off
 # tags.add("tag")
 # tags.remove("tag")
-
-# https://sphinx-rtd-theme.readthedocs.io/
-# https://pradyunsg.me/furo/kitchen-sink/
-
-# https://github.com/executablebooks/sphinx-copybutton

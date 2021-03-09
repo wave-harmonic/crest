@@ -200,11 +200,7 @@ The steps to add an ocean to an existing scene are as follows:
 Frequent Setup Issues
 ---------------------
 
-.. TODO:
-.. This is from HDRP. URP might have its own
-
 The following are kinks or bugs with the install process which come up frequently.
-
 
 Errors present, or visual issues
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

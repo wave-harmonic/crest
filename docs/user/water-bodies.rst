@@ -38,4 +38,3 @@ It can be used as follows:
 -  Each of the above components are available via the *Create ...* toggles
 -  Click *Create* and a water body should be created in the scene
 -  Click *Done* to close the wizard
-

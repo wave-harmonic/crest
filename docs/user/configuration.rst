@@ -113,21 +113,21 @@ Reflection Environment
 
     .. NOTE: BIRP has roughness? Nope
 
-    | **Smoothness** Smoothness of surface.
+    | **Smoothness** Smoothness of surface. `[HDRP] [URP]`
 
   .. only:: urp
 
     .. NOTE: "Vary Fall-Off Over Distance" in BIRP
 
-    | **Vary Smoothness Over Distance** Helps to spread out specular highlight in mid-to-background. From a theory point of view, models transfer of normal detail to microfacets in BRDF.
+    | **Vary Smoothness Over Distance** Helps to spread out specular highlight in mid-to-background. From a theory point of view, models transfer of normal detail to microfacets in BRDF. `[URP]`
 
   .. only:: hdrp or urp
 
     .. TODO: Rename Power to Falloff in URP
 
-    | **Smoothness Far** Material smoothness at far distance from camera.
-    | **Smoothness Far Distance** Definition of far distance.
-    | **Smoothness Falloff** How smoothness varies between near and far distance.
+    | **Smoothness Far** Material smoothness at far distance from camera. `[HDRP] [URP]`
+    | **Smoothness Far Distance** Definition of far distance. `[HDRP] [URP]`
+    | **Smoothness Falloff** How smoothness varies between near and far distance. `[HDRP] [URP]`
 
   .. only:: birp
 
@@ -137,11 +137,11 @@ Reflection Environment
 
   .. only:: urp
 
-    | **Softness** Acts as mip bias to smooth/blur reflection.
+    | **Softness** Acts as mip bias to smooth/blur reflection. `[URP]`
 
     .. NOTE: This couldbe handled by supporting light layers when they support multiple main lights.
 
-    | **Light Intensity Multiplier** Main light intensity multiplier.
+    | **Light Intensity Multiplier** Main light intensity multiplier. `[URP]`
 
   .. only:: birp or urp
 
@@ -209,9 +209,9 @@ Foam
 
   .. only:: hdrp
 
-    | **Foam Albedo Intensity** Scale intensity of diffuse lighting.
-    | **Foam Emissive Intensity** Scale intensity of emitted light.
-    | **Foam Smoothness** Smoothness of foam material.
+    | **Foam Albedo Intensity** Scale intensity of diffuse lighting. `[HDRP]`
+    | **Foam Emissive Intensity** Scale intensity of emitted light. `[HDRP]`
+    | **Foam Smoothness** Smoothness of foam material. `[HDRP]`
 
 
 .. Adding only to heading will hoist Foam Normal Strength and below above it.
@@ -277,7 +277,7 @@ Underwater
 
     .. NOTE: Will be removed once we migrate to the underwater post-process effect.
 
-    | **Enable** Whether the underwater effect is being used. This enables code that shades the surface correctly from underneath.
+    | **Enable** Whether the underwater effect is being used. This enables code that shades the surface correctly from underneath. `[BIRP] [URP]`
 
   | **Cull Mode** Ordinarily set this to *Back* to cull back faces, but set to *Off* to make sure both sides of the surface draw if the underwater effect is being used.
 

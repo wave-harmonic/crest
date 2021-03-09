@@ -23,13 +23,13 @@ We have users targeting the following platforms:
 -  Linux
 -  PS4
 -  XboxOne
--  Switch
--  iOS/Android `[BIRP]` `[URP]`
--  Quest `[BIRP]` `[URP]`
+-  Switch\*
+-  iOS/Android\* `[[BIRP]]` `[[URP]]`
+-  Quest\* `[[BIRP]]` `[[URP]]`
+
+\* Performance is a challenge on these platforms. Please see the previous question.
 
 `Crest` also supports VR/XR.
-
-Performance is a challenge on Switch, mobile platforms and standalone headsets (like Quest). Please see the previous question.
 
 For additional platform notes, see :link:`Platform Support <{WikiLink}/Platform-Support>`.
 
@@ -83,7 +83,7 @@ This applies to both above water and underwater.
 
 .. only:: birp or urp
 
-    Does Crest support third party sky assets? `[BIRP]` `[URP]`
+    Does Crest support third party sky assets? `[BIRP] [URP]`
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
     We have heard of Crest users using TrueSky, AzureSky.
     These may require some code to be inserted into the ocean shader - there is a comment referring to this, search Ocean.shader for 'Azure'.

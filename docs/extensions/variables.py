@@ -44,14 +44,30 @@ def link_role(name, rawtext, text, lineno, inliner, options={}, content=[]):
 class VariableRole(SphinxRole):
     def run(self):
         try:
-            # NOTE: Data after the split is thrown away, but it could be used for something?
-            key = self.text.split()[0]
             tags = self.env.app.tags
-            # Implicit stripping of labels ([label]). If we are stripping and the label matches a tag, then we strip it.
-            # I don't think this will cause an issue.
-            if tags.has("stripping") and key.startswith("[") and key.endswith("]") and tags.eval_condition(key[1:-1].lower()):
-                return [], []
-            return dictionary[key], []
+            keys = self.text.split()
+
+            # NOTE: Only first key is used. The remainder are thrown away, but could also be used.
+            if not keys[0].startswith("["):
+                return dictionary[keys[0]], []
+
+            # Bypass label stripping
+            if keys[0].startswith("[[") and keys[0].endswith("]]"):
+                return dictionary[keys[0][1:-1]], []
+
+            # Implicit stripping of labels ([label]).
+            node_list = []
+            is_first = False
+            for key in keys:
+                if not is_first:
+                    is_first = True
+                else:
+                    node_list += nodes.inline(text=" ")
+                if tags.has("stripping") and tags.eval_condition(key[1:-1].lower()):
+                    return [], []
+                node_list += dictionary[key]
+
+            return node_list, []
         except Exception as error:
             message = self.inliner.reporter.error(error, line=self.lineno)
             node = self.inliner.problematic(self.rawtext, self.rawtext, message)

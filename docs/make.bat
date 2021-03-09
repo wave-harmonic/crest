@@ -28,7 +28,7 @@ if errorlevel 9009 (
 
 if "%1" == "pdf-hdrp" goto pdf-hdrp
 if "%1" == "pdf-urp" goto pdf-urp
-if "%1" == "pdf-brp" goto pdf-brp
+if "%1" == "pdf-birp" goto pdf-birp
 if "%1" == "pdf" goto pdf
 
 %SPHINXBUILD% -M %1 %SOURCEDIR% %BUILDDIR% %SPHINXOPTS% %O%
@@ -36,18 +36,18 @@ goto end
 
 :pdf
 
-:pdf-brp
-%SPHINXBUILD% -M latexpdf %SOURCEDIR% %BUILDDIR% %SPHINXOPTS% -t brp %O%
-MOVE /Y _build\latex\crest.pdf _build\crest-brp.pdf
+:pdf-birp
+%SPHINXBUILD% -M latexpdf %SOURCEDIR% %BUILDDIR% %SPHINXOPTS% -E -a -t birp -t no-tabs %O%
+MOVE /Y _build\latex\crest.pdf _build\crest-birp.pdf
 if NOT "%1" == "pdf" goto end
 
 :pdf-urp
-%SPHINXBUILD% -M latexpdf %SOURCEDIR% %BUILDDIR% %SPHINXOPTS% -t urp %O%
+%SPHINXBUILD% -M latexpdf %SOURCEDIR% %BUILDDIR% %SPHINXOPTS% -E -a -t urp -t no-tabs %O%
 MOVE /Y _build\latex\crest.pdf _build\crest-urp.pdf
 if NOT "%1" == "pdf" goto end
 
 :pdf-hdrp
-%SPHINXBUILD% -M latexpdf %SOURCEDIR% %BUILDDIR% %SPHINXOPTS% -t hdrp %O%
+%SPHINXBUILD% -M latexpdf %SOURCEDIR% %BUILDDIR% %SPHINXOPTS% -E -a -t hdrp -t no-tabs %O%
 MOVE /Y _build\latex\crest.pdf _build\crest-hdrp.pdf
 goto end
 

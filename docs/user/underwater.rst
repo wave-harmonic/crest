@@ -30,7 +30,7 @@ Only the camera rendering the ocean surface will be used.
 
 .. only:: birp or urp
 
-   Underwater Curtain `[BIRP]` `[URP]`
+   Underwater Curtain `[BIRP] [URP]`
    -----------------------------------
 
    In the *main.unity* scene, the *UnderWaterCurtainGeom* prefab is parented to the camera which renders the underwater effect.

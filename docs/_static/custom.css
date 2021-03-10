@@ -81,7 +81,7 @@
     color: var(--color-foreground-primary) !important;
 }
 
-.rtd__search__credits
+.rtd__search__credits,
 .rtd__search__credits a,
 .search__result__content
 {

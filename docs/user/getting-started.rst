@@ -79,21 +79,21 @@ Pipeline Setup
 
    .. tab:: `BIRP`
 
-      .. include:: includes/_birp-vars.rst
+      .. include:: /includes/_birp-vars.rst
       .. include:: includes/_pipeline-setup.rst
 
 .. only:: hdrp
 
    .. tab:: `HDRP`
 
-      .. include:: includes/_hdrp-vars.rst
+      .. include:: /includes/_hdrp-vars.rst
       .. include:: includes/_pipeline-setup.rst
 
 .. only:: urp
 
    .. tab:: `URP`
 
-      .. include:: includes/_urp-vars.rst
+      .. include:: /includes/_urp-vars.rst
       .. include:: includes/_pipeline-setup.rst
 
 Switch to Linear space rendering under :menuselection:`Edit --> Project Settings --> Player --> Other Settings`.

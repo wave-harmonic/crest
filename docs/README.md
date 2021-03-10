@@ -57,7 +57,7 @@ And using them together:
 
     .. tab:: `URP`
 
-        .. include:: includes/_urp-vars.rst
+        .. include:: /includes/_urp-vars.rst
         .. include:: includes/_pipeline-setup.rst
 ```
 

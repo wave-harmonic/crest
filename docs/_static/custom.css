@@ -114,6 +114,7 @@
     border-color: var(--color-foreground-border) !important;
 }
 
+.outer_div_page_results:hover,
 .search__outer .search__result__content span
 {
     background-color: var(--color-highlighted-background) !important;

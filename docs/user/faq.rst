@@ -89,3 +89,7 @@ This applies to both above water and underwater.
     These may require some code to be inserted into the ocean shader - there is a comment referring to this, search Ocean.shader for 'Azure'.
 
     Please see the Community Contributions section in our :link:`Wiki <{WikiLink}>` for some integration solutions.
+
+Can I remove water from inside my boat?
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Yes, this is referred to as 'clipping' and is covered in section :ref:`clip-surface-section`.

@@ -1,11 +1,22 @@
-/* Furo Theme: https://pradyunsg.me/furo/kitchen-sink/ */
+/****************************************************************************/
+/* Furo Theme:
+/* https://pradyunsg.me/furo/kitchen-sink/
+/*
+/* Furo variables can be found here:
+/* https://github.com/pradyunsg/furo/blob/main/src/furo/assets/styles/variables/_index.scss
+/*
+/* Inline tabs variables:
+/* https://github.com/pradyunsg/sphinx-inline-tabs/blob/main/src/sphinx_inline_tabs/static/tabs.css
+/****************************************************************************/
 
 .tab-content
 {
     padding-top: 1rem;
     padding-bottom: 1rem;
     border-bottom:  solid 2px var(--tabs--border);
-    background: #FAFAFA;
+    /* Make tabbed content stand out a little. */
+    background: var(--color-background-secondary);
+    border-left: solid 2px var(--tabs--border--active);
 }
 
 .figure
@@ -43,7 +54,78 @@
 
 
 /****************************************************************************/
-/* Expand Tabs Beyond Container                                             */
+/* Dark Theme Integration for Search
+/****************************************************************************/
+
+.search__outer
+{
+    position: relative;
+}
+
+.search__outer::before
+{
+    content: "";
+    position: absolute;
+    left: var(--sidebar-item-spacing-horizontal);
+    width: var(--sidebar-search-icon-size);
+    height: var(--sidebar-search-icon-size);
+}
+
+.search__outer,
+.rtd__search__credits
+{
+    background-color: var(--color-background-primary);
+}
+
+.search__result__subheading
+{
+    color: var(--color-foreground-primary);
+}
+
+.search__result__content
+{
+    color: var(--color-foreground-primary);
+}
+
+.search__outer__input
+{
+    background-color: transparent;
+    color: var(--color-foreground-primary);
+    background-image: var(--icon-search);
+}
+
+.search__outer__input
+{
+    background-image: none;
+}
+
+.search__cross__img
+{
+    fill: var(--color-foreground-primary);
+}
+
+.search__result__single
+{
+    border-color: var(--color-foreground-border);
+}
+
+
+/****************************************************************************/
+/* Dark Theme Integration for Image Zoom
+/****************************************************************************/
+
+.medium-zoom-overlay
+{
+    background-color: var(--color-background-primary) !important;
+}
+
+
+/****************************************************************************
+/* Expand Tabs Beyond Container
+/****************************************************************************
+/*
+/* We use rems since we do not want font size to influence the spacing.
+/*
 /****************************************************************************/
 
 .tab-set

@@ -114,16 +114,16 @@ As noted above, the sim results will be copied into the dynamic waves LODs and t
 The following input shaders are provided under *Crest/Inputs/Dynamic Waves*:
 
 -  **Add Bump** adds a round force to pull the surface up (or push it down).
-  This can be moved around to create interesting effects.
+   This can be moved around to create interesting effects.
 
 -  **Object Interaction** can be used in conjunction with the *ObjectWaterInteraction* script to simulate the interaction of an object with the water.
-  Can be used for boat wakes.
-  See the boat example scenes.
+   Can be used for boat wakes.
+   See the boat example scenes.
 
 -  **Sphere-Water Interaction** is a more specialized and accurate version of the *Object Interaction* input.
-  It models the interaction between a sphere and takes into account how submerged the sphere is.
-  Multiple spheres can be composed into compound shapes.
-  See the *Spinner* object in the *boat.unity* example scene for an example.
+   It models the interaction between a sphere and takes into account how submerged the sphere is.
+   Multiple spheres can be composed into compound shapes.
+   See the *Spinner* object in the *boat.unity* example scene for an example.
 
 
 .. _foam-section:

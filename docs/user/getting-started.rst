@@ -51,7 +51,7 @@ Requirements
    .. tab:: `BIRP`
 
       -  The `Crest` example content uses the post-processing package (for aesthetic reasons).
-        If this is not present in your project, you will see an unassigned script warning which you can fix by removing the offending script.
+         If this is not present in your project, you will see an unassigned script warning which you can fix by removing the offending script.
 
 .. only:: hdrp
 

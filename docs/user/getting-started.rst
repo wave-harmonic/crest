@@ -5,65 +5,65 @@ This section has steps for importing the `Crest` content into a project, and for
 
 .. warning::
 
-    When changing Unity versions, setting up a render pipeline or making changes to packages, the project can appear to break.
-    This may manifest as spurious errors in the log, no ocean rendering, magenta materials, scripts unassigned in example scenes, etcetera.
-    Often, restarting the Editor fixes it.
-    Clearing out the *Library* folder can also help to reset the project and clear temporary errors.
-    These issues are not specific to `Crest`, but we note them anyway as we find our users regularly encounter them.
+   When changing Unity versions, setting up a render pipeline or making changes to packages, the project can appear to break.
+   This may manifest as spurious errors in the log, no ocean rendering, magenta materials, scripts unassigned in example scenes, etcetera.
+   Often, restarting the Editor fixes it.
+   Clearing out the *Library* folder can also help to reset the project and clear temporary errors.
+   These issues are not specific to `Crest`, but we note them anyway as we find our users regularly encounter them.
 
 To augment / complement this written documentation we published a video available here:
 
 .. only:: birp
 
-    .. tab:: `BIRP`
+   .. tab:: `BIRP`
 
-        .. youtube:: qsgeG4sSLFw
+      .. youtube:: qsgeG4sSLFw
 
-            Getting Start with Crest for `BIRP`
+         Getting Start with Crest for `BIRP`
 
 .. only:: hdrp
 
-    .. tab:: `HDRP`
+   .. tab:: `HDRP`
 
-        .. youtube:: FE6l39Lt3js
+      .. youtube:: FE6l39Lt3js
 
-            Getting Start with Crest for `HDRP`
+         Getting Start with Crest for `HDRP`
 
 .. only:: urp
 
-    .. tab:: `URP`
+   .. tab:: `URP`
 
-        .. youtube:: TpJf13d_-3E
+      .. youtube:: TpJf13d_-3E
 
-            Getting Start with Crest for `URP`
+         Getting Start with Crest for `URP`
 
 
 Requirements
 ------------
 
-- Unity Version: `UnityMinVersion`
-- .NET 4.x runtime
-- Shader compilation target 4.5 or above
-- Crest unfortunately does not support OpenGL or WebGL backends
+-  Unity Version: `UnityMinVersion`
+-  .NET 4.x runtime
+-  Shader compilation target 4.5 or above
+-  Crest unfortunately does not support OpenGL or WebGL backends
 
 .. only:: birp
 
-    .. tab:: `BIRP`
+   .. tab:: `BIRP`
 
-        - The `Crest` example content uses the post-processing package (for aesthetic reasons).
-          If this is not present in your project, you will see an unassigned script warning which you can fix by removing the offending script.
+      -  The `Crest` example content uses the post-processing package (for aesthetic reasons).
+        If this is not present in your project, you will see an unassigned script warning which you can fix by removing the offending script.
 
 .. only:: hdrp
 
-    .. tab:: `HDRP`
+   .. tab:: `HDRP`
 
-        - The minimum `HDRP` package version is `HDRPMinVersion`
+      -  The minimum `HDRP` package version is `HDRPMinVersion`
 
 .. only:: urp
 
-    .. tab:: `URP`
+   .. tab:: `URP`
 
-        - The minimum `URP` package version is `URPMinVersion`
+      -  The minimum `URP` package version is `URPMinVersion`
 
 
 Importing `Crest` files into project
@@ -77,24 +77,24 @@ Pipeline Setup
 
 .. only:: birp
 
-    .. tab:: `BIRP`
+   .. tab:: `BIRP`
 
-        .. include:: includes/_birp-vars.rst
-        .. include:: includes/_pipeline-setup.rst
+      .. include:: includes/_birp-vars.rst
+      .. include:: includes/_pipeline-setup.rst
 
 .. only:: hdrp
 
-    .. tab:: `HDRP`
+   .. tab:: `HDRP`
 
-        .. include:: includes/_hdrp-vars.rst
-        .. include:: includes/_pipeline-setup.rst
+      .. include:: includes/_hdrp-vars.rst
+      .. include:: includes/_pipeline-setup.rst
 
 .. only:: urp
 
-    .. tab:: `URP`
+   .. tab:: `URP`
 
-        .. include:: includes/_urp-vars.rst
-        .. include:: includes/_pipeline-setup.rst
+      .. include:: includes/_urp-vars.rst
+      .. include:: includes/_pipeline-setup.rst
 
 Switch to Linear space rendering under :menuselection:`Edit --> Project Settings --> Player --> Other Settings`.
 If your platform(s) require Gamma space (and providing your pipeline supports it), the material settings will need to be adjusted to compensate.
@@ -108,26 +108,26 @@ Importing Crest
 Import the `Crest` package into project using the *Asset Store* window in the Unity Editor.
 
 .. note::
-    The files under Crest-Examples are not required by our core functionality, but are provided for illustrative
-    purposes. We recommend first time users import them as they may provide useful guidance.
+   The files under Crest-Examples are not required by our core functionality, but are provided for illustrative
+   purposes. We recommend first time users import them as they may provide useful guidance.
 
 .. only:: birp
 
-    .. tab:: `BIRP`
+   .. tab:: `BIRP`
 
-        .. include:: includes/_importing-crest-birp.rst
+      .. include:: includes/_importing-crest-birp.rst
 
 .. only:: hdrp
 
-    .. tab:: `HDRP`
+   .. tab:: `HDRP`
 
-        .. include:: includes/_importing-crest-hdrp.rst
+      .. include:: includes/_importing-crest-hdrp.rst
 
 .. only:: urp
 
-    .. tab:: `URP`
+   .. tab:: `URP`
 
-        .. include:: includes/_importing-crest-urp.rst
+      .. include:: includes/_importing-crest-urp.rst
 
 .. TODO
 .. If you are starting from scratch we recommend selecting clicking \textit{NEW} in the Unity Hub Projects view and selecting the \textit{\SRPName{} RP} template.\\
@@ -143,27 +143,27 @@ Adding `Crest` to a Scene
 
 The steps to add an ocean to an existing scene are as follows:
 
-* Create a new *GameObject* for the ocean, give it a descriptive name such as *Ocean*.
+*  Create a new *GameObject* for the ocean, give it a descriptive name such as *Ocean*.
 
-  * Assign the *OceanRenderer* component to it.
-    On startup this component will generate the ocean geometry and do all required initialisation.
-  * Assign the desired ocean material to the *OceanRenderer* script - this is a material using the *Crest/Ocean* shader.
-  * Set the Y coordinate of the position to the desired sea level.
+   *  Assign the *OceanRenderer* component to it.
+      On startup this component will generate the ocean geometry and do all required initialisation.
+   *  Assign the desired ocean material to the *OceanRenderer* script - this is a material using the *Crest/Ocean* shader.
+   *  Set the Y coordinate of the position to the desired sea level.
 
-* Tag a primary camera as *MainCamera* if one is not tagged already, or provide the *Camera* to the *View Camera* property on the *OceanRenderer* script.
-  If you need to switch between multiple cameras, update the *ViewCamera* field to ensure the ocean follows the correct view.
-* Be sure to generate lighting if necessary. The ocean lighting takes the ambient intensity from the baked spherical
-  harmonics. It can be found at the following:
+*  Tag a primary camera as *MainCamera* if one is not tagged already, or provide the *Camera* to the *View Camera* property on the *OceanRenderer* script.
+   If you need to switch between multiple cameras, update the *ViewCamera* field to ensure the ocean follows the correct view.
+*  Be sure to generate lighting if necessary. The ocean lighting takes the ambient intensity from the baked spherical harmonics.
+   It can be found at the following:
 
-  :menuselection:`Window --> Rendering --> Lighting Settings --> Debug Settings --> Generate Lighting`
+   :menuselection:`Window --> Rendering --> Lighting Settings --> Debug Settings --> Generate Lighting`
 
-  .. tip:: You can check *Auto Generate* to ensure lighting is always generated.
+   .. tip:: You can check *Auto Generate* to ensure lighting is always generated.
 
-* To add waves, create a new GameObject and add the *Shape Gerstner Batched* component.
-  See :ref:`wave-conditions-section` section for customisation.
-* Any ocean seabed geometry needs mark up to register it with `Crest`. See section :ref:`shallows`.
-* If the camera needs to go underwater, the underwater effect must be configured.
-  See section :ref:`underwater` for instructions.
+*  To add waves, create a new GameObject and add the *Shape Gerstner Batched* component.
+   See :ref:`wave-conditions-section` section for customisation.
+*  Any ocean seabed geometry needs mark up to register it with `Crest`. See section :ref:`shallows`.
+*  If the camera needs to go underwater, the underwater effect must be configured.
+   See section :ref:`underwater` for instructions.
 
 
 .. Adding Waves
@@ -210,18 +210,18 @@ Try restarting Unity as a first step.
 
 .. only:: hdrp or urp
 
-    Compile errors in the log, not possible to enter play mode, visual issues in the scene
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   Compile errors in the log, not possible to enter play mode, visual issues in the scene
+   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-    Verify that render pipeline is installed and enabled in the settings. See the follow for documentation:
+   Verify that render pipeline is installed and enabled in the settings. See the follow for documentation:
 
-    .. only:: hdrp
+   .. only:: hdrp
 
-        :link:`Upgrading to {HDRP} <{HDRPDocLink}/Upgrading-To-HDRP.html>`
+      :link:`Upgrading to {HDRP} <{HDRPDocLink}/Upgrading-To-HDRP.html>`
 
-    .. only:: urp
+   .. only:: urp
 
-        :link:`Installing {URP} into a project <{URPDocLink}/InstallURPIntoAProject.html>`
+      :link:`Installing {URP} into a project <{URPDocLink}/InstallURPIntoAProject.html>`
 
 
 Possible to enter play mode, but errors appear in the log at runtime that mention missing 'kernels'
@@ -239,14 +239,14 @@ Ocean framerate low in edit mode
 
 .. only:: hdrp
 
-    Ocean surface appears blurred under motion `[HDRP]`
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   Ocean surface appears blurred under motion `[HDRP]`
+   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-    .. include:: includes/_hdrp-taa.rst
+   .. include:: includes/_hdrp-taa.rst
 
-    Ocean reflections/lighting/fog looks wrong `[HDRP]`
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   Ocean reflections/lighting/fog looks wrong `[HDRP]`
+   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-    If reflections appear wrong, it can be useful to make a simple test shadergraph with our water normal map applied to it, to compare results.
-    We provide a simple test shadergraph for debugging purposes - enable the *Apply test material* debug option on the *OceanRenderer* component to apply it.
-    If you find you are getting good results with a test shadergraph but not with our ocean shader, please report this to us.
+   If reflections appear wrong, it can be useful to make a simple test shadergraph with our water normal map applied to it, to compare results.
+   We provide a simple test shadergraph for debugging purposes - enable the *Apply test material* debug option on the *OceanRenderer* component to apply it.
+   If you find you are getting good results with a test shadergraph but not with our ocean shader, please report this to us.

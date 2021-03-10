@@ -3,13 +3,13 @@ Crest Ocean System
 
 .. only:: html
 
-  .. image:: https://readthedocs.org/projects/crest/badge/?version=latest
-    :target: https://crest.readthedocs.io/en/latest/?badge=latest
-    :alt: Documentation Status
+   .. image:: https://readthedocs.org/projects/crest/badge/?version=latest
+      :target: https://crest.readthedocs.io/en/latest/?badge=latest
+      :alt: Documentation Status
 
 .. only:: readthedocs
 
-  Test Message: This was built using Read The Docs.
+   Test Message: This was built using Read The Docs.
 
 Introduction
 ------------
@@ -20,24 +20,24 @@ It is also highly flexible and allows any custom input to the water shape/foam/d
 
 .. only:: html
 
-  This documentation is for `Crest` `AssetVersion`, and targets all rendering pipelines.
+   This documentation is for `Crest` `AssetVersion`, and targets all rendering pipelines.
 
 .. only:: latex
 
-  .. only:: birp
+   .. only:: birp
 
-    .. include:: user/includes/_birp-vars.rst
-    .. include:: user/includes/_documentation-stanza.rst
+      .. include:: user/includes/_birp-vars.rst
+      .. include:: user/includes/_documentation-stanza.rst
 
-  .. only:: hdrp
+   .. only:: hdrp
 
-    .. include:: user/includes/_hdrp-vars.rst
-    .. include:: user/includes/_documentation-stanza.rst
+      .. include:: user/includes/_hdrp-vars.rst
+      .. include:: user/includes/_documentation-stanza.rst
 
-  .. only:: urp
+   .. only:: urp
 
-    .. include:: user/includes/_urp-vars.rst
-    .. include:: user/includes/_documentation-stanza.rst
+      .. include:: user/includes/_urp-vars.rst
+      .. include:: user/includes/_documentation-stanza.rst
 
 
 Social
@@ -54,29 +54,29 @@ Assets
 ------
 
 .. panels::
-  :header: text-center
+   :header: text-center
 
-  ---
-  :img-top: https://assetstorev1-prd-cdn.unity3d.com/key-image/ae4a1e07-c6f1-4b2e-b1c3-9f2065d43515.jpg
+   ---
+   :img-top: https://assetstorev1-prd-cdn.unity3d.com/key-image/ae4a1e07-c6f1-4b2e-b1c3-9f2065d43515.jpg
 
-  Crest Ocean System URP
-  ^^^^^^^^^^^^^^^^^^^^^^
+   Crest Ocean System URP
+   ^^^^^^^^^^^^^^^^^^^^^^
 
-  .. link-button:: https://assetstore.unity.com/packages/tools/particles-effects/crest-ocean-system-urp-141674
-    :type: url
-    :text: Asset Store
-    :classes: btn-outline-primary btn-block stretched-link
+   .. link-button:: https://assetstore.unity.com/packages/tools/particles-effects/crest-ocean-system-urp-141674
+      :type: url
+      :text: Asset Store
+      :classes: btn-outline-primary btn-block stretched-link
 
-  ---
-  :img-top: https://assetstorev1-prd-cdn.unity3d.com/key-image/68d1442e-488d-4ae9-8ec4-a7e3ff913788.jpg
+   ---
+   :img-top: https://assetstorev1-prd-cdn.unity3d.com/key-image/68d1442e-488d-4ae9-8ec4-a7e3ff913788.jpg
 
-  Crest Ocean System HDRP
-  ^^^^^^^^^^^^^^^^^^^^^^^
+   Crest Ocean System HDRP
+   ^^^^^^^^^^^^^^^^^^^^^^^
 
-  .. link-button:: https://assetstore.unity.com/packages/tools/particles-effects/crest-ocean-system-hdrp-164158
-    :type: url
-    :text: Asset Store
-    :classes: btn-outline-primary btn-block stretched-link
+   .. link-button:: https://assetstore.unity.com/packages/tools/particles-effects/crest-ocean-system-hdrp-164158
+      :type: url
+      :text: Asset Store
+      :classes: btn-outline-primary btn-block stretched-link
 
 
 Read Me

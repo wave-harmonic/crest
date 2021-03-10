@@ -43,18 +43,18 @@ This renders with additive blend, but other blending modes are possible such as 
 
 The following input shaders are provided under *Crest/Inputs/Animated Waves*:
 
-* **Add From Texture** allows any kind of shape added to the surface from a texture.
-  Can ether be a heightmap texture (1 channel) or a 3 channel XYZ displacement texture.
-  Optionally the alpha channel can be used to write to subsurface scattering which increases the amount of light emitted from the water volume, which is useful for approximating light scattering.
-* **Add Water Height From Geometry** allows the sea level (average water height) to be offset some amount.
-  The top surface of the geometry will provide the water height, and the waves will apply on top.
-* **Push Water Under Convex Hull** pushes the water underneath the geometry.
-  Can be used to define a volume of space which should stay 'dry'.
-* **Set Water Height To Geometry** snaps the water surface to the top surface of the geometry.
-  Will override any waves.
-* **Wave Particle** is a 'bump' of water.
-  Many bumps can be combined to make interesting effects such as wakes for boats or choppy water.
-  Based loosely on http://www.cemyuksel.com/research/waveparticles/.
+-  **Add From Texture** allows any kind of shape added to the surface from a texture.
+   Can ether be a heightmap texture (1 channel) or a 3 channel XYZ displacement texture.
+   Optionally the alpha channel can be used to write to subsurface scattering which increases the amount of light emitted from the water volume, which is useful for approximating light scattering.
+-  **Add Water Height From Geometry** allows the sea level (average water height) to be offset some amount.
+   The top surface of the geometry will provide the water height, and the waves will apply on top.
+-  **Push Water Under Convex Hull** pushes the water underneath the geometry.
+   Can be used to define a volume of space which should stay 'dry'.
+-  **Set Water Height To Geometry** snaps the water surface to the top surface of the geometry.
+   Will override any waves.
+-  **Wave Particle** is a 'bump' of water.
+   Many bumps can be combined to make interesting effects such as wakes for boats or choppy water.
+   Based loosely on http://www.cemyuksel.com/research/waveparticles/.
 
 .. _dynamic-waves-section:
 
@@ -113,14 +113,14 @@ As noted above, the sim results will be copied into the dynamic waves LODs and t
 
 The following input shaders are provided under *Crest/Inputs/Dynamic Waves*:
 
-- **Add Bump** adds a round force to pull the surface up (or push it down).
+-  **Add Bump** adds a round force to pull the surface up (or push it down).
   This can be moved around to create interesting effects.
 
-- **Object Interaction** can be used in conjunction with the *ObjectWaterInteraction* script to simulate the interaction of an object with the water.
+-  **Object Interaction** can be used in conjunction with the *ObjectWaterInteraction* script to simulate the interaction of an object with the water.
   Can be used for boat wakes.
   See the boat example scenes.
 
-- **Sphere-Water Interaction** is a more specialized and accurate version of the *Object Interaction* input.
+-  **Sphere-Water Interaction** is a more specialized and accurate version of the *Object Interaction* input.
   It models the interaction between a sphere and takes into account how submerged the sphere is.
   Multiple spheres can be composed into compound shapes.
   See the *Spinner* object in the *boat.unity* example scene for an example.
@@ -153,22 +153,22 @@ This is also demonstrated in :numref:`adding-inputs-video`.
 
 The following input shaders are provided under *Crest/Inputs/Foam*:
 
-- **Add From Texture** adds foam values read from a user provided texture.
-  Can be useful for placing 'blobs' of foam as desired, or canbe moved around at runtime to paint foam into the sim.
+-  **Add From Texture** adds foam values read from a user provided texture.
+   Can be useful for placing 'blobs' of foam as desired, or canbe moved around at runtime to paint foam into the sim.
 
-- **Add From Vert Colours** can be applied to geometry and uses the red channel of vertex colours to add foam to the sim.
-  Similar in purpose to *Add From Texture*, but can be authored in a modelling workflow instead of requiring at texture.
+-  **Add From Vert Colours** can be applied to geometry and uses the red channel of vertex colours to add foam to the sim.
+   Similar in purpose to *Add From Texture*, but can be authored in a modelling workflow instead of requiring at texture.
 
-- **Override Foam** sets the foam to the provided value.
-  Useful for removing foam from unwanted areas.
+-  **Override Foam** sets the foam to the provided value.
+   Useful for removing foam from unwanted areas.
 
 
 General Settings
 ^^^^^^^^^^^^^^^^
 
-- **Foam Fade Rate** - How quickly foam dissipates.
-  Low values mean foam remains on surface for longer.
-  This setting should be balanced with the generation *strength* parameters below.
+-  **Foam Fade Rate** - How quickly foam dissipates.
+   Low values mean foam remains on surface for longer.
+   This setting should be balanced with the generation *strength* parameters below.
 
 
 Wave foam / whitecaps
@@ -176,11 +176,11 @@ Wave foam / whitecaps
 
 Crest detects where waves are 'pinched' and deposits foam to approximate whitecaps.
 
-- **Wave Foam Strength** - Scales intensity of foam generated from waves.
-  This setting should be balanced with the *Foam Fade Rate* setting.
+-  **Wave Foam Strength** - Scales intensity of foam generated from waves.
+   This setting should be balanced with the *Foam Fade Rate* setting.
 
-- **Wave Foam Coverage** - How much of the waves generate foam.
-  Higher values will lower the threshold for foam generation, giving a larger area.
+-  **Wave Foam Coverage** - How much of the waves generate foam.
+   Higher values will lower the threshold for foam generation, giving a larger area.
 
 
 Shoreline foam
@@ -188,15 +188,15 @@ Shoreline foam
 
 If water depth input is provided to the system (see **Sea Floor Depth** section below), the foam sim can automatically generate foam when water is very shallow, which can approximate accumulation of foam at shorelines.
 
-- **Shoreline Foam Max Depth** - Foam will be generated in water shallower than this depth.
-  Controls how wide the band of foam at the shoreline will be.
-  Note that this is not a distance to shoreline, but a threshold on water depth, so the width of the foam band can vary
-  based on terrain slope.
-  To address this limitation we allow foam to be manually added from geometry or from a texture, see the next
-  section.
+-  **Shoreline Foam Max Depth** - Foam will be generated in water shallower than this depth.
+   Controls how wide the band of foam at the shoreline will be.
+   Note that this is not a distance to shoreline, but a threshold on water depth, so the width of the foam band can vary
+   based on terrain slope.
+   To address this limitation we allow foam to be manually added from geometry or from a texture, see the next
+   section.
 
-- **Shoreline Foam Strength** - Scales intensity of foam generated in shallow water.
-  This setting should be balanced with the *Foam Fade Rate* setting.
+-  **Shoreline Foam Strength** - Scales intensity of foam generated in shallow water.
+   This setting should be balanced with the *Foam Fade Rate* setting.
 
 
 Adding custom foam areas
@@ -221,15 +221,15 @@ It is calculated by rendering the render geometry in the scene for each LOD from
 
 The following will contribute to ocean depth:
 
-- Objects that have the *RegisterSeaFloorDepthInput* component attached.
-  These objects will render every frame.
-  This is useful for any dynamically moving surfaces that need to generate shoreline foam, etcetera.
+-  Objects that have the *RegisterSeaFloorDepthInput* component attached.
+   These objects will render every frame.
+   This is useful for any dynamically moving surfaces that need to generate shoreline foam, etcetera.
 
-- It is also possible to place world space depth caches.
-  The scene objects will be rendered into this cache once, and the results saved.
-  Once the cache is populated it is then copied into the Sea Floor Depth LOD Data.
-  The cache has a gizmo that represents the extents of the cache (white outline) and the near plane of the camera that renders the depth (translucent rectangle).
-  The cache should be placed at sea level and rotated/scaled to encapsulate the terrain.
+-  It is also possible to place world space depth caches.
+   The scene objects will be rendered into this cache once, and the results saved.
+   Once the cache is populated it is then copied into the Sea Floor Depth LOD Data.
+   The cache has a gizmo that represents the extents of the cache (white outline) and the near plane of the camera that renders the depth (translucent rectangle).
+   The cache should be placed at sea level and rotated/scaled to encapsulate the terrain.
 
 When the water is e.g. 250m deep, this will start to dampen 500m wavelengths, so it is recommended that the sea floor drop down to around this depth away from islands so that there is a smooth transition between shallow and deep water without a visible boundary.
 
@@ -273,21 +273,21 @@ The Shadow LOD Data then reads these shadow maps and copies shadow information i
 
 .. only:: birp
 
-    .. tab:: `BIRP`
+   .. tab:: `BIRP`
 
-        .. include:: includes/_birp-shadows.rst
+      .. include:: includes/_birp-shadows.rst
 
 .. only:: hdrp
 
-    .. tab:: `HDRP`
+   .. tab:: `HDRP`
 
-        .. include:: includes/_hdrp-shadows.rst
+      .. include:: includes/_hdrp-shadows.rst
 
 .. only:: urp
 
-    .. tab:: `URP`
+   .. tab:: `URP`
 
-        .. include:: includes/_urp-shadows.rst
+      .. include:: includes/_urp-shadows.rst
 
 The shadow sim can be configured by assigning a Shadow Sim Settings asset to the OceanRenderer script in your scene (*Create/Crest/Shadow Sim Settings*).
 In particular, the soft shadows are very soft by default, and may not appear for small/thin shadow casters.

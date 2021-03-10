@@ -96,7 +96,7 @@ Wave Splines (preview)
 
 .. youtube:: JRzPcUP5aaA
 
-    Wave Splines
+   Wave Splines
 
 While it is possible to use the above steps to place localised waves in the world, we added a new system we call *Wave Splines* to make it easier and faster.
 

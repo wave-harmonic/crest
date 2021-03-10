@@ -83,12 +83,12 @@ This applies to both above water and underwater.
 
 .. only:: birp or urp
 
-    Does Crest support third party sky assets? `[BIRP] [URP]`
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-    We have heard of Crest users using TrueSky, AzureSky.
-    These may require some code to be inserted into the ocean shader - there is a comment referring to this, search Ocean.shader for 'Azure'.
+   Does Crest support third party sky assets? `[BIRP] [URP]`
+   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   We have heard of Crest users using TrueSky, AzureSky.
+   These may require some code to be inserted into the ocean shader - there is a comment referring to this, search Ocean.shader for 'Azure'.
 
-    Please see the Community Contributions section in our :link:`Wiki <{WikiLink}>` for some integration solutions.
+   Please see the Community Contributions section in our :link:`Wiki <{WikiLink}>` for some integration solutions.
 
 Can I remove water from inside my boat?
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -106,24 +106,24 @@ This is tricky because the underwater effect uses the opaque scene depths in ord
 
 .. only:: birp
 
-    .. tab:: `BIRP`
+   .. tab:: `BIRP`
 
-        .. include:: includes/_underwater-curtain-transparents.rst
+      .. include:: includes/_underwater-curtain-transparents.rst
 
 .. only:: hdrp
 
-    .. tab:: `HDRP`
+   .. tab:: `HDRP`
 
-        The Submarine example scene demonstrates an underwater transparent effect - the bubbles from the propellors when the submarine is in motion.
-        This effect is from the *Bubbles Propellor* GameObject, which is assigned a specific layer *TransparentFX*.
-        To drive the rendering, the *CustomPassForUnderwaterParticles* GameObject has a *Custom Pass Volume* component attached which is configured to render the *TransparentFX* layer in the *After Post Process* injection point, i.e. after the underwater postprocess has rendered.
-        Transparents rendered after the underwater postprocess will not have the underwater water fog shading applied to them.
-        The effect of the fog either needs to be faked by simply ramping the opacity down to 0 based on distance from the camera, or the water fog shader code needs included and called from teh transparent shader.
-        The shader *UnderwaterPostProcessHDRP.shader* is a good reference for calculating the underwater effect.
-        This will require various parameters on the shader like fog density and others.
+      The Submarine example scene demonstrates an underwater transparent effect - the bubbles from the propellors when the submarine is in motion.
+      This effect is from the *Bubbles Propellor* GameObject, which is assigned a specific layer *TransparentFX*.
+      To drive the rendering, the *CustomPassForUnderwaterParticles* GameObject has a *Custom Pass Volume* component attached which is configured to render the *TransparentFX* layer in the *After Post Process* injection point, i.e. after the underwater postprocess has rendered.
+      Transparents rendered after the underwater postprocess will not have the underwater water fog shading applied to them.
+      The effect of the fog either needs to be faked by simply ramping the opacity down to 0 based on distance from the camera, or the water fog shader code needs included and called from teh transparent shader.
+      The shader *UnderwaterPostProcessHDRP.shader* is a good reference for calculating the underwater effect.
+      This will require various parameters on the shader like fog density and others.
 
 .. only:: urp
 
-    .. tab:: `URP`
+   .. tab:: `URP`
 
-        .. include:: includes/_underwater-curtain-transparents.rst
+      .. include:: includes/_underwater-curtain-transparents.rst

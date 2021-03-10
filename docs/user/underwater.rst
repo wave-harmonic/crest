@@ -4,7 +4,7 @@ Underwater
 ==========
 
 .. TODO: I have placed common documentation before pipeline specific documentation. Need to fix.
-.. TODO: Mention meniscus
+.. TODO: Mention meniscus (BIRP/URP only)
 
 *Crest* supports seamless transitions above/below water.
 It can also render a meniscus (seam).

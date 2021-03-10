@@ -83,15 +83,18 @@ Subsurface Scattering
 Shallow Scattering
 ^^^^^^^^^^^^^^^^^^
 
+The water colour can be varied in shallow water (this requires a depth cache created so that the system knows which areas are shallow, see section :ref:`shallows`).
+
 .. line_block::
 
   .. only:: birp or urp
 
     | **Enable** Enable light scattering in shallow water. `[BIRP] [URP]`
 
-  | **Scatter Colour Shallow** Colour in shallow water.
-  | **Scatter Colour Depth Max** Max depth that is considered 'shallow'.
-  | **Scatter Colour Depth Falloff** Fall off of shallow scattering.
+  | **Scatter Colour Shallow** Scatter colour used for shallow water.
+  | **Scatter Colour Depth Max** Maximum water depth that is considered 'shallow', in metres.
+    Water that is deeper than this depth is not affected by shallow colour.
+  | **Scatter Colour Depth Falloff** Fall-off of shallow scattering, which gives control over the appearance of the transition from shallow to deep.
 
   .. only:: birp or urp
 

@@ -40,7 +40,7 @@ Material Parameters
 Normal Mapping
 ^^^^^^^^^^^^^^
 
-.. line-block::
+.. line_block::
 
   .. only:: birp or urp
 
@@ -54,7 +54,7 @@ Normal Mapping
 Scattering
 ^^^^^^^^^^
 
-.. line-block::
+.. line_block::
 
   | **Scatter Colour Base** Base colour when looking straight down into water.
 
@@ -68,7 +68,7 @@ Scattering
 Subsurface Scattering
 ^^^^^^^^^^^^^^^^^^^^^
 
-.. line-block::
+.. line_block::
 
   .. only:: birp or urp
 
@@ -83,7 +83,7 @@ Subsurface Scattering
 Shallow Scattering
 ^^^^^^^^^^^^^^^^^^
 
-.. line-block::
+.. line_block::
 
   .. only:: birp or urp
 
@@ -101,7 +101,7 @@ Shallow Scattering
 Reflection Environment
 ^^^^^^^^^^^^^^^^^^^^^^
 
-.. line-block::
+.. line_block::
 
   | **Specular** Strength of specular lighting response.
 
@@ -189,7 +189,7 @@ Reflection Environment
 Foam
 ^^^^
 
-.. line-block::
+.. line_block::
 
   | **Enable** Enable foam layer on ocean surface.
   | **Foam** Foam texture.
@@ -220,7 +220,7 @@ Foam
 Foam 3D Lighting
 ^^^^^^^^^^^^^^^^
 
-.. line-block::
+.. line_block::
 
   .. only:: birp or urp
 
@@ -245,7 +245,7 @@ Foam Bubbles
 Transparency
 ^^^^^^^^^^^^
 
-.. line-block::
+.. line_block::
 
   .. only:: birp or urp
 
@@ -271,7 +271,7 @@ Caustics
 Underwater
 ^^^^^^^^^^
 
-.. line-block::
+.. line_block::
 
   .. only:: birp or urp
 

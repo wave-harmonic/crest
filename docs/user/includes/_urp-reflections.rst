@@ -2,17 +2,17 @@ The Index of Refraction settings control how much reflection contributes for dif
 
 The base reflection comes from a one of these sources:
 
-- Unity's specular cubemap.
-  This is the default and is the same as what is applied to glossy objects in the scene.
-  It will support reflection probes, as long as the probe extents cover the ocean tiles, which enables real-time update of the reflection environment (see Unity documentation for more details).
+-  Unity's specular cubemap.
+   This is the default and is the same as what is applied to glossy objects in the scene.
+   It will support reflection probes, as long as the probe extents cover the ocean tiles, which enables real-time update of the reflection environment (see Unity documentation for more details).
 
 .. NOTE: This feature was removed.
-.. - Override reflection cubemap.
-..   If desired a cubemap can be provided to use for the reflections.
-..   For best results supply a HDR cubemap.
+.. -  Override reflection cubemap.
+..    If desired a cubemap can be provided to use for the reflections.
+..    For best results supply a HDR cubemap.
 
-- Procedural skybox.
-  Developed for stylized games, this is a simple approximation of sky colours that will give soft results.
+-  Procedural skybox.
+   Developed for stylized games, this is a simple approximation of sky colours that will give soft results.
 
 This base reflection can then be overridden by dynamic planar reflections.
 This can be used to augment the reflection with 3D objects such as boat or terrain.

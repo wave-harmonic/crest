@@ -28,7 +28,7 @@ A primary reason why *SampleHeightHelper* is useful is that it is an object in i
 
 .. important::
 
-    Queries should only be made once per frame from an owner - querying a second time using the same ID will stomp over the last query points.
+   Queries should only be made once per frame from an owner - querying a second time using the same ID will stomp over the last query points.
 
 Secondly, even if only a one-time query of the height is needed, the query function should be called every frame until it indicates that the results were successfully retrieved.
 See *SampleHeightHelper* and its usages in the code - its *Sample()* function should be called until it returns true.

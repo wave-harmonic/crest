@@ -93,3 +93,9 @@ This applies to both above water and underwater.
 Can I remove water from inside my boat?
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Yes, this is referred to as 'clipping' and is covered in section :ref:`clip-surface-section`.
+
+How to implement a swimming character?
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+As far as we know, existing character controller assets which support swimming do not support waves (they require a volume for the water or physics mesh for the water surface).
+We have an efficient API to provide water heights, which the character controller could use instead of a physics volume.
+Please request support for custom water height providers to your favourite character controller asset dev.

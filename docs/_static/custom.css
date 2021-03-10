@@ -57,18 +57,18 @@
 /* Dark Theme Integration for Search
 /****************************************************************************/
 
-.search__outer
-{
-    position: relative;
-}
-
 .search__outer::before
 {
     content: "";
     position: absolute;
-    left: var(--sidebar-item-spacing-horizontal);
+    /* left: var(--sidebar-item-spacing-horizontal);
     width: var(--sidebar-search-icon-size);
-    height: var(--sidebar-search-icon-size);
+    height: var(--sidebar-search-icon-size); */
+    left: 0.5rem;
+    width: 1.5rem;
+    height: 1.5rem;
+    background-color: var(--color-sidebar-search-icon);
+    mask-image: var(--icon-search);
 }
 
 .search__outer,

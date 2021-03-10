@@ -62,8 +62,9 @@
     content: "";
     position: absolute;
     left: 0.5rem;
-    width: 1.5rem;
-    height: 1.5rem;
+    top: 0.75rem;
+    width: 1.25rem;
+    height: 1.25rem;
     background-color: var(--color-sidebar-search-icon);
     -webkit-mask-image: var(--icon-search);
     mask-image: var(--icon-search);
@@ -90,6 +91,10 @@
     background-color: transparent !important;
     color: var(--color-foreground-primary) !important;
     background-image: var(--icon-search) !important;
+    padding-top: 0.4rem !important;
+    padding-bottom: 0.5rem !important;
+    height: auto !important;
+    padding-left: 1.5rem !important;
 }
 
 .search__outer__input
@@ -107,6 +112,11 @@
     border-color: var(--color-foreground-border) !important;
 }
 
+.search__outer .search__result__content span
+{
+    background-color: var(--color-highlighted-background) !important;
+    border-bottom-color: var(--color-foreground) !important;
+}
 
 /****************************************************************************/
 /* Dark Theme Integration for Image Zoom

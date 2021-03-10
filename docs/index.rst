@@ -79,15 +79,21 @@ Assets
     :classes: btn-outline-primary btn-block stretched-link
 
 
-User Guide
-----------
+Read Me
+-------
 
 .. NOTE: toctree must be indented with three spaces!
 
 .. toctree::
-   :hidden:
+   :numbered: 1
+   :titlesonly:
+   :caption: Read Me
 
    self
+   user/history
+
+User Guide
+----------
 
 .. toctree::
    :numbered:

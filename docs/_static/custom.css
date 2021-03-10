@@ -25,6 +25,11 @@
     padding-right: 0 !important;
 }
 
+/* Disable extension styling. */
+.hoverxref
+{
+    border-bottom: none !important;
+}
 
 /****************************************************************************/
 /* 16:9 Aspect Ration YouTube Embeds                                        */
@@ -52,6 +57,19 @@
     height: 100%;
 }
 
+/****************************************************************************/
+/* Dark Theme Integration for HoverXRef
+/****************************************************************************/
+
+.tooltipster-box
+{
+    background-color: var(--color-background-primary) !important;
+}
+
+.tooltipster-content
+{
+    color: var(--color-foreground-primary) !important;
+}
 
 /****************************************************************************/
 /* Dark Theme Integration for Search

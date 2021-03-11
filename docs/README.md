@@ -14,9 +14,24 @@ Try and align where possible, for example with lists:
 
 Finally, please use one line per sentence. This helps with version control.
 
-## Setting Up Development
+## Build HTML or PDF
 
-## Creating PDFs
+1. Install [Python for Windows](https://www.python.org/downloads/) (should have it already for other OS)
+    1. Check the *Add Python to Path* option
+2. Install LaTex for [Windows](https://mg.readthedocs.io/latexmk.html) or [Other OS](https://www.latex-project.org/get/)
+    1. If you already have LaTex, then make sure it is in the PATH and skip this step
+3. Open a command prompt in the *docs* directory
+4. `pip install -r requirements.txt`
+
+5. `make html` for HTML and `make pdf` for PDFs
+    1. For `make pdf`, you will need to install any missing packages that it reports (for MikTex)
+    2. PDFs should be in *_build*
+6. `make serve` to self host to preview HTML (`make live` for live reload)
+
+When editing static files, generally you will need to do a `make clean html` to rebuild to see the updates.
+`make clean` is your friend for both HTML and PDF when you are not seeing changes you think you should be seeing.
+
+RTDs will rebuild automatically on git push.
 
 ## Custom Features
 

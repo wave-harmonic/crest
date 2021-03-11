@@ -8,7 +8,7 @@ Shorelines and Shallows
     *Layer Names* (String[]) has changed to *Layers* (LayerMask).
 
 *Crest* requires water depth information to attenuate large waves in shallow water, to generate foam near shorelines, and to provide shallow water shading.
-The way this information is typically generated is through the *OceanDepthCache* component, which takes one or more layers, and renders everything in those layers from a top-down orthographic view to generate a heightfield for the seabed.
+The way this information is typically generated is through the *OceanDepthCache* component, which takes one or more layers, and renders everything in those layers (and within its bounds) from a top-down orthographic view to generate a heightfield for the seabed.
 These layers could contain the render geometry/terrains, or it could be geometry that is placed in a non-rendered layer that serves only to populate the depth cache.
 By default this generation is done at run-time during startup, but the component exposes other options such as generating offline and saving to an asset, or rendering on demand.
 
@@ -37,6 +37,7 @@ The following are the key points of its configuration:
    If gizmos are visible and the cache is selected, this cutoff is visualised as a translucent gray rectangle.
 -  The *Layers* field contains the layer that the island is assigned to (*Terrain* in our project).
    Only objects in these layer(s) will render into the cache.
+-  Both the transform scale (white rectangle) and the *Layers* property determine what will be rendered into the cache.
 
 By default the cache is populated in the *Start()* function.
 It can instead be configured to populate from script by setting the *Refresh Mode* to *On Demand* and calling the *PopulateCache()* method on the component from script.

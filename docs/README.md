@@ -33,6 +33,17 @@ When editing static files, generally you will need to do a `make clean html` to 
 
 RTDs will rebuild automatically on git push.
 
+## Extensions
+
+- [Furo Theme](https://pradyunsg.me/furo)
+- [Sphinx Inline Tabs](https://sphinx-inline-tabs.readthedocs.io/en/latest/)
+- [Sphinx Hoverxref](https://sphinx-hoverxref.readthedocs.io/en/latest/)
+- [Sphinx Search](https://readthedocs-sphinx-search.readthedocs.io/en/latest/)
+- [Sphinx Panels](https://sphinx-panels.readthedocs.io/en/latest/)
+- [Sphinx Issues](https://github.com/sloria/sphinx-issues)
+
+Some of these are custom forks. See requirements.txt to see which ones.
+
 ## Custom Features
 
 ### Get/Set Extension

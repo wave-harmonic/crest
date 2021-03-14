@@ -1,4 +1,8 @@
-﻿using UnityEngine;
+﻿// Crest Ocean System
+
+// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
+
+using UnityEngine;
 
 namespace Crest
 {
@@ -8,13 +12,13 @@ namespace Crest
     /// </summary>
     public class RayTraceHelper
     {
-        SamplingData _samplingData = new SamplingData();
         Vector3[] _queryPos;
         Vector3[] _queryResult;
 
         float _rayLength;
         float _rayStepSize;
-        bool _valid = false;
+
+        float _minLength = 0f;
 
         /// <summary>
         /// Constructor. The length of the ray and the step size must be given here. The smaller the step size, the greater the accuracy.
@@ -44,9 +48,9 @@ namespace Crest
         /// <summary>
         /// Call this each frame to initialize the trace.
         /// </summary>
-        /// <param name="i_rayOrigin">World space position ray origin</param>
-        /// <param name="i_rayDirection">World space position ray direction</param>
-        public bool Init(Vector3 i_rayOrigin, Vector3 i_rayDirection)
+        /// <param name="i_rayOrigin">World space position of ray origin</param>
+        /// <param name="i_rayDirection">World space ray direction</param>
+        public void Init(Vector3 i_rayOrigin, Vector3 i_rayDirection)
         {
             for (int i = 0; i < _queryPos.Length; i++)
             {
@@ -60,9 +64,7 @@ namespace Crest
             rect.yMax = Mathf.Max(_queryPos[0].z, _queryPos[_queryPos.Length - 1].z);
 
             // Waves go max double along min length. Thats too much - only allow half of a wave per step.
-            var minLength = _rayStepSize * 4f;
-
-            return _valid = OceanRenderer.Instance.CollisionProvider.GetSamplingData(ref rect, minLength, _samplingData);
+            _minLength = _rayStepSize * 4f;
         }
 
         /// <summary>
@@ -74,18 +76,10 @@ namespace Crest
         {
             o_distance = -1f;
 
-            if (!_valid)
-            {
-                return false;
-            }
-
-            var status = OceanRenderer.Instance.CollisionProvider.Query(GetHashCode(), _samplingData, _queryPos, _queryResult, null, null);
-
-            OceanRenderer.Instance.CollisionProvider.ReturnSamplingData(_samplingData);
+            var status = OceanRenderer.Instance.CollisionProvider.Query(GetHashCode(), _minLength, _queryPos, _queryResult, null, null);
 
             if (!OceanRenderer.Instance.CollisionProvider.RetrieveSucceeded(status))
             {
-                _valid = false;
                 return false;
             }
 

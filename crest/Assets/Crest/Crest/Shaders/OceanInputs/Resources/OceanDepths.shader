@@ -16,7 +16,8 @@ Shader "Crest/Inputs/Depth/Ocean Depth From Geometry"
 			#pragma fragment Frag
 
 			#include "UnityCG.cginc"
-			#include "../../OceanLODData.hlsl"
+
+			#include "../../OceanGlobals.hlsl"
 
 			struct Attributes
 			{
@@ -41,9 +42,9 @@ Shader "Crest/Inputs/Depth/Ocean Depth From Geometry"
 				return o;
 			}
 
-			float Frag(Varyings input) : SV_Target
+			float4 Frag(Varyings input) : SV_Target
 			{
-				return input.depth;
+				return float4(input.depth, 0.0, 0.0, 0.0);
 			}
 			ENDCG
 		}

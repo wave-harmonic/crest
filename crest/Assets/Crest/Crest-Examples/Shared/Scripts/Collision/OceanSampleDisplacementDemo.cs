@@ -1,4 +1,6 @@
-﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
+﻿// Crest Ocean System
+
+// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 using Crest;
 using UnityEngine;
@@ -19,12 +21,15 @@ public class OceanSampleDisplacementDemo : MonoBehaviour
     Vector3[] _resultNorms = new Vector3[3];
     Vector3[] _resultVels = new Vector3[3];
 
-    SamplingData _samplingData = new SamplingData();
-
     float _samplesRadius = 5f;
 
     void Update()
     {
+        if (OceanRenderer.Instance == null)
+        {
+            return;
+        }
+
         if (_trackCamera)
         {
             var height = Mathf.Abs(Camera.main.transform.position.y - OceanRenderer.Instance.SeaLevel);
@@ -35,20 +40,9 @@ public class OceanSampleDisplacementDemo : MonoBehaviour
             _markerPos[2] = Camera.main.transform.position + Camera.main.transform.forward * offset + _samplesRadius * Vector3.forward;
         }
 
-        if (OceanRenderer.Instance == null)
-        {
-            return;
-        }
-
         var collProvider = OceanRenderer.Instance.CollisionProvider;
 
-        var rect = new Rect(_markerPos[0].x - _samplesRadius, _markerPos[0].z + _samplesRadius, 2f * _samplesRadius, 2f * _samplesRadius);
-        if (!collProvider.GetSamplingData(ref rect, _minGridSize, _samplingData))
-        {
-            return;
-        }
-
-        var status = collProvider.Query(GetHashCode(), _samplingData, _markerPos, _resultDisps, _resultNorms, _resultVels);
+        var status = collProvider.Query(GetHashCode(), _minGridSize, _markerPos, _resultDisps, _resultNorms, _resultVels);
 
         if (collProvider.RetrieveSucceeded(status))
         {

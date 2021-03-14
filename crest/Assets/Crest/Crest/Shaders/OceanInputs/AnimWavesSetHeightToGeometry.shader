@@ -11,44 +11,55 @@ Shader "Crest/Inputs/Animated Waves/Set Water Height To Geometry"
 		[Enum(ColorWriteMask)] _ColorWriteMask("Color Write Mask", Int) = 15
 	}
 
- 	SubShader
+	SubShader
 	{
- 		Pass
+		Pass
 		{
 			Blend Off
 			ColorMask [_ColorWriteMask]
 
- 			CGPROGRAM
+			CGPROGRAM
 			#pragma vertex Vert
 			#pragma fragment Frag
 
- 			#include "UnityCG.cginc"
-			#include "../OceanLODData.hlsl"
+			#include "UnityCG.cginc"
 
- 			struct Attributes
+			#include "../OceanGlobals.hlsl"
+
+			CBUFFER_START(CrestPerOceanInput)
+			float _Weight;
+			float3 _DisplacementAtInputPosition;
+			CBUFFER_END
+
+			struct Attributes
 			{
 				float3 positionOS : POSITION;
 			};
 
- 			struct Varyings
+			struct Varyings
 			{
 				float4 positionCS : SV_POSITION;
 				float3 worldPos : TEXCOORD0;
 			};
 
- 			Varyings Vert(Attributes input)
+			Varyings Vert(Attributes input)
 			{
 				Varyings o;
-				o.positionCS = UnityObjectToClipPos(input.positionOS);
-				o.worldPos = mul(unity_ObjectToWorld, float4(input.positionOS, 1.0));
+				
+				o.worldPos = mul(unity_ObjectToWorld, float4(input.positionOS, 1.0)).xyz;
+				// Correct for displacement
+				o.worldPos.xz -= _DisplacementAtInputPosition.xz;
+				
+				o.positionCS = mul(UNITY_MATRIX_VP, float4(o.worldPos, 1.0));
+
 				return o;
 			}
 
- 			half4 Frag(Varyings input) : SV_Target
+			half4 Frag(Varyings input) : SV_Target
 			{
 				// Write displacement to get from sea level of ocean to the y value of this geometry
 				float height = input.worldPos.y - _OceanCenterPosWorld.y;
-				return half4(0.0, height, 0.0, 0.0);
+				return half4(0.0, _Weight * height, 0.0, 0.0);
 			}
 			ENDCG
 		}

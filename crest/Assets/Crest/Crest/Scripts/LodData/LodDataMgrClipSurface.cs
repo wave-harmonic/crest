@@ -1,0 +1,90 @@
+﻿// Crest Ocean System
+
+// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
+
+using UnityEngine;
+using UnityEngine.Experimental.Rendering;
+using UnityEngine.Rendering;
+
+namespace Crest
+{
+    /// <summary>
+    /// Drives ocean surface clipping (carving holes). 0-1 values, surface clipped when > 0.5.
+    /// </summary>
+    public class LodDataMgrClipSurface : LodDataMgr
+    {
+        public override string SimName { get { return "ClipSurface"; } }
+
+        // The clip values only really need 8bits
+        protected override GraphicsFormat RequestedTextureFormat => GraphicsFormat.R8_UNorm;
+        protected override bool NeedToReadWriteTextureData { get { return true; } }
+
+        internal const string MATERIAL_KEYWORD = "_CLIPSURFACE_ON";
+        internal const string ERROR_MATERIAL_KEYWORD_MISSING = "Clipping must be enabled on the ocean material to enable clipping holes in the water surface. Tick the <i>Enable</i> option in the <i>Clip Surface</i> parameter section on the material currently assigned to the OceanRenderer component.";
+        internal const string ERROR_MATERIAL_KEYWORD_ON_FEATURE_OFF = "The clipping feature is disabled on this component but is enabled on the ocean material. If this is not intentional, either enable the <i>Create Clip Surface Data</i> option on this component to turn it on, or disable the Clipping feature on the ocean material to save performance.";
+
+        bool _targetsClear = false;
+
+        public LodDataMgrClipSurface(OceanRenderer ocean) : base(ocean)
+        {
+            Start();
+        }
+
+        public override void Start()
+        {
+            base.Start();
+
+#if UNITY_EDITOR
+            if (!OceanRenderer.Instance.OceanMaterial.IsKeywordEnabled(LodDataMgrClipSurface.MATERIAL_KEYWORD))
+            {
+                Debug.LogWarning(ERROR_MATERIAL_KEYWORD_MISSING, _ocean);
+            }
+#endif
+        }
+
+        public override void BuildCommandBuffer(OceanRenderer ocean, CommandBuffer buf)
+        {
+            base.BuildCommandBuffer(ocean, buf);
+
+            // If there is nothing in the scene tagged up for depth rendering, and we have cleared the RTs, then we can early out
+            var drawList = RegisterLodDataInputBase.GetRegistrar(GetType());
+            if (drawList.Count == 0 && _targetsClear)
+            {
+                return;
+            }
+
+            for (int lodIdx = OceanRenderer.Instance.CurrentLodCount - 1; lodIdx >= 0; lodIdx--)
+            {
+                buf.SetRenderTarget(_targets, 0, CubemapFace.Unknown, lodIdx);
+                var defaultToClip = OceanRenderer.Instance._defaultClippingState == OceanRenderer.DefaultClippingState.EverythingClipped;
+                buf.ClearRenderTarget(false, true, defaultToClip ? Color.white : Color.black);
+                buf.SetGlobalInt(sp_LD_SliceIndex, lodIdx);
+                SubmitDraws(lodIdx, buf);
+            }
+
+            // Targets are only clear if nothing was drawn
+            _targetsClear = drawList.Count == 0;
+        }
+
+        readonly static string s_textureArrayName = "_LD_TexArray_ClipSurface";
+        private static TextureArrayParamIds s_textureArrayParamIds = new TextureArrayParamIds(s_textureArrayName);
+        public static int ParamIdSampler(bool sourceLod = false) { return s_textureArrayParamIds.GetId(sourceLod); }
+        protected override int GetParamIdSampler(bool sourceLod = false)
+        {
+            return ParamIdSampler(sourceLod);
+        }
+        public static void BindNull(IPropertyWrapper properties)
+        {
+            properties.SetTexture(ParamIdSampler(), TextureArrayHelpers.BlackTextureArray);
+        }
+
+#if UNITY_2019_3_OR_NEWER
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+#endif
+        static void InitStatics()
+        {
+            // Init here from 2019.3 onwards
+            s_textureArrayParamIds = new TextureArrayParamIds(s_textureArrayName);
+        }
+    }
+}

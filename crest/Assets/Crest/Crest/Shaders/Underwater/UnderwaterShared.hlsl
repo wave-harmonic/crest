@@ -7,7 +7,7 @@
 
 #define CREST_MAX_UPDOWN_AMOUNT 0.8
 
-float IntersectRayWithWaterSurface(const float3 pos, const float3 dir)
+float IntersectRayWithWaterSurface(const float3 pos, const float3 dir, in const CascadeParams cascadeData)
 {
 	// Find intersection of the near plane and the water surface at this vert using FPI. See here for info about
 	// FPI http://www.huwbowles.com/fpi-gdc-2016/
@@ -19,8 +19,8 @@ float IntersectRayWithWaterSurface(const float3 pos, const float3 dir)
 	{
 		// Sample displacement textures, add results to current world pos / normal / foam
 		disp = float3(sampleXZ.x, _OceanCenterPosWorld.y, sampleXZ.y);
-		half sss = 0.;
-		SampleDisplacements(_LD_TexArray_AnimatedWaves, WorldToUV(sampleXZ), 1.0, disp, sss);
+		const float3 uv = WorldToUV(sampleXZ, cascadeData, _LD_SliceIndex);
+		SampleDisplacements(_LD_TexArray_AnimatedWaves, uv, 1.0, disp);
 		float3 nearestPointOnRay = pos + dir * dot(disp - pos, dir);
 		const float2 error = disp.xz - nearestPointOnRay.xz;
 		sampleXZ -= error;
@@ -28,8 +28,8 @@ float IntersectRayWithWaterSurface(const float3 pos, const float3 dir)
 	{
 		// Sample displacement textures, add results to current world pos / normal / foam
 		disp = float3(sampleXZ.x, _OceanCenterPosWorld.y, sampleXZ.y);
-		half sss = 0.;
-		SampleDisplacements(_LD_TexArray_AnimatedWaves, WorldToUV(sampleXZ), 1.0, disp, sss);
+		const float3 uv = WorldToUV(sampleXZ, cascadeData, _LD_SliceIndex);
+		SampleDisplacements(_LD_TexArray_AnimatedWaves, uv, 1.0, disp);
 		float3 nearestPointOnRay = pos + dir * dot(disp - pos, dir);
 		const float2 error = disp.xz - nearestPointOnRay.xz;
 		sampleXZ -= error;
@@ -37,8 +37,8 @@ float IntersectRayWithWaterSurface(const float3 pos, const float3 dir)
 	{
 		// Sample displacement textures, add results to current world pos / normal / foam
 		disp = float3(sampleXZ.x, _OceanCenterPosWorld.y, sampleXZ.y);
-		half sss = 0.;
-		SampleDisplacements(_LD_TexArray_AnimatedWaves, WorldToUV(sampleXZ), 1.0, disp, sss);
+		const float3 uv = WorldToUV(sampleXZ, cascadeData, _LD_SliceIndex);
+		SampleDisplacements(_LD_TexArray_AnimatedWaves, uv, 1.0, disp);
 		float3 nearestPointOnRay = pos + dir * dot(disp - pos, dir);
 		const float2 error = disp.xz - nearestPointOnRay.xz;
 		sampleXZ -= error;
@@ -46,8 +46,8 @@ float IntersectRayWithWaterSurface(const float3 pos, const float3 dir)
 	{
 		// Sample displacement textures, add results to current world pos / normal / foam
 		disp = float3(sampleXZ.x, _OceanCenterPosWorld.y, sampleXZ.y);
-		half sss = 0.;
-		SampleDisplacements(_LD_TexArray_AnimatedWaves, WorldToUV(sampleXZ), 1.0, disp, sss);
+		const float3 uv = WorldToUV(sampleXZ, cascadeData, _LD_SliceIndex);
+		SampleDisplacements(_LD_TexArray_AnimatedWaves, uv, 1.0, disp);
 		float3 nearestPointOnRay = pos + dir * dot(disp - pos, dir);
 		const float2 error = disp.xz - nearestPointOnRay.xz;
 		sampleXZ -= error;
@@ -55,8 +55,8 @@ float IntersectRayWithWaterSurface(const float3 pos, const float3 dir)
 	{
 		// Sample displacement textures, add results to current world pos / normal / foam
 		disp = float3(sampleXZ.x, _OceanCenterPosWorld.y, sampleXZ.y);
-		half sss = 0.;
-		SampleDisplacements(_LD_TexArray_AnimatedWaves, WorldToUV(sampleXZ), 1.0, disp, sss);
+		const float3 uv = WorldToUV(sampleXZ, cascadeData, _LD_SliceIndex);
+		SampleDisplacements(_LD_TexArray_AnimatedWaves, uv, 1.0, disp);
 		float3 nearestPointOnRay = pos + dir * dot(disp - pos, dir);
 		const float2 error = disp.xz - nearestPointOnRay.xz;
 		sampleXZ -= error;
@@ -64,8 +64,8 @@ float IntersectRayWithWaterSurface(const float3 pos, const float3 dir)
 	{
 		// Sample displacement textures, add results to current world pos / normal / foam
 		disp = float3(sampleXZ.x, _OceanCenterPosWorld.y, sampleXZ.y);
-		half sss = 0.;
-		SampleDisplacements(_LD_TexArray_AnimatedWaves, WorldToUV(sampleXZ), 1.0, disp, sss);
+		const float3 uv = WorldToUV(sampleXZ, cascadeData, _LD_SliceIndex);
+		SampleDisplacements(_LD_TexArray_AnimatedWaves, uv, 1.0, disp);
 		float3 nearestPointOnRay = pos + dir * dot(disp - pos, dir);
 		const float2 error = disp.xz - nearestPointOnRay.xz;
 		sampleXZ -= error;

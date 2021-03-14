@@ -3,9 +3,6 @@
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 #if _PROCEDURALSKY_ON
-uniform half3 _SkyBase, _SkyAwayFromSun, _SkyTowardsSun;
-uniform half _SkyDirectionality;
-
 half3 SkyProceduralDP(in const half3 i_refl, in const half3 i_lightDir)
 {
 	half dp = dot(i_refl, i_lightDir);
@@ -22,34 +19,16 @@ half3 SkyProceduralDP(in const half3 i_refl, in const half3 i_lightDir)
 #endif
 
 #if _PLANARREFLECTIONS_ON
-uniform sampler2D _ReflectionTex;
-half _PlanarReflectionNormalsStrength;
-
 void PlanarReflection(in const half4 i_screenPos, in const half3 i_n_pixel, inout half3 io_colour)
 {
 	half4 screenPos = i_screenPos;
 	screenPos.xy += _PlanarReflectionNormalsStrength * i_n_pixel.xz;
 	half4 refl = tex2Dproj(_ReflectionTex, UNITY_PROJ_COORD(screenPos));
-	io_colour = lerp(io_colour, refl.rgb, refl.a);
+	// If more than four layers are used on terrain, they will appear black if HDR is enabled on the planar reflection
+	// camera. Reflection alpha is probably a negative value.
+	io_colour = lerp(io_colour, refl.rgb, _PlanarReflectionIntensity * saturate(refl.a));
 }
 #endif // _PLANARREFLECTIONS_ON
-
-#if _OVERRIDEREFLECTIONCUBEMAP_ON
-samplerCUBE _ReflectionCubemapOverride;
-#endif // _OVERRIDEREFLECTIONCUBEMAP_ON
-
-uniform half _Specular;
-uniform half _FresnelPower;
-uniform float  _RefractiveIndexOfAir;
-uniform float  _RefractiveIndexOfWater;
-
-
-#if _COMPUTEDIRECTIONALLIGHT_ON
-uniform half _DirectionalLightFallOff;
-uniform half _DirectionalLightFarDistance;
-uniform half _DirectionalLightFallOffFar;
-uniform half _DirectionalLightBoost;
-#endif
 
 float CalculateFresnelReflectionCoefficient(float cosTheta)
 {
@@ -82,9 +61,26 @@ void ApplyReflectionSky(in const half3 i_view, in const half3 i_n_pixel, in cons
 	half4 val = texCUBE(_ReflectionCubemapOverride, refl);
 	skyColour = val.rgb;
 #else
-	// Unity specular reflection cubemap
-	half4 val = UNITY_SAMPLE_TEXCUBE_LOD(unity_SpecCube0, refl, 0.);
-	skyColour = DecodeHDR(val, unity_SpecCube0_HDR);
+	Unity_GlossyEnvironmentData envData;
+	envData.roughness = _Roughness;
+	envData.reflUVW = refl;
+	float3 probe0 = Unity_GlossyEnvironment(UNITY_PASS_TEXCUBE(unity_SpecCube0), unity_SpecCube0_HDR, envData);
+	#if UNITY_SPECCUBE_BLENDING
+	float interpolator = unity_SpecCube0_BoxMin.w;
+	// Branch optimization recommended by: https://catlikecoding.com/unity/tutorials/rendering/part-8/
+	UNITY_BRANCH
+	if (interpolator < 0.99999) 
+	{
+		float3 probe1 = Unity_GlossyEnvironment(UNITY_PASS_TEXCUBE_SAMPLER(unity_SpecCube1, unity_SpecCube0), unity_SpecCube1_HDR, envData);
+		skyColour = lerp(probe1, probe0, interpolator);
+	}
+	else 
+	{
+		skyColour = probe0;
+	}
+	#else
+	skyColour = probe0;
+	#endif
 #endif
 
 #endif

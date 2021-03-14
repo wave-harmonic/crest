@@ -5,6 +5,7 @@
 //#define PROFILE_CONSTRUCTION
 
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Crest
@@ -126,21 +127,13 @@ namespace Crest
             Count,
         }
 
-        public static void GenerateMesh(OceanRenderer ocean, int lodDataResolution, int geoDownSampleFactor, int lodCount)
+        public static Transform GenerateMesh(OceanRenderer ocean, List<OceanChunkRenderer> tiles, int lodDataResolution, int geoDownSampleFactor, int lodCount)
         {
             if (lodCount < 1)
             {
                 Debug.LogError("Invalid LOD count: " + lodCount.ToString(), ocean);
-                return;
+                return null;
             }
-
-#if UNITY_EDITOR
-            if (!UnityEditor.EditorApplication.isPlaying)
-            {
-                Debug.LogError("Ocean mesh meant to be (re)generated in play mode", ocean);
-                return;
-            }
-#endif
 
             int oceanLayer = LayerMask.NameToLayer(ocean.LayerName);
             if (oceanLayer == -1)
@@ -156,81 +149,81 @@ namespace Crest
 
             // create mesh data
             Mesh[] meshInsts = new Mesh[(int)PatchType.Count];
+            Bounds[] meshBounds = new Bounds[(int)PatchType.Count];
             // 4 tiles across a LOD, and support lowering density by a factor
             var tileResolution = Mathf.Round(0.25f * lodDataResolution / geoDownSampleFactor);
             for (int i = 0; i < (int)PatchType.Count; i++)
             {
-                meshInsts[i] = BuildOceanPatch((PatchType)i, tileResolution);
+                meshInsts[i] = BuildOceanPatch((PatchType)i, tileResolution, out meshBounds[i]);
             }
 
-            ocean._lodTransform = ocean.gameObject.AddComponent<LodTransform>();
-            ocean._lodTransform.InitLODData(lodCount);
+            ClearOutTiles(ocean, tiles);
 
-            // Create the LOD data managers
-            ocean._lodDataAnimWaves = LodDataMgr.Create<LodDataMgrAnimWaves, SimSettingsAnimatedWaves>(ocean.gameObject, ref ocean._simSettingsAnimatedWaves);
-            if (ocean.CreateDynamicWaveSim)
-            {
-                ocean._lodDataDynWaves = LodDataMgr.Create<LodDataMgrDynWaves, SimSettingsWave>(ocean.gameObject, ref ocean._simSettingsDynamicWaves);
-            }
-            if (ocean.CreateFlowSim)
-            {
-                ocean._lodDataFlow = LodDataMgr.Create<LodDataMgrFlow, SimSettingsFlow>(ocean.gameObject, ref ocean._simSettingsFlow);
-            }
-            if (ocean.CreateFoamSim)
-            {
-                ocean._lodDataFoam = LodDataMgr.Create<LodDataMgrFoam, SimSettingsFoam>(ocean.gameObject, ref ocean._simSettingsFoam);
-            }
-            if (ocean.CreateShadowData)
-            {
-                ocean._lodDataShadow = LodDataMgr.Create<LodDataMgrShadow, SimSettingsShadow>(ocean.gameObject, ref ocean._simSettingsShadow);
-            }
-            if (ocean.CreateSeaFloorDepthData)
-            {
-                ocean._lodDataSeaDepths = ocean.gameObject.AddComponent<LodDataMgrSeaFloorDepth>();
-            }
+            var root = new GameObject("Root");
+            Debug.Assert(root != null, "The ocean Root transform could not be immediately constructed. Please report this issue to the Crest developers via our support email or GitHub at https://github.com/wave-harmonic/crest/issues .");
 
-            // Add any required GPU readbacks
-            {
-                var ssaw = ocean._simSettingsAnimatedWaves;
-                if (ssaw && ssaw.CollisionSource == SimSettingsAnimatedWaves.CollisionSources.OceanDisplacementTexturesGPU)
-                {
-                    ocean.gameObject.AddComponent<GPUReadbackDisps>();
-                }
-                if (ssaw && ssaw.CollisionSource == SimSettingsAnimatedWaves.CollisionSources.ComputeShaderQueries)
-                {
-                    ocean.gameObject.AddComponent<QueryDisplacements>();
-                }
-
-                if (ocean.CreateFlowSim)
-                {
-                    ocean.gameObject.AddComponent<QueryFlow>();
-                }
-            }
-
-            // Remove existing LODs
-            for (int i = 0; i < ocean.transform.childCount; i++)
-            {
-                var child = ocean.transform.GetChild(i);
-                if (child.name.StartsWith("Tile_L"))
-                {
-                    child.parent = null;
-                    Object.Destroy(child.gameObject);
-                    i--;
-                }
-            }
+            root.hideFlags = ocean._hideOceanTileGameObjects ? HideFlags.HideAndDontSave : HideFlags.DontSave;
+            root.transform.parent = ocean.transform;
+            root.transform.localPosition = Vector3.zero;
+            root.transform.localRotation = Quaternion.identity;
+            root.transform.localScale = Vector3.one;
 
             for (int i = 0; i < lodCount; i++)
             {
-                CreateLOD(ocean, i, lodCount, meshInsts, lodDataResolution, geoDownSampleFactor, oceanLayer);
+                CreateLOD(ocean, tiles, root.transform, i, lodCount, meshInsts, meshBounds, lodDataResolution, geoDownSampleFactor, oceanLayer);
             }
 
 #if PROFILE_CONSTRUCTION
             sw.Stop();
             Debug.Log( "Finished generating " + lodCount.ToString() + " LODs, time: " + (1000.0*sw.Elapsed.TotalSeconds).ToString(".000") + "ms" );
 #endif
+
+            return root.transform;
         }
 
-        static Mesh BuildOceanPatch(PatchType pt, float vertDensity)
+        public static void ClearOutTiles(OceanRenderer ocean, List<OceanChunkRenderer> tiles)
+        {
+            tiles.Clear();
+
+            if (ocean.Root == null)
+            {
+                return;
+            }
+
+            // Remove existing LODs
+            for (int i = 0; i < ocean.Root.childCount; i++)
+            {
+                var child = ocean.Root.GetChild(i);
+                if (child.name.StartsWith("Tile_L"))
+                {
+                    DestroyGO(child);
+
+                    i--;
+                }
+            }
+
+            DestroyGO(ocean.Root);
+        }
+
+        static void DestroyGO(Transform go)
+        {
+            go.parent = null;
+
+#if UNITY_EDITOR
+            if (UnityEditor.EditorApplication.isPlaying)
+            {
+                Object.Destroy(go.gameObject);
+            }
+            else
+            {
+                Object.DestroyImmediate(go.gameObject);
+            }
+#else
+            Object.Destroy(go.gameObject);
+#endif
+        }
+
+        static Mesh BuildOceanPatch(PatchType pt, float vertDensity, out Bounds bounds)
         {
             ArrayList verts = new ArrayList();
             ArrayList indices = new ArrayList();
@@ -340,6 +333,7 @@ namespace Crest
             // create mesh
 
             Mesh mesh = new Mesh();
+            mesh.hideFlags = HideFlags.DontSave;
             if (verts != null && verts.Count > 0)
             {
                 Vector3[] arrV = new Vector3[verts.Count];
@@ -356,15 +350,20 @@ namespace Crest
                 // recalculate bounds. add a little allowance for snapping. in the chunk renderer script, the bounds will be expanded further
                 // to allow for horizontal displacement
                 mesh.RecalculateBounds();
-                Bounds bounds = mesh.bounds;
+                bounds = mesh.bounds;
                 bounds.extents = new Vector3(bounds.extents.x + dx, 100f, bounds.extents.z + dx);
                 mesh.bounds = bounds;
                 mesh.name = pt.ToString();
             }
+            else
+            {
+                bounds = new Bounds();
+            }
+
             return mesh;
         }
 
-        static void CreateLOD(OceanRenderer ocean, int lodIndex, int lodCount, Mesh[] meshData, int lodDataResolution, int geoDownSampleFactor, int oceanLayer)
+        static void CreateLOD(OceanRenderer ocean, List<OceanChunkRenderer> tiles, Transform parent, int lodIndex, int lodCount, Mesh[] meshData, Bounds[] meshBounds, int lodDataResolution, int geoDownSampleFactor, int oceanLayer)
         {
             float horizScale = Mathf.Pow(2f, lodIndex);
 
@@ -443,16 +442,22 @@ namespace Crest
             for (int i = 0; i < offsets.Length; i++)
             {
                 // instantiate and place patch
-                var patch = new GameObject(string.Format("Tile_L{0}", lodIndex));
+                var patch = new GameObject($"Tile_L{lodIndex}_{patchTypes[i]}");
+                patch.hideFlags = HideFlags.DontSave;
                 patch.layer = oceanLayer;
-                patch.transform.parent = ocean.transform;
+                patch.transform.parent = parent;
                 Vector2 pos = offsets[i];
                 patch.transform.localPosition = horizScale * new Vector3(pos.x, 0f, pos.y);
                 // scale only horizontally, otherwise culling bounding box will be scaled up in y
                 patch.transform.localScale = new Vector3(horizScale, 1f, horizScale);
 
-                patch.AddComponent<OceanChunkRenderer>().SetInstanceData(lodIndex, lodCount, lodDataResolution, geoDownSampleFactor);
-                patch.AddComponent<MeshFilter>().mesh = meshData[(int)patchTypes[i]];
+                {
+                    var oceanChunkRenderer = patch.AddComponent<OceanChunkRenderer>();
+                    oceanChunkRenderer._boundsLocal = meshBounds[(int)patchTypes[i]];
+                    patch.AddComponent<MeshFilter>().sharedMesh = meshData[(int)patchTypes[i]];
+                    oceanChunkRenderer.SetInstanceData(lodIndex, lodCount, lodDataResolution, geoDownSampleFactor);
+                    tiles.Add(oceanChunkRenderer);
+                }
 
                 var mr = patch.AddComponent<MeshRenderer>();
 

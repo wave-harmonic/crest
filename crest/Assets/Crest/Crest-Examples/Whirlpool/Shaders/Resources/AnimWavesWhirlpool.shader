@@ -1,3 +1,5 @@
+// Crest Ocean System
+
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 Shader "Crest/Inputs/Animated Waves/Whirlpool"
@@ -17,6 +19,7 @@ Shader "Crest/Inputs/Animated Waves/Whirlpool"
 
 			float _Radius;
 			float _Amplitude;
+			float _Weight;
 
 			struct Attributes
 			{
@@ -59,9 +62,8 @@ Shader "Crest/Inputs/Animated Waves/Whirlpool"
 
 				float y = r2 * r2 * _Amplitude * -1.0;
 
-				return float4(0.0, y, 0.0, 0.0);
+				return float4(0.0, _Weight * y, 0.0, 0.0);
 			}
-
 			ENDCG
 		}
 	}

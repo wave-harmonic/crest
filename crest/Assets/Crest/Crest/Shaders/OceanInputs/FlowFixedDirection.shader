@@ -20,8 +20,11 @@ Shader "Crest/Inputs/Flow/Fixed Direction"
 
 			#include "UnityCG.cginc"
 
+			CBUFFER_START(CrestPerOceanInput)
 			float _Speed;
 			float _Direction;
+			float3 _DisplacementAtInputPosition;
+			CBUFFER_END
 
 			struct Attributes
 			{
@@ -37,14 +40,20 @@ Shader "Crest/Inputs/Flow/Fixed Direction"
 			Varyings Vert(Attributes input)
 			{
 				Varyings o;
-				o.positionCS = UnityObjectToClipPos(input.positionOS);
+
+				float3 worldPos = mul(unity_ObjectToWorld, float4(input.positionOS, 1.0)).xyz;
+				// Correct for displacement
+				worldPos.xz -= _DisplacementAtInputPosition.xz;
+				o.positionCS = mul(UNITY_MATRIX_VP, float4(worldPos, 1.0));
+
 				o.vel = _Speed * float2(cos(_Direction * 6.283185), sin(_Direction * 6.283185));
+				
 				return o;
 			}
-			
-			float2 Frag(Varyings input) : SV_Target
+
+			float4 Frag(Varyings input) : SV_Target
 			{
-				return input.vel;
+				return float4(input.vel, 0.0, 0.0);
 			}
 			ENDCG
 		}

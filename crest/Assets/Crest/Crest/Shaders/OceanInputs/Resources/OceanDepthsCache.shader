@@ -18,17 +18,19 @@ Shader "Crest/Inputs/Depth/Cached Depths"
 			// To confuse matters further, ocean depth is now more like 'sea floor altitude' - a height above a deep water value,
 			// so values are increasing in Y and we need to take the MAX of all depths.
 			BlendOp Min
+			ColorMask R
 
 			CGPROGRAM
 			#pragma vertex Vert
 			#pragma fragment Frag
-
-			#include "../../OceanLODData.hlsl"
+		
+			#include "UnityCG.cginc"
 
 			sampler2D _MainTex;
-			float4 _MainTex_ST;
 
-			#include "UnityCG.cginc"
+			CBUFFER_START(CrestPerOceanInput)
+			float4 _MainTex_ST;
+			CBUFFER_END
 
 			struct Attributes
 			{
@@ -54,7 +56,6 @@ Shader "Crest/Inputs/Depth/Cached Depths"
 			{
 				return half4(tex2D(_MainTex, input.uv).x, 0.0, 0.0, 0.0);
 			}
-
 			ENDCG
 		}
 	}

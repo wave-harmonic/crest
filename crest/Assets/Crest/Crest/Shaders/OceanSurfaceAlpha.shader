@@ -32,33 +32,48 @@ Shader "Crest/Ocean Surface Alpha"
 			#pragma vertex Vert
 			#pragma fragment Frag
 			#pragma multi_compile_fog
+			#pragma multi_compile_instancing
 
 			#include "UnityCG.cginc"
-			#include "OceanHelpers.hlsl"
+
+			#include "OceanGlobals.hlsl"
+			#include "OceanInputsDriven.hlsl"
+			#include "OceanHelpersNew.hlsl"
+			#include "OceanVertHelpers.hlsl"
 
 			sampler2D _MainTex;
 			float4 _MainTex_ST;
 			half _Alpha;
 
-			// MeshScaleLerp, FarNormalsWeight, LODIndex (debug)
-			float3 _InstanceData;
-
 			struct Attributes
 			{
 				float3 positionOS : POSITION;
 				float2 uv : TEXCOORD0;
+
+				UNITY_VERTEX_INPUT_INSTANCE_ID
 			};
 
 			struct Varyings
 			{
 				float4 positionCS : SV_POSITION;
 				float2 uv : TEXCOORD0;
-				UNITY_FOG_COORDS(1)
+				float3 worldPos : TEXCOORD1;
+				float lodAlpha : TEXCOORD2;
+				UNITY_FOG_COORDS(3)
+
+				UNITY_VERTEX_OUTPUT_STEREO
 			};
 
 			Varyings Vert(Attributes input)
 			{
 				Varyings o;
+
+				UNITY_SETUP_INSTANCE_ID(input);
+				UNITY_INITIALIZE_OUTPUT(Varyings, o);
+				UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
+
+				const CascadeParams cascadeData0 = _CrestCascadeData[_LD_SliceIndex];
+				const CascadeParams cascadeData1 = _CrestCascadeData[_LD_SliceIndex + 1];
 
 				// move to world
 				float3 worldPos;
@@ -66,25 +81,39 @@ Shader "Crest/Ocean Surface Alpha"
 				worldPos.y = 0.0;
 
 				// vertex snapping and lod transition
-				float lodAlpha = ComputeLodAlpha(worldPos, _InstanceData.x);
+				float meshScaleLerp = _CrestPerCascadeInstanceData[_LD_SliceIndex]._meshScaleLerp;
+				float lodAlpha = ComputeLodAlpha(worldPos, meshScaleLerp, cascadeData0);
 
 				// sample shape textures - always lerp between 2 scales, so sample two textures
 
-				// sample weights. params.z allows shape to be faded out (used on last lod to support pop-less scale transitions)
-				float wt_smallerLod = (1.0 - lodAlpha) * _LD_Params[_LD_SliceIndex].z;
-				float wt_biggerLod = (1.0 - wt_smallerLod) * _LD_Params[_LD_SliceIndex + 1].z;
 				// sample displacement textures, add results to current world pos / normal / foam
-				const float2 wxz = worldPos.xz;
 				half foam = 0.0;
-				half sss = 0.;
-				SampleDisplacements(_LD_TexArray_AnimatedWaves, WorldToUV(wxz), wt_smallerLod, worldPos, sss);
-				SampleDisplacements(_LD_TexArray_AnimatedWaves, WorldToUV_BiggerLod(wxz), wt_biggerLod, worldPos, sss);
+				// sample weight. params.z allows shape to be faded out (used on last lod to support pop-less scale transitions)
+				const float cascadeWt0 = cascadeData0._weight;
+				float wt_smallerLod = (1.0 - lodAlpha) * cascadeWt0;
+				{
+					const float3 uv_slice = WorldToUV(worldPos.xz, cascadeData0, _LD_SliceIndex);
+					half variance = 0.0;
+					SampleDisplacements(_LD_TexArray_AnimatedWaves, uv_slice, wt_smallerLod, worldPos, variance);
+				}
+				{
+					// sample weight. params.z allows shape to be faded out (used on last lod to support pop-less scale transitions)
+					const float cascadeWt1 = cascadeData1._weight;
+					const float wt_biggerLod = (1.0 - wt_smallerLod) * cascadeWt1;
+					const float3 uv_slice = WorldToUV(worldPos.xz, cascadeData1, _LD_SliceIndex + 1);
+					half variance = 0.0;
+					SampleDisplacements(_LD_TexArray_AnimatedWaves, uv_slice, wt_biggerLod, worldPos, variance);
+				}
 
 				// move to sea level
 				worldPos.y += _OceanCenterPosWorld.y;
 
 				// view-projection
 				o.positionCS = mul(UNITY_MATRIX_VP, float4(worldPos, 1.0));
+
+				// For clip surface sampling
+				o.worldPos = worldPos;
+				o.lodAlpha = lodAlpha;
 
 				o.uv = TRANSFORM_TEX(input.uv, _MainTex);
 				UNITY_TRANSFER_FOG(o, o.positionCS);
@@ -93,6 +122,9 @@ Shader "Crest/Ocean Surface Alpha"
 
 			half4 Frag(Varyings input) : SV_Target
 			{
+				// We don't want decals etc floating on nothing
+				ApplyOceanClipSurface(input.worldPos, input.lodAlpha);
+
 				half4 col = tex2D(_MainTex, input.uv);
 
 				UNITY_APPLY_FOG(input.fogCoord, col);

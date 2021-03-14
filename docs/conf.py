@@ -23,6 +23,21 @@ author = 'Wave Harmonic & Contributors'
 
 # -- Create API copy DefaultDocumentation  -----------------------------------
 
+import subprocess
+
+if not (os.path.exists('api/') and os.path.isdir('api/')):
+    os.mkdir('api/')
+
+try:
+    vswhere_cmd = subprocess.run(['vswhere', '-latest', '-requires', 'Microsoft.Component.MSBuild', '-find', 'MSBuild\\**\\Bin\\MsBuild.exe'], check=True, stdout=subprocess.PIPE)
+    msbuild_path = vswhere_cmd.stdout.strip()
+    csproj_path = os.path.abspath('../crest/Crest.csproj')
+    xml_path = os.path.abspath('./api/api.xml')
+    print(xml_path)
+
+    msbuild_cmd = subprocess.run([msbuild_path, '-p:DocumentationFile=' + xml_path, csproj_path], stdout=subprocess.DEVNULL)
+except:
+    print("Unable to build API from source. Continuing...")
 # try:
 #     files = [file for file in os.listdir("../crest/Temp/bin/Debug") if file.endswith('.md')]
 #     if not (os.path.exists('api/') and os.path.isdir('api/')):

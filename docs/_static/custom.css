@@ -37,7 +37,7 @@
 
 .sidebar-logo
 {
-    /* Make logo smaller and center. */
+    /* Make the square part of the logo centered for symmetry. */
     padding-right: 1rem;
 }
 

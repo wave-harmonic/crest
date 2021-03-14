@@ -89,20 +89,21 @@ hoverxref_auto_ref = True
 # https://github.com/pradyunsg/furo
 # https://pradyunsg.me/furo/
 html_theme = 'furo'
-html_logo = '../logo/crest-oceanrender-logomark.png'
 html_title = "CREST"
+# html_logo = '../logo/crest-oceanrender-logo.svg'
+html_favicon = '../logo/crest-oceanrender-logomark.png'
 
-# html_logo = 'crest-oceanrender.png'
 html_theme_options = {
-    # "sidebar_hide_name": True,
+    "light_logo": "crest-oceanrender-logo.svg",
+    "dark_logo": "crest-oceanrender-logo-dark.svg",
+    "sidebar_hide_name": True,
     # "announcement": "<em>Important</em> announcement!",
 }
-# html_favicon = 'crest-oceanrender-logomark.png'
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['_static']
+html_static_path = ["_static", "../logo"]
 
 # These paths are either relative to html_static_path
 # or fully qualified paths (eg. https://...)

@@ -34,6 +34,7 @@ Shader "Hidden/Crest/Simulation/Combine Animated Wave LODs"
 
 			float _HorizDisplace;
 			float _DisplaceClamp;
+			float _AttenuationInShallows;
 
 			struct Attributes
 			{
@@ -96,6 +97,13 @@ Shader "Hidden/Crest/Simulation/Combine Animated Wave LODs"
 				result = data.xyz;
 				variance = data.w;
 #endif // CREST_FLOW_ON_INTERNAL
+
+				// Attenuate based on depth
+				const half depth = _LD_TexArray_SeaFloorDepth.SampleLevel( LODData_linear_clamp_sampler, uv_thisLod, 0.0 ).x;
+				float averageWavelength = cascadeData0._maxWavelength / 2.0;
+				half depth_wt = saturate( 2.0 * depth / averageWavelength );
+				const float attenuationAmount = _AttenuationInShallows; // *_RespectShallowWaterAttenuation;
+				result *= attenuationAmount * depth_wt + (1.0 - attenuationAmount);
 
 				float arrayDepth;
 				{

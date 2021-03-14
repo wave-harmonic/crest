@@ -108,7 +108,7 @@ namespace Crest
             // because the depth is scheduled to render just before the animated waves, and this sim happens before animated waves.
             LodDataMgrSeaFloorDepth.Bind(simMaterial);
             LodDataMgrFlow.Bind(simMaterial);
-            LodDataMgrAnimWaves.Bind(simMaterial);
+            OceanRenderer.Instance._lodDataAnimWaves.BindWaveBuffer(simMaterial);
         }
 
         public static void CountWaveSims(int countFrom, out int o_present, out int o_active)

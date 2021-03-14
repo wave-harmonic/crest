@@ -34,9 +34,7 @@ Shader "Hidden/Crest/Inputs/Animated Waves/Gerstner Global"
 			int _WaveBufferSliceIndex;
 			float _Weight;
 			float _AverageWavelength;
-			float _AttenuationInShallows;
 			float2 _AxisX;
-			float _RespectShallowWaterAttenuation;
 			CBUFFER_END
 
 			struct Attributes
@@ -70,12 +68,6 @@ Shader "Hidden/Crest/Inputs/Animated Waves/Gerstner Global"
 			half4 Frag( Varyings input ) : SV_Target
 			{
 				float wt = _Weight;
-
-				// Attenuate if depth is less than half of the average wavelength
-				const half depth = _LD_TexArray_SeaFloorDepth.SampleLevel(LODData_linear_clamp_sampler, float3(input.uv_uvWaves.xy, _LD_SliceIndex), 0.0).x;
-				half depth_wt = saturate(2.0 * depth / _AverageWavelength);
-				const float attenuationAmount = _AttenuationInShallows * _RespectShallowWaterAttenuation;
-				wt *= attenuationAmount * depth_wt + (1.0 - attenuationAmount);
 
 				// Sample displacement, rotate into frame
 				float4 disp_variance = _WaveBuffer.SampleLevel(sampler_Crest_linear_repeat, float3(input.uv_uvWaves.zw, _WaveBufferSliceIndex), 0);

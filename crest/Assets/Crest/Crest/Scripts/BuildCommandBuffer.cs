@@ -55,14 +55,23 @@ namespace Crest
             }
 
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            // --- Dynamic wave simulations
+            // --- Animated waves - just the per lod / resolution stuff. So after this pass, each cascade slice will contain
+            //     only wavelengths that fit into that cascade. These are not depth-attenuated.
+            if (ocean._lodDataAnimWaves != null && ocean._lodDataAnimWaves.enabled)
+            {
+                ocean._lodDataAnimWaves.BuildCommandBufferGenerateWaveBuffer(ocean, buf);
+            }
+
+            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            // --- Dynamic wave simulations. If reflections are enabled, it uses the per-lod animated waves where water
+            //     depth <= 0.
             if (ocean._lodDataDynWaves != null && ocean._lodDataDynWaves.enabled)
             {
                 ocean._lodDataDynWaves.BuildCommandBuffer(ocean, buf);
             }
 
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            // --- Animated waves next
+            // --- Animated waves - combine and render any non-lod-specific shape. The combine pass does depth attenuation.
             if (ocean._lodDataAnimWaves != null && ocean._lodDataAnimWaves.enabled)
             {
                 ocean._lodDataAnimWaves.BuildCommandBuffer(ocean, buf);

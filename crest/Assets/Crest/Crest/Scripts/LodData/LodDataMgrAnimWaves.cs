@@ -214,6 +214,33 @@ namespace Crest
         }
         FilterNoLodPreference _filterNoLodPreference = new FilterNoLodPreference();
 
+        // This populates the Wave Buffer
+        public void BuildCommandBufferGenerateWaveBuffer(OceanRenderer ocean, CommandBuffer buf)
+        {
+            var lodCount = OceanRenderer.Instance.CurrentLodCount;
+
+            // Update gersties
+            foreach (var gerstner in _gerstners)
+            {
+                gerstner.CrestUpdate(buf);
+            }
+
+            // Generate per-lod data
+            _filterWavelength._lodCount = lodCount;
+            for (int lodIdx = lodCount - 1; lodIdx >= 0; lodIdx--)
+            {
+                buf.SetRenderTarget(_waveBuffers, 0, CubemapFace.Unknown, lodIdx);
+                buf.ClearRenderTarget(false, true, new Color(0f, 0f, 0f, 0f));
+
+                // draw any data with lod preference
+                _filterWavelength._lodIdx = lodIdx;
+                _filterWavelength._lodMaxWavelength = OceanRenderer.Instance._lodTransform.MaxWavelength(lodIdx);
+                _filterWavelength._lodMinWavelength = _filterWavelength._lodMaxWavelength / 2f;
+                _filterWavelength._globalMaxWavelength = OceanRenderer.Instance._lodTransform.MaxWavelength(OceanRenderer.Instance.CurrentLodCount - 1);
+                SubmitDrawsFiltered(lodIdx, buf, _filterWavelength);
+            }
+        }
+
         public override void BuildCommandBuffer(OceanRenderer ocean, CommandBuffer buf)
         {
             base.BuildCommandBuffer(ocean, buf);
@@ -228,26 +255,6 @@ namespace Crest
                 OceanRenderer.Instance._lodTransform._renderData[lodIdx].Validate(0, SimName);
             }
 
-            foreach (var gerstner in _gerstners)
-            {
-                gerstner.CrestUpdate(buf);
-            }
-
-            // lod-dependent data
-            _filterWavelength._lodCount = lodCount;
-            for (int lodIdx = lodCount - 1; lodIdx >= 0; lodIdx--)
-            {
-                buf.SetRenderTarget(_waveBuffers, 0, CubemapFace.Unknown, lodIdx);
-                buf.ClearRenderTarget(false, true, new Color(0f, 0f, 0f, 0f));
-
-                // draw any data with lod preference
-                _filterWavelength._lodIdx = lodIdx;
-                _filterWavelength._lodMaxWavelength = OceanRenderer.Instance._lodTransform.MaxWavelength(lodIdx);
-                _filterWavelength._lodMinWavelength = _filterWavelength._lodMaxWavelength / 2f;
-                _filterWavelength._globalMaxWavelength = OceanRenderer.Instance._lodTransform.MaxWavelength(OceanRenderer.Instance.CurrentLodCount - 1);
-                SubmitDrawsFiltered(lodIdx, buf, _filterWavelength);
-            }
-
             // Combine the LODs - copy results from biggest LOD down to LOD 0
             if (Settings.PingPongCombinePass)
             {
@@ -258,7 +265,7 @@ namespace Crest
                 CombinePassCompute(buf);
             }
 
-            // lod-independent data
+            // Lod-independent shape
             for (int lodIdx = lodCount - 1; lodIdx >= 0; lodIdx--)
             {
                 buf.SetRenderTarget(_targets, 0, CubemapFace.Unknown, lodIdx);

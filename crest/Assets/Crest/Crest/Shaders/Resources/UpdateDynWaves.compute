@@ -95,10 +95,10 @@ void UpdateDynWaves(uint3 id : SV_DispatchThreadID)
 		fym = SampleLod(_LD_TexArray_DynamicWaves_Source, uv_source - e * Y).x; // y minus
 		fxp = SampleLod(_LD_TexArray_DynamicWaves_Source, uv_source + e * X).x; // x plus
 		fyp = SampleLod(_LD_TexArray_DynamicWaves_Source, uv_source + e * Y).x; // y plus
-		if (SampleLod(_LD_TexArray_SeaFloorDepth, uv_slice - e * X).x <= 0.0) fxm = -SampleLod(_LD_TexArray_AnimatedWaves, uv_slice - e * X).y;
-		if (SampleLod(_LD_TexArray_SeaFloorDepth, uv_slice - e * Y).x <= 0.0) fym = -SampleLod(_LD_TexArray_AnimatedWaves, uv_slice - e * Y).y;
-		if (SampleLod(_LD_TexArray_SeaFloorDepth, uv_slice + e * X).x <= 0.0) fxp = -SampleLod(_LD_TexArray_AnimatedWaves, uv_slice + e * X).y;
-		if (SampleLod(_LD_TexArray_SeaFloorDepth, uv_slice + e * Y).x <= 0.0) fyp = -SampleLod(_LD_TexArray_AnimatedWaves, uv_slice + e * Y).y;
+		if (SampleLod(_LD_TexArray_SeaFloorDepth, uv_slice - e * X).x <= 0.0) fxm = SampleLod(_LD_TexArray_WaveBuffer, uv_slice - e * X).y;
+		if (SampleLod(_LD_TexArray_SeaFloorDepth, uv_slice - e * Y).x <= 0.0) fym = SampleLod(_LD_TexArray_WaveBuffer, uv_slice - e * Y).y;
+		if (SampleLod(_LD_TexArray_SeaFloorDepth, uv_slice + e * X).x <= 0.0) fxp = SampleLod(_LD_TexArray_WaveBuffer, uv_slice + e * X).y;
+		if (SampleLod(_LD_TexArray_SeaFloorDepth, uv_slice + e * Y).x <= 0.0) fyp = SampleLod(_LD_TexArray_WaveBuffer, uv_slice + e * Y).y;
 
 		ft_v = SampleLod(_LD_TexArray_DynamicWaves_Source, uv_source).xy;
 	}

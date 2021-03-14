@@ -14,26 +14,26 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _windSpeed: 16.666668
   _fetch: 1000000
-  _waveDirectionVariance: 90
+  _waveDirectionVariance: 51.7
   _gravityScale: 1
   _smallWavelengthMultiplier: 1
-  _multiplier: 1
+  _multiplier: 0.49
   _powerLog:
   - -5.7439322
   - -5.141873
-  - -4.539814
+  - -4.308489
   - -3.9377599
   - -3.3357232
-  - -2.7337558
-  - -2.1320662
+  - -2.2867467
+  - -1.3469883
   - -1.5314881
-  - -0.93535525
+  - -0.8894011
   - -0.35700414
-  - 0.1502203
+  - -4.62212
   - 0.37293813
   - -0.54237056
   - -6
-  _powerDisabled: 0000000000000000000000000000
+  _powerDisabled: 0101000000000000000101010100
   _chopScales:
   - 1
   - 1

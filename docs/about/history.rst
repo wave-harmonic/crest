@@ -14,7 +14,41 @@ Release Notes
    Release Notes only covers `URP` and `HDRP`.
 
 
-.. _4.8:
+|version|
+---------
+
+Changed
+^^^^^^^
+- Add :link:`online documentation <https://crest.readthedocs.io>`.
+- Add inline editing for sim settings, wave spectrums and ocean material.
+- Add Crest icons to sim settings and wave spectrums.
+- Add button to fix issues on some validation help boxes.
+- Add validation to inform whether the depth cache is outdated.
+- Add validation for ocean depth cache with non uniform scale.
+- Add scriptable custom time provider property which accepts interfaces.
+- Validate simulation checkboxes and their respective material checkboxes and inputs.
+
+Fixed
+^^^^^
+
+.. bullet_list::
+
+   - Fix more cases of fine gaps.
+   - Fix depth cache not reflecting updated properties when populating cache.
+   - Fix RayTraceHelper not working.
+   - Fix ShapeGerstner component breaking builds.
+   - Fix PS4/PSSL errors.
+   - Fix local waves flickering.
+
+   .. only:: hdrp
+
+      - Fix underwater normals incorrect orientation. `[HDRP]`
+
+   .. only:: urp
+
+      - Fix gray ocean by forcing depth and opaque texture when needed in the editor. `[URP]`
+      - Only feather foam at shoreline if transparency is enabled. `[URP]`
+
 
 4.8
 ---
@@ -61,8 +95,6 @@ Performance
 -  Add option on *AnimWaveSimSetting* to disable ping pong for combine pass.
    See notes in performance section of user guide.
 
-
-.. _4.7:
 
 4.7
 ---
@@ -118,8 +150,6 @@ Performance
       -  Improve underwater performance when using dynamic scaling `[HDRP]`
 
 
-.. _4.5:
-
 4.5
 ---
 
@@ -170,8 +200,6 @@ Fixed
 
       -  Fix underwater effects for URP 7.4+ `[URP]`
 
-
-.. _4.4:
 
 4.4
 ---
@@ -227,8 +255,6 @@ Performance
 -  Fix for ocean depth cache populating every frame erroneously
 
 
-.. _4.3:
-
 4.3
 ---
 
@@ -268,8 +294,6 @@ Fixed
       -  Fix underwater raising exception when switching cameras `[HDRP]`
       -  Fix caustics rendering short of ocean surface when underwater `[HDRP]`
 
-
-.. _4.2:
 
 4.2
 ---
@@ -311,8 +335,6 @@ Fixed
       -  Fix caustics stereo rendering for single-pass VR `[URP]`
 
 
-.. _4.1:
-
 4.1
 ---
 
@@ -352,8 +374,6 @@ Fixed
 
 .. only:: hdrp
 
-   .. _4.0:
-
    4.0 `[HDRP]`
    ------------
 
@@ -361,8 +381,6 @@ Fixed
 
 
 .. only:: urp
-
-   .. _3.8:
 
    3.8 `[URP]`
    -----------
@@ -376,8 +394,6 @@ Fixed
    -  Fix for missing shadergraph subgraph used in test/development shaders.
       This does not affect main functionality but fixes import errors.
 
-
-   .. _3.7:
 
    3.7 `[URP]`
    -----------
@@ -397,8 +413,6 @@ Fixed
    -  Removed the deprecated GPU readback system for getting wave heights on CPU
 
 
-   .. _3.6:
-
    3.6 `[URP]`
    -----------
 
@@ -407,8 +421,6 @@ Fixed
    -  Third party notices added to meet license requirements.
       See *thirdpartynotices.md* in the package root.
 
-
-   .. _3.5:
 
    3.5 `[URP]`
    -----------
@@ -431,8 +443,6 @@ Fixed
    -  Fix for compile errors for some ocean input shaders
 
 
-   .. _3.4:
-
    3.4 `[URP]`
    -----------
 
@@ -448,8 +458,6 @@ Fixed
    -  Fix for dynamic wave sim compute shader not compiling on iOS
 
 
-   .. _3.3:
-
    3.3 `[URP]`
    -----------
 
@@ -459,8 +467,6 @@ Fixed
    -  VR: Fix case where sea floor depth cache was not populated
    -  VR: Fix case where ocean planar reflections broken
 
-
-   .. _3.2:
 
    3.2 `[URP]`
    -----------
@@ -487,8 +493,6 @@ Fixed
    .. -  Documentation - technical information about render/draw order
 
 
-   .. _3.1:
-
    3.1 `[URP]`
    -----------
 
@@ -504,8 +508,6 @@ Fixed
 
 .. Maybe the following were deleted?
 
-   .. _3.0:
-
    3.0 `[URP]`
    -----------
 
@@ -519,9 +521,6 @@ Fixed
    ^^^^^^^^^^^
    -  Compute Shader Queries - simpler and faster system to service ocean height queries
 
-
-
-   .. _2.2:
 
    2.2 `[URP]`
    -----------
@@ -537,8 +536,6 @@ Fixed
    -  Fix waves not working on some GPUs and Quest VR - :issue:`279`
    -  Fix planar reflections not lining up with visuals for different aspect ratios
 
-
-   .. _2.1:
 
    2.1 `[URP]`
    -----------

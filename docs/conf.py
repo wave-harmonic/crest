@@ -16,9 +16,14 @@ sys.path.insert(0, os.path.abspath('./extensions'))
 
 # -- Project information -----------------------------------------------------
 
-project = 'Crest'
-copyright = '2021, Wave Harmonic & Contributors'
-author = 'Wave Harmonic & Contributors'
+# https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
+
+project = "Crest"
+author = "Wave Harmonic & Contributors"
+copyright = f"2021, {author}"
+version = "4.9"
+# https://www.sphinx-doc.org/en/master/usage/configuration.html#confval-release
+release = version
 
 
 # -- General configuration ---------------------------------------------------
@@ -41,6 +46,7 @@ extensions = [
     "links",
     "hacks",
 
+    # These extensions require RTDs to work so they will not work locally.
     "hoverxref.extension",
     "sphinx_search.extension",
 ]
@@ -57,12 +63,8 @@ exclude_patterns = [
     '.DS_Store',
     ".env",
     "extensions",
-    "includes",
-    "about/includes",
-    "user/includes",
+    "**/includes",
 ]
-
-# master_doc = "_user/overview"
 
 # https://github.com/readthedocs/readthedocs.org/issues/4603
 if os.environ.get('PLATFORM') == "READTHEDOCS":
@@ -89,7 +91,8 @@ hoverxref_auto_ref = True
 # https://github.com/pradyunsg/furo
 # https://pradyunsg.me/furo/
 html_theme = 'furo'
-html_title = "CREST"
+html_title = "Crest Ocean System"
+html_short_title = "Crest"
 # html_logo = '../logo/crest-oceanrender-logo.svg'
 html_favicon = '../logo/crest-oceanrender-logomark.png'
 
@@ -99,6 +102,8 @@ html_theme_options = {
     "sidebar_hide_name": True,
     # "announcement": "<em>Important</em> announcement!",
 }
+
+html_show_sphinx = False
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
@@ -119,10 +124,12 @@ html_js_files = [
 # -- Options for PDF output --------------------------------------------------
 
 # Customise PDF here. maketitle overrides the cover page.
-#
-# latex_elements = {
-#     "maketitle": "\\input{your_cover.tex}"
-# }
+latex_elements = {
+    # "maketitle": "\\input{your_cover.tex}"
+    # "maketitle": "\\sphinxmaketitle",
+}
+
+latex_logo = "../logo/crest-oceanrender-logomark512.png"
 
 # -- Templating --------------------------------------------------------------
 

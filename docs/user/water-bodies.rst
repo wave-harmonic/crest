@@ -26,9 +26,7 @@ There are mechanisms to limit the area:
 Wizard (preview)
 ----------------
 
-.. TODO: Isn't this available for SRP now, too?
-
-We recently added a 'wizard' to help create this setup. It is available on the *master* branch in this repository, but not yet in Crest URP/HDRP.
+We recently added a 'wizard' to help create this setup.
 It can be used as follows:
 
 -  Open the wizard window by selecting *Window/Crest/Create Water Body*

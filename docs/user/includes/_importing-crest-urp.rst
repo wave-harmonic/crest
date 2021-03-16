@@ -21,8 +21,8 @@ Transparency requires the following two options to be enabled, *Depth Texture* a
 .. image:: /_media/UrpPipelineSettings.png
 
 .. TODO:
-.. We should ask Unity to improve documentation on locating the URP asset(s) so we can just link to it. The best they
-.. have is /configuring-universalrp-for-use.html#adding-the-asset-to-your-graphics-settings.
+.. We should ask Unity to improve documentation on locating the URP asset(s) so we can just link to it.
+.. The best they have is /configuring-universalrp-for-use.html#adding-the-asset-to-your-graphics-settings.
 
 Read :link:`Unity's documentation on the {URP} Asset <{URPDocLink}/universalrp-asset.html#general>` for more information on these options.
 

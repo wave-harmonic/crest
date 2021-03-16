@@ -238,6 +238,10 @@ When the water is e.g. 250m deep, this will start to dampen 500m wavelengths, so
 Clip Surface
 ------------
 
+.. youtube:: jXphUy__J0o
+
+   Water Bodies and Surface Clipping
+
 This data drives clipping of the ocean surface, as in carving out holes.
 This can be useful for hollow vessels or low terrain that goes below sea level.
 Data can come from geometry (convex hulls) or a texture.

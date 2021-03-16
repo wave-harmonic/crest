@@ -11,7 +11,7 @@ Wavelengths smaller than half of this min spatial length will be excluded from c
 To simplify the code required to get the ocean height or other data from C#, two helpers are provided, *SampleHeightHelper* and *SampleFlowHelper*.
 Use of these is demonstrated in the example content.
 
-.. TODO: Add this under development or research?
+.. TODO: Also add this under development or research?
 
 .. admonition:: Research
 

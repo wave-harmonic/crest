@@ -94,7 +94,7 @@ The water colour can be varied in shallow water (this requires a depth cache cre
    |  **Scatter Colour Shallow** Scatter colour used for shallow water.
    |  **Scatter Colour Depth Max** Maximum water depth that is considered 'shallow', in metres.
       Water that is deeper than this depth is not affected by shallow colour.
-   |  **Scatter Colour Depth Falloff** Fall-off of shallow scattering, which gives control over the appearance of the transition from shallow to deep.
+   |  **Scatter Colour Depth Falloff** Falloff of shallow scattering, which gives control over the appearance of the transition from shallow to deep.
 
    .. only:: birp or urp
 
@@ -114,19 +114,20 @@ Reflection Environment
 
    .. only:: hdrp or urp
 
-      .. NOTE: BIRP has roughness? Nope
+      .. NOTE: Kind of like "Roughness" in BIRP.
 
       |  **Smoothness** Smoothness of surface. `[HDRP] [URP]`
 
    .. only:: urp
 
-      .. NOTE: "Vary Fall-Off Over Distance" in BIRP
+      .. NOTE: "Vary Falloff Over Distance" in BIRP.
 
-      |  **Vary Smoothness Over Distance** Helps to spread out specular highlight in mid-to-background. From a theory point of view, models transfer of normal detail to microfacets in BRDF. `[URP]`
+      |  **Vary Smoothness Over Distance** Helps to spread out specular highlight in mid-to-background.
+         From a theory point of view, models transfer of normal detail to microfacets in BRDF. `[URP]`
 
    .. only:: hdrp or urp
 
-      .. TODO: Rename Power to Falloff in URP
+      .. TODO: Rename Power to Falloff in URP.
 
       |  **Smoothness Far** Material smoothness at far distance from camera. `[HDRP] [URP]`
       |  **Smoothness Far Distance** Definition of far distance. `[HDRP] [URP]`
@@ -134,7 +135,9 @@ Reflection Environment
 
    .. only:: birp
 
-      .. NOTE: Appears to be "Softness" in URP - but different. Roughness is the opposite of smoothness. "Softness" isn't really a thing from what I can see. I think this is both "Smoothness" and "Softness".
+      .. NOTE:
+      .. Appears to be "Softness" in URP - but different. Roughness is the opposite of smoothness.
+      .. "Softness" isn't really a thing from what I can see. I think this is both "Smoothness" and "Softness".
 
       |  **Roughness** Controls blurriness of reflection `[BIRP]`
 
@@ -142,7 +145,7 @@ Reflection Environment
 
       |  **Softness** Acts as mip bias to smooth/blur reflection. `[URP]`
 
-      .. NOTE: This couldbe handled by supporting light layers when they support multiple main lights.
+      .. NOTE: Directional Light "Boost" in BIRP.
 
       |  **Light Intensity Multiplier** Main light intensity multiplier. `[URP]`
 
@@ -167,14 +170,12 @@ Reflection Environment
    Add Directional Light
    ^^^^^^^^^^^^^^^^^^^^^
 
-   .. TODO: Add definitions for these.
-
-   |  **Enable** `[BIRP]`
-   |  **Falloff** `[BIRP]`
-   |  **Vary Falloff Over Distance** `[BIRP]`
-   |  **Far Distance** `[BIRP]`
-   |  **Falloff At Far Distance** `[BIRP]`
-   |  **Boost** `[BIRP]`
+   |  **Enable** Add specular highlights from the the primary light. `[BIRP]`
+   |  **Boost** Specular highlight intensity. `[BIRP]`
+   |  **Falloff** Falloff of the specular highlights from source to camera. `[BIRP]`
+   |  **Vary Falloff Over Distance** Helps to spread out specular highlight in mid-to-background. `[BIRP]`
+   |  **Far Distance** Definition of far distance. `[BIRP]`
+   |  **Falloff At Far Distance** Same as "Falloff" except only up to "Far Distance". `[BIRP]`
 
 .. only:: birp or urp
 
@@ -201,7 +202,7 @@ Foam
 
    .. only:: birp or urp
 
-      .. TODO: Consider removing Shoreline Foam Min Depth as it is just feathering the edges?
+      .. TODO: Consider removing "Shoreline Foam Min Depth" as it is just feathering the edges?
 
       |  **Foam Tint** Colour tint for whitecaps / foam on water surface. `[BIRP] [URP]`
       |  **Light Scale** Scale intensity of lighting. `[BIRP] [URP]`
@@ -217,7 +218,7 @@ Foam
       |  **Foam Smoothness** Smoothness of foam material. `[HDRP]`
 
 
-.. Adding only to heading will hoist Foam Normal Strength and below above it.
+.. NOTE: Adding the "only" directive only to heading will break the layout.
 
 
 Foam 3D Lighting

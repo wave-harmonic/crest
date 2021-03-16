@@ -12,6 +12,7 @@
 
 import os
 import sys
+
 sys.path.insert(0, os.path.abspath('./extensions'))
 
 # -- Project information -----------------------------------------------------
@@ -24,6 +25,37 @@ copyright = f"2021, {author}"
 version = "4.9"
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#confval-release
 release = version
+
+# -- Create API copy DefaultDocumentation  -----------------------------------
+
+import subprocess
+
+if not (os.path.exists('api/') and os.path.isdir('api/')):
+    os.mkdir('api/')
+
+try:
+    vswhere_cmd = subprocess.run(['vswhere', '-latest', '-requires', 'Microsoft.Component.MSBuild', '-find', 'MSBuild\\**\\Bin\\MsBuild.exe'], check=True, stdout=subprocess.PIPE)
+    msbuild_path = vswhere_cmd.stdout.strip()
+    csproj_path = os.path.abspath('../crest/Crest.csproj')
+    xml_path = os.path.abspath('./api/api.xml')
+    print(xml_path)
+
+    msbuild_cmd = subprocess.run([msbuild_path, '-p:DocumentationFile=' + xml_path, csproj_path], stdout=subprocess.DEVNULL)
+except:
+    print("Unable to build API from source. Continuing...")
+# try:
+#     files = [file for file in os.listdir("../crest/Temp/bin/Debug") if file.endswith('.md')]
+#     if not (os.path.exists('api/') and os.path.isdir('api/')):
+#         os.mkdir('api/')
+#     if len(files) == 0:
+#         raise FileNotFoundError("No .md files were found in ../crest/Temp/bin/Debug/")
+
+#     import shutil
+#     for file_name in files:
+#         shutil.copyfile(os.path.abspath('../crest/Temp/bin/Debug/' + file_name), os.path.abspath('api/' + file_name))
+# except FileNotFoundError as e:
+#     print(e)
+#     print('Assuming .md files are already present in docs/api/')
 
 
 # -- General configuration ---------------------------------------------------
@@ -39,6 +71,9 @@ extensions = [
 
     "furo",
 
+    "recommonmark",
+    "sphinx_markdown_tables",
+
     # Local packages
     "youtube",
     "variables",
@@ -50,6 +85,11 @@ extensions = [
     "hoverxref.extension",
     "sphinx_search.extension",
 ]
+
+source_suffix = {
+    '.rst': 'restructuredtext',
+    '.md': 'markdown',
+}
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']

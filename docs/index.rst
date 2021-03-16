@@ -34,6 +34,7 @@ Crest Ocean System
    user/performance
    user/technical-information
    user/faq
+   api/Crest
 
 .. user/support
 

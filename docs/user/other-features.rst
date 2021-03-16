@@ -52,6 +52,13 @@ Managing these lists at run-time is left to the user.
 Buoyancy
 --------
 
+.. note::
+
+   Buoyancy physics for boats is not a core focus of `Crest`.
+   For a professional physics solution we recommend the :link:`{DWP2} <https://assetstore.unity.com/packages/tools/physics/dynamic-water-physics-2-147990>` asset which is compatible with `Crest`.
+
+   With that said, we do provide rudimentary physics scripts.
+
 *SimpleFloatingObject* is a simple buoyancy script that attempts to match the object position and rotation with the surface height and normal.
 This can work well enough for small water craft that don't need perfect floating behaviour, or floating objects such as buoys, barrels, etc.
 

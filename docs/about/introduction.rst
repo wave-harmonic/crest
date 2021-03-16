@@ -30,7 +30,7 @@ It is also highly flexible and allows any custom input to the water shape/foam/d
 Social
 ------
 
-.. TODO: Make replacement with icon?
+.. TODO: Add social icons? Wait for https://github.com/fraoustin/sphinx_fontawesome/issues/7
 
 * **Discord** : `<https://discord.gg/g7GpjDC>`_
 * **YouTube** `<https://www.youtube.com/channel/UC7_ZKKCXZmH64rRZqe-C0WA>`_

@@ -8,10 +8,11 @@ Release Notes
 
    \setcounter{secnumdepth}{0}
 
+.. only:: html or readthedocs
 
-.. important::
+   .. important::
 
-   Release Notes only covers `URP` and `HDRP`.
+      Release Notes only covers `URP` and `HDRP`.
 
 
 |version|

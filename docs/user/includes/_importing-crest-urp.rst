@@ -13,8 +13,6 @@ To enable the water surface to be transparent, two options must be enabled in th
 To find the configuration, open *Edit/Project Settings/Graphics* and double click the *Scriptable Render Pipeline Settings* field to open the render pipeline settings.
 This field will be populated if URP was successfully installed.
 
-.. https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@7.5/manual/configuring-universalrp-for-use.html#adding-the-asset-to-your-graphics-settings
-
 .. image:: /_media/GraphicsSettings.png
 
 After double clicking the graphics settings should appear in the Inspector.

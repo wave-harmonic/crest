@@ -7,8 +7,23 @@ Crest Ocean System
       :target: https://crest.readthedocs.io/en/latest/?badge=latest
       :alt: Documentation Status
 
-.. NOTE: toctree must be indented with three spaces!
-.. NOTE: ":numbered: 1" means numbering is only one deep. Needed for the version history.
+.. NOTE:
+.. Subsequent captions are broken in PDFs: https://github.com/sphinx-doc/sphinx/issues/4977.
+
+.. NOTE:
+.. only directive does not work with tocree directive for HTML.
+
+.. .. only:: latex
+..
+..    .. toctree::
+..       :hidden:
+..       :caption: User Guide
+..
+..       about/introduction
+
+.. NOTE:
+.. ":numbered: 1" means numbering is only one deep. Needed for the version history.
+
 
 .. toctree::
    :numbered: 1
@@ -35,13 +50,22 @@ Crest Ocean System
    user/technical-information
    user/faq
 
-.. user/support
+.. NOTE:
+.. Tried to have only the title show in the ToC, but it looks like Sphinx is ignoring toctree options.
 
-.. TODO: Add markdown parser so we can add these files:
+.. .. only:: latex
 ..
-.. .. toctree::
-..    :maxdepth: 1
-..    :caption: Developer Guide
+..    .. toctree::
+..
+..       meta/history
 
-..    dev/contributing
-..    dev/source
+.. TODO:
+..   user/support
+
+.. only:: html
+
+   .. toctree::
+      :maxdepth: 1
+      :caption: Developer Guide
+
+      dev/contributing

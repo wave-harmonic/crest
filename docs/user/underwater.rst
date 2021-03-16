@@ -3,21 +3,16 @@
 Underwater
 ==========
 
-.. TODO: I have placed common documentation before pipeline specific documentation. Need to fix.
-.. TODO: Mention meniscus (BIRP/URP only)
-
 *Crest* supports seamless transitions above/below water.
-It can also render a meniscus (seam).
+It can also has a meniscus which renders a subtle line at the intersection between the camera lens and the water to visually help the transition.
 This is demonstrated in the *main.unity* scene in the example content.
 The ocean in this scene uses the material *Ocean-Underwater.mat* which enables rendering the underside of the surface.
 
 Out-scattering is provided as an example script which reduces environmental lighting with depth underwater.
-See *UnderwaterEnvironmentalLighting*.
+See the *UnderwaterEnvironmentalLighting* component.
 
 For performance reasons, the underwater effect is disabled if the viewpoint is not underwater.
 Only the camera rendering the ocean surface will be used.
-
-.. TODO: refer to a common camera section
 
 .. tip::
 
@@ -28,13 +23,13 @@ Only the camera rendering the ocean surface will be used.
 
    Underwater effects do *not* support orthographic projection.
 
+
 .. only:: birp or urp
 
    Underwater Curtain `[BIRP] [URP]`
    -----------------------------------
 
-   In the *main.unity* scene, the *UnderWaterCurtainGeom* prefab is parented to the camera which renders the underwater effect.
-   It also has the prefab *UnderWaterMeniscus* parented which renders a subtle line at the intersection between the camera lens and the water to visually help the transition.
+   In the *main.unity* scene, the *UnderWaterCurtainGeom* and *UnderWaterMeniscus* prefabs are parented to the camera which renders the underwater effects.
 
    Checklist for using underwater:
 
@@ -52,9 +47,9 @@ Only the camera rendering the ocean surface will be used.
 
    .. image:: /_media/UnderwaterPostProcess.png
 
+   .. only:: html or readthedocs
 
-   Unlike the Underwater Curtain, the custom post-process effect is pixel-perfect.
-
+      Unlike the Underwater Curtain, the custom post-process effect is pixel-perfect.
 
    Setup steps
    ^^^^^^^^^^^

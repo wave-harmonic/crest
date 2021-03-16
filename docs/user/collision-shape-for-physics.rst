@@ -11,6 +11,14 @@ Wavelengths smaller than half of this min spatial length will be excluded from c
 To simplify the code required to get the ocean height or other data from C#, two helpers are provided, *SampleHeightHelper* and *SampleFlowHelper*.
 Use of these is demonstrated in the example content.
 
+.. TODO: Add this under development or research?
+
+.. admonition:: Research
+
+   We use a technique called *Fixed Point Iteration* to calculate the water height.
+   We gave a talk at GDC about this technique which may be useful to learn more: http://www.huwbowles.com/fpi-gdc-2016/.
+
+
 Compute Shape Queries
 ---------------------
 
@@ -48,9 +56,3 @@ A drawback of this approach is the CPU performance cost of evaluating the waves.
 It also does not include wave attenuation from water depth or any custom rendered shape.
 A final limitation is the current system finds the first *GerstnerWavesBatched* component in the scene which may or may not be the correct one.
 The system does not support cross blending of multiple scripts.
-
-.. TODO: (maybe under research?)
-..
-.. Technical Note
-.. --------------
-.. We use a technique called Fixed Point Iteration to calculate the water height. We gave a talk at GDC about this technique which may be useful to learn more: http://www.huwbowles.com/fpi-gdc-2016/.

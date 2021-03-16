@@ -1,3 +1,5 @@
 .. admonition:: TODO
 
-   WIP
+   Work in progress.
+
+`Crest` `URP` currently does not support additional lights.

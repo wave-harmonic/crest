@@ -167,13 +167,13 @@ Reflection Environment
    Add Directional Light
    ^^^^^^^^^^^^^^^^^^^^^
 
-   .. TODO
+   .. TODO: Add definitions for these.
 
    |  **Enable** `[BIRP]`
-   |  **Fall-Off** `[BIRP]`
-   |  **Vary Fall-Off Over Distance** `[BIRP]`
+   |  **Falloff** `[BIRP]`
+   |  **Vary Falloff Over Distance** `[BIRP]`
    |  **Far Distance** `[BIRP]`
-   |  **Fall-Off At Far Distance** `[BIRP]`
+   |  **Falloff At Far Distance** `[BIRP]`
    |  **Boost** `[BIRP]`
 
 .. only:: birp or urp
@@ -201,7 +201,7 @@ Foam
 
    .. only:: birp or urp
 
-      .. TODO: Consider removing Shoreline Foam Min Depth as it is just feathering the edges.
+      .. TODO: Consider removing Shoreline Foam Min Depth as it is just feathering the edges?
 
       |  **Foam Tint** Colour tint for whitecaps / foam on water surface. `[BIRP] [URP]`
       |  **Light Scale** Scale intensity of lighting. `[BIRP] [URP]`

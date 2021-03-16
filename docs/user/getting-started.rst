@@ -129,11 +129,10 @@ Import the `Crest` package into project using the *Asset Store* window in the Un
 
       .. include:: includes/_importing-crest-urp.rst
 
-.. TODO
-.. If you are starting from scratch we recommend selecting clicking \textit{NEW} in the Unity Hub Projects view and selecting the \textit{\SRPName{} RP} template.\\
-.. \includegraphics[scale=0.45]{InitialSetUp-NewProjectTemplate}
-.. If you imported the example content, open an example scene such as *Crest/Crest-Examples/Main/Scenes/main.unity* and press Play and the ocean will get generated.
-.. Otherwise proceed to the next section to add the ocean to an existing scene.
+.. tip::
+
+   If you are starting from scratch we recommend :link:`creating a project using a template in the Unity Hub <{UnityDocLink}/ProjectTemplates.html>`.
+
 
 Adding `Crest` to a Scene
 -------------------------
@@ -165,6 +164,7 @@ The steps to add an ocean to an existing scene are as follows:
 *  If the camera needs to go underwater, the underwater effect must be configured.
    See section :ref:`underwater` for instructions.
 
+.. TODO: Is separate headings better for quickstart?
 
 .. Adding Waves
 .. ^^^^^^^^^^^^

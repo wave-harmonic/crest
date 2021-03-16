@@ -32,14 +32,18 @@ release = version
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    # Global packages
     "sphinx_inline_tabs",
     "sphinx_panels",
     "sphinx_issues",
 
+    # For using CONTRIBUTING.md.
+    "sphinx_markdown_tables",
+    "recommonmark",
+
+    # Theme.
     "furo",
 
-    # Local packages
+    # Local packages.
     "youtube",
     "variables",
     "tags",
@@ -64,6 +68,7 @@ exclude_patterns = [
     ".env",
     "extensions",
     "**/includes",
+    "README.md",
 ]
 
 # https://github.com/readthedocs/readthedocs.org/issues/4603
@@ -203,6 +208,8 @@ rst_prolog = """
 
 .. set:: TAA :abbr:`TAA (Temporal Anti-Aliasing)`
 .. set:: SMAA :abbr:`SMAA (Subpixel Morphological Anti-Aliasing)`
+
+.. set:: DWP2 :abbr:`DWP2 (Dynamic Water Physics 2)`
 """
 
 # -- Debugging ---------------------------------------------------------------

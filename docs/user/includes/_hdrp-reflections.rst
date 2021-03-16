@@ -16,3 +16,6 @@ We could get it working by:
    If reflections appear wrong, it can be useful to make a simple test shadergraph with our water normal map applied to it, to compare results.
    We provide a simple test shadergraph for debugging purposes - enable the *Apply Test Material* debug option on the *OceanRenderer* component to apply it.
    If you find you are getting good results with a test shadergraph but not with our ocean shader, please report this to us.
+
+.. TODO:
+.. Find out why "Index of Refraction" material options are not in HDRP.

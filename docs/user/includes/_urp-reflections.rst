@@ -6,7 +6,7 @@ The base reflection comes from a one of these sources:
    This is the default and is the same as what is applied to glossy objects in the scene.
    It will support reflection probes, as long as the probe extents cover the ocean tiles, which enables real-time update of the reflection environment (see Unity documentation for more details).
 
-.. NOTE: This feature was removed.
+.. TODO: This feature was removed. Should it be removed in BIRP too? Or added here?
 .. -  Override reflection cubemap.
 ..    If desired a cubemap can be provided to use for the reflections.
 ..    For best results supply a HDR cubemap.

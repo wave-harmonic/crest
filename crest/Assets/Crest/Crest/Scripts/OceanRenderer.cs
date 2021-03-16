@@ -96,17 +96,29 @@ namespace Crest
 
         [Tooltip("Optional provider for time, can be used to hard-code time for automation, or provide server time. Defaults to local Unity time."), SerializeField]
         TimeProviderBase _timeProvider = null;
-        TimeProviderDefault _timeProviderDefault = new TimeProviderDefault();
+        ITimeProvider _timeProviderActive = null;
         public ITimeProvider TimeProvider
         {
             get
             {
+                // Specified by user on component - always prefer this
                 if (_timeProvider != null)
                 {
                     return _timeProvider;
                 }
 
-                return _timeProviderDefault ?? (_timeProviderDefault = new TimeProviderDefault());
+                if (_timeProviderActive == null)
+                {
+                    _timeProviderActive = new TimeProviderDefault();
+                }
+
+                return _timeProviderActive;
+            }
+
+            set
+            {
+                Debug.Assert(_timeProvider == null, "Setting time provider will take no effect because a time provider has been specified in the Inspector which will take priority.");
+                _timeProviderActive = value;
             }
         }
 
@@ -123,7 +135,7 @@ namespace Crest
         [Header("Ocean Params")]
 
         [SerializeField, Tooltip("Material to use for the ocean surface")]
-        Material _material = null;
+        internal Material _material = null;
         public Material OceanMaterial { get { return _material; } }
 
         [SerializeField]
@@ -762,11 +774,14 @@ namespace Crest
 
         void WritePerFrameMaterialParams()
         {
-            // Hack - due to SV_IsFrontFace occasionally coming through as true for back faces,
-            // add a param here that forces ocean to be in underwater state. I think the root
-            // cause here might be imprecision or numerical issues at ocean tile boundaries, although
-            // i'm not sure why cracks are not visible in this case.
-            OceanMaterial.SetFloat(sp_ForceUnderwater, ViewerHeightAboveWater < -2f ? 1f : 0f);
+            if (OceanMaterial != null)
+            {
+                // Hack - due to SV_IsFrontFace occasionally coming through as true for back faces,
+                // add a param here that forces ocean to be in underwater state. I think the root
+                // cause here might be imprecision or numerical issues at ocean tile boundaries, although
+                // i'm not sure why cracks are not visible in this case.
+                OceanMaterial.SetFloat(sp_ForceUnderwater, ViewerHeightAboveWater < -2f ? 1f : 0f);
+            }
 
             _lodTransform.WriteCascadeParams(_cascadeParamsTgt, _cascadeParamsSrc);
             _bufCascadeDataTgt.SetData(_cascadeParamsTgt);
@@ -1267,6 +1282,60 @@ namespace Crest
                 );
             }
 
+            // For safety.
+            if (ocean == null || ocean.OceanMaterial == null)
+            {
+                return isValid;
+            }
+
+            if (ocean.OceanMaterial.HasProperty(LodDataMgrFoam.MATERIAL_KEYWORD_PROPERTY) && ocean.CreateFoamSim != ocean.OceanMaterial.IsKeywordEnabled(LodDataMgrFoam.MATERIAL_KEYWORD))
+            {
+                if (ocean.CreateFoamSim)
+                {
+                    showMessage(LodDataMgrFoam.ERROR_MATERIAL_KEYWORD_MISSING, ValidatedHelper.MessageType.Error, ocean.OceanMaterial);
+                }
+                else
+                {
+                    showMessage(LodDataMgrFoam.ERROR_MATERIAL_KEYWORD_ON_FEATURE_OFF, ValidatedHelper.MessageType.Info, ocean.OceanMaterial);
+                }
+            }
+
+            if (ocean.OceanMaterial.HasProperty(LodDataMgrFlow.MATERIAL_KEYWORD_PROPERTY) && ocean.CreateFlowSim != ocean.OceanMaterial.IsKeywordEnabled(LodDataMgrFlow.MATERIAL_KEYWORD))
+            {
+                if (ocean.CreateFlowSim)
+                {
+                    showMessage(LodDataMgrFlow.ERROR_MATERIAL_KEYWORD_MISSING, ValidatedHelper.MessageType.Error, ocean.OceanMaterial);
+                }
+                else
+                {
+                    showMessage(LodDataMgrFlow.ERROR_MATERIAL_KEYWORD_ON_FEATURE_OFF, ValidatedHelper.MessageType.Info, ocean.OceanMaterial);
+                }
+            }
+
+            if (ocean.OceanMaterial.HasProperty(LodDataMgrShadow.MATERIAL_KEYWORD_PROPERTY) && ocean.CreateShadowData != ocean.OceanMaterial.IsKeywordEnabled(LodDataMgrShadow.MATERIAL_KEYWORD))
+            {
+                if (ocean.CreateShadowData)
+                {
+                    showMessage(LodDataMgrShadow.ERROR_MATERIAL_KEYWORD_MISSING, ValidatedHelper.MessageType.Error, ocean.OceanMaterial);
+                }
+                else
+                {
+                    showMessage(LodDataMgrShadow.ERROR_MATERIAL_KEYWORD_ON_FEATURE_OFF, ValidatedHelper.MessageType.Info, ocean.OceanMaterial);
+                }
+            }
+
+            if (ocean.OceanMaterial.HasProperty(LodDataMgrClipSurface.MATERIAL_KEYWORD_PROPERTY) && ocean.CreateClipSurfaceData != ocean.OceanMaterial.IsKeywordEnabled(LodDataMgrClipSurface.MATERIAL_KEYWORD))
+            {
+                if (ocean.CreateClipSurfaceData)
+                {
+                    showMessage(LodDataMgrClipSurface.ERROR_MATERIAL_KEYWORD_MISSING, ValidatedHelper.MessageType.Error, ocean.OceanMaterial);
+                }
+                else
+                {
+                    showMessage(LodDataMgrClipSurface.ERROR_MATERIAL_KEYWORD_ON_FEATURE_OFF, ValidatedHelper.MessageType.Info, ocean.OceanMaterial);
+                }
+            }
+
             return isValid;
         }
 
@@ -1308,6 +1377,29 @@ namespace Crest
     [CustomEditor(typeof(OceanRenderer))]
     public class OceanRendererEditor : ValidatedEditor
     {
+        OceanRenderer _target;
+        MaterialEditor _materialEditor;
+
+        void OnEnable()
+        {
+            _target = (OceanRenderer)target;
+
+            if (_target._material != null)
+            {
+                // Create an instance of the default MaterialEditor.
+                _materialEditor = (MaterialEditor)CreateEditor(_target._material);
+            }
+        }
+
+        void OnDisable()
+        {
+            if (_materialEditor != null)
+            {
+                // Free the memory used by default MaterialEditor.
+                DestroyImmediate(_materialEditor);
+            }
+        }
+
         public override void OnInspectorGUI()
         {
             base.OnInspectorGUI();
@@ -1323,6 +1415,51 @@ namespace Crest
             if (GUILayout.Button("Validate Setup"))
             {
                 OceanRenderer.RunValidation(target);
+            }
+
+            DrawMaterialEditor();
+        }
+
+        // Adapted from: http://answers.unity.com/answers/975894/view.html
+        void DrawMaterialEditor()
+        {
+            Material oldMaterial = null;
+
+            if (_materialEditor != null)
+            {
+                oldMaterial = (Material)_materialEditor.target;
+            }
+
+            if (oldMaterial != _target._material)
+            {
+                serializedObject.ApplyModifiedProperties();
+
+                if (_materialEditor != null)
+                {
+                    // Free the memory used by the previous MaterialEditor.
+                    DestroyImmediate(_materialEditor);
+                }
+
+                if (_target._material != null)
+                {
+                    // Create a new instance of the default MaterialEditor.
+                    _materialEditor = (MaterialEditor)CreateEditor(_target._material);
+                }
+            }
+
+            if (_materialEditor != null)
+            {
+                // Draw the material's foldout and the material shader field. Required to call OnInspectorGUI.
+                _materialEditor.DrawHeader();
+
+                // We need to prevent the user from editing Unity's default materials.
+                bool isDefaultMaterial = !AssetDatabase.GetAssetPath(_target._material).StartsWith("Assets");
+
+                using (new EditorGUI.DisabledGroupScope(isDefaultMaterial))
+                {
+                    // Draw the material properties. Works only if the foldout of DrawHeader is open.
+                    _materialEditor.OnInspectorGUI();
+                }
             }
         }
     }

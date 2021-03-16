@@ -2,6 +2,7 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+using UnityEditor;
 using UnityEngine;
 
 namespace Crest
@@ -68,5 +69,11 @@ namespace Crest
                 OceanRenderer.Instance.ReportMaxDisplacementFromShape(_maxDisplacementHorizontal, maxDispVert, 0f);
             }
         }
+
+#if UNITY_EDITOR
+        // Animated waves are always enabled
+        protected override bool FeatureEnabled(OceanRenderer ocean) => true;
+        protected override void FixOceanFeatureDisabled(SerializedObject oceanComponent) { }
+#endif // UNITY_EDITOR
     }
 }

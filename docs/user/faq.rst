@@ -35,7 +35,7 @@ We have users targeting the following platforms:
 
 \* Performance is a challenge on these platforms. Please see the previous question.
 
-`Crest` also supports VR/XR.
+`Crest` also supports VR/XR Multi-Pass, Single Pass and Single Pass Instanced rendering.
 
 For additional platform notes, see :link:`Platform Support <{WikiLink}/Platform-Support>`.
 

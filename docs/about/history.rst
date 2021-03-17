@@ -102,7 +102,6 @@ Performance
 
 Changed
 ^^^^^^^
-
 .. bullet_list::
 
    -  Add foam override shader and material to remove foam
@@ -131,13 +130,6 @@ Fixed
       -  Fix underwater copy ocean material parameters option not working correctly when unchecked `[HDRP]`
       -  Fix underwater anti-aliasing artefacts around objects (HDRP 10+ required. See underwater documentation) `[HDRP]`
 
-   .. only:: urp
-
-      -  Fix mesh for underwater effects casting shadow in some projects `[URP]`
-      -  Fix caustics moving, rotating or warping with camera for URP 7.4+ `[URP]`
-      -  Fix caustics breaking for VR/XR SPI `[URP]`
-      -  Fix underwater material from breaking on project load or recompile `[URP]`
-
 Performance
 ^^^^^^^^^^^
 .. bullet_list::
@@ -149,6 +141,60 @@ Performance
       -  Improve underwater XR multi-pass support (still not 100%) `[HDRP]`
       -  Improve underwater XR single pass instance performance `[HDRP]`
       -  Improve underwater performance when using dynamic scaling `[HDRP]`
+
+
+4.6
+---
+
+Changed
+^^^^^^^
+.. bullet_list::
+
+   -  Change minimum Unity version to 2019.4.8
+   -  Improve foam texture
+   -  Add height component that uses *UnityEvents* (under examples)
+   -  Add shadow LOD data inputs
+   -  Add support for disable scene reloading
+   -  Add more dynamic waves debug reporting options
+   -  Disable horizontal motion correction on animated waves inputs by default
+   -  Make some shader parameters globally available
+
+   .. only:: hdrp
+
+      -  Add reflections to ocean surface underside from water volume `[HDRP]`
+
+Fixed
+^^^^^
+.. bullet_list::
+
+   -  Fix precision artefacts in waves for mobile devices when far away from world centre
+   -  Fix spectrum editor not working in play mode with time freeze
+   -  Fix build error
+   -  Fix *UnderwaterEnvironmentalLighting* component restoring un-initialised values
+   -  Fix precision issues causing very fine gaps in ocean surface
+   -  Fix some memory leaks in edit mode
+
+   .. only:: urp
+
+      -  Fix mesh for underwater effects casting shadow in some projects `[URP]`
+      -  Fix caustics moving, rotating or warping with camera for `URP` 7.4+ `[URP]`
+      -  Fix caustics breaking for VR/XR `SPI` `[URP]`
+      -  Fix underwater material from breaking on project load or recompile `[URP]`
+
+   .. only:: hdrp
+
+      -  Fix underwater surface colour being added to transparent parts of ocean surface when underwater `[HDRP]`
+      -  Fix sample height warning for XR multi-pass `[HDRP]`
+      -  Fix underwater caustics not working in build due to stripping `[HDRP]`
+      -  Fix shadows breaking VR/XR single pass instanced `[HDRP]`
+      -  Fix deprecated XR API call warning `[HDRP]`
+      -  Fix underwater breaking camera when ocean is disabled during run-time `[HDRP]`
+      -  Fix ocean falloff parameters allowing bad values `[HDRP]`
+
+
+Performance
+^^^^^^^^^^^
+-  Improve performance by reducing work done on scripted shader parameters every frame
 
 
 4.5

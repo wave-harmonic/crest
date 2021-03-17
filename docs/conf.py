@@ -168,41 +168,49 @@ default_role = "get"
 #   .. set:: Link {LinkBase}/something/{LinkPart}/example.html
 
 # The following will be included before every page:
-rst_prolog = """
+rst_prolog = f"""
 .. tags::
-
-.. set:: AssetVersion 4.9
+.. set:: AssetVersion {version}
+"""
+rst_prolog = rst_prolog + """
 .. set:: RPMinVersion 7.3
 .. set:: RPDocLinkBase \https://docs.unity3d.com/Packages/com.unity.render-pipelines.
 .. set:: UnityMinVersionShort 2019.4
 .. set:: UnityMinVersion {UnityMinVersionShort}.9
 .. set:: UnityDocLink https://docs.unity3d.com/{UnityMinVersionShort}/Documentation/Manual
 .. set:: AssetStoreLinkBase \https://assetstore.unity.com/packages/tools/particles-effects
+.. set:: DocLinkBase https://crest.readthedocs.io/en
 .. set:: GitHubLink \https://github.com/wave-harmonic/crest
 .. set:: WikiLink \{GitHubLink}/wiki
 
 .. set:: [BIRP] :guilabel:`BIRP`
 .. set:: BIRPNameLong Built-in
 .. set:: BIRPNameShort BIRP
+.. set:: BIRPNameSlug birp
 .. set:: BIRP :abbr:`{BIRPNameShort} ({BIRPNameLong} Render Pipeline)`
 .. set:: BIRPMinVersion `RPMinVersion`
 .. set:: BIRPDocLink {UnityDocLink}/
+.. set:: BIRPAssetDocLink {DocLinkBase}/{AssetVersion}?rp={BIRPNameSlug}
 
 .. set:: [URP] :guilabel:`URP`
 .. set:: URPNameLong Universal
 .. set:: URPNameShort URP
+.. set:: URPNameSlug urp
 .. set:: URP :abbr:`{URPNameShort} ({URPNameLong} Render Pipeline)`
 .. set:: URPMinVersion `RPMinVersion`
 .. set:: URPDocLink {RPDocLinkBase}universal@{URPMinVersion}/manual
 .. set:: URPAssetLink {AssetStoreLinkBase}/crest-ocean-system-urp-141674
+.. set:: URPAssetDocLink {DocLinkBase}/{AssetVersion}?rp={URPNameSlug}
 
 .. set:: [HDRP] :guilabel:`HDRP`
 .. set:: HDRPNameLong High Definition
 .. set:: HDRPNameShort HDRP
+.. set:: HDRPNameSlug hdrp
 .. set:: HDRP :abbr:`{HDRPNameShort} ({HDRPNameLong} Render Pipeline)`
 .. set:: HDRPMinVersion `RPMinVersion`
 .. set:: HDRPDocLink {RPDocLinkBase}high-definition@{HDRPMinVersion}/manual
 .. set:: HDRPAssetLink {AssetStoreLinkBase}/crest-ocean-system-hdrp-164158
+.. set:: HDRPAssetDocLink {DocLinkBase}/{AssetVersion}?rp={HDRPNameSlug}
 
 .. set:: Crest *Crest*
 

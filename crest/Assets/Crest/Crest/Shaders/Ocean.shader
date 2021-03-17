@@ -437,16 +437,15 @@ Shader "Crest/Ocean"
 				return lightDir;
 			}
 
-			bool IsUnderwater(const float facing)
+			bool IsUnderwater(const bool i_isFrontFace)
 			{
 #if !_UNDERWATER_ON
 				return false;
 #endif
-				const bool backface = facing < 0.0;
-				return backface || _ForceUnderwater > 0.0;
+				return !i_isFrontFace || _ForceUnderwater > 0.0;
 			}
 
-			half4 Frag(const Varyings input, const float facing : VFACE) : SV_Target
+			half4 Frag(const Varyings input, const bool i_isFrontFace : SV_IsFrontFace) : SV_Target
 			{
 				// We need this when sampling a screenspace texture.
 				UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
@@ -455,7 +454,7 @@ Shader "Crest/Ocean"
 				const CascadeParams cascadeData1 = _CrestCascadeData[_LD_SliceIndex + 1];
 				const PerCascadeInstanceData instanceData = _CrestPerCascadeInstanceData[_LD_SliceIndex];
 
-				const bool underwater = IsUnderwater(facing);
+				const bool underwater = IsUnderwater(i_isFrontFace);
 				const float lodAlpha = input.lodAlpha_worldXZUndisplaced_oceanDepth.x;
 				const float wt_smallerLod = (1.0 - lodAlpha) * cascadeData0._weight;
 				const float wt_biggerLod = (1.0 - wt_smallerLod) * cascadeData1._weight;

@@ -31,7 +31,8 @@
     border-bottom: none !important;
 }
 
-#q-a h2
+#frequent-setup-issues .section h3,
+#q-a .section h2
 {
     font-size: 110%;
     font-weight: bold;

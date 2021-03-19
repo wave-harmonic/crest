@@ -11,6 +11,7 @@ namespace Crest
     /// Registers a custom input to the clip surface simulation. Attach this to GameObjects that you want to use to
     /// clip the surface of the ocean.
     /// </summary>
+    [AddComponentMenu(MENU_PREFIX + "Clip Surface Input")]
     public class RegisterClipSurfaceInput : RegisterLodDataInput<LodDataMgrClipSurface>
     {
         bool _enabled = true;

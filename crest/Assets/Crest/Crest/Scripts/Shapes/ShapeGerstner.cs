@@ -18,6 +18,7 @@ namespace Crest
     /// Gerstner ocean waves.
     /// </summary>
     [ExecuteAlways]
+    [AddComponentMenu(Internal.Constants.MENU_PREFIX_SCRIPTS + "Shape Gerstner")]
     public partial class ShapeGerstner : MonoBehaviour, IFloatingOrigin
 #if UNITY_EDITOR
         , IReceiveSplinePointOnDrawGizmosSelectedMessages

@@ -5,6 +5,7 @@
 using Crest;
 using UnityEngine;
 
+[AddComponentMenu(Crest.Internal.Constants.MENU_PREFIX_EXAMPLE + "Ripple Generator")]
 public class RippleGenerator : MonoBehaviour
 {
     public bool _animate = true;

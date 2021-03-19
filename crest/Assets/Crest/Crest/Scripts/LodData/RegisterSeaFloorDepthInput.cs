@@ -12,6 +12,7 @@ namespace Crest
     /// For static objects, use an Ocean Depth Cache.
     /// </summary>
     [ExecuteAlways]
+    [AddComponentMenu(MENU_PREFIX + "Sea Floor Depth Input")]
     public class RegisterSeaFloorDepthInput : RegisterLodDataInput<LodDataMgrSeaFloorDepth>
     {
         public override bool Enabled => true;

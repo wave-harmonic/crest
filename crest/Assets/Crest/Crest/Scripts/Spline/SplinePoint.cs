@@ -11,6 +11,7 @@ namespace Crest.Spline
     /// Spline point, intended to be child of Spline object
     /// </summary>
     [ExecuteAlways]
+    [AddComponentMenu(Internal.Constants.MENU_PREFIX_SPLINE + "Spline Point")]
     public class SplinePoint : MonoBehaviour
     {
 #if UNITY_EDITOR

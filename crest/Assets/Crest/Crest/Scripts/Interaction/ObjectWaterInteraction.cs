@@ -13,6 +13,7 @@ namespace Crest
     /// <summary>
     /// Drives object/water interaction - sets parameters each frame on material that renders into the dynamic wave sim.
     /// </summary>
+    [AddComponentMenu(Internal.Constants.MENU_PREFIX_SCRIPTS + "Object Water Interaction")]
     public partial class ObjectWaterInteraction : MonoBehaviour
     {
         [Range(0f, 2f), SerializeField]

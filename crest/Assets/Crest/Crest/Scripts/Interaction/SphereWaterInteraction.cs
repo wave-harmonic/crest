@@ -14,6 +14,7 @@ namespace Crest
     /// This script and associated shader approximate the interaction between a sphere and the water. Multiple
     /// spheres can be used to model the interaction of a non-spherical shape.
     /// </summary>
+    [AddComponentMenu(Internal.Constants.MENU_PREFIX_SCRIPTS + "Sphere Water Interaction")]
     public partial class SphereWaterInteraction : MonoBehaviour
     {
         float Radius => 0.5f * transform.lossyScale.x;

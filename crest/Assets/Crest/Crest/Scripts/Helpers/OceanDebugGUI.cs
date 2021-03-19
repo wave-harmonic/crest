@@ -9,6 +9,7 @@ using UnityEngine.SceneManagement;
 namespace Crest
 {
     [ExecuteAlways]
+    [AddComponentMenu(Internal.Constants.MENU_PREFIX_DEBUG + "Ocean Debug GUI")]
     public class OceanDebugGUI : MonoBehaviour
     {
         public bool _showOceanData = true;

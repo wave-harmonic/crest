@@ -102,9 +102,8 @@ Shader "Crest/Inputs/Dynamic Waves/Sphere-Water Interaction"
 					forceUpDown = -1.0 * _StrengthVertical * _Velocity.y;
 
 					// Range / radius of interaction force
-					const float range = 0.6 * _MinWavelength;
-					const float a = 1.0 / range;
-					forceUpDown *= InteractionFalloff( a, signedDist );
+					const float a = 1.67 / _MinWavelength;
+					forceUpDown *= 0.25 * InteractionFalloff( a, signedDist );
 				}
 
 				// Forces from horizontal motion - push water up in direction of motion, pull down behind.
@@ -112,9 +111,8 @@ Shader "Crest/Inputs/Dynamic Waves/Sphere-Water Interaction"
 				if( signedDist > 0.0 )
 				{
 					// Range / radius of interaction force
-					const float range = 0.7 * _MinWavelength;
-					const float a = 1.0 / range;
-					forceHoriz = 0.75 * dot( sdfNormal, _Velocity.xz ) * InteractionFalloff( a, signedDist );
+					const float a = 1.43 / _MinWavelength;
+					forceHoriz = 0.25 * dot( sdfNormal, _Velocity.xz ) * InteractionFalloff( a, signedDist );
 				}
 
 				// Add to velocity (y-channel) to accelerate water.

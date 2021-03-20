@@ -18,6 +18,12 @@ Release Notes
 |version|
 ---------
 
+Breaking
+^^^^^^^^
+-  Dynamic Waves and Foam simulations now run at fixed timesteps for consistency across different frame rates.
+   Tweaking of settings may be required.
+   See :pr:`778` for more details.
+
 Preview
 ^^^^^^^
 -  Add wizard for creating local water bodies. See :ref:`water-bodies`.

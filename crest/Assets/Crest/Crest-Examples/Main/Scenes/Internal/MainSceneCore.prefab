@@ -449,7 +449,8 @@ MonoBehaviour:
   _refreshMode: 0
   _layers:
     serializedVersion: 2
-    m_Bits: 512
+    m_Bits: 2147483648
+  _layerNames: []
   _resolution: 384
   _cameraMaxTerrainHeight: 100
   _forceAlwaysUpdateDebug: 0
@@ -682,7 +683,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 100000, guid: 386033b9b0ae11a40bbd970400b6d7c6, type: 3}
       propertyPath: m_Layer
-      value: 9
+      value: 31
       objectReference: {fileID: 0}
     - target: {fileID: 100000, guid: 386033b9b0ae11a40bbd970400b6d7c6, type: 3}
       propertyPath: m_TagString

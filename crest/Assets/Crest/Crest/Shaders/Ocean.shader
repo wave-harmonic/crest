@@ -322,10 +322,19 @@ Shader "Crest/Ocean"
 				const float gridSize = instanceData._geoGridWidth;
 				SnapAndTransitionVertLayout(meshScaleLerp, cascadeData0, gridSize, o.worldPos, lodAlpha);
 
-				// Scale up by small "epsilon" to solve numerical issues. Expand slightly about tile center.
-				// :OceanGridPrecisionErrors
-				const float2 tileCenterXZ = UNITY_MATRIX_M._m03_m23;
-				o.worldPos.xz = lerp( tileCenterXZ, o.worldPos.xz, 1.00111 );
+				{
+					// Scale up by small "epsilon" to solve numerical issues. Expand slightly about tile center.
+					// :OceanGridPrecisionErrors
+					const float2 tileCenterXZ = UNITY_MATRIX_M._m03_m23;
+					const float2 cameraPositionXZ = abs(_WorldSpaceCameraPos.xz);
+					// Scale "epsilon" by distance from zero. There is an issue where overlaps can cause SV_IsFrontFace
+					// to be flipped (needs to be investigated). Gaps look bad from above surface, and overlaps look bad
+					// from below surface. We want to close gaps without introducing overlaps. A fixed "epsilon" will
+					// either not solve gaps at large distances or introduce too many overlaps at small distances. Even
+					// with scaling, there are still unsolvable overlaps underwater (especially at large distances).
+					// 100,000 (0.00001) is the maximum position before Unity warns the user of precision issues.
+					o.worldPos.xz = lerp(tileCenterXZ, o.worldPos.xz, lerp(1.0, 1.01, max(cameraPositionXZ.x, cameraPositionXZ.y) * 0.00001));
+				}
 
 				o.lodAlpha_worldXZUndisplaced_oceanDepth.x = lodAlpha;
 				o.lodAlpha_worldXZUndisplaced_oceanDepth.yz = o.worldPos.xz;

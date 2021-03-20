@@ -60,6 +60,8 @@ namespace Crest
         bool _checkShaderName = true;
 #endif
 
+        public const string MENU_PREFIX = Internal.Constants.MENU_SCRIPTS + "LOD Inputs/Crest Register ";
+
         public abstract float Wavelength { get; }
 
         public abstract bool Enabled { get; }

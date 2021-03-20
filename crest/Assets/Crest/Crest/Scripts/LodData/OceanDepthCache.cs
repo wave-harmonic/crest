@@ -17,6 +17,7 @@ namespace Crest
     /// </summary>
     [ExecuteAlways]
     [HelpURL("https://github.com/wave-harmonic/crest/blob/master/USERGUIDE.md#shorelines-and-shallow-water")]
+    [AddComponentMenu(Internal.Constants.MENU_PREFIX_SCRIPTS + "Ocean Depth Cache")]
     public partial class OceanDepthCache : MonoBehaviour
     {
         public enum OceanDepthCacheType

@@ -79,6 +79,7 @@ namespace Crest
     /// <summary>
     /// Attach to a camera to generate a reflection texture which can be sampled in the ocean shader.
     /// </summary>
+    [AddComponentMenu(Internal.Constants.MENU_PREFIX_SCRIPTS + "Ocean Planar Reflections")]
     public class OceanPlanarReflection : MonoBehaviour
     {
         [SerializeField] LayerMask _reflectionLayers = 1;

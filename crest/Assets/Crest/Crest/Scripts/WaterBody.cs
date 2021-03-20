@@ -15,6 +15,7 @@ namespace Crest
     /// culled if they don't overlap any WaterBody.
     /// </summary>
     [ExecuteAlways]
+    [AddComponentMenu(Internal.Constants.MENU_PREFIX_SCRIPTS + "Water Body")]
     public partial class WaterBody : MonoBehaviour
     {
 #pragma warning disable 414

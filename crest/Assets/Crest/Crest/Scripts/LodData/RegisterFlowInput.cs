@@ -11,6 +11,7 @@ namespace Crest
     /// Registers a custom input to the flow data. Attach this GameObjects that you want to influence the horizontal flow of the water volume.
     /// </summary>
     [ExecuteAlways]
+    [AddComponentMenu(MENU_PREFIX + "Flow Input")]
     public class RegisterFlowInput : RegisterLodDataInputDisplacementCorrection<LodDataMgrFlow>
     {
         public override bool Enabled => true;

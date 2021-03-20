@@ -8,6 +8,7 @@ using UnityEngine;
 /// <summary>
 /// Simple type of buoyancy - takes one sample and matches boat height and orientation to water height and normal.
 /// </summary>
+[AddComponentMenu(Crest.Internal.Constants.MENU_PREFIX_EXAMPLE + "Boat Align Normal")]
 public class BoatAlignNormal : FloatingObjectBase
 {
     [Header("Buoyancy Force")]

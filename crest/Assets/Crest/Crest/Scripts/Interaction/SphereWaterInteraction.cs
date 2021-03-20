@@ -80,14 +80,6 @@ namespace Crest
             var ocean = OceanRenderer.Instance;
             if (ocean == null) return;
 
-            // Which lod is this object in (roughly)?
-            int simsActive;
-            if (!LateUpdateCountOverlappingSims(out simsActive, out _))
-            {
-                // No sims running - abort. don't bother switching off renderer - camera wont be active
-                return;
-            }
-
             _sampleHeightHelper.Init(transform.position, 2f * Radius);
             _sampleHeightHelper.Sample(out Vector3 disp, out _, out _);
 
@@ -97,10 +89,8 @@ namespace Crest
             // Velocity relative to water
             Vector3 relativeVelocity = LateUpdateComputeVelRelativeToWater(ocean);
 
-            float dt;
-            ocean._lodDataDynWaves.GetSimSubstepData(ocean.DeltaTimeDynamics, out _, out dt);
-
-            float weight = _weight / simsActive;
+            var dt = 1f / ocean._lodDataDynWaves.Settings._simulationFrequency;
+            var weight = _weight;
 
             var waterHeight = disp.y + ocean.SeaLevel;
             LateUpdateSphereWeight(waterHeight, ref weight);
@@ -108,41 +98,16 @@ namespace Crest
             _renderer.GetPropertyBlock(_mpb);
 
             _mpb.SetVector(sp_velocity, relativeVelocity);
-            _mpb.SetFloat(sp_weight, weight);
             _mpb.SetFloat(sp_simDeltaTime, dt);
             _mpb.SetFloat(sp_radius, Radius);
+
+            // Weighting with this value helps keep ripples consistent for different gravity values
+            var gravityMul = Mathf.Sqrt(ocean._lodDataDynWaves.Settings._gravityMultiplier / 25f);
+            _mpb.SetFloat(sp_weight, weight * gravityMul);
 
             _renderer.SetPropertyBlock(_mpb);
 
             _posLast = transform.position;
-        }
-
-        // Multiple sims run at different scales in the world. Count how many sims this interaction will overlap, so that
-        // we can normalize the interaction force for the number of sims.
-        bool LateUpdateCountOverlappingSims(out int simsActive, out int simsPresent)
-        {
-            simsActive = 0;
-            simsPresent = 0;
-
-            var thisRect = new Rect(new Vector2(transform.position.x, transform.position.z), Vector3.zero);
-            var minLod = LodDataMgrAnimWaves.SuggestDataLOD(thisRect);
-            if (minLod == -1)
-            {
-                // Outside all lods, nothing to update!
-                return false;
-            }
-
-            // How many active wave sims currently apply to this object - ideally this would eliminate sims that are too
-            // low res, by providing a max grid size param
-            LodDataMgrDynWaves.CountWaveSims(minLod, out simsPresent, out simsActive);
-
-            if (simsPresent == 0)
-            {
-                return false;
-            }
-
-            // No sims running - abort
-            return simsActive > 0;
         }
 
         // Velocity of the sphere, relative to the water. Computes on the fly, discards if teleport detected.

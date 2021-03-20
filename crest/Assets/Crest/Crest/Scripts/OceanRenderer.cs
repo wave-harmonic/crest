@@ -1108,13 +1108,6 @@ namespace Crest
                 depthCache.Validate(ocean, ValidatedHelper.DebugLog);
             }
 
-            // AssignLayer
-            var assignLayers = FindObjectsOfType<AssignLayer>();
-            foreach (var assign in assignLayers)
-            {
-                assign.Validate(ocean, ValidatedHelper.DebugLog);
-            }
-
             // FloatingObjectBase
             var floatingObjects = FindObjectsOfType<FloatingObjectBase>();
             foreach (var floatingObject in floatingObjects)

@@ -300,7 +300,7 @@ If the *Spline* component is attached to the same GameObject as a *ShapeGerstner
 For this information in video format, see here: https://www.youtube.com/watch?v=jcmqUlboTUk
 
 *Crest* requires water depth information to attenuate large waves in shallow water, to generate foam near shorelines, and to provide shallow water shading.
-The way this information is typically generated is through the *OceanDepthCache* component, which takes one or more layer names, and renders everything in those layers from a top-down orthographic view to generate a heightfield for the seabed.
+The way this information is typically generated is through the *OceanDepthCache* component, which takes one or more layers, and renders everything in those layers from a top-down orthographic view to generate a heightfield for the seabed.
 These layers could contain the render geometry/terrains, or it could be geometry that is placed in a non-rendered layer that serves only to populate the depth cache.
 By default this generation is done at run-time during startup, but the component exposes other options such as generating offline and saving to an asset, or rendering on demand.
 
@@ -315,7 +315,7 @@ The *main.unity* example scene has an example of a cache set up around the islan
 * The transform position Y value is set to the sea level
 * The transform scale is set to 540 which sets the size of the cache. If gizmos are visible and the cache is selected, the area is demarcated with a white rectangle.
 * The *Camera Max Terrain Height* is the max height of any surfaces above the sea level that will render into the cache. If gizmos are visible and the cache is selected, this cut-off height is visualised as a translucent gray rectangle.
-* The *Layer Names* field contains the layer that the island is assigned to: *Terrain*. Only objects in these layer(s) will render into the cache.
+* The *Layers* field contains the layers that the island is assigned to (*Terrain* in our project). Only objects in these layer(s) will render into the cache.
 
 By default the cache is populated in the `Start()` function. It can instead be configured to populate from script by setting the *Refresh Mode* to *On Demand* and calling the `PopulateCache()` method on the component from script.
 

@@ -40,6 +40,14 @@
 }
 
 
+/* Hide sections as these can get long. */
+.toctree-wrapper *[href~="user/faq.html"] + ul,
+.toctree-wrapper *[href~="about/history.html"] + ul
+{
+    display: none;
+}
+
+
 /****************************************************************************/
 /* Sidebar Logo
 /****************************************************************************/

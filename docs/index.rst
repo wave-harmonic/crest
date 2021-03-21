@@ -11,6 +11,9 @@ Crest Ocean System
 .. Subsequent captions are broken in PDFs: https://github.com/sphinx-doc/sphinx/issues/4977.
 
 .. NOTE:
+.. :numbered: has bugs with PDFs: https://github.com/sphinx-doc/sphinx/issues/4318.
+
+.. NOTE:
 .. only directive does not work with tocree directive for HTML.
 
 .. .. only:: latex
@@ -27,6 +30,7 @@ Crest Ocean System
 
 .. toctree::
    :numbered: 1
+   :maxdepth: 2
    :caption: About
 
    about/introduction
@@ -34,7 +38,7 @@ Crest Ocean System
 
 .. toctree::
    :numbered:
-   :maxdepth: 3
+   :maxdepth: 2
    :caption: User Guide
 
    user/getting-started

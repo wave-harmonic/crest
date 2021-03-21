@@ -3,14 +3,14 @@ Configuration
 
 Some quick start pointers for changing the ocean look and behaviour:
 
--  Ocean surface appearance: The active ocean material is assigned to the *OceanRenderer* script.
+-  Ocean surface appearance: The active ocean material is displayed below the *OceanRenderer* component.
    The material parameters are described in section :ref:`material_parameters`.
    Turn off unnecessary features to maximize performance.
 
 -  Animated waves / ocean shape: Configured on the *ShapeGerstnerBatched* script by providing an *Ocean Wave Spectrum* asset.
    This asset has an equalizer-style interface for tweaking different scales of waves, and also has some parametric wave spectra from the literature for comparison. See section :ref:`wave-conditions-section`.
 
--  Shallow water: Any ocean seabed geometry needs mark up to register it with *Crest*.
+-  Shallow water: Any ocean seabed geometry needs set up to register it with *Crest*.
    See section :ref:`shallows`.
 
 -  Ocean foam: Configured on the *OceanRenderer* script by providing a *Sim Settings Foam* asset.
@@ -25,7 +25,8 @@ Some quick start pointers for changing the ocean look and behaviour:
    You could add your own shape or deposit foam onto the surface where desired.
    Inputs are generally tagged with the *Register* scripts and examples can be found in the example content scenes.
 
-All settings can be changed at run-time and live authored. When tweaking ocean shape it can be useful to freeze time (from script, set *Time.timeScale* to 0) to clearly see the effect of each octave of waves.
+All settings can be changed at run-time and live authored.
+When tweaking ocean shape it can be useful to freeze time (from script, set *Time.timeScale* to 0) to clearly see the effect of each octave of waves.
 
 .. tip::
 

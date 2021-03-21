@@ -3,13 +3,13 @@
 Wave Conditions
 ===============
 
+The following sections describe how to define the wave conditions.
+
 .. tip::
 
     It is useful to see the animated ocean surface while tweaking the wave conditions.
 
     .. include:: includes/_animated-materials.rst
-
-The following sections describe how to define the wave conditions.
 
 
 .. _wave-authoring-section:

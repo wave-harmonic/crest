@@ -144,7 +144,7 @@ The steps to add an ocean to an existing scene are as follows:
 *  Create a new *GameObject* for the ocean, give it a descriptive name such as *Ocean*.
 
    *  Assign the *OceanRenderer* component to it.
-      On startup this component will generate the ocean geometry and do all required initialisation.
+      This component will generate the ocean geometry and do all required initialisation.
    *  Assign the desired ocean material to the *OceanRenderer* script - this is a material using the *Crest/Ocean* shader.
    *  Set the Y coordinate of the position to the desired sea level.
 
@@ -159,7 +159,7 @@ The steps to add an ocean to an existing scene are as follows:
 
 *  To add waves, create a new GameObject and add the *Shape Gerstner Batched* component.
    See :ref:`wave-conditions-section` section for customisation.
-*  Any ocean seabed geometry needs mark up to register it with `Crest`. See section :ref:`shallows`.
+*  Any ocean seabed geometry needs set up to register it with `Crest`. See section :ref:`shallows`.
 *  If the camera needs to go underwater, the underwater effect must be configured.
    See section :ref:`underwater` for instructions.
 

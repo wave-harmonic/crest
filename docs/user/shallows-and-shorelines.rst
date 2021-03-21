@@ -45,20 +45,22 @@ It can instead be configured to populate from script by setting the *Refresh Mod
 Once populated the cache contents can be saved to disk by clicking the *Save cache to file* button that will appear in the Inspector in play mode.
 Once saved, the *Type* field can be set to *Baked* and the saved data can be assigned to the *Saved Cache* field.
 
-Tweaking
---------
+Shoreline Waves
+---------------
+
+Modelling realistic shoreline waves efficiently is a challenging open problem.
+We discuss further and make suggestions on how to set up shorelines with *Crest* in the following video.
 
 .. youtube:: Y7ny8pKzWMk
 
    Tweaking Shorelines
 
-The above video will go through the difficulties of getting realistic shorelines.
-
 Troubleshooting
 ---------------
 
-*Crest* runs validation on the depth caches - look for warnings/errors in the Inspector, and in the log at run-time, where any issues will be highlighted.
+*Crest* runs validation on the depth caches - look for warnings/errors in the Inspector, and in the log at run-time, where many issues will be highlighted.
 
-At runtime, a child object underneath the cache will be created with the prefix *Draw\_*.
+To inspect the contents of the cache, look for a child GameObject parented below the cache with the name prefix *Draw\_*.
 It will have a material with a *Texture* property.
 By double clicking the icon to the right of this field, one can inspect the contents of the cache.
+The cache will appear black for dry land and red for water that is at least 1m deep.

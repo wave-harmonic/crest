@@ -75,7 +75,7 @@ Setting up a boat with physics can be a dark art.
 The authors recommend duplicating and modifying one of the existing boat prefabs, and proceeding slowly and carefully as follows:
 
 #. Pick an existing boat to replace. Only use *BoatAlignNormal* if good floating behaviour is not important, as mentioned above.
-   The best choice is usually boat probes.
+   The best choice is usually *BoatProbes*.
 
 #. Duplicate the prefab of the one you want to replace, such as *crest/Assets/Crest/Crest-Examples/BoatDev/Data/BoatProbes.prefab*
 

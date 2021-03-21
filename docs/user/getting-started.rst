@@ -42,9 +42,8 @@ Requirements
 ------------
 
 -  Unity Version: `UnityMinVersion`
--  .NET 4.x runtime
 -  Shader compilation target 4.5 or above
--  Crest unfortunately does not support OpenGL or WebGL backends
+-  Crest does not support OpenGL or WebGL backends
 
 .. only:: birp
 

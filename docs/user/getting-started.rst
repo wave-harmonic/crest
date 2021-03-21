@@ -80,6 +80,7 @@ Pipeline Setup
 
       .. include:: /includes/_birp-vars.rst
       .. include:: includes/_pipeline-setup.rst
+      .. include:: includes/_color-space.rst
 
 .. only:: hdrp
 
@@ -94,10 +95,8 @@ Pipeline Setup
 
       .. include:: /includes/_urp-vars.rst
       .. include:: includes/_pipeline-setup.rst
+      .. include:: includes/_color-space.rst
 
-Switch to Linear space rendering under :menuselection:`Edit --> Project Settings --> Player --> Other Settings`.
-If your platform(s) require Gamma space (and providing your pipeline supports it), the material settings will need to be adjusted to compensate.
-Please see the :link:`Unity documentation <{UnityDocLink}/LinearRendering-LinearOrGammaWorkflow.html>` for more information.
 
 .. _importing-crest-section:
 

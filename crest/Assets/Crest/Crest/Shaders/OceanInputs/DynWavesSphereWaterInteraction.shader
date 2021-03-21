@@ -24,6 +24,8 @@ Shader "Crest/Inputs/Dynamic Waves/Sphere-Water Interaction"
 
 			#include "UnityCG.cginc"
 
+			#include "../OceanInputsDriven.hlsl"
+
 			CBUFFER_START(CrestPerOceanInput)
 			float3 _Velocity;
 			float _SimDeltaTime;
@@ -64,7 +66,7 @@ Shader "Crest/Inputs/Dynamic Waves/Sphere-Water Interaction"
 
 				o.positionCS = mul(UNITY_MATRIX_VP, float4(vertexWorldPos, 1.0));
 
-				if( 2.0 * _Radius < _MinWavelength ) o.positionCS *= 0.0;
+				if( 2.0 * _Radius < _CrestCascadeData[_LodIdx]._texelWidth ) o.positionCS *= 0.0;
 
 				return o;
 			}
@@ -103,7 +105,7 @@ Shader "Crest/Inputs/Dynamic Waves/Sphere-Water Interaction"
 
 					// Range / radius of interaction force
 					const float a = 1.67 / _MinWavelength;
-					forceUpDown *= 0.25 * InteractionFalloff( a, signedDist );
+					forceUpDown *= 0.2 * InteractionFalloff( a, signedDist );
 				}
 
 				// Forces from horizontal motion - push water up in direction of motion, pull down behind.
@@ -112,7 +114,7 @@ Shader "Crest/Inputs/Dynamic Waves/Sphere-Water Interaction"
 				{
 					// Range / radius of interaction force
 					const float a = 1.43 / _MinWavelength;
-					forceHoriz = 0.25 * dot( sdfNormal, _Velocity.xz ) * InteractionFalloff( a, signedDist );
+					forceHoriz = 0.2 * dot( sdfNormal, _Velocity.xz ) * InteractionFalloff( a, signedDist );
 				}
 
 				// Add to velocity (y-channel) to accelerate water.

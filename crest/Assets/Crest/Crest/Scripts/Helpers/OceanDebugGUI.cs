@@ -15,6 +15,8 @@ namespace Crest
         public bool _showOceanData = true;
         public bool _guiVisible = true;
 
+        [SerializeField] bool _drawLodDatasActualSize = false;
+
         [Header("Lod Datas")]
         [SerializeField] bool _drawAnimWaves = true;
         [SerializeField] bool _drawDynWaves = false;
@@ -203,16 +205,16 @@ namespace Crest
         {
             float column = 1f;
 
-            DrawSim<LodDataMgrAnimWaves>(OceanRenderer.Instance._lodDataAnimWaves, ref _drawAnimWaves, ref column);
-            DrawSim<LodDataMgrDynWaves>(OceanRenderer.Instance._lodDataDynWaves, ref _drawDynWaves, ref column);
-            DrawSim<LodDataMgrFoam>(OceanRenderer.Instance._lodDataFoam, ref _drawFoam, ref column);
-            DrawSim<LodDataMgrFlow>(OceanRenderer.Instance._lodDataFlow, ref _drawFlow, ref column);
-            DrawSim<LodDataMgrShadow>(OceanRenderer.Instance._lodDataShadow, ref _drawShadow, ref column);
-            DrawSim<LodDataMgrSeaFloorDepth>(OceanRenderer.Instance._lodDataSeaDepths, ref _drawSeaFloorDepth, ref column);
-            DrawSim<LodDataMgrClipSurface>(OceanRenderer.Instance._lodDataClipSurface, ref _drawClipSurface, ref column);
+            DrawSim<LodDataMgrAnimWaves>(OceanRenderer.Instance._lodDataAnimWaves, _drawLodDatasActualSize, ref _drawAnimWaves, ref column);
+            DrawSim<LodDataMgrDynWaves>(OceanRenderer.Instance._lodDataDynWaves, _drawLodDatasActualSize, ref _drawDynWaves, ref column);
+            DrawSim<LodDataMgrFoam>(OceanRenderer.Instance._lodDataFoam, _drawLodDatasActualSize, ref _drawFoam, ref column);
+            DrawSim<LodDataMgrFlow>(OceanRenderer.Instance._lodDataFlow, _drawLodDatasActualSize, ref _drawFlow, ref column);
+            DrawSim<LodDataMgrShadow>(OceanRenderer.Instance._lodDataShadow, _drawLodDatasActualSize, ref _drawShadow, ref column);
+            DrawSim<LodDataMgrSeaFloorDepth>(OceanRenderer.Instance._lodDataSeaDepths, _drawLodDatasActualSize, ref _drawSeaFloorDepth, ref column);
+            DrawSim<LodDataMgrClipSurface>(OceanRenderer.Instance._lodDataClipSurface, _drawLodDatasActualSize, ref _drawClipSurface, ref column);
         }
 
-        static void DrawSim<SimType>(LodDataMgr lodData, ref bool doDraw, ref float offset) where SimType : LodDataMgr
+        static void DrawSim<SimType>(LodDataMgr lodData, bool actualSize, ref bool doDraw, ref float offset) where SimType : LodDataMgr
         {
             if (lodData == null) return;
 
@@ -224,7 +226,7 @@ namespace Crest
 
             float togglesBegin = Screen.height - _bottomPanelHeight;
             float b = 7f;
-            float h = togglesBegin / (float)lodData.DataTexture.volumeDepth;
+            float h = actualSize ? lodData.DataTexture.height : togglesBegin / (float)lodData.DataTexture.volumeDepth;
             float w = h + b;
             float x = Screen.width - w * offset + b * (offset - 1f);
 

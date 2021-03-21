@@ -19,7 +19,7 @@ Some quick start pointers for changing the ocean look and behaviour:
    See section :ref:`underwater` for instructions.
 
 -  Dynamic wave simulation: Simulates dynamic effects like object-water interaction.
-   Configured on the *OceanRenderer* script by providing a *Sim Settings Wave* asset, described in section :ref:`dynamic_waves_setup`.
+   Configured on the *OceanRenderer* script by providing a *Sim Settings Wave* asset, described in section :ref:`dynamic_waves_settings`.
 
 -  A big strength of *Crest* is that you can add whatever contributions you like into the system.
    You could add your own shape or deposit foam onto the surface where desired.

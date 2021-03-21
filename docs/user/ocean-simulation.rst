@@ -64,45 +64,50 @@ Dynamic Waves
 Overview
 ^^^^^^^^
 
-This LOD data is a multi-resolution dynamic wave simulation, which gives dynamic interaction with the water.
-To turn on this feature, enable the *Create Dynamic Wave Sim* option on the *OceanRenderer* script.
+Crest includes a multi-resolution dynamic wave simulation, which allows objects like boats to interact with the water.
+
+To turn on this feature, enable the *Create Dynamic Wave Sim* option on the *OceanRenderer* script, and to configure the sim, create or assign a *Dynamic Wave Sim Settings* asset on the *Sim Settings Dynamic Waves* option.
 
 One use case for this is boat wakes.
-In the *boat.unity* scene, the geometry and shader on the *WaterObjectInteractionSphere0* will render forces into the sim.
-It has the *RegisterDynWavesInput* script that tags it as input.
+In the *boat.unity* scene, the geometry and shader on the *WaterObjectInteractionSphere0* GameObject will apply forces to the water.
+It has the *RegisterDynWavesInput* component attached to register it with the system.
 
-After the simulation is advanced, the results are converted into displacements and copied into the displacement textures to affect the final ocean shape.
-The sim is added on top of the existing Gerstner waves.
-
-The dynamic waves sim can be configured by assigning a Dynamic Wave Sim Settings asset to the OceanRenderer script in your scene (*Create/Crest/Dynamic Wave Sim Settings*).
-
-.. _dynamic_waves_setup:
-
-Simulation setup
-^^^^^^^^^^^^^^^^
-
-This is the recommended workflow for configuring the dynamic wave simulation.
-All of the settings below refer to the *Dynamic Wave Sim Settings*.
-
-#. Set the *Gravity Multiplier* to the lowest value that is satisfactory.
-   Higher values will make the simulated waves travel faster, but make the simulation more unstable and require more update steps / expense.
-
-#. Increase *Damping* as high as possible.
-   Higher values make the sim easier to solve, but makes the waves fade faster and limits their range.
-
-#. Set the *Courant Number* to the highest value which still yields a stable sim.
-   Higher values reduce cost but reduce stability.
-   Put the camera low down near the water while testing as the most detailed waves are the most unstable.
-
-#. Reduce *Max Sim Steps Per Frame* as much as possible to reduce the simulation cost.
-   This may slow down waves in the lower LOD levels, which are the most detailed waves.
-   Hopefully this slight slow down in just the smallest wavelengths is not noticeable/objectionable for the player.
-   If waves are visible travelling too slow, increase it.
-
-The *OceanDebugGUI* script gives the debug overlay in the example content scenes and reports the number of sim steps taken and sim step dt at each frame.
+The dynamic wave simulation is added on top of the animated Gerstner waves to give the final shape.
 
 
-User inputs
+.. _dynamic_waves_settings:
+
+Simulation Settings
+^^^^^^^^^^^^^^^^^^^
+
+All of the settings below refer to the *Dynamic Wave Sim Settings* asset.
+
+#. **Simulation Frequency** - Frequency to run the dynamic wave sim, in updates per second.
+   Lower frequencies can be more efficient but may limit wave speed or lead to visible jitter.
+   Default is 60 updates per second.
+
+#. **Damping** - How much energy is dissipated each frame.
+   Helps sim stability, but limits how far ripples will propagate.
+   Set this as large as possible/acceptable.
+   Default is 0.05.
+
+#. **Courant Number** - Stability control.
+   Lower values means more stable sim, but may slow down some dynamic waves.
+   This value should be set as large as possible until sim instabilities/flickering begin to appear.
+   Default is 0.7.
+
+#. **Horiz Displace** - Induce horizontal displacements to sharpen simulated waves.
+
+#. **Displace Clamp** - Clamp displacement to help prevent self-intersection in steep waves.
+   Zero means unclamped.
+
+#. **Gravity Multiplier** - Multiplier for gravity.
+   More gravity means dynamic waves will travel faster.
+
+The *OceanDebugGUI* script gives the debug overlay in the example content scenes and reports the number of sim steps taken each frame.
+
+
+User Inputs
 ^^^^^^^^^^^
 
 User provided contributions can be rendered into this simulation to create dynamic wave effects.

@@ -22,6 +22,7 @@ namespace Crest
     /// and moves/scales the ocean based on the viewpoint. It also hosts a number of global settings that can be tweaked here.
     /// </summary>
     [ExecuteAlways, SelectionBase]
+    [AddComponentMenu(Internal.Constants.MENU_PREFIX_SCRIPTS + "Ocean Renderer")]
     public partial class OceanRenderer : MonoBehaviour
     {
         [Tooltip("The viewpoint which drives the ocean detail. Defaults to the camera."), SerializeField]
@@ -1105,13 +1106,6 @@ namespace Crest
             foreach (var depthCache in depthCaches)
             {
                 depthCache.Validate(ocean, ValidatedHelper.DebugLog);
-            }
-
-            // AssignLayer
-            var assignLayers = FindObjectsOfType<AssignLayer>();
-            foreach (var assign in assignLayers)
-            {
-                assign.Validate(ocean, ValidatedHelper.DebugLog);
             }
 
             // FloatingObjectBase

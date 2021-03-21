@@ -9,6 +9,7 @@ using UnityEngine.SceneManagement;
 namespace Crest
 {
     [ExecuteAlways]
+    [AddComponentMenu(Internal.Constants.MENU_PREFIX_DEBUG + "Ocean Debug GUI")]
     public class OceanDebugGUI : MonoBehaviour
     {
         public bool _showOceanData = true;
@@ -91,8 +92,8 @@ namespace Crest
                 {
                     if (OceanRenderer.Instance._lodDataDynWaves != null)
                     {
-                        int steps; float dt;
-                        OceanRenderer.Instance._lodDataDynWaves.GetSimSubstepData(OceanRenderer.Instance.DeltaTimeDynamics, out steps, out dt);
+                        var dt = 1f / OceanRenderer.Instance._lodDataDynWaves.Settings._simulationFrequency;
+                        var steps = OceanRenderer.Instance._lodDataDynWaves.LastUpdateSubstepCount;
                         GUI.Label(new Rect(x, y, w, h), string.Format("Sim steps: {0:0.00000} x {1}", dt, steps)); y += h;
                     }
 

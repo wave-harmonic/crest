@@ -13,6 +13,7 @@ namespace Crest
     /// <summary>
     /// Drives object/water interaction - sets parameters each frame on material that renders into the dynamic wave sim.
     /// </summary>
+    [AddComponentMenu(Internal.Constants.MENU_PREFIX_SCRIPTS + "Object Water Interaction")]
     public partial class ObjectWaterInteraction : MonoBehaviour
     {
         [Range(0f, 2f), SerializeField]
@@ -138,15 +139,17 @@ namespace Crest
                 }
             }
 
-            float dt;
-            ocean._lodDataDynWaves.GetSimSubstepData(ocean.DeltaTimeDynamics, out _, out dt);
-            float weight = _boat.InWater ? 1f / simsActive : 0f;
+            var dt = 1f / ocean._lodDataDynWaves.Settings._simulationFrequency;
+            var weight = _boat.InWater ? 1f / simsActive : 0f;
 
             _renderer.GetPropertyBlock(_mpb);
 
             _mpb.SetVector("_Velocity", vel);
-            _mpb.SetFloat("_Weight", weight);
             _mpb.SetFloat("_SimDeltaTime", dt);
+
+            // Weighting with this value helps keep ripples consistent for different gravity values
+            var gravityMul = Mathf.Sqrt(ocean._lodDataDynWaves.Settings._gravityMultiplier / 25f);
+            _mpb.SetFloat("_Weight", weight * gravityMul);
 
             _renderer.SetPropertyBlock(_mpb);
 

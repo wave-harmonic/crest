@@ -11,6 +11,7 @@ namespace Crest
     /// Registers a custom input for shadow data. Attach this to GameObjects that you want use to override shadows.
     /// </summary>
     [ExecuteAlways]
+    [AddComponentMenu(MENU_PREFIX + "Shadow Input")]
     public class RegisterShadowInput : RegisterLodDataInput<LodDataMgrShadow>
     {
         public override bool Enabled => true;

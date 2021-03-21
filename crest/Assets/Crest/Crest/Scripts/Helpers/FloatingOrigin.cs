@@ -36,6 +36,7 @@ namespace Crest
     /// point it moves everything so that the camera is back at the origin. There is also an option to disable physics beyond a certain point. This
     /// script should normally be attached to the viewpoint, typically the main camera.
     /// </summary>
+    [AddComponentMenu(Internal.Constants.MENU_PREFIX_SCRIPTS + "Floating Origin")]
     public class FloatingOrigin : MonoBehaviour
     {
         [Tooltip("Use a power of 2 to avoid pops in ocean surface geometry."), SerializeField]

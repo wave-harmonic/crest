@@ -6,6 +6,7 @@ using UnityEngine;
 
 namespace Crest
 {
+    [AddComponentMenu(Internal.Constants.MENU_PREFIX_SCRIPTS + "Object Water Interaction Adaptor")]
     public class ObjectWaterInteractionAdaptor : FloatingObjectBase
     {
         public override float ObjectWidth => 0f;

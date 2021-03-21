@@ -82,26 +82,26 @@ Simulation Settings
 
 All of the settings below refer to the *Dynamic Wave Sim Settings* asset.
 
-#. **Simulation Frequency** - Frequency to run the dynamic wave sim, in updates per second.
+-  **Simulation Frequency** - Frequency to run the dynamic wave sim, in updates per second.
    Lower frequencies can be more efficient but may limit wave speed or lead to visible jitter.
    Default is 60 updates per second.
 
-#. **Damping** - How much energy is dissipated each frame.
+-  **Damping** - How much energy is dissipated each frame.
    Helps sim stability, but limits how far ripples will propagate.
    Set this as large as possible/acceptable.
    Default is 0.05.
 
-#. **Courant Number** - Stability control.
+-  **Courant Number** - Stability control.
    Lower values means more stable sim, but may slow down some dynamic waves.
    This value should be set as large as possible until sim instabilities/flickering begin to appear.
    Default is 0.7.
 
-#. **Horiz Displace** - Induce horizontal displacements to sharpen simulated waves.
+-  **Horiz Displace** - Induce horizontal displacements to sharpen simulated waves.
 
-#. **Displace Clamp** - Clamp displacement to help prevent self-intersection in steep waves.
+-  **Displace Clamp** - Clamp displacement to help prevent self-intersection in steep waves.
    Zero means unclamped.
 
-#. **Gravity Multiplier** - Multiplier for gravity.
+-  **Gravity Multiplier** - Multiplier for gravity.
    More gravity means dynamic waves will travel faster.
 
 The *OceanDebugGUI* script gives the debug overlay in the example content scenes and reports the number of sim steps taken each frame.

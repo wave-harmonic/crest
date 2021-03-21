@@ -38,9 +38,7 @@ The version hosted here targets the **built-in render pipeline**, links to the s
 
 # Documentation
 
-Refer to [USERGUIDE.md](https://github.com/wave-harmonic/crest/blob/master/USERGUIDE.md) for full documentation, including **Initial setup steps**.
-
-There is also a getting started video here: https://www.youtube.com/watch?v=qsgeG4sSLFw&t=142s .
+[Full documentation is available online](https://crest.readthedocs.io/en/latest), including *initial setup steps*.
 
 # Prerequisites
 

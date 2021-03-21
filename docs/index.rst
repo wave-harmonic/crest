@@ -38,7 +38,7 @@ Crest Ocean System
 
 .. toctree::
    :numbered:
-   :maxdepth: 2
+   :maxdepth: 3
    :caption: User Guide
 
    user/getting-started

@@ -1,6 +1,14 @@
 Getting Started
 ===============
 
+.. Set section numbering and ToC depth for PDFs because Sphinx has bugs and limitations.
+
+.. raw:: latex
+
+   \setcounter{secnumdepth}{2}
+   \addtocontents{toc}{\protect\setcounter{tocdepth}{2}}
+
+
 This section has steps for importing the `Crest` content into a project, and for adding a new ocean surface to a scene.
 
 .. warning::

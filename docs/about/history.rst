@@ -2,11 +2,13 @@
 Release Notes
 =============
 
-.. Disable section numbering for Latex. This is a bug in Sphinx.
+.. Set section numbering and ToC depth for PDFs because Sphinx has bugs and limitations.
 
 .. raw:: latex
 
    \setcounter{secnumdepth}{0}
+   \addtocontents{toc}{\protect\setcounter{tocdepth}{0}}
+
 
 .. only:: html or readthedocs
 

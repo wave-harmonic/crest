@@ -127,8 +127,6 @@ Reflection Environment
 
    .. only:: hdrp or urp
 
-      .. TODO: Rename Power to Falloff in URP.
-
       |  **Smoothness Far** Material smoothness at far distance from camera. `[HDRP] [URP]`
       |  **Smoothness Far Distance** Definition of far distance. `[HDRP] [URP]`
       |  **Smoothness Falloff** How smoothness varies between near and far distance. `[HDRP] [URP]`

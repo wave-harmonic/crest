@@ -20,9 +20,10 @@ Release Notes
 
 Breaking
 ^^^^^^^^
--  Dynamic Waves and Foam simulations now run at fixed timesteps for consistency across different frame rates.
+-  Dynamic Waves and Foam simulations now run at configurable fixed timesteps for consistency across different frame rates.
    Tweaking of settings may be required.
    See :pr:`778` for more details.
+-  Change *Layer Names* (string array) to *Layers* (LayerMask) on *Ocean Depth Cache*.
 
 Preview
 ^^^^^^^
@@ -32,33 +33,40 @@ Changed
 ^^^^^^^
 -  Add :link:`online documentation <https://crest.readthedocs.io>`.
 -  Add inline editing for sim settings, wave spectrums and ocean material.
--  Add Crest icons to sim settings and wave spectrums.
+-  Add `Crest` icons to sim settings and wave spectrums.
 -  Add button to fix issues on some validation help boxes.
 -  Add validation to inform whether the depth cache is outdated.
 -  Add validation for ocean depth cache with non uniform scale.
 -  Add scriptable custom time provider property which accepts interfaces.
 -  Validate simulation checkboxes and their respective material checkboxes and inputs.
+-  Add "`Crest`" prefix to component menu items.
+-  Organise "`Crest`" component menu items into subfolders.
 
 Fixed
 ^^^^^
-
 .. bullet_list::
 
    -  Fix more cases of fine gaps.
    -  Fix depth cache not reflecting updated properties when populating cache.
    -  Fix RayTraceHelper not working.
    -  Fix ShapeGerstner component breaking builds.
-   -  Fix PS4/PSSL errors.
-   -  Fix local waves flickering.
+   -  Fix PS4/PSSL shader errors.
+   -  Fix local waves flickering in some cases.
+   -  Fix VFACE breaking shaders on consoles.
 
    .. only:: hdrp
 
       -  Fix underwater normals incorrect orientation. `[HDRP]`
+      -  Fix shader errors for latest consoles. `[HDRP]`
 
    .. only:: urp
 
       -  Fix gray ocean by forcing depth and opaque texture when needed in the editor. `[URP]`
       -  Only feather foam at shoreline if transparency is enabled. `[URP]`
+
+Deprecated
+^^^^^^^^^^
+-  *Assign Layer* component is no longer used in examples and will be removed.
 
 
 4.8

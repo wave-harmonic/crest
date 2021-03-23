@@ -15,7 +15,7 @@ namespace Crest
     [HelpURL(HELP_URL)]
     public class SimSettingsFoam : SimSettingsBase
     {
-        public const string HELP_URL = "https://github.com/wave-harmonic/crest/blob/master/USERGUIDE.md#foam";
+        public const string HELP_URL = "https://crest.readthedocs.io/en/latest/user/ocean-simulation.html#general-settings";
 
         [Header("General settings")]
         [Range(0f, 20f), Tooltip("Speed at which foam fades/dissipates.")]

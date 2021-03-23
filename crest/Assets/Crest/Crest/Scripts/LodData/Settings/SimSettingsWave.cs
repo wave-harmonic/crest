@@ -2,13 +2,17 @@
 
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
+using UnityEditor;
 using UnityEngine;
 
 namespace Crest
 {
     [CreateAssetMenu(fileName = "SimSettingsDynamicWaves", menuName = "Crest/Dynamic Wave Sim Settings", order = 10000)]
+    [HelpURL(HELP_URL)]
     public class SimSettingsWave : SimSettingsBase
     {
+        public const string HELP_URL = "https://crest.readthedocs.io/en/latest/user/ocean-simulation.html#simulation-settings";
+
         //[Header("Range")]
         [Range(0f, 32f), Tooltip("NOT CURRENTLY WORKING. The wave sim will not run if the simulation grid is smaller in resolution than this size. Useful to limit sim range for performance."),
             HideInInspector]
@@ -34,4 +38,22 @@ namespace Crest
         [Range(0f, 64f), Tooltip("Multiplier for gravity. More gravity means dynamic waves will travel faster.")]
         public float _gravityMultiplier = 1f;
     }
+
+#if UNITY_EDITOR
+    [CustomEditor(typeof(SimSettingsWave), true), CanEditMultipleObjects]
+    class SimSettingsWaveEditor : SimSettingsBaseEditor
+    {
+        public override void OnInspectorGUI()
+        {
+            EditorGUILayout.Space();
+            if (GUILayout.Button("Open Online Help Page"))
+            {
+                Application.OpenURL(SimSettingsWave.HELP_URL);
+            }
+            EditorGUILayout.Space();
+
+            base.OnInspectorGUI();
+        }
+    }
+#endif
 }

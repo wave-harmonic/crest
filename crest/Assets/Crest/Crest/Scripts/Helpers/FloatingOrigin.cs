@@ -37,6 +37,7 @@ namespace Crest
     /// script should normally be attached to the viewpoint, typically the main camera.
     /// </summary>
     [AddComponentMenu(Internal.Constants.MENU_PREFIX_SCRIPTS + "Floating Origin")]
+    [HelpURL("https://crest.readthedocs.io/en/latest/user/other-features.html#floating-origin")]
     public class FloatingOrigin : MonoBehaviour
     {
         [Tooltip("Use a power of 2 to avoid pops in ocean surface geometry."), SerializeField]

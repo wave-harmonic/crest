@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Unity.Collections.LowLevel.Unsafe;
+using Crest.Internal;
 #if UNITY_EDITOR
 using UnityEngine.Rendering;
 using UnityEditor;
@@ -23,6 +24,7 @@ namespace Crest
     /// </summary>
     [ExecuteAlways, SelectionBase]
     [AddComponentMenu(Internal.Constants.MENU_PREFIX_SCRIPTS + "Ocean Renderer")]
+    [HelpURL(Constants.HELP_URL_GENERAL)]
     public partial class OceanRenderer : MonoBehaviour
     {
         [Tooltip("The viewpoint which drives the ocean detail. Defaults to the camera."), SerializeField]
@@ -1409,6 +1411,11 @@ namespace Crest
             if (GUILayout.Button("Validate Setup"))
             {
                 OceanRenderer.RunValidation(target);
+            }
+
+            if (GUILayout.Button("Open Material Online Help"))
+            {
+                Application.OpenURL("https://crest.readthedocs.io/en/latest/user/configuration.html#material-parameters");
             }
 
             DrawMaterialEditor();

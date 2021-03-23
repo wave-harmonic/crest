@@ -13,5 +13,7 @@ namespace Crest.Internal
         public const string MENU_PREFIX_DEBUG = MENU_SCRIPTS + "Debug/" + PREFIX;
         public const string MENU_PREFIX_SPLINE = MENU_SCRIPTS + "Spline/" + PREFIX;
         public const string MENU_PREFIX_EXAMPLE = MENU_SCRIPTS + "Example/" + PREFIX;
+
+        public const string HELP_URL_GENERAL = "https://crest.readthedocs.io/";
     }
 }

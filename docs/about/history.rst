@@ -34,6 +34,7 @@ Preview
 Changed
 ^^^^^^^
 -  Add :link:`online documentation <https://crest.readthedocs.io>`.
+-  Set up help button linking to new documentation for multiple components, and added material help button.
 -  Add inline editing for sim settings, wave spectrums and ocean material.
 -  Add `Crest` icons to sim settings and wave spectrums.
 -  Add button to fix issues on some validation help boxes.

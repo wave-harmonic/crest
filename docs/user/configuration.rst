@@ -260,16 +260,24 @@ Transparency
 
 Caustics
 ^^^^^^^^
+.. line_block::
 
-|  **Enable** Approximate rays being focused/defocused on underwater surfaces.
-|  **Caustics** Caustics texture.
-|  **Caustics Scale** Caustics texture scale.
-|  **Caustics Texture Grey Point** The 'mid' value of the caustics texture, around which the caustic texture values are scaled.
-|  **Caustics Strength** Scaling / intensity.
-|  **Caustics Focal Depth** The depth at which the caustics are in focus.
-|  **Caustics Depth Of Field** The range of depths over which the caustics are in focus.
-|  **Caustics Distortion Strength** How much the caustics texture is distorted.
-|  **Caustics Distortion Scale** The scale of the distortion pattern used to distort the caustics.
+   |  **Enable** Approximate rays being focused/defocused on underwater surfaces.
+   |  **Caustics** Caustics texture.
+   |  **Caustics Scale** Caustics texture scale.
+   |  **Caustics Texture Grey Point** The 'mid' value of the caustics texture, around which the caustic texture values are scaled.
+   |  **Caustics Strength** Scaling / intensity.
+   |  **Caustics Focal Depth** The depth at which the caustics are in focus.
+   |  **Caustics Depth Of Field** The range of depths over which the caustics are in focus.
+
+   .. only:: hdrp
+
+      .. TODO: Why does SG have a distortion texture and SL uses the normal map?
+
+      |  **Caustics Distortion Texture** Texture to distort caustics. `[HDRP]`
+
+   |  **Caustics Distortion Strength** How much the caustics texture is distorted.
+   |  **Caustics Distortion Scale** The scale of the distortion pattern used to distort the caustics.
 
 Underwater
 ^^^^^^^^^^

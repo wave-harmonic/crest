@@ -20,6 +20,24 @@ Release Notes
 |version|
 ---------
 
+Changed
+^^^^^^^
+.. bullet_list::
+
+   .. only:: hdrp
+
+      -  Rearrange some material properties. `[HDRP]`
+      -  Document *Caustics Distortion Texture*. `[HDRP]`
+
+Fixed
+^^^^^
+.. bullet_list::
+
+   .. only:: hdrp
+
+      -  Remove duplicate foam bubble properties. `[HDRP]`
+
+
 4.9
 ---
 

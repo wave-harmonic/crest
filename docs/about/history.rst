@@ -20,6 +20,9 @@ Release Notes
 |version|
 ---------
 
+4.9
+---
+
 Breaking
 ^^^^^^^^
 -  Dynamic Waves and Foam simulations now run at configurable fixed timesteps for consistency across different frame rates.

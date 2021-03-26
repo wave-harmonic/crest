@@ -21,7 +21,7 @@ sys.path.insert(0, os.path.abspath('./extensions'))
 project = "Crest"
 author = "Wave Harmonic & Contributors"
 copyright = f"2021, {author}"
-version = "4.9"
+version = "4.10"
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#confval-release
 release = version
 

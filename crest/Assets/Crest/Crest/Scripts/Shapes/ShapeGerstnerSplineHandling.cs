@@ -106,6 +106,7 @@ namespace Crest
                 var normal = tangent;
                 normal.x = tangent.z;
                 normal.z = -tangent.x;
+                normal.y = 0f;
                 normal = normal.normalized;
                 sampledPtsOffSpline[i] = sampledPtsOnSpline[i] + normal * radius;
             }

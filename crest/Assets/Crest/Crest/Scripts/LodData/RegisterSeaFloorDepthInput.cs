@@ -42,9 +42,13 @@ namespace Crest
 #if UNITY_EDITOR
         protected override bool FeatureEnabled(OceanRenderer ocean) => ocean.CreateSeaFloorDepthData;
         protected override string FeatureDisabledErrorMessage => "<i>Create Sea Floor Depth Data</i> must be enabled on the OceanRenderer component.";
-        protected override void FixOceanFeatureDisabled(SerializedObject oceanComponent)
+        protected override string FixOceanFeatureDisabled(SerializedObject oceanComponent)
         {
-            oceanComponent.FindProperty("_createSeaFloorDepthData").boolValue = true;
+            if (oceanComponent != null)
+            {
+                oceanComponent.FindProperty("_createSeaFloorDepthData").boolValue = true;
+            }
+            return "Enable 'Create Sea Floor Depth Data' option on OceanRenderer component.";
         }
 #endif // UNITY_EDITOR
     }

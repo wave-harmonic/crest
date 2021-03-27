@@ -13,6 +13,8 @@ using UnityEngine;
 
 namespace Crest
 {
+    using ValidationFixFunc = System.Func<SerializedObject, string>;
+
     public interface IValidated
     {
         bool Validate(OceanRenderer ocean, ValidatedHelper.ShowMessage showMessage);
@@ -32,7 +34,7 @@ namespace Crest
         {
             public string _message;
             public Object _object;
-            public System.Action<SerializedObject> _action;
+            public ValidationFixFunc _action;
         }
 
         // This is a shared resource. It will be cleared before use. It is only used by the HelpBox delegate since we
@@ -44,9 +46,9 @@ namespace Crest
             new List<HelpBoxMessage>(),
         };
 
-        public delegate void ShowMessage(string message, MessageType type, Object @object = null, System.Action<SerializedObject> action = null);
+        public delegate void ShowMessage(string message, MessageType type, Object @object = null, ValidationFixFunc action = null);
 
-        public static void DebugLog(string message, MessageType type, Object @object = null, System.Action<SerializedObject> action = null)
+        public static void DebugLog(string message, MessageType type, Object @object = null, ValidationFixFunc action = null)
         {
             message = $"Validation: {message} Click this message to highlight the problem object.";
 
@@ -58,20 +60,24 @@ namespace Crest
             }
         }
 
-        public static void HelpBox(string message, MessageType type, Object @object = null, System.Action<SerializedObject> action = null)
+        public static void HelpBox(string message, MessageType type, Object @object = null, ValidationFixFunc action = null)
         {
             messages[(int)type].Add(new HelpBoxMessage { _message = message, _object = @object, _action = action });
         }
 
-        public static void Suppressed(string message, MessageType type, Object @object = null, System.Action<SerializedObject> action = null)
+        public static void Suppressed(string message, MessageType type, Object @object = null, ValidationFixFunc action = null)
         {
         }
 
-        static void FixAttachRenderer(SerializedObject lodInputComponent)
+        static string FixAttachRenderer(SerializedObject lodInputComponent)
         {
-            var gameObject = lodInputComponent.targetObject as GameObject;
-            gameObject.AddComponent<MeshRenderer>();
-            EditorUtility.SetDirty(gameObject);
+            if (lodInputComponent != null)
+            {
+                var gameObject = lodInputComponent.targetObject as GameObject;
+                gameObject.AddComponent<MeshRenderer>();
+                EditorUtility.SetDirty(gameObject);
+            }
+            return "Attach MeshRenderer component";
         }
 
         public static bool ValidateRenderer(GameObject gameObject, string shaderPrefix, ShowMessage showMessage)
@@ -198,19 +204,23 @@ namespace Crest
                             // Fix the issue button.
                             if (message._action != null)
                             {
+                                // Call fix function with null argument to retrieve the resolution info
+                                string resolution = message._action.Invoke(null);
                                 if (s_fixButtonContent == null)
                                 {
-                                    s_fixButtonContent = new GUIContent(EditorGUIUtility.FindTexture("SceneViewTools@2x"), "Fix the issue");
+                                    s_fixButtonContent = new GUIContent(EditorGUIUtility.FindTexture("SceneViewTools@2x"));
                                 }
+                                s_fixButtonContent.tooltip = $"Fix: {resolution}";
 
                                 if (GUILayout.Button(s_fixButtonContent, GUILayout.ExpandWidth(false), GUILayout.ExpandHeight(true)))
                                 {
+                                    // Fix for real
                                     var serializedObject = new SerializedObject(message._object);
                                     message._action.Invoke(serializedObject);
                                     if (serializedObject.ApplyModifiedProperties())
                                     {
                                         // SerializedObject does this for us, but gives the history item a nicer label.
-                                        Undo.RecordObject(message._object, $"Fix for {message._object.name}");
+                                        Undo.RecordObject(message._object, resolution);
                                     }
                                 }
                             }

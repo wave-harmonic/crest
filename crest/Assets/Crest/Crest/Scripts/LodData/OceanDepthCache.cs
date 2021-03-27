@@ -581,8 +581,12 @@ namespace Crest
                     "Use <i>Layers</i> instead.",
                     ValidatedHelper.MessageType.Error, this, (SerializedObject serializedObject) =>
                     {
-                        serializedObject.FindProperty("_layers").intValue = LayerMask.GetMask(_layerNames);
-                        serializedObject.FindProperty("_layerNames").arraySize = 0;
+                        if (serializedObject != null)
+                        {
+                            serializedObject.FindProperty("_layers").intValue = LayerMask.GetMask(_layerNames);
+                            serializedObject.FindProperty("_layerNames").arraySize = 0;
+                        }
+                        return "Populate layer mask using the legacy layer names data";
                     }
                 );
 

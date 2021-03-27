@@ -87,9 +87,13 @@ namespace Crest
         protected override bool FeatureEnabled(OceanRenderer ocean) => ocean.CreateClipSurfaceData;
         protected override string RequiredShaderKeywordProperty => LodDataMgrClipSurface.MATERIAL_KEYWORD_PROPERTY;
         protected override string RequiredShaderKeyword => LodDataMgrClipSurface.MATERIAL_KEYWORD;
-        protected override void FixOceanFeatureDisabled(SerializedObject oceanComponent)
+        protected override string FixOceanFeatureDisabled(SerializedObject oceanComponent)
         {
-            oceanComponent.FindProperty("_createClipSurfaceData").boolValue = true;
+            if (oceanComponent != null)
+            {
+                oceanComponent.FindProperty("_createClipSurfaceData").boolValue = true;
+            }
+            return "Enable 'Create Clip Surface Data' option on OceanRenderer component.";
         }
 
         protected override string FeatureDisabledErrorMessage => "<i>Create Clip Surface Data</i> must be enabled on the OceanRenderer component to enable clipping holes in the water surface.";

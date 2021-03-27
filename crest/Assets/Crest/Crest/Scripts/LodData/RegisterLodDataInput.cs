@@ -266,7 +266,7 @@ namespace Crest
         protected virtual string FeatureDisabledErrorMessage => "Feature must be enabled on the OceanRenderer component.";
         protected virtual string KeywordMissingErrorMessage => "Feature must be enabled on the ocean material.";
 
-        protected abstract void FixOceanFeatureDisabled(SerializedObject oceanComponent);
+        protected abstract string FixOceanFeatureDisabled(SerializedObject oceanComponent);
 
         public bool Validate(OceanRenderer ocean, ValidatedHelper.ShowMessage showMessage)
         {

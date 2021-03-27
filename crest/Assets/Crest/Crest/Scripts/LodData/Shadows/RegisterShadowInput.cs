@@ -27,9 +27,13 @@ namespace Crest
 #if UNITY_EDITOR
         protected override bool FeatureEnabled(OceanRenderer ocean) => ocean.CreateShadowData;
         protected override string FeatureDisabledErrorMessage => "<i>Create Shadow Data</i> must be enabled on the OceanRenderer component.";
-        protected override void FixOceanFeatureDisabled(SerializedObject oceanComponent)
+        protected override string FixOceanFeatureDisabled(SerializedObject oceanComponent)
         {
-            oceanComponent.FindProperty("_createShadowData").boolValue = true;
+            if (oceanComponent != null)
+            {
+                oceanComponent.FindProperty("_createShadowData").boolValue = true;
+            }
+            return "Enable 'Create Shadow Data' option on OceanRenderer component.";
         }
 
         protected override string RequiredShaderKeyword => LodDataMgrShadow.MATERIAL_KEYWORD;

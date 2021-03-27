@@ -25,9 +25,13 @@ namespace Crest
 #if UNITY_EDITOR
         protected override bool FeatureEnabled(OceanRenderer ocean) => ocean.CreateDynamicWaveSim;
         protected override string FeatureDisabledErrorMessage => "<i>Create Dynamic Wave Sim</i> must be enabled on the OceanRenderer component to enable the dynamic wave simulation.";
-        protected override void FixOceanFeatureDisabled(SerializedObject oceanComponent)
+        protected override string FixOceanFeatureDisabled(SerializedObject oceanComponent)
         {
-            oceanComponent.FindProperty("_createDynamicWaveSim").boolValue = true;
+            if (oceanComponent != null)
+            {
+                oceanComponent.FindProperty("_createDynamicWaveSim").boolValue = true;
+            }
+            return "Enable 'Create Dynamic Wave Sim' option on OceanRenderer component.";
         }
 #endif
     }

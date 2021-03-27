@@ -25,9 +25,13 @@ namespace Crest
 #if UNITY_EDITOR
         protected override bool FeatureEnabled(OceanRenderer ocean) => ocean.CreateFoamSim;
         protected override string FeatureDisabledErrorMessage => "<i>Create Foam Sim</i> must be enabled on the OceanRenderer component.";
-        protected override void FixOceanFeatureDisabled(SerializedObject oceanComponent)
+        protected override string FixOceanFeatureDisabled(SerializedObject oceanComponent)
         {
-            oceanComponent.FindProperty("_createFoamSim").boolValue = true;
+            if (oceanComponent != null)
+            {
+                oceanComponent.FindProperty("_createFoamSim").boolValue = true;
+            }
+            return "Enable 'Create Foam Sim' option on OceanRenderer component.";
         }
 
         protected override string RequiredShaderKeywordProperty => LodDataMgrFoam.MATERIAL_KEYWORD_PROPERTY;

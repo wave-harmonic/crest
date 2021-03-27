@@ -18,7 +18,7 @@ Release Notes
 
    .. note::
 
-      Release Notes only covers `HDRP` and `URP`.
+      Release Notes for `BIRP` are not comprehensive as they only cover changes `BIRP` has in common with `HDRP` and `URP`, and do not cover changes specific to `BIRP`.
 
 
 |version|

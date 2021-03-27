@@ -14,12 +14,6 @@ Release Notes
    The *Unity Asset Store* distribution is broken in some versions of *Unity*, please use 2019.4.19f1 / 2020.2.3f1 / 2021.1.0b3 or later.
    If you are upgrading `Crest`, please make a backup of your project and remove the `Crest` files before installing the new version.
 
-.. only:: html or readthedocs
-
-   .. note::
-
-      Release Notes for `BIRP` are not comprehensive as they only cover changes `BIRP` has in common with `HDRP` and `URP`, and do not cover changes specific to `BIRP`.
-
 
 |version|
 ---------

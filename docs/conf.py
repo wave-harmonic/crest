@@ -115,15 +115,15 @@ html_show_sphinx = False
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ["_static", "../logo"]
 
-# These paths are either relative to html_static_path
-# or fully qualified paths (eg. https://...)
+# These paths are either relative to html_static_path or fully qualified paths (eg. https://...).
+# Increment query parameter to invalidate the cache.
 html_css_files = [
-    'custom.css',
+    'custom.css?v1.0',
 ]
 
 html_js_files = [
     'https://cdnjs.cloudflare.com/ajax/libs/medium-zoom/1.0.6/medium-zoom.min.js',
-    'custom.js',
+    'custom.js?v1.0',
 ]
 
 # -- Options for PDF output --------------------------------------------------

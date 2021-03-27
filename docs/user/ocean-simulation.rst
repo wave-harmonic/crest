@@ -169,7 +169,7 @@ The following input shaders are provided under *Crest/Inputs/Foam*:
 
 
 General Settings
-^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~
 
 -  **Foam Fade Rate** - How quickly foam dissipates.
    Low values mean foam remains on surface for longer.

@@ -47,6 +47,12 @@
     display: none;
 }
 
+/* Compatibility admonition is right at the top so it needs more margin. */
+article[role="main"] > .admonition:first-child
+{
+    margin-top: 2rem;
+}
+
 
 /****************************************************************************/
 /* Sidebar Logo

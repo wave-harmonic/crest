@@ -67,10 +67,10 @@ namespace Crest
         {
         }
 
-        static void FixAttachRenderer(SerializedObject lodInputComponent)
+        static void FixAttachSpline(SerializedObject lodInputComponent)
         {
             var gameObject = lodInputComponent.targetObject as GameObject;
-            gameObject.AddComponent<MeshRenderer>();
+            gameObject.AddComponent<Spline.Spline>();
             EditorUtility.SetDirty(gameObject);
         }
 
@@ -93,7 +93,7 @@ namespace Crest
             return true;
         }
 
-        public static bool ValidateRenderer(bool rendererRequired, GameObject gameObject, ShowMessage showMessage)
+        public static bool ValidateInputMesh(bool rendererRequired, GameObject gameObject, ShowMessage showMessage)
         {
             var renderer = gameObject.GetComponent<MeshRenderer>();
 
@@ -110,7 +110,7 @@ namespace Crest
 
             if (!renderer)
             {
-                showMessage("A MeshRenderer component is required but none is attached to ocean input.", MessageType.Error, gameObject, FixAttachRenderer);
+                showMessage("A Crest Spline component is required to drive this data. Alternative a MeshRenderer can be added. Neither is currently attached to ocean input.", MessageType.Error, gameObject, FixAttachSpline);
                 return false;
             }
 

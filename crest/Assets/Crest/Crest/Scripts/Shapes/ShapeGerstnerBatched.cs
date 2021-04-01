@@ -855,7 +855,7 @@ namespace Crest
             // Renderer
             if (_mode == GerstnerMode.Geometry)
             {
-                isValid = ValidatedHelper.ValidateRenderer(true, gameObject, showMessage);
+                isValid = ValidatedHelper.ValidateInputMesh(true, gameObject, showMessage);
 
                 if (TryGetComponent<MeshRenderer>(out var meshRenderer))
                 {

@@ -11,6 +11,7 @@ namespace Crest
     /// Registers a custom input to the foam simulation. Attach this GameObjects that you want to influence the foam simulation, such as depositing foam on the surface.
     /// </summary>
     [ExecuteAlways]
+    [AddComponentMenu(MENU_PREFIX + "Foam Input")]
     public class RegisterFoamInput : RegisterLodDataInputWithSplineSupport<LodDataMgrFoam, SplinePointDataFoam>
     {
         public override bool Enabled => true;
@@ -37,6 +38,7 @@ namespace Crest
             oceanComponent.FindProperty("_createFoamSim").boolValue = true;
         }
 
+        protected override string RequiredShaderKeywordProperty => LodDataMgrFoam.MATERIAL_KEYWORD_PROPERTY;
         protected override string RequiredShaderKeyword => LodDataMgrFoam.MATERIAL_KEYWORD;
         protected override string KeywordMissingErrorMessage => LodDataMgrFoam.ERROR_MATERIAL_KEYWORD_MISSING;
 #endif // UNITY_EDITOR

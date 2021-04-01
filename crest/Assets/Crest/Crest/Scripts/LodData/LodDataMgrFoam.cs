@@ -19,7 +19,8 @@ namespace Crest
         public override string SimName { get { return "Foam"; } }
         protected override GraphicsFormat RequestedTextureFormat => Settings._renderTextureGraphicsFormat;
 
-        internal const string MATERIAL_KEYWORD = "_FOAM_ON";
+        internal const string MATERIAL_KEYWORD_PROPERTY = "_Foam";
+        internal const string MATERIAL_KEYWORD = MATERIAL_KEYWORD_PREFIX + "_FOAM_ON";
         internal const string ERROR_MATERIAL_KEYWORD_MISSING = "Foam must be enabled on the ocean material. Tick the <i>Enable</i> option in the <i>Foam</i> parameter section on the material currently assigned to the OceanRenderer component.";
         internal const string ERROR_MATERIAL_KEYWORD_ON_FEATURE_OFF = "The Foam feature is disabled on this component but is enabled on the ocean material. If this is not intentional, either enable the <i>Create Foam Sim</i> option on this component to turn it on, or disable the Foam feature on the ocean material to save performance.";
 
@@ -55,7 +56,8 @@ namespace Crest
             base.Start();
 
 #if UNITY_EDITOR
-            if (OceanRenderer.Instance != null && OceanRenderer.Instance.OceanMaterial != null
+            if (OceanRenderer.Instance.OceanMaterial != null
+                && OceanRenderer.Instance.OceanMaterial.HasProperty(MATERIAL_KEYWORD_PROPERTY)
                 && !OceanRenderer.Instance.OceanMaterial.IsKeywordEnabled(MATERIAL_KEYWORD))
             {
                 Debug.LogWarning(ERROR_MATERIAL_KEYWORD_MISSING, _ocean);
@@ -83,11 +85,11 @@ namespace Crest
             LodDataMgrFlow.Bind(simMaterial);
         }
 
-        public override void GetSimSubstepData(float frameDt, out int numSubsteps, out float substepDt)
+        protected override void GetSimSubstepData(float timeToSimulate, out int numSubsteps, out float substepDt)
         {
-            // foam always does just one sim step
-            substepDt = frameDt;
-            numSubsteps = 1;
+            numSubsteps = Mathf.FloorToInt(timeToSimulate * Settings._simulationFrequency);
+
+            substepDt = numSubsteps > 0 ? (1f / Settings._simulationFrequency) : 0f;
         }
 
         readonly static string s_textureArrayName = "_LD_TexArray_Foam";

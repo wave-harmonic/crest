@@ -17,9 +17,9 @@ The version hosted here targets the **built-in render pipeline**, links to the s
 
 **Twitter:** [@crest_ocean](https://twitter.com/@crest_ocean)
 
-**URP asset:** [Crest Ocean System URP](https://assetstore.unity.com/packages/tools/particles-effects/crest-ocean-system-urp-141674)
-
-**HDRP asset:** [Crest Ocean System HDRP](https://assetstore.unity.com/packages/tools/particles-effects/crest-ocean-system-hdrp-164158)
+|<a href="https://assetstore.unity.com/packages/tools/particles-effects/crest-ocean-system-urp-141674" target="_blank"><img src="https://assetstorev1-prd-cdn.unity3d.com/key-image/ae4a1e07-c6f1-4b2e-b1c3-9f2065d43515.jpg" alt="Crest Ocean System URP Asset" width="240" height="180"/></a>|<a href="https://assetstore.unity.com/packages/tools/particles-effects/crest-ocean-system-urp-141674" target="_blank"><img src="https://assetstorev1-prd-cdn.unity3d.com/key-image/68d1442e-488d-4ae9-8ec4-a7e3ff913788.jpg" alt="Crest Ocean System HDRP Asset" width="240" height="180"/></a>|
+:-:|:-:|
+[Crest Ocean System URP](https://assetstore.unity.com/packages/tools/particles-effects/crest-ocean-system-urp-141674)|[Crest Ocean System HDRP](https://assetstore.unity.com/packages/tools/particles-effects/crest-ocean-system-hdrp-164158)
 
 # Showcase Gallery
 
@@ -38,9 +38,7 @@ The version hosted here targets the **built-in render pipeline**, links to the s
 
 # Documentation
 
-Refer to [USERGUIDE.md](https://github.com/wave-harmonic/crest/blob/master/USERGUIDE.md) for full documentation, including **Initial setup steps**.
-
-There is also a getting started video here: https://www.youtube.com/watch?v=qsgeG4sSLFw&t=142s .
+[Full documentation is available online](https://crest.readthedocs.io/en/latest), including *initial setup steps*.
 
 # Prerequisites
 
@@ -48,7 +46,6 @@ There is also a getting started video here: https://www.youtube.com/watch?v=qsge
   * The SRP assets on the Asset Store specify the minimum version required.
   * Releases on this GitHub target the built-in render pipeline, and each release specifies which version of Unity it was developed on. Currently Unity 2019.4.8 or later is the minimum version. See further down for 2018.4 support.
 * *Crest* example content:
-  * The content requires a layer named *Terrain* which should be added to your project.
   * The post processing package is used (for aesthetic reasons), if this is not present in your project you will see an unassigned script warning which you can fix by removing the offending script.
 * .NET 4.x runtime
 * [Shader compilation target](https://docs.unity3d.com/Manual/SL-ShaderCompileTargets.html) 4.5 or above

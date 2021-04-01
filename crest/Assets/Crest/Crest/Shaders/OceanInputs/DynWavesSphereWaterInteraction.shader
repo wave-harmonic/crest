@@ -6,7 +6,8 @@ Shader "Crest/Inputs/Dynamic Waves/Sphere-Water Interaction"
 {
 	Properties
 	{
-		_Strength("Strength", Range(0., 1000.)) = 0.2
+		_Strength("Strength", Range(0.0, 10.0)) = 0.2
+		_StrengthVertical("Vertical Strength Multiplier", Range(0.0, 1.0)) = 1.0
 	}
 
 	SubShader
@@ -23,14 +24,20 @@ Shader "Crest/Inputs/Dynamic Waves/Sphere-Water Interaction"
 
 			#include "UnityCG.cginc"
 
+			#include "../OceanInputsDriven.hlsl"
+
 			CBUFFER_START(CrestPerOceanInput)
 			float3 _Velocity;
 			float _SimDeltaTime;
 			float _Strength;
+			float _StrengthVertical;
 			float _Weight;
 			float _Radius;
 			float3 _DisplacementAtInputPosition;
 			CBUFFER_END
+
+			float _MinWavelength;
+			float _LodIdx;
 
 			struct Attributes
 			{
@@ -59,7 +66,21 @@ Shader "Crest/Inputs/Dynamic Waves/Sphere-Water Interaction"
 
 				o.positionCS = mul(UNITY_MATRIX_VP, float4(vertexWorldPos, 1.0));
 
+				if( 2.0 * _Radius < _CrestCascadeData[_LodIdx]._texelWidth ) o.positionCS *= 0.0;
+
 				return o;
+			}
+
+			// Resolution-aware interaction falloff function, inspired by "bandfiltered step" from Ottosson.
+			// Basically adding together this falloff function at different scales generates a consistent result
+			// that doesn't grow into an ugly uintended shape. Shadertoy with more details: https://www.shadertoy.com/view/WltBWM
+			float InteractionFalloff( float a, float x )
+			{
+				float ax = a * x;
+				float ax2 = ax * ax;
+				float ax4 = ax2 * ax2;
+				
+				return ax / (1.0 + ax2 * ax4);
 			}
 
 			// Signed distance field for sphere.
@@ -78,17 +99,22 @@ Shader "Crest/Inputs/Dynamic Waves/Sphere-Water Interaction"
 				SphereSDF(input.offsetXZ, signedDist, sdfNormal);
 
 				// Forces from up/down motion. Push in same direction as vel inside sphere, and opposite dir outside.
-				float forceUpDown = _Velocity.y;
-				if (signedDist > 0.0)
+				float forceUpDown = 0.0;
 				{
-					forceUpDown *= -exp(-signedDist * signedDist * 4.0);
+					forceUpDown = -1.0 * _StrengthVertical * _Velocity.y;
+
+					// Range / radius of interaction force
+					const float a = 1.67 / _MinWavelength;
+					forceUpDown *= 0.2 * InteractionFalloff( a, signedDist );
 				}
 
 				// Forces from horizontal motion - push water up in direction of motion, pull down behind.
-				float forceHoriz = -0.75 * dot(sdfNormal, _Velocity.xz);
-				if (signedDist > 0.0)
+				float forceHoriz = 0.0;
+				if( signedDist > 0.0 )
 				{
-					forceHoriz *= -exp(-signedDist * signedDist);
+					// Range / radius of interaction force
+					const float a = 1.43 / _MinWavelength;
+					forceHoriz = 0.2 * dot( sdfNormal, _Velocity.xz ) * InteractionFalloff( a, signedDist );
 				}
 
 				// Add to velocity (y-channel) to accelerate water.

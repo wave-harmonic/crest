@@ -18,6 +18,8 @@ namespace Crest
     /// Gerstner ocean waves.
     /// </summary>
     [ExecuteAlways]
+    [AddComponentMenu(Internal.Constants.MENU_PREFIX_SCRIPTS + "Shape Gerstner")]
+    [HelpURL("https://crest.readthedocs.io/en/latest/user/wave-conditions.html#shapegerstner-preview")]
     public partial class ShapeGerstner : MonoBehaviour, IFloatingOrigin
         , ISplinePointCustomDataSetup
 #if UNITY_EDITOR

@@ -11,6 +11,7 @@ namespace Crest
     /// Registers a custom input to the flow data. Attach this GameObjects that you want to influence the horizontal flow of the water volume.
     /// </summary>
     [ExecuteAlways]
+    [AddComponentMenu(MENU_PREFIX + "Flow Input")]
     public class RegisterFlowInput : RegisterLodDataInputWithSplineSupport<LodDataMgrFlow, SplinePointDataFlow>
     {
         public override bool Enabled => true;
@@ -39,6 +40,7 @@ namespace Crest
             oceanComponent.FindProperty("_createFlowSim").boolValue = true;
         }
 
+        protected override string RequiredShaderKeywordProperty => LodDataMgrFlow.MATERIAL_KEYWORD_PROPERTY;
         protected override string RequiredShaderKeyword => LodDataMgrFlow.MATERIAL_KEYWORD;
         protected override string KeywordMissingErrorMessage => LodDataMgrFlow.ERROR_MATERIAL_KEYWORD_MISSING;
 #endif // UNITY_EDITOR

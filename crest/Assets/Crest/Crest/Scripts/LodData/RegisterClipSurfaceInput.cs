@@ -11,6 +11,7 @@ namespace Crest
     /// Registers a custom input to the clip surface simulation. Attach this to GameObjects that you want to use to
     /// clip the surface of the ocean.
     /// </summary>
+    [AddComponentMenu(MENU_PREFIX + "Clip Surface Input")]
     public class RegisterClipSurfaceInput : RegisterLodDataInput<LodDataMgrClipSurface>
     {
         bool _enabled = true;
@@ -84,6 +85,7 @@ namespace Crest
 
 #if UNITY_EDITOR
         protected override bool FeatureEnabled(OceanRenderer ocean) => ocean.CreateClipSurfaceData;
+        protected override string RequiredShaderKeywordProperty => LodDataMgrClipSurface.MATERIAL_KEYWORD_PROPERTY;
         protected override string RequiredShaderKeyword => LodDataMgrClipSurface.MATERIAL_KEYWORD;
         protected override void FixOceanFeatureDisabled(SerializedObject oceanComponent)
         {

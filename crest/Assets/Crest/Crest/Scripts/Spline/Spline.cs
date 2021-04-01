@@ -16,6 +16,8 @@ namespace Crest.Spline
     /// Simple spline object. Spline points are child gameobjects.
     /// </summary>
     [ExecuteAlways]
+    [AddComponentMenu(Internal.Constants.MENU_PREFIX_SPLINE + "Spline")]
+    [HelpURL("https://crest.readthedocs.io/en/latest/user/wave-conditions.html#wave-splines-preview")]
     public partial class Spline : MonoBehaviour
     {
         [Tooltip("Connect start and end point to close spline into a loop. Requires at least 3 spline points.")]

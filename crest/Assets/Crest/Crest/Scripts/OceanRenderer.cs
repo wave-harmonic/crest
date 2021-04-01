@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Unity.Collections.LowLevel.Unsafe;
+using Crest.Internal;
 #if UNITY_EDITOR
 using UnityEngine.Rendering;
 using UnityEditor;
@@ -22,6 +23,8 @@ namespace Crest
     /// and moves/scales the ocean based on the viewpoint. It also hosts a number of global settings that can be tweaked here.
     /// </summary>
     [ExecuteAlways, SelectionBase]
+    [AddComponentMenu(Internal.Constants.MENU_PREFIX_SCRIPTS + "Ocean Renderer")]
+    [HelpURL(Constants.HELP_URL_GENERAL)]
     public partial class OceanRenderer : MonoBehaviour
     {
         [Tooltip("The viewpoint which drives the ocean detail. Defaults to the camera."), SerializeField]
@@ -1107,13 +1110,6 @@ namespace Crest
                 depthCache.Validate(ocean, ValidatedHelper.DebugLog);
             }
 
-            // AssignLayer
-            var assignLayers = FindObjectsOfType<AssignLayer>();
-            foreach (var assign in assignLayers)
-            {
-                assign.Validate(ocean, ValidatedHelper.DebugLog);
-            }
-
             // FloatingObjectBase
             var floatingObjects = FindObjectsOfType<FloatingObjectBase>();
             foreach (var floatingObject in floatingObjects)
@@ -1282,7 +1278,13 @@ namespace Crest
                 );
             }
 
-            if (ocean.CreateFoamSim != ocean.OceanMaterial.IsKeywordEnabled(LodDataMgrFoam.MATERIAL_KEYWORD))
+            // For safety.
+            if (ocean == null || ocean.OceanMaterial == null)
+            {
+                return isValid;
+            }
+
+            if (ocean.OceanMaterial.HasProperty(LodDataMgrFoam.MATERIAL_KEYWORD_PROPERTY) && ocean.CreateFoamSim != ocean.OceanMaterial.IsKeywordEnabled(LodDataMgrFoam.MATERIAL_KEYWORD))
             {
                 if (ocean.CreateFoamSim)
                 {
@@ -1294,7 +1296,7 @@ namespace Crest
                 }
             }
 
-            if (ocean.CreateFlowSim != ocean.OceanMaterial.IsKeywordEnabled(LodDataMgrFlow.MATERIAL_KEYWORD))
+            if (ocean.OceanMaterial.HasProperty(LodDataMgrFlow.MATERIAL_KEYWORD_PROPERTY) && ocean.CreateFlowSim != ocean.OceanMaterial.IsKeywordEnabled(LodDataMgrFlow.MATERIAL_KEYWORD))
             {
                 if (ocean.CreateFlowSim)
                 {
@@ -1306,7 +1308,7 @@ namespace Crest
                 }
             }
 
-            if (ocean.CreateShadowData != ocean.OceanMaterial.IsKeywordEnabled(LodDataMgrShadow.MATERIAL_KEYWORD))
+            if (ocean.OceanMaterial.HasProperty(LodDataMgrShadow.MATERIAL_KEYWORD_PROPERTY) && ocean.CreateShadowData != ocean.OceanMaterial.IsKeywordEnabled(LodDataMgrShadow.MATERIAL_KEYWORD))
             {
                 if (ocean.CreateShadowData)
                 {
@@ -1318,7 +1320,7 @@ namespace Crest
                 }
             }
 
-            if (ocean.CreateClipSurfaceData != ocean.OceanMaterial.IsKeywordEnabled(LodDataMgrClipSurface.MATERIAL_KEYWORD))
+            if (ocean.OceanMaterial.HasProperty(LodDataMgrClipSurface.MATERIAL_KEYWORD_PROPERTY) && ocean.CreateClipSurfaceData != ocean.OceanMaterial.IsKeywordEnabled(LodDataMgrClipSurface.MATERIAL_KEYWORD))
             {
                 if (ocean.CreateClipSurfaceData)
                 {
@@ -1409,6 +1411,11 @@ namespace Crest
             if (GUILayout.Button("Validate Setup"))
             {
                 OceanRenderer.RunValidation(target);
+            }
+
+            if (GUILayout.Button("Open Material Online Help"))
+            {
+                Application.OpenURL("https://crest.readthedocs.io/en/latest/user/configuration.html#material-parameters");
             }
 
             DrawMaterialEditor();

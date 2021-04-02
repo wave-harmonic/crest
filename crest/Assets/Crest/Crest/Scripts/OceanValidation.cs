@@ -78,6 +78,21 @@ namespace Crest
             EditorUtility.SetDirty(gameObject);
         }
 
+        internal static void FixSetMaterialOptionEnabled(SerializedObject material, string keyword, string floatParam, bool enabled)
+        {
+            var mat = material.targetObject as Material;
+            Undo.RecordObject(mat, $"Enable keyword {keyword}");
+            if (enabled)
+            {
+                mat.EnableKeyword(keyword);
+            }
+            else
+            {
+                mat.DisableKeyword(keyword);
+            }
+            mat.SetFloat(floatParam, enabled ? 1f : 0f);
+        }
+
         public static bool ValidateRenderer(GameObject gameObject, string shaderPrefix, ShowMessage showMessage)
         {
             var renderer = gameObject.GetComponent<Renderer>();

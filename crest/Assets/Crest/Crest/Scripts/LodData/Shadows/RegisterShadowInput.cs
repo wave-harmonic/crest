@@ -30,7 +30,9 @@ namespace Crest
         protected override bool FeatureEnabled(OceanRenderer ocean) => ocean.CreateShadowData;
 
         protected override string RequiredShaderKeyword => LodDataMgrShadow.MATERIAL_KEYWORD;
-        protected override string KeywordMissingErrorMessage => LodDataMgrShadow.ERROR_MATERIAL_KEYWORD_MISSING;
+
+        protected override string MaterialFeatureDisabledError => LodDataMgrShadow.ERROR_MATERIAL_KEYWORD_MISSING;
+        protected override string MaterialFeatureDisabledFix => LodDataMgrShadow.ERROR_MATERIAL_KEYWORD_MISSING_FIX;
 #endif // UNITY_EDITOR
     }
 }

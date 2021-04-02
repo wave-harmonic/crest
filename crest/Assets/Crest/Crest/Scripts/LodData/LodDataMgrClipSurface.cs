@@ -22,9 +22,9 @@ namespace Crest
         internal const string MATERIAL_KEYWORD_PROPERTY = "_ClipSurface";
         internal const string MATERIAL_KEYWORD = MATERIAL_KEYWORD_PREFIX + "_CLIPSURFACE_ON";
         internal const string ERROR_MATERIAL_KEYWORD_MISSING = "Clipping must be enabled on the ocean material to enable clipping holes in the water surface.";
-        internal const string ERROR_MATERIAL_KEYWORD_MISSING_FIX = "Tick the <i>Enable</i> option in the <i>Clip Surface</i> parameter section on the material currently assigned to the OceanRenderer component.";
+        internal const string ERROR_MATERIAL_KEYWORD_MISSING_FIX = "Tick the Enable option in the Clip Surface parameter section on the material currently assigned to the OceanRenderer component.";
         internal const string ERROR_MATERIAL_KEYWORD_ON_FEATURE_OFF = "The clipping feature is disabled on this component but is enabled on the ocean material.";
-        internal const string ERROR_MATERIAL_KEYWORD_ON_FEATURE_OFF_FIX = "If this is not intentional, either enable the <i>Create Clip Surface Data</i> option on this component to turn it on, or disable the Clipping feature on the ocean material to save performance.";
+        internal const string ERROR_MATERIAL_KEYWORD_ON_FEATURE_OFF_FIX = "If this is not intentional, either enable the Create Clip Surface Data option on this component to turn it on, or disable the Clipping feature on the ocean material to save performance.";
 
         bool _targetsClear = false;
 
@@ -42,7 +42,7 @@ namespace Crest
                 && OceanRenderer.Instance.OceanMaterial.HasProperty(MATERIAL_KEYWORD_PROPERTY)
                 && !OceanRenderer.Instance.OceanMaterial.IsKeywordEnabled(MATERIAL_KEYWORD))
             {
-                Debug.LogWarning(ERROR_MATERIAL_KEYWORD_MISSING, _ocean);
+                Debug.LogWarning(ERROR_MATERIAL_KEYWORD_MISSING + " " + ERROR_MATERIAL_KEYWORD_MISSING_FIX, _ocean);
             }
 #endif
         }

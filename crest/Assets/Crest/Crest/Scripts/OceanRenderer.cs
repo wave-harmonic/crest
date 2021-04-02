@@ -1286,7 +1286,7 @@ namespace Crest
             {
                 if (ocean.CreateFoamSim)
                 {
-                    showMessage(LodDataMgrFoam.ERROR_MATERIAL_KEYWORD_MISSING, LodDataMgrFoam.ERROR_MATERIAL_KEYWORD_MISSING_FIX, ValidatedHelper.MessageType.Error, ocean.OceanMaterial);
+                    showMessage("Foam not enabled on ocean material and will not be visible.", LodDataMgrFoam.ERROR_MATERIAL_KEYWORD_MISSING_FIX, ValidatedHelper.MessageType.Error, ocean.OceanMaterial);
                 }
                 else
                 {

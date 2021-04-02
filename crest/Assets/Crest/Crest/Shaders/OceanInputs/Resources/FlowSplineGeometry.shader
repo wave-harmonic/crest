@@ -43,7 +43,7 @@ Shader "Hidden/Crest/Inputs/Flow/Spline Geometry"
                 float3 positionOS : POSITION;
                 float2 axis : TEXCOORD0;
                 float invNormDistToShoreline : TEXCOORD1;
-				float speed : TEXCOORD2;
+                float speed : TEXCOORD2;
             };
 
             struct Varyings
@@ -52,7 +52,7 @@ Shader "Hidden/Crest/Inputs/Flow/Spline Geometry"
                 float3 uv_slice : TEXCOORD1;
                 float2 axis : TEXCOORD2;
                 float invNormDistToShoreline : TEXCOORD4;
-				float speed : TEXCOORD5;
+                float speed : TEXCOORD5;
             };
 
             CBUFFER_START(GerstnerPerMaterial)
@@ -65,7 +65,7 @@ Shader "Hidden/Crest/Inputs/Flow/Spline Geometry"
 
             Varyings Vert(Attributes v)
             {
-				Varyings o;
+                Varyings o;
 
                 const float3 positionOS = v.positionOS;
                 o.positionCS = UnityObjectToClipPos(positionOS);
@@ -77,9 +77,9 @@ Shader "Hidden/Crest/Inputs/Flow/Spline Geometry"
                 o.invNormDistToShoreline = v.invNormDistToShoreline;
 
                 // Rotate local-space sideays axis around y-axis, by 90deg, and by object to world to move into world space
-				o.axis = v.axis.y * unity_ObjectToWorld._m00_m20 - v.axis.x * unity_ObjectToWorld._m02_m22;
+                o.axis = v.axis.y * unity_ObjectToWorld._m00_m20 - v.axis.x * unity_ObjectToWorld._m02_m22;
 
-				o.speed = v.speed;
+                o.speed = v.speed;
 
                 return o;
             }
@@ -89,10 +89,10 @@ Shader "Hidden/Crest/Inputs/Flow/Spline Geometry"
                 float wt = _Weight;
 
                 // Feather at front/back
-				if( input.invNormDistToShoreline > 0.5 ) input.invNormDistToShoreline = 1.0 - input.invNormDistToShoreline;
+                if( input.invNormDistToShoreline > 0.5 ) input.invNormDistToShoreline = 1.0 - input.invNormDistToShoreline;
                 wt *= min( input.invNormDistToShoreline / _FeatherWaveStart, 1.0 );
 
-				return wt * input.speed * input.axis;
+                return wt * input.speed * input.axis;
             }
             ENDCG
         }

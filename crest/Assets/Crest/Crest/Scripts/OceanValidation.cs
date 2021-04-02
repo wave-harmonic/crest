@@ -70,7 +70,7 @@ namespace Crest
         static void FixAttachSpline(SerializedObject lodInputComponent)
         {
             var gameObject = lodInputComponent.targetObject as GameObject;
-            gameObject.AddComponent<Spline.Spline>();
+            Undo.AddComponent<Spline.Spline>(gameObject);
             EditorUtility.SetDirty(gameObject);
         }
 

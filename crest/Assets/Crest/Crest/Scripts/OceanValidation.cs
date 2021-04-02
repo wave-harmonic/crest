@@ -78,7 +78,7 @@ namespace Crest
         {
             var gameObject = lodInputComponent.targetObject as GameObject;
             var renderer = gameObject.GetComponent<MeshRenderer>();
-            Object.DestroyImmediate(renderer);
+            Undo.DestroyObjectImmediate(renderer);
             EditorUtility.SetDirty(gameObject);
         }
 

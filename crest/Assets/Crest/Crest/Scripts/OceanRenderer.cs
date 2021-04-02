@@ -1324,15 +1324,32 @@ namespace Crest
             {
                 if (ocean.CreateClipSurfaceData)
                 {
-                    showMessage(LodDataMgrClipSurface.ERROR_MATERIAL_KEYWORD_MISSING, ValidatedHelper.MessageType.Error, ocean.OceanMaterial);
+                    showMessage(LodDataMgrClipSurface.ERROR_MATERIAL_KEYWORD_MISSING, ValidatedHelper.MessageType.Error, ocean.OceanMaterial,
+                        (so) => FixSetMaterialKeywordEnabled(so, LodDataMgrClipSurface.MATERIAL_KEYWORD, true));
                 }
                 else
                 {
-                    showMessage(LodDataMgrClipSurface.ERROR_MATERIAL_KEYWORD_ON_FEATURE_OFF, ValidatedHelper.MessageType.Info, ocean.OceanMaterial);
+                    showMessage(LodDataMgrClipSurface.ERROR_MATERIAL_KEYWORD_ON_FEATURE_OFF, ValidatedHelper.MessageType.Info, ocean.OceanMaterial,
+                        (so) => FixSetMaterialKeywordEnabled(so, LodDataMgrClipSurface.MATERIAL_KEYWORD, false));
                 }
             }
 
             return isValid;
+        }
+
+        internal static void FixSetMaterialKeywordEnabled(SerializedObject so, string keyword, bool enabled)
+        {
+            Material mat = so.targetObject as Material;
+            Undo.RecordObject(mat, $"Enable keyword {keyword}");
+            // Does apply change in viewport, but does not change shared material asset it seems..
+            if (enabled)
+            {
+                mat.EnableKeyword(keyword);
+            }
+            else
+            {
+                mat.DisableKeyword(keyword);
+            }
         }
 
         void OnValidate()

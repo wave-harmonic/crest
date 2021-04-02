@@ -408,7 +408,8 @@ namespace Crest
 
             if (!string.IsNullOrEmpty(RequiredShaderKeyword) && ocean.OceanMaterial.HasProperty(RequiredShaderKeywordProperty) && !ocean.OceanMaterial.IsKeywordEnabled(RequiredShaderKeyword))
             {
-                showMessage(KeywordMissingErrorMessage, ValidatedHelper.MessageType.Error, ocean.OceanMaterial);
+                showMessage(KeywordMissingErrorMessage, ValidatedHelper.MessageType.Error, ocean.OceanMaterial,
+                    (so) => OceanRenderer.FixSetMaterialKeywordEnabled(so, RequiredShaderKeyword, true));
                 isValid = false;
             }
 
